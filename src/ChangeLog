@@ -1,3 +1,8 @@
+Wed Mar 31 22:36:22 2004  Ben Pfaff  <blp@gnu.org>
+
+	* frequencies.q: (calc_stats) Use moments data structure and
+	calc_seskew(), calc_sekurt() functions.
+
 Tue Mar 30 22:04:19 2004  Ben Pfaff  <blp@gnu.org>
 
 	* vfm.c: Had to get last call to multipass_split_output() inside

@@ -33,6 +33,7 @@
 #include "pool.h"
 #include "command.h"
 #include "lexer.h"
+#include "moments.h"
 #include "error.h"
 #include "algorithm.h"
 #include "magic.h"
@@ -1168,19 +1169,14 @@ static void
 calc_stats (struct variable * v, double d[frq_n_stats])
 {
   double W = v->p.frq.tab.valid_cases;
-  double X_bar, X_mode, M2, M3, M4;
+  struct moments *m;
   struct freq *f;
   int most_often;
+  double X_mode;
 
   double cum_total;
   int i = 0;
   double previous_value;
-
-  /* Calculate the mean. */
-  X_bar = 0.0;
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
-    X_bar += f->v.f * f->c;
-  X_bar /= W;
 
   /* Calculate percentiles. */
   cum_total = 0;
@@ -1216,56 +1212,27 @@ calc_stats (struct variable * v, double d[frq_n_stats])
         }
     }
 
-  /* Calculate moments about the mean. */
-  M2 = M3 = M4 = 0.0;
+  /* Calculate moments. */
+  m = moments_create (MOMENT_KURTOSIS);
   for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
-    {
-      double dev = f->v.f - X_bar;
-      double tmp;
-      tmp = dev * dev;
-      M2 += f->c * tmp;
-      tmp *= dev;
-      M3 += f->c * tmp;
-      tmp *= dev;
-      M4 += f->c * tmp;
-    }
-
+    moments_pass_one (m, f->v.f, f->c);
+  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+    moments_pass_two (m, f->v.f, f->c);
+  moments_calculate (m, NULL, &d[frq_mean], &d[frq_variance],
+                     &d[frq_skew], &d[frq_kurt]);
+  moments_destroy (m);
+                     
   /* Formulas below are taken from _SPSS Statistical Algorithms_. */
   d[frq_min] = v->p.frq.tab.valid[0].v.f;
   d[frq_max] = v->p.frq.tab.valid[v->p.frq.tab.n_valid - 1].v.f;
   d[frq_mode] = X_mode;
   d[frq_range] = d[frq_max] - d[frq_min];
   d[frq_median] = SYSMIS;
-  d[frq_mean] = X_bar;
-  d[frq_sum] = X_bar * W;
-  d[frq_variance] = M2 / (W - 1);
+  d[frq_sum] = d[frq_mean] * W;
   d[frq_stddev] = sqrt (d[frq_variance]);
   d[frq_semean] = d[frq_stddev] / sqrt (W);
-  if (W >= 3.0 && d[frq_variance] > 0)
-    {
-      double S = d[frq_stddev];
-      d[frq_skew] = (W * M3 / ((W - 1.0) * (W - 2.0) * S * S * S));
-      d[frq_seskew] = sqrt (6.0 * W * (W - 1.0)
-			    / ((W - 2.0) * (W + 1.0) * (W + 3.0)));
-    }
-  else
-    {
-      d[frq_skew] = d[frq_seskew] = SYSMIS;
-    }
-  if (W >= 4.0 && d[frq_variance] > 0)
-    {
-      double S2 = d[frq_variance];
-      double SE_g1 = d[frq_seskew];
-
-      d[frq_kurt] = ((W * (W + 1.0) * M4 - 3.0 * M2 * M2 * (W - 1.0))
-		     / ((W - 1.0) * (W - 2.0) * (W - 3.0) * S2 * S2));
-      d[frq_sekurt] = sqrt ((4.0 * (W * W - 1.0) * SE_g1 * SE_g1)
-			    / ((W - 3.0) * (W + 5.0)));
-    }
-  else
-    {
-      d[frq_kurt] = d[frq_sekurt] = SYSMIS;
-    }
+  d[frq_seskew] = calc_seskew (W);
+  d[frq_sekurt] = calc_sekurt (W);
 }
 
 /* Displays a table of all the statistics requested for variable V. */
