@@ -8,6 +8,7 @@ TESTS = command/aggregate.sh \
 	command/count.sh \
 	command/compute.sh \
 	command/descriptives.sh \
+	command/erase.sh \
 	command/file-label.sh \
 	command/filter.sh \
 	command/flip.sh \

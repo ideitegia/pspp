@@ -7863,6 +7863,7 @@ encountered in the input.
 * DISPLAY DOCUMENTS::           Display active file documents.
 * DISPLAY FILE LABEL::          Display the active file label.
 * DROP DOCUMENTS::              Remove documents from the active file.
+* ERASE::                       Erase a file.
 * EXECUTE::                     Execute pending transformations.
 * FILE LABEL::                  Set the active file's label.
 * FINISH::                      Terminate the PSPP session.
@@ -7934,7 +7935,7 @@ DISPLAY FILE LABEL.
 active file,
 if any.  @xref{FILE LABEL}.
 
-@node DROP DOCUMENTS, EXECUTE, DISPLAY FILE LABEL, Utilities
+@node DROP DOCUMENTS, ERASE, DISPLAY FILE LABEL, Utilities
 @section DROP DOCUMENTS
 @vindex DROP DOCUMENTS
 
@@ -7948,7 +7949,22 @@ New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
 @cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
 system files stored on disk.
 
-@node EXECUTE, FILE LABEL, DROP DOCUMENTS, Utilities
+
+@node ERASE, EXECUTE, DROP DOCUMENTS, Utilities
+@comment  node-name,  next,  previous,  up
+@section ERASE
+@vindex ERASE
+
+@display
+ERASE FILE file_name.
+@end display
+
+@cmd{ERASE FILE} deletes a file from the local filesystem.
+file_name must be quoted.
+This command cannot be used if the SAFER setting is active.
+
+
+@node EXECUTE, FILE LABEL, ERASE, Utilities
 @section EXECUTE
 @vindex EXECUTE
 
@@ -7998,6 +8014,7 @@ HOST.
 
 @cmd{HOST} suspends the current PSPP session and temporarily returns control 
 to the operating system.
+This command cannot be used if the SAFER setting is active.
 
 
 @node INCLUDE, QUIT, HOST, Utilities

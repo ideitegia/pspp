@@ -565,15 +565,24 @@ cmd_execute (void)
   return lex_end_of_command ();
 }
 
+
+#define assert_not_safer() \
+  do { \
+   if (set_safer) \
+    { \
+      msg (SE, _("This command not allowed when the SAFER option is set.")); \
+      return CMD_FAILURE; \
+    } \
+} while(0) 
+
+
+
 /* Parses, performs the ERASE command. */
 int
 cmd_erase (void)
 {
-  if (set_safer)
-    {
-      msg (SE, _("This command not allowed when the SAFER option is set."));
-      return CMD_FAILURE;
-    }
+
+  assert_not_safer();
   
   lex_match_id ("ERASE");
   if (!lex_force_match_id ("FILE"))
@@ -589,7 +598,7 @@ cmd_erase (void)
       return CMD_FAILURE;
     }
 
-  return lex_end_of_command ();
+  return CMD_SUCCESS;
 }
 
 #if unix
@@ -700,11 +709,7 @@ cmd_host (void)
 {
   int code;
 
-  if (set_safer)
-    {
-      msg (SE, _("This command not allowed when the SAFER option is set."));
-      return CMD_FAILURE;
-    }
+  assert_not_safer();
   
   lex_match_id ("HOST");
 
