@@ -22,7 +22,7 @@ private-install:
 private-uninstall:
 	$(MAKE) private-uninstall -C config
 
-EXTRA_DIST = config.rpath  NEWS ONEWS TODO pref.h.orig reconfigure configure
+EXTRA_DIST = config.rpath  NEWS ONEWS TODO pref.h.orig configure
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
 
