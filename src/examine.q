@@ -218,6 +218,19 @@ cmd_examine(void)
   if ( dependent_vars ) 
     free (dependent_vars);
 
+  {
+    struct factor *f = factors ;
+    while ( f ) 
+      {
+	struct factor *ff = f;
+
+	f = f->next;
+	free ( ff->fs );
+	hsh_destroy ( ff->fstats ) ;
+	free ( ff ) ;
+      }
+  }
+
   subc_list_double_destroy(&percentile_list);
 
   return CMD_SUCCESS;

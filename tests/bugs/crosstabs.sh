@@ -3,6 +3,7 @@
 # This program tests for a bug which crashed pspp when doing a crosstabs
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

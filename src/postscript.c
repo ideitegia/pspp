@@ -267,6 +267,7 @@ static unsigned hash_font_entry (const void *, void *param);
 static void free_font_entry (void *, void *foo);
 static struct font_entry *load_font (struct outp_driver *, const char *dit);
 static void init_fonts (void);
+static void done_fonts (void);
 
 static void dump_lines (struct outp_driver *this);
 
@@ -297,6 +298,8 @@ ps_open_global (struct outp_class *this UNUSED)
 static int
 ps_close_global (struct outp_class *this UNUSED)
 {
+  groff_done ();
+  done_fonts ();
   return 1;
 }
 
@@ -2815,6 +2818,12 @@ init_fonts (void)
 			 NULL, NULL);
 }
 
+static void
+done_fonts (void)
+{
+ hsh_destroy (ps_fonts);
+}
+
 /* Loads the font having Groff name DIT into THIS driver instance.
    Specifically, adds it into the THIS driver's `loaded' hash
    table. */
@@ -2901,6 +2910,9 @@ struct outp_class postscript_class =
   ps_text_get_size,
   ps_text_metrics,
   ps_text_draw,
+
+  NULL,
+  NULL
 };
 
 /* EPSF driver class.  FIXME: Probably doesn't work right. */
@@ -2942,6 +2954,9 @@ struct outp_class epsf_class =
   ps_text_get_size,
   ps_text_metrics,
   ps_text_draw,
+
+  NULL,
+  NULL
 };
 
 #endif /* NO_POSTSCRIPT */

@@ -5,6 +5,7 @@
 # BUG #11227
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

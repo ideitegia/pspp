@@ -5,6 +5,7 @@
 
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -48,7 +49,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/rnd.sps <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST LIST /a * pref * .
 BEGIN DATA.
     1.00     1.00    
@@ -66,7 +67,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 #Invalid syntax --- return value is non zero.
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps > /dev/null
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 1 ] ; then fail ; fi
 
 pass;

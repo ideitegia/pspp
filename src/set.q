@@ -1054,13 +1054,15 @@ set_viewport(int sig_num UNUSED)
 void
 done_settings(void)
 {
-  free(set_pager);
-  free(set_journal);
+  if ( rng ) 
+    gsl_rng_free (rng);
+  free (set_pager);
+  free (set_journal);
 
-  free(cmd.s_endcmd);
-  free(cmd.s_prompt);
-  free(cmd.s_cprompt);
-  free(cmd.s_dprompt);
+  free (cmd.s_endcmd);
+  free (cmd.s_prompt);
+  free (cmd.s_cprompt);
+  free (cmd.s_dprompt);
 }
 
 

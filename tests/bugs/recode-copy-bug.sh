@@ -3,6 +3,7 @@
 # This program tests ....
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

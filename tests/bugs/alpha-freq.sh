@@ -4,6 +4,7 @@
 # crash if given an alphanumeric variable
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

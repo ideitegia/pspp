@@ -3,6 +3,7 @@
 # This program tests for a bug in the `compute' command
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

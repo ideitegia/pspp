@@ -4,6 +4,7 @@
 # infinite loop.  Thus, this test passes as long as it completes.
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

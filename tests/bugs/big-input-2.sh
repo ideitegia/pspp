@@ -6,6 +6,7 @@
 
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

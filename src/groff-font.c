@@ -48,12 +48,6 @@ static void add_kern (struct font_desc * font, int ch1, int ch2, int adjust);
 /* Typical whitespace characters for tokenizing. */
 static const char whitespace[] = " \t\n\r\v";
 
-void
-groff_init (void)
-{
-  space_index = font_char_name_to_index ("space");
-}
-
 /* Some notes on the groff_font(8) manpage:
 
    DESC file format: A typical PostScript `res' would be 72000, with
@@ -446,6 +440,20 @@ static struct
     struct pool *ar;		/* Pool for names. */
   }
 hash;
+
+void
+groff_init (void)
+{
+  space_index = font_char_name_to_index ("space");
+}
+
+void
+groff_done (void)
+{
+  free (hash.tab) ;
+  pool_destroy(hash.ar);
+}
+
 
 /* Searches for NAME in the global character code table, returns the
    index if found; otherwise inserts NAME and returns the new

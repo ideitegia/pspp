@@ -4,6 +4,7 @@
 
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -47,7 +48,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/rnd.sps <<EOF
+cat > $TESTFILE <<EOF
 data list list /id * abc *.
 begin data.
 1 3.5
@@ -67,7 +68,7 @@ DESCRIPTIVES
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

@@ -30,6 +30,8 @@
 #include "error.h"
 #include "magic.h"
 #include "var.h"
+#include "linked-list.h"
+
 /* (headers) */
 
 /* File handle. */
@@ -215,6 +217,15 @@ create_file_handle (const char *handle_name, const char *filename)
   return handle;
 }
 
+void
+destroy_file_handle(struct file_handle *fh, void *aux UNUSED)
+{
+  free (fh->name);
+  free (fh->filename);
+  fn_free_identity (fh->identity);
+  free (fh);
+}
+
 static const char *
 mode_name (const char *mode) 
 {
@@ -304,6 +315,10 @@ fh_close (struct file_handle *h, const char *type, const char *mode)
   return h->open_cnt;
 }
 
+
+static struct linked_list *handle_list;
+
+
 /* Parses a file handle name, which may be a filename as a string or
    a file handle name as an identifier.  Returns the file handle or
    NULL on failure. */
@@ -330,10 +345,12 @@ fh_parse (void)
       char *handle_name = xmalloc (strlen (filename) + 3);
       sprintf (handle_name, "\"%s\"", filename);
       handle = create_file_handle (handle_name, filename);
+      ll_push_front(handle_list, handle);
       free (handle_name);
     }
 
   lex_get ();
+
 
   return handle;
 }
@@ -385,6 +402,23 @@ handle_get_tab_width (const struct file_handle *handle)
   assert (handle != NULL);
   return handle->tab_width;
 }
+
+
+void 
+fh_init(void)
+{
+  handle_list = ll_create(destroy_file_handle,0);
+}
+
+void 
+fh_done(void)
+{
+  assert(handle_list);
+  
+  ll_destroy(handle_list);
+  handle_list = 0;
+}
+
 
 /*
    Local variables:

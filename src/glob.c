@@ -127,6 +127,7 @@ init_glob (int argc UNUSED, char **argv)
 #endif /* ENABLE_NLS */
 
   fn_init ();
+  fh_init ();
   getl_initialize ();
 
   /* PORTME: If your system/OS has the nasty tendency to halt with a
@@ -187,6 +188,8 @@ done_glob(void)
   free(logfn);
   done_settings();
   ds_destroy (&tokstr);
+
+  fh_done();
 }
 
 static void

@@ -4,6 +4,7 @@
 # would crash if a data file with only one case was presented
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

@@ -1,3 +1,10 @@
+Fri Jan 21 19:54:14 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* linked-list.[ch] Added
+
+	* examine.q file-handle.[hq] font.h glob.c groff-font.c postscript.c 
+	  set.q:    Yet more memory leaks
+
 Tue Jan 18 23:12:40 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q examine.q : More memory leaks fixed.

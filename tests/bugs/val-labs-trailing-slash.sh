@@ -4,6 +4,7 @@
 # which caused a crash if it had a trailing /
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

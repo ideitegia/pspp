@@ -135,6 +135,7 @@ struct font_desc *groff_read_font (const char *fn);
 struct font_desc *groff_find_font (const char *dev, const char *name);
 int groff_read_DESC (const char *dev_name, struct groff_device_info * dev);
 void groff_init (void);
+void groff_done (void);
 
 struct font_desc *default_font (void);
 
