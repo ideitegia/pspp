@@ -21,11 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
 #include "error.h"
+#include "hash.h"
 #include "lexer.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 
 /* Declarations. */
@@ -139,11 +140,8 @@ verify_val_labs (int erase)
 	  return 0;
 	}
 
-      if (erase && v[i]->val_lab)
-	{
-	  avl_destroy (vp->val_lab, free_val_lab);
-	  vp->val_lab = NULL;
-	}
+      if (erase)
+        val_labs_clear (vp->val_labs);
     }
   return 1;
 }
@@ -167,13 +165,10 @@ get_label (void)
   /* Parse all the labels and add them to the variables. */
   do
     {
-      struct value_label *label;
+      union value value;
+      char *label;
 
-      /* Allocate label. */
-      label = xmalloc (sizeof *label);
-      label->ref_count = nv;
-
-      /* Set label->v. */
+      /* Set value. */
       if (v[0]->type == ALPHA)
 	{
 	  if (token != T_STRING)
@@ -181,7 +176,7 @@ get_label (void)
 	      msg (SE, _("String expected for value."));
 	      return 0;
 	    }
-	  st_bare_pad_copy (label->v.s, ds_value (&tokstr), MAX_SHORT_STRING);
+	  st_bare_pad_copy (value.s, ds_value (&tokstr), MAX_SHORT_STRING);
 	}
       else
 	{
@@ -192,10 +187,10 @@ get_label (void)
 	    }
 	  if (!lex_integer_p ())
 	    msg (SW, _("Value label `%g' is not integer."), tokval);
-	  label->v.f = tokval;
+	  value.f = tokval;
 	}
 
-      /* Set label->s. */
+      /* Set label. */
       lex_get ();
       if (!lex_force_string ())
 	return 0;
@@ -204,22 +199,10 @@ get_label (void)
 	  msg (SW, _("Truncating value label to 60 characters."));
 	  ds_truncate (&tokstr, 60);
 	}
-      label->s = xstrdup (ds_value (&tokstr));
+      label = ds_value (&tokstr);
 
       for (i = 0; i < nv; i++)
-	{
-	  if (!v[i]->val_lab)
-	    v[i]->val_lab = avl_create (NULL, val_lab_cmp,
-					(void *) (v[i]->width));
-	  
-	  {
-	    struct value_label *old;
-	    
-	    old = avl_replace (v[i]->val_lab, label);
-	    if (old)
-	      free_value_label (old);
-	  }
-	}
+        val_labs_replace (v[i]->val_labs, value, label);
 
       lex_get ();
     }
@@ -237,65 +220,21 @@ debug_print ()
   puts (_("Value labels:"));
   for (i = 0; i < nvar; i++)
     {
-      AVLtraverser *t = NULL;
+      struct hsh_iterator i;
       struct value_label *val;
 
       printf ("  %s\n", var[i]->name);
-      if (var[i]->val_lab)
-	if (var[i]->type == NUMERIC)
-	  for (val = avltrav (var[i]->val_lab, &t);
-	       val; val = avltrav (var[i]->val_lab, &t))
-	    printf ("    %g:  `%s'\n", val->v.f, val->s);
-	else
-	  for (val = avltrav (var[i]->val_lab, &t);
-	       val; val = avltrav (var[i]->val_lab, &t))
-	    printf ("    `%.8s':  `%s'\n", val->v.s, val->s);
+      if (var[i]->val_lab) 
+        {
+          for (val = hsh_first (var[i]->val_lab, &i); val != NULL;
+               val = hsh_next (var[i]->val_lab, &i))
+            if (var[i]->type == NUMERIC)
+              printf ("    %g:  `%s'\n", val->v.f, val->s);
+            else
+              printf ("    `%.8s':  `%s'\n", val->v.s, val->s); 
+        }
       else
 	printf (_("    (no value labels)\n"));
     }
 }
 #endif /* DEBUGGING */
-
-/* Compares two value labels and returns a strcmp()-type result. */
-int
-val_lab_cmp (const void *a, const void *b, void *param)
-{
-  if ((int) param)
-    return strncmp (((struct value_label *) a)->v.s,
-		    ((struct value_label *) b)->v.s,
-		    (int) param);
-  else
-    {
-      int temp = (((struct value_label *) a)->v.f
-		  - ((struct value_label *) b)->v.f);
-      if (temp > 0)
-	return 1;
-      else if (temp < 0)
-	return -1;
-      else
-	return 0;
-    }
-}
-
-/* Callback function to increment the reference count for a value
-   label. */
-void *
-inc_ref_count (void *pv, void *param unused)
-{
-  ((struct value_label *) pv)->ref_count++;
-  return pv;
-}
-
-/* Copy the avl tree of value labels and return a pointer to the
-   copy. */
-avl_tree *
-copy_value_labels (avl_tree *src)
-{
-  avl_tree *dest;
-
-  if (src == NULL)
-    return NULL;
-  dest = avl_copy (NULL, src, inc_ref_count);
-
-  return dest;
-}

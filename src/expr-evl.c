@@ -1202,11 +1202,11 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	  break;
 	case OP_NORMAL:
 	  if (sp->f != SYSMIS)
-	    sp->f = rand_normal (sp->f);
+	    sp->f *= rng_get_double_normal (pspp_rng ());
 	  break;
 	case OP_UNIFORM:
 	  if (sp->f != SYSMIS)
-	    sp->f = rand_uniform (sp->f);
+	    sp->f *= rng_get_double (pspp_rng ());
 	  break;
 	case OP_SYSMIS:
 	  if (sp[0].f == SYSMIS || !finite (sp[0].f))

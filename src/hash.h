@@ -22,9 +22,9 @@
 
 #include <stddef.h>
 
-typedef int hsh_compare_func (const void *, const void *, void *param);
-typedef unsigned hsh_hash_func (const void *, void *param);
-typedef void hsh_free_func (void *, void *param);
+typedef int hsh_compare_func (const void *, const void *, void *aux);
+typedef unsigned hsh_hash_func (const void *, void *aux);
+typedef void hsh_free_func (void *, void *aux);
 
 /* Hash table iterator (opaque). */
 struct hsh_iterator
@@ -32,21 +32,27 @@ struct hsh_iterator
     size_t next;		/* Index of next entry. */
   };
 
-/* Prime numbers and hash functions. */
+/* Hash functions. */
 unsigned hsh_hash_bytes (const void *, size_t);
 unsigned hsh_hash_string (const char *);
 unsigned hsh_hash_int (int);
+unsigned hsh_hash_double (double);
 
 /* Hash tables. */
 struct hsh_table *hsh_create (int m, hsh_compare_func *,
                               hsh_hash_func *, hsh_free_func *,
-			      void *param);
+			      void *aux);
 void hsh_clear (struct hsh_table *);
 void hsh_destroy (struct hsh_table *);
 void **hsh_sort (struct hsh_table *);
+void **hsh_data (struct hsh_table *);
+void **hsh_sort_copy (struct hsh_table *);
+void **hsh_data_copy (struct hsh_table *);
 
 /* Search and insertion. */
 void **hsh_probe (struct hsh_table *, const void *);
+void *hsh_insert (struct hsh_table *, void *);
+void *hsh_replace (struct hsh_table *, void *);
 void *hsh_find (struct hsh_table *, const void *);
 int hsh_delete (struct hsh_table *, const void *);
 

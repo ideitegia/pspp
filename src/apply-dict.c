@@ -19,13 +19,14 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "avl.h"
 #include "command.h"
 #include "error.h"
 #include "file-handle.h"
+#include "hash.h"
 #include "lexer.h"
 #include "sfm.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 
 #include "debug-print.h"
@@ -79,27 +80,34 @@ cmd_apply_dictionary (void)
 	  s->label = NULL;
 	}
 
-      if (s->val_lab && t->width > MAX_SHORT_STRING)
+      if (val_labs_count (s->val_labs) && t->width > MAX_SHORT_STRING)
 	msg (SW, _("Cannot add value labels from source file to "
 		   "long string variable %s."),
 	     s->name);
-      else if (s->val_lab)
+      else if (val_labs_count (s->val_labs))
 	{
+          /* Whether to apply the value labels. */
+          int apply = 1;
+          
 	  if (t->width < s->width)
 	    {
-	      avl_traverser iter;
-	      struct value_label *lab;
+	      struct val_labs_iterator *i;
+	      struct val_lab *lab;
 
-	      avl_traverser_init (iter);
-	      while ((lab = avl_traverse (s->val_lab, &iter)) != NULL)
+              for (lab = val_labs_first (s->val_labs, &i); lab != NULL;
+                   lab = val_labs_next (s->val_labs, &i))
 		{
 		  int j;
 
-		  /* If the truncated characters aren't all blanks
-		     anyway, then don't apply the value labels. */
+		  /* We will apply the value labels only if all
+                     the truncated characters are blanks. */
 		  for (j = t->width; j < s->width; j++)
-		    if (lab->v.s[j] != ' ')
-		      goto skip_value_labels;
+		    if (lab->value.s[j] != ' ') 
+                      {
+                        val_labs_done (&i);
+                        apply = 0;
+                        break; 
+                      }
 		}
 	    }
 	  else
@@ -108,12 +116,15 @@ cmd_apply_dictionary (void)
 		 label values are right-padded with spaces, so it is
 		 unnecessary to bother padding values here. */
 	    }
-	  
-	  avl_destroy (t->val_lab, free_val_lab);
-	  t->val_lab = s->val_lab;
-	  s->val_lab = NULL;
+
+	  if (apply) 
+            {
+              val_labs_destroy (t->val_labs);
+              t->val_labs = s->val_labs;
+              val_labs_set_width (t->val_labs, t->width);
+              s->val_labs = val_labs_create (s->width);
+            }
 	}
-    skip_value_labels: ;
 
       if (s->miss_type != MISSING_NONE && t->width > MAX_SHORT_STRING)
 	msg (SW, _("Cannot apply missing values from source file to "

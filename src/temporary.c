@@ -22,12 +22,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
 #include "do-ifP.h"
 #include "error.h"
+#include "hash.h"
 #include "lexer.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 
 #include "debug-print.h"
@@ -35,21 +36,6 @@
 int temporary;
 struct dictionary *temp_dict;
 int temp_trns;
-
-#if 0
-/* Displays all the value labels in TREE, with label S. */
-void
-display_tree (char *s, avl_tree *tree)
-{
-  value_label *iter;
-  avl_traverser *trav = NULL;
-
-  printf("%s tree:\n", s);
-  fflush(stdout);
-  while ((iter = avl_traverse (tree, &trav)) != NULL)
-    printf (" %g: %s\n", iter->v.f, iter->s);
-}
-#endif
 
 /* Parses the TEMPORARY command. */
 int
@@ -125,7 +111,7 @@ copy_variable (struct variable *dest, const struct variable *src)
   dest->print = src->print;
   dest->write = src->write;
 
-  dest->val_lab = copy_value_labels (src->val_lab);
+  dest->val_labs = val_labs_copy (src->val_labs);
   dest->label = src->label ? xstrdup (src->label) : NULL;
 }
 
@@ -137,7 +123,7 @@ new_dictionary (int copy)
   struct dictionary *d = xmalloc (sizeof *d);
   
   d->var = NULL;
-  d->var_by_name = avl_create (NULL, cmp_variable, NULL);
+  d->name_tab = hsh_create (8, compare_variables, hash_variable, NULL, NULL);
   d->nvar = 0;
 
   d->N = 0;
@@ -200,7 +186,7 @@ save_dictionary (void)
   else d->documents = NULL;
 
   /* Then the variables. */
-  d->var_by_name = avl_create (NULL, cmp_variable, NULL);
+  d->name_tab = hsh_create (8, compare_variables, hash_variable, NULL, NULL);
   d->var = xmalloc (default_dict.nvar * sizeof *d->var);
   for (i = 0; i < default_dict.nvar; i++)
     {
@@ -208,7 +194,7 @@ save_dictionary (void)
       copy_variable (d->var[i], default_dict.var[i]);
       strcpy (d->var[i]->name, default_dict.var[i]->name);
       d->var[i]->index = i;
-      avl_force_insert (d->var_by_name, d->var[i]);
+      hsh_force_insert (d->name_tab, d->var[i]);
     }
 
   /* Then the SPLIT FILE variables. */
@@ -243,8 +229,8 @@ restore_dictionary (struct dictionary * d)
   free (default_dict.splits);
   default_dict.splits = NULL;
   
-  avl_destroy (default_dict.var_by_name, NULL);
-  default_dict.var_by_name = NULL;
+  hsh_destroy (default_dict.name_tab);
+  default_dict.name_tab = NULL;
   
   for (i = 0; i < default_dict.nvar; i++)
     {
@@ -258,12 +244,13 @@ restore_dictionary (struct dictionary * d)
 
   /* 2. Copy dictionary D into the active file dictionary. */
   default_dict = *d;
-  if (!default_dict.var_by_name)
+  if (default_dict.name_tab == NULL)
     {
-      default_dict.var_by_name = avl_create (NULL, cmp_variable, NULL);
+      default_dict.name_tab = hsh_create (8, compare_variables, hash_variable,
+                                          NULL, NULL);
       
       for (i = 0; i < default_dict.nvar; i++)
-	avl_force_insert (default_dict.var_by_name, default_dict.var[i]);
+	hsh_force_insert (default_dict.name_tab, default_dict.var[i]);
     }
 
   /* 3. Destroy dictionary D. */
@@ -280,18 +267,14 @@ free_dictionary (struct dictionary * d)
   free (d->splits);
   d->splits = NULL;
   
-  if (d->var_by_name)
-    avl_destroy (d->var_by_name, NULL);
+  if (d->name_tab)
+    hsh_destroy (d->name_tab);
 
   for (i = 0; i < d->nvar; i++)
     {
       struct variable *v = d->var[i];
 
-      if (v->val_lab)
-	{
-	  avl_destroy (v->val_lab, free_val_lab);
-	  v->val_lab = NULL;
-	}
+      val_labs_destroy (v->val_labs);
       if (v->label)
 	{
 	  free (v->label);

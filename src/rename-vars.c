@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
 #include "error.h"
+#include "hash.h"
 #include "lexer.h"
 #include "str.h"
 #include "var.h"
@@ -128,11 +128,11 @@ cmd_rename_variables (void)
 
   /* Finally, do the renaming. */
   for (iter = head; iter; iter = iter->p.mfv.next)
-    avl_force_delete (default_dict.var_by_name, iter);
+    hsh_force_delete (default_dict.name_tab, iter);
   for (iter = head; iter; iter = iter->p.mfv.next)
     {
       strcpy (iter->name, iter->p.mfv.new_name);
-      avl_force_insert (default_dict.var_by_name, iter);
+      hsh_force_insert (default_dict.name_tab, iter);
     }
 
   return CMD_SUCCESS;

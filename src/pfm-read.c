@@ -43,14 +43,15 @@ char *alloca ();
 #include <errno.h>
 #include <math.h>
 #include "alloc.h"
-#include "avl.h"
 #include "file-handle.h"
 #include "format.h"
 #include "getline.h"
+#include "hash.h"
 #include "magic.h"
 #include "misc.h"
 #include "pfm.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 
 #include "debug-print.h"
@@ -939,7 +940,6 @@ read_value_label (struct file_handle *h)
     {
       union value val;
       char *label;
-      struct value_label *vl;
 
       int j;
       
@@ -951,35 +951,20 @@ read_value_label (struct file_handle *h)
 	goto lossage;
       asciify (label);
 
-      /* Create a label. */
-      vl = xmalloc (sizeof *vl);
-      vl->v = val;
-      vl->s = xstrdup (label);
-      vl->ref_count = nv;
-
       /* Assign the value_label's to each variable. */
       for (j = 0; j < nv; j++)
 	{
 	  struct variable *var = v[j];
-	  struct value_label *old;
 
-	  /* Create AVL tree if necessary. */
-	  if (!var->val_lab)
-	    var->val_lab = avl_create (NULL, val_lab_cmp,
-				       (void *) (var->width));
-
-	  old = avl_replace (var->val_lab, vl);
-	  if (old == NULL)
+	  if (!val_labs_replace (var->val_labs, val, label))
 	    continue;
 
 	  if (var->type == NUMERIC)
 	    lose ((h, _("Duplicate label for value %g for variable %s."),
-		   vl->v.f, var->name));
+		   val.f, var->name));
 	  else
 	    lose ((h, _("Duplicate label for value `%.*s' for variable %s."),
-		   var->width, vl->v.s, var->name));
-
-	  free_value_label (old);
+		   var->width, val.s, var->name));
 	}
     }
   free (v);

@@ -77,10 +77,8 @@ static int print;
 static int autorecode_trns_proc (struct trns_header *, struct ccase *);
 static void autorecode_trns_free (struct trns_header *);
 static int autorecode_proc_func (struct ccase *);
-static int compare_alpha_value (const void *, const void *, void *);
-static unsigned hash_alpha_value (const void *, void *);
-static int compare_numeric_value (const void *, const void *, void *);
-static unsigned hash_numeric_value (const void *, void *);
+static hsh_compare_func compare_alpha_value, compare_numeric_value;
+static hsh_hash_func hash_alpha_value, hash_numeric_value;
 static void recode (void);
 
 /* Performs the AUTORECODE procedure. */
@@ -150,8 +148,7 @@ cmd_autorecode (void)
   for (i = 0; i < nv_dest; i++)
     if (v_src[i]->type == ALPHA)
       h_trans[i] = hsh_create (10, compare_alpha_value,
-			       hash_alpha_value, NULL,
-			       (void *) v_src[i]->width);
+			       hash_alpha_value, NULL, v_src[i]);
     else
       h_trans[i] = hsh_create (10, compare_numeric_value,
 			       hash_numeric_value, NULL, NULL);
@@ -211,8 +208,7 @@ recode (void)
 
       if (v_src[i]->type == ALPHA)
 	spec->items = hsh_create (2 * count, compare_alpha_value,
-				  hash_alpha_value, NULL,
-				  (void *) v_src[i]->width);
+				  hash_alpha_value, NULL, v_src[i]);
       else
 	spec->items = hsh_create (2 * count, compare_numeric_value,
 				  hash_numeric_value, NULL, NULL);
@@ -276,30 +272,39 @@ autorecode_trns_free (struct trns_header * trns)
 /* AUTORECODE procedure. */
 
 static int
-compare_alpha_value (const void *a, const void *b, void *len)
+compare_alpha_value (const void *a_, const void *b_, void *v_)
 {
-  return memcmp (((union value *) a)->c, ((union value *) b)->c, (int) len);
+  const union value *a = a_;
+  const union value *b = b_;
+  const struct variable *v = v_;
+
+  return memcmp (a->c, b->c, v->width);
 }
 
 static unsigned
-hash_alpha_value (const void *a_, void *len)
+hash_alpha_value (const void *a_, void *v_)
 {
   const union value *a = a_;
-  return hsh_hash_bytes (a->c, (int) len);
+  const struct variable *v = v_;
+  
+  return hsh_hash_bytes (a->c, v->width);
 }
 
 static int
-compare_numeric_value (const void *pa, const void *pb, void *foobar unused)
+compare_numeric_value (const void *a_, const void *b_, void *foo unused)
 {
-  double a = ((union value *) pa)->f, b = ((union value *) pb)->f;
-  return a > b ? 1 : (a < b ? -1 : 0);
+  const union value *a = a_;
+  const union value *b = b_;
+
+  return a->f < b->f ? -1 : a->f > b->f;
 }
 
 static unsigned
-hash_numeric_value (const void *a_, void *len unused)
+hash_numeric_value (const void *a_, void *foo unused)
 {
   const union value *a = a_;
-  return hsh_hash_bytes (&a->f, sizeof a->f);
+
+  return hsh_hash_double (a->f);
 }
 
 static int
@@ -317,7 +322,7 @@ autorecode_proc_func (struct ccase * c)
 	{
 	  v.f = c->data[v_src[i]->fv].f;
 	  vpp = (union value **) hsh_probe (h_trans[i], &v);
-	  if (NULL == *vpp)
+	  if (*vpp == NULL)
 	    {
 	      vp = pool_alloc (hash_pool, sizeof (union value));
 	      vp->f = v.f;
@@ -328,7 +333,7 @@ autorecode_proc_func (struct ccase * c)
 	{
 	  v.c = c->data[v_src[i]->fv].s;
 	  vpp = (union value **) hsh_probe (h_trans[i], &v);
-	  if (NULL == *vpp)
+	  if (*vpp == NULL)
 	    {
 	      vp = pool_alloc (hash_pool, sizeof (union value));
 	      vp->c = pool_strndup (hash_pool, v.c, v_src[i]->width);

@@ -45,15 +45,16 @@ char *alloca ();
 #endif
 #include "alloc.h"
 #include "approx.h"
-#include "avl.h"
 #include "error.h"
 #include "file-handle.h"
 #include "getline.h"
+#include "hash.h"
 #include "magic.h"
 #include "misc.h"
 #include "sfm.h"
 #include "sfmP.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 #include "version.h"
 
@@ -444,35 +445,36 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
       int32 vars[1] P;
     };
 
-  avl_traverser i;
+  struct val_labs_iterator *i;
   struct value_label_rec *vlr;
   struct variable_index_rec vir;
-  struct value_label *vl;
+  struct val_lab *vl;
   size_t vlr_size;
   flt64 *loc;
-  avl_traverser_init (i);
 
-  if (v->val_lab == NULL || avl_count (v->val_lab) == 0)
+  if (!val_labs_count (v->val_labs))
     return 1;
 
   /* Pass 1: Count bytes. */
   vlr_size = (sizeof (struct value_label_rec)
-	      + sizeof (flt64) * (avl_count (v->val_lab) - 1));
-  while (NULL != (vl = avl_traverse (v->val_lab, &i)))
-    vlr_size += ROUND_UP (strlen (vl->s) + 1, sizeof (flt64));
+	      + sizeof (flt64) * (val_labs_count (v->val_labs) - 1));
+  for (vl = val_labs_first (v->val_labs, &i); vl != NULL;
+       vl = val_labs_next (v->val_labs, &i))
+    vlr_size += ROUND_UP (strlen (vl->label) + 1, sizeof (flt64));
 
   /* Pass 2: Copy bytes. */
-  vlr = local_alloc (vlr_size);
+  vlr = xmalloc (vlr_size);
   vlr->rec_type = 3;
-  vlr->n_labels = avl_count (v->val_lab);
+  vlr->n_labels = val_labs_count (v->val_labs);
   loc = vlr->labels;
-  while (NULL != (vl = avl_traverse (v->val_lab, &i)))
+  for (vl = val_labs_first_sorted (v->val_labs, &i); vl != NULL;
+       vl = val_labs_next (v->val_labs, &i))
     {
-      int len = strlen (vl->s);
+      size_t len = strlen (vl->label);
 
-      *loc++ = vl->v.f;
+      *loc++ = vl->value.f;
       *(unsigned char *) loc = len;
-      memcpy (&((unsigned char *) loc)[1], vl->s, len);
+      memcpy (&((unsigned char *) loc)[1], vl->label, len);
       memset (&((unsigned char *) loc)[1 + len], ' ',
 	      REM_RND_UP (len + 1, sizeof (flt64)));
       loc += DIV_RND_UP (len + 1, sizeof (flt64));
@@ -480,10 +482,10 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
   
   if (!bufwrite (inf->h, vlr, vlr_size))
     {
-      local_free (vlr);
+      free (vlr);
       return 0;
     }
-  local_free (vlr);
+  free (vlr);
 
   vir.rec_type = 4;
   vir.n_vars = 1;

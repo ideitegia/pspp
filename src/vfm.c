@@ -54,6 +54,7 @@ char *alloca ();
 #include "tab.h"
 #include "var.h"
 #include "vector.h"
+#include "value-labels.h"
 #include "vfm.h"
 #include "vfmP.h"
 
@@ -514,7 +515,6 @@ open_active_file (void)
   arrange_compaction ();
   make_temp_case ();
   vector_initialization ();
-  setup_randomize ();
   discard_ctl_stack ();
   setup_filter ();
   setup_lag ();
@@ -1117,7 +1117,7 @@ dump_splits (struct ccase *c)
     {
       struct variable *v = *iter;
       char temp_buf[80];
-      char *val_lab;
+      const char *val_lab;
 
       assert (v->type == NUMERIC || v->type == ALPHA);
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
@@ -1132,7 +1132,7 @@ dump_splits (struct ccase *c)
       temp_buf[v->print.w] = 0;
       tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);
 
-      val_lab = get_val_lab (v, c->data[v->fv], 0);
+      val_lab = val_labs_find (v->val_labs, c->data[v->fv]);
       if (val_lab)
 	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);
     }

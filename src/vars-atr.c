@@ -22,46 +22,20 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "approx.h"
-#include "avl.h"
 #include "command.h"
 #include "do-ifP.h"
 #include "expr.h"
 #include "file-handle.h"
+#include "hash.h"
 #include "inpt-pgm.h"
 #include "misc.h"
 #include "str.h"
 #include "var.h"
 #include "vector.h"
+#include "value-labels.h"
 #include "vfm.h"
 
 #include "debug-print.h"
-
-#if DEBUGGING
-/* Dumps one variable to standard output. */
-void
-dump_one_var_node (void * pnode, void *param, int level)
-{
-  struct variable *node = pnode;
-  int i;
-
-  for (i = 0; i < level - 1; i++)
-    printf ("   ");
-  if (node == NULL)
-    printf ("NULL_TREE\n");
-  else
-    printf ("%p=>%s\n", node, node->name ? node->name : "<null>");
-}
-
-/* Dumps a tree of the variables to standard output. */
-void
-dump_var_tree (void)
-{
-  printf (_("Vartree:\n"));
-/*
-  avl_walk_inorder (default_dict.var_by_name, dump_one_var_node, NULL);
-*/
-}
-#endif
 
 /* Clear the default dictionary.  Note: This is probably not what you
    want to do.  Use discard_variables() instead. */
@@ -121,7 +95,7 @@ discard_variables (void)
 struct variable *
 find_variable (const char *name)
 {
-  return avl_find (default_dict.var_by_name, (struct variable *) name);
+  return hsh_find (default_dict.name_tab, name);
 }
 
 /* Find and return the variable in dictionary D having name NAME, or
@@ -129,7 +103,7 @@ find_variable (const char *name)
 struct variable *
 find_dict_variable (const struct dictionary *d, const char *name)
 {
-  return avl_find (d->var_by_name, (struct variable *) name);
+  return hsh_find (d->name_tab, name);
 }
 
 /* Creates a variable named NAME in dictionary DICT having type TYPE
@@ -211,7 +185,7 @@ common_init_stuff (struct dictionary *dict, struct variable *v,
     /* Avoid problems with overlap. */
     strcpy (v->name, name);
 
-  avl_force_insert (dict->var_by_name, v);
+  hsh_force_insert (dict->name_tab, v);
 
   v->type = type;
   v->left = name[0] == '#';
@@ -243,7 +217,7 @@ init_variable (struct dictionary *dict, struct variable *v, const char *name,
   v->fv = dict->nval;
   dict->nval += v->nv;
   v->label = NULL;
-  v->val_lab = NULL;
+  v->val_labs = val_labs_create (width);
   v->get.fv = -1;
 
   if (vfm_source == &input_program_source
@@ -295,10 +269,10 @@ void
 rename_variable (struct dictionary * dict, struct variable *v,
 		 const char *new_name)
 {
-  assert (dict && dict->var_by_name && v && new_name);
-  avl_delete (dict->var_by_name, v);
+  assert (dict && dict->name_tab && v && new_name);
+  hsh_delete (dict->name_tab, v);
   strncpy (v->name, new_name, 9);
-  avl_force_insert (dict->var_by_name, v);
+  hsh_force_insert (dict->name_tab, v);
 }
 
 /* Delete the contents of variable V within dictionary DICT.  Does not
@@ -307,24 +281,13 @@ rename_variable (struct dictionary * dict, struct variable *v,
 void
 clear_variable (struct dictionary *dict, struct variable *v)
 {
-  assert (dict && v);
+  assert (dict != NULL);
+  assert (v != NULL);
   
-#if DEBUGGING
-  printf (_("clearing variable %d:%s %s\n"), v->index, v->name,
-	  (dict == &default_dict ? _("in default dictionary")
-	   : _("in auxiliary dictionary")));
-  if (dict->var_by_name != NULL)
-    dump_var_tree ();
-#endif
+  if (dict->name_tab != NULL)
+    hsh_force_delete (dict->name_tab, v);
   
-  if (dict->var_by_name != NULL)
-    avl_force_delete (dict->var_by_name, v);
-  
-  if (v->val_lab)
-    {
-      avl_destroy (v->val_lab, free_val_lab);
-      v->val_lab = NULL;
-    }
+  val_labs_clear (v->val_labs);
   
   if (v->label)
     {
@@ -350,11 +313,6 @@ clear_variable (struct dictionary *dict, struct variable *v)
 	  dict->splits = NULL;
 	}
     }
-	  
-#if DEBUGGING
-  if (dict->var_by_name != NULL)
-    dump_var_tree ();
-#endif
 }
 
 /* Creates a new variable in dictionary DICT, whose properties are
@@ -388,79 +346,13 @@ dup_variable (struct dictionary *dict, const struct variable *src,
     dict->nval += new_var->nv;
 
     strcpy (new_var->name, name);
-    avl_force_insert (dict->var_by_name, new_var);
+    hsh_force_insert (dict->name_tab, new_var);
 
     return new_var;
   }
 }
 
    
-/* Decrements the reference count for value label V.  Destroys the
-   value label if the reference count reaches zero. */
-void
-free_value_label (struct value_label * v)
-{
-  assert (v->ref_count >= 1);
-  if (--v->ref_count == 0)
-    {
-      free (v->s);
-      free (v);
-    }
-}
-
-/* Frees value label P.  PARAM is ignored.  Used as a callback with
-   avl_destroy(). */
-void
-free_val_lab (void *p, void *param unused)
-{
-  free_value_label ((struct value_label *) p);
-}
-
-/* Returns a value label corresponding to VAL in variable V padded to
-   length N.  If N==0 then no padding is performed, and NULL is
-   returned if no label exists.  (Normally a string of spaces is
-   returned in this case.) */
-char *
-get_val_lab (const struct variable *v, union value val, int n)
-{
-  static char *buf;
-  static int bufsize;
-  struct value_label template, *find;
-
-  if (bufsize < n)
-    {
-      buf = xrealloc (buf, n + 1);
-      bufsize = n;
-    }
-  if (n)
-    buf[0] = 0;
-  template.v = val;
-  find = NULL;
-  if (v->val_lab)
-    find = avl_find (v->val_lab, &template);
-  if (find)
-    {
-      if (n)
-	{
-	  st_pad_copy (buf, find->s, n + 1);
-	  return buf;
-	}
-      else
-	return find->s;
-    }
-  else
-    {
-      if (n)
-	{
-	  memset (buf, ' ', n);
-	  buf[n] = '\0';
-	  return buf;
-	}
-      else
-	return NULL;
-    }
-}
-
 /* Return nonzero only if X is a user-missing value for numeric
    variable V. */
 inline int
@@ -567,4 +459,24 @@ is_user_missing (const union value *val, const struct variable *v)
       assert (0);
     }
   abort ();
+}
+
+/* A hsh_compare_func that orders variables A and B by their
+   names. */
+int
+compare_variables (const void *a_, const void *b_, void *foo unused) 
+{
+  const struct variable *a = a_;
+  const struct variable *b = b_;
+
+  return strcmp (a->name, b->name);
+}
+
+/* A hsh_hash_func that hashes variable V based on its name. */
+unsigned
+hash_variable (const void *v_, void *foo unused) 
+{
+  const struct variable *v = v_;
+
+  return hsh_hash_string (v->name);
 }

@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include <limits.h>
 #include <stdio.h>
 #include <math.h>
 #include "alloc.h"
@@ -43,8 +44,8 @@ struct sample_trns
     struct trns_header h;
     int type;			/* One of TYPE_*. */
     int n, N;			/* TYPE_A_FROM_B: n from N. */
-    int m, t;			/* TYPE_A_FROM_B: # selected so far; # so far. */
-    int frac;			/* TYPE_FRACTION: a fraction out of 65536. */
+    int m, t;			/* TYPE_A_FROM_B: # picked so far; # so far. */
+    unsigned frac;              /* TYPE_FRACTION: a fraction of UINT_MAX. */
   };
 
 int sample_trns_proc (struct trns_header *, struct ccase *);
@@ -56,7 +57,7 @@ cmd_sample (void)
 
   int type;
   int a, b;
-  int frac;
+  unsigned frac;
 
   lex_match_id ("SAMPLE");
 
@@ -72,7 +73,7 @@ cmd_sample (void)
 	  return CMD_FAILURE;
 	}
 	  
-      frac = tokval * 65536;
+      frac = tokval * UINT_MAX;
       a = b = 0;
     }
   else
@@ -99,7 +100,7 @@ cmd_sample (void)
 
 #if DEBUGGING
   if (type == TYPE_FRACTION)
-    printf ("SAMPLE %g.\n", frac / 65536.);
+    printf ("SAMPLE %g.\n", frac / (double) UINT_MAX);
   else
     printf ("SAMPLE %d FROM %d.\n", a, b);
 #endif
@@ -123,13 +124,18 @@ sample_trns_proc (struct trns_header * trns, struct ccase *c unused)
   struct sample_trns *t = (struct sample_trns *) trns;
   double U;
 
-  if (t->type == TYPE_FRACTION)
-    return (rand_simple (0x10000) <= t->frac) - 2;
+  if (t->type == TYPE_FRACTION) 
+    {
+      if (rng_get_unsigned (pspp_rng ()) <= t->frac)
+        return -1;
+      else
+        return -2;
+    }
 
   if (t->m >= t->n)
     return -2;
 
-  U = rand_uniform (1);
+  U = rng_get_double (pspp_rng ());
   if ((t->N - t->t) * U >= t->n - t->m)
     {
       t->t++;

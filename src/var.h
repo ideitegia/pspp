@@ -68,14 +68,6 @@ union value
     /* Sometimes we insert value's in a hash table. */
     unsigned long hash[SIZEOF_DOUBLE / SIZEOF_LONG];
   };
-
-/* Describes one value label. */
-struct value_label
-  {
-    union value v;		/* The value being labeled. */
-    char *s;			/* Pointer to malloc()'d label. */
-    int ref_count;		/* Reference count. */
-  };
 
 /* Frequency tables. */
 
@@ -99,7 +91,7 @@ struct freq_tab
     int mode;			/* FRQM_GENERAL or FRQM_INTEGER. */
 
     /* General mode. */
-    struct avl_tree *tree;	/* Undifferentiated data. */
+    struct hsh_table *data;	/* Undifferentiated data. */
 
     /* Integer mode. */
     double *vector;		/* Frequencies proper. */
@@ -108,7 +100,7 @@ struct freq_tab
     double sysmis;		/* Sum of weights of SYSMIS values. */
 
     /* All modes. */
-    struct freq *valid;		/* Valid freqs. */
+    struct freq *valid;         /* Valid freqs. */
     int n_valid;		/* Number of total freqs. */
 
     struct freq *missing;	/* Missing freqs. */
@@ -318,7 +310,7 @@ struct variable
     struct fmt_spec write;	/* Default format for WRITE. */
 
     /* Labels. */
-    struct avl_tree *val_lab;	/* Avltree of value_label structures. */
+    struct val_labs *val_labs;
     char *label;		/* Variable label. */
 
     /* Per-procedure info. */
@@ -337,6 +329,9 @@ struct variable
       }
     p;
   };
+
+int compare_variables (const void *, const void *, void *);
+unsigned hash_variable (const void *, void *);
 
 /* Cases. */
 
@@ -353,7 +348,7 @@ struct ccase
 struct dictionary
   {
     struct variable **var;	/* Variable descriptions. */
-    struct avl_tree *var_by_name;	/* Variables arranged by name. */
+    struct hsh_table *name_tab;	/* Variables arranged by name. */
     int nvar;			/* Number of variables. */
 
     int N;			/* Current case limit (N command). */
@@ -423,12 +418,6 @@ enum
 
 void fill_all_vars (struct variable ***, int *, int flags);
 
-int val_lab_cmp (const void *, const void *, void *);
-char *get_val_lab (const struct variable *, union value, int);
-void free_val_lab (void *, void *);
-void free_value_label (struct value_label *);
-struct avl_tree *copy_value_labels (struct avl_tree *);
-
 void dump_split_vars (const struct ccase *);
 
 int is_num_user_missing (double, const struct variable *);
@@ -437,8 +426,6 @@ int is_missing (const union value *, const struct variable *);
 int is_system_missing (const union value *, const struct variable *);
 int is_user_missing (const union value *, const struct variable *);
 void copy_missing_values (struct variable *dest, const struct variable *src);
-
-int cmp_variable (const void *, const void *, void *);
 
 #if GLOBAL_DEBUGGING
 struct variable *force_create_variable (struct dictionary *, const char *name,

@@ -78,9 +78,6 @@ struct file_handle
     void *ext;			/* Extension struct for fhuser use. */
   };
 
-/* All the file handles in the system. */
-extern struct avl_tree *files;
-
 /* Pointer to the file handle that corresponds to data in the command
    file entered via BEGIN DATA/END DATA. */
 extern struct file_handle *inline_file;

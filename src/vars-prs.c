@@ -39,9 +39,9 @@ char *alloca ();
 #include <ctype.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "avl.h"
 #include "bitvector.h"
 #include "error.h"
+#include "hash.h"
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"
@@ -89,13 +89,13 @@ fill_all_vars (struct variable ***varlist, int *c, int flags)
 int
 is_varname (const char *s)
 {
-  return avl_find (default_dict.var_by_name, (struct variable *) s) != 0;
+  return hsh_find (default_dict.name_tab, s) != NULL;
 }
 
 int
 is_dict_varname (const struct dictionary *dict, const char *s)
 {
-  return avl_find (dict->var_by_name, (struct variable *) s) != 0;
+  return hsh_find (dict->name_tab, s) != NULL;
 }
 
 struct variable *
@@ -126,7 +126,7 @@ parse_dict_variable (struct dictionary * dict)
       return NULL;
     }
 
-  vp = avl_find (dict->var_by_name, (struct variable *) tokid);
+  vp = hsh_find (dict->name_tab, tokid);
   if (!vp)
     msg (SE, _("%s is not a variable name."), tokid);
   lex_get ();

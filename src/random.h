@@ -20,9 +20,15 @@
 #if !random_h
 #define random_h 1
 
-void setup_randomize (void);
-double rand_uniform (double x);
-double rand_normal (double x);
-int rand_simple (int x);
+struct rng *rng_create (void);
+void rng_destroy (struct rng *);
+void rng_seed (struct rng *, const void *, size_t);
+void rng_get_bytes (struct rng *, void *, size_t);
+int rng_get_int (struct rng *);
+unsigned rng_get_unsigned (struct rng *);
+double rng_get_double (struct rng *);
+double rng_get_double_normal (struct rng *);
+
+struct rng *pspp_rng (void);
 
 #endif /* random.h */

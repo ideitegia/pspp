@@ -27,13 +27,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include "alloc.h"
-#include "avl.h"
 #include "error.h"
 #include "file-handle.h"
 #include "gmp.h"
+#include "hash.h"
 #include "magic.h"
 #include "pfm.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 #include "version.h"
 
@@ -425,24 +426,27 @@ write_value_labels (struct file_handle *h, struct dictionary *dict)
 
   for (i = 0; i < dict->nvar; i++)
     {
-      avl_traverser iter;
+      struct val_labs_iterator *j;
       struct variable *v = dict->var[i];
-      struct value_label *vl;
+      struct val_lab *vl;
 
-      if (v->val_lab == NULL)
+      if (!val_labs_count (v->val_labs))
 	continue;
 
       if (!bufwrite (h, "D", 1)
 	  || !write_int (h, 1)
 	  || !write_string (h, v->name)
-	  || !write_int (h, avl_count (v->val_lab)))
+	  || !write_int (h, val_labs_count (v->val_labs)))
 	return 0;
 
-      avl_traverser_init (iter);
-      while (NULL != (vl = avl_traverse (v->val_lab, &iter)))
-	if (!write_value (h, &vl->v, v)
-	    || !write_string (h, vl->s))
-	  return 0;
+      for (vl = val_labs_first_sorted (v->val_labs, &j); vl != NULL;
+           vl = val_labs_next (v->val_labs, &j)) 
+	if (!write_value (h, &vl->value, v)
+	    || !write_string (h, vl->label)) 
+          {
+            val_labs_done (&j);
+            return 0; 
+          }
     }
 
   return 1;

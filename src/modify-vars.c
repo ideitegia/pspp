@@ -37,11 +37,12 @@ char *alloca ();
 
 #include <stdlib.h>
 #include <assert.h>
+#include "algorithm.h"
 #include "alloc.h"
-#include "avl.h"
 #include "bitvector.h"
 #include "command.h"
 #include "error.h"
+#include "hash.h"
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"
@@ -49,11 +50,16 @@ char *alloca ();
 #include "vfm.h"
 
 /* FIXME: should change weighting variable, etc. */
-/* These control the way that compare_variables() does its work. */
-static int forward;		/* 1=FORWARD, 0=BACKWARD. */
-static int positional;		/* 1=POSITIONAL, 0=ALPHA. */
+/* These control the ordering produced by
+   compare_variables_given_ordering(). */
+struct ordering
+  {
+    int forward;		/* 1=FORWARD, 0=BACKWARD. */
+    int positional;		/* 1=POSITIONAL, 0=ALPHA. */
+  };
 
-static int compare_variables (const void *pa, const void *pb);
+static int compare_variables_given_ordering (const void *, const void *,
+                                             void *ordering);
 
 /* Explains how to modify the variables in a dictionary in conjunction
    with the p.mfv field of `variable'. */
@@ -114,15 +120,16 @@ cmd_modify_vars (void)
 	  lex_match ('=');
 	  do
 	    {
+              struct ordering ordering;
 	      int prev_nv = nv;
 
-	      forward = positional = 1;
+	      ordering.forward = ordering.positional = 1;
 	      if (lex_match_id ("FORWARD"));
 	      else if (lex_match_id ("BACKWARD"))
-		forward = 0;
+		ordering.forward = 0;
 	      if (lex_match_id ("POSITIONAL"));
 	      else if (lex_match_id ("ALPHA"))
-		positional = 0;
+		ordering.positional = 0;
 
 	      if (lex_match (T_ALL) || token == '/' || token == '.')
 		{
@@ -156,7 +163,8 @@ cmd_modify_vars (void)
 		      goto lossage;
 		    }
 		}
-	      qsort (&v[prev_nv], nv - prev_nv, sizeof *v, compare_variables);
+	      sort (&v[prev_nv], nv - prev_nv, sizeof *v,
+                    compare_variables_given_ordering, &ordering);
 	    }
 	  while (token != '/' && token != '.');
 
@@ -233,6 +241,7 @@ cmd_modify_vars (void)
 	}
       else if (lex_match_id ("KEEP"))
 	{
+          struct ordering ordering;
 	  struct variable **keep_vars;
 	  int nv;
 	  int counter;
@@ -253,8 +262,9 @@ cmd_modify_vars (void)
 	  /* Transform the list of variables to keep into a list of
 	     variables to drop.  First sort the keep list, then figure
 	     out which variables are missing. */
-	  forward = positional = 1;
-	  qsort (keep_vars, nv, sizeof *keep_vars, compare_variables);
+	  ordering.forward = ordering.positional = 1;
+	  sort (keep_vars, nv, sizeof *keep_vars,
+                 compare_variables_given_ordering, &ordering);
 
 	  vm.n_drop = default_dict.nvar - nv;
 
@@ -354,16 +364,26 @@ lossage:
   }
 }
 
-/* Compares a pair of variables according to the settings in `forward'
-   and `positional', returning a strcmp()-type result. */
+/* Compares A and B according to the settings in
+   ORDERING, returning a strcmp()-type result. */
 static int
-compare_variables (const void *pa, const void *pb)
+compare_variables_given_ordering (const void *a_, const void *b_,
+                                  void *ordering_)
 {
-  const struct variable *a = *(const struct variable **) pa;
-  const struct variable *b = *(const struct variable **) pb;
+  struct variable *const *pa = a_;
+  struct variable *const *pb = b_;
+  const struct variable *a = *pa;
+  const struct variable *b = *pb;
+  const struct ordering *ordering = ordering_;
 
-  int result = positional ? a->index - b->index : strcmp (a->name, b->name);
-  return forward ? result : -result;
+  int result;
+  if (ordering->positional)
+    result = a->index < b->index ? -1 : a->index > b->index;
+  else
+    result = strcmp (a->name, b->name);
+  if (!ordering->forward)
+    result = -result;
+  return result;
 }
 
 /* (Possibly) rearranges variables and (possibly) removes some
@@ -456,6 +476,7 @@ rearrange_dict (struct dictionary * d, struct var_modification * vm, int permane
   /* Check for duplicate variable names if appropriate. */
   if (permanent && vm->n_rename)
     {
+      struct ordering ordering;
       struct variable **v;
 
       if (vm->reorder_list)
@@ -463,8 +484,10 @@ rearrange_dict (struct dictionary * d, struct var_modification * vm, int permane
       else
 	v = xmalloc (sizeof *v * n->nvar);
       memcpy (v, n->var, sizeof *v * n->nvar);
-      forward = 1, positional = 0;
-      qsort (v, n->nvar, sizeof *v, compare_variables);
+      ordering.forward = 1;
+      ordering.positional = 0;
+      sort (v, n->nvar, sizeof *v,
+            compare_variables_given_ordering, &ordering);
       for (i = 1; i < n->nvar; i++)
 	if (!strcmp (n->var[i]->name, n->var[i - 1]->name))
 	  {
@@ -496,7 +519,7 @@ rearrange_dict (struct dictionary * d, struct var_modification * vm, int permane
       for (i = 0; i < n->nvar; i++)
 	if (n->var[i]->p.mfv.new_name[0])
 	  {
-	    avl_force_delete (n->var_by_name, n->var[i]);
+	    hsh_force_delete (n->name_tab, n->var[i]);
 	    if (head)
 	      tail = tail->p.mfv.next = n->var[i];
 	    else
@@ -509,7 +532,7 @@ rearrange_dict (struct dictionary * d, struct var_modification * vm, int permane
       for (; head; head = head->p.mfv.next)
 	{
 	  strcpy (head->name, head->p.mfv.new_name);
-	  avl_force_insert (n->var_by_name, head);
+	  hsh_force_insert (n->name_tab, head);
 	}
       free (save_var);
 

@@ -18,132 +18,192 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include "alloc.h"
 #include "magic.h"
 #include "random.h"
 #include "settings.h"
 
-/* Deal with broken system random number generator. */
-#if HAVE_GOOD_RANDOM
-#define real_rand rand
-#define real_srand srand
-#define REAL_RAND_MAX RAND_MAX
-#else /* !HAVE_GOOD_RANDOM */
-#define REAL_RAND_MAX 32767
+/* Random number generator. */
+struct rng 
+  {
+    /* RC4-based random bytes. */
+    uint8_t s[256];
+    uint8_t i, j;
 
-/* Some systems are so broken that they do not supply a value for
-   RAND_MAX.  There is absolutely no reliable way to determine this
-   value, either.  So we must supply our own.  This one is the one
-   presented in the ANSI C standard as strictly compliant. */
-static unsigned long int next = 1;
+    /* Normal distribution. */
+    double next_normal;
+  };
 
-int
-real_rand (void)
+/* Creates a new random number generator, seeds it based on
+   the current time, and returns it. */
+struct rng *
+rng_create (void) 
 {
-  next = next * 1103515245 + 12345;
-  return (unsigned int)(next / 65536) % 32768;
+  struct rng *rng;
+  static time_t t;
+
+   rng = xmalloc (sizeof *rng);
+   if (t == 0)
+     time (&t);
+   else
+     t++;
+   rng_seed (rng, &t, sizeof t);
+   rng->next_normal = NOT_DOUBLE;
+   return rng;
+ }
+
+/* Destroys RNG. */
+void
+rng_destroy (struct rng *rng) 
+{
+  free (rng);
 }
 
-void
-real_srand (unsigned int seed)
+/* Swap bytes. */
+static inline void
+swap_byte (uint8_t *a, uint8_t *b) 
 {
-  next = seed;
+  uint8_t t = *a;
+  *a = *b;
+  *b = t;
 }
-#endif /* !HAVE_GOOD_RANDOM */
 
-/* The random number generator here is an implementation in C of
-   Knuth's Algorithm 3.2.2B (Randomizing by Shuffling) in _The Art of
-   Computer Programming_, Vol. 2. */
-
-#define k 13
-static int V[k];
-static int Y;
-
-static double X2;
-
-/* Initializes the random number generator.  Should be called once by
-   every cmd_*() that uses random numbers.  Note that this includes
-   all procedures that use expressions since they may generate random
-   numbers. */
+/* Seeds RNG based on the SIZE bytes in BUF.
+   At most the first 256 bytes of BUF are used. */
 void
-setup_randomize (void)
+rng_seed (struct rng *rng, const void *key_, size_t size) 
 {
-  static time_t curtime;
-  int i;
+  const uint8_t *key = key_;
+  int key_idx;
+  uint8_t *s;
+  int i, j;
 
-  if (set_seed == NOT_LONG)
+  assert (rng != NULL);
+
+  s = rng->s;
+  rng->i = rng->j = 0;
+  for (i = 0; i < 256; i++) 
+    s[i] = i;
+  for (key_idx = 0, i = 0; i < 256; i++) 
     {
-      if (!curtime)
-	time (&curtime);
-      real_srand (curtime++);
+      j = (j + s[i] + key[key_idx]) & 255;
+      swap_byte (s + i, s + j);
+      if (++key_idx >= size)
+        key_idx = 0;
     }
-  else
-    real_srand (set_seed);
-
-  set_seed_used = 1;
-
-  for (i = 0; i < k; i++)
-    V[i] = real_rand ();
-  Y = real_rand ();
-  X2 = NOT_DOUBLE;
 }
 
-/* Standard shuffling procedure for increasing randomness of the ANSI
-   C random number generator. Returns a random number R where 0 <= R
-   <= RAND_MAX. */
-inline int
-shuffle (void)
+/* Reads SIZE random bytes from RNG into BUF. */
+void
+rng_get_bytes (struct rng *rng, void *buf_, size_t size) 
 {
-  int j = k * Y / RAND_MAX;
-  Y = V[j];
-  V[j] = real_rand ();
-  return Y;
+  uint8_t *buf = buf_;
+  uint8_t *s;
+  uint8_t i, j;
+
+  assert (rng != 0);
+
+  s = rng->s;
+  i = rng->i;
+  j = rng->j;
+  while (size-- > 0) 
+    {
+      i += 1;
+      j += s[i];
+      swap_byte (s + i, s + j);
+      *buf++ = s[(s[i] + s[j]) & 255];
+    }
+  rng->i = i;
+  rng->j = j;
 }
 
-/* Returns a random number R where 0 <= R <= X. */
-double 
-rand_uniform (double x)
+/* Returns a random int in the range [0, INT_MAX]. */
+int
+rng_get_int (struct rng *rng) 
 {
-  return ((double) shuffle ()) / (((double) RAND_MAX) / x);
+  int value;
+
+  do 
+    {
+      rng_get_bytes (rng, &value, sizeof value);
+      value = abs (value);
+    }
+  while (value < 0);
+   
+  return value;
+}
+
+/* Returns a random unsigned in the range [0, UINT_MAX]. */
+unsigned
+rng_get_unsigned (struct rng *rng) 
+{
+  unsigned value;
+
+  rng_get_bytes (rng, &value, sizeof value);
+  return value;
+}
+
+/* Returns a random number from the uniform distribution with
+   range [0,1). */
+double
+rng_get_double (struct rng *rng) 
+{
+  unsigned long value;
+
+  rng_get_bytes (rng, &value, sizeof value);
+  return value / ULONG_MAX;
 }
 
 /* Returns a random number from the distribution with mean 0 and
-   standard deviation X.  This uses algorithm P in section 3.4.1C of
-   Knuth's _Art of Computer Programming_, Vol 2. */
+   standard deviation 1.  (Multiply the result by the desired
+   standard deviation, then add the desired mean.) */
 double 
-rand_normal (double x)
+rng_get_double_normal (struct rng *rng)
 {
-  double U1, U2;
-  double V1, V2;
-  double S;
-  double X1;
+  /* Knuth, _The Art of Computer Programming_, Vol. 2, 3.4.1C,
+     Algorithm P. */
+  double this_normal;
+  
+  if (rng->next_normal != NOT_DOUBLE)
+    {
+      this_normal = rng->next_normal;
+      rng->next_normal = NOT_DOUBLE;
+    }
+  else 
+    {
+      double v1, v2, s;
+      
+      do
+        {
+          double u1 = rng_get_double (rng);
+          double u2 = rng_get_double (rng);
+          v1 = 2.0 * u1 - 1.0;
+          v2 = 2.0 * u2 - 1.0;
+          s = v1 * v1 + v2 * v2;
+        }
+      while (s >= 1);
 
-  if (X2 != NOT_DOUBLE)
-    {
-      double t = X2;
-      X2 = NOT_DOUBLE;
-      return t * x;
+      this_normal = v1 * sqrt (-2. * log (s) / s);
+      rng->next_normal = v2 * sqrt (-2. * log (s) / s); 
     }
-  do
-    {
-      U1 = ((double) shuffle ()) / RAND_MAX;
-      U2 = ((double) shuffle ()) / RAND_MAX;
-      V1 = 2 * U1 - 1;
-      V2 = 2 * U2 - 1;
-      S = V1 * V1 + V2 * V2;
-    }
-  while (S >= 1);
-  X1 = V1 * sqrt (-2. * log (S) / S);
-  X2 = V2 * sqrt (-2. * log (S) / S);
-  return X1 * x;
+  
+  return this_normal;
 }
 
-/* Returns a random integer R, where 0 <= R < X. */
-int
-rand_simple (int x)
+/* Gets an initialized RNG for use in PSPP transformations and
+   procedures. */
+struct rng *
+pspp_rng (void)
 {
-  return shuffle () % x;
-}
+  static struct rng *rng;
 
+  if (rng == NULL)
+    rng = rng_create ();
+  return rng;
+}

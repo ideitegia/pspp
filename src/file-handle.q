@@ -22,10 +22,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "avl.h"
 #include "filename.h"
 #include "file-handle.h"
 #include "command.h"
+#include "hash.h"
 #include "lexer.h"
 #include "getline.h"
 #include "error.h"
@@ -35,7 +35,7 @@
 
 #include "debug-print.h"
 
-avl_tree *files;
+static struct hsh_table *files;
 struct file_handle *inline_file;
 
 static void init_file_handle (struct file_handle * handle);
@@ -66,7 +66,7 @@ cmd_file_handle (void)
 
   fp = NULL;
   if (files)
-    fp = avl_find (files, &handle_name_p);
+    fp = hsh_find (files, &handle_name_p);
   if (fp)
     {
       msg (SE, _("File handle %s had already been defined to refer to "
@@ -155,7 +155,7 @@ cmd_file_handle (void)
   fp->name = xstrdup (handle_name);
   fp->norm_fn = fn_normalize (cmd.s_name);
   fp->where.filename = fp->fn = cmd.s_name;
-  avl_force_insert (files, fp);
+  hsh_force_insert (files, fp);
 
   return CMD_SUCCESS;
 
@@ -200,7 +200,7 @@ fh_get_handle_by_filename (const char *filename)
   strcpy (&name[1], fn);
 
   f.name = name;
-  fp = avl_find (files, &f);
+  fp = hsh_find (files, &f);
   if (!fp)
     {
       fp = xmalloc (sizeof *fp);
@@ -208,7 +208,7 @@ fh_get_handle_by_filename (const char *filename)
       fp->name = name;
       fp->norm_fn = fn;
       fp->where.filename = fp->fn = xstrdup (filename);
-      avl_force_insert (files, fp);
+      hsh_force_insert (files, fp);
     }
   else
     {
@@ -225,7 +225,7 @@ fh_get_handle_by_name (const char name[9])
 {
   struct file_handle f, *fp;
   f.name = (char *) name;
-  fp = avl_find (files, &f);
+  fp = hsh_find (files, &f);
 
   if (!fp)
     msg (SE, _("File handle `%s' has not been previously declared on "
@@ -283,21 +283,32 @@ fh_close_handle (struct file_handle *h)
   h->ext = NULL;
 }
 
-/* Compares names of file handles A and B. */
-static int
-cmp_file_handle (const void *a, const void *b, void *foo unused)
+/* Hashes the name of file handle H. */
+static unsigned
+hash_file_handle (const void *handle_, void *param unused)
 {
-  return strcmp (((struct file_handle *) a)->name,
-		 ((struct file_handle *) b)->name);
+  const struct file_handle *handle = handle_;
+
+  return hsh_hash_string (handle->name);
 }
 
-/* Initialize the AVL tree of file handles; inserts the "inline file"
+/* Compares names of file handles A and B. */
+static int
+cmp_file_handle (const void *a_, const void *b_, void *foo unused)
+{
+  const struct file_handle *a = a_;
+  const struct file_handle *b = b_;
+
+  return strcmp (a->name, b->name);
+}
+
+/* Initialize the hash of file handles; inserts the "inline file"
    inline_file. */
 void
 fh_init_files (void)
 {
-  /* Create AVL tree. */
-  files = avl_create (NULL, cmp_file_handle, NULL);
+  /* Create hash. */
+  files = hsh_create (4, cmp_file_handle, hash_file_handle, NULL, NULL);
 
   /* Insert inline file. */
   inline_file = xmalloc (sizeof *inline_file);
@@ -306,7 +317,7 @@ fh_init_files (void)
   inline_file->where.filename
     = inline_file->fn = inline_file->norm_fn = (char *) _("<Inline File>");
   inline_file->where.line_number = 0;
-  avl_force_insert (files, inline_file);
+  hsh_force_insert (files, inline_file);
 }
 
 /* Parses a file handle name, which may be a filename as a string or

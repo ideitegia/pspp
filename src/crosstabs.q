@@ -51,8 +51,8 @@ char *alloca ();
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "algorithm.h"
 #include "alloc.h"
-#include "avl.h"
 #include "hash.h"
 #include "pool.h"
 #include "dcdflib/cdflib.h"
@@ -64,6 +64,7 @@ char *alloca ();
 #include "stats.h"
 #include "output.h"
 #include "tab.h"
+#include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
 
@@ -310,10 +311,10 @@ free_var_dict (void)
   {
     int i;
 
-    if (var_dict->var_by_name)
+    if (var_dict->name_tab)
       {
-	avl_destroy (var_dict->var_by_name, NULL);
-	var_dict->var_by_name = NULL;
+	hsh_destroy (var_dict->name_tab);
+	var_dict->name_tab = NULL;
       }
 
     for (i = 0; i < var_dict->nvar; i++)
@@ -510,7 +511,7 @@ crs_custom_variables (struct cmd_crosstabs *cmd unused)
 	var->type = v[i]->type;
 	var->foo = v[i]->index;
 	var_dict->var[i] = var;
-	avl_force_insert (var_dict->var_by_name, var);
+	hsh_force_insert (var_dict->name_tab, var);
       }
 
     free (v);
@@ -701,8 +702,9 @@ calc_general (struct ccase *c)
 
       /* Add record to hash table. */
       {
-	struct table_entry **tepp = (struct table_entry **) hsh_probe (gen_tab, te);
-	if (NULL == *tepp)
+	struct table_entry **tepp
+          = (struct table_entry **) hsh_probe (gen_tab, te);
+	if (*tepp == NULL)
 	  {
 	    struct table_entry *tep = pool_alloc (pl_tc, entry_size);
 	    
@@ -804,19 +806,18 @@ print_table_entries (struct table_entry **tab)
 }
 #endif
 
-/* Compare the table_entry's at PA and PB and return a strcmp()-type
+/* Compare the table_entry's at A and B and return a strcmp()-type
    result. */
 static int 
-compare_table_entry (const void *pa, const void *pb, void *foo unused)
+compare_table_entry (const void *a_, const void *b_, void *foo unused)
 {
-  const struct table_entry *a = pa;
-  const struct table_entry *b = pb;
-  
-  {
-    const int difftable = a->table - b->table;
-    if (difftable)
-      return difftable;
-  }
+  const struct table_entry *a = a_;
+  const struct table_entry *b = b_;
+
+  if (a->table > b->table)
+    return 1;
+  else if (a->table < b->table)
+    return -1;
   
   {
     const struct crosstab *x = xtab[a->table];
@@ -868,10 +869,11 @@ hash_table_entry (const void *pa, void *foo unused)
 
 /* Post-data reading calculations. */
 
-static struct table_entry **find_pivot_extent (struct table_entry **, int *cnt, int pivot);
-static void enum_var_values (struct table_entry **beg, int cnt,
-			     union value **values, int *nvalues,
-			     int var_index);
+static struct table_entry **find_pivot_extent (struct table_entry **,
+                                               int *cnt, int pivot);
+static void enum_var_values (struct table_entry **entries, int entry_cnt,
+                             int var_idx,
+                             union value **values, int *value_cnt);
 static void output_pivot_table (struct table_entry **, struct table_entry **,
 				double **, double **, double **,
 				int *, int *, int *);
@@ -1108,7 +1110,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
   struct table_entry *cmp;
 
   x = xtab[(*pb)->table];
-  enum_var_values (pb, pe - pb, &cols, &n_cols, COL_VAR);
+  enum_var_values (pb, pe - pb, COL_VAR, &cols, &n_cols);
 
   nvar = cmd.pivot == CRS_PIVOT ? x->nvar : 2;
 
@@ -1314,7 +1316,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	break;
 
       /* Find all the row variable values. */
-      enum_var_values (tb, te - tb, &rows, &n_rows, ROW_VAR);
+      enum_var_values (tb, te - tb, ROW_VAR, &rows, &n_rows);
 
       /* Allocate memory space for the column and row totals. */
       if (n_rows > *maxrows)
@@ -1708,8 +1710,8 @@ find_pivot_extent_general (struct table_entry **tp, int *cnt, int pivot)
 
 /* Integer mode correspondent to find_pivot_extent_general().  This
    could be optimized somewhat, but I just don't give a crap about
-   CROSSTABS performance in integer mode, which is just a wart on
-   CROSSTABS' ass as far as I'm concerned.
+   CROSSTABS performance in integer mode, which is just a
+   CROSSTABS wart as far as I'm concerned.
 
    That said, feel free to send optimization patches to me. */
 static struct table_entry **
@@ -1740,68 +1742,54 @@ find_pivot_extent_integer (struct table_entry **tp, int *cnt, int pivot)
   return tp;
 }
 
-/* Compare value * A and B, where WIDTH is the string width or 0 for
-   numerics, and return a strcmp()-type result. */
+/* Compares `union value's A_ and B_ and returns a strcmp()-like
+   result.  WIDTH_ points to an int which is either 0 for a
+   numeric value or a string width for a string value. */
 static int
-compare_value (const void *pa, const void *pb, void *pwidth)
+compare_value (const void *a_, const void *b_, void *width_)
 {
-  const union value *a = pa;
-  const union value *b = pb;
-  const int width = (int) pwidth;
+  const union value *a = a_;
+  const union value *b = b_;
+  const int *pwidth = width_;
+  const int width = *pwidth;
 
-  if (width)
-    return strncmp (a->s, b->s, width);
+  if (width == 0)
+    return (a->f < b->f) ? -1 : (a->f > b->f);
   else
-    return a->f < b->f ? -1 : (a->f > b->f ? 1 : 0);
+    return strncmp (a->s, b->s, width);
 }
 
-/* Given a list of CNT table_entry's starting at BEG, creates a list
-   of *NVALUES values *VALUES of variable with index VAR_INDEX. */
+/* Given an array of ENTRY_CNT table_entry structures starting at
+   ENTRIES, creates a sorted list of the values that the variable
+   with index VAR_INDEX takes on.  The values are returned as a
+   malloc()'darray stored in *VALUES, with the number of values
+   stored in *VALUE_CNT.
+   */
 static void 
-enum_var_values (struct table_entry **beg, int cnt, union value **values, int *nvalues,
-		 int var_index)
+enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
+                 union value **values, int *value_cnt)
 {
   if (mode == GENERAL)
     {
-      avl_tree *tree;
+      int width = xtab[(*entries)->table]->v[var_idx]->width;
+      int i;
 
-      tree = avl_create (pl_col, compare_value,
-			 (void *) (xtab[(*beg)->table]->v[var_index]->width));
-
-      {
-	int i;
-  
-	for (i = 0; i < cnt; i++)
-	  avl_insert (tree, &beg[i]->v[var_index]);
-	*values = xmalloc (sizeof **values * avl_count (tree));
-      }
-  
-      {
-	avl_traverser trav;
-	union value *v;
-	int i;
-    
-	avl_traverser_init(trav);
-	i = 0;
-	while (NULL != (v = avl_traverse (tree, &trav)))
-	  (*values)[i++] = *v;
-	*nvalues = i;
-      }
-
-      /* Destroy tree. */
-      pool_destroy (pl_col);
-      pl_col = pool_create ();
+      *values = xmalloc (sizeof **values * entry_cnt);
+      for (i = 0; i < entry_cnt; i++)
+        (*values)[i] = entries[i]->v[var_idx];
+      *value_cnt = sort_unique (*values, entry_cnt, sizeof **values,
+                                compare_value, &width);
     }
   else
     {
-      struct crosstab_proc *crs = &xtab[(*beg)->table]->v[var_index]->p.crs;
+      struct crosstab_proc *crs = &xtab[(*entries)->table]->v[var_idx]->p.crs;
       int i;
       
       assert (mode == INTEGER);
       *values = xmalloc (sizeof **values * crs->count);
       for (i = 0; i < crs->count; i++)
 	(*values)[i].f = i + crs->min;
-      *nvalues = crs->count;
+      *value_cnt = crs->count;
     }
 }
 
@@ -1814,7 +1802,7 @@ table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
 {
   struct len_string s;
 
-  char *label = get_val_lab (var, *v, 0);
+  const char *label = val_labs_find (var->val_labs, *v);
   if (label) 
     {
       tab_text (table, c, r, TAB_LEFT, label);

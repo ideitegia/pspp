@@ -21,16 +21,17 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
 #include "error.h"
 #include "file-handle.h"
+#include "hash.h"
 #include "lexer.h"
 #include "misc.h"
 #include "pfm.h"
 #include "settings.h"
 #include "sfm.h"
 #include "str.h"
+#include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
 #include "vfmP.h"
@@ -511,11 +512,11 @@ rename_variables (struct dictionary * dict)
     }
 
   for (i = 0; i < nv; i++)
-    avl_force_delete (dict->var_by_name, v[i]);
+    hsh_force_delete (dict->name_tab, v[i]);
   for (i = 0; i < nv; i++)
     {
       strcpy (v[i]->name, new_names[i]);
-      if (NULL != avl_insert (dict->var_by_name, v[i]))
+      if (NULL != hsh_insert (dict->name_tab, v[i]))
 	{
 	  msg (SE, _("Duplicate variables name %s."), v[i]->name);
 	  goto lossage;
@@ -1350,8 +1351,9 @@ mtf_merge_dictionary (struct mtf_file *f)
 	assert (!mv || mv->type == ALPHA || mv->width == 0);
 	if (mv && dv->width == mv->width)
 	  {
-	    if (dv->val_lab && !mv->val_lab)
-	      mv->val_lab = copy_value_labels (dv->val_lab);
+	    if (val_labs_count (dv->val_labs)
+                && !val_labs_count (mv->val_labs))
+	      mv->val_labs = val_labs_copy (dv->val_labs);
 	    if (dv->miss_type != MISSING_NONE && mv->miss_type == MISSING_NONE)
 	      copy_missing_values (mv, dv);
 	  }

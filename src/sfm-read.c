@@ -41,16 +41,17 @@ char *alloca ();
 #include <errno.h>
 #include <float.h>
 #include "alloc.h"
-#include "avl.h"
 #include "error.h"
 #include "file-handle.h"
 #include "filename.h"
 #include "format.h"
 #include "getline.h"
+#include "hash.h"
 #include "magic.h"
 #include "misc.h"
 #include "sfm.h"
 #include "sfmP.h"
+#include "value-labels.h"
 #include "str.h"
 #include "var.h"
 
@@ -101,65 +102,43 @@ void dump_dictionary (struct dictionary * dict);
 /* Utilities. */
 
 /* bswap_int32(): Reverse the byte order of 32-bit integer *X. */
-#if __linux__
-#include <asm/byteorder.h>
-#include <netinet/in.h>
 static inline void
-bswap_int32 (int32 * x)
+bswap_int32 (int32 *x)
 {
-  *x = ntohl (*x);
-}
-#else /* not Linux */
-static inline void
-bswap_int32 (int32 * x)
-{
-  unsigned char *y = (char *) x;
+  unsigned char *y = (unsigned char *) x;
   unsigned char t;
+
   t = y[0];
   y[0] = y[3];
   y[3] = t;
+
   t = y[1];
   y[1] = y[2];
   y[2] = t;
 }
-#endif /* not Linux */
 
 /* Reverse the byte order of 64-bit floating point *X. */
 static inline void
-bswap_flt64 (flt64 * x)
+bswap_flt64 (flt64 *x)
 {
-  /* Note that under compilers of any quality, half of this function
-     should optimize out as dead code. */
-  unsigned char *y = (char *) x;
+  unsigned char *y = (unsigned char *) x;
+  unsigned char t;
 
-  if (sizeof (flt64) == 8)
-    {
-      unsigned char t;
-      t = y[0];
-      y[0] = y[7];
-      y[7] = t;
-      t = y[1];
-      y[1] = y[6];
-      y[6] = t;
-      t = y[2];
-      y[2] = y[5];
-      y[5] = t;
-      t = y[3];
-      y[3] = y[4];
-      y[4] = t;
-    }
-  else
-    {
-      unsigned char t;
-      size_t x;
+  t = y[0];
+  y[0] = y[7];
+  y[7] = t;
 
-      for (x = 0; x < sizeof (flt64) / 2; x++)
-	{
-	  t = y[x];
-	  y[x] = y[sizeof (flt64) - x];
-	  y[sizeof (flt64) - x] = t;
-	}
-    }
+  t = y[1];
+  y[1] = y[6];
+  y[6] = t;
+
+  t = y[2];
+  y[2] = y[5];
+  y[5] = t;
+
+  t = y[3];
+  y[3] = y[4];
+  y[4] = t;
 }
 
 static void
@@ -567,7 +546,7 @@ read_header (struct file_handle * h, struct sfm_read_info * inf)
   /* Create the dictionary. */
   dict = ext->dict = xmalloc (sizeof *dict);
   dict->var = NULL;
-  dict->var_by_name = NULL;
+  dict->name_tab = NULL;
   dict->nvar = 0;
   dict->N = 0;
   dict->nval = -1;		/* Unknown. */
@@ -794,7 +773,6 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
       vv->index = dict->nvar - 1;
       vv->foo = -1;
       vv->label = NULL;
-      vv->val_lab = NULL;
 
       /* Copy first character of variable name. */
       if (!isalpha ((unsigned char) sv.name[0])
@@ -853,6 +831,7 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
 	  long_string_count = vv->get.nv - 1;
 	}
       vv->left = (vv->name[0] == '#');
+      vv->val_labs = val_labs_create (vv->width);
 
       /* Get variable label, if any. */
       if (sv.has_var_label == 1)
@@ -951,11 +930,12 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
 	   "%d were read from file."), h->fn, ext->case_size, next_value));
   dict->var = xrealloc (dict->var, sizeof *dict->var * dict->nvar);
 
-  /* Construct AVL tree of dictionary in order to speed up later
-     processing and to check for duplicate varnames. */
-  dict->var_by_name = avl_create (NULL, cmp_variable, NULL);
+  /* Construct hash table of dictionary in order to speed up
+     later processing and to check for duplicate varnames. */
+  dict->name_tab = hsh_create (8, compare_variables, hash_variable,
+                               NULL, NULL);
   for (i = 0; i < dict->nvar; i++)
-    if (NULL != avl_insert (dict->var_by_name, dict->var[i]))
+    if (NULL != hsh_insert (dict->name_tab, dict->var[i]))
       lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
 	     h->fn, dict->var[i]->name));
 
@@ -968,8 +948,8 @@ lossage:
       free (dict->var[i]);
     }
   free (dict->var);
-  if (dict->var_by_name)
-    avl_destroy (dict->var_by_name, NULL);
+  if (dict->name_tab)
+    hsh_destroy (dict->name_tab);
   free (dict);
   ext->dict = NULL;
 
@@ -1014,8 +994,14 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
 {
   struct sfm_fhuser_ext *ext = h->ext;	/* File extension record. */
 
-  flt64 *raw_label = NULL;	/* Array of raw label values. */
-  struct value_label **cooked_label = NULL;	/* Array of cooked labels. */
+  struct label 
+    {
+      unsigned char raw_value[8]; /* Value as uninterpreted bytes. */
+      union value value;        /* Value. */
+      char *label;              /* Null-terminated label string. */
+    };
+
+  struct label *labels = NULL;
   int32 n_labels;		/* Number of labels. */
 
   struct variable **var = NULL;	/* Associated variables. */
@@ -1033,34 +1019,28 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
     bswap_int32 (&n_labels);
 
   /* Allocate memory. */
-  raw_label = xmalloc (sizeof *raw_label * n_labels);
-  cooked_label = xmalloc (sizeof *cooked_label * n_labels);
+  labels = xmalloc (n_labels * sizeof *labels);
   for (i = 0; i < n_labels; i++)
-    cooked_label[i] = NULL;
+    labels[i].label = NULL;
 
-  /* Read each value/label tuple. */
+  /* Read each value/label tuple into labels[]. */
   for (i = 0; i < n_labels; i++)
     {
-      flt64 value;
+      struct label *label = labels + i;
       unsigned char label_len;
+      size_t padded_len;
 
-      int rem;
+      /* Read value. */
+      assertive_bufread (h, label->raw_value, sizeof label->raw_value, 0);
 
-      /* Read value, label length. */
-      assertive_bufread (h, &value, sizeof value, 0);
-      assertive_bufread (h, &label_len, 1, 0);
-      memcpy (&raw_label[i], &value, sizeof value);
+      /* Read label length. */
+      assertive_bufread (h, &label_len, sizeof label_len, 0);
+      padded_len = ROUND_UP (label_len + 1, sizeof (flt64));
 
-      /* Read label. */
-      cooked_label[i] = xmalloc (sizeof **cooked_label);
-      cooked_label[i]->s = xmalloc (label_len + 1);
-      assertive_bufread (h, cooked_label[i]->s, label_len, 0);
-      cooked_label[i]->s[label_len] = 0;
-
-      /* Skip padding. */
-      rem = REM_RND_UP (label_len + 1, sizeof (flt64));
-      if (rem)
-	assertive_bufread (h, &value, rem, 0);
+      /* Read label, padding. */
+      label->label = xmalloc (padded_len + 1);
+      assertive_bufread (h, label->label, padded_len - 1, 0);
+      label->label[label_len] = 0;
     }
 
   /* Second step: Read the type 4 record that has the list of
@@ -1076,7 +1056,7 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
     
     if (rec_type != 4)
       lose ((ME, _("%s: Variable index record (type 4) does not immediately "
-	     "follow value label record (type 3) as it ought."), h->fn));
+	     "follow value label record (type 3) as it should."), h->fn));
   }
 
   /* Read number of variables associated with value label from type 4
@@ -1089,10 +1069,8 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
 	   "is not between 1 and the number of variables (%d)."),
 	   h->fn, n_vars, ext->dict->nvar));
 
-  /* Allocate storage. */
-  var = xmalloc (sizeof *var * n_vars);
-
   /* Read the list of variables. */
+  var = xmalloc (n_vars * sizeof *var);
   for (i = 0; i < n_vars; i++)
     {
       int32 var_index;
@@ -1110,12 +1088,12 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
       /* Make sure it's a real variable. */
       v = var_by_index[var_index - 1];
       if (v == NULL)
-	lose ((ME, _("%s: Variable index associated with value label (%d) refers "
-	       "to a continuation of a string variable, not to an actual "
-	       "variable."), h->fn, var_index));
+	lose ((ME, _("%s: Variable index associated with value label (%d) "
+                     "refers to a continuation of a string variable, not to "
+                     "an actual variable."), h->fn, var_index));
       if (v->type == ALPHA && v->width > MAX_SHORT_STRING)
-	lose ((ME, _("%s: Value labels are not allowed on long string variables "
-	       "(%s)."), h->fn, v->name));
+	lose ((ME, _("%s: Value labels are not allowed on long string "
+                     "variables (%s)."), h->fn, v->name));
 
       /* Add it to the list of variables. */
       var[i] = v;
@@ -1130,68 +1108,61 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
 	     var[0]->name, var[0]->type == ALPHA ? _("string") : _("numeric"),
 	     var[i]->name, var[i]->type == ALPHA ? _("string") : _("numeric")));
 
-  /* Create a value_label for each value/label tuple, now that we know
-     the desired type. */
-  for (i = 0; i < n_labels; i++)
+  /* Fill in labels[].value, now that we know the desired type. */
+  for (i = 0; i < n_labels; i++) 
     {
+      struct label *label = labels + i;
+      
       if (var[0]->type == ALPHA)
-	{
-	  const int copy_len = min (sizeof (flt64), MAX_SHORT_STRING);
-	  memcpy (cooked_label[i]->v.s, (char *) &raw_label[i], copy_len);
-	  if (MAX_SHORT_STRING > copy_len)
-	    memset (&cooked_label[i]->v.s[copy_len], ' ',
-		    MAX_SHORT_STRING - copy_len);
-	} else {
-	  cooked_label[i]->v.f = raw_label[i];
-	  if (ext->reverse_endian)
-	    bswap_flt64 (&cooked_label[i]->v.f);
-	}
-      cooked_label[i]->ref_count = n_vars;
+        {
+          const int copy_len = min (sizeof (label->raw_value),
+                                    sizeof (label->label));
+          memcpy (label->value.s, label->raw_value, copy_len);
+        } else {
+          flt64 f;
+          assert (sizeof f == sizeof label->raw_value);
+          memcpy (&f, label->raw_value, sizeof f);
+          if (ext->reverse_endian)
+            bswap_flt64 (&f);
+          label->value.f = f;
+        }
     }
-
+  
   /* Assign the value_label's to each variable. */
   for (i = 0; i < n_vars; i++)
     {
       struct variable *v = var[i];
       int j;
 
-      /* Create AVL tree if necessary. */
-      if (!v->val_lab)
-	v->val_lab = avl_create (NULL, val_lab_cmp, (void *) (v->width));
-
       /* Add each label to the variable. */
       for (j = 0; j < n_labels; j++)
 	{
-	  struct value_label *old = avl_replace (v->val_lab, cooked_label[j]);
-	  if (old == NULL)
+          struct label *label = labels + j;
+	  if (!val_labs_replace (v->val_labs, label->value, label->label))
 	    continue;
 
 	  if (var[0]->type == NUMERIC)
 	    msg (MW, _("%s: File contains duplicate label for value %g for "
-		 "variable %s."), h->fn, cooked_label[j]->v.f, v->name);
+		 "variable %s."), h->fn, label->value.f, v->name);
 	  else
 	    msg (MW, _("%s: File contains duplicate label for value `%.*s' "
-		 "for variable %s."), h->fn, v->width,
-		 cooked_label[j]->v.s, v->name);
-
-	  free_value_label (old);
+		 "for variable %s."),
+                 h->fn, v->width, label->value.s, v->name);
 	}
     }
 
-  free (cooked_label);
-  free (raw_label);
+  for (i = 0; i < n_labels; i++)
+    free (labels[i].label);
   free (var);
   return 1;
 
 lossage:
-  if (cooked_label)
-    for (i = 0; i < n_labels; i++)
-      if (cooked_label[i])
-	{
-	  free (cooked_label[i]->s);
-	  free (cooked_label[i]);
-	}
-  free (raw_label);
+  if (labels) 
+    {
+      for (i = 0; i < n_labels; i++)
+        free (labels[i].label);
+      free (labels); 
+    }
   free (var);
   return 0;
 }

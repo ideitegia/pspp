@@ -21,17 +21,19 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "algorithm.h"
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
 #include "error.h"
 #include "file-handle.h"
+#include "hash.h"
 #include "lexer.h"
 #include "misc.h"
 #include "output.h"
 #include "sfm.h"
 #include "som.h"
 #include "tab.h"
+#include "value-labels.h"
 #include "var.h"
 #include "vector.h"
 
@@ -130,7 +132,7 @@ cmd_sysfile_info (void)
   tab_hline (t, TAL_2, 0, 3, 1);
   for (r = 1, i = 0; i < d->nvar; i++)
     {
-      int nvl = d->var[i]->val_lab ? avl_count (d->var[i]->val_lab) : 0;
+      int nvl = val_labs_count (d->var[i]->val_labs);
       
       if (r + 10 + nvl > nr)
 	{
@@ -160,8 +162,6 @@ static void display_macros (void);
 static void display_documents (void);
 static void display_variables (struct variable **, int, int);
 static void display_vectors (int sorted);
-
-static int cmp_var_by_name (const void *, const void *);
 
 int
 cmd_display (void)
@@ -256,7 +256,7 @@ cmd_display (void)
 	}
 
       if (sorted)
-	qsort (vl, n, sizeof *vl, cmp_var_by_name);
+	sort (vl, n, sizeof *vl, compare_variables, NULL);
 
       display_variables (vl, n, as);
 
@@ -264,12 +264,6 @@ cmd_display (void)
     }
 
   return lex_end_of_command ();
-}
-
-static int
-cmp_var_by_name (const void *a, const void *b)
-{
-  return strcmp ((*((struct variable **) a))->name, (*((struct variable **) b))->name);
 }
 
 static void
@@ -385,7 +379,7 @@ display_variables (struct variable **vl, int n, int as)
 
       if (as == AS_DICTIONARY || as == AS_VARIABLES)
 	{
-	  int nvl = v->val_lab ? avl_count (v->val_lab) : 0;
+	  int nvl = val_labs_count (v->val_labs);
       
 	  if (r + 10 + nvl > nr)
 	    {
@@ -522,13 +516,11 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
     }
 
   /* Value labels. */
-  if (as == AS_DICTIONARY && v->val_lab)
+  if (as == AS_DICTIONARY && val_labs_count (v->val_labs))
     {
-      avl_traverser trav;
-      struct value_label *vl;
-      int nvl = avl_count (v->val_lab);
+      struct val_labs_iterator *i;
+      struct val_lab *vl;
       int orig_r = r;
-      int i;
 
 #if 0
       tab_text (t, 1, r, TAB_LEFT, _("Value"));
@@ -537,33 +529,22 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
 #endif
 
       tab_hline (t, TAL_1, 1, 2, r);
-      avl_traverser_init (trav);
-      for (i = 1, vl = avl_traverse (v->val_lab, &trav); vl;
-	   i++, vl = avl_traverse (v->val_lab, &trav))
-	{
+      for (vl = val_labs_first_sorted (v->val_labs, &i); vl != NULL;
+           vl = val_labs_next (v->val_labs, &i))
+        {
 	  char buf[128];
 
 	  if (v->type == ALPHA)
 	    {
-	      memcpy (buf, vl->v.s, v->width);
+	      memcpy (buf, vl->value.s, v->width);
 	      buf[v->width] = 0;
 	    }
 	  else
-	    sprintf (buf, "%g", vl->v.f);
+	    sprintf (buf, "%g", vl->value.f);
 
 	  tab_text (t, 1, r, TAB_NONE, buf);
-	  tab_text (t, 2, r, TAB_LEFT, vl->s);
+	  tab_text (t, 2, r, TAB_LEFT, vl->label);
 	  r++;
-
-	  if (i == nvl) 
-	    break;
-	}
-
-      for (;;)
-	{
-	  if (vl == NULL)
-	    break;
-	  vl = avl_traverse (v->val_lab, &trav);
 	}
 
       tab_vline (t, TAL_1, 2, orig_r, r - 1);

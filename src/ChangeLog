@@ -1,3 +1,270 @@
+Fri Dec 19 15:08:38 2003  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of AVL trees.  Hashes are more appropriate for everything
+	PSPP does.
+
+	* Makefile.am: (pspp_SOURCES) Remove avl.c, avl.h.
+	
+	* avl.c: Removed.
+
+	* avl.h: Removed.
+
+Fri Dec 19 14:33:31 2003  Ben Pfaff  <blp@gnu.org>
+
+	Much code can be clarified by using C++ STL-like algorithms.  Not
+	all uses of these algorithms are listed below, only the ones where
+	the change to an algorithm was the only change of interest.
+	
+	* Makefile.am: (pspp_SOURCES) Add algorithm.c, algorithm.h.
+	
+	* algorithm.c: New file.
+
+	* algorithm.h: New file.
+
+	* modify-vars.c: (static var forward) Removed.
+	(static var positional) Removed.
+	(compare_variables) Removed.
+	(struct ordering) New.
+	(cmd_modify_vars) Use sort() algorithm.
+	(compare_variables_given_ordering) New function.
+	(rearrange_dict) Use sort() algorithm.
+
+	* sysfile-info.c: (cmd_display) Use sort() algorithm.
+	(cmp_var_by_name) Removed.
+
+Fri Dec 19 14:26:17 2003  Ben Pfaff  <blp@gnu.org>
+
+	Make file handles use a hash table.
+	
+	* file-handle.q: (files) Change to hash table, make static.
+	(cmd_file_handle) Use hash table functions.
+	(fh_get_handle_by_filename) Ditto.
+	(fh_get_handle_by_name) Ditto.
+	(hash_file_handle) New function.
+	(cmp_file_handle) Rewrite.
+	(fh_init_files) Use hash table functions.
+
+Fri Dec 19 14:24:38 2003  Ben Pfaff  <blp@gnu.org>
+
+	Clean up FREQUENCIES.
+	
+	* Makefile.am: (pspp_SOURCES) Remove frequencies.g.
+
+	* frequencies.q: Remove a lot of old #if'd out code at the end.
+	(internal_cmd_frequencies) Use calc() instead of calc_no_weight()
+	or calc_weight().  Initialize percentile_values.
+	(calc) New function based on calc_weight() from frequencies.g.
+	(precalc) Use hash functions.
+	(static var comparison_func) Removed.
+	(static var comparison_param) Removed.
+	(comparison_helper) Removed.
+	(get_freq_comparator) New function.
+	(not_missing) New function.
+	(add_freq) Removed.
+	(postprocess_freq_tab) Use hash table functions, algorithms,
+	get_freq_comparator().  Rewrite.
+	(cleanup_freq_tab) Rephrase.
+	(add_percentile) Clean up spacing.
+	(hash_value_numeric) New function.
+	(hash_value_alpha) New function.
+	(compare_value_numeric_a) Rewrite.
+	(compare_value_alpha_a) Rewrite.
+	(compare_value_numeric_d) Rewrite.
+	(compare_value_alpha_d) Rewrite.
+	(compare_freq_numeric_a) Rewrite.
+	(compare_freq_alpha_a) Rewrite.
+	(compare_freq_numeric_d) Rewrite.
+	(compare_freq_alpha_d) Rewrite.
+	(calc_stats) Clean up mode, percentiles, max.
+	(dump_statistics) Clean up spacing.
+	
+	* frequencies.g: Removed.
+
+	* var.h: (struct freq_tab) Change `data' to hash table.
+
+Fri Dec 19 14:15:46 2003  Ben Pfaff  <blp@gnu.org>
+
+	* file-handle.h: Remove declaration of global variable `files',
+	which wasn't used anywhere.
+
+	* postscript.c: (add_encoding) Remove superfluous cast.
+	(line) Ditto.
+
+	* sfm-read.c: [linux] (bswap_int32) Drop ntohl() non-portable
+	version.
+
+	* temporary.c: [0] (display_tree) Removed.
+
+Fri Dec 19 14:13:04 2003  Ben Pfaff  <blp@gnu.org>
+
+	Implement a new random number generator based on the alleged RC4
+	algorithm.
+
+	* expr-evl.c: (expr_evaluate) Use rng_get_double_normal() instead
+	of rand_normal().
+
+	* random.c: [!HAVE_GOOD_RANDOM] (real_rand) Removed.
+	[!HAVE_GOOD_RANDOM] (real_srand) Removed.
+	(macro k) Removed.
+	(static var V[]) Removed.
+	(static var Y) Removed.
+	(static var X2) Removed.
+	(setup_randomize) Removed.
+	(shuffle) Removed.
+	(rand_uniform) Removed.
+	(rand_normal) Removed.
+	(struct rng) New structure.
+	(rng_create) New function.
+	(rng_destroy) New function.
+	(swap_byte) New static function.
+	(rng_seed) New function.
+	(rng_get_bytes) New function.
+	(rng_get_int) New function.
+	(rng_get_unsigned) New function.
+	(rng_get_double) New function.
+	(rng_get_double_normal) New function.
+	(pspp_rng) New function.
+
+	* random.h: Sync up to random.c.
+
+	* sample.c: (struct sample_trns) Make `frac' unsigned and a
+	fraction of UINT_MAX, not 65536.
+	(cmd_sample) Use rng_get_unsigned(), rng_get_double(), UINT_MAX
+	fraction.
+
+	* vfm.c: (open_active_file) No need to call setup_randomize() any
+	longer.
+
+Fri Dec 19 12:05:56 2003  Ben Pfaff  <blp@gnu.org>
+
+	Change dictionary name indexes to use hash tables instead of AVL
+	trees.
+
+	* crosstabs.q: (free_var_dict) Use hash tables.
+	(crs_custom_tables) Ditto.
+	(calc_general) Ditto.
+	(compare_table_entry) Rewrite.
+	(enum_var_values) Reorder parameters.  All references updated.
+	Rewrite.
+
+	* get.c: (rename_variable) Use hash tables.
+	(mtf_merge_dictionary) Ditto.
+
+	* glob.c: (init_glob) Use hash tables.
+	(cmp_variable) Removed.
+
+	* means.q: (mns_custom_tables) Use hash tables.
+
+	* modify-vars.c: (rearrange_dict) Use hash tables.
+
+	* rename-vars.c: (cmd_rename_variables) Use hash tables.
+
+	* sfm-read.c: (read_header) Use hash tables.
+	(read_variables) Ditto.
+
+	* temporary.c: (new_dictionary) Use hash tables.
+	(save_dictionary) Ditto.
+	(restore_dictionary) Ditto.
+
+	* var.h: (struct dictionary) Change AVL tree `var_by_name' into
+	hash table `name_tab'.
+
+	* vars-atr.c: [DEBUGGING] (dump_one_var_node) Removed.
+	[DEBUGGING] (dump_var_tree) Removed.
+	(find_variable) Use hash tables.
+	(find_dict_variable) Ditto.
+	(common_init_stuff) Ditto.
+	(rename_variable) Ditto.
+	(clear_variable) Ditto.  Also, remove debug code.
+	(dup_variable) Use hash tables.
+
+	* vars-prs.c: (fill_all_vars) Use hash tables.
+	(is_dict_varname) Ditto.
+	(parse_dict_variable) Ditto.
+	
+Fri Dec 19 11:46:23 2003  Ben Pfaff  <blp@gnu.org>
+
+	Change value labels to use hash tables instead of AVL trees, and
+	change value labels into an ADT.
+
+	* Makefile.am: (pspp_SOURCES) Add value-labels.c, value-labels.h.
+	
+	* value-labels.c: New file.
+
+	* value-labels.h: New file.
+
+	* apply-dict.c: (cmd_apply_dictionary) Use value label ADT.
+	Get rid of a stupid use of goto.
+
+	* autorecode.c: (compare_alpha_value) Rewrite.
+	(hash_alpha_value) Ditto.
+	(compare_numeric_value) Rewrite.
+	(hash_numeric_value) Ditto.
+
+	* frequencies.q: (dump_full) Use value label ADT.
+
+	* pfm-read.c: (read_value_label) Use value label ADT.
+
+	* pfm-write.c: (write_value_labels) Use value label ADT.
+
+	* sfm-read.c: (read_variables) Use value label ADT.
+	(read_value_labels) Rewrite.
+
+	* sfm-write.c: (write_value_labels) Rewrite.
+
+	* sysfile-info.c: (cmd_sysfile_info) Use value label ADT.
+	(display_variables) Ditto.
+	(describe_variable) Ditto.
+
+	* t-test.q: (print_t_groups) Use value label ADT.
+
+	* temporary.c: (copy_variable) Use value label ADT.
+	(free_dictionary) Ditto.
+
+	* val-labs.c: (verify_val_labs) Use value label ADT.
+	(get_label) Ditto.
+	(debug_print) Ditto.
+	(val_lab_cmp) Removed.
+	(inc_ref_count) Removed.
+	(copy_value_labels) Removed.
+
+	* var.h: (struct value_label) Removed.
+	(struct variable) Change AVL tree `val_lab' into hash table
+	`val_labs'.
+
+	* vars-atr.c: (init_variable) Use value label ADT.
+	(clear_variable) Ditto.
+	(free_value_label) Removed.
+	(free_val_lab) Removed.
+	(get_val_lab) Removed.
+	(compare_variables) New function.
+	(hash_variable) New function.
+
+	* vfm.c: (dump_splits) Use value label ADT.
+
+Fri Dec 19 11:18:11 2003  Ben Pfaff  <blp@gnu.org>
+
+	Add to the hash table interface.
+
+	* hash.c: (hsh_hash_bytes) Add assertion.
+	(hsh_hash_string) Ditto.
+	(hsh_clear) Ditto.
+	(hsh_rehash) Ditto.
+	(hsh_probe) Ditto.
+	(hsh_create) Ditto.  Also make minimum `size'.
+	(hsh_destroy) Rephrase.
+	(sort_nulls_last) Removed.
+	(not_null) New function.
+	(hsh_data) Ditto.
+	(comparison_helper) Ditto.
+	(hsh_sort) Rewritten.
+	(hsh_data_copy) New function.
+	(hsh_sort_copy) Ditto.
+	(hsh_insert) Ditto.
+	(hsh_replace) Ditto.
+	(hsh_hash_double) Ditto.
+	(hsh_delete) Fix stupid bug.
+	
 Thu Dec 18 12:27:03 WAST 2003 John Darrington <john@darrington.wattle.id.au>
         * added a calculation of the mode to FREQUENCIES
 

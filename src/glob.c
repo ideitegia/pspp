@@ -78,13 +78,13 @@ extern void stifle_history ();
 #endif
 
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"
 #include "filename.h"
 #include "getline.h"
+#include "hash.h"
 #include "julcal/julcal.h"
 #include "lexer.h"
 #include "magic.h"
@@ -166,7 +166,8 @@ init_glob (int argc unused, char **argv)
 #endif
 
   /* var.h */
-  default_dict.var_by_name = avl_create (NULL, cmp_variable, NULL);
+  default_dict.name_tab = hsh_create (8, compare_variables, hash_variable,
+                                      NULL, NULL);
 
   vec_init (&reinit_sysmis);
   vec_init (&reinit_blanks);
@@ -353,12 +354,6 @@ get_date ()
     yr = 9999;
 
   sprintf (curdate, "%2d %s %04d", dy, gettext (months[mn]), yr);
-}
-
-int
-cmp_variable (const void *a, const void *b, void *foo unused)
-{
-  return strcmp (((struct variable *) a)->name, ((struct variable *) b)->name);
 }
 
 #if __BORLANDC__

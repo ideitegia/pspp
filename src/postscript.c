@@ -1067,14 +1067,13 @@ static void
 add_encoding (struct outp_driver *this, char *filename)
 {
   struct ps_driver_ext *x = this->ext;
-
   struct ps_encoding **pe;
 
   filename = find_encoding_file (this, filename);
   if (!filename)
     return;
 
-  pe = (struct ps_encoding **) hsh_probe (x->encodings, (void *) &filename);
+  pe = (struct ps_encoding **) hsh_probe (x->encodings, &filename);
   if (*pe)
     {
       free (filename);
@@ -1886,8 +1885,7 @@ line (struct outp_driver *this, int type, int ind, int dep1, int dep2)
   if (ext->lines[type] == NULL)
     ext->lines[type] = hsh_create (31, compare_line, hash_line,
 				   free_line, NULL);
-  f = (struct line_form **) hsh_probe (ext->lines[type],
-				       (struct line_form *) & ind);
+  f = (struct line_form **) hsh_probe (ext->lines[type], &ind);
   if (*f == NULL)
     {
       *f = xmalloc (sizeof **f + sizeof (int[15][2]));

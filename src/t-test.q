@@ -29,6 +29,7 @@
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
+#include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
 
@@ -1061,9 +1062,9 @@ print_t_groups (struct variable * grps, union value * g1, union value * g2,
   printf ("-----------------------------------------------------------\n");
   printf ("   %s %s\n\n", cmd.v_variables[cur_var]->name, cmd.v_variables[cur_var]->label);
   printf ("%s %8.4f %8.0f    %8.4f  %8.3f    %8.3f\n",
-	  get_val_lab (grps, *g1, 0), g1->f, n1, mean1, sd1, se1);
+	  val_labs_find (grps->val_labs, *g1), g1->f, n1, mean1, sd1, se1);
   printf ("%s %8.4f %8.0f    %8.4f  %8.3f    %8.3f\n",
-	  get_val_lab (grps, *g2, 0), g2->f, n2, mean2, sd2, se2);
+	  val_labs_find (grps->val_labs, *g2), g2->f, n2, mean2, sd2, se2);
   printf ("-----------------------------------------------------------\n");
   printf ("\n   Mean Difference = %8.4f\n", diff);
   printf ("\n   Levene's Test for Equality of Variances: F= %.3f  P= %.3f\n",

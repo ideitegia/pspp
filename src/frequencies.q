@@ -28,23 +28,23 @@
 #include <math.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "avl.h"
 #include "bitvector.h"
 #include "hash.h"
 #include "pool.h"
 #include "command.h"
 #include "lexer.h"
 #include "error.h"
-#include "approx.h"
+#include "algorithm.h"
 #include "magic.h"
 #include "misc.h"
 #include "stats.h"
 #include "output.h"
 #include "som.h"
+#include "str.h"
 #include "tab.h"
+#include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
-#include "str.h"
 
 #include "debug-print.h"
 
@@ -109,9 +109,9 @@ static struct frq_info st_name[frq_n_stats + 1] =
 };
 
 /* Percentiles to calculate. */
-static double *percentiles=0;
-static double *percentile_values=0;
-static int n_percentiles=0;
+static double *percentiles;
+static double *percentile_values;
+static int n_percentiles;
 
 /* Groups of statistics. */
 #define BI          BIT_INDEX
@@ -161,8 +161,7 @@ static struct pool *gen_pool;	/* General mode. */
 static void determine_charts (void);
 
 static void precalc (void);
-static int calc_weighting (struct ccase *);
-static int calc_no_weight (struct ccase *);
+static int calc (struct ccase *);
 static void postcalc (void);
 
 static void postprocess_freq_tab (struct variable *);
@@ -171,14 +170,11 @@ static void dump_condensed (struct variable *);
 static void dump_statistics (struct variable *, int show_varname);
 static void cleanup_freq_tab (struct variable *);
 
-static int compare_value_numeric_a (const void *, const void *, void *);
-static int compare_value_alpha_a (const void *, const void *, void *);
-static int compare_value_numeric_d (const void *, const void *, void *);
-static int compare_value_alpha_d (const void *, const void *, void *);
-static int compare_freq_numeric_a (const void *, const void *, void *);
-static int compare_freq_alpha_a (const void *, const void *, void *);
-static int compare_freq_numeric_d (const void *, const void *, void *);
-static int compare_freq_alpha_d (const void *, const void *, void *);
+static hsh_hash_func hash_value_numeric, hash_value_alpha;
+static hsh_compare_func compare_value_numeric_a, compare_value_alpha_a;
+static hsh_compare_func compare_value_numeric_d, compare_value_alpha_d;
+static hsh_compare_func compare_freq_numeric_a, compare_freq_alpha_a;
+static hsh_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 
 /* Parser and outline. */
 
@@ -203,10 +199,10 @@ cmd_frequencies (void)
 static int
 internal_cmd_frequencies (void)
 {
-  int (*calc) (struct ccase *);
   int i;
 
   n_percentiles = 0;
+  percentile_values = NULL;
   percentiles = NULL;
 
   n_variables = 0;
@@ -251,7 +247,6 @@ internal_cmd_frequencies (void)
 
   /* Do it! */
   update_weighting (&default_dict);
-  calc = default_dict.weight_index == -1 ? calc_no_weight : calc_weighting;
   procedure (precalc, calc, postcalc);
 
   return CMD_SUCCESS;
@@ -359,12 +354,60 @@ determine_charts (void)
     }
 }
 
-/* Generate each calc_*(). */
-#define WEIGHTING 0
-#include "frequencies.g"
+/* Add data from case C to the frequency table. */
+static int
+calc (struct ccase *c)
+{
+  double weight;
+  int i;
 
-#define WEIGHTING 1
-#include "frequencies.g"
+  if (default_dict.weight_index == -1)
+    weight = 1.0;
+  else
+    weight = c->data[default_dict.var[default_dict.weight_index]->fv].f;
+
+  for (i = 0; i < n_variables; i++)
+    {
+      struct variable *v = v_variables[i];
+      union value *val = &c->data[v->fv];
+      struct freq_tab *ft = &v->p.frq.tab;
+
+      switch (v->p.frq.tab.mode)
+	{
+	  case FRQM_GENERAL:
+	    {
+	      /* General mode. */
+	      struct freq **fpp = (struct freq **) hsh_probe (ft->data, val);
+	  
+	      if (*fpp != NULL)
+		(*fpp)->c += weight;
+	      else
+		{
+		  struct freq *fp = *fpp = pool_alloc (gen_pool, sizeof *fp);
+		  fp->v = *val;
+		  fp->c = weight;
+		}
+	    }
+	  break;
+	case FRQM_INTEGER:
+	  /* Integer mode. */
+	  if (val->f == SYSMIS)
+	    v->p.frq.tab.sysmis += weight;
+	  else if (val->f > INT_MIN+1 && val->f < INT_MAX-1)
+	    {
+	      int i = val->f;
+	      if (i >= v->p.frq.tab.min && i <= v->p.frq.tab.max)
+		v->p.frq.tab.vector[i - v->p.frq.tab.min] += weight;
+	    }
+	  else
+	    v->p.frq.tab.out_of_range += weight;
+	  break;
+	default:
+	  assert (0);
+	}
+    }
+  return 1;
+}
 
 /* Prepares each variable that is the target of FREQUENCIES by setting
    up its hash table. */
@@ -382,14 +425,20 @@ precalc (void)
 
       if (v->p.frq.tab.mode == FRQM_GENERAL)
 	{
-	  avl_comparison_func compare;
-	  if (v->type == NUMERIC)
-	    compare = compare_value_numeric_a;
-	  else
-	    compare = compare_value_alpha_a;
-	  v->p.frq.tab.tree = avl_create (gen_pool, compare,
-					  (void *) v->width);
-	  v->p.frq.tab.n_missing = 0;
+          hsh_hash_func *hash;
+	  hsh_compare_func *compare;
+
+	  if (v->type == NUMERIC) 
+            {
+              hash = hash_value_numeric;
+              compare = compare_value_numeric_a; 
+            }
+	  else 
+            {
+              hash = hash_value_alpha;
+              compare = compare_value_alpha_a;
+            }
+	  v->p.frq.tab.data = hsh_create (16, compare, hash, NULL, v);
 	}
       else
 	{
@@ -450,115 +499,89 @@ postcalc (void)
     }
 }
 
-/* Comparison function called by comparison_helper(). */
-static avl_comparison_func comparison_func;
-
-/* Passed to comparison function by comparison_helper(). */
-static void *comparison_param;
-
-/* Used by postprocess_freq_tab to re-sort frequency tables. */
-static int
-comparison_helper (const void *a, const void *b)
+/* Returns the comparison function that should be used for
+   sorting a frequency table by FRQ_SORT using VAR_TYPE
+   variables. */
+static hsh_compare_func *
+get_freq_comparator (int frq_sort, int var_type) 
 {
-  return comparison_func (&((struct freq *) a)->v,
-			  &((struct freq *) b)->v, comparison_param);
+  /* Note that q2c generates tags beginning with 1000. */
+  switch (frq_sort | (var_type << 16))
+    {
+    case FRQ_AVALUE | (NUMERIC << 16):  return compare_value_numeric_a;
+    case FRQ_AVALUE | (ALPHA << 16):    return compare_value_alpha_a;
+    case FRQ_DVALUE | (NUMERIC << 16):  return compare_value_numeric_d;
+    case FRQ_DVALUE | (ALPHA << 16):    return compare_value_alpha_d;
+    case FRQ_AFREQ | (NUMERIC << 16):   return compare_freq_numeric_a;
+    case FRQ_AFREQ | (ALPHA << 16):     return compare_freq_alpha_a;
+    case FRQ_DFREQ | (NUMERIC << 16):   return compare_freq_numeric_d;
+    case FRQ_DFREQ | (ALPHA << 16):     return compare_freq_alpha_d;
+    default: assert (0);
+    }
 }
 
-/* Used by postprocess_freq_tab to construct the array members valid,
-   missing of freq_tab. */
-static void
-add_freq (void *data, void *param)
+static int
+not_missing (const void *f_, void *v_) 
 {
-  struct freq *f = data;
-  struct variable *v = param;
+  const struct freq *f = f_;
+  struct variable *v = v_;
 
-  v->p.frq.tab.total_cases += f->c;
-
-  if ((v->type == NUMERIC && f->v.f == SYSMIS)
-      || (cmd.miss == FRQ_EXCLUDE && is_user_missing (&f->v, v)))
-    {
-      *v->p.frq.tab.missing++ = *f;
-      v->p.frq.tab.valid_cases -= f->c;
-    }
-  else
-    *v->p.frq.tab.valid++ = *f;
+  return !is_missing (&f->v, v);
 }
 
 static void
 postprocess_freq_tab (struct variable * v)
 {
-  avl_comparison_func compare;
+  hsh_compare_func *compare;
+  struct freq_tab *ft;
+  size_t count;
+  void **data;
+  struct freq *freqs, *f;
+  size_t i;
 
-  switch (cmd.sort | (v->type << 16))
+  assert (v->p.frq.tab.mode == FRQM_GENERAL);
+  compare = get_freq_comparator (cmd.sort, v->type);
+  ft = &v->p.frq.tab;
+
+  /* Extract data from hash table. */
+  count = hsh_count (ft->data);
+  data = hsh_data (ft->data);
+
+  /* Copy dereferenced data into freqs. */
+  freqs = xmalloc (count* sizeof *freqs);
+  for (i = 0; i < count; i++) 
     {
-      /* Note that q2c generates tags beginning with 1000. */
-    case FRQ_AVALUE | (NUMERIC << 16):
-      compare = NULL;
-      break;
-    case FRQ_AVALUE | (ALPHA << 16):
-      compare = NULL;
-      break;
-    case FRQ_DVALUE | (NUMERIC << 16):
-      comparison_func = compare_value_numeric_d;
-      break;
-    case FRQ_DVALUE | (ALPHA << 16):
-      compare = compare_value_alpha_d;
-      break;
-    case FRQ_AFREQ | (NUMERIC << 16):
-      compare = compare_freq_numeric_a;
-      break;
-    case FRQ_AFREQ | (ALPHA << 16):
-      compare = compare_freq_alpha_a;
-      break;
-    case FRQ_DFREQ | (NUMERIC << 16):
-      compare = compare_freq_numeric_d;
-      break;
-    case FRQ_DFREQ | (ALPHA << 16):
-      compare = compare_freq_alpha_d;
-      break;
-    default:
-      assert (0);
+      struct freq *f = data[i];
+      freqs[i] = *f; 
     }
-  comparison_func = compare;
 
-  if (v->p.frq.tab.mode == FRQM_GENERAL)
+  /* Put data into ft. */
+  ft->valid = freqs;
+  ft->n_valid = partition (freqs, count, sizeof *freqs, not_missing, v);
+  ft->missing = freqs + ft->n_valid;
+  ft->n_missing = count - ft->n_valid;
+
+  /* Sort data. */
+  sort (ft->valid, ft->n_valid, sizeof *ft->valid, compare, v);
+  sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare, v);
+
+  /* Summary statistics. */
+  ft->total_cases = ft->valid_cases = 0.0;
+  for (f = ft->valid; f < ft->valid + ft->n_valid; f++) 
     {
-      int total;
-      struct freq_tab *ft = &v->p.frq.tab;
+      ft->total_cases += f->c;
 
-      total = avl_count (ft->tree);
-      ft->n_valid = total - ft->n_missing;
-      ft->valid = xmalloc (sizeof (struct freq) * total);
-      ft->missing = &ft->valid[ft->n_valid];
-      ft->valid_cases = ft->total_cases = 0.0;
-
-      avl_walk (ft->tree, add_freq, (void *) v);
-
-      ft->valid -= ft->n_valid;
-      ft->missing -= ft->n_missing;
-      ft->valid_cases += ft->total_cases;
-
-      if (compare)
-	{
-	  qsort (ft->valid, ft->n_valid, sizeof (struct freq), comparison_helper);
-	  qsort (ft->missing, ft->n_missing, sizeof (struct freq), comparison_helper);
-	}
+      if ((v->type != NUMERIC || f->v.f != SYSMIS)
+          && (cmd.miss != FRQ_EXCLUDE || !is_user_missing (&f->v, v)))
+        ft->valid_cases += f->c;
     }
-  else
-    assert (0);
 }
 
 static void
-cleanup_freq_tab (struct variable * v)
+cleanup_freq_tab (struct variable *v)
 {
-  if (v->p.frq.tab.mode == FRQM_GENERAL)
-    {
-      struct freq_tab *ft = &v->p.frq.tab;
-
-      free (ft->valid);
-    }
-  else
-    assert (0);
+  assert (v->p.frq.tab.mode == FRQM_GENERAL);
+  free (v->p.frq.tab.valid);
 }
 
 /* Parses the VARIABLES subcommand, adding to
@@ -733,19 +756,19 @@ add_percentile (double x)
       break;
   if (i >= n_percentiles || tokval != percentiles[i])
     {
-      percentiles = pool_realloc (int_pool, percentiles,
-				  (n_percentiles + 1) * sizeof (double));
-      percentile_values = pool_realloc (int_pool, percentile_values,
-				  (n_percentiles + 1) * sizeof (double));
-
-      if (i < n_percentiles)
-	{
-	memmove (&percentiles[i + 1], &percentiles[i],
-		 (n_percentiles - i) * sizeof (double));
-	memmove (&percentile_values[i + 1], &percentile_values[i],
-		 (n_percentiles - i) * sizeof (double));
-
-	}
+      percentiles
+        = pool_realloc (int_pool, percentiles,
+                        (n_percentiles + 1) * sizeof *percentiles);
+      percentile_values
+        = pool_realloc (int_pool, percentile_values,
+                        (n_percentiles + 1) * sizeof *percentile_values);
+      if (i < n_percentiles) 
+        {
+          memmove (&percentiles[i + 1], &percentiles[i],
+                   (n_percentiles - i) * sizeof *percentiles);
+          memmove (&percentile_values[i + 1], &percentile_values[i],
+                   (n_percentiles - i) * sizeof *percentile_values);
+        }
       percentiles[i] = x;
       n_percentiles++;
     }
@@ -798,68 +821,138 @@ frq_custom_ntiles (struct cmd_frequencies *cmd unused)
 
 /* Comparison functions. */
 
+/* Hash of numeric values. */
+static unsigned
+hash_value_numeric (const void *value_, void *foo unused)
+{
+  const struct freq *value = value_;
+  return hsh_hash_double (value->v.f);
+}
+
+/* Hash of string values. */
+static unsigned
+hash_value_alpha (const void *value_, void *len_)
+{
+  const struct freq *value = value_;
+  int *len = len_;
+
+  return hsh_hash_bytes (value->v.s, *len);
+}
+
 /* Ascending numeric compare of values. */
 static int
-compare_value_numeric_a (const void *a, const void *b, void *foo unused)
+compare_value_numeric_a (const void *a_, const void *b_, void *foo unused)
 {
-  return approx_compare (((struct freq *) a)->v.f, ((struct freq *) b)->v.f);
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+
+  if (a->v.f > b->v.f)
+    return 1;
+  else if (a->v.f < b->v.f)
+    return -1;
+  else
+    return 0;
 }
 
 /* Ascending string compare of values. */
 static int
-compare_value_alpha_a (const void *a, const void *b, void *len)
+compare_value_alpha_a (const void *a_, const void *b_, void *v_)
 {
-  return memcmp (((struct freq *) a)->v.s, ((struct freq *) b)->v.s, (int) len);
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+  const struct variable *v = v_;
+
+  return memcmp (a->v.s, b->v.s, v->width);
 }
 
 /* Descending numeric compare of values. */
 static int
 compare_value_numeric_d (const void *a, const void *b, void *foo unused)
 {
-  return approx_compare (((struct freq *) b)->v.f, ((struct freq *) a)->v.f);
+  return -compare_value_numeric_a (a, b, foo);
 }
 
 /* Descending string compare of values. */
 static int
-compare_value_alpha_d (const void *a, const void *b, void *len)
+compare_value_alpha_d (const void *a, const void *b, void *v)
 {
-  return memcmp (((struct freq *) b)->v.s, ((struct freq *) a)->v.s, (int) len);
+  return -compare_value_alpha_a (a, b, v);
 }
 
 /* Ascending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_a (const void *a, const void *b, void *foo unused)
+compare_freq_numeric_a (const void *a_, const void *b_, void *foo unused)
 {
-  int x = approx_compare (((struct freq *) a)->c, ((struct freq *) b)->c);
-  return x ? x : approx_compare (((struct freq *) a)->v.f, ((struct freq *) b)->v.f);
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+
+  if (a->v.c > b->v.c)
+    return 1;
+  else if (a->v.c < b->v.c)
+    return -1;
+
+  if (a->v.f > b->v.f)
+    return 1;
+  else if (a->v.f < b->v.f)
+    return -1;
+  else
+    return 0;
 }
 
 /* Ascending numeric compare of frequency;
    secondary key on ascending string value. */
 static int
-compare_freq_alpha_a (const void *a, const void *b, void *len)
+compare_freq_alpha_a (const void *a_, const void *b_, void *v_)
 {
-  int x = approx_compare (((struct freq *) a)->c, ((struct freq *) b)->c);
-  return x ? x : memcmp (((struct freq *) a)->v.s, ((struct freq *) b)->v.s, (int) len);
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+  const struct variable *v = v_;
+
+  if (a->v.c > b->v.c)
+    return 1;
+  else if (a->v.c < b->v.c)
+    return -1;
+  else
+    return memcmp (a->v.s, b->v.s, v->width);
 }
 
 /* Descending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_d (const void *a, const void *b, void *foo unused)
+compare_freq_numeric_d (const void *a_, const void *b_, void *foo unused)
 {
-  int x = approx_compare (((struct freq *) b)->c, ((struct freq *) a)->c);
-  return x ? x : approx_compare (((struct freq *) a)->v.f, ((struct freq *) b)->v.f);
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+
+  if (a->v.c > b->v.c)
+    return -1;
+  else if (a->v.c < b->v.c)
+    return 1;
+
+  if (a->v.f > b->v.f)
+    return 1;
+  else if (a->v.f < b->v.f)
+    return -1;
+  else
+    return 0;
 }
 
 /* Descending numeric compare of frequency;
    secondary key on ascending string value. */
 static int
-compare_freq_alpha_d (const void *a, const void *b, void *len)
+compare_freq_alpha_d (const void *a_, const void *b_, void *v_)
 {
-  int x = approx_compare (((struct freq *) b)->c, ((struct freq *) a)->c);
-  return x ? x : memcmp (((struct freq *) a)->v.s, ((struct freq *) b)->v.s, (int) len);
+  const struct freq *a = a_;
+  const struct freq *b = b_;
+  const struct variable *v = v_;
+
+  if (a->v.c > b->v.c)
+    return -1;
+  else if (a->v.c < b->v.c)
+    return 1;
+  else
+    return memcmp (a->v.s, b->v.s, v->width);
 }
 
 /* Frequency table display. */
@@ -941,7 +1034,7 @@ dump_full (struct variable * v)
 
       if (lab)
 	{
-	  char *label = get_val_lab (v, f->v, 0);
+	  const char *label = val_labs_find (v->val_labs, f->v);
 	  if (label != NULL)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
@@ -959,7 +1052,7 @@ dump_full (struct variable * v)
 
       if (lab)
 	{
-	  char *label = get_val_lab (v, f->v, 0);
+	  const char *label = val_labs_find (v->val_labs, f->v);
 	  if (label != NULL)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
@@ -1071,53 +1164,49 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   struct freq *f;
   int most_often;
 
-  double cum_percent=0;
-  int i=0;
-  double previous_value=SYSMIS;
+  double cum_percent;
+  int i = 0;
+  double previous_value;
 
-
-
-  /* Calculate the mean and  mode */
+  /* Calculate the mean. */
   X_bar = 0.0;
+  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+    X_bar += f->v.f * f->c;
+  X_bar /= W;
+
+  /* Calculate percentiles. */
+  cum_percent = 0;
+  previous_value = SYSMIS;
+  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+    {
+      cum_percent += f->c / v->p.frq.tab.valid_cases;
+      for (; i < n_percentiles; i++) 
+        {
+          if (cum_percent <= percentiles[i])
+            break;
+
+          percentile_values[i] = previous_value;
+        }
+      previous_value = f->v.f;
+    }
+
+  /* Calculate the mode. */
   most_often = -1;
   X_mode = SYSMIS;
   for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
     {
-
- 
-      cum_percent += f->c / v->p.frq.tab.valid_cases ;
-
-
-      for(;i < n_percentiles ;  ++i) 
-	{
-	  
-
-	  if (cum_percent <= percentiles[i]) 
-	    break;
-
-	  percentile_values[i]=previous_value;
-
-	}
-
-
-      /* mean */
-      X_bar += f->v.f * f->c;
-
-      /* mode */
-      if (most_often < f->c ) 
-	{ 
-	  most_often=f->c;
-	  X_mode= f->v.f;
-	}
-      else if ( most_often == f->c ) 
-	{
-	  /* if there are 2 values , then mode is undefined */
-	  X_mode=SYSMIS;
-	}
-
-      previous_value=f->v.f;
+      if (most_often < f->c) 
+        {
+          most_often = f->c;
+          X_mode = f->v.f;
+        }
+      else if (most_often == f->c) 
+        {
+          /* A duplicate mode is undefined.
+             FIXME: keep track of *all* the modes. */
+          X_mode = SYSMIS;
+        }
     }
-  X_bar /= W;
 
   /* Calculate moments about the mean. */
   M2 = M3 = M4 = 0.0;
@@ -1135,7 +1224,7 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 
   /* Formulas below are taken from _SPSS Statistical Algorithms_. */
   d[frq_min] = v->p.frq.tab.valid[0].v.f;
-  d[frq_max] = v->p.frq.tab.missing[-1].v.f;
+  d[frq_max] = v->p.frq.tab.valid[v->p.frq.tab.n_valid - 1].v.f;
   d[frq_mode] = X_mode;
   d[frq_range] = d[frq_max] - d[frq_min];
   d[frq_median] = SYSMIS;
@@ -1201,19 +1290,18 @@ dump_statistics (struct variable * v, int show_varname)
 	r++;
       }
 
-  for ( i=0 ; i < n_percentiles ; ++i,++r ) { 
-    struct string ds;
+  for (i = 0; i < n_percentiles; i++, r++) 
+    {
+      struct string ds;
 
-    ds_init(gen_pool, &ds, 20 );
+      ds_init (gen_pool, &ds, 20);
+      ds_printf (&ds, "%s %d", _("Percentile"), (int) (percentiles[i] * 100));
 
-    ds_printf(&ds,"%s %d",_("Percentile"),(int)(percentiles[i]*100));
+      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, ds.string);
+      tab_float (t, 1, r, TAB_NONE, percentile_values[i], 11, 3);
 
-
-    tab_text(t,0,r, TAB_LEFT | TAT_TITLE, ds.string);
-    tab_float(t,1,r,TAB_NONE,percentile_values[i],11,3);
-
-    ds_destroy(&ds);
-  }
+      ds_destroy (&ds);
+    }
 
   tab_columns (t, SOM_COL_DOWN, 1);
   if (show_varname)
@@ -1228,657 +1316,6 @@ dump_statistics (struct variable * v, int show_varname)
   
   tab_submit (t);
 }
-
-#if 0
-/* Statistical calculation. */
-
-static int degree[6];
-static int maxdegree, minmax;
-
-static void stat_func (struct freq *, VISIT, int);
-static void calc_stats (int);
-static void display_stats (int);
-
-/* mapping of data[]:
- * 0=>8
- * 1=>9
- * 2=>10
- * index 3: number of modes found (detects multiple modes)
- * index 4: number of nodes processed, for calculation of median
- * 5=>11
- * 
- * mapping of dbl[]:
- * index 0-3: sum of X**i
- * index 4: minimum
- * index 5: maximum
- * index 6: mode
- * index 7: median
- * index 8: number of cases, valid and missing
- * index 9: number of valid cases
- * index 10: maximum frequency found, for calculation of mode
- * index 11: maximum frequency
- */
-static void
-out_stats (int i)
-{
-  int j;
-
-  if (cur_var->type == ALPHA)
-    return;
-  for (j = 0; j < 8; j++)
-    cur_var->dbl[j] = 0.;
-  cur_var->dbl[10] = 0;
-  cur_var->dbl[4] = DBL_MAX;
-  cur_var->dbl[5] = -DBL_MAX;
-  for (j = 2; j < 5; j++)
-    cur_var->data[j] = 0;
-  cur_var->p.frq.median_ncases = cur_var->p.frq.t.valid_cases / 2;
-  avlwalk (cur_var->p.frq.t.f, stat_func, LEFT_TO_RIGHT);
-  calc_stats (i);
-  display_stats (i);
-}
-
-static void
-calc_stats (int i)
-{
-  struct variable *v;
-  double n;
-  double *d;
-
-  v = v_variables[i];
-  n = v->p.frq.t.valid_cases;
-  d = v->dbl;
-
-  if (n < 2 || (n < 3 && stat[FRQ_ST_7]))
-    {
-      warn (_("only %g case%s for variable %s, statistics not "
-	    "computed"), n, n == 1 ? "" : "s", v->name);
-      return;
-    }
-  if (stat[FRQ_ST_9])
-    v->res[FRQ_ST_9] = d[5] - d[4];
-  if (stat[FRQ_ST_10])
-    v->res[FRQ_ST_10] = d[4];
-  if (stat[FRQ_ST_11])
-    v->res[FRQ_ST_11] = d[5];
-  if (stat[FRQ_ST_12])
-    v->res[FRQ_ST_12] = d[0];
-  if (stat[FRQ_ST_1] || stat[FRQ_ST_2] || stat[FRQ_ST_5] || stat[FRQ_ST_6] || stat[FRQ_ST_7])
-    {
-      v->res[FRQ_ST_1] = calc_mean (d, n);
-      v->res[FRQ_ST_6] = calc_variance (d, n);
-    }
-  if (stat[FRQ_ST_2] || stat[FRQ_ST_5] || stat[FRQ_ST_7])
-    v->res[FRQ_ST_5] = calc_stddev (v->res[FRQ_ST_6]);
-  if (stat[FRQ_ST_2])
-    v->res[FRQ_ST_2] = calc_semean (v->res[FRQ_ST_5], n);
-  if (stat[FRQ_ST_7])
-    {
-      v->res[FRQ_ST_7] = calc_kurt (d, n, v->res[FRQ_ST_6]);
-      v->res[FRQ_ST_14] = calc_sekurt (n);
-    }
-  if (stat[FRQ_ST_8])
-    {
-      v->res[FRQ_ST_8] = calc_skew (d, n, v->res[FRQ_ST_5]);
-      v->res[FRQ_ST_15] = calc_seskew (n);
-    }
-  if (stat[FRQ_ST_MODE])
-    {
-      v->res[FRQ_ST_MODE] = v->dbl[6];
-      if (v->data[3] > 1)
-	warn (_("The variable %s has %d modes.  The lowest of these "
-	      "is the one given in the table."), v->name, v->data[3]);
-    }
-  if (stat[FRQ_ST_MEDIAN])
-    v->res[FRQ_ST_MEDIAN] = v->dbl[7];
-}
-
-static void
-stat_func (struct freq * x, VISIT order, int param)
-{
-  double d, f;
-
-  if (order != INORDER)
-    return;
-  f = d = x->v.f;
-  cur_var->dbl[0] += (d * x->c);
-  switch (maxdegree)
-    {
-    case 1:
-      f *= d;
-      cur_var->dbl[1] += (f * x->c);
-      break;
-    case 2:
-      f *= d;
-      cur_var->dbl[1] += (f * x->c);
-      f *= d;
-      cur_var->dbl[2] += (f * x->c);
-      break;
-    case 3:
-      f *= d;
-      cur_var->dbl[1] += (f * x->c);
-      f *= d;
-      cur_var->dbl[2] += (f * x->c);
-      f *= d;
-      cur_var->dbl[3] += (f * x->c);
-      break;
-    }
-  if (minmax)
-    {
-      if (d < cur_var->dbl[4])
-	cur_var->dbl[4] = d;
-      if (d > cur_var->dbl[5])
-	cur_var->dbl[5] = d;
-    }
-  if (x->c > cur_var->dbl[10])
-    {
-      cur_var->data[3] = 1;
-      cur_var->dbl[10] = x->c;
-      cur_var->dbl[6] = x->v.f;
-    }
-  else if (x->c == cur_var->dbl[10])
-    cur_var->data[3]++;
-  if (cur_var->data[4] < cur_var->p.frq.median_ncases
-      && cur_var->data[4] + x->c >= cur_var->p.frq.median_ncases)
-    cur_var->dbl[7] = x->v.f;
-  cur_var->data[4] += x->c;
-}
-
-/* Statistical display. */
-static int column, ncolumns;
-
-static void outstat (char *, double);
-
-static void
-display_stats (int i)
-{
-  statname *sp;
-  struct variable *v;
-  int nlines;
-
-  v = v_variables[i];
-  ncolumns = (margin_width + 3) / 26;
-  if (ncolumns < 1)
-    ncolumns = 1;
-  nlines = sc / ncolumns + (sc % ncolumns > 0);
-  if (nlines == 2 && sc == 4)
-    ncolumns = 2;
-  if (nlines == 3 && sc == 9)
-    ncolumns = 3;
-  if (nlines == 4 && sc == 12)
-    ncolumns = 3;
-  column = 0;
-  for (sp = st_name; sp->s != -1; sp++)
-    if (stat[sp->s] == 1)
-      outstat (gettext (sp->s10), v->res[sp->s]);
-  if (column)
-    out_eol ();
-  blank_line ();
-}
-
-static void
-outstat (char *label, double value)
-{
-  char buf[128], *cp;
-  int dw, n;
-
-  cp = &buf[0];
-  if (!column)
-    out_header ();
-  else
-    {
-      memset (buf, ' ', 3);
-      cp = &buf[3];
-    }
-  dw = 4;
-  n = nsprintf (cp, "%-10s %12.4f", label, value);
-  while (n > 23 && dw > 0)
-    n = nsprintf (cp, "%-10s %12.*f", label, --dw, value);
-  outs (buf);
-  column++;
-  if (column == ncolumns)
-    {
-      column = 0;
-      out_eol ();
-    }
-}
-
-/* Graphs. */
-
-static rect pb, gb;		/* Page border, graph border. */
-static int px, py;		/* Page width, height. */
-static int ix, iy;		/* Inch width, height. */
-
-static void draw_bar_chart (int);
-static void draw_histogram (int);
-static int scale_dep_axis (int);
-
-static void
-out_graphs (int i)
-{
-  struct variable *v;
-
-  v = v_variables[i];
-  if (avlcount (cur_var->p.frq.t.f) < 2
-      || (chart == HIST && v_variables[i]->type == ALPHA))
-    return;
-  if (driver_id && set_highres == 1)
-    {
-      char *text;
-
-      graf_page_size (&px, &py, &ix, &iy);
-      graf_feed_page ();
-
-      /* Calculate borders. */
-      pb.x1 = ix;
-      pb.y1 = iy;
-      pb.x2 = px - ix;
-      pb.y2 = py - iy;
-      gb.x1 = pb.x1 + ix;
-      gb.y1 = pb.y1 + iy;
-      gb.x2 = pb.x2 - ix / 2;
-      gb.y2 = pb.y2 - iy;
-
-      /* Draw borders. */
-      graf_frame_rect (COMPONENTS (pb));
-      graf_frame_rect (COMPONENTS (gb));
-
-      /* Draw axis labels. */
-      graf_font_size (iy / 4);	/* 18-point text */
-      text = format == PERCENT ? _("Percentage") : _("Frequency");
-      graf_text (pb.x1 + max (ix, iy) / 4 + max (ix, iy) / 16, gb.y2, text,
-		 SIDEWAYS);
-      text = v->label ? v->label : v->name;
-      graf_text (gb.x1, pb.y2 - iy / 4, text, UPRIGHT);
-
-      /* Draw axes, chart proper. */
-      if (chart == BAR ||
-	  (chart == HBAR
-       && (avlcount (cur_var->p.frq.t.f) || v_variables[i]->type == ALPHA)))
-	draw_bar_chart (i);
-      else
-	draw_histogram (i);
-
-      graf_eject_page ();
-    }
-  if (set_lowres == 1 || (set_lowres == 2 && (!driver_id || !set_highres)))
-    {
-      static warned;
-
-      /* Do character-based graphs. */
-      if (!warned)
-	{
-	  warn (_("low-res graphs not implemented"));
-	  warned = 1;
-	}
-    }
-}
-
-#if __GNUC__ && !__CHECKER__
-#define BIG_TYPE long long
-#else /* !__GNUC__ */
-#define BIG_TYPE double
-#endif /* !__GNUC__ */
-
-static void
-draw_bar_chart (int i)
-{
-  int bar_width, bar_spacing;
-  int w, max, row;
-  double val;
-  struct freq *f;
-  rect r;
-  AVLtraverser *t = NULL;
-
-  w = (px - ix * 7 / 2) / avlcount (cur_var->p.frq.t.f);
-  bar_width = w * 2 / 3;
-  bar_spacing = w - bar_width;
-
-#if !ALLOW_HUGE_BARS
-  if (bar_width > ix / 2)
-    bar_width = ix / 2;
-#endif /* !ALLOW_HUGE_BARS */
-
-  max = scale_dep_axis (cur_var->p.frq.t.max_freq);
-
-  row = 0;
-  r.x1 = gb.x1 + bar_spacing / 2;
-  r.x2 = r.x1 + bar_width;
-  r.y2 = gb.y2;
-  graf_fill_color (255, 0, 0);
-  for (f = avltrav (cur_var->p.frq.t.f, &t); f;
-       f = avltrav (cur_var->p.frq.t.f, &t))
-    {
-      char buf2[64];
-      char *buf;
-
-      val = f->c;
-      if (format == PERCENT)
-	val = val * 100 / cur_var->p.frq.t.valid_cases;
-      r.y1 = r.y2 - val * (height (gb) - 1) / max;
-      graf_fill_rect (COMPONENTS (r));
-      graf_frame_rect (COMPONENTS (r));
-      buf = get_val_lab (cur_var, f->v, 0);
-      if (!buf)
-	if (cur_var->type == ALPHA)
-	  buf = f->v.s;
-	else
-	  {
-	    sprintf (buf2, "%g", f->v.f);
-	    buf = buf2;
-	  }
-      graf_text (r.x1 + bar_width / 2,
-		 gb.y2 + iy / 32 + row * iy / 9, buf, TCJUST);
-      row ^= 1;
-      r.x1 += bar_width + bar_spacing;
-      r.x2 += bar_width + bar_spacing;
-    }
-  graf_fill_color (0, 0, 0);
-}
-
-#define round_down(X, V) 			\
-	(floor ((X) / (V)) * (V))
-#define round_up(X, V) 				\
-	(ceil ((X) / (V)) * (V))
-
-static void
-draw_histogram (int i)
-{
-  double lower, upper, interval;
-  int bars[MAX_HIST_BARS + 1], top, j;
-  int err, addend, rem, nbars, row, max_freq;
-  char buf[25];
-  rect r;
-  struct freq *f;
-  AVLtraverser *t = NULL;
-
-  lower = min == SYSMIS ? cur_var->dbl[4] : min;
-  upper = max == SYSMIS ? cur_var->dbl[5] : max;
-  if (upper - lower >= 10)
-    {
-      double l, u;
-
-      u = round_up (upper, 5);
-      l = round_down (lower, 5);
-      nbars = (u - l) / 5;
-      if (nbars * 2 + 1 <= MAX_HIST_BARS)
-	{
-	  nbars *= 2;
-	  u = round_up (upper, 2.5);
-	  l = round_down (lower, 2.5);
-	  if (l + 1.25 <= lower && u - 1.25 >= upper)
-	    nbars--, lower = l + 1.25, upper = u - 1.25;
-	  else if (l + 1.25 <= lower)
-	    lower = l + 1.25, upper = u + 1.25;
-	  else if (u - 1.25 >= upper)
-	    lower = l - 1.25, upper = u - 1.25;
-	  else
-	    nbars++, lower = l - 1.25, upper = u + 1.25;
-	}
-      else if (nbars < MAX_HIST_BARS)
-	{
-	  if (l + 2.5 <= lower && u - 2.5 >= upper)
-	    nbars--, lower = l + 2.5, upper = u - 2.5;
-	  else if (l + 2.5 <= lower)
-	    lower = l + 2.5, upper = u + 2.5;
-	  else if (u - 2.5 >= upper)
-	    lower = l - 2.5, upper = u - 2.5;
-	  else
-	    nbars++, lower = l - 2.5, upper = u + 2.5;
-	}
-      else
-	nbars = MAX_HIST_BARS;
-    }
-  else
-    {
-      nbars = avlcount (cur_var->p.frq.t.f);
-      if (nbars > MAX_HIST_BARS)
-	nbars = MAX_HIST_BARS;
-    }
-  if (nbars < MIN_HIST_BARS)
-    nbars = MIN_HIST_BARS;
-  interval = (upper - lower) / nbars;
-
-  memset (bars, 0, sizeof (int[nbars + 1]));
-  if (lower >= upper)
-    {
-      msg (SE, _("Could not make histogram for %s for specified "
-	   "minimum %g and maximum %g; please discard graph."), cur_var->name,
-	   lower, upper);
-      return;
-    }
-  for (f = avltrav (cur_var->p.frq.t.f, &t); f;
-       f = avltrav (cur_var->p.frq.t.f, &t))
-    if (f->v.f == upper)
-      bars[nbars - 1] += f->c;
-    else if (f->v.f >= lower && f->v.f < upper)
-      bars[(int) ((f->v.f - lower) / interval)] += f->c;
-  bars[nbars - 1] += bars[nbars];
-  for (j = top = 0; j < nbars; j++)
-    if (bars[j] > top)
-      top = bars[j];
-  max_freq = top;
-  top = scale_dep_axis (top);
-
-  err = row = 0;
-  addend = width (gb) / nbars;
-  rem = width (gb) % nbars;
-  r.x1 = gb.x1;
-  r.x2 = r.x1 + addend;
-  r.y2 = gb.y2;
-  err += rem;
-  graf_fill_color (255, 0, 0);
-  for (j = 0; j < nbars; j++)
-    {
-      int w;
-
-      r.y1 = r.y2 - (BIG_TYPE) bars[j] * (height (gb) - 1) / top;
-      graf_fill_rect (COMPONENTS (r));
-      graf_frame_rect (COMPONENTS (r));
-      sprintf (buf, "%g", lower + interval / 2 + interval * j);
-      graf_text (r.x1 + addend / 2,
-		 gb.y2 + iy / 32 + row * iy / 9, buf, TCJUST);
-      row ^= 1;
-      w = addend;
-      err += rem;
-      while (err >= addend)
-	{
-	  w++;
-	  err -= addend;
-	}
-      r.x1 = r.x2;
-      r.x2 = r.x1 + w;
-    }
-  if (normal)
-    {
-      double x, y, variance, mean, step, factor;
-
-      variance = cur_var->res[FRQ_ST_VARIANCE];
-      mean = cur_var->res[FRQ_ST_MEAN];
-      factor = (1. / (sqrt (2. * PI * variance))
-		* cur_var->p.frq.t.valid_cases * interval);
-      graf_polyline_begin ();
-      for (x = lower, step = (upper - lower) / (POLYLINE_DENSITY);
-	   x <= upper; x += step)
-	{
-	  y = factor * exp (-square (x - mean) / (2. * variance));
-	  debug_printf (("(%20.10f, %20.10f)\n", x, y));
-	  graf_polyline_point (gb.x1 + (x - lower) / (upper - lower) * width (gb),
-			       gb.y2 - y * (height (gb) - 1) / top);
-	}
-      graf_polyline_end ();
-    }
-  graf_fill_color (0, 0, 0);
-}
-
-static int
-scale_dep_axis (int max)
-{
-  int j, s, x, y, ty, by;
-  char buf[10];
-
-  x = 10, s = 2;
-  if (scale != SYSMIS && max < scale)
-    x = scale, s = scale / 5;
-  else if (format == PERCENT)
-    {
-      max = ((BIG_TYPE) 100 * cur_var->p.frq.t.max_freq
-	     / cur_var->p.frq.t.valid_cases + 1);
-      if (max < 5)
-	x = 5, s = 1;
-      else if (max < 10)
-	x = 10, s = 2;
-      else if (max < 25)
-	x = 25, s = 5;
-      else if (max < 50)
-	x = 50, s = 10;
-      else
-	max = 100, s = 20;
-    }
-  else				/* format==FREQ */
-    /* Uses a progression of 10, 20, 50, 100, 200, 500, ... */
-    for (;;)
-      {
-	if (x > max)
-	  break;
-	x *= 2;
-	s *= 2;
-	if (x > max)
-	  break;
-	x = x / 2 * 5;
-	s = s / 2 * 5;
-	if (x > max)
-	  break;
-	x *= 2;
-	s *= 2;
-      }
-  graf_font_size (iy / 9);	/* 8-pt text */
-  for (j = 0; j <= x; j += s)
-    {
-      y = gb.y2 - (BIG_TYPE) j *(height (gb) - 1) / x;
-      ty = y - iy / 64;
-      by = y + iy / 64;
-      if (ty < gb.y1)
-	ty += iy / 64, by += iy / 64;
-      else if (by > gb.y2)
-	ty -= iy / 64, by -= iy / 64;
-      graf_fill_rect (gb.x1 - ix / 16, ty, gb.x1, by);
-      sprintf (buf, "%d", j);
-      graf_text (gb.x1 - ix / 8, (ty + by) / 2, buf, CRJUST);
-    }
-  return x;
-}
-
-/* Percentiles. */
-
-static void ungrouped_pcnt (int i);
-static int grouped_interval_pcnt (int i);
-static void out_pcnt (double, double);
-
-static void
-out_percentiles (int i)
-{
-  if (cur_var->type == ALPHA || !n_percentiles)
-    return;
-
-  outs_line (_("Percentile    Value     "
-	     "Percentile    Value     "
-	     "Percentile    Value"));
-  blank_line ();
-
-  column = 0;
-  if (!g_var[i])
-    ungrouped_pcnt (i);
-  else if (g_var[i] == 1)
-    grouped_interval_pcnt (i);
-#if 0
-  else if (g_var[i] == -1)
-    grouped_pcnt (i);
-  else
-    grouped_boundaries_pcnt (i);
-#else /* !0 */
-  else
-    warn (_("this form of percentiles not supported"));
-#endif
-  if (column)
-    out_eol ();
-}
-
-static void
-out_pcnt (double pcnt, double value)
-{
-  if (!column)
-    out_header ();
-  else
-    outs ("     ");
-  out ("%7.2f%13.3f", pcnt * 100., value);
-  column++;
-  if (column == 3)
-    {
-      out_eol ();
-      column = 0;
-    }
-}
-
-static void
-ungrouped_pcnt (int i)
-{
-  AVLtraverser *t = NULL;
-  struct freq *f;
-  double *p, *e;
-  int sum;
-
-  p = percentiles;
-  e = &percentiles[n_percentiles];
-  sum = 0;
-  for (f = avltrav (cur_var->p.frq.t.f, &t);
-       f && p < e; f = avltrav (cur_var->p.frq.t.f, &t))
-    {
-      sum += f->c;
-      while (sum >= p[0] * cur_var->p.frq.t.valid_cases && p < e)
-	out_pcnt (*p++, f->v.f);
-    }
-}
-
-
-static int
-grouped_interval_pcnt (int i)
-{
-  AVLtraverser * t = NULL;
-  struct freq * f, *fp;
-  double *p, *e, w;
-  int sum, psum;
-
-  p = percentiles;
-  e = &percentiles[n_percentiles];
-  w = gl_var[i][0];
-  sum = psum = 0;
-  for (fp = 0, f = avltrav (cur_var->p.frq.t.f, &t);
-       f && p < e;
-       fp = f, f = avltrav (cur_var->p.frq.t.f, &t))
-    {
-      if (fp)
-	if (fabs (f->v.f - fp->v.f) < w)
-	  {
-	    out_eol ();
-	    column = 0;
-	    return msg (SE, _("Difference between %g and %g is "
-			      "too small for grouping interval %g."), f->v.f,
-			fp->v.f, w);
-	  }
-      psum = sum;
-      sum += f->c;
-      while (sum >= p[0] * cur_var->p.frq.t.valid_cases && p < e)
-	{
-	  out_pcnt (p[0], (((p[0] * cur_var->p.frq.t.valid_cases) - psum) * w / f->c
-			   + (f->v.f - w / 2)));
-	  p++;
-	}
-    }
-  return 1;
-}
-#endif
-
 /* 
    Local Variables:
    mode: c

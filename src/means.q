@@ -22,8 +22,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include "alloc.h"
-#include "avl.h"
 #include "command.h"
+#include "hash.h"
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
@@ -164,9 +164,10 @@ mns_custom_tables (struct cmd_means *cmd)
       {
 	int i;
       
-	temp_dict.var_by_name = avl_create (NULL, cmp_variable, NULL);
+	temp_dict.name_tab = hsh_create (8, compare_variables, hash_variable,
+                                         NULL, NULL);
 	for (i = 0; i < temp_dict.nvar; i++)
-	  avl_force_insert (temp_dict.var_by_name, temp_dict.var[i]);
+	  hsh_force_insert (temp_dict.name_tab, temp_dict.var[i]);
       }
     }
   else
@@ -248,7 +249,7 @@ mns_custom_tables (struct cmd_means *cmd)
   }
   
   if (cmd->sbc_variables)
-    avl_destroy (temp_dict.var_by_name, NULL);
+    hsh_destroy (temp_dict.name_tab);
 
   return 1;
 }

@@ -21,9 +21,10 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
+#include "algorithm.h"
 #include "alloc.h"
 #include "hash.h"
-#include "quicksort.h"
+#include "misc.h"
 #include "str.h"
 
 /* Hash table. */
@@ -33,7 +34,7 @@ struct hsh_table
     size_t size;                /* Number of entries (a power of 2). */
     void **entries;		/* Hash table proper. */
 
-    void *param;
+    void *aux;                  /* Auxiliary data for comparison functions. */
     hsh_compare_func *compare;
     hsh_hash_func *hash;
     hsh_free_func *free;
@@ -81,6 +82,8 @@ hsh_hash_bytes (const void *buf_, size_t size)
 {
   const unsigned char *buf = buf_;
   unsigned hash = 0;
+
+  assert (buf != NULL);
   while (size-- > 0) 
     {
       hash += *buf++;
@@ -99,6 +102,8 @@ hsh_hash_string (const char *s_)
 {
   const unsigned char *s = s_;
   unsigned hash = 0;
+
+  assert (s != NULL);
   while (*s != '\0') 
     {
       hash += *s++;
@@ -117,6 +122,16 @@ hsh_hash_int (int i)
 {
   return hsh_hash_bytes (&i, sizeof i);
 }
+
+/* Hash for double. */
+unsigned
+hsh_hash_double (double d) 
+{
+  if (!isnan (d))
+    return hsh_hash_bytes (&d, sizeof d);
+  else
+    return 0;
+}
 
 /* Hash tables. */
 
@@ -126,17 +141,24 @@ hsh_hash_int (int i)
    for an entry; FREE destroys an entry. */
 struct hsh_table *
 hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
-            hsh_free_func *free, void *param)
+            hsh_free_func *free, void *aux)
 {
-  struct hsh_table *h = xmalloc (sizeof *h);
+  struct hsh_table *h;
   int i;
 
+  assert (size > 0);
+  assert (compare != NULL);
+  assert (hash != NULL);
+  
+  h = xmalloc (sizeof *h);
   h->used = 0;
+  if (size < 4)
+    size = 4;
   h->size = next_power_of_2 (size);
   h->entries = xmalloc (sizeof *h->entries * h->size);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
-  h->param = param;
+  h->aux = aux;
   h->compare = compare;
   h->hash = hash;
   h->free = free;
@@ -149,10 +171,11 @@ hsh_clear (struct hsh_table *h)
 {
   int i;
 
+  assert (h != NULL);
   if (h->free)
     for (i = 0; i < h->size; i++)
       if (h->entries[i] != NULL)
-        h->free (h->entries[i], h->param);
+        h->free (h->entries[i], h->aux);
 
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
@@ -164,24 +187,29 @@ hsh_destroy (struct hsh_table *h)
 {
   int i;
 
-  if (h == NULL)
-    return;
-  if (h->free)
-    for (i = 0; i < h->size; i++)
-      if (h->entries[i] != NULL)
-        h->free (h->entries[i], h->param);
-  free (h->entries);
-  free (h);
+  if (h != NULL) 
+    {
+      if (h->free)
+        for (i = 0; i < h->size; i++)
+          if (h->entries[i] != NULL)
+            h->free (h->entries[i], h->aux);
+      free (h->entries);
+      free (h);
+    }
 }
 
 /* Changes the capacity of H to NEW_SIZE. */
 static void
 hsh_rehash (struct hsh_table *h, size_t new_size)
 {
-  void **begin = h->entries;
-  void **end = &h->entries[h->size];
-  void **table_p;
+  void **begin, **end, **table_p;
   int i;
+
+  assert (h != NULL);
+  assert (new_size >= h->used);
+
+  begin = h->entries;
+  end = begin + h->size;
 
   h->size = new_size;
   h->entries = xmalloc (sizeof *h->entries * h->size);
@@ -193,7 +221,7 @@ hsh_rehash (struct hsh_table *h, size_t new_size)
 
       if (*table_p == NULL)
 	continue;
-      entry = &h->entries[h->hash (*table_p, h->param) & (h->size - 1)];
+      entry = &h->entries[h->hash (*table_p, h->aux) & (h->size - 1)];
       while (*entry)
 	if (--entry < h->entries)
 	  entry = &h->entries[h->size - 1];
@@ -202,62 +230,116 @@ hsh_rehash (struct hsh_table *h, size_t new_size)
   free (begin);
 }
 
-/* hsh_sort() helper function that ensures NULLs are sorted after the
-   rest of the table. */
+/* A "algo_predicate_func" that returns nonzero if DATA points
+   to a non-null void. */
 static int
-sort_nulls_last (const void *a_, const void *b_, void *h_)
+not_null (const void *data_, void *aux unused) 
 {
-  void *a = *(void **) a_;
-  void *b = *(void **) b_;
-  struct hsh_table *h = h_;
+  void *const *data = data_;
 
-  if (a != NULL) 
-    {
-      if (b != NULL)
-        return h->compare (a, b, h->param);
-      else
-        return -1;
-    }
-  else
-    {
-      if (b != NULL)
-        return +1;
-      else
-        return 0;
-    }
+  return *data != NULL;
 }
 
-/* Sorts hash table H based on hash comparison function.  NULLs
-   are sent to the end of the table.  The resultant table is
-   returned (it is guaranteed to be NULL-terminated).  H should
-   not be used again as a hash table until and unless hsh_clear()
-   called. */
+/* Compacts hash table H and returns a pointer to its data.  The
+   returned data consists of hsh_count(H) non-null pointers, in
+   no particular order, followed by a null pointer.  After
+   calling this function, only hsh_destroy() and hsh_count() may
+   be applied to H. */
+void **
+hsh_data (struct hsh_table *h) 
+{
+  size_t n;
+
+  assert (h != NULL);
+  n = partition (h->entries, h->size, sizeof *h->entries,
+                 not_null, NULL);
+  assert (n == h->used);
+  return h->entries;
+}
+
+/* Dereferences void ** pointers and passes them to the hash
+   comparison function. */
+int
+comparison_helper (const void *a_, const void *b_, void *h_) 
+{
+  void *const *a = a_;
+  void *const *b = b_;
+  struct hsh_table *h = h_;
+
+  return h->compare (*a, *b, h->aux);
+}
+
+/* Sorts hash table H based on hash comparison function.  The
+   returned data consists of hsh_count(H) non-null pointers,
+   sorted in order of the hash comparison function, followed by a
+   null pointer.  After calling this function, only hsh_destroy()
+   and hsh_count() may be applied to H. */
 void **
 hsh_sort (struct hsh_table *h)
 {
-  quicksort (h->entries, h->size, sizeof *h->entries, sort_nulls_last, h);
+  assert (h != NULL);
+
+  hsh_data (h);
+  sort (h->entries, h->used, sizeof *h->entries, comparison_helper, h);
   return h->entries;
+}
+
+/* Makes and returns a copy of the pointers to the data in H.
+   The returned data consists of hsh_count(H) non-null pointers,
+   in no particular order, followed by a null pointer.  The hash
+   table is not modified.  The caller is responsible for freeing
+   the allocated data. */
+void **
+hsh_data_copy (struct hsh_table *h) 
+{
+  void **copy;
+
+  assert (h != NULL);
+  copy = xmalloc ((h->used + 1) * sizeof *copy);
+  copy_if (h->entries, h->size, sizeof *h->entries, copy,
+           not_null, NULL);
+  copy[h->used] = NULL;
+  return copy;
+}
+
+/* Makes and returns a copy of the pointers to the data in H.
+   The returned data consists of hsh_count(H) non-null pointers,
+   sorted in order of the hash comparison function, followed by a
+   null pointer.  The hash table is not modified.  The caller is
+   responsible for freeing the allocated data. */
+void **
+hsh_sort_copy (struct hsh_table *h) 
+{
+  void **copy;
+
+  assert (h != NULL);
+  copy = hsh_data_copy (h);
+  sort (copy, h->used, sizeof *copy, comparison_helper, h);
+  return copy;
 }
 
 /* Hash entries. */
 
-/* Searches hash table H for TARGET.  If found, returns a pointer to a
-   pointer to that entry; otherwise returns a pointer to a NULL entry
-   which _must_ be used to insert a new entry having the same key
-   data.  */
+/* Searches hash table H for TARGET.  If found, returns a pointer
+   to a pointer to that entry; otherwise returns a pointer to a
+   NULL entry which *must* be used to insert a new entry having
+   the same key data.  */
 inline void **
 hsh_probe (struct hsh_table *h, const void *target)
 {
   void **entry;
 
+  assert (h != NULL);
+  assert (target != NULL);
+
   /* Order of these statements is important! */
   if (h->used > h->size / 2)
     hsh_rehash (h, h->size * 2);
-  entry = &h->entries[h->hash (target, h->param) & (h->size - 1)];
+  entry = &h->entries[h->hash (target, h->aux) & (h->size - 1)];
 
   while (*entry)
     {
-      if (!h->compare (*entry, target, h->param))
+      if (!h->compare (*entry, target, h->aux))
 	return entry;
       if (--entry < h->entries)
 	entry = &h->entries[h->size - 1];
@@ -266,16 +348,49 @@ hsh_probe (struct hsh_table *h, const void *target)
   return entry;
 }
 
+/* Searches hash table H for TARGET.  If not found, inserts
+   TARGET and returns a null pointer.  If found, returns the
+   match, without replacing it in the table. */
+void *
+hsh_insert (struct hsh_table *h, void *target) 
+{
+  void **entry;
+
+  assert (h != NULL);
+  assert (target != NULL);
+
+  entry = hsh_probe (h, target);
+  if (*entry == NULL) 
+    {
+      *entry = target;
+      return NULL;
+    }
+  else
+    return *entry;
+}
+
+/* Searches hash table H for TARGET.  If not found, inserts
+   TARGET and returns a null pointer.  If found, returns the
+   match, after replacing it in the table by TARGET. */
+void *
+hsh_replace (struct hsh_table *h, void *target) 
+{
+  void **entry = hsh_probe (h, target);
+  void *old = *entry;
+  *entry = target;
+  return old;
+}
+
 /* Locates an entry matching TARGET.  Returns a pointer to the
    entry, or a null pointer on failure. */
 static inline void **
 locate_matching_entry (struct hsh_table *h, const void *target) 
 {
-  void **entry = &h->entries[h->hash (target, h->param) & (h->size - 1)];
+  void **entry = &h->entries[h->hash (target, h->aux) & (h->size - 1)];
 
   while (*entry)
     {
-      if (!h->compare (*entry, target, h->param))
+      if (!h->compare (*entry, target, h->aux))
 	return entry;
       if (--entry < h->entries)
 	entry = &h->entries[h->size - 1];
@@ -302,9 +417,10 @@ int
 hsh_delete (struct hsh_table *h, const void *target) 
 {
   void **entry = locate_matching_entry (h, target);
-  if (h->free != NULL) 
+  if (entry != NULL) 
     {
-      h->free (*entry, h->param);
+      if (h->free != NULL)
+        h->free (*entry, h->aux);
       *entry = 0;
       hsh_rehash (h, h->size);
       return 1;
