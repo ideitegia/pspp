@@ -40,7 +40,10 @@ struct chart {
 #ifndef NO_CHARTS
   plPlotter *lp ;
   plPlotterParams *pl_params;
+#else
+  void *lp;
 #endif
+  char *filename;
 
   /* The geometry of the chart 
      See diagram at the foot of this file.
@@ -77,10 +80,8 @@ struct chart {
 };
 
 
-int  chart_initialise(struct chart *ch);
-
-void chart_finalise(struct chart *ch);
-
+struct chart * chart_create(void);
+void chart_submit(struct chart *ch);
 
 double chart_rounded_tick(double tick);
 

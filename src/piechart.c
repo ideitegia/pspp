@@ -47,8 +47,6 @@ draw_segment(struct chart *ch,
 
 
 
-#ifndef NO_CHARTS
-
 /* Draw a piechart */
 void
 piechart_plot(const char *title, const struct slice *slices, int n_slices)
@@ -56,26 +54,26 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
   int i;
   double total_magnetude=0;
 
-  struct chart ch;
+  struct chart *ch;
 
-  chart_initialise(&ch);
+  ch = chart_create();
 
-  const double left_label = ch.data_left + 
-    (ch.data_right - ch.data_left)/10.0;
+  const double left_label = ch->data_left + 
+    (ch->data_right - ch->data_left)/10.0;
 
-  const double right_label = ch.data_right - 
-    (ch.data_right - ch.data_left)/10.0;
+  const double right_label = ch->data_right - 
+    (ch->data_right - ch->data_left)/10.0;
 
-  const double centre_x = (ch.data_right + ch.data_left ) / 2.0 ;
-  const double centre_y = (ch.data_top + ch.data_bottom ) / 2.0 ;
+  const double centre_x = (ch->data_right + ch->data_left ) / 2.0 ;
+  const double centre_y = (ch->data_top + ch->data_bottom ) / 2.0 ;
 
   const double radius = min( 
-			    5.0 / 12.0 * (ch.data_top - ch.data_bottom),
-			    1.0 / 4.0 * (ch.data_right - ch.data_left)
+			    5.0 / 12.0 * (ch->data_top - ch->data_bottom),
+			    1.0 / 4.0 * (ch->data_right - ch->data_left)
 			    );
 
 
-  chart_write_title(&ch, title);
+  chart_write_title(ch, title);
 
   for (i = 0 ; i < n_slices ; ++i ) 
     total_magnetude += slices[i].magnetude;
@@ -94,7 +92,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 	radius * cos(angle + segment_angle/2.0);
 
       /* Fill the segment */
-      draw_segment(&ch,
+      draw_segment(ch,
 		   centre_x, centre_y, radius, 
 		   angle, segment_angle,
 		   data_colour[i]);
@@ -102,19 +100,19 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
       /* Now add the labels */
       if ( label_x < centre_x ) 
 	{
-	  pl_line_r(ch.lp, label_x, label_y,
+	  pl_line_r(ch->lp, label_x, label_y,
 		    left_label, label_y );
-	  pl_moverel_r(ch.lp,0,5);
-	  pl_alabel_r(ch.lp,0,0,slices[i].label);
+	  pl_moverel_r(ch->lp,0,5);
+	  pl_alabel_r(ch->lp,0,0,slices[i].label);
 	}
       else
 	{
-	  pl_line_r(ch.lp, 
+	  pl_line_r(ch->lp, 
 		    label_x, label_y,
 		    right_label, label_y
 		    );
-	  pl_moverel_r(ch.lp,0,5);
-	  pl_alabel_r(ch.lp,'r',0,slices[i].label);
+	  pl_moverel_r(ch->lp,0,5);
+	  pl_alabel_r(ch->lp,'r',0,slices[i].label);
 	}
 
       angle += segment_angle;
@@ -122,10 +120,10 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
     }
 
   /* Draw an outline to the pie */
-  pl_filltype_r(ch.lp,0);
-  pl_fcircle_r (ch.lp, centre_x, centre_y, radius);
+  pl_filltype_r(ch->lp,0);
+  pl_fcircle_r (ch->lp, centre_x, centre_y, radius);
 
-  chart_finalise(&ch);
+  chart_submit(ch);
 }
 
 static void
@@ -211,12 +209,3 @@ draw_segment(struct chart *ch,
   pl_restorestate_r(ch->lp);
 }
 
-#else
-
-
-void
-piechart_plot(const char *title, const struct slice *slices, int n_slices)
-{
-}
-
-#endif

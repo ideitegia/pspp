@@ -627,7 +627,7 @@ postcalc (void *aux UNUSED)
 	dump_statistics (v, !dumped_freq_tab);
 
 
-#ifndef NO_CHARTS
+
       if ( chart == GFT_HIST) 
 	{
 	  double d[frq_n_stats];
@@ -653,7 +653,7 @@ postcalc (void *aux UNUSED)
 	{
 	  do_piechart(v_variables[i], ft);
 	}
-#endif
+
 
 
       cleanup_freq_tab (v);
@@ -1614,7 +1614,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 
 
 
-#ifndef NO_CHARTS
+
 static void
 do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
 {
@@ -1627,7 +1627,7 @@ do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
 
   free(slices);
 }
-#endif
+
 
 /* 
    Local Variables:

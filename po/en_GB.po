@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-01-09 16:22+0800\n"
+"POT-Creation-Date: 2005-01-14 11:58+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -117,17 +117,17 @@ msgid ""
 "by %d lines."
 msgstr ""
 
-#: src/ascii.c:390 src/devind.c:167 src/html.c:102 src/postscript.c:458
+#: src/ascii.c:390 src/devind.c:167 src/html.c:103 src/postscript.c:458
 #, c-format
 msgid "%s: Initialization complete."
 msgstr ""
 
-#: src/ascii.c:402 src/devind.c:179 src/html.c:114 src/postscript.c:471
+#: src/ascii.c:402 src/devind.c:179 src/html.c:115 src/postscript.c:471
 #, c-format
 msgid "%s: Beginning closing..."
 msgstr ""
 
-#: src/ascii.c:424 src/devind.c:184 src/html.c:119 src/postscript.c:490
+#: src/ascii.c:424 src/devind.c:184 src/html.c:120 src/postscript.c:490
 #, c-format
 msgid "%s: Finished closing."
 msgstr ""
@@ -219,6 +219,10 @@ msgstr ""
 msgid "%s - Page %d"
 msgstr ""
 
+#: src/ascii.c:1646
+msgid "Charts are unsupported with ascii drivers."
+msgstr ""
+
 #: src/autorecode.c:122
 #, c-format
 msgid "Source variable count (%d) does not match target variable count (%d)."
@@ -252,48 +256,33 @@ msgstr ""
 msgid "Error writing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:363
-#, c-format
-msgid "%s: Creating temporary file: %s."
-msgstr ""
-
-#: src/casefile.c:507
+#: src/casefile.c:478
 #, c-format
 msgid "%s: Opening temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:533
+#: src/casefile.c:504
 #, c-format
 msgid "%s: Seeking temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:549
+#: src/casefile.c:520
 #, c-format
 msgid "%s: Reading temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:552
+#: src/casefile.c:523
 #, c-format
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
 
-#: src/cmdline.c:141 src/cmdline.c:160 src/cmdline.c:172 src/command.c:161
+#: src/cmdline.c:142 src/cmdline.c:161 src/cmdline.c:173 src/command.c:161
 #: src/set.q:415 src/set.q:417 src/set.q:956
 #, c-format
 msgid "%s is not yet implemented."
 msgstr ""
 
-#: src/cmdline.c:186
-msgid ""
-"\n"
-"Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.\n"
-"This is free software; see the source for copying conditions.  There is NO\n"
-"WARRANTY; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
-"\n"
-"Written by Ben Pfaff <blp@gnu.org>."
-msgstr ""
-
-#: src/cmdline.c:248
+#: src/cmdline.c:243
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -343,7 +332,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/cmdline.c:286
+#: src/cmdline.c:281
 #, c-format
 msgid ""
 "\n"
@@ -403,7 +392,7 @@ msgid ""
 "to the command prompt.  Use EXIT if you really want to quit."
 msgstr ""
 
-#: src/command.c:626 src/command.c:757
+#: src/command.c:626 src/command.c:757 src/permissions.c:101
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
@@ -957,7 +946,7 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:99 src/examine.q:1422 src/frequencies.q:112 src/oneway.q:396
+#: src/descript.c:99 src/examine.q:1418 src/frequencies.q:112 src/oneway.q:396
 #: src/t-test.q:690 src/t-test.q:713 src/t-test.q:836 src/t-test.q:1173
 msgid "Mean"
 msgstr ""
@@ -970,11 +959,11 @@ msgstr ""
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:102 src/examine.q:1500 src/frequencies.q:117
+#: src/descript.c:102 src/examine.q:1496 src/frequencies.q:117
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1607 src/frequencies.q:118
+#: src/descript.c:103 src/examine.q:1603 src/frequencies.q:118
 msgid "Kurtosis"
 msgstr ""
 
@@ -982,7 +971,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:105 src/examine.q:1587 src/frequencies.q:120
+#: src/descript.c:105 src/examine.q:1583 src/frequencies.q:120
 msgid "Skewness"
 msgstr ""
 
@@ -990,16 +979,16 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:107 src/examine.q:1548 src/frequencies.q:122
+#: src/descript.c:107 src/examine.q:1544 src/frequencies.q:122
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:108 src/examine.q:1525 src/frequencies.q:123
+#: src/descript.c:108 src/examine.q:1521 src/frequencies.q:123
 #: src/oneway.q:408
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:109 src/examine.q:1536 src/frequencies.q:124
+#: src/descript.c:109 src/examine.q:1532 src/frequencies.q:124
 #: src/oneway.q:409
 msgid "Maximum"
 msgstr ""
@@ -1832,7 +1821,7 @@ msgstr ""
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/getline.c:335 src/html.c:331 src/postscript.c:1463
+#: src/getline.c:335 src/html.c:348 src/postscript.c:1463
 #, c-format
 msgid "Reading `%s': %s."
 msgstr ""
@@ -1990,51 +1979,51 @@ msgstr ""
 msgid "hash table:"
 msgstr ""
 
-#: src/html.c:66
+#: src/html.c:67
 #, c-format
 msgid "HTML driver initializing as `%s'..."
 msgstr ""
 
-#: src/html.c:154
+#: src/html.c:171
 #, c-format
 msgid "Unknown configuration parameter `%s' for HTML device driver."
 msgstr ""
 
-#: src/html.c:237
+#: src/html.c:254
 msgid ""
 "Cannot find HTML prologue.  The use of `-vv' on the command line is "
 "suggested as a debugging aid."
 msgstr ""
 
-#: src/html.c:242
+#: src/html.c:259
 #, c-format
 msgid "%s: %s: Opening HTML prologue..."
 msgstr ""
 
-#: src/html.c:269 src/html.c:280 src/postscript.c:1355 src/postscript.c:1366
+#: src/html.c:286 src/html.c:297 src/postscript.c:1355 src/postscript.c:1366
 msgid "nobody"
 msgstr ""
 
-#: src/html.c:276 src/html.c:281 src/postscript.c:1362 src/postscript.c:1367
+#: src/html.c:293 src/html.c:298 src/postscript.c:1362 src/postscript.c:1367
 msgid "nowhere"
 msgstr ""
 
-#: src/html.c:340
+#: src/html.c:357
 #, c-format
 msgid "%s: HTML prologue read successfully."
 msgstr ""
 
-#: src/html.c:344
+#: src/html.c:361
 #, c-format
 msgid "%s: Error reading HTML prologue."
 msgstr ""
 
-#: src/html.c:372
+#: src/html.c:389
 #, c-format
 msgid "HTML output driver: %s: %s"
 msgstr ""
 
-#: src/html.c:403 src/list.q:252
+#: src/html.c:420 src/list.q:252
 #, c-format
 msgid "Cannot open first page on HTML device %s."
 msgstr ""
@@ -2190,33 +2179,33 @@ msgstr ""
 msgid "%s without %s."
 msgstr ""
 
-#: src/main.c:77
+#: src/main.c:86
 msgid "Error initializing output drivers."
 msgstr ""
 
-#: src/main.c:147
+#: src/main.c:156
 msgid "This command not executed."
 msgstr ""
 
-#: src/main.c:151
+#: src/main.c:160
 msgid ""
 "Skipping the rest of this command.  Part of this command may have been "
 "executed."
 msgstr ""
 
-#: src/main.c:156
+#: src/main.c:165
 msgid ""
 "Skipping the rest of this command.  This command was fully executed up to "
 "this point."
 msgstr ""
 
-#: src/main.c:161
+#: src/main.c:170
 msgid ""
 "Trailing garbage was encountered following this command.  The command was "
 "fully executed to this point."
 msgstr ""
 
-#: src/main.c:178
+#: src/main.c:187
 msgid "The rest of this command has been discarded."
 msgstr ""
 
@@ -2438,6 +2427,16 @@ msgstr ""
 
 #: src/mis-val.c:316 src/repeat.c:460
 msgid "String expected."
+msgstr ""
+
+#: src/mkfile.c:52
+#, c-format
+msgid "%s: Creating temporary file: %s."
+msgstr ""
+
+#: src/mkfile.c:94
+#, c-format
+msgid "%s: Creating file: %s."
 msgstr ""
 
 #: src/modify-vars.c:89
@@ -2726,17 +2725,17 @@ msgstr ""
 msgid "Empirical with averaging"
 msgstr ""
 
-#: src/permissions.c:75
+#: src/permissions.c:76
 #, c-format
 msgid "Expecting %s or %s."
 msgstr ""
 
-#: src/permissions.c:101
+#: src/permissions.c:109
 #, c-format
 msgid "Cannot stat %s: %s"
 msgstr ""
 
-#: src/permissions.c:114
+#: src/permissions.c:122
 #, c-format
 msgid "Cannot change mode of %s: %s"
 msgstr ""
@@ -2919,11 +2918,11 @@ msgstr ""
 msgid "%s: Writing portable file: %s."
 msgstr ""
 
-#: src/plot-hist.c:115
+#: src/plot-hist.c:118
 msgid "HISTOGRAM"
 msgstr ""
 
-#: src/plot-hist.c:117 src/frequencies.q:1139
+#: src/plot-hist.c:120 src/frequencies.q:1139
 msgid "Frequency"
 msgstr ""
 
@@ -3723,7 +3722,7 @@ msgstr ""
 
 #: src/sysfile-info.c:531 src/vfm.c:875 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
-#: src/examine.q:1086 src/frequencies.q:1138 src/frequencies.q:1259
+#: src/examine.q:1082 src/frequencies.q:1138 src/frequencies.q:1259
 msgid "Value"
 msgstr ""
 
@@ -3944,32 +3943,32 @@ msgstr ""
 msgid "Summary."
 msgstr ""
 
-#: src/crosstabs.q:802 src/examine.q:871
+#: src/crosstabs.q:802 src/examine.q:867
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:803 src/examine.q:805 src/frequencies.q:1136
+#: src/crosstabs.q:803 src/examine.q:801 src/frequencies.q:1136
 #: src/frequencies.q:1509
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:804 src/examine.q:806 src/frequencies.q:1204
+#: src/crosstabs.q:804 src/examine.q:802 src/frequencies.q:1204
 #: src/frequencies.q:1510
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:805 src/crosstabs.q:1008 src/crosstabs.q:1722
-#: src/examine.q:807 src/frequencies.q:1213 src/oneway.q:307 src/oneway.q:476
+#: src/examine.q:803 src/frequencies.q:1213 src/oneway.q:307 src/oneway.q:476
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:815 src/examine.q:883 src/frequencies.q:1508
+#: src/crosstabs.q:815 src/examine.q:879 src/frequencies.q:1508
 #: src/oneway.q:395 src/t-test.q:689 src/t-test.q:712 src/t-test.q:837
 #: src/t-test.q:1372
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:816 src/examine.q:886 src/frequencies.q:1140
+#: src/crosstabs.q:816 src/examine.q:882 src/frequencies.q:1140
 #: src/frequencies.q:1141 src/frequencies.q:1142
 msgid "Percent"
 msgstr ""
@@ -4007,7 +4006,7 @@ msgid "adj. resid."
 msgstr ""
 
 #: src/crosstabs.q:1098 src/crosstabs.q:1125 src/crosstabs.q:1145
-#: src/crosstabs.q:1166 src/examine.q:1317
+#: src/crosstabs.q:1166 src/examine.q:1313
 msgid "Statistic"
 msgstr ""
 
@@ -4190,105 +4189,105 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/examine.q:450 src/examine.q:462
+#: src/examine.q:446 src/examine.q:458
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/examine.q:865
+#: src/examine.q:861
 msgid "Case Processing Summary"
 msgstr ""
 
-#: src/examine.q:1071
+#: src/examine.q:1067
 msgid "Extreme Values"
 msgstr ""
 
-#: src/examine.q:1087
+#: src/examine.q:1083
 msgid "Case Number"
 msgstr ""
 
-#: src/examine.q:1172
+#: src/examine.q:1168
 msgid "Highest"
 msgstr ""
 
-#: src/examine.q:1177
+#: src/examine.q:1173
 msgid "Lowest"
 msgstr ""
 
-#: src/examine.q:1318 src/oneway.q:398 src/oneway.q:695
+#: src/examine.q:1314 src/oneway.q:398 src/oneway.q:695
 msgid "Std. Error"
 msgstr ""
 
-#: src/examine.q:1320 src/oneway.q:412
+#: src/examine.q:1316 src/oneway.q:412
 msgid "Descriptives"
 msgstr ""
 
-#: src/examine.q:1440 src/oneway.q:403
+#: src/examine.q:1436 src/oneway.q:403
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/examine.q:1446 src/oneway.q:405
+#: src/examine.q:1442 src/oneway.q:405
 msgid "Lower Bound"
 msgstr ""
 
-#: src/examine.q:1457 src/oneway.q:406
+#: src/examine.q:1453 src/oneway.q:406
 msgid "Upper Bound"
 msgstr ""
 
-#: src/examine.q:1469
+#: src/examine.q:1465
 msgid "5% Trimmed Mean"
 msgstr ""
 
-#: src/examine.q:1480 src/frequencies.q:114
+#: src/examine.q:1476 src/frequencies.q:114
 msgid "Median"
 msgstr ""
 
-#: src/examine.q:1512 src/oneway.q:397 src/t-test.q:691 src/t-test.q:714
+#: src/examine.q:1508 src/oneway.q:397 src/t-test.q:691 src/t-test.q:714
 #: src/t-test.q:838 src/t-test.q:1174
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/examine.q:1560
+#: src/examine.q:1556
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/examine.q:1716
+#: src/examine.q:1711
 #, c-format
 msgid "Boxplot of %s vs. %s"
 msgstr ""
 
-#: src/examine.q:1741
+#: src/examine.q:1736
 msgid "Boxplot"
 msgstr ""
 
-#: src/examine.q:1780
+#: src/examine.q:1778
 #, c-format
 msgid "Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1781 src/examine.q:1787
+#: src/examine.q:1779 src/examine.q:1785
 msgid "Observed Value"
 msgstr ""
 
-#: src/examine.q:1782
+#: src/examine.q:1780
 msgid "Expected Normal"
 msgstr ""
 
-#: src/examine.q:1785
+#: src/examine.q:1783
 #, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1788
+#: src/examine.q:1786
 msgid "Dev from Normal"
 msgstr ""
 
-#: src/examine.q:1909 src/examine.q:1931 src/frequencies.q:1520
+#: src/examine.q:1906 src/examine.q:1928 src/frequencies.q:1520
 msgid "Percentiles"
 msgstr ""
 
-#: src/examine.q:2056
+#: src/examine.q:2053
 msgid "Tukey's Hinges"
 msgstr ""
 

@@ -339,35 +339,6 @@ flush_buffer (struct casefile *cf)
     } 
 }
 
-/* Creates a temporary file and stores its name in *FILENAME and
-   a file descriptor for it in *FD.  Returns success.  Caller is
-   responsible for freeing *FILENAME. */
-static int
-make_temp_file (int *fd, char **filename)
-{
-  const char *parent_dir;
-
-  assert (filename != NULL);
-  assert (fd != NULL);
-
-  if (getenv ("TMPDIR") != NULL)
-    parent_dir = getenv ("TMPDIR");
-  else
-    parent_dir = P_tmpdir;
-
-  *filename = xmalloc (strlen (parent_dir) + 32);
-  sprintf (*filename, "%s%cpsppXXXXXX", parent_dir, DIR_SEPARATOR);
-  *fd = mkstemp (*filename);
-  if (*fd < 0)
-    {
-      msg (FE, _("%s: Creating temporary file: %s."),
-           *filename, strerror (errno));
-      free (*filename);
-      *filename = NULL;
-      return 0;
-    }
-  return 1;
-}
 
 /* If CF is currently stored in memory, writes it to disk.  Readers, if any,
    retain their current positions. */

@@ -36,11 +36,18 @@
    desired, and in fact almost every operation performed by som may be
    overridden in a table class.  */
 
-/* Table. */
-struct som_table
+enum som_type
+  {
+    SOM_TABLE,
+    SOM_CHART
+  } ;
+
+/* Entity (Table or Chart) . */
+struct som_entity
   {
     struct som_table_class *class;	/* Table class. */
-    void *ext;				/* Owned by table class. */
+    enum som_type type;                 /* Table or Chart */ 
+    void *ext;				/* Owned by */
   };
 
 /* Group styles. */
@@ -70,7 +77,7 @@ struct outp_driver;
 struct som_table_class
   {
     /* Set table, driver. */
-    void (*table) (struct som_table *);
+    void (*table) (struct som_entity *);
     void (*driver) (struct outp_driver *);
 
     /* Query columns and rows. */
@@ -100,7 +107,7 @@ extern int subtable_num;
 
 /* Submission. */
 void som_new_series (void);
-void som_submit (struct som_table *t);
+void som_submit (struct som_entity *t);
 
 /* Miscellaneous. */
 void som_eject_page (void);

@@ -17,6 +17,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
+/* If you add/modify any public symbols in this file, don't forget to
+   change the stubs in dummy-chart.c */
+
 #include <config.h>
 
 #include <stdio.h>
@@ -107,22 +110,22 @@ histogram_plot(const gsl_histogram *hist,
   int i;
   int bins;
   
-  struct chart ch;
+  struct chart *ch;
 
   bins = gsl_histogram_bins(hist);
 
-  chart_initialise(&ch);
-  chart_write_title(&ch, _("HISTOGRAM"));
+  ch = chart_create();
+  chart_write_title(ch, _("HISTOGRAM"));
 
-  chart_write_ylabel(&ch, _("Frequency"));
-  chart_write_xlabel(&ch, factorname);
+  chart_write_ylabel(ch, _("Frequency"));
+  chart_write_xlabel(ch, factorname);
 
-  chart_write_yscale(&ch, 0, gsl_histogram_max_val(hist), 5);
+  chart_write_yscale(ch, 0, gsl_histogram_max_val(hist), 5);
 
   for ( i = 0 ; i < bins ; ++i ) 
-      hist_draw_bar(&ch, hist, i);
+      hist_draw_bar(ch, hist, i);
 
-  histogram_write_legend(&ch, norm);
+  histogram_write_legend(ch, norm);
 
   if ( show_normal  )
   {
@@ -139,25 +142,25 @@ histogram_plot(const gsl_histogram *hist,
     gsl_histogram_get_range(hist, bins - 1, &not_used, &x_max);
     assert(range == x_max - not_used);
 
-    abscissa_scale = (ch.data_right - ch.data_left) / (x_max - x_min);
-    ordinate_scale = (ch.data_top - ch.data_bottom) / 
+    abscissa_scale = (ch->data_right - ch->data_left) / (x_max - x_min);
+    ordinate_scale = (ch->data_top - ch->data_bottom) / 
       gsl_histogram_max_val(hist) ;
 
-    pl_move_r(ch.lp, ch.data_left, ch.data_bottom);    
-    for( d = ch.data_left; 
-	 d <= ch.data_right ; 
-	 d += (ch.data_right - ch.data_left) / 100.0)
+    pl_move_r(ch->lp, ch->data_left, ch->data_bottom);    
+    for( d = ch->data_left; 
+	 d <= ch->data_right ; 
+	 d += (ch->data_right - ch->data_left) / 100.0)
       {    
-	const double x = (d - ch.data_left) / abscissa_scale + x_min ; 
+	const double x = (d - ch->data_left) / abscissa_scale + x_min ; 
 	const double y = norm->N * range * 
 	  gsl_ran_gaussian_pdf(x - norm->mean, norm->stddev);
 
-	pl_fcont_r(ch.lp,  d,  ch.data_bottom  + y * ordinate_scale);
+	pl_fcont_r(ch->lp,  d,  ch->data_bottom  + y * ordinate_scale);
 
       }
-    pl_endpath_r(ch.lp);
+    pl_endpath_r(ch->lp);
 
   }
-  chart_finalise(&ch);
+  chart_submit(ch);
 }
 

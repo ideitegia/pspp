@@ -260,7 +260,7 @@ devind_close_page (struct outp_driver *this)
 static void output_tab_table (struct outp_driver *, struct tab_table *);
 
 static void
-devind_submit (struct outp_driver *this, struct som_table *s)
+devind_submit (struct outp_driver *this, struct som_entity *s)
 {
   extern struct som_table_class tab_table_class;
   struct devind_driver_ext *x = this->ext;
@@ -272,10 +272,10 @@ devind_submit (struct outp_driver *this, struct som_table *s)
       return;
     }
 
-  if (s->class == &tab_table_class)
+  assert (s->class == &tab_table_class);
+
+  if ( s->type == SOM_TABLE ) 
     output_tab_table (this, s->ext);
-  else
-    assert (0);
 }
 
 /* Write string S of length LEN to file F, escaping characters as
@@ -472,6 +472,9 @@ struct outp_class devind_class =
   NULL,
   NULL,
   NULL,
+  NULL,
+  NULL,
+
   NULL,
   NULL,
 };

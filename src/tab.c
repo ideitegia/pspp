@@ -868,11 +868,12 @@ tab_flags (struct tab_table *t, unsigned flags)
 void
 tab_submit (struct tab_table *t)
 {
-  struct som_table s;
+  struct som_entity s;
 
   assert (t != NULL);
   s.class = &tab_table_class;
   s.ext = t;
+  s.type = SOM_TABLE;
   som_submit (&s);
   tab_destroy (t);
 }
@@ -927,9 +928,11 @@ int tab_hit;
 
 /* Set the current table to TABLE. */
 static void
-tabi_table (struct som_table *table)
+tabi_table (struct som_entity *table)
 {
   assert (table != NULL);
+  assert (table->type == SOM_TABLE);
+
   t = table->ext;
   tab_offset (t, 0, 0);
   

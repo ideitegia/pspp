@@ -40,6 +40,7 @@
 #include "som.h"
 #include "tab.h"
 #include "version.h"
+#include "mkfile.h"
 
 /* Prototypes. */
 static int postopen (struct file_ext *);
@@ -121,6 +122,22 @@ html_close_driver (struct outp_driver *this)
   
   return 1;
 }
+
+
+/* Link the image contained in FILENAME to the 
+   HTML stream in file F. */
+static int
+link_image (struct file_ext *f, char *filename)
+{
+  fprintf (f->file,
+	   "<IMG SRC=\"%s\"/>", filename);
+
+  if (ferror (f->file))
+    return 0;
+
+  return 1;
+}
+
 
 /* Generic option types. */
 enum
@@ -392,7 +409,7 @@ html_close_page (struct outp_driver *this)
 static void output_tab_table (struct outp_driver *, struct tab_table *);
 
 static void
-html_submit (struct outp_driver *this, struct som_table *s)
+html_submit (struct outp_driver *this, struct som_entity *s)
 {
   extern struct som_table_class tab_table_class;
   struct html_driver_ext *x = this->ext;
@@ -404,10 +421,21 @@ html_submit (struct outp_driver *this, struct som_table *s)
       return;
     }
 
-  if (s->class == &tab_table_class)
-    output_tab_table (this, (struct tab_table *) s->ext);
-  else
-    assert (0);
+  assert ( s->class == &tab_table_class ) ;
+
+  switch (s->type) 
+    {
+    case SOM_TABLE:
+      output_tab_table ( this, (struct tab_table *) s->ext);
+      break;
+    case SOM_CHART:
+      link_image( &x->file, ((struct chart *)s->ext)->filename);
+      break;
+    default:
+      assert(0);
+      break;
+    }
+
 }
 
 /* Write string S of length LEN to file F, escaping characters as
@@ -554,6 +582,36 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   fputs ("</TABLE>\n\n", x->file.file);
 }
 
+
+void html_initialise_chart(struct outp_class *c, struct chart *ch);
+void html_finalise_chart(struct outp_class *c, struct chart *ch);
+
+
+void
+html_initialise_chart(struct outp_class *c UNUSED, struct chart *ch)
+{
+
+  FILE  *fp;
+
+  make_unique_file_stream(&fp, &ch->filename);
+
+#ifdef NO_CHARTS
+  ch->lp = 0;
+#else
+  ch->pl_params = pl_newplparams();
+  ch->lp = pl_newpl_r ("png", 0, fp, stderr, ch->pl_params);
+#endif
+
+}
+
+void 
+html_finalise_chart(struct outp_class *c UNUSED, struct chart *ch)
+{
+  free(ch->filename);
+}
+
+
+
 /* HTML driver class. */
 struct outp_class html_class =
 {
@@ -593,6 +651,10 @@ struct outp_class html_class =
   NULL,
   NULL,
   NULL,
+
+  html_initialise_chart,
+  html_finalise_chart
+
 };
 
 #endif /* !NO_HTML */

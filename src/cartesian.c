@@ -53,6 +53,8 @@ write_legend(struct chart *chart, const char *heading, int n);
 void 
 chart_write_xlabel(struct chart *ch, const char *label)
 {
+  if ( ! ch ) 
+    return ;
 
   pl_savestate_r(ch->lp);
 
@@ -69,6 +71,9 @@ chart_write_xlabel(struct chart *ch, const char *label)
 void 
 chart_write_ylabel(struct chart *ch, const char *label)
 {
+  if ( ! ch ) 
+    return ;
+
   pl_savestate_r(ch->lp);
 
   pl_move_r(ch->lp, ch->data_bottom, ch->ordinate_right);
@@ -85,6 +90,10 @@ write_legend(struct chart *chart, const char *heading,
 	     int n)
 {
   int ds;
+
+  if ( ! chart ) 
+    return ;
+
 
   pl_savestate_r(chart->lp);
 
@@ -124,12 +133,17 @@ write_legend(struct chart *chart, const char *heading,
 void
 chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
 {
+
+  if ( ! ch ) 
+    return ;
+
+
+
   const double x_pos = 
     (x - ch->x_min) * ch->abscissa_scale + ch->data_left ; 
 
   const double y_pos = 
     (y - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
-
 
   pl_savestate_r(ch->lp);    
   
@@ -150,6 +164,10 @@ chart_line(struct chart *ch, double slope, double intercept,
 {
   double x1, y1;
   double x2, y2 ;
+
+  if ( ! ch ) 
+    return ;
+
 
   if ( lim_dim == CHART_DIM_Y ) 
     {

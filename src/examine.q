@@ -264,7 +264,6 @@ output_examine(void)
 				   cmd.v_id);
 	    }
 
-#ifndef NO_CHARTS
 	  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 	    {
 	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
@@ -280,7 +279,6 @@ output_examine(void)
 				 &normal, 0);
 		}
 	    }
-#endif
 
 	}
 
@@ -332,7 +330,6 @@ output_examine(void)
 		  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
 		    np_plot(&(*fs)->m[v], s);
 
-#ifndef NO_CHARTS
 		  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 		    {
 		      struct normal_curve normal;
@@ -344,7 +341,6 @@ output_examine(void)
 		      histogram_plot((*fs)->m[v].histogram, 
 				     s,  &normal, 0);
 		    }
-#endif
 		  
 		} /* for ( fs .... */
 
@@ -1630,7 +1626,7 @@ box_plot_variables(const struct factor *fctr,
 		   struct variable **vars, int n_vars, 
 		   const struct variable *id)
 {
-#ifndef NO_CHARTS
+
   int i;
   struct factor_statistics **fs ;
 
@@ -1644,13 +1640,13 @@ box_plot_variables(const struct factor *fctr,
     {
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
-      struct chart ch;
+      struct chart *ch;
 
-      chart_initialise(&ch);
+      ch = chart_create();
 
       const char *s = factor_to_string(fctr, *fs, 0 );
 
-      chart_write_title(&ch, s);
+      chart_write_title(ch, s);
 
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
@@ -1658,18 +1654,18 @@ box_plot_variables(const struct factor *fctr,
 	  y_min = min(y_min, (*fs)->m[i].min);
 	}
       
-      boxplot_draw_yscale(&ch, y_max, y_min);
+      boxplot_draw_yscale(ch, y_max, y_min);
 	  
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
 
-	  const double box_width = (ch.data_right - ch.data_left) 
+	  const double box_width = (ch->data_right - ch->data_left) 
 	    / (n_vars * 2.0 ) ;
 
 	  const double box_centre = ( i * 2 + 1) * box_width 
-	    + ch.data_left;
+	    + ch->data_left;
 	      
-	  boxplot_draw_boxplot(&ch,
+	  boxplot_draw_boxplot(ch,
 			       box_centre, box_width,
 			       &(*fs)->m[i],
 			       var_to_string(vars[i]));
@@ -1677,10 +1673,9 @@ box_plot_variables(const struct factor *fctr,
 
 	}
 
-      chart_finalise(&ch);
+      chart_submit(ch);
 
     }
-#endif
 }
 
 
@@ -1694,17 +1689,17 @@ box_plot_group(const struct factor *fctr,
 	       int n_vars,
 	       const struct variable *id)
 {
-#ifndef NO_CHARTS
+
   int i;
 
   for ( i = 0 ; i < n_vars ; ++i ) 
     {
       struct factor_statistics **fs ;
-      struct chart ch;
+      struct chart *ch;
 
-      chart_initialise(&ch);
+      ch = chart_create();
 
-      boxplot_draw_yscale(&ch, totals[i].max, totals[i].min);
+      boxplot_draw_yscale(ch, totals[i].max, totals[i].min);
 
       if ( fctr ) 
 	{
@@ -1713,7 +1708,7 @@ box_plot_group(const struct factor *fctr,
 	  for ( fs = fctr->fs ; *fs ; ++fs ) 
 	      ++n_factors;
 
-	  chart_write_title(&ch, _("Boxplot of %s vs. %s"), 
+	  chart_write_title(ch, _("Boxplot of %s vs. %s"), 
 			    var_to_string(vars[i]), var_to_string(fctr->indep_var[0]) );
 
 	  for ( fs = fctr->fs ; *fs ; ++fs ) 
@@ -1721,13 +1716,13 @@ box_plot_group(const struct factor *fctr,
 	      
 	      const char *s = factor_to_string_concise(fctr, *fs);
 
-	      const double box_width = (ch.data_right - ch.data_left) 
+	      const double box_width = (ch->data_right - ch->data_left) 
 		/ (n_factors * 2.0 ) ;
 
 	      const double box_centre = ( f++ * 2 + 1) * box_width 
-		+ ch.data_left;
+		+ ch->data_left;
 	      
-	      boxplot_draw_boxplot(&ch,
+	      boxplot_draw_boxplot(ch,
 				   box_centre, box_width,
 				   &(*fs)->m[i],
 				   s);
@@ -1735,21 +1730,20 @@ box_plot_group(const struct factor *fctr,
 	}
       else
 	{
-	  const double box_width = (ch.data_right - ch.data_left) / 3.0;
-	  const double box_centre = (ch.data_right + ch.data_left) / 2.0;
+	  const double box_width = (ch->data_right - ch->data_left) / 3.0;
+	  const double box_centre = (ch->data_right + ch->data_left) / 2.0;
 
-	  chart_write_title(&ch, _("Boxplot"));
+	  chart_write_title(ch, _("Boxplot"));
 
-	  boxplot_draw_boxplot(&ch,
+	  boxplot_draw_boxplot(ch,
 			       box_centre,    box_width, 
 			       &totals[i],
 			       var_to_string(vars[i]) );
 	  
 	}
 
-      chart_finalise(&ch);
+      chart_submit(ch);
     }
-#endif
 }
 
 
@@ -1758,15 +1752,14 @@ box_plot_group(const struct factor *fctr,
 void
 np_plot(const struct metrics *m, const char *factorname)
 {
-#ifndef NO_CHARTS
   int i;
   double yfirst=0, ylast=0;
 
   /* Normal Plot */
-  struct chart np_chart;
+  struct chart *np_chart;
 
   /* Detrended Normal Plot */
-  struct chart dnp_chart;
+  struct chart *dnp_chart;
 
   /* The slope and intercept of the ideal normal probability line */
   const double slope = 1.0 / m->stddev;
@@ -1776,16 +1769,21 @@ np_plot(const struct metrics *m, const char *factorname)
   if ( m->n_data == 0 ) 
     return ; 
 
-  chart_initialise(&np_chart);
-  chart_write_title(&np_chart, _("Normal Q-Q Plot of %s"), factorname);
-  chart_write_xlabel(&np_chart, _("Observed Value"));
-  chart_write_ylabel(&np_chart, _("Expected Normal"));
+  np_chart = chart_create();
+  dnp_chart = chart_create();
 
-  chart_initialise(&dnp_chart);
-  chart_write_title(&dnp_chart, _("Detrended Normal Q-Q Plot of %s"), 
+  if ( !np_chart || ! dnp_chart ) 
+    return ;
+
+  chart_write_title(np_chart, _("Normal Q-Q Plot of %s"), factorname);
+  chart_write_xlabel(np_chart, _("Observed Value"));
+  chart_write_ylabel(np_chart, _("Expected Normal"));
+
+
+  chart_write_title(dnp_chart, _("Detrended Normal Q-Q Plot of %s"), 
 		    factorname);
-  chart_write_xlabel(&dnp_chart, _("Observed Value"));
-  chart_write_ylabel(&dnp_chart, _("Dev from Normal"));
+  chart_write_xlabel(dnp_chart, _("Observed Value"));
+  chart_write_ylabel(dnp_chart, _("Dev from Normal"));
 
   yfirst = gsl_cdf_ugaussian_Pinv (m->wvp[0]->rank / ( m->n + 1));
   ylast =  gsl_cdf_ugaussian_Pinv (m->wvp[m->n_data-1]->rank / ( m->n + 1));
@@ -1798,46 +1796,45 @@ np_plot(const struct metrics *m, const char *factorname)
     double x_upper = max(m->max, (ylast  - intercept) / slope) ;
     double slack = (x_upper - x_lower)  * 0.05 ;
 
-    chart_write_xscale(&np_chart, x_lower - slack, x_upper + slack, 5);
+    chart_write_xscale(np_chart, x_lower - slack, x_upper + slack, 5);
 
-    chart_write_xscale(&dnp_chart, m->min, m->max, 5);
+    chart_write_xscale(dnp_chart, m->min, m->max, 5);
 
   }
 
-  chart_write_yscale(&np_chart, yfirst, ylast, 5);
+  chart_write_yscale(np_chart, yfirst, ylast, 5);
 
   {
-  /* We have to cache the detrended data, beacause we need to 
-     find its limits before we can plot it */
-  double *d_data;
-  d_data = xmalloc (m->n_data * sizeof(double));
-  double d_max = -DBL_MAX;
-  double d_min = DBL_MAX;
-  for ( i = 0 ; i < m->n_data; ++i ) 
-    {
-      const double ns = gsl_cdf_ugaussian_Pinv (m->wvp[i]->rank / ( m->n + 1));
+    /* We have to cache the detrended data, beacause we need to 
+       find its limits before we can plot it */
+    double *d_data;
+    d_data = xmalloc (m->n_data * sizeof(double));
+    double d_max = -DBL_MAX;
+    double d_min = DBL_MAX;
+    for ( i = 0 ; i < m->n_data; ++i ) 
+      {
+	const double ns = gsl_cdf_ugaussian_Pinv (m->wvp[i]->rank / ( m->n + 1));
 
-      chart_datum(&np_chart, 0, m->wvp[i]->v.f, ns);
+	chart_datum(np_chart, 0, m->wvp[i]->v.f, ns);
 
-      d_data[i] = (m->wvp[i]->v.f - m->mean) / m->stddev  - ns;
+	d_data[i] = (m->wvp[i]->v.f - m->mean) / m->stddev  - ns;
    
-      if ( d_data[i] < d_min ) d_min = d_data[i];
-      if ( d_data[i] > d_max ) d_max = d_data[i];
-    }
-  chart_write_yscale(&dnp_chart, d_min, d_max, 5);
+	if ( d_data[i] < d_min ) d_min = d_data[i];
+	if ( d_data[i] > d_max ) d_max = d_data[i];
+      }
+    chart_write_yscale(dnp_chart, d_min, d_max, 5);
 
-  for ( i = 0 ; i < m->n_data; ++i ) 
-      chart_datum(&dnp_chart, 0, m->wvp[i]->v.f, d_data[i]);
+    for ( i = 0 ; i < m->n_data; ++i ) 
+      chart_datum(dnp_chart, 0, m->wvp[i]->v.f, d_data[i]);
 
-  free(d_data);
+    free(d_data);
   }
 
-  chart_line(&np_chart, slope, intercept, yfirst, ylast , CHART_DIM_Y);
-  chart_line(&dnp_chart, 0, 0, m->min, m->max , CHART_DIM_X);
+  chart_line(np_chart, slope, intercept, yfirst, ylast , CHART_DIM_Y);
+  chart_line(dnp_chart, 0, 0, m->min, m->max , CHART_DIM_X);
 
-  chart_finalise(&np_chart);
-  chart_finalise(&dnp_chart);
-#endif
+  chart_submit(np_chart);
+  chart_submit(dnp_chart);
 }
 
 

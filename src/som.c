@@ -66,7 +66,7 @@ som_blank_line (void)
 static struct outp_driver *d=0;
 
 /* Table. */
-static struct som_table *t=0;
+static struct som_entity *t=0;
 
 /* Flags. */
 static unsigned flags;
@@ -87,11 +87,11 @@ static void render_columns (void);
 static void render_simple (void);
 static void render_segments (void);
 
-static void output_table (struct outp_driver *, struct som_table *);
+static void output_entity (struct outp_driver *, struct som_entity *);
 
 /* Output table T to appropriate output devices. */
 void
-som_submit (struct som_table *t)
+som_submit (struct som_entity *t)
 {
 #if GLOBAL_DEBUGGING
   static int entry;
@@ -99,34 +99,40 @@ som_submit (struct som_table *t)
   assert (entry++ == 0);
 #endif
 
-  t->class->table (t);
-  t->class->flags (&flags);
-  t->class->count (&nc, &nr);
-  t->class->headers (&hl, &hr, &ht, &hb);
+  if ( t->type == SOM_TABLE) 
+    {
+      t->class->table (t);
+      t->class->flags (&flags);
+      t->class->count (&nc, &nr);
+      t->class->headers (&hl, &hr, &ht, &hb);
+
 
 #if GLOBAL_DEBUGGING
-  if (hl + hr > nc || ht + hb > nr)
-    {
-      printf ("headers: (l,r)=(%d,%d), (t,b)=(%d,%d) in table size (%d,%d)\n",
-	      hl, hr, ht, hb, nc, nr);
-      abort ();
-    }
-  else if (hl + hr == nc)
-    printf ("warning: headers (l,r)=(%d,%d) in table width %d\n", hl, hr, nc);
-  else if (ht + hb == nr)
-    printf ("warning: headers (t,b)=(%d,%d) in table height %d\n", ht, hb, nr);
+      if (hl + hr > nc || ht + hb > nr)
+	{
+	  printf ("headers: (l,r)=(%d,%d), (t,b)=(%d,%d) in table size (%d,%d)\n",
+		  hl, hr, ht, hb, nc, nr);
+	  abort ();
+	}
+      else if (hl + hr == nc)
+	printf ("warning: headers (l,r)=(%d,%d) in table width %d\n", hl, hr, nc);
+      else if (ht + hb == nr)
+	printf ("warning: headers (t,b)=(%d,%d) in table height %d\n", ht, hb, nr);
 #endif
 
-  t->class->columns (&cs);
+      t->class->columns (&cs);
 
-  if (!(flags & SOMF_NO_TITLE))
-    subtable_num++;
-    
+      if (!(flags & SOMF_NO_TITLE))
+	subtable_num++;
+  
+    }
+  
   {
     struct outp_driver *d;
-
+    
     for (d = outp_drivers (NULL); d; d = outp_drivers (d))
-      output_table (d, t);
+	output_entity (d, t);
+
   }
   
 #if GLOBAL_DEBUGGING
@@ -134,12 +140,11 @@ som_submit (struct som_table *t)
 #endif
 }
 
-/* Output table TABLE to driver DRIVER. */
+/* Output entity ENTITY to driver DRIVER. */
 static void
-output_table (struct outp_driver *driver, struct som_table *table)
+output_entity (struct outp_driver *driver, struct som_entity *entity)
 {
   d = driver;
-  t = table;
 
   assert (d->driver_open);
   if (!d->page_open && !d->class->open_page (d))
@@ -148,11 +153,13 @@ output_table (struct outp_driver *driver, struct som_table *table)
       return;
     }
   
-  if (d->class->special)
+  if (d->class->special || entity->type == SOM_CHART)
     {
-      driver->class->submit (d, t);
+      driver->class->submit (d, entity);
       return;
     }
+
+  t = entity;
   
   t->class->driver (d);
   t->class->area (&tw, &th);

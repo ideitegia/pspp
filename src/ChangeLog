@@ -1,3 +1,23 @@
+Mon Jan 10 14:43:45 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* ascii.c cartesian.c casefile.c chart.h devind.c 
+	  examine.q frequencies.q
+	  html.c output.h piechart.c plot-chart.c plot-hist.c
+
+	  Integrated the chart rendering into the output stream
+	  (currently only works for html).
+	  
+	  Removed gratuitous use of ifndef NO_CHARTS, and replaced with
+	  dummy-chart.c for compiling without charts.
+
+	* mkfile.[ch] Created.  
+
+	* som.[ch] tab.[ch]: Changed name of som_table to som_entity
+	Added type element so we can tell if it's a chart or a table.
+
+	* chart.h examine.q piechart.c plot-chart.c plot-hist.c: changed the 
+	API of charts to be more like that of tables.
+
 Thu Jan 13 21:00:02 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* casefile.c main.c: Moved the SIGINT handler from casefile.c to
@@ -5,7 +25,8 @@ Thu Jan 13 21:00:02 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Mon Jan 10 14:43:45 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
-	* casefile.c: Added a signal handler to delete temp files on SIGINT and SIGQUIT
+	* casefile.c: Added a signal handler to delete temp files on 
+	SIGINT and SIGQUIT
 
 	* permissions.c Inhibited the PERMISSIONS command when SAFER is on.
 

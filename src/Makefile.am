@@ -55,6 +55,8 @@ chart_sources = barchart.c \
 	plot-chart.c \
 	plot-hist.c \
 	piechart.c 
+else
+chart_sources = dummy-chart.c
 endif
 
 pspp_SOURCES = $(q_sources_c) $(chart_sources) \
@@ -82,9 +84,8 @@ pfm-write.c pfm-write.h \
 pool.c pool.h postscript.c print.c recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
 sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
-sort.c sort.h \
-split-file.c str.c str.h subclist.c subclist.h \
-sysfile-info.c tab.c tab.h temporary.c stat.h \
+sort.c sort.h split-file.c str.c str.h subclist.c subclist.h \
+sysfile-info.c tab.c tab.h temporary.c stat.h mkfile.c mkfile.h \
 title.c  val.h val-labs.c value-labels.c value-labels.h		\
 var-labs.c var.h vars-atr.c vars-prs.c vector.c version.c version.h	\
 vfm.c vfm.h vfmP.h weight.c 
@@ -92,7 +93,6 @@ vfm.c vfm.h vfmP.h weight.c
 
 pspp_LDADD = ../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\
-	-lplot \
 	@LIBINTL@
 
 version.c:

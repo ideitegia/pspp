@@ -29,6 +29,9 @@
 
 #include "chart.h"
 #include "str.h"
+#include "alloc.h"
+#include "som.h"
+#include "output.h"
 
 
 const char *data_colour[] = {
@@ -45,16 +48,27 @@ const char *data_colour[] = {
 
 
 
-int
-chart_initialise(struct chart *chart)
+struct chart *
+chart_create(void)
 {
+  struct chart *chart;
 
-  chart->pl_params = pl_newplparams();
+  struct outp_driver *d;
 
-  chart->lp = pl_newpl_r ("X",0,stdout,stderr,chart->pl_params);
+  chart = xmalloc(sizeof(struct chart) );
+
+  for (d = outp_drivers (NULL); d; d = outp_drivers (d))
+    {
+      assert(d->class->initialise_chart);
+      d->class->initialise_chart(d, chart);
+      break; /* KLUDGE!! */
+    }
+
+  if ( ! chart->lp ) 
+    return 0;
 
   if (pl_openpl_r (chart->lp) < 0)      /* open Plotter */
-      return 1;
+      return 0;
 
   pl_fspace_r (chart->lp, 0.0, 0.0, 1000.0, 1000.0); /* set coordinate system */
   pl_flinewidth_r (chart->lp, 0.25);    /* set line thickness */
@@ -90,7 +104,7 @@ chart_initialise(struct chart *chart)
 	   chart->data_left, chart->data_bottom, 
 	   chart->data_right, chart->data_top);
 
-  return 0;
+  return chart;
 
 }
 
@@ -106,6 +120,8 @@ draw_tick(struct chart *chart,
 	  const char *label, ...)
 {
   const int tickSize = 10;
+
+  assert(chart);
 
   pl_savestate_r(chart->lp);
 
@@ -150,6 +166,8 @@ chart_write_title(struct chart *chart, const char *title, ...)
   va_list ap;
   char buf[100];
 
+  assert(chart);
+
   pl_savestate_r(chart->lp);
   pl_ffontsize_r(chart->lp,chart->font_size * 1.5);
   pl_move_r(chart->lp,chart->data_left, chart->title_bottom);
@@ -163,21 +181,32 @@ chart_write_title(struct chart *chart, const char *title, ...)
 }
 
 
+extern struct som_table_class tab_table_class;
 
 void
-chart_finalise(struct chart *chart)
+chart_submit(struct chart *chart)
 {
+  struct som_entity s;
+
+  assert(chart);
+
   pl_restorestate_r(chart->lp);
 
+  s.class = &tab_table_class;
+  s.ext = chart;
+  s.type = SOM_CHART;
+  som_submit (&s);
+  
   if (pl_closepl_r (chart->lp) < 0)     /* close Plotter */
     {
       fprintf (stderr, "Couldn't close Plotter\n");
     }
 
-
   pl_deletepl_r(chart->lp);
 
   pl_deleteplparams(chart->pl_params);
+
+  free(chart);
 
 }
 
@@ -191,8 +220,12 @@ chart_write_xscale(struct chart *ch, double min, double max, int ticks)
   const double tick_interval = 
     chart_rounded_tick( (max - min) / (double) ticks);
 
+  assert ( ch );
+
+
   ch->x_max = ceil( max / tick_interval ) * tick_interval ; 
   ch->x_min = floor ( min / tick_interval ) * tick_interval ;
+
 
   ch->abscissa_scale = fabs(ch->data_right - ch->data_left) / 
     fabs(ch->x_max - ch->x_min);
@@ -214,6 +247,10 @@ chart_write_yscale(struct chart *ch, double smin, double smax, int ticks)
 
   const double tick_interval = 
     chart_rounded_tick( (smax - smin) / (double) ticks);
+
+
+  assert (ch) ;
+
 
   ch->y_max = ceil  ( smax / tick_interval ) * tick_interval ; 
   ch->y_min = floor ( smin / tick_interval ) * tick_interval ;

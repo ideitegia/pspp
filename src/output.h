@@ -21,6 +21,9 @@
 #define output_h 1
 
 #include "str.h"
+#include "config.h"
+
+#include "chart.h"
 
 /* A rectangle. */
 struct rect
@@ -109,7 +112,7 @@ struct outp_text
     int w, l;			/* Width, length. */
   };
 
-struct som_table;
+struct som_entity;
 struct outp_driver;
 
 /* Defines a class of output driver. */
@@ -135,8 +138,8 @@ struct outp_class
     int (*open_page) (struct outp_driver *);
     int (*close_page) (struct outp_driver *);
 
-    /* special != 0: Used to submit tables for output. */
-    void (*submit) (struct outp_driver *, struct som_table *);
+    /* special != 0: Used to submit entities for output. */
+    void (*submit) (struct outp_driver *, struct som_entity *);
     
     /* special != 0: Methods below need not be defined. */
     
@@ -166,6 +169,10 @@ struct outp_class
     int (*text_get_size) (struct outp_driver *, int *em_width);
     void (*text_metrics) (struct outp_driver *, struct outp_text *);
     void (*text_draw) (struct outp_driver *, struct outp_text *);
+
+    void (*initialise_chart)(struct outp_class *, struct chart *);
+    void (*finialise_chart)(struct outp_class *, struct chart *);
+
   };
 
 /* Device types. */
