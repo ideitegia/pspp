@@ -20,13 +20,13 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include <gsl/gsl_cdf.h>
 #include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "alloc.h"
 #include "str.h"
-#include "dcdflib/cdflib.h"
 #include "command.h"
 #include "lexer.h"
 #include "error.h"
@@ -940,10 +940,7 @@ trbox_independent_samples_populate(struct trbox *self,
   assert(self);
   for (i=0; i < cmd->n_variables; ++i)
     {
-      int which =1;
       double p,q;
-      int status;
-      double bound;
 
       double t;
       double df;
@@ -967,15 +964,8 @@ trbox_independent_samples_populate(struct trbox *self,
 
 
       /* Now work out the significance of the Levene test */
-
-      which=1; df1 = 1; df2 = cmd->v_variables[i]->p.t_t.ugs.n - 2;
-      cdff(&which,&p,&q,&cmd->v_variables[i]->p.t_t.levene,
-	   &df1,&df2,&status,&bound);
-
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating F statistic (cdff returned %d)."),status);
-	}
+      df1 = 1; df2 = cmd->v_variables[i]->p.t_t.ugs.n - 2;
+      q = gsl_cdf_fdist_Q(cmd->v_variables[i]->p.t_t.levene, df1, df2);
 
       tab_float(self->t, 3, i*2+3, TAB_CENTER, q, 8,3 );
 
@@ -992,13 +982,8 @@ trbox_independent_samples_populate(struct trbox *self,
 
       tab_float (self->t, 4, i*2+3, TAB_RIGHT, t, 8, 3);
 
-
-      which=1; /* get p & q from t & df */
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
+      p = gsl_cdf_tdist_P(t, df);
+      q = gsl_cdf_tdist_Q(t, df);
 
       tab_float(self->t, 6, i*2+3, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
 
@@ -1012,13 +997,8 @@ trbox_independent_samples_populate(struct trbox *self,
 
       /* Now work out the confidence interval */
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
-      p = 1 - q ;
-      which=2; /* Calc T from p,q and df */
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
+
+      t = gsl_cdf_tdist_Qinv(q,df);
 
       tab_float(self->t, 9, i*2+3, TAB_RIGHT, 
 		mean_diff - t * std_err_diff, 8, 3); 
@@ -1051,25 +1031,15 @@ trbox_independent_samples_populate(struct trbox *self,
 		       ) ;
       tab_float (self->t, 5, i*2+3+1, TAB_RIGHT, df, 8, 3);
 
-      which=1; /* get p & q from t & df */
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
+      p = gsl_cdf_tdist_P(t, df);
+      q = gsl_cdf_tdist_Q(t, df);
 
       tab_float(self->t, 6, i*2+3+1, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
 
       /* Now work out the confidence interval */
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
-      p = 1 - q ;
-      which=2; /* Calc T from p,q and df */
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
 
+      t = gsl_cdf_tdist_Qinv(q, df);
 
       tab_float(self->t, 7, i*2+3+1, TAB_RIGHT, mean_diff, 8, 3);
 
@@ -1131,10 +1101,7 @@ trbox_paired_populate(struct trbox *trb,
 
   for (i=0; i < n_pairs; ++i)
     {
-      int which =1;
       double p,q;
-      int status;
-      double bound;
       double se_mean;
 
       double n = pairs[i].n;
@@ -1156,14 +1123,8 @@ trbox_paired_populate(struct trbox *trb,
 
       /* Now work out the confidence interval */
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
-      p = 1 - q ;
-      which=2; /* Calc T from p,q and df */
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
 
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
+      t = gsl_cdf_tdist_Qinv(q, df);
 
       tab_float(trb->t, 5, i+3, TAB_RIGHT, 
 		pairs[i].mean_diff - t * se_mean , 8, 4); 
@@ -1184,13 +1145,8 @@ trbox_paired_populate(struct trbox *trb,
       /* Degrees of freedom */
       tab_float(trb->t, 8, i+3, TAB_RIGHT, df , 2, 0 );
 
-      which=1;
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
-
+      p = gsl_cdf_tdist_P(t,df);
+      q = gsl_cdf_tdist_P(t,df);
 
       tab_float(trb->t, 9, i+3, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
 
@@ -1243,12 +1199,9 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      int which =1;
       double t;
       double p,q;
       double df;
-      int status;
-      double bound;
       struct group_statistics *gs;
       gs= &cmd->v_variables[i]->p.t_t.ugs;
 
@@ -1264,13 +1217,8 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
       tab_float (trb->t, 2, i+3, TAB_RIGHT, df, 8,0);
 
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
-
+      p = gsl_cdf_tdist_P(t, df);
+      q = gsl_cdf_tdist_Q(t, df);
 
       /* Multiply by 2 to get 2-tailed significance, makeing sure we've got 
 	 the correct tail*/
@@ -1280,13 +1228,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
 
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
-      p = 1 - q ;
-      which=2; /* Calc T from p,q and df */
-      cdft(&which, &p, &q, &t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
+      t = gsl_cdf_tdist_Qinv(q, df);
 
       tab_float (trb->t, 5, i+3, TAB_RIGHT,
 		 gs->mean_diff - t * gs->se_mean, 8,4);
@@ -1346,11 +1288,7 @@ pscbox(void)
 
   for (i=0; i < n_pairs; ++i)
     {
-      int which =1;
       double p,q;
-
-      int status;
-      double bound;
 
       double df = pairs[i].n -2;
 
@@ -1371,11 +1309,8 @@ pscbox(void)
       tab_float(table, 2, i+1, TAB_RIGHT, pairs[i].n, 4, 0);
       tab_float(table, 3, i+1, TAB_RIGHT, pairs[i].correlation, 8, 3);
 
-      cdft(&which, &p, &q, &correlation_t, &df, &status, &bound);
-      if ( 0 != status )
-	{
-	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
-	}
+      p = gsl_cdf_tdist_P(correlation_t, df);
+      q = gsl_cdf_tdist_Q(correlation_t, df);
 
       tab_float(table, 4, i+1, TAB_RIGHT, 2.0*(correlation_t>0?q:p), 8, 3);
     }

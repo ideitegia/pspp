@@ -24,6 +24,8 @@ AC_CHECK_LIB(gmp, mpf_get_str,,
           AC_MSG_ERROR([You must install libgmp])
         )
 )
+AC_CHECK_LIB(gslcblas,main)
+AC_CHECK_LIB(gsl,main)
 
 AC_CHECK_FUNC(getopt_long,,
 	AC_MSG_ERROR(`This application depends upon getopt_long'))
@@ -106,7 +108,7 @@ fi
 
 AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile 
 		 lib/Makefile lib/julcal/Makefile lib/misc/Makefile 
-		 lib/dcdflib/Makefile doc/Makefile src/Makefile 
+		 doc/Makefile src/Makefile 
 		 config/Makefile tests/Makefile])
 AC_CONFIG_COMMANDS([pref.h],[
 	   # Copy pref.h from pref.h.orig if prudent

@@ -59,7 +59,6 @@ version.c version.h vfm.c vfm.h vfmP.h weight.c
 
 pspp_LDADD =	../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\
-	../lib/dcdflib/libdcdflib.a		\
 	@LIBINTL@
 
 version.c:
