@@ -6,14 +6,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
-"POT-Creation-Date: 2004-01-27 08:20+0800\n"
+"Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
+"POT-Creation-Date: 2004-01-30 19:35+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
 #: src/crosstabs.q:255
@@ -59,7 +59,7 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:880
+#: src/crosstabs.q:880 src/t-test.q:529 src/t-test.q:560 src/t-test.q:640
 msgid "N"
 msgstr ""
 
@@ -111,7 +111,7 @@ msgstr ""
 msgid "Value"
 msgstr ""
 
-#: src/crosstabs.q:1162
+#: src/crosstabs.q:1162 src/t-test.q:809 src/t-test.q:913 src/t-test.q:998
 msgid "df"
 msgstr ""
 
@@ -148,11 +148,11 @@ msgstr ""
 msgid " 95%% Confidence Interval"
 msgstr ""
 
-#: src/crosstabs.q:1209
+#: src/crosstabs.q:1209 src/t-test.q:813 src/t-test.q:910 src/t-test.q:1001
 msgid "Lower"
 msgstr ""
 
-#: src/crosstabs.q:1210
+#: src/crosstabs.q:1210 src/t-test.q:814 src/t-test.q:911 src/t-test.q:1002
 msgid "Upper"
 msgstr ""
 
@@ -289,7 +289,8 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/descript.q:152 src/frequencies.q:94
+#: src/descript.q:152 src/frequencies.q:94 src/t-test.q:530 src/t-test.q:561
+#: src/t-test.q:639 src/t-test.q:907
 msgid "Mean"
 msgstr ""
 
@@ -531,7 +532,7 @@ msgstr ""
 
 #: src/file-handle.q:88 src/autorecode.c:121 src/command.c:696
 #: src/compute.c:284 src/data-list.c:372 src/data-list.c:842
-#: src/data-list.c:1645 src/do-if.c:264 src/get.c:359 src/lexer.c:384
+#: src/data-list.c:1645 src/do-if.c:264 src/get.c:359 src/lexer.c:387
 #: src/loop.c:248 src/matrix-data.c:506 src/print.c:340 src/print.c:1081
 #: src/recode.c:409 src/sel-if.c:56 src/sel-if.c:136 src/vector.c:197
 msgid "expecting end of command"
@@ -861,30 +862,134 @@ msgstr ""
 msgid "Drive letter expected in WORKDEV subcommand."
 msgstr ""
 
-#: src/t-test.q:453
-msgid "expecting variable name in GROUPS subcommand"
+#: src/t-test.q:158
+msgid "Exactly one of TESTVAL, GROUPS or PAIRS subcommands is required"
 msgstr ""
 
-#: src/t-test.q:458
+#: src/t-test.q:172
+msgid "VARIABLES subcommand is not appropriate with PAIRS"
+msgstr ""
+
+#: src/t-test.q:207 src/t-test.q:276
+#, c-format
+msgid "`%s' is not a variable name"
+msgstr ""
+
+#: src/t-test.q:220
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/t-test.q:474
+#: src/t-test.q:237
 msgid ""
 "When applying GROUPS to a string variable, at least one value must be "
 "specified."
 msgstr ""
 
-#: src/t-test.q:565
+#: src/t-test.q:318
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
 msgstr ""
 
-#: src/t-test.q:581
+#: src/t-test.q:337
 msgid "At least two variables must be specified on PAIRS."
+msgstr ""
+
+#: src/t-test.q:525
+msgid "One-Sample Statistics"
+msgstr ""
+
+#: src/t-test.q:531 src/t-test.q:562 src/t-test.q:641 src/t-test.q:908
+msgid "Std. Deviation"
+msgstr ""
+
+#: src/t-test.q:532 src/t-test.q:563 src/t-test.q:642
+msgid "SE. Mean"
+msgstr ""
+
+#: src/t-test.q:554
+msgid "Group Statistics"
+msgstr ""
+
+#: src/t-test.q:634
+msgid "Paired Sample Statistics"
+msgstr ""
+
+#: src/t-test.q:665 src/t-test.q:940
+#, c-format
+msgid "Pair %d"
+msgstr ""
+
+#: src/t-test.q:781
+msgid "Independent Samples Test"
+msgstr ""
+
+#: src/t-test.q:800
+msgid "Levine's Test for Equality of Variances"
+msgstr ""
+
+#: src/t-test.q:803
+msgid "t-test for Equality of Means"
+msgstr ""
+
+#: src/t-test.q:806
+msgid "F"
+msgstr ""
+
+#: src/t-test.q:807
+msgid "Sig."
+msgstr ""
+
+#: src/t-test.q:808 src/t-test.q:912 src/t-test.q:997
+msgid "t"
+msgstr ""
+
+#: src/t-test.q:810 src/t-test.q:914 src/t-test.q:999
+msgid "Sig. (2-tailed)"
+msgstr ""
+
+#: src/t-test.q:811 src/t-test.q:1000
+msgid "Mean Difference"
+msgstr ""
+
+#: src/t-test.q:812
+msgid "Std. Error Difference"
+msgstr ""
+
+#: src/t-test.q:819 src/t-test.q:898 src/t-test.q:985
+#, c-format
+msgid "%d%% Confidence Interval of the Difference"
+msgstr ""
+
+#: src/t-test.q:846
+msgid "Equal variances assumed"
+msgstr ""
+
+#: src/t-test.q:849
+msgid "Equal variances not assumed"
+msgstr ""
+
+#: src/t-test.q:872
+msgid "Paired Samples Test"
+msgstr ""
+
+#: src/t-test.q:880
+msgid "Paired Differences"
+msgstr ""
+
+#: src/t-test.q:909
+msgid "Std. Error Mean"
+msgstr ""
+
+#: src/t-test.q:968
+msgid "One-Sample Test"
+msgstr ""
+
+#: src/t-test.q:975
+#, c-format
+msgid "Test Value = %f"
 msgstr ""
 
 #: src/aggregate.c:188
@@ -2227,10 +2332,12 @@ msgid "Boolean"
 msgstr ""
 
 #: src/expr-prs.c:1695
+#, c-format
 msgid "!!TERMINAL!!"
 msgstr ""
 
 #: src/expr-prs.c:1721
+#, c-format
 msgid "!!SENTINEL!!"
 msgstr ""
 
@@ -2548,14 +2655,17 @@ msgid "`)' expected after output format."
 msgstr ""
 
 #: src/formats.c:153
+#, c-format
 msgid "Formats:\n"
 msgstr ""
 
 #: src/formats.c:154
+#, c-format
 msgid "  Name      Print         Write\n"
 msgstr ""
 
 #: src/get.c:110
+#, c-format
 msgid "GET translation table from file to memory:\n"
 msgstr ""
 
@@ -2593,6 +2703,7 @@ msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
 #: src/get.c:461
+#, c-format
 msgid ""
 "\n"
 "Variables in dictionary:\n"
@@ -2652,6 +2763,7 @@ msgid "expecting COMM or TAPE"
 msgstr ""
 
 #: src/get.c:1393
+#, c-format
 msgid "IMPORT translation table from file to memory:\n"
 msgstr ""
 
@@ -2845,6 +2957,7 @@ msgid "<<fallback>>"
 msgstr ""
 
 #: src/hash.c:492
+#, c-format
 msgid "hash table:"
 msgstr ""
 
@@ -2854,6 +2967,7 @@ msgid "bad ordering of keys %d and %d\n"
 msgstr ""
 
 #: src/heap.c:177
+#, c-format
 msgid "Heap contents:\n"
 msgstr ""
 
@@ -2934,105 +3048,106 @@ msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
 
-#: src/lexer.c:216
+#: src/lexer.c:219
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/lexer.c:334
+#: src/lexer.c:337
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/lexer.c:336
+#: src/lexer.c:339
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/lexer.c:357
+#: src/lexer.c:360
 msgid "Syntax error at end of file."
-msgstr ""
-
-#: src/lexer.c:367
-#, c-format
-msgid "Syntax error %s at `%s'."
 msgstr ""
 
 #: src/lexer.c:370
 #, c-format
+msgid "Syntax error %s at `%s'."
+msgstr ""
+
+#: src/lexer.c:373
+#, c-format
 msgid "Syntax error at `%s'."
 msgstr ""
 
-#: src/lexer.c:473
+#: src/lexer.c:493
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/lexer.c:490
+#: src/lexer.c:510
 #, c-format
 msgid "expecting %s"
 msgstr ""
 
-#: src/lexer.c:504
+#: src/lexer.c:524
 msgid "expecting string"
 msgstr ""
 
-#: src/lexer.c:518
+#: src/lexer.c:538
 msgid "expecting integer"
 msgstr ""
 
-#: src/lexer.c:532
+#: src/lexer.c:552
 msgid "expecting number"
 msgstr ""
 
-#: src/lexer.c:546
+#: src/lexer.c:566
 msgid "expecting identifier"
 msgstr ""
 
-#: src/lexer.c:682
+#: src/lexer.c:702
 msgid "The rest of this command has been discarded."
 msgstr ""
 
-#: src/lexer.c:822 src/print.c:1174
+#: src/lexer.c:842 src/print.c:1174
+#, c-format
 msgid "<ERROR>"
 msgstr ""
 
-#: src/lexer.c:948 src/pfm-read.c:132 src/repeat.c:226
+#: src/lexer.c:968 src/pfm-read.c:132 src/repeat.c:226
 msgid "Unexpected end of file."
 msgstr ""
 
-#: src/lexer.c:974
+#: src/lexer.c:994
 msgid "binary"
 msgstr ""
 
-#: src/lexer.c:974
+#: src/lexer.c:994
 msgid "octal"
 msgstr ""
 
-#: src/lexer.c:974
+#: src/lexer.c:994
 msgid "hex"
 msgstr ""
 
-#: src/lexer.c:988
+#: src/lexer.c:1008
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/lexer.c:1017
+#: src/lexer.c:1037
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/lexer.c:1048
+#: src/lexer.c:1068
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/lexer.c:1120
+#: src/lexer.c:1140
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/lexer.c:1135
+#: src/lexer.c:1155
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."
@@ -3311,6 +3426,7 @@ msgid "(long string variable)"
 msgstr ""
 
 #: src/mis-val.c:376
+#, c-format
 msgid "(no missing values)\n"
 msgstr ""
 
@@ -3455,6 +3571,7 @@ msgid "Error reading device definition file."
 msgstr ""
 
 #: src/output.c:462
+#, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
@@ -4051,10 +4168,12 @@ msgid ""
 msgstr ""
 
 #: src/recode.c:869
+#, c-format
 msgid "!!END!!"
 msgstr ""
 
 #: src/recode.c:890 src/recode.c:906
+#, c-format
 msgid "!!ERROR!!"
 msgstr ""
 
@@ -4814,17 +4933,12 @@ msgstr ""
 msgid "Vector"
 msgstr ""
 
-#: src/tab.c:259
+#: src/tab.c:266
 #, c-format
 msgid "bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr ""
 
-#: src/tab.c:295
-#, c-format
-msgid "bad hline: x=(%d+%d=%d,%d+%d=%d) y=%d+%d=%d in table size (%d,%d)\n"
-msgstr ""
-
-#: src/tab.c:335
+#: src/tab.c:342
 #, c-format
 msgid ""
 "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
@@ -4893,6 +5007,7 @@ msgid "Value labels:"
 msgstr ""
 
 #: src/val-labs.c:237
+#, c-format
 msgid "    (no value labels)\n"
 msgstr ""
 
@@ -4905,10 +5020,12 @@ msgid "Truncating variable label to 120 characters."
 msgstr ""
 
 #: src/var-labs.c:87
+#, c-format
 msgid "Variable labels:\n"
 msgstr ""
 
 #: src/var-labs.c:94
+#, c-format
 msgid "(no variable label)"
 msgstr ""
 

@@ -16,7 +16,7 @@ AM_CFLAGS=-Wall -W -Wno-uninitialized -Wwrite-strings -Wstrict-prototypes \
 -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes 
 endif
 
-CLEANFILES =  $(q_sources_c)
+CLEANFILES =  $(q_sources_c) version.c
 DISTCLEANFILES = foo 
 MAINTAINERCLEANFILES = Makefile.in
 EXTRA_DIST = $(q_sources_q) q2c.c
