@@ -549,33 +549,27 @@ struct mtf_file
     union value *input;		/* Input record. */
   };
 
-/* All the files mentioned on FILE or TABLE. */
-static struct mtf_file *mtf_head, *mtf_tail;
+/* MATCH FILES procedure. */
+struct mtf_proc 
+  {
+    struct mtf_file *head;      /* First file mentioned on FILE or TABLE. */
+    struct mtf_file *tail;      /* Last file mentioned on FILE or TABLE. */
+    
+    struct variable **by;       /* Variables on the BY subcommand. */
+    size_t by_cnt;              /* Number of variables on BY subcommand. */
 
-/* Variables on the BY subcommand. */
-static struct variable **mtf_by;
-static int mtf_n_by;
+    struct dictionary *dict;    /* Dictionary of output file. */
+    struct case_sink *sink;     /* Sink to receive output. */
+    struct ccase *mtf_case;     /* Case used for output. */
 
-/* Master dictionary. */
-static struct dictionary *mtf_master;
+    unsigned seq_num;           /* Have we initialized this variable? */
+    unsigned *seq_nums;         /* Sequence numbers for each var in dict. */
+  };
 
-/* Used to determine whether we've already initialized this
-   variable. */
-static unsigned mtf_seq_num;
-
-/* Sequence numbers for each variable in mtf_master. */
-static unsigned *mtf_seq_nums;
-
-/* Sink for MATCH FILES output. */
-static struct case_sink *mtf_sink;
-
-/* Case used for MATCH FILES output. */
-static struct ccase *mtf_case;
-
-static void mtf_free (void);
-static void mtf_free_file (struct mtf_file *file);
-static int mtf_merge_dictionary (struct mtf_file *f);
-static void mtf_delete_file_in_place (struct mtf_file **file);
+static void mtf_free (struct mtf_proc *);
+static void mtf_free_file (struct mtf_file *);
+static int mtf_merge_dictionary (struct dictionary *const, struct mtf_file *);
+static void mtf_delete_file_in_place (struct mtf_proc *, struct mtf_file **);
 
 static void mtf_read_nonactive_records (void *);
 static void mtf_processing_finish (void *);
@@ -587,6 +581,7 @@ static char *var_type_description (struct variable *);
 int
 cmd_match_files (void)
 {
+  struct mtf_proc mtf;
   struct mtf_file *first_table = NULL;
   
   int seen = 0;
@@ -594,13 +589,15 @@ cmd_match_files (void)
   lex_match_id ("MATCH");
   lex_match_id ("FILES");
 
-  mtf_head = mtf_tail = NULL;
-  mtf_by = NULL;
-  mtf_n_by = 0;
-  mtf_master = dict_create ();
-  mtf_seq_num = 0;
-  mtf_seq_nums = NULL;
-  dict_set_case_limit (mtf_master, dict_get_case_limit (default_dict));
+  mtf.head = mtf.tail = NULL;
+  mtf.by = NULL;
+  mtf.by_cnt = 0;
+  mtf.dict = dict_create ();
+  mtf.sink = NULL;
+  mtf.mtf_case = NULL;
+  mtf.seq_num = 0;
+  mtf.seq_nums = NULL;
+  dict_set_case_limit (mtf.dict, dict_get_case_limit (default_dict));
   
   do
     {
@@ -616,7 +613,7 @@ cmd_match_files (void)
 	  seen |= 1;
 	      
 	  lex_match ('=');
-	  if (!parse_variables (mtf_master, &mtf_by, &mtf_n_by,
+	  if (!parse_variables (mtf.dict, &mtf.by, &mtf.by_cnt,
 				PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	    goto lossage;
 	}
@@ -648,12 +645,12 @@ cmd_match_files (void)
 	  if (file->type == MTF_TABLE || first_table == NULL)
 	    {
 	      file->next = NULL;
-	      file->prev = mtf_tail;
-	      if (mtf_tail)
-		mtf_tail->next = file;
-	      mtf_tail = file;
-	      if (mtf_head == NULL)
-		mtf_head = file;
+	      file->prev = mtf.tail;
+	      if (mtf.tail)
+		mtf.tail->next = file;
+	      mtf.tail = file;
+	      if (mtf.head == NULL)
+		mtf.head = file;
 	      if (file->type == MTF_TABLE && first_table == NULL)
 		first_table = file;
 	    }
@@ -665,7 +662,7 @@ cmd_match_files (void)
 	      if (first_table->prev)
 		first_table->prev->next = file;
 	      else
-		mtf_head = file;
+		mtf.head = file;
 	      first_table->prev = file;
 	    }
 	  
@@ -715,7 +712,7 @@ cmd_match_files (void)
 	    }
 	  else
 	    file->dict = default_dict;
-	  if (!mtf_merge_dictionary (file))
+	  if (!mtf_merge_dictionary (mtf.dict, file))
 	    goto lossage;
 	}
       else if (lex_id_match ("IN", tokid)
@@ -725,7 +722,7 @@ cmd_match_files (void)
 	  const char *sbc;
 	  char *name;
 	  
-	  if (mtf_tail == NULL)
+	  if (mtf.tail == NULL)
 	    {
 	      msg (SE, _("IN, FIRST, and LAST subcommands may not occur "
 			 "before the first FILE or TABLE."));
@@ -734,17 +731,17 @@ cmd_match_files (void)
 
 	  if (lex_match_id ("IN"))
 	    {
-	      name = mtf_tail->in;
+	      name = mtf.tail->in;
 	      sbc = "IN";
 	    }
 	  else if (lex_match_id ("FIRST"))
 	    {
-	      name = mtf_tail->first;
+	      name = mtf.tail->first;
 	      sbc = "FIRST";
 	    }
 	  else if (lex_match_id ("LAST"))
 	    {
-	      name = mtf_tail->last;
+	      name = mtf.tail->last;
 	      sbc = "LAST";
 	    }
 	  else
@@ -767,7 +764,7 @@ cmd_match_files (void)
 	  strcpy (name, tokid);
 	  lex_get ();
 
-	  if (!dict_create_var (mtf_master, name, 0))
+	  if (!dict_create_var (mtf.dict, name, 0))
 	    {
 	      msg (SE, _("Duplicate variable name %s while creating %s "
 			 "variable."),
@@ -781,14 +778,14 @@ cmd_match_files (void)
 	{
 	  int options = GTSV_OPT_MATCH_FILES;
 	  
-	  if (mtf_tail == NULL)
+	  if (mtf.tail == NULL)
 	    {
 	      msg (SE, _("RENAME, KEEP, and DROP subcommands may not occur "
 			 "before the first FILE or TABLE."));
 	      goto lossage;
 	    }
 
-	  if (!trim_dictionary (mtf_tail->dict, &options))
+	  if (!trim_dictionary (mtf.tail->dict, &options))
 	    goto lossage;
 	}
       else if (lex_match_id ("MAP"))
@@ -817,20 +814,20 @@ cmd_match_files (void)
     {
       struct mtf_file *iter;
 
-      for (iter = mtf_head; iter; iter = iter->next)
+      for (iter = mtf.head; iter; iter = iter->next)
 	{
 	  int i;
 	  
-	  iter->by = xmalloc (sizeof *iter->by * mtf_n_by);
+	  iter->by = xmalloc (sizeof *iter->by * mtf.by_cnt);
 
-	  for (i = 0; i < mtf_n_by; i++)
+	  for (i = 0; i < mtf.by_cnt; i++)
 	    {
-	      iter->by[i] = dict_lookup_var (iter->dict, mtf_by[i]->name);
+	      iter->by[i] = dict_lookup_var (iter->dict, mtf.by[i]->name);
 	      if (iter->by[i] == NULL)
 		{
 		  msg (SE, _("File %s lacks BY variable %s."),
 		       iter->handle ? fh_handle_name (iter->handle) : "*",
-		       mtf_by[i]->name);
+		       mtf.by[i]->name);
 		  goto lossage;
 		}
 	    }
@@ -842,7 +839,7 @@ cmd_match_files (void)
     /* From sfm-read.c. */
     extern void dump_dictionary (struct dictionary *);
 
-    dump_dictionary (mtf_master);
+    dump_dictionary (mtf.dict);
   }
 #endif
 
@@ -884,13 +881,13 @@ cmd_match_files (void)
   if (!(seen & 2))
     discard_variables ();
 
-  mtf_sink = create_case_sink (&storage_sink_class, mtf_master, NULL);
+  mtf.sink = create_case_sink (&storage_sink_class, mtf.dict, NULL);
 
-  mtf_seq_nums = xmalloc (dict_get_var_cnt (mtf_master)
-                          * sizeof *mtf_seq_nums);
-  memset (mtf_seq_nums, 0,
-          dict_get_var_cnt (mtf_master) * sizeof *mtf_seq_nums);
-  mtf_case = xmalloc (dict_get_case_size (mtf_master));
+  mtf.seq_nums = xmalloc (dict_get_var_cnt (mtf.dict)
+                          * sizeof *mtf.seq_nums);
+  memset (mtf.seq_nums, 0,
+          dict_get_var_cnt (mtf.dict) * sizeof *mtf.seq_nums);
+  mtf.mtf_case = xmalloc (dict_get_case_size (mtf.dict));
 
   mtf_read_nonactive_records (NULL);
   if (seen & 2)
@@ -898,37 +895,36 @@ cmd_match_files (void)
   mtf_processing_finish (NULL);
 
   dict_destroy (default_dict);
-  default_dict = mtf_master;
-  mtf_master = NULL;
-  vfm_source = mtf_sink->class->make_source (mtf_sink);
-  free_case_sink (mtf_sink);
+  default_dict = mtf.dict;
+  mtf.dict = NULL;
+  vfm_source = mtf.sink->class->make_source (mtf.sink);
+  free_case_sink (mtf.sink);
   
-  mtf_free ();
+  mtf_free (&mtf);
   return CMD_SUCCESS;
   
 lossage:
-  mtf_free ();
+  mtf_free (&mtf);
   return CMD_FAILURE;
 }
 
 /* Repeats 2...8 an arbitrary number of times. */
 static void
-mtf_processing_finish (void *aux UNUSED)
+mtf_processing_finish (void *mtf_)
 {
+  struct mtf_proc *mtf = mtf_;
+  struct mtf_file *iter;
+
   /* Find the active file and delete it. */
-  {
-    struct mtf_file *iter;
-    
-    for (iter = mtf_head; iter; iter = iter->next)
-      if (iter->handle == NULL)
-	{
-	  mtf_delete_file_in_place (&iter);
-	  break;
-	}
-  }
+  for (iter = mtf->head; iter; iter = iter->next)
+    if (iter->handle == NULL)
+      {
+        mtf_delete_file_in_place (mtf, &iter);
+        break;
+      }
   
-  while (mtf_head && mtf_head->type == MTF_FILE)
-    if (!mtf_processing (NULL, NULL))
+  while (mtf->head && mtf->head->type == MTF_FILE)
+    if (!mtf_processing (NULL, mtf))
       break;
 }
 
@@ -969,27 +965,27 @@ mtf_free_file (struct mtf_file *file)
 
 /* Free all the data for the MATCH FILES procedure. */
 static void
-mtf_free (void)
+mtf_free (struct mtf_proc *mtf)
 {
   struct mtf_file *iter, *next;
 
-  for (iter = mtf_head; iter; iter = next)
+  for (iter = mtf->head; iter; iter = next)
     {
       next = iter->next;
 
       mtf_free_file (iter);
     }
   
-  free (mtf_by);
-  if (mtf_master)
-    dict_destroy (mtf_master);
-  free (mtf_seq_nums);
+  free (mtf->by);
+  if (mtf->dict)
+    dict_destroy (mtf->dict);
+  free (mtf->seq_nums);
 }
 
 /* Remove *FILE from the mtf_file chain.  Make *FILE point to the next
    file in the chain, or to NULL if was the last in the chain. */
 static void
-mtf_delete_file_in_place (struct mtf_file **file)
+mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
 {
   struct mtf_file *f = *file;
 
@@ -997,10 +993,10 @@ mtf_delete_file_in_place (struct mtf_file **file)
     f->prev->next = f->next;
   if (f->next)
     f->next->prev = f->prev;
-  if (f == mtf_head)
-    mtf_head = f->next;
-  if (f == mtf_tail)
-    mtf_tail = f->prev;
+  if (f == mtf->head)
+    mtf->head = f->next;
+  if (f == mtf->tail)
+    mtf->tail = f->prev;
   *file = f->next;
 
   {
@@ -1011,9 +1007,9 @@ mtf_delete_file_in_place (struct mtf_file **file)
 	struct variable *v = dict_get_var (f->dict, i);
 	  
 	if (v->type == NUMERIC)
-	  mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
+	  mtf->mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
 	else
-	  memset (mtf_case->data[v->p.mtf.master->fv].s, ' ', v->width);
+	  memset (mtf->mtf_case->data[v->p.mtf.master->fv].s, ' ', v->width);
       }
   }
 
@@ -1022,11 +1018,12 @@ mtf_delete_file_in_place (struct mtf_file **file)
 
 /* Read a record from every input file except the active file. */
 static void
-mtf_read_nonactive_records (void *aux UNUSED)
+mtf_read_nonactive_records (void *mtf_ UNUSED)
 {
+  struct mtf_proc *mtf = mtf_;
   struct mtf_file *iter;
 
-  for (iter = mtf_head; iter; )
+  for (iter = mtf->head; iter; )
     {
       if (iter->handle)
 	{
@@ -1034,7 +1031,7 @@ mtf_read_nonactive_records (void *aux UNUSED)
 	  iter->input = xmalloc (dict_get_case_size (iter->dict));
 	  
 	  if (!sfm_read_case (iter->handle, iter->input, iter->dict))
-	    mtf_delete_file_in_place (&iter);
+	    mtf_delete_file_in_place (mtf, &iter);
 	  else
 	    iter = iter->next;
 	}
@@ -1046,7 +1043,8 @@ mtf_read_nonactive_records (void *aux UNUSED)
 /* Compare the BY variables for files A and B; return -1 if A < B, 0
    if A == B, 1 if A > B. */
 static inline int
-mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b,
+mtf_compare_BY_values (struct mtf_proc *mtf,
+                       struct mtf_file *a, struct mtf_file *b,
                        struct ccase *c)
 {
   union value *a_input, *b_input;
@@ -1055,7 +1053,7 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b,
   assert ((a == NULL) + (b == NULL) + (c == NULL) <= 1);
   a_input = a->input != NULL ? a->input : c->data;
   b_input = b->input != NULL ? b->input : c->data;
-  for (i = 0; i < mtf_n_by; i++)
+  for (i = 0; i < mtf->by_cnt; i++)
     {
       assert (a->by[i]->type == b->by[i]->type);
       assert (a->by[i]->width == b->by[i]->width);
@@ -1089,16 +1087,12 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b,
 
 /* Perform one iteration of steps 3...7 above. */
 static int
-mtf_processing (struct ccase *c, void *aux UNUSED)
+mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 {
-  /* List of files with minimum BY values. */
-  struct mtf_file *min_head, *min_tail;
-
-  /* List of files with non-minimum BY values. */
-  struct mtf_file *max_head, *max_tail;
-
-  /* Iterator. */
-  struct mtf_file *iter;
+  struct mtf_proc *mtf = mtf_;
+  struct mtf_file *min_head, *min_tail; /* Files with minimum BY values. */
+  struct mtf_file *max_head, *max_tail; /* Files with non-minimum BY values. */
+  struct mtf_file *iter;                /* Iterator. */
 
   for (;;)
     {
@@ -1106,7 +1100,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	 return because that would cause a record to be skipped. */
       int advance = 1;
 
-      if (mtf_head->type == MTF_TABLE)
+      if (mtf->head->type == MTF_TABLE)
 	return 0;
       
       /* 3. Find the FILE input record with minimum BY values.  Store
@@ -1115,11 +1109,11 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	 4. Find all the FILE input records with BY values identical
 	 to the minimums.  Store all the values from these input
 	 records into the output record. */
-      min_head = min_tail = mtf_head;
+      min_head = min_tail = mtf->head;
       max_head = max_tail = NULL;
-      for (iter = mtf_head->next; iter && iter->type == MTF_FILE;
+      for (iter = mtf->head->next; iter && iter->type == MTF_FILE;
 	   iter = iter->next)
-	switch (mtf_compare_BY_values (min_head, iter, c))
+	switch (mtf_compare_BY_values (mtf, min_head, iter, c))
 	  {
 	  case -1:
 	    if (max_head)
@@ -1164,7 +1158,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	    advance = 0;
 
 	again:
-	  switch (mtf_compare_BY_values (min_head, iter, c))
+	  switch (mtf_compare_BY_values (mtf, min_head, iter, c))
 	    {
 	    case -1:
 	      if (max_head)
@@ -1182,7 +1176,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 		return 1;
 	      if (sfm_read_case (iter->handle, iter->input, iter->dict))
 		goto again;
-	      mtf_delete_file_in_place (&iter);
+	      mtf_delete_file_in_place (mtf, &iter);
 	      break;
 
 	    default:
@@ -1193,7 +1187,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	}
 
       /* Next sequence number. */
-      mtf_seq_num++;
+      mtf->seq_num++;
   
       /* Store data to all the records we are using. */
       if (min_tail)
@@ -1207,17 +1201,17 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	      struct variable *v = dict_get_var (iter->dict, i);
               union value *record;
 	  
-	      if (mtf_seq_nums[v->p.mtf.master->index] == mtf_seq_num)
+	      if (mtf->seq_nums[v->p.mtf.master->index] == mtf->seq_num)
 		continue;
-              mtf_seq_nums[v->p.mtf.master->index] = mtf_seq_num;
+              mtf->seq_nums[v->p.mtf.master->index] = mtf->seq_num;
 
               record = iter->input != NULL ? iter->input : c->data;
 
               assert (v->type == NUMERIC || v->type == ALPHA);
 	      if (v->type == NUMERIC)
-		mtf_case->data[v->p.mtf.master->fv].f = record[v->fv].f;
+		mtf->mtf_case->data[v->p.mtf.master->fv].f = record[v->fv].f;
 	      else
-                memcpy (mtf_case->data[v->p.mtf.master->fv].s,
+                memcpy (mtf->mtf_case->data[v->p.mtf.master->fv].s,
                         record[v->fv].s, v->width);
 	    }
 	}
@@ -1233,9 +1227,9 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
 	  
-	      if (mtf_seq_nums[v->p.mtf.master->index] == mtf_seq_num)
+	      if (mtf->seq_nums[v->p.mtf.master->index] == mtf->seq_num)
 		continue;
-              mtf_seq_nums[v->p.mtf.master->index] = mtf_seq_num;
+              mtf->seq_nums[v->p.mtf.master->index] = mtf->seq_num;
 
 #if 0
 	      printf ("%s/%s: dest-fv=%d\n",
@@ -1244,9 +1238,9 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 		      v->p.mtf.master->fv);
 #endif
 	      if (v->type == NUMERIC)
-		mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
+		mtf->mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
 	      else
-                memset (mtf_case->data[v->p.mtf.master->fv].s, ' ',
+                memset (mtf->mtf_case->data[v->p.mtf.master->fv].s, ' ',
                         v->width);
 	    }
 
@@ -1255,7 +1249,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	}
 
       /* 6. Write the output record. */
-      mtf_sink->class->write (mtf_sink, mtf_case);
+      mtf->sink->class->write (mtf->sink, mtf->mtf_case);
 
       /* 7. Read another record from each input file FILE and TABLE
 	 that we stored values from above.  If we come to the end of
@@ -1270,7 +1264,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	      assert (iter->input != NULL);
 
 	      if (!sfm_read_case (iter->handle, iter->input, iter->dict))
-		mtf_delete_file_in_place (&iter);
+		mtf_delete_file_in_place (mtf, &iter);
 	    }
 
 	  iter = next;
@@ -1280,15 +1274,14 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	break;
     }
 
-  return (mtf_head && mtf_head->type != MTF_TABLE);
+  return (mtf->head && mtf->head->type != MTF_TABLE);
 }
 
 /* Merge the dictionary for file F into the master dictionary
-   mtf_master. */
+   mtf_dict. */
 static int
-mtf_merge_dictionary (struct mtf_file *f)
+mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 {
-  struct dictionary *const m = mtf_master;
   struct dictionary *d = f->dict;
   const char *d_docs, *m_docs;
 

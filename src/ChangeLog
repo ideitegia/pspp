@@ -1,3 +1,26 @@
+Sun Mar 14 23:33:53 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static vars in MATCH FILES.
+	
+	* get.c: (static var mtf_head) Removed.
+	(static var mtf_tail) Removed.
+	(static var mtf_by) Removed.
+	(static var mtf_n_by) Removed.
+	(static var mtf_master) Removed.
+	(static var mtf_seq_num) Removed.
+	(static var mtf_seq_nums) Removed.
+	(static var mtf_sink) Removed.
+	(static var mtf_case) Removed.
+	(struct mtf_proc) New structure.
+	(cmd_match_files) Use struct mtf_proc instead of static vars.
+	(mtf_processing_finish) Ditto.
+	(mtf_free) Ditto.
+	(mtf_delete_file_in_place) Ditto.
+	(mtf_read_nonactive_records) Ditto.
+	(mtf_compare_BY_values) Ditto.
+	(mtf_processing) Ditto.
+	(mtf_merge_dictionary) Ditto.
+
 Sun Mar 14 22:48:12 2004  Ben Pfaff  <blp@gnu.org>
 
 	* command.def: Add CASESTOVARS, VARSTOCASES unimplemented commands.
