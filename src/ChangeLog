@@ -1,3 +1,8 @@
+Fri Mar 26 14:21:23 2004  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c: (dict_compact_values) Compacted values need to
+	start off from 0.
+
 Fri Mar 26 00:54:57 2004  Ben Pfaff  <blp@gnu.org>
 
 	* var-labs.c: (cmd_variable_labels) For compatibility, don't allow

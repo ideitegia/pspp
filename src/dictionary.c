@@ -661,6 +661,7 @@ dict_compact_values (struct dictionary *d)
 {
   size_t i;
 
+  d->next_value_idx = 0;
   for (i = 0; i < d->var_cnt; )
     {
       struct variable *v = d->var[i];
