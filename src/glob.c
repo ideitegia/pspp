@@ -125,7 +125,7 @@ int logging;
 static void get_date (void);
 
 #if HAVE_LIBTERMCAP
-static char *term_buffer;
+static char term_buffer[16384];
 #endif
 
 void
