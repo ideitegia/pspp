@@ -88,7 +88,7 @@ $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare data"
-diff -B $TEMPDIR/pspp.list - << foobar
+diff -b -B $TEMPDIR/pspp.list - << foobar
 ----------------------------------------------------------------------
 First we show that we can input data with BEGIN DATA/END DATA after
 a procedure.

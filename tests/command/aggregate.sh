@@ -9,6 +9,7 @@ here=`pwd`;
 # ensure that top_srcdir is absolute
 cd $top_srcdir; top_srcdir=`pwd`
 
+
 export STAT_CONFIG_PATH=$top_srcdir/config
 
 cleanup()
@@ -71,9 +72,10 @@ activity="run program"
 $here/../src/pspp    -o raw-ascii $TEMPDIR/test.sps  
 if [ $? -ne 0 ] ; then no_result ; fi
 
+cat pspp.list > /tmp/foo
 
 activity="test result"
-diff  -B $TEMPDIR/pspp.list - << EOF
+diff  -b -w -B $TEMPDIR/pspp.list - << EOF
 X        Z      FOO
 - -------- --------
 1    15.00     6.00 

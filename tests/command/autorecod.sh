@@ -77,7 +77,7 @@ $here/../src/pspp    -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="test output"
-diff -B $TEMPDIR/pspp.list - <<EOF
+diff -b -B $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
