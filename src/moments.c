@@ -62,9 +62,9 @@ calc_moments (enum moment max_moment,
             }
           if (max_moment >= MOMENT_KURTOSIS && kurtosis != NULL && w > 3.)
             {
-              double g2 = ((w * (w + 1.) * d4
-                            - 3. * pow2 (d2) * (w - 1.))
-                           / ((w - 1.) * (w - 2.) * (w - 3.) * pow2 (s2)));
+              double den = (w - 2.) * (w - 3.) * pow2 (s2);
+              double g2 = (w * (w + 1) * d4 / (w - 1.) / den
+                           - 3. * pow2 (d2) / den);
               if (finite (g2))
                 *kurtosis = g2; 
             }
