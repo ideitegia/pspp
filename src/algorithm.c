@@ -346,7 +346,7 @@ binary_search (const void *array, size_t count, size_t size,
       int low = 0;
       int high = count - 1;
 
-      while (low < high) 
+      while (low <= high) 
         {
           int middle = (low + high) / 2;
           const unsigned char *element = first + middle * size;
