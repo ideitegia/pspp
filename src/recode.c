@@ -232,7 +232,7 @@ cmd_recode (void)
 	      else
 		{
 		  for (i = mark; i < rcd->nmap; i++)
-		    rcd->map[i].t.c = xstrdup (output.c);
+		    rcd->map[i].t.c = (output.c?xstrdup (output.c):NULL);
 		  free (output.c);
 		}
 	    }
@@ -805,9 +805,9 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
       else
 	{
 	  char *val = cp->t.c;
-	  if (val == NULL)
+	  if (val == NULL) 
 	    st_bare_pad_len_copy (c->data[v->dest->fv].s,
-				  c->data[v->src->fv].c,
+				  c->data[v->src->fv].s,
 				  v->dest->width, v->src->width);
 	  else
 	    memcpy (c->data[v->dest->fv].s, cp->t.c, v->dest->width);
