@@ -31,7 +31,6 @@ AC_CHECK_LIB(gsl,gsl_set_error_handler,,AC_MSG_ERROR([You must install libgsl]))
 AC_CHECK_FUNC(getopt_long,,
 	AC_MSG_ERROR(`This application depends upon getopt_long'))
 
-  
 AC_CHECK_LIB(ncurses, tgetent, LIBS="-lncurses $LIBS" termcap=yes,
   AC_CHECK_LIB(termcap, tgetent, LIBS="-ltermcap $LIBS" termcap=yes,
                termcap=no))
@@ -91,7 +90,7 @@ AC_REPLACE_FUNCS([memmove memset stpcpy strpbrk strerror strtol strtoul \
  		  memchr getline getdelim strcasecmp strncasecmp memmem \
 		  strtok_r])
 AC_CHECK_FUNCS([gethostname strstr strtod __setfpucw isinf isnan finite \
-		getpid feholdexcept mkdtemp])
+		getpid feholdexcept mkdtemp posix_fadvise])
 
 AC_PROG_LN_S
 

@@ -1,3 +1,9 @@
+Mon Mar 29 15:22:48 2004  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* configure.ac: Check for posix_fadvise.
+
 Tue Mar 23 14:21:12 WAST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* Removed dcdflib and replaced with a dependency upon the

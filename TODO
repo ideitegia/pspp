@@ -1,18 +1,19 @@
-Time-stamp: <2004-03-26 01:12:33 blp>
+Time-stamp: <2004-03-29 15:22:28 blp>
 
 What Ben's working on now.
 --------------------------
 
-Procedures need to be able to make multiple passes.
-
-Write a better descriptive stats evaluator based on NR two-pass technique,
-revise all existing code to use it.
+Procedures need to be modified to make multiple passes and use the moments
+class.
 
 Update q2c input format description.
 
 Rewrite output subsystem, break into multiple processes.
 
 CROSSTABS needs to be re-examined.
+
+RANK, which is needed for the Wilcoxon signed-rank statistic, Mann-Whitney U,
+Kruskal-Wallis on NPAR TESTS and for Spearman (in another procedure).
 
 TODO
 ----
