@@ -30,7 +30,9 @@ char *xstrdup (const char *s);
 
 /* alloca() wrapper functions. */
 #if defined (HAVE_ALLOCA) || defined (C_ALLOCA)
+#ifdef HAVE_ALLOCA_H
 #include <alloca.h>
+#endif
 #define local_alloc(X) alloca (X)
 #define local_free(P) ((void) 0)
 #else
