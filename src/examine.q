@@ -372,6 +372,8 @@ output_examine(void)
 }
 
 
+/* Create a hash table of percentiles and their values from the list of
+   percentiles */
 static struct hsh_table *
 list_to_ptile_hash(const subc_list_double *l)
 {
@@ -391,6 +393,7 @@ list_to_ptile_hash(const subc_list_double *l)
       struct percentile *p = xmalloc (sizeof (struct percentile));
       
       p->p = subc_list_double_at(l,i);
+      p->v = SYSMIS;
 
       hsh_insert(h, p);
 
@@ -1527,12 +1530,14 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
     
     assert(p);
 
+
     tab_float (tbl, col + 2, 
 	       row + 4,
 	       TAB_CENTER,
 	       p->v,
 	       8, 2);
   }
+    
 
   tab_text (tbl, col, 
 	    row + 5,

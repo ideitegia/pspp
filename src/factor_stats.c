@@ -44,6 +44,7 @@ metrics_precalc(struct metrics *m)
   m->min = DBL_MAX;
   m->max = -DBL_MAX;
 
+  m->histogram = 0;
 
   m->moments = moments1_create(MOMENT_KURTOSIS);
 
@@ -141,19 +142,19 @@ metrics_postcalc(struct metrics *m)
   m->wvp = (struct weighted_value **) hsh_sort(m->ordered_data);
   m->n_data = hsh_count(m->ordered_data);
 
+  /* Trimmed mean calculation */
+  if ( m->n_data <= 1 ) 
+    {
+      m->trimmed_mean = m->mean;
+      return;
+    }
+
   m->histogram = histogram_create(10, m->min, m->max);
 
   for ( i = 0 ; i < m->n_data ; ++i ) 
     {
       struct weighted_value **wv = (m->wvp) ;
       gsl_histogram_accumulate(m->histogram, wv[i]->v.f, wv[i]->w);
-    }
-
-  /* Trimmed mean calculation */
-  if ( m->n_data <= 1 ) 
-    {
-      m->trimmed_mean = m->mean;
-      return;
     }
 
   tc = m->n * 0.05 ;
@@ -272,7 +273,8 @@ metrics_destroy(struct metrics *m)
 {
   hsh_destroy(m->ordered_data);
   hsh_destroy(m->ptile_hash);
-  gsl_histogram_free(m->histogram);
+  if ( m-> histogram ) 
+    gsl_histogram_free(m->histogram);
 }
 
 void

@@ -455,6 +455,8 @@ outp_done (void)
       free(n);
       n = next;
     }
+  free (outp_title);
+  free (outp_subtitle);
 
   return 1;
 }

@@ -101,12 +101,16 @@ corrupt_msg (struct pfm_reader *r, const char *format, ...)
   return 0;
 }
 
+static unsigned char * read_string (struct pfm_reader *r);
+
 /* Closes a portable file after we're done with it. */
 void
 pfm_close_reader (struct pfm_reader *r)
 {
   if (r == NULL)
     return;
+
+  read_string (NULL);
 
   if (r->fh != NULL)
     fh_close (r->fh, "portable file", "rs");
