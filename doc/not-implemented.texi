@@ -7,69 +7,115 @@ implemented.
 The following transformations and utilities are not yet implemented, but
 they will be supported in a later release.
 
-@itemize @bullet
-@item
-ADD FILES
-@item
-ANOVA
-@item
-DEFINE
-@item
-FILE TYPE
-@item
-GET SAS
-@item
-GET TRANSLATE
-@item
-MCONVERT
-@item
-PLOT
-@item
-PRESERVE
-@item
-PROCEDURE OUTPUT
-@item
-RESTORE
-@item
-SAVE TRANSLATE
-@item
-UPDATE
-@end itemize
+@table @asis
+@item AGGREGATE               
+Save an aggregated file                         
 
+@item ALSCAL                  
+Multidimensional scaling                        
+
+@item ANOVA                   
+Factorial analysis of variance                  
+
+@item AUTORECODE              
+Recodes variables                               
+
+@item BOX-JENKINS             
+Time series analysis                            
+
+@item CLUSTER                 
+Agglomerative hierarchical clustering           
+
+@item CORRELATIONS            
+Pearson correlations                            
+
+@item DISCRIMINANT            
+Discriminant analysis                           
+
+@item FACTOR                  
+Factor  analysis                                
+
+@item HILOGLINEAR             
+Hierarchical loglinear analysis                 
+
+@item LOGLINEAR               
+Loglinear analysis                              
+
+@item MANOVA                  
+General linear analysis                         
+
+@item MEANS                   
+Subpopulation means                             
+
+@item MULT RESPONSE           
+Multiple response tables                        
+
+@item NONPAR CORR             
+Nonparametric correlations                      
+
+@item NPAR TESTS              
+Nonparametric tests                             
+
+@item PARTIAL CORR            
+Partial correlations                            
+
+@item PLOT                    
+Scattergram, regression  & contour plots        
+
+@item PROBIT                  
+Fitting probit & logit models                   
+
+@item PROXIMITIES             
+Distance, dissimilarity & similarity matrices      
+
+@item QUICK CLUSTER           
+Efficient clustering for large numbers of cases    
+
+@item REGRESSION              
+Multiple regression analysis                    
+
+@item RELIABILITY             
+Item analysis                                   
+
+@item SURVIVAL                
+Life tables anlysis                             
+
+@end table
 The following transformations and utilities are not implemented.  There
 are no plans to support them in future releases.  Contributions to
 implement them will still be accepted.
 
 @itemize @bullet
-@item
-EDIT
-@item
-GET DATABASE
-@item
-GET OSIRIS
-@item
-GET SCSS
-@item
-GSET
-@item
-HELP
-@item
-INFO
-@item
-INPUT MATRIX
-@item
-KEYED DATA LIST
-@item
-NUMBERED and UNNUMBERED
-@item
-OPTIONS
-@item
-REVIEW
-@item
-SAVE SCSS
-@item
-SPSS MANAGER
-@item
-STATISTICS
+
+@item EDIT
+
+@item GET DATABASE
+
+@item GET OSIRIS
+
+@item GET SCSS
+
+@item GSET
+
+@item HELP
+
+@item INFO
+
+@item INPUT MATRIX
+
+@item KEYED DATA LIST
+
+@item NUMBERED and UNNUMBERED
+
+@item OPTIONS
+
+@item REVIEW
+
+@item SAVE SCSS
+
+@item SPSS MANAGER
+
+@item STATISTICS
 @end itemize
+
 @setfilename ignored

@@ -4,6 +4,9 @@
 This chapter documents the statistical procedures that PSPP supports so
 far.
 
+@c If you add any new commands, then don't forget to remove the entry in 
+@c not-implemented.texi
+
 @menu
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.

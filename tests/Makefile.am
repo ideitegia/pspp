@@ -65,7 +65,10 @@ noinst_DATA = sort.data
 sort.data: gengarbage$(EXTEXT)
 	./gengarbage | head -1000 > $@
 
-EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data
+EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data \
+	bugs/computebug.stat bugs/computebug.out \
+	bugs/recode-copy-bug-1.stat bugs/recode-copy-bug-2.stat \
+	bugs/recode-copy-bug-1.out bugs/recode-copy-bug-2.out
 
 DISTCLEANFILES = *.save sort.data pspp.* foo* msgs *.actual
 

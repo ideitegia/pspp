@@ -1,3 +1,8 @@
+Sun Oct 31 16:08:47 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* bugs/recode-copy-bug.sh bugs/computebug.sh  Fixed problem which 
+	caused make distcheck to not know where some critical files were.
+
 Mon May 31 21:49:19 2004  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/t-test-with-temp.sh: Use $SUPERVISOR.

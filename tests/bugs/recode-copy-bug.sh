@@ -42,34 +42,37 @@ pass()
 }
 
 mkdir -p $TEMPDIR
+
+activity="copy template 1" 
 cp $top_srcdir/tests/bugs/recode-copy-bug-1.stat $TEMPDIR
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="copy template 2" 
 cp $top_srcdir/tests/bugs/recode-copy-bug-2.stat $TEMPDIR
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="chdir"
 cd $TEMPDIR
-
-
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $top_srcdir/src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-1.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-1.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
 diff -b -B -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
-
 if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="run program"
-$SUPERVISOR $top_srcdir/src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-2.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-2.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
 diff -b -B -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
-
 if [ $? -ne 0 ] ; then fail ; fi
-
 
 pass;

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This program tests ....
+# This program tests for a bug in the `compute' command
 
 TEMPDIR=/tmp/pspp-tst-$$
 
@@ -42,21 +42,23 @@ pass()
 }
 
 mkdir -p $TEMPDIR
+
+activity="copy file"
 cp $top_srcdir/tests/bugs/computebug.stat $TEMPDIR
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="chdir"
 cd $TEMPDIR
-
-
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $top_srcdir/src/pspp -o raw-ascii $TEMPDIR/computebug.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/computebug.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
 diff -b -B -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/computebug.out
-
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;
