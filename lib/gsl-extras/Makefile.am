@@ -14,3 +14,5 @@ endif
 
 libgsl_extras_a_SOURCES = betadistinv.c binomial.c geometric.c	\
 hypergeometric.c negbinom.c poisson.c gsl-extras.h
+
+EXTRA_DIST = README
