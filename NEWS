@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2004-02-29 21:38:25 blp>
+Time-stamp: <2005-03-06 23:05:46 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -7,12 +7,53 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Version 0.3.1 changes since 0.3.0:
 
-  Update build system to Autoconf 2.58, Automake 1.7, gettext 0.12.1.
+  New build dependencies:
 
-  T-TEST is now implemented.
+    * The GNU Scientific Library (libgsl), version 1.6 or later.
+
+    * The GNU multiprecision arithmetic library (libgmp).
+
+    * libplot from GNU plotutils is optional; without it, the new
+      graphing features will not work.
+
+  Newly implemented commands and statistical features:
+
+    * DATE (as a stub, to enhance compatibility).
+
+    * EXAMINE.
+
+    * FREQUENCIES now supports percentiles.
+
+    * ONEWAY.
+
+    * PERMISSIONS.
+
+    * T-TEST.
+
+    * USE (as a stub, to enhance compatibility).
+
+  New --algorithm and --syntax command line options allow
+  SPSS-compatible or enhanced modes to be selected.
+
+  Support for transformation expressions has been rewritten and
+  significantly improved.  Refer to the manual for details.
+
+  Calculation of moments (mean, standard deviation, kurtosis,
+  skewness) has been rewritten and should now be more accurate.
+
+  Numerous bugs have been fixed, too many to mention here.  Many new
+  tests have been added, leading to the discovery and fixing of many
+  of these bugs.
+
+  ASCII driver can now squeeze multiple blank lines into single blank
+  lines.
 
   Much of the code has been rewritten and refactored.  It is now much
   cleaner.
+
+  For developers, the build system now requires Autoconf 2.58 and
+  Automake 1.7.  The included gettext has been updated to version
+  0.12.1.
 
 Version 0.3.0 changes since 0.2.3:
 
