@@ -334,10 +334,10 @@ compare_case_dblptrs (const void *a_, const void *b_, void *criteria_)
 static int
 compare_initial_runs (const void *a_, const void *b_, void *aux UNUSED) 
 {
-  const struct casefile *a = a_;
-  const struct casefile *b = b_;
-  unsigned long a_case_cnt = casefile_get_case_cnt (a);
-  unsigned long b_case_cnt = casefile_get_case_cnt (b);
+  struct casefile *const *a = a_;
+  struct casefile *const *b = b_;
+  unsigned long a_case_cnt = casefile_get_case_cnt (*a);
+  unsigned long b_case_cnt = casefile_get_case_cnt (*b);
   
   return a_case_cnt > b_case_cnt ? -1 : a_case_cnt < b_case_cnt;
 }
@@ -753,7 +753,7 @@ merge (struct external_sort *xsrt)
              compare_initial_runs, NULL);
   dummy_run_cnt = mod (1 - (int) xsrt->run_cnt, max_order - 1);
 
-  assert( max_order > 0 );
+  assert (max_order > 0);
   assert (max_order <= 2
           || (xsrt->run_cnt + dummy_run_cnt) % (max_order - 1) == 1);
   while (xsrt->run_cnt > 1)
@@ -832,7 +832,7 @@ merge_once (struct merge_state *mrg,
 
   for (i = 0; i < run_cnt; i++) 
     {
-      input_readers[i] = casefile_get_reader (input_runs[i]);
+      input_readers[i] = casefile_get_destructive_reader (input_runs[i]);
       if (!casereader_read_xfer (input_readers[i], &input_cases[i]))
         {
           run_cnt--;
@@ -856,17 +856,18 @@ merge_once (struct merge_state *mrg,
           min_idx = i;
 
       /* Write minimum to output file. */
-      casefile_append_xfer (output_casefile, &input_cases[i]);
+      casefile_append_xfer (output_casefile, &input_cases[min_idx]);
 
-      if (!casereader_read_xfer (input_readers[i], &input_cases[i]))
+      if (!casereader_read_xfer (input_readers[min_idx],
+                                 &input_cases[min_idx]))
         {
-          casereader_destroy (input_readers[i]);
-          casefile_destroy (input_runs[i]);
+          casereader_destroy (input_readers[min_idx]);
+          casefile_destroy (input_runs[min_idx]);
 
           run_cnt--;
-          input_runs[i] = input_runs[run_cnt--];
-          input_readers[i] = input_readers[run_cnt--];
-          input_cases[i] = input_cases[run_cnt--];
+          input_runs[min_idx] = input_runs[run_cnt];
+          input_readers[min_idx] = input_readers[run_cnt];
+          input_cases[min_idx] = input_cases[run_cnt];
         } 
     }
 

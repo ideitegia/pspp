@@ -224,6 +224,7 @@ casefile_sleep (const struct casefile *cf_)
 
   casefile_mode_reader (cf);
   casefile_to_disk (cf);
+  flush_buffer (cf);
 
   if (cf->fd != -1) 
     {
@@ -444,13 +445,14 @@ casefile_get_reader (const struct casefile *cf_)
   cf->mode = READ;
 
   reader = xmalloc (sizeof *reader);
-  reader->cf = cf;
   reader->next = cf->readers;
   if (cf->readers != NULL)
     reader->next->prev = reader;
-  reader->prev = NULL;
   cf->readers = reader;
+  reader->prev = NULL;
+  reader->cf = cf;
   reader->case_idx = 0;
+  reader->destructive = 0;
   reader->fd = -1;
   reader->buffer = NULL;
   reader->buffer_pos = 0;
@@ -783,7 +785,7 @@ cmd_debug_casefile (void)
   if (token != '.')
     return lex_end_of_command ();
     
-  for (pattern = 0; pattern < 5; pattern++) 
+  for (pattern = 0; pattern < 6; pattern++) 
     {
       const size_t *size;
 
@@ -811,13 +813,18 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
 
   rng = gsl_rng_alloc (gsl_rng_mt19937);
   cf = casefile_create (value_cnt);
+  if (pattern == 5)
+    casefile_to_disk (cf);
   for (i = 0; i < case_cnt; i++)
     write_random_case (cf, i);
+  if (pattern == 5)
+    casefile_sleep (cf);
   r1 = casefile_get_reader (cf);
   r2 = casefile_get_reader (cf);
   switch (pattern) 
     {
     case 0:
+    case 5:
       for (i = 0; i < case_cnt; i++) 
         {
           read_and_verify_random_case (cf, r1, i);

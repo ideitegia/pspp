@@ -1,3 +1,19 @@
+Sat Jan  8 23:58:34 2005  Ben Pfaff  <blp@gnu.org>
+
+	* sort.c: (compare_initial_runs) Needed additional level of
+	dereferencing.
+	(merge_once) Fix plenty of stupid mistakes.
+
+Sat Jan  8 23:55:27 2005  Ben Pfaff  <blp@gnu.org>
+
+	* casefile.c: (casefile_sleep) Need to flush_buffer() after
+	calling casefile_to_disk() or we will lose the last block in the
+	file if the casefile started out as disk-based.
+	(casefile_get_reader) Initialize reader->destructive to 0.
+	(cmd_debug_casefile) Add new test pattern.
+	(test_casefile) Define new test pattern to make sure
+	casefile_sleep() works properly.
+
 Fri Jan  7 08:00:05 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* Makefile.am chart.[ch]  histogram.[ch] piechart.c (Modified);
