@@ -24,48 +24,6 @@
 #include "format.h"
 #include "val.h"
 
-/* Frequency tables. */
-
-/* Frequency table entry. */
-struct freq
-  {
-    union value v;		/* The value. */
-    double c;			/* The number of occurrences of the value. */
-  };
-
-/* Types of frequency tables. */
-enum
-  {
-    FRQM_GENERAL,
-    FRQM_INTEGER
-  };
-
-/* Entire frequency table. */
-struct freq_tab
-  {
-    int mode;			/* FRQM_GENERAL or FRQM_INTEGER. */
-
-    /* General mode. */
-    struct hsh_table *data;	/* Undifferentiated data. */
-
-    /* Integer mode. */
-    double *vector;		/* Frequencies proper. */
-    int min, max;		/* The boundaries of the table. */
-    double out_of_range;	/* Sum of weights of out-of-range values. */
-    double sysmis;		/* Sum of weights of SYSMIS values. */
-
-    /* All modes. */
-    struct freq *valid;         /* Valid freqs. */
-    int n_valid;		/* Number of total freqs. */
-
-    struct freq *missing;	/* Missing freqs. */
-    int n_missing;		/* Number of missing freqs. */
-
-    /* Statistics. */
-    double total_cases;		/* Sum of weights of all cases. */
-    double valid_cases;		/* Sum of weights of valid cases. */
-  };
-
 /* Script variables. */
 
 /* Variable type. */

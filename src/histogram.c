@@ -17,22 +17,28 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <plot.h>
-#include <stdarg.h>
 #include <math.h>
+#include <gsl/gsl_histogram.h>
+#include <assert.h>
+
 #include "hash.h"
 
 #include "var.h"
 #include "chart.h"
 
 /* Number of bins in which to divide data */
-#define BINS 15
+#define BINS 7
 
 /* The approximate no of ticks on the y axis */
 #define YTICKS 10
 
+#ifndef M_PI 
 #define M_PI ( 22.0 / 7.0 )
+#endif
 
 
 static double gaussian(double x, double mu, double sigma ) ;
@@ -48,8 +54,8 @@ gaussian(double x, double mu, double sigma )
 
 
 /* Write the legend of the chart */
-static void
-write_legend(struct chart *ch, struct normal_curve *norm)
+void
+histogram_write_legend(struct chart *ch, const struct normal_curve *norm)
 {
   char buf[100];
   pl_savestate_r(ch->lp);
@@ -69,157 +75,110 @@ write_legend(struct chart *ch, struct normal_curve *norm)
   pl_restorestate_r(ch->lp);    
 }
 
+static void hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar);
 
 
-
-/* Draw a histogram.
-   If show_normal is non zero then superimpose a normal curve
-*/
-void
-draw_histogram(struct chart *ch, 
-	       const struct variable *var,
-               const struct freq_tab *frq_tab,
-	       const char *title, 
-	       struct normal_curve *norm,
-	       int show_normal)
+static void
+hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
 {
+  double upper;
+  double lower;
+  double height;
 
-  double d;
-  int count;
-
-  double x_min = DBL_MAX;
-  double x_max = -DBL_MAX;
-  double y_min = DBL_MAX;
-  double y_max = -DBL_MAX;
-  
-  double y_tick ;
+  const size_t bins = gsl_histogram_bins(hist);
+  const double x_pos = (ch->data_right - ch->data_left) * bar / (double) bins ;
+  const double width = (ch->data_right - ch->data_left) / (double) bins ;
 
 
-  double ordinate_values[BINS];
+  assert ( 0 == gsl_histogram_get_range(hist, bar, &lower, &upper));
 
-  struct hsh_iterator hi;
-  struct hsh_table *fh = frq_tab->data;
-  struct freq *frq;
+  assert( upper >= lower);
 
-  double interval_size = fabs(ch->data_right - ch->data_left) / ( BINS );
-
-  /* Find out the extremes of the x value 
-     FIXME: These don't need to be calculated here, since the 
-     calling routine should know them */
-
-  for ( frq = hsh_first(fh,&hi); frq != 0; frq = hsh_next(fh,&hi) ) 
-    {
-      if ( frq->v.f < x_min ) x_min = frq->v.f ;
-      if ( frq->v.f > x_max ) x_max = frq->v.f ;
-    }
-
-  double x_interval = fabs(x_max - x_min) / ( BINS - 1);
-
-  
-  double abscissa_scale = 
-    fabs( (ch->data_right -  ch->data_left) / (x_max - x_min) ) ;
-
-
-  /* Find out the bin values */
-  for ( count = 0, d = x_min; d <= x_max ; d += x_interval, ++count )
-    {
-
-      double y = 0;
-
-      for ( frq = hsh_first(fh,&hi); frq != 0; frq = hsh_next(fh,&hi) ) 
-	{
-	  if ( frq->v.f >= d && frq->v.f < d + x_interval )
-	    y += frq->c;
-	}
-
-      ordinate_values[count] = y ;
-
-      if ( y > y_max ) y_max = y ;
-      if ( y < y_min ) y_min = y;
-    }
-
-  y_tick = chart_rounded_tick( ( y_max - y_min ) / (double) (YTICKS - 1));
-
-
-  y_min = floor( y_min / y_tick ) * y_tick ;
-  y_max = ceil( y_max / y_tick ) * y_tick ;
-
-  double ordinate_scale =
-    fabs(ch->data_top -  ch->data_bottom) / fabs(y_max - y_min) ;
-  
-
-  /* Move to data bottom-left */
-  pl_move_r(ch->lp, ch->data_left, ch->data_bottom);
+  height = gsl_histogram_get(hist, bar) * 
+    (ch->data_top - ch->data_bottom) / gsl_histogram_max_val(hist);
 
   pl_savestate_r(ch->lp);
+  pl_move_r(ch->lp,ch->data_left, ch->data_bottom);
   pl_fillcolorname_r(ch->lp, ch->fill_colour); 
   pl_filltype_r(ch->lp,1);
 
-  /* Draw the histogram */
-  for ( count = 0, d = x_min; d <= x_max ; d += x_interval, ++count )
-    {
-      const double x = count * interval_size ;
-      pl_savestate_r(ch->lp);
 
-      draw_tick (ch, TICK_ABSCISSA, x + (interval_size / 2.0 ), "%.1f",d);
-
-      pl_fboxrel_r(ch->lp, x, 0, x + interval_size, 
-		   ordinate_values[count] * ordinate_scale );
-
-      pl_restorestate_r(ch->lp);
-
-    }
-  pl_restorestate_r(ch->lp);
-
-  /* Put the y axis on */
-  for ( d = y_min; d <= y_max ; d += y_tick )
-    {
-      draw_tick (ch, TICK_ORDINATE, (d - y_min ) * ordinate_scale, "%g", d);
-    }
-
-  /* Write the abscissa label */
-  pl_move_r(ch->lp,ch->data_left, ch->abscissa_top);
-  pl_alabel_r(ch->lp,0,'t',var->label ? var->label : var->name);
-
- 
-  /* Write the ordinate label */
-  pl_savestate_r(ch->lp);
-  pl_move_r(ch->lp,ch->data_bottom, ch->ordinate_right);
-  pl_textangle_r(ch->lp,90);
-  pl_alabel_r(ch->lp,0,0,"Frequency");
+  pl_fboxrel_r(ch->lp,
+	       x_pos, 0,
+	       x_pos + width, height);
 
   pl_restorestate_r(ch->lp);
 
-
-  chart_write_title(ch, title);
-
-
-  /* Write the legend */
-  write_legend(ch,norm);
-
-
-  if ( show_normal  )
   {
-    /* Draw the normal curve */
-    double d;
-
-    pl_move_r(ch->lp, ch->data_left, ch->data_bottom);    
-    for( d = ch->data_left; 
-	 d <= ch->data_right ; 
-	 d += (ch->data_right - ch->data_left) / 100.0)
-      {
-	const double x = (d  - ch->data_left  - interval_size / 2.0  ) / 
-	  abscissa_scale  + x_min ; 
-	
-	pl_fcont_r(ch->lp,  d,
-		   ch->data_bottom +
-		   norm->N * gaussian(x, norm->mean, norm->stddev) 
-		   * ordinate_scale);
-
-      }
-    pl_endpath_r(ch->lp);
+  char buf[5];
+  snprintf(buf,5,"%g",(upper + lower) / 2.0);
+  draw_tick(ch, TICK_ABSCISSA,
+	    x_pos + width / 2.0, buf);
   }
+
 
 }
 
+
+
+
+void
+histogram_plot(const gsl_histogram *hist,
+	       const char *factorname,
+	       const struct normal_curve *norm, short show_normal)
+{
+  int i;
+  int bins;
+  
+  struct chart ch;
+
+  bins = gsl_histogram_bins(hist);
+
+  chart_initialise(&ch);
+  chart_write_title(&ch, _("HISTOGRAM"));
+
+  chart_write_ylabel(&ch, _("Frequency"));
+  chart_write_xlabel(&ch, factorname);
+
+  chart_write_yscale(&ch, 0, gsl_histogram_max_val(hist), 5);
+
+  for ( i = 0 ; i < bins ; ++i ) 
+      hist_draw_bar(&ch, hist, i);
+
+  histogram_write_legend(&ch, norm);
+
+  if ( show_normal  )
+  {
+    /* Draw the normal curve */    
+
+    double d ;
+    double x_min, x_max, not_used ;
+    double abscissa_scale ;
+    double ordinate_scale ;
+
+
+    gsl_histogram_get_range(hist, 0, &x_min, &not_used);
+    gsl_histogram_get_range(hist, bins - 1, &x_max, &not_used);
+    
+    abscissa_scale = (ch.data_right - ch.data_left) / (x_max - x_min);
+    ordinate_scale = (ch.data_top - ch.data_bottom) / 
+      gsl_histogram_max_val(hist) ;
+
+    pl_move_r(ch.lp, ch.data_left, ch.data_bottom);    
+    for( d = ch.data_left; 
+	 d <= ch.data_right ; 
+	 d += (ch.data_right - ch.data_left) / 100.0)
+      {    
+	const double x = (d - ch.data_left) / abscissa_scale + x_min ; 
+	
+	pl_fcont_r(ch.lp,  d, 
+		   ch.data_bottom  + norm->N * ordinate_scale *
+		   gaussian(x, norm->mean, norm->stddev) 
+		   );
+      }
+    pl_endpath_r(ch.lp);
+
+  }
+  chart_finalise(&ch);
+}
 

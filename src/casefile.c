@@ -803,7 +803,6 @@ cmd_debug_casefile (void)
 static void
 test_casefile (int pattern, size_t value_cnt, size_t case_cnt) 
 {
-  int zero = 0;
   struct casefile *cf;
   struct casereader *r1, *r2;
   struct ccase c;

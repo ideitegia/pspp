@@ -34,23 +34,25 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 
 void
-metrics_precalc(struct metrics *fs)
+metrics_precalc(struct metrics *m)
 {
-  assert (fs) ;
+  assert (m) ;
 
-  fs->n_missing = 0;
+  m->n_missing = 0;
 
-  fs->min = DBL_MAX;
-  fs->max = -DBL_MAX;
+  m->min = DBL_MAX;
+  m->max = -DBL_MAX;
 
 
-  fs->moments = moments1_create(MOMENT_KURTOSIS);
+  m->moments = moments1_create(MOMENT_KURTOSIS);
 
-  fs->ordered_data = hsh_create(20,
+  m->ordered_data = hsh_create(20,
 				(hsh_compare_func *) compare_values,
 				(hsh_hash_func *) hash_value,
 				(hsh_free_func *) weighted_value_free,
 				(void *) 0);
+
+  m->histogram = gsl_histogram_alloc(10);
 
 }
 
@@ -189,6 +191,15 @@ metrics_postcalc(struct metrics *m)
   m->trimmed_mean += (m->wvp[k1 + 1]->cc - tc) * m->wvp[k1 + 1]->v.f ;
   m->trimmed_mean /= 0.9 * m->n ;
 
+
+  gsl_histogram_set_ranges_uniform(m->histogram, m->min, m->max);
+
+  for ( i = 0 ; i < m->n_data ; ++i ) 
+    {
+      struct weighted_value **wv = (m->wvp) ;
+      gsl_histogram_accumulate(m->histogram, wv[i]->v.f, wv[i]->w);
+    }
+
 }
 
 
@@ -246,6 +257,7 @@ void
 factor_statistics_free(struct factor_statistics *f)
 {
   hsh_destroy(f->m->ordered_data);
+  gsl_histogram_free(f->m->histogram);
   free(f->m) ; 
   free(f);
 }

@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 
 /* Draw a single slice of the pie */
-void
+static void
 draw_segment(struct chart *ch, 
 	     double centre_x, double centre_y, 
 	     double radius,
@@ -47,47 +47,44 @@ draw_segment(struct chart *ch,
 	     const char *colour) ;
 
 
-/* Draw a pie chart */
+
+/* Draw a piechart */
 void
-draw_piechart(struct chart *ch, const struct variable *var,
-              const struct freq_tab *frq_tab)
+piechart_plot(const char *title, const struct slice *slices, int n_slices)
 {
   int i;
+  double total_magnetude=0;
 
-  const int n_data = frq_tab->n_valid;
-  const double left_label = ch->data_left + 
-    (ch->data_right - ch->data_left)/10.0;
+  struct chart ch;
 
-  const double right_label = ch->data_right - 
-    (ch->data_right - ch->data_left)/10.0;
+  chart_initialise(&ch);
 
-  const double centre_x = (ch->data_right + ch->data_left ) / 2.0 ;
-  const double centre_y = (ch->data_top + ch->data_bottom ) / 2.0 ;
+  const double left_label = ch.data_left + 
+    (ch.data_right - ch.data_left)/10.0;
+
+  const double right_label = ch.data_right - 
+    (ch.data_right - ch.data_left)/10.0;
+
+  const double centre_x = (ch.data_right + ch.data_left ) / 2.0 ;
+  const double centre_y = (ch.data_top + ch.data_bottom ) / 2.0 ;
 
   const double radius = min( 
-			    5.0 / 12.0 * (ch->data_top - ch->data_bottom),
-			    1.0 / 4.0 * (ch->data_right - ch->data_left)
+			    5.0 / 12.0 * (ch.data_top - ch.data_bottom),
+			    1.0 / 4.0 * (ch.data_right - ch.data_left)
 			    );
 
 
-  chart_write_title(ch, var->label ? var->label: var->name);
+  chart_write_title(&ch, title);
 
-    
-  for (i = 0 ; i < n_data ; ++i ) 
+  for (i = 0 ; i < n_slices ; ++i ) 
+    total_magnetude += slices[i].magnetude;
+
+  for (i = 0 ; i < n_slices ; ++i ) 
     {
       static double angle=0.0;
-      const struct freq frq = frq_tab->valid[i];
 
       const double segment_angle = 
-	frq.c / frq_tab->valid_cases * 2 * M_PI ;
-
-      char *label = val_labs_find (var->val_labs, frq.v );
-      if ( !label ) 
-	{
-	  static char l[20];
-	  snprintf(l,20,"%g",frq.v.f);
-	  label = l;
-	}
+	slices[i].magnetude / total_magnetude * 2 * M_PI ;
 
       const double label_x = centre_x - 
 	radius * sin(angle + segment_angle/2.0);
@@ -96,7 +93,7 @@ draw_piechart(struct chart *ch, const struct variable *var,
 	radius * cos(angle + segment_angle/2.0);
 
       /* Fill the segment */
-      draw_segment(ch,
+      draw_segment(&ch,
 		   centre_x, centre_y, radius, 
 		   angle, segment_angle,
 		   data_colour[i]);
@@ -104,19 +101,19 @@ draw_piechart(struct chart *ch, const struct variable *var,
       /* Now add the labels */
       if ( label_x < centre_x ) 
 	{
-	  pl_line_r(ch->lp, label_x, label_y,
+	  pl_line_r(ch.lp, label_x, label_y,
 		    left_label, label_y );
-	  pl_moverel_r(ch->lp,0,5);
-	  pl_alabel_r(ch->lp,0,0,label);
+	  pl_moverel_r(ch.lp,0,5);
+	  pl_alabel_r(ch.lp,0,0,slices[i].label);
 	}
       else
 	{
-	  pl_line_r(ch->lp, 
+	  pl_line_r(ch.lp, 
 		    label_x, label_y,
 		    right_label, label_y
 		    );
-	  pl_moverel_r(ch->lp,0,5);
-	  pl_alabel_r(ch->lp,'r',0,label);
+	  pl_moverel_r(ch.lp,0,5);
+	  pl_alabel_r(ch.lp,'r',0,slices[i].label);
 	}
 
       angle += segment_angle;
@@ -124,14 +121,13 @@ draw_piechart(struct chart *ch, const struct variable *var,
     }
 
   /* Draw an outline to the pie */
-  pl_filltype_r(ch->lp,0);
-  pl_fcircle_r (ch->lp, centre_x, centre_y, radius);
+  pl_filltype_r(ch.lp,0);
+  pl_fcircle_r (ch.lp, centre_x, centre_y, radius);
 
+  chart_finalise(&ch);
 }
 
-
-
-void
+static void
 fill_segment(struct chart *ch, 
 	     double x0, double y0, 
 	     double radius,
@@ -139,7 +135,7 @@ fill_segment(struct chart *ch,
 
 
 /* Fill a segment with the current fill colour */
-void
+static void
 fill_segment(struct chart *ch, 
 	     double x0, double y0, 
 	     double radius,
@@ -185,7 +181,7 @@ fill_segment(struct chart *ch,
 
 
 /* Draw a single slice of the pie */
-void
+static void
 draw_segment(struct chart *ch, 
 	     double x0, double y0, 
 	     double radius,

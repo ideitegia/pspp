@@ -1,3 +1,22 @@
+Thu Dec  2 13:37:43 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* chart.h Updated to reflect many API changes.
+
+	* cartesian.c chart.c Moved the definitions of chart_write_{xy}scale from 
+	cartesian.c and into chart.c
+
+	* factorstats.[ch] Added the histogram calculations
+
+	* casefile.c Removed an unused variable.
+
+	* frequencies.q examine.q histogram.c  Reworked the API for 
+	histograms.
+
+	* piechart.c  Revised the API for piecharts.
+
+	* var.h  Moved the definitions of freq_tab and freq out of var.h
+	and into frequencies.q where they belong.
+	
 Tue Nov 30 21:10:20 2004  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c: (flip_file) Check for off_t separately from fseeko(),

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-11-25 19:01+0800\n"
+"POT-Creation-Date: 2004-12-02 13:38+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -957,7 +957,7 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:99 src/examine.q:1281 src/frequencies.q:110 src/oneway.q:396
+#: src/descript.c:99 src/examine.q:1268 src/frequencies.q:112 src/oneway.q:396
 #: src/t-test.q:683 src/t-test.q:706 src/t-test.q:829 src/t-test.q:1166
 msgid "Mean"
 msgstr ""
@@ -966,15 +966,15 @@ msgstr ""
 msgid "S E Mean"
 msgstr ""
 
-#: src/descript.c:101 src/frequencies.q:114
+#: src/descript.c:101 src/frequencies.q:116
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:102 src/examine.q:1344 src/frequencies.q:115
+#: src/descript.c:102 src/examine.q:1331 src/frequencies.q:117
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1429 src/frequencies.q:116
+#: src/descript.c:103 src/examine.q:1416 src/frequencies.q:118
 msgid "Kurtosis"
 msgstr ""
 
@@ -982,7 +982,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:105 src/examine.q:1409 src/frequencies.q:118
+#: src/descript.c:105 src/examine.q:1396 src/frequencies.q:120
 msgid "Skewness"
 msgstr ""
 
@@ -990,21 +990,21 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:107 src/examine.q:1392 src/frequencies.q:120
+#: src/descript.c:107 src/examine.q:1379 src/frequencies.q:122
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:108 src/examine.q:1369 src/frequencies.q:121
+#: src/descript.c:108 src/examine.q:1356 src/frequencies.q:123
 #: src/oneway.q:408
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:109 src/examine.q:1380 src/frequencies.q:122
+#: src/descript.c:109 src/examine.q:1367 src/frequencies.q:124
 #: src/oneway.q:409
 msgid "Maximum"
 msgstr ""
 
-#: src/descript.c:110 src/frequencies.q:123
+#: src/descript.c:110 src/frequencies.q:125
 msgid "Sum"
 msgstr ""
 
@@ -1574,64 +1574,64 @@ msgstr ""
 msgid "Unknown record type %g."
 msgstr ""
 
-#: src/flip.c:78
+#: src/flip.c:81
 msgid ""
 "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/flip.c:218
+#: src/flip.c:221
 #, c-format
 msgid "Could not create acceptable variant for variable %s."
 msgstr ""
 
-#: src/flip.c:234
+#: src/flip.c:237
 msgid "Cannot create more than 99999 variable names."
 msgstr ""
 
-#: src/flip.c:278
+#: src/flip.c:281
 msgid "Could not create temporary file for FLIP."
 msgstr ""
 
-#: src/flip.c:285 src/flip.c:353
+#: src/flip.c:288 src/flip.c:356
 #, c-format
 msgid "Error writing FLIP file: %s."
 msgstr ""
 
-#: src/flip.c:395
+#: src/flip.c:398
 #, c-format
 msgid "Error rewinding FLIP file: %s."
 msgstr ""
 
-#: src/flip.c:399
+#: src/flip.c:402
 msgid "Error creating FLIP source file."
 msgstr ""
 
-#: src/flip.c:408
+#: src/flip.c:411
 #, c-format
 msgid "Error reading FLIP file: %s."
 msgstr ""
 
-#: src/flip.c:425
+#: src/flip.c:432
 #, c-format
 msgid "Error seeking FLIP source file: %s."
 msgstr ""
 
-#: src/flip.c:430
+#: src/flip.c:437
 #, c-format
 msgid "Error writing FLIP source file: %s."
 msgstr ""
 
-#: src/flip.c:441
+#: src/flip.c:448
 #, c-format
 msgid "Error rewind FLIP source file: %s."
 msgstr ""
 
-#: src/flip.c:493
+#: src/flip.c:500
 #, c-format
 msgid "Error reading FLIP temporary file: %s."
 msgstr ""
 
-#: src/flip.c:496
+#: src/flip.c:503
 msgid "Unexpected end of file reading FLIP temporary file."
 msgstr ""
 
@@ -1988,6 +1988,14 @@ msgstr ""
 #: src/hash.c:517
 #, c-format
 msgid "hash table:"
+msgstr ""
+
+#: src/histogram.c:138
+msgid "HISTOGRAM"
+msgstr ""
+
+#: src/histogram.c:140 src/frequencies.q:1135
+msgid "Frequency"
 msgstr ""
 
 #: src/html.c:66
@@ -3695,7 +3703,7 @@ msgstr ""
 
 #: src/sysfile-info.c:531 src/vfm.c:875 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
-#: src/examine.q:940 src/frequencies.q:1085 src/frequencies.q:1206
+#: src/examine.q:927 src/frequencies.q:1134 src/frequencies.q:1255
 msgid "Value"
 msgstr ""
 
@@ -3916,33 +3924,33 @@ msgstr ""
 msgid "Summary."
 msgstr ""
 
-#: src/crosstabs.q:802 src/examine.q:724
+#: src/crosstabs.q:802 src/examine.q:711
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:803 src/examine.q:658 src/frequencies.q:1083
-#: src/frequencies.q:1456
+#: src/crosstabs.q:803 src/examine.q:645 src/frequencies.q:1132
+#: src/frequencies.q:1505
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:804 src/examine.q:659 src/frequencies.q:1151
-#: src/frequencies.q:1457
+#: src/crosstabs.q:804 src/examine.q:646 src/frequencies.q:1200
+#: src/frequencies.q:1506
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:805 src/crosstabs.q:1008 src/crosstabs.q:1722
-#: src/examine.q:660 src/frequencies.q:1160 src/oneway.q:307 src/oneway.q:486
+#: src/examine.q:647 src/frequencies.q:1209 src/oneway.q:307 src/oneway.q:486
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:815 src/examine.q:736 src/frequencies.q:1455
+#: src/crosstabs.q:815 src/examine.q:723 src/frequencies.q:1504
 #: src/oneway.q:395 src/t-test.q:682 src/t-test.q:705 src/t-test.q:830
 #: src/t-test.q:1365
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:816 src/examine.q:739 src/frequencies.q:1087
-#: src/frequencies.q:1088 src/frequencies.q:1089
+#: src/crosstabs.q:816 src/examine.q:726 src/frequencies.q:1136
+#: src/frequencies.q:1137 src/frequencies.q:1138
 msgid "Percent"
 msgstr ""
 
@@ -3979,7 +3987,7 @@ msgid "adj. resid."
 msgstr ""
 
 #: src/crosstabs.q:1098 src/crosstabs.q:1125 src/crosstabs.q:1145
-#: src/crosstabs.q:1166 src/examine.q:1174
+#: src/crosstabs.q:1166 src/examine.q:1161
 msgid "Statistic"
 msgstr ""
 
@@ -4162,88 +4170,88 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/examine.q:313 src/examine.q:325
+#: src/examine.q:300 src/examine.q:312
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/examine.q:718
+#: src/examine.q:705
 msgid "Case Processing Summary"
 msgstr ""
 
-#: src/examine.q:924
+#: src/examine.q:911
 msgid "Extreme Values"
 msgstr ""
 
-#: src/examine.q:941
+#: src/examine.q:928
 msgid "Case Number"
 msgstr ""
 
-#: src/examine.q:1029
+#: src/examine.q:1016
 msgid "Highest"
 msgstr ""
 
-#: src/examine.q:1034
+#: src/examine.q:1021
 msgid "Lowest"
 msgstr ""
 
-#: src/examine.q:1175 src/oneway.q:398 src/oneway.q:705
+#: src/examine.q:1162 src/oneway.q:398 src/oneway.q:705
 msgid "Std. Error"
 msgstr ""
 
-#: src/examine.q:1177 src/oneway.q:412
+#: src/examine.q:1164 src/oneway.q:412
 msgid "Descriptives"
 msgstr ""
 
-#: src/examine.q:1299 src/oneway.q:403
+#: src/examine.q:1286 src/oneway.q:403
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/examine.q:1305 src/oneway.q:405
+#: src/examine.q:1292 src/oneway.q:405
 msgid "Lower Bound"
 msgstr ""
 
-#: src/examine.q:1316 src/oneway.q:406
+#: src/examine.q:1303 src/oneway.q:406
 msgid "Upper Bound"
 msgstr ""
 
-#: src/examine.q:1328
+#: src/examine.q:1315
 msgid "5% Trimmed Mean"
 msgstr ""
 
-#: src/examine.q:1339 src/frequencies.q:112
+#: src/examine.q:1326 src/frequencies.q:114
 msgid "Median"
 msgstr ""
 
-#: src/examine.q:1356 src/oneway.q:397 src/t-test.q:684 src/t-test.q:707
+#: src/examine.q:1343 src/oneway.q:397 src/t-test.q:684 src/t-test.q:707
 #: src/t-test.q:831 src/t-test.q:1167
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/examine.q:1404
+#: src/examine.q:1391
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/examine.q:1478
+#: src/examine.q:1459
 #, c-format
 msgid "Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1479 src/examine.q:1485
+#: src/examine.q:1460 src/examine.q:1466
 msgid "Observed Value"
 msgstr ""
 
-#: src/examine.q:1480
+#: src/examine.q:1461
 msgid "Expected Normal"
 msgstr ""
 
-#: src/examine.q:1483
+#: src/examine.q:1464
 #, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1486
+#: src/examine.q:1467
 msgid "Dev from Normal"
 msgstr ""
 
@@ -4290,92 +4298,88 @@ msgstr ""
 msgid "expecting a file name or handle name"
 msgstr ""
 
-#: src/frequencies.q:111
+#: src/frequencies.q:113
 msgid "S.E. Mean"
 msgstr ""
 
-#: src/frequencies.q:113
+#: src/frequencies.q:115
 msgid "Mode"
 msgstr ""
 
-#: src/frequencies.q:117
+#: src/frequencies.q:119
 msgid "S.E. Kurt"
 msgstr ""
 
-#: src/frequencies.q:119
+#: src/frequencies.q:121
 msgid "S.E. Skew"
 msgstr ""
 
-#: src/frequencies.q:342
+#: src/frequencies.q:394
 msgid ""
 "At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be "
 "assumed.  Argument values will be given precedence increasing along the "
 "order given."
 msgstr ""
 
-#: src/frequencies.q:425
+#: src/frequencies.q:477
 #, c-format
 msgid ""
 "MAX must be greater than or equal to MIN, if both are specified.  However, "
 "MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
 msgstr ""
 
-#: src/frequencies.q:749
+#: src/frequencies.q:798
 msgid ""
 "Upper limit of integer mode value range must be greater than lower limit."
 msgstr ""
 
-#: src/frequencies.q:762
+#: src/frequencies.q:811
 #, c-format
 msgid "Variable %s specified multiple times on VARIABLES subcommand."
 msgstr ""
 
-#: src/frequencies.q:768
+#: src/frequencies.q:817
 #, c-format
 msgid "Integer mode specified, but %s is not a numeric variable."
 msgstr ""
 
-#: src/frequencies.q:834
+#: src/frequencies.q:883
 msgid "`)' expected after GROUPED interval list."
 msgstr ""
 
-#: src/frequencies.q:846
+#: src/frequencies.q:895
 #, c-format
 msgid "Variables %s specified on GROUPED but not on VARIABLES."
 msgstr ""
 
-#: src/frequencies.q:853
+#: src/frequencies.q:902
 #, c-format
 msgid "Variables %s specified multiple times on GROUPED subcommand."
 msgstr ""
 
-#: src/frequencies.q:1084 src/frequencies.q:1176 src/frequencies.q:1177
-#: src/frequencies.q:1209
+#: src/frequencies.q:1133 src/frequencies.q:1225 src/frequencies.q:1226
+#: src/frequencies.q:1258
 msgid "Cum"
 msgstr ""
 
-#: src/frequencies.q:1086
-msgid "Frequency"
-msgstr ""
-
-#: src/frequencies.q:1106
+#: src/frequencies.q:1155
 msgid "Value Label"
 msgstr ""
 
-#: src/frequencies.q:1207
+#: src/frequencies.q:1256
 msgid "Freq"
 msgstr ""
 
-#: src/frequencies.q:1208 src/frequencies.q:1210
+#: src/frequencies.q:1257 src/frequencies.q:1259
 msgid "Pct"
 msgstr ""
 
-#: src/frequencies.q:1429
+#: src/frequencies.q:1478
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
 msgstr ""
 
-#: src/frequencies.q:1467
+#: src/frequencies.q:1516
 msgid "Percentiles"
 msgstr ""
 

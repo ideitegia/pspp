@@ -94,46 +94,6 @@ static struct factor *factors=0;
 
 static struct metrics *totals=0;
 
-void
-print_factors(void)
-{
-  struct factor *f = factors;
-
-  while (f) 
-    {
-      struct  factor_statistics **fs = f->fs;
-
-      printf("Factor: %s BY %s\n", 
-	     var_to_string(f->indep_var[0]),
-	     var_to_string(f->indep_var[1]) );
-
-
-      printf("Contains %d entries\n", hsh_count(f->fstats));
-
-      
-      while (*fs) 
-	{
-	  printf("Factor %g; %g\n", (*fs)->id[0].f, (*fs)->id[1].f);
-	  
-	  /* 
-	     printf("Factor %s; %s\n",
-	     value_to_string(&(*fs)->id[0], f->indep_var[0]),
-	     value_to_string(&(*fs)->id[1], f->indep_var[1]));
-	  */
-
-		 
-	  printf("Mean is %g\n",(*fs)->m[0].mean);
-
-	  fs++ ;
-	}
-
-      f = f->next;
-    }
-
-  
-}
-
-
 /* Parse the clause specifying the factors */
 static int examine_parse_independent_vars(struct cmd_examine *cmd);
 
@@ -154,7 +114,6 @@ static void show_descriptives(struct variable **dependent_var,
 
 
 void np_plot(const struct metrics *m, const char *factorname);
-
 
 
 
@@ -224,13 +183,29 @@ output_examine(void)
 
       if ( cmd.sbc_plot) 
 	{
+	  int v;
 	  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
 	    {
-	      int v;
-
 	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
-		  np_plot(&totals[v], var_to_string(dependent_vars[v]));
+		np_plot(&totals[v], var_to_string(dependent_vars[v]));
 	    }
+
+	  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
+	    {
+	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
+		{
+		  struct normal_curve normal;
+
+		  normal.N      = totals[v].n;
+		  normal.mean   = totals[v].mean;
+		  normal.stddev = totals[v].stddev;
+		  
+		  histogram_plot(totals[v].histogram, 
+				 var_to_string(dependent_vars[v]),
+				 &normal, 0);
+		}
+	    }
+
 	}
 
 
@@ -254,47 +229,59 @@ output_examine(void)
 
       if ( cmd.sbc_plot) 
 	{
-	  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
+	  int v;
+
+	  struct factor_statistics **fs = fctr->fs ;
+
+	  for ( v = 0 ; v < n_dependent_vars; ++v )
 	    {
-	      int v;
-	      for ( v = 0 ; v < n_dependent_vars; ++ v)
+
+	      for ( fs = fctr->fs ; *fs ; ++fs ) 
 		{
-		  
-		  struct factor_statistics **fs = fctr->fs ;
-		  for ( fs = fctr->fs ; *fs ; ++fs ) 
+		  char buf1[100];
+		  char buf2[100];
+		  sprintf(buf1, "%s (",
+			  var_to_string(dependent_vars[v]));
+		      
+		  snprintf(buf2, 100, "%s = %s",
+			   var_to_string(fctr->indep_var[0]),
+			   value_to_string(&(*fs)->id[0],fctr->indep_var[0]));
+		      
+		  strcat(buf1, buf2);
+		      
+		  if ( fctr->indep_var[1] ) 
 		    {
-		      char buf1[100];
-		      char buf2[100];
-		      sprintf(buf1, "%s (",
-			      var_to_string(dependent_vars[v]));
-		      
-		      sprintf(buf2, "%s = %s",
-			     var_to_string(fctr->indep_var[0]),
-			     value_to_string(&(*fs)->id[0],fctr->indep_var[0]));
-		      
+		      sprintf(buf2, "; %s = %s)",
+			      var_to_string(fctr->indep_var[1]),
+			      value_to_string(&(*fs)->id[1],
+					      fctr->indep_var[1]));
 		      strcat(buf1, buf2);
+		    }
+		  else
+		    {
+		      strcat(buf1, ")");
+		    }
 
-		      
-		      if ( fctr->indep_var[1] ) 
-			{
-			  sprintf(buf2, "; %s = %s)",
-				  var_to_string(fctr->indep_var[1]),
-				  value_to_string(&(*fs)->id[1],
-						  fctr->indep_var[1]));
-			  strcat(buf1, buf2);
-			}
-		      else
-			{
-			  strcat(buf1, ")");
-			}
+		  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
+		    np_plot(&(*fs)->m[v],buf1);
 
-		      np_plot(&(*fs)->m[v],buf1);
+		  
+		  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
+		    {
+		      struct normal_curve normal;
 
+		      normal.N      = (*fs)->m[v].n;
+		      normal.mean   = (*fs)->m[v].mean;
+		      normal.stddev = (*fs)->m[v].stddev;
+		  
+		      histogram_plot((*fs)->m[v].histogram, 
+				     buf1,  &normal, 0);
 		    }
 		  
-		}
+		} /* for ( fs .... */
 
-	    }
+	    } /* for ( v = 0 ..... */
+
 	}
 
       fctr = fctr->next;
@@ -1446,9 +1433,6 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 }
 
 
-
-
-
 /* Plot the normal and detrended normal plots for m
    Label the plots with factorname */
 void
@@ -1485,6 +1469,7 @@ np_plot(const struct metrics *m, const char *factorname)
   yfirst = gsl_cdf_ugaussian_Pinv (m->wvp[0]->rank / ( m->n + 1));
   ylast =  gsl_cdf_ugaussian_Pinv (m->wvp[m->n_data-1]->rank / ( m->n + 1));
 
+
   {
     /* Need to make sure that both the scatter plot and the ideal fit into the
        plot */
@@ -1492,17 +1477,13 @@ np_plot(const struct metrics *m, const char *factorname)
     double x_upper = max(m->max, (ylast  - intercept) / slope) ;
     double slack = (x_upper - x_lower)  * 0.05 ;
 
-    chart_write_xscale(&np_chart, x_lower  - slack, x_upper + slack,
-		       chart_rounded_tick((m->max - m->min) / 5.0));
+    chart_write_xscale(&np_chart, x_lower - slack, x_upper + slack, 5);
 
-
-    chart_write_xscale(&dnp_chart, m->min, m->max,
-		       chart_rounded_tick((m->max - m->min) / 5.0));
+    chart_write_xscale(&dnp_chart, m->min, m->max, 5);
 
   }
 
-  chart_write_yscale(&np_chart, yfirst, ylast, 
-		     chart_rounded_tick((ylast - yfirst)/5.0) );
+  chart_write_yscale(&np_chart, yfirst, ylast, 5);
 
   {
   /* We have to cache the detrended data, beacause we need to 
@@ -1522,9 +1503,7 @@ np_plot(const struct metrics *m, const char *factorname)
       if ( d_data[i] < d_min ) d_min = d_data[i];
       if ( d_data[i] > d_max ) d_max = d_data[i];
     }
-
-  chart_write_yscale(&dnp_chart, d_min, d_max, 
-		     chart_rounded_tick((d_max - d_min) / 5.0));
+  chart_write_yscale(&dnp_chart, d_min, d_max, 5);
 
   for ( i = 0 ; i < m->n_data; ++i ) 
       chart_datum(&dnp_chart, 0, m->wvp[i]->v.f, d_data[i]);

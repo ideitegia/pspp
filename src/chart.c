@@ -183,10 +183,12 @@ chart_finalise(struct chart *chart)
 
 
 
+static double chart_rounded_tick(double tick);
+
   
 /* Adjust tick to be a sensible value 
    ie:  ... 0.1,0.2,0.5,   1,2,5,  10,20,50 ... */
-double
+static double
 chart_rounded_tick(double tick)
 {
 
@@ -212,5 +214,53 @@ chart_rounded_tick(double tick)
 
   return t;
     
+}
+
+
+/* Set the scale for the abscissa */
+void 
+chart_write_xscale(struct chart *ch, double min, double max, int ticks)
+{
+  double x;
+
+  const double tick_interval = 
+    chart_rounded_tick( (max - min) / (double) ticks);
+
+  ch->x_max = ceil( max / tick_interval ) * tick_interval ; 
+  ch->x_min = floor ( min / tick_interval ) * tick_interval ;
+
+  ch->abscissa_scale = fabs(ch->data_right - ch->data_left) / 
+    fabs(ch->x_max - ch->x_min);
+
+  for(x = ch->x_min ; x <= ch->x_max; x += tick_interval )
+    {
+      draw_tick (ch, TICK_ABSCISSA, 
+		 (x - ch->x_min) * ch->abscissa_scale, "%g", x);
+    }
+
+}
+
+
+/* Set the scale for the ordinate */
+void 
+chart_write_yscale(struct chart *ch, double smin, double smax, int ticks)
+{
+  double y;
+
+  const double tick_interval = 
+    chart_rounded_tick( (smax - smin) / (double) ticks);
+
+  ch->y_max = ceil  ( smax / tick_interval ) * tick_interval ; 
+  ch->y_min = floor ( smin / tick_interval ) * tick_interval ;
+
+  ch->ordinate_scale = 
+    fabs(ch->data_top -  ch->data_bottom) / fabs(ch->y_max - ch->y_min) ;
+
+  for(y = ch->y_min ; y <= ch->y_max; y += tick_interval )
+    {
+    draw_tick (ch, TICK_ORDINATE, 
+	       (y - ch->y_min) * ch->ordinate_scale, "%g", y);
+    }
+
 }
 

@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 #include "hash.h"
 #include "val.h"
-
+#include <gsl/gsl_histogram.h>
 
 struct moments1;
 
@@ -50,6 +50,8 @@ struct metrics
   double stddev;
 
   struct moments1 *moments;
+
+  gsl_histogram *histogram;
 
   double skewness;
   double kurtosis;

@@ -63,44 +63,6 @@ chart_write_xlabel(struct chart *ch, const char *label)
 
 }
 
-/* Set the scale for the abscissa */
-void 
-chart_write_xscale(struct chart *ch, double min, double max, double tick)
-{
-  double x;
-
-  ch->x_max = ceil( max / tick ) * tick ; 
-  ch->x_min = floor ( min / tick ) * tick ;
-
-  ch->abscissa_scale = fabs(ch->data_right - ch->data_left) / 
-    fabs(ch->x_max - ch->x_min);
-
-  for(x = ch->x_min ; x <= ch->x_max; x += tick )
-      draw_tick (ch, TICK_ABSCISSA, (x - ch->x_min) * ch->abscissa_scale, "%g", x);
-
-}
-
-
-/* Set the scale for the ordinate */
-void 
-chart_write_yscale(struct chart *ch, double min, double max, double tick)
-{
-  double y;
-
-  ch->y_max = ceil( max / tick ) * tick ; 
-  ch->y_min = floor ( min / tick ) * tick ;
-
-  ch->ordinate_scale = 
-    fabs(ch->data_top -  ch->data_bottom) / fabs(ch->y_max - ch->y_min) ;
-
-  for(y = ch->y_min ; y <= ch->y_max; y += tick )
-    {
-    draw_tick (ch, TICK_ORDINATE, 
-	       (y - ch->y_min) * ch->ordinate_scale, "%g", y);
-    }
-
-}
-
 
 
 /* Write the ordinate label */

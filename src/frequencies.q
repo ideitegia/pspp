@@ -27,6 +27,8 @@
 #include "error.h"
 #include <math.h>
 #include <stdlib.h>
+#include <gsl/gsl_histogram.h>
+
 #include "alloc.h"
 #include "bitvector.h"
 #include "case.h"
@@ -188,6 +190,49 @@ static struct variable **v_variables;
 static struct pool *int_pool;	/* Integer mode. */
 static struct pool *gen_pool;	/* General mode. */
 
+/* Frequency tables. */
+
+/* Frequency table entry. */
+struct freq
+  {
+    union value v;		/* The value. */
+    double c;			/* The number of occurrences of the value. */
+  };
+
+/* Types of frequency tables. */
+enum
+  {
+    FRQM_GENERAL,
+    FRQM_INTEGER
+  };
+
+/* Entire frequency table. */
+struct freq_tab
+  {
+    int mode;			/* FRQM_GENERAL or FRQM_INTEGER. */
+
+    /* General mode. */
+    struct hsh_table *data;	/* Undifferentiated data. */
+
+    /* Integer mode. */
+    double *vector;		/* Frequencies proper. */
+    int min, max;		/* The boundaries of the table. */
+    double out_of_range;	/* Sum of weights of out-of-range values. */
+    double sysmis;		/* Sum of weights of SYSMIS values. */
+
+    /* All modes. */
+    struct freq *valid;         /* Valid freqs. */
+    int n_valid;		/* Number of total freqs. */
+
+    struct freq *missing;	/* Missing freqs. */
+    int n_missing;		/* Number of missing freqs. */
+
+    /* Statistics. */
+    double total_cases;		/* Sum of weights of all cases. */
+    double valid_cases;		/* Sum of weights of valid cases. */
+  };
+
+
 /* Per-variable frequency data. */
 struct var_freqs
   {
@@ -229,6 +274,13 @@ static hsh_compare_func compare_value_numeric_a, compare_value_alpha_a;
 static hsh_compare_func compare_value_numeric_d, compare_value_alpha_d;
 static hsh_compare_func compare_freq_numeric_a, compare_freq_alpha_a;
 static hsh_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
+
+
+static void do_piechart(const struct variable *var,
+			const struct freq_tab *frq_tab);
+
+void freq_tab_to_hist(const struct freq_tab *ft, gsl_histogram *hist);
+
 
 /* Parser and outline. */
 
@@ -575,31 +627,28 @@ postcalc (void *aux UNUSED)
 
       if ( chart == GFT_HIST) 
 	{
-	  struct chart ch;
 	  double d[frq_n_stats];
-	  
 	  struct normal_curve norm;
+
+	  gsl_histogram *hist = gsl_histogram_alloc(7);
+
 	  norm.N = vf->tab.total_cases;
 
 	  calc_stats(v,d);
 	  norm.mean = d[frq_mean];
 	  norm.stddev = d[frq_stddev];
 
-	  chart_initialise(&ch);
-	  draw_histogram(&ch, v_variables[i], ft, "HISTOGRAM",&norm,normal);
-	  chart_finalise(&ch);
+	  freq_tab_to_hist(ft, hist);
+
+	  histogram_plot(hist, var_to_string(v), &norm, normal);
+
+	  gsl_histogram_free(hist);
 	}
 
 
       if ( chart == GFT_PIE) 
 	{
-	  struct chart ch;
-
-	  chart_initialise(&ch);
-	  
-	  draw_piechart(&ch, v_variables[i], ft);
-
-	  chart_finalise(&ch);
+	  do_piechart(v_variables[i], ft);
 	}
 
 
@@ -1486,6 +1535,98 @@ dump_statistics (struct variable *v, int show_varname)
 
   tab_submit (t);
 }
+
+
+
+/* Populate a gsl_histogram from a freq_tab */
+void
+freq_tab_to_hist(const struct freq_tab *ft, gsl_histogram *hist)
+{
+  int i;
+  double x_min = DBL_MAX;
+  double x_max = -DBL_MAX;
+  
+  struct hsh_iterator hi;
+  struct hsh_table *fh = ft->data;
+  struct freq *frq;
+
+  gsl_histogram_reset(hist);
+
+  /* Find out the extremes of the x value */
+
+  for ( frq = hsh_first(fh, &hi); 
+	frq != 0; 
+	frq = hsh_next(fh, &hi) ) 
+    {
+      if ( frq->v.f < x_min ) x_min = frq->v.f ;
+      if ( frq->v.f > x_max ) x_max = frq->v.f ;
+    }
+
+
+  gsl_histogram_set_ranges_uniform(hist, x_min, x_max);
+
+  for( i = 0 ; i < ft->n_valid ; ++i ) 
+    {
+      frq = &ft->valid[i];
+      gsl_histogram_accumulate(hist, frq->v.f, frq->c);
+    }
+
+}
+
+static struct slice *
+freq_tab_to_slice_array(const struct freq_tab *frq_tab, 
+			const struct variable *var,
+			int *n_slices);
+
+
+/* Allocate an array of slices and fill them from the data in frq_tab
+   n_slices will contain the number of slices allocated.
+   The caller is responsible for freeing slices
+*/
+static struct slice *
+freq_tab_to_slice_array(const struct freq_tab *frq_tab, 
+			const struct variable *var,
+			int *n_slices)
+{
+  int i;
+  struct slice *slices;
+
+  *n_slices = frq_tab->n_valid;
+  
+  slices = xmalloc ( *n_slices * sizeof (struct slice ) );
+
+  for (i = 0 ; i < *n_slices ; ++i ) 
+    {
+      const struct freq *frq = &frq_tab->valid[i];
+
+      slices[i].label = value_to_string(&frq->v, var);
+
+      slices[i].magnetude = frq->c;
+
+    }
+
+
+  return slices;
+}
+
+
+
+static void
+do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
+{
+  struct slice *slices;
+  int n_slices;
+
+  slices = freq_tab_to_slice_array(frq_tab, var, &n_slices);
+
+  piechart_plot(var_to_string(var), slices, n_slices);
+
+  free(slices);
+  
+}
+
+
+
 /* 
    Local Variables:
    mode: c
