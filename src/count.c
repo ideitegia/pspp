@@ -54,8 +54,6 @@
 
    Perhaps simultaneity could be implemented as an option.  On the
    other hand, what good are the above commands?  */
-
-#include "debug-print.h"
 
 /* Definitions. */
 
@@ -118,13 +116,6 @@ struct count_trns
     struct trns_header h;
     struct cnt_var_info *specs;
   };
-
-#if DEBUGGING
-static void debug_print (void);
-#endif
-
-/* First counting in chain. */
-static struct cnt_var_info *head;
 
 /* Parser. */
 
@@ -137,17 +128,11 @@ static int parse_string_criteria (struct counting *);
 int
 cmd_count (void)
 {
-  /* Specification currently being parsed. */
-  struct cnt_var_info *cnt;
-
-  /* Counting currently being parsed. */
-  struct counting *c;
-
-  /* Return value from parsing function. */
-  int ret;
-
-  /* Transformation. */
-  struct count_trns *trns;
+  struct cnt_var_info *cnt;     /* Specification currently being parsed. */
+  struct counting *c;           /* Counting currently being parsed. */
+  int ret;                      /* Return value from parsing function. */
+  struct count_trns *trns;      /* Transformation. */
+  struct cnt_var_info *head;    /* First counting in chain. */
 
   lex_match_id ("COUNT");
 
@@ -222,10 +207,6 @@ cmd_count (void)
 	if (cnt->d == NULL) 
           cnt->d = dict_create_var_assert (default_dict, cnt->n, 0);
       }
-
-#if DEBUGGING
-  debug_print ();
-#endif
 
   trns = xmalloc (sizeof *trns);
   trns->h.proc = count_trns_proc;
@@ -545,81 +526,3 @@ count_trns_free (struct trns_header * t)
       free (iter);
     }
 }
-
-/* Debugging. */
-
-#if DEBUGGING
-static void
-debug_print (void)
-{
-  struct cnt_var_info *iter;
-  struct counting *i;
-  int j;
-
-  printf ("COUNT\n");
-  for (iter = head; iter; iter = iter->next)
-    {
-      printf ("  %s=", iter->d->name);
-      for (i = iter->c; i; i = i->next)
-	{
-	  for (j = 0; j < i->n; j++)
-	    printf ("%s%s", j ? " " : "", i->v[j]->name);
-	  printf (" (");
-	  if (i->v[0]->type == NUMERIC)
-	    {
-	      struct cnt_num *n;
-
-	      if (i->missing == 2)
-		printf ("MISSING");
-	      else if (i->missing == 1)
-		printf ("SYSMIS");
-	      else
-		assert (i->missing == 0);
-
-	      for (n = i->crit.n; n->type != CNT_SENTINEL; n++)
-		{
-		  if (i->missing && n != i->crit.n)
-		    printf (",");
-		  switch (n->type)
-		    {
-		    case CNT_SINGLE:
-		      printf ("%g", n->a);
-		      break;
-		    case CNT_HIGH:
-		      printf ("%g THRU HIGH", n->a);
-		      break;
-		    case CNT_LOW:
-		      printf ("LOW THRU %g", n->a);
-		      break;
-		    case CNT_RANGE:
-		      printf ("%g THRU %g", n->a, n->b);
-		      break;
-		    case CNT_ANY:
-		      printf ("LOW THRU HIGH");
-		      break;
-		    default:
-		      printf ("<ERROR %d>", n->type);
-		      break;
-		    }
-		}
-	    }
-	  else
-	    {
-	      struct cnt_str *s;
-
-	      for (s = i->crit.s; s->type != CNT_SENTINEL; s++)
-		{
-		  if (s != i->crit.s)
-		    printf (",");
-		  if (s->type == CNT_SINGLE)
-		    printf ("'%s'", s->s);
-		  else
-		    printf ("<ERROR %d>", s->type);
-		}
-	    }
-	  printf (")  ");
-	}
-      printf ("\n");
-    }
-}
-#endif /* DEBUGGING */

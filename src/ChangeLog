@@ -1,3 +1,11 @@
+Mon Mar 15 00:03:51 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static var in COUNT.
+
+	* count.c: (static var head) Move into cmd_count().
+	(cmd_count) [DEBUGGING] Don't call debug_print.
+	[DEBUGGING] (debug_print) Removed.
+
 Sun Mar 14 23:56:09 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static vars in VALUE LABELS, ADD VALUE LABELS.
@@ -16,7 +24,6 @@ Sun Mar 14 23:56:09 2004  Ben Pfaff  <blp@gnu.org>
 	(do_value_labels) Add vars, var_cnt local variables.  Clean up
 	after them internally.  Call erase_labels() if we should.  Don't
 	call debug_print().
-	
 
 Sun Mar 14 23:33:53 2004  Ben Pfaff  <blp@gnu.org>
 
