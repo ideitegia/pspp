@@ -1,6 +1,7 @@
 /* cdf/poisson.c
  *
- * Copyright (C) 2004 Jason H. Stover.
+ * Copyright (C) 2004 Free Software Foundation, Inc.
+ * Written by Jason H. Stover.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +37,6 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_cdf.h>
-#include "gsl-extras.h"
 #include "gsl-extras.h"
 
 /*
