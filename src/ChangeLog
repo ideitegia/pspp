@@ -1,3 +1,7 @@
+Wed Dec 31 07:19:46 WST 2003 John Darrington <john@darrington.wattle.id.au>
+
+	* Removed redundant code from output.h
+
 Sat Dec 27 22:17:52 2003  Ben Pfaff  <blp@gnu.org>
 
 	Dictionary classes: each variable is "ordinary", "system", or
