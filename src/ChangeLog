@@ -12,7 +12,8 @@ Wed Feb 11 20:33:18 2004  Ben Pfaff  <blp@gnu.org>
 
 Thu Feb  5 13:19:06 WAST 2004 John Darrington <john@darrington.wattle.id.au>
 
-	* fixed bug which caused a crash under certain invalid input.
+	* command.c: Fixed test on command return status for the correct 
+          value,  which had been causing a crash under certain invalid input.
 
 Wed Feb  4 15:34:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
