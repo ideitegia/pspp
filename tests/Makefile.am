@@ -7,6 +7,7 @@ TESTS_ENVIRONMENT=top_srcdir=${top_srcdir}
 TESTS = command/aggregate.sh \
 	command/autorecod.sh \
 	command/beg-data.sh \
+	command/bignum.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh
 
