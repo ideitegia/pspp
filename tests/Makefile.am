@@ -26,11 +26,12 @@ TESTS = command/aggregate.sh \
 	command/t-test-groups.sh \
 	command/weight.sh \
 	bugs/alpha-freq.sh \
+	bugs/compute-fmt.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh \
 	bugs/crosstabs.sh \
 	bugs/data-crash.sh \
-	bugs/random.sh
+	bugs/random.sh 
 
 noinst_PROGRAMS = gengarbage
 

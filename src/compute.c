@@ -397,10 +397,19 @@ lvalue_finalize (struct lvalue *lvalue,
     {
       compute->variable = dict_lookup_var (default_dict, lvalue->var_name);
       if (compute->variable == NULL)
-        compute->variable = dict_create_var_assert (default_dict,
-                                                    lvalue->var_name, 0);
+	{
+	  struct fmt_spec input_spec = { 0,8,2 };
+	  compute->variable = dict_create_var_assert (default_dict,
+						      lvalue->var_name, 0);
+
+       	  convert_fmt_ItoO (&input_spec, &compute->variable->print);
+	  compute->variable->write = compute->variable->print;
+	}
+
       compute->fv = compute->variable->fv;
       compute->width = compute->variable->width;
+
+      
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
       if (dict_class_from_id (compute->variable->name) != DC_SCRATCH)

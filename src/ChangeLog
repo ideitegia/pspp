@@ -1,3 +1,10 @@
+Fri Feb 20 14:37:41 WAST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* compute.c: Fixed a bug where the Format was not getting set for 
+	  computed variables (thus causing a crash when SAVEing).
+
+	* Added a test to stop this bug ever coming back
+
 Wed Feb 18 22:21:35 2004  Ben Pfaff  <blp@gnu.org>
 
 	Got rid of approx.h.  In general, replaced all references to
