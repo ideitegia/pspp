@@ -1,9 +1,7 @@
-Time-stamp: <2004-03-20 10:33:19 blp>
+Time-stamp: <2004-03-20 19:16:04 blp>
 
 TODO
 ----
-
-Write DATE, USE.
 
 There needs to be another layer onto the lexer, which should probably be
 entirely rewritten anyway.  The lexer needs to read entire *commands* at a
