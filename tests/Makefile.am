@@ -15,6 +15,7 @@ TESTS = \
 	command/lag.sh \
 	command/list.sh \
 	command/loop.sh \
+	command/oneway.sh \
 	command/print.sh \
 	command/sample.sh \
 	command/sort.sh \
