@@ -49,14 +49,16 @@
    then deleted and the data sink becomes the data source for the
    next procedure. */
 
-#include "debug-print.h"
-
 /* Procedure execution data. */
 struct write_case_data
   {
-    void (*beginfunc) (void *);
-    int (*procfunc) (struct ccase *, void *);
-    void (*endfunc) (void *);
+    /* Functions to call... */
+    void (*begin_func) (void *);               /* ...before data. */
+    int (*proc_func) (struct ccase *, void *); /* ...with data. */
+    void (*end_func) (void *);                 /* ...after data. */
+    void *func_aux;                            /* Auxiliary data. */ 
+
+    /* Extra auxiliary data. */
     void *aux;
   };
 
@@ -66,18 +68,11 @@ struct case_source *vfm_source;
 /* The replacement active file, to which cases are written. */
 struct case_sink *vfm_sink;
 
-/* Information about the data source. */
-struct stream_info vfm_source_info;
-
-/* Information about the data sink. */
-struct stream_info vfm_sink_info;
-
 /* Nonzero if the case needs to have values deleted before being
    stored, zero otherwise. */
 int compaction_necessary;
 
-/* Number of values after compaction, or the same as
-   vfm_sink_info.nval, if compaction is not necessary. */
+/* Number of values after compaction. */
 int compaction_nval;
 
 /* Temporary case buffer with enough room for `compaction_nval'
@@ -104,58 +99,74 @@ static struct ccase **lag_queue; /* Array of n_lag ccase * elements. */
 
 static void open_active_file (void);
 static void close_active_file (struct write_case_data *);
-static int SPLIT_FILE_procfunc (struct ccase *, void *);
+static int SPLIT_FILE_proc_func (struct ccase *, void *);
 static void finish_compaction (void);
 static void lag_case (void);
 static int procedure_write_case (struct write_case_data *);
 static void clear_temp_case (void);
-static int exclude_this_case (void);
+static int exclude_this_case (int case_num);
 
 /* Public functions. */
 
+struct procedure_aux_data 
+  {
+    size_t cases_written;       /* Number of cases written so far. */
+  };
+
+struct split_aux_data 
+  {
+    struct ccase *prev_case;    /* Data in previous case. */
+  };
+
 /* Reads all the cases from the active file, transforms them by
-   the active set of transformations, calls PROCFUNC with CURCASE
+   the active set of transformations, calls PROC_FUNC with CURCASE
    set to the case, and writes them to a new active file.
 
    Divides the active file into zero or more series of one or more
-   cases each.  BEGINFUNC is called before each series.  ENDFUNC is
+   cases each.  BEGIN_FUNC is called before each series.  END_FUNC is
    called after each series.
 
-   Arbitrary user-specified data AUX is passed to BEGINFUNC,
-   PROCFUNC, and ENDFUNC as auxiliary data. */
+   Arbitrary user-specified data AUX is passed to BEGIN_FUNC,
+   PROC_FUNC, and END_FUNC as auxiliary data. */
 void
-procedure (void (*beginfunc) (void *),
-	   int (*procfunc) (struct ccase *curcase, void *),
-	   void (*endfunc) (void *),
-           void *aux)
+procedure (void (*begin_func) (void *),
+	   int (*proc_func) (struct ccase *curcase, void *),
+	   void (*end_func) (void *),
+           void *func_aux)
 {
   static int recursive_call;
 
   struct write_case_data procedure_write_data;
+  struct procedure_aux_data proc_aux;
+
   struct write_case_data split_file_data;
+  struct split_aux_data split_aux;
+  int split;
 
   assert (++recursive_call == 1);
 
-  if (dict_get_split_cnt (default_dict) == 0) 
-    {
-      /* Normally we just use the data passed by the user. */
-      procedure_write_data.beginfunc = beginfunc;
-      procedure_write_data.procfunc = procfunc;
-      procedure_write_data.endfunc = endfunc;
-      procedure_write_data.aux = aux;
-    }
-  else
-    {
-      /* Under SPLIT FILE, we add a layer of indirection. */
-      procedure_write_data.beginfunc = NULL;
-      procedure_write_data.procfunc = SPLIT_FILE_procfunc;
-      procedure_write_data.endfunc = endfunc;
-      procedure_write_data.aux = &split_file_data;
+  proc_aux.cases_written = 0;
 
-      split_file_data.beginfunc = beginfunc;
-      split_file_data.procfunc = procfunc;
-      split_file_data.endfunc = endfunc;
-      split_file_data.aux = aux;
+  /* Normally we just use the data passed by the user. */
+  procedure_write_data.begin_func = begin_func;
+  procedure_write_data.proc_func = proc_func;
+  procedure_write_data.end_func = end_func;
+  procedure_write_data.func_aux = func_aux;
+  procedure_write_data.aux = &proc_aux;
+
+  /* Under SPLIT FILE, we add a layer of indirection. */
+  split = dict_get_split_cnt (default_dict) > 0;
+  if (split) 
+    {
+      split_file_data = procedure_write_data;
+      split_file_data.aux = &split_aux;
+
+      split_aux.prev_case = xmalloc (dict_get_case_size (default_dict));
+
+      procedure_write_data.begin_func = NULL;
+      procedure_write_data.proc_func = SPLIT_FILE_proc_func;
+      procedure_write_data.end_func = end_func;
+      procedure_write_data.func_aux = &split_file_data;
     }
 
   last_vfm_invocation = time (NULL);
@@ -165,6 +176,9 @@ procedure (void (*beginfunc) (void *),
     vfm_source->class->read (vfm_source,
                              procedure_write_case, &procedure_write_data);
   close_active_file (&procedure_write_data);
+
+  if (split)
+    free (split_aux.prev_case);
 
   assert (--recursive_call == 0);
 }
@@ -179,35 +193,32 @@ static int not_canceled;
 
 /* Reads all the cases from the active file and passes them one-by-one
    to CASEFUNC in temp_case.  Before any cases are passed, calls
-   BEGINFUNC.  After all the cases have been passed, calls ENDFUNC.
-   BEGINFUNC, CASEFUNC, and ENDFUNC can write temp_case to the output
+   BEGIN_FUNC.  After all the cases have been passed, calls END_FUNC.
+   BEGIN_FUNC, CASEFUNC, and END_FUNC can write temp_case to the output
    file by calling process_active_file_output_case().
 
    process_active_file() ignores TEMPORARY, SPLIT FILE, and N. */
 void
-process_active_file (void (*beginfunc) (void *),
+process_active_file (void (*begin_func) (void *),
 		     int (*casefunc) (struct ccase *curcase, void *),
-		     void (*endfunc) (void *),
-                     void *aux)
+		     void (*end_func) (void *),
+                     void *func_aux)
 {
   struct write_case_data process_active_write_data;
 
-  process_active_write_data.beginfunc = beginfunc;
-  process_active_write_data.procfunc = casefunc;
-  process_active_write_data.endfunc = endfunc;
-  process_active_write_data.aux = aux;
+  process_active_write_data.begin_func = begin_func;
+  process_active_write_data.proc_func = casefunc;
+  process_active_write_data.end_func = end_func;
+  process_active_write_data.func_aux = func_aux;
 
   not_canceled = 1;
 
   open_active_file ();
-  beginfunc (aux);
-  
-  /* There doesn't necessarily need to be an active file. */
+  begin_func (func_aux);
   if (vfm_source != NULL)
     vfm_source->class->read (vfm_source, process_active_file_write_case,
                              &process_active_write_data);
-  
-  endfunc (aux);
+  end_func (func_aux);
   close_active_file (&process_active_write_data);
 }
 
@@ -222,7 +233,8 @@ process_active_file_write_case (struct write_case_data *data)
     {
       int code;
 	
-      code = t_trns[cur_trns]->proc (t_trns[cur_trns], temp_case);
+      code = t_trns[cur_trns]->proc (t_trns[cur_trns], temp_case,
+                                     case_count + 1);
       switch (code)
 	{
 	case -1:
@@ -243,8 +255,8 @@ process_active_file_write_case (struct write_case_data *data)
     lag_case ();
 	  
   /* Call the procedure if FILTER and PROCESS IF don't prohibit it. */
-  if (not_canceled && !exclude_this_case ())
-    not_canceled = data->procfunc (temp_case, data->aux);
+  if (not_canceled && !exclude_this_case (case_count + 1))
+    not_canceled = data->proc_func (temp_case, data->func_aux);
   
   case_count++;
   
@@ -258,7 +270,6 @@ process_active_file_write_case (struct write_case_data *data)
 void
 process_active_file_output_case (void)
 {
-  vfm_sink_info.ncases++;
   vfm_sink->class->write (vfm_sink, temp_case);
 }
 
@@ -285,24 +296,8 @@ prepare_for_writing (void)
      So, in this case, we shouldn't have to replace the active
      file--it's just a waste of time and space. */
 
-  vfm_sink_info.ncases = 0;
-  vfm_sink_info.nval = dict_get_next_value_idx (default_dict);
-  vfm_sink_info.case_size = dict_get_case_size (default_dict);
-  
   if (vfm_sink == NULL)
     {
-      if (vfm_sink_info.case_size * vfm_source_info.ncases > set_max_workspace
-	  && !workspace_overflow)
-	{
-	  msg (MW, _("Workspace overflow predicted.  Max workspace is "
-		     "currently set to %d KB (%d cases at %d bytes each).  "
-		     "Writing active file to disk."),
-	       set_max_workspace / 1024, set_max_workspace / vfm_sink_info.case_size,
-	       vfm_sink_info.case_size);
-	  
-	  workspace_overflow = 1;
-	}
-
       if (workspace_overflow)
         vfm_sink = create_case_sink (&disk_sink_class, NULL);
       else
@@ -350,7 +345,7 @@ arrange_compaction (void)
 static void
 make_temp_case (void)
 {
-  temp_case = xmalloc (vfm_sink_info.case_size);
+  temp_case = xmalloc (dict_get_case_size (default_dict));
 
   if (compaction_necessary)
     compaction_case = xmalloc (sizeof (struct ccase)
@@ -422,34 +417,23 @@ setup_lag (void)
    Here is each nval count, with explanation, as set up by
    open_active_file():
 
-   vfm_source_info.nval: Number of `value's in the cases returned by
-   the source stream.  This value turns out not to be very useful, but
-   we maintain it anyway.
-
-   vfm_sink_info.nval: Number of `value's in the cases after all
-   transformations have been performed.  Never less than
-   vfm_source_info.nval.
-
    temp_dict->nval: Number of `value's in the cases after the
-   transformations leading up to TEMPORARY have been performed.  If
-   TEMPORARY was not specified, this is equal to vfm_sink_info.nval.
-   Never less than vfm_sink_info.nval.
+   transformations leading up to TEMPORARY have been performed.
 
    compaction_nval: Number of `value's in the cases after the
-   transformations leading up to TEMPORARY have been performed and the
-   case has been compacted by compact_case(), if compaction is
-   necessary.  This the number of `value's in the cases saved by the
-   sink stream.  (However, note that the cases passed to the sink
-   stream have not yet been compacted.  It is the responsibility of
-   the data sink to call compact_case().)  This may be less than,
-   greater than, or equal to vfm_source_info.nval.  `compaction'
-   becomes the new value of default_dict.nval after the procedure is
-   completed.
+   transformations leading up to TEMPORARY have been performed
+   and the case has been compacted by compact_case(), if
+   compaction is necessary.  This the number of `value's in the
+   cases saved by the sink stream.  (However, note that the cases
+   passed to the sink stream have not yet been compacted.  It is
+   the responsibility of the data sink to call compact_case().)
+   `compaction' becomes the new value of default_dict.nval after
+   the procedure is completed.
 
-   default_dict.nval: This is often an alias for temp_dict->nval.  As
-   such it can really have no separate existence until the procedure
-   is complete.  For this reason it should *not* be referenced inside
-   the execution of a procedure. */
+   default_dict.nval: This is often an alias for temp_dict->nval.
+   As such it can really have no separate existence until the
+   procedure is complete.  For this reason it should *not* be
+   referenced inside the execution of a procedure. */
 /* Makes all preparations for reading from the data source and writing
    to the data sink. */
 static void
@@ -476,15 +460,6 @@ open_active_file (void)
   vector_initialization ();
   discard_ctl_stack ();
   setup_lag ();
-
-  /* Debug output. */
-  debug_printf (("vfm: reading from %s source, writing to %s sink.\n",
-		 vfm_source->name, vfm_sink->name));
-  debug_printf (("vfm: vfm_source_info.nval=%d, vfm_sink_info.nval=%d, "
-		 "temp_dict->nval=%d, compaction_nval=%d, "
-		 "default_dict.nval=%d\n",
-		 vfm_source_info.nval, vfm_sink_info.nval, temp_dict->nval,
-		 compaction_nval, default_dict.nval));
 }
 
 /* Closes the active file. */
@@ -492,8 +467,8 @@ static void
 close_active_file (struct write_case_data *data)
 {
   /* Close the current case group. */
-  if (case_count && data->endfunc != NULL)
-    data->endfunc (data->aux);
+  if (case_count && data->end_func != NULL)
+    data->end_func (data->func_aux);
 
   /* Stop lagging (catch up?). */
   if (n_lag)
@@ -528,10 +503,6 @@ close_active_file (struct write_case_data *data)
     }
 
   vfm_source = vfm_sink->class->make_source (vfm_sink);
-  vfm_source_info.ncases = vfm_sink_info.ncases;
-  vfm_source_info.nval = compaction_nval;
-  vfm_source_info.case_size = (sizeof (struct ccase)
-			       + (compaction_nval - 1) * sizeof (union value));
 
   /* Old data sink is gone now. */
   free (vfm_sink);
@@ -563,18 +534,28 @@ close_active_file (struct write_case_data *data)
 
   /* Clear VECTOR vectors. */
   dict_clear_vectors (default_dict);
-
-  debug_printf (("vfm: procedure complete\n\n"));
 }
 
 /* Disk case stream. */
+
+/* Information about disk sink or source. */
+struct disk_stream_info 
+  {
+    FILE *file;                 /* Output file. */
+    size_t case_cnt;            /* Number of cases written so far. */
+    size_t case_size;           /* Number of bytes in case. */
+  };
 
 /* Initializes the disk sink. */
 static void
 disk_sink_create (struct case_sink *sink)
 {
-  sink->aux = tmpfile ();
-  if (!sink->aux)
+  struct disk_stream_info *info = xmalloc (sizeof *info);
+  info->file = tmpfile ();
+  info->case_cnt = 0;
+  info->case_size = compaction_nval;
+  sink->aux = info;
+  if (info->file == NULL)
     {
       msg (ME, _("An error occurred attempting to create a temporary "
 		 "file for use as the active file: %s."),
@@ -587,7 +568,7 @@ disk_sink_create (struct case_sink *sink)
 static void
 disk_sink_write (struct case_sink *sink, struct ccase *c)
 {
-  FILE *file = sink->aux;
+  struct disk_stream_info *info = sink->aux;
   union value *src_case;
 
   if (compaction_necessary)
@@ -597,7 +578,9 @@ disk_sink_write (struct case_sink *sink, struct ccase *c)
     }
   else src_case = c->data;
 
-  if (fwrite (src_case, sizeof *src_case * compaction_nval, 1, file) != 1)
+  info->case_cnt++;
+  if (fwrite (src_case, sizeof *src_case * compaction_nval, 1,
+              info->file) != 1)
     {
       msg (ME, _("An error occurred while attempting to write to a "
 		 "temporary file used as the active file: %s."),
@@ -610,9 +593,9 @@ disk_sink_write (struct case_sink *sink, struct ccase *c)
 static void
 disk_sink_destroy (struct case_sink *sink)
 {
-  FILE *file = sink->aux;
-  if (file != NULL)
-    fclose (file);
+  struct disk_stream_info *info = sink->aux;
+  if (info->file != NULL)
+    fclose (info->file);
 }
 
 /* Closes and destroys the sink and returns a disk source to read
@@ -620,11 +603,11 @@ disk_sink_destroy (struct case_sink *sink)
 static struct case_source *
 disk_sink_make_source (struct case_sink *sink) 
 {
-  FILE *file = sink->aux;
-  
+  struct disk_stream_info *info = sink->aux;
+    
   /* Rewind the file. */
-  assert (file != NULL);
-  if (fseek (file, 0, SEEK_SET) != 0)
+  assert (info->file != NULL);
+  if (fseek (info->file, 0, SEEK_SET) != 0)
     {
       msg (ME, _("An error occurred while attempting to rewind a "
 		 "temporary file used as the active file: %s."),
@@ -632,7 +615,7 @@ disk_sink_make_source (struct case_sink *sink)
       err_failure ();
     }
   
-  return create_case_source (&disk_source_class, file);
+  return create_case_source (&disk_source_class, info);
 }
 
 /* Disk sink. */
@@ -647,18 +630,28 @@ const struct case_sink_class disk_sink_class =
 
 /* Disk source. */
 
+/* Returns the number of cases that will be read by
+   disk_source_read(). */
+static int
+disk_source_count (const struct case_source *source) 
+{
+  struct disk_stream_info *info = source->aux;
+
+  return info->case_cnt;
+}
+
 /* Reads all cases from the disk source and passes them one by one to
    write_case(). */
 static void
 disk_source_read (struct case_source *source,
                   write_case_func *write_case, write_case_data wc_data)
 {
-  FILE *file = source->aux;
+  struct disk_stream_info *info = source->aux;
   int i;
 
-  for (i = 0; i < vfm_source_info.ncases; i++)
+  for (i = 0; i < info->case_cnt; i++)
     {
-      if (!fread (temp_case, vfm_source_info.case_size, 1, file))
+      if (!fread (temp_case, info->case_size, 1, info->file))
 	{
 	  msg (ME, _("An error occurred while attempting to read from "
 	       "a temporary file created for the active file: %s."),
@@ -676,15 +669,17 @@ disk_source_read (struct case_source *source,
 static void
 disk_source_destroy (struct case_source *source)
 {
-  FILE *file = source->aux;
-  if (file != NULL)
-    fclose (file);
+  struct disk_stream_info *info = source->aux;
+  if (info->file != NULL)
+    fclose (info->file);
+  free (info);
 }
 
 /* Disk source. */
 const struct case_source_class disk_source_class = 
   {
     "disk",
+    disk_source_count,
     disk_source_read,
     disk_source_destroy,
   };
@@ -694,6 +689,8 @@ const struct case_source_class disk_source_class =
 /* Memory sink data. */
 struct memory_sink_info
   {
+    size_t case_cnt;            /* Number of cases. */
+    size_t case_size;           /* Case size in bytes. */
     int max_cases;              /* Maximum cases before switching to disk. */
     struct case_list *head;     /* First case in list. */
     struct case_list *tail;     /* Last case in list. */
@@ -702,6 +699,8 @@ struct memory_sink_info
 /* Memory source data. */
 struct memory_source_info 
   {
+    size_t case_cnt;            /* Number of cases. */
+    size_t case_size;           /* Case size in bytes. */
     struct case_list *cases;    /* List of cases. */
   };
 
@@ -713,7 +712,9 @@ memory_sink_create (struct case_sink *sink)
   sink->aux = info = xmalloc (sizeof *info);
 
   assert (compaction_nval > 0);
-  info->max_cases = set_max_workspace / (sizeof (union value) * compaction_nval);
+  info->case_cnt = 0;
+  info->case_size = compaction_nval * sizeof (union value);
+  info->max_cases = set_max_workspace / info->case_size;
   info->head = info->tail = NULL;
 }
 
@@ -729,8 +730,10 @@ memory_sink_write (struct case_sink *sink, struct ccase *c)
   new_case = malloc (case_size);
 
   /* If we've got memory to spare then add it to the linked list. */
-  if (vfm_sink_info.ncases <= info->max_cases && new_case != NULL)
+  if (info->case_cnt <= info->max_cases && new_case != NULL)
     {
+      info->case_cnt++;
+
       /* Append case to linked list. */
       new_case->next = NULL;
       if (info->head != NULL)
@@ -852,6 +855,8 @@ memory_sink_make_source (struct case_sink *sink)
   struct memory_source_info *source_info;
 
   source_info = xmalloc (sizeof *source_info);
+  source_info->case_cnt = sink_info->case_cnt;
+  source_info->case_size = sink_info->case_size;
   source_info->cases = sink_info->head;
 
   free (sink_info);
@@ -868,6 +873,15 @@ const struct case_sink_class memory_sink_class =
     memory_sink_make_source,
   };
 
+/* Returns the number of cases in the source. */
+static int
+memory_source_count (const struct case_source *source) 
+{
+  struct memory_source_info *info = source->aux;
+
+  return info->case_cnt;
+}
+
 /* Reads the case stream from memory and passes it to write_case(). */
 static void
 memory_source_read (struct case_source *source,
@@ -879,7 +893,7 @@ memory_source_read (struct case_source *source,
     {
       struct case_list *iter = info->cases;
       info->cases = iter->next;
-      memcpy (temp_case, &iter->c, vfm_source_info.case_size);
+      memcpy (temp_case, &iter->c, info->case_size);
       free (iter);
       
       if (!write_case (wc_data))
@@ -923,12 +937,11 @@ memory_source_set_cases (const struct case_source *source,
 const struct case_source_class memory_source_class = 
   {
     "memory",
+    memory_source_count,
     memory_source_read,
     memory_source_destroy,
   };
 
-#include "debug-print.h"
-
 /* Add temp_case to the lag queue. */
 static void
 lag_case (void)
@@ -965,13 +978,13 @@ lagged_case (int n_before)
 int
 procedure_write_case (write_case_data wc_data)
 {
+  struct procedure_aux_data *proc_aux = wc_data->aux;
+
   /* Index of current transformation. */
   int cur_trns;
 
   /* Return value: whether it's reasonable to write any more cases. */
   int more_cases = 1;
-
-  debug_printf ((_("transform: ")));
 
   cur_trns = f_trns;
   for (;;)
@@ -979,30 +992,29 @@ procedure_write_case (write_case_data wc_data)
       /* Output the case if this is temp_trns. */
       if (cur_trns == temp_trns)
 	{
-	  debug_printf (("REC"));
+          int case_limit;
 
 	  if (n_lag)
 	    lag_case ();
 	  
-	  vfm_sink_info.ncases++;
 	  vfm_sink->class->write (vfm_sink, temp_case);
 
-	  if (dict_get_case_limit (default_dict))
-	    more_cases = (vfm_sink_info.ncases
-                          < dict_get_case_limit (default_dict));
+          proc_aux->cases_written++;
+          case_limit = dict_get_case_limit (default_dict);
+	  if (case_limit != 0 && proc_aux->cases_written >= case_limit)
+            more_cases = 0;
 	}
 
       /* Are we done? */
       if (cur_trns >= n_trns)
 	break;
       
-      debug_printf (("$%d", cur_trns));
-
       /* Decide which transformation should come next. */
       {
 	int code;
 	
-	code = t_trns[cur_trns]->proc (t_trns[cur_trns], temp_case);
+	code = t_trns[cur_trns]->proc (t_trns[cur_trns], temp_case,
+                                       proc_aux->cases_written + 1);
 	switch (code)
 	  {
 	  case -1:
@@ -1021,19 +1033,18 @@ procedure_write_case (write_case_data wc_data)
     }
 
   /* Call the beginning of group function. */
-  if (!case_count && wc_data->beginfunc != NULL)
-    wc_data->beginfunc (wc_data->aux);
+  if (!case_count && wc_data->begin_func != NULL)
+    wc_data->begin_func (wc_data->func_aux);
 
   /* Call the procedure if there is one and FILTER and PROCESS IF
      don't prohibit it. */
-  if (wc_data->procfunc != NULL && !exclude_this_case ())
-    wc_data->procfunc (temp_case, wc_data->aux);
+  if (wc_data->proc_func != NULL
+      && !exclude_this_case (proc_aux->cases_written + 1))
+    wc_data->proc_func (temp_case, wc_data->func_aux);
 
   case_count++;
   
 done:
-  debug_putc ('\n', stdout);
-
   clear_temp_case ();
   
   /* Return previously determined value. */
@@ -1063,10 +1074,11 @@ clear_temp_case (void)
     }
 }
 
-/* Returns nonzero if this case should be exclude as specified on
-   FILTER or PROCESS IF, otherwise zero. */
+/* Returns nonzero if this case (numbered CASE_NUM) should be
+   exclude as specified on FILTER or PROCESS IF, otherwise
+   zero. */
 static int
-exclude_this_case (void)
+exclude_this_case (int case_num)
 {
   /* FILTER. */
   struct variable *filter_var = dict_get_filter (default_dict);
@@ -1079,7 +1091,7 @@ exclude_this_case (void)
 
   /* PROCESS IF. */
   if (process_if_expr != NULL
-      && expr_evaluate (process_if_expr, temp_case, NULL) != 1.0)
+      && expr_evaluate (process_if_expr, temp_case, case_num, NULL) != 1.0)
     return 1;
 
   return 0;
@@ -1159,14 +1171,14 @@ dump_splits (struct ccase *c)
   tab_submit (t);
 }
 
-/* This procfunc is substituted for the user-supplied procfunc when
+/* This proc_func is substituted for the user-supplied proc_func when
    SPLIT FILE is active.  This function forms a wrapper around that
-   procfunc by dividing the input into series. */
+   proc_func by dividing the input into series. */
 static int
-SPLIT_FILE_procfunc (struct ccase *c, void *data_)
+SPLIT_FILE_proc_func (struct ccase *c, void *data_)
 {
   struct write_case_data *data = data_;
-  static struct ccase *prev_case;
+  struct split_aux_data *split_aux = data->aux;
   struct variable *const *split;
   size_t split_cnt;
   size_t i;
@@ -1175,16 +1187,13 @@ SPLIT_FILE_procfunc (struct ccase *c, void *data_)
      preserve the values of the case for later comparison. */
   if (case_count == 0)
     {
-      if (prev_case)
-	free (prev_case);
-      prev_case = xmalloc (vfm_sink_info.case_size);
-      memcpy (prev_case, c, vfm_sink_info.case_size);
+      memcpy (split_aux->prev_case, c, dict_get_case_size (default_dict));
 
       dump_splits (c);
-      if (data->beginfunc != NULL)
-	data->beginfunc (data->aux);
+      if (data->begin_func != NULL)
+	data->begin_func (data->func_aux);
       
-      return data->procfunc (c, data->aux);
+      return data->proc_func (c, data->func_aux);
     }
 
   /* Compare the value of each SPLIT FILE variable to the values on
@@ -1198,30 +1207,31 @@ SPLIT_FILE_procfunc (struct ccase *c, void *data_)
       switch (v->type)
 	{
 	case NUMERIC:
-	  if (c->data[v->fv].f != prev_case->data[v->fv].f)
+	  if (c->data[v->fv].f != split_aux->prev_case->data[v->fv].f)
 	    goto not_equal;
 	  break;
 	case ALPHA:
-	  if (memcmp (c->data[v->fv].s, prev_case->data[v->fv].s, v->width))
+	  if (memcmp (c->data[v->fv].s,
+                      split_aux->prev_case->data[v->fv].s, v->width))
 	    goto not_equal;
 	  break;
 	default:
 	  assert (0);
 	}
     }
-  return data->procfunc (c, data->aux);
+  return data->proc_func (c, data->func_aux);
   
 not_equal:
   /* The values of the SPLIT FILE variable are different from the
      values on the previous case.  That means that it's time to begin
      a new series. */
-  if (data->endfunc != NULL)
-    data->endfunc (data->aux);
+  if (data->end_func != NULL)
+    data->end_func (data->func_aux);
   dump_splits (c);
-  if (data->beginfunc != NULL)
-    data->beginfunc (data->aux);
-  memcpy (prev_case, c, vfm_sink_info.case_size);
-  return data->procfunc (c, data->aux);
+  if (data->begin_func != NULL)
+    data->begin_func (data->func_aux);
+  memcpy (split_aux->prev_case, c, dict_get_case_size (default_dict));
+  return data->proc_func (c, data->func_aux);
 }
 
 /* Case compaction. */
@@ -1304,7 +1314,6 @@ case_source_is_class (const struct case_source *source,
                       const struct case_source_class *class) 
 {
   return source != NULL && source->class == class;
-
 }
 
 struct case_sink *

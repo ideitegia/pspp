@@ -48,7 +48,7 @@ struct sample_trns
     unsigned frac;              /* TYPE_FRACTION: a fraction of UINT_MAX. */
   };
 
-int sample_trns_proc (struct trns_header *, struct ccase *);
+static trns_proc_func sample_trns_proc;
 
 int
 cmd_sample (void)
@@ -118,8 +118,9 @@ cmd_sample (void)
   return lex_end_of_command ();
 }
 
-int
-sample_trns_proc (struct trns_header * trns, struct ccase *c UNUSED)
+static int
+sample_trns_proc (struct trns_header * trns, struct ccase *c UNUSED,
+                  int case_num UNUSED)
 {
   struct sample_trns *t = (struct sample_trns *) trns;
   double U;

@@ -104,8 +104,8 @@ struct recode_trns
 static int parse_dest_spec (struct rcd_var * rcd, union value *v,
 			    size_t *max_dst_width);
 static int parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width);
-static int recode_trns_proc (struct trns_header *, struct ccase *);
-static void recode_trns_free (struct trns_header *);
+static trns_proc_func recode_trns_proc;
+static trns_free_func recode_trns_free;
 static double convert_to_double (char *, int);
 
 #if DEBUGGING
@@ -772,7 +772,8 @@ find_src_string (struct rcd_var * v, struct ccase * c)
 }
 
 static int
-recode_trns_proc (struct trns_header * t, struct ccase * c)
+recode_trns_proc (struct trns_header * t, struct ccase * c,
+                  int case_num UNUSED)
 {
   struct rcd_var *v;
   struct coding *cp;

@@ -415,17 +415,16 @@ void copy_missing_values (struct variable *dest, const struct variable *src);
 
 /* Transformations. */
 
+struct trns_header;
+typedef int trns_proc_func (struct trns_header *, struct ccase *, int);
+typedef void trns_free_func (struct trns_header *);
+
 /* Header for all transformations. */
 struct trns_header
   {
-    /* Index into t_trns[]. */
-    int index;
-
-    /* Transformation proc. */
-    int (*proc) (struct trns_header *, struct ccase *);
-
-    /* Garbage collector proc. */
-    void (*free) (struct trns_header *);
+    int index;                  /* Index into t_trns[]. */
+    trns_proc_func *proc;       /* Transformation proc. */
+    trns_free_func *free;       /* Garbage collector proc. */
   };
 
 /* Array of transformations */

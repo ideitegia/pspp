@@ -96,8 +96,8 @@ static struct prt_out_spec *next;
 static int nrec;
 
 static int internal_cmd_print (int flags);
-static int print_trns_proc (struct trns_header *, struct ccase *);
-static void print_trns_free (struct trns_header *);
+static trns_proc_func print_trns_proc;
+static trns_free_func print_trns_free;
 static int parse_specs (void);
 static void dump_table (void);
 static void append_var_spec (struct prt_out_spec *spec);
@@ -900,7 +900,8 @@ alloc_line (void)
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
-print_trns_proc (struct trns_header * trns, struct ccase * c)
+print_trns_proc (struct trns_header * trns, struct ccase * c,
+                 int case_num UNUSED)
 {
   /* Transformation. */
   struct print_trns *t = (struct print_trns *) trns;
@@ -1015,8 +1016,8 @@ struct print_space_trns
 }
 print_space_trns;
 
-static int print_space_trns_proc (struct trns_header *, struct ccase *);
-static void print_space_trns_free (struct trns_header *);
+static trns_proc_func print_space_trns_proc;
+static trns_free_func print_space_trns_free;
 
 int
 cmd_print_space (void)
@@ -1075,7 +1076,8 @@ cmd_print_space (void)
 }
 
 static int
-print_space_trns_proc (struct trns_header * trns, struct ccase * c)
+print_space_trns_proc (struct trns_header * trns, struct ccase * c,
+                       int case_num UNUSED)
 {
   struct print_space_trns *t = (struct print_space_trns *) trns;
   int n;
@@ -1084,7 +1086,7 @@ print_space_trns_proc (struct trns_header * trns, struct ccase * c)
     {
       union value v;
 
-      expr_evaluate (t->e, c, &v);
+      expr_evaluate (t->e, c, case_num, &v);
       n = v.f;
       if (n < 0)
 	{

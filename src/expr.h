@@ -38,7 +38,8 @@ struct ccase;
 union value;
 
 struct expression *expr_parse (int flags);
-double expr_evaluate (struct expression *, struct ccase *, union value *);
+double expr_evaluate (struct expression *, struct ccase *, int case_num,
+                      union value *);
 void expr_free (struct expression *);
 
 #endif /* expr.h */

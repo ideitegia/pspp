@@ -76,9 +76,8 @@
 
 static struct do_if_trns *parse_do_if (void);
 static void add_ELSE_IF (struct do_if_trns *);
-static int goto_trns_proc (struct trns_header *, struct ccase *);
-static int do_if_trns_proc (struct trns_header *, struct ccase *);
-static void do_if_trns_free (struct trns_header *);
+static trns_proc_func goto_trns_proc, do_if_trns_proc;
+static trns_free_func do_if_trns_free;
 
 /* Parse DO IF. */
 int
@@ -276,18 +275,20 @@ parse_do_if (void)
 
 /* Executes a goto transformation. */
 static int 
-goto_trns_proc (struct trns_header * t, struct ccase * c UNUSED)
+goto_trns_proc (struct trns_header * t, struct ccase * c UNUSED,
+                int case_num UNUSED)
 {
   return ((struct goto_trns *) t)->dest;
 }
 
 static int 
-do_if_trns_proc (struct trns_header * trns, struct ccase * c)
+do_if_trns_proc (struct trns_header * trns, struct ccase * c,
+                 int case_num UNUSED)
 {
   struct do_if_trns *t = (struct do_if_trns *) trns;
   union value bool;
 
-  expr_evaluate (t->cond, c, &bool);
+  expr_evaluate (t->cond, c, case_num, &bool);
   if (bool.f == 1.0)
     {
       debug_printf ((_("DO IF %d: true\n"), t->h.index));

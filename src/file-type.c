@@ -726,6 +726,7 @@ file_type_source_destroy (struct case_source *source)
 const struct case_source_class file_type_source_class =
   {
     "FILE TYPE",
+    NULL,
     file_type_source_read,
     file_type_source_destroy,
   };

@@ -26,7 +26,7 @@
 #include "var.h"
 #include "vfm.h"
 
-int repeating_data_trns_proc (struct trns_header *, struct ccase *);
+trns_proc_func repeating_data_trns_proc;
 void repeating_data_set_write_case (struct trns_header *,
                                     write_case_func *, write_case_data);
 

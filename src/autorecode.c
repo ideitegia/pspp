@@ -74,8 +74,8 @@ static struct pool *hash_pool;
 static int descend;
 static int print;
 
-static int autorecode_trns_proc (struct trns_header *, struct ccase *);
-static void autorecode_trns_free (struct trns_header *);
+static trns_proc_func autorecode_trns_proc;
+static trns_free_func autorecode_trns_free;
 static int autorecode_proc_func (struct ccase *, void *);
 static hsh_compare_func compare_alpha_value, compare_numeric_value;
 static hsh_hash_func hash_alpha_value, hash_numeric_value;
@@ -235,7 +235,8 @@ recode (void)
 }
 
 static int
-autorecode_trns_proc (struct trns_header * trns, struct ccase * c)
+autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
+                      int case_num UNUSED)
 {
   struct autorecode_trns *t = (struct autorecode_trns *) trns;
   int i;

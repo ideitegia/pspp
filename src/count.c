@@ -128,8 +128,8 @@ static struct cnt_var_info *head;
 
 /* Parser. */
 
-static int count_trns_proc (struct trns_header *, struct ccase *);
-static void count_trns_free (struct trns_header *);
+static trns_proc_func count_trns_proc;
+static trns_free_func count_trns_free;
 
 static int parse_numeric_criteria (struct counting *);
 static int parse_string_criteria (struct counting *);
@@ -490,7 +490,8 @@ count_string (struct counting * cnt, struct ccase * c)
 
 /* Performs the COUNT transformation T on case C. */
 static int
-count_trns_proc (struct trns_header * trns, struct ccase * c)
+count_trns_proc (struct trns_header * trns, struct ccase * c,
+                 int case_num UNUSED)
 {
   struct cnt_var_info *info;
   struct counting *cnt;

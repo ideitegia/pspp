@@ -140,13 +140,9 @@ static struct loop_3_trns *thr;
 
 static int internal_cmd_loop (void);
 static int internal_cmd_end_loop (void);
-static int break_trns_proc (struct trns_header *, struct ccase *);
-static int loop_1_trns_proc (struct trns_header *, struct ccase *);
-static void loop_1_trns_free (struct trns_header *);
-static int loop_2_trns_proc (struct trns_header *, struct ccase *);
-static void loop_2_trns_free (struct trns_header *);
-static int loop_3_trns_proc (struct trns_header *, struct ccase *);
-static void loop_3_trns_free (struct trns_header *);
+static trns_proc_func break_trns_proc;
+static trns_proc_func loop_1_trns_proc, loop_2_trns_proc, loop_3_trns_proc;
+static trns_free_func loop_1_trns_free, loop_2_trns_free, loop_3_trns_free;
 static void pop_ctl_stack (void);
 
 /* LOOP. */
@@ -349,7 +345,8 @@ internal_cmd_end_loop (void)
 
 /* Performs transformation 1. */
 static int
-loop_1_trns_proc (struct trns_header * trns, struct ccase * c)
+loop_1_trns_proc (struct trns_header * trns, struct ccase * c,
+                  int case_num)
 {
   struct loop_1_trns *one = (struct loop_1_trns *) trns;
   struct loop_2_trns *two = one->two;
@@ -359,12 +356,12 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c)
     {
       union value t1, t2, t3;
 
-      expr_evaluate (one->init, c, &t1);
+      expr_evaluate (one->init, c, case_num, &t1);
       if (one->incr)
-	expr_evaluate (one->incr, c, &t2);
+	expr_evaluate (one->incr, c, case_num, &t2);
       else
 	t2.f = 1.0;
-      expr_evaluate (one->term, c, &t3);
+      expr_evaluate (one->term, c, case_num, &t3);
 
       /* Even if the loop is never entered, force the index variable
          to assume the initial value. */
@@ -415,7 +412,8 @@ loop_1_trns_free (struct trns_header * trns)
 
 /* Performs transformation 2. */
 static int
-loop_2_trns_proc (struct trns_header * trns, struct ccase * c)
+loop_2_trns_proc (struct trns_header * trns, struct ccase * c,
+                  int case_num UNUSED)
 {
   struct loop_2_trns *two = (struct loop_2_trns *) trns;
 
@@ -456,7 +454,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c)
 
   /* Conditional clause limiter. */
   if ((two->flags & LPC_COND)
-      && expr_evaluate (two->cond, c, NULL) != 1.0)
+      && expr_evaluate (two->cond, c, case_num, NULL) != 1.0)
     return two->loop_term;
 
   return -1;
@@ -473,13 +471,14 @@ loop_2_trns_free (struct trns_header * trns)
 
 /* Performs transformation 3. */
 static int
-loop_3_trns_proc (struct trns_header * trns, struct ccase * c)
+loop_3_trns_proc (struct trns_header * trns, struct ccase * c,
+                  int case_num)
 {
   struct loop_3_trns *thr = (struct loop_3_trns *) trns;
 
   /* Note that it breaks out of the loop if the expression is true *or
      missing*.  This is conformant. */
-  if (thr->cond && expr_evaluate (two->cond, c, NULL) != 0.0)
+  if (thr->cond && expr_evaluate (two->cond, c, case_num, NULL) != 0.0)
     return -1;
 
   return thr->loop_start;
@@ -532,7 +531,8 @@ cmd_break (void)
 }
 
 static int
-break_trns_proc (struct trns_header * trns, struct ccase * c UNUSED)
+break_trns_proc (struct trns_header * trns, struct ccase * c UNUSED,
+                 int case_num UNUSED)
 {
   return ((struct break_trns *) trns)->loop_term;
 }

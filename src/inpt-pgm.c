@@ -52,10 +52,8 @@ struct input_program_pgm
     size_t init_cnt;            /* Number of elements in inp_init. */
   };
 
-static int end_case_trns_proc (struct trns_header *, struct ccase *);
-static int end_file_trns_proc (struct trns_header * t, struct ccase * c);
-static int reread_trns_proc (struct trns_header *, struct ccase *);
-static void reread_trns_free (struct trns_header *);
+static trns_proc_func end_case_trns_proc, reread_trns_proc, end_file_trns_proc;
+static trns_free_func reread_trns_free;
 
 int
 cmd_input_program (void)
@@ -185,6 +183,12 @@ input_program_source_read (struct case_source *source,
      cases. */
   int end_case = 0;
 
+  /* FIXME?  This is the number of cases sent out of the input
+     program, not the number of cases written to the procedure.
+     The difference should only show up in $CASENUM in COMPUTE.
+     We should check behavior against SPSS. */
+  int cases_written = 0;
+
   assert (inp != NULL);
   
   /* Figure end_case. */
@@ -220,6 +224,7 @@ input_program_source_read (struct case_source *source,
 
           if (t_trns[i]->proc == end_case_trns_proc) 
             {
+              cases_written++;
               if (!write_case (wc_data))
                 return;
               clear_case (inp);
@@ -227,7 +232,7 @@ input_program_source_read (struct case_source *source,
               continue;
             }
 
-	  code = t_trns[i]->proc (t_trns[i], temp_case);
+	  code = t_trns[i]->proc (t_trns[i], temp_case, cases_written + 1);
 	  switch (code)
 	    {
 	    case -1:
@@ -276,6 +281,7 @@ input_program_source_destroy (struct case_source *source)
 const struct case_source_class input_program_source_class =
   {
     "INPUT PROGRAM",
+    NULL,
     input_program_source_read,
     input_program_source_destroy,
   };
@@ -304,7 +310,8 @@ cmd_end_case (void)
 }
 
 int
-end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED)
+end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED,
+                    int case_num UNUSED)
 {
   assert (0);
 }
@@ -387,7 +394,8 @@ cmd_reread (void)
 }
 
 static int
-reread_trns_proc (struct trns_header * pt, struct ccase * c)
+reread_trns_proc (struct trns_header * pt, struct ccase * c,
+                  int case_num)
 {
   struct reread_trns *t = (struct reread_trns *) pt;
 
@@ -397,7 +405,7 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c)
     {
       union value column;
 
-      expr_evaluate (t->column, c, &column);
+      expr_evaluate (t->column, c, case_num, &column);
       if (!finite (column.f) || column.f < 1)
 	{
 	  msg (SE, _("REREAD: Column numbers must be positive finite "
@@ -441,7 +449,8 @@ cmd_end_file (void)
 }
 
 static int
-end_file_trns_proc (struct trns_header * t UNUSED, struct ccase * c UNUSED)
+end_file_trns_proc (struct trns_header * t UNUSED, struct ccase * c UNUSED,
+                    int case_num UNUSED)
 {
 #if DEBUGGING
   printf ("END FILE\n");

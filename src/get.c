@@ -56,8 +56,8 @@ struct save_trns
 
 static int trim_dictionary (struct dictionary * dict, int *options);
 static int save_write_case_func (struct ccase *, void *);
-static int save_trns_proc (struct trns_header *, struct ccase *);
-static void save_trns_free (struct trns_header *);
+static trns_proc_func save_trns_proc;
+static trns_free_func save_trns_free;
 
 #if DEBUGGING
 void dump_dict_variables (struct dictionary *);
@@ -254,7 +254,7 @@ save_write_case_func (struct ccase * c, void *aux UNUSED)
 }
 
 static int
-save_trns_proc (struct trns_header *h, struct ccase * c)
+save_trns_proc (struct trns_header *h, struct ccase * c, int case_num UNUSED)
 {
   struct save_trns *t = (struct save_trns *) h;
   do_write_case (t, c);
@@ -500,6 +500,7 @@ get_source_read (struct case_source *source,
 const struct case_source_class get_source_class =
   {
     "GET",
+    NULL,
     get_source_read,
     get_source_destroy,
   };
@@ -1430,6 +1431,7 @@ import_source_read (struct case_source *source,
 const struct case_source_class import_source_class =
   {
     "IMPORT",
+    NULL,
     import_source_read,
     get_source_destroy,
   };

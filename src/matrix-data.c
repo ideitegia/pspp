@@ -2023,6 +2023,7 @@ wr_read_indeps (struct matrix_data_pgm *mx)
 static const struct case_source_class matrix_data_with_rowtype_source_class = 
   {
     "MATRIX DATA",
+    NULL,
     matrix_data_read_with_rowtype,
     NULL,
   };
@@ -2031,6 +2032,7 @@ static const struct case_source_class
 matrix_data_without_rowtype_source_class =
   {
     "MATRIX DATA",
+    NULL,
     matrix_data_read_without_rowtype,
     NULL,
   };

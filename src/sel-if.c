@@ -33,8 +33,8 @@ struct select_if_trns
     struct expression *e;	/* Test expression. */
   };
 
-static int select_if_proc (struct trns_header *, struct ccase *);
-static void select_if_free (struct trns_header *);
+static trns_proc_func select_if_proc;
+static trns_free_func select_if_free;
 
 /* Parses the SELECT IF transformation. */
 int
@@ -68,9 +68,11 @@ cmd_select_if (void)
 
 /* Performs the SELECT IF transformation T on case C. */
 static int
-select_if_proc (struct trns_header * t, struct ccase * c)
+select_if_proc (struct trns_header * t, struct ccase * c,
+                int case_num)
 {
-  return (expr_evaluate (((struct select_if_trns *) t)->e, c, NULL) == 1.0) - 2;
+  return (expr_evaluate (((struct select_if_trns *) t)->e, c,
+                         case_num, NULL) == 1.0) - 2;
 }
 
 /* Frees SELECT IF transformation T. */

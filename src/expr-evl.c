@@ -51,7 +51,8 @@
 #include "vfmP.h"
 
 double
-expr_evaluate (struct expression *e, struct ccase *c, union value *v)
+expr_evaluate (struct expression *e, struct ccase *c, int case_num,
+               union value *v)
 {
   unsigned char *op = e->op;
   double *dbl = e->num;
@@ -1275,7 +1276,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	  break;
 	case OP_CASENUM:
 	  sp++;
-	  sp->f = vfm_sink_info.ncases + 1;
+	  sp->f = case_num;
 	  break;
 
 	case OP_SENTINEL:

@@ -95,8 +95,8 @@ static void dump_fixed_table (const struct dls_var_spec *specs,
                               const struct file_handle *handle, int nrec);
 static void dump_free_table (const struct data_list_pgm *);
 static void destroy_dls_var_spec (struct dls_var_spec *);
-static void destroy_dls (struct trns_header *);
-static int read_one_case (struct trns_header *, struct ccase *);
+static trns_free_func destroy_dls;
+static trns_proc_func read_one_case;
 
 /* Message title for REPEATING DATA. */
 #define RPD_ERR "REPEATING DATA: "
@@ -1175,7 +1175,8 @@ destroy_dls (struct trns_header *pgm)
 /* Note that since this is exclusively an input program, C is
    guaranteed to be temp_case. */
 static int
-read_one_case (struct trns_header *t, struct ccase *c UNUSED)
+read_one_case (struct trns_header *t, struct ccase *c UNUSED,
+               int case_num UNUSED)
 {
   struct data_list_pgm *dls = (struct data_list_pgm *) t;
   data_list_read_func *read_func;
@@ -1250,6 +1251,7 @@ data_list_source_destroy (struct case_source *source)
 const struct case_source_class data_list_source_class = 
   {
     "DATA LIST",
+    NULL,
     data_list_source_read,
     data_list_source_destroy,
   };
@@ -1287,8 +1289,7 @@ struct repeating_data_trns
     write_case_data wc_data;
   };
 
-int repeating_data_trns_proc (struct trns_header *, struct ccase *);
-void repeating_data_trns_free (struct trns_header *);
+static trns_free_func repeating_data_trns_free;
 static int parse_num_or_var (struct rpd_num_or_var *, const char *);
 static int parse_repeating_data (struct dls_var_spec **,
                                  struct dls_var_spec **);
@@ -1830,7 +1831,8 @@ rpd_parse_record (const struct rpd_parse_info *info)
    elements in the REPEATING DATA structure.  Returns -1 on success,
    -2 on end of file or on failure. */
 int
-repeating_data_trns_proc (struct trns_header *trns, struct ccase *c)
+repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
+                          int case_num UNUSED)
 {
   struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
     

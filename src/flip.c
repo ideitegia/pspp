@@ -520,6 +520,7 @@ flip_source_destroy (struct case_source *source)
 static const struct case_source_class flip_source_class = 
   {
     "FLIP",
+    NULL,
     flip_source_read,
     flip_source_destroy
   };

@@ -476,7 +476,8 @@ dump_z_table (void)
 
 /* Transformation function to calculate Z-scores. */
 static int
-descriptives_trns_proc (struct trns_header * trns, struct ccase * c)
+descriptives_trns_proc (struct trns_header * trns, struct ccase * c,
+                        int case_num UNUSED)
 {
   struct descriptives_trns *t = (struct descriptives_trns *) trns;
   struct dsc_z_score *z;

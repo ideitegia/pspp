@@ -1,3 +1,104 @@
+Wed Mar  3 09:30:09 2004  Ben Pfaff  <blp@gnu.org>
+
+	* main.c: (main) sigaction()'s sa_flags member was uninitialized.
+	Just use signal() instead.
+
+Wed Mar  3 09:26:30 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of vfm_sink_info and vfm_source_info.
+	
+	* aggregate.c: (agr_00x_end_func) Don't increment
+	sfm_sink_info.ncases.
+
+	* sort.c: (do_internal_sort) Get case count from
+	vfm_source->class->count().
+	(struct external_sort) Add `case_size' member.
+	(do_external_sort) Initialize case_size.
+	(struct initial_run_state) Add `case_size' member.
+	(write_initial_runs) Initialize case_size.
+	(sort_sink_write) Use case_size.
+	(read_external_sort_output) Use case_size.  Get case_cnt from
+	initial_runs.
+
+	* vfm.c: (struct write_case_data) Add underscores to existing arg
+	names, all references updated.  Renamed `aux' as `func_aux', all
+	references updated.  Added new `aux' member.
+	(global var vfm_source_info) Removed.
+	(global var vfm_sink_info) Removed.
+	(struct procedure_aux_data) New.
+	(struct split_aux_data) New.
+	(procedure) Use `aux' fields for procedure_aux_data,
+	split_aux_data.
+	(process_active_file_write_case) Pass case_count + 1 to
+	transformation procedures, exclude_this_case().
+	(process_active_file_output_case) Don't increment
+	vfm_sink_info.ncases.
+	(prepare_for_writing) Don't initialize vfm_sink_info.  Don't try
+	to send data to disk early.
+	(make_temp_case) Don't use vfm_sink_info.case_size.
+	(close_active_file) Don't initialize vfm_source_info.
+	(struct disk_stream_info) New, to allow for case_cnt and case_size fields.
+	(disk_sink_create) Initialize and/or update disk_stream_info.
+	(disk_sink_write) Ditto.
+	(disk_sink_destroy) Ditto.
+	(disk_sink_make_source) Ditto.
+	(disk_source_read) Ditto.
+	(disk_source_destroy) Ditto.
+	(global var disk_source_class) Add disk_source_count().
+	(disk_source_count) New function.
+	(struct memory_sink_info) Add `case_cnt', `case_size' members.
+	(struct memory_source_info) Ditto.
+	(memory_sink_create) Deal with case_cnt, case_size.
+	(memory_sink_write) Ditto.
+	(memory_sink_make_source) Ditto.
+	(memory_source_read) Ditto.
+	(memory_source_count) New function.
+	(memory_source_class) Add memory_source_count().
+	(procedure_write_case) Don't use vfm_sink_info.ncases.  Do use
+	proc_aux->cases_written, and pass it to transformation procedures
+	and exclude_this_case ().
+	(exclude_this_case) Add case_num parameter.  Pass it to
+	expr_evaluate().
+	(SPLIT_FILE_procfunc) Use split_aux->prev_case instead of static
+	variable.
+
+	* vfm.h: (struct case_source_class) Add `count' member.
+
+	* vfmP.h: (struct stream_info) Removed.
+	(global variable vfm_source_info) Removed.
+	(global variable vfm_sink_info) Removed.
+	
+Tue Mar  2 23:38:17 2004  Ben Pfaff  <blp@gnu.org>
+
+	* var.h: (typedef trns_proc_func) New typedef.
+	(trns_free_func) New typedef.
+	(struct trns_header) Change `proc' to type trns_proc_func, `free'
+	to type trns_free_func.  This only changes the actual type of
+	trns_proc_func, adding a `case_num' parameter.  Updated all
+	implementations to use the typedefs instead.
+
+	* compute.c: (compute_num) Pass case_num to expr_evaluate().
+	(compute_num_vec) Ditto.
+	(compute_str) Ditto.
+	(compute_str_vec) Ditto.
+
+	* do-if.c: (do_if_trns_proc) Ditto.
+
+	* expr-evl.c: (expr_evaluate) Add new case_num parameter, use for
+	OP_CASENUM.
+
+	* inpt-pgm.c: (input_program_source_read) Maintain case count,
+	pass to transformation functions.
+	(reread_trns_proc) Pass case_num arg to expr_evaluate().
+
+	* loop.c: (loop_1_trns_proc) Ditto.
+	(loop_2_trns_proc) Ditto.
+	(loop_3_trns_proc) Ditto.
+
+	* print.c: (print_space_trns_proc) Ditto.
+
+	* sel-if.c: (select_if_proc) Ditto.
+
 Tue Mar  2 11:36:52 2004  Ben Pfaff  <blp@gnu.org>
 
 	* frequencies.q: (cleanup_freq_tab) Avoid memory leak by

@@ -144,10 +144,9 @@ static void free_aggregate_functions (void);
 static int aggregate_single_case (struct ccase *input, struct ccase *output);
 static int create_sysfile (void);
 
-static int agr_00x_trns_proc (struct trns_header *, struct ccase *);
-static void agr_00x_end_func (void *);
-static int agr_10x_trns_proc (struct trns_header *, struct ccase *);
-static void agr_10x_trns_free (struct trns_header *);
+static trns_proc_func agr_00x_trns_proc, agr_10x_trns_proc;
+static trns_free_func agr_10x_trns_free;
+static void agr_00x_end_func (void *aux);
 static void agr_10x_end_func (void *);
 static int agr_11x_func (write_case_data);
 
@@ -1196,7 +1195,8 @@ initialize_aggregate_info (void)
 /* Aggregate each case as it comes through.  Cases which aren't needed
    are dropped. */
 static int
-agr_00x_trns_proc (struct trns_header *h UNUSED, struct ccase *c)
+agr_00x_trns_proc (struct trns_header *h UNUSED, struct ccase *c,
+                   int case_num UNUSED)
 {
   int code = aggregate_single_case (c, compaction_case);
   debug_printf (("%d ", code));
@@ -1213,7 +1213,6 @@ agr_00x_end_func (void *aux UNUSED)
   /* Ensure that info for the last break group gets written to the
      active file. */
   dump_aggregate_info (compaction_case);
-  vfm_sink_info.ncases++;
   vfm_sink->class->write (vfm_sink, temp_case);
 }
 
@@ -1253,7 +1252,8 @@ write_case_to_sfm (void)
 /* Aggregate the current case and output it if we passed a
    breakpoint. */
 static int
-agr_10x_trns_proc (struct trns_header *h UNUSED, struct ccase *c)
+agr_10x_trns_proc (struct trns_header *h UNUSED, struct ccase *c,
+                   int case_num UNUSED)
 {
   int code = aggregate_single_case (c, buf_1xx);
 

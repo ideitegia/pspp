@@ -105,26 +105,28 @@ cmd_compute (void)
 /* Transformation functions. */
 
 static int
-compute_num (struct trns_header *compute_, struct ccase *c)
+compute_num (struct trns_header *compute_, struct ccase *c,
+             int case_num)
 {
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, NULL) == 1.0) 
+      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
     {
-      expr_evaluate (compute->rvalue, c, &c->data[compute->fv]); 
+      expr_evaluate (compute->rvalue, c, case_num, &c->data[compute->fv]); 
     }
   
   return -1;
 }
 
 static int
-compute_num_vec (struct trns_header *compute_, struct ccase *c)
+compute_num_vec (struct trns_header *compute_, struct ccase *c,
+                 int case_num)
 {
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, NULL) == 1.0) 
+      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
     {
       /* Index into the vector. */
       union value index;
@@ -132,7 +134,7 @@ compute_num_vec (struct trns_header *compute_, struct ccase *c)
       /* Rounded index value. */
       int rindx;
 
-      expr_evaluate (compute->element, c, &index);
+      expr_evaluate (compute->element, c, case_num, &index);
       rindx = floor (index.f + EPSILON);
       if (index.f == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
         {
@@ -145,7 +147,7 @@ compute_num_vec (struct trns_header *compute_, struct ccase *c)
                  index.f, compute->vector->name);
           return -1;
         }
-      expr_evaluate (compute->rvalue, c,
+      expr_evaluate (compute->rvalue, c, case_num,
                      &c->data[compute->vector->var[rindx - 1]->fv]); 
     }
   
@@ -153,17 +155,18 @@ compute_num_vec (struct trns_header *compute_, struct ccase *c)
 }
 
 static int
-compute_str (struct trns_header *compute_, struct ccase *c)
+compute_str (struct trns_header *compute_, struct ccase *c,
+             int case_num)
 {
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, NULL) == 1.0) 
+      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
     {
       /* Temporary storage for string expression return value. */
       union value v;
 
-      expr_evaluate (compute->rvalue, c, &v);
+      expr_evaluate (compute->rvalue, c, case_num, &v);
       st_bare_pad_len_copy (c->data[compute->fv].s, &v.c[1], compute->width,
                             v.c[0]); 
     }
@@ -172,12 +175,13 @@ compute_str (struct trns_header *compute_, struct ccase *c)
 }
 
 static int
-compute_str_vec (struct trns_header *compute_, struct ccase *c)
+compute_str_vec (struct trns_header *compute_, struct ccase *c,
+                 int case_num)
 {
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, NULL) == 1.0) 
+      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
     {
       /* Temporary storage for string expression return value. */
       union value v;
@@ -191,7 +195,7 @@ compute_str_vec (struct trns_header *compute_, struct ccase *c)
       /* Variable reference by indexed vector. */
       struct variable *vr;
 
-      expr_evaluate (compute->element, c, &index);
+      expr_evaluate (compute->element, c, case_num, &index);
       rindx = floor (index.f + EPSILON);
       if (index.f == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
         {
@@ -206,7 +210,7 @@ compute_str_vec (struct trns_header *compute_, struct ccase *c)
           return -1;
         }
 
-      expr_evaluate (compute->rvalue, c, &v);
+      expr_evaluate (compute->rvalue, c, case_num, &v);
       vr = compute->vector->var[rindx - 1];
       st_bare_pad_len_copy (c->data[vr->fv].s, &v.c[1], vr->width, v.c[0]); 
     }

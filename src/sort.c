@@ -216,11 +216,11 @@ do_internal_sort (struct sort_cases_pgm *scp, int separate)
 	{
           struct case_list *case_list;
           struct case_list **case_array;
-          size_t case_cnt;
+          int case_cnt;
           int i;
 
-          case_cnt = vfm_source_info.ncases;
-	  if (case_cnt == 0)
+          case_cnt = vfm_source->class->count (vfm_source);
+	  if (case_cnt <= 0)
             return isrt;
 
           if (case_cnt > set_max_workspace / sizeof *case_array)
@@ -327,6 +327,7 @@ struct external_sort
     size_t run_cnt, run_cap;          /* Number of runs, allocated capacity. */
     char *temp_dir;                   /* Temporary file directory name. */
     int next_file_idx;                /* Lowest unused file index. */
+    size_t case_size;                 /* Number of bytes in case. */
   };
 
 /* Prototypes for helper functions. */
@@ -350,6 +351,7 @@ do_external_sort (struct sort_cases_pgm *scp, int separate)
 
   xsrt = xmalloc (sizeof *xsrt);
   xsrt->scp = scp;
+  xsrt->case_size = sizeof (union value) * compaction_nval;
   if (!init_external_sort (xsrt))
     goto done;
   if (!write_initial_runs (xsrt, separate))
@@ -614,6 +616,7 @@ struct initial_run_state
     /* Run currently being output. */
     int file_idx;               /* Temporary file number. */
     size_t case_cnt;            /* Number of cases so far. */
+    size_t case_size;           /* Number of bytes in a case. */
     FILE *output_file;          /* Output file. */
     struct case_list *last_output;/* Record last output. */
 
@@ -648,6 +651,7 @@ write_initial_runs (struct external_sort *xsrt, int separate)
   irs->last_output = NULL;
   irs->file_idx = 0;
   irs->case_cnt = 0;
+  irs->case_size = dict_get_case_size (default_dict);
   irs->okay = 1;
   if (!allocate_cases (irs)) 
     goto done;
@@ -690,7 +694,7 @@ sort_sink_write (struct case_sink *sink, struct ccase *c)
   assert (irs->record_cnt < irs->record_cap);
   new_record_run = irs->records + irs->record_cnt++;
   new_record_run->record = grab_case (irs);
-  memcpy (new_record_run->record->c.data, c->data, vfm_sink_info.case_size);
+  memcpy (new_record_run->record->c.data, c->data, irs->case_size);
   new_record_run->run = irs->file_idx;
   if (irs->last_output != NULL
       && compare_record (c->data, irs->last_output->c.data,
@@ -1308,7 +1312,7 @@ read_external_sort_output (struct external_sort *xsrt,
 {
   FILE *file;
   int file_idx;
-  int i;
+  size_t i;
 
   assert (xsrt->run_cnt == 1);
   file_idx = xsrt->initial_runs[0].file_idx;
@@ -1320,10 +1324,10 @@ read_external_sort_output (struct external_sort *xsrt,
       return;
     }
 
-  for (i = 0; i < vfm_source_info.ncases; i++)
+  for (i = 0; i < xsrt->initial_runs[0].case_cnt; i++)
     {
       if (!read_temp_file (xsrt, file_idx, file,
-                          temp_case, vfm_source_info.case_size))
+                          temp_case, xsrt->case_size))
 	{
           err_failure ();
           break;
@@ -1345,6 +1349,7 @@ sort_source_destroy (struct case_source *source)
 const struct case_source_class sort_source_class =
   {
     "SORT CASES",
+    NULL, /* FIXME */
     sort_source_read,
     sort_source_destroy,
   };

@@ -46,6 +46,10 @@ struct case_source_class
   {
     const char *name;                   /* Identifying name. */
     
+    /* Returns the exact number of cases that READ will pass to
+       WRITE_CASE, if known, or -1 otherwise. */
+    int (*count) (const struct case_source *);
+
     /* Reads all the cases and calls WRITE_CASE passing the given
        AUX data for each one. */
     void (*read) (struct case_source *, write_case_func *, write_case_data);

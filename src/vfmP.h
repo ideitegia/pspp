@@ -22,26 +22,11 @@
 
 #include "var.h"
 
-/* Describes a data stream, either a source or a sink. */
-struct stream_info
-  {
-    int case_size;		/* Size of one case in bytes. */
-    int ncases;			/* Number of cases. */
-    int nval;			/* Number of `value' elements per case. */
-  };
-
-/* Information about the data source. */
-extern struct stream_info vfm_source_info;
-
-/* Information about the data sink. */
-extern struct stream_info vfm_sink_info;
-
 /* Nonzero if the case needs to have values deleted before being
    stored, zero otherwise. */
 extern int compaction_necessary;
 
-/* Number of values after compaction, or the same as
-   vfm_sink_info.nval, if compaction is not necessary. */
+/* Number of values after compaction. */
 extern int compaction_nval;
 
 /* Temporary case buffer with enough room for `compaction_nval'

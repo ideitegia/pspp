@@ -1,5 +1,5 @@
-#ifndef SORT_ALGO_H
-#define SORT_ALGO_H 1
+#ifndef ALGORITHM_H
+#define ALGORITHM_H 1
 
 #include <stddef.h>
 
@@ -190,4 +190,4 @@ int is_heap (const void *array, size_t count, size_t size,
              algo_compare_func *compare, void *aux);
 
 
-#endif /* sort-algo.h */
+#endif /* algorithm.h */

@@ -60,10 +60,7 @@ int start_interactive;
 int
 main (int argc, char **argv)
 {
-  struct sigaction bug ;
-  bug.sa_handler = bug_handler;
-
-  sigaction(SIGSEGV, &bug,0);
+  signal (SIGSEGV, bug_handler);
 
   /* Initialization. */
   if (!outp_init ())
