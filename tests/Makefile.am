@@ -70,6 +70,7 @@ TESTS = \
 	bugs/val-labs-trailing-slash.sh \
 	bugs/recode-copy-bug.sh \
 	bugs/computebug.sh \
+	bugs/temp-freq.sh \
 	xforms/casefile.sh \
 	stats/descript-basic.sh \
 	stats/descript-missing.sh \

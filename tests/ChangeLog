@@ -1,3 +1,7 @@
+Sat Mar 12 13:16:34 2005  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/temp-freq.sh: Add another test.
+
 Fri Mar 11 10:40:41 2005  Ben Pfaff  <blp@gnu.org>
 
 	* expressions/expressions.sh: Add another test.

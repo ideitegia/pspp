@@ -783,10 +783,12 @@ procedure_with_splits (void (*begin_func) (void *aux),
   split_aux.end_func = end_func;
   split_aux.func_aux = func_aux;
 
-  procedure (procedure_with_splits_callback, &split_aux);
-
+  open_active_file ();
+  internal_procedure (procedure_with_splits_callback, &split_aux);
   if (split_aux.case_count > 0 && end_func != NULL)
     end_func (func_aux);
+  close_active_file ();
+
   case_destroy (&split_aux.prev_case);
 }
 
