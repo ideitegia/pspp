@@ -37,7 +37,7 @@ pspp_SOURCES = $(q_sources_c) \
 aggregate.c algorithm.c algorithm.h alloc.c alloc.h	\
 apply-dict.c ascii.c autorecode.c bitvector.h	\
 cmdline.c cmdline.h command.c command.def command.h compute.c		\
-count.c data-in.c data-in.h data-list.c	\
+count.c data-in.c data-in.h data-list.c	data-list.h \
 data-out.c debug-print.h devind.c devind.h dfm.c dfm.h	\
 dictionary.c do-if.c do-ifP.h error.c error.h expr-evl.c expr-opt.c	\
 expr-prs.c expr.h exprP.h file-handle.h file-type.c	\
@@ -52,7 +52,7 @@ pool.c pool.h postscript.c print.c random.c random.h recode.c		\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c  settings.h	\
 sfm-read.c sfm-write.c sfm.h sfmP.h som.c som.h sort.c sort.h		\
 split-file.c stat.h stats.c stats.h str.c str.h sysfile-info.c tab.c	\
-tab.h temporary.c title.c t-test.h val-labs.c value-labels.c		\
+tab.h temporary.c title.c t-test.h val.h val-labs.c value-labels.c	\
 value-labels.h var-labs.c var.h vars-atr.c vars-prs.c vector.c		\
 version.c version.h vfm.c vfm.h vfmP.h weight.c 
 

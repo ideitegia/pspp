@@ -1,4 +1,4 @@
-Makefile po/Makefile.in: Makefile.in configure install-sh config.h.in po/Makefile.in.in
+Makefile po/Makefile.in: Makefile.in configure install-sh config.h.in po/Makefile.in.in po/POTFILES.in
 	./configure
 
 configure:  configure.ac aclocal.m4
@@ -10,6 +10,11 @@ config.h.in: configure.ac
 aclocal.m4:
 	aclocal -I m4
 
+.PHONY: po/POTFILES.in
+po/POTFILES.in: 
+	@$(RM) po/potfile-temp
+	ls -1 src/*.[cq] > po/potfile-temp
+	@if ( ! test -e $@ ) || ( ! diff  -q po/potfile-temp $@ ) ; then  mv po/potfile-temp $@ ; else $(RM) po/potfile-temp ; fi
 
 install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in ABOUT-NLS
 	automake --add-missing
@@ -45,6 +50,7 @@ clean:
 	po/Makefile.in \
 	po/Makefile.in.in \
 	po/POTFILES \
+	po/POTFILES.in \
 	po/Rules-quot \
 	po/boldquot.sed \
 	po/cat-id-tbl.c \
