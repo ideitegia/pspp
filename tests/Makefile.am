@@ -35,6 +35,7 @@ TESTS = \
 	command/t-test-paired-missing-anal.sh \
 	command/t-test-paired-missing-list.sh \
 	command/t-test-pairs.sh \
+	command/trimmed-mean.sh \
 	command/tabs.sh \
 	command/use.sh \
 	command/weight.sh \
@@ -45,6 +46,7 @@ TESTS = \
 	bugs/data-crash.sh \
 	bugs/double-frequency.sh \
 	bugs/get.sh \
+	bugs/examine-1sample.sh \
 	bugs/html-frequency.sh \
 	bugs/multipass.sh \
 	bugs/random.sh \

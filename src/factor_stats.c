@@ -144,19 +144,25 @@ metrics_postcalc(struct metrics *m)
   m->wvp = (struct weighted_value **) hsh_sort(m->ordered_data);
   m->n_data = hsh_count(m->ordered_data);
 
-  if ( m->n_data == 0 ) 
+  m->histogram = histogram_create(10, m->min, m->max);
+
+  for ( i = 0 ; i < m->n_data ; ++i ) 
+    {
+      struct weighted_value **wv = (m->wvp) ;
+      gsl_histogram_accumulate(m->histogram, wv[i]->v.f, wv[i]->w);
+    }
+
+
+  /* Trimmed mean calculation */
+  if ( m->n_data <= 1 ) 
     {
       m->trimmed_mean = m->mean;
       return;
     }
 
-
-  /* Trimmed mean calculation */
-
   tc = m->n * 0.05 ;
   k1 = -1;
   k2 = -1;
-
 
   for ( i = 0 ; i < m->n_data ; ++i ) 
     {
@@ -179,6 +185,12 @@ metrics_postcalc(struct metrics *m)
 	k2 = i;
     }
 
+  /* Special case here */
+  if ( k1 + 1 == k2 ) 
+    {
+      m->trimmed_mean = m->wvp[k2]->v.f;
+      return;
+    }
 
   m->trimmed_mean = 0;
   for ( i = k1 + 2 ; i <= k2 - 1 ; ++i ) 
@@ -190,14 +202,6 @@ metrics_postcalc(struct metrics *m)
   m->trimmed_mean += (m->n - m->wvp[k2 - 1]->cc - tc) * m->wvp[k2]->v.f ;
   m->trimmed_mean += (m->wvp[k1 + 1]->cc - tc) * m->wvp[k1 + 1]->v.f ;
   m->trimmed_mean /= 0.9 * m->n ;
-
-  m->histogram = histogram_create(10, m->min, m->max);
-
-  for ( i = 0 ; i < m->n_data ; ++i ) 
-    {
-      struct weighted_value **wv = (m->wvp) ;
-      gsl_histogram_accumulate(m->histogram, wv[i]->v.f, wv[i]->w);
-    }
 
 }
 
