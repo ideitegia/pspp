@@ -1,7 +1,14 @@
-Time-stamp: <2004-03-14 22:12:02 blp>
+Time-stamp: <2004-03-20 10:33:19 blp>
 
 TODO
 ----
+
+Write DATE, USE.
+
+There needs to be another layer onto the lexer, which should probably be
+entirely rewritten anyway.  The lexer needs to read entire *commands* at a
+time, not just a *line* at a time.  It also needs to support arbitrary putback,
+probably by just backing up the "current position" in the command buffer.
 
 Scratch variables should not be available for use following TEMPORARY.
 
@@ -70,11 +77,6 @@ See if process_active_file() has wider applicability.
 Eliminate private data in struct variable through use of pointers.
 
 Fix som_columns().
-
-There needs to be another layer onto the lexer, which should probably be
-entirely rewritten anyway.  The lexer needs to read entire *commands* at a
-time, not just a *line* at a time.  This would vastly simplify the
-(yet-to-be-implemented) logging mechanism and other stuff as well.
 
 Has glob.c been pared down enough?
 
