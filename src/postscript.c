@@ -811,10 +811,6 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 	  }
       }
       break;
-#if __CHECKER__
-    case 42000:
-      assert (0);
-#endif
     default:
       assert (0);
     }
@@ -2745,9 +2741,6 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
 	    }
 
 	  x += kern_amt;
-#if __CHECKER__
-	  memset (buf_loc, 0, sizeof *buf_loc);
-#endif
 	  buf_loc->font = ext->current;
 	  buf_loc->size = ext->size;
 	  buf_loc->x = x;

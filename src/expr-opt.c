@@ -884,12 +884,6 @@ evaluate_tree (struct nonterm_node * n)
 	}
       rnc (n0);
       break;
-
-#if __CHECKER__
-      /* This case prevents Checker from choking. */
-    case 42000:
-      assert (0);
-#endif
     }
   return n;
 }

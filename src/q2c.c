@@ -163,13 +163,7 @@ xmalloc (size_t size)
   
   vp = malloc (size);
   if (!vp)
-    {
-#if DEBUGGING && __CHECKER__
-      error ("xmalloc(%lu): Inducing segfault.", (unsigned long) size);
-      *((int *) 0) = 0;
-#endif
-      fail ("xmalloc(%lu): %s", (unsigned long) size, VME);
-    }
+    fail ("xmalloc(%lu): %s", (unsigned long) size, VME);
   
   return vp;
 }

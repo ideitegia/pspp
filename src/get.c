@@ -1253,11 +1253,6 @@ mtf_processing (struct ccase *c unused)
 		  assert (v->type == ALPHA);
 		  memcpy (compaction_case->data[v->p.mtf.master->fv].s,
 			  iter->input[v->fv].s, v->width);
-#if __CHECKER__
-		  memset (&compaction_case
-			  ->data[v->p.mtf.master->fv].s[v->width],
-			  0, REM_RND_UP (v->width, MAX_SHORT_STRING));
-#endif
 		}
 	    }
 	}
@@ -1286,15 +1281,8 @@ mtf_processing (struct ccase *c unused)
 	      if (v->type == NUMERIC)
 		compaction_case->data[v->p.mtf.master->fv].f = SYSMIS;
 	      else
-		{
-		  memset (compaction_case->data[v->p.mtf.master->fv].s, ' ',
-			  v->width);
-#if __CHECKER__
-		  memset (&compaction_case
-			  ->data[v->p.mtf.master->fv].s[v->width],
-			  0, REM_RND_UP (v->width, MAX_SHORT_STRING));
-#endif
-		}
+                memset (compaction_case->data[v->p.mtf.master->fv].s, ' ',
+                        v->width);
 	    }
 
 	  if (iter->handle == NULL)

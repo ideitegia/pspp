@@ -62,10 +62,6 @@ cmd_missing_values (void)
   lex_match_id ("VALUES");
   while (token != '.')
     {
-#if __CHECKER__
-      memset (missing, 0, sizeof missing);
-#endif
-
       if (!parse_varnames ())
 	goto fail;
 

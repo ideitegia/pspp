@@ -405,11 +405,6 @@ internal_cmd_record_type (void)
   rct.ft = n_trns;
   if (fty.case_sbc.name[0])
     rct.case_sbc = fty.case_sbc;
-#if __CHECKER__
-  else
-    memset (&rct.case_sbc, 0, sizeof rct.case_sbc);
-  rct.lt = -1;
-#endif
 
   /* Make sure we're inside a FILE TYPE structure. */
   if (pgm_state != STATE_INPUT || vfm_source != &file_type_source)

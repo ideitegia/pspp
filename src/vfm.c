@@ -358,23 +358,6 @@ make_temp_case (void)
   if (compaction_necessary)
     compaction_case = xmalloc (sizeof (struct ccase)
 			       + sizeof (union value) * (compaction_nval - 1));
-  
-#if __CHECKER__
-  /* Initialize the unused trailing parts of string variables to avoid
-     spurious warnings from Checker. */
-  {
-    int i;
-    
-    for (i = 0; i < default_dict.nvar; i++)
-      {
-	struct variable *v = default_dict.var[i];
-      
-	if (v->type == ALPHA && v->width % 8 != 0)
-	  memcpy (&temp_case->data[v->fv + v->nv - 1]
-		  .s[v->width % 8], _("!ERROR!"), 8 - v->width % 8);
-      }
-  }
-#endif
 }
 
 #if DEBUGGING

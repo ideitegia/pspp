@@ -1,3 +1,7 @@
+Fri Dec 12 13:31:58 2003  Ben Pfaff  <blp@gnu.org>
+
+	* All source files: Get rid of nasty special cases for Checker,
+	which is pretty obsolete now.
 
 Thu Dec 11 21:38:24 WST 2003 John Darrington <john@darrington.wattle.id.au>
 

@@ -330,9 +330,6 @@ autorecode_proc_func (struct ccase * c)
 	  if (NULL == *vpp)
 	    {
 	      vp = pool_alloc (hash_pool, sizeof (union value));
-#if __CHECKER__
-	      memset (vp, 0, sizeof (union value));
-#endif
 	      vp->c = pool_strdup (hash_pool, v.c);
 	      *vpp = vp;
 	    }

@@ -276,10 +276,6 @@ append_var_spec (struct dls_var_spec *spec)
   else
     next = next->next = xmalloc (sizeof *spec);
 
-#if __CHECKER__
-  spec->type = ROUND_UP (spec->type, 8);
-#endif
-
   memcpy (next, spec, sizeof *spec);
   next->next = NULL;
 }
@@ -783,9 +779,6 @@ parse_free (void)
   int i;
   int type;
 
-#if __CHECKER__
-  memset (&spec, 0, sizeof spec);
-#endif
   lex_get ();
   while (token != '.')
     {
@@ -1034,9 +1027,6 @@ do_reading (int flag)
 	    break;
 	  }
       fh_close_handle (dlsp->handle);
-#if __CHECKER__
-      code = 0;			/* prevent error at `return code;' */
-#endif
     }
   dfm_pop (dlsp->handle);
 

@@ -259,16 +259,6 @@ restore_dictionary (struct dictionary * d)
   free (default_dict.documents);
 
   /* 2. Copy dictionary D into the active file dictionary. */
-#if __CHECKER__
-  {
-    size_t offset;
-    
-    offset = offsetof (struct dictionary, filter_var) + sizeof d->filter_var;
-    strncpy (d->weight_var, d->weight_var, 9);
-    strncpy (d->filter_var, d->filter_var, 9);
-    memset (&((char *) d)[offset], '*', sizeof *d - offset);
-  }
-#endif
   default_dict = *d;
   if (!default_dict.var_by_name)
     {

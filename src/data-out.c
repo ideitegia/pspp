@@ -751,10 +751,6 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
 	  }
       }
       break;
-#if __CHECKER__
-    case 42000:
-      assert (0);
-#endif
     default:
       assert (0);
     }

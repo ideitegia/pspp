@@ -173,9 +173,6 @@ get_label (void)
 
       /* Allocate label. */
       label = xmalloc (sizeof *label);
-#if __CHECKER__
-      memset (&label->v, 0, sizeof label->v);
-#endif
       label->ref_count = nv;
 
       /* Set label->v. */

@@ -1352,12 +1352,6 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	case OP_SENTINEL:
 	  goto finished;
 
-#if __CHECKER__
-	  /* This case prevents Checker from choking. */
-	case 42000:
-	  assert (0);
-#endif
-
 	default:
 #if GLOBAL_DEBUGGING
 	  printf (_("evaluate_expression(): not implemented: %s\n"),

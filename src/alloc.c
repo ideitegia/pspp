@@ -112,11 +112,6 @@ xstrdup (const char *s)
 static void
 out_of_memory (void)
 {
-#if __CHECKER__
-  fprintf (stderr, "Out of memory: inducing segfault\n");
-  *((int *) 0) = 0;
-#else
   fprintf (stderr, "virtual memory exhausted\n");
   exit (EXIT_FAILURE);
-#endif
 }

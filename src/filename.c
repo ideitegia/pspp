@@ -373,16 +373,10 @@ fn_normalize (const char *filename)
   else
     {
       errno = 0;
-#if __CHECKER__
-      memset (dest, 0, maxlen);
-#endif
       while (getcwd (dest, maxlen - (dest - fn2)) == NULL && errno == ERANGE)
 	{
 	  maxlen *= 2;
 	  dest = fn2 = xrealloc (fn2, maxlen + 1);
-#if __CHECKER__
-	  memset (dest, 0, maxlen);
-#endif
 	  errno = 0;
 	}
       if (errno)

@@ -574,11 +574,6 @@ parse_A (struct data_in *i)
       memset (i->v->s + len, ' ', i->format.w - len);
     }
 
-#if __CHECKER__
-  memset (i->v->s + i->format.w, '%',
-	  REM_RND_UP (i->format.w, MAX_SHORT_STRING));
-#endif
-  
   return 1;
 }
 
@@ -613,11 +608,6 @@ parse_AHEX (struct data_in *i)
     memset (i->v->s + (i->e - i->s) / 2, ' ', (i->format.w - (i->e - i->s)) / 2);
   }
   
-#if __CHECKER__
-  memset (i->v->s + i->format.w / 2, '%',
-	  REM_RND_UP (i->format.w / 2, MAX_SHORT_STRING));
-#endif
-
   return 1;
 }
 
@@ -1497,13 +1487,7 @@ default_result (struct data_in *i)
 
   /* Default to SYSMIS or blanks. */
   if (fmt->cat & FCAT_STRING)
-    {
-#if __CHECKER__
-      memset (i->v->s, ' ', ROUND_UP (i->format.w, MAX_SHORT_STRING));
-#else
-      memset (i->v->s, ' ', i->format.w);
-#endif
-    }
+    memset (i->v->s, ' ', i->format.w);
   else
     i->v->f = set_blanks;
 }

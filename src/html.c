@@ -174,10 +174,6 @@ html_option (struct outp_driver *this, const char *key, const struct string *val
 	*dest = xstrdup (ds_value (val));
       }
       break;
-#if __CHECKER__
-    case 42000:
-      assert (0);
-#endif
     default:
       assert (0);
     }

@@ -124,7 +124,7 @@ int logging;
 
 static void get_date (void);
 
-#if HAVE_LIBTERMCAP && !__CHECKER__
+#if HAVE_LIBTERMCAP
 static char *term_buffer;
 #endif
 
@@ -273,20 +273,11 @@ init_glob (int argc unused, char **argv)
     int success;
 
     /* This code stolen from termcap.info, though modified. */
-#if !__CHECKER__
-    term_buffer = xmalloc (2048);
-#endif
-
     termtype = getenv ("TERM");
     if (!termtype)
       msg (FE, _("Specify a terminal type with `setenv TERM <yourtype>'."));
 
-#if __CHECKER__
-    success = tgetent (NULL, termtype);
-#else
     success = tgetent (term_buffer, termtype);
-#endif
-
     if (success <= 0)
       {
 	if (success < 0)

@@ -108,9 +108,6 @@ open_inline_file (struct dfm_fhuser_ext *ext)
 {
   /* We want to indicate that the file is open, that we are not at
      eof, and that another line needs to be read in.  */
-#if __CHECKER__
-  memset (&ext->file, 0, sizeof ext->file);
-#endif
   ext->file.file = NULL;
   ext->line = xmalloc (128);
 #if !PRODUCTION

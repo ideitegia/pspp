@@ -217,10 +217,6 @@ err_check_count (void)
   getl_close_all ();
 }
 
-#if __CHECKER__
-static void induce_segfault (void);
-#endif
-
 /* Some machines are broken.  Compensate. */
 #ifndef EXIT_SUCCESS
 #define EXIT_SUCCESS 0
@@ -243,11 +239,6 @@ err_hcf (int success)
   getl_uninitialize ();
 
   outp_done ();
-
-#if __CHECKER__
-  if (!success)
-    induce_segfault ();
-#endif
 
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
@@ -499,19 +490,3 @@ dump_message (char *msg, unsigned indent, void (*func) (const char *),
 
   local_free (buf);
 }
-
-#if __CHECKER__
-/* Causes a segfault in order to force Checker to print a stack
-   backtrace. */
-static void
-induce_segfault (void)
-{
-  fputs (_("\n"
-	   "\t*********************\n"
-	   "\t* INDUCING SEGFAULT *\n"
-	   "\t*********************\n"), stdout);
-  fflush (stdout);
-  fflush (stderr);
-  abort ();
-}
-#endif

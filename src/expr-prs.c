@@ -1468,10 +1468,8 @@ expr_type_name (int type)
 
     default:
       assert (0);
+      return 0;
     }
-#if __GNUC__ || __BORLANDC__
-  return 0;
-#endif
 }
 
 static const char *
@@ -1485,10 +1483,8 @@ type_name (int type)
       return _("string");
     default:
       assert (0);
+      return 0;
     }
-#if __GNUC__ || __BORLANDC__
-  return 0;
-#endif
 }
 
 static void

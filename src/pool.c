@@ -102,17 +102,15 @@ union align
 #define ALIGN_SIZE sizeof (union align)
 #endif
 
-/* DISCRETE_BLOCKS may be declared as nonzero to prevent suballocation
-   of blocks.  This is useful under memory debuggers like Checker
-   because it allows the source location of bugs to be more accurately
-   pinpointed.
+/* DISCRETE_BLOCKS may be declared as nonzero to prevent
+   suballocation of blocks.  This is useful under memory
+   debuggers like Checker or valgrind because it allows the
+   source location of bugs to be more accurately pinpointed.
 
    On the other hand, if we're testing the library, then we want to
    test the library's real functionality, not its crippled, slow,
    simplified functionality. */
-#if __CHECKER__  && !SELF_TEST
-#define DISCRETE_BLOCKS 1
-#endif
+/*#define DISCRETE_BLOCKS 1*/
 
 /* Enable debug code if appropriate. */
 #undef DEBUGGING
