@@ -81,6 +81,8 @@ dls_error (const struct data_in *i, const char *format, ...)
   vdls_error (i, format, args);
   va_end (args);
 }
+
+/* Parsing utility functions. */
 
 /* Excludes leading and trailing whitespace from I by adjusting
    pointers. */
@@ -101,6 +103,15 @@ have_char (struct data_in *i)
 {
   return i->s < i->e;
 }
+
+/* If implied decimal places are enabled, apply them to
+   I->v->f. */
+static void
+apply_implied_decimals (struct data_in *i) 
+{
+  if ((i->flags & DI_IMPLIED_DECIMALS) && i->format.d > 0)
+    i->v->f /= pow (10., i->format.d);
+}
 
 /* Format parsers. */ 
 
@@ -110,7 +121,7 @@ static int parse_int (struct data_in *i, long *result);
 static int
 parse_numeric (struct data_in *i)
 {
-  short int sign;		/* +1 or -1. */
+  int sign;                     /* +1 or -1. */
   double num;			/* The number so far.  */
 
   int got_dot;			/* Found a decimal point.  */
@@ -196,7 +207,9 @@ parse_numeric (struct data_in *i)
 	  i->v->f = SYSMIS;
 	  return 1;
 	}
-      goto noconv;
+      dls_error (i, _("Field does not form a valid floating-point constant."));
+      i->v->f = SYSMIS;
+      return 0;
     }
   
   if (have_char (i)
@@ -209,11 +222,14 @@ parse_numeric (struct data_in *i)
       if (isalpha (*i->s))
 	i->s++;
       if (!parse_int (i, &exp))
-	goto noconv;
+        {
+          i->v->f = SYSMIS;
+          return 0;
+        }
 
       exponent += exp;
     }
-  else if (!got_dot)
+  else if (!got_dot && (i->flags & DI_IMPLIED_DECIMALS))
     exponent -= i->format.d;
 
   if (type == FMT_PCT && have_char (i) && *i->s == '%')
@@ -233,41 +249,32 @@ parse_numeric (struct data_in *i)
 
   /* Multiply NUM by 10 to the EXPONENT power, checking for overflow
      and underflow.  */
-
   if (exponent < 0)
     {
       if (-exponent + got_digit > -(DBL_MIN_10_EXP) + 5
-	  || num < DBL_MIN * pow (10.0, (double) -exponent))
-	goto underflow;
+	  || num < DBL_MIN * pow (10.0, (double) -exponent)) 
+        {
+          dls_error (i, _("Underflow in floating-point constant."));
+          i->v->f = 0.0;
+          return 0;
+        }
+
       num *= pow (10.0, (double) exponent);
     }
   else if (exponent > 0)
     {
       if (num > DBL_MAX * pow (10.0, (double) -exponent))
-	goto overflow;
+        {
+          dls_error (i, _("Overflow in floating-point constant."));
+          i->v->f = SYSMIS;
+          return 0;
+        }
+      
       num *= pow (10.0, (double) exponent);
     }
 
-  i->v->f = sign * num;
+  i->v->f = sign > 0 ? num : -num;
   return 1;
-
-overflow:
-  /* Return an overflow error.  */
-  dls_error (i, _("Overflow in floating-point constant."));
-  i->v->f = SYSMIS;
-  return 0;
-
-underflow:
-  /* Return an underflow error.  */
-  dls_error (i, _("Underflow in floating-point constant."));
-  i->v->f = 0.0;
-  return 0;
-
-noconv:
-  /* There was no number.  */
-  dls_error (i, _("Field does not form a valid floating-point constant."));
-  i->v->f = SYSMIS;
-  return 0;
 }
 
 /* Returns the integer value of hex digit C. */
@@ -298,8 +305,7 @@ parse_N (struct data_in *i)
       i->v->f = i->v->f * 10.0 + *cp - '0';
     }
 
-  if (i->format.d)
-    i->v->f /= pow (10.0, i->format.d);
+  apply_implied_decimals (i);
   return 1;
 }
 
@@ -374,6 +380,7 @@ static inline int
 parse_Z (struct data_in *i)
 {
   char buf[64];
+  bool got_dot = false;
 
   /* Warn user that we suck. */
   {
@@ -413,8 +420,11 @@ parse_Z (struct data_in *i)
     char *dp;
 
     for (sp = i->s, dp = buf + 1; sp < i->e - 1; sp++, dp++)
-      if (*sp == '.')
-	*dp = '.';
+      if (*sp == '.') 
+        {
+          *dp = '.';
+          got_dot = true;
+        }
       else if ((*sp & 0xf0) == 0xf0 && (*sp & 0xf) < 10)
 	*dp = (*sp & 0xf) + '0';
       else
@@ -437,7 +447,10 @@ parse_Z (struct data_in *i)
 	return 0;
       }
   }
-  
+
+  if (!got_dot)
+    apply_implied_decimals (i);
+
   return 1;
 }
 
@@ -479,8 +492,7 @@ parse_IB (struct data_in *i)
   if (p[0] & 0x80)
     i->v->f = -(i->v->f + 1.0);
 
-  if (i->format.d)
-    i->v->f /= pow (10.0, i->format.d);
+  apply_implied_decimals (i);
 
   return 1;
 }
@@ -499,8 +511,7 @@ parse_PIB (struct data_in *i)
     i->v->f = i->v->f * 256.0 + i->s[j];
 #endif
 
-  if (i->format.d)
-    i->v->f /= pow (10.0, i->format.d);
+  apply_implied_decimals (i);
 
   return 1;
 }
@@ -520,8 +531,7 @@ parse_P (struct data_in *i)
   if ((*cp ^ (*cp >> 1)) & 0x10)
       i->v->f = -i->v->f;
 
-  if (i->format.d)
-    i->v->f /= pow (10.0, i->format.d);
+  apply_implied_decimals (i);
 
   return 1;
 }
@@ -538,8 +548,7 @@ parse_PK (struct data_in *i)
       i->v->f = i->v->f * 10 + (*cp & 15);
     }
 
-  if (i->format.d)
-    i->v->f /= pow (10.0, i->format.d);
+  apply_implied_decimals (i);
 
   return 1;
 }
@@ -714,89 +723,89 @@ parse_date_delimiter (struct data_in *i)
   return 0;
 }
 
-/* Formats NUMBER as Roman numerals in ROMAN, or as Arabic numerals if
-   the Roman expansion would be too long. */
-static void
-to_roman (int number, char roman[32])
-{
-  int save_number = number;
-
-  struct roman_digit
-    {
-      int value;		/* Value corresponding to this digit. */
-      char name;		/* Digit name. */
-    };
-
-  static const struct roman_digit roman_tab[7] =
+/* Association between a name and a value. */
+struct enum_name
   {
-    {1000, 'M'},
-    {500, 'D'},
-    {100, 'C'},
-    {50, 'L'},
-    {10, 'X'},
-    {5, 'V'},
-    {1, 'I'},
+    const char *name;           /* Name. */
+    bool can_abbreviate;        /* True if name may be abbreviated. */
+    int value;                  /* Value associated with name. */
   };
 
-  char *cp = roman;
+/* Reads a name from I and sets *OUTPUT to the value associated
+   with that name.  Returns true if successful, false otherwise. */
+static bool
+parse_enum (struct data_in *i, const char *what,
+            const struct enum_name *enum_names,
+            long *output) 
+{
+  const char *name;
+  size_t length;
+  const struct enum_name *ep;
 
-  int i, j;
-
-  assert (32 >= INT_DIGITS + 1);
-  if (number == 0)
-    goto arabic;
-
-  if (number < 0)
+  /* Consume alphabetic characters. */
+  name = i->s;
+  length = 0;
+  while (have_char (i) && isalpha (*i->s)) 
     {
-      *cp++ = '-';
-      number = -number;
+      length++;
+      i->s++; 
+    }
+  if (length == 0) 
+    {
+      dls_error (i, _("Parse error at `%c' expecting %s."), *i->s, what);
+      return 0;
     }
 
-  for (i = 0; i < 7; i++)
-    {
-      int digit = roman_tab[i].value;
-      while (number >= digit)
-	{
-	  number -= digit;
-	  if (cp > &roman[30])
-	    goto arabic;
-	  *cp++ = roman_tab[i].name;
-	}
+  for (ep = enum_names; ep->name != NULL; ep++)
+    if ((ep->can_abbreviate
+         && lex_id_match_len (ep->name, strlen (ep->name), name, length))
+        || (!ep->can_abbreviate && length == strlen (ep->name)
+            && !memcmp (name, ep->name, length)))
+      {
+        *output = ep->value;
+        return 1;
+      }
 
-      for (j = i + 1; j < 7; j++)
-	{
-	  if (i == 4 && j == 5)	/* VX is not a shortened form of V. */
-	    break;
-
-	  digit = roman_tab[i].value - roman_tab[j].value;
-	  while (number >= digit)
-	    {
-	      number -= digit;
-	      if (cp > &roman[29])
-		goto arabic;
-	      *cp++ = roman_tab[j].name;
-	      *cp++ = roman_tab[i].name;
-	    }
-	}
-    }
-  *cp = 0;
-  return;
-
-arabic:
-  sprintf (roman, "%d", save_number);
+  dls_error (i, _("Unknown %s `%.*s'."), what, (int) length, name);
+  return 0;
 }
-
-/* Returns true if C is a (lowercase) roman numeral. */
-#define CHAR_IS_ROMAN(C)				\
-	((C) == 'x' || (C) == 'v' || (C) == 'i')
-
-/* Returns the value of a single (lowercase) roman numeral. */
-#define ROMAN_VALUE(C)				\
-	((C) == 'x' ? 10 : ((C) == 'v' ? 5 : 1))
 
 static int
 parse_month (struct data_in *i, long *month)
 {
+  static const struct enum_name month_names[] = 
+    {
+      {"january", true, 1},
+      {"february", true, 2},
+      {"march", true, 3},
+      {"april", true, 4},
+      {"may", true, 5},
+      {"june", true, 6},
+      {"july", true, 7},
+      {"august", true, 8},
+      {"september", true, 9},
+      {"october", true, 10},
+      {"november", true, 11},
+      {"december", true, 12},
+
+      {"i", false, 1},
+      {"ii", false, 2},
+      {"iii", false, 3},
+      {"iv", false, 4},
+      {"iiii", false, 4},
+      {"v", false, 5},
+      {"vi", false, 6},
+      {"vii", false, 7},
+      {"viii", false, 8},
+      {"ix", false, 9},
+      {"viiii", false, 9},
+      {"x", false, 10},
+      {"xi", false, 11},
+      {"xii", false, 12},
+
+      {NULL, false, 0},
+    };
+
   if (!force_have_char (i))
     return 0;
   
@@ -810,85 +819,8 @@ parse_month (struct data_in *i, long *month)
       dls_error (i, _("Month (%ld) must be between 1 and 12."), *month);
       return 0;
     }
-
-  if (CHAR_IS_ROMAN (tolower (*i->s)))
-    {
-      int last = ROMAN_VALUE (tolower (*i->s));
-
-      *month = 0;
-      for (;;)
-	{
-	  int value;
-
-	  i->s++;
-	  if (!have_char || !CHAR_IS_ROMAN (tolower (*i->s)))
-	    {
-	      if (last != INT_MAX)
-		*month += last;
-	      break;
-	    }
-
-	  value = ROMAN_VALUE (tolower (*i->s));
-	  if (last == INT_MAX)
-	    *month += value;
-	  else if (value > last)
-	    {
-	      *month += value - last;
-	      last = INT_MAX;
-	    }
-	  else
-	    {
-	      *month += last;
-	      last = value;
-	    }
-	}
-
-      if (*month < 1 || *month > 12)
-	{
-	  char buf[32];
-
-	  to_roman (*month, buf);
-	  dls_error (i, _("Month (%s) must be between I and XII."), buf);
-	  return 0;
-	}
-      
-      return 1;
-    }
-  
-  {
-    static const char *months[12] =
-      {
-	"january", "february", "march", "april", "may", "june",
-	"july", "august", "september", "october", "november", "december",
-      };
-
-    char month_buf[32];
-    char *mp;
-
-    int j;
-
-    for (mp = month_buf;
-	 have_char (i) && isalpha (*i->s) && mp < &month_buf[31];
-	 i->s++)
-      *mp++ = tolower (*i->s);
-    *mp = '\0';
-
-    if (have_char (i) && isalpha (*i->s))
-      {
-	dls_error (i, _("Month name (%s...) is too long."), month_buf);
-	return 0;
-      }
-
-    for (j = 0; j < 12; j++)
-      if (lex_id_match (months[j], month_buf))
-	{
-	  *month = j + 1;
-	  return 1;
-	}
-
-    dls_error (i, _("Bad month name (%s)."), month_buf);
-    return 0;
-  }
+  else 
+    return parse_enum (i, _("month"), month_names, month);
 }
 
 static int
@@ -1093,59 +1025,29 @@ parse_hour24 (struct data_in *i, long *hour24)
 
      
 static int
-parse_weekday (struct data_in *i, int *weekday)
+parse_weekday (struct data_in *i, long *weekday)
 {
-  /* PORTME */
-  #define TUPLE(A,B) 				\
-	  (((A) << 8) + (B))
-
-  if (i->s + 1 >= i->e)
+  static const struct enum_name weekday_names[] = 
     {
-      dls_error (i, _("Day of the week expected in date value."));
-      return 0;
-    }
+      {"sunday", true, 1},
+      {"su", true, 1},
+      {"monday", true, 2},
+      {"mo", true, 2},
+      {"tuesday", true, 3},
+      {"tu", true, 3},
+      {"wednesday", true, 4},
+      {"we", true, 4},
+      {"thursday", true, 5},
+      {"th", true, 5},
+      {"friday", true, 6},
+      {"fr", true, 6},
+      {"saturday", true, 7},
+      {"sa", true, 7},
+      
+      {NULL, false, 0},
+    };
 
-  switch (TUPLE (tolower (i->s[0]), tolower (i->s[1])))
-    {
-    case TUPLE ('s', 'u'):
-      *weekday = 1;
-      break;
-
-    case TUPLE ('m', 'o'):
-      *weekday = 2;
-      break;
-
-    case TUPLE ('t', 'u'):
-      *weekday = 3;
-      break;
-
-    case TUPLE ('w', 'e'):
-      *weekday = 4;
-      break;
-
-    case TUPLE ('t', 'h'):
-      *weekday = 5;
-      break;
-
-    case TUPLE ('f', 'r'):
-      *weekday = 6;
-      break;
-
-    case TUPLE ('s', 'a'):
-      *weekday = 7;
-      break;
-
-    default:
-      dls_error (i, _("Day of the week expected in date value."));
-      return 0;
-    }
-
-  while (have_char (i) && isalpha (*i->s))
-    i->s++;
-
-  return 1;
-
-  #undef TUPLE
+  return parse_enum (i, _("weekday"), weekday_names, weekday);
 }
 
 static int
@@ -1418,7 +1320,7 @@ parse_DATETIME (struct data_in *i)
 static int
 parse_WKDAY (struct data_in *i)
 {
-  int weekday;
+  long weekday;
 
   if (!parse_leader (i)
       || !parse_weekday (i, &weekday)

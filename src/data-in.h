@@ -27,6 +27,7 @@
 enum
   {
     DI_IGNORE_ERROR = 01,	/* Don't report errors to the user. */
+    DI_IMPLIED_DECIMALS = 02    /* Insert decimals if no '.' in input. */
   };
 
 /* Information about parsing one data field. */

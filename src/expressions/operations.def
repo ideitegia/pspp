@@ -551,7 +551,7 @@ function NUMBER (string s, ni_format f)
   union value out;
   di.s = s.string;
   di.v = &out;
-  di.flags = 0;
+  di.flags = DI_IMPLIED_DECIMALS;
   di.f1 = 1;
   di.format = *f;
   di.e = s.string + min (s.length, di.format.w);

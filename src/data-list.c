@@ -1113,7 +1113,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
 	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
                                var_spec->fc, var_spec->lc);
 	  di.v = case_data_rw (c, var_spec->fv);
-	  di.flags = 0;
+	  di.flags = DI_IMPLIED_DECIMALS;
 	  di.f1 = var_spec->fc;
 	  di.format = var_spec->input;
 

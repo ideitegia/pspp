@@ -1,3 +1,31 @@
+Sun Mar  6 19:52:22 2005  Ben Pfaff  <blp@gnu.org>
+
+	DATA LIST with free-field formats should not have implied decimal
+	places (bug #12035).  Also clean up data-in.c a bit.
+
+	* data-in.h: (enum) Add DI_IMPLIED_DECIMALS.
+
+	* data-in.c: (apply_implied_decimals) New function.
+	(parse_numeric) Don't adjust exponent if DI_IMPLIED_DECIMALS not
+	set.  Also, get rid of gotos.
+	(parse_Z) Use apply_implied_decimals() if the field doesn't
+	contain a decimal point.
+	(parse_N) Use apply_implied_decimals().
+	(parse_IB) Ditto.
+	(parse_PIB) Ditto.
+	(parse_P) Ditto.
+	(parse_PK) Ditto.
+	(to_roman) Removed.
+	(parse_enum) New function.
+	(macro CHAR_IS_ROMAN) Removed.
+	(macro ROMAN_VALUE) Removed.
+	(parse_month) Use parse_enum().
+	(parse_weekday) Use parse_enum().
+	(parse_DATETIME) Use long for weekday.
+
+	* data-list.c: (read_from_data_list_fixed) Use
+	DI_IMPLIED_DECIMALS.
+
 Sun Mar  6 17:07:20 2005  Ben Pfaff  <blp@gnu.org>
 
 	When the lexer sees something like `-5' in the input, it has to
@@ -25,6 +53,62 @@ Sun Mar  6 17:07:20 2005  Ben Pfaff  <blp@gnu.org>
 	
 	* lexer.h: (enum) Add T_POS_NUM, T_NEG_NUM.  Remove T_NUM.
 
+Sun Mar  6 22:09:20 2005  Ben Pfaff  <blp@gnu.org>
+
+	* operations.def: (NUMBER) Use DI_IMPLIED_DECIMALS.
+
+Sun Mar  6 19:33:24 2005  Ben Pfaff  <blp@gnu.org>
+
+	* operations.def: (VEC_ELEM_NUM) Treat user-missing values as
+	system-missing.
+
+	* parse.c: (parse_vector_element) Fix order of arguments in call
+	to expr_allocate_binary().
+
+Sun Mar  6 17:51:05 2005  Ben Pfaff  <blp@gnu.org>
+
+	* optimize.c: (optimize_tree) Fix optimization bug for x**2.
+
+	* parse.c: (type_coercion_core) Set *node to NULL on failure, as
+	indicated by function comment.
+	(parse_binary_operators) Always return NULL on type_coercion()
+	failure.  Should have been doing this anyway, but bug in
+	type_coercion_core() filtered through.
+	(parse_add) Fix typo in user message.
+	(parse_primary) Understand T_NEG_NUM and T_POS_NUM.
+
+Sun Mar  6 10:47:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	* operations.def: Add VALUE function.
+
+	* parse.c: (parse_function) Need an unary composite node for
+	variables in A TO B, not a variable node.  Use
+	allocate_unary_variable().
+	(parse_primary) Use allocate_unary_variable().
+	(allocate_unary_variable) New function.
+
+Thu Mar  3 23:53:32 2005  Ben Pfaff  <blp@gnu.org>
+
+	* PSPP_expressions.pm: Renamed it back to generate.pl but fixed
+	the real problem that was preventing the build from a separate
+	directory.  I liked it my way better ;-)
+	
+Thu Mar  3 23:17:51 2005  Ben Pfaff  <blp@gnu.org>
+
+	* parse.c: (expr_parse) Fix parameter type.  Thanks to John
+	Darrington <john@darrington.wattle.id.au> for reporting this bug.
+
+Thu Mar  3 22:10:25 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* Makefile.am evaluate.h.pl evaluate.inc.pl operations.h.pl
+	  optimize.inc.pl parse.inc.p:  
+
+	  Renamed generate.pl to PSPP_expressions.pm and adjusted *.pl
+	  to suit. 
+
+	  Fixed everything so that it can be built from an arbitrary
+	  directory.
+	
 Thu Mar  3 22:08:35 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* Makefile.am : Fixed up CLEANFILES target.
