@@ -1,4 +1,9 @@
-
+Sat Feb  5 20:35:10 WST 2005 John Darrington <john@darrington.wattle.id.au>
+	
+	* getline.c command.[ch] command.def:  Added (very rudimentary)
+	support for line  completion when in interactive mode.  Partially 
+	addresses bug #11693
+	
 Mon Jan 31 09:52:51 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q factor_stats.c oneway.q output.c pfm-read.c: Fixed some

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-01-26 09:37+0800\n"
+"POT-Creation-Date: 2005-02-05 20:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -79,13 +79,13 @@ msgid "Variable %s is %s in target file, but %s in source file."
 msgstr ""
 
 #: src/apply-dict.c:71 src/apply-dict.c:72 src/expr-prs.c:1289
-#: src/expr-prs.c:1305 src/formats.c:96 src/pfm-read.c:605 src/print.c:695
+#: src/expr-prs.c:1305 src/formats.c:96 src/pfm-read.c:609 src/print.c:695
 #: src/sfm-read.c:888 src/sfm-read.c:1017 src/sfm-read.c:1018
 msgid "string"
 msgstr ""
 
 #: src/apply-dict.c:71 src/apply-dict.c:72 src/expr-prs.c:1286
-#: src/expr-prs.c:1303 src/formats.c:96 src/pfm-read.c:605 src/print.c:695
+#: src/expr-prs.c:1303 src/formats.c:96 src/pfm-read.c:609 src/print.c:695
 #: src/sfm-read.c:888 src/sfm-read.c:1017 src/sfm-read.c:1018
 msgid "numeric"
 msgstr ""
@@ -229,7 +229,7 @@ msgstr ""
 msgid "Source variable count (%d) does not match target variable count (%d)."
 msgstr ""
 
-#: src/autorecode.c:139 src/command.c:739 src/compute.c:294
+#: src/autorecode.c:139 src/command.c:780 src/compute.c:294
 #: src/data-list.c:410 src/data-list.c:900 src/data-list.c:1751
 #: src/do-if.c:253 src/get.c:406 src/lexer.c:419 src/loop.c:241
 #: src/matrix-data.c:527 src/print.c:335 src/print.c:1048 src/recode.c:405
@@ -277,7 +277,7 @@ msgstr ""
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
 
-#: src/cmdline.c:142 src/cmdline.c:161 src/cmdline.c:173 src/command.c:161
+#: src/cmdline.c:142 src/cmdline.c:161 src/cmdline.c:173 src/command.c:202
 #: src/set.q:415 src/set.q:417 src/set.q:956
 #, c-format
 msgid "%s is not yet implemented."
@@ -340,25 +340,25 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/command.c:99
+#: src/command.c:140
 #, c-format
 msgid "%s not allowed inside FILE TYPE/END FILE TYPE."
 msgstr ""
 
-#: src/command.c:103
+#: src/command.c:144
 #, c-format
 msgid "%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."
 msgstr ""
 
-#: src/command.c:106
+#: src/command.c:147
 msgid "RECORD TYPE must be the first command inside a FILE TYPE structure."
 msgstr ""
 
-#: src/command.c:151
+#: src/command.c:192
 msgid "expecting command name"
 msgstr ""
 
-#: src/command.c:180
+#: src/command.c:221
 #, c-format
 msgid ""
 "%s is not allowed (1) before a command to specify the input program, such as "
@@ -366,57 +366,57 @@ msgid ""
 "PROGRAM and END INPUT PROGRAM."
 msgstr ""
 
-#: src/command.c:184
+#: src/command.c:225
 #, c-format
 msgid "%s is not allowed within an input program."
 msgstr ""
 
-#: src/command.c:185 src/command.c:186
+#: src/command.c:226 src/command.c:227
 #, c-format
 msgid "%s is only allowed within an input program."
 msgstr ""
 
-#: src/command.c:465
+#: src/command.c:506
 #, c-format
 msgid "Unknown command %s."
 msgstr ""
 
-#: src/command.c:565
+#: src/command.c:606
 msgid ""
 "This command is not accepted in a syntax file.  Instead, use FINISH to "
 "terminate a syntax file."
 msgstr ""
 
-#: src/command.c:583
+#: src/command.c:624
 msgid ""
 "This command is not executed in interactive mode.  Instead, PSPP drops down "
 "to the command prompt.  Use EXIT if you really want to quit."
 msgstr ""
 
-#: src/command.c:626 src/command.c:757 src/permissions.c:101
+#: src/command.c:667 src/command.c:798 src/permissions.c:101
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
-#: src/command.c:638
+#: src/command.c:679
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr ""
 
-#: src/command.c:688
+#: src/command.c:729
 #, c-format
 msgid "Couldn't fork: %s."
 msgstr ""
 
-#: src/command.c:730
+#: src/command.c:771
 #, c-format
 msgid "Error executing command: %s."
 msgstr ""
 
-#: src/command.c:778
+#: src/command.c:819
 msgid "No operating system support for this command."
 msgstr ""
 
-#: src/command.c:801
+#: src/command.c:842
 msgid "This command is not valid in a syntax file."
 msgstr ""
 
@@ -947,7 +947,7 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:99 src/examine.q:1462 src/frequencies.q:112 src/oneway.q:397
+#: src/descript.c:99 src/examine.q:1465 src/frequencies.q:112 src/oneway.q:398
 #: src/t-test.q:694 src/t-test.q:717 src/t-test.q:840 src/t-test.q:1177
 msgid "Mean"
 msgstr ""
@@ -960,11 +960,11 @@ msgstr ""
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:102 src/examine.q:1540 src/frequencies.q:117
+#: src/descript.c:102 src/examine.q:1545 src/frequencies.q:117
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1647 src/frequencies.q:118
+#: src/descript.c:103 src/examine.q:1652 src/frequencies.q:118
 msgid "Kurtosis"
 msgstr ""
 
@@ -972,7 +972,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:105 src/examine.q:1627 src/frequencies.q:120
+#: src/descript.c:105 src/examine.q:1632 src/frequencies.q:120
 msgid "Skewness"
 msgstr ""
 
@@ -980,17 +980,17 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:107 src/examine.q:1588 src/frequencies.q:122
+#: src/descript.c:107 src/examine.q:1593 src/frequencies.q:122
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:108 src/examine.q:1565 src/frequencies.q:123
-#: src/oneway.q:409
+#: src/descript.c:108 src/examine.q:1570 src/frequencies.q:123
+#: src/oneway.q:410
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:109 src/examine.q:1576 src/frequencies.q:124
-#: src/oneway.q:410
+#: src/descript.c:109 src/examine.q:1581 src/frequencies.q:124
+#: src/oneway.q:411
 msgid "Maximum"
 msgstr ""
 
@@ -1806,27 +1806,27 @@ msgstr ""
 msgid "expecting COMM or TAPE"
 msgstr ""
 
-#: src/getline.c:166
+#: src/getline.c:175
 #, c-format
 msgid "Can't find `%s' in include file search path."
 msgstr ""
 
-#: src/getline.c:321
+#: src/getline.c:330
 #, c-format
 msgid "%s: Opening as syntax file."
 msgstr ""
 
-#: src/getline.c:326
+#: src/getline.c:335
 #, c-format
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/getline.c:335 src/html.c:348 src/postscript.c:1466
+#: src/getline.c:344 src/html.c:348 src/postscript.c:1466
 #, c-format
 msgid "Reading `%s': %s."
 msgstr ""
 
-#: src/getline.c:393
+#: src/getline.c:402
 #, c-format
 msgid "Closing `%s': %s."
 msgstr ""
@@ -2116,7 +2116,7 @@ msgstr ""
 msgid "<ERROR>"
 msgstr ""
 
-#: src/lexer.c:1000 src/pfm-read.c:135 src/repeat.c:214
+#: src/lexer.c:1000 src/pfm-read.c:139 src/repeat.c:214
 msgid "Unexpected end of file."
 msgstr ""
 
@@ -2553,17 +2553,17 @@ msgstr ""
 msgid "%s: Opening device description file..."
 msgstr ""
 
-#: src/output.c:304 src/output.c:1173 src/postscript.c:1102
+#: src/output.c:304 src/output.c:1175 src/postscript.c:1102
 #, c-format
 msgid "Opening %s: %s."
 msgstr ""
 
-#: src/output.c:315 src/output.c:1184 src/postscript.c:1117
+#: src/output.c:315 src/output.c:1186 src/postscript.c:1117
 #, c-format
 msgid "Reading %s: %s."
 msgstr ""
 
-#: src/output.c:337 src/output.c:497
+#: src/output.c:337 src/output.c:499
 msgid "Syntax error."
 msgstr ""
 
@@ -2584,123 +2584,123 @@ msgstr ""
 msgid "Error reading device definition file."
 msgstr ""
 
-#: src/output.c:469
+#: src/output.c:471
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output.c:598
+#: src/output.c:600
 msgid "Syntax error in string constant."
 msgstr ""
 
-#: src/output.c:630
+#: src/output.c:632
 msgid "Syntax error in options."
 msgstr ""
 
-#: src/output.c:640
+#: src/output.c:642
 msgid "Syntax error in options (`=' expected)."
 msgstr ""
 
-#: src/output.c:647
+#: src/output.c:649
 msgid "Syntax error in options (value expected after `=')."
 msgstr ""
 
-#: src/output.c:719
+#: src/output.c:721
 msgid "Driver name expected."
 msgstr ""
 
-#: src/output.c:740
+#: src/output.c:742
 msgid "Class name expected."
 msgstr ""
 
-#: src/output.c:749
+#: src/output.c:751
 #, c-format
 msgid "Unknown output driver class `%s'."
 msgstr ""
 
-#: src/output.c:756
+#: src/output.c:758
 #, c-format
 msgid "Can't initialize output driver class `%s'."
 msgstr ""
 
-#: src/output.c:763
+#: src/output.c:765
 #, c-format
 msgid "Can't initialize output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output.c:785
+#: src/output.c:787
 #, c-format
 msgid "Unknown device type `%s'."
 msgstr ""
 
-#: src/output.c:797
+#: src/output.c:799
 #, c-format
 msgid "Can't complete initialization of output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output.c:844
+#: src/output.c:846
 #, c-format
 msgid "Can't deinitialize output driver class `%s'."
 msgstr ""
 
-#: src/output.c:917
+#: src/output.c:919
 #, c-format
 msgid "Trying to find keyword `%s'...\n"
 msgstr ""
 
-#: src/output.c:1034
+#: src/output.c:1036
 #, c-format
 msgid "Unit \"%s\" is unknown in dimension \"%s\"."
 msgstr ""
 
-#: src/output.c:1049
+#: src/output.c:1051
 #, c-format
 msgid "Bad dimension \"%s\"."
 msgstr ""
 
-#: src/output.c:1075
+#: src/output.c:1077
 #, c-format
 msgid "`x' expected in paper size `%s'."
 msgstr ""
 
-#: src/output.c:1085
+#: src/output.c:1087
 #, c-format
 msgid "Trailing garbage `%s' on paper size `%s'."
 msgstr ""
 
-#: src/output.c:1134
+#: src/output.c:1136
 msgid "Paper size name must not be empty."
 msgstr ""
 
-#: src/output.c:1165
+#: src/output.c:1167
 msgid "Cannot find `papersize' configuration file."
 msgstr ""
 
-#: src/output.c:1169
+#: src/output.c:1171
 #, c-format
 msgid "%s: Opening paper size definition file..."
 msgstr ""
 
-#: src/output.c:1211
+#: src/output.c:1213
 msgid "Syntax error in paper size definition."
 msgstr ""
 
-#: src/output.c:1240
+#: src/output.c:1242
 msgid "Paper size definition file read successfully."
 msgstr ""
 
-#: src/output.c:1242
+#: src/output.c:1244
 msgid "Error reading paper size definition file."
 msgstr ""
 
-#: src/output.c:1311
+#: src/output.c:1313
 #, c-format
 msgid "Error closing page on %s device of %s class."
 msgstr ""
 
-#: src/output.c:1315
+#: src/output.c:1317
 #, c-format
 msgid "Error opening page on %s device of %s class."
 msgstr ""
@@ -2745,165 +2745,165 @@ msgstr ""
 msgid "portable file %s corrupt at offset %ld: "
 msgstr ""
 
-#: src/pfm-read.c:114 src/pfm-write.c:490
+#: src/pfm-read.c:118 src/pfm-write.c:490
 #, c-format
 msgid "%s: Closing portable file: %s."
 msgstr ""
 
-#: src/pfm-read.c:143
+#: src/pfm-read.c:147
 msgid "Bad line end."
 msgstr ""
 
-#: src/pfm-read.c:234
+#: src/pfm-read.c:238
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a portable file: %s."
 msgstr ""
 
-#: src/pfm-read.c:257
+#: src/pfm-read.c:261
 msgid "Data record expected."
 msgstr ""
 
-#: src/pfm-read.c:354
+#: src/pfm-read.c:358
 msgid "Missing numeric terminator."
 msgstr ""
 
-#: src/pfm-read.c:391
+#: src/pfm-read.c:395
 msgid "Bad integer format."
 msgstr ""
 
-#: src/pfm-read.c:420
+#: src/pfm-read.c:424
 #, c-format
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/pfm-read.c:515
+#: src/pfm-read.c:519
 #, c-format
 msgid "Bad date string length %d."
 msgstr ""
 
-#: src/pfm-read.c:519
+#: src/pfm-read.c:523
 msgid "Bad character in date."
 msgstr ""
 
-#: src/pfm-read.c:539
+#: src/pfm-read.c:543
 #, c-format
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/pfm-read.c:543
+#: src/pfm-read.c:547
 msgid "Bad character in time."
 msgstr ""
 
-#: src/pfm-read.c:593 src/pfm-read.c:600 src/sfm-read.c:873 src/sfm-read.c:881
+#: src/pfm-read.c:597 src/pfm-read.c:604 src/sfm-read.c:873 src/sfm-read.c:881
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/pfm-read.c:602
+#: src/pfm-read.c:606
 #, c-format
 msgid "%s variable %s has %s format specifier %s."
 msgstr ""
 
-#: src/pfm-read.c:603 src/print.c:607 src/sfm-read.c:886
+#: src/pfm-read.c:607 src/print.c:607 src/sfm-read.c:886
 msgid "String"
 msgstr ""
 
-#: src/pfm-read.c:603 src/print.c:607 src/sfm-read.c:886
+#: src/pfm-read.c:607 src/print.c:607 src/sfm-read.c:886
 msgid "Numeric"
 msgstr ""
 
-#: src/pfm-read.c:641
+#: src/pfm-read.c:645
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/pfm-read.c:645
+#: src/pfm-read.c:649
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/pfm-read.c:655
+#: src/pfm-read.c:659
 #, c-format
 msgid "Unexpected flag value %d."
 msgstr ""
 
-#: src/pfm-read.c:667
+#: src/pfm-read.c:671
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/pfm-read.c:682
+#: src/pfm-read.c:686
 msgid "Expected variable record."
 msgstr ""
 
-#: src/pfm-read.c:688
+#: src/pfm-read.c:692
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/pfm-read.c:706
+#: src/pfm-read.c:710
 #, c-format
 msgid "position %d: Variable name has %u characters."
 msgstr ""
 
-#: src/pfm-read.c:710
+#: src/pfm-read.c:714
 #, c-format
 msgid "position %d: Variable name begins with invalid character."
 msgstr ""
 
-#: src/pfm-read.c:714
+#: src/pfm-read.c:718
 #, c-format
 msgid "position %d: Variable name begins with lowercase letter %c."
 msgstr ""
 
-#: src/pfm-read.c:727
+#: src/pfm-read.c:731
 #, c-format
 msgid "position %d: Variable name character %d is lowercase letter %c."
 msgstr ""
 
-#: src/pfm-read.c:737
+#: src/pfm-read.c:741
 #, c-format
 msgid "position %d: character `\\%03o' is not valid in a variable name."
 msgstr ""
 
-#: src/pfm-read.c:747
+#: src/pfm-read.c:751
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
 
-#: src/pfm-read.c:791
+#: src/pfm-read.c:795
 #, c-format
 msgid "Bad missing values for %s."
 msgstr ""
 
-#: src/pfm-read.c:814
+#: src/pfm-read.c:818
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/pfm-read.c:885
+#: src/pfm-read.c:889
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/pfm-read.c:888
+#: src/pfm-read.c:892
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types "
 "or widths."
 msgstr ""
 
-#: src/pfm-read.c:921
+#: src/pfm-read.c:925
 #, c-format
 msgid "Duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:924
+#: src/pfm-read.c:928
 #, c-format
 msgid "Duplicate label for value `%.*s' for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:977
+#: src/pfm-read.c:981
 msgid "End of file midway through case."
 msgstr ""
 
@@ -3722,7 +3722,7 @@ msgstr ""
 
 #: src/sysfile-info.c:531 src/vfm.c:872 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
-#: src/examine.q:1126 src/frequencies.q:1138 src/frequencies.q:1259
+#: src/examine.q:1129 src/frequencies.q:1138 src/frequencies.q:1259
 msgid "Value"
 msgstr ""
 
@@ -3943,32 +3943,32 @@ msgstr ""
 msgid "Summary."
 msgstr ""
 
-#: src/crosstabs.q:802 src/examine.q:911
+#: src/crosstabs.q:802 src/examine.q:914
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:803 src/examine.q:845 src/frequencies.q:1136
+#: src/crosstabs.q:803 src/examine.q:848 src/frequencies.q:1136
 #: src/frequencies.q:1509
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:804 src/examine.q:846 src/frequencies.q:1204
+#: src/crosstabs.q:804 src/examine.q:849 src/frequencies.q:1204
 #: src/frequencies.q:1510
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:805 src/crosstabs.q:1008 src/crosstabs.q:1722
-#: src/examine.q:847 src/frequencies.q:1213 src/oneway.q:308 src/oneway.q:477
+#: src/examine.q:850 src/frequencies.q:1213 src/oneway.q:309 src/oneway.q:478
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:815 src/examine.q:923 src/frequencies.q:1508
-#: src/oneway.q:396 src/t-test.q:693 src/t-test.q:716 src/t-test.q:841
+#: src/crosstabs.q:815 src/examine.q:926 src/frequencies.q:1508
+#: src/oneway.q:397 src/t-test.q:693 src/t-test.q:716 src/t-test.q:841
 #: src/t-test.q:1376
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:816 src/examine.q:926 src/frequencies.q:1140
+#: src/crosstabs.q:816 src/examine.q:929 src/frequencies.q:1140
 #: src/frequencies.q:1141 src/frequencies.q:1142
 msgid "Percent"
 msgstr ""
@@ -4006,11 +4006,11 @@ msgid "adj. resid."
 msgstr ""
 
 #: src/crosstabs.q:1098 src/crosstabs.q:1125 src/crosstabs.q:1145
-#: src/crosstabs.q:1166 src/examine.q:1357
+#: src/crosstabs.q:1166 src/examine.q:1360
 msgid "Statistic"
 msgstr ""
 
-#: src/crosstabs.q:1100 src/oneway.q:279 src/oneway.q:698 src/t-test.q:991
+#: src/crosstabs.q:1100 src/oneway.q:280 src/oneway.q:699 src/t-test.q:991
 #: src/t-test.q:1183 src/t-test.q:1275
 msgid "df"
 msgstr ""
@@ -4189,105 +4189,105 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/examine.q:464 src/examine.q:476
+#: src/examine.q:467 src/examine.q:479
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/examine.q:905
+#: src/examine.q:908
 msgid "Case Processing Summary"
 msgstr ""
 
-#: src/examine.q:1111
+#: src/examine.q:1114
 msgid "Extreme Values"
 msgstr ""
 
-#: src/examine.q:1127
+#: src/examine.q:1130
 msgid "Case Number"
 msgstr ""
 
-#: src/examine.q:1212
+#: src/examine.q:1215
 msgid "Highest"
 msgstr ""
 
-#: src/examine.q:1217
+#: src/examine.q:1220
 msgid "Lowest"
 msgstr ""
 
-#: src/examine.q:1358 src/oneway.q:399 src/oneway.q:696
+#: src/examine.q:1361 src/oneway.q:400 src/oneway.q:697
 msgid "Std. Error"
 msgstr ""
 
-#: src/examine.q:1360 src/oneway.q:413
+#: src/examine.q:1363 src/oneway.q:414
 msgid "Descriptives"
 msgstr ""
 
-#: src/examine.q:1480 src/oneway.q:404
+#: src/examine.q:1483 src/oneway.q:405
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/examine.q:1486 src/oneway.q:406
+#: src/examine.q:1489 src/oneway.q:407
 msgid "Lower Bound"
 msgstr ""
 
-#: src/examine.q:1497 src/oneway.q:407
+#: src/examine.q:1500 src/oneway.q:408
 msgid "Upper Bound"
 msgstr ""
 
-#: src/examine.q:1509
+#: src/examine.q:1512
 msgid "5% Trimmed Mean"
 msgstr ""
 
-#: src/examine.q:1520 src/frequencies.q:114
+#: src/examine.q:1523 src/frequencies.q:114
 msgid "Median"
 msgstr ""
 
-#: src/examine.q:1552 src/oneway.q:398 src/t-test.q:695 src/t-test.q:718
+#: src/examine.q:1557 src/oneway.q:399 src/t-test.q:695 src/t-test.q:718
 #: src/t-test.q:842 src/t-test.q:1178
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/examine.q:1600
+#: src/examine.q:1605
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/examine.q:1755
+#: src/examine.q:1760
 #, c-format
 msgid "Boxplot of %s vs. %s"
 msgstr ""
 
-#: src/examine.q:1780
+#: src/examine.q:1785
 msgid "Boxplot"
-msgstr ""
-
-#: src/examine.q:1822
-#, c-format
-msgid "Normal Q-Q Plot of %s"
-msgstr ""
-
-#: src/examine.q:1823 src/examine.q:1829
-msgid "Observed Value"
-msgstr ""
-
-#: src/examine.q:1824
-msgid "Expected Normal"
 msgstr ""
 
 #: src/examine.q:1827
 #, c-format
+msgid "Normal Q-Q Plot of %s"
+msgstr ""
+
+#: src/examine.q:1828 src/examine.q:1834
+msgid "Observed Value"
+msgstr ""
+
+#: src/examine.q:1829
+msgid "Expected Normal"
+msgstr ""
+
+#: src/examine.q:1832
+#, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1830
+#: src/examine.q:1835
 msgid "Dev from Normal"
 msgstr ""
 
-#: src/examine.q:1950 src/examine.q:1972 src/frequencies.q:1520
+#: src/examine.q:1955 src/examine.q:1977 src/frequencies.q:1520
 msgid "Percentiles"
 msgstr ""
 
-#: src/examine.q:2097
+#: src/examine.q:2102
 msgid "Tukey's Hinges"
 msgstr ""
 
@@ -4455,93 +4455,93 @@ msgstr ""
 msgid "TABLES subcommand may not appear more than once."
 msgstr ""
 
-#: src/oneway.q:169
+#: src/oneway.q:170
 msgid "Number of contrast coefficients must equal the number of groups"
 msgstr ""
 
-#: src/oneway.q:178
+#: src/oneway.q:179
 #, c-format
 msgid "Coefficients for contrast %d do not total zero"
 msgstr ""
 
-#: src/oneway.q:243 src/t-test.q:370 src/t-test.q:462
+#: src/oneway.q:244 src/t-test.q:370 src/t-test.q:462
 #, c-format
 msgid "`%s' is not a variable name"
 msgstr ""
 
-#: src/oneway.q:278
+#: src/oneway.q:279
 msgid "Sum of Squares"
 msgstr ""
 
-#: src/oneway.q:280
+#: src/oneway.q:281
 msgid "Mean Square"
 msgstr ""
 
-#: src/oneway.q:281 src/t-test.q:988
+#: src/oneway.q:282 src/t-test.q:988
 msgid "F"
 msgstr ""
 
-#: src/oneway.q:282 src/oneway.q:543
+#: src/oneway.q:283 src/oneway.q:544
 msgid "Significance"
 msgstr ""
 
-#: src/oneway.q:306
+#: src/oneway.q:307
 msgid "Between Groups"
 msgstr ""
 
-#: src/oneway.q:307
+#: src/oneway.q:308
 msgid "Within Groups"
 msgstr ""
 
-#: src/oneway.q:354
+#: src/oneway.q:355
 msgid "ANOVA"
 msgstr ""
 
-#: src/oneway.q:540
+#: src/oneway.q:541
 msgid "Levene Statistic"
 msgstr ""
 
-#: src/oneway.q:541
+#: src/oneway.q:542
 msgid "df1"
 msgstr ""
 
-#: src/oneway.q:542
+#: src/oneway.q:543
 msgid "df2"
 msgstr ""
 
-#: src/oneway.q:546
+#: src/oneway.q:547
 msgid "Test of Homogeneity of Variances"
 msgstr ""
 
-#: src/oneway.q:622
+#: src/oneway.q:623
 msgid "Contrast Coefficients"
 msgstr ""
 
-#: src/oneway.q:624 src/oneway.q:694
+#: src/oneway.q:625 src/oneway.q:695
 msgid "Contrast"
 msgstr ""
 
-#: src/oneway.q:692
+#: src/oneway.q:693
 msgid "Contrast Tests"
 msgstr ""
 
-#: src/oneway.q:695
+#: src/oneway.q:696
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/oneway.q:697 src/t-test.q:990 src/t-test.q:1182 src/t-test.q:1274
+#: src/oneway.q:698 src/t-test.q:990 src/t-test.q:1182 src/t-test.q:1274
 msgid "t"
 msgstr ""
 
-#: src/oneway.q:699 src/t-test.q:992 src/t-test.q:1184 src/t-test.q:1276
+#: src/oneway.q:700 src/t-test.q:992 src/t-test.q:1184 src/t-test.q:1276
 msgid "Sig. (2-tailed)"
 msgstr ""
 
-#: src/oneway.q:745
+#: src/oneway.q:746
 msgid "Assume equal variances"
 msgstr ""
 
-#: src/oneway.q:749
+#: src/oneway.q:750
 msgid "Does not assume equal"
 msgstr ""
 

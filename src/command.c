@@ -79,6 +79,47 @@ static const struct command commands[] =
 #undef DEFCMD
 #undef UNIMPL
 
+
+/* Complete the line using the name of a command, 
+ * based upon the current prg_state
+ */
+char * 
+pspp_completion_function (const char *text,   int state)
+{
+  static int skip=0;
+  const struct command *cmd = 0;
+  
+  for(;;)
+    {
+      if ( state + skip >= sizeof(commands)/ sizeof(struct command))
+	{
+	  skip = 0;
+	  return 0;
+	}
+
+      cmd = &commands[state + skip];
+  
+      if ( cmd->transition[pgm_state] == STATE_ERROR ) 
+	{
+	  skip++; 
+	  continue;
+	}
+      
+      if ( text == 0 || 0 == strncasecmp (cmd->name, text, strlen(text)))
+	{
+	  break;
+	}
+
+      skip++;
+    }
+  
+
+  return xstrdup(cmd->name);
+
+}
+
+
+
 #define COMMAND_CNT (sizeof commands / sizeof *commands)
 
 /* Command parser. */

@@ -43,6 +43,10 @@ enum
 extern int pgm_state;
 extern const char *cur_proc;
 
+
+char *  pspp_completion_function (const char *text,   int state);
+
+
 int cmd_parse (void);
 
 /* Prototype all the command functions. */

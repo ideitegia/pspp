@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "command.h"
 #include "error.h"
 #include "filename.h"
 #include "lexer.h"
@@ -43,6 +44,10 @@ int getl_welcomed;
 int getl_mode;
 int getl_prompt;
 
+#if HAVE_LIBREADLINE
+#include <readline/readline.h>
+#endif
+
 #if HAVE_LIBHISTORY
 static char *history_file;
 
@@ -56,6 +61,7 @@ extern void stifle_history (int);
 extern int write_history (char *);
 #endif /* no readline/history.h */
 #endif /* -lhistory */
+
 
 extern struct cmd_set cmd;
 
@@ -75,6 +81,9 @@ getl_initialize (void)
   ds_create (&getl_include_path,
 	     fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
   ds_init (&getl_buf, 256);
+#if HAVE_LIBREADLINE 
+  rl_completion_entry_function = pspp_completion_function;
+#endif
 }
 
 /* Close getline. */
