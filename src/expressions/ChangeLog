@@ -1,3 +1,8 @@
+Thu Mar  3 23:17:51 2005  Ben Pfaff  <blp@gnu.org>
+
+	* parse.c: (expr_parse) Fix parameter type.  Thanks to John
+	Darrington <john@darrington.wattle.id.au> for reporting this bug.
+
 Thu Mar  3 22:10:25 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* Makefile.am evaluate.h.pl evaluate.inc.pl operations.h.pl

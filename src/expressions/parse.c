@@ -66,7 +66,7 @@ static bool type_check (struct expression *, union any_node **,
    Returns the new expression if successful or a null pointer
    otherwise. */
 struct expression *
-expr_parse (struct dictionary *dict, atom_type type) 
+expr_parse (struct dictionary *dict, enum expr_type type) 
 {
   union any_node *n;
   struct expression *e;
