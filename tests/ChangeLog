@@ -1,3 +1,7 @@
+Sat Dec 13 00:08:23 2003  Ben Pfaff  <blp@gnu.org>
+
+	* syntax: Run a diff when there's no expected output, too.
+
 Fri Jan  7 20:30:23 2000  Ben Pfaff  <blp@gnu.org>
 
 	* data-fmts.stat: Add more date tests.

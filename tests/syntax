@@ -23,6 +23,7 @@ if [ -z "$BENCHMARK" ]; then
 	else
 	    if [ -s $x.actual ]; then 
 		echo "FAIL"; RESULT=fail
+		diff -u /dev/null $x.actual || true
 	    else 
 		echo "pass"; rm $x.actual
 	    fi
