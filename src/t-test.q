@@ -1039,7 +1039,7 @@ one_sample_calc (struct ccase *c)
       ttp= &cmd.v_variables[i]->p.t_t;
       
       if (val->f != SYSMIS) 
-	ttp->sum_diff += weight * fabs(val->f - cmd.n_testval);
+	ttp->sum_diff += weight * (val->f - cmd.n_testval);
     }
 
   return 0;
