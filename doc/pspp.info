@@ -1,0 +1,247 @@
+This is pspp.info, produced by makeinfo version 4.0 from pspp.texi.
+
+START-INFO-DIR-ENTRY
+* PSPP: (pspp).             Statistical analysis package.
+END-INFO-DIR-ENTRY
+
+   PSPP, for statistical analysis of sampled data, by Ben Pfaff.
+
+   This file documents PSPP, a statistical package for analysis of
+sampled data that uses a command language compatible with SPSS.
+
+   Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+
+   This version of the PSPP documentation is consistent with version 2
+of "texinfo.tex".
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above condition for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+Indirect:
+pspp.info-1: 1191
+pspp.info-2: 50013
+pspp.info-3: 95263
+pspp.info-4: 142742
+pspp.info-5: 192073
+pspp.info-6: 241547
+pspp.info-7: 290618
+pspp.info-8: 319595
+
+Tag Table:
+(Indirect)
+Node: Top1191
+Node: Introduction2975
+Node: License4202
+Node: Credits5652
+Node: Installation6504
+Node: UNIX installation7595
+Node: Configuration9720
+Node: File locations10913
+Node: Configuration techniques14494
+Node: Configuration files15443
+Node: Environment variables16957
+Node: Variable values17588
+Node: Environment substitutions19106
+Node: Predefined variables20144
+Node: Output devices20893
+Node: Driver categories22308
+Node: Macro definitions24244
+Node: Device definitions25679
+Node: Dimensions28054
+Ref: Dimensions-Footnote-129517
+Node: papersize29540
+Node: Distinguishing line types31052
+Node: Tokenizing lines31851
+Node: PostScript driver class33597
+Node: PS output options34813
+Node: PS page options37192
+Node: PS file options38204
+Node: PS font options41737
+Node: PS line options42360
+Node: Prologue43529
+Node: Encodings47205
+Node: ASCII driver class49410
+Node: ASCII output options50013
+Node: ASCII page options51806
+Node: ASCII font options53357
+Node: HTML driver class58657
+Node: HTML Prologue59694
+Node: Miscellaneous configuring61621
+Node: Improving output quality63534
+Node: Invocation65617
+Node: Non-option Arguments66672
+Node: Configuration Options68322
+Node: Input and output options69241
+Node: Language control options70501
+Node: Informational options71877
+Node: Language73477
+Node: Tokens74400
+Node: Commands80633
+Node: Types of Commands83917
+Node: Order of Commands85434
+Node: Missing Observations87793
+Node: Variables89188
+Node: Attributes89902
+Node: System Variables92120
+Node: Sets of Variables93146
+Node: Input/Output Formats95263
+Node: Scratch Variables106891
+Node: Files108078
+Node: BNF109433
+Node: Expressions111644
+Node: Booleans112916
+Node: Missing Values in Expressions113832
+Node: Grouping Operators114569
+Node: Arithmetic Operators114981
+Node: Logical Operators115723
+Node: Relational Operators116563
+Node: Functions117930
+Node: Advanced Mathematics119366
+Node: Miscellaneous Mathematics120127
+Node: Trigonometry121183
+Node: Missing Value Functions122579
+Node: Pseudo-Random Numbers125204
+Node: Set Membership126476
+Node: Statistical Functions127636
+Node: String Functions130182
+Node: Time & Date136184
+Node: Time & Date Concepts137443
+Node: Time Construction139526
+Node: Time Extraction140156
+Node: Date Construction141066
+Node: Date Extraction142742
+Node: Miscellaneous Functions146129
+Node: Functions Not Implemented148012
+Node: Order of Operations148355
+Node: Data Input and Output148969
+Node: BEGIN DATA150490
+Node: CLEAR TRANSFORMATIONS151122
+Node: DATA LIST151500
+Node: DATA LIST FIXED152386
+Node: DATA LIST FIXED Examples157285
+Node: DATA LIST FREE159317
+Node: DATA LIST LIST161026
+Node: END CASE161663
+Node: END FILE161890
+Node: FILE HANDLE162132
+Node: INPUT PROGRAM163522
+Node: LIST168376
+Node: MATRIX DATA170091
+Node: NEW FILE173924
+Node: PRINT174114
+Node: PRINT EJECT176701
+Node: PRINT SPACE177350
+Node: REREAD178019
+Node: REPEATING DATA179113
+Node: WRITE182611
+Node: System and Portable Files183505
+Node: APPLY DICTIONARY184287
+Node: EXPORT186332
+Node: GET187024
+Node: IMPORT188917
+Node: MATCH FILES189764
+Node: SAVE192073
+Node: SYSFILE INFO194124
+Node: XSAVE194590
+Node: Variable Attributes195218
+Node: ADD VALUE LABELS196471
+Node: DISPLAY196874
+Node: DISPLAY VECTORS198123
+Node: FORMATS198377
+Node: LEAVE199071
+Node: MISSING VALUES200345
+Node: MODIFY VARS201560
+Node: NUMERIC203332
+Node: PRINT FORMATS203988
+Node: RENAME VARIABLES204422
+Node: VALUE LABELS205141
+Node: STRING205820
+Node: VARIABLE LABELS206353
+Node: VECTOR206867
+Node: WRITE FORMATS208139
+Node: Data Manipulation208547
+Node: AGGREGATE209414
+Node: AUTORECODE214340
+Node: COMPUTE215392
+Node: COUNT216046
+Node: FLIP218994
+Node: IF220528
+Node: RECODE221770
+Node: SORT CASES224679
+Node: Data Selection225838
+Node: FILTER226682
+Node: N OF CASES227626
+Node: PROCESS IF229219
+Node: SAMPLE230310
+Node: SELECT IF232006
+Node: SPLIT FILE232772
+Node: TEMPORARY233608
+Node: WEIGHT234577
+Node: Conditionals and Looping235550
+Node: BREAK236073
+Node: DO IF236378
+Node: DO REPEAT237165
+Node: LOOP239150
+Node: Statistics241172
+Node: DESCRIPTIVES241547
+Node: FREQUENCIES244849
+Node: CROSSTABS249271
+Node: Utilities254556
+Node: COMMENT255739
+Node: DOCUMENT256190
+Node: DISPLAY DOCUMENTS256866
+Node: DISPLAY FILE LABEL257198
+Node: DROP DOCUMENTS257480
+Node: EXECUTE257885
+Node: FILE LABEL258116
+Node: INCLUDE258550
+Node: QUIT258971
+Node: SET259280
+Node: SUBTITLE267859
+Node: TITLE268438
+Node: Not Implemented268956
+Node: Data File Format269902
+Node: File Header Record272026
+Node: Variable Record275432
+Node: Value Label Record279986
+Node: Value Label Variable Record281293
+Node: Document Record282093
+Node: Machine int32 Info Record282924
+Node: Machine flt64 Info Record285067
+Node: Miscellaneous Informational Records286313
+Node: Dictionary Termination Record287542
+Node: Data Record288190
+Node: Portable File Format290618
+Node: Portable File Characters291596
+Node: Portable File Structure292686
+Node: Portable File Header294552
+Node: Version and Date Info Record297260
+Node: Identification Records297834
+Node: Variable Count Record298352
+Node: Variable Records298785
+Node: Value Label Records300482
+Node: Portable File Data301211
+Node: q2c Input Format301781
+Node: Invoking q2c302387
+Node: q2c Input Structure302769
+Node: Grammar Rules304931
+Node: Bugs311772
+Node: Known bugs312859
+Node: Contacting the Author314271
+Node: Function Index314523
+Node: Concept Index319595
+Node: Command Index342766
+
+End Tag Table

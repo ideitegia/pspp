@@ -1,0 +1,1412 @@
+This is pspp.info, produced by makeinfo version 4.0 from pspp.texi.
+
+START-INFO-DIR-ENTRY
+* PSPP: (pspp).             Statistical analysis package.
+END-INFO-DIR-ENTRY
+
+   PSPP, for statistical analysis of sampled data, by Ben Pfaff.
+
+   This file documents PSPP, a statistical package for analysis of
+sampled data that uses a command language compatible with SPSS.
+
+   Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+
+   This version of the PSPP documentation is consistent with version 2
+of "texinfo.tex".
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above condition for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+File: pspp.info,  Node: SAVE,  Next: SYSFILE INFO,  Prev: MATCH FILES,  Up: System and Portable Files
+
+SAVE
+====
+
+     SAVE
+             /OUTFILE='filename'
+             /{COMPRESSED,UNCOMPRESSED}
+             /DROP=var_list
+             /KEEP=var_list
+             /RENAME=(src_names=target_names)...
+
+   The SAVE procedure causes the dictionary and data in the active file
+to be written to a system file.
+
+   The FILE subcommand is the only required subcommand.  Specify the
+system file to be written as a string file name or a file handle (*note
+FILE HANDLE::).
+
+   The COMPRESS and UNCOMPRESS subcommand determine whether the saved
+system file is compressed.  By default, system files are compressed.
+This default can be changed with the SET command (*note SET::).
+
+   By default, all the variables in the active file dictionary are
+written to the system file.  The DROP subcommand can be used to specify
+a list of variables not to be written.  In contrast, KEEP specifies
+variables to be written, with all variables not specified not written.
+
+   Normally variables are saved to a system file under the same names
+they have in the active file.  Use the RENAME command to change these
+names.  Specify, within parentheses, a list of variable names followed
+by an equals sign (`=') and the names that they should be renamed to.
+Multiple parenthesized groups of variable names can be included on a
+single RENAME subcommand.  Variables' names may be swapped using a
+RENAME subcommand of the form `/RENAME=(A B=B A)'.
+
+   Alternate syntax for the RENAME subcommand allows the parentheses to
+be eliminated.  When this is done, only a single variable may be
+renamed at once.  For instance, `/RENAME=A=B'.  This alternate syntax is
+deprecated.
+
+   DROP, KEEP, and RENAME are performed in left-to-right order.  They
+each may be present any number of times.
+
+   Please note that DROP, KEEP, and RENAME do not cause the active file
+to be modified.  Only the system file written to disk is changed.
+
+   SAVE causes the data to be read.  It is a procedure.
+
+
+File: pspp.info,  Node: SYSFILE INFO,  Next: XSAVE,  Prev: SAVE,  Up: System and Portable Files
+
+SYSFILE INFO
+============
+
+     SYSFILE INFO FILE='filename'.
+
+   The SYSFILE INFO command reads the dictionary in a system file and
+displays the information in its dictionary.
+
+   Specify a file name or file handle.  SYSFILE INFO will read that
+file as a system file and display information on its dictionary.
+
+   The file does not replace the current active file.
+
+
+File: pspp.info,  Node: XSAVE,  Prev: SYSFILE INFO,  Up: System and Portable Files
+
+XSAVE
+=====
+
+     XSAVE
+             /FILE='filename'
+             /{COMPRESSED,UNCOMPRESSED}
+             /DROP=var_list
+             /KEEP=var_list
+             /RENAME=(src_names=target_names)...
+
+   The XSAVE transformation writes the active file dictionary and data
+to a system file stored on disk.
+
+   XSAVE is a transformation, not a procedure.  It is executed when the
+data is read by a procedure or procedure-like command.  In all other
+respects, XSAVE is identical to SAVE.  *Note SAVE::, for more
+information on syntax and usage.
+
+
+File: pspp.info,  Node: Variable Attributes,  Next: Data Manipulation,  Prev: System and Portable Files,  Up: Top
+
+Manipulating variables
+**********************
+
+   The variables in the active file dictionary are important.  There are
+several utility functions for examining and adjusting them.
+
+* Menu:
+
+* ADD VALUE LABELS::            Add value labels to variables.
+* DISPLAY::                     Display variable names & descriptions.
+* DISPLAY VECTORS::             Display a list of vectors.
+* FORMATS::                     Set print and write formats.
+* LEAVE::                       Don't clear variables between cases.
+* MISSING VALUES::              Set missing values for variables.
+* MODIFY VARS::                 Rename, reorder, and drop variables.
+* NUMERIC::                     Create new numeric variables.
+* PRINT FORMATS::               Set variable print formats.
+* RENAME VARIABLES::            Rename variables.
+* VALUE LABELS::                Set value labels for variables.
+* STRING::                      Create new string variables.
+* VARIABLE LABELS::             Set variable labels for variables.
+* VECTOR::                      Declare an array of variables.
+* WRITE FORMATS::               Set variable write formats.
+
+
+File: pspp.info,  Node: ADD VALUE LABELS,  Next: DISPLAY,  Prev: Variable Attributes,  Up: Variable Attributes
+
+ADD VALUE LABELS
+================
+
+     ADD VALUE LABELS
+             /var_list value 'label' [value 'label']...
+
+   ADD VALUE LABELS has the same syntax and purpose as VALUE LABELS (see
+above), but it does not clear away value labels from the variables
+before adding the ones specified.
+
+
+File: pspp.info,  Node: DISPLAY,  Next: DISPLAY VECTORS,  Prev: ADD VALUE LABELS,  Up: Variable Attributes
+
+DISPLAY
+=======
+
+     DISPLAY {NAMES,INDEX,LABELS,VARIABLES,DICTIONARY,SCRATCH}
+             [SORTED] [var_list]
+
+   DISPLAY displays requested information on variables.  Variables can
+optionally be sorted alphabetically.  The entire dictionary or just
+specified variables can be described.
+
+   One of the following keywords can be present:
+
+NAMES
+     The variables' names are displayed.
+
+INDEX
+     The variables' names are displayed along with a value describing
+     their position within the active file dictionary.
+
+LABELS
+     Variable names, positions, and variable labels are displayed.
+
+VARIABLES
+     Variable names, positions, print and write formats, and missing
+     values are displayed.
+
+DICTIONARY
+     Variable names, positions, print and write formats, missing values,
+     variable labels, and value labels are displayed.
+
+SCRATCH
+     Varible names are displayed, for scratch variables only (*note
+     Scratch Variables::).
+
+   If SORTED is specified, then the variables are displayed in ascending
+order based on their names; otherwise, they are displayed in the order
+that they occur in the active file dictionary.
+
+
+File: pspp.info,  Node: DISPLAY VECTORS,  Next: FORMATS,  Prev: DISPLAY,  Up: Variable Attributes
+
+DISPLAY VECTORS
+===============
+
+     DISPLAY VECTORS.
+
+   The DISPLAY VECTORS command causes a list of the currently declared
+vectors to be displayed.
+
+
+File: pspp.info,  Node: FORMATS,  Next: LEAVE,  Prev: DISPLAY VECTORS,  Up: Variable Attributes
+
+FORMATS
+=======
+
+     FORMATS var_list (fmt_spec).
+
+   The FORMATS command set the print and write formats for the specified
+variables to the specified format specification.  *Note Input/Output
+Formats::.
+
+   Specify a list of variables followed by a format specification in
+parentheses.  The print and write formats of the specified variables
+will be changed.
+
+   Additional lists of variables and formats may be included if they are
+delimited by a slash (`/').
+
+   The FORMATS command takes effect immediately.  It is not affected by
+conditional and looping structures such as DO IF or LOOP.
+
+
+File: pspp.info,  Node: LEAVE,  Next: MISSING VALUES,  Prev: FORMATS,  Up: Variable Attributes
+
+LEAVE
+=====
+
+     LEAVE var_list.
+
+   The LEAVE command prevents the specified variables from being
+reinitialized whenever a new case is processed.
+
+   Normally, when a data file is processed, every variable in the active
+file is initialized to the system-missing value or spaces at the
+beginning of processing for each case.  When a variable has been
+specified on LEAVE, this is not the case.  Instead, that variable is
+initialized to 0 (not system-missing) or spaces for the first case.
+After that, it retains its value between cases.
+
+   This becomes useful for counters.  For instance, in the example below
+the variable SUM maintains a running total of the values in the ITEM
+variable.
+
+     DATA LIST /ITEM 1-3.
+     COMPUTE SUM=SUM+ITEM.
+     PRINT /ITEM SUM.
+     LEAVE SUM
+     BEGIN DATA.
+     123
+     404
+     555
+     999
+     END DATA.
+
+Partial output from this example:
+
+     123   123.00
+     404   527.00
+     555  1082.00
+     999  2081.00
+
+   It is best to use the LEAVE command immediately before invoking a
+procedure command, because it is reset by certain transformations--for
+instance, COMPUTE and IF.  LEAVE is also reset by all procedure
+invocations.
+
+
+File: pspp.info,  Node: MISSING VALUES,  Next: MODIFY VARS,  Prev: LEAVE,  Up: Variable Attributes
+
+MISSING VALUES
+==============
+
+     MISSING VALUES var_list (missing_values).
+     
+     missing_values takes one of the following forms:
+             num1
+             num1, num2
+             num1, num2, num3
+             num1 THRU num2
+             num1 THRU num2, num3
+             string1
+             string1, string2
+             string1, string2, string3
+     As part of a range, LO or LOWEST may take the place of num1;
+     HI or HIGHEST may take the place of num2.
+
+   The MISSING VALUES command sets user-missing values for numeric and
+short string variables.  Long string variables may not have missing
+values.
+
+   Specify a list of variables, followed by a list of their user-missing
+values in parentheses.  Up to three discrete values may be given, or,
+for numeric variables only, a range of values optionally accompanied by
+a single discrete value.  Ranges may be open-ended on one end, indicated
+through the use of the keyword LO or LOWEST or HI or HIGHEST.
+
+   The MISSING VALUES command takes effect immediately.  It is not
+affected by conditional and looping constructs such as DO IF or LOOP.
+
+
+File: pspp.info,  Node: MODIFY VARS,  Next: NUMERIC,  Prev: MISSING VALUES,  Up: Variable Attributes
+
+MODIFY VARS
+===========
+
+     MODIFY VARS
+             /REORDER={FORWARD,BACKWARD} {POSITIONAL,ALPHA} (var_list)...
+             /RENAME=(old_names=new_names)...
+             /{DROP,KEEP}=var_list
+             /MAP
+
+   The MODIFY VARS commands allows variables in the active file to be
+reordered, renamed, or deleted from the active file.
+
+   At least one subcommand must be specified, and no subcommand may be
+specified more than once.  DROP and KEEP may not both be specified.
+
+   The REORDER subcommand changes the order of variables in the active
+file.  Specify one or more lists of variable names in parentheses.  By
+default, each list of variables is rearranged into the specified order.
+To put the variables into the reverse of the specified order, put
+keyword BACKWARD before the parentheses.  To put them into alphabetical
+order in the dictionary, specify keyword ALPHA before the parentheses.
+BACKWARD and ALPHA may also be combined.
+
+   To rename variables in the active file, specify RENAME, an equals
+sign (`='), and lists of the old variable names and new variable names
+separated by another equals sign within parentheses.  There must be the
+same number of old and new variable names.  Each old variable is
+renamed to the corresponding new variable name.  Multiple parenthesized
+groups of variables may be specified.
+
+   The DROP subcommand deletes a specified list of variables from the
+active file.
+
+   The KEEP subcommand keeps the specified list of variables in the
+active file.  Any unlisted variables are delete from the active file.
+
+   MAP is currently ignored.
+
+   MODIFY VARS takes effect immediately.  It does not cause the data to
+be read.
+
+
+File: pspp.info,  Node: NUMERIC,  Next: PRINT FORMATS,  Prev: MODIFY VARS,  Up: Variable Attributes
+
+NUMERIC
+=======
+
+     NUMERIC /var_list [(fmt_spec)].
+
+   The NUMERIC command explicitly declares new numeric variables,
+optionally setting their output formats.
+
+   Specify a slash (`/'), followed by the names of the new numeric
+variables.  If you wish to set their output formats, follow their names
+by an output format specification in parentheses (*note Input/Output
+Formats::).  If no output format specification is given then the
+variables will default to F8.2.
+
+   Variables created with NUMERIC will be initialized to the
+system-missing value.
+
+
+File: pspp.info,  Node: PRINT FORMATS,  Next: RENAME VARIABLES,  Prev: NUMERIC,  Up: Variable Attributes
+
+PRINT FORMATS
+=============
+
+     PRINT FORMATS var_list (fmt_spec).
+
+   The PRINT FORMATS command sets the print formats for the specified
+variables to the specified format specification.
+
+   Syntax is identical to that of FORMATS (*note FORMATS::), but the
+PRINT FORMATS command sets only print formats, not write formats.
+
+
+File: pspp.info,  Node: RENAME VARIABLES,  Next: VALUE LABELS,  Prev: PRINT FORMATS,  Up: Variable Attributes
+
+RENAME VARIABLES
+================
+
+     RENAME VARIABLES (old_names=new_names)... .
+
+   The RENAME VARIABLES command allows the names of variables in the
+active file to be changed.
+
+   To rename variables, specify lists of the old variable names and new
+variable names, separated by an equals sign (`='), within parentheses.
+There must be the same number of old and new variable names.  Each old
+variable is renamed to the corresponding new variable name.  Multiple
+parenthesized groups of variables may be specified.
+
+   RENAME VARIABLES takes effect immediately.  It does not cause the
+data to be read.
+
+
+File: pspp.info,  Node: VALUE LABELS,  Next: STRING,  Prev: RENAME VARIABLES,  Up: Variable Attributes
+
+VALUE LABELS
+============
+
+     VALUE LABELS
+             /var_list value 'label' [value 'label']...
+
+   The VALUE LABELS command allows values of numeric and short string
+variables to be associated with labels.  In this way, a short value can
+stand for a long value.
+
+   In order to set up value labels for a set of variables, specify the
+variable names after a slash (`/'), followed by a list of values and
+their associated labels, separated by spaces.
+
+   Before the VALUE LABELS command is executed, any existing value
+labels are cleared from the variables specified.
+
+
+File: pspp.info,  Node: STRING,  Next: VARIABLE LABELS,  Prev: VALUE LABELS,  Up: Variable Attributes
+
+STRING
+======
+
+     STRING /var_list (fmt_spec).
+
+   The STRING command creates new string variables for use in
+transformations.
+
+   Specify a slash (`/'), followed by the names of the string variables
+to create and the desired output format specification in parentheses
+(*note Input/Output Formats::).  Variable widths are implicitly derived
+from the specified output formats.
+
+   Created variables are initialized to spaces.
+
+
+File: pspp.info,  Node: VARIABLE LABELS,  Next: VECTOR,  Prev: STRING,  Up: Variable Attributes
+
+VARIABLE LABELS
+===============
+
+     VARIABLE LABELS
+             /var_list 'var_label'.
+
+   The VARIABLE LABELS command is used to associate an explanatory name
+with a group of variables.  This name (a variable label) is displayed by
+statistical procedures.
+
+   To assign a variable label to a group of variables, specify a slash
+(`/'), followed by the list of variable names and the variable label as
+a string.
+
+
+File: pspp.info,  Node: VECTOR,  Next: WRITE FORMATS,  Prev: VARIABLE LABELS,  Up: Variable Attributes
+
+VECTOR
+======
+
+     Two possible syntaxes:
+             VECTOR vec_name=var_list.
+             VECTOR vec_name_list(count).
+
+   The VECTOR command allows a group of variables to be accessed as if
+they were consecutive members of an array with a vector(index) notation.
+
+   To make a vector out of a set of existing variables, specify a name
+for the vector followed by an equals sign (`=') and the variables that
+belong in the vector.
+
+   To make a vector and create variables at the same time, specify one
+or more vector names followed by a count in parentheses.  This will
+cause variables named `VEC1' through `VECCOUNT' to be created as
+numeric variables.  Variable names including numeric suffixes may not
+exceed 8 characters in length, and none of the variables may exist
+prior to the VECTOR command.
+
+   All the variables in a vector must be the same type.
+
+   Vectors created with VECTOR disappear after any procedure or
+procedure-like command is executed.  The variables contained in the
+vectors remain, unless they are scratch variables (*note Scratch
+Variables::).
+
+   Variables within a vector may be references in expressions using
+vector(index) syntax.
+
+
+File: pspp.info,  Node: WRITE FORMATS,  Prev: VECTOR,  Up: Variable Attributes
+
+WRITE FORMATS
+=============
+
+     WRITE FORMATS var_list (fmt_spec).
+
+   The WRITE FORMATS command sets the write formats for the specified
+variables to the specified format specification.
+
+   Syntax is identical to that of FORMATS (*note FORMATS::), but the
+WRITE FORMATS command sets only write formats, not print formats.
+
+
+File: pspp.info,  Node: Data Manipulation,  Next: Data Selection,  Prev: Variable Attributes,  Up: Top
+
+Data transformations
+********************
+
+   The PSPP procedures examined in this chapter manipulate data and
+prepare the active file for later analyses.  They do not produce output,
+as a rule.
+
+* Menu:
+
+* AGGREGATE::                   Summarize multiple cases into a single case.
+* AUTORECODE::                  Automatic recoding of variables.
+* COMPUTE::                     Assigning a variable a calculated value.
+* COUNT::                       Counting variables with particular values.
+* FLIP::                        Exchange variables with cases.
+* IF::                          Conditionally assigning a calculated value.
+* RECODE::                      Mapping values from one set to another.
+* SORT CASES::                  Sort the active file.
+
+
+File: pspp.info,  Node: AGGREGATE,  Next: AUTORECODE,  Prev: Data Manipulation,  Up: Data Manipulation
+
+AGGREGATE
+=========
+
+     AGGREGATE
+             /BREAK=var_list
+             /PRESORTED
+             /OUTFILE={*,'filename'}
+             /DOCUMENT
+             /MISSING=COLUMNWISE
+             /dest_vars=agr_func(src_vars, args...)...
+
+   The AGGREGATE command summarizes groups of cases into single cases.
+Cases are divided into groups that have the same values for one or more
+variables called "break variables".  Several functions are available
+for summarizing case contents.
+
+   BREAK is the only required subcommand (in addition, at least one
+aggregation variable must be specified).  Specify a list of variable
+names.  The values of these variables are used to divide the active file
+into groups to be summarized.
+
+   By default, the active file is sorted based on the break variables
+before aggregation takes place.  If the active file is already sorted,
+specify PRESORTED to save time.
+
+   The OUTFILE subcommand specifies a system file by file name string or
+file handle (*note FILE HANDLE::).  The aggregated cases are sent to
+this file.  If OUTFILE is not specified, or if `*' is specified, then
+the aggregated cases replace the active file.
+
+   Normally the aggregate file does not receive the documents from the
+active file, even if the aggregate file replaces the active file.
+Specify DOCUMENT to have the documents from the active file copied to
+the aggregate file.
+
+   At least one aggregation variable must be specified.  Specify a list
+of aggregation variables, an equals sign (`='), an aggregation function
+name (see the list below), and a list of source variables in
+parentheses.  In addition, some aggregation functions expect additional
+arguments in the parentheses following the source variable names.
+
+   There must be exactly as many source variables as aggregation
+variables.  Each aggregation variable receives the results of applying
+the specified aggregation function to the corresponding source
+variable.  Most aggregation functions may be applied to numeric and
+short and long string variables.  Others are restricted to numeric
+values; these are marked as such in this list below.
+
+   Any number of sets of aggregation variables may be specified.
+
+   The available aggregation functions are as follows:
+
+SUM(var_name)
+     Sum.  Limited to numeric values.
+
+MEAN(var_name)
+     Arithmetic mean.  Limited to numeric values.
+
+SD(var_name)
+     Standard deviation of the mean.  Limited to numeric values.
+
+MAX(var_name)
+     Maximum value.
+
+MIN(var_name)
+     Minimum value.
+
+FGT(var_name, value)
+PGT(var_name, value)
+     Fraction between 0 and 1, or percentage between 0 and 100,
+     respectively, of values greater than the specified constant.
+
+FLT(var_name, value)
+PLT(var_name, value)
+     Fraction or percentage, respectively, of values less than the
+     specified constant.
+
+FIN(var_name, low, high)
+PIN(var_name, low, high)
+     Fraction or percentage, respectively, of values within the
+     specified inclusive range of constants.
+
+FOUT(var_name, low, high)
+POUT(var_name, low, high)
+     Fraction or percentage, respectively, of values strictly outside
+     the specified range of constants.
+
+N(var_name)
+     Number of non-missing values.
+
+N
+     Number of cases aggregated to form this group.  Don't supply a
+     source variable for this aggregation function.
+
+NU(var_name)
+     Number of non-missing values.  Each case is considered to have a
+     weight of 1, regardless of the current weighting variable (*note
+     WEIGHT::).
+
+NU
+     Number of cases aggregated to form this group.  Each case is
+     considered to have a weight of 1, regardless of the current
+     weighting variable.
+
+NMISS(var_name)
+     Number of missing values.
+
+NUMISS(var_name)
+     Number of missing values.  Each case is considered to have a
+     weight of 1, regardless of the current weighting variable.
+
+FIRST(var_name)
+     First value in this group.
+
+LAST(var_name)
+     Last value in this group.
+
+   When string values are compared by aggregation functions, they are
+done in terms of internal character codes.  On most modern computers,
+this is a form of ASCII.
+
+   In addition, there is a parallel set of aggregation functions having
+the same names as those above, but with a dot after the last character
+(for instance, `SUM.').  These functions are the same as the above,
+except that they cause user-missing values, which are normally excluded
+from calculations, to be included.
+
+   Normally, only a single case (2 for SD and SD.) need be non-missing
+in each group in order for the aggregate variable to be non-missing.  If
+/MISSING=COLUMNWISE is specified, the behavior reverses: that is, a
+single missing value is enough to make the aggregate variable become a
+missing value.
+
+   AGGREGATE ignores the current SPLIT FILE settings and causes them to
+be canceled (*note SPLIT FILE::).
+
+
+File: pspp.info,  Node: AUTORECODE,  Next: COMPUTE,  Prev: AGGREGATE,  Up: Data Manipulation
+
+AUTORECODE
+==========
+
+     AUTORECODE VARIABLES=src_vars INTO dest_vars
+             /DESCENDING
+             /PRINT
+
+   The AUTORECODE procedure considers the N values that a variable
+takes on and maps them onto values 1...N on a new numeric variable.
+
+   Subcommand VARIABLES is the only required subcommand and must come
+first.  Specify VARIABLES, an equals sign (`='), a list of source
+variables, INTO, and a list of target variables.  There must the same
+number of source and target variables.  The target variables must not
+already exist.
+
+   By default, increasing values of a source variable (for a string,
+this is based on character code comparisons) are recoded to increasing
+values of its target variable.  To cause increasing values of a source
+variable to be recoded to decreasing values of its target variable (N
+down to 1), specify DESCENDING.
+
+   PRINT is currently ignored.
+
+   AUTORECODE is a procedure.  It causes the data to be read.
+
+
+File: pspp.info,  Node: COMPUTE,  Next: COUNT,  Prev: AUTORECODE,  Up: Data Manipulation
+
+COMPUTE
+=======
+
+     COMPUTE var_name = expression.
+
+   `COMPUTE' creates a variable with the name specified (if necessary),
+then evaluates the given expression for every case and assigns the
+result to the variable.  *Note Expressions::.
+
+   Numeric variables created or computed by `COMPUTE' are assigned an
+output width of 8 character with two decimal places (`F8.2').  String
+variables created or computed by `COMPUTE' have the same width as the
+existing variable or constant.
+
+   COMPUTE is a transformation.  It does not cause the active file to be
+read.
+
+
+File: pspp.info,  Node: COUNT,  Next: FLIP,  Prev: COMPUTE,  Up: Data Manipulation
+
+COUNT
+=====
+
+     COUNT var_name = var... (value...).
+     
+     Each value takes one of the following forms:
+             number
+             string
+             num1 THRU num2
+             MISSING
+             SYSMIS
+     In addition, num1 and num2 can be LO or LOWEST, or HI or HIGHEST,
+     respectively.
+
+   `COUNT' creates or replaces a numeric "target" variable that counts
+the occurrence of a "criterion" value or set of values over one or more
+"test" variables for each case.
+
+   The target variable values are always nonnegative integers.  They are
+never missing.  The target variable is assigned an F8.2 output format.
+*Note Input/Output Formats::.  Any variables, including long and short
+string variables, may be test variables.
+
+   User-missing values of test variables are treated just like any other
+values.  They are *not* treated as system-missing values.  User-missing
+values that are criterion values or inside ranges of criterion values
+are counted as any other values.  However (for numeric variables),
+keyword `MISSING' may be used to refer to all system- and user-missing
+values.
+
+   `COUNT' target variables are assigned values in the order specified.
+In the command `COUNT A=A B(1) /B=A B(2).', the following actions
+occur:
+
+   - The number of occurrences of 1 between `A' and `B' is counted.
+
+   - `A' is assigned this value.
+
+   - The number of occurrences of 1 between `B' and the *new* value of
+     `A' is counted.
+
+   - `B' is assigned this value.
+
+   Despite this ordering, all `COUNT' criterion variables must exist
+before the procedure is executed--they may not be created as target
+variables earlier in the command!  Break such a command into two
+separate commands.
+
+   The examples below may help to clarify.
+
+  A. Assuming `Q0', `Q2', ..., `Q9' are numeric variables, the
+     following commands:
+
+       1. Count the number of times the value 1 occurs through these
+          variables for each case and assigns the count to variable
+          `QCOUNT'.
+
+       2. Print out the total number of times the value 1 occurs
+          throughout _all_ cases using `DESCRIPTIVES'.  *Note
+          DESCRIPTIVES::, for details.
+
+          COUNT QCOUNT=Q0 TO Q9(1).
+          DESCRIPTIVES QCOUNT /STATISTICS=SUM.
+
+  B. Given these same variables, the following commands:
+
+       1. Count the number of valid values of these variables for each
+          case and assigns the count to variable `QVALID'.
+
+       2. Multiplies each value of `QVALID' by 10 to obtain a
+          percentage of valid values, using `COMPUTE'.  *Note
+          COMPUTE::, for details.
+
+       3. Print out the percentage of valid values across all cases,
+          using `DESCRIPTIVES'.  *Note DESCRIPTIVES::, for details.
+
+          COUNT QVALID=Q0 TO Q9 (LO THRU HI).
+          COMPUTE QVALID=QVALID*10.
+          DESCRIPTIVES QVALID /STATISTICS=MEAN.
+
+
+File: pspp.info,  Node: FLIP,  Next: IF,  Prev: COUNT,  Up: Data Manipulation
+
+FLIP
+====
+
+     FLIP /VARIABLES=var_list /NEWNAMES=var_name.
+
+   The FLIP command transposes rows and columns in the active file.  It
+causes cases to be swapped with variables, and vice versa.
+
+   There are no required subcommands.  The VARIABLES subcommand
+specifies variables that will be transformed into cases.  Variables not
+specified are discarded.  By default, all variables are selected for
+transposition.
+
+   The variables specified by NEWNAMES, which must be a string
+variable, is used to give names to the variables created by FLIP.  If
+NEWNAMES is not specified then the default is a variable named
+CASE_LBL, if it exists.  If it does not then the variables created by
+FLIP are named VAR000 through VAR999, then VAR1000, VAR1001, and so on.
+
+   When a NEWNAMES variable is available, the names must be
+canonicalized before becoming variable names.  Invalid characters are
+replaced by letter `V' in the first position, or by `_' in subsequent
+positions.  If the name thus generated is not unique, then numeric
+extensions are added, starting with 1, until a unique name is found or
+there are no remaining possibilities.  If the latter occurs then the
+FLIP operation aborts.
+
+   The resultant dictionary contains a CASE_LBL variable, which stores
+the names of the variables in the dictionary before the transposition.
+If the active file is subsequently transposed using FLIP, this variable
+can be used to recreate the original variable names.
+
+
+File: pspp.info,  Node: IF,  Next: RECODE,  Prev: FLIP,  Up: Data Manipulation
+
+IF
+==
+
+     Two possible syntaxes:
+             IF test_expr target_var=target_expr.
+             IF test_expr target_vec(target_index)=target_expr.
+
+   The IF transformation conditionally assigns the value of a target
+expression to a target variable, based on the truth of a test
+expression.
+
+   Specify a boolean-valued expression (*note Expressions::) to be
+tested following the IF keyword.  This expression is calculated for
+each case.  If the value is true, then the value of target_expr is
+computed and assigned to target_var.  If the value is false or missing,
+nothing is done.  Numeric and short and long string variables may be
+used.  The type of target_expr must match the type of target_var.
+
+   For numeric variables only, target_var need not exist before the IF
+transformation is executed.  In this case, target_var is assigned the
+system-missing value if the IF condition is not true.  String variables
+must be declared before they can be used as targets for IF.
+
+   In addition to ordinary variables, the target variable may be an
+element of a vector.  In this case, the vector index must be specified
+in parentheses following the vector name.
+
+
+File: pspp.info,  Node: RECODE,  Next: SORT CASES,  Prev: IF,  Up: Data Manipulation
+
+RECODE
+======
+
+     RECODE var_list (src_value...=dest_value)... [INTO var_list].
+     
+     src_value may take the following forms:
+             number
+             string
+             num1 THRU num2
+             MISSING
+             SYSMIS
+             ELSE
+     Open-ended ranges may be specified using LO or LOWEST for num1
+     or HI or HIGHEST for num2.
+     
+     dest_value may take the following forms:
+             num
+             string
+             SYSMIS
+             COPY
+
+   The RECODE command is used to translate data from one range of
+values to another, using flexible user-specified mappings.  Data may be
+remapped in-place or copied to new variables.  Numeric, short string,
+and long string data can be recoded.
+
+   Specify the list of source variables, followed by one or more mapping
+specifications each enclosed in parentheses.  If the data is to be
+copied to new variables, specify INTO, then the list of target
+variables.  String target variables must already have been declared
+using STRING or another transformation, but numeric target variables can
+be created on the fly.  There must be exactly as many target variables
+as source variables.  Each source variable is remapped into its
+corresponding target variable.
+
+   When INTO is not used, the input and output variables must be of the
+same type.  Otherwise, string values can be recoded into numeric values,
+and vice versa.  When this is done and there is no mapping for a
+particular value, either a value consisting of all spaces or the
+system-missing value is assigned, depending on variable type.
+
+   Mappings are considered from left to right.  The first src_value that
+matches the value of the source variable causes the target variable to
+receive the value indicated by the dest_value.  Literal number, string,
+and range src_value's should be self-explanatory.  MISSING as a
+src_value matches any user- or system-missing value.  SYSMIS matches the
+system missing value only.  ELSE is a catch-all that matches anything.
+It should be the last src_value specified.
+
+   Numeric and string dest_value's should also be self-explanatory.
+COPY causes the input values to be copied to the output.  This is only
+value if the source and target variables are of the same type.  SYSMIS
+indicates the system-missing value.
+
+   If the source variables are strings and the target variables are
+numeric, then there is one additional mapping available: (CONVERT),
+which must be the last specified mapping.  CONVERT causes a number
+specified as a string to be converted to a numeric value.  If the string
+cannot be parsed as a number, then the system-missing value is assigned.
+
+   Multiple recodings can be specified on the same RECODE command.
+Introduce additional recodings with a slash (`/') in order to separate
+them from the previous recodings.
+
+
+File: pspp.info,  Node: SORT CASES,  Prev: RECODE,  Up: Data Manipulation
+
+SORT CASES
+==========
+
+     SORT CASES BY var_list.
+
+   SORT CASES sorts the active file by the values of one or more
+variables.
+
+   Specify BY and a list of variables to sort by.  By default, variables
+are sorted in ascending order.  To override sort order, specify (D) or
+(DOWN) after a list of variables to get descending order, or (A) or (UP)
+for ascending order.  These apply to the entire list of variables
+preceding them.
+
+   SORT CASES is a procedure.  It causes the data to be read.
+
+   SORT CASES will attempt to sort the entire active file in main
+memory.  If main memory is exhausted then it will use a merge sort
+algorithm that involves writing and reading numerous temporary files.
+Environment variables determine the temporary files' location.  The
+first of SPSSTMPDIR, SPSSXTMPDIR, or TMPDIR that is set determines the
+location.  Otherwise, if the compiler environment defined P_tmpdir,
+that is used.  Otherwise, under Unix-like OSes /tmp is used; under
+MS-DOS, the first of TEMP, TMP, or root on the current drive is used;
+under other OSes, the current directory.
+
+
+File: pspp.info,  Node: Data Selection,  Next: Conditionals and Looping,  Prev: Data Manipulation,  Up: Top
+
+Selecting data for analysis
+***************************
+
+   This chapter documents PSPP commands that temporarily or permanently
+select data records from the active file for analysis.
+
+* Menu:
+
+* FILTER::                      Exclude cases based on a variable.
+* N OF CASES::                  Limit the size of the active file.
+* PROCESS IF::                  Temporarily excluding cases.
+* SAMPLE::                      Select a specified proportion of cases.
+* SELECT IF::                   Permanently delete selected cases.
+* SPLIT FILE::                  Do multiple analyses with one command.
+* TEMPORARY::                   Make transformations' effects temporary.
+* WEIGHT::                      Weight cases by a variable.
+
+
+File: pspp.info,  Node: FILTER,  Next: N OF CASES,  Prev: Data Selection,  Up: Data Selection
+
+FILTER
+======
+
+     FILTER BY var_name.
+     FILTER OFF.
+
+   The FILTER command allows a boolean-valued variable to be used to
+select cases from the data stream for processing.
+
+   In order to set up filtering, specify BY and a variable name.
+Keyword BY is optional but recommended.  Cases which have a zero or
+system- or user-missing value are excluded from analysis, but not
+deleted from the data stream.  Cases with other values are analyzed.
+
+   Use FILTER OFF to turn off case filtering.
+
+   Filtering takes place immediately before cases pass to a procedure
+for analysis.  Only one filter variable may be active at once.
+Normally, case filtering continues until it is explicitly turned off
+with FILTER OFF.  However, if FILTER is placed after TEMPORARY, then
+filtering stops after execution of the next procedure or procedure-like
+command.
+
+
+File: pspp.info,  Node: N OF CASES,  Next: PROCESS IF,  Prev: FILTER,  Up: Data Selection
+
+N OF CASES
+==========
+
+     N [OF CASES] num_of_cases [ESTIMATED].
+
+   Sometimes you may want to disregard cases of your input.  The `N'
+command can be used to do this.  `N 100' tells PSPP to disregard all
+cases after the first 100.
+
+   If the value specified for `N' is greater than the number of cases
+read in, the value is ignored.
+
+   `N' does not discard cases or cause them not to be read in.  It just
+causes cases beyond the last one specified to be ignored by data
+analysis commands.
+
+   A later `N' command can increase or decrease the number of cases
+selected.  (To select all the cases without knowing how many there are,
+specify a very high number: 100000 or whatever you think is large
+enough.)
+
+   Transformation procedures performed after `N' is executed _do_ cause
+cases to be discarded.
+
+   The `SAMPLE', `PROCESS IF', and `SELECT IF' commands have precedence
+over `N'--the same results are obtained by both of the following
+fragments, given the same random number seeds:
+
+     ...set up, read in data...
+     N 100.
+     SAMPLE .5.
+     ...analyze data...
+     
+     ...set up, read in data...
+     SAMPLE .5.
+     N 100.
+     ...analyze data...
+
+   Both fragments above first randomly sample approximately half of the
+cases, then select the first 100 of those sampled.
+
+   `N' with the `ESTIMATED' keyword can be used to give an estimated
+number of cases before DATA LIST or another command to read in data.
+(`ESTIMATED' never limits the number of cases processed by procedures.)
+
+
+File: pspp.info,  Node: PROCESS IF,  Next: SAMPLE,  Prev: N OF CASES,  Up: Data Selection
+
+PROCESS IF
+==========
+
+     PROCESS IF expression.
+
+   The PROCESS IF command is used to temporarily eliminate cases from
+the data stream.  Its effects are active only through the execution of
+the next procedure or procedure-like command.
+
+   Specify a boolean expression (*note Expressions::).  If the value of
+the expression is true for a particular case, the case will be
+analyzed.  If the expression has a false or missing value, then the
+case will be deleted from the data stream for this procedure only.
+
+   Regardless of its placement relative to other commands, PROCESS IF
+always takes effect immediately before data passes to the procedure.
+Only one PROCESS IF command may be in effect at any given time.
+
+   The effects of PROCESS IF are similar not identical to the effects of
+executing TEMPORARY then SELECT IF (*note SELECT IF::).
+
+   Use of PROCESS IF is deprecated.  It is included for compatibility
+with old command files.  New syntax files should use SELECT IF or FILTER
+instead.
+
+
+File: pspp.info,  Node: SAMPLE,  Next: SELECT IF,  Prev: PROCESS IF,  Up: Data Selection
+
+SAMPLE
+======
+
+     SAMPLE num1 [FROM num2].
+
+   `SAMPLE' is used to randomly sample a proportion of the cases in the
+active file.  `SAMPLE' is temporary, affecting only the next procedure,
+unless that is a data transformation, such as `SELECT IF' or `RECODE'.
+
+   The proportion to sample can be expressed as a single number between
+0 and 1.  If `k' is the number specified, and `N' is the number of
+currently-selected cases in the active file, then after `SAMPLE K.',
+there will be `k*N', plus or minus one, cases selected.
+
+   The proportion to sample can also be specified in the style `SAMPLE
+M FROM N'.  With this style, cases are selected as follows:
+
+  1. If N is equal to the number of currently-selected cases in the
+     active file, exactly M cases will be selected.
+
+  2. If N is greater than the number of currently-selected cases in the
+     active file, an equivalent proportion of cases will be selected.
+
+  3. If N is less than the number of currently-selected cases in the
+     active, exactly M cases will be selected _from the first N cases
+     in the active file._
+
+   `SAMPLE', `SELECT IF', and `PROCESS IF' are performed in the order
+specified by the syntax file.
+
+   `SAMPLE' is ignored before `SORT CASES'.
+
+   `SAMPLE' is always performed before `N OF CASES', regardless of
+ordering in the syntax file.  *Note N OF CASES::.
+
+   The same values for `SAMPLE' may result in different samples.  To
+obtain the same sample, use the `SET' command to set the random number
+seed to the same value before each `SAMPLE'.  By default, the random
+number seed is based on the system time.
+
+
+File: pspp.info,  Node: SELECT IF,  Next: SPLIT FILE,  Prev: SAMPLE,  Up: Data Selection
+
+SELECT IF
+=========
+
+     SELECT IF expression.
+
+   The SELECT IF command is used to select particular cases for analysis
+based on the value of a boolean expression.  Cases not selected are
+permanently eliminated, unless TEMPORARY is in effect (*note
+TEMPORARY::).
+
+   Specify a boolean expression (*note Expressions::).  If the value of
+the expression is true for a particular case, the case will be
+analyzed.  If the expression has a false or missing value, then the
+case will be deleted from the data stream.
+
+   Always place SELECT IF commands as early in the command file as
+possible.  Cases that are deleted early can be processed more
+efficiently in time and space.
+
+
+File: pspp.info,  Node: SPLIT FILE,  Next: TEMPORARY,  Prev: SELECT IF,  Up: Data Selection
+
+SPLIT FILE
+==========
+
+     Two possible syntaxes:
+             SPLIT FILE BY var_list.
+             SPLIT FILE OFF.
+
+   The SPLIT FILE command allows multiple sets of data present in one
+data file to be analyzed separately using single statistical procedure
+commands.
+
+   Specify a list of variable names in order to analyze multiple sets of
+data separately.  Groups of cases having the same values for these
+variables are analyzed by statistical procedure commands as one group.
+An independent analysis is carried out for each group of cases, and the
+variable values for the group are printed along with the analysis.
+
+   Specify OFF in order to disable SPLIT FILE and resume analysis of the
+entire active file as a single group of data.
+
+
+File: pspp.info,  Node: TEMPORARY,  Next: WEIGHT,  Prev: SPLIT FILE,  Up: Data Selection
+
+TEMPORARY
+=========
+
+     TEMPORARY.
+
+   The TEMPORARY command is used to make the effects of transformations
+following its execution temporary.  These transformations will affect
+only the execution of the next procedure or procedure-like command.
+Their effects will not be saved to the active file.
+
+   The only specification is the command name.
+
+   TEMPORARY may not appear within a DO IF or LOOP construct.  It may
+appear only once between procedures and procedure-like commands.
+
+   An example may help to clarify:
+
+     DATA LIST /X 1-2.
+     BEGIN DATA.
+      2
+      4
+     10
+     15
+     20
+     24
+     END DATA.
+     COMPUTE X=X/2.
+     TEMPORARY.
+     COMPUTE X=X+3.
+     DESCRIPTIVES X.
+     DESCRIPTIVES X.
+
+   The data read by the first DESCRIPTIVES command are 4, 5, 8, 10.5,
+13, 15.  The data read by the first DESCRIPTIVES command are 1, 2, 5,
+7.5, 10, 12.
+
+
+File: pspp.info,  Node: WEIGHT,  Prev: TEMPORARY,  Up: Data Selection
+
+WEIGHT
+======
+
+     WEIGHT BY var_name.
+     WEIGHT OFF.
+
+   WEIGHT can be used to assign cases varying weights in order to
+change the frequency distribution of the active file.  Execution of
+WEIGHT is delayed until data have been read in.
+
+   If a variable name is specified, WEIGHT causes the values of that
+variable to be used as weighting factors for subsequent statistical
+procedures.  Use of keyword BY is optional but recommended.  Weighting
+variables must be numeric.  Scratch variables may not be used for
+weighting (*note Scratch Variables::).
+
+   When OFF is specified, subsequent statistical procedures will weight
+all cases equally.
+
+   Weighting values do not need to be integers.  However, negative and
+system- and user-missing values for the weighting variable are
+interpreted as weighting factors of 0.
+
+   WEIGHT does not cause cases in the active file to be replicated in
+memory.
+
+
+File: pspp.info,  Node: Conditionals and Looping,  Next: Statistics,  Prev: Data Selection,  Up: Top
+
+Conditional and Looping Constructs
+**********************************
+
+   This chapter documents PSPP commands used for conditional execution,
+looping, and flow of control.
+
+* Menu:
+
+* BREAK::                       Exit a loop.
+* DO IF::                       Conditionally execute a block of code.
+* DO REPEAT::                   Textually repeat a code block.
+* LOOP::                        Repeat a block of code.
+
+
+File: pspp.info,  Node: BREAK,  Next: DO IF,  Prev: Conditionals and Looping,  Up: Conditionals and Looping
+
+BREAK
+=====
+
+     BREAK.
+
+   BREAK terminates execution of the innermost currently executing LOOP
+construct.
+
+   BREAK is allowed only inside a LOOP construct.  *Note LOOP::, for
+more details.
+
+
+File: pspp.info,  Node: DO IF,  Next: DO REPEAT,  Prev: BREAK,  Up: Conditionals and Looping
+
+DO IF
+=====
+
+     DO IF condition.
+             ...
+     [ELSE IF condition.
+             ...
+     ]...
+     [ELSE.
+             ...]
+     END IF.
+
+   The DO IF command allows one of several sets of transformations to be
+executed, depending on user-specified conditions.
+
+   Specify a boolean expression.  If the condition is true, then the
+block of code following DO IF is executed.  If the condition is
+missing, then none of the code blocks is executed.  If the condition is
+false, then the boolean expressions on the first ELSE IF, if present,
+is tested in turn, with the same rules applied.  If all expressions
+evaluate to false, then the ELSE code block is executed, if it is
+present.
+
+
+File: pspp.info,  Node: DO REPEAT,  Next: LOOP,  Prev: DO IF,  Up: Conditionals and Looping
+
+DO REPEAT
+=========
+
+     DO REPEAT repvar_name=expansion....
+             ...
+     END REPEAT [PRINT].
+     
+     expansion takes one of the following forms:
+             var_list
+             num_or_range...
+             'string'...
+     
+     num_or_range takes one of the following forms:
+             number
+             num1 TO num2
+
+   The DO REPEAT command causes a block of code to be repeated a number
+of times with different variables, numbers, or strings textually
+substituted into the block with each repetition.
+
+   Specify a repeat variable name followed by an equals sign (`=') and
+the list of replacements.  Replacements can be a list of variables
+(which may be existing variables or new variables or a combination
+thereof), of numbers, or of strings.  When new variable names are
+specified, DO REPEAT creates them as numeric variables.  When numbers
+are specified, runs of integers may be indicated with TO notation, for
+instance `1 TO 5' and `1 2 3 4 5' would be equivalent.  There is no
+equivalent notation for string values.
+
+   Multiple repeat variables can be specified.  When this is done, each
+variable must have the same number of replacements.
+
+   The code within DO REPEAT is repeated as many times as there are
+replacements for each variable.  The first time, the first value for
+each repeat variable is substituted; the second time, the second value
+for each repeat variable is substituted; and so on.
+
+   Repeat variable substitutions work like macros.  They take place
+anywhere in a line that the repeat variable name occurs as a token,
+including command and subcommand names.  For this reason it is not a
+good idea to select words commonly used in command and subcommand names
+as repeat variable identifiers.
+
+   If PRINT is specified on END REPEAT, the commands after substitutions
+are made are printed to the listing file, prefixed by a plus sign (`+').
+
+
+File: pspp.info,  Node: LOOP,  Prev: DO REPEAT,  Up: Conditionals and Looping
+
+LOOP
+====
+
+     LOOP [index_var=start TO end [BY incr]] [IF condition].
+             ...
+     END LOOP [IF condition].
+
+   The LOOP command allows a group of commands to be iterated.  A
+number of termination options are offered.
+
+   Specify index_var in order to make that variable count from one
+value to another by a particular increment.  index_var must be a
+pre-existing numeric variable.  start, end, and incr are numeric
+expressions (*note Expressions::.)
+
+   During the first iteration, index_var is set to the value of start.
+During each successive iteration, index_var is increased by the value of
+incr.  If end > start, then the loop terminates when index_var > end;
+otherwise it terminates when index_var < end.  If incr is not specified
+then it defaults to +1 or -1 as appropriate.
+
+   If end > start and incr < 0, or if end < start and incr > 0, then the
+loop is never executed.  index_var is nevertheless set to the value of
+start.
+
+   Modifying index_var within the loop is allowed, but it has no effect
+on the value of index_var in the next iteration.
+
+   Specify a boolean expression for the condition on the LOOP command to
+cause the loop to be executed only if the condition is true.  If the
+condition is false or missing before the loop contents are executed the
+first time, the loop contents are not executed at all.
+
+   If index and condition clauses are both present on LOOP, the index
+clause is always evaluated first.
+
+   Specify a boolean expression for the condition on the END LOOP to
+cause the loop to terminate if the condition is not true after the
+enclosed code block is executed.  The condition is evaluated at the end
+of the loop, not at the beginning.
+
+   If the index clause and both condition clauses are not present, then
+the loop is executed MXLOOPS (*note SET::) times or until BREAK (*note
+BREAK::) is executed.
+
+   The BREAK command provides another way to terminate execution of a
+LOOP construct.
+
+
+File: pspp.info,  Node: Statistics,  Next: Utilities,  Prev: Conditionals and Looping,  Up: Top
+
+Statistics
+**********
+
+   This chapter documents the statistical procedures that PSPP supports
+so far.
+
+* Menu:
+
+* DESCRIPTIVES::                Descriptive statistics.
+* FREQUENCIES::                 Frequency tables.
+* CROSSTABS::                   Crosstabulation tables.
+

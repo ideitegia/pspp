@@ -1,0 +1,1297 @@
+This is pspp.info, produced by makeinfo version 4.0 from pspp.texi.
+
+START-INFO-DIR-ENTRY
+* PSPP: (pspp).             Statistical analysis package.
+END-INFO-DIR-ENTRY
+
+   PSPP, for statistical analysis of sampled data, by Ben Pfaff.
+
+   This file documents PSPP, a statistical package for analysis of
+sampled data that uses a command language compatible with SPSS.
+
+   Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+
+   This version of the PSPP documentation is consistent with version 2
+of "texinfo.tex".
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above condition for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+File: pspp.info,  Node: ASCII output options,  Next: ASCII page options,  Prev: ASCII driver class,  Up: ASCII driver class
+
+ASCII output options
+--------------------
+
+`output-file=FILENAME'
+     File to which output should be sent.  This can be an ordinary
+     filename (i.e., `"pspp.ps"'), a pipe filename (i.e., `"|lpr"'), or
+     stdout (`"-"').  Default: `"pspp.list"'.
+
+`char-set=CHAR-SET-TYPE'
+     One of `ascii' or `latin1'.  This has no effect on output at the
+     present time.  Default: `ascii'.
+
+`form-feed-string=FORM-FEED-VALUE'
+     The string written to the output to cause a formfeed.  See also
+     `paginate', described below, for a related setting.  Default:
+     `"\f"'.
+
+`newline-string=NEWLINE-VALUE'
+     The string written to the output to cause a newline (carriage
+     return plus linefeed).  The default, which can be specified
+     explicitly with `newline-string=default', is to use the
+     system-dependent newline sequence by opening the output file in
+     text mode.  This is usually the right choice.
+
+     However, `newline-string' can be set to any string.  When this is
+     done, the output file is opened in binary mode.
+
+`paginate=BOOLEAN'
+     If set, a formfeed (as set in `form-feed-string', described above)
+     will be written to the device after every page.  Default: `on'.
+
+`tab-width=TAB-WIDTH-VALUE'
+     The distance between tab stops for this device.  If set to 0, tabs
+     will not be used in the output.  Default: `8'.
+
+`init=INITIALIZATION-STRING.'
+     String written to the device before anything else, at the
+     beginning of the output.  Default: `""' (the empty string).
+
+`done=FINALIZATION-STRING.'
+     String written to the device after everything else, at the end of
+     the output.  Default: `""' (the empty string).
+
+
+File: pspp.info,  Node: ASCII page options,  Next: ASCII font options,  Prev: ASCII output options,  Up: ASCII driver class
+
+ASCII page options
+------------------
+
+   These options affect page setup:
+
+`headers=BOOLEAN'
+     If enabled, two lines of header information giving title and
+     subtitle, page number, date and time, and PSPP version are printed
+     at the top of every page.  These two lines are in addition to any
+     top margin requested.  Default: `on'.
+
+`length=LINE-COUNT'
+     Physical length of a page, in lines.  Headers and margins are
+     subtracted from this value.  Default: `66'.
+
+`width=CHARACTER-COUNT'
+     Physical width of a page, in characters.  Margins are subtracted
+     from this value.  Default: `130'.
+
+`lpi=LINES-PER-INCH'
+     Number of lines per vertical inch.  Not currently used.  Default:
+     `6'.
+
+`cpi=CHARACTERS-PER-INCH'
+     Number of characters per horizontal inch.  Not currently used.
+     Default: `10'.
+
+`left-margin=LEFT-MARGIN-WIDTH'
+     Width of the left margin, in characters.  PSPP subtracts this value
+     from the page width.  Default: `0'.
+
+`right-margin=RIGHT-MARGIN-WIDTH'
+     Width of the right margin, in characters.  PSPP subtracts this
+     value from the page width.  Default: `0'.
+
+`top-margin=TOP-MARGIN-LINES'
+     Length of the top margin, in lines.  PSPP subtracts this value from
+     the page length.  Default: `2'.
+
+`bottom-margin=BOTTOM-MARGIN-LINES'
+     Length of the bottom margin, in lines.  PSPP subtracts this value
+     from the page length.  Default: `2'.
+
+
+File: pspp.info,  Node: ASCII font options,  Prev: ASCII page options,  Up: ASCII driver class
+
+ASCII font options
+------------------
+
+   These are the ASCII font options:
+
+`box[LINE-TYPE]=BOX-CHARS'
+     The characters used for lines in tables produced by the ASCII
+     driver can be changed using this option.  LINE-TYPE is used to
+     indicate which type of line to change; BOX-CHARS is the character
+     or string of characters to use for this type of line.
+
+     LINE-TYPE must be a 4-digit number in base 4.  The digits are in
+     the order `right', `bottom', `left', `top'.  The four
+     possibilities for each digit are:
+
+    0
+          No line.
+
+    1
+          Single line.
+
+    2
+          Double line.
+
+    3
+          Special device-defined line, if one is available; otherwise,
+          a double line.
+
+     Examples:
+
+    `box[0101]="|"'
+          Sets `|' as the character to use for a single-width line with
+          bottom and top components.
+
+    `box[2222]="#"'
+          Sets `#' as the character to use for the intersection of four
+          double-width lines, one each from the top, bottom, left and
+          right.
+
+    `box[1100]="\xda"'
+          Sets `"\xda"', which under MS-DOG is a box character suitable
+          for the top-left corner of a box, as the character for the
+          intersection of two single-width lines, one each from the
+          right and bottom.
+
+     Defaults:
+
+        * `box[0000]=" "'
+
+        * `box[1000]="-"'
+          `box[0010]="-"'
+          `box[1010]="-"'
+
+        * `box[0100]="|"'
+          `box[0001]="|"'
+          `box[0101]="|"'
+
+        * `box[2000]="="'
+          `box[0020]="="'
+          `box[2020]="="'
+
+        * `box[0200]="#"'
+          `box[0002]="#"'
+          `box[0202]="#"'
+
+        * `box[3000]="="'
+          `box[0030]="="'
+          `box[3030]="="'
+
+        * `box[0300]="#"'
+          `box[0003]="#"'
+          `box[0303]="#"'
+
+        * For all others, `+' is used unless there are double lines or
+          special lines, in which case `#' is used.
+
+`italic-on=ITALIC-ON-STRING'
+     Character sequence written to turn on italics or underline
+     printing.  If this is set to `overstrike', then the driver will
+     simulate underlining by overstriking with underscore characters
+     (`_') in the manner described by `overstrike-style' and
+     `carriage-return-style'.  Default: `overstrike'.
+
+`italic-off=ITALIC-OFF-STRING'
+     Character sequence to turn off italics or underline printing.
+     Default: `""' (the empty string).
+
+`bold-on=BOLD-ON-STRING'
+     Character sequence written to turn on bold or emphasized printing.
+     If set to `overstrike', then the driver will simulated bold
+     printing by overstriking characters in the manner described by
+     `overstrike-style' and `carriage-return-style'.  Default:
+     `overstrike'.
+
+`bold-off=BOLD-OFF-STRING'
+     Character sequence to turn off bold or emphasized printing.
+     Default: `""' (the empty string).
+
+`bold-italic-on=BOLD-ITALIC-ON-STRING'
+     Character sequence written to turn on bold-italic printing.  If
+     set to `overstrike', then the driver will simulate bold-italics by
+     overstriking twice, once with the character, a second time with an
+     underscore (`_') character, in the manner described by
+     `overstrike-style' and `carriage-return-style'.  Default:
+     `overstrike'.
+
+`bold-italic-off=BOLD-ITALIC-OFF-STRING'
+     Character sequence to turn off bold-italic printing.  Default: `""'
+     (the empty string).
+
+`overstrike-style=OVERSTRIKE-OPTION'
+     Either `single' or `line':
+
+        * If `single' is selected, then, to overstrike a line of text,
+          the output driver will output a character, backspace,
+          overstrike, output a character, backspace, overstrike, and so
+          on along a line.
+
+        * If `line' is selected then the output driver will output an
+          entire line, then backspace or emit a carriage return (as
+          indicated by `carriage-return-style'), then overstrike the
+          entire line at once.
+
+     `single' is recommended for use with ttys and programs that
+     understand overstriking in text files, such as the pager `less'.
+     `single' will also work with printer devices but results in rapid
+     back-and-forth motions of the printhead that can cause the printer
+     to physically overheat!
+
+     `line' is recommended for use with printer devices.  Most programs
+     that understand overstriking in text files will not properly deal
+     with `line' mode.
+
+     Default: `single'.
+
+`carriage-return-style=CARRIAGE-RETURN-TYPE'
+     Either `bs' or `cr'.  This option applies only when one or more of
+     the font commands is set to `overstrike' and, at the same time,
+     `overstrike-style' is set to `line'.
+
+        * If `bs' is selected then the driver will return to the
+          beginning of a line by emitting a sequence of backspace
+          characters (ASCII 8).
+
+        * If `cr' is selected then the driver will return to the
+          beginning of a line by emitting a single carriage-return
+          character (ASCII 13).
+
+     Although `cr' is preferred as being more compact, `bs' is more
+     general since some devices do not interpret carriage returns in the
+     desired manner.  Default: `bs'.
+
+
+File: pspp.info,  Node: HTML driver class,  Next: Miscellaneous configuring,  Prev: ASCII driver class,  Up: Configuration
+
+The HTML driver class
+=====================
+
+   The `html' driver class is used to produce output for viewing in
+tables-capable web browsers such as Emacs' w3-mode.  Its configuration
+is very simple.  Currently, the output has a very plain format.  In the
+future, further work may be done on improving the output appearance.
+
+   There are few options for use with the `html' driver class:
+
+`output-file=FILENAME'
+     File to which output should be sent.  This can be an ordinary
+     filename (i.e., `"pspp.ps"'), a pipe filename (i.e., `"|lpr"'), or
+     stdout (`"-"').  Default: `"pspp.html"'.
+
+`prologue-file=PROLOGUE-FILE-NAME'
+     Sets the name of the PostScript prologue file.  You can write your
+     own prologue if you want to customize colors or other settings: see
+     *Note HTML Prologue::.  Default: `html-prologue'.
+
+* Menu:
+
+* HTML Prologue::               Format of the HTML prologue file.
+
+
+File: pspp.info,  Node: HTML Prologue,  Prev: HTML driver class,  Up: HTML driver class
+
+The HTML prologue
+-----------------
+
+   HTML files that are generated by PSPP consist of two parts: a
+prologue and a body.  The prologue is a collection of boilerplate.
+Only the body differs greatly between two outputs.  You can tune the
+colors and other attributes of the output by editing the prologue.
+
+   The prologue is dumped into the output stream essentially unmodified.
+However, two actions are performed on its lines.  First, certain lines
+may be omitted as specified in the prologue file itself.  Second,
+variables are substituted.
+
+   The following lines are omitted:
+
+  1. All lines that contain three bangs in a row (`!!!').
+
+  2. Lines that contain `!title', if no title is set for the output.  If
+     a title is set, then the characters `!title' are removed before the
+     line is output.
+
+  3. Lines that contain `!subtitle', if no subtitle is set for the
+     output.  If a subtitle is set, then the characters `!subtitle' are
+     removed before the line is output.
+
+   The following are the variables that are substituted.  Only the
+variables listed are substituted; environment variables are not.  *Note
+Environment substitutions::.
+
+`generator'
+     PSPP version as a string: `GNU PSPP 0.1b', for example.
+
+`date'
+     Date the file was created.  Example: `Tue May 21 13:46:22 1991'.
+
+`user'
+     Under multiuser OSes, the user's login name, taken either from the
+     environment variable `LOGNAME' or, if that fails, the result of the
+     C library function `getlogin()'.  Defaults to `nobody'.
+
+`host'
+     System hostname as reported by `gethostname()'.  Defaults to
+     `nowhere'.
+
+`title'
+     Document title as a string.  This is the title specified in the
+     PSPP syntax file.
+
+`subtitle'
+     Document subtitle as a string.
+
+`source-file'
+     PSPP syntax file name.  Example: `mary96/first.stat'.
+
+
+File: pspp.info,  Node: Miscellaneous configuring,  Next: Improving output quality,  Prev: HTML driver class,  Up: Configuration
+
+Miscellaneous configuration
+===========================
+
+   The following environment variables can be used to further configure
+PSPP:
+
+`HOME'
+     Used to determine the user's home directory.  No default value.
+
+`STAT_INCLUDE_PATH'
+     Path used to find include files in PSPP syntax files.  Defaults
+     vary across operating systems:
+
+    UNIX
+             * `.'
+
+             * `~/.pspp/include'
+
+             * `/usr/local/lib/pspp/include'
+
+             * `/usr/lib/pspp/include'
+
+             * `/usr/local/share/pspp/include'
+
+             * `/usr/share/pspp/include'
+
+    MS-DOS
+             * `.'
+
+             * `C:\PSPP\INCLUDE'
+
+             * `$PATH'
+
+    Other OSes
+          No default path.
+
+`STAT_PAGER'
+`PAGER'
+     When PSPP invokes an external pager, it uses the first of these
+     that is defined.  There is a default pager only if the person who
+     compiled PSPP defined one.
+
+`TERM'
+     The terminal type `termcap' or `ncurses' will use, if such support
+     was compiled into PSPP.
+
+`STAT_OUTPUT_INIT_FILE'
+     The basename used to search for the driver definition file.  *Note
+     Output devices::.  *Note File locations::.  Default: `devices'.
+
+`STAT_OUTPUT_PAPERSIZE_FILE'
+     The basename used to search for the papersize file.  *Note
+     papersize::.  *Note File locations::.  Default: `papersize'.
+
+`STAT_OUTPUT_INIT_PATH'
+     The path used to search for the driver definition file and the
+     papersize file.  *Note File locations::.  Default: the standard
+     configuration path.
+
+`TMPDIR'
+     The `sort' procedure stores its temporary files in this directory.
+     Default: (UNIX) `/tmp', (MS-DOS) `\', (other OSes) empty string.
+
+`TEMP'
+
+`TMP'
+     Under MS-DOS only, these variables are consulted after TMPDIR, in
+     this order.
+
+
+File: pspp.info,  Node: Improving output quality,  Prev: Miscellaneous configuring,  Up: Configuration
+
+Improving output quality
+========================
+
+   When its drivers are set up properly, PSPP can produce output that
+looks very good indeed.  The PostScript driver, suitably configured, can
+produce presentation-quality output.  Here are a few guidelines for
+producing better-looking output, regardless of output driver.  Your
+mileage may vary, of course, and everyone has different esthetic
+preferences.
+
+   * Width is important in PSPP output.  Greater output width leads to
+     more readable output, to a point.  Try the following to increase
+     the output width:
+
+        - If you're using the ASCII driver with a dot-matrix printer,
+          figure out what you need to do to put the printer into
+          compressed mode.  Put that string into the `init-string'
+          setting.  Try to get 132 columns; 160 might be better, but
+          you might find that print that tiny is difficult to read.
+
+        - With the PostScript driver, try these ideas:
+
+             + Landscape mode.
+
+             + Legal-size (8.5" x 14") paper in landscape mode.
+
+             + Reducing font sizes.  If you're using 12-point fonts,
+               try 10 point; if you're using 10-point fonts, try 8
+               point.  Some fonts are more readable than others at
+               small sizes.
+
+     Try to strike a balance between character size and page width.
+
+   * Use high-quality fonts.  Many public domain fonts are poor in
+     quality.  Recently, URW made some high-quality fonts available
+     under the GPL.  These are probably suitable.
+
+   * Be sure you're using the proper font metrics.  The font metrics
+     provided with PSPP may not correspond to the fonts actually being
+     printed.  This can cause bizarre-looking output.
+
+   * Make sure that you're using good ink/ribbon/toner.  Darker print is
+     easier to read.
+
+   * Use plain fonts with serifs, such as Times-Roman or Palatino.
+     Avoid choosing italic or bold fonts as document base fonts.
+
+
+File: pspp.info,  Node: Invocation,  Next: Language,  Prev: Configuration,  Up: Top
+
+Invoking PSPP
+*************
+
+     pspp [ -B DIR | --config-dir=DIR ] [ -o DEVICE | --device=DEVICE ]
+            [ -d VAR[=VALUE] | --define=VAR[=VALUE] ] [-u VAR | --undef=VAR ]
+            [ -f FILE | --out-file=FILE ] [ -p | --pipe ] [ -I- | --no-include ]
+            [ -I DIR | --include=DIR ] [ -i | --interactive ]
+            [ -n | --edit | --dry-run | --just-print | --recon ]
+            [ -r | --no-statrc ] [ -h | --help ] [ -l | --list ]
+            [ -c COMMAND | --command COMMAND ] [ -s | --safer ]
+            [ --testing-mode ] [ -V | --version ] [ -v | --verbose ]
+            [ KEY=VALUE ] FILE....
+
+* Menu:
+
+* Non-option Arguments::        Specifying syntax files and output devices.
+* Configuration Options::       Change the configuration for the current run.
+* Input and output options::    Controlling input and output files.
+* Language control options::    Language variants.
+* Informational options::       Helpful information about PSPP.
+
+
+File: pspp.info,  Node: Non-option Arguments,  Next: Configuration Options,  Prev: Invocation,  Up: Invocation
+
+Non-option Arguments
+====================
+
+   Syntax files and output device substitutions can be specified on
+PSPP's command line:
+
+`FILE'
+     A file by itself on the command line will be executed as a syntax
+     file.  PSPP terminates after the syntax file runs, unless the `-i'
+     or `--interactive' option is given (*note Language control
+     options::).
+
+`FILE1 FILE2'
+     When two or more filenames are given on the command line, the first
+     syntax file is executed, then PSPP's dictionary is cleared, then
+     the second syntax file is executed.
+
+`FILE1 + FILE2'
+     If syntax files' names are delimited by a plus sign (`+'), then the
+     dictionary is not cleared between their executions, as if they were
+     concatenated together into a single file.
+
+`KEY=VALUE'
+     Defines an output device macro KEY to expand to VALUE, overriding
+     any macro having the same KEY defined in the device configuration
+     file.  *Note Macro definitions::.
+
+   There is one other way to specify a syntax file, if your operating
+system supports it.  If you have a syntax file `foobar.stat', put the
+notation
+
+     #! /usr/local/bin/pspp
+
+   at the top, and mark the file as executable with `chmod +x
+foobar.stat'.  (If PSPP is not installed in `/usr/local/bin', then
+insert its actual installation directory into the syntax file instead.)
+Now you should be able to invoke the syntax file just by typing its
+name.  You can include any options on the command line as usual.  PSPP
+entirely ignores any lines beginning with `#!'.
+
+
+File: pspp.info,  Node: Configuration Options,  Next: Input and output options,  Prev: Non-option Arguments,  Up: Invocation
+
+Configuration Options
+=====================
+
+   Configuration options are used to change PSPP's configuration for the
+current run.  The configuration options are:
+
+`-B DIR'
+`--config-dir=DIR'
+     Sets the configuration directory to DIR.  *Note File locations::.
+
+`-o DEVICE'
+`--device=DEVICE'
+     Selects the output device with name DEVICE.  If this option is
+     given more than once, then all devices mentioned are selected.
+     This option disables all devices besides those mentioned on the
+     command line.
+
+`-d VAR[=VALUE]'
+`--define=VAR[=VALUE]'
+     Defines an `environment variable' named VAR having the optional
+     value VALUE specified.  *Note Variable values::.
+
+`-u VAR'
+`--undef=VAR'
+     Undefines the `environment variable' named VAR.  *Note Variable
+     values::.
+
+
+File: pspp.info,  Node: Input and output options,  Next: Language control options,  Prev: Configuration Options,  Up: Invocation
+
+Input and output options
+========================
+
+   Input and output options affect how PSPP reads input and writes
+output.  These are the input and output options:
+
+`-f FILE'
+`--out-file=FILE'
+     This overrides the output file name for devices designated as
+     listing devices.  If a file named FILE already exists, it is
+     overwritten.
+
+`-p'
+`--pipe'
+     Allows PSPP to be used as a filter by causing the syntax file to be
+     read from stdin and output to be written to stdout.  Conflicts
+     with the `-f FILE' and `--file=FILE' options.
+
+`-I-'
+`--no-include'
+     Clears all directories from the include path.  This includes all
+     directories put in the include path by default.  *Note
+     Miscellaneous configuring::.
+
+`-I DIR'
+`--include=DIR'
+     Appends directory DIR to the path that is searched for include
+     files in PSPP syntax files.
+
+`-c COMMAND'
+`--command=COMMAND'
+     Execute literal command COMMAND.  The command is executed before
+     startup syntax files, if any.
+
+`--testing-mode'
+     Invoke heuristics to assist with testing PSPP.  For use by `make
+     check' and similar scripts.
+
+
+File: pspp.info,  Node: Language control options,  Next: Informational options,  Prev: Input and output options,  Up: Invocation
+
+Language control options
+========================
+
+   Language control options control how PSPP syntax files are parsed and
+interpreted.  The available language control options are:
+
+`-i'
+`--interactive'
+     When a syntax file is specified on the command line, PSPP normally
+     terminates after processing it.  Giving this option will cause
+     PSPP to bring up a command prompt after processing the syntax file.
+
+     In addition, this forces syntax files to be interpreted in
+     interactive mode, rather than the default batch mode.  *Note
+     Tokenizing lines::, for information on the differences between
+     batch mode and interactive mode command interpretation.
+
+`-n'
+`--edit'
+`--dry-run'
+`--just-print'
+`--recon'
+     Only the syntax of any syntax file specified or of commands
+     entered at the command line is checked.  Transformations are not
+     performed and procedures are not executed.  Not yet implemented.
+
+`-r'
+`--no-statrc'
+     Prevents the execution of the PSPP startup syntax file.  Not yet
+     implemented, as startup syntax files aren't, either.
+
+`-s'
+`--safer'
+     Disables certain unsafe operations.  This includes the `ERASE' and
+     `HOST' commands, as well as use of pipes as input and output files.
+
+
+File: pspp.info,  Node: Informational options,  Prev: Language control options,  Up: Invocation
+
+Informational options
+=====================
+
+   Informational options cause information about PSPP to be written to
+the terminal.  Here are the available options:
+
+`-h'
+
+`--help'
+     Prints a message describing PSPP command-line syntax and the
+     available device driver classes, then terminates.
+
+`-l'
+
+`--list'
+     Lists the available device driver classes, then terminates.
+
+`-V'
+
+`--version'
+     Prints a brief message listing PSPP's version, warranties you don't
+     have, copying conditions and copyright, and e-mail address for bug
+     reports, then terminates.
+
+`-v'
+
+`--verbose'
+     Increments PSPP's verbosity level.  Higher verbosity levels cause
+     PSPP to display greater amounts of information about what it is
+     doing.  Often useful for debugging PSPP's configuration.
+
+     This option can be given multiple times to set the verbosity level
+     to that value.  The default verbosity level is 0, in which no
+     informational messages will be displayed.
+
+     Higher verbosity levels cause messages to be displayed when the
+     corresponding events take place.
+
+    1
+          Driver and subsystem initializations.
+
+    2
+          Completion of driver initializations.  Beginning of driver
+          closings.
+
+    3
+          Completion of driver closings.
+
+    4
+          Files searched for; success of searches.
+
+    5
+          Individual directories included in file searches.
+
+     Each verbosity level also includes messages from lower verbosity
+     levels.
+
+
+File: pspp.info,  Node: Language,  Next: Expressions,  Prev: Invocation,  Up: Top
+
+The PSPP language
+*****************
+
+     *Please note:* PSPP is not even close to completion.  Only a few
+     actual statistical procedures are implemented.  PSPP is a work in
+     progress.
+
+   This chapter discusses elements common to many PSPP commands.  Later
+chapters will describe individual commands in detail.
+
+* Menu:
+
+* Tokens::                      Characters combine to form tokens.
+* Commands::                    Tokens combine to form commands.
+* Types of Commands::           Commands come in several flavors.
+* Order of Commands::           Commands combine to form syntax files.
+* Missing Observations::        Handling missing observations.
+* Variables::                   The unit of data storage.
+* Files::                       Files used by PSPP.
+* BNF::                         How command syntax is described.
+
+
+File: pspp.info,  Node: Tokens,  Next: Commands,  Prev: Language,  Up: Language
+
+Tokens
+======
+
+   PSPP divides most syntax file lines into series of short chunks
+called "tokens", "lexical elements", or "lexemes".  These tokens are
+then grouped to form commands, each of which tells PSPP to take some
+action--read in data, write out data, perform a statistical procedure,
+etc.  The process of dividing input into tokens is "tokenization", or
+"lexical analysis".  Each type of token is described below.
+
+   Tokens must be separated from each other by "delimiters".
+Delimiters include whitespace (spaces, tabs, carriage returns, line
+feeds, vertical tabs), punctuation (commas, forward slashes, etc.), and
+operators (plus, minus, times, divide, etc.)  Note that while whitespace
+only separates tokens, other delimiters are tokens in themselves.
+
+*Identifiers*
+     Identifiers are names that specify variable names, commands, or
+     command details.
+
+        * The first character in an identifier must be a letter, `#', or
+          `@'.  Some system identifiers begin with `$', but
+          user-defined variables' names may not begin with `$'.
+
+        * The remaining characters in the identifier must be letters,
+          digits, or one of the following special characters:
+
+               .  _  $  #  @
+
+        * Variable names may be any length, but only the first 8
+          characters are significant.
+
+        * Identifiers are not case-sensitive: `foobar', `Foobar',
+          `FooBar', `FOOBAR', and `FoObaR' are different
+          representations of the same identifier.
+
+        * Identifiers other than variable names may be abbreviated to
+          their first 3 characters if this abbreviation is unambiguous.
+          These identifiers are often called "keywords".  (Unique
+          abbreviations of more than 3 characters are also accepted:
+          `FRE', `FREQ', and `FREQUENCIES' are equivalent when the last
+          is a keyword.)
+
+        * Whether an identifier is a keyword depends on the context.
+
+        * Some keywords are reserved.  These keywords may not be used
+          in any context besides those explicitly described in this
+          manual.  The reserved keywords are:
+
+               ALL  AND  BY  EQ  GE  GT  LE  LT  NE  NOT  OR  TO  WITH
+
+        * Since keywords are identifiers, all the rules for identifiers
+          apply.  Specifically, they must be delimited as are other
+          identifiers: `WITH' is a reserved keyword, but `WITHOUT' is a
+          valid variable name.
+
+     *Caution:* It is legal to end a variable name with a period, but
+     _don't do it!_  The variable name will be misinterpreted when it is
+     the final token on a line: `FOO.' will be divided into two separate
+     tokens, `FOO' and `.', the "terminal dot".  *Note Forming commands
+     of tokens: Commands.
+
+*Numbers*
+     Numbers may be specified as integers or reals.  Integers are
+     internally converted into reals.  Scientific notation is not
+     supported.  Here are some examples of valid numbers:
+
+          1234  3.14159265359  .707106781185  8945.
+
+     *Caution:* The last example will be interpreted as two tokens,
+     `8945' and `.', if it is the last token on a line.
+
+*Strings*
+     Strings are literal sequences of characters enclosed in pairs of
+     single quotes (`'') or double quotes (`"').
+
+        * Whitespace and case of letters _are_ significant inside
+          strings.
+
+        * Whitespace characters inside a string are not delimiters.
+
+        * To include single-quote characters in a string, enclose the
+          string in double quotes.
+
+        * To include double-quote characters in a string, enclose the
+          string in single quotes.
+
+        * It is not possible to put both single- and double-quote
+          characters inside one string.
+
+*Hexstrings*
+     Hexstrings are string variants that use hex digits to specify
+     characters.
+
+        * A hexstring may be used anywhere that an ordinary string is
+          allowed.
+
+        * A hexstring begins with `X'' or `x'', and ends with `''.
+
+        * No whitespace is allowed between the initial `X' and `''.
+
+        * Double quotes `"' may be used in place of single quotes `'' if
+          done in both places.
+
+        * Each pair of hex digits is internally changed into a single
+          character with the given value.
+
+        * If there is an odd number of hex digits, the missing last
+          digit is assumed to be `0'.
+
+        * *Please note:* Use of hexstrings is nonportable because the
+          same numeric values are associated with different glyphs by
+          different operating systems.  Therefore, their use should be
+          confined to syntax files that will not be widely distributed.
+
+        * *Please note also:* The character with value 00 is reserved
+          for internal use by PSPP.  Its use in strings causes an error
+          and replacement with a blank space (in ASCII, hex 20, decimal
+          32).
+
+*Punctuation*
+     Punctuation separates tokens; punctuators are delimiters.  These
+     are the punctuation characters:
+
+          ,  /  =  (  )
+
+*Operators*
+     Operators describe mathematical operations.  Some operators are
+     delimiters:
+
+          (  )  +  -  *  /  **
+
+     Many of the above operators are also punctuators.  Punctuators are
+     distinguished from operators by context.
+
+     The other operators are all reserved keywords.  None of these are
+     delimiters:
+
+          AND  EQ  GE  GT  LE  LT  NE  OR
+
+*Terminal Dot*
+     A period (`.') at the end of a line (except for whitespace) is one
+     type of a "terminal dot", although not every terminal dot is a
+     period at the end of a line.  *Note Forming commands of tokens:
+     Commands.  A period is a terminal dot _only_ when it is at the end
+     of a line; otherwise it is part of a floating-point number.  (A
+     period outside a number in the middle of a line is an error.)
+
+          *Please note:* The character used for the "terminal dot" can
+          be changed with the SET command.  This is strongly
+          discouraged, and throughout all the remainder of this manual
+          it will be assumed that the default setting is in effect.
+
+
+File: pspp.info,  Node: Commands,  Next: Types of Commands,  Prev: Tokens,  Up: Language
+
+Forming commands of tokens
+==========================
+
+   Most PSPP commands share a common structure, diagrammed below:
+
+     CMD... [SBC[=][SPEC [[,]SPEC]...]] [[/[=][SPEC [[,]SPEC]...]]...].
+
+   In the above, rather daunting, expression, pairs of square brackets
+(`[ ]') indicate optional elements, and names such as CMD indicate
+parts of the syntax that vary from command to command.  Ellipses
+(`...') indicate that the preceding part may be repeated an arbitrary
+number of times.  Let's pick apart what it says above:
+
+   * A command begins with a command name of one or more keywords, such
+     as `FREQUENCIES', `DATA LIST', or `N OF CASES'.  CMD may be
+     abbreviated to its first word if that is unambiguous; each word in
+     CMD may be abbreviated to a unique prefix of three or more
+     characters as described above.
+
+   * The command name may be followed by one or more "subcommands":
+
+        - Each subcommand begins with a unique keyword, indicated by SBC
+          above.  This is analogous to the command name.
+
+        - The subcommand name is optionally followed by an equals sign
+          (`=').
+
+        - Some subcommands accept a series of one or more specifications
+          (SPEC), optionally separated by commas.
+
+        - Each subcommand must be separated from the next (if any) by a
+          forward slash (`/').
+
+   * Each command must be terminated with a "terminal dot".  The
+     terminal dot may be given one of three ways:
+
+        - (most commonly) A period character at the very end of a line,
+          as described above.
+
+        - (only if NULLINE is on: *Note Setting user preferences: SET,
+          for more details.)  A completely blank line.
+
+        - (in batch mode only) Any line that is not indented from the
+          left side of the page causes a terminal dot to be inserted
+          before that line.  Therefore, each command begins with a line
+          that is flush left, followed by zero or more lines that are
+          indented one or more characters from the left margin.
+
+          In batch mode, PSPP will ignore a plus sign, minus sign, or
+          period (`+', `-', or `.') as the first character in a line.
+          Any of these characters as the first character on a line will
+          begin a new command.  This allows for visual indentation of a
+          command without that command being considered part of the
+          previous command.
+
+          PSPP is in batch mode when it is reading input from a file,
+          rather than from an interactive user.  Note that the other
+          forms of the terminal dot may also be used in batch mode.
+
+          Sometimes, one encounters syntax files that are intended to be
+          interpreted in interactive mode rather than batch mode (for
+          instance, this can happen if a session log file is used
+          directly as a syntax file).  When this occurs, use the `-i'
+          command line option to force interpretation in interactive
+          mode (*note Language control options::).
+
+   PSPP ignores empty commands when they are generated by the above
+rules.  Note that, as a consequence of these rules, each command must
+begin on a new line.
+
+
+File: pspp.info,  Node: Types of Commands,  Next: Order of Commands,  Prev: Commands,  Up: Language
+
+Types of Commands
+=================
+
+   Commands in PSPP are divided roughly into six categories:
+
+*Utility commands*
+     Set or display various global options that affect PSPP operations.
+     May appear anywhere in a syntax file.  *Note Utility commands:
+     Utilities.
+
+*File definition commands*
+     Give instructions for reading data from text files or from special
+     binary "system files".  Most of these commands discard any previous
+     data or variables in order to replace it with the new data and
+     variables.  At least one must appear before the first command in
+     any of the categories below.  *Note Data Input and Output::.
+
+*Input program commands*
+     Though rarely used, these provide powerful tools for reading data
+     files in arbitrary textual or binary formats.  *Note INPUT
+     PROGRAM::.
+
+*Transformations*
+     Perform operations on data and write data to output files.
+     Transformations are not carried out until a procedure is executed.
+
+*Restricted transformations*
+     Same as transformations for most purposes.  *Note Order of
+     Commands::, for a detailed description of the differences.
+
+*Procedures*
+     Analyze data, writing results of analyses to the listing file.
+     Cause transformations specified earlier in the file to be
+     performed.  In a more general sense, a "procedure" is any command
+     that causes the active file (the data) to be read.
+
+
+File: pspp.info,  Node: Order of Commands,  Next: Missing Observations,  Prev: Types of Commands,  Up: Language
+
+Order of Commands
+=================
+
+   PSPP does not place many restrictions on ordering of commands.  The
+main restriction is that variables must be defined with one of the
+file-definition commands before they are otherwise referred to.
+
+   Of course, there are specific rules, for those who are interested.
+PSPP possesses five internal states, called initial, INPUT PROGRAM,
+FILE TYPE, transformation, and procedure states.  (Please note the
+distinction between the INPUT PROGRAM and FILE TYPE _commands_ and the
+INPUT PROGRAM and FILE TYPE _states_.)
+
+   PSPP starts up in the initial state.  Each successful completion of
+a command may cause a state transition.  Each type of command has its
+own rules for state transitions:
+
+*Utility commands*
+        * Legal in all states, except Pennsylvania.
+
+        * Do not cause state transitions.  Exception: when the N OF
+          CASES command is executed in the procedure state, it causes a
+          transition to the transformation state.
+
+*DATA LIST*
+        * Legal in all states.
+
+        * When executed in the initial or procedure state, causes a
+          transition to the transformation state.
+
+        * Clears the active file if executed in the procedure or
+          transformation state.
+
+*INPUT PROGRAM*
+        * Invalid in INPUT PROGRAM and FILE TYPE states.
+
+        * Causes a transition to the INPUT PROGRAM state.
+
+        * Clears the active file.
+
+*FILE TYPE*
+        * Invalid in INPUT PROGRAM and FILE TYPE states.
+
+        * Causes a transition to the FILE TYPE state.
+
+        * Clears the active file.
+
+*Other file definition commands*
+        * Invalid in INPUT PROGRAM and FILE TYPE states.
+
+        * Cause a transition to the transformation state.
+
+        * Clear the active file, except for ADD FILES, MATCH FILES, and
+          UPDATE.
+
+*Transformations*
+        * Invalid in initial and FILE TYPE states.
+
+        * Cause a transition to the transformation state.
+
+*Restricted transformations*
+        * Invalid in initial, INPUT PROGRAM, and FILE TYPE states.
+
+        * Cause a transition to the transformation state.
+
+*Procedures*
+        * Invalid in initial, INPUT PROGRAM, and FILE TYPE states.
+
+        * Cause a transition to the procedure state.
+
+
+File: pspp.info,  Node: Missing Observations,  Next: Variables,  Prev: Order of Commands,  Up: Language
+
+Handling missing observations
+=============================
+
+   PSPP includes special support for unknown numeric data values.
+Missing observations are assigned a special value, called the
+"system-missing value".  This "value" actually indicates the absence of
+value; it means that the actual value is unknown.  Procedures
+automatically exclude from analyses those observations or cases that
+have missing values.  Whether single observations or entire cases are
+excluded depends on the procedure.
+
+   The system-missing value exists only for numeric variables.  String
+variables always have a defined value, even if it is only a string of
+spaces.
+
+   Variables, whether numeric or string, can have designated
+"user-missing values".  Every user-missing value is an actual value for
+that variable.  However, most of the time user-missing values are
+treated in the same way as the system-missing value.  String variables
+that are wider than a certain width, usually 8 characters (depending on
+computer architecture), cannot have user-missing values.
+
+   For more information on missing values, see the following sections:
+*Note Variables::, *Note MISSING VALUES::, *Note Expressions::.  See
+also the documentation on individual procedures for information on how
+they handle missing values.
+
+
+File: pspp.info,  Node: Variables,  Next: Files,  Prev: Missing Observations,  Up: Language
+
+Variables
+=========
+
+   Variables are the basic unit of data storage in PSPP.  All the
+variables in a file taken together, apart from any associated data, are
+said to form a "dictionary".  Each case contain a value for each
+variable.  Some details of variables are described in the sections
+below.
+
+* Menu:
+
+* Attributes::                  Attributes of variables.
+* System Variables::            Variables automatically defined by PSPP.
+* Sets of Variables::           Lists of variable names.
+* Input/Output Formats::        Input and output formats.
+* Scratch Variables::           Variables deleted by procedures.
+
+
+File: pspp.info,  Node: Attributes,  Next: System Variables,  Prev: Variables,  Up: Variables
+
+Attributes of Variables
+-----------------------
+
+   Each variable has a number of attributes, including:
+
+*Name*
+     This is an identifier.  Each variable must have a different name.
+     *Note Tokens::.
+
+*Type*
+     Numeric or string.
+
+*Width*
+     (string variables only) String variables with a width of 8
+     characters or fewer are called "short string variables".  Short
+     string variables can be used in many procedures where "long string
+     variables" (those with widths greater than 8) are not allowed.
+
+          *Please note:* Certain systems may consider strings longer
+          than 8 characters to be short strings.  Eight characters
+          represents a minimum figure for the maximum length of a short
+          string.
+
+*Position*
+     Variables in the dictionary are arranged in a specific order.  The
+     DISPLAY command can be used to show this order: see *Note
+     DISPLAY::.
+
+*Orientation*
+     Dexter or sinister.  *Note LEAVE::.
+
+*Missing values*
+     Optionally, up to three values, or a range of values, or a specific
+     value plus a range, can be specified as "user-missing values".
+     There is also a "system-missing value" that is assigned to an
+     observation when there is no other obvious value for that
+     observation.  Observations with missing values are automatically
+     excluded from analyses.  User-missing values are actual data
+     values, while the system-missing value is not a value at all.
+     *Note Missing Observations::.
+
+*Variable label*
+     A string that describes the variable.  *Note VARIABLE LABELS::.
+
+*Value label*
+     Optionally, these associate each possible value of the variable
+     with a string.  *Note VALUE LABELS::.
+
+*Print format*
+     Display width, format, and (for numeric variables) number of
+     decimal places.  This attribute does not affect how data are
+     stored, just how they are displayed.  Example: a width of 8, with
+     2 decimal places.  *Note PRINT FORMATS::.
+
+*Write format*
+     Similar to print format, but used by certain commands that are
+     designed to write to binary files.  *Note WRITE FORMATS::.
+
+
+File: pspp.info,  Node: System Variables,  Next: Sets of Variables,  Prev: Attributes,  Up: Variables
+
+Variables Automatically Defined by PSPP
+---------------------------------------
+
+   There are seven system variables.  These are not like ordinary
+variables, as they are not stored in each case.  They can only be used
+in expressions.  These system variables, whose values and output formats
+cannot be modified, are described below.
+
+`$CASENUM'
+     Case number of the case at the moment.  This changes as cases are
+     shuffled around.
+
+`$DATE'
+     Date the PSPP process was started, in format A9, following the
+     pattern `DD MMM YY'.
+
+`$JDATE'
+     Number of days between 15 Oct 1582 and the time the PSPP process
+     was started.
+
+`$LENGTH'
+     Page length, in lines, in format F11.
+
+`$SYSMIS'
+     System missing value, in format F1.
+
+`$TIME'
+     Number of seconds between midnight 14 Oct 1582 and the time the
+     active file was read, in format F20.
+
+`$WIDTH'
+     Page width, in characters, in format F3.
+
+
+File: pspp.info,  Node: Sets of Variables,  Next: Input/Output Formats,  Prev: System Variables,  Up: Variables
+
+Lists of variable names
+-----------------------
+
+   There are several ways to specify a set of variables:
+
+  1. (Most commonly.)  List the variable names one after another,
+     optionally separating them by commas.
+
+  2. (This method cannot be used on commands that define the
+     dictionary, such as `DATA LIST'.)  The syntax is the names of two
+     existed variables, separated by the reserved keyword `TO'.  The
+     meaning is to include every variable in the dictionary between and
+     including the variables specified.  For instance, if the
+     dictionary contains six variables with the names `ID', `X1', `X2',
+     `GOAL', `MET', and `NEXTGOAL', in that order, then `X2 TO MET'
+     would include variables `X2', `GOAL', and `MET'.
+
+  3. (This method can be used only on commands that define the
+     dictionary, such as `DATA LIST'.)  It is used to define sequences
+     of variables that end in consecutive integers.  The syntax is two
+     identifiers that end in numbers.  This method is best illustrated
+     with examples:
+
+        * The syntax `X1 TO X5' defines 5 variables:
+
+             - X1
+
+             - X2
+
+             - X3
+
+             - X4
+
+             - X5
+
+        * The syntax `ITEM0008 TO ITEM0013' defines 6 variables:
+
+             - ITEM0008
+
+             - ITEM0009
+
+             - ITEM0010
+
+             - ITEM0011
+
+             - ITEM0012
+
+             - ITEM0013
+
+        * Each of the syntaxes `QUES001 TO QUES9' and `QUES6 TO QUES3'
+          are invalid, although for different reasons, which should be
+          evident.
+
+     Note that after a set of variables has been defined on `DATA LIST'
+     or another command with this method, the same set can be
+     referenced on later commands using the same syntax.
+
+  4. The above methods can be combined, either one after another or
+     delimited by commas.  For instance, the combined syntax `A Q5 TO
+     Q8 X TO Z' is legal as long as each part `A', `Q5 TO Q8', `X TO Z'
+     is individually legal.
+

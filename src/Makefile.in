@@ -1,0 +1,586 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# PSPP
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+CATALOGS = @CATALOGS@
+CATOBJEXT = @CATOBJEXT@
+CC = @CC@
+CFLAGS = @CFLAGS@
+CPP = @CPP@
+DATADIRNAME = @DATADIRNAME@
+GENCAT = @GENCAT@
+GMOFILES = @GMOFILES@
+GMP_SUBDIRS = @GMP_SUBDIRS@
+GMSGFMT = @GMSGFMT@
+GT_NO = @GT_NO@
+GT_YES = @GT_YES@
+INSTOBJEXT = @INSTOBJEXT@
+INTLDEPS = @INTLDEPS@
+INTLLIBS = @INTLLIBS@
+INTLOBJS = @INTLOBJS@
+LN_S = @LN_S@
+MAKEINFO = @MAKEINFO@
+MKINSTALLDIRS = @MKINSTALLDIRS@
+MSGFMT = @MSGFMT@
+PACKAGE = @PACKAGE@
+POFILES = @POFILES@
+POSUB = @POSUB@
+RANLIB = @RANLIB@
+U = @U@
+USE_INCLUDED_LIBINTL = @USE_INCLUDED_LIBINTL@
+USE_NLS = @USE_NLS@
+VERSION = @VERSION@
+l = @l@
+
+bin_PROGRAMS = pspp
+
+INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	-I$(top_srcdir)/intl
+
+
+DISTCLEANFILES = foo $(q_sources_c)
+MAINTAINERCLEANFILES = Makefile.in
+EXTRA_DIST = $(q_sources_q) q2c.c
+ETAGS_ARGS = -l c $(q_sources_c)
+SUFFIXES = .q
+
+q_sources_c = correlations.c crosstabs.c descript.c file-handle.c	frequencies.c list.c means.c set.c t-test.c
+
+
+q_sources_q = correlations.q crosstabs.q descript.q file-handle.q	frequencies.q list.q means.q set.q t-test.q
+
+
+pspp_SOURCES = aggregate.c alloc.c alloc.h apply-dict.c approx.h	ascii.c autorecode.c avl.c avl.h bitvector.h cases.c cases.h cmdline.c	command.c command.def command.h compute.c correlations.c count.c	crosstabs.c data-in.c data-in.h data-list.c data-out.c debug-print.h	descript.c dfm.c dfm.h do-if.c do-ifP.h error.c error.h expr-evl.c	expr-opt.c expr-prs.c expr.h exprP.h file-handle.c file-handle.h	file-type.c filename.c filename.h flip.c font.h format.c format.def	format.h formats.c frequencies.c frequencies.g get.c getline.c		getline.h glob.c groff-font.c hash.c hash.h heap.c heap.h html.c	htmlP.h include.c inpt-pgm.c inpt-pgm.h lexer.c lexer.h list.c log.h	loop.c magic.c magic.h main.c main.h matrix-data.c matrix.c matrix.h	means.c mis-val.c misc.c misc.h modify-vars.c numeric.c output.c	output.h pfm-read.c pfm-write.c pfm.h pool.c pool.h postscript.c	print.c random.c random.h recode.c rename-vars.c repeat.c sample.c	sel-if.c set.c settings.h sfm-read.c sfm-write.c sfm.h sfmP.h som.c	som.h sort.c sort.h split-file.c stat.h stats.c stats.h str.c str.h	sysfile-info.c tab.c tab.h temporary.c title.c t-test.c val-labs.c	var-labs.c var.h vars-atr.c vars-prs.c vector.c vector.h version.c	version.h vfm.c vfm.h vfmP.h weight.c
+
+
+GMP_LIBS = ../lib/gmp/mpf/libmpf.a				../lib/gmp/mpn/libmpn.a				../lib/gmp/libgmp.a
+
+
+LDADD = ../lib/julcal/libjulcal.a			../lib/misc/libmisc.a				../lib/dcdflib/libdcdflib.a			@GMP_LIBS@ @INTLLIBS@
+
+# q2c
+
+LOCAL_CC = @LOCAL_CC@
+LOCAL_COMPILE = $(LOCAL_CC) -c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LOCAL_LINK = $(LOCAL_CC) $(LDFLAGS) -o $@
+
+CLEANFILES = q2c
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
+CONFIG_CLEAN_FILES = 
+PROGRAMS =  $(bin_PROGRAMS)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I..
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+pspp_OBJECTS =  aggregate.o alloc.o apply-dict.o ascii.o autorecode.o \
+avl.o cases.o cmdline.o command.o compute.o correlations.o count.o \
+crosstabs.o data-in.o data-list.o data-out.o descript.o dfm.o do-if.o \
+error.o expr-evl.o expr-opt.o expr-prs.o file-handle.o file-type.o \
+filename.o flip.o format.o formats.o frequencies.o get.o getline.o \
+glob.o groff-font.o hash.o heap.o html.o include.o inpt-pgm.o lexer.o \
+list.o loop.o magic.o main.o matrix-data.o matrix.o means.o mis-val.o \
+misc.o modify-vars.o numeric.o output.o pfm-read.o pfm-write.o pool.o \
+postscript.o print.o random.o recode.o rename-vars.o repeat.o sample.o \
+sel-if.o set.o sfm-read.o sfm-write.o som.o sort.o split-file.o stats.o \
+str.o sysfile-info.o tab.o temporary.o title.o t-test.o val-labs.o \
+var-labs.o vars-atr.o vars-prs.o vector.o version.o vfm.o weight.o
+pspp_LDADD = $(LDADD)
+pspp_DEPENDENCIES =  ../lib/julcal/libjulcal.a ../lib/misc/libmisc.a \
+../lib/dcdflib/libdcdflib.a
+pspp_LDFLAGS = 
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = tar
+GZIP_ENV = --best
+SOURCES = $(pspp_SOURCES)
+OBJECTS = $(pspp_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .o .q .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps src/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-binPROGRAMS:
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+distclean-binPROGRAMS:
+
+maintainer-clean-binPROGRAMS:
+
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "  $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	     $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	  else :; fi; \
+	done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
+	done
+
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+pspp: $(pspp_OBJECTS) $(pspp_DEPENDENCIES)
+	@rm -f pspp
+	$(LINK) $(pspp_LDFLAGS) $(pspp_OBJECTS) $(pspp_LDADD) $(LIBS)
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = src
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+aggregate.o: aggregate.c ../config.h ../pref.h alloc.h approx.h \
+	command.h error.h file-handle.h lexer.h misc.h settings.h sfm.h \
+	sort.h stats.h str.h var.h format.h format.def vfm.h cases.h \
+	vfmP.h debug-print.h
+alloc.o: alloc.c ../config.h ../pref.h str.h
+apply-dict.o: apply-dict.c ../config.h ../pref.h avl.h command.h error.h \
+	file-handle.h lexer.h sfm.h str.h var.h format.h format.def \
+	debug-print.h
+ascii.o: ascii.c ../config.h ../pref.h alloc.h error.h filename.h main.h \
+	misc.h output.h str.h pool.h version.h
+autorecode.o: autorecode.c ../config.h ../pref.h alloc.h command.h \
+	error.h hash.h lexer.h pool.h str.h var.h format.h format.def \
+	vfm.h cases.h debug-print.h
+avl.o: avl.c ../config.h ../pref.h pool.h avl.h
+cases.o: cases.c ../config.h ../pref.h alloc.h cases.h var.h format.h \
+	format.def vfm.h debug-print.h
+cmdline.o: cmdline.c ../config.h ../pref.h alloc.h error.h filename.h \
+	getline.h main.h output.h str.h settings.h var.h format.h \
+	format.def version.h
+command.o: command.c ../config.h ../pref.h alloc.h command.h error.h \
+	getline.h lexer.h main.h settings.h som.h str.h tab.h var.h \
+	format.h format.def vfm.h cases.h debug-print.h command.def
+compute.o: compute.c ../config.h ../pref.h alloc.h approx.h cases.h \
+	command.h error.h expr.h lexer.h str.h var.h format.h \
+	format.def vector.h debug-print.h
+correlations.o: correlations.c ../config.h ../pref.h alloc.h \
+	file-handle.h error.h command.h lexer.h var.h format.h \
+	format.def str.h debug-print.h
+count.o: count.c ../config.h ../pref.h alloc.h approx.h command.h \
+	error.h lexer.h str.h var.h format.h format.def debug-print.h
+crosstabs.o: crosstabs.c ../config.h ../pref.h alloc.h avl.h hash.h \
+	pool.h ../lib/dcdflib/cdflib.h command.h lexer.h error.h \
+	magic.h misc.h stats.h output.h str.h tab.h var.h format.h \
+	format.def vfm.h cases.h debug-print.h
+data-in.o: data-in.c ../config.h ../pref.h data-in.h format.h format.def \
+	error.h getline.h ../lib/julcal/julcal.h lexer.h magic.h misc.h \
+	settings.h str.h var.h debug-print.h
+data-list.o: data-list.c ../config.h ../pref.h alloc.h command.h \
+	data-in.h format.h format.def debug-print.h dfm.h error.h \
+	file-handle.h lexer.h misc.h settings.h str.h tab.h var.h vfm.h \
+	cases.h
+data-out.o: data-out.c ../config.h ../pref.h approx.h error.h format.h \
+	format.def ../lib/julcal/julcal.h magic.h misc.h settings.h \
+	str.h var.h debug-print.h
+descript.o: descript.c ../config.h ../pref.h alloc.h bitvector.h \
+	command.h lexer.h error.h approx.h magic.h stats.h som.h tab.h \
+	str.h var.h format.h format.def vfm.h cases.h
+dfm.o: dfm.c ../config.h ../pref.h alloc.h command.h error.h \
+	file-handle.h filename.h getline.h lexer.h misc.h str.h vfm.h \
+	cases.h debug-print.h
+do-if.o: do-if.c ../config.h ../pref.h alloc.h command.h error.h expr.h \
+	lexer.h str.h var.h format.h format.def debug-print.h do-ifP.h
+error.o: error.c ../config.h ../pref.h alloc.h command.h error.h \
+	getline.h main.h output.h str.h settings.h var.h format.h \
+	format.def
+expr-evl.o: expr-evl.c ../config.h ../pref.h approx.h data-in.h format.h \
+	format.def error.h expr.h exprP.h debug-print.h \
+	../lib/julcal/julcal.h magic.h random.h stats.h str.h var.h \
+	vector.h vfm.h cases.h vfmP.h
+expr-opt.o: expr-opt.c ../config.h ../pref.h alloc.h approx.h data-in.h \
+	format.h format.def error.h expr.h exprP.h debug-print.h \
+	../lib/julcal/julcal.h misc.h stats.h str.h var.h
+expr-prs.o: expr-prs.c ../config.h ../pref.h alloc.h error.h expr.h \
+	exprP.h debug-print.h lexer.h misc.h str.h var.h format.h \
+	format.def vector.h vfm.h cases.h
+file-handle.o: file-handle.c ../config.h ../pref.h alloc.h avl.h \
+	filename.h file-handle.h error.h command.h lexer.h getline.h \
+	magic.h var.h format.h format.def str.h debug-print.h
+file-type.o: file-type.c ../config.h ../pref.h alloc.h approx.h \
+	command.h data-in.h format.h format.def dfm.h file-handle.h \
+	error.h lexer.h str.h var.h vfm.h cases.h
+filename.o: filename.c ../config.h ../pref.h alloc.h error.h filename.h \
+	settings.h str.h version.h debug-print.h stat.h
+flip.o: flip.c ../config.h ../pref.h alloc.h command.h error.h lexer.h \
+	misc.h str.h var.h format.h format.def vfm.h cases.h
+format.o: format.c ../config.h ../pref.h error.h format.h format.def \
+	lexer.h misc.h str.h
+formats.o: formats.c ../config.h ../pref.h command.h error.h lexer.h \
+	misc.h str.h var.h format.h format.def debug-print.h
+frequencies.o: frequencies.c ../config.h ../pref.h alloc.h avl.h \
+	bitvector.h hash.h pool.h command.h lexer.h error.h approx.h \
+	magic.h misc.h stats.h output.h str.h som.h tab.h var.h \
+	format.h format.def vfm.h cases.h debug-print.h frequencies.g
+get.o: get.c ../config.h ../pref.h alloc.h avl.h command.h error.h \
+	file-handle.h lexer.h misc.h pfm.h settings.h sfm.h str.h var.h \
+	format.h format.def vfm.h cases.h vfmP.h debug-print.h
+getline.o: getline.c ../config.h ../pref.h alloc.h error.h filename.h \
+	getline.h lexer.h settings.h str.h tab.h var.h format.h \
+	format.def version.h
+glob.o: glob.c ../config.h ../pref.h alloc.h avl.h command.h do-ifP.h \
+	var.h format.h format.def error.h expr.h filename.h getline.h \
+	../lib/julcal/julcal.h lexer.h main.h settings.h str.h \
+	version.h vfm.h cases.h
+groff-font.o: groff-font.c ../config.h ../pref.h alloc.h error.h \
+	filename.h font.h hash.h pool.h str.h version.h
+hash.o: hash.c ../config.h ../pref.h alloc.h hash.h
+heap.o: heap.c ../config.h ../pref.h heap.h
+html.o: html.c ../config.h ../pref.h alloc.h error.h filename.h \
+	getline.h htmlP.h output.h str.h som.h tab.h version.h
+include.o: include.c ../config.h ../pref.h alloc.h command.h error.h \
+	getline.h lexer.h str.h
+inpt-pgm.o: inpt-pgm.c ../config.h ../pref.h alloc.h command.h dfm.h \
+	error.h expr.h file-handle.h inpt-pgm.h lexer.h misc.h str.h \
+	var.h format.h format.def vfm.h cases.h debug-print.h
+lexer.o: lexer.c ../config.h ../pref.h alloc.h command.h error.h \
+	getline.h lexer.h magic.h settings.h str.h
+list.o: list.c ../config.h ../pref.h alloc.h command.h lexer.h error.h \
+	magic.h misc.h htmlP.h filename.h output.h str.h som.h var.h \
+	format.h format.def vfm.h cases.h debug-print.h
+loop.o: loop.c ../config.h ../pref.h alloc.h approx.h command.h do-ifP.h \
+	var.h format.h format.def error.h expr.h lexer.h settings.h \
+	str.h debug-print.h
+magic.o: magic.c ../config.h ../pref.h magic.h
+main.o: main.c ../config.h ../pref.h command.h error.h getline.h lexer.h \
+	output.h str.h debug-print.h
+matrix-data.o: matrix-data.c ../config.h ../pref.h alloc.h command.h \
+	data-in.h format.h format.def dfm.h error.h file-handle.h \
+	lexer.h misc.h pool.h str.h var.h vfm.h cases.h debug-print.h
+matrix.o: matrix.c ../config.h ../pref.h alloc.h matrix.h settings.h
+means.o: means.c ../config.h ../pref.h alloc.h avl.h command.h lexer.h \
+	error.h magic.h var.h format.h format.def str.h debug-print.h
+mis-val.o: mis-val.c ../config.h ../pref.h command.h error.h lexer.h \
+	magic.h str.h var.h format.h format.def debug-print.h
+misc.o: misc.c ../config.h ../pref.h misc.h
+modify-vars.o: modify-vars.c ../config.h ../pref.h alloc.h avl.h \
+	bitvector.h command.h error.h lexer.h misc.h str.h var.h \
+	format.h format.def vfm.h cases.h
+numeric.o: numeric.c ../config.h ../pref.h cases.h command.h error.h \
+	lexer.h str.h var.h format.h format.def debug-print.h
+output.o: output.c ../config.h ../pref.h alloc.h approx.h error.h \
+	filename.h lexer.h misc.h output.h str.h settings.h
+pfm-read.o: pfm-read.c ../config.h ../pref.h alloc.h avl.h file-handle.h \
+	error.h format.h format.def getline.h magic.h misc.h pfm.h \
+	str.h var.h debug-print.h
+pfm-write.o: pfm-write.c ../config.h ../pref.h alloc.h avl.h error.h \
+	file-handle.h ../lib/gmp/gmp.h magic.h pfm.h str.h var.h \
+	format.h format.def version.h debug-print.h
+pool.o: pool.c ../config.h ../pref.h alloc.h pool.h
+postscript.o: postscript.c ../config.h ../pref.h alloc.h bitvector.h \
+	error.h filename.h font.h getline.h hash.h main.h misc.h \
+	output.h str.h version.h
+print.o: print.c ../config.h ../pref.h alloc.h command.h dfm.h error.h \
+	expr.h file-handle.h lexer.h misc.h som.h tab.h str.h var.h \
+	format.h format.def debug-print.h
+random.o: random.c ../config.h ../pref.h magic.h random.h settings.h
+recode.o: recode.c ../config.h ../pref.h alloc.h approx.h cases.h \
+	command.h error.h lexer.h magic.h str.h var.h format.h \
+	format.def debug-print.h
+rename-vars.o: rename-vars.c ../config.h ../pref.h alloc.h avl.h \
+	command.h error.h lexer.h str.h var.h format.h format.def
+repeat.o: repeat.c ../config.h ../pref.h alloc.h cases.h command.h \
+	error.h getline.h lexer.h misc.h settings.h str.h var.h \
+	format.h format.def debug-print.h
+sample.o: sample.c ../config.h ../pref.h alloc.h command.h error.h \
+	lexer.h random.h str.h var.h format.h format.def debug-print.h
+sel-if.o: sel-if.c ../config.h ../pref.h alloc.h command.h error.h \
+	expr.h lexer.h str.h var.h format.h format.def
+set.o: set.c ../config.h ../pref.h alloc.h command.h lexer.h error.h \
+	magic.h log.h output.h str.h var.h format.h format.def \
+	settings.h
+sfm-read.o: sfm-read.c ../config.h ../pref.h alloc.h avl.h error.h \
+	file-handle.h format.h format.def getline.h magic.h misc.h \
+	sfm.h sfmP.h str.h var.h debug-print.h
+sfm-write.o: sfm-write.c ../config.h ../pref.h alloc.h approx.h avl.h \
+	error.h file-handle.h getline.h magic.h misc.h sfm.h sfmP.h \
+	str.h var.h format.h format.def version.h debug-print.h
+som.o: som.c ../config.h ../pref.h output.h str.h som.h debug-print.h
+sort.o: sort.c ../config.h ../pref.h alloc.h approx.h command.h error.h \
+	expr.h heap.h lexer.h misc.h sort.h str.h var.h format.h \
+	format.def vfm.h cases.h vfmP.h debug-print.h
+split-file.o: split-file.c ../config.h ../pref.h alloc.h command.h \
+	error.h lexer.h str.h var.h format.h format.def
+stats.o: stats.c ../config.h ../pref.h stats.h
+str.o: str.c ../config.h ../pref.h alloc.h error.h pool.h str.h
+sysfile-info.o: sysfile-info.c ../config.h ../pref.h alloc.h avl.h \
+	command.h error.h file-handle.h lexer.h misc.h output.h str.h \
+	sfm.h som.h tab.h var.h format.h format.def vector.h
+t-test.o: t-test.c ../config.h ../pref.h alloc.h str.h \
+	../lib/dcdflib/cdflib.h command.h lexer.h error.h magic.h var.h \
+	format.h format.def vfm.h cases.h debug-print.h
+tab.o: tab.c ../config.h ../pref.h alloc.h command.h format.h format.def \
+	magic.h misc.h output.h str.h pool.h som.h tab.h var.h \
+	debug-print.h
+temporary.o: temporary.c ../config.h ../pref.h alloc.h avl.h command.h \
+	do-ifP.h var.h format.h format.def error.h lexer.h str.h \
+	debug-print.h
+title.o: title.c ../config.h ../pref.h alloc.h command.h error.h lexer.h \
+	main.h output.h str.h var.h format.h format.def version.h vfm.h \
+	cases.h debug-print.h
+val-labs.o: val-labs.c ../config.h ../pref.h alloc.h avl.h command.h \
+	error.h lexer.h str.h var.h format.h format.def debug-print.h
+var-labs.o: var-labs.c ../config.h ../pref.h alloc.h command.h error.h \
+	lexer.h str.h var.h format.h format.def debug-print.h
+vars-atr.o: vars-atr.c ../config.h ../pref.h alloc.h approx.h avl.h \
+	command.h do-ifP.h var.h format.h format.def expr.h \
+	file-handle.h error.h inpt-pgm.h misc.h str.h vector.h vfm.h \
+	cases.h debug-print.h
+vars-prs.o: vars-prs.c ../config.h ../pref.h alloc.h avl.h bitvector.h \
+	error.h lexer.h misc.h str.h var.h format.h format.def
+vector.o: vector.c ../config.h ../pref.h alloc.h cases.h command.h \
+	error.h lexer.h misc.h str.h var.h format.h format.def vector.h
+version.o: version.c ../config.h ../pref.h
+vfm.o: vfm.c ../config.h ../pref.h alloc.h approx.h do-ifP.h var.h \
+	format.h format.def error.h expr.h misc.h random.h som.h str.h \
+	tab.h vector.h vfm.h cases.h vfmP.h debug-print.h
+weight.o: weight.c ../config.h ../pref.h command.h error.h lexer.h str.h \
+	var.h format.h format.def
+
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
+check-am: all-am
+check: check-am
+installcheck-am:
+installcheck: installcheck-am
+install-exec-am: install-binPROGRAMS
+install-exec: install-exec-am
+
+install-data-am:
+install-data: install-data-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-am
+uninstall-am: uninstall-binPROGRAMS
+uninstall: uninstall-am
+all-am: Makefile $(PROGRAMS)
+all-redirect: all-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(bindir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+
+maintainer-clean-generic:
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
+mostlyclean-am:  mostlyclean-binPROGRAMS mostlyclean-compile \
+		mostlyclean-tags mostlyclean-generic
+
+mostlyclean: mostlyclean-am
+
+clean-am:  clean-binPROGRAMS clean-compile clean-tags clean-generic \
+		mostlyclean-am
+
+clean: clean-am
+
+distclean-am:  distclean-binPROGRAMS distclean-compile distclean-tags \
+		distclean-generic clean-am
+
+distclean: distclean-am
+
+maintainer-clean-am:  maintainer-clean-binPROGRAMS \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-generic distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+
+.PHONY: mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
+maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags distdir info-am info dvi-am dvi check \
+check-am installcheck-am installcheck install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
+
+
+$(q_sources_c): q2c
+.q.c:
+	./q2c $< $@
+
+version.c:
+	echo "#include <config.h>" > version.c
+	echo "const char bare_version[] = \"@VERSION@\";" >> version.c
+	echo "const char version[] = GNU_PACKAGE \" @VERSION@\";" >> version.c
+	echo "const char stat_version[] = GNU_PACKAGE \" @VERSION@ \
+(`date`).\";" >> version.c
+	echo "const char host_system[] = \"$(host_triplet)\";" >> version.c
+	echo "const char build_system[] = \"$(build_triplet)\";" >> version.c
+	echo "const char default_config_path[] =\
+\"~/.pspp:$(pkgsysconfdir)\";" >> version.c
+	echo "const char include_path[] =\
+\"./:~/.pspp/include:$(pkgdatadir)\";" >> version.c
+	echo "const char groff_font_path[] = \"~/.pspp/font:\" \\" >> version.c
+	echo "	\"$(pkgdatadir)/font:\" \\" >> version.c
+	echo "	\"/usr/local/lib/groff/font:\" \\" >> version.c
+	echo "	\"/usr/lib/groff/font:\" \\" >> version.c
+	echo "	\"/usr/local/share/groff/font:\" \\" >> version.c
+	echo "	\"/usr/share/groff/font\";" >> version.c
+	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> version.c
+
+
+q2c.o: q2c.c
+	$(LOCAL_COMPILE) $< -o q2c.o
+q2c: q2c.o
+	$(LOCAL_LINK) q2c.o ../lib/misc/libmisc.a -o q2c
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

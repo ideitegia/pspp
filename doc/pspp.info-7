@@ -1,0 +1,837 @@
+This is pspp.info, produced by makeinfo version 4.0 from pspp.texi.
+
+START-INFO-DIR-ENTRY
+* PSPP: (pspp).             Statistical analysis package.
+END-INFO-DIR-ENTRY
+
+   PSPP, for statistical analysis of sampled data, by Ben Pfaff.
+
+   This file documents PSPP, a statistical package for analysis of
+sampled data that uses a command language compatible with SPSS.
+
+   Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+
+   This version of the PSPP documentation is consistent with version 2
+of "texinfo.tex".
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above condition for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+File: pspp.info,  Node: Portable File Format,  Next: q2c Input Format,  Prev: Data File Format,  Up: Top
+
+Portable File Format
+********************
+
+   These days, most computers use the same internal data formats for
+integer and floating-point data, if one ignores little differences like
+big- versus little-endian byte ordering.  However, occasionally it is
+necessary to exchange data between systems with incompatible data
+formats.  This is what portable files are designed to do.
+
+   *Please note:* Although all of the following information is correct,
+as far as the author has been able to ascertain, it is gleaned from
+examination of ASCII-formatted portable files only, so some of it may
+be incorrect in the general case.
+
+* Menu:
+
+* Portable File Characters::
+* Portable File Structure::
+* Portable File Header::
+* Version and Date Info Record::
+* Identification Records::
+* Variable Count Record::
+* Variable Records::
+* Value Label Records::
+* Portable File Data::
+
+
+File: pspp.info,  Node: Portable File Characters,  Next: Portable File Structure,  Prev: Portable File Format,  Up: Portable File Format
+
+Portable File Characters
+========================
+
+   Portable files are arranged as a series of lines of exactly 80
+characters each.  Each line is terminated by a carriage-return,
+line-feed sequence (henceforth, "newline").  Newlines are not
+delimiters: they are only used to avoid line-length limitations existing
+on some operating systems.
+
+   The file must be terminated with a `Z' character.  In addition, if
+the final line in the file does not have exactly 80 characters, then it
+is padded on the right with `Z' characters.  (The file contents may be
+in any character set; the file contains a description of its own
+character set, as explained in the next section.  Therefore, the `Z'
+character is not necessarily an ASCII `Z'.)
+
+   For the rest of the description of the portable file format, newlines
+and the trailing `Z's will be ignored, as if they did not exist,
+because they are not an important part of understanding the file
+contents.
+
+
+File: pspp.info,  Node: Portable File Structure,  Next: Portable File Header,  Prev: Portable File Characters,  Up: Portable File Format
+
+Portable File Structure
+=======================
+
+   Every portable file consists of the following records, in sequence:
+
+   * File header.
+
+   * Version and date info.
+
+   * Product identification.
+
+   * Subproduct identification (optional).
+
+   * Variable count.
+
+   * Variables.  Each variable record may optionally be followed by a
+     missing value record and a variable label record.
+
+   * Value labels (optional).
+
+   * Data.
+
+   Most records are identified by a single-character tag code.  The file
+header and version info record do not have a tag.
+
+   Other than these single-character codes, there are three types of
+fields in a portable file: floating-point, integer, and string.
+Floating-point fields have the following format:
+
+   * Zero or more leading spaces.
+
+   * Optional asterisk (`*'), which indicates a missing value.  The
+     asterisk must be followed by a single character, generally a period
+     (`.'), but it appears that other characters may also be possible.
+     This completes the specification of a missing value.
+
+   * Optional minus sign (`-') to indicate a negative number.
+
+   * A whole number, consisting of one or more base-30 digits: `0'
+     through `9' plus capital letters `A' through `T'.
+
+   * A fraction, consisting of a radix point (`.') followed by one or
+     more base-30 digits (optional).
+
+   * An exponent, consisting of a plus or minus sign (`+' or `-')
+     followed by one or more base-30 digits (optional).
+
+   * A forward slash (`/').
+
+   Integer fields take form identical to floating-point fields, but they
+may not contain a fraction.
+
+   String fields take the form of a integer field having value N,
+followed by exactly N characters, which are the string content.
+
+
+File: pspp.info,  Node: Portable File Header,  Next: Version and Date Info Record,  Prev: Portable File Structure,  Up: Portable File Format
+
+Portable File Header
+====================
+
+   Every portable file begins with a 464-byte header, consisting of a
+200-byte collection of vanity splash strings, followed by a 256-byte
+character set translation table, followed by an 8-byte tag string.
+
+   The 200-byte segment is divided into five 40-byte sections, each of
+which represents the string `ASCII SPSS PORT FILE' in a different
+character set encoding.  (If the file is encoded in EBCDIC then the
+string is actually `EBCDIC SPSS PORT FILE', and so on.)  These strings
+are padded on the right with spaces in their own character set.
+
+   It appears that these strings exist only to inform those who might
+view the file on a screen, and that they are not parsed by SPSS
+products.  Thus, they can be safely ignored.  For those interested, the
+strings are supposed to be in the following character sets, in the
+specified order: EBCDIC, 7-bit ASCII, CDC 6-bit ASCII, 6-bit ASCII,
+Honeywell 6-bit ASCII.
+
+   The 256-byte segment describes a mapping from the character set used
+in the portable file to an arbitrary character set having characters at
+the following positions:
+
+0-60
+     Control characters.  Not important enough to describe in full here.
+
+61-63
+     Reserved.
+
+64-73
+     Digits `0' through `9'.
+
+74-99
+     Capital letters `A' through `Z'.
+
+100-125
+     Lowercase letters `a' through `z'.
+
+126
+     Space.
+
+127-130
+     Symbols `.<(+'
+
+131
+     Solid vertical pipe.
+
+132-142
+     Symbols `&[]!$*);^-/'
+
+143
+     Broken vertical pipe.
+
+144-150
+     Symbols `,%_>'?``:'
+
+151
+     British pound symbol.
+
+152-155
+     Symbols `@'="'.
+
+156
+     Less than or equal symbol.
+
+157
+     Empty box.
+
+158
+     Plus or minus.
+
+159
+     Filled box.
+
+160
+     Degree symbol.
+
+161
+     Dagger.
+
+162
+     Symbol `~'.
+
+163
+     En dash.
+
+164
+     Lower left corner box draw.
+
+165
+     Upper left corner box draw.
+
+166
+     Greater than or equal symbol.
+
+167-176
+     Superscript `0' through `9'.
+
+177
+     Lower right corner box draw.
+
+178
+     Upper right corner box draw.
+
+179
+     Not equal symbol.
+
+180
+     Em dash.
+
+181
+     Superscript `('.
+
+182
+     Superscript `)'.
+
+183
+     Horizontal dagger (?).
+
+184-186
+     Symbols `{}\'.
+
+187
+     Cents symbol.
+
+188
+     Centered dot, or bullet.
+
+189-255
+     Reserved.
+
+   Symbols that are not defined in a particular character set are set to
+the same value as symbol 64; i.e., to `0'.
+
+   The 8-byte tag string consists of the exact characters `SPSSPORT' in
+the portable file's character set, which can be used to verify that the
+file is indeed a portable file.
+
+
+File: pspp.info,  Node: Version and Date Info Record,  Next: Identification Records,  Prev: Portable File Header,  Up: Portable File Format
+
+Version and Date Info Record
+============================
+
+   This record does not have a tag code.  It has the following
+structure:
+
+   * A single character identifying the file format version.  The
+     letter A represents version 0, and so on.
+
+   * An 8-character string field giving the file creation date in the
+     format YYYYMMDD.
+
+   * A 6-character string field giving the file creation time in the
+     format HHMMSS.
+
+
+File: pspp.info,  Node: Identification Records,  Next: Variable Count Record,  Prev: Version and Date Info Record,  Up: Portable File Format
+
+Identification Records
+======================
+
+   The product identification record has tag code `1'.  It consists of
+a single string field giving the name of the product that wrote the
+portable file.
+
+   The subproduct identification record has tag code `3'.  It consists
+of a single string field giving additional information on the product
+that wrote the portable file.
+
+
+File: pspp.info,  Node: Variable Count Record,  Next: Variable Records,  Prev: Identification Records,  Up: Portable File Format
+
+Variable Count Record
+=====================
+
+   The variable count record has tag code `4'.  It consists of two
+integer fields.  The first contains the number of variables in the file
+dictionary.  The purpose of the second is unknown; it contains the value
+161 in all portable files examined so far.
+
+
+File: pspp.info,  Node: Variable Records,  Next: Value Label Records,  Prev: Variable Count Record,  Up: Portable File Format
+
+Variable Records
+================
+
+   Each variable record represents a single variable.  Variable records
+have tag code `7'.  They have the following structure:
+
+   * Width (integer).  This is 0 for a numeric variable, and a number
+     between 1 and 255 for a string variable.
+
+   * Name (string).  1-8 characters long.  Must be in all capitals.
+
+   * Print format.  This is a set of three integer fields:
+
+        - Format type (*note Variable Record::).
+
+        - Format width.  1-40.
+
+        - Number of decimal places.  1-40.
+
+   * Write format.  Same structure as the print format described above.
+
+   Each variable record can optionally be followed by a missing value
+record, which has tag code `8'.  A missing value record has one field,
+the missing value itself (a floating-point or string, as appropriate).
+Up to three of these missing value records can be used.
+
+   There is also a record for missing value ranges, which has tag code
+`B'.  It is followed by two fields representing the range, which are
+floating-point or string as appropriate.  If a missing value range is
+present, it may be followed by a single missing value record.
+
+   Tag codes `9' and `A' represent `LO THRU X' and `X THRU HI' ranges,
+respectively.  Each is followed by a single field representing X.  If
+one of the ranges is present, it may be followed by a single missing
+value record.
+
+   In addition, each variable record can optionally be followed by a
+variable label record, which has tag code `C'.  A variable label record
+has one field, the variable label itself (string).
+
+
+File: pspp.info,  Node: Value Label Records,  Next: Portable File Data,  Prev: Variable Records,  Up: Portable File Format
+
+Value Label Records
+===================
+
+   Value label records have tag code `D'.  They have the following
+format:
+
+   * Variable count (integer).
+
+   * List of variables (strings).  The variable count specifies the
+     number in the list.  Variables are specified by their names.  All
+     variables must be of the same type (numeric or string).
+
+   * Label count (integer).
+
+   * List of (value, label) tuples.  The label count specifies the
+     number of tuples.  Each tuple consists of a value, which is
+     numeric or string as appropriate to the variables, followed by a
+     label (string).
+
+
+File: pspp.info,  Node: Portable File Data,  Prev: Value Label Records,  Up: Portable File Format
+
+Portable File Data
+==================
+
+   The data record has tag code `F'.  There is only one tag for all the
+data; thus, all the data must follow the dictionary.  The data is
+terminated by the end-of-file marker `Z', which is not valid as the
+beginning of a data element.
+
+   Data elements are output in the same order as the variable records
+describing them.  String variables are output as string fields, and
+numeric variables are output as floating-point fields.
+
+
+File: pspp.info,  Node: q2c Input Format,  Next: Bugs,  Prev: Portable File Format,  Up: Top
+
+`q2c' Input Format
+******************
+
+   PSPP statistical procedures have a bizarre and somewhat irregular
+syntax.  Despite this, a parser generator has been written that
+adequately addresses many of the possibilities and tries to provide
+hooks for the exceptional cases.  This parser generator is named `q2c'.
+
+* Menu:
+
+* Invoking q2c::                q2c command-line syntax.
+* q2c Input Structure::         High-level layout of the input file.
+* Grammar Rules::               Syntax of the grammar rules.
+
+
+File: pspp.info,  Node: Invoking q2c,  Next: q2c Input Structure,  Prev: q2c Input Format,  Up: q2c Input Format
+
+Invoking q2c
+============
+
+     q2c INPUT.Q OUTPUT.C
+
+   `q2c' translates a `.q' file into a `.c' file.  It takes exactly two
+command-line arguments, which are the input file name and output file
+name, respectively.  `q2c' does not accept any command-line options.
+
+
+File: pspp.info,  Node: q2c Input Structure,  Next: Grammar Rules,  Prev: Invoking q2c,  Up: q2c Input Format
+
+`q2c' Input Structure
+=====================
+
+   `q2c' input files are divided into two sections: the grammar rules
+and the supporting code.  The "grammar rules", which make up the first
+part of the input, are used to define the syntax of the statistical
+procedure to be parsed.  The "supporting code", following the grammar
+rules, are copied largely unchanged to the output file, except for
+certain escapes.
+
+   The most important lines in the grammar rules are used for defining
+procedure syntax.  These lines can be prefixed with a dollar sign
+(`$'), which prevents Emacs' CC-mode from munging them.  Besides this,
+a bang (`!') at the beginning of a line causes the line, minus the
+bang, to be written verbatim to the output file (useful for comments).
+As a third special case, any line that begins with the exact characters
+`/* *INDENT' is ignored and not written to the output.  This allows
+`.q' files to be processed through `indent' without being munged.
+
+   The syntax of the grammar rules themselves is given in the following
+sections.
+
+   The supporting code is passed into the output file largely unchanged.
+However, the following escapes are supported.  Each escape must appear
+on a line by itself.
+
+`/* (header) */'
+     Expands to a series of C `#include' directives which include the
+     headers that are required for the parser generated by `q2c'.
+
+`/* (decls SCOPE) */'
+     Expands to C variable and data type declarations for the variables
+     and `enum's input and output by the `q2c' parser.  SCOPE must be
+     either `local' or `global'.  `local' causes the declarations to be
+     output as function locals.  `global' causes them to be declared as
+     `static' module variables; thus, `global' is a bit of a misnomer.
+
+`/* (parser) */'
+     Expands to the entire parser.  Must be enclosed within a C
+     function.
+
+`/* (free) */'
+     Expands to a set of calls to the `free' function for variables
+     declared by the parser.  Only needs to be invoked if subcommands
+     of type `string' are used in the grammar rules.
+
+
+File: pspp.info,  Node: Grammar Rules,  Prev: q2c Input Structure,  Up: q2c Input Format
+
+Grammar Rules
+=============
+
+   The grammar rules describe the format of the syntax that the parser
+generated by `q2c' will understand.  The way that the grammar rules are
+included in `q2c' input file are described above.
+
+   The grammar rules are divided into tokens of the following types:
+
+Identifier (`ID')
+     An identifier token is a sequence of letters, digits, and
+     underscores (`_').  Identifiers are _not_ case-sensitive.
+
+String (`STRING')
+     String tokens are initiated by a double-quote character (`"') and
+     consist of all the characters between that double quote and the
+     next double quote, which must be on the same line as the first.
+     Within a string, a backslash can be used as a "literal escape".
+     The only reasons to use a literal escape are to include a double
+     quote or a backslash within a string.
+
+Special character
+     Other characters, other than whitespace, constitute tokens in
+     themselves.
+
+   The syntax of the grammar rules is as follows:
+
+     grammar-rules ::= ID : subcommands .
+     subcommands ::= subcommand
+                 ::= subcommands ; subcommand
+
+   The syntax begins with an ID or STRING token that gives the name of
+the procedure to be parsed.  The rest of the syntax consists of
+subcommands separated by semicolons (`;') and terminated with a full
+stop (`.').
+
+     subcommand ::= sbc-options ID sbc-defn
+     sbc-options ::=
+                 ::= sbc-option
+                 ::= sbc-options sbc-options
+     sbc-option ::= *
+                ::= +
+     sbc-defn ::= opt-prefix = specifiers
+              ::= [ ID ] = array-sbc
+              ::= opt-prefix = sbc-special-form
+     opt-prefix ::=
+                ::= ( ID )
+
+   Each subcommand can be prefixed with one or more option characters.
+An asterisk (`*') is used to indicate the default subcommand; the
+keyword used for the default subcommand can be omitted in the PSPP
+syntax file.  A plus sign (`+') is used to indicate that a subcommand
+can appear more than once; if it is not present then that subcommand
+can appear no more than once.
+
+   The subcommand name appears after the option characters.
+
+   There are three forms of subcommands.  The first and most common form
+simply gives an equals sign (`=') and a list of specifiers, which can
+each be set to a single setting.  The second form declares an array,
+which is a set of flags that can be individually turned on by the user.
+There are also several special forms that do not take a list of
+specifiers.
+
+   Arrays require an additional `ID' argument.  This is used as a
+prefix, prepended to the variable names constructed from the
+specifiers.  The other forms also allow an optional prefix to be
+specified.
+
+     array-sbc ::= alternatives
+               ::= array-sbc , alternatives
+     alternatives ::= ID
+                  ::= alternatives | ID
+
+   An array subcommand is a set of Boolean values that can
+independently be turned on by the user, listed separated by commas
+(`,').  If an value has more than one name then these names are
+separated by pipes (`|').
+
+     specifiers ::= specifier
+                ::= specifiers , specifier
+     specifier ::= opt-id : settings
+     opt-id ::=
+            ::= ID
+
+   Ordinary subcommands (other than arrays and special forms) require a
+list of specifiers.  Each specifier has an optional name and a list of
+settings.  If the name is given then a correspondingly named variable
+will be used to store the user's choice of setting.  If no name is given
+then there is no way to tell which setting the user picked; in this case
+the settings should probably have values attached.
+
+     settings ::= setting
+              ::= settings / setting
+     setting ::= setting-options ID setting-value
+     setting-options ::=
+                     ::= *
+                     ::= !
+                     ::= * !
+
+   Individual settings are separated by forward slashes (`/').  Each
+setting can be as little as an `ID' token, but options and values can
+optionally be included.  The `*' option means that, for this setting,
+the `ID' can be omitted.  The `!' option means that this option is the
+default for its specifier.
+
+     setting-value ::=
+                   ::= ( setting-value-2 )
+                   ::= setting-value-2
+     setting-value-2 ::= setting-value-options setting-value-type : ID
+                         setting-value-restriction
+     setting-value-options ::=
+                           ::= *
+     setting-value-type ::= N
+                        ::= D
+     setting-value-restriction ::=
+                               ::= , STRING
+
+   Settings may have values.  If the value must be enclosed in
+parentheses, then enclose the value declaration in parentheses.
+Declare the setting type as `n' or `d' for integer or floating point
+type, respectively.  The given `ID' is used to construct a variable
+name.  If option `*' is given, then the value is optional; otherwise it
+must be specified whenever the corresponding setting is specified.  A
+"restriction" can also be specified which is a string giving a C
+expression limiting the valid range of the value.  The special escape
+`%s' should be used within the restriction to refer to the setting's
+value variable.
+
+     sbc-special-form ::= VAR
+                      ::= VARLIST varlist-options
+                      ::= INTEGER opt-list
+                      ::= DOUBLE opt-list
+                      ::= PINT
+                      ::= STRING (the literal word STRING) string-options
+                      ::= CUSTOM
+     varlist-options ::=
+                     ::= ( STRING )
+     opt-list ::=
+              ::= LIST
+     string-options ::=
+                    ::= ( STRING STRING )
+
+   The special forms are of the following types:
+
+`VAR'
+     A single variable name.
+
+`VARLIST'
+     A list of variables.  If given, the string can be used to provide
+     `PV_*' options to the call to `parse_variables'.
+
+`INTEGER'
+     A single integer value.
+
+`INTEGER LIST'
+     A list of integers separated by spaces or commas.
+
+`DOUBLE'
+     A single floating-point value.
+
+`DOUBLE LIST'
+     A list of floating-point values.
+
+`PINT'
+     A single positive integer value.
+
+`STRING'
+     A string value.  If the options are given then the first string is
+     an expression giving a restriction on the value of the string; the
+     second string is an error message to display when the restriction
+     is violated.
+
+`CUSTOM'
+     A custom function is used to parse this subcommand.  The function
+     must have prototype `int custom_NAME (void)'.  It should return 0
+     on failure (when it has already issued an appropriate diagnostic),
+     1 on success, or 2 if it fails and the calling function should
+     issue a syntax error on behalf of the custom handler.
+
+
+File: pspp.info,  Node: Bugs,  Next: Function Index,  Prev: q2c Input Format,  Up: Top
+
+Bugs
+****
+
+     As of fvwm 0.99 there were exactly 39.342 unidentified bugs.
+     Identified bugs have mostly been fixed, though.  Since then 9.34
+     bugs have been fixed.  Assuming that there are at least 10
+     unidentified bugs for every identified one, that leaves us with
+     39.342 - 9.34 + 10 * 9.34 = 123.422 unidentified bugs.  If we
+     follow this to its logical conclusion we will have an infinite
+     number of unidentified bugs before the number of bugs can start to
+     diminish, at which point the program will be bug-free.  Since this
+     is a computer program infinity = 3.4028e+38 if you don't insist on
+     double-precision.  At the current rate of bug discovery we should
+     expect to achieve this point in 3.37e+27 years.  I guess I better
+     plan on passing this thing on to my children....
+
+     --Robert Nation, `fvwm manpage'.
+
+* Menu:
+
+* Known bugs::                  Pointers to other files.
+* Contacting the Author::       Where to send the bug reports.
+
+
+File: pspp.info,  Node: Known bugs,  Next: Contacting the Author,  Prev: Bugs,  Up: Bugs
+
+Known bugs
+==========
+
+   This is the list of known bugs in PSPP.  In addition, *Note Not
+Implemented::, and *Note Functions Not Implemented::, for lists of bugs
+due to features not implemented.  For known bugs in individual language
+features, see the documentation for that feature.
+
+   * Nothing has yet been tested exhaustively. Be cautious using PSPP to
+     make important decisions.
+
+   * `make check' fails on some systems that don't like the syntax.  I'm
+     not sure why.  If someone could make an attempt to track this
+     down, it would be appreciated.
+
+   * PostScript driver bugs:
+
+        - Does not support driver arguments `max-fonts-simult' or
+          `optimize-text-size'.
+
+        - Minor problems with font-encodings.
+
+        - Fails to align fonts along their baselines.
+
+        - Does not support certain bizarre line intersections-should
+          never crop up in practice.
+
+        - Does not gracefully substitute for existing fonts whose
+          encodings are missing.
+
+        - Does not perform italic correction or left italic correction
+          on font changes.
+
+        - Encapsulated PostScript is unimplemented.
+
+   * ASCII driver bugs:
+
+          Does not support `infinite length' or `infinite width' paper.
+
+   See below for information on reporting bugs not listed here.
+
+
+File: pspp.info,  Node: Contacting the Author,  Prev: Known bugs,  Up: Bugs
+
+Contacting the Author
+=====================
+
+   The author can be contacted at e-mail address <blp@gnu.org>.
+
+   PSPP bug reports should be sent to <bug-gnu-pspp@gnu.org>.
+
+
+File: pspp.info,  Node: Function Index,  Next: Concept Index,  Prev: Bugs,  Up: Top
+
+Function Index
+**************
+
+* Menu:
+
+* ABS:                                   Miscellaneous Mathematics.
+* ACOS:                                  Trigonometry.
+* ANY:                                   Set Membership.
+* ARCOS:                                 Trigonometry.
+* ARSIN:                                 Trigonometry.
+* ARTAN:                                 Trigonometry.
+* ASIN:                                  Trigonometry.
+* ATAN:                                  Trigonometry.
+* CDF.xxx:                               Functions Not Implemented.
+* CDFNORM:                               Functions Not Implemented.
+* CFVAR:                                 Statistical Functions.
+* CONCAT:                                String Functions.
+* COS:                                   Trigonometry.
+* CTIME.DAYS:                            Time Extraction.
+* CTIME.HOURS:                           Time Extraction.
+* CTIME.MINUTES:                         Time Extraction.
+* CTIME.SECONDS:                         Time Extraction.
+* DATE.DMY:                              Date Construction.
+* DATE.MDY:                              Date Construction.
+* DATE.MOYR:                             Date Construction.
+* DATE.QYR:                              Date Construction.
+* DATE.WKYR:                             Date Construction.
+* DATE.YRDAY:                            Date Construction.
+* EXP:                                   Advanced Mathematics.
+* IDF.xxx:                               Functions Not Implemented.
+* INDEX:                                 String Functions.
+* LAG:                                   Miscellaneous Functions.
+* LENGTH:                                String Functions.
+* LG10:                                  Advanced Mathematics.
+* LN:                                    Advanced Mathematics.
+* LOWER:                                 String Functions.
+* LPAD:                                  String Functions.
+* LTRIM:                                 String Functions.
+* MAX:                                   Statistical Functions.
+* MEAN:                                  Statistical Functions.
+* MIN:                                   Statistical Functions.
+* MISSING:                               Missing Value Functions.
+* MOD:                                   Miscellaneous Mathematics.
+* MOD10:                                 Miscellaneous Mathematics.
+* NCDF.xxx:                              Functions Not Implemented.
+* NMISS:                                 Missing Value Functions.
+* NORMAL:                                Pseudo-Random Numbers.
+* NUMBER:                                String Functions.
+* NVALID:                                Missing Value Functions.
+* PROBIT:                                Functions Not Implemented.
+* RANGE:                                 Set Membership.
+* RINDEX:                                String Functions.
+* RND:                                   Miscellaneous Mathematics.
+* RPAD:                                  String Functions.
+* RTRIM:                                 String Functions.
+* RV.xxx:                                Functions Not Implemented.
+* SD:                                    Statistical Functions.
+* SIN:                                   Trigonometry.
+* SQRT:                                  Advanced Mathematics.
+* STRING:                                String Functions.
+* SUBSTR:                                String Functions.
+* SUM:                                   Statistical Functions.
+* SYSMIS:                                Missing Value Functions.
+* TAN:                                   Trigonometry.
+* TIME.DAYS:                             Time Construction.
+* TIME.HMS:                              Time Construction.
+* TRUNC:                                 Miscellaneous Mathematics.
+* UNIFORM:                               Pseudo-Random Numbers.
+* UPCASE:                                String Functions.
+* VALUE:                                 Missing Value Functions.
+* VAR:                                   Statistical Functions.
+* VARIANCE:                              Statistical Functions.
+* XDATE.DATE:                            Date Extraction.
+* XDATE.HOUR:                            Date Extraction.
+* XDATE.JDAY:                            Date Extraction.
+* XDATE.MDAY:                            Date Extraction.
+* XDATE.MINUTE:                          Date Extraction.
+* XDATE.MONTH:                           Date Extraction.
+* XDATE.QUARTER:                         Date Extraction.
+* XDATE.SECOND:                          Date Extraction.
+* XDATE.TDAY:                            Date Extraction.
+* XDATE.TIME:                            Date Extraction.
+* XDATE.WEEK:                            Date Extraction.
+* XDATE.WKDAY:                           Date Extraction.
+* XDATE.YEAR:                            Date Extraction.
+* YRMODA:                                Miscellaneous Functions.
+
