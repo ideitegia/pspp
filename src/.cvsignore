@@ -1,0 +1,14 @@
+Makefile
+Makefile.in
+correlations.c
+crosstabs.c
+descript.c
+file-handle.c
+frequencies.c
+list.c
+means.c
+pspp
+q2c
+set.c
+t-test.c
+version.c
