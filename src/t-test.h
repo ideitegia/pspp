@@ -22,59 +22,7 @@
 
 #include "val.h"
 
-
-enum comparison
-  {
-    CMP_LE = -2,
-    CMP_LT = -1,
-    CMP_EQ = 0,
-    CMP_GT = 1,
-    CMP_GE = 2
-  };
-
-/* Statistics for grouped data */
-struct group_statistics
-  {
-    /* The value of the independent variable for this group */
-    union value id;
-
-    /* The criterium matching for comparing with id */
-    enum comparison criterion;
-
-    /* The arithmetic mean */
-    double mean;
-
-    /* Population std. deviation */
-    double std_dev;
-
-    /* Sample std. deviation */
-    double s_std_dev;
-    
-    /* count */
-    double n;
-
-    double sum;
-
-    /* Sum of squares */
-    double ssq;
-
-    /* Std Err of Mean */
-    double se_mean;
-
-    /* Sum of differences */
-    double sum_diff;
-
-    /* Mean of differences */
-    double mean_diff ;
-
-    /* Running total of the Levene for this group */
-    double lz_total;
-    
-    /* Group mean of Levene */
-    double lz_mean; 
-
-  };
-
+#include "group.h"
 
 /* T-TEST private data */
 struct t_test_proc

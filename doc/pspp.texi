@@ -7487,7 +7487,8 @@ far.
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.
 * CROSSTABS::                   Crosstabulation tables.
-* T-TEST::                      Test Hypotheses about means.
+* T-TEST::                      Test hypotheses about means.
+* ONEWAY::                      One analysis of variance.
 @end menu
 
 @node DESCRIPTIVES, FREQUENCIES, Statistics, Statistics
@@ -7873,7 +7874,7 @@ Approximate T of uncertainty coefficient is wrong.
 
 Fixes for any of these deficiencies would be welcomed.
 
-@node T-TEST,  , CROSSTABS, Statistics
+@node T-TEST, ONEWAY, CROSSTABS, Statistics
 @comment  node-name,  next,  previous,  up
 @section T-TEST
 
@@ -7996,6 +7997,57 @@ In the event that the @code{WITH} keyword is given, but the
 @code{(PAIRED)} keyword is omitted, then tables for each combination
 of variable preceding @code{WITH} against variable following
 @code{WITH} are generated.
+
+
+@node ONEWAY, , T-TEST, Statistics
+@comment  node-name,  next,  previous,  up
+@section Oneway
+
+@vindex ONEWAY
+@cindex analysis of variance
+@cindex ANOVA
+
+@display
+ONEWAY
+        [/VARIABLES = ] var_list BY var
+        /MISSING=@{ANALYSIS,LISTWISE@} @{EXCLUDE,INCLUDE@}
+        /CONTRASTS= value1 [, value2] ... [,valueN]
+        /STATISTICS=@{DESCRIPTIVES,HOMOGENEITY@}
+
+@end display
+
+The @cmd{ONEWAY} procedure performs a one-way analysis of variance of
+variables factored by a single independent variable.
+It is used to compare the means of a population
+divided into more than two groups. 
+
+The  variables to be analysed should be given in the @code{VARIABLES}
+subcommand.  
+The list of variables must be followed by the @code{BY} keyword and
+the name of the independent (or factor) variable.
+
+You can use the @code{STATISTICS} subcommand to tell PSPP to display
+ancilliary information.  The options accepted are:
+@itemize
+@item DESCRIPTIVES
+Displays descriptive statistics about the groups factored by the independent
+variable.
+@item HOMOGENEITY
+Displays the Levene test of Homogeneity of Variance for the
+variables and their groups.
+@end itemize
+
+The @code{CONTRASTS} subcommand is used when you anticipate certain
+differences between the groups.
+The subcommand must be followed by a list of numerals which are the
+coefficients of the groups to be tested.
+The number of coefficients must correspond to the number of distinct
+groups (or values of the independent variable).
+If the total sum of the coefficients are not zero, then PSPP will
+display a warning, but will proceed with the analysis.
+The @code{CONTRASTS} subcommand may be given up to 10 times in order
+to specify different contrast tests.
+
 
 
 @node Utilities, Not Implemented, Statistics, Top
