@@ -321,6 +321,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   assert (v != NULL);
   assert (new_name != NULL);
   assert (strlen (new_name) >= 1 && strlen (new_name) <= 8);
+  assert (dict_contains_var (d, v));
 
   if (!strcmp (v->name, new_name))
     return;
@@ -367,7 +368,7 @@ dict_contains_var (const struct dictionary *d, const struct variable *v)
   assert (d != NULL);
   assert (v != NULL);
 
-  return dict_lookup_var (d, v->name) == v;
+  return v->index >= 0 && v->index < d->var_cnt && d->var[v->index] == v;
 }
 
 /* Compares two double pointers to variables, which should point
@@ -653,21 +654,69 @@ dict_get_case_size (const struct dictionary *d)
   return sizeof (union value) * dict_get_next_value_idx (d);
 }
 
-/* Reassigns values in dictionary D so that fragmentation is
-   eliminated. */
+/* Deletes scratch variables in dictionary D and reassigns values
+   so that fragmentation is eliminated. */
 void
 dict_compact_values (struct dictionary *d) 
 {
   size_t i;
 
-  d->next_value_idx = 0;
+  for (i = 0; i < d->var_cnt; )
+    {
+      struct variable *v = d->var[i];
+
+      if (dict_class_from_id (v->name) != DC_SCRATCH) 
+        {
+          v->fv = d->next_value_idx;
+          d->next_value_idx += v->nv;
+          i++;
+        }
+      else
+        dict_delete_var (default_dict, v);
+    }
+}
+
+/* Returns the number of values that would be used by a case if
+   dict_compact_values() were called. */
+size_t
+dict_get_compacted_value_cnt (const struct dictionary *d) 
+{
+  size_t i;
+  size_t cnt;
+
+  cnt = 0;
+  for (i = 0; i < d->var_cnt; i++)
+    if (dict_class_from_id (d->var[i]->name) != DC_SCRATCH) 
+      cnt += d->var[i]->nv;
+  return cnt;
+}
+
+/* Creates and returns an array mapping from a dictionary index
+   to the `fv' that the corresponding variable will have after
+   calling dict_compact_values().  Scratch variables receive -1
+   for `fv' because dict_compact_values() will delete them. */
+int *
+dict_get_compacted_idx_to_fv (const struct dictionary *d) 
+{
+  size_t i;
+  size_t next_value_idx;
+  int *idx_to_fv;
+  
+  idx_to_fv = xmalloc (d->var_cnt * sizeof *idx_to_fv);
+  next_value_idx = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
 
-      v->fv = d->next_value_idx;
-      d->next_value_idx += v->nv;
+      if (dict_class_from_id (v->name) != DC_SCRATCH) 
+        {
+          idx_to_fv[i] = next_value_idx;
+          next_value_idx += v->nv;
+        }
+      else 
+        idx_to_fv[i] = -1;
     }
+  return idx_to_fv;
 }
 
 /* Returns the SPLIT FILE vars (see cmd_split_file()).  Call

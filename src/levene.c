@@ -105,8 +105,8 @@ levene(struct variable *v_indep, int n_dep, struct variable **v_dep,
   l.missing = missing;
   l.is_missing = value_is_missing;
 
-  procedure(levene_precalc, levene_calc, levene_postcalc, &l);
-  procedure(levene2_precalc,levene2_calc,levene2_postcalc,&l);
+  procedure_with_splits (levene_precalc, levene_calc, levene_postcalc, &l);
+  procedure_with_splits (levene2_precalc, levene2_calc, levene2_postcalc, &l);
       
 }
 

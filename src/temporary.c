@@ -31,8 +31,6 @@
 #include "value-labels.h"
 #include "var.h"
 
-#include "debug-print.h"
-
 int temporary;
 struct dictionary *temp_dict;
 int temp_trns;
@@ -62,7 +60,6 @@ cmd_temporary (void)
   temporary = 1;
   temp_dict = dict_clone (default_dict);
   temp_trns = n_trns;
-  debug_printf (("TEMPORARY: temp_trns=%d\n", temp_trns));
 
   return lex_end_of_command ();
 }

@@ -83,6 +83,13 @@ cmd_modify_vars (void)
 
   size_t i;
 
+  if (temporary != 0)
+    {
+      msg (SE, _("MODIFY VARS may not be used after TEMPORARY.  "
+                 "Temporary transformations will be made permanent."));
+      cancel_temporary (); 
+    }
+
   lex_match_id ("MODIFY");
   lex_match_id ("VARS");
 
@@ -309,7 +316,7 @@ cmd_modify_vars (void)
   if (already_encountered & (1 | 4))
     {
       /* Read the data. */
-      procedure (NULL, NULL, NULL, NULL);
+      procedure (NULL, NULL);
     }
 
   if (!rearrange_dict (default_dict, &vm))

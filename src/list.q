@@ -227,7 +227,7 @@ cmd_list (void)
   determine_layout ();
 
   case_num = 0;
-  procedure (write_all_headers, list_cases, NULL, NULL);
+  procedure_with_splits (write_all_headers, list_cases, NULL, NULL);
   free (line_buf);
 
   clean_up ();

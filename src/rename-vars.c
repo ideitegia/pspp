@@ -42,6 +42,13 @@ cmd_rename_variables (void)
 
   int i;
 
+  if (temporary != 0)
+    {
+      msg (SE, _("RENAME VARS may not be used after TEMPORARY.  "
+                 "Temporary transformations will be made permanent."));
+      cancel_temporary (); 
+    }
+
   lex_match_id ("RENAME");
   lex_match_id ("VARIABLES");
 

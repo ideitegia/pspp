@@ -650,8 +650,7 @@ cmd_begin_data (void)
   /* FIXME: figure out the *exact* conditions, not these really
      lenient conditions. */
   if (vfm_source == NULL
-      || case_source_is_class (vfm_source, &memory_source_class)
-      || case_source_is_class (vfm_source, &disk_source_class)
+      || case_source_is_class (vfm_source, &storage_source_class)
       || case_source_is_class (vfm_source, &sort_source_class))
     {
       msg (SE, _("This command is not valid here since the current "
@@ -669,7 +668,7 @@ cmd_begin_data (void)
   /* We don't actually read from the inline file.  The input procedure
      is what reads from it. */
   getl_prompt = GETL_PRPT_DATA;
-  procedure (NULL, NULL, NULL, NULL);
+  procedure (NULL, NULL);
 
   ext = inline_file->ext;
 

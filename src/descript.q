@@ -288,7 +288,7 @@ cmd_descriptives (void)
 
   /* Data pass! */
   bad_weight = 0;
-  procedure (precalc, calc, postcalc, NULL);
+  procedure_with_splits (precalc, calc, postcalc, NULL);
 
   if (bad_weight)
     msg (SW, _("At least one case in the data file had a weight value "

@@ -274,8 +274,9 @@ internal_cmd_crosstabs (void)
   else
     write = CRS_WR_NONE;
 
-  procedure (precalc, mode == GENERAL ? calc_general : calc_integer, postcalc,
-             NULL);
+  procedure_with_splits (precalc,
+                         mode == GENERAL ? calc_general : calc_integer,
+                         postcalc, NULL);
 
   return CMD_SUCCESS;
 }

@@ -71,6 +71,13 @@ cmd_flip (void)
 {
   struct flip_pgm *flip;
 
+  if (temporary != 0)
+    {
+      msg (SM, _("FLIP ignores TEMPORARY.  "
+                 "Temporary transformations will be made permanent."));
+      cancel_temporary (); 
+    }
+
   flip = xmalloc (sizeof *flip);
   flip->var = NULL;
   flip->var_cnt = 0;
@@ -121,7 +128,7 @@ cmd_flip (void)
   temp_trns = temporary = 0;
   vfm_sink = flip_sink_create (flip);
   flip->new_names_tail = NULL;
-  procedure (NULL, NULL, NULL, NULL);
+  procedure (NULL, NULL);
 
   /* Flip the data we read. */
   flip_file (flip);
@@ -278,7 +285,7 @@ flip_sink_create (struct flip_pgm *flip)
 
   flip->case_cnt = 1;
 
-  return create_case_sink (&flip_sink_class, info);
+  return create_case_sink (&flip_sink_class, default_dict, info);
 }
 
 /* Writes case C to the FLIP sink. */
@@ -297,7 +304,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       v->next = NULL;
       if (flip->new_names->type == NUMERIC) 
         {
-          double f = c->data[flip->new_names->fv].f;
+          double f = c->data[sink->idx_to_fv[flip->new_names->index]].f;
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -316,7 +323,8 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       else
 	{
 	  int width = min (flip->new_names->width, 8);
-	  memcpy (v->name, c->data[flip->new_names->fv].s, width);
+	  memcpy (v->name, c->data[sink->idx_to_fv[flip->new_names->index]].s,
+                  width);
 	  v->name[width] = 0;
 	}
       
@@ -330,7 +338,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
   /* Write to external file. */
   for (i = 0; i < flip->var_cnt; i++)
     if (flip->var[i]->type == NUMERIC)
-      info->output_buf[i].f = c->data[flip->var[i]->fv].f;
+      info->output_buf[i].f = c->data[sink->idx_to_fv[flip->var[i]->index]].f;
     else
       info->output_buf[i].f = SYSMIS;
 	  

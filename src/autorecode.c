@@ -153,7 +153,7 @@ cmd_autorecode (void)
       h_trans[i] = hsh_create (10, compare_numeric_value,
 			       hash_numeric_value, NULL, NULL);
 
-  procedure (NULL, autorecode_proc_func, NULL, NULL);
+  procedure_with_splits (NULL, autorecode_proc_func, NULL, NULL);
 
   for (i = 0; i < nv_dest; i++)
     {

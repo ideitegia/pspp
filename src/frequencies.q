@@ -246,7 +246,7 @@ internal_cmd_frequencies (void)
     cmd.sort = FRQ_AVALUE;
 
   /* Do it! */
-  procedure (precalc, calc, postcalc, NULL);
+  procedure_with_splits (precalc, calc, postcalc, NULL);
 
   return CMD_SUCCESS;
 }

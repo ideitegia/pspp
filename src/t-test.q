@@ -293,18 +293,20 @@ cmd_t_test(void)
   else
     value_is_missing = is_missing;
 
-  procedure(common_precalc,common_calc,common_postcalc, NULL);
+  procedure_with_splits (common_precalc, common_calc, common_postcalc, NULL);
 
   switch(mode)
     {
     case T_1_SAMPLE:
-      procedure(one_sample_precalc,one_sample_calc,one_sample_postcalc, NULL);
+      procedure_with_splits (one_sample_precalc, one_sample_calc,
+                             one_sample_postcalc, NULL);
       break;
     case T_PAIRED:
-      procedure(paired_precalc,paired_calc,paired_postcalc, NULL);
+      procedure_with_splits (paired_precalc, paired_calc, paired_postcalc,
+                             NULL);
       break;
     case T_IND_SAMPLES:
-      procedure(group_precalc,group_calc,group_postcalc, NULL);
+      procedure_with_splits(group_precalc,group_calc,group_postcalc, NULL);
       levene(indep_var, cmd.n_variables, cmd.v_variables,
 	     (cmd.miss == TTS_LISTWISE)?LEV_LISTWISE:LEV_ANALYSIS ,
 	     value_is_missing);

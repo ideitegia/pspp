@@ -22,17 +22,4 @@
 
 #include "var.h"
 
-/* Nonzero if the case needs to have values deleted before being
-   stored, zero otherwise. */
-extern int compaction_necessary;
-
-/* Number of values after compaction. */
-extern int compaction_nval;
-
-/* Temporary case buffer with enough room for `compaction_nval'
-   `value's. */
-extern struct ccase *compaction_case;
-
-void compact_case (struct ccase *dest, const struct ccase *src);
-
 #endif /* !vfmP_h */

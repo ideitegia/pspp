@@ -562,10 +562,9 @@ int
 cmd_execute (void)
 {
   lex_match_id ("EXECUTE");
-  procedure (NULL, NULL, NULL, NULL);
+  procedure (NULL, NULL);
   return lex_end_of_command ();
 }
-
 
 #define assert_not_safer() \
   do { \
@@ -575,8 +574,6 @@ cmd_execute (void)
       return CMD_FAILURE; \
     } \
 } while(0) 
-
-
 
 /* Parses, performs the ERASE command. */
 int

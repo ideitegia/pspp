@@ -50,7 +50,7 @@ activity="generate stat program"
 cat > $TEMPDIR/sort.stat <<EOF
 title 'Test SORT procedure'.
 
-data list file='$here/sort.data' notable /X000 to X126 1-127(a).
+data list file='$here/sort.data' notable /X000 to X126 1-127.
 sort by X000 to x005.
 print /X000 to X005.
 execute.

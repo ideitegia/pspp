@@ -1,3 +1,218 @@
+Sun Mar 14 22:48:12 2004  Ben Pfaff  <blp@gnu.org>
+
+	* command.def: Add CASESTOVARS, VARSTOCASES unimplemented commands.
+
+	* dictionary.c: (dict_rename_var) Add assertion.
+	(dict_contains_var) Check by index instead of name.
+
+Sun Mar 14 22:01:02 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of compaction_necessary, compaction_nval, compaction_case.
+	Redo VFM interface.  Replace disk_sink and memory_sink by
+	storage_sink, disk_source and memory_source by storage_source.
+
+	* vfm.h: (struct case_sink) Add `dict', `idx_to_fv', `value_cnt'
+	members.
+
+	* vfm.c: 
+	(struct write_case_data) Remove `begin_func', `end_func',
+	`func_aux' members.  Add `aux', `trns_case', `sink_case',
+	`cases_written', `cases_analyzed' members.
+	(global var compaction_necessary) Make static.
+	(global var compaction_nval) Removed.
+	(global var compaction_case) Removed.
+	(static var case_count) Removed.
+	(struct procedure_aux_data) Removed.
+	(struct split_aux_data) Removed.
+	(procedure) Remove begin_func, end_func parameters.  Rewrite.
+	(static var not_canceled) Removed.
+	(process_active_file) Removed.
+	(process_active_file_write_case) Removed.
+	(process_active_file_output_case) Removed.
+	(prepare_for_writing) Moved into open_active_file().
+	(arrange_compaction) Ditto.
+	(setup_lag) Ditto.
+	(open_active_file) Rewrote.
+	(write_case) New function.
+	[DEBUGGING] (index_to_varname) Removed.
+	(execute_transformations) New function.
+	(exclude_this_case) Renamed filter_case(), changed interface.
+	(clear_case) Added struct ccase * parameter to interface.
+	(close_active_file) Added struct write_case_data * parameter,
+	rewrote.
+	(disk_sink_create) Removed.
+	(disk_sink_destroy) Removed.
+	(disk_sink_make_source) Removed.
+	(disk_sink_write) Removed.
+	(disk_source_count) Removed.
+	(disk_source_destroy) Removed.
+	(disk_source_read) Removed.
+	(global var disk_sink_class) Removed.
+	(global var disk_source_class) Removed.
+	(global var memory_sink_class) Removed.
+	(global var memory_source_class) Removed.
+	(memory_sink_create) Removed.
+	(memory_sink_destroy) Removed.
+	(memory_sink_make_source) Removed.
+	(memory_sink_write) Removed.
+	(memory_source_count) Removed.
+	(memory_source_destroy) Removed.
+	(memory_source_get_cases) Removed.
+	(memory_source_read) Removed.
+	(memory_source_set_cases) Removed.
+	(struct disk_stream_info) Removed.
+	(struct memory_sink_info) Removed.
+	(struct memory_source_info) Removed.
+	(write_active_file_to_disk) Removed.
+	(destroy_storage_stream_info) New function.
+	(global var null_sink_class) New var.
+	(global var storage_sink_class) New var.
+	(global var storage_source_class) New var.
+	(open_storage_file) New function.
+	(storage_sink_destroy) New function.
+	(storage_sink_make_source) New function.
+	(storage_sink_open) New function.
+	(storage_sink_write) New function.
+	(storage_source_count) New function.
+	(storage_source_destroy) New function.
+	(storage_source_get_cases) New function.
+	(storage_source_on_disk) New function.
+	(storage_source_read) New function.
+	(storage_source_set_cases) New function.
+	(storage_source_to_disk) New function.
+	(storage_to_disk) New function.
+	(struct storage_stream_info) New structure.
+	(write_storage_file) New function.
+	(procedure_write_case) Removed.
+	(create_case_source) Add `struct dictionary *' parameter, all
+	references updated.
+	(create_case_sink) Ditto.
+	(free_case_sink) New function.
+	(struct split_aux_data) New structure.
+	(procedure_with_splits) New function implementing what procedure()
+	used to.
+	(SPLIT_FILE_proc_func) Removed.
+	(procedure_with_splits_callback) New function.
+	(equal_splits) New function.
+	
+	* aggregate.c: Pass around a struct instead of using statics.
+	(static var outfile) Remove.
+	(enum type) Give it tag `missing_treatment'.
+	(static var missing) Remove.
+	(static var sort) Remove.
+	(static var agr_first) Remove.
+	(static var agr_next) Remove.
+	(static var case_count) Remove.
+	(static var prev_case) Remove.
+	(static var buf64_1xx) Remove.
+	(static var buf_1xx) Remove.
+	(struct agr_proc) New structure incorporating the above.
+	(cmd_aggregate) Use new struct.  Clean up error handling using
+	agr_destroy().  Completely rewrite actual implementation of
+	aggregation.
+	(create_sysfile) Add struct agr_proc * parameter, modify
+	accordingly.
+	(parse_aggregate_functions) Ditto.
+	(free_aggregate_functions) Ditto.  Rename agr_destroy().
+	(aggregate_single_case) Add struct agr_proc * parameter, modify
+	accordingly.
+	(accumulate_aggregate_info) Ditto.
+	(dump_aggregate_info) Ditto.
+	(initialize_aggregate_info) Ditto.
+	(agr_00x_trns_proc) Removed.
+	(agr_00x_end_func) Removed.
+	(agr_10x_trns_proc) Removed.
+	(agr_10x_trns_free) Removed.
+	(agr_10x_end_func) Removed.
+	(agr_11x_read) Removed.
+	(agr_11x_finish) Removed.
+	[DEBUGGING] (debug_print) Removed.
+	(write_case_to_sfm) Add struct agr_proc * parameter, modify
+	accordingly.
+	(agr_to_active_file) New function.
+	(presorted_agr_to_sysfile) New function.
+	(sort_agr_to_sysfile) New function.
+
+	* autorecode.c: (cmd_autorecode) Use procedure_with_splits().
+
+	* crosstabs.q: (internal_cmd_crosstabs) Ditto.
+
+	* descript.q: (cmd_descriptives) Ditto.
+
+	* dfm.c: (cmd_begin_data) Check for storage_source_class.  Adapt
+	to new procedure() interface.
+
+	* command.c: (cmd_execute) Adapt to new procedure() interface.
+
+	* dictionary.c: (dict_compact_values) Also delete scratch
+	variables.
+	(dict_get_compacted_value_cnt) New function.
+	(dict_get_compacted_idx_to_fv) New function.
+
+	* flip.c: (cmd_flip) Warn about and cancel TEMPORARY.
+	(cmd_flip) Adapt to new procedure() interface.
+	(flip_sink_write) Use sink->idx_to_fv.
+
+	* frequencies.q: (internal_cmd_frequencies) Use
+	procedure_with_splits().
+
+	* get.c: (cmd_save_internal) Adapt to new procedure() interface.
+	(static var mtf_sink) New static var.
+	(static var mtf_case) New static var.
+	(cmd_match_files) Warn about and cancel TEMPORARY.  Redo the way
+	we actually implement the matching.
+	(mtf_delete_file_in_place) Use mtf_case.
+	(mtf_processing) Use mtf_case and mtf_sink.
+	(cmd_export) Adapt to new procedure() interface.
+
+	* levene.c: (levene) Use procedure_with_splits().
+
+	* list.q: (cmd_list) Use procedure_with_splits().
+
+	* matrix-data.c: (read_matrices_without_rowtype) Adapt to new
+	procedure() interface.
+	(read_matrices_with_rowtype) Ditto.
+
+	* modify-vars.c; (cmd_modify_vars) Warn about and cancel
+	TEMPORARY.  Adapt to new procedure() interface.
+
+	* rename-vars.c: Warn about and cancel TEMPORARY.
+
+	* sort.c: (cmd_sort_cases) Warn about TEMPORARY.
+	(sort_cases) Use dict_get_compacted_value_cnt() instead of
+	compaction_nval.  Adapt to new procedure() interface.  Use
+	storage_source_to_disk().
+	(do_internal_sort) Don't try to dump the cases to memory.
+	(compare_case_lists) Pass null idx_to_fv.
+	(struct initial_run_state) Add `idx_to_fv' member.  Remove
+	`case_size' member.
+	(write_initial_runs) Don't initialize irs->case_size.  Adapt to
+	new procedure() interface.  Reset irs->idx_to_fv after calling
+	procedure().
+	(sort_sink_write) Set irs->idx_to_fv.  Use case_size from struct
+	sort_cases_pgm.  Pass irs, not struct sort_cases_pgm to
+	push_heap().
+	(destroy_initial_run_state) Don't dereference irs after freeing
+	it.
+	(allocate_cases) Don't calculate case_size locally.
+	(compare_record) Add idx_to_fv parameter.
+	(compare_record_run) Change parameter from struct sort_cases_pgm *
+	to struct initial_run_state *.  Pass irs->idx_to_fv to
+	compare_record().
+	(compare_record_run) Third parameter now a struct
+	initial_run_state *.
+	(output_record) No need for out_case anymore.  Pass irs, not
+	struct sort_cases_pgm to pop_heap().  Use case_size from struct
+	sort_cases_pgm.
+	(merge) Use case_size from struct sort_cases_pgm.
+	(merge_once) Use case_size from struct sort_cases_pgm.
+	Pass null pointer to compare_record() as idx_to_fv.
+	(global var sort_sink_class) Make static.
+
+	* t-test.q: (cmd_t_test) Use procedure_with_splits().
+
+	* temporary.c: Remove debugging crap.
+
 Sat Mar 13 14:19:52 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q, levene.c: Fixed up the handling of MISSING values

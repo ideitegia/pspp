@@ -201,7 +201,7 @@ cmd_save_internal (enum save_cmd save_cmd)
 
   if (save_cmd == CMD_SAVE)
     {
-      procedure (NULL, save_write_case_func, NULL, t);
+      procedure (save_write_case_func, t);
       save_trns_free (&t->h);
     }
   else 
@@ -566,6 +566,12 @@ static unsigned mtf_seq_num;
 /* Sequence numbers for each variable in mtf_master. */
 static unsigned *mtf_seq_nums;
 
+/* Sink for MATCH FILES output. */
+static struct case_sink *mtf_sink;
+
+/* Case used for MATCH FILES output. */
+static struct ccase *mtf_case;
+
 static void mtf_free (void);
 static void mtf_free_file (struct mtf_file *file);
 static int mtf_merge_dictionary (struct mtf_file *f);
@@ -684,6 +690,15 @@ cmd_match_files (void)
 			     "file has been defined."));
 		  goto lossage;
 		}
+
+              if (temporary != 0)
+                {
+                  msg (SE,
+                       _("MATCH FILES may not be used after TEMPORARY when "
+                         "the active file is an input source.  "
+                         "Temporary transformations will be made permanent."));
+                  cancel_temporary (); 
+                }
 	    }
 	  else
 	    {
@@ -869,18 +884,24 @@ cmd_match_files (void)
   if (!(seen & 2))
     discard_variables ();
 
-  temporary = 2;
-  temp_dict = mtf_master;
-  temp_trns = n_trns;
+  mtf_sink = create_case_sink (&storage_sink_class, mtf_master, NULL);
 
   mtf_seq_nums = xmalloc (dict_get_var_cnt (mtf_master)
                           * sizeof *mtf_seq_nums);
   memset (mtf_seq_nums, 0,
           dict_get_var_cnt (mtf_master) * sizeof *mtf_seq_nums);
+  mtf_case = xmalloc (dict_get_case_size (mtf_master));
 
-  process_active_file (mtf_read_nonactive_records, mtf_processing,
-		       mtf_processing_finish, NULL);
+  mtf_read_nonactive_records (NULL);
+  if (seen & 2)
+    procedure (mtf_processing, NULL);
+  mtf_processing_finish (NULL);
+
+  dict_destroy (default_dict);
+  default_dict = mtf_master;
   mtf_master = NULL;
+  vfm_source = mtf_sink->class->make_source (mtf_sink);
+  free_case_sink (mtf_sink);
   
   mtf_free ();
   return CMD_SUCCESS;
@@ -990,13 +1011,12 @@ mtf_delete_file_in_place (struct mtf_file **file)
 	struct variable *v = dict_get_var (f->dict, i);
 	  
 	if (v->type == NUMERIC)
-	  compaction_case->data[v->p.mtf.master->fv].f = SYSMIS;
+	  mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
 	else
-	  memset (compaction_case->data[v->p.mtf.master->fv].s, ' ',
-		  v->width);
+	  memset (mtf_case->data[v->p.mtf.master->fv].s, ' ', v->width);
       }
   }
-  
+
   mtf_free_file (f);
 }
 
@@ -1195,9 +1215,9 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 
               assert (v->type == NUMERIC || v->type == ALPHA);
 	      if (v->type == NUMERIC)
-		compaction_case->data[v->p.mtf.master->fv].f = record[v->fv].f;
+		mtf_case->data[v->p.mtf.master->fv].f = record[v->fv].f;
 	      else
-                memcpy (compaction_case->data[v->p.mtf.master->fv].s,
+                memcpy (mtf_case->data[v->p.mtf.master->fv].s,
                         record[v->fv].s, v->width);
 	    }
 	}
@@ -1224,9 +1244,9 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 		      v->p.mtf.master->fv);
 #endif
 	      if (v->type == NUMERIC)
-		compaction_case->data[v->p.mtf.master->fv].f = SYSMIS;
+		mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
 	      else
-                memset (compaction_case->data[v->p.mtf.master->fv].s, ' ',
+                memset (mtf_case->data[v->p.mtf.master->fv].s, ' ',
                         v->width);
 	    }
 
@@ -1235,7 +1255,7 @@ mtf_processing (struct ccase *c, void *aux UNUSED)
 	}
 
       /* 6. Write the output record. */
-      process_active_file_output_case (compaction_case);
+      mtf_sink->class->write (mtf_sink, mtf_case);
 
       /* 7. Read another record from each input file FILE and TABLE
 	 that we stored values from above.  If we come to the end of
@@ -1512,7 +1532,7 @@ cmd_export (void)
   t->case_buf = xmalloc (sizeof *t->case_buf * t->nvar);
   dict_destroy (dict);
 
-  procedure (NULL, export_write_case_func, NULL, t);
+  procedure (export_write_case_func, t);
   save_trns_free (&t->h);
 
   return CMD_SUCCESS;

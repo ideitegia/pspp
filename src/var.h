@@ -221,8 +221,6 @@ struct variable
     int index;			/* Index into its dictionary's var[]. */
     int type;                   /* NUMERIC or ALPHA. */
 
-    /* Also important but parse_variables() doesn't need it.  Still,
-       check before reordering. */
     int width;			/* Size of string variables in chars. */
     int fv, nv;			/* Index into `value's, number of values. */
     unsigned init : 1;          /* 1=VFM must init and possibly reinit. */
@@ -345,7 +343,10 @@ void dict_set_case_limit (struct dictionary *, int);
 
 int dict_get_next_value_idx (const struct dictionary *);
 size_t dict_get_case_size (const struct dictionary *);
+
 void dict_compact_values (struct dictionary *);
+size_t dict_get_compacted_value_cnt (const struct dictionary *);
+int *dict_get_compacted_idx_to_fv (const struct dictionary *);
 
 struct variable *const *dict_get_split_vars (const struct dictionary *);
 size_t dict_get_split_cnt (const struct dictionary *);
@@ -450,7 +451,6 @@ size_t var_set_get_cnt (struct var_set *vs);
 struct variable *var_set_get_var (struct var_set *vs, size_t idx);
 struct variable *var_set_lookup_var (struct var_set *vs, const char *name);
 void var_set_destroy (struct var_set *vs);
-
 
 /* Variable parsers. */
 

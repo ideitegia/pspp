@@ -1,3 +1,8 @@
+Sun Mar 14 23:04:14 2004  Ben Pfaff  <blp@gnu.org>
+
+	* command/sort.sh: Use numeric, not string, data to avoid spurious
+	valgrind complaints.
+
 Wed Mar 10 21:22:03 2004  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/temporary.sh: Test that basic use of TEMPORARY works.

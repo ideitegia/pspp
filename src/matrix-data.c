@@ -1032,7 +1032,7 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
   vfm_source = create_case_source (&matrix_data_without_rowtype_source_class,
                                    default_dict, mx);
   
-  procedure (NULL, NULL, NULL, NULL);
+  procedure (NULL, NULL);
 
   free (split_values);
   free (nr_factor_values);
@@ -1556,7 +1556,7 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
   vfm_source = create_case_source (&matrix_data_with_rowtype_source_class,
                                    default_dict, mx);
   
-  procedure (NULL, NULL, NULL, NULL);
+  procedure (NULL, NULL);
 
   free (split_values);
   fh_close_handle (mx->data_file);

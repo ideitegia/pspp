@@ -59,8 +59,7 @@ struct case_source_class
     void (*destroy) (struct case_source *);
   };
 
-extern const struct case_source_class memory_source_class;
-extern const struct case_source_class disk_source_class;
+extern const struct case_source_class storage_source_class;
 extern const struct case_source_class data_list_source_class;
 extern const struct case_source_class file_type_source_class;
 extern const struct case_source_class input_program_source_class;
@@ -75,9 +74,12 @@ struct case_source *create_case_source (const struct case_source_class *,
 int case_source_is_complex (const struct case_source *);
 int case_source_is_class (const struct case_source *,
                           const struct case_source_class *);
-struct case_list *memory_source_get_cases (const struct case_source *);
-void memory_source_set_cases (const struct case_source *,
-                                     struct case_list *);
+
+int storage_source_on_disk (const struct case_source *);
+struct case_list *storage_source_get_cases (const struct case_source *);
+void storage_source_set_cases (const struct case_source *,
+                               struct case_list *);
+void storage_source_to_disk (struct case_source *source);
 
 /* The replacement active file, to which cases are written. */
 extern struct case_sink *vfm_sink;
@@ -86,7 +88,13 @@ extern struct case_sink *vfm_sink;
 struct case_sink 
   {
     const struct case_sink_class *class;        /* Class. */
-    void *aux;                                  /* Auxiliary data. */
+    void *aux;          /* Auxiliary data. */
+
+    /* Cases written to a case sink belong to a dictionary, but
+       their data is compacted to drop scratch variables. */
+    const struct dictionary *dict;      /* Dictionary for cases. */
+    int *idx_to_fv;     /* `dict' index -> case `data' index. */
+    size_t value_cnt;   /* Number of `union value's in case. */
   };
 
 /* A case sink class. */
@@ -94,7 +102,7 @@ struct case_sink_class
   {
     const char *name;                   /* Identifying name. */
     
-    /* Creates the sink and opens it for writing. */
+    /* Opens the sink for writing. */
     void (*open) (struct case_sink *);
                   
     /* Writes a case to the sink. */
@@ -109,27 +117,22 @@ struct case_sink_class
     struct case_source *(*make_source) (struct case_sink *);
   };
 
-extern const struct case_sink_class memory_sink_class;
-extern const struct case_sink_class disk_sink_class;
-extern const struct case_sink_class sort_sink_class;
+extern const struct case_sink_class storage_sink_class;
+extern const struct case_sink_class null_sink_class;
 
-struct case_sink *create_case_sink (const struct case_sink_class *, void *);
+struct case_sink *create_case_sink (const struct case_sink_class *,
+                                    const struct dictionary *,
+                                    void *);
+void free_case_sink (struct case_sink *);
 
 /* Number of cases to lag. */
 extern int n_lag;
 
-void procedure (void (*begin_func) (void *aux),
-		int (*proc_func) (struct ccase *, void *aux),
-		void (*end_func) (void *aux),
-                void *aux);
+void procedure (int (*proc_func) (struct ccase *, void *aux), void *aux);
+void procedure_with_splits (void (*begin_func) (void *aux),
+                            int (*proc_func) (struct ccase *, void *aux),
+                            void (*end_func) (void *aux),
+                            void *aux);
 struct ccase *lagged_case (int n_before);
-void compact_case (struct ccase *dest, const struct ccase *src);
-void write_active_file_to_disk (void);
-
-void process_active_file (void (*begin_func) (void *),
-			  int (*casefunc) (struct ccase *, void *),
-			  void (*end_func) (void *),
-                          void *aux);
-void process_active_file_output_case (const struct ccase *);
 
 #endif /* !vfm_h */

@@ -1,4 +1,4 @@
-Time-stamp: <2004-03-14 21:37:40 blp>
+Time-stamp: <2004-03-14 22:12:02 blp>
 
 TODO
 ----
@@ -352,10 +352,10 @@ For each case we read from the input program:
 
 Ugly cases:
 
-LAG records cases in step 4.
+LAG records cases in step 3.
 
 AGGREGATE: When output goes to an external file, this is just an ordinary
-procedure.  When output goes to the active file, step 4 should be skipped,
+procedure.  When output goes to the active file, step 3 should be skipped,
 because AGGREGATE creates its own case sink and writes to it in step 7.  Also,
 TEMPORARY has no effect and we just cancel it.  Regardless of direction of
 output, we should not implement AGGREGATE through a transformation because that
@@ -373,7 +373,7 @@ FLIP:
 
 MATCH FILES: Similar to AGGREGATE.  This is a procedure.  When the active file
 is used for input, it reads the active file; otherwise, it just cancels all the
-transformations and deletes the original active file.  Step 4 should be
+transformations and deletes the original active file.  Step 3 should be
 skipped, because MATCH FILES creates its own case sink and writes to it in step
 7.  TEMPORARY is not allowed.
 
