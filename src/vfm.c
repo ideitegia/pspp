@@ -435,8 +435,12 @@ close_active_file (void)
   /* Old data sink becomes new data source. */
   if (vfm_sink->class->make_source != NULL)
     vfm_source = vfm_sink->class->make_source (vfm_sink);
-  else
-    vfm_source = NULL;
+  else 
+    {
+      if (vfm_sink->class->destroy != NULL)
+        vfm_sink->class->destroy (vfm_sink);
+      vfm_source = NULL; 
+    }
   free_case_sink (vfm_sink);
   vfm_sink = NULL;
 

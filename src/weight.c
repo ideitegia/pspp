@@ -37,8 +37,6 @@ struct weight_trns
 int
 cmd_weight (void)
 {
-  lex_match_id ("WEIGHT");
-
   if (lex_match_id ("OFF"))
     dict_set_weight (default_dict, NULL);
   else

@@ -71,7 +71,6 @@ main (int argc, char **argv)
     msg (FE, _("Error initializing output drivers."));
 
   lex_init ();
-  cmd_init ();
 
   /* Execution. */
   parse_script ();

@@ -41,14 +41,17 @@ struct dfm_fhuser_ext
   {
     struct file_ext file;	/* Associated file. */
 
+    struct file_locator where;  /* Current location in data file. */
     char *line;			/* Current line, not null-terminated. */
+    size_t size;		/* Number of bytes allocated for line. */
     size_t len;			/* Length of line. */
 
     char *ptr;			/* Pointer into line that is returned by
 				   dfm_get_record(). */
-    size_t size;		/* Number of bytes allocated for line. */
     int advance;		/* Nonzero=dfm_get_record() reads a new
 				   record; otherwise returns current record. */
+    int saw_begin_data;         /* For inline_file only, whether we've 
+                                   already read a BEGIN DATA line. */
   };
 
 /* These are defined at the end of this file. */
@@ -72,7 +75,7 @@ dfm_close (struct file_handle *h)
       read_record (h);
       
   msg (VM (2), _("%s: Closing data-file handle %s."),
-       fh_handle_filename (h), fh_handle_name (h));
+       handle_get_filename (h), handle_get_name (h));
   assert (h->class == &dfm_r_class || h->class == &dfm_w_class);
   if (ext->file.file)
     {
@@ -84,152 +87,131 @@ dfm_close (struct file_handle *h)
   free (ext);
 }
 
-/* Initializes EXT properly as an inline data file. */
-static void
-open_inline_file (struct dfm_fhuser_ext *ext)
+/* Opens a file handle for reading as a data file.  Returns
+   nonzero only if successful. */
+int
+dfm_open_for_reading (struct file_handle *h)
 {
-  /* We want to indicate that the file is open, that we are not at
-     eof, and that another line needs to be read in.  */
+  struct dfm_fhuser_ext *ext;
+
+  if (h->class != NULL)
+    {
+      if (h->class == &dfm_r_class)
+        return 1;
+      else
+        {
+          msg (ME, _("Cannot read from file %s already opened for %s."),
+               handle_get_name (h), gettext (h->class->name));
+          return 0;
+        }
+    }
+
+  ext = xmalloc (sizeof *ext);
+  ext->where.filename = handle_get_filename (h);
+  ext->where.line_number = 0;
   ext->file.file = NULL;
   ext->line = xmalloc (128);
-#if !PRODUCTION
-  strcpy (ext->line, _("<<Bug in dfm.c>>"));
-#endif
-  ext->len = strlen (ext->line);
-  ext->ptr = ext->line;
+  ext->len = 0;
+  ext->ptr = NULL;
   ext->size = 128;
   ext->advance = 1;
-}
-
-/* Opens a file handle for reading as a data file. */
-static int
-open_file_r (struct file_handle *h)
-{
-  struct dfm_fhuser_ext ext;
-
-  h->where.line_number = 0;
-  ext.file.file = NULL;
-  ext.line = NULL;
-  ext.len = 0;
-  ext.ptr = NULL;
-  ext.size = 0;
-  ext.advance = 0;
+  ext->saw_begin_data = 0;
 
   msg (VM (1), _("%s: Opening data-file handle %s for reading."),
-       fh_handle_filename (h), fh_handle_name (h));
+       handle_get_filename (h), handle_get_name (h));
   
   assert (h != NULL);
-  if (h == inline_file)
+  if (h != inline_file)
     {
-      char *s;
-
-      /* WTF can't this just be done with tokens?
-	 Is this really a special case?
-	 FIXME! */
-      do
+      ext->file.filename = xstrdup (handle_get_filename (h));
+      ext->file.mode = "rb";
+      ext->file.file = NULL;
+      ext->file.sequence_no = NULL;
+      ext->file.param = NULL;
+      ext->file.postopen = NULL;
+      ext->file.preclose = NULL;
+      if (!fn_open_ext (&ext->file))
 	{
-	  char *cp;
-
-	  if (!getl_read_line ())
-	    {
-	      msg (SE, _("BEGIN DATA expected."));
-	      err_failure ();
-	    }
-
-	  /* Skip leading whitespace, separate out first word, so that
-	     S points to a single word reduced to lowercase. */
-	  s = ds_value (&getl_buf);
-	  while (isspace ((unsigned char) *s))
-	    s++;
-	  for (cp = s; isalpha ((unsigned char) *cp); cp++)
-	    *cp = tolower ((unsigned char) (*cp));
-	  ds_truncate (&getl_buf, cp - s);
-	}
-      while (*s == '\0');
-
-      if (!lex_id_match_len ("begin", 5, s, strcspn (s, " \t\r\v\n")))
-	{
-	  msg (SE, _("BEGIN DATA expected."));
-	  err_cond_fail ();
-	  lex_preprocess_line ();
-	  return 0;
-	}
-      getl_prompt = GETL_PRPT_DATA;
-
-      open_inline_file (&ext);
-    }
-  else
-    {
-      ext.file.filename = xstrdup (h->norm_fn);
-      ext.file.mode = "rb";
-      ext.file.file = NULL;
-      ext.file.sequence_no = NULL;
-      ext.file.param = NULL;
-      ext.file.postopen = NULL;
-      ext.file.preclose = NULL;
-      if (!fn_open_ext (&ext.file))
-	{
-	  msg (ME, _("An error occurred while opening \"%s\" for reading "
-	       "as a data file: %s."), h->fn, strerror (errno));
-	  err_cond_fail ();
-	  return 0;
+	  msg (ME, _("Could not open \"%s\" for reading "
+                     "as a data file: %s."),
+               handle_get_filename (h), strerror (errno));
+          goto error;
 	}
     }
 
   h->class = &dfm_r_class;
-  h->ext = xmalloc (sizeof (struct dfm_fhuser_ext));
-  memcpy (h->ext, &ext, sizeof (struct dfm_fhuser_ext));
-
+  h->ext = ext;
   return 1;
+
+ error:
+  err_cond_fail ();
+  free (ext);
+  return 0;
 }
 
 /* Opens a file handle for writing as a data file. */
-static int
-open_file_w (struct file_handle *h)
+int
+dfm_open_for_writing (struct file_handle *h)
 {
-  struct dfm_fhuser_ext ext;
+  struct dfm_fhuser_ext *ext;
   
-  ext.file.file = NULL;
-  ext.line = NULL;
-  ext.len = 0;
-  ext.ptr = NULL;
-  ext.size = 0;
-  ext.advance = 0;
+  if (h->class != NULL)
+    {
+      if (h->class == &dfm_w_class)
+        return 1;
+      else
+        {
+          msg (ME, _("Cannot write to file %s already opened for %s."),
+               handle_get_name (h), gettext (h->class->name));
+          err_cond_fail ();
+          return 0;
+        }
+    }
 
-  h->where.line_number = 0;
+  ext = xmalloc (sizeof *ext);
+  ext->where.filename = handle_get_filename (h);
+  ext->where.line_number = 0;
+  ext->file.file = NULL;
+  ext->line = NULL;
+  ext->len = 0;
+  ext->ptr = NULL;
+  ext->size = 0;
+  ext->advance = 0;
 
   msg (VM (1), _("%s: Opening data-file handle %s for writing."),
-       fh_handle_filename (h), fh_handle_name (h));
+       handle_get_filename (h), handle_get_name (h));
   
   assert (h != NULL);
   if (h == inline_file)
     {
       msg (ME, _("Cannot open the inline file for writing."));
-      err_cond_fail ();
-      return 0;
+      goto error;
     }
 
-  ext.file.filename = xstrdup (h->norm_fn);
-  ext.file.mode = "wb";
-  ext.file.file = NULL;
-  ext.file.sequence_no = NULL;
-  ext.file.param = NULL;
-  ext.file.postopen = NULL;
-  ext.file.preclose = NULL;
+  ext->file.filename = xstrdup (handle_get_filename (h));
+  ext->file.mode = "wb";
+  ext->file.file = NULL;
+  ext->file.sequence_no = NULL;
+  ext->file.param = NULL;
+  ext->file.postopen = NULL;
+  ext->file.preclose = NULL;
       
-  if (!fn_open_ext (&ext.file))
+  if (!fn_open_ext (&ext->file))
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
-	   "as a data file: %s."), h->fn, strerror (errno));
-      err_cond_fail ();
-      return 0;
+                 "as a data file: %s."),
+           handle_get_filename (h), strerror (errno));
+      goto error;
     }
 
   h->class = &dfm_w_class;
-  h->ext = xmalloc (sizeof (struct dfm_fhuser_ext));
-  memcpy (h->ext, &ext, sizeof (struct dfm_fhuser_ext));
-
+  h->ext = ext;
   return 1;
+
+ error:
+  free (ext);
+  err_cond_fail ();
+  return 0;
 }
 
 /* Ensures that the line buffer in file handle with extension EXT is
@@ -362,6 +344,44 @@ read_record (struct file_handle *h)
 
   if (h == inline_file)
     {
+      if (!ext->saw_begin_data)
+        {
+          char *s;
+
+          ext->saw_begin_data = 1;
+
+          /* FIXME: WTF can't this just be done with tokens?
+             Is this really a special case? */
+          do
+            {
+              char *cp;
+
+              if (!getl_read_line ())
+                {
+                  msg (SE, _("BEGIN DATA expected."));
+                  err_failure ();
+                }
+
+              /* Skip leading whitespace, separate out first word, so that
+                 S points to a single word reduced to lowercase. */
+              s = ds_value (&getl_buf);
+              while (isspace ((unsigned char) *s))
+                s++;
+              for (cp = s; isalpha ((unsigned char) *cp); cp++)
+                *cp = tolower ((unsigned char) (*cp));
+              ds_truncate (&getl_buf, cp - s);
+            }
+          while (*s == '\0');
+
+          if (!lex_id_match_len ("begin", 5, s, strcspn (s, " \t\r\v\n")))
+            {
+              msg (SE, _("BEGIN DATA expected."));
+              lex_preprocess_line ();
+              goto eof;
+            }
+          getl_prompt = GETL_PRPT_DATA;
+        }
+      
       if (!getl_read_line ())
 	{
 	  msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
@@ -372,7 +392,7 @@ read_record (struct file_handle *h)
 	  err_failure ();
 	}
 
-      h->where.line_number++;
+      ext->where.line_number++;
 
       if (ds_length (&getl_buf) >= 8
 	  && !strncasecmp (ds_value (&getl_buf), "end data", 8))
@@ -387,7 +407,7 @@ read_record (struct file_handle *h)
     }
   else
     {
-      if (h->recform == FH_RF_VARIABLE)
+      if (handle_get_mode (h) == MODE_TEXT)
 	{
 	  /* PORTME: here you should adapt the routine to your
 	     system's concept of a "line" of text. */
@@ -398,31 +418,32 @@ read_record (struct file_handle *h)
 	      if (ferror (ext->file.file))
 		{
 		  msg (ME, _("Error reading file %s: %s."),
-		       fh_handle_name (h), strerror (errno));
+		       handle_get_name (h), strerror (errno));
 		  err_cond_fail ();
 		}
 	      goto eof;
 	    }
 	  ext->len = (size_t) read_len;
 	}
-      else if (h->recform == FH_RF_FIXED)
+      else if (handle_get_mode (h) == MODE_BINARY)
 	{
+          size_t record_width = handle_get_record_width (h);
 	  size_t amt;
 
-	  if (ext->size < h->lrecl)
+	  if (ext->size < record_width)
 	    {
-	      ext->size = h->lrecl;
+	      ext->size = record_width;
 	      ext->line = xmalloc (ext->size);
 	    }
-	  amt = fread (ext->line, 1, h->lrecl, ext->file.file);
-	  if (h->lrecl != amt)
+	  amt = fread (ext->line, 1, record_width, ext->file.file);
+	  if (record_width != amt)
 	    {
 	      if (ferror (ext->file.file))
 		msg (ME, _("Error reading file %s: %s."),
-		     fh_handle_name (h), strerror (errno));
+		     handle_get_name (h), strerror (errno));
 	      else if (amt != 0)
 		msg (ME, _("%s: Partial record at end of file."),
-		     fh_handle_name (h));
+		     handle_get_name (h));
 	      else
 		goto eof;
 
@@ -433,12 +454,12 @@ read_record (struct file_handle *h)
       else
 	assert (0);
 
-      h->where.line_number++;
+      ext->where.line_number++;
     }
 
   /* Strip trailing whitespace, I forget why.  But there's a good
      reason, I'm sure.  I'm too scared to eliminate this code.  */
-  if (h->recform == FH_RF_VARIABLE)
+  if (handle_get_mode (h) == MODE_TEXT)
     {
       while (ext->len && isspace ((unsigned char) ext->line[ext->len - 1]))
 	ext->len--;
@@ -451,7 +472,7 @@ read_record (struct file_handle *h)
   return;
 
 eof:
-  /*hit eof or an error, clean up everything. */
+  /* Hit eof or an error, clean up everything. */
   if (ext->line)
     free (ext->line);
   ext->size = 0;
@@ -469,50 +490,29 @@ eof:
 char *
 dfm_get_record (struct file_handle *h, int *len)
 {
+  struct dfm_fhuser_ext *ext;
+  
   assert (h != NULL);
+  assert (h->class == &dfm_r_class);
+  assert (h->ext != NULL);
 
-  if (h->class == NULL)
+  ext = h->ext;
+  if (ext->advance)
     {
-      if (!open_file_r (h))
-	return NULL;
-      read_record (h);
-    }
-  else if (h->class != &dfm_r_class)
-    {
-      msg (ME, _("Cannot read from file %s already opened for %s."),
-	   fh_handle_name (h), gettext (h->class->name));
-      goto lossage;
-    }
-  else
-    {
-      struct dfm_fhuser_ext *ext = h->ext;
-
-      if (ext->advance)
-	{
-	  if (ext->line)
-	    read_record (h);
-	  else
-	    {
-	      msg (SE, _("Attempt to read beyond end-of-file on file %s."),
-		   fh_handle_name (h));
-	      goto lossage;
-	    }
-	}
+      if (ext->line)
+        read_record (h);
+      else
+        {
+          msg (SE, _("Attempt to read beyond end-of-file on file %s."),
+               handle_get_name (h));
+          goto lossage;
+        }
     }
 
-  {
-    struct dfm_fhuser_ext *ext = h->ext;
-
-    if (ext)
-      {
-	ext->advance = 0;
-	if (len)
-	  *len = ext->len - (ext->ptr - ext->line);
-	return ext->ptr;
-      }
-  }
-
-  return NULL;
+  ext->advance = 0;
+  if (len)
+    *len = ext->len - (ext->ptr - ext->line);
+  return ext->ptr;
 
 lossage:
   /* Come here on reading beyond eof or reading from a file already
@@ -577,31 +577,21 @@ dfm_get_cur_col (struct file_handle *h)
 int
 dfm_put_record (struct file_handle *h, const char *rec, size_t len)
 {
+  struct dfm_fhuser_ext *ext;
   char *ptr;
   size_t amt;
 
-  if (h->class == NULL)
-    {
-      if (!open_file_w (h))
-	return 0;
-    }
-  else if (h->class != &dfm_w_class)
-    {
-      msg (ME, _("Cannot write to file %s already opened for %s."),
-	   fh_handle_name (h), gettext (h->class->name));
-      err_cond_fail ();
-      return 0;
-    }
+  assert (h != NULL);
+  assert (h->class == &dfm_w_class);
+  assert (h->ext != NULL);
 
-  if (h->recform == FH_RF_FIXED && len < h->lrecl)
+  ext = h->ext;
+  if (handle_get_mode (h) == MODE_BINARY && len < handle_get_record_width (h))
     {
-      int ch;
-
-      amt = h->lrecl;
+      amt = handle_get_record_width (h);
       ptr = local_alloc (amt);
       memcpy (ptr, rec, len);
-      ch = h->mode == FH_MD_CHARACTER ? ' ' : 0;
-      memset (&ptr[len], ch, amt - len);
+      memset (&ptr[len], 0, amt - len);
     }
   else
     {
@@ -609,10 +599,10 @@ dfm_put_record (struct file_handle *h, const char *rec, size_t len)
       amt = len;
     }
 
-  if (1 != fwrite (ptr, amt, 1, ((struct dfm_fhuser_ext *) h->ext)->file.file))
+  if (1 != fwrite (ptr, amt, 1, ext->file.file))
     {
-      msg (ME, _("Error writing file %s: %s."), fh_handle_name (h),
-	   strerror (errno));
+      msg (ME, _("Error writing file %s: %s."),
+           handle_get_name (h), strerror (errno));
       err_cond_fail ();
       return 0;
     }
@@ -627,16 +617,24 @@ dfm_put_record (struct file_handle *h, const char *rec, size_t len)
 void
 dfm_push (struct file_handle *h)
 {
+  struct dfm_fhuser_ext *ext = h->ext;
+
+  assert (h->class == &dfm_r_class || h->class == &dfm_w_class);
+  assert (ext != NULL);
   if (h != inline_file)
-    err_push_file_locator (&h->where);
+    err_push_file_locator (&ext->where);
 }
 
 /* Pops the filename and line number from the fn/ln stack. */
 void
 dfm_pop (struct file_handle *h)
 {
+  struct dfm_fhuser_ext *ext = h->ext;
+
+  assert (h->class == &dfm_r_class || h->class == &dfm_w_class);
+  assert (ext != NULL);
   if (h != inline_file)
-    err_pop_file_locator (&h->where);
+    err_pop_file_locator (&ext->where);
 }
 
 /* BEGIN DATA...END DATA procedure. */
@@ -661,17 +659,16 @@ cmd_begin_data (void)
 
   /* Initialize inline_file. */
   msg (VM (1), _("inline file: Opening for reading."));
-  inline_file->class = &dfm_r_class;
-  inline_file->ext = xmalloc (sizeof (struct dfm_fhuser_ext));
-  open_inline_file (inline_file->ext);
+  dfm_open_for_reading (inline_file);
+  ext = inline_file->ext;
+  ext->saw_begin_data = 1;
 
   /* We don't actually read from the inline file.  The input procedure
      is what reads from it. */
   getl_prompt = GETL_PRPT_DATA;
   procedure (NULL, NULL);
-
+  
   ext = inline_file->ext;
-
   if (ext && ext->line)
     {
       msg (MW, _("Skipping remaining inline data."));

@@ -30,24 +30,6 @@
 #include <stddef.h>
 #include "error.h"
 
-/* Record formats. */
-enum
-  {
-    FH_RF_FIXED,		/* Fixed length records. */
-    FH_RF_VARIABLE,		/* Variable length records. */
-    FH_RF_SPANNED		/* ? */
-  };
-
-/* File modes. */
-enum
-  {
-    FH_MD_CHARACTER,		/* Character data. */
-    FH_MD_IMAGE,		/* ? */
-    FH_MD_BINARY,		/* Character and/or binary data. */
-    FH_MD_MULTIPUNCH,		/* Column binary data (not supported). */
-    FH_MD_360			/* ? */
-  };
-
 struct file_handle;
 
 /* Services that fhusers provide to fhp. */
@@ -56,26 +38,22 @@ struct fh_ext_class
     int magic;			/* Magic identifier for fhuser. */
     const char *name;		/* String identifier for fhuser. */
 
-    void (*close) (struct file_handle *);
-				/* Closes any associated file, etc. */
+    void (*close) (struct file_handle *); /* Closes the file. */
   };
 
-/* Opaque structure.  The `ext' member is an exception for use by
-   subclasses.  `where.ln' is also acceptable. */
+/* Mostly-opaque structure. */
 struct file_handle
   {
-    /* name must be the first member. */
-    const char *name;		/* File handle identifier. */
-    char *norm_fn;		/* Normalized filename. */
-    char *fn;			/* Filename as provided by user. */
-    struct file_locator where;	/* Used for reporting error messages. */
-
-    int recform;		/* One of FH_RF_*. */
-    size_t lrecl;		/* Length of records for FH_RF_FIXED. */
-    int mode;			/* One of FH_MD_*. */
-
-    struct fh_ext_class *class;	/* Polymorphism support. */
+    struct private_file_handle *private;
+    const struct fh_ext_class *class;	/* Polymorphism support. */
     void *ext;			/* Extension struct for fhuser use. */
+  };
+
+/* File modes. */
+enum file_handle_mode
+  {
+    MODE_TEXT,                  /* New-line delimited lines. */
+    MODE_BINARY                 /* Fixed-length records. */
   };
 
 /* Pointer to the file handle that corresponds to data in the command
@@ -86,14 +64,13 @@ extern struct file_handle *inline_file;
 void fh_init_files (void);
 
 /* Opening and closing handles. */
-struct file_handle *fh_get_handle_by_name (const char name[9]);
-struct file_handle *fh_get_handle_by_filename (const char *filename);
 struct file_handle *fh_parse_file_handle (void);
 void fh_close_handle (struct file_handle *handle);
 
 /* Handle info. */
-const char *fh_handle_name (const struct file_handle *handle);
-char *fh_handle_filename (struct file_handle *handle);
-size_t fh_record_width (struct file_handle *handle);
+const char *handle_get_name (const struct file_handle *handle);
+const char *handle_get_filename (const struct file_handle *handle);
+enum file_handle_mode handle_get_mode (const struct file_handle *);
+size_t handle_get_record_width (const struct file_handle *);
 
 #endif /* !file_handle.h */

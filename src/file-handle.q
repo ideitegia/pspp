@@ -25,7 +25,6 @@
 #include "alloc.h"
 #include "filename.h"
 #include "command.h"
-#include "hash.h"
 #include "lexer.h"
 #include "getline.h"
 #include "error.h"
@@ -33,12 +32,29 @@
 #include "var.h"
 /* (headers) */
 
-#include "debug-print.h"
+/* File handle private data. */
+struct private_file_handle 
+  {
+    char *name;                 /* File handle identifier. */
+    char *filename;		/* Filename as provided by user. */
+    struct file_identity *identity; /* For checking file identity. */
+    struct file_locator where;	/* Used for reporting error messages. */
+    enum file_handle_mode mode;	/* File mode. */
+    size_t length;		/* Length of fixed-format records. */
+  };
 
-static struct hsh_table *files;
+/* Linked list of file handles. */
+struct file_handle_list 
+  {
+    struct file_handle *handle;
+    struct file_handle_list *next;
+  };
+
+static struct file_handle_list *file_handles;
 struct file_handle *inline_file;
 
-static void init_file_handle (struct file_handle * handle);
+static struct file_handle *create_file_handle (const char *handle_name,
+                                               const char *filename);
 
 /* (specification)
    "FILE HANDLE" (fh_):
@@ -50,29 +66,65 @@ static void init_file_handle (struct file_handle * handle);
 /* (declarations) */
 /* (functions) */
 
+static struct file_handle *
+get_handle_with_name (const char *handle_name) 
+{
+  struct file_handle_list *iter;
+
+  for (iter = file_handles; iter != NULL; iter = iter->next)
+    if (!strcmp (handle_name, iter->handle->private->name))
+      return iter->handle;
+  return NULL;
+}
+
+static struct file_handle *
+get_handle_for_filename (const char *filename)
+{
+  struct file_identity *identity;
+  struct file_handle_list *iter;
+      
+  /* First check for a file with the same identity. */
+  identity = fn_get_identity (filename);
+  if (identity != NULL) 
+    {
+      for (iter = file_handles; iter != NULL; iter = iter->next)
+        if (iter->handle->private->identity != NULL
+            && !fn_compare_file_identities (identity,
+                                         iter->handle->private->identity)) 
+          {
+            fn_free_identity (identity);
+            return iter->handle; 
+          }
+      fn_free_identity (identity);
+    }
+
+  /* Then check for a file with the same name. */
+  for (iter = file_handles; iter != NULL; iter = iter->next)
+    if (!strcmp (filename, iter->handle->private->filename))
+      return iter->handle; 
+
+  return NULL;
+}
+
 int
 cmd_file_handle (void)
 {
   char handle_name[9];
-  char *handle_name_p = handle_name;
 
   struct cmd_file_handle cmd;
-  struct file_handle *fp;
+  struct file_handle *handle;
 
-  lex_get ();
   if (!lex_force_id ())
     return CMD_FAILURE;
   strcpy (handle_name, tokid);
 
-  fp = NULL;
-  if (files)
-    fp = hsh_find (files, &handle_name_p);
-  if (fp)
+  handle = get_handle_with_name (handle_name);
+  if (handle != NULL)
     {
-      msg (SE, _("File handle %s had already been defined to refer to "
-		 "file %s.  It is not possible to redefine a file "
-		 "handle within a session."),
-	   tokid, fp->fn);
+      msg (SE, _("File handle %s already refers to "
+		 "file %s.  File handle cannot be redefined within a "
+                 "session."),
+	   tokid, handle->private->filename);
       return CMD_FAILURE;
     }
 
@@ -96,67 +148,33 @@ cmd_file_handle (void)
       goto lossage;
     }
 
-  fp = xmalloc (sizeof *fp);
-  init_file_handle (fp);
-
-  switch (cmd.recform)
+  handle = create_file_handle (handle_name, cmd.s_name);
+  switch (cmd.mode)
     {
-    case FH_FIXED:
+    case FH_CHARACTER:
+      handle->private->mode = MODE_TEXT;
+      break;
+    case FH_IMAGE:
+      handle->private->mode = MODE_BINARY;
       if (cmd.n_lrecl == NOT_LONG)
 	{
-	  msg (SE, _("Fixed length records were specified on /RECFORM, but "
-	       "record length was not specified on /LRECL.  80-character "
-	       "records will be assumed."));
-	  cmd.n_lrecl = 80;
+	  msg (SE, _("Fixed-length records were specified on /RECFORM, but "
+                     "record length was not specified on /LRECL.  "
+                     "Assuming 1024-character records."));
+          handle->private->length = 1024;
 	}
       else if (cmd.n_lrecl < 1)
 	{
 	  msg (SE, _("Record length (%ld) must be at least one byte.  "
-		     "80-character records will be assumed."), cmd.n_lrecl);
-	  cmd.n_lrecl = 80;
+		     "1-character records will be assumed."), cmd.n_lrecl);
+          handle->private->length = 1;
 	}
-      fp->recform = FH_RF_FIXED;
-      fp->lrecl = cmd.n_lrecl;
-      break;
-    case FH_VARIABLE:
-      fp->recform = FH_RF_VARIABLE;
-      break;
-    case FH_SPANNED:
-      msg (SE, 
-	   _("%s is not implemented, as the author doesn't know what it is supposed to do.  Send a note to %s.") ,
-	   "/RECFORM SPANNED",PACKAGE_BUGREPORT);
+      else
+        handle->private->length = cmd.n_lrecl;
       break;
     default:
       assert (0);
     }
-
-  switch (cmd.mode)
-    {
-    case FH_CHARACTER:
-      fp->mode = FH_MD_CHARACTER;
-      break;
-    case FH_IMAGE:
-      msg (SE, 
-	   _("%s is not implemented, as the author doesn't know what it is supposed to do.  Send a note to %s.") ,
-	   "/MODE IMAGE",PACKAGE_BUGREPORT);
-      break;
-    case FH_BINARY:
-      fp->mode = FH_MD_BINARY;
-      break;
-    case FH_MULTIPUNCH:
-      msg (SE, _("%s is not implemented.  If you care, complain."),"/MODE MULTIPUNCH");
-      break;
-    case FH__360:
-      msg (SE, _("%s is not implemented.  If you care, complain."),"/MODE 360");
-      break;
-    default:
-      assert (0);
-    }
-
-  fp->name = xstrdup (handle_name);
-  fp->norm_fn = fn_normalize (cmd.s_name);
-  fp->where.filename = fp->fn = cmd.s_name;
-  hsh_force_insert (files, fp);
 
   return CMD_SUCCESS;
 
@@ -167,103 +185,35 @@ cmd_file_handle (void)
 
 /* File handle functions. */
 
-/* Sets up some fields in H; caller should fill in
-   H->{NAME,NORM_FN,FN}. */
-static void
-init_file_handle (struct file_handle *h)
+/* Creates and returns a new file handle with the given values
+   and defaults for other values.  Adds the created file handle
+   to the global list. */
+static struct file_handle *
+create_file_handle (const char *handle_name, const char *filename)
 {
-  h->recform = FH_RF_VARIABLE;
-  h->mode = FH_MD_CHARACTER;
-  h->ext = NULL;
-  h->class = NULL;
-}
+  struct file_handle *handle;
+  struct file_handle_list *list;
 
-/* Returns the handle corresponding to FILENAME.  Creates the handle
-   if no handle exists for that file.  All filenames are normalized
-   first, so different filenames referring to the same file will
-   return the same file handle. */
-struct file_handle *
-fh_get_handle_by_filename (const char *filename)
-{
-  struct file_handle f, *fp;
-  char *fn;
-  char *name;
-  int len;
+  /* Create and initialize file handle. */
+  handle = xmalloc (sizeof *handle);
+  handle->private = xmalloc (sizeof *handle->private);
+  handle->private->name = xstrdup (handle_name);
+  handle->private->filename = xstrdup (filename);
+  handle->private->identity = fn_get_identity (filename);
+  handle->private->where.filename = handle->private->filename;
+  handle->private->where.line_number = 0;
+  handle->private->mode = MODE_TEXT;
+  handle->private->length = 1024;
+  handle->ext = NULL;
+  handle->class = NULL;
 
-  /* Get filename. */
-  fn = fn_normalize (filename);
-  len = strlen (fn);
+  /* Add file handle to global list. */
+  list = xmalloc (sizeof *list);
+  list->handle = handle;
+  list->next = file_handles;
+  file_handles = list;
 
-  /* Create handle name with invalid identifier character to prevent
-     conflicts with handles created with FILE HANDLE. */
-  name = xmalloc (len + 2);
-  name[0] = '*';
-  strcpy (&name[1], fn);
-
-  f.name = name;
-  fp = hsh_find (files, &f);
-  if (!fp)
-    {
-      fp = xmalloc (sizeof *fp);
-      init_file_handle (fp);
-      fp->name = name;
-      fp->norm_fn = fn;
-      fp->where.filename = fp->fn = xstrdup (filename);
-      hsh_force_insert (files, fp);
-    }
-  else
-    {
-      free (fn);
-      free (name);
-    }
-  return fp;
-}
-
-/* Returns the handle with identifier NAME, if it exists; otherwise
-   reports error to user and returns NULL. */
-struct file_handle *
-fh_get_handle_by_name (const char name[9])
-{
-  struct file_handle f, *fp;
-  f.name = (char *) name;
-  fp = hsh_find (files, &f);
-
-  if (!fp)
-    msg (SE, _("File handle `%s' has not been previously declared on "
-	 "FILE HANDLE."), name);
-  return fp;
-}
-
-/* Returns the identifier of file HANDLE.  If HANDLE was created by
-   referring to a filename (i.e., DATA LIST FILE='yyy' instead of FILE
-   HANDLE XXX='yyy'), returns the filename, enclosed in double quotes.
-   Return value is in a static buffer.
-
-   Useful for printing error messages about use of file handles.  */
-const char *
-fh_handle_name (const struct file_handle *h)
-{
-  static char *buf = NULL;
-
-  if (buf)
-    {
-      free (buf);
-      buf = NULL;
-    }
-  if (!h)
-    return NULL;
-
-  if (h->name[0] == '*')
-    {
-      int len = strlen (h->fn);
-
-      buf = xmalloc (len + 3);
-      strcpy (&buf[1], h->fn);
-      buf[0] = buf[len + 1] = '"';
-      buf[len + 2] = 0;
-      return buf;
-    }
-  return h->name;
+  return handle;
 }
 
 /* Closes the stdio FILE associated with handle H.  Frees internal
@@ -275,32 +225,10 @@ fh_close_handle (struct file_handle *h)
   if (h == NULL)
     return;
 
-  debug_printf (("Closing %s%s.\n", fh_handle_name (h),
-		 h->class == NULL ? " (already closed)" : ""));
-
-  if (h->class)
+  if (h->class != NULL)
     h->class->close (h);
   h->class = NULL;
   h->ext = NULL;
-}
-
-/* Hashes the name of file handle H. */
-static unsigned
-hash_file_handle (const void *handle_, void *param UNUSED)
-{
-  const struct file_handle *handle = handle_;
-
-  return hsh_hash_string (handle->name);
-}
-
-/* Compares names of file handles A and B. */
-static int
-cmp_file_handle (const void *a_, const void *b_, void *foo UNUSED)
-{
-  const struct file_handle *a = a_;
-  const struct file_handle *b = b_;
-
-  return strcmp (a->name, b->name);
 }
 
 /* Initialize the hash of file handles; inserts the "inline file"
@@ -308,17 +236,11 @@ cmp_file_handle (const void *a_, const void *b_, void *foo UNUSED)
 void
 fh_init_files (void)
 {
-  /* Create hash. */
-  files = hsh_create (4, cmp_file_handle, hash_file_handle, NULL, NULL);
-
-  /* Insert inline file. */
-  inline_file = xmalloc (sizeof *inline_file);
-  init_file_handle (inline_file);
-  inline_file->name = "INLINE";
-  inline_file->where.filename
-    = inline_file->fn = inline_file->norm_fn = (char *) _("<Inline File>");
-  inline_file->where.line_number = 0;
-  hsh_force_insert (files, inline_file);
+  if (inline_file == NULL) 
+    {
+      inline_file = create_file_handle ("INLINE", _("<Inline File>"));
+      inline_file->private->length = 80; 
+    }
 }
 
 /* Parses a file handle name, which may be a filename as a string or
@@ -329,40 +251,65 @@ fh_parse_file_handle (void)
 {
   struct file_handle *handle;
 
-  if (token == T_ID)
-    handle = fh_get_handle_by_name (tokid);
-  else if (token == T_STRING)
-    handle = fh_get_handle_by_filename (ds_value (&tokstr));
-  else
+  if (token != T_ID && token != T_STRING)
     {
-      lex_error (_("expecting a file name or handle"));
+      lex_error (_("expecting a file name or handle name"));
       return NULL;
     }
 
-  if (!handle)
-    return NULL;
+  /* Check for named handles first, then go by filename. */
+  handle = NULL;
+  if (token == T_ID) 
+    handle = get_handle_with_name (tokid);
+  if (handle == NULL)
+    handle = get_handle_for_filename (ds_value (&tokstr));
+  if (handle == NULL) 
+    {
+      char *filename = ds_value (&tokstr);
+      char *handle_name = xmalloc (strlen (filename) + 3);
+      sprintf (handle_name, "\"%s\"", filename);
+      handle = create_file_handle (handle_name, filename);
+      free (handle_name);
+    }
+
   lex_get ();
 
   return handle;
 }
 
-/* Returns the (normalized) filename associated with file handle H. */
-char *
-fh_handle_filename (struct file_handle * h)
+/* Returns the identifier of file HANDLE.  If HANDLE was created
+   by referring to a filename instead of a handle name, returns
+   the filename, enclosed in double quotes.  Return value is
+   owned by the file handle. 
+
+   Useful for printing error messages about use of file handles.  */
+const char *
+handle_get_name (const struct file_handle *handle)
 {
-  return h->norm_fn;
+  return handle->private->name;
 }
 
-/* Returns the width of a logical record on file handle H. */
-size_t
-fh_record_width (struct file_handle *h)
+/* Returns the name of the file associated with HANDLE. */
+const char *
+handle_get_filename (const struct file_handle *handle) 
 {
-  if (h == inline_file)
-    return 80;
-  else if (h->recform == FH_RF_FIXED)
-    return h->lrecl;
-  else
-    return 1024;
+  return handle->private->filename;
+}
+
+/* Returns the mode of HANDLE. */
+enum file_handle_mode
+handle_get_mode (const struct file_handle *handle) 
+{
+  assert (handle != NULL);
+  return handle->private->mode;
+}
+
+/* Returns the width of a logical record on HANDLE. */
+size_t
+handle_get_record_width (const struct file_handle *handle)
+{
+  assert (handle != NULL);
+  return handle->private->length;
 }
 
 /*

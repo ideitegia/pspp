@@ -49,9 +49,6 @@ cmd_rename_variables (void)
       cancel_temporary (); 
     }
 
-  lex_match_id ("RENAME");
-  lex_match_id ("VARIABLES");
-
   do
     {
       int prev_nv_1 = rename_cnt;

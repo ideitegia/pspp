@@ -153,9 +153,6 @@ cmd_matrix_data (void)
   
   unsigned seen = 0;
   
-  lex_match_id ("MATRIX");
-  lex_match_id ("DATA");
-
   discard_variables ();
 
   pool = pool_create ();
@@ -599,6 +596,9 @@ cmd_matrix_data (void)
 #if DEBUGGING
   debug_print ();
 #endif
+
+  if (!dfm_open_for_reading (mx->data_file))
+    goto lossage;
 
   if (mx->explicit_rowtype)
     read_matrices_with_rowtype (mx);

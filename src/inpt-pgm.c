@@ -59,8 +59,6 @@ static trns_free_func reread_trns_free;
 int
 cmd_input_program (void)
 {
-  lex_match_id ("INPUT");
-  lex_match_id ("PROGRAM");
   discard_variables ();
 
   /* FIXME: we shouldn't do this here, but I'm afraid that other
@@ -76,10 +74,6 @@ cmd_end_input_program (void)
 {
   struct input_program_pgm *inp;
   size_t i;
-
-  lex_match_id ("END");
-  lex_match_id ("INPUT");
-  lex_match_id ("PROGRAM");
 
   if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
@@ -287,9 +281,6 @@ cmd_end_case (void)
 {
   struct trns_header *t;
 
-  lex_match_id ("END");
-  lex_match_id ("CASE");
-
   if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
       msg (SE, _("This command may only be executed between INPUT PROGRAM "
@@ -336,8 +327,6 @@ cmd_reread (void)
   /* Created transformation. */
   struct reread_trns *t;
 
-  lex_match_id ("REREAD");
-
   h = default_handle;
   e = NULL;
   while (token != '.')
@@ -360,14 +349,8 @@ cmd_reread (void)
       else if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  if (token != T_ID)
-	    {
-	      lex_error (_("expecting file handle name"));
-	      expr_free (e);
-	      return CMD_FAILURE;
-	    }
-	  h = fh_get_handle_by_name (tokid);
-	  if (!h)
+          h = fh_parse_file_handle ();
+	  if (h == NULL)
 	    {
 	      expr_free (e);
 	      return CMD_FAILURE;
@@ -429,9 +412,6 @@ int
 cmd_end_file (void)
 {
   struct trns_header *t;
-
-  lex_match_id ("END");
-  lex_match_id ("FILE");
 
   if (!case_source_is_class (vfm_source, &input_program_source_class))
     {

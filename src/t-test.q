@@ -213,12 +213,6 @@ cmd_t_test(void)
   struct ssbox stat_summary_box;
   struct trbox test_results_box;
 
-  if (!lex_force_match_id ("T"))
-    return CMD_FAILURE;
-
-  lex_match ('-');
-  lex_match_id ("TEST");
-
   if ( !parse_t_test(&cmd) )
     return CMD_FAILURE;
 

@@ -45,21 +45,18 @@ static int internal_cmd_formats (int);
 int
 cmd_print_formats (void)
 {
-  lex_match_id ("FORMATS");
   return internal_cmd_formats (FORMATS_PRINT);
 }
 
 int
 cmd_write_formats (void)
 {
-  lex_match_id ("FORMATS");
   return internal_cmd_formats (FORMATS_WRITE);
 }
 
 int
 cmd_formats (void)
 {
-  lex_match_id ("FORMATS");
   return internal_cmd_formats (FORMATS_PRINT | FORMATS_WRITE);
 }
 

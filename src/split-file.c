@@ -29,9 +29,6 @@
 int
 cmd_split_file (void)
 {
-  lex_match_id ("SPLIT");
-  lex_match_id ("FILE");
-
   if (lex_match_id ("OFF"))
     dict_set_split_vars (default_dict, NULL, 0);
   else

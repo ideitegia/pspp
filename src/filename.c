@@ -854,3 +854,93 @@ fn_close_ext (struct file_ext *f)
     }
   return 1;
 }
+
+#ifdef unix
+/* A file's identity. */
+struct file_identity 
+  {
+    dev_t device;               /* Device number. */
+    ino_t inode;                /* Inode number. */
+  };
+
+/* Returns a pointer to a dynamically allocated structure whose
+   value can be used to tell whether two files are actually the
+   same file.  Returns a null pointer if no information about the
+   file is available, perhaps because it does not exist.  The
+   caller is responsible for freeing the structure with
+   fn_free_identity() when finished. */  
+struct file_identity *
+fn_get_identity (const char *filename) 
+{
+  struct stat s;
+
+  if (stat (filename, &s) == 0) 
+    {
+      struct file_identity *identity = xmalloc (sizeof *identity);
+      identity->device = s.st_dev;
+      identity->inode = s.st_ino;
+      return identity;
+    }
+  else
+    return NULL;
+}
+
+/* Frees IDENTITY obtained from fn_get_identity(). */
+void
+fn_free_identity (struct file_identity *identity) 
+{
+  free (identity);
+}
+
+/* Compares A and B, returning a strcmp()-type result. */
+int
+fn_compare_file_identities (const struct file_identity *a,
+                            const struct file_identity *b) 
+{
+  assert (a != NULL);
+  assert (b != NULL);
+  if (a->device != b->device)
+    return a->device < b->device ? -1 : 1;
+  else
+    return a->inode < b->inode ? -1 : a->inode > b->inode;
+}
+#else /* not unix */
+/* A file's identity. */
+struct file_identity 
+  {
+    char *normalized_filename;  /* File's normalized name. */
+  };
+
+/* Returns a pointer to a dynamically allocated structure whose
+   value can be used to tell whether two files are actually the
+   same file.  Returns a null pointer if no information about the
+   file is available, perhaps because it does not exist.  The
+   caller is responsible for freeing the structure with
+   fn_free_identity() when finished. */  
+struct file_identity *
+fn_get_identity (const char *filename) 
+{
+  struct file_identity *identity = xmalloc (sizeof *identity);
+  identity->normalized_filename = fn_normalize (filename);
+  return identity;
+}
+
+/* Frees IDENTITY obtained from fn_get_identity(). */
+void
+fn_free_identity (struct file_identity *identity) 
+{
+  if (identity != NULL) 
+    {
+      free (identity->normalized_filename);
+      free (identity);
+    }
+}
+
+/* Compares A and B, returning a strcmp()-type result. */
+int
+fn_compare_file_identities (const struct file_identity *a,
+                            const struct file_identity *b) 
+{
+  return strcmp (a->normalized_filename, b->normalized_filename);
+}
+#endif /* not unix */

@@ -42,9 +42,6 @@ cmd_apply_dictionary (void)
 
   int i;
   
-  lex_match_id ("APPLY");
-  lex_match_id ("DICTIONARY");
-  
   lex_match_id ("FROM");
   lex_match ('=');
   handle = fh_parse_file_handle ();

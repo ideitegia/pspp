@@ -169,8 +169,6 @@ cmd_aggregate (void)
   dict_set_label (agr.dict, dict_get_label (default_dict));
   dict_set_documents (agr.dict, dict_get_documents (default_dict));
   
-  lex_match_id ("AGGREGATE");
-
   /* Read most of the subcommands. */
   for (;;)
     {

@@ -102,6 +102,8 @@ msg (int class, const char *format, ...)
     e.text = buf.string;
     err_vmsg (&e);
   }
+
+  ds_destroy (&buf);
 }
 
 /* Terminate due to fatal error in input. */

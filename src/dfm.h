@@ -30,6 +30,8 @@
 
 /* I/O utilities. */
 struct file_handle;
+int dfm_open_for_reading (struct file_handle *handle);
+int dfm_open_for_writing (struct file_handle *handle);
 char *dfm_get_record (struct file_handle *handle, int *len);
 int dfm_put_record (struct file_handle *handle, const char *rec, size_t len);
 

@@ -120,10 +120,7 @@ expr_parse (int flags)
 
   /* If we're debugging or the user requested it, print the postfix
      representation. */
-#if GLOBAL_DEBUGGING
-#if !DEBUGGING
-  if (flags & PXP_DUMP)
-#endif
+#if DEBUGGING
     debug_print_postfix (e);
 #endif
 

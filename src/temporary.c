@@ -39,8 +39,6 @@ int temp_trns;
 int
 cmd_temporary (void)
 {
-  lex_match_id ("TEMPORARY");
-
   /* TEMPORARY is not allowed inside DO IF or LOOP. */
   if (ctl_stack)
     {

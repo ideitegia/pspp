@@ -41,17 +41,12 @@ static int get_label (struct variable **vars, int var_cnt);
 int
 cmd_value_labels (void)
 {
-  lex_match_id ("VALUE");
-  lex_match_id ("LABELS");
   return do_value_labels (1);
 }
 
 int
 cmd_add_value_labels (void)
 {
-  lex_match_id ("ADD");
-  lex_match_id ("VALUE");
-  lex_match_id ("LABELS");
   return do_value_labels (0);
 }
 
@@ -82,6 +77,7 @@ do_value_labels (int erase)
 
       free (vars);
     }
+  free (vars);
 
   if (token != '.')
     {

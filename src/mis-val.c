@@ -56,8 +56,6 @@ cmd_missing_values (void)
 {
   int i;
 
-  lex_match_id ("MISSING");
-  lex_match_id ("VALUES");
   while (token != '.')
     {
       if (!parse_varnames ())

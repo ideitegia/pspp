@@ -42,7 +42,6 @@ cmd_numeric (void)
      be used. */
   struct fmt_spec f;
 
-  lex_match_id ("NUMERIC");
   do
     {
       if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
@@ -116,7 +115,6 @@ cmd_string (void)
   /* Width of variables to create. */
   int width;
 
-  lex_match_id ("STRING");
   do
     {
       if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
@@ -188,7 +186,6 @@ cmd_leave (void)
 
   int i;
 
-  lex_match_id ("LEAVE");
   if (!parse_variables (default_dict, &v, &nv, PV_NONE))
     return CMD_FAILURE;
   for (i = 0; i < nv; i++)

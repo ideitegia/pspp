@@ -90,9 +90,6 @@ cmd_modify_vars (void)
       cancel_temporary (); 
     }
 
-  lex_match_id ("MODIFY");
-  lex_match_id ("VARS");
-
   vm.reorder_vars = NULL;
   vm.reorder_cnt = 0;
   vm.rename_vars = NULL;

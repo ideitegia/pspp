@@ -109,7 +109,6 @@ cmd_file_type (void)
   fty->had_rec_type = 0;
   fty->recs_head = fty->recs_tail = NULL;
 
-  lex_match_id ("TYPE");
   if (lex_match_id ("MIXED"))
     fty->type = FTY_MIXED;
   else if (lex_match_id ("GROUPED"))
@@ -270,6 +269,8 @@ cmd_file_type (void)
 	}
     }
 
+  if (!dfm_open_for_reading (fty->handle))
+    goto error;
   default_handle = fty->handle;
 
   create_col_var (&fty->record);
@@ -422,9 +423,6 @@ cmd_record_type (void)
 	  goto error;
 	}
     }
-
-  lex_match_id ("RECORD");
-  lex_match_id ("TYPE");
 
   /* Parse record type values. */
   if (lex_match_id ("OTHER"))
@@ -581,8 +579,6 @@ cmd_end_file_type (void)
     }
   fty = vfm_source->aux;
   fty->case_size = dict_get_case_size (default_dict);
-
-  lex_match_id ("TYPE");
 
   if (fty->recs_tail)
     {

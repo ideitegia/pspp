@@ -79,7 +79,6 @@ cmd_get (void)
   struct get_pgm *pgm;
   int options = GTSV_OPT_NONE;
 
-  lex_match_id ("GET");
   discard_variables ();
 
   lex_match ('/');
@@ -149,8 +148,6 @@ cmd_save_internal (enum save_cmd save_cmd)
   struct sfm_write_info inf;
 
   int i;
-
-  lex_match_id ("SAVE");
 
   lex_match ('/');
   if (lex_match_id ("OUTFILE"))
@@ -586,9 +583,6 @@ cmd_match_files (void)
   
   int seen = 0;
   
-  lex_match_id ("MATCH");
-  lex_match_id ("FILES");
-
   mtf.head = mtf.tail = NULL;
   mtf.by = NULL;
   mtf.by_cnt = 0;
@@ -826,7 +820,7 @@ cmd_match_files (void)
 	      if (iter->by[i] == NULL)
 		{
 		  msg (SE, _("File %s lacks BY variable %s."),
-		       iter->handle ? fh_handle_name (iter->handle) : "*",
+		       iter->handle ? handle_get_name (iter->handle) : "*",
 		       mtf.by[i]->name);
 		  goto lossage;
 		}
@@ -1341,7 +1335,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 	    msg (SE, _("Variable %s in file %s (%s) has different "
 		       "type or width from the same variable in "
 		       "earlier file (%s)."),
-		 dv->name, fh_handle_name (f->handle),
+		 dv->name, handle_get_name (f->handle),
 		 var_type_description (dv), var_type_description (mv));
 	    return 0;
 	  }
@@ -1363,8 +1357,6 @@ cmd_import (void)
   struct get_pgm *pgm;
   int options = GTSV_OPT_NONE;
   int type;
-
-  lex_match_id ("IMPORT");
 
   for (;;)
     {
@@ -1478,8 +1470,6 @@ cmd_export (void)
   struct save_trns *t;
 
   int i;
-
-  lex_match_id ("EXPORT");
 
   lex_match ('/');
   if (lex_match_id ("OUTFILE"))

@@ -69,8 +69,6 @@ cmd_sort_cases (void)
   struct sort_cases_pgm *scp;
   int success;
 
-  lex_match_id ("SORT");
-  lex_match_id ("CASES");
   lex_match (T_BY);
 
   scp = parse_sort ();

@@ -155,8 +155,6 @@ cmd_else (void)
 {
   struct do_if_trns *t;
 
-  lex_match_id ("ELSE");
-
   /* Check that we're in a pleasing situation. */
   if (!ctl_stack || ctl_stack->type != CST_DO_IF)
     {
@@ -197,8 +195,6 @@ cmd_end_if (void)
 {
   /* List iterator. */
   struct do_if_trns *iter;
-
-  lex_match_id ("IF");
 
   /* Check that we're in a pleasing situation. */
   if (!ctl_stack || ctl_stack->type != CST_DO_IF)
@@ -251,8 +247,6 @@ parse_do_if (void)
 {
   struct do_if_trns *t;
   struct expression *e;
-
-  lex_match_id ("IF");
 
   e = expr_parse (PXP_BOOLEAN);
   if (!e)

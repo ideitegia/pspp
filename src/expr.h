@@ -24,8 +24,6 @@
 enum
   {
     PXP_NONE = 000,		/* No flags. */
-    PXP_DUMP = 001,		/* Dump postfix representation to screen;
-				   only for use by EVALUATE. */
 
     /* Specify expression type. */
     PXP_BOOLEAN = 002,		/* Coerce return value to Boolean. */

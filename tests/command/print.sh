@@ -121,7 +121,7 @@ rest of the tests give it a pretty good workout.
 Testing use of DATA LIST FREE.
 ----------------------------------------------------------------------
 
-1.1 DATA LIST.  Reading free-form data from file "$TEMPDIR/data-list.data".
+1.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
 +--------+------+
 |Variable|Format|
 #========#======#
@@ -131,7 +131,7 @@ Testing use of DATA LIST FREE.
 |D       |F8.0  |
 +--------+------+
 
-2.1 PRINT.  Writing   1 records to file "foo".
+2.1 PRINT.  Writing 1 record(s) to file foo.
 +--------+------+-------+-------+
 |Variable|Record|Columns| Format|
 #========#======#=======#=======#
@@ -158,7 +158,7 @@ Testing use of DATA LIST FREE.
 Testing use of DATA LIST LIST.
 ----------------------------------------------------------------------
 
-3.1 DATA LIST.  Reading free-form data from file "$TEMPDIR/data-list.data".
+3.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
 +--------+------+
 |Variable|Format|
 #========#======#
@@ -168,7 +168,7 @@ Testing use of DATA LIST LIST.
 |D       |F8.0  |
 +--------+------+
 
-4.1 PRINT.  Writing   1 records to the listing file.
+4.1 PRINT.  Writing 1 record(s) to the listing file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#

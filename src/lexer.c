@@ -76,7 +76,9 @@ static int eof;
 
 /* If nonzero, next token returned by lex_get().
    Used only in exceptional circumstances. */
-static int put;			
+static int put_token;
+static struct string put_tokstr;
+static double put_tokval;
 
 static void unexpected_eof (void);
 static inline int check_id (const char *id, size_t len);
@@ -93,11 +95,36 @@ static void dump_token (void);
 void
 lex_init (void)
 {
+  ds_init (NULL, &put_tokstr, 64);
   if (!lex_get_line ())
     unexpected_eof ();
 }
 
 /* Common functions. */
+
+/* Copies put_token, put_tokstr, put_tokval into token, tokstr,
+   tokval, respectively, and sets tokid appropriately. */
+static void
+restore_token (void) 
+{
+  assert (put_token != 0);
+  token = put_token;
+  ds_replace (&tokstr, ds_value (&put_tokstr));
+  strncpy (tokid, ds_value (&put_tokstr), 8);
+  tokid[8] = 0;
+  tokval = put_tokval;
+  put_token = 0;
+}
+
+/* Copies token, tokstr, tokval into put_token, put_tokstr,
+   put_tokval respectively. */
+static void
+save_token (void) 
+{
+  put_token = token;
+  ds_replace (&put_tokstr, ds_value (&tokstr));
+  put_tokval = tokval;
+}
 
 /* Parses a single token, setting appropriate global variables to
    indicate the token's attributes. */
@@ -105,10 +132,9 @@ void
 lex_get (void)
 {
   /* If a token was pushed ahead, return it. */
-  if (put)
+  if (put_token)
     {
-      token = put;
-      put = 0;
+      restore_token ();
 #if DUMP_TOKENS
       dump_token ();
 #endif
@@ -150,10 +176,9 @@ lex_get (void)
 	      return;
 	    }
 
-	  if (put)
+	  if (put_token)
 	    {
-	      token = put;
-	      put = 0;
+              restore_token ();
 #if DUMP_TOKENS
 	      dump_token ();
 #endif
@@ -615,8 +640,8 @@ lex_id_match (const char *kw, const char *tok)
 int
 lex_look_ahead (void)
 {
-  if (put)
-    return put;
+  if (put_token)
+    return put_token;
 
   for (;;)
     {
@@ -635,8 +660,8 @@ lex_look_ahead (void)
 	  else if (!lex_get_line ())
 	    unexpected_eof ();
 
-	  if (put)
-	    return put;
+	  if (put_token) 
+	    return put_token;
 	}
 
       if ((toupper ((unsigned char) *prog) == 'X'
@@ -653,15 +678,20 @@ lex_look_ahead (void)
 void
 lex_put_back (int t)
 {
-  put = token;
+  save_token ();
   token = t;
 }
 
-/* Makes T the next token read. */
+/* Makes the current token become the next token to be read; the
+   current token is set to the identifier ID. */
 void
-lex_put_forward (int t)
+lex_put_back_id (const char *id)
 {
-  put = t;
+  save_token ();
+  token = T_ID;
+  ds_replace (&tokstr, id);
+  strncpy (tokid, ds_value (&tokstr), 8);
+  tokid[8] = 0;
 }
 
 /* Weird line processing functions. */
@@ -703,7 +733,7 @@ lex_discard_line (void)
 
   ds_clear (&getl_buf);
   prog = ds_value (&getl_buf);
-  dot = put = 0;
+  dot = put_token = 0;
 }
 
 /* Sets the current position in the current line to P, which must be
@@ -817,7 +847,7 @@ lex_preprocess_line (void)
       if (s[0] == '+' || s[0] == '-' || s[0] == '.')
 	s[0] = ' ';
       else if (s[0] && !isspace ((unsigned char) s[0]))
-	lex_put_forward ('.');
+	put_token = '.';
     }
 
   prog = ds_value (&getl_buf);
@@ -929,10 +959,11 @@ lex_negative_to_dash (void)
 {
   if (token == T_NUM && tokval < 0.0)
     {
-      token = '-';
+      token = T_NUM;
       tokval = -tokval;
       ds_replace (&tokstr, ds_value (&tokstr) + 1);
-      lex_put_forward (T_NUM);
+      save_token ();
+      token = '-';
     }
 }
    
@@ -950,7 +981,7 @@ lex_skip_comment (void)
   for (;;)
     {
       lex_get_line ();
-      if (put == '.')
+      if (put_token == '.')
 	break;
 
       prog = ds_end (&getl_buf);
@@ -1175,40 +1206,40 @@ dump_token (void)
 
     getl_location (&curfn, &curln);
     if (curfn)
-      printf ("%s:%d\t", curfn, curln);
+      fprintf (stderr, "%s:%d\t", curfn, curln);
   }
   
   switch (token)
     {
     case T_ID:
-      printf ("ID\t%s\n", tokid);
+      fprintf (stderr, "ID\t%s\n", tokid);
       break;
 
     case T_NUM:
-      printf ("NUM\t%f\n", tokval);
+      fprintf (stderr, "NUM\t%f\n", tokval);
       break;
 
     case T_STRING:
-      printf ("STRING\t\"%s\"\n", ds_value (&tokstr));
+      fprintf (stderr, "STRING\t\"%s\"\n", ds_value (&tokstr));
       break;
 
     case T_STOP:
-      printf ("STOP\n");
+      fprintf (stderr, "STOP\n");
       break;
 
     case T_EXP:
-      puts ("MISC\tEXP");
+      fprintf (stderr, "MISC\tEXP\"");
       break;
 
     case 0:
-      puts ("MISC\tEOF");
+      fprintf (stderr, "MISC\tEOF\n");
       break;
 
     default:
       if (token >= T_FIRST_KEYWORD && token <= T_LAST_KEYWORD)
-	printf ("KEYWORD\t%s\n", lex_token_name (token));
+	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (token));
       else
-	printf ("PUNCT\t%c\n", token);
+	fprintf (stderr, "PUNCT\t%c\n", token);
       break;
     }
 }

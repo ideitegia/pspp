@@ -1,3 +1,199 @@
+Sat Mar 20 17:57:23 2004  Ben Pfaff  <blp@gnu.org>
+
+	* levene.c: Add #include.
+
+	* set.q: (set_viewport) Add `int' argument to make its prototype
+	correct for signal().
+
+Sat Mar 20 15:35:17 2004  Ben Pfaff  <blp@gnu.org>
+
+	* expr-evl.c: (expr_evaluate) Assert that `c' is nonzero before
+	using it.
+
+Sat Mar 20 15:18:16 2004  Ben Pfaff  <blp@gnu.org>
+
+	Changed DFM from open-at-first-access to explicit-open.  Before,
+	calling dfm_get_record() or dfm_put_record() would automatically
+	open the file.  Now, you have to call dfm_open_for_reading() or
+	dfm_open_for_writing() explicitly.  This makes it possible to
+	check permissions, file existence, etc. earlier.
+
+	Also made struct file_handle more opaque, and clean up in general.
+
+	* data-list.c: (cmd_data_list) Open handle for reading.
+
+	* dfm.c: (struct dfm_fhuser_ext) Add `where', `saw_begin_data'
+	members.
+	(open_file_r) Renamed dfm_open_for_reading(), rewrote.
+	(open_file_w) Renamed dfm_open_for_writing(), rewrote.
+	(open_inline_file) Removed.
+	(read_record) For inline_file, if we haven't seen BEGIN DATA, read
+	it.  Deal with line_number in extension record instead of file
+	handle.
+	(dfm_get_record) Rewrote.
+	(dfm_put_record) Rewrote.
+	(dfm_push) Assert file is open and one of ours.  Deal with
+	line_number in extension record instead of file handle.
+	(dfm_pop) Assert file is open and one of ours.  Deal with
+	line_number in extension record instead of file handle.
+	(cmd_begin_data) Use dfm_open_for_reading().  Mark that we saw
+	BEGIN DATA.	
+
+	* file-handle.h: (enum constants RH_RF_*) Removed.
+	(enum constants FH_MD_*) Removed.
+	(struct file_handle) Removed `name', `norm_fn', `fn', `where',
+	`recform', `lrecl', `mode' members.  Public references to
+	`recform' changed to use handle_get_mode(), references to `lrecl'
+	changed to use handle_get_record_width().  Added `private' member.
+	(enum file_handle_mode) New.
+
+	* file-handle.q: (struct private_file_handle) New structure.
+	(struct file_handle_list) New structure.
+	(static var files) New.
+	(static var file_handles) Removed.
+	(init_file_handle) Removed.
+	(create_file_handle) Removed.
+	(get_handle_with_name) New function.
+	(get_handle_for_filename) New function.
+	(cmd_file_handle) Rewritten.
+	(hash_file_handle) Removed.
+	(cmp_file_handle) Removed.
+	(fh_init_files) Rewritten.
+	(fh_parse_file_handle) Rewritten.  Allows identifiers as
+	filenames.
+	(fh_get_handle_by_name) Renamed handle_get_name(), all references
+	updated.  Rewritten.
+	(fh_get_handle_by_filename) Renamed handle_get_filename(), all
+	references updated.  Rewritten.
+	(fh_record_width) Renamed handle_get_record_width(), all
+	references updated.  Rewritten.
+	(handle_get_mode) New function.
+
+	* file-type.c: (cmd_file_type) Open handle for reading.
+
+	* filename.c: [unix] (struct file_identity) New structure.
+	[unix] (fn_get_identity) New function.
+	[unix] (fn_free_identity) New function.
+	[unix] (fn_compare_file_identities) New function.
+	[!unix] (struct file_identity) New structure.
+	[!unix] (fn_get_identity) New function.
+	[!unix] (fn_free_identity) New function.
+	[!unix] (fn_compare_file_identities) New function.
+
+	* lexer.c: (static var put) Renamed put_token, all references
+	updated.
+	(static var put_tokstr) New.
+	(static var put_tokval) New.
+	(lex_init) Initialize put_tokstr().
+	(restore_token) New function.
+	(save_token) New function.
+	(lex_get) Use restore_token().
+	(lex_put_back) Use save_token().
+	(lex_put_back_id) New function.
+	(lex_put_forward) Removed.
+	(lex_preprocess_line) Set put_token instead of using
+	lex_put_forward().
+	(lex_negative_to_dash) Use save_token(), set put_token directly.
+	(dump_token) Use stderr instead of stdout.
+
+	* main.c: (main) Remove call to cmd_init().
+	
+	* matrix-data.c: (cmd_matrix_data) Open file for reading.
+
+	* pfm-read.c: Use handle_get_filename() instead of trying to use
+	h->fn directly, all over.
+
+	* pfm-write.c: Ditto.
+
+	* print.c: (internal_cmd_print) Open handle for writing.
+	(dump_table) Use handle_get_filename().
+	(print_trns_proc) Use handle_get_mode().
+	(cmd_print_space) Use fh_parse_file_handle().
+	Open handle for writing.
+	[0] (debug_print) Removed.
+
+	* sfm-read.c: Use handle_get_filename() instead of trying to use
+	h->fn directly, all over.
+
+	* sfm-write.c: Ditto.
+
+Sat Mar 20 14:35:48 2004  Ben Pfaff  <blp@gnu.org>
+
+	Fix memory leaks.
+	
+	* autorecode.c: (arc_free) Free arc->src_values.
+
+	* error.c: (msg) Free buf.
+
+	* val-labs.c: (do_value_labels) Always free vars.
+
+	* vfm.c: (close_active_file) If sink has no make_source then call
+	its destroy function.
+
+Sat Mar 20 14:00:24 2004  Ben Pfaff  <blp@gnu.org>
+
+	Fixed cmd_parse() so that it always skips past a full command
+	name.  A few special commands for which this would be bad get
+	special treatment.  This lets us drop code for skipping past the
+	end of a command name in most cmd_*() functions.  It's not worth
+	listing all the commands affected.
+
+	* command.c: (struct command) Remove `cmd' member, replace by
+	`name' member, all references updated.  Remove `word', `next',
+	`skip_entire_name' members.
+	(macro DEFCMD) Deal with revised `struct command'.
+	(macro UNIMPL) Ditto.
+	(macro SPCCMD) New macro for commands whose last word shouldn't be
+	skipped.
+	(static array cmd_table[]) Make const, rename `commands', remove
+	sentinel element.
+	(macro COMMAND_CNT) New macro.
+	(split_words) Removed.
+	(cmd_init) Removed.
+	(FILE_TYPE_okay) Make parameter const.
+	(cmd_parse) Improve error messages.
+	(match_strings) New function.
+	(next_word) New function.
+	(enum command_match) New enum.
+	(conflicting_3char_prefixes) New function.
+	(conflicting_3char_prefix_command) New function.
+	(cmd_match_words) New function.
+	(count_matching_commands) New function.
+	(get_command_name) New function.
+	(free_words) New function.
+	(unknown_command_error) New function.
+	(figure_out_command) Renamed parse_command_name(), rewritten.
+
+	* command.def: Removed @ command.  Marked BEGIN DATA, DOCUMENT,
+	FILE LABEL, REMARK, SUBTITLE, TITLE as special.  Renamed EVALUATE
+	to DEBUG EVALUATE.  Added N alias for N OF CASES, SORT alias for
+	SORT CASES.
+
+	* command.h: (macro SPCCMD) New.
+
+	* include.c: (cmd_include_at) Removed.
+	(cmd_include) Allow identifier to be used as filename.
+
+	* inpt-pgm.c: (cmd_reread) Use fh_parse_file_handle().
+
+	* t-test.q: (cmd_t_test) Command name is now parsed for us.
+	
+
+Sat Mar 20 13:56:00 2004  Ben Pfaff  <blp@gnu.org>
+
+	Start work on better test framework.
+	
+	* Makefile.am: (pspp_sources) Add debug.c.
+	
+	* debug.c: New file.
+
+	* compute.c: (cmd_evaluate) Moved to debug.c, renamed
+	cmd_debug_evaluate().
+
+	* expr-prs.c: (expr_parse) Remove PXP_DUMP support.
+
+	* expr.h: (enum constant PXP_DUMP) Removed.
+
 Sat Mar 20 00:05:42 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* set.q:  Implemented the SHOW command, and synced it to the existing 

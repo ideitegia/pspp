@@ -111,7 +111,7 @@ int lex_id_match (const char *keyword_string, const char *token_string);
 /* Weird token functions. */
 int lex_look_ahead (void);
 void lex_put_back (int);
-void lex_put_forward (int);
+void lex_put_back_id (const char *tokid);
 
 /* Weird line processing functions. */
 char *lex_entire_line (void);

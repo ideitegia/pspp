@@ -134,8 +134,6 @@ cmd_count (void)
   struct count_trns *trns;      /* Transformation. */
   struct cnt_var_info *head;    /* First counting in chain. */
 
-  lex_match_id ("COUNT");
-
   /* Parses each slash-delimited specification. */
   head = cnt = xmalloc (sizeof *cnt);
   for (;;)

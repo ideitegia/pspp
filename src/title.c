@@ -171,9 +171,6 @@ cmd_document (void)
 int
 cmd_drop_documents (void)
 {
-  lex_match_id ("DROP");
-  lex_match_id ("DOCUMENTS");
-
   dict_set_documents (default_dict, NULL);
 
   return lex_end_of_command ();

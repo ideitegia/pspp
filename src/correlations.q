@@ -72,9 +72,6 @@ internal_cmd_correlations (void)
   cor_list = cor_last = NULL;
   matrix_file = NULL;
 
-  lex_match_id ("PEARSON");
-  lex_match_id ("CORRELATIONS");
-
   if (!parse_correlations (&cmd))
     return CMD_FAILURE;
   free_correlations (&cmd);

@@ -358,8 +358,6 @@ int
 cmd_set (void)
 {
 
-  lex_match_id ("SET");
-
   if (!parse_set (&cmd))
     return CMD_FAILURE;
 
@@ -981,7 +979,7 @@ stc_custom_workdev (struct cmd_set *cmd UNUSED)
 
 
 static void 
-set_viewport(void)
+set_viewport(int sig_num UNUSED)
 {
 #if HAVE_LIBTERMCAP
   static char term_buffer[16384];
@@ -1112,8 +1110,8 @@ init_settings(void)
 
   if ( ! long_view )
     {
-      set_viewport();
-      signal (SIGWINCH,set_viewport);
+      set_viewport (0);
+      signal (SIGWINCH, set_viewport);
     }
 
 }

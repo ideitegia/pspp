@@ -41,8 +41,6 @@ cmd_variable_labels (void)
 
   int i;
 
-  lex_match_id ("VARIABLE");
-  lex_match_id ("LABELS");
   lex_match ('/');
   do
     {

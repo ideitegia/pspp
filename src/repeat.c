@@ -138,9 +138,6 @@ internal_cmd_do_repeat (void)
   int print;
 
   /* The first step is parsing the DO REPEAT command itself. */
-  lex_match_id ("DO");
-  lex_match_id ("REPEAT");
-
   count = 0;
   line_buf_head = NULL;
   do

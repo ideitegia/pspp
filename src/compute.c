@@ -75,8 +75,6 @@ cmd_compute (void)
   struct lvalue *lvalue = NULL;
   struct compute_trns *compute = NULL;
 
-  lex_match_id ("COMPUTE");
-
   lvalue = lvalue_parse ();
   if (lvalue == NULL)
     goto fail;
@@ -232,7 +230,6 @@ cmd_if (void)
   struct compute_trns *compute = NULL;
   struct lvalue *lvalue = NULL;
 
-  lex_match_id ("IF");
   compute = compute_trns_create ();
 
   /* Test expression. */
@@ -441,26 +438,4 @@ lvalue_destroy (struct lvalue *lvalue)
 {
   expr_free (lvalue->element);
   free (lvalue);
-}
-
-/* EVALUATE. */
-
-int
-cmd_evaluate (void)
-{
-  struct expression *expr;
-
-  lex_match_id ("EVALUATE");
-  expr = expr_parse (PXP_DUMP);
-  if (!expr)
-    return CMD_FAILURE;
-
-  expr_free (expr);
-  if (token != '.')
-    {
-      msg (SE, _("Extra characters after expression."));
-      return CMD_FAILURE;
-    }
-  
-  return CMD_SUCCESS;
 }

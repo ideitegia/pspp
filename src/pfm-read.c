@@ -82,12 +82,14 @@ corrupt_msg (struct file_handle *h, const char *format, ...)
   {
     char *title;
     struct error e;
+    const char *filename;
 
     e.class = ME;
     getl_location (&e.where.filename, &e.where.line_number);
-    e.title = title = local_alloc (strlen (h->fn) + 80);
+    filename = handle_get_filename (h);
+    e.title = title = local_alloc (strlen (filename) + 80);
     sprintf (title, _("portable file %s corrupt at offset %ld: "),
-	     h->fn, ftell (ext->file) - (82 - (long) (ext->bp - ext->buf)));
+	     filename, ftell (ext->file) - (82 - (long) (ext->bp - ext->buf)));
     e.text = buf;
 
     err_vmsg (&e);
@@ -100,12 +102,13 @@ corrupt_msg (struct file_handle *h, const char *format, ...)
 
 /* Closes a portable file after we're done with it. */
 static void
-pfm_close (struct file_handle * h)
+pfm_close (struct file_handle *h)
 {
   struct pfm_fhuser_ext *ext = h->ext;
 
   if (EOF == fclose (ext->file))
-    msg (ME, _("%s: Closing portable file: %s."), h->fn, strerror (errno));
+    msg (ME, _("%s: Closing portable file: %s."),
+         handle_get_filename (h), strerror (errno));
   free (ext->vars);
   free (ext->trans);
   free (h->ext);
@@ -220,20 +223,21 @@ pfm_read_dictionary (struct file_handle *h, struct pfm_read_info *inf)
     {
       msg (ME, _("Cannot read file %s as portable file: already opened "
 		 "for %s."),
-	   fh_handle_name (h), h->class->name);
+	   handle_get_name (h), h->class->name);
       return NULL;
     }
 
   msg (VM (1), _("%s: Opening portable-file handle %s for reading."),
-       fh_handle_filename (h), fh_handle_name (h));
+       handle_get_filename (h), handle_get_name (h));
 
   /* Open the physical disk file. */
   ext = xmalloc (sizeof (struct pfm_fhuser_ext));
-  ext->file = fopen (h->norm_fn, "rb");
+  ext->file = fopen (handle_get_filename (h), "rb");
   if (ext->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for reading "
-	   "as a portable file: %s."), h->fn, strerror (errno));
+                 "as a portable file: %s."),
+           handle_get_filename (h), strerror (errno));
       err_cond_fail ();
       free (ext);
       return NULL;

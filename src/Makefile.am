@@ -39,7 +39,7 @@ apply-dict.c ascii.c autorecode.c bitvector.h	\
 cmdline.c cmdline.h command.c command.def command.h compute.c		\
 copyleft.c copyleft.h \
 count.c data-in.c data-in.h data-list.c	data-list.h \
-data-out.c debug-print.h devind.c devind.h dfm.c dfm.h	\
+data-out.c debug.c debug-print.h devind.c devind.h dfm.c dfm.h	\
 dictionary.c do-if.c do-ifP.h error.c error.h expr-evl.c expr-opt.c	\
 expr-prs.c expr.h exprP.h file-handle.h file-type.c	\
 filename.c filename.h flip.c font.h format.c format.def format.h	\

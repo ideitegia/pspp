@@ -92,23 +92,25 @@ sfm_write_dictionary (struct sfm_write_info *inf)
 
   if (inf->h->class != NULL)
     {
-      msg (ME, _("Cannot write file %s as system file: already opened for %s."),
-	   fh_handle_name (inf->h), inf->h->class->name);
+      msg (ME, _("Cannot write file %s as system file: "
+                 "already opened for %s."),
+	   handle_get_name (inf->h), inf->h->class->name);
       return 0;
     }
 
   msg (VM (1), _("%s: Opening system-file handle %s for writing."),
-       fh_handle_filename (inf->h), fh_handle_name (inf->h));
+       handle_get_filename (inf->h), handle_get_name (inf->h));
   
   /* Open the physical disk file. */
   inf->h->class = &sfm_w_class;
   inf->h->ext = ext = xmalloc (sizeof (struct sfm_fhuser_ext));
-  ext->file = fopen (inf->h->norm_fn, "wb");
+  ext->file = fopen (handle_get_filename (inf->h), "wb");
   ext->elem_type = NULL;
   if (ext->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
-	   "as a system file: %s."), inf->h->fn, strerror (errno));
+                 "as a system file: %s."),
+           handle_get_filename (inf->h), strerror (errno));
       err_cond_fail ();
       free (ext);
       return 0;
@@ -600,7 +602,8 @@ bufwrite (struct file_handle * h, const void *buf, size_t nbytes)
   assert (buf);
   if (1 != fwrite (buf, nbytes, 1, ext->file))
     {
-      msg (ME, _("%s: Writing system file: %s."), h->fn, strerror (errno));
+      msg (ME, _("%s: Writing system file: %s."),
+           handle_get_filename (h), strerror (errno));
       return 0;
     }
   return 1;
@@ -736,7 +739,8 @@ sfm_close (struct file_handle * h)
     }
 
   if (EOF == fclose (ext->file))
-    msg (ME, _("%s: Closing system file: %s."), h->fn, strerror (errno));
+    msg (ME, _("%s: Closing system file: %s."),
+         handle_get_filename (h), strerror (errno));
   free (ext->buf);
 
   free (ext->elem_type);

@@ -73,7 +73,6 @@ cmd_means (void)
   v_dim = NULL;
   v_var = NULL;
 
-  lex_match_id ("MEANS");
   if (!parse_means (&cmd))
     goto free;
 

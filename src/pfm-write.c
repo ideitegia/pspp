@@ -70,22 +70,23 @@ pfm_write_dictionary (struct file_handle *handle, struct dictionary *dict)
     {
       msg (ME, _("Cannot write file %s as portable file: already opened "
 		 "for %s."),
-	   fh_handle_name (handle), handle->class->name);
+	   handle_get_name (handle), handle->class->name);
       return 0;
     }
 
   msg (VM (1), _("%s: Opening portable-file handle %s for writing."),
-       fh_handle_filename (handle), fh_handle_name (handle));
+       handle_get_filename (handle), handle_get_name (handle));
   
   /* Open the physical disk file. */
   handle->class = &pfm_w_class;
   handle->ext = ext = xmalloc (sizeof (struct pfm_fhuser_ext));
-  ext->file = fopen (handle->norm_fn, "wb");
+  ext->file = fopen (handle_get_filename (handle), "wb");
   ext->lc = 0;
   if (ext->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
-	   "as a portable file: %s."), handle->fn, strerror (errno));
+	   "as a portable file: %s."),
+           handle_get_filename (handle), strerror (errno));
       err_cond_fail ();
       free (ext);
       return 0;
@@ -166,7 +167,8 @@ bufwrite (struct file_handle *h, const void *buf_, size_t nbytes)
 
  lossage:
   abort ();
-  msg (ME, _("%s: Writing portable file: %s."), h->fn, strerror (errno));
+  msg (ME, _("%s: Writing portable file: %s."),
+       handle_get_filename (h), strerror (errno));
   return 0;
 }
 
@@ -499,7 +501,8 @@ pfm_close (struct file_handle *h)
   }
 
   if (EOF == fclose (ext->file))
-    msg (ME, _("%s: Closing portable file: %s."), h->fn, strerror (errno));
+    msg (ME, _("%s: Closing portable file: %s."),
+         handle_get_filename (h), strerror (errno));
 
   free (ext->vars);
   free (ext);

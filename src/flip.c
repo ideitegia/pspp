@@ -87,7 +87,6 @@ cmd_flip (void)
   flip->new_names_tail = NULL;
   flip->file = NULL;
 
-  lex_match_id ("FLIP");
   lex_match ('/');
   if (lex_match_id ("VARIABLES"))
     {

@@ -43,9 +43,6 @@ cmd_select_if (void)
   struct expression *e;
   struct select_if_trns *t;
 
-  lex_match_id ("SELECT");
-  lex_match_id ("IF");
-
   e = expr_parse (PXP_BOOLEAN);
   if (!e)
     return CMD_FAILURE;
@@ -86,8 +83,6 @@ select_if_free (struct trns_header * t)
 int
 cmd_filter (void)
 {
-  lex_match_id ("FILTER");
-
   if (lex_match_id ("OFF"))
     dict_set_filter (default_dict, NULL);
   else
@@ -124,9 +119,6 @@ int
 cmd_process_if (void)
 {
   struct expression *e;
-
-  lex_match_id ("PROCESS");
-  lex_match_id ("IF");
 
   e = expr_parse (PXP_BOOLEAN);
   if (!e)

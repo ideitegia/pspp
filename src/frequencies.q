@@ -211,7 +211,6 @@ internal_cmd_frequencies (void)
   for (i = 0; i < dict_get_var_cnt (default_dict); i++)
     dict_get_var(default_dict, i)->p.frq.used = 0;
 
-  lex_match_id ("FREQUENCIES");
   if (!parse_frequencies (&cmd))
     return CMD_FAILURE;
 

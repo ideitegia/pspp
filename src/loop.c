@@ -166,8 +166,6 @@ internal_cmd_loop (void)
   /* Name of indexing variable if applicable. */
   char name[9];
 
-  lex_match_id ("LOOP");
-
   /* Create and initialize transformations to facilitate
      error-handling. */
   two = xmalloc (sizeof *two);
@@ -501,8 +499,6 @@ cmd_break (void)
 
   /* New transformation. */
   struct break_trns *t;
-
-  lex_match_id ("BREAK");
 
   for (loop = ctl_stack; loop; loop = loop->down)
     if (loop->type == CST_LOOP)

@@ -77,9 +77,6 @@ cmd_sysfile_info (void)
   int r, nr;
   int i;
 
-  lex_match_id ("SYSFILE");
-  lex_match_id ("INFO");
-
   lex_match_id ("FILE");
   lex_match ('=');
 
@@ -95,7 +92,7 @@ cmd_sysfile_info (void)
   t = tab_create (2, 9, 0);
   tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, 8);
   tab_text (t, 0, 0, TAB_LEFT, _("File:"));
-  tab_text (t, 1, 0, TAB_LEFT, fh_handle_filename (h));
+  tab_text (t, 1, 0, TAB_LEFT, handle_get_filename (h));
   tab_text (t, 0, 1, TAB_LEFT, _("Label:"));
   {
     const char *label = dict_get_label (d);
@@ -179,8 +176,6 @@ cmd_display (void)
   /* Variables to display. */
   int n;
   struct variable **vl;
-
-  lex_match_id ("DISPLAY");
 
   if (lex_match_id ("MACROS"))
     display_macros ();

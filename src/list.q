@@ -125,7 +125,6 @@ cmd_list (void)
 {
   struct variable casenum_var;
 
-  lex_match_id ("LIST");
   if (!parse_list (&cmd))
     return CMD_FAILURE;
   

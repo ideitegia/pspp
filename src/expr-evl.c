@@ -1167,6 +1167,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 		sp->f = SYSMIS;
 		break;
 	      }
+            assert (c != NULL);
 	    sp->f = c->data[v->var[rindx - 1]->fv].f;
 	  }
 	  break;
@@ -1195,6 +1196,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    v = vect->var[rindx - 1];
 	    sp->c = pool_alloc (e->pool, v->width + 1);
 	    sp->c[0] = v->width;
+            assert (c != NULL);
 	    memcpy (&sp->c[1], c->data[v->fv].s, v->width);
 	  }
 	  break;
@@ -1212,6 +1214,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  break;
 	case OP_NUM_VAR:
 	  sp++;
+          assert (c != NULL);
 	  sp->f = c->data[(*vars)->fv].f;
 	  if (is_num_user_missing (sp->f, *vars))
 	    sp->f = SYSMIS;
@@ -1224,6 +1227,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp++;
 	    sp->c = pool_alloc (e->pool, width + 1);
 	    sp->c[0] = width;
+            assert (c != NULL);
 	    memcpy (&sp->c[1], &c->data[(*vars)->fv], width);
 	    vars++;
 	  }
@@ -1263,15 +1267,18 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  break;
 	case OP_NUM_SYS:
 	  sp++;
+          assert (c != NULL);
 	  sp->f = c->data[*op++].f == SYSMIS;
 	  break;
 	case OP_STR_MIS:
 	  sp++;
+          assert (c != NULL);
 	  sp->f = is_str_user_missing (c->data[(*vars)->fv].s, *vars);
 	  vars++;
 	  break;
 	case OP_NUM_VAL:
 	  sp++;
+          assert (c != NULL);
 	  sp->f = c->data[*op++].f;
 	  break;
 	case OP_CASENUM:

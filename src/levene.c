@@ -23,6 +23,7 @@
 #include <assert.h>
 #include "levene.h"
 #include "hash.h"
+#include "str.h"
 #include "var.h"
 #include "vfm.h"
 #include "alloc.h"

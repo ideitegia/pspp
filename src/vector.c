@@ -43,8 +43,6 @@ cmd_vector (void)
   /* Maximum allocated position for vecnames, plus one position. */
   char *endp = NULL;
 
-  lex_match_id ("VECTOR");
-
   cp = vecnames = xmalloc (256);
   endp = &vecnames[256];
   do

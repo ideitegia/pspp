@@ -43,8 +43,6 @@
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
-
-#include "debug-print.h"
 
 /* Global variables. */
 
@@ -59,71 +57,37 @@ const char *cur_proc;
 /* A single command. */
 struct command
   {
-    /* Initialized statically. */
-    char cmd[22];		/* Command name. */
+    const char *name;		/* Command name. */
     int transition[4];		/* Transitions to make from each state. */
     int (*func) (void);		/* Function to call. */
-
-    /* Calculated at startup time. */
-    char *word[3];		/* cmd[], divided into individual words. */
-    struct command *next;	/* Next command with same word[0]. */
+    int skip_entire_name;       /* If zero, we don't skip the
+                                   final token in the command name. */
   };
 
 /* Define the command array. */
 #define DEFCMD(NAME, T1, T2, T3, T4, FUNC)		\
-	{NAME, {T1, T2, T3, T4}, FUNC, {NULL, NULL, NULL}, NULL},
+	{NAME, {T1, T2, T3, T4}, FUNC, 1},
+#define SPCCMD(NAME, T1, T2, T3, T4, FUNC)		\
+	{NAME, {T1, T2, T3, T4}, FUNC, 0},
 #define UNIMPL(NAME, T1, T2, T3, T4)			\
-	{NAME, {T1, T2, T3, T4}, NULL, {NULL, NULL, NULL}, NULL},
-static struct command cmd_table[] = 
+	{NAME, {T1, T2, T3, T4}, NULL, 1},
+static const struct command commands[] = 
   {
 #include "command.def"
-    {"", {ERRO, ERRO, ERRO, ERRO}, NULL, {NULL, NULL, NULL}, NULL},
   };
 #undef DEFCMD
 #undef UNIMPL
+
+#define COMMAND_CNT (sizeof commands / sizeof *commands)
 
 /* Command parser. */
 
-static struct command *figure_out_command (void);
-
-/* Breaks the `cmd' member of C into individual words and sets C's
-   word[] member appropriately. */
-static void
-split_words (struct command *c)
-{
-  char *cmd, *save;
-  int i;
-
-  cmd = xstrdup (c->cmd);
-  for (i = 0; i < 3; i++)
-    cmd = c->word[i] = strtok_r (i == 0 ? cmd : NULL, " -", &save);
-}
-
-/* Initializes the command parser. */
-void
-cmd_init (void)
-{
-  struct command *c;
-
-  /* Break up command names into words. */
-  for (c = cmd_table; c->cmd[0]; c++)
-    split_words (c);
-
-  /* Make chains of commands having the same first word. */
-  for (c = cmd_table; c->cmd[0]; c++)
-    {
-      struct command *first;
-      for (first = c; c[1].word[0] && !strcmp (c[0].word[0], c[1].word[0]); c++)
-	c->next = c + 1;
-
-      c->next = NULL;
-    }
-}
+static const struct command *parse_command_name (void);
 
 /* Determines whether command C is appropriate to call in this
    part of a FILE TYPE structure. */
 static int
-FILE_TYPE_okay (struct command *c)
+FILE_TYPE_okay (const struct command *c)
 {
   int okay = 0;
   
@@ -131,12 +95,12 @@ FILE_TYPE_okay (struct command *c)
       && c->func != cmd_data_list
       && c->func != cmd_repeating_data
       && c->func != cmd_end_file_type)
-    msg (SE, _("%s not allowed inside FILE TYPE/END FILE TYPE."), c->cmd);
+    msg (SE, _("%s not allowed inside FILE TYPE/END FILE TYPE."), c->name);
 #if 0
   /* FIXME */
   else if (c->func == cmd_repeating_data && fty.type == FTY_GROUPED)
     msg (SE, _("%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."),
-	 c->cmd);
+	 c->name);
   else if (!fty.had_rec_type && c->func != cmd_record_type)
     msg (SE, _("RECORD TYPE must be the first command inside a "
 		      "FILE TYPE structure."));
@@ -159,7 +123,7 @@ FILE_TYPE_okay (struct command *c)
 int
 cmd_parse (void)
 {
-  struct command *cp;	/* Iterator used to find the proper command. */
+  const struct command *cp;	/* Iterator used to find the proper command. */
 
 #if C_ALLOCA
   /* The generic alloca package performs garbage collection when it is
@@ -183,17 +147,17 @@ cmd_parse (void)
      always an ID token. */
   if (token != T_ID)
     {
-      msg (SE, _("This line does not begin with a valid command name."));
+      lex_error (_("expecting command name"));
       return CMD_FAILURE;
     }
 
   /* Parse the command name. */
-  cp = figure_out_command ();
+  cp = parse_command_name ();
   if (cp == NULL)
     return CMD_FAILURE;
   if (cp->func == NULL)
     {
-      msg (SE, _("%s is not yet implemented."), cp->cmd);
+      msg (SE, _("%s is not yet implemented."), cp->name);
       while (token && token != '.')
 	lex_get ();
       return CMD_SUCCESS;
@@ -221,14 +185,9 @@ cmd_parse (void)
 	N_("%s is only allowed within an input program."),
       };
 
-      msg (SE, gettext (state_name[pgm_state]), cp->cmd);
+      msg (SE, gettext (state_name[pgm_state]), cp->name);
       return CMD_FAILURE;
     }
-
-#if DEBUGGING
-  if (cp->func != cmd_remark)
-    printf (_("%s command beginning\n"), cp->cmd);
-#endif
 
   /* The structured output manager numbers all its tables.  Increment
      the major table number for each separate procedure. */
@@ -243,7 +202,7 @@ cmd_parse (void)
       const char *prev_proc;
       
       prev_proc = cur_proc;
-      cur_proc = cp->cmd;
+      cur_proc = cp->name;
       result = cp->func ();
       cur_proc = prev_proc;
     }
@@ -261,140 +220,331 @@ cmd_parse (void)
 	  }
       }
 
-#if DEBUGGING
-    if (cp->func != cmd_remark)
-      printf (_("%s command completed\n\n"), cp->cmd);
-#endif
-
     /* Pass the command's success value up to the caller. */
     return result;
   }
 }
 
-/* Parse the command name and return a pointer to the corresponding
-   struct command if successful.
-   If not successful, return a null pointer. */
-static struct command *
-figure_out_command (void)
+static size_t
+match_strings (const char *a, size_t a_len,
+               const char *b, size_t b_len) 
 {
-  static const char *unk =
-    N_("The identifier(s) specified do not form a valid command name:");
-
-  static const char *inc = 
-    N_("The identifier(s) specified do not form a complete command name:");
-
-  struct command *cp;
-
-  /* Parse the INCLUDE short form.
-     Note that `@' is a valid character in identifiers. */
-  if (tokid[0] == '@')
-    return &cmd_table[0];
-
-  /* Find a command whose first word matches this identifier.
-     If it is the only command that begins with this word, return
-     it. */
-  for (cp = cmd_table; cp->cmd[0]; cp++)
-    if (lex_id_match (cp->word[0], tokid))
-      break;
-
-  if (cp->cmd[0] == '\0')
+  size_t match_len = 0;
+  
+  while (a_len > 0 && b_len > 0) 
     {
-      msg (SE, "%s %s.", gettext (unk), ds_value (&tokstr));
+      /* Mismatch always returns zero. */
+      if (*a++ != *b++)
+        return 0;
+
+      /* Advance. */
+      a_len--;
+      b_len--;
+      match_len++;
+    }
+
+  return match_len;
+}
+
+/* Returns the first character in the first word in STRING,
+   storing the word's length in *WORD_LEN.  If no words remain,
+   returns a null pointer and stores 0 in *WORD_LEN.  Words are
+   sequences of alphanumeric characters or single
+   non-alphanumeric characters.  Words are delimited by
+   spaces. */
+static const char *
+find_word (const char *string, size_t *word_len) 
+{
+  /* Skip whitespace and asterisks. */
+  while (isspace (*string))
+    string++;
+
+  /* End of string? */
+  if (*string == '\0') 
+    {
+      *word_len = 0;
       return NULL;
     }
 
-  if (cp->next == NULL)
-    return cp;
-  
-  /* We know that there is more than one command starting with this
-     word.  Read the next word in the command name. */
-  {
-    struct command *ocp = cp;
-    
-    /* Verify that the next token is an identifier, because we
-       must disambiguate this command name. */
-    lex_get ();
-    if (token != T_ID)
-      {
-	/* If there's a command whose name is the first word only,
-	   return it.  This happens with, i.e., PRINT vs. PRINT
-	   SPACE. */
-	if (ocp->word[1] == NULL)
-	  return ocp;
-	
-	msg (SE, "%s %s.", gettext (inc), ds_value (&tokstr));
-	return NULL;
-      }
-
-    for (; cp; cp = cp->next)
-      if (cp->word[1] && lex_id_match (cp->word[1], tokid))
-	break;
-
-    if (cp == NULL)
-      {
-	/* No match.  If there's a command whose name is the first
-	   word only, return it.  This happens with, i.e., PRINT
-	   vs. PRINT SPACE. */
-	if (ocp->word[1] == NULL)
-	  return ocp;
-	
-	msg (SE, "%s %s %s.", gettext (unk), ocp->word[0], tokid);
-	return NULL;
-      }
-  
-    /* Check whether the next token is an identifier.
-       If not, bail. */
-    if (!isalpha ((unsigned char) (lex_look_ahead ())))
-      {
-	/* Check whether there is an unambiguous interpretation.
-	   If not, give an error. */
-	if (cp->word[2]
-	    && cp->next
-	    && !strcmp (cp->word[1], cp->next->word[1]))
-	  {
-	    msg (SE, "%s %s %s.", gettext (inc), ocp->word[0], ocp->word[1]);
-	    return NULL;
-	  }
-	else
-	  return cp;
-      }
-  }
-  
-  /* If this command can have a third word, disambiguate based on it. */
-  if (cp->word[2]
-      || (cp->next
-	  && cp->next->word[2]
-	  && !strcmp (cp->word[1], cp->next->word[1])))
+  /* Special one-character word? */
+  if (!isalnum ((unsigned char) *string)) 
     {
-      struct command *ocp = cp;
-      
-      lex_get ();
-      assert (token == T_ID);
-
-      /* Try to find a command with this third word.
-	 If found, bail. */
-      for (; cp; cp = cp->next)
-	if (cp->word[2]
-	    && !strcmp (cp->word[1], ocp->word[1])
-	    && lex_id_match (cp->word[2], tokid))
-	  break;
-
-      if (cp != NULL)
-	return cp;
-
-      /* If no command with this third word found, make sure that
-	 there's a command with those first two words but without a
-	 third word. */
-      cp = ocp;
-      if (cp->word[2])
-	{
-	  msg (SE, "%s %s %s %s.",
-	       gettext (unk), ocp->word[0], ocp->word[1], ds_value (&tokstr));
-	  return 0;
-	}
+      *word_len = 1;
+      return string;
     }
 
-  return cp;
+  /* Alphanumeric word. */
+  *word_len = 1;
+  while (isalnum ((unsigned char) string[*word_len]))
+    (*word_len)++;
+
+  return string;
+}
+
+/* Returns nonzero if strings A and B can be confused based on
+   their first three letters. */
+static int
+conflicting_3char_prefixes (const char *a, const char *b) 
+{
+  size_t aw_len, bw_len;
+  const char *aw, *bw;
+
+  aw = find_word (a, &aw_len);
+  bw = find_word (b, &bw_len);
+  assert (aw != NULL && bw != NULL);
+
+  return ((aw_len > 3 && bw_len > 3)
+          || (aw_len == 3 && bw_len > 3)
+          || (bw_len == 3 && aw_len > 3)) && !memcmp (aw, bw, 3);
+}
+
+/* Returns nonzero if CMD can be confused with another command
+   based on the first three letters of its first word. */
+static int
+conflicting_3char_prefix_command (const struct command *cmd) 
+{
+  assert (cmd >= commands && cmd < commands + COMMAND_CNT);
+
+  return ((cmd > commands
+           && conflicting_3char_prefixes (cmd[-1].name, cmd[0].name))
+          || (cmd < commands + COMMAND_CNT
+              && conflicting_3char_prefixes (cmd[0].name, cmd[1].name)));
+}
+
+/* Ways that a set of words can match a command name. */
+enum command_match
+  {
+    MISMATCH,           /* Not a match. */
+    PARTIAL_MATCH,      /* The words begin the command name. */
+    COMPLETE_MATCH      /* The words are the command name. */
+  };
+
+/* Figures out how well the WORD_CNT words in WORDS match CMD,
+   and returns the appropriate enum value.  If WORDS are a
+   partial match for CMD and the next word in CMD is a dash, then
+   *DASH_POSSIBLE is set to 1 if DASH_POSSIBLE is non-null;
+   otherwise, *DASH_POSSIBLE is unchanged. */
+static enum command_match
+cmd_match_words (const struct command *cmd,
+                 char *const words[], size_t word_cnt,
+                 int *dash_possible)
+{
+  const char *word;
+  size_t word_len;
+  size_t word_idx;
+
+  for (word = find_word (cmd->name, &word_len), word_idx = 0;
+       word != NULL && word_idx < word_cnt;
+       word = find_word (word + word_len, &word_len), word_idx++)
+    if (word_len != strlen (words[word_idx])
+        || memcmp (word, words[word_idx], word_len))
+      {
+        size_t match_chars = match_strings (word, word_len,
+                                            words[word_idx],
+                                            strlen (words[word_idx]));
+        if (match_chars == 0) 
+          {
+            /* Mismatch. */
+            return MISMATCH;
+          }
+        else if (match_chars == 1 || match_chars == 2) 
+          {
+            /* One- and two-character abbreviations are not
+               acceptable. */
+            return MISMATCH; 
+          }
+        else if (match_chars == 3) 
+          {
+            /* Three-character abbreviations are acceptable
+               in the first word of a command if there are
+               no name conflicts.  They are always
+               acceptable after the first word. */
+            if (word_idx == 0 && conflicting_3char_prefix_command (cmd))
+              return MISMATCH;
+          }
+        else /* match_chars > 3 */ 
+          {
+            /* Four-character and longer abbreviations are
+               always acceptable.  */
+          }
+      }
+
+  if (word == NULL && word_idx == word_cnt) 
+    {
+      /* cmd->name = "FOO BAR", words[] = {"FOO", "BAR"}. */
+      return COMPLETE_MATCH;
+    }
+  else if (word == NULL) 
+    {
+      /* cmd->name = "FOO BAR", words[] = {"FOO", "BAR", "BAZ"}. */
+      return MISMATCH; 
+    }
+  else 
+    {
+      /* cmd->name = "FOO BAR BAZ", words[] = {"FOO", "BAR"}. */
+      if (word[0] == '-' && dash_possible != NULL)
+        *dash_possible = 1;
+      return PARTIAL_MATCH; 
+    }
+}
+
+/* Returns the number of commands for which the WORD_CNT words in
+   WORDS are a partial or complete match.  If some partial match
+   has a dash as the next word, then *DASH_POSSIBLE is set to 1,
+   otherwise it is set to 0. */
+static int
+count_matching_commands (char *const words[], size_t word_cnt,
+                         int *dash_possible) 
+{
+  const struct command *cmd;
+  int cmd_match_count;
+
+  cmd_match_count = 0;
+  *dash_possible = 0;
+  for (cmd = commands; cmd < commands + COMMAND_CNT; cmd++) 
+    if (cmd_match_words (cmd, words, word_cnt, dash_possible) != MISMATCH) 
+      cmd_match_count++; 
+
+  return cmd_match_count;
+}
+
+/* Returns the command for which the WORD_CNT words in WORDS are
+   a complete match.  Returns a null pointer if no such command
+   exists. */
+static const struct command *
+get_complete_match (char *const words[], size_t word_cnt) 
+{
+  const struct command *cmd;
+  
+  for (cmd = commands; cmd < commands + COMMAND_CNT; cmd++) 
+    if (cmd_match_words (cmd, words, word_cnt, NULL) == COMPLETE_MATCH) 
+      return cmd; 
+  
+  return NULL;
+}
+
+/* Frees the WORD_CNT words in WORDS. */
+static void
+free_words (char *words[], size_t word_cnt) 
+{
+  size_t idx;
+  
+  for (idx = 0; idx < word_cnt; idx++)
+    free (words[idx]);
+}
+
+/* Flags an error that the command whose name is given by the
+   WORD_CNT words in WORDS is unknown. */
+static void
+unknown_command_error (char *const words[], size_t word_cnt) 
+{
+  size_t idx;
+  size_t words_len;
+  char *name, *cp;
+
+  words_len = 0;
+  for (idx = 0; idx < word_cnt; idx++)
+    words_len += strlen (words[idx]);
+
+  cp = name = xmalloc (words_len + word_cnt + 16);
+  for (idx = 0; idx < word_cnt; idx++) 
+    {
+      if (idx != 0)
+        *cp++ = ' ';
+      cp = stpcpy (cp, words[idx]);
+    }
+  *cp = '\0';
+
+  msg (SE, _("Unknown command %s."), name);
+
+  free (name);
+}
+
+
+/* Parse the command name and return a pointer to the corresponding
+   struct command if successful.
+   If not successful, return a null pointer. */
+static const struct command *
+parse_command_name (void)
+{
+  char *words[16];
+  int word_cnt;
+  int complete_word_cnt;
+  int dash_possible;
+
+  dash_possible = 0;
+  word_cnt = complete_word_cnt = 0;
+  while (token == T_ID || (dash_possible && token == '-')) 
+    {
+      int cmd_match_cnt;
+      
+      assert (word_cnt < sizeof words / sizeof *words);
+      if (token == T_ID)
+        words[word_cnt++] = xstrdup (ds_value (&tokstr));
+      else
+        words[word_cnt++] = xstrdup ("-");
+
+      cmd_match_cnt = count_matching_commands (words, word_cnt,
+                                               &dash_possible);
+      if (cmd_match_cnt == 0) 
+        break;
+      else if (cmd_match_cnt == 1) 
+        {
+          const struct command *command = get_complete_match (words, word_cnt);
+          if (command != NULL) 
+            {
+              if (command->skip_entire_name)
+                lex_get ();
+              free_words (words, word_cnt);
+              return command;
+            }
+        }
+      else /* cmd_match_cnt > 1 */
+        {
+          /* Do we have a complete command name so far? */
+          if (get_complete_match (words, word_cnt) != NULL)
+            complete_word_cnt = word_cnt;
+        }
+      lex_get ();
+    }
+
+  /* If we saw a complete command name earlier, drop back to
+     it. */
+  if (complete_word_cnt) 
+    {
+      int pushback_word_cnt;
+      const struct command *command;
+
+      /* Get the command. */
+      command = get_complete_match (words, complete_word_cnt);
+      assert (command != NULL);
+
+      /* Figure out how many words we want to keep.
+         We normally want to swallow the entire command. */
+      pushback_word_cnt = complete_word_cnt + 1;
+      if (!command->skip_entire_name)
+        pushback_word_cnt--;
+      
+      /* FIXME: We only support one-token pushback. */
+      assert (pushback_word_cnt + 1 >= word_cnt);
+
+      while (word_cnt > pushback_word_cnt) 
+        {
+          word_cnt--;
+          if (strcmp (words[word_cnt], "-")) 
+            lex_put_back_id (words[word_cnt]);
+          else
+            lex_put_back ('-');
+          free (words[word_cnt]);
+        }
+
+      free_words (words, word_cnt);
+      return command;
+    }
+
+  unknown_command_error (words, word_cnt);
+  free_words (words, word_cnt);
+  return NULL;
 }
 
 /* Simple commands. */
@@ -544,9 +694,6 @@ cmd_n_of_cases (void)
   /* Value for N. */
   int x;
 
-  lex_match_id ("N");
-  lex_match_id ("OF");
-  lex_match_id ("CASES");
   if (!lex_force_int ())
     return CMD_FAILURE;
   x = lex_integer ();
@@ -561,7 +708,6 @@ cmd_n_of_cases (void)
 int
 cmd_execute (void)
 {
-  lex_match_id ("EXECUTE");
   procedure (NULL, NULL);
   return lex_end_of_command ();
 }
@@ -570,15 +716,12 @@ cmd_execute (void)
 int
 cmd_erase (void)
 {
-
   if ( safer_mode() ) 
     { 
       msg (SE, _("This command not allowed when the SAFER option is set.")); 
       return CMD_FAILURE; 
     } 
-
   
-  lex_match_id ("ERASE");
   if (!lex_force_match_id ("FILE"))
     return CMD_FAILURE;
   lex_match ('=');
@@ -709,8 +852,6 @@ cmd_host (void)
       return CMD_FAILURE; 
     } 
 
-  lex_match_id ("HOST");
-
 #ifdef unix
   /* Figure out whether to invoke an interactive shell or to execute a
      single shell command. */
@@ -740,9 +881,6 @@ cmd_host (void)
 int
 cmd_new_file (void)
 {
-  lex_match_id ("NEW");
-  lex_match_id ("FILE");
-  
   discard_variables ();
 
   return lex_end_of_command ();
@@ -752,9 +890,6 @@ cmd_new_file (void)
 int
 cmd_clear_transformations (void)
 {
-  lex_match_id ("CLEAR");
-  lex_match_id ("TRANSFORMATIONS");
-
   if (getl_reading_script)
     {
       msg (SW, _("This command is not valid in a syntax file."));
@@ -762,6 +897,8 @@ cmd_clear_transformations (void)
     }
 
   cancel_transformations ();
+  /* FIXME: what about variables created by transformations?
+     They need to be properly initialized. */
 
   return CMD_SUCCESS;
 }

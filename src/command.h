@@ -43,15 +43,17 @@ enum
 extern int pgm_state;
 extern const char *cur_proc;
 
-void cmd_init (void);
 int cmd_parse (void);
 
 /* Prototype all the command functions. */
 #define DEFCMD(NAME, T1, T2, T3, T4, FUNC)	\
 	int FUNC (void);
+#define SPCCMD(NAME, T1, T2, T3, T4, FUNC)	\
+	int FUNC (void);
 #define UNIMPL(NAME, T1, T2, T3, T4)
 #include "command.def"
 #undef DEFCMD
+#undef SPCCMD
 #undef UNIMPL
 
 #endif /* !command_h */

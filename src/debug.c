@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 2004 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -18,30 +18,28 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include "alloc.h"
 #include "command.h"
 #include "error.h"
-#include "getline.h"
+#include "expr.h"
 #include "lexer.h"
-#include "str.h"
+#include "var.h"
 
 int
-cmd_include (void)
+cmd_debug_evaluate (void)
 {
-  /* Skip optional FILE=. */
-  if (lex_match_id ("FILE"))
-    lex_match ('=');
+  struct expression *expr;
 
-  /* Filename can be identifier or string. */
-  if (token != T_ID && token != T_STRING) 
+  discard_variables ();
+  expr = expr_parse (PXP_NONE);
+  if (!expr)
+    return CMD_FAILURE;
+
+  expr_free (expr);
+  if (token != '.')
     {
-      lex_error (_("expecting filename")); 
+      msg (SE, _("Extra characters after expression."));
       return CMD_FAILURE;
     }
-  getl_include (ds_value (&tokstr));
-
-  lex_get ();
-  return lex_end_of_command ();
+  
+  return CMD_SUCCESS;
 }

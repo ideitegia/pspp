@@ -111,9 +111,6 @@ cmd_data_list (void)
   /* 0=print no table, 1=print table.  (TABLE subcommand.)  */
   int table = -1;
 
-  lex_match_id ("DATA");
-  lex_match_id ("LIST");
-
   if (!case_source_is_complex (vfm_source))
     discard_variables ();
 
@@ -236,6 +233,9 @@ cmd_data_list (void)
       if (table)
 	dump_free_table (dls);
     }
+
+  if (!dfm_open_for_reading (dls->handle))
+    goto error;
 
   if (vfm_source != NULL)
     {
@@ -783,7 +783,7 @@ dump_fixed_table (const struct dls_var_spec *specs,
 		    fmt_to_string (&spec->input));
     }
 
-  filename = fh_handle_name (handle);
+  filename = handle_get_filename (handle);
   if (filename == NULL)
     filename = "";
   buf = local_alloc (strlen (filename) + INT_DIGITS + 80);
@@ -797,7 +797,6 @@ dump_fixed_table (const struct dls_var_spec *specs,
   
   tab_title (t, 0, buf);
   tab_submit (t);
-  fh_handle_name (NULL);
   local_free (buf);
 }
 
@@ -915,7 +914,7 @@ dump_free_table (const struct data_list_pgm *dls)
   {
     const char *filename;
 
-    filename = fh_handle_name (dls->handle);
+    filename = handle_get_filename (dls->handle);
     if (filename == NULL)
       filename = "";
     tab_title (t, 1,
@@ -926,7 +925,6 @@ dump_free_table (const struct data_list_pgm *dls)
   }
   
   tab_submit (t);
-  fh_handle_name (NULL);
 }
 
 /* Input procedure. */ 
@@ -1322,9 +1320,6 @@ cmd_repeating_data (void)
   /* Bits are set when a particular subcommand has been seen. */
   unsigned seen = 0;
   
-  lex_match_id ("REPEATING");
-  lex_match_id ("DATA");
-
   assert (case_source_is_complex (vfm_source));
 
   rpd = xmalloc (sizeof *rpd);
@@ -1539,9 +1534,9 @@ cmd_repeating_data (void)
 
   /* Calculate starts_end, cont_end if necessary. */
   if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL)
-    rpd->starts_end.num = fh_record_width (rpd->handle);
+    rpd->starts_end.num = handle_get_record_width (rpd->handle);
   if (rpd->cont_end.num == 0 && rpd->starts_end.var == NULL)
-    rpd->cont_end.num = fh_record_width (rpd->handle);
+    rpd->cont_end.num = handle_get_record_width (rpd->handle);
       
   /* Calculate length if possible. */
   if ((seen & 4) == 0)

@@ -59,8 +59,6 @@ cmd_sample (void)
   int a, b;
   unsigned frac;
 
-  lex_match_id ("SAMPLE");
-
   if (!lex_force_num ())
     return CMD_FAILURE;
   if (!lex_integer_p ())

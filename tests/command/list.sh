@@ -85,7 +85,7 @@ diff -b -B $TEMPDIR/pspp.list - <<EOF
 Testing use of LIST in single-line cases.
 ----------------------------------------------------------------------
 
-1.1 DATA LIST.  Reading 1 record from file "$top_srcdir/tests/weighting.data".
+1.1 DATA LIST.  Reading 1 record from file $top_srcdir/tests/weighting.data.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#

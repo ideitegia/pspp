@@ -34,8 +34,6 @@
 #include "tab.h"
 #include "var.h"
 
-#include "debug-print.h"
-
 /* Describes what to do when an output field is encountered. */
 enum
   {
@@ -104,10 +102,6 @@ static int parse_specs (void);
 static void dump_table (void);
 static void append_var_spec (struct prt_out_spec *spec);
 static void alloc_line (void);
-
-#if DEBUGGING
-void debug_print (void);
-#endif
 
 /* Basic parsing. */
 
@@ -115,7 +109,6 @@ void debug_print (void);
 int
 cmd_print (void)
 {
-  lex_match_id ("PRINT");
   return internal_cmd_print (PRT_PRINT);
 }
 
@@ -123,7 +116,6 @@ cmd_print (void)
 int
 cmd_print_eject (void)
 {
-  lex_match_id ("EJECT");
   return internal_cmd_print (PRT_PRINT | PRT_EJECT);
 }
 
@@ -131,7 +123,6 @@ cmd_print_eject (void)
 int
 cmd_write (void)
 {
-  lex_match_id ("WRITE");
   return internal_cmd_print (PRT_WRITE);
 }
 
@@ -194,6 +185,9 @@ internal_cmd_print (int f)
   if (!parse_specs ())
     goto lossage;
   
+  if (prt.handle != NULL && !dfm_open_for_writing (prt.handle))
+    goto lossage;
+
   /* Output the variable table if requested. */
   if (table)
     dump_table ();
@@ -206,10 +200,6 @@ internal_cmd_print (int f)
   trns = xmalloc (sizeof *trns);
   memcpy (trns, &prt, sizeof *trns);
   add_transformation ((struct trns_header *) trns);
-
-#if 0 && DEBUGGING
-  debug_print ();
-#endif
 
   return CMD_SUCCESS;
 
@@ -787,7 +777,6 @@ static void
 dump_table (void)
 {
   struct prt_out_spec *spec;
-  const char *filename;
   struct tab_table *t;
   int recno;
   int nspec;
@@ -841,13 +830,12 @@ dump_table (void)
 	assert (0);
       }
 
-  filename = fh_handle_name (prt.handle);
-  tab_title (t, 1, (prt.handle != NULL
-		    ? _("Writing %3d records to file %s.")
-		    : _("Writing %3d records to the listing file.")),
-	     recno, filename);
+  if (prt.handle != NULL)
+    tab_title (t, 1, _("Writing %d record(s) to file %s."),
+               recno, handle_get_filename (prt.handle));
+  else
+    tab_title (t, 1, _("Writing %d record(s) to the listing file."), recno);
   tab_submit (t);
-  fh_handle_name (NULL);
 }
 
 /* PORTME: The number of characters in a line terminator. */
@@ -937,7 +925,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
 	else
 	  {
 	    if ((t->options & PRT_CMD_MASK) == PRT_PRINT
-		|| t->handle->mode != FH_MD_BINARY)
+		|| handle_get_mode (t->handle) != MODE_BINARY)
 	      {
 		/* PORTME: Line ends. */
 #ifdef __MSDOS__
@@ -1028,23 +1016,12 @@ cmd_print_space (void)
   struct file_handle *handle;
   struct expression *e;
 
-  lex_match_id ("SPACE");
   if (lex_match_id ("OUTFILE"))
     {
       lex_match ('=');
 
-      if (token == T_ID)
-	handle = fh_get_handle_by_name (tokid);
-      else if (token == T_STRING)
-	handle = fh_get_handle_by_filename (tokid);
-      else
-	{
-	  msg (SE, _("A file name or handle was expected in the "
-		     "OUTFILE subcommand."));
-	  return CMD_FAILURE;
-	}
-      
-      if (!handle)
+      handle = fh_parse_file_handle ();
+      if (handle == NULL)
 	return CMD_FAILURE;
       lex_get ();
     }
@@ -1063,6 +1040,12 @@ cmd_print_space (void)
     }
   else
     e = NULL;
+
+  if (handle != NULL && !dfm_open_for_writing (handle))
+    {
+      expr_free (e);
+      return CMD_FAILURE;
+    }
 
   t = xmalloc (sizeof *t);
   t->h.proc = print_space_trns_proc;
@@ -1128,45 +1111,3 @@ print_space_trns_free (struct trns_header * trns)
 {
   expr_free (((struct print_space_trns *) trns)->e);
 }
-
-/* Debugging code. */
-
-#if 0 && DEBUGGING
-void
-debug_print (void)
-{
-  struct prt_out_spec *p;
-
-  if (prt.handle == NULL)
-    {
-      printf ("PRINT");
-      if (prt.eject)
-	printf (" EJECT");
-    }
-  else
-    printf ("WRITE OUTFILE=%s", handle_name (prt.handle));
-  printf (" MAX_WIDTH=%d", prt.max_width);
-  printf (" /");
-  for (p = prt.spec; p; p = p->next)
-    switch (p->type)
-      {
-      case PRT_ERROR:
-	printf (_("<ERROR>"));
-	break;
-      case PRT_NEWLINE:
-	printf ("\n /");
-	break;
-      case PRT_CONST:
-	printf (" \"%s\" %d-%d", p->u.c, p->fc + 1, p->fc + strlen (p->u.c));
-	break;
-      case PRT_VAR:
-	printf (" %s %d %d-%d (%s)", p->u.v.v->name, p->u.v.v->fv, p->fc + 1,
-		p->fc + p->u.v.v->print.w, fmt_to_string (&p->u.v.v->print));
-	break;
-      case PRT_SPACE:
-	printf (" \" \" %d", p->fc + 1);
-	break;
-      }
-  printf (".\n");
-}
-#endif /* DEBUGGING */

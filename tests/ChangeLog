@@ -1,3 +1,11 @@
+Sat Mar 20 18:11:15 2004  Ben Pfaff  <blp@gnu.org>
+
+	* command/list.sh: Update output.
+
+	* command/print.sh: Ditto.
+
+	* command/weight.sh: Ditto.
+
 Sun Mar 14 23:04:14 2004  Ben Pfaff  <blp@gnu.org>
 
 	* command/sort.sh: Use numeric, not string, data to avoid spurious

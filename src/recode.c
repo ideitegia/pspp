@@ -142,8 +142,6 @@ cmd_recode (void)
   struct variable **v;
   int nv;
 
-  lex_match_id ("RECODE");
-
   /* Parses each specification between slashes. */
   head = rcd = xmalloc (sizeof *rcd);
   v = NULL;

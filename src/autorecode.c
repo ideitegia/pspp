@@ -103,7 +103,6 @@ cmd_autorecode (void)
   arc.print = 0;
   dst_cnt = 0;
 
-  lex_match_id ("AUTORECODE");
   lex_match_id ("VARIABLES");
   lex_match ('=');
   if (!parse_variables (default_dict, &arc.src_vars, &arc.var_cnt,
@@ -205,7 +204,8 @@ arc_free (struct autorecode_pgm *arc)
       int i;
 
       for (i = 0; i < arc->var_cnt; i++)
-        hsh_destroy (arc->src_values[i]); 
+        hsh_destroy (arc->src_values[i]);
+      free (arc->src_values);
     }
   pool_destroy (arc->src_values_pool);
 }

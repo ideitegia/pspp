@@ -193,8 +193,6 @@ cmd_descriptives (void)
   v_variables = NULL;
   n_variables = 0;
 
-  lex_match_id ("DESCRIPTIVES");
-  lex_match_id ("CONDESCRIPTIVES");
   if (!parse_descriptives (&cmd))
     goto lossage;
 

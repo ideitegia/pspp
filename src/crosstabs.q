@@ -185,7 +185,6 @@ internal_cmd_crosstabs (void)
   pl_tc = pool_create ();
   pl_col = pool_create ();
 
-  lex_match_id ("CROSSTABS");
   if (!parse_crosstabs (&cmd))
     return CMD_FAILURE;
 
