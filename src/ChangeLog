@@ -1,3 +1,10 @@
+Wed Jan  5 21:23:31 2005  Ben Pfaff  <blp@gnu.org>
+
+	* sort.c: (merge) Fix assertion for proper Huffman merge pattern:
+	0 == 1 modulo 1.  See Knuth 5.4.9 (vol. 3, 2nd ed.,
+	pp. 361).  Thanks to John Darrington <john@cellform.com.au> for
+	reporting the bug.
+
 Wed Jan  5 22:42:26 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* case.h Fixed bug # 11307
@@ -159,7 +166,6 @@ Tue Nov 16 13:19:18 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* permissions.c command.def Added the PERMISSIONS command
 
->>>>>>> 1.110
 Mon Nov 15 01:33:32 2004  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: (dump_header) Don't try to emit #includes at very top of
@@ -386,7 +392,6 @@ Mon Nov 15 00:30:33 2004  Ben Pfaff  <blp@gnu.org>
 	(var_dtor_free) New function.
 	(discard_variables) Use NULL instead of inline_file.
 
->>>>>>> 1.106
 Fri Nov 12 10:07:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* value-labs.c  Fixed the implmentation of value_to_string, so 
