@@ -8,13 +8,15 @@ TESTS = command/aggregate.sh \
 	command/autorecod.sh \
 	command/beg-data.sh \
 	command/bignum.sh \
+	command/count.sh \
+	command/sort.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh
 
 noinst_PROGRAMS = gengarbage
 
 noinst_DATA = sort.data
-sort.data: gengarbage
+sort.data: gengarbage$(EXTEXT)
 	./gengarbage | head -1000 > $@
 
 EXTRA_DIST = bignum.data	\
