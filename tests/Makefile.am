@@ -14,6 +14,7 @@ TESTS = command/aggregate.sh \
 	command/lag.sh \
 	command/list.sh \
 	command/loop.sh \
+	command/percentiles.sh \
 	command/print.sh \
 	command/sample.sh \
 	command/sort.sh \

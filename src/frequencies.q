@@ -44,6 +44,7 @@
 #include "tab.h"
 #include "var.h"
 #include "vfm.h"
+#include "str.h"
 
 #include "debug-print.h"
 
@@ -108,8 +109,9 @@ static struct frq_info st_name[frq_n_stats + 1] =
 };
 
 /* Percentiles to calculate. */
-static double *percentiles;
-static int n_percentiles;
+static double *percentiles=0;
+static double *percentile_values=0;
+static int n_percentiles=0;
 
 /* Groups of statistics. */
 #define BI          BIT_INDEX
@@ -733,9 +735,17 @@ add_percentile (double x)
     {
       percentiles = pool_realloc (int_pool, percentiles,
 				  (n_percentiles + 1) * sizeof (double));
+      percentile_values = pool_realloc (int_pool, percentile_values,
+				  (n_percentiles + 1) * sizeof (double));
+
       if (i < n_percentiles)
+	{
 	memmove (&percentiles[i + 1], &percentiles[i],
 		 (n_percentiles - i) * sizeof (double));
+	memmove (&percentile_values[i + 1], &percentile_values[i],
+		 (n_percentiles - i) * sizeof (double));
+
+	}
       percentiles[i] = x;
       n_percentiles++;
     }
@@ -1061,12 +1071,35 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   struct freq *f;
   int most_often;
 
+  double cum_percent=0;
+  int i=0;
+  double previous_value=SYSMIS;
+
+
+
   /* Calculate the mean and  mode */
   X_bar = 0.0;
   most_often = -1;
   X_mode = SYSMIS;
   for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
     {
+
+ 
+      cum_percent += f->c / v->p.frq.tab.valid_cases ;
+
+
+      for(;i < n_percentiles ;  ++i) 
+	{
+	  
+
+	  if (cum_percent <= percentiles[i]) 
+	    break;
+
+	  percentile_values[i]=previous_value;
+
+	}
+
+
       /* mean */
       X_bar += f->v.f * f->c;
 
@@ -1081,6 +1114,8 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 	  /* if there are 2 values , then mode is undefined */
 	  X_mode=SYSMIS;
 	}
+
+      previous_value=f->v.f;
     }
   X_bar /= W;
 
@@ -1154,7 +1189,7 @@ dump_statistics (struct variable * v, int show_varname)
     }
   calc_stats (v, stat_value);
 
-  t = tab_create (2, n_stats, 0);
+  t = tab_create (2, n_stats + n_percentiles, 0);
   tab_dim (t, tab_natural_dimensions);
   tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, n_stats - 1);
   for (i = r = 0; i < frq_n_stats; i++)
@@ -1165,6 +1200,20 @@ dump_statistics (struct variable * v, int show_varname)
 	tab_float (t, 1, r, TAB_NONE, stat_value[i], 11, 3);
 	r++;
       }
+
+  for ( i=0 ; i < n_percentiles ; ++i,++r ) { 
+    struct string ds;
+
+    ds_init(gen_pool, &ds, 20 );
+
+    ds_printf(&ds,"%s %d",_("Percentile"),(int)(percentiles[i]*100));
+
+
+    tab_text(t,0,r, TAB_LEFT | TAT_TITLE, ds.string);
+    tab_float(t,1,r,TAB_NONE,percentile_values[i],11,3);
+
+    ds_destroy(&ds);
+  }
 
   tab_columns (t, SOM_COL_DOWN, 1);
   if (show_varname)
