@@ -17,7 +17,7 @@ EXTRA_DIST = $(q_sources_q) q2c.c
 ETAGS_ARGS = -l c $(q_sources_c)
 SUFFIXES = .q
 
-$(q_sources_c): q2c
+$(q_sources_c): q2c$(EXEEXT)
 .q.c:
 	./q2c $< $@
 
