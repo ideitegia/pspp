@@ -1,3 +1,9 @@
+Tue Dec 30 22:42:57 2003  Ben Pfaff  <blp@gnu.org>
+
+	* Removed bletcherous alloca() workarounds for AIX from top of
+	many files.  AIX can use the alternative alloca() implementation
+	instead.
+
 Tue Dec 30 22:35:16 2003  Ben Pfaff  <blp@gnu.org>
 
 	* ascii.c: (ascii_option) Fix implementation of headers option.
