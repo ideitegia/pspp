@@ -38,6 +38,13 @@
 
 #include "debug-print.h"
 
+/* GET or IMPORT input program. */
+struct get_pgm 
+  {
+    struct file_handle *handle; /* File to GET or IMPORT from. */
+    size_t case_size;           /* Case size in bytes. */
+  };
+
 /* XSAVE transformation (and related SAVE, EXPORT procedures). */
 struct save_trns
   {
@@ -69,6 +76,7 @@ cmd_get (void)
 {
   struct file_handle *handle;
   struct dictionary *dict;
+  struct get_pgm *pgm;
   int options = GTSV_OPT_NONE;
 
   lex_match_id ("GET");
@@ -114,7 +122,10 @@ cmd_get (void)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = create_case_source (&get_source_class, handle);
+  pgm = xmalloc (sizeof *pgm);
+  pgm->handle = handle;
+  pgm->case_size = dict_get_case_size (default_dict);
+  vfm_source = create_case_source (&get_source_class, default_dict, pgm);
 
   return CMD_SUCCESS;
 }
@@ -246,21 +257,24 @@ do_write_case (struct save_trns *t, struct ccase *c)
   sfm_write_case (t->f, t->case_buf, p - t->case_buf);
 }
 
+/* Writes case C to the system file specified on SAVE. */
 static int
-save_write_case_func (struct ccase * c, void *aux UNUSED)
+save_write_case_func (struct ccase *c, void *aux UNUSED)
 {
   do_write_case (aux, c);
   return 1;
 }
 
+/* Writes case C to the system file specified on XSAVE. */
 static int
-save_trns_proc (struct trns_header *h, struct ccase * c, int case_num UNUSED)
+save_trns_proc (struct trns_header *h, struct ccase *c, int case_num UNUSED)
 {
   struct save_trns *t = (struct save_trns *) h;
   do_write_case (t, c);
   return -1;
 }
 
+/* Frees a SAVE transformation. */
 static void
 save_trns_free (struct trns_header *pt)
 {
@@ -477,22 +491,24 @@ dump_dict_variables (struct dictionary * dict)
 static void
 get_source_destroy (struct case_source *source)
 {
-  struct file_handle *handle = source->aux;
+  struct get_pgm *pgm = source->aux;
 
   /* It is not necessary to destroy the dictionary because if we get
      to this point then the dictionary is default_dict. */
-  fh_close_handle (handle);
+  fh_close_handle (pgm->handle);
+  free (pgm);
 }
 
-/* Reads all the cases from the data file and passes them to
-   write_case(). */
+/* Reads all the cases from the data file into C and passes them
+   to WRITE_CASE one by one, passing WC_DATA. */
 static void
 get_source_read (struct case_source *source,
+                 struct ccase *c,
                  write_case_func *write_case, write_case_data wc_data)
 {
-  struct file_handle *handle = source->aux;
+  struct get_pgm *pgm = source->aux;
 
-  while (sfm_read_case (handle, temp_case->data, default_dict)
+  while (sfm_read_case (pgm->handle, c->data, default_dict)
 	 && write_case (wc_data))
     ;
 }
@@ -848,10 +864,7 @@ cmd_match_files (void)
 
      FIXME: For merging large numbers of files (more than 10?) a
      better algorithm would use a heap for finding minimum
-     values, or replacement selection, as described by Knuth in
-     _Art of Computer Programming, Vol. 3_.  The SORT CASES
-     procedure does this, and perhaps some of its code could be
-     adapted. */
+     values. */
 
   if (!(seen & 2))
     discard_variables ();
@@ -894,7 +907,7 @@ mtf_processing_finish (void *aux UNUSED)
   }
   
   while (mtf_head && mtf_head->type == MTF_FILE)
-    if (!mtf_processing (temp_case, NULL))
+    if (!mtf_processing (NULL, NULL))
       break;
 }
 
@@ -1006,20 +1019,22 @@ mtf_read_nonactive_records (void *aux UNUSED)
 	    iter = iter->next;
 	}
       else
-	{
-	  iter->input = temp_case->data;
-	  iter = iter->next;
-	}
+        iter = iter->next;
     }
 }
 
 /* Compare the BY variables for files A and B; return -1 if A < B, 0
    if A == B, 1 if A > B. */
 static inline int
-mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
+mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b,
+                       struct ccase *c)
 {
+  union value *a_input, *b_input;
   int i;
-  
+
+  assert ((a == NULL) + (b == NULL) + (c == NULL) <= 1);
+  a_input = a->input != NULL ? a->input : c->data;
+  b_input = b->input != NULL ? b->input : c->data;
   for (i = 0; i < mtf_n_by; i++)
     {
       assert (a->by[i]->type == b->by[i]->type);
@@ -1027,8 +1042,8 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
       
       if (a->by[i]->type == NUMERIC)
 	{
-	  double af = a->input[a->by[i]->fv].f;
-	  double bf = b->input[b->by[i]->fv].f;
+	  double af = a_input[a->by[i]->fv].f;
+	  double bf = b_input[b->by[i]->fv].f;
 
 	  if (af < bf)
 	    return -1;
@@ -1040,8 +1055,8 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
 	  int result;
 	  
 	  assert (a->by[i]->type == ALPHA);
-	  result = memcmp (a->input[a->by[i]->fv].s,
-			   b->input[b->by[i]->fv].s,
+	  result = memcmp (a_input[a->by[i]->fv].s,
+			   b_input[b->by[i]->fv].s,
 			   a->by[i]->width);
 	  if (result < 0)
 	    return -1;
@@ -1054,7 +1069,7 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
 
 /* Perform one iteration of steps 3...7 above. */
 static int
-mtf_processing (struct ccase *c UNUSED, void *aux UNUSED)
+mtf_processing (struct ccase *c, void *aux UNUSED)
 {
   /* List of files with minimum BY values. */
   struct mtf_file *min_head, *min_tail;
@@ -1084,7 +1099,7 @@ mtf_processing (struct ccase *c UNUSED, void *aux UNUSED)
       max_head = max_tail = NULL;
       for (iter = mtf_head->next; iter && iter->type == MTF_FILE;
 	   iter = iter->next)
-	switch (mtf_compare_BY_values (min_head, iter))
+	switch (mtf_compare_BY_values (min_head, iter, c))
 	  {
 	  case -1:
 	    if (max_head)
@@ -1129,7 +1144,7 @@ mtf_processing (struct ccase *c UNUSED, void *aux UNUSED)
 	    advance = 0;
 
 	again:
-	  switch (mtf_compare_BY_values (min_head, iter))
+	  switch (mtf_compare_BY_values (min_head, iter, c))
 	    {
 	    case -1:
 	      if (max_head)
@@ -1170,26 +1185,20 @@ mtf_processing (struct ccase *c UNUSED, void *aux UNUSED)
 	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
+              union value *record;
 	  
 	      if (mtf_seq_nums[v->p.mtf.master->index] == mtf_seq_num)
 		continue;
               mtf_seq_nums[v->p.mtf.master->index] = mtf_seq_num;
 
-#if 0
-	      printf ("%s/%s: dest-fv=%d, src-fv=%d\n",
-		      fh_handle_name (iter->handle),
-		      v->name,
-		      v->p.mtf.master->fv, v->fv);
-#endif
+              record = iter->input != NULL ? iter->input : c->data;
+
+              assert (v->type == NUMERIC || v->type == ALPHA);
 	      if (v->type == NUMERIC)
-		compaction_case->data[v->p.mtf.master->fv].f
-		  = iter->input[v->fv].f;
+		compaction_case->data[v->p.mtf.master->fv].f = record[v->fv].f;
 	      else
-		{
-		  assert (v->type == ALPHA);
-		  memcpy (compaction_case->data[v->p.mtf.master->fv].s,
-			  iter->input[v->fv].s, v->width);
-		}
+                memcpy (compaction_case->data[v->p.mtf.master->fv].s,
+                        record[v->fv].s, v->width);
 	    }
 	}
 
@@ -1226,7 +1235,7 @@ mtf_processing (struct ccase *c UNUSED, void *aux UNUSED)
 	}
 
       /* 6. Write the output record. */
-      process_active_file_output_case ();
+      process_active_file_output_case (compaction_case);
 
       /* 7. Read another record from each input file FILE and TABLE
 	 that we stored values from above.  If we come to the end of
@@ -1338,6 +1347,7 @@ cmd_import (void)
 {
   struct file_handle *handle = NULL;
   struct dictionary *dict;
+  struct get_pgm *pgm;
   int options = GTSV_OPT_NONE;
   int type;
 
@@ -1411,7 +1421,10 @@ cmd_import (void)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = create_case_source (&import_source_class, handle);
+  pgm = xmalloc (sizeof *pgm);
+  pgm->handle = handle;
+  pgm->case_size = dict_get_case_size (default_dict);
+  vfm_source = create_case_source (&import_source_class, default_dict, pgm);
 
   return CMD_SUCCESS;
 }
@@ -1420,10 +1433,12 @@ cmd_import (void)
    write_case(). */
 static void
 import_source_read (struct case_source *source,
+                    struct ccase *c,
                     write_case_func *write_case, write_case_data wc_data)
 {
-  struct file_handle *handle = source->aux;
-  while (pfm_read_case (handle, temp_case->data, default_dict))
+  struct get_pgm *pgm = source->aux;
+  
+  while (pfm_read_case (pgm->handle, c->data, default_dict))
     if (!write_case (wc_data))
       break;
 }
@@ -1503,6 +1518,7 @@ cmd_export (void)
   return CMD_SUCCESS;
 }
 
+/* Writes case C to the EXPORT file. */
 static int
 export_write_case_func (struct ccase *c, void *aux)
 {

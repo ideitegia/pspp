@@ -51,7 +51,7 @@
 #include "vfmP.h"
 
 double
-expr_evaluate (struct expression *e, struct ccase *c, int case_num,
+expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
                union value *v)
 {
   unsigned char *op = e->op;

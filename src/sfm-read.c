@@ -895,12 +895,10 @@ lossage:
 static int
 parse_format_spec (struct file_handle *h, int32 s, struct fmt_spec *v, struct variable *vv)
 {
-  if ((size_t) ((s >> 16) & 0xff)
-      >= sizeof translate_fmt / sizeof *translate_fmt)
+  v->type = translate_fmt ((s >> 16) & 0xff);
+  if (v->type == -1)
     lose ((ME, _("%s: Bad format specifier byte (%d)."),
 	   h->fn, (s >> 16) & 0xff));
-  
-  v->type = translate_fmt[(s >> 16) & 0xff];
   v->w = (s >> 8) & 0xff;
   v->d = s & 0xff;
 

@@ -79,14 +79,15 @@ enum
 struct data_list_pgm
   {
     struct trns_header h;
+
     struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
     struct file_handle *handle;	/* Input file, never NULL. */
-    /* Do not reorder preceding fields. */
 
     int type;			/* A DLS_* constant. */
     struct variable *end;	/* Variable specified on END subcommand. */
     int eof;			/* End of file encountered. */
     int nrec;			/* Number of records. */
+    size_t case_size;           /* Case size in bytes. */
   };
 
 static int parse_fixed (struct data_list_pgm *);
@@ -95,8 +96,8 @@ static void dump_fixed_table (const struct dls_var_spec *specs,
                               const struct file_handle *handle, int nrec);
 static void dump_free_table (const struct data_list_pgm *);
 static void destroy_dls_var_spec (struct dls_var_spec *);
-static trns_free_func destroy_dls;
-static trns_proc_func read_one_case;
+static trns_free_func data_list_trns_free;
+static trns_proc_func data_list_trns_proc;
 
 /* Message title for REPEATING DATA. */
 #define RPD_ERR "REPEATING DATA: "
@@ -207,6 +208,7 @@ cmd_data_list (void)
 	}
     }
 
+  dls->case_size = dict_get_case_size (default_dict);
   default_handle = dls->handle;
 
   if (dls->type == -1)
@@ -239,15 +241,16 @@ cmd_data_list (void)
     {
       struct data_list_pgm *new_pgm;
 
-      dls->h.proc = read_one_case;
-      dls->h.free = destroy_dls;
+      dls->h.proc = data_list_trns_proc;
+      dls->h.free = data_list_trns_free;
 
       new_pgm = xmalloc (sizeof *new_pgm);
       memcpy (new_pgm, &dls, sizeof *new_pgm);
       add_transformation (&new_pgm->h);
     }
   else 
-    vfm_source = create_case_source (&data_list_source_class, dls);
+    vfm_source = create_case_source (&data_list_source_class,
+                                     default_dict, dls);
 
   return CMD_SUCCESS;
 
@@ -257,6 +260,8 @@ cmd_data_list (void)
   return CMD_FAILURE;
 }
 
+/* Adds SPEC to the linked list with head at FIRST and tail at
+   LAST. */
 static void
 append_var_spec (struct dls_var_spec **first, struct dls_var_spec **last,
                  struct dls_var_spec *spec)
@@ -281,9 +286,7 @@ struct fmt_list
     struct fmt_list *down;
   };
 
-/* Used as "local" variables among the fixed-format parsing funcs.  If
-   it were guaranteed that PSPP were going to be compiled by gcc,
-   I'd make all these functions a single set of nested functions. */
+/* State of parsing DATA LIST. */
 struct fixed_parsing_state
   {
     char **name;		/* Variable names. */
@@ -301,6 +304,8 @@ static int fixed_parse_fortran (struct fixed_parsing_state *,
                                 struct dls_var_spec **,
                                 struct dls_var_spec **);
 
+/* Parses all the variable specifications for DATA LIST FIXED,
+   storing them into DLS.  Returns nonzero if successful. */
 static int
 parse_fixed (struct data_list_pgm *dls)
 {
@@ -384,6 +389,9 @@ fail:
   return 0;
 }
 
+/* Parses a variable specification in the form 1-10 (A) based on
+   FX and adds specifications to the linked list with head at
+   FIRST and tail at LAST. */
 static int
 fixed_parse_compatible (struct fixed_parsing_state *fx,
                         struct dls_var_spec **first, struct dls_var_spec **last)
@@ -558,7 +566,8 @@ fixed_parse_compatible (struct fixed_parsing_state *fx,
   return 1;
 }
 
-/* Destroy a format list and, optionally, all its sublists. */
+/* Destroy format list F and, if RECURSE is nonzero, all its
+   sublists. */
 static void
 destroy_fmt_list (struct fmt_list *f, int recurse)
 {
@@ -574,9 +583,10 @@ destroy_fmt_list (struct fmt_list *f, int recurse)
 }
 
 /* Takes a hierarchically structured fmt_list F as constructed by
-   fixed_parse_fortran(), and flattens it into a linear list of
-   dls_var_spec's.  NAME_IDX is used to take values from the list
-   of names in FX; it should initially point to a value of 0. */
+   fixed_parse_fortran(), and flattens it, adding the variable
+   specifications to the linked list with head FIRST and tail
+   LAST.  NAME_IDX is used to take values from the list of names
+   in FX; it should initially point to a value of 0. */
 static int
 dump_fmt_list (struct fixed_parsing_state *fx, struct fmt_list *f,
                struct dls_var_spec **first, struct dls_var_spec **last,
@@ -646,10 +656,10 @@ dump_fmt_list (struct fixed_parsing_state *fx, struct fmt_list *f,
   return 1;
 }
 
-/* Recursively parses a FORTRAN-like format specification.  LEVEL
-   is the level of recursion, starting from 0.  Returns the
-   parsed specification if successful, or a null pointer on
-   failure.  */
+/* Recursively parses a FORTRAN-like format specification into
+   the linked list with head FIRST and tail TAIL.  LEVEL is the
+   level of recursion, starting from 0.  Returns the parsed
+   specification if successful, or a null pointer on failure.  */
 static struct fmt_list *
 fixed_parse_fortran_internal (struct fixed_parsing_state *fx,
                               struct dls_var_spec **first,
@@ -707,8 +717,9 @@ fail:
   return NULL;
 }
 
-/* Parses a FORTRAN-like format specification.  Returns nonzero
-   if successful. */
+/* Parses a FORTRAN-like format specification into the linked
+   list with head FIRST and tail LAST.  Returns nonzero if
+   successful. */
 static int
 fixed_parse_fortran (struct fixed_parsing_state *fx,
                      struct dls_var_spec **first, struct dls_var_spec **last)
@@ -792,6 +803,9 @@ dump_fixed_table (const struct dls_var_spec *specs,
 
 /* Free-format parsing. */
 
+/* Parses variable specifications for DATA LIST FREE and adds
+   them to the linked list with head FIRST and tail LAST.
+   Returns nonzero only if successful. */
 static int
 parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 {
@@ -976,7 +990,7 @@ cut_field (const struct data_list_pgm *dls, char **ret_cp, int *ret_len)
   }
 }
 
-typedef int data_list_read_func (const struct data_list_pgm *);
+typedef int data_list_read_func (const struct data_list_pgm *, struct ccase *);
 static data_list_read_func read_from_data_list_fixed;
 static data_list_read_func read_from_data_list_free;
 static data_list_read_func read_from_data_list_list;
@@ -990,26 +1004,24 @@ get_data_list_read_func (const struct data_list_pgm *dls)
     {
     case DLS_FIXED:
       return read_from_data_list_fixed;
-      break;
 
     case DLS_FREE:
       return read_from_data_list_free;
-      break;
 
     case DLS_LIST:
       return read_from_data_list_list;
-      break;
 
     default:
       assert (0);
     }
 }
 
-/* Reads a case from the data file and parses it according to
-   fixed-format syntax rules.  Returns -1 on success, -2 at end
-   of file. */
+/* Reads a case from the data file into C, parsing it according
+   to fixed-format syntax rules in DLS.  Returns -1 on success,
+   -2 at end of file. */
 static int
-read_from_data_list_fixed (const struct data_list_pgm *dls)
+read_from_data_list_fixed (const struct data_list_pgm *dls,
+                           struct ccase *c)
 {
   struct dls_var_spec *var_spec = dls->first;
   int i;
@@ -1034,7 +1046,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls)
 	  struct data_in di;
 
 	  data_in_finite_line (&di, line, len, var_spec->fc, var_spec->lc);
-	  di.v = &temp_case->data[var_spec->fv];
+	  di.v = &c->data[var_spec->fv];
 	  di.flags = 0;
 	  di.f1 = var_spec->fc;
 	  di.format = var_spec->input;
@@ -1048,11 +1060,12 @@ read_from_data_list_fixed (const struct data_list_pgm *dls)
   return -1;
 }
 
-/* Reads a case from the data file and parses it according to
-   free-format syntax rules.  Returns -1 on success, -2 at end of
-   file. */
+/* Reads a case from the data file into C, parsing it according
+   to free-format syntax rules in DLS.  Returns -1 on success,
+   -2 at end of file. */
 static int
-read_from_data_list_free (const struct data_list_pgm *dls)
+read_from_data_list_free (const struct data_list_pgm *dls,
+                          struct ccase *c)
 {
   struct dls_var_spec *var_spec;
   char *field;
@@ -1085,7 +1098,7 @@ read_from_data_list_free (const struct data_list_pgm *dls)
 
 	di.s = field;
 	di.e = field + len;
-	di.v = &temp_case->data[var_spec->fv];
+	di.v = &c->data[var_spec->fv];
 	di.flags = 0;
 	di.f1 = column;
 	di.format = var_spec->input;
@@ -1099,7 +1112,8 @@ read_from_data_list_free (const struct data_list_pgm *dls)
    list-format syntax rules.  Returns -1 on success, -2 at end of
    file. */
 static int
-read_from_data_list_list (const struct data_list_pgm *dls)
+read_from_data_list_list (const struct data_list_pgm *dls,
+                          struct ccase *c)
 {
   struct dls_var_spec *var_spec;
   char *field;
@@ -1124,9 +1138,9 @@ read_from_data_list_list (const struct data_list_pgm *dls)
             {
               int width = get_format_var_width (&var_spec->input);
               if (width == 0)
-                temp_case->data[var_spec->fv].f = SYSMIS;
+                c->data[var_spec->fv].f = SYSMIS;
               else
-                memset (temp_case->data[var_spec->fv].s, ' ', width); 
+                memset (c->data[var_spec->fv].s, ' ', width); 
             }
 	  break;
 	}
@@ -1136,7 +1150,7 @@ read_from_data_list_list (const struct data_list_pgm *dls)
 
 	di.s = field;
 	di.e = field + len;
-	di.v = &temp_case->data[var_spec->fv];
+	di.v = &c->data[var_spec->fv];
 	di.flags = 0;
 	di.f1 = column;
 	di.format = var_spec->input;
@@ -1164,7 +1178,7 @@ destroy_dls_var_spec (struct dls_var_spec *spec)
 
 /* Destroys DATA LIST transformation PGM. */
 static void
-destroy_dls (struct trns_header *pgm)
+data_list_trns_free (struct trns_header *pgm)
 {
   struct data_list_pgm *dls = (struct data_list_pgm *) pgm;
   destroy_dls_var_spec (dls->first);
@@ -1172,11 +1186,10 @@ destroy_dls (struct trns_header *pgm)
   free (pgm);
 }
 
-/* Note that since this is exclusively an input program, C is
-   guaranteed to be temp_case. */
+/* Handle DATA LIST transformation T, parsing data into C. */
 static int
-read_one_case (struct trns_header *t, struct ccase *c UNUSED,
-               int case_num UNUSED)
+data_list_trns_proc (struct trns_header *t, struct ccase *c,
+                     int case_num UNUSED)
 {
   struct data_list_pgm *dls = (struct data_list_pgm *) t;
   data_list_read_func *read_func;
@@ -1185,7 +1198,7 @@ read_one_case (struct trns_header *t, struct ccase *c UNUSED,
   dfm_push (dls->handle);
 
   read_func = get_data_list_read_func (dls);
-  retval = read_func (dls);
+  retval = read_func (dls, c);
 
   /* Handle end of file. */
   if (retval == -2)
@@ -1211,11 +1224,11 @@ read_one_case (struct trns_header *t, struct ccase *c UNUSED,
     {
       if (retval == -2)
         {
-          temp_case->data[dls->end->fv].f = 1.0;
+          c->data[dls->end->fv].f = 1.0;
           retval = -1;
         }
       else
-        temp_case->data[dls->end->fv].f = 0.0;
+        c->data[dls->end->fv].f = 0.0;
     }
   
   dfm_pop (dls->handle);
@@ -1227,13 +1240,14 @@ read_one_case (struct trns_header *t, struct ccase *c UNUSED,
    write_case(). */
 static void
 data_list_source_read (struct case_source *source,
+                       struct ccase *c,
                        write_case_func *write_case, write_case_data wc_data)
 {
   struct data_list_pgm *dls = source->aux;
   data_list_read_func *read_func = get_data_list_read_func (dls);
 
   dfm_push (dls->handle);
-  while (read_func (dls) != -2)
+  while (read_func (dls, c) != -2)
     if (!write_case (wc_data))
       break;
   dfm_pop (dls->handle);
@@ -1245,7 +1259,7 @@ data_list_source_read (struct case_source *source,
 static void
 data_list_source_destroy (struct case_source *source)
 {
-  destroy_dls (source->aux);
+  data_list_trns_free (source->aux);
 }
 
 const struct case_source_class data_list_source_class = 
@@ -1568,10 +1582,9 @@ cmd_repeating_data (void)
   return CMD_FAILURE;
 }
 
-/* Because of the way that DATA LIST is structured, it's not trivial
-   to determine what input format is associated with a given variable.
-   This function finds the input format specification for variable V
-   and puts it in SPEC. */
+/* Finds the input format specification for variable V and puts
+   it in SPEC.  Because of the way that DATA LIST is structured,
+   this is nontrivial. */
 static void 
 find_variable_input_spec (struct variable *v, struct fmt_spec *spec)
 {
@@ -1581,7 +1594,7 @@ find_variable_input_spec (struct variable *v, struct fmt_spec *spec)
     {
       struct data_list_pgm *pgm = (struct data_list_pgm *) t_trns[i];
       
-      if (pgm->h.proc == read_one_case)
+      if (pgm->h.proc == data_list_trns_proc)
 	{
 	  struct dls_var_spec *iter;
 
@@ -1634,8 +1647,9 @@ parse_num_or_var (struct rpd_num_or_var *value, const char *message)
   return 1;
 }
 
-/* Parses data specifications for repeating data groups.  Taken from
-   parse_fixed().  Returns nonzero only if successful.  */
+/* Parses data specifications for repeating data groups, adding
+   them to the linked list with head FIRST and tail LAST.
+   Returns nonzero only if successful.  */
 static int
 parse_repeating_data (struct dls_var_spec **first, struct dls_var_spec **last)
 {
@@ -1827,9 +1841,9 @@ rpd_parse_record (const struct rpd_parse_info *info)
   return occurrences;
 }
 
-/* Analogous to read_one_case; reads one set of repetitions of the
-   elements in the REPEATING DATA structure.  Returns -1 on success,
-   -2 on end of file or on failure. */
+/* Reads one set of repetitions of the elements in the REPEATING
+   DATA structure.  Returns -1 on success, -2 on end of file or
+   on failure. */
 int
 repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
                           int case_num UNUSED)
@@ -1983,6 +1997,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
   return -3;
 }
 
+/* Frees a REPEATING DATA transformation. */
 void
 repeating_data_trns_free (struct trns_header *rpd_) 
 {
@@ -1993,10 +2008,8 @@ repeating_data_trns_free (struct trns_header *rpd_)
   free (rpd->id_value);
 }
 
-/* This is a kluge.  It is only here until I have more time
-   tocome up with something better.  It lets
-   repeating_data_trns_proc() know how to write the cases that it
-   composes. */
+/* Lets repeating_data_trns_proc() know how to write the cases
+   that it composes.  Not elegant. */
 void
 repeating_data_set_write_case (struct trns_header *trns,
                                write_case_func *write_case,

@@ -1,7 +1,9 @@
-Time-stamp: <2004-02-24 19:22:15 blp>
+Time-stamp: <2004-03-05 15:22:29 blp>
 
 TODO
 ----
+
+In debug mode hash table code should verify that collisions are reasonably low.
 
 Use posix_fadvise(POSIX_FADV_SEQUENTIAL) where available.
 

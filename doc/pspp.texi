@@ -5806,6 +5806,11 @@ columns that the identifier will occupy, followed by an equals sign
 (@samp{=}) and the identifier variable name.  The variable must already
 have been declared with @cmd{NUMERIC} or another command.
 
+@cmd{REPEATING DATA} should be the last command given within an
+@cmd{INPUT PROGRAM}.  It should not be enclosed within a @cmd{LOOP}
+structure (@pxref{LOOP}).  Use @cmd{DATA LIST} before, not after,
+@cmd{REPEATING DATA}.
+
 @node WRITE,  , REPEATING DATA, Data Input and Output
 @section WRITE
 @vindex WRITE

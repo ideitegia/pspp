@@ -141,14 +141,16 @@ static void initialize_aggregate_info (void);
 /* Prototypes. */
 static int parse_aggregate_functions (void);
 static void free_aggregate_functions (void);
-static int aggregate_single_case (struct ccase *input, struct ccase *output);
+static int aggregate_single_case (const struct ccase *input,
+                                  struct ccase *output);
 static int create_sysfile (void);
 
 static trns_proc_func agr_00x_trns_proc, agr_10x_trns_proc;
 static trns_free_func agr_10x_trns_free;
 static void agr_00x_end_func (void *aux);
 static void agr_10x_end_func (void *);
-static int agr_11x_func (write_case_data);
+static read_sort_output_func agr_11x_read;
+static void agr_11x_finish (void);
 
 #if DEBUGGING
 static void debug_print (int flags);
@@ -367,20 +369,14 @@ cmd_aggregate (void)
 	}
 	  
       case 6:
-      case 7:
+      case 7: 
 	sort_cases (sort, 1);
 	
 	if (!create_sysfile ())
 	  goto lossage;
-	read_sort_output (sort, agr_11x_func, NULL);
-	
-	{
-	  struct ccase *save_temp_case = temp_case;
-	  temp_case = NULL;
-	  agr_11x_func (NULL);
-	  temp_case = save_temp_case;
-	}
-	
+	read_sort_output (sort, agr_11x_read, NULL);
+        agr_11x_finish ();
+
 	break;
 
       default:
@@ -762,7 +758,7 @@ free_aggregate_functions (void)
 
 /* Execution. */
 
-static void accumulate_aggregate_info (struct ccase *input);
+static void accumulate_aggregate_info (const struct ccase *input);
 static void dump_aggregate_info (struct ccase *output);
 
 /* Processes a single case INPUT for aggregation.  If output is
@@ -772,7 +768,7 @@ static void dump_aggregate_info (struct ccase *output);
 /* The code in this function has an eerie similarity to
    vfm.c:SPLIT_FILE_procfunc()... */
 static int
-aggregate_single_case (struct ccase *input, struct ccase *output)
+aggregate_single_case (const struct ccase *input, struct ccase *output)
 {
   /* The first case always begins a new break group.  We also need to
      preserve the values of the case for later comparison. */
@@ -877,7 +873,7 @@ not_equal:
 
 /* Accumulates aggregation data from the case INPUT. */
 static void 
-accumulate_aggregate_info (struct ccase *input)
+accumulate_aggregate_info (const struct ccase *input)
 {
   struct agr_var *iter;
   double weight;
@@ -887,7 +883,7 @@ accumulate_aggregate_info (struct ccase *input)
   for (iter = agr_first; iter; iter = iter->next)
     if (iter->src)
       {
-	union value *v = &input->data[iter->src->fv];
+	const union value *v = &input->data[iter->src->fv];
 
 	if ((!iter->include_missing && is_missing (v, iter->src))
 	    || (iter->include_missing && iter->src->type == NUMERIC
@@ -1214,7 +1210,7 @@ agr_00x_end_func (void *aux UNUSED)
   /* Ensure that info for the last break group gets written to the
      active file. */
   dump_aggregate_info (compaction_case);
-  vfm_sink->class->write (vfm_sink, temp_case);
+  vfm_sink->class->write (vfm_sink, compaction_case);
 }
 
 /* Transform the aggregate case buf_1xx, in internal format, to system
@@ -1280,31 +1276,30 @@ agr_10x_end_func (void *aux UNUSED)
   write_case_to_sfm ();
 }
 
-/* When called with temp_case non-NULL (the normal case), runs the
-   case through the aggregater and outputs it to the system file if
-   appropriate.  If temp_case is NULL, finishes up writing the last
-   case if necessary. */
+/* Runs case C through the aggregater and outputs it to the
+   system file if appropriate.  */
 static int
-agr_11x_func (write_case_data wc_data UNUSED)
+agr_11x_read (const struct ccase *c, void *aux UNUSED)
 {
-  if (temp_case != NULL)
-    {
-      int code = aggregate_single_case (temp_case, buf_1xx);
+  int code = aggregate_single_case (c, buf_1xx);
       
-      assert (code == -2 || code == -1);
-      if (code == -1)
-	write_case_to_sfm ();
-    }
-  else
-    {
-      if (case_count)
-	{
-	  dump_aggregate_info (buf_1xx);
-	  write_case_to_sfm ();
-	}
-      fh_close_handle (outfile);
-    }
+  assert (code == -2 || code == -1);
+  if (code == -1)
+    write_case_to_sfm ();
+
   return 1;
+}
+
+/* Finishes up writing the last case if necessary. */
+static void
+agr_11x_finish (void) 
+{
+  if (case_count)
+    {
+      dump_aggregate_info (buf_1xx);
+      write_case_to_sfm ();
+    }
+  fh_close_handle (outfile);
 }
 
 /* Debugging. */

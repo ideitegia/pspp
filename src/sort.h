@@ -40,13 +40,17 @@ struct sort_cases_pgm
 
     struct internal_sort *isrt;         /* Internal sort output. */
     struct external_sort *xsrt;         /* External sort output. */
+    size_t case_size;                   /* Number of bytes in case. */
   };
 
 /* SORT CASES programmatic interface. */
+
+typedef int read_sort_output_func (const struct ccase *, void *aux);
+
 struct sort_cases_pgm *parse_sort (void);
 int sort_cases (struct sort_cases_pgm *, int separate);
 void read_sort_output (struct sort_cases_pgm *,
-                       write_case_func *, write_case_data);
+                       read_sort_output_func, void *aux);
 void destroy_sort_cases_pgm (struct sort_cases_pgm *);
 
 #endif /* !sort_h */

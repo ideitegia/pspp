@@ -100,8 +100,6 @@ extern void stifle_history ();
 struct dictionary *default_dict;
 struct expression *process_if_expr;
 
-struct ccase *temp_case;
-
 struct trns_header **t_trns;
 int n_trns;
 int m_trns;

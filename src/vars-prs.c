@@ -30,6 +30,9 @@
 #include "misc.h"
 #include "str.h"
 
+/* Parses a name as a variable within VS and returns the variable
+   if successful.  On failure emits an error message and returns
+   a null pointer. */
 static struct variable *
 parse_vs_variable (struct var_set *vs)
 {
@@ -49,6 +52,9 @@ parse_vs_variable (struct var_set *vs)
   return vp;
 }
 
+/* Parses a variable name in dictionary D and returns the
+   variable if successful.  On failure emits an error message and
+   returns a null pointer. */
 struct variable *
 parse_dict_variable (struct dictionary *d) 
 {
@@ -58,13 +64,17 @@ parse_dict_variable (struct dictionary *d)
   return var;
 }
 
+/* Parses a variable name in default_dict and returns the
+   variable if successful.  On failure emits an error message and
+   returns a null pointer. */
 struct variable *
 parse_variable (void)
 {
   return parse_dict_variable (default_dict);
 }
 
-
+/* Returns the dictionary class corresponding to a variable named
+   NAME. */
 enum dict_class
 dict_class_from_id (const char *name) 
 {
@@ -81,22 +91,26 @@ dict_class_from_id (const char *name)
     }
 }
 
+/* Returns the name of dictionary class DICT_CLASS. */
 const char *
 dict_class_to_name (enum dict_class dict_class) 
 {
   switch (dict_class) 
     {
     case DC_ORDINARY:
-      return "ordinary";
+      return _("ordinary");
     case DC_SYSTEM:
-      return "system";
+      return _("system");
     case DC_SCRATCH:
-      return "scratch";
+      return _("scratch");
     default:
       assert (0);
     }
 }
 
+/* Parses a set of variables from dictionary D given options
+   OPTS.  Resulting list of variables stored in *VAR and the
+   number of variables into *CNT. */
 int
 parse_variables (struct dictionary *d, struct variable ***var, int *cnt,
                  int opts) 
@@ -297,6 +311,9 @@ fail:
   return 0;
 }
 
+/* Extracts a numeric suffix from variable name S, copying it
+   into string R.  Sets *D to the length of R and *N to its
+   value. */
 static int
 extract_num (char *s, char *r, int *n, int *d)
 {
@@ -502,6 +519,7 @@ fail:
   return 0;
 }
 
+/* A set of variables. */
 struct var_set 
   {
     size_t (*get_cnt) (struct var_set *);
@@ -511,6 +529,7 @@ struct var_set
     void *aux;
   };
 
+/* Returns the number of variables in VS. */
 size_t
 var_set_get_cnt (struct var_set *vs) 
 {
@@ -519,6 +538,8 @@ var_set_get_cnt (struct var_set *vs)
   return vs->get_cnt (vs);
 }
 
+/* Return variable with index IDX in VS.
+   IDX must be less than the number of variables in VS. */
 struct variable *
 var_set_get_var (struct var_set *vs, size_t idx) 
 {
@@ -528,6 +549,8 @@ var_set_get_var (struct var_set *vs, size_t idx)
   return vs->get_var (vs, idx);
 }
 
+/* Returns the variable in VS named NAME, or a null pointer if VS
+   contains no variable with that name. */
 struct variable *
 var_set_lookup_var (struct var_set *vs, const char *name) 
 {
@@ -538,6 +561,7 @@ var_set_lookup_var (struct var_set *vs, const char *name)
   return vs->lookup_var (vs, name);
 }
 
+/* Destroys VS. */
 void
 var_set_destroy (struct var_set *vs) 
 {
@@ -545,6 +569,7 @@ var_set_destroy (struct var_set *vs)
     vs->destroy (vs);
 }
 
+/* Returns the number of variables in VS. */
 static size_t
 dict_var_set_get_cnt (struct var_set *vs) 
 {
@@ -553,6 +578,8 @@ dict_var_set_get_cnt (struct var_set *vs)
   return dict_get_var_cnt (d);
 }
 
+/* Return variable with index IDX in VS.
+   IDX must be less than the number of variables in VS. */
 static struct variable *
 dict_var_set_get_var (struct var_set *vs, size_t idx) 
 {
@@ -561,6 +588,8 @@ dict_var_set_get_var (struct var_set *vs, size_t idx)
   return dict_get_var (d, idx);
 }
 
+/* Returns the variable in VS named NAME, or a null pointer if VS
+   contains no variable with that name. */
 static struct variable *
 dict_var_set_lookup_var (struct var_set *vs, const char *name) 
 {
@@ -569,12 +598,14 @@ dict_var_set_lookup_var (struct var_set *vs, const char *name)
   return dict_lookup_var (d, name);
 }
 
+/* Destroys VS. */
 static void
 dict_var_set_destroy (struct var_set *vs) 
 {
   free (vs);
 }
 
+/* Returns a variable set based on D. */
 struct var_set *
 var_set_create_from_dict (struct dictionary *d) 
 {
@@ -587,13 +618,15 @@ var_set_create_from_dict (struct dictionary *d)
   return vs;
 }
 
+/* A variable set based on an array. */
 struct array_var_set 
   {
-    struct variable **var;
-    size_t var_cnt;
-    struct hsh_table *name_tab;
+    struct variable **var;      /* Array of variables. */
+    size_t var_cnt;             /* Number of elements in var. */
+    struct hsh_table *name_tab; /* Hash from variable names to variables. */
   };
 
+/* Returns the number of variables in VS. */
 static size_t
 array_var_set_get_cnt (struct var_set *vs) 
 {
@@ -602,6 +635,8 @@ array_var_set_get_cnt (struct var_set *vs)
   return avs->var_cnt;
 }
 
+/* Return variable with index IDX in VS.
+   IDX must be less than the number of variables in VS. */
 static struct variable *
 array_var_set_get_var (struct var_set *vs, size_t idx) 
 {
@@ -610,6 +645,8 @@ array_var_set_get_var (struct var_set *vs, size_t idx)
   return avs->var[idx];
 }
 
+/* Returns the variable in VS named NAME, or a null pointer if VS
+   contains no variable with that name. */
 static struct variable *
 array_var_set_lookup_var (struct var_set *vs, const char *name) 
 {
@@ -621,6 +658,7 @@ array_var_set_lookup_var (struct var_set *vs, const char *name)
   return hsh_find (avs->name_tab, &v);
 }
 
+/* Destroys VS. */
 static void
 array_var_set_destroy (struct var_set *vs) 
 {
@@ -631,6 +669,8 @@ array_var_set_destroy (struct var_set *vs)
   free (vs);
 }
 
+/* Returns a variable set based on the VAR_CNT variables in
+   VAR. */
 struct var_set *
 var_set_create_from_array (struct variable **var, size_t var_cnt) 
 {

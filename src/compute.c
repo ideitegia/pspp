@@ -104,6 +104,7 @@ cmd_compute (void)
 
 /* Transformation functions. */
 
+/* Handle COMPUTE or IF with numeric target variable. */
 static int
 compute_num (struct trns_header *compute_, struct ccase *c,
              int case_num)
@@ -119,6 +120,8 @@ compute_num (struct trns_header *compute_, struct ccase *c,
   return -1;
 }
 
+/* Handle COMPUTE or IF with numeric vector element target
+   variable. */
 static int
 compute_num_vec (struct trns_header *compute_, struct ccase *c,
                  int case_num)
@@ -154,6 +157,7 @@ compute_num_vec (struct trns_header *compute_, struct ccase *c,
   return -1;
 }
 
+/* Handle COMPUTE or IF with string target variable. */
 static int
 compute_str (struct trns_header *compute_, struct ccase *c,
              int case_num)
@@ -174,6 +178,8 @@ compute_str (struct trns_header *compute_, struct ccase *c,
   return -1;
 }
 
+/* Handle COMPUTE or IF with string vector element target
+   variable. */
 static int
 compute_str_vec (struct trns_header *compute_, struct ccase *c,
                  int case_num)
@@ -317,6 +323,7 @@ compute_trns_free (struct trns_header *compute_)
   expr_free (compute->rvalue);
 }
 
+/* COMPUTE or IF target variable or vector element. */
 struct lvalue
   {
     char var_name[9];            /* Destination variable name, or "". */
@@ -324,6 +331,8 @@ struct lvalue
     struct expression *element;  /* Destination vector element, or NULL. */
   };
 
+/* Parses the target variable or vector elector into a new
+   `struct lvalue', which is returned. */
 static struct lvalue *
 lvalue_parse (void) 
 {
@@ -371,6 +380,8 @@ lvalue_parse (void)
   return NULL;
 }
 
+/* Returns the type (NUMERIC or ALPHA) of the target variable or
+   vector in LVALUE. */
 static int
 lvalue_get_type (const struct lvalue *lvalue) 
 {
@@ -387,12 +398,15 @@ lvalue_get_type (const struct lvalue *lvalue)
     return lvalue->vector->var[0]->type;
 }
 
+/* Returns nonzero if LVALUE has a vector as its target. */
 static int
 lvalue_is_vector (const struct lvalue *lvalue) 
 {
   return lvalue->vector != NULL;
 }
 
+/* Finalizes making LVALUE the target of COMPUTE, by creating the
+   target variable if necessary and setting fields in COMPUTE. */
 static void
 lvalue_finalize (struct lvalue *lvalue,
                  struct compute_trns *compute) 
@@ -406,8 +420,6 @@ lvalue_finalize (struct lvalue *lvalue,
 
       compute->fv = compute->variable->fv;
       compute->width = compute->variable->width;
-
-      
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
       if (dict_class_from_id (compute->variable->name) != DC_SCRATCH)
@@ -423,6 +435,7 @@ lvalue_finalize (struct lvalue *lvalue,
   lvalue_destroy (lvalue);
 }
 
+/* Destroys LVALUE. */
 static void 
 lvalue_destroy (struct lvalue *lvalue) 
 {

@@ -141,6 +141,7 @@ parse_sort (void)
   return NULL;
 }
 
+/* Destroys a SORT CASES program. */
 void
 destroy_sort_cases_pgm (struct sort_cases_pgm *scp) 
 {
@@ -169,6 +170,8 @@ destroy_sort_cases_pgm (struct sort_cases_pgm *scp)
 int
 sort_cases (struct sort_cases_pgm *scp, int separate)
 {
+  scp->case_size = sizeof (union value) * compaction_nval;
+
   /* Not sure this is necessary but it's good to be safe. */
   if (separate && case_source_is_class (vfm_source, &sort_source_class))
     procedure (NULL, NULL, NULL, NULL);
@@ -192,6 +195,7 @@ sort_cases (struct sort_cases_pgm *scp, int separate)
   return 0;
 }
 
+/* Results of an internal sort. */
 struct internal_sort 
   {
     struct case_list **results;
@@ -261,6 +265,7 @@ do_internal_sort (struct sort_cases_pgm *scp, int separate)
   return NULL;
 }
 
+/* Destroys an internal sort result. */
 static void
 destroy_internal_sort (struct internal_sort *isrt) 
 {
@@ -320,18 +325,19 @@ compare_initial_runs (const void *a_, const void *b_, void *aux UNUSED)
   return a->case_cnt > b->case_cnt ? -1 : a->case_cnt <b->case_cnt;
 }
 
+/* Results of an external sort. */
 struct external_sort 
   {
     struct sort_cases_pgm *scp;       /* SORT CASES info. */
     struct initial_run *initial_runs; /* Array of initial runs. */
     size_t run_cnt, run_cap;          /* Number of runs, allocated capacity. */
     char *temp_dir;                   /* Temporary file directory name. */
+    char *temp_name;                  /* Name of a temporary file. */
     int next_file_idx;                /* Lowest unused file index. */
-    size_t case_size;                 /* Number of bytes in case. */
   };
 
 /* Prototypes for helper functions. */
-static void sort_sink_write (struct case_sink *, struct ccase *);
+static void sort_sink_write (struct case_sink *, const struct ccase *);
 static int write_initial_runs (struct external_sort *, int separate);
 static int init_external_sort (struct external_sort *);
 static int merge (struct external_sort *);
@@ -351,7 +357,6 @@ do_external_sort (struct sort_cases_pgm *scp, int separate)
 
   xsrt = xmalloc (sizeof *xsrt);
   xsrt->scp = scp;
-  xsrt->case_size = sizeof (union value) * compaction_nval;
   if (!init_external_sort (xsrt))
     goto done;
   if (!write_initial_runs (xsrt, separate))
@@ -386,6 +391,8 @@ destroy_external_sort (struct external_sort *xsrt)
       for (i = 0; i < xsrt->run_cnt; i++)
         remove_temp_file (xsrt, xsrt->initial_runs[i].file_idx);
       rmdir_temp_dir (xsrt);
+      free (xsrt->temp_dir);
+      free (xsrt->temp_name);
       free (xsrt->initial_runs);
       free (xsrt);
     }
@@ -467,13 +474,16 @@ init_external_sort (struct external_sort *xsrt)
 
   /* Temporary directory. */
   xsrt->temp_dir = make_temp_dir ();
+  xsrt->temp_name = NULL;
   if (xsrt->temp_dir == NULL)
     return 0;
+  xsrt->temp_name = xmalloc (strlen (xsrt->temp_dir) + 64);
 
   return 1;
 }
 
-
+/* Returns nonzero if we should return an error even though the
+   operation succeeded.  Useful for testing. */
 static int
 simulate_error (void) 
 {
@@ -502,22 +512,26 @@ rmdir_temp_dir (struct external_sort *xsrt)
     }
 }
 
-#define TEMP_FILE_NAME_SIZE (L_tmpnam + 32)
-static void
-get_temp_file_name (struct external_sort *xsrt, int file_idx,
-                    char filename[TEMP_FILE_NAME_SIZE]) 
+/* Returns the name of temporary file number FILE_IDX for XSRT.
+   The name is written into a static buffer, so be careful.  */
+static char *
+get_temp_file_name (struct external_sort *xsrt, int file_idx)
 {
   assert (xsrt->temp_dir != NULL);
-  sprintf (filename, "%s%c%04d", xsrt->temp_dir, DIR_SEPARATOR, file_idx);
+  sprintf (xsrt->temp_name, "%s%c%04d",
+           xsrt->temp_dir, DIR_SEPARATOR, file_idx);
+  return xsrt->temp_name;
 }
 
+/* Opens temporary file numbered FILE_IDX for XSRT with mode MODE
+   and returns the FILE *. */
 static FILE *
 open_temp_file (struct external_sort *xsrt, int file_idx, const char *mode)
 {
-  char temp_file[TEMP_FILE_NAME_SIZE];
+  char *temp_file;
   FILE *file;
 
-  get_temp_file_name (xsrt, file_idx, temp_file);
+  temp_file = get_temp_file_name (xsrt, file_idx);
 
   file = fopen (temp_file, mode);
   if (simulate_error () || file == NULL) 
@@ -528,13 +542,14 @@ open_temp_file (struct external_sort *xsrt, int file_idx, const char *mode)
   return file;
 }
 
+/* Closes FILE, which is the temporary file numbered FILE_IDX
+   under XSRT.  Returns nonzero only if successful.  */
 static int
 close_temp_file (struct external_sort *xsrt, int file_idx, FILE *file)
 {
   if (file != NULL) 
     {
-      char temp_file[TEMP_FILE_NAME_SIZE];
-      get_temp_file_name (xsrt, file_idx, temp_file);
+      char *temp_file = get_temp_file_name (xsrt, file_idx);
       if (simulate_error () || fclose (file) == EOF) 
         {
           msg (SE, _("%s: Error closing temporary file: %s."),
@@ -545,19 +560,21 @@ close_temp_file (struct external_sort *xsrt, int file_idx, FILE *file)
   return 1;
 }
 
+/* Delete temporary file numbered FILE_IDX for XSRT. */
 static void
 remove_temp_file (struct external_sort *xsrt, int file_idx) 
 {
   if (file_idx != -1)
     {
-      char temp_file[TEMP_FILE_NAME_SIZE];
-      get_temp_file_name (xsrt, file_idx, temp_file);
+      char *temp_file = get_temp_file_name (xsrt, file_idx);
       if (simulate_error () || remove (temp_file) != 0)
         msg (SE, _("%s: Error removing temporary file: %s."),
              temp_file, strerror (errno));
     }
 }
 
+/* Writes SIZE bytes from buffer DATA into FILE, which is
+   temporary file numbered FILE_IDX from XSRT. */
 static int
 write_temp_file (struct external_sort *xsrt, int file_idx,
                  FILE *file, const void *data, size_t size) 
@@ -566,14 +583,15 @@ write_temp_file (struct external_sort *xsrt, int file_idx,
     return 1;
   else
     {
-      char temp_file[TEMP_FILE_NAME_SIZE];
-      get_temp_file_name (xsrt, file_idx, temp_file);
+      char *temp_file = get_temp_file_name (xsrt, file_idx);
       msg (SE, _("%s: Error writing temporary file: %s."),
            temp_file, strerror (errno));
       return 0;
     }
 }
 
+/* Reads SIZE bytes into buffer DATA into FILE, which is
+   temporary file numbered FILE_IDX from XSRT. */
 static int
 read_temp_file (struct external_sort *xsrt, int file_idx,
                 FILE *file, void *data, size_t size) 
@@ -582,8 +600,7 @@ read_temp_file (struct external_sort *xsrt, int file_idx,
     return 1;
   else 
     {
-      char temp_file[TEMP_FILE_NAME_SIZE];
-      get_temp_file_name (xsrt, file_idx, temp_file);
+      char *temp_file = get_temp_file_name (xsrt, file_idx);
       if (ferror (file))
         msg (SE, _("%s: Error reading temporary file: %s."),
              temp_file, strerror (errno));
@@ -603,6 +620,7 @@ struct record_run
     struct case_list *record;   /* Case data. */
   };
 
+/* Represents a set of initial runs during an external sort. */
 struct initial_run_state 
   {
     struct external_sort *xsrt;
@@ -635,6 +653,8 @@ static int compare_record_run (const struct record_run *,
                                struct sort_cases_pgm *);
 static int compare_record_run_minheap (const void *, const void *, void *);
 
+/* Writes initial runs for XSRT, sending them to a separate file
+   if SEPARATE is nonzero. */
 static int
 write_initial_runs (struct external_sort *xsrt, int separate)
 {
@@ -659,7 +679,7 @@ write_initial_runs (struct external_sort *xsrt, int separate)
   /* Create case sink. */
   if (!separate)
     {
-      if (vfm_sink)
+      if (vfm_sink != NULL && vfm_sink->class->destroy != NULL)
 	vfm_sink->class->destroy (vfm_sink);
       vfm_sink = create_case_sink (&sort_sink_class, irs);
       xsrt->scp->ref_cnt++;
@@ -682,7 +702,7 @@ write_initial_runs (struct external_sort *xsrt, int separate)
 
 /* Add a single case to an initial run. */
 static void
-sort_sink_write (struct case_sink *sink, struct ccase *c)
+sort_sink_write (struct case_sink *sink, const struct ccase *c)
 {
   struct initial_run_state *irs = sink->aux;
   struct record_run *new_record_run;
@@ -708,6 +728,7 @@ sort_sink_write (struct case_sink *sink, struct ccase *c)
     output_record (irs);
 }
 
+/* Destroys the initial run state represented by IRS. */
 static void
 destroy_initial_run_state (struct initial_run_state *irs) 
 {
@@ -821,6 +842,8 @@ compare_record (const union value *a, const union value *b,
   return 0;
 }
 
+/* Compares record-run tuples A and B on run number first, then
+   on the current record according to SCP. */
 static int
 compare_record_run (const struct record_run *a,
                     const struct record_run *b,
@@ -832,6 +855,9 @@ compare_record_run (const struct record_run *a,
     return compare_record (a->record->c.data, b->record->c.data, scp);
 }
 
+/* Compares record-run tuples A and B on run number first, then
+   on the current record according to SCP, but in descending
+   order. */
 static int
 compare_record_run_minheap (const void *a, const void *b, void *scp) 
 {
@@ -879,6 +905,7 @@ end_run (struct initial_run_state *irs)
   irs->output_file = NULL;
 }
 
+/* Writes a record to the current initial run. */
 static void
 output_record (struct initial_run_state *irs)
 {
@@ -927,6 +954,8 @@ output_record (struct initial_run_state *irs)
   irs->last_output = record_run->record;
 }
 
+/* Gets a case from the free list in IRS.  It is an error to call
+   this function if the free list is empty. */
 static struct case_list *
 grab_case (struct initial_run_state *irs)
 {
@@ -940,6 +969,7 @@ grab_case (struct initial_run_state *irs)
   return c;
 }
 
+/* Returns C to the free list in IRS. */
 static void 
 release_case (struct initial_run_state *irs, struct case_list *c) 
 {
@@ -952,6 +982,7 @@ release_case (struct initial_run_state *irs, struct case_list *c)
 
 /* Merging. */
 
+/* State of merging initial runs. */
 struct merge_state 
   {
     struct external_sort *xsrt; /* External sort state. */
@@ -1228,18 +1259,13 @@ fill_run_buffer (struct merge_state *mrg, struct run *run)
   return 1;
 }
 
-static void
-sort_sink_destroy (struct case_sink *sink UNUSED) 
-{
-  assert (0);
-}
-
 static struct case_source *
 sort_sink_make_source (struct case_sink *sink) 
 {
   struct initial_run_state *irs = sink->aux;
 
-  return create_case_source (&sort_source_class, irs->xsrt->scp);
+  return create_case_source (&sort_source_class, default_dict,
+                             irs->xsrt->scp);
 }
 
 const struct case_sink_class sort_sink_class = 
@@ -1247,72 +1273,90 @@ const struct case_sink_class sort_sink_class =
     "SORT CASES",
     NULL,
     sort_sink_write,
-    sort_sink_destroy,
+    NULL,
     sort_sink_make_source,
   };
 
+struct sort_source_aux 
+  {
+    struct sort_cases_pgm *scp;
+    struct ccase *dst;
+    write_case_func *write_case;
+    write_case_data wc_data;
+  };
+
+/* Passes C to the write_case function. */
+static int
+sort_source_read_helper (const struct ccase *src, void *aux_) 
+{
+  struct sort_source_aux *aux = aux_;
+
+  memcpy (aux->dst, src, aux->scp->case_size);
+  return aux->write_case (aux->wc_data);
+}
+
 /* Reads all the records from the source stream and passes them
    to write_case(). */
 static void
 sort_source_read (struct case_source *source,
+                  struct ccase *c,
                   write_case_func *write_case, write_case_data wc_data)
 {
   struct sort_cases_pgm *scp = source->aux;
+  struct sort_source_aux aux;
+
+  aux.scp = scp;
+  aux.dst = c;
+  aux.write_case = write_case;
+  aux.wc_data = wc_data;
   
-  read_sort_output (scp, write_case, wc_data);
+  read_sort_output (scp, sort_source_read_helper, &aux);
 }
 
-void read_internal_sort_output (struct internal_sort *isrt,
-                                write_case_func *write_case,
-                                write_case_data wc_data);
-void read_external_sort_output (struct external_sort *xsrt,
-                                write_case_func *write_case,
-                                write_case_data wc_data);
+static void read_internal_sort_output (struct internal_sort *isrt,
+                                       read_sort_output_func *, void *aux);
+static void read_external_sort_output (struct external_sort *xsrt,
+                                       read_sort_output_func *, void *aux);
 
 /* Reads all the records from the output stream and passes them to the
    function provided, which must have an interface identical to
    write_case(). */
 void
 read_sort_output (struct sort_cases_pgm *scp,
-                  write_case_func *write_case, write_case_data wc_data)
+                  read_sort_output_func *output_func, void *aux)
 {
   assert ((scp->isrt != NULL) + (scp->xsrt != NULL) <= 1);
   if (scp->isrt != NULL)
-    read_internal_sort_output (scp->isrt, write_case, wc_data);
+    read_internal_sort_output (scp->isrt, output_func, aux);
   else if (scp->xsrt != NULL)
-    read_external_sort_output (scp->xsrt, write_case, wc_data);
+    read_external_sort_output (scp->xsrt, output_func, aux);
   else 
     {
       /* No results.  Probably an external sort that failed. */
     }
 }
 
-void
+static void
 read_internal_sort_output (struct internal_sort *isrt,
-                           write_case_func *write_case,
-                           write_case_data wc_data)
+                           read_sort_output_func *output_func,
+                           void *aux)
 {
-  struct ccase *save_temp_case = temp_case;
   struct case_list **p;
 
-  for (p = isrt->results; *p; p++) 
-    {
-      temp_case = &(*p)->c;
-      write_case (wc_data);
-    }
+  for (p = isrt->results; *p; p++)
+    if (!output_func (&(*p)->c, aux))
+      break;
   free (isrt->results);
-	    
-  temp_case = save_temp_case;
 }
 
-void
+static void
 read_external_sort_output (struct external_sort *xsrt,
-                           write_case_func *write_case,
-                           write_case_data wc_data)
+                           read_sort_output_func *output_func, void *aux)
 {
   FILE *file;
   int file_idx;
   size_t i;
+  struct ccase *c;
 
   assert (xsrt->run_cnt == 1);
   file_idx = xsrt->initial_runs[0].file_idx;
@@ -1324,18 +1368,19 @@ read_external_sort_output (struct external_sort *xsrt,
       return;
     }
 
+  c = xmalloc (xsrt->scp->case_size);
   for (i = 0; i < xsrt->initial_runs[0].case_cnt; i++)
     {
-      if (!read_temp_file (xsrt, file_idx, file,
-                          temp_case, xsrt->case_size))
+      if (!read_temp_file (xsrt, file_idx, file, c, xsrt->scp->case_size))
 	{
           err_failure ();
           break;
         }
 
-      if (!write_case (wc_data))
+      if (!output_func (c, aux))
         break;
     }
+  free (c);
 }
 
 static void

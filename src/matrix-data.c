@@ -126,7 +126,7 @@ struct matrix_data_pgm
     int contents[EOC * 3 + 1];  /* Contents. */
     int n_contents;             /* Number of entries. */
 
-    
+    /* Continuous variables. */
     int n_continuous;           /* Number of continuous variables. */
     int first_continuous;       /* Index into default_dict.var of
                                    first continuous variable. */
@@ -786,6 +786,7 @@ enum matrix_token_type
     MSTR		/* String. */
   };
 
+/* A MATRIX DATA parsing token. */
 struct matrix_token
   {
     enum matrix_token_type type; 
@@ -1009,9 +1010,10 @@ static double *split_values;
 
 static int nr_read_splits (struct matrix_data_pgm *, int compare);
 static int nr_read_factors (struct matrix_data_pgm *, int cell);
-static void nr_output_data (struct matrix_data_pgm *,
+static void nr_output_data (struct matrix_data_pgm *, struct ccase *,
                             write_case_func *, write_case_data);
 static void matrix_data_read_without_rowtype (struct case_source *source,
+                                              struct ccase *,
                                               write_case_func *,
                                               write_case_data);
 
@@ -1028,7 +1030,7 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
   max_cell_index = 0;
 
   vfm_source = create_case_source (&matrix_data_without_rowtype_source_class,
-                                   mx);
+                                   default_dict, mx);
   
   procedure (NULL, NULL, NULL, NULL);
 
@@ -1201,6 +1203,7 @@ nr_read_data_lines (struct matrix_data_pgm *mx,
    writes them to the output file.  Returns success. */
 static void
 matrix_data_read_without_rowtype (struct case_source *source,
+                                  struct ccase *c,
                                   write_case_func *write_case,
                                   write_case_data wc_data)
 {
@@ -1287,7 +1290,7 @@ matrix_data_read_without_rowtype (struct case_source *source,
 	  }
 	}
 
-      nr_output_data (mx, write_case, wc_data);
+      nr_output_data (mx, c, write_case, wc_data);
 
       if (dict_get_split_cnt (default_dict) == 0
           || !another_token (mx->data_file))
@@ -1405,16 +1408,17 @@ nr_read_factors (struct matrix_data_pgm *mx, int cell)
    CP to the active file. */
 static void
 dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
+                   struct ccase *c,
                    write_case_func *write_case, write_case_data wc_data)
 {
   int type = content_type[content];
 
   {
-    st_bare_pad_copy (temp_case->data[mx->rowtype_->fv].s,
+    st_bare_pad_copy (c->data[mx->rowtype_->fv].s,
 		      content_names[content], 8);
     
     if (type != 1)
-      memset (&temp_case->data[mx->varname_->fv].s, ' ', 8);
+      memset (&c->data[mx->varname_->fv].s, ' ', 8);
   }
 
   {
@@ -1428,11 +1432,11 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
 	for (j = 0; j < mx->n_continuous; j++)
 	  {
             int fv = dict_get_var (default_dict, mx->first_continuous + j)->fv;
-	    temp_case->data[fv].f = *cp;
+	    c->data[fv].f = *cp;
 	    cp++;
 	  }
 	if (type == 1)
-	  st_bare_pad_copy (temp_case->data[mx->varname_->fv].s,
+	  st_bare_pad_copy (c->data[mx->varname_->fv].s,
                             dict_get_var (default_dict,
                                           mx->first_continuous + i)->name,
 			    8);
@@ -1443,7 +1447,7 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
 
 /* Finally dump out everything from nr_data[] to the output file. */
 static void
-nr_output_data (struct matrix_data_pgm *mx,
+nr_output_data (struct matrix_data_pgm *mx, struct ccase *c,
                 write_case_func *write_case, write_case_data wc_data)
 {
   {
@@ -1454,7 +1458,7 @@ nr_output_data (struct matrix_data_pgm *mx,
     split_cnt = dict_get_split_cnt (default_dict);
     split = dict_get_split_vars (default_dict);
     for (i = 0; i < split_cnt; i++)
-      temp_case->data[split[i]->fv].f = split_values[i];
+      c->data[split[i]->fv].f = split_values[i];
   }
 
   if (mx->n_factors)
@@ -1468,7 +1472,7 @@ nr_output_data (struct matrix_data_pgm *mx,
 
 	    for (factor = 0; factor < mx->n_factors; factor++)
 	      {
-		temp_case->data[mx->factors[factor]->fv].f
+		c->data[mx->factors[factor]->fv].f
 		  = nr_factor_values[factor + cell * mx->n_factors];
 		debug_printf (("f:%s ", mx->factors[factor]->name));
 	      }
@@ -1484,7 +1488,7 @@ nr_output_data (struct matrix_data_pgm *mx,
 			  && nr_data[content][cell] != NULL);
 
 		  dump_cell_content (mx, content, nr_data[content][cell],
-                                     write_case, wc_data);
+                                     c, write_case, wc_data);
 		}
 	  }
 	}
@@ -1497,13 +1501,13 @@ nr_output_data (struct matrix_data_pgm *mx,
       int factor;
 
       for (factor = 0; factor < mx->n_factors; factor++)
-	temp_case->data[mx->factors[factor]->fv].f = SYSMIS;
+	c->data[mx->factors[factor]->fv].f = SYSMIS;
     }
     
     for (content = 0; content <= PROX; content++)
       if (!mx->is_per_factor[content] && nr_data[content] != NULL)
 	dump_cell_content (mx, content, nr_data[content][0],
-                           write_case, wc_data);
+                           c, write_case, wc_data);
   }
 }
 
@@ -1528,12 +1532,15 @@ struct factor_data *wr_data;
 struct factor_data *wr_current;
 
 static int wr_read_splits (struct matrix_data_pgm *,
+                           struct ccase *,
                            write_case_func *, write_case_data);
-static int wr_output_data (struct matrix_data_pgm *, write_case_func *, write_case_data);
+static int wr_output_data (struct matrix_data_pgm *,
+                           struct ccase *, write_case_func *, write_case_data);
 static int wr_read_rowtype (const struct matrix_token *, struct file_handle *);
 static int wr_read_factors (struct matrix_data_pgm *);
 static int wr_read_indeps (struct matrix_data_pgm *);
 static void matrix_data_read_with_rowtype (struct case_source *,
+                                           struct ccase *,
                                            write_case_func *,
                                            write_case_data);
 
@@ -1546,7 +1553,8 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
   split_values = NULL;
   mx->cells = 0;
 
-  vfm_source = create_case_source (&matrix_data_with_rowtype_source_class, mx);
+  vfm_source = create_case_source (&matrix_data_with_rowtype_source_class,
+                                   default_dict, mx);
   
   procedure (NULL, NULL, NULL, NULL);
 
@@ -1557,6 +1565,7 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
 /* Read from the data file and write it to the active file. */
 static void
 matrix_data_read_with_rowtype (struct case_source *source,
+                               struct ccase *c,
                                write_case_func *write_case,
                                write_case_data wc_data)
 {
@@ -1564,7 +1573,7 @@ matrix_data_read_with_rowtype (struct case_source *source,
 
   do
     {
-      if (!wr_read_splits (mx, write_case, wc_data))
+      if (!wr_read_splits (mx, c, write_case, wc_data))
 	return;
 
       if (!wr_read_factors (mx))
@@ -1575,13 +1584,14 @@ matrix_data_read_with_rowtype (struct case_source *source,
     }
   while (another_token (mx->data_file));
 
-  wr_output_data (mx, write_case, wc_data);
+  wr_output_data (mx, c, write_case, wc_data);
 }
 
 /* Read the split file variables.  If they differ from the previous
    set of split variables then output the data.  Returns success. */
 static int 
 wr_read_splits (struct matrix_data_pgm *mx,
+                struct ccase *c,
                 write_case_func *write_case, write_case_data wc_data)
 {
   int compare;
@@ -1617,7 +1627,7 @@ wr_read_splits (struct matrix_data_pgm *mx,
 
 	if (compare && split_values[i] != token.number && !different)
 	  {
-	    if (!wr_output_data (mx, write_case, wc_data))
+	    if (!wr_output_data (mx, c, write_case, wc_data))
 	      return 0;
 	    different = 1;
 	    mx->cells = 0;
@@ -1669,6 +1679,7 @@ compare_factors (const void *a_, const void *b_, void *mx_)
    file. */
 static int 
 wr_output_data (struct matrix_data_pgm *mx,
+                struct ccase *c,
                 write_case_func *write_case, write_case_data wc_data)
 {
   {
@@ -1679,7 +1690,7 @@ wr_output_data (struct matrix_data_pgm *mx,
     split_cnt = dict_get_split_cnt (default_dict);
     split = dict_get_split_vars (default_dict);
     for (i = 0; i < split_cnt; i++)
-      temp_case->data[split[i]->fv].f = split_values[i];
+      c->data[split[i]->fv].f = split_values[i];
   }
 
   /* Sort the wr_data list. */
@@ -1714,7 +1725,7 @@ wr_output_data (struct matrix_data_pgm *mx,
 
 	  for (factor = 0; factor < mx->n_factors; factor++)
 	    {
-	      temp_case->data[mx->factors[factor]->fv].f
+	      c->data[mx->factors[factor]->fv].f
 		= iter->factors[factor];
 	      debug_printf (("f:%s ", factors[factor]->name));
 	    }
@@ -1749,7 +1760,7 @@ wr_output_data (struct matrix_data_pgm *mx,
 	      fill_matrix (mx, content, iter->data[content]);
 
 	      dump_cell_content (mx, content, iter->data[content],
-                                 write_case, wc_data);
+                                 c, write_case, wc_data);
 	    }
 	}
       }

@@ -86,6 +86,7 @@ struct file_type_pgm
 				   DATA LIST. */
     struct record_type *recs_head;	/* List of record types. */
     struct record_type *recs_tail;	/* Last in list of record types. */
+    size_t case_size;           /* Case size in bytes. */
   };
 
 static int parse_col_spec (struct col_spec *, const char *);
@@ -271,10 +272,10 @@ cmd_file_type (void)
 
   default_handle = fty->handle;
 
-  vfm_source = create_case_source (&file_type_source_class, fty);
   create_col_var (&fty->record);
   if (fty->case_sbc.name[0])
     create_col_var (&fty->case_sbc);
+  vfm_source = create_case_source (&file_type_source_class, default_dict, fty);
 
   return CMD_SUCCESS;
 
@@ -579,6 +580,7 @@ cmd_end_file_type (void)
       return CMD_FAILURE;
     }
   fty = vfm_source->aux;
+  fty->case_size = dict_get_case_size (default_dict);
 
   lex_match_id ("TYPE");
 
@@ -616,10 +618,11 @@ cmd_end_file_type (void)
    static void read_from_file_type_grouped(void);
    static void read_from_file_type_nested(void); */
 
-/* Reads any number of cases into temp_case and calls write_case() for
-   each one.  Compare data-list.c:read_from_data_list. */
+/* Reads any number of cases into case C and calls write_case()
+   for each one.  Compare data-list.c:read_from_data_list. */
 static void
 file_type_source_read (struct case_source *source,
+                       struct ccase *c,
                        write_case_func *write_case UNUSED,
                        write_case_data wc_data UNUSED)
 {
@@ -644,7 +647,7 @@ file_type_source_read (struct case_source *source,
 	{
 	  struct data_in di;
 	  
-	  v.c = temp_case->data[fty->record.v->fv].s;
+	  v.c = c->data[fty->record.v->fv].s;
 
 	  data_in_finite_line (&di, line, len,
 			       fty->record.fc, fty->record.fc + fty->record.nc);
@@ -677,7 +680,7 @@ file_type_source_read (struct case_source *source,
 	  di.format = format;
 	  data_in (&di);
 
-	  memcpy (&temp_case->data[fty->record.v->fv].f, &v.f, sizeof v.f);
+	  memcpy (&c->data[fty->record.v->fv].f, &v.f, sizeof v.f);
 	  for (iter = fty->recs_head; iter; iter = iter->next)
 	    {
 	      if (iter->flags & RCT_OTHER)

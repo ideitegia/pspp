@@ -518,6 +518,8 @@ get_freq_comparator (int frq_sort, int var_type)
   return 0;
 }
 
+/* Returns nonzero iff the value in struct freq F is non-missing
+   for variable V. */
 static int
 not_missing (const void *f_, void *v_) 
 {
@@ -527,8 +529,9 @@ not_missing (const void *f_, void *v_)
   return !is_missing (&f->v, v);
 }
 
+/* Summarizes the frequency table data for variable V. */
 static void
-postprocess_freq_tab (struct variable * v)
+postprocess_freq_tab (struct variable *v)
 {
   hsh_compare_func *compare;
   struct freq_tab *ft;
@@ -575,6 +578,7 @@ postprocess_freq_tab (struct variable * v)
     }
 }
 
+/* Frees the frequency table for variable V. */
 static void
 cleanup_freq_tab (struct variable *v)
 {

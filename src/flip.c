@@ -17,8 +17,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-/* FIXME: does this work with long string variables? */
-
 #include <config.h>
 #include <assert.h>
 #include <ctype.h>
@@ -47,18 +45,25 @@ struct varname
 struct flip_pgm 
   {
     struct variable **var;      /* Variables to transpose. */
-    int var_cnt;                /* Number of variables. */
-    struct variable *newnames;  /* Variable containing new variable names. */
-    struct varname *new_names_head, *new_names_tail;
-                                /* New variable names. */
-    int case_count;             /* Number of cases. */
+    int var_cnt;                /* Number of elements in `var'. */
+    int case_cnt;               /* Pre-flip case count. */
+    size_t case_size;           /* Post-flip bytes per case. */
 
+    struct variable *new_names; /* Variable containing new variable names. */
+    struct varname *new_names_head; /* First new variable. */
+    struct varname *new_names_tail; /* Last new variable. */
+
+    FILE *file;                 /* Temporary file containing data. */
   };
 
-static void destroy_flip_pgm (struct flip_pgm *flip);
+static void destroy_flip_pgm (struct flip_pgm *);
 static struct case_sink *flip_sink_create (struct flip_pgm *);
+static struct case_source *flip_source_create (struct flip_pgm *);
+static void flip_file (struct flip_pgm *);
+static int build_dictionary (struct flip_pgm *);
+
 static const struct case_source_class flip_source_class;
-static int build_dictionary (struct flip_pgm *flip);
+static const struct case_sink_class flip_sink_class;
 
 /* Parses and executes FLIP. */
 int
@@ -69,9 +74,11 @@ cmd_flip (void)
   flip = xmalloc (sizeof *flip);
   flip->var = NULL;
   flip->var_cnt = 0;
-  flip->newnames = NULL;
-  flip->new_names_head = flip->new_names_tail = NULL;
-  flip->case_count = 0;
+  flip->case_cnt = 0;
+  flip->new_names = NULL;
+  flip->new_names_head = NULL;
+  flip->new_names_tail = NULL;
+  flip->file = NULL;
 
   lex_match_id ("FLIP");
   lex_match ('/');
@@ -89,19 +96,19 @@ cmd_flip (void)
   if (lex_match_id ("NEWNAMES"))
     {
       lex_match ('=');
-      flip->newnames = parse_variable ();
-      if (!flip->newnames)
+      flip->new_names = parse_variable ();
+      if (!flip->new_names)
         goto error;
     }
   else
-    flip->newnames = dict_lookup_var (default_dict, "CASE_LBL");
+    flip->new_names = dict_lookup_var (default_dict, "CASE_LBL");
 
-  if (flip->newnames)
+  if (flip->new_names)
     {
       int i;
       
       for (i = 0; i < flip->var_cnt; i++)
-	if (flip->var[i] == flip->newnames)
+	if (flip->var[i] == flip->new_names)
 	  {
 	    memmove (&flip->var[i], &flip->var[i + 1], sizeof *flip->var * (flip->var_cnt - i - 1));
 	    flip->var_cnt--;
@@ -109,18 +116,27 @@ cmd_flip (void)
 	  }
     }
 
-  flip->case_count = 0;
+  /* Read the active file into a flip_sink. */
+  flip->case_cnt = 0;
   temp_trns = temporary = 0;
   vfm_sink = flip_sink_create (flip);
   flip->new_names_tail = NULL;
   procedure (NULL, NULL, NULL, NULL);
 
+  /* Flip the data we read. */
+  flip_file (flip);
+
+  /* Flip the dictionary. */
   dict_clear (default_dict);
   if (!build_dictionary (flip))
     {
       discard_variables ();
       goto error;
     }
+  flip->case_size = dict_get_case_size (default_dict);
+
+  /* Set up flipped data for reading. */
+  vfm_source = flip_source_create (flip);
 
   return lex_end_of_command ();
 
@@ -129,6 +145,7 @@ cmd_flip (void)
   return CMD_FAILURE;
 }
 
+/* Destroys FLIP. */
 static void
 destroy_flip_pgm (struct flip_pgm *flip) 
 {
@@ -140,6 +157,8 @@ destroy_flip_pgm (struct flip_pgm *flip)
       next = iter->next;
       free (iter);
     }
+  if (flip->file != NULL)
+    fclose (flip->file);
   free (flip);
 }
 
@@ -202,13 +221,13 @@ build_dictionary (struct flip_pgm *flip)
     {
       int i;
       
-      if (flip->case_count > 99999)
+      if (flip->case_cnt > 99999)
 	{
 	  msg (SE, _("Cannot create more than 99999 variable names."));
 	  return 0;
 	}
       
-      for (i = 0; i < flip->case_count; i++)
+      for (i = 0; i < flip->case_cnt; i++)
 	{
           struct variable *v;
 	  char s[9];
@@ -233,77 +252,52 @@ build_dictionary (struct flip_pgm *flip)
 struct flip_sink_info 
   {
     struct flip_pgm *flip;              /* FLIP program. */
-    int internal;			/* Internal or external flip. */
-    char *old_names;                    /* Old variable names. */
-    unsigned long case_cnt;             /* Number of cases. */
-    FILE *file;                         /* Temporary file. */
+    union value *output_buf;            /* Case output buffer. */
   };
 
-/* Source: Cases after transposition. */
-struct flip_source_info 
-  {
-    struct flip_pgm *flip;              /* FLIP program. */
-    char *old_names;    		/* Old variable names. */
-    unsigned long case_cnt;		/* Number of cases. */
-    FILE *file;                         /* Temporary file. */
-  };
-
-static const struct case_sink_class flip_sink_class;
-
-static FILE *flip_file (struct flip_sink_info *info);
-
-/* Creates a flip sink based on FLIP, of which it takes
-   ownership. */
+/* Creates a flip sink based on FLIP. */
 static struct case_sink *
 flip_sink_create (struct flip_pgm *flip) 
 {
   struct flip_sink_info *info = xmalloc (sizeof *info);
+  int i;
 
   info->flip = flip;
-  info->case_cnt = 0;
-  
-  {
-    size_t n = flip->var_cnt;
-    char *p;
-    int i;
-    
-    for (i = 0; i < flip->var_cnt; i++)
-      n += strlen (flip->var[i]->name);
-    p = info->old_names = xmalloc (n);
-    for (i = 0; i < flip->var_cnt; i++)
-      p = stpcpy (p, flip->var[i]->name) + 1;
-  }
+  info->output_buf = xmalloc (sizeof *info->output_buf * flip->var_cnt);
+
+  flip->file = tmpfile ();
+  if (!flip->file)
+    msg (FE, _("Could not create temporary file for FLIP."));
+
+  /* Write variable names as first case. */
+  for (i = 0; i < flip->var_cnt; i++) 
+    st_bare_pad_copy (info->output_buf[i].s, flip->var[i]->name, 8);
+  if (fwrite (info->output_buf, sizeof *info->output_buf,
+              flip->var_cnt, flip->file) != (size_t) flip->var_cnt)
+    msg (FE, _("Error writing FLIP file: %s."), strerror (errno));
+
+  flip->case_cnt = 1;
 
   return create_case_sink (&flip_sink_class, info);
 }
 
-/* Open the FLIP sink. */
-static void
-flip_sink_open (struct case_sink *sink) 
-{
-  struct flip_sink_info *info = sink->aux;
-
-  info->file = tmpfile ();
-  if (!info->file)
-    msg (FE, _("Could not create temporary file for FLIP."));
-}
-
 /* Writes case C to the FLIP sink. */
 static void
-flip_sink_write (struct case_sink *sink, struct ccase *c)
+flip_sink_write (struct case_sink *sink, const struct ccase *c)
 {
   struct flip_sink_info *info = sink->aux;
   struct flip_pgm *flip = info->flip;
+  int i;
   
-  info->case_cnt++;
+  flip->case_cnt++;
 
-  if (flip->newnames)
+  if (flip->new_names != NULL)
     {
       struct varname *v = xmalloc (sizeof (struct varname));
       v->next = NULL;
-      if (flip->newnames->type == NUMERIC) 
+      if (flip->new_names->type == NUMERIC) 
         {
-          double f = c->data[flip->newnames->fv].f;
+          double f = c->data[flip->new_names->fv].f;
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -321,8 +315,8 @@ flip_sink_write (struct case_sink *sink, struct ccase *c)
         }
       else
 	{
-	  int width = min (flip->newnames->width, 8);
-	  memcpy (v->name, c->data[flip->newnames->fv].s, width);
+	  int width = min (flip->new_names->width, 8);
+	  memcpy (v->name, c->data[flip->new_names->fv].s, width);
 	  v->name[width] = 0;
 	}
       
@@ -332,65 +326,23 @@ flip_sink_write (struct case_sink *sink, struct ccase *c)
 	flip->new_names_tail->next = v;
       flip->new_names_tail = v;
     }
-  else
-    flip->case_count++;
-
 
   /* Write to external file. */
-  {
-    double *d = local_alloc (sizeof *d * flip->var_cnt);
-    int i;
-
-    for (i = 0; i < flip->var_cnt; i++)
-      if (flip->var[i]->type == NUMERIC)
-	d[i] = c->data[flip->var[i]->fv].f;
-      else
-	d[i] = SYSMIS;
+  for (i = 0; i < flip->var_cnt; i++)
+    if (flip->var[i]->type == NUMERIC)
+      info->output_buf[i].f = c->data[flip->var[i]->fv].f;
+    else
+      info->output_buf[i].f = SYSMIS;
 	  
-    if (fwrite (d, sizeof *d, flip->var_cnt, info->file) != (size_t) flip->var_cnt)
-      msg (FE, _("Error writing FLIP file: %s."),
-	   strerror (errno));
-
-    local_free (d);
-  }
+  if (fwrite (info->output_buf, sizeof *info->output_buf,
+              flip->var_cnt, flip->file) != (size_t) flip->var_cnt)
+    msg (FE, _("Error writing FLIP file: %s."), strerror (errno));
 }
 
-/* Destroy sink's internal data. */
+/* Transposes the external file into a new file. */
 static void
-flip_sink_destroy (struct case_sink *sink)
+flip_file (struct flip_pgm *flip)
 {
-  struct flip_sink_info *info = sink->aux;
-  
-  free (info->old_names);
-  destroy_flip_pgm (info->flip);
-  free (info);
-}
-
-/* Convert the FLIP sink into a source. */
-static struct case_source *
-flip_sink_make_source (struct case_sink *sink)
-{
-  struct flip_sink_info *sink_info = sink->aux;
-  struct flip_source_info *source_info;
-
-  source_info = xmalloc (sizeof *source_info);
-  source_info->flip = sink_info->flip;
-  source_info->old_names = sink_info->old_names;
-  source_info->case_cnt = sink_info->case_cnt;
-  source_info->file = flip_file (sink_info);
-  fclose (sink_info->file);
-
-  free (sink_info);
-
-  return create_case_source (&flip_source_class, source_info);
-}
-
-/* Transposes the external file into a new file and returns a
-   pointer to the transposed file. */
-static FILE *
-flip_file (struct flip_sink_info *info)
-{
-  struct flip_pgm *flip = info->flip;
   size_t case_bytes;
   size_t case_capacity;
   size_t case_idx;
@@ -400,8 +352,8 @@ flip_file (struct flip_sink_info *info)
   /* Allocate memory for many cases. */
   case_bytes = flip->var_cnt * sizeof *input_buf;
   case_capacity = set_max_workspace / case_bytes;
-  if (case_capacity > info->case_cnt)
-    case_capacity = info->case_cnt;
+  if (case_capacity > flip->case_cnt * 2)
+    case_capacity = flip->case_cnt * 2;
   if (case_capacity < 2)
     case_capacity = 2;
   for (;;)
@@ -424,7 +376,7 @@ flip_file (struct flip_sink_info *info)
   case_capacity /= 2;
   output_buf = input_buf + flip->var_cnt * case_capacity;
 
-  input_file = info->file;
+  input_file = flip->file;
   if (fseek (input_file, 0, SEEK_SET) != 0)
     msg (FE, _("Error rewinding FLIP file: %s."), strerror (errno));
 
@@ -432,9 +384,9 @@ flip_file (struct flip_sink_info *info)
   if (output_file == NULL)
     msg (FE, _("Error creating FLIP source file."));
   
-  for (case_idx = 0; case_idx < info->case_cnt; )
+  for (case_idx = 0; case_idx < flip->case_cnt; )
     {
-      unsigned long read_cases = min (info->case_cnt - case_idx,
+      unsigned long read_cases = min (flip->case_cnt - case_idx,
                                       case_capacity);
       int i;
 
@@ -449,7 +401,7 @@ flip_file (struct flip_sink_info *info)
 	    output_buf[j] = input_buf[i + j * flip->var_cnt];
 
 	  if (fseek (output_file,
-                     sizeof *input_buf * (case_idx + i * info->case_cnt),
+                     sizeof *input_buf * (case_idx + i * flip->case_cnt),
                      SEEK_SET) != 0)
 	    msg (FE, _("Error seeking FLIP source file: %s."),
 		       strerror (errno));
@@ -463,58 +415,79 @@ flip_file (struct flip_sink_info *info)
       case_idx += read_cases;
     }
 
+  fclose (input_file);
+  free (input_buf);
+  
   if (fseek (output_file, 0, SEEK_SET) != 0)
     msg (FE, _("Error rewind FLIP source file: %s."), strerror (errno));
+  flip->file = output_file;
+}
 
-  free (input_buf);
-  return output_file;
+/* Destroy sink's internal data. */
+static void
+flip_sink_destroy (struct case_sink *sink)
+{
+  struct flip_sink_info *info = sink->aux;
+
+  free (info->output_buf);
+  free (info);
 }
 
 /* FLIP sink class. */
 static const struct case_sink_class flip_sink_class = 
   {
     "FLIP",
-    flip_sink_open,
+    NULL,
     flip_sink_write,
     flip_sink_destroy,
-    flip_sink_make_source,
+    NULL,
   };
 
-/* Reads the FLIP stream and passes it to WRITE_CASE(). */
+/* Creates and returns a FLIP source based on PGM,
+   which should have already been used as a sink. */
+static struct case_source *
+flip_source_create (struct flip_pgm *pgm)
+{
+  return create_case_source (&flip_source_class, default_dict, pgm);
+}
+
+/* Reads the FLIP stream.  Copies each case into C and calls
+   WRITE_CASE passing WC_DATA. */
 static void
 flip_source_read (struct case_source *source,
+                  struct ccase *c,
                   write_case_func *write_case, write_case_data wc_data)
 {
-  struct flip_source_info *info = source->aux;
-  struct flip_pgm *flip = info->flip;
+  struct flip_pgm *flip = source->aux;
   int i;
-  char *p = info->old_names;
-      
+
   for (i = 0; i < flip->var_cnt; i++)
     {
-      st_bare_pad_copy (temp_case->data[0].s, p, 8);
-      p = strchr (p, 0) + 1;
-
-      if (fread (&temp_case->data[1], sizeof (double), info->case_cnt,
-                 info->file) != info->case_cnt)
-        msg (FE, _("Error reading FLIP source file: %s."),
-             strerror (errno));
+      if (fread (c->data, sizeof *c->data, flip->case_cnt,
+                 flip->file) != flip->case_cnt) 
+        {
+          if (ferror (flip->file))
+            msg (SE, _("Error reading FLIP temporary file: %s."),
+                 strerror (errno));
+          else if (feof (flip->file))
+            msg (SE, _("Unexpected end of file reading FLIP temporary file."));
+          else
+            assert (0);
+          break;
+        }
 
       if (!write_case (wc_data))
-        return;
+        break;
     }
 }
 
-/* Destroy source's internal data. */
+/* Destroy internal data in SOURCE. */
 static void
 flip_source_destroy (struct case_source *source)
 {
-  struct flip_source_info *info = source->aux;
+  struct flip_pgm *flip = source->aux;
 
-  destroy_flip_pgm (info->flip);
-  free (info->old_names);
-  fclose (info->file);
-  free (info);
+  destroy_flip_pgm (flip);
 }
 
 static const struct case_source_class flip_source_class = 

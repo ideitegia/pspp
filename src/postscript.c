@@ -2575,7 +2575,7 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
       char_name = local_char_name;
       if (ext->current->font->ligatures && *cp == 'f')
 	{
-	  int lig;
+	  int lig = 0;
           char_name = NULL;
 
 	  if (cp < end - 1)
@@ -2604,7 +2604,7 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
 	      }
 	  if ((lig & ext->current->font->ligatures) == 0)
 	    {
-	      local_char_name[0] = *cp++;	/* 'f' */
+	      local_char_name[0] = *cp;	/* 'f' */
 	      char_name = local_char_name;
 	    }
 	}

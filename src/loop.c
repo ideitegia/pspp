@@ -32,7 +32,6 @@
 
 #include "debug-print.h"
 
-/* *INDENT-OFF* */
 /* LOOP strategy:
 
    Each loop causes 3 different transformations to be output.  The
@@ -43,42 +42,40 @@
    transformation to -1.  This ensures that the pass number is set to
    -1 every time the loop is encountered, before the first iteration.
 
-   The second transformation increments the pass number.  If there is
-   no indexing or test clause on either LOOP or END LOOP, then the
-   pass number is checked against MXLOOPS and control may pass out of
-   the loop; otherwise the indexing or test clause(s) on LOOP are
-   checked, and again control may pass out of the loop.
+   The second transformation increments the pass number.  If
+   there is no indexing or test clause on either LOOP or END
+   LOOP, then the pass number is checked against MXLOOPS and
+   control may pass out of the loop.  Otherwise the indexing or
+   test clause(s) on LOOP are checked, and again control may pass
+   out of the loop.
 
-   After the second transformation the body of the loop is executed.
+   After the second transformation the body of the loop is
+   executed.
 
    The last transformation checks the test clause if present and
-   either jumps back up to the second transformation or terminates the
-   loop.
+   either jumps back up to the second transformation or
+   terminates the loop.
 
-   Flow of control: (The characters ^V<> represents arrows.)
+   Flow of control:
 
-     1. LOOP (sets pass # to -1)
-	 V
-	 V
-   >>2. LOOP (increment pass number)
-   ^         (test optional indexing clause)
-   ^         (test optional IF clause)
-   ^    if we need another trip     if we're done with the loop>>V
-   ^     V                                                       V
-   ^     V 				           		    V
-   ^ *. execute loop body		      	   		    V
-   ^    .		    		      	   		    V
-   ^    .   (any number of transformations)	   		    V
-   ^    .				                    	    V
-   ^                                                             V
-   ^ 3. END LOOP (test optional IF clause)               	    V
-   ^<<<<if we need another trip     if we're done with the loop>>V
-								 V
-								 V
-     *. transformations after loop body<<<<<<<<<<<<<<<<<<<<<<<<<<<
+   1. LOOP.  Sets pass number to -1 and continues to next
+      transformation.
 
+   2. LOOP.  Increments pass number.  Tests optional indexing
+      clause and optional IF clause.  If we're done with the
+      loop, we jump to the transformation just after LOOP
+      transformation 3.
+
+      Otherwise, we continue through the transformations in the
+      loop body.
+
+   3. END LOOP.  We test the optional IF clause.  If we need to
+      make another pass through the loop, we jump to LOOP
+      transformation 2.
+
+      Otherwise, we continue with the transformation jump after
+      the loop.
  */
-/* *INDENT-ON* */
 
 /* Types of limits on loop execution. */
 enum

@@ -34,6 +34,7 @@
 
 /* Definitions. */
 
+/* Type of source value for RECODE. */
 enum
   {
     RCD_END,			/* sentinel value */

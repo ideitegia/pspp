@@ -71,9 +71,6 @@ struct fmt_spec
 /* Descriptions of all the display formats above. */
 extern struct fmt_desc formats[];
 
-/* Translates SPSS formats to PSPP formats. */
-extern const int translate_fmt[40];
-
 union value;
 
 /* Maximum length of formatted value, in character. */
@@ -88,6 +85,7 @@ void convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output);
 int get_format_var_width (const struct fmt_spec *);
 int parse_string_as_format (const char *s, int len, const struct fmt_spec *fp,
 			    int fc, union value *v);
+int translate_fmt (int spss);
 void data_out (char *s, const struct fmt_spec *fp, const union value *v);
 char *fmt_to_string (const struct fmt_spec *);
 void num_to_string (double v, char *s, int w, int d);

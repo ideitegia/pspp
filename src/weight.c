@@ -26,13 +26,6 @@
 #include "str.h"
 #include "var.h"
 
-/* Notes:
-
-   If the weighting variable is deleted somehow (for instance by
-   end-of-scope of TEMPORARY), weighting must be canceled.
-
-   Scratch vars may not be used for weighting. */
-
 /* WEIGHT transformation. */
 struct weight_trns
   {

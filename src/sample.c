@@ -118,6 +118,7 @@ cmd_sample (void)
   return lex_end_of_command ();
 }
 
+/* Executes a SAMPLE transformation. */
 static int
 sample_trns_proc (struct trns_header * trns, struct ccase *c UNUSED,
                   int case_num UNUSED)

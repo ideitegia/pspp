@@ -25,9 +25,7 @@
 /* This is the time at which vfm was last invoked. */
 extern time_t last_vfm_invocation;
 
-/* This is the case that is to be filled in by input programs. */
-extern struct ccase *temp_case;
-
+struct ccase;
 typedef struct write_case_data *write_case_data;
 typedef int write_case_func (write_case_data);
 
@@ -38,7 +36,8 @@ extern struct case_source *vfm_source;
 struct case_source 
   {
     const struct case_source_class *class;      /* Class. */
-    void *aux;                                  /* Auxiliary data. */
+    size_t value_cnt;   /* Number of `union value's in case. */
+    void *aux;          /* Auxiliary data. */
   };
 
 /* A case source class. */
@@ -50,9 +49,11 @@ struct case_source_class
        WRITE_CASE, if known, or -1 otherwise. */
     int (*count) (const struct case_source *);
 
-    /* Reads all the cases and calls WRITE_CASE passing the given
-       AUX data for each one. */
-    void (*read) (struct case_source *, write_case_func *, write_case_data);
+    /* Reads the cases one by one into C and for each one calls
+       WRITE_CASE passing the given AUX data. */
+    void (*read) (struct case_source *,
+                  struct ccase *c,
+                  write_case_func *write_case, write_case_data aux);
 
     /* Destroys the source. */
     void (*destroy) (struct case_source *);
@@ -67,7 +68,9 @@ extern const struct case_source_class get_source_class;
 extern const struct case_source_class import_source_class;
 extern const struct case_source_class sort_source_class;
 
+struct dictionary;
 struct case_source *create_case_source (const struct case_source_class *,
+                                        const struct dictionary *,
                                         void *);
 int case_source_is_complex (const struct case_source *);
 int case_source_is_class (const struct case_source *,
@@ -95,7 +98,7 @@ struct case_sink_class
     void (*open) (struct case_sink *);
                   
     /* Writes a case to the sink. */
-    void (*write) (struct case_sink *, struct ccase *);
+    void (*write) (struct case_sink *, const struct ccase *);
     
     /* Closes and destroys the sink. */
     void (*destroy) (struct case_sink *);
@@ -115,18 +118,18 @@ struct case_sink *create_case_sink (const struct case_sink_class *, void *);
 /* Number of cases to lag. */
 extern int n_lag;
 
-void procedure (void (*beginfunc) (void *aux),
-		int (*procfunc) (struct ccase *curcase, void *aux),
-		void (*endfunc) (void *aux),
+void procedure (void (*begin_func) (void *aux),
+		int (*proc_func) (struct ccase *, void *aux),
+		void (*end_func) (void *aux),
                 void *aux);
 struct ccase *lagged_case (int n_before);
 void compact_case (struct ccase *dest, const struct ccase *src);
 void write_active_file_to_disk (void);
 
-void process_active_file (void (*beginfunc) (void *),
-			  int (*casefunc) (struct ccase *curcase, void *),
-			  void (*endfunc) (void *),
+void process_active_file (void (*begin_func) (void *),
+			  int (*casefunc) (struct ccase *, void *),
+			  void (*end_func) (void *),
                           void *aux);
-void process_active_file_output_case (void);
+void process_active_file_output_case (const struct ccase *);
 
 #endif /* !vfm_h */

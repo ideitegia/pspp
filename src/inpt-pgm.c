@@ -50,6 +50,7 @@ struct input_program_pgm
   {
     enum value_init_type *init; /* How to initialize each `union value'. */
     size_t init_cnt;            /* Number of elements in inp_init. */
+    size_t case_size;           /* Size of case in bytes. */
   };
 
 static trns_proc_func end_case_trns_proc, reread_trns_proc, end_file_trns_proc;
@@ -62,7 +63,10 @@ cmd_input_program (void)
   lex_match_id ("PROGRAM");
   discard_variables ();
 
-  vfm_source = create_case_source (&input_program_source_class, NULL);
+  /* FIXME: we shouldn't do this here, but I'm afraid that other
+     code will check the class of vfm_source. */
+  vfm_source = create_case_source (&input_program_source_class,
+                                   default_dict, NULL);
 
   return lex_end_of_command ();
 }
@@ -91,7 +95,7 @@ cmd_end_input_program (void)
      ordinary transformations. */
   f_trns = n_trns;
 
-  /* Figure out how to initialize temp_case. */
+  /* Figure out how to initialize each input case. */
   inp = xmalloc (sizeof *inp);
   inp->init_cnt = dict_get_next_value_idx (default_dict);
   inp->init = xmalloc (inp->init_cnt * sizeof *inp->init);
@@ -111,16 +115,20 @@ cmd_end_input_program (void)
     }
   for (i = 0; i < inp->init_cnt; i++)
     assert (inp->init[i] != -1);
+  inp->case_size = dict_get_case_size (default_dict);
 
   /* Put inp into vfm_source for later use. */
   vfm_source->aux = inp;
 
+  /* FIXME: we should use create_case_source() here. */
+  vfm_source->value_cnt = dict_get_next_value_idx (default_dict);
+
   return lex_end_of_command ();
 }
 
-/* Initializes temp_case.  Called before the first case is read. */
+/* Initializes case C.  Called before the first case is read. */
 static void
-init_case (struct input_program_pgm *inp)
+init_case (const struct input_program_pgm *inp, struct ccase *c)
 {
   size_t i;
 
@@ -128,23 +136,23 @@ init_case (struct input_program_pgm *inp)
     switch (inp->init[i]) 
       {
       case INP_NUMERIC | INP_INIT_ONCE:
-        temp_case->data[i].f = 0.0;
+        c->data[i].f = 0.0;
         break;
       case INP_NUMERIC | INP_REINIT:
-        temp_case->data[i].f = SYSMIS;
+        c->data[i].f = SYSMIS;
         break;
       case INP_STRING | INP_INIT_ONCE:
       case INP_STRING | INP_REINIT:
-        memset (temp_case->data[i].s, ' ', sizeof temp_case->data[i].s);
+        memset (c->data[i].s, ' ', sizeof c->data[i].s);
         break;
       default:
         assert (0);
       }
 }
 
-/* Clears temp_case.  Called between reading successive records. */
+/* Clears case C.  Called between reading successive records. */
 static void
-clear_case (struct input_program_pgm *inp)
+clear_case (const struct input_program_pgm *inp, struct ccase *c)
 {
   size_t i;
 
@@ -154,12 +162,12 @@ clear_case (struct input_program_pgm *inp)
       case INP_NUMERIC | INP_INIT_ONCE:
         break;
       case INP_NUMERIC | INP_REINIT:
-        temp_case->data[i].f = SYSMIS;
+        c->data[i].f = SYSMIS;
         break;
       case INP_STRING | INP_INIT_ONCE:
         break;
       case INP_STRING | INP_REINIT:
-        memset (temp_case->data[i].s, ' ', sizeof temp_case->data[i].s);
+        memset (c->data[i].s, ' ', sizeof c->data[i].s);
         break;
       default:
         assert (0);
@@ -172,6 +180,7 @@ clear_case (struct input_program_pgm *inp)
    return value is the index of the transformation to go to next. */
 static void
 input_program_source_read (struct case_source *source,
+                           struct ccase *c,
                            write_case_func *write_case,
                            write_case_data wc_data)
 {
@@ -190,56 +199,43 @@ input_program_source_read (struct case_source *source,
   int cases_written = 0;
 
   assert (inp != NULL);
-  
+
   /* Figure end_case. */
   for (i = 0; i < f_trns; i++)
     if (t_trns[i]->proc == end_case_trns_proc)
       end_case = 1;
 
-  /* FIXME: This code should not be necessary.  It is an ugly
-     kluge. */
+  /* FIXME: This is an ugly kluge. */
   for (i = 0; i < f_trns; i++)
     if (t_trns[i]->proc == repeating_data_trns_proc)
       repeating_data_set_write_case (t_trns[i], write_case, wc_data);
 
-  init_case (inp);
+  init_case (inp, c);
   for (;;)
     {
-      /* Index of current transformation. */
-      int i;
-
-      /* Return value of last-called transformation. */
-      int code;
-
-      debug_printf (("input-program: "));
-
       /* Perform transformations on `blank' case. */
-      for (i = 0; i < f_trns;)
+      for (i = 0; i < f_trns; )
 	{
-#if DEBUGGING
-	  printf ("/%d", i);
-	  if (t_trns[i]->proc == end_case_trns_proc)
-	    printf ("\n");
-#endif
+          int code;     /* Return value of last-called transformation. */
 
           if (t_trns[i]->proc == end_case_trns_proc) 
             {
               cases_written++;
               if (!write_case (wc_data))
-                return;
-              clear_case (inp);
+                goto done;
+              clear_case (inp, c);
               i++;
               continue;
             }
 
-	  code = t_trns[i]->proc (t_trns[i], temp_case, cases_written + 1);
+	  code = t_trns[i]->proc (t_trns[i], c, cases_written + 1);
 	  switch (code)
 	    {
 	    case -1:
 	      i++;
 	      break;
 	    case -2:
-	      return;
+	      goto done;
 	    case -3:
 	      goto next_case;
 	    default:
@@ -248,22 +244,22 @@ input_program_source_read (struct case_source *source,
 	    }
 	}
 
-#if DEBUGGING
-      if (!end_case)
-	printf ("\n");
-#endif
-
       /* Write the case if appropriate. */
-      if (!end_case)
-	if (!write_case (wc_data))
-	  return;
+      if (!end_case) 
+        {
+          cases_written++;
+          if (!write_case (wc_data))
+            break;
+        }
 
       /* Blank out the case for the next iteration. */
     next_case:
-      clear_case (inp);
+      clear_case (inp, c);
     }
+ done: ;
 }
 
+/* Destroys an INPUT PROGRAM source. */
 static void
 input_program_source_destroy (struct case_source *source)
 {
@@ -309,6 +305,8 @@ cmd_end_case (void)
   return lex_end_of_command ();
 }
 
+/* Should never be called, because this is handled in
+   input_program_source_read(). */
 int
 end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED,
                     int case_num UNUSED)
@@ -393,6 +391,7 @@ cmd_reread (void)
   return CMD_SUCCESS;
 }
 
+/* Executes a REREAD transformation. */
 static int
 reread_trns_proc (struct trns_header * pt, struct ccase * c,
                   int case_num)
@@ -418,6 +417,7 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
   return -1;
 }
 
+/* Frees a REREAD transformation. */
 static void
 reread_trns_free (struct trns_header * t)
 {
@@ -448,12 +448,10 @@ cmd_end_file (void)
   return lex_end_of_command ();
 }
 
+/* Executes an END FILE transformation. */
 static int
 end_file_trns_proc (struct trns_header * t UNUSED, struct ccase * c UNUSED,
                     int case_num UNUSED)
 {
-#if DEBUGGING
-  printf ("END FILE\n");
-#endif
   return -2;
 }

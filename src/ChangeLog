@@ -1,3 +1,143 @@
+Tue Mar  9 23:10:41 2004  Ben Pfaff  <blp@gnu.org>
+
+	* format.c: (global array translate_fmt[]) Removed.
+	(translate_fmt) New function as replacement.
+	(parse_format_specifier_name) Rewrite.
+
+	* pfm-read.c: (convert_format) Use translate_fmt() instead of
+	translate_fmt[].
+
+	* sfm-read.c: (parse_format_spec) Ditto.
+
+	* postscript.c: (text) Fix handling of fonts with missing
+	ligatures.
+
+	* sort.c: (struct external_sort) Add temp_name member.
+	(destroy_external_sort) Free temp_dir, temp_name members.
+	(init_external_sort) Allocate temp_name.
+	(get_temp_file_name) Change prototype.
+	(open_temp_file) Deal with change to get_temp_file_name().
+	(close_temp_file) Ditto.
+	(remove_temp_file) Ditto.
+	(write_temp_file) Ditto.
+	(read_temp_file) Ditto.
+	(sort_sink_destroy) Removed.
+	(sort_sink_class) Change destroy member to null.
+
+Tue Mar  9 22:36:34 2004  Ben Pfaff  <blp@gnu.org>
+
+	Eliminate temp_case.
+
+	* aggregate.c: (cmd_aggregate) No need to save/restore temp_case
+	anymore.  Use agr_11x_finish().
+	(aggregate_single_case) Make first param const.
+	(accumulate_aggregate_info) Ditto.
+	(agr_00x_end_func) Use compaction_case, not temp_case.
+	(agr_11x_func) Break into agr_11x_read(), agr_11x_finish().
+
+	* data-list.c: (struct data_list_pgm) Add `case_size' member.
+	(cmd_data_list) Initialize case_size.
+	(read_from_data_list_fixed) Add struct ccase * param, use instead
+	of temp_case.
+	(read_from_data_list_free) Ditto.
+	(read_from_data_list_list) Ditto.
+	(read_one_case) Rename data_list_trns_proc(), all references
+	updated.  Add argument in calling above functions.  Use c
+	argument instead of temp_case.
+	(destroy_dls) Rename data_list_trns_free(), all references
+	updated.
+
+	* expr-evl.c: (expr_evaluate) Make second parameter const.
+
+	* file-type.c: (struct file_type_pgm) Add `case_size' member.
+	(cmd_end_file_type) Initialize `case_size'.
+	(file_type_source_read) Add struct ccase * parameter.  Use instead
+	of temp_case.
+
+	* flip.c: Rewritten.
+
+	* get.c: (struct get_pgm) New structure to keep track of
+	case_size.
+	(cmd_get) Initialize case_size.
+	(cmd_import) Ditto.
+	(get_source) Deal with struct get_pgm.
+	(get_source_read) Add struct ccase * parameter, use instead of
+	temp_case.
+	(import_source_read) Ditto.
+
+	* get.c: Use a null pointer instead of temp_case to represent the
+	"current case" in a struct mtf_file's input member.
+	(mtf_processing_finish) Pass null to mtf_processing(), not
+	temp_case.
+	(mtf_read_nonactive_records) Don't set iter->input to temp_case.
+	(mtf_compare_BY_values) Add extra arg, use instead of null input
+	members.
+	(mtf_processing) Use c parameter instead of temp_case.  Pass
+	compaction_case to process_active_file_output_case().
+	
+	* glob.c: (global variable temp_case) Removed.
+
+	* inpt-pgm.c: (struct input_program_pgm) Add `case_size' member.
+	(cmd_input_program) Initialize case_size.  Set
+	vfm_source->value_cnt.
+	(init_case) Add struct ccase * parameter, use instead of
+	temp_case.
+	(clear_case) Ditto.
+	(input_program_source_read) Ditto.
+
+	* matrix-data.c: (matrix_data_read_without_rowtype) Ditto.
+	(dump_cell_content) Ditto.
+	(nr_output_data) Ditto.
+	(read_matrices_without_rowtype) Ditto.
+	(matrix_data_read_with_rowtype) Ditto.
+	(wr_read_splits) Ditto.
+	(wr_output_data) Ditto.
+
+	* sort.h: (struct sort_cases_pgm) New member `case_size'.
+	
+	* sort.c: (sort_cases) Initialize scp->case_size.
+	(struct external_sort) Remove `case_size' member.
+	(write_initial_runs) Only call vfm_sink->class_destroy if
+	non-null.
+	(struct sort_source_aux) New structure.
+	(sort_source_read_helper) New function.
+	(sort_source_read) Use sort_source_read_helper().
+	(read_sort_output) Change interface to be more reasonable.
+	(read_internal_sort_output) Ditto.
+	(read_external_sort_output) Ditto.
+
+	* vars-prs.c: (dict_class_to_name) Pass return value through
+	gettext.
+
+	* vfm.c: (struct procedure_aux_data) Add `trns_case' member.
+	(procedure) Initialize trns_case.
+	(procedure) Pass trns_case to vfm_source->class->read().
+	Free trns_case.
+	(process_active_file) Start using struct procedure_aux_data.
+	(process_active_file_write_case) Pass trns_case to
+	transformations, lag_case(), clear_case().
+	(process_active_file_output_case) Add struct ccase * parameter.
+	(create_trns_case) New function.
+	(make_temp_case) Removed.
+	(vector_initialization) Removed.
+	(close_active_file) Only call make_source if non-null, otherwise
+	set vfm_source to null pointer.  Don't free temp_case.
+	(disk_source_read) Add struct ccase * parameter, use instead of
+	temp_case.
+	(memory_source_read) Ditto.
+	(lag_case) Add const struct ccase * member.
+	(procedure_write_case) Use trns_case instead of temp_case.
+	(clear_case) Add struct ccase * member, use instead of temp_case.
+	(exclude_this_case) Ditto.
+	(create_case_source) Add struct dictionary * parameter, use to
+	initialize source->value_cnt.
+
+	* vfm.h: (struct case_source) Add `value_cnt' member.
+	(struct case_source_class) Add struct ccase * parameter to `read'
+	member function pointer.
+	(struct case_sink_class) Make struct ccase * parameter const in
+	`write' member function pointer.
+	
 Wed Mar  3 20:44:37 2004  Ben Pfaff  <blp@gnu.org>
 
 	Fix a lot of "possibly uninitialized variable" warnings.  Some of
