@@ -435,9 +435,8 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   dict_clear_vectors (d);
 
   /* Remove V from var array. */
+  remove_element (d->var, d->var_cnt, sizeof *d->var, v->index);
   d->var_cnt--;
-  memmove (d->var + v->index, d->var + v->index + 1,
-           (d->var_cnt - v->index) * sizeof *d->var);
 
   /* Update index. */
   for (i = v->index; i < d->var_cnt; i++)

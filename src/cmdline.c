@@ -43,13 +43,12 @@ static void usage (void);
 
 char *subst_vars (char *);
 
-static int testing_mode=0;
-
 /* Parses the command line specified by ARGC and ARGV as received by
    main(). */
 void
 parse_command_line (int argc, char **argv)
 {
+  static int testing_mode = 0;
   static struct option long_options[] =
   {
     {"algorithm", required_argument, NULL, 'a'},
@@ -79,7 +78,6 @@ parse_command_line (int argc, char **argv)
   int c, i;
 
   int cleared_device_defaults = 0;
-
   int no_statrc = 0;
 
   for (;;)

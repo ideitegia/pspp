@@ -527,11 +527,17 @@ are sorted in ascending order.  To override sort order, specify (D) or
 for ascending order.  These apply to the entire list of variables
 preceding them.
 
+The sort algorithms used by @cmd{SORT CASES} are stable.  That is,
+records that have equal values of the sort variables will have the
+same relative order before and after sorting.  As a special case,
+re-sorting an already sorted file will not affect the ordering of
+cases.
+
 @cmd{SORT CASES} is a procedure.  It causes the data to be read.
 
 @cmd{SORT CASES} attempts to sort the entire active file in main memory.
-If main memory is exhausted, it falls back to a merge sort algorithm that
-involves writing and reading numerous temporary files.
+If workspace is exhausted, it falls back to a merge sort algorithm that
+involves creates numerous temporary files.
 
 @cmd{SORT CASES} may not be specified following TEMPORARY.  
 @setfilename ignored

@@ -24,9 +24,7 @@
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h>
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
+#include "algorithm.h"
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
@@ -123,7 +121,7 @@ cmd_flip (void)
       for (i = 0; i < flip->var_cnt; i++)
 	if (flip->var[i] == flip->new_names)
 	  {
-	    memmove (&flip->var[i], &flip->var[i + 1], sizeof *flip->var * (flip->var_cnt - i - 1));
+            remove_element (flip->var, flip->var_cnt, sizeof *flip->var, i);
 	    flip->var_cnt--;
 	    break;
 	  }

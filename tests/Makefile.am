@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-TESTS_ENVIRONMENT=top_srcdir=${top_srcdir}
+TESTS_ENVIRONMENT = top_srcdir=${top_srcdir}
+TESTS_ENVIRONMENT += PERL='@PERL@'
 TESTS = \
 	command/aggregate.sh \
 	command/autorecod.sh \

@@ -1,3 +1,11 @@
+Mon Mar 14 21:58:23 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (TESTS_ENVIRONMENT) Add PERL to the test
+	environment.
+
+	* commands/sort.sh: Rewrite to test more thoroughly and to verify
+	that the sort is stable.
+	
 Sat Mar 12 23:30:37 2005  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/agg-crash-2.sh, bugs/big-input-2.sh, command/aggregate.sh:

@@ -365,6 +365,34 @@ copy_if (const void *array, size_t count, size_t size,
   return nonzero_cnt;
 }
 
+/* Removes N elements starting at IDX from ARRAY, which consists
+   of COUNT elements of SIZE bytes each, by shifting the elements
+   following them, if any, into its position. */
+void
+remove_range (void *array_, size_t count, size_t size,
+              size_t idx, size_t n) 
+{
+  char *array = array_;
+  
+  assert (array != NULL);
+  assert (idx <= count);
+  assert (idx + n <= count);
+
+  if (idx + n < count)
+    memmove (array + idx * size, array + (idx + n) * size,
+             size * (count - idx - n));
+}
+
+/* Removes element IDX from ARRAY, which consists of COUNT
+   elements of SIZE bytes each, by shifting the elements
+   following it, if any, into its position. */
+void
+remove_element (void *array, size_t count, size_t size,
+                size_t idx) 
+{
+  remove_range (array, count, size, idx, 1);
+}
+
 /* A predicate and its auxiliary data. */
 struct pred_aux 
   {

@@ -95,6 +95,18 @@ size_t copy_if (const void *array, size_t count, size_t size,
                 void *result,
                 algo_predicate_func *predicate, void *aux);
 
+/* Removes N elements starting at IDX from ARRAY, which consists
+   of COUNT elements of SIZE bytes each, by shifting the elements
+   following them, if any, into its position. */
+void remove_range (void *array, size_t count, size_t size,
+                   size_t idx, size_t n);
+
+/* Removes element IDX from ARRAY, which consists of COUNT
+   elements of SIZE bytes each, by shifting the elements
+   following it, if any, into its position. */
+void remove_element (void *array, size_t count, size_t size,
+                     size_t idx);
+
 /* Removes elements equal to ELEMENT from ARRAY, which consists
    of COUNT elements of SIZE bytes each.  Returns the number of
    remaining elements.  AUX is passed to COMPARE as auxiliary

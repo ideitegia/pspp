@@ -1,3 +1,57 @@
+Mon Mar 14 21:52:34 2005  Ben Pfaff  <blp@gnu.org>
+
+	* misc.h: Remove GCC specializations.
+
+Mon Mar 14 21:07:23 2005  Ben Pfaff  <blp@gnu.org>
+
+	Make sort stable (PR 12313).
+	
+	* sort.c: Don't need to include some headers anymore.
+	(static var min_buffers) New variable.
+	(static var max_buffers) New variable.
+	(static var allow_internal_sort) New variable.
+	(cmd_sort_cases) Add test mode.
+	(sort_execute) Rephrase.
+	(do_internal_sort) Don't try internal sorting if
+	allow_internal_sort is set.
+	(struct external_sort) Renamed `initial_runs' to `runs' and
+	updated all references.
+	(macro MIN_BUFFER_TOTAL_SIZE_RECS) Removed.
+	(macro MIN_BUFFER_SIZE_BYTES) Removed.
+	(macro MIN_BUFFER_SIZE_RECS) Removed.
+	(compare_initial_runs) Removed.
+	(struct record_run) Add member `idx'.
+	(write_initial_runs) Pass increasing values to process_case() as
+	index.
+	(process_case) Add `idx' parameter and use it to initialize new
+	`idx' member.
+	(allocate_cases) Limit allocated buffers to max_buffers.
+	(compare_record_run) Use new `idx' member for last resort
+	comparison, for stability.
+	(end_run) Call casefile_sleep() on irs->casefile, to prevent
+	running out of file descriptors.
+	(struct merge_state) Removed.
+	(merge) Don't need to allocate cases.  Always use MAX_MERGE_ORDER
+	unless we have fewer runs left.  Always merge consecutive runs,
+	for stability.  Return the final run.
+	(mod) Removed.
+	(choose_merge) New function.
+	(merge_once) Rewritten.
+
+Mon Mar 14 21:05:42 2005  Ben Pfaff  <blp@gnu.org>
+
+	* cmdline.c: (static var testing_mode) Move into
+	parse_command_line().
+	
+Mon Mar 14 21:05:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	* algorithm.c: (remove_range) New function.
+	(remove_element) New function.
+
+	* dictionary.c: (dict_delete_var) Use remove_element().
+
+	* flip.c: (cmd_flip) Ditto.
+
 Sun Mar 13 22:52:05 2005  Ben Pfaff  <blp@gnu.org>
 
 	* file-handle.q: (struct file_handle) `open_mode' should not be
@@ -5,7 +59,7 @@ Sun Mar 13 22:52:05 2005  Ben Pfaff  <blp@gnu.org>
 	
 Sun Mar 13 22:40:54 2005  Ben Pfaff  <blp@gnu.org>
 
-	First phase of making SORT CASES stable (PR 12035).
+	First phase of making SORT CASES stable (PR 12313).
 
 	* sort.c: (struct indexed_case) New structure.
 	(do_internal_sort) Rewrite to make internal sorting stable.
@@ -161,7 +215,7 @@ Sun Mar  6 23:25:40 2005  Ben Pfaff  <blp@gnu.org>
 Sun Mar  6 19:52:22 2005  Ben Pfaff  <blp@gnu.org>
 
 	DATA LIST with free-field formats should not have implied decimal
-	places (bug #12035).  Also clean up data-in.c a bit.
+	places (PR 12035).  Also clean up data-in.c a bit.
 
 	* data-in.h: (enum) Add DI_IMPLIED_DECIMALS.
 
@@ -366,7 +420,7 @@ Fri Feb 25 21:11:35 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Sun Feb 13 16:11:13 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix Bug #11955.
+	Fix PR 11955.
 
 	* aggregate.c: (parse_aggregate_functions) Code cleanup.
 	Important part: get rid of spurious copying of function->format to
@@ -374,7 +428,7 @@ Sun Feb 13 16:11:13 2005  Ben Pfaff  <blp@gnu.org>
 
 Fri Feb 11 00:08:36 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix Bug #11916, which was confusing a variable's `index' member
+	Fix PR 11916, which was confusing a variable's `index' member
 	with the variable's position in a var_set.  Although these are
 	usually the same, they are not for array `var_set's.
 	
@@ -567,7 +621,7 @@ Wed Jan  5 08:30:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
 Mon Jan  3 17:44:37 2005  Ben Pfaff  <blp@gnu.org>
 
 	* pfm-read.c: (read_variables) Remove direct manipulation of
-	v->aux, which is no longer needed.  Fixes Bug #11483.
+	v->aux, which is no longer needed.  Fixes PR 11483.
 
 Sat Jan  1 19:01:16 WST 2005 John Darrington <john@darrington.wattle.id.au>
 

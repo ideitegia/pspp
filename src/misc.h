@@ -28,83 +28,44 @@
 /* HUGE_VAL is traditionally defined as positive infinity, or
    alternatively, DBL_MAX. */
 #if !HAVE_ISINF
-#define isinf(X) 				\
-	(fabs (X) == HUGE_VAL)
+#define isinf(X) (fabs (X) == HUGE_VAL)
 #endif
 
 /* A Not a Number is not equal to itself. */
 #if !HAVE_ISNAN
-#define isnan(X) 				\
-	((X) != (X))
+#define isnan(X) ((X) != (X))
 #endif
 
 /* Finite numbers are not infinities or NaNs. */
 #if !HAVE_FINITE
-#define finite(X) 				\
-	(!isinf (X) && !isnan (X))
+#define finite(X) (!isinf (X) && !isnan (X))
 #elif HAVE_IEEEFP_H
 #include <ieeefp.h>		/* Declares finite() under Solaris. */
 #endif
 
-#if __TURBOC__
-#include <stdlib.h>		/* screwed-up Borland headers define min(), max(),
-				   so we might as well let 'em */
+#ifndef min
+#define min(A, B) ((A) < (B) ? (A) : (B))
 #endif
 
-#ifndef min
-#if __GNUC__ && !__STRICT_ANSI__
-#define min(A, B)				\
-	({					\
-	  int _a = (A), _b = (B);		\
-	  _a < _b ? _a : _b;			\
-	})
-#else /* !__GNUC__ */
-#define min(A, B) 				\
-	((A) < (B) ? (A) : (B))
-#endif /* !__GNUC__ */
-#endif /* !min */
-
 #ifndef max
-#if __GNUC__ && !__STRICT_ANSI__
-#define max(A, B)				\
-	({					\
-	  int _a = (A), _b = (B);		\
-	  _a > _b ? _a : _b;			\
-	})
-#else /* !__GNUC__ */
-#define max(A, B) 				\
-	((A) > (B) ? (A) : (B))
-#endif /* !__GNUC__ */
-#endif /* !max */
+#define max(A, B) ((A) > (B) ? (A) : (B))
+#endif
 
 /* Clamps A to be between B and C. */
-#define range(A, B, C)				\
-	((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
+#define range(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
 
 /* Divides nonnegative X by positive Y, rounding up. */
-#define DIV_RND_UP(X, Y) 			\
-	(((X) + ((Y) - 1)) / (Y))
+#define DIV_RND_UP(X, Y) (((X) + ((Y) - 1)) / (Y))
 
 /* Returns nonnegative difference between {nonnegative X} and {the
    least multiple of positive Y greater than or equal to X}. */
-#if __GNUC__ && !__STRICT_ANSI__
-#define REM_RND_UP(X, Y)			\
-	({					\
-	  int rem = (X) % (Y);			\
-	  rem ? (Y) - rem : 0;			\
-	})
-#else
-#define REM_RND_UP(X, Y) 			\
-	((X) % (Y) ? (Y) - (X) % (Y) : 0)
-#endif
+#define REM_RND_UP(X, Y) ((X) % (Y) ? (Y) - (X) % (Y) : 0)
 
 /* Rounds X up to the next multiple of Y. */
-#define ROUND_UP(X, Y) 				\
-	(((X) + ((Y) - 1)) / (Y) * (Y))
+#define ROUND_UP(X, Y) (((X) + ((Y) - 1)) / (Y) * (Y))
 
 /* Rounds X down to the previous multiple of Y. */
-#define ROUND_DOWN(X, Y) 			\
-	((X) / (Y) * (Y))
+#define ROUND_DOWN(X, Y) ((X) / (Y) * (Y))
 
 int intlog10 (unsigned);
 
