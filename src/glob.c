@@ -133,7 +133,9 @@ init_glob (int argc unused, char **argv)
 {
   /* FIXME: Allow i18n of other locale items (besides LC_MESSAGES). */
 #if ENABLE_NLS
+#if LC_MESSAGE
   setlocale (LC_MESSAGES, "");
+#endif
   setlocale (LC_MONETARY, "");
   bindtextdomain (PACKAGE, locale_dir);
   textdomain (PACKAGE);
