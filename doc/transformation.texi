@@ -103,6 +103,9 @@ format is F5.3.
 @item FIRST(var_name)
 First non-missing value in break group.  The aggregation variable
 receives the complete dictionary information from the source variable.
+The sort performed by AGGREGATE (and by SORT CASES) is stable, so that
+the first case with particular values for the break variables before
+sorting will also be the first case in that break group after sorting.
 
 @item FOUT(var_name, low, high)
 Fraction of values strictly outside the specified range of constants.
@@ -111,6 +114,9 @@ The default format is F5.3.
 @item LAST(var_name)
 Last non-missing value in break group.  The aggregation variable
 receives the complete dictionary information from the source variable.
+The sort performed by AGGREGATE (and by SORT CASES) is stable, so that
+the last case with particular values for the break variables before
+sorting will also be the last case in that break group after sorting.
 
 @item MAX(var_name)
 Maximum value.  The aggregation variable receives the complete
