@@ -25,6 +25,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 /* FIXME: These things should probably be amalgamated with the 
    group_statistics struct */
 
+#include "hash.h"
+#include "val.h"
+
+struct weighted_value 
+{
+  union value v;
+
+  /* The weight */
+  double w;
+
+  /* The cumulative weight */
+  double cc; 
+
+  /* The rank */
+  double rank;
+};
+
+
 
 struct metrics
 {
@@ -45,6 +63,14 @@ struct metrics
   double var;
 
   double stddev;
+
+  double trimmed_mean;
+
+  /* An ordered arary of data for this factor */
+  struct hsh_table *ordered_data;
+
+  /* An SORTED array of weighted values */
+  struct weighted_value *wv;
 };
 
 
@@ -63,7 +89,7 @@ struct factor_statistics {
 
 void metrics_precalc(struct metrics *fs);
 
-void metrics_calc(struct metrics *fs, double x, double weight);
+void metrics_calc(struct metrics *fs, const union value *f, double weight);
 
 void metrics_postcalc(struct metrics *fs);
 

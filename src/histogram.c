@@ -46,9 +46,6 @@ gaussian(double x, double mu, double sigma )
 }
 
 
-/* Adjust tick to be a sensible value */
-void adjust_tick(double *tick);
-
 
 /* Write the legend of the chart */
 static void
@@ -142,9 +139,8 @@ draw_histogram(struct chart *ch,
       if ( y < y_min ) y_min = y;
     }
 
-  y_tick = ( y_max - y_min ) / (double) (YTICKS - 1) ;
+  y_tick = chart_rounded_tick( ( y_max - y_min ) / (double) (YTICKS - 1));
 
-  adjust_tick(&y_tick);
 
   y_min = floor( y_min / y_tick ) * y_tick ;
   y_max = ceil( y_max / y_tick ) * y_tick ;
@@ -227,32 +223,4 @@ draw_histogram(struct chart *ch,
 
 }
 
-
-
-double 
-log10(double x)
-{
-  return log(x) / log(10.0) ;
-}
-
-  
-/* Adjust tick to be a sensible value */
-void
-adjust_tick(double *tick)
-{
-    int i;
-    const double standard_ticks[] = {1, 2, 5};
-
-    const double factor = pow(10,ceil(log10(standard_ticks[0] / *tick))) ;
-
-    for (i = 2  ; i >=0 ; --i) 
-      {
-	if ( *tick > standard_ticks[i] / factor ) 
-	  {
-	    *tick = standard_ticks[i] / factor ;
-	    break;
-	  }
-      }
-    
-  }
 

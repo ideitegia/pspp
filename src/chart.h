@@ -59,6 +59,14 @@ struct chart {
 
   char fill_colour[10];
 
+  /* Stuff Particular to Cartesians */
+  double ordinate_scale;
+  double abscissa_scale;
+  double x_min;
+  double x_max;
+  double y_min;
+  double y_max;
+
 };
 
 
@@ -68,8 +76,10 @@ void chart_finalise(struct chart *ch);
 
 
 
-void chart_write_title(struct chart *ch, 
-		      const char *title);
+void chart_write_xlabel(struct chart *ch, const char *label);
+void chart_write_ylabel(struct chart *ch, const char *label);
+
+void chart_write_title(struct chart *ch, const char *title, ...);
 
 enum tick_orientation {
   TICK_ABSCISSA=0,
@@ -110,16 +120,37 @@ void draw_histogram(struct chart *ch,
 		    int show_normal);
 
 
+double chart_rounded_tick(double tick);
+
 
 void draw_piechart(struct chart *ch, const struct variable *v);
 
-void draw_scatterplot(struct chart *ch, const char *title, 
-		      const char *xlabel, const char *ylabel);
+void draw_scatterplot(struct chart *ch);
 
 
-void draw_lineplot(struct chart *ch, const char *title, 
-		      const char *xlabel, const char *ylabel);
+void draw_lineplot(struct chart *ch);
 
+
+void chart_write_xscale(struct chart *ch, 
+			double min, double max, double tick);
+
+void chart_write_yscale(struct chart *ch, 
+			double min, double max, double tick);
+
+
+void chart_datum(struct chart *ch, int dataset, double x, double y);
+
+
+
+enum CHART_DIM
+  {
+    CHART_DIM_X,
+    CHART_DIM_Y
+  };
+
+
+void chart_line(struct chart *ch, double slope, double intercept, 
+		double limit1, double limit2, enum CHART_DIM limit_d);
 
 
 #endif

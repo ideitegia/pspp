@@ -24,68 +24,12 @@
 
 
 
-static const    double y_min = 15;
-static const    double y_max = 120.0;
-static const    double y_tick = 20.0;
-
-
-
-static const double x_min = -11.0;
-static const double x_max = 19.0;
-static const double x_tick = 5.0;
-
-
-struct datum 
-{
-  double x;
-  double y;
-};
-
-
-static const struct datum data1[]=
-  {
-    { -8.0, 29 },
-    { -3.7, 45 },
-    { -3.3, 67 },
-    { -0.8, 89 },
-    { -0.2, 93 },
-    { 1.0,  100},
-    { 2.3,  103},
-    { 4.0,  103.4},
-    { 5.2,  104},
-    { 5.9,  106},
-    { 10.3, 106},
-    { 13.8, 108},
-    { 15.8, 109},
-  };
-
-
-
-
-static const struct datum data2[]=
-  {
-    { -9.1, 20 },
-    { -8.2, 17 },
-    { -5.0, 19 },
-    { -3.7, 25 },
-    { -1.6, 49 },
-    { -1.3, 61 },
-    { -1.1, 81 },
-    { 3.5,  91},
-    { 5.4,  93},
-    { 9.3,  94},
-    { 14.3,  92}
-  };
-
-
-
-
 struct dataset
 {
-  const struct datum *data;
   int n_data;
   char *label;
 };
+
 
 
 
@@ -93,114 +37,84 @@ struct dataset
 
 static const struct dataset dataset[DATASETS] = 
   {
-    {data1, 13, "male"},
-    {data2, 11, "female"},
+    { 13, "male"},
+    { 11, "female"},
   };
 
-
-
-typedef void (*plot_func) (struct chart *ch,  const struct dataset *dataset);
-
-
-void plot_line(struct chart *ch,  const struct dataset *dataset);
-
-void plot_scatter(struct chart *ch,  const struct dataset *dataset);
 
 
 
 static void
 write_legend(struct chart *chart, const char *heading, int n);
 
-void draw_cartesian(struct chart *ch, const char *title, 
-		    const char *xlabel, const char *ylabel, plot_func pf);
 
 
-
-void
-draw_scatterplot(struct chart *ch, const char *title, 
-		 const char *xlabel, const char *ylabel)
+/* Write the abscissa label */
+void 
+chart_write_xlabel(struct chart *ch, const char *label)
 {
-  draw_cartesian(ch, title, xlabel, ylabel, plot_scatter);
+
+  pl_savestate_r(ch->lp);
+
+  pl_move_r(ch->lp,ch->data_left, ch->abscissa_top);
+  pl_alabel_r(ch->lp,0,'t',label);
+
+  pl_restorestate_r(ch->lp);
+
 }
 
-
-void
-draw_lineplot(struct chart *ch, const char *title, 
-		 const char *xlabel, const char *ylabel)
-{
-  draw_cartesian(ch, title, xlabel, ylabel, plot_scatter);
-}
-
-
-void
-draw_cartesian(struct chart *ch, const char *title, 
-		 const char *xlabel, const char *ylabel, plot_func pf)
+/* Set the scale for the abscissa */
+void 
+chart_write_xscale(struct chart *ch, double min, double max, double tick)
 {
   double x;
-  double y;
-  
 
-  int d;
+  ch->x_max = ceil( max / tick ) * tick ; 
+  ch->x_min = floor ( min / tick ) * tick ;
 
+  ch->abscissa_scale = fabs(ch->data_right - ch->data_left) / 
+    fabs(ch->x_max - ch->x_min);
 
-  const double ordinate_scale = 
-    fabs(ch->data_top -  ch->data_bottom) 
-    / fabs(y_max - y_min) ;
-
-
-  const double abscissa_scale =
-    fabs(ch->data_right - ch->data_left) 
-    / 
-    fabs(x_max - x_min);
-
-
-  /* Move to data bottom-left */
-  pl_move_r(ch->lp, ch->data_left, ch->data_bottom);
-
-  pl_savestate_r(ch->lp);
-
-
-  for(x = x_tick * ceil(x_min / x_tick )  ; 
-      x < x_max;    
-      x += x_tick )
-      draw_tick (ch, TICK_ABSCISSA, (x - x_min) * abscissa_scale, "%g", x);
-
-  for(y = y_tick * ceil(y_min / y_tick )  ; 
-      y < y_max;    
-      y += y_tick )
-      draw_tick (ch, TICK_ORDINATE, (y - y_min) * ordinate_scale, "%g", y);
-
-  pl_savestate_r(ch->lp);
-
-  for (d = 0 ; d < DATASETS ; ++d ) 
-    {
-      pl_pencolorname_r(ch->lp,data_colour[d]);
-      pf(ch, &dataset[d]);
-    }
-  
-  pl_restorestate_r(ch->lp);
-
-  /* Write the abscissa label */
-  pl_move_r(ch->lp,ch->data_left, ch->abscissa_top);
-  pl_alabel_r(ch->lp,0,'t',xlabel);
-
- 
-  /* Write the ordinate label */
-  pl_savestate_r(ch->lp);
-  pl_move_r(ch->lp,ch->data_bottom, ch->ordinate_right);
-  pl_textangle_r(ch->lp,90);
-  pl_alabel_r(ch->lp,0,0,ylabel);
-  pl_restorestate_r(ch->lp);
-
-
-  chart_write_title(ch, title);
-
-  write_legend(ch,"Key:",DATASETS);
-
-  pl_restorestate_r(ch->lp);
+  for(x = ch->x_min ; x <= ch->x_max; x += tick )
+      draw_tick (ch, TICK_ABSCISSA, (x - ch->x_min) * ch->abscissa_scale, "%g", x);
 
 }
 
+
+/* Set the scale for the ordinate */
+void 
+chart_write_yscale(struct chart *ch, double min, double max, double tick)
+{
+  double y;
+
+  ch->y_max = ceil( max / tick ) * tick ; 
+  ch->y_min = floor ( min / tick ) * tick ;
+
+  ch->ordinate_scale = 
+    fabs(ch->data_top -  ch->data_bottom) / fabs(ch->y_max - ch->y_min) ;
+
+  for(y = ch->y_min ; y <= ch->y_max; y += tick )
+    {
+    draw_tick (ch, TICK_ORDINATE, 
+	       (y - ch->y_min) * ch->ordinate_scale, "%g", y);
+    }
+
+}
+
+
+
+/* Write the ordinate label */
+void 
+chart_write_ylabel(struct chart *ch, const char *label)
+{
+  pl_savestate_r(ch->lp);
+
+  pl_move_r(ch->lp, ch->data_bottom, ch->ordinate_right);
+  pl_textangle_r(ch->lp, 90);
+  pl_alabel_r(ch->lp, 0, 0, label);
+
+  pl_restorestate_r(ch->lp);
+}
 
 
 
@@ -244,70 +158,61 @@ write_legend(struct chart *chart, const char *heading,
 }
 
 
-
+/* Plot a data point */
 void
-plot_line(struct chart *ch,  const struct dataset *dataset)
+chart_datum(struct chart *ch, int dataset, double x, double y)
 {
-  int i;
+  const double x_pos = 
+    (x - ch->x_min) * ch->abscissa_scale + ch->data_left ; 
 
-  const struct datum *data = dataset->data;
-
-  const double ordinate_scale = 
-    fabs(ch->data_top -  ch->data_bottom) 
-    / fabs(y_max - y_min) ;
+  const double y_pos = 
+    (y - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
 
 
-  const double abscissa_scale =
-    fabs(ch->data_right - ch->data_left) 
-    / 
-    fabs(x_max - x_min);
+  pl_savestate_r(ch->lp);    
+  
+  pl_fmarker_r(ch->lp, x_pos, y_pos, 6, 15);
 
-
-  for( i = 0 ; i < dataset->n_data ; ++i ) 
-    {
-      const double x = 
-	(data[i].x - x_min) * abscissa_scale + ch->data_left ; 
-      const double y = 
-	(data[i].y - y_min) * ordinate_scale + ch->data_bottom;
-
-      if (i == 0 ) 
-	pl_move_r(ch->lp, x, y );
-      else
-	pl_fcont_r(ch->lp, x, y);
-    }
-  pl_endpath_r(ch->lp);
+  pl_restorestate_r(ch->lp);    
 
 }
 
-
-
-
+/* Draw a line with slope SLOPE and intercept INTERCEPT.
+   between the points limit1 and limit2.
+   If lim_dim is CHART_DIM_Y then the limit{1,2} are on the 
+   y axis otherwise the x axis
+*/
 void
-plot_scatter(struct chart *ch,  const struct dataset *dataset)
+chart_line(struct chart *ch, double slope, double intercept, 
+	   double limit1, double limit2, enum CHART_DIM lim_dim)
 {
-  int i;
+  double x1, y1;
+  double x2, y2 ;
 
-  const struct datum *data = dataset->data;
-
-  const double ordinate_scale = 
-    fabs(ch->data_top -  ch->data_bottom) 
-    / fabs(y_max - y_min) ;
-
-
-  const double abscissa_scale =
-    fabs(ch->data_right - ch->data_left) 
-    / 
-    fabs(x_max - x_min);
-
-
-  for( i = 0 ; i < dataset->n_data ; ++i ) 
+  if ( lim_dim == CHART_DIM_Y ) 
     {
-      const double x = 
-	(data[i].x - x_min) * abscissa_scale + ch->data_left ; 
-      const double y = 
-	(data[i].y - y_min) * ordinate_scale + ch->data_bottom;
-
-      pl_fmarker_r(ch->lp, x, y, 6, 15);
+      x1 = ( limit1 - intercept ) / slope ;
+      x2 = ( limit2 - intercept ) / slope ;
+      y1 = limit1;
+      y2 = limit2;
     }
+  else
+    {
+      x1 = limit1;
+      x2 = limit2;
+      y1 = slope * x1 + intercept;
+      y2 = slope * x2 + intercept;
+    }
+
+  y1 = (y1 - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
+  y2 = (y2 - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
+  x1 = (x1 - ch->x_min) * ch->abscissa_scale + ch->data_left ;
+  x2 = (x2 - ch->x_min) * ch->abscissa_scale + ch->data_left ;
+
+  pl_savestate_r(ch->lp);    
+
+  pl_fline_r(ch->lp, x1, y1, x2, y2);
+
+  pl_restorestate_r(ch->lp);    
   
 }

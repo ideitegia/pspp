@@ -1,3 +1,9 @@
+Thu Nov 11 21:01:31 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q cartesian.c chart.[ch]   Added normal and detrended normal
+	plots.  Changed the API of the cartesian plot to be a much lower level
+	thing.
+
 Sun Nov  7 17:25:04 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q Added some of the parametric calculations

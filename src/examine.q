@@ -40,6 +40,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "casefile.h"
 #include "factor_stats.h"
+#include "chart.h"
 
 /* (specification)
    "EXAMINE" (xmn_):
@@ -67,7 +68,7 @@ static struct variable **dependent_vars;
 
 static int n_dependent_vars;
 
-static struct hsh_table *hash_table_factors;
+static struct hsh_table *hash_table_factors=0;
 
 
 
@@ -117,6 +118,10 @@ static void show_extremes(struct variable **dependent_var,
 			  int n_dep_var, 
 			  struct factor *factor,
 			  int n_extremities);
+
+
+void np_plot(const struct metrics *m, const char *varname);
+
 
 
 /* Per Split function */
@@ -178,7 +183,23 @@ output_examine(void)
 	  if ( cmd.a_statistics[XMN_ST_EXTREME]) 
 	    show_extremes(dependent_vars, n_dependent_vars, 0, cmd.st_n);
 	}
+
+      if ( cmd.sbc_plot) 
+	{
+	  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
+	    {
+	      int v;
+
+	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
+		{
+		  np_plot(&totals->stats[v], var_to_string(dependent_vars[v]));
+		}
+
+	    }
+	}
+
     }
+
 
   /* Show grouped statistics  if appropriate */
   if ( hash_table_factors && 0 != hsh_count (hash_table_factors))
@@ -200,9 +221,33 @@ output_examine(void)
 	      if ( cmd.a_statistics[XMN_ST_EXTREME])
 		show_extremes(dependent_vars, n_dependent_vars, f, cmd.st_n);
 	    }
+
+
+	  if ( cmd.sbc_plot) 
+	    {
+	      if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
+		{
+		  struct hsh_iterator h2;
+		  struct factor_statistics *foo ;
+		  for (foo = hsh_first(f->hash_table_val,&h2);
+		       foo != 0 ; 
+		       foo  = hsh_next(f->hash_table_val,&h2))
+		    {
+		      int v;
+		      for ( v = 0 ; v < n_dependent_vars; ++ v)
+			{
+			  char buf[100];
+			  sprintf(buf, "%s (%s = %s)",
+				  var_to_string(dependent_vars[v]),
+				  var_to_string(f->indep_var),
+				  value_to_string(foo->id,f->indep_var));
+			  np_plot(&foo->stats[v], buf);
+			}
+		    }
+		}
+	    }
 	}
     }
-
 
 }
 
@@ -630,6 +675,12 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 	    TAB_LEFT | TAT_TITLE,
 	    _("5% Trimmed Mean"));
 
+  tab_float (tbl, col + 2, 
+	    row + 3,
+	     TAB_CENTER,
+	     m->trimmed_mean,
+	     8,2);
+
   tab_text (tbl, col, 
 	    row + 4,
 	    TAB_LEFT | TAT_TITLE,
@@ -922,7 +973,7 @@ run_examine(const struct casefile *cf, void *cmd_)
 
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;
-      case_destroy (&c)) 
+      case_destroy (&c) ) 
     {
       const double weight = 
 	dict_get_case_weight(default_dict, &c, &bad_weight_warn);
@@ -932,7 +983,7 @@ run_examine(const struct casefile *cf, void *cmd_)
 	  const struct variable *var = dependent_vars[v];
 	  const union value *val = case_data (&c, var->fv);
 
-	  metrics_calc(&totals->stats[v], val->f, weight);
+	  metrics_calc(&totals->stats[v], val, weight);
 	}
 
       if ( hash_table_factors ) 
@@ -965,7 +1016,7 @@ run_examine(const struct casefile *cf, void *cmd_)
 		  const struct variable *var = dependent_vars[v];
 		  const union value *val = case_data (&c, var->fv);
 
-		  metrics_calc( &(*foo)->stats[v], val->f, weight );
+		  metrics_calc( &(*foo)->stats[v], val, weight );
 		}
 
 	      if ( fctr->subfactor  ) 
@@ -998,7 +1049,7 @@ run_examine(const struct casefile *cf, void *cmd_)
 		      const struct variable *var = dependent_vars[v];
 		      const union value *val = case_data (&c, var->fv);
 
-		      metrics_calc( &(*bar)->stats[v], val->f, weight );
+		      metrics_calc( &(*bar)->stats[v], val, weight );
 		    }
 		}
 	    }
@@ -1008,32 +1059,35 @@ run_examine(const struct casefile *cf, void *cmd_)
 
   for ( v = 0 ; v < n_dependent_vars ; ++v)
     {
-      for ( fctr = hsh_first(hash_table_factors, &hi);
-	    fctr != 0;
-	    fctr = hsh_next (hash_table_factors, &hi) )
+      if ( hash_table_factors ) 
 	{
-	  struct hsh_iterator h2;
-	  struct factor_statistics *fs;
+	for ( fctr = hsh_first(hash_table_factors, &hi);
+	      fctr != 0;
+	      fctr = hsh_next (hash_table_factors, &hi) )
+	  {
+	    struct hsh_iterator h2;
+	    struct factor_statistics *fs;
 
-	  for ( fs = hsh_first(fctr->hash_table_val,&h2);
-		fs != 0;
-		fs = hsh_next(fctr->hash_table_val,&h2))
+	    for ( fs = hsh_first(fctr->hash_table_val,&h2);
+		  fs != 0;
+		  fs = hsh_next(fctr->hash_table_val,&h2))
 	      {
 		metrics_postcalc( &fs->stats[v] );
 	      }
 
-	  if ( fctr->subfactor) 
-	    {
-	      struct hsh_iterator hsf;
-	      struct factor_statistics *fss;
+	    if ( fctr->subfactor) 
+	      {
+		struct hsh_iterator hsf;
+		struct factor_statistics *fss;
 
-	      for ( fss = hsh_first(fctr->subfactor->hash_table_val,&hsf);
-		    fss != 0;
-		    fss = hsh_next(fctr->subfactor->hash_table_val,&hsf))
-		{
-		  metrics_postcalc( &fss->stats[v] );
-		}
-	    }
+		for ( fss = hsh_first(fctr->subfactor->hash_table_val,&hsf);
+		      fss != 0;
+		      fss = hsh_next(fctr->subfactor->hash_table_val,&hsf))
+		  {
+		    metrics_postcalc( &fss->stats[v] );
+		  }
+	      }
+	  }
 	}
 
       metrics_postcalc(&totals->stats[v]);
@@ -1270,3 +1324,93 @@ populate_extremities(struct tab_table *t, int col, int row, int n)
 }
 
 
+
+/* Plot the normal and detrended normal plots for m
+   Label the plots with factorname */
+void
+np_plot(const struct metrics *m, const char *factorname)
+{
+  int i;
+  double yfirst=0, ylast=0;
+
+  /* Normal Plot */
+  struct chart np_chart;
+
+  /* Detrended Normal Plot */
+  struct chart dnp_chart;
+
+  const struct weighted_value *wv = m->wv;
+  const int n_data = hsh_count(m->ordered_data) ; 
+
+  /* The slope and intercept of the ideal normal probability line */
+  const double slope = 1.0 / m->stddev;
+  const double intercept = - m->mean / m->stddev;
+
+  chart_initialise(&np_chart);
+  chart_write_title(&np_chart, _("Normal Q-Q Plot of %s"), factorname);
+  chart_write_xlabel(&np_chart, _("Observed Value"));
+  chart_write_ylabel(&np_chart, _("Expected Normal"));
+
+  chart_initialise(&dnp_chart);
+  chart_write_title(&dnp_chart, _("Detrended Normal Q-Q Plot of %s"), 
+		    factorname);
+  chart_write_xlabel(&dnp_chart, _("Observed Value"));
+  chart_write_ylabel(&dnp_chart, _("Dev from Normal"));
+
+  yfirst = gsl_cdf_ugaussian_Pinv (wv[0].rank / ( m->n + 1));
+  ylast =  gsl_cdf_ugaussian_Pinv (wv[n_data-1].rank / ( m->n + 1));
+
+  {
+    /* Need to make sure that both the scatter plot and the ideal fit into the
+       plot */
+    double x_lower = min(m->min, (yfirst - intercept) / slope) ;
+    double x_upper = max(m->max, (ylast  - intercept) / slope) ;
+    double slack = (x_upper - x_lower)  * 0.05 ;
+
+    chart_write_xscale(&np_chart, x_lower  - slack, x_upper + slack,
+		       chart_rounded_tick((m->max - m->min) / 5.0));
+
+
+    chart_write_xscale(&dnp_chart, m->min, m->max,
+		       chart_rounded_tick((m->max - m->min) / 5.0));
+
+  }
+
+  chart_write_yscale(&np_chart, yfirst, ylast, 
+		     chart_rounded_tick((ylast - yfirst)/5.0) );
+
+  {
+  /* We have to cache the detrended data, beacause we need to 
+     find its limits before we can plot it */
+  double *d_data;
+  d_data = xmalloc (n_data * sizeof(double));
+  double d_max = -DBL_MAX;
+  double d_min = DBL_MAX;
+  for ( i = 0 ; i < n_data; ++i ) 
+    {
+      const double ns = gsl_cdf_ugaussian_Pinv (wv[i].rank / ( m->n + 1));
+
+      chart_datum(&np_chart, 0, wv[i].v.f, ns);
+
+      d_data[i] = (wv[i].v.f - m->mean) / m->stddev  - ns;
+   
+      if ( d_data[i] < d_min ) d_min = d_data[i];
+      if ( d_data[i] > d_max ) d_max = d_data[i];
+    }
+
+  chart_write_yscale(&dnp_chart, d_min, d_max, 
+		     chart_rounded_tick((d_max - d_min) / 5.0));
+
+  for ( i = 0 ; i < n_data; ++i ) 
+      chart_datum(&dnp_chart, 0, wv[i].v.f, d_data[i]);
+
+  free(d_data);
+  }
+
+  chart_line(&np_chart, slope, intercept, yfirst, ylast , CHART_DIM_Y);
+  chart_line(&dnp_chart, 0, 0, m->min, m->max , CHART_DIM_X);
+
+  chart_finalise(&np_chart);
+  chart_finalise(&dnp_chart);
+
+}

@@ -22,6 +22,7 @@
 #include <plot.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 #include <float.h>
 #include <assert.h>
 #include <math.h>
@@ -141,14 +142,22 @@ draw_tick(struct chart *chart,
 
 
 
+/* Write the title on a chart*/
 void  
-chart_write_title(struct chart *chart, const char *title)
+chart_write_title(struct chart *chart, const char *title, ...)
 {
-  /* Write the title */
+  va_list ap;
+  char buf[100];
+
   pl_savestate_r(chart->lp);
   pl_ffontsize_r(chart->lp,chart->font_size * 1.5);
   pl_move_r(chart->lp,chart->data_left, chart->title_bottom);
-  pl_alabel_r(chart->lp,0,0,title);
+
+  va_start(ap,title);
+  vsnprintf(buf,100,title,ap);
+  pl_alabel_r(chart->lp,0,0,buf);
+  va_end(ap);
+
   pl_restorestate_r(chart->lp);
 }
 
@@ -169,5 +178,38 @@ chart_finalise(struct chart *chart)
 
   pl_deleteplparams(chart->pl_params);
 
+}
+
+
+
+  
+/* Adjust tick to be a sensible value 
+   ie:  ... 0.1,0.2,0.5,   1,2,5,  10,20,50 ... */
+double
+chart_rounded_tick(double tick)
+{
+
+  int i;
+
+  double diff = DBL_MAX;
+  double t = tick;
+    
+  static const double standard_ticks[] = {1, 2, 5, 10};
+
+  const double factor = pow(10,ceil(log10(standard_ticks[0] / tick))) ;
+
+  for (i = 3  ; i >= 0 ; --i) 
+    {
+      const double d = fabs( tick - standard_ticks[i] / factor ) ;
+
+      if ( d < diff ) 
+	{
+	  diff = d;
+	  t = standard_ticks[i] / factor ;
+	}
+    }
+
+  return t;
+    
 }
 
