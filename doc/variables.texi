@@ -97,8 +97,8 @@ FORMATS var_list (fmt_spec).
 @end display
 
 @cmd{FORMATS} set both print and write formats for the specified
-variables to the specified format specification.  @xref{Input/Output
-Formats}.
+numeric variables to the specified format specification.
+@xref{Input/Output Formats}.
 
 Specify a list of variables followed by a format specification in
 parentheses.  The print and write formats of the specified variables
@@ -268,7 +268,7 @@ PRINT FORMATS var_list (fmt_spec).
 @end display
 
 @cmd{PRINT FORMATS} sets the print formats for the specified
-variables to the specified format specification.
+numeric variables to the specified format specification.
 
 Its syntax is identical to that of @cmd{FORMATS} (@pxref{FORMATS}),
 but @cmd{PRINT FORMATS} sets only print formats, not write formats.
@@ -394,7 +394,8 @@ Variables within a vector may be referenced in expressions using
 WRITE FORMATS var_list (fmt_spec).
 @end display
 
-@cmd{WRITE FORMATS} sets the write formats for the specified variables
+@cmd{WRITE FORMATS} sets the write formats for the specified numeric
+variables
 to the specified format specification.  Its syntax is identical to
 that of FORMATS (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
 write formats, not print formats.
