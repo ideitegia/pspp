@@ -1,3 +1,8 @@
+Wed Dec 10 23:32:47 2003  Ben Pfaff  <blp@gnu.org>
+
+	* sysdeps/: Removed, because everything was too old to be useful
+	anymore.
+
 Sun Jan  2 21:24:32 2000  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Require Automake 1.4 or later.  It's been out for
