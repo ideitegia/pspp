@@ -238,11 +238,11 @@ static int bad_weight_warn;
 
 static int compare_group_binary(const struct group_statistics *a, 
 				const struct group_statistics *b, 
-				struct group_properties *p);
+				const struct group_properties *p);
 
 
 static unsigned  hash_group_binary(const struct group_statistics *g, 
-				   struct group_properties *p);
+				   const struct group_properties *p);
 
 
 
@@ -396,18 +396,25 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 	}
       else
 	{
-	  msg (SE, _("When applying GROUPS to a string variable, at "
-		     "least one value must be specified."));
+	  msg (SE, _("When applying GROUPS to a string variable, two "
+		     "values must be specified."));
 	  return 0;
 	}
     }
 
-  if (!parse_value (&gp.v.g_value[0],indep_var->type))
+  if (!parse_value (&gp.v.g_value[0], indep_var->type))
       return 0;
 
   lex_match (',');
   if (lex_match (')'))
     {
+      if (indep_var->type != NUMERIC)
+	{
+
+	  msg (SE, _("When applying GROUPS to a string variable, two "
+		     "values must be specified."));
+	  return 0;
+	}
       gp.criterion = CMP_LE;
       gp.v.critical_value = gp.v.g_value[0].f;
 
@@ -415,7 +422,7 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
       return 1;
     }
 
-  if (!parse_value (&gp.v.g_value[1],indep_var->type))
+  if (!parse_value (&gp.v.g_value[1], indep_var->type))
     return 0;
 
   n_group_values = 2;
@@ -1934,16 +1941,15 @@ calculate(const struct casefile *cf, void *cmd_)
 static int 
 compare_group_binary(const struct group_statistics *a, 
 		     const struct group_statistics *b, 
-		     struct group_properties *p)
+		     const struct group_properties *p)
 {
   
   short flag_a;
   short flag_b;
 
-  assert(p->indep_width == 0 ) ;
-
   if ( p->criterion == CMP_LE ) 
     {
+      assert(p->indep_width == 0 ) ;
       flag_a = ( a->id.f < p->v.critical_value ) ;
       flag_b = ( b->id.f < p->v.critical_value ) ;
     }
@@ -1952,7 +1958,6 @@ compare_group_binary(const struct group_statistics *a,
       flag_a = ( a->id.f == p->v.critical_value ) ;
       flag_b = ( b->id.f == p->v.critical_value ) ;
     }
-     
 
   if ( flag_a == flag_b) 
     return 0 ;
@@ -1960,26 +1965,29 @@ compare_group_binary(const struct group_statistics *a,
   return ( flag_a < flag_b);
 }
 
+/* This is a degenerate case of a hash, since it can only return three possible
+   values.  It's really a comparison, being used as a hash function */
+
 static unsigned 
-hash_group_binary(const struct group_statistics *g, struct group_properties *p)
+hash_group_binary(const struct group_statistics *g, 
+		  const struct group_properties *p)
 {
   short flag = -1;
 
-  assert(p->indep_width == 0 ) ;
-
-      /* FIXME: should compare union values */    
   if ( p->criterion == CMP_LE ) 
     {
+      /* Not meaningfull to do a less than compare for alpha values ? */
+      assert(p->indep_width == 0 ) ;
       flag = ( g->id.f < p->v.critical_value ) ; 
     }
   else if ( p->criterion == CMP_EQ) 
     {
-      if ( g->id.f ==  p->v.g_value[0].f ) 
+      if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_width ))
 	flag = 0 ;
-      else if ( g->id.f == p->v.g_value[1].f ) 
-	flag = 1;
+      else if ( 0 == compare_values (&g->id, &p->v.g_value[1], p->indep_width ))
+	flag = 1 ;
       else
-	flag = 2;
+	flag = 2 ;
     }
   else
     assert(0);

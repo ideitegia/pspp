@@ -52,6 +52,8 @@ TESTS = \
 	bugs/random.sh \
 	bugs/t-test-with-temp.sh \
 	bugs/t-test.sh \
+	bugs/t-test-alpha.sh \
+	bugs/t-test-alpha2.sh \
 	bugs/temporary.sh \
 	bugs/val-labs.sh \
 	bugs/recode-copy-bug.sh \
