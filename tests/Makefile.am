@@ -46,6 +46,7 @@ TESTS = \
 	bugs/temporary.sh \
 	bugs/val-labs.sh \
 	bugs/recode-copy-bug.sh \
+	bugs/computebug.sh \
 	xforms/casefile.sh \
 	xforms/expressions.sh \
 	stats/descript-basic.sh \
