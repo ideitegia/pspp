@@ -528,7 +528,7 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
 /* Creates a new lengthed string LS with contents as a copy of
    S. */
 void
-ls_create (struct len_string *ls, const char *s)
+ls_create (struct fixed_string *ls, const char *s)
 {
   ls->length = strlen (s);
   ls->string = xmalloc (ls->length + 1);
@@ -538,7 +538,7 @@ ls_create (struct len_string *ls, const char *s)
 /* Creates a new lengthed string LS with contents as a copy of
    BUFFER with length LEN. */
 void
-ls_create_buffer (struct len_string *ls,
+ls_create_buffer (struct fixed_string *ls,
 		  const char *buffer, size_t len)
 {
   ls->length = len;
@@ -549,7 +549,7 @@ ls_create_buffer (struct len_string *ls,
 
 /* Sets the fields of LS to the specified values. */
 void
-ls_init (struct len_string *ls, const char *string, size_t length)
+ls_init (struct fixed_string *ls, const char *string, size_t length)
 {
   ls->string = (char *) string;
   ls->length = length;
@@ -557,49 +557,49 @@ ls_init (struct len_string *ls, const char *string, size_t length)
 
 /* Copies the fields of SRC to DST. */
 void
-ls_shallow_copy (struct len_string *dst, const struct len_string *src)
+ls_shallow_copy (struct fixed_string *dst, const struct fixed_string *src)
 {
   *dst = *src;
 }
 
 /* Frees the memory backing LS. */
 void
-ls_destroy (struct len_string *ls)
+ls_destroy (struct fixed_string *ls)
 {
   free (ls->string);
 }
 
 /* Sets LS to a null pointer value. */
 void
-ls_null (struct len_string *ls)
+ls_null (struct fixed_string *ls)
 {
   ls->string = NULL;
 }
 
 /* Returns nonzero only if LS has a null pointer value. */
 int
-ls_null_p (const struct len_string *ls)
+ls_null_p (const struct fixed_string *ls)
 {
   return ls->string == NULL;
 }
 
 /* Returns nonzero only if LS is a null pointer or has length 0. */
 int
-ls_empty_p (const struct len_string *ls)
+ls_empty_p (const struct fixed_string *ls)
 {
   return ls->string == NULL || ls->length == 0;
 }
 
 /* Returns the length of LS, which must not be null. */
 size_t
-ls_length (const struct len_string *ls)
+ls_length (const struct fixed_string *ls)
 {
   return ls->length;
 }
 
 /* Returns a pointer to the character string in LS. */
 char *
-ls_c_str (const struct len_string *ls)
+ls_c_str (const struct fixed_string *ls)
 {
   return (char *) ls->string;
 }
@@ -607,7 +607,7 @@ ls_c_str (const struct len_string *ls)
 /* Returns a pointer to the null terminator of the character string in
    LS. */
 char *
-ls_end (const struct len_string *ls)
+ls_end (const struct fixed_string *ls)
 {
   return (char *) (ls->string + ls->length);
 }

@@ -1,0 +1,22 @@
+Needed:
+
+    - Must test vectors on expressions.
+
+    - Test range syntax (VAR00 to VAR99).
+
+    - Warnings on domain errors (see "Domain Errors" in SPSS manual)
+      and documentation of such.
+
+    - Test generic optimizations for correctness.
+
+    - Update top-level TODO.
+
+    - Finish polishing code.  Many functions need comments.
+
+Extension ideas:
+
+    - Short-circuit evaluation of logical ops
+
+    - Conditional operator with ? :
+
+    - User-defined functions.

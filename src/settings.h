@@ -169,6 +169,9 @@ char *get_cprompt(void);
 /* Whether we echo commands to the listing file/printer;*/
 int get_echo(void);
 
+/* What year to use as the start of the epoch. */
+int get_epoch (void);
+
 /* If echo is on, whether commands from include files are echoed */
 int get_include(void);
 

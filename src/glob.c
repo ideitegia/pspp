@@ -69,16 +69,15 @@ extern void stifle_history ();
 #endif
 
 #include "alloc.h"
+#include "calendar.h"
 #include "command.h"
 #include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
-#include "expr.h"
 #include "file-handle.h"
 #include "filename.h"
 #include "getline.h"
 #include "hash.h"
-#include "julcal/julcal.h"
 #include "lexer.h"
 #include "magic.h"
 #include "main.h"

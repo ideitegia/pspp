@@ -1,0 +1,1008 @@
+// -*- c -*-
+
+operator NEG (x) = -x;
+
+operator ADD (a, b) = a + b;
+operator SUB (a, b) = a - b;
+
+absorb_miss operator MUL (a, b)
+= (a == 0. || b == 0. ? 0.
+   : a == SYSMIS || b == SYSMIS ? SYSMIS
+   : a * b);
+
+absorb_miss operator DIV (a, b)
+= (a == 0. ? 0.
+   : a == SYSMIS || b == SYSMIS ? SYSMIS
+   : a / b);
+
+absorb_miss operator POW (a, b)
+= (a == SYSMIS ? (b == 0. ? 1. : a)
+   : b == SYSMIS ? (a == 0. ? 0. : SYSMIS)
+   : a == 0. && b <= 0. ? SYSMIS
+   : pow (a, b));
+
+absorb_miss boolean operator AND (boolean a, boolean b)
+= (a == 0. ? 0.
+   : b == 0. ? 0.
+   : b == SYSMIS ? SYSMIS
+   : a);
+
+absorb_miss boolean operator OR (boolean a, boolean b)
+= (a == 1. ? 1.
+   : b == 1. ? 1.
+   : b == SYSMIS ? SYSMIS
+   : a);
+
+boolean operator NOT (boolean a)
+= (a == 0. ? 1.
+   : a == 1. ? 0.
+   : SYSMIS);
+
+// Numeric relational operators.
+boolean operator EQ (a, b) = a == b;
+boolean operator GE (a, b) = a >= b;
+boolean operator GT (a, b) = a > b;
+boolean operator LE (a, b) = a <= b;
+boolean operator LT (a, b) = a < b;
+boolean operator NE (a, b) = a != b;
+
+// String relational operators.
+boolean operator EQ_STRING (string a, string b) = compare_string (&a, &b) == 0;
+boolean operator GE_STRING (string a, string b) = compare_string (&a, &b) >= 0;
+boolean operator GT_STRING (string a, string b) = compare_string (&a, &b) > 0;
+boolean operator LE_STRING (string a, string b) = compare_string (&a, &b) <= 0;
+boolean operator LT_STRING (string a, string b) = compare_string (&a, &b) < 0;
+boolean operator NE_STRING (string a, string b) = compare_string (&a, &b) != 0;
+
+// Unary functions.
+function ABS (x) = fabs (x);
+extension function ACOS (x >= -1 && x <= 1) = acos (x);
+function ASIN (x >= -1 && x <= 1) = asin (x);
+function ATAN (x) = atan (x);
+extension function ARCOS (x >= -1 && x <= 1) = acos (x);
+function ARSIN (x >= -1 && x <= 1) = asin (x);
+function ARTAN (x) = atan (x);
+function COS (x) = cos (x);
+function EXP (x) = check_errno (exp (x));
+function LG10(x) = check_errno (log10 (x));
+function LN (x) = check_errno (log (x));
+function LNGAMMA (x >= 0) = gsl_sf_lngamma (x);
+function MOD10 (x) = fmod (x, 10);
+function RND (x) = x >= 0. ? floor (x + .5) : -floor (-x + .5);
+function SIN (x) = sin (x);
+function SQRT (x >= 0) = sqrt (x);
+function TAN (x) = check_errno (tan (x));
+function TRUNC (x) = x >= 0. ? floor (x) : -floor (-x);
+
+absorb_miss function MOD (n, d)
+{
+  if (d != SYSMIS)
+    return n != SYSMIS ? fmod (n, d) : SYSMIS;
+  else
+    return n != 0. ? SYSMIS : 0.;
+}
+
+// N-ary numeric functions.
+absorb_miss boolean function ANY (x != SYSMIS, a[n])
+{
+  int sysmis = 0;
+  size_t i;
+
+  for (i = 0; i < n; i++)
+    if (a[i] == x)
+      return 1.;
+    else if (a[i] == SYSMIS)
+      sysmis = 1;
+
+  return sysmis ? SYSMIS : 0.;
+}
+
+boolean function ANY (string x, string a[n])
+{
+  size_t i;
+
+  for (i = 0; i < n; i++)
+    if (!compare_string (&x, &a[i]))
+      return 1.;
+  return 0.;
+}
+
+function CFVAR.2 (a[n])
+{
+  double mean, variance;
+
+  moments_of_doubles (a, n, NULL, &mean, &variance, NULL, NULL);
+
+  if (mean == SYSMIS || mean == 0 || variance == SYSMIS)
+    return SYSMIS;
+  else
+    return sqrt (variance) / mean;
+}
+
+function MAX.1 (a[n])
+{
+  double max;
+  size_t i;
+
+  max = -DBL_MAX;
+  for (i = 0; i < n; i++)
+    if (a[i] != SYSMIS && a[i] > max)
+      max = a[i];
+  return max;
+}
+
+string function MAX (string a[n])
+{
+  struct fixed_string *max;
+  size_t i;
+
+  max = &a[0];
+  for (i = 1; i < n; i++)
+    if (compare_string (&a[i], max) > 0)
+      max = &a[i];
+  return *max;
+}
+
+function MEAN.1 (a[n])
+{
+  double mean;
+  moments_of_doubles (a, n, NULL, &mean, NULL, NULL, NULL);
+  return mean;
+}
+
+function MIN.1 (a[n])
+{
+  double min;
+  size_t i;
+
+  min = DBL_MAX;
+  for (i = 0; i < n; i++)
+    if (a[i] != SYSMIS && a[i] < min)
+      min = a[i];
+  return min;
+}
+
+string function MIN (string a[n])
+{
+  struct fixed_string *min;
+  size_t i;
+
+  min = &a[0];
+  for (i = 1; i < n; i++)
+    if (compare_string (&a[i], min) < 0)
+      min = &a[i];
+  return *min;
+}
+
+absorb_miss function NMISS (a[n])
+{
+  size_t i;
+  size_t missing_cnt = 0;
+
+  for (i = 0; i < n; i++)
+    missing_cnt += a[i] == SYSMIS;
+  return missing_cnt;
+}
+
+absorb_miss function NVALID (a[n])
+{
+  size_t i;
+  size_t valid_cnt = 0;
+
+  for (i = 0; i < n; i++)
+    valid_cnt += a[i] != SYSMIS;
+  return valid_cnt;
+}
+
+absorb_miss boolean function RANGE (x != SYSMIS, a[n*2])
+{
+  size_t i;
+  int sysmis = 0;
+
+  for (i = 0; i < n; i++)
+    {
+      double w = a[2 * i];
+      double y = a[2 * i + 1];
+      if (w != SYSMIS && y != SYSMIS)
+        {
+          if (w <= x && x <= y)
+            return 1.0;
+        }
+      else
+        sysmis = 1;
+    }
+  return sysmis ? SYSMIS : 0.;
+}
+
+boolean function RANGE (string x, string a[n*2])
+{
+  int i;
+
+  for (i = 0; i < n; i++)
+    {
+      struct fixed_string *w = &a[2 * i];
+      struct fixed_string *y = &a[2 * i + 1];
+      if (compare_string (w, &x) <= 0 && compare_string (&x, y) <= 0)
+        return 1.;
+    }
+  return 0.;
+}
+
+function SD.2 (a[n])
+{
+  double variance;
+  moments_of_doubles (a, n, NULL, NULL, &variance, NULL, NULL);
+  return sqrt (variance);
+}
+
+function SUM.1 (a[n])
+{
+  double sum;
+  size_t i;
+
+  sum = 0.;
+  for (i = 0; i < n; i++)
+    if (a[i] != SYSMIS)
+      sum += a[i];
+  return sum;
+}
+
+function VARIANCE.2 (a[n])
+{
+  double variance;
+  moments_of_doubles (a, n, NULL, NULL, &variance, NULL, NULL);
+  return variance;
+}
+
+// Time construction & extraction functions.
+function TIME.HMS (h, m, s)
+{
+  if ((h > 0. || m > 0. || s > 0.) && (h < 0. || m < 0. || s < 0.))
+    {
+      msg (SW, _("TIME.HMS cannot mix positive and negative arguments."));
+      return SYSMIS;
+    }
+  else
+    return H_S * h + MIN_S * m + s;
+}
+function TIME.DAYS (days) = days * DAY_S;
+function CTIME.DAYS (time) = time / DAY_S;
+function CTIME.HOURS (time) = time / H_S;
+function CTIME.MINUTES (time) = time / MIN_S;
+function CTIME.SECONDS (time) = time;
+
+// Date construction functions.
+function DATE.DMY (d, m, y) = expr_ymd_to_date (y, m, d);
+function DATE.MDY (m, d, y) = expr_ymd_to_date (y, m, d);
+function DATE.MOYR (m, y) = expr_ymd_to_date (y, m, 1);
+function DATE.QYR (q, y) = expr_ymd_to_date (y, q * 3 - 2, 1);
+function DATE.WKYR (w, y) = expr_wkyr_to_date (w, y);
+function DATE.YRDAY (y, yday) = expr_yrday_to_date (y, yday);
+function YRMODA (y, m, d) = expr_yrmoda (y, m, d);
+
+// Date extraction functions.
+function XDATE.TDAY (date) = floor (date / DAY_S);
+function XDATE.HOUR (date) = fmod (floor (date / H_S), DAY_H);
+function XDATE.MINUTE (date) = fmod (floor (date / H_MIN), H_MIN);
+function XDATE.SECOND (date) = fmod (date, MIN_S);
+function XDATE.DATE (date) = floor (date / DAY_S) * DAY_S;
+function XDATE.TIME (date) = fmod (date, DAY_S);
+
+function XDATE.JDAY (date >= DAY_S) = calendar_offset_to_yday (date / DAY_S);
+function XDATE.MDAY (date >= DAY_S) = calendar_offset_to_mday (date / DAY_S);
+function XDATE.MONTH (date >= DAY_S)
+     = calendar_offset_to_month (date / DAY_S);
+function XDATE.QUARTER (date >= DAY_S)
+    = (calendar_offset_to_month (date / DAY_S) - 1) / 3 + 1;
+function XDATE.WEEK (date >= DAY_S)
+    = (calendar_offset_to_yday (date / DAY_S) - 1) / 7 + 1;
+function XDATE.WKDAY (date >= DAY_S) = calendar_offset_to_wday (date / DAY_S);
+function XDATE.YEAR (date >= DAY_S) = calendar_offset_to_year (date / DAY_S);
+
+// String functions.
+string function CONCAT (string a[n])
+     expression e;
+{
+  struct fixed_string dst;
+  size_t i;
+
+  dst = alloc_string (e, 255);
+  dst.length = 0;
+  for (i = 0; i < n; i++)
+    {
+      struct fixed_string *src = &a[i];
+      size_t copy_len;
+
+      copy_len = src->length;
+      if (dst.length + copy_len > 255)
+        copy_len = 255 - dst.length;
+      memcpy (&dst.string[dst.length], src->string, copy_len);
+      dst.length += copy_len;
+    }
+
+  return dst;
+}
+
+function INDEX (string haystack, string needle)
+{
+  if (needle.length == 0)
+    return SYSMIS;
+  else
+    {
+      int limit = haystack.length - needle.length + 1;
+      int i;
+      for (i = 1; i <= limit; i++)
+        if (!memcmp (&haystack.string[i - 1], needle.string, needle.length))
+          return i;
+      return 0;
+    }
+}
+
+function INDEX (string haystack, string needles, needle_len_d)
+{
+  if (needle_len_d <= INT_MIN || needle_len_d >= INT_MAX
+      || (int) needle_len_d != needle_len_d
+      || needles.length == 0)
+    return SYSMIS;
+  else
+    {
+      int needle_len = needle_len_d;
+      if (needle_len < 0 || needle_len > needles.length
+          || needles.length % needle_len != 0)
+        return SYSMIS;
+      else
+        {
+          int limit = haystack.length - needle_len + 1;
+          int i, j;
+          for (i = 1; i <= limit; i++)
+            for (j = 0; j < needles.length; j += needle_len)
+              if (!memcmp (&haystack.string[i - 1], &needles.string[j],
+                           needle_len))
+                return i;
+          return 0;
+        }
+    }
+}
+
+
+function RINDEX (string haystack, string needle)
+{
+  if (needle.length == 0)
+    return SYSMIS;
+  else
+    {
+      int limit = haystack.length - needle.length + 1;
+      int i;
+      for (i = limit; i >= 1; i--)
+        if (!memcmp (&haystack.string[i - 1], needle.string, needle.length))
+          return i;
+      return 0;
+    }
+}
+
+function RINDEX (string haystack, string needles, needle_len_d)
+{
+  if (needle_len_d <= INT_MIN || needle_len_d >= INT_MAX
+      || (int) needle_len_d != needle_len_d
+      || needles.length == 0)
+    return SYSMIS;
+  else
+    {
+      int needle_len = needle_len_d;
+      if (needle_len < 0 || needle_len > needles.length
+          || needles.length % needle_len != 0)
+        return SYSMIS;
+      else
+        {
+          int limit = haystack.length - needle_len + 1;
+          int i, j;
+          for (i = limit; i >= 1; i--)
+            for (j = 0; j < needles.length; j += needle_len)
+              if (!memcmp (&haystack.string[i - 1],
+                           &needles.string[j], needle_len))
+                return i;
+          return 0;
+        }
+    }
+}
+
+function LENGTH (string s)
+{
+  return s.length;
+}
+
+string function LOWER (string s)
+{
+  int i;
+
+  for (i = 0; i < s.length; i++)
+    s.string[i] = tolower ((unsigned char) s.string[i]);
+  return s;
+}
+
+function MBLEN.BYTE (string s, idx)
+{
+  if (idx < 0 || idx >= s.length || (int) idx != idx)
+    return SYSMIS;
+  else
+    return 1;
+}
+
+string function UPCASE (string s)
+{
+  int i;
+
+  for (i = 0; i < s.length; i++)
+    s.string[i] = toupper ((unsigned char) s.string[i]);
+  return s;
+}
+
+absorb_miss string function LPAD (string s, n)
+     expression e;
+{
+  if (n < 0 || n > 255 || (int) n != n)
+    return empty_string;
+  else if (s.length >= n)
+    return s;
+  else
+    {
+      struct fixed_string t = alloc_string (e, n);
+      memset (t.string, ' ', n - s.length);
+      memcpy (&t.string[(int) n - s.length], s.string, s.length);
+      return t;
+    }
+}
+
+absorb_miss string function LPAD (string s, n, string c)
+     expression e;
+{
+  if (n < 0 || n > 255 || (int) n != n || c.length != 1)
+    return empty_string;
+  else if (s.length >= n)
+    return s;
+  else
+    {
+      struct fixed_string t = alloc_string (e, n);
+      memset (t.string, c.string[0], n - s.length);
+      memcpy (&t.string[(int) n - s.length], s.string, s.length);
+      return t;
+    }
+}
+
+absorb_miss string function RPAD (string s, n)
+     expression e;
+{
+  if (n < 0 || n > 255 || (int) n != n)
+    return empty_string;
+  else if (s.length >= n)
+    return s;
+  else
+    {
+      struct fixed_string t = alloc_string (e, n);
+      memcpy (t.string, s.string, s.length);
+      memset (&t.string[s.length], ' ', n - s.length);
+      return t;
+    }
+}
+
+absorb_miss string function RPAD (string s, n, string c)
+     expression e;
+{
+  if (n < 0 || n > 255 || (int) n != n || c.length != 1)
+    return empty_string;
+  else if (s.length >= n)
+    return s;
+  else
+    {
+      struct fixed_string t = alloc_string (e, n);
+      memcpy (t.string, s.string, s.length);
+      memset (&t.string[s.length], c.string[0], n - s.length);
+      return t;
+    }
+}
+
+string function LTRIM (string s)
+{
+  while (s.length > 0 && s.string[0] == ' ') 
+    {
+      s.length--;
+      s.string++;
+    }
+  return s;
+}
+
+string function LTRIM (string s, string c)
+{
+  if (c.length == 1)
+    {
+      while (s.length > 0 && s.string[0] == c.string[0]) 
+        {
+          s.length--;
+          s.string++;
+        }
+      return s;
+    }
+  else
+    return empty_string;
+}
+
+string function RTRIM (string s)
+{
+  while (s.length > 0 && s.string[s.length - 1] == ' ')
+    s.length--;
+  return s;
+}
+
+string function RTRIM (string s, string c)
+{
+  if (c.length == 1)
+    {
+      while (s.length > 0 && s.string[s.length - 1] == c.string[0])
+        s.length--;
+      return s;
+    }
+  else
+    return empty_string;
+}
+
+function NUMBER (string s, ni_format f)
+{
+  struct data_in di;
+  union value out;
+  di.s = s.string;
+  di.v = &out;
+  di.flags = 0;
+  di.f1 = 1;
+  di.format = *f;
+  di.e = s.string + min (s.length, di.format.w);
+  data_in (&di);
+  return out.f;
+}
+
+absorb_miss string function STRING (x, no_format f)
+     expression e;
+{
+  union value v;
+  struct fixed_string dst;
+
+  v.f = x;
+  dst = alloc_string (e, f->w);
+  assert ((formats[f->type].cat & FCAT_STRING) == 0);
+  data_out (dst.string, f, &v);
+  return dst;
+}
+
+absorb_miss string function SUBSTR (string s, ofs)
+     expression e;
+{
+  if (ofs >= 1 && ofs <= s.length && (int) ofs == ofs)
+    return copy_string (e, &s.string[(int) ofs - 1], s.length - ofs + 1);
+  else
+    return empty_string;
+}
+
+absorb_miss string function SUBSTR (string s, ofs, cnt)
+     expression e;
+{
+  if (ofs >= 1 && ofs <= s.length && (int) ofs == ofs
+      && cnt >= 1 && cnt <= INT_MAX && (int) cnt == cnt)
+    {
+      int cnt_max = s.length - (int) ofs + 1;
+      return copy_string (e, &s.string[(int) ofs - 1],
+                          cnt <= cnt_max ? cnt : cnt_max);
+    }
+  else
+    return empty_string;
+}
+
+// Artificial.
+operator SQUARE (x) = x * x;
+boolean operator NUM_TO_BOOLEAN (x)
+{
+  if (x == 0. || x == 1. || x == SYSMIS)
+    return x;
+  else
+    {
+      msg (SE, _("A number being treated as a Boolean in an "
+                 "expression was found to have a value other than "
+                 "0 (false), 1 (true), or the system-missing value.  "
+                 "The result was forced to 0."));
+      return 0.;
+    }
+}
+
+operator BOOLEAN_TO_NUM (boolean x) = x;
+
+// Beta distribution.
+function PDF.BETA (x >= 0 && x <= 1, a > 0, b > 0)
+     = gsl_ran_beta_pdf (x, a, b);
+function CDF.BETA (x >= 0 && x <= 1, a > 0, b > 0) = gsl_cdf_beta_P (x, a, b);
+function IDF.BETA (P >= 0 && P <= 1, a > 0, b > 0) = idf_beta (P, a, b);
+no_opt function RV.BETA (a > 0, b > 0) = gsl_ran_beta (get_rng (), a, b);
+function NCDF.BETA (x >= 0, a > 0, b > 0, lambda > 0)
+     = ncdf_beta (x, a, b, lambda);
+function NPDF.BETA (x >= 0, a > 0, b > 0, lambda > 0)
+     = npdf_beta (x, a, b, lambda);
+
+// Bivariate normal distribution.
+function CDF.BVNOR (x0, x1, r >= -1 && r <= 1) = cdf_bvnor (x0, x1, r);
+function PDF.BVNOR (x0, x1, r >= -1 && r <= 1)
+     = gsl_ran_bivariate_gaussian_pdf (x0, x1, 1, 1, r);
+
+// Cauchy distribution.
+function CDF.CAUCHY (x, a, b > 0) = gsl_cdf_cauchy_P ((x - a) / b, 1);
+function IDF.CAUCHY (P > 0 && P < 1, a, b > 0)
+     = a + b * gsl_cdf_cauchy_Pinv (P, 1);
+function PDF.CAUCHY (x, a, b > 0) = gsl_ran_cauchy_pdf ((x - a) / b, 1) / b;
+no_opt function RV.CAUCHY (a, b > 0) = a + b * gsl_ran_cauchy (get_rng (), 1);
+
+// Chi-square distribution.
+function CDF.CHISQ (x >= 0, df > 0) = gsl_cdf_chisq_P (x, df);
+function IDF.CHISQ (P >= 0 && P < 1, df > 0) = gsl_cdf_chisq_Pinv (P, df);
+function PDF.CHISQ (x >= 0, df > 0) = gsl_ran_chisq_pdf (x, df);
+no_opt function RV.CHISQ (df > 0) = gsl_ran_chisq (get_rng (), df);
+function NCDF.CHISQ (x >= 0, df > 0, c) = unimplemented;
+function NPDF.CHISQ (x >= 0, df > 0, c) = unimplemented;
+function SIG.CHISQ (x >= 0, df > 0) = gsl_cdf_chisq_Q (x, df);
+
+// Exponential distribution.
+function CDF.EXP (x >= 0, a > 0) = gsl_cdf_exponential_P (x, 1. / a);
+function IDF.EXP (P >= 0 && P < 1, a > 0)
+     = gsl_cdf_exponential_Pinv (P, 1. / a);
+function PDF.EXP (x >= 0, a > 0) = gsl_ran_exponential_pdf (x, 1. / a);
+no_opt function RV.EXP (a > 0) = gsl_ran_exponential (get_rng (), 1. / a);
+
+// Exponential power distribution.
+extension function PDF.XPOWER (x, a > 0, b >= 0)
+     = gsl_ran_exppow_pdf (x, a, b);
+no_opt extension function RV.XPOWER (a > 0, b >= 0)
+     = gsl_ran_exppow (get_rng (), a, b);
+
+// F distribution.
+function CDF.F (x >= 0, df1 > 0, df2 > 0) = gsl_cdf_fdist_P (x, df1, df2);
+function IDF.F (P >= 0 && P < 1, df1 > 0, df2 > 0) = idf_fdist (P, df1, df2);
+function PDF.F (x >= 0, df1 > 0, df2 > 0) = gsl_ran_fdist_pdf (x, df1, df2);
+no_opt function RV.F (df1 > 0, df2 > 0) = gsl_ran_fdist (get_rng (), df1, df2);
+function NCDF.F (x >= 0, df1 > 0, df2 > 0, lambda >= 0) = unimplemented;
+function NPDF.F (x >= 0, df1 > 0, df2 > 0, lmabda >= 0) = unimplemented;
+function SIG.F (x >= 0, df1 > 0, df2 > 0) = unimplemented;
+
+// Gamma distribution.
+function CDF.GAMMA (x >= 0, a > 0, b > 0) = gsl_cdf_gamma_P (x, a, 1. / b);
+function IDF.GAMMA (P >= 0 && P <= 1, a > 0, b > 0)
+     = gsl_cdf_gamma_Pinv (P, a, 1. / b);
+function PDF.GAMMA (x >= 0, a > 0, b > 0) = gsl_ran_gamma_pdf (x, a, 1. / b);
+no_opt function RV.GAMMA (a > 0, b > 0) 
+     = gsl_ran_gamma (get_rng (), a, 1. / b);
+
+// Half-normal distribution.
+function CDF.HALFNRM (x, a, b > 0) = unimplemented;
+function IDF.HALFNRM (P > 0 && P < 1, a, b > 0) = unimplemented;
+function PDF.HALFNRM (x, a, b > 0) = unimplemented;
+no_opt function RV.HALFNRM (a, b > 0) = unimplemented;
+
+// Inverse Gaussian distribution.
+function CDF.IGAUSS (x > 0, a > 0, b > 0) = unimplemented;
+function IDF.IGAUSS (P >= 0 && P < 1, a > 0, b > 0) = unimplemented;
+function PDF.IGAUSS (x > 0, a > 0, b > 0) = unimplemented;
+no_opt function RV.IGAUSS (a > 0, b > 0) = unimplemented;
+
+// Landau distribution.
+extension function PDF.LANDAU (x) = gsl_ran_landau_pdf (x);
+no_opt extension function RV.LANDAU () = gsl_ran_landau (get_rng ());
+
+// Laplace distribution.
+function CDF.LAPLACE (x, a, b > 0) = gsl_cdf_laplace_P ((x - a) / b, 1);
+function IDF.LAPLACE (P > 0 && P < 1, a, b > 0)
+     = a + b * gsl_cdf_laplace_Pinv (P, 1);
+function PDF.LAPLACE (x, a, b > 0) = gsl_ran_laplace_pdf ((x - a) / b, 1) / b;
+no_opt function RV.LAPLACE (a, b > 0) 
+     = a + b * gsl_ran_laplace (get_rng (), 1);
+
+// Levy alpha-stable distribution.
+no_opt extension function RV.LEVY (c, alpha > 0 && alpha <= 2) 
+     = gsl_ran_levy (get_rng (), c, alpha);
+
+// Levy skew alpha-stable distribution.
+no_opt extension function RV.LVSKEW (c, alpha > 0 && alpha <= 2,
+                                     beta >= -1 && beta <= 1) 
+     = gsl_ran_levy_skew (get_rng (), c, alpha, beta);
+
+// Logistic distribution.
+function CDF.LOGISTIC (x, a, b > 0) = gsl_cdf_logistic_P ((x - a) / b, 1);
+function IDF.LOGISTIC (P > 0 && P < 1, a, b > 0)
+     = a + b * gsl_cdf_logistic_Pinv (P, 1);
+function PDF.LOGISTIC (x, a, b > 0)
+     = gsl_ran_logistic_pdf ((x - a) / b, 1) / b;
+no_opt function RV.LOGISTIC (a, b > 0) 
+     = a + b * gsl_ran_logistic (get_rng (), 1);
+
+// Lognormal distribution.
+function CDF.LNORMAL (x >= 0, m > 0, s > 0)
+     = gsl_cdf_lognormal_P (x, log (m), s);
+function IDF.LNORMAL (P >= 0 && P < 1, m > 0, s > 0)
+     = gsl_cdf_lognormal_Pinv (P, log (m), s);
+function PDF.LNORMAL (x >= 0, m > 0, s > 0)
+     = gsl_ran_lognormal_pdf (x, log (m), s);
+no_opt function RV.LNORMAL (m > 0, s > 0) 
+     = gsl_ran_lognormal (get_rng (), log (m), s);
+
+// Normal distribution.
+function CDF.NORMAL (x, u, s > 0) = gsl_cdf_gaussian_P (x - u, s);
+function IDF.NORMAL (P > 0 && P < 1, u, s > 0)
+     = u + gsl_cdf_gaussian_Pinv (P, s);
+function PDF.NORMAL (x, u, s > 0) = gsl_ran_gaussian_pdf ((x - u) / s, 1) / s;
+no_opt function RV.NORMAL (u, s > 0) = u + gsl_ran_gaussian (get_rng (), s);
+function CDFNORM (x) = gsl_cdf_ugaussian_P (x);
+function PROBIT (P > 0 && P < 1) = gsl_cdf_ugaussian_Pinv (P);
+no_opt function NORMAL (s > 0) = gsl_ran_gaussian (get_rng (), s);
+
+// Normal tail distribution.
+function PDF.NTAIL (x, a > 0, sigma > 0)
+     = gsl_ran_gaussian_tail_pdf (x, a, sigma);
+no_opt function RV.NTAIL (a > 0, sigma > 0) 
+     = gsl_ran_gaussian_tail (get_rng (), a, sigma);
+
+// Pareto distribution.
+function CDF.PARETO (x >= a, a > 0, b > 0) = gsl_cdf_pareto_P (x, b, a);
+function IDF.PARETO (P >= 0 && P < 1, a > 0, b > 0)
+     = gsl_cdf_pareto_Pinv (P, b, a);
+function PDF.PARETO (x >= a, a > 0, b > 0) = gsl_ran_pareto_pdf (x, b, a);
+no_opt function RV.PARETO (a > 0, b > 0) = gsl_ran_pareto (get_rng (), b, a);
+
+// Rayleigh distribution.
+extension function CDF.RAYLEIGH (x, sigma > 0) = gsl_cdf_rayleigh_P (x, sigma);
+extension function IDF.RAYLEIGH (P >= 0 && P <= 1, sigma > 0)
+     = gsl_cdf_rayleigh_Pinv (P, sigma);
+extension function PDF.RAYLEIGH (x, sigma > 0)
+     = gsl_ran_rayleigh_pdf (x, sigma);
+no_opt extension function RV.RAYLEIGH (sigma > 0) 
+     = gsl_ran_rayleigh (get_rng (), sigma);
+
+// Rayleigh tail distribution.
+extension function PDF.RTAIL (x, a, sigma)
+     = gsl_ran_rayleigh_tail_pdf (x, a, sigma);
+no_opt extension function RV.RTAIL (a, sigma) 
+     = gsl_ran_rayleigh_tail (get_rng (), a, sigma);
+
+// Studentized maximum modulus distribution.
+function CDF.SMOD (x > 0, a >= 1, b >= 1) = unimplemented;
+function IDF.SMOD (P >= 0 && P < 1, a >= 1, b >= 1) = unimplemented;
+
+// Studentized range distribution.
+function CDF.SRANGE (x > 0, a >= 1, b >= 1) = unimplemented;
+function IDF.SRANGE (P >= 0 && P < 1, a >= 1, b >= 1) = unimplemented;
+
+// Student t distribution.
+function CDF.T (x, df > 0) = gsl_cdf_tdist_P (x, df);
+function IDF.T (P > 0 && P < 1, df > 0) = gsl_cdf_tdist_Pinv (P, df);
+function PDF.T (x, df > 0) = gsl_ran_tdist_pdf (x, df);
+no_opt function RV.T (df > 0) = gsl_ran_tdist (get_rng (), df);
+function NCDF.T (x, df > 0, nc) = unimplemented;
+function NPDF.T (x, df > 0, nc) = unimplemented;
+
+// Type-1 Gumbel distribution.
+extension function CDF.T1G (x, a, b) = gsl_cdf_gumbel1_P (x, a, b);
+extension function IDF.T1G (P >= 0 && P <= 1, a, b)
+     = gsl_cdf_gumbel1_P (P, a, b);
+extension function PDF.T1G (x, a, b) = gsl_ran_gumbel1_pdf (x, a, b);
+no_opt extension function RV.T1G (a, b) = gsl_ran_gumbel1 (get_rng (), a, b);
+
+// Type-2 Gumbel distribution.
+extension function CDF.T2G (x, a, b) = gsl_cdf_gumbel2_P (x, a, b);
+extension function IDF.T2G (P >= 0 && P <= 1, a, b)
+     = gsl_cdf_gumbel2_P (P, a, b);
+extension function PDF.T2G (x, a, b) = gsl_ran_gumbel2_pdf (x, a, b);
+no_opt extension function RV.T2G (a, b) = gsl_ran_gumbel2 (get_rng (), a, b);
+
+// Uniform distribution.
+function CDF.UNIFORM (x <= b, a <= x, b) = gsl_cdf_flat_P (x, a, b);
+function IDF.UNIFORM (P >= 0 && P <= 1, a <= b, b)
+     = gsl_cdf_flat_Pinv (P, a, b);
+function PDF.UNIFORM (x <= b, a <= x, b) = gsl_ran_flat_pdf (x, a, b);
+no_opt function RV.UNIFORM (a <= b, b) = gsl_ran_flat (get_rng (), a, b);
+no_opt function UNIFORM (b >= 0) = gsl_ran_flat (get_rng (), 0, b);
+
+// Weibull distribution.
+function CDF.WEIBULL (x >= 0, a > 0, b > 0) = gsl_cdf_weibull_P (x, a, b);
+function IDF.WEIBULL (P >= 0 && P < 1, a > 0, b > 0)
+     = gsl_cdf_weibull_Pinv (P, a, b);
+function PDF.WEIBULL (x >= 0, a > 0, b > 0) = gsl_ran_weibull_pdf (x, a, b);
+no_opt function RV.WEIBULL (a > 0, b > 0) = gsl_ran_weibull (get_rng (), a, b);
+
+// Bernoulli distribution.
+function CDF.BERNOULLI (k == 0 || k == 1, p >= 0 && p <= 1) 
+     = k ? 1 : 1 - p;
+function PDF.BERNOULLI (k == 0 || k == 1, p >= 0 && p <= 1)
+     = gsl_ran_bernoulli_pdf (k, p);
+no_opt function RV.BERNOULLI (p >= 0 && p <= 1) 
+     = gsl_ran_bernoulli (get_rng (), p);
+
+// Binomial distribution.
+function CDF.BINOM (k, n > 0 && n == floor (n), p >= 0 && p <= 1)
+     = unimplemented;
+function PDF.BINOM (k >= 0 && k == floor (k) && k <= n,
+                    n > 0 && n == floor (n),
+                    p >= 0 && p <= 1)
+     = gsl_ran_binomial_pdf (k, p, n);
+no_opt function RV.BINOM (p > 0 && p == floor (p), n >= 0 && n <= 1) 
+     = gsl_ran_binomial (get_rng (), p, n);
+
+// Geometric distribution.
+function CDF.GEOM (k >= 1 && k == floor (k), p >= 0 && p <= 1) = unimplemented;
+function PDF.GEOM (k >= 1 && k == floor (k),
+                   p >= 0 && p <= 1)
+     = gsl_ran_geometric_pdf (k, p);
+no_opt function RV.GEOM (p >= 0 && p <= 1) = gsl_ran_geometric (get_rng (), p);
+
+// Hypergeometric distribution.
+function CDF.HYPER (k >= 0 && k == floor (k) && k <= c,
+                    a > 0 && a == floor (a),
+                    b > 0 && b == floor (b) && b <= a,
+                    c > 0 && c == floor (c) && c <= a)
+     = unimplemented;
+function PDF.HYPER (k >= 0 && k == floor (k) && k <= c,
+                    a > 0 && a == floor (a),
+                    b > 0 && b == floor (b) && b <= a,
+                    c > 0 && c == floor (c) && c <= a)
+     = gsl_ran_hypergeometric_pdf (k, c, a - c, b);
+no_opt function RV.HYPER (a > 0 && a == floor (a),
+                          b > 0 && b == floor (b) && b <= a,
+                          c > 0 && c == floor (c) && c <= a)
+     = gsl_ran_hypergeometric (get_rng (), c, a - c, b);
+
+// Logarithmic distribution.
+extension function PDF.LOG (k >= 1, p > 0 && p <= 1)
+     = gsl_ran_logarithmic_pdf (k, p);
+no_opt extension function RV.LOG (p > 0 && p <= 1) 
+     = gsl_ran_logarithmic (get_rng (), p);
+
+// Negative binomial distribution.
+function CDF.NEGBIN (k >= 1, n == floor (n), p > 0 && p <= 1) = unimplemented;
+function PDF.NEGBIN (k >= 1, n == floor (n), p > 0 && p <= 1)
+     = gsl_ran_negative_binomial_pdf (k, p, n);
+no_opt function RV.NEGBIN (n == floor (n), p > 0 && p <= 1) 
+     = gsl_ran_negative_binomial (get_rng (), p, n);
+
+// Poisson distribution.
+function CDF.POISSON (k >= 0 && k == floor (k), mu > 0) = unimplemented;
+function PDF.POISSON (k >= 0 && k == floor (k), mu > 0)
+     = gsl_ran_poisson_pdf (k, mu);
+no_opt function RV.POISSON (mu > 0) = gsl_ran_poisson (get_rng (), mu);
+
+// Weirdness.
+absorb_miss boolean function MISSING (x) = x == SYSMIS || !finite (x);
+absorb_miss boolean function SYSMIS (x) = x == SYSMIS || !finite (x);
+no_opt boolean function SYSMIS (num_var v)
+     case c;
+{
+  return case_num (c, v->fv) == SYSMIS;
+}
+
+no_opt operator VEC_ELEM_NUM (idx)
+     vector v;
+     case c;
+{
+  if (idx >= 1 && idx <= v->cnt)
+    return case_num (c, v->var[(int) idx - 1]->fv);
+  else
+    {
+      if (idx == SYSMIS)
+        msg (SE, _("SYSMIS is not a valid index value for vector "
+                   "%s.  The result will be set to SYSMIS."),
+             v->name);
+      else
+        msg (SE, _("%g is not a valid index value for vector %s.  "
+                   "The result will be set to SYSMIS."),
+             idx, v->name);
+      return SYSMIS;
+    }
+}
+
+absorb_miss no_opt string operator VEC_ELEM_STR (idx)
+     expression e;
+     vector v;
+     case c;
+{
+  if (idx >= 1 && idx <= v->cnt)
+    {
+      struct variable *var = v->var[(int) idx - 1];
+      return copy_string (e, case_str (c, var->fv), var->width);
+    }
+  else
+    {
+      if (idx == SYSMIS)
+        msg (SE, _("SYSMIS is not a valid index value for vector "
+                   "%s.  The result will be set to the empty string."),
+             v->name);
+      else
+        msg (SE, _("%g is not a valid index value for vector %s.  "
+                   "The result will be set to the empty string."),
+             idx, v->name);
+      return empty_string;
+    }
+}
+
+// Terminals.
+
+no_opt operator NUM_VAR ()
+     case c;
+     num_var v;
+{
+  double d = case_num (c, v->fv);
+  return !is_num_user_missing (d, v) ? d : SYSMIS;
+}
+
+no_opt string operator STR_VAR ()
+     case c;
+     expression e;
+     str_var v;
+{
+  struct fixed_string s = alloc_string (e, v->width);
+  memcpy (s.string, case_str (c, v->fv), v->width);
+  return s;
+}
+
+no_opt function LAG (num_var v, pos_int n_before)
+{
+  struct ccase *c = lagged_case (n_before);
+  if (c != NULL)
+    {
+      double x = case_num (c, v->fv);
+      return !is_num_user_missing (x, v) ? x : SYSMIS;
+    }
+  else
+    return SYSMIS;
+}
+
+no_opt function LAG (num_var v)
+{
+  struct ccase *c = lagged_case (1);
+  if (c != NULL)
+    {
+      double x = case_num (c, v->fv);
+      return !is_num_user_missing (x, v) ? x : SYSMIS;
+    }
+  else
+    return SYSMIS;
+}
+
+no_opt string function LAG (str_var v, pos_int n_before)
+     expression e;
+{
+  struct ccase *c = lagged_case (n_before);
+  if (c != NULL)
+    return copy_string (e, case_str (c, v->fv), v->width);
+  else
+    return empty_string;
+}
+
+no_opt string function LAG (str_var v)
+     expression e;
+{
+  struct ccase *c = lagged_case (1);
+  if (c != NULL)
+    return copy_string (e, case_str (c, v->fv), v->width);
+  else
+    return empty_string;
+}
+
+no_opt operator NUM_SYS ()
+     case c;
+     num_var v;
+{
+  return case_num (c, v->fv) == SYSMIS;
+}
+
+no_opt operator NUM_VAL ()
+     case c;
+     num_var v;
+{
+  return case_num (c, v->fv);
+}
+
+no_opt operator CASENUM ()
+     case_idx idx;
+{
+  return idx;
+}

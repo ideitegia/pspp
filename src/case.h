@@ -56,6 +56,9 @@ CASE_INLINE void case_clone (struct ccase *, const struct ccase *);
 CASE_INLINE void case_move (struct ccase *, struct ccase *);
 CASE_INLINE void case_destroy (struct ccase *);
 
+void case_resize (struct ccase *, size_t old_cnt, size_t new_cnt);
+void case_swap (struct ccase *, struct ccase *);
+
 int case_try_create (struct ccase *, size_t value_cnt);
 int case_try_clone (struct ccase *, const struct ccase *);
 

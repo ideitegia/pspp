@@ -1,3 +1,7 @@
+Mon Feb 28 23:19:34 2005  Ben Pfaff  <blp@gnu.org>
+
+	* expressions.texi: Revise.  Describe new functions.
+
 Sat Jan  8 16:46:28 2005  Ben Pfaff  <blp@gnu.org>
 
 	* credits.texi: Removed.

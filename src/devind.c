@@ -367,7 +367,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	
 	for (c = 0; c < t->nc; c++, ct++)
 	  {
-            struct len_string *cc;
+            struct fixed_string *cc;
             struct tab_joined_cell *j;
 
             if (*ct == TAB_EMPTY)

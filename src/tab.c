@@ -156,7 +156,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
       int mr1 = min (nr, t->nr);
       int mc1 = min (nc, t->nc);
       
-      struct len_string *new_cc;
+      struct fixed_string *new_cc;
       unsigned char *new_ct;
       int r;
 
@@ -410,7 +410,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
    the resultant string into S in TABLE's pool. */
 static void
 text_format (struct tab_table *table, int opt, const char *text, va_list args,
-	     struct len_string *s)
+	     struct fixed_string *s)
 {
   int len;
   
@@ -726,7 +726,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
   opt |= TAB_JOIN;
   
   {
-    struct len_string *cc = &table->cc[x1 + y1 * table->cf];
+    struct fixed_string *cc = &table->cc[x1 + y1 * table->cf];
     unsigned char *ct = &table->ct[x1 + y1 * table->cf];
     const int ofs = table->cf - (x2 - x1);
 
@@ -751,7 +751,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 /* Sets cell (C,R) in TABLE, with options OPT, to contents STRING. */
 void
 tab_raw (struct tab_table *table, int c, int r, unsigned opt,
-	 struct len_string *string)
+	 struct fixed_string *string)
 {
   assert (table != NULL && string != NULL);
   

@@ -767,7 +767,7 @@ context (struct dfm_reader *reader)
     strcpy (buf, "at end of file");
   else 
     {
-      struct len_string line;
+      struct fixed_string line;
       const char *sp;
       
       dfm_get_record (reader, &line);
@@ -801,7 +801,7 @@ another_token (struct dfm_reader *reader)
 {
   for (;;)
     {
-      struct len_string line;
+      struct fixed_string line;
       const char *cp;
       
       if (dfm_eof (reader))
@@ -826,7 +826,7 @@ another_token (struct dfm_reader *reader)
 static int
 (mget_token) (struct matrix_token *token, struct dfm_reader *reader)
 {
-  struct len_string line;
+  struct fixed_string line;
   int first_column;
   char *cp;
 
@@ -904,7 +904,7 @@ static int
 static int
 force_eol (struct dfm_reader *reader, const char *content)
 {
-  struct len_string line;
+  struct fixed_string line;
   const char *cp;
 
   if (dfm_eof (reader))

@@ -29,7 +29,7 @@
 #include "casefile.h"
 #include "command.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "lexer.h"
 #include "misc.h"
 #include "settings.h"

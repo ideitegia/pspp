@@ -53,10 +53,12 @@ enum
     MISSING_COUNT
   };
 
+#define MAX_VAR_NAME_LEN 8
+
 /* A variable's dictionary entry.  */
 struct variable
   {
-    char name[9];		/* As a string. */
+    char name[MAX_VAR_NAME_LEN + 1]; /* As a string. */
     int index;			/* Index into its dictionary's var[]. */
     int type;                   /* NUMERIC or ALPHA. */
 

@@ -509,7 +509,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	fputs ("  <TR>\n", x->file.file);
 	for (c = 0; c < t->nc; c++, ct++)
 	  {
-            struct len_string *cc;
+            struct fixed_string *cc;
 	    int tag;
 	    char header[128];
 	    char *cp;

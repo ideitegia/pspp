@@ -26,9 +26,10 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "bool.h"
 #include "error.h"
 #include "getline.h"
-#include "julcal/julcal.h"
+#include "calendar.h"
 #include "lexer.h"
 #include "magic.h"
 #include "misc.h"
@@ -45,43 +46,40 @@ static void dls_error (const struct data_in *, const char *format, ...)
      PRINTF_FORMAT (2, 3);
 
 static void
-dls_error (const struct data_in *i, const char *format, ...)
+vdls_error (const struct data_in *i, const char *format, va_list args)
 {
-  char buf[1024];
+  struct error e;
+  struct string title;
 
   if (i->flags & DI_IGNORE_ERROR)
     return;
 
-  {
-    va_list args;
-
-    va_start (args, format);
-    snprintf (buf, 1024, format, args);
-    va_end (args);
-  }
-  
-  {
-    struct error e;
-    struct string title;
-
-    ds_init (&title, 64);
-    if (!getl_reading_script)
-      ds_puts (&title, _("data-file error: "));
-    if (i->f1 == i->f2)
-      ds_printf (&title, _("(column %d"), i->f1);
-    else
-      ds_printf (&title, _("(columns %d-%d"), i->f1, i->f2);
-    ds_printf (&title, _(", field type %s) "), fmt_to_string (&i->format));
+  ds_init (&title, 64);
+  if (!getl_reading_script)
+    ds_puts (&title, _("data-file error: "));
+  if (i->f1 == i->f2)
+    ds_printf (&title, _("(column %d"), i->f1);
+  else
+    ds_printf (&title, _("(columns %d-%d"), i->f1, i->f2);
+  ds_printf (&title, _(", field type %s) "), fmt_to_string (&i->format));
     
-    e.class = DE;
-    err_location (&e.where);
-    e.title = ds_c_str (&title);
-    e.text = buf;
+  e.class = DE;
+  err_location (&e.where);
+  e.title = ds_c_str (&title);
 
-    err_vmsg (&e);
+  err_vmsg (&e, format, args);
 
-    ds_destroy (&title);
-  }
+  ds_destroy (&title);
+}
+
+static void
+dls_error (const struct data_in *i, const char *format, ...) 
+{
+  va_list args;
+
+  va_start (args, format);
+  vdls_error (i, format, args);
+  va_end (args);
 }
 
 /* Excludes leading and trailing whitespace from I by adjusting
@@ -1167,7 +1165,7 @@ parse_sign (struct data_in *i, int *sign)
     {
     case '-':
       i->s++;
-      *sign = 1;
+      *sign = -1;
       break;
 
     case '+':
@@ -1175,7 +1173,7 @@ parse_sign (struct data_in *i, int *sign)
       /* fall through */
 
     default:
-      *sign = 0;
+      *sign = 1;
       break;
     }
 
@@ -1184,17 +1182,34 @@ parse_sign (struct data_in *i, int *sign)
 
 /* Date & time formats. */
 
-static int
-valid_date (struct data_in *i)
+static void
+calendar_error (void *i_, const char *format, ...) 
 {
-  if (i->v->f == SYSMIS)
+  struct data_in *i = i_;
+  va_list args;
+
+  va_start (args, format);
+  vdls_error (i, format, args);
+  va_end (args);
+}
+
+static bool
+ymd_to_ofs (struct data_in *i, int year, int month, int day, double *ofs) 
+{
+  *ofs = calendar_gregorian_to_offset (year, month, day, calendar_error, i);
+  return *ofs != SYSMIS;
+}
+
+static bool
+ymd_to_date (struct data_in *i, int year, int month, int day, double *date) 
+{
+  if (ymd_to_ofs (i, year, month, day, date)) 
     {
-      dls_error (i, _("Date is not in valid range between "
-		   "15 Oct 1582 and 31 Dec 19999."));
-      return 0;
+      *date *= 60. * 60. * 24.;
+      return true; 
     }
   else
-    return 1;
+    return false;
 }
 
 static int
@@ -1202,21 +1217,14 @@ parse_DATE (struct data_in *i)
 {
   long day, month, year;
 
-  if (!parse_leader (i)
-      || !parse_day (i, &day)
-      || !parse_date_delimiter (i)
-      || !parse_month (i, &month)
-      || !parse_date_delimiter (i)
-      || !parse_year (i, &year)
-      || !parse_trailer (i))
-    return 0;
-
-  i->v->f = calendar_to_julian (year, month, day);
-  if (!valid_date (i))
-    return 0;
-  i->v->f *= 60. * 60. * 24.;
-
-  return 1;
+  return (parse_leader (i)
+          && parse_day (i, &day)
+          && parse_date_delimiter (i)
+          && parse_month (i, &month)
+          && parse_date_delimiter (i)
+          && parse_year (i, &year)
+          && parse_trailer (i)
+          && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
 static int
@@ -1224,21 +1232,14 @@ parse_ADATE (struct data_in *i)
 {
   long month, day, year;
 
-  if (!parse_leader (i)
-      || !parse_month (i, &month)
-      || !parse_date_delimiter (i)
-      || !parse_day (i, &day)
-      || !parse_date_delimiter (i)
-      || !parse_year (i, &year)
-      || !parse_trailer (i))
-    return 0;
-
-  i->v->f = calendar_to_julian (year, month, day);
-  if (!valid_date (i))
-    return 0;
-  i->v->f *= 60. * 60. * 24.;
-
-  return 1;
+  return (parse_leader (i)
+          && parse_month (i, &month)
+          && parse_date_delimiter (i)
+          && parse_day (i, &day)
+          && parse_date_delimiter (i)
+          && parse_year (i, &year)
+          && parse_trailer (i)
+          && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
 static int
@@ -1246,21 +1247,14 @@ parse_EDATE (struct data_in *i)
 {
   long month, day, year;
 
-  if (!parse_leader (i)
-      || !parse_day (i, &day)
-      || !parse_date_delimiter (i)
-      || !parse_month (i, &month)
-      || !parse_date_delimiter (i)
-      || !parse_year (i, &year)
-      || !parse_trailer (i))
-    return 0;
-
-  i->v->f = calendar_to_julian (year, month, day);
-  if (!valid_date (i))
-    return 0;
-  i->v->f *= 60. * 60. * 24.;
-
-  return 1;
+  return (parse_leader (i)
+          && parse_day (i, &day)
+          && parse_date_delimiter (i)
+          && parse_month (i, &month)
+          && parse_date_delimiter (i)
+          && parse_year (i, &year)
+          && parse_trailer (i)
+          && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
 static int
@@ -1268,46 +1262,30 @@ parse_SDATE (struct data_in *i)
 {
   long month, day, year;
 
-  if (!parse_leader (i)
-      || !parse_year (i, &year)
-      || !parse_date_delimiter (i)
-      || !parse_month (i, &month)
-      || !parse_date_delimiter (i)
-      || !parse_day (i, &day)
-      || !parse_trailer (i))
-    return 0;
-
-  i->v->f = calendar_to_julian (year, month, day);
-  if (!valid_date (i))
-    return 0;
-  i->v->f *= 60. * 60. * 24.;
-
-  return 1;
+  return (parse_leader (i)
+          && parse_year (i, &year)
+          && parse_date_delimiter (i)
+          && parse_month (i, &month)
+          && parse_date_delimiter (i)
+          && parse_day (i, &day)
+          && parse_trailer (i)
+          && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
 static int
 parse_JDATE (struct data_in *i)
 {
   long julian;
+  double ofs;
   
   if (!parse_leader (i)
       || !parse_julian (i, &julian)
-      || !parse_trailer (i))
+      || !parse_trailer (i)
+      || !ymd_to_ofs (i, julian / 1000, 1, 1, &ofs))
     return 0;
 
-  if (julian / 1000 == 1582)
-    i->v->f = calendar_to_julian (1583, 1, 1) - 365;
-  else
-    i->v->f = calendar_to_julian (julian / 1000, 1, 1);
-
-  if (valid_date (i))
-    {
-      i->v->f = (i->v->f + julian % 1000 - 1) * 60. * 60. * 24.;
-      if (i->v->f < 0.)
-	i->v->f = SYSMIS;
-    }
-
-  return valid_date (i);
+  i->v->f = (ofs + julian % 1000 - 1) * 60. * 60. * 24.;
+  return 1;
 }
 
 static int
@@ -1315,19 +1293,12 @@ parse_QYR (struct data_in *i)
 {
   long quarter, year;
 
-  if (!parse_leader (i)
-      || !parse_quarter (i, &quarter)
-      || !parse_q_delimiter (i)
-      || !parse_year (i, &year)
-      || !parse_trailer (i))
-    return 0;
-
-  i->v->f = calendar_to_julian (year, (quarter - 1) * 3 + 1, 1);
-  if (!valid_date (i))
-    return 0;
-  i->v->f *= 60. * 60. * 24.;
-
-  return 1;
+  return (parse_leader (i)
+          && parse_quarter (i, &quarter)
+          && parse_q_delimiter (i)
+          && parse_year (i, &year)
+          && parse_trailer (i)
+          && ymd_to_date (i, year, (quarter - 1) * 3 + 1, 1, &i->v->f));
 }
 
 static int
@@ -1335,25 +1306,19 @@ parse_MOYR (struct data_in *i)
 {
   long month, year;
 
-  if (!parse_leader (i)
-      || !parse_month (i, &month)
-      || !parse_date_delimiter (i)
-      || !parse_year (i, &year)
-      || !parse_trailer (i))
-    return 0;
-
-  i->v->f = calendar_to_julian (year, month, 1);
-  if (!valid_date (i))
-    return 0;
-  i->v->f *= 60. * 60. * 24.;
-
-  return 1;
+  return (parse_leader (i)
+          && parse_month (i, &month)
+          && parse_date_delimiter (i)
+          && parse_year (i, &year)
+          && parse_trailer (i)
+          && ymd_to_date (i, year, month, 1, &i->v->f));
 }
 
 static int
 parse_WKYR (struct data_in *i)
 {
   long week, year;
+  double ofs;
 
   if (!parse_leader (i)
       || !parse_week (i, &week)
@@ -1362,11 +1327,19 @@ parse_WKYR (struct data_in *i)
       || !parse_trailer (i))
     return 0;
 
-  i->v->f = calendar_to_julian (year, 1, 1);
-  if (!valid_date (i))
-    return 0;
-  i->v->f = (i->v->f + (week - 1) * 7) * 60. * 60. * 24.;
+  if (year != 1582) 
+    {
+      if (!ymd_to_ofs (i, year, 1, 1, &ofs))
+        return 0;
+    }
+  else 
+    {
+      if (ymd_to_ofs (i, 1583, 1, 1, &ofs))
+        return 0;
+      ofs -= 365;
+    }
 
+  i->v->f = (ofs + (week - 1) * 7) * 60. * 60. * 24.;
   return 1;
 }
 
@@ -1386,9 +1359,7 @@ parse_TIME (struct data_in *i)
       || !parse_opt_second (i, &second))
     return 0;
 
-  i->v->f = hour * 60. * 60. + minute * 60. + second;
-  if (sign)
-    i->v->f = -i->v->f;
+  i->v->f = (hour * 60. * 60. + minute * 60. + second) * sign;
   return 1;
 }
 
@@ -1414,9 +1385,7 @@ parse_DTIME (struct data_in *i)
   i->v->f = (day_count * 60. * 60. * 24.
 	     + hour * 60. * 60.
 	     + minute * 60.
-	     + second);
-  if (sign)
-    i->v->f = -i->v->f;
+	     + second) * sign;
   return 1;
 }
 
@@ -1438,17 +1407,11 @@ parse_DATETIME (struct data_in *i)
       || !parse_hour24 (i, &hour24)
       || !parse_time_delimiter (i)
       || !parse_minute (i, &minute)
-      || !parse_opt_second (i, &second))
+      || !parse_opt_second (i, &second)
+      || !ymd_to_date (i, year, month, day, &i->v->f))
     return 0;
 
-  i->v->f = calendar_to_julian (year, month, day);
-  if (!valid_date (i))
-    return 0;
-  i->v->f = (i->v->f * 60. * 60. * 24.
-	     + hour24 * 60. * 60.
-	     + minute * 60.
-	     + second);
-
+  i->v->f += hour24 * 60. * 60. + minute * 60. + second;
   return 1;
 }
 

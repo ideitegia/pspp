@@ -1641,7 +1641,7 @@ static void
 table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
 		     const union value *v, const struct variable *var)
 {
-  struct len_string s;
+  struct fixed_string s;
 
   const char *label = val_labs_find (var->val_labs, *v);
   if (label) 
@@ -1688,7 +1688,7 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
 {
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
-  struct len_string s;
+  struct fixed_string s;
   
   s.length = 10;
   s.string = tab_alloc (table, 16);

@@ -3,17 +3,15 @@
 @cindex expressions, mathematical
 @cindex mathematical expressions
 
-Some PSPP commands use expressions, which share a common syntax
-among all PSPP commands.  Expressions are made up of
-@dfn{operands}, which can be numbers, strings, or variable names,
-separated by @dfn{operators}.  There are five types of operators:
-grouping, arithmetic, logical, relational, and functions.
+Expressions share a common syntax each place they appear in PSPP
+commands.  Expressions are made up of @dfn{operands}, which can be
+numbers, strings, or variable names, separated by @dfn{operators}.
+There are five types of operators: grouping, arithmetic, logical,
+relational, and functions.
 
-Every operator takes one or more @dfn{arguments} as input and produces
-or @dfn{returns} exactly one result as output.  Both strings and numeric
-values can be used as arguments and are produced as results, but each
-operator accepts only specific combinations of numeric and string values
-as arguments.  With few exceptions, operator arguments may be
+Every operator takes one or more operands as input and yields exactly
+one result as output.  Depending on the operator, operands accept
+strings or numbers as operands.  With few exceptions, operands may be
 full-fledged expressions in themselves.
 
 @menu
@@ -27,7 +25,7 @@ full-fledged expressions in themselves.
 * Order of Operations::         Operator precedence.
 @end menu
 
-@node Boolean Values, Missing Values in Expressions, Expressions, Expressions
+@node Boolean Values
 @section Boolean Values
 @cindex Boolean
 @cindex values, Boolean
@@ -39,29 +37,31 @@ System-missing is neither true nor false and indicates that the true
 value is unknown.
 
 Boolean-typed operands or function arguments must take on one of these
-three values.  Other values are considered false, but cause an error
+three values.  Other values are considered false, but provoke a warning
 when the expression is evaluated.
 
 Strings and Booleans are not compatible, and neither may be used in
 place of the other.
 
-@node Missing Values in Expressions, Grouping Operators, Boolean Values, Expressions
+@node Missing Values in Expressions
 @section Missing Values in Expressions
 
-String missing values are not treated specially in expressions.  Most
-numeric operators return system-missing when given system-missing
-arguments.  Exceptions are listed under particular operator
-descriptions.
+Most numeric operators yield system-missing when given any
+system-missing operand.  A string operator given any system-missing
+operand typically results in the empty string.  Exceptions are listed
+under particular operator descriptions.
+
+String user-missing values are not treated specially in expressions.
 
 User-missing values for numeric variables are always transformed into
-the system-missing value, except inside the arguments  to the
+the system-missing value, except inside the arguments to the
 @code{VALUE} and @code{SYSMIS} functions.
 
 The missing-value functions can be used to precisely control how missing
 values are treated in expressions.  @xref{Missing Value Functions}, for
 more details.
 
-@node Grouping Operators, Arithmetic Operators, Missing Values in Expressions, Expressions
+@node Grouping Operators
 @section Grouping Operators
 @cindex parentheses
 @cindex @samp{(  )}
@@ -74,40 +74,43 @@ expression with parentheses to force early evaluation.
 Parentheses also surround the arguments to functions, but in that
 situation they act as punctuators, not as operators.
 
-@node Arithmetic Operators, Logical Operators, Grouping Operators, Expressions
+@node Arithmetic Operators
 @section Arithmetic Operators
 @cindex operators, arithmetic
 @cindex arithmetic operators
 
-The arithmetic operators take numeric arguments and produce numeric
+The arithmetic operators take numeric operands and produce numeric
 results.
 
 @table @code
 @cindex @samp{+}
 @cindex addition
 @item @var{a} + @var{b}
-Adds @var{a} and @var{b}, returning the sum.
+Yields the sum of @var{a} and @var{b}.
 
 @cindex @samp{-}
 @cindex subtraction
 @item @var{a} - @var{b}
-Subtracts @var{b} from @var{a}, returning the difference.
+Subtracts @var{b} from @var{a} and yields the difference.
 
 @cindex @samp{*}
 @cindex multiplication
 @item @var{a} * @var{b}
-Multiplies @var{a} and @var{b}, returning the product.
+Yields the product of @var{a} and @var{b}.  If either @var{a} or
+@var{b} is 0, then the result is 0, even if the other operand is
+missing.
 
 @cindex @samp{/}
 @cindex division
 @item @var{a} / @var{b}
-Divides @var{a} by @var{b}, returning the quotient.  If @var{b} is
-zero, the result is system-missing.
+Divides @var{a} by @var{b} and yields the quotient.  If @var{a} is 0,
+then the result is 0, even if @var{b} is missing.  If @var{b} is zero,
+the result is system-missing.
 
 @cindex @samp{**}
 @cindex exponentiation
 @item @var{a} ** @var{b}
-Returns the result of raising @var{a} to the power @var{b}.  If
+Yields the result of raising @var{a} to the power @var{b}.  If
 @var{a} is negative and @var{b} is not an integer, the result is
 system-missing.  The result of @code{0**0} is system-missing as well.
 
@@ -117,7 +120,7 @@ system-missing.  The result of @code{0**0} is system-missing as well.
 Reverses the sign of @var{a}.  
 @end table
 
-@node Logical Operators, Relational Operators, Arithmetic Operators, Expressions
+@node Logical Operators
 @section Logical Operators
 @cindex logical operators
 @cindex operators, logical
@@ -127,10 +130,10 @@ Reverses the sign of @var{a}.
 @cindex Boolean
 @cindex values, system-missing
 @cindex system-missing
-The logical operators take logical arguments and produce logical
-results, meaning ``true or false''.  PSPP logical operators are
+The logical operators take logical operands and produce logical
+results, meaning ``true or false.''  Logical operators are
 not true Boolean operators because they may also result in a
-system-missing value.
+system-missing value.  @xref{Boolean Values}, for more information.
 
 @table @code
 @cindex @code{AND}
@@ -140,8 +143,8 @@ system-missing value.
 @item @var{a} AND @var{b}
 @itemx @var{a} & @var{b}
 True if both @var{a} and @var{b} are true, false otherwise.  If one
-argument is false, the result is false even if the other is missing.  If
-both arguments are missing, the result is missing.
+operand is false, the result is false even if the other is missing.  If
+both operands are missing, the result is missing.
 
 @cindex @code{OR}
 @cindex @samp{|}
@@ -149,9 +152,9 @@ both arguments are missing, the result is missing.
 @cindex logical union
 @item @var{a} OR @var{b}
 @itemx @var{a} | @var{b}
-True if at least one of @var{a} and @var{b} is true.  If one argument is
-true, the result is true even if the other argument is missing.  If both
-arguments are missing, the result is missing.
+True if at least one of @var{a} and @var{b} is true.  If one operand is
+true, the result is true even if the other operand is missing.  If both
+operands are missing, the result is missing.
 
 @cindex @code{NOT}
 @cindex @samp{~}
@@ -159,14 +162,14 @@ arguments are missing, the result is missing.
 @cindex logical inversion
 @item NOT @var{a}
 @itemx ~ @var{a}
-True if @var{a} is false.  If the argument is missing, then the result
+True if @var{a} is false.  If the operand is missing, then the result
 is missing.
 @end table
 
-@node Relational Operators, Functions, Logical Operators, Expressions
+@node Relational Operators
 @section Relational Operators
 
-The relational operators take numeric or string arguments and produce Boolean
+The relational operators take numeric or string operands and produce Boolean
 results.
 
 Strings cannot be compared to numbers.  When strings of different
@@ -174,8 +177,8 @@ lengths are compared, the shorter string is right-padded with spaces
 to match the length of the longer string.
 
 The results of string comparisons, other than tests for equality or
-inequality, are dependent on the character set in use.  String
-comparisons are case-sensitive.
+inequality, depend on the character set in use.  String comparisons
+are case-sensitive.
 
 @table @code
 @cindex equality, testing
@@ -222,10 +225,10 @@ True if @var{a} is greater than @var{b}.
 @item @var{a} NE @var{b}
 @itemx @var{a} ~= @var{b}
 @itemx @var{a} <> @var{b}
-True is @var{a} is not equal to @var{b}.
+True if @var{a} is not equal to @var{b}.
 @end table
 
-@node Functions, Order of Operations, Relational Operators, Expressions
+@node Functions
 @section Functions
 @cindex functions
 
@@ -238,31 +241,31 @@ True is @var{a} is not equal to @var{b}.
 PSPP functions provide mathematical abilities above and beyond
 those possible using simple operators.  Functions have a common
 syntax: each is composed of a function name followed by a left
-parenthesis, one or more arguments, and a right parenthesis.  Function
-names are @strong{not} reserved; their names are specially treated
-only when followed by a left parenthesis: @code{EXP(10)} refers to the
-constant value @code{e} raised to the 10th power, but @code{EXP} by
-itself refers to the value of variable EXP.
+parenthesis, one or more arguments, and a right parenthesis.
+
+Function names are not reserved.  Their names are specially treated
+only when followed by a left parenthesis, so that @code{EXP(10)}
+refers to the constant value @code{e} raised to the 10th power, but
+@code{EXP} by itself refers to the value of variable EXP.
 
 The sections below describe each function in detail.
 
 @menu
-* Advanced Mathematics::        EXP LG10 LN SQRT
+* Mathematics::                 EXP LG10 LN LNGAMMA SQRT
 * Miscellaneous Mathematics::   ABS MOD MOD10 RND TRUNC
 * Trigonometry::                ACOS ARCOS ARSIN ARTAN ASIN ATAN COS SIN TAN
 * Missing Value Functions::     MISSING NMISS NVALID SYSMIS VALUE
-* Pseudo-Random Numbers::       NORMAL UNIFORM
 * Set Membership::              ANY RANGE
 * Statistical Functions::       CFVAR MAX MEAN MIN SD SUM VARIANCE
 * String Functions::            CONCAT INDEX LENGTH LOWER LPAD LTRIM NUMBER 
                                 RINDEX RPAD RTRIM STRING SUBSTR UPCASE
 * Time & Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
 * Miscellaneous Functions::     LAG YRMODA
-* Functions Not Implemented::   CDF.xxx CDFNORM IDF.xxx NCDF.xxx PROBIT RV.xxx
+* Statistical Distribution Functions::  PDF CDF SIG IDF RV NPDF NCDF
 @end menu
 
-@node Advanced Mathematics, Miscellaneous Mathematics, Functions, Functions
-@subsection Advanced Mathematical Functions
+@node Mathematics
+@subsection Mathematical Functions
 @cindex mathematics, advanced
 
 Advanced mathematical functions take numeric arguments and produce
@@ -283,13 +286,18 @@ Takes the base-@i{e} logarithm of @var{number}.  If @var{number} is
 not positive, the result is system-missing.
 @end deftypefn
 
+@deftypefn {Function} {} LNGAMMA (@var{number})
+Yields the base-@i{e} logarithm of the complete gamma of @var{number}.
+If @var{number} is a negative integer, the result is system-missing.
+@end deftypefn
+
 @cindex square roots
 @deftypefn {Function} {} SQRT (@var{number})
 Takes the square root of @var{number}.  If @var{number} is negative,
 the result is system-missing.
 @end deftypefn
 
-@node Miscellaneous Mathematics, Trigonometry, Advanced Mathematics, Functions
+@node Miscellaneous Mathematics
 @subsection Miscellaneous Mathematical Functions
 @cindex mathematics, miscellaneous
 
@@ -304,9 +312,9 @@ Results in the absolute value of @var{number}.
 @cindex modulus
 @deftypefn {Function} {} MOD (@var{numerator}, @var{denominator})
 Returns the remainder (modulus) of @var{numerator} divided by
-@var{denominator}.  If @var{denominator} is 0, the result is
-system-missing.  However, if @var{numerator} is 0 and
-@var{denominator} is system-missing, the result is 0.
+@var{denominator}.  If @var{numerator} is 0, then the result is 0,
+even if @var{denominator} is missing.  If @var{denominator} is 0, the
+result is system-missing.
 @end deftypefn
 
 @cindex modulus, by 10
@@ -327,7 +335,7 @@ Discards the fractional part of @var{number}; that is, rounds
 @var{number} towards zero.
 @end deftypefn
 
-@node Trigonometry, Missing Value Functions, Miscellaneous Mathematics, Functions
+@node Trigonometry
 @subsection Trigonometric Functions
 @cindex trigonometry
 
@@ -337,13 +345,16 @@ results.
 @cindex arccosine
 @cindex inverse cosine
 @deftypefn {Function} {} ARCOS (@var{number})
+@deftypefnx {Function} {} ACOS (@var{number})
 Takes the arccosine, in radians, of @var{number}.  Results in
-system-missing if @var{number} is not between -1 and 1.
+system-missing if @var{number} is not between -1 and 1 inclusive.
+This function is a PSPP extension.
 @end deftypefn
 
 @cindex arcsine
 @cindex inverse sine
 @deftypefn {Function} {} ARSIN (@var{number})
+@deftypefnx {Function} {} ASIN (@var{number})
 Takes the arcsine, in radians, of @var{number}.  Results in
 system-missing if @var{number} is not between -1 and 1 inclusive.
 @end deftypefn
@@ -351,6 +362,7 @@ system-missing if @var{number} is not between -1 and 1 inclusive.
 @cindex arctangent
 @cindex inverse tangent
 @deftypefn {Function} {} ARTAN (@var{number})
+@deftypefnx {Function} {} ATAN (@var{number})
 Takes the arctangent, in radians, of @var{number}.
 @end deftypefn
 
@@ -372,17 +384,17 @@ of @var{angle} that are too close to odd multiples of pi/2.
 Portability: none.
 @end deftypefn
 
-@node Missing Value Functions, Pseudo-Random Numbers, Trigonometry, Functions
+@node Missing Value Functions
 @subsection Missing-Value Functions
 @cindex missing values
 @cindex values, missing
 @cindex functions, missing-value
 
 Missing-value functions take various numeric arguments and yield
-various types of results.  Note that the normal rules of evaluation
-apply within expression arguments to these functions.  In particular,
-user-missing values for numeric variables are converted to
-system-missing values.
+various types of results.  Except where otherwise stated below, the
+normal rules of evaluation apply within expression arguments to these
+functions.  In particular, user-missing values for numeric variables
+are converted to system-missing values.
 
 @deftypefn {Function} {} MISSING (@var{expr})
 Returns 1 if @var{expr} has the system-missing value, 0 otherwise.
@@ -390,16 +402,14 @@ Returns 1 if @var{expr} has the system-missing value, 0 otherwise.
 
 @deftypefn {Function} {} NMISS (@var{expr} [, @var{expr}]@dots{})
 Each argument must be a numeric expression.  Returns the number of
-system-missing values in the list.  As a special extension,
-the syntax @code{@var{var1} TO @var{var2}} may be used to refer to a
-range of variables; see @ref{Sets of Variables}, for more details.
+system-missing values in the list, which may include variable ranges
+using the @code{@var{var1} TO @var{var2}} syntax.
 @end deftypefn
 
 @deftypefn {Function} {} NVALID (@var{expr} [, @var{expr}]@dots{})
 Each argument must be a numeric expression.  Returns the number of
-values in the list that are not system-missing.  As a special extension,
-the syntax @code{@var{var1} TO @var{var2}} may be used to refer to a
-range of variables; see @ref{Sets of Variables}, for more details.
+values in the list that are not system-missing.  The list may include
+variable ranges using the @code{@var{var1} TO @var{var2}} syntax.
 @end deftypefn
 
 @deftypefn {Function} {} SYSMIS (@var{expr})
@@ -412,49 +422,11 @@ the value is system-missing, 0 otherwise.
 @deftypefn {Function} {} VALUE (@var{variable})
 Prevents the user-missing values of @var{variable} from being
 transformed into system-missing values, and always results in the
-actual value of @var{variable}, whether it is user-missing,
-system-missing or not missing at all.
+actual value of @var{variable}, whether it is valid, user-missing, or
+system-missing.
 @end deftypefn
 
-@node Pseudo-Random Numbers, Set Membership, Missing Value Functions, Functions
-@subsection Pseudo-Random Number Generation Functions
-@cindex random numbers
-@cindex pseudo-random numbers (see random numbers)
-
-Pseudo-random number generation (PRNG) functions take numeric arguments and
-produce numeric results.
-
-PSPP uses the ``Mersenne Twister'' PRNG as implemented in the GNU
-Scientific Library, specifically the @code{gsl_rng_mt19937} variant.
-This PRNG is a variant of the twisted generalized feedback
-shift-register algorithm The bytes output by this PRNG are
-system-independent for a given random seed, but differences in
-endianness and floating-point formats will make PRNG results differ
-from system to system.
-
-@cindex random numbers, normally-distributed
-@deftypefn {Function} {} NORMAL (@var{stddev})
-Results in a random number.  Results from @code{NORMAL} are normally
-distributed with a mean of 0 and a standard deviation of @var{stddev}.
-@end deftypefn
-
-@cindex random numbers, uniformly-distributed
-@deftypefn {Function} {} UNIFORM (@var{max})
-Results in a random number in the half-open interval [0,@var{max}).
-Results from @code{UNIFORM} are evenly distributed across its entire
-range.  There may be a maximum on the largest random number ever
-generated---this is often
-@ifinfo 
-2**31-1 
-@end ifinfo
-@tex
-$2^{31}-1$
-@end tex
-(2,147,483,647), but it may be orders of magnitude
-higher or lower.
-@end deftypefn
-
-@node Set Membership, Statistical Functions, Pseudo-Random Numbers, Functions
+@node Set Membership
 @subsection Set-Membership Functions
 @cindex set membership
 @cindex membership, of set
@@ -483,7 +455,7 @@ System-missing values in @var{set} do not cause RANGE to return
 system-missing.
 @end deftypefn
 
-@node Statistical Functions, String Functions, Set Membership, Functions
+@node Statistical Functions
 @subsection Statistical Functions
 @cindex functions, statistical
 @cindex statistics
@@ -494,66 +466,62 @@ other can only be computed on numeric values.  Their results have the
 same type as their arguments.  The current case's weighting factor
 (@pxref{WEIGHT}) has no effect on statistical functions.
 
+These functions' argument lists may include entire ranges of variables
+using the @code{@var{var1} TO @var{var2}} syntax.
+
 @cindex arguments, minimum valid
 @cindex minimum valid number of arguments
-With statistical functions it is possible to specify a minimum number of
-non-missing arguments for the function to be evaluated.  To do so,
-append a dot and the number to the function name.  For instance, to
-specify a minimum of three valid arguments to the MEAN function, use the
-name @code{MEAN.3}.
+Unlike most functions, statistical functions can return non-missing
+values even when some of their arguments are missing.  Most
+statistical functions, by default, require only 1 non-missing value to
+have a non-missing return, but CFVAR, SD, and VARIANCE require 2.
+These defaults can be increased (but not decreased) by appending a dot
+and the minimum number of valid arguments to the function name.  For
+example, @code{MEAN.3(X, Y, Z)} would only return non-missing if all
+of @samp{X}, @samp{Y}, and @samp{Z} were valid.
 
 @cindex coefficient of variation
 @cindex variation, coefficient of
 @deftypefn {Function} {} CFVAR (@var{number}, @var{number}[, @dots{}])
 Results in the coefficient of variation of the values of @var{number}.
-This function requires at least two valid arguments to give a
-non-missing result.  (The coefficient of variation is the standard
-deviation divided by the mean.)
+(The coefficient of variation is the standard deviation divided by the
+mean.)
 @end deftypefn
 
 @cindex maximum
 @deftypefn {Function} {} MAX (@var{value}, @var{value}[, @dots{}])
 Results in the value of the greatest @var{value}.  The @var{value}s may
-be numeric or string.  Although at least two arguments must be given,
-only one need be valid for MAX to give a non-missing result.
+be numeric or string.
 @end deftypefn
 
 @cindex mean
 @deftypefn {Function} {} MEAN (@var{number}, @var{number}[, @dots{}])
-Results in the mean of the values of @var{number}.  Although at least
-two arguments must be given, only one need be valid for MEAN to give a
-non-missing result.
+Results in the mean of the values of @var{number}.
 @end deftypefn
 
 @cindex minimum
 @deftypefn {Function} {} MIN (@var{number}, @var{number}[, @dots{}])
 Results in the value of the least @var{value}.  The @var{value}s may
-be numeric or string.  Although at least two arguments must be given,
-only one need be valid for MAX to give a non-missing result.
+be numeric or string.
 @end deftypefn
 
 @cindex standard deviation
 @cindex deviation, standard
 @deftypefn {Function} {} SD (@var{number}, @var{number}[, @dots{}])
 Results in the standard deviation of the values of @var{number}.
-This function requires at least two valid arguments to give a
-non-missing result.
 @end deftypefn
 
 @cindex sum
 @deftypefn {Function} {} SUM (@var{number}, @var{number}[, @dots{}])
-Results in the sum of the values of @var{number}.  Although at least two
-arguments must be given, only one need by valid for SUM to give a
-non-missing result.
+Results in the sum of the values of @var{number}.
 @end deftypefn
 
 @cindex variance
 @deftypefn {Function} {} VARIANCE (@var{number}, @var{number}[, @dots{}])
-Results in the variance of the values of @var{number}.  This function
-requires at least two valid arguments to give a non-missing result.
+Results in the variance of the values of @var{number}.
 @end deftypefn
 
-@node String Functions, Time & Date, Statistical Functions, Functions
+@node String Functions
 @subsection String Functions
 @cindex functions, string
 @cindex string functions
@@ -571,18 +539,19 @@ The resultant string is truncated to a maximum of 255 characters.
 @cindex searching strings
 @deftypefn {Function} {} INDEX (@var{haystack}, @var{needle})
 Returns a positive integer indicating the position of the first
-occurrence @var{needle} in @var{haystack}.  Returns 0 if @var{haystack}
+occurrence of @var{needle} in @var{haystack}.  Returns 0 if @var{haystack}
 does not contain @var{needle}.  Returns system-missing if @var{needle}
 is an empty string.
 @end deftypefn
 
-@deftypefn {Function} {} INDEX (@var{haystack}, @var{needle}, @var{divisor})
-Divides @var{needle} into parts, each with length @var{divisor}.
-Searches @var{haystack} for the first occurrence of each part, and
+@deftypefn {Function} {} INDEX (@var{haystack}, @var{needles}, @var{needle_len})
+Divides @var{needles} into one or more needles, each with length
+@var{needle_len}.
+Searches @var{haystack} for the first occurrence of each needle, and
 returns the smallest value.  Returns 0 if @var{haystack} does not
-contain any part in @var{needle}.  It is an error if @var{divisor}
-cannot be evenly divided into the length of @var{needle}.  Returns
-system-missing if @var{needle} is an empty string.
+contain any part in @var{needle}.  It is an error if @var{needle_len}
+does not evenly divide the length of @var{needles}.  Returns
+system-missing if @var{needles} is an empty string.
 @end deftypefn
 
 @cindex strings, finding length of
@@ -648,12 +617,12 @@ occurrence of @var{needle} in @var{haystack}.  Returns 0 if
 @var{needle} is an empty string.
 @end deftypefn
 
-@deftypefn {Function} {} RINDEX (@var{haystack}, @var{needle}, @var{divisor})
-Divides @var{needle} into parts, each with length @var{divisor}.
+@deftypefn {Function} {} RINDEX (@var{haystack}, @var{needle}, @var{needle_len})
+Divides @var{needle} into parts, each with length @var{needle_len}.
 Searches @var{haystack} for the last occurrence of each part, and
 returns the largest value.  Returns 0 if @var{haystack} does not contain
-any part in @var{needle}.  It is an error if @var{divisor} cannot be
-evenly divided into the length of @var{needle}.  Returns system-missing
+any part in @var{needle}.  It is an error if @var{needle_len} does not
+evenly divide the length of @var{needle}.  Returns system-missing
 if @var{needle} is an empty string.
 @end deftypefn
 
@@ -699,9 +668,8 @@ has the value @code{"123.6"}.
 @cindex strings, taking substrings of
 @deftypefn {Function} {} SUBSTR (@var{string}, @var{start})
 Returns a string consisting of the value of @var{string} from position
-@var{start} onward.  Returns an empty string if @var{start} is system-missing
-or has a value less than 1 or greater than the number of characters in
-@var{string}.
+@var{start} onward.  Returns an empty string if @var{start} is system-missing,
+less than 1, or greater than the length of @var{string}.
 @end deftypefn
 
 @deftypefn {Function} {} SUBSTR (@var{string}, @var{start}, @var{count})
@@ -712,8 +680,8 @@ than 1 or greater than the number of characters in @var{string}, or if
 @var{count} is less than 1.  Returns a string shorter than @var{count}
 characters if @var{start} + @var{count} - 1 is greater than the number
 of characters in @var{string}.  Examples: @code{SUBSTR("abcdefg", 3, 2)}
-has value @code{"cd"}; @code{SUBSTR("Ben Pfaff", 5, 10)} has the value
-@code{"Pfaff"}.
+has value @code{"cd"}; @code{SUBSTR("nonsense", 4, 10)} has the value
+@code{"sense"}.
 @end deftypefn
 
 @cindex case conversion
@@ -722,39 +690,15 @@ has value @code{"cd"}; @code{SUBSTR("Ben Pfaff", 5, 10)} has the value
 Returns @var{string}, changing lowercase letters to uppercase letters.
 @end deftypefn
 
-@node Time & Date, Miscellaneous Functions, String Functions, Functions
+@node Time & Date
 @subsection Time & Date Functions
 @cindex functions, time & date
 @cindex times
 @cindex dates
 
-@cindex dates, legal range of
-The legal range of dates for use in PSPP is 15 Oct 1582
-through 31 Dec 19999.
-
-@cindex arguments, invalid
-@cindex invalid arguments
-@quotation
-@strong{Please note:} Most time & date extraction functions will accept
-invalid arguments:
-
-@itemize @bullet
-@item
-Negative numbers in PSPP time format.
-@item
-Numbers less than 86,400 in PSPP date format.
-@end itemize
-
-However, sensible results are not guaranteed for these invalid values.
-The given equivalents for these functions are definitely not guaranteed
-for invalid values.
-@end quotation
-
-@quotation
-@strong{Please note also:} The time & date construction
-functions @strong{do} produce reasonable and useful results for
-out-of-range values; these are not considered invalid.
-@end quotation
+@cindex dates, valid
+For compatibility, PSPP considers dates before 15 Oct 1582 invalid.
+Most time and date functions will not accept earlier dates.
 
 @menu
 * Time & Date Concepts::        How times & dates are defined and represented
@@ -766,7 +710,7 @@ out-of-range values; these are not considered invalid.
                                        WKDAY YEAR@}
 @end menu
 
-@node Time & Date Concepts, Time Construction, Time & Date, Time & Date
+@node Time & Date Concepts
 @subsubsection How times & dates are defined and represented
 
 @cindex time, concepts
@@ -780,16 +724,14 @@ Thus, the following intervals correspond with the numeric values given:
           1 hour                          3,600
           1 day, 3 hours, 10 seconds     97,210
           40 days                     3,456,000
-          10010 d, 14 min, 24 s     864,864,864
 @end example
 
 @cindex dates, concepts
 @cindex time, instants of
-A @dfn{date}, on the other hand, is a particular instant in the past or
-the future.  PSPP represents a date as a number of seconds after the
-midnight that separated 8 Oct 1582 and 9 Oct 1582.  (Please note that 15
-Oct 1582 immediately followed 9 Oct 1582.)  Thus, the midnights before
-the dates given below correspond with the numeric PSPP dates given:
+A @dfn{date}, on the other hand, is a particular instant in the past
+or the future.  PSPP represents a date as a number of seconds since
+midnight preceding 14 Oct 1582.  Because midnight preceding the dates
+given below correspond with the numeric PSPP dates given:
 
 @example
               15 Oct 1582                86,400
@@ -803,59 +745,47 @@ the dates given below correspond with the numeric PSPP dates given:
 @cindex mathematics, applied to times & dates
 @cindex dates, mathematical properties of
 @noindent
-Please note: 
+Ordinary arithmetic operations on dates and times often produce
+sensible results.  Adding a time to, or subtracting one from, a date
+produces a new date that much earlier or later.  The difference of two
+dates yields the time between those dates.  Adding two times produces
+the combined time.  Multiplying a time by a scalar produces a time
+that many times longer.  Since times and dates are just numbers, the
+ordinary addition and subtraction operators are employed for these
+purposes.
 
-@itemize @bullet
-@item
-A time may be added to, or subtracted from, a date, resulting in a date.
+Adding two dates does not produce a useful result.
 
-@item
-The difference of two dates may be taken, resulting in a time.  
+As the table shows, dates and times may have very large values.  Thus,
+it is not a good idea to take powers of these values; also, the
+accuracy of some procedures may be affected.  If necessary, convert
+times or dates in seconds to some other unit, like days or years,
+before performing analysis.
 
-@item 
-Two times may be added to, or subtracted from, each other, resulting in
-a time.
-@end itemize
-
-(Adding two dates does not produce a useful result.)
-
-Since times and dates are merely numbers, the ordinary addition and
-subtraction operators are employed for these purposes.
-
-@quotation
-@strong{Please note:} Many dates and times have extremely large
-values---just look at the values above.  Thus, it is not a good idea to
-take powers of these values; also, the accuracy of some procedures may
-be affected.  If necessary, convert times or dates in seconds to some
-other unit, like days or years, before performing analysis.
-@end quotation
-
-@node Time Construction, Time Extraction, Time & Date Concepts, Time & Date
+@node Time Construction
 @subsubsection Functions that Produce Times
 @cindex times, constructing
 @cindex constructing times
 
-These functions take numeric arguments and produce numeric results in
-PSPP time format.
+These functions take numeric arguments and return numeric values that
+represent times.
 
 @cindex days
 @cindex time, in days
 @deftypefn {Function} {} TIME.DAYS (@var{ndays})
-Results in a time value corresponding to @var{ndays} days.
-(@code{TIME.DAYS(@var{x})} is equivalent to @code{@var{x} * 60 * 60 *
-24}.)
+Returns a time corresponding to @var{ndays} days.
 @end deftypefn
 
 @cindex hours-minutes-seconds
 @cindex time, in hours-minutes-seconds
 @deftypefn {Function} {} TIME.HMS (@var{nhours}, @var{nmins}, @var{nsecs})
-Results in a time value corresponding to @var{nhours} hours, @var{nmins}
-minutes, and @var{nsecs} seconds.  (@code{TIME.HMS(@var{h}, @var{m},
-@var{s})} is equivalent to @code{@var{h}*60*60 + @var{m}*60 +
-@var{s}}.)
+Returns a time corresponding to @var{nhours} hours, @var{nmins}
+minutes, and @var{nsecs} seconds.  The arguments may not have mixed
+signs: if any of them are positive, then none may be negative, and
+vice versa.  
 @end deftypefn
 
-@node Time Extraction, Date Construction, Time Construction, Time & Date
+@node Time Extraction
 @subsubsection Functions that Examine Times
 @cindex extraction, of time
 @cindex time examination
@@ -869,21 +799,18 @@ give numeric results.
 @cindex time, in days
 @deftypefn {Function} {} CTIME.DAYS (@var{time})
 Results in the number of days and fractional days in @var{time}.
-(@code{CTIME.DAYS(@var{x})} is equivalent to @code{@var{x}/60/60/24}.)
 @end deftypefn
 
 @cindex hours
 @cindex time, in hours
 @deftypefn {Function} {} CTIME.HOURS (@var{time})
 Results in the number of hours and fractional hours in @var{time}.
-(@code{CTIME.HOURS(@var{x})} is equivalent to @code{@var{x}/60/60}.)
 @end deftypefn
 
 @cindex minutes
 @cindex time, in minutes
 @deftypefn {Function} {} CTIME.MINUTES (@var{time})
 Results in the number of minutes and fractional minutes in @var{time}.
-(@code{CTIME.MINUTES(@var{x})} is equivalent to @code{@var{x}/60}.)
 @end deftypefn
 
 @cindex seconds
@@ -894,25 +821,30 @@ Results in the number of seconds and fractional seconds in @var{time}.
 equivalent to @code{@var{x}}.)
 @end deftypefn
 
-@node Date Construction, Date Extraction, Time Extraction, Time & Date
+@node Date Construction
 @subsubsection Functions that Produce Dates
 @cindex dates, constructing
 @cindex constructing dates
 
 @cindex arguments, of date construction functions
-These functions take numeric arguments and give numeric results in the
-PSPP date format.  Arguments taken by these functions are:
+These functions take numeric arguments and give numeric results that
+represent dates.  Arguments taken by these functions are:
 
 @table @var
 @item day
-Refers to a day of the month between 1 and 31.
+Refers to a day of the month between 1 and 31.  Day 0 is also accepted
+and refers to the final day of the previous month.  Days 29, 30, and
+31 are accepted even in months that have fewer days and refer to a day
+near the beginning of the following month.
 
 @item month
-Refers to a month of the year between 1 and 12.
+Refers to a month of the year between 1 and 12.  Months 0 and 13 are
+also accepted and refer to the last month of the preceding year and
+the first month of the following year, respectively.
 
 @item quarter
 Refers to a quarter of the year between 1 and 4.  The quarters of the
-year begin on the first days of months 1, 4, 7, and 10.
+year begin on the first day of months 1, 4, 7, and 10.
 
 @item week
 Refers to a week of the year between 1 and 53.
@@ -921,7 +853,9 @@ Refers to a week of the year between 1 and 53.
 Refers to a day of the year between 1 and 366.
 
 @item year
-Refers to a year between 1582 and 19999.
+Refers to a year, 1582 or greater.  Years between 0 and 99 are treated
+according to the epoch set on SET EPOCH, by default beginning 69 years
+before the current date (@pxref{SET EPOCH}).
 @end table
 
 @cindex arguments, invalid
@@ -961,11 +895,11 @@ day of week @var{week} of year @var{year}.
 @cindex year-day
 @cindex dates, year-day
 @deftypefn {Function} {} DATE.YRDAY (@var{year}, @var{yday})
-Results in a date value corresponding to the midnight before day
+Results in a date value corresponding to the day
 @var{yday} of year @var{year}.
 @end deftypefn
 
-@node Date Extraction,  , Date Construction, Time & Date
+@node Date Extraction
 @subsubsection Functions that Examine Dates
 @cindex extraction, of dates
 @cindex date examination
@@ -993,8 +927,6 @@ For a time, results in the time corresponding to the number of whole
 days @var{date-or-time} includes.  For a date, results in the date
 corresponding to the latest midnight at or before @var{date-or-time};
 that is, gives the date that @var{date-or-time} is in.
-(XDATE.DATE(@var{x}) is equivalent to TRUNC(@var{x}/86400)*86400.)
-Applying this function to a time is a non-portable feature.
 @end deftypefn
 
 @cindex hours
@@ -1004,9 +936,7 @@ Applying this function to a time is a non-portable feature.
 For a time, results in the number of whole hours beyond the number of
 whole days represented by @var{date-or-time}.  For a date, results in
 the hour (as an integer between 0 and 23) corresponding to
-@var{date-or-time}.  (XDATE.HOUR(@var{x}) is equivalent to
-MOD(TRUNC(@var{x}/3600),24))  Applying this function to a time is a
-non-portable feature.
+@var{date-or-time}.  
 @end deftypefn
 
 @cindex day of the year
@@ -1028,9 +958,7 @@ corresponding to @var{date}.
 @cindex time, in minutes
 @deftypefn {Function} {} XDATE.MINUTE (@var{time-or-date})
 Results in the number of minutes (as an integer between 0 and 59) after
-the last hour in @var{time-or-date}.  (XDATE.MINUTE(@var{x}) is
-equivalent to MOD(TRUNC(@var{x}/60),60)) Applying this function to a
-time is a non-portable feature.
+the last hour in @var{time-or-date}. 
 @end deftypefn
 
 @cindex months
@@ -1053,24 +981,20 @@ corresponding to @var{date}.
 @deftypefn {Function} {} XDATE.SECOND (@var{time-or-date})
 Results in the number of whole seconds after the last whole minute (as
 an integer between 0 and 59) in @var{time-or-date}.
-(XDATE.SECOND(@var{x}) is equivalent to MOD(@var{x}, 60).)  Applying
-this function to a time is a non-portable feature.
 @end deftypefn
 
 @cindex days
 @cindex times, in days
-@deftypefn {Function} {} XDATE.TDAY (@var{time})
-Results in the number of whole days (as an integer) in @var{time}.
-(XDATE.TDAY(@var{x}) is equivalent to TRUNC(@var{x}/86400).)
+@deftypefn {Function} {} XDATE.TDAY (@var{date})
+Results in the number of whole days from 14 Oct 1582 to @var{date}.
 @end deftypefn
 
 @cindex time
 @cindex dates, time of day
 @deftypefn {Function} {} XDATE.TIME (@var{date})
 Results in the time of day at the instant corresponding to @var{date},
-in PSPP time format.  This is the number of seconds since
-midnight on the day corresponding to @var{date}.  (XDATE.TIME(@var{x}) is
-equivalent to TRUNC(@var{x}/86400)*86400.)
+as a time value.  This is the number of seconds since
+midnight on the day corresponding to @var{date}.
 @end deftypefn
 
 @cindex week
@@ -1086,34 +1010,17 @@ corresponding to @var{date}.
 @cindex dates, in weekdays
 @deftypefn {Function} {} XDATE.WKDAY (@var{date})
 Results in the day of week (as an integer between 1 and 7) corresponding
-to @var{date}.  The days of the week are:
-
-@table @asis
-@item 1
-Sunday
-@item 2
-Monday
-@item 3
-Tuesday
-@item 4
-Wednesday
-@item 5
-Thursday
-@item 6
-Friday
-@item 7
-Saturday
-@end table
+to @var{date}, where 1 represents Sunday.
 @end deftypefn
 
 @cindex years
 @cindex dates, in years
 @deftypefn {Function} {} XDATE.YEAR (@var{date})
-Returns the year (as an integer between 1582 and 19999) corresponding to
+Returns the year (as an integer 1582 or greater) corresponding to
 @var{date}.
 @end deftypefn
 
-@node Miscellaneous Functions, Functions Not Implemented, Time & Date, Functions
+@node Miscellaneous Functions
 @subsection Miscellaneous Functions
 @cindex functions, miscellaneous
 
@@ -1122,75 +1029,407 @@ results.
 
 @cindex cross-case function
 @cindex function, cross-case
-@deftypefn {Function} {} LAG (@var{variable})
+@deftypefn {Function} {} LAG (@var{variable}[, @var{ncases}])
 @anchor{LAG}
 @var{variable} must be a numeric or string variable name.  @code{LAG}
-results in the value of that variable for the case before the current
-one.  In case-selection procedures, @code{LAG} results in the value of
-the variable for the last case selected.  Results in system-missing (for
-numeric variables) or blanks (for string variables) for the first case
-or before any cases are selected.
-@end deftypefn
+results in the value of that variable for the case @var{ncases} before
+the current one.  In case-selection procedures, @code{LAG} results in
+the value of the variable for the last case selected.  Results in
+system-missing (for numeric variables) or blanks (for string
+variables) for the first case or before any cases are selected.
 
-@deftypefn {Function} {} LAG (@var{variable}, @var{ncases})
-@var{variable} must be a numeric or string variable name.  @var{ncases}
-must be a small positive constant integer, although there is no explicit
-limit.  (Use of a large value for @var{ncases} will increase memory
-consumption, since PSPP must keep @var{ncases} cases in memory.)
-@code{LAG (@var{variable}, @var{ncases}} results in the value of
-@var{variable} that is @var{ncases} before the case currently being
-processed.  See @code{LAG (@var{variable})} above for more details.
+If omitted, @var{ncases} defaults to 1.  Otherwise, @var{ncases} must
+be a small positive constant integer.  There is no explicit limit, but
+use of a large value will increase memory consumption.
 @end deftypefn
 
 @cindex date, Julian
 @cindex Julian date
 @deftypefn {Function} {} YRMODA (@var{year}, @var{month}, @var{day})
-@var{year} is a year between 0 and 199 or 1582 and 19999.  @var{month} is
-a month between 1 and 12.  @var{day} is a day between 1 and 31.  If
-@var{month} or @var{day} is out-of-range, it changes the next higher
-unit.  For instance, a @var{day} of 0 refers to the last day of the
-previous month, and a @var{month} of 13 refers to the first month of the
-next year.  @var{year} must be in range.  If @var{year} is between 0 and
-199, 1900 is added.  @var{year}, @var{month}, and @var{day} must all be
-integers.
+@var{year} is a year, either between 0 and 99 or at least 1582.
+Unlike other PSPP date functions, years between 0 and 99 always
+correspond to 1900 through 1999.  @var{month} is a month between 1 and
+13.  @var{day} is a day between 0 and 31.  A @var{day} of 0 refers to
+the last day of the previous month, and a @var{month} of 13 refers to
+the first month of the next year.  @var{year} must be in range.
+@var{year}, @var{month}, and @var{day} must all be integers.
 
 @code{YRMODA} results in the number of days between 15 Oct 1582 and
 the date specified, plus one.  The date passed to @code{YRMODA} must be
 on or after 15 Oct 1582.  15 Oct 1582 has a value of 1.
 @end deftypefn
 
-@node Functions Not Implemented,  , Miscellaneous Functions, Functions
-@subsection Functions Not Implemented
-@cindex functions, not implemented
-@cindex not implemented
-@cindex features, not implemented
+@node Statistical Distribution Functions
+@subsection Statistical Distribution Functions
 
-These functions are not yet implemented and thus not yet documented,
-since it's a hassle.
+PSPP can calculate several functions of standard statistical
+distributions.  These functions are named systematically based on the
+function and the distribution.  The table below describes the
+statistical distribution functions in general:
 
-@findex CDF.xxx
-@findex CDFNORM
-@findex IDF.xxx
-@findex NCDF.xxx
-@findex PROBIT
-@findex RV.xxx
+@table @asis
+@item PDF.@var{dist} (@var{x}[, @var{param}@dots{}])
+Probability density function for @var{dist}.  The domain of @var{x}
+depends on @var{dist}.  For continuous distributions, the result is
+the density of the probability function at @var{x}, and the range is
+nonnegative real numbers.  For discrete distributions, the result is
+the probability of @var{x}.
 
-@itemize @bullet
-@item
-@code{CDF.xxx}
-@item
-@code{CDFNORM}
-@item
-@code{IDF.xxx}
-@item
-@code{NCDF.xxx}
-@item
-@code{PROBIT}
-@item
-@code{RV.xxx}
-@end itemize
+@item CDF.@var{dist} (@var{x}[, @var{param}@dots{}])
+Cumulative distribution function for @var{dist}, that is, the
+probability that a random variate drawn from the distribution is less
+than @var{x}.  The domain of @var{x} depends @var{dist}.  The result is
+a probability.
 
-@node Order of Operations,  , Functions, Expressions
+@item SIG.@var{dist} (@var{x}[, @var{param}@dots{})
+Tail probability function for @var{dist}, that is, the probability
+that a random variate drawn from the distribution is greater than
+@var{x}.  The domain of @var{x} depends @var{dist}.  The result is a
+probability.  Only a few distributions include an SIG function.
+
+@item IDF.@var{dist} (@var{p}[, @var{param}@dots{}])
+Inverse distribution function for @var{dist}, the value of @var{x} for
+which the CDF would yield @var{p}.  The value of @var{p} is a
+probability.  The range depends on @var{dist} and is identical to the
+domain for the corresponding CDF.
+
+@item RV.@var{dist} ([@var{param}@dots{}])
+Random variate function for @var{dist}.  The range depends on the
+distribution.
+
+@item NPDF.@var{dist} (@var{x}[, @var{param}@dots{}])
+Noncentral probability density function.  The result is the density of
+the given noncentral distribution at @var{x}.  The domain of @var{x}
+depends on @var{dist}.  The range is nonnegative real numbers.  Only a
+few distributions include an NPDF function.
+
+@item NCDF.@var{dist} (@var{x}[, @var{param}@dots{}])
+Noncentral cumulative distribution function for @var{dist}, that is,
+the probability that a random variate drawn from the given noncentral
+distribution is less than @var{x}.  The domain of @var{x} depends
+@var{dist}.  The result is a probability.  Only a few distributions
+include an NCDF function.
+@end table
+
+The individual distributions are described individually below.
+
+@menu
+* Continuous Distributions::    
+* Discrete Distributions::      
+@end menu
+
+@node Continuous Distributions
+@subsubsection Continuous Distributions
+
+The following continuous distributions are available:
+
+@deftypefn {Function} {} PDF.BETA (@var{x}
+@deftypefnx {Function} {} CDF.BETA (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.BETA (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.BETA (@var{a}, @var{b})
+@deftypefnx {Function} {} NPDF.BETA (@var{x}, @var{a}, @var{b}, @var{lambda})
+@deftypefnx {Function} {} NCDF.BETA (@var{x}, @var{a}, @var{b}, @var{lambda})
+Beta distribution with shape parameters @var{a} and @var{b}.  The
+noncentral distribution takes an additional parameter @var{lambda}.
+Constraints: @var{a} > 0, @var{b} > 0, @var{lambda} >= 0, 0 <= @var{x}
+<= 1, 0 <= @var{p} <= 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.BVNOR (@var{x0}, @var{x1}, @var{rho})
+@deftypefnx {Function} {} CDF.VBNOR (@var{x0}, @var{x1}, @var{rho})
+Bivariate normal distribution of two standard normal variables with
+correlation coefficient @var{rho}.  Two variates @var{x0} and @var{x1}
+must be provided.  Constraints: 0 <= @var{rho} <= 1, 0 <= @var{p} <= 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.CAUCHY (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.CAUCHY (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.CAUCHY (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.CAUCHY (@var{a}, @var{b})
+Cauchy distribution with location parameter @var{a} and scale
+parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.CHISQ (@var{x}, @var{df})
+@deftypefnx {Function} {} CDF.CHISQ (@var{x}, @var{df})
+@deftypefnx {Function} {} SIG.CHISQ (@var{x}, @var{df})
+@deftypefnx {Function} {} IDF.CHISQ (@var{p}, @var{df})
+@deftypefnx {Function} {} RV.CHISQ (@var{df})
+@deftypefnx {Function} {} NPDF.CHISQ (@var{x}, @var{df}, @var{lambda})
+@deftypefnx {Function} {} NCDF.CHISQ (@var{x}, @var{df}, @var{lambda})
+Chi-squared distribution with @var{df} degrees of freedom.  The
+noncentral distribution takes an additional parameter @var{lambda}.
+Constraints: @var{df} > 0, @var{lambda} > 0, @var{x} >= 0, 0 <=
+@var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.EXP (@var{x}, @var{a})
+@deftypefnx {Function} {} CDF.EXP (@var{x}, @var{a})
+@deftypefnx {Function} {} IDF.EXP (@var{p}, @var{a})
+@deftypefnx {Function} {} RV.EXP (@var{a})
+Exponential distribution with scale parameter @var{a}.  The inverse of
+@var{a} represents the rate of decay.  Constraints: @var{a} > 0,
+@var{x} >= 0, 0 <= @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.XPOWER (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.XPOWER (@var{a}, @var{b})
+Exponential power distribution with positive scale parameter @var{a}
+and nonnegative power parameter @var{b}.  Constraints: @var{a} > 0,
+@var{b} >= 0, @var{x} >= 0, 0 <= @var{p} <= 1.  This distribution is a
+PSPP extension.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.F (@var{x}, @var{df1}, @var{df2})
+@deftypefnx {Function} {} CDF.F (@var{x}, @var{df1}, @var{df2})
+@deftypefnx {Function} {} SIG.F (@var{x}, @var{df1}, @var{df2})
+@deftypefnx {Function} {} IDF.F (@var{p}, @var{df1}, @var{df2})
+@deftypefnx {Function} {} RV.F (@var{df1}, @var{df2})
+@deftypefnx {Function} {} NPDF.F (@var{x}, @var{df1}, @var{df2}, @var{lambda})
+@deftypefnx {Function} {} NCDF.F (@var{x}, @var{df1}, @var{df2}, @var{lambda})
+F-distribution of two chi-squared deviates with @var{df1} and
+@var{df2} degrees of freedom.  The noncentral distribution takes an
+additional parameter @var{lambda}.  Constraints: @var{df1} > 0,
+@var{df2} > 0, @var{lambda} >= 0, @var{x} >= 0, 0 <= @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.GAMMA (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.GAMMA (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.GAMMA (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.GAMMA (@var{a}, @var{b})
+Gamma distribution with shape parameter @var{a} and scale parameter
+@var{b}.  Constraints: @var{a} > 0, @var{b} > 0, @var{x} >= 0, 0 <=
+@var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.HALFNRM (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.HALFNRM (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.HALFNRM (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.HALFNRM (@var{a}, @var{b})
+Half-normal distribution with location parameter @var{a} and shape
+parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.IGAUSS (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.IGAUSS (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.IGAUSS (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.IGAUSS (@var{a}, @var{b})
+Inverse Gaussian distribution with parameters @var{a} and @var{b}.
+Constraints: @var{a} > 0, @var{b} > 0, @var{x} > 0, 0 <= @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.LANDAU (@var{x})
+@deftypefnx {Function} {} RV.LANDAU ()
+Landau distribution.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.LAPLACE (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.LAPLACE (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.LAPLACE (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.LAPLACE (@var{a}, @var{b})
+Laplace distribution with location parameter @var{a} and scale
+parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} RV.LEVY (@var{c}, @var{alpha})
+Levy symmetric alpha-stable distribution with scale @var{c} and
+exponent @var{alpha}.  Constraints: 0 < @var{alpha} <= 2.
+@end deftypefn
+
+@deftypefn {Function} {} RV.LVSKEW (@var{c}, @var{alpha}, @var{beta})
+Levy skew alpha-stable distribution with scale @var{c}, exponent
+@var{alpha}, and skewness parameter @var{beta}.  Constraints: 0 <
+@var{alpha} <= 2, -1 <= @var{beta} <= 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.LOGISTIC (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.LOGISTIC (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.LOGISTIC (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.LOGISTIC (@var{a}, @var{b})
+Logistic distribution with location parameter @var{a} and scale
+parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.LNORMAL (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.LNORMAL (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.LNORMAL (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.LNORMAL (@var{a}, @var{b})
+Lognormal distribution with parameters @var{a} and @var{b}.
+Constraints: @var{a} > 0, @var{b} > 0, @var{x} >= 0, 0 <= @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.NORMAL (@var{x}, @var{mu}, @var{sigma})
+@deftypefnx {Function} {} CDF.NORMAL (@var{x}, @var{mu}, @var{sigma})
+@deftypefnx {Function} {} IDF.NORMAL (@var{p}, @var{mu}, @var{sigma})
+@deftypefnx {Function} {} RV.NORMAL (@var{mu}, @var{sigma})
+Normal distribution with mean @var{mu} and standard deviation
+@var{sigma}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.  Three
+additional functions are available as shorthand:
+
+@deftypefn {Function} {} CDFNORM (@var{x})
+Equivalent to CDF.NORMAL(@var{x}, 0, 1).
+@end deftypefn
+
+@deftypefn {Function} {} PROBIT (@var{p})
+Equivalent to IDF.NORMAL(@var{p}, 0, 1).
+@end deftypefn
+
+@deftypefn {Function} {} NORMAL (@var{sigma})
+Equivalent to RV.NORMAL(0, @var{sigma}).
+@end deftypefn
+@end deftypefn
+
+@deftypefn {Function} {} PDF.NTAIL (@var{x}, @var{a}, @var{sigma})
+@deftypefnx {Function} {} RV.NTAIL (@var{a}, @var{sigma})
+Normal tail distribution with lower limit @var{a} and standard
+deviation @var{sigma}.  This distribution is a PSPP extension.
+Constraints: @var{a} > 0, @var{x} > @var{a}, 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.PARETO (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.PARETO (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.PARETO (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.PARETO (@var{a}, @var{b})
+Pareto distribution with threshold parameter @var{a} and shape
+parameter @var{b}.  Constraints: @var{a} > 0, @var{b} > 0, @var{x} >=
+@var{a}, 0 <= @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.RAYLEIGH (@var{x}, @var{sigma})
+@deftypefnx {Function} {} CDF.RAYLEIGH (@var{x}, @var{sigma})
+@deftypefnx {Function} {} IDF.RAYLEIGH (@var{p}, @var{sigma})
+@deftypefnx {Function} {} RV.RAYLEIGH (@var{sigma})
+Rayleigh distribution with scale parameter @var{sigma}.  This
+distribution is a PSPP extension.  Constraints: @var{sigma} > 0,
+@var{x} > 0.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.RTAIL (@var{x}, @var{a}, @var{sigma})
+@deftypefnx {Function} {} RV.RTAIL (@var{a}, @var{sigma})
+Rayleigh tail distribution with lower limit @var{a} and scale
+parameter @var{sigma}.  This distribution is a PSPP extension.
+Constraints: @var{a} > 0, @var{sigma} > 0, @var{x} > @var{a}.
+@end deftypefn
+
+@deftypefn {Function} {} CDF.SMOD (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.SMOD (@var{p}, @var{a}, @var{b})
+Studentized maximum modulus distribution with parameters @var{a} and
+@var{b}.  Constraints: @var{a} > 0, @var{b} > 0, @var{x} > 0, 0 <=
+@var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} CDF.SRANGE (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.SRANGE (@var{p}, @var{a}, @var{b})
+Studentized range distribution with parameters @var{a} and @var{b}.
+Constraints:  @var{a} >= 1, @var{b} >= 1, @var{x} > 0, 0 <= @var{p} <
+1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.T (@var{x}, @var{df})
+@deftypefnx {Function} {} CDF.T (@var{x}, @var{df})
+@deftypefnx {Function} {} IDF.T (@var{p}, @var{df})
+@deftypefnx {Function} {} RV.T (@var{df})
+@deftypefnx {Function} {} NPDF.T (@var{x}, @var{df}, @var{lambda})
+@deftypefnx {Function} {} NCDF.T (@var{x}, @var{df}, @var{lambda})
+T-distribution with @var{df} degrees of freedom.  The noncentral
+distribution takes an additional parameter @var{lambda}.  Constraints:
+@var{df} > 0, 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.T1G (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.T1G (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.T1G (@var{p}, @var{a}, @var{b})
+Type-1 Gumbel distribution with parameters @var{a} and @var{b}.  This
+distribution is a PSPP extension.  Constraints: 0 < @var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.T2G (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.T2G (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.T2G (@var{p}, @var{a}, @var{b})
+Type-2 Gumbel distribution with parameters @var{a} and @var{b}.  This
+distribution is a PSPP extension.  Constraints: @var{x} > 0, 0 <
+@var{p} < 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.UNIFORM (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.UNIFORM (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.UNIFORM (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.UNIFORM (@var{a}, @var{b})
+Uniform distribution with parameters @var{a} and @var{b}.
+Constraints: @var{a} <= @var{x} <= @var{b}, 0 <= @var{p} <= 1.  An
+additional function is available as shorthand:
+
+@deftypefn {Function} {} UNIFORM (@var{b})
+Equivalent to RV.UNIFORM(0, @var{b}).
+@end deftypefn
+@end deftypefn
+
+@deftypefn {Function} {} PDF.WEIBULL (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} CDF.WEIBULL (@var{x}, @var{a}, @var{b})
+@deftypefnx {Function} {} IDF.WEIBULL (@var{p}, @var{a}, @var{b})
+@deftypefnx {Function} {} RV.WEIBULL (@var{a}, @var{b})
+Weibull distribution with parameters @var{a} and @var{b}.
+Constraints: @var{a} > 0, @var{b} > 0, @var{x} >= 0, 0 <= @var{p} < 1.
+@end deftypefn
+
+@node Discrete Distributions
+@subsubsection Discrete Distributions
+
+The following discrete distributions are available:
+
+@deftypefn {Function} {} PDF.BERNOULLI (@var{x}
+@deftypefnx {Function} {} CDF.BERNOULLI (@var{x}, @var{p})
+@deftypefnx {Function} {} RV.BERNOULLI (@var{p})
+Bernoulli distribution with probability of success @var{p}.
+Constraints: @var{x} = 0 or 1, 0 <= @var{p} <= 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.BINOMIAL (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} CDF.BINOMIAL (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} RV.BINOMIAL (@var{n}, @var{p})
+Binomial distribution with @var{n} trials and probability of success
+@var{p}.  Constraints: integer @var{n} > 0, 0 <= @var{p} <= 1, integer
+@var{x} <= @var{n}.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.GEOM (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} CDF.GEOM (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} RV.GEOM (@var{n}, @var{p})
+Geometric distribution with probability of success @var{p}.
+Constraints: 0 <= @var{p} <= 1, integer @var{x} > 0.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.HYPER (@var{x}, @var{a}, @var{b}, @var{c})
+@deftypefnx {Function} {} CDF.HYPER (@var{x}, @var{a}, @var{b}, @var{c})
+@deftypefnx {Function} {} RV.HYPER (@var{a}, @var{b}, @var{c})
+Hypergeometric distribution when @var{b} objects out of @var{a} are
+drawn and @var{c} of the available objects are distinctive.
+Constraints: integer @var{a} > 0, integer @var{b} <= @var{a}, integer
+@var{c} <= @var{a}, integer @var{x} >= 0.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.LOG (@var{x}, @var{p})
+@deftypefnx {Function} {} RV.LOG (@var{p})
+Logarithmic distribution with probability parameter @var{p}.
+Constraints: 0 <= @var{p} < 1, @var{x} >= 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.NEGBIN (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} CDF.NEGBIN (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} RV.NEGBIN (@var{n}, @var{p})
+Negative binomial distribution with number of successes paramter
+@var{n} and probability of success parameter @var{p}.  Constraints:
+integer @var{n} >= 0, 0 < @var{p} <= 1, integer @var{x} >= 1.
+@end deftypefn
+
+@deftypefn {Function} {} PDF.POISSON (@var{x}, @var{mu})
+@deftypefnx {Function} {} CDF.POISSON (@var{x}, @var{mu})
+@deftypefnx {Function} {} RV.POISSON (@var{mu})
+Poisson distribution with mean @var{mu}.  Constraints: @var{mu} > 0,
+integer @var{x} >= 0.
+@end deftypefn
+
+@node Order of Operations
 @section Operator Precedence
 @cindex operator precedence
 @cindex precedence, operator
@@ -1198,11 +1437,10 @@ since it's a hassle.
 @cindex operations, order of
 
 The following table describes operator precedence.  Smaller-numbered
-levels in the table have higher precedence.  Within a level, operations
-are performed from left to right, except for level 2 (exponentiation),
-where operations are performed from right to left.  If an operator
-appears in the table in two places (@code{-}), the first occurrence is
-unary, the second is binary.
+levels in the table have higher precedence.  Within a level,
+operations are always performed from left to right.  The first
+occurrence of @samp{-} represents unary negation, the second binary
+subtraction.
 
 @enumerate
 @item

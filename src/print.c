@@ -27,7 +27,7 @@
 #include "command.h"
 #include "dfm-write.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "file-handle.h"
 #include "lexer.h"
 #include "misc.h"
@@ -599,7 +599,7 @@ fixed_parse_compatible (void)
 
   dividend = (fx.lc - fx.fc + 1) / fx.nv;
   fx.spec.u.v.f.w = dividend;
-  if (!check_output_specifier (&fx.spec.u.v.f))
+  if (!check_output_specifier (&fx.spec.u.v.f, 1))
     return 0;
   if ((type == ALPHA) ^ (formats[fx.spec.u.v.f.type].cat & FCAT_STRING))
     {
@@ -748,8 +748,8 @@ fixed_parse_fortran (void)
 	}
       else if (lex_match ('/'))
 	fl->f.type = FMT_NEWREC;
-      else if (!parse_format_specifier (&fl->f, 1)
-	       || !check_output_specifier (&fl->f))
+      else if (!parse_format_specifier (&fl->f, FMTP_ALLOW_XT)
+	       || !check_output_specifier (&fl->f, 1))
 	goto fail;
 
       lex_match (',');
@@ -1041,7 +1041,7 @@ cmd_print_space (void)
 
   if (token != '.')
     {
-      e = expr_parse (EXPR_NUMERIC);
+      e = expr_parse (default_dict, EXPR_NUMBER);
       if (token != '.')
 	{
 	  expr_free (e);
@@ -1082,25 +1082,18 @@ print_space_trns_proc (struct trns_header * trns, struct ccase * c,
                        int case_num UNUSED)
 {
   struct print_space_trns *t = (struct print_space_trns *) trns;
-  int n;
+  double n = 1.;
 
   if (t->e)
     {
-      union value v;
-
-      expr_evaluate (t->e, c, case_num, &v);
-      n = v.f;
-      if (n < 0)
-	{
-	  msg (SW, _("The expression on PRINT SPACE evaluated to %d.  It's "
-		     "not possible to PRINT SPACE a negative number of "
-		     "lines."),
-	       n);
-	  n = 1;
-	}
+      n = expr_evaluate_num (t->e, c, case_num);
+      if (n == SYSMIS) 
+        msg (SW, _("The expression on PRINT SPACE evaluated to the "
+                   "system-missing value."));
+      else if (n < 0)
+        msg (SW, _("The expression on PRINT SPACE evaluated to %g."), n);
+      n = 1.;
     }
-  else
-    n = 1;
 
   if (t->writer == NULL)
     while (n--)

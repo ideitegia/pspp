@@ -373,7 +373,7 @@ parse_col_spec (struct col_spec *c, const char *def_name)
   spec.type = c->fmt;
   spec.w = c->nc;
   spec.d = 0;
-  return check_input_specifier (&spec);
+  return check_input_specifier (&spec, 1);
 }
 
 /* RECORD TYPE. */
@@ -636,7 +636,7 @@ file_type_source_read (struct case_source *source,
   format.d = 0;
   while (!dfm_eof (fty->reader))
     {
-      struct len_string line;
+      struct fixed_string line;
       struct record_type *iter;
       union value v;
       int i;

@@ -22,7 +22,7 @@
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "lexer.h"
 #include "str.h"
 #include "var.h"
@@ -44,7 +44,7 @@ cmd_select_if (void)
   struct expression *e;
   struct select_if_trns *t;
 
-  e = expr_parse (EXPR_BOOLEAN);
+  e = expr_parse (default_dict, EXPR_BOOLEAN);
   if (!e)
     return CMD_FAILURE;
 
@@ -66,11 +66,11 @@ cmd_select_if (void)
 
 /* Performs the SELECT IF transformation T on case C. */
 static int
-select_if_proc (struct trns_header * t, struct ccase * c,
+select_if_proc (struct trns_header *t_, struct ccase *c,
                 int case_num)
 {
-  return (expr_evaluate (((struct select_if_trns *) t)->e, c,
-                         case_num, NULL) == 1.0) - 2;
+  struct select_if_trns *t = (struct select_if_trns *) t_;
+  return expr_evaluate_num (t->e, c, case_num) == 1.0 ? -1 : -2;
 }
 
 /* Frees SELECT IF transformation T. */
@@ -121,7 +121,7 @@ cmd_process_if (void)
 {
   struct expression *e;
 
-  e = expr_parse (EXPR_BOOLEAN);
+  e = expr_parse (default_dict, EXPR_BOOLEAN);
   if (!e)
     return CMD_FAILURE;
 

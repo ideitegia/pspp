@@ -2,36 +2,16 @@
 
 # PSPP
 
+include $(top_srcdir)/src/Make.build
+
+SUBDIRS = expressions
+
 # If you change this, you must also change the corresponding line in 
 # config/Makefile.am
 pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 bin_PROGRAMS = pspp
 
-
-
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
--I$(top_srcdir)/intl 
-
-AM_CFLAGS=
-
-if cc_is_gcc
-AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
--Wpointer-arith -Wno-sign-compare -Wmissing-prototypes \
--ansi 
-endif
-
-if unix
-AM_CFLAGS+=-Dunix
-endif
-
-if msdos
-AM_CFLAGS+=-D__MSDOS__
-endif
-
-
-
-CLEANFILES =  $(q_sources_c) version.c
 DISTCLEANFILES = foo 
 MAINTAINERCLEANFILES = Makefile.in
 EXTRA_DIST = $(q_sources_q) q2c.c
@@ -62,14 +42,13 @@ endif
 pspp_SOURCES = $(q_sources_c) $(chart_sources) \
 aggregate.c algorithm.c algorithm.h	\
 alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
-case.c case.h casefile.c casefile.h chart.c  chart.h  \
-cmdline.c cmdline.h command.c command.def		\
+calendar.c calendar.h case.c case.h casefile.c casefile.h chart.c	\
+chart.h cmdline.c cmdline.h command.c command.def \
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
 devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h	\
 dictionary.c dictionary.h do-if.c do-ifP.h error.c \
-error.h expr-evl.c expr-opt.c expr-prs.c expr.h exprP.h expr.def        \
-factor_stats.c factor_stats.h file-handle.h	\
+error.h factor_stats.c factor_stats.h file-handle.h	\
 file-type.c filename.c filename.h flip.c font.h format.c format.def	\
 format.h formats.c get.c getline.c getline.h glob.c glob.h		\
 groff-font.c group.c group.h group_proc.h \
@@ -91,8 +70,10 @@ var-labs.c var.h vars-atr.c vars-prs.c vector.c version.h	\
 vfm.c vfm.h vfmP.h weight.c 
 
 
-pspp_LDADD = ../lib/julcal/libjulcal.a		\
+pspp_LDADD = \
 	../lib/misc/libmisc.a			\
+	expressions/libexpressions.a		\
+	-lplot \
 	@LIBINTL@
 
 nodist_pspp_SOURCES = version.c

@@ -1,4 +1,4 @@
-/* Let's tell EMACS what language this is: -*- C -*- */
+/* -*- C -*- */
 
 /* Used by separable libraries to enable PSPP-specific features. */
 #define PSPP 1
@@ -23,13 +23,12 @@
 /* Define these if DEBUGGING is off and you want to make certain
    additional optimizations. */
 #if !DEBUGGING
-/* #define PRODUCTION 1 */		/* disable extra function calls */
 /* #define NDEBUG 1 */			/* disable assert() sanity checks */
 #endif
 
 /* Compilers. */
 
-/* Make sure to use the proper keywords. */
+/* Use proper keywords. */
 #if __GNUC__ > 1 && !defined (inline)
 #define inline __inline__
 #endif
@@ -47,51 +46,20 @@
 #define NO_RETURN ATTRIBUTE ((noreturn))
 #define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (printf, FMT, FIRST)))
 #define SCANF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (scanf, FMT, FIRST)))
-
-/* CPUs. */
 
-#if SIZEOF_DOUBLE == 8
-#define second_lowest_flt64 second_lowest_value
+/* This attribute was added late in the GCC 2.x cycle. */
+#if __GNUC__ > 2
+#define MALLOC_LIKE ATTRIBUTE ((malloc))
 #else
-#error Must define second_lowest_flt64 for your architecture.
-#endif
-
-/* Figure out which integer type on this system is a signed 32-bit
-   integer. */
-#if SIZEOF_SHORT==4
-  #define int32 short
-#elif SIZEOF_INT==4
-  #define int32 int
-#elif SIZEOF_LONG==4
-  #define int32 long
-#else
-  #error Which one of your basic types is 32-bit signed integer?
-#endif
-
-#if SIZEOF_FLOAT==8
-  #define flt64 float
-  #define FLT64_MAX FLT_MAX
-#elif SIZEOF_DOUBLE==8
-  #define flt64 double
-  #define FLT64_MAX DBL_MAX
-#elif SIZEOF_LONG_DOUBLE==8
-  #define flt64 long double
-  #define FLT64_MAX LDBL_MAX
-#else
-  #error Which one of your basic types is 64-bit floating point?
-  #define flt64 double
-  #define FLT64_MAX DBL_MAX
+#define MALLOC_LIKE
 #endif
 
-/* Environments. */
-
 /* Internationalization. */
 #include <libintl.h>
 
 #if !ENABLE_NLS
-/* If we don't do this then gettext() still monkeys with the string,
-   which causes gcc not to do its checking on printf() format
-   types. */
+/* If we don't do this then gettext() still monkeys with the
+   string, keeping gcc from checking printf() format types. */
 #undef gettext
 #define gettext(STRING) STRING
 #endif
@@ -101,17 +69,12 @@
 
 /* Filesystems. */
 
-/* Directory separator character for this OS, if applicable. */
+/* Directory separator and path delimiter for this OS. */
 #ifndef __MSDOS__
 #define DIR_SEPARATOR '/'
-#else
-#define DIR_SEPARATOR '\\'
-#endif
-
-/* Path delimiter character. */
-#ifndef __MSDOS__
 #define PATH_DELIMITER ':'
 #else
+#define DIR_SEPARATOR '\\'
 #define PATH_DELIMITER ';'
 #endif
 
@@ -129,15 +92,6 @@
    file. */
 #define MAX_HISTORY 500
 
-/* Output drivers. */
-
-/* Define to exclude the HTML output driver. */
-/* #define NO_HTML 1 */
-
-/* Define to exclude the PostScript and Encapsulated PostScript
-   driver. */
-/* #define NO_POSTSCRIPT 1 */
-
 /* Non ansi compilers may set this */
 #ifndef P_tmpdir
 #define P_tmpdir "/tmp"

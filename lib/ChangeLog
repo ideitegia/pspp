@@ -1,3 +1,10 @@
+Mon Feb 28 23:20:05 2005  Ben Pfaff  <blp@gnu.org>
+
+	* julcal/: Removed directory.
+
+	* Makefile.am: (SUBDIRS) Removed julcal.
+	(DIST_SUBDIRS) Removed.
+
 Sun Jan  2 21:31:48 2000  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: (SUBDIRS) Only include gmp if libgmp not installed

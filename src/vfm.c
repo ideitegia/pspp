@@ -33,7 +33,7 @@
 #include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "misc.h"
 #include "settings.h"
 #include "som.h"
@@ -339,7 +339,7 @@ filter_case (const struct ccase *c, int case_idx)
 
   /* PROCESS IF. */
   if (process_if_expr != NULL
-      && expr_evaluate (process_if_expr, c, case_idx, NULL) != 1.0)
+      && expr_evaluate_num (process_if_expr, c, case_idx) != 1.0)
     return 1;
 
   return 0;
@@ -622,7 +622,7 @@ const struct case_sink_class null_sink_class =
 struct ccase *
 lagged_case (int n_before)
 {
-  assert (n_before <= n_lag);
+  assert (n_before >= 1 && n_before <= n_lag);
   if (n_before <= lag_count)
     {
       int index = lag_head - n_before;

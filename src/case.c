@@ -152,6 +152,27 @@ case_destroy (struct ccase *c)
 }
 #endif /* GLOBAL_DEBUGGING */
 
+/* Resizes case C from OLD_CNT to NEW_CNT values. */
+void
+case_resize (struct ccase *c, size_t old_cnt, size_t new_cnt) 
+{
+  struct ccase new;
+
+  case_create (&new, new_cnt);
+  case_copy (&new, 0, c, 0, old_cnt < new_cnt ? old_cnt : new_cnt);
+  case_swap (&new, c);
+  case_destroy (&new);
+}
+
+/* Swaps cases A and B. */
+void
+case_swap (struct ccase *a, struct ccase *b) 
+{
+  struct case_data *t = a->case_data;
+  a->case_data = b->case_data;
+  b->case_data = t;
+}
+
 /* Attempts to create C as a new case that holds VALUE_CNT
    values.  Returns nonzero if successful, zero if memory
    allocation failed. */

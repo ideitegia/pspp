@@ -16,8 +16,7 @@ sent by email to
 @code{<bug-gnu-pspp@@gnu.org>}.
 @end iftex
 
-@xref{Not Implemented}, and @xref{Functions Not Implemented}, for
-lists of bugs due to features not implemented.  For known bugs in
-individual language features, see the documentation for that feature.
+For known bugs in individual language features, see the documentation
+for that feature.
 
 @setfilename ignored

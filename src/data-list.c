@@ -535,7 +535,7 @@ fixed_parse_compatible (struct fixed_parsing_state *fx,
       input.type = FMT_F;
       input.d = 0;
     }
-  if (!check_input_specifier (&input))
+  if (!check_input_specifier (&input, 1))
     return 0;
 
   /* Start column for next specification. */
@@ -731,8 +731,8 @@ fixed_parse_fortran_internal (struct fixed_parsing_state *fx,
 	}
       else if (lex_match ('/'))
 	new->f.type = FMT_NEWREC;
-      else if (!parse_format_specifier (&new->f, 1)
-	       || !check_input_specifier (&new->f))
+      else if (!parse_format_specifier (&new->f, FMTP_ALLOW_XT)
+	       || !check_input_specifier (&new->f, 1))
 	goto fail;
 
       lex_match (',');
@@ -845,7 +845,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
       if (lex_match ('('))
 	{
 	  if (!parse_format_specifier (&input, 0)
-              || !check_input_specifier (&input)
+              || !check_input_specifier (&input, 1)
               || !lex_force_match (')')) 
             {
               for (i = 0; i < name_cnt; i++)
@@ -956,10 +956,10 @@ dump_free_table (const struct data_list_pgm *dls,
    a 1-based column number indicating the beginning of the field
    on success. */
 static int
-cut_field (const struct data_list_pgm *dls, struct len_string *field,
+cut_field (const struct data_list_pgm *dls, struct fixed_string *field,
            int *end_blank)
 {
-  struct len_string line;
+  struct fixed_string line;
   char *cp;
   size_t column_start;
 
@@ -1094,7 +1094,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
     return -2;
   for (i = 1; i <= dls->rec_cnt; i++)
     {
-      struct len_string line;
+      struct fixed_string line;
       
       if (dfm_eof (dls->reader))
 	{
@@ -1138,7 +1138,7 @@ read_from_data_list_free (const struct data_list_pgm *dls,
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
-      struct len_string field;
+      struct fixed_string field;
       int column;
       
       /* Cut out a field and read in a new record if necessary. */
@@ -1189,7 +1189,7 @@ read_from_data_list_list (const struct data_list_pgm *dls,
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
-      struct len_string field;
+      struct fixed_string field;
       int column;
 
       /* Cut out a field and check for end-of-line. */
@@ -1911,7 +1911,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
 {
   struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
     
-  struct len_string line;       /* Current record. */
+  struct fixed_string line;       /* Current record. */
 
   int starts_beg;	/* Starting column. */
   int starts_end;	/* Ending column. */

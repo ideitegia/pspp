@@ -24,7 +24,7 @@
 #include "alloc.h"
 #include "command.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "lexer.h"
 #include "str.h"
 #include "var.h"
@@ -244,7 +244,7 @@ parse_do_if (void)
   struct do_if_trns *t;
   struct expression *e;
 
-  e = expr_parse (EXPR_BOOLEAN);
+  e = expr_parse (default_dict, EXPR_BOOLEAN);
   if (!e)
     return NULL;
   if (token != '.')
@@ -276,15 +276,15 @@ do_if_trns_proc (struct trns_header * trns, struct ccase * c,
                  int case_num UNUSED)
 {
   struct do_if_trns *t = (struct do_if_trns *) trns;
-  union value bool;
+  double boolean;
 
-  expr_evaluate (t->cond, c, case_num, &bool);
-  if (bool.f == 1.0)
+  boolean = expr_evaluate_num (t->cond, c, case_num);
+  if (boolean == 1.0)
     {
       debug_printf ((_("DO IF %d: true\n"), t->h.index));
       return -1;
     }
-  else if (bool.f == 0.0)
+  else if (boolean == 0.0)
     {
       debug_printf ((_("DO IF %d: false\n"), t->h.index));
       return t->false_jump;

@@ -12,7 +12,14 @@ AC_PROG_CC
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 
-
+AC_PATH_PROG([PERL], perl, no)
+AC_SUBST([PERL])dnl
+if test "$PERL" = no; then
+  AC_MSG_ERROR([perl is not found])
+fi
+$PERL -e 'require 5.005_03;' || {
+   AC_MSG_ERROR([Perl 5.005_03 or better is required])
+}
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT
@@ -87,6 +94,7 @@ AC_CHECK_HEADERS([limits.h memory.h sys/stat.h sys/time.h sys/types.h \
 AC_HEADER_STAT
 AC_HEADER_STDC
 AC_HEADER_TIME
+AC_HEADER_STDBOOL
 
 AC_C_CONST
 AC_C_INLINE
@@ -140,9 +148,11 @@ if test x"$enable_debug" = x"yes"  ; then
 fi
 
 AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile 
-		 lib/Makefile lib/julcal/Makefile lib/misc/Makefile 
-		 doc/Makefile src/Makefile 
-		 config/Makefile tests/Makefile])
+		 lib/Makefile lib/misc/Makefile 
+		 doc/Makefile 
+		 src/Makefile src/expressions/Makefile
+		 config/Makefile
+		 tests/Makefile])
 AC_CONFIG_COMMANDS([pref.h],[
 	   # Copy pref.h from pref.h.orig if prudent
 	   if test ! -f pref.h; then

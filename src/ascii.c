@@ -165,9 +165,9 @@ struct ascii_driver_ext
     int bottom_margin;		/* Bottom margin in lines. */
     int paginate;		/* 1=insert formfeeds. */
     int tab_width;		/* Width of a tab; 0 not to use tabs. */
-    struct len_string ops[OPS_COUNT]; /* Basic output strings. */
-    struct len_string box[LNS_COUNT]; /* Line & box drawing characters. */
-    struct len_string fonts[FSTY_COUNT]; /* Font styles; NULL=overstrike. */
+    struct fixed_string ops[OPS_COUNT]; /* Basic output strings. */
+    struct fixed_string box[LNS_COUNT]; /* Line & box drawing characters. */
+    struct fixed_string fonts[FSTY_COUNT]; /* Font styles; NULL=overstrike. */
     int overstrike_style;	/* OVS_SINGLE or OVS_LINE. */
     int carriage_return_style;	/* Carriage return style. */
     int squeeze_blank_lines;    /* 1=squeeze multiple blank lines into one. */
@@ -599,7 +599,7 @@ ascii_option (struct outp_driver *this, const char *key,
       break;
     case string_arg:
       {
-	struct len_string *s;
+	struct fixed_string *s;
 	switch (subcat)
 	  {
 	  case 0:
@@ -670,7 +670,7 @@ int
 postopen (struct file_ext *f)
 {
   struct ascii_driver_ext *x = f->param;
-  struct len_string *s = &x->ops[OPS_INIT];
+  struct fixed_string *s = &x->ops[OPS_INIT];
 
   if (!ls_empty_p (s) && fwrite (ls_c_str (s), ls_length (s), 1, f->file) < 1)
     {
@@ -685,7 +685,7 @@ int
 preclose (struct file_ext *f)
 {
   struct ascii_driver_ext *x = f->param;
-  struct len_string *d = &x->ops[OPS_DONE];
+  struct fixed_string *d = &x->ops[OPS_DONE];
 
   if (!ls_empty_p (d) && fwrite (ls_c_str (d), ls_length (d), 1, f->file) < 1)
     {
@@ -1209,7 +1209,7 @@ output_shorts (struct outp_driver *this,
     {
       if (*bp & 0x800)
 	{
-	  struct len_string *box = &ext->box[*bp & 0xff];
+	  struct fixed_string *box = &ext->box[*bp & 0xff];
 	  size_t len = ls_length (box);
 
 	  if (remaining >= len)
@@ -1228,7 +1228,7 @@ output_shorts (struct outp_driver *this,
 	}
       else if (*bp & 0x0300)
 	{
-	  struct len_string *on;
+	  struct fixed_string *on;
 	  char buf[5];
 	  int len;
 
@@ -1373,7 +1373,7 @@ output_lines (struct outp_driver *this, int first, int count)
   struct ascii_driver_ext *ext = this->ext;
   int line_num;
 
-  struct len_string *newline = &ext->ops[OPS_NEWLINE];
+  struct fixed_string *newline = &ext->ops[OPS_NEWLINE];
 
   int n_chars;
   int n_passes;
@@ -1421,7 +1421,7 @@ output_lines (struct outp_driver *this, int first, int count)
 	  /* Turn off old font. */
 	  if (attr != (OUTP_F_R << 8))
 	    {
-	      struct len_string *off;
+	      struct fixed_string *off;
 
 	      switch (attr)
 		{
@@ -1446,7 +1446,7 @@ output_lines (struct outp_driver *this, int first, int count)
 	  attr = (*bp & 0x0300);
 	  if (attr != (OUTP_F_R << 8))
 	    {
-	      struct len_string *on;
+	      struct fixed_string *on;
 
 	      switch (attr)
 		{

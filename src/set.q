@@ -20,7 +20,7 @@
 /*
    Categories of SET subcommands:
 
-   data input: BLANKS, DECIMAL, FORMAT.
+   data input: BLANKS, DECIMAL, FORMAT, EPOCH.
    
    program input: ENDCMD, NULLINE.
    
@@ -93,6 +93,8 @@ static int set_results;
 
 static double set_blanks=SYSMIS;
 
+static int set_epoch = -1;
+
 static struct fmt_spec set_format={FMT_F,8,2};
 
 static struct set_cust_currency set_cc[5];
@@ -147,6 +149,7 @@ static unsigned long random_seed (void);
      echo=echo:on/off;
      eject=eject:on/off;
      endcmd=string "x==1" "one character long";
+     epoch=custom;
      errorbreak=errbrk:on/off;
      errors=errors:on/off/terminal/listing/both/none;
      format=custom;
@@ -234,6 +237,13 @@ static int
 aux_stc_custom_disk(struct cmd_set *cmd UNUSED)
 {
   return aux_stc_custom_listing(cmd);
+}
+
+static int
+aux_stc_custom_epoch(struct cmd_set *cmd UNUSED) 
+{
+  msg (MM, _("EPOCH is %d"), get_epoch ());
+  return 0;
 }
 
 static int
@@ -601,7 +611,7 @@ stc_custom_pager (struct cmd_set *cmd UNUSED)
     }
   return 1;
 #else /* USE_INTERNAL_PAGER */
-  if (match_id (OFF))
+  if (lex_match_id ("OFF"))
     return 1;
   msg (SW, "External pagers not supported.");
   return 0;
@@ -629,6 +639,34 @@ stc_custom_blanks (struct cmd_set *cmd UNUSED)
       set_blanks = tokval;
       lex_get ();
     }
+  return 1;
+}
+
+/* Parses the EPOCH subcommand, which controls the epoch used for
+   parsing 2-digit years. */
+static int
+stc_custom_epoch (struct cmd_set *cmd UNUSED) 
+{
+  lex_match ('=');
+  if (lex_match_id ("AUTOMATIC"))
+    set_epoch = -1;
+  else if (lex_integer_p ()) 
+    {
+      int new_epoch = lex_integer ();
+      lex_get ();
+      if (new_epoch < 1500) 
+        {
+          msg (SE, _("EPOCH must be 1500 or later."));
+          return 0;
+        }
+      set_epoch = new_epoch;
+    }
+  else 
+    {
+      lex_error (_("expecting AUTOMATIC or year"));
+      return 0;
+    }
+
   return 1;
 }
 
@@ -1179,6 +1217,21 @@ get_decimal(void)
   return (cmd.dec == STC_DOT ? '.' : ',');
 }
 
+int
+get_epoch (void) 
+{
+  if (set_epoch < 0) 
+    {
+      time_t t = time (0);
+      struct tm *tm = localtime (&t);
+      if (tm != NULL) 
+        set_epoch = (tm->tm_year + 1900) - 69;
+      else
+        set_epoch = 2000 - 69;
+    }
+
+  return set_epoch;
+}
 
 char
 get_grouping(void)

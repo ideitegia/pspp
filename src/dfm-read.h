@@ -29,13 +29,13 @@
 #include <stddef.h>
 
 struct file_handle;
-struct len_string;
+struct fixed_string;
 
 /* Input. */
 struct dfm_reader *dfm_open_reader (struct file_handle *);
 void dfm_close_reader (struct dfm_reader *);
 int dfm_eof (struct dfm_reader *);
-void dfm_get_record (struct dfm_reader *, struct len_string *);
+void dfm_get_record (struct dfm_reader *, struct fixed_string *);
 void dfm_expand_tabs (struct dfm_reader *);
 
 /* Line control. */

@@ -27,6 +27,40 @@
 #pragma option -a-		/* Turn off alignment. */
 #endif
 
+/* Find 32-bit signed integer type. */
+#if SIZEOF_SHORT == 4
+  #define int32 short
+#elif SIZEOF_INT == 4
+  #define int32 int
+#elif SIZEOF_LONG == 4
+  #define int32 long
+#else
+  #error Which one of your basic types is 32-bit signed integer?
+#endif
+
+/* Find 64-bit floating-point type. */
+#if SIZEOF_FLOAT == 8
+  #define flt64 float
+  #define FLT64_MAX FLT_MAX
+#elif SIZEOF_DOUBLE == 8
+  #define flt64 double
+  #define FLT64_MAX DBL_MAX
+#elif SIZEOF_LONG_DOUBLE == 8
+  #define flt64 long double
+  #define FLT64_MAX LDBL_MAX
+#else
+  #error Which one of your basic types is 64-bit floating point?
+  #define flt64 double
+  #define FLT64_MAX DBL_MAX
+#endif
+
+/* Figure out SYSMIS value for flt64. */
+#if SIZEOF_DOUBLE == 8
+#define second_lowest_flt64 second_lowest_value
+#else
+#error Must define second_lowest_flt64 for your architecture.
+#endif
+
 /* Record Type 1: General Information. */
 struct sysfile_header
   {

@@ -26,6 +26,8 @@
 #include "alloc.h"
 #include "command.h"
 #include "getline.h"
+#include "glob.h"
+#include "lexer.h"
 #include "main.h"
 #include "output.h"
 #include "settings.h"
@@ -51,27 +53,16 @@ static int nfile_loc, mfile_loc;
 void
 tmsg (int class, const char *title, const char *format, ...)
 {
-  char buf[1024];
-  
-  /* Format the message into BUF. */
-  {
-    va_list args;
+  struct error e;
+  va_list args;
 
-    va_start (args, format);
-    vsnprintf (buf, 1024, format, args);
-    va_end (args);
-  }
-  
-  /* Output the message. */
-  {
-    struct error e;
+  e.class = class;
+  err_location (&e.where);
+  e.title = title;
 
-    e.class = class;
-    err_location (&e.where);
-    e.title = title;
-    e.text = buf;
-    err_vmsg (&e);
-  }
+  va_start (args, format);
+  err_vmsg (&e, format, args);
+  va_end (args);
 }
 
 /* Writes error message in CLASS, with text FORMAT, formatted with
@@ -79,31 +70,16 @@ tmsg (int class, const char *title, const char *format, ...)
 void
 msg (int class, const char *format, ...)
 {
-  struct string buf;
-  
-  ds_init (&buf, 1024);
+  struct error e;
+  va_list args;
 
-  /* Format the message into BUF. */
-  {
-    va_list args;
+  e.class = class;
+  err_location (&e.where);
+  e.title = NULL;
 
-    va_start (args, format);
-    ds_vprintf (&buf, format, args);
-    va_end (args);
-  }
-  
-  /* Output the message. */
-  {
-    struct error e;
-
-    e.class = class;
-    err_location (&e.where);
-    e.title = NULL;
-    e.text = buf.string;
-    err_vmsg (&e);
-  }
-
-  ds_destroy (&buf);
+  va_start (args, format);
+  err_vmsg (&e, format, args);
+  va_end (args);
 }
 
 /* Terminate due to fatal error in input. */
@@ -239,7 +215,7 @@ static void dump_message (char *errbuf, unsigned indent,
 			  void (*func) (const char *), unsigned width);
 
 void
-err_vmsg (const struct error *e)
+err_vmsg (const struct error *e, const char *format, va_list args)
 {
   /* Class flags. */
   enum
@@ -285,7 +261,7 @@ err_vmsg (const struct error *e)
   class &= ERR_CLASS_MASK;
   
   assert (class >= 0 && class < ERR_CLASS_COUNT);
-  assert (e->text != NULL);
+  assert (format != NULL);
   
   ds_init (&msg, 64);
   if (e->where.filename && (error_classes[class].flags & ERR_WITH_FILE))
@@ -310,7 +286,7 @@ err_vmsg (const struct error *e)
   if (e->title)
     ds_puts (&msg, e->title);
 
-  ds_puts (&msg, e->text);
+  ds_vprintf (&msg, format, args);
 
   /* FIXME: Check set_messages and set_errors to determine where to
      send errors and messages.
@@ -504,11 +480,6 @@ dump_message (char *msg, unsigned indent, void (*func) (const char *),
       memset (buf, ' ', indent);
       memcpy (&buf[indent], cp, cp2 - cp);
 
-      if ( hard_break) 
-	{
-	  buf[indent + idx + cp2 - cp] = '\n';
-	  ++idx;
-	}
       buf[indent + idx + cp2 - cp] = '\0';
       func (buf);
       cp = cp2;

@@ -20,27 +20,27 @@
 #if !expr_h
 #define expr_h 1
 
+#include <stddef.h>
+
 /* Expression parsing flags. */
 enum expr_type
   {
-    EXPR_ANY = 0,               /* Any type. */
-    EXPR_BOOLEAN = 1,           /* Must be numeric; coerce to Boolean. */
-    EXPR_NUMERIC = 2,           /* Must be numeric result type. */
-    EXPR_STRING = 3,            /* Must be string result type. */
-    EXPR_ERROR = 4,             /* Indicates an error. */
-    EXPR_NO_OPTIMIZE = 0x1000   /* May be set in expr_parse()
-                                   argument to disable optimization. */
+    EXPR_NUMBER = 0xf000,       /* Number. */
+    EXPR_STRING,                /* String. */
+    EXPR_BOOLEAN,               /* Boolean (number limited to 0, 1, SYSMIS). */
   };
 
+struct dictionary;
 struct expression;
 struct ccase;
 union value;
 
-struct expression *expr_parse (enum expr_type);
-enum expr_type expr_get_type (const struct expression *);
-double expr_evaluate (const struct expression *, const struct ccase *,
-                      int case_idx, union value *);
+struct expression *expr_parse (struct dictionary *, enum expr_type);
 void expr_free (struct expression *);
-void expr_debug_print_postfix (const struct expression *);
+
+double expr_evaluate_num (struct expression *, const struct ccase *,
+                          int case_idx);
+void expr_evaluate_str (struct expression *, const struct ccase *,
+                        int case_idx, char *dst, size_t dst_size);
 
 #endif /* expr.h */

@@ -217,9 +217,10 @@ create_file_handle (const char *handle_name, const char *filename)
   return handle;
 }
 
-void
-destroy_file_handle(struct file_handle *fh, void *aux UNUSED)
+static void
+destroy_file_handle(void *fh_, void *aux UNUSED)
 {
+  struct file_handle *fh = fh_;
   free (fh->name);
   free (fh->filename);
   fn_free_identity (fh->identity);

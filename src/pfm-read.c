@@ -70,34 +70,24 @@ corrupt_msg (struct pfm_reader *r, const char *format,...)
 static int
 corrupt_msg (struct pfm_reader *r, const char *format, ...)
 {
-  char buf[1024];
-  
-  {
-    va_list args;
+  char *title;
+  struct error e;
+  const char *filename;
+  va_list args;
 
-    va_start (args, format);
-    vsnprintf (buf, 1024, format, args);
-    va_end (args);
-  }
-  
-  {
-    char *title;
-    struct error e;
-    const char *filename;
+  e.class = ME;
+  getl_location (&e.where.filename, &e.where.line_number);
+  filename = handle_get_filename (r->fh);
+  e.title = title = local_alloc (strlen (filename) + 80);
+  sprintf (title, _("portable file %s corrupt at offset %ld: "),
+           filename, ftell (r->file) - (82 - (long) (r->bp - r->buf)));
 
-    e.class = ME;
-    getl_location (&e.where.filename, &e.where.line_number);
-    filename = handle_get_filename (r->fh);
-    e.title = title = local_alloc (strlen (filename) + 80);
-    sprintf (title, _("portable file %s corrupt at offset %ld: "),
-	     filename, ftell (r->file) - (82 - (long) (r->bp - r->buf)));
-    e.text = buf;
+  va_start (args, format);
+  err_vmsg (&e, format, args);
+  va_end (args);
 
-    err_vmsg (&e);
+  local_free (title);
 
-    local_free (title);
-  }
-  
   return 0;
 }
 

@@ -28,7 +28,7 @@
 #include "dfm-read.h"
 #include "dictionary.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "file-handle.h"
 #include "lexer.h"
 #include "misc.h"
@@ -340,7 +340,7 @@ cmd_reread (void)
 	      return CMD_FAILURE;
 	    }
 	  
-	  e = expr_parse (EXPR_NUMERIC);
+	  e = expr_parse (default_dict, EXPR_NUMBER);
 	  if (!e)
 	    return CMD_FAILURE;
 	}
@@ -383,17 +383,15 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
     dfm_reread_record (t->reader, 1);
   else
     {
-      union value column;
-
-      expr_evaluate (t->column, c, case_num, &column);
-      if (!finite (column.f) || column.f < 1)
+      double column = expr_evaluate_num (t->column, c, case_num);
+      if (!finite (column) || column < 1)
 	{
 	  msg (SE, _("REREAD: Column numbers must be positive finite "
 	       "numbers.  Column set to 1."));
 	  dfm_reread_record (t->reader, 1);
 	}
       else
-	dfm_reread_record (t->reader, column.f);
+	dfm_reread_record (t->reader, column);
     }
   return -1;
 }

@@ -53,7 +53,6 @@ struct error
     int class;			/* One of the classes above. */
     struct file_locator where;	/* File location, or (NULL, -1). */
     const char *title;		/* Special text inserted if not null. */
-    const char *text;		/* Error text. */
   };
 
 /* Number of errors, warnings reported. */
@@ -85,7 +84,7 @@ void err_location (struct file_locator *);
 void err_break (void);
 void err_check_count (void);
 void err_hcf (int exit_code) NO_RETURN;
-void err_vmsg (const struct error *);
+void err_vmsg (const struct error *, const char *, va_list);
 
 /* Used in panic situations only */
 void request_bug_report_and_abort(const char *msg );

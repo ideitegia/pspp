@@ -1,3 +1,86 @@
+Mon Feb 28 23:49:56 2005  Ben Pfaff  <blp@gnu.org>
+
+	* str.h: Changed `struct len_string' to `struct fixed_string', a
+	more accurate name.  Updated all references.
+
+Mon Feb 28 23:35:30 2005  Ben Pfaff  <blp@gnu.org>
+
+	Redo calendar support.  Should now be bug-for-bug compatible.
+	
+	* calendar.c: New file.
+
+	* calendar.h: New file.
+
+	* data-in.c: Use new calendar functions.
+	(parse_sign) Change sense of return value.
+	(calendar_error) New function.
+	(ymd_to_ofs) New function.
+	(ymd_to_date) New function.
+	(parse_DATE) Use new function.
+	(parse_ADATE) Ditto.
+	(parse_EDATE) Ditto.
+	(parse_SDATE) Ditto.
+	(parse_JDATE) Ditto.
+	(parse_QYR) Ditto.
+	(parse_MOYR) Ditto.
+	(parse_WKYR) Ditto.
+	(parse_TIME) Ditto.
+	(parse_DTIME) Ditto.
+	(parse_DATETIME) Ditto.
+
+	* data-out.c: (convert_date) Use new calendar functions.
+
+	* error.c: (err_vmsg) Changed interface to be more sensible.
+	Updated all callers.
+	(dump_message) Don't double new-lines (why did we do this
+	anyway?).
+
+Mon Feb 28 23:30:25 2005  Ben Pfaff  <blp@gnu.org>
+
+	* sfmP.h: (macro flt64) Moved here from pref.h.orig.
+	(macro FLT64_MAX) Moved here from pref.h.orig.
+
+Mon Feb 28 23:28:01 2005  Ben Pfaff  <blp@gnu.org>
+
+	* set.q: Support SET EPOCH.
+	(static var set_epoch) New var.
+	(aux_stc_custom_epoch) New function.
+	(stc_custom_epoch) New function.
+	(get_epoch) New function.
+	(stc_custom_pager) [USE_INTERNAL_PAGER] Fix bug.
+
+	* format.c: Make it possible just to check whether a specifier is
+	valid without emitting an error message.
+	(parse_format_specifier_name) Change interface, update all
+	callers.
+	(check_input_specifier) Ditto.
+	(check_output_specifier) Ditto.
+	(parse_format_specifier) Ditto.
+
+Mon Feb 28 23:24:08 2005  Ben Pfaff  <blp@gnu.org>
+
+	* command.def: Add DEBUG POOL.
+
+	* pool.c: (pool_destroy) Fix bug in deleting this pool from its
+	parent.
+	(pool_clear) Properly account for size of pool gizmo.
+	(pool_realloc) Ditto.
+	(pool_clone) New function.
+
+	* pool.h: Mark our allocation functions MALLOC_LIKE.
+
+Mon Feb 28 23:21:26 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Move many definitions into new top-level
+	Make.build.  Add expressions to SUBDIRS.  Add calendar.c,
+	calendar.h.  Remove expr-evl.c, expr-opt.c expr-prs.c, expr.h,
+	exprP.h, expr.def.
+
+	* case.c: (case_resize) New function.
+	(case_swap) New function.
+
+	* casefile.c: Include mkfile.h.
+
 Fri Feb 25 21:11:35 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* sfm-read.c: Fixed a buglet which caused a crash when trying

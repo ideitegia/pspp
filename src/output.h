@@ -104,7 +104,7 @@ struct outp_text
   {
     /* Public. */
     int options;		/* What is specified. */
-    struct len_string s;	/* String. */
+    struct fixed_string s;	/* String. */
     int h, v;			/* Horizontal, vertical size. */
     int x, y;			/* Position. */
 

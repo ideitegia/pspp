@@ -17,10 +17,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if HAVE_CONFIG_H
 #include <config.h>
-#endif
 #include "pool.h"
+#include "command.h"
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
@@ -56,6 +55,7 @@ enum
    This structure is used to keep track of them. */
 struct pool_gizmo
   {
+    struct pool *pool;
     struct pool_gizmo *prev;
     struct pool_gizmo *next;
 
@@ -112,10 +112,6 @@ union align
    simplified functionality. */
 /*#define DISCRETE_BLOCKS 1*/
 
-/* Enable debug code if appropriate. */
-#if SELF_TEST
-#endif
-
 /* Size of each block allocated in the pool, in bytes.
    Should be at least 1k. */
 #ifndef BLOCK_SIZE
@@ -142,11 +138,7 @@ static void add_gizmo (struct pool *, struct pool_gizmo *);
 static void free_gizmo (struct pool_gizmo *);
 static void free_all_gizmos (struct pool *pool);
 static void delete_gizmo (struct pool *, struct pool_gizmo *);
-
-#if !PSPP
-static void *xmalloc (size_t);
-static void *xrealloc (void *, size_t);
-#endif
+static void check_gizmo (struct pool *, struct pool_gizmo *);
 
 /* General routines. */
 
@@ -183,9 +175,8 @@ pool_destroy (struct pool *pool)
 
   /* Remove this pool from its parent's list of gizmos. */
   if (pool->parent) 
-    delete_gizmo (pool->parent,
-		  (void *) (((char *) pool) + POOL_SIZE + POOL_BLOCK_SIZE));
-
+    delete_gizmo (pool->parent, (void *) (((char *) pool) + POOL_SIZE));
+  
   free_all_gizmos (pool);
 
   /* Free all the memory. */
@@ -217,8 +208,12 @@ pool_clear (struct pool *pool)
     do
       {
         cur->ofs = POOL_BLOCK_SIZE;
-        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool)
-          cur->ofs += POOL_SIZE;
+        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool) 
+          {
+            cur->ofs += POOL_SIZE;
+            if (pool->parent != NULL)
+              cur->ofs += POOL_GIZMO_SIZE; 
+          }
         cur = cur->next;
       }
     while (cur != pool->blocks);
@@ -276,6 +271,16 @@ pool_alloc (struct pool *pool, size_t amt)
   else
 #endif
     return pool_malloc (pool, amt);
+}
+
+/* Allocates SIZE bytes in POOL, copies BUFFER into it, and
+   returns the new copy. */
+void *
+pool_clone (struct pool *pool, const void *buffer, size_t size)
+{
+  void *block = pool_alloc (pool, size);
+  memcpy (block, buffer, size);
+  return block;
 }
 
 /* Duplicates STRING, which has LENGTH characters, within POOL,
@@ -364,16 +369,17 @@ pool_realloc (struct pool *pool, void *p, size_t amt)
 	{
 	  if (amt != 0)
 	    {
-	      struct pool_gizmo *g;
+	      struct pool_gizmo *g = (void *) (((char *) p) - POOL_GIZMO_SIZE);
+              check_gizmo (pool, g);
 
-	      g = xrealloc (((char *) p) - POOL_GIZMO_SIZE,
-			    amt + POOL_GIZMO_SIZE);
+	      g = xrealloc (g, amt + POOL_GIZMO_SIZE);
 	      if (g->next)
 		g->next->prev = g;
 	      if (g->prev)
 		g->prev->next = g;
 	      else
 		pool->gizmos = g;
+              check_gizmo (pool, g);
 
 	      return ((char *) g) + POOL_GIZMO_SIZE;
 	    }
@@ -399,6 +405,7 @@ pool_free (struct pool *pool, void *p)
   if (pool != NULL && p != NULL)
     {
       struct pool_gizmo *g = (void *) (((char *) p) - POOL_GIZMO_SIZE);
+      check_gizmo (pool, g);
       delete_gizmo (pool, g);
       free (g);
     }
@@ -421,7 +428,7 @@ pool_create_subpool (struct pool *pool)
   subpool = pool_create ();
   subpool->parent = pool;
 
-  g = (void *) (((char *) subpool) + subpool->blocks->ofs);
+  g = (void *) (((char *) subpool->blocks) + subpool->blocks->ofs);
   subpool->blocks->ofs += POOL_GIZMO_SIZE;
   
   g->type = POOL_GIZMO_SUBPOOL;
@@ -566,8 +573,12 @@ pool_release (struct pool *pool, const struct pool_mark *mark)
     for (cur = pool->blocks; cur != mark->block; cur = cur->next) 
       {
         cur->ofs = POOL_BLOCK_SIZE;
-        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool)
-          cur->ofs += POOL_SIZE; 
+        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool) 
+          {
+            cur->ofs += POOL_SIZE;
+            if (pool->parent != NULL)
+              cur->ofs += POOL_GIZMO_SIZE; 
+          }
       }
     pool->blocks = mark->block;
     pool->blocks->ofs = mark->ofs;
@@ -581,7 +592,8 @@ static void
 add_gizmo (struct pool *pool, struct pool_gizmo *gizmo)
 {
   assert (pool && gizmo);
-  
+
+  gizmo->pool = pool;
   gizmo->next = pool->gizmos;
   gizmo->prev = NULL;
   if (pool->gizmos)
@@ -589,6 +601,8 @@ add_gizmo (struct pool *pool, struct pool_gizmo *gizmo)
   pool->gizmos = gizmo;
 
   gizmo->serial = serial++;
+
+  check_gizmo (pool, gizmo);
 }
  
 /* Removes GIZMO from POOL's gizmo list. */
@@ -596,7 +610,9 @@ static void
 delete_gizmo (struct pool *pool, struct pool_gizmo *gizmo)
 {
   assert (pool && gizmo);
-  
+
+  check_gizmo (pool, gizmo);
+
   if (gizmo->prev)
     gizmo->prev->next = gizmo->next;
   else
@@ -611,7 +627,7 @@ static void
 free_gizmo (struct pool_gizmo *gizmo)
 {
   assert (gizmo != NULL);
-  
+
   switch (gizmo->type)
     {
     case POOL_GIZMO_MALLOC:
@@ -643,49 +659,21 @@ free_all_gizmos (struct pool *pool)
       next = cur->next;
       free_gizmo (cur);
     }
-  pool->gizmos=NULL;
-}
-
-/* Memory allocation. */
-
-#if !PSPP
-/* Allocates SIZE bytes of space using malloc().  Aborts if out of
-   memory. */
-static void *
-xmalloc (size_t size)
-{
-  void *vp;
-  if (size == 0)
-    return NULL;
-  vp = malloc (size);
-  assert (vp != NULL);
-  if (vp == NULL)
-    abort ();
-  return vp;
+  pool->gizmos = NULL;
 }
 
-/* Reallocates P to be SIZE bytes long using realloc().  Aborts if out
-   of memory. */
-static void *
-xrealloc (void *p, size_t size)
+static void
+check_gizmo (struct pool *p, struct pool_gizmo *g) 
 {
-  if (p == NULL)
-    return xmalloc (size);
-  if (size == 0)
-    {
-      free (p);
-      return NULL;
-    }
-  p = realloc (p, size);
-  if (p == NULL)
-    abort ();
-  return p;
+  assert (g->pool == p);
+  assert (g->next == NULL || g->next->prev == g);
+  assert ((g->prev != NULL && g->prev->next == g)
+          || (g->prev == NULL && p->gizmos == g));
+
 }
-#endif /* !PSPP */
 
 /* Self-test routine. */
 
-#if SELF_TEST
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -698,14 +686,9 @@ xrealloc (void *p, size_t size)
 /* Self-test routine.
    This is not exhaustive, but it can be useful. */
 int
-main (int argc, char **argv)
+cmd_debug_pool (void)
 {
-  int seed;
-  
-  if (argc == 2)
-    seed = atoi (argv[1]);
-  else
-    seed = time (0) * 257 % 32768;
+  int seed = time (0) * 257 % 32768;
 
   for (;;)
     {
@@ -784,12 +767,7 @@ main (int argc, char **argv)
 
       putchar ('\n');
     }
+
+  return CMD_SUCCESS;
 }
 
-#endif /* SELF_TEST */
-
-/* 
-   Local variables:
-   compile-command: "gcc -DSELF_TEST=1 -W -Wall -I. -o pool_test pool.c"
-   End:
-*/

@@ -39,13 +39,14 @@ void pool_destroy (struct pool *);
 void pool_clear (struct pool *);
 
 /* Suballocation routines. */
-void *pool_alloc (struct pool *, size_t);
-char *pool_strdup (struct pool *, const char *);
-char *pool_strndup (struct pool *, const char *, size_t);
-char *pool_strcat (struct pool *, const char *, ...);
+void *pool_alloc (struct pool *, size_t) MALLOC_LIKE;
+void *pool_clone (struct pool *, const void *, size_t) MALLOC_LIKE;
+char *pool_strdup (struct pool *, const char *) MALLOC_LIKE;
+char *pool_strndup (struct pool *, const char *, size_t) MALLOC_LIKE;
+char *pool_strcat (struct pool *, const char *, ...) MALLOC_LIKE;
 
 /* Standard allocation routines. */
-void *pool_malloc (struct pool *, size_t);
+void *pool_malloc (struct pool *, size_t) MALLOC_LIKE;
 void *pool_realloc (struct pool *, void *, size_t);
 void pool_free (struct pool *, void *);
 

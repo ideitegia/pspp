@@ -24,9 +24,9 @@
 #include <float.h>
 #include <stdlib.h>
 #include <time.h>
+#include "calendar.h"
 #include "error.h"
 #include "format.h"
-#include "julcal/julcal.h"
 #include "magic.h"
 #include "misc.h"
 #include "misc.h"
@@ -752,9 +752,13 @@ convert_date (char *dst, const struct fmt_spec *fp, double number)
     };
 
   char buf[64] = {0};
+  int ofs = number / 86400.;
   int month, day, year;
 
-  julian_to_calendar (number / 86400., &year, &month, &day);
+  if (ofs < 1)
+    return 0;
+
+  calendar_offset_to_gregorian (ofs, &year, &month, &day);
   switch (fp->type)
     {
     case FMT_DATE:
@@ -783,15 +787,13 @@ convert_date (char *dst, const struct fmt_spec *fp, double number)
       break;
     case FMT_JDATE:
       {
-	int yday = (number / 86400.) - calendar_to_julian (year, 1, 1) + 1;
+        int yday = calendar_offset_to_yday (ofs);
 	
-	if (fp->w >= 7)
-	  {
-	    if (year4 (year))
-	      sprintf (buf, "%04d%03d", year, yday);
-	  }
-	else
-	  sprintf (buf, "%02d%03d", year % 100, yday);
+        if (fp->w < 7)
+          sprintf (buf, "%02d%03d", year % 100, yday); 
+        else if (year4 (year))
+          sprintf (buf, "%04d%03d", year, yday);
+        else
 	break;
       }
     case FMT_QYR:
@@ -808,7 +810,7 @@ convert_date (char *dst, const struct fmt_spec *fp, double number)
       break;
     case FMT_WKYR:
       {
-	int yday = (number / 86400.) - calendar_to_julian (year, 1, 1) + 1;
+	int yday = calendar_offset_to_yday (ofs);
 	
 	if (fp->w >= 10)
 	  sprintf (buf, "%02d WK% 04d", (yday - 1) / 7 + 1, year);

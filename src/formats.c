@@ -86,7 +86,7 @@ internal_cmd_formats (int which)
 	  msg (SE, _("`(' expected after variable list"));
 	  goto fail;
 	}
-      if (!parse_format_specifier (&f, 0) || !check_output_specifier (&f))
+      if (!parse_format_specifier (&f, 0) || !check_output_specifier (&f, 1))
 	goto fail;
 
       /* Catch type mismatch errors. */

@@ -127,49 +127,49 @@ void st_bare_pad_copy (char *dest, const char *src, size_t n);
 void st_bare_pad_len_copy (char *dest, const char *src, size_t n, size_t len);
 void st_pad_copy (char *dest, const char *src, size_t n);
 
-/* Lengthed strings. */
-struct len_string 
+/* Fixed-length strings. */
+struct fixed_string 
   {
     char *string;
     size_t length;
   };
 
-void ls_create (struct len_string *, const char *);
-void ls_create_buffer (struct len_string *,
+void ls_create (struct fixed_string *, const char *);
+void ls_create_buffer (struct fixed_string *,
 		       const char *, size_t len);
-void ls_init (struct len_string *, const char *, size_t);
-void ls_shallow_copy (struct len_string *, const struct len_string *);
-void ls_destroy (struct len_string *);
+void ls_init (struct fixed_string *, const char *, size_t);
+void ls_shallow_copy (struct fixed_string *, const struct fixed_string *);
+void ls_destroy (struct fixed_string *);
 
-void ls_null (struct len_string *);
-int ls_null_p (const struct len_string *);
-int ls_empty_p (const struct len_string *);
+void ls_null (struct fixed_string *);
+int ls_null_p (const struct fixed_string *);
+int ls_empty_p (const struct fixed_string *);
 
-size_t ls_length (const struct len_string *);
-char *ls_c_str (const struct len_string *);
-char *ls_end (const struct len_string *);
+size_t ls_length (const struct fixed_string *);
+char *ls_c_str (const struct fixed_string *);
+char *ls_end (const struct fixed_string *);
 
 #if __GNUC__ > 1
 extern inline size_t
-ls_length (const struct len_string *st)
+ls_length (const struct fixed_string *st)
 {
   return st->length;
 }
 
 extern inline char *
-ls_c_str (const struct len_string *st)
+ls_c_str (const struct fixed_string *st)
 {
   return st->string;
 }
 
 extern inline char *
-ls_end (const struct len_string *st)
+ls_end (const struct fixed_string *st)
 {
   return st->string + st->length;
 }
 #endif
 
-/* Dynamic strings. */
+/* Variable length strings. */
 
 struct string
   {

@@ -239,6 +239,7 @@ SET
         /BLANKS=@{SYSMIS,'.',number@}
         /DECIMAL=@{DOT,COMMA@}
         /FORMAT=fmt_spec
+        /EPOCH=@{AUTOMATIC,year@}
 
 (program input)
         /ENDCMD='.'
@@ -353,6 +354,15 @@ The default DOT setting causes the decimal point character to be
 @item FORMAT
 Allows the default numeric input/output format to be specified.  The
 default is F8.2.  @xref{Input/Output Formats}.
+
+@item EPOCH
+@anchor{SET EPOCH}
+Specifies the range of years used when a 2-digit year is read from a
+data file or used in a date construction expression (@pxref{Date
+Construction}).  If a 4-digit year is specified, then 2-digit years
+are interpreted starting from that year, known as the epoch.  If
+AUTOMATIC (the default) is specified, then the epoch begins 69 years
+before the current date.
 @end table
 
 Program input subcommands affect the way that programs are parsed when
@@ -534,8 +544,7 @@ perform.  The security subcommands are
 
 @table @asis
 @item SAFER
-When set, this setting cannot ever be reset, for obvious security
-reasons.  Setting this option disables the following operations:
+Setting this option disables the following operations:
 
 @itemize @bullet
 @item
@@ -550,6 +559,8 @@ Pipe filenames (filenames beginning or ending with @samp{|}).
 
 Be aware that this setting does not guarantee safety (commands can still
 overwrite files, for instance) but it is an improvement.
+When set, this setting cannot be reset during the same session, for
+obvious security reasons.
 @end table
 
 @node SHOW, SUBTITLE, SET, Utilities

@@ -1,0 +1,20 @@
+## Makefile.am include file -*- makefile -*-
+
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
+-I$(top_srcdir)/intl 
+
+AM_CFLAGS=
+
+if cc_is_gcc
+AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
+-Wpointer-arith -Wno-sign-compare -Wmissing-prototypes \
+-ansi 
+endif
+
+if unix
+AM_CFLAGS+=-Dunix
+endif
+
+if msdos
+AM_CFLAGS+=-D__MSDOS__
+endif

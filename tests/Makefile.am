@@ -71,14 +71,16 @@ TESTS = \
 	bugs/recode-copy-bug.sh \
 	bugs/computebug.sh \
 	xforms/casefile.sh \
-	xforms/expressions.sh \
 	stats/descript-basic.sh \
 	stats/descript-missing.sh \
 	stats/descript-mean-bug.sh \
 	stats/moments.sh \
 	stats/percentiles-compatible.sh \
 	stats/ntiles.sh \
-	stats/percentiles-enhanced.sh
+	stats/percentiles-enhanced.sh \
+	expressions/expressions.sh \
+	expressions/epoch.sh \
+	expressions/randist.sh
 
 noinst_PROGRAMS = gengarbage
 

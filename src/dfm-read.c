@@ -326,7 +326,7 @@ dfm_eof (struct dfm_reader *r)
    which is not null-terminated.  The caller must not free or
    modify the returned string.  */
 void
-dfm_get_record (struct dfm_reader *r, struct len_string *line)
+dfm_get_record (struct dfm_reader *r, struct fixed_string *line)
 {
   assert ((r->flags & DFM_ADVANCE) == 0);
   assert ((r->flags & DFM_EOF) == 0);

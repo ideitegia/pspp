@@ -1,0 +1,66 @@
+beta: 
+  funcs = cdf pdf
+  a = .75 1 1.5
+  b = .25 .5 1 1.5 2 2.5 3
+
+cauchy:
+  funcs = cdf pdf
+  a = -5:5:1
+  b = .5:1.5:.25
+
+chisq:
+  funcs = cdf pdf sig
+  df = 1 2 5 10
+
+exp:
+  funcs = cdf pdf
+  a = 1 2 5 10
+
+f:
+  funcs = cdf pdf
+  df1 = 1 2 5 10
+  df2 = 1 2 5 10
+
+gamma:
+  funcs = cdf pdf
+  a = .5 1 2 5
+  b = -10:10:5
+
+laplace:
+  funcs = cdf pdf
+  a = -10:10:5
+  b = .5 1 2 5
+
+logistic:
+  funcs = cdf pdf
+  a = -10:10:5
+  b = .5 1 2 5
+
+lnormal:
+  funcs = cdf pdf
+  z = .5 1 2 5
+  s = .5 1 2 5
+
+normal:
+  funcs = cdf pdf
+  u = -10:10:5
+  s = .5 1 2 5
+
+pareto:
+  funcs = cdf pdf
+  a = 1 5 10
+  b = 1 2 5 10
+
+t:
+  funcs = cdf pdf
+  df = 1 2 3 4 5 10 30 100
+
+uniform:
+  funcs = cdf pdf
+  a = -10 0 20 30
+  b = 40 41 45 50
+
+weibull:
+  funcs = cdf pdf
+  a = .5 1 2 5
+  b = 1 2 4 8

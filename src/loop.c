@@ -25,7 +25,7 @@
 #include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "lexer.h"
 #include "misc.h"
 #include "settings.h"
@@ -200,7 +200,7 @@ internal_cmd_loop (void)
       assert (token == '=');
       lex_get ();
 
-      one->init = expr_parse (EXPR_NUMERIC);
+      one->init = expr_parse (default_dict, EXPR_NUMBER);
       if (!one->init)
 	return 0;
 
@@ -209,7 +209,7 @@ internal_cmd_loop (void)
 	  expr_free (one->init);
 	  return 0;
 	}
-      one->term = expr_parse (EXPR_NUMERIC);
+      one->term = expr_parse (default_dict, EXPR_NUMBER);
       if (!one->term)
 	{
 	  expr_free (one->init);
@@ -218,7 +218,7 @@ internal_cmd_loop (void)
 
       if (lex_match (T_BY))
 	{
-	  one->incr = expr_parse (EXPR_NUMERIC);
+	  one->incr = expr_parse (default_dict, EXPR_NUMBER);
 	  if (!one->incr)
 	    return 0;
 	}
@@ -231,7 +231,7 @@ internal_cmd_loop (void)
     {
       two->flags |= LPC_COND;
 
-      two->cond = expr_parse (EXPR_BOOLEAN);
+      two->cond = expr_parse (default_dict, EXPR_BOOLEAN);
       if (!two->cond)
 	return 0;
     }
@@ -306,7 +306,7 @@ internal_cmd_end_loop (void)
   /* Parse the expression if any. */
   if (lex_match_id ("IF"))
     {
-      thr->cond = expr_parse (EXPR_BOOLEAN);
+      thr->cond = expr_parse (default_dict, EXPR_BOOLEAN);
       if (!thr->cond)
 	return 0;
     }
@@ -335,31 +335,31 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c,
   two->pass = -1;
   if (two->flags & LPC_INDEX)
     {
-      union value t1, t2, t3;
+      double t1, t2, t3;
 
-      expr_evaluate (one->init, c, case_num, &t1);
+      t1 = expr_evaluate_num (one->init, c, case_num);
       if (one->incr)
-	expr_evaluate (one->incr, c, case_num, &t2);
+	t2 = expr_evaluate_num (one->incr, c, case_num);
       else
-	t2.f = 1.0;
-      expr_evaluate (one->term, c, case_num, &t3);
+	t2 = 1.0;
+      t3 = expr_evaluate_num (one->term, c, case_num);
 
       /* Even if the loop is never entered, force the index variable
          to assume the initial value. */
-      case_data_rw (c, two->index->fv)->f = t1.f;
+      case_data_rw (c, two->index->fv)->f = t1;
 
       /* Throw out various pathological cases. */
-      if (!finite (t1.f) || !finite (t2.f) || !finite (t3.f) || t2.f == 0.0)
+      if (!finite (t1) || !finite (t2) || !finite (t3) || t2 == 0.0)
 	return two->loop_term;
       debug_printf (("LOOP %s=%g TO %g BY %g.\n", two->index->name,
-		     t1.f, t3.f, t2.f));
-      if (t2.f > 0.0)
+		     t1, t3, t2));
+      if (t2 > 0.0)
 	{
 	  /* Loop counts upward: I=1 TO 5 BY 1. */
 	  two->flags &= ~LPC_RINDEX;
 
 	  /* incr>0 but init>term */
-	  if (t1.f > t3.f)
+	  if (t1 > t3)
 	    return two->loop_term;
 	}
       else
@@ -368,13 +368,13 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c,
 	  two->flags |= LPC_RINDEX;
 
 	  /* incr<0 but init<term */
-	  if (t1.f < t3.f)
+	  if (t1 < t3)
 	    return two->loop_term;
 	}
 
-      two->curr = t1.f;
-      two->incr = t2.f;
-      two->term = t3.f;
+      two->curr = t1;
+      two->incr = t2;
+      two->term = t3;
     }
 
   return -1;
@@ -435,7 +435,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c,
 
   /* Conditional clause limiter. */
   if ((two->flags & LPC_COND)
-      && expr_evaluate (two->cond, c, case_num, NULL) != 1.0)
+      && expr_evaluate_num (two->cond, c, case_num) != 1.0)
     return two->loop_term;
 
   return -1;
@@ -459,7 +459,7 @@ loop_3_trns_proc (struct trns_header * trns, struct ccase * c,
 
   /* Note that it breaks out of the loop if the expression is true *or
      missing*.  This is conformant. */
-  if (thr->cond && expr_evaluate (two->cond, c, case_num, NULL) != 0.0)
+  if (thr->cond && expr_evaluate_num (two->cond, c, case_num) != 0.0)
     return -1;
 
   return thr->loop_start;

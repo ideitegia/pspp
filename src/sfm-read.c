@@ -122,26 +122,16 @@ corrupt_msg (int class, const char *format,...)
 static void
 corrupt_msg (int class, const char *format,...)
 {
-  char buf[1024];
-  
-  {
-    va_list args;
+  struct error e;
+  va_list args;
 
-    va_start (args, format);
-    vsnprintf (buf, 1024, format, args);
-    va_end (args);
-  }
-  
-  {
-    struct error e;
+  e.class = class;
+  getl_location (&e.where.filename, &e.where.line_number);
+  e.title = _("corrupt system file: ");
 
-    e.class = class;
-    getl_location (&e.where.filename, &e.where.line_number);
-    e.title = _("corrupt system file: ");
-    e.text = buf;
-
-    err_vmsg (&e);
-  }
+  va_start (args, format);
+  err_vmsg (&e, format, args);
+  va_end (args);
 }
 
 /* Closes a system file after we're done with it. */

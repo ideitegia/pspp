@@ -25,7 +25,7 @@
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"
@@ -112,11 +112,9 @@ compute_num (struct trns_header *compute_, struct ccase *c,
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
-    {
-      expr_evaluate (compute->rvalue, c, case_num,
-                     case_data_rw (c, compute->fv)); 
-    }
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
+    case_data_rw (c, compute->fv)->f = expr_evaluate_num (compute->rvalue, c,
+                                                          case_num); 
   
   return -1;
 }
@@ -130,29 +128,26 @@ compute_num_vec (struct trns_header *compute_, struct ccase *c,
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
     {
-      /* Index into the vector. */
-      union value index;
+      double index;     /* Index into the vector. */
+      int rindx;        /* Rounded index value. */
 
-      /* Rounded index value. */
-      int rindx;
-
-      expr_evaluate (compute->element, c, case_num, &index);
-      rindx = floor (index.f + EPSILON);
-      if (index.f == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
+      index = expr_evaluate_num (compute->element, c, case_num);
+      rindx = floor (index + EPSILON);
+      if (index == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
         {
-          if (index.f == SYSMIS)
+          if (index == SYSMIS)
             msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
                        "an index into vector %s."), compute->vector->name);
           else
             msg (SW, _("When executing COMPUTE: %g is not a valid value as "
                        "an index into vector %s."),
-                 index.f, compute->vector->name);
+                 index, compute->vector->name);
           return -1;
         }
-      expr_evaluate (compute->rvalue, c, case_num,
-                     case_data_rw (c, compute->vector->var[rindx - 1]->fv));
+      case_data_rw (c, compute->vector->var[rindx - 1]->fv)->f
+        = expr_evaluate_num (compute->rvalue, c, case_num);
     }
   
   return -1;
@@ -166,15 +161,9 @@ compute_str (struct trns_header *compute_, struct ccase *c,
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
-    {
-      /* Temporary storage for string expression return value. */
-      union value v;
-
-      expr_evaluate (compute->rvalue, c, case_num, &v);
-      st_bare_pad_len_copy (case_data_rw (c, compute->fv)->s,
-                            &v.c[1], compute->width, v.c[0]); 
-    }
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
+    expr_evaluate_str (compute->rvalue, c, case_num,
+                       case_data_rw (c, compute->fv)->s, compute->width);
   
   return -1;
 }
@@ -188,39 +177,32 @@ compute_str_vec (struct trns_header *compute_, struct ccase *c,
   struct compute_trns *compute = (struct compute_trns *) compute_;
 
   if (compute->test == NULL
-      || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
     {
-      /* Temporary storage for string expression return value. */
-      union value v;
+      double index;             /* Index into the vector. */
+      int rindx;                /* Rounded index value. */
+      struct variable *vr;      /* Variable reference by indexed vector. */
 
-      /* Index into the vector. */
-      union value index;
-
-      /* Rounded index value. */
-      int rindx;
-
-      /* Variable reference by indexed vector. */
-      struct variable *vr;
-
-      expr_evaluate (compute->element, c, case_num, &index);
-      rindx = floor (index.f + EPSILON);
-      if (index.f == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
+      index = expr_evaluate_num (compute->element, c, case_num);
+      rindx = floor (index + EPSILON);
+      if (index == SYSMIS) 
         {
-          if (index.f == SYSMIS)
-            msg (SW, _("When executing COMPUTE: SYSMIS is not a valid "
-                       "value as an index into vector %s."),
-                 compute->vector->name);
-          else
-            msg (SW, _("When executing COMPUTE: %g is not a valid value as "
-                       "an index into vector %s."),
-                 index.f, compute->vector->name);
+          msg (SW, _("When executing COMPUTE: SYSMIS is not a valid "
+                     "value as an index into vector %s."),
+               compute->vector->name);
+          return -1; 
+        }
+      else if (rindx < 1 || rindx > compute->vector->cnt)
+        {
+          msg (SW, _("When executing COMPUTE: %g is not a valid value as "
+                     "an index into vector %s."),
+               index, compute->vector->name);
           return -1;
         }
 
-      expr_evaluate (compute->rvalue, c, case_num, &v);
       vr = compute->vector->var[rindx - 1];
-      st_bare_pad_len_copy (case_data_rw (c, vr->fv)->s,
-                            &v.c[1], vr->width, v.c[0]); 
+      expr_evaluate_str (compute->rvalue, c, case_num,
+                         case_data_rw (c, vr->fv)->s, vr->width);
     }
   
   return -1;
@@ -237,7 +219,7 @@ cmd_if (void)
   compute = compute_trns_create ();
 
   /* Test expression. */
-  compute->test = expr_parse (EXPR_BOOLEAN);
+  compute->test = expr_parse (default_dict, EXPR_BOOLEAN);
   if (compute->test == NULL)
     goto fail;
 
@@ -280,7 +262,8 @@ parse_rvalue_expression (struct compute_trns *compute,
 
   assert (type == NUMERIC || type == ALPHA);
 
-  compute->rvalue = expr_parse (type == ALPHA ? EXPR_STRING : EXPR_NUMERIC);
+  compute->rvalue = expr_parse (default_dict,
+                                type == ALPHA ? EXPR_STRING : EXPR_NUMBER);
   if (compute->rvalue == NULL)
     return 0;
 
@@ -361,7 +344,7 @@ lvalue_parse (void)
       lex_get ();
       if (!lex_force_match ('('))
 	goto lossage;
-      lvalue->element = expr_parse (EXPR_NUMERIC);
+      lvalue->element = expr_parse (default_dict, EXPR_NUMBER);
       if (lvalue->element == NULL)
         goto lossage;
       if (!lex_force_match (')'))

@@ -73,13 +73,20 @@ extern struct fmt_desc formats[];
 
 union value;
 
-/* Maximum length of formatted value, in character. */
+/* Maximum length of formatted value, in characters. */
 #define MAX_FORMATTED_LEN 256
 
-int parse_format_specifier (struct fmt_spec *input, int allow_xt);
-int parse_format_specifier_name (const char **cp, int allow_xt);
-int check_input_specifier (const struct fmt_spec *spec);
-int check_output_specifier (const struct fmt_spec *spec);
+/* Flags for parsing formats. */
+enum fmt_parse_flags
+  {
+    FMTP_ALLOW_XT = 001,                /* 1=Allow X and T formats. */
+    FMTP_SUPPRESS_ERRORS = 002          /* 1=Do not emit error messages. */
+  };
+
+int parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags);
+int parse_format_specifier_name (const char **cp, enum fmt_parse_flags);
+int check_input_specifier (const struct fmt_spec *spec, int emit_error);
+int check_output_specifier (const struct fmt_spec *spec, int emit_error);
 int check_string_specifier (const struct fmt_spec *spec, int min_len);
 void convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output);
 int get_format_var_width (const struct fmt_spec *);

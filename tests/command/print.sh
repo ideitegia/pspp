@@ -78,11 +78,11 @@ if [ $? -eq 0 ] ; then fail ; fi
 activity="compare error messages"
 diff -w $TEMPDIR/errs - <<EOF
 $TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:1: warning: LIST: The expression on PRINT SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a negative number of lines.
+$TEMPDIR/data-list.data:1: warning: LIST: The expression on PRINT SPACE evaluated to the system-missing value.
 $TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:4: warning: LIST: The expression on PRINT SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a negative number of lines.
+$TEMPDIR/data-list.data:4: warning: LIST: The expression on PRINT SPACE evaluated to the system-missing value.
 $TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:6: warning: LIST: The expression on PRINT SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a negative number of lines.
+$TEMPDIR/data-list.data:6: warning: LIST: The expression on PRINT SPACE evaluated to the system-missing value.
 $TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0) Field does not form a valid floating-point constant.
 $TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0) Field does not form a valid floating-point constant.
 $TEMPDIR/data-list.data:2: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing value or blanks, as appropriate.

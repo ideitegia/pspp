@@ -30,6 +30,7 @@
 #include "case.h"
 #include "error.h"
 #include "misc.h"
+#include "mkfile.h"
 #include "settings.h"
 #include "var.h"
 

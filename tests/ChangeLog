@@ -1,3 +1,11 @@
+'Mon Feb 28 23:31:16 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Removed xforms/expressions.sh.  Added
+	expressions/expressions.sh, expressions/epoch.sh,
+	expressions/randist.sh.
+
+	* command/print.sh: Update error messages.
+
 Sun Feb 13 16:15:09 2005  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/agg-crash-2.sh: Add new test for Bug #11955.

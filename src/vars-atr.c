@@ -25,7 +25,7 @@
 #include "command.h"
 #include "dictionary.h"
 #include "do-ifP.h"
-#include "expr.h"
+#include "expressions/public.h"
 #include "file-handle.h"
 #include "hash.h"
 #include "misc.h"

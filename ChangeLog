@@ -1,3 +1,13 @@
+Mon Feb 28 23:16:58 2005  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Check for perl.  Check for bool.  Substitute
+	makefiles in src/expressions.  Don't substitute makefile in
+	deleted directory lib/julcal.
+
+	* pref.h.orig: (macro MALLOC_LIKE) New macro.
+	(macro flt64) Moved to src/sfmP.h.
+	(macro FLT64_MAX) Moved to src/sfmP.h.
+
 Mon Feb 21 15:04:55 WST 2005 John Darrington <john@darrington.wattle.id.au> 
 
 	* configure.ac: Added a --without-valgrind option to cope with
