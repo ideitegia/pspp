@@ -9,6 +9,7 @@ TESTS = command/aggregate.sh \
 	command/compute.sh \
 	command/descriptives.sh \
 	command/file-label.sh \
+	command/filter.sh \
 	command/flip.sh \
 	command/lag.sh \
 	command/list.sh \
@@ -29,15 +30,7 @@ noinst_DATA = sort.data
 sort.data: gengarbage$(EXTEXT)
 	./gengarbage | head -1000 > $@
 
-EXTRA_DIST = \
-crosstabs.stat data-fmts.stat	\
-data-list.data do-if.stat do-repeat.stat	\
-expr.stat filter.stat gengarbage.c		\
-inpt-pgm.stat list.data mtch-file.stat  \
-means.stat mdfy-vars.stat pcs-if.stat recode.stat \
-repeating.stat reread.data reread.stat  \
-sys-info.stat t-test.stat temporary.stat	\
-time-date.stat vector.stat weighting.data weighting.stat $(TESTS)
+EXTRA_DIST = $(TESTS)
 
 DISTCLEANFILES = *.save sort.data pspp.* foo* msgs *.actual
 
