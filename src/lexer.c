@@ -422,7 +422,7 @@ lex_double_p (void)
 
 /* Returns the value of the current token, which must be a
    floating point number. */
-long
+double
 lex_double (void)
 {
   assert (lex_double_p ());

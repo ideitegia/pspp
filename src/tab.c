@@ -612,6 +612,11 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
 
   assert (table != NULL && w <= 40);
   
+  assert (c >= 0);
+  assert (c < table->nc);
+  assert (r >= 0);
+  assert (r < table->nr);
+
   f.type = FMT_F;
   f.w = w;
   f.d = d;

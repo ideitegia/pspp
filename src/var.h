@@ -128,6 +128,33 @@ struct crosstab_proc
     int count;			/* max - min. */
   };
 
+
+/* T-TEST private data */
+struct t_test_proc
+  {
+    double mean;
+
+    double std_dev;
+    
+    /* count */
+    double n;
+
+    double sum;
+
+    /* Sum of squares */
+    double ssq;
+
+    /* Std Err of Mean */
+    double se_mean;
+
+    /* Sum of differnces */
+    double sum_diff;
+
+    /* Mean of differences */
+    double mean_diff ;
+  };
+
+
 /* FREQUENCIES private data. */
 enum
   {
@@ -312,6 +339,7 @@ struct variable
 	struct sort_cases_proc srt;
 	struct matrix_data_proc mxd;
 	struct match_files_proc mtf;
+	struct t_test_proc t_t;
       }
     p;
   };

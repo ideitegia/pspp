@@ -55,6 +55,7 @@
 static struct cmd_t_test cmd;
 
 
+
 static struct pool *t_test_pool ;
 
 /* Variable for the GROUPS subcommand, if given. */
@@ -129,6 +130,16 @@ enum {
   T_PAIRED
 };
 
+
+static int common_calc (struct ccase *);
+static void common_precalc (void);
+static void common_postcalc (void);
+
+static int one_sample_calc (struct ccase *);
+static void one_sample_precalc (void);
+static void one_sample_postcalc (void);
+
+
 int
 cmd_t_test(void)
 {
@@ -169,6 +180,11 @@ cmd_t_test(void)
       msg(SE, _("VARIABLES subcommand is not appropriate with PAIRS"));
       return CMD_FAILURE;
     }
+
+  procedure(common_precalc,common_calc,common_postcalc);
+
+  if (mode == T_1_SAMPLE)
+    procedure(one_sample_precalc,one_sample_calc,one_sample_postcalc);
 
   t_test_pool = pool_create ();
 
@@ -250,11 +266,15 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
   return 1;
 }
 
+
+
+
 static int
 tts_custom_pairs (struct cmd_t_test *cmd unused)
 {
   struct variable **vars;
   int n_vars;
+
   int n_before_WITH ;
   int n_after_WITH = -1;
   int paired ; /* Was the PAIRED keyword given ? */
@@ -615,7 +635,14 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
 
   for (i=0; i < cmd->n_variables; ++i)
     {
+      struct t_test_proc *ttp;
+      ttp= &cmd->v_variables[i]->p.t_t;
+
       tab_text (ssb->t, 0, i+1, TAB_LEFT, cmd->v_variables[i]->name);
+      tab_float (ssb->t,1, i+1, TAB_RIGHT, ttp->n, 2, 0);
+      tab_float (ssb->t,2, i+1, TAB_RIGHT, ttp->mean, 8, 2);
+      tab_float (ssb->t,3, i+1, TAB_RIGHT, ttp->std_dev, 8, 2);
+      tab_float (ssb->t,4, i+1, TAB_RIGHT, ttp->se_mean, 8, 3);
     }
   
 }
@@ -844,6 +871,7 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
   tab_text (self->t, 4, 2, TAB_CENTER | TAT_TITLE, _("Mean Difference"));
   tab_text (self->t, 5, 2, TAB_CENTER | TAT_TITLE, _("Lower"));
   tab_text (self->t, 6, 2, TAB_CENTER | TAT_TITLE, _("Upper"));
+
 }
 
 
@@ -857,7 +885,48 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
   for (i=0; i < cmd->n_variables; ++i)
     {
+      int which =1;
+      double t;
+      double p,q;
+      double df;
+      int status;
+      double bound;
+      struct t_test_proc *ttp;
+      ttp= &cmd->v_variables[i]->p.t_t;
+
+
       tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
+
+      t = (ttp->mean - cmd->n_testval ) * sqrt(ttp->n) / ttp->std_dev ;
+
+      tab_float (trb->t, 1, i+3, TAB_RIGHT, t, 8,3);
+
+      /* degrees of freedom */
+      df = ttp->n - 1;
+
+      tab_float (trb->t, 2, i+3, TAB_RIGHT, df, 8,0);
+
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+
+      assert(status == 0 ); /* FIXME: use proper error message */
+
+      /* Multiply by 2 to get 2-tailed significance */
+      tab_float (trb->t, 3, i+3, TAB_RIGHT, q*2.0, 8,3);
+
+      tab_float (trb->t, 4, i+3, TAB_RIGHT, ttp->mean_diff, 8,3);
+
+
+      q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
+      p = 1 - q ;
+      which=2; /* Calc T from p,q and df */
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+      assert(status == 0 ); /* FIXME: proper error message */
+
+      tab_float (trb->t, 5, i+3, TAB_RIGHT,
+		 ttp->mean_diff - t * ttp->se_mean, 8,4);
+
+      tab_float (trb->t, 6, i+3, TAB_RIGHT,
+		 ttp->mean_diff + t * ttp->se_mean, 8,4);
     }
 }
 
@@ -881,4 +950,128 @@ void
 trbox_base_finalize(struct trbox *trb)
 {
   tab_submit(trb->t);
+}
+
+
+/* Calculation Implementation */
+
+/* Per case calculations common to all variants of the T test */
+static int 
+common_calc (struct ccase *c)
+{
+  int i;
+
+  double weight = dict_get_case_weight(default_dict,c);
+
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      struct t_test_proc *ttp;
+      struct variable *v = cmd.v_variables[i];
+      union value *val = &c->data[v->fv];
+
+      ttp= &cmd.v_variables[i]->p.t_t;
+
+      if (val->f != SYSMIS) 
+	{
+	  ttp->n+=weight;
+	  ttp->sum+=weight * val->f;
+	  ttp->ssq+=weight * val->f * val->f;
+	}
+    }
+  return 0;
+}
+
+/* Pre calculations common to all variants of the T test */
+static void 
+common_precalc (void)
+{
+  int i=0;
+  
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      struct t_test_proc *ttp;
+      ttp= &cmd.v_variables[i]->p.t_t;
+      
+      ttp->sum=0;
+      ttp->n=0;
+      ttp->ssq=0;
+      ttp->sum_diff=0;
+    }
+}
+
+/* Post calculations common to all variants of the T test */
+void 
+common_postcalc (void)
+{
+  int i=0;
+
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      struct t_test_proc *ttp;
+      ttp= &cmd.v_variables[i]->p.t_t;
+      
+      ttp->mean=ttp->sum / ttp->n;
+      ttp->std_dev= sqrt(
+			 ttp->n/(ttp->n-1) *
+			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+			 ) ;
+
+      ttp->se_mean = ttp->std_dev / sqrt(ttp->n);
+
+      ttp->mean_diff= ttp->sum_diff / ttp->n;
+    }
+}
+
+/* Per case calculations for one sample t test  */
+static int 
+one_sample_calc (struct ccase *c)
+{
+  int i;
+
+  double weight = dict_get_case_weight(default_dict,c);
+
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      struct t_test_proc *ttp;
+      struct variable *v = cmd.v_variables[i];
+      union value *val = &c->data[v->fv];
+
+      ttp= &cmd.v_variables[i]->p.t_t;
+      
+      if (val->f != SYSMIS) 
+	ttp->sum_diff += weight * fabs(val->f - cmd.n_testval);
+    }
+
+  return 0;
+}
+
+/* Pre calculations for one sample t test */
+static void 
+one_sample_precalc (void)
+{
+  int i=0;
+  
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      struct t_test_proc *ttp;
+      ttp= &cmd.v_variables[i]->p.t_t;
+      
+      ttp->sum_diff=0;
+    }
+}
+
+/* Post calculations for one sample t test */
+static void 
+one_sample_postcalc (void)
+{
+  int i=0;
+  
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      struct t_test_proc *ttp;
+      ttp= &cmd.v_variables[i]->p.t_t;
+
+      
+      ttp->mean_diff = ttp->sum_diff / ttp->n ;
+    }
 }

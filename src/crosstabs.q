@@ -38,7 +38,6 @@
 #include "alloc.h"
 #include "hash.h"
 #include "pool.h"
-#include "dcdflib/cdflib.h"
 #include "command.h"
 #include "lexer.h"
 #include "error.h"

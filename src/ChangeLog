@@ -1,3 +1,7 @@
+Wed Feb  4 15:34:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q: Added calculations for the one sample variant of the T-TEST
+
 Tue Feb  3 20:09:54 2004  Ben Pfaff  <blp@gnu.org>
 
 	* tab.c: (render_strip) Fix bug that sometimes caused joined text
