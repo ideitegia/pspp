@@ -2871,6 +2871,28 @@ load_font (struct outp_driver *this, const char *dit)
   return fe;
 }
 
+
+void ps_chart_initialise(struct outp_class *c UNUSED, 
+			    struct chart *ch UNUSED);
+
+void ps_chart_finalise(struct outp_class *c UNUSED, 
+			  struct chart *ch UNUSED);
+
+
+void
+ps_chart_initialise(struct outp_class *c UNUSED, struct chart *ch )
+{
+  msg(MW, _("Charts are currently unsupported with postscript drivers."));
+  ch->lp = 0;
+}
+
+void 
+ps_chart_finalise(struct outp_class *c UNUSED, struct chart *ch UNUSED)
+{
+  
+}
+
+
 /* PostScript driver class. */
 struct outp_class postscript_class =
 {
@@ -2911,8 +2933,8 @@ struct outp_class postscript_class =
   ps_text_metrics,
   ps_text_draw,
 
-  NULL,
-  NULL
+  ps_chart_initialise,
+  ps_chart_finalise
 };
 
 /* EPSF driver class.  FIXME: Probably doesn't work right. */
@@ -2955,8 +2977,9 @@ struct outp_class epsf_class =
   ps_text_metrics,
   ps_text_draw,
 
-  NULL,
-  NULL
+  ps_chart_initialise,
+  ps_chart_finalise
+
 };
 
 #endif /* NO_POSTSCRIPT */

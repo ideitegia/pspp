@@ -188,7 +188,8 @@ chart_submit(struct chart *chart)
 {
   struct som_entity s;
 
-  assert(chart);
+  if ( ! chart ) 
+     return ;
 
   pl_restorestate_r(chart->lp);
 

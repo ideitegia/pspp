@@ -212,6 +212,9 @@ boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
   double y_tick;
   double d;
 
+  if ( !ch ) 
+     return ;
+
   ch->y_max  = y_max;
   ch->y_min  = y_min;
 

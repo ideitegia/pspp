@@ -1777,7 +1777,7 @@ box_plot_group(const struct factor *fctr,
 				   s);
 	    }
 	}
-      else
+      else if ( ch )
 	{
 	  const double box_width = (ch->data_right - ch->data_left) / 3.0;
 	  const double box_centre = (ch->data_right + ch->data_left) / 2.0;
