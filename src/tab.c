@@ -252,11 +252,6 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
   int y;
 
   assert (t != NULL);
-  assert (x  > 0);
-  assert (x  < t->nc);
-  assert (y1 >= 0);
-  assert (y2 >= y1);
-  assert (y2 <=  t->nr);
 
 #if GLOBAL_DEBUGGING
   if (x + t->col_ofs < 0 || x + t->col_ofs > t->nc
@@ -277,6 +272,12 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
   y1 += t->row_ofs;
   y2 += t->row_ofs;
 
+  assert (x  > 0);
+  assert (x  < t->nc);
+  assert (y1 >= 0);
+  assert (y2 >= y1);
+  assert (y2 <=  t->nr);
+
   if (style != -1)
     {
       if ((style & TAL_SPACING) == 0)
@@ -295,15 +296,15 @@ tab_hline (struct tab_table * t, int style, int x1, int x2, int y)
 
   assert (t != NULL);
 
+  x1 += t->col_ofs;
+  x2 += t->col_ofs;
+  y += t->row_ofs;
+
   assert (y >= 0);
   assert (y < t->nr);
   assert (x2 >= x1 );
   assert (x1 >= 0 );
   assert (x2 < t->nc);
-
-  x1 += t->col_ofs;
-  x2 += t->col_ofs;
-  y += t->row_ofs;
 
   if (style != -1)
     {
@@ -326,13 +327,6 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
 {
   assert (t != NULL);
 
-  assert (x2 >= x1);
-  assert (y2 >= y1);
-  assert (x1 >= 0);
-  assert (y1 >= 0);
-  assert (x2 < t->nc);
-  assert (y2 < t->nr);
-
 #if GLOBAL_DEBUGGING
   if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= t->nc 
       || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= t->nc
@@ -354,6 +348,13 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
   x2 += t->col_ofs;
   y1 += t->row_ofs;
   y2 += t->row_ofs;
+
+  assert (x2 >= x1);
+  assert (y2 >= y1);
+  assert (x1 >= 0);
+  assert (y1 >= 0);
+  assert (x2 < t->nc);
+  assert (y2 < t->nr);
 
   if (f_h != -1)
     {
@@ -689,12 +690,12 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 
   assert (table != NULL && text != NULL);
 
-  assert (x1 >= 0);
-  assert (y1 >= 0);
+  assert (x1 + table->col_ofs >= 0);
+  assert (y1 + table->row_ofs >= 0);
   assert (y2 >= y1);
   assert (x2 >= x1);
-  assert (y2 < table->nr);
-  assert (x2 < table->nc);
+  assert (y2 + table->row_ofs < table->nr);
+  assert (x2 + table->col_ofs < table->nc);
 
 #if GLOBAL_DEBUGGING
   if (x1 + table->col_ofs < 0 || x1 + table->col_ofs >= table->nc

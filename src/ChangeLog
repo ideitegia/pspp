@@ -1,3 +1,11 @@
+Sat Mar 20 22:19:08 2004  Ben Pfaff  <blp@gnu.org>
+
+	* tab.c: (tab_vline) Fix assertions to respect row_ofs and
+	col_ofs.
+	(tab_hline) Ditto.
+	(tab_box) Ditto.
+	(tab_joint_text) Ditto.
+
 Sat Mar 20 17:57:23 2004  Ben Pfaff  <blp@gnu.org>
 
 	* levene.c: Add #include.
