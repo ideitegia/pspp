@@ -28,6 +28,8 @@
 #include "glob.h"
 #include "lexer.h"
 #include "output.h"
+#include "version.h"
+#include <signal.h>
 
 #include <stdlib.h>
 
@@ -46,6 +48,10 @@ int finished;
 /* The current date in the form DD MMM YYYY. */
 char curdate[12];
 
+
+/* If a segfault happens, issue a message to that effect and halt */
+void bug_handler(int sig);
+
 /* Whether we're dropping down to interactive mode immediately because
    we hit end-of-file unexpectedly (or whatever). */
 int start_interactive;
@@ -54,6 +60,11 @@ int start_interactive;
 int
 main (int argc, char **argv)
 {
+  struct sigaction bug ;
+  bug.sa_handler = bug_handler;
+
+  sigaction(SIGSEGV, &bug,0);
+
   /* Initialization. */
   if (!outp_init ())
     err_hcf (0);
@@ -153,3 +164,43 @@ handle_error (int code)
   else
     lex_discard_line ();
 }
+
+
+
+/* If a segfault happens, issue a message to that effect and halt */
+void 
+bug_handler(int sig UNUSED)
+{
+  fprintf(stderr,
+	  "******************************************************************\n"
+	  "You have discovered a bug in PSPP.\n\n"
+	  "  Please report this, by sending "
+	  "an email to " PACKAGE_BUGREPORT ",\n"
+	  "explaining what you were doing when this happened, and including\n"
+	  "a sample of your input file which caused it.\n");
+
+  fprintf(stderr,
+	  "Also, please copy the following lines into your bug report:\n\n"
+	  "bare_version:        %s\n" 
+	  "version:             %s\n"
+	  "stat_version:        %s\n"
+	  "host_system:         %s\n"
+	  "build_system:        %s\n"
+	  "default_config_path: %s\n"
+	  "include_path:        %s\n"
+	  "groff_font_path:     %s\n"
+	  "locale_dir:          %s\n"
+	  "******************************************************************\n",
+	  bare_version,         
+	  version,
+	  stat_version,
+	  host_system,        
+	  build_system,
+	  default_config_path,
+	  include_path, 
+	  groff_font_path,
+	  locale_dir);     
+
+  exit(-1);
+}
+
