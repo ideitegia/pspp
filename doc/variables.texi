@@ -383,7 +383,7 @@ procedure-like command is executed.  The variables contained in the
 vectors remain, unless they are scratch variables (@pxref{Scratch
 Variables}).
 
-Variables within a vector may be references in expressions using
+Variables within a vector may be referenced in expressions using
 @code{vector(index)} syntax.
 
 @node WRITE FORMATS,  , VECTOR, Variable Attributes
