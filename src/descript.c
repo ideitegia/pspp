@@ -142,7 +142,7 @@ struct dsc_proc
     /* Accumulated results. */
     double missing_listwise;    /* Sum of weights of cases missing listwise. */
     double valid;               /* Sum of weights of valid cases. */
-    int bad_weight;             /* Nonzero if a bad weight has been found. */
+    int bad_warn;               /* Warn if bad weight found. */
     enum dsc_statistic sort_by_stat; /* Statistic to sort by; -1: name. */
     int sort_ascending;         /* !0: ascending order; 0: descending. */
     unsigned long show_stats;   /* Statistics to display. */
@@ -189,7 +189,7 @@ cmd_descriptives (void)
   dsc->format = DSC_LINE;
   dsc->missing_listwise = 0.;
   dsc->valid = 0.;
-  dsc->bad_weight = 0;
+  dsc->bad_warn = 1;
   dsc->sort_by_stat = DSC_NONE;
   dsc->sort_ascending = 1;
   dsc->show_stats = dsc->calc_stats = DEFAULT_STATS;
@@ -386,10 +386,6 @@ cmd_descriptives (void)
 
   /* Data pass. */
   multipass_procedure_with_splits (calc_descriptives, dsc);
-  if (dsc->bad_weight)
-    msg (SW, _("At least one case in the data file had a weight value "
-               "that was system-missing, zero, or negative.  These case(s) "
-               "were ignored."));
 
   /* Z-scoring! */
   if (z_cnt)
@@ -661,13 +657,10 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
   reader = casefile_get_reader (cf);
   while (casereader_read (reader, &c)) 
     {
-      double weight = dict_get_case_weight (default_dict, c);
+      double weight = dict_get_case_weight (default_dict, c, &dsc->bad_warn);
       if (weight <= 0.0) 
-        {
-          dsc->bad_weight = 1;
           continue;
-        }
-      
+       
       /* Check for missing values. */
       if (listwise_missing (dsc, c)) 
         {
@@ -707,7 +700,8 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
       reader = casefile_get_reader (cf);
       while (casereader_read (reader, &c)) 
         {
-          double weight = dict_get_case_weight (default_dict, c);
+          double weight = dict_get_case_weight (default_dict, c, 
+						&dsc->bad_warn);
           if (weight <= 0.0)
             continue;
       

@@ -584,8 +584,10 @@ precalc (void *aux UNUSED)
 static int
 calc_general (struct ccase *c, void *aux UNUSED)
 {
+  int bad_warn = 1;
+
   /* Case weight. */
-  double weight = dict_get_case_weight (default_dict, c);
+  double weight = dict_get_case_weight (default_dict, c, &bad_warn);
 
   /* Flattened current table index. */
   int t;
@@ -656,8 +658,10 @@ calc_general (struct ccase *c, void *aux UNUSED)
 static int
 calc_integer (struct ccase *c, void *aux UNUSED)
 {
+  int bad_warn = 1;
+
   /* Case weight. */
-  double weight = dict_get_case_weight (default_dict, c);
+  double weight = dict_get_case_weight (default_dict, c, &bad_warn);
   
   /* Flattened current table index. */
   int t;

@@ -794,8 +794,9 @@ accumulate_aggregate_info (struct agr_proc *agr,
 {
   struct agr_var *iter;
   double weight;
+  int bad_warn = 1;
 
-  weight = dict_get_case_weight (default_dict, input);
+  weight = dict_get_case_weight (default_dict, input, &bad_warn);
 
   for (iter = agr->vars; iter; iter = iter->next)
     if (iter->src)

@@ -208,7 +208,7 @@ static  int mode;
 
 static struct cmd_t_test cmd;
 
-
+static int bad_weight_warn;
 
 int
 cmd_t_test(void)
@@ -295,6 +295,8 @@ cmd_t_test(void)
     value_is_missing = is_system_missing;
   else
     value_is_missing = is_missing;
+
+  bad_weight_warn = 1;
 
   multipass_procedure_with_splits (calculate, &cmd);
 
@@ -1303,7 +1305,7 @@ common_calc (const struct ccase *c, void *_cmd)
   int i;
   struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;  
 
-  double weight = dict_get_case_weight(default_dict,c);
+  double weight = dict_get_case_weight(default_dict,c,&bad_weight_warn);
 
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
@@ -1403,7 +1405,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
   struct cmd_t_test *cmd = (struct cmd_t_test *)cmd_;
 
 
-  double weight = dict_get_case_weight(default_dict,c);
+  double weight = dict_get_case_weight(default_dict,c,&bad_weight_warn);
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
   if ( cmd->miss == TTS_LISTWISE ) 
@@ -1512,7 +1514,7 @@ paired_calc (const struct ccase *c, void *cmd_)
 
   struct cmd_t_test *cmd  = (struct cmd_t_test *) cmd_;
 
-  double weight = dict_get_case_weight(default_dict,c);
+  double weight = dict_get_case_weight(default_dict,c,&bad_weight_warn);
 
   /* Skip the entire case if /MISSING=LISTWISE is set , 
    AND one member of a pair is missing */
@@ -1676,7 +1678,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 
   const union value *gv = &c->data[indep_var->fv];
 
-  const double weight = dict_get_case_weight(default_dict,c);
+  const double weight = dict_get_case_weight(default_dict,c,&bad_weight_warn);
 
   if ( value_is_missing(gv,indep_var) )
     {

@@ -558,11 +558,14 @@ dict_get_weight (const struct dictionary *d)
   return d->weight;
 }
 
-/* Returns the value of D's weighting variable in case C, except
-   that a negative weight is returned as 0.  Returns 1 if the
-   dictionary is unweighted. */
+/* Returns the value of D's weighting variable in case C, except that a
+   negative weight is returned as 0.  Returns 1 if the dictionary is
+   unweighted. Will warn about missing, negative, or zero values if
+   warn_on_invalid is nonzero. The function will set warn_on_invalid to zero
+   if an invalid weight is found. */
 double
-dict_get_case_weight (const struct dictionary *d, const struct ccase *c)
+dict_get_case_weight (const struct dictionary *d, const struct ccase *c, 
+		      int *warn_on_invalid)
 {
   assert (d != NULL);
   assert (c != NULL);
@@ -572,8 +575,14 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c)
   else 
     {
       double w = c->data[d->weight->fv].f;
-      if (w < 0.0)
+      if ( w < 0.0 || w == SYSMIS || is_num_user_missing(w, d->weight) )
         w = 0.0;
+      if ( w == 0.0 && *warn_on_invalid ) {
+	  *warn_on_invalid = 0;
+	  msg (SW, _("At least one case in the data file had a weight value "
+		     "that was user-missing, system-missing, zero, or "
+		     "negative.  These case(s) were ignored."));
+      }
       return w;
     }
 }

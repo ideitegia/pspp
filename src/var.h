@@ -301,7 +301,8 @@ int dict_rename_vars (struct dictionary *,
                       size_t count, char **err_name);
 
 struct variable *dict_get_weight (const struct dictionary *);
-double dict_get_case_weight (const struct dictionary *, const struct ccase *);
+double dict_get_case_weight (const struct dictionary *, 
+			     const struct ccase *, int *);
 void dict_set_weight (struct dictionary *, struct variable *);
 
 struct variable *dict_get_filter (const struct dictionary *);

@@ -370,8 +370,9 @@ calc (struct ccase *c, void *aux UNUSED)
 {
   double weight;
   int i;
+  int bad_warn = 1;
 
-  weight = dict_get_case_weight (default_dict, c);
+  weight = dict_get_case_weight (default_dict, c, &bad_warn);
 
   for (i = 0; i < n_variables; i++)
     {
