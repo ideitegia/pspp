@@ -1,3 +1,15 @@
+Tue Mar 30 22:04:19 2004  Ben Pfaff  <blp@gnu.org>
+
+	* vfm.c: Had to get last call to multipass_split_output() inside
+	open_active_file()/close_active_file() pairing, so introduce new
+	function.
+	(internal_procedure) Move procedure() code here, except for calls
+	to open_active_file() and close_active_file().
+	(procedure) Wrap open_active_file() and close_active_file() around
+	internal_procedure().
+	(multipass_procedure_with_splits) Wrap open_active_file() and
+	close_active_file() around internal_procedure().
+
 Tue Mar 30 22:01:57 2004  Ben Pfaff  <blp@gnu.org>
 
 	* descript.c: (cmd_descriptives) Free `vars' to avoid memory leak.

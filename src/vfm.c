@@ -83,6 +83,8 @@ static int lag_count;		/* Number of cases in lag_queue so far. */
 static int lag_head;		/* Index where next case will be added. */
 static struct ccase **lag_queue; /* Array of n_lag ccase * elements. */
 
+static void internal_procedure (int (*proc_func) (struct ccase *, void *),
+                                void *aux);
 static struct ccase *create_trns_case (struct dictionary *);
 static void open_active_file (void);
 static int write_case (struct write_case_data *wc_data);
@@ -123,6 +125,17 @@ static void close_active_file (void);
 void
 procedure (int (*proc_func) (struct ccase *, void *), void *aux)
 {
+  open_active_file ();
+  internal_procedure (proc_func, aux);
+  close_active_file ();
+}
+
+/* Executes a procedure, as procedure(), except that the caller
+   is responsible for calling open_active_file() and
+   close_active_file(). */
+static void
+internal_procedure (int (*proc_func) (struct ccase *, void *), void *aux) 
+{
   static int recursive_call;
 
   struct write_case_data wc_data;
@@ -137,12 +150,10 @@ procedure (int (*proc_func) (struct ccase *, void *), void *aux)
 
   last_vfm_invocation = time (NULL);
 
-  open_active_file ();
   if (vfm_source != NULL) 
     vfm_source->class->read (vfm_source,
                              wc_data.trns_case,
                              write_case, &wc_data);
-  close_active_file ();
 
   free (wc_data.sink_case);
   free (wc_data.trns_case);
@@ -868,16 +879,19 @@ multipass_procedure_with_splits (void (*split_func) (const struct casefile *,
 
   assert (split_func != NULL);
 
+  open_active_file ();
+
   aux.prev_case = xmalloc (dict_get_case_size (default_dict));
   aux.casefile = NULL;
   aux.split_func = split_func;
   aux.func_aux = func_aux;
-  
-  procedure (multipass_split_callback, &aux);
 
+  internal_procedure (multipass_split_callback, &aux);
   if (aux.casefile != NULL)
     multipass_split_output (&aux);
   free (aux.prev_case);
+
+  close_active_file ();
 }
 
 /* procedure() callback used by multipass_procedure_with_splits(). */
