@@ -205,7 +205,7 @@ struct variable
     struct fmt_spec write;	/* Default format for WRITE. */
 
     /* Labels. */
-    struct val_labs *val_labs;
+    struct val_labs *val_labs;  /* Value labels. */
     char *label;		/* Variable label. */
 
     /* Per-procedure info. */
