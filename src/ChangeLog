@@ -1,3 +1,33 @@
+Mon Apr 26 22:40:07 2004  Ben Pfaff  <blp@gnu.org>
+
+	We're abusing the current ASCII driver by telling it to allocate a
+	9999-line, 9999-character page in the tests.  This causes some
+	systems to curl up and die because it allocates 20 MB of
+	contiguous RAM.  This change alleviates at least part of the
+	problem.  It is mostly a stop-gap until the new output system is
+	ready.
+	
+	* ascii.c: (struct line) New structure.
+	(struct ascii_driver_ext) Remove `page', `page_size', `line_len',
+	`line_len_size', `n_output' members.  Add `lines', `lines_cap'.
+	(ascii_preopen_driver) Initialize new members, not old ones.
+	(ascii_close_driver) Destroy new members, not old ones.
+	(ascii_open_page) Allocate new members, not old ones.
+	(expand_line) Allocate room in line.
+	(draw_line) Use new members.
+	(ascii_line_horz) Ditto.
+	(ascii_line_vert) Ditto.
+	(ascii_line_intersection) Ditto.
+	(text_draw) Ditto.
+	(output_lines) Ditto.
+	(ascii_close_page) Ditto.
+
+Sun Apr 25 23:40:15 2004  Ben Pfaff  <blp@gnu.org>
+
+	* matrix.c: Dead code.  Removed.
+
+	* matrix.h: Dead code.  Removed.
+
 Fri Apr 16 23:59:51 2004  Ben Pfaff  <blp@gnu.org>
 
 	Contrary to what I'd always understood, there is an efficient

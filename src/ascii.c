@@ -141,6 +141,14 @@ enum
     FSTY_COUNT = 6		/* Number of font styles. */
   };
 
+/* A line of text. */
+struct line 
+  {
+    unsigned short *chars;      /* Characters and attributes. */
+    int char_cnt;               /* Length. */
+    int char_cap;               /* Allocated bytes. */
+  };
+
 /* ASCII output driver extension record. */
 struct ascii_driver_ext
   {
@@ -167,12 +175,9 @@ struct ascii_driver_ext
     /* Internal state. */
     struct file_ext file;	/* Output file. */
     int page_number;		/* Current page number. */
-    unsigned short *page;	/* Page content. */
-    int page_size;		/* Number of bytes allocated for page, attr. */
-    int *line_len;		/* Length of each line in page, attr. */
-    int line_len_size;		/* Number of ints allocated for line_len. */
+    struct line *lines;         /* Page content. */
+    int lines_cap;              /* Number of lines allocated. */
     int w, l;			/* Actual width & length w/o margins, etc. */
-    int n_output;		/* Number of lines output so far. */
     int cur_font;		/* Current font by OUTP_F_*. */
 #if GLOBAL_DEBUGGING
     int debug;			/* Set by som_text_draw(). */
@@ -246,11 +251,8 @@ ascii_preopen_driver (struct outp_driver *this)
   x->file.postopen = postopen;
   x->file.preclose = preclose;
   x->page_number = 0;
-  x->page = NULL;
-  x->page_size = 0;
-  x->line_len = NULL;
-  x->line_len_size = 0;
-  x->n_output = 0;
+  x->lines = NULL;
+  x->lines_cap = 0;
   x->cur_font = OUTP_F_R;
 #if GLOBAL_DEBUGGING
   x->debug = 0;
@@ -392,8 +394,14 @@ ascii_close_driver (struct outp_driver *this)
   msg (VM (2), _("%s: Beginning closing..."), this->name);
   
   x = this->ext;
-  free (x->page);
-  free (x->line_len);
+  if (x->lines != NULL) 
+    {
+      int line;
+      
+      for (line = 0; line < x->lines_cap; line++) 
+        free (x->lines[line].chars);
+      free (x->lines); 
+    }
   fn_close_ext (&x->file);
   free (x->file.filename);
   free (x);
@@ -679,7 +687,7 @@ static int
 ascii_open_page (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
-  int req_page_size;
+  int i;
 
   assert (this->driver_open && !this->page_open);
   x->page_number++;
@@ -690,21 +698,20 @@ ascii_open_page (struct outp_driver *this)
       return 0;
     }
 
-  req_page_size = x->w * x->l;
-  if (req_page_size > x->page_size || req_page_size / 2 < x->page_size)
+  if (x->l > x->lines_cap)
     {
-      x->page_size = req_page_size;
-      x->page = xrealloc (x->page, sizeof *x->page * req_page_size);
+      x->lines = xrealloc (x->lines, sizeof *x->lines * x->l);
+      for (i = x->lines_cap; i < x->l; i++) 
+        {
+          struct line *line = &x->lines[i];
+          line->chars = NULL;
+          line->char_cap = 0;
+        }
+      x->lines_cap = x->l;
     }
 
-  if (x->l > x->line_len_size)
-    {
-      x->line_len_size = x->l;
-      x->line_len = xrealloc (x->line_len,
-			      sizeof *x->line_len * x->line_len_size);
-    }
-
-  memset (x->line_len, 0, sizeof *x->line_len * x->l);
+  for (i = 0; i < x->l; i++)
+    x->lines[i].char_cnt = 0;
 
   this->page_open = 1;
   return 1;
@@ -715,18 +722,26 @@ ascii_open_page (struct outp_driver *this)
 static inline void
 expand_line (struct ascii_driver_ext *x, int i, int l)
 {
-  int limit = i * x->w + l;
+  struct line *line;
   int j;
 
-  for (j = i * x->w + x->line_len[i]; j < limit; j++)
-    x->page[j] = ' ';
-  x->line_len[i] = l;
+  assert (i < x->lines_cap);
+  line = &x->lines[i];
+  if (l > line->char_cap) 
+    {
+      line->char_cap = l * 2;
+      line->chars = xrealloc (line->chars,
+                              line->char_cap * sizeof *line->chars); 
+    }
+  for (j = line->char_cnt; j < l; j++)
+    line->chars[j] = ' ';
+  line->char_cnt = l;
 }
 
 /* Puts line L at (H,K) in the current output page.  Assumes
    struct ascii_driver_ext named `ext'. */
 #define draw_line(H, K, L) 				\
-	ext->page[ext->w * (K) + (H)] = (L) | 0x800
+        ext->lines[K].chars[H] = (L) | 0x800
 
 /* Line styles for each position. */
 #define T(STYLE) (STYLE<<LNS_TOP)
@@ -761,7 +776,7 @@ ascii_line_horz (struct outp_driver *this, const struct rect *r,
     }
 #endif
 
-  if (ext->line_len[y1] < x2)
+  if (ext->lines[y1].char_cnt < x2)
     expand_line (ext, y1, x2);
 
   for (x = x1; x < x2; x++)
@@ -796,7 +811,7 @@ ascii_line_vert (struct outp_driver *this, const struct rect *r,
 #endif
 
   for (y = y1; y < y2; y++)
-    if (ext->line_len[y] <= x1)
+    if (ext->lines[y].char_cnt <= x1)
       expand_line (ext, y, x1 + 1);
 
   for (y = y1; y < y2; y++)
@@ -828,7 +843,7 @@ ascii_line_intersection (struct outp_driver *this, const struct rect *r,
   l = ((style->l << LNS_LEFT) | (style->r << LNS_RIGHT)
        | (style->t << LNS_TOP) | (style->b << LNS_BOTTOM));
 
-  if (ext->line_len[y] <= x)
+  if (ext->lines[y].char_cnt <= x)
     expand_line (ext, y, x + 1);
   draw_line (x, y, l);
 }
@@ -1086,7 +1101,7 @@ text_draw (struct outp_driver *this, struct outp_text *t)
   unsigned attr = ext->cur_font << 8;
 
   int x = t->x;
-  int y = t->y * ext->w;
+  int y = t->y;
 
   char *s = ls_value (&t->s);
 
@@ -1111,7 +1126,7 @@ text_draw (struct outp_driver *this, struct outp_text *t)
   if (!(t->y < ext->l && x < ext->w))
     return;
   min_len = min (x + ls_length (&t->s), ext->w);
-  if (ext->line_len[t->y] < min_len)
+  if (ext->lines[t->y].char_cnt < min_len)
     expand_line (ext, t->y, min_len);
 
   {
@@ -1120,7 +1135,7 @@ text_draw (struct outp_driver *this, struct outp_text *t)
     if (len + x > ext->w)
       len = ext->w - x;
     while (len--)
-      ext->page[y + x++] = *s++ | attr;
+      ext->lines[y].chars[x++] = *s++ | attr;
   }
 }
 
@@ -1356,8 +1371,9 @@ output_lines (struct outp_driver *this, int first, int count)
   /* Iterate over all the lines to be output. */
   for (line_num = first; line_num < first + count; line_num++)
     {
-      unsigned short *p = &ext->page[ext->w * line_num];
-      unsigned short *end_p = p + ext->line_len[line_num];
+      struct line *line = &ext->lines[line_num];
+      unsigned short *p = line->chars;
+      unsigned short *end_p = p + line->char_cnt;
       unsigned short *bp, *ep;
       unsigned short attr = 0;
 
@@ -1367,8 +1383,8 @@ output_lines (struct outp_driver *this, int first, int count)
          requested. */
       if (ext->squeeze_blank_lines
           && line_num > first
-          && ext->line_len[line_num] == 0
-          && ext->line_len[line_num - 1] == 0)
+          && ext->lines[line_num].char_cnt == 0
+          && ext->lines[line_num - 1].char_cnt == 0)
         continue;
 
       /* Output every character in the line in the appropriate
@@ -1576,7 +1592,7 @@ ascii_close_page (struct outp_driver *this)
   if (line_p != line_buf && !commit_line_buf (this))
     return 0;
 
-  output_lines (this, x->n_output, x->l - x->n_output);
+  output_lines (this, 0, x->l);
 
   ff_len = ls_length (&x->ops[OPS_FORMFEED]);
   total_len = x->bottom_margin * nl_len + ff_len;
@@ -1593,8 +1609,6 @@ ascii_close_page (struct outp_driver *this)
   if (line_p != line_buf && !commit_line_buf (this))
     return 0;
 
-  x->n_output = 0;
-  
   this->page_open = 0;
   return 1;
 }
