@@ -29,8 +29,6 @@
 #include "magic.h"
 #include "str.h"
 #include "var.h"
-
-#include "debug-print.h"
 
 /* Definitions. */
 
@@ -108,19 +106,8 @@ static int parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 static trns_proc_func recode_trns_proc;
 static trns_free_func recode_trns_free;
 static double convert_to_double (char *, int);
-
-#if DEBUGGING
-static void debug_print (struct rcd_var * head);
-#endif
 
 /* Parser. */
-
-/* First transformation in the list.  rcd is in this list. */
-static struct rcd_var *head;
-
-/* Variables in the current part of the recoding. */
-struct variable **v;
-int nv;
 
 /* Parses the RECODE transformation. */
 int
@@ -148,10 +135,18 @@ cmd_recode (void)
      rcd_var's. */
   struct recode_trns *trns;
 
+  /* First transformation in the list.  rcd is in this list. */
+  struct rcd_var *head;
+
+  /* Variables in the current part of the recoding. */
+  struct variable **v;
+  int nv;
+
   lex_match_id ("RECODE");
 
   /* Parses each specification between slashes. */
   head = rcd = xmalloc (sizeof *rcd);
+  v = NULL;
   for (;;)
     {
       /* Whether we've already encountered a specification for SYSMIS. */
@@ -402,6 +397,7 @@ cmd_recode (void)
       rcd = rcd->next = xmalloc (sizeof *rcd);
 
       free (v);
+      v = NULL;
     }
 
   if (token != '.')
@@ -429,13 +425,10 @@ cmd_recode (void)
   trns->codings = head;
   add_transformation ((struct trns_header *) trns);
 
-#if DEBUGGING
-  debug_print (head);
-#endif
-
   return CMD_SUCCESS;
 
  lossage:
+  free (v);
   {
     struct recode_trns t;
 
@@ -824,112 +817,6 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
 
   return -1;
 }
-
-/* Debug output. */
-
-#if DEBUGGING
-static void
-dump_dest (struct rcd_var * v, union value * c)
-{
-  if ((v->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-    if (c->f == SYSMIS)
-      printf ("=SYSMIS");
-    else if (c->f == -SYSMIS)
-      printf ("=COPY");
-    else
-      printf ("=%g", c->f);
-  else if (c->c)
-    printf ("=\"%s\"", c->c);
-  else
-    printf ("=COPY");
-}
-
-static void
-debug_print (struct rcd_var * head)
-{
-  struct rcd_var *iter, *start;
-  struct coding *c;
-
-  printf ("RECODE\n");
-  for (iter = head; iter; iter = iter->next)
-    {
-      start = iter;
-      printf ("  %s%s", iter == head ? "" : "/", iter->src->name);
-      while (iter->next && (iter->next->flags & RCD_MISC_DUPLICATE))
-	{
-	  iter = iter->next;
-	  printf (" %s", iter->src->name);
-	}
-      if (iter->has_sysmis)
-	{
-	  printf ("(SYSMIS");
-	  dump_dest (iter, &iter->sysmis);
-	  printf (")");
-	}
-      for (c = iter->map; c->type != RCD_END; c++)
-	{
-	  printf ("(");
-	  if ((iter->flags & RCD_SRC_MASK) == RCD_SRC_NUMERIC)
-	    switch (c->type)
-	      {
-	      case RCD_END:
-		printf (_("!!END!!"));
-		break;
-	      case RCD_USER:
-		printf ("MISSING");
-		break;
-	      case RCD_SINGLE:
-		printf ("%g", c->f1.f);
-		break;
-	      case RCD_HIGH:
-		printf ("%g THRU HIGH", c->f1.f);
-		break;
-	      case RCD_LOW:
-		printf ("LOW THRU %g", c->f1.f);
-		break;
-	      case RCD_RANGE:
-		printf ("%g THRU %g", c->f1.f, c->f2.f);
-		break;
-	      case RCD_ELSE:
-		printf ("ELSE");
-		break;
-	      default:
-		printf (_("!!ERROR!!"));
-		break;
-	      }
-	  else
-	    switch (c->type)
-	      {
-	      case RCD_SINGLE:
-		printf ("\"%s\"", c->f1.c);
-		break;
-	      case RCD_ELSE:
-		printf ("ELSE");
-		break;
-	      case RCD_CONVERT:
-		printf ("CONVERT");
-		break;
-	      default:
-		printf (_("!!ERROR!!"));
-		break;
-	      }
-	  if (c->type != RCD_CONVERT)
-	    dump_dest (iter, &c->t);
-	  printf (")");
-	}
-      printf ("\n    INTO");
-      for (;;)
-	{
-	  printf (" %s",
-		start->dest_name[0] ? start->dest_name : start->dest->name);
-	  if (start == iter)
-	    break;
-	  start = start->next;
-	}
-      printf ("\n");
-    }
-}
-#endif
 
 /* Convert NPTR to a `long int' in base 10.  Returns the long int on
    success, NOT_LONG on failure.  On success stores a pointer to the

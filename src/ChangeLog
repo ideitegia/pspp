@@ -1,3 +1,15 @@
+Mon Mar 15 00:25:02 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static, global vars in recode.c.  Remove debug code.
+
+	* recode.c: (static var head) Removed.
+	(global var v) Removed.
+	(global var nv) Removed.
+	(cmd_recode) New local variables head, v, nv.  Initialize and free
+	v.  Don't call debug_print().
+	[DEBUGGING] (dump_dest) Removed.
+	[DEBUGGING] (debug_print) Removed.
+
 Mon Mar 15 00:14:49 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static vars in expr-opt.c.
