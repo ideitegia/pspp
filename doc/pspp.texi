@@ -7934,7 +7934,7 @@ which you wish to test.
 In this mode, you must also use the @cmd{/VARIABLES} subcommand to
 tell PSPP which variables you wish to test.
 
-@node Independent Samples Mode, Paired Samples Mode, T-TEST, T-TEST
+@node Independent Samples Mode, Paired Samples Mode, One Sample Mode, T-TEST
 @comment  node-name,  next,  previous,  up
 @subsection Independent Samples Mode
 
