@@ -258,7 +258,7 @@ init_glob (int argc unused, char **argv)
   set_nullline = 1;
   set_more = 1;
   set_prompt = xstrdup ("PSPP> ");
-  set_seed = 2000000;
+  set_seed = NOT_LONG;
 
 #if __DJGPP__ || __BORLANDC__
   {

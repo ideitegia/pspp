@@ -46,11 +46,16 @@ struct rng *
 rng_create (void) 
 {
   struct rng *rng;
-  static time_t t;
+  static time_t t=0;
 
   rng = xmalloc (sizeof *rng);
-  if (t == 0)
-    time (&t);
+  if (t == 0 || set_seed == NOT_LONG)
+  {
+    if (set_seed == NOT_LONG) 
+      time (&t);
+    else
+      t = set_seed;
+  }
   else
     t++;
   rng_seed (rng, &t, sizeof t);
@@ -157,7 +162,7 @@ rng_get_double (struct rng *rng)
   unsigned long value;
 
   rng_get_bytes (rng, &value, sizeof value);
-  return value / ULONG_MAX;
+  return value / (double) ULONG_MAX;
 }
 
 /* Returns a random number from the distribution with mean 0 and
