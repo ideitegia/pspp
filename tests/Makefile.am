@@ -6,6 +6,7 @@ TESTS = command/aggregate.sh \
 	command/beg-data.sh \
 	command/bignum.sh \
 	command/count.sh \
+	command/compute.sh \
 	command/descriptives.sh \
 	command/file-label.sh \
 	command/flip.sh \
@@ -28,7 +29,7 @@ sort.data: gengarbage$(EXTEXT)
 	./gengarbage | head -1000 > $@
 
 EXTRA_DIST = \
-compute.stat crosstabs.stat data-fmts.stat	\
+crosstabs.stat data-fmts.stat	\
 data-list.data do-if.stat do-repeat.stat	\
 expr.stat filter.stat gengarbage.c		\
 inpt-pgm.stat list.data mtch-file.stat  \

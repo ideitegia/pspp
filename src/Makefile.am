@@ -8,7 +8,7 @@ pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 bin_PROGRAMS = pspp
 
-INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
 -I$(top_srcdir)/intl
 
 DISTCLEANFILES = foo $(q_sources_c)
@@ -47,7 +47,7 @@ stats.c stats.h str.c str.h sysfile-info.c tab.c tab.h temporary.c	\
 title.c t-test.c val-labs.c var-labs.c var.h vars-atr.c vars-prs.c	\
 vector.c vector.h version.c version.h vfm.c vfm.h vfmP.h weight.c
 
-LDADD =	../lib/julcal/libjulcal.a		\
+pspp_LDADD =	../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\
 	../lib/dcdflib/libdcdflib.a		\
 	@LIBINTL@
