@@ -53,17 +53,14 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 printf "Creating input data.  Please wait"
 activity="create data"
-i=0
-while [ $i -lt 100000 ] ; do 
-	echo AB12 >> $TEMPDIR/large.dat;
-	i=$[$i + 1];
-done;
+( while true ; do 
+	echo AB12;
+done )  | head -100000 >> $TEMPDIR/large.dat
+if [ $? -ne 0 ] ; then no_result ; fi
 printf '.'
-i=0
-while [ $i -lt 100000 ] ; do 
-	echo AB04 >> $TEMPDIR/large.dat;
-	i=$[$i + 1];
-done;
+( while true ; do 
+	echo AB04;
+done )  | head -100000 >> $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 printf "\n";
 
@@ -83,21 +80,16 @@ activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/large.sps > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
-
 activity="appending to data"
 # Put another 100,000 cases into large.dat
-i=0
-while [ $i -lt 50000 ] ; do 
-	echo AB04 >> $TEMPDIR/large.dat;
-	echo AB12 >> $TEMPDIR/large.dat;
-	i=$[$i + 1];
-done;
+( while true ; do 
+	echo AB04 
+	echo AB12 
+done )  | head -50000 >> $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/large.sps > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
-
-
 
 pass;
