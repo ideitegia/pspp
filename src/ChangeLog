@@ -1,3 +1,8 @@
+Sat Nov  6 14:49:47 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* oneway.q Fixed problem where oneway wasn't dealing properly with 
+	splits
+
 Thu Nov  4 11:09:01 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* q2c.c examine.q  Fixed a bug (feature?) whereby arrays in the

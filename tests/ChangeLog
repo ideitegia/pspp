@@ -1,3 +1,7 @@
+Sat Nov  6 14:49:27 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* command/oneway-with-splits.sh  Added.
+
 Sun Oct 31 16:08:47 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* bugs/recode-copy-bug.sh bugs/computebug.sh  Fixed problem which 

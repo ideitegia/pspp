@@ -17,6 +17,7 @@ TESTS = \
 	command/loop.sh \
 	command/oneway.sh \
 	command/oneway-missing.sh \
+	command/oneway-with-splits.sh \
 	command/print.sh \
 	command/sample.sh \
 	command/sort.sh \

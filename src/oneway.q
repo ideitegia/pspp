@@ -84,20 +84,23 @@ static int ostensible_number_of_groups=-1;
 static is_missing_func value_is_missing;
 
 
-static void calculate(const struct casefile *cf, void *_mode);
+static void run_oneway(const struct casefile *cf, void *_mode);
 
 
 /* Routines to show the output tables */
 static void show_anova_table(void);
 static void show_descriptives(void);
 static void show_homogeneity(void);
-static void show_contrast_coeffs(void);
-static void show_contrast_tests(void);
+
+static void show_contrast_coeffs(short *);
+static void show_contrast_tests(short *);
 
 
 enum stat_table_t {STAT_DESC = 1, STAT_HOMO = 2};
 
 static enum stat_table_t stat_tables ;
+
+void output_oneway(void);
 
 
 int
@@ -133,7 +136,21 @@ cmd_oneway(void)
 	}
     }
 
-  multipass_procedure_with_splits (calculate, &cmd);
+  multipass_procedure_with_splits (run_oneway, &cmd);
+
+
+  return CMD_SUCCESS;
+}
+
+
+void
+output_oneway(void)
+{
+
+  int i;
+  short *bad_contrast ; 
+
+  bad_contrast = xmalloc ( sizeof (short) * cmd.sbc_contrast );
 
   /* Check the sanity of the given contrast values */
   for (i = 0 ; i < cmd.sbc_contrast ; ++i ) 
@@ -141,12 +158,14 @@ cmd_oneway(void)
       int j;
       double sum = 0;
 
+      bad_contrast[i] = 0;
       if ( subc_list_double_count(&cmd.dl_contrast[i]) != 
 	   ostensible_number_of_groups )
 	{
-	  msg(SE, 
+	  msg(SW, 
 	      _("Number of contrast coefficients must equal the number of groups"));
-	  return CMD_FAILURE;
+	  bad_contrast[i] = 1;
+	  continue;
 	}
 
       for (j=0; j < ostensible_number_of_groups ; ++j )
@@ -164,12 +183,14 @@ cmd_oneway(void)
 
   show_anova_table();
      
-  if (cmd.sbc_contrast)
+  if (cmd.sbc_contrast )
     {
-      show_contrast_coeffs();
-      show_contrast_tests();
+      show_contrast_coeffs(bad_contrast);
+      show_contrast_tests(bad_contrast);
     }
 
+
+  free(bad_contrast);
 
   /* Clean up */
   for (i = 0 ; i < n_vars ; ++i ) 
@@ -181,9 +202,7 @@ cmd_oneway(void)
 
   hsh_destroy(global_group_hash);
 
-  return CMD_SUCCESS;
 }
-
 
 
 
@@ -561,7 +580,7 @@ show_homogeneity(void)
 
 /* Show the contrast coefficients table */
 static void 
-show_contrast_coeffs(void)
+show_contrast_coeffs(short *bad_contrast)
 {
   char *s;
   int n_cols = 2 + ostensible_number_of_groups;
@@ -621,6 +640,7 @@ show_contrast_coeffs(void)
       int i;
       char *lab;
 
+
       lab = val_labs_find(indep_var->val_labs,*group_value);
   
       if ( lab ) 
@@ -632,10 +652,15 @@ show_contrast_coeffs(void)
 
       for (i = 0 ; i < cmd.sbc_contrast ; ++i ) 
 	{
+
 	  tab_text(t, 1, i + 2, TAB_CENTER | TAT_PRINTF, "%d", i + 1);
-	  tab_text(t, count + 2, i + 2, TAB_RIGHT | TAT_PRINTF, "%g", 
-		   subc_list_double_at(&cmd.dl_contrast[i],count)
-		   );
+
+	  if ( bad_contrast[i] ) 
+	    tab_text(t, count + 2, i + 2, TAB_RIGHT, "?" );
+	  else
+	    tab_text(t, count + 2, i + 2, TAB_RIGHT | TAT_PRINTF, "%g", 
+		     subc_list_double_at(&cmd.dl_contrast[i],count)
+		     );
 	}
 	  
       count++ ; 
@@ -648,7 +673,7 @@ show_contrast_coeffs(void)
 
 /* Show the results of the contrast tests */
 static void 
-show_contrast_tests(void)
+show_contrast_tests(short *bad_contrast)
 {
   int v;
   int n_cols = 8;
@@ -746,6 +771,10 @@ show_contrast_tests(void)
 	  tab_text (t,  2, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d",i+1);
 
+
+	  if ( bad_contrast[i]) 
+	    continue;
+
 	  /* FIXME: Potential danger here.
 	     We're ASSUMING THE array is in the order corresponding to the 
 	     hash order. */
@@ -769,16 +798,14 @@ show_contrast_tests(void)
 	    }
 	  sec_vneq = sqrt(sec_vneq);
 
-
 	  df_numerator = pow2(df_numerator);
-	  
 
 	  tab_float (t,  3, (v * lines_per_variable) + i + 1, 
 		     TAB_RIGHT, contrast_value, 8,2);
 
-	  tab_float (t,  3, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
+	  tab_float (t,  3, (v * lines_per_variable) + i + 1 + 
+		     cmd.sbc_contrast,
 		     TAB_RIGHT, contrast_value, 8,2);
-
 
 	  std_error_contrast = sqrt(vars[v]->p.grp_data.mse * coef_msq);
 
@@ -891,7 +918,7 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 
 
 static void 
-calculate(const struct casefile *cf, void *cmd_)
+run_oneway(const struct casefile *cf, void *cmd_)
 {
   struct casereader *r;
   struct ccase c;
@@ -1007,6 +1034,10 @@ calculate(const struct casefile *cf, void *cmd_)
 	   value_is_missing);
 
   ostensible_number_of_groups = hsh_count (global_group_hash);
+
+
+  output_oneway();
+
 
 }
 
