@@ -1,12 +1,16 @@
-# List of source files containing translatable strings.
-# Copyright (C) 1997 Free Software Foundation, Inc.
-
-# Common library files
-lib/misc/strtol.c
-lib/misc/getopt.c
-
-# Package source files
+src/correlations.q
+src/crosstabs.q
+src/descript.q
+src/file-handle.q
+src/frequencies.q
+src/list.q
+src/means.q
+src/set.q
+src/t-test.q
 src/aggregate.c
+src/algorithm.c
+src/alloc.c
+src/apply-dict.c
 src/ascii.c
 src/autorecode.c
 src/cases.c
@@ -25,6 +29,7 @@ src/expr-opt.c
 src/expr-prs.c
 src/file-type.c
 src/filename.c
+src/flip.c
 src/format.c
 src/formats.c
 src/get.c
@@ -38,15 +43,21 @@ src/include.c
 src/inpt-pgm.c
 src/lexer.c
 src/loop.c
+src/magic.c
 src/main.c
+src/matrix-data.c
+src/matrix.c
 src/mis-val.c
 src/misc.c
 src/modify-vars.c
 src/numeric.c
 src/output.c
+src/pfm-read.c
+src/pfm-write.c
+src/pool.c
 src/postscript.c
 src/print.c
-src/q2c.c
+src/random.c
 src/recode.c
 src/rename-vars.c
 src/repeat.c
@@ -64,9 +75,11 @@ src/tab.c
 src/temporary.c
 src/title.c
 src/val-labs.c
+src/value-labels.c
 src/var-labs.c
 src/vars-atr.c
 src/vars-prs.c
 src/vector.c
+src/version.c
 src/vfm.c
 src/weight.c

@@ -1,3 +1,9 @@
+Tue Dec 23 11:35:19 WAST 2003 <john@darrington.wattle.id.au>
+
+	* Updated POTFILES.in
+	* Added --language=c to MakeVars (avoids complaints about .q suffix)
+	* Updated the pspp.pot header
+
 2003-12-13  gettextize  <bug-gnu-gettext@gnu.org>
 
 	* Makefile.in.in: Upgrade to gettext-0.11.5.
