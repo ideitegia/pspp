@@ -7866,6 +7866,7 @@ encountered in the input.
 * EXECUTE::                     Execute pending transformations.
 * FILE LABEL::                  Set the active file's label.
 * FINISH::                      Terminate the PSPP session.
+* HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
 * QUIT::                        Terminate the PSPP session.
 * SET::                         Adjust PSPP runtime parameters.
@@ -7973,7 +7974,7 @@ created during this PSPP run.
 file_label need not be quoted.  If quotes are
 included, they become part of the file label.
 
-@node FINISH, INCLUDE, FILE LABEL, Utilities
+@node FINISH, HOST, FILE LABEL, Utilities
 @section FINISH
 @vindex FINISH
 
@@ -7986,7 +7987,20 @@ control to the operating system.
 
 This command is not valid in interactive mode.
 
-@node INCLUDE, QUIT, FINISH, Utilities
+@node HOST, INCLUDE, FINISH, Utilities
+@comment  node-name,  next,  previous,  up
+@section HOST
+@vindex HOST
+
+@display
+HOST.
+@end display
+
+@cmd{HOST} suspends the current PSPP session and temporarily returns control 
+to the operating system.
+
+
+@node INCLUDE, QUIT, HOST, Utilities
 @section INCLUDE
 @vindex INCLUDE
 @vindex @@
