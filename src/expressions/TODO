@@ -5,8 +5,6 @@ Needed:
     - Warnings on domain errors (see "Domain Errors" in SPSS manual)
       and documentation of such.
 
-    - Test generic optimizations for correctness.
-
     - Finish polishing code.  Many functions need comments.
 
     - Test the remaining statistical distributions.
