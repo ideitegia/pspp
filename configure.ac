@@ -16,9 +16,11 @@ AM_GNU_GETTEXT_VERSION	dnl Prevents autoreconf complaint.
 
 dnl Checks for libraries.
 AC_CHECK_LIB(m, sin)
-AC_CHECK_LIB(gmp, mpf_get_str, [LIBS="-lgmp $LIBS"],
-	     [AC_CHECK_LIB(gmp, __gmpf_get_str, [LIBS="-lgmp $LIBS"])],
-	     AC_MSG_ERROR(`You must install libgmp'))
+AC_CHECK_LIB(gmp, mpf_get_str,,
+	AC_CHECK_LIB(gmp, __gmpf_get_str,,
+          AC_MSG_ERROR([You must install libgmp])
+        )
+)
 
 AC_CHECK_FUNC(getopt_long,,
 	AC_MSG_ERROR(`This application depends upon getopt_long'))
