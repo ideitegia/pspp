@@ -1,3 +1,20 @@
+2004-04-09  Michael Kiefte  <mkiefte@dal.ca>
+
+	* descript.c: 
+
+	fixed problem with parsing in match_statistic() causing
+	"DESCRIPTIVE STAT=MEAN." to barf.
+
+	"MEAN" is now default if "SORT" given without specification.
+
+	Fixed infinite loop with "DESCRIPT GIBBERISH=ALL."  Parsing is
+	generally less forgiving of syntax errors: better to have it do
+	nothing and type it in again then to not know what it actually did
+	instead.  
+
+	z-score transformation now checks score for user-missing values
+	and checks std_dev for SYSMIS.
+
 2004-04-06  Michael Kiefte  <mkiefte@dal.ca>
 
 	* aggregate.c, crosstabs.q, descript.c, dictionary.c, frequencies.q, levene.c, t-test.q, var.h: 
