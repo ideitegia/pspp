@@ -222,7 +222,7 @@ For instance, @code{/NTILES=4} would cause quartiles to be reported.
 
 @display
 EXAMINE
-        VARIABLES=var_list [[BY var_list] [BY var_list]]
+        VARIABLES=var_list [BY factor_list ]
         /STATISTICS=@{DESCRIPTIVES, EXTREME[(n)], ALL, NONE@}
         /PLOT=@{STEMLEAF, BOXPLOT, NPPLOT, SPREADLEVEL(n), HISTOGRAM, 
 	       ALL, NONE@}
@@ -232,10 +232,45 @@ EXAMINE
         /@{TOTAL,NOTOTAL@}
         /MISSING=@{LISTWISE, PAIRWISE@} [@{EXCLUDE, INCLUDE@}] 
 		[@{NOREPORT,REPORT@}]
+
 @end display
 
 The @cmd{EXAMINE} command is used to test how closely a distribution is to a 
 normal distribution.  It also shows you outliers and extreme values.
+
+The VARIABLES subcommand specifies the dependent variables and the
+independent variable to use as factors for the analysis.   Variables
+listed before the first BY keyword are the dependent variables.
+The dependent variables may optionally be followed by a list of
+factors which tell PSPP how to break down the analysis for each
+dependent variable.  The format for each factor is 
+@display
+var [BY var].
+@end display
+
+
+The STATISTICS subcommand specifies the analysis to be done.  
+DESCRIPTIVES will produce a table showing some parametric and
+non-parametrics statistics.  EXTREME produces a table showing extreme
+values of the dependent variable.  A number in parentheses determines
+how many upper and lower extremes to show.  The default number is 5.
+
+
+The PLOT subcommand specifies which plots are to be produced if any.
+
+The CINTERVAL subcommand specifies the confidence interval to use in
+calculation of the descriptives command.  The default it 95%.
+
+The TOTAL and NOTOTAL subcommands are mutually exclusive.  If NOTOTAL
+is given and factors have been specified in the VARIABLES subcommand,
+then then statistics for the unfactored dependent variables are
+produced in addition to the factored variables.  If there are no
+factors specified then TOTAL and NOTOTAL have no effect.
+
+@strong{Warning!}
+If many dependent variable are given, or factors are given for which
+there are many distinct values, then @cmd{EXAMINE} will produce a very
+large quantity of output.
 
 
 @node CROSSTABS, T-TEST, EXAMINE, Statistics

@@ -205,7 +205,7 @@ output_examine(void)
   struct factor *fctr;
 
   /* Show totals if appropriate */
-  if ( ! cmd.sbc_nototal )
+  if ( ! cmd.sbc_nototal || factors == 0 )
     {
       show_summary(dependent_vars, n_dependent_vars, 0);
 

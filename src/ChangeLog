@@ -1,3 +1,5 @@
+Sun Nov 21 10:32:41 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
 	* var-labs.c (var_to_string) Now returns null if the variable is null
 
 	* value-labels.c (value_to_string) Made it return null if either the 

@@ -88,7 +88,6 @@ activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
-
 # NOTE:  In the following data: Only the extreme values have been checked
 # The descriptives have been blindly pasted.
 activity="compare results"
@@ -122,132 +121,136 @@ Case#  QUALITY        W    BRAND
    16     6.00     1.00     3.00 
 
 2.1 EXAMINE.  Case Processing Summary
-#===============#=============================#
-#               #            Cases            #
-#               #---------+---------+---------#
-#               #  Valid  | Missing |  Total  #
-#---------------#-+-------+-+-------+-+-------#
-#               #N|Percent|N|Percent|N|Percent#
-#===============#=#=======#=#=======#=#=======#
-#Breaking Strain# |       | |       | |       #
-#===============#=#=======#=#=======#=#=======#
+#===============#===============================#
+#               #             Cases             #
+#               #----------+---------+----------#
+#               #   Valid  | Missing |   Total  #
+#               #--+-------+-+-------+--+-------#
+#               # N|Percent|N|Percent| N|Percent#
+#===============#==#=======#=#=======#==#=======#
+#Breaking Strain#24|   100%|0|     0%|24|   100%#
+#===============#==#=======#=#=======#==#=======#
 
-2.2 EXAMINE.  Descriptives
-#===============#===========================================#=========#==========#
-#               |                                           #Statistic|Std. Error#
-#===============#===========================================#=========#==========#
-#Breaking Strain|Mean                                       #   3.54  |   .324   #
-#               |95% Confidence Interval for MeanLower Bound#  3.562  |          #
-#               |                                Upper Bound#  3.521  |          #
-#               |5% Trimmed Mean                            #   3.50  |          #
-#               |Median                                     #         |          #
-#               |Variance                                   #  2.520  |          #
-#               |Std. Deviation                             #  1.587  |          #
-#               |Minimum                                    #  1.000  |          #
-#               |Maximum                                    #  7.000  |          #
-#               |Range                                      #  6.000  |          #
-#               |Interquartile Range                        #         |          #
-#               |Skewness                                   #         |          #
-#               |Kurtosis                                   #         |          #
-#===============#===========================================#=========#==========#
-
-2.3 EXAMINE.  Extreme Values
+2.2 EXAMINE.  Extreme Values
 #=======================#===========#=====#
 #                       #Case Number|Value#
 #=======================#===========#=====#
 #Breaking StrainHighest1#         12| 7.00#
 #                      2#         16| 6.00#
 #                      3#         14| 5.00#
+#               --------#-----------+-----#
 #                Lowest1#          4| 1.00#
 #                      2#          3| 1.00#
 #                      3#          3| 1.00#
 #=======================#===========#=====#
 
+2.3 EXAMINE.  Descriptives
+#==========================================================#=========#==========#
+#                                                          #Statistic|Std. Error#
+#==========================================================#=========#==========#
+#Breaking StrainMean                                       #   3.54  |   .324   #
+#               95% Confidence Interval for MeanLower Bound#  3.562  |          #
+#                                               Upper Bound#  3.521  |          #
+#               5% Trimmed Mean                            #   3.50  |          #
+#               Median                                     #         |          #
+#               Variance                                   #  2.520  |          #
+#               Std. Deviation                             #  1.587  |          #
+#               Minimum                                    #  1.000  |          #
+#               Maximum                                    #  7.000  |          #
+#               Range                                      #  6.000  |          #
+#               Interquartile Range                        #         |          #
+#               Skewness                                   #         |          #
+#               Kurtosis                                   #         |          #
+#==========================================================#=========#==========#
+
 2.4 EXAMINE.  Case Processing Summary
-#===============#============#=============================#
-#               |            #            Cases            #
-#               |            #---------+---------+---------#
-#               |            #  Valid  | Missing |  Total  #
-#---------------+------------#-+-------+-+-------+-+-------#
-#               |Manufacturer#N|Percent|N|Percent|N|Percent#
-#===============#============#=#=======#=#=======#=#=======#
-#Breaking Strain|     Aspeger# |       | |       | |       #
-#               |      Bloggs# |       | |       | |       #
-#               |    Charlies# |       | |       | |       #
-#===============#============#=#=======#=#=======#=#=======#
+#===========================#=============================#
+#                           #            Cases            #
+#                           #---------+---------+---------#
+#                           #  Valid  | Missing |  Total  #
+#                           #-+-------+-+-------+-+-------#
+#               Manufacturer#N|Percent|N|Percent|N|Percent#
+#===========================#=#=======#=#=======#=#=======#
+#Breaking StrainAspeger     #8|   100%|0|     0%|8|   100%#
+#               Bloggs      #8|   100%|0|     0%|8|   100%#
+#               Charlies    #8|   100%|0|     0%|8|   100%#
+#===========================#=#=======#=#=======#=#=======#
 
-2.5 EXAMINE.  Descriptives
-#===========================#===========================================#=========#==========#
-#               Manufacturer|                                           #Statistic|Std. Error#
-#===========================#===========================================#=========#==========#
-#Breaking Strain     Aspeger|Mean                                       #   2.25  |   .453   #
-#                           |95% Confidence Interval for MeanLower Bound#  2.279  |          #
-#                           |                                Upper Bound#  2.221  |          #
-#                           |5% Trimmed Mean                            #   2.22  |          #
-#                           |Median                                     #         |          #
-#                           |Variance                                   #  1.643  |          #
-#                           |Std. Deviation                             #  1.282  |          #
-#                           |Minimum                                    #  1.000  |          #
-#                           |Maximum                                    #  4.000  |          #
-#                           |Range                                      #  3.000  |          #
-#                           |Interquartile Range                        #         |          #
-#                           |Skewness                                   #         |          #
-#                           |Kurtosis                                   #         |          #
-#               ------------+-------------------------------------------#---------+----------#
-#                     Bloggs|Mean                                       #   3.50  |   .378   #
-#                           |95% Confidence Interval for MeanLower Bound#  3.525  |          #
-#                           |                                Upper Bound#  3.475  |          #
-#                           |5% Trimmed Mean                            #   3.50  |          #
-#                           |Median                                     #         |          #
-#                           |Variance                                   #  1.143  |          #
-#                           |Std. Deviation                             #  1.069  |          #
-#                           |Minimum                                    #  2.000  |          #
-#                           |Maximum                                    #  5.000  |          #
-#                           |Range                                      #  3.000  |          #
-#                           |Interquartile Range                        #         |          #
-#                           |Skewness                                   #         |          #
-#                           |Kurtosis                                   #         |          #
-#               ------------+-------------------------------------------#---------+----------#
-#                   Charlies|Mean                                       #   4.88  |   .441   #
-#                           |95% Confidence Interval for MeanLower Bound#  4.904  |          #
-#                           |                                Upper Bound#  4.846  |          #
-#                           |5% Trimmed Mean                            #   4.86  |          #
-#                           |Median                                     #         |          #
-#                           |Variance                                   #  1.554  |          #
-#                           |Std. Deviation                             #  1.246  |          #
-#                           |Minimum                                    #  3.000  |          #
-#                           |Maximum                                    #  7.000  |          #
-#                           |Range                                      #  4.000  |          #
-#                           |Interquartile Range                        #         |          #
-#                           |Skewness                                   #         |          #
-#                           |Kurtosis                                   #         |          #
-#===========================#===========================================#=========#==========#
-
-2.6 EXAMINE.  Extreme Values
+2.5 EXAMINE.  Extreme Values
 #===================================#===========#=====#
 #               Manufacturer        #Case Number|Value#
 #===================================#===========#=====#
-#Breaking Strain     AspegerHighest1#          6| 4.00#
+#Breaking StrainAspeger     Highest1#          6| 4.00#
 #                                  2#          5| 4.00#
 #                                  3#          1| 3.00#
+#                           --------#-----------+-----#
 #                            Lowest1#          4| 1.00#
 #                                  2#          3| 1.00#
 #                                  3#          3| 1.00#
 #               --------------------#-----------+-----#
-#                     BloggsHighest1#          7| 5.00#
+#               Bloggs      Highest1#          7| 5.00#
 #                                  2#          9| 4.00#
 #                                  3#          9| 4.00#
+#                           --------#-----------+-----#
 #                            Lowest1#         10| 2.00#
 #                                  2#          8| 2.00#
 #                                  3#         11| 3.00#
 #               --------------------#-----------+-----#
-#                   CharliesHighest1#         12| 7.00#
+#               Charlies    Highest1#         12| 7.00#
 #                                  2#         16| 6.00#
 #                                  3#         14| 5.00#
+#                           --------#-----------+-----#
 #                            Lowest1#         15| 3.00#
 #                                  2#         13| 4.00#
 #                                  3#         13| 4.00#
 #===================================#===========#=====#
+
+2.6 EXAMINE.  Descriptives
+#======================================================================#=========#==========#
+#               Manufacturer                                           #Statistic|Std. Error#
+#======================================================================#=========#==========#
+#Breaking StrainAspeger     Mean                                       #   2.25  |   .453   #
+#                           95% Confidence Interval for MeanLower Bound#  2.279  |          #
+#                                                           Upper Bound#  2.221  |          #
+#                           5% Trimmed Mean                            #   2.22  |          #
+#                           Median                                     #         |          #
+#                           Variance                                   #  1.643  |          #
+#                           Std. Deviation                             #  1.282  |          #
+#                           Minimum                                    #  1.000  |          #
+#                           Maximum                                    #  4.000  |          #
+#                           Range                                      #  3.000  |          #
+#                           Interquartile Range                        #         |          #
+#                           Skewness                                   #         |          #
+#                           Kurtosis                                   #         |          #
+#               -------------------------------------------------------#---------+----------#
+#               Bloggs      Mean                                       #   3.50  |   .378   #
+#                           95% Confidence Interval for MeanLower Bound#  3.525  |          #
+#                                                           Upper Bound#  3.475  |          #
+#                           5% Trimmed Mean                            #   3.50  |          #
+#                           Median                                     #         |          #
+#                           Variance                                   #  1.143  |          #
+#                           Std. Deviation                             #  1.069  |          #
+#                           Minimum                                    #  2.000  |          #
+#                           Maximum                                    #  5.000  |          #
+#                           Range                                      #  3.000  |          #
+#                           Interquartile Range                        #         |          #
+#                           Skewness                                   #         |          #
+#                           Kurtosis                                   #         |          #
+#               -------------------------------------------------------#---------+----------#
+#               Charlies    Mean                                       #   4.88  |   .441   #
+#                           95% Confidence Interval for MeanLower Bound#  4.904  |          #
+#                                                           Upper Bound#  4.846  |          #
+#                           5% Trimmed Mean                            #   4.86  |          #
+#                           Median                                     #         |          #
+#                           Variance                                   #  1.554  |          #
+#                           Std. Deviation                             #  1.246  |          #
+#                           Minimum                                    #  3.000  |          #
+#                           Maximum                                    #  7.000  |          #
+#                           Range                                      #  4.000  |          #
+#                           Interquartile Range                        #         |          #
+#                           Skewness                                   #         |          #
+#                           Kurtosis                                   #         |          #
+#======================================================================#=========#==========#
 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
