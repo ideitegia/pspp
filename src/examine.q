@@ -49,7 +49,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 /* (specification)
    "EXAMINE" (xmn_):
-   *variables=custom;
+   *^variables=custom;
    +total=custom;
    +nototal=custom;
    +missing=miss:pairwise/!listwise,

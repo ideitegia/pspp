@@ -48,6 +48,7 @@ TESTS = \
 	bugs/comment-at-eof.sh \
 	bugs/compute-fmt.sh \
 	bugs/crosstabs.sh \
+	bugs/curtailed.sh \
 	bugs/data-crash.sh \
 	bugs/double-frequency.sh \
 	bugs/get.sh \

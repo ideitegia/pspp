@@ -129,6 +129,7 @@ sbc-options ::=
             ::= sbc-options sbc-options
 sbc-option ::= *
            ::= +
+           ::= ^
 sbc-defn ::= opt-prefix = specifiers
          ::= [ ID ] = array-sbc
          ::= opt-prefix = sbc-special-form
@@ -142,6 +143,8 @@ keyword used for the default subcommand can be omitted in the PSPP
 syntax file.  A plus sign (@samp{+}) is used to indicate that a
 subcommand can appear more than once; if it is not present then that
 subcommand can appear no more than once.
+A carat sign (@samp{^}) is used to indicate that a subcommand must appear
+at least once.
 
 The subcommand name appears after the option characters.
 

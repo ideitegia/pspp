@@ -535,6 +535,13 @@ typedef enum
   }
 subcommand_type;
 
+typedef enum
+  {
+    ARITY_ONCE_EXACTLY,  /* must occur exactly once */
+    ARITY_ONCE_ONLY,     /* zero or once */
+    ARITY_MANY           /* 0, 1, ... , inf */
+  }subcommand_arity;
+
 /* A single subcommand. */
 typedef struct subcommand subcommand;
 struct subcommand
@@ -542,7 +549,7 @@ struct subcommand
     subcommand *next;		/* Next in the chain. */
     char *name;			/* Subcommand name. */
     subcommand_type type;	/* One of SBC_*. */
-    int once;			/* 1=Subcommand may appear only once. */
+    subcommand_arity arity;	/* How many times should the subcommand occur*/
     int narray;			/* Index of next array element. */
     const char *prefix;		/* Prefix for variable and constant names. */
     specifier *spec;		/* Array of specifiers. */
@@ -759,6 +766,8 @@ parse_specifiers (subcommand *sbc)
 static void
 parse_subcommand (subcommand *sbc)
 {
+  sbc->arity = ARITY_MANY;
+
   if (match_token ('*'))
     {
       if (def)
@@ -766,7 +775,11 @@ parse_subcommand (subcommand *sbc)
       def = sbc;
     }
 
-  sbc->once = match_token ('+');
+  if ( match_token('+'))
+    sbc->arity = ARITY_ONCE_ONLY ;
+  else if (match_token('^'))
+    sbc->arity = ARITY_ONCE_EXACTLY ;
+
 
   force_id ();
   sbc->name = xstrdup (tokstr);
@@ -1805,7 +1818,7 @@ dump_parser (int persistent)
 
 	dump (0, "lex_match ('=');");
 	dump (0, "p->sbc_%s++;", st_lower (sbc->name));
-	if (sbc->once)
+	if (sbc->arity != ARITY_MANY)
 	  {
 	    dump (1, "if (p->sbc_%s > 1)", st_lower (sbc->name));
 	    dump (1, "{");
@@ -1820,6 +1833,8 @@ dump_parser (int persistent)
 	outdent ();
       }
   }
+
+
   /* Now deal with the /ALGORITHM subcommand implicit to all commands */
   dump(1,"else if ( get_syntax() != COMPATIBLE && lex_match_id(\"ALGORITHM\"))");
   dump(1,"{");
@@ -1835,6 +1850,7 @@ dump_parser (int persistent)
   dump (-1, "}");
   outdent ();
 
+
   
   dump (1, "if (!lex_match ('/'))");
   dump (0, "break;");
@@ -1847,6 +1863,29 @@ dump_parser (int persistent)
   dump (0, "goto lossage;");
   dump (-1, "}");
   dump (0, nullstr);
+
+  outdent ();
+
+  {
+    /*  Check that mandatory subcommands have been specified  */
+    subcommand *sbc;
+
+    for (sbc = subcommands; sbc; sbc = sbc->next)
+      {
+
+	if ( sbc->arity == ARITY_ONCE_EXACTLY ) 
+	  {
+	    dump (0, "if ( 0 == p->sbc_%s)", st_lower (sbc->name));
+	    dump (1, "{");
+	    dump (0, "msg (SE, _(\"%s subcommand must be given.\"));",
+		  sbc->name);
+	    dump (0, "goto lossage;");
+	    dump (-1, "}");
+	    dump (0, nullstr);
+	  }
+      }
+  }
+
   dump (-1, "return 1;");
   dump (0, nullstr);
   dump (-1, "lossage:");

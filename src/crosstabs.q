@@ -59,7 +59,7 @@
 
 /* (specification)
    crosstabs (crs_):
-     *tables=custom;
+     *^tables=custom;
      +variables=custom;
      +missing=miss:!table/include/report;
      +write[wr_]=none,cells,all;

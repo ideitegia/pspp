@@ -47,7 +47,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 /* (specification)
    "ONEWAY" (oneway_):
-   *variables=custom;
+   *^variables=custom;
    +missing=miss:!analysis/listwise,
    incl:include/!exclude;
    contrast= double list;

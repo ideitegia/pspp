@@ -1,3 +1,8 @@
+Mon Feb  7 09:58:15 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	crosstabs.q examine.q oneway.q q2c.c:  Added a q2c feature to 
+	declare subcommands as mandatory.  Closed bug #11843
+
 Sat Feb  5 20:35:10 WST 2005 John Darrington <john@darrington.wattle.id.au>
 	
 	* getline.c command.[ch] command.def:  Added (very rudimentary)
