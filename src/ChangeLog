@@ -1,3 +1,8 @@
+Sat Nov  6 20:40:38 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q Fixed problem where examine wasn't dealing properly with 
+	splits
+
 Sat Nov  6 14:49:47 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* oneway.q Fixed problem where oneway wasn't dealing properly with 

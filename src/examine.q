@@ -68,11 +68,15 @@ static struct hsh_table *hash_table_factors;
 
 struct factor 
 {
-  struct variable *v1;
-  struct hsh_table *hash_table_v1;
+  /* The independent variable for this factor */
+  struct variable *indep_var;
 
-  struct variable *v2;
-  struct hsh_table *hash_table_v2;
+  /* The list of values of the independent variable */
+  struct hsh_table *hash_table_val;
+
+  /* The subfactor (if any) */
+  struct factor *subfactor;
+
 };
 
 
@@ -107,16 +111,15 @@ static void show_extremes(struct variable **dependent_var,
 			  int n_extremities);
 
 
-/* Calculations */
-static void calculate(const struct casefile *cf, void *cmd_);
+/* Per Split function */
+static void run_examine(const struct casefile *cf, void *cmd_);
+
+static void output_examine(void);
 
 
 int
 cmd_examine(void)
 {
-  int i;
-  short total=1;
-
 
 
   if ( !parse_examine(&cmd) )
@@ -128,14 +131,26 @@ cmd_examine(void)
   if ( ! cmd.sbc_cinterval) 
     cmd.n_cinterval[0] = 95.0;
 
-  if ( cmd.sbc_nototal ) 
-    total = 0;
 
 
-  multipass_procedure_with_splits (calculate, &cmd);
+  multipass_procedure_with_splits (run_examine, &cmd);
+
+
+  hsh_destroy(hash_table_factors);
+
+
+  return CMD_SUCCESS;
+};
+
+
+/* Show all the appropriate tables */
+static void
+output_examine(void)
+{
 
   /* Show totals if appropriate */
-  if ( total || !hash_table_factors || 0 == hsh_count (hash_table_factors))
+  if ( ! cmd.sbc_nototal || 
+       ! hash_table_factors || 0 == hsh_count (hash_table_factors))
     {
       show_summary(dependent_vars, n_dependent_vars,0);
 
@@ -164,18 +179,17 @@ cmd_examine(void)
 	  if ( cmd.sbc_statistics )
 	    {
 	      if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES])
-		show_descriptives(dependent_vars, n_dependent_vars,f);
+		show_descriptives(dependent_vars, n_dependent_vars, f);
 	      
 	      if ( cmd.a_statistics[XMN_ST_EXTREME])
-		show_extremes(dependent_vars, n_dependent_vars,f,cmd.st_n);
+		show_extremes(dependent_vars, n_dependent_vars, f, cmd.st_n);
 	    }
 	}
     }
 
-  hsh_destroy(hash_table_factors);
 
-  return CMD_SUCCESS;
-};
+}
+
 
 
 /* TOTAL and NOTOTAL are simple, mutually exclusive flags */
@@ -410,8 +424,8 @@ show_descriptives(struct variable **dependent_var,
 
   tab_hline (t, TAL_2, 0, n_cols - 1, heading_rows );
 
-  tab_vline (t, TAL_2, heading_columns, 0, n_rows - 1);
-  tab_vline (t, TAL_1, n_cols - 2, 0, n_rows - 1);
+  tab_vline (t, TAL_1, heading_columns, 0, n_rows - 1);
+  tab_vline (t, TAL_2, n_cols - 2, 0, n_rows - 1);
   tab_vline (t, TAL_1, n_cols - 1, 0, n_rows - 1);
 
   tab_text (t, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _("Statistic"));
@@ -791,23 +805,39 @@ show_summary(struct variable **dependent_var,
 static int bad_weight_warn = 1;
 
 static void 
-calculate(const struct casefile *cf, void *cmd_)
+run_examine(const struct casefile *cf, void *cmd_)
 {
+  struct hsh_iterator hi;
+  struct factor *fctr;
+
   struct casereader *r;
   struct ccase c;
 
-  struct cmd_examine *cmd = (struct cmd_examine *) cmd_;
+  const struct cmd_examine *cmd = (struct cmd_examine *) cmd_;
+
+  /* Make sure we haven't got rubbish left over from a 
+     previous split */
+  if ( hash_table_factors ) 
+    {
+      for ( fctr = hsh_first(hash_table_factors, &hi);
+	    fctr != 0;
+	    fctr = hsh_next (hash_table_factors, &hi) )
+	{
+	  hsh_clear(fctr->hash_table_v1);
+	  if ( fctr->hash_table_v2  ) 
+	      hsh_clear(fctr->hash_table_v2);
+	}
+    }
+
 
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
       int i;
-      struct hsh_iterator hi;
-      struct factor *fctr;
 
       const double weight = 
-	dict_get_case_weight(default_dict,&c,&bad_weight_warn);
+	dict_get_case_weight(default_dict, &c, &bad_weight_warn);
 
       if ( hash_table_factors ) 
 	{
@@ -815,21 +845,20 @@ calculate(const struct casefile *cf, void *cmd_)
 		fctr != 0;
 		fctr = hsh_next (hash_table_factors, &hi) )
 	    {
-	      union value *val;
-
-
-	      val = case_data (&c, fctr->v1->fv);
-	      hsh_insert(fctr->hash_table_v1,val);
+	      const union value *val = case_data (&c, fctr->v1->fv);
+	      hsh_insert(fctr->hash_table_v1, (void *) val);
 
 	      if ( fctr->hash_table_v2  ) 
 		{
 		  val = case_data (&c, fctr->v2->fv);
-		  hsh_insert(fctr->hash_table_v2,val);
+		  hsh_insert(fctr->hash_table_v2, (void *) val);
 		}
 	    }
 	}
 
     }
+
+  output_examine();
 }
 
 
