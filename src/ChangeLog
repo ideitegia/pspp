@@ -1,3 +1,20 @@
+Sat Mar 12 12:20:57 2005  Ben Pfaff  <blp@gnu.org>
+
+	* file-handle.q: (struct file_handle) Change open_mode from
+	character pointer to 3-char array, for safety.  Updated all
+	references.
+
+Sat Mar 12 12:15:49 2005  Ben Pfaff  <blp@gnu.org>
+
+	Thanks to Ben Kujala <bkujala@oregonchildcare.org> for reporting
+	these bugs.
+	
+	* pfm-read.c: (read_header) Improve error message for many cases
+	in which the input is not actually a portable file.
+
+	* file-handle.q: (fh_open) When we give an error message, actually
+	return NULL.
+
 Fri Mar 11 11:50:30 2005  Ben Pfaff  <blp@gnu.org>
 
 	* format.c: (check_common_specifier) New function for checks

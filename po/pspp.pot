@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-03-09 09:46-0800\n"
+"POT-Creation-Date: 2005-03-11 17:04-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,13 +78,13 @@ msgstr ""
 msgid "Variable %s is %s in target file, but %s in source file."
 msgstr ""
 
-#: src/apply-dict.c:71 src/apply-dict.c:72 src/formats.c:96 src/pfm-read.c:599
-#: src/print.c:695 src/sfm-read.c:882 src/sfm-read.c:1011 src/sfm-read.c:1012
+#: src/apply-dict.c:71 src/apply-dict.c:72 src/format.c:224 src/sfm-read.c:882
+#: src/sfm-read.c:1011 src/sfm-read.c:1012
 msgid "string"
 msgstr ""
 
-#: src/apply-dict.c:71 src/apply-dict.c:72 src/formats.c:96 src/pfm-read.c:599
-#: src/print.c:695 src/sfm-read.c:882 src/sfm-read.c:1011 src/sfm-read.c:1012
+#: src/apply-dict.c:71 src/apply-dict.c:72 src/format.c:224 src/sfm-read.c:882
+#: src/sfm-read.c:1011 src/sfm-read.c:1012
 msgid "numeric"
 msgstr ""
 
@@ -229,8 +229,8 @@ msgstr ""
 
 #: src/autorecode.c:139 src/command.c:791 src/compute.c:277
 #: src/data-list.c:410 src/data-list.c:900 src/data-list.c:1751
-#: src/do-if.c:253 src/get.c:406 src/lexer.c:421 src/loop.c:241
-#: src/matrix-data.c:527 src/print.c:335 src/print.c:1048 src/recode.c:405
+#: src/do-if.c:253 src/get.c:406 src/lexer.c:420 src/loop.c:241
+#: src/matrix-data.c:527 src/print.c:335 src/print.c:1045 src/recode.c:405
 #: src/sel-if.c:54 src/sel-if.c:131 src/vector.c:193 src/file-handle.q:140
 msgid "expecting end of command"
 msgstr ""
@@ -674,7 +674,7 @@ msgid ""
 "RECORDS subcommand."
 msgstr ""
 
-#: src/data-list.c:440 src/data-list.c:454 src/print.c:505 src/print.c:518
+#: src/data-list.c:440 src/data-list.c:454 src/print.c:520 src/print.c:533
 msgid "Column positions for fields must be positive."
 msgstr ""
 
@@ -682,20 +682,20 @@ msgstr ""
 msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
-#: src/data-list.c:473 src/print.c:595
+#: src/data-list.c:473 src/print.c:610
 #, c-format
 msgid "The %d columns %d-%d can't be evenly divided into %d fields."
 msgstr ""
 
-#: src/data-list.c:493 src/print.c:546
+#: src/data-list.c:493 src/print.c:561
 msgid "A format specifier on this line has extra characters on the end."
 msgstr ""
 
-#: src/data-list.c:508 src/print.c:562
+#: src/data-list.c:508 src/print.c:577
 msgid "The value for number of decimal places must be at least 1."
 msgstr ""
 
-#: src/data-list.c:522 src/print.c:575
+#: src/data-list.c:522 src/print.c:590
 #, c-format
 msgid "Input format %s doesn't accept decimal places."
 msgstr ""
@@ -721,26 +721,26 @@ msgid ""
 "names."
 msgstr ""
 
-#: src/data-list.c:769 src/print.c:768
+#: src/data-list.c:769 src/print.c:765
 msgid ""
 "There aren't enough format specifications to match the number of variable "
 "names given."
 msgstr ""
 
-#: src/data-list.c:796 src/data-list.c:922 src/descript.c:880 src/print.c:799
+#: src/data-list.c:796 src/data-list.c:922 src/descript.c:880 src/print.c:796
 #: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:871
 msgid "Variable"
 msgstr ""
 
-#: src/data-list.c:797 src/print.c:800
+#: src/data-list.c:797 src/print.c:797
 msgid "Record"
 msgstr ""
 
-#: src/data-list.c:798 src/print.c:801
+#: src/data-list.c:798 src/print.c:798
 msgid "Columns"
 msgstr ""
 
-#: src/data-list.c:799 src/data-list.c:923 src/print.c:802
+#: src/data-list.c:799 src/data-list.c:923 src/print.c:799
 msgid "Format"
 msgstr ""
 
@@ -1428,84 +1428,82 @@ msgstr ""
 msgid "Unexpected end of file reading FLIP temporary file."
 msgstr ""
 
-#: src/format.c:70
+#: src/format.c:71
 msgid "X and T format specifiers not allowed here."
 msgstr ""
 
-#: src/format.c:78
+#: src/format.c:79
 #, c-format
 msgid "%.*s is not a valid data format."
 msgstr ""
 
-#: src/format.c:130
+#: src/format.c:128
+#, c-format
+msgid ""
+"Format %s specifies an odd width %d, but format %s requires an even width."
+msgstr ""
+
+#: src/format.c:136
+#, c-format
+msgid ""
+"Format %s specifies a bad number of implied decimal places %d.  Input format "
+"%s allows up to 16 implied decimal places."
+msgstr ""
+
+#: src/format.c:160
 #, c-format
 msgid "Format %s may not be used as an input format."
 msgstr ""
 
-#: src/format.c:136
+#: src/format.c:166
 #, c-format
 msgid ""
 "Input format %s specifies a bad width %d.  Format %s requires a width "
 "between %d and %d."
 msgstr ""
 
-#: src/format.c:144
-#, c-format
-msgid ""
-"Input format %s specifies an odd width %d, but format %s requires an even "
-"width between %d and %d."
-msgstr ""
-
-#: src/format.c:152
-#, c-format
-msgid ""
-"Input format %s specifies a bad number of implied decimal places %d.  Input "
-"format %s allows up to 16 implied decimal places."
-msgstr ""
-
-#: src/format.c:176
+#: src/format.c:190
 #, c-format
 msgid ""
 "Output format %s specifies a bad width %d.  Format %s requires a width "
 "between %d and %d."
 msgstr ""
 
-#: src/format.c:187
+#: src/format.c:201
 #, c-format
 msgid ""
 "Output format %s requires minimum width %d to allow %d decimal places.  Try %"
 "s%d.%d instead of %s."
 msgstr ""
 
-#: src/format.c:196
+#: src/format.c:222
 #, c-format
-msgid ""
-"Output format %s specifies an odd width %d, but output format %s requires an "
-"even width between %d and %d."
+msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/format.c:204
-#, c-format
-msgid ""
-"Output format %s specifies a bad number of implied decimal places %d.  "
-"Output format %s allows a number of implied decimal places between 1 and 16."
+#: src/format.c:223 src/pfm-read.c:470 src/sfm-read.c:880
+msgid "String"
 msgstr ""
 
-#: src/format.c:221
-#, c-format
-msgid "Can't display a string variable of width %d with format specifier %s."
+#: src/format.c:223 src/pfm-read.c:470 src/sfm-read.c:880
+msgid "Numeric"
 msgstr ""
 
-#: src/format.c:340
+#: src/format.c:243
+#, c-format
+msgid "String variable with width %d not compatible with format %s."
+msgstr ""
+
+#: src/format.c:363
 msgid "Format specifier expected."
 msgstr ""
 
-#: src/format.c:352
+#: src/format.c:375
 #, c-format
 msgid "Data format %s does not specify a width."
 msgstr ""
 
-#: src/format.c:370
+#: src/format.c:393
 #, c-format
 msgid "Data format %s is not valid."
 msgstr ""
@@ -1514,12 +1512,7 @@ msgstr ""
 msgid "`(' expected after variable list"
 msgstr ""
 
-#: src/formats.c:95
-#, c-format
-msgid "Format %s may not be assigned to a %s variable."
-msgstr ""
-
-#: src/formats.c:116 src/numeric.c:65 src/numeric.c:136
+#: src/formats.c:96 src/numeric.c:65 src/numeric.c:136
 msgid "`)' expected after output format."
 msgstr ""
 
@@ -1861,101 +1854,101 @@ msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
 
-#: src/lexer.c:254
+#: src/lexer.c:253
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/lexer.c:371
+#: src/lexer.c:370
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/lexer.c:373
+#: src/lexer.c:372
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/lexer.c:394
+#: src/lexer.c:393
 msgid "Syntax error at end of file."
 msgstr ""
 
-#: src/lexer.c:404
+#: src/lexer.c:403
 #, c-format
 msgid "Syntax error %s at `%s'."
 msgstr ""
 
-#: src/lexer.c:407
+#: src/lexer.c:406
 #, c-format
 msgid "Syntax error at `%s'."
 msgstr ""
 
-#: src/lexer.c:526
+#: src/lexer.c:525
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/lexer.c:543
+#: src/lexer.c:542
 #, c-format
 msgid "expecting %s"
 msgstr ""
 
-#: src/lexer.c:557 src/val-labs.c:154
+#: src/lexer.c:556 src/val-labs.c:154
 msgid "expecting string"
 msgstr ""
 
-#: src/lexer.c:571 src/val-labs.c:163
+#: src/lexer.c:570 src/val-labs.c:163
 msgid "expecting integer"
 msgstr ""
 
-#: src/lexer.c:585
+#: src/lexer.c:584
 msgid "expecting number"
 msgstr ""
 
-#: src/lexer.c:599
+#: src/lexer.c:598
 msgid "expecting identifier"
 msgstr ""
 
-#: src/lexer.c:868
+#: src/lexer.c:884
 msgid "<ERROR>"
 msgstr ""
 
-#: src/lexer.c:1002 src/pfm-read.c:129 src/repeat.c:214
+#: src/lexer.c:1018 src/repeat.c:214
 msgid "Unexpected end of file."
 msgstr ""
 
-#: src/lexer.c:1028
+#: src/lexer.c:1027
 msgid "binary"
 msgstr ""
 
-#: src/lexer.c:1028
+#: src/lexer.c:1027
 msgid "octal"
 msgstr ""
 
-#: src/lexer.c:1028
+#: src/lexer.c:1027
 msgid "hex"
 msgstr ""
 
-#: src/lexer.c:1042
+#: src/lexer.c:1041
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/lexer.c:1071
+#: src/lexer.c:1070
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/lexer.c:1102
+#: src/lexer.c:1101
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/lexer.c:1174
+#: src/lexer.c:1173
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/lexer.c:1189
+#: src/lexer.c:1188
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."
@@ -2544,171 +2537,125 @@ msgstr ""
 msgid "Cannot change mode of %s: %s"
 msgstr ""
 
-#: src/pfm-read.c:82
+#: src/pfm-read.c:85
 #, c-format
 msgid "portable file %s corrupt at offset %ld: "
 msgstr ""
 
-#: src/pfm-read.c:108 src/pfm-write.c:490
-#, c-format
-msgid "%s: Closing portable file: %s."
+#: src/pfm-read.c:112
+msgid "unexpected end of file"
 msgstr ""
 
-#: src/pfm-read.c:137
-msgid "Bad line end."
-msgstr ""
-
-#: src/pfm-read.c:228
+#: src/pfm-read.c:170
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a portable file: %s."
 msgstr ""
 
-#: src/pfm-read.c:251
+#: src/pfm-read.c:188
 msgid "Data record expected."
 msgstr ""
 
-#: src/pfm-read.c:348
+#: src/pfm-read.c:296
 msgid "Missing numeric terminator."
 msgstr ""
 
-#: src/pfm-read.c:385
-msgid "Bad integer format."
+#: src/pfm-read.c:319
+msgid "Invalid integer."
 msgstr ""
 
-#: src/pfm-read.c:414
+#: src/pfm-read.c:330
 #, c-format
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/pfm-read.c:509
+#: src/pfm-read.c:400
+msgid "Missing SPSSPORT signature."
+msgstr ""
+
+#: src/pfm-read.c:422
 #, c-format
 msgid "Bad date string length %d."
 msgstr ""
 
-#: src/pfm-read.c:513
-msgid "Bad character in date."
-msgstr ""
-
-#: src/pfm-read.c:533
+#: src/pfm-read.c:424
 #, c-format
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/pfm-read.c:537
-msgid "Bad character in time."
-msgstr ""
-
-#: src/pfm-read.c:587 src/pfm-read.c:594 src/sfm-read.c:867 src/sfm-read.c:875
+#: src/pfm-read.c:462 src/sfm-read.c:867 src/sfm-read.c:875
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/pfm-read.c:596
+#: src/pfm-read.c:469
 #, c-format
-msgid "%s variable %s has %s format specifier %s."
+msgid "%s variable %s has invalid format specifier %s."
 msgstr ""
 
-#: src/pfm-read.c:597 src/print.c:607 src/sfm-read.c:880
-msgid "String"
-msgstr ""
-
-#: src/pfm-read.c:597 src/print.c:607 src/sfm-read.c:880
-msgid "Numeric"
-msgstr ""
-
-#: src/pfm-read.c:635
+#: src/pfm-read.c:484
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/pfm-read.c:639
+#: src/pfm-read.c:488
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/pfm-read.c:649
-#, c-format
-msgid "Unexpected flag value %d."
-msgstr ""
-
-#: src/pfm-read.c:661
+#: src/pfm-read.c:498
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/pfm-read.c:676
+#: src/pfm-read.c:510
 msgid "Expected variable record."
 msgstr ""
 
-#: src/pfm-read.c:682
+#: src/pfm-read.c:514
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/pfm-read.c:700
+#: src/pfm-read.c:522
 #, c-format
-msgid "position %d: Variable name has %u characters."
+msgid "position %d: Invalid variable name `%s'."
 msgstr ""
 
-#: src/pfm-read.c:704
-#, c-format
-msgid "position %d: Variable name begins with invalid character."
-msgstr ""
-
-#: src/pfm-read.c:708
-#, c-format
-msgid "position %d: Variable name begins with lowercase letter %c."
-msgstr ""
-
-#: src/pfm-read.c:721
-#, c-format
-msgid "position %d: Variable name character %d is lowercase letter %c."
-msgstr ""
-
-#: src/pfm-read.c:731
-#, c-format
-msgid "position %d: character `\\%03o' is not valid in a variable name."
-msgstr ""
-
-#: src/pfm-read.c:741
+#: src/pfm-read.c:530
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
 
-#: src/pfm-read.c:785
+#: src/pfm-read.c:570
 #, c-format
 msgid "Bad missing values for %s."
 msgstr ""
 
-#: src/pfm-read.c:808
+#: src/pfm-read.c:588
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/pfm-read.c:879
+#: src/pfm-read.c:635
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/pfm-read.c:882
+#: src/pfm-read.c:638
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types "
 "or widths."
 msgstr ""
 
-#: src/pfm-read.c:915
+#: src/pfm-read.c:662
 #, c-format
 msgid "Duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:918
+#: src/pfm-read.c:665
 #, c-format
 msgid "Duplicate label for value `%.*s' for variable %s."
-msgstr ""
-
-#: src/pfm-read.c:971
-msgid "End of file midway through case."
 msgstr ""
 
 #: src/pfm-write.c:92
@@ -2720,6 +2667,11 @@ msgstr ""
 #: src/pfm-write.c:154
 #, c-format
 msgid "%s: Writing portable file: %s."
+msgstr ""
+
+#: src/pfm-write.c:490
+#, c-format
+msgid "%s: Closing portable file: %s."
 msgstr ""
 
 #: src/plot-hist.c:118
@@ -2886,49 +2838,44 @@ msgid ""
 "or equal to the first."
 msgstr ""
 
-#: src/print.c:493
+#: src/print.c:488
+#, c-format
+msgid "Variable %s has width %d so it cannot be output as format %s."
+msgstr ""
+
+#: src/print.c:508
 #, c-format
 msgid ""
 "%s is not of the same type as %s.  To specify variables of different types "
 "in the same variable list, use a FORTRAN-like format specifier."
 msgstr ""
 
-#: src/print.c:523
+#: src/print.c:538
 msgid ""
 "The ending column for a field must not be less than the starting column."
 msgstr ""
 
-#: src/print.c:606
-#, c-format
-msgid "%s variables cannot be displayed with format %s."
-msgstr ""
-
-#: src/print.c:684
+#: src/print.c:686
 msgid ""
 "The number of format specifications exceeds the number of variable names "
 "given."
 msgstr ""
 
-#: src/print.c:693
-#, c-format
-msgid "Display format %s may not be used with a %s variable."
-msgstr ""
-
-#: src/print.c:841
+#: src/print.c:838
 #, c-format
 msgid "Writing %d record(s) to file %s."
 msgstr ""
 
-#: src/print.c:844
+#: src/print.c:841
 #, c-format
 msgid "Writing %d record(s) to the listing file."
 msgstr ""
 
-#: src/print.c:1091
+#: src/print.c:1088
 msgid "The expression on PRINT SPACE evaluated to the system-missing value."
 msgstr ""
 
-#: src/print.c:1094
+#: src/print.c:1091
 #, c-format
 msgid "The expression on PRINT SPACE evaluated to %g."
 msgstr ""
@@ -3611,6 +3558,32 @@ msgstr ""
 
 #: src/var-labs.c:53
 msgid "Truncating variable label to 255 characters."
+msgstr ""
+
+#: src/vars-atr.c:248
+msgid "Variable names must be at least 1 character long."
+msgstr ""
+
+#: src/vars-atr.c:254
+#, c-format
+msgid "Variable name %s exceeds %d-character limit."
+msgstr ""
+
+#: src/vars-atr.c:263
+#, c-format
+msgid "Character `%c' (in %s) may not appear in a variable name."
+msgstr ""
+
+#: src/vars-atr.c:272
+#, c-format
+msgid ""
+"Character `%c' (in %s), may not appear as the first character in a variable "
+"name."
+msgstr ""
+
+#: src/vars-atr.c:280
+#, c-format
+msgid "%s may not be used as a variable name because it is a reserved word."
 msgstr ""
 
 #: src/vars-prs.c:43

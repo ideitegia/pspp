@@ -48,7 +48,7 @@ struct file_handle
 
     int open_cnt;               /* 0=not open, otherwise # of openers. */
     const char *type;           /* If open, type of file. */
-    const char *open_mode;      /* "[rw][se]". */
+    const char open_mode[3];    /* "[rw][se]". */
     void *aux;                  /* Aux data pointer for owner if any. */
   };
 
@@ -210,7 +210,6 @@ create_file_handle (const char *handle_name, const char *filename)
   handle->tab_width = 4;
   handle->open_cnt = 0;
   handle->type = NULL;
-  handle->open_mode = NULL;
   handle->aux = NULL;
   file_handles = handle;
 
@@ -254,8 +253,8 @@ mode_name (const char *mode)
    modes the void * will necessarily be null only if no other
    sharers are active.
 
-   If successful, references to type and mode are retained, so
-   they should probably be string literals. */
+   If successful, a reference to type is retained, so it should
+   probably be a string literal. */
 void **
 fh_open (struct file_handle *h, const char *type, const char *mode) 
 {
@@ -268,23 +267,32 @@ fh_open (struct file_handle *h, const char *type, const char *mode)
 
   if (h->open_cnt != 0) 
     {
-      if (strcmp (h->type, type))
-        msg (SE, _("Can't open %s as a %s because it is "
-                   "already open as a %s"),
-             handle_get_name (h), type, h->type);
-      else if (strcmp (h->open_mode, mode))
-        msg (SE, _("Can't open %s as a %s for %s because it is "
-                   "already open for %s"),
-             handle_get_name (h), type,
-             mode_name (mode), mode_name (h->open_mode));
+      if (strcmp (h->type, type)) 
+        {
+          msg (SE, _("Can't open %s as a %s because it is "
+                     "already open as a %s"),
+               handle_get_name (h), type, h->type);
+          return NULL; 
+        }
+      else if (strcmp (h->open_mode, mode)) 
+        {
+          msg (SE, _("Can't open %s as a %s for %s because it is "
+                     "already open for %s"),
+               handle_get_name (h), type,
+               mode_name (mode), mode_name (h->open_mode));
+          return NULL;
+        }
       else if (h->open_mode[1] == 'e')
-        msg (SE, _("Can't re-open %s as a %s for %s"),
-             handle_get_name (h), type, mode_name (mode));
+        {
+          msg (SE, _("Can't re-open %s as a %s for %s"),
+               handle_get_name (h), type, mode_name (mode));
+          return NULL;
+        }
     }
   else 
     {
       h->type = type;
-      h->open_mode = mode;
+      strcpy (h->open_mode, mode);
       assert (h->aux == NULL);
     }
   h->open_cnt++;
@@ -310,7 +318,6 @@ fh_close (struct file_handle *h, const char *type, const char *mode)
   if (h->open_cnt == 0) 
     {
       h->type = NULL;
-      h->open_mode = NULL;
       h->aux = NULL;
     }
   return h->open_cnt;

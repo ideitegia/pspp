@@ -396,8 +396,11 @@ read_header (struct pfm_reader *r)
 
   /* Skip and verify signature. */
   for (i = 0; i < 8; i++) 
-    if (!match (r, "SPSSPORT"[i]))
-      error (r, _("Missing SPSSPORT signature."));
+    if (!match (r, "SPSSPORT"[i])) 
+      {
+        msg (SE, _("%s: Not a portable file."), handle_get_filename (r->fh));
+        longjmp (r->bail_out, 1);
+      }
 }
 
 /* Reads the version and date info record, as well as product and
