@@ -153,9 +153,13 @@ sfm_close_reader (struct sfm_reader *r)
 
   if (r->fh != NULL)
     fh_close (r->fh, "system file", "rs");
-  if (fn_close (handle_get_filename (r->fh), r->file) == EOF)
-    msg (ME, _("%s: Closing system file: %s."),
-         handle_get_filename (r->fh), strerror (errno));
+  
+  if ( r->file ) {
+    if (fn_close (handle_get_filename (r->fh), r->file) == EOF)
+      msg (ME, _("%s: Closing system file: %s."),
+	   handle_get_filename (r->fh), strerror (errno));
+    r->file = NULL;
+  }
   free (r->vars);
   free (r->buf);
   free (r);

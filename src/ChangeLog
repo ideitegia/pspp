@@ -1,3 +1,8 @@
+Fri Feb 25 21:11:35 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* sfm-read.c: Fixed a buglet which caused a crash when trying
+	to read a non-existent file.
+
 Sun Feb 13 16:11:13 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix Bug #11955.

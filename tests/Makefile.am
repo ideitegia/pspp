@@ -55,6 +55,7 @@ TESTS = \
 	bugs/double-frequency.sh \
 	bugs/get.sh \
 	bugs/examine-1sample.sh \
+	bugs/get-no-file.sh \
 	bugs/html-frequency.sh \
 	bugs/if_crash.sh \
 	bugs/multipass.sh \
