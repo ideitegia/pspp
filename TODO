@@ -1,15 +1,7 @@
-Time-stamp: <2004-03-24 19:52:48 blp>
+Time-stamp: <2004-03-26 00:07:35 blp>
 
 What Ben's working on now.
 --------------------------
-
-Expression parser/optimizer/evaluator revisions:
-
-	* Testing.
-
-	* Add random distributions.
-
-	* Get rid of Boolean/integer type mismatch errors.
 
 Procedures need to be able to make multiple passes.
 
@@ -24,6 +16,11 @@ CROSSTABS needs to be re-examined.
 
 TODO
 ----
+
+The expression tests need tests for XDATE and a few others, see
+tests/xforms/expressions.sh comments for details.
+
+Expressions need random distribution functions.
 
 There needs to be another layer onto the lexer, which should probably be
 entirely rewritten anyway.  The lexer needs to read entire *commands* at a

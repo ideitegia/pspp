@@ -49,12 +49,6 @@ activity="create program"
 cat > $TEMPDIR/prog.sps << EOF_foobar
 title 'Test BEGIN DATA ... END DATA'.
 
-remark EOF
-----------------------------------------------------------------------
-First we show that we can input data with BEGIN DATA/END DATA after
-a procedure.
-----------------------------------------------------------------------
-EOF
 data list /A B 1-2.
 list.
 begin data.
@@ -65,11 +59,6 @@ begin data.
 90
 end data.
 
-remark EOF
-----------------------------------------------------------------------
-Next we show that BEGIN DATA/END DATA work fine on their own as well.
-----------------------------------------------------------------------
-EOF
 data list /A B 1-2.
 begin data.
 09
@@ -89,11 +78,6 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare data"
 diff -b -B $TEMPDIR/pspp.list - << foobar
-----------------------------------------------------------------------
-First we show that we can input data with BEGIN DATA/END DATA after
-a procedure.
-----------------------------------------------------------------------
-
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -109,10 +93,6 @@ A B
 5 6 
 7 8 
 9 0 
-
-----------------------------------------------------------------------
-Next we show that BEGIN DATA/END DATA work fine on their own as well.
-----------------------------------------------------------------------
 
 2.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+

@@ -738,8 +738,11 @@ cmd_match_files (void)
 	      name = mtf.tail->last;
 	      sbc = "LAST";
 	    }
-	  else
-	    assert (0);
+	  else 
+            {
+              assert (0);
+              abort ();
+            }
 
 	  lex_match ('=');
 	  if (token != T_ID)

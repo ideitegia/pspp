@@ -21,23 +21,26 @@
 #define expr_h 1
 
 /* Expression parsing flags. */
-enum
+enum expr_type
   {
-    PXP_NONE = 000,		/* No flags. */
-
-    /* Specify expression type. */
-    PXP_BOOLEAN = 002,		/* Coerce return value to Boolean. */
-    PXP_NUMERIC = 004,		/* Must be numeric result type. */
-    PXP_STRING = 010		/* Must be string result type. */
+    EXPR_ANY = 0,               /* Any type. */
+    EXPR_BOOLEAN = 1,           /* Must be numeric; coerce to Boolean. */
+    EXPR_NUMERIC = 2,           /* Must be numeric result type. */
+    EXPR_STRING = 3,            /* Must be string result type. */
+    EXPR_ERROR = 4,             /* Indicates an error. */
+    EXPR_NO_OPTIMIZE = 0x1000   /* May be set in expr_parse()
+                                   argument to disable optimization. */
   };
 
 struct expression;
 struct ccase;
 union value;
 
-struct expression *expr_parse (int flags);
-double expr_evaluate (struct expression *, const struct ccase *, int case_num,
-                      union value *);
+struct expression *expr_parse (enum expr_type);
+enum expr_type expr_get_type (const struct expression *);
+double expr_evaluate (const struct expression *, const struct ccase *,
+                      int case_num, union value *);
 void expr_free (struct expression *);
+void expr_debug_print_postfix (const struct expression *);
 
 #endif /* expr.h */

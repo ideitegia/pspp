@@ -233,7 +233,7 @@ cmd_if (void)
   compute = compute_trns_create ();
 
   /* Test expression. */
-  compute->test = expr_parse (PXP_BOOLEAN);
+  compute->test = expr_parse (EXPR_BOOLEAN);
   if (compute->test == NULL)
     goto fail;
 
@@ -276,7 +276,7 @@ parse_rvalue_expression (struct compute_trns *compute,
 
   assert (type == NUMERIC || type == ALPHA);
 
-  compute->rvalue = expr_parse (type == ALPHA ? PXP_STRING : PXP_NUMERIC);
+  compute->rvalue = expr_parse (type == ALPHA ? EXPR_STRING : EXPR_NUMERIC);
   if (compute->rvalue == NULL)
     return 0;
 
@@ -357,7 +357,7 @@ lvalue_parse (void)
       lex_get ();
       if (!lex_force_match ('('))
 	goto lossage;
-      lvalue->element = expr_parse (PXP_NUMERIC);
+      lvalue->element = expr_parse (EXPR_NUMERIC);
       if (lvalue->element == NULL)
         goto lossage;
       if (!lex_force_match (')'))

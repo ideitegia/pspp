@@ -1,3 +1,182 @@
+Fri Mar 26 00:54:57 2004  Ben Pfaff  <blp@gnu.org>
+
+	* var-labs.c: (cmd_variable_labels) For compatibility, don't allow
+	`/' at start.  Check return value of parse_variables() for error
+	return.
+
+Fri Mar 26 00:19:27 2004  Ben Pfaff  <blp@gnu.org>
+
+	Revamp expressions: make the code a little nicer, and fix bugs
+	found in testing.
+	
+	* expr-evl.c: (expr_evaluate) Make expression argument const.
+	Support OP_ADD, OP_SUB, OP_MUL, OP_DIV instead of OP_PLUS, OP_MUL.
+	OP_POW is missing for arg 2 <= 0.  OP_LOG is natural log, not
+	base-10 log.  Fix OP_ANY, OP_ANY_STRING, OP_RANGE, OP_RANGE_STRING
+	off-by-ones.  Add OP_MAX_STRING, OP_MIN_STRING.  Fix OP_TIME_HMS,
+	OP_DATE_WKYR boundary conditions.  Add OP_CTIME_DAYS,
+	OP_CTIME_HOURS, OP_CTIME_MINUTES, OP_CTIME_DAYS, OP_CTIME_SECONDS.
+	Support OP_INDEX_2, OP_INDEX_3, OP_RINDEX_2, OP_RINDEX_3 instead
+	of OP_INDEX, OP_INDEX_OPT, OP_RINDEX, OP_RINDEX_OPT.  Merge
+	OP_LPAD_OPT into OP_LPAD, OP_RPAD_OPT into OP_RPAD, OP_LTRIM_OPT
+	into OP_LTRIM, OP_RTRIM_OPT into OP_RTRIM, OP_NUMBER_OPT into
+	OP_NUMBER.  Fix OP_RTRIM fragility.  Support OP_SUBSTR_2,
+	OP_SUBSTR_3 instead of OP_SUBSTR, OP_SUBSTR_OPT.  Remove OP_INV.
+	Simplify OP_SYSMIS.  Remove OP_STR_MIS.
+
+	* expr-opt.c: (optimize_expression) Rewrite.
+	(macro n0) Removed.
+	(macro n1) Removed.
+	(macro n2) Removed.
+	(macro s0) Removed.
+	(macro s0l) Removed.
+	(macro s1) Removed.
+	(macro s1l) Removed.
+	(macro s2) Removed.
+	(macro s2l) Removed.
+	(macro s) Removed.
+	(macro sl) Removed.
+	(eq_num_con) New function.
+	(optimize_tree) New function.
+	(macro rnc) Removed.
+	(macro frnc) Removed.
+	(str_search) Add const to string params.
+	(str_rsearch) Ditto.
+	(evaluate_tree_no_missing) Renamed from evaluate_tree.  Add num[],
+	str[], str_len[] locals to substitute for most of removed macros.
+	Support OP_ADD, OP_SUB, OP_MUL, OP_DIV instead of OP_PLUS, OP_MUL.
+	Removed support for missing values because we're never called with
+	missing values.  Use set_number() or set_number_errno() instead of
+	rnc or frnc.  Removed any stuff that caused trouble in testing.
+	We can re-add it later if it really slows anything.  Fix some
+	random problems.
+	(evaluate_tree_with_missing) Not yet supported.  To be added later
+	if it's important.
+	(repl_num_con) Removed.
+	(collapse_node) New function.
+	(force_repl_num_con) Removed.
+	(set_number) New function.
+	(set_number_errno) New function.
+	(repl_str_con) Removed.
+	(set_string) New function.
+	(yrmoda) Tighten boundary conditions.  Adopt 2030 cut-off for
+	2-digit years.
+	(dump_node) No special case for OP_AND, OP_OR.
+
+	* expr-prs.c: (expr_prs) Honor EXPR_NO_OPTIMIZE bit.  Rewrite.
+	(expr_get_type) New function.
+	(type_check) Rewrite.
+	(type_coercion) New function.
+	(struct operator) New structure.
+	(match_operator New function.
+	(parse_binary_operators) New function.
+	(parse_inverting_unary_operator) New function.
+	(parse_or) Rewritten.
+	(parse_and) Rewritten.
+	(parse_not) Rewritten.
+	(parse_rel) Rewritten.
+	(parse_add) Rewritten.
+	(parse_mul) Rewritten.
+	(parse_neg) Rewritten.
+	(parse_exp) Rewritten.
+	(parse_sysvar) Add $TRUE, $FALSE system variables.
+	Get $LENGTH, $WIDTH from get_viewlength(), get_viewwidth().
+	(parse_primary) Use allocate_var_node(), allocate_num_con(),
+	allocate_str_con().
+	(struct function) Remove desc, change `func' prototype.
+	(unary_func) Remove special cases.
+	(MISSING_func) Reduce to unary_func() that just returns a boolean.
+	(SYSMIS_func) Handle SYSMIS((x)) like SYSMIS(x).
+	(VALUE_func) Use allocate_var_node().
+	(nary_num_func) Allow MIN and MAX for strings.
+	Use allocate_var_node().  Properly clean up.
+	Fix return type.
+	(generic_str_func) Use local table instead of removed `desc'
+	member.  Mostly rewrite.
+	(get_num_args) Revise error message.
+	(parse_function) Return EXPR_ERROR, not 0 on error.
+	(macro op) Removed.
+	(macro varies) Removed.
+	(ops[]) Use expr.def.
+	(free_node) Do nothing if node is null.
+	(allocate_num_con) New function.
+	(allocate_str_con) New function.
+	(allocate_var_node) New function.
+	(allocate_binary_nonterminal) New function.
+	(append_nonterminal_arg) Removed.
+	(static var func_tab[]) Revised.
+	(expr_debug_print_postfix) Make parameter const.
+	Use printf() instead of debug_printf().
+
+	* expr.def: New file.
+	
+	* expr.h: Change PXP_* to EXPR_*, all references updated.  Also
+	use named enum instead of unnamed, all references updated.  Add
+	EXPR_ANY, EXPR_NO_OPTIMIZE.
+
+	* exprP.h: Remove EX_*.  Add DEFINE_OPERATOR.  Use expr.def
+	instead of defining OP_* directly.
+	(macro IS_TERMINAL) New macro.
+	(macro IS_NONTERMINAL) New macro.
+	(enum OP_NO_FLAGS) New.
+	
+Fri Mar 26 00:18:01 2004  Ben Pfaff  <blp@gnu.org>
+
+	* error.c: (err_assert_fail) msg variable needs to be non-const.
+
+Fri Mar 26 00:17:24 2004  Ben Pfaff  <blp@gnu.org>
+
+	* debug.c: (cmd_debug_evaluate) Rewrite.
+
+Fri Mar 26 00:15:13 2004  Ben Pfaff  <blp@gnu.org>
+
+	Fix some CROSSTABS bit rot stupidity.
+
+	* crosstabs.q: Reorder the CELLS subcommands for compatibility.
+	(internal_cmd_crosstabs) Initializes cells[] correctly.
+	(float_M_suffix) Rename format_cell_entry(), change prototype,
+	rewrite.
+	(display_crosstabulation) Fix cell formatting.
+
+Fri Mar 26 00:14:09 2004  Ben Pfaff  <blp@gnu.org>
+
+	Make lex_rest_of_line(), lex_entire_end() not discard lines.  Have
+	to call lex_discard_line() to do that.
+
+	* command.c: (run_command) Call lex_discard_line() after
+	lex_rest_of_line().
+
+	* lexer.c: (lex_entire_end) Change behavior.
+	(lex_rest_of_line) Change behavior.  Return const char *.
+	(lex_discard_line) Don't clear getl_buf, don't emit message.
+
+	* main.c: (handle_error) Emit message here.
+
+	* repeat.c: (internal_cmd_do_repeat) Use lex_discard_line()
+	instead of lex_entire_line().
+
+	* str.c: (mm_find_reverse) Make length params size_t.  Rewrite.
+
+	* title.c: (get_title) Call lex_discard_line() after
+	lex_rest_of_line().
+	(cmd_file_label) Ditto.
+	(cmd_document) Deal with const char * return value.
+
+Fri Mar 26 00:10:16 2004  Ben Pfaff  <blp@gnu.org>
+
+	Removed REMARK command.
+
+	* command.c: (extract_prefix) Removed.
+	(output_line) Removed.
+	(cmd_remark) Removed.
+
+	* command.def: Remove REMARK.
+
+Fri Mar 26 00:08:38 2004  Ben Pfaff  <blp@gnu.org>
+
+	Added abort() after lots of assert(0) invocations to avoid some
+	compiler warnings.  We really need a NOT_REACHED macro.
+
 Tue Mar 23 08:00:42 WAST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* sort.c: Added missing call to temp_file_close.  Changed error 

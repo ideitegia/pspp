@@ -168,6 +168,7 @@ html_option (struct outp_driver *this, const char *key, const struct string *val
 	    break;
 	  default:
 	    assert (0);
+            abort ();
 	  }
 	if (*dest)
 	  free (*dest);

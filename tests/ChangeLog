@@ -1,3 +1,16 @@
+Fri Mar 26 00:55:48 2004  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (TESTS) Add xforms/expressions.sh, remove
+	command/compute.sh.
+
+	* command/beg-data.sh: Remove REMARK usage.
+
+	* command/bignum.sh: Ditto.
+
+	* command/list.sh: Ditto.
+
+	* command/print.sh: Ditto.
+
 Sat Mar 20 18:11:15 2004  Ben Pfaff  <blp@gnu.org>
 
 	* command/list.sh: Update output.

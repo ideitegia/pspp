@@ -661,6 +661,7 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 	    break;
 	  default:
 	    assert (0);
+            abort ();
 	  }
 	if (setting)
 	  x->output_options |= mask;
@@ -762,6 +763,7 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 	    break;
 	  default:
 	    assert (0);
+            abort ();
 	  }
 	if (*dest)
 	  free (*dest);
@@ -2410,6 +2412,7 @@ write_text (struct outp_driver *this,
       break;
     default:
       assert (0);
+      abort ();
     }
 
   lp = line;

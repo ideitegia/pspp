@@ -696,32 +696,23 @@ lex_put_back_id (const char *id)
 
 /* Weird line processing functions. */
 
-/* Discards the rest of the current input line for tokenization
-   purposes, but returns the entire contents of the line for use by
-   the caller. */
-char *
+/* Returns the entire contents of the current line. */
+const char *
 lex_entire_line (void)
 {
-  prog = ds_end (&getl_buf);
-  dot = 0;
   return ds_value (&getl_buf);
 }
 
 /* As lex_entire_line(), but only returns the part of the current line
    that hasn't already been tokenized.
-   If HAD_DOT is non-null, stores nonzero into *HAD_DOT if the line
+   If END_DOT is non-null, stores nonzero into *END_DOT if the line
    ends with a terminal dot, or zero if it doesn't. */
-char *
-lex_rest_of_line (int *had_dot)
+const char *
+lex_rest_of_line (int *end_dot)
 {
-  char *s = prog;
-  prog = ds_end (&getl_buf);
-
-  if (had_dot)
-    *had_dot = dot;
-  dot = 0;
-
-  return s;
+  if (end_dot)
+    *end_dot = dot;
+  return prog;
 }
 
 /* Causes the rest of the current input line to be ignored for
@@ -729,10 +720,7 @@ lex_rest_of_line (int *had_dot)
 void
 lex_discard_line (void)
 {
-  msg (SW, _("The rest of this command has been discarded."));
-
-  ds_clear (&getl_buf);
-  prog = ds_value (&getl_buf);
+  prog = ds_end (&getl_buf);
   dot = put_token = 0;
 }
 

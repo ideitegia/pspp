@@ -788,6 +788,7 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
 	  break;
         default:
           assert (0);
+          abort ();
 	}
       if (!cp)
 	continue;

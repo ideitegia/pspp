@@ -114,8 +114,8 @@ void lex_put_back (int);
 void lex_put_back_id (const char *tokid);
 
 /* Weird line processing functions. */
-char *lex_entire_line (void);
-char *lex_rest_of_line (int *had_dot);
+const char *lex_entire_line (void);
+const char *lex_rest_of_line (int *end_dot);
 void lex_discard_line (void);
 void lex_set_prog (char *p);
 

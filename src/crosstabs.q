@@ -64,7 +64,7 @@
 	     tabl:!tables/notables,
 	     box:!box/nobox,
 	     pivot:!pivot/nopivot;
-     +cells[cl_]=count,none,row,column,total,expected,residual,sresidual,
+     +cells[cl_]=count,none,expected,row,column,total,residual,sresidual,
 		 asresidual,all;
      +statistics[st_]=chisq,phi,cc,lambda,uc,none,btau,ctau,risk,gamma,d,
 		      kappa,eta,corr,all.
@@ -178,6 +178,8 @@ cmd_crosstabs (void)
 static int
 internal_cmd_crosstabs (void)
 {
+  int i;
+
   variables = NULL;
   variables_cnt = 0;
   xtab = NULL;
@@ -199,11 +201,9 @@ internal_cmd_crosstabs (void)
   if (!cmd.sbc_cells)
     {
       cmd.a_cells[CRS_CL_COUNT] = 1;
-      num_cells = 1;
     }
   else 
     {
-      int i;
       int count = 0;
 
       for (i = 0; i < CRS_CL_count; i++)
@@ -223,10 +223,10 @@ internal_cmd_crosstabs (void)
 	  cmd.a_cells[CRS_CL_ALL] = 0;
 	}
       cmd.a_cells[CRS_CL_NONE] = 0;
-      for (num_cells = i = 0; i < CRS_CL_count; i++)
-	if (cmd.a_cells[i])
-          cmd.a_cells[num_cells++] = i;
     }
+  for (num_cells = i = 0; i < CRS_CL_count; i++)
+    if (cmd.a_cells[i])
+      cells[num_cells++] = i;
 
   /* STATISTICS. */
   if (cmd.sbc_statistics)
@@ -1766,22 +1766,31 @@ display_dimensions (struct tab_table *table, int first_difference, struct table_
 			 x->vars[first_difference]);
 }
 
-/* Put value V into cell (C,R) of TABLE, suffixed with letter M. */
+/* Put VALUE into cell (C,R) of TABLE, suffixed with character
+   SUFFIX if nonzero.  If MARK_MISSING is nonzero the entry is
+   additionally suffixed with a letter `M'. */
 static void
-float_M_suffix (struct tab_table *table, int c, int r, double v)
+format_cell_entry (struct tab_table *table, int c, int r, double value,
+                   char suffix, int mark_missing)
 {
-  static const struct fmt_spec f = {FMT_F, 8, 0};
+  const struct fmt_spec f = {FMT_F, 10, 1};
+  union value v;
   struct len_string s;
-
-  s.length = 9;
-  s.string = tab_alloc (table, 9);
-  s.string[8] = 'M';
-  format_short (s.string, &f, (union value *) &v);
+  
+  s.length = 10;
+  s.string = tab_alloc (table, 16);
+  v.f = value;
+  data_out (s.string, &f, &v);
   while (*s.string == ' ')
     {
       s.length--;
       s.string++;
     }
+  if (suffix != 0)
+    s.string[s.length++] = suffix;
+  if (mark_missing)
+    s.string[s.length++] = 'M';
+
   tab_raw (table, c, r, TAB_RIGHT, &s);
 }
 
@@ -1811,10 +1820,16 @@ display_crosstabulation (void)
 	  tab_hline (table, TAL_1, -1, n_cols, 0);
 	for (c = 0; c < n_cols; c++)
 	  {
-	    double expected_value = row_tot[r] * col_tot[c] / W;
+            int mark_missing = 0;
+            double expected_value = row_tot[r] * col_tot[c] / W;
+            if (cmd.miss == CRS_REPORT
+                && (is_num_user_missing (cols[c].f, x->vars[COL_VAR])
+                    || is_num_user_missing (rows[r].f, x->vars[ROW_VAR])))
+              mark_missing = 1;
 	    for (i = 0; i < num_cells; i++)
 	      {
 		double v;
+                int suffix = 0;
 
 		switch (cells[i])
 		  {
@@ -1823,12 +1838,15 @@ display_crosstabulation (void)
 		    break;
 		  case CRS_CL_ROW:
 		    v = *mp / row_tot[r] * 100.;
+                    suffix = '%';
 		    break;
 		  case CRS_CL_COLUMN:
 		    v = *mp / col_tot[c] * 100.;
+                    suffix = '%';
 		    break;
 		  case CRS_CL_TOTAL:
 		    v = *mp / W * 100.;
+                    suffix = '%';
 		    break;
 		  case CRS_CL_EXPECTED:
 		    v = expected_value;
@@ -1847,14 +1865,10 @@ display_crosstabulation (void)
 		    break;
 		  default:
 		    assert (0);
+                    abort ();
 		  }
 
-		if (cmd.miss == CRS_REPORT
-		    && (is_num_user_missing (cols[c].f, x->vars[COL_VAR])
-			|| is_num_user_missing (rows[r].f, x->vars[ROW_VAR])))
-		  float_M_suffix (table, c, i, v);
-		else if (v != 0.)
-		  tab_float (table, c, i, TAB_RIGHT, v, 8, 0);
+                format_cell_entry (table, c, i, v, suffix, mark_missing);
 	      }
 
 	    mp++;
@@ -1869,48 +1883,56 @@ display_crosstabulation (void)
     int r, i;
 
     tab_offset (table, -1, tab_row (table) - num_cells * n_rows);
-    for (r = 0; r < n_rows; r++)
-      for (i = 0; i < num_cells; i++)
-	{
-	  double v;
+    for (r = 0; r < n_rows; r++) 
+      {
+        char suffix = 0;
+        int mark_missing = 0;
 
-	  switch (cells[i])
-	    {
-	    case CRS_CL_COUNT:
-	      v = row_tot[r];
-	      break;
-	    case CRS_CL_ROW:
-	      v = 100.;
-	      break;
-	    case CRS_CL_COLUMN:
-	      v = row_tot[r] / W * 100.;
-	      break;
-	    case CRS_CL_TOTAL:
-	      v = row_tot[r] / W * 100.;
-	      break;
-	    case CRS_CL_EXPECTED:
-	    case CRS_CL_RESIDUAL:
-	    case CRS_CL_SRESIDUAL:
-	    case CRS_CL_ASRESIDUAL:
-	      v = 0.;
-	      break;
-	    default:
-	      assert (0);
-	    }
+        if (cmd.miss == CRS_REPORT
+            && is_num_user_missing (rows[r].f, x->vars[ROW_VAR]))
+          mark_missing = 1;
 
-	  if (cmd.miss == CRS_REPORT
-	      && is_num_user_missing (rows[r].f, x->vars[ROW_VAR]))
-	    float_M_suffix (table, n_cols, 0, v);
-	  else if (v != 0.)
-	    tab_float (table, n_cols, 0, TAB_RIGHT, v, 8, 0);
+        for (i = 0; i < num_cells; i++)
+          {
+            double v;
 
-	  tab_next_row (table);
-	}
+            switch (cells[i])
+              {
+              case CRS_CL_COUNT:
+                v = row_tot[r];
+                break;
+              case CRS_CL_ROW:
+                v = 100.;
+                suffix = '%';
+                break;
+              case CRS_CL_COLUMN:
+                v = row_tot[r] / W * 100.;
+                suffix = '%';
+                break;
+              case CRS_CL_TOTAL:
+                v = row_tot[r] / W * 100.;
+                suffix = '%';
+                break;
+              case CRS_CL_EXPECTED:
+              case CRS_CL_RESIDUAL:
+              case CRS_CL_SRESIDUAL:
+              case CRS_CL_ASRESIDUAL:
+                v = 0.;
+                break;
+              default:
+                assert (0);
+                abort ();
+              }
+
+            format_cell_entry (table, n_cols, 0, v, suffix, mark_missing);
+            tab_next_row (table);
+          } 
+      }
   }
 
   /* Column totals, grand total. */
   {
-    int c, j;
+    int c;
     int last_row = 0;
 
     if (num_cells > 1)
@@ -1918,9 +1940,15 @@ display_crosstabulation (void)
     for (c = 0; c <= n_cols; c++)
       {
 	double ct = c < n_cols ? col_tot[c] : W;
-	int i;
+        int mark_missing = 0;
+        char suffix = 0;
+        int i;
 	    
-	for (i = j = 0; i < num_cells; i++)
+        if (cmd.miss == CRS_REPORT && c < n_cols 
+            && is_num_user_missing (cols[c].f, x->vars[COL_VAR]))
+          mark_missing = 1;
+
+        for (i = 0; i < num_cells; i++)
 	  {
 	    double v;
 
@@ -1928,15 +1956,19 @@ display_crosstabulation (void)
 	      {
 	      case CRS_CL_COUNT:
 		v = ct;
+                suffix = '%';
 		break;
 	      case CRS_CL_ROW:
 		v = ct / W * 100.;
+                suffix = '%';
 		break;
 	      case CRS_CL_COLUMN:
 		v = 100.;
+                suffix = '%';
 		break;
 	      case CRS_CL_TOTAL:
 		v = ct / W * 100.;
+                suffix = '%';
 		break;
 	      case CRS_CL_EXPECTED:
 	      case CRS_CL_RESIDUAL:
@@ -1945,17 +1977,12 @@ display_crosstabulation (void)
 		continue;
 	      default:
 		assert (0);
+                abort ();
 	      }
 
-	    if (cmd.miss == CRS_REPORT && c < n_cols 
-		&& is_num_user_missing (cols[c].f, x->vars[COL_VAR]))
-	      float_M_suffix (table, c, j, v);
-	    else if (v != 0.)
-	      tab_float (table, c, j, TAB_RIGHT, v, 8, 0);
-
-	    j++;
+            format_cell_entry (table, c, i, v, suffix, mark_missing);
 	  }
-        last_row = j;
+        last_row = i;
       }
 
     tab_offset (table, -1, tab_row (table) + last_row);

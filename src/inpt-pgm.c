@@ -303,6 +303,7 @@ end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED,
                     int case_num UNUSED)
 {
   assert (0);
+  abort ();
 }
 
 /* REREAD transformation. */
@@ -342,7 +343,7 @@ cmd_reread (void)
 	      return CMD_FAILURE;
 	    }
 	  
-	  e = expr_parse (PXP_NUMERIC);
+	  e = expr_parse (EXPR_NUMERIC);
 	  if (!e)
 	    return CMD_FAILURE;
 	}

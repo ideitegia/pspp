@@ -559,7 +559,7 @@ request_bug_report_and_abort(const char *msg )
 void 
 err_assert_fail(const char *expr, const char *file, int line)
 {
-  const char msg[256];
+  char msg[256];
   snprintf(msg,256,"Assertion failed: %s:%d; (%s)",file,line,expr);
   request_bug_report_and_abort( msg );
 }

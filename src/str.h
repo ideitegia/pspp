@@ -121,7 +121,7 @@ long getdelim (char **lineptr, size_t * n, int delimiter, FILE * stream);
 void mm_reverse (void *, size_t);
 char *mm_find_reverse (const char *, size_t, const char *, size_t);
 
-int st_compare_pad (const char *, int, const char *, int);
+int st_compare_pad (const char *, size_t, const char *, size_t);
 char *st_spaces (int);
 void st_bare_pad_copy (char *dest, const char *src, size_t n);
 void st_bare_pad_len_copy (char *dest, const char *src, size_t n, size_t len);

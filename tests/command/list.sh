@@ -49,11 +49,6 @@ cd $TEMPDIR
 activity="create program"
 cat > $TEMPDIR/list.stat << foobar
 *** Single lines.
-remark EOF
-----------------------------------------------------------------------
-Testing use of LIST in single-line cases.
-----------------------------------------------------------------------
-EOF
 data list file='$top_srcdir/tests/weighting.data'/AVAR 1-5 BVAR 6-10.
 weight by BVAR.
 list.
@@ -61,11 +56,6 @@ list.
 list /format numbered weight.
 
 *** Multiple lines.
-remark EOF
-----------------------------------------------------------------------
-Testing use of LIST in multi-line cases.
-----------------------------------------------------------------------
-EOF
 data list file='$top_srcdir/tests/list.data' notable /X000 to X126 1-127.
 *list /cases=from 1 to 25 by 5 /format numbered.
 list x000 to x030.
@@ -81,10 +71,6 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
 diff -b -B $TEMPDIR/pspp.list - <<EOF
-----------------------------------------------------------------------
-Testing use of LIST in single-line cases.
-----------------------------------------------------------------------
-
 1.1 DATA LIST.  Reading 1 record from file $top_srcdir/tests/weighting.data.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -202,10 +188,6 @@ Case#  AVAR  BVAR
    50    79     1 
    51    80     1 
    52    94     1 
-
-----------------------------------------------------------------------
-Testing use of LIST in multi-line cases.
-----------------------------------------------------------------------
 
 X000 X001 X002 X003 X004 X005 X006 X007 X008 X009 X010 X011 X012 X013 X014 X015 X016 X017 X018 X019 X020 X021 X022 X023 X024 X025 X026 X027 X028 X029 X030
 ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----

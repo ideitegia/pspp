@@ -146,6 +146,7 @@ cmd_string (void)
 	  break;
 	default:
 	  assert (0);
+          abort ();
 	}
 
       /* Create each variable. */

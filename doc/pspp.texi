@@ -3573,7 +3573,7 @@ as arguments.  With few exceptions, operator arguments may be
 full-fledged expressions in themselves.
 
 @menu
-* Booleans::                       Boolean values.
+* Boolean Values::                 Boolean values.
 * Missing Values in Expressions::  Using missing values in expressions.
 * Grouping Operators::             ( )
 * Arithmetic Operators::           + - * / **
@@ -3583,36 +3583,25 @@ full-fledged expressions in themselves.
 * Order of Operations::            Operator precedence.
 @end menu
 
-@node Booleans, Missing Values in Expressions, Expressions, Expressions
-@section Boolean values
+@node Boolean Values, Missing Values in Expressions, Expressions, Expressions
+@section Boolean Values
 @cindex Boolean
 @cindex values, Boolean
 
-There is a third type for arguments and results, the @dfn{Boolean} type,
-which is used to represent true/false conditions.  Booleans have only
-three possible values: 0 (false), 1 (true), and system-missing.
-System-missing is neither true nor false.
+Some PSPP operators and expressions work with Boolean values, which
+represent true/false conditions.  Booleans have only three possible
+values: 0 (false), 1 (true), and system-missing (unknown).
+System-missing is neither true nor false and indicates that the true
+value is unknown.
 
-@itemize @bullet
-@item
-A numeric expression that has value 0, 1, or system-missing may be used
-in place of a Boolean.  Thus, the expression @code{0 AND 1} is valid
-(although it is always false).
+Boolean-typed operands or function arguments must take on one of these
+three values.  Other values are considered false, but cause an error
+when the expression is evaluated.
 
-@item
-A numeric expression with any other value will cause an error if it is
-used as a Boolean.  So, @code{2 OR 3} is invalid.
-
-@item
-A Boolean expression may not be used in place of a numeric expression.
-Thus, @code{(1>2) + (3<4)} is invalid.
-
-@item
 Strings and Booleans are not compatible, and neither may be used in
 place of the other.
-@end itemize
 
-@node Missing Values in Expressions, Grouping Operators, Booleans, Expressions
+@node Missing Values in Expressions, Grouping Operators, Boolean Values, Expressions
 @section Missing Values in Expressions
 
 String missing values are not treated specially in expressions.  Most
@@ -3621,8 +3610,8 @@ arguments.  Exceptions are listed under particular operator
 descriptions.
 
 User-missing values for numeric variables are always transformed into
-the system-missing value, except inside the arguments to the
-@code{VALUE}, @code{SYSMIS}, and @code{MISSING} functions.
+the system-missing value, except inside the arguments  to the
+@code{VALUE} and @code{SYSMIS} functions.
 
 The missing-value functions can be used to precisely control how missing
 values are treated in expressions.  @xref{Missing Value Functions}, for
@@ -3706,8 +3695,8 @@ system-missing value.
 @cindex logical intersection
 @item @var{a} AND @var{b}
 @itemx @var{a} & @var{b}
-True if both @var{a} and @var{b} are true.  However, if one argument is
-false and the other is missing, the result is false, not missing.  If
+True if both @var{a} and @var{b} are true, false otherwise.  If one
+argument is false, the result is false even if the other is missing.  If
 both arguments are missing, the result is missing.
 
 @cindex @code{OR}
@@ -3717,7 +3706,7 @@ both arguments are missing, the result is missing.
 @item @var{a} OR @var{b}
 @itemx @var{a} | @var{b}
 True if at least one of @var{a} and @var{b} is true.  If one argument is
-true and the other is missing, the result is true, not missing.  If both
+true, the result is true even if the other argument is missing.  If both
 arguments are missing, the result is missing.
 
 @cindex @code{NOT}
@@ -3726,7 +3715,8 @@ arguments are missing, the result is missing.
 @cindex logical inversion
 @item NOT @var{a}
 @itemx ~ @var{a}
-True if @var{a} is false.
+True if @var{a} is false.  If the argument is missing, then the result
+is missing.
 @end table
 
 @node Relational Operators, Functions, Logical Operators, Expressions
@@ -3734,20 +3724,6 @@ True if @var{a} is false.
 
 The relational operators take numeric or string arguments and produce Boolean
 results.
-
-Note that, with numeric arguments, PSPP does not make exact
-relational tests.  Instead, two numbers are considered to be equal even
-if they differ by a small amount.  This amount, @dfn{epsilon}, is
-dependent on the PSPP configuration and determined at compile
-time.  (The default value is 0.000000001, or 
-@ifinfo
-@code{10**(-9)}.)
-@end ifinfo
-@tex
-$10 ^{-9}$.)
-@end tex
-Use of epsilon allows for round-off errors.  Use of epsilon is also
-idiotic, but the author is not a numeric analyst.
 
 Strings cannot be compared to numbers.  When strings of different
 lengths are compared, the shorter string is right-padded with spaces
@@ -3916,11 +3892,9 @@ results.
 
 @cindex arccosine
 @cindex inverse cosine
-@deftypefn {Function} {} ACOS (@var{number})
-@deftypefnx {Function} {} ARCOS (@var{number})
+@deftypefn {Function} {} ARCOS (@var{number})
 Takes the arccosine, in radians, of @var{number}.  Results in
-system-missing if @var{number} is not between -1 and 1.  Portability:
-none.
+system-missing if @var{number} is not between -1 and 1.
 @end deftypefn
 
 @cindex arcsine
@@ -3935,26 +3909,6 @@ system-missing if @var{number} is not between -1 and 1 inclusive.
 @deftypefn {Function} {} ARTAN (@var{number})
 Takes the arctangent, in radians, of @var{number}.
 @end deftypefn
-
-@cindex arcsine
-@cindex inverse sine
-@deftypefn {Function} {} ASIN (@var{number})
-Takes the arcsine, in radians, of @var{number}.  Results in
-system-missing if @var{number} is not between -1 and 1 inclusive.
-Portability: none.
-@end deftypefn
-
-@cindex arctangent
-@cindex inverse tangent
-@deftypefn {Function} {} ATAN (@var{number})
-Takes the arctangent, in radians, of @var{number}.
-@end deftypefn
-
-@quotation
-@strong{Please note:} Use of the AR* group of inverse trigonometric
-functions is recommended over the A* group because they are more
-portable.
-@end quotation
 
 @cindex cosine
 @deftypefn {Function} {} COS (@var{angle})
@@ -3980,57 +3934,42 @@ Portability: none.
 @cindex values, missing
 @cindex functions, missing-value
 
-Missing-value functions take various types as arguments, returning
-various types of results.
+Missing-value functions take various numeric arguments and yield
+various types of results.  Note that the normal rules of evaluation
+apply within expression arguments to these functions.  In particular,
+user-missing values for numeric variables are converted to
+system-missing values.
 
-@deftypefn {Function} {} MISSING (@var{variable or expression})
-@var{num} may be a single variable name or an expression.  If it is a
-variable name, results in 1 if the variable has a user-missing or
-system-missing value for the current case, 0 otherwise.  If it is an
-expression, results in 1 if the expression has the system-missing value,
-0 otherwise.
-
-@quotation
-@strong{Please note:} If the argument is a string expression other than
-a variable name, MISSING is guaranteed to return 0, because strings do
-not have a system-missing value.  Also, when using a numeric expression
-argument, remember that user-missing values are converted to the
-system-missing value in most contexts.  Thus, the expressions
-@code{MISSING(VAR1 @var{op} VAR2)} and @code{MISSING(VAR1) OR
-MISSING(VAR2)} are often equivalent, depending on the specific operator
-@var{op} used.
-@end quotation
+@deftypefn {Function} {} MISSING (@var{expr})
+Returns 1 if @var{expr} has the system-missing value, 0 otherwise.
 @end deftypefn
 
 @deftypefn {Function} {} NMISS (@var{expr} [, @var{expr}]@dots{})
 Each argument must be a numeric expression.  Returns the number of
-user- or system-missing values in the list.  As a special extension,
+system-missing values in the list.  As a special extension,
 the syntax @code{@var{var1} TO @var{var2}} may be used to refer to a
 range of variables; see @ref{Sets of Variables}, for more details.
 @end deftypefn
 
 @deftypefn {Function} {} NVALID (@var{expr} [, @var{expr}]@dots{})
 Each argument must be a numeric expression.  Returns the number of
-values in the list that are not user- or system-missing.  As a special extension,
+values in the list that are not system-missing.  As a special extension,
 the syntax @code{@var{var1} TO @var{var2}} may be used to refer to a
 range of variables; see @ref{Sets of Variables}, for more details.
 @end deftypefn
 
-@deftypefn {Function} {} SYSMIS (@var{variable or expression})
-When given the name of a numeric variable, returns 1 if the value of
-that variable is system-missing.  Otherwise, if the value is not
-missing or if it is user-missing, returns 0.  If given the name of a
-string variable, always returns 1.  If given an expression other than
-a single variable name, results in 1 if the value is system- or
-user-missing, 0 otherwise.
+@deftypefn {Function} {} SYSMIS (@var{expr})
+When @var{expr} is simply the name of a numeric variable, returns 1 if
+the variable has the system-missing value, 0 if it is user-missing or
+not missing.  If given @var{expr} takes another form, results in 1 if
+the value is system-missing, 0 otherwise.
 @end deftypefn
 
 @deftypefn {Function} {} VALUE (@var{variable})
 Prevents the user-missing values of @var{variable} from being
-transformed into system-missing values: If @var{variable} is not
-system- or user-missing, results in the value of @var{variable}.  If
-@var{variable} is user-missing, results in the value of @var{variable}
-anyway.  If @var{variable} is system-missing, results in system-missing.
+transformed into system-missing values, and always results in the
+actual value of @var{variable}, whether it is user-missing,
+system-missing or not missing at all.
 @end deftypefn
 
 @node Pseudo-Random Numbers, Set Membership, Missing Value Functions, Functions
@@ -4171,15 +4110,9 @@ non-missing result.
 @end deftypefn
 
 @cindex variance
-@deftypefn {Function} {} VAR (@var{number}, @var{number}[, @dots{}])
-Results in the variance of the values of @var{number}.  This function
-requires at least two valid arguments to give a non-missing result.
-@end deftypefn
-
 @deftypefn {Function} {} VARIANCE (@var{number}, @var{number}[, @dots{}])
 Results in the variance of the values of @var{number}.  This function
 requires at least two valid arguments to give a non-missing result.
-(Use VAR in preference to VARIANCE for reasons of portability.)
 @end deftypefn
 
 @node String Functions, Time & Date, Statistical Functions, Functions
@@ -4258,20 +4191,15 @@ empty string.
 
 @cindex numbers, converting from strings
 @cindex strings, converting to numbers
-@deftypefn {Function} {} NUMBER (@var{string})
-Returns the number produced when @var{string} is interpreted according
-to format F@var{x}.0, where @var{x} is the number of characters in
-@var{string}.  If @var{string} does not form a proper number,
-system-missing is returned without an error message.  Portability: none.
-@end deftypefn
-
 @deftypefn {Function} {} NUMBER (@var{string}, @var{format})
 Returns the number produced when @var{string} is interpreted according
-to format specifier @var{format}.  Only the number of characters in
-@var{string} specified by @var{format} are examined.  For example,
-@code{NUMBER("123", F3.0)} and @code{NUMBER("1234", F3.0)} both have
-value 123.  If @var{string} does not form a proper number,
-system-missing is returned without an error message.
+to format specifier @var{format}.  If the format width @var{w} is less
+than the length of @var{string}, then only the first @var{w}
+characters in @var{string} are used, e.g.@: @code{NUMBER("123", F3.0)}
+and @code{NUMBER("1234", F3.0)} both have value 123.  If @var{w} is
+greater than @var{string}'s length, then it is treated as if it were
+right-padded with spaces.  If @var{string} is not in the correct
+format for @var{format}, system-missing is returned.
 @end deftypefn
 
 @cindex strings, searching backwards

@@ -595,6 +595,7 @@ ascii_option (struct outp_driver *this, const char *key,
 	    break;
 	  default:
 	    assert (0);
+            abort ();
 	  }
 	ls_create (ascii_pool, s, value);
       }
@@ -1216,6 +1217,7 @@ output_shorts (struct outp_driver *this,
 	      break;
 	    default:
 	      assert (0);
+              abort ();
 	    }
 	  if (!on)
 	    {
@@ -1244,6 +1246,7 @@ output_shorts (struct outp_driver *this,
 		    break;
 		  default:
 		    assert (0);
+                    abort ();
 		  }
 	      else
 		{
@@ -1330,6 +1333,7 @@ return_carriage (struct outp_driver *this, int n_chars)
       break;
     default:
       assert (0);
+      abort ();
     }
 }
 
@@ -1403,6 +1407,7 @@ output_lines (struct outp_driver *this, int first, int count)
 		  break;
 		default:
 		  assert (0);
+                  abort ();
 		}
 	      if (off)
 		output_string (this, ls_value (off), ls_end (off));
@@ -1427,6 +1432,7 @@ output_lines (struct outp_driver *this, int first, int count)
 		  break;
 		default:
 		  assert (0);
+                  abort ();
 		}
 	      if (on)
 		output_string (this, ls_value (on), ls_end (on));
@@ -1463,6 +1469,7 @@ output_lines (struct outp_driver *this, int first, int count)
 		  break;
                 default:
                   assert (0);
+                  abort ();
 		}
 	      output_char (this, 1, ch);
 	      n_chars += ep - bp + 1;

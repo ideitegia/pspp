@@ -1114,6 +1114,7 @@ mod (int x, int y)
     return y - (-x) % y;
 
   assert (0);
+  abort ();
 }
 
 /* A run of data for use in merging. */

@@ -75,6 +75,7 @@ get_title (const char *cmd, char **title)
       if (*title)
 	free (*title);
       *title = xstrdup (lex_rest_of_line (NULL));
+      lex_discard_line ();
       for (cp = *title; *cp; cp++)
 	*cp = toupper ((unsigned char) (*cp));
       token = '.';
@@ -87,9 +88,10 @@ get_title (const char *cmd, char **title)
 int
 cmd_file_label (void)
 {
-  char *label;
+  const char *label;
 
   label = lex_rest_of_line (NULL);
+  lex_discard_line ();
   while (isspace ((unsigned char) *label))
     label++;
 
@@ -143,20 +145,21 @@ cmd_document (void)
   for (;;)
     {
       int had_dot;
-      char *line;
+      const char *orig_line;
+      char *copy_line;
 
-      line = lex_rest_of_line (&had_dot);
-      while (isspace ((unsigned char) *line))
-	line++;
+      orig_line = lex_rest_of_line (&had_dot);
+      lex_discard_line ();
+      while (isspace ((unsigned char) *orig_line))
+	orig_line++;
 
+      copy_line = xmalloc (strlen (orig_line) + 2);
+      strcpy (copy_line, orig_line);
       if (had_dot)
-	{
-	  char *cp = strchr (line, 0);
-	  *cp++ = '.';
-	  *cp = 0;
-	}
+        strcat (copy_line, ".");
 
-      add_document_line (line, 3);
+      add_document_line (copy_line, 3);
+      free (copy_line);
 
       lex_get_line ();
       if (had_dot)

@@ -29,6 +29,7 @@
 #include "error.h"
 #include "lexer.h"
 #include "misc.h"
+#include "settings.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
@@ -36,37 +37,32 @@
 
 /* Declarations. */
 
-/* Lowest precedence. */
-static int parse_or (union any_node **n);
-static int parse_and (union any_node **n);
-static int parse_not (union any_node **n);
-static int parse_rel (union any_node **n);
-static int parse_add (union any_node **n);
-static int parse_mul (union any_node **n);
-static int parse_neg (union any_node **n);
-static int parse_exp (union any_node **n);
-static int parse_primary (union any_node **n);
-static int parse_function (union any_node **n);
-/* Highest precedence. */
+/* Recursive descent parser in order of increasing precedence. */
+typedef enum expr_type parse_recursively_func (union any_node **);
+static parse_recursively_func parse_or, parse_and, parse_not;
+static parse_recursively_func parse_rel, parse_add, parse_mul;
+static parse_recursively_func parse_neg, parse_exp;
+static parse_recursively_func parse_primary, parse_function;
 
 /* Utility functions. */
-static const char *expr_type_name (int type);
-static const char *type_name (int type);
+static const char *expr_type_name (enum expr_type type);
+static const char *var_type_name (int var_type);
 static void make_bool (union any_node **n);
 static union any_node *allocate_nonterminal (int op, union any_node *n);
-static union any_node *append_nonterminal_arg (union any_node *,
-					       union any_node *);
-static int type_check (union any_node **n, int type, int flags);
+static union any_node *allocate_binary_nonterminal (int op, union any_node *,
+                                                    union any_node *);
+static union any_node *allocate_num_con (double value);
+static union any_node *allocate_str_con (const char *string, size_t length);
+static union any_node *allocate_var_node (int type, struct variable *);
+static int type_check (union any_node **n,
+                       enum expr_type actual_type,
+                       enum expr_type expected_type);
 
 static algo_compare_func compare_functions;
 static void init_func_tab (void);
 
 #if DEBUGGING
 static void debug_print_tree (union any_node *, int);
-#endif
-
-#if GLOBAL_DEBUGGING
-static void debug_print_postfix (struct expression *);
 #endif
 
 /* Public functions. */
@@ -87,482 +83,459 @@ expr_free (struct expression *e)
 }
 
 struct expression *
-expr_parse (int flags)
+expr_parse (enum expr_type expected_type)
 {
   struct expression *e;
   union any_node *n;
-  int type;
+  enum expr_type actual_type;
+  int optimize = (expected_type & EXPR_NO_OPTIMIZE) == 0;
+
+  expected_type &= ~EXPR_NO_OPTIMIZE;
 
   /* Make sure the table of functions is initialized. */
   init_func_tab ();
 
   /* Parse the expression. */
-  type = parse_or (&n);
-  if (type == EX_ERROR)
+  actual_type = parse_or (&n);
+  if (actual_type == EXPR_ERROR)
     return NULL;
 
   /* Enforce type rules. */
-  if (!type_check (&n, type, flags))
+  if (!type_check (&n, actual_type, expected_type))
     {
       free_node (n);
       return NULL;
     }
 
   /* Optimize the expression as best we can. */
-  n = (union any_node *) optimize_expression ((struct nonterm_node *) n);
+  if (optimize)
+    optimize_expression (&n);
 
   /* Dump the tree-based expression to a postfix representation for
      best evaluation speed, and destroy the tree. */
   e = xmalloc (sizeof *e);
-  e->type = type;
+  e->type = actual_type;
   dump_expression (n, e);
   free_node (n);
-
-  /* If we're debugging or the user requested it, print the postfix
-     representation. */
-#if DEBUGGING
-    debug_print_postfix (e);
-#endif
 
   return e;
 }
 
-static int
-type_check (union any_node **n, int type, int flags)
+/* Returns the type of EXPR. */
+enum expr_type
+expr_get_type (const struct expression *expr) 
 {
-  /* Enforce PXP_BOOLEAN flag. */
-  if (flags & PXP_BOOLEAN)
+  assert (expr != NULL);
+  return expr->type;
+}
+
+static int
+type_check (union any_node **n, enum expr_type actual_type, enum expr_type expected_type)
+{
+  switch (expected_type) 
     {
-      if (type == EX_STRING)
+    case EXPR_BOOLEAN:
+    case EXPR_NUMERIC:
+      if (actual_type == EXPR_STRING)
 	{
-	  msg (SE, _("A string expression was supplied in a place "
-		     "where a Boolean expression was expected."));
+	  msg (SE, _("Type mismatch: expression has string type, "
+                     "but a numeric value is required here."));
 	  return 0;
 	}
-      else if (type == EX_NUMERIC)
+      if (actual_type == EXPR_NUMERIC && expected_type == EXPR_BOOLEAN)
 	*n = allocate_nonterminal (OP_NUM_TO_BOOL, *n);
+      break;
+      
+    case EXPR_STRING:
+      if (actual_type != EXPR_STRING)
+        {
+          msg (SE, _("Type mismatch: expression has numeric type, "
+                     "but a string value is required here."));
+          return 0;
+        }
+      break;
+
+    case EXPR_ANY:
+      break;
+
+    default:
+      assert (0); 
     }
   
-  /* Enforce PXP_NUMERIC flag. */
-  if ((flags & PXP_NUMERIC) && (type != EX_NUMERIC))
-    {
-      msg (SE, _("A numeric expression was expected in a place "
-		 "where one was not supplied."));
-      return 0;
-    }
-
-  /* Enforce PXP_STRING flag. */
-  if ((flags & PXP_STRING) && (type != EX_STRING))
-    {
-      msg (SE, _("A string expression was expected in a place "
-		 "where one was not supplied."));
-      return 0;
-    }
-
   return 1;
 }
 
 /* Recursive-descent expression parser. */
 
-/* Parses the OR level. */
+/* Coerces *NODE, of type ACTUAL_TYPE, to type REQUIRED_TYPE, and
+   returns success.  If ACTUAL_TYPE cannot be coerced to the
+   desired type then we issue an error message about operator
+   OPERATOR_NAME and free *NODE. */
 static int
-parse_or (union any_node **n)
+type_coercion (enum expr_type actual_type, enum expr_type required_type,
+               union any_node **node,
+               const char *operator_name) 
 {
-  char typ[] = N_("The OR operator cannot take string operands.");
-  union any_node *c;
-  int type;
+  assert (required_type == EXPR_NUMERIC
+          || required_type == EXPR_BOOLEAN
+          || required_type == EXPR_STRING);
 
-  type = parse_and (n);
-  if (type == EX_ERROR || token != T_OR)
-    return type;
-  if (type == EX_STRING)
+  if (actual_type == required_type) 
     {
-      free_node (*n);
-      msg (SE, gettext (typ));
+      /* Type match. */
+      return 1; 
+    }
+  else if (actual_type == EXPR_ERROR)
+    {
+      /* Error already reported. */
+      *node = NULL;
       return 0;
     }
-  else if (type == EX_NUMERIC)
-    make_bool (n);
-
-  c = allocate_nonterminal (OP_OR, *n);
-  for (;;)
+  else if (actual_type == EXPR_BOOLEAN && required_type == EXPR_NUMERIC) 
     {
-      lex_get ();
-      type = parse_and (n);
-      if (type == EX_ERROR)
-	goto fail;
-      else if (type == EX_STRING)
-	{
-	  msg (SE, gettext (typ));
-	  goto fail;
-	}
-      else if (type == EX_NUMERIC)
-	make_bool (n);
-      c = append_nonterminal_arg (c, *n);
-
-      if (token != T_OR)
-	break;
+      /* Boolean -> numeric: nothing to do. */
+      return 1;
     }
-  *n = c;
-  return EX_BOOLEAN;
+  else if (actual_type == EXPR_NUMERIC && required_type == EXPR_BOOLEAN) 
+    {
+      /* Numeric -> Boolean: insert conversion. */
+      make_bool (node);
+      return 1;
+    }
+  else
+    {
+      /* We want a string and got a number/Boolean, or vice versa. */
+      assert ((actual_type == EXPR_STRING) != (required_type == EXPR_STRING));
 
-fail:
-  free_node (c);
-  return EX_ERROR;
+      if (required_type == EXPR_STRING)
+        msg (SE, _("Type mismatch: operands of %s operator must be strings."),
+             operator_name);
+      else
+        msg (SE, _("Type mismatch: operands of %s operator must be numeric."),
+             operator_name);
+      free_node (*node);
+      *node = NULL;
+      return 0;
+    }
+}
+
+/* An operator. */
+struct operator 
+  {
+    int token;          /* Operator token. */
+    int type;           /* Operator node type. */
+    const char *name;   /* Operator name. */
+  };
+
+/* Attempts to match the current token against the tokens for the
+   OP_CNT operators in OPS[].  If successful, returns nonzero
+   and, if OPERATOR is non-null, sets *OPERATOR to the operator.
+   On failure, returns zero and, if OPERATOR is non-null, sets
+   *OPERATOR to a null pointer. */
+static int
+match_operator (const struct operator ops[], size_t op_cnt,
+                const struct operator **operator) 
+{
+  const struct operator *op;
+
+  for (op = ops; op < ops + op_cnt; op++)
+    {
+      if (op->token == '-')
+        lex_negative_to_dash ();
+      if (lex_match (op->token)) 
+        {
+          if (operator != NULL)
+            *operator = op;
+          return 1;
+        }
+    }
+  if (operator != NULL)
+    *operator = NULL;
+  return 0;
+}
+
+/* Parses a chain of left-associative operator/operand pairs.
+   The operators' operands uniformly must be type REQUIRED_TYPE.
+   There are OP_CNT operators, specified in OPS[].  The next
+   higher level is parsed by PARSE_NEXT_LEVEL.  If CHAIN_WARNING
+   is non-null, then it will be issued as a warning if more than
+   one operator/operand pair is parsed. */
+static enum expr_type
+parse_binary_operators (union any_node **node,
+                        enum expr_type actual_type,
+                        enum expr_type required_type,
+                        enum expr_type result_type,
+                        const struct operator ops[], size_t op_cnt,
+                        parse_recursively_func *parse_next_level,
+                        const char *chain_warning)
+{
+  int op_count;
+  const struct operator *operator;
+
+  if (actual_type == EXPR_ERROR)
+    return EXPR_ERROR;
+
+  for (op_count = 0; match_operator (ops, op_cnt, &operator); op_count++)
+    {
+      union any_node *rhs;
+
+      /* Convert the left-hand side to type REQUIRED_TYPE. */
+      if (!type_coercion (actual_type, required_type, node, operator->name))
+        return EXPR_ERROR;
+
+      /* Parse the right-hand side and coerce to type
+         REQUIRED_TYPE. */
+      if (!type_coercion (parse_next_level (&rhs), required_type,
+                          &rhs, operator->name))
+        {
+          free_node (*node);
+          *node = NULL;
+          return EXPR_ERROR;
+        }
+      *node = allocate_binary_nonterminal (operator->type, *node, rhs);
+
+      /* The result is of type RESULT_TYPE. */
+      actual_type = result_type;
+    }
+
+  if (op_count > 1 && chain_warning != NULL)
+    msg (SW, chain_warning);
+
+  return actual_type;
+}
+
+static enum expr_type
+parse_inverting_unary_operator (union any_node **node,
+                                enum expr_type required_type,
+                                const struct operator *operator,
+                                parse_recursively_func *parse_next_level) 
+{
+  unsigned op_count;
+
+  op_count = 0;
+  while (match_operator (operator, 1, NULL))
+    op_count++;
+  if (op_count == 0)
+    return parse_next_level (node);
+
+  if (!type_coercion (parse_next_level (node), required_type,
+                      node, operator->name))
+    return EXPR_ERROR;
+  if (op_count % 2 != 0)
+    *node = allocate_nonterminal (operator->type, *node);
+  return required_type;
+}
+
+/* Parses the OR level. */
+static enum expr_type
+parse_or (union any_node **n)
+{
+  static const struct operator ops[] = 
+    {
+      { T_OR, OP_OR, "logical disjunction (\"OR\")" },
+    };
+  
+  return parse_binary_operators (n, parse_and (n), EXPR_BOOLEAN, EXPR_BOOLEAN,
+                                 ops, sizeof ops / sizeof *ops,
+                                 parse_and, NULL);
 }
 
 /* Parses the AND level. */
-static int
+static enum expr_type
 parse_and (union any_node ** n)
 {
-  static const char typ[]
-    = N_("The AND operator cannot take string operands.");
-  union any_node *c;
-  int type = parse_not (n);
-
-  if (type == EX_ERROR)
-    return EX_ERROR;
-  if (token != T_AND)
-    return type;
-  if (type == EX_STRING)
+  static const struct operator ops[] = 
     {
-      free_node (*n);
-      msg (SE, gettext (typ));
-      return 0;
-    }
-  else if (type == EX_NUMERIC)
-    make_bool (n);
-
-  c = allocate_nonterminal (OP_AND, *n);
-  for (;;)
-    {
-      lex_get ();
-      type = parse_not (n);
-      if (type == EX_ERROR)
-	goto fail;
-      else if (type == EX_STRING)
-	{
-	  msg (SE, gettext (typ));
-	  goto fail;
-	}
-      else if (type == EX_NUMERIC)
-	make_bool (n);
-      c = append_nonterminal_arg (c, *n);
-
-      if (token != T_AND)
-	break;
-    }
-  *n = c;
-  return EX_BOOLEAN;
-
-fail:
-  free_node (c);
-  return EX_ERROR;
+      { T_AND, OP_AND, "logical conjunction (\"AND\")" },
+    };
+  
+  return parse_binary_operators (n, parse_not (n), EXPR_BOOLEAN, EXPR_BOOLEAN,
+                                 ops, sizeof ops / sizeof *ops,
+                                 parse_not, NULL);
 }
 
 /* Parses the NOT level. */
-static int
+static enum expr_type
 parse_not (union any_node ** n)
 {
-  static const char typ[]
-    = N_("The NOT operator cannot take a string operand.");
-  int not = 0;
-  int type;
-
-  while (lex_match (T_NOT))
-    not ^= 1;
-  type = parse_rel (n);
-  if (!not || type == EX_ERROR)
-    return type;
-
-  if (type == EX_STRING)
-    {
-      free_node (*n);
-      msg (SE, gettext (typ));
-      return 0;
-    }
-  else if (type == EX_NUMERIC)
-    make_bool (n);
-
-  *n = allocate_nonterminal (OP_NOT, *n);
-  return EX_BOOLEAN;
+  static const struct operator op
+    = { T_NOT, OP_NOT, "logical negation (\"NOT-\")" };
+  return parse_inverting_unary_operator (n, EXPR_BOOLEAN, &op, parse_rel);
 }
 
-static int
-parse_rel (union any_node ** n)
+/* Parse relational operators. */
+static enum expr_type
+parse_rel (union any_node **n) 
 {
-  static const char typ[]
-    = N_("Strings cannot be compared with numeric or Boolean "
-	 "values with the relational operators "
-	 "= >= > <= < <>.");
-  union any_node *c;
+  static const struct operator numeric_ops[] = 
+    {
+      { '=', OP_EQ, "numeric equality (\"=\")" },
+      { T_EQ, OP_EQ, "numeric equality (\"EQ\")" },
+      { T_GE, OP_GE, "numeric greater-than-or-equal-to (\">=\")" },
+      { T_GT, OP_GT, "numeric greater than (\">\")" },
+      { T_LE, OP_LE, "numeric less-than-or-equal-to (\"<=\")" },
+      { T_LT, OP_LT, "numeric less than (\"<\")" },
+      { T_NE, OP_NE, "numeric inequality (\"<>\")" },
+    };
+
+  static const struct operator string_ops[] = 
+    {
+      { '=', OP_EQ_STRING, "string equality (\"=\")" },
+      { T_EQ, OP_EQ_STRING, "string equality (\"EQ\")" },
+      { T_GE, OP_GE_STRING, "string greater-than-or-equal-to (\">=\")" },
+      { T_GT, OP_GT_STRING, "string greater than (\">\")" },
+      { T_LE, OP_LE_STRING, "string less-than-or-equal-to (\"<=\")" },
+      { T_LT, OP_LT_STRING, "string less than (\"<\")" },
+      { T_NE, OP_NE_STRING, "string inequality (\"<>\")" },
+    };
+
   int type = parse_add (n);
 
-  if (type == EX_ERROR)
-    return EX_ERROR;
-  if (token == '=')
-    token = T_EQ;
-  if (token < T_EQ || token > T_NE)
-    return type;
+  const char *chain_warning = 
+    _("Chaining relational operators (e.g. \"a < b < c\") will "
+      "not produce the mathematically expected result.  "
+      "Use the AND logical operator to fix the problem "
+      "(e.g. \"a < b AND b < c\").  "
+      "If chaining is really intended, parentheses will disable "
+      "this warning (e.g. \"(a < b) < c\".)");
 
-  for (;;)
+  switch (type) 
     {
-      int t;
+    case EXPR_ERROR:
+      return EXPR_ERROR;
 
-      c = allocate_nonterminal (token - T_EQ
-				+ (type == EX_NUMERIC ? OP_EQ : OP_STRING_EQ),
-				*n);
-      lex_get ();
+    case EXPR_NUMERIC:
+    case EXPR_BOOLEAN:
+      return parse_binary_operators (n,
+                                     type, EXPR_NUMERIC, EXPR_BOOLEAN,
+                                     numeric_ops,
+                                     sizeof numeric_ops / sizeof *numeric_ops,
+                                     parse_add, chain_warning);
 
-      t = parse_add (n);
-      if (t == EX_ERROR)
-	goto fail;
-      if (t == EX_BOOLEAN && type == EX_NUMERIC)
-	make_bool (&c->nonterm.arg[0]);
-      else if (t == EX_NUMERIC && type == EX_BOOLEAN)
-	make_bool (n);
-      else if (t != type)
-	{
-	  msg (SE, gettext (typ));
-	  goto fail;
-	}
+    case EXPR_STRING:
+      return parse_binary_operators (n,
+                                     type, EXPR_STRING, EXPR_BOOLEAN,
+                                     string_ops,
+                                     sizeof string_ops / sizeof *string_ops,
+                                     parse_add, chain_warning);
 
-      c = append_nonterminal_arg (c, *n);
-      *n = c;
-
-      if (token == '=')
-	token = T_EQ;
-      if (token < T_EQ || token > T_NE)
-	break;
-
-      type = EX_BOOLEAN;
+    default:
+      assert (0);
+      abort ();
     }
-  return EX_BOOLEAN;
-
-fail:
-  free_node (c);
-  return EX_ERROR;
 }
 
 /* Parses the addition and subtraction level. */
-static int
+static enum expr_type
 parse_add (union any_node **n)
 {
-  static const char typ[]
-    = N_("The `+' and `-' operators may only be used with "
-	 "numeric operands.");
-  union any_node *c;
-  int type;
-  int op;
-
-  type = parse_mul (n);
-  lex_negative_to_dash ();
-  if (type == EX_ERROR || (token != '+' && token != '-'))
-    return type;
-  if (type != EX_NUMERIC)
+  static const struct operator ops[] = 
     {
-      free_node (*n);
-      msg (SE, gettext (typ));
-      return 0;
-    }
-
-  c = allocate_nonterminal (OP_PLUS, *n);
-  for (;;)
-    {
-      op = token;
-      lex_get ();
-
-      type = parse_mul (n);
-      if (type == EX_ERROR)
-	goto fail;
-      else if (type != EX_NUMERIC)
-	{
-	  msg (SE, gettext (typ));
-	  goto fail;
-	}
-      if (op == '-')
-	*n = allocate_nonterminal (OP_NEG, *n);
-      c = append_nonterminal_arg (c, *n);
-
-      lex_negative_to_dash ();
-      if (token != '+' && token != '-')
-	break;
-    }
-  *n = c;
-  return EX_NUMERIC;
-
-fail:
-  free_node (c);
-  return EX_ERROR;
+      { '+', OP_ADD, "addition (\"+\")" },
+      { '-', OP_SUB, "subtraction (\"-\")-" },
+    };
+  
+  return parse_binary_operators (n, parse_mul (n), EXPR_NUMERIC, EXPR_NUMERIC,
+                                 ops, sizeof ops / sizeof *ops,
+                                 parse_mul, NULL);
 }
 
 /* Parses the multiplication and division level. */
-static int
+static enum expr_type
 parse_mul (union any_node ** n)
 {
-  static const char typ[]
-    = N_("The `*' and `/' operators may only be used with "
-	 "numeric operands.");
-
-  union any_node *c;
-  int type;
-  int op;
-
-  type = parse_neg (n);
-  if (type == EX_ERROR || (token != '*' && token != '/'))
-    return type;
-  if (type != EX_NUMERIC)
+  static const struct operator ops[] = 
     {
-      free_node (*n);
-      msg (SE, gettext (typ));
-      return 0;
-    }
-
-  c = allocate_nonterminal (OP_MUL, *n);
-  for (;;)
-    {
-      op = token;
-      lex_get ();
-
-      type = parse_neg (n);
-      if (type == EX_ERROR)
-	goto fail;
-      else if (type != EX_NUMERIC)
-	{
-	  msg (SE, gettext (typ));
-	  goto fail;
-	}
-      if (op == '/')
-	*n = allocate_nonterminal (OP_INV, *n);
-      c = append_nonterminal_arg (c, *n);
-
-      if (token != '*' && token != '/')
-	break;
-    }
-  *n = c;
-  return EX_NUMERIC;
-
-fail:
-  free_node (c);
-  return EX_ERROR;
+      { '*', OP_MUL, "multiplication (\"*\")" },
+      { '/', OP_DIV, "division (\"/\")" },
+    };
+  
+  return parse_binary_operators (n, parse_neg (n), EXPR_NUMERIC, EXPR_NUMERIC,
+                                 ops, sizeof ops / sizeof *ops,
+                                 parse_neg, NULL);
 }
 
 /* Parses the unary minus level. */
-static int
+static enum expr_type
 parse_neg (union any_node **n)
 {
-  static const char typ[]
-    = N_("The unary minus (-) operator can only take a numeric operand.");
-
-  int neg = 0;
-  int type;
-
-  for (;;)
-    {
-      lex_negative_to_dash ();
-      if (!lex_match ('-'))
-	break;
-      neg ^= 1;
-    }
-  type = parse_exp (n);
-  if (!neg || type == EX_ERROR)
-    return type;
-  if (type != EX_NUMERIC)
-    {
-      free_node (*n);
-      msg (SE, gettext (typ));
-      return 0;
-    }
-
-  *n = allocate_nonterminal (OP_NEG, *n);
-  return EX_NUMERIC;
+  static const struct operator op = { '-', OP_NEG, "negation (\"-\")" };
+  return parse_inverting_unary_operator (n, EXPR_NUMERIC, &op, parse_exp);
 }
 
-static int
+static enum expr_type
 parse_exp (union any_node **n)
 {
-  static const char typ[]
-    = N_("Both operands to the ** operator must be numeric.");
-
-  union any_node *c;
-  int type;
-
-  type = parse_primary (n);
-  if (type == EX_ERROR || token != T_EXP)
-    return type;
-  if (type != EX_NUMERIC)
+  static const struct operator ops[] = 
     {
-      free_node (*n);
-      msg (SE, gettext (typ));
-      return 0;
-    }
+      { T_EXP, OP_POW, "exponentiation (\"**\")" },
+    };
+  
+  const char *chain_warning = 
+    _("The exponentiation operator (\"**\") is left-associative, "
+      "even though right-associative semantics are more useful.  "
+      "That is, \"a**b**c\" equals \"(a**b)**c\", not as \"a**(b**c)\".  "
+      "To disable this warning, insert parentheses.");
 
-  for (;;)
-    {
-      c = allocate_nonterminal (OP_POW, *n);
-      lex_get ();
-
-      type = parse_primary (n);
-      if (type == EX_ERROR)
-	goto fail;
-      else if (type != EX_NUMERIC)
-	{
-	  msg (SE, gettext (typ));
-	  goto fail;
-	}
-      *n = append_nonterminal_arg (c, *n);
-
-      if (token != T_EXP)
-	break;
-    }
-  return EX_NUMERIC;
-
-fail:
-  free_node (c);
-  return EX_ERROR;
+  return parse_binary_operators (n,
+                                 parse_primary (n), EXPR_NUMERIC, EXPR_NUMERIC,
+                                 ops, sizeof ops / sizeof *ops,
+                                 parse_primary, chain_warning);
 }
 
 /* Parses system variables. */
-static int
+static enum expr_type
 parse_sysvar (union any_node **n)
 {
   if (!strcmp (tokid, "$CASENUM"))
     {
       *n = xmalloc (sizeof (struct casenum_node));
       (*n)->casenum.type = OP_CASENUM;
-      return EX_NUMERIC;
+      return EXPR_NUMERIC;
+    }
+  else if (!strcmp (tokid, "$DATE"))
+    {
+      static const char *months[12] =
+        {
+          "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+          "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+        };
+
+      struct tm *time;
+      char temp_buf[10];
+
+      time = localtime (&last_vfm_invocation);
+      sprintf (temp_buf, "%02d %s %02d", abs (time->tm_mday) % 100,
+               months[abs (time->tm_mon) % 12], abs (time->tm_year) % 100);
+
+      *n = xmalloc (sizeof (struct str_con_node) + 8);
+      (*n)->str_con.type = OP_STR_CON;
+      (*n)->str_con.len = 9;
+      memcpy ((*n)->str_con.s, temp_buf, 9);
+      return EXPR_STRING;
     }
   else
     {
+      enum expr_type type;
       double d;
 
-      if (!strcmp (tokid, "$SYSMIS"))
+      type = EXPR_NUMERIC;
+      if (!strcmp (tokid, "$TRUE")) 
+        {
+          d = 1.0;
+          type = EXPR_BOOLEAN; 
+        }
+      else if (!strcmp (tokid, "$FALSE")) 
+        {
+          d = 0.0;
+          type = EXPR_BOOLEAN; 
+        }
+      else if (!strcmp (tokid, "$SYSMIS"))
 	d = SYSMIS;
       else if (!strcmp (tokid, "$JDATE"))
 	{
 	  struct tm *time = localtime (&last_vfm_invocation);
 	  d = yrmoda (time->tm_year + 1900, time->tm_mon + 1, time->tm_mday);
-	}
-      else if (!strcmp (tokid, "$DATE"))
-	{
-	  static const char *months[12] =
-	    {
-	      "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-	      "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
-	    };
-
-	  struct tm *time;
-	  char temp_buf[10];
-
-	  time = localtime (&last_vfm_invocation);
-	  sprintf (temp_buf, "%02d %s %02d", abs (time->tm_mday) % 100,
-		   months[abs (time->tm_mon) % 12], abs (time->tm_year) % 100);
-
-	  *n = xmalloc (sizeof (struct str_con_node) + 8);
-	  (*n)->str_con.type = OP_STR_CON;
-	  (*n)->str_con.len = 9;
-	  memcpy ((*n)->str_con.s, temp_buf, 9);
-	  return EX_STRING;
 	}
       else if (!strcmp (tokid, "$TIME"))
 	{
@@ -575,30 +548,24 @@ parse_sysvar (union any_node **n)
 	       + time->tm_sec);
 	}
       else if (!strcmp (tokid, "$LENGTH"))
-	{
-	  msg (SW, _("Use of $LENGTH is obsolete, returning default of 66."));
-	  d = 66.0;
-	}
+        d = get_viewlength ();
       else if (!strcmp (tokid, "$WIDTH"))
-	{
-	  msg (SW, _("Use of $WIDTH is obsolete, returning default of 131."));
-	  d = 131.0;
-	}
+        d = get_viewwidth ();
       else
 	{
 	  msg (SE, _("Unknown system variable %s."), tokid);
-	  return EX_ERROR;
+	  return EXPR_ERROR;
 	}
 
       *n = xmalloc (sizeof (struct num_con_node));
       (*n)->num_con.type = OP_NUM_CON;
       (*n)->num_con.value = d;
-      return EX_NUMERIC;
+      return type;
     }
 }
 
 /* Parses numbers, varnames, etc. */
-static int
+static enum expr_type
 parse_primary (union any_node **n)
 {
   switch (token)
@@ -615,7 +582,7 @@ parse_primary (union any_node **n)
 	/* $ at the beginning indicates a system variable. */
 	if (tokid[0] == '$')
 	  {
-	    int type = parse_sysvar (n);
+	    enum expr_type type = parse_sysvar (n);
 	    lex_get ();
 	    return type;
 	  }
@@ -626,30 +593,31 @@ parse_primary (union any_node **n)
 	if (v == NULL)
 	  {
 	    lex_error (_("expecting variable name"));
-	    return EX_ERROR;
+	    return EXPR_ERROR;
 	  }
 
-	*n = xmalloc (sizeof (struct var_node));
-	(*n)->var.type = v->type == NUMERIC ? OP_NUM_VAR : OP_STR_VAR;
-	(*n)->var.v = v;
-	return v->type == NUMERIC ? EX_NUMERIC : EX_STRING;
+        if (v->type == NUMERIC) 
+          {
+            *n = allocate_var_node (OP_NUM_VAR, v);
+            return EXPR_NUMERIC;
+          }
+        else 
+          {
+            *n = allocate_var_node (OP_STR_VAR, v);
+            return EXPR_STRING; 
+          }
       }
 
     case T_NUM:
-      *n = xmalloc (sizeof (struct num_con_node));
-      (*n)->num_con.type = OP_NUM_CON;
-      (*n)->num_con.value = tokval;
+      *n = allocate_num_con (tokval);
       lex_get ();
-      return EX_NUMERIC;
+      return EXPR_NUMERIC;
 
     case T_STRING:
       {
-	*n = xmalloc (sizeof (struct str_con_node) + ds_length (&tokstr) - 1);
-	(*n)->str_con.type = OP_STR_CON;
-	(*n)->str_con.len = ds_length (&tokstr);
-	memcpy ((*n)->str_con.s, ds_value (&tokstr), ds_length (&tokstr));
+        *n = allocate_str_con (ds_value (&tokstr), ds_length (&tokstr));
 	lex_get ();
-	return EX_STRING;
+	return EXPR_STRING;
       }
 
     case '(':
@@ -661,14 +629,14 @@ parse_primary (union any_node **n)
 	  {
 	    lex_error (_("expecting `)'"));
 	    free_node (*n);
-	    return EX_ERROR;
+	    return EXPR_ERROR;
 	  }
 	return t;
       }
 
     default:
       lex_error (_("in expression"));
-      return EX_ERROR;
+      return EXPR_ERROR;
     }
 }
 
@@ -678,179 +646,94 @@ struct function
   {
     const char *s;
     int t;
-    int (*func) (struct function *, int, union any_node **);
-    const char *desc;
+    enum expr_type (*func) (const struct function *, int, union any_node **);
   };
 
 static struct function func_tab[];
 static int func_count;
 
-static int get_num_args (struct function *, int, union any_node **);
+static int get_num_args (const struct function *, int, union any_node **);
 
-static int
-unary_func (struct function * f, int x UNUSED, union any_node ** n)
+static enum expr_type
+unary_func (const struct function *f, int x UNUSED, union any_node ** n)
 {
-  double divisor;
-  struct nonterm_node *c;
-
   if (!get_num_args (f, 1, n))
-    return EX_ERROR;
-
-  switch (f->t)
-    {
-    case OP_CTIME_DAYS:
-      divisor = 1 / 60. / 60. / 24.;
-      goto multiply;
-    case OP_CTIME_HOURS:
-      divisor = 1 / 60. / 60.;
-      goto multiply;
-    case OP_CTIME_MINUTES:
-      divisor = 1 / 60.;
-      goto multiply;
-    case OP_TIME_DAYS:
-      divisor = 60. * 60. * 24.;
-      goto multiply;
-
-    case OP_CTIME_SECONDS:
-      c = &(*n)->nonterm;
-      *n = (*n)->nonterm.arg[0];
-      free (c);
-      return EX_NUMERIC;
-    }
-  return EX_NUMERIC;
-
-multiply:
-  /* Arrive here when we encounter an operation that is just a
-     glorified version of a multiplication or division.  Converts the
-     operation directly into that multiplication. */
-  c = xmalloc (sizeof (struct nonterm_node) + sizeof (union any_node *));
-  c->type = OP_MUL;
-  c->n = 2;
-  c->arg[0] = (*n)->nonterm.arg[0];
-  c->arg[1] = xmalloc (sizeof (struct num_con_node));
-  c->arg[1]->num_con.type = OP_NUM_CON;
-  c->arg[1]->num_con.value = divisor;
-  free (*n);
-  *n = (union any_node *) c;
-  return EX_NUMERIC;
+    return EXPR_ERROR;
+  return EXPR_NUMERIC;
 }
 
-static int
-binary_func (struct function * f, int x UNUSED, union any_node ** n)
+static enum expr_type
+binary_func (const struct function *f, int x UNUSED, union any_node ** n)
 {
   if (!get_num_args (f, 2, n))
-    return EX_ERROR;
-  return EX_NUMERIC;
+    return EXPR_ERROR;
+  return EXPR_NUMERIC;
 }
 
-static int
-ternary_func (struct function * f, int x UNUSED, union any_node ** n)
+static enum expr_type
+ternary_func (const struct function *f, int x UNUSED, union any_node **n)
 {
   if (!get_num_args (f, 3, n))
-    return EX_ERROR;
-  return EX_NUMERIC;
+    return EXPR_ERROR;
+  return EXPR_NUMERIC;
 }
 
-static int
-MISSING_func (struct function * f, int x UNUSED, union any_node ** n)
+static enum expr_type
+MISSING_func (const struct function *f, int x UNUSED, union any_node **n)
 {
-  if (token == T_ID
-      && dict_lookup_var (default_dict, tokid) != NULL
-      && lex_look_ahead () == ')')
-    {
-      struct var_node *c = xmalloc (sizeof *c);
-      c->v = parse_variable ();
-      c->type = c->v->type == ALPHA ? OP_STR_MIS : OP_NUM_SYS;
-      *n = (union any_node *) c;
-      return EX_BOOLEAN;
-    }
   if (!get_num_args (f, 1, n))
-    return EX_ERROR;
-  return EX_BOOLEAN;
+    return EXPR_ERROR;
+  return EXPR_BOOLEAN;
 }
 
-static int
-SYSMIS_func (struct function * f UNUSED, int x UNUSED, union any_node ** n)
+static enum expr_type
+SYSMIS_func (const struct function *f, int x UNUSED, union any_node **n)
 {
-  int t;
-  
-  if (token == T_ID
-      && dict_lookup_var (default_dict, tokid)
-      && lex_look_ahead () == ')')
+  if (!get_num_args (f, 1, n))
+    return EXPR_ERROR;
+  if ((*n)->nonterm.arg[0]->type == OP_NUM_VAR) 
     {
-      struct variable *v;
-      v = parse_variable ();
-      if (v->type == ALPHA)
-	{
-	  struct num_con_node *c = xmalloc (sizeof *c);
-	  c->type = OP_NUM_CON;
-	  c->value = 0;
-	  return EX_BOOLEAN;
-	}
-      else
-	{
-	  struct var_node *c = xmalloc (sizeof *c);
-	  c->type = OP_NUM_SYS;
-	  c->v = v;
-	  return EX_BOOLEAN;
-	}
-    }
-  
-  t = parse_or (n);
-  if (t == EX_ERROR)
-    return t;
-  else if (t == EX_NUMERIC)
-    {
-      *n = allocate_nonterminal (OP_SYSMIS, *n);
-      return EX_BOOLEAN;
-    }
-  else /* EX_STRING or EX_BOOLEAN */
-    {
-      /* Return constant `true' value. */
+      struct variable *v = (*n)->nonterm.arg[0]->var.v;
       free_node (*n);
-      *n = xmalloc (sizeof (struct num_con_node));
-      (*n)->num_con.type = OP_NUM_CON;
-      (*n)->num_con.value = 1.0;
-      return EX_BOOLEAN;
+      *n = allocate_var_node (OP_NUM_SYS, v);
     }
+  return EXPR_BOOLEAN;
 }
 
-static int
-VALUE_func (struct function *f UNUSED, int x UNUSED, union any_node **n)
+static enum expr_type
+VALUE_func (const struct function *f UNUSED, int x UNUSED, union any_node **n)
 {
   struct variable *v = parse_variable ();
 
   if (!v)
-    return EX_ERROR;
-  *n = xmalloc (sizeof (struct var_node));
-  (*n)->var.v = v;
+    return EXPR_ERROR;
   if (v->type == NUMERIC)
     {
-      (*n)->var.type = OP_NUM_VAL;
-      return EX_NUMERIC;
+      *n = allocate_var_node (OP_NUM_VAL, v);
+      return EXPR_NUMERIC;
     }
   else
     {
-      (*n)->var.type = OP_STR_VAR;
-      return EX_STRING;
+      *n = allocate_var_node (OP_STR_VAR, v);
+      return EXPR_STRING;
     }
 }
 
-static int
-LAG_func (struct function *f UNUSED, int x UNUSED, union any_node **n)
+static enum expr_type
+LAG_func (const struct function *f UNUSED, int x UNUSED, union any_node **n)
 {
   struct variable *v = parse_variable ();
   int nlag = 1;
 
   if (!v)
-    return EX_ERROR;
+    return EXPR_ERROR;
   if (lex_match (','))
     {
       if (!lex_integer_p () || lex_integer () <= 0 || lex_integer () > 1000)
 	{
 	  msg (SE, _("Argument 2 to LAG must be a small positive "
 		     "integer constant."));
-	  return 0;
+	  return EXPR_ERROR;
 	}
       
       nlag = lex_integer ();
@@ -861,21 +744,28 @@ LAG_func (struct function *f UNUSED, int x UNUSED, union any_node **n)
   (*n)->lag.type = (v->type == NUMERIC ? OP_NUM_LAG : OP_STR_LAG);
   (*n)->lag.v = v;
   (*n)->lag.lag = nlag;
-  return (v->type == NUMERIC ? EX_NUMERIC : EX_STRING);
+  return (v->type == NUMERIC ? EXPR_NUMERIC : EXPR_STRING);
 }
 
 /* This screwball function parses n-ary operators:
-   1. NMISS, NVALID, SUM, MEAN, MIN, MAX: any number of (numeric) arguments.
-   2. SD, VARIANCE, CFVAR: at least two (numeric) arguments.
-   3. RANGE: An odd number of arguments, but at least three.
-   All arguments must be the same type.
-   4. ANY: At least two arguments.  All arguments must be the same type.
+
+   1. NMISS, NVALID, SUM, MEAN: any number of numeric
+      arguments.
+
+   2. SD, VARIANCE, CFVAR: at least two numeric arguments.
+
+   3. RANGE: An odd number of arguments, but at least three, and
+      all of the same type.
+
+   4. ANY: At least two arguments, all of the same type.
+
+   5. MIN, MAX: Any number of arguments, all of the same type.
  */
-static int
-nary_num_func (struct function *f, int min_args, union any_node **n)
+static enum expr_type
+nary_num_func (const struct function *f, int min_args, union any_node **n)
 {
   /* Argument number of current argument (used for error messages). */
-  int argn = 1;
+  int arg_idx = 1;
 
   /* Number of arguments. */
   int nargs;
@@ -884,7 +774,8 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
   int m = 16;
 
   /* Type of arguments. */
-  int type = (f->t == OP_ANY || f->t == OP_RANGE) ? -1 : NUMERIC;
+  int type = (f->t == OP_ANY || f->t == OP_RANGE
+              || f->t == OP_MIN || f->t == OP_MAX) ? -1 : NUMERIC;
 
   *n = xmalloc (sizeof (struct nonterm_node) + sizeof (union any_node *[15]));
   (*n)->nonterm.type = f->t;
@@ -924,7 +815,7 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 		    msg (SE, _("Type mismatch in argument %d of %s, which was "
 			       "expected to be of %s type.  It was actually "
 			       "of %s type. "),
-			 argn, f->s, type_name (type), type_name (v[j]->type));
+			 arg_idx, f->s, var_type_name (type), var_type_name (v[j]->type));
 		    free (v);
 		    goto fail;
 		  }
@@ -932,9 +823,9 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 	  for (j = 0; j < nv; j++)
 	    {
 	      union any_node **c = &(*n)->nonterm.arg[(*n)->nonterm.n++];
-	      *c = xmalloc (sizeof (struct var_node));
-	      (*c)->var.type = (type == NUMERIC ? OP_NUM_VAR : OP_STR_VAR);
-	      (*c)->var.v = v[j];
+              *c = allocate_var_node ((type == NUMERIC
+                                       ? OP_NUM_VAR : OP_STR_VAR),
+                                      v[j]);
 	    }
 	}
       else
@@ -942,9 +833,9 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 	  union any_node *c;
 	  int t = parse_or (&c);
 
-	  if (t == EX_ERROR)
+	  if (t == EXPR_ERROR)
 	    goto fail;
-	  if (t == EX_BOOLEAN)
+	  if (t == EXPR_BOOLEAN)
 	    {
 	      free_node (c);
 	      msg (SE, _("%s cannot take Boolean operands."), f->s);
@@ -952,18 +843,18 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 	    }
 	  if (type == -1)
 	    {
-	      if (t == EX_NUMERIC)
+	      if (t == EXPR_NUMERIC)
 		type = NUMERIC;
-	      else if (t == EX_STRING)
+	      else if (t == EXPR_STRING)
 		type = ALPHA;
 	    }
-	  else if ((t == EX_NUMERIC) ^ (type == NUMERIC))
+	  else if ((t == EXPR_NUMERIC) ^ (type == NUMERIC))
 	    {
 	      free_node (c);
 	      msg (SE, _("Type mismatch in argument %d of %s, which was "
 			 "expected to be of %s type.  It was actually "
 			 "of %s type. "),
-		   argn, f->s, type_name (type), expr_type_name (t));
+		   arg_idx, f->s, var_type_name (type), expr_type_name (t));
 	      goto fail;
 	    }
 	  if ((*n)->nonterm.n + 1 >= m)
@@ -983,7 +874,7 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 	  goto fail;
 	}
 
-      argn++;
+      arg_idx++;
     }
   *n = xrealloc (*n, (sizeof (struct nonterm_node)
 		      + ((*n)->nonterm.n) * sizeof (union any_node *)));
@@ -995,7 +886,7 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 	{
 	  msg (SE, _("RANGE requires an odd number of arguments, but "
 		     "at least three."));
-	  return 0;
+          goto fail;
 	}
     }
   else if (f->t == OP_SD || f->t == OP_VARIANCE
@@ -1004,7 +895,7 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
       if (nargs < 2)
 	{
 	  msg (SE, _("%s requires at least two arguments."), f->s);
-	  return 0;
+          goto fail;
 	}
     }
 
@@ -1020,25 +911,47 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
     {
       msg (SE, _("%s.%d requires at least %d arguments."),
 	   f->s, min_args, min_args);
-      return 0;
+      goto fail;
     }
 
-  if (f->t == OP_ANY || f->t == OP_RANGE)
+  if (f->t == OP_MIN || f->t == OP_MAX) 
     {
-      if (type == T_STRING)
-	f->t++;
-      return EX_BOOLEAN;
+      if (type == ALPHA) 
+        {
+          if (f->t == OP_MIN)
+            (*n)->type = OP_MIN_STRING;
+          else if (f->t == OP_MAX)
+            (*n)->type = OP_MAX_STRING;
+          else
+            assert (0);
+          return EXPR_STRING;
+        }
+      else
+        return EXPR_NUMERIC;
+    }
+  else if (f->t == OP_ANY || f->t == OP_RANGE)
+    {
+      if (type == ALPHA) 
+        {
+          if (f->t == OP_ANY)
+            (*n)->type = OP_ANY_STRING;
+          else if (f->t == OP_RANGE)
+            (*n)->type = OP_RANGE_STRING;
+          else
+            assert (0);
+        }
+      return EXPR_BOOLEAN;
     }
   else
-    return EX_NUMERIC;
+    return EXPR_NUMERIC;
 
 fail:
   free_node (*n);
-  return EX_ERROR;
+  return EXPR_ERROR;
 }
 
-static int
-CONCAT_func (struct function * f UNUSED, int x UNUSED, union any_node ** n)
+static enum expr_type
+CONCAT_func (const struct function *f UNUSED, int x UNUSED, union any_node **n)
 {
   int m = 0;
 
@@ -1056,9 +969,9 @@ CONCAT_func (struct function * f UNUSED, int x UNUSED, union any_node ** n)
 			      + (m - 1) * sizeof (union any_node *)));
 	}
       type = parse_or (&(*n)->nonterm.arg[(*n)->nonterm.n]);
-      if (type == EX_ERROR)
+      if (type == EXPR_ERROR)
 	goto fail;
-      if (type != EX_STRING)
+      if (type != EXPR_STRING)
 	{
 	  msg (SE, _("Argument %d to CONCAT is type %s.  All arguments "
 		     "to CONCAT must be strings."),
@@ -1072,11 +985,11 @@ CONCAT_func (struct function * f UNUSED, int x UNUSED, union any_node ** n)
     }
   *n = xrealloc (*n, (sizeof (struct nonterm_node)
 		      + ((*n)->nonterm.n - 1) * sizeof (union any_node *)));
-  return EX_STRING;
+  return EXPR_STRING;
 
 fail:
   free_node (*n);
-  return EX_ERROR;
+  return EXPR_ERROR;
 }
 
 /* Parses a string function according to f->desc.  f->desc[0] is the
@@ -1085,48 +998,85 @@ fail:
    args by a slash (`/').  Codes are `n', numeric arg; `s', string
    arg; and `f', format spec (this must be the last arg).  If the
    optional args are included, the type becomes f->t+1. */
-static int
-generic_str_func (struct function *f, int x UNUSED, union any_node ** n)
+static enum expr_type
+generic_str_func (const struct function *f, int x UNUSED, union any_node **n)
 {
-  int max_args = 0;
-  int type;
+  struct string_function 
+    {
+      int t1, t2;
+      enum expr_type return_type;
+      const char *arg_types;
+    };
+
+  static const struct string_function string_func_tab[] = 
+    {
+      {OP_INDEX_2, OP_INDEX_3, EXPR_NUMERIC, "ssN"},
+      {OP_RINDEX_2, OP_RINDEX_3, EXPR_NUMERIC, "ssN"},
+      {OP_LENGTH, 0, EXPR_NUMERIC, "s"},
+      {OP_LOWER, 0, EXPR_STRING, "s"},
+      {OP_UPPER, 0, EXPR_STRING, "s"},
+      {OP_LPAD, 0, EXPR_STRING, "snS"},
+      {OP_RPAD, 0, EXPR_STRING, "snS"},
+      {OP_LTRIM, 0, EXPR_STRING, "sS"},
+      {OP_RTRIM, 0, EXPR_STRING, "sS"},
+      {OP_NUMBER, 0, EXPR_NUMERIC, "sf"},
+      {OP_STRING, 0, EXPR_STRING, "nf"},
+      {OP_SUBSTR_2, OP_SUBSTR_3, EXPR_STRING, "snN"},
+    };
+
+  const int string_func_cnt = sizeof string_func_tab / sizeof *string_func_tab;
+
+  const struct string_function *sf;
+  int arg_cnt;
   const char *cp;
+  struct nonterm_node *nonterm;
+
+  /* Find string_function that corresponds to f. */
+  for (sf = string_func_tab; sf < string_func_tab + string_func_cnt; sf++)
+    if (f->t == sf->t1)
+      break;
+  assert (sf < string_func_tab + string_func_cnt);
 
   /* Count max number of arguments. */
-  cp = &f->desc[1];
-  while (*cp)
+  arg_cnt = 0;
+  for (cp = sf->arg_types; *cp != '\0'; cp++)
     {
-      if (*cp == 'n' || *cp == 's')
-	max_args++;
-      else if (*cp == 'f')
-	max_args += 3;
-      cp++;
+      if (*cp != 'f')
+        arg_cnt++;
+      else
+	arg_cnt += 3;
     }
-  cp = &f->desc[1];
 
+  /* Allocate node. */
   *n = xmalloc (sizeof (struct nonterm_node)
-		+ (max_args - 1) * sizeof (union any_node *));
-  (*n)->nonterm.type = f->t;
-  (*n)->nonterm.n = 0;
+		+ (arg_cnt - 1) * sizeof (union any_node *));
+  nonterm = &(*n)->nonterm;
+  nonterm->type = sf->t1;
+  nonterm->n = 0;
+
+  /* Parse arguments. */
+  cp = sf->arg_types;
   for (;;)
     {
-      if (*cp == 'n' || *cp == 's')
+      if (*cp == 'n' || *cp == 's' || *cp == 'N' || *cp == 'S')
 	{
-	  int t = *cp == 'n' ? EX_NUMERIC : EX_STRING;
-	  type = parse_or (&(*n)->nonterm.arg[(*n)->nonterm.n]);
+	  enum expr_type wanted_type
+            = *cp == 'n' || *cp == 'N' ? EXPR_NUMERIC : EXPR_STRING;
+	  enum expr_type actual_type = parse_or (&nonterm->arg[nonterm->n]);
 
-	  if (type == EX_ERROR)
+	  if (actual_type == EXPR_ERROR)
 	    goto fail;
-	  if (type != t)
+          else if (actual_type == EXPR_BOOLEAN)
+            actual_type = EXPR_NUMERIC;
+	  if (actual_type != wanted_type)
 	    {
 	      msg (SE, _("Argument %d to %s was expected to be of %s type.  "
 			 "It was actually of type %s."),
-		   (*n)->nonterm.n + 1, f->s,
-		   *cp == 'n' ? _("numeric") : _("string"),
-		   expr_type_name (type));
+		   nonterm->n + 1, f->s,
+		   expr_type_name (actual_type), expr_type_name (wanted_type));
 	      goto fail;
 	    }
-	  (*n)->nonterm.n++;
+	  nonterm->n++;
 	}
       else if (*cp == 'f')
 	{
@@ -1141,26 +1091,38 @@ generic_str_func (struct function *f, int x UNUSED, union any_node ** n)
 	      msg (SE, _("%s is not a numeric format."), fmt_to_string (&fmt));
 	      goto fail;
 	    }
-	  (*n)->nonterm.arg[(*n)->nonterm.n + 0] = (union any_node *) fmt.type;
-	  (*n)->nonterm.arg[(*n)->nonterm.n + 1] = (union any_node *) fmt.w;
-	  (*n)->nonterm.arg[(*n)->nonterm.n + 2] = (union any_node *) fmt.d;
+	  nonterm->arg[nonterm->n + 0] = (union any_node *) fmt.type;
+	  nonterm->arg[nonterm->n + 1] = (union any_node *) fmt.w;
+	  nonterm->arg[nonterm->n + 2] = (union any_node *) fmt.d;
 	  break;
 	}
       else
 	assert (0);
 
-      if (*++cp == 0)
+      /* We're done if no args are left. */
+      cp++;
+      if (*cp == 0)
 	break;
-      if (*cp == '/')
+
+      /* Optional arguments are named with capital letters. */
+      if (isupper ((unsigned char) *cp))
 	{
-	  cp++;
-	  if (lex_match (','))
-	    {
-	      (*n)->nonterm.type++;
-	      continue;
-	    }
-	  else
-	    break;
+          if (!lex_match (',')) 
+            {
+              if (sf->t2 == 0)
+                {
+                  if (*cp == 'N') 
+                    nonterm->arg[nonterm->n++] = allocate_num_con (SYSMIS);
+                  else if (*cp == 'S')
+                    nonterm->arg[nonterm->n++] = allocate_str_con (" ", 1);
+                  else
+                    assert (0);
+                }
+              break; 
+            }
+
+          if (sf->t2 != 0)
+            nonterm->type = sf->t2;
 	}
       else if (!lex_match (','))
 	{
@@ -1169,17 +1131,17 @@ generic_str_func (struct function *f, int x UNUSED, union any_node ** n)
 	}
     }
 
-  return f->desc[0] == 'n' ? EX_NUMERIC : EX_STRING;
+  return sf->return_type;
 
 fail:
   free_node (*n);
-  return EX_ERROR;
+  return EXPR_ERROR;
 }
 
 /* General function parsing. */
 
 static int
-get_num_args (struct function *f, int num_args, union any_node **n)
+get_num_args (const struct function *f, int num_args, union any_node **n)
 {
   int t;
   int i;
@@ -1191,14 +1153,16 @@ get_num_args (struct function *f, int num_args, union any_node **n)
   for (i = 0;;)
     {
       t = parse_or (&(*n)->nonterm.arg[i]);
-      if (t == EX_ERROR)
+      if (t == EXPR_ERROR)
 	goto fail;
       (*n)->nonterm.n++;
-      if (t != EX_NUMERIC)
+
+      if (t == EXPR_STRING)
 	{
-	  msg (SE, _("Type mismatch in argument %d of %s, which was expected "
-		     "to be numeric.  It was actually type %s."),
-	       i + 1, f->s, expr_type_name (t));
+	  msg (SE, _("Type mismatch in argument %d of %s.  A string "
+                     "expression was supplied where only a numeric expression "
+                     "is allowed."),
+               i + 1, f->s);
 	  goto fail;
 	}
       if (++i >= num_args)
@@ -1215,10 +1179,10 @@ fail:
   return 0;
 }
 
-static int
+static enum expr_type
 parse_function (union any_node ** n)
 {
-  struct function *fp;
+  const struct function *fp;
   char fname[32], *cp;
   int t;
   int min_args;
@@ -1239,9 +1203,9 @@ parse_function (union any_node ** n)
       (*n)->nonterm.n = 0;
 
       t = parse_or (&(*n)->nonterm.arg[0]);
-      if (t == EX_ERROR)
+      if (t == EXPR_ERROR)
 	goto fail;
-      if (t != EX_NUMERIC)
+      if (t != EXPR_NUMERIC)
 	{
 	  msg (SE, _("The index value after a vector name must be numeric."));
 	  goto fail;
@@ -1255,7 +1219,7 @@ parse_function (union any_node ** n)
 	}
       ((*n)->nonterm.arg[1]) = (union any_node *) v->idx;
 
-      return v->var[0]->type == NUMERIC ? EX_NUMERIC : EX_STRING;
+      return v->var[0]->type == NUMERIC ? EXPR_NUMERIC : EXPR_STRING;
     }
 
   ds_truncate (&tokstr, 31);
@@ -1271,7 +1235,7 @@ parse_function (union any_node ** n)
 
   lex_get ();
   if (!lex_force_match ('('))
-    return 0;
+    return EXPR_ERROR;
   
   {
     struct function f;
@@ -1284,17 +1248,17 @@ parse_function (union any_node ** n)
   if (!fp)
     {
       msg (SE, _("There is no function named %s."), fname);
-      return 0;
+      return EXPR_ERROR;
     }
   if (min_args && fp->func != nary_num_func)
     {
       msg (SE, _("Function %s may not be given a minimum number of "
 		 "arguments."), fname);
-      return 0;
+      return EXPR_ERROR;
     }
   t = fp->func (fp, min_args, n);
-  if (t == EX_ERROR)
-    return EX_ERROR;
+  if (t == EXPR_ERROR)
+    return EXPR_ERROR;
   if (!lex_match (')'))
     {
       lex_error (_("expecting `)' after %s function"), fname);
@@ -1305,168 +1269,26 @@ parse_function (union any_node ** n)
 
 fail:
   free_node (*n);
-  return EX_ERROR;
+  return EXPR_ERROR;
 }
-
-#if GLOBAL_DEBUGGING
-#define op(a,b,c,d) {a,b,c,d}
-#else
-#define op(a,b,c,d) {b,c,d}
-#endif
-
-#define varies 0
-
-struct op_desc ops[OP_SENTINEL + 1] =
-{
-  op ("!?ERROR?!", 000, 0, 0),
-
-  op ("plus", 001, varies, 1),
-  op ("mul", 011, varies, 1),
-  op ("pow", 010, -1, 0),
-  op ("and", 010, -1, 0),
-  op ("or", 010, -1, 0),
-  op ("not", 000, 0, 0),
-  op ("eq", 000, -1, 0),
-  op ("ge", 000, -1, 0),
-  op ("gt", 000, -1, 0),
-  op ("le", 000, -1, 0),
-  op ("lt", 000, -1, 0),
-  op ("ne", 000, -1, 0),
-
-  op ("string-eq", 000, -1, 0),
-  op ("string-ge", 000, -1, 0),
-  op ("string-gt", 000, -1, 0),
-  op ("string-le", 000, -1, 0),
-  op ("string-lt", 000, -1, 0),
-  op ("string-ne", 000, -1, 0),
-
-  op ("neg", 000, 0, 0),
-  op ("abs", 000, 0, 0),
-  op ("arcos", 000, 0, 0),
-  op ("arsin", 000, 0, 0),
-  op ("artan", 000, 0, 0),
-  op ("cos", 000, 0, 0),
-  op ("exp", 000, 0, 0),
-  op ("lg10", 000, 0, 0),
-  op ("ln", 000, 0, 0),
-  op ("mod10", 000, 0, 0),
-  op ("rnd", 000, 0, 0),
-  op ("sin", 000, 0, 0),
-  op ("sqrt", 000, 0, 0),
-  op ("tan", 000, 0, 0),
-  op ("trunc", 000, 0, 0),
-
-  op ("any", 011, varies, 1),
-  op ("any-string", 001, varies, 1),
-  op ("cfvar", 013, varies, 2),
-  op ("max", 013, varies, 2),
-  op ("mean", 013, varies, 2),
-  op ("min", 013, varies, 2),
-  op ("nmiss", 011, varies, 1),
-  op ("nvalid", 011, varies, 1),
-  op ("range", 011, varies, 1),
-  op ("range-string", 001, varies, 1),
-  op ("sd", 013, varies, 2),
-  op ("sum", 013, varies, 2),
-  op ("variance", 013, varies, 2),
-
-  op ("time_hms", 000, -2, 0),
-  op ("ctime_days?!", 000, 0, 0),
-  op ("ctime_hours?!", 000, 0, 0),
-  op ("ctime_minutes?!", 000, 0, 0),
-  op ("ctime_seconds?!", 000, 0, 0),
-  op ("time_days?!", 000, 0, 0),
-
-  op ("date_dmy", 000, -2, 0),
-  op ("date_mdy", 000, -2, 0),
-  op ("date_moyr", 000, -1, 0),
-  op ("date_qyr", 000, -1, 0),
-  op ("date_wkyr", 000, -1, 0),
-  op ("date_yrday", 000, -1, 0),
-  op ("yrmoda", 000, -2, 0),
-
-  op ("xdate_date", 000, 0, 0),
-  op ("xdate_hour", 000, 0, 0),
-  op ("xdate_jday", 000, 0, 0),
-  op ("xdate_mday", 000, 0, 0),
-  op ("xdate_minute", 000, 0, 0),
-  op ("xdate_month", 000, 0, 0),
-  op ("xdate_quarter", 000, 0, 0),
-  op ("xdate_second", 000, 0, 0),
-  op ("xdate_tday", 000, 0, 0),
-  op ("xdate_time", 000, 0, 0),
-  op ("xdate_week", 000, 0, 0),
-  op ("xdate_wkday", 000, 0, 0),
-  op ("xdate_year", 000, 0, 0),
-
-  op ("concat", 001, varies, 1),
-  op ("index-2", 000, -1, 0),
-  op ("index-3", 000, -2, 0),
-  op ("rindex-2", 000, -1, 0),
-  op ("rindex-3", 000, -2, 0),
-  op ("length", 000, 0, 0),
-  op ("lower", 000, 0, 0),
-  op ("upcas", 000, 0, 0),
-  op ("lpad-2", 010, -1, 0),
-  op ("lpad-3", 010, -2, 0),
-  op ("rpad-2", 010, -1, 0),
-  op ("rpad-3", 010, -2, 0),
-  op ("ltrim-1", 000, 0, 0),
-  op ("ltrim-2", 000, -1, 0),
-  op ("rtrim-1", 000, 0, 0),
-  op ("rtrim-2", 000, -1, 0),
-  op ("number-1", 010, 0, 0),
-  op ("number-2", 014, 0, 3),
-  op ("string", 004, 0, 3),
-  op ("substr-2", 010, -1, 0),
-  op ("substr-3", 010, -2, 0),
-
-  op ("inv", 000, 0, 0),
-  op ("square", 000, 0, 0),
-  op ("num-to-Bool", 000, 0, 0),
-
-  op ("mod", 010, -1, 0),
-  op ("normal", 000, 0, 0),
-  op ("uniform", 000, 0, 0),
-  op ("sysmis", 010, 0, 0),
-  op ("vec-elem-num", 002, 0, 1),
-  op ("vec-elem-str", 002, 0, 1),
-
-  op ("!?TERMINAL?!", 000, 0, 0),
-  op ("num-con", 000, +1, 0),
-  op ("str-con", 000, +1, 0),
-  op ("num-var", 000, +1, 0),
-  op ("str-var", 000, +1, 0),
-  op ("num-lag", 000, +1, 1),
-  op ("str-lag", 000, +1, 1),
-  op ("num-sys", 000, +1, 1),
-  op ("num-val", 000, +1, 1),
-  op ("str-mis", 000, +1, 1),
-  op ("$casenum", 000, +1, 0),
-  op ("!?SENTINEL?!", 000, 0, 0),
-};
-
-#undef op
-#undef varies
-
 
 /* Utility functions. */
 
 static const char *
-expr_type_name (int type)
+expr_type_name (enum expr_type type)
 {
   switch (type)
     {
-    case EX_ERROR:
+    case EXPR_ERROR:
       return _("error");
 
-    case EX_BOOLEAN:
+    case EXPR_BOOLEAN:
       return _("Boolean");
 
-    case EX_NUMERIC:
+    case EXPR_NUMERIC:
       return _("numeric");
 
-    case EX_STRING:
+    case EXPR_STRING:
       return _("string");
 
     default:
@@ -1476,7 +1298,7 @@ expr_type_name (int type)
 }
 
 static const char *
-type_name (int type)
+var_type_name (int type)
 {
   switch (type)
     {
@@ -1505,14 +1327,54 @@ make_bool (union any_node **n)
 void
 free_node (union any_node *n)
 {
-  if (n->type < OP_TERMINAL)
+  if (n != NULL) 
     {
-      int i;
+      if (IS_NONTERMINAL (n->type))
+        {
+          int i;
 
-      for (i = 0; i < n->nonterm.n; i++)
-	free_node (n->nonterm.arg[i]);
+          for (i = 0; i < n->nonterm.n; i++)
+            free_node (n->nonterm.arg[i]);
+        }
+      free (n); 
     }
-  free (n);
+}
+
+static union any_node *
+allocate_num_con (double value) 
+{
+  union any_node *c;
+
+  c = xmalloc (sizeof (struct num_con_node));
+  c->num_con.type = OP_NUM_CON;
+  c->num_con.value = value;
+
+  return c;
+}
+
+static union any_node *
+allocate_str_con (const char *string, size_t length) 
+{
+  union any_node *c;
+
+  c = xmalloc (sizeof (struct str_con_node) + length - 1);
+  c->str_con.type = OP_STR_CON;
+  c->str_con.len = length;
+  memcpy (c->str_con.s, string, length);
+
+  return c;
+}
+
+static union any_node *
+allocate_var_node (int type, struct variable *variable) 
+{
+  union any_node *c;
+
+  c = xmalloc (sizeof (struct var_node));
+  c->var.type = type;
+  c->var.v = variable;
+
+  return c;
 }
 
 union any_node *
@@ -1528,97 +1390,105 @@ allocate_nonterminal (int op, union any_node *n)
   return c;
 }
 
-union any_node *
-append_nonterminal_arg (union any_node *a, union any_node *b)
+static union any_node *
+allocate_binary_nonterminal (int op, union any_node *lhs, union any_node *rhs) 
 {
-  a = xrealloc (a, sizeof *a + sizeof *a->nonterm.arg * a->nonterm.n);
-  a->nonterm.arg[a->nonterm.n++] = b;
-  return a;
+  union any_node *node;
+
+  node = xmalloc (sizeof node->nonterm + sizeof *node->nonterm.arg);
+  node->nonterm.type = op;
+  node->nonterm.n = 2;
+  node->nonterm.arg[0] = lhs;
+  node->nonterm.arg[1] = rhs;
+
+  return node;
 }
 
 static struct function func_tab[] =
 {
-  {"ABS", OP_ABS, unary_func, NULL},
-  {"ACOS", OP_ARCOS, unary_func, NULL},
-  {"ARCOS", OP_ARCOS, unary_func, NULL},
-  {"ARSIN", OP_ARSIN, unary_func, NULL},
-  {"ARTAN", OP_ARTAN, unary_func, NULL},
-  {"ASIN", OP_ARSIN, unary_func, NULL},
-  {"ATAN", OP_ARTAN, unary_func, NULL},
-  {"COS", OP_COS, unary_func, NULL},
-  {"EXP", OP_EXP, unary_func, NULL},
-  {"LG10", OP_LG10, unary_func, NULL},
-  {"LN", OP_LN, unary_func, NULL},
-  {"MOD10", OP_MOD10, unary_func, NULL},
-  {"NORMAL", OP_NORMAL, unary_func, NULL},
-  {"RND", OP_RND, unary_func, NULL},
-  {"SIN", OP_SIN, unary_func, NULL},
-  {"SQRT", OP_SQRT, unary_func, NULL},
-  {"TAN", OP_TAN, unary_func, NULL},
-  {"TRUNC", OP_TRUNC, unary_func, NULL},
-  {"UNIFORM", OP_UNIFORM, unary_func, NULL},
+  {"ABS", OP_ABS, unary_func},
+  {"ACOS", OP_ARCOS, unary_func},
+  {"ARCOS", OP_ARCOS, unary_func},
+  {"ARSIN", OP_ARSIN, unary_func},
+  {"ARTAN", OP_ARTAN, unary_func},
+  {"ASIN", OP_ARSIN, unary_func},
+  {"ATAN", OP_ARTAN, unary_func},
+  {"COS", OP_COS, unary_func},
+  {"EXP", OP_EXP, unary_func},
+  {"LG10", OP_LG10, unary_func},
+  {"LN", OP_LN, unary_func},
+  {"MOD10", OP_MOD10, unary_func},
+  {"NORMAL", OP_NORMAL, unary_func},
+  {"RND", OP_RND, unary_func},
+  {"SIN", OP_SIN, unary_func},
+  {"SQRT", OP_SQRT, unary_func},
+  {"TAN", OP_TAN, unary_func},
+  {"TRUNC", OP_TRUNC, unary_func},
+  {"UNIFORM", OP_UNIFORM, unary_func},
 
-  {"TIME.DAYS", OP_TIME_DAYS, unary_func, NULL},
-  {"TIME.HMS", OP_TIME_HMS, ternary_func, NULL},
+  {"TIME.DAYS", OP_TIME_DAYS, unary_func},
+  {"TIME.HMS", OP_TIME_HMS, ternary_func},
 
-  {"CTIME.DAYS", OP_CTIME_DAYS, unary_func, NULL},
-  {"CTIME.HOURS", OP_CTIME_HOURS, unary_func, NULL},
-  {"CTIME.MINUTES", OP_CTIME_MINUTES, unary_func, NULL},
-  {"CTIME.SECONDS", OP_CTIME_SECONDS, unary_func, NULL},
+  {"CTIME.DAYS", OP_CTIME_DAYS, unary_func},
+  {"CTIME.HOURS", OP_CTIME_HOURS, unary_func},
+  {"CTIME.MINUTES", OP_CTIME_MINUTES, unary_func},
+  {"CTIME.SECONDS", OP_CTIME_SECONDS, unary_func},
 
-  {"DATE.DMY", OP_DATE_DMY, ternary_func, NULL},
-  {"DATE.MDY", OP_DATE_MDY, ternary_func, NULL},
-  {"DATE.MOYR", OP_DATE_MOYR, binary_func, NULL},
-  {"DATE.QYR", OP_DATE_QYR, binary_func, NULL},
-  {"DATE.WKYR", OP_DATE_WKYR, binary_func, NULL},
-  {"DATE.YRDAY", OP_DATE_YRDAY, binary_func, NULL},
+  {"DATE.DMY", OP_DATE_DMY, ternary_func},
+  {"DATE.MDY", OP_DATE_MDY, ternary_func},
+  {"DATE.MOYR", OP_DATE_MOYR, binary_func},
+  {"DATE.QYR", OP_DATE_QYR, binary_func},
+  {"DATE.WKYR", OP_DATE_WKYR, binary_func},
+  {"DATE.YRDAY", OP_DATE_YRDAY, binary_func},
 
-  {"XDATE.DATE", OP_XDATE_DATE, unary_func, NULL},
-  {"XDATE.HOUR", OP_XDATE_HOUR, unary_func, NULL},
-  {"XDATE.JDAY", OP_XDATE_JDAY, unary_func, NULL},
-  {"XDATE.MDAY", OP_XDATE_MDAY, unary_func, NULL},
-  {"XDATE.MINUTE", OP_XDATE_MINUTE, unary_func, NULL},
-  {"XDATE.MONTH", OP_XDATE_MONTH, unary_func, NULL},
-  {"XDATE.QUARTER", OP_XDATE_QUARTER, unary_func, NULL},
-  {"XDATE.SECOND", OP_XDATE_SECOND, unary_func, NULL},
-  {"XDATE.TDAY", OP_XDATE_TDAY, unary_func, NULL},
-  {"XDATE.TIME", OP_XDATE_TIME, unary_func, NULL},
-  {"XDATE.WEEK", OP_XDATE_WEEK, unary_func, NULL},
-  {"XDATE.WKDAY", OP_XDATE_WKDAY, unary_func, NULL},
-  {"XDATE.YEAR", OP_XDATE_YEAR, unary_func, NULL},
+  {"XDATE.DATE", OP_XDATE_DATE, unary_func},
+  {"XDATE.HOUR", OP_XDATE_HOUR, unary_func},
+  {"XDATE.JDAY", OP_XDATE_JDAY, unary_func},
+  {"XDATE.MDAY", OP_XDATE_MDAY, unary_func},
+  {"XDATE.MINUTE", OP_XDATE_MINUTE, unary_func},
+  {"XDATE.MONTH", OP_XDATE_MONTH, unary_func},
+  {"XDATE.QUARTER", OP_XDATE_QUARTER, unary_func},
+  {"XDATE.SECOND", OP_XDATE_SECOND, unary_func},
+  {"XDATE.TDAY", OP_XDATE_TDAY, unary_func},
+  {"XDATE.TIME", OP_XDATE_TIME, unary_func},
+  {"XDATE.WEEK", OP_XDATE_WEEK, unary_func},
+  {"XDATE.WKDAY", OP_XDATE_WKDAY, unary_func},
+  {"XDATE.YEAR", OP_XDATE_YEAR, unary_func},
 
-  {"MISSING", OP_SYSMIS, MISSING_func, NULL},
-  {"MOD", OP_MOD, binary_func, NULL},
-  {"SYSMIS", OP_SYSMIS, SYSMIS_func, NULL},
-  {"VALUE", OP_NUM_VAL, VALUE_func, NULL},
-  {"LAG", OP_NUM_LAG, LAG_func, NULL},
-  {"YRMODA", OP_YRMODA, ternary_func, NULL},
+  {"MISSING", OP_SYSMIS, MISSING_func},
+  {"MOD", OP_MOD, binary_func},
+  {"SYSMIS", OP_SYSMIS, SYSMIS_func},
+  {"VALUE", OP_NUM_VAL, VALUE_func},
+  {"LAG", OP_NUM_LAG, LAG_func},
+  {"YRMODA", OP_YRMODA, ternary_func},
 
-  {"ANY", OP_ANY, nary_num_func, NULL},
-  {"CFVAR", OP_CFVAR, nary_num_func, NULL},
-  {"MAX", OP_MAX, nary_num_func, NULL},
-  {"MEAN", OP_MEAN, nary_num_func, NULL},
-  {"MIN", OP_MIN, nary_num_func, NULL},
-  {"NMISS", OP_NMISS, nary_num_func, NULL},
-  {"NVALID", OP_NVALID, nary_num_func, NULL},
-  {"RANGE", OP_RANGE, nary_num_func, NULL},
-  {"SD", OP_SD, nary_num_func, NULL},
-  {"SUM", OP_SUM, nary_num_func, NULL},
-  {"VARIANCE", OP_VARIANCE, nary_num_func, NULL},
+  {"ANY", OP_ANY, nary_num_func},
+  {"CFVAR", OP_CFVAR, nary_num_func},
+  {"MAX", OP_MAX, nary_num_func},
+  {"MEAN", OP_MEAN, nary_num_func},
+  {"MIN", OP_MIN, nary_num_func},
+  {"NMISS", OP_NMISS, nary_num_func},
+  {"NVALID", OP_NVALID, nary_num_func},
+  {"RANGE", OP_RANGE, nary_num_func},
+  {"SD", OP_SD, nary_num_func},
+  {"SUM", OP_SUM, nary_num_func},
+  {"VAR", OP_VARIANCE, nary_num_func},
+  {"VARIANCE", OP_VARIANCE, nary_num_func},
 
-  {"CONCAT", OP_CONCAT, CONCAT_func, NULL},
-  {"INDEX", OP_INDEX, generic_str_func, "nss/n"},
-  {"RINDEX", OP_RINDEX, generic_str_func, "nss/n"},
-  {"LENGTH", OP_LENGTH, generic_str_func, "ns"},
-  {"LOWER", OP_LOWER, generic_str_func, "ss"},
-  {"UPCAS", OP_UPPER, generic_str_func, "ss"},
-  {"LPAD", OP_LPAD, generic_str_func, "ssn/s"},
-  {"RPAD", OP_RPAD, generic_str_func, "ssn/s"},
-  {"LTRIM", OP_LTRIM, generic_str_func, "ss/s"},
-  {"RTRIM", OP_RTRIM, generic_str_func, "ss/s"},
-  {"NUMBER", OP_NUMBER, generic_str_func, "ns/f"},
-  {"STRING", OP_STRING, generic_str_func, "snf"},
-  {"SUBSTR", OP_SUBSTR, generic_str_func, "ssn/n"},
+  {"CONCAT", OP_CONCAT, CONCAT_func},
+
+  {"INDEX", OP_INDEX_2, generic_str_func},
+  {"RINDEX", OP_RINDEX_2, generic_str_func},
+  {"LENGTH", OP_LENGTH, generic_str_func},
+  {"LOWER", OP_LOWER, generic_str_func},
+  {"UPCASE", OP_UPPER, generic_str_func},
+  {"LPAD", OP_LPAD, generic_str_func},
+  {"RPAD", OP_RPAD, generic_str_func},
+  {"LTRIM", OP_LTRIM, generic_str_func},
+  {"RTRIM", OP_RTRIM, generic_str_func},
+  {"NUMBER", OP_NUMBER, generic_str_func},
+  {"STRING", OP_STRING, generic_str_func},
+  {"SUBSTR", OP_SUBSTR_2, generic_str_func},
 };
 
 /* An algo_compare_func that compares functions A and B based on
@@ -1727,32 +1597,31 @@ debug_print_tree (union any_node * n, int level)
 }
 #endif /* DEBUGGING */
 
-#if GLOBAL_DEBUGGING
-static void
-debug_print_postfix (struct expression * e)
+void
+expr_debug_print_postfix (const struct expression *e)
 {
-  unsigned char *o;
-  double *num = e->num;
-  unsigned char *str = e->str;
-  struct variable **v = e->var;
+  const unsigned char *o;
+  const double *num = e->num;
+  const unsigned char *str = e->str;
+  struct variable *const *v = e->var;
   int t;
 
-  debug_printf ((_("postfix:")));
+  printf ("postfix:");
   for (o = e->op; *o != OP_SENTINEL;)
     {
       t = *o++;
-      if (t < OP_TERMINAL)
+      if (IS_NONTERMINAL (t))
 	{
-	  debug_printf ((" %s", ops[t].name));
+	  printf (" %s", ops[t].name);
 
 	  if (ops[t].flags & OP_VAR_ARGS)
 	    {
-	      debug_printf (("(%d)", *o));
+	      printf ("(%d)", *o);
 	      o++;
 	    }
 	  if (ops[t].flags & OP_MIN_ARGS)
 	    {
-	      debug_printf ((".%d", *o));
+	      printf (".%d", *o);
 	      o++;
 	    }
 	  if (ops[t].flags & OP_FMT_SPEC)
@@ -1761,49 +1630,55 @@ debug_print_postfix (struct expression * e)
 	      f.type = (int) *o++;
 	      f.w = (int) *o++;
 	      f.d = (int) *o++;
-	      debug_printf (("(%s)", fmt_to_string (&f)));
+	      printf ("(%s)", fmt_to_string (&f));
 	    }
 	}
       else if (t == OP_NUM_CON)
 	{
 	  if (*num == SYSMIS)
-	    debug_printf ((" SYSMIS"));
+	    printf (" SYSMIS");
 	  else
-	    debug_printf ((" %f", *num));
+	    printf (" %f", *num);
 	  num++;
 	}
       else if (t == OP_STR_CON)
 	{
-	  debug_printf ((" \"%.*s\"", *str, &str[1]));
+	  printf (" \"%.*s\"", *str, &str[1]);
 	  str += str[0] + 1;
 	}
       else if (t == OP_NUM_VAR || t == OP_STR_VAR)
 	{
-	  debug_printf ((" %s", (*v)->name));
+	  printf (" %s", (*v)->name);
 	  v++;
 	}
       else if (t == OP_NUM_SYS)
 	{
-	  debug_printf ((" SYSMIS(#%d)", *o));
+	  printf (" SYSMIS(#%d)", *o);
 	  o++;
 	}
       else if (t == OP_NUM_VAL)
 	{
-	  debug_printf ((" VALUE(#%d)", *o));
+	  printf (" VALUE(#%d)", *o);
 	  o++;
 	}
       else if (t == OP_NUM_LAG || t == OP_STR_LAG)
 	{
-	  debug_printf ((" LAG(%s,%d)", (*v)->name, *o));
+	  printf (" LAG(%s,%d)", (*v)->name, *o);
 	  o++;
 	  v++;
 	}
       else
 	{
-	  printf ("debug_print_postfix(): %d\n", t);
+	  printf ("%d unknown\n", t);
 	  assert (0);
 	}
     }
-  debug_putc ('\n', stdout);
+  putchar ('\n');
 }
-#endif /* GLOBAL_DEBUGGING */
+
+#define DEFINE_OPERATOR(NAME, STACK_DELTA, FLAGS, ARGS) \
+        {#NAME, STACK_DELTA, FLAGS, ARGS},
+struct op_desc ops[OP_SENTINEL] =
+  {
+#include "expr.def"
+  };

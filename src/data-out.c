@@ -103,9 +103,11 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
 
         case FMT_A:
           assert (0);
+          abort ();
 
         case FMT_AHEX:
           assert (0);
+          abort ();
 
         case FMT_IB:
           ok = convert_IB (s, fp, number);
@@ -159,6 +161,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
 
         default:
           assert (0);
+          abort ();
         }
     }
   else 
@@ -178,6 +181,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
 
         default:
           assert (0);
+          abort ();
         }
     }
 

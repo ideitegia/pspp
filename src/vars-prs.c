@@ -104,12 +104,14 @@ dict_class_to_name (enum dict_class dict_class)
       return _("scratch");
     default:
       assert (0);
+      abort ();
     }
 }
 
 /* Parses a set of variables from dictionary D given options
    OPTS.  Resulting list of variables stored in *VAR and the
-   number of variables into *CNT. */
+   number of variables into *CNT.  Returns nonzero only if
+   successful. */
 int
 parse_variables (struct dictionary *d, struct variable ***var, int *cnt,
                  int opts) 

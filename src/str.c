@@ -104,51 +104,36 @@ mm_find_reverse (const char *haystack, size_t haystack_len,
   return 0;
 }
 
-/* Compares S0 of length S0L to S1 of length S1L.  The shorter string
-   is considered to be padded with spaces to the length of the
-   longer. */
+/* Compares A of length A_LEN to B of length B_LEN.  The shorter
+   string is considered to be padded with spaces to the length of
+   the longer. */
 int
-st_compare_pad (const char *s0, int s0l, const char *s1, int s1l)
+st_compare_pad (const char *a, size_t a_len, const char *b, size_t b_len)
 {
-  /* 254 spaces. */
-  static char blanks[254] =
-  "                                                               "
-  "                                                               "
-  "                                                               "
-  "                                                               "
-  "  ";
+  size_t min_len;
+  int result;
 
-  int diff = s0l - s1l;
-  int r;
-
-  if (diff == 0)
+  min_len = a_len < b_len ? a_len : b_len;
+  result = memcmp (a, b, min_len);
+  if (result != 0)
+    return result;
+  else 
     {
-      if (s0l == 0)
-	return 0;
-      return memcmp (s0, s1, s0l);
-    }
-  else if (diff > 0)
-    {
-      /* s0l > s1l */
-      if (s1l)
-	{
-	  r = memcmp (s0, s1, s1l);
-	  if (r)
-	    return r;
-	}
-      return memcmp (&s0[s1l], blanks, diff);
-    }
-  else
-    /* diff<0 */
-    {
-      /* s0l < s1l */
-      if (s0l)
-	{
-	  r = memcmp (s0, s1, s0l);
-	  if (r)
-	    return r;
-	}
-      return memcmp (blanks, &s1[s0l], -diff);
+      size_t idx;
+      
+      if (a_len < b_len) 
+        {
+          for (idx = min_len; idx < b_len; idx++)
+            if (' ' != b[idx])
+              return ' ' > b[idx] ? 1 : -1;
+        }
+      else 
+        {
+          for (idx = min_len; idx < a_len; idx++)
+            if (a[idx] != ' ')
+              return a[idx] > ' ' ? 1 : -1;
+        }
+      return 0;
     }
 }
 

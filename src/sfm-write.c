@@ -365,6 +365,7 @@ write_variable (struct sfm_write_info *inf, struct variable *v)
       break;
     default:
       assert (0);
+      abort ();
     }
 
   sv.n_missing_values = nm;

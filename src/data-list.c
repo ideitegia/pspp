@@ -1011,6 +1011,7 @@ get_data_list_read_func (const struct data_list_pgm *dls)
 
     default:
       assert (0);
+      abort ();
     }
 }
 

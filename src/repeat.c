@@ -299,7 +299,7 @@ internal_cmd_do_repeat (void)
      REPEAT line.  We should actually check for the PRINT specifier.
      This can be done easier when we buffer entire commands instead of
      doing it token by token; see TODO. */
-  lex_entire_line ();	
+  lex_discard_line ();	
   
   /* Tie up the loose end of the chain. */
   if (line_buf_head == NULL)

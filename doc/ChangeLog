@@ -1,3 +1,7 @@
+Fri Mar 26 00:07:46 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Update chapter on expressions.
+
 Sat Mar 20 00:53:10 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* pspp.texi: Added a brief mention of the SHOW command.

@@ -248,7 +248,7 @@ parse_do_if (void)
   struct do_if_trns *t;
   struct expression *e;
 
-  e = expr_parse (PXP_BOOLEAN);
+  e = expr_parse (EXPR_BOOLEAN);
   if (!e)
     return NULL;
   if (token != '.')

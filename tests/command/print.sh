@@ -55,28 +55,12 @@ activity="create program"
 cat > $TEMPDIR/print.stat << foobar
 title 'Test PRINT transformation'.
 
-remark EOF
-----------------------------------------------------------------------
-There is no test for DATA LIST FIXED since it is imagined that the
-rest of the tests give it a pretty good workout.
-----------------------------------------------------------------------
-EOF
-remark EOF
-----------------------------------------------------------------------
-Testing use of DATA LIST FREE.
-----------------------------------------------------------------------
-EOF
 data list free table file='$TEMPDIR/data-list.data'/A B C D.
 print outfile="foo" table/A(f8.2) '/' B(e8.2) '/' C(n10) '/' D(rbhex16) '/'.
 print space a.
 print outfile="foo" /a b c d.
 list.
 
-remark EOF
-----------------------------------------------------------------------
-Testing use of DATA LIST LIST.
-----------------------------------------------------------------------
-EOF
 data list list table file='$TEMPDIR/data-list.data'/A B C D.
 print table/A B C D.
 list.
@@ -112,15 +96,6 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
 diff -b -B $TEMPDIR/pspp.list - << EOF
-----------------------------------------------------------------------
-There is no test for DATA LIST FIXED since it is imagined that the
-rest of the tests give it a pretty good workout.
-----------------------------------------------------------------------
-
-----------------------------------------------------------------------
-Testing use of DATA LIST FREE.
-----------------------------------------------------------------------
-
 1.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
 +--------+------+
 |Variable|Format|
@@ -153,10 +128,6 @@ Testing use of DATA LIST FREE.
      .       6.00     7.00     8.00 
 
      .      10.00    11.00    12.00 
-
-----------------------------------------------------------------------
-Testing use of DATA LIST LIST.
-----------------------------------------------------------------------
 
 3.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
 +--------+------+

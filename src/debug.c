@@ -18,6 +18,8 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include <assert.h>
+#include <stdio.h>
 #include "command.h"
 #include "error.h"
 #include "expr.h"
@@ -28,18 +30,66 @@ int
 cmd_debug_evaluate (void)
 {
   struct expression *expr;
+  union value value;
+  enum expr_type expr_flags;
+  int dump_postfix = 0;
 
   discard_variables ();
-  expr = expr_parse (PXP_NONE);
-  if (!expr)
-    return CMD_FAILURE;
 
-  expr_free (expr);
-  if (token != '.')
+  expr_flags = 0;
+  if (lex_match_id ("NOOPTIMIZE"))
+    expr_flags |= EXPR_NO_OPTIMIZE;
+  if (lex_match_id ("POSTFIX"))
+    dump_postfix = 1;
+  if (token != '/') 
     {
-      msg (SE, _("Extra characters after expression."));
+      lex_force_match ('/');
       return CMD_FAILURE;
     }
+  fprintf (stderr, "%s => ", lex_rest_of_line (NULL));
+  lex_get ();
+
+  expr = expr_parse (EXPR_ANY | expr_flags);
+  if (!expr || token != '.') 
+    {
+      fprintf (stderr, "error\n");
+      return CMD_FAILURE; 
+    }
+
+  if (dump_postfix) 
+    expr_debug_print_postfix (expr);
+  else 
+    {
+      expr_evaluate (expr, NULL, 0, &value);
+      switch (expr_get_type (expr)) 
+        {
+        case EXPR_NUMERIC:
+          if (value.f == SYSMIS)
+            fprintf (stderr, "sysmis\n");
+          else
+            fprintf (stderr, "%.2f\n", value.f);
+          break;
+      
+        case EXPR_BOOLEAN:
+          if (value.f == SYSMIS)
+            fprintf (stderr, "sysmis\n");
+          else if (value.f == 0.0)
+            fprintf (stderr, "false\n");
+          else
+            fprintf (stderr, "true\n");
+          break;
+
+        case EXPR_STRING:
+          fputc ('"', stderr);
+          fwrite (value.c + 1, value.c[0], 1, stderr);
+          fputs ("\"\n", stderr);
+          break;
+
+        default:
+          assert (0);
+        }
+    }
   
+  expr_free (expr);
   return CMD_SUCCESS;
 }

@@ -51,7 +51,7 @@
 #include "vfmP.h"
 
 double
-expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
+expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
                union value *v)
 {
   unsigned char *op = e->op;
@@ -69,35 +69,33 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
     {
       switch (*op++)
 	{
-	case OP_PLUS:
-	  sp -= *op - 1;
-	  if (sp->f != SYSMIS)
-	    for (i = 1; i < *op; i++)
-	      {
-		if (sp[i].f == SYSMIS)
-		  {
-		    sp->f = SYSMIS;
-		    break;
-		  }
-		else
-		  sp->f += sp[i].f;
-	      }
-	  op++;
+	case OP_ADD:
+          sp--;
+          if (sp[1].f == SYSMIS)
+            sp[0].f = SYSMIS;
+          else if (sp[0].f != SYSMIS)
+            sp[0].f += sp[1].f;
+	  break;
+	case OP_SUB:
+          sp--;
+          if (sp[1].f == SYSMIS)
+            sp[0].f = SYSMIS;
+          else if (sp[0].f != SYSMIS)
+            sp[0].f -= sp[1].f;
 	  break;
 	case OP_MUL:
-	  sp -= *op - 1;
-	  if (sp->f != SYSMIS)
-	    for (i = 1; i < *op; i++)
-	      {
-		if (sp[i].f == SYSMIS)
-		  {
-		    sp->f = SYSMIS;
-		    break;
-		  }
-		else
-		  sp->f *= sp[i].f;
-	      }
-	  op++;
+          sp--;
+          if (sp[1].f == SYSMIS)
+            sp[0].f = SYSMIS;
+          else if (sp[0].f != SYSMIS)
+            sp[0].f *= sp[1].f;
+	  break;
+	case OP_DIV:
+          sp--;
+          if (sp[1].f == SYSMIS || sp[1].f == 0.)
+            sp[0].f = SYSMIS;
+          else if (sp[0].f != SYSMIS)
+            sp[0].f /= sp[1].f;
 	  break;
 	case OP_POW:
 	  sp--;
@@ -109,12 +107,11 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  else if (sp[1].f == SYSMIS)
 	    {
 	      if (sp[0].f == 0.0)
-		/* SYSMIS**0 */
 		sp->f = 0.0;
 	      else
 		sp->f = SYSMIS;
 	    }
-	  else if (sp[0].f == 0.0 && sp[1].f == 0.0)
+	  else if (sp[0].f == 0.0 && sp[1].f <= 0.0)
 	    sp->f = SYSMIS;
 	  else
 	    sp->f = pow (sp[0].f, sp[1].f);
@@ -247,32 +244,32 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  break;
 
 	  /* String operators. */
-	case OP_STRING_EQ:
+	case OP_EQ_STRING:
 	  sp--;
 	  sp[0].f = st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				    &sp[1].c[1], sp[1].c[0]) == 0;
 	  break;
-	case OP_STRING_GE:
+	case OP_GE_STRING:
 	  sp--;
 	  sp[0].f = st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				    &sp[1].c[1], sp[1].c[0]) >= 0;
 	  break;
-	case OP_STRING_GT:
+	case OP_GT_STRING:
 	  sp--;
 	  sp[0].f = st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				    &sp[1].c[1], sp[1].c[0]) > 0;
 	  break;
-	case OP_STRING_LE:
+	case OP_LE_STRING:
 	  sp--;
 	  sp[0].f = st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				    &sp[1].c[1], sp[1].c[0]) <= 0;
 	  break;
-	case OP_STRING_LT:
+	case OP_LT_STRING:
 	  sp--;
 	  sp[0].f = st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				    &sp[1].c[1], sp[1].c[0]) < 0;
 	  break;
-	case OP_STRING_NE:
+	case OP_NE_STRING:
 	  sp--;
 	  sp[0].f = st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				    &sp[1].c[1], sp[1].c[0]) != 0;
@@ -335,7 +332,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  if (sp->f != SYSMIS)
 	    {
 	      errno = 0;
-	      sp->f = log10 (sp->f);
+	      sp->f = log (sp->f);
 	      if (errno)
 		sp->f = SYSMIS;
 	    }
@@ -394,7 +391,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp -= n_args - 1;
 	    if (sp->f == SYSMIS)
 	      break;
-	    for (i = 1; i <= n_args; i++)
+	    for (i = 1; i < n_args; i++)
 	      if (sp[0].f == sp[i].f)
 		{
 		  sp->f = 1.0;
@@ -408,16 +405,17 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	case OP_ANY_STRING:
 	  {
 	    int n_args = *op++;
+            int result = 0.0;
 
 	    sp -= n_args - 1;
-	    for (i = 1; i <= n_args; i++)
+	    for (i = 1; i < n_args; i++)
 	      if (!st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				   &sp[i].c[1], sp[i].c[0]))
 		{
-		  sp->f = 1.0;
-		  goto main_loop;
+		  result = 1.0;
+                  break;
 		}
-	    sp->f = 0.0;
+	    sp->f = result;
 	  }
 	  break;
 	case OP_CFVAR:
@@ -461,6 +459,19 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	      sp->f = max;
 	  }
 	  break;
+        case OP_MAX_STRING:
+          {
+            int n_args = *op++;
+            int max_idx = 0;
+
+            sp -= n_args - 1;
+            for (i = 1; i < n_args; i++)
+              if (st_compare_pad (&sp[i].c[1], sp[i].c[0],
+				  &sp[max_idx].c[1], sp[max_idx].c[0]) > 0)
+                max_idx = i;
+	    sp[0].c = sp[max_idx].c;
+          }
+          break;
 	case OP_MEAN:
 	  {
 	    int n_args = *op++;
@@ -501,6 +512,19 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	      sp->f = min;
 	  }
 	  break;
+        case OP_MIN_STRING:
+          {
+            int n_args = *op++;
+            int min_idx = 0;
+
+            sp -= n_args - 1;
+            for (i = 1; i < n_args; i++)
+              if (st_compare_pad (&sp[i].c[1], sp[i].c[0],
+				  &sp[min_idx].c[1], sp[min_idx].c[0]) < 0)
+                min_idx = i;
+	    sp[0].c = sp[min_idx].c;
+          }
+          break;
 	case OP_NMISS:
 	  {
 	    int n_args = *op++;
@@ -533,7 +557,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp -= n_args - 1;
 	    if (sp->f == SYSMIS)
 	      break;
-	    for (i = 1; i <= n_args; i += 2)
+	    for (i = 1; i < n_args; i += 2)
 	      if (sp[i].f == SYSMIS || sp[i + 1].f == SYSMIS)
 		continue;
 	      else if (sp[0].f >= sp[i].f && sp[0].f <= sp[i + 1].f)
@@ -551,7 +575,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    int n_args = *op++;
 
 	    sp -= n_args - 1;
-	    for (i = 1; i <= n_args; i += 2)
+	    for (i = 1; i < n_args; i += 2)
 	      if (st_compare_pad (&sp[0].c[1], sp[0].c[0],
 				  &sp[i].c[1], sp[i].c[0]) >= 0
 		  && st_compare_pad (&sp[0].c[1], sp[0].c[0],
@@ -628,13 +652,44 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  break;
 
 	  /* Time construction function. */
-	case OP_TIME_HMS:
-	  sp -= 2;
-	  if (sp[0].f == SYSMIS || sp[1].f == SYSMIS || sp[2].f == SYSMIS)
-	    sp->f = SYSMIS;
-	  else
-	    sp->f = 60. * (60. * sp[0].f + sp[1].f) + sp[2].f;
+	case OP_TIME_HMS: 
+          sp -= 2;
+          if (sp[0].f == SYSMIS || sp[1].f == SYSMIS || sp[2].f == SYSMIS)
+            sp->f = SYSMIS;
+          else 
+            {
+              double min, max;
+              min = min (sp[0].f, min (sp[1].f, sp[2].f));
+              max = max (sp[0].f, max (sp[1].f, sp[2].f));
+              if (min < 0. && max > 0.) 
+                {
+                  msg (SW, _("TIME.HMS cannot mix positive and negative "
+                             "in its arguments."));
+                  sp->f = SYSMIS;
+                }
+              else
+                sp->f = 60. * (60. * sp[0].f + sp[1].f) + sp[2].f;
+            }
+            break; 
+        case OP_CTIME_DAYS:
+	  if (sp->f != SYSMIS)
+	    sp->f /= 60. * 60. * 24.;
 	  break;
+        case OP_CTIME_HOURS:
+	  if (sp->f != SYSMIS)
+	    sp->f /= 60. * 60;
+	  break;
+        case OP_CTIME_MINUTES:
+          if (sp->f != SYSMIS)
+            sp->f /= 60.;
+          break;
+        case OP_TIME_DAYS:
+          if (sp->f != SYSMIS)
+            sp->f *= 60. * 60. * 24.;
+          break;
+        case OP_CTIME_SECONDS:
+          /* No-op. */
+          break;
 
 	  /* Date construction functions. */
 	case OP_DATE_DMY:
@@ -668,14 +723,19 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  break;
 	case OP_DATE_WKYR:
 	  sp--;
-	  if (sp[0].f == SYSMIS)
+	  if (sp[0].f == SYSMIS || sp[1].f == SYSMIS)
 	    sp->f = SYSMIS;
-	  else
+          else if (sp[0].f < 0. || sp[0].f > 53.)
+            {
+              msg (SW, _("Week argument to WKYR must be in range 0 to 53."));
+              sp->f = SYSMIS; 
+            }
+          else
 	    {
-	      sp[1].f = yrmoda (sp[1].f, 1, 1);
-	      if (sp->f != SYSMIS)
-		sp[1].f = 60. * 60. * 24. * (sp[1].f + 7. * (floor (sp[0].f) - 1.));
-	      sp->f = sp[1].f;
+	      double result = yrmoda (sp[1].f, 1, 1);
+	      if (result != SYSMIS)
+		result = 60. * 60. * 24. * (result + 7. * (sp->f - 1.));
+	      sp->f = result;
 	    }
 	  break;
 	case OP_DATE_YRDAY:
@@ -792,83 +852,116 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp[0].c = dest;
 	  }
 	  break;
-	case OP_INDEX:
+	case OP_INDEX_2:
 	  sp--;
 	  if (sp[1].c[0] == 0)
 	    sp->f = SYSMIS;
 	  else
 	    {
 	      int last = sp[0].c[0] - sp[1].c[0];
+              int result = 0;
 	      for (i = 0; i <= last; i++)
-		if (!memcmp (&sp[0].c[i + 1], &sp[0].c[1], sp[0].c[0]))
+		if (!memcmp (&sp[0].c[i + 1], &sp[1].c[1], sp[1].c[0]))
 		  {
-		    sp->f = i + 1;
-		    goto main_loop;
+		    result = i + 1;
+                    break;
 		  }
-	      sp->f = 0.0;
+	      sp->f = result;
 	    }
 	  break;
-	case OP_INDEX_OPT:
-	  {
-	    /* Length of each search string. */
-	    int part_len = sp[2].f;
-
-	    sp -= 2;
-	    if (sp[1].c[0] == 0 || part_len <= 0 || sp[2].f == SYSMIS
-		|| sp[1].c[0] % part_len != 0)
-	      sp->f = SYSMIS;
-	    else
-	      {
-		/* Last possible index. */
-		int last = sp[0].c[0] - part_len;
-
-		for (i = 0; i <= last; i++)
-		  for (j = 0; j < sp[1].c[0]; j += part_len)
-		    if (!memcmp (&sp[0].c[i], &sp[1].c[j], part_len))
-		      {
-			sp->f = i + 1;
-			goto main_loop;
-		      }
-		sp->f = 0.0;
-	      }
-	  }
+	case OP_INDEX_3:
+          sp -= 2;
+          if (sp[1].c[0] == 0) 
+            {
+              sp->f = SYSMIS;
+              break; 
+            }
+          else if (sp[2].f == SYSMIS) 
+            {
+              msg (SW, _("Argument 3 of RINDEX may not be system-missing."));
+              sp->f = SYSMIS;
+            }
+          else 
+            {
+              int part_len = sp[2].f;
+              int result = 0;
+              if (part_len < 0 || part_len > sp[1].c[0]
+                  || sp[1].c[0] % part_len != 0) 
+                {
+                  msg (SW, _("Argument 3 of RINDEX must be between 1 and "
+                             "the length of argument 2, and it must "
+                             "evenly divide the length of argument 2."));
+                  sp->f = SYSMIS;
+                  break; 
+                }
+              else 
+                {
+                  int last = sp[0].c[0] - part_len;
+                  for (i = 0; i <= last; i++)
+                    for (j = 0; j < sp[1].c[0]; j += part_len)
+                      if (!memcmp (&sp[0].c[i + 1], &sp[1].c[j + 1], part_len))
+                        {
+                          result = i + 1;
+                          goto index_3_out;
+                        } 
+                index_3_out:
+                  sp->f = result; 
+                }
+            } 
 	  break;
-	case OP_RINDEX:
+	case OP_RINDEX_2:
 	  sp--;
 	  if (sp[1].c[0] == 0)
 	    sp->f = SYSMIS;
 	  else
 	    {
+              int result = 0;
 	      for (i = sp[0].c[0] - sp[1].c[0]; i >= 0; i--)
-		if (!memcmp (&sp[0].c[i + 1], &sp[0].c[1], sp[0].c[0]))
+		if (!memcmp (&sp[0].c[i + 1], &sp[1].c[1], sp[1].c[0]))
 		  {
-		    sp->f = i + 1;
-		    goto main_loop;
+		    result = i + 1;
+		    break;
 		  }
-	      sp->f = 0.0;
+	      sp->f = result;
 	    }
 	  break;
-	case OP_RINDEX_OPT:
-	  {
-	    /* Length of each search string. */
-	    int part_len = sp[2].f;
-
-	    sp -= 2;
-	    if (sp[1].c[0] == 0 || part_len <= 0 || sp[2].f == SYSMIS
-		|| sp[1].c[0] % part_len != 0)
-	      sp->f = SYSMIS;
-	    else
-	      {
-		for (i = sp[0].c[0] - part_len; i >= 0; i--)
-		  for (j = 0; j < sp[1].c[0]; j += part_len)
-		    if (!memcmp (&sp[0].c[i], &sp[1].c[j], part_len))
-		      {
-			sp->f = i + 1;
-			goto main_loop;
-		      }
-		sp->f = 0.0;
-	      }
-	  }
+	case OP_RINDEX_3:
+          sp -= 2;
+          if (sp[1].c[0] == 0) 
+            {
+              sp->f = SYSMIS;
+              break; 
+            }
+          else if (sp[2].f == SYSMIS) 
+            {
+              msg (SW, _("Argument 3 of RINDEX may not be system-missing."));
+              sp->f = SYSMIS; 
+            }
+          else 
+            {
+              int part_len = sp[2].f;
+              int result = 0;
+              if (part_len < 0 || part_len > sp[1].c[0]
+                  || sp[1].c[0] % part_len != 0) 
+                {
+                  msg (SW, _("Argument 3 of RINDEX must be between 1 and "
+                             "the length of argument 2, and it must "
+                             "evenly divide the length of argument 2."));
+                  sp->f = SYSMIS;
+                }
+              else 
+                {
+                  for (i = sp[0].c[0] - part_len; i >= 0; i--)
+                    for (j = 0; j < sp[1].c[0]; j += part_len)
+                      if (!memcmp (&sp[0].c[i + 1], &sp[1].c[j + 1], part_len))
+                        {
+                          result = i + 1;
+                          goto rindex_3_out;
+                        } 
+                rindex_3_out:
+                  sp->f = result;
+                }
+            } 
 	  break;
 	case OP_LENGTH:
 	  sp->f = sp[0].c[0];
@@ -882,25 +975,6 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp[0].c[i] = toupper ((unsigned char) (sp[0].c[i]));
 	  break;
 	case OP_LPAD:
-	  {
-	    int len;
-	    sp--;
-	    len = sp[1].f;
-	    if (sp[1].f == SYSMIS || len < 0 || len > 255)
-	      sp->c[0] = 0;
-	    else if (len > sp[0].c[0])
-	      {
-		unsigned char *dest;
-
-		dest = pool_alloc (e->pool, len + 1);
-		dest[0] = len;
-		memset (&dest[1], ' ', len - sp->c[0]);
-		memcpy (&dest[len - sp->c[0] + 1], &sp->c[1], sp->c[0]);
-		sp->c = dest;
-	      }
-	  }
-	  break;
-	case OP_LPAD_OPT:
 	  {
 	    int len;
 	    sp -= 2;
@@ -922,25 +996,6 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	case OP_RPAD:
 	  {
 	    int len;
-	    sp--;
-	    len = sp[1].f;
-	    if (sp[1].f == SYSMIS || len < 0 || len > 255)
-	      sp->c[0] = 0;
-	    else if (len > sp[0].c[0])
-	      {
-		unsigned char *dest;
-
-		dest = pool_alloc (e->pool, len + 1);
-		dest[0] = len;
-		memcpy (&dest[1], &sp->c[1], sp->c[0]);
-		memset (&dest[sp->c[0] + 1], ' ', len - sp->c[0]);
-		sp->c = dest;
-	      }
-	  }
-	  break;
-	case OP_RPAD_OPT:
-	  {
-	    int len;
 	    sp -= 2;
 	    len = sp[1].f;
 	    if (len < 0 || len > 255 || sp[2].c[0] != 1)
@@ -958,20 +1013,6 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  }
 	  break;
 	case OP_LTRIM:
-	  {
-	    int len = sp[0].c[0];
-
-	    i = 1;
-	    while (i <= len && sp[0].c[i] == ' ')
-	      i++;
-	    if (--i)
-	      {
-		sp[0].c[i] = sp[0].c[0] - i;
-		sp->c = &sp[0].c[i];
-	      }
-	  }
-	  break;
-	case OP_LTRIM_OPT:
 	  {
 	    sp--;
 	    if (sp[1].c[0] != 1)
@@ -993,50 +1034,30 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  }
 	  break;
 	case OP_RTRIM:
-	  assert (' ' != 0);
-	  while (sp[0].c[sp[0].c[0]] == ' ')
-	    sp[0].c[0]--;
-	  break;
-	case OP_RTRIM_OPT:
 	  sp--;
 	  if (sp[1].c[0] != 1)
 	    sp[0].c[0] = 0;
 	  else
 	    {
-	      /* Note that NULs are not allowed in strings.  This code
-	         needs to change if this decision is changed. */
 	      int cmp = sp[1].c[1];
-	      while (sp[0].c[sp[0].c[0]] == cmp)
+	      while (sp[0].c[0] > 0 && sp[0].c[sp[0].c[0]] == cmp)
 		sp[0].c[0]--;
 	    }
 	  break;
 	case OP_NUMBER:
 	  {
 	    struct data_in di;
-
+            union value out;
 	    di.s = &sp->c[1];
-	    di.e = &sp->c[1] + sp->c[0];
-	    di.v = sp;
-	    di.flags = DI_IGNORE_ERROR;
-	    di.f1 = 1;
-	    di.format.type = FMT_F;
-	    di.format.w = sp->c[0];
-	    di.format.d = 0;
-	    data_in (&di);
-	  }
-	  break;
-	case OP_NUMBER_OPT:
-	  {
-	    struct data_in di;
-	    di.s = &sp->c[1];
-	    di.e = &sp->c[1] + sp->c[0];
-	    di.v = sp;
-	    di.flags = DI_IGNORE_ERROR;
+	    di.v = &out;
+	    di.flags = 0;
 	    di.f1 = 1;
 	    di.format.type = *op++;
 	    di.format.w = *op++;
 	    di.format.d = *op++;
+	    di.e = &sp->c[1] + min (sp->c[0], di.format.w);
 	    data_in (&di);
+            sp->f = out.f;
 	  }
 	  break;
 	case OP_STRING:
@@ -1056,7 +1077,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp->c = dest;
 	  }
 	  break;
-	case OP_SUBSTR:
+	case OP_SUBSTR_2:
 	  {
 	    int index;
 
@@ -1072,7 +1093,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	      }
 	  }
 	  break;
-	case OP_SUBSTR_OPT:
+	case OP_SUBSTR_3:
 	  {
 	    int index;
 	    int n;
@@ -1098,10 +1119,6 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	  break;
 
 	  /* Artificial. */
-	case OP_INV:
-	  if (sp->f != SYSMIS)
-	    sp->f = 1. / sp->f;
-	  break;
 	case OP_SQUARE:
 	  if (sp->f != SYSMIS)
 	    sp->f *= sp->f;
@@ -1144,10 +1161,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
 	    sp->f *= rng_get_double (pspp_rng ());
 	  break;
 	case OP_SYSMIS:
-	  if (sp[0].f == SYSMIS || !finite (sp[0].f))
-	    sp->f = 1.0;
-	  else
-	    sp->f = 0.0;
+	  sp->f = sp->f == SYSMIS || !finite (sp->f);
 	  break;
 	case OP_VEC_ELEM_NUM:
 	  {
@@ -1270,12 +1284,6 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
           assert (c != NULL);
 	  sp->f = c->data[*op++].f == SYSMIS;
 	  break;
-	case OP_STR_MIS:
-	  sp++;
-          assert (c != NULL);
-	  sp->f = is_str_user_missing (c->data[(*vars)->fv].s, *vars);
-	  vars++;
-	  break;
 	case OP_NUM_VAL:
 	  sp++;
           assert (c != NULL);
@@ -1296,7 +1304,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_num,
     main_loop: ;
     }
 finished:
-  if (e->type != EX_STRING)
+  if (e->type != EXPR_STRING)
     {
       double value = sp->f;
       if (!finite (value))

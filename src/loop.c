@@ -198,7 +198,7 @@ internal_cmd_loop (void)
       assert (token == '=');
       lex_get ();
 
-      one->init = expr_parse (PXP_NUMERIC);
+      one->init = expr_parse (EXPR_NUMERIC);
       if (!one->init)
 	return 0;
 
@@ -207,7 +207,7 @@ internal_cmd_loop (void)
 	  expr_free (one->init);
 	  return 0;
 	}
-      one->term = expr_parse (PXP_NUMERIC);
+      one->term = expr_parse (EXPR_NUMERIC);
       if (!one->term)
 	{
 	  expr_free (one->init);
@@ -216,7 +216,7 @@ internal_cmd_loop (void)
 
       if (lex_match (T_BY))
 	{
-	  one->incr = expr_parse (PXP_NUMERIC);
+	  one->incr = expr_parse (EXPR_NUMERIC);
 	  if (!one->incr)
 	    return 0;
 	}
@@ -229,7 +229,7 @@ internal_cmd_loop (void)
     {
       two->flags |= LPC_COND;
 
-      two->cond = expr_parse (PXP_BOOLEAN);
+      two->cond = expr_parse (EXPR_BOOLEAN);
       if (!two->cond)
 	return 0;
     }
@@ -313,7 +313,7 @@ internal_cmd_end_loop (void)
   /* Parse the expression if any. */
   if (lex_match_id ("IF"))
     {
-      thr->cond = expr_parse (PXP_BOOLEAN);
+      thr->cond = expr_parse (EXPR_BOOLEAN);
       if (!thr->cond)
 	return 0;
     }

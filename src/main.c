@@ -166,8 +166,11 @@ handle_error (int code)
       while (token != T_STOP && token != '.')
 	lex_get ();
     }
-  else
-    lex_discard_line ();
+  else 
+    {
+      msg (SW, _("The rest of this command has been discarded."));
+      lex_discard_line (); 
+    }
 }
 
 

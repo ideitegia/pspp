@@ -41,10 +41,10 @@ cmd_variable_labels (void)
 
   int i;
 
-  lex_match ('/');
   do
     {
-      parse_variables (default_dict, &v, &nv, PV_NONE);
+      if (!parse_variables (default_dict, &v, &nv, PV_NONE))
+        return CMD_PART_SUCCESS_MAYBE;
 
       if (token != T_STRING)
 	{

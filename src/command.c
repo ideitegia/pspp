@@ -585,108 +585,6 @@ cmd_finish (void)
   return CMD_SUCCESS;
 }
 
-/* Extracts a null-terminated 8-or-fewer-character PREFIX from STRING.
-   PREFIX is converted to lowercase.  Removes trailing spaces from
-   STRING as a side effect.  */
-static void
-extract_prefix (char *string, char *prefix)
-{
-  /* Length of STRING. */
-  int len;
-
-  /* Points to the null terminator in STRING (`end pointer'). */
-  char *ep;
-
-  /* Strip spaces from end of STRING. */
-  len = strlen (string);
-  while (len && isspace ((unsigned char) string[len - 1]))
-    string[--len] = 0;
-
-  /* Find null terminator. */
-  ep = memchr (string, '\0', 8);
-  if (!ep)
-    ep = &string[8];
-
-  /* Copy prefix, converting to lowercase. */
-  while (string < ep)
-    *prefix++ = tolower ((unsigned char) (*string++));
-  *prefix = 0;
-}
-
-/* Prints STRING on the console and to the listing file, replacing \n
-   by newline. */
-static void
-output_line (char *string)
-{
-  /* Location of \n in line read in. */
-  char *cp;
-
-  cp = strstr (string, "\\n");
-  while (cp)
-    {
-      *cp = 0;
-      tab_output_text (TAB_LEFT | TAT_NOWRAP, string);
-      string = &cp[2];
-      cp = strstr (string, "\\n");
-    }
-  tab_output_text (TAB_LEFT | TAT_NOWRAP, string);
-}
-
-/* Parse and execute REMARK command. */
-int
-cmd_remark ()
-{
-  /* Points to the line read in. */
-  char *s;
-
-  /* Index into s. */
-  char *cp;
-
-  /* 8-character sentinel used to terminate remark. */
-  char sentinel[9];
-
-  /* Beginning of line used to compare with SENTINEL. */
-  char prefix[9];
-
-  som_blank_line ();
-  
-  s = lex_rest_of_line (NULL);
-  if (*s == '-')
-    {
-      output_line (&s[1]);
-      return CMD_SUCCESS;
-    }
-
-  /* Read in SENTINEL from end of current line. */
-  cp = s;
-  while (isspace ((unsigned char) *cp))
-    cp++;
-  extract_prefix (cp, sentinel);
-  if (sentinel[0] == 0)
-    {
-      msg (SE, _("The sentinel may not be the empty string."));
-      return CMD_FAILURE;
-    }
-
-  /* Read in other lines until we encounter the sentinel. */
-  while (getl_read_line ())
-    {
-      extract_prefix (ds_value (&getl_buf), prefix);
-      if (!strcmp (sentinel, prefix))
-	break;
-
-      /* Output the line. */
-      output_line (ds_value (&getl_buf));
-    }
-
-  /* Calling lex_entire_line() forces the sentinel line to be
-     discarded. */
-  getl_prompt = GETL_PRPT_STANDARD;
-  lex_entire_line ();
-
-  return CMD_SUCCESS;
-}
-
 /* Parses the N command. */
 int
 cmd_n_of_cases (void)
@@ -797,7 +695,7 @@ shell (void)
 static int
 run_command (void)
 {
-  char *cmd;
+  const char *cmd;
   int string;
 
   /* Handle either a string argument or a full-line argument. */
@@ -815,6 +713,7 @@ run_command (void)
     else
       {
 	cmd = lex_rest_of_line (NULL);
+        lex_discard_line ();
 	string = 0;
       }
   }

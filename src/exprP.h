@@ -24,174 +24,25 @@
 /*#define DEBUGGING 1*/
 #include "debug-print.h"
 
-#if GLOBAL_DEBUGGING
-void debug_print_expr (struct expression *);
 void debug_print_op (short int *);
-#endif
 
-/* Expression types. */
+
+/* Expression operators. */
+#define DEFINE_OPERATOR(NAME, STACK_DELTA, FLAGS, ARGS) \
+        OP_##NAME,
 enum
   {
-    EX_ERROR,		/* Error value for propagation. */
-    EX_BOOLEAN,		/* Numeric value that's 0, 1, or SYSMIS. */
-    EX_NUMERIC,		/* Numeric value. */
-    EX_STRING		/* String value. */
+#include "expr.def"
+    OP_SENTINEL
   };
 
-/* Expression operators.
-   The ordering below is important.  Do not change it. */
-enum
-  {
-    OP_ERROR,
-
-    /* Basic operators. */
-    OP_PLUS,
-    OP_MUL,
-    OP_POW,
-    OP_AND,
-    OP_OR,
-    OP_NOT,
-
-    /* Numeric relational operators. */
-    OP_EQ,
-    OP_GE,
-    OP_GT,
-    OP_LE,
-    OP_LT,
-    OP_NE,
-
-    /* String relational operators. */
-    OP_STRING_EQ,
-    OP_STRING_GE,
-    OP_STRING_GT,
-    OP_STRING_LE,
-    OP_STRING_LT,
-    OP_STRING_NE,
-
-    /* Unary functions. */
-    OP_NEG,
-    OP_ABS,
-    OP_ARCOS,
-    OP_ARSIN,
-    OP_ARTAN,
-    OP_COS,
-    OP_EXP,
-    OP_LG10,
-    OP_LN,
-    OP_MOD10,
-    OP_RND,
-    OP_SIN,
-    OP_SQRT,
-    OP_TAN,
-    OP_TRUNC,
-
-    /* N-ary numeric functions. */
-    OP_ANY,
-    OP_ANY_STRING,
-    OP_CFVAR,
-    OP_MAX,
-    OP_MEAN,
-    OP_MIN,
-    OP_NMISS,
-    OP_NVALID,
-    OP_RANGE,
-    OP_RANGE_STRING,
-    OP_SD,
-    OP_SUM,
-    OP_VARIANCE,
-
-    /* Time construction & extraction functions. */
-    OP_TIME_HMS,
-
-    /* These never appear in a tree or an expression.
-       They disappear in parse.c:unary_func(). */
-    OP_CTIME_DAYS,
-    OP_CTIME_HOURS,
-    OP_CTIME_MINUTES,
-    OP_CTIME_SECONDS,
-    OP_TIME_DAYS,
-
-    /* Date construction functions. */
-    OP_DATE_DMY,
-    OP_DATE_MDY,
-    OP_DATE_MOYR,
-    OP_DATE_QYR,
-    OP_DATE_WKYR,
-    OP_DATE_YRDAY,
-    OP_YRMODA,
-
-    /* Date extraction functions. */
-    OP_XDATE_DATE,
-    OP_XDATE_HOUR,
-    OP_XDATE_JDAY,
-    OP_XDATE_MDAY,
-    OP_XDATE_MINUTE,
-    OP_XDATE_MONTH,
-    OP_XDATE_QUARTER,
-    OP_XDATE_SECOND,
-    OP_XDATE_TDAY,
-    OP_XDATE_TIME,
-    OP_XDATE_WEEK,
-    OP_XDATE_WKDAY,
-    OP_XDATE_YEAR,
-
-    /* String functions. */
-    OP_CONCAT,
-    OP_INDEX,
-    OP_INDEX_OPT,
-    OP_RINDEX,
-    OP_RINDEX_OPT,
-    OP_LENGTH,
-    OP_LOWER,
-    OP_UPPER,
-    OP_LPAD,
-    OP_LPAD_OPT,
-    OP_RPAD,
-    OP_RPAD_OPT,
-    OP_LTRIM,
-    OP_LTRIM_OPT,
-    OP_RTRIM,
-    OP_RTRIM_OPT,
-    OP_NUMBER,
-    OP_NUMBER_OPT,
-    OP_STRING,
-    OP_SUBSTR,
-    OP_SUBSTR_OPT,
-
-    /* Artificial. */
-    OP_INV,			/* Reciprocal. */
-    OP_SQUARE,			/* Squares the argument. */
-    OP_NUM_TO_BOOL,		/* Converts ~0=>0, ~1=>1, SYSMIS=>SYSMIS,
-				   others=>0 with a warning. */
-
-    /* Weirdness. */
-    OP_MOD,			/* Modulo function. */
-    OP_NORMAL,			/* Normally distributed PRNG. */
-    OP_UNIFORM,			/* Uniformly distributed PRNG. */
-    OP_SYSMIS,			/* Tests whether for SYSMIS argument. */
-    OP_VEC_ELEM_NUM,		/* Element of a numeric vector. */
-    OP_VEC_ELEM_STR,		/* Element of a string vector. */
-
-    /* Terminals. */
-    OP_TERMINAL,		/* Not a valid type.  Boundary
-				   between terminals and nonterminals. */
-
-    OP_NUM_CON,			/* Numeric constant. */
-    OP_STR_CON,			/* String literal. */
-    OP_NUM_VAR,			/* Numeric variable reference. */
-    OP_STR_VAR,			/* String variable reference. */
-    OP_NUM_LAG,			/* Numeric variable from an earlier case. */
-    OP_STR_LAG,			/* String variable from an earlier case. */
-    OP_NUM_SYS,			/* SYSMIS(numvar). */
-    OP_NUM_VAL,			/* VALUE(numvar). */
-    OP_STR_MIS,			/* MISSING(strvar). */
-    OP_CASENUM,			/* $CASENUM. */
-    OP_SENTINEL			/* Sentinel. */
-  };
+#define IS_TERMINAL(OPERATOR) (ops[OPERATOR].height > 0)
+#define IS_NONTERMINAL(OPERATOR) !IS_TERMINAL (OPERATOR)
 
 /* Flags that describe operators. */
 enum
   {
+    OP_NO_FLAGS = 0,            /* No flags. */
     OP_VAR_ARGS = 001,		/* 1=Variable number of args. */
     OP_MIN_ARGS = 002,		/* 1=Can specific min args with .X. */
     OP_FMT_SPEC = 004,		/* 1=Includes a format specifier. */
@@ -202,11 +53,9 @@ enum
 /* Describes an operator. */
 struct op_desc
   {
-#if GLOBAL_DEBUGGING
     const char *name;		/* Operator name. */
-#endif
-    unsigned char flags;	/* Flags. */
     signed char height;		/* Effect on stack height. */
+    unsigned char flags;	/* Flags. */
     unsigned char skip;		/* Number of operator item arguments. */
   };
 
@@ -234,7 +83,7 @@ struct str_con_node
 struct var_node
   {
     int type;			/* OP_NUM_VAR, OP_NUM_SYS, OP_NUM_VAL,
-				   OP_STR_MIS, or OP_STR_VAR. */
+				   or OP_STR_VAR. */
     struct variable *v;		/* Variable. */
   };
 
@@ -275,7 +124,7 @@ union any_node
 /* An expression. */
 struct expression
   {
-    int type;			/* Type of expression result. */
+    enum expr_type type;	/* Type of expression result. */
     unsigned char *op;		/* Operators. */
     struct variable **var;	/* Variables. */
     double *num;		/* Numeric operands. */
@@ -284,7 +133,7 @@ struct expression
     struct pool *pool;          /* Pool for evaluation temporaries. */
   };
 
-struct nonterm_node *optimize_expression (struct nonterm_node *);
+void optimize_expression (union any_node **);
 void dump_expression (union any_node *, struct expression *);
 void free_node (union any_node *);
 

@@ -878,6 +878,7 @@ alloc_line (void)
 	case PRT_ERROR:
         default:
 	  assert (0);
+          abort ();
 	}
       if (pot_w > w)
 	w = pot_w;
@@ -1030,7 +1031,7 @@ cmd_print_space (void)
 
   if (token != '.')
     {
-      e = expr_parse (PXP_NUMERIC);
+      e = expr_parse (EXPR_NUMERIC);
       if (token != '.')
 	{
 	  expr_free (e);

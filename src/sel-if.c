@@ -43,7 +43,7 @@ cmd_select_if (void)
   struct expression *e;
   struct select_if_trns *t;
 
-  e = expr_parse (PXP_BOOLEAN);
+  e = expr_parse (EXPR_BOOLEAN);
   if (!e)
     return CMD_FAILURE;
 
@@ -120,7 +120,7 @@ cmd_process_if (void)
 {
   struct expression *e;
 
-  e = expr_parse (PXP_BOOLEAN);
+  e = expr_parse (EXPR_BOOLEAN);
   if (!e)
     return CMD_FAILURE;
 

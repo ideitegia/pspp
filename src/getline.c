@@ -451,6 +451,7 @@ read_console (void)
 
     default:
       assert (0);
+      abort ();
     }
 
   line = readline (prompt);

@@ -1152,6 +1152,7 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	      break;
 	    default:
 	      assert (0);
+              abort ();
 	    }
 	  break;
 	case 2:
@@ -1159,6 +1160,7 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	  break;
 	default:
 	  assert (0);
+          abort ();
 	}
 
       {
@@ -2006,10 +2008,12 @@ wr_read_indeps (struct wr_aux_data *wr)
 	  break;
 	default:
 	  assert (0);
+          abort ();
 	}
       break;
     default:
       assert (0);
+      abort ();
     }
   c->n_rows[wr->content]++;
 
