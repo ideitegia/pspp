@@ -1,3 +1,7 @@
+Wed Feb 18 21:32:44 2004  Ben Pfaff  <blp@gnu.org>
+
+	* vfm.c: (procedure) Add check to prevent recursive call.
+
 Wed Feb 18 21:48:54 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* Moved the declarations relating to values to their own header file

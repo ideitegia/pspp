@@ -126,8 +126,12 @@ procedure (void (*beginfunc) (void *),
 	   void (*endfunc) (void *),
            void *aux)
 {
+  static int recursive_call;
+
   struct write_case_data procedure_write_data;
   struct write_case_data split_file_data;
+
+  assert (++recursive_call == 1);
 
   if (dict_get_split_cnt (default_dict) == 0) 
     {
@@ -156,6 +160,8 @@ procedure (void (*beginfunc) (void *),
   open_active_file ();
   vfm_source->read (procedure_write_case, &procedure_write_data);
   close_active_file (&procedure_write_data);
+
+  assert (--recursive_call == 0);
 }
 
 /* Active file processing support.  Subtly different semantics from
