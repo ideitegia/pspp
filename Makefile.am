@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = gnits 1.7
 
-SUBDIRS = m4 doc lib src po config tests intl
+SUBDIRS = m4 intl doc lib src po config tests 
 
 pkgdocdir = $(prefix)/doc/@PACKAGE@
 pkgdoc_DATA = NEWS README TODO

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-02-03 09:11+0800\n"
+"POT-Creation-Date: 2004-02-03 19:04+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -743,8 +743,8 @@ msgstr ""
 
 #: src/set.q:216 src/set.q:219 src/set.q:237 src/set.q:306 src/set.q:312
 #: src/set.q:320 src/set.q:327 src/set.q:329 src/set.q:348 src/set.q:352
-#: src/set.q:356 src/set.q:370 src/set.q:372 src/set.q:376 src/set.q:693
-#: src/set.q:774 src/set.q:855
+#: src/set.q:356 src/set.q:370 src/set.q:372 src/set.q:376 src/set.q:694
+#: src/set.q:775 src/set.q:856
 #, c-format
 msgid "%s is obsolete."
 msgstr ""
@@ -819,46 +819,46 @@ msgstr ""
 msgid "Unrecognized identifier in RESULTS subcommand."
 msgstr ""
 
-#: src/set.q:639
+#: src/set.q:640
 msgid "WIDTH must be at least 1."
 msgstr ""
 
-#: src/set.q:662
+#: src/set.q:663
 #, c-format
 msgid ""
 "FORMAT requires numeric output format as an argument.  Specified format %s "
 "is of type string."
 msgstr ""
 
-#: src/set.q:706
+#: src/set.q:707
 msgid "Text color must be in range 0-15."
 msgstr "Text colour must be in range 0-15."
 
-#: src/set.q:719
+#: src/set.q:720
 msgid "Background color must be in range 0-7."
 msgstr "Background colour must be in range 0-7."
 
-#: src/set.q:730
+#: src/set.q:731
 msgid "Border color must be in range 0-7."
 msgstr "Border colour must be in range 0-7."
 
-#: src/set.q:786
+#: src/set.q:787
 msgid "Lower window color must be between 0 and 6."
 msgstr "Lower window colour must be between 0 and 6."
 
-#: src/set.q:800
+#: src/set.q:801
 msgid "Upper window color must be between 0 and 6."
 msgstr "Upper window colour must be between 0 and 6."
 
-#: src/set.q:812
+#: src/set.q:813
 msgid "Frame color must be between 0 and 6."
 msgstr "Frame colour must be between 0 and 6."
 
-#: src/set.q:845
+#: src/set.q:846
 msgid "VIEWLENGTH not implemented."
 msgstr ""
 
-#: src/set.q:864
+#: src/set.q:865
 msgid "Drive letter expected in WORKDEV subcommand."
 msgstr ""
 
@@ -2332,10 +2332,12 @@ msgid "Boolean"
 msgstr ""
 
 #: src/expr-prs.c:1695
+#, c-format
 msgid "!!TERMINAL!!"
 msgstr ""
 
 #: src/expr-prs.c:1721
+#, c-format
 msgid "!!SENTINEL!!"
 msgstr ""
 
@@ -2653,14 +2655,17 @@ msgid "`)' expected after output format."
 msgstr ""
 
 #: src/formats.c:153
+#, c-format
 msgid "Formats:\n"
 msgstr ""
 
 #: src/formats.c:154
+#, c-format
 msgid "  Name      Print         Write\n"
 msgstr ""
 
 #: src/get.c:110
+#, c-format
 msgid "GET translation table from file to memory:\n"
 msgstr ""
 
@@ -2698,6 +2703,7 @@ msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
 #: src/get.c:461
+#, c-format
 msgid ""
 "\n"
 "Variables in dictionary:\n"
@@ -2757,6 +2763,7 @@ msgid "expecting COMM or TAPE"
 msgstr ""
 
 #: src/get.c:1393
+#, c-format
 msgid "IMPORT translation table from file to memory:\n"
 msgstr ""
 
@@ -2950,6 +2957,7 @@ msgid "<<fallback>>"
 msgstr ""
 
 #: src/hash.c:492
+#, c-format
 msgid "hash table:"
 msgstr ""
 
@@ -2959,6 +2967,7 @@ msgid "bad ordering of keys %d and %d\n"
 msgstr ""
 
 #: src/heap.c:177
+#, c-format
 msgid "Heap contents:\n"
 msgstr ""
 
@@ -3099,6 +3108,7 @@ msgid "The rest of this command has been discarded."
 msgstr ""
 
 #: src/lexer.c:842 src/print.c:1174
+#, c-format
 msgid "<ERROR>"
 msgstr ""
 
@@ -3416,6 +3426,7 @@ msgid "(long string variable)"
 msgstr ""
 
 #: src/mis-val.c:376
+#, c-format
 msgid "(no missing values)\n"
 msgstr ""
 
@@ -3560,6 +3571,7 @@ msgid "Error reading device definition file."
 msgstr ""
 
 #: src/output.c:462
+#, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
@@ -4156,10 +4168,12 @@ msgid ""
 msgstr ""
 
 #: src/recode.c:869
+#, c-format
 msgid "!!END!!"
 msgstr ""
 
 #: src/recode.c:890 src/recode.c:906
+#, c-format
 msgid "!!ERROR!!"
 msgstr ""
 
@@ -4993,6 +5007,7 @@ msgid "Value labels:"
 msgstr ""
 
 #: src/val-labs.c:237
+#, c-format
 msgid "    (no value labels)\n"
 msgstr ""
 
@@ -5005,10 +5020,12 @@ msgid "Truncating variable label to 120 characters."
 msgstr ""
 
 #: src/var-labs.c:87
+#, c-format
 msgid "Variable labels:\n"
 msgstr ""
 
 #: src/var-labs.c:94
+#, c-format
 msgid "(no variable label)"
 msgstr ""
 
