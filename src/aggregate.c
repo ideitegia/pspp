@@ -158,8 +158,9 @@ cmd_aggregate (void)
   struct agr_proc agr;
   struct file_handle *out_file = NULL;
 
-  /* Have we seen these subcommands? */
-  unsigned seen = 0;
+  bool copy_documents = false;
+  bool presorted = false;
+  bool saw_direction;
 
   memset(&agr, 0 , sizeof (agr));
   agr.missing = ITEMWISE;
@@ -167,30 +168,24 @@ cmd_aggregate (void)
   agr.dict = dict_create ();
   dict_set_label (agr.dict, dict_get_label (default_dict));
   dict_set_documents (agr.dict, dict_get_documents (default_dict));
+
+  /* OUTFILE subcommand must be first. */
+  if (!lex_force_match_id ("OUTFILE"))
+    goto error;
+  lex_match ('=');
+  if (!lex_match ('*'))
+    {
+      out_file = fh_parse ();
+      if (out_file == NULL)
+        goto error;
+    }
   
   /* Read most of the subcommands. */
   for (;;)
     {
       lex_match ('/');
       
-      if (lex_match_id ("OUTFILE"))
-	{
-	  if (seen & 1)
-	    {
-	      msg (SE, _("%s subcommand given multiple times."),"OUTFILE");
-              goto error;
-	    }
-	  seen |= 1;
-	      
-	  lex_match ('=');
-	  if (!lex_match ('*'))
-	    {
-	      out_file = fh_parse ();
-	      if (out_file == NULL)
-                goto error;
-	    }
-	}
-      else if (lex_match_id ("MISSING"))
+      if (lex_match_id ("MISSING"))
 	{
 	  lex_match ('=');
 	  if (!lex_match_id ("COLUMNWISE"))
@@ -201,23 +196,17 @@ cmd_aggregate (void)
 	  agr.missing = COLUMNWISE;
 	}
       else if (lex_match_id ("DOCUMENT"))
-	seen |= 2;
+        copy_documents = true;
       else if (lex_match_id ("PRESORTED"))
-	seen |= 4;
+        presorted = true;
       else if (lex_match_id ("BREAK"))
 	{
           int i;
 
-	  if (seen & 8)
-	    {
-	      msg (SE, _("%s subcommand given multiple times."),"BREAK");
-              goto error;
-	    }
-	  seen |= 8;
-
 	  lex_match ('=');
           agr.sort = sort_parse_criteria (default_dict,
-                                          &agr.break_vars, &agr.break_var_cnt);
+                                          &agr.break_vars, &agr.break_var_cnt,
+                                          &saw_direction);
           if (agr.sort == NULL)
             goto error;
 	  
@@ -227,20 +216,28 @@ cmd_aggregate (void)
                                                    agr.break_vars[i]->name);
               assert (v != NULL);
             }
-	}
-      else break;
-    }
 
-  /* Check for proper syntax. */
-  if (!(seen & 8))
-    msg (SW, _("BREAK subcommand not specified."));
+          /* BREAK must follow the options. */
+          break;
+	}
+      else
+        {
+          lex_error (_("expecting BREAK"));
+          goto error;
+        }
+    }
+  if (presorted && saw_direction)
+    msg (SW, _("When PRESORTED is specified, specifying sorting directions "
+               "with (A) or (D) has no effect.  Output data will be sorted "
+               "the same way as the input data."));
       
   /* Read in the aggregate functions. */
+  lex_match ('/');
   if (!parse_aggregate_functions (&agr))
     goto error;
 
   /* Delete documents. */
-  if (!(seen & 2))
+  if (!copy_documents)
     dict_set_documents (agr.dict, NULL);
 
   /* Cancel SPLIT FILE. */
@@ -258,7 +255,7 @@ cmd_aggregate (void)
          so TEMPORARY is moot. */
       cancel_temporary ();
 
-      if (agr.sort != NULL && (seen & 4) == 0)
+      if (agr.sort != NULL && !presorted)
         sort_active_file_in_place (agr.sort);
 
       agr.sink = create_case_sink (&storage_sink_class, agr.dict, NULL);
@@ -283,7 +280,7 @@ cmd_aggregate (void)
       if (agr.writer == NULL)
         goto error;
       
-      if (agr.sort != NULL && (seen & 4) == 0) 
+      if (agr.sort != NULL && !presorted) 
         {
           /* Sorting is needed. */
           struct casefile *dst;
@@ -477,12 +474,12 @@ parse_aggregate_functions (struct agr_proc *agr)
 	      goto error;
 	    }
 	  
-	  /* Now check that the number of source variables match the
-	     number of target variables.  Do this here because if we
-	     do it earlier then the user can get very misleading error
-	     messages; i.e., `AGGREGATE x=SUM(y t).' will get this
-	     error message when a proper message would be more like
-	     `unknown variable t'. */
+	  /* Now check that the number of source variables match
+	     the number of target variables.  If we check earlier
+	     than this, the user can get very misleading error
+	     message, i.e. `AGGREGATE x=SUM(y t).' will get this
+	     error message when a proper message would be more
+	     like `unknown variable t'. */
 	  if (n_src != n_dest)
 	    {
 	      msg (SE, _("Number of source variables (%d) does not match "
@@ -490,6 +487,23 @@ parse_aggregate_functions (struct agr_proc *agr)
 		   n_src, n_dest);
 	      goto error;
 	    }
+
+          if ((func_index == PIN || func_index == POUT
+              || func_index == FIN || func_index == FOUT) 
+              && ((src[0]->type == NUMERIC && arg[0].f > arg[1].f)
+                  || (src[0]->type == ALPHA
+                      && st_compare_pad (arg[0].c, strlen (arg[0].c),
+                                         arg[1].c, strlen (arg[1].c)) > 0)))
+            {
+              union value t = arg[0];
+              arg[0] = arg[1];
+              arg[1] = t;
+                  
+              msg (SW, _("The value arguments passed to the %s function "
+                         "are out-of-order.  They will be treated as if "
+                         "they had been specified in the correct order."),
+                   function->name);
+            }
 	}
 	
       /* Finally add these to the linked list of aggregation
@@ -817,7 +831,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	switch (iter->function)
 	  {
 	  case SUM:
-	    iter->dbl[0] += v->f;
+	    iter->dbl[0] += v->f * weight;
 	    break;
 	  case MEAN:
             iter->dbl[0] += v->f * weight;
@@ -895,9 +909,11 @@ accumulate_aggregate_info (struct agr_proc *agr,
             iter->dbl[1] += weight;
             break;
 	  case N:
+	  case N | FSTRING:
 	    iter->dbl[0] += weight;
 	    break;
 	  case NU:
+	  case NU | FSTRING:
 	    iter->int1++;
 	    break;
 	  case FIRST:
@@ -922,6 +938,13 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	    memcpy (iter->string, v->s, iter->src->width);
 	    iter->int1 = 1;
 	    break;
+          case NMISS:
+          case NMISS | FSTRING:
+          case NUMISS:
+          case NUMISS | FSTRING:
+            /* Our value is not missing or it would have been
+               caught earlier.  Nothing to do. */
+            break;
 	  default:
 	    assert (0);
 	  }
@@ -1033,9 +1056,11 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    v->f = i->dbl[1] ? i->dbl[0] / i->dbl[1] * 100.0 : SYSMIS;
 	    break;
 	  case N:
+	  case N | FSTRING:
 	    v->f = i->dbl[0];
             break;
 	  case NU:
+	  case NU | FSTRING:
 	    v->f = i->int1;
 	    break;
 	  case FIRST:
@@ -1056,9 +1081,11 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    v->f = i->int1;
 	    break;
 	  case NMISS:
+	  case NMISS | FSTRING:
 	    v->f = i->dbl[0];
 	    break;
 	  case NUMISS:
+	  case NUMISS | FSTRING:
 	    v->f = i->int1;
 	    break;
 	  default:
@@ -1081,12 +1108,14 @@ initialize_aggregate_info (struct agr_proc *agr)
 	{
 	case MIN:
 	  iter->dbl[0] = DBL_MAX;
+          iter->int1 = 0;
 	  break;
 	case MIN | FSTRING:
 	  memset (iter->string, 255, iter->src->width);
 	  break;
 	case MAX:
 	  iter->dbl[0] = -DBL_MAX;
+          iter->int1 = 0;
 	  break;
 	case MAX | FSTRING:
 	  memset (iter->string, 0, iter->src->width);

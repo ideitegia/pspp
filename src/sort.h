@@ -21,13 +21,15 @@
 #define sort_h 1
 
 #include <stddef.h>
+#include "bool.h"
 
 struct casereader;
 struct dictionary;
 struct variable;
 
 struct sort_criteria *sort_parse_criteria (const struct dictionary *,
-                                           struct variable ***, int *);
+                                           struct variable ***, int *,
+                                           bool *saw_direction);
 void sort_destroy_criteria (struct sort_criteria *);
 
 struct casefile *sort_execute (struct casereader *,

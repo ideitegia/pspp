@@ -25,6 +25,7 @@
 #include <errno.h>
 #include "algorithm.h"
 #include "alloc.h"
+#include "bool.h"
 #include "case.h"
 #include "casefile.h"
 #include "command.h"
@@ -91,7 +92,7 @@ cmd_sort_cases (void)
 
   lex_match (T_BY);
 
-  criteria = sort_parse_criteria (default_dict, NULL, NULL);
+  criteria = sort_parse_criteria (default_dict, NULL, NULL, NULL);
   if (criteria == NULL)
     return CMD_FAILURE;
 
@@ -151,11 +152,15 @@ sort_active_file_to_casefile (const struct sort_criteria *criteria)
   return sort_execute (casefile_get_reader (src), criteria);
 }
 
-/* Parses a list of sort keys and returns a struct sort_cases_pgm
-   based on it.  Returns a null pointer on error. */
+/* Parses a list of sort keys and returns a struct sort_criteria
+   based on it.  Returns a null pointer on error.
+   If SAW_DIRECTION is nonnull, sets *SAW_DIRECTION to true if at
+   least one parenthesized sort direction was specified, false
+   otherwise. */
 struct sort_criteria *
 sort_parse_criteria (const struct dictionary *dict,
-                     struct variable ***vars, int *var_cnt)
+                     struct variable ***vars, int *var_cnt,
+                     bool *saw_direction)
 {
   struct sort_criteria *criteria;
   struct variable **local_vars = NULL;
@@ -174,6 +179,8 @@ sort_parse_criteria (const struct dictionary *dict,
 
   *vars = NULL;
   *var_cnt = 0;
+  if (saw_direction != NULL)
+    *saw_direction = false;
 
   do
     {
@@ -202,6 +209,7 @@ sort_parse_criteria (const struct dictionary *dict,
 	      msg (SE, _("`)' expected."));
               goto error;
 	    }
+          *saw_direction = true;
 	}
       else
         direction = SRT_ASCEND;

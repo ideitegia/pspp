@@ -1,3 +1,8 @@
+Sat Mar 12 23:30:37 2005  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/agg-crash-2.sh, bugs/big-input-2.sh, command/aggregate.sh:
+	Fix AGGREGATE command syntax.
+
 Sat Mar 12 13:16:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/temp-freq.sh: Add another test.

@@ -59,7 +59,7 @@ END DATA.
 
 
 
-AGGREGATE /BREAK=y /x=MAX(x).
+AGGREGATE OUTFILE=* /BREAK=y /x=MAX(x).
 LIST /x y.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

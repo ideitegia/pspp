@@ -1,3 +1,21 @@
+Sat Mar 12 23:26:21 2005  Ben Pfaff  <blp@gnu.org>
+
+	Start work on testing and debugging AGGREGATE.
+
+	* aggregate.c: (cmd_aggregate) Use discrete bool variables instead
+	of a bit-map.  Require proper subcommand ordering.  Make OUTFILE
+	subcommand mandatory.
+	(parse_aggregate_functions) Check that PIN, POUT, FIN, FOUT
+	functions' arguments are in the correct order and swap them if
+	not.
+	(accumulate_aggregate_info) Make SUM include weights.  Add various
+	string functions.
+	(dump_aggregate_info) Add various string functions.
+	(initialize_aggregate_info) Initialize int1 for MIN, MAX.
+
+	* sort.c: (sort_parse_criteria) Add parameter for returning
+	whether any directions were specified.  All callers updated.
+
 Sun Mar 13 14:54:27 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q: Fixed erroneous logic in compare_group_binary.

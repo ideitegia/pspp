@@ -65,7 +65,7 @@ begin data.
 15
 end data.
 sort cases by x.
-aggregate /missing=columnwise /document /presorted/break=x(a) /z'label for z'=sum(y)/foo=nu.
+aggregate outfile=* /missing=columnwise /document /presorted/break=x /z'label for z'=sum(y)/foo=nu.
 list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
