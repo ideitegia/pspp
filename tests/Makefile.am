@@ -4,7 +4,11 @@ bench:
 	make BENCHMARK=1 check
 
 TESTS_ENVIRONMENT=top_srcdir=${top_srcdir}
-TESTS = syntax bugs/double-frequency.sh bugs/html-frequency.sh
+TESTS = command/aggregate.sh \
+	command/autorecod.sh \
+	command/beg-data.sh \
+	bugs/double-frequency.sh \
+	bugs/html-frequency.sh
 
 noinst_PROGRAMS = gengarbage
 
@@ -12,7 +16,7 @@ noinst_DATA = sort.data
 sort.data: gengarbage
 	./gengarbage | head -1000 > $@
 
-EXTRA_DIST = aggregate.stat autorecod.stat beg-data.stat bignum.data	\
+EXTRA_DIST = bignum.data	\
 bignum.stat compute.stat count.stat crosstabs.stat data-fmts.stat	\
 data-list.data data-list.stat descript.stat do-if.stat do-repeat.stat	\
 expr.stat file-lab.stat filter.stat flip.stat gengarbage.c		\

@@ -1148,6 +1148,7 @@ outp_get_paper_size (char *size, int *h, int *v)
   where.filename = pprsz_fn;
   where.line_number = 0;
   err_push_file_locator (&where);
+  ds_init (NULL, &line, 128);
 
   if (pprsz_fn == NULL)
     {
@@ -1163,7 +1164,6 @@ outp_get_paper_size (char *size, int *h, int *v)
       goto exit;
     }
 
-  ds_init (NULL, &line, 128);
   for (;;)
     {
       char *cp, *bp, *ep;

@@ -1580,7 +1580,8 @@ ascii_close_page (struct outp_driver *this)
       cp += nl_len;
     }
   memcpy (cp, ls_value (&x->ops[OPS_FORMFEED]), ff_len);
-  output_string (this, s, &s[total_len]);
+  if ( x->paginate ) 
+	  output_string (this, s, &s[total_len]);
   if (line_p != line_buf && !commit_line_buf (this))
     return 0;
 

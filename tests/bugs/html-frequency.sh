@@ -7,6 +7,13 @@
 
 TEMPDIR=/tmp/pspp-tst-$$
 
+here=`pwd`
+
+# ensure that top_srcdir is absolute
+cd $top_srcdir ; top_srcdir=`pwd`
+
+STAT_CONFIG_PATH=$top_srcdir/config
+
 cleanup()
 {
      rm -rf $TEMPDIR
@@ -38,7 +45,6 @@ pass()
 
 mkdir -p $TEMPDIR
 
-here=`pwd`;
 
 activity="create data"
 cat << EOF > $TEMPDIR/ff.stat 
@@ -55,11 +61,10 @@ frequencies v1 v2.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-cd $top_srcdir ; top_srcdir=`pwd`
 cd $TEMPDIR
 
 activity="run data"
-$here/../src/pspp -B $top_srcdir/config -o html $TEMPDIR/ff.stat
+$here/../src/pspp -o html $TEMPDIR/ff.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

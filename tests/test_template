@@ -1,7 +1,6 @@
 #!/bin/sh
 
-# This program tests for a bug where pspp would crash if two frequencies
-# Commands existed in a input file
+# This program tests ....
 
 TEMPDIR=/tmp/pspp-tst-$$
 
@@ -9,7 +8,6 @@ here=`pwd`;
 
 # ensure that top_srcdir is absolute
 cd $top_srcdir; top_srcdir=`pwd`
-
 
 export STAT_CONFIG_PATH=$top_srcdir/config
 
@@ -45,28 +43,15 @@ pass()
 
 mkdir -p $TEMPDIR
 
+cd $TEMPDIR
 
-activity="create data"
-cat << EOF > $TEMPDIR/ff.stat 
+put test set up here ...
 
-data list free /v1 v2.
-begin data.
-0 1
-2 3 
-4 5
-3 4
-end data.
-
-frequencies v1 v2.
-frequencies v1 v2.
-EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-cd $TEMPDIR
+put test here
 
-activity="run data"
-$here/../src/pspp  $TEMPDIR/ff.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 
