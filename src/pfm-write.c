@@ -473,7 +473,7 @@ pfm_write_case (struct file_handle *h, const union value *elem)
 	}
       else
 	{
-	  if (!write_int (h, width) || !bufwrite (h, elem->c, width))
+	  if (!write_int (h, width) || !bufwrite (h, elem[i].c, width))
 	    return 0;
 	}
     }

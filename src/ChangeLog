@@ -1,3 +1,8 @@
+Thu Mar 18 11:07:14 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pfm-write.c: (bufwrite) Write out the correct element for string
+	variables.  From Andreas Streichardt <streichardt@globalpark.de>.
+
 Mon Mar 15 20:48:03 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static and global (!) vars in matrix-data.c.
