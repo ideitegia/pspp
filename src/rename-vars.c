@@ -28,21 +28,17 @@
 #include "str.h"
 #include "var.h"
 
-/* FIXME: should change weighting variable, etc. */
-static int compare_name (const void *, const void *);
-
 /* The code for this function is very similar to the code for the
    RENAME subcommand of MODIFY VARS. */
 int
 cmd_rename_variables (void)
 {
-  char (*names)[8] = NULL;
+  struct variable **rename_vars = NULL;
+  char **rename_new_names = NULL;
+  int rename_cnt = 0;
+  char *err_name;
 
-  struct variable **old_names = NULL;
-  char **new_names = NULL;
-  int n_rename = 0;
-
-  struct variable *head, *tail, *iter;
+  int status = CMD_FAILURE;
 
   int i;
 
@@ -51,15 +47,15 @@ cmd_rename_variables (void)
 
   do
     {
-      int prev_nv_1 = n_rename;
-      int prev_nv_2 = n_rename;
+      int prev_nv_1 = rename_cnt;
+      int prev_nv_2 = rename_cnt;
 
       if (!lex_match ('('))
 	{
 	  msg (SE, _("`(' expected."));
 	  goto lossage;
 	}
-      if (!parse_variables (&default_dict, &old_names, &n_rename,
+      if (!parse_variables (default_dict, &rename_vars, &rename_cnt,
 			    PV_APPEND | PV_NO_DUPLICATE))
 	goto lossage;
       if (!lex_match ('='))
@@ -67,17 +63,17 @@ cmd_rename_variables (void)
 	  msg (SE, _("`=' expected between lists of new and old variable names."));
 	  goto lossage;
 	}
-      if (!parse_DATA_LIST_vars (&new_names, &prev_nv_1, PV_APPEND))
+      if (!parse_DATA_LIST_vars (&rename_new_names, &prev_nv_1, PV_APPEND))
 	goto lossage;
-      if (prev_nv_1 != n_rename)
+      if (prev_nv_1 != rename_cnt)
 	{
 	  msg (SE, _("Differing number of variables in old name list "
 	       "(%d) and in new name list (%d)."),
-	       n_rename - prev_nv_2, prev_nv_1 - prev_nv_2);
+	       rename_cnt - prev_nv_2, prev_nv_1 - prev_nv_2);
 	  for (i = 0; i < prev_nv_1; i++)
-	    free (new_names[i]);
-	  free (new_names);
-	  new_names = NULL;
+	    free (rename_new_names[i]);
+	  free (rename_new_names);
+	  rename_new_names = NULL;
 	  goto lossage;
 	}
       if (!lex_match (')'))
@@ -88,67 +84,23 @@ cmd_rename_variables (void)
     }
   while (token != '.');
 
-  /* Form a linked list of the variables to be renamed; also, set
-     their p.mfv.new_name members. */
-  head = NULL;
-  for (i = 0; i < n_rename; i++)
+  if (!dict_rename_vars (default_dict,
+                         rename_vars, rename_new_names, rename_cnt,
+                         &err_name)) 
     {
-      strcpy (old_names[i]->p.mfv.new_name, new_names[i]);
-      free (new_names[i]);
-      if (head != NULL)
-	tail = tail->p.mfv.next = old_names[i];
-      else
-	head = tail = old_names[i];
-    }
-  tail->p.mfv.next = NULL;
-  free (new_names);
-  free (old_names);
-  new_names = NULL;
-  old_names = NULL;
-
-  /* Construct a vector of all variables' new names. */
-  names = xmalloc (8 * default_dict.nvar);
-  for (i = 0; i < default_dict.nvar; i++)
-    strncpy (names[i], default_dict.var[i]->name, 8);
-  for (iter = head; iter; iter = iter->p.mfv.next)
-    strncpy (names[iter->index], iter->p.mfv.new_name, 8);
-
-  /* Sort the vector, then check for duplicates. */
-  qsort (names, default_dict.nvar, 8, compare_name);
-  for (i = 1; i < default_dict.nvar; i++)
-    if (memcmp (names[i], names[i - 1], 8) == 0)
-      {
-	char name[9];
-	strncpy (name, names[i], 8);
-	name[8] = 0;
-	msg (SE, _("Duplicate variable name `%s' after renaming."), name);
-	goto lossage;
-      }
-  free (names);
-
-  /* Finally, do the renaming. */
-  for (iter = head; iter; iter = iter->p.mfv.next)
-    hsh_force_delete (default_dict.name_tab, iter);
-  for (iter = head; iter; iter = iter->p.mfv.next)
-    {
-      strcpy (iter->name, iter->p.mfv.new_name);
-      hsh_force_insert (default_dict.name_tab, iter);
+      msg (SE, _("Renaming would duplicate variable name %s."), err_name);
+      goto lossage;
     }
 
-  return CMD_SUCCESS;
+  status = CMD_SUCCESS;
 
-lossage:
-  if (new_names)
-    for (i = 0; i < n_rename; i++)
-      free (new_names[i]);
-  free (new_names);
-  free (old_names);
-  free (names);
-  return CMD_FAILURE;
-}
-
-static int
-compare_name (const void *a, const void *b)
-{
-  return memcmp (a, b, 8);
+ lossage:
+  free (rename_vars);
+  if (rename_new_names != NULL) 
+    {
+      for (i = 0; i < rename_cnt; i++)
+        free (rename_new_names[i]);
+      free (rename_new_names); 
+    }
+  return status;
 }

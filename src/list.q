@@ -152,8 +152,8 @@ cmd_list (void)
   if (cmd.last == NOT_LONG)
     cmd.last = LONG_MAX;
   if (!cmd.sbc_variables)
-    fill_all_vars (&cmd.v_variables, &cmd.n_variables,
-		   FV_NO_SYSTEM | FV_NO_SCRATCH);
+    dict_get_vars (default_dict, &cmd.v_variables, &cmd.n_variables,
+		   (1u << DC_SYSTEM) | (1u << DC_SCRATCH));
   if (cmd.n_variables == 0)
     {
       msg (SE, _("No variables specified."));
@@ -192,13 +192,12 @@ cmd_list (void)
   /* Weighting variable. */
   if (cmd.weight == LST_WEIGHT)
     {
-      update_weighting (&default_dict);
-      if (default_dict.weight_index != -1)
+      if (dict_get_weight (default_dict) != NULL)
 	{
 	  int i;
 
 	  for (i = 0; i < cmd.n_variables; i++)
-	    if (cmd.v_variables[i]->index == default_dict.weight_index)
+	    if (cmd.v_variables[i] == dict_get_weight (default_dict))
 	      break;
 	  if (i >= cmd.n_variables)
 	    {
@@ -208,7 +207,7 @@ cmd_list (void)
 					  (cmd.n_variables
 					   * sizeof *cmd.v_variables));
 	      cmd.v_variables[cmd.n_variables - 1]
-		= default_dict.var[default_dict.weight_index];
+                = dict_get_weight (default_dict);
 	    }
 	}
       else

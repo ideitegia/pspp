@@ -18,12 +18,12 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "hash.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
-#include "hash.h"
 #include "misc.h"
 #include "str.h"
 
@@ -76,43 +76,39 @@ next_power_of_2 (size_t x)
     }
 }
 
-/* Colin Plumb's "one-at-a-time" hash, for bytes. */
+/* Fowler-Noll-Vo hash constants, for 32-bit word sizes. */
+#define FNV_32_PRIME 16777619u
+#define FNV_32_BASIS 2166136261u
+
+/* Fowler-Noll-Vo 32-bit hash, for bytes. */
 unsigned
 hsh_hash_bytes (const void *buf_, size_t size)
 {
   const unsigned char *buf = buf_;
-  unsigned hash = 0;
+  unsigned hash;
 
   assert (buf != NULL);
-  while (size-- > 0) 
-    {
-      hash += *buf++;
-      hash += (hash << 10);
-      hash ^= (hash >> 6);
-    } 
-  hash += (hash << 3);
-  hash ^= (hash >> 11);
-  hash += (hash << 15);
+
+  hash = FNV_32_BASIS;
+  while (size-- > 0)
+    hash = (hash * FNV_32_PRIME) ^ *buf++;
+
   return hash;
 } 
 
-/* Colin Plumb's "one-at-a-time" hash, for strings. */
+/* Fowler-Noll-Vo 32-bit hash, for strings. */
 unsigned
 hsh_hash_string (const char *s_) 
 {
   const unsigned char *s = s_;
-  unsigned hash = 0;
+  unsigned hash;
 
   assert (s != NULL);
-  while (*s != '\0') 
-    {
-      hash += *s++;
-      hash += (hash << 10);
-      hash ^= (hash >> 6);
-    } 
-  hash += (hash << 3);
-  hash ^= (hash >> 11);
-  hash += (hash << 15);
+
+  hash = FNV_32_BASIS;
+  while (*s != '\0')
+    hash = (hash * FNV_32_PRIME) ^ *s++;
+
   return hash;
 }
 
@@ -259,7 +255,7 @@ hsh_data (struct hsh_table *h)
 
 /* Dereferences void ** pointers and passes them to the hash
    comparison function. */
-int
+static int
 comparison_helper (const void *a_, const void *b_, void *h_) 
 {
   void *const *a = a_;

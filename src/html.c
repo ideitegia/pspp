@@ -21,6 +21,7 @@
 #if !NO_HTML
 
 #include <config.h>
+#include "htmlP.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -35,7 +36,6 @@
 #include "error.h"
 #include "filename.h"
 #include "getline.h"
-#include "htmlP.h"
 #include "output.h"
 #include "som.h"
 #include "tab.h"
@@ -45,19 +45,19 @@
 static int postopen (struct file_ext *);
 static int preclose (struct file_ext *);
 
-int
+static int
 html_open_global (struct outp_class *this unused)
 {
   return 1;
 }
 
-int
+static int
 html_close_global (struct outp_class *this unused)
 {
   return 1;
 }
 
-int
+static int
 html_preopen_driver (struct outp_driver *this)
 {
   struct html_driver_ext *x;
@@ -87,7 +87,7 @@ html_preopen_driver (struct outp_driver *this)
   return 1;
 }
 
-int
+static int
 html_postopen_driver (struct outp_driver *this)
 {
   struct html_driver_ext *x = this->ext;
@@ -105,7 +105,7 @@ html_postopen_driver (struct outp_driver *this)
   return 1;
 }
 
-int
+static int
 html_close_driver (struct outp_driver *this)
 {
   struct html_driver_ext *x = this->ext;
@@ -141,7 +141,7 @@ static struct outp_option option_tab[] =
 };
 static struct outp_option_info option_info;
 
-void
+static void
 html_option (struct outp_driver *this, const char *key, const struct string *val)
 {
   struct html_driver_ext *x = this->ext;
@@ -358,7 +358,7 @@ preclose (struct file_ext *f)
   return 1;
 }
 
-int
+static int
 html_open_page (struct outp_driver *this)
 {
   struct html_driver_ext *x = this->ext;
@@ -378,7 +378,7 @@ html_open_page (struct outp_driver *this)
   return !ferror (x->file.file);
 }
 
-int
+static int
 html_close_page (struct outp_driver *this)
 {
   struct html_driver_ext *x = this->ext;
@@ -390,7 +390,7 @@ html_close_page (struct outp_driver *this)
 
 static void output_tab_table (struct outp_driver *, struct tab_table *);
 
-void
+static void
 html_submit (struct outp_driver *this, struct som_table *s)
 {
   extern struct som_table_class tab_table_class;

@@ -92,7 +92,7 @@ AC_PROG_LN_S
 dnl This must be after other tests so warnings don't provoke errors above.
 if test "$ac_cv_c_compiler_gnu" = yes; then
 	CFLAGS="-g -Wall -W -Wno-uninitialized -Wwrite-strings \
--Wstrict-prototypes -Wpointer-arith -Wno-sign-compare"
+-Wstrict-prototypes -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes"
 	if test "$CC_OPTIONS" != ""; then
 		CFLAGS="$CFLAGS $CC_OPTIONS"
 	fi

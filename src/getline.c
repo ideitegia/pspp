@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "getline.h"
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
@@ -25,8 +26,8 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
-#include "getline.h"
 #include "lexer.h"
+#include "repeat.h"
 #include "settings.h"
 #include "str.h"
 #include "tab.h"
@@ -225,7 +226,7 @@ getl_add_DO_REPEAT_file (struct getl_script *file)
 }
 
 /* Display a welcoming message. */
-void
+static void
 welcome (void)
 {
   getl_welcomed = 1;

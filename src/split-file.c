@@ -33,23 +33,18 @@ cmd_split_file (void)
   lex_match_id ("FILE");
 
   if (lex_match_id ("OFF"))
-    {
-      default_dict.n_splits = 0;
-      free (default_dict.splits);
-      default_dict.splits = NULL;
-    }
+    dict_set_split_vars (default_dict, NULL, 0);
   else
     {
       struct variable **v;
       int n;
 
       lex_match (T_BY);
-      if (!parse_variables (NULL, &v, &n, PV_NO_DUPLICATE))
+      if (!parse_variables (default_dict, &v, &n, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
 
-      default_dict.n_splits = n;
-      default_dict.splits = v = xrealloc (v, sizeof *v * (n + 1));
-      v[n] = NULL;
+      dict_set_split_vars (default_dict, v, n);
+      free (v);
     }
 
   return lex_end_of_command ();

@@ -28,13 +28,6 @@
 #include "misc.h"
 #include "str.h"
 #include "var.h"
-#include "vector.h"
-
-/* Vectors created on VECTOR. */
-struct vector *vec;
-
-/* Number of vectors in vec. */
-int nvec;
 
 int
 cmd_vector (void)
@@ -50,10 +43,6 @@ cmd_vector (void)
 
   /* Maximum allocated position for vecnames, plus one position. */
   char *endp = NULL;
-
-  /* Variables on list (long form only). */
-  struct variable **v = NULL;
-  int nv;
 
   lex_match_id ("VECTOR");
 
@@ -81,7 +70,7 @@ cmd_vector (void)
 		goto fail;
 	      }
 
-	  if (find_vector (tokid))
+	  if (dict_lookup_vector (default_dict, tokid))
 	    {
 	      msg (SE, _("There is already a vector with name %s."), tokid);
 	      goto fail;
@@ -98,6 +87,8 @@ cmd_vector (void)
       if (lex_match ('='))
 	{
 	  /* Long form. */
+          struct variable **v;
+          int nv;
 
 	  if (strchr (vecnames, '\0')[1])
 	    {
@@ -108,16 +99,12 @@ cmd_vector (void)
 	      goto fail;
 	    }
 
-	  if (!parse_variables (NULL, &v, &nv, PV_SAME_TYPE | PV_DUPLICATE))
+	  if (!parse_variables (default_dict, &v, &nv,
+                                PV_SAME_TYPE | PV_DUPLICATE))
 	    goto fail;
 
-	  vec = xrealloc (vec, sizeof *vec * (nvec + 1));
-	  vec[nvec].index = nvec;
-	  strcpy (vec[nvec].name, vecnames);
-	  vec[nvec].v = v;
-	  vec[nvec].nv = nv;
-	  nvec++;
-	  v = NULL;		/* prevent block from being freed on error */
+          dict_create_vector (default_dict, vecnames, v, nv);
+          free (v);
 	}
       else if (lex_match ('('))
 	{
@@ -129,6 +116,10 @@ cmd_vector (void)
 
 	  /* Name of an individual variable to be created. */
 	  char name[9];
+
+          /* Vector variables. */
+          struct variable **v;
+          int nv;
 
 	  if (!lex_force_int ())
 	    return CMD_FAILURE;
@@ -162,7 +153,7 @@ cmd_vector (void)
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  if (is_varname (name))
+		  if (dict_lookup_var (default_dict, name))
 		    {
 		      msg (SE, _("There is already a variable named %s."), name);
 		      goto fail;
@@ -172,23 +163,21 @@ cmd_vector (void)
 	    }
 
 	  /* Finally create the variables and vectors. */
-	  vec = xrealloc (vec, sizeof *vec * (nvec + nv));
+          v = xmalloc (nv * sizeof *v);
 	  for (cp = vecnames; *cp;)
 	    {
-	      vec[nvec].index = nvec;
-	      strcpy (vec[nvec].name, cp);
-	      vec[nvec].v = xmalloc (sizeof *vec[nvec].v * nv);
-	      vec[nvec].nv = nv;
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  vec[nvec].v[i] = force_create_variable (&default_dict, name,
-							  NUMERIC, 0);
-		  envector (vec[nvec].v[i]);
+		  v[i] = dict_create_var (default_dict, name, 0);
+                  assert (v[i] != NULL);
+		  envector (v[i]);
 		}
-	      nvec++;
+              if (!dict_create_vector (default_dict, cp, v, nv))
+                assert (0);
 	      cp += strlen (cp) + 1;
 	    }
+          free (v);
 	}
       else
 	{
@@ -212,19 +201,5 @@ cmd_vector (void)
 
 fail:
   free (vecnames);
-  free (v);
   return CMD_PART_SUCCESS_MAYBE;
-}
-
-/* Returns a pointer to the vector with name NAME, or NULL on
-   failure. */
-struct vector *
-find_vector (const char *name)
-{
-  int i;
-
-  for (i = 0; i < nvec; i++)
-    if (!strcmp (vec[i].name, name))
-      return &vec[i];
-  return NULL;
 }

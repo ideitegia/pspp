@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "font.h"
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
@@ -27,7 +28,6 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
-#include "font.h"
 #include "hash.h"
 #include "pool.h"
 #include "str.h"

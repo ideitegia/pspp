@@ -135,21 +135,6 @@ static void count_trns_free (struct trns_header *);
 static int parse_numeric_criteria (struct counting *);
 static int parse_string_criteria (struct counting *);
 
-int cmd_count (void);
-
-int
-internal_cmd_count (void)
-{
-  int code = cmd_count ();
-  if (!code)
-    {
-      struct count_trns c;
-      c.specs = head;
-      count_trns_free ((struct trns_header *) & c);
-    }
-  return code;
-}
-
 int
 cmd_count (void)
 {
@@ -179,7 +164,7 @@ cmd_count (void)
       /* Get destination struct variable, or at least its name. */
       if (!lex_force_id ())
 	goto fail;
-      cnt->d = find_variable (tokid);
+      cnt->d = dict_lookup_var (default_dict, tokid);
       if (cnt->d)
 	{
 	  if (cnt->d->type == ALPHA)
@@ -200,7 +185,8 @@ cmd_count (void)
 	{
 	  c->next = NULL;
 	  c->v = NULL;
-	  if (!parse_variables (NULL, &c->v, &c->n, PV_DUPLICATE | PV_SAME_TYPE))
+	  if (!parse_variables (default_dict, &c->v, &c->n,
+                                PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
 
 	  if (!lex_force_match ('('))
@@ -230,12 +216,15 @@ cmd_count (void)
   for (cnt = head; cnt; cnt = cnt->next)
     if (!cnt->d)
       {
-	/* It's legal, though motivationally questionable, to count to
+	/* It's valid, though motivationally questionable, to count to
 	   the same dest var more than once. */
-	cnt->d = find_variable (cnt->n);
+	cnt->d = dict_lookup_var (default_dict, cnt->n);
 
-	if (!cnt->d)
-	  cnt->d = force_create_variable (&default_dict, cnt->n, NUMERIC, 0);
+	if (!cnt->d) 
+          {
+            cnt->d = dict_create_var (default_dict, cnt->n, 0);
+            assert (cnt->d != NULL); 
+          }
       }
 
 #if DEBUGGING

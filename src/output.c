@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "output.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,7 +30,6 @@
 #include "filename.h"
 #include "lexer.h"
 #include "misc.h"
-#include "output.h"
 #include "settings.h"
 #include "str.h"
 
@@ -194,7 +194,7 @@ expand_name (char *bp, char *ep)
 
 /* Looks for a macro with key KEY, and returns the corresponding value
    if found, or NULL if not. */
-const char *
+static const char *
 find_defn_value (const char *key)
 {
   static char buf[INT_DIGITS + 1];
@@ -423,7 +423,7 @@ outp_configure_macro (char *bp)
 
 /* Destroys all the drivers in driver list *DL and sets *DL to
    NULL. */
-void
+static void
 destroy_list (struct outp_driver ** dl)
 {
   struct outp_driver *d, *next;

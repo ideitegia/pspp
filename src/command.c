@@ -36,12 +36,12 @@ char *alloca ();
 #endif
 
 #include <assert.h>
+#include "command.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include "alloc.h"
-#include "command.h"
 #include "error.h"
 #include "getline.h"
 #include "lexer.h"
@@ -85,14 +85,6 @@ struct command
     char *word[3];		/* cmd[], divided into individual words. */
     struct command *next;	/* Next command with same word[0]. */
   };
-
-/* Prototype all the command functions. */
-#define DEFCMD(NAME, T1, T2, T3, T4, FUNC)	\
-	int FUNC (void);
-#define UNIMPL(NAME, T1, T2, T3, T4)
-#include "command.def"
-#undef DEFCMD
-#undef UNIMPL
 
 /* Define the command array. */
 #define DEFCMD(NAME, T1, T2, T3, T4, FUNC)		\
@@ -576,7 +568,7 @@ cmd_n_of_cases (void)
   x = lex_integer ();
   lex_get ();
   if (!lex_match_id ("ESTIMATED"))
-    default_dict.N = x;
+    dict_set_case_limit (default_dict, x);
 
   return lex_end_of_command ();
 }

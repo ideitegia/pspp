@@ -35,6 +35,7 @@ char *alloca ();
 #endif
 #endif
 
+#include "pfm.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -49,7 +50,6 @@ char *alloca ();
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
-#include "pfm.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -298,7 +298,7 @@ pfm_read_dictionary (struct file_handle *h, struct pfm_read_info *inf)
   
   fclose (ext->file);
   if (ext && ext->dict)
-    free_dictionary (ext->dict);
+    dict_destroy (ext->dict);
   free (ext);
   h->class = NULL;
   h->ext = NULL;
@@ -421,7 +421,7 @@ read_float (struct file_handle *h)
 }
   
 /* Read an integer and return its value, or NOT_INT on failure. */
-int
+static int
 read_int (struct file_handle *h)
 {
   double f = read_float (h);
@@ -683,6 +683,7 @@ static int
 read_variables (struct file_handle *h)
 {
   struct pfm_fhuser_ext *ext = h->ext;
+  char *weight_name = NULL;
   int i;
   
   if (!match (68 /* 4 */))
@@ -703,16 +704,21 @@ read_variables (struct file_handle *h)
       corrupt_msg (h, _("Unexpected flag value %d."), x);
   }
 
-  ext->dict = new_dictionary (0);
+  ext->dict = dict_create ();
 
   if (match (70 /* 6 */))
     {
-      char *name = read_string (h);
-      if (!name)
+      weight_name = read_string (h);
+      if (!weight_name)
 	goto lossage;
 
-      strcpy (ext->dict->weight_var, name);
-      asciify (ext->dict->weight_var);
+      asciify (weight_name);
+      if (strlen (weight_name) > 8) 
+        {
+          corrupt_msg (h, _("Weight variable name (%s) truncated."),
+                       weight_name);
+          weight_name[8] = '\0';
+        }
     }
   
   for (i = 0; i < ext->nvars; i++)
@@ -787,7 +793,7 @@ read_variables (struct file_handle *h)
       if (width < 0 || width > 255)
 	lose ((h, "Bad width %d for variable %s.", width, name));
 
-      v = create_variable (ext->dict, name, width ? ALPHA : NUMERIC, width);
+      v = dict_create_var (ext->dict, name, width);
       v->get.fv = v->fv;
       if (v == NULL)
 	lose ((h, _("Duplicate variable name %s."), name));
@@ -852,16 +858,22 @@ read_variables (struct file_handle *h)
 	  asciify (v->label);
 	}
     }
-  ext->case_size = ext->dict->nval;
 
-  if (ext->dict->weight_var[0] != 0
-      && !find_dict_variable (ext->dict, ext->dict->weight_var))
-    lose ((h, _("Weighting variable %s not present in dictionary."),
-	   ext->dict->weight_var));
+  if (weight_name != NULL) 
+    {
+      struct variable *weight_var = dict_lookup_var (ext->dict, weight_name);
+      if (weight_var == NULL)
+        lose ((h, _("Weighting variable %s not present in dictionary."),
+               weight_name));
+      free (weight_name);
+
+      dict_set_weight (ext->dict, weight_var);
+    }
 
   return 1;
 
  lossage:
+  free (weight_name);
   return 0;
 }
 
@@ -922,7 +934,7 @@ read_value_label (struct file_handle *h)
 	goto lossage;
       asciify (name);
 
-      v[i] = find_dict_variable (ext->dict, name);
+      v[i] = dict_lookup_var (ext->dict, name);
       if (v[i] == NULL)
 	lose ((h, _("Unknown variable %s while parsing value labels."), name));
 
@@ -1016,9 +1028,9 @@ pfm_read_case (struct file_handle *h, union value *perm, struct dictionary *dict
 
   /* Translate a case in data file format to a case in active file
      format. */
-  for (i = 0; i < dict->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
-      struct variable *v = dict->var[i];
+      struct variable *v = dict_get_var (dict, i);
 
       if (v->get.fv == -1)
 	continue;

@@ -94,7 +94,7 @@ do_value_labels (int erase)
   
   while (token != '.')
     {
-      parse_variables (NULL, &v, &nv, PV_SAME_TYPE);
+      parse_variables (default_dict, &v, &nv, PV_SAME_TYPE);
       if (!verify_val_labs (erase))
 	return CMD_PART_SUCCESS_MAYBE;
       while (token != '/' && token != '.')

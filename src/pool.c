@@ -20,10 +20,10 @@
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include "pool.h"
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "pool.h"
 #include "str.h"
 
 /* Fast, low-overhead memory block suballocator. */

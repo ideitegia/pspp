@@ -26,6 +26,8 @@
    than system files).  dfm is an fhuser, so see file-handle.h for the
    fhuser interface. */
 
+#include <stddef.h>
+
 /* I/O utilities. */
 struct file_handle;
 char *dfm_get_record (struct file_handle *handle, int *len);

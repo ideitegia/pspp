@@ -47,7 +47,7 @@ cmd_weight (void)
   lex_match_id ("WEIGHT");
 
   if (lex_match_id ("OFF"))
-    default_dict.weight_var[0] = 0;
+    dict_set_weight (default_dict, NULL);
   else
     {
       struct variable *v;
@@ -67,55 +67,8 @@ cmd_weight (void)
 	  return CMD_FAILURE;
 	}
 
-      strcpy (default_dict.weight_var, v->name);
+      dict_set_weight (default_dict, v);
     }
 
   return lex_end_of_command ();
-}
-
-#if 0 /* FIXME: dead code. */
-static int
-weight_trns_proc (any_trns * pt, ccase * c)
-{
-  weight_trns *t = (weight_trns *) pt;
-
-  c->data[t->dest].f = c->data[t->src].f;
-  return -1;
-}
-#endif
-
-/* Global functions. */ 
-
-/* Sets the weight_index member of dictionary D to an appropriate
-   value for the value of weight_var, and returns the weighting
-   variable if any or NULL if none. */
-struct variable *
-update_weighting (struct dictionary * d)
-{
-  if (d->weight_var[0])
-    {
-      struct variable *v = find_dict_variable (d, d->weight_var);
-      if (v && v->type == NUMERIC)
-	{
-	  d->weight_index = v->fv;
-	  return v;
-	}
-      else
-	{
-#if GLOBAL_DEBUGGING
-	  printf (_("bad weighting variable, canceling\n"));
-#endif
-	  d->weight_var[0] = 0;
-	}
-    }
-
-  d->weight_index = -1;
-  return NULL;
-}
-
-/* Turns off case weighting for dictionary D. */
-void
-stop_weighting (struct dictionary * d)
-{
-  d->weight_var[0] = 0;
 }

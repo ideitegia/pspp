@@ -82,6 +82,9 @@ struct file_handle
    file entered via BEGIN DATA/END DATA. */
 extern struct file_handle *inline_file;
 
+/* Initialization. */
+void fh_init_files (void);
+
 /* Opening and closing handles. */
 struct file_handle *fh_get_handle_by_name (const char name[9]);
 struct file_handle *fh_get_handle_by_filename (const char *filename);

@@ -104,7 +104,7 @@ parse_varnames (void)
 {
   int i;
 
-  if (!parse_variables (NULL, &v, &nv, PV_SAME_TYPE))
+  if (!parse_variables (default_dict, &v, &nv, PV_SAME_TYPE))
     return 0;
   if (!lex_match ('('))
     {

@@ -35,6 +35,8 @@ char *alloca ();
 #endif
 #endif
 
+#include "vfm.h"
+#include "vfmP.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -53,10 +55,7 @@ char *alloca ();
 #include "str.h"
 #include "tab.h"
 #include "var.h"
-#include "vector.h"
 #include "value-labels.h"
-#include "vfm.h"
-#include "vfmP.h"
 
 /*
    Virtual File Manager (vfm):
@@ -158,7 +157,7 @@ procedure (void (*beginfunc) (void),
   end_func = endfunc;
   write_case = procedure_write_case;
 
-  if (default_dict.n_splits && procfunc != NULL)
+  if (dict_get_split_cnt (default_dict) != 0 && procfunc != NULL)
     {
       virt_proc_func = procfunc;
       proc_func = SPLIT_FILE_procfunc;
@@ -298,9 +297,10 @@ prepare_for_writing (void)
      file--it's just a waste of time and space. */
 
   vfm_sink_info.ncases = 0;
-  vfm_sink_info.nval = default_dict.nval;
+  vfm_sink_info.nval = dict_get_value_cnt (default_dict);
   vfm_sink_info.case_size = (sizeof (struct ccase)
-			     + (default_dict.nval - 1) * sizeof (union value));
+			     + ((dict_get_value_cnt (default_dict) - 1)
+                                * sizeof (union value)));
   
   if (vfm_sink == NULL)
     {
@@ -330,19 +330,24 @@ arrange_compaction (void)
     int i;
     
     /* Count up the number of `value's that will be output. */
-    for (i = 0; i < temp_dict->nvar; i++)
-      if (temp_dict->var[i]->name[0] != '#')
-	{
-	  assert (temp_dict->var[i]->nv > 0);
-	  count_values += temp_dict->var[i]->nv;
-	}
-    assert (temporary == 2 || count_values <= temp_dict->nval);
+    for (i = 0; i < dict_get_var_cnt (temp_dict); i++) 
+      {
+        struct variable *v = dict_get_var (temp_dict, i);
+
+        if (v->name[0] != '#')
+          {
+            assert (v->nv > 0);
+            count_values += v->nv;
+          } 
+      }
+    assert (temporary == 2 || count_values <= dict_get_value_cnt (temp_dict));
   }
   
   /* Compaction is only necessary if the number of `value's to output
      differs from the number already present. */
   compaction_nval = count_values;
-  compaction_necessary = temporary == 2 || count_values != temp_dict->nval;
+  compaction_necessary = (temporary == 2
+                          || count_values != dict_get_value_cnt (temp_dict));
   
   if (vfm_sink->init)
     vfm_sink->init ();
@@ -426,19 +431,14 @@ vector_initialization (void)
 static void
 setup_filter (void)
 {
-  filter_index = -1;
+  filter_var = dict_get_filter (default_dict);
   
-  if (default_dict.filter_var[0])
+  if (filter_var != NULL)
     {
-      struct variable *fv = find_variable (default_dict.filter_var);
-      
-      if (fv == NULL || fv->type == ALPHA)
-	default_dict.filter_var[0] = 0;
-      else
-	{
-	  filter_index = fv->index;
-	  filter_var = fv;
-	}
+      assert (filter_var->type == NUMERIC);
+      filter_index = filter_var->index;
+    } else {
+      filter_index = -1;
     }
 }
 
@@ -455,7 +455,8 @@ setup_lag (void)
   lag_head = 0;
   lag_queue = xmalloc (n_lag * sizeof *lag_queue);
   for (i = 0; i < n_lag; i++)
-    lag_queue[i] = xmalloc (temp_dict->nval * sizeof **lag_queue);
+    lag_queue[i] = xmalloc (dict_get_value_cnt (temp_dict)
+                            * sizeof **lag_queue);
 }
 
 /* There is a lot of potential confusion in the vfm and related
@@ -504,7 +505,7 @@ open_active_file (void)
   if (!temporary)
     {
       temp_trns = n_trns;
-      temp_dict = &default_dict;
+      temp_dict = default_dict;
     }
 
   /* No cases passed to the procedure yet. */
@@ -552,12 +553,14 @@ close_active_file (void)
      off TEMPORARY. */
   if (temporary)
     {
-      restore_dictionary (temp_dict);
+      dict_destroy (default_dict);
+      default_dict = temp_dict;
       temp_dict = NULL;
     }
 
-  /* The default dictionary assumes the compacted data size. */
-  default_dict.nval = compaction_nval;
+  /* Finish compaction. */
+  if (compaction_necessary)
+    finish_compaction ();
     
   /* Old data sink --> New data source. */
   if (vfm_source && vfm_source->destroy_source)
@@ -574,9 +577,7 @@ close_active_file (void)
   /* Old data sink is gone now. */
   vfm_sink = NULL;
 
-  /* Finish compaction. */
-  if (compaction_necessary)
-    finish_compaction ();
+  /* Cancel TEMPORARY. */
   cancel_temporary ();
 
   /* Free temporary cases. */
@@ -591,8 +592,8 @@ close_active_file (void)
   process_if_expr = NULL;
 
   /* Cancel FILTER if temporary. */
-  if (filter_index != -1 && !FILTER_before_TEMPORARY)
-    default_dict.filter_var[0] = 0;
+  if (filter_var != NULL && !FILTER_before_TEMPORARY)
+    dict_set_filter (default_dict, NULL);
 
   /* Cancel transformations. */
   cancel_transformations ();
@@ -604,18 +605,10 @@ close_active_file (void)
   vec_clear (&reinit_blanks);
 
   /* Turn off case limiter. */
-  default_dict.N = 0;
+  dict_set_case_limit (default_dict, 0);
 
   /* Clear VECTOR vectors. */
-  {
-    int i;
-
-    for (i = 0; i < nvec; i++)
-      free (vec[i].v);
-    free (vec);
-    vec = NULL;
-    nvec = 0;
-  }
+  dict_clear_vectors (default_dict);
 
   debug_printf (("vfm: procedure complete\n\n"));
 }
@@ -950,7 +943,8 @@ lag_case (void)
 {
   if (lag_count < n_lag)
     lag_count++;
-  memcpy (lag_queue[lag_head], temp_case, sizeof (union value) * temp_dict->nval);
+  memcpy (lag_queue[lag_head], temp_case,
+          sizeof (union value) * dict_get_value_cnt (temp_dict));
   if (++lag_head >= n_lag)
     lag_head = 0;
 }
@@ -1001,8 +995,9 @@ procedure_write_case (void)
 	  vfm_sink_info.ncases++;
 	  vfm_sink->write ();
 
-	  if (default_dict.N)
-	    more_cases = vfm_sink_info.ncases < default_dict.N;
+	  if (dict_get_case_limit (default_dict))
+	    more_cases = (vfm_sink_info.ncases
+                          < dict_get_case_limit (default_dict));
 	}
 
       /* Are we done? */
@@ -1102,20 +1097,23 @@ cancel_transformations (void)
 static void
 dump_splits (struct ccase *c)
 {
-  struct variable **iter;
+  struct variable *const *split;
   struct tab_table *t;
+  size_t split_cnt;
   int i;
 
-  t = tab_create (3, default_dict.n_splits + 1, 0);
+  split_cnt = dict_get_split_cnt (default_dict);
+  t = tab_create (3, split_cnt + 1, 0);
   tab_dim (t, tab_natural_dimensions);
-  tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, default_dict.n_splits);
-  tab_vline (t, TAL_1 | TAL_SPACING, 2, 0, default_dict.n_splits);
+  tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, split_cnt);
+  tab_vline (t, TAL_1 | TAL_SPACING, 2, 0, split_cnt);
   tab_text (t, 0, 0, TAB_NONE, _("Variable"));
   tab_text (t, 1, 0, TAB_LEFT, _("Value"));
   tab_text (t, 2, 0, TAB_LEFT, _("Label"));
-  for (iter = default_dict.splits, i = 0; *iter; iter++, i++)
+  split = dict_get_split_vars (default_dict);
+  for (i = 0; i < split_cnt; i++)
     {
-      struct variable *v = *iter;
+      struct variable *v = split[i];
       char temp_buf[80];
       const char *val_lab;
 
@@ -1147,7 +1145,9 @@ static int
 SPLIT_FILE_procfunc (struct ccase *c)
 {
   static struct ccase *prev_case;
-  struct variable **iter;
+  struct variable *const *split;
+  size_t split_cnt;
+  size_t i;
 
   /* The first case always begins a new series.  We also need to
      preserve the values of the case for later comparison. */
@@ -1167,9 +1167,11 @@ SPLIT_FILE_procfunc (struct ccase *c)
 
   /* Compare the value of each SPLIT FILE variable to the values on
      the previous case. */
-  for (iter = default_dict.splits; *iter; iter++)
+  split = dict_get_split_vars (default_dict);
+  split_cnt = dict_get_split_cnt (default_dict);
+  for (i = 0; i < split_cnt; i++)
     {
-      struct variable *v = *iter;
+      struct variable *v = split[i];
       
       switch (v->type)
 	{
@@ -1208,6 +1210,7 @@ compact_case (struct ccase *dest, const struct ccase *src)
 {
   int i;
   int nval = 0;
+  size_t var_cnt;
   
   assert (compaction_necessary);
 
@@ -1220,9 +1223,10 @@ compact_case (struct ccase *dest, const struct ccase *src)
 
   /* Copy all the variables except the scratch variables from SRC to
      DEST. */
-  for (i = 0; i < default_dict.nvar; i++)
+  var_cnt = dict_get_var_cnt (default_dict);
+  for (i = 0; i < var_cnt; i++)
     {
-      struct variable *v = default_dict.var[i];
+      struct variable *v = dict_get_var (default_dict, i);
       
       if (v->name[0] == '#')
 	continue;
@@ -1243,35 +1247,18 @@ compact_case (struct ccase *dest, const struct ccase *src)
 static void
 finish_compaction (void)
 {
-  int copy_index = 0;
-  int nval = 0;
   int i;
 
-  for (i = 0; i < default_dict.nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (default_dict); )
     {
-      struct variable *v = default_dict.var[i];
+      struct variable *v = dict_get_var (default_dict, i);
 
-      if (v->name[0] == '#')
-	{
-	  clear_variable (&default_dict, v);
-	  free (v);
-	  continue;
-	}
-
-      v->fv = nval;
-      if (v->type == NUMERIC)
-	nval++;
+      if (v->name[0] == '#') 
+        dict_delete_var (default_dict, v);
       else
-	nval += DIV_RND_UP (v->width, sizeof (union value));
-      
-      default_dict.var[copy_index++] = v;
+        i++;
     }
-  if (copy_index != default_dict.nvar)
-    {
-      default_dict.var = xrealloc (default_dict.var,
-				   sizeof *default_dict.var * copy_index);
-      default_dict.nvar = copy_index;
-    }
+  dict_compact_values (default_dict);
 }
 
   

@@ -18,12 +18,12 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include <math.h>
 #include "stats.h"
+#include <math.h>
 
 /* Returns the fourth power of its argument. */
 double
-hypercube (double x)
+pow4 (double x)
 {
   x *= x;
   return x * x;
@@ -60,7 +60,7 @@ calc_kurt (const double d[4], double n, double variance)
     (((n + 1) * (n * d[3]
 		 - 4.0 * d[0] * d[2]
 		 + 6.0 * sqr (d[0]) * d[1] / n
-		 - 3.0 * hypercube (d[0]) / sqr (n)))
+		 - 3.0 * pow4 (d[0]) / sqr (n)))
      / ((n - 1.0) * (n - 2.0) * (n - 3.0) * sqr (variance))
      - (3.0 * sqr (n - 1.0))
      / ((n - 2.0) * (n - 3.)));

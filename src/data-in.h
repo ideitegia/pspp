@@ -20,6 +20,7 @@
 #if !data_in_h
 #define data_in_h 1
 
+#include <stddef.h>
 #include "format.h"
 
 /* Flags. */

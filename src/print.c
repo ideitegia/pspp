@@ -453,7 +453,7 @@ fail:
 static int
 parse_variable_argument (void)
 {
-  if (!parse_variables (NULL, &fx.v, &fx.nv, PV_DUPLICATE))
+  if (!parse_variables (default_dict, &fx.v, &fx.nv, PV_DUPLICATE))
     return 0;
 
   if (token == T_NUM)

@@ -192,7 +192,7 @@ internal_cmd_loop (void)
   /* Parse indexing clause. */
   if (token == T_ID && lex_look_ahead () == '=')
     {
-      struct variable *v = find_variable (tokid);
+      struct variable *v = dict_lookup_var (default_dict, tokid);
 
       two->flags |= LPC_INDEX;
 
@@ -252,10 +252,10 @@ internal_cmd_loop (void)
   /* Find variable; create if necessary. */
   if (name[0])
     {
-      two->index = find_variable (name);
+      two->index = dict_lookup_var (default_dict, name);
       if (!two->index)
 	{
-	  two->index = force_create_variable (&default_dict, name, NUMERIC, 0);
+	  two->index = dict_create_var (default_dict, name, 0);
 #if DEBUGGING
 	  envector (two->index);
 #endif

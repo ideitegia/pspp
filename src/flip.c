@@ -61,12 +61,12 @@ cmd_flip (void)
   if (lex_match_id ("VARIABLES"))
     {
       lex_match ('=');
-      if (!parse_variables (&default_dict, &var, &nvar, PV_NO_DUPLICATE))
+      if (!parse_variables (default_dict, &var, &nvar, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
       lex_match ('/');
     }
   else
-    fill_all_vars (&var, &nvar, FV_NO_SYSTEM);
+    dict_get_vars (default_dict, &var, &nvar, 1u << DC_SYSTEM);
 
   lex_match ('/');
   if (lex_match_id ("NEWNAMES"))
@@ -80,7 +80,7 @@ cmd_flip (void)
 	}
     }
   else
-    newnames = find_variable ("CASE_LBL");
+    newnames = dict_lookup_var (default_dict, "CASE_LBL");
 
   if (newnames)
     {
@@ -101,7 +101,7 @@ cmd_flip (void)
   new_names_tail = NULL;
   procedure (NULL, NULL, NULL);
 
-  clear_default_dict ();
+  dict_clear (default_dict);
   if (!build_dictionary ())
     {
       discard_variables ();
@@ -137,7 +137,7 @@ make_new_var (char name[])
     *cp = 0;
   }
   
-  if (create_variable (&default_dict, name, NUMERIC, 0))
+  if (dict_create_var (default_dict, name, 0))
     return 1;
 
   /* Add numeric extensions until acceptable. */
@@ -152,7 +152,7 @@ make_new_var (char name[])
 	memcpy (n, name, ofs);
 	sprintf (&n[ofs], "%d", i);
 
-	if (create_variable (&default_dict, n, NUMERIC, 0))
+	if (dict_create_var (default_dict, n, 0))
 	  return 1;
       }
   }
@@ -165,7 +165,8 @@ make_new_var (char name[])
 static int
 build_dictionary (void)
 {
-  force_create_variable (&default_dict, "CASE_LBL", ALPHA, 8);
+  if (!dict_create_var (default_dict, "CASE_LBL", 8))
+    assert (0);
 
   if (!new_names_tail)
     {
@@ -179,10 +180,12 @@ build_dictionary (void)
       
       for (i = 0; i < case_count; i++)
 	{
+          struct variable *v;
 	  char s[9];
 
 	  sprintf (s, "VAR%03d", i);
-	  force_create_variable (&default_dict, s, NUMERIC, 0);
+	  v = dict_create_var (default_dict, s, 0);
+          assert (v != NULL);
 	}
     }
   else

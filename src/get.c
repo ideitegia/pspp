@@ -44,7 +44,7 @@ struct save_trns
     struct trns_header h;
     struct file_handle *f;	/* Associated system file. */
     int nvar;			/* Number of variables. */
-    int *var;			/* Indices of variables. */
+    struct variable **var;      /* Variables. */
     flt64 *case_buf;		/* Case transfer buffer. */
   };
 
@@ -77,9 +77,6 @@ cmd_get (void)
   struct dictionary *dict;
   int options = GTSV_OPT_NONE;
 
-  int i;
-  int nval;
-
   lex_match_id ("GET");
   discard_variables ();
 
@@ -107,18 +104,7 @@ cmd_get (void)
   dump_dict_variables (dict);
 #endif
 
-  /* Set the fv and lv elements of all variables remaining in the
-     dictionary. */
-  nval = 0;
-  for (i = 0; i < dict->nvar; i++)
-    {
-      struct variable *v = dict->var[i];
-
-      v->fv = nval;
-      nval += v->nv;
-    }
-  dict->nval = nval;
-  assert (nval);
+  dict_compact_values (dict);
 
 #if DEBUGGING
   printf (_("GET translation table from file to memory:\n"));
@@ -131,7 +117,8 @@ cmd_get (void)
     }
 #endif
 
-  restore_dictionary (dict);
+  dict_destroy (default_dict);
+  default_dict = dict;
 
   vfm_source = &get_source;
   get_file = handle;
@@ -139,12 +126,10 @@ cmd_get (void)
   return CMD_SUCCESS;
 }
 
-/* Parses the SAVE (for X==0) and XSAVE (for X==1) commands.  */
-/* FIXME: save_dictionary() is too expensive.  It would make more
-   sense to copy just the first few fields of each variables (up to
-   `foo'): that's a SMOP. */
-int
-cmd_save_internal (int x)
+/* Parses the SAVE (for XSAVE==0) and XSAVE (for XSAVE==1)
+   commands.  */
+static int
+cmd_save_internal (int xsave)
 {
   struct file_handle *handle;
   struct dictionary *dict;
@@ -165,12 +150,12 @@ cmd_save_internal (int x)
   if (handle == NULL)
     return CMD_FAILURE;
 
-  dict = save_dictionary ();
+  dict = dict_clone (default_dict);
 #if DEBUGGING
   dump_dict_variables (dict);
 #endif
-  for (i = 0; i < dict->nvar; i++)
-    dict->var[i]->foo = i;
+  for (i = 0; i < dict_get_var_cnt (dict); i++) 
+    dict_get_var (dict, i)->aux = dict_get_var (default_dict, i);
   if (0 == trim_dictionary (dict, &options))
     {
       fh_close_handle (handle);
@@ -187,7 +172,7 @@ cmd_save_internal (int x)
   inf.compress = !!(options & GTSV_OPT_COMPRESSED);
   if (!sfm_write_dictionary (&inf))
     {
-      free_dictionary (dict);
+      dict_destroy (dict);
       fh_close_handle (handle);
       return CMD_FAILURE;
     }
@@ -197,22 +182,22 @@ cmd_save_internal (int x)
   t->h.proc = save_trns_proc;
   t->h.free = save_trns_free;
   t->f = handle;
-  t->nvar = dict->nvar;
-  t->var = xmalloc (sizeof *t->var * dict->nvar);
-  for (i = 0; i < dict->nvar; i++)
-    t->var[i] = dict->var[i]->foo;
+  t->nvar = dict_get_var_cnt (dict);
+  t->var = xmalloc (sizeof *t->var * t->nvar);
+  for (i = 0; i < t->nvar; i++)
+    t->var[i] = dict_get_var (dict, i)->aux;
   t->case_buf = xmalloc (sizeof *t->case_buf * inf.case_size);
-  free_dictionary (dict);
+  dict_destroy (dict);
 
-  if (x == 0)
+  if (xsave == 0)
     /* SAVE. */
     {
       procedure (NULL, save_write_case_func, NULL);
-      save_trns_free ((struct trns_header *) t);
+      save_trns_free (&t->h);
     }
   else
     /* XSAVE. */
-    add_transformation ((struct trns_header *) t);
+    add_transformation (&t->h);
 
   return CMD_SUCCESS;
 }
@@ -234,7 +219,7 @@ cmd_xsave (void)
 static int
 save_write_case_func (struct ccase * c)
 {
-  save_trns_proc ((struct trns_header *) trns, c);
+  save_trns_proc (&trns->h, c);
   return 1;
 }
 
@@ -246,7 +231,7 @@ save_trns_proc (struct trns_header * t unused, struct ccase * c)
 
   for (i = 0; i < trns->nvar; i++)
     {
-      struct variable *v = default_dict.var[trns->var[i]];
+      struct variable *v = trns->var[i];
       if (v->type == NUMERIC)
 	{
 	  double src = c->data[v->fv].f;
@@ -279,27 +264,6 @@ save_trns_free (struct trns_header *pt)
   free (t);
 }
 
-/* Deletes NV variables from DICT, starting at index FIRST.  The
-   variables must have consecutive indices.  The variables are cleared
-   and freed. */
-static void
-dict_delete_run (struct dictionary *dict, int first, int nv)
-{
-  int i;
-
-  for (i = first; i < first + nv; i++)
-    {
-      clear_variable (dict, dict->var[i]);
-      free (dict->var[i]);
-    }
-  for (i = first; i < dict->nvar - nv; i++)
-    {
-      dict->var[i] = dict->var[i + nv];
-      dict->var[i]->index -= nv;
-    }
-  dict->nvar -= nv;
-}
-
 static int rename_variables (struct dictionary * dict);
 
 /* The GET and SAVE commands have a common structure after the
@@ -308,6 +272,8 @@ static int rename_variables (struct dictionary * dict);
    *OPTIONS, for the GTSV_OPT_SAVE bit, and writes it, for the
    GTSV_OPT_COMPRESSED bit. */
 /* FIXME: IN, FIRST, LAST, MAP. */
+/* FIXME?  Should we call dict_compact_values() on dict as a
+   final step? */
 static int
 trim_dictionary (struct dictionary *dict, int *options)
 {
@@ -316,24 +282,18 @@ trim_dictionary (struct dictionary *dict, int *options)
 
   if (*options & GTSV_OPT_SAVE)
     {
-      int i;
-
       /* Delete all the scratch variables. */
-      for (i = 0; i < dict->nvar; i++)
-	{
-	  int j;
-	  
-	  if (dict->var[i]->name[0] != '#')
-	    continue;
+      struct variable **v;
+      size_t nv;
+      size_t i;
 
-	  /* Find a run of variables to be deleted. */
-	  for (j = i + 1; j < dict->nvar; j++)
-	    if (dict->var[j]->name[0] != '#')
-	      break;
-
-	  /* Actually delete 'em. */
-	  dict_delete_run (dict, i, j - i);
-	}
+      v = xmalloc (sizeof *v * dict_get_var_cnt (dict));
+      nv = 0;
+      for (i = 0; i < dict_get_var_cnt (dict); i++) 
+        if (dict_get_var (dict, i)->name[0] == '#')
+          v[nv++] = dict_get_var (dict, i);
+      dict_delete_vars (dict, v, nv);
+      free (v);
     }
   
   while ((*options & GTSV_OPT_MATCH_FILES) || lex_match ('/'))
@@ -346,68 +306,32 @@ trim_dictionary (struct dictionary *dict, int *options)
 	{
 	  struct variable **v;
 	  int nv;
-	  int i;
 
 	  lex_match ('=');
 	  if (!parse_variables (dict, &v, &nv, PV_NONE))
 	    return 0;
-
-	  /* Loop through the variables to delete. */
-	  for (i = 0; i < nv;)
-	    {
-	      int j;
-
-	      /* Find a run of variables to be deleted. */
-	      for (j = i + 1; j < nv; j++)
-		if (v[j]->index != v[j - 1]->index + 1)
-		  break;
-
-	      /* Actually delete 'em. */
-	      dict_delete_run (dict, v[i]->index, j - i);
-	      i = j;
-	    }
+          dict_delete_vars (dict, v, nv);
+          free (v);
 	}
       else if (lex_match_id ("KEEP"))
 	{
 	  struct variable **v;
 	  int nv;
+          int i;
 
 	  lex_match ('=');
 	  if (!parse_variables (dict, &v, &nv, PV_NONE))
 	    return 0;
 
-	  /* Reorder the dictionary so that the kept variables are at
-	     the beginning. */
-	  {
-	    int i1;
-	    
-	    for (i1 = 0; i1 < nv; i1++)
-	      {
-		int i2 = v[i1]->index;
-
-		/* Swap variables with indices i1 and i2. */
-		struct variable *t = dict->var[i1];
-		dict->var[i1] = dict->var[i2];
-		dict->var[i2] = t;
-		dict->var[i1]->index = i1;
-		dict->var[i2]->index = i2;
-	      }
-
-	    free (v);
-	  }
-	  
-	  /* Delete all but the first NV variables from the
-	     dictionary. */
-	  {
-	    int i;
-	    for (i = nv; i < dict->nvar; i++)
-	      {
-		clear_variable (dict, dict->var[i]);
-		free (dict->var[i]);
-	      }
-	  }
-	  dict->var = xrealloc (dict->var, sizeof *dict->var * nv);
-	  dict->nvar = nv;
+          /* Move the specified variables to the beginning. */
+          dict_reorder_vars (dict, v, nv);
+          
+          /* Delete the remaining variables. */
+          v = xrealloc (v, (dict_get_var_cnt (dict) - nv) * sizeof *v);
+          for (i = nv; i < dict_get_var_cnt (dict); i++)
+            v[i - nv] = dict_get_var (dict, i);
+          dict_delete_vars (dict, v, dict_get_var_cnt (dict) - nv);
+          free (v);
 	}
       else if (lex_match_id ("RENAME"))
 	{
@@ -420,7 +344,7 @@ trim_dictionary (struct dictionary *dict, int *options)
 	  return 0;
 	}
 
-      if (dict->nvar == 0)
+      if (dict_get_var_cnt (dict) == 0)
 	{
 	  msg (SE, _("All variables deleted from system file dictionary."));
 	  return 0;
@@ -450,6 +374,7 @@ rename_variables (struct dictionary * dict)
   struct variable **v;
   char **new_names;
   int nv, nn;
+  char *err_name;
 
   int group;
 
@@ -466,7 +391,7 @@ rename_variables (struct dictionary * dict)
 	return 0;
       if (!strncmp (tokid, v->name, 8))
 	return 1;
-      if (is_dict_varname (dict, tokid))
+      if (dict_lookup_var (dict, tokid) != NULL)
 	{
 	  msg (SE, _("Cannot rename %s as %s because there already exists "
 		     "a variable named %s.  To rename variables with "
@@ -476,7 +401,7 @@ rename_variables (struct dictionary * dict)
 	  return 0;
 	}
       
-      rename_variable (dict, v, tokid);
+      dict_rename_var (dict, v, tokid);
       lex_get ();
       return 1;
     }
@@ -490,43 +415,35 @@ rename_variables (struct dictionary * dict)
       int old_nv = nv;
 
       if (!parse_variables (dict, &v, &nv, PV_NO_DUPLICATE | PV_APPEND))
-	goto lossage;
+	goto done;
       if (!lex_match ('='))
 	{
 	  msg (SE, _("`=' expected after variable list."));
-	  goto lossage;
+	  goto done;
 	}
       if (!parse_DATA_LIST_vars (&new_names, &nn, PV_APPEND | PV_NO_SCRATCH))
-	goto lossage;
+	goto done;
       if (nn != nv)
 	{
-	  msg (SE, _("Number of variables on left side of `=' (%d) do not "
+	  msg (SE, _("Number of variables on left side of `=' (%d) does not "
 	       "match number of variables on right side (%d), in "
 	       "parenthesized group %d of RENAME subcommand."),
 	       nv - old_nv, nn - old_nv, group);
-	  goto lossage;
+	  goto done;
 	}
       if (!lex_force_match (')'))
-	goto lossage;
+	goto done;
       group++;
     }
 
-  for (i = 0; i < nv; i++)
-    hsh_force_delete (dict->name_tab, v[i]);
-  for (i = 0; i < nv; i++)
+  if (!dict_rename_vars (dict, v, new_names, nv, &err_name)) 
     {
-      strcpy (v[i]->name, new_names[i]);
-      if (NULL != hsh_insert (dict->name_tab, v[i]))
-	{
-	  msg (SE, _("Duplicate variables name %s."), v[i]->name);
-	  goto lossage;
-	}
+      msg (SE, _("Requested renaming duplicates variable name %s."), err_name);
+      goto done;
     }
   success = 1;
 
-lossage:
-  /* The label is a bit of a misnomer, we actually come here on any
-     sort of return. */
+done:
   for (i = 0; i < nn; i++)
     free (new_names[i]);
   free (new_names);
@@ -562,7 +479,7 @@ get_source_destroy_source (void)
 static void
 get_source_read (void)
 {
-  while (sfm_read_case (get_file, temp_case->data, &default_dict)
+  while (sfm_read_case (get_file, temp_case->data, default_dict)
 	 && write_case ())
     ;
   get_source_destroy_source ();
@@ -607,7 +524,7 @@ struct mtf_file
     union value *input;		/* Input record. */
   };
 
-/* All the files mentioned on FILE= or TABLE=. */
+/* All the files mentioned on FILE or TABLE. */
 static struct mtf_file *mtf_head, *mtf_tail;
 
 /* Variables on the BY subcommand. */
@@ -616,6 +533,13 @@ static int mtf_n_by;
 
 /* Master dictionary. */
 static struct dictionary *mtf_master;
+
+/* Used to determine whether we've already initialized this
+   variable. */
+static unsigned mtf_seq_num;
+
+/* Sequence numbers for each variable in mtf_master. */
+static unsigned *mtf_seq_nums;
 
 static void mtf_free (void);
 static void mtf_free_file (struct mtf_file *file);
@@ -642,8 +566,10 @@ cmd_match_files (void)
   mtf_head = mtf_tail = NULL;
   mtf_by = NULL;
   mtf_n_by = 0;
-  mtf_master = new_dictionary (0);
-  mtf_master->N = default_dict.N;
+  mtf_master = dict_create ();
+  mtf_seq_num = 0;
+  mtf_seq_nums = NULL;
+  dict_set_case_limit (mtf_master, dict_get_case_limit (default_dict));
   
   do
     {
@@ -748,7 +674,7 @@ cmd_match_files (void)
 		goto lossage;
 	    }
 	  else
-	    file->dict = &default_dict;
+	    file->dict = default_dict;
 	  if (!mtf_merge_dictionary (file))
 	    goto lossage;
 	}
@@ -801,7 +727,7 @@ cmd_match_files (void)
 	  strcpy (name, tokid);
 	  lex_get ();
 
-	  if (!create_variable (mtf_master, name, NUMERIC, 0))
+	  if (!dict_create_var (mtf_master, name, 0))
 	    {
 	      msg (SE, _("Duplicate variable name %s while creating %s "
 			 "variable."),
@@ -859,7 +785,7 @@ cmd_match_files (void)
 
 	  for (i = 0; i < mtf_n_by; i++)
 	    {
-	      iter->by[i] = find_dict_variable (iter->dict, mtf_by[i]->name);
+	      iter->by[i] = dict_lookup_var (iter->dict, mtf_by[i]->name);
 	      if (iter->by[i] == NULL)
 		{
 		  msg (SE, _("File %s lacks BY variable %s."),
@@ -911,10 +837,12 @@ cmd_match_files (void)
      because there's no function to read a record from the active
      file; instead, it has to be done using callbacks.
 
-     FIXME: A better algorithm would use a heap for finding minimum
-     values, or replacement selection, as described by Knuth in _Art
-     of Computer Programming, Vol. 3_.  The SORT CASES procedure does
-     this, and perhaps some of its code could be adapted. */
+     FIXME: For merging large numbers of files (more than 10?) a
+     better algorithm would use a heap for finding minimum
+     values, or replacement selection, as described by Knuth in
+     _Art of Computer Programming, Vol. 3_.  The SORT CASES
+     procedure does this, and perhaps some of its code could be
+     adapted. */
 
   if (!(seen & 2))
     discard_variables ();
@@ -922,6 +850,11 @@ cmd_match_files (void)
   temporary = 2;
   temp_dict = mtf_master;
   temp_trns = n_trns;
+
+  mtf_seq_nums = xmalloc (dict_get_var_cnt (mtf_master)
+                          * sizeof *mtf_seq_nums);
+  memset (mtf_seq_nums, 0,
+          dict_get_var_cnt (mtf_master) * sizeof *mtf_seq_nums);
 
   process_active_file (mtf_read_nonactive_records, mtf_processing,
 		       mtf_processing_finish);
@@ -983,8 +916,8 @@ static void
 mtf_free_file (struct mtf_file *file)
 {
   fh_close_handle (file->handle);
-  if (file->dict && file->dict != &default_dict)
-    free_dictionary (file->dict);
+  if (file->dict != NULL && file->dict != default_dict)
+    dict_destroy (file->dict);
   free (file->by);
   if (file->handle)
     free (file->input);
@@ -1006,7 +939,8 @@ mtf_free (void)
   
   free (mtf_by);
   if (mtf_master)
-    free_dictionary (mtf_master);
+    dict_destroy (mtf_master);
+  free (mtf_seq_nums);
 }
 
 /* Remove *FILE from the mtf_file chain.  Make *FILE point to the next
@@ -1029,9 +963,9 @@ mtf_delete_file_in_place (struct mtf_file **file)
   {
     int i;
 
-    for (i = 0; i < f->dict->nvar; i++)
+    for (i = 0; i < dict_get_var_cnt (f->dict); i++)
       {
-	struct variable *v = f->dict->var[i];
+	struct variable *v = dict_get_var (f->dict, i);
 	  
 	if (v->type == NUMERIC)
 	  compaction_case->data[v->p.mtf.master->fv].f = SYSMIS;
@@ -1055,7 +989,8 @@ mtf_read_nonactive_records (void)
       if (iter->handle)
 	{
 	  assert (iter->input == NULL);
-	  iter->input = xmalloc (sizeof *iter->input * iter->dict->nval);
+	  iter->input = xmalloc (sizeof *iter->input
+                                 * dict_get_value_cnt (iter->dict));
 	  
 	  if (!sfm_read_case (iter->handle, iter->input, iter->dict))
 	    mtf_delete_file_in_place (&iter);
@@ -1108,10 +1043,6 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
     }
   return 0;
 }
-
-/* Used to determine whether we've already initialized this
-   variable. */
-static int mtf_seq_no = 0;
 
 /* Perform one iteration of steps 3...7 above. */
 static int
@@ -1219,7 +1150,7 @@ mtf_processing (struct ccase *c unused)
 	}
 
       /* Next sequence number. */
-      mtf_seq_no++;
+      mtf_seq_num++;
   
       /* Store data to all the records we are using. */
       if (min_tail)
@@ -1228,13 +1159,13 @@ mtf_processing (struct ccase *c unused)
 	{
 	  int i;
 
-	  for (i = 0; i < iter->dict->nvar; i++)
+	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
-	      struct variable *v = iter->dict->var[i];
+	      struct variable *v = dict_get_var (iter->dict, i);
 	  
-	      if (v->p.mtf.master->foo == mtf_seq_no)
+	      if (mtf_seq_nums[v->p.mtf.master->index] == mtf_seq_num)
 		continue;
-	      v->p.mtf.master->foo = mtf_seq_no;
+              mtf_seq_nums[v->p.mtf.master->index] = mtf_seq_num;
 
 #if 0
 	      printf ("%s/%s: dest-fv=%d, src-fv=%d\n",
@@ -1261,13 +1192,13 @@ mtf_processing (struct ccase *c unused)
 	{
 	  int i;
 
-	  for (i = 0; i < iter->dict->nvar; i++)
+	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
-	      struct variable *v = iter->dict->var[i];
+	      struct variable *v = dict_get_var (iter->dict, i);
 	  
-	      if (v->p.mtf.master->foo == mtf_seq_no)
+	      if (mtf_seq_nums[v->p.mtf.master->index] == mtf_seq_num)
 		continue;
-	      v->p.mtf.master->foo = mtf_seq_no;
+              mtf_seq_nums[v->p.mtf.master->index] = mtf_seq_num;
 
 #if 0
 	      printf ("%s/%s: dest-fv=%d\n",
@@ -1322,31 +1253,41 @@ mtf_merge_dictionary (struct mtf_file *f)
 {
   struct dictionary *const m = mtf_master;
   struct dictionary *d = f->dict;
-      
-  if (d->label && m->label == NULL)
-    m->label = xstrdup (d->label);
+  const char *d_docs, *m_docs;
 
-  if (d->documents)
+  if (dict_get_label (m) == NULL)
+    dict_set_label (m, dict_get_label (d));
+
+  d_docs = dict_get_documents (d);
+  m_docs = dict_get_documents (m);
+  if (d_docs != NULL) 
     {
-      m->documents = xrealloc (m->documents,
-			       80 * (m->n_documents + d->n_documents));
-      memcpy (&m->documents[80 * m->n_documents],
-	      d->documents, 80 * d->n_documents);
-      m->n_documents += d->n_documents;
+      if (m_docs == NULL)
+        dict_set_documents (m, d_docs);
+      else
+        {
+          char *new_docs;
+          size_t new_len;
+
+          new_len = strlen (m_docs) + strlen (d_docs);
+          new_docs = xmalloc (new_len + 1);
+          strcpy (new_docs, m_docs);
+          strcat (new_docs, d_docs);
+          dict_set_documents (m, new_docs);
+          free (new_docs);
+        }
     }
-      
+  
+  dict_compact_values (d);
+
   {
     int i;
 
-    d->nval = 0;
-    for (i = 0; i < d->nvar; i++)
+    for (i = 0; i < dict_get_var_cnt (d); i++)
       {
-	struct variable *dv = d->var[i];
-	struct variable *mv = find_dict_variable (m, dv->name);
+	struct variable *dv = dict_get_var (d, i);
+	struct variable *mv = dict_lookup_var (m, dv->name);
 
-	dv->fv = d->nval;
-	d->nval += dv->nv;
-	
 	assert (dv->type == ALPHA || dv->width == 0);
 	assert (!mv || mv->type == ALPHA || mv->width == 0);
 	if (mv && dv->width == mv->width)
@@ -1354,19 +1295,17 @@ mtf_merge_dictionary (struct mtf_file *f)
 	    if (val_labs_count (dv->val_labs)
                 && !val_labs_count (mv->val_labs))
 	      mv->val_labs = val_labs_copy (dv->val_labs);
-	    if (dv->miss_type != MISSING_NONE && mv->miss_type == MISSING_NONE)
+	    if (dv->miss_type != MISSING_NONE
+                && mv->miss_type == MISSING_NONE)
 	      copy_missing_values (mv, dv);
 	  }
 	if (mv && dv->label && !mv->label)
 	  mv->label = xstrdup (dv->label);
-	if (!mv)
-	  {
-	    mv = force_dup_variable (m, dv, dv->name);
-
-	    /* Used to make sure we initialize each variable in the
-	       master dictionary exactly once per case. */
-	    mv->foo = mtf_seq_no;
-	  }
+	if (!mv) 
+          {
+            mv = dict_clone_var (m, dv, dv->name);
+            assert (mv != NULL);
+          }
 	else if (mv->width != dv->width)
 	  {
 	    msg (SE, _("Variable %s in file %s (%s) has different "
@@ -1393,9 +1332,6 @@ cmd_import (void)
   struct dictionary *dict;
   int options = GTSV_OPT_NONE;
   int type;
-
-  int i;
-  int nval;
 
   lex_match_id ("IMPORT");
 
@@ -1451,18 +1387,7 @@ cmd_import (void)
   dump_dict_variables (dict);
 #endif
 
-  /* Set the fv and lv elements of all variables remaining in the
-     dictionary. */
-  nval = 0;
-  for (i = 0; i < dict->nvar; i++)
-    {
-      struct variable *v = dict->var[i];
-
-      v->fv = nval;
-      nval += v->nv;
-    }
-  dict->nval = nval;
-  assert (nval);
+  dict_compact_values (dict);
 
 #if DEBUGGING
   printf (_("IMPORT translation table from file to memory:\n"));
@@ -1475,7 +1400,8 @@ cmd_import (void)
     }
 #endif
 
-  restore_dictionary (dict);
+  dict_destroy (default_dict);
+  default_dict = dict;
 
   vfm_source = &import_source;
   get_file = handle;
@@ -1488,7 +1414,7 @@ cmd_import (void)
 static void
 import_source_read (void)
 {
-  while (pfm_read_case (get_file, temp_case->data, &default_dict)
+  while (pfm_read_case (get_file, temp_case->data, default_dict)
 	 && write_case ())
     ;
   get_source_destroy_source ();
@@ -1530,12 +1456,12 @@ cmd_export (void)
   if (handle == NULL)
     return CMD_FAILURE;
 
-  dict = save_dictionary ();
+  dict = dict_clone (default_dict);
 #if DEBUGGING
   dump_dict_variables (dict);
 #endif
-  for (i = 0; i < dict->nvar; i++)
-    dict->var[i]->foo = i;
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
+    dict_get_var (dict, i)->aux = dict_get_var (default_dict, i);
   if (0 == trim_dictionary (dict, &options))
     {
       fh_close_handle (handle);
@@ -1549,7 +1475,7 @@ cmd_export (void)
   /* Write dictionary. */
   if (!pfm_write_dictionary (handle, dict))
     {
-      free_dictionary (dict);
+      dict_destroy (dict);
       fh_close_handle (handle);
       return CMD_FAILURE;
     }
@@ -1559,15 +1485,15 @@ cmd_export (void)
   t->h.proc = save_trns_proc;
   t->h.free = save_trns_free;
   t->f = handle;
-  t->nvar = dict->nvar;
-  t->var = xmalloc (sizeof *t->var * dict->nvar);
-  for (i = 0; i < dict->nvar; i++)
-    t->var[i] = dict->var[i]->foo;
-  t->case_buf = xmalloc (sizeof *t->case_buf * dict->nvar);
-  free_dictionary (dict);
+  t->nvar = dict_get_var_cnt (dict);
+  t->var = xmalloc (sizeof *t->var * t->nvar);
+  for (i = 0; i < t->nvar; i++)
+    t->var[i] = dict_get_var (dict, i)->aux;
+  t->case_buf = xmalloc (sizeof *t->case_buf * t->nvar);
+  dict_destroy (dict);
 
   procedure (NULL, export_write_case_func, NULL);
-  save_trns_free ((struct trns_header *) t);
+  save_trns_free (&t->h);
 
   return CMD_SUCCESS;
 }
@@ -1580,7 +1506,7 @@ export_write_case_func (struct ccase *c)
 
   for (i = 0; i < trns->nvar; i++)
     {
-      struct variable *v = default_dict.var[trns->var[i]];
+      struct variable *v = trns->var[i];
 
       if (v->type == NUMERIC)
 	*p++ = c->data[v->fv];
@@ -1588,9 +1514,6 @@ export_write_case_func (struct ccase *c)
 	(*p++).c = c->data[v->fv].s;
     }
 
-  printf (".");
-  fflush (stdout);
-  
   pfm_write_case (trns->f, (union value *) trns->case_buf);
   return 1;
 }

@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "alloc.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

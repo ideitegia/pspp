@@ -35,6 +35,8 @@ char *alloca ();
 #endif
 #endif
 
+#include "sfm.h"
+#include "sfmP.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -49,8 +51,6 @@ char *alloca ();
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
-#include "sfm.h"
-#include "sfmP.h"
 #include "value-labels.h"
 #include "str.h"
 #include "var.h"
@@ -306,10 +306,10 @@ sfm_read_dictionary (struct file_handle * h, struct sfm_read_info * inf)
 	lose ((ME, _("%s: Weighting variable may not be a string variable."),
 	       h->fn));
 
-      strcpy (ext->dict->weight_var, wv->name);
+      dict_set_weight (ext->dict, wv);
     }
   else
-    ext->dict->weight_var[0] = 0;
+    dict_set_weight (ext->dict, NULL);
 
   /* Read records of types 3, 4, 6, and 7. */
   for (;;)
@@ -428,7 +428,7 @@ lossage:
   free (var_by_index);
   fn_close (h->fn, ext->file);
   if (ext && ext->dict)
-    free_dictionary (ext->dict);
+    dict_destroy (ext->dict);
   free (ext);
   h->class = NULL;
   h->ext = NULL;
@@ -544,20 +544,7 @@ read_header (struct file_handle * h, struct sfm_read_info * inf)
   int i;
 
   /* Create the dictionary. */
-  dict = ext->dict = xmalloc (sizeof *dict);
-  dict->var = NULL;
-  dict->name_tab = NULL;
-  dict->nvar = 0;
-  dict->N = 0;
-  dict->nval = -1;		/* Unknown. */
-  dict->n_splits = 0;
-  dict->splits = NULL;
-  dict->weight_var[0] = 0;
-  dict->weight_index = -1;
-  dict->filter_var[0] = 0;
-  dict->label = NULL;
-  dict->n_documents = 0;
-  dict->documents = NULL;
+  dict = ext->dict = dict_create ();
 
   /* Read header, check magic. */
   assertive_bufread (h, &hdr, sizeof hdr, 0);
@@ -647,14 +634,15 @@ read_header (struct file_handle * h, struct sfm_read_info * inf)
   {
     int i;
 
-    dict->label = NULL;
     for (i = sizeof hdr.file_label - 1; i >= 0; i--)
       if (!isspace ((unsigned char) hdr.file_label[i])
 	  && hdr.file_label[i] != 0)
 	{
-	  dict->label = xmalloc (i + 2);
-	  memcpy (dict->label, hdr.file_label, i + 1);
-	  dict->label[i + 1] = 0;
+          char *label = xmalloc (i + 2);
+	  memcpy (label, hdr.file_label, i + 1);
+	  label[i + 1] = 0;
+          dict_set_label (dict, label);
+          free (label);
 	  break;
 	}
   }
@@ -692,14 +680,9 @@ lossage:
 }
 
 /* Reads most of the dictionary from file H; also fills in the
-   associated VAR_BY_INDEX array. 
-
-   Note: the dictionary returned by this function has an invalid NVAL
-   element, also the VAR[] array does not have the FV and LV elements
-   set, however the NV elements *are* set.  This is because the caller
-   will probably modify the dictionary before reading it in from the
-   file.  Also, the get.* elements are set to appropriate values to
-   allow the file to be read.  */
+   associated VAR_BY_INDEX array.  The get.* elements in the
+   created dictionary are set to appropriate values to allow the
+   file to be read.  */
 static int
 read_variables (struct file_handle * h, struct variable *** var_by_index)
 {
@@ -713,7 +696,6 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
   int next_value = 0;		/* Index to next `value' structure. */
 
   /* Allocate variables. */
-  dict->var = xmalloc (sizeof *dict->var * ext->case_size);
   *var_by_index = xmalloc (sizeof **var_by_index * ext->case_size);
 
   /* Read in the entry for each variable and use the info to
@@ -721,6 +703,7 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
   for (i = 0; i < ext->case_size; i++)
     {
       struct variable *vv;
+      char name[9];
       int j;
 
       assertive_bufread (h, &sv, sizeof sv, 0);
@@ -768,12 +751,6 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
 	lose ((ME, _("%s: position %d: Missing value indicator field is not "
 		     "-3, -2, 0, 1, 2, or 3."), h->fn, i));
 
-      /* Construct internal variable structure, initialize critical bits. */
-      vv = (*var_by_index)[i] = dict->var[dict->nvar++] = xmalloc (sizeof *vv);
-      vv->index = dict->nvar - 1;
-      vv->foo = -1;
-      vv->label = NULL;
-
       /* Copy first character of variable name. */
       if (!isalpha ((unsigned char) sv.name[0])
 	  && sv.name[0] != '@' && sv.name[0] != '#')
@@ -786,7 +763,7 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
 	msg (MW, _("%s: position %d: Variable name begins with octothorpe "
 		   "(`#').  Scratch variables should not appear in system "
 		   "files."), h->fn, i);
-      vv->name[0] = toupper ((unsigned char) (sv.name[0]));
+      name[0] = toupper ((unsigned char) (sv.name[0]));
 
       /* Copy remaining characters of variable name. */
       for (j = 1; j < 8; j++)
@@ -799,39 +776,31 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
 	    {
 	      msg (MW, _("%s: position %d: Variable name character %d is "
 		   "lowercase letter %c."), h->fn, i, j + 1, sv.name[j]);
-	      vv->name[j] = toupper ((unsigned char) (c));
+	      name[j] = toupper ((unsigned char) (c));
 	    }
 	  else if (isalnum (c) || c == '.' || c == '@'
 		   || c == '#' || c == '$' || c == '_')
-	    vv->name[j] = c;
+	    name[j] = c;
 	  else
 	    lose ((ME, _("%s: position %d: character `\\%03o' (%c) is not valid in a "
 		   "variable name."), h->fn, i, c, c));
 	}
-      vv->name[j] = 0;
+      name[j] = 0;
 
-      /* Set type, width, and `left' fields and allocate `value'
-	 indices. */
-      if (sv.type == 0)
-	{
-	  vv->type = NUMERIC;
-	  vv->width = 0;
-	  vv->get.nv = 1;
-	  vv->get.fv = next_value++;
-	  vv->nv = 1;
-	}
+      /* Create variable. */
+      vv = (*var_by_index)[i] = dict_create_var (dict, name, sv.type);
+      if (vv == NULL) 
+        lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
+               h->fn, name));
+
+      /* Case reading data. */
+      vv->get.fv = next_value;
+      if (sv.type == 0) 
+        vv->get.nv = 1;
       else
-	{
-	  vv->type = ALPHA;
-	  vv->width = sv.type;
-	  vv->nv = DIV_RND_UP (vv->width, MAX_SHORT_STRING);
-	  vv->get.nv = DIV_RND_UP (vv->width, sizeof (flt64));
-	  vv->get.fv = next_value;
-	  next_value += vv->get.nv;
-	  long_string_count = vv->get.nv - 1;
-	}
-      vv->left = (vv->name[0] == '#');
-      vv->val_labs = val_labs_create (vv->width);
+        vv->get.nv = DIV_RND_UP (sv.type, sizeof (flt64));
+      long_string_count = vv->get.nv - 1;
+      next_value += vv->get.nv;
 
       /* Get variable label, if any. */
       if (sv.has_var_label == 1)
@@ -928,29 +897,11 @@ read_variables (struct file_handle * h, struct variable *** var_by_index)
   if (next_value != ext->case_size)
     lose ((ME, _("%s: System file header indicates %d variable positions but "
 	   "%d were read from file."), h->fn, ext->case_size, next_value));
-  dict->var = xrealloc (dict->var, sizeof *dict->var * dict->nvar);
-
-  /* Construct hash table of dictionary in order to speed up
-     later processing and to check for duplicate varnames. */
-  dict->name_tab = hsh_create (8, compare_variables, hash_variable,
-                               NULL, NULL);
-  for (i = 0; i < dict->nvar; i++)
-    if (NULL != hsh_insert (dict->name_tab, dict->var[i]))
-      lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
-	     h->fn, dict->var[i]->name));
 
   return 1;
 
 lossage:
-  for (i = 0; i < dict->nvar; i++)
-    {
-      free (dict->var[i]->label);
-      free (dict->var[i]);
-    }
-  free (dict->var);
-  if (dict->name_tab)
-    hsh_destroy (dict->name_tab);
-  free (dict);
+  dict_destroy (dict);
   ext->dict = NULL;
 
   return 0;
@@ -1064,10 +1015,10 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
   assertive_bufread (h, &n_vars, sizeof n_vars, 0);
   if (ext->reverse_endian)
     bswap_int32 (&n_vars);
-  if (n_vars < 1 || n_vars > ext->dict->nvar)
+  if (n_vars < 1 || n_vars > dict_get_var_cnt (ext->dict))
     lose ((ME, _("%s: Number of variables associated with a value label (%d) "
 	   "is not between 1 and the number of variables (%d)."),
-	   h->fn, n_vars, ext->dict->nvar));
+	   h->fn, n_vars, dict_get_var_cnt (ext->dict)));
 
   /* Read the list of variables. */
   var = xmalloc (n_vars * sizeof *var);
@@ -1153,6 +1104,7 @@ read_value_labels (struct file_handle * h, struct variable ** var_by_index)
 
   for (i = 0; i < n_labels; i++)
     free (labels[i].label);
+  free (labels);
   free (var);
   return 1;
 
@@ -1198,20 +1150,24 @@ read_documents (struct file_handle * h)
   struct sfm_fhuser_ext *ext = h->ext;
   struct dictionary *dict = ext->dict;
   int32 n_lines;
+  char *documents;
 
-  if (dict->documents != NULL)
+  if (dict_get_documents (dict) != NULL)
     lose ((ME, _("%s: System file contains multiple type 6 (document) records."),
 	   h->fn));
 
   assertive_bufread (h, &n_lines, sizeof n_lines, 0);
-  dict->n_documents = n_lines;
-  if (dict->n_documents <= 0)
+  if (n_lines <= 0)
     lose ((ME, _("%s: Number of document lines (%ld) must be greater than 0."),
-	   h->fn, (long) dict->n_documents));
+	   h->fn, (long) n_lines));
 
-  dict->documents = bufread (h, NULL, 80 * n_lines, 0);
-  if (dict->documents == NULL)
+  documents = bufread (h, NULL, 80 * n_lines, n_lines * 80 + 1);
+  /* FIXME?  Run through asciify. */
+  if (documents == NULL)
     return 0;
+  documents[80 * n_lines] = '\0';
+  dict_set_documents (dict, documents);
+  free (documents);
   return 1;
 
 lossage:
@@ -1234,12 +1190,10 @@ dump_dictionary (struct dictionary * dict)
       int n, j;
 
       debug_printf (("	 var %s", v->name));
-      /*debug_printf (("(indices:%d,%d)", v->index, v->foo));*/
       debug_printf (("(type:%s,%d)", (v->type == NUMERIC ? _("num")
 				 : (v->type == ALPHA ? _("str") : "!!!")),
 		     v->width));
       debug_printf (("(fv:%d,%d)", v->fv, v->nv));
-      /*debug_printf (("(get.fv:%d,%d)", v->get.fv, v->get.nv));*/
       debug_printf (("(left:%s)(miss:", v->left ? _("left") : _("right")));
 	      
       switch (v->miss_type)
@@ -1441,10 +1395,6 @@ sfm_read_case (struct file_handle * h, union value * perm, struct dictionary * d
 
   int i;
 
-  /* Make sure the caller remembered to finish polishing the
-     dictionary returned by sfm_read_dictionary(). */
-  assert (dict->nval > 0);
-
   /* The first concern is to obtain a full case relative to the data
      file.  (Cases in the data file have no particular relationship to
      cases in the active file.) */
@@ -1469,9 +1419,9 @@ sfm_read_case (struct file_handle * h, union value * perm, struct dictionary * d
 
   /* Translate a case in data file format to a case in active file
      format. */
-  for (i = 0; i < dict->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
-      struct variable *v = dict->var[i];
+      struct variable *v = dict_get_var (dict, i);
 
       if (v->get.fv == -1)
 	continue;

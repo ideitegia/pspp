@@ -18,6 +18,8 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "expr.h"
+#include "exprP.h"
 #include <assert.h>
 #include <math.h>
 #include <ctype.h>
@@ -27,8 +29,6 @@
 #include "approx.h"
 #include "data-in.h"
 #include "error.h"
-#include "expr.h"
-#include "exprP.h"
 #include "julcal/julcal.h"
 #include "misc.h"
 #include "stats.h"
@@ -1021,9 +1021,8 @@ dump_expression (union any_node * n, struct expression * expr)
 	max_height = height;
     }
 
-  /* ANSI says we have to waste space for one `value' since pointers
-     are not guaranteed to be able to point to a spot *before* a
-     block.  If only all the world were a VAX... */
+  /* We waste space for one `value' since pointers are not
+     guaranteed to be able to point to a spot before a block. */
   max_height++;
 
   e->stack = xmalloc (max_height * sizeof *e->stack);

@@ -84,7 +84,7 @@ internal_cmd_formats (int which)
       if (token == '.')
 	break;
 
-      if (!parse_variables (NULL, &v, &cv, PV_SAME_TYPE))
+      if (!parse_variables (default_dict, &v, &cv, PV_SAME_TYPE))
 	return CMD_PART_SUCCESS_MAYBE;
       type = v[0]->type;
 

@@ -302,7 +302,7 @@ static char *quote_ps_string (char *dest, const char *string);
 
 /* Driver initialization. */
 
-int
+static int
 ps_open_global (struct outp_class *this unused)
 {
   init_fonts ();
@@ -310,13 +310,13 @@ ps_open_global (struct outp_class *this unused)
   return 1;
 }
 
-int
+static int
 ps_close_global (struct outp_class *this unused)
 {
   return 1;
 }
 
-int *
+static int *
 ps_font_sizes (struct outp_class *this unused, int *n_valid_sizes)
 {
   /* Allow fonts up to 1" in height. */
@@ -328,7 +328,7 @@ ps_font_sizes (struct outp_class *this unused, int *n_valid_sizes)
   return valid_sizes;
 }
 
-int
+static int
 ps_preopen_driver (struct outp_driver *this)
 {
   struct ps_driver_ext *x;
@@ -403,7 +403,7 @@ ps_preopen_driver (struct outp_driver *this)
   return 1;
 }
 
-int
+static int
 ps_postopen_driver (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
@@ -476,7 +476,7 @@ ps_postopen_driver (struct outp_driver *this)
   return 1;
 }
 
-int
+static int
 ps_close_driver (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
@@ -578,7 +578,7 @@ static struct outp_option option_tab[] =
 };
 static struct outp_option_info option_info;
 
-void
+static void
 ps_option (struct outp_driver *this, const char *key, const struct string *val)
 {
   struct ps_driver_ext *x = this->ext;
@@ -1652,7 +1652,7 @@ preclose (struct file_ext *f)
   return 1;
 }
 
-int
+static int
 ps_open_page (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
@@ -1709,7 +1709,7 @@ ps_open_page (struct outp_driver *this)
   return !ferror (x->file.file);
 }
 
-int
+static int
 ps_close_page (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
@@ -1912,7 +1912,7 @@ line (struct outp_driver *this, int type, int ind, int dep1, int dep2)
   (*f)->ndep++;
 }
 
-void
+static void
 ps_line_horz (struct outp_driver *this, const struct rect *r,
 	      const struct color *c unused, int style)
 {
@@ -1929,7 +1929,7 @@ ps_line_horz (struct outp_driver *this, const struct rect *r,
     line (this, style, y, r->x1, r->x2);
 }
 
-void
+static void
 ps_line_vert (struct outp_driver *this, const struct rect *r,
 	      const struct color *c unused, int style)
 {
@@ -1951,7 +1951,7 @@ ps_line_vert (struct outp_driver *this, const struct rect *r,
 #define T (style->t != OUTP_L_NONE)
 #define B (style->b != OUTP_L_NONE)
 
-void
+static void
 ps_line_intersection (struct outp_driver *this, const struct rect *r,
 		      const struct color *c unused,
 		      const struct outp_styles *style)
@@ -2033,38 +2033,25 @@ ps_line_intersection (struct outp_driver *this, const struct rect *r,
     }
 }
 
-void
-ps_line_width (struct outp_driver *this, int *width, int *height)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  width[0] = height[0] = 0;
-  width[1] = height[1] = 2 * x->line_gutter + x->line_width;
-  width[2] = height[2] = (2 * x->line_gutter + 2 * x->line_width
-			  + x->line_space);
-  width[3] = height[3] = 2 * x->line_gutter + x->line_width;
-}
-
-void
+static void
 ps_box (struct outp_driver *this unused, const struct rect *r unused,
 	const struct color *bord unused, const struct color *fill unused)
 {
   assert (this->driver_open && this->page_open);
 }
 
-void 
+static void 
 ps_polyline_begin (struct outp_driver *this unused,
 		   const struct color *c unused)
 {
   assert (this->driver_open && this->page_open);
 }
-void 
+static void 
 ps_polyline_point (struct outp_driver *this unused, int x unused, int y unused)
 {
   assert (this->driver_open && this->page_open);
 }
-void 
+static void 
 ps_polyline_end (struct outp_driver *this unused)
 {
   assert (this->driver_open && this->page_open);
@@ -2161,7 +2148,7 @@ draw_headers (struct outp_driver *this)
 
 /* Text. */
 
-void
+static void
 ps_text_set_font_by_name (struct outp_driver *this, const char *dit)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2190,7 +2177,7 @@ ps_text_set_font_by_name (struct outp_driver *this, const char *dit)
   x->current = fe;
 }
 
-void
+static void
 ps_text_set_font_by_position (struct outp_driver *this, int pos)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2237,7 +2224,7 @@ ps_text_set_font_by_position (struct outp_driver *this, int pos)
   local_free (dit);
 }
 
-void
+static void
 ps_text_set_font_family (struct outp_driver *this, const char *s)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2248,7 +2235,7 @@ ps_text_set_font_family (struct outp_driver *this, const char *s)
   x->family = xstrdup (s);
 }
 
-const char *
+static const char *
 ps_text_get_font_name (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2257,7 +2244,7 @@ ps_text_get_font_name (struct outp_driver *this)
   return x->current->font->name;
 }
 
-const char *
+static const char *
 ps_text_get_font_family (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2266,7 +2253,7 @@ ps_text_get_font_family (struct outp_driver *this)
   return x->family;
 }
 
-int
+static int
 ps_text_set_size (struct outp_driver *this, int size)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2276,7 +2263,7 @@ ps_text_set_size (struct outp_driver *this, int size)
   return 1;
 }
 
-int
+static int
 ps_text_get_size (struct outp_driver *this, int *em_width)
 {
   struct ps_driver_ext *x = this->ext;
@@ -2788,14 +2775,14 @@ exit:
   ext->size = old_size;
 }
 
-void
+static void
 ps_text_metrics (struct outp_driver *this, struct outp_text *t)
 {
   assert (this->driver_open && this->page_open);
   text (this, t, 0);
 }
 
-void
+static void
 ps_text_draw (struct outp_driver *this, struct outp_text *t)
 {
   assert (this->driver_open && this->page_open);

@@ -18,6 +18,15 @@ typedef unsigned algo_random_func (unsigned max, void *aux);
 /* A generally suitable random function. */
 algo_random_func algo_default_random;
 
+/* Finds an element in ARRAY, which contains COUNT elements of
+   SIZE bytes each, using COMPARE for comparisons.  Returns the
+   first element in ARRAY that matches TARGET, or a null pointer
+   on failure.  AUX is passed to each comparison as auxiliary
+   data. */
+void *find (const void *array, size_t count, size_t size,
+            const void *target,
+            algo_compare_func *compare, void *aux);
+
 /* Sorts ARRAY, which contains COUNT elements of SIZE bytes each,
    using COMPARE for comparisons.  AUX is passed to each
    comparison as auxiliary data. */
@@ -57,6 +66,14 @@ size_t copy_if (const void *array, size_t count, size_t size,
                 void *result,
                 algo_predicate_func *predicate, void *aux);
 
+/* Removes elements equal to ELEMENT from ARRAY, which consists
+   of COUNT elements of SIZE bytes each.  Returns the number of
+   remaining elements.  AUX is passed to COMPARE as auxiliary
+   data. */
+size_t remove_equal (void *array, size_t count, size_t size,
+                     void *element,
+                     algo_compare_func *compare, void *aux);
+
 /* Copies the COUNT elements of SIZE bytes each from ARRAY to
    RESULT, except that elements for which PREDICATE is true are
    not copied.  Returns the number of elements copied.  AUX is
@@ -82,5 +99,27 @@ int lexicographical_compare (const void *array1, size_t count1,
                              const void *array2, size_t count2,
                              size_t size,
                              algo_compare_func *compare, void *aux);
+
+/* Computes the generalized set difference, ARRAY1 minus ARRAY2,
+   into RESULT, and returns the number of elements written to
+   RESULT.  If a value appears M times in ARRAY1 and N times in
+   ARRAY2, then it will appear max(M - N, 0) in RESULT.  ARRAY1
+   and ARRAY2 must be sorted, and RESULT is sorted and stable.
+   ARRAY1 consists of COUNT1 elements, ARRAY2 of COUNT2 elements,
+   each SIZE bytes.  AUX is passed to COMPARE as auxiliary
+   data. */
+size_t set_difference (const void *array1, size_t count1,
+                       const void *array2, size_t count2,
+                       size_t size,
+                       void *result,
+                       algo_compare_func *compare, void *aux);
+
+/* Finds the first pair of adjacent equal elements in ARRAY,
+   which has COUNT elements of SIZE bytes.  Returns the first
+   element in ARRAY such that COMPARE returns zero when it and
+   its successor element are compared.  AUX is passed to COMPARE
+   as auxiliary data. */
+void *adjacent_find_equal (const void *array, size_t count, size_t size,
+                           algo_compare_func *compare, void *aux);
 
 #endif /* sort-algo.h */

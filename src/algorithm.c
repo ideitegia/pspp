@@ -70,27 +70,68 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  */
 
+/* Copyright (C) 1991, 1992, 1996, 1997, 1999 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
+   Written by Douglas C. Schmidt (schmidt@ics.uci.edu).
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
+
 #include <config.h>
+#include "algorithm.h"
 #include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
-#include "algorithm.h"
 #include "random.h"
 
+/* Finds an element in ARRAY, which contains COUNT elements of
+   SIZE bytes each, using COMPARE for comparisons.  Returns the
+   first element in ARRAY that matches TARGET, or a null pointer
+   on failure.  AUX is passed to each comparison as auxiliary
+   data. */
+void *find (const void *array, size_t count, size_t size,
+            const void *target,
+            algo_compare_func *compare, void *aux) 
+{
+  const unsigned char *element = array;
+
+  while (count-- > 0) 
+    {
+      if (compare (target, element, aux) == 0)
+        return (void *) element;
+
+      element += size;
+    }
+
+  return NULL;
+}
+
 /* Byte-wise swap two items of size SIZE. */
-#define SWAP(a, b, size)						      \
-  do									      \
-    {									      \
-      register size_t __size = (size);					      \
-      register char *__a = (a), *__b = (b);				      \
-      do								      \
-	{								      \
-	  char __tmp = *__a;						      \
-	  *__a++ = *__b;						      \
-	  *__b++ = __tmp;						      \
-	} while (--__size > 0);						      \
+#define SWAP(a, b, size)                        \
+  do                                            \
+    {                                           \
+      register size_t __size = (size);          \
+      register char *__a = (a), *__b = (b);     \
+      do                                        \
+	{                                       \
+	  char __tmp = *__a;                    \
+	  *__a++ = *__b;                        \
+	  *__b++ = __tmp;                       \
+	} while (--__size > 0);                 \
     } while (0)
 
 /* Makes the elements in ARRAY unique, by moving up duplicates,
@@ -129,68 +170,6 @@ sort_unique (void *array, size_t count, size_t size,
   sort (array, count, size, compare, aux);
   return unique (array, count, size, compare, aux);
 }
-
-#ifdef TEST_UNIQUE
-#include <stdio.h>
-
-void *
-xmalloc (size_t size) 
-{
-  return malloc (size);
-}
-
-int
-compare_ints (const void *a_, const void *b_, void *aux) 
-{
-  const int *a = a_;
-  const int *b = b_;
-
-  if (*a > *b)
-    return 1;
-  else if (*a < *b)
-    return 1;
-  else
-    return 0;
-}
-
-void
-try_unique (const char *title,
-            int *in, size_t in_cnt,
-            size_t out_cnt)
-{
-  size_t i;
-
-  in_cnt = unique (in, in_cnt, sizeof *in, compare_ints, NULL);
-  if (in_cnt != out_cnt)
-    {
-      fprintf (stderr, "unique_test: %s: in_cnt %d, expected %d\n",
-               title, (int) in_cnt, (int) out_cnt);
-      return;
-    }
-  
-  for (i = 0; i < out_cnt; i++) 
-    {
-      if (in[i] != i) 
-        fprintf (stderr, "unique_test: %s: idx %d = %d, expected %d\n",
-                 title, (int) i, in[i], i);
-    }
-}
-
-int
-main (void) 
-{
-  int a_in[] = {0, 0, 0, 1, 2, 3, 3, 4, 5, 5};
-  int b_in[] = {0, 1, 2, 2, 2, 3};
-  int c_in[] = {0};
-  int d_in;
-
-  try_unique ("a", a_in, sizeof a_in / sizeof *a_in, 6);
-  try_unique ("b", b_in, sizeof b_in / sizeof *b_in, 4);
-  try_unique ("c", c_in, sizeof c_in / sizeof *c_in, 1);
-  try_unique ("d", &d_in, 0, 0);
-  
-}
-#endif /* TEST_UNIQUE */
 
 /* Reorders ARRAY, which contains COUNT elements of SIZE bytes
    each, so that the elements for which PREDICATE returns nonzero
@@ -280,7 +259,7 @@ copy_if (const void *array, size_t count, size_t size,
   const unsigned char *last = input + size * count;
   unsigned char *output = result;
   
-  while (input <= last)
+  while (input < last)
     {
       if (predicate (input, aux)) 
         {
@@ -309,6 +288,50 @@ not (const void *data, void *pred_aux_)
   const struct pred_aux *pred_aux = pred_aux_;
 
   return !pred_aux->predicate (data, pred_aux->aux);
+}
+
+/* Removes elements equal to ELEMENT from ARRAY, which consists
+   of COUNT elements of SIZE bytes each.  Returns the number of
+   remaining elements.  AUX is passed to COMPARE as auxiliary
+   data. */
+size_t
+remove_equal (void *array, size_t count, size_t size,
+              void *element,
+              algo_compare_func *compare, void *aux) 
+{
+  unsigned char *first = array;
+  unsigned char *last = first + count * size;
+  unsigned char *result;
+
+  for (;;)
+    {
+      if (first >= last)
+        return count;
+      if (compare (first, element, aux) == 0)
+        break;
+
+      first += size;
+    }
+
+  result = first;
+  count--;
+  for (;;) 
+    {
+      first += size;
+      if (first >= last)
+        return count;
+
+      if (compare (first, element, aux) == 0) 
+        {
+          count--; 
+          continue;
+        }
+      
+      memcpy (result, first, size);
+      result += size;
+    }
+
+  return count;
 }
 
 /* Copies the COUNT elements of SIZE bytes each from ARRAY to
@@ -391,27 +414,7 @@ lexicographical_compare (const void *array1, size_t count1,
 
   return count1 < count2 ? -1 : count1 > count2;
 }
-
 
-/* Copyright (C) 1991, 1992, 1996, 1997, 1999 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
-   Written by Douglas C. Schmidt (schmidt@ics.uci.edu).
-
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
-
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
-
 /* If you consider tuning this algorithm, you should consult first:
    Engineering a sort function; Jon Bentley and M. Douglas McIlroy;
    Software - Practice and Experience; Vol. 23 (11), 1249-1265, 1993.  */
@@ -627,3 +630,78 @@ sort (void *const pbase, size_t total_elems, size_t size,
       }
   }
 }
+
+/* Computes the generalized set difference, ARRAY1 minus ARRAY2,
+   into RESULT, and returns the number of elements written to
+   RESULT.  If a value appears M times in ARRAY1 and N times in
+   ARRAY2, then it will appear max(M - N, 0) in RESULT.  ARRAY1
+   and ARRAY2 must be sorted, and RESULT is sorted and stable.
+   ARRAY1 consists of COUNT1 elements, ARRAY2 of COUNT2 elements,
+   each SIZE bytes.  AUX is passed to COMPARE as auxiliary
+   data. */
+size_t set_difference (const void *array1, size_t count1,
+                       const void *array2, size_t count2,
+                       size_t size,
+                       void *result_,
+                       algo_compare_func *compare, void *aux) 
+{
+  const unsigned char *first1 = array1;
+  const unsigned char *last1 = first1 + count1 * size;
+  const unsigned char *first2 = array2;
+  const unsigned char *last2 = first2 + count2 * size;
+  unsigned char *result = result_;
+  size_t result_count = 0;
+  
+  while (first1 != last1 && first2 != last2) 
+    {
+      int cmp = compare (first1, first2, aux);
+      if (cmp < 0)
+        {
+          memcpy (result, first1, size);
+          first1 += size;
+          result += size;
+          result_count++;
+        }
+      else if (cmp > 0)
+        first2 += size;
+      else
+        {
+          first1 += size;
+          first2 += size;
+        }
+    }
+
+  while (first1 != last1) 
+    {
+      memcpy (result, first1, size);
+      first1 += size;
+      result += size;
+      result_count++;
+    }
+
+  return result_count;
+}
+
+/* Finds the first pair of adjacent equal elements in ARRAY,
+   which has COUNT elements of SIZE bytes.  Returns the first
+   element in ARRAY such that COMPARE returns zero when it and
+   its successor element are compared, or a null pointer if no
+   such element exists.  AUX is passed to COMPARE as auxiliary
+   data. */
+void *
+adjacent_find_equal (const void *array, size_t count, size_t size,
+                     algo_compare_func *compare, void *aux) 
+{
+  const unsigned char *first = array;
+  const unsigned char *last = first + count * size;
+
+  while (first < last && first + size < last) 
+    {
+      if (compare (first, first + size, aux) == 0)
+        return (void *) first;
+      first += size;
+    }
+
+  return NULL;
+}
+

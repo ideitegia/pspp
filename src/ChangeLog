@@ -1,3 +1,576 @@
+Sat Dec 27 22:17:52 2003  Ben Pfaff  <blp@gnu.org>
+
+	Dictionary classes: each variable is "ordinary", "system", or
+	"scratch".
+
+	* var.h: (enum dict_class) New enum.
+
+	* vars-prs.c: (dict_class_from_id) New function.
+	(dict_class_to_name) New function.
+
+Sat Dec 27 22:16:06 2003  Ben Pfaff  <blp@gnu.org>
+
+	* var.h: (struct freq_tab_set) Removed (not used).
+
+Sat Dec 27 22:15:21 2003  Ben Pfaff  <blp@gnu.org>
+
+	* value-labels.c: (val_labs_destroy) vls needs to be freed too.
+
+Sat Dec 27 22:10:49 2003  Ben Pfaff  <blp@gnu.org>
+
+	* stats.c: (hypercube) Rename pow4().  All references updated.
+
+Sat Dec 27 22:05:49 2003  Ben Pfaff  <blp@gnu.org>
+
+	* rename-vars.c: (cmd_rename_variables) Rewritten.
+	(compare_name) Removed.
+
+Sat Dec 27 22:03:51 2003  Ben Pfaff  <blp@gnu.org>
+
+	var_set feature, and code taking advantage of it.
+	
+	* crosstabs.q: (static var var_dict) Removed.
+	(static var variables) New variable.
+	(static var variables_cnt) New variable.
+	(cmd_crosstabs) Free variables instead of var_dict.
+	(internal_cmd_crosstabs) Initialize and use variables,
+	variables_cnt instead of var_dict.
+	(free_var_dict) Removed.
+	(crs_custom_tables) Use var_set instead of a copied dictionary.
+	(crs_custom_variables) Set up variables, variables_cnt instead of
+	var_dict.
+	[DEBUGGING] (debug_print) Ditto.
+
+	* means.q: (mns_custom_tables) Use var_set instead of a copied
+	dictionary.
+
+	* vars-prs.c: (parse_vs_variable) New function.
+	(parse_dict_variable) Rewritten.
+	(parse_variable) Rewritten.
+	(parse_variables) Renamed parse_var_set_vars(), rewritten.
+	(parse_variables) New function in terms of parse_var_set_vars().
+	Now requires its first argument to be non-null.  All references
+	that passed a null pointer updated to pass default_dict instead.
+	(macro id_dict) Removed.
+	(parse_DATA_LIST_vars) Add assertions.
+	(parse_mixed_vars) Ditto.
+	(struct var_set) New structure.
+	(var_set_get_cnt) New function.
+	(var_set_get_var) New function.
+	(var_set_lookup_var) New function.
+	(var_set_destroy) New function.
+	(dict_var_set_get_cnt) New function.
+	(dict_var_set_get_var) New function.
+	(dict_var_set_lookup_var) New function.
+	(dict_var_set_destroy) New function.
+	(var_set_create_from_dict) New function.
+	(struct array_var_set) New structure.
+	(array_var_set_get_cnt) New function.
+	(array_var_set_get_var) New function.
+	(array_var_set_lookup_var) New function.
+	(array_var_set_destroy) New function.
+	(var_set_create_from_array) New function.
+
+	* q2c.c: (dump_parser) Use parse_variables(default_dict, ...)
+	instead of parse_variables(NULL, ...) in output code.
+
+Sat Dec 27 21:38:53 2003  Ben Pfaff  <blp@gnu.org>
+
+	Change inp_init from a 2-bit vector to an ordinary array.
+	Initialize it all in cmd_end_input_program() instead of in
+	create_variable().
+
+	* inpt-pgm.c: (enum value_init_type) New enum.
+	(global var inp_init) Change to `enum value_init_type *', make
+	static.
+	(inp_init_size) Removed.
+	(inp_nval) Change to `size_t', make static.
+	(cmd_input_program) Don't initialize inp_init or inp_init_size.
+	(cmd_end_input_program) Initialize inp_init, inp_nval.
+	(init_case) Rewrite.
+	(clear_case) Rewrite.
+
+	* inpt-pgm.h: Removed.
+
+Sat Dec 27 21:36:38 2003  Ben Pfaff  <blp@gnu.org>
+
+	* hash.c: (hsh_hash_bytes) Use Fowler-Noll-Vo hash instead of
+	Colin Plumb hash.  It is simpler and should better resist
+	collisions.
+	(hsh_hash_string) Ditto.
+
+Sat Dec 27 21:34:57 2003  Ben Pfaff  <blp@gnu.org>
+
+	* get.c: (export_write_case_func) Remove debug printing code.
+
+Sat Dec 27 21:11:09 2003  Ben Pfaff  <blp@gnu.org>
+
+	* get.c: (cmd_save_internal) Rename parameter.  Use &t->h instead
+	of cast.
+	(save_write_case_func) Use &trns->h instead of cast.
+	(cmd_export) Use &t->h instead of cast.
+
+Sat Dec 27 20:57:42 2003  Ben Pfaff  <blp@gnu.org>
+
+	Moved vectors into the dictionary.
+
+	* var.h: (struct vector) Moved here from vector.h.  `index' member
+	renamed `idx', `v' renamed `var', `nv' renamed `cnt'.  All
+	references updated.
+	
+	* vector.h: Removed.
+
+	* vector.c: (global var vec) Removed.
+	(global var nvec) Removed.
+	(cmd_vector) Rewritten.
+	(find_vector) Removed.
+
+	* dictionary.c: (dict_create_vector) New function.
+	(dict_get_vector) New function, replaces reading global vec[]
+	array.
+	(dict_get_vector_cnt) New function, replaces reading global nvec
+	variable.
+	(dict_lookup_vector) New function, replaces find_vector().
+	(dict_clear_vectors) New function.
+
+Sat Dec 27 20:54:01 2003  Ben Pfaff  <blp@gnu.org>
+
+	Start to move away from `struct variable' p `union' member to void
+	* aux member.
+
+	* var.h: (struct variable) Add `aux' member.
+
+Sat Dec 27 20:36:25 2003  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of struct variable `foo' member.
+
+	* frequencies.q: (internal_cmd_frequencies) Use p.frq.used instead
+	of foo.
+	(frq_custom_variables) Ditto.
+	(frq_custom_grouped) Ditto.
+
+	* get.c: (struct save_trns) Change `var' member from `int *' to
+	`struct variable **'.
+	(cmd_save_internal) Use aux instead of foo.
+	(save_trns_proc) Use revised `var' member.
+	(static var mtf_seq_no) Renamed mtf_seq_num.
+	(static var mtf_seq_nums) New static var.
+	(cmd_match_files) Initialize mtf_seq_nums.
+	(mtf_free) Free mtf_seq_nums.
+	(mtf_processing) Use mtf_seq_nums instead of foo.
+	(mtf_merge_dictionary) No need to initialize mv->foo.
+	(cmd_export) Use aux instead of foo.  Use revised `var' member.
+	(mns_custom_tables) Don't use foo to check for duplicates, that's
+	what PV_NO_DUPLICATE is for.
+
+	* var.h: (struct variable) Remove `foo' member.
+	(struct frequencies_proc) New member.
+	
+Sat Dec 27 19:46:13 2003  Ben Pfaff  <blp@gnu.org>
+
+	Clean up COMPUTE and IF.
+
+	* compute.c: More or less rewrite the darn thing.
+	(struct compute_trns) Rename and reorder and add and delete
+	members.
+	(cmd_compute) Rewrite.
+	(compute_num) Make conditional on test expression.  Now used for
+	both COMPUTE and IF.
+	(compute_num_vec) Ditto.
+	(compute_str) Ditto.
+	(compute_str_vec) Ditto.
+	(cmd_if) Rewrite.
+	(if_num) Removed.
+	(if_num_vec) Removed.
+	(if_str) Removed.
+	(if_str_vec) Removed.
+	(parse_target_expression) Renamed parse_rvalue_expression(),
+	rewritten.
+	(new_trns) Renamed compute_trns_create(), rewritten.
+	(delete_trns) Removed.
+	(free_trns) Renamed compute_trns_free(), rewritten.
+	(struct lvalue) New structure.
+	(parse_var_or_vec) Renamed lvalue_parse(), rewritten.
+	(lvalue_get_type) New function.
+	(lvalue_is_vector) New function.
+	(lvalue_finalize) New function.
+	(lvalue_destroy) New function.
+	
+Sat Dec 27 19:44:14 2003  Ben Pfaff  <blp@gnu.org>
+
+	* command.def: Disallow MODIFY VARS in input mode, so that
+	variables can't get dropped and confuse cmd_end_input_program()'s
+	attempt to fill inp_init[].
+	
+	* modify-vars.c: (static var forward_positional_ordering) New
+	variable.
+	(struct var_modification) Entirely changed.
+	(rearrange_dict) Interface changed, rewritten.
+	(cmd_modify_vars) Deal with modified struct var_modification, much
+	rewritten.
+	(struct var_renaming) New structure.
+	(compare_var_renaming_by_new_name) New function.
+	(validate_var_modification) New function.
+
+	* var.h: (struct modify_vars_proc) Removed.
+	(struct variable) Removed member p.mfv.
+
+Sat Dec 27 19:40:26 2003  Ben Pfaff  <blp@gnu.org>
+
+	Make EVALUATE a valid command whether we're debugging or not, so
+	that `make check' can succeed regardless of whether debugging is
+	turned on.
+	
+	* command.def: [GLOBAL_DEBUGGING] Drop the #if.
+
+	* compute.c: [GLOBAL_DEBUGGING] (cmd_evaluate) Drop the #if.
+
+Sat Dec 27 19:34:40 2003  Ben Pfaff  <blp@gnu.org>
+
+	* apply-dict.c: (cmd_apply_dictionary) Replace a ghastly switch
+	statement by a simple if test.
+
+	* dfm.c: (dfm_get_record) Add assertion.
+
+Sat Dec 27 17:51:26 2003  Ben Pfaff  <blp@gnu.org>
+
+	For each file x.c, move #include "x.h" to the very top of the
+	include list, to catch x.h failing to include the proper headers.
+
+Sat Dec 27 17:50:19 2003  Ben Pfaff  <blp@gnu.org>
+
+	* algorithm.c: (find) New function.
+	(remove_equal) New function.
+	(set_difference) New function.
+	(adjacent_find_equal) New function.
+	[TEST_UNIQUE] Removed test case.
+	(copy_if) Find end test.
+
+Sat Dec 27 17:42:45 2003  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c: (dict_get_case_weight) New convenience function.
+
+	* aggregate.c: (accumulate_aggregate_info) Use
+	dict_get_case_weight().
+
+	* frequencies.q: (calc_general) Ditto.
+	(calc_integer) Ditto.
+	(calc) Ditto.
+
+	* t-test.q: (groups_calc) Ditto.
+	(z_calc) Ditto.
+
+Sat Dec 27 17:29:45 2003  Ben Pfaff  <blp@gnu.org>
+
+	* glob.c: (global var default_dict) Change from `struct
+	dictionary' to `struct dictionary *'.  All references changed.
+	(init_glob) Initialize default_dict with dict_create().
+
+Sat Dec 27 17:06:06 2003  Ben Pfaff  <blp@gnu.org>
+
+	struct dictionary now made opaque.  All related functions:
+
+	* get.c: (rename_variables) Removed.
+	(dict_delete_run) Removed.
+	
+	* temporary.c: (copy_variable) Removed.
+	(new_dictionary) Removed.
+	(save_dictionary) Removed.
+	(restore_dictionary) Removed.
+	(free_dictionary) Removed.
+
+	* vars-atr.c: (clear_default_dict) Removed.
+	(find_variable) Removed.
+	(find_dict_variable) Removed.
+	(create_variable) Removed.
+	(delete_variable) Removed.
+	(common_init_stuff) Removed.
+	(init_variable) Removed.  Updating of inp_init moved into
+	cmd_end_input_program().
+	(replace_variable) Removed.
+	(rename_variable) Removed.
+	(clear_variable) Removed.
+	(dup_variable) Removed.
+
+	* vars-prs.c: (is_varname) Removed.
+	(is_dict_varname) Removed.
+	(fill_all_vars) Removed.
+
+	* vector.c: (find_vector) Removed.
+
+	* weight.c: (stop_weighting) Removed.
+
+	* dictionary.c: New file.
+	(dict_create) New, replaces new_dictionary().
+	(dict_clone) New, replaces save_dictionary() and
+	restore_dictionary().
+	(dict_clear) New, replaces clear_default_dict().
+	(dict_destroy) New, replaces free_dictionary().
+	(dict_get_var_cnt) New function, replaces references to
+	dict->nvar.
+	(dict_get_var) New function, replaces references to dict->var[i].
+	(dict_get_vars) New function, replaces fill_all_vars().
+	(dict_create_var) New, replaces create_variable().  Interface
+	drops `type' parameter, using a zero `width' to designate numeric.
+	(dict_clone_var) New, replaces dup_variable().
+	(dict_rename_var) New, replaces rename_variable().
+	(dict_lookup_var) New, replaces find_variable(),
+	find_dict_variable(), is_varname().
+	(dict_contains_var) New function.
+	(compare_variable_dblptrs) New function.
+	(dict_delete_var) New function, replaces clear_variable().
+	(dict_delete_vars) New function, replaces dict_delete_run().
+	(dict_reorder_vars) New function.
+	(dict_rename_vars) New function, replaces rename_variables().
+	(dict_get_weight) New function, replaces reading dict->weight_var.
+	(dict_set_weight) New function, replaces writing dict->weight_var
+	or calling stop_weight(dict).
+	(dict_get_filter) New function, replaces reading dict->filter_var.
+	(dict_set_filter) New function, replaces writing dict->filter_var.
+	(dict_get_case_limit) New function, replaces reading dict->N.
+	(dict_set_case_limit) New function, replaces writing dict->N.
+	(dict_get_value_cnt) New function, replaces reading dict->nval.
+	(dict_compact_values) New function, replaces a loop that was
+	replicated in several places.
+	(dict_get_split_vars) New function, replaces reading dict->splits.
+	(dict_get_split_cnt) New function, replaces reading
+	dict->n_splits.
+	(dict_set_split_vars) New function, replaces writing dict->splits.
+	(dict_get_label) New function, replaces reading dict->label.
+	(dict_set_label) New function, replaces writing dict->label.
+	(dict_get_documents) New function, replaces reading
+	dict->documents.
+	(dict_set_documents) New function, replaces writing
+	dict->documents.
+	
+	All references to above functions updated.
+	
+	* aggregate.c: (cmd_aggregate) Copy file label and documents from
+	old dictionary to new by hand, because dict_create() can't do it
+	itself.  Use dict_set_documents(), dict_set_split_vars().
+
+	* temporary.c: (cancel_temporary) Also set temp_dict to NULL after
+	calling dict_destroy().
+
+	* data-list.c: (dls_var_spec) Remove `type' member, replace by
+	`width'.
+	(fixed_parse_compatible) Some slightly nontrivial changes for
+	dict_create_var().
+	(dump_fmt_list) Ditto.
+	(parse_free) Ditto.
+
+	* file-type.c: (create_col_var) Ditto.
+
+	* get.c: (cmd_get) Use dict_compact_values() instead of a loop.
+	(trim_dictionary) Use dict_delete_vars(), dict_reorder_vars().
+	(rename_variables) Use dict_rename_vars().
+	(mtf_merge_dictionary) Use dict_get_documents(),
+	dict_set_documents(), dict_compact_values().
+
+	* pfm-read.c: (read_variables) Deal with changes to weighting.
+
+	* q2c.c: (dump_parser) Use dict_lookup_var() instead of
+	is_varname() in output code.
+
+	* sfm-read.c: (read_header) Use dict_create(), dict_set_label(),
+	other dictionary functions.
+
+	* title.c: (add_document_line) Use dict_get_documents(),
+	dict_set_documents().
+
+	* vars-atr.c: (discard_variables) Use dict_clear(default_dict),
+	reset default_handle by hand.  dict_clear() will clear vectors so
+	there's no need for that by hand.
+
+	* vfm.c: (close_active_file) Move call to finish_compaction()
+	earlier, so that we can do the compaction as a single step using
+	dict_compact_values().  Use dict_clear_vectors().
+	(finish_compaction) Use dict_delete_var(), dict_compact_values().
+		
+	Some functions don't have replacements:
+
+	* vars-atr.c: (force_create_variable) Removed.  All references
+	updated to dict_create_var() followed by an assertion.
+	(force_dup_variable) Removed.  All references updated to
+	dict_clone_var() followed by an assertion.
+	
+	* weight.c: (update_weighting) Removed.  No longer necessary, so
+	all references removed.
+
+Sat Dec 27 16:43:01 2003  Ben Pfaff  <blp@gnu.org>
+
+	Clean up AGGREGATE.
+	
+	* aggregate.c: Eliminate separation of weighted and unweighted
+	case.  It made the code too obscure and I doubt it was actually
+	faster.  Instead, all code uses the "weighted" code, because
+	that's a generalization of the "unweighted" code.
+	(FWEIGHT) Removed.
+	(FOPTIONS) Ditto.
+	(parse_aggregate_functions) No need to set FWEIGHT.
+	(accumulate_aggregate_info) Get rid of FWEIGHT cases.
+	(dump_aggregate_info) Ditto.
+	(initialize_aggregate_info) No need for special plain_function
+	that gets rid of FWEIGHT option.
+
+	* aggregate.c: Get rid of approximations.
+	(accumulate_aggregate_info) Don't use approx_gt(), approx_lt(),
+	approx_in_range().
+	(aggregate_single_case) Don't use approx_ne().
+
+Sat Dec 27 16:19:36 2003  Ben Pfaff  <blp@gnu.org>
+
+	* ascii.c (ascii_line_width): Dead code, removed.
+
+	* postscript.c (ps_line_width): Ditto.
+
+	* q2c.c (xrealloc): Ditto.
+
+	* count.c (internal_cmd_count): Ditto.
+
+	* means.q (validate_dependent_endpoint): Ditto.
+
+	* set.q: (cmd_gset) Ditto.
+
+	* weight.c: [0] (weight_trns_proc) Ditto.
+
+Sat Dec 27 16:18:16 2003  Ben Pfaff  <blp@gnu.org>
+
+	Make the code -Wmissing-prototypes clean.
+
+	* Makefile.am (version.c): Add #include "version.h".
+	
+	* ascii.c: (ascii_open_global) Make static.
+	(ascii_close_page) Ditto.
+	(ascii_font_sizes) Ditto.
+	(ascii_postopen_driver) Ditto.
+	(ascii_close_driver) Ditto.
+	(ascii_option) Ditto.
+	(ascii_open_page) Ditto.
+	(ascii_line_horz) Ditto.
+	(ascii_line_vert) Ditto.
+	(ascii_line_intersection) Ditto.
+	(ascii_box) Ditto.
+	(ascii_polyline_begin) Ditto.
+	(ascii_polyline_point) Ditto.
+	(ascii_polyline_end) Ditto.
+	(ascii_text_set_font_by_name) Ditto.
+	(ascii_text_set_font_by_position) Ditto.
+	(ascii_text_set_font_by_family) Ditto.
+	(ascii_text_get_font_name) Ditto.
+	(ascii_text_get_font_family) Ditto.
+	(ascii_text_set_size) Ditto.
+	(ascii_text_get_size) Ditto.
+	(ascii_text_metrics) Ditto.
+	(ascii_text_draw) Ditto.
+	(ascii_close_page) Ditto.
+
+	* cmdline.h: New header for parse_command_line().  Used where
+	needed.
+
+	* command.c: Move prototypes for cmd_*() functions to command.h.
+
+	* command.h: Prototypes for cmd_*() functions moved here from
+	command.c.
+
+	* crosstabs.q: (gamma_int) Ditto.
+
+	* file-handle.h: Add fh_init_files() prototype.
+	
+	* getline.c: (welcome) Ditto.
+
+	* glob.h: New header for init_glob().  Used where appropriate.
+
+	* hash.c: (comparison_helper) Ditto.
+
+	* html.c: (html_open_global) Ditto.
+	(html_close_global) Ditto.
+	(html_preopen_driver) Ditto.
+	(html_postopen_driver) Ditto.
+	(html_close_driver) Ditto.
+	(html_option) Ditto.
+	(html_open_page) Ditto.
+	(html_close_page) Ditto.
+	(html_submit) Ditto.
+
+	* inpt-pgm.c: (input_program_source_read) Ditto.
+
+	* output.c: (find_defn_value) Ditto.
+	(destroy_list) Ditto.
+
+	* pfm-read.c: (read_int) Ditto.
+
+	* postscript.c: (ps_open_global) Ditto.
+	(ps_close_global) Ditto.
+	(ps_font_sizes) Ditto.
+	(ps_preopen_driver) Ditto.
+	(ps_postopen_driver) Ditto.
+	(ps_close_driver) Ditto.
+	(ps_option) Ditto.
+	(ps_open_page) Ditto.
+	(ps_close_page) Ditto.
+	(ps_line_horz) Ditto.
+	(ps_line_vert) Ditto.
+	(ps_line_intersection) Ditto.
+	(ps_box) Ditto.
+	(ps_polyline_begin) Ditto.
+	(ps_polyline_point) Ditto.
+	(ps_polyline_end) Ditto.
+	(ps_text_set_font_by_name) Ditto.
+	(ps_text_set_font_by_position) Ditto.
+	(ps_text_set_font_family) Ditto.
+	(ps_text_get_font_name) Ditto.
+	(ps_text_get_font_family) Ditto.
+	(ps_text_set_size) Ditto.
+	(ps_text_get_size) Ditto.
+	(ps_text_metrics) Ditto.
+	(ps_text_draw) Ditto.
+
+	* q2c.c: (finish_up) Ditto.
+	(xmalloc) Ditto.
+	(xstrdup) Ditto.
+	(get_buffer) Ditto.
+	(st_lower) Ditto.
+	(st_upper) Ditto.
+	(skip_ws) Ditto.
+	(get_line) Ditto.
+	(add_symbol) Ditto.
+	(find_symbol) Ditto.
+	(lex_get) Ditto.
+	(force_id) Ditto.
+	(force_string) Ditto.
+	(match_id) Ditto.
+	(match_token) Ditto.
+	(skip_token) Ditto.
+	(parse) Ditto.
+	(parse_setting) Ditto.
+	(parse_specifier) Ditto.
+	(parse_specifiers) Ditto.
+	(parse_subcommand) Ditto.
+	(dump_specifier_vars) Ditto.
+	(is_keyword) Ditto.
+	(make_identifier) Ditto.
+	(dump_declarations) Ditto.
+	(dump_specifier_init) Ditto.
+	(dump_vars_init) Ditto.
+	(make_match) Ditto.
+	(dump_specifier_parse) Ditto.
+	(dump_subcommand) Ditto.
+	(dump_parser) Ditto.
+	(dump_header) Ditto.
+	(dump_free) Ditto.
+	(recognize_directive) Ditto.
+
+	* recode.c: (string_to_long) Ditto.
+
+	* repeat.c: (find_DO_REPEAT_substitution) Ditto.
+
+	* repeat.h: New header for perform_DO_REPEAT_substitutions, used
+	where appropriate.
+
+	* sort.c: (sort_stream_read) Ditto.
+	(sort_stream_mode) Ditto.
+	
 Fri Dec 19 23:35:04 2003  Ben Pfaff  <blp@gnu.org>
 
 	* algorithm.c (binary_search): Fix comparison.

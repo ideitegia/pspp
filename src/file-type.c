@@ -284,15 +284,13 @@ cmd_file_type (void)
 static void
 create_col_var (struct col_spec *c)
 {
-  int type;
   int width;
 
-  type = (formats[c->fmt].cat & FCAT_STRING) ? ALPHA : NUMERIC;
-  if (type == ALPHA)
+  if (formats[c->fmt].cat & FCAT_STRING)
     width = c->nc;
   else
     width = 0;
-  c->v = force_create_variable (&default_dict, c->name, type, width);
+  c->v = dict_create_var (default_dict, c->name, width);
 }
 
 /* Parses variable, column, type specifications for a variable. */

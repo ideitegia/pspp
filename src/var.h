@@ -20,6 +20,7 @@
 #if !var_h
 #define var_h 1
 
+#include <stddef.h>
 #include "format.h"
 
 /* Values. */
@@ -110,14 +111,6 @@ struct freq_tab
     double total_cases;		/* Sum of weights of all cases. */
     double valid_cases;		/* Sum of weights of valid cases. */
   };
-
-/* A complete set of 3 frequency tables. */
-struct freq_tab_set
-  {
-    struct freq_tab miss;	/* Includes user-missing values. */
-    struct freq_tab no_miss;	/* Excludes user-missing values. */
-    struct freq_tab sel;	/* Identical to either miss or no_miss. */
-  };
 
 /* Procedures' private per-variable data. */
 
@@ -145,7 +138,9 @@ enum
 
 struct frequencies_proc
   {
-    /* General mode. */
+    int used;                   /* 1=This variable already used. */
+
+    /* Freqency table. */
     struct freq_tab tab;	/* Frequencies table to use. */
 
     /* Percentiles. */
@@ -197,7 +192,7 @@ struct descriptives_proc
 /* GET private data. */
 struct get_proc
   {
-    int fv, nv;			/* First, last, # of values. */
+    int fv, nv;			/* First, # of values. */
   };
 
 /* Sort order. */
@@ -211,14 +206,6 @@ enum
 struct sort_cases_proc
   {
     int order;			/* SRT_ASCEND or SRT_DESCEND. */
-  };
-
-/* MODIFY VARS private data. */
-struct modify_vars_proc
-  {
-    char new_name[9];		/* Variable's new name. */
-    int drop_this_var;		/* 0=keep this var, 1=drop this var. */
-    struct variable *next;	/* Next in linked list. */
   };
 
 /* MEANS private data. */
@@ -293,13 +280,12 @@ struct variable
     char name[9];		/* As a string. */
     int index;			/* Index into its dictionary's var[]. */
     int type;			/* NUMERIC or ALPHA. */
-    int foo;			/* Used for temporary storage. */
 
     /* Also important but parse_variables() doesn't need it.  Still,
        check before reordering. */
     int width;			/* Size of string variables in chars. */
     int fv, nv;			/* Index into `value's, number of values. */
-    int left;			/* 0=do not LEAVE, 1=LEAVE. */
+    int left;			/* 0=reinitialize each case, 1=don't. */
 
     /* Missing values. */
     int miss_type;		/* One of the MISSING_* constants. */
@@ -314,6 +300,7 @@ struct variable
     char *label;		/* Variable label. */
 
     /* Per-procedure info. */
+    void *aux;
     struct get_proc get;
     union
       {
@@ -323,7 +310,6 @@ struct variable
 	struct list_proc lst;
 	struct means_proc mns;
 	struct sort_cases_proc srt;
-	struct modify_vars_proc mfv;
 	struct matrix_data_proc mxd;
 	struct match_files_proc mtf;
       }
@@ -332,6 +318,26 @@ struct variable
 
 int compare_variables (const void *, const void *, void *);
 unsigned hash_variable (const void *, void *);
+
+/* Classes of variables. */
+enum dict_class 
+  {
+    DC_ORDINARY,                /* Ordinary identifier. */
+    DC_SYSTEM,                  /* System variable. */
+    DC_SCRATCH                  /* Scratch variable. */
+  };
+
+enum dict_class dict_class_from_id (const char *name);
+const char *dict_class_to_name (enum dict_class dict_class);
+
+/* Vector of variables. */
+struct vector
+  {
+    int idx;                    /* Index for dict_get_vector(). */
+    char name[9];		/* Name. */
+    struct variable **var;	/* Vector of variables. */
+    int cnt;			/* Number of variables. */
+  };
 
 /* Cases. */
 
@@ -345,34 +351,74 @@ struct ccase
 /* Dictionary. */ 
 
 /* Complete dictionary state. */
-struct dictionary
-  {
-    struct variable **var;	/* Variable descriptions. */
-    struct hsh_table *name_tab;	/* Variables arranged by name. */
-    int nvar;			/* Number of variables. */
+struct dictionary;
 
-    int N;			/* Current case limit (N command). */
-    int nval;			/* Number of value structures per case. */
+struct dictionary *dict_create (void);
+struct dictionary *dict_clone (const struct dictionary *);
+void dict_clear (struct dictionary *);
+void dict_destroy (struct dictionary *);
 
-    int n_splits;		/* Number of SPLIT FILE variables. */
-    struct variable **splits;	/* List of SPLIT FILE vars. */
-    
-    char *label;		/* File label. */
+size_t dict_get_var_cnt (const struct dictionary *);
+struct variable *dict_get_var (const struct dictionary *, size_t idx);
+void dict_get_vars (const struct dictionary *,
+                    struct variable ***vars, size_t *cnt,
+                    unsigned exclude_classes);
 
-    int n_documents;		/* Number of lines of documents. */
-    char *documents;		/* Documents; 80*n_documents bytes in size. */
+struct variable *dict_create_var (struct dictionary *, const char *,
+                                  int width);
+struct variable *dict_clone_var (struct dictionary *, const struct variable *,
+                                 const char *);
+void dict_rename_var (struct dictionary *, struct variable *, const char *);
 
-    int weight_index;		/* `value' index of $WEIGHT, or -1 if none.
-				   Call update_weighting() before using! */
-    char weight_var[9];		/* Name of WEIGHT variable. */
+struct variable *dict_lookup_var (const struct dictionary *, const char *);
+int dict_contains_var (const struct dictionary *, const struct variable *);
+void dict_delete_var (struct dictionary *, struct variable *);
+void dict_delete_vars (struct dictionary *,
+                       struct variable *const *, size_t count);
+void dict_reorder_vars (struct dictionary *,
+                        struct variable *const *, size_t count);
+int dict_rename_vars (struct dictionary *,
+                      struct variable **, char **new_names,
+                      size_t count, char **err_name);
 
-    char filter_var[9];		/* Name of FILTER variable. */
-    /* Do not make another field the last field! or see
-       temporary.c:restore_dictionary() before doing so! */
-  };
+struct variable *dict_get_weight (const struct dictionary *);
+double dict_get_case_weight (const struct dictionary *, const struct ccase *);
+void dict_set_weight (struct dictionary *, struct variable *);
+
+struct variable *dict_get_filter (const struct dictionary *);
+void dict_set_filter (struct dictionary *, struct variable *);
+
+int dict_get_case_limit (const struct dictionary *);
+void dict_set_case_limit (struct dictionary *, int);
+
+int dict_get_value_cnt (const struct dictionary *);
+void dict_compact_values (struct dictionary *);
+
+struct variable *const *dict_get_split_vars (const struct dictionary *);
+size_t dict_get_split_cnt (const struct dictionary *);
+void dict_set_split_vars (struct dictionary *,
+                          struct variable *const *, size_t cnt);
+
+const char *dict_get_label (const struct dictionary *);
+void dict_set_label (struct dictionary *, const char *);
+
+const char *dict_get_documents (const struct dictionary *);
+void dict_set_documents (struct dictionary *, const char *);
+
+int dict_create_vector (struct dictionary *,
+                        const char *name,
+                        struct variable **, size_t cnt);
+const struct vector *dict_get_vector (const struct dictionary *,
+                                      size_t idx);
+size_t dict_get_vector_cnt (const struct dictionary *);
+const struct vector *dict_lookup_vector (const struct dictionary *,
+                                         const char *name);
+void dict_clear_vectors (struct dictionary *);
+
+void discard_variables (void);
 
 /* This is the active file dictionary. */
-extern struct dictionary default_dict;
+extern struct dictionary *default_dict;
 
 /* Transformation state. */
 
@@ -405,19 +451,6 @@ void cancel_temporary (void);
 
 /* Functions. */
 
-int is_varname (const char *);
-int is_dict_varname (const struct dictionary *, const char *);
-
-/* Flags for passing to fill_all_vars(). */
-enum
-  {
-    FV_NONE = 0,		/* No flags. */
-    FV_NO_SYSTEM = 001,		/* Don't include system variables. */
-    FV_NO_SCRATCH = 002		/* Don't include scratch variables. */
-  };
-
-void fill_all_vars (struct variable ***, int *, int flags);
-
 void dump_split_vars (const struct ccase *);
 
 int is_num_user_missing (double, const struct variable *);
@@ -440,32 +473,6 @@ struct variable *force_dup_variable (struct dictionary *,
 	dup_variable (A, B, C)
 #endif
 
-struct variable *create_variable (struct dictionary *, const char *name,
-				  int type, int width);
-void delete_variable (struct dictionary *, struct variable *v);
-struct variable *find_variable (const char *name);
-struct variable *find_dict_variable (const struct dictionary *,
-				     const char *name);
-void init_variable (struct dictionary *, struct variable *, const char *name,
-		    int type, int width);
-void replace_variable (struct variable *, const char *name,
-		       int type, int width);
-void clear_variable (struct dictionary *, struct variable *);
-void rename_variable (struct dictionary *, struct variable *v,
-		      const char *new_name);
-void discard_variables (void);
-void clear_default_dict (void);
-void copy_variable (struct variable *dest, const struct variable *src);
-struct variable *dup_variable (struct dictionary *dict,
-			       const struct variable *src, const char *name);
-
-struct variable *update_weighting (struct dictionary *);
-void stop_weighting (struct dictionary *);
-
-struct dictionary *save_dictionary (void);
-void restore_dictionary (struct dictionary *);
-void free_dictionary (struct dictionary *);
-struct dictionary *new_dictionary (int copy);
 
 /* Transformations. */
 
@@ -495,28 +502,39 @@ extern int f_trns;
 void add_transformation (struct trns_header *trns);
 void cancel_transformations (void);
 
+struct var_set;
+
+struct var_set *var_set_create_from_dict (struct dictionary *d);
+struct var_set *var_set_create_from_array (struct variable **var, size_t);
+
+size_t var_set_get_cnt (struct var_set *vs);
+struct variable *var_set_get_var (struct var_set *vs, size_t idx);
+struct variable *var_set_lookup_var (struct var_set *vs, const char *name);
+void var_set_destroy (struct var_set *vs);
+
+
 /* Variable parsers. */
 
-/* Only parse_variables() supports options other than PV_APPEND,
-   PV_SINGLE. */
 enum
   {
     PV_NONE = 0,		/* No options. */
-    PV_SINGLE = 0001,		/* Restrict to a single varname or TO use. */
+    PV_SINGLE = 0001,		/* Restrict to a single name or TO use. */
     PV_DUPLICATE = 0002,	/* Don't merge duplicates. */
     PV_APPEND = 0004,		/* Append to existing list. */
     PV_NO_DUPLICATE = 0010,	/* Error on duplicates. */
     PV_NUMERIC = 0020,		/* Vars must be numeric. */
     PV_STRING = 0040,		/* Vars must be string. */
     PV_SAME_TYPE = 00100,	/* All vars must be the same type. */
-    PV_NO_SCRATCH = 00200	/* Disallow scratch variables. */
+    PV_NO_SCRATCH = 00200,	/* Disallow scratch variables. */
   };
 
 struct variable *parse_variable (void);
 struct variable *parse_dict_variable (struct dictionary *);
-int parse_variables (struct dictionary *dict, struct variable ***v,
-		     int *nv, int pv_opts);
-int parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts);
-int parse_mixed_vars (char ***names, int *nnames, int pv_opts);
+int parse_variables (struct dictionary *, struct variable ***, int *,
+                     int opts);
+int parse_var_set_vars (struct var_set *, struct variable ***, int *,
+                        int opts);
+int parse_DATA_LIST_vars (char ***names, int *cnt, int opts);
+int parse_mixed_vars (char ***names, int *cnt, int opts);
 
 #endif /* !var_h */

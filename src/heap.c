@@ -18,10 +18,10 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "heap.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "heap.h"
 
 #if STANDALONE
 #define GLOBAL_DEBUGGING 1

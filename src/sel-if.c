@@ -87,7 +87,7 @@ cmd_filter (void)
   lex_match_id ("FILTER");
 
   if (lex_match_id ("OFF"))
-    default_dict.filter_var[0] = 0;
+    dict_set_filter (default_dict, NULL);
   else
     {
       struct variable *v;
@@ -108,8 +108,8 @@ cmd_filter (void)
 	  msg (SE, _("The filter variable may not be scratch."));
 	  return CMD_FAILURE;
 	}
-      
-      strcpy (default_dict.filter_var, v->name);
+
+      dict_set_filter (default_dict, v);
 
       FILTER_before_TEMPORARY = !temporary;
     }

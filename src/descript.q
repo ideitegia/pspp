@@ -288,7 +288,6 @@ cmd_descriptives (void)
     }
 
   /* Data pass! */
-  update_weighting (&default_dict);
   bad_weight = 0;
   procedure (precalc, calc, postcalc);
 
@@ -316,7 +315,7 @@ static int
 dsc_custom_variables (struct cmd_descriptives *cmd unused)
 {
   if (!lex_match_id ("VARIABLES")
-      && (token != T_ID || !is_varname (tokid))
+      && (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
@@ -326,7 +325,7 @@ dsc_custom_variables (struct cmd_descriptives *cmd unused)
       int i, n;
 
       n = n_variables;
-      if (!parse_variables (NULL, &v_variables, &n_variables,
+      if (!parse_variables (default_dict, &v_variables, &n_variables,
 			    PV_DUPLICATE | PV_SINGLE | PV_APPEND | PV_NUMERIC
 			    | PV_NO_SCRATCH))
 	return 0;
@@ -345,7 +344,7 @@ dsc_custom_variables (struct cmd_descriptives *cmd unused)
 	      msg (SE, _("Name for z-score variable expected."));
 	      return 0;
 	    }
-	  if (is_varname (tokid))
+	  if (dict_lookup_var (default_dict, tokid))
 	    {
 	      msg (SE, _("Z-score variable name `%s' is a "
 			 "duplicate variable name with a current variable."),
@@ -384,7 +383,7 @@ try_name (char *name)
 {
   int i;
 
-  if (is_varname (name))
+  if (dict_lookup_var (default_dict, name) != NULL)
     return 0;
   for (i = 0; i < n_variables; i++)
     {
@@ -540,9 +539,9 @@ run_z_pass (void)
 	  struct variable *d;
 
 	  t->z[count].s = v;
-	  t->z[count].d = d = force_create_variable (&default_dict,
-						     v->p.dsc.zname,
-						     NUMERIC, 0);
+	  t->z[count].d = d = dict_create_var (default_dict,
+                                               v->p.dsc.zname, 0);
+          assert (d != NULL);
 	  if (v->label)
 	    {
 	      d->label = xmalloc (strlen (v->label) + 12);
@@ -602,20 +601,13 @@ calc (struct ccase * c)
   static int case_id;
 
   /* Get the weight for this case. */
-  double w;
+  double weight = dict_get_case_weight (default_dict, c);
 
-  if (default_dict.weight_index == -1)
-    w = 1.0;
-  else
+  if (weight <= 0.0)
     {
-      w = c->data[default_dict.weight_index].f;
-      if (w <= 0.0 || w == SYSMIS)
-	{
-	  w = 0.0;
-	  bad_weight = 1;
-	}
+      weight = 0.0;
+      bad_weight = 1;
     }
-
   case_id++;
 
   /* Handle missing values. */
@@ -628,17 +620,17 @@ calc (struct ccase * c)
 	{
 	  if (opt[op_excl_miss])
 	    {
-	      d_glob_missing += w;
+	      d_glob_missing += weight;
 	      return 1;
 	    }
 	  else
 	    {
-	      d_glob_miss_list += w;
+	      d_glob_miss_list += weight;
 	      goto iterate;
 	    }
 	}
     }
-  d_glob_valid += w;
+  d_glob_valid += weight;
 
 iterate:
   for (i = 0; i < n_variables; i++)
@@ -658,7 +650,7 @@ iterate:
       if (X == SYSMIS
 	  || (!opt[op_incl_miss] && is_num_user_missing (X, v_variables[i])))
 	{
-	  inf->miss += w;
+	  inf->miss += weight;
 	  continue;
 	}
 
@@ -670,19 +662,19 @@ iterate:
          I am happy that mathematical formulas may not be
          copyrighted. */
       W_old = inf->valid;
-      W_new = inf->valid += w;
-      v = (w / W_new) * (X - inf->X_bar);
+      W_new = inf->valid += weight;
+      v = (weight / W_new) * (X - inf->X_bar);
       v2 = v * v;
       v3 = v2 * v;
       v4 = v3 * v;
-      w2 = w * w;
-      w3 = w2 * w;
-      w4 = w3 * w;
+      w2 = weight * weight;
+      w3 = w2 * weight;
+      w4 = w3 * weight;
       inf->M4 += (-4.0 * v * inf->M3 + 6.0 * v2 * inf->M2
-	       + (W_new * W_new - 3 * w * W_old / w3) * v4 * W_old * W_new);
+	       + (W_new * W_new - 3 * weight * W_old / w3) * v4 * W_old * W_new);
       inf->M3 += (-3.0 * v * inf->M2 + W_new * W_old / w2
-		  * (W_new - 2 * w) * v3);
-      inf->M2 += W_new * W_old / w * v2;
+		  * (W_new - 2 * weight) * v3);
+      inf->M2 += W_new * W_old / weight * v2;
       inf->X_bar += v;
       if (X < inf->min)
 	inf->min = X;

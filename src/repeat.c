@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "repeat.h"
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -328,9 +329,9 @@ internal_cmd_do_repeat (void)
 	    {
 	      /* Note that if the variable already exists there is no
 		 harm done. */
-	      struct variable *v = create_variable (&default_dict,
+	      struct variable *v = dict_create_var (default_dict,
 						    iter->replacement[i],
-						    NUMERIC, 0);
+						    0);
 
 	      /* If we created the variable then we need to initialize
 		 its observations to SYSMIS. */
@@ -513,7 +514,7 @@ cmd_end_repeat (void)
 
 /* Finds a DO REPEAT macro with name MACRO_NAME and returns the
    appropriate subsitution if found, or NULL if not. */
-char *
+static char *
 find_DO_REPEAT_substitution (char *macro_name)
 {
   struct getl_script *s;

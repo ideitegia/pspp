@@ -73,8 +73,7 @@ cmd_numeric (void)
       /* Create each variable. */
       for (i = 0; i < nv; i++)
 	{
-	  struct variable *new_var = create_variable (&default_dict, v[i],
-					       NUMERIC, 0);
+	  struct variable *new_var = dict_create_var (default_dict, v[i], 0);
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
 	  else
@@ -156,8 +155,8 @@ cmd_string (void)
       /* Create each variable. */
       for (i = 0; i < nv; i++)
 	{
-	  struct variable *new_var = create_variable (&default_dict, v[i],
-					       ALPHA, width);
+	  struct variable *new_var = dict_create_var (default_dict, v[i],
+                                                      width);
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
 	  else
@@ -195,7 +194,7 @@ cmd_leave (void)
   int i;
 
   lex_match_id ("LEAVE");
-  if (!parse_variables (NULL, &v, &nv, PV_NONE))
+  if (!parse_variables (default_dict, &v, &nv, PV_NONE))
     return CMD_FAILURE;
   for (i = 0; i < nv; i++)
     {

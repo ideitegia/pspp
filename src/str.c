@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "str.h"
 #include <assert.h>
 #include <ctype.h>
 #include <limits.h>
@@ -25,7 +26,6 @@
 #include "alloc.h"
 #include "error.h"
 #include "pool.h"
-#include "str.h"
 
 /* sprintf() wrapper functions for convenience. */
 

@@ -47,6 +47,8 @@ char *alloca ();
 #endif
 
 #include <ctype.h>
+#include "expr.h"
+#include "exprP.h"
 #include <assert.h>
 #include <math.h>
 #include <errno.h>
@@ -54,15 +56,12 @@ char *alloca ();
 #include "approx.h"
 #include "data-in.h"
 #include "error.h"
-#include "expr.h"
-#include "exprP.h"
 #include "julcal/julcal.h"
 #include "magic.h"
 #include "random.h"
 #include "stats.h"
 #include "str.h"
 #include "var.h"
-#include "vector.h"
 #include "vfm.h"
 #include "vfmP.h"
 
@@ -1217,9 +1216,9 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	case OP_VEC_ELEM_NUM:
 	  {
 	    int rindx = sp[0].f + EPSILON;
-	    struct vector *v = &vec[*op++];
+	    const struct vector *v = dict_get_vector (default_dict, *op++);
 
-	    if (sp[0].f == SYSMIS || rindx < 1 || rindx > v->nv)
+	    if (sp[0].f == SYSMIS || rindx < 1 || rindx > v->cnt)
 	      {
 		if (sp[0].f == SYSMIS)
 		  msg (SE, _("SYSMIS is not a valid index value for vector "
@@ -1232,16 +1231,16 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 		sp->f = SYSMIS;
 		break;
 	      }
-	    sp->f = c->data[v->v[rindx - 1]->fv].f;
+	    sp->f = c->data[v->var[rindx - 1]->fv].f;
 	  }
 	  break;
 	case OP_VEC_ELEM_STR:
 	  {
 	    int rindx = sp[0].f + EPSILON;
-	    struct vector *vect = &vec[*op++];
+	    const struct vector *vect = dict_get_vector (default_dict, *op++);
 	    struct variable *v;
 
-	    if (sp[0].f == SYSMIS || rindx < 1 || rindx > vect->nv)
+	    if (sp[0].f == SYSMIS || rindx < 1 || rindx > vect->cnt)
 	      {
 		if (sp[0].f == SYSMIS)
 		  msg (SE, _("SYSMIS is not a valid index value for vector "
@@ -1258,7 +1257,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 		break;
 	      }
 
-	    v = vect->v[rindx - 1];
+	    v = vect->var[rindx - 1];
 	    CHECK_STRING_SPACE (v->width);
 	    sp->c = ALLOC_STRING_SPACE (v->width);
 	    sp->c[0] = v->width;

@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "error.h"
 #include "file-handle.h"
@@ -65,8 +64,6 @@ enum
     N_AGR_FUNCS, N_NO_VARS, NU_NO_VARS,
     FUNC = 0x1f, /* Function mask. */
     FSTRING = 1<<5, /* String function bit. */
-    FWEIGHT = 1<<6, /* Weighted function bit. */
-    FOPTIONS = FSTRING | FWEIGHT /* Function options mask. */
   };
 
 /* Attributes of an aggregation function. */
@@ -171,7 +168,9 @@ cmd_aggregate (void)
   v_sort = NULL;
   prev_case = NULL;
   
-  agr_dict = new_dictionary (1);
+  agr_dict = dict_create ();
+  dict_set_label (agr_dict, dict_get_label (default_dict));
+  dict_set_documents (agr_dict, dict_get_documents (default_dict));
   
   lex_match_id ("AGGREGATE");
 
@@ -185,7 +184,7 @@ cmd_aggregate (void)
 	  if (seen & 1)
 	    {
 	      free (v_sort);
-	      free_dictionary (agr_dict);
+	      dict_destroy (agr_dict);
 	      msg (SE, _("OUTFILE specified multiple times."));
 	      return CMD_FAILURE;
 	    }
@@ -200,7 +199,7 @@ cmd_aggregate (void)
 	      if (outfile == NULL)
 		{
 		  free (v_sort);
-		  free_dictionary (agr_dict);
+		  dict_destroy (agr_dict);
 		  return CMD_FAILURE;
 		}
 	    }
@@ -211,7 +210,7 @@ cmd_aggregate (void)
 	  if (!lex_match_id ("COLUMNWISE"))
 	    {
 	      free (v_sort);
-	      free_dictionary (agr_dict);
+	      dict_destroy (agr_dict);
 	      lex_error (_("while expecting COLUMNWISE"));
 	      return CMD_FAILURE;
 	    }
@@ -226,7 +225,7 @@ cmd_aggregate (void)
 	  if (seen & 8)
 	    {
 	      free (v_sort);
-	      free_dictionary (agr_dict);
+	      dict_destroy (agr_dict);
 	      msg (SE, _("BREAK specified multiple times."));
 	      return CMD_FAILURE;
 	    }
@@ -235,7 +234,7 @@ cmd_aggregate (void)
 	  lex_match ('=');
 	  if (!parse_sort_variables ())
 	    {
-	      free_dictionary (agr_dict);
+	      dict_destroy (agr_dict);
 	      return CMD_FAILURE;
 	    }
 	  
@@ -246,7 +245,7 @@ cmd_aggregate (void)
 	      {
 		struct variable *v;
 	      
-		v = dup_variable (agr_dict, v_sort[i], v_sort[i]->name);
+		v = dict_clone_var (agr_dict, v_sort[i], v_sort[i]->name);
 		assert (v != NULL);
 	      }
 	  }
@@ -268,16 +267,10 @@ cmd_aggregate (void)
 
   /* Delete documents. */
   if (!(seen & 2))
-    {
-      free (agr_dict->documents);
-      agr_dict->documents = NULL;
-      agr_dict->n_documents = 0;
-    }
+    dict_set_documents (agr_dict, NULL);
 
   /* Cancel SPLIT FILE. */
-  default_dict.n_splits = 0;
-  free (default_dict.splits);
-  default_dict.splits = NULL;
+  dict_set_split_vars (agr_dict, NULL, 0);
   
 #if DEBUGGING
   debug_print (seen);
@@ -426,12 +419,14 @@ create_sysfile (void)
     {
       free_aggregate_functions ();
       free (v_sort);
-      free_dictionary (agr_dict);
+      dict_destroy (agr_dict);
       return 0;
     }
     
   buf64_1xx = xmalloc (sizeof *buf64_1xx * w.case_size);
-  buf_1xx = xmalloc (sizeof (struct ccase) + sizeof (union value) * (agr_dict->nval - 1));
+  buf_1xx = xmalloc (sizeof (struct ccase)
+                     + (sizeof (union value)
+                        * (dict_get_value_cnt (agr_dict) - 1)));
 
   return 1;
 }
@@ -442,9 +437,6 @@ parse_aggregate_functions (void)
 {
   agr_first = agr_next = NULL;
 
-  /* Anticipate weighting for optimization later. */
-  update_weighting (&default_dict);
-  
   /* Parse everything. */
   for (;;)
     {
@@ -543,7 +535,7 @@ parse_aggregate_functions (void)
 	    else if (function->n_args)
 	      pv_opts |= PV_SAME_TYPE;
 
-	    if (!parse_variables (&default_dict, &src, &n_src, pv_opts))
+	    if (!parse_variables (default_dict, &src, &n_src, pv_opts))
 	      goto lossage;
 	  }
 
@@ -624,7 +616,7 @@ parse_aggregate_functions (void)
 
 	    if (src)
 	      {
-		int output_type;
+		int output_width;
 
 		agr_next->src = src[i];
 		
@@ -634,23 +626,19 @@ parse_aggregate_functions (void)
 		    agr_next->string = xmalloc (src[i]->width);
 		  }
 		
-		if (default_dict.weight_index != -1)
-		  agr_next->function |= FWEIGHT;
-
-		if (agr_next->src->type == NUMERIC)
-		  output_type = NUMERIC;
+		if (agr_next->src->type == NUMERIC || function->alpha_type == NUMERIC)
+		  output_width = 0;
 		else
-		  output_type = function->alpha_type;
+		  output_width = agr_next->src->width;
 
 		if (function->alpha_type == ALPHA)
-		  destvar = dup_variable (agr_dict, agr_next->src, dest[i]);
+		  destvar = dict_clone_var (agr_dict, agr_next->src, dest[i]);
 		else
 		  {
-		    destvar = create_variable (agr_dict, dest[i], output_type,
-					       agr_next->src->width);
-		    if (output_type == NUMERIC)
+		    destvar = dict_create_var (agr_dict, dest[i], output_width);
+		    if (output_width == 0)
 		      destvar->print = destvar->write = function->format;
-		    if (output_type == NUMERIC && default_dict.weight_index != -1
+		    if (output_width == 0 && dict_get_weight (default_dict) != NULL
 			&& (func_index == N || func_index == N_NO_VARS
 			    || func_index == NU || func_index == NU_NO_VARS))
 		      {
@@ -661,7 +649,7 @@ parse_aggregate_functions (void)
 		  }
 	      } else {
 		agr_next->src = NULL;
-		destvar = create_variable (agr_dict, dest[i], NUMERIC, 0);
+		destvar = dict_create_var (agr_dict, dest[i], 0);
 	      }
 	  
 	    if (!destvar)
@@ -752,7 +740,7 @@ free_aggregate_functions (void)
   struct agr_var *iter, *next;
 
   if (agr_dict)
-    free_dictionary (agr_dict);
+    dict_destroy (agr_dict);
   for (iter = agr_first; iter; iter = next)
     {
       next = iter->next;
@@ -837,7 +825,7 @@ aggregate_single_case (struct ccase *input, struct ccase *output)
 	switch (v->type)
 	  {
 	  case NUMERIC:
-	    if (approx_ne (input->data[v->fv].f, iter->f))
+	    if (input->data[v->fv].f != iter->f)
 	      goto not_equal;
 	    iter++;
 	    break;
@@ -891,8 +879,9 @@ static void
 accumulate_aggregate_info (struct ccase *input)
 {
   struct agr_var *iter;
+  double weight;
 
-#define WEIGHT (input->data[default_dict.weight_index].f)
+  weight = dict_get_case_weight (default_dict, input);
 
   for (iter = agr_first; iter; iter = iter->next)
     if (iter->src)
@@ -905,12 +894,10 @@ accumulate_aggregate_info (struct ccase *input)
 	  {
 	    switch (iter->function)
 	      {
-	      case NMISS | FWEIGHT:
-		iter->dbl[0] += WEIGHT;
-		break;
 	      case NMISS:
+		iter->dbl[0] += weight;
+                break;
 	      case NUMISS:
-	      case NUMISS | FWEIGHT:
 		iter->int1++;
 		break;
 	      }
@@ -922,190 +909,95 @@ accumulate_aggregate_info (struct ccase *input)
 	switch (iter->function)
 	  {
 	  case SUM:
-	  case SUM | FWEIGHT:
 	    iter->dbl[0] += v->f;
 	    break;
 	  case MEAN:
-	    iter->dbl[0] += v->f;
-	    iter->int1++;
-	    break;
-	  case MEAN | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      iter->dbl[0] += v->f * w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
-	  case SD:
-	    iter->dbl[0] += v->f;
-	    iter->dbl[1] += v->f * v->f;
-	    iter->int1++;
-	    break;
-	  case SD | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      double product = v->f * w;
-	      iter->dbl[0] += product;
-	      iter->dbl[1] += product * v->f;
-	      iter->dbl[2] += w;
-	      break;
-	    }
+            iter->dbl[0] += v->f * weight;
+            iter->dbl[1] += weight;
+            break;
+	  case SD: 
+            {
+              double product = v->f * weight;
+              iter->dbl[0] += product;
+              iter->dbl[1] += product * v->f;
+              iter->dbl[2] += weight;
+              break; 
+            }
 	  case MAX:
-	  case MAX | FWEIGHT:
 	    iter->dbl[0] = max (iter->dbl[0], v->f);
 	    iter->int1 = 1;
 	    break;
 	  case MAX | FSTRING:
-	  case MAX | FSTRING | FWEIGHT:
 	    if (memcmp (iter->string, v->s, iter->src->width) < 0)
 	      memcpy (iter->string, v->s, iter->src->width);
 	    iter->int1 = 1;
 	    break;
 	  case MIN:
-	  case MIN | FWEIGHT:
 	    iter->dbl[0] = min (iter->dbl[0], v->f);
 	    iter->int1 = 1;
 	    break;
 	  case MIN | FSTRING:
-	  case MIN | FSTRING | FWEIGHT:
 	    if (memcmp (iter->string, v->s, iter->src->width) > 0)
 	      memcpy (iter->string, v->s, iter->src->width);
 	    iter->int1 = 1;
 	    break;
 	  case FGT:
 	  case PGT:
-	    if (approx_gt (v->f, iter->arg[0].f))
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FGT | FWEIGHT:
-	  case PGT | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (approx_gt (v->f, iter->arg[0].f))
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (v->f > iter->arg[0].f)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FGT | FSTRING:
 	  case PGT | FSTRING:
-	    if (memcmp (iter->arg[0].c, v->s, iter->src->width) < 0)
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FGT | FSTRING | FWEIGHT:
-	  case PGT | FSTRING | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (memcmp (iter->arg[0].c, v->s, iter->src->width) < 0)
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (memcmp (iter->arg[0].c, v->s, iter->src->width) < 0)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FLT:
 	  case PLT:
-	    if (approx_lt (v->f, iter->arg[0].f))
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FLT | FWEIGHT:
-	  case PLT | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (approx_lt (v->f, iter->arg[0].f))
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (v->f < iter->arg[0].f)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FLT | FSTRING:
 	  case PLT | FSTRING:
-	    if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0)
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FLT | FSTRING | FWEIGHT:
-	  case PLT | FSTRING | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0)
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FIN:
 	  case PIN:
-	    if (approx_in_range (v->f, iter->arg[0].f, iter->arg[1].f))
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FIN | FWEIGHT:
-	  case PIN | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (approx_in_range (v->f, iter->arg[0].f, iter->arg[1].f))
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (iter->arg[0].f <= v->f && v->f <= iter->arg[1].f)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FIN | FSTRING:
 	  case PIN | FSTRING:
-	    if (memcmp (iter->arg[0].c, v->s, iter->src->width) <= 0
-		&& memcmp (iter->arg[1].c, v->s, iter->src->width) >= 0)
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FIN | FSTRING | FWEIGHT:
-	  case PIN | FSTRING | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (memcmp (iter->arg[0].c, v->s, iter->src->width) <= 0
-		  && memcmp (iter->arg[1].c, v->s, iter->src->width) >= 0)
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (memcmp (iter->arg[0].c, v->s, iter->src->width) <= 0
+                && memcmp (iter->arg[1].c, v->s, iter->src->width) >= 0)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FOUT:
 	  case POUT:
-	    if (!approx_in_range (v->f, iter->arg[0].f, iter->arg[1].f))
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FOUT | FWEIGHT:
-	  case POUT | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (!approx_in_range (v->f, iter->arg[0].f, iter->arg[1].f))
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
+            if (iter->arg[0].f > v->f || v->f > iter->arg[1].f)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case FOUT | FSTRING:
 	  case POUT | FSTRING:
-	    if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0
-		&& memcmp (iter->arg[1].c, v->s, iter->src->width) < 0)
-	      iter->int1++;
-	    iter->int2++;
-	    break;
-	  case FOUT | FSTRING | FWEIGHT:
-	  case POUT | FSTRING | FWEIGHT:
-	    {
-	      double w = WEIGHT;
-	      if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0
-		  && memcmp (iter->arg[1].c, v->s, iter->src->width) < 0)
-		iter->dbl[0] += w;
-	      iter->dbl[1] += w;
-	      break;
-	    }
-	  case N | FWEIGHT:
-	    iter->dbl[0] += WEIGHT;
-	    break;
+            if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0
+                && memcmp (iter->arg[1].c, v->s, iter->src->width) < 0)
+              iter->dbl[0] += weight;
+            iter->dbl[1] += weight;
+            break;
 	  case N:
+	    iter->dbl[0] += weight;
+	    break;
 	  case NU:
-	  case NU | FWEIGHT:
 	    iter->int1++;
 	    break;
 	  case FIRST:
-	  case FIRST | FWEIGHT:
 	    if (iter->int1 == 0)
 	      {
 		iter->dbl[0] = v->f;
@@ -1113,7 +1005,6 @@ accumulate_aggregate_info (struct ccase *input)
 	      }
 	    break;
 	  case FIRST | FSTRING:
-	  case FIRST | FSTRING | FWEIGHT:
 	    if (iter->int1 == 0)
 	      {
 		memcpy (iter->string, v->s, iter->src->width);
@@ -1121,12 +1012,10 @@ accumulate_aggregate_info (struct ccase *input)
 	      }
 	    break;
 	  case LAST:
-	  case LAST | FWEIGHT:
 	    iter->dbl[0] = v->f;
 	    iter->int1 = 1;
 	    break;
 	  case LAST | FSTRING:
-	  case LAST | FSTRING | FWEIGHT:
 	    memcpy (iter->string, v->s, iter->src->width);
 	    iter->int1 = 1;
 	    break;
@@ -1136,12 +1025,10 @@ accumulate_aggregate_info (struct ccase *input)
     } else {
       switch (iter->function)
 	{
-	case N_NO_VARS | FWEIGHT:
-	  iter->dbl[0] += WEIGHT;
-	  break;
 	case N_NO_VARS:
+	  iter->dbl[0] += weight;
+	  break;
 	case NU_NO_VARS:
-	case NU_NO_VARS | FWEIGHT:
 	  iter->int1++;
 	  break;
 	default:
@@ -1194,58 +1081,37 @@ dump_aggregate_info (struct ccase *output)
 	switch (i->function)
 	  {
 	  case SUM:
-	  case SUM | FWEIGHT:
 	    v->f = i->dbl[0];
 	    break;
 	  case MEAN:
-	    v->f = i->int1 ? i->dbl[0] / i->int1 : SYSMIS;
-	    break;
-	  case MEAN | FWEIGHT:
 	    v->f = i->dbl[1] != 0.0 ? i->dbl[0] / i->dbl[1] : SYSMIS;
 	    break;
 	  case SD:
-	    v->f = ((i->int1 > 1)
-		    ? calc_stddev (calc_variance (i->dbl, i->int1))
-		    : SYSMIS);
-	    break;
-	  case SD | FWEIGHT:
 	    v->f = ((i->dbl[2] > 1.0)
 		    ? calc_stddev (calc_variance (i->dbl, i->dbl[2]))
 		    : SYSMIS);
 	    break;
 	  case MAX:
-	  case MAX | FWEIGHT:
 	  case MIN:
-	  case MIN | FWEIGHT:
 	    v->f = i->int1 ? i->dbl[0] : SYSMIS;
 	    break;
 	  case MAX | FSTRING:
-	  case MAX | FSTRING | FWEIGHT:
 	  case MIN | FSTRING:
-	  case MIN | FSTRING | FWEIGHT:
 	    if (i->int1)
 	      memcpy (v->s, i->string, i->dest->width);
 	    else
 	      memset (v->s, ' ', i->dest->width);
 	    break;
-	  case FGT:
 	  case FGT | FSTRING:
-	  case FLT:
 	  case FLT | FSTRING:
-	  case FIN:
 	  case FIN | FSTRING:
-	  case FOUT:
 	  case FOUT | FSTRING:
 	    v->f = i->int2 ? (double) i->int1 / (double) i->int2 : SYSMIS;
 	    break;
-	  case FGT | FWEIGHT:
-	  case FGT | FSTRING | FWEIGHT:
-	  case FLT | FWEIGHT:
-	  case FLT | FSTRING | FWEIGHT:
-	  case FIN | FWEIGHT:
-	  case FIN | FSTRING | FWEIGHT:
-	  case FOUT | FWEIGHT:
-	  case FOUT | FSTRING | FWEIGHT:
+	  case FGT:
+	  case FLT:
+	  case FIN:
+	  case FOUT:
 	    v->f = i->dbl[1] ? i->dbl[0] / i->dbl[1] : SYSMIS;
 	    break;
 	  case PGT:
@@ -1256,56 +1122,35 @@ dump_aggregate_info (struct ccase *output)
 	  case PIN | FSTRING:
 	  case POUT:
 	  case POUT | FSTRING:
-	    v->f = (i->int2
-		    ? (double) i->int1 / (double) i->int2 * 100.0
-		    : SYSMIS);
-	    break;
-	  case PGT | FWEIGHT:
-	  case PGT | FSTRING | FWEIGHT:
-	  case PLT | FWEIGHT:
-	  case PLT | FSTRING | FWEIGHT:
-	  case PIN | FWEIGHT:
-	  case PIN | FSTRING | FWEIGHT:
-	  case POUT | FWEIGHT:
-	  case POUT | FSTRING | FWEIGHT:
 	    v->f = i->dbl[1] ? i->dbl[0] / i->dbl[1] * 100.0 : SYSMIS;
 	    break;
-	  case N | FWEIGHT:
-	    v->f = i->dbl[0];
 	  case N:
+	    v->f = i->dbl[0];
+            break;
 	  case NU:
-	  case NU | FWEIGHT:
 	    v->f = i->int1;
 	    break;
 	  case FIRST:
-	  case FIRST | FWEIGHT:
 	  case LAST:
-	  case LAST | FWEIGHT:
 	    v->f = i->int1 ? i->dbl[0] : SYSMIS;
 	    break;
 	  case FIRST | FSTRING:
-	  case FIRST | FSTRING | FWEIGHT:
 	  case LAST | FSTRING:
-	  case LAST | FSTRING | FWEIGHT:
 	    if (i->int1)
 	      memcpy (v->s, i->string, i->dest->width);
 	    else
 	      memset (v->s, ' ', i->dest->width);
 	    break;
-	  case N_NO_VARS | FWEIGHT:
+	  case N_NO_VARS:
 	    v->f = i->dbl[0];
 	    break;
-	  case N_NO_VARS:
 	  case NU_NO_VARS:
-	  case NU_NO_VARS | FWEIGHT:
 	    v->f = i->int1;
 	    break;
-	  case NMISS | FWEIGHT:
+	  case NMISS:
 	    v->f = i->dbl[0];
 	    break;
-	  case NMISS:
 	  case NUMISS:
-	  case NUMISS | FWEIGHT:
 	    v->f = i->int1;
 	    break;
 	  default:
@@ -1324,10 +1169,8 @@ initialize_aggregate_info (void)
 
   for (iter = agr_first; iter; iter = iter->next)
     {
-      int plain_function = iter->function & ~FWEIGHT;
-
       iter->missing = 0;
-      switch (plain_function)
+      switch (iter->function)
 	{
 	case MIN:
 	  iter->dbl[0] = DBL_MAX;
@@ -1382,9 +1225,9 @@ write_case_to_sfm (void)
   flt64 *p = buf64_1xx;
   int i;
 
-  for (i = 0; i < agr_dict->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (agr_dict); i++)
     {
-      struct variable *v = agr_dict->var[i];
+      struct variable *v = dict_get_var (agr_dict, i);
       
       if (v->type == NUMERIC)
 	{

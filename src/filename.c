@@ -36,12 +36,12 @@ char *alloca ();
 #endif
 
 #include <assert.h>
+#include "filename.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include "alloc.h"
 #include "error.h"
-#include "filename.h"
 #include "settings.h"
 #include "str.h"
 #include "version.h"

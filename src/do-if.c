@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "do-ifP.h"
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
@@ -72,8 +73,6 @@
 
 */
 /* *INDENT-ON* */
-
-#include "do-ifP.h"
 
 static struct do_if_trns *parse_do_if (void);
 static void add_ELSE_IF (struct do_if_trns *);

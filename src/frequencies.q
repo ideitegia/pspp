@@ -208,8 +208,8 @@ internal_cmd_frequencies (void)
   n_variables = 0;
   v_variables = NULL;
 
-  for (i = 0; i < default_dict.nvar; i++)
-    default_dict.var[i]->foo = 0;
+  for (i = 0; i < dict_get_var_cnt (default_dict); i++)
+    dict_get_var(default_dict, i)->p.frq.used = 0;
 
   lex_match_id ("FREQUENCIES");
   if (!parse_frequencies (&cmd))
@@ -246,7 +246,6 @@ internal_cmd_frequencies (void)
     cmd.sort = FRQ_AVALUE;
 
   /* Do it! */
-  update_weighting (&default_dict);
   procedure (precalc, calc, postcalc);
 
   return CMD_SUCCESS;
@@ -361,10 +360,7 @@ calc (struct ccase *c)
   double weight;
   int i;
 
-  if (default_dict.weight_index == -1)
-    weight = 1.0;
-  else
-    weight = c->data[default_dict.var[default_dict.weight_index]->fv].f;
+  weight = dict_get_case_weight (default_dict, c);
 
   for (i = 0; i < n_variables; i++)
     {
@@ -596,10 +592,11 @@ frq_custom_variables (struct cmd_frequencies *cmd unused)
   int i;
 
   lex_match ('=');
-  if (token != T_ALL && (token != T_ID || !is_varname (tokid)))
+  if (token != T_ALL && (token != T_ID
+                         || dict_lookup_var (default_dict, tokid) == NULL))
     return 2;
 
-  if (!parse_variables (NULL, &v_variables, &n_variables,
+  if (!parse_variables (default_dict, &v_variables, &n_variables,
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
@@ -635,14 +632,14 @@ frq_custom_variables (struct cmd_frequencies *cmd unused)
     {
       struct variable *v = v_variables[i];
 
-      if (v->foo != 0)
+      if (v->p.frq.used != 0)
 	{
 	  msg (SE, _("Variable %s specified multiple times on VARIABLES "
 		     "subcommand."), v->name);
 	  return 0;
 	}
       
-      v->foo = 1;		/* Used simply as a marker. */
+      v->p.frq.used = 1;		/* Used simply as a marker. */
 
       v->p.frq.tab.valid = v->p.frq.tab.missing = NULL;
 
@@ -675,7 +672,8 @@ static int
 frq_custom_grouped (struct cmd_frequencies *cmd unused)
 {
   lex_match ('=');
-  if ((token == T_ID && is_varname (tokid)) || token == T_ID)
+  if ((token == T_ID && dict_lookup_var (default_dict, tokid) != NULL)
+      || token == T_ID)
     for (;;)
       {
 	int i;
@@ -688,7 +686,8 @@ frq_custom_grouped (struct cmd_frequencies *cmd unused)
 	int n;
 	struct variable **v;
 
-	if (!parse_variables (NULL, &v, &n, PV_NO_DUPLICATE | PV_NUMERIC))
+	if (!parse_variables (default_dict, &v, &n,
+                              PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
 	if (lex_match ('('))
 	  {
@@ -719,7 +718,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd unused)
 
 	for (i = 0; i < n; i++)
 	  {
-	    if (v[i]->foo == 0)
+	    if (v[i]->p.frq.used == 0)
 	      msg (SE, _("Variables %s specified on GROUPED but not on "
 		   "VARIABLES."), v[i]->name);
 	    if (v[i]->p.frq.groups != NULL)
@@ -734,7 +733,8 @@ frq_custom_grouped (struct cmd_frequencies *cmd unused)
 	free (v);
 	if (!lex_match ('/'))
 	  break;
-	if ((token != T_ID || !is_varname (tokid)) && token != T_ALL)
+	if ((token != T_ID || dict_lookup_var (default_dict, tokid) != NULL)
+            && token != T_ALL)
 	  {
 	    lex_put_back ('/');
 	    break;

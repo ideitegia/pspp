@@ -74,7 +74,7 @@ struct dls_var_spec
     int fc, lc;			/* Fixed-format: Column numbers in record. */
     struct fmt_spec input;	/* Input format of this field. */
     int fv;			/* First value in case. */
-    int type;			/* 0=numeric, >0=width of alpha field. */
+    int width;			/* 0=numeric, >0=width of alpha field. */
   };
 
 /* Constants for DATA LIST type. */
@@ -177,9 +177,12 @@ cmd_data_list (void)
 	  lex_match ('=');
 	  if (!lex_force_id ())
 	    return CMD_FAILURE;
-	  dls.end = find_variable (tokid);
-	  if (!dls.end)
-	    dls.end = force_create_variable (&default_dict, tokid, NUMERIC, 0);
+	  dls.end = dict_lookup_var (default_dict, tokid);
+	  if (!dls.end) 
+            {
+              dls.end = dict_create_var (default_dict, tokid, 0);
+              assert (dls.end != NULL);
+            }
 	  lex_get ();
 	}
       else if (token == T_ID)
@@ -513,14 +516,21 @@ fixed_parse_compatible (void)
   for (i = 0; i < fx.nname; i++)
     {
       int type;
+      int width;
       struct variable *v;
 
-      if (fx.spec.input.type == FMT_A || fx.spec.input.type == FMT_AHEX)
-	type = ALPHA;
-      else
-	type = NUMERIC;
+      if (fx.spec.input.type == FMT_A || fx.spec.input.type == FMT_AHEX) 
+        {
+          type = ALPHA;
+          width = dividend; 
+        }
+      else 
+        {
+          type = NUMERIC;
+          width = 0;
+        }
 
-      v = create_variable (&default_dict, fx.name[i], type, dividend);
+      v = dict_create_var (default_dict, fx.name[i], width);
       if (v)
 	{
 	  convert_fmt_ItoO (&fx.spec.input, &v->print);
@@ -528,8 +538,8 @@ fixed_parse_compatible (void)
 	}
       else
 	{
-	  v = find_variable (fx.name[i]);
-	  assert (v);
+	  v = dict_lookup_var (default_dict, fx.name[i]);
+	  assert (v != NULL);
 	  if (!vfm_source)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), fx.name[i]);
@@ -554,7 +564,7 @@ fixed_parse_compatible (void)
       fx.spec.fc = fx.fc + dividend * i;
       fx.spec.lc = fx.spec.fc + dividend - 1;
       fx.spec.fv = v->fv;
-      fx.spec.type = v->type == NUMERIC ? 0 : v->width;
+      fx.spec.width = v->width;
       append_var_spec (&fx.spec);
     }
   return 1;
@@ -603,9 +613,19 @@ dump_fmt_list (struct fmt_list *f)
 	else
 	  {
 	    int type;
+            int width;
 	    struct variable *v;
 
-	    type = (formats[f->f.type].cat & FCAT_STRING) ? ALPHA : NUMERIC;
+            if (formats[f->f.type].cat & FCAT_STRING) 
+              {
+                type = ALPHA;
+                width = f->f.w;
+              }
+            else 
+              {
+                type = NUMERIC;
+                width = 0;
+              }
 	    if (fx.cname >= fx.nname)
 	      {
 		msg (SE, _("The number of format "
@@ -614,9 +634,9 @@ dump_fmt_list (struct fmt_list *f)
 		return 0;
 	      }
 	    
-	    fx.spec.v = v = create_variable (&default_dict,
+	    fx.spec.v = v = dict_create_var (default_dict,
 					     fx.name[fx.cname++],
-					     type, f->f.w);
+					     width);
 	    if (!v)
 	      {
 		msg (SE, _("%s is a duplicate variable name."), fx.name[i]);
@@ -631,7 +651,7 @@ dump_fmt_list (struct fmt_list *f)
 	    fx.spec.fc = fx.sc;
 	    fx.spec.lc = fx.sc + f->f.w - 1;
 	    fx.spec.fv = v->fv;
-	    fx.spec.type = v->type == NUMERIC ? 0 : v->width;
+	    fx.spec.width = v->width;
 	    append_var_spec (&fx.spec);
 
 	    fx.sc += f->f.w;
@@ -782,11 +802,12 @@ parse_free (void)
   char **name;
   int nname;
   int i;
-  int type;
 
   lex_get ();
   while (token != '.')
     {
+      int width;
+
       if (!parse_DATA_LIST_vars (&name, &nname, PV_NONE))
 	return 0;
       if (lex_match ('('))
@@ -808,14 +829,14 @@ parse_free (void)
 
       spec.input = in;
       if (in.type == FMT_A || in.type == FMT_AHEX)
-	type = ALPHA;
+	width = in.w;
       else
-	type = NUMERIC;
+	width = 0;
       for (i = 0; i < nname; i++)
 	{
 	  struct variable *v;
 
-	  spec.v = v = create_variable (&default_dict, name[i], type, in.w);
+	  spec.v = v = dict_create_var (default_dict, name[i], width);
 	  if (!v)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
@@ -826,7 +847,7 @@ parse_free (void)
 
 	  strcpy (spec.name, name[i]);
 	  spec.fv = v->fv;
-	  spec.type = type == NUMERIC ? 0 : v->width;
+	  spec.width = width;
 	  append_var_spec (&spec);
 	}
       for (i = 0; i < nname; i++)
@@ -1151,10 +1172,10 @@ read_from_data_list_list (void)
 		 "or blanks, as appropriate."),
 		 var_spec->name);
 	  for (; var_spec; var_spec = var_spec->next)
-	    if (!var_spec->type)
+	    if (var_spec->width == 0)
 	      temp_case->data[var_spec->fv].f = SYSMIS;
 	    else
-	      memset (temp_case->data[var_spec->fv].s, ' ', var_spec->type);
+	      memset (temp_case->data[var_spec->fv].s, ' ', var_spec->width);
 	  break;
 	}
       

@@ -33,9 +33,13 @@
 #endif /* !PI && !M_PI */
 #endif /* !PI */
 
+extern double pow4 (double);
+extern double cube (double);
+extern double sqr (double);
+
 /* Returns the fourth power of its argument. */
 extern inline double
-hypercube (double x)
+pow4 (double x)
 {
   x *= x;
   return x * x;

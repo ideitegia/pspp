@@ -134,8 +134,9 @@ static struct hsh_table *gen_tab;	/* Hash table. */
 static int n_sorted_tab;		/* Number of entries in sorted_tab. */
 static struct table_entry **sorted_tab;	/* Sorted table. */
 
-/* VARIABLES dictionary. */
-static struct dictionary *var_dict;
+/* Variables specifies on VARIABLES. */
+static struct variable **variables;
+static size_t variables_cnt;
 
 /* TABLES. */
 static struct crosstab **xtab;
@@ -165,7 +166,6 @@ static struct pool *pl_tc;	/* For table cells. */
 static struct pool *pl_col;	/* For column data. */
 
 static int internal_cmd_crosstabs (void);
-static void free_var_dict (void);
 static void precalc (void);
 static int calc_general (struct ccase *);
 static int calc_integer (struct ccase *);
@@ -183,7 +183,7 @@ cmd_crosstabs (void)
 {
   int result = internal_cmd_crosstabs ();
 
-  free_var_dict ();
+  free (variables);
   pool_destroy (pl_tc);
   pool_destroy (pl_col);
   
@@ -194,7 +194,8 @@ cmd_crosstabs (void)
 static int
 internal_cmd_crosstabs (void)
 {
-  var_dict = NULL;
+  variables = NULL;
+  variables_cnt = 0;
   xtab = NULL;
   nxtab = 0;
   pl_tc = pool_create ();
@@ -205,12 +206,11 @@ internal_cmd_crosstabs (void)
     return CMD_FAILURE;
 
 #if DEBUGGING
-  /* Needs var_dict. */
+  /* Needs variables. */
   debug_print ();
 #endif
 
-  mode = var_dict ? INTEGER : GENERAL;
-  free_var_dict();
+  mode = variables ? INTEGER : GENERAL;
 
   /* CELLS. */
   expected = 0;
@@ -295,45 +295,16 @@ internal_cmd_crosstabs (void)
   else
     write = CRS_WR_NONE;
 
-  update_weighting (&default_dict);
   procedure (precalc, mode == GENERAL ? calc_general : calc_integer, postcalc);
 
   return CMD_SUCCESS;
-}
-
-/* Frees var_dict once it's no longer needed. */
-static void
-free_var_dict (void)
-{
-  if (!var_dict)
-    return;
-  
-  {
-    int i;
-
-    if (var_dict->name_tab)
-      {
-	hsh_destroy (var_dict->name_tab);
-	var_dict->name_tab = NULL;
-      }
-
-    for (i = 0; i < var_dict->nvar; i++)
-      free (var_dict->var[i]);
-    free (var_dict->var);
-    var_dict->var = NULL;
-    var_dict->nvar = 0;
-
-    free_dictionary (var_dict);
-
-    var_dict = NULL;
-  }
 }
 
 /* Parses the TABLES subcommand. */
 static int
 crs_custom_tables (struct cmd_crosstabs *cmd unused)
 {
-  struct dictionary *dict;
+  struct var_set *var_set;
   int n_by;
   struct variable ***by = NULL;
   int *by_nvar = NULL;
@@ -342,20 +313,24 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
 
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id ("TABLES")
-      && (token != T_ID || !is_varname (tokid))
+      && (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
 
-  dict = var_dict ? var_dict : &default_dict;
+  if (variables != NULL)
+    var_set = var_set_create_from_array (variables, variables_cnt);
+  else
+    var_set = var_set_create_from_dict (default_dict);
+  assert (var_set != NULL);
   
   for (n_by = 0; ;)
     {
       by = xrealloc (by, sizeof *by * (n_by + 1));
       by_nvar = xrealloc (by_nvar, sizeof *by_nvar * (n_by + 1));
-      if (!parse_variables (dict, &by[n_by], &by_nvar[n_by],
-			    PV_NO_DUPLICATE | PV_NO_SCRATCH))
-	goto lossage;
+      if (!parse_var_set_vars (var_set, &by[n_by], &by_nvar[n_by],
+                               PV_NO_DUPLICATE | PV_NO_SCRATCH))
+	goto done;
       nx *= by_nvar[n_by];
       n_by++;
 
@@ -364,7 +339,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
 	  if (n_by < 1)
 	    {
 	      lex_error (_("expecting BY"));
-	      goto lossage;
+	      goto done;
 	    }
 	  else 
 	    break;
@@ -387,12 +362,8 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
 	{
 	  int i;
 
-	  if (var_dict == NULL)
-	    for (i = 0; i < n_by; i++)
-	      x->v[i] = by[i][by_iter[i]];
-	  else
-	    for (i = 0; i < n_by; i++)
-	      x->v[i] = default_dict.var[by[i][by_iter[i]]->foo];
+          for (i = 0; i < n_by; i++)
+            x->v[i] = by[i][by_iter[i]];
 	}
 	
 	{
@@ -410,11 +381,10 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
       }
     free (by_iter);
   }
-    
   success = 1;
-  /* Despite the name, we come here whether we're successful or
-     not. */
- lossage:
+
+ done:
+  /* All return paths lead here. */
   {
     int i;
 
@@ -424,6 +394,8 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
     free (by_nvar);
   }
 
+  var_set_destroy (var_set);
+
   return success;
 }
 
@@ -431,9 +403,6 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
 static int
 crs_custom_variables (struct cmd_crosstabs *cmd unused)
 {
-  struct variable **v = NULL;
-  int nv = 0;
-
   if (nxtab)
     {
       msg (SE, _("VARIABLES must be specified before TABLES."));
@@ -444,12 +413,12 @@ crs_custom_variables (struct cmd_crosstabs *cmd unused)
   
   for (;;)
     {
-      int orig_nv = nv;
+      int orig_nv = variables_cnt;
       int i;
 
       long min, max;
       
-      if (!parse_variables (&default_dict, &v, &nv,
+      if (!parse_variables (default_dict, &variables, &variables_cnt,
 			    (PV_APPEND | PV_NUMERIC
 			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
@@ -486,40 +455,22 @@ crs_custom_variables (struct cmd_crosstabs *cmd unused)
 	}
       lex_get ();
       
-      for (i = orig_nv; i < nv; i++)
+      for (i = orig_nv; i < variables_cnt; i++)
 	{
-	  v[i]->p.crs.min = min;
-	  v[i]->p.crs.max = max + 1.;
-	  v[i]->p.crs.count = max - min + 1;
+	  variables[i]->p.crs.min = min;
+	  variables[i]->p.crs.max = max + 1.;
+	  variables[i]->p.crs.count = max - min + 1;
 	}
       
       if (token == '/')
 	break;
     }
   
-  {
-    int i;
-    
-    var_dict = new_dictionary (0);
-    var_dict->var = xmalloc (sizeof *var_dict->var * nv);
-    var_dict->nvar = nv;
-    for (i = 0; i < nv; i++)
-      {
-	struct variable *var = xmalloc (offsetof (struct variable, width));
-	strcpy (var->name, v[i]->name);
-	var->index = i;
-	var->type = v[i]->type;
-	var->foo = v[i]->index;
-	var_dict->var[i] = var;
-	hsh_force_insert (var_dict->name_tab, var);
-      }
-
-    free (v);
-    return 1;
-  }
+  return 1;
 
  lossage:
-  free (v);
+  free (variables);
+  variables = NULL;
   return 0;
 }
 
@@ -529,27 +480,25 @@ debug_print (void)
 {
   printf ("CROSSTABS\n");
 
-  if (var_dict)
+  if (variables != NULL)
     {
       int i;
 
       printf ("\t/VARIABLES=");
-      for (i = 0; i < var_dict->nvar; i++)
+      for (i = 0; i < variables_cnt; i++)
 	{
-	  struct variable *v = var_dict->var[i];
-	  struct variable *iv = default_dict.var[v->foo];
+	  struct variable *v = variables[i];
 
 	  printf ("%s ", v->name);
-	  if (i < var_dict->nvar - 1)
+	  if (i < variables_cnt - 1)
 	    {
-	      struct variable *nv = var_dict->var[i + 1];
-	      struct variable *niv = default_dict.var[nv->foo];
+	      struct variable *nv = variables[i + 1];
 	      
-	      if (iv->p.crs.min == niv->p.crs.min
-		  && iv->p.crs.max == niv->p.crs.max)
+	      if (v->p.crs.min == nv->p.crs.min
+		  && v->p.crs.max == nv->p.crs.max)
 		continue;
 	    }
-	  printf ("(%d,%d) ", iv->p.crs.min, iv->p.crs.max - 1);
+	  printf ("(%d,%d) ", v->p.crs.min, v->p.crs.max - 1);
 	}
       printf ("\n");
     }
@@ -656,9 +605,7 @@ static int
 calc_general (struct ccase *c)
 {
   /* Case weight. */
-  double w = (default_dict.weight_index != -1
-	      ? c->data[default_dict.var[default_dict.weight_index]->fv].f
-	      : 1.0);
+  double weight = dict_get_case_weight (default_dict, c);
 
   /* Flattened current table index. */
   int t;
@@ -683,7 +630,7 @@ calc_general (struct ccase *c)
 		|| (cmd.miss == CRS_INCLUDE
 		    && is_system_missing (&c->data[x->v[j]->fv], x->v[j])))
 	      {
-		x->missing += w;
+		x->missing += weight;
 		goto next_crosstab;
 	      }
 	      
@@ -708,13 +655,13 @@ calc_general (struct ccase *c)
 	  {
 	    struct table_entry *tep = pool_alloc (pl_tc, entry_size);
 	    
-	    te->u.freq = w;
+	    te->u.freq = weight;
 	    memcpy (tep, te, entry_size);
 	    
 	    *tepp = tep;
 	  }
 	else
-	  (*tepp)->u.freq += w;
+	  (*tepp)->u.freq += weight;
       }
 
     next_crosstab:
@@ -728,9 +675,7 @@ static int
 calc_integer (struct ccase *c)
 {
   /* Case weight. */
-  double w = (default_dict.weight_index != -1
-	      ? c->data[default_dict.var[default_dict.weight_index]->fv].f
-	      : 1.0);
+  double weight = dict_get_case_weight (default_dict, c);
   
   /* Flattened current table index. */
   int t;
@@ -751,7 +696,7 @@ calc_integer (struct ccase *c)
 	  if ((value < v->p.crs.min || value >= v->p.crs.max)
 	      || (cmd.miss == CRS_TABLE && is_num_user_missing (value, v)))
 	    {
-	      x->missing += w;
+	      x->missing += weight;
 	      goto next_crosstab;
 	    }
 	  
@@ -767,7 +712,7 @@ calc_integer (struct ccase *c)
 	const int col = c->data[x->v[COL_VAR]->fv].f - x->v[COL_VAR]->p.crs.min;
 	const int col_dim = x->v[COL_VAR]->p.crs.count;
 
-	sorted_tab[ofs]->u.data[col + row * col_dim] += w;
+	sorted_tab[ofs]->u.data[col + row * col_dim] += weight;
       }
       
     next_crosstab: ;
@@ -2346,7 +2291,7 @@ display_directional (void)
 
 /* Returns the value of the gamma (factorial) function for an integer
    argument X. */
-double
+static double
 gamma_int (double x)
 {
   double r = 1;
@@ -2903,7 +2848,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 			       + (sqr (W - sum_fii)
 				  * (W * sum_fijri_ci2 - 4.
 				     * sum_rici * sum_rici)
-				  / hypercube (W * W - sum_rici))));
+				  / pow4 (W * W - sum_rici))));
 #else
       t[8] = v[8] / ase[8];
 #endif

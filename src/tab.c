@@ -35,6 +35,7 @@ char *alloca ();
 #endif
 #endif
 
+#include "tab.h"
 #include <ctype.h>
 #include <assert.h>
 #include <stdarg.h>
@@ -48,12 +49,11 @@ char *alloca ();
 #include "output.h"
 #include "pool.h"
 #include "som.h"
-#include "tab.h"
 #include "var.h"
 
 #include "debug-print.h"
 
-extern struct som_table_class tab_table_class;
+struct som_table_class tab_table_class;
 
 #if DEBUGGING
 #define DEFFIRST(NAME, LABEL) LABEL,

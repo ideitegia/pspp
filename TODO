@@ -1,7 +1,10 @@
-Time-stamp: <2003-12-15 22:51:49 blp>
+Time-stamp: <2003-12-27 12:03:42 blp>
 
 TODO
 ----
+
+Probably should get rid of approx.h.  The user really needs to be responsible
+for his own precision.
 
 Use AFM files instead of Groff font files, and include AFMs for our default
 fonts with the distribution.
@@ -57,10 +60,6 @@ When malloc() returns 0, page to disk and free() unnecessary data.
 Remove ccase * argument from procfunc argument to procedure().
 
 See if process_active_file() has wider applicability.
-
-Looks like there's a potential problem with value labels--we use free_val_lab
-from avl_destroy(), but free_val_lab doesn't decrement the reference count, it
-just frees the label.  Check into this sometime soon.
 
 Eliminate private data in struct variable through use of pointers.
 

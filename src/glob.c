@@ -18,7 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
-
+#include "glob.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -82,6 +82,7 @@ extern void stifle_history ();
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"
+#include "file-handle.h"
 #include "filename.h"
 #include "getline.h"
 #include "hash.h"
@@ -96,7 +97,7 @@ extern void stifle_history ();
 #include "vfm.h"
 
 /* var.h */
-struct dictionary default_dict;
+struct dictionary *default_dict;
 struct expression *process_if_expr;
 
 struct ccase *temp_case;
@@ -166,8 +167,7 @@ init_glob (int argc unused, char **argv)
 #endif
 
   /* var.h */
-  default_dict.name_tab = hsh_create (8, compare_variables, hash_variable,
-                                      NULL, NULL);
+  default_dict = dict_create ();
 
   vec_init (&reinit_sysmis);
   vec_init (&reinit_blanks);
@@ -306,11 +306,7 @@ init_glob (int argc unused, char **argv)
   logfile = NULL;
 
   /* file-handle.h */
-  {
-    extern void fh_init_files (void);
-    
-    fh_init_files ();
-  }
+  fh_init_files ();
   
   get_date ();
 }

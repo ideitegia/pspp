@@ -18,11 +18,14 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "main.h"
 #include <assert.h>
 #include <stdio.h>
+#include "cmdline.h"
 #include "command.h"
 #include "error.h"
 #include "getline.h"
+#include "glob.h"
 #include "lexer.h"
 #include "output.h"
 
@@ -51,9 +54,6 @@ int start_interactive;
 int
 main (int argc, char **argv)
 {
-  void init_glob (int, char **);	/* Exported by glob.c. */
-  void parse_command_line (int, char **);	/* Exported by cmdline.c */
-
   /* Initialization. */
   if (!outp_init ())
     err_hcf (0);

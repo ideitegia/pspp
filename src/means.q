@@ -127,23 +127,14 @@ free:
   return success;
 }
 
-/* Returns nonzero only if value V is valid as an endpoint for a
-   dependent variable in integer mode. */
-int
-validate_dependent_endpoint (double V)
-{
-  return V == (int) V && V != LOWEST && V != HIGHEST;
-}
-
 /* Parses the TABLES subcommand. */
 static int
 mns_custom_tables (struct cmd_means *cmd)
 {
-  struct dictionary *dict;
-  struct dictionary temp_dict;
+  struct var_set *var_set;
   
   if (!lex_match_id ("TABLES")
-      && (token != T_ID || !is_varname (tokid))
+      && (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
@@ -155,31 +146,20 @@ mns_custom_tables (struct cmd_means *cmd)
       return 0;
     }
 
-  if (cmd->sbc_variables)
-    {
-      dict = &temp_dict;
-      temp_dict.var = v_var;
-      temp_dict.nvar = n_var;
-      
-      {
-	int i;
-      
-	temp_dict.name_tab = hsh_create (8, compare_variables, hash_variable,
-                                         NULL, NULL);
-	for (i = 0; i < temp_dict.nvar; i++)
-	  hsh_force_insert (temp_dict.name_tab, temp_dict.var[i]);
-      }
-    }
+  if (cmd->sbc_variables) 
+    var_set = var_set_create_from_array (v_var, n_var);
   else
-    dict = &default_dict;
+    var_set = var_set_create_from_dict (default_dict);
+  assert (var_set != NULL);
 
   do
     {
       int nvl;
       struct variable **vl;
-	
-      if (!parse_variables (dict, &vl, &nvl, PV_NO_DUPLICATE | PV_NO_SCRATCH))
-	return 0;
+
+      if (!parse_var_set_vars (var_set, &vl, &nvl,
+                               PV_NO_DUPLICATE | PV_NO_SCRATCH)) 
+        goto lossage;
       
       n_dim++;
       nv_dim = xrealloc (nv_dim, n_dim * sizeof (int));
@@ -202,7 +182,7 @@ mns_custom_tables (struct cmd_means *cmd)
 			     "CROSSBREAK, but not specified on "
 			     "VARIABLES."),
 		       v_dim[0][i]->name);
-		  return 0;
+                  goto lossage;
 		}
 	      
 	      if (n_dim == 1)
@@ -215,7 +195,7 @@ mns_custom_tables (struct cmd_means *cmd)
 		      msg (SE, _("LOWEST and HIGHEST may not be used "
 				 "for independent variables (%s)."),
 			   v_dim[0][i]->name);
-		      return 0;
+                      goto lossage;
 		    }
 		  if (v_inf->min != (int) v_inf->min
 		      || v_inf->max != (int) v_inf->max)
@@ -224,7 +204,7 @@ mns_custom_tables (struct cmd_means *cmd)
 				 "have noninteger endpoints in their "
 				 "ranges."),
 			   v_dim[0][i]->name);
-		      return 0;
+                      goto lossage;
 		    }
 		}
 	    }
@@ -232,26 +212,12 @@ mns_custom_tables (struct cmd_means *cmd)
     }
   while (lex_match (T_BY));
 
-  /* Check for duplicates. */
-  {
-    int i;
-    
-    for (i = 0; i < default_dict.nvar; i++)
-      default_dict.var[i]->foo = 0;
-    for (i = 0; i < dict->nvar; i++)
-      if (dict->var[i]->foo++)
-	{
-	  msg (SE, _("Variable %s is multiply specified on TABLES "
-		     "or CROSSBREAK."),
-	       dict->var[i]->name);
-	  return 0;
-	}
-  }
-  
-  if (cmd->sbc_variables)
-    hsh_destroy (temp_dict.name_tab);
-
+  var_set_destroy (var_set);
   return 1;
+
+ lossage:
+  var_set_destroy (var_set);
+  return 0;
 }
 
 /* Parse CROSSBREAK subcommand. */
@@ -275,8 +241,8 @@ mns_custom_variables (struct cmd_means *cmd)
     {
       int i;
       
-      for (i = 0; i < default_dict.nvar; i++)
-	default_dict.var[i]->p.mns.min = SYSMIS;
+      for (i = 0; i < dict_get_var_cnt (default_dict); i++)
+	dict_get_var (default_dict, i)->p.mns.min = SYSMIS;
     }
   
   do
@@ -285,7 +251,7 @@ mns_custom_variables (struct cmd_means *cmd)
       
       double min, max;
       
-      if (!parse_variables (&default_dict, &v_var, &n_var,
+      if (!parse_variables (default_dict, &v_var, &n_var,
 			    PV_APPEND | PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	return 0;
 

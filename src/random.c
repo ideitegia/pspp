@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "random.h"
 #include <assert.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -26,7 +27,6 @@
 #include <time.h>
 #include "alloc.h"
 #include "magic.h"
-#include "random.h"
 #include "settings.h"
 
 /* Random number generator. */
@@ -48,15 +48,15 @@ rng_create (void)
   struct rng *rng;
   static time_t t;
 
-   rng = xmalloc (sizeof *rng);
-   if (t == 0)
-     time (&t);
-   else
-     t++;
-   rng_seed (rng, &t, sizeof t);
-   rng->next_normal = NOT_DOUBLE;
-   return rng;
- }
+  rng = xmalloc (sizeof *rng);
+  if (t == 0)
+    time (&t);
+  else
+    t++;
+  rng_seed (rng, &t, sizeof t);
+  rng->next_normal = NOT_DOUBLE;
+  return rng;
+}
 
 /* Destroys RNG. */
 void
@@ -66,7 +66,7 @@ rng_destroy (struct rng *rng)
 }
 
 /* Swap bytes. */
-static inline void
+static void
 swap_byte (uint8_t *a, uint8_t *b) 
 {
   uint8_t t = *a;
@@ -80,7 +80,7 @@ void
 rng_seed (struct rng *rng, const void *key_, size_t size) 
 {
   const uint8_t *key = key_;
-  int key_idx;
+  size_t key_idx;
   uint8_t *s;
   int i, j;
 
@@ -90,7 +90,7 @@ rng_seed (struct rng *rng, const void *key_, size_t size)
   rng->i = rng->j = 0;
   for (i = 0; i < 256; i++) 
     s[i] = i;
-  for (key_idx = 0, i = 0; i < 256; i++) 
+  for (key_idx = 0, i = j = 0; i < 256; i++) 
     {
       j = (j + s[i] + key[key_idx]) & 255;
       swap_byte (s + i, s + j);

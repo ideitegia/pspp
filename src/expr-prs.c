@@ -18,6 +18,8 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "expr.h"
+#include "exprP.h"
 #include <assert.h>
 #include <ctype.h>
 #include <float.h>
@@ -25,13 +27,10 @@
 #include "algorithm.h"
 #include "alloc.h"
 #include "error.h"
-#include "expr.h"
-#include "exprP.h"
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"
 #include "var.h"
-#include "vector.h"
 #include "vfm.h"
 
 /* Declarations. */
@@ -624,7 +623,7 @@ parse_primary (union any_node **n)
 	  }
 
 	/* Otherwise, it must be a user variable. */
-	v = find_variable (tokid);
+	v = dict_lookup_var (default_dict, tokid);
 	lex_get ();
 	if (v == NULL)
 	  {
@@ -757,7 +756,9 @@ ternary_func (struct function * f, int x unused, union any_node ** n)
 static int
 MISSING_func (struct function * f, int x unused, union any_node ** n)
 {
-  if (token == T_ID && is_varname (tokid) && lex_look_ahead () == ')')
+  if (token == T_ID
+      && dict_lookup_var (default_dict, tokid) != NULL
+      && lex_look_ahead () == ')')
     {
       struct var_node *c = xmalloc (sizeof *c);
       c->v = parse_variable ();
@@ -775,7 +776,9 @@ SYSMIS_func (struct function * f unused, int x unused, union any_node ** n)
 {
   int t;
   
-  if (token == T_ID && is_varname (tokid) && lex_look_ahead () == ')')
+  if (token == T_ID
+      && dict_lookup_var (default_dict, tokid)
+      && lex_look_ahead () == ')')
     {
       struct variable *v;
       v = parse_variable ();
@@ -894,7 +897,7 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 
       /* FIXME: Is this condition failsafe?  Can we _ever_ have two
          juxtaposed identifiers otherwise?  */
-      if (token == T_ID && is_varname (tokid)
+      if (token == T_ID && dict_lookup_var (default_dict, tokid) != NULL
 	  && toupper (lex_look_ahead ()) == 'T')
 	{
 	  struct variable **v;
@@ -906,7 +909,7 @@ nary_num_func (struct function *f, int min_args, union any_node **n)
 	    opts |= PV_NUMERIC;
 	  else if (type == ALPHA)
 	    opts |= PV_STRING;
-	  if (!parse_variables (NULL, &v, &nv, opts))
+	  if (!parse_variables (default_dict, &v, &nv, opts))
 	    goto fail;
 	  if (nv + (*n)->nonterm.n >= m)
 	    {
@@ -1221,10 +1224,10 @@ parse_function (union any_node ** n)
   char fname[32], *cp;
   int t;
   int min_args;
-  struct vector *v;
+  const struct vector *v;
 
   /* Check for a vector with this name. */
-  v = find_vector (tokid);
+  v = dict_lookup_vector (default_dict, tokid);
   if (v)
     {
       lex_get ();
@@ -1233,7 +1236,7 @@ parse_function (union any_node ** n)
 
       *n = xmalloc (sizeof (struct nonterm_node)
 		    + sizeof (union any_node *[2]));
-      (*n)->nonterm.type = (v->v[0]->type == NUMERIC
+      (*n)->nonterm.type = (v->var[0]->type == NUMERIC
 			? OP_VEC_ELEM_NUM : OP_VEC_ELEM_STR);
       (*n)->nonterm.n = 0;
 
@@ -1252,9 +1255,9 @@ parse_function (union any_node ** n)
 	  msg (SE, _("`)' expected after a vector index value."));
 	  goto fail;
 	}
-      ((*n)->nonterm.arg[1]) = (union any_node *) v->index;
+      ((*n)->nonterm.arg[1]) = (union any_node *) v->idx;
 
-      return v->v[0]->type == NUMERIC ? EX_NUMERIC : EX_STRING;
+      return v->var[0]->type == NUMERIC ? EX_NUMERIC : EX_STRING;
     }
 
   ds_truncate (&tokstr, 31);

@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
 #include "approx.h"
@@ -28,314 +29,231 @@
 #include "lexer.h"
 #include "str.h"
 #include "var.h"
-#include "vector.h"
 
-/* I can't think of any really good reason to disable debugging for
-   this module. */
-#include "debug-print.h"
+struct compute_trns;
+struct lvalue;
+
+/* Target of a COMPUTE or IF assignment, either a variable or a
+   vector element. */
+static struct lvalue *lvalue_parse (void);
+static int lvalue_get_type (const struct lvalue *);
+static int lvalue_is_vector (const struct lvalue *);
+static void lvalue_finalize (struct lvalue *,
+                             struct compute_trns *);
+static void lvalue_destroy (struct lvalue *);
 
 /* COMPUTE and IF transformation. */
 struct compute_trns
   {
     struct trns_header h;
 
-    /* Destination.  (Used only during parsing.) */
-    struct variable *v;		/* Destvar, if dest isn't a vector elem. */
-    int created;		/* Whether we created the destvar (used only during
-				   parsing). */
+    /* Test expression (IF only). */
+    struct expression *test;	 /* Test expression. */
 
-    /* Destination.  (Used during execution.) */
-    struct vector *vec;		/* Destination vector, if dest is a vector elem. */
-    int fv;			/* `value' index of destination variable. */
-    int width;			/* Target variable width (string vars only). */
+    /* Variable lvalue, if variable != NULL. */
+    struct variable *variable;   /* Destination variable, if any. */
+    int fv;			 /* `value' index of destination variable. */
+    int width;			 /* Lvalue string width; 0=numeric. */
 
-    /* Expressions. */
-    struct expression *vec_elem;		/* Destination vector element expr. */
-    struct expression *target;			/* Target expression. */
-    struct expression *test;			/* Test expression (IF only). */
+    /* Vector lvalue, if vector != NULL. */
+    const struct vector *vector; /* Destination vector, if any. */
+    struct expression *element;  /* Destination vector element expr. */
+
+    /* Rvalue. */
+    struct expression *rvalue;	 /* Rvalue expression. */
   };
 
-static int parse_target_expression (struct compute_trns *,
-				    int (*func_tab[4]) (struct trns_header *, struct ccase *));
-static struct compute_trns *new_trns (void);
-static void delete_trns (struct compute_trns *);
-static void free_trns (struct trns_header *);
-static int parse_var_or_vec (struct compute_trns *);
+static int parse_rvalue_expression (struct compute_trns *,
+                                    const struct lvalue *);
+static struct compute_trns *compute_trns_create (void);
+static void compute_trns_free (struct trns_header *);
 
 /* COMPUTE. */
-
-static int compute_num (struct trns_header *, struct ccase *);
-static int compute_str (struct trns_header *, struct ccase *);
-static int compute_num_vec (struct trns_header *, struct ccase *);
-static int compute_str_vec (struct trns_header *, struct ccase *);
 
 int
 cmd_compute (void)
 {
-  /* Table of functions to process data. */
-  static int (*func_tab[4]) (struct trns_header *, struct ccase *) =
-    {
-      compute_num,
-      compute_str,
-      compute_num_vec,
-      compute_str_vec,
-    };
-
-  /* Transformation being constructed. */
-  struct compute_trns *c;
+  struct lvalue *lvalue = NULL;
+  struct compute_trns *compute = NULL;
 
   lex_match_id ("COMPUTE");
 
-  c = new_trns ();
-  if (!parse_var_or_vec (c))
+  lvalue = lvalue_parse ();
+  if (lvalue == NULL)
     goto fail;
 
-  if (!lex_force_match ('=')
-      || !parse_target_expression (c, func_tab))
+  compute = compute_trns_create ();
+
+  if (!lex_force_match ('=') || !parse_rvalue_expression (compute, lvalue))
     goto fail;
 
-  /* Goofy behavior, but compatible: Turn off LEAVE on the destvar. */
-  if (c->v && c->v->left && c->v->name[0] != '#')
-    {
-      devector (c->v);
-      c->v->left = 0;
-      envector (c->v);
-    }
+  lvalue_finalize (lvalue, compute);
 
-  add_transformation ((struct trns_header *) c);
+  add_transformation (&compute->h);
 
   return CMD_SUCCESS;
 
-fail:
-  delete_trns (c);
+ fail:
+  lvalue_destroy (lvalue);
+  if (compute != NULL) 
+    {
+      compute_trns_free (&compute->h);
+      free (compute); 
+    }
   return CMD_FAILURE;
 }
+
+/* Transformation functions. */
 
 static int
-compute_num (struct trns_header * pt, struct ccase * c)
+compute_num (struct trns_header *compute_, struct ccase *c)
 {
-  struct compute_trns *t = (struct compute_trns *) pt;
-  expr_evaluate (t->target, c, &c->data[t->fv]);
-  return -1;
-}
+  struct compute_trns *compute = (struct compute_trns *) compute_;
 
-static int
-compute_num_vec (struct trns_header * pt, struct ccase * c)
-{
-  struct compute_trns *t = (struct compute_trns *) pt;
-
-  /* Index into the vector. */
-  union value index;
-
-  /* Rounded index value. */
-  int rindx;
-
-  expr_evaluate (t->vec_elem, c, &index);
-  rindx = floor (index.f + EPSILON);
-  if (index.f == SYSMIS || rindx < 1 || rindx > t->vec->nv)
+  if (compute->test == NULL
+      || expr_evaluate (compute->test, c, NULL) == 1.0) 
     {
-      if (index.f == SYSMIS)
-	msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
-	     "an index into vector %s."), t->vec->name);
-      else
-	msg (SW, _("When executing COMPUTE: %g is not a valid value as "
-	     "an index into vector %s."), index.f, t->vec->name);
-      return -1;
+      expr_evaluate (compute->rvalue, c, &c->data[compute->fv]); 
     }
-  expr_evaluate (t->target, c, &c->data[t->vec->v[rindx - 1]->fv]);
+  
   return -1;
 }
 
 static int
-compute_str (struct trns_header * pt, struct ccase * c)
+compute_num_vec (struct trns_header *compute_, struct ccase *c)
 {
-  struct compute_trns *t = (struct compute_trns *) pt;
+  struct compute_trns *compute = (struct compute_trns *) compute_;
 
-  /* Temporary storage for string expression return value. */
-  union value v;
-
-  expr_evaluate (t->target, c, &v);
-  st_bare_pad_len_copy (c->data[t->fv].s, &v.c[1], t->width, v.c[0]);
-  return -1;
-}
-
-static int
-compute_str_vec (struct trns_header * pt, struct ccase * c)
-{
-  struct compute_trns *t = (struct compute_trns *) pt;
-
-  /* Temporary storage for string expression return value. */
-  union value v;
-
-  /* Index into the vector. */
-  union value index;
-
-  /* Rounded index value. */
-  int rindx;
-
-  /* Variable reference by indexed vector. */
-  struct variable *vr;
-
-  expr_evaluate (t->vec_elem, c, &index);
-  rindx = floor (index.f + EPSILON);
-  if (index.f == SYSMIS || rindx < 1 || rindx > t->vec->nv)
+  if (compute->test == NULL
+      || expr_evaluate (compute->test, c, NULL) == 1.0) 
     {
-      if (index.f == SYSMIS)
-	msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
-	     "an index into vector %s."), t->vec->name);
-      else
-	msg (SW, _("When executing COMPUTE: %g is not a valid value as "
-	     "an index into vector %s."), index.f, t->vec->name);
-      return -1;
-    }
+      /* Index into the vector. */
+      union value index;
 
-  expr_evaluate (t->target, c, &v);
-  vr = t->vec->v[rindx - 1];
-  st_bare_pad_len_copy (c->data[vr->fv].s, &v.c[1], vr->width, v.c[0]);
+      /* Rounded index value. */
+      int rindx;
+
+      expr_evaluate (compute->element, c, &index);
+      rindx = floor (index.f + EPSILON);
+      if (index.f == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
+        {
+          if (index.f == SYSMIS)
+            msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
+                       "an index into vector %s."), compute->vector->name);
+          else
+            msg (SW, _("When executing COMPUTE: %g is not a valid value as "
+                       "an index into vector %s."),
+                 index.f, compute->vector->name);
+          return -1;
+        }
+      expr_evaluate (compute->rvalue, c,
+                     &c->data[compute->vector->var[rindx - 1]->fv]); 
+    }
+  
+  return -1;
+}
+
+static int
+compute_str (struct trns_header *compute_, struct ccase *c)
+{
+  struct compute_trns *compute = (struct compute_trns *) compute_;
+
+  if (compute->test == NULL
+      || expr_evaluate (compute->test, c, NULL) == 1.0) 
+    {
+      /* Temporary storage for string expression return value. */
+      union value v;
+
+      expr_evaluate (compute->rvalue, c, &v);
+      st_bare_pad_len_copy (c->data[compute->fv].s, &v.c[1], compute->width,
+                            v.c[0]); 
+    }
+  
+  return -1;
+}
+
+static int
+compute_str_vec (struct trns_header *compute_, struct ccase *c)
+{
+  struct compute_trns *compute = (struct compute_trns *) compute_;
+
+  if (compute->test == NULL
+      || expr_evaluate (compute->test, c, NULL) == 1.0) 
+    {
+      /* Temporary storage for string expression return value. */
+      union value v;
+
+      /* Index into the vector. */
+      union value index;
+
+      /* Rounded index value. */
+      int rindx;
+
+      /* Variable reference by indexed vector. */
+      struct variable *vr;
+
+      expr_evaluate (compute->element, c, &index);
+      rindx = floor (index.f + EPSILON);
+      if (index.f == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
+        {
+          if (index.f == SYSMIS)
+            msg (SW, _("When executing COMPUTE: SYSMIS is not a valid "
+                       "value as an index into vector %s."),
+                 compute->vector->name);
+          else
+            msg (SW, _("When executing COMPUTE: %g is not a valid value as "
+                       "an index into vector %s."),
+                 index.f, compute->vector->name);
+          return -1;
+        }
+
+      expr_evaluate (compute->rvalue, c, &v);
+      vr = compute->vector->var[rindx - 1];
+      st_bare_pad_len_copy (c->data[vr->fv].s, &v.c[1], vr->width, v.c[0]); 
+    }
+  
   return -1;
 }
 
 /* IF. */
 
-static int if_num (struct trns_header *, struct ccase *);
-static int if_str (struct trns_header *, struct ccase *);
-static int if_num_vec (struct trns_header *, struct ccase *);
-static int if_str_vec (struct trns_header *, struct ccase *);
-
 int
 cmd_if (void)
 {
-  /* Table of functions to process data. */
-  static int (*func_tab[4]) (struct trns_header *, struct ccase *) =
-    {
-      if_num,
-      if_str,
-      if_num_vec,
-      if_str_vec,
-    };
-
-  /* Transformation being constructed. */
-  struct compute_trns *c;
+  struct compute_trns *compute = NULL;
+  struct lvalue *lvalue = NULL;
 
   lex_match_id ("IF");
-  c = new_trns ();
+  compute = compute_trns_create ();
 
   /* Test expression. */
-  c->test = expr_parse (PXP_BOOLEAN);
-  if (!c->test)
+  compute->test = expr_parse (PXP_BOOLEAN);
+  if (compute->test == NULL)
     goto fail;
 
-  /* Target variable. */
-  if (!parse_var_or_vec (c))
+  /* Lvalue variable. */
+  lvalue = lvalue_parse ();
+  if (lvalue == NULL)
     goto fail;
 
-  /* Target expression. */
-  
-  if (!lex_force_match ('=')
-      || !parse_target_expression (c, func_tab))
+  /* Rvalue expression. */
+  if (!lex_force_match ('=') || !parse_rvalue_expression (compute, lvalue))
     goto fail;
 
-  add_transformation ((struct trns_header *) c);
+  lvalue_finalize (lvalue, compute);
+
+  add_transformation (&compute->h);
 
   return CMD_SUCCESS;
 
-fail:
-  delete_trns (c);
+ fail:
+  lvalue_destroy (lvalue);
+  if (compute != NULL) 
+    {
+      compute_trns_free (&compute->h);
+      free (compute); 
+    }
   return CMD_FAILURE;
-}
-
-static int
-if_num (struct trns_header * pt, struct ccase * c)
-{
-  struct compute_trns *t = (struct compute_trns *) pt;
-
-  if (expr_evaluate (t->test, c, NULL) == 1.0)
-    expr_evaluate (t->target, c, &c->data[t->fv]);
-  return -1;
-}
-
-static int
-if_str (struct trns_header * pt, struct ccase * c)
-{
-  struct compute_trns *t = (struct compute_trns *) pt;
-
-  if (expr_evaluate (t->test, c, NULL) == 1.0)
-    {
-      union value v;
-
-      expr_evaluate (t->target, c, &v);
-      st_bare_pad_len_copy (c->data[t->fv].s, &v.c[1], t->width, v.c[0]);
-    }
-  return -1;
-}
-
-static int
-if_num_vec (struct trns_header * pt, struct ccase * c)
-{
-  struct compute_trns *t = (struct compute_trns *) pt;
-
-  if (expr_evaluate (t->test, c, NULL) == 1.0)
-    {
-      /* Index into the vector. */
-      union value index;
-
-      /* Rounded index value. */
-      int rindx;
-
-      expr_evaluate (t->vec_elem, c, &index);
-      rindx = floor (index.f + EPSILON);
-      if (index.f == SYSMIS || rindx < 1 || rindx > t->vec->nv)
-	{
-	  if (index.f == SYSMIS)
-	    msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
-		 "an index into vector %s."), t->vec->name);
-	  else
-	    msg (SW, _("When executing COMPUTE: %g is not a valid value as "
-		 "an index into vector %s."), index.f, t->vec->name);
-	  return -1;
-	}
-      expr_evaluate (t->target, c,
-			   &c->data[t->vec->v[rindx]->fv]);
-    }
-  return -1;
-}
-
-static int
-if_str_vec (struct trns_header * pt, struct ccase * c)
-{
-  struct compute_trns *t = (struct compute_trns *) pt;
-
-  if (expr_evaluate (t->test, c, NULL) == 1.0)
-    {
-      /* Index into the vector. */
-      union value index;
-
-      /* Rounded index value. */
-      int rindx;
-
-      /* Temporary storage for result of target expression. */
-      union value v2;
-
-      /* Variable reference by indexed vector. */
-      struct variable *vr;
-
-      expr_evaluate (t->vec_elem, c, &index);
-      rindx = floor (index.f + EPSILON);
-      if (index.f == SYSMIS || rindx < 1 || rindx > t->vec->nv)
-	{
-	  if (index.f == SYSMIS)
-	    msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
-		 "an index into vector %s."), t->vec->name);
-	  else
-	    msg (SW, _("When executing COMPUTE: %g is not a valid value as "
-		 "an index into vector %s."), index.f, t->vec->name);
-	  return -1;
-	}
-      expr_evaluate (t->target, c, &v2);
-      vr = t->vec->v[rindx - 1];
-      st_bare_pad_len_copy (c->data[vr->fv].s, &v2.c[1], vr->width, v2.c[0]);
-    }
-  return -1;
 }
 
 /* Code common to COMPUTE and IF. */
@@ -344,15 +262,22 @@ if_str_vec (struct trns_header * pt, struct ccase * c)
    command terminator, sets the case-handling proc from the array
    passed. */
 static int
-parse_target_expression (struct compute_trns *c,
-			 int (*proc_list[4]) (struct trns_header *, struct ccase *))
+parse_rvalue_expression (struct compute_trns *compute,
+                         const struct lvalue *lvalue)
 {
-  int dest_type = c->v ? c->v->type : c->vec->v[0]->type;
-  c->target = expr_parse (dest_type == ALPHA ? PXP_STRING : PXP_NUMERIC);
-  if (!c->target)
+  int type = lvalue_get_type (lvalue);
+  int vector = lvalue_is_vector (lvalue);
+
+  assert (type == NUMERIC || type == ALPHA);
+
+  compute->rvalue = expr_parse (type == ALPHA ? PXP_STRING : PXP_NUMERIC);
+  if (compute->rvalue == NULL)
     return 0;
 
-  c->h.proc = proc_list[(dest_type == ALPHA) + 2 * (c->vec != NULL)];
+  if (type == NUMERIC)
+    compute->h.proc = vector ? compute_num_vec : compute_num;
+  else
+    compute->h.proc = vector ? compute_str_vec : compute_str;
 
   if (token != '.')
     {
@@ -365,94 +290,149 @@ parse_target_expression (struct compute_trns *c,
 
 /* Returns a new struct compute_trns after initializing its fields. */
 static struct compute_trns *
-new_trns (void)
+compute_trns_create (void)
 {
-  struct compute_trns *c = xmalloc (sizeof *c);
-  c->h.proc = NULL;
-  c->h.free = free_trns;
-  c->v = NULL;
-  c->created = 0;
-  c->vec = NULL;
-  c->fv = 0;
-  c->width = 0;
-  c->vec_elem = NULL;
-  c->target = NULL;
-  c->test = NULL;
-  return c;
+  struct compute_trns *compute = xmalloc (sizeof *compute);
+  compute->h.proc = NULL;
+  compute->h.free = compute_trns_free;
+  compute->test = NULL;
+  compute->variable = NULL;
+  compute->vector = NULL;
+  compute->element = NULL;
+  compute->rvalue = NULL;
+  return compute;
 }
 
-/* Deletes all the fields in C, the variable C->v if we created it,
-   and C itself. */
+/* Deletes all the fields in COMPUTE. */
 static void
-delete_trns (struct compute_trns * c)
+compute_trns_free (struct trns_header *compute_)
 {
-  free_trns ((struct trns_header *) c);
-  if (c->created)
-    delete_variable (&default_dict, c->v);
-  free (c);
+  struct compute_trns *compute = (struct compute_trns *) compute_;
+
+  expr_free (compute->test);
+  expr_free (compute->element);
+  expr_free (compute->rvalue);
 }
+
+struct lvalue
+  {
+    char var_name[9];            /* Destination variable name, or "". */
+    const struct vector *vector; /* Destination vector, if any, or NULL. */
+    struct expression *element;  /* Destination vector element, or NULL. */
+  };
 
-/* Deletes all the fields in C. */
-static void
-free_trns (struct trns_header * pt)
+static struct lvalue *
+lvalue_parse (void) 
 {
-  struct compute_trns *t = (struct compute_trns *) pt;
+  struct lvalue *lvalue;
 
-  expr_free (t->vec_elem);
-  expr_free (t->target);
-  expr_free (t->test);
-}
+  lvalue = xmalloc (sizeof *lvalue);
+  lvalue->var_name[0] = '\0';
+  lvalue->vector = NULL;
+  lvalue->element = NULL;
 
-/* Parses a variable name or a vector element into C.  If the
-   variable does not exist, it is created.  Returns success. */
-static int
-parse_var_or_vec (struct compute_trns * c)
-{
   if (!lex_force_id ())
-    return 0;
+    goto lossage;
   
   if (lex_look_ahead () == '(')
     {
-      /* Vector element. */
-      c->vec = find_vector (tokid);
-      if (!c->vec)
+      /* Vector. */
+      lvalue->vector = dict_lookup_vector (default_dict, tokid);
+      if (lvalue->vector == NULL)
 	{
 	  msg (SE, _("There is no vector named %s."), tokid);
-	  return 0;
+          goto lossage;
 	}
-      
+
+      /* Vector element. */
       lex_get ();
       if (!lex_force_match ('('))
-	return 0;
-      c->vec_elem = expr_parse (PXP_NUMERIC);
-      if (!c->vec_elem)
-	return 0;
+	goto lossage;
+      lvalue->element = expr_parse (PXP_NUMERIC);
+      if (lvalue->element == NULL)
+        goto lossage;
       if (!lex_force_match (')'))
-	{
-	  expr_free (c->vec_elem);
-	  return 0;
-	}
+        goto lossage;
     }
   else
     {
       /* Variable name. */
-      c->v = find_variable (tokid);
-      if (!c->v)
-	{
-	  c->v = force_create_variable (&default_dict, tokid, NUMERIC, 0);
-	  envector (c->v);
-	  c->created = 1;
-	}
-      c->fv = c->v->fv;
-      c->width = c->v->width;
+      strncpy (lvalue->var_name, tokid, 8);
+      lvalue->var_name[8] = '\0';
       lex_get ();
     }
-  return 1;
+  return lvalue;
+
+ lossage:
+  lvalue_destroy (lvalue);
+  return NULL;
+}
+
+static int
+lvalue_get_type (const struct lvalue *lvalue) 
+{
+  if (lvalue->vector == NULL) 
+    {
+      struct variable *var
+        = dict_lookup_var (default_dict, lvalue->var_name);
+      if (var == NULL)
+        return NUMERIC;
+      else
+        return var->type;
+    }
+  else 
+    return lvalue->vector->var[0]->type;
+}
+
+static int
+lvalue_is_vector (const struct lvalue *lvalue) 
+{
+  return lvalue->vector != NULL;
+}
+
+static void
+lvalue_finalize (struct lvalue *lvalue,
+                 struct compute_trns *compute) 
+{
+  if (lvalue->vector == NULL)
+    {
+      compute->variable = dict_lookup_var (default_dict, lvalue->var_name);
+      if (compute->variable == NULL)
+        compute->variable = dict_create_var (default_dict, lvalue->var_name,
+                                             0);
+      assert (compute->variable != NULL);
+
+      compute->fv = compute->variable->fv;
+      compute->width = compute->variable->width;
+
+      /* Goofy behavior, but compatible: Turn off LEAVE. */
+      if (compute->variable->left
+          && dict_class_from_id (compute->variable->name) != DC_SCRATCH)
+        {
+          devector (compute->variable);
+          compute->variable->left = 0;
+          envector (compute->variable);
+        }
+    }
+  else 
+    {
+      compute->vector = lvalue->vector;
+      compute->element = lvalue->element;
+      lvalue->element = NULL;
+    }
+
+  lvalue_destroy (lvalue);
+}
+
+static void 
+lvalue_destroy (struct lvalue *lvalue) 
+{
+  expr_free (lvalue->element);
+  free (lvalue);
 }
 
 /* EVALUATE. */
 
-#if GLOBAL_DEBUGGING
 int
 cmd_evaluate (void)
 {
@@ -472,4 +452,3 @@ cmd_evaluate (void)
   
   return CMD_SUCCESS;
 }
-#endif

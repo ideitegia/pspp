@@ -55,10 +55,10 @@ cmd_apply_dictionary (void)
   if (dict == NULL)
     return CMD_FAILURE;
 
-  for (i = 0; i < dict->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
-      struct variable *s = dict->var[i];
-      struct variable *t = find_variable (s->name);
+      struct variable *s = dict_get_var (dict, i);
+      struct variable *t = dict_lookup_var (default_dict, s->name);
       if (t == NULL)
 	continue;
 
@@ -150,6 +150,7 @@ cmd_apply_dictionary (void)
 	  t->miss_type = s->miss_type;
 	  memcpy (t->missing, s->missing, sizeof s->missing);
 	}
+    skip_missing_values: ;
 
       if (s->type == NUMERIC)
 	{
@@ -163,29 +164,14 @@ cmd_apply_dictionary (void)
 	       "and target files."));
       
   /* Weighting. */
-  {
-    const int tfw = find_variable (default_dict.weight_var) != 0;
-    const int sfw = dict->weight_var[0] != 0;
-    struct variable *w;
+  if (dict_get_weight (dict) != NULL) 
+    {
+      struct variable *new_weight
+        = dict_lookup_var (default_dict, dict_get_weight (dict)->name);
 
-    switch (10 * tfw + sfw)
-      {
-      case 10:
-	/* The working file retains its weighting variable. */
-	break;
-
-      case 00:
-      case 01:
-	/* Fall through to case 11. */
-
-      case 11:
-	w = find_variable (dict->weight_var);
-	if (w)
-	  strcpy (default_dict.weight_var, dict->weight_var);
-	break;
-      }
-  }
- skip_missing_values: ;
+      if (new_weight != NULL)
+        dict_set_weight (default_dict, new_weight);
+    }
   
   sfm_maybe_close (handle);
 

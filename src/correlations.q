@@ -90,18 +90,19 @@ cor_custom_variables (struct cmd_correlations *cmd unused)
   struct cor_set *cor;
 
   /* Ensure that this is a VARIABLES subcommand. */
-  if (!lex_match_id ("VARIABLES") && (token != T_ID || !is_varname (tokid))
+  if (!lex_match_id ("VARIABLES")
+      && (token != T_ID || dict_lookup_var (default_dict, tokid) != NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
 
-  if (!parse_variables (&default_dict, &v1, &nv1,
+  if (!parse_variables (default_dict, &v1, &nv1,
 			PV_NO_DUPLICATE | PV_NUMERIC))
     return 0;
   
   if (lex_match (T_WITH))
     {
-      if (!parse_variables (&default_dict, &v2, &nv2,
+      if (!parse_variables (default_dict, &v2, &nv2,
 			    PV_NO_DUPLICATE | PV_NUMERIC))
 	{
 	  free (v1);
@@ -162,3 +163,9 @@ free_correlations_state (void)
       free (cor);
     }
 }
+
+/*
+  Local Variables:
+  mode: c
+  End:
+*/

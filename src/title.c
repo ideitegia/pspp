@@ -93,10 +93,7 @@ cmd_file_label (void)
   while (isspace ((unsigned char) *label))
     label++;
 
-  free (default_dict.label);
-  default_dict.label = xstrdup (label);
-  if (strlen (default_dict.label) > 60)
-    default_dict.label[60] = 0;
+  dict_set_label (default_dict, label);
   token = '.';
 
   return CMD_SUCCESS;
@@ -107,14 +104,22 @@ cmd_file_label (void)
 static void
 add_document_line (const char *line, int indent)
 {
-  char *doc;
+  const char *old_documents;
+  size_t old_len;
+  char *new_documents;
 
-  default_dict.n_documents++;
-  default_dict.documents = xrealloc (default_dict.documents,
-				     80 * default_dict.n_documents);
-  doc = &default_dict.documents[80 * (default_dict.n_documents - 1)];
-  memset (doc, ' ', indent);
-  st_bare_pad_copy (&doc[indent], line, 80 - indent);
+  old_documents = dict_get_documents (default_dict);
+  old_len = old_documents != NULL ? strlen (old_documents) : 0;
+  new_documents = xmalloc (old_len + 81);
+
+  memcpy (new_documents, old_documents, old_len);
+  memset (new_documents + old_len, ' ', indent);
+  st_bare_pad_copy (new_documents + old_len + indent, line, 80 - indent);
+  new_documents[old_len + 80] = '\0';
+
+  dict_set_documents (default_dict, new_documents);
+
+  free (new_documents);
 }
 
 /* Performs the DOCUMENT command. */
@@ -126,7 +131,7 @@ cmd_document (void)
     char buf[256];
     struct tm *tmp = localtime (&last_vfm_invocation);
 
-    if (default_dict.n_documents)
+    if (dict_get_documents (default_dict) != NULL)
       add_document_line ("", 0);
 
     sprintf (buf, _("Document entered %s %02d:%02d:%02d by %s (%s):"),
@@ -169,9 +174,7 @@ cmd_drop_documents (void)
   lex_match_id ("DROP");
   lex_match_id ("DOCUMENTS");
 
-  free (default_dict.documents);
-  default_dict.documents = NULL;
-  default_dict.n_documents = 0;
+  dict_set_documents (default_dict, NULL);
 
   return lex_end_of_command ();
 }

@@ -18,10 +18,10 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "matrix.h"
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "matrix.h"
 
 /* Kahan summation formula, Thm. 8, _What Every Computer Scientist
    Should Know About Floating-Point Arithmetic_, David Goldberg,

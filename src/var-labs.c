@@ -46,7 +46,7 @@ cmd_variable_labels (void)
   lex_match ('/');
   do
     {
-      parse_variables (NULL, &v, &nv, PV_NONE);
+      parse_variables (default_dict, &v, &nv, PV_NONE);
 
       if (token != T_STRING)
 	{

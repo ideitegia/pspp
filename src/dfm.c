@@ -36,6 +36,7 @@ char *alloca ();
 #endif
 
 #include <assert.h>
+#include "dfm.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -485,6 +486,8 @@ eof:
 char *
 dfm_get_record (struct file_handle *h, int *len)
 {
+  assert (h != NULL);
+
   if (h->class == NULL)
     {
       if (!open_file_r (h))

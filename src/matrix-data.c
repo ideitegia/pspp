@@ -233,8 +233,8 @@ cmd_matrix_data (void)
 		
 		if (strcmp (v[i], "ROWTYPE_"))
 		  {
-		    new_var = force_create_variable (&default_dict, v[i],
-						     NUMERIC, 0);
+		    new_var = dict_create_var (default_dict, v[i], 0);
+                    assert (new_var != NULL);
 		    new_var->p.mxd.vartype = MXD_CONTINUOUS;
 		    new_var->p.mxd.subtype = i;
 		  }
@@ -246,8 +246,8 @@ cmd_matrix_data (void)
 	  }
 	  
 	  {
-	    rowtype_ = force_create_variable (&default_dict, "ROWTYPE_",
-					      ALPHA, 8);
+	    rowtype_ = dict_create_var (default_dict, "ROWTYPE_", 8);
+            assert (rowtype_ != NULL);
 	    rowtype_->p.mxd.vartype = MXD_ROWTYPE;
 	    rowtype_->p.mxd.subtype = 0;
 	  }
@@ -303,7 +303,7 @@ cmd_matrix_data (void)
 	      goto lossage;
 	    }
 	  
-	  if (!is_varname (tokid)
+	  if (dict_lookup_var (default_dict, tokid) == NULL
 	      && (lex_look_ahead () == '.' || lex_look_ahead () == '/'))
 	    {
 	      if (!strcmp (tokid, "ROWTYPE_") || !strcmp (tokid, "VARNAME_"))
@@ -313,44 +313,41 @@ cmd_matrix_data (void)
 		  goto lossage;
 		}
 
-	      single_split = force_create_variable (&default_dict, tokid,
-						    NUMERIC, 0);
+	      single_split = dict_create_var (default_dict, tokid, 0);
+              assert (single_split != NULL);
 	      lex_get ();
 
 	      single_split->p.mxd.vartype = MXD_CONTINUOUS;
 
-	      default_dict.n_splits = 1;
-	      default_dict.splits = xmalloc (2 * sizeof *default_dict.splits);
-	      default_dict.splits[0] = single_split;
-	      default_dict.splits[1] = NULL;
+              dict_set_split_vars (default_dict, &single_split, 1);
 	    }
 	  else
 	    {
-	      struct variable **v;
+	      struct variable **split;
 	      int n;
 
-	      if (!parse_variables (NULL, &v, &n, PV_NO_DUPLICATE))
+	      if (!parse_variables (default_dict, &split, &n, PV_NO_DUPLICATE))
 		goto lossage;
 
-	      default_dict.n_splits = n;
-	      default_dict.splits = v = xrealloc (v, sizeof *v * (n + 1));
-	      v[n] = NULL;
+              dict_set_split_vars (default_dict, split, n);
 	    }
 	  
 	  {
-	    int i;
-	    
-	    for (i = 0; i < default_dict.n_splits; i++)
-	      {
-		if (default_dict.splits[i]->p.mxd.vartype != MXD_CONTINUOUS)
+            struct variable *const *split = dict_get_split_vars (default_dict);
+            size_t split_cnt = dict_get_split_cnt (default_dict);
+            int i;
+
+            for (i = 0; i < split_cnt; i++)
+              {
+		if (split[i]->p.mxd.vartype != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Split variable %s is already another type."),
 			 tokid);
 		    goto lossage;
 		  }
-		default_dict.splits[i]->p.mxd.vartype = MXD_SPLIT;
-		default_dict.splits[i]->p.mxd.subtype = i;
-	      }
+		split[i]->p.mxd.vartype = MXD_SPLIT;
+		split[i]->p.mxd.subtype = i;
+              }
 	  }
 	}
       else if (lex_match_id ("FACTORS"))
@@ -364,7 +361,7 @@ cmd_matrix_data (void)
 	    }
 	  seen |= 4;
 
-	  if (!parse_variables (NULL, &factors, &n_factors, PV_NONE))
+	  if (!parse_variables (default_dict, &factors, &n_factors, PV_NONE))
 	    goto lossage;
 	  
 	  {
@@ -560,8 +557,8 @@ cmd_matrix_data (void)
       
   /* Create VARNAME_. */
   {
-    varname_ = force_create_variable (&default_dict, "VARNAME_",
-				      ALPHA, 8);
+    varname_ = dict_create_var (default_dict, "VARNAME_", 8);
+    assert (varname_ != NULL);
     varname_->p.mxd.vartype = MXD_VARNAME;
     varname_->p.mxd.subtype = 0;
   }
@@ -569,13 +566,13 @@ cmd_matrix_data (void)
   /* Sort the dictionary variables into the desired order for the
      system file output. */
   {
-    int i;
-    
-    qsort (default_dict.var, default_dict.nvar, sizeof *default_dict.var,
-	   compare_variables_by_mxd_vartype);
+    struct variable **v;
+    size_t nv;
 
-    for (i = 0; i < default_dict.nvar; i++)
-      default_dict.var[i]->index = i;
+    dict_get_vars (default_dict, &v, &nv, 0);
+    qsort (v, nv, sizeof *v, compare_variables_by_mxd_vartype);
+    dict_reorder_vars (default_dict, v, nv);
+    free (v);
   }
 
   /* Set formats. */
@@ -592,9 +589,9 @@ cmd_matrix_data (void)
     int i;
 
     first_continuous = -1;
-    for (i = 0; i < default_dict.nvar; i++)
+    for (i = 0; i < dict_get_var_cnt (default_dict); i++)
       {
-	struct variable *v = default_dict.var[i];
+	struct variable *v = dict_get_var (default_dict, i);
 	int type = v->p.mxd.vartype;
 	
 	assert (type >= 0 && type < MXD_COUNT);
@@ -731,13 +728,13 @@ debug_print (void)
   else
     assert (0);
 
-  if (default_dict.n_splits)
+  if (dict_get_split_cnt (default_dict) != 0)
     {
       int i;
 
       printf ("\t/SPLIT=");
-      for (i = 0; i < default_dict.n_splits; i++)
-	printf ("%s ", default_dict.splits[i]->name);
+      for (i = 0; i < dict_get_split_cnt (default_dict); i++)
+	printf ("%s ", dict_get_split_vars (default_dict)[i]->name);
       if (single_split)
 	printf ("\t/* single split");
       printf ("\n");
@@ -1060,7 +1057,8 @@ read_matrices_without_rowtype (void)
     cells = 1;
   
   mtoken = MNULL;
-  split_values = xmalloc (sizeof *split_values * default_dict.n_splits);
+  split_values = xmalloc (sizeof *split_values
+                          * dict_get_split_cnt (default_dict));
   nr_factor_values = xmalloc (sizeof *nr_factor_values * n_factors * cells);
   max_cell_index = 0;
 
@@ -1210,7 +1208,7 @@ nr_read_data_lines (int per_factor, int cell, int content, int compare)
 	    if (mtoken != MNUM)
 	      {
 		msg (SE, _("expecting value for %s %s"),
-		     default_dict.var[j]->name, context ());
+		     dict_get_var (default_dict, j)->name, context ());
 		return 0;
 	      }
 
@@ -1318,7 +1316,7 @@ matrix_data_read_without_rowtype (void)
 
       nr_output_data ();
 
-      if (default_dict.n_splits == 0 || !another_token ())
+      if (dict_get_split_cnt (default_dict) == 0 || !another_token ())
 	return 1;
     }
 }
@@ -1330,6 +1328,8 @@ static int
 nr_read_splits (int compare)
 {
   static int just_read = 0;
+  size_t split_cnt;
+  size_t i;
 
   if (compare && just_read)
     {
@@ -1337,43 +1337,41 @@ nr_read_splits (int compare)
       return 1;
     }
   
-  if (default_dict.n_splits == 0)
+  if (dict_get_split_vars (default_dict) == NULL)
     return 1;
 
   if (single_split)
     {
       if (!compare)
-	split_values[0] = ++default_dict.splits[0]->p.mxd.subtype;
+	split_values[0]
+          = ++dict_get_split_vars (default_dict)[0]->p.mxd.subtype;
       return 1;
     }
 
   if (!compare)
     just_read = 1;
-  
-  {
-    int i;
-    
-    for (i = 0; i < default_dict.n_splits; i++)
-      {
-	if (!mget_token ())
-	  return 0;
-	if (mtoken != MNUM)
-	  {
-	    msg (SE, _("Syntax error expecting SPLIT FILE value %s."),
-		 context ());
-	    return 0;
-	  }
 
-	if (!compare)
-	  split_values[i] = mtokval;
-	else if (split_values[i] != mtokval)
-	  {
-	    msg (SE, _("Expecting value %g for %s."),
-		  split_values[i], default_dict.splits[i]->name);
-	    return 0;
-	  }
-      }
-  }
+  split_cnt = dict_get_split_cnt (default_dict);
+  for (i = 0; i < split_cnt; i++) 
+    {
+      if (!mget_token ())
+        return 0;
+      if (mtoken != MNUM)
+        {
+          msg (SE, _("Syntax error expecting SPLIT FILE value %s."),
+               context ());
+          return 0;
+        }
+
+      if (!compare)
+        split_values[i] = mtokval;
+      else if (split_values[i] != mtokval)
+        {
+          msg (SE, _("Expecting value %g for %s."),
+               split_values[i], dict_get_split_vars (default_dict)[i]->name);
+          return 0;
+        }
+    }
 
   return 1;
 }
@@ -1452,18 +1450,15 @@ dump_cell_content (int content, double *cp)
 
 	for (j = 0; j < n_continuous; j++)
 	  {
-	    temp_case->data[(default_dict.var
-			     [first_continuous + j]->fv)].f = *cp;
-	    debug_printf (("c:%s(%g) ",
-			   default_dict.var[first_continuous + j]->name,
-			   *cp));
+            int fv = dict_get_var (default_dict, first_continuous + j)->fv;
+	    temp_case->data[fv].f = *cp;
 	    cp++;
 	  }
 	if (type == 1)
 	  st_bare_pad_copy (temp_case->data[varname_->fv].s,
-			    default_dict.var[first_continuous + i]->name,
+                            dict_get_var (default_dict,
+                                          first_continuous + i)->name,
 			    8);
-	debug_printf (("\n"));
 	write_case ();
       }
   }
@@ -1474,10 +1469,13 @@ static void
 nr_output_data (void)
 {
   {
-    int i;
+    struct variable *const *split;
+    size_t split_cnt;
+    size_t i;
 
-    for (i = 0; i < default_dict.n_splits; i++)
-      temp_case->data[default_dict.splits[i]->fv].f = split_values[i];
+    split_cnt = dict_get_split_cnt (default_dict);
+    for (i = 0; i < split_cnt; i++)
+      temp_case->data[split[i]->fv].f = split_values[i];
   }
 
   if (n_factors)
@@ -1601,8 +1599,10 @@ static int
 wr_read_splits (void)
 {
   int compare;
-  
-  if (default_dict.n_splits == 0)
+  size_t split_cnt;
+
+  split_cnt = dict_get_split_cnt (default_dict);
+  if (split_cnt == 0)
     return 1;
 
   if (split_values)
@@ -1610,14 +1610,15 @@ wr_read_splits (void)
   else
     {
       compare = 0;
-      split_values = xmalloc (sizeof *split_values * default_dict.n_splits);
+      split_values = xmalloc (split_cnt * sizeof *split_values);
     }
   
   {
     int different = 0;
+    size_t split_cnt;
     int i;
-    
-    for (i = 0; i < default_dict.n_splits; i++)
+
+    for (i = 0; i < split_cnt; i++)
       {
 	if (!mget_token ())
 	  return 0;
@@ -1683,10 +1684,13 @@ static int
 wr_output_data (void)
 {
   {
-    int i;
+    struct variable *const *split;
+    size_t split_cnt;
+    size_t i;
 
-    for (i = 0; i < default_dict.n_splits; i++)
-      temp_case->data[default_dict.splits[i]->fv].f = split_values[i];
+    split_cnt = dict_get_split_cnt (default_dict);
+    for (i = 0; i < split_cnt; i++)
+      temp_case->data[split[i]->fv].f = split_values[i];
   }
 
   /* Sort the wr_data list. */
@@ -2003,7 +2007,8 @@ wr_read_indeps (void)
 	if (mtoken != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting value for %s %s."),
-		 default_dict.var[first_continuous + j]->name, context ());
+                 dict_get_var (default_dict, first_continuous + j)->name,
+                 context ());
 	    return 0;
 	  }
 

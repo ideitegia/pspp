@@ -1,3 +1,9 @@
+Sat Dec 27 16:16:49 2003  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Add -Wmissing-prototypes flag to gcc.
+
+	* TODO: Updated.
+
 Wed Dec 17 12:19:40 WAST 2003 John Darrington <john@darrington.wattle.id.au>
 
 	* Added an --enable-debug flag to configure

@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "lexer.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -29,7 +30,6 @@
 #include "command.h"
 #include "error.h"
 #include "getline.h"
-#include "lexer.h"
 #include "magic.h"
 #include "settings.h"
 #include "str.h"

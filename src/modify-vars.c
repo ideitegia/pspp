@@ -58,28 +58,31 @@ struct ordering
     int positional;		/* 1=POSITIONAL, 0=ALPHA. */
   };
 
+/* Increasing order of variable index. */
+static struct ordering forward_positional_ordering = {1, 1};
+
 static int compare_variables_given_ordering (const void *, const void *,
                                              void *ordering);
 
-/* Explains how to modify the variables in a dictionary in conjunction
-   with the p.mfv field of `variable'. */
+/* Explains how to modify the variables in a dictionary. */
 struct var_modification
   {
-    /* REORDER information. */
-    struct variable **reorder_list;
-
-    /* RENAME information. */
-    struct variable **old_names;
-    char **new_names;
-    int n_rename;
+    /* New variable ordering. */
+    struct variable **reorder_vars;
+    size_t reorder_cnt;
 
     /* DROP/KEEP information. */
-    int n_drop;			/* Number of variables being dropped. */
+    struct variable **drop_vars;
+    size_t drop_cnt;
+
+    /* New variable names. */
+    struct variable **rename_vars;
+    char **new_names;
+    size_t rename_cnt;
   };
 
-static struct dictionary *rearrange_dict (struct dictionary *d,
-					  struct var_modification *vm,
-					  int permanent);
+static int rearrange_dict (struct dictionary *d,
+                           const struct var_modification *vm);
 
 /* Performs MODIFY VARS command. */
 int
@@ -92,14 +95,21 @@ cmd_modify_vars (void)
   /* What we're gonna do to the active file. */
   struct var_modification vm;
 
+  /* Return code. */
+  int ret_code = CMD_FAILURE;
+
+  size_t i;
+
   lex_match_id ("MODIFY");
   lex_match_id ("VARS");
 
-  vm.reorder_list = NULL;
-  vm.old_names = NULL;
+  vm.reorder_vars = NULL;
+  vm.reorder_cnt = 0;
+  vm.rename_vars = NULL;
   vm.new_names = NULL;
-  vm.n_rename = 0;
-  vm.n_drop = 0;
+  vm.rename_cnt = 0;
+  vm.drop_vars = NULL;
+  vm.drop_cnt = 0;
 
   /* Parse each subcommand. */
   lex_match ('/');
@@ -113,7 +123,7 @@ cmd_modify_vars (void)
 	  if (already_encountered & 1)
 	    {
 	      msg (SE, _("REORDER subcommand may be given at most once."));
-	      goto lossage;
+	      goto done;
 	    }
 	  already_encountered |= 1;
 
@@ -137,9 +147,9 @@ cmd_modify_vars (void)
 		    {
 		      msg (SE, _("Cannot specify ALL after specifying a set "
 			   "of variables."));
-		      goto lossage;
+		      goto done;
 		    }
-		  fill_all_vars (&v, &nv, FV_NO_SYSTEM);
+		  dict_get_vars (default_dict, &v, &nv, 1u << DC_SYSTEM);
 		}
 	      else
 		{
@@ -147,20 +157,20 @@ cmd_modify_vars (void)
 		    {
 		      msg (SE, _("`(' expected on REORDER subcommand."));
 		      free (v);
-		      goto lossage;
+		      goto done;
 		    }
-		  if (!parse_variables (&default_dict, &v, &nv,
+		  if (!parse_variables (default_dict, &v, &nv,
 					PV_APPEND | PV_NO_DUPLICATE))
 		    {
 		      free (v);
-		      goto lossage;
+		      goto done;
 		    }
 		  if (!lex_match (')'))
 		    {
 		      msg (SE, _("`)' expected following variable names on "
 			   "REORDER subcommand."));
 		      free (v);
-		      goto lossage;
+		      goto done;
 		    }
 		}
 	      sort (&v[prev_nv], nv - prev_nv, sizeof *v,
@@ -168,148 +178,131 @@ cmd_modify_vars (void)
 	    }
 	  while (token != '/' && token != '.');
 
-	  if (nv != default_dict.nvar)
-	    {
-	      size_t nbytes = DIV_RND_UP (default_dict.nvar, 8);
-	      unsigned char *bits = local_alloc (nbytes);
-	      int i;
-
-	      memset (bits, 0, nbytes);
-	      for (i = 0; i < nv; i++)
-		SET_BIT (bits, v[i]->index);
-	      v = xrealloc (v, sizeof *v * default_dict.nvar);
-	      for (i = 0; i < default_dict.nvar; i++)
-		if (!TEST_BIT (bits, i))
-		  v[nv++] = default_dict.var[i];
-	      local_free (bits);
-	    }
-
-	  vm.reorder_list = v;
+	  vm.reorder_vars = v;
+          vm.reorder_cnt = nv;
 	}
       else if (lex_match_id ("RENAME"))
 	{
 	  if (already_encountered & 2)
 	    {
 	      msg (SE, _("RENAME subcommand may be given at most once."));
-	      goto lossage;
+	      goto done;
 	    }
 	  already_encountered |= 2;
 
 	  lex_match ('=');
 	  do
 	    {
-	      int prev_nv_1 = vm.n_rename;
-	      int prev_nv_2 = vm.n_rename;
+	      int prev_nv_1 = vm.rename_cnt;
+	      int prev_nv_2 = vm.rename_cnt;
 
 	      if (!lex_match ('('))
 		{
 		  msg (SE, _("`(' expected on RENAME subcommand."));
-		  goto lossage;
+		  goto done;
 		}
-	      if (!parse_variables (&default_dict, &vm.old_names, &vm.n_rename,
+	      if (!parse_variables (default_dict, &vm.rename_vars, &vm.rename_cnt,
 				    PV_APPEND | PV_NO_DUPLICATE))
-		goto lossage;
+		goto done;
 	      if (!lex_match ('='))
 		{
 		  msg (SE, _("`=' expected between lists of new and old variable "
 		       "names on RENAME subcommand."));
-		  goto lossage;
+		  goto done;
 		}
 	      if (!parse_DATA_LIST_vars (&vm.new_names, &prev_nv_1, PV_APPEND))
-		goto lossage;
-	      if (prev_nv_1 != vm.n_rename)
+		goto done;
+	      if (prev_nv_1 != vm.rename_cnt)
 		{
-		  int i;
-
 		  msg (SE, _("Differing number of variables in old name list "
 		       "(%d) and in new name list (%d)."),
-		       vm.n_rename - prev_nv_2, prev_nv_1 - prev_nv_2);
+		       vm.rename_cnt - prev_nv_2, prev_nv_1 - prev_nv_2);
 		  for (i = 0; i < prev_nv_1; i++)
-		    free (&vm.new_names[i]);
-		  free (&vm.new_names);
+		    free (vm.new_names[i]);
+		  free (vm.new_names);
 		  vm.new_names = NULL;
-		  goto lossage;
+		  goto done;
 		}
 	      if (!lex_match (')'))
 		{
 		  msg (SE, _("`)' expected after variable lists on RENAME "
 		       "subcommand."));
-		  goto lossage;
+		  goto done;
 		}
 	    }
 	  while (token != '.' && token != '/');
 	}
       else if (lex_match_id ("KEEP"))
 	{
-          struct ordering ordering;
-	  struct variable **keep_vars;
-	  int nv;
-	  int counter;
-	  int i;
+	  struct variable **keep_vars, **all_vars, **drop_vars;
+	  int keep_cnt, all_cnt, drop_cnt;
 
 	  if (already_encountered & 4)
 	    {
 	      msg (SE, _("KEEP subcommand may be given at most once.  It may not"
 		   "be given in conjunction with the DROP subcommand."));
-	      goto lossage;
+	      goto done;
 	    }
 	  already_encountered |= 4;
 
 	  lex_match ('=');
-	  if (!parse_variables (&default_dict, &keep_vars, &nv, PV_NONE))
-	    goto lossage;
+	  if (!parse_variables (default_dict, &keep_vars, &keep_cnt, PV_NONE))
+	    goto done;
 
 	  /* Transform the list of variables to keep into a list of
 	     variables to drop.  First sort the keep list, then figure
 	     out which variables are missing. */
-	  ordering.forward = ordering.positional = 1;
-	  sort (keep_vars, nv, sizeof *keep_vars,
-                 compare_variables_given_ordering, &ordering);
+	  sort (keep_vars, keep_cnt, sizeof *keep_vars,
+                compare_variables_given_ordering, &forward_positional_ordering);
 
-	  vm.n_drop = default_dict.nvar - nv;
+          dict_get_vars (default_dict, &all_vars, &all_cnt, 0);
 
-	  counter = 0;
-	  for (i = 0; i < nv; i++)
-	    {
-	      while (counter < keep_vars[i]->index)
-		default_dict.var[counter++]->p.mfv.drop_this_var = 1;
-	      default_dict.var[counter++]->p.mfv.drop_this_var = 0;
-	    }
-	  while (counter < nv)
-	    default_dict.var[counter++]->p.mfv.drop_this_var = 1;
+          drop_cnt = all_cnt - keep_cnt;
+          drop_vars = xmalloc (drop_cnt * sizeof *keep_vars);
+          if (set_difference (all_vars, all_cnt,
+                              keep_vars, keep_cnt,
+                              sizeof *all_vars,
+                              drop_vars,
+                              compare_variables_given_ordering,
+                              &forward_positional_ordering)
+              != drop_cnt)
+            assert (0);
 
-	  free (keep_vars);
+          free (keep_vars);
+          free (all_vars);
+
+          vm.drop_vars = drop_vars;
+          vm.drop_cnt = drop_cnt;
 	}
       else if (lex_match_id ("DROP"))
 	{
 	  struct variable **drop_vars;
-	  int nv;
-	  int i;
+	  int drop_cnt;
 
 	  if (already_encountered & 4)
 	    {
-	      msg (SE, _("DROP subcommand may be given at most once.  It may not"
-		   "be given in conjunction with the KEEP subcommand."));
-	      goto lossage;
+	      msg (SE, _("DROP subcommand may be given at most once.  It may "
+                         "not be given in conjunction with the KEEP "
+                         "subcommand."));
+	      goto done;
 	    }
 	  already_encountered |= 4;
 
 	  lex_match ('=');
-	  if (!parse_variables (&default_dict, &drop_vars, &nv, PV_NONE))
-	    goto lossage;
-	  for (i = 0; i < default_dict.nvar; i++)
-	    default_dict.var[i]->p.mfv.drop_this_var = 0;
-	  for (i = 0; i < nv; i++)
-	    drop_vars[i]->p.mfv.drop_this_var = 1;
-	  vm.n_drop = nv;
-	  free (drop_vars);
+	  if (!parse_variables (default_dict, &drop_vars, &drop_cnt, PV_NONE))
+	    goto done;
+          vm.drop_vars = drop_vars;
+          vm.drop_cnt = drop_cnt;
 	}
       else if (lex_match_id ("MAP"))
 	{
-	  struct dictionary *new_dict = rearrange_dict (&default_dict, &vm, 0);
-	  if (!new_dict)
-	    goto lossage;
-	  /* FIXME: display new dictionary. */
+          struct dictionary *temp = dict_clone (default_dict);
+          int success = rearrange_dict (temp, &vm);
+          if (success) 
+            {
+              /* FIXME: display new dictionary. */ 
+            }
+          dict_destroy (temp);
 	}
       else
 	{
@@ -317,7 +310,7 @@ cmd_modify_vars (void)
 	    msg (SE, _("Unrecognized subcommand name `%s'."), tokid);
 	  else
 	    msg (SE, _("Subcommand name expected."));
-	  goto lossage;
+	  goto done;
 	}
 
       if (token == '.')
@@ -325,43 +318,30 @@ cmd_modify_vars (void)
       if (token != '/')
 	{
 	  msg (SE, _("`/' or `.' expected."));
-	  goto lossage;
+	  goto done;
 	}
       lex_get ();
     }
 
-  {
-    int i;
+  if (already_encountered & (1 | 4))
+    {
+      /* Read the data. */
+      procedure (NULL, NULL, NULL);
+    }
 
-    if (already_encountered & (1 | 4))
-      {
-	/* Read the data. */
-	procedure (NULL, NULL, NULL);
-      }
+  if (!rearrange_dict (default_dict, &vm))
+    goto done; 
 
-    if (NULL == rearrange_dict (&default_dict, &vm, 1))
-      goto lossage;
+  ret_code = CMD_SUCCESS;
 
-    free (vm.reorder_list);
-    free (vm.old_names);
-    for (i = 0; i < vm.n_rename; i++)
-      free (vm.new_names[i]);
-    free (vm.new_names);
-
-    return CMD_SUCCESS;
-  }
-
-lossage:
-  {
-    int i;
-
-    free (vm.reorder_list);
-    free (vm.old_names);
-    for (i = 0; i < vm.n_rename; i++)
-      free (vm.new_names[i]);
-    free (vm.new_names);
-    return CMD_FAILURE;
-  }
+done:
+  free (vm.reorder_vars);
+  free (vm.rename_vars);
+  for (i = 0; i < vm.rename_cnt; i++)
+    free (vm.new_names[i]);
+  free (vm.new_names);
+  free (vm.drop_vars);
+  return ret_code;
 }
 
 /* Compares A and B according to the settings in
@@ -386,160 +366,166 @@ compare_variables_given_ordering (const void *a_, const void *b_,
   return result;
 }
 
-/* (Possibly) rearranges variables and (possibly) removes some
-   variables and (possibly) renames some more variables in dictionary
-   D.  There are two modes of operation, distinguished by the value of
-   PERMANENT:
+/* Pairs a variable with a new name. */
+struct var_renaming
+  {
+    struct variable *var;
+    char new_name[9];
+  };
 
-   If PERMANENT is nonzero, then the dictionary is modified in place.
-   Returns the new dictionary on success or NULL if there would have
-   been duplicate variable names in the resultant dictionary (in this
-   case the dictionary has not been modified).
-
-   If PERMANENT is zero, then the dictionary is copied to a new
-   dictionary structure that retains most of the same deep structure
-   as D.  The p.mfv.new_name field of each variable is set to what
-   would become the variable's new name if PERMANENT were nonzero.
-   Returns the new dictionary. */
-static struct dictionary *
-rearrange_dict (struct dictionary * d, struct var_modification * vm, int permanent)
+/* A algo_compare_func that compares new_name members in struct
+   var_renaming structures A and B. */
+static int
+compare_var_renaming_by_new_name (const void *a_, const void *b_,
+                                  void *foo unused) 
 {
-  struct dictionary *n;
+  const struct var_renaming *a = a_;
+  const struct var_renaming *b = b_;
 
-  struct variable **save_var;
+  return strcmp (a->new_name, b->new_name);
+}
 
-  /* Linked list of variables for deletion. */
-  struct variable *head, *tail;
+/* Returns true if performing VM on dictionary D would not cause
+   problems such as duplicate variable names.  Returns false
+   otherwise, and issues an error message. */
+static int
+validate_var_modification (const struct dictionary *d,
+                           const struct var_modification *vm) 
+{
+  /* Variable reordering can't be a problem, so we don't simulate
+     it.  Variable renaming can cause duplicate names, but
+     dropping variables can eliminate them, so we simulate both
+     of those. */
+  struct variable **all_vars;
+  struct variable **keep_vars;
+  struct variable **drop_vars;
+  size_t all_cnt, keep_cnt, drop_cnt;
 
-  int i;
+  struct var_renaming *var_renaming;
+  int valid;
+  size_t i;
 
-  /* First decide what dictionary to modify. */
-  if (permanent == 0)
+  /* All variables, in index order. */
+  dict_get_vars (d, &all_vars, &all_cnt, 0);
+
+  /* Drop variables, in index order. */
+  drop_cnt = vm->drop_cnt;
+  drop_vars = xmalloc (drop_cnt * sizeof *drop_vars);
+  memcpy (drop_vars, vm->drop_vars, drop_cnt * sizeof *drop_vars);
+  sort (drop_vars, drop_cnt, sizeof *drop_vars,
+        compare_variables_given_ordering, &forward_positional_ordering);
+
+  /* Keep variables, in index order. */
+  keep_cnt = all_cnt - drop_cnt;
+  keep_vars = xmalloc (keep_cnt * sizeof *keep_vars);
+  if (set_difference (all_vars, all_cnt,
+                      drop_vars, drop_cnt,
+                      sizeof *all_vars,
+                      keep_vars,
+                      compare_variables_given_ordering,
+                      &forward_positional_ordering) != keep_cnt)
+    assert (0);
+
+  /* Copy variables into var_renaming array. */
+  var_renaming = xmalloc (keep_cnt * sizeof *var_renaming);
+  for (i = 0; i < keep_cnt; i++) 
     {
-      n = xmalloc (sizeof *n);
-      *n = *d;
+      var_renaming[i].var = keep_vars[i];
+      strcpy (var_renaming[i].new_name, keep_vars[i]->name);
     }
-  else
-    n = d;
-  save_var = n->var;
-
-  /* Perform first half of renaming. */
-  if (permanent)
+  
+  /* Rename variables in var_renaming array. */
+  for (i = 0; i < vm->rename_cnt; i++) 
     {
-      for (i = 0; i < d->nvar; i++)
-	d->var[i]->p.mfv.new_name[0] = 0;
-      d->var = xmalloc (sizeof *d->var * d->nvar);
-    }
-  else
-    for (i = 0; i < d->nvar; i++)
-      strcpy (d->var[i]->p.mfv.new_name, d->var[i]->name);
-  for (i = 0; i < vm->n_rename; i++)
-    strcpy (vm->old_names[i]->p.mfv.new_name, vm->new_names[i]);
+      struct variable *const *kv;
+      struct var_renaming *vr;
 
-  /* Copy the variable list, reordering if appropriate. */
-  if (vm->reorder_list)
-    memcpy (n->var, vm->reorder_list, sizeof *n->var * d->nvar);
-  else if (!permanent)
-    for (i = 0; i < d->nvar; i++)
-      n->var[i] = d->var[i];
+      /* Get the var_renaming element. */
+      kv = binary_search (keep_vars, keep_cnt, sizeof *keep_vars,
+                          &vm->rename_vars[i],
+                          compare_variables_given_ordering,
+                          &forward_positional_ordering);
+      if (kv == NULL)
+        continue;
+      vr = var_renaming + (kv - keep_vars);
 
-  /* Drop all the unwanted variables. */
-  head = NULL;
-  if (vm->n_drop)
-    {
-      int j;
-
-      n->nvar = d->nvar - vm->n_drop;
-      for (i = j = 0; i < n->nvar; i++)
-	{
-	  while (n->var[j]->p.mfv.drop_this_var != 0)
-	    {
-	      if (permanent)
-		{
-		  /* If this is permanent, then we have to keep a list
-		     of all the dropped variables because they must be
-		     free()'d, but can't be until we know that there
-		     aren't any duplicate variable names. */
-		  if (head)
-		    tail = tail->p.mfv.next = n->var[j];
-		  else
-		    head = tail = n->var[j];
-		}
-	      j++;
-	    }
-	  n->var[i] = n->var[j++];
-	}
-      if (permanent)
-	tail->p.mfv.next = NULL;
-    }
-
-  /* Check for duplicate variable names if appropriate. */
-  if (permanent && vm->n_rename)
-    {
-      struct ordering ordering;
-      struct variable **v;
-
-      if (vm->reorder_list)
-	v = vm->reorder_list;	/* Reuse old buffer if possible. */
-      else
-	v = xmalloc (sizeof *v * n->nvar);
-      memcpy (v, n->var, sizeof *v * n->nvar);
-      ordering.forward = 1;
-      ordering.positional = 0;
-      sort (v, n->nvar, sizeof *v,
-            compare_variables_given_ordering, &ordering);
-      for (i = 1; i < n->nvar; i++)
-	if (!strcmp (n->var[i]->name, n->var[i - 1]->name))
-	  {
-	    msg (SE, _("Duplicate variable name `%s' after renaming."),
-		 n->var[i]->name);
-	    if (vm->reorder_list == NULL)
-	      free (v);
-	    n->var = save_var;
-	    return NULL;
-	  }
-      if (vm->reorder_list == NULL)
-	free (v);
+      strcpy (vr->new_name, vm->new_names[i]);
     }
 
-  /* Delete unwanted variables and finalize renaming if
-     appropriate. */
-  if (permanent)
+  /* Sort var_renaming array by new names and check for
+     duplicates. */
+  sort (var_renaming, keep_cnt, sizeof *var_renaming,
+        compare_var_renaming_by_new_name, NULL);
+  valid = adjacent_find_equal (var_renaming, keep_cnt, sizeof *var_renaming,
+                               compare_var_renaming_by_new_name, NULL) == NULL;
+
+  /* Clean up. */
+  free (all_vars);
+  free (keep_vars);
+  free (drop_vars);
+  free (var_renaming);
+
+  return valid;
+}
+
+/* Reoders, removes, and renames variables in dictionary D
+   according to VM.  Returns nonzero if successful, zero if there
+   would have been duplicate variable names if the modifications
+   had been carried out.  In the latter case, the dictionary is
+   not modified. */
+static int
+rearrange_dict (struct dictionary *d, const struct var_modification *vm)
+{
+  char **rename_old_names;
+
+  struct variable **rename_vars;
+  char **rename_new_names;
+  size_t rename_cnt;
+
+  size_t i;
+
+  /* Check whether the modifications will cause duplicate
+     names. */
+  if (!validate_var_modification (d, vm))
+    return 0;
+
+  /* Record the old names of variables to rename.  After
+     variables are deleted, we can't depend on the variables to
+     still exist, but we can still look them up by name. */
+  rename_old_names = xmalloc (vm->rename_cnt * sizeof *rename_old_names);
+  for (i = 0; i < vm->rename_cnt; i++)
+    rename_old_names[i] = xstrdup (vm->rename_vars[i]->name);
+
+  /* Reorder and delete variables. */
+  dict_reorder_vars (d, vm->reorder_vars, vm->reorder_cnt);
+  dict_delete_vars (d, vm->drop_vars, vm->drop_cnt);
+
+  /* Compose lists of variables to rename and their new names. */
+  rename_vars = xmalloc (vm->rename_cnt * sizeof *rename_vars);
+  rename_new_names = xmalloc (vm->rename_cnt * sizeof *rename_new_names);
+  rename_cnt = 0;
+  for (i = 0; i < vm->rename_cnt; i++)
     {
-      /* Delete dropped variables for good. */
-      for (; head; head = tail)
-	{
-	  tail = head->p.mfv.next;
-	  clear_variable (n, head);
-	  free (head);
-	}
-
-      /* Remove names from all renamed variables. */
-      head = NULL;
-      for (i = 0; i < n->nvar; i++)
-	if (n->var[i]->p.mfv.new_name[0])
-	  {
-	    hsh_force_delete (n->name_tab, n->var[i]);
-	    if (head)
-	      tail = tail->p.mfv.next = n->var[i];
-	    else
-	      head = tail = n->var[i];
-	  }
-      if (head)
-	tail->p.mfv.next = NULL;
-
-      /* Put names onto renamed variables. */
-      for (; head; head = head->p.mfv.next)
-	{
-	  strcpy (head->name, head->p.mfv.new_name);
-	  hsh_force_insert (n->name_tab, head);
-	}
-      free (save_var);
-
-      /* As a final step the index fields must be redone. */
-      for (i = 0; i < n->nvar; i++)
-	n->var[i]->index = i;
+      struct variable *var = dict_lookup_var (d, rename_old_names[i]);
+      if (var == NULL)
+        continue;
+      
+      rename_vars[rename_cnt] = var;
+      rename_new_names[rename_cnt] = vm->new_names[i];
+      rename_cnt++;
     }
 
-  return n;
+  /* Do renaming. */
+  if (dict_rename_vars (d, rename_vars, rename_new_names, rename_cnt,
+                        NULL) == 0)
+    assert (0);
+
+  /* Clean up. */
+  for (i = 0; i < vm->rename_cnt; i++)
+    free (rename_old_names[i]);
+  free (rename_old_names);
+  free (rename_vars);
+  free (rename_new_names);
+
+  return 1;
 }

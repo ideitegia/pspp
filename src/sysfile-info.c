@@ -35,7 +35,6 @@
 #include "tab.h"
 #include "value-labels.h"
 #include "var.h"
-#include "vector.h"
 
 /* Constants for DISPLAY utility. */
 enum
@@ -98,8 +97,12 @@ cmd_sysfile_info (void)
   tab_text (t, 0, 0, TAB_LEFT, _("File:"));
   tab_text (t, 1, 0, TAB_LEFT, fh_handle_filename (h));
   tab_text (t, 0, 1, TAB_LEFT, _("Label:"));
-  tab_text (t, 1, 1, TAB_LEFT,
-		d->label ? d->label : _("No label."));
+  {
+    const char *label = dict_get_label (d);
+    if (label == NULL)
+      label = _("No label.");
+    tab_text (t, 1, 1, TAB_LEFT, label);
+  }
   tab_text (t, 0, 2, TAB_LEFT, _("Created:"));
   tab_text (t, 1, 2, TAB_LEFT | TAT_PRINTF, "%s %s by %s",
 		inf.creation_date, inf.creation_time, inf.product);
@@ -107,22 +110,25 @@ cmd_sysfile_info (void)
   tab_text (t, 1, 3, TAB_LEFT, inf.bigendian ? _("Big.") : _("Little."));
   tab_text (t, 0, 4, TAB_LEFT, _("Variables:"));
   tab_text (t, 1, 4, TAB_LEFT | TAT_PRINTF, "%d",
-		d->nvar);
+		dict_get_var_cnt (d));
   tab_text (t, 0, 5, TAB_LEFT, _("Cases:"));
   tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF,
 		inf.ncases == -1 ? _("Unknown") : "%d", inf.ncases);
   tab_text (t, 0, 6, TAB_LEFT, _("Type:"));
   tab_text (t, 1, 6, TAB_LEFT, _("System File."));
   tab_text (t, 0, 7, TAB_LEFT, _("Weight:"));
-  tab_text (t, 1, 7, TAB_LEFT,
-		d->weight_var[0] ? d->weight_var : _("Not weighted."));
+  {
+    struct variable *weight_var = dict_get_weight (d);
+    tab_text (t, 1, 7, TAB_LEFT,
+              weight_var != NULL ? weight_var->name : _("Not weighted.")); 
+  }
   tab_text (t, 0, 8, TAB_LEFT, _("Mode:"));
   tab_text (t, 1, 8, TAB_LEFT | TAT_PRINTF,
 		_("Compression %s."), inf.compressed ? _("on") : _("off"));
   tab_dim (t, tab_natural_dimensions);
   tab_submit (t);
 
-  nr = 1 + 2 * d->nvar;
+  nr = 1 + 2 * dict_get_var_cnt (d);
   t = tab_create (4, nr, 1);
   tab_dim (t, sysfile_info_dim);
   tab_headers (t, 0, 0, 1, 0);
@@ -130,18 +136,19 @@ cmd_sysfile_info (void)
   tab_joint_text (t, 1, 0, 2, 0, TAB_LEFT | TAT_TITLE, _("Description"));
   tab_text (t, 3, 0, TAB_LEFT | TAT_TITLE, _("Position"));
   tab_hline (t, TAL_2, 0, 3, 1);
-  for (r = 1, i = 0; i < d->nvar; i++)
+  for (r = 1, i = 0; i < dict_get_var_cnt (d); i++)
     {
-      int nvl = val_labs_count (d->var[i]->val_labs);
+      struct variable *v = dict_get_var (d, i);
+      int nvl = val_labs_count (v->val_labs);
       
       if (r + 10 + nvl > nr)
 	{
-	  nr = max (nr * d->nvar / (i + 1), nr);
+	  nr = max (nr * dict_get_var_cnt (d) / (i + 1), nr);
 	  nr += 10 + nvl;
 	  tab_realloc (t, 4, nr);
 	}
 
-      r = describe_variable (d->var[i], t, r, AS_DICTIONARY);
+      r = describe_variable (v, t, r, AS_DICTIONARY);
     }
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, r);
   tab_vline (t, TAL_1, 0, 0, r);
@@ -151,7 +158,7 @@ cmd_sysfile_info (void)
   tab_flags (t, SOMF_NO_TITLE);
   tab_submit (t);
 
-  free_dictionary (d);
+  dict_destroy (d);
   
   return lex_end_of_command ();
 }
@@ -184,13 +191,13 @@ cmd_display (void)
       som_blank_line ();
       if (!lex_force_match_id ("LABEL"))
 	return CMD_FAILURE;
-      if (default_dict.label == NULL)
+      if (dict_get_label (default_dict) == NULL)
 	tab_output_text (TAB_LEFT,
 			 _("The active file does not have a file label."));
       else
 	{
 	  tab_output_text (TAB_LEFT | TAT_TITLE, _("File label:"));
-	  tab_output_text (TAB_LEFT | TAT_FIX, default_dict.label);
+	  tab_output_text (TAB_LEFT | TAT_FIX, dict_get_label (default_dict));
 	}
     }
   else
@@ -226,7 +233,7 @@ cmd_display (void)
 
       if (token != '.')
 	{
-	  if (!parse_variables (NULL, &vl, &n, PV_NONE))
+	  if (!parse_variables (default_dict, &vl, &n, PV_NONE))
 	    {
 	      free (vl);
 	      return CMD_FAILURE;
@@ -234,7 +241,7 @@ cmd_display (void)
 	  as = AS_DICTIONARY;
 	}
       else
-	fill_all_vars (&vl, &n, FV_NONE);
+	dict_get_vars (default_dict, &vl, &n, 0);
 
       if (as == AS_SCRATCH)
 	{
@@ -276,24 +283,27 @@ display_macros (void)
 static void
 display_documents (void)
 {
+  const char *documents = dict_get_documents (default_dict);
+
   som_blank_line ();
-  if (default_dict.n_documents == 0)
+  if (documents == NULL)
     tab_output_text (TAB_LEFT, _("The active file dictionary does not "
-		     "contain any documents."));
+                                 "contain any documents."));
   else
     {
+      size_t n_lines = strlen (documents) / 80;
       char buf[81];
-      int i;
+      size_t i;
 
       tab_output_text (TAB_LEFT | TAT_TITLE,
 		       _("Documents in the active file:"));
       som_blank_line ();
       buf[80] = 0;
-      for (i = 0; i < default_dict.n_documents; i++)
+      for (i = 0; i < n_lines; i++)
 	{
 	  int len = 79;
 
-	  memcpy (buf, &default_dict.documents[i * 80], 80);
+	  memcpy (buf, &documents[i * 80], 80);
 	  while ((isspace ((unsigned char) buf[len]) || buf[len] == 0)
 		 && len > 0)
 	    len--;
@@ -572,10 +582,12 @@ compare_vectors_by_name (const void *a_, const void *b_)
 static void
 display_vectors (int sorted)
 {
-  struct vector **vl;
+  const struct vector **vl;
   int i;
   struct tab_table *t;
-
+  size_t nvec;
+  
+  nvec = dict_get_vector_cnt (default_dict);
   if (nvec == 0)
     {
       msg (SW, _("No vectors defined."));
@@ -584,7 +596,7 @@ display_vectors (int sorted)
 
   vl = xmalloc (sizeof *vl * nvec);
   for (i = 0; i < nvec; i++)
-    vl[i] = &vec[i];
+    vl[i] = dict_get_vector (default_dict, i);
   if (sorted)
     qsort (vl, nvec, sizeof *vl, compare_vectors_by_name);
 

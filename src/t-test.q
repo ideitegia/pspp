@@ -183,17 +183,12 @@ groups_calc (struct ccase * c)
   double X = c->data[v->fv].f;
 
   /* Get the weight for this case. */
-  if (default_dict.weight_index == -1)
-    w = 1.0;
-  else
+  w = dict_get_case_weight (default_dict, c);
+  if (w <= 0.0 || w == SYSMIS)
     {
-      w = c->data[default_dict.weight_index].f;
-      if (w <= 0.0 || w == SYSMIS)
-	{
-	  w = 0.0;
-	  bad_weight = 1;
-	  printf ("Bad weight\n");
-	}
+      w = 0.0;
+      bad_weight = 1;
+      printf ("Bad weight\n");
     }
 
   if (X == SYSMIS || X == 0.0)	/* FIXME: should be USER_MISSING? */
@@ -234,7 +229,6 @@ g_postcalc (void)
 int				/* this pass generates the z-zcores */
 z_calc (struct ccase * c)
 {
-  int bad_weight;
   double group, z, w;
   struct variable *v = cmd.v_variables[cur_var];
   double X = c->data[v->fv].f;
@@ -242,17 +236,7 @@ z_calc (struct ccase * c)
   z = 0.0;
 
   /* Get the weight for this case. */
-  if (default_dict.weight_index == -1)
-    w = 1.0;
-  else
-    {
-      w = c->data[default_dict.weight_index].f;
-      if (w <= 0.0 || w == SYSMIS)
-	{
-	  w = 0.0;
-	  bad_weight = 1;
-	}
-    }
+  w = dict_get_case_weight (default_dict, c);
 
   if (X == SYSMIS || X == 0.0)	/* FIXME: how to specify user missing? */
     {
@@ -548,9 +532,10 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
   int n_predicted;
 #endif
 
-  if ((token != T_ID || !is_varname (tokid)) && token != T_ALL)
+  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+      && token != T_ALL)
     return 2;
-  if (!parse_variables (&default_dict, &vars, &n_vars,
+  if (!parse_variables (default_dict, &vars, &n_vars,
 			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
     return 0;
 
@@ -559,7 +544,7 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
     {
       n_before_WITH = n_vars;
 
-      if (!parse_variables (&default_dict, &vars, &n_vars,
+      if (!parse_variables (default_dict, &vars, &n_vars,
 			    PV_DUPLICATE | PV_APPEND
 			    | PV_NUMERIC | PV_NO_SCRATCH))
 	{

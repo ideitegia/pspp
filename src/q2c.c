@@ -87,7 +87,7 @@ char *tokstr;
 char nullstr[] = "";
 
 /* Close all open files and delete the output file, on failure. */
-void
+static void
 finish_up (void)
 {
   if (!is_open)
@@ -151,7 +151,7 @@ error (const char *format,...)
 
 /* Allocate a block of SIZE bytes and return a pointer to its
    beginning. */
-void *
+static void *
 xmalloc (size_t size)
 {
   void *vp;
@@ -166,34 +166,9 @@ xmalloc (size_t size)
   return vp;
 }
 
-/* Resize the block at PTR to size SIZE and return a pointer to the
-   beginning of the new block. */
-void *
-xrealloc (void *ptr, size_t size)
-{
-  void *vp;
-  
-  if (!size)
-    {
-      if (ptr)
-	free (ptr);
-      return NULL;
-    }
-  
-  if (ptr)
-    vp = realloc (ptr, size);
-  else
-    vp = malloc (size);
-  
-  if (!vp)
-    fail ("xrealloc(%lu): %s", (unsigned long) size, VME);
-  
-  return vp;
-}
-
 /* Make a dynamically allocated copy of string S and return a pointer
    to the first character. */
-char *
+static char *
 xstrdup (const char *s)
 {
   size_t size;
@@ -212,7 +187,7 @@ xstrdup (const char *s)
 
 /* Returns a pointer to one of 8 static buffers.  The buffers are used
    in rotation. */
-char *
+static char *
 get_buffer (void)
 {
   static char b[8][256];
@@ -226,7 +201,7 @@ get_buffer (void)
    
 /* Copies a string to a static buffer, converting it to lowercase in
    the process, and returns a pointer to the static buffer. */
-char *
+static char *
 st_lower (const char *s)
 {
   char *p, *cp;
@@ -241,7 +216,7 @@ st_lower (const char *s)
 
 /* Copies a string to a static buffer, converting it to uppercase in
    the process, and returns a pointer to the static buffer. */
-char *
+static char *
 st_upper (const char *s)
 {
   char *p, *cp;
@@ -256,7 +231,7 @@ st_upper (const char *s)
 
 /* Returns the address of the first non-whitespace character in S, or
    the address of the null terminator if none. */
-char *
+static char *
 skip_ws (const char *s)
 {
   while (isspace ((unsigned char) *s))
@@ -266,7 +241,7 @@ skip_ws (const char *s)
 
 /* Read one line from the input file into buf.  Lines having special
    formats are handled specially. */
-int
+static int
 get_line (void)
 {
   ln++;
@@ -306,7 +281,7 @@ symbol *symtab;
    in the symbol table, its sequence number is returned and the symbol
    table is not modified.  Otherwise, the symbol is added and the next
    available sequence number is returned. */
-int
+static int
 add_symbol (const char *name, int unique, int value)
 {
   symbol *iter, *sym;
@@ -352,7 +327,7 @@ add_symbol (const char *name, int unique, int value)
 
 /* Finds the symbol having given sequence number X within the symbol
    table, and returns the associated symbol structure. */
-symbol *
+static symbol *
 find_symbol (int x)
 {
   symbol *iter;
@@ -388,7 +363,7 @@ dump_token (void)
 #endif /* DEBUGGING */
 
 /* Reads a token from the input file. */
-int
+static int
 lex_get (void)
 {
   /* Skip whitespace and check for end of file. */
@@ -443,7 +418,7 @@ lex_get (void)
 }
 
 /* Force the current token to be an identifier token. */
-void
+static void
 force_id (void)
 {
   if (token != T_ID)
@@ -451,7 +426,7 @@ force_id (void)
 }
 
 /* Force the current token to be a string token. */
-void
+static void
 force_string (void)
 {
   if (token != T_STRING)
@@ -460,7 +435,7 @@ force_string (void)
 
 /* Checks whether the current token is the identifier S; if so, skips
    the token and returns 1; otherwise, returns 0. */
-int
+static int
 match_id (const char *s)
 {
   if (token == T_ID && !strcmp (tokstr, s))
@@ -473,7 +448,7 @@ match_id (const char *s)
 
 /* Checks whether the current token is T.  If so, skips the token and
    returns 1; otherwise, returns 0. */
-int
+static int
 match_token (int t)
 {
   if (token == t)
@@ -485,7 +460,7 @@ match_token (int t)
 }
 
 /* Force the current token to be T, and skip it. */
-void
+static void
 skip_token (int t)
 {
   if (token != t)
@@ -594,7 +569,7 @@ subcommand *def;
 void parse_subcommands (void);
 
 /* Parse an entire specification. */
-void
+static void
 parse (void)
 {
   /* Get the command name and prefix. */
@@ -617,7 +592,7 @@ parse (void)
 
 /* Parses a single setting into S, given subcommand information SBC
    and specifier information SPEC. */
-void
+static void
 parse_setting (setting *s, specifier *spec)
 {
   s->parent = spec;
@@ -688,7 +663,7 @@ parse_setting (setting *s, specifier *spec)
 
 /* Parse a single specifier into SPEC, given subcommand information
    SBC. */
-void
+static void
 parse_specifier (specifier *spec, subcommand *sbc)
 {
   spec->index = 0;
@@ -737,7 +712,7 @@ parse_specifier (specifier *spec, subcommand *sbc)
 }
 
 /* Parse a list of specifiers for subcommand SBC. */
-void
+static void
 parse_specifiers (subcommand *sbc)
 {
   specifier **spec = &sbc->spec;
@@ -761,7 +736,7 @@ parse_specifiers (subcommand *sbc)
 }
 
 /* Parse a subcommand into SBC. */
-void
+static void
 parse_subcommand (subcommand *sbc)
 {
   if (match_token ('*'))
@@ -916,7 +891,7 @@ dump (int indention, const char *format, ...)
 
 /* Write the structure members for specifier SPEC to the output file.
    SBC is the including subcommand. */
-void
+static void
 dump_specifier_vars (const specifier *spec, const subcommand *sbc)
 {
   if (spec->varname)
@@ -941,7 +916,7 @@ dump_specifier_vars (const specifier *spec, const subcommand *sbc)
 }
 
 /* Returns 1 if string T is a PSPP keyword, 0 otherwise. */
-int
+static int
 is_keyword (const char *t)
 {
   static const char *kw[] =
@@ -960,7 +935,7 @@ is_keyword (const char *t)
 /* Transforms a string NAME into a valid C identifier: makes
    everything lowercase and maps nonalphabetic characters to
    underscores.  Returns a pointer to a static buffer. */
-char *
+static char *
 make_identifier (const char *name)
 {
   char *p = get_buffer ();
@@ -977,7 +952,7 @@ make_identifier (const char *name)
 }
 
 /* Writes the struct and enum declarations for the parser. */
-void
+static void
 dump_declarations (void)
 {
   indent = 0;
@@ -1167,7 +1142,7 @@ dump_declarations (void)
 
 /* Writes out code to initialize all the variables that need
    initialization for particular specifier SPEC inside subcommand SBC. */
-void
+static void
 dump_specifier_init (const specifier *spec, const subcommand *sbc)
 {
   if (spec->varname)
@@ -1201,7 +1176,7 @@ dump_specifier_init (const specifier *spec, const subcommand *sbc)
 }
 
 /* Write code to initialize all variables. */
-void
+static void
 dump_vars_init (void)
 {
   /* Loop through all the subcommands. */
@@ -1274,7 +1249,7 @@ dump_vars_init (void)
 
 /* Return a pointer to a static buffer containing an expression that
    will match token T. */
-char *
+static char *
 make_match (const char *t)
 {
   char *s;
@@ -1302,7 +1277,7 @@ make_match (const char *t)
 
 /* Write out the parsing code for specifier SPEC within subcommand
    SBC. */
-void
+static void
 dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 {
   setting *s;
@@ -1446,7 +1421,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 }
 
 /* Write out the code to parse subcommand SBC. */
-void
+static void
 dump_subcommand (const subcommand *sbc)
 {
   if (sbc->type == SBC_PLAIN || sbc->type == SBC_ARRAY)
@@ -1517,7 +1492,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_VARLIST)
     {
-      dump (1, "if (!parse_variables (NULL, &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (default_dict, &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND%s%s))",
 	    st_lower (sbc->prefix), st_lower (sbc->name),
 	    st_lower (sbc->prefix), st_lower (sbc->name),
@@ -1599,7 +1574,7 @@ dump_subcommand (const subcommand *sbc)
 }
 
 /* Write out entire parser. */
-void
+static void
 dump_parser (void)
 {
   int f;
@@ -1620,17 +1595,19 @@ dump_parser (void)
   if (def && (def->type == SBC_VARLIST))
     {
       if (def->type == SBC_VARLIST)
-	dump (1, "if (token == T_ID && is_varname (tokid) && "
-	      "lex_look_ahead () != '=')");
+	dump (1, "if (token == T_ID "
+              "&& dict_lookup_var (default_dict, tokid) != NULL "
+	      "&& lex_look_ahead () != '=')");
       else
 	{
-	  dump (0, "if ((token == T_ID && is_varname (tokid) && "
-		"lex_look_ahead () != '=')");
+	  dump (0, "if ((token == T_ID "
+                "&& dict_lookup_var (default_dict, tokid) "
+		"&& lex_look_ahead () != '=')");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");
       dump (0, "p->sbc_%s++;", st_lower (def->name));
-      dump (1, "if (!parse_variables (NULL, &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (default_dict, &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND))",
 	    st_lower (def->prefix), st_lower (def->name),
 	    st_lower (def->prefix), st_lower (def->name));
@@ -1709,7 +1686,7 @@ dump_parser (void)
 }
 
 /* Write the output file header. */
-void
+static void
 dump_header (void)
 {
   time_t curtime;
@@ -1730,7 +1707,7 @@ dump_header (void)
 }
 
 /* Write out commands to free variable state. */
-void
+static void
 dump_free (void)
 {
   subcommand *sbc;
@@ -1757,7 +1734,7 @@ dump_free (void)
 
 /* Returns the name of a directive found on the current input line, if
    any, or a null pointer if none found. */
-const char *
+static const char *
 recognize_directive (void)
 {
   static char directive[16];

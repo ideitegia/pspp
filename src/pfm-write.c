@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "pfm.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -32,7 +33,6 @@
 #include "gmp.h"
 #include "hash.h"
 #include "magic.h"
-#include "pfm.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -94,10 +94,10 @@ pfm_write_dictionary (struct file_handle *handle, struct dictionary *dict)
   {
     int i;
 
-    ext->nvars = dict->nvar;
-    ext->vars = xmalloc (sizeof *ext->vars * dict->nvar);
-    for (i = 0; i < dict->nvar; i++)
-      ext->vars[i] = dict->var[i]->width;
+    ext->nvars = dict_get_var_cnt (dict);
+    ext->vars = xmalloc (sizeof *ext->vars * ext->nvars);
+    for (i = 0; i < ext->nvars; i++)
+      ext->vars[i] = dict_get_var (dict, i)->width;
   }
 
   /* Write the file header. */
@@ -385,11 +385,11 @@ write_variables (struct file_handle *h, struct dictionary *dict)
 {
   int i;
   
-  if (!bufwrite (h, "4", 1) || !write_int (h, dict->nvar)
+  if (!bufwrite (h, "4", 1) || !write_int (h, dict_get_var_cnt (dict))
       || !write_int (h, 161))
     return 0;
 
-  for (i = 0; i < dict->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       static const char *miss_types[MISSING_COUNT] =
 	{
@@ -399,7 +399,7 @@ write_variables (struct file_handle *h, struct dictionary *dict)
       const char *m;
       int j;
 
-      struct variable *v = dict->var[i];
+      struct variable *v = dict_get_var (dict, i);
       
       if (!bufwrite (h, "7", 1) || !write_int (h, v->width)
 	  || !write_string (h, v->name)
@@ -424,10 +424,10 @@ write_value_labels (struct file_handle *h, struct dictionary *dict)
 {
   int i;
 
-  for (i = 0; i < dict->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct val_labs_iterator *j;
-      struct variable *v = dict->var[i];
+      struct variable *v = dict_get_var (dict, i);
       struct val_lab *vl;
 
       if (!val_labs_count (v->val_labs))

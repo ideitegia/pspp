@@ -165,7 +165,7 @@ cmd_recode (void)
       rcd->sysmis.f = 0;
 
       /* Parse variable names. */
-      if (!parse_variables (NULL, &v, &nv, PV_SAME_TYPE))
+      if (!parse_variables (default_dict, &v, &nv, PV_SAME_TYPE))
 	goto lossage;
 
       /* Ensure all variables are same type; find length of longest
@@ -295,7 +295,7 @@ cmd_recode (void)
 	  if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_STRING)
 	    for (i = 0, iter = rcd; i < nv; i++, iter = iter->next)
 	      {
-		struct variable *v = find_variable (names[i]);
+		struct variable *v = dict_lookup_var (default_dict, names[i]);
 
 		if (!v)
 		  {
@@ -321,7 +321,7 @@ cmd_recode (void)
 	  else
 	    for (i = 0, iter = rcd; i < nv; i++, iter = iter->next)
 	      {
-		struct variable *v = find_variable (names[i]);
+		struct variable *v = dict_lookup_var (default_dict, names[i]);
 
 		if (v)
 		  {
@@ -413,13 +413,12 @@ cmd_recode (void)
   for (rcd = head; rcd; rcd = rcd->next)
     if (rcd->dest_name[0])
       {
-	rcd->dest = create_variable (&default_dict, rcd->dest_name,
-				     NUMERIC, 0);
+	rcd->dest = dict_create_var (default_dict, rcd->dest_name, 0);
 	if (!rcd->dest)
 	  {
 	    /* This can occur if a destname is duplicated.  We could
 	       give an error at parse time but I don't care enough. */
-	    rcd->dest = find_variable (rcd->dest_name);
+	    rcd->dest = dict_lookup_var (default_dict, rcd->dest_name);
 	    assert (rcd->dest != NULL);
 	  }
 	else
@@ -929,7 +928,7 @@ debug_print (struct rcd_var * head)
    success, NOT_LONG on failure.  On success stores a pointer to the
    first character after the number into *ENDPTR.  From the GNU C
    library. */
-long int
+static long int
 string_to_long (char *nptr, int width, char **endptr)
 {
   int negative;

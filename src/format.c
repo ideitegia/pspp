@@ -18,12 +18,11 @@
    02111-1307, USA. */
 
 #include <config.h>
-
+#include "format.h"
 #include <ctype.h>
 #include <assert.h>
 #include <stdlib.h>
 #include "error.h"
-#include "format.h"
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"

@@ -18,12 +18,12 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "file-handle.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include "alloc.h"
 #include "filename.h"
-#include "file-handle.h"
 #include "command.h"
 #include "hash.h"
 #include "lexer.h"

@@ -98,7 +98,7 @@ cmd_autorecode (void)
   lex_match_id ("AUTORECODE");
   lex_match_id ("VARIABLES");
   lex_match ('=');
-  if (!parse_variables (&default_dict, &v_src, &nv_src, PV_NO_DUPLICATE))
+  if (!parse_variables (default_dict, &v_src, &nv_src, PV_NO_DUPLICATE))
     return CMD_FAILURE;
   if (!lex_force_match_id ("INTO"))
     return CMD_FAILURE;
@@ -126,7 +126,7 @@ cmd_autorecode (void)
     {
       int j;
 
-      if (is_varname (n_dest[i]))
+      if (dict_lookup_var (default_dict, n_dest[i]) != NULL)
 	{
 	  msg (SE, _("Target variable %s duplicates existing variable %s."),
 	       n_dest[i], n_dest[i]);
@@ -157,7 +157,8 @@ cmd_autorecode (void)
 
   for (i = 0; i < nv_dest; i++)
     {
-      v_dest[i] = force_create_variable (&default_dict, n_dest[i], NUMERIC, 0);
+      v_dest[i] = dict_create_var (default_dict, n_dest[i], 0);
+      assert (v_dest[i] != NULL);
       free (n_dest[i]);
     }
   free (n_dest);

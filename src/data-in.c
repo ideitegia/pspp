@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "data-in.h"
 #include <assert.h>
 #include <math.h>
 #include <ctype.h>
@@ -25,7 +26,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "data-in.h"
 #include "error.h"
 #include "getline.h"
 #include "julcal/julcal.h"

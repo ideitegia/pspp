@@ -35,6 +35,8 @@ char *alloca ();
 #endif
 #endif
 
+#include "sfm.h"
+#include "sfmP.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -51,8 +53,6 @@ char *alloca ();
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
-#include "sfm.h"
-#include "sfmP.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -143,13 +143,13 @@ sfm_write_dictionary (struct sfm_write_info *inf)
     goto lossage;
 
   /* Write basic variable info. */
-  for (i = 0; i < d->nvar; i++)
-    write_variable (inf, d->var[i]);
+  for (i = 0; i < dict_get_var_cnt (d); i++)
+    write_variable (inf, dict_get_var (d, i));
 
   /* Write out value labels. */
-  for (index = i = 0; i < d->nvar; i++)
+  for (index = i = 0; i < dict_get_var_cnt (d); i++)
     {
-      struct variable *v = d->var[i];
+      struct variable *v = dict_get_var (d, i);
 
       if (!write_value_labels (inf, v, index))
 	goto lossage;
@@ -157,7 +157,7 @@ sfm_write_dictionary (struct sfm_write_info *inf)
 		: DIV_RND_UP (v->width, sizeof (flt64)));
     }
 
-  if (d->documents != NULL && !write_documents (inf))
+  if (dict_get_documents (d) != NULL && !write_documents (inf))
     goto lossage;
   if (!write_rec_7_34 (inf))
     goto lossage;
@@ -227,18 +227,18 @@ write_header (struct sfm_write_info *inf)
   hdr.layout_code = 2;
 
   hdr.case_size = 0;
-  for (i = 0; i < d->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (d); i++)
     {
-      struct variable *v = d->var[i];
+      struct variable *v = dict_get_var (d, i);
       hdr.case_size += (v->type == NUMERIC ? 1
 			: DIV_RND_UP (v->width, sizeof (flt64)));
     }
   inf->case_size = hdr.case_size;
 
   p = ext->elem_type = xmalloc (inf->case_size);
-  for (i = 0; i < d->nvar; i++)
+  for (i = 0; i < dict_get_var_cnt (d); i++)
     {
-      struct variable *v = d->var[i];
+      struct variable *v = dict_get_var (d, i);
       int count = (v->type == NUMERIC ? 1
                    : DIV_RND_UP (v->width, sizeof (flt64)));
       while (count--)
@@ -247,14 +247,18 @@ write_header (struct sfm_write_info *inf)
 
   hdr.compressed = inf->compress;
 
-  update_weighting (d);
-  if (d->weight_index != -1)
+  if (dict_get_weight (d) != NULL)
     {
+      struct variable *weight_var;
       int recalc_weight_index = 1;
+      int i;
 
-      for (i = 0; i < d->weight_index; i++)
-	{
-	  struct variable *v = d->var[i];
+      weight_var = dict_get_weight (d);
+      for (i = 0; ; i++) 
+        {
+	  struct variable *v = dict_get_var (d, i);
+          if (v == weight_var)
+            break;
 	  recalc_weight_index += (v->type == NUMERIC ? 1
 				  : DIV_RND_UP (v->width, sizeof (flt64)));
 	}
@@ -292,9 +296,15 @@ write_header (struct sfm_write_info *inf)
       sprintf (buf, "%02d:%02d:%02d", hour - 1, min - 1, sec - 1);
       memcpy (hdr.creation_time, buf, sizeof hdr.creation_time);
     }
+  
+  {
+    const char *label = dict_get_label (d);
+    if (label == NULL)
+      label = "";
 
-  st_bare_pad_copy (hdr.file_label, d->label ? d->label : "",
-		    sizeof hdr.file_label);
+    st_bare_pad_copy (hdr.file_label, label, sizeof hdr.file_label); 
+  }
+  
   memset (hdr.padding, 0, sizeof hdr.padding);
 
   if (!bufwrite (inf->h, &hdr, sizeof hdr))
@@ -508,11 +518,17 @@ write_documents (struct sfm_write_info * inf)
   }
   rec_6;
 
+  const char *documents;
+  size_t n_lines;
+
+  documents = dict_get_documents (d);
+  n_lines = strlen (documents) / 80;
+
   rec_6.rec_type = 6;
-  rec_6.n_lines = d->n_documents;
+  rec_6.n_lines = n_lines;
   if (!bufwrite (inf->h, &rec_6, sizeof rec_6))
     return 0;
-  if (!bufwrite (inf->h, d->documents, 80 * d->n_documents))
+  if (!bufwrite (inf->h, documents, 80 * n_lines))
     return 0;
 
   return 1;

@@ -59,6 +59,7 @@
 */     
    
 #include <config.h>
+#include "settings.h"
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
@@ -72,7 +73,6 @@
 #include "output.h"
 #include "var.h"
 #include "format.h"
-#include "settings.h"
 
 double set_blanks;
 int set_compression;
@@ -863,16 +863,6 @@ stc_custom_workdev (struct cmd_set *cmd unused)
       }
   msg (SE, _("Drive letter expected in WORKDEV subcommand."));
   return 0;
-}
-
-
-/* GSET. */
-
-int
-cmd_gset (void)
-{
-  /* FIXME */
-  return CMD_FAILURE;
 }
 
 /*

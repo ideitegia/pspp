@@ -18,12 +18,12 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "value-labels.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
 #include "hash.h"
-#include "value-labels.h"
 
 static hsh_compare_func compare_int_val_lab;
 static hsh_hash_func hash_int_val_lab;
@@ -91,8 +91,12 @@ val_labs_set_width (struct val_labs *vls, int new_width)
 void
 val_labs_destroy (struct val_labs *vls) 
 {
-  if (vls != NULL && vls->labels != NULL) 
-    hsh_destroy (vls->labels);
+  if (vls != NULL) 
+    {
+      if (vls->labels != NULL)
+        hsh_destroy (vls->labels);
+      free (vls);
+    }
 }
 
 /* Removes all the value labels from VLS. */

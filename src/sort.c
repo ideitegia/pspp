@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "sort.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,7 +31,6 @@
 #include "heap.h"
 #include "lexer.h"
 #include "misc.h"
-#include "sort.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
@@ -111,7 +111,7 @@ parse_sort_variables (void)
       int prev_nv_sort = nv_sort;
       int order = SRT_ASCEND;
 
-      if (!parse_variables (&default_dict, &v_sort, &nv_sort,
+      if (!parse_variables (default_dict, &v_sort, &nv_sort,
 			    PV_NO_DUPLICATE | PV_APPEND | PV_NO_SCRATCH))
 	return 0;
       if (lex_match ('('))
@@ -485,7 +485,8 @@ allocate_cases (void)
 {
   /* This is the size of one case. */
   const int case_size = (sizeof (struct repl_sel_tree)
-			 + sizeof (union value) * (default_dict.nval - 1)
+			 + (sizeof (union value)
+                            * (dict_get_value_cnt (default_dict) - 1))
 			 + sizeof (struct repl_sel_tree *));
 
   x = NULL;
@@ -501,7 +502,8 @@ allocate_cases (void)
       for (i = 0; i < x_max; i++)
 	{
 	  x[i] = malloc (sizeof (struct repl_sel_tree)
-			 + sizeof (union value) * (default_dict.nval - 1));
+			 + (sizeof (union value)
+                            * (dict_get_value_cnt (default_dict) - 1)));
 	  if (x[i] == NULL)
 	    break;
 	}
@@ -727,7 +729,8 @@ write_initial_runs (int separate)
 	J->rn = 0;
 	J->fe = x[(x_max + j) / 2];
 	J->fi = x[j / 2];
-	memset (J->record, 0, default_dict.nval * sizeof (union value));
+	memset (J->record, 0,
+                dict_get_value_cnt (default_dict) * sizeof (union value));
       }
   }
 
@@ -914,10 +917,11 @@ merge (void)
   order = MAX_MERGE_ORDER;
   if (x_max / order < MIN_BUFFER_SIZE_RECS)
     order = x_max / MIN_BUFFER_SIZE_RECS;
-  else if (x_max / order * sizeof (union value) * default_dict.nval
+  else if (x_max / order * sizeof (union value) * dict_get_value_cnt (default_dict)
 	   < MIN_BUFFER_SIZE_BYTES)
     order = x_max / (MIN_BUFFER_SIZE_BYTES
-		     / (sizeof (union value) * (default_dict.nval - 1)));
+		     / (sizeof (union value)
+                        * (dict_get_value_cnt (default_dict) - 1)));
 
   /* Make sure the order of merge is bounded. */
   if (order < 2)
@@ -1058,8 +1062,8 @@ merge_once (int run_index[], int run_length[], int n_runs)
 	  buffered[i] = min (records_per_buffer, run_length[i]);
 	  for (j = 0; j < buffered[i]; j++)
 	    if ((int) fread (x[j + ofs]->record, sizeof (union value),
-			     default_dict.nval, handle[i])
-		!= default_dict.nval)
+			     dict_get_value_cnt (default_dict), handle[i])
+		!= dict_get_value_cnt (default_dict))
 	      {
 		sprintf (tmp_extname, "%08x", run_index[i]);
 		if (ferror (handle[i]))
@@ -1087,8 +1091,9 @@ merge_once (int run_index[], int run_length[], int n_runs)
 	  min = i;
 
       if ((int) fwrite (x[buffer_ptr[min]]->record, sizeof (union value),
-			default_dict.nval, handle[N_INPUT_BUFFERS])
-	  != default_dict.nval)
+			dict_get_value_cnt (default_dict),
+                        handle[N_INPUT_BUFFERS])
+	  != dict_get_value_cnt (default_dict))
 	{
 	  sprintf (tmp_extname, "%08x", run_index[i]);
 	  msg (SE, _("%s: Error writing temporary file in "
@@ -1116,8 +1121,9 @@ merge_once (int run_index[], int run_length[], int n_runs)
 	      buffered[min] = min (records_per_buffer, run_length[min]);
 	      for (j = 0; j < buffered[min]; j++)
 		if ((int) fread (x[j + ofs]->record, sizeof (union value),
-				 default_dict.nval, handle[min])
-		    != default_dict.nval)
+				 dict_get_value_cnt (default_dict),
+                                 handle[min])
+		    != dict_get_value_cnt (default_dict))
 		  {
 		    sprintf (tmp_extname, "%08x", run_index[min]);
 		    if (ferror (handle[min]))
@@ -1210,7 +1216,7 @@ lossage:
 
 /* Reads all the records from the source stream and passes them
    to write_case(). */
-void
+static void
 sort_stream_read (void)
 {
   read_sort_output (write_case);
@@ -1354,7 +1360,7 @@ sort_stream_write (void)
 }
 
 /* Switches mode from sink to source. */
-void
+static void
 sort_stream_mode (void)
 {
   /* If this is not done, then we get the following source/sink pairs:

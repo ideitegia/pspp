@@ -17,22 +17,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if !inpt_pgm_h
-#define inpt_pgm_h 1
+#if !INCLUDED_GLOB_H
+#define INCLUDED_GLOB_H 1
 
-/* Bitmasks to indicate variable type. */
-enum
-  {
-    INP_MASK = 03,		/* 2#11. */
-    
-    INP_NUMERIC = 0,		/* Numeric. */
-    INP_STRING = 01,		/* String. */
-    
-    INP_RIGHT = 0,		/* Ordinary. */
-    INP_LEFT = 02		/* Scratch or LEAVE. */
-  };
+void init_glob (int argc unused, char **argv);
 
-extern unsigned char *inp_init;
-extern size_t inp_init_size;
-
-#endif /* !inpt_pgm_h */
+#endif /* glob.h */

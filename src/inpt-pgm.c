@@ -27,7 +27,6 @@
 #include "error.h"
 #include "expr.h"
 #include "file-handle.h"
-#include "inpt-pgm.h"
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"
@@ -36,16 +35,22 @@
 
 #include "debug-print.h"
 
-/* A bit-vector of two-bit entries.  The array tells INPUT PROGRAM how
-   to initialize each `value'.  Modified by envector(), devector(),
-   which are called by create_variable(), also by LEAVE, COMPUTE(!).  */
-unsigned char *inp_init;
+/* Indicates how a `union value' should be initialized. */
+enum value_init_type
+  {
+    INP_NUMERIC = 01,		/* Numeric. */
+    INP_STRING = 0,		/* String. */
+    
+    INP_INIT_ONCE = 02,		/* Initialize only once. */
+    INP_REINIT = 0,		/* Reinitialize for each iteration. */
+  };
+
+/* Array that tells INPUT PROGRAM how to initialize each `union
+   value'.  */
+static enum value_init_type *inp_init;
 
 /* Number of bytes allocated for inp_init. */
-size_t inp_init_size;
-
-/* Number of `values' created inside INPUT PROGRAM. */
-static int inp_nval;
+static size_t inp_nval;
 
 static int end_case_trns_proc (struct trns_header *, struct ccase *);
 static int end_file_trns_proc (struct trns_header * t, struct ccase * c);
@@ -61,15 +66,14 @@ cmd_input_program (void)
 
   vfm_source = &input_program_source;
 
-  inp_init = NULL;
-  inp_init_size = 0;
-
   return lex_end_of_command ();
 }
 
 int
 cmd_end_input_program (void)
 {
+  size_t i;
+
   lex_match_id ("END");
   lex_match_id ("INPUT");
   lex_match_id ("PROGRAM");
@@ -80,7 +84,7 @@ cmd_end_input_program (void)
       return CMD_FAILURE;
     }
   
-  if (default_dict.nval == 0)
+  if (dict_get_value_cnt (default_dict) == 0)
     msg (SW, _("No data-input or transformation commands specified "
 	 "between INPUT PROGRAM and END INPUT PROGRAM."));
 
@@ -88,9 +92,25 @@ cmd_end_input_program (void)
      transformations. */
   f_trns = n_trns;
 
-  /* Mark the boundary between input program `values' and
-     later-created `values'. */
-  inp_nval = default_dict.nval;
+  /* Figure out how to initialize temp_case. */
+  inp_nval = dict_get_value_cnt (default_dict);
+  inp_init = xmalloc (inp_nval * sizeof *inp_init);
+  for (i = 0; i < inp_nval; i++)
+    inp_init[i] = -1;
+  for (i = 0; i < dict_get_var_cnt (default_dict); i++)
+    {
+      struct variable *var = dict_get_var (default_dict, i);
+      enum value_init_type value_init;
+      size_t j;
+      
+      value_init = var->type == NUMERIC ? INP_NUMERIC : INP_STRING;
+      value_init |= var->left ? INP_INIT_ONCE : INP_REINIT;
+
+      for (j = 0; j < var->nv; j++)
+        inp_init[j + var->fv] = value_init;
+    }
+  for (i = 0; i < inp_nval; i++)
+    assert (inp_init[i] != -1);
 
   return lex_end_of_command ();
 }
@@ -99,110 +119,55 @@ cmd_end_input_program (void)
 static void
 init_case (void)
 {
-  union value *val = temp_case->data;
-  unsigned char *cp = inp_init;
-  unsigned char c;
-  int i, j;
+  size_t i;
 
-  /* This code is 2-3X the complexity it might be, but I felt like
-     it.  It initializes temp_case union values to 0, or SYSMIS, or
-     blanks, as appropriate. */
-  for (i = 0; i < inp_nval / 4; i++)
-    {
-      c = *cp++;
-      for (j = 0; j < 4; j++)
-	{
-	  switch (c & INP_MASK)
-	    {
-	    case INP_NUMERIC | INP_RIGHT:
-	      val++->f = SYSMIS;
-	      break;
-	    case INP_NUMERIC | INP_LEFT:
-	      val++->f = 0.0;
-	      break;
-	    case INP_STRING | INP_RIGHT:
-	    case INP_STRING | INP_LEFT:
-	      memset (val++->s, ' ', MAX_SHORT_STRING);
-	      break;
-	    }
-	  c >>= 2;
-	}
-    }
-  if (inp_nval % 4)
-    {
-      c = *cp;
-      for (j = 0; j < inp_nval % 4; j++)
-	{
-	  switch (c & INP_MASK)
-	    {
-	    case INP_NUMERIC | INP_RIGHT:
-	      val++->f = SYSMIS;
-	      break;
-	    case INP_NUMERIC | INP_LEFT:
-	      val++->f = 0.0;
-	      break;
-	    case INP_STRING | INP_RIGHT:
-	    case INP_STRING | INP_LEFT:
-	      memset (val++->s, ' ', MAX_SHORT_STRING);
-	      break;
-	    }
-	  c >>= 2;
-	}
-    }
+  for (i = 0; i < inp_nval; i++)
+    switch (inp_init[i]) 
+      {
+      case INP_NUMERIC | INP_INIT_ONCE:
+        temp_case->data[i].f = 0.0;
+        break;
+      case INP_NUMERIC | INP_REINIT:
+        temp_case->data[i].f = SYSMIS;
+        break;
+      case INP_STRING | INP_INIT_ONCE:
+      case INP_STRING | INP_REINIT:
+        memset (temp_case->data[i].s, ' ', sizeof temp_case->data[i].s);
+        break;
+      default:
+        assert (0);
+      }
 }
 
 /* Clears temp_case.  Called between reading successive records. */
 static void
 clear_case (void)
 {
-  union value *val = temp_case->data;
-  unsigned char *cp = inp_init;
-  unsigned char c;
-  int i, j;
+  size_t i;
 
-  /* This code is 2-3X the complexity it might be, but I felt like
-     it.  It initializes temp_case values to SYSMIS, or
-     blanks, or does nothing, as appropriate. */
-  for (i = 0; i < inp_nval / 4; i++)
-    {
-      c = *cp++;
-      for (j = 0; j < 4; j++)
-	{
-	  if (!(c & INP_LEFT))
-	    {
-	      if (c & INP_STRING)
-		memset (val->s, ' ', MAX_SHORT_STRING);
-	      else
-		val->f = SYSMIS;
-	    }
-	  val++;
-	  c >>= 2;
-	}
-    }
-  
-  if (inp_nval % 4)
-    {
-      c = *cp;
-      for (j = 0; j < inp_nval % 4; j++)
-	{
-	  if (!(c & INP_LEFT))
-	    {
-	      if (c & INP_STRING)
-		memset (val->s, ' ', MAX_SHORT_STRING);
-	      else
-		val->f = SYSMIS;
-	    }
-	  val++;
-	  c >>= 2;
-	}
-    }
+  for (i = 0; i < inp_nval; i++)
+    switch (inp_init[i]) 
+      {
+      case INP_NUMERIC | INP_INIT_ONCE:
+        break;
+      case INP_NUMERIC | INP_REINIT:
+        temp_case->data[i].f = SYSMIS;
+        break;
+      case INP_STRING | INP_INIT_ONCE:
+        break;
+      case INP_STRING | INP_REINIT:
+        memset (temp_case->data[i].s, ' ', sizeof temp_case->data[i].s);
+        break;
+      default:
+        assert (0);
+      }
 }
 
 /* Executes each transformation in turn on a `blank' case.  When a
    transformation fails, returning -2, then that's the end of the
    file.  -1 means go on to the next transformation.  Otherwise the
    return value is the index of the transformation to go to next. */
-void
+static void
 input_program_source_read (void)
 {
   int i;

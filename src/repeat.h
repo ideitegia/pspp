@@ -17,21 +17,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if !vector_h
-#define vector_h 1
+#if !INCLUDED_REPEAT_H
+#define INCLUDED_REPEAT_H 1
 
-/* Represents a vector as created by the VECTOR transformation. */
-struct vector
-  {
-    int index;			/* Index into vec[]. */
-    char name[9];		/* Name. */
-    struct variable **v;	/* Vector of variables. */
-    int nv;			/* Number of variables. */
-  };
+void perform_DO_REPEAT_substitutions (void);
 
-extern struct vector *vec;
-extern int nvec;
-
-struct vector *find_vector (const char *name);
-
-#endif /* !vector_h */
+#endif /* repeat.h */
