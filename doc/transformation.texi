@@ -22,12 +22,12 @@ as a rule.
 @vindex AGGREGATE
 
 @display
-AGGREGATE
-        /BREAK=var_list
+AGGREGATE 
+        OUTFILE=@{*,'filename'@}          
         /PRESORTED
-        /OUTFILE=@{*,'filename'@}
         /DOCUMENT
         /MISSING=COLUMNWISE
+        /BREAK=var_list
         /dest_var['label']@dots{}=agr_func(src_vars, args@dots{})@dots{}
 @end display
 
@@ -36,25 +36,34 @@ Cases are divided into groups that have the same values for one or more
 variables called @dfn{break variables}.  Several functions are available
 for summarizing case contents.
 
-At least one break variable must be specified on BREAK, the only
-required subcommand.  The values of these variables are used to divide
-the active file into groups to be summarized.  In addition, at least
-one @var{dest_var} must be specified.
+The OUTFILE subcommand is required and must appear first.  Specify a
+system file by file name string or file handle (@pxref{FILE HANDLE}).
+The aggregated cases are written to this file.  If @samp{*} is
+specified, then the aggregated cases replace the active file.
 
-By default, the active file is sorted based on the break variables
+By default, the active file will be sorted based on the break variables
 before aggregation takes place.  If the active file is already sorted
 or otherwise grouped in terms of the break variables, specify
 PRESORTED to save time.
-
-The OUTFILE subcommand specifies a system file by file name string or
-file handle (@pxref{FILE HANDLE}).  The aggregated cases are written to
-this file.  If OUTFILE is not specified, or if @samp{*} is specified,
-then the aggregated cases replace the active file.
 
 Specify DOCUMENT to copy the documents from the active file into the
 aggregate file (@pxref{DOCUMENT}).  Otherwise, the aggregate file will
 not contain any documents, even if the aggregate file replaces the
 active file.
+
+Normally, only a single case (for SD and SD., two cases) need be
+non-missing in each group for the aggregate variable to be
+non-missing.  Specifying /MISSING=COLUMNWISE inverts this behavior, so
+that the aggregate variable becomes missing if any aggregated value is
+missing.
+
+If PRESORTED, DOCUMENT, or MISSING are specified, they must appear
+between OUTFILE and BREAK.
+
+At least one break variable must be specified on BREAK, a
+required subcommand.  The values of these variables are used to divide
+the active file into groups to be summarized.  In addition, at least
+one @var{dest_var} must be specified.
 
 One or more sets of aggregation variables must be specified.  Each set
 comprises a list of aggregation variables, an equals sign (@samp{=}),
@@ -72,9 +81,9 @@ list.
 Each set must have exactly as many source variables as aggregation
 variables.  Each aggregation variable receives the results of applying
 the specified aggregation function to the corresponding source
-variable.  Most aggregation functions may be applied to numeric and
-short and long string variables.  Others, marked below, are restricted
-to numeric values.
+variable.  The MEAN, SD, and SUM aggregation functions may only be
+applied to numeric variables.  All the rest may be applied to numeric
+and short and long string variables.
 
 The available aggregation functions are as follows:
 
@@ -172,12 +181,6 @@ The aggregation functions listed above exclude all user-missing values
 from calculations.  To include user-missing values, insert a period
 (@samp{.}) between the function name and left parenthesis
 (e.g.@: @samp{SUM.}).
-
-Normally, only a single case (for SD and SD., two cases) need be
-non-missing in each group for the aggregate variable to be
-non-missing.  Specifying /MISSING=COLUMNWISE inverts this behavior, so
-that the aggregate variable becomes missing if any aggregated value is
-missing.
 
 @cmd{AGGREGATE} both ignores and cancels the current @cmd{SPLIT FILE}
 settings (@pxref{SPLIT FILE}).
