@@ -1,3 +1,13 @@
+Mon Feb 16 23:15:51 2004  Ben Pfaff  <blp@gnu.org>
+
+	* data-out.c: Clean up.  Changed interface of convert_*() to take
+	either a `double' or a `const char *' instead of a `const union
+	value *'.  Update all implementations of those interfaces.
+	(data_out) Use switch statements instead of a table.
+	(convert_AHEX) Rewrite.
+
+	* format.h: Update comment.
+
 Mon Feb 16 22:14:36 2004  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: (dump_header) Add an Emacs header line to output files

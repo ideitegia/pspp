@@ -44,15 +44,15 @@
 
 /* Public functions. */
 
-typedef int convert_func (char *, const struct fmt_spec *,
-			  const union value *);
+typedef int numeric_converter (char *, const struct fmt_spec *, double);
+static numeric_converter convert_F, convert_N, convert_E, convert_F_plus;
+static numeric_converter convert_Z, convert_IB, convert_P, convert_PIB;
+static numeric_converter convert_PIBHEX, convert_PK, convert_RB;
+static numeric_converter convert_RBHEX, convert_CCx, convert_date;
+static numeric_converter convert_time, convert_WKDAY, convert_MONTH, try_F;
 
-static convert_func convert_F, convert_N, convert_E, convert_F_plus;
-static convert_func convert_Z, convert_A, convert_AHEX, convert_IB;
-static convert_func convert_P, convert_PIB, convert_PIBHEX, convert_PK;
-static convert_func convert_RB, convert_RBHEX, convert_CCx, convert_date;
-static convert_func convert_time, convert_WKDAY, convert_MONTH;
-static convert_func try_F;
+typedef int string_converter (char *, const struct fmt_spec *, const char *);
+static string_converter convert_A, convert_AHEX;
 
 /* Converts binary value V into printable form in the exactly
    FP->W character in buffer S according to format specification
@@ -60,37 +60,130 @@ static convert_func try_F;
 void
 data_out (char *s, const struct fmt_spec *fp, const union value *v)
 {
-  static convert_func *const handlers[FMT_NUMBER_OF_FORMATS] =
-    {
-      convert_F, convert_N, convert_E, convert_F_plus,
-      convert_F_plus, convert_F_plus, convert_F_plus,
-      convert_Z, convert_A, convert_AHEX, convert_IB, convert_P, convert_PIB,
-      convert_PIBHEX, convert_PK, convert_RB, convert_RBHEX,
-      convert_CCx, convert_CCx, convert_CCx, convert_CCx, convert_CCx,
-      convert_date, convert_date, convert_date, convert_date, convert_date,
-      convert_date, convert_date, convert_date, convert_date,
-      convert_time, convert_time,
-      convert_WKDAY, convert_MONTH,
-    };
+  int cat = formats[fp->type].cat;
+  int ok;
 
-  union value tmp_val;
-  
-  {
-    int cat = formats[fp->type].cat;
-    if ((cat & FCAT_BLANKS_SYSMIS) && v->f == SYSMIS)
-      {
-	memset (s, ' ', fp->w);
-	s[fp->w - fp->d - 1] = '.';
-	return;
-      }
-    if ((cat & FCAT_SHIFT_DECIMAL) && v->f != SYSMIS && fp->d)
-      {
-	tmp_val.f = v->f * pow (10.0, fp->d);
-	v = &tmp_val;
-      }
-  }
-  
-  if (!handlers[fp->type] (s, fp, v)) 
+  if (!(cat & FCAT_STRING)) 
+    {
+      /* Numeric formatting. */
+      double number = v->f;
+
+      /* Handle SYSMIS turning into blanks. */
+      if ((cat & FCAT_BLANKS_SYSMIS) && number == SYSMIS)
+        {
+          memset (s, ' ', fp->w);
+          s[fp->w - fp->d - 1] = '.';
+          return;
+        }
+
+      /* Handle decimal shift. */
+      if ((cat & FCAT_SHIFT_DECIMAL) && number != SYSMIS && fp->d)
+        number *= pow (10.0, fp->d);
+
+      switch (fp->type) 
+        {
+        case FMT_F:
+          ok = convert_F (s, fp, number);
+          break;
+
+        case FMT_N:
+          ok = convert_N (s, fp, number);
+          break;
+
+        case FMT_E:
+          ok = convert_E (s, fp, number);
+          break;
+
+        case FMT_COMMA: case FMT_DOT: case FMT_DOLLAR: case FMT_PCT:
+          ok = convert_F_plus (s, fp, number);
+          break;
+
+        case FMT_Z:
+          ok = convert_Z (s, fp, number);
+          break;
+
+        case FMT_A:
+          assert (0);
+
+        case FMT_AHEX:
+          assert (0);
+
+        case FMT_IB:
+          ok = convert_IB (s, fp, number);
+          break;
+
+        case FMT_P:
+          ok = convert_P (s, fp, number);
+          break;
+
+        case FMT_PIB:
+          ok = convert_PIB (s, fp, number);
+          break;
+
+        case FMT_PIBHEX:
+          ok = convert_PIBHEX (s, fp, number);
+          break;
+
+        case FMT_PK:
+          ok = convert_PK (s, fp, number);
+          break;
+
+        case FMT_RB:
+          ok = convert_RB (s, fp, number);
+          break;
+
+        case FMT_RBHEX:
+          ok = convert_RBHEX (s, fp, number);
+          break;
+
+        case FMT_CCA: case FMT_CCB: case FMT_CCC: case FMT_CCD: case FMT_CCE:
+          ok = convert_CCx (s, fp, number);
+          break;
+
+        case FMT_DATE: case FMT_EDATE: case FMT_SDATE: case FMT_ADATE:
+        case FMT_JDATE: case FMT_QYR: case FMT_MOYR: case FMT_WKYR:
+        case FMT_DATETIME: 
+          ok = convert_date (s, fp, number);
+          break;
+
+        case FMT_TIME: case FMT_DTIME:
+          ok = convert_time (s, fp, number);
+          break;
+
+        case FMT_WKDAY:
+          ok = convert_WKDAY (s, fp, number);
+          break;
+
+        case FMT_MONTH:
+          ok = convert_MONTH (s, fp, number);
+          break;
+
+        default:
+          assert (0);
+        }
+    }
+  else 
+    {
+      /* String formatting. */
+      const char *string = v->s;
+
+      switch (fp->type) 
+        {
+        case FMT_A:
+          ok = convert_A (s, fp, string);
+          break;
+
+        case FMT_AHEX:
+          ok = convert_AHEX (s, fp, string);
+          break;
+
+        default:
+          assert (0);
+        }
+    }
+
+  /* Error handling. */
+  if (!ok)
     strncpy (s, "ERROR", fp->w);
 }
 
@@ -99,8 +192,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
 void
 num_to_string (double v, char *s, int w, int d)
 {
-  /* Dummies to pass to convert_F. */
-  union value val;
+  /* Dummy to pass to convert_F. */
   struct fmt_spec f;
 
 #if !NEW_STYLE
@@ -116,7 +208,6 @@ num_to_string (double v, char *s, int w, int d)
 
   f.w = w;
   f.d = d;
-  val.f = v;
 
   /* Cut out the jokers. */
   if (!finite (v))
@@ -152,7 +243,7 @@ num_to_string (double v, char *s, int w, int d)
       return;
     }
 
-  try_F (s, &f, &val);
+  try_F (s, &f, v);
 
 #if !NEW_STYLE
   decp = memchr (s, set_decimal, w);
@@ -231,18 +322,18 @@ static const double power10[] =
 
 /* Handles F format. */
 static int
-convert_F (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_F (char *dst, const struct fmt_spec *fp, double number)
 {
-  if (!try_F (dst, fp, v))
-    convert_E (dst, fp, v);
+  if (!try_F (dst, fp, number))
+    convert_E (dst, fp, number);
   return 1;
 }
 
 /* Handles N format. */
 static int
-convert_N (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_N (char *dst, const struct fmt_spec *fp, double number)
 {
-  double d = floor (v->f);
+  double d = floor (number);
 
   if (d < 0 || d == SYSMIS)
     {
@@ -254,7 +345,7 @@ convert_N (char *dst, const struct fmt_spec *fp, const union value *v)
   if (d < power10[fp->w])
     {
       char buf[128];
-      sprintf (buf, "%0*.0f", fp->w, v->f);
+      sprintf (buf, "%0*.0f", fp->w, number);
       memcpy (dst, buf, fp->w);
     }
   else
@@ -266,7 +357,7 @@ convert_N (char *dst, const struct fmt_spec *fp, const union value *v)
 /* Handles E format.  Also operates as fallback for some other
    formats. */
 static int
-convert_E (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_E (char *dst, const struct fmt_spec *fp, double number)
 {
   /* Temporary buffer. */
   char buf[128];
@@ -285,11 +376,11 @@ convert_E (char *dst, const struct fmt_spec *fp, const union value *v)
 
   /* Put decimal places in usable range. */
   d = min (fp->d, fp->w - 6);
-  if (v->f < 0)
+  if (number < 0)
     d--;
   if (d < 0)
     d = 0;
-  sprintf (buf, "%*.*E", fp->w, d, v->f);
+  sprintf (buf, "%*.*E", fp->w, d, number);
 
   /* What we do here is force the exponent part to have four
      characters whenever possible.  That is, 1.00E+99 is okay (`E+99')
@@ -297,7 +388,7 @@ convert_E (char *dst, const struct fmt_spec *fp, const union value *v)
      the other hand, 1.00E1000 (`E+100') cannot be canonicalized.
      Note that ANSI C guarantees at least two digits in the
      exponent. */
-  if (fabs (v->f) > 1e99)
+  if (fabs (number) > 1e99)
     {
       /* Pointer to the `E' in buf. */
       char *cp;
@@ -337,32 +428,33 @@ convert_E (char *dst, const struct fmt_spec *fp, const union value *v)
 
 /* Handles COMMA, DOT, DOLLAR, and PCT formats. */
 static int
-convert_F_plus (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_F_plus (char *dst, const struct fmt_spec *fp, double number)
 {
   char buf[40];
   
-  if (try_F (buf, fp, v))
+  if (try_F (buf, fp, number))
     insert_commas (dst, buf, fp);
   else
-    convert_E (dst, fp, v);
+    convert_E (dst, fp, number);
 
   return 1;
 }
 
 static int
-convert_Z (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_Z (char *dst, const struct fmt_spec *fp, double number)
 {
   static int warned = 0;
 
   if (!warned)
     {
       msg (MW, 
-	_("Quality of zoned decimal (Z) output format code is suspect.  Check your results. Report bugs to %s."),
+	_("Quality of zoned decimal (Z) output format code is "
+          "suspect.  Check your results. Report bugs to %s."),
 	PACKAGE_BUGREPORT);
       warned = 1;
     }
 
-  if (v->f == SYSMIS)
+  if (number == SYSMIS)
     {
       msg (ME, _("The system-missing value cannot be output as a zoned "
 		 "decimal number."));
@@ -374,18 +466,18 @@ convert_Z (char *dst, const struct fmt_spec *fp, const union value *v)
     double d;
     int i;
     
-    d = fabs (floor (v->f));
+    d = fabs (floor (number));
     if (d >= power10[fp->w])
       {
 	msg (ME, _("Number %g too big to fit in field with format Z%d.%d."),
-	     v->f, fp->w, fp->d);
+	     number, fp->w, fp->d);
 	return 0;
       }
 
-    sprintf (buf, "%*.0f", fp->w, v->f);
+    sprintf (buf, "%*.0f", fp->w, number);
     for (i = 0; i < fp->w; i++)
       dst[i] = (buf[i] - '0') | 0xf0;
-    if (v->f < 0)
+    if (number < 0)
       dst[fp->w - 1] &= 0xdf;
   }
 
@@ -393,32 +485,32 @@ convert_Z (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_A (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_A (char *dst, const struct fmt_spec *fp, const char *string)
 {
-  memcpy (dst, v->s, fp->w);
+  memcpy (dst, string, fp->w);
   return 1;
 }
 
 static int
-convert_AHEX (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_AHEX (char *dst, const struct fmt_spec *fp, const char *string)
 {
   int i;
 
   for (i = 0; i < fp->w / 2; i++)
     {
-      ((unsigned char *) dst)[i * 2] = MAKE_HEXIT ((v->s[i]) >> 4);
-      ((unsigned char *) dst)[i * 2 + 1] = MAKE_HEXIT ((v->s[i]) & 0xf);
+      *dst++ = MAKE_HEXIT ((string[i]) >> 4);
+      *dst++ = MAKE_HEXIT ((string[i]) & 0xf);
     }
 
   return 1;
 }
 
 static int
-convert_IB (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_IB (char *dst, const struct fmt_spec *fp, double number)
 {
-  /* Strategy: Basically the same as convert_PIBHEX() but with base
-     256. Then it's necessary to negate the two's-complement result if
-     v->f is negative. */
+  /* Strategy: Basically the same as convert_PIBHEX() but with
+     base 256. Then negate the two's-complement result if number
+     is negative. */
 
   /* Used for constructing the two's-complement result. */
   unsigned temp[8];
@@ -436,7 +528,7 @@ convert_IB (char *dst, const struct fmt_spec *fp, const union value *v)
   int i;
 
   /* Make the exponent (-8*fp->w-1). */
-  frac = frexp (fabs (v->f), &exp);
+  frac = frexp (fabs (number), &exp);
   diff = exp - (-8 * fp->w - 1);
   exp -= diff;
   frac *= ldexp (1.0, diff);
@@ -449,8 +541,8 @@ convert_IB (char *dst, const struct fmt_spec *fp, const union value *v)
       temp[i] = floor (frac);
     }
 
-  /* Perform two's-complement negation if v->f is negative. */
-  if (v->f < 0)
+  /* Perform two's-complement negation if number is negative. */
+  if (number < 0)
     {
       /* Perform NOT operation. */
       for (i = 0; i < fp->w; i++)
@@ -472,9 +564,9 @@ convert_IB (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_P (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_P (char *dst, const struct fmt_spec *fp, double number)
 {
-  /* Buffer for v->f*2-1 characters + a decimal point if library is
+  /* Buffer for fp->w*2-1 characters + a decimal point if library is
      not quite compliant + a null. */
   char buf[17];
 
@@ -482,7 +574,7 @@ convert_P (char *dst, const struct fmt_spec *fp, const union value *v)
   int i;
 
   /* Main extraction. */
-  sprintf (buf, "%0*.0f", fp->w * 2 - 1, floor (fabs (v->f)));
+  sprintf (buf, "%0*.0f", fp->w * 2 - 1, floor (fabs (number)));
 
   for (i = 0; i < fp->w; i++)
     ((unsigned char *) dst)[i]
@@ -490,7 +582,7 @@ convert_P (char *dst, const struct fmt_spec *fp, const union value *v)
 
   /* Set sign. */
   dst[fp->w - 1] &= 0xf0;
-  if (v->f >= 0.0)
+  if (number >= 0.0)
     dst[fp->w - 1] |= 0xf;
   else
     dst[fp->w - 1] |= 0xd;
@@ -499,7 +591,7 @@ convert_P (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_PIB (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_PIB (char *dst, const struct fmt_spec *fp, double number)
 {
   /* Strategy: Basically the same as convert_IB(). */
 
@@ -516,7 +608,7 @@ convert_PIB (char *dst, const struct fmt_spec *fp, const union value *v)
   int i;
 
   /* Make the exponent (-8*fp->w). */
-  frac = frexp (fabs (v->f), &exp);
+  frac = frexp (fabs (number), &exp);
   diff = exp - (-8 * fp->w);
   exp -= diff;
   frac *= ldexp (1.0, diff);
@@ -536,7 +628,7 @@ convert_PIB (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_PIBHEX (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_PIBHEX (char *dst, const struct fmt_spec *fp, double number)
 {
   /* Strategy: Use frexp() to create a normalized result (but mostly
      to find the base-2 exponent), then change the base-2 exponent to
@@ -556,7 +648,7 @@ convert_PIBHEX (char *dst, const struct fmt_spec *fp, const union value *v)
   int i;
 
   /* Make the exponent (-4*fp->w). */
-  frac = frexp (fabs (v->f), &exp);
+  frac = frexp (fabs (number), &exp);
   diff = exp - (-4 * fp->w);
   exp -= diff;
   frac *= ldexp (1.0, diff);
@@ -573,9 +665,9 @@ convert_PIBHEX (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_PK (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_PK (char *dst, const struct fmt_spec *fp, double number)
 {
-  /* Buffer for v->f*2 characters + a decimal point if library is not
+  /* Buffer for fp->w*2 characters + a decimal point if library is not
      quite compliant + a null. */
   char buf[18];
 
@@ -583,7 +675,7 @@ convert_PK (char *dst, const struct fmt_spec *fp, const union value *v)
   int i;
 
   /* Main extraction. */
-  sprintf (buf, "%0*.0f", fp->w * 2, floor (fabs (v->f)));
+  sprintf (buf, "%0*.0f", fp->w * 2, floor (fabs (number)));
 
   for (i = 0; i < fp->w; i++)
     ((unsigned char *) dst)[i]
@@ -593,7 +685,7 @@ convert_PK (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_RB (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_RB (char *dst, const struct fmt_spec *fp, double number)
 {
   union
     {
@@ -602,14 +694,14 @@ convert_RB (char *dst, const struct fmt_spec *fp, const union value *v)
     }
   u;
 
-  u.d = v->f;
+  u.d = number;
   memcpy (dst, u.c, fp->w);
 
   return 1;
 }
 
 static int
-convert_RBHEX (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_RBHEX (char *dst, const struct fmt_spec *fp, double number)
 {
   union
   {
@@ -620,7 +712,7 @@ convert_RBHEX (char *dst, const struct fmt_spec *fp, const union value *v)
 
   int i;
 
-  u.d = v->f;
+  u.d = number;
   for (i = 0; i < fp->w / 2; i++)
     {
       *dst++ = MAKE_HEXIT (u.c[i] >> 4);
@@ -631,9 +723,9 @@ convert_RBHEX (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_CCx (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_CCx (char *dst, const struct fmt_spec *fp, double number)
 {
-  if (try_CCx (dst, fp, v->f))
+  if (try_CCx (dst, fp, number))
     return 1;
   else
     {
@@ -643,12 +735,12 @@ convert_CCx (char *dst, const struct fmt_spec *fp, const union value *v)
       f.w = fp->w;
       f.d = fp->d;
   
-      return convert_F (dst, &f, v);
+      return convert_F_plus (dst, &f, number);
     }
 }
 
 static int
-convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_date (char *dst, const struct fmt_spec *fp, double number)
 {
   static const char *months[12] =
     {
@@ -659,7 +751,7 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
   char buf[64] = {0};
   int month, day, year;
 
-  julian_to_calendar (v->f / 86400., &year, &month, &day);
+  julian_to_calendar (number / 86400., &year, &month, &day);
   switch (fp->type)
     {
     case FMT_DATE:
@@ -688,7 +780,7 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
       break;
     case FMT_JDATE:
       {
-	int yday = (v->f / 86400.) - calendar_to_julian (year, 1, 1) + 1;
+	int yday = (number / 86400.) - calendar_to_julian (year, 1, 1) + 1;
 	
 	if (fp->w >= 7)
 	  {
@@ -713,7 +805,7 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
       break;
     case FMT_WKYR:
       {
-	int yday = (v->f / 86400.) - calendar_to_julian (year, 1, 1) + 1;
+	int yday = (number / 86400.) - calendar_to_julian (year, 1, 1) + 1;
 	
 	if (fp->w >= 10)
 	  sprintf (buf, "%02d WK% 04d", (yday - 1) / 7 + 1, year);
@@ -727,8 +819,8 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
 
 	cp = spprintf (buf, "%02d-%s-%04d %02d:%02d",
 		       day, months[month - 1], year,
-		       (int) fmod (floor (v->f / 60. / 60.), 24.),
-		       (int) fmod (floor (v->f / 60.), 60.));
+		       (int) fmod (floor (number / 60. / 60.), 24.),
+		       (int) fmod (floor (number / 60.), 60.));
 	if (fp->w >= 20)
 	  {
 	    int w, d;
@@ -744,7 +836,7 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
 		d = 0;
 	      }
 
-	    cp = spprintf (cp, ":%0*.*f", w, d, fmod (v->f, 60.));
+	    cp = spprintf (cp, ":%0*.*f", w, d, fmod (number, 60.));
 	  }
       }
       break;
@@ -759,7 +851,7 @@ convert_date (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_time (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_time (char *dst, const struct fmt_spec *fp, double number)
 {
   char temp_buf[40];
   char *cp;
@@ -767,14 +859,14 @@ convert_time (char *dst, const struct fmt_spec *fp, const union value *v)
   double time;
   int width;
 
-  if (fabs (v->f) > 1e20)
+  if (fabs (number) > 1e20)
     {
       msg (ME, _("Time value %g too large in magnitude to convert to "
-	   "alphanumeric time."), v->f);
+	   "alphanumeric time."), number);
       return 0;
     }
 
-  time = v->f;
+  time = number;
   width = fp->w;
   cp = temp_buf;
   if (time < 0)
@@ -810,7 +902,7 @@ convert_time (char *dst, const struct fmt_spec *fp, const union value *v)
 }
 
 static int
-convert_WKDAY (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_WKDAY (char *dst, const struct fmt_spec *fp, double wkday)
 {
   static const char *weekdays[7] =
     {
@@ -818,20 +910,19 @@ convert_WKDAY (char *dst, const struct fmt_spec *fp, const union value *v)
       "THURSDAY", "FRIDAY", "SATURDAY",
     };
 
-  int x = v->f;
-
-  if (x < 1 || x > 7)
+  if (wkday < 1 || wkday > 7)
     {
-      msg (ME, _("Weekday index %d does not lie between 1 and 7."), x);
+      msg (ME, _("Weekday index %f does not lie between 1 and 7."),
+           (double) wkday);
       return 0;
     }
-  st_bare_pad_copy (dst, weekdays[x - 1], fp->w);
+  st_bare_pad_copy (dst, weekdays[(int) wkday - 1], fp->w);
 
   return 1;
 }
 
 static int
-convert_MONTH (char *dst, const struct fmt_spec *fp, const union value *v)
+convert_MONTH (char *dst, const struct fmt_spec *fp, double month)
 {
   static const char *months[12] =
     {
@@ -839,15 +930,14 @@ convert_MONTH (char *dst, const struct fmt_spec *fp, const union value *v)
       "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
     };
 
-  int x = v->f;
-
-  if (x < 1 || x > 12)
+  if (month < 1 || month > 12)
     {
-      msg (ME, _("Month index %d does not lie between 1 and 12."), x);
+      msg (ME, _("Month index %f does not lie between 1 and 12."),
+           month);
       return 0;
     }
   
-  st_bare_pad_copy (dst, months[x - 1], fp->w);
+  st_bare_pad_copy (dst, months[(int) month - 1], fp->w);
 
   return 1;
 }
@@ -961,7 +1051,7 @@ year4 (int year)
 }
 
 static int
-try_CCx (char *dst, const struct fmt_spec *fp, double v)
+try_CCx (char *dst, const struct fmt_spec *fp, double number)
 {
   struct set_cust_currency *cc = &set_cc[fp->type - FMT_CCA];
 
@@ -975,11 +1065,11 @@ try_CCx (char *dst, const struct fmt_spec *fp, double v)
      proper. */
   f.type = cc->decimal == set_decimal ? FMT_COMMA : FMT_DOT;
   f.w = fp->w - strlen (cc->prefix) - strlen (cc->suffix);
-  if (v < 0)
+  if (number < 0)
     f.w -= strlen (cc->neg_prefix) + strlen (cc->neg_suffix) - 1;
   else
     /* Convert -0 to +0. */
-    v = fabs (v);
+    number = fabs (number);
   f.d = fp->d;
 
   if (f.w <= 0)
@@ -987,13 +1077,13 @@ try_CCx (char *dst, const struct fmt_spec *fp, double v)
 
   /* There's room for all that currency crap.  Let's do the F
      conversion first. */
-  if (!convert_F (buf, &f, (union value *) &v) || *buf == '*')
+  if (!convert_F (buf, &f, number) || *buf == '*')
     return 0;
   insert_commas (buf2, buf, &f);
 
   /* Postprocess back into buf. */
   cp = buf;
-  if (v < 0)
+  if (number < 0)
     cp = stpcpy (cp, cc->neg_prefix);
   cp = stpcpy (cp, cc->prefix);
   {
@@ -1001,15 +1091,15 @@ try_CCx (char *dst, const struct fmt_spec *fp, double v)
     while (*bp == ' ')
       bp++;
 
-    assert ((v >= 0) ^ (*bp == '-'));
-    if (v < 0)
+    assert ((number >= 0) ^ (*bp == '-'));
+    if (number < 0)
       bp++;
 
     memcpy (cp, bp, f.w - (bp - buf2));
     cp += f.w - (bp - buf2);
   }
   cp = stpcpy (cp, cc->suffix);
-  if (v < 0)
+  if (number < 0)
     cp = stpcpy (cp, cc->neg_suffix);
 
   /* Copy into dst. */
@@ -1041,7 +1131,7 @@ try_CCx (char *dst, const struct fmt_spec *fp, double v)
    LONG TIME!  The rest of the program is heavily dependent on
    specific properties of this routine's output.  LOG ALL CHANGES! */
 static int
-try_F (char *dst, const struct fmt_spec *fp, const union value *value)
+try_F (char *dst, const struct fmt_spec *fp, double number)
 {
   /* This is the DELTA array from Knuth.
      DELTA[j] = floor((40+2**(j-1))/(2**j)). */
@@ -1051,17 +1141,14 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
     (40 + 16) / 32, (40 + 32) / 64, (40 + 64) / 128,
   };
 
-  /* The number of digits in floor(v), including sign.  This is `i'
-     from Knuth. */
+  /* The number of digits in floor(number), including sign.  This
+     is `i' from Knuth. */
   int n_int = (40 + 1) / 2;
 
   /* Used to step through delta[].  This is `j' from Knuth. */
   int j = 2;
 
-  /* Value. */
-  double v = value->f;
-
-  /* Magnitude of v.  This is `K' from Knuth. */
+  /* Magnitude of number.  This is `K' from Knuth. */
   double mag;
 
   /* Number of characters for the fractional part, including the
@@ -1078,9 +1165,9 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
   char buf[128];
 
   /* First check for infinities and NaNs.  12/13/96. */
-  if (!finite (v))
+  if (!finite (number))
     {
-      n = nsprintf (buf, "%f", v);
+      n = nsprintf (buf, "%f", number);
       if (n > fp->w)
 	memset (buf, '*', fp->w);
       else if (n < fp->w)
@@ -1093,7 +1180,7 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
     }
 
   /* Then check for radically out-of-range values. */
-  mag = fabs (v);
+  mag = fabs (number);
   if (mag >= power10[fp->w])
     return 0;
 
@@ -1102,13 +1189,13 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
       n_int = 0;
 
       /* Avoid printing `-.000'. 7/6/96. */
-      if (approx_eq (v, 0.0))
-	v = 0.0;
+      if (approx_eq (number, 0.0))
+	number = 0.0;
     }
   else
     /* Now perform a `uniform binary search' based on the tables
        power10[] and delta[].  After this step, nint is the number of
-       digits in floor(v), including any sign.  */
+       digits in floor(number), including any sign.  */
     for (;;)
       {
 	if (mag >= power10[n_int])	/* Should this be approx_ge()? */
@@ -1132,12 +1219,12 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
     n_dec++;
 
   /* 1/10/96: If there aren't any digits at all, add one.  This occurs
-     only when fabs(v) < 1.0. */
+     only when fabs(number) < 1.0. */
   if (n_int + n_dec == 0)
     n_int++;
 
   /* Give space for a minus sign.  Moved 1/10/96. */
-  if (v < 0)
+  if (number < 0)
     n_int++;
 
   /* Normally we only go through the loop once; occasionally twice.
@@ -1165,11 +1252,12 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
 
       /* Finally, format the number. */
       if (n_dec)
-	n = nsprintf (cp, "%.*f", n_dec - 1, v);
+	n = nsprintf (cp, "%.*f", n_dec - 1, number);
       else
-	n = nsprintf (cp, "%.0f", v);
+	n = nsprintf (cp, "%.0f", number);
 
-      /* If v is positive and its magnitude is less than 1...  */
+      /* If number is positive and its magnitude is less than
+         1...  */
       if (n_int == 0)
 	{
 	  if (*cp == '0')
@@ -1185,8 +1273,9 @@ try_F (char *dst, const struct fmt_spec *fp, const union value *value)
 	      continue;
 	    }
 	}
-      /* Else if v is negative and its magnitude is less than 1...  */
-      else if (v < 0 && n_int == 1)
+      /* Else if number is negative and its magnitude is less
+         than 1...  */
+      else if (number < 0 && n_int == 1)
 	{
 	  if (cp[1] == '0')
 	    {

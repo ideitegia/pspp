@@ -25,8 +25,7 @@
    this list:
    misc.c:convert_fmt_ItoO()
    sfm-read.c:parse_format_spec()
-   data-in.c:parse_string_as_format()
-   data-out.c:convert_format_to_string(). */
+   data-in.c:parse_string_as_format() */
 #define DEFFMT(LABEL, NAME, N_ARGS, IMIN_W, IMAX_W, OMIN_W, OMAX_W,	\
 	       CAT, OUTPUT, SPSS_FMT)					\
 	LABEL,
