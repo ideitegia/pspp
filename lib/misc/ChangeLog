@@ -1,3 +1,8 @@
+Wed Dec 10 21:59:16 2003  Ben Pfaff  <blp@gnu.org>
+
+	* getdelim.c, alloca.c: common.h is no longer, but alloc.h
+	declares the allocation functions.
+
 Sun Jan  2 21:35:47 2000  Ben Pfaff  <blp@gnu.org>
 
 	* qsort.c: Change headers.  Fix __attribute__ for gcc 2.7.2.
