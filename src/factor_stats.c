@@ -135,7 +135,7 @@ metrics_postcalc(struct metrics *m)
 
   /* FIXME: Check this is correct ???
      Shouldn't we use the sample variance ??? */
-  m->stderr = sqrt (m->var / m->n) ;
+  m->se_mean = sqrt (m->var / m->n) ;
 
 
 

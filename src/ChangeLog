@@ -1,3 +1,8 @@
+Mon Nov 29 12:20:59 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q factor_stats.[ch] Changed stderr to se_mean to avoid
+	conflict with stdio.
+
 Sun Nov 21 10:32:41 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* var-labs.c (var_to_string) Now returns null if the variable is null

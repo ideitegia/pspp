@@ -1289,7 +1289,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_float (tbl, col + 3,
 	     row,
 	     TAB_CENTER,
-	     m->stderr,
+	     m->se_mean,
 	     8,3);
   
 
@@ -1307,7 +1307,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_float (tbl, col + 2,
 	     row + 1,
 	     TAB_CENTER,
-	     m->mean - t * m->stderr, 
+	     m->mean - t * m->se_mean, 
 	     8,3);
 
   tab_text (tbl, col + 1,  
@@ -1319,7 +1319,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_float (tbl, col + 2,
 	     row + 2,
 	     TAB_CENTER,
-	     m->mean + t * m->stderr, 
+	     m->mean + t * m->se_mean, 
 	     8,3);
 
   tab_text (tbl, col, 

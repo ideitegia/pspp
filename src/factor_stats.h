@@ -43,7 +43,7 @@ struct metrics
 
   double mean;
   
-  double stderr;
+  double se_mean;
 
   double var;
 
