@@ -1,4 +1,4 @@
-Time-stamp: <2004-03-29 16:56:25 blp>
+Time-stamp: <2004-03-29 17:04:40 blp>
 
 What Ben's working on now.
 --------------------------
@@ -42,8 +42,6 @@ Check our results against the NIST StRD benchmark results at
 strd.itl.nist.gov/div898/strd
 
 In debug mode hash table code should verify that collisions are reasonably low.
-
-Use posix_fadvise(POSIX_FADV_SEQUENTIAL) where available.
 
 Use AFM files instead of Groff font files, and include AFMs for our default
 fonts with the distribution.
