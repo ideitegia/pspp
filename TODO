@@ -1,7 +1,13 @@
-Time-stamp: <2004-03-10 21:28:22 blp>
+Time-stamp: <2004-03-14 21:37:40 blp>
 
 TODO
 ----
+
+Scratch variables should not be available for use following TEMPORARY.
+
+Details of N OF CASES, SAMPLE, FILTER, PROCESS IF, TEMPORARY, etc., need to be
+checked against the documentation.  See notes on these at end of file for a
+start.
 
 Check our results against the NIST StRD benchmark results at
 strd.itl.nist.gov/div898/strd
@@ -71,7 +77,7 @@ There needs to be another layer onto the lexer, which should probably be
 entirely rewritten anyway.  The lexer needs to read entire *commands* at a
 time, not just a *line* at a time.  This would vastly simplify the
 (yet-to-be-implemented) logging mechanism and other stuff as well.
-	   
+
 Has glob.c been pared down enough?
 
 Improve interactivity of output by allowing a `commit' function for a page.
@@ -112,12 +118,12 @@ G. Daniels <mgd@santafe.edu>.
 From Zvi Grauer <z.grauer@csuohio.edu> and <zvi@mail.ohio.net>:
 
    1. design of experiments software, specifically Factorial, response surface
-   methodology and mixrture design.  
+   methodology and mixrture design.
 
    These would be EXTREMELY USEFUL for chemists, engineeris, and anyone
    involved in the production of chemicals or formulations.
 
-   2. Multidimensional Scaling analysis (for market analysis) - 
+   2. Multidimensional Scaling analysis (for market analysis) -
 
    3. Preference mapping software for market analysis
 
@@ -330,6 +336,121 @@ is "small enough", read it into memory, and create an index (or hash table,
 whatever) for it.  Then read the /FILE and use the index to match to each case.
 OTOH, if the /TABLE is too large, then do it the old way, complaining if either
 file is not sorted on key.
+
+----------------------------------------------------------------------
+Statistical procedures:
+
+For each case we read from the input program:
+
+1. Execute permanent transformations.  If these drop the case, stop.
+2. N OF CASES.  If we have already written N cases, stop.
+3. Write case to replacement active file.
+4. Execute temporary transformations.  If these drop the case, stop.
+5. Post-TEMPORARY N OF CASES.  If we have already analyzed N cases, stop.
+6. FILTER, PROCESS IF.  If these drop the case, go to 5.
+7. Pass case to procedure.
+
+Ugly cases:
+
+LAG records cases in step 4.
+
+AGGREGATE: When output goes to an external file, this is just an ordinary
+procedure.  When output goes to the active file, step 4 should be skipped,
+because AGGREGATE creates its own case sink and writes to it in step 7.  Also,
+TEMPORARY has no effect and we just cancel it.  Regardless of direction of
+output, we should not implement AGGREGATE through a transformation because that
+will fail to honor FILTER, PROCESS IF, N OF CASES.
+
+ADD FILES: Essentially an input program.  It silently cancels unclosed LOOPs
+and DO IFs.  If the active file is used for input, then runs EXECUTE (if there
+are any transformations) and then steals vfm_source and encapsulates it.  If
+the active file is not used for input, then it cancels all the transformations
+and deletes the original active file.
+
+CASESTOVARS: ???
+
+FLIP:
+
+MATCH FILES: Similar to AGGREGATE.  This is a procedure.  When the active file
+is used for input, it reads the active file; otherwise, it just cancels all the
+transformations and deletes the original active file.  Step 4 should be
+skipped, because MATCH FILES creates its own case sink and writes to it in step
+7.  TEMPORARY is not allowed.
+
+MODIFY VARS:
+
+REPEATING DATA:
+
+SORT CASES:
+
+UPDATE: same as ADD FILES.
+
+VARSTOCASES: ???
+----------------------------------------------------------------------
+N OF CASES
+
+  * Before TEMPORARY, limits number of cases sent to the sink.
+
+  * After TEMPORARY, limits number of cases sent to the procedure.
+
+  * Without TEMPORARY, those are the same cases, so it limits both.
+
+SAMPLE
+
+  * Sample is just a transformation.  It has no special properties.
+
+FILTER
+
+  * Always selects cases sent to the procedure.
+
+  * No effect on cases sent to sink.
+
+  * Before TEMPORARY, selection is permanent.  After TEMPORARY,
+    selection stops after a procedure.
+
+PROCESS IF
+
+  * Always selects cases sent to the procedure.
+
+  * No effect on cases sent to sink.
+
+  * Always stops after a procedure.
+
+SPLIT FILE
+
+  * Ignored by AGGREGATE.  Used when procedures write matrices.
+
+  * Always applies to the procedure.
+
+  * Before TEMPORARY, splitting is permanent.  After TEMPORARY,
+    splitting stops after a procedure.
+
+TEMPORARY
+
+  * TEMPORARY has no effect on AGGREGATE when output goes to the active file.
+
+  * SORT CASES, ADD FILES, RENAME VARIABLES, CASESTOVARS, VARSTOCASES,
+    COMPUTE with a lag function cannot be used after TEMPORARY.
+
+  * Cannot be used in DO IF...END IF or LOOP...END LOOP.
+
+  * FLIP ignores TEMPORARY.  All transformations become permanent.
+
+  * MATCH FILES and UPDATE cannot be used after TEMPORARY if active
+    file is an input source.
+
+  * RENAME VARIABLES is invalid after TEMPORARY.
+
+  * WEIGHT, SPLIT FILE, N OF CASES, FILTER, PROCESS IF apply only to
+    the next procedure when used after TEMPORARY.
+
+WEIGHT
+
+  * Always applies to the procedure.
+
+  * Before TEMPORARY, weighting is permanent.  After TEMPORARY,
+    weighting stops after a procedure.
+
 
 -------------------------------------------------------------------------------
 Local Variables:
