@@ -363,6 +363,36 @@ binary_search (const void *array, size_t count, size_t size,
   return NULL;
 }
 
+/* Lexicographically compares ARRAY1, which contains COUNT1
+   elements of SIZE bytes each, to ARRAY2, which contains COUNT2
+   elements of SIZE bytes, according to COMPARE.  Returns a
+   strcmp()-type result.  AUX is passed to COMPARE as auxiliary
+   data. */
+int
+lexicographical_compare (const void *array1, size_t count1,
+                         const void *array2, size_t count2,
+                         size_t size,
+                         algo_compare_func *compare, void *aux) 
+{
+  const unsigned char *first1 = array1;
+  const unsigned char *first2 = array2;
+  size_t min_count = count1 < count2 ? count1 : count2;
+
+  while (min_count > 0)
+    {
+      int cmp = compare (first1, first2, aux);
+      if (cmp != 0)
+        return cmp;
+
+      first1 += size;
+      first2 += size;
+      min_count--;
+    }
+
+  return count1 < count2 ? -1 : count1 > count2;
+}
+
+
 /* Copyright (C) 1991, 1992, 1996, 1997, 1999 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Douglas C. Schmidt (schmidt@ics.uci.edu).

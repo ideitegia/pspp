@@ -65,11 +65,22 @@ size_t remove_copy_if (const void *array, size_t count, size_t size,
                        void *result,
                        algo_predicate_func *predicate, void *aux);
 
-/* Searches ARRAY, which contains COUNT of SIZE bytes each, for
-   VALUE, using a binary search.  ARRAY must ordered according to
-   COMPARE.  AUX is passed to COMPARE as auxiliary data. */
+/* Searches ARRAY, which contains COUNT elements of SIZE bytes
+   each, for VALUE, using a binary search.  ARRAY must ordered
+   according to COMPARE.  AUX is passed to COMPARE as auxiliary
+   data. */
 void *binary_search (const void *array, size_t count, size_t size,
                      void *value,
                      algo_compare_func *compare, void *aux);
+
+/* Lexicographically compares ARRAY1, which contains COUNT1
+   elements of SIZE bytes each, to ARRAY2, which contains COUNT2
+   elements of SIZE bytes, according to COMPARE.  Returns a
+   strcmp()-type result.  AUX is passed to COMPARE as auxiliary
+   data. */
+int lexicographical_compare (const void *array1, size_t count1,
+                             const void *array2, size_t count2,
+                             size_t size,
+                             algo_compare_func *compare, void *aux);
 
 #endif /* sort-algo.h */

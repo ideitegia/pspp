@@ -39,6 +39,7 @@ char *alloca ();
 #include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+#include "algorithm.h"
 #include "alloc.h"
 #include "command.h"
 #include "data-in.h"
@@ -1641,29 +1642,39 @@ wr_read_splits (void)
   return 1;
 }
 
+/* Compares doubles A and B, treating SYSMIS as greatest. */
+static int
+compare_doubles (const void *a_, const void *b_, void *aux unused)
+{
+  const double *a = a_;
+  const double *b = b_;
+
+  if (*a == *b)
+    return 0;
+  else if (*a == SYSMIS)
+    return 1;
+  else if (*b == SYSMIS)
+    return -1;
+  else if (*a > *b)
+    return 1;
+  else
+    return -1;
+}
+
 /* Return strcmp()-type comparison of the n_factors factors at _A and
    _B.  Sort missing values toward the end. */
 static int
-compare_factors (const void *pa, const void *pb)
+compare_factors (const void *a_, const void *b_)
 {
-  const double *a = (*(struct factor_data **) pa)->factors;
-  const double *b = (*(struct factor_data **) pb)->factors;
-  int i;
+  struct factor_data *const *pa = a_;
+  struct factor_data *const *pb = b_;
+  const double *a = (*pa)->factors;
+  const double *b = (*pb)->factors;
 
-  for (i = 0; i < n_factors; i++, a++, b++)
-    {
-      if (*a == *b)
-	continue;
-      
-      if (*a == SYSMIS)
-	return 1;
-      else if (*b == SYSMIS)
-	return -1;
-      else
-	return *a - *b < 0 ? -1 : 1;
-    }
-
-  return 0;
+  return lexicographical_compare (a, n_factors,
+                                  b, n_factors,
+                                  sizeof *a,
+                                  compare_doubles, NULL);
 }
 
 /* Write out the data for the current split file to the active

@@ -1,3 +1,11 @@
+Fri Dec 19 16:38:35 2003  Ben Pfaff  <blp@gnu.org>
+
+	* matrix-data.c (compare_factors) Use lexicographical_compare()
+	algorithm.
+	(compare_doubles) New function.
+	
+	* algorithm.c: (lexicographical_compare) New algorithm.
+
 Fri Dec 19 16:23:45 2003  Ben Pfaff  <blp@gnu.org>
 
 	* matrix-data.c (compare_variables_by_mxd_vartype): Rewrite.
