@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-01-01 18:55+0800\n"
+"POT-Creation-Date: 2005-01-05 08:20+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -2115,11 +2115,11 @@ msgstr ""
 msgid "expecting %s"
 msgstr ""
 
-#: src/lexer.c:556 src/val-labs.c:151
+#: src/lexer.c:556 src/val-labs.c:154
 msgid "expecting string"
 msgstr ""
 
-#: src/lexer.c:570 src/val-labs.c:160
+#: src/lexer.c:570 src/val-labs.c:163
 msgid "expecting integer"
 msgstr ""
 
@@ -2714,26 +2714,6 @@ msgstr ""
 msgid "Error opening page on %s device of %s class."
 msgstr ""
 
-#: src/percentiles.c:38
-msgid "HAverage"
-msgstr ""
-
-#: src/percentiles.c:39
-msgid "Weighted Average"
-msgstr ""
-
-#: src/percentiles.c:40
-msgid "Rounded"
-msgstr ""
-
-#: src/percentiles.c:41
-msgid "Empirical"
-msgstr ""
-
-#: src/percentiles.c:42
-msgid "Empirical with averaging"
-msgstr ""
-
 #: src/permissions.c:75
 #, c-format
 msgid "Expecting %s or %s."
@@ -2875,44 +2855,44 @@ msgstr ""
 msgid "position %d: character `\\%03o' is not valid in a variable name."
 msgstr ""
 
-#: src/pfm-read.c:748
+#: src/pfm-read.c:746
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
 
-#: src/pfm-read.c:792
+#: src/pfm-read.c:790
 #, c-format
 msgid "Bad missing values for %s."
 msgstr ""
 
-#: src/pfm-read.c:815
+#: src/pfm-read.c:813
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/pfm-read.c:886
+#: src/pfm-read.c:884
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/pfm-read.c:889
+#: src/pfm-read.c:887
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types "
 "or widths."
 msgstr ""
 
-#: src/pfm-read.c:922
+#: src/pfm-read.c:920
 #, c-format
 msgid "Duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:925
+#: src/pfm-read.c:923
 #, c-format
 msgid "Duplicate label for value `%.*s' for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:978
+#: src/pfm-read.c:976
 msgid "End of file midway through case."
 msgstr ""
 
@@ -3780,19 +3760,19 @@ msgstr ""
 msgid "Document entered %s %02d:%02d:%02d by %s (%s):"
 msgstr ""
 
-#: src/val-labs.c:115
+#: src/val-labs.c:118
 #, c-format
 msgid ""
 "It is not possible to assign value labels to long string variables such as %"
 "s."
 msgstr ""
 
-#: src/val-labs.c:164
+#: src/val-labs.c:167
 #, c-format
 msgid "Value label `%g' is not integer."
 msgstr ""
 
-#: src/val-labs.c:174
+#: src/val-labs.c:177
 msgid "Truncating value label to 60 characters."
 msgstr ""
 

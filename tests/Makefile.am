@@ -57,6 +57,7 @@ TESTS = \
 	bugs/t-test-alpha2.sh \
 	bugs/temporary.sh \
 	bugs/val-labs.sh \
+	bugs/val-labs-trailing-slash.sh \
 	bugs/recode-copy-bug.sh \
 	bugs/computebug.sh \
 	xforms/casefile.sh \

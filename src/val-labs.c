@@ -79,12 +79,15 @@ do_value_labels (int erase)
           goto lossage;
 
       if (token != '/')
+	{
+	free (vars);
 	break;
+	}
+
       lex_get ();
 
       free (vars);
     }
-  free (vars);
 
   if (token != '.')
     {
