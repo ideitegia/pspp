@@ -1,3 +1,9 @@
+Mon Nov 15 22:08:25 2004  Ben Pfaff  <blp@gnu.org>
+
+	* expr-evl.c: (expr_evaluate) Fix XDATE.JDAY formula.  Thanks to
+	John Darrington <john@darrington.wattle.id.au> for reporting this
+	bug.
+
 Tue Nov 16 13:19:18 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* permissions.c command.def Added the PERMISSIONS command

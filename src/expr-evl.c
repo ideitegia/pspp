@@ -733,7 +733,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_idx,
 	  break;
 	case OP_XDATE_JDAY:
 	  if (sp->f != SYSMIS)
-	    sp->f = 86400. * julian_to_jday (sp->f / 86400.);
+	    sp->f = julian_to_jday (sp->f / 86400.);
 	  break;
 	case OP_XDATE_MDAY:
 	  if (sp->f != SYSMIS)
