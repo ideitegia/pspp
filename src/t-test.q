@@ -137,7 +137,6 @@ cmd_t_test(void)
   struct ssbox stat_summary_box;
   struct trbox test_results_box;
 
-  
   if (!lex_force_match_id ("T"))
     return CMD_FAILURE;
 
@@ -147,10 +146,8 @@ cmd_t_test(void)
   if ( !parse_t_test(&cmd) )
     return CMD_FAILURE;
 
-
   if (! cmd.sbc_criteria)
     cmd.criteria=0.95;
-
 
   if ( cmd.sbc_testval + cmd.sbc_groups + cmd.sbc_pairs != 1 ) 
     {
@@ -173,8 +170,6 @@ cmd_t_test(void)
       return CMD_FAILURE;
     }
 
-
-
   t_test_pool = pool_create ();
 
   ssbox_create(&stat_summary_box,&cmd,mode);
@@ -189,11 +184,9 @@ cmd_t_test(void)
   pool_destroy (t_test_pool);
 
   t_test_pool=0;
-
     
   return CMD_SUCCESS;
 }
-
 
 static int
 tts_custom_groups (struct cmd_t_test *cmd unused)
@@ -224,7 +217,6 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
 
   if (!lex_match ('('))
     {
-
       if (groups->type == NUMERIC)
 	{
 	  n_groups_values = 2;
@@ -245,7 +237,6 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
   n_groups_values = 1;
 
   lex_match (',');
-
   if (lex_match (')'))
     return 1;
 
@@ -265,7 +256,7 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
   struct variable **vars;
   int n_vars;
   int n_before_WITH ;
-  int n_after_WITH =-1;
+  int n_after_WITH = -1;
   int paired ; /* Was the PAIRED keyword given ? */
 
   lex_match('=');
@@ -284,15 +275,12 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
       free (vars);
       return 0;
     }
-  
-  
   assert (n_vars);
 
   n_before_WITH=0;
   if (lex_match (T_WITH))
     {
       n_before_WITH = n_vars;
-
       if (!parse_variables (default_dict, &vars, &n_vars,
 			    PV_DUPLICATE | PV_APPEND
 			    | PV_NUMERIC | PV_NO_SCRATCH))
@@ -300,16 +288,12 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	  free (vars);
 	  return 0;
 	}
-
       n_after_WITH = n_vars - n_before_WITH;
     }
 
-
   paired = (lex_match ('(') && lex_match_id ("PAIRED") && lex_match (')'));
 
-  
   /* Determine the number of pairs needed */
-
   if (paired)
     {
       if (n_before_WITH != n_after_WITH)
@@ -321,9 +305,7 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	       n_before_WITH, n_after_WITH );
 	  return 0;
 	}
-
       n_pairs=n_before_WITH;
-
     }
   else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
     {
@@ -344,12 +326,9 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
     }
 
   /* Allocate storage for the pairs */
-
   pairs = xrealloc(pairs,sizeof(pair_t) *n_pairs);
 
-
   /* Populate the pairs with the appropriate variables */
-  
   if ( paired ) 
     {
       int i;
@@ -395,7 +374,6 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
   return 1;
 }
 
-
 /* Parses the current token (numeric or string, depending on type)
     value v and returns success. */
 static int
@@ -420,12 +398,7 @@ parse_value (union value * v, int type )
 }
 
 
-/* *******************************************************************
-                              SSBOX Implementation
-
-   ***************************************************************** */
-
-
+/* Implementation of the SSBOX object */
 
 void ssbox_base_init(struct ssbox *this, int cols,int rows);
 
@@ -444,7 +417,6 @@ void ssbox_paired_init(struct ssbox *this,
 void 
 ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
 {
-
     switch (mode) 
       {
       case T_1_SAMPLE:
@@ -459,10 +431,10 @@ ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
       default:
 	assert(0);
       }
-
 }
 
 
+/* Despatcher for the populate method */
 void
 ssbox_populate(struct ssbox *ssb,struct cmd_t_test *cmd)
 {
@@ -470,6 +442,7 @@ ssbox_populate(struct ssbox *ssb,struct cmd_t_test *cmd)
 }
 
 
+/* Despatcher for finalize */
 void
 ssbox_finalize(struct ssbox *ssb)
 {
@@ -477,14 +450,14 @@ ssbox_finalize(struct ssbox *ssb)
 }
 
 
-
+/* Submit the box and clear up */
 void 
 ssbox_base_finalize(struct ssbox *ssb)
 {
   tab_submit(ssb->t);
 }
 
-
+/* Initialize a ssbox struct */
 void 
 ssbox_base_init(struct ssbox *this, int cols,int rows)
 {
@@ -492,24 +465,16 @@ ssbox_base_init(struct ssbox *this, int cols,int rows)
   this->t = tab_create (cols, rows, 0);
 
   tab_columns (this->t, SOM_COL_DOWN, 1);
-
   tab_headers (this->t,0,0,1,0); 
-
   tab_box (this->t, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
-
   tab_hline(this->t, TAL_2,0,cols-1,1);
-
   tab_dim (this->t, tab_natural_dimensions);
-
 }
-
-
 
 void  ssbox_one_sample_populate(struct ssbox *ssb,
 			      struct cmd_t_test *cmd);
 
-
-
+/* Initialize the one_sample ssbox */
 void 
 ssbox_one_sample_init(struct ssbox *this, 
 			   struct cmd_t_test *cmd )
@@ -520,29 +485,21 @@ ssbox_one_sample_init(struct ssbox *this,
   this->populate = ssbox_one_sample_populate;
 
   ssbox_base_init(this, hsize,vsize);
-
-
   tab_title (this->t, 0, _("One-Sample Statistics"));
-
   tab_vline(this->t, TAL_2, 1,0,vsize);
-
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
-
-
 }
-
 
 void ssbox_independent_samples_populate(struct ssbox *ssb,
 					struct cmd_t_test *cmd);
 
-
+/* Initialize the independent samples ssbox */
 void 
 ssbox_independent_samples_init(struct ssbox *this, 
 	struct cmd_t_test *cmd)
-
 {
   int hsize=6;
   int vsize = cmd->n_variables*2 +1;
@@ -550,22 +507,17 @@ ssbox_independent_samples_init(struct ssbox *this,
   this->populate = ssbox_independent_samples_populate;
 
   ssbox_base_init(this, hsize,vsize);
-
   tab_title (this->t, 0, _("Group Statistics"));
-
   tab_vline(this->t,0,1,0,vsize);
-
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, groups->name);
-
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
   tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
-
-
 }
 
 
+/* Populate the ssbox for independent samples */
 void 
 ssbox_independent_samples_populate(struct ssbox *ssb,
 			      struct cmd_t_test *cmd)
@@ -586,42 +538,31 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
       val_lab2 = groups_values[1].s;
     }
 
-
   assert(ssb->t);
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      tab_text (ssb->t, 0, i*2+1, 
-		TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (ssb->t, 0, i*2+1, TAB_LEFT, cmd->v_variables[i]->name);
 
       if (val_lab1)
-	tab_text (ssb->t, 1, i*2+1,
-		TAB_LEFT, val_lab1);
+	tab_text (ssb->t, 1, i*2+1, TAB_LEFT, val_lab1);
       else
-	tab_float(ssb->t, 1 ,i*2+1,
-		  TAB_LEFT, groups_values[0].f, 2,0);
-
+	tab_float(ssb->t, 1 ,i*2+1, TAB_LEFT, groups_values[0].f, 2,0);
 
       if (val_lab2)
-	tab_text (ssb->t, 1, i*2+1+1,
-		  TAB_LEFT, val_lab2);
+	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT, val_lab2);
       else
-	tab_float(ssb->t, 1 ,i*2+1+1,
-		  TAB_LEFT, groups_values[1].f,2,0);
-
-
+	tab_float(ssb->t, 1 ,i*2+1+1, TAB_LEFT, groups_values[1].f,2,0);
     }
-
 }
 
 
 void ssbox_paired_populate(struct ssbox *ssb,
 			   struct cmd_t_test *cmd);
 
-
+/* Initialize the paired values ssbox */
 void 
-ssbox_paired_init(struct ssbox *this, 
-			   struct cmd_t_test *cmd unused)
+ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd unused)
 {
   int hsize=6;
 
@@ -630,42 +571,33 @@ ssbox_paired_init(struct ssbox *this,
   this->populate = ssbox_paired_populate;
 
   ssbox_base_init(this, hsize,vsize);
-
   tab_title (this->t, 0, _("Paired Sample Statistics"));
-
   tab_vline(this->t,TAL_0,1,0,vsize-1);
   tab_vline(this->t,TAL_2,2,0,vsize-1);
-
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
   tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
-
-
 }
 
 
+/* Populate the ssbox for paired values */
 void 
-ssbox_paired_populate(struct ssbox *ssb,
-			      struct cmd_t_test *cmd unused)
+ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd unused)
 {
   int i;
   struct string ds;
 
   assert(ssb->t);
-
   ds_init(t_test_pool,&ds,15);
-
 
   for (i=0; i < n_pairs; ++i)
     {
-
       ds_clear(&ds);
 
       ds_printf(&ds,_("Pair %d"),i);
 
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT, ds.string);
-
       tab_text (ssb->t, 1, i*2+1, TAB_LEFT, pairs[i][0]->name);
       tab_text (ssb->t, 1, i*2+2, TAB_LEFT, pairs[i][1]->name);
     }
@@ -673,10 +605,9 @@ ssbox_paired_populate(struct ssbox *ssb,
   ds_destroy(&ds);
 }
 
-
+/* Populate the one sample ssbox */
 void 
-ssbox_one_sample_populate(struct ssbox *ssb,
-			      struct cmd_t_test *cmd)
+ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
 {
   int i;
 
@@ -684,18 +615,14 @@ ssbox_one_sample_populate(struct ssbox *ssb,
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      tab_text (ssb->t, 0, i+1, 
-		TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (ssb->t, 0, i+1, TAB_LEFT, cmd->v_variables[i]->name);
     }
   
 }
 
 
-/* ****************************************************************
 
-      TEST RESULT BOX Implementation
-
-   *****************************************************************/   
+/* Implementation of the Test Results box struct */
 
 void trbox_base_init(struct trbox *self,int n_vars, int cols);
 void trbox_base_finalize(struct trbox *trb);
@@ -720,32 +647,25 @@ void trbox_paired_populate(struct trbox *trb,
 
 
 
-/* Create a trbox */
+/* Create a trbox according to mode*/
 void 
 trbox_create(struct trbox *trb,   
 	     struct cmd_t_test *cmd, int mode)
 {
-
     switch (mode) 
       {
       case T_1_SAMPLE:
 	trbox_one_sample_init(trb,cmd);
 	break;
-
-
       case T_IND_SAMPLES:
 	trbox_independent_samples_init(trb,cmd);
 	break;
-
-
       case T_PAIRED:
 	trbox_paired_init(trb,cmd);
 	break;
-	
       default:
 	assert(0);
       }
-
 }
 
 /* Populate a trbox according to cmd */
@@ -762,7 +682,7 @@ trbox_finalize(struct trbox *trb)
   trb->finalize(trb);
 }
 
-
+/* Initialize the independent samples trbox */
 void 
 trbox_independent_samples_init(struct trbox *self,
 			   struct cmd_t_test *cmd unused)
@@ -773,35 +693,20 @@ trbox_independent_samples_init(struct trbox *self,
   struct string ds;
 
   assert(self);
-
   self->populate = trbox_independent_samples_populate;
 
   trbox_base_init(self,cmd->n_variables*2,hsize);
-
   tab_title(self->t,0,_("Independent Samples Test"));
-
   tab_hline(self->t,TAL_1,2,hsize-1,1);
   tab_vline(self->t,TAL_2,2,0,vsize-1);
-
   tab_vline(self->t,TAL_1,4,0,vsize-1);
-
-  tab_box(self->t,-1,-1,-1,TAL_1,
-	  2,1,hsize-2,vsize-1);
-
-
-  tab_hline(self->t,TAL_1,
-	    hsize-2,hsize-1,2);
-
-  tab_box(self->t,-1,-1,-1,TAL_1,
-	  hsize-2,2,hsize-1,vsize-1);
-
-
-  tab_joint_text(self->t, 2,0,3,0,
+  tab_box(self->t,-1,-1,-1,TAL_1, 2,1,hsize-2,vsize-1);
+  tab_hline(self->t,TAL_1, hsize-2,hsize-1,2);
+  tab_box(self->t,-1,-1,-1,TAL_1, hsize-2,2,hsize-1,vsize-1);
+  tab_joint_text(self->t, 2, 0, 3, 0, 
 		 TAB_CENTER,_("Levine's Test for Equality of Variances"));
-
   tab_joint_text(self->t, 4,0,hsize-1,0,
 		 TAB_CENTER,_("t-test for Equality of Means"));
-
 
   tab_text(self->t,2,2, TAB_CENTER | TAT_TITLE,_("F"));
   tab_text(self->t,3,2, TAB_CENTER | TAT_TITLE,_("Sig."));
@@ -813,47 +718,36 @@ trbox_independent_samples_init(struct trbox *self,
   tab_text(self->t,9,2, TAB_CENTER | TAT_TITLE,_("Lower"));
   tab_text(self->t,10,2, TAB_CENTER | TAT_TITLE,_("Upper"));
 
-
   ds_init(t_test_pool,&ds,80);
 		
   ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
 	    (int)round(cmd->criteria*100.0));
 
-  tab_joint_text(self->t,9,1,10,1,TAB_CENTER,
-		 ds.string);
-
+  tab_joint_text(self->t,9,1,10,1,TAB_CENTER, ds.string);
 
   ds_destroy(&ds);
-
-
-
 }
 
+/* Populate the independent samples trbox */
 void 
 trbox_independent_samples_populate(struct trbox *self,
-			   struct cmd_t_test *cmd )
+				   struct cmd_t_test *cmd )
 {
   int i;
 
   assert(self);
-
   for (i=0; i < cmd->n_variables; ++i)
     {
-      tab_text (self->t, 0, i*2+3, 
-		TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (self->t, 0, i*2+3, TAB_LEFT, cmd->v_variables[i]->name);
 
-      tab_text (self->t, 1, i*2+3, 
-		TAB_LEFT, _("Equal variances assumed"));
+      tab_text (self->t, 1, i*2+3, TAB_LEFT, _("Equal variances assumed"));
 
       tab_text (self->t, 1, i*2+3+1, 
 		TAB_LEFT, _("Equal variances not assumed"));
-
-
     }
-
 }
 
-
+/* Initialize the paired samples trbox */
 void 
 trbox_paired_init(struct trbox *self,
 			   struct cmd_t_test *cmd unused)
@@ -867,40 +761,21 @@ trbox_paired_init(struct trbox *self,
   self->populate = trbox_paired_populate;
 
   trbox_base_init(self,n_pairs*2,hsize);
-
-
   tab_title (self->t, 0, _("Paired Samples Test"));
-
-
   tab_hline(self->t,TAL_1,2,6,1);
   tab_vline(self->t,TAL_2,2,0,vsize);
-
-
-
   tab_joint_text(self->t,2,0,6,0,TAB_CENTER,_("Paired Differences"));
-
-
-  tab_box(self->t,-1,-1,-1,TAL_1,
-	  2,1,6,vsize-1);
-
-
-  tab_box(self->t,-1,-1,-1,TAL_1,
-	  6,0,hsize-1,vsize-1);
-
-
-
+  tab_box(self->t,-1,-1,-1,TAL_1, 2,1,6,vsize-1);
+  tab_box(self->t,-1,-1,-1,TAL_1, 6,0,hsize-1,vsize-1);
   tab_hline(self->t,TAL_1,5,6, 2);
   tab_vline(self->t,TAL_0,6,0,1);
-
 
   ds_init(t_test_pool,&ds,80);
 		
   ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
 	    (int)round(cmd->criteria*100.0));
 
-  tab_joint_text(self->t,5,1,6,1,TAB_CENTER,
-		 ds.string);
-
+  tab_joint_text(self->t,5,1,6,1,TAB_CENTER, ds.string);
 
   ds_destroy(&ds);
 
@@ -912,16 +787,9 @@ trbox_paired_init(struct trbox *self,
   tab_text (self->t, 7, 2, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (self->t, 8, 2, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (self->t, 9, 2, TAB_CENTER | TAT_TITLE, _("Sig. (2-tailed)"));
-
-
-
-
-  
-
-
 }
 
-
+/* Populate the paired samples trbox */
 void 
 trbox_paired_populate(struct trbox *trb,
 			      struct cmd_t_test *cmd unused)
@@ -929,31 +797,23 @@ trbox_paired_populate(struct trbox *trb,
   int i;
   struct string ds;
 
-
   ds_init(t_test_pool,&ds,15);  
 
   for (i=0; i < n_pairs; ++i)
     {
-
       ds_clear(&ds);
-
       ds_printf(&ds,_("Pair %d"),i);
 
       tab_text (trb->t, 0, i*2+3, TAB_LEFT, ds.string);
-
       tab_text (trb->t, 1, i*2+3, TAB_LEFT, pairs[i][0]->name);
       tab_text (trb->t, 1, i*2+4, TAB_LEFT, pairs[i][1]->name);
     }
-
-
   ds_destroy(&ds);
-
 }
 
-
+/* Initialize the one sample trbox */
 void 
-trbox_one_sample_init(struct trbox *self,
-			   struct cmd_t_test *cmd )
+trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
 {
   const int hsize=7;
   const int vsize=cmd->n_variables+3;
@@ -962,53 +822,34 @@ trbox_one_sample_init(struct trbox *self,
   
   self->populate = trbox_one_sample_populate;
 
-  trbox_base_init(self,cmd->n_variables,hsize);
-
-
+  trbox_base_init(self, cmd->n_variables,hsize);
   tab_title (self->t, 0, _("One-Sample Test"));
-
-  tab_hline(self->t,TAL_1,1,hsize-1,1);
-  tab_vline(self->t,TAL_2,1,0,vsize);
-
-  ds_init(t_test_pool,&ds,80);
-
+  tab_hline(self->t, TAL_1, 1, hsize - 1, 1);
+  tab_vline(self->t, TAL_2, 1, 0, vsize);
+  ds_init(t_test_pool, &ds, 80);
   ds_printf(&ds,_("Test Value = %f"),cmd->n_testval);
-
-  tab_joint_text(self->t,1,0,hsize-1,0,TAB_CENTER,ds.string);
-  
-  tab_box(self->t,-1,-1,-1,TAL_1,
-	  1,1,hsize-1,vsize-1);
-
+  tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER,ds.string);
+  tab_box(self->t, -1, -1, -1, TAL_1, 1,1,hsize-1,vsize-1);
 
   ds_clear(&ds);
-		
   ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
 	    (int)round(cmd->criteria*100.0));
-
-  tab_joint_text(self->t,5,1,6,1,TAB_CENTER,
-		 ds.string);
-
+  tab_joint_text(self->t,5,1,6,1,TAB_CENTER, ds.string);
   ds_destroy(&ds);
-
   tab_vline(self->t,TAL_0,6,1,1);
   tab_hline(self->t,TAL_1,5,6,2);
-
-
   tab_text (self->t, 1, 2, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (self->t, 3, 2, TAB_CENTER | TAT_TITLE, _("Sig. (2-tailed)"));
   tab_text (self->t, 4, 2, TAB_CENTER | TAT_TITLE, _("Mean Difference"));
   tab_text (self->t, 5, 2, TAB_CENTER | TAT_TITLE, _("Lower"));
   tab_text (self->t, 6, 2, TAB_CENTER | TAT_TITLE, _("Upper"));
-
-
 }
 
 
-
+/* Populate the one sample trbox */
 void 
-trbox_one_sample_populate(struct trbox *trb,
-			      struct cmd_t_test *cmd)
+trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 {
   int i;
 
@@ -1016,34 +857,26 @@ trbox_one_sample_populate(struct trbox *trb,
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      tab_text (trb->t, 0, i+3, 
-		TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
     }
-  
 }
 
-
+/* Base initializer for the generalized trbox */
 void 
-trbox_base_init(struct trbox *self, int data_rows,int cols)
+trbox_base_init(struct trbox *self, int data_rows, int cols)
 {
-  const int rows=3+data_rows;
+  const int rows = 3 + data_rows;
 
   self->finalize = trbox_base_finalize;
   self->t = tab_create (cols, rows, 0);
-
-
   tab_headers (self->t,0,0,3,0); 
-
-
   tab_box (self->t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols -1, rows -1);
-
   tab_hline(self->t, TAL_2,0,cols-1,3);
-
   tab_dim (self->t, tab_natural_dimensions);
-
 }
 
 
+/* Base finalizer for the trbox */
 void 
 trbox_base_finalize(struct trbox *trb)
 {
