@@ -30,6 +30,7 @@
 #endif
 #include "str.h"
 
+
 /* Brokenness. */
 #ifndef EXIT_SUCCESS
 #define EXIT_SUCCESS 0
@@ -837,7 +838,12 @@ parse_subcommand (subcommand *sbc)
       else if (match_id ("PINT"))
 	sbc->type = SBC_PINT;
       else if (match_id ("DOUBLE"))
-	sbc->type = match_id ("LIST") ? SBC_DBL_LIST : SBC_DBL;
+	{
+	  if ( match_id ("LIST") )
+	    sbc->type = SBC_DBL_LIST;
+	  else
+	    sbc->type = SBC_DBL;
+	}
       else if (match_id ("STRING"))
 	{
 	  sbc->type = SBC_STRING;
@@ -1033,6 +1039,12 @@ dump_declarations (void)
       }
   }
 
+  /* Write out some type definitions */
+  {
+    dump (0, "#define MAXLISTS 10");
+  }
+
+
   /* For every array subcommand, write out the associated enumerated
      values. */
   {
@@ -1132,6 +1144,17 @@ dump_declarations (void)
 	    dump (0, "double n_%s;", st_lower (sbc->name));
 	    break;
 
+	  case SBC_DBL_LIST:
+	    dump (0, "subc_list_double dl_%s[MAXLISTS];",
+		  st_lower(sbc->name));
+	    break;
+
+	  case SBC_INT_LIST:
+	    dump (0, "subc_list_int il_%s[MAXLISTS];",
+		  st_lower(sbc->name));
+	    break;
+
+
 	  default:;
 	    /* nothing */
 	  }
@@ -1227,9 +1250,20 @@ dump_vars_init (int persistent)
 	  {
 	    switch (sbc->type)
 	      {
-	      case SBC_DBL:
 	      case SBC_INT_LIST:
+		break;
+
 	      case SBC_DBL_LIST:
+		dump (0, "int i;");
+		dump (0, "for (i = 0; i < MAXLISTS; ++i)");
+		dump (1, "{");
+		dump (0, "subc_list_double_create(&p->dl_%s[i]) ;",
+		      st_lower (sbc->name)
+		      );
+		dump (-1, "}");
+		break;
+
+	      case SBC_DBL:
 	      case SBC_CUSTOM:
 		/* nothing */
 		break;
@@ -1595,7 +1629,7 @@ dump_subcommand (const subcommand *sbc)
        {
 	  char buf[1024];
 	  dump (1, "if (!(%s))", sbc->restriction);
-	  dump (1, "{");
+	  dump (1, "{"); 
           sprintf(buf,sbc->message,sbc->name);
 	  if ( sbc->translatable ) 
 		  dump (0, "msg (SE, gettext(\"%s\"));",buf);
@@ -1614,6 +1648,30 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1, "p->n_%s = lex_integer ();", st_lower (sbc->name));
       dump (0, "lex_match (')');");
+    }
+  else if (sbc->type == SBC_DBL_LIST)
+    {
+      dump (0, "if ( p->sbc_%s > MAXLISTS)",st_lower(sbc->name));
+      dump (1, "{");
+      dump (0, "msg (SE, \"No more than %%d %s subcommands allowed\",MAXLISTS);",st_lower(sbc->name));
+      dump (0, "goto lossage;");
+      dump (-1,"}");
+
+      dump (1, "while (token != '/' && token != '.')");
+      dump (1, "{");
+      dump (0, "lex_match(',');");
+      dump (0, "if (!lex_force_num ())");
+      dump (1, "{");
+      dump (0, "goto lossage;");
+      dump (-1,"}");
+
+      dump (0, "subc_list_double_push(&p->dl_%s[p->sbc_%s-1],lex_double ());", 
+	    st_lower (sbc->name),st_lower (sbc->name)
+	    );
+
+      dump (0, "lex_get();");
+      dump (-1,"}");
+
     }
   else if (sbc->type == SBC_CUSTOM)
     {
@@ -1927,6 +1985,7 @@ dump_header (void)
 
   dump (0, nullstr);
   dump (0, "#include \"settings.h\"");
+  dump (0, "#include \"subclist.h\"");
   dump (0, nullstr);
 }
 
@@ -1943,8 +2002,13 @@ dump_free (int persistent)
   if ( ! persistent ) 
     {
       for (sbc = subcommands; sbc; sbc = sbc->next)
+	{
 	if (sbc->type == SBC_STRING)
 	  used = 1;
+	if (sbc->type == SBC_DBL_LIST)
+	  used = 1;
+	}
+
     }
 
   dump (0, "static void");
@@ -1956,8 +2020,19 @@ dump_free (int persistent)
     {
 
       for (sbc = subcommands; sbc; sbc = sbc->next)
-	if (sbc->type == SBC_STRING)
-	  dump (0, "free (p->s_%s);", st_lower (sbc->name));
+	{
+	  switch (sbc->type) 
+	    {
+	    case SBC_STRING:
+	      dump (0, "free (p->s_%s);", st_lower (sbc->name));
+	      break;
+	    case SBC_DBL_LIST:
+	      dump (0, "subc_list_double_destroy(p->dl_%s);", st_lower (sbc->name));
+	      break;
+	    default:
+	      break;
+	    }
+	}
     }
 
   dump (-1, "}");

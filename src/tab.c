@@ -210,6 +210,12 @@ void
 tab_headers (struct tab_table *table, int l, int r, int t, int b)
 {
   assert (table != NULL);
+  assert (l < table->nc);
+  assert (r < table->nc);
+  assert (t < table->nr);
+  assert (b < table->nr);
+
+
   table->l = l;
   table->r = r;
   table->t = t;

@@ -43,10 +43,10 @@ $(q_sources_c): q2c$(EXEEXT)
 	./q2c $< $@
 
 q_sources_c = correlations.c crosstabs.c file-handle.c	\
-frequencies.c list.c means.c set.c  t-test.c
+frequencies.c list.c means.c oneway.c set.c  t-test.c
 
 q_sources_q = correlations.q crosstabs.q file-handle.q	\
-frequencies.q list.q means.q set.q  t-test.q
+frequencies.q list.q means.q oneway.q set.q  t-test.q
 
 pspp_SOURCES = $(q_sources_c) aggregate.c algorithm.c algorithm.h	\
 alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
@@ -66,8 +66,8 @@ moments.c moments.h numeric.c output.c output.h pfm-read.c pfm-write.c	\
 pfm.h pool.c pool.h postscript.c print.c random.c random.h recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
 sfm-read.c sfm-write.c sfm.h sfmP.h som.c som.h sort.c sort.h		\
-split-file.c str.c str.h sysfile-info.c tab.c tab.h temporary.c		\
-stat.h \
+split-file.c str.c str.h subclist.c \
+sysfile-info.c tab.c tab.h temporary.c stat.h \
 title.c t-test.h val.h val-labs.c value-labels.c value-labels.h		\
 var-labs.c var.h vars-atr.c vars-prs.c vector.c version.c version.h	\
 vfm.c vfm.h vfmP.h weight.c

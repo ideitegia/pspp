@@ -45,6 +45,22 @@ compare_values (const union value *a, const union value *b, int width)
     return memcmp (a->s, b->s, width);
 }
 
+/* Create a hash of v */
+unsigned 
+hash_value(const union value  *v, int width)
+{
+  unsigned id_hash;
+
+  if ( 0 == width ) 
+    id_hash = hsh_hash_double (v->f);
+  else
+    id_hash = hsh_hash_bytes (v->s, width);
+
+  return id_hash;
+}
+
+
+
 /* Discards all the current state in preparation for a data-input
    command like DATA LIST or GET. */
 void
