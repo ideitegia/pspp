@@ -57,6 +57,8 @@ begin data.
 3 4
 end data.
 
+list.
+
 frequencies v1 v2.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

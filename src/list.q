@@ -253,7 +253,7 @@ write_all_headers (void)
 	{
 	  struct html_driver_ext *x = d->ext;
   
-	  assert (d->driver_open && d->page_open);
+	  assert (d->driver_open);
 	  if (x->sequence_no == 0 && !d->class->open_page (d))
 	    {
 	      msg (ME, _("Cannot open first page on HTML device %s."),
