@@ -208,5 +208,4 @@ for outfile in active external; do
     done
 done
 
-exit 0
 pass;
