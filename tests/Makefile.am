@@ -14,6 +14,7 @@ TESTS = command/aggregate.sh \
 	command/lag.sh \
 	command/print.sh \
 	command/sort.sh \
+	command/tabs.sh \
 	command/split-file.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh \
