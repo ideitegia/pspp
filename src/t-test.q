@@ -99,6 +99,9 @@ void ssbox_populate(struct ssbox *ssb, struct cmd_t_test *cmd);
 /* Submit and destroy a ssbox */
 void ssbox_finalize(struct ssbox *ssb);
 
+/* A function to create, populate and submit the Paired Samples Correlation 
+   box */
+void pscbox(struct cmd_t_test *cmd);
 
 
 /* Structures and Functions for the Test Results Box */
@@ -189,12 +192,16 @@ cmd_t_test(void)
   t_test_pool = pool_create ();
 
   ssbox_create(&stat_summary_box,&cmd,mode);
-  trbox_create(&test_results_box,&cmd,mode);
-
   ssbox_populate(&stat_summary_box,&cmd);
-  trbox_populate(&test_results_box,&cmd);
-
   ssbox_finalize(&stat_summary_box);
+
+  if ( mode == T_PAIRED) 
+    {
+      pscbox(&cmd);
+    }
+
+  trbox_create(&test_results_box,&cmd,mode);
+  trbox_populate(&test_results_box,&cmd);
   trbox_finalize(&test_results_box);
 
   pool_destroy (t_test_pool);
@@ -958,6 +965,57 @@ trbox_base_finalize(struct trbox *trb)
 {
   tab_submit(trb->t);
 }
+
+
+/* Create , populate and submit the Paired Samples Correlation box */
+void
+pscbox(struct cmd_t_test *cmd)
+{
+  const int rows=1+n_pairs;
+  const int cols=5;
+  int i;
+  
+  struct tab_table *table;
+  
+  table = tab_create (cols,rows,0);
+
+  tab_columns (table, SOM_COL_DOWN, 1);
+  tab_headers (table,0,0,1,0); 
+  tab_box (table, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
+  tab_hline(table, TAL_2, 0, cols - 1, 1);
+  tab_vline(table, TAL_2, 2, 0, rows - 1);
+  tab_dim(table, tab_natural_dimensions);
+  tab_title(table, 0, _("Paired Samples Correlations"));
+
+  /* column headings */
+  tab_text(table, 2,0, TAB_CENTER | TAT_TITLE, _("N"));
+  tab_text(table, 3,0, TAB_CENTER | TAT_TITLE, _("Correlation"));
+  tab_text(table, 4,0, TAB_CENTER | TAT_TITLE, _("Sig."));
+
+  /* row headings */
+  {
+  struct string ds;
+
+  ds_init(t_test_pool,&ds,15);
+
+  for (i=0; i < n_pairs; ++i)
+    {
+      ds_clear(&ds);
+      ds_printf(&ds,_("Pair %d"),i);
+      tab_text(table, 0,i+1, TAB_LEFT | TAT_TITLE, ds.string);
+
+      ds_clear(&ds);
+      ds_printf(&ds,_("%s & %s"),pairs[i][0]->name,pairs[i][1]->name);
+      tab_text(table, 1,i+1, TAB_LEFT | TAT_TITLE, ds.string);
+    }
+
+  ds_destroy(&ds);
+  }
+
+
+  tab_submit(table);
+}
+
 
 
 /* Calculation Implementation */
