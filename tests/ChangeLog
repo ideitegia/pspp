@@ -1,3 +1,7 @@
+Wed Mar 10 21:22:03 2004  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/temporary.sh: Test that basic use of TEMPORARY works.
+
 Mon Feb 16 21:36:57 2004  Ben Pfaff  <blp@gnu.org>
 
 	* */*.sh: Prepend $SUPERVISOR to invocations of pspp so that we

@@ -31,7 +31,8 @@ TESTS = command/aggregate.sh \
 	bugs/html-frequency.sh \
 	bugs/crosstabs.sh \
 	bugs/data-crash.sh \
-	bugs/random.sh 
+	bugs/random.sh \
+	bugs/temporary.sh
 
 noinst_PROGRAMS = gengarbage
 

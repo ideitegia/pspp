@@ -1,0 +1,98 @@
+#!/bin/sh
+
+# This program tests for a bug which caused UNIFORM(x) to always return zero.
+
+
+TEMPDIR=/tmp/pspp-tst-$$
+
+here=`pwd`;
+
+# ensure that top_srcdir is absolute
+cd $top_srcdir; top_srcdir=`pwd`
+
+export STAT_CONFIG_PATH=$top_srcdir/config
+
+
+cleanup()
+{
+     rm -rf $TEMPDIR
+}
+
+
+fail()
+{
+    echo $activity
+    echo FAILED
+    cleanup;
+    exit 1;
+}
+
+
+no_result()
+{
+    echo $activity
+    echo NO RESULT;
+    cleanup;
+    exit 2;
+}
+
+pass()
+{
+    cleanup;
+    exit 0;
+}
+
+mkdir -p $TEMPDIR
+
+cd $TEMPDIR
+
+activity="create program"
+cat > $TEMPDIR/rnd.sps <<EOF
+DATA LIST LIST NOTABLE /x *.
+begin data.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+end data.
+
+temporary.
+select if x > 5 .
+list.
+
+list.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+diff -b -B -w $TEMPDIR/pspp.list - << EOF
+       X
+--------
+    6.00 
+    7.00 
+    8.00 
+    9.00 
+
+       X
+--------
+    1.00 
+    2.00 
+    3.00 
+    4.00 
+    5.00 
+    6.00 
+    7.00 
+    8.00 
+    9.00 
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
+
+pass;

@@ -61,10 +61,7 @@ cmd_temporary (void)
   /* Make a copy of the current dictionary. */
   temporary = 1;
   temp_dict = dict_clone (default_dict);
-  if (f_trns == n_trns)
-    temp_trns = -1;
-  else
-    temp_trns = n_trns;
+  temp_trns = n_trns;
   debug_printf (("TEMPORARY: temp_trns=%d\n", temp_trns));
 
   return lex_end_of_command ();
