@@ -1,3 +1,10 @@
+John Darrington <john@darrington.wattle.id.au>
+
+	* settings.h set.c glob.[ch] frequencies.q q2c.c error.c lexer.[ch] 
+          output.[ch] getline.c 
+
+          Plugged some memory leaks
+
 Mon Nov 15 23:47:40 2004  Ben Pfaff  <blp@gnu.org>
 
 	Adopt GSL random number generators, paving the way for providing

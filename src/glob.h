@@ -21,5 +21,6 @@
 #define INCLUDED_GLOB_H 1
 
 void init_glob (int argc UNUSED, char **argv);
+void done_glob (void);
 
 #endif /* glob.h */

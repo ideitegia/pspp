@@ -139,6 +139,7 @@ int get_viewlength(void);
 int get_viewwidth(void);
 
 void init_settings(void) ;
+void done_settings(void) ;
 
 /* Whether pspp can erase and overwrite files */
 int safer_mode(void);

@@ -187,16 +187,26 @@ struct ascii_driver_ext
 static int postopen (struct file_ext *);
 static int preclose (struct file_ext *);
 
+static struct outp_option_info *option_info;
+
 static int
 ascii_open_global (struct outp_class *this UNUSED)
 {
+  option_info = xmalloc ( sizeof (struct outp_option_info ) ) ;
+  option_info->initial = 0;
+  option_info->options = 0;
   return 1;
 }
 
 
+static unsigned char *s=0;
 static int
 ascii_close_global (struct outp_class *this UNUSED)
 {
+  free(option_info->initial);
+  free(option_info->options);
+  free(option_info);
+  free(s);
   return 1;
 }
 
@@ -456,7 +466,6 @@ static struct outp_option option_tab[] =
     {"squeeze", boolean_arg, 2},
     {"", 0, 0},
   };
-static struct outp_option_info option_info;
 
 static void
 ascii_option (struct outp_driver *this, const char *key,
@@ -484,7 +493,7 @@ ascii_option (struct outp_driver *this, const char *key,
       return;
     }
 
-  cat = outp_match_keyword (key, option_tab, &option_info, &subcat);
+  cat = outp_match_keyword (key, option_tab, option_info, &subcat);
   switch (cat)
     {
     case 0:
@@ -1518,10 +1527,10 @@ output_lines (struct outp_driver *this, int first, int count)
     }
 }
 
+
 static int
 ascii_close_page (struct outp_driver *this)
 {
-  static unsigned char *s;
   static int s_len;
 
   struct ascii_driver_ext *x = this->ext;
@@ -1610,8 +1619,13 @@ ascii_close_page (struct outp_driver *this)
   memcpy (cp, ls_c_str (&x->ops[OPS_FORMFEED]), ff_len);
   if ( x->paginate ) 
 	  output_string (this, s, &s[total_len]);
+
   if (line_p != line_buf && !commit_line_buf (this))
+    {
+    free(s);
+    s=0;
     return 0;
+    }
 
   this->page_open = 0;
   return 1;

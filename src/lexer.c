@@ -99,6 +99,13 @@ lex_init (void)
   if (!lex_get_line ())
     unexpected_eof ();
 }
+
+void
+lex_done (void)
+{
+  ds_destroy(&put_tokstr);
+}
+
 
 /* Common functions. */
 

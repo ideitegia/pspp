@@ -442,11 +442,19 @@ destroy_list (struct outp_driver ** dl)
 int
 outp_done (void)
 {
+  struct outp_driver_class_list *n = outp_class_list ; 
 #if GLOBAL_DEBUGGING
   if (iterating_driver_list)
     reentrancy ();
 #endif
   destroy_list (&outp_driver_list);
+
+  while (n) 
+    {
+      struct outp_driver_class_list *next = n->next;
+      free(n);
+      n = next;
+    }
 
   return 1;
 }

@@ -78,6 +78,7 @@ extern struct string tokstr;
 
 /* Initialization. */
 void lex_init (void);
+void lex_done (void);
 
 /* Common functions. */
 void lex_get (void);

@@ -228,9 +228,6 @@ struct outp_driver_class_list
     struct outp_driver_class_list *next;
   };
 
-/* List of known output driver classes. */
-extern struct outp_driver_class_list *outp_class_list;
-
 /* List of configured output drivers. */
 extern struct outp_driver *outp_driver_list;
 

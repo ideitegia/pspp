@@ -223,9 +223,13 @@ err_hcf (int success)
 {
   terminating = 1;
 
+  lex_done();
   getl_uninitialize ();
 
+  free(file_loc);
   outp_done ();
+  done_glob();
+
 
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }

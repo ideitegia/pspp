@@ -180,6 +180,15 @@ init_glob (int argc UNUSED, char **argv)
   get_date ();
 }
 
+void
+done_glob(void)
+{
+  dict_destroy(default_dict);
+  free(logfn);
+  done_settings();
+  ds_destroy (&tokstr);
+}
+
 static void
 get_date (void)
 {

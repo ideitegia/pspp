@@ -319,6 +319,8 @@ internal_cmd_frequencies (void)
   /* Do it! */
   procedure_with_splits (precalc, calc, postcalc, NULL);
 
+  free_frequencies(&cmd);
+
   return CMD_SUCCESS;
 }
 

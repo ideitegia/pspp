@@ -85,6 +85,8 @@ getl_uninitialize (void)
   if (history_file)
     write_history (history_file);
 #endif
+  ds_destroy (&getl_buf);
+  ds_destroy (&getl_include_path);
 }
 
 /* Returns a string that represents the directory that the syntax file
