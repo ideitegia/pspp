@@ -16,6 +16,7 @@ TESTS = \
 	command/list.sh \
 	command/loop.sh \
 	command/oneway.sh \
+	command/oneway-missing.sh \
 	command/print.sh \
 	command/sample.sh \
 	command/sort.sh \

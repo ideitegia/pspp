@@ -1,5 +1,7 @@
 Sat Oct 30 09:16:29 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
+	* oneway.q   Fixed up the behaviour when given missing values
+
 	* levene.c oneway.q Fixed a buglet with the levene statistic and
 	incorporated the levene test into the oneway command.
 

@@ -95,7 +95,7 @@ static void show_contrast_coeffs(void);
 static void show_contrast_tests(void);
 
 
-enum stat_table_t {STAT_DESC, STAT_HOMO};
+enum stat_table_t {STAT_DESC = 1, STAT_HOMO = 2};
 
 static enum stat_table_t stat_tables ;
 
@@ -903,11 +903,7 @@ calculate(const struct casefile *cf, void *cmd_)
 				 (hsh_hash_func *) hash_value,
 				 0,
 				 (void *) indep_var->width );
-
-
-
   precalc(cmd);
-
 
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;
@@ -919,9 +915,29 @@ calculate(const struct casefile *cf, void *cmd_)
 	dict_get_case_weight(default_dict,&c,&bad_weight_warn);
       
       const union value *indep_val = case_data (&c, indep_var->fv);
+
+      /* Deal with missing values */
+      if ( value_is_missing(indep_val,indep_var) )
+	   continue;
+
+      /* Skip the entire case if /MISSING=LISTWISE is set */
+      if ( cmd->miss == ONEWAY_LISTWISE ) 
+	{
+	  for(i = 0; i < n_vars ; ++i) 
+	    {
+	      const struct variable *v = vars[i];
+	      const union value *val = case_data (&c, v->fv);
+
+	      if (value_is_missing(val,v) )
+		  break;
+	    }
+	  if ( i != n_vars ) 
+	      continue;
+
+	}
+      
 	  
       hsh_insert ( global_group_hash, (void *) indep_val );
-
 
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
@@ -986,7 +1002,9 @@ calculate(const struct casefile *cf, void *cmd_)
 
   
   if ( stat_tables & STAT_HOMO ) 
-    levene(cf, indep_var, n_vars, vars, LEV_LISTWISE, value_is_missing);
+    levene(cf, indep_var, n_vars, vars, 
+	   (cmd->miss == ONEWAY_LISTWISE) ? LEV_LISTWISE : LEV_ANALYSIS ,
+	   value_is_missing);
 
   ostensible_number_of_groups = hsh_count (global_group_hash);
 
@@ -1037,8 +1055,5 @@ postcalc (  struct cmd_oneway *cmd UNUSED )
 
       totals->se_mean = totals->std_dev / sqrt(totals->n);
 	
-
-
-      
     }
 }
