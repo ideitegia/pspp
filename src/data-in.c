@@ -288,6 +288,7 @@ parse_N (struct data_in *i)
 {
   const unsigned char *cp;
 
+  i->v->f = 0;
   for (cp = i->s; cp < i->e; cp++)
     {
       if (!isdigit (*cp))

@@ -130,8 +130,7 @@ groff_read_font (const char *fn)
   font->metric_size = 0;
   font->metric_used = 0;
   font->kern = NULL;
-  font->kern_size = 0;
-  font->kern_size_p = hsh_next_prime (64);
+  font->kern_size = 8;
   font->kern_used = 0;
   font->kern_max_used = 0;
 
@@ -379,7 +378,8 @@ file_lossage:
 
   /* Come here on any error. */
 lose:
-  fclose (f);
+  if (f != NULL)
+    fclose (f);
   pool_destroy (font_pool);
 #if unix
   free ((char *) fn);
@@ -439,10 +439,8 @@ struct index_hash
 /* Character index hash table. */
 static struct
   {
-    int size;			/* Size of table. */
-    int *size_p;		/* Next larger table size. */
+    int size;			/* Size of table (must be power of 2). */
     int used;			/* Number of full entries. */
-    int max_used;		/* # used entries where we enlarge & rehash. */
     int next_index;		/* Next index to allocate. */
     struct index_hash *tab;	/* Hash table proper. */
     struct pool *ar;		/* Pool for names. */
@@ -471,10 +469,8 @@ font_char_name_to_index (const char *name)
 
   if (!hash.tab)
     {
-      hash.size_p = hsh_next_prime (128);
-      hash.size = *hash.size_p++;
+      hash.size = 128;
       hash.used = 0;
-      hash.max_used = hash.size / 2;
       hash.next_index = 256;
       hash.tab = xmalloc (sizeof *hash.tab * hash.size);
       hash.ar = pool_create ();
@@ -482,7 +478,7 @@ font_char_name_to_index (const char *name)
 	hash.tab[i].name = NULL;
     }
 
-  for (i = hashpjw (name) % hash.size; hash.tab[i].name;)
+  for (i = hsh_hash_string (name) & (hash.size - 1); hash.tab[i].name; )
     {
       if (!strcmp (hash.tab[i].name, name))
 	return hash.tab[i].index;
@@ -491,21 +487,21 @@ font_char_name_to_index (const char *name)
     }
 
   hash.used++;
-  if (hash.used >= hash.max_used)
+  if (hash.used >= hash.size / 2)
     {
       struct index_hash *old_tab = hash.tab;
       int old_size = hash.size;
       int i, j;
 
-      hash.size = *hash.size_p++;
-      hash.max_used = hash.size / 2;
+      hash.size *= 2;
       hash.tab = xmalloc (sizeof *hash.tab * hash.size);
       for (i = 0; i < hash.size; i++)
 	hash.tab[i].name = NULL;
       for (i = 0; i < old_size; i++)
 	if (old_tab[i].name)
 	  {
-	    for (j = hashpjw (old_tab[i].name) % hash.size; hash.tab[j].name;)
+	    for (j = hsh_hash_string (old_tab[i].name) & (hash.size - 1);
+                 hash.tab[j].name;)
 	      if (++j >= hash.size)
 		j = 0;
 	    hash.tab[j] = old_tab[i];
@@ -597,7 +593,7 @@ add_kern (struct font_desc *font, int ch1, int ch2, int adjust)
       int old_kern_size = font->kern_size;
       int j;
 
-      font->kern_size = *font->kern_size_p++;
+      font->kern_size *= 2;
       font->kern_max_used = font->kern_size / 2;
       font->kern = pool_malloc (font->owner,
 				sizeof *font->kern * font->kern_size);
@@ -1002,8 +998,7 @@ default_font (void)
   font->metric_size = 0;
   font->metric_used = 0;
   font->kern = NULL;
-  font->kern_size = 0;
-  font->kern_size_p = hsh_next_prime (64);
+  font->kern_size = 8;
   font->kern_used = 0;
   font->kern_max_used = 0;
   return font;

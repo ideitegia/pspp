@@ -1,3 +1,116 @@
+Fri Dec 12 23:54:37 2003  Ben Pfaff  <blp@gnu.org>
+
+	* autorecode.c: (recode) Replace stupid use of memcpy() by
+	memberwise copy.
+	(hash_alpha_value) Use hsh_hash_bytes().  Get rid of nasty casts.
+	(hash_numeric_value) Ditto.
+	(autorecode_proc_func) pool_strdup() was wrong here because the
+	source string was not null-terminated.  Use new pool_strndup()
+	instead.
+
+	* crosstabs.q: (enum_var_values) Remove superfluous and bizarre
+	use of hsh_iterator_init().
+
+	* data-in.c: (parse_N) Initialize i->v->f.
+
+	* flip.c: (cmd_flip) Use memmove(), not memcpy(), to copy
+	overlapping arrays.
+
+	* groff-font.c: Use power-of-2 hash table sizes, not prime.
+	(groff_read_font) Don't call hsh_next_prime().  Don't call
+	fclose(NULL).
+	(static var hash) Remove `size_p', `max_used' members.
+	(font_char_name_to_index) Don't call hsh_next_prime().  Use
+	hsh_hash_string() instead of hashpjw(), & instead of %.
+	(default_font) Don't call hsh_next_prime().
+
+	* pool.c: (pool_strndup) New function.
+	(pool_strdup) Reimplement in terms of pool_strndup.
+
+	* postscript.c: (hash_font_entry) Use hsh_hash_string().  Get rid
+	of nasty casts.
+	(hash_ps_encoding) Use hsh_hash_string().
+	(hash_ps_combo) Use hsh_hash_string(), hsh_hash_int().
+	(hash_filename2font) Use hsh_hash_string().
+
+	* som.c: Add #include <stdlib.h>.
+
+	* tab.c: (tab_destroy) Don't set t->container after freeing `t'
+	(by destroying its pool).
+	
+Fri Dec 12 23:18:59 2003  Ben Pfaff  <blp@gnu.org>
+
+	Miscellaneous hash table code cleanup:
+	
+	* hash.h: (struct hsh_table) Moved into hash.c.
+	(hsh_count) Ditto, and transformed into function.
+	(hsh_compare_func) New typedef, used for defining otherwise-long
+	function types here and in hash.c
+	(hsh_hash_func) Ditto.
+	(hsh_free_func) Ditto.
+	
+	* hash.c: (struct hsh_table) Renamed `n' to `used', `m' to `size',
+	`table' to `entries'.  Removed `mp'.  All references updated.
+	(hsh_clear) Don't shrink entries array; if the hash was this big
+	once, it probably will be again.
+	(hsh_rehash) Made static.
+	(force_hsh_insert) Renamed hsh_force_insert.
+	(force_hsh_find) Renamed hsh_force_find.
+
+	Made hash table sizes powers of 2, because that's fine with any
+	reasonable hash function and because taking a power-of-2 modulus
+	is faster than any other:
+	
+	(hsh_prime_tab) Removed;
+	(hsh_next_prime) Ditto.
+	(next_power_of_2) New function.
+	(hsh_create) Use next_power_of_2.
+	(hsh_rehash) Use & instead of %.
+
+	Cleaned up hsh_sort:
+	
+	(internal_comparison_fn) Removed.
+	(sort_nulls_last) New function.
+	(hsh_sort) Removed second parameter, switched to using the new
+	quicksort() function from quicksort.h to avoid using nasty need
+	for static variables with qsort().  All references updated.
+
+	Changed the hash functions offered, because there are better hash
+	functions than the ones we had, and cleaned up the names to boot:
+	
+	* hash.c: (hashpjw_d) Removed.
+	(hashpjw) Ditto.
+	(hsh_hash_bytes) New function.
+	(hsh_hash_string) New function.
+	(hsh_hash_int) New function.
+
+	Improved the hash table iteration interface:
+	
+	* hash.h: (hsh_iterator_init) Removed.
+	(struct hsh_iterator) Removed `init' member, change `next' to
+	size_t.
+
+	* hash.c: (hsh_foreach) Removed.  All references updated to use
+	hsh_first/hsh_next instead.
+	(hsh_first) New function.  Notably, unlike hsh_foreach() it does
+	not treat a null pointer as an empty hash table.
+	(hsh_next) New function.
+
+	Made deletion possible, though slow:
+
+	* hash.c: (locate_matching_entry) New function.
+	(hsh_find) Use locate_matching_entry().
+	(hsh_delete) New function also using locate_matching_entry().
+	(hsh_force_delete) New function.
+
+Fri Dec 12 23:16:10 2003  Ben Pfaff  <blp@gnu.org>
+
+	* quicksort.c: New file implementing a sort routine with a
+	interface better than qsort() because it passes a user-provided
+	parameter to the sort routine.
+
+	* Makefile.am: Add quicksort.c, quicksort.h.
+
 Fri Dec 12 13:31:58 2003  Ben Pfaff  <blp@gnu.org>
 
 	* All source files: Get rid of nasty special cases for Checker,

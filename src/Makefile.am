@@ -40,12 +40,12 @@ htmlP.h include.c inpt-pgm.c inpt-pgm.h lexer.c lexer.h list.c log.h	\
 loop.c magic.c magic.h main.c main.h matrix-data.c matrix.c matrix.h	\
 means.c mis-val.c misc.c misc.h modify-vars.c numeric.c output.c	\
 output.h pfm-read.c pfm-write.c pfm.h pool.c pool.h postscript.c	\
-print.c random.c random.h recode.c rename-vars.c repeat.c sample.c	\
-sel-if.c set.c settings.h sfm-read.c sfm-write.c sfm.h sfmP.h som.c	\
-som.h sort.c sort.h split-file.c stat.h stats.c stats.h str.c str.h	\
-sysfile-info.c tab.c tab.h temporary.c title.c t-test.c val-labs.c	\
-var-labs.c var.h vars-atr.c vars-prs.c vector.c vector.h version.c	\
-version.h vfm.c vfm.h vfmP.h weight.c
+print.c quicksort.c quicksort.h random.c random.h recode.c		\
+rename-vars.c repeat.c sample.c sel-if.c set.c settings.h sfm-read.c	\
+sfm-write.c sfm.h sfmP.h som.c som.h sort.c sort.h split-file.c stat.h	\
+stats.c stats.h str.c str.h sysfile-info.c tab.c tab.h temporary.c	\
+title.c t-test.c val-labs.c var-labs.c var.h vars-atr.c vars-prs.c	\
+vector.c vector.h version.c version.h vfm.c vfm.h vfmP.h weight.c
 
 LDADD =	../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\

@@ -517,9 +517,10 @@ compare_font_entry (const void *a, const void *b, void *foobar unused)
 
 /* font_entry hash function for hash tables. */
 static unsigned
-hash_font_entry (const void *a, void *foobar unused)
+hash_font_entry (const void *fe_, void *foobar unused)
 {
-  return hashpjw (((struct font_entry *) a)->dit);
+  const struct font_entry *fe = fe_;
+  return hsh_hash_string (fe->dit);
 }
 
 /* font_entry destructor function for hash tables. */
@@ -885,7 +886,7 @@ hash_ps_encoding (const void *pa, void *foo unused)
 {
   const struct ps_encoding *a = pa;
 
-  return hashpjw (a->filename);
+  return hsh_hash_string (a->filename);
 }
 
 /* Hash table free function for ps_encoding's. */
@@ -913,8 +914,8 @@ output_encodings (struct outp_driver *this)
 
   ds_init (NULL, &line, 128);
   ds_init (NULL, &buf, 128);
-  hsh_iterator_init (iter);
-  while ((pe = hsh_foreach (x->encodings, &iter)) != NULL)
+  for (pe = hsh_first (x->encodings, &iter); pe != NULL;
+       pe = hsh_next (x->encodings, &iter)) 
     {
       FILE *f;
 
@@ -1625,8 +1626,8 @@ preclose (struct file_ext *f)
 	    "%%%%DocumentNeededResources:%s"),
 	   x->eol, x->file_page_number, x->eol, x->eol);
 
-  hsh_iterator_init (iter);
-  while ((fe = hsh_foreach (x->loaded, &iter)) != NULL)
+  for (fe = hsh_first (x->loaded, &iter); fe != NULL;
+       fe = hsh_next (x->loaded, &iter)) 
     {
       char buf[256], *cp;
 
@@ -1824,14 +1825,18 @@ dump_lines (struct outp_driver *this)
   struct ps_driver_ext *x = this->ext;
 
   struct hsh_iterator iter;
-  struct line_form *line;
   int type;
 
-  hsh_iterator_init (iter);
   for (type = 0; type < n_line_types; type++)
     {
-      while (NULL != (line = hsh_foreach (x->lines[type], &iter)))
-	{
+      struct line_form *line;
+
+      if (x->lines[type] == NULL) 
+        continue;
+
+      for (line = hsh_first (x->lines[type], &iter); line != NULL;
+           line = hsh_next (x->lines[type], &iter)) 
+        {
 	  int i;
 	  int lo = INT_MIN, hi;
 
@@ -2300,8 +2305,8 @@ static unsigned
 hash_ps_combo (const void *pa, void *foo unused)
 {
   const struct ps_font_combo *a = pa;
-
-  return hashpjw (a->font->font->internal_name) ^ a->size;
+  unsigned name_hash = hsh_hash_string (a->font->font->internal_name);
+  return name_hash ^ hsh_hash_int (a->size);
 }
 
 /* Hash table free function for ps_combo structs. */
@@ -2812,10 +2817,10 @@ compare_filename2font (const void *a, const void *b, void *param unused)
 
 /* Hash table hash function for filename2font structs. */
 static unsigned
-hash_filename2font (const void *a, void *param unused)
+hash_filename2font (const void *f2f_, void *param unused)
 {
-  /* I sure hope this works with long filenames. */
-  return hashpjw (((struct filename2font *) a)->filename);
+  const struct filename2font *f2f = f2f_;
+  return hsh_hash_string (f2f->filename);
 }
 
 /* Initializes the global font list by creating the hash table for

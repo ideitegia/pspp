@@ -89,7 +89,7 @@ cmd_flip (void)
       for (i = 0; i < nvar; i++)
 	if (var[i] == newnames)
 	  {
-	    memcpy (&var[i], &var[i + 1], sizeof *var * (nvar - i - 1));
+	    memmove (&var[i], &var[i + 1], sizeof *var * (nvar - i - 1));
 	    nvar--;
 	    break;
 	  }

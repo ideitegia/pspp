@@ -885,7 +885,7 @@ postcalc (void)
   if (mode == GENERAL)
     {
       n_sorted_tab = hsh_count (gen_tab);
-      sorted_tab = (struct table_entry **) hsh_sort (gen_tab, compare_table_entry);
+      sorted_tab = (struct table_entry **) hsh_sort (gen_tab);
 #if DEBUGGING
       print_table_entries (sorted_tab);
 #endif
@@ -1784,7 +1784,6 @@ enum_var_values (struct table_entry **beg, int cnt, union value **values, int *n
 	int i;
     
 	i = 0;
-	hsh_iterator_init (trav);
 	while (NULL != (v = avl_traverse (tree, &trav)))
 	  (*values)[i++] = *v;
 	*nvalues = i;

@@ -40,6 +40,7 @@ void pool_destroy (struct pool *);
 /* Suballocation routines. */
 void *pool_alloc (struct pool *, size_t);
 char *pool_strdup (struct pool *, const char *);
+char *pool_strndup (struct pool *, const char *, size_t);
 char *pool_strcat (struct pool *, const char *, ...);
 
 /* Standard allocation routines. */

@@ -217,7 +217,7 @@ pool_alloc (struct pool *pool, size_t amt)
 {
   assert (pool != NULL);
   
-#if !DISCRETE_BLOCKS /* Help identify source of bugs for Checker users. */
+#if !DISCRETE_BLOCKS
   if (amt <= MAX_SUBALLOC)
     {
       struct pool_block *b = pool->blocks;
@@ -244,34 +244,48 @@ pool_alloc (struct pool *pool, size_t amt)
     return pool_malloc (pool, amt);
 }
 
-/* Duplicates STRING within POOL and returns a pointer to the
-   duplicate. */
+/* Duplicates STRING, which has LENGTH characters, within POOL,
+   and returns a pointer to the duplicate.  LENGTH should not
+   include the null terminator, which is always added to the
+   duplicate.  For use only with strings, because the returned
+   pointere may not be aligned properly for other types. */
 char *
-pool_strdup (struct pool *pool, const char *string)
+pool_strndup (struct pool *pool, const char *string, size_t length)
 {
-  size_t amt;
-  void *p;
+  size_t size;
+  char *copy;
 
   assert (pool && string);
-  amt = strlen (string) + 1;
+  size = length + 1;
 
   /* Note that strings need not be aligned on any boundary. */
   {
 #if !DISCRETE_BLOCKS
     struct pool_block *const b = pool->blocks;
 
-    if (b->ofs + amt <= BLOCK_SIZE)
+    if (b->ofs + size <= BLOCK_SIZE)
       {
-	p = ((char *) b) + b->ofs;
-	b->ofs += amt;
+	copy = ((char *) b) + b->ofs;
+	b->ofs += size;
       }
     else
 #endif
-      p = pool_alloc (pool, amt);
+      copy = pool_alloc (pool, size);
   }
 
-  memcpy (p, string, amt);
-  return p;
+  memcpy (copy, string, length);
+  copy[length] = '\0';
+  return copy;
+}
+
+/* Duplicates null-terminated STRING, within POOL, and returns a
+   pointer to the duplicate.  For use only with strings, because
+   the returned pointere may not be aligned properly for other
+   types. */
+char *
+pool_strdup (struct pool *pool, const char *string) 
+{
+  return pool_strndup (pool, string, strlen (string));
 }
 
 /* Standard allocation routines. */

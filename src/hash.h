@@ -20,76 +20,57 @@
 #if !hash_h
 #define hash_h 1
 
-/* Hash table (opaque). */
-struct hsh_table
-  {
-    int n;			/* Number of filled entries. */
-    int m;			/* Number of entries. */
-    int *mp;			/* Pointer into hsh_prime_tab[]. */
-    void **table;		/* Hash table proper. */
+#include <stddef.h>
 
-    void *param;
-    int (*compare) (const void *, const void *, void *param);
-    unsigned (*hash) (const void *, void *param);
-    void (*free) (void *, void *param);
-  };
+typedef int hsh_compare_func (const void *, const void *, void *param);
+typedef unsigned hsh_hash_func (const void *, void *param);
+typedef void hsh_free_func (void *, void *param);
 
 /* Hash table iterator (opaque). */
 struct hsh_iterator
   {
-    int init;			/* Initialized? */
-    int next;			/* Index of next entry. */
+    size_t next;		/* Index of next entry. */
   };
 
-#define hsh_iterator_init(ITERATOR) (ITERATOR).init = 0
-
 /* Prime numbers and hash functions. */
-int *hsh_next_prime (int) __attribute__ ((const));
-int hashpjw_d (const char *s1, const char *s2);
-
-#if __GNUC__>=2 && __OPTIMIZE__
-extern inline int
-hashpjw (const char *s)
-{
-  return hashpjw_d (s, &s[strlen (s)]);
-}
-#else
-int hashpjw (const char *s);
-#endif
+unsigned hsh_hash_bytes (const void *, size_t);
+unsigned hsh_hash_string (const char *);
+unsigned hsh_hash_int (int);
 
 /* Hash tables. */
-struct hsh_table *hsh_create (int m,
-			      int (*compare) (const void *, const void *,
-					      void *param),
-			      unsigned (*hash) (const void *, void *param),
-			      void (*free) (void *, void *param),
+struct hsh_table *hsh_create (int m, hsh_compare_func *,
+                              hsh_hash_func *, hsh_free_func *,
 			      void *param);
 void hsh_clear (struct hsh_table *);
 void hsh_destroy (struct hsh_table *);
-void hsh_rehash (struct hsh_table *);
-void **hsh_sort (struct hsh_table *,
-		 int (*compare) (const void *, const void *, void *param));
+void **hsh_sort (struct hsh_table *);
+
+/* Search and insertion. */
+void **hsh_probe (struct hsh_table *, const void *);
+void *hsh_find (struct hsh_table *, const void *);
+int hsh_delete (struct hsh_table *, const void *);
+
+/* Iteration. */
+void *hsh_first (struct hsh_table *, struct hsh_iterator *);
+void *hsh_next (struct hsh_table *, struct hsh_iterator *);
+
+/* Search and insertion with assertion. */
+#if GLOBAL_DEBUGGING
+void hsh_force_insert (struct hsh_table *, void *);
+void *hsh_force_find (struct hsh_table *, const void *);
+void hsh_force_delete (struct hsh_table *, const void *);
+#else
+#define hsh_force_insert(A, B)  ((void) (*hsh_probe (A, B) = B))
+#define hsh_force_find(A, B)    (hsh_find (A, B))
+#define hsh_force_delete(A, B)  ((void) hsh_delete (A, B))
+#endif
+
+/* Number of entries in hash table H. */
+size_t hsh_count (struct hsh_table *);
+
+/* Debugging. */
 #if GLOBAL_DEBUGGING
 void hsh_dump (struct hsh_table *);
 #endif
-
-/* Hash entries. */
-void **hsh_probe (struct hsh_table *, const void *);
-void *hsh_find (struct hsh_table *, const void *);
-void *hsh_foreach (struct hsh_table *, struct hsh_iterator *);
-
-#if GLOBAL_DEBUGGING
-void force_hsh_insert (struct hsh_table *, void *);
-void *force_hsh_find (struct hsh_table *, const void *);
-#else
-#define force_hsh_insert(A, B)			\
-	do *hsh_probe (A, B) = B; while (0)
-#define force_hsh_find(A, B)			\
-	hsh_find (A, B)
-#endif
-
-/* Returns number of used elements in hash table H. */
-#define hsh_count(H) 				\
-	((H)->n)
 
 #endif /* hash_h */

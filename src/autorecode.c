@@ -204,7 +204,7 @@ recode (void)
   for (i = 0; i < nv_src; i++)
     {
       struct arc_spec *spec = &t->arc[i];
-      void **p = hsh_sort (h_trans[i], NULL);
+      void **p = hsh_sort (h_trans[i]);
       int count = hsh_count (h_trans[i]);
       int j;
 
@@ -222,12 +222,14 @@ recode (void)
       for (j = 0; *p; p++, j++)
 	{
 	  struct arc_item *item = pool_alloc (arc_pool, sizeof *item);
-
-	  memcpy (&item->from, *p, sizeof (union value));
-	  if (v_src[i]->type == ALPHA)
-	    item->from.c = pool_strdup (arc_pool, item->from.c);
+          union value *vp = *p;
+          
+	  if (v_src[i]->type == NUMERIC)
+            item->from.f = vp->f;
+          else
+	    item->from.c = pool_strdup (arc_pool, vp->c);
 	  item->to = !descend ? j + 1 : count - j;
-	  force_hsh_insert (spec->items, item);
+	  hsh_force_insert (spec->items, item);
 	}
       
       hsh_destroy (h_trans[i]);
@@ -249,12 +251,12 @@ autorecode_trns_proc (struct trns_header * trns, struct ccase * c)
       struct arc_item *item;
 
       if (spec->src->type == NUMERIC)
-	item = force_hsh_find (spec->items, &c->data[spec->src->fv].f);
+	item = hsh_force_find (spec->items, &c->data[spec->src->fv].f);
       else
 	{
 	  union value v;
 	  v.c = c->data[spec->src->fv].s;
-	  item = force_hsh_find (spec->items, &v);
+	  item = hsh_force_find (spec->items, &v);
 	}
 
       c->data[spec->dest->fv].f = item->to;
@@ -282,9 +284,10 @@ compare_alpha_value (const void *a, const void *b, void *len)
 }
 
 static unsigned
-hash_alpha_value (const void *a, void *len)
+hash_alpha_value (const void *a_, void *len)
 {
-  return hashpjw_d (((union value *) a)->c, &((union value *) a)->c[(int) len]);
+  const union value *a = a_;
+  return hsh_hash_bytes (a->c, (int) len);
 }
 
 static int
@@ -295,10 +298,10 @@ compare_numeric_value (const void *pa, const void *pb, void *foobar unused)
 }
 
 static unsigned
-hash_numeric_value (const void *a, void *len unused)
+hash_numeric_value (const void *a_, void *len unused)
 {
-  return hashpjw_d ((char *) &((union value *) a)->f,
-		    (char *) &(&((union value *) a)->f)[1]);
+  const union value *a = a_;
+  return hsh_hash_bytes (&a->f, sizeof a->f);
 }
 
 static int
@@ -330,7 +333,7 @@ autorecode_proc_func (struct ccase * c)
 	  if (NULL == *vpp)
 	    {
 	      vp = pool_alloc (hash_pool, sizeof (union value));
-	      vp->c = pool_strdup (hash_pool, v.c);
+	      vp->c = pool_strndup (hash_pool, v.c, v_src[i]->width);
 	      *vpp = vp;
 	    }
 	}
