@@ -278,8 +278,7 @@ cmd_data_list (void)
       add_transformation (&new_pgm->h);
     }
   else 
-    vfm_source = create_case_source (&data_list_source_class,
-                                     default_dict, dls);
+    vfm_source = create_case_source (&data_list_source_class, dls);
 
   return CMD_SUCCESS;
 

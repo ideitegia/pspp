@@ -963,8 +963,7 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
   nr.split_values = xmalloc (sizeof *nr.split_values
                              * dict_get_split_cnt (default_dict));
 
-  vfm_source = create_case_source (&matrix_data_without_rowtype_source_class,
-                                   default_dict, &nr);
+  vfm_source = create_case_source (&matrix_data_without_rowtype_source_class, &nr);
   
   procedure (NULL, NULL);
 
@@ -1495,7 +1494,7 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
   mx->cells = 0;
 
   vfm_source = create_case_source (&matrix_data_with_rowtype_source_class,
-                                   default_dict, &wr);
+                                   &wr);
   procedure (NULL, NULL);
 
   free (wr.split_values);

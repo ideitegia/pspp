@@ -21,6 +21,7 @@
 #define HEADER_CASEFILE
 
 #include <stddef.h>
+#include "bool.h"
 
 struct ccase;
 struct casefile;
@@ -46,6 +47,7 @@ struct casereader *casefile_get_destructive_reader (struct casefile *);
 const struct casefile *casereader_get_casefile (const struct casereader *);
 int casereader_read (struct casereader *, struct ccase *);
 int casereader_read_xfer (struct casereader *, struct ccase *);
+void casereader_read_xfer_assert (struct casereader *, struct ccase *);
 void casereader_destroy (struct casereader *);
 
 unsigned long casereader_cnum(const struct casereader *);

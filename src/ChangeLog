@@ -1,3 +1,53 @@
+Sun Mar 13 22:52:05 2005  Ben Pfaff  <blp@gnu.org>
+
+	* file-handle.q: (struct file_handle) `open_mode' should not be
+	const.
+	
+Sun Mar 13 22:40:54 2005  Ben Pfaff  <blp@gnu.org>
+
+	First phase of making SORT CASES stable (PR 12035).
+
+	* sort.c: (struct indexed_case) New structure.
+	(do_internal_sort) Rewrite to make internal sorting stable.
+	(compare_case_dblptrs) Removed.
+	(compare_indexed_cases) New function.
+
+Sun Mar 13 22:38:40 2005  Ben Pfaff  <blp@gnu.org>
+
+	Clean-ups.
+
+	* casefile.c: (casereader_read_xfer_assert) New function.
+
+	* dictionary.c: (dict_compact_case) New function.
+
+	* flip.c: (struct flip_pgm) New member idx_to_fv.
+	(cmd_flip) Initialize idx_to_fv member.
+	(destroy_flip_pgm) Free idx_to_fv member.
+	(flip_sink_write) Use struct flip_pgm member instead of case_sink
+	member.
+	(flip_sink_write) Ditto.
+
+	* vfm.c: (write_case) Use dict_compact_case() instead of
+	compact_case().
+	(compact_case) Removed.
+	(storage_source_create) Removed `dict' parameter.  All references
+	updated.
+
+	* vfm.h: (struct case_source) Removed `value_cnt' member.  All
+	references removed.
+	(struct case_sink) Removed `dict', `idx_to_fv' members.  All
+	references removed.
+
+Sun Mar 13 22:35:55 2005  Ben Pfaff  <blp@gnu.org>
+
+	More AGGREGATE fixes.
+
+	* aggregate.c: (accumulate_aggregate_info) Implement NMISS and
+	NUMISS for strings.  Fix FOUT, POUT, FGT, FLT, FIN, FOUT for
+	strings.
+	(initialize_aggregate_info) Fix initialization for MIN, MAX for
+	strings.
+
 Sat Mar 12 23:26:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	Start work on testing and debugging AGGREGATE.

@@ -106,7 +106,7 @@ cmd_get (void)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = create_case_source (&get_source_class, default_dict, pgm);
+  vfm_source = create_case_source (&get_source_class, pgm);
 
   return CMD_SUCCESS;
 
@@ -1495,7 +1495,7 @@ cmd_import (void)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = create_case_source (&import_source_class, default_dict, pgm);
+  vfm_source = create_case_source (&import_source_class, pgm);
 
   return CMD_SUCCESS;
 

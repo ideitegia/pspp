@@ -95,7 +95,6 @@ static int execute_transformations (struct ccase *c,
                                     int case_num);
 static int filter_case (const struct ccase *c, int case_num);
 static void lag_case (const struct ccase *c);
-static void compact_case (struct ccase *dest, const struct ccase *src);
 static void clear_case (struct ccase *c);
 static void close_active_file (void);
 
@@ -260,7 +259,7 @@ write_case (struct write_case_data *wc_data)
     {
       if (compaction_necessary) 
         {
-          compact_case (&wc_data->sink_case, &wc_data->trns_case);
+          dict_compact_case (temp_dict, &wc_data->sink_case, &wc_data->trns_case);
           vfm_sink->class->write (vfm_sink, &wc_data->sink_case);
         }
       else
@@ -355,43 +354,6 @@ lag_case (const struct ccase *c)
   case_clone (&lag_queue[lag_head], c);
   if (++lag_head >= n_lag)
     lag_head = 0;
-}
-
-/* Copies case SRC to case DEST, compacting it in the process. */
-static void
-compact_case (struct ccase *dest, const struct ccase *src)
-{
-  int i;
-  int nval = 0;
-  size_t var_cnt;
-  
-  assert (compaction_necessary);
-
-  /* Copy all the variables except scratch variables from SRC to
-     DEST. */
-  /* FIXME: this should be temp_dict not default_dict I guess. */
-  var_cnt = dict_get_var_cnt (default_dict);
-  for (i = 0; i < var_cnt; i++)
-    {
-      struct variable *v = dict_get_var (default_dict, i);
-      
-      if (dict_class_from_id (v->name) == DC_SCRATCH)
-	continue;
-
-      if (v->type == NUMERIC) 
-        {
-          case_data_rw (dest, nval)->f = case_num (src, v->fv);
-          nval++; 
-        }
-      else
-	{
-	  int w = DIV_RND_UP (v->width, sizeof (union value));
-	  
-	  memcpy (case_data_rw (dest, nval), case_str (src, v->fv),
-                  w * sizeof (union value));
-	  nval += w;
-	}
-    }
 }
 
 /* Clears the variables in C that need to be cleared between
@@ -518,7 +480,7 @@ static struct case_source *
 storage_sink_make_source (struct case_sink *sink) 
 {
   struct case_source *source
-    = create_case_source (&storage_source_class, sink->dict, sink->aux);
+    = create_case_source (&storage_source_class, sink->aux);
   sink->aux = NULL;
   return source;
 }
@@ -594,14 +556,14 @@ storage_source_get_casefile (struct case_source *source)
 }
 
 struct case_source *
-storage_source_create (struct casefile *cf, const struct dictionary *dict) 
+storage_source_create (struct casefile *cf)
 {
   struct storage_stream_info *info;
 
   info = xmalloc (sizeof *info);
   info->casefile = cf;
 
-  return create_case_source (&storage_source_class, dict, info);
+  return create_case_source (&storage_source_class, info);
 }
 
 /* Null sink.  Used by a few procedures that keep track of output
@@ -670,12 +632,10 @@ cancel_transformations (void)
    and based on dictionary DICT. */
 struct case_source *
 create_case_source (const struct case_source_class *class,
-                    const struct dictionary *dict,
                     void *aux) 
 {
   struct case_source *source = xmalloc (sizeof *source);
   source->class = class;
-  source->value_cnt = dict_get_next_value_idx (dict);
   source->aux = aux;
   return source;
 }
@@ -709,8 +669,8 @@ case_source_is_class (const struct case_source *source,
   return source != NULL && source->class == class;
 }
 
-/* Creates a case sink with class CLASS and auxiliary data
-   AUX. */
+/* Creates a case sink to accept cases from the given DICT with
+   class CLASS and auxiliary data AUX. */
 struct case_sink *
 create_case_sink (const struct case_sink_class *class,
                   const struct dictionary *dict,
@@ -718,8 +678,6 @@ create_case_sink (const struct case_sink_class *class,
 {
   struct case_sink *sink = xmalloc (sizeof *sink);
   sink->class = class;
-  sink->dict = dict;
-  sink->idx_to_fv = dict_get_compacted_idx_to_fv (dict);
   sink->value_cnt = dict_get_compacted_value_cnt (dict);
   sink->aux = aux;
   return sink;
@@ -733,7 +691,6 @@ free_case_sink (struct case_sink *sink)
     {
       if (sink->class->destroy != NULL)
         sink->class->destroy (sink);
-      free (sink->idx_to_fv);
       free (sink); 
     }
 }

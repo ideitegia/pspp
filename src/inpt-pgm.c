@@ -65,8 +65,7 @@ cmd_input_program (void)
 
   /* FIXME: we shouldn't do this here, but I'm afraid that other
      code will check the class of vfm_source. */
-  vfm_source = create_case_source (&input_program_source_class,
-                                   default_dict, NULL);
+  vfm_source = create_case_source (&input_program_source_class, NULL);
 
   return lex_end_of_command ();
 }
@@ -115,9 +114,6 @@ cmd_end_input_program (void)
 
   /* Put inp into vfm_source for later use. */
   vfm_source->aux = inp;
-
-  /* FIXME: we should use create_case_source() here. */
-  vfm_source->value_cnt = dict_get_next_value_idx (default_dict);
 
   return lex_end_of_command ();
 }

@@ -535,7 +535,8 @@ casereader_get_casefile (const struct casereader *reader)
 }
 
 /* Reads a copy of the next case from READER into C.
-   Caller is responsible for destroying C. */
+   Caller is responsible for destroying C.
+   Returns true if successful, false at end of file. */
 int
 casereader_read (struct casereader *reader, struct ccase *c) 
 {
@@ -572,7 +573,8 @@ casereader_read (struct casereader *reader, struct ccase *c)
 }
 
 /* Reads the next case from READER into C and transfers ownership
-   to the caller.  Caller is responsible for destroying C. */
+   to the caller.  Caller is responsible for destroying C.
+   Returns true if successful, false at end of file. */
 int
 casereader_read_xfer (struct casereader *reader, struct ccase *c)
 {
@@ -592,6 +594,16 @@ casereader_read_xfer (struct casereader *reader, struct ccase *c)
       reader->case_idx++;
       return 1;
     }
+}
+
+/* Reads the next case from READER into C and transfers ownership
+   to the caller.  Caller is responsible for destroying C.
+   Assert-fails at end of file. */
+void
+casereader_read_xfer_assert (struct casereader *reader, struct ccase *c) 
+{
+  bool success = casereader_read_xfer (reader, c);
+  assert (success);
 }
 
 /* Destroys READER. */

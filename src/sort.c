@@ -75,7 +75,6 @@ struct sort_criteria
     size_t crit_cnt;
   };
 
-static int compare_case_dblptrs (const void *, const void *, void *);
 static int compare_record (const struct ccase *, const struct ccase *,
                            const struct sort_criteria *);
 static struct casefile *do_internal_sort (struct casereader *,
@@ -134,7 +133,7 @@ sort_active_file_in_place (const struct sort_criteria *criteria)
   if (dst == NULL) 
     return 0;
 
-  vfm_source = storage_source_create (dst, default_dict);
+  vfm_source = storage_source_create (dst);
   return 1;
 }
 
@@ -262,6 +261,15 @@ sort_execute (struct casereader *reader, const struct sort_criteria *criteria)
   return output;
 }
 
+/* A case and its index. */
+struct indexed_case 
+  {
+    struct ccase c;     /* Case. */
+    unsigned long idx;  /* Index to allow for stable sorting. */
+  };
+
+static int compare_indexed_cases (const void *, const void *, void *);
+
 /* If the data is in memory, do an internal sort and return a new
    casefile for the data. */
 static struct casefile *
@@ -270,7 +278,6 @@ do_internal_sort (struct casereader *reader,
 {
   const struct casefile *src;
   struct casefile *dst;
-  struct ccase *cases, **case_ptrs;
   unsigned long case_cnt;
 
   src = casereader_get_casefile (reader);
@@ -278,47 +285,52 @@ do_internal_sort (struct casereader *reader,
     return NULL;
       
   case_cnt = casefile_get_case_cnt (src);
-  cases = malloc (sizeof *cases * case_cnt);
-  case_ptrs = malloc (sizeof *case_ptrs * case_cnt);
-  if ((cases != NULL && case_ptrs != NULL) || case_cnt == 0) 
+  dst = casefile_create (casefile_get_value_cnt (src));
+  if (case_cnt != 0) 
     {
-      unsigned long case_idx;
-      
-      for (case_idx = 0; case_idx < case_cnt; case_idx++) 
+      struct indexed_case *cases = malloc (sizeof *cases * case_cnt);
+      if (cases != NULL) 
         {
-          int success = casereader_read_xfer (reader, &cases[case_idx]);
-          assert (success);
-          case_ptrs[case_idx] = &cases[case_idx];
-        }
+          unsigned long i;
+          
+          for (i = 0; i < case_cnt; i++)
+            {
+              casereader_read_xfer_assert (reader, &cases[i].c);
+              cases[i].idx = i;
+            }
 
-      sort (case_ptrs, case_cnt, sizeof *case_ptrs, compare_case_dblptrs,
-            (void *) criteria);
+          sort (cases, case_cnt, sizeof *cases, compare_indexed_cases,
+                (void *) criteria);
       
-      dst = casefile_create (casefile_get_value_cnt (src));
-      for (case_idx = 0; case_idx < case_cnt; case_idx++) 
-        casefile_append_xfer (dst, case_ptrs[case_idx]);
+          for (i = 0; i < case_cnt; i++)
+            casefile_append_xfer (dst, &cases[i].c);
+
+          free (cases);
+        }
+      else 
+        {
+          /* Failure. */
+          casefile_destroy (dst);
+          dst = NULL;
+        }
     }
-  else
-    dst = NULL;
-  
-  free (case_ptrs);
-  free (cases);
 
   return dst;
 }
 
 /* Compares the variables specified by CRITERIA between the cases
-   at A and B, and returns a strcmp()-type result. */
+   at A and B, with a "last resort" comparison for stability, and
+   returns a strcmp()-type result. */
 static int
-compare_case_dblptrs (const void *a_, const void *b_, void *criteria_)
+compare_indexed_cases (const void *a_, const void *b_, void *criteria_)
 {
   struct sort_criteria *criteria = criteria_;
-  struct ccase *const *pa = a_;
-  struct ccase *const *pb = b_;
-  struct ccase *a = *pa;
-  struct ccase *b = *pb;
- 
-  return compare_record (a, b, criteria);
+  const struct indexed_case *a = a_;
+  const struct indexed_case *b = b_;
+  int result = compare_record (&a->c, &b->c, criteria);
+  if (result == 0)
+    result = a->idx < b->idx ? -1 : a->idx > b->idx;
+  return result;
 }
 
 /* External sort. */

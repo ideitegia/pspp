@@ -74,6 +74,8 @@ int dict_get_next_value_idx (const struct dictionary *);
 size_t dict_get_case_size (const struct dictionary *);
 
 void dict_compact_values (struct dictionary *);
+void dict_compact_case (const struct dictionary *,
+                        struct ccase *, const struct ccase *);
 size_t dict_get_compacted_value_cnt (const struct dictionary *);
 int *dict_get_compacted_idx_to_fv (const struct dictionary *);
 

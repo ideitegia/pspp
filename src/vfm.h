@@ -36,7 +36,6 @@ extern struct case_source *vfm_source;
 struct case_source 
   {
     const struct case_source_class *class;      /* Class. */
-    size_t value_cnt;   /* Number of `union value's in case. */
     void *aux;          /* Auxiliary data. */
   };
 
@@ -69,7 +68,6 @@ extern const struct case_source_class sort_source_class;
 
 struct dictionary;
 struct case_source *create_case_source (const struct case_source_class *,
-                                        const struct dictionary *,
                                         void *);
 void free_case_source (struct case_source *);
 
@@ -78,8 +76,7 @@ int case_source_is_class (const struct case_source *,
                           const struct case_source_class *);
 
 struct casefile *storage_source_get_casefile (struct case_source *);
-struct case_source *storage_source_create (struct casefile *,
-                                           const struct dictionary *);
+struct case_source *storage_source_create (struct casefile *);
 
 /* The replacement active file, to which cases are written. */
 extern struct case_sink *vfm_sink;
@@ -89,11 +86,6 @@ struct case_sink
   {
     const struct case_sink_class *class;        /* Class. */
     void *aux;          /* Auxiliary data. */
-
-    /* Cases written to a case sink belong to a dictionary, but
-       their data is compacted to drop scratch variables. */
-    const struct dictionary *dict;      /* Dictionary for cases. */
-    int *idx_to_fv;     /* `dict' index -> case `data' index. */
     size_t value_cnt;   /* Number of `union value's in case. */
   };
 

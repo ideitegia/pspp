@@ -701,6 +701,30 @@ dict_compact_values (struct dictionary *d)
     }
 }
 
+/* Copies values from SRC, which represents a case arranged
+   according to dictionary D, to DST, which represents a case
+   arranged according to the dictionary that will be produced by
+   dict_compact_values(D). */
+void
+dict_compact_case (const struct dictionary *d,
+                   struct ccase *dst, const struct ccase *src)
+{
+  size_t i;
+  size_t value_idx;
+
+  value_idx = 0;
+  for (i = 0; i < d->var_cnt; i++) 
+    {
+      struct variable *v = d->var[i];
+
+      if (dict_class_from_id (v->name) != DC_SCRATCH)
+        {
+          case_copy (dst, value_idx, src, v->fv, v->nv);
+          value_idx += v->nv;
+        }
+    }
+}
+
 /* Returns the number of values that would be used by a case if
    dict_compact_values() were called. */
 size_t

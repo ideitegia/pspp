@@ -280,7 +280,7 @@ cmd_file_type (void)
   create_col_var (&fty->record);
   if (fty->case_sbc.name[0])
     create_col_var (&fty->case_sbc);
-  vfm_source = create_case_source (&file_type_source_class, default_dict, fty);
+  vfm_source = create_case_source (&file_type_source_class, fty);
 
   return CMD_SUCCESS;
 

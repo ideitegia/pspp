@@ -48,7 +48,7 @@ struct file_handle
 
     int open_cnt;               /* 0=not open, otherwise # of openers. */
     const char *type;           /* If open, type of file. */
-    const char open_mode[3];    /* "[rw][se]". */
+    char open_mode[3];          /* "[rw][se]". */
     void *aux;                  /* Aux data pointer for owner if any. */
   };
 

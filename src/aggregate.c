@@ -817,9 +817,11 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	    switch (iter->function)
 	      {
 	      case NMISS:
+	      case NMISS | FSTRING:
 		iter->dbl[0] += weight;
                 break;
 	      case NUMISS:
+	      case NUMISS | FSTRING:
 		iter->int1++;
 		break;
 	      }
@@ -904,7 +906,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	  case FOUT | FSTRING:
 	  case POUT | FSTRING:
             if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0
-                && memcmp (iter->arg[1].c, v->s, iter->src->width) < 0)
+                || memcmp (iter->arg[1].c, v->s, iter->src->width) < 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -1033,16 +1035,14 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    else
 	      memset (v->s, ' ', i->dest->width);
 	    break;
-	  case FGT | FSTRING:
-	  case FLT | FSTRING:
-	  case FIN | FSTRING:
-	  case FOUT | FSTRING:
-	    v->f = i->int2 ? (double) i->int1 / (double) i->int2 : SYSMIS;
-	    break;
 	  case FGT:
+	  case FGT | FSTRING:
 	  case FLT:
+	  case FLT | FSTRING:
 	  case FIN:
+	  case FIN | FSTRING:
 	  case FOUT:
+	  case FOUT | FSTRING:
 	    v->f = i->dbl[1] ? i->dbl[0] / i->dbl[1] : SYSMIS;
 	    break;
 	  case PGT:
@@ -1104,18 +1104,18 @@ initialize_aggregate_info (struct agr_proc *agr)
   for (iter = agr->agr_vars; iter; iter = iter->next)
     {
       iter->missing = 0;
+      iter->dbl[0] = iter->dbl[1] = iter->dbl[2] = 0.0;
+      iter->int1 = iter->int2 = 0;
       switch (iter->function)
 	{
 	case MIN:
 	  iter->dbl[0] = DBL_MAX;
-          iter->int1 = 0;
 	  break;
 	case MIN | FSTRING:
 	  memset (iter->string, 255, iter->src->width);
 	  break;
 	case MAX:
 	  iter->dbl[0] = -DBL_MAX;
-          iter->int1 = 0;
 	  break;
 	case MAX | FSTRING:
 	  memset (iter->string, 0, iter->src->width);
@@ -1126,10 +1126,8 @@ initialize_aggregate_info (struct agr_proc *agr)
           else
             moments1_clear (iter->moments);
           break;
-	default:
-	  iter->dbl[0] = iter->dbl[1] = iter->dbl[2] = 0.0;
-	  iter->int1 = iter->int2 = 0;
-	  break;
+        default:
+          break;
 	}
     }
 }

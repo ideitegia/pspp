@@ -50,6 +50,7 @@ struct varname
 struct flip_pgm 
   {
     struct variable **var;      /* Variables to transpose. */
+    int *idx_to_fv;             /* var[]->index to compacted sink case fv. */
     int var_cnt;                /* Number of elements in `var'. */
     int case_cnt;               /* Pre-flip case count. */
     size_t case_size;           /* Post-flip bytes per case. */
@@ -85,6 +86,7 @@ cmd_flip (void)
 
   flip = xmalloc (sizeof *flip);
   flip->var = NULL;
+  flip->idx_to_fv = dict_get_compacted_idx_to_fv (default_dict);
   flip->var_cnt = 0;
   flip->case_cnt = 0;
   flip->new_names = NULL;
@@ -163,6 +165,7 @@ destroy_flip_pgm (struct flip_pgm *flip)
   struct varname *iter, *next;
   
   free (flip->var);
+  free (flip->idx_to_fv);
   for (iter = flip->new_names_head; iter != NULL; iter = next) 
     {
       next = iter->next;
@@ -308,7 +311,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       v->next = NULL;
       if (flip->new_names->type == NUMERIC) 
         {
-          double f = case_num (c, sink->idx_to_fv[flip->new_names->index]);
+          double f = case_num (c, flip->idx_to_fv[flip->new_names->index]);
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -327,7 +330,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       else
 	{
 	  int width = min (flip->new_names->width, 8);
-	  memcpy (v->name, case_str (c, sink->idx_to_fv[flip->new_names->index]),
+	  memcpy (v->name, case_str (c, flip->idx_to_fv[flip->new_names->index]),
                   width);
 	  v->name[width] = 0;
 	}
@@ -345,7 +348,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       double out;
       
       if (flip->var[i]->type == NUMERIC)
-        out = case_num (c, sink->idx_to_fv[flip->var[i]->index]);
+        out = case_num (c, flip->idx_to_fv[flip->var[i]->index]);
       else
         out = SYSMIS;
       info->output_buf[i].f = out;
@@ -474,7 +477,7 @@ static const struct case_sink_class flip_sink_class =
 static struct case_source *
 flip_source_create (struct flip_pgm *pgm)
 {
-  return create_case_source (&flip_source_class, default_dict, pgm);
+  return create_case_source (&flip_source_class, pgm);
 }
 
 /* Reads the FLIP stream.  Copies each case into C and calls
