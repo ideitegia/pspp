@@ -1,4 +1,4 @@
-Tue Dec 30 22:23:40 WST 2003 John Darrington <john@darrington.wattle.id.au>
+Tue Dec 30 22:23:40 WST 2003 John Darrington <john@darrington.wattle.id.au> 
 	
 	* Fixed floating point rounding bug in percentiles calculation
 
