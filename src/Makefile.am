@@ -51,8 +51,8 @@ LDADD =	../lib/julcal/libjulcal.a		\
 version.c:
 	echo "#include <config.h>" > version.c
 	echo "const char bare_version[] = \"@VERSION@\";" >> version.c
-	echo "const char version[] = GNU_PACKAGE \" @VERSION@\";" >> version.c
-	echo "const char stat_version[] = GNU_PACKAGE \" @VERSION@ \
+	echo "const char version[] = \"GNU @PACKAGE@ @VERSION@\";" >> version.c
+	echo "const char stat_version[] = \"GNU @PACKAGE@ @VERSION@ \
 (`date`).\";" >> version.c
 	echo "const char host_system[] = \"$(host_triplet)\";" >> version.c
 	echo "const char build_system[] = \"$(build_triplet)\";" >> version.c
