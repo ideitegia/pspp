@@ -29,6 +29,7 @@ struct rect
     int x2, y2;			/* Lower right, not part of the rectangle. */
   };
 
+#if 0
 #if __GNUC__ > 1 && defined(__OPTIMIZE__)
 extern inline int width (rect r) __attribute__ ((const));
 extern inline int height (rect r) __attribute__ ((const));
@@ -45,11 +46,13 @@ height (rect r)
   return r.y2 - r.y1 + 1;
 }
 #else /* !__GNUC__ */
+/* Be carefull of these ... they use the argument more than once. */
 #define width(R) 				\
 	((R).x2 - (R).x1 + 1)
 #define height(R) 				\
 	((R).y2 - (R).y1 + 1)
 #endif /* !__GNUC__ */
+#endif
 
 /* Color descriptor. */
 struct color

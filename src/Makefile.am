@@ -11,6 +11,11 @@ bin_PROGRAMS = pspp
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
 -I$(top_srcdir)/intl
 
+if cc_is_gcc
+AM_CFLAGS=-Wall -W -Wno-uninitialized -Wwrite-strings -Wstrict-prototypes \
+-Wpointer-arith -Wno-sign-compare -Wmissing-prototypes 
+endif
+
 DISTCLEANFILES = foo $(q_sources_c)
 MAINTAINERCLEANFILES = Makefile.in
 EXTRA_DIST = $(q_sources_q) q2c.c

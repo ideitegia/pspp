@@ -981,7 +981,7 @@ dump_full (struct variable * v)
   struct freq *f;
   struct tab_table *t;
   int r;
-  double cum_percent = 0.0;
+  double cum_total = 0.0;
   double cum_freq = 0.0;
 
   struct init
@@ -1030,7 +1030,7 @@ dump_full (struct variable * v)
 
       percent = f->c / v->p.frq.tab.total_cases * 100.0;
       valid_percent = f->c / v->p.frq.tab.valid_cases * 100.0;
-      cum_percent += valid_percent;
+      cum_total += valid_percent;
 
       if (lab)
 	{
@@ -1043,7 +1043,7 @@ dump_full (struct variable * v)
       tab_float (t, 1 + lab, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2 + lab, r, TAB_NONE, percent, 5, 1);
       tab_float (t, 3 + lab, r, TAB_NONE, valid_percent, 5, 1);
-      tab_float (t, 4 + lab, r, TAB_NONE, cum_percent, 5, 1);
+      tab_float (t, 4 + lab, r, TAB_NONE, cum_total, 5, 1);
       r++;
     }
   for (; f < &v->p.frq.tab.valid[n_categories]; f++)
@@ -1107,7 +1107,7 @@ dump_condensed (struct variable * v)
   struct freq *f;
   struct tab_table *t;
   int r;
-  double cum_percent = 0.0;
+  double cum_total = 0.0;
 
   n_categories = v->p.frq.tab.n_valid + v->p.frq.tab.n_missing;
   t = tab_create (4, n_categories + 2, 0);
@@ -1126,12 +1126,12 @@ dump_condensed (struct variable * v)
       double percent;
 
       percent = f->c / v->p.frq.tab.total_cases * 100.0;
-      cum_percent += f->c / v->p.frq.tab.valid_cases * 100.0;
+      cum_total += f->c / v->p.frq.tab.valid_cases * 100.0;
 
       tab_value (t, 0, r, TAB_NONE, &f->v, &v->print);
       tab_float (t, 1, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2, r, TAB_NONE, percent, 3, 0);
-      tab_float (t, 3, r, TAB_NONE, cum_percent, 3, 0);
+      tab_float (t, 3, r, TAB_NONE, cum_total, 3, 0);
       r++;
     }
   for (; f < &v->p.frq.tab.valid[n_categories]; f++)
@@ -1164,7 +1164,7 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   struct freq *f;
   int most_often;
 
-  double cum_percent;
+  double cum_total;
   int i = 0;
   double previous_value;
 
@@ -1175,14 +1175,14 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   X_bar /= W;
 
   /* Calculate percentiles. */
-  cum_percent = 0;
+  cum_total = 0;
   previous_value = SYSMIS;
   for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
     {
-      cum_percent += f->c / v->p.frq.tab.valid_cases;
+      cum_total += f->c ;
       for (; i < n_percentiles; i++) 
         {
-          if (cum_percent <= percentiles[i])
+          if (cum_total / v->p.frq.tab.valid_cases < percentiles[i])
             break;
 
           percentile_values[i] = previous_value;

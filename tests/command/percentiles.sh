@@ -110,7 +110,7 @@ Maximum         .100
 Sum             .550
 Percentile 5    .   
 Percentile 10   .010
-Percentile 29   .030
+Percentile 29   .020
 Percentile 90   .090
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

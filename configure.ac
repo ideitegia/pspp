@@ -10,6 +10,9 @@ dnl Checks for programs.
 AC_GNU_SOURCE
 AC_PROG_CC
 
+AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
+
+
 dnl Internationalization macros.
 AM_GNU_GETTEXT
 AM_GNU_GETTEXT_VERSION	dnl Prevents autoreconf complaint.
@@ -89,15 +92,7 @@ AC_CHECK_FUNCS([gethostname strstr strtod __setfpucw isinf isnan finite \
 
 AC_PROG_LN_S
 
-dnl This must be after other tests so warnings don't provoke errors above.
-if test "$ac_cv_c_compiler_gnu" = yes; then
-	CFLAGS="-g -Wall -W -Wno-uninitialized -Wwrite-strings \
--Wstrict-prototypes -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes"
-	if test "$CC_OPTIONS" != ""; then
-		CFLAGS="$CFLAGS $CC_OPTIONS"
-	fi
-fi
-AC_SUBST(CFLAGS)
+
 
 AH_BOTTOM([#include <pref.h>])
 
