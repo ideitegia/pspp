@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "sort.h"
-#include <assert.h>
+#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

@@ -20,7 +20,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include "error.h"
 #include "alloc.h"
 #include "command.h"
 #include "hash.h"

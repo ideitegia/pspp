@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "som.h"
-#include <assert.h>
+#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "output.h"

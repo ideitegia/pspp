@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "data-in.h"
-#include <assert.h>
+#include "error.h"
 #include <math.h>
 #include <ctype.h>
 #include <stdarg.h>

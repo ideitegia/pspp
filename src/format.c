@@ -20,7 +20,7 @@
 #include <config.h>
 #include "format.h"
 #include <ctype.h>
-#include <assert.h>
+#include "error.h"
 #include <stdlib.h>
 #include "error.h"
 #include "lexer.h"

@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "file-handle.h"
-#include <assert.h>
+#include "error.h"
 #include <errno.h>
 #include <stdlib.h>
 #include "alloc.h"

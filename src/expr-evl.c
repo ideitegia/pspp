@@ -33,7 +33,7 @@
 #include <ctype.h>
 #include "expr.h"
 #include "exprP.h"
-#include <assert.h>
+#include "error.h"
 #include <math.h>
 #include <errno.h>
 #include <stdio.h>

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-03-20 00:30+0800\n"
+"POT-Creation-Date: 2004-03-21 10:15+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -2105,11 +2105,11 @@ msgstr ""
 msgid "expecting %s"
 msgstr ""
 
-#: src/lexer.c:524 src/val-labs.c:148
+#: src/lexer.c:524 src/val-labs.c:155
 msgid "expecting string"
 msgstr ""
 
-#: src/lexer.c:538 src/val-labs.c:157
+#: src/lexer.c:538 src/val-labs.c:164
 msgid "expecting integer"
 msgstr ""
 
@@ -2191,6 +2191,32 @@ msgstr ""
 #: src/loop.c:596
 #, c-format
 msgid "%s without %s."
+msgstr ""
+
+#: src/main.c:71
+msgid "Error initializing output drivers."
+msgstr ""
+
+#: src/main.c:132
+msgid "This command not executed."
+msgstr ""
+
+#: src/main.c:136
+msgid ""
+"Skipping the rest of this command.  Part of this command may have been "
+"executed."
+msgstr ""
+
+#: src/main.c:141
+msgid ""
+"Skipping the rest of this command.  This command was fully executed up to "
+"this point."
+msgstr ""
+
+#: src/main.c:146
+msgid ""
+"Trailing garbage was encountered following this command.  The command was "
+"fully executed to this point."
 msgstr ""
 
 #: src/matrix-data.c:191
@@ -3929,19 +3955,19 @@ msgstr ""
 msgid "Document entered %s %02d:%02d:%02d by %s (%s):"
 msgstr ""
 
-#: src/val-labs.c:112
+#: src/val-labs.c:119
 #, c-format
 msgid ""
 "It is not possible to assign value labels to long string variables such as %"
 "s."
 msgstr ""
 
-#: src/val-labs.c:161
+#: src/val-labs.c:168
 #, c-format
 msgid "Value label `%g' is not integer."
 msgstr ""
 
-#: src/val-labs.c:171
+#: src/val-labs.c:178
 msgid "Truncating value label to 60 characters."
 msgstr ""
 

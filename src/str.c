@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "str.h"
-#include <assert.h>
+#include "error.h"
 #include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>

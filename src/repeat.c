@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "repeat.h"
-#include <assert.h>
+#include "error.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>

@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "random.h"
-#include <assert.h>
+#include "error.h"
 #include <inttypes.h>
 #include <limits.h>
 #include <math.h>

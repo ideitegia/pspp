@@ -60,7 +60,7 @@
    
 #include <config.h>
 #include "settings.h"
-#include <assert.h>
+#include "error.h"
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>

@@ -18,7 +18,6 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include <assert.h>
 #include "error.h"
 #include <ctype.h>
 #include <stdarg.h>
@@ -32,6 +31,7 @@
 #include "settings.h"
 #include "str.h"
 #include "var.h"
+#include "version.h"
 
 int err_error_count;
 int err_warning_count;
@@ -511,4 +511,55 @@ dump_message (char *msg, unsigned indent, void (*func) (const char *),
     }
 
   local_free (buf);
+}
+
+
+void 
+request_bug_report_and_abort(const char *msg )
+{
+  fprintf(stderr,
+	  "******************************************************************\n"
+	  "You have discovered a bug in PSPP.\n\n"
+	  "  Please report this, by sending "
+	  "an email to " PACKAGE_BUGREPORT ",\n"
+	  "explaining what you were doing when this happened, and including\n"
+	  "a sample of your input file which caused it.\n");
+
+  fprintf(stderr,
+	  "Also, please copy the following lines into your bug report:\n\n"
+	  "bare_version:        %s\n" 
+	  "version:             %s\n"
+	  "stat_version:        %s\n"
+	  "host_system:         %s\n"
+	  "build_system:        %s\n"
+	  "default_config_path: %s\n"
+	  "include_path:        %s\n"
+	  "groff_font_path:     %s\n"
+	  "locale_dir:          %s\n",
+
+	  bare_version,         
+	  version,
+	  stat_version,
+	  host_system,        
+	  build_system,
+	  default_config_path,
+	  include_path, 
+	  groff_font_path,
+	  locale_dir);     
+
+  if ( msg )
+    fprintf(stderr,"Diagnosis: %s\n",msg);
+
+  fprintf(stderr,
+    "******************************************************************\n");
+
+  abort();
+}
+
+void 
+err_assert_fail(const char *expr, const char *file, int line)
+{
+  const char msg[256];
+  snprintf(msg,256,"Assertion failed: %s:%d; (%s)",file,line,expr);
+  request_bug_report_and_abort( msg );
 }

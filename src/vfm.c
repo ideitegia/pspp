@@ -20,7 +20,7 @@
 #include <config.h>
 #include "vfm.h"
 #include "vfmP.h"
-#include <assert.h>
+#include "error.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

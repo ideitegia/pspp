@@ -40,7 +40,9 @@ TESTS = command/aggregate.sh \
 	bugs/crosstabs.sh \
 	bugs/data-crash.sh \
 	bugs/random.sh \
-	bugs/temporary.sh
+	bugs/t-test.sh \
+	bugs/temporary.sh \
+	bugs/val-labs.sh
 
 noinst_PROGRAMS = gengarbage
 

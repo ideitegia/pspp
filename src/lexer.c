@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "lexer.h"
-#include <assert.h>
+#include "error.h"
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>

@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "font.h"
-#include <assert.h>
+#include "error.h"
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>

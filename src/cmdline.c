@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "cmdline.h"
-#include <assert.h>
+#include "error.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <errno.h>

@@ -18,7 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include <assert.h>
+#include "error.h"
 #include "command.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 #include "pool.h"
-#include <assert.h>
+#include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
 #include "str.h"

@@ -20,10 +20,10 @@
 #include <config.h>
 #include "tab.h"
 #include <ctype.h>
-#include <assert.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <stdlib.h>
+#include "error.h"
 #include "alloc.h"
 #include "command.h"
 #include "format.h"

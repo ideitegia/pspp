@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include <assert.h>
+#include "error.h"
 #include "algorithm.h"
 #include "alloc.h"
 #include "bitvector.h"

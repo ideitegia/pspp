@@ -19,7 +19,6 @@
 
 #include <config.h>
 #include "var.h"
-#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include "alloc.h"

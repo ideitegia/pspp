@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "pfm.h"
-#include <assert.h>
+#include "error.h"
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>

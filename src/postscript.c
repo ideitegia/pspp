@@ -23,7 +23,7 @@
 #if !NO_POSTSCRIPT
 
 #include <ctype.h>
-#include <assert.h>
+#include "error.h"
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>

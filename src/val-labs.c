@@ -57,12 +57,19 @@ do_value_labels (int erase)
 {
   struct variable **vars; /* Variable list. */
   int var_cnt;            /* Number of variables. */
+  int parse_err=0;        /* true if error parsing variables */
 
   lex_match ('/');
   
   while (token != '.')
     {
-      parse_variables (default_dict, &vars, &var_cnt, PV_SAME_TYPE);
+      parse_err = !parse_variables (default_dict, &vars, &var_cnt, 
+				    PV_SAME_TYPE) ;
+      if (var_cnt < 1)
+	{
+	  free(vars);
+	  return CMD_FAILURE;
+	}
       if (!verify_val_labs (vars, var_cnt))
         goto lossage;
       if (erase)
@@ -85,7 +92,7 @@ do_value_labels (int erase)
       return CMD_TRAILING_GARBAGE;
     }
 
-  return CMD_SUCCESS;
+  return parse_err ? CMD_PART_SUCCESS_MAYBE : CMD_SUCCESS;
 
  lossage:
   free (vars);

@@ -20,7 +20,7 @@
 /* FIXME: Many possible optimizations. */
 
 #include <config.h>
-#include <assert.h>
+#include "error.h"
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>

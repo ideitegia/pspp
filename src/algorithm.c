@@ -102,7 +102,7 @@
 #if __OPTIMIZE__
 #define NDEBUG
 #endif
-#include <assert.h>
+#include "error.h"
 
 /* Finds an element in ARRAY, which contains COUNT elements of
    SIZE bytes each, using COMPARE for comparisons.  Returns the

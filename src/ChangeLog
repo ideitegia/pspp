@@ -1,3 +1,14 @@
+Sun Mar 21 10:11:14 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+        * val-labs.c: Fixed a bug where PSPP would crash, if VALUE LABELS was
+	used with incorrect syntax.
+
+	* error.c, error.h et al:  Overridden definition of assert for a
+	custom one.
+
+	* test-q.c: Fixed a buglet where it would crash if no /VARIABLES
+	subcommand was given when it ought to have been.
+
 Sat Mar 20 22:19:08 2004  Ben Pfaff  <blp@gnu.org>
 
 	* tab.c: (tab_vline) Fix assertions to respect row_ofs and

@@ -20,7 +20,7 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include <assert.h>
+#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -77,10 +77,8 @@ static enum comparison criteria[2];
 static int n_pairs = 0 ;
 struct pair 
 {
-#if 1
   /* The variables comprising the pair */
   struct variable *v[2];
-#endif
 
   /* The number of valid variable pairs */
   double n;
@@ -280,6 +278,12 @@ cmd_t_test(void)
 	  hsh_destroy(hash);
 	}
     }
+  else if ( !cmd.sbc_variables) 
+    {
+      msg(SE, _("One or more VARIABLES must be specified."));
+      return CMD_FAILURE;
+    }
+
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   if (cmd.incl == TTS_INCLUDE ) 
@@ -1633,15 +1637,7 @@ paired_calc (struct ccase *c, void *aux UNUSED)
 	pairs[i].ssq[0] += weight * sqr(val0->f);
 	pairs[i].ssq[1] += weight * sqr(val1->f);
 
-#if 0
-	pairs[i].correlation += weight * 
-	  ( val0->f - pairs[i].v[0]->p.t_t.ugs.mean )
-	  *
-	  ( val1->f - pairs[i].v[1]->p.t_t.ugs.mean );
-#endif
-
 	pairs[i].sum_of_prod += weight * val0->f * val1->f ;
-
 
 	pairs[i].sum_of_diffs += weight * ( val0->f - val1->f ) ;
 	pairs[i].ssq_diffs += weight * sqr(val0->f - val1->f);
@@ -1680,15 +1676,7 @@ paired_postcalc (void *aux UNUSED)
       pairs[i].correlation /= pairs[i].std_dev[0] * pairs[i].std_dev[1];
       pairs[i].correlation *= pairs[i].n / ( pairs[i].n - 1 );
       
-#if 0
-      pairs[i].correlation /= pairs[i].v[0]->p.t_t.ugs.std_dev * 
-                              pairs[i].v[1]->p.t_t.ugs.std_dev ;
-      pairs[i].correlation /= n - 1; 
-#endif      
-
-
       pairs[i].mean_diff = pairs[i].sum_of_diffs / n ;
-
 
       pairs[i].std_dev_diff = sqrt (  n / (n - 1) * (
 				    ( pairs[i].ssq_diffs / n )

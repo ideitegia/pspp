@@ -2027,7 +2027,6 @@ main (int argc, char *argv[])
 	{
 	  indent = 0;
 
-	  dump (0, "#include <assert.h>");
 	  dump (0, "#include <stdlib.h>");
 	  dump (0, "#include \"alloc.h\"");
 	  dump (0, "#include \"error.h\"");

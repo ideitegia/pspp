@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "data-list.h"
-#include <assert.h>
+#include "error.h"
 #include <ctype.h>
 #include <float.h>
 #include <stdio.h>

@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "var.h"
-#include <assert.h>
+#include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"

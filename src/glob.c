@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "glob.h"
-#include <assert.h>
+#include "error.h"
 #include <stdlib.h>
 #include <stdio.h>
 

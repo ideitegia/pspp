@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "hash.h"
-#include <assert.h>
+#include "error.h"
 #include <limits.h>
 #include <stdlib.h>
 #include "algorithm.h"
@@ -479,7 +479,7 @@ hsh_count (struct hsh_table *h)
 
 #if GLOBAL_DEBUGGING
 #undef NDEBUG
-#include <assert.h>
+#include "error.h"
 #include <stdio.h>
 
 /* Displays contents of hash table H on stdout. */

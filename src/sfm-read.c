@@ -20,7 +20,7 @@
 #include <config.h>
 #include "sfm.h"
 #include "sfmP.h"
-#include <assert.h>
+#include "error.h"
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>

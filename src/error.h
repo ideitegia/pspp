@@ -87,4 +87,18 @@ void err_check_count (void);
 void err_hcf (int exit_code) NO_RETURN;
 void err_vmsg (const struct error *);
 
+/* Used in panic situations only */
+void request_bug_report_and_abort(const char *msg );
+
+void err_assert_fail(const char *expr, const char *file, int line);
+
+#undef __STRING
+#define __STRING(x) #x
+#undef assert
+
+			       
+#define assert(expr) ( (void) ( expr ? 0 : \
+	       err_assert_fail(__STRING(expr), __FILE__, __LINE__)) )
+
+
 #endif /* error.h */

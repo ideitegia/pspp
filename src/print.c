@@ -20,7 +20,7 @@
 /* FIXME: seems like a lot of code duplication with data-list.c. */
 
 #include <config.h>
-#include <assert.h>
+#include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"

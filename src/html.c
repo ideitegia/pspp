@@ -22,7 +22,7 @@
 
 #include <config.h>
 #include "htmlP.h"
-#include <assert.h>
+#include "error.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <ctype.h>
