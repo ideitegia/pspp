@@ -1,6 +1,10 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+
+# If you change this, you must also change the corresponding line in
+# src/Makefile.am
+pkgsysconfdir = $(sysconfdir)/@PACKAGE@
+
 pkgsysconf_DATA = devices html-prologue papersize ps-prologue
 EXTRA_DIST = devices html-prologue papersize ps-prologue
 
