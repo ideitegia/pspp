@@ -66,7 +66,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 cd $TEMPDIR
 
 activity="run data"
-$here/../src/pspp  $TEMPDIR/ff.stat
+$SUPERVISOR $here/../src/pspp  $TEMPDIR/ff.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

@@ -70,7 +70,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run prog"
-$here/../src/pspp -o raw-ascii $TEMPDIR/percents.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/percents.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"

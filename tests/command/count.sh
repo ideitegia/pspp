@@ -65,7 +65,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$here/../src/pspp -o raw-ascii $TEMPDIR/count.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/count.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

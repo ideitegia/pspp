@@ -73,7 +73,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$here/../src/pspp $TEMPDIR/ct.stat
+$SUPERVISOR $here/../src/pspp $TEMPDIR/ct.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

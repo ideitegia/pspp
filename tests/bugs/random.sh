@@ -63,7 +63,7 @@ list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

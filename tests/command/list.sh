@@ -75,7 +75,7 @@ foobar
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/list.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/list.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

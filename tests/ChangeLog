@@ -1,3 +1,8 @@
+Mon Feb 16 21:36:57 2004  Ben Pfaff  <blp@gnu.org>
+
+	* */*.sh: Prepend $SUPERVISOR to invocations of pspp so that we
+	can run valgrind or gdb easily with `make check'
+
 Sat Dec 13 00:08:23 2003  Ben Pfaff  <blp@gnu.org>
 
 	* syntax: Run a diff when there's no expected output, too.

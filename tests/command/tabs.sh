@@ -67,7 +67,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$here/../src/pspp -o raw-ascii $TEMPDIR/tabs.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/tabs.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

@@ -55,7 +55,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$here/../src/pspp $TEMPDIR/ct.stat > /dev/null
+$SUPERVISOR $here/../src/pspp $TEMPDIR/ct.stat > /dev/null
 if [ $? -ne 1 ] ; then fail ; fi
 
 

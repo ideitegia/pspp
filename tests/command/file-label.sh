@@ -104,7 +104,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/file-lab.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/file-lab.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # We need to filter out the dates/times

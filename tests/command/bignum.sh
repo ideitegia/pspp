@@ -147,7 +147,7 @@ foobar
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$here/../src/pspp -o raw-ascii prog.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii prog.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # Like the above comments say ...

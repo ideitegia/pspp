@@ -84,7 +84,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare data"

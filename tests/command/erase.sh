@@ -70,7 +70,7 @@ if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi
 
 # This command must fail
 activity="run prog 1"
-$here/../src/pspp $TEMPDIR/foo.sps > /dev/null
+$SUPERVISOR $here/../src/pspp $TEMPDIR/foo.sps > /dev/null
 if [ $? -eq 0 ] ; then fail ; fi
 
 
@@ -84,7 +84,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run prog 1"
-$here/../src/pspp $TEMPDIR/foo.sps
+$SUPERVISOR $here/../src/pspp $TEMPDIR/foo.sps
 if [ $? -ne 0 ] ; then fail ; fi
 
 # foobar should now be gone

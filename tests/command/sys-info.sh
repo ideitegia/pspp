@@ -61,7 +61,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 1"
-$here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/save.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/save.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
@@ -73,7 +73,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-$here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/read.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/read.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

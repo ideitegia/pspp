@@ -86,7 +86,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$here/../src/pspp -o raw-ascii --testing-mode $TEMPDIR/print.stat > $TEMPDIR/errs
+$SUPERVISOR $here/../src/pspp -o raw-ascii --testing-mode $TEMPDIR/print.stat > $TEMPDIR/errs
 # Note   vv   --- there are errors in input.  Therefore, the  command must FAIL
 if [ $? -eq 0 ] ; then fail ; fi
 

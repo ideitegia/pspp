@@ -63,7 +63,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/loop.stat > $TEMPDIR/stdout
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/loop.stat > $TEMPDIR/stdout
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare stdout"

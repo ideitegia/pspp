@@ -60,7 +60,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$here/../src/pspp $TEMPDIR/prog.sps
+$SUPERVISOR $here/../src/pspp $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then fail ; fi
 
 
