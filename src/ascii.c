@@ -469,7 +469,6 @@ ascii_option (struct outp_driver *this, const char *key,
     }
 
   cat = outp_match_keyword (key, option_tab, &option_info, &subcat);
-
   switch (cat)
     {
     case 0:

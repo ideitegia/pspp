@@ -276,11 +276,11 @@ err_vmsg (const struct error *e)
       {0, NULL, N_("installation error")},	/* IE */
       {2, NULL, N_("installation error")},	/* IS */
 
-      {2, NULL, N_("error")},			/* DE */
-      {2, NULL, N_("warning")},			/* DW */
+      {2, &err_error_count, N_("error")},	/* DE */
+      {2, &err_warning_count, N_("warning")},	/* DW */
 
-      {0, NULL, N_("error")},			/* ME */
-      {0, NULL, N_("warning")},			/* MW */
+      {0, &err_error_count, N_("error")},	/* ME */
+      {0, &err_warning_count, N_("warning")},	/* MW */
       {0, NULL, N_("note")},			/* MM */
     };
 

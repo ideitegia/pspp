@@ -69,6 +69,9 @@ main (int argc, char **argv)
 
   /* Execution. */
   parse_script ();
+
+  /* Should never be reached */
+  return (-1);
 }
 
 /* Parses the entire script. */
@@ -81,7 +84,7 @@ parse_script (void)
       handle_error (execute_command ());
     }
 
-  err_hcf (1);
+  err_hcf (err_error_count==0);
 }
 
 /* Parse and execute a command, returning its return code. */
@@ -101,7 +104,7 @@ execute_command (void)
 	break;
 
       if (!getl_perform_delayed_reset ())
-	err_hcf (1);
+	err_hcf (err_error_count==0);
     }
 
   /* Parse the command. */

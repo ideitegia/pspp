@@ -58,7 +58,7 @@ tty-ascii:ascii:screen:char-set=ascii output-file=${tty-output-file} \
   ${no-attributes}
 list-ascii:ascii:listing:length=66 width=79 char-set=ascii \
   output-file=${list-output-file} ${no-attributes}
-raw-ascii:ascii:screen:char-set=ascii \
+raw-ascii:ascii:screen:length=9999 char-set=ascii \
   output-file=${list-output-file} ${no-attributes} headers=off paginate=off
 
 # ASCII devices that support bold & underline via backspacing.
