@@ -1,3 +1,9 @@
+Wed Dec 10 22:03:32 2003  Ben Pfaff  <blp@gnu.org>
+
+	* glob.c: Add #include <stdio.h> the readline.h #include, which
+	fixes problems for some readline versions that refer to FILE but
+	don't #include <stdio.h> themselves.
+
 Sun Jan  2 21:40:13 2000  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Reorganized.  Put locale dir in version.c instead

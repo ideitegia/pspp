@@ -21,6 +21,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #if TIME_WITH_SYS_TIME
 #include <sys/time.h>
