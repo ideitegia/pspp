@@ -374,10 +374,10 @@ causes cases to be swapped with variables, and vice versa.
 All variables in the transposed active file are numeric.  String
 variables take on the system-missing value in the transposed file.
 
-No subcommands are required.  The VARIABLES subcommand specifies
-variables that will be transformed into cases.  Variables not specified
-are discarded.  By default, all variables are selected for
-transposition.
+No subcommands are required.  If specified, the VARIABLES subcommand
+selects variables to be transformed into cases, and variables not
+specified are discarded.  If the VARIABLES subcommand is omitted, all
+variables are selected for transposition.
 
 The variables specified by NEWNAMES, which must be a string variable, is
 used to give names to the variables created by @cmd{FLIP}.  If
