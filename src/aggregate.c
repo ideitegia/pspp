@@ -524,6 +524,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  /* Create the target variable in the aggregate
              dictionary. */
 	  {
+            static const struct fmt_spec f8_2 = {FMT_F, 8, 2};
 	    struct variable *destvar;
 	    
 	    v->function = func_index;
@@ -545,15 +546,9 @@ parse_aggregate_functions (struct agr_proc *agr)
                   {
                     destvar = dict_create_var (agr->dict, dest[i], 0);
                         
-                    if ((func_index == N
-                            || func_index == N_NO_VARS
-                            || func_index == NMISS)
+                    if ((func_index == N || func_index == NMISS)
                         && dict_get_weight (default_dict) != NULL)
-                      {
-                        static const struct fmt_spec f8_2 = {FMT_F, 8, 2};
-                            
-                        destvar->print = destvar->write = f8_2; 
-                      }
+                      destvar->print = destvar->write = f8_2; 
                     else
                       destvar->print = destvar->write = function->format;
                   }
@@ -563,6 +558,11 @@ parse_aggregate_functions (struct agr_proc *agr)
 	      } else {
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
+                if (func_index == N_NO_VARS
+                    && dict_get_weight (default_dict) != NULL)
+                  destvar->print = destvar->write = f8_2; 
+                else
+                  destvar->print = destvar->write = function->format;
 	      }
 	  
 	    if (!destvar)
@@ -834,6 +834,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	  {
 	  case SUM:
 	    iter->dbl[0] += v->f * weight;
+            iter->int1 = 1;
 	    break;
 	  case MEAN:
             iter->dbl[0] += v->f * weight;
@@ -1006,7 +1007,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	switch (i->function)
 	  {
 	  case SUM:
-	    v->f = i->dbl[0];
+	    v->f = i->int1 ? i->dbl[0] : SYSMIS;
 	    break;
 	  case MEAN:
 	    v->f = i->dbl[1] != 0.0 ? i->dbl[0] / i->dbl[1] : SYSMIS;

@@ -1,3 +1,10 @@
+Sat Mar 19 23:06:02 2005  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.c: (parse_aggregate_functions) Fix N_NO_VARS format.
+	(accumulate_aggregate_info) Set int1 to 1 for SUM.
+	(dump_aggregate_info) Only make SUM non-missing if there was at
+	least one variate.
+
 Sat Mar 19 14:48:19 2005  Ben Pfaff  <blp@gnu.org>
 
 	* aggregate.c: (dump_aggregate_info) Properly test whether the
