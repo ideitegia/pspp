@@ -28,7 +28,7 @@ AGGREGATE
         /OUTFILE=@{*,'filename'@}
         /DOCUMENT
         /MISSING=COLUMNWISE
-        /dest_vars=agr_func(src_vars, args@dots{})@dots{}
+        /dest_var['label']@dots{}=agr_func(src_vars, args@dots{})@dots{}
 @end display
 
 @cmd{AGGREGATE} summarizes groups of cases into single cases.
@@ -62,6 +62,13 @@ the name of an aggregation function (see the list below), and a list
 of source variables in parentheses.  Some aggregation functions expect
 additional arguments following the source variable names.
 
+Aggregation variables typically are created with no variable label,
+value labels, or missing values.  Their default print and write
+formats depend on the aggregation function used, with details given in
+the table below.  A variable label for an aggregation variable may be
+specified just after the variable's name in the aggregation variable
+list.
+
 Each set must have exactly as many source variables as aggregation
 variables.  Each aggregation variable receives the results of applying
 the specified aggregation function to the corresponding source
@@ -72,52 +79,90 @@ to numeric values.
 The available aggregation functions are as follows:
 
 @table @asis
-@item SUM(var_name)
-Sum.  Limited to numeric values.
-@item MEAN(var_name)
-Arithmetic mean.  Limited to numeric values.
-@item SD(var_name)
-Standard deviation of the mean.  Limited to numeric values.
-@item MAX(var_name)
-Maximum value.
-@item MIN(var_name)
-Minimum value.
 @item FGT(var_name, value)
-@itemx PGT(var_name, value)
-Fraction between 0 and 1, or percentage between 0 and 100, respectively,
-of values greater than the specified constant.
-@item FLT(var_name, value)
-@itemx PLT(var_name, value)
-Fraction or percentage, respectively, of values less than the specified
-constant.
+Fraction of values greater than the specified constant.  The default
+format is F5.3.
+
 @item FIN(var_name, low, high)
-@itemx PIN(var_name, low, high)
-Fraction or percentage, respectively, of values within the specified
-inclusive range of constants.
+Fraction of values within the specified inclusive range of constants.
+The default format is F5.3.
+
+@item FLT(var_name, value)
+Fraction of values less than the specified constant.  The default
+format is F5.3.
+
+@item FIRST(var_name)
+First non-missing value in break group.  The aggregation variable
+receives the complete dictionary information from the source variable.
+
 @item FOUT(var_name, low, high)
-@itemx POUT(var_name, low, high)
-Fraction or percentage, respectively, of values strictly outside the
-specified range of constants.
+Fraction of values strictly outside the specified range of constants.
+The default format is F5.3.
+
+@item LAST(var_name)
+Last non-missing value in break group.  The aggregation variable
+receives the complete dictionary information from the source variable.
+
+@item MAX(var_name)
+Maximum value.  The aggregation variable receives the complete
+dictionary information from the source variable.
+
+@item MEAN(var_name)
+Arithmetic mean.  Limited to numeric values.  The default format is
+F8.2.
+
+@item MIN(var_name)
+Minimum value.  The aggregation variable receives the complete
+dictionary information from the source variable.
+
 @item N(var_name)
-Number of non-missing values.
+Number of non-missing values.  The default format is F7.0 if weighting
+is not enabled, F8.2 if it is (@pxref{WEIGHT}).
+
 @item N
-Number of cases aggregated to form this group.  Don't supply a source
-variable for this aggregation function.
+Number of cases aggregated to form this group.  The default format is
+F7.0 if weighting is not enabled, F8.2 if it is (@pxref{WEIGHT}).
+
+@item NMISS(var_name)
+Number of missing values.  The default format is F7.0 if weighting is
+not enabled, F8.2 if it is (@pxref{WEIGHT}).
+
 @item NU(var_name)
 Number of non-missing values.  Each case is considered to have a weight
 of 1, regardless of the current weighting variable (@pxref{WEIGHT}).
+The default format is F7.0.
+
 @item NU
 Number of cases aggregated to form this group.  Each case is considered
 to have a weight of 1, regardless of the current weighting variable.
-@item NMISS(var_name)
-Number of missing values.
+The default format is F7.0.
+
 @item NUMISS(var_name)
 Number of missing values.  Each case is considered to have a weight of
-1, regardless of the current weighting variable.
-@item FIRST(var_name)
-First value in this group.
-@item LAST(var_name)
-Last value in this group.
+1, regardless of the current weighting variable.  The default format is F7.0.
+
+@item PGT(var_name, value)
+Percentage between 0 and 100 of values greater than the specified
+constant.  The default format is F5.1.
+
+@item PIN(var_name, low, high)
+Percentage of values within the specified inclusive range of
+constants.  The default format is F5.1.
+
+@item PLT(var_name, value)
+Percentage of values less than the specified constant.  The default
+format is F5.1.
+
+@item POUT(var_name, low, high)
+Percentage of values strictly outside the specified range of
+constants.  The default format is F5.1.
+
+@item SD(var_name)
+Standard deviation of the mean.  Limited to numeric values.  The
+default format is F8.2.
+
+@item SUM(var_name)
+Sum.  Limited to numeric values.  The default format is F8.2.
 @end table
 
 Aggregation functions compare string values in terms of internal
