@@ -600,23 +600,26 @@ add_kern (struct font_desc *font, int ch1, int ch2, int adjust)
       for (i = 0; i < font->kern_size; i++)
 	font->kern[i].ch1 = -1;
 
-      if (old_kern) {
-	for (i = 0; i < old_kern_size; i++)
-	  {
-	    if (old_kern[i].ch1 == -1)
-	      continue;
+      if (old_kern)
+        {
+          for (i = 0; i < old_kern_size; i++)
+            {
+              if (old_kern[i].ch1 == -1)
+                continue;
 
-	    j = hash_kern (old_kern[i].ch1, old_kern[i].ch2) % font->kern_size;
-	    while (font->kern[j].ch1 != -1)
-	      if (0 == j--)
-		j = font->kern_size - 1;
-	    font->kern[j] = old_kern[i];
-	  }
-	pool_free (font->owner, old_kern);
-      }
+              j = (hash_kern (old_kern[i].ch1, old_kern[i].ch2)
+                   & (font->kern_size - 1));
+              while (font->kern[j].ch1 != -1)
+                if (0 == j--)
+                  j = font->kern_size - 1;
+              font->kern[j] = old_kern[i];
+            }
+          pool_free (font->owner, old_kern);
+        }
     }
 
-  for (i = hash_kern (ch1, ch2) % font->kern_size; font->kern[i].ch1 != -1;)
+  for (i = hash_kern (ch1, ch2) & (font->kern_size - 1);
+       font->kern[i].ch1 != -1; )
     if (0 == i--)
       i = font->kern_size - 1;
   font->kern[i].ch1 = ch1;
@@ -961,7 +964,8 @@ font_get_kern_adjust (const struct font_desc *font, int ch1, int ch2)
 
   if (!font->kern)
     return 0;
-  for (i = hash_kern (ch1, ch2) % font->kern_size; font->kern[i].ch1 != -1;)
+  for (i = hash_kern (ch1, ch2) & (font->kern_size - 1);
+       font->kern[i].ch1 != -1;)
     {
       if (font->kern[i].ch1 == ch1 && font->kern[i].ch2 == ch2)
 	return font->kern[i].adjust;

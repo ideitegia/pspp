@@ -1,3 +1,9 @@
+Mon Dec 15 21:35:59 2003  Ben Pfaff  <blp@gnu.org>
+
+	* groff-font.c: (add_kern) Fix indentation.
+	(add_kern) Use & instead of % to take power-of-2 modulus.
+	(font_get_kern_adjust) Likewise.
+
 Fri Dec 12 23:54:37 2003  Ben Pfaff  <blp@gnu.org>
 
 	* autorecode.c: (recode) Replace stupid use of memcpy() by
