@@ -169,6 +169,7 @@ is_num_user_missing (double x, const struct variable *v)
 inline int
 is_str_user_missing (const unsigned char s[], const struct variable *v)
 {
+  /* FIXME: should these be memcmp()? */
   switch (v->miss_type)
     {
     case MISSING_NONE:
