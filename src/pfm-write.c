@@ -136,8 +136,9 @@ lossage:
 /* Write NBYTES starting at BUF to the portable file represented by
    H.  Break lines properly every 80 characters.  */
 static int
-bufwrite (struct file_handle *h, const void *buf, size_t nbytes)
+bufwrite (struct file_handle *h, const void *buf_, size_t nbytes)
 {
+  const char *buf = buf_;
   struct pfm_fhuser_ext *ext = h->ext;
 
   assert (buf != NULL);
@@ -153,7 +154,7 @@ bufwrite (struct file_handle *h, const void *buf, size_t nbytes)
 	goto lossage;
 
       nbytes -= n;
-      *((char **) &buf) += n;
+      buf += n;
       ext->lc = 0;
     }
 

@@ -1,3 +1,8 @@
+Sun Feb 15 20:50:36 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pfm-write.c: (bufwrite) Get rid of nasty cast that also invoked
+	undefined behavior.
+
 Thu Feb 12 23:35:15 2004  Ben Pfaff  <blp@gnu.org>
 
 	Add auxiliary argument to procedure() interface.  Associated small
