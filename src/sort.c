@@ -57,11 +57,6 @@ int nv_sort;
 /* Used when internal-sorting to a separate file. */
 static struct case_list **separate_case_tab;
 
-/* Exported by qsort.c. */
-void blp_quicksort (void *pbase, size_t total_elems, size_t size,
-		    int (*cmp) (const void *, const void *),
-		    void *temp_buf);
-
 /* Other prototypes. */
 static int compare_case_lists (const void *, const void *);
 static int do_internal_sort (int separate);

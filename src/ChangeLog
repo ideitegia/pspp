@@ -1,3 +1,11 @@
+Fri Dec 19 16:44:22 2003  Ben Pfaff  <blp@gnu.org>
+
+	* quicksort.c: Removed (not used).
+
+	* quicksort.h: Removed (not used).
+
+	* sort.c: Removed blp_quicksort() prototype.
+
 Fri Dec 19 16:42:13 2003  Ben Pfaff  <blp@gnu.org>
 
 	* postscript.c: (int_2_compare) Rewrite.
