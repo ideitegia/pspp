@@ -751,9 +751,14 @@ dump_fixed_table (void)
 	filename = "";
       buf = local_alloc (strlen (filename) + INT_DIGITS + 80);
       sprintf (buf, (dls.handle != inline_file
-		     ? _("Reading %d record%s from file %s.")
-		     : _("Reading %d record%s from the command file.")),
-	       dls.nrec, dls.nrec != 1 ? "s" : "", filename);
+		     ? 
+		     ngettext("Reading %d record from file %s.",
+			      "Reading %d records from file %s.",dls.nrec)
+		     : 
+		     ngettext("Reading %d record from the command file.",
+			      "Reading %d records from the command file.",
+			      dls.nrec)),
+	       dls.nrec, filename);
     }
   else
     {
