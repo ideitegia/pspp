@@ -1,7 +1,9 @@
-Time-stamp: <2003-12-27 12:03:42 blp>
+Time-stamp: <2004-02-03 18:31:06 blp>
 
 TODO
 ----
+
+random.c should not know about set_seed.
 
 Probably should get rid of approx.h.  The user really needs to be responsible
 for his own precision.
