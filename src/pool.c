@@ -643,6 +643,7 @@ free_all_gizmos (struct pool *pool)
       next = cur->next;
       free_gizmo (cur);
     }
+  pool->gizmos=NULL;
 }
 
 /* Memory allocation. */

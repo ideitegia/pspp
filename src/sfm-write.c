@@ -381,13 +381,13 @@ write_variable (struct sfm_write_info *inf, struct variable *v)
       struct label
 	{
 	  int32 label_len P;
-	  char label[120] P;
+	  char label[255] P;
 	}
       l;
 
       int ext_len;
 
-      l.label_len = min (strlen (v->label), 120);
+      l.label_len = min (strlen (v->label), 255);
       ext_len = ROUND_UP (l.label_len, sizeof l.label_len);
       memcpy (l.label, v->label, l.label_len);
       memset (&l.label[l.label_len], ' ', ext_len - l.label_len);

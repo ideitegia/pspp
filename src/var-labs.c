@@ -52,10 +52,10 @@ cmd_variable_labels (void)
 	  free (v);
 	  return CMD_PART_SUCCESS_MAYBE;
 	}
-      if (ds_length (&tokstr) > 120)
+      if (ds_length (&tokstr) > 255)
 	{
-	  msg (SW, _("Truncating variable label to 120 characters."));
-	  ds_truncate (&tokstr, 120);
+	  msg (SW, _("Truncating variable label to 255 characters."));
+	  ds_truncate (&tokstr, 255);
 	}
       for (i = 0; i < nv; i++)
 	{

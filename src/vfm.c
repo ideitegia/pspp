@@ -641,6 +641,7 @@ cancel_transformations (void)
   if (m_trns > 32)
     {
       free (t_trns);
+      t_trns=NULL;
       m_trns = 0;
     }
 }

@@ -387,7 +387,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  
 	  if (token == T_STRING)
 	    {
-	      ds_truncate (&tokstr, 120);
+	      ds_truncate (&tokstr, 255);
 	      dest_label[n_dest - 1] = xstrdup (ds_value (&tokstr));
 	      lex_get ();
 	    }
