@@ -1,3 +1,9 @@
+Sun Mar  6 11:03:58 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Add expressions/variables.sh.  Remove expr.stat.
+
+	* expr.stat: Removed.
+
 'Mon Feb 28 23:31:16 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Removed xforms/expressions.sh.  Added

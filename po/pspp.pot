@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-03-03 06:08+0800\n"
+"POT-Creation-Date: 2005-03-06 10:44-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1211,25 +1211,6 @@ msgstr ""
 msgid "installation error"
 msgstr ""
 
-#: src/filename.c:221
-#, c-format
-msgid "Searching for `%s'..."
-msgstr ""
-
-#: src/filename.c:229 src/filename.c:261
-msgid "Search unsuccessful!"
-msgstr ""
-
-#: src/filename.c:254
-#, c-format
-msgid "Found `%s'."
-msgstr ""
-
-#: src/filename.c:686
-#, c-format
-msgid "Not opening pipe file `%s' because SAFER option set."
-msgstr ""
-
 #: src/file-type.c:129
 msgid "MIXED, GROUPED, or NESTED expected."
 msgstr ""
@@ -1366,6 +1347,25 @@ msgstr ""
 #: src/file-type.c:693
 #, c-format
 msgid "Unknown record type %g."
+msgstr ""
+
+#: src/filename.c:221
+#, c-format
+msgid "Searching for `%s'..."
+msgstr ""
+
+#: src/filename.c:229 src/filename.c:261
+msgid "Search unsuccessful!"
+msgstr ""
+
+#: src/filename.c:254
+#, c-format
+msgid "Found `%s'."
+msgstr ""
+
+#: src/filename.c:686
+#, c-format
+msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
 
 #: src/flip.c:81

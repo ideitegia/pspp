@@ -56,6 +56,8 @@ static struct expression *finish_expression (union any_node *,
                                              struct expression *);
 static bool type_check (struct expression *, union any_node **,
                         enum expr_type expected_type);
+static union any_node *allocate_unary_variable (struct expression *,
+                                                struct variable *); 
 
 /* Public functions. */
 
@@ -402,7 +404,7 @@ type_coercion (struct expression *e,
                atom_type required_type, union any_node **node,
                const char *operator_name)
 {
-  return type_coercion_core (e, required_type, node, operator_name, 1);
+  return type_coercion_core (e, required_type, node, operator_name, true);
 }
 
 /* Coerces *NODE to type REQUIRED_TYPE.
@@ -411,7 +413,7 @@ static void
 type_coercion_assert (struct expression *e,
                       atom_type required_type, union any_node **node)
 {
-  int success = type_coercion_core (e, required_type, node, NULL, 1);
+  int success = type_coercion_core (e, required_type, node, NULL, true);
   assert (success);
 }
 
@@ -421,7 +423,7 @@ static bool
 is_coercible (atom_type required_type, union any_node *const *node)
 {
   return type_coercion_core (NULL, required_type,
-                             (union any_node **) node, NULL, 0);
+                             (union any_node **) node, NULL, false);
 }
 
 /* How to parse an operator. */
@@ -783,12 +785,7 @@ parse_primary (struct expression *e)
           /* It looks like a user variable.
              (It could be a format specifier, but we'll assume
              it's a variable unless proven otherwise. */
-          struct variable *v = parse_dict_variable (e->dict);
-          assert (v != NULL);
-          return expr_allocate_unary (e,
-                                      (v->type == NUMERIC
-                                       ? OP_NUM_VAR : OP_STR_VAR),
-                                      expr_allocate_variable (e, v));
+          return allocate_unary_variable (e, parse_dict_variable (e->dict));
         }
       else 
         {
@@ -1159,7 +1156,7 @@ parse_function (struct expression *e)
               goto fail;
             for (i = 0; i < var_cnt; i++)
               add_arg (&args, &arg_cnt, &arg_cap,
-                       expr_allocate_variable (e, vars[i]));
+                       allocate_unary_variable (e, vars[i]));
             free (vars);
           }
         else
@@ -1421,4 +1418,14 @@ expr_allocate_format (struct expression *e, const struct fmt_spec *format)
   n->type = OP_format;
   n->format.f = *format;
   return n;
+}
+
+/* Allocates a unary composite node that represents the value of
+   variable V in expression E. */
+static union any_node *
+allocate_unary_variable (struct expression *e, struct variable *v) 
+{
+  assert (v != NULL);
+  return expr_allocate_unary (e, v->type == NUMERIC ? OP_NUM_VAR : OP_STR_VAR,
+                              expr_allocate_variable (e, v));
 }

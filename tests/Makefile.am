@@ -80,7 +80,8 @@ TESTS = \
 	stats/percentiles-enhanced.sh \
 	expressions/expressions.sh \
 	expressions/epoch.sh \
-	expressions/randist.sh
+	expressions/randist.sh \
+	expressions/variables.sh
 
 noinst_PROGRAMS = gengarbage
 

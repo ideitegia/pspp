@@ -1,3 +1,13 @@
+Sun Mar  6 10:47:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	* operations.def: Add VALUE function.
+
+	* parse.c: (parse_function) Need an unary composite node for
+	variables in A TO B, not a variable node.  Use
+	allocate_unary_variable().
+	(parse_primary) Use allocate_unary_variable().
+	(allocate_unary_variable) New function.
+
 Thu Mar  3 23:53:32 2005  Ben Pfaff  <blp@gnu.org>
 
 	* PSPP_expressions.pm: Renamed it back to generate.pl but fixed

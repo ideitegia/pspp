@@ -878,6 +878,11 @@ no_opt boolean function SYSMIS (num_var v)
 {
   return case_num (c, v->fv) == SYSMIS;
 }
+no_opt boolean function VALUE (num_var v)
+     case c;
+{
+  return case_num (c, v->fv);
+}
 
 no_opt operator VEC_ELEM_NUM (idx)
      vector v;
