@@ -82,7 +82,7 @@ error (struct pfm_reader *r, const char *msg, ...)
   getl_location (&e.where.filename, &e.where.line_number);
   filename = handle_get_filename (r->fh);
   e.title = title = pool_alloc (r->pool, strlen (filename) + 80);
-  sprintf (e.title, _("portable file %s corrupt at offset %ld: "),
+  sprintf (title, _("portable file %s corrupt at offset %ld: "),
            filename, ftell (r->file));
 
   va_start (args, msg);
