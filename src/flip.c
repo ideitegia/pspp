@@ -24,6 +24,9 @@
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h>
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
@@ -416,10 +419,10 @@ flip_file (struct flip_pgm *flip)
 
 #ifndef HAVE_FSEEKO
 #define fseeko fseek
-
-#ifndef off_t
-#define off_t long int
 #endif
+
+#ifndef HAVE_OFF_T
+#define off_t long int
 #endif
 
 	  if (fseeko (output_file,
