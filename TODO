@@ -1,12 +1,11 @@
-Time-stamp: <2004-03-29 17:04:40 blp>
+Time-stamp: <2004-04-06 21:56:37 blp>
 
 What Ben's working on now.
 --------------------------
 
-Procedures need to be modified to make multiple passes and use the moments
-class.
-
 Update q2c input format description.
+
+Fix portable file description in documentation, bring code in sync.
 
 Rewrite output subsystem, break into multiple processes.
 
