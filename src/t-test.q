@@ -42,8 +42,8 @@
 
 /* (specification)
    "T-TEST" (tts_):
-     groups=custom;
-     testval=double;
+     +groups=custom;
+     +testval=double;
      variables=varlist("PV_NO_SCRATCH | PV_NUMERIC");
      pairs=custom;
      +missing=miss:!analysis/listwise,
@@ -69,7 +69,7 @@ static int n_groups_values;
 static union value groups_values[2];
 
 /* PAIRS: Number of pairs to be compared ; each pair. */
-static int n_pairs ;
+static int n_pairs = 0 ;
 struct pair 
 {
   /* The variables comprising the pair */
@@ -90,7 +90,7 @@ struct pair
   /* The std deviation of the differences */
   double std_dev_diff;
 };
-static struct pair *pairs;
+static struct pair *pairs=0;
 
 
 static int parse_value (union value * v, int type) ;
@@ -191,13 +191,20 @@ cmd_t_test(void)
   if (! cmd.sbc_criteria)
     cmd.criteria=0.95;
 
-  if ( cmd.sbc_testval + cmd.sbc_groups + cmd.sbc_pairs != 1 ) 
-    {
-      msg(SE, 
-	  _("Exactly one of TESTVAL, GROUPS or PAIRS subcommands is required")
-	  );
-      return CMD_FAILURE;
-    }
+  {
+    int m=0;
+    if (cmd.sbc_testval) ++m;
+    if (cmd.sbc_groups) ++m;
+    if (cmd.sbc_pairs) ++m;
+
+    if ( m != 1)
+      {
+	msg(SE, 
+	    _("TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive.")
+	    );
+	return CMD_FAILURE;
+      }
+  }
 
   if (cmd.sbc_testval) 
     mode=T_1_SAMPLE;
@@ -278,6 +285,11 @@ cmd_t_test(void)
   pool_destroy (t_test_pool);
 
   t_test_pool=0;
+
+
+  n_pairs=0;
+  free(pairs);
+  pairs=0;
     
   return CMD_SUCCESS;
 }
@@ -352,6 +364,7 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 {
   struct variable **vars;
   int n_vars;
+  int n_pairs_local;
 
   int n_before_WITH ;
   int n_after_WITH = -1;
@@ -403,11 +416,11 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	       n_before_WITH, n_after_WITH );
 	  return 0;
 	}
-      n_pairs=n_before_WITH;
+      n_pairs_local=n_before_WITH;
     }
   else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
     {
-      n_pairs=n_before_WITH * n_after_WITH ;
+      n_pairs_local=n_before_WITH * n_after_WITH ;
     }
   else /* Neither WITH nor PAIRED keyword given */
     {
@@ -420,28 +433,29 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	}
 
       /* how many ways can you pick 2 from n_vars ? */
-      n_pairs = n_vars * (n_vars -1 ) /2 ;
+      n_pairs_local = n_vars * (n_vars -1 ) /2 ;
     }
 
+
   /* Allocate storage for the pairs */
-  pairs = xrealloc(pairs,sizeof(struct pair) *n_pairs);
+  pairs = xrealloc(pairs, sizeof(struct pair) * (n_pairs + n_pairs_local) );
 
   /* Populate the pairs with the appropriate variables */
   if ( paired ) 
     {
       int i;
 
-      assert(n_pairs == n_vars/2);
-      for (i = 0; i < n_pairs ; ++i)
+      assert(n_pairs_local == n_vars/2);
+      for (i = 0; i < n_pairs_local ; ++i)
 	{
-	  pairs[i].v[0] = vars[i];
-	  pairs[i].v[1] = vars[i+n_pairs];
+	  pairs[i].v[n_pairs+0] = vars[i];
+	  pairs[i].v[n_pairs+1] = vars[i+n_pairs_local];
 	}
     }
   else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
     {
       int i,j;
-      int p=0;
+      int p=n_pairs;
 
       for(i=0 ; i < n_before_WITH ; ++i ) 
 	{
@@ -456,7 +470,7 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
   else /* Neither WITH nor PAIRED given */
     {
       int i,j;
-      int p=0;
+      int p=n_pairs;
       
       for(i=0 ; i < n_vars ; ++i ) 
 	{
@@ -468,6 +482,8 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	    }
 	}
     }
+
+  n_pairs+=n_pairs_local;
 
   return 1;
 }
