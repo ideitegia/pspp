@@ -1,0 +1,13 @@
+title 'Test SYSFILE INFO, DISPLAY utilities'.
+
+/* Run file-label.stat before running this syntax file, as it
+/* creates foo.save.
+sysfile info file='foo.save'.
+
+get 'foo.save'.
+display names.
+display index.
+display labels.
+display variables.
+display dictionary.
+

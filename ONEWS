@@ -1,0 +1,540 @@
+PSPP NEWS -- history of user-visible changes.  
+Time-stamp: <1998-08-14 10:45:12 blp>
+Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+See the end for copying conditions.
+
+Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+
+* Changes for patchlevel 37:
+
+** Bugfixes.
+
+* Changes for patchlevel 36:
+
+** Documentation fixes.
+
+* Changes for patchlevel 35:
+
+** DO REPEAT works.
+
+** Removed PC+ emulation; merged X and Wnd emulations.
+
+** Many smaller bugfixes.
+
+* Changes for patchlevel 34:
+
+** More DO REPEAT work.  Does not compile.
+
+* Changes for patchlevel 33:
+
+** Excised politically incorrect words.
+
+* Changes for patchlevel 32:
+
+** Worked on fixing DO REPEAT problems.
+
+* Changes for patchlevel 31:
+
+** Fixed packaging problems.
+
+* Changes for patchlevel 30:
+
+** Looks for include files and data file relative to the syntax file
+directory, not the current working directory.
+
+* Changes for patchlevel 29:
+
+** Add capability for PSPP syntax files to invoked as programs with
+`#!' notation.
+
+* Changes for patchlevels 20, 21, 22, 23, 24, 25, 26, 27, 28:
+
+** Bugfixes.
+
+* Changes for version 0.1.0:
+
+** Debian package support.
+
+* Changes for patchlevel 19:
+
+** Bugfixes.
+
+** Began PSPP FAQ list.
+
+* Changes for patchlevel 18:
+
+** Scratch variables are fully implemented.  They are deleted after
+every procedure.
+
+** The virtual file manager has been completely rewritten.  Although
+all known bugs have been fixed, the new object-oriented structure to
+vfm is so different that there are likely some that are
+as-yet-undiscovered.
+
+* Changes for patchlevel 14, 15, 16, 17:
+
+** Bugfixes.
+
+* Changes for patchlevels 12, 13:
+
+** Internationalization!
+
+* Changes for patchlevels 7, 8, 9, 10, 11:
+
+** Bugfixes.
+
+* Changes for patchlevel 6:
+
+** Removed the need for a `ps-fontmap' in the PostScript driver.
+This changes the options for the PostScript driver slightly.
+
+* Changes for new patchlevels 1, 2, 3, 4, 5:
+
+** Bugfixes.
+
+* Changes for interim releases x1, x2, x3:
+
+** Package changed from `flat' to `deep' format.
+
+* Changes for patchlevel 193:
+
+** No user-visible changes.
+
+* Changes for patchlevel 192:
+
+** Bugfixes.
+
+* Changes for patchlevel 191:
+
+** Reimplemented FREQUENCIES method of calculation--it should now be
+* acceptable to numerical analysts.
+
+* Changes for patchlevel 190:
+
+** Implemented PROCESS IF to be compatible with PC+.
+
+** Reimplemented DESCRIPTIVES method of calculation--it should now
+be acceptable to numerical analysts.
+
+** DESCRIPTIVES is now correct and complete--please report any bugs
+immediately.
+
+** Implemented SYSFILE INFO, although it is limited in the way it
+displays value labels.
+
+** SAVE now records the number of cases in the system file.
+
+* Changes for patchlevels 189, 188, 187:
+
+** Bugfixes.
+
+* Changes for patchlevel 186:
+
+** Bazillions of bugfixes, and more to come.  This version ought to be
+much more usable than any previous.
+
+** Added RENAME VARIABLES command and tested it.
+
+* Changes for patchlevel 185:
+
+** Added MODIFY VARS command; poorly tested.
+
+** Bugfixes.
+
+* Changes for patchlevel 184:
+
+** Debianized and fixed a few packaging problems.
+
+** First ALPHA release.
+
+** Miscellaneous bugfixes.
+
+* Changes for patchlevel 182:
+
+* Added FILE LABEL, DOCUMENT, and DROP DOCUMENTS commands; not tested.
+
+* Changes for patchlevel 181:
+
+* Added FILTER command.
+
+* Changes for patchlevel 180:
+
+* SORT CASES bugfixes.
+
+* Changes for patchlevel 179:
+
+* SORT CASES implemented.
+
+* Changes for patchlevels 178, 177, 176, 175:
+
+* No user-visible changes; might not even compile.
+
+* Changes for patchlevel 174:
+
+** AUTORECODE has been newly implemented.
+
+* Changes for patchlevel 173:
+
+** Bugfixes.
+
+* Changes for patchlevel 172:
+
+** SET has been reintroduced.  It is somewhat incomplete.
+
+** Bugfixes.
+
+* Changes for patchlevel 171:
+
+** Several bugfixes.
+
+** Minor language improvements.
+
+* Changes for patchlevel 170:
+
+** Input/output formats DOT, PCT, EDATE, SDATE are now supported but
+not tested.
+
+* Changes for patchlevel 169:
+
+** Several bugfixes.
+
+** Implemented custom currency formats (CCA ... CCE); not tested.
+
+* Changes for patchlevel 168:
+
+** No user-visible changes.
+
+* Changes for patchlevel 167:
+
+** Compression is now available on SAVE and XSAVE.
+
+* Changes for patchlevel 166:
+
+** SAVE and XSAVE are implemented.  Compression is not yet available.
+
+* Changes for patchlevel 165:
+
+** GET is now fully implemented for both compressed and uncompressed
+system files.
+
+* Changes for patchlevel 164:
+
+** GET now works on system files (uncompressed only).
+
+* Changes for patchlevels 163, 162, 161, 160, 159, 158:
+
+** No user-visible changes.
+
+** Supports keywords LOWEST and HIGHEST on MISSING VALUES.
+
+* Changes for patchlevel 157:
+
+** Fixed longtime bug with cross-compilation.
+
+* Changes for patchlevel 156:
+
+** Fixed the (known) bugs introduced in patchlevel 155.
+
+** Fixed a longtime bug in RECODE that might have affected other
+transformations as well.
+
+* Changes for patchlevel 155:
+
+** A few bugs fixed, probably several introduced.
+
+* Changes for patchlevel 154:
+
+** FILE HANDLE now supports most of the SPSS/Wnd compatible features.
+
+* Changes for patchlevel 153:
+
+** PRINT now supports OUTFILE.
+
+** WRITE is now distinct from PRINT.
+
+** RECODE, SAMPLE, SELECT IF are re-enabled.
+
+* Changes for patchlevel 152:
+
+** Bugfixes for times & dates.
+
+** Misc. bugfixes.
+
+** System variables supported on expressions.
+
+* Changes for patchlevel 151:
+
+** Newly implemented input/output formats:
+
+Time/date output formats.
+Preliminary testing has been done on times & dates.
+
+* Changes for patchlevel 150:
+
+** Newly implemented input/output formats
+
+Zoned decimal input/output format.
+Time/date input formats, but not output formats.
+All of these are untested.
+
+* Changes for patchlevel 149:
+
+** Bugfixes.
+
+* Changes for patchlevel 148:
+
+** Many bugfixes.
+
+** Re-enabled the following transformations:
+
+LEAVE, NUMERIC, PRINT, PRINT EJECT, PRINT FORMATS, PRINT SPACE,
+STRING, TITLE, WRITE.
+
+* Changes for patchlevel 147:
+
+** Crushed partial tables are much better.
+
+* Changes for patchlevel 146:
+
+** Bugfixes.
+
+** Crushed tables are working better!
+
+** Still pretty broken.
+
+* Changes for patchlevel 145:
+
+** Bugfixes.
+
+** Broken stuff.
+
+* Changes for patchlevels 144, 143:
+
+** Bugfixes.
+
+* Changes for patchlevel 142:
+
+** LIST procedure is back, but not well-implemented.
+
+* Changes for patchlevel 141:
+
+** No user-visible changes.
+
+* Changes for patchlevels 140, 139, 138:
+
+** Worked on manual.
+
+** Minor bugfixes.
+
+* Changes for patchlevel 136:
+
+** Began revisions to manual.
+
+** Changed default path for configuration files.
+
+* Changes for patchlevel 135:
+
+** PostScript driver bugfixes.
+
+** Many memory leaks eliminated.
+
+** Miscellaneous Bugfixes.
+
+* Changes for patchlevel 134:
+
+** SPLIT FILE works again.
+
+** Documentation changes in README.
+
+** New documentation in LANGUAGE, BUGS.
+
+* Changes for patchlevel 133:
+
+** PostScript driver supports encodings.
+
+It also works now, as opposed to the brokenness of the last
+patchlevel.
+
+* Changes for patchlevel 132:
+
+** PostScript driver supports font changes!
+
+Not well tested.
+
+* Changes for patchlevel 131:
+
+** Does not compile.
+
+* Changes for patchlevel 130:
+
+** Generated PostScript code is smaller in size.
+
+This is because, as long as the PostScript option `optimize-line-size'
+is at least 1, individual contiguous short lines are consolidated into
+longer monster lines.
+
+* Changes for patchlevel 129:
+
+** PostScript output much improved.
+
+Mirror no longer necessary.
+
+* Changes for patchlevel 128:
+
+** Try out the PostScript driver, if you've got a mirror handy.
+
+* Changes for patchlevel 126:
+
+** Does not compile.
+
+* Changes for patchlevel 125:
+
+** No user-visible changes.
+
+* Changes for patchlevel 124:
+
+** PostScript driver.  Don't use it yet.
+
+** Bugfixes.
+
+* Changes for patchlevel 123:
+
+** No user-visible changes.
+
+* Changes for patchlevel 122:
+
+** FREQUENCIES procedure is more complete.
+
+It can now print out sorted frequency tables as well as all statistics
+except median.  No percentiles.  Full syntax.  No integer mode.
+
+* Changes for patchlevel 121:
+
+** Compiles again!
+
+** FREQUENCIES procedure works but it is incomplete.
+
+* Changes for patchlevels 120, 119:
+
+** Does not compile.
+
+* Changes for patchlevel 118:
+
+** Does not compile. 
+
+** Bugfix regarding titles on LIST procedure.
+
+* Changes for patchlevel 117:
+
+** LIST procedure implemented.
+
+** Bugfix regarding unsupported REMARK utility.
+
+* Changes for patchlevel 116:
+
+** Does not compile.
+
+* Changes for patchlevel 115:
+
+** New output driver initialization interface. 
+
+*** Changed option syntax.
+
+`-o driver' is the new syntax.  The default driver is named `default'.
+
+*** The initialization file `output' has been renamed `devices'.
+
+*** Driver names actually specify categories.
+
+Each driver name specified can actually result in 0, 1, 2, or any
+greater number of actual drivers being used, depending solely on the
+contents of the `devices' output initialization file.
+
+*** The driver initialization file is read in a `termcap'-like manner.
+
+That is, it determines whether to use a driver based on the parameters
+passed to it, rather than mainly on the contents of the `devices' file
+plus some goofy hacks with command-line options.
+
+*** Macros defined in the `devices' file can be overridden.
+
+Do it by specifying a definition on the command line of form
+`KEY=VALUE'.  See `devices' for details.
+
+** Short form of option `--verbose' changed to `-V'.
+
+** New option `-v' or `--verbose'.
+
+`-v' causes PSPP to display more info about what it's doing.
+Multiple `-v's display even more.
+
+** Support for small 25-line screens. 
+
+The ASCII driver minimum for page length is now 15 lines instead of
+29.
+
+* Changes for patchlevel 114:
+
+** Rich text now supported in the ascii driver.
+
+The style changes are done with overstriking or with defined
+sequences.
+
+** New ascii output driver option `carriage-return-style'.
+
+This can be set to `cr' or to `bs', depending on whether returning to
+the left margin should be done with an ASCII CR or with multiple
+backspaces.
+
+* Changes for patchlevel 113:
+
+** Table titles are more complete.
+
+Now they include a description of the table contents.
+
+* Changes for patchlevel 112:
+
+** Tables now are preceded by a descriptive `title'.
+
+This line shows what procedure emitted it, etc.
+
+** Some tables are now divided into multiple columns.
+
+These columns are displayed across the page in order to save vertical
+space.
+
+* Changes for patchlevel 111:
+
+** Bugfixes.
+
+* Changes for patchlevel 110:
+
+** `stat' has now been renamed `PSPP', for `PSPP Implements Accurate
+Statistical COmputations'!  Let's all celebrate the clever acronym!
+
+** Bugfixes.
+
+* Changes for patchlevel 109:
+
+** Bugfixes.
+
+----------------------------------------------------------------------
+Copyright information:
+
+Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim
+   copies of this document as received, in any medium, provided that
+   the copyright notice and this permission notice are preserved, thus
+   giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions of this
+   document, or of portions of it, under the above conditions,
+   provided also that they carry prominent notices stating who last
+   changed them.
+
+Local variables:
+version-control: never
+mode: text
+mode: outline-minor
+end:

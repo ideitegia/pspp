@@ -1,0 +1,24 @@
+title 'Test DO IF control structure'.
+
+data list /x y z 1-6.
+begin data.
+000099
+019900
+019820
+001089
+020000
+end data.
+do if x~=2.
+loop i=1 to x.
+do if x=0.
+print /i x z.
+else.
+do if x=1.
+print /i x y.
+else.
+print /i 'Huh?'.
+end if.
+end if.
+end loop.
+end if.
+execute.

@@ -1,0 +1,16 @@
+title 'Test REPEATING DATA utility'.
+
+input program.
+data list /x 1 n 3.
+repeating data starts=11-20 /continues=2-11 /length=10 /occurs=n 
+	       /id=1=x /data=name 1-5 (a) number 6-10.
+end input program.
+
+begin data.
+1 3       foo  1    
+1bar  2    
+1baz  3
+end data.
+
+list.
+

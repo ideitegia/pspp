@@ -1,0 +1,69 @@
+#! /bin/sh -e
+
+# This script makes a source distribution for compilation under
+# Borland C++ 5.0.  It also produces a .iwz file for use with
+# InstallShield Express.
+
+if test "$1" = ""; then
+  echo "usage: $0 \'DOS-path-to-PSPP-source\' \'DOS-path-to-Borland-C++-5.0-root\'"
+fi
+
+test -f src/q2c.c || (echo "Not in PSPP source directory" && exit 1)
+
+make distdir
+
+DOSROOT="$1"
+VERSION=`sed -ne 's/^.*\[//;s/].*$//;/^[0-9]*\.[0-9]*\.[0-9]*$/p' < configure.in`
+BC5ROOT=`pwd`/pspp-$VERSION-bc5
+DISTROOT=`pwd`
+
+rm -rf $BC5ROOT
+cp -r pspp-$VERSION $BC5ROOT
+rm -f $DISTROOT/manualfiles.tmp
+rm -f $DISTROOT/testsfiles.tmp
+
+cd $BC5ROOT/doc
+texi2html -number -monolithic FAQ.texi
+
+mkdir $BC5ROOT/manual
+cd $BC5ROOT/manual
+texi2html -menu -number -split_node ../doc/pspp.texi
+cp pspp_toc.html index.html
+
+n_manual=0
+for d in *; do
+  n_manual=`expr $n_manual + 1`
+  echo "Group5File$n_manual=${DOSROOT}\\MANUAL\\$d" >> $DISTROOT/manualfiles.tmp
+done
+
+cd $BC5ROOT/tests
+n_tests=0
+for d in *; do
+  n_tests=`expr $n_tests + 1`
+  echo "Group3File$n_tests=${DOSROOT}\\TESTS\\$d" >> $DISTROOT/testsfiles.tmp
+done
+
+SEDDOSROOT=`echo "$1" | sed 's/\\\\/\\\\\\\\/'`
+echo "s%@BASEDIR@%$SEDDOSROOT%g" > $DISTROOT/bc5.sed
+SEDBC5BASEDIR=`echo "$2" | sed 's/\\\\/\\\\\\\\/'`
+echo "s%@BC5BASEDIR@%$SEDBC5BASEDIR%g" >> $DISTROOT/bc5.sed
+echo "s%@MANUALCOUNT@%$n_manual%g" >> $DISTROOT/bc5.sed
+echo "s%@TESTSCOUNT@%$n_tests%g" >> $DISTROOT/bc5.sed
+
+IN=$BC5ROOT/sysdeps/borlandc5.0/pspp.iwz.in
+OUT=$BC5ROOT/pspp.iwz
+sed -n -f $DISTROOT/bc5.sed -e '1,/^Group3Dir/p' < $IN > $OUT
+cat $DISTROOT/testsfiles.tmp >> $OUT
+sed -n -f $DISTROOT/bc5.sed -e '/^Group4Size/,/^Group5Dir/p' < $IN >> $OUT
+cat $DISTROOT/manualfiles.tmp < $IN >> $OUT
+sed -n -f $DISTROOT/bc5.sed -e '/^Group5Size/,$p' < $IN >> $OUT
+
+cp $BC5ROOT/sysdeps/borlandc5.0/pspp.ide $BC5ROOT/pspp.ide
+cp $BC5ROOT/pref.h.orig $BC5ROOT/sysdeps/borlandc5.0/pref.h
+
+rm $DISTROOT/manualfiles.tmp
+rm $DISTROOT/testsfiles.tmp
+rm $DISTROOT/bc5.sed
+
+find $BC5ROOT -type f | xargs perl $DISTROOT/sysdeps/borlandc5.0/unix2dos.pl
+find $BC5ROOT -name \*.bak | xargs rm -f

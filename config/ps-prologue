@@ -1,0 +1,75 @@
+!!!
+!!! This prologue is hereby placed in the public domain.
+!!!
+!!! PSPP does not place any restrictions on the distribution terms
+!!! of its output.  You are encouraged to allow your PSPP outputs to
+!!! be freely distributed.
+!!!
+%!PS-Adobe-3.0 EPSF-3.0                           !eps
+%!PS-Adobe-3.0					  !ps
+%%Pages: (atend)
+%%DocumentNeededResources: (atend)
+%%DocumentSuppliedResources: procset PSPP-Prologue 1.0 0
+!!! %%Bounding-Box: ${bounding-box}
+%%Copyright: This prologue is public domain.
+%%Creator: ${creator}
+%%CreationDate: ${date}
+%%DocumentData: ${data}
+%%DocumentMedia: Plain ${paper-width} ${paper-length} 75 white ()
+%%Orientation: ${orientation}
+%%For: ${user}@${host}
+%%Title: ${title}
+%FscoSourceFile: ${source-file}
+%%EndComments
+%%BeginDefaults
+%%PageResources:
+%%+ ${prop-font}
+%%+ ${fixed-font}
+%%EndDefaults
+%%BeginProlog
+%%BeginResource: procset PSPP-Prologue 1.0 0
+/L{moveto lineto stroke}bind def
+/TL{TW setlinewidth 0 setlinecap 
+ moveto lineto stroke 
+ LW setlinewidth 2 setlinecap}def
+/D{moveto lineto moveto lineto stroke}bind def
+/S{moveto show}bind def
+/T{currentpoint exch pop moveto show}bind def
+/ED{exch def}bind def
+!!! SF arguments:
+!!!	identifier	dictionary entry to save font in
+!!!	font encoding	font encoding vector
+!!!	fontsize	thousandths of a point
+!!!	font name	string
+!!! Usage example: 12000/F0 E0 (Times-Roman) SF
+/SF{
+ findfont exch scalefont
+ dup maxlength 1 index/FontName known not{1 add}if dict begin
+ {
+  1 index/FID ne{def}{pop pop}ifelse
+ }forall
+ /Encoding ED
+ dup/FontName ED
+ currentdict end 1 index exch definefont dup setfont 
+ [exch/setfont cvx] cvx bind def
+}bind def
+/F{setfont}bind def
+/EP{
+ pg restore
+ showpage
+}bind def
+/GB{
+ /y2 ED/x2 ED/y1 ED/x1 ED
+ x1 y1 moveto x2 y1 lineto x2 y2 lineto x1 y2 lineto closepath
+ gsave 0.9 setgray fill grestore stroke
+}bind def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: ${prop-font}
+%%IncludeResource: ${fixed-font}
+!encodings
+%%EndSetup
+!!! Local Variables:
+!!! fill-prefix: "!!! "
+!!! End:

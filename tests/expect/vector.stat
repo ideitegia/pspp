@@ -1,0 +1,2 @@
+vector.stat:24: LIST: 6 is not a valid index value for vector X.  The result
+        will be set to the empty string.

@@ -1,0 +1,179 @@
+set echo off.
+title 'Test non-binary data input formats'.
+
+data list /a 1-8(a)			/* 1
+           ahex 9-16(ahex)		/* 2
+           comma 17-24(comma)		/* 3
+           dollar 25-32(dollar) 	/* 4
+           f 33-40(f)			/* 5
+           pibhex 41-48(pibhex)		/* 6
+           n 49-56(n)			/* 7
+           e 57-64(e).			/* 8
+formats comma(comma8.2) dollar(dollar8.2).
+print /a ahex comma dollar f pibhex n e.
+
+/* This set of data should produce errors:
+/*
+/*  - First line should be error-free.
+/*  - Second line should have errors for F, PIBHEX, and N fields.
+/*  - Third line should have errors for COMMA, DOLLAR, F, and N fields.
+/*  - Fourth line should have errors for F and N fields.
+/*
+/*      2       3       4       5       6       7       8       .
+begin data.
+abcdefgh414243441,2,3.4,$1,2,3.4123456.6100023451234567812345678
+        4a4b4c4d1,234.56$1234.56  abcd    ghjk  -12345671234+56
+        4C4D4E4F1234+56 $1234+56   0 1    abcd  12345e671234e+56
+        555657581234e+561234e+56 1.2 3  000000001234e67 1234-5
+end data.
+
+data list /date 1-32(date)              /* 1
+           time 33-64(time,4).          /* 2
+print /date time.
+
+/* This set of data should produce errors:
+/*
+/*                              2               
+begin data.
+11-july-1982                    12:10:55.59     
+8-xii-23                        55:56:75.105    
+end data.
+
+data list /datetime 1-32(datetime,4)    /* 1
+           adate 33-64(adate).          /* 2
+print /datetime adate.
+/*                              2
+begin data.
+7-7-8 12:10:55.5                10/15/1582
+11-jul-1982 9:00                10/01/78
+end data.
+
+data list /jdate 1-32(jdate)		/* 1
+	   dtime 33-64(dtime).		/* 2
+print /jdate dtime.
+/*                              2
+begin data.
+1582365                         10 15:30:00.32
+1996001                         0 8:23:59.99
+end data.
+
+data list /wkday 1-32(wkday)		/* 1
+	   month 33-64(month).		/* 2
+print /wkday month.
+/*                              2
+begin data.
+mon                             xii
+Saturday                        12
+thursday                        march
+                                ixiii
+end data.
+
+data list /moyr 1-32(moyr)		/* 1
+	   qyr 33-64(qyr).		/* 2
+print /moyr qyr.
+/*                              2
+begin data.
+jan 96                          4 q 1986
+mar 1896                        1q1600
+end data.
+
+data list /wkyr 1-32(wkyr)              /* 1
+           pct 33-64(pct).              /* 2
+print /wkyr pct.
+/*                              2
+begin data.
+4 wk 97                         105%
+52 wk 1996                      55.5%
+end data.
+
+data list /dot 1-32(dot)                /* 1
+           edate 33-64(edate).          /* 2
+formats dot(dot32.3).
+print /dot edate.
+/*                              2
+begin data.
+123.456.789,348                 1.10.1978
+                                30.12.1996
+end data.
+
+formats dot (comma32.3).
+set decimal comma.
+print /dot.
+execute.
+
+set decimal dot.
+print /dot.
+execute.
+
+data list /sdate 1-32(sdate).           /* 1
+print /sdate.
+begin data.
+1923/7/3
+1992.5.2
+end data.
+
+data list /date 1-32.
+compute date = date * 86400.
+print /date (date32).
+begin data.
+1
+50000
+102
+1157
+14288
+87365
+109623
+153211
+152371
+144623
+end data.
+
+data list /date 1-32(date).
+compute jdate = date / 86400.
+print /jdate.
+begin data.
+15-OCT-1582
+06-SEP-1719
+24-JAN-1583
+14-DEC-1585
+26-NOV-1621
+25-DEC-1821
+03-DEC-1882
+06-APR-2002
+18-DEC-1999
+01-OCT-1978
+end data.
+
+set cca 'NPX,PFX,SFX,NSX'.
+set ccb 'NPX.PFX.SFX.NSX'.
+set ccc '-,$,,'.
+set ccd '(.SFR..)'.
+set cce 'asld,adl,lfj,lfs'.
+
+data list /cc 1-32(f).
+print /'cca: ' cc (cca32.2).
+print /'ccb: ' cc (ccb32.2).
+print /'ccc: ' cc (ccc32.2).
+print /'ccd: ' cc (ccd32.2).
+print /'cce: ' cc (cce32.2).
+begin data.
+78.19
+-78.19
+123456789.12
+1e23
+end data.
+
+print /'cca: ' cc (cca16.2).
+print /'ccb: ' cc (ccb16.2).
+print /'ccc: ' cc (ccc16.2).
+print /'ccd: ' cc (ccd16.2).
+print /'cce: ' cc (cce16.2).
+execute.
+
+print /'cca: ' cc (cca8.2).
+print /'ccb: ' cc (ccb8.2).
+print /'ccc: ' cc (ccc8.2).
+print /'ccd: ' cc (ccd8.2).
+print /'cce: ' cc (cce8.2).
+execute.
+

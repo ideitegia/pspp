@@ -1,0 +1,17 @@
+data-list.data:2: warning: LIST: Missing value(s) for all variables from C
+        onward.  These will be filled with the system-missing value or blanks,
+        as appropriate.
+data-list.data:3: warning: LIST: Missing value(s) for all variables from B
+        onward.  These will be filled with the system-missing value or blanks,
+        as appropriate.
+data-list.data:4: data-file error: (columns 3-10, field type F8.0) Field does
+        not form a valid floating-point constant: "TOOLONGL".
+data-list.data:4: warning: LIST: Missing value(s) for all variables from C
+        onward.  These will be filled with the system-missing value or blanks,
+        as appropriate.
+data-list.data:5: warning: LIST: Missing value(s) for all variables from C
+        onward.  These will be filled with the system-missing value or blanks,
+        as appropriate.
+data-list.data:6: warning: LIST: Missing value(s) for all variables from B
+        onward.  These will be filled with the system-missing value or blanks,
+        as appropriate.

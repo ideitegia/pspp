@@ -1,0 +1,20 @@
+title 'Test for AGGREGATE procedure'.
+
+data list /x y 1-2.
+begin data.
+13
+27
+30
+12
+26
+11
+10
+28
+29
+14
+15
+end data.
+sort cases by x.
+list.
+aggregate outfile='aggregate.save'/missing=columnwise /document /presorted/break=x(a) /z'label for z'=sum(y)/foo=nu.
+list.

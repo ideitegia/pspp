@@ -1,0 +1,60 @@
+# List of standard paper sizes for use with PSPP output drivers.
+#
+# Valid units include "in"=inches, "cm"=centimeters, "mm"=millimeters.
+# Default units are "in" for dimensions less than 50, "mm" otherwise.
+# This automagically determines units for all the standard sizes.
+#
+# Fractional values are allowed: (1) as decimals, or (2) in the form
+# "a-b/c", which has the value of a, plus b divided by c.
+#
+# Also allowed are synonyms: `"B4/JIS"="B4/ISO"'.  The left hand size
+# is replaced by the right hand size.
+
+# U.S.
+"Letter"		8-1/2 x 11
+"Legal"			8-1/2 x 14
+"Letter Extra"		9-1/2 x 12
+"Legal Extra"		9-1/2 x 15
+"Executive"		7-1/4 x 10-1/2
+"Ledger"		17 x 11
+"Tabloid"		11 x 17
+"Tabloid Extra"		11.69 x 18
+"US Standard Fanfold"="U.S. Standard Fanfold"
+"U.S. Standard Fanfold"	14-7/8 x 11
+"Standard Fanfold"	8-1/2 x 12
+"Legal Fanfold"		8-1/2 x 12
+
+# Envelopes.
+"DL"			8-2/3 x 4-1/3
+"Monarch"		3-7/8 x 7-1/2
+"6 3/4 Envelope"="6-3/4 Envelope"
+"6-3/4 Envelope"	3-5/8 x 6-1/2
+"#9"			3-7/8 x 8-7/8
+"#10"			4-1/8 x 9-1/2
+"#11"			4-1/2 x 10-3/8
+"#12"			4-3/4 x 11
+"#14"			5 x 11-1/2
+
+# Metric.
+"B4"="B4/ISO"
+"B5"="B5/ISO"
+"A3"		297 x 420
+"A4"		210 x 297
+"B4/ISO"	250 x 353
+"B4/JIS"	257 x 364
+"B5/ISO"	176 x 250
+"B5/JIS"	182 x 257
+"B6"		176 x 125
+"C3"		324 x 458
+"C4"		229 x 324
+"C5"		162 x 229
+"C6"		114 x 162
+"C65"		114 x 229
+"Envelope"	110 x 230
+
+# Demonstration of units.
+#"Bizarre" 55mm x 10in
+
+# Local Variables:
+# fill-prefix: "# "
+# End:

@@ -1,0 +1,12 @@
+Thanks to...
+                                       
+     * David MacKenzie for writing Autoconf, the automatic configuration
+       tool.
+     * David MacKenzie and Tom Tromey for writing Automake, the tool for
+       generating `Makefile's.
+     * Ulrich Drepper et al for writing gettext, the GNU
+       internationalization package.
+     * François Pinard for advice on proceeding with development.
+     * Jim Van Zandt for Debian packaging and suggestions.
+     * Torbj"orn Granlund and TMG Datakonsult for GNU gmp2 used in the 
+       portable file routines.

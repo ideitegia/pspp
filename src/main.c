@@ -1,0 +1,154 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA. */
+
+#include <config.h>
+#include <assert.h>
+#include <stdio.h>
+#include "command.h"
+#include "error.h"
+#include "getline.h"
+#include "lexer.h"
+#include "output.h"
+
+#include <stdlib.h>
+
+#undef DEBUGGING
+/*#define DEBUGGING 1*/
+#include "debug-print.h"
+
+static void parse_script (void) __attribute__ ((noreturn));
+static void handle_error (int code);
+static int execute_command (void);
+
+/* argv[0] with stripped leading directories. */
+char *pgmname;
+
+/* Whether FINISH. has been executed. */
+int finished;
+
+/* The current date in the form DD MMM YYYY. */
+char curdate[12];
+
+/* Whether we're dropping down to interactive mode immediately because
+   we hit end-of-file unexpectedly (or whatever). */
+int start_interactive;
+
+/* Program entry point. */
+int
+main (int argc, char **argv)
+{
+  void init_glob (int, char **);	/* Exported by glob.c. */
+  void parse_command_line (int, char **);	/* Exported by cmdline.c */
+
+  /* Initialization. */
+  if (!outp_init ())
+    err_hcf (0);
+  init_glob (argc, argv);
+  parse_command_line (argc, argv);
+  if (!outp_read_devices ())
+    msg (FE, _("Error initializing output drivers."));
+
+  lex_init ();
+  cmd_init ();
+
+  /* Execution. */
+  parse_script ();
+}
+
+/* Parses the entire script. */
+static void
+parse_script (void)
+{
+  while (!finished)
+    {
+      err_check_count ();
+      handle_error (execute_command ());
+    }
+
+  err_hcf (1);
+}
+
+/* Parse and execute a command, returning its return code. */
+static int
+execute_command (void)
+{
+  /* Read the command's first token.
+     We may hit end of file.
+     If so, give the line reader a chance to proceed to the next file.
+     End of file is not handled transparently since the user may want
+     the dictionary cleared between files. */
+  getl_prompt = GETL_PRPT_STANDARD;
+  for (;;)
+    {
+      lex_get ();
+      if (token != T_STOP)
+	break;
+
+      if (!getl_perform_delayed_reset ())
+	err_hcf (1);
+    }
+
+  /* Parse the command. */
+  getl_prompt = GETL_PRPT_CONTINUATION;
+  return cmd_parse ();
+}
+
+/* Print an error message corresponding to the command return code
+   CODE. */
+static void
+handle_error (int code)
+{
+  switch (code)
+    {
+    case CMD_SUCCESS:
+      return;
+	  
+    case CMD_FAILURE:
+      msg (SW,  _("This command not executed."));
+      break;
+
+    case CMD_PART_SUCCESS_MAYBE:
+      msg (SW, _("Skipping the rest of this command.  Part of "
+		 "this command may have been executed."));
+      break;
+		  
+    case CMD_PART_SUCCESS:
+      msg (SW, _("Skipping the rest of this command.  This "
+		 "command was fully executed up to this point."));
+      break;
+
+    case CMD_TRAILING_GARBAGE:
+      msg (SW, _("Trailing garbage was encountered following "
+		 "this command.  The command was fully executed "
+		 "to this point."));
+      break;
+
+    default:
+      assert (0);
+    }
+
+  if (getl_reading_script)
+    {
+      err_break ();
+      while (token != T_STOP && token != '.')
+	lex_get ();
+    }
+  else
+    lex_discard_line ();
+}

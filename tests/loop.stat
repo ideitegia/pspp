@@ -1,0 +1,14 @@
+title 'Test LOOP procedure'.
+
+data list /x 1 y 2 z 3.
+begin data.
+125
+256
+397
+401
+end data.
+loop i=y to z by abs(z-y)/(z-y).
+print /x i.
+break.		/* Generates warning.
+end loop.
+execute.

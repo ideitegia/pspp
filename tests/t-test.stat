@@ -1,0 +1,13 @@
+title 'Preliminary test for T-TEST procedure'.
+
+data list /v1 to v4 1-4.
+begin data.
+1234
+321
+2 13
+4121
+1104
+03 4
+0193
+end data.
+t-test v1 v2 with v3 v4 (paired).

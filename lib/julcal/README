@@ -1,0 +1,5 @@
+Please note that julcal is not part of PSPP.  Instead, it is a
+separate library that is included in the PSPP distribution for
+convenience in compiling.
+
+	-blp

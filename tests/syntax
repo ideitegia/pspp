@@ -1,0 +1,51 @@
+#! /bin/sh
+set -e
+RESULT=pass
+
+srcdir=${srcdir:-.}
+for x in `cd $srcdir; echo *.stat *.data`; do 
+    if [ ! -e $x ]; then
+	ln -s $srcdir/$x .
+    fi
+done
+
+rm -f *.actual
+if [ -z "$BENCHMARK" ]; then
+    for x in *.stat; do
+	echo -n "$x ... "
+	../src/pspp --testing-mode $x >$x.actual
+	if [ -f $srcdir/expect/$x ]; then
+	    if diff -u $srcdir/expect/$x $x.actual; then 
+		echo "pass"; rm $x.actual
+	    else 
+		echo "FAIL"; RESULT=fail
+	    fi
+	else
+	    if [ -s $x.actual ]; then 
+		echo "FAIL"; RESULT=fail
+	    else 
+		echo "pass"; rm $x.actual
+	    fi
+	fi
+    done
+else
+    mkdir benchmark || true
+    rm -f benchmark/*
+    for x in *.stat; do
+	echo -n "$x ... "
+	../src/pspp --testing-mode $x > benchmark/$x
+	if [ ! -s benchmark/$x ]; then
+	    rm benchmark/$x
+	fi
+	echo
+    done
+fi
+
+for x in *.stat *.data; do
+    if [ -h $x ]; then
+	rm $x
+    fi
+done
+
+if [ $RESULT = fail ]; then exit 1; fi
+

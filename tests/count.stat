@@ -1,0 +1,15 @@
+title 'Test COUNT transformation'.
+
+data list /v1 to v2 1-4(a).
+begin data.
+1234
+321
+2 13
+4121
+1104
+03 4
+0193
+end data.
+*count c=v1 to v4(1).
+count c=v1 to v2('2',' 4','1').
+list.

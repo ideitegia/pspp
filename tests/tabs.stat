@@ -1,0 +1,12 @@
+title 'Test handling of tab characters in user data'.
+
+/* The program contains separate code for the case of a single
+/* tab on a line and multiple tabs, so we try both below.
+data list /x 1-80 (a).
+begin data.
+	1	12	123	1234	12345	123456	1234567	12345678
+asdf	jkl;
+end data.
+print /x.
+execute.
+

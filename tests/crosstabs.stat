@@ -1,0 +1,19 @@
+clear transformations.
+input program.
+loop a=1 to 1000.
+compute a=trunc(uniform(5)).
+compute b=trunc(uniform(5)).
+compute c=trunc(uniform(5)).
+compute d=trunc(uniform(5)).
+compute e=trunc(uniform(5)).
+compute f=trunc(uniform(5)).
+end case.
+end loop.
+end file.
+end input program.
+select if not ((a=1 and e=3) or (c=2)).
+print /all.
+missing value all (2).
+*crosstabs/missing=report/variables=a to f(0,4)/tables=a by e by f/statistics=all/pivot on.
+crosstabs a by e by f/statistics=all/pivot on.
+execute.

@@ -1,0 +1,32 @@
+Sun Aug  9 11:16:26 1998  Ben Pfaff  <blp@gnu.org>
+
+	* dcdflib.COPYING: Renamed COPYING.
+
+Sun Jul  5 00:14:51 1998  Ben Pfaff  <blp@gnu.org>
+
+	* cdflib.h: Move E0000, E0001 prototypes into dcdflib.c.
+
+Thu May  7 22:56:48 1998  Ben Pfaff  <blp@gnu.org>
+
+	* dcdflib.c: (E0000) Explicitly constant string to char * in call
+	to ftnstop() in order to alleviate warning from gcc.
+
+Sat Jan  3 17:08:58 1998  Ben Pfaff  <blp@gnu.org>
+
+	* README: New file.
+
+Wed Dec 24 22:37:21 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: New file.
+
+	* cdflib.h: New file from dcdflib.c-1.1.
+ 	
+	* dcdflib.COPYING: New file extracted from dcdflib.c-1.1 README.
+
+	* dcdflib.c: New file from dcdflib.c-1.1.  Minor changes
+	(parenthesization) to placate gcc warnings.
+  	
+	* ipmpar.c: New file from dcdflib.c-1.1.  Largely rewritten for
+ 	autoconf.
+
+

@@ -1,0 +1,158 @@
+Sun May 24 22:40:13 1998  Ben Pfaff  <blp@gnu.org>
+
+	* ps-prologue: Add %%DocumentMedia: comment.
+
+Wed May 20 00:02:51 1998  Ben Pfaff  <blp@gnu.org>
+
+	* ps-prologue: Comment out misleading Bounding-Box comment for
+	now.  SF arguments rearranged.  BP removed.
+
+Wed Apr 15 13:00:46 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (private-install) Make it work for separate source
+	and build directories.
+
+	* ps-prologue: New TL macro for a thick line.  New thick-width arg
+	to BP.
+
+Sun Jan  4 18:11:11 1998  Ben Pfaff  <blp@gnu.org>
+
+	* ps-prologue: Minor reorganization.  New GB macro to draw a gray
+ 	box.
+
+Wed Dec 24 22:35:13 1997  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Added devicetype options and documentation for them.
+
+Fri Dec  5 21:51:08 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (pkgsysconf_DATA) Add html-prologue.
+	(EXTRA_DIST) Add html-prologue.
+
+	* devices: Add `html' device.  Add `listing', `screen', and
+	`printer' flags to devices as appropriate.
+
+	* html-prologue: New file.
+
+	* ps-prologue: Comment fixes.
+
+Thu Sep 18 21:31:02 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (pkgsysconfdir) Changed from $(pkgdatadir) to
+	$(sysconfdir)/$(PACKAGE).
+
+Thu Aug 14 22:05:54 1997  Ben Pfaff  <blp@gnu.org>
+
+	* devices: (tty) Define as null instead of not defining.
+
+Sun Aug  3 11:33:28 1997  Ben Pfaff  <blp@gnu.org>
+
+	* devices: tty-ascii has no bold or italic by default.
+
+Wed Jun 25 22:50:19 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) New target.
+
+Mon May  5 21:56:54 1997  Ben Pfaff  <blp@gnu.org>
+
+	* devices, papersize, ps-prologue: Comment fixes.
+
+Fri May  2 22:05:44 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Removed ps-fontmap.
+
+	* ps-fontmap: Removed.
+
+	* ps-prologue: Added comments.  Fixed DSC comments.
+	(BP) Two new arguments; fixed problem with SF argument conflict
+	with SF function.
+
+Thu May  1 14:57:52 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ps-prologue: (BP) New argument, SF or scale factor.
+	
+Fri Apr 18 16:48:41 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: New file.
+	
+	* environment: Comment fix.
+
+Sat Feb 15 21:26:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Added ml520 and ml520-ul printer devices.
+
+Sat Jan 11 15:44:15 1997  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Default listing device is list-ascii, not list-ibmpc.
+
+Sun Dec 29 21:36:48 1996  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Changed default devices.
+
+Sat Sep  7 22:35:12 1996  Ben Pfaff  <blp@gnu.org>
+
+	* ps-prologue: Added `!encodings' line to cause encodings to be
+ 	output.
+	(T) Fixed.  Yes, really this time.
+
+Thu Sep  5 22:05:56 1996  Ben Pfaff  <blp@gnu.org>
+
+	* ps-prologue: (T) Now works correctly.
+	(SF) Parameters changed to: size in psus, target font name,
+ 	encoding, PostScript font name.
+
+Wed Sep  4 21:45:35 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prologue.ps: Renamed ps-prologue, all references changed.
+	(T) New definition.
+
+	* ps-encodings: New PostScript configuration file (not present in
+ 	distribution).
+
+Sat Aug 31 23:52:38 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prologue.ps: One minor comment change.
+
+Thu Aug 29 21:36:41 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prologue.ps: Portions other than DSC comments are essentially
+ 	completely new.
+
+Sat Aug 24 23:26:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Added PostScript driver.
+
+Sun Aug 11 21:31:22 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prologue.ps: Calls `setlinecap' in setup code.
+
+Sat Aug 10 23:28:17 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prologue.ps: DSC comment changes.  New call to `setlinewidth' in
+ 	setup code.
+
+Thu Aug  8 22:31:11 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prologue.ps: Changes to scaling & translating code.
+
+Sat Aug  3 20:50:35 1996  Ben Pfaff  <blp@gnu.org>
+
+	* environment: New file.  Yet another new time- and memory-hogging
+ 	redundant config file; why not?
+	
+	* papersize: Comment changes.
+
+	* prologue.ps: Changed vars from $varname$ to ${varname} format.
+  	Miscellaneous changes.
+
+	* ps-fontmap: Comment changes.  Fixed ZC family.
+
+Sat Jul 27 22:32:38 1996  Ben Pfaff  <blp@gnu.org>
+
+	* ps-fontmap: New configuration file.  Added to Makefile.am.
+
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:

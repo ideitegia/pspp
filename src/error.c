@@ -1,0 +1,517 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA. */
+
+/* AIX requires this to be the first thing in the file.  */
+#include <config.h>
+#if __GNUC__
+#define alloca __builtin_alloca
+#else
+#if HAVE_ALLOCA_H
+#include <alloca.h>
+#else
+#ifdef _AIX
+#pragma alloca
+#else
+#ifndef alloca			/* predefined by HP cc +Olibcalls */
+char *alloca ();
+#endif
+#endif
+#endif
+#endif
+
+#include <assert.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "alloc.h"
+#include "command.h"
+#include "error.h"
+#include "getline.h"
+#include "main.h"
+#include "output.h"
+#include "settings.h"
+#include "str.h"
+#include "var.h"
+
+int err_error_count;
+int err_warning_count;
+
+int err_already_flagged;
+
+int err_verbosity;
+
+/* File locator stack. */
+static const struct file_locator **file_loc;
+static int nfile_loc, mfile_loc;
+
+/* Fairly common public functions. */
+
+/* Writes error message in CLASS, with title TITLE and text FORMAT,
+   formatted with printf, to the standard places. */
+void
+tmsg (int class, const char *title, const char *format, ...)
+{
+  char buf[1024];
+  
+  /* Format the message into BUF. */
+  {
+    va_list args;
+
+    va_start (args, format);
+    vsnprintf (buf, 1024, format, args);
+    va_end (args);
+  }
+  
+  /* Output the message. */
+  {
+    struct error e;
+
+    e.class = class;
+    err_location (&e.where);
+    e.title = title;
+    e.text = buf;
+    err_vmsg (&e);
+  }
+}
+
+/* Writes error message in CLASS, with text FORMAT, formatted with
+   printf, to the standard places. */
+void
+msg (int class, const char *format, ...)
+{
+  char buf[1024];
+  
+  /* Format the message into BUF. */
+  {
+    va_list args;
+
+    va_start (args, format);
+    vsnprintf (buf, 1024, format, args);
+    va_end (args);
+  }
+  
+  /* Output the message. */
+  {
+    struct error e;
+
+    e.class = class;
+    err_location (&e.where);
+    e.title = NULL;
+    e.text = buf;
+    err_vmsg (&e);
+  }
+}
+
+/* Terminate due to fatal error in input. */
+void
+err_failure (void)
+{
+  fflush (stdout);
+  fflush (stderr);
+
+  fprintf (stderr, "%s: %s\n", pgmname,
+	   _("Terminating NOW due to a fatal error!"));
+
+  err_hcf (0);
+}
+
+/* Terminate unless we're interactive or will go interactive when the
+   file is over with. */
+void
+err_cond_fail (void)
+{
+  if (getl_reading_script)
+    {
+      if (getl_interactive)
+	getl_close_all ();
+      else
+	err_failure ();
+    }
+}
+
+/* File locator stack functions. */
+
+/* Pushes F onto the stack of file locations. */
+void
+err_push_file_locator (const struct file_locator *f)
+{
+  if (nfile_loc >= mfile_loc)
+    {
+      if (mfile_loc == 0)
+	mfile_loc = 8;
+      else
+	mfile_loc *= 2;
+
+      file_loc = xrealloc (file_loc, mfile_loc * sizeof *file_loc);
+    }
+
+  file_loc[nfile_loc++] = f;
+}
+
+/* Pops F off the stack of file locations.
+   Argument F is only used for verification that that is actually the
+   item on top of the stack. */
+void
+err_pop_file_locator (const struct file_locator *f)
+{
+  assert (nfile_loc >= 0 && file_loc[nfile_loc - 1] == f);
+  nfile_loc--;
+}
+
+/* Puts the current file and line number in F, or NULL and -1 if
+   none. */
+void
+err_location (struct file_locator *f)
+{
+  if (nfile_loc)
+    *f = *file_loc[nfile_loc - 1];
+  else
+    getl_location (&f->filename, &f->line_number);
+}
+
+/* Obscure public functions. */
+
+/* Writes a blank line to the error device(s).
+   FIXME: currently a no-op. */
+void
+err_break (void)
+{
+}
+
+/* Checks whether we've had so many errors that it's time to quit
+   processing this syntax file.  If so, then take appropriate
+   action. */
+void
+err_check_count (void)
+{
+  int error_class = getl_interactive ? MM : FE;
+
+  if (set_errorbreak && err_error_count)
+    msg (error_class, _("Terminating execution of syntax file due to error."));
+  else if (err_error_count > set_mxerrs)
+    msg (error_class, _("Errors (%d) exceeds limit (%d)."),
+	 err_error_count, set_mxerrs);
+  else if (err_error_count + err_warning_count > set_mxwarns)
+    msg (error_class, _("Warnings (%d) exceed limit (%d)."),
+	 err_error_count + err_warning_count, set_mxwarns);
+  else
+    return;
+
+  getl_close_all ();
+}
+
+#if __CHECKER__
+static void induce_segfault (void);
+#endif
+
+/* Some machines are broken.  Compensate. */
+#ifndef EXIT_SUCCESS
+#define EXIT_SUCCESS 0
+#endif
+
+#ifndef EXIT_FAILURE
+#define EXIT_FAILURE 1
+#endif
+
+static int terminating;
+
+/* Halt-catch-fire.  SUCCESS should be nonzero if exiting successfully
+   or zero if not.  Despite the name, this is the usual way to finish,
+   successfully or not. */
+void
+err_hcf (int success)
+{
+  terminating = 1;
+
+  getl_uninitialize ();
+
+  outp_done ();
+
+#if __CHECKER__
+  if (!success)
+    induce_segfault ();
+#endif
+
+  exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
+}
+
+static void puts_stdout (const char *s);
+static void dump_message (char *errbuf, unsigned indent,
+			  void (*func) (const char *), unsigned width);
+
+void
+err_vmsg (const struct error *e)
+{
+  /* Class flags. */
+  enum
+    {
+      ERR_IN_PROCEDURE = 01,	/* 1=Display name of current procedure. */
+      ERR_WITH_FILE = 02,	/* 1=Display filename and line number. */
+    };
+
+  /* Describes one class of error. */
+  struct error_class
+    {
+      int flags;		/* Zero or more of MSG_*. */
+      int *count;		/* Counting category. */
+      const char *banner;	/* Banner. */
+    };
+
+  static const struct error_class error_classes[ERR_CLASS_COUNT] =
+    {
+      {0, NULL, N_("fatal")},			/* FE */
+
+      {3, &err_error_count, N_("error")},	/* SE */
+      {3, &err_warning_count, N_("warning")},	/* SW */
+      {3, NULL, N_("note")},			/* SM */
+
+      {0, NULL, N_("installation error")},	/* IE */
+      {2, NULL, N_("installation error")},	/* IS */
+
+      {2, NULL, N_("error")},			/* DE */
+      {2, NULL, N_("warning")},			/* DW */
+
+      {0, NULL, N_("error")},			/* ME */
+      {0, NULL, N_("warning")},			/* MW */
+      {0, NULL, N_("note")},			/* MM */
+    };
+
+  struct string msg;
+  int class;
+
+  /* Check verbosity level. */
+  class = e->class;
+  if (((class >> ERR_VERBOSITY_SHIFT) & ERR_VERBOSITY_MASK) > err_verbosity)
+    return;
+  class &= ERR_CLASS_MASK;
+  
+  assert (class >= 0 && class < ERR_CLASS_COUNT);
+  assert (e->text != NULL);
+  
+  ds_init (NULL, &msg, 64);
+  if (e->where.filename && (error_classes[class].flags & ERR_WITH_FILE))
+    {
+      ds_printf (&msg, "%s:", e->where.filename);
+      if (e->where.line_number != -1)
+	ds_printf (&msg, "%d:", e->where.line_number);
+      ds_putchar (&msg, ' ');
+    }
+
+  ds_printf (&msg, "%s: ", gettext (error_classes[class].banner));
+  
+  {
+    int *count = error_classes[class].count;
+    if (count)
+      (*count)++;
+  }
+  
+  if (cur_proc && (error_classes[class].flags & ERR_IN_PROCEDURE))
+    ds_printf (&msg, "%s: ", cur_proc);
+
+  if (e->title)
+    ds_concat (&msg, e->title);
+
+  ds_concat (&msg, e->text);
+
+  /* FIXME: Check set_messages and set_errors to determine where to
+     send errors and messages.
+
+     Please note that this is not trivial.  We have to avoid an
+     infinite loop in reporting errors that originate in the output
+     section. */
+  dump_message (ds_value (&msg), 8, puts_stdout, set_viewwidth);
+
+  ds_destroy (&msg);
+
+  if (e->class == FE && !terminating)
+    err_hcf (0);
+}
+
+/* Private functions. */
+
+#if 0
+/* Write S followed by a newline to stderr. */
+static void
+puts_stderr (const char *s)
+{
+  fputs (s, stderr);
+  fputc ('\n', stderr);
+}
+#endif
+
+/* Write S followed by a newline to stdout. */
+static void
+puts_stdout (const char *s)
+{
+  puts (s);
+}
+
+/* Returns 1 if C is a `break character', that is, if it is a good
+   place to break a message into lines. */
+static inline int
+char_is_break (int quote, int c)
+{
+  return ((quote && c == DIR_SEPARATOR)
+	  || (!quote && (isspace (c) || c == '-' || c == '/')));
+}
+
+/* Returns 1 if C is a break character where the break should be made
+   BEFORE the character. */
+static inline int
+break_before (int quote, int c)
+{
+  return !quote && isspace (c);
+}
+
+/* If C is a break character, returns 1 if the break should be made
+   AFTER the character.  Does not return a meaningful result if C is
+   not a break character. */
+static inline int
+break_after (int quote, int c)
+{
+  return !break_before (quote, c);
+}
+
+/* If you want very long words that occur at a bad break point to be
+   broken into two lines even if they're shorter than a whole line by
+   themselves, define as 2/3, or 4/5, or whatever fraction of a whole
+   line you think is necessary in order to consider a word long enough
+   to break into pieces.  Otherwise, define as 0.  See code to grok
+   the details.  Do NOT parenthesize the expression!  */
+#define BREAK_LONG_WORD 0
+/* #define BREAK_LONG_WORD 2/3 */
+/* #define BREAK_LONG_WORD 4/5 */
+
+/* Divides MSG into lines of WIDTH width for the first line and WIDTH
+   - INDENT width for each succeeding line.  Each line is dumped
+   through FUNC, which may do with the string what it will. */
+static void
+dump_message (char *msg, unsigned indent, void (*func) (const char *),
+	      unsigned width)
+{
+  char *cp;
+
+  /* 1 when at a position inside double quotes ("). */
+  int quote = 0;
+
+  /* Buffer for a single line. */
+  char *buf;
+
+  /* If the message is short, just print the full thing. */
+  if (strlen (msg) < width)
+    {
+      func (msg);
+      return;
+    }
+
+  /* Make sure the indent isn't too big relative to the page width. */
+  if (indent > width / 3)
+    indent = width / 3;
+  
+  buf = local_alloc (width + 1);
+
+  /* Advance WIDTH characters into MSG.
+     If that's a valid breakpoint, keep it; otherwise, back up.
+     Output the line. */
+  for (cp = msg; (unsigned) (cp - msg) < width - 1; cp++)
+    if (*cp == '"')
+      quote ^= 1;
+
+  if (break_after (quote, (unsigned char) *cp))
+    {
+      for (cp--; !char_is_break (quote, (unsigned char) *cp) && cp > msg; cp--)
+	if (*cp == '"')
+	  quote ^= 1;
+      
+      if (break_after (quote, (unsigned char) *cp))
+	cp++;
+    }
+
+  if (cp <= msg + width * BREAK_LONG_WORD)
+    for (; cp < msg + width - 1; cp++)
+      if (*cp == '"')
+	quote ^= 1;
+  
+  {
+    int c = *cp;
+    *cp = '\0';
+    func (msg);
+    *cp = c;
+  }
+
+  /* Repeat above procedure for remaining lines. */
+  for (;;)
+    {
+      char *cp2;
+
+      /* Advance past whitespace. */
+      while (isspace ((unsigned char) *cp))
+	cp++;
+      if (*cp == 0)
+	break;
+
+      /* Advance WIDTH - INDENT characters. */
+      for (cp2 = cp; (unsigned) (cp2 - cp) < width - indent && *cp2; cp2++)
+	if (*cp2 == '"')
+	  quote ^= 1;
+
+      /* Back up if this isn't a breakpoint. */
+      {
+	unsigned w = cp2 - cp;
+	if (*cp2)
+	  for (cp2--; !char_is_break (quote, (unsigned char) *cp2) && cp2 > cp;
+	       cp2--)
+	    if (*cp2 == '"')
+	      quote ^= 1;
+
+	if (w == width - indent
+	    && (unsigned) (cp2 - cp) <= (width - indent) * BREAK_LONG_WORD)
+	  for (; (unsigned) (cp2 - cp) < width - indent && *cp2; cp2++)
+	    if (*cp2 == '"')
+	      quote ^= 1;
+      }
+
+      /* Write out the line. */
+      memset (buf, ' ', indent);
+      memcpy (&buf[indent], cp, cp2 - cp);
+      buf[indent + cp2 - cp] = '\0';
+      func (buf);
+
+      cp = cp2;
+    }
+
+  local_free (buf);
+}
+
+#if __CHECKER__
+/* Causes a segfault in order to force Checker to print a stack
+   backtrace. */
+static void
+induce_segfault (void)
+{
+  fputs (_("\n"
+	   "\t*********************\n"
+	   "\t* INDUCING SEGFAULT *\n"
+	   "\t*********************\n"), stdout);
+  fflush (stdout);
+  fflush (stderr);
+  abort ();
+}
+#endif

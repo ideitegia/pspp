@@ -1,0 +1,60 @@
+Sun Aug  9 11:15:17 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.iwz.in: Update name of sm-gnu-head.bmp.
+
+	* sm-gnu-head.bmp: Renamed sm-gnu-hd.bmp.
+
+Fri Dec  5 23:01:44 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.ico: Renamed pspp.ico.
+
+	* fiasco.ide: Renamed pspp.ide.
+
+	* fiasco.iwz.in: Renamed pspp.iwz.in.
+
+Wed Aug 20 12:52:43 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.iwz.in: Updated.
+
+Sat Aug 16 11:02:38 1997  Ben Pfaff  <blp@gnu.org>
+
+	* mk-bc5-dist: No longer run from toplevel Makefile.
+
+	* unix2dos.pl: Moved here from the top level.
+
+	* pref.h: Removed.
+
+Thu Aug 14 22:19:46 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.iwz.in: Revised.
+
+	* pref.h: Updated from pref.h.orig.
+
+	* fiasco.ide: Updated.
+
+Sun Aug  3 11:50:23 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.ico: New file, icon for Fiasco.
+
+	* fiasco.iwz.in: New file, InstallShield template for Fiasco.
+
+	* setup1.bmp: New file, Bitmap displayed during installation.
+
+	* sm-gnu-head.bmp: New file, small GNU head from
+ 	www.gnu.org converted to BMP format.
+
+Thu Jul 17 02:20:09 1997  Ben Pfaff  <blp@gnu.org>
+
+	* New directory for Windows support via Borland C++ 5.0.
+
+	* bc5-con32s.c: Combines _read.c and _write from the old
+	sysdeps/borlandc4.0 directory.
+
+	* config.h, libintl.h, pref.h, version.c: Standard files adapted
+ 	to Borland C++ 5.0.
+
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:

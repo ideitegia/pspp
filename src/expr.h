@@ -1,0 +1,44 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA. */
+
+#if !expr_h
+#define expr_h 1
+
+/* Expression parsing flags. */
+enum
+  {
+    PXP_NONE = 000,		/* No flags. */
+    PXP_DUMP = 001,		/* Dump postfix representation to screen;
+				   only for use by EVALUATE. */
+
+    /* Specify expression type. */
+    PXP_BOOLEAN = 002,		/* Coerce return value to Boolean. */
+    PXP_NUMERIC = 004,		/* Must be numeric result type. */
+    PXP_STRING = 010		/* Must be string result type. */
+  };
+
+struct expression;
+struct ccase;
+union value;
+
+struct expression *expr_parse (int flags);
+double expr_evaluate (struct expression *, struct ccase *, union value *);
+void expr_free (struct expression *);
+
+#endif /* expr.h */

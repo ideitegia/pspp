@@ -1,0 +1,49 @@
+Sun Jan  2 21:32:13 2000  Ben Pfaff  <blp@gnu.org>
+
+	* julcal.c: Comment fixes.  Most of the code was rewritten.
+	(_juldnj) Renamed calendar_to_julian.  Interface changed.
+	(juldnj) Removed.
+	(juldnd) Renamed julian_to_calendar.  Interface changed.
+	(julcd) Removed.
+	(julcdd) Removed.
+	(julian_to_mday) New function.
+	(julian_to_wday) New function.
+	[STANDALONE] (main) New test routines.
+
+	* julcal.h: Replaced.
+
+Sat Jan  3 17:09:07 1998  Ben Pfaff  <blp@gnu.org>
+
+	* README: New file.
+
+Fri Dec 26 15:43:57 1997  Ben Pfaff  <blp@gnu.org>
+
+	* julcal.c: (julian_offset) Move glob var definition here.
+
+Sun Jul  6 19:12:18 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Fixed INCLUDES to include intl; fixed directories.
+
+Sun Jun  1 17:27:17 1997  Ben Pfaff  <blp@gnu.org>
+
+	* julcal.h: Made the declaration of macros with arguments a lot
+	nicer looking.
+
+Fri Apr 18 16:48:41 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Refers to src/ as include directory instead of
+ 	include/.
+
+Fri Apr 18 15:42:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Maintainer-clean Makefile.in.
+	
+Thu Oct 24 17:47:14 1996  Ben Pfaff  <blp@gnu.org>
+
+	* julcal.h: Comment fix.
+
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:

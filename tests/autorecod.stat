@@ -1,0 +1,30 @@
+title 'Test for AUTORECODE procedure'.
+
+/* Tries AUTORECODE on some random but similar strings of characters.
+data list /x 1-5(a) y 7.
+begin data.
+lasdj 1 1                                                           3
+asdfk 0 3 <---- These are the numbers that should be produced for a 4
+asdfj 2 4                                                           2
+asdfj 1 4                                                           3
+asdfk 2 3                                                           2
+asdfj 9 4                                                           1
+lajks 9 2                                                           1
+asdfk 0 3 These are the numbers that should be produced for b ----> 4
+asdfk 1 3                                                           3
+end data.
+list.
+autorecode x y into a b/descend.
+
+/* This should produce the values indicated in the data above.
+list.
+
+/* Just to make sure it works on second & subsequent executions,
+/* try it again.
+compute z=trunc(y/2).
+autorecode z into w.
+
+/* This should display:
+/*   z 0 0 1 0 1 4 4 0 0
+/*   w 1 1 2 1 2 3 3 1 1
+list z w.

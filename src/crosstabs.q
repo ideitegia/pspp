@@ -1,0 +1,3311 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA. */
+
+/* FIXME:
+
+   - Pearson's R (but not Spearman!) is off a little.
+   - T values for Spearman's R and Pearson's R are wrong.
+   - How to calculate significance of symmetric and directional measures?
+   - Asymmetric ASEs and T values for lambda are wrong.
+   - ASE of Goodman and Kruskal's tau is not calculated.
+   - ASE of symmetric somers' d is wrong.
+   - Approx. T of uncertainty coefficient is wrong.
+
+*/
+
+/* AIX requires this to be the first thing in the file.  */
+#include <config.h>
+#if __GNUC__
+#define alloca __builtin_alloca
+#else
+#if HAVE_ALLOCA_H
+#include <alloca.h>
+#else
+#ifdef _AIX
+#pragma alloca
+#else
+#ifndef alloca			/* predefined by HP cc +Olibcalls */
+char *alloca ();
+#endif
+#endif
+#endif
+#endif
+
+#include <assert.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "alloc.h"
+#include "avl.h"
+#include "hash.h"
+#include "pool.h"
+#include "dcdflib/cdflib.h"
+#include "command.h"
+#include "lexer.h"
+#include "error.h"
+#include "magic.h"
+#include "misc.h"
+#include "stats.h"
+#include "output.h"
+#include "tab.h"
+#include "var.h"
+#include "vfm.h"
+
+#undef DEBUGGING
+/*#define DEBUGGING 1*/
+#include "debug-print.h"
+
+/* (specification)
+   crosstabs (crs_):
+     *tables=custom;
+     +variables=custom;
+     +missing=miss:!table/include/report;
+     +write[wr_]=none,cells,all;
+     +format=fmt:!labels/nolabels/novallabs,
+	     val:!avalue/dvalue,
+	     indx:!noindex/index,
+	     tabl:!tables/notables,
+	     box:!box/nobox,
+	     pivot:!pivot/nopivot;
+     +cells[cl_]=count,none,row,column,total,expected,residual,sresidual,
+		 asresidual,all;
+     +statistics[st_]=chisq,phi,cc,lambda,uc,none,btau,ctau,risk,gamma,d,
+		      kappa,eta,corr,all.
+*/
+/* (declarations) */
+/* (functions) */
+
+/* Number of chi-square statistics. */
+#define N_CHISQ 5
+
+/* Number of symmetric statistics. */
+#define N_SYMMETRIC 9
+
+/* Number of directional statistics. */
+#define N_DIRECTIONAL 13
+
+/* A single table entry for general mode. */
+struct table_entry
+  {
+    int table;		/* Flattened table number. */
+    union
+      {
+	double freq;	/* Frequency count. */
+	double *data;	/* Crosstabulation table for integer mode. */
+      }
+    u;
+    union value v[1];		/* Values. */
+  };
+
+/* A crosstabulation. */
+struct crosstab
+  {
+    int nvar;			/* Number of variables. */
+    double missing;		/* Missing cases count. */
+    int ofs;			/* Integer mode: Offset into sorted_tab[]. */
+    struct variable *v[2];	/* At least two variables; sorted by
+				   larger indices first. */
+  };
+
+/* Indexes into crosstab.v. */
+enum
+  {
+    ROW_VAR = 0,
+    COL_VAR = 1
+  };
+
+/* General mode crosstabulation table. */
+static struct hsh_table *gen_tab;	/* Hash table. */
+static int n_sorted_tab;		/* Number of entries in sorted_tab. */
+static struct table_entry **sorted_tab;	/* Sorted table. */
+
+/* VARIABLES dictionary. */
+static struct dictionary *var_dict;
+
+/* TABLES. */
+static struct crosstab **xtab;
+static int nxtab;
+
+/* Integer or general mode? */
+enum
+  {
+    INTEGER,
+    GENERAL
+  };
+static int mode;
+
+/* CELLS. */
+static int num_cells;		/* Number of cells requested. */
+static int cells[8];		/* Cells requested. */
+static int expected;		/* Nonzero if expected value is needed. */
+
+/* WRITE. */
+static int write;		/* One of WR_* that specifies the WRITE style. */
+
+/* Command parsing info. */
+static struct cmd_crosstabs cmd;
+
+/* Pools. */
+static struct pool *pl_tc;	/* For table cells. */
+static struct pool *pl_col;	/* For column data. */
+
+static int internal_cmd_crosstabs (void);
+static void free_var_dict (void);
+static void precalc (void);
+static int calc_general (struct ccase *);
+static int calc_integer (struct ccase *);
+static void postcalc (void);
+static void submit (struct tab_table *);
+
+#if DEBUGGING
+static void debug_print (void);
+static void print_table_entries (struct table_entry **tab);
+#endif
+
+/* Parse and execute CROSSTABS, then clean up. */
+int
+cmd_crosstabs (void)
+{
+  int result = internal_cmd_crosstabs ();
+
+  free_var_dict ();
+  pool_destroy (pl_tc);
+  pool_destroy (pl_col);
+  
+  return result;
+}
+
+/* Parses and executes the CROSSTABS procedure. */
+static int
+internal_cmd_crosstabs (void)
+{
+  var_dict = NULL;
+  xtab = NULL;
+  nxtab = 0;
+  pl_tc = pool_create ();
+  pl_col = pool_create ();
+
+  lex_match_id ("CROSSTABS");
+  if (!parse_crosstabs (&cmd))
+    return CMD_FAILURE;
+
+#if DEBUGGING
+  /* Needs var_dict. */
+  debug_print ();
+#endif
+
+  mode = var_dict ? INTEGER : GENERAL;
+  free_var_dict();
+
+  /* CELLS. */
+  expected = 0;
+  if (!cmd.sbc_cells)
+    {
+      cmd.a_cells[CRS_CL_COUNT] = 1;
+      num_cells = 1;
+    }
+  else 
+    {
+      int i;
+      int count = 0;
+
+      for (i = 0; i < CRS_CL_count; i++)
+	if (cmd.a_cells[i])
+	  count++;
+      if (count == 0)
+	{
+	  cmd.a_cells[CRS_CL_COUNT] = 1;
+	  cmd.a_cells[CRS_CL_ROW] = 1;
+	  cmd.a_cells[CRS_CL_COLUMN] = 1;
+	  cmd.a_cells[CRS_CL_TOTAL] = 1;
+	}
+      if (cmd.a_cells[CRS_CL_ALL])
+	{
+	  for (i = 0; i < CRS_CL_count; i++)
+	    cmd.a_cells[i] = 1;
+	  cmd.a_cells[CRS_CL_ALL] = 0;
+	}
+      cmd.a_cells[CRS_CL_NONE] = 0;
+      for (num_cells = i = 0; i < CRS_CL_count; i++)
+	if (cmd.a_cells[i])
+	  {
+	    if (i >= CRS_CL_EXPECTED)
+	      expected = 1;
+	    cmd.a_cells[num_cells++] = i;
+	  }
+    }
+
+  /* STATISTICS. */
+  if (cmd.sbc_statistics)
+    {
+      int i;
+      int count = 0;
+
+      for (i = 0; i < CRS_ST_count; i++)
+	if (cmd.a_statistics[i])
+	  count++;
+      if (count == 0)
+	cmd.a_statistics[CRS_ST_CHISQ] = 1;
+      if (cmd.a_statistics[CRS_ST_ALL])
+	for (i = 0; i < CRS_ST_count; i++)
+	  cmd.a_statistics[i] = 1;
+    }
+  
+  /* MISSING. */
+  if (cmd.miss == CRS_REPORT && mode == GENERAL)
+    {
+      msg (SE, _("Missing mode REPORT not allowed in general mode.  "
+		 "Assuming MISSING=TABLE."));
+      cmd.miss = CRS_TABLE;
+    }
+
+  /* WRITE. */
+  if (cmd.a_write[CRS_WR_ALL] && cmd.a_write[CRS_WR_CELLS])
+    cmd.a_write[CRS_WR_ALL] = 0;
+  if (cmd.a_write[CRS_WR_ALL] && mode == GENERAL)
+    {
+      msg (SE, _("Write mode ALL not allowed in general mode.  "
+		 "Assuming WRITE=CELLS."));
+      cmd.a_write[CRS_WR_CELLS] = 1;
+    }
+  if (cmd.sbc_write
+      && (cmd.a_write[CRS_WR_NONE]
+	  + cmd.a_write[CRS_WR_ALL]
+	  + cmd.a_write[CRS_WR_CELLS] == 0))
+    cmd.a_write[CRS_WR_CELLS] = 1;
+  if (cmd.a_write[CRS_WR_CELLS])
+    write = CRS_WR_CELLS;
+  else if (cmd.a_write[CRS_WR_ALL])
+    write = CRS_WR_ALL;
+  else
+    write = CRS_WR_NONE;
+
+  update_weighting (&default_dict);
+  procedure (precalc, mode == GENERAL ? calc_general : calc_integer, postcalc);
+
+  return CMD_SUCCESS;
+}
+
+/* Frees var_dict once it's no longer needed. */
+static void
+free_var_dict (void)
+{
+  if (!var_dict)
+    return;
+  
+  {
+    int i;
+
+    if (var_dict->var_by_name)
+      {
+	avl_destroy (var_dict->var_by_name, NULL);
+	var_dict->var_by_name = NULL;
+      }
+
+    for (i = 0; i < var_dict->nvar; i++)
+      free (var_dict->var[i]);
+    free (var_dict->var);
+    var_dict->var = NULL;
+    var_dict->nvar = 0;
+
+    free_dictionary (var_dict);
+
+    var_dict = NULL;
+  }
+}
+
+/* Parses the TABLES subcommand. */
+static int
+crs_custom_tables (struct cmd_crosstabs *cmd unused)
+{
+  struct dictionary *dict;
+  int n_by;
+  struct variable ***by = NULL;
+  int *by_nvar = NULL;
+  int nx = 1;
+  int success = 0;
+
+  /* Ensure that this is a TABLES subcommand. */
+  if (!lex_match_id ("TABLES")
+      && (token != T_ID || !is_varname (tokid))
+      && token != T_ALL)
+    return 2;
+  lex_match ('=');
+
+  dict = var_dict ? var_dict : &default_dict;
+  
+  for (n_by = 0; ;)
+    {
+      by = xrealloc (by, sizeof *by * (n_by + 1));
+      by_nvar = xrealloc (by_nvar, sizeof *by_nvar * (n_by + 1));
+      if (!parse_variables (dict, &by[n_by], &by_nvar[n_by],
+			    PV_NO_DUPLICATE | PV_NO_SCRATCH))
+	goto lossage;
+      nx *= by_nvar[n_by];
+      n_by++;
+
+      if (!lex_match (T_BY))
+	{
+	  if (n_by < 1)
+	    {
+	      lex_error (_("expecting BY"));
+	      goto lossage;
+	    }
+	  else 
+	    break;
+	}
+    }
+  
+  {
+    int *by_iter = xcalloc (sizeof *by_iter * n_by);
+    int i;
+
+    xtab = xrealloc (xtab, sizeof *xtab * (nxtab + nx));
+    for (i = 0; i < nx; i++)
+      {
+	struct crosstab *x;
+
+	x = xmalloc (sizeof *x + sizeof (struct variable *) * (n_by - 2));
+	x->nvar = n_by;
+	x->missing = 0.;
+
+	{
+	  int i;
+
+	  if (var_dict == NULL)
+	    for (i = 0; i < n_by; i++)
+	      x->v[i] = by[i][by_iter[i]];
+	  else
+	    for (i = 0; i < n_by; i++)
+	      x->v[i] = default_dict.var[by[i][by_iter[i]]->foo];
+	}
+	
+	{
+	  int i;
+
+	  for (i = n_by - 1; i >= 0; i--)
+	    {
+	      if (++by_iter[i] < by_nvar[i])
+		break;
+	      by_iter[i] = 0;
+	    }
+	}
+
+	xtab[nxtab++] = x;
+      }
+    free (by_iter);
+  }
+    
+  success = 1;
+  /* Despite the name, we come here whether we're successful or
+     not. */
+ lossage:
+  {
+    int i;
+
+    for (i = 0; i < n_by; i++)
+      free (by[i]);
+    free (by);
+    free (by_nvar);
+  }
+
+  return success;
+}
+
+/* Parses the VARIABLES subcommand. */
+static int
+crs_custom_variables (struct cmd_crosstabs *cmd unused)
+{
+  struct variable **v = NULL;
+  int nv = 0;
+
+  if (nxtab)
+    {
+      msg (SE, _("VARIABLES must be specified before TABLES."));
+      return 0;
+    }
+
+  lex_match ('=');
+  
+  for (;;)
+    {
+      int orig_nv = nv;
+      int i;
+
+      long min, max;
+      
+      if (!parse_variables (&default_dict, &v, &nv,
+			    (PV_APPEND | PV_NUMERIC
+			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
+	return 0;
+
+      if (token != '(')
+	{
+	  lex_error ("expecting `('");
+	  goto lossage;
+	}
+      lex_get ();
+
+      if (!lex_force_int ())
+	goto lossage;
+      min = lex_integer ();
+      lex_get ();
+
+      lex_match (',');
+
+      if (!lex_force_int ())
+	goto lossage;
+      max = lex_integer ();
+      if (max < min)
+	{
+	  msg (SE, _("Maximum value (%ld) less than minimum value (%ld)."),
+	       max, min);
+	  goto lossage;
+	}
+      lex_get ();
+
+      if (token != ')')
+	{
+	  lex_error ("expecting `)'");
+	  goto lossage;
+	}
+      lex_get ();
+      
+      for (i = orig_nv; i < nv; i++)
+	{
+	  v[i]->p.crs.min = min;
+	  v[i]->p.crs.max = max + 1.;
+	  v[i]->p.crs.count = max - min + 1;
+	}
+      
+      if (token == '/')
+	break;
+    }
+  
+  {
+    int i;
+    
+    var_dict = new_dictionary (0);
+    var_dict->var = xmalloc (sizeof *var_dict->var * nv);
+    var_dict->nvar = nv;
+    for (i = 0; i < nv; i++)
+      {
+	struct variable *var = xmalloc (offsetof (struct variable, width));
+	strcpy (var->name, v[i]->name);
+	var->index = i;
+	var->type = v[i]->type;
+	var->foo = v[i]->index;
+	var_dict->var[i] = var;
+	avl_force_insert (var_dict->var_by_name, var);
+      }
+
+    free (v);
+    return 1;
+  }
+
+ lossage:
+  free (v);
+  return 0;
+}
+
+#if DEBUGGING
+static void
+debug_print (void)
+{
+  printf ("CROSSTABS\n");
+
+  if (var_dict)
+    {
+      int i;
+
+      printf ("\t/VARIABLES=");
+      for (i = 0; i < var_dict->nvar; i++)
+	{
+	  struct variable *v = var_dict->var[i];
+	  struct variable *iv = default_dict.var[v->foo];
+
+	  printf ("%s ", v->name);
+	  if (i < var_dict->nvar - 1)
+	    {
+	      struct variable *nv = var_dict->var[i + 1];
+	      struct variable *niv = default_dict.var[nv->foo];
+	      
+	      if (iv->p.crs.min == niv->p.crs.min
+		  && iv->p.crs.max == niv->p.crs.max)
+		continue;
+	    }
+	  printf ("(%d,%d) ", iv->p.crs.min, iv->p.crs.max - 1);
+	}
+      printf ("\n");
+    }
+  
+  {
+    int i;
+
+    printf ("\t/TABLES=");
+    for (i = 0; i < nxtab; i++)
+      {
+	struct crosstab *x = xtab[i];
+	int j;
+
+	if (i)
+	  printf("\t\t");
+	for (j = 0; j < x->nvar; j++)
+	  {
+	    if (j)
+	      printf (" BY ");
+	    printf ("%s", x->v[j]->name);
+	  }
+	printf ("\n");
+      }
+  }
+}
+#endif /* DEBUGGING */
+
+/* Data file processing. */
+
+static int compare_table_entry (const void *, const void *, void *);
+static unsigned hash_table_entry (const void *, void *);
+
+/* Set up the crosstabulation tables for processing. */
+static void
+precalc (void)
+{
+  if (mode == GENERAL)
+    {
+      gen_tab = hsh_create (512, compare_table_entry, hash_table_entry,
+			    NULL, NULL);
+    }
+  else 
+    {
+      int i;
+
+      sorted_tab = NULL;
+      n_sorted_tab = 0;
+
+      for (i = 0; i < nxtab; i++)
+	{
+	  struct crosstab *x = xtab[i];
+	  int count = 1;
+	  int *v;
+	  int j;
+
+	  x->ofs = n_sorted_tab;
+
+	  for (j = 2; j < x->nvar; j++)
+	    count *= x->v[j - 2]->p.crs.count;
+
+	  sorted_tab = xrealloc (sorted_tab,
+				 sizeof *sorted_tab * (n_sorted_tab + count));
+	  v = local_alloc (sizeof *v * x->nvar);
+	  for (j = 2; j < x->nvar; j++)
+	    v[j] = x->v[j]->p.crs.min;
+	  for (j = 0; j < count; j++)
+	    {
+	      struct table_entry *te;
+	      int k;
+
+	      te = sorted_tab[n_sorted_tab++]
+		= xmalloc (sizeof *te + sizeof (union value) * (x->nvar - 1));
+	      te->table = i;
+	      
+	      {
+		const int mat_size = (x->v[0]->p.crs.count
+				      * x->v[1]->p.crs.count);
+		int m;
+		
+		te->u.data = xmalloc (sizeof *te->u.data * mat_size);
+		for (m = 0; m < mat_size; m++)
+		  te->u.data[m] = 0.;
+	      }
+	      
+	      for (k = 2; k < x->nvar; k++)
+		te->v[k].f = v[k];
+	      for (k = 2; k < x->nvar; k++)
+		if (++v[k] >= x->v[k]->p.crs.max)
+		  v[k] = x->v[k]->p.crs.min;
+		else
+		  break;
+	    }
+	  local_free (v);
+	}
+
+      sorted_tab = xrealloc (sorted_tab,
+			     sizeof *sorted_tab * (n_sorted_tab + 1));
+      sorted_tab[n_sorted_tab] = NULL;
+    }
+}
+
+/* Form crosstabulations for general mode. */
+static int
+calc_general (struct ccase *c)
+{
+  /* Case weight. */
+  double w = (default_dict.weight_index != -1
+	      ? c->data[default_dict.var[default_dict.weight_index]->fv].f
+	      : 1.0);
+
+  /* Flattened current table index. */
+  int t;
+
+  for (t = 0; t < nxtab; t++)
+    {
+      struct crosstab *x = xtab[t];
+      const size_t entry_size = (sizeof (struct table_entry)
+				 + sizeof (union value) * (x->nvar - 1));
+      struct table_entry *te = local_alloc (entry_size);
+
+      /* Construct table entry for the current record and table. */
+      te->table = t;
+      {
+	int j;
+
+	assert (x != NULL);
+	for (j = 0; j < x->nvar; j++)
+	  {
+	    if ((cmd.miss == CRS_TABLE
+		 && is_missing (&c->data[x->v[j]->fv], x->v[j]))
+		|| (cmd.miss == CRS_INCLUDE
+		    && is_system_missing (&c->data[x->v[j]->fv], x->v[j])))
+	      {
+		x->missing += w;
+		goto next_crosstab;
+	      }
+	      
+	    if (x->v[j]->type == NUMERIC)
+	      te->v[j].f = c->data[x->v[j]->fv].f;
+	    else
+	      {
+		memcpy (te->v[j].s, c->data[x->v[j]->fv].s, x->v[j]->width);
+	      
+		/* Necessary in order to simplify comparisons. */
+		memset (&te->v[j].s[x->v[j]->width], 0,
+			sizeof (union value) - x->v[j]->width);
+	      }
+	  }
+      }
+
+      /* Add record to hash table. */
+      {
+	struct table_entry **tepp = (struct table_entry **) hsh_probe (gen_tab, te);
+	if (NULL == *tepp)
+	  {
+	    struct table_entry *tep = pool_alloc (pl_tc, entry_size);
+	    
+	    te->u.freq = w;
+	    memcpy (tep, te, entry_size);
+	    
+	    *tepp = tep;
+	  }
+	else
+	  (*tepp)->u.freq += w;
+      }
+
+    next_crosstab:
+      local_free (te);
+    }
+  
+  return 1;
+}
+
+static int
+calc_integer (struct ccase *c)
+{
+  /* Case weight. */
+  double w = (default_dict.weight_index != -1
+	      ? c->data[default_dict.var[default_dict.weight_index]->fv].f
+	      : 1.0);
+  
+  /* Flattened current table index. */
+  int t;
+  
+  for (t = 0; t < nxtab; t++)
+    {
+      struct crosstab *x = xtab[t];
+      int i, fact, ofs;
+      
+      fact = i = 1;
+      ofs = x->ofs;
+      for (i = 0; i < x->nvar; i++)
+	{
+	  struct variable *const v = x->v[i];
+	  double value = c->data[v->fv].f;
+	  
+	  /* Note that the first test also rules out SYSMIS. */
+	  if ((value < v->p.crs.min || value >= v->p.crs.max)
+	      || (cmd.miss == CRS_TABLE && is_num_user_missing (value, v)))
+	    {
+	      x->missing += w;
+	      goto next_crosstab;
+	    }
+	  
+	  if (i > 1)
+	    {
+	      ofs += fact * ((int) value - v->p.crs.min);
+	      fact *= v->p.crs.count;
+	    }
+	}
+      
+      {
+	const int row = c->data[x->v[ROW_VAR]->fv].f - x->v[ROW_VAR]->p.crs.min;
+	const int col = c->data[x->v[COL_VAR]->fv].f - x->v[COL_VAR]->p.crs.min;
+	const int col_dim = x->v[COL_VAR]->p.crs.count;
+
+	sorted_tab[ofs]->u.data[col + row * col_dim] += w;
+      }
+      
+    next_crosstab: ;
+    }
+  
+  return 1;
+}
+
+#if DEBUGGING
+/* Print out all table entries in NULL-terminated TAB for use by a
+   debugger (a person, not a program). */
+static void
+print_table_entries (struct table_entry **tab)
+{
+  printf ("raw crosstabulation data:\n");
+  for (; *tab; tab++)
+    {
+      const struct crosstab *x = xtab[(*tab)->table];
+      int i;
+
+      printf ("(%g) table:%d ", (*tab)->u.freq, (*tab)->table);
+      for (i = 0; i < x->nvar; i++)
+	{
+	  if (i)
+	    printf (", ");
+	  printf ("%s:", x->v[i]->name);
+	  
+	  if (x->v[i]->type == NUMERIC)
+	    printf ("%g", (*tab)->v[i].f);
+	  else
+	    printf ("%.*s", x->v[i]->width, (*tab)->v[i].s);
+	}
+      printf ("\n");
+    }
+  fflush (stdout);
+}
+#endif
+
+/* Compare the table_entry's at PA and PB and return a strcmp()-type
+   result. */
+static int 
+compare_table_entry (const void *pa, const void *pb, void *foo unused)
+{
+  const struct table_entry *a = pa;
+  const struct table_entry *b = pb;
+  
+  {
+    const int difftable = a->table - b->table;
+    if (difftable)
+      return difftable;
+  }
+  
+  {
+    const struct crosstab *x = xtab[a->table];
+    int i;
+
+    for (i = x->nvar - 1; i >= 0; i--)
+      if (x->v[i]->type == NUMERIC)
+	{
+	  const double diffnum = a->v[i].f - b->v[i].f;
+	  if (diffnum < 0)
+	    return -1;
+	  else if (diffnum > 0)
+	    return 1;
+	}
+      else 
+	{
+	  assert (x->v[i]->type == ALPHA);
+	  {
+	    const int diffstr = strncmp (a->v[i].s, b->v[i].s, x->v[i]->width);
+	    if (diffstr)
+	      return diffstr;
+	  }
+	}
+  }
+  
+  return 0;
+}
+
+/* Calculate a hash value from table_entry PA. */
+static unsigned
+hash_table_entry (const void *pa, void *foo unused)
+{
+  const struct table_entry *a = pa;
+  unsigned long hash = a->table;
+  int i;
+
+  /* Hash formula from _SPSS Statistical Algorithms_. */
+  for (i = 0; i < xtab[a->table]->nvar; i++)
+    {
+      hash = (hash << 3) | (hash >> (CHAR_BIT * SIZEOF_LONG - 3));
+      hash ^= a->v[i].hash[0];
+#if SIZEOF_DOUBLE / SIZEOF_LONG > 1
+      hash ^= a->v[i].hash[1];
+#endif
+    }
+  
+  return hash;
+}
+
+/* Post-data reading calculations. */
+
+static struct table_entry **find_pivot_extent (struct table_entry **, int *cnt, int pivot);
+static void enum_var_values (struct table_entry **beg, int cnt,
+			     union value **values, int *nvalues,
+			     int var_index);
+static void output_pivot_table (struct table_entry **, struct table_entry **,
+				double **, double **, double **,
+				int *, int *, int *);
+static void make_summary_table (void);
+
+static void
+postcalc (void)
+{
+  if (mode == GENERAL)
+    {
+      n_sorted_tab = hsh_count (gen_tab);
+      sorted_tab = (struct table_entry **) hsh_sort (gen_tab, compare_table_entry);
+#if DEBUGGING
+      print_table_entries (sorted_tab);
+#endif
+    }
+  
+  make_summary_table ();
+  
+  /* Identify all the individual crosstabulation tables, and deal with
+     them. */
+  {
+    struct table_entry **pb = sorted_tab, **pe;	/* Pivot begin, pivot end. */
+    int pc = n_sorted_tab;			/* Pivot count. */
+
+    double *mat = NULL, *row_tot = NULL, *col_tot = NULL;
+    int maxrows = 0, maxcols = 0, maxcells = 0;
+
+    for (;;)
+      {
+	pe = find_pivot_extent (pb, &pc, cmd.pivot == CRS_PIVOT);
+	if (pe == NULL)
+	  break;
+	
+	output_pivot_table (pb, pe, &mat, &row_tot, &col_tot,
+			    &maxrows, &maxcols, &maxcells);
+	  
+	pb = pe;
+      }
+    free (mat);
+    free (row_tot);
+    free (col_tot);
+  }
+  
+  hsh_destroy (gen_tab);
+}
+
+static void insert_summary (struct tab_table *, int tab_index, double valid);
+
+/* Output a table summarizing the cases processed. */
+static void
+make_summary_table (void)
+{
+  struct tab_table *summary;
+  
+  struct table_entry **pb = sorted_tab, **pe;
+  int pc = n_sorted_tab;
+  int cur_tab = 0;
+
+  summary = tab_create (7, 3 + nxtab, 1);
+  tab_title (summary, 0, _("Summary."));
+  tab_headers (summary, 1, 0, 3, 0);
+  tab_joint_text (summary, 1, 0, 6, 0, TAB_CENTER, _("Cases"));
+  tab_joint_text (summary, 1, 1, 2, 1, TAB_CENTER, _("Valid"));
+  tab_joint_text (summary, 3, 1, 4, 1, TAB_CENTER, _("Missing"));
+  tab_joint_text (summary, 5, 1, 6, 1, TAB_CENTER, _("Total"));
+  tab_hline (summary, TAL_1, 1, 6, 1);
+  tab_hline (summary, TAL_1, 1, 6, 2);
+  tab_vline (summary, TAL_1, 3, 1, 1);
+  tab_vline (summary, TAL_1, 5, 1, 1);
+  {
+    int i;
+
+    for (i = 0; i < 3; i++)
+      {
+	tab_text (summary, 1 + i * 2, 2, TAB_RIGHT, _("N"));
+	tab_text (summary, 2 + i * 2, 2, TAB_RIGHT, _("Percent"));
+      }
+  }
+  tab_offset (summary, 0, 3);
+		  
+  for (;;)
+    {
+      double valid;
+      
+      pe = find_pivot_extent (pb, &pc, cmd.pivot == CRS_PIVOT);
+      if (pe == NULL)
+	break;
+
+      while (cur_tab < (*pb)->table)
+	insert_summary (summary, cur_tab++, 0.);
+
+      if (mode == GENERAL)
+	for (valid = 0.; pb < pe; pb++)
+	  valid += (*pb)->u.freq;
+      else
+	{
+	  const struct crosstab *const x = xtab[(*pb)->table];
+	  const int n_cols = x->v[COL_VAR]->p.crs.count;
+	  const int n_rows = x->v[ROW_VAR]->p.crs.count;
+	  const int count = n_cols * n_rows;
+	    
+	  for (valid = 0.; pb < pe; pb++)
+	    {
+	      const double *data = (*pb)->u.data;
+	      int i;
+		
+	      for (i = 0; i < count; i++)
+		valid += *data++;
+	    }
+	}
+      insert_summary (summary, cur_tab++, valid);
+
+      pb = pe;
+    }
+  
+  while (cur_tab < nxtab)
+    insert_summary (summary, cur_tab++, 0.);
+
+  submit (summary);
+}
+
+/* Inserts a line into T describing the crosstabulation at index
+   TAB_INDEX, which has VALID valid observations. */
+static void
+insert_summary (struct tab_table *t, int tab_index, double valid)
+{
+  struct crosstab *x = xtab[tab_index];
+
+  tab_hline (t, TAL_1, 0, 6, 0);
+  
+  /* Crosstabulation name. */
+  {
+    char *buf = local_alloc (128 * x->nvar);
+    char *cp = buf;
+    int i;
+
+    for (i = 0; i < x->nvar; i++)
+      {
+	if (i > 0)
+	  cp = stpcpy (cp, " * ");
+
+	cp = stpcpy (cp, x->v[i]->label ? x->v[i]->label : x->v[i]->name);
+      }
+    tab_text (t, 0, 0, TAB_LEFT, buf);
+
+    local_free (buf);
+  }
+    
+  /* Counts and percentages. */
+  {
+    double n[3];
+    int i;
+
+    n[0] = valid;
+    n[1] = x->missing;
+    n[2] = n[0] + n[1];
+
+
+    for (i = 0; i < 3; i++)
+      {
+	tab_float (t, i * 2 + 1, 0, TAB_RIGHT, n[i], 8, 0);
+	tab_text (t, i * 2 + 2, 0, TAB_RIGHT | TAT_PRINTF, "%.1f%%",
+		  n[i] / n[2] * 100.);
+      }
+  }
+  
+  tab_next_row (t);
+}
+
+/* Output. */
+
+/* Tables. */
+static struct tab_table *table;	/* Crosstabulation table. */
+static struct tab_table *chisq;	/* Chi-square table. */
+static struct tab_table *sym;		/* Symmetric measures table. */
+static struct tab_table *risk;		/* Risk estimate table. */
+static struct tab_table *direct;	/* Directional measures table. */
+
+/* Statistics. */
+static int chisq_fisher;	/* Did any rows include Fisher's exact test? */
+
+/* Column values, number of columns. */
+static union value *cols;
+static int n_cols;
+
+/* Row values, number of rows. */
+static union value *rows;
+static int n_rows;
+	      
+/* Number of statistically interesting columns/rows (columns/rows with
+   data in them). */
+static int ns_cols, ns_rows;
+
+/* Crosstabulation. */
+static struct crosstab *x;
+
+/* Number of variables from the crosstabulation to consider.  This is
+   either x->nvar, if pivoting is on, or 2, if pivoting is off. */
+static int nvar;
+
+/* Matrix contents. */
+static double *mat;		/* Matrix proper. */
+static double *row_tot;		/* Row totals. */
+static double *col_tot;		/* Column totals. */
+static double W;		/* Grand total. */
+
+static void display_dimensions (struct tab_table *, int first_difference,
+				struct table_entry *);
+static void display_crosstabulation (void);
+static void display_chisq (void);
+static void display_symmetric (void);
+static void display_risk (void);
+static void display_directional (void);
+static void crosstabs_dim (struct tab_table *, struct outp_driver *);
+static void table_value_missing (struct tab_table *table, int c, int r,
+				 unsigned char opt, const union value *v,
+				 const struct variable *var);
+static void delete_missing (void);
+
+/* Output pivot table beginning at PB and continuing until PE,
+   exclusive.  For efficiency, *MATP is a pointer to a matrix that can
+   hold *MAXROWS entries. */
+static void
+output_pivot_table (struct table_entry **pb, struct table_entry **pe,
+		    double **matp, double **row_totp, double **col_totp,
+		    int *maxrows, int *maxcols, int *maxcells)
+{
+  /* Subtable. */
+  struct table_entry **tb = pb, **te;	/* Table begin, table end. */
+  int tc = pe - pb;		/* Table count. */
+
+  /* Table entry for header comparison. */
+  struct table_entry *cmp;
+
+  x = xtab[(*pb)->table];
+  enum_var_values (pb, pe - pb, &cols, &n_cols, COL_VAR);
+
+  nvar = cmd.pivot == CRS_PIVOT ? x->nvar : 2;
+
+  /* Crosstabulation table initialization. */
+  if (num_cells)
+    {
+      table = tab_create (nvar + n_cols,
+			  (pe - pb) / n_cols * 3 / 2 * num_cells + 10, 1);
+      tab_headers (table, nvar - 1, 0, 2, 0);
+
+      /* First header line. */
+      tab_joint_text (table, nvar - 1, 0, (nvar - 1) + (n_cols - 1), 0,
+		      TAB_CENTER | TAT_TITLE, x->v[COL_VAR]->name);
+  
+      tab_hline (table, TAL_1, nvar - 1, nvar + n_cols - 2, 1);
+	     
+      /* Second header line. */
+      {
+	int i;
+
+	for (i = 2; i < nvar; i++)
+	  tab_joint_text (table, nvar - i - 1, 0, nvar - i - 1, 1,
+			  TAB_RIGHT | TAT_TITLE,
+			  x->v[i]->label ? x->v[i]->label : x->v[i]->name);
+	tab_text (table, nvar - 2, 1, TAB_RIGHT | TAT_TITLE,
+		  x->v[ROW_VAR]->name);
+	for (i = 0; i < n_cols; i++)
+	  table_value_missing (table, nvar + i - 1, 1, TAB_RIGHT, &cols[i],
+			       x->v[COL_VAR]);
+	tab_text (table, nvar + n_cols - 1, 1, TAB_CENTER, _("Total"));
+      }
+
+      tab_hline (table, TAL_1, 0, nvar + n_cols - 1, 2);
+      tab_vline (table, TAL_1, nvar + n_cols - 1, 0, 1);
+
+      /* Title. */
+      {
+	char *title = local_alloc (x->nvar * 64 + 128);
+	char *cp = title;
+	int i;
+    
+	if (cmd.pivot == CRS_PIVOT)
+	  for (i = 0; i < nvar; i++)
+	    {
+	      if (i)
+		cp = stpcpy (cp, " by ");
+	      cp = stpcpy (cp, x->v[i]->name);
+	    }
+	else
+	  {
+	    cp = spprintf (cp, "%s by %s for", x->v[0]->name, x->v[1]->name);
+	    for (i = 2; i < nvar; i++)
+	      {
+		char buf[64], *bufp;
+
+		if (i > 2)
+		  *cp++ = ',';
+		*cp++ = ' ';
+		cp = stpcpy (cp, x->v[i]->name);
+		*cp++ = '=';
+		data_out (buf, &x->v[i]->print, &(*pb)->v[i]);
+		for (bufp = buf; isspace ((unsigned char) *bufp); bufp++)
+		  ;
+		cp = stpcpy (cp, bufp);
+	      }
+	  }
+
+	cp = stpcpy (cp, " [");
+	for (i = 0; i < num_cells; i++)
+	  {
+	    struct tuple
+	      {
+		int value;
+		const char *name;
+	      };
+	
+	    static const struct tuple cell_names[] = 
+	      {
+		{CRS_CL_COUNT, N_("count")},
+		{CRS_CL_ROW, N_("row %")},
+		{CRS_CL_COLUMN, N_("column %")},
+		{CRS_CL_TOTAL, N_("total %")},
+		{CRS_CL_EXPECTED, N_("expected")},
+		{CRS_CL_RESIDUAL, N_("residual")},
+		{CRS_CL_SRESIDUAL, N_("std. resid.")},
+		{CRS_CL_ASRESIDUAL, N_("adj. resid.")},
+		{-1, NULL},
+	      };
+
+	    const struct tuple *t;
+
+	    for (t = cell_names; t->value != cells[i]; t++)
+	      assert (t->value != -1);
+	    if (i)
+	      cp = stpcpy (cp, ", ");
+	    cp = stpcpy (cp, gettext (t->name));
+	  }
+	strcpy (cp, "].");
+
+	tab_title (table, 0, title);
+	local_free (title);
+      }
+      
+      tab_offset (table, 0, 2);
+    }
+  else
+    table = NULL;
+  
+  /* Chi-square table initialization. */
+  if (cmd.a_statistics[CRS_ST_CHISQ])
+    {
+      chisq = tab_create (6 + (nvar - 2),
+			  (pe - pb) / n_cols * 3 / 2 * N_CHISQ + 10, 1);
+      tab_headers (chisq, 1 + (nvar - 2), 0, 1, 0);
+
+      tab_title (chisq, 0, "Chi-square tests.");
+      
+      tab_offset (chisq, nvar - 2, 0);
+      tab_text (chisq, 0, 0, TAB_LEFT | TAT_TITLE, _("Statistic"));
+      tab_text (chisq, 1, 0, TAB_RIGHT | TAT_TITLE, _("Value"));
+      tab_text (chisq, 2, 0, TAB_RIGHT | TAT_TITLE, _("df"));
+      tab_text (chisq, 3, 0, TAB_RIGHT | TAT_TITLE,
+		_("Asymp. Sig. (2-sided)"));
+      tab_text (chisq, 4, 0, TAB_RIGHT | TAT_TITLE,
+		_("Exact. Sig. (2-sided)"));
+      tab_text (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
+		_("Exact. Sig. (1-sided)"));
+      chisq_fisher = 0;
+      tab_offset (chisq, 0, 1);
+    }
+  else
+    chisq = NULL;
+  
+  /* Symmetric measures. */
+  if (cmd.a_statistics[CRS_ST_PHI] || cmd.a_statistics[CRS_ST_CC]
+      || cmd.a_statistics[CRS_ST_BTAU] || cmd.a_statistics[CRS_ST_CTAU]
+      || cmd.a_statistics[CRS_ST_GAMMA] || cmd.a_statistics[CRS_ST_CORR]
+      || cmd.a_statistics[CRS_ST_KAPPA])
+    {
+      sym = tab_create (6 + (nvar - 2), (pe - pb) / n_cols * 7 + 10, 1);
+      tab_headers (sym, 2 + (nvar - 2), 0, 1, 0);
+      tab_title (sym, 0, "Symmetric measures.");
+
+      tab_offset (sym, nvar - 2, 0);
+      tab_text (sym, 0, 0, TAB_LEFT | TAT_TITLE, _("Category"));
+      tab_text (sym, 1, 0, TAB_LEFT | TAT_TITLE, _("Statistic"));
+      tab_text (sym, 2, 0, TAB_RIGHT | TAT_TITLE, _("Value"));
+      tab_text (sym, 3, 0, TAB_RIGHT | TAT_TITLE, _("Asymp. Std. Error"));
+      tab_text (sym, 4, 0, TAB_RIGHT | TAT_TITLE, _("Approx. T"));
+      tab_text (sym, 5, 0, TAB_RIGHT | TAT_TITLE, _("Approx. Sig."));
+      tab_offset (sym, 0, 1);
+    }
+  else
+    sym = NULL;
+
+  /* Risk estimate. */
+  if (cmd.a_statistics[CRS_ST_RISK])
+    {
+      risk = tab_create (4 + (nvar - 2), (pe - pb) / n_cols * 4 + 10, 1);
+      tab_headers (risk, 1 + nvar - 2, 0, 2, 0);
+      tab_title (risk, 0, "Risk estimate.");
+
+      tab_offset (risk, nvar - 2, 0);
+      tab_joint_text (risk, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
+		      _(" 95%% Confidence Interval"));
+      tab_text (risk, 0, 1, TAB_LEFT | TAT_TITLE, _("Statistic"));
+      tab_text (risk, 1, 1, TAB_RIGHT | TAT_TITLE, _("Value"));
+      tab_text (risk, 2, 1, TAB_RIGHT | TAT_TITLE, _("Lower"));
+      tab_text (risk, 3, 1, TAB_RIGHT | TAT_TITLE, _("Upper"));
+      tab_hline (risk, TAL_1, 2, 3, 1);
+      tab_vline (risk, TAL_1, 2, 0, 1);
+      tab_offset (risk, 0, 2);
+    }
+  else
+    risk = NULL;
+
+  /* Directional measures. */
+  if (cmd.a_statistics[CRS_ST_LAMBDA] || cmd.a_statistics[CRS_ST_UC]
+      || cmd.a_statistics[CRS_ST_D] || cmd.a_statistics[CRS_ST_ETA])
+    {
+      direct = tab_create (7 + (nvar - 2), (pe - pb) / n_cols * 7 + 10, 1);
+      tab_headers (direct, 3 + (nvar - 2), 0, 1, 0);
+      tab_title (direct, 0, "Directional measures.");
+
+      tab_offset (direct, nvar - 2, 0);
+      tab_text (direct, 0, 0, TAB_LEFT | TAT_TITLE, _("Category"));
+      tab_text (direct, 1, 0, TAB_LEFT | TAT_TITLE, _("Statistic"));
+      tab_text (direct, 2, 0, TAB_LEFT | TAT_TITLE, _("Type"));
+      tab_text (direct, 3, 0, TAB_RIGHT | TAT_TITLE, _("Value"));
+      tab_text (direct, 4, 0, TAB_RIGHT | TAT_TITLE, _("Asymp. Std. Error"));
+      tab_text (direct, 5, 0, TAB_RIGHT | TAT_TITLE, _("Approx. T"));
+      tab_text (direct, 6, 0, TAB_RIGHT | TAT_TITLE, _("Approx. Sig."));
+      tab_offset (direct, 0, 1);
+    }
+  else
+    direct = NULL;
+
+  for (;;)
+    {
+      /* Find pivot subtable if applicable. */
+      te = find_pivot_extent (tb, &tc, 0);
+      if (te == NULL)
+	break;
+
+      /* Find all the row variable values. */
+      enum_var_values (tb, te - tb, &rows, &n_rows, ROW_VAR);
+
+      /* Allocate memory space for the column and row totals. */
+      if (n_rows > *maxrows)
+	{
+	  *row_totp = xrealloc (*row_totp, sizeof **row_totp * n_rows);
+	  row_tot = *row_totp;
+	  *maxrows = n_rows;
+	}
+      if (n_cols > *maxcols)
+	{
+	  *col_totp = xrealloc (*col_totp, sizeof **col_totp * n_cols);
+	  col_tot = *col_totp;
+	  *maxcols = n_cols;
+	}
+      
+      /* Allocate table space for the matrix. */
+      if (table && tab_row (table) + (n_rows + 1) * num_cells > tab_nr (table))
+	tab_realloc (table, -1,
+		     max (tab_nr (table) + (n_rows + 1) * num_cells,
+			  tab_nr (table) * (pe - pb) / (te - tb)));
+
+      if (mode == GENERAL)
+	{
+	  /* Allocate memory space for the matrix. */
+	  if (n_cols * n_rows > *maxcells)
+	    {
+	      *matp = xrealloc (*matp, sizeof **matp * n_cols * n_rows);
+	      *maxcells = n_cols * n_rows;
+	    }
+	  
+	  mat = *matp;
+
+	  /* Build the matrix and calculate column totals. */
+	  {
+	    union value *cur_col = cols;
+	    union value *cur_row = rows;
+	    double *mp = mat;
+	    double *cp = col_tot;
+	    struct table_entry **p;
+
+	    *cp = 0.;
+	    for (p = &tb[0]; p < te; p++)
+	      {
+		for (; memcmp (cur_col, &(*p)->v[COL_VAR], sizeof *cur_col);
+		     cur_row = rows)
+		  {
+		    *++cp = 0.;
+		    for (; cur_row < &rows[n_rows]; cur_row++)
+		      {
+			*mp = 0.;
+			mp += n_cols;
+		      }
+		    cur_col++;
+		    mp = &mat[cur_col - cols];
+		  }
+
+		for (; memcmp (cur_row, &(*p)->v[ROW_VAR], sizeof *cur_row);
+		     cur_row++)
+		  {
+		    *mp = 0.;
+		    mp += n_cols;
+		  }
+
+		*cp += *mp = (*p)->u.freq;
+		mp += n_cols;
+		cur_row++;
+	      }
+
+	    /* Zero out the rest of the matrix. */
+	    for (; cur_row < &rows[n_rows]; cur_row++)
+	      {
+		*mp = 0.;
+		mp += n_cols;
+	      }
+	    cur_col++;
+	    if (cur_col < &cols[n_cols])
+	      {
+		const int rem_cols = n_cols - (cur_col - cols);
+		int c, r;
+
+		for (c = 0; c < rem_cols; c++)
+		  *++cp = 0.;
+		mp = &mat[cur_col - cols];
+		for (r = 0; r < n_rows; r++)
+		  {
+		    for (c = 0; c < rem_cols; c++)
+		      *mp++ = 0.;
+		    mp += n_cols - rem_cols;
+		  }
+	      }
+	  }
+	}
+      else
+	{
+	  int r, c;
+	  double *tp = col_tot;
+	  
+	  assert (mode == INTEGER);
+	  mat = (*tb)->u.data;
+	  ns_cols = n_cols;
+
+	  /* Calculate column totals. */
+	  for (c = 0; c < n_cols; c++)
+	    {
+	      double cum = 0.;
+	      double *cp = &mat[c];
+	      
+	      for (r = 0; r < n_rows; r++)
+		cum += cp[r * n_cols];
+	      *tp++ = cum;
+	    }
+	}
+      
+      {
+	double *cp;
+	
+	for (ns_cols = 0, cp = col_tot; cp < &col_tot[n_cols]; cp++)
+	  ns_cols += *cp != 0.;
+      }
+
+      /* Calculate row totals. */
+      {
+	double *mp = mat;
+	double *rp = row_tot;
+	int r, c;
+		
+	for (ns_rows = 0, r = n_rows; r--; )
+	  {
+	    double cum = 0.;
+	    for (c = n_cols; c--; )
+	      cum += *mp++;
+	    *rp++ = cum;
+	    if (cum != 0.)
+	      ns_rows++;
+	  }
+      }
+
+      /* Calculate grand total. */
+      {
+	double *tp;
+	double cum = 0.;
+	int n;
+
+	if (n_rows < n_cols)
+	  tp = row_tot, n = n_rows;
+	else
+	  tp = col_tot, n = n_cols;
+	while (n--)
+	  cum += *tp++;
+	W = cum;
+      }
+      
+#if DEBUGGING
+      /* Print the matrix. */
+      {
+	int i, r, c;
+
+	printf ("%s by %s for", x->v[0]->name, x->v[1]->name);
+	for (i = 2; i < nvar; i++)
+	  printf (" %s=%g", x->v[i]->name, tb[0]->v[i].f);
+	printf ("\n");
+	printf ("     ");
+	for (c = 0; c < n_cols; c++)
+	  printf ("%4g", cols[c].f);
+	printf ("\n");
+	for (r = 0; r < n_rows; r++)
+	  {
+	    printf ("%4g:", rows[r].f);
+	    for (c = 0; c < n_cols; c++)
+	      printf ("%4g", mat[c + r * n_cols]);
+	    printf ("%4g", row_tot[r]);
+	    printf ("\n");
+	  }
+	printf ("     ");
+	for (c = 0; c < n_cols; c++)
+	  printf ("%4g", col_tot[c]);
+	printf ("%4g", W);
+	printf ("\n\n");
+      }
+#endif
+
+      /* Find the first variable that differs from the last subtable,
+	 then display the values of the dimensioning variables for
+	 each table that needs it. */
+      {
+	int first_difference = nvar - 1;
+	
+	if (tb != pb)
+	  for (; ; first_difference--)
+	    {
+	      assert (first_difference >= 2);
+	      if (memcmp (&cmp->v[first_difference],
+			  &(*tb)->v[first_difference], sizeof *cmp->v))
+		break;
+	    }
+	cmp = *tb;
+	    
+	if (table)
+	  display_dimensions (table, first_difference, *tb);
+	if (chisq)
+	  display_dimensions (chisq, first_difference, *tb);
+	if (sym)
+	  display_dimensions (sym, first_difference, *tb);
+	if (risk)
+	  display_dimensions (risk, first_difference, *tb);
+	if (direct)
+	  display_dimensions (direct, first_difference, *tb);
+      }
+
+      if (table)
+	display_crosstabulation ();
+      if (cmd.miss == CRS_REPORT)
+	delete_missing ();
+      if (chisq)
+	display_chisq ();
+      if (sym)
+	display_symmetric ();
+      if (risk)
+	display_risk ();
+      if (direct)
+	display_directional ();
+		
+      tb = te;
+      free (rows);
+    }
+
+  submit (table);
+  
+  if (chisq)
+    {
+      if (!chisq_fisher)
+	tab_resize (chisq, 4 + (nvar - 2), -1);
+      submit (chisq);
+    }
+
+  submit (sym);
+  submit (risk);
+  submit (direct);
+
+  free (cols);
+}
+
+/* Delete missing rows and columns for statistical analysis when
+   /MISSING=REPORT. */
+static void
+delete_missing (void)
+{
+  {
+    int r;
+
+    for (r = 0; r < n_rows; r++)
+      if (is_num_user_missing (rows[r].f, x->v[ROW_VAR]))
+	{
+	  int c;
+
+	  for (c = 0; c < n_cols; c++)
+	    mat[c + r * n_cols] = 0.;
+	  ns_rows--;
+	}
+  }
+  
+  {
+    int c;
+
+    for (c = 0; c < n_cols; c++)
+      if (is_num_user_missing (cols[c].f, x->v[COL_VAR]))
+	{
+	  int r;
+
+	  for (r = 0; r < n_rows; r++)
+	    mat[c + r * n_cols] = 0.;
+	  ns_cols--;
+	}
+  }
+}
+
+/* Prepare table T for submission, and submit it. */
+static void
+submit (struct tab_table *t)
+{
+  int i;
+  
+  if (t == NULL)
+    return;
+  
+  tab_resize (t, -1, 0);
+  if (tab_nr (t) == tab_t (t))
+    {
+      tab_destroy (t);
+      return;
+    }
+  tab_offset (t, 0, 0);
+  if (t != table)
+    for (i = 2; i < nvar; i++)
+      tab_text (t, nvar - i - 1, 0, TAB_RIGHT | TAT_TITLE,
+		x->v[i]->label ? x->v[i]->label : x->v[i]->name);
+  tab_box (t, TAL_2, TAL_2, -1, -1, 0, 0, tab_nc (t) - 1, tab_nr (t) - 1);
+  tab_box (t, -1, -1, -1, TAL_1, tab_l (t), tab_t (t) - 1, tab_nc (t) - 1,
+	   tab_nr (t) - 1);
+  tab_box (t, -1, -1, -1, TAL_1 | TAL_SPACING, 0, tab_t (t), tab_l (t) - 1,
+	   tab_nr (t) - 1);
+  tab_vline (t, TAL_2, tab_l (t), 0, tab_nr (t) - 1);
+  tab_dim (t, crosstabs_dim);
+  tab_submit (t);
+}
+
+/* Sets the widths of all the columns and heights of all the rows in
+   table T for driver D. */
+static void
+crosstabs_dim (struct tab_table *t, struct outp_driver *d)
+{
+  int i;
+  
+  /* Width of a numerical column. */
+  int c = outp_string_width (d, "0.000000");
+  if (cmd.miss == CRS_REPORT)
+    c += outp_string_width (d, "M");
+
+  /* Set width for header columns. */
+  if (t->l != 0)
+    {
+      int w = (d->width - t->vr_tot - c * (t->nc - t->l)) / t->l;
+      
+      if (w < d->prop_em_width * 8)
+	w = d->prop_em_width * 8;
+
+      if (w > d->prop_em_width * 15)
+	w = d->prop_em_width * 15;
+
+      for (i = 0; i < t->l; i++)
+	t->w[i] = w;
+    }
+
+  for (i = t->l; i < t->nc; i++)
+    t->w[i] = c;
+
+  for (i = 0; i < t->nr; i++)
+    t->h[i] = tab_natural_height (t, d, i);
+}
+
+static struct table_entry **find_pivot_extent_general (struct table_entry **tp,
+						int *cnt, int pivot);
+static struct table_entry **find_pivot_extent_integer (struct table_entry **tp,
+						int *cnt, int pivot);
+
+/* Calls find_pivot_extent_general or find_pivot_extent_integer, as
+   appropriate. */
+static struct table_entry **
+find_pivot_extent (struct table_entry **tp, int *cnt, int pivot)
+{
+  return (mode == GENERAL
+	  ? find_pivot_extent_general (tp, cnt, pivot)
+	  : find_pivot_extent_integer (tp, cnt, pivot));
+}
+
+/* Find the extent of a region in TP that contains one table.  If
+   PIVOT != 0 that means a set of table entries with identical table
+   number; otherwise they also have to have the same values for every
+   dimension after the row and column dimensions.  The table that is
+   searched starts at TP and has length CNT.  Returns the first entry
+   after the last one in the table; sets *CNT to the number of
+   remaining values.  If there are no entries in TP at all, returns
+   NULL.  A yucky interface, admittedly, but it works. */
+static struct table_entry **
+find_pivot_extent_general (struct table_entry **tp, int *cnt, int pivot)
+{
+  struct table_entry *fp = *tp;
+  struct crosstab *x;
+
+  if (*cnt == 0)
+    return NULL;
+  x = xtab[(*tp)->table];
+  for (;;)
+    {
+      tp++;
+      if (--*cnt == 0)
+	break;
+      assert (*cnt > 0);
+
+      if ((*tp)->table != fp->table)
+	break;
+      if (pivot)
+	continue;
+
+      if (memcmp (&(*tp)->v[2], &fp->v[2], sizeof (union value) * (x->nvar - 2)))
+	break;
+    }
+
+  return tp;
+}
+
+/* Integer mode correspondent to find_pivot_extent_general().  This
+   could be optimized somewhat, but I just don't give a crap about
+   CROSSTABS performance in integer mode, which is just a wart on
+   CROSSTABS' ass as far as I'm concerned.
+
+   That said, feel free to send optimization patches to me. */
+static struct table_entry **
+find_pivot_extent_integer (struct table_entry **tp, int *cnt, int pivot)
+{
+  struct table_entry *fp = *tp;
+  struct crosstab *x;
+
+  if (*cnt == 0)
+    return NULL;
+  x = xtab[(*tp)->table];
+  for (;;)
+    {
+      tp++;
+      if (--*cnt == 0)
+	break;
+      assert (*cnt > 0);
+
+      if ((*tp)->table != fp->table)
+	break;
+      if (pivot)
+	continue;
+      
+      if (memcmp (&(*tp)->v[2], &fp->v[2], sizeof (union value) * (x->nvar - 2)))
+	break;
+    }
+
+  return tp;
+}
+
+/* Compare value * A and B, where WIDTH is the string width or 0 for
+   numerics, and return a strcmp()-type result. */
+static int
+compare_value (const void *pa, const void *pb, void *pwidth)
+{
+  const union value *a = pa;
+  const union value *b = pb;
+  const int width = (int) pwidth;
+
+  if (width)
+    return strncmp (a->s, b->s, width);
+  else
+    return a->f < b->f ? -1 : (a->f > b->f ? 1 : 0);
+}
+
+/* Given a list of CNT table_entry's starting at BEG, creates a list
+   of *NVALUES values *VALUES of variable with index VAR_INDEX. */
+static void 
+enum_var_values (struct table_entry **beg, int cnt, union value **values, int *nvalues,
+		 int var_index)
+{
+  if (mode == GENERAL)
+    {
+      avl_tree *tree;
+
+      tree = avl_create (pl_col, compare_value,
+			 (void *) (xtab[(*beg)->table]->v[var_index]->width));
+
+      {
+	int i;
+  
+	for (i = 0; i < cnt; i++)
+	  avl_insert (tree, &beg[i]->v[var_index]);
+	*values = xmalloc (sizeof **values * avl_count (tree));
+      }
+  
+      {
+	avl_traverser trav;
+	union value *v;
+	int i;
+    
+	i = 0;
+	hsh_iterator_init (trav);
+	while (NULL != (v = avl_traverse (tree, &trav)))
+	  (*values)[i++] = *v;
+	*nvalues = i;
+      }
+
+      /* Destroy tree. */
+      pool_destroy (pl_col);
+      pl_col = pool_create ();
+    }
+  else
+    {
+      struct crosstab_proc *crs = &xtab[(*beg)->table]->v[var_index]->p.crs;
+      int i;
+      
+      assert (mode == INTEGER);
+      *values = xmalloc (sizeof **values * crs->count);
+      for (i = 0; i < crs->count; i++)
+	(*values)[i].f = i + crs->min;
+      *nvalues = crs->count;
+    }
+}
+
+/* Sets cell (C,R) in TABLE, with options OPT, to have a value taken
+   from V, displayed with print format spec from variable VAR.  When
+   in REPORT missing-value mode, missing values have an M appended. */
+static void
+table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
+		     const union value *v, const struct variable *var)
+{
+  struct len_string s;
+
+  char *label = get_val_lab (var, *v, 0);
+  if (label) 
+    {
+      tab_text (table, c, r, TAB_LEFT, label);
+      return;
+    }
+
+  s.length = var->print.w;
+  s.string = tab_alloc (table, s.length + 1);
+  data_out (s.string, &var->print, v);
+  if (cmd.miss == CRS_REPORT && is_num_user_missing (v->f, var))
+    s.string[s.length++] = 'M';
+  while (s.length && *s.string == ' ')
+    {
+      s.length--;
+      s.string++;
+    }
+  tab_raw (table, c, r, opt, &s);
+}
+
+/* Draws a line across TABLE at the current row to indicate the most
+   major dimension variable with index FIRST_DIFFERENCE out of NVAR
+   that changed, and puts the values that changed into the table.  TB
+   and X must be the corresponding table_entry and crosstab,
+   respectively. */
+static void
+display_dimensions (struct tab_table *table, int first_difference, struct table_entry *tb)
+{
+  tab_hline (table, TAL_1, nvar - first_difference - 1, tab_nc (table) - 1, 0);
+
+  for (; first_difference >= 2; first_difference--)
+    table_value_missing (table, nvar - first_difference - 1, 0,
+			 TAB_RIGHT, &tb->v[first_difference],
+			 x->v[first_difference]);
+}
+
+/* Put value V into cell (C,R) of TABLE, suffixed with letter M. */
+static void
+float_M_suffix (struct tab_table *table, int c, int r, double v)
+{
+  static const struct fmt_spec f = {FMT_F, 8, 0};
+  struct len_string s;
+
+  s.length = 9;
+  s.string = tab_alloc (table, 9);
+  s.string[8] = 'M';
+  data_out (s.string, &f, (union value *) &v);
+  while (*s.string == ' ')
+    {
+      s.length--;
+      s.string++;
+    }
+  tab_raw (table, c, r, TAB_RIGHT, &s);
+}
+
+/* Displays the crosstabulation table. */
+static void
+display_crosstabulation (void)
+{
+  {
+    int r;
+	
+    for (r = 0; r < n_rows; r++)
+      table_value_missing (table, nvar - 2, r * num_cells,
+			   TAB_RIGHT, &rows[r], x->v[ROW_VAR]);
+  }
+  tab_text (table, nvar - 2, n_rows * num_cells,
+	    TAB_LEFT, _("Total"));
+      
+  /* Put in the actual cells. */
+  {
+    double *mp = mat;
+    int r, c, i;
+
+    tab_offset (table, nvar - 1, -1);
+    for (r = 0; r < n_rows; r++)
+      {
+	if (num_cells > 1)
+	  tab_hline (table, TAL_1, -1, n_cols, 0);
+	for (c = 0; c < n_cols; c++)
+	  {
+	    double expected_value;
+
+	    if (expected)
+	      expected_value = row_tot[r] * col_tot[c] / W;
+	    for (i = 0; i < num_cells; i++)
+	      {
+		double v;
+
+		switch (cells[i])
+		  {
+		  case CRS_CL_COUNT:
+		    v = *mp;
+		    break;
+		  case CRS_CL_ROW:
+		    v = *mp / row_tot[r] * 100.;
+		    break;
+		  case CRS_CL_COLUMN:
+		    v = *mp / col_tot[c] * 100.;
+		    break;
+		  case CRS_CL_TOTAL:
+		    v = *mp / W * 100.;
+		    break;
+		  case CRS_CL_EXPECTED:
+		    v = expected_value;
+		    break;
+		  case CRS_CL_RESIDUAL:
+		    v = *mp - expected_value;
+		    break;
+		  case CRS_CL_SRESIDUAL:
+		    v = (*mp - expected_value) / sqrt (expected_value);
+		    break;
+		  case CRS_CL_ASRESIDUAL:
+		    v = ((*mp - expected_value)
+			 / sqrt (expected_value
+				 * (1. - row_tot[r] / W)
+				 * (1. - col_tot[c] / W)));
+		    break;
+		  default:
+		    assert (0);
+		  }
+
+		if (cmd.miss == CRS_REPORT
+		    && (is_num_user_missing (cols[c].f, x->v[COL_VAR])
+			|| is_num_user_missing (rows[r].f, x->v[ROW_VAR])))
+		  float_M_suffix (table, c, i, v);
+		else if (v != 0.)
+		  tab_float (table, c, i, TAB_RIGHT, v, 8, 0);
+	      }
+
+	    mp++;
+	  }
+
+	tab_offset (table, -1, tab_row (table) + num_cells);
+      }
+  }
+
+  /* Row totals. */
+  {
+    int r, i;
+
+    tab_offset (table, -1, tab_row (table) - num_cells * n_rows);
+    for (r = 0; r < n_rows; r++)
+      for (i = 0; i < num_cells; i++)
+	{
+	  double v;
+
+	  switch (cells[i])
+	    {
+	    case CRS_CL_COUNT:
+	      v = row_tot[r];
+	      break;
+	    case CRS_CL_ROW:
+	      v = 100.;
+	      break;
+	    case CRS_CL_COLUMN:
+	      v = row_tot[r] / W * 100.;
+	      break;
+	    case CRS_CL_TOTAL:
+	      v = row_tot[r] / W * 100.;
+	      break;
+	    case CRS_CL_EXPECTED:
+	    case CRS_CL_RESIDUAL:
+	    case CRS_CL_SRESIDUAL:
+	    case CRS_CL_ASRESIDUAL:
+	      v = 0.;
+	      break;
+	    default:
+	      assert (0);
+	    }
+
+	  if (cmd.miss == CRS_REPORT
+	      && is_num_user_missing (rows[r].f, x->v[ROW_VAR]))
+	    float_M_suffix (table, n_cols, 0, v);
+	  else if (v != 0.)
+	    tab_float (table, n_cols, 0, TAB_RIGHT, v, 8, 0);
+
+	  tab_next_row (table);
+	}
+  }
+
+  /* Column totals, grand total. */
+  {
+    int c, j;
+
+    if (num_cells > 1)
+      tab_hline (table, TAL_1, -1, n_cols, 0);
+    for (c = 0; c <= n_cols; c++)
+      {
+	double ct = c < n_cols ? col_tot[c] : W;
+	int i;
+	    
+	for (i = j = 0; i < num_cells; i++)
+	  {
+	    double v;
+
+	    switch (cells[i])
+	      {
+	      case CRS_CL_COUNT:
+		v = ct;
+		break;
+	      case CRS_CL_ROW:
+		v = ct / W * 100.;
+		break;
+	      case CRS_CL_COLUMN:
+		v = 100.;
+		break;
+	      case CRS_CL_TOTAL:
+		v = ct / W * 100.;
+		break;
+	      case CRS_CL_EXPECTED:
+	      case CRS_CL_RESIDUAL:
+	      case CRS_CL_SRESIDUAL:
+	      case CRS_CL_ASRESIDUAL:
+		continue;
+	      default:
+		assert (0);
+	      }
+
+	    if (cmd.miss == CRS_REPORT && c < n_cols 
+		&& is_num_user_missing (cols[c].f, x->v[COL_VAR]))
+	      float_M_suffix (table, c, j, v);
+	    else if (v != 0.)
+	      tab_float (table, c, j, TAB_RIGHT, v, 8, 0);
+
+	    j++;
+	  }
+      }
+
+    tab_offset (table, -1, tab_row (table) + j);
+  }
+  
+  tab_offset (table, 0, -1);
+}
+
+static void calc_r (double *X, double *Y, double *, double *, double *);
+static void calc_chisq (double[N_CHISQ], int[N_CHISQ], double *, double *);
+
+/* Display chi-square statistics. */
+static void
+display_chisq (void)
+{
+  static const char *chisq_stats[N_CHISQ] = 
+    {
+      N_("Pearson Chi-Square"),
+      N_("Likelihood Ratio"),
+      N_("Fisher's Exact Test"),
+      N_("Continuity Correction"),
+      N_("Linear-by-Linear Association"),
+    };
+  double chisq_v[N_CHISQ];
+  double fisher1, fisher2;
+  int df[N_CHISQ];
+  int s = 0;
+
+  int i;
+	      
+  calc_chisq (chisq_v, df, &fisher1, &fisher2);
+
+  tab_offset (chisq, nvar - 2, -1);
+  
+  for (i = 0; i < N_CHISQ; i++)
+    {
+      if ((i != 2 && chisq_v[i] == SYSMIS)
+	  || (i == 2 && fisher1 == SYSMIS))
+	continue;
+      s = 1;
+      
+      tab_text (chisq, 0, 0, TAB_LEFT, gettext (chisq_stats[i]));
+      if (i != 2)
+	{
+	  tab_float (chisq, 1, 0, TAB_RIGHT, chisq_v[i], 8, 3);
+	  tab_float (chisq, 2, 0, TAB_RIGHT, df[i], 8, 0);
+	  tab_float (chisq, 3, 0, TAB_RIGHT,
+		     chisq_sig (chisq_v[i], df[i]), 8, 3);
+	}
+      else
+	{
+	  chisq_fisher = 1;
+	  tab_float (chisq, 4, 0, TAB_RIGHT, fisher2, 8, 3);
+	  tab_float (chisq, 5, 0, TAB_RIGHT, fisher1, 8, 3);
+	}
+      tab_next_row (chisq);
+    }
+
+  tab_text (chisq, 0, 0, TAB_LEFT, _("N of Valid Cases"));
+  tab_float (chisq, 1, 0, TAB_RIGHT, W, 8, 0);
+  tab_next_row (chisq);
+    
+  tab_offset (chisq, 0, -1);
+}
+
+static int calc_symmetric (double[N_SYMMETRIC], double[N_SYMMETRIC],
+			   double[N_SYMMETRIC]);
+
+/* Display symmetric measures. */
+static void
+display_symmetric (void)
+{
+  static const char *categories[] = 
+    {
+      N_("Nominal by Nominal"),
+      N_("Ordinal by Ordinal"),
+      N_("Interval by Interval"),
+      N_("Measure of Agreement"),
+    };
+
+  static const char *stats[N_SYMMETRIC] =
+    {
+      N_("Phi"),
+      N_("Cramer's V"),
+      N_("Contingency Coefficient"),
+      N_("Kendall's tau-b"),
+      N_("Kendall's tau-c"),
+      N_("Gamma"),
+      N_("Spearman Correlation"),
+      N_("Pearson's R"),
+      N_("Kappa"),
+    };
+
+  static const int stats_categories[N_SYMMETRIC] =
+    {
+      0, 0, 0, 1, 1, 1, 1, 2, 3,
+    };
+
+  int last_cat = -1;
+  double sym_v[N_SYMMETRIC], sym_ase[N_SYMMETRIC], sym_t[N_SYMMETRIC];
+  int i;
+
+  if (!calc_symmetric (sym_v, sym_ase, sym_t))
+    return;
+
+  tab_offset (sym, nvar - 2, -1);
+  
+  for (i = 0; i < N_SYMMETRIC; i++)
+    {
+      if (sym_v[i] == SYSMIS)
+	continue;
+
+      if (stats_categories[i] != last_cat)
+	{
+	  last_cat = stats_categories[i];
+	  tab_text (sym, 0, 0, TAB_LEFT, gettext (categories[last_cat]));
+	}
+      
+      tab_text (sym, 1, 0, TAB_LEFT, gettext (stats[i]));
+      tab_float (sym, 2, 0, TAB_RIGHT, sym_v[i], 8, 3);
+      if (sym_ase[i] != SYSMIS)
+	tab_float (sym, 3, 0, TAB_RIGHT, sym_ase[i], 8, 3);
+      if (sym_t[i] != SYSMIS)
+	tab_float (sym, 4, 0, TAB_RIGHT, sym_t[i], 8, 3);
+      /*tab_float (sym, 5, 0, TAB_RIGHT, normal_sig (sym_v[i]), 8, 3);*/
+      tab_next_row (sym);
+    }
+
+  tab_text (sym, 0, 0, TAB_LEFT, _("N of Valid Cases"));
+  tab_float (sym, 2, 0, TAB_RIGHT, W, 8, 0);
+  tab_next_row (sym);
+    
+  tab_offset (sym, 0, -1);
+}
+
+static int calc_risk (double[], double[], double[], union value *);
+
+/* Display risk estimate. */
+static void
+display_risk (void)
+{
+  char buf[256];
+  double risk_v[3], lower[3], upper[3];
+  union value c[2];
+  int i;
+  
+  if (!calc_risk (risk_v, upper, lower, c))
+    return;
+  
+  tab_offset (risk, nvar - 2, -1);
+  
+  for (i = 0; i < 3; i++)
+    {
+      if (risk_v[i] == SYSMIS)
+	continue;
+
+      switch (i)
+	{
+	case 0:
+	  if (x->v[COL_VAR]->type == NUMERIC)
+	    sprintf (buf, _("Odds Ratio for %s (%g / %g)"),
+		     x->v[COL_VAR]->name, c[0].f, c[1].f);
+	  else
+	    sprintf (buf, _("Odds Ratio for %s (%.*s / %.*s)"),
+		     x->v[COL_VAR]->name,
+		     x->v[COL_VAR]->width, c[0].s,
+		     x->v[COL_VAR]->width, c[1].s);
+	  break;
+	case 1:
+	case 2:
+	  if (x->v[ROW_VAR]->type == NUMERIC)
+	    sprintf (buf, _("For cohort %s = %g"),
+		     x->v[ROW_VAR]->name, rows[i - 1].f);
+	  else
+	    sprintf (buf, _("For cohort %s = %.*s"),
+		     x->v[ROW_VAR]->name,
+		     x->v[ROW_VAR]->width, rows[i - 1].s);
+	  break;
+	}
+		   
+      tab_text (risk, 0, 0, TAB_LEFT, buf);
+      tab_float (risk, 1, 0, TAB_RIGHT, risk_v[i], 8, 3);
+      tab_float (risk, 2, 0, TAB_RIGHT, lower[i], 8, 3);
+      tab_float (risk, 3, 0, TAB_RIGHT, upper[i], 8, 3);
+      tab_next_row (risk);
+    }
+
+  tab_text (risk, 0, 0, TAB_LEFT, _("N of Valid Cases"));
+  tab_float (risk, 1, 0, TAB_RIGHT, W, 8, 0);
+  tab_next_row (risk);
+    
+  tab_offset (risk, 0, -1);
+}
+
+static int calc_directional (double[N_DIRECTIONAL], double[N_DIRECTIONAL],
+			     double[N_DIRECTIONAL]);
+
+/* Display directional measures. */
+static void
+display_directional (void)
+{
+  static const char *categories[] = 
+    {
+      N_("Nominal by Nominal"),
+      N_("Ordinal by Ordinal"),
+      N_("Nominal by Interval"),
+    };
+
+  static const char *stats[] =
+    {
+      N_("Lambda"),
+      N_("Goodman and Kruskal tau"),
+      N_("Uncertainty Coefficient"),
+      N_("Somers' d"),
+      N_("Eta"),
+    };
+
+  static const char *types[] = 
+    {
+      N_("Symmetric"),
+      N_("%s Dependent"),
+      N_("%s Dependent"),
+    };
+
+  static const int stats_categories[N_DIRECTIONAL] =
+    {
+      0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2,
+    };
+  
+  static const int stats_stats[N_DIRECTIONAL] = 
+    {
+      0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4,
+    };
+
+  static const int stats_types[N_DIRECTIONAL] = 
+    {
+      0, 1, 2, 1, 2, 0, 1, 2, 0, 1, 2, 1, 2,
+    };
+
+  static const int *stats_lookup[] = 
+    {
+      stats_categories,
+      stats_stats,
+      stats_types,
+    };
+
+  static const char **stats_names[] =
+    {
+      categories,
+      stats,
+      types,
+    };
+
+  int last[3] =
+    {
+      -1, -1, -1,
+    };
+    
+  double direct_v[N_DIRECTIONAL];
+  double direct_ase[N_DIRECTIONAL];
+  double direct_t[N_DIRECTIONAL];
+  
+  int i;
+
+  if (!calc_directional (direct_v, direct_ase, direct_t))
+    return;
+
+  tab_offset (direct, nvar - 2, -1);
+  
+  for (i = 0; i < N_DIRECTIONAL; i++)
+    {
+      if (direct_v[i] == SYSMIS)
+	continue;
+      
+      {
+	int j;
+
+	for (j = 0; j < 3; j++)
+	  if (last[j] != stats_lookup[j][i])
+	    {
+	      if (j < 2)
+		tab_hline (direct, TAL_1, j, 6, 0);
+	      
+	      for (; j < 3; j++)
+		{
+		  char *string;
+		  int k = last[j] = stats_lookup[j][i];
+
+		  if (k == 0)
+		    string = NULL;
+		  else if (k == 1)
+		    string = x->v[0]->name;
+		  else
+		    string = x->v[1]->name;
+		  
+		  tab_text (direct, j, 0, TAB_LEFT | TAT_PRINTF,
+			    gettext (stats_names[j][k]), string);
+		}
+	    }
+      }
+      
+      tab_float (direct, 3, 0, TAB_RIGHT, direct_v[i], 8, 3);
+      if (direct_ase[i] != SYSMIS)
+	tab_float (direct, 4, 0, TAB_RIGHT, direct_ase[i], 8, 3);
+      if (direct_t[i] != SYSMIS)
+	tab_float (direct, 5, 0, TAB_RIGHT, direct_t[i], 8, 3);
+      /*tab_float (direct, 6, 0, TAB_RIGHT, normal_sig (direct_v[i]), 8, 3);*/
+      tab_next_row (direct);
+    }
+
+  tab_offset (direct, 0, -1);
+}
+
+/* Statistical calculations. */
+
+/* Returns the value of the gamma (factorial) function for an integer
+   argument X. */
+double
+gamma_int (double x)
+{
+  double r = 1;
+  int i;
+  
+  for (i = 2; i < x; i++)
+    r *= i;
+  return r;
+}
+
+/* Calculate P_r as specified in _SPSS Statistical Algorithms_,
+   Appendix 5. */
+static inline double
+Pr (int a, int b, int c, int d)
+{
+  return (gamma_int (a + b + 1.) / gamma_int (a + 1.)
+	  * gamma_int (c + d + 1.) / gamma_int (b + 1.)
+	  * gamma_int (a + c + 1.) / gamma_int (c + 1.)
+	  * gamma_int (b + d + 1.) / gamma_int (d + 1.)
+	  / gamma_int (a + b + c + d + 1.));
+}
+
+/* Swap the contents of A and B. */
+static inline void
+swap (int *a, int *b)
+{
+  int t = *a;
+  *a = *b;
+  *b = t;
+}
+
+/* Calculate significance for Fisher's exact test as specified in
+   _SPSS Statistical Algorithms_, Appendix 5. */
+static void
+calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
+{
+  int x;
+  
+  if (min (c, d) < min (a, b))
+    swap (&a, &c), swap (&b, &d);
+  if (min (b, d) < min (a, c))
+    swap (&a, &b), swap (&c, &d);
+  if (b * c < a * d)
+    {
+      if (b < c)
+	swap (&a, &b), swap (&c, &d);
+      else
+	swap (&a, &c), swap (&b, &d);
+    }
+
+  *fisher1 = 0.;
+  for (x = 0; x <= a; x++)
+    *fisher1 += Pr (a - x, b + x, c + x, d - x);
+
+  *fisher2 = *fisher1;
+  for (x = 1; x <= b; x++)
+    *fisher2 += Pr (a + x, b - x, c - x, d + x);
+}
+
+/* Calculates chi-squares into CHISQ.  MAT is a matrix with N_COLS
+   columns with values COLS and N_ROWS rows with values ROWS.  Values
+   in the matrix sum to W. */
+static void
+calc_chisq (double chisq[N_CHISQ], int df[N_CHISQ],
+	    double *fisher1, double *fisher2)
+{
+  int r, c;
+
+  chisq[0] = chisq[1] = 0.;
+  chisq[2] = chisq[3] = chisq[4] = SYSMIS;
+  *fisher1 = *fisher2 = SYSMIS;
+
+  df[0] = df[1] = (ns_cols - 1) * (ns_rows - 1);
+
+  if (ns_rows <= 1 || ns_cols <= 1)
+    {
+      chisq[0] = chisq[1] = SYSMIS;
+      return;
+    }
+
+  for (r = 0; r < n_rows; r++)
+    for (c = 0; c < n_cols; c++)
+      {
+	const double expected = row_tot[r] * col_tot[c] / W;
+	const double freq = mat[n_cols * r + c];
+	const double residual = freq - expected;
+    
+	if (expected)
+	  chisq[0] += residual * residual / expected;
+	if (freq)
+	  chisq[1] += freq * log (expected / freq);
+      }
+
+  if (chisq[0] == 0.)
+    chisq[0] = SYSMIS;
+
+  if (chisq[1] != 0.)
+    chisq[1] *= -2.;
+  else
+    chisq[1] = SYSMIS;
+
+  /* Calculate Yates and Fisher exact test. */
+  if (ns_cols == 2 && ns_rows == 2)
+    {
+      double f11, f12, f21, f22;
+      
+      {
+	int nz_cols[2];
+	int i, j;
+
+	for (i = j = 0; i < n_cols; i++)
+	  if (col_tot[i] != 0.)
+	    {
+	      nz_cols[j++] = i;
+	      if (j == 2)
+		break;
+	    }
+
+	assert (j == 2);
+
+	f11 = mat[nz_cols[0]];
+	f12 = mat[nz_cols[1]];
+	f21 = mat[nz_cols[0] + n_cols];
+	f22 = mat[nz_cols[1] + n_cols];
+      }
+
+      /* Yates. */
+      {
+	const double x = fabs (f11 * f22 - f12 * f21) - 0.5 * W;
+
+	if (x > 0.)
+	  chisq[3] = (W * x * x
+		      / (f11 + f12) / (f21 + f22)
+		      / (f11 + f21) / (f12 + f22));
+	else
+	  chisq[3] = 0.;
+
+	df[3] = 1.;
+      }
+
+      /* Fisher. */
+      if (f11 < 5. || f12 < 5. || f21 < 5. || f22 < 5.)
+	calc_fisher (f11 + .5, f12 + .5, f21 + .5, f22 + .5, fisher1, fisher2);
+    }
+
+  /* Calculate Mantel-Haenszel. */
+  if (x->v[ROW_VAR]->type == NUMERIC && x->v[COL_VAR]->type == NUMERIC)
+    {
+      double r, ase_0, ase_1;
+      calc_r ((double *) rows, (double *) cols, &r, &ase_0, &ase_1);
+    
+      chisq[4] = (W - 1.) * r * r;
+      df[4] = 1;
+    }
+}
+
+/* Calculate the value of Pearson's r.  r is stored into R, ase_1 into
+   ASE_1, and ase_0 into ASE_0.  The row and column values must be
+   passed in X and Y. */
+static void
+calc_r (double *X, double *Y, double *r, double *ase_0, double *ase_1)
+{
+  double SX, SY, S, T;
+  double Xbar, Ybar;
+  double sum_XYf, sum_X2Y2f;
+  double sum_Xr, sum_X2r;
+  double sum_Yc, sum_Y2c;
+  int i, j;
+
+  for (sum_X2Y2f = sum_XYf = 0., i = 0; i < n_rows; i++)
+    for (j = 0; j < n_cols; j++)
+      {
+	double fij = mat[j + i * n_cols];
+	double product = X[i] * Y[j];
+	double temp = fij * product;
+	sum_XYf += temp;
+	sum_X2Y2f += temp * product;
+      }
+
+  for (sum_Xr = sum_X2r = 0., i = 0; i < n_rows; i++)
+    {
+      sum_Xr += X[i] * row_tot[i];
+      sum_X2r += X[i] * X[i] * row_tot[i];
+    }
+  Xbar = sum_Xr / W;
+
+  for (sum_Yc = sum_Y2c = 0., i = 0; i < n_cols; i++)
+    {
+      sum_Yc += Y[i] * col_tot[i];
+      sum_Y2c += Y[i] * Y[i] * col_tot[i];
+    }
+  Ybar = sum_Yc / W;
+
+  S = sum_XYf - sum_Xr * sum_Yc / W;
+  SX = sum_X2r - sum_Xr * sum_Xr / W;
+  SY = sum_Y2c - sum_Yc * sum_Yc / W;
+  T = sqrt (SX * SY);
+  *r = S / T;
+  *ase_0 = sqrt ((sum_X2Y2f - (sum_XYf * sum_XYf) / W) / (sum_X2r * sum_Y2c));
+  
+  {
+    double s, c, y, t;
+    
+    for (s = c = 0., i = 0; i < n_rows; i++)
+      for (j = 0; j < n_cols; j++)
+	{
+	  double Xresid, Yresid;
+	  double temp;
+
+	  Xresid = X[i] - Xbar;
+	  Yresid = Y[j] - Ybar;
+	  temp = (T * Xresid * Yresid
+		  - ((S / (2. * T))
+		     * (Xresid * Xresid * SY + Yresid * Yresid * SX)));
+	  y = mat[j + i * n_cols] * temp * temp - c;
+	  t = s + y;
+	  c = (t - s) - y;
+	  s = t;
+	}
+    *ase_1 = sqrt (s) / (T * T);
+  }
+}
+
+static double somers_d_v[3];
+static double somers_d_ase[3];
+static double somers_d_t[3];
+
+/* Calculate symmetric statistics and their asymptotic standard
+   errors.  Returns 0 if none could be calculated. */
+static int
+calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
+		double t[N_SYMMETRIC])
+{
+  int q = min (ns_rows, ns_cols);
+  
+  if (q <= 1)
+    return 0;
+  
+  {
+    int i;
+
+    if (v) 
+      for (i = 0; i < N_SYMMETRIC; i++)
+	v[i] = ase[i] = t[i] = SYSMIS;
+  }
+
+  /* Phi, Cramer's V, contingency coefficient. */
+  if (cmd.a_statistics[CRS_ST_PHI] || cmd.a_statistics[CRS_ST_CC])
+    {
+      double Xp = 0.;	/* Pearson chi-square. */
+
+      {
+	int r, c;
+    
+	for (r = 0; r < n_rows; r++)
+	  for (c = 0; c < n_cols; c++)
+	    {
+	      const double expected = row_tot[r] * col_tot[c] / W;
+	      const double freq = mat[n_cols * r + c];
+	      const double residual = freq - expected;
+    
+	      if (expected)
+		Xp += residual * residual / expected;
+	    }
+      }
+
+      if (cmd.a_statistics[CRS_ST_PHI])
+	{
+	  v[0] = sqrt (Xp / W);
+	  v[1] = sqrt (Xp / (W * (q - 1)));
+	}
+      if (cmd.a_statistics[CRS_ST_CC])
+	v[2] = sqrt (Xp / (Xp + W));
+    }
+  
+  if (cmd.a_statistics[CRS_ST_BTAU] || cmd.a_statistics[CRS_ST_CTAU]
+      || cmd.a_statistics[CRS_ST_GAMMA] || cmd.a_statistics[CRS_ST_D])
+    {
+      double *cum;
+      double Dr, Dc;
+      double P, Q;
+      double btau_cum, ctau_cum, gamma_cum, d_yx_cum, d_xy_cum;
+      double btau_var;
+      
+      {
+	int r, c;
+	
+	Dr = Dc = W * W;
+	for (r = 0; r < n_rows; r++)
+	  Dr -= row_tot[r] * row_tot[r];
+	for (c = 0; c < n_cols; c++)
+	  Dc -= col_tot[c] * col_tot[c];
+      }
+      
+      {
+	int r, c;
+
+	cum = xmalloc (sizeof *cum * n_cols * n_rows);
+	for (c = 0; c < n_cols; c++)
+	  {
+	    double ct = 0.;
+	    
+	    for (r = 0; r < n_rows; r++)
+	      cum[c + r * n_cols] = ct += mat[c + r * n_cols];
+	  }
+      }
+      
+      /* P and Q. */
+      {
+	int i, j;
+	double Cij, Dij;
+
+	P = Q = 0.;
+	for (i = 0; i < n_rows; i++)
+	  {
+	    Cij = Dij = 0.;
+
+	    for (j = 1; j < n_cols; j++)
+	      Cij += col_tot[j] - cum[j + i * n_cols];
+
+	    if (i > 0)
+	      for (j = 1; j < n_cols; j++)
+		Dij += cum[j + (i - 1) * n_cols];
+
+	    for (j = 0;;)
+	      {
+		double fij = mat[j + i * n_cols];
+		P += fij * Cij;
+		Q += fij * Dij;
+		
+		if (++j == n_cols)
+		  break;
+		assert (j < n_cols);
+
+		Cij -= col_tot[j] - cum[j + i * n_cols];
+		Dij += col_tot[j - 1] - cum[j - 1 + i * n_cols];
+		
+		if (i > 0)
+		  {
+		    Cij += cum[j - 1 + (i - 1) * n_cols];
+		    Dij -= cum[j + (i - 1) * n_cols];
+		  }
+	      }
+	  }
+      }
+
+      if (cmd.a_statistics[CRS_ST_BTAU])
+	v[3] = (P - Q) / sqrt (Dr * Dc);
+      if (cmd.a_statistics[CRS_ST_CTAU])
+	v[4] = (q * (P - Q)) / ((W * W) * (q - 1));
+      if (cmd.a_statistics[CRS_ST_GAMMA])
+	v[5] = (P - Q) / (P + Q);
+
+      /* ASE for tau-b, tau-c, gamma.  Calculations could be
+	 eliminated here, at expense of memory.  */
+      {
+	int i, j;
+	double Cij, Dij;
+
+	btau_cum = ctau_cum = gamma_cum = d_yx_cum = d_xy_cum = 0.;
+	for (i = 0; i < n_rows; i++)
+	  {
+	    Cij = Dij = 0.;
+
+	    for (j = 1; j < n_cols; j++)
+	      Cij += col_tot[j] - cum[j + i * n_cols];
+
+	    if (i > 0)
+	      for (j = 1; j < n_cols; j++)
+		Dij += cum[j + (i - 1) * n_cols];
+
+	    for (j = 0;;)
+	      {
+		double fij = mat[j + i * n_cols];
+
+		if (cmd.a_statistics[CRS_ST_BTAU])
+		  {
+		    const double temp = (2. * sqrt (Dr * Dc) * (Cij - Dij)
+					 + v[3] * (row_tot[i] * Dc
+						   + col_tot[j] * Dr));
+		    btau_cum += fij * temp * temp;
+		  }
+		
+		{
+		  const double temp = Cij - Dij;
+		  ctau_cum += fij * temp * temp;
+		}
+
+		if (cmd.a_statistics[CRS_ST_GAMMA])
+		  {
+		    const double temp = Q * Cij - P * Dij;
+		    gamma_cum += fij * temp * temp;
+		  }
+
+		if (cmd.a_statistics[CRS_ST_D])
+		  {
+		    d_yx_cum += fij * sqr (Dr * (Cij - Dij)
+					   - (P - Q) * (W - row_tot[i]));
+		    d_xy_cum += fij * sqr (Dc * (Dij - Cij)
+					   - (Q - P) * (W - col_tot[j]));
+		  }
+		
+		if (++j == n_cols)
+		  break;
+		assert (j < n_cols);
+
+		Cij -= col_tot[j] - cum[j + i * n_cols];
+		Dij += col_tot[j - 1] - cum[j - 1 + i * n_cols];
+		
+		if (i > 0)
+		  {
+		    Cij += cum[j - 1 + (i - 1) * n_cols];
+		    Dij -= cum[j + (i - 1) * n_cols];
+		  }
+	      }
+	  }
+      }
+
+      btau_var = ((btau_cum
+		   - (W * sqr (W * (P - Q) / sqrt (Dr * Dc) * (Dr + Dc))))
+		  / sqr (Dr * Dc));
+      if (cmd.a_statistics[CRS_ST_BTAU])
+	{
+	  ase[3] = sqrt (btau_var);
+	  t[3] = v[3] / (2 * sqrt ((ctau_cum - (P - Q) * (P - Q) / W)
+				   / (Dr * Dc)));
+	}
+      if (cmd.a_statistics[CRS_ST_CTAU])
+	{
+	  ase[4] = ((2 * q / ((q - 1) * W * W))
+		    * sqrt (ctau_cum - (P - Q) * (P - Q) / W));
+	  t[4] = v[4] / ase[4];
+	}
+      if (cmd.a_statistics[CRS_ST_GAMMA])
+	{
+	  ase[5] = ((4. / ((P + Q) * (P + Q))) * sqrt (gamma_cum));
+	  t[5] = v[5] / (2. / (P + Q)
+			 * sqrt (ctau_cum - (P - Q) * (P - Q) / W));
+	}
+      if (cmd.a_statistics[CRS_ST_D])
+	{
+	  somers_d_v[0] = (P - Q) / (.5 * (Dc + Dr));
+	  somers_d_ase[0] = 2. * btau_var / (Dr + Dc) * sqrt (Dr * Dc);
+	  somers_d_t[0] = (somers_d_v[0]
+			   / (4 / (Dc + Dr)
+			      * sqrt (ctau_cum - sqr (P - Q) / W)));
+	  somers_d_v[1] = (P - Q) / Dc;
+	  somers_d_ase[1] = 2. / sqr (Dc) * sqrt (d_xy_cum);
+	  somers_d_t[1] = (somers_d_v[1]
+			   / (2. / Dc
+			      * sqrt (ctau_cum - sqr (P - Q) / W)));
+	  somers_d_v[2] = (P - Q) / Dr;
+	  somers_d_ase[2] = 2. / sqr (Dr) * sqrt (d_yx_cum);
+	  somers_d_t[2] = (somers_d_v[2]
+			   / (2. / Dr
+			      * sqrt (ctau_cum - sqr (P - Q) / W)));
+	}
+
+      free (cum);
+    }
+
+  /* Spearman correlation, Pearson's r. */
+  if (cmd.a_statistics[CRS_ST_CORR])
+    {
+      double *R = local_alloc (sizeof *R * n_rows);
+      double *C = local_alloc (sizeof *C * n_cols);
+      
+      {
+	double y, t, c = 0., s = 0.;
+	int i = 0;
+	
+	for (;;)
+	  {
+	    R[i] = s + (row_tot[i] + 1.) / 2.;
+	    y = row_tot[i] - c;
+	    t = s + y;
+	    c = (t - s) - y;
+	    s = t;
+	    if (++i == n_rows)
+	      break;
+	    assert (i < n_rows);
+	  }
+      }
+      
+      {
+	double y, t, c = 0., s = 0.;
+	int j = 0;
+	
+	for (;;)
+	  {
+	    C[j] = s + (col_tot[j] + 1.) / 2;
+	    y = col_tot[j] - c;
+	    t = s + y;
+	    c = (t - s) - y;
+	    s = t;
+	    if (++j == n_cols)
+	      break;
+	    assert (j < n_cols);
+	  }
+      }
+      
+      calc_r (R, C, &v[6], &t[6], &ase[6]);
+      t[6] = v[6] / t[6];
+
+      local_free (R);
+      local_free (C);
+
+      calc_r ((double *) rows, (double *) cols, &v[7], &t[7], &ase[7]);
+      t[7] = v[7] / t[7];
+    }
+
+  /* Cohen's kappa. */
+  if (cmd.a_statistics[CRS_ST_KAPPA] && ns_rows == ns_cols)
+    {
+      double sum_fii, sum_rici, sum_fiiri_ci, sum_fijri_ci2, sum_riciri_ci;
+      int i, j;
+      
+      for (sum_fii = sum_rici = sum_fiiri_ci = sum_riciri_ci = 0., i = j = 0;
+	   i < ns_rows; i++, j++)
+	{
+	  double prod, sum;
+	  
+	  while (col_tot[j] == 0.)
+	    j++;
+	  
+	  prod = row_tot[i] * col_tot[j];
+	  sum = row_tot[i] + col_tot[j];
+	  
+	  sum_fii += mat[j + i * n_cols];
+	  sum_rici += prod;
+	  sum_fiiri_ci += mat[j + i * n_cols] * sum;
+	  sum_riciri_ci += prod * sum;
+	}
+      for (sum_fijri_ci2 = 0., i = 0; i < ns_rows; i++)
+	for (j = 0; j < ns_cols; j++)
+	  {
+	    double sum = row_tot[i] + col_tot[j];
+	    sum_fijri_ci2 += mat[j + i * n_cols] * sum * sum;
+	  }
+      
+      v[8] = (W * sum_fii - sum_rici) / (W * W - sum_rici);
+
+      ase[8] = sqrt ((W * W * sum_rici
+		      + sum_rici * sum_rici
+		      - W * sum_riciri_ci)
+		     / (W * (W * W - sum_rici) * (W * W - sum_rici)));
+#if 0
+      t[8] = v[8] / sqrt (W * (((sum_fii * (W - sum_fii))
+				/ sqr (W * W - sum_rici))
+			       + ((2. * (W - sum_fii)
+				   * (2. * sum_fii * sum_rici
+				      - W * sum_fiiri_ci))
+				  / cube (W * W - sum_rici))
+			       + (sqr (W - sum_fii)
+				  * (W * sum_fijri_ci2 - 4.
+				     * sum_rici * sum_rici)
+				  / hypercube (W * W - sum_rici))));
+#else
+      t[8] = v[8] / ase[8];
+#endif
+    }
+
+  return 1;
+}
+
+/* Calculate risk estimate. */
+static int
+calc_risk (double *value, double *upper, double *lower, union value *c)
+{
+  double f11, f12, f21, f22;
+  double v;
+
+  {
+    int i;
+      
+    for (i = 0; i < 3; i++)
+      value[i] = upper[i] = lower[i] = SYSMIS;
+  }
+    
+  if (ns_rows != 2 || ns_cols != 2)
+    return 0;
+  
+  {
+    int nz_cols[2];
+    int i, j;
+
+    for (i = j = 0; i < n_cols; i++)
+      if (col_tot[i] != 0.)
+	{
+	  nz_cols[j++] = i;
+	  if (j == 2)
+	    break;
+	}
+
+    assert (j == 2);
+
+    f11 = mat[nz_cols[0]];
+    f12 = mat[nz_cols[1]];
+    f21 = mat[nz_cols[0] + n_cols];
+    f22 = mat[nz_cols[1] + n_cols];
+
+    c[0] = cols[nz_cols[0]];
+    c[1] = cols[nz_cols[1]];
+  }
+
+  value[0] = (f11 * f22) / (f12 * f21);
+  v = sqrt (1. / f11 + 1. / f12 + 1. / f21 + 1. / f22);
+  lower[0] = value[0] * exp (-1.960 * v);
+  upper[0] = value[0] * exp (1.960 * v);
+
+  value[1] = (f11 * (f21 + f22)) / (f21 * (f11 + f12));
+  v = sqrt ((f12 / (f11 * (f11 + f12)))
+	    + (f22 / (f21 * (f21 + f22))));
+  lower[1] = value[1] * exp (-1.960 * v);
+  upper[1] = value[1] * exp (1.960 * v);
+    
+  value[2] = (f12 * (f21 + f22)) / (f22 * (f11 + f12));
+  v = sqrt ((f11 / (f12 * (f11 + f12)))
+	    + (f21 / (f22 * (f21 + f22))));
+  lower[2] = value[2] * exp (-1.960 * v);
+  upper[2] = value[2] * exp (1.960 * v);
+
+  return 1;
+}
+
+/* Calculate directional measures. */
+static int
+calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
+		  double t[N_DIRECTIONAL])
+{
+  {
+    int i;
+
+    for (i = 0; i < N_DIRECTIONAL; i++)
+      v[i] = ase[i] = t[i] = SYSMIS;
+  }
+
+  /* Lambda. */
+  if (cmd.a_statistics[CRS_ST_LAMBDA])
+    {
+      double *fim = xmalloc (sizeof *fim * n_rows);
+      int *fim_index = xmalloc (sizeof *fim_index * n_rows);
+      double *fmj = xmalloc (sizeof *fmj * n_cols);
+      int *fmj_index = xmalloc (sizeof *fmj_index * n_cols);
+      double sum_fim, sum_fmj;
+      double rm, cm;
+      int rm_index, cm_index;
+      int i, j;
+
+      /* Find maximum for each row and their sum. */
+      for (sum_fim = 0., i = 0; i < n_rows; i++)
+	{
+	  double max = mat[i * n_cols];
+	  int index = 0;
+
+	  for (j = 1; j < n_cols; j++)
+	    if (mat[j + i * n_cols] > max)
+	      {
+		max = mat[j + i * n_cols];
+		index = j;
+	      }
+	
+	  sum_fim += fim[i] = max;
+	  fim_index[i] = index;
+	}
+
+      /* Find maximum for each column. */
+      for (sum_fmj = 0., j = 0; j < n_cols; j++)
+	{
+	  double max = mat[j];
+	  int index = 0;
+
+	  for (i = 1; i < n_rows; i++)
+	    if (mat[j + i * n_cols] > max)
+	      {
+		max = mat[j + i * n_cols];
+		index = i;
+	      }
+	
+	  sum_fmj += fmj[j] = max;
+	  fmj_index[j] = index;
+	}
+
+      /* Find maximum row total. */
+      rm = row_tot[0];
+      rm_index = 0;
+      for (i = 1; i < n_rows; i++)
+	if (row_tot[i] > rm)
+	  {
+	    rm = row_tot[i];
+	    rm_index = i;
+	  }
+
+      /* Find maximum column total. */
+      cm = col_tot[0];
+      cm_index = 0;
+      for (j = 1; j < n_cols; j++)
+	if (col_tot[j] > cm)
+	  {
+	    cm = col_tot[j];
+	    cm_index = j;
+	  }
+
+      v[0] = (sum_fim + sum_fmj - cm - rm) / (2. * W - rm - cm);
+      v[1] = (sum_fmj - rm) / (W - rm);
+      v[2] = (sum_fim - cm) / (W - cm);
+
+      /* ASE1 for Y given X. */
+      {
+	double accum;
+
+	for (accum = 0., i = 0; i < n_rows; i++)
+	  for (j = 0; j < n_cols; j++)
+	    {
+	      const int deltaj = j == cm_index;
+	      accum += (mat[j + i * n_cols]
+			* sqr ((j == fim_index[i])
+			       - deltaj
+			       + v[0] * deltaj));
+	    }
+      
+	ase[2] = sqrt (accum - W * v[0]) / (W - cm);
+      }
+
+      /* ASE0 for Y given X. */
+      {
+	double accum;
+      
+	for (accum = 0., i = 0; i < n_rows; i++)
+	  if (cm_index != fim_index[i])
+	    accum += (mat[i * n_cols + fim_index[i]]
+		      + mat[i * n_cols + cm_index]);
+	t[2] = v[2] / (sqrt (accum - sqr (sum_fim - cm) / W) / (W - cm));
+      }
+
+      /* ASE1 for X given Y. */
+      {
+	double accum;
+
+	for (accum = 0., i = 0; i < n_rows; i++)
+	  for (j = 0; j < n_cols; j++)
+	    {
+	      const int deltaj = i == rm_index;
+	      accum += (mat[j + i * n_cols]
+			* sqr ((i == fmj_index[j])
+			       - deltaj
+			       + v[0] * deltaj));
+	    }
+      
+	ase[1] = sqrt (accum - W * v[0]) / (W - rm);
+      }
+
+      /* ASE0 for X given Y. */
+      {
+	double accum;
+      
+	for (accum = 0., j = 0; j < n_cols; j++)
+	  if (rm_index != fmj_index[j])
+	    accum += (mat[j + n_cols * fmj_index[j]]
+		      + mat[j + n_cols * rm_index]);
+	t[1] = v[1] / (sqrt (accum - sqr (sum_fmj - rm) / W) / (W - rm));
+      }
+
+      /* Symmetric ASE0 and ASE1. */
+      {
+	double accum0;
+	double accum1;
+
+	for (accum0 = accum1 = 0., i = 0; i < n_rows; i++)
+	  for (j = 0; j < n_cols; j++)
+	    {
+	      int temp0 = (fmj_index[j] == i) + (fim_index[i] == j);
+	      int temp1 = (i == rm_index) + (j == cm_index);
+	      accum0 += mat[j + i * n_cols] * sqr (temp0 - temp1);
+	      accum1 += (mat[j + i * n_cols]
+			 * sqr (temp0 + (v[0] - 1.) * temp1));
+	    }
+	ase[0] = sqrt (accum1 - 4. * W * v[0] * v[0]) / (2. * W - rm - cm);
+	t[0] = v[0] / (sqrt (accum0 - sqr ((sum_fim + sum_fmj - cm - rm) / W))
+		       / (2. * W - rm - cm));
+      }
+
+      free (fim);
+      free (fim_index);
+      free (fmj);
+      free (fmj_index);
+      
+      {
+	double sum_fij2_ri, sum_fij2_ci;
+	double sum_ri2, sum_cj2;
+
+	for (sum_fij2_ri = sum_fij2_ci = 0., i = 0; i < n_rows; i++)
+	  for (j = 0; j < n_cols; j++)
+	    {
+	      double temp = sqr (mat[j + i * n_cols]);
+	      sum_fij2_ri += temp / row_tot[i];
+	      sum_fij2_ci += temp / col_tot[j];
+	    }
+
+	for (sum_ri2 = 0., i = 0; i < n_rows; i++)
+	  sum_ri2 += row_tot[i] * row_tot[i];
+
+	for (sum_cj2 = 0., j = 0; j < n_cols; j++)
+	  sum_cj2 += col_tot[j] * col_tot[j];
+
+	v[3] = (W * sum_fij2_ci - sum_ri2) / (W * W - sum_ri2);
+	v[4] = (W * sum_fij2_ri - sum_cj2) / (W * W - sum_cj2);
+      }
+    }
+
+  if (cmd.a_statistics[CRS_ST_UC])
+    {
+      double UX, UY, UXY, P;
+      double ase1_yx, ase1_xy, ase1_sym;
+      int i, j;
+
+      for (UX = 0., i = 0; i < n_rows; i++)
+	if (row_tot[i] > 0.)
+	  UX -= row_tot[i] / W * log (row_tot[i] / W);
+      
+      for (UY = 0., j = 0; j < n_cols; j++)
+	if (col_tot[j] > 0.)
+	  UY -= col_tot[j] / W * log (col_tot[j] / W);
+
+      for (UXY = P = 0., i = 0; i < n_rows; i++)
+	for (j = 0; j < n_cols; j++)
+	  {
+	    double entry = mat[j + i * n_cols];
+
+	    if (entry <= 0.)
+	      continue;
+	    
+	    P += entry * sqr (log (col_tot[j] * row_tot[i] / (W * entry)));
+	    UXY -= entry / W * log (entry / W);
+	  }
+
+      for (ase1_yx = ase1_xy = ase1_sym = 0., i = 0; i < n_rows; i++)
+	for (j = 0; j < n_cols; j++)
+	  {
+	    double entry = mat[j + i * n_cols];
+
+	    if (entry <= 0.)
+	      continue;
+	    
+	    ase1_yx += entry * sqr (UY * log (entry / row_tot[i])
+				    + (UX - UXY) * log (col_tot[j] / W));
+	    ase1_xy += entry * sqr (UX * log (entry / col_tot[j])
+				    + (UY - UXY) * log (row_tot[i] / W));
+	    ase1_sym += entry * sqr ((UXY
+				      * log (row_tot[i] * col_tot[j] / (W * W)))
+				     - (UX + UY) * log (entry / W));
+	  }
+      
+      v[5] = 2. * ((UX + UY - UXY) / (UX + UY));
+      ase[5] = (2. / (W * sqr (UX + UY))) * sqrt (ase1_sym);
+      t[5] = v[5] / ((2. / (W * (UX + UY)))
+		     * sqrt (P - sqr (UX + UY - UXY) / W));
+		    
+      v[6] = (UX + UY - UXY) / UX;
+      ase[6] = sqrt (ase1_xy) / (W * UX * UX);
+      t[6] = v[6] / (sqrt (P - W * sqr (UX + UY - UXY)) / (W * UX));
+      
+      v[7] = (UX + UY - UXY) / UY;
+      ase[7] = sqrt (ase1_yx) / (W * UY * UY);
+      t[7] = v[7] / (sqrt (P - W * sqr (UX + UY - UXY)) / (W * UY));
+    }
+
+  /* Somers' D. */
+  if (cmd.a_statistics[CRS_ST_D])
+    {
+      int i;
+      
+      if (!sym)
+	calc_symmetric (NULL, NULL, NULL);
+      for (i = 0; i < 3; i++)
+	{
+	  v[8 + i] = somers_d_v[i];
+	  ase[8 + i] = somers_d_ase[i];
+	  t[8 + i] = somers_d_t[i];
+	}
+    }
+
+  /* Eta. */
+  if (cmd.a_statistics[CRS_ST_ETA])
+    {
+      {
+	double sum_Xr, sum_X2r;
+	double SX, SXW;
+	int i, j;
+      
+	for (sum_Xr = sum_X2r = 0., i = 0; i < n_rows; i++)
+	  {
+	    sum_Xr += rows[i].f * row_tot[i];
+	    sum_X2r += rows[i].f * rows[i].f * row_tot[i];
+	  }
+	SX = sum_X2r - sum_Xr * sum_Xr / W;
+      
+	for (SXW = 0., j = 0; j < n_cols; j++)
+	  {
+	    double cum;
+
+	    for (cum = 0., i = 0; i < n_rows; i++)
+	      {
+		SXW += rows[i].f * rows[i].f * mat[j + i * n_cols];
+		cum += rows[i].f * mat[j + i * n_cols];
+	      }
+
+	    SXW -= cum * cum / col_tot[j];
+	  }
+	v[11] = sqrt (1. - SXW / SX);
+      }
+
+      {
+	double sum_Yc, sum_Y2c;
+	double SY, SYW;
+	int i, j;
+
+	for (sum_Yc = sum_Y2c = 0., i = 0; i < n_cols; i++)
+	  {
+	    sum_Yc += cols[i].f * col_tot[i];
+	    sum_Y2c += cols[i].f * cols[i].f * col_tot[i];
+	  }
+	SY = sum_Y2c - sum_Yc * sum_Yc / W;
+
+	for (SYW = 0., i = 0; i < n_rows; i++)
+	  {
+	    double cum;
+
+	    for (cum = 0., j = 0; j < n_cols; j++)
+	      {
+		SYW += cols[j].f * cols[j].f * mat[j + i * n_cols];
+		cum += cols[j].f * mat[j + i * n_cols];
+	      }
+	  
+	    SYW -= cum * cum / row_tot[i];
+	  }
+	v[12] = sqrt (1. - SYW / SY);
+      }
+    }
+
+  return 1;
+}
+
+/* 
+   Local Variables:
+   mode: c
+   End:
+*/

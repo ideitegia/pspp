@@ -1,0 +1,134 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA. */
+
+/* State abbreviations. */
+#define INIT STATE_INIT
+#define INPU STATE_INPUT
+#define TRAN STATE_TRANS
+#define PROC STATE_PROC
+#define ERRO STATE_ERROR
+
+DEFCMD ("@",                      INIT, INPU, TRAN, PROC, cmd_include_at)
+UNIMPL ("ADD FILES",              TRAN, ERRO, TRAN, TRAN)
+DEFCMD ("ADD VALUE LABELS",       ERRO, INPU, TRAN, TRAN, cmd_add_value_labels)
+DEFCMD ("AGGREGATE",              ERRO, ERRO, PROC, TRAN, cmd_aggregate)
+DEFCMD ("APPLY DICTIONARY",       ERRO, ERRO, TRAN, TRAN, cmd_apply_dictionary)
+DEFCMD ("AUTORECODE",             ERRO, ERRO, PROC, PROC, cmd_autorecode)
+DEFCMD ("BEGIN DATA",             ERRO, ERRO, PROC, PROC, cmd_begin_data)
+DEFCMD ("BREAK",                  ERRO, INPU, TRAN, TRAN, cmd_break)
+DEFCMD ("CLEAR TRANSFORMATIONS",  ERRO, INPU, TRAN, TRAN, cmd_clear_transformations)
+DEFCMD ("COMPUTE",                ERRO, INPU, TRAN, TRAN, cmd_compute)
+DEFCMD ("CORRELATIONS",		  ERRO, ERRO, PROC, PROC, cmd_correlations)
+DEFCMD ("CONDESCRIPTIVES",        ERRO, ERRO, PROC, PROC, cmd_descriptives)
+DEFCMD ("COUNT",                  ERRO, INPU, TRAN, TRAN, cmd_count)
+DEFCMD ("CROSSTABS",              ERRO, ERRO, PROC, PROC, cmd_crosstabs)
+DEFCMD ("DATA LIST",              TRAN, INPU, TRAN, TRAN, cmd_data_list)
+DEFCMD ("DESCRIPTIVES",           ERRO, ERRO, PROC, PROC, cmd_descriptives)
+DEFCMD ("DISPLAY",                ERRO, INPU, TRAN, PROC, cmd_display)
+DEFCMD ("DO IF",                  ERRO, INPU, TRAN, TRAN, cmd_do_if)
+DEFCMD ("DO REPEAT",              ERRO, INPU, TRAN, TRAN, cmd_do_repeat)
+DEFCMD ("DOCUMENT",               ERRO, INPU, TRAN, TRAN, cmd_document)
+DEFCMD ("DROP DOCUMENTS",         INIT, INPU, TRAN, PROC, cmd_drop_documents)
+UNIMPL ("EDIT",                   INIT, INPU, TRAN, PROC)
+DEFCMD ("ELSE",                   ERRO, INPU, TRAN, TRAN, cmd_else)
+DEFCMD ("ELSE IF",                ERRO, INPU, TRAN, TRAN, cmd_else_if)
+DEFCMD ("END CASE",               ERRO, INPU, ERRO, ERRO, cmd_end_case)
+DEFCMD ("END FILE",               ERRO, INPU, ERRO, ERRO, cmd_end_file)
+DEFCMD ("END FILE TYPE",          ERRO, TRAN, ERRO, ERRO, cmd_end_file_type)
+DEFCMD ("END IF",                 ERRO, INPU, TRAN, TRAN, cmd_end_if)
+DEFCMD ("END INPUT PROGRAM",      ERRO, TRAN, ERRO, ERRO, cmd_end_input_program)
+DEFCMD ("END LOOP",               ERRO, INPU, TRAN, TRAN, cmd_end_loop)
+DEFCMD ("END REPEAT",             ERRO, INPU, TRAN, TRAN, cmd_end_repeat)
+DEFCMD ("ERASE",                  INIT, INPU, TRAN, PROC, cmd_erase)
+#if GLOBAL_DEBUGGING
+DEFCMD ("EVALUATE",               INIT, INPU, TRAN, PROC, cmd_evaluate)
+#endif
+DEFCMD ("EXECUTE",                ERRO, ERRO, PROC, PROC, cmd_execute)
+DEFCMD ("EXIT",                   INIT, INPU, TRAN, PROC, cmd_exit)
+DEFCMD ("EXPORT",                 ERRO, ERRO, PROC, PROC, cmd_export)
+DEFCMD ("FILE HANDLE",            INIT, INPU, TRAN, PROC, cmd_file_handle)
+DEFCMD ("FILE LABEL",             INIT, INPU, TRAN, PROC, cmd_file_label)
+DEFCMD ("FILE TYPE",              INPU, ERRO, INPU, INPU, cmd_file_type)
+DEFCMD ("FILTER",                 ERRO, ERRO, TRAN, TRAN, cmd_filter)
+DEFCMD ("FINISH",                 INIT, INPU, TRAN, PROC, cmd_finish)
+DEFCMD ("FLIP",			  ERRO, ERRO, PROC, PROC, cmd_flip)
+DEFCMD ("FORMATS",                INIT, INPU, TRAN, PROC, cmd_formats)
+DEFCMD ("FREQUENCIES",            ERRO, ERRO, PROC, PROC, cmd_frequencies)
+DEFCMD ("GET",                    TRAN, ERRO, TRAN, TRAN, cmd_get)
+DEFCMD ("HOST",                   INIT, INPU, TRAN, PROC, cmd_host)
+DEFCMD ("IF",                     ERRO, INPU, TRAN, TRAN, cmd_if)
+DEFCMD ("INCLUDE",                INIT, INPU, TRAN, PROC, cmd_include)
+UNIMPL ("INFO",                   INIT, INPU, TRAN, PROC)
+DEFCMD ("IMPORT",                 TRAN, ERRO, TRAN, TRAN, cmd_import)
+UNIMPL ("INPUT MATRIX",           INIT, INPU, TRAN, PROC)
+DEFCMD ("INPUT PROGRAM",          INPU, ERRO, INPU, INPU, cmd_input_program)
+UNIMPL ("KEYED DATA LIST",        INPU, ERRO, INPU, INPU)
+DEFCMD ("LEAVE",                  ERRO, INPU, TRAN, TRAN, cmd_leave)
+DEFCMD ("LIST",                   ERRO, ERRO, PROC, PROC, cmd_list)
+DEFCMD ("LOOP",                   ERRO, INPU, TRAN, TRAN, cmd_loop)
+DEFCMD ("MATCH FILES",            TRAN, ERRO, TRAN, PROC, cmd_match_files)
+DEFCMD ("MATRIX DATA",            TRAN, ERRO, TRAN, TRAN, cmd_matrix_data)
+DEFCMD ("MEANS",                  ERRO, ERRO, PROC, PROC, cmd_means)
+DEFCMD ("MISSING VALUES",         ERRO, INPU, TRAN, TRAN, cmd_missing_values)
+DEFCMD ("MODIFY VARS",            ERRO, INPU, TRAN, PROC, cmd_modify_vars)
+DEFCMD ("NEW FILE",               INIT, ERRO, INIT, INIT, cmd_new_file)
+DEFCMD ("N OF CASES",             INIT, INPU, TRAN, TRAN, cmd_n_of_cases)
+UNIMPL ("NUMBERED",               INIT, INPU, TRAN, PROC)
+DEFCMD ("NUMERIC",                ERRO, INPU, TRAN, TRAN, cmd_numeric)
+UNIMPL ("UNNUMBERED",             INIT, INPU, TRAN, PROC)
+DEFCMD ("PEARSON CORRELATIONS",	  ERRO, ERRO, PROC, PROC, cmd_correlations)
+UNIMPL ("POINT",                  ERRO, INPU, ERRO, ERRO)
+UNIMPL ("PRESERVE",		  INIT, INPU, TRAN, PROC)
+DEFCMD ("PRINT",                  ERRO, INPU, TRAN, TRAN, cmd_print)
+DEFCMD ("PRINT EJECT",            ERRO, INPU, TRAN, TRAN, cmd_print_eject)
+DEFCMD ("PRINT FORMATS",          ERRO, INPU, TRAN, TRAN, cmd_print_formats)
+DEFCMD ("PRINT SPACE",            ERRO, INPU, TRAN, TRAN, cmd_print_space)
+UNIMPL ("PROCEDURE OUTPUT",       INIT, INPU, TRAN, PROC)
+DEFCMD ("PROCESS IF",             ERRO, ERRO, TRAN, TRAN, cmd_process_if)
+DEFCMD ("Q",                      INIT, INPU, TRAN, PROC, cmd_exit)
+DEFCMD ("QUIT",                   INIT, INPU, TRAN, PROC, cmd_exit)
+DEFCMD ("RECODE",                 ERRO, INPU, TRAN, TRAN, cmd_recode)
+DEFCMD ("RECORD TYPE",            ERRO, INPU, ERRO, ERRO, cmd_record_type)
+UNIMPL ("REFORMAT",               ERRO, ERRO, TRAN, TRAN)
+DEFCMD ("REMARK",                 INIT, INPU, TRAN, PROC, cmd_remark)
+DEFCMD ("RENAME VARIABLES",       ERRO, INPU, TRAN, PROC, cmd_rename_variables)
+DEFCMD ("REPEATING DATA",         ERRO, INPU, ERRO, ERRO, cmd_repeating_data)
+DEFCMD ("REREAD",                 ERRO, INPU, ERRO, ERRO, cmd_reread)
+UNIMPL ("RESTORE",		  INIT, INPU, TRAN, PROC)
+DEFCMD ("SAMPLE",                 ERRO, ERRO, TRAN, TRAN, cmd_sample)
+DEFCMD ("SAVE",                   ERRO, ERRO, PROC, PROC, cmd_save)
+DEFCMD ("SELECT IF",              ERRO, ERRO, TRAN, TRAN, cmd_select_if)
+DEFCMD ("SET",                    INIT, INPU, TRAN, PROC, cmd_set)
+UNIMPL ("SHOW",                   INIT, INPU, TRAN, PROC)
+DEFCMD ("SORT CASES",             ERRO, ERRO, PROC, PROC, cmd_sort_cases)
+DEFCMD ("SPLIT FILE",             ERRO, INPU, TRAN, TRAN, cmd_split_file)
+DEFCMD ("STRING",                 ERRO, INPU, TRAN, TRAN, cmd_string)
+DEFCMD ("SUBTITLE",               INIT, INPU, TRAN, PROC, cmd_subtitle)
+DEFCMD ("SYSFILE INFO",           INIT, INPU, TRAN, PROC, cmd_sysfile_info)
+DEFCMD ("TEMPORARY",              ERRO, ERRO, TRAN, TRAN, cmd_temporary)
+DEFCMD ("TITLE",                  INIT, INPU, TRAN, PROC, cmd_title)
+DEFCMD ("T-TEST",                 ERRO, ERRO, PROC, PROC, cmd_t_test)
+UNIMPL ("UPDATE",                 TRAN, ERRO, TRAN, TRAN)
+DEFCMD ("VALUE LABELS",           ERRO, INPU, TRAN, TRAN, cmd_value_labels)
+DEFCMD ("VARIABLE LABELS",        ERRO, INPU, TRAN, TRAN, cmd_variable_labels)
+DEFCMD ("VECTOR",                 ERRO, INPU, TRAN, TRAN, cmd_vector)
+DEFCMD ("WEIGHT",                 ERRO, INPU, TRAN, TRAN, cmd_weight)
+DEFCMD ("WRITE",                  ERRO, INPU, TRAN, TRAN, cmd_write)
+DEFCMD ("WRITE FORMATS",          ERRO, INPU, TRAN, TRAN, cmd_write_formats)
+DEFCMD ("XSAVE",                  ERRO, INPU, TRAN, TRAN, cmd_xsave)

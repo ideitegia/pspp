@@ -1,0 +1,26 @@
+/*
+/*
+/* Tests for INPUT PROGRAM.
+/*
+/*
+
+remark EOF
+----------------------------------------------------------------------
+Testing use of INPUT PROGRAM.
+----------------------------------------------------------------------
+EOF
+input program.
+data list free/A #B.
+end case.
+data list free/C D.
+end case.
+data list fixed/#E 2.
+end case.
+end input program.
+list.
+
+begin data.
+1 2 3 4 5
+6 7 8 9 0
+end data.
+

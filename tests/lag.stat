@@ -1,0 +1,16 @@
+title 'Test LAG'.
+
+data list /w 1.
+begin data.
+1
+2
+3
+4
+5
+end data.
+
+compute x=lag(w,1).
+compute y=lag(x).
+compute z=lag(w,2).
+list.
+

@@ -1,0 +1,28 @@
+title 'Test use of big numbers'.
+
+*** Do the portable output.
+remark EOF
+----------------------------------------------------------------------
+Testing use of big numbers.\n
+The numbers in the data file are designed for IEEE754 double
+format--if your system uses something different then the test needs to
+be adjusted for whatever are big numbers to your system.
+----------------------------------------------------------------------
+EOF
+data list file='bignum.data'/BIGNUM 1-40.
+list.
+
+*** Do the nonportable output for fun. 
+remark EOF
+NOCOMP
+SUCCESS?
+----------------------------------------------------------------------
+This test merely shows whether your system can successfully handle
+floating-point overflow.  If you get a fatal exception at this point,
+the source needs some editing--glob.c should mask overflow exceptions
+in init_glob().  Again, the numbers are specific to IEEE754 double
+format.
+----------------------------------------------------------------------
+EOF
+descriptives BIGNUM.
+rem-SUCCESS

@@ -1,0 +1,16 @@
+title 'Test REREAD transformation'.
+
+file handle INPUT /name='reread.data'.
+
+input program.
+  data list file=INPUT/BRAND 5-10(a).
+  do if(BRAND='ACME').
+    reread.
+    data list /PART 1-4 COUNT 11-15.
+  else if(BRAND='MISC').
+    reread.
+    data list /PART 11-15 COUNT 1-4.
+  end if.
+  end case.
+end input program.
+list.

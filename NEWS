@@ -1,0 +1,260 @@
+PSPP NEWS -- history of user-visible changes.
+Time-stamp: <2000-01-07 20:50:17 blp>
+Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+See the end for copying conditions.
+
+Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+
+Version 0.3.0 changes since 0.2.3:
+
+  Bugs fixed:
+
+    * Using alphanumeric variables in functions under AGGREGATE
+      segfaulted.  Fixed.
+
+    * Under certain circumstances, the final case would be omitted
+      from the results of an AGGREGATE operation.  Fixed.
+
+    * Undefined behavior was invoked by referencing a freed pointer
+      under certain circumstances.  Fixed.
+
+    * A wrong record size was displayed when paging the active file to
+      disk.  Fixed.
+
+    * Not having enough temporary space for sorting caused a core
+      dump.  Fixed.
+
+    * Syntax errors in function descriptions on AGGREGATE caused core
+      dumps.  Fixed.
+
+    * A null pointer was dereferenced, causing a core dump, when
+      PERCENTILES was specified on FREQUENCIES.  This fixes the
+      problem, but PSPP still doesn't calculate percentiles.
+
+    * SORT always sorted in ascending order.  Fixed.
+
+    * Some minor memory leaks in the expression parser were removed.
+
+    * Many assertions fixed for strict ANSI C compliance.
+
+  New features:
+
+    * SET ECHO ON now implemented, but turned off by default.
+
+    * PRINT specifier supported on END REPEAT.
+
+  Other:
+
+    * System libgmp2 library is used if installed instead of
+      unconditionally using the included libgmp2 subset.
+
+    * Extensive code cleanup, which continues.
+
+    * Added CORRELATIONS command parser, but not implemented.
+
+Version 0.2.3 changes since 0.2.2:
+
+  Bugs fixed:
+
+    * SPLIT FILE with a string variable caused a core dump.  Fixed.
+
+    * Nested INCLUDEs didn't work.  Fixed.
+
+    * The MATCH FILES procedure set the values of variables not present
+      to 0.  It should have been SYSMIS.  This is now fixed.
+
+    * The REMARK command was too aggressive about skipping lines.  It
+      didn't like being the last command in a file.
+
+    * Comment parsing wasn't consistent with the rest of the code in its
+      idea of where one command ends and another starts.  This meant
+      that sometimes commands would be mysteriously ignored.  Thanks to
+      Dr. Dirk Melcher <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * The TABLE subcommand on MATCH FILES worked only erratically at
+      best.  This fixes it.  Thanks to Dr. Dirk Melcher
+      <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * VARIABLE LABELS rejected a slash before the first variable
+      specification, contradicting the documentation.  Thanks to Walter
+      M. Gray <graywm@northernc.on.ca> for reporting this bug.
+
+    * Because of an incorrect optimization in memory allocation,
+      CROSSTABS sometimes segfaulted when asked to output multiple
+      tables.  Thanks to Walter M. Gray <graywm@northernc.on.ca> for
+      reporting this bug.
+
+    * CROSSTABS didn't display value labels for column and row
+      variables.  Thanks to Walter M. Gray <graywm@northernc.on.ca> for
+      reporting this bug.
+
+    * WRITE didn't write line ends.  Fixed.  Thanks to Dr. Dirk Melcher
+      <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * The TABLE subcommand on MATCH FILES worked only erratically at
+      best.  This fixes it.  Thanks to Dr. Dirk Melcher
+      <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * VARIABLE LABELS rejected a slash before the first variable
+      specification, contradicting the documentation.  Thanks to Walter
+      M. Gray <graywm@northernc.on.ca> for reporting this bug.
+
+    * Because of an incorrect optimization in memory allocation,
+      CROSSTABS sometimes segfaulted when asked to output multiple
+      tables.  Thanks to Walter M. Gray <graywm@northernc.on.ca> for
+      reporting this bug.
+
+    * CROSSTABS didn't display value labels for column and row
+      variables.  Thanks to Walter M. Gray <graywm@northernc.on.ca> for
+      reporting this bug.
+
+    * WRITE didn't write line ends.  Fixed.  Thanks to Dr. Dirk Melcher
+      <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * MATCH FILES corrupted memory and dumped core on some syntax
+      errors.  Fixed.
+
+    * MATCH FILES should set numeric values not available to the
+      system-missing value, not to 0.  Thanks to Dr. Dirk Melcher
+      <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * KEEP didn't work properly on the SAVE procedure.  Fixed.  Thanks
+      to Ralf Geschke <ralf@kuerbis.org> for reporting this bug.
+
+    * Memory leak fix.
+
+    * Some systems didn't like the way open_file was coded.  Thanks to
+      Hankin <hankin@rogue.consultco.com> for pointing this out.
+
+    * The SAVE procedure didn't save long string variables properly.
+      Fixed by this patch.  Thanks to Hankin
+      <hankin@rogue.consultco.com> for this patch.
+
+    * Minor documentation fixes for MATCH FILES.
+
+Version 0.2.2 changes since 0.2.1:
+
+  Bugs fixed:
+
+    * Fix behavior of PRINT SPACE for negative arguments.
+
+    * Fix reading some unusual system files.
+
+    * Fix LIST problems with very long variables.  Thanks to Hankin
+      <hankin@dunno.com> for this bug report.
+
+    * Fix problems with some string format specifiers.
+
+    * Fix use of $CASENUM in expressions.  Thanks to Dirk Melcher
+      <BZN-mdksh@t-online.de> for reporting this bug.
+
+    * Additional DATA LIST FREE and DATA LIST LIST fixes.  Thanks to
+      Hankin <hankin@dunno.com> again on this one.
+
+    * Sometimes you may encounter a PSPP script that has to be
+      interpreted in interactive mode.  Now you can use the -i flag to
+      do this.
+
+    * Warnings for egcs 1.1.1 cleaned up.  (However you'll get lots of
+      `unused variable' warnings under gcc 2.7.2.3, fixing this will
+      take more effort.)
+
+    * Tests fixed.
+
+    * The files in gmp need the internationalization directory in
+      their include path.  Thanks to OKUJI Yoshinori
+      <okuji@kuicr.kyoto-u.ac.jp> for pointing this out.
+
+Version 0.2.1 changes since 0.2.0:
+
+  Bugs fixed:
+
+    * Remember to include examples/ directory in distribution :-)
+
+    * Fixed gmp compile problems for some non-i386 architectures.
+      Thanks to Hans Olav Eggestad <olav@jordforsk.nlh.no> and others
+      for reporting this.
+
+    * DATA LIST FREE and DATA LIST LIST parsing of input files is now
+      matches the documented behavior exactly, and error messages are
+      more helpful.  Thanks to Mark H. Wood <mwood@IUPUI.Edu>.
+
+Version 0.2.0 changes since 0.1.0:
+
+  Procedures now implemented:
+    * CROSSTABS.  Please see documentation for caveats.
+
+  Transformations and utilities now implemented:
+    * AGGREGATE
+    * APPLY DICTIONARY
+    * CLEAR TRANSFORMATIONS
+    * DISPLAY (all subcommands).
+    * ERASE
+    * FLIP
+    * EXPORT
+    * HOST
+    * IMPORT
+    * MATCH FILES
+    * MATRIX DATA
+    * NEW FILE
+    * REPEATING DATA
+
+  Support for input and output through pipes: "|command" and
+  "command|" filenames; support for special filenames "-", "stdin",
+  "stdout", "stderr".
+
+  New command-line features:
+    * New option --testing-mode: Invoke heuristics to assist testing.
+    * New option --safer, -s: Don't allow certain unsafe operations.
+    * New option --command=CMD, -c CMD: Perform literal command CMD.
+    * rc file ~/.pspp/rc is executed before any other files.
+    * Now multiple syntax files can be specified.
+
+  Operator LAG is now implemented.
+
+  Added missing FILE subcommand to REREAD.
+
+  Table output manager completely rewritten.
+
+  Device configuration file syntax changed.  You will need to
+  reinstall your `devices' file.
+
+  New output driver for HTML.
+
+  PostScript driver and prologue simplified.
+
+  Many bugs fixed.  General source-code cleanup.
+
+  Added Texinfo documentation for:
+    * PSPP system file format
+    * PSPP portable file format
+    * How to write input for q2c parser generator
+    * HTML driver
+
+  PSPP language is now fully documented.  Please report any
+  inaccuracies or omissions in the documentation.
+
+Changes for version 0.1.0:
+
+  First public release.  For changes from unreleased development
+  versions, please see ONEWS.
+
+----------------------------------------------------------------------
+Copyright information:
+
+Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim
+   copies of this document as received, in any medium, provided that
+   the copyright notice and this permission notice are preserved, thus
+   giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions of this
+   document, or of portions of it, under the above conditions,
+   provided also that they carry prominent notices stating who last
+   changed them.
+
+Local variables:
+version-control: never
+mode: indented-text
+end:

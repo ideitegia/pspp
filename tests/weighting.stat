@@ -1,0 +1,8 @@
+title 'Test WEIGHT'.
+
+data list file='weighting.data'/AVAR 1-5 BVAR 6-10.
+weight by BVAR.
+value labels avar 18 'This is a value label that is really long so it takes up lots of room.'
+                  19 'flustered and flim-flammed by fields'.
+descriptives AVAR /statistics all /format serial.
+frequencies AVAR /statistics all /format condensed.

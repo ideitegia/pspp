@@ -1,0 +1,1751 @@
+Sun Jan  2 21:24:32 2000  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Require Automake 1.4 or later.  It's been out for
+	almost a year now, so why haven't you installed it? :-)
+
+	* TODO: Updated.
+
+	* configure.in: Updated version number.  Check for libgmp.  Check
+	of fenv.h.  Check for feholdexpect().
+
+	* pref.h.orig: Don't include debug-print.h by default.  Don't
+	disable __attribute ((unused))__ for gcc 2.7.2.  Remove LOAD_2,
+	STORE_2.  Comment fixes.
+
+	* Updated copyright notices in all files.
+
+Fri Mar 12 12:38:55 1999  Ben Pfaff  <blp@gnu.org>
+
+	* Forked 0.3.0.
+
+Tue Mar  9 12:46:31 1999  Ben Pfaff  <blp@gnu.org>
+
+	* Released 0.2.3.
+	
+	* TODO: Updated.
+
+Tue Jan  5 15:18:07 1999  Ben Pfaff  <blp@gnu.org>
+
+	* Released 0.2.2.
+
+	* TODO: Update from Zvi Grauer <z.grauer@sims.csuohio.edu>.
+
+Thu Nov 19 12:34:55 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Released 0.2.1.
+
+Sun Aug  9 11:11:32 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+Sat Aug  8 00:19:08 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+	* examples/: New directory.
+
+	* Made patchlevel 95.
+
+Tue Aug  4 23:47:31 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Bump version to 0.1.22 (0.2.0 release candidate).
+
+	* configure.in: Remove --enable-Werror, new option
+	--enable-debugging.  New gcc option -Wpointer-arith.
+
+	* pref.h.orig: Don't enable debugging by default (now a configure
+	option).  Use __inline__ instead of inline with gcc (partial -ansi
+	-pedantic support).
+	(macro local_strdup) Removed.
+
+	* Made patchlevel 94.
+	
+Wed Jul 29 22:03:11 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Bump version to 0.1.21 (0.2.0 release candidate).
+
+	* debian/: Removed.
+
+	* Makefile.am: Don't copy debian/ into distribution.
+	
+	* pref.h.orig: Only enable `unused' attribute if gcc 2.8.0 or
+	later is used.
+
+Sun Jul  5 14:20:04 1998  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Bump version to 0.1.20 (0.2.0 release candidate).
+
+	* Made patchlevel 93.
+
+Sun Jul  5 00:13:58 1998  Ben Pfaff  <blp@gnu.org>
+
+	* README: Updated.
+
+	* TODO: Updated.
+
+	* configure.in: Remove -Wno-unused from default gcc flags.
+
+	* pref.h.orig: Add new #define, `unused', which under gcc expands
+	to an explanation to the compiler that a function argument is
+	unused, and expands to the null string under other compilers.
+
+Mon Jun  1 14:33:02 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+	* configure.in: Bump version to 0.1.19.
+
+	* Made patchlevel 92.
+
+Sun May 31 00:55:13 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+		
+	* configure.in: Generate Makefiles for lib/gmp/{,mpn,mpf}/.
+
+	* Made patchlevel 91.
+
+Fri May 29 21:43:09 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* LANGUAGE: Updated.
+
+	* unconfigure: Remove TeX cruft from doc/.
+	
+	* Made patchlevel 90.
+
+Mon May 25 12:41:54 1998  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS: Updated.
+
+	* LANGUAGE: Updated.
+
+	* TODO: Updated.
+
+	* configure.in: Bumped version number up to 0.1.18.
+
+	* Made patchlevel 89.
+
+Sun May 24 22:39:55 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 88.
+
+Sat May 23 23:21:43 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* configure.in: Remove gamma from replaceable functions.
+
+	* Made patchlevel 87.
+
+Fri May 22 00:02:33 1998  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Add gamma to list of functions with replacements.
+
+	* Made patchlevel 86.	
+
+Wed May 20 00:00:12 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 85.
+
+Sat May 16 19:38:49 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 84.
+
+Tue May 12 16:13:48 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* unconfigure: Don't delete Makefile.in under intl/.
+	
+	* Made patchlevel 83.
+
+Thu May  7 23:16:26 1998  Ben Pfaff  <blp@gnu.org>
+
+	* unconfigure: Add some more files to reap.
+
+	* Made patchlevel 82.
+
+Tue May  5 13:17:59 1998  Ben Pfaff  <blp@gnu.org>
+
+	* acconfig.h: Add HAVE_GOOD_RANDOM definition.
+
+	* acinclude.m4: New macro BLP_RANDOM.
+
+	* configure.in: Use new BLP_RANDOM macro.
+
+	* unconfigure: New file.
+	
+	* Made patchlevel 81.
+	
+Fri Apr 24 12:42:14 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Remove bad comment.
+
+	* AUTHORS: Removed Brad Appleton.
+	
+	* TODO: Updated.
+
+	* configure.in: Remove `satisfy automake' bit.  Don't generate
+	avllib Makefile, since we don't use avllib anymore.
+
+	* pref.h.orig: Define PSPP.
+
+	* Made patchlevel 80.
+
+Wed Apr 15 12:59:39 1998  Ben Pfaff  <blp@gnu.org>
+
+	* AUTHORS, BUGS, LANGUAGE, README, THANKS: No longer generated
+	from HTML.  This caused a lot of deletions from the Makefile.am.
+
+	* TODO: Updated.
+	
+	* Made patchlevel 79.
+	
+Tue Apr 14 00:48:00 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* configure.in: Check for unistd.h.  Fix AC_LN_S (should have been
+	AC_PROG_LN_S).
+
+	* Made patchlevel 78.  Must have missed 77 in there somewhere :-)
+	
+Mon Mar  9 15:40:40 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 76.
+
+	* configure.in: Bumped version up to 0.1.16.
+
+1998-03-05  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Bumped version up to 0.1.15.
+
+1998-02-23  Ben Pfaff  <blp@gnu.org>
+
+	* acinclude.m4: Add BLP_INT_DIGITS and BLP_IS_SPRINTF_GOOD macros.
+
+	* configure.in: Those macros came from here.  Better modularity
+	this way.  Bump version up to 0.1.14.
+
+	* pref.h.orig: (macros CONFIG_PATH, INCLUDE_PATH, GROFF_FONT_PATH)
+	Removed.
+	
+	* Made patchlevel 75.
+
+1998-02-23  Ben Pfaff  <blp@gnu.org>
+
+	* acconfig.h: Hard-code PACKAGE and GNU_PACKAGE as "PSPP" and "GNU
+	PSPP" respectively.
+
+	* configure.in: Call the package pspp instead of PSPP.  Don't
+	define PACKAGE and GNU_PACKAGE symbols.  Add replacement function
+	for strtok_r.
+
+	* TODO: Updated.
+	
+	* Made patchlevel 74.
+
+1998-02-16  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Remove a few now-useless targets.
+
+	* TODO: Updated.
+
+	* configure.in: Bump version up to 0.1.13.
+
+	* reconfigure: Don't assume . is in PATH.
+
+	* Made patchlevel 73.
+
+Fri Feb 13 15:35:03 1998  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Bump version up to 0.1.12.
+
+	* TODO: Updated.
+
+	* pref.h.orig: Make __unix equivalent to unix and __unix__; don't
+ 	require any of these to be defined to 1, just defined.  Invert
+	sense of some tests from testing for unix to testing for not being
+	msdog.
+
+	* Made patchlevel 72.
+
+Thu Feb  5 00:22:58 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 71.
+
+	* configure.in: Bump version up to 0.1.11.
+
+Tue Feb  3 16:12:34 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 70.
+
+	* configure.in: Bump version up to 0.1.10.
+
+Fri Jan 23 00:17:18 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 69.
+
+Thu Jan 22 00:35:52 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 68.
+
+Sun Jan 18 00:30:18 1998  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Add ieeefp.h to list of headers to check for.
+
+	* Made patchlevel 67.
+
+Tue Jan 13 23:44:16 1998  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Add sys/wait.h to list of headers to check for.
+
+	* Made patchlevel 66.
+	
+Sun Jan 11 21:30:09 1998  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Bump version up to 0.1.9.
+	
+	* pref.h.orig (STORE_2): Fix parentheses.  From Alexandre
+	Oliva <oliva@dcc.unicamp.br>.
+
+	* Made patchlevel 65.
+	
+Sat Jan 10 23:59:06 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 64.
+
+Sat Jan 10 02:10:15 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* pref.h.orig: Comment fixes.
+	(macro second_lowest_flt64) New.
+
+	* Made patchlevel 63.
+
+Thu Jan  8 22:27:03 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+	
+	* Made patchlevel 62.
+
+Mon Jan  5 11:18:37 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 61.
+
+Sun Jan  4 18:10:29 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* pref.h.orig: (local_strdup) [HAVE_ALLOCA && PAGED_STACK &&
+	__GNUC__] Rewritten for space and time efficiency and to evaluate
+	its argument only once.
+
+	* Made patchlevel 60.
+
+Sat Jan  3 16:51:20 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 59.
+
+Fri Jan  2 01:38:37 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* config.sub: Got tired of `i686-unknown-linux: Unknown system',
+	so I made 686 equivalent to 586.
+
+	* pref.h.orig: (macros ASCII_*, HTML_*, PS_*) Removed.
+
+	* Made patchlevel 58.
+
+Thu Jan  1 11:50:47 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 57.
+
+Fri Dec 26 15:43:17 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 56.
+
+Wed Dec 24 22:34:55 1997  Ben Pfaff  <blp@gnu.org>
+
+	* reconfigure: regularized option syntax.
+
+	* configure.in: Bumped version to 0.1.8.  Changed name from pspp
+	to PSPP.  Added lib/dcdflib/Makefile to list of output files.
+
+	* Made patchlevel 55.
+
+Sun Dec 21 15:58:52 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* acconfig.h: Reformat.
+
+	* configure.in: Bumped version to 0.1.7.
+
+	* Made patchlevel 54.
+
+Fri Dec  5 23:38:12 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Replaced prep.ai.mit.edu with ftp.gnu.org and .gnu.ai.mit.edu
+ 	with .gnu.org, everywhere.
+
+Fri Dec  5 23:02:40 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Replaced remaining instances of Fiasco with PSPP.
+
+	* Made patchlevel 53.
+
+Fri Dec  5 22:51:18 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Every instance of the name Fiasco, throughout every file,
+ 	replaced in-place with PSPP, with the exceptions of a few files
+ 	that had `fiasco' in their names; these were renamed.
+
+	* Made patchlevel 52.
+	
+Fri Dec  5 21:50:52 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: (macros NO_HTML, HTML_DEFAULT_OUTPUT_FILE) New
+ 	macros.
+
+	* TODO: Updated.
+
+	* Made patchlevel 51.
+
+Tue Dec  2 14:35:12 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* configure.in: Bumped version to 0.1.6.
+
+	* Made patchlevel 50.	
+
+Sat Nov 22 01:20:32 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 49.
+
+Fri Nov 21 00:11:41 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 48.
+
+Sun Nov 16 01:31:38 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 47.
+
+Fri Nov 14 00:17:48 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 46.
+
+	* configure.in: Bumped version to 0.1.5.
+
+Tue Oct 28 16:07:17 1997  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Bumped version to 0.1.4.
+
+	* TODO: Updated.
+
+	* Made patchlevel 45.
+
+Wed Oct  8 15:55:50 1997  Ben Pfaff  <blp@gnu.org>
+
+	* intl: Upgraded from sources to gettext-0.10.32.
+
+	* configure.in: Bumped version to 0.1.3.
+
+	* Made patchlevel 44.
+	
+Tue Oct  7 20:21:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (dist-hook) Use $(top_srcdir).
+
+	* pref.h.orig: (MAX_WORKSPACE) Enlarge to 4 MB (from 1 MB).
+
+	* Made patchlevel 43.
+	
+Sun Oct  5 15:52:37 1997  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Bumped version to 0.1.2.
+	(strerror) Replace instead of check.  From Alexandre Oliva
+ 	<oliva@dcc.unicamp.br>.
+
+	* pref.h.orig: Include `debug-print' instead of
+ 	`src/debug-print.h'.
+
+	* Made patchlevel 42.
+
+Sat Oct  4 16:19:44 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: Comment fixes.
+	(local_strdup) [HAVE_ALLOCA && PAGED_STACK &&
+	__GNUC__] Use local_alloc() instead of alloca(), as local_alloc()
+	isn't simply an alias for alloca().
+
+	* configure.in: Bumped version to 0.1.1.
+
+	* Made patchlevel 41.
+
+Sat Oct  4 02:13:00 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 40.
+
+Sun Sep 21 00:07:09 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 39.
+
+Thu Sep 18 21:42:27 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: (CONFIG_PATH) [unix] Add /usr/local/etc/fiasco,
+ 	/usr/etc/fiasco to search path.
+
+	* Made patchlevel 38.
+		
+Wed Aug 20 14:20:06 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (noinst_DATA) Removed ANNOUNCE, HELP-WANTED.
+	(EXTRA_DIST) Removed ANNOUNCE, FAQ, HELP-WANTED, mk-web-dist.
+	(MAINTAINERCLEANFILES) Removed ANNOUNCE, FAQ, HELP-WANTED.
+
+	* Made patchlevel 37.
+
+Wed Aug 20 12:48:25 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (doc/ANNOUNCE.html, ANNOUNCE, FAQ, doc/FAQ.html,
+	HELP-WANTED) Removed.
+	(docfiles) Removed ANNOUNCE, FAQ, HELP-WANTED.
+
+	* mk-web-dist: Removed.
+
+	* Made patchlevel 36.
+
+Mon Aug 18 18:06:12 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* pref.h.orig: (macro DEFAULT_COMPAT) Removed.
+
+	* Made patchlevel 35.
+
+Sun Aug 17 22:48:36 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 34.
+
+Sat Aug 16 10:48:29 1997  Ben Pfaff  <blp@gnu.org>
+
+	* In many files, in this directory and others, messages were
+ 	rephrased to eliminate or reduce usage of certain deprecated terms
+ 	at suggestion of rms.
+	
+	* Makefile.am: (EXTRA_DIST) Removed unix2dos.pl.
+	(MAINTAINERCLEANFILES) Removed doc/ANNOUNCE.html, doc/README.html.
+	(docfiles-recursive) Removed.
+
+	* TODO: Updated.
+
+	* mk-web-dist: Doesn't produce any distributions at all, just a
+ 	webpage.  Doesn't configure the distribution.  Changed list of
+ 	files installed.
+
+	* pref.h.orig: s/VER_PCP40/VER_PC/; s/VER_WIN61/VER_WND/;
+	s/VER_X40/VER_X/; All references changed.
+
+	* Made patchlevel 33.
+
+Thu Aug 14 22:02:08 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Comment fixes.  Uses $(VERSION) instead of contents
+ 	of VERSION file.
+	(EXTRA_DIST) Remove fiasco.ide, mk-bc5-dist.
+	(docfiles-recursive) Works if doc/Makefile doesn't exist.
+	(DIST_BC5_ROOT) Renamed DISTBC5_DISTROOT.
+	(DISTBC5_BC5ROOT) New var.
+	(dist-bc5) Passes $(DISTBC5_BC5ROOT).
+
+	* TODO: Update.
+
+	* acinclude.m4: Remove blp_VERSION_CHEAT kluge.
+
+	* configure.in: Don't use blp_VERSION_CHEAT kluge.
+
+	* mk-web-dist, reconfigure: Extract version number from
+ 	configure.in.
+
+	* pref.h.orig: (CONFIG_PATH, INCLUDE_PATH, GROFF_FONT_PATH)
+	[__MSDOS__] Fixed bad use of backslashes.
+
+	* reconfigure: Pass $VERSION to Makefile.
+
+	* Made patchlevel 32.
+
+Thu Aug 14 11:49:35 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST, docfiles) Add ONEWS.
+	(docfiles) Depends on docfiles-recursive.
+	(docfiles-recursive) New target, call make for `docfiles' target
+	in doc directory.
+	(dist-bc5) Adds `foo' second arg to mk-bc5-dist.
+	(.PHONY) Add docfiles.
+
+	* mk-bc5-dist: Checks that it is passed a second arg of `foo'.
+
+	* reconfigure: Changed == operators to = as arguments to `test'.
+	No longer uses bash -v switch.
+
+	* mk-distribution: Renamed mk-web-dist, all references changed.
+  	Now takes several options, added help.  No longer uses -uv
+ 	options.
+
+	* Made patchlevel 31.
+
+Tue Aug  5 13:56:39 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (MAINTAINERCLEANFILES) Add HELP-WANTED.
+	(EXTRA_DIST) Add ONEWS.
+
+	* Made patchlevel 30.
+
+Sun Aug  3 11:30:17 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (noinst_data, docfiles) Added HELP-WANTED.
+	(EXTRA_DIST) Added configure, mk-bc5-dist, unix2dos.pl,
+ 	HELP-WANTED.
+	(HELP-WANTED) Generated from doc/HELP-WANTED.html.
+	(dist-bc5) New target.
+
+	* TODO: Updated.
+
+	* mk-distribution: Fixed bugs, added HELP-WANTED.
+
+	* reconfigure: When invoking Makefile.am, pass
+	top_srcdir=. explicitly.
+
+	* unix2dos.pl: New file.
+
+	* Made patchlevel 29.
+
+Thu Jul 17 21:49:13 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 28.
+
+Thu Jul 17 01:43:25 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Remove inactive .html suffix rule.
+	New rules to generate doc/ANNOUNCE.html and doc/README.html from
+	corresponding .in files.
+	(EXTRA_DIST) Add VERSION, fiasco.ide, mk-distribution.
+	(MAINTAINERCLEANFILES) Add doc/ANNOUNCE.html, doc/README.html.
+
+	* acinclude.m4: (blp_VERSION_CHEAT) New macro.
+
+	* configure.in: Forces _GNU_SOURCES not only to be defined, but to
+	a value of 1.  Substitutes VERSION from the new file VERSION.
+	Removed DEBIAN reference.  Checks for sys/mman.h header.
+
+	* pref.h.orig: (macro gettext) Don't put parentheses in the
+ 	expansion.
+	(macro N_) Same.
+
+	* reconfigure: Sets -ev in shell.  Doesn't try to pass
+	--include-deps to configure (it's an automake flag!).  Moved `make
+	docfiles'.
+
+	* sysdeps/borlandc4.0/README, sysdeps/borlandc4.0/_read.c,
+ 	sysdeps/borlandc4.0/_write.c, sysdeps/borlandc4.0: Removed.
+
+	* VERSION: New file.
+
+	* fiasco.ide: New file.
+
+	* mk-distribution: New file.
+
+	* Made patchlevel 27.
+	
+Fri Jul 11 23:00:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updates.
+
+	* Made patchlevel 26.
+
+Fri Jul 11 14:08:21 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: __CYGWIN32__ is a form of __unix__.
+
+	* reconfigure: Add -k for make maintainer-clean.
+
+	* Made patchlevel 25.
+
+Thu Jul 10 22:13:07 1997  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Add "-D_GNU_SOURCE" to CPPFLAGS to force GNU
+	glibc extensions to be detected.
+
+	* Made patchlevel 24.
+
+Sun Jul  6 19:13:07 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: Include "src/debug-print.h" instead of
+ 	"debug-print.h".
+	(macros local_alloc, local_free) More robust under Checker: put
+ 	their allocations in namespace different from malloc()/free().
+
+	* Made patchlevel 23.
+
+Sat Jul  5 23:42:14 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updates.
+
+	* Made patchlevel 22.
+
+Fri Jul  4 13:20:47 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Removed orphaned-rules.
+	(docfiles) Removed ChangeLog, COPYING.
+	(html, maintainer-clean-hook, install-data-hook) Removed.
+
+	* reconfigure: Added --help option.  Calls configure again even if
+	--no-include-deps.
+
+	* Made patchlevel 21.
+
+Wed Jun 25 22:47:17 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Require Automake 1.2.
+	(dist-hook) Don't copy config dir.
+	(EXTRA_DIST, MAINTAINERCLEANFILES) Add FAQ.
+	(docfiles) Made a variable as well as a target; added ChangeLog,
+	COPYING, FAQ, INSTALL, TODO.
+	(html, maintainer-clean-hook, install-data-hook, debian,
+	debian-clean, debian-clean-full) New targets.
+
+	* orphaned-rules: Removed.
+
+	* configure.in: Bumped up to version 0.1.0.
+
+	* reconfigure: New options --enable-nls, --no-include-deps.
+	Comment fixes.
+
+	* Made patchlevel 20.
+
+Sun Jun 22 22:10:27 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 19.
+
+Sun Jun 15 16:44:14 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: Comment fixes.  Includes debug-print.h.
+	(DEMAND_PAGE, ALWAYS_PAGE, NEVER_PAGE) Removed.
+
+	* Made patchlevel 18.
+
+Sun Jun  8 01:25:40 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 17.
+
+Fri Jun  6 22:41:08 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updates.
+
+	* pref.h.orig: Reformatted macros.
+	[!ENABLE_NLS] Defines gettext() as a trivial substitution to allow
+	gcc to give warnings on printf().
+
+	* Made patchlevel 16.
+	
+Thu Jun  5 23:01:49 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 15.
+
+Tue Jun  3 23:24:08 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: AUTOMAKE_OPTIONS changed from `foreign 1.1l' to
+	`gnits 1.1p'.  SUBDIRS reordered.  New target `docfiles'.
+
+	* TODO: Updates.
+
+	* configure.in: Removed AM_MAINTAINER_MODE.  Added
+	--enable-Werror, which is implied by --with-checker.
+
+	* reconfigure: Moved `aclocal' from beginning to just before
+ 	cleaning `autoheader'.  Removed --enable-maintainer-mode.  Added
+ 	--disable-nls.  Added `make docfiles' to placate autoheader.
+	Added `aclocal' before first real `autoheader'.  Uses `make
+	mostlyclean' instead of `make depend'.
+
+	* Made patchlevel 14.
+
+Mon Jun  2 14:21:54 1997  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Removed comment that screwed things up.
+
+	* reconfigure: Added `aclocal' at beginning.
+
+	* Made patchlevel 13.
+
+Sun Jun  1 23:25:39 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Add intl, po to SUBDIRS.  Add aclocal.m4,
+ 	config.h.in to MAINTAINERCLEANFILES.
+
+	* acconfig.h: Add HAVE_LC_MESSAGES, ENABLE_NLS, HAVE_CATGETS,
+	HAVE_GETTEXT, HAVE_STPCPY.
+
+	* configure.in: Reordered to placate autoheader.  Added
+ 	AC_ISC_POSIX, AM_PROG_CC_STDC.  Added internationalization:
+ 	ALL_LINGUAS="", AM_GNU_GETTEXT, AC_LINK_FILES(...).  Added
+ 	po/Makefile.in, intl/Makefile to generated files list.  Generates
+ 	po/Makefile from po/Makefile.in.  Comment fix.
+
+	* pref.h.orig: Uncommented i18n support.
+
+	* acinclude.m4: New file.
+
+	* ABOUT-NLS: New file.
+
+	* intl/: New directory, taken from gettext-0.10.27.
+
+	* missing: New file, taken from automake-1.1p.
+
+	* po/: New directory.
+
+	* Made patchlevel 12.
+
+Sun Jun  1 17:28:27 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 11.
+
+Sun Jun  1 11:58:43 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: Removed DEFAULT_VER_PCP40, DEFAULT_VER_WIN61,
+ 	DEFAULT_VER_X40.  Added a macro DEFAULT_COMPAT that takes one of
+ 	the VER_* enums as a value.
+	(HISTORY_FILE) Changed the definition to "~/.fiasco_history".
+
+	* Made patchlevel 10.
+
+Fri May 30 19:40:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: [__MSDOS__] Reordered INCLUDE_PATH.
+
+	* Made patchlevel 9.
+
+Sun May 25 22:32:57 1997  Ben Pfaff  <blp@gnu.org>
+
+	* acconfig.h: For support of glibc 2, define _GNU_SOURCE.
+
+	* Made patchlevel 8.
+
+Mon May  5 21:58:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 7. 
+
+Fri May  2 22:27:36 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 6.
+
+Thu May  1 15:34:01 1997  Ben Pfaff  <blp@gnu.org>
+
+	* All files: Changed copyright from `Ben Pfaff' to `Free Software
+ 	Foundation, Inc'.
+
+	* Made patchlevel 5.
+
+Thu May  1 15:00:51 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 4.
+
+Sat Apr 26 11:34:05 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ChangeLog: Split into one ChangeLog per directory.
+
+	* Made patchlevel 3.
+
+Wed Apr 23 21:33:48 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Update.
+
+	* Made patchlevel 2.
+
+Fri Apr 18 16:48:41 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Removed `include', `util' from SUBDIRS; added
+ 	`config'.  Includes `config' directory in distributions.  Added
+	`private-install', `private-uninstall' targets.
+
+	* configure.in: AC_INIT tests for src/q2c.c now.  Removed
+	redundant AC_PROG_MAKE_SET call.  Removed include/Makefile,
+	util/Makefile from generated files list; added config/Makefile.
+
+	* include/approx.h, include/arena.h, include/common.h,
+ 	include/dfm.h, include/do-ifP.h, include/error.h, include/expr.h,
+ 	include/exprP.h, include/file-handle.h, include/filename.h,
+ 	include/font.h, include/getline.h, include/getopt.h,
+ 	include/hash.h, include/heap.h, include/log.h, include/misc.h,
+ 	include/output.h, include/settings.h, include/sfm.h,
+ 	include/sfmP.h, include/som.h, include/somP.h, include/stat.h,
+ 	include/stats.h, include/str.h, include/tokens.h, include/var.h,
+ 	include/version.h, include/vfmP.h: Moved into src/ directory.
+
+	* include/Makefile.am, include/: Removed.
+
+	* util/Makefile.am: Removed.
+
+	* util/q2c.c: Moved to src/.
+
+	* util/reconfigure: Moved to source root.
+
+	* util/: Removed.
+
+	* Made patchlevel 1.
+
+Fri Apr 18 15:42:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Maintainer-cleans generated documentation and
+ 	Makefile.in.
+
+	* include/Makefile.am, util/Makefile.am: Maintainer-cleans
+ 	Makefile.in.
+
+	* include/somP.h: (static struct var som) Removed passed_t member.
+
+	* TODO: Updated.
+
+	* configure.in: Fixed source directory for copying pref.h; always
+	updates pref.h or at least touch'es it.
+
+	* pref.h.orig: Made a rather pejorative comment a lot milder so it
+	wouldn't be misinterpreted.
+
+	* Made interim release x3.
+	
+Thu Mar 27 01:11:29 1997  Ben Pfaff  <blp@gnu.org>
+
+	* All directories now contain new `Makefile.am's, in some cases
+	produced from bits and pieces of the single monolithic old one.
+	
+	* PATCHLEVEL: Removed.
+
+	* acconfig.h: Added GNU_PACKAGE, PACKAGE, PROTOTYPES, VERSION;
+	removed inclusion of conf.h.
+
+	* confh.in: Removed.
+	* confh.tmp.in: Removed.
+ 	
+	* configure.in: Deepened.  Updated for use with Automake 1.1l.
+	Removed PATCHLEVEL hacks.  Fixed lots of functions in
+	AC_CHECK_FUNCS, AC_REPLACE_FUNCS, and similar.  Only passes
+	`-Werror' to gcc in maintainer mode.  Doesn't output conf.h.
+	Touches pref.h even if it wasn't changed.  
+
+	* aclocal.m4: New file.
+
+	* config.h.in: Renamed from configh.in.
+
+	* pref.h.orig: Renamed from prefh.orig.
+
+	* Made interim release x2.
+	
+Thu Mar 27 01:07:02 1997  Ben Pfaff  <blp@gnu.org>
+
+    Changed the distribution from flat to deep.  New configuration:
+
+	ANNOUNCE	Makefile.in	config.h.in	mkinstalldirs
+	AUTHORS		NEWS		config.sub	orphaned-rules
+	BUGS		README		configure	pref.h
+	COPYING		THANKS		configure.in	pref.h.orig
+	ChangeLog	TODO		debian		src
+	ChangeLog~	acconfig.h	doc		stamp-h.in
+	INSTALL		aclocal.m4	include		sysdeps
+	LANGUAGE	config		install-sh	tests
+	Makefile.am	config.guess	lib		util
+
+	config:
+	devices      environment  papersize    ps-fontmap   ps-prologue
+
+	debian:
+	changelog  control    postinst	 rules
+	conffiles  copyright  postrm
+
+	doc:
+	ANNOUNCE.html  Makefile.in    fiasco.info-2  stamp-vti
+	AUTHORS.html   README.html    fiasco.info-3  texinfo.tex
+	BUGS.html      THANKS.html    fiasco.info-4  version.texi
+	LANGUAGE.html  fiasco.info    fiasco.texi
+	Makefile.am    fiasco.info-1  mdate-sh
+
+	include:
+	approx.h       file-handle.h  misc.h	     stats.h
+	arena.h        filename.h     output.h	     str.h
+	common.h       font.h	      settings.h     tokens.h
+	dfm.h	       getline.h      sfm.h	     var.h
+	do-ifP.h       getopt.h       sfmP.h	     version.h
+	error.h        hash.h	      som.h	     vfmP.h
+	expr.h	       heap.h	      somP.h
+	exprP.h        log.h	      stat.h
+
+	lib:
+	Makefile.am  Makefile.in  avllib       julcal	    misc
+
+	lib/avllib:
+	AVLLIB.COPYING	Makefile.in	avl.h
+	Makefile.am	avl.c
+
+	lib/julcal:
+	Makefile.am  Makefile.in  julcal.c     julcal.h
+
+	lib/misc:
+	Makefile.am    getopt1.c      memset.c	     strstr.c
+	Makefile.in    memchr.c       qsort.c	     strtol.c
+	alloca.c       memcmp.c       stpcpy.c	     strtoul.c
+	getdelim.c     memcpy.c       strcasecmp.c
+	getline.c      memmem.c       strncasecmp.c
+	getopt.c       memmove.c      strpbrk.c
+
+	src:
+	Makefile.am	error.c		lexer.c		sfm-write.c
+	Makefile.in	expr-evl.c	list.c		show.c
+	arena.c		expr-opt.c	list.q		som-frnt.c
+	ascii.c		expr-prs.c	log.c		som-high.c
+	autorecode.c	file-handle.c	loop.c		som-low.c
+	cases.c		file-handle.q	main.c		sort.c
+	cmdline.c	file-type.c	mis-val.c	split-file.c
+	command.c	filename.c	misc.c		stats.c
+	common.c	formats.c	modify-vars.c	str.c
+	compute.c	freq.c		numeric.c	sysfile-info.c
+	count.c		frequencies.c	output.c	temporary.c
+	crosstabs.c	frequencies.g	postscript.c	title.c
+	crosstabs.q	frequencies.q	print.c		val-labs.c
+	data-in.c	get.c		recode.c	var-labs.c
+	data-list.c	getline.c	rename-vars.c	vars-atr.c
+	data-out.c	glob.c		repeat.c	vars-prs.c
+	descript.c	groff-font.c	sample.c	vector.c
+	descript.q	hash.c		sel-if.c	version.c
+	dfm.c		heap.c		set.c		vfm.c
+	display.c	include.c	set.q		weight.c
+	do-if.c		inpt-pgm.c	sfm-read.c
+
+	sysdeps:
+	BorlndC4.0  DJGPP2.0	Windows
+
+	sysdeps/BorlndC4.0:
+	Makefile     _write.c	  conf.h
+	_read.c      compile.bat  config.h
+
+	sysdeps/DJGPP2.0:
+	Makefile     compile.bat  conf.h       config.h
+
+	sysdeps/Windows:
+	con32s.c
+
+	tests:
+	Makefile.am	    expression.stat	reread.data
+	Makefile.in	    fall92.data		reread.stat
+	autorecode.stat     fall92.stat		sample.stat
+	begin-data.stat     file-label.stat	show-check-msg
+	bignum.data	    file-type.stat	sort.data
+	bignum.stat	    filter.stat		sort.stat
+	bug.stat	    gengarbage.c	split-file.stat
+	compute.stat	    input-program.stat	sysfile-info.stat
+	count.stat	    list.data		temporary.stat
+	data-formats.stat   list.stat		time-date.stat
+	data-list.data	    loop.stat		vector.stat
+	data-list.stat	    modify-vars.stat	weighting.data
+	descript.stat	    print.stat		weighting.stat
+	do-if.stat	    process-if.stat
+	do-repeat.stat	    recode.stat
+
+	util:
+	Makefile.am  Makefile.in  q2c.c        reconfigure
+
+    Old configuration:
+
+	ANNOUNCE.html	count.c		hash.h		sample.c
+	AUTHORS.html	crosstabs.q	heap.c		sel-if.c
+	AVLLIB.COPYING	data-in.c	heap.h		set.q
+	BUGS.html	data-list.c	include.c	settings.h
+	COPYING		data-out.c	inpt-pgm.c	sfm-read.c
+	ChangeLog	debian		install-sh	sfm-write.c
+	INSTALL		descript.q	julcal.c	sfm.h
+	LANGUAGE.html	devices		julcal.h	sfmP.h
+	Makefile.am	dfm.c		lexer.c		show.c
+	NEWS		dfm.h		list.q		som-frnt.c
+	PATCHLEVEL	display.c	log.c		som-high.c
+	README.html	do-if.c		log.h		som-low.c
+	THANKS.html	do-ifP.h	loop.c		som.h
+	TODO		environment	main.c		somP.h
+	_read.c		error.c		makeb40.bat	sort.c
+	_write.c	error.h		makedj2.bat	split-file.c
+	acconfig.h	expr-evl.c	makefile.b40	stamp-h.in
+	alloca.c	expr-opt.c	makefile.dj2	stats.c
+	approx.h	expr-prs.c	mdate-sh	stats.h
+	arena.c		expr.h		memcmp.c	stpcpy.c
+	arena.h		exprP.h		mis-val.c	str.c
+	ascii.c		fiasco.texi	misc.c		str.h
+	autorecode.c	file-handle.h	misc.h		sysfile-info.c
+	avl.c		file-handle.q	mkinstalldirs	temporary.c
+	avl.h		file-type.c	modify-vars.c	test
+	cases.c		filename.c	numeric.c	texinfo.tex
+	cmdline.c	filename.h	output.c	title.c
+	command.c	font.h		output.h	tokens.h
+	common.c	formats.c	papersize	val-labs.c
+	common.h	freq.c		postscript.c	var-labs.c
+	compute.c	frequencies.g	prefh.orig	var.h
+	con32s.c	frequencies.q	print.c		vars-atr.c
+	confh.b40	get.c		ps-fontmap	vars-prs.c
+	confh.dj2	getline.c	ps-prologue	vector.c
+	confh.in	getline.h	q2c.c		version.c
+	confh.tmp.in	getopt.c	qsort.c		version.h
+	config.guess	getopt.h	recode.c	vfm.c
+	config.sub	getopt1.c	reconfigure	vfmP.h
+	configh.b40	glob.c		reject		weight.c
+	configh.dj2	groff-font.c	rename-vars.c
+	configure.in	hash.c		repeat.c
+
+	debian:
+	changelog  control    postinst	 rules
+	conffiles  copyright  postrm
+
+	test:
+	autorecode.stat     fall92.data		recode.stat
+	begin-data.stat     fall92.stat		reread.data
+	bignum.data	    file-label.stat	reread.stat
+	bignum.stat	    file-type.stat	sample.stat
+	bug.stat	    filter.stat		sort.stat
+	compute.stat	    gengarbage.c	split-file.stat
+	count.stat	    gengarbage.pl	sysfile-info.stat
+	data-formats.stat   input-program.stat	temporary.stat
+	data-list.data	    list.data		time-date.stat
+	data-list.stat	    list.stat		vector.stat
+	descript.stat	    loop.stat		weighting.data
+	do-if.stat	    modify-vars.stat	weighting.stat
+	do-repeat.stat	    print.stat
+	expression.stat     process-if.stat
+
+Mon Mar 24 21:47:31 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: @ALLOCA@ is on list of source files instead of
+ 	alloca.c.  Added $(srcdir)/ to version.c reference.  Changed to
+ 	pkgdatadir (/usr/share) for pkgsysconfdir, from pkglibdir
+	(/usr/lib).  Removed some of extra distfiles.  Added bogus `check'
+ 	target.
+
+	* Made transition release x1.
+
+Sun Mar  2 20:51:28 1997  Ben Pfaff  <blp@gnu.org>
+
+	No longer uses debmake:
+	
+	* Makefile.am: Installs documentation according to Debian policy
+	manual.  New targets `private-uninstall', `install-data-hook' to
+	help implement this.  `debian' target also revised.
+	
+	* configure.in: Sets up for Debian installation depending on
+	DEBIAN environment variable.  Also, improved & fixed (hopefully)
+	the scheme for detecting patchlevel.
+	
+	* Made patchlevel 193.
+
+Wed Feb 19 21:30:31 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 192.
+
+Sun Feb 16 20:57:20 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 191.
+	
+Sat Feb 15 21:26:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Removed `descript.g' from sources.
+
+	* Made patchlevel 190.
+	
+Fri Feb 14 23:32:58 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+	
+	* configure.in: Fixed test for max number of digits in an `int' to
+ 	use char[] rather than int[].
+
+	* Made patchlevel 189.
+	
+Tue Feb  4 15:15:50 1997  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Fixed some problems with `--with-checker' flag and
+	with detection of available libraries; no longer any lines longer
+	than 79 characters.
+
+	* Made patchlevel 188.
+	
+Wed Jan 22 21:54:00 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Add sysfile-info.c to sources.
+
+	* TODO: Moved some notes to different files where they are more
+	appropriate.
+
+	* prefh.orig: (macros STORE_2 and LOAD_2) Always load/store as
+	little-endian.
+
+	* Made patchlevel 187.
+
+Sun Jan 19 14:22:11 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added rename-vars.c to sources.  Added to distclean
+ 	files.
+
+	* TODO: Updates.
+
+	* Made patchlevel 186.
+
+Thu Jan 16 13:08:57 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Most files have updated copyright notices for 1997.
+
+	* Makefile.am: Added modify-vars.c to source files.  Also changed
+ 	`lynx' to $(HTML_FORMATTER), etc.  Changed messages.
+
+	* TODO: Updates.
+
+	* Made patchlevel 185.
+
+Sat Jan 11 15:44:15 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: By default, now installs config files in pkglibdir,
+	generally /usr/local/lib/fiasco.
+
+	* TODO: Updated.
+
+	* prefh.orig: Added `/etc/fiasco' to config paths.  Removed
+	$ARCH/$VER dirs from include paths. 
+
+	* Made patchlevel 184.
+
+Fri Jan 10 20:22:08 1997  Ben Pfaff  <blp@gnu.org>
+
+	* debian/changelog, debian/control, debian/copyright, debian/dirs,
+ 	debian/info, debian/menu, debian/rules: Added Debian GNU/Linux
+ 	control files.
+ 	
+	* Makefile.am: Added sfmP.h to source files.  Added several files
+	to the list of distfiles.   dist-hook now copies debian control
+	files.  New targets `debian', `debian-clean', `debian-clean-full'.
+
+	* confh.in: Defines PATCHLEVEL.
+
+	* configure.in: Adds the current patchlevel to the version
+	number.  Versions are now of the form `1.2.3pl456'.  Determines
+	the patchlevel based on directory name and contents of file
+	PATCHLEVEL.
+
+	* reconfigure: Passes automake `--strictness=foreign'.
+
+	* Made patchlevel 183.
+
+Thu Jan  2 19:08:23 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 182.
+
+Wed Jan  1 22:08:10 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+	
+	* Made patchlevel 181.
+	
+Wed Jan  1 17:00:59 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: New target for test/sort.data.
+
+	* Made patchlevel 180.
+	
+Sun Dec 29 21:36:48 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 179.
+
+Tue Dec 24 20:42:32 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 178.
+
+Sun Dec 22 23:10:39 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added heap.c, heap.h to source files.  Added
+	new html files to distfiles & maintainer-clean files.
+
+	* configure.in: Tests for presence of getpid(), sys/types.h.
+
+	* prefh.orig: #defines mkdir() for MS-DOS compatibility.
+
+	* Made patchlevel 177.
+
+Sat Dec 21 21:51:04 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added README.html, LANGUAGE.html to list of
+ 	distfiles.  Added README, LANGUAGE to list of maintainer-clean
+ 	files.  Added .html to suffixes.  Added .html implicit rule that
+ 	calls `lynx -dump -nolist'.
+
+	* Made patchlevel 176.
+	
+Tue Dec 17 18:57:59 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 175.
+	
+Sun Dec 15 15:32:16 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added vfmP.c, qsort, sort.c to list of source
+	files.
+
+	* prefh.orig: Subtle changes to MAX_WORKSPACE, ALWAYS_PAGE,
+	NEVER_PAGE, DEMAND_PAGE macro meanings.
+
+	* Made patchlevel 174.
+	
+Sat Dec 14 10:35:30 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 173.
+	
+Fri Dec 13 21:30:53 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added autorecode.c to source files.
+
+	* prefh.orig: Fixed path GROFF_FONT_PATH.
+
+	* Made patchlevel 172.
+	
+Fri Dec  6 23:53:47 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+	
+	* Made patchlevel 171.
+	
+Wed Dec  4 21:34:17 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 170.
+	
+Sun Dec  1 17:19:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 169.
+	
+Thu Nov 28 23:14:07 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added `set.q' to list of source files.
+
+	* Made patchlevel 168.
+
+Thu Nov 28 19:46:10 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 167.
+
+Wed Nov 27 23:18:35 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added `sfm-write.c' to list of source files.
+
+	* confh.in: New #defines RELEASE_NO, SUB_RELEASE_NO, and
+ 	SPEC_RELEASE_NO for each part of a version number of form 1.2.3.
+
+	* configure.in: Computes RELEASE_NO, etc., by breaking apart
+ 	VERSION.
+
+	* prefh.orig: (defn of int32, flt64) Formatting fixes.
+	(FLT64_MAX) New define.
+
+	* Made patchlevel 166.
+	
+Sun Nov 24 14:53:53 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Wow, it's been almost two weeks since the last update, hard to
+	believe.
+
+	* All source files: Updated e-mail address.
+	
+	* prefh.orig: local_alloc() calls xmalloc() under Checker because
+	Checker can keep track of heap blocks much more accurately.
+
+	* Made patchlevel 165.
+	
+Mon Nov 11 15:34:09 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 164.
+	
+Thu Nov  7 20:52:28 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 163.
+	
+Thu Nov  7 17:29:16 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 162.
+	
+Thu Nov  7 15:48:52 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 161.
+	
+Tue Nov  5 18:34:59 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 160.
+	
+Mon Nov  4 22:03:28 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added get.c.
+
+	* TODO: Updated.
+
+	* Made patchlevel 159.
+	
+Sun Nov  3 12:24:36 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added sfm.h, sfm-read.c to source files.
+
+	* Made patchlevel 158.
+	
+Wed Oct 30 17:13:08 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added dist-zip target to AUTOMAKE_OPTIONS.
+
+	* acconfig.h: Added FPREP_* defines.
+
+	* configure.in: Added checks for the sizes of floating-point
+ 	types.  Added a test for the internal floating-point
+ 	representation of the host architecture.
+
+	* prefh.orig: Renamed `ATTRIBUTION' macro as `__attribute__'.  All
+ 	references changed.  Defines `flt64' 64-bit floating-point for use
+ 	with system files.
+	[FPREP==FPREP_IEEE754 && __GNUC__ && (ENDIAN==BIG ||
+ 	ENDIAN==LITTLE] Defines SECOND_LOWEST_VALUE macro.
+	
+	* Made patchlevel 157.
+
+Sat Oct 26 23:06:06 1996  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Checks sizes of short, int, long, long long.
+
+	* prefh.orig: Defines new type int32 for use with system
+ 	files.
+
+	* Made patchlevel 156.
+	
+Sat Oct 26 20:46:31 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 155.
+
+Sat Oct 26 10:39:25 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 154.
+	
+Thu Oct 24 20:13:42 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added back in these files: recode.c, sample.c,
+ 	sel-if.c.  Also added files somP.h, hash.c that should've been
+ 	there anyway.
+
+	* TODO: Updated.
+
+	* configure.in: Checks for strncasecmp in place of strcasecmp.
+
+	* Made patchlevel 153.
+	
+Thu Oct 24 17:47:14 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* Made patchlevel 152.
+	
+Wed Oct 23 21:53:43 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Organized.
+
+	* Made patchlevel 151.
+	
+Tue Oct 22 17:27:04 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Culled old notes.
+
+	* Made patchlevel 150.
+
+Mon Oct 21 20:39:59 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 149.
+	
+Sun Oct 20 13:45:28 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added back in `numeric.c', `print.c', `title.c'.
+  	Defined ETAGS_ARGS.
+
+	* Made patchlevel 148.
+	
+Sun Oct 20 09:04:15 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 147.
+	
+Fri Oct 18 19:46:49 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 146.
+	
+Sun Sep 29 19:37:03 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 145.
+	
+Sat Sep 28 21:28:07 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added to DISTCLEANFILES. 
+   
+	* Made patchlevel 144.
+	
+Fri Sep 27 20:08:39 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 143.
+	
+Thu Sep 26 22:20:26 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added list.c back into the list of source files.
+
+	* Made patchlevel 142.
+	
+Wed Sep 25 19:36:11 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Updated for new files.
+
+	* Made patchlevel 141.
+		
+Tue Sep 24 18:39:09 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 140.
+
+Sat Sep 21 23:16:31 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 139.
+
+Fri Sep 20 22:52:28 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 138.
+	
+Thu Sep 12 18:40:33 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 137.
+
+Wed Sep 11 22:01:41 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO:	Added timestamp.
+
+	* prefh.orig: Removed `/usr/local/share/fiasco' and
+	`/usr/share/fiasco' from CONFIG_PATH as per the Linux FSSTND,
+	which specifies that programs should never give an explicit
+	`/usr(/local)/share' path.
+
+	* Made patchlevel 136.
+
+Tue Sep 10 21:39:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added `display.c' back in.
+
+	* TODO: Addition.
+
+	* Made patchlevel 135.
+	
+Mon Sep  9 21:43:13 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added `split-file.c' back into the project.
+
+	* Made patchlevel 134.
+	
+Sat Sep  7 22:35:12 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Updated.
+
+	* prefh.orig: (local_strdup) Moved to misc.h.
+
+	* Made patchlevel 133. 
+	
+Thu Sep  5 22:05:56 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Changed `prologue.ps' references to `ps-prologue'.
+
+	* Made patchlevel 132.
+	
+Wed Sep  4 21:45:35 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prefh.orig: New i18n defines.
+
+	* This patchlevel doesn't even compile.
+
+	* Made patchlevel 131.
+	
+Sat Aug 31 23:52:38 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: Addition.
+
+	* Made patchlevel 130.
+		
+Thu Aug 29 21:36:41 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 129.
+	
+Sat Aug 24 23:26:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: New target "private-install" to install config files
+	to $HOME/.fiasco.
+
+	* configure.in: Now that I have made a less-bogus Checker
+ 	distribution, removed `-b i486-linuxaout -V 2.6.3' from
+ 	AC_ARG_WITH(checker, ...).
+
+	* Made patchlevel 127 somewhere in there.
+	
+	* Made patchlevel 128.
+	
+Sun Aug 11 21:31:22 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Changed DISTCLEANFILES.
+
+	* Does not compile.
+	
+	* Made patchlevel 126.
+	
+Sat Aug 10 23:28:17 1996  Ben Pfaff  <blp@gnu.org>
+
+	* reconfigure: Calls `autoheader' twice: once at the beginning,
+ 	once after make maintainer-clean.
+
+	* Made patchlevel 125. 
+	
+Thu Aug  8 22:31:11 1996  Ben Pfaff  <blp@gnu.org>
+
+	* reconfigure: `autoheader' now first operation performed.
+
+	* Made patchlevel 124.
+	
+Sat Aug  3 20:50:35 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added postscript.c to list of source files.
+
+	* configh.in: Removed since autoheader can regenerate it.
+
+	* configure.in: Improved tests for (ncurses or termcap) and
+ 	(history and/or readline) libraries and associated headers.  Added
+ 	check for strcasecmp().  Changed default gcc CFLAGS.
+
+	* prefh.orig: Removed `.' from GROFF_FONT_PATH.
+	(local_alloc, local_free) New functions.
+
+	* reconfigure: Added call to autoheader.
+
+	* Made patchlevel 123.
+	
+Sat Jul 27 22:32:38 1996  Ben Pfaff  <blp@gnu.org>
+
+	* There were some problems with the patchfiles so I had to merge
+ 	what was previously patchlevels 121 and 122; now everything from
+ 	what was previously 122 is called 121.  Oh well, just don't let it
+ 	happen often.
+
+	* This patchlevel does not compile.
+
+	* configure: No longer included in patches to save lotsa space
+ 	when configure.in changes.
+
+	* configure.in: Changed the technique for detecting libraries.
+
+	* prefh.orig: Style changes; handles changed configure.in.
+
+	* Made patchlevel 122 (second edition).
+
+Tue Jul 23 21:48:36 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 121.
+	
+Wed Jul 17 21:23:36 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 120.
+
+Tue Jul 16 22:10:04 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 119.
+
+Sun Jul 14 15:45:31 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 118.
+
+Fri Jul 12 22:03:36 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added list.c to sources.
+	
+	* Made patchlevel 117.
+	
+Sat Jul  6 22:22:25 1996  Ben Pfaff  <blp@gnu.org>
+
+	* configure.in: Removed reference to `malloc.h'.
+	
+	* Made patchlevel 116.
+	
+Fri Jul  5 20:16:19 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 115.
+
+Thu Jul  4 20:20:24 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prefh.orig: Changes to CONFIG_PATH, INCLUDE_PATH,
+ 	GROFF_FONT_PATH.
+
+	* Makefile.am: pkgdata_DATA file `output' changed to `devices'.
+	
+Thu Jul  4 00:35:59 1996  Ben Pfaff  <blp@gnu.org>
+
+	* TODO: doc fix.
+	
+	* Made patchlevel 114.
+	
+Tue Jul  2 22:13:23 1996  Ben Pfaff  <blp@gnu.org>
+
+	* reconfigure: (new file) Runs all the programs necessary to
+ 	create a Makefile that includes dependencies.
+
+	* Made patchlevel 113.
+	
+Mon Jul  1 22:13:39 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Made patchlevel 112.
+
+Mon Jul  1 13:00:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Most files: Changed references from `stat' (the original, rather
+ 	dull old name for this project) to `Fiasco' (the creative, rather
+ 	funny new name for this project).
+	
+	* Made patchlevel 111.
+ 	
+Sat Jun 29 17:40:47 1996  Ben Pfaff  <blp@gnu.org>
+
+	* prefh.orig: changed default file search paths
+	
+	* Made patchlevel 110.
+
+Fri Jun 28 11:59:48 1996  Ben Pfaff  <blp@gnu.org>
+
+	* Added automake support; removed GNUmakefile and GNUmakefile.in.
+
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:

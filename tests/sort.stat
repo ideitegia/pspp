@@ -1,0 +1,8 @@
+title 'Test SORT procedure'.
+
+data list file='sort.data' notable /X000 to X126 1-127(a).
+*data list file='sort.data' notable /X000 to X005 1-6(a).
+sort by X000 to x005.
+print /X000 to X005.
+execute.
+

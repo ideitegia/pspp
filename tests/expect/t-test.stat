@@ -1,0 +1,23 @@
+T-TEST
+  PAIRS=V1 V2 WITH V3 V4 (PAIRED)
+  MISSING=ANALYSIS EXCLUDE
+  FORMAT=LABELS
+Missing value
+Missing value
+Missing value
+             Number of        2-tail
+ Variable      pairs    Corr   Sig      Mean    SD   SE of Mean
+---------------------------------------------------------------
+V1                                    0.0000   1.1909   0.3591
+            11.0000  -0.3835  0.8779
+V3                                    0.0000   2.4680   0.7441
+---------------------------------------------------------------
+
+
+
+      Paired Differences              |
+ Mean          SD         SE of Mean  |  t-value   df   2-tail Sig
+--------------------------------------|---------------------------
+ -1.1818      3.1247      0.9421      |  -1.2544  10.0000   0.2382
+95pc CI ( -3.2810,   0.9174)          |
+

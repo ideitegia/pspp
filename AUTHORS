@@ -1,0 +1,7 @@
+                                 PSPP Authors
+                                       
+     * Ben Pfaff wrote most of the program and the manual.
+     * John Williams wrote the T-TEST procedure.
+     * Jim Van Zandt translated the `julcal' date calculation package
+       into C from code written by Michael Covington, which was based on
+       formulae by Jean Meeus.

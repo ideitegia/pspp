@@ -1,0 +1,481 @@
+Sun Jan  2 21:30:53 2000  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Tue Mar  9 12:47:20 1999  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Mon Jan 18 19:29:21 1999  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Tue Jan  5 12:04:09 1999  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Thu Nov 19 12:35:01 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Revised.
+
+Sun Aug  9 11:11:43 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Revised.
+
+Sat Aug  8 00:19:22 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Revised.
+
+Sun Jul  5 00:14:24 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Fri May 29 21:43:52 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Revised.
+
+Wed May 20 00:03:50 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Fri Apr 24 12:51:28 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Wed Apr 15 13:01:28 1998  Ben Pfaff  <blp@gnu.org>
+
+	* AUTHORS.html, BUGS.html, LANGUAGE.html, README.html,
+	THANKS.html: Removed.
+
+	* Makefile.am: Don't reference the deleted files.
+
+Mon Mar  9 00:55:59 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+1998-03-05  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+1998-02-23  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Fri Feb 13 15:35:44 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+Thu Feb  5 00:18:10 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+	* pspp.texi: Revised.
+
+Tue Jan 13 23:44:43 1998  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS.html: Updated.
+
+	* LANGUAGE.html: Updated.
+
+Thu Jan  8 22:27:29 1998  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Sun Jan  4 18:12:11 1998  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+Wed Dec 24 22:36:09 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Sun Dec 21 16:18:18 1997  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Updated.
+
+Fri Dec  5 22:53:35 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.man: Renamed pspp.man.
+
+	* fiasco.texi: Renamed pspp.texi.
+
+Fri Dec  5 21:52:29 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Updated.
+
+Tue Dec  2 14:35:34 1997  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS.html: Updated.
+
+Sat Nov 22 01:20:41 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Revised.
+
+Fri Nov 21 00:02:36 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.man, fiasco.texi: Revised.
+
+Tue Oct 28 16:08:01 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Revised.
+
+Tue Oct  7 20:22:14 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+Sat Oct  4 16:19:27 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+Thu Sep 18 21:33:44 1997  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS.html, LANGUAGE.html: Updated.
+
+Wed Aug 20 14:21:35 1997  Ben Pfaff  <blp@gnu.org>
+
+ 	* Makefile.am: (info_TEXINFOS) Remove FAQ.texi.
+
+Wed Aug 20 12:49:40 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html.in, FAQ.texi, HELP-WANTED.html: Removed.
+	
+	* BUGS.html, LANGUAGE.html, README.html.in: Updated per
+ 	suggestions of rms.
+
+	* Makefile.am: (noinst_DATA) Removed ANNOUNCE.html,
+ 	HELP-WANTED.html.
+	(EXTRA_DIST) Removed ANNOUNCE.html, ANNOUNCE.html.in,
+ 	HELP-WANTED.html.
+	(MAINTAINERCLEANFILES, HTML_FORMATTER) Removed.
+
+	* fiasco.texi: Revised.
+	
+Sat Aug 16 10:51:51 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html.in, HELP-WANTED.html, README.html.in: Updated per
+ 	suggestions of rms.
+
+	* AUTHORS.html, BUGS.html, FAQ.texi, LANGUAGE.html, THANKS.html,
+ 	fiasco.man, fiasco.texi: Updated.
+
+	* README-i386linux.html, dist.html.in.in, fiasco.lsm.in,
+ 	changelogs.html.top, changelogs.html.bot: Removed, all references
+ 	removed.
+
+Thu Aug 14 22:07:02 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html.in, README.html.in, dist.html.in.in: Updated.
+
+	* Makefile.am: Use $(VERSION) instead of VERSION file.
+	(EXTRA_DIST) Add README-i386linux.
+
+Thu Aug 14 11:52:20 1997  Ben Pfaff  <blp@gnu.org>
+
+ 	* ANNOUNCE.html.in, AUTHORS.html, BUGS.html, HELP-WANTED.html,
+	LANGUAGE.html, README-i386linux.html, README.html.in, THANKS.html,
+	changelogs.html.bot, changelogs.html.top: Revised.
+
+	* Makefile.am: (noinst_DATA) Remove dist.html, add dist.html.in.
+	(EXTRA_DIST) Add ONEWS, remove dist.html, dist.html.in, add
+	dist.html.in.in.
+	(MAINTAINERCLEANFILES) Add dist.html.in.
+	(dist.html) Removed.
+	(dist.html.in) New target depending on dist.html.in.in.
+	(docfiles) New target.
+
+	* dist.html.in: Renamed dist.html.in.in.
+	
+Tue Aug  5 13:57:20 1997  Ben Pfaff  <blp@gnu.org>
+
+	* FAQ.texi, fiasco.texi: Updated.
+
+Sun Aug  3 11:34:43 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html.in, AUTHORS.html, BUGS.html, FAQ.texi,
+ 	LANGUAGE.html, README-i386linux.html, README.html.in, THANKS.html,
+ 	changelogs.html.bot, dist.html.in, fiasco.texi: Updated.
+
+	* Makefile.am: (noinst_DATA, EXTRA_DIST) Add HELP-WANTED.html,
+ 	remove README-i386gnuwin32.html.
+	(MAINTAINERCLEANFILES) Remove README-i386gnuwin32.html, add
+	README-i386linux.
+	(README-i386linux) New target.
+
+	* README-i386gnuwin32.html.in: Removed.
+
+	* HELP-WANTED.html: New file.
+	
+Thu Jul 17 21:40:28 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Generates fiasco.lsm from fiasco.lsm.in.
+
+Thu Jul 17 01:49:06 1997  Ben Pfaff  <blp@gnu.org>
+
+	* FAQ.texi: Updated.
+
+	* Makefile.am: Completely rewritten.
+
+	* ANNOUNCE.html.in, README-i386gnuwin32.html.in,
+	README-i386linux.html, README.html.in, dist.html.in,
+	fiasco.lsm.in: New files.
+
+Fri Jul 11 23:01:32 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Updated.
+
+Sun Jul  6 20:46:38 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html, FAQ.texi, README.html: Updated.
+
+	* Makefile.am: Add all the recent new files to EXTRA_DIST.
+
+Sat Jul  5 23:43:50 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html, FAQ.texi, README.html: Updated.
+
+	* changelogs.html.bot: Fix copyright notice.
+
+	* fiasco.man: New file.
+
+Fri Jul  4 13:23:57 1997  Ben Pfaff  <blp@gnu.org>
+
+	* changelogs.html.bot, changelogs.html.top: New files.
+
+	* fiasco.lsm: New file.
+
+	* ANNOUNCE.html, FAQ.texi, README.html: Updated.
+
+	* Makefile.am: (EXTRA_DIST) Removed duplicate assignment.
+
+Wed Jun 25 22:51:39 1997  Ben Pfaff  <blp@gnu.org>
+
+	* FAQ.texi: Finished.
+
+	* README.html: Updates.
+
+Sun Jun 22 21:59:07 1997  Ben Pfaff  <blp@gnu.org>
+
+	* ANNOUNCE.html, BUGS.html, LANGUAGE.html, README.html,
+ 	fiasco.texi: Updates.
+
+	* Makefile.am: Add `FAQ.texi' to info_TEXINFOS.
+	
+	* FAQ.texi: New file.
+
+Tue Jun  3 23:25:51 1997  Ben Pfaff  <blp@gnu.org>
+
+	* AUTHORS.html, BUGS.html, README.html, THANKS.html: Updates.
+
+	* fiasco.texi: Update.
+
+Sun Jun  1 11:58:27 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Development.
+
+Fri May 30 19:39:37 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Development.
+
+Mon May  5 21:57:20 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Development.
+
+Fri May  2 22:07:26 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Development.
+
+Thu May  1 14:58:31 1997  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS.html: Update.
+
+	* fiasco.texi: Development.
+
+Wed Apr 23 21:33:48 1997  Ben Pfaff  <blp@gnu.org>
+
+	* THANKS.html: Update.
+
+Fri Apr 18 15:42:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Maintainer-clean Makefile.in.
+	
+Thu Mar 27 01:11:29 1997  Ben Pfaff  <blp@gnu.org>
+
+	* THANKS.html: Added Fran,cois Pinard.
+
+Mon Mar 24 21:47:31 1997  Ben Pfaff  <blp@gnu.org>
+
+	* THANKS.html: Spelling fix.
+
+Sat Feb 15 21:26:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+Fri Feb 14 23:32:58 1997  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS.html: Updated.
+	
+Wed Jan 22 21:54:00 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: RENAME VARIABLES is implemented.
+
+Thu Jan 16 13:08:57 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: MODIFY VARS now works.
+
+	* README.html: Added `alpha.gnu.ai.mit.edu' to list of sites.
+
+Sat Jan 11 15:44:15 1997  Ben Pfaff  <blp@gnu.org>
+
+	* README.html: Commented out sunsite reference and added
+	ALPHA-release warning.
+
+Fri Jan 10 20:22:08 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Reformatted.
+
+Thu Jan  2 19:08:23 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+
+Wed Jan  1 22:08:10 1997  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+	
+Sun Dec 29 21:36:48 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html: Updated.
+	
+	* fiasco.texi: Updated.
+
+Tue Dec 24 20:42:32 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html, README.html: Miscellaneous changes.
+
+Sun Dec 22 23:10:39 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE.html, README.html: Miscellaneous changes.
+	
+	* AUTHORS.html, BUGS.html, THANKS.html: New files derived from
+	corresponding files without the `.html'.
+
+Sat Dec 21 21:51:04 1996  Ben Pfaff  <blp@gnu.org>
+
+	* AUTHORS: Grammar fix.
+
+	* LANGUAGE.html: New file.  LANGUAGE is now automatically
+ 	generated from this html source through lynx.
+
+	* README.html: Similar situation to LANGUAGE.html.
+
+Sun Dec 15 15:32:16 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+Fri Dec  6 23:53:47 1996  Ben Pfaff  <blp@gnu.org>
+
+	* AUTHORS, BUGS, LANGUAGE, README: Updated.
+
+	* fiasco.texi: Fixes.
+
+Wed Dec  4 21:34:17 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+	
+Sun Dec  1 17:19:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* BUGS, LANGUAGE, NEWS: Misc. changes.
+
+Sun Nov 24 14:53:53 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Changed many instances of `illegal' to `invalid'.
+
+Wed Oct 30 17:13:08 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+	* README: Updated.
+
+Sat Oct 26 23:06:06 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+Sat Oct 26 10:39:25 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+Thu Oct 24 20:13:42 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+	* README: Updated.
+
+	* fiasco.texi: Updated.
+
+Thu Oct 24 17:47:14 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+Wed Oct 23 21:53:43 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+Tue Oct 22 17:27:04 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+	* fiasco.texi: Very minor changes.
+
+Sun Sep 29 19:37:03 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Continued development.
+
+Tue Sep 24 18:39:09 1996  Ben Pfaff  <blp@gnu.org>
+
+	* avl.texi, gpl.texi: Removed.
+
+	* fiasco.texi: Changed copyright notices; deleted references to
+ 	avl.texi, gpl.texi.
+
+Sat Sep 21 23:16:31 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Continued work--added to configuration chapter.
+
+Fri Sep 20 22:52:28 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Continued work--added to configuration chapter.
+
+Thu Sep 12 18:40:33 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Continued work--added section on bug reports.
+
+Wed Sep 11 22:01:41 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Added timestamp.  Started some updating.
+
+Tue Sep 10 21:39:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* LANGUAGE: Updated.
+
+	* README: Minor change.
+
+Mon Sep  9 21:43:13 1996  Ben Pfaff  <blp@gnu.org>
+
+	* NEWS: Added automagic timestamp.
+
+	* README: Restructured, extended.
+
+	* BUGS, LANGUAGE: New files.
+
+Sat Jul  6 22:22:25 1996  Ben Pfaff  <blp@gnu.org>
+
+	* fiasco.texi: Remarked on broken Borland alloca().
+
+Mon Jul  1 13:00:00 1996  Ben Pfaff  <blp@gnu.org>
+
+	* stat.texi: Renamed to `fiasco.texi'.
+	
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:

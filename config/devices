@@ -1,0 +1,165 @@
+# PSPP's standard output drivers.
+#
+# An introduction to the use of PSPP output drivers and this file
+# follows.  However, refer to PSPP's Texinfo documentation for full
+# information.
+#
+# Each output driver specification must be on a single line; however,
+# lines may be spliced with a \ at the end of a line.  Line splicing
+# is performed *before* comments (introduced by `#') are removed.
+#
+# Format is `DRIVERNAME:CLASSNAME:DEVICETYPE:OPTIONS'.
+#
+# DRIVERNAME is the name that identifies the driver to the user.  It
+# is the name used on the -o command-line option.
+#
+# CLASSNAME is the internal name of the type of driver.  Device
+# classes can be listed with `pspp -l'.
+#
+# DEVICETYPE identifies what type or types the devices is.  Zero or
+# more of the following keywords may be given here: screen, printer,
+# or listing.
+#
+# OPTIONS is a list of key/value pairs to pass to the driver.  Use
+# spaces to separate pairs, and '=' to separate keys and values.
+# Quotes " or ' can be used to delimit values that contain spaces.
+# Example: paper-size="Envelope #10" charset=latin1
+#
+# Driver categories may be defined with lines of the form:
+#
+#   category=driver1 driver2 driver3 ... driverN
+#
+# To disable a driver, define a category with nothing on the right
+# side.
+#
+# Macros may be defined with lines of the form:
+#
+#   define macro-name definition
+#
+# Macros may not be recursive; they may not take arguments.  (However,
+# `definition' is macro-expanded *at time of definition*.)  Macros are
+# referenced with $var or ${var} syntax; the latter is preferred.
+# Macro definitions on the PSPP command-line take precedence without
+# warning.
+
+# Preferred devices.
+default=tty list
+tty=#tty-ibmpc
+list=list-ascii
+
+# Output files.
+define tty-output-file "/dev/tty"
+define list-output-file "pspp.list"
+
+define no-attributes bold-on="" italic-on="" bold-italic-on=""
+
+# Generic ASCII devices
+tty-ascii:ascii:screen:char-set=ascii output-file=${tty-output-file} \
+  ${no-attributes}
+list-ascii:ascii:listing:length=66 width=79 char-set=ascii \
+  output-file=${list-output-file} ${no-attributes}
+
+# ASCII devices that support bold & underline via backspacing.
+tty-ascii-bi:ascii:screen:char-set=ascii output-file=${tty-output-file}
+list-ascii-bi:ascii:listing:length=66 width=79 char-set=ascii \
+  output-file=${list-output-file}
+
+# HTML device.
+html:html::
+
+# Devices that support the IBM PC line-drawing characters.
+define ibmpc-graphics \
+  box[0000]='\x20' box[0001]='\xb3' box[0002]='\xba' box[0003]='\xba' \
+  box[0010]='\xc4' box[0011]='\xd9' box[0012]='\xbd' box[0013]='\xbd' \
+  box[0020]='\xcd' box[0021]='\xbe' box[0022]='\xbc' box[0023]='\xbc' \
+  box[0030]='\xf0' box[0031]='\xbe' box[0032]='\xbc' box[0033]='\xbc' \
+  box[0100]='\xb3' box[0101]='\xb3' box[0102]='\xc4' box[0103]='\xf0' \
+  box[0110]='\xbf' box[0111]='\xb4' box[0112]='\xb6' box[0113]='\xb6' \
+  box[0120]='\xb8' box[0121]='\xb5' box[0122]='\xb9' box[0123]='\xb9' \
+  box[0130]='\xb8' box[0131]='\xb5' box[0132]='\xb9' box[0133]='\xb9' \
+  box[0200]='\xba' box[0201]='\xba' box[0202]='\xba' box[0203]='\xba' \
+  box[0210]='\xb7' box[0211]='\xb6' box[0212]='\xb6' box[0213]='\xb6' \
+  box[0220]='\xbb' box[0221]='\xb9' box[0222]='\xb9' box[0223]='\xb9' \
+  box[0300]='\xb3' box[0301]='\xba' box[0302]='\xba' box[0303]='\xba' \
+  box[0310]='\xb7' box[0311]='\xb6' box[0312]='\xb6' box[0313]='\xb6' \
+  box[0320]='\xbb' box[0321]='\xb9' box[0322]='\xb9' box[0323]='\xb9' \
+  box[0330]='\xbb' box[0331]='\xb9' box[0332]='\xb9' box[0333]='\xb9' \
+  box[1000]='\xc4' box[1001]='\xc0' box[1002]='\xd3' box[1003]='\xd3' \
+  box[1010]='\xc4' box[1011]='\xc1' box[1012]='\xd0' box[1013]='\xd0' \
+  box[1020]='\xcd' box[1021]='\xcf' box[1022]='\xca' box[1023]='\xca' \
+  box[1030]='\xf0' box[1031]='\xcf' box[1032]='\xca' box[1033]='\xca' \
+  box[1100]='\xda' box[1101]='\xc3' box[1102]='\xc7' box[1103]='\xc7' \
+  box[1110]='\xc2' box[1111]='\xc5' box[1112]='\xd7' box[1113]='\xd7' \
+  box[1120]='\xd1' box[1121]='\xd8' box[1122]='\xce' box[1123]='\xce' \
+  box[1130]='\xd1' box[1131]='\xd8' box[1132]='\xce' box[1133]='\xce' \
+  box[1200]='\xd6' box[1201]='\xc7' box[1202]='\xc7' box[1203]='\xc7' \
+  box[1210]='\xd2' box[1211]='\xd7' box[1212]='\xd7' box[1213]='\xd7' \
+  box[1220]='\xca' box[1221]='\xce' box[1222]='\xce' box[1223]='\xce' \
+  box[1230]='\xca' box[1231]='\xce' box[1232]='\xce' box[1233]='\xce' \
+  box[1300]='\xd6' box[1301]='\xc7' box[1302]='\xc7' box[1303]='\xc7' \
+  box[1310]='\xd2' box[1311]='\xd7' box[1312]='\xd7' box[1313]='\xd7' \
+  box[1320]='\xca' box[1321]='\xce' box[1322]='\xce' box[1323]='\xce' \
+  box[1330]='\xca' box[1331]='\xce' box[1332]='\xce' box[1333]='\xce' \
+  box[2000]='\xcd' box[2001]='\xd4' box[2002]='\xc8' box[2003]='\xc8' \
+  box[2010]='\xcd' box[2011]='\xcf' box[2012]='\xca' box[2013]='\xca' \
+  box[2020]='\xcd' box[2021]='\xcf' box[2022]='\xca' box[2023]='\xca' \
+  box[2030]='\xf0' box[2031]='\xcf' box[2032]='\xca' box[2033]='\xca' \
+  box[2100]='\xd5' box[2101]='\xc6' box[2102]='\xcc' box[2103]='\xcc' \
+  box[2110]='\xd1' box[2111]='\xd8' box[2112]='\xce' box[2113]='\xce' \
+  box[2120]='\xd1' box[2121]='\xd8' box[2122]='\xce' box[2123]='\xce' \
+  box[2130]='\xd1' box[2131]='\xd8' box[2132]='\xce' box[2133]='\xce' \
+  box[2200]='\xc9' box[2201]='\xcc' box[2202]='\xcc' box[2203]='\xcc' \
+  box[2210]='\xcb' box[2211]='\xce' box[2212]='\xce' box[2213]='\xce' \
+  box[2220]='\xcb' box[2221]='\xce' box[2222]='\xce' box[2223]='\xce' \
+  box[2230]='\xcb' box[2231]='\xce' box[2232]='\xce' box[2233]='\xce' \
+  box[2300]='\xc9' box[2301]='\xcc' box[2302]='\xcc' box[2303]='\xce' \
+  box[2310]='\xcb' box[2311]='\xce' box[2312]='\xce' box[2313]='\xce' \
+  box[2320]='\xcb' box[2321]='\xce' box[2322]='\xce' box[2323]='\xce' \
+  box[2330]='\xcb' box[2331]='\xce' box[2332]='\xce' box[2333]='\xce' \
+  box[3000]='\xcd' box[3001]='\xd4' box[3002]='\xc8' box[3003]='\xc8' \
+  box[3010]='\xcd' box[3011]='\xcf' box[3012]='\xca' box[3013]='\xca' \
+  box[3020]='\xcd' box[3021]='\xcf' box[3022]='\xca' box[3023]='\xca' \
+  box[3030]='\xcd' box[3031]='\xcf' box[3032]='\xca' box[3033]='\xca' \
+  box[3100]='\xd5' box[3101]='\xc6' box[3102]='\xcc' box[3103]='\xcc' \
+  box[3110]='\xd1' box[3111]='\xd8' box[3112]='\xce' box[3113]='\xce' \
+  box[3120]='\xd1' box[3121]='\xd8' box[3122]='\xce' box[3123]='\xce' \
+  box[3130]='\xd1' box[3131]='\xd8' box[3132]='\xce' box[3133]='\xce' \
+  box[3200]='\xc9' box[3201]='\xcc' box[3202]='\xcc' box[3203]='\xcc' \
+  box[3210]='\xcb' box[3211]='\xce' box[3212]='\xce' box[3213]='\xce' \
+  box[3220]='\xcb' box[3221]='\xce' box[3222]='\xce' box[3223]='\xce' \
+  box[3230]='\xcb' box[3231]='\xce' box[3232]='\xce' box[3233]='\xce' \
+  box[3300]='\xc9' box[3301]='\xcc' box[3302]='\xcc' box[3303]='\xce' \
+  box[3310]='\xcb' box[3311]='\xce' box[3312]='\xce' box[3313]='\xce' \
+  box[3320]='\xcb' box[3321]='\xce' box[3322]='\xce' box[3323]='\xce' \
+  box[3330]='\xcb' box[3331]='\xce' box[3332]='\xce' box[3333]='\xce'
+
+tty-ibmpc:ascii:screen:length=$viewlength width=$viewwidth ${ibmpc-graphics} \
+  output-file=${tty-output-file}
+list-ibmpc:ascii:listing:length=66 width=79 output-file=${list-output-file} \
+  ${ibmpc-graphics}
+
+# PostScript device.  Tested with HP LaserJet 6MP.
+list-ps:postscript::
+
+# Okidata Microline 520 (these use the Microline emulation mode).
+define ml520-common output-file=${list-output-file} ${ibmpc-graphics} \
+  bold-on='\x1b\x54' bold-off='\x1b\x49' init='\x1b\x7b\x21\x1b\x23\x30'
+define ml520-italic italic-on='\x1b\x21\x2f' italic-off='\x1b\x21\x2a' \
+  bold-italic-on='\x1b\x21\x2f\x1b\x54' bold-italic-off='\x1b\x21\x2a\x1b\x49'
+define ml520-ul italic-on='\x1b\x43' italic-off='\x1b\x44' \
+  bold-italic-on='\x1b\x43\x1b\x54' bold-italic-off='\x1b\x44\x1b\x49'
+ml520=ml520-10cpi
+ml520-10cpi:ascii:printer:length=66 width=79 ${ml520-common} ${ml520-italic}
+ml520-10cpi-ul:ascii:printer:length=66 width=79 ${ml520-common} ${ml520-ul}
+ml520-17cpi:ascii:printer:length=66 width=144 ${ml520-common} ${ml520-italic} \
+  cpi=17 init='\x1b\x7b\x21\x1b\x23\x30\x1d'
+ml520-17cpi-ul:ascii:printer:length=66 width=144 ${ml520-common} ${ml520-ul} \
+  cpi=17 init='\x1b\x7b\x21\x1b\x23\x30\x1d'
+ml520-20cpi:ascii:printer:length=66 width=160 ${ml520-common} ${ml520-italic} \
+  cpi=17 init='\x1b\x7b\x21\x1b\x23\x30\x1b\x23\x33'
+ml520-20cpi-ul:ascii:printer:length=66 width=160 ${ml520-common} ${ml520-ul} \
+  cpi=17 init='\x1b\x7b\x21\x1b\x23\x30\x1b\x23\x33'
+
+# Local Variables:
+# fill-prefix: "# "
+# End:

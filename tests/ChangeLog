@@ -1,0 +1,351 @@
+Fri Jan  7 20:30:23 2000  Ben Pfaff  <blp@gnu.org>
+
+	* data-fmts.stat: Add more date tests.
+
+	* do-repeat.stat: SET ECHO ON.
+
+	* syntax: Replace test -L with test -h.
+
+Tue Jan  5 14:21:52 1999  Ben Pfaff  <blp@gnu.org>
+
+	* data-list.stat, data-list.data: Adjust so that it can tell if
+	DATA LIST FREE properly parses and pads string values.
+
+	* list.stat: Remove anachronistic `SET EMULATION PC'.
+
+	* Rebuilt benchmark.
+
+Tue Jan  5 14:12:58 1999  Ben Pfaff  <blp@gnu.org>
+
+	* syntax: Replaced `test' calls with `['.  This may or may not fix
+	the problems some people have reported.
+
+Sun Aug  9 11:15:38 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Update for renamed files.
+
+	* autorecode.stat: Renamed autorecod.stat.
+
+	* begin-data.stat: Renamed beg-data.stat.
+
+	* data-formats.stat: Renamed data-fmts.stat.
+
+	* expression.stat: Renamed expr.stat.
+
+	* file-label.stat: Renamed file-lab.stat.
+
+	* input-program.stat: Renamed inpt-pgm.stat.
+
+	* modify-vars.stat: Renamed mdfy-vars.stat.
+
+	* match-files.stat: Renamed mtch-file.stat.
+
+	* process-if.stat: Renamed pcs-if.stat.
+
+	* split-file.stat: Renamed splt-file.stat.
+
+	* sysfile-info.stat: Renamed sys-info.stat.
+
+	* expect/: Refreshed.
+
+Sat Aug  8 00:27:07 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add `syntax'.
+	(dist-hook) New target.
+
+Wed Aug  5 00:04:16 1998  Ben Pfaff  <blp@gnu.org>
+
+	* TEST-RESULTS: Removed.
+
+	* show-check-msg: Removed.
+
+	* expect/: New.
+
+	* syntax: New.  Thanks to James R. Van Zandt <jrv@vanzandt.mv.com>
+	for this implementation of automatic testing.
+
+	* Makefile: (TESTS) Set to the syntax script.
+	(bench) New target.
+	(EXTRA_DIST) Remove TEST-RESULTS.  Add `syntax'.
+
+Sun Jul  5 14:16:18 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add flip.stat.
+
+Sun Jul  5 00:50:41 1998  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.stat: Change to test /MISSING=REPORT.
+
+Tue Jun  2 23:42:23 1998  Ben Pfaff  <blp@gnu.org>
+
+	* flip.stat: New file.
+	
+	* weighting.stat: Update.
+
+Mon May 25 12:45:46 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add crosstabs.stat, match-files.stat.
+
+	* crosstabs.stat: Turn off cells=all.
+
+Tue May 12 16:22:06 1998  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.stat: Minor changes.
+
+Thu May  7 23:16:03 1998  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.stat: Replace with a test that is hopefully better.
+
+Tue Apr 14 01:00:46 1998  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.stat: New.
+
+Mon Mar  9 15:40:25 1998  Ben Pfaff  <blp@gnu.org>
+
+	* match-files.stat: More thorough.
+
+Mon Mar  9 01:14:14 1998  Ben Pfaff  <blp@gnu.org>
+
+	* match-files.stat: More thorough.
+
+1998-03-05  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Use ./gengarbage instead of gengarbage.
+
+1998-02-23  Ben Pfaff  <blp@gnu.org>
+
+	* Many tests: Remove final finish command.
+
+1998-02-16  Ben Pfaff  <blp@gnu.org>
+
+	* (DISTCLEANFILES) Clean *.save, pspp.*, foo*
+
+	* file-label.stat, sysfile-info.stat: Replace .sav with .save.
+
+	* match-files.stat: New file.
+	
+Fri Feb 13 15:58:11 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add TEST-RESULTS.
+
+Tue Jan 13 01:11:36 1998  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.stat: Some more testing.
+
+Sat Jan 10 23:57:14 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (DISTCLEANFILES) Add aggregate.save.
+
+	* aggregate.stat: Slightly more thorough.
+
+Sat Jan 10 02:17:00 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add means.stat, t-test.stat.
+	
+	* means.stat: New file.
+
+Thu Jan  8 22:38:59 1998  Ben Pfaff  <blp@gnu.org>
+
+	* Many tests: Removed extra newlines from REMARKs.
+
+Mon Jan  5 11:18:44 1998  Ben Pfaff  <blp@gnu.org>
+
+	* sysfile-info.stat: Test most of the DISPLAY commands.  Update
+	title.
+
+	* vector.stat: Display vectors.
+
+Sun Jan  4 18:31:36 1998  Ben Pfaff  <blp@gnu.org>
+
+	* All tests: Added title.
+
+	* begin-data.stat: Updated REMARK format.
+
+	* descript.stat: Comment fix.
+
+Sun Dec 21 16:57:31 1997  Ben Pfaff  <blp@gnu.org>
+
+	* TEST-RESULTS: New file.
+
+Fri Dec  5 22:02:20 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (DISTCLEANFILES) Add fiasco.html.
+
+Tue Dec  2 14:55:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* t-test.stat: New file.
+
+Fri Nov 14 00:17:25 1997  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.stat: Changed.	
+
+Tue Oct 28 16:26:25 1997  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.stat: New file.
+
+	* Makefile.am: (EXTRA_DIST) Add aggregate.stat.
+
+Sun Oct  5 16:02:02 1997  Ben Pfaff  <blp@gnu.org>
+
+	* fall92.stat, fall92.data: Removed (unknown copyright).
+
+	* gengarbage.c: Define EXIT_SUCCESS if not defined by headers.
+  	From Alexandre Oliva <oliva@dcc.unicamp.br>.
+
+Sat Oct  4 16:35:59 1997  Ben Pfaff  <blp@gnu.org>
+
+	* repeating.stat: New file.
+
+	* Makefile.am: (EXTRA_DIST) Add repeating.stat.
+
+Thu Sep 18 21:40:50 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add lag.stat.
+
+Mon Aug 18 18:31:42 1997  Ben Pfaff  <blp@gnu.org>
+
+	* do-repeat.stat: Even more useful.
+
+	* lag.stat: New file.
+
+Sun Aug 17 22:47:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* do-repeat.stat: Made actually useful, not stupid.
+
+Sun Aug  3 11:46:00 1997  Ben Pfaff  <blp@gnu.org>
+
+	* In several files, replace usage of deprecated term `script' by
+	`syntax file'.
+
+Thu Jul 17 02:12:17 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Add tabs.stat.
+
+	* file-label.stat: Improved.
+
+	* sysfile-info.stat: Tests DISPLAY DICTIONARY now as well.
+
+Fri Jul 11 14:13:49 1997  Ben Pfaff  <blp@gnu.org>
+
+	* gengarbage.c: Reformat.  #include's <time.h>.  Uses ANSI C
+ 	rand() in place of random().  Calls the randomizer srand().
+
+Thu Jul 10 22:16:34 1997  Ben Pfaff  <blp@gnu.org>
+
+	* tabs.stat: New file.
+
+Wed Jun 25 22:54:40 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (EXTRA_DIST) Removed bug.stat, file-type.stat.
+
+Sun Jun  8 01:24:55 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Added fiasco.ps, fiasco.list, foo, foo.sav, msgs to
+	DISTCLEANFILES.
+
+	* input-program.stat: Made some variables scratch.
+
+Fri Jun  6 22:53:03 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Many files: Comment fixes, removed `set output raw.' commands.
+
+	* Other miscellaneous changes.
+
+Tue Jun  3 23:44:46 1997  Ben Pfaff  <blp@gnu.org>
+
+	* list.stat: Re-enabled some of it.
+
+Wed Apr 23 21:33:48 1997  Ben Pfaff  <blp@gnu.org>
+
+	* sysfile-info.stat: A little more generalized now.
+
+Fri Apr 18 15:42:22 1997  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Maintainer-clean Makefile.in.
+	
+Thu Mar 27 01:11:29 1997  Ben Pfaff  <blp@gnu.org>
+
+	* gengarbage.pl: Removed.
+	
+Sat Feb 15 21:26:53 1997  Ben Pfaff  <blp@gnu.org>
+
+	* descript.stat: Syntax fixes.
+
+	* process-if.stat: New test for PROCESS IF.
+
+Sun Jan 19 14:22:11 1997  Ben Pfaff  <blp@gnu.org>
+
+	* autorecode.stat, modify-vars.stat: More thorough.
+
+	* data-formats.stat, file-label.stat: New tests.
+	
+Thu Jan 16 13:08:57 1997  Ben Pfaff  <blp@gnu.org>
+
+	* bug.stat: Comment fix.
+
+Wed Jan  1 22:08:10 1997  Ben Pfaff  <blp@gnu.org>
+
+	* filter.stat: New file; tests FILTER behavior.
+
+Wed Jan  1 17:00:59 1997  Ben Pfaff  <blp@gnu.org>
+
+	* gengarbage.pl: New perl program equivalent to gengarbage.c.
+
+Sun Dec 29 21:36:48 1996  Ben Pfaff  <blp@gnu.org>
+
+	* gengarbage.c: Changed.
+
+	* sort.stat: Changed.
+
+Sun Dec 22 23:10:39 1996  Ben Pfaff  <blp@gnu.org>
+
+	* sort.stat: New file.
+
+Fri Dec 13 21:30:53 1996  Ben Pfaff  <blp@gnu.org>
+
+	* autorecode.stat: New file.
+
+	* fall92.stat: Mods for practicality.
+
+	* test.bat, testall.bat: Removed.
+	
+Thu Nov 28 23:14:07 1996  Ben Pfaff  <blp@gnu.org>
+
+	* list.stat, weighting.stat: Changed SET COMPATIBILITY subcommand
+ 	to SET EMULATION in anticipation of change.
+
+Sat Oct 26 23:06:06 1996  Ben Pfaff  <blp@gnu.org>
+
+	* recode.stat: Removed comment about bug, since I fixed that.
+
+Thu Oct 24 20:13:42 1996  Ben Pfaff  <blp@gnu.org>
+
+	* print.stat: Slightly more thorough.
+
+Thu Oct 24 17:47:14 1996  Ben Pfaff  <blp@gnu.org>
+
+	* time-date.stat: Slightly more thorough.
+
+Wed Oct 23 21:53:43 1996  Ben Pfaff  <blp@gnu.org>
+
+	* time-date.stat: New file.
+
+Thu Sep 26 22:20:26 1996  Ben Pfaff  <blp@gnu.org>
+
+	* list.data: More data.
+
+	* list.stat: Handles all that extra data.
+
+	* weighting.stat: Doesn't try to list $WEIGHT because PC+ isn't
+ 	quite supported yet.
+
+Wed Sep  4 21:45:35 1996  Ben Pfaff  <blp@gnu.org>
+
+	* weighting.stat: Tests for proper ligatures.  Won't work until
+ 	encodings are correct, of course...
+
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:

@@ -1,0 +1,32 @@
+title 'Test BEGIN DATA ... END DATA'.
+
+remark EOF
+----------------------------------------------------------------------
+First we show that we can input data with BEGIN DATA/END DATA after
+a procedure.
+----------------------------------------------------------------------
+EOF
+data list /A B 1-2.
+list.
+begin data.
+12
+34
+56
+78
+90
+end data.
+
+remark EOF
+----------------------------------------------------------------------
+Next we show that BEGIN DATA/END DATA work fine on their own as well.
+----------------------------------------------------------------------
+EOF
+data list /A B 1-2.
+begin data.
+09
+87
+65
+43
+21
+end data.
+list.

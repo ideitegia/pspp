@@ -1,0 +1,334 @@
+Time-stamp: <1999-12-30 22:58:42 blp>
+
+TODO
+----
+
+The way that data-in.c and data-out.c deal with strings is wrong.  Instead of
+the way it's done now, we should make it dynamically allocate a buffer and
+return a pointer to it.  This is a much safer interface.
+
+Add libplot output driver.  Suggested by Robert S. Maier
+<rsm@math.arizona.edu>: "it produces output in idraw-editable PS format, PCL5
+format, xfig-editable format, Illustrator format,..., and can draw vector
+graphics on X11 displays also".
+
+Storage of value labels on disk is inefficient.  Invent new data structure.
+
+Add an output flag which would cause a page break if a table segment could fit
+vertically on a page but it just happens to be positioned such that it won't.
+
+Fix spanned joint cells, i.e., EDLEVEL on crosstabs.stat.
+
+Cell footnotes.
+
+PostScript driver should emit thin lines, then thick lines, to optimize time
+and space.
+
+New functions?  var_name_or_label(), tab_value_or_label()
+
+Should be able to bottom-justify cells.  It'll be expensive, though, by
+requiring an extra metrics call.
+
+Perhaps instead of the current lines we should define the following line types:
+null, thin, thick, double.  It might look pretty classy.
+
+Perhaps thick table borders that are cut off by a page break should decay to
+thin borders.  (i.e., on a thick bordered table that's longer than one page,
+but narrow, the bottom border would be thin on the first page, and the top and
+bottom borders on middle pages.)
+
+Support multi-line titles on tables. (For the first page only, presumably.)
+
+Rewrite the convert_F() function in data-out.c to be nicer code.
+
+In addition to searching the source directory, we should search the current
+directory (for data files).  (Yuck!)
+
+Fix line-too-long problems in PostScript code, instead of covering them up.
+setlinecap is *not* a proper solution.
+
+Need a better way than MAX_WORKSPACE to detect low-memory conditions.
+
+When malloc() returns 0, page to disk and free() unnecessary data.
+
+Remove ccase * argument from procfunc argument to procedure().
+
+See if process_active_file() has wider applicability.
+
+Looks like there's a potential problem with value labels--we use free_val_lab
+from avl_destroy(), but free_val_lab doesn't decrement the reference count, it
+just frees the label.  Check into this sometime soon.
+
+Eliminate private data in struct variable through use of pointers.
+
+Fix som_columns().
+
+There needs to be another layer onto the lexer, which should probably be
+entirely rewritten anyway.  The lexer needs to read entire *commands* at a
+time, not just a *line* at a time.  This would vastly simplify the
+(yet-to-be-implemented) logging mechanism and other stuff as well.
+	   
+Has glob.c been pared down enough?
+
+Improve interactivity of output by allowing a `commit' function for a page.
+This will also allow for infinite-length pages.
+
+All the tests need to be looked over.  Some of the SET calls don't make sense
+any more.
+
+Implement thin single lines, should be pretty easy now.
+
+SELECT IF should be moved before other transformations whenever possible.  It
+should only be impossible when one of the variables referred to in SELECT IF is
+created or modified by a previous transformation.
+
+The manual: add text, add index entries, add examples.
+
+The inline file should be improved: There should be *real* detection of whether
+it is used (in dfm.c:cmd_begin_data), not after-the-fact detection.
+
+Figure out a stylesheet for messages displayed by PSPP: i.e., what quotation
+marks around filenames, etc.
+
+Data input and data output are currently arranged in reciprocal pairs: input is
+done directly, with write_record() or whatever; output is done on a callback
+event-driven basis.  It would definitely be easier if both could be done on a
+direct basis, with read_record() and write_record() routines, with a coroutine
+implementation (see Knuth).  But I'm not sure that coroutines can be
+implemented in ANSI C.  This will require some thought.  Perhaps 0.4.0 can do
+this.
+
+New SET subcommand: OUTPUT.  i.e., SET OUTPUT="filename" to send output to that
+file; SET OUTPUT="filename"(APPEND) to append to that file; SET OUTPUT=DEFAULT
+to reset everything.  There might be a better approach, though--think about it.
+
+HDF export capabilities (http://hdf.ncsa.uiuc.edu).  Suggested by Marcus
+G. Daniels <mgd@santafe.edu>.
+
+From Zvi Grauer <z.grauer@csuohio.edu> and <zvi@mail.ohio.net>:
+
+   1. design of experiments software, specifically Factorial, response surface
+   methodology and mixrture design.  
+
+   These would be EXTREMELY USEFUL for chemists, engineeris, and anyone
+   involved in the production of chemicals or formulations.
+
+   2. Multidimensional Scaling analysis (for market analysis) - 
+
+   3. Preference mapping software for market analysis
+
+   4. Hierarchical clustering (as well as partition clustering)
+
+   5. Conjoint analysis
+
+   6. Categorical data analsys ?
+
+IDEAS
+-----
+
+In addition to an "infinite journal", we should keep a number of
+individual-session journals, pspp.jnl-1 through pspp.jnl-X, renaming and
+deleting as needed.  All of the journals should have date/time comments.
+
+Qualifiers for variables giving type--categorical, ordinal, ...
+
+Analysis Wizard
+
+Consider consequences of xmalloc(), fail(), hcf() in interactive
+use:
+a. Can we safely just use setjmp()/longjmp()?
+b. Will that leak memory?
+i. I don't think so: all procedure-created memory is either
+garbage-collected or globally-accessible.
+ii. But you never know... esp. w/o Checker.
+c. Is this too early to worry? too late?
+
+Need to implement a shared buffer for funny functions that require relatively
+large permanent transient buffers (1024 bytes or so), that is, buffers that are
+permanent in the sense that they probably shouldn't be deallocated but are only
+used from time to time, buffers that can't be allocated on the stack because
+they are of variable and unpredictable but usually relatively small (usually
+line buffers).  There are too many of these lurking around; can save a sizeable
+amount of space at very little overhead and with very little effort by merging
+them.
+
+Clever multiplatform GUI idea (due partly to John Williams): write a GUI in
+Java where each statistical procedure dialog box could be downloaded from the
+server independently.  The statistical procedures would run on (the/a) server
+and results would be reported through HTML tables viewed with the user's choice
+of web browsers.  Help could be implemented through the browser as well.
+
+Design a plotting API, with scatterplots, line plots, pie charts, barcharts,
+Pareto plots, etc., as subclasses of the plot superclass.
+
+HOWTOs
+------
+
+1. How to add an operator for use in PSPP expressions:
+
+a. Add the operator to the enumerated type at the top of expr.h.  If the
+operator has arguments (i.e., it's not a terminal) then add it *before*
+OP_TERMINAL; otherwise, add it *after* OP_TERMINAL.  All these begin with OP_.
+
+b. If the operator's a terminal then you'll want to design a structure to hold
+its content.  Add the structure to the union any_node.  (You can also reuse one
+of the prefab structures, of course.)
+
+c. Now switch to expr-prs.c--the module for expression parsing.  Insert the
+operator somewhere in the precedence hierarchy.
+
+(1) If you're adding a operator that is a function (like ACOS, ABS, etc.) then
+add the function to functab in `void init_functab(void)'.  Order is not
+important here.  The first element is the function name, like "ACOS".  The
+second is the operator enumerator you added in expr.h, like OP_ARCOS.  The
+third element is the C function to parse the PSPP function.  The predefined
+functions will probably suit your needs, but if not, you can write your own.
+The fourth element is an argument to the parsing function; it's only used
+currently by generic_str_func(), which handles a rather general syntax for
+functions that return strings; see the comment at the beginning of its code for
+details.
+
+(2) If you're adding an actual operator you'll have to put a function in
+between two of the operators there already in functions `exprtype
+parse_*(any_node **n)'.  Each of these stores the tree for its result into *n,
+and returns the result type, or EX_ERROR on error.  Be sure to delete all the
+allocated memory on error before returning.
+
+d. Add the operator to the table `op_desc ops[OP_SENTINEL+1]' in expr-prs.c,
+which has an entry for every operator.  These entries *must* be in the same
+order as they are in expr.h.  The entries have the form `op(A,B,C,D)'.  A is
+the name of the operator as it should be printed in a postfix output format.
+For example, the addition operator is printed as `plus'.  B is a bitmapped set
+of flags:
+
+* Set the 001 bit (OP_VAR_ARGS) if the operator takes a variable number of
+arguments.  If a function can take, say, two args or three args, but no other
+numbers of args, this is a poor way to do it--instead implement the operator as
+two separate operators, one with two args, the other with three.  (The main
+effect of this bit is to cause the number of arguments to be output to the
+postfix form so that the expression evaluator can know how many args the
+operator takes.  It also causes the expression optimizer to calculate the
+needed stack height differently, without referencing C.)
+
+* Set the 002 bit (OP_MIN_ARGS) if the operator can take an optional `dotted
+argument' that specified the minimum number of non-SYSMIS arguments in order to
+have a non-SYSMIS result.  For instance, MIN.3(e1,e2,e3,e4,e5) returns a
+non-SYSMIS result only if at least 3 out of 5 of the expressions e1 to e5 are
+not missing.
+
+Minargs are passed in the nonterm_node structure in `arg[]''s elements past
+`n'--search expr-prs.c for the words `terrible crock' for an example of this.
+
+Minargs are output to the postfix form.  A default value is output if none was
+specified by the user.
+
+You can use minargs for anything you want--they're not limited to actually
+describing a minimum number of valid arguments; that's just what they're most
+*commonly* used for.
+
+* Set the 004 bit (OP_FMT_SPEC) if the operator has an argument that is a
+format specifier.  (This causes the format specifier to be output to the
+postfix representation.)
+
+Format specs are passed in the nonterm_node structure in the same way as
+minargs, except that there are three args, in this order: type, width, # of
+decimals--search expr-prs.c for the words `is a crock' for an example of this.
+
+* Set the 010 bit (OP_ABSORB_MISS) if the operator can *ever* have a result of
+other than SYSMIS when given one or more arguments of SYSMIS.  Operators
+lacking this bit and known to have a SYSMIS argument are short-circuited to
+SYSMIS by the expression optimizer.
+
+* If your operator doesn't fit easily into the existing categories,
+congratulations, you get to write lots of code to adjust everything to cope
+with this new operator.  Are you really sure you want to do that?
+
+C is the effect the operator has on stack height.  Set this to `varies' if the
+operator has a variable number of arguments.  Otherwise this 1, minus the
+number of arguments the operator has.  (Since terminals have no arguments, they
+have a value of +1 for this; other operators have a value of 0 or less.)
+
+D is the number of items output to the postfix form after the operator proper.
+This is 0, plus 1 if the operator has varargs, plus 1 if the operator has
+minargs, plus 3 if the operator has a format spec.  Note that minargs/varargs
+can't coexist with a format spec on the same operator as currently coded.  Some
+terminals also have a nonzero value for this but don't fit into the above
+categories.
+
+e. Switch to expr-opt.c.  Add code to evaluate_tree() to evaluate the
+expression when all arguments are known to be constants.  Pseudo-random
+functions can't be evaluated even if their arguments are constants.  If the
+function can be optimized even if its arguments aren't all known constants, add
+code to optimize_tree() to do it.
+
+f. Switch to expr-evl.c.  Add code to evaluate_expression() to evaluate the
+expression.  You must be absolutely certain that the code in evaluate_tree(),
+optimize_tree(), and evaluate_expression() will always return the same results,
+otherwise users will get inconsistent results, a Bad Thing.  You must be
+certain that even on boundary conditions users will get identical results, for
+instance for the values 0, 1, -1, SYSMIS, or, for string functions, the null
+string, 1-char strings, and 255-char strings.
+
+g. Test the code.  Write some test syntax files.  Examine the output carefully.
+
+NOTES ON SEARCH ALGORITHMS
+--------------------------
+
+1. Trees are nicer when you want a sorted table.  However, you can always
+sort a hash table after you're done adding values.
+
+2. Brent's variation of Algorithm D is best when the table is fixed: it's
+memory-efficient, having small, fixed overhead.  It's easier to use
+when you know in advance how many entries the table will contain.
+
+3. Algorithm L is rather slow for a hash algorithm, however it's easy.
+
+4. Chaining is best in terms of speed; ordered/self-ordering is even
+better.
+
+5. Rehashing is slow.
+
+6. Might want to decide on an algorithm empirically since there are no
+clear mathematical winners in some cases.
+
+7. gprof?  Hey, it works!
+
+MORE NOTES/IDEAS/BUGS
+---------------------
+
+The behavior of converting a floating point to an integer when the value of the
+float is out of range of the integer type is UNDEFINED!  See ANSI 6.2.1.3.
+
+What should we do for *negative* times in expressions?
+
+Sometimes very wide (or very tall) columns can occur in tables.  What is a good
+way to truncate them?  It doesn't seem to cause problems for the ascii or
+postscript drivers, but it's not good in the general case.  Should they be
+split somehow?  (One way that wide columns can occur is through user request,
+for instance through a wide PRINT request--try time-date.stat with a narrow
+ascii page or with the postscript driver on letter size paper.)
+
+NULs in input files break the products we're replacing: although it will input
+them properly and display them properly as AHEX format, it truncates them in A
+format.  Also, string-manipulation functions such as CONCAT truncate their
+results after the first NUL.  This should simplify the result of PSPP design.
+Perhaps those ugly a_string, b_string, ..., can all be eliminated.
+
+From Moshe Braner <mbraner@nessie.vdh.state.vt.us>: An idea regarding MATCH
+FILES, again getting BEYOND the state of SPSS: it always bothered me that if I
+have a large data file and I want to match it to a small lookup table, via
+MATCH FILES FILE= /TABLE= /BY key, I need to SORT the large file on key, do the
+match, then (usually) re-sort back into the order I really want it.  There is
+no reason to do this, when the lookup table is small.  Even a dumb sequential
+search through the table, for every case in the big file, is better, in some
+cases, than the sort.  So here's my idea: first look at the /TABLE file, if it
+is "small enough", read it into memory, and create an index (or hash table,
+whatever) for it.  Then read the /FILE and use the index to match to each case.
+OTOH, if the /TABLE is too large, then do it the old way, complaining if either
+file is not sorted on key.
+
+-------------------------------------------------------------------------------
+Local Variables:
+mode: text
+fill-column: 79
+End:

@@ -1,0 +1,29 @@
+title 'Test TEMPORARY transformation'.
+
+set echo on/screen on.
+data list /z 1 x 2.
+formats x(f3).
+split file by z.
+list.
+begin data.
+12
+13
+14
+15
+16
+23
+24
+25
+26
+27
+28
+end data.
+compute x=x+1.
+temporary.
+compute x=x+1.
+compute y=x+1.
+sel if y<7.
+descriptives x y.
+list.
+compute x=x-10.
+list.
