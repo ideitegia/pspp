@@ -114,6 +114,7 @@ int set_safer;
 int set_scompression;
 int set_screen;
 long set_seed;
+int set_seed_used;
 int set_testing_mode;
 int set_undefined;
 int set_viewlength;
@@ -616,6 +617,7 @@ stc_custom_seed (struct cmd_set *cmd unused)
       set_seed = tokval;
       lex_get ();
     }
+  set_seed_used=1;
   return 1;
 }
 

@@ -4,4 +4,5 @@ info_TEXINFOS = pspp.texi
 
 EXTRA_DIST = pspp.man
 
-MAINTAINERCLEANFILES = Makefile.in README.html pspp.info pspp.info-*
+CLEANFILES = pspp.info pspp.info-*
+MAINTAINERCLEANFILES=Makefile.in README.html

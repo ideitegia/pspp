@@ -1,3 +1,9 @@
+
+Tue Feb  3 18:56:45 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* random.c (rng_create): Fixed seeding so that it gets reseeded after
+	SET seed=xx has been called.
+
 Mon Jan 19 14:08:09 2004  Ben Pfaff  <blp@gnu.org> 
 
 	* random.c (rng_get_double): Fix always-returning-zero bug in my

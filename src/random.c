@@ -49,12 +49,13 @@ rng_create (void)
   static time_t t=0;
 
   rng = xmalloc (sizeof *rng);
-  if (t == 0 || set_seed == NOT_LONG)
+  if (t == 0 || set_seed_used)
   {
     if (set_seed == NOT_LONG) 
       time (&t);
     else
       t = set_seed;
+    set_seed_used=0;
   }
   else
     t++;
