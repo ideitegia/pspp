@@ -81,7 +81,8 @@ TESTS = \
 	expressions/expressions.sh \
 	expressions/epoch.sh \
 	expressions/randist.sh \
-	expressions/variables.sh
+	expressions/variables.sh \
+	expressions/vectors.sh
 
 noinst_PROGRAMS = gengarbage
 

@@ -888,8 +888,12 @@ no_opt operator VEC_ELEM_NUM (idx)
      vector v;
      case c;
 {
-  if (idx >= 1 && idx <= v->cnt)
-    return case_num (c, v->var[(int) idx - 1]->fv);
+  if (idx >= 1 && idx <= v->cnt) 
+    {
+      const struct variable *var = v->var[(int) idx - 1];
+      double value = case_num (c, var->fv);
+      return !is_num_user_missing (value, var) ? value : SYSMIS; 
+    }
   else
     {
       if (idx == SYSMIS)

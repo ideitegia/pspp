@@ -1,7 +1,5 @@
 Needed:
 
-    - Must test vectors on expressions.
-
     - Warnings on domain errors (see "Domain Errors" in SPSS manual)
       and documentation of such.
 

@@ -863,7 +863,7 @@ parse_vector_element (struct expression *e)
 
   return expr_allocate_binary (e, (vector->var[0]->type == NUMERIC
                                    ? OP_VEC_ELEM_NUM : OP_VEC_ELEM_STR),
-                               expr_allocate_vector (e, vector), element);
+                               element, expr_allocate_vector (e, vector));
 }
 
 /* Individual function parsing. */
