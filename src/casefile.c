@@ -32,6 +32,10 @@
 #include "var.h"
 #include "workspace.h"
 
+#ifdef HAVE_VALGRIND_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
+
 #define IO_BUF_SIZE 8192
 
 /* A casefile is a sequentially accessible array of immutable
@@ -153,6 +157,7 @@ casefile_destroy (struct casefile *cf)
       if (cf->filename != NULL && remove (cf->filename) == -1) 
         msg (ME, _("%s: Removing temporary file: %s."),
              cf->filename, strerror (errno));
+      free (cf->filename);
 
       free (cf->buffer);
 
@@ -280,6 +285,23 @@ make_temp_file (int *fd, char **filename)
   return 1;
 }
 
+static void
+call_posix_fadvise (int fd UNUSED,
+                    off_t offset UNUSED, off_t len UNUSED,
+                    int advice UNUSED) 
+{
+#ifdef HAVE_VALGRIND_VALGRIND_H
+  /* Valgrind doesn't know about posix_fadvise() as of this
+     writing. */
+  if (RUNNING_ON_VALGRIND)
+    return; 
+#endif
+
+#ifdef HAVE_POSIX_FADVISE
+  posix_fadvise (fd, offset, len, advice);
+#endif
+}
+
 /* If CF is currently stored in memory, writes it to disk.  Readers, if any,
    retain their current positions. */
 void
@@ -299,9 +321,7 @@ casefile_to_disk (struct casefile *cf)
       cf->storage = DISK;
       if (!make_temp_file (&cf->fd, &cf->filename))
         err_failure ();
-#if HAVE_POSIX_FADVISE
-      posix_fadvise (cf->fd, 0, 0, POSIX_FADV_SEQUENTIAL);
-#endif
+      call_posix_fadvise (cf->fd, 0, 0, POSIX_FADV_SEQUENTIAL);
       cf->buffer = xmalloc (cf->buffer_size);
       memset (cf->buffer, 0, cf->buffer_size);
 
@@ -493,9 +513,7 @@ reader_open_file (struct casereader *reader)
     }
   else 
     file_ofs = 0;
-#if HAVE_POSIX_FADVISE
-  posix_fadvise (reader->fd, file_ofs, 0, POSIX_FADV_SEQUENTIAL);
-#endif
+  call_posix_fadvise (reader->fd, file_ofs, 0, POSIX_FADV_SEQUENTIAL);
   if (lseek (reader->fd, file_ofs, SEEK_SET) != file_ofs)
     msg (FE, _("%s: Seeking temporary file: %s."),
          reader->cf->filename, strerror (errno));
@@ -567,11 +585,14 @@ casereader_destroy (struct casereader *reader)
   else
     free (reader->buffer);
 
-  if (reader->cf->fd == -1)
-    reader->cf->fd = reader->fd;
-  else
-    safe_close (reader->fd);
-
+  if (reader->fd != -1) 
+    {
+      if (reader->cf->fd == -1)
+        reader->cf->fd = reader->fd;
+      else
+        safe_close (reader->fd);
+    }
+  
   free (reader);
 }
 

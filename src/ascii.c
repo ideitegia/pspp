@@ -184,22 +184,19 @@ struct ascii_driver_ext
 #endif
   };
 
-static struct pool *ascii_pool;
-
 static int postopen (struct file_ext *);
 static int preclose (struct file_ext *);
 
 static int
 ascii_open_global (struct outp_class *this UNUSED)
 {
-  ascii_pool = pool_create ();
   return 1;
 }
+
 
 static int
 ascii_close_global (struct outp_class *this UNUSED)
 {
-  pool_destroy (ascii_pool);
   return 1;
 }
 
@@ -288,11 +285,11 @@ ascii_postopen_driver (struct outp_driver *this)
   this->length = x->l * this->vert;
   
   if (ls_null_p (&x->ops[OPS_FORMFEED]))
-    ls_create (ascii_pool, &x->ops[OPS_FORMFEED], "\f");
+    ls_create (&x->ops[OPS_FORMFEED], "\f");
   if (ls_null_p (&x->ops[OPS_NEWLINE])
-      || !strcmp (ls_value (&x->ops[OPS_NEWLINE]), "default"))
+      || !strcmp (ls_c_str (&x->ops[OPS_NEWLINE]), "default"))
     {
-      ls_create (ascii_pool, &x->ops[OPS_NEWLINE], "\n");
+      ls_create (&x->ops[OPS_NEWLINE], "\n");
       x->file.mode = "wt";
     }
   
@@ -351,7 +348,7 @@ ascii_postopen_driver (struct outp_driver *this)
 	      c[0] = '+';
 	    break;
 	  }
-	ls_create (ascii_pool, &x->box[i], c);
+	ls_create (&x->box[i], c);
       }
   }
   
@@ -389,11 +386,18 @@ static int
 ascii_close_driver (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
+  int i;
   
   assert (this->driver_open == 1);
   msg (VM (2), _("%s: Beginning closing..."), this->name);
   
   x = this->ext;
+  for (i = 0; i < OPS_COUNT; i++)
+    ls_destroy (&x->ops[i]);
+  for (i = 0; i < LNS_COUNT; i++)
+    ls_destroy (&x->box[i]);
+  for (i = 0; i < FSTY_COUNT; i++)
+    ls_destroy (&x->fonts[i]);
   if (x->lines != NULL) 
     {
       int line;
@@ -462,7 +466,7 @@ ascii_option (struct outp_driver *this, const char *key,
   int cat, subcat;
   const char *value;
 
-  value = ds_value (val);
+  value = ds_c_str (val);
   if (!strncmp (key, "box[", 4))
     {
       char *tail;
@@ -476,7 +480,7 @@ ascii_option (struct outp_driver *this, const char *key,
 	}
       if (!ls_null_p (&x->box[indx]))
 	msg (SW, _("Duplicate value for key `%s'."), key);
-      ls_create (ascii_pool, &x->box[indx], value);
+      ls_create (&x->box[indx], value);
       return;
     }
 
@@ -605,17 +609,17 @@ ascii_option (struct outp_driver *this, const char *key,
 	    assert (0);
             abort ();
 	  }
-	ls_create (ascii_pool, s, value);
+	ls_create (s, value);
       }
       break;
     case font_string_arg:
       {
 	if (!strcmp (value, "overstrike"))
 	  {
-	    ls_destroy (ascii_pool, &x->fonts[subcat]);
+	    ls_destroy (&x->fonts[subcat]);
 	    return;
 	  }
-	ls_create (ascii_pool, &x->fonts[subcat], value);
+	ls_create (&x->fonts[subcat], value);
       }
       break;
     case boolean_arg:
@@ -659,7 +663,7 @@ postopen (struct file_ext *f)
   struct ascii_driver_ext *x = f->param;
   struct len_string *s = &x->ops[OPS_INIT];
 
-  if (!ls_empty_p (s) && fwrite (ls_value (s), ls_length (s), 1, f->file) < 1)
+  if (!ls_empty_p (s) && fwrite (ls_c_str (s), ls_length (s), 1, f->file) < 1)
     {
       msg (ME, _("ASCII output driver: %s: %s"),
 	   f->filename, strerror (errno));
@@ -674,7 +678,7 @@ preclose (struct file_ext *f)
   struct ascii_driver_ext *x = f->param;
   struct len_string *d = &x->ops[OPS_DONE];
 
-  if (!ls_empty_p (d) && fwrite (ls_value (d), ls_length (d), 1, f->file) < 1)
+  if (!ls_empty_p (d) && fwrite (ls_c_str (d), ls_length (d), 1, f->file) < 1)
     {
       msg (ME, _("ASCII output driver: %s: %s"),
 	   f->filename, strerror (errno));
@@ -971,7 +975,7 @@ delineate (struct outp_driver *this, struct outp_text *t, int draw)
   int max_y;
 
   /* Current position in string, character following end of string. */
-  const char *s = ls_value (&t->s);
+  const char *s = ls_c_str (&t->s);
   const char *end = ls_end (&t->s);
 
   /* Temporary struct outp_text to pass to low-level function. */
@@ -1103,7 +1107,7 @@ text_draw (struct outp_driver *this, struct outp_text *t)
   int x = t->x;
   int y = t->y;
 
-  char *s = ls_value (&t->s);
+  char *s = ls_c_str (&t->s);
 
   /* Expand the line with the assumption that S takes up LEN character
      spaces (sometimes it takes up less). */
@@ -1201,7 +1205,7 @@ output_shorts (struct outp_driver *this,
 
 	  if (remaining >= len)
 	    {
-	      memcpy (line_p, ls_value (box), len);
+	      memcpy (line_p, ls_c_str (box), len);
 	      line_p += len;
 	      remaining -= len;
 	    }
@@ -1209,7 +1213,7 @@ output_shorts (struct outp_driver *this,
 	    {
 	      if (!commit_line_buf (this))
 		return 0;
-	      output_string (this, ls_value (box), ls_end (box));
+	      output_string (this, ls_c_str (box), ls_end (box));
 	      remaining = LINE_BUF_SIZE - (line_p - line_buf);
 	    }
 	}
@@ -1426,7 +1430,7 @@ output_lines (struct outp_driver *this, int first, int count)
                   abort ();
 		}
 	      if (off)
-		output_string (this, ls_value (off), ls_end (off));
+		output_string (this, ls_c_str (off), ls_end (off));
 	    }
 
 	  /* Turn on new font. */
@@ -1451,7 +1455,7 @@ output_lines (struct outp_driver *this, int first, int count)
                   abort ();
 		}
 	      if (on)
-		output_string (this, ls_value (on), ls_end (on));
+		output_string (this, ls_c_str (on), ls_end (on));
 	    }
 
 	  ep = bp + 1;
@@ -1510,7 +1514,7 @@ output_lines (struct outp_driver *this, int first, int count)
 	    }
 	}
 
-      output_string (this, ls_value (newline), ls_end (newline));
+      output_string (this, ls_c_str (newline), ls_end (newline));
     }
 }
 
@@ -1542,7 +1546,7 @@ ascii_close_page (struct outp_driver *this)
 	}
       for (cp = s, i = 0; i < x->top_margin; i++)
 	{
-	  memcpy (cp, ls_value (&x->ops[OPS_NEWLINE]), nl_len);
+	  memcpy (cp, ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
 	  cp += nl_len;
 	}
       output_string (this, s, &s[total_len]);
@@ -1572,7 +1576,7 @@ ascii_close_page (struct outp_driver *this)
 	  len = min ((int) strlen (outp_title), x->w);
 	  memcpy (s, outp_title, len);
 	}
-      memcpy (&s[x->w], ls_value (&x->ops[OPS_NEWLINE]), nl_len);
+      memcpy (&s[x->w], ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
       output_string (this, s, &s[total_len]);
 
       memset (s, ' ', x->w);
@@ -1585,7 +1589,7 @@ ascii_close_page (struct outp_driver *this)
 	  len = min ((int) strlen (string), x->w);
 	  memcpy (s, string, len);
 	}
-      memcpy (&s[x->w], ls_value (&x->ops[OPS_NEWLINE]), nl_len);
+      memcpy (&s[x->w], ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
       output_string (this, s, &s[total_len]);
       output_string (this, &s[x->w], &s[total_len]);
     }
@@ -1600,10 +1604,10 @@ ascii_close_page (struct outp_driver *this)
     s = xrealloc (s, total_len);
   for (cp = s, i = 0; i < x->bottom_margin; i++)
     {
-      memcpy (cp, ls_value (&x->ops[OPS_NEWLINE]), nl_len);
+      memcpy (cp, ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
       cp += nl_len;
     }
-  memcpy (cp, ls_value (&x->ops[OPS_FORMFEED]), ff_len);
+  memcpy (cp, ls_c_str (&x->ops[OPS_FORMFEED]), ff_len);
   if ( x->paginate ) 
 	  output_string (this, s, &s[total_len]);
   if (line_p != line_buf && !commit_line_buf (this))

@@ -151,7 +151,7 @@ init_glob (int argc UNUSED, char **argv)
   last_vfm_invocation = time (NULL);
 
   /* lexer.h */
-  ds_init (NULL, &tokstr, 64);
+  ds_init (&tokstr, 64);
 
   /* common.h */
   {

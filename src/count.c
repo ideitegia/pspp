@@ -347,7 +347,7 @@ parse_string_criteria (struct counting * c)
       cur = &c->crit.s[n++];
       cur->type = CNT_SINGLE;
       cur->s = malloc (len + 1);
-      st_pad_copy (cur->s, ds_value (&tokstr), len + 1);
+      st_pad_copy (cur->s, ds_c_str (&tokstr), len + 1);
       lex_get ();
 
       lex_match (',');

@@ -75,20 +75,20 @@ fn_interp_vars (const char *input, const char *(*getenv) (const char *))
   if (NULL == strchr (input, '$'))
     return xstrdup (input);
 
-  ds_init (NULL, &output, strlen (input));
+  ds_init (&output, strlen (input));
 
   for (;;)
     switch (*input)
       {
       case '\0':
-	return ds_value (&output);
+	return ds_c_str (&output);
 	
       case '$':
 	input++;
 
 	if (*input == '$')
 	  {
-	    ds_putchar (&output, '$');
+	    ds_putc (&output, '$');
 	    input++;
 	  }
 	else
@@ -114,18 +114,18 @@ fn_interp_vars (const char *input, const char *(*getenv) (const char *))
 
 	    while (*input && *input != stop
 		   && (stop || isalpha ((unsigned char) *input)))
-	      ds_putchar (&output, *input++);
+	      ds_putc (&output, *input++);
 	    
-	    value = getenv (ds_value (&output) + start);
+	    value = getenv (ds_c_str (&output) + start);
 	    ds_truncate (&output, start);
-	    ds_concat (&output, value);
+	    ds_puts (&output, value);
 
 	    if (stop && *input == stop)
 	      input++;
 	  }
 
       default:
-	ds_putchar (&output, *input++);
+	ds_putc (&output, *input++);
       }
 }
 
@@ -140,13 +140,13 @@ fn_tilde_expand (const char *input)
 
   if (NULL == strchr (input, '~'))
     return xstrdup (input);
-  ds_init (NULL, &output, strlen (input));
+  ds_init (&output, strlen (input));
 
   ip = input;
 
   for (ip = input; *ip; )
     if (*ip != '~' || (ip != input && ip[-1] != PATH_DELIMITER))
-      ds_putchar (&output, *ip++);
+      ds_putc (&output, *ip++);
     else
       {
 	static const char stop_set[3] = {DIR_SEPARATOR, PATH_DELIMITER, 0};
@@ -166,23 +166,23 @@ fn_tilde_expand (const char *input)
 	    pwd = getpwnam (username);
 
 	    if (!pwd || !pwd->pw_dir)
-	      ds_putchar (&output, *ip++);
+	      ds_putc (&output, *ip++);
 	    else
-	      ds_concat (&output, pwd->pw_dir);
+	      ds_puts (&output, pwd->pw_dir);
 	  }
 	else
 	  {
 	    const char *home = fn_getenv ("HOME");
 	    if (!home)
-	      ds_putchar (&output, *ip++);
+	      ds_putc (&output, *ip++);
 	    else
-	      ds_concat (&output, home);
+	      ds_puts (&output, home);
 	  }
 
 	ip = cp;
       }
 
-  return ds_value (&output);
+  return ds_c_str (&output);
 }
 #else /* !unix */
 char *
@@ -219,7 +219,7 @@ fn_search_path (const char *basename, const char *path, const char *prepend)
   }
 
   msg (VM (4), _("Searching for `%s'..."), basename);
-  ds_init (NULL, &filename, 64);
+  ds_init (&filename, 64);
 
   for (;;)
     {
@@ -239,21 +239,21 @@ fn_search_path (const char *basename, const char *path, const char *prepend)
       ds_clear (&filename);
       if (prepend && !fn_absolute_p (bp))
 	{
-	  ds_concat (&filename, prepend);
-	  ds_putchar (&filename, DIR_SEPARATOR);
+	  ds_puts (&filename, prepend);
+	  ds_putc (&filename, DIR_SEPARATOR);
 	}
-      ds_concat_buffer (&filename, bp, ep - bp);
+      ds_concat (&filename, bp, ep - bp);
       if (ep - bp
-	  && ds_value (&filename)[ds_length (&filename) - 1] != DIR_SEPARATOR)
-	ds_putchar (&filename, DIR_SEPARATOR);
-      ds_concat (&filename, basename);
+	  && ds_c_str (&filename)[ds_length (&filename) - 1] != DIR_SEPARATOR)
+	ds_putc (&filename, DIR_SEPARATOR);
+      ds_puts (&filename, basename);
       
-      msg (VM (5), " - %s", ds_value (&filename));
-      if (fn_exists_p (ds_value (&filename)))
+      msg (VM (5), " - %s", ds_c_str (&filename));
+      if (fn_exists_p (ds_c_str (&filename)))
 	{
-	  msg (VM (4), _("Found `%s'."), ds_value (&filename));
+	  msg (VM (4), _("Found `%s'."), ds_c_str (&filename));
 	  free (subst_path);
-	  return ds_value (&filename);
+	  return ds_c_str (&filename);
 	}
 
       if (0 == *ep)

@@ -95,7 +95,7 @@ static void dump_token (void);
 void
 lex_init (void)
 {
-  ds_init (NULL, &put_tokstr, 64);
+  ds_init (&put_tokstr, 64);
   if (!lex_get_line ())
     unexpected_eof ();
 }
@@ -109,8 +109,8 @@ restore_token (void)
 {
   assert (put_token != 0);
   token = put_token;
-  ds_replace (&tokstr, ds_value (&put_tokstr));
-  strncpy (tokid, ds_value (&put_tokstr), 8);
+  ds_replace (&tokstr, ds_c_str (&put_tokstr));
+  strncpy (tokid, ds_c_str (&put_tokstr), 8);
   tokid[8] = 0;
   tokval = put_tokval;
   put_token = 0;
@@ -122,7 +122,7 @@ static void
 save_token (void) 
 {
   put_token = token;
-  ds_replace (&put_tokstr, ds_value (&tokstr));
+  ds_replace (&put_tokstr, ds_c_str (&tokstr));
   put_tokval = tokval;
 }
 
@@ -208,7 +208,7 @@ lex_get (void)
 	       negative numbers into two tokens. */
 	    if (*cp == '-')
 	      {
-		ds_putchar (&tokstr, *prog++);
+		ds_putc (&tokstr, *prog++);
 		while (isspace ((unsigned char) *prog))
 		  prog++;
 
@@ -221,32 +221,32 @@ lex_get (void)
 
 	    /* Parse the number, copying it into tokstr. */
 	    while (isdigit ((unsigned char) *prog))
-	      ds_putchar (&tokstr, *prog++);
+	      ds_putc (&tokstr, *prog++);
 	    if (*prog == '.')
 	      {
-		ds_putchar (&tokstr, *prog++);
+		ds_putc (&tokstr, *prog++);
 		while (isdigit ((unsigned char) *prog))
-		  ds_putchar (&tokstr, *prog++);
+		  ds_putc (&tokstr, *prog++);
 	      }
 	    if (*prog == 'e' || *prog == 'E')
 	      {
-		ds_putchar (&tokstr, *prog++);
+		ds_putc (&tokstr, *prog++);
 		if (*prog == '+' || *prog == '-')
-		  ds_putchar (&tokstr, *prog++);
+		  ds_putc (&tokstr, *prog++);
 		while (isdigit ((unsigned char) *prog))
-		  ds_putchar (&tokstr, *prog++);
+		  ds_putc (&tokstr, *prog++);
 	      }
 
 	    /* Parse as floating point. */
-	    tokval = strtod (ds_value (&tokstr), &tail);
+	    tokval = strtod (ds_c_str (&tokstr), &tail);
 	    if (*tail)
 	      {
 		msg (SE, _("%s does not form a valid number."),
-		     ds_value (&tokstr));
+		     ds_c_str (&tokstr));
 		tokval = 0.0;
 
 		ds_clear (&tokstr);
-		ds_putchar (&tokstr, '0');
+		ds_putc (&tokstr, '0');
 	      }
 
 	    token = T_NUM;
@@ -346,15 +346,15 @@ lex_get (void)
 	    }
 
 	  /* Copy id to tokstr. */
-	  ds_putchar (&tokstr, toupper ((unsigned char) *prog++));
+	  ds_putc (&tokstr, toupper ((unsigned char) *prog++));
 	  while (CHAR_IS_IDN (*prog))
-	    ds_putchar (&tokstr, toupper ((unsigned char) *prog++));
+	    ds_putc (&tokstr, toupper ((unsigned char) *prog++));
 
 	  /* Copy tokstr to tokid, truncating it to 8 characters. */
-	  strncpy (tokid, ds_value (&tokstr), 8);
+	  strncpy (tokid, ds_c_str (&tokstr), 8);
 	  tokid[8] = 0;
 
-	  token = check_id (ds_value (&tokstr), ds_length (&tokstr));
+	  token = check_id (ds_c_str (&tokstr), ds_length (&tokstr));
 	  break;
 
 	default:
@@ -690,7 +690,7 @@ lex_put_back_id (const char *id)
   save_token ();
   token = T_ID;
   ds_replace (&tokstr, id);
-  strncpy (tokid, ds_value (&tokstr), 8);
+  strncpy (tokid, ds_c_str (&tokstr), 8);
   tokid[8] = 0;
 }
 
@@ -700,7 +700,7 @@ lex_put_back_id (const char *id)
 const char *
 lex_entire_line (void)
 {
-  return ds_value (&getl_buf);
+  return ds_c_str (&getl_buf);
 }
 
 /* As lex_entire_line(), but only returns the part of the current line
@@ -764,7 +764,7 @@ lex_preprocess_line (void)
     /* Remove C-style comments begun by slash-star and terminated by
      star-slash or newline. */
     quote = comment = 0;
-    for (cp = ds_value (&getl_buf); *cp; )
+    for (cp = ds_c_str (&getl_buf); *cp; )
       {
 	/* If we're not commented out, toggle quoting. */
 	if (!comment)
@@ -805,7 +805,7 @@ lex_preprocess_line (void)
   /* Strip trailing whitespace and terminal dot. */
   {
     size_t len = ds_length (&getl_buf);
-    char *s = ds_value (&getl_buf);
+    char *s = ds_c_str (&getl_buf);
     
     /* Strip trailing whitespace. */
     while (len > 0 && isspace ((unsigned char) s[len - 1]))
@@ -830,7 +830,7 @@ lex_preprocess_line (void)
      as necessary. */
   if (getl_interactive != 2 && getl_mode == GETL_MODE_BATCH)
     {
-      char *s = ds_value (&getl_buf);
+      char *s = ds_c_str (&getl_buf);
       
       if (s[0] == '+' || s[0] == '-' || s[0] == '.')
 	s[0] = ' ';
@@ -838,7 +838,7 @@ lex_preprocess_line (void)
 	put_token = '.';
     }
 
-  prog = ds_value (&getl_buf);
+  prog = ds_c_str (&getl_buf);
 }
 
 /* Token names. */
@@ -871,7 +871,7 @@ lex_token_representation (void)
     {
     case T_ID:
     case T_NUM:
-      return xstrdup (ds_value (&tokstr));
+      return xstrdup (ds_c_str (&tokstr));
       break;
 
     case T_STRING:
@@ -879,7 +879,7 @@ lex_token_representation (void)
 	int hexstring = 0;
 	char *sp, *dp;
 
-	for (sp = ds_value (&tokstr); sp < ds_end (&tokstr); sp++)
+	for (sp = ds_c_str (&tokstr); sp < ds_end (&tokstr); sp++)
 	  if (!isprint ((unsigned char) *sp))
 	    {
 	      hexstring = 1;
@@ -894,14 +894,14 @@ lex_token_representation (void)
 	*dp++ = '\'';
 
 	if (!hexstring)
-	  for (sp = ds_value (&tokstr); *sp; )
+	  for (sp = ds_c_str (&tokstr); *sp; )
 	    {
 	      if (*sp == '\'')
 		*dp++ = '\'';
 	      *dp++ = (unsigned char) *sp++;
 	    }
 	else
-	  for (sp = ds_value (&tokstr); sp < ds_end (&tokstr); sp++)
+	  for (sp = ds_c_str (&tokstr); sp < ds_end (&tokstr); sp++)
 	    {
 	      *dp++ = (((unsigned char) *sp) >> 4)["0123456789ABCDEF"];
 	      *dp++ = (((unsigned char) *sp) & 15)["0123456789ABCDEF"];
@@ -949,7 +949,7 @@ lex_negative_to_dash (void)
     {
       token = T_NUM;
       tokval = -tokval;
-      ds_replace (&tokstr, ds_value (&tokstr) + 1);
+      ds_replace (&tokstr, ds_c_str (&tokstr) + 1);
       save_token ();
       token = '-';
     }
@@ -1034,7 +1034,7 @@ convert_numeric_string_to_char_string (int type)
 	       "multiple of %d."),
 	 gettext (base_name), ds_length (&tokstr), cpb);
 
-  p = ds_value (&tokstr);
+  p = ds_c_str (&tokstr);
   for (i = 0; i < nb; i++)
     {
       int value;
@@ -1064,7 +1064,7 @@ convert_numeric_string_to_char_string (int type)
 	  value = value * base + v;
 	}
 
-      ds_value (&tokstr)[i] = (unsigned char) value;
+      ds_c_str (&tokstr)[i] = (unsigned char) value;
     }
 
   ds_truncate (&tokstr, nb);
@@ -1103,7 +1103,7 @@ parse_string (int type)
 		break;
 	    }
 
-	  ds_putchar (&tokstr, *prog++);
+	  ds_putc (&tokstr, *prog++);
 	}
       prog++;
 
@@ -1173,7 +1173,7 @@ finish:
     int warned = 0;
 
     for (i = 0; i < ds_length (&tokstr); i++)
-      if (ds_value (&tokstr)[i] == 0)
+      if (ds_c_str (&tokstr)[i] == 0)
 	{
 	  if (!warned)
 	    {
@@ -1181,7 +1181,7 @@ finish:
 			 "characters.  Replacing with spaces."));
 	      warned = 1;
 	    }
-	  ds_value (&tokstr)[i] = ' ';
+	  ds_c_str (&tokstr)[i] = ' ';
 	}
   }
 
@@ -1214,7 +1214,7 @@ dump_token (void)
       break;
 
     case T_STRING:
-      fprintf (stderr, "STRING\t\"%s\"\n", ds_value (&tokstr));
+      fprintf (stderr, "STRING\t\"%s\"\n", ds_c_str (&tokstr));
       break;
 
     case T_STOP:

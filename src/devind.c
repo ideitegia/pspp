@@ -220,7 +220,7 @@ devind_option (struct outp_driver *this, const char *key, const struct string *v
       break;
     case 1:
       free (x->file.filename);
-      x->file.filename = xstrdup (ds_value (val));
+      x->file.filename = xstrdup (ds_c_str (val));
       break;
     default:
       assert (0);
@@ -320,7 +320,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   if (t->nr == 1 && t->nc == 1)
     {
       fputs ("p:", x->file.file);
-      escape_string (x->file.file, ls_value (t->cc), ls_length (t->cc));
+      escape_string (x->file.file, ls_c_str (t->cc), ls_length (t->cc));
       putc ('\n', x->file.file);
       
       return;
@@ -347,7 +347,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   if (!ls_empty_p (&t->title))
     {
       putc ('T', x->file.file);
-      escape_string (x->file.file, ls_value (&t->title),
+      escape_string (x->file.file, ls_c_str (&t->title),
 		     ls_length (&t->title));
       putc ('\n', x->file.file);
     }
@@ -376,7 +376,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
             cc = t->cc + c + r * t->nc;
 	    if (*ct & TAB_JOIN) 
               {
-                j = (struct tab_joined_cell *) ls_value (cc);
+                j = (struct tab_joined_cell *) ls_c_str (cc);
                 cc = &j->contents;
                 if (c != j->x1 || r != j->y1)
                   continue;
@@ -399,7 +399,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
             else
               putc ('c', x->file.file);
             putc ('t', x->file.file);
-            escape_string (x->file.file, ls_value (cc), ls_length (cc));
+            escape_string (x->file.file, ls_c_str (cc), ls_length (cc));
             putc ('\n', x->file.file);
           }
       }

@@ -58,7 +58,8 @@ fi
 
 dnl Checks for header files.
 AC_CHECK_HEADERS([limits.h memory.h sys/stat.h sys/time.h sys/types.h \
-                  fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h])
+                  fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h \
+		  valgrind/valgrind.h])
 AC_HEADER_STAT
 AC_HEADER_STDC
 AC_HEADER_TIME

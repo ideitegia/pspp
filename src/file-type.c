@@ -444,7 +444,7 @@ cmd_record_type (void)
 	      if (!lex_force_string ())
 		goto error;
 	      rct->v[rct->nv].c = xmalloc (fty->record.nc + 1);
-	      st_bare_pad_copy (rct->v[rct->nv].c, ds_value (&tokstr),
+	      st_bare_pad_copy (rct->v[rct->nv].c, ds_c_str (&tokstr),
 				fty->record.nc + 1);
 	    }
 	  else
@@ -623,9 +623,6 @@ file_type_source_read (struct case_source *source,
                        write_case_data wc_data UNUSED)
 {
   struct file_type_pgm *fty = source->aux;
-  char *line;
-  int len;
-
   struct fmt_spec format;
 
   dfm_push (fty->handle);
@@ -633,19 +630,22 @@ file_type_source_read (struct case_source *source,
   format.type = fty->record.fmt;
   format.w = fty->record.nc;
   format.d = 0;
-  while (NULL != (line = dfm_get_record (fty->handle, &len)))
+  while (!dfm_eof (fty->handle))
     {
+      struct len_string line;
       struct record_type *iter;
       union value v;
       int i;
 
+      dfm_expand_tabs (fty->handle);
+      dfm_get_record (fty->handle, &line);
       if (formats[fty->record.fmt].cat & FCAT_STRING)
 	{
 	  struct data_in di;
 	  
 	  v.c = c->data[fty->record.v->fv].s;
 
-	  data_in_finite_line (&di, line, len,
+	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
 			       fty->record.fc, fty->record.fc + fty->record.nc);
 	  di.v = (union value *) v.c;
 	  di.flags = 0;
@@ -668,7 +668,7 @@ file_type_source_read (struct case_source *source,
 	{
 	  struct data_in di;
 
-	  data_in_finite_line (&di, line, len,
+	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
 			       fty->record.fc, fty->record.fc + fty->record.nc);
 	  di.v = &v;
 	  di.flags = 0;
@@ -688,13 +688,13 @@ file_type_source_read (struct case_source *source,
 	  if (fty->wild)
 	    msg (SW, _("Unknown record type %g."), v.f);
 	}
-      dfm_fwd_record (fty->handle);
+      dfm_forward_record (fty->handle);
       continue;
 
     found:
       /* Arrive here if there is a matching record_type, which is in
          iter. */
-      dfm_fwd_record (fty->handle);
+      dfm_forward_record (fty->handle);
     }
 
 /*  switch(fty->type)

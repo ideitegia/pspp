@@ -40,7 +40,7 @@ cmd_include (void)
       lex_error (_("expecting filename")); 
       return CMD_FAILURE;
     }
-  getl_include (ds_value (&tokstr));
+  getl_include (ds_c_str (&tokstr));
 
   lex_get ();
   return lex_end_of_command ();

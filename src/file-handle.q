@@ -41,6 +41,7 @@ struct private_file_handle
     struct file_locator where;	/* Used for reporting error messages. */
     enum file_handle_mode mode;	/* File mode. */
     size_t length;		/* Length of fixed-format records. */
+    size_t tab_width;           /* Tab width, 0=do not expand tabs. */
   };
 
 /* Linked list of file handles. */
@@ -59,9 +60,9 @@ static struct file_handle *create_file_handle (const char *handle_name,
 /* (specification)
    "FILE HANDLE" (fh_):
      name=string;
-     recform=recform:fixed/!variable/spanned;
      lrecl=integer;
-     mode=mode:!character/image/binary/multipunch/_360.
+     tabwidth=integer "x>=0" "%s must be nonnegative";
+     mode=mode:!character/image.
 */
 /* (declarations) */
 /* (functions) */
@@ -153,6 +154,10 @@ cmd_file_handle (void)
     {
     case FH_CHARACTER:
       handle->private->mode = MODE_TEXT;
+      if (cmd.sbc_tabwidth)
+        handle->private->tab_width = cmd.n_tabwidth;
+      else
+        handle->private->tab_width = 4;
       break;
     case FH_IMAGE:
       handle->private->mode = MODE_BINARY;
@@ -204,6 +209,7 @@ create_file_handle (const char *handle_name, const char *filename)
   handle->private->where.line_number = 0;
   handle->private->mode = MODE_TEXT;
   handle->private->length = 1024;
+  handle->private->tab_width = 4;
   handle->ext = NULL;
   handle->class = NULL;
 
@@ -262,10 +268,10 @@ fh_parse_file_handle (void)
   if (token == T_ID) 
     handle = get_handle_with_name (tokid);
   if (handle == NULL)
-    handle = get_handle_for_filename (ds_value (&tokstr));
+    handle = get_handle_for_filename (ds_c_str (&tokstr));
   if (handle == NULL) 
     {
-      char *filename = ds_value (&tokstr);
+      char *filename = ds_c_str (&tokstr);
       char *handle_name = xmalloc (strlen (filename) + 3);
       sprintf (handle_name, "\"%s\"", filename);
       handle = create_file_handle (handle_name, filename);
@@ -304,12 +310,23 @@ handle_get_mode (const struct file_handle *handle)
   return handle->private->mode;
 }
 
-/* Returns the width of a logical record on HANDLE. */
+/* Returns the width of a logical record on HANDLE.  Applicable
+   only to MODE_BINARY files.  */
 size_t
 handle_get_record_width (const struct file_handle *handle)
 {
   assert (handle != NULL);
   return handle->private->length;
+}
+
+/* Returns the number of characters per tab stop for HANDLE, or
+   zero if tabs are not to be expanded.  Applicable only to
+   MODE_TEXT files. */
+size_t
+handle_get_tab_width (const struct file_handle *handle) 
+{
+  assert (handle != NULL);
+  return handle->private->tab_width;
 }
 
 /*

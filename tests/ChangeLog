@@ -1,3 +1,11 @@
+Sun May 30 19:18:26 2004  Ben Pfaff  <blp@gnu.org>
+
+	* command/tabs.sh: Default tab width is now 4.
+
+	* command/data-list.sh: New test.
+
+	* Makefile.am: (TESTS) Add command/data-list.sh.
+
 Sun Apr 11 14:21:16 2004  Ben Pfaff  <blp@gnu.org>
 
 	* stats/moments.sh: Now that our one-pass moments algorithm is

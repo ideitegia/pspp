@@ -315,7 +315,7 @@ parse_alpha (void)
 	  msg (SE, _("String is not of proper length."));
 	  return 0;
 	}
-      strncpy (missing[miss_type].s, ds_value (&tokstr), MAX_SHORT_STRING);
+      strncpy (missing[miss_type].s, ds_c_str (&tokstr), MAX_SHORT_STRING);
       lex_get ();
       lex_match (',');
     }

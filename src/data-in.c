@@ -64,9 +64,9 @@ dls_error (const struct data_in *i, const char *format, ...)
     struct error e;
     struct string title;
 
-    ds_init (NULL, &title, 64);
+    ds_init (&title, 64);
     if (!getl_reading_script)
-      ds_concat (&title, _("data-file error: "));
+      ds_puts (&title, _("data-file error: "));
     if (i->f1 == i->f2)
       ds_printf (&title, _("(column %d"), i->f1);
     else
@@ -75,7 +75,7 @@ dls_error (const struct data_in *i, const char *format, ...)
     
     e.class = DE;
     err_location (&e.where);
-    e.title = ds_value (&title);
+    e.title = ds_c_str (&title);
     e.text = buf;
 
     err_vmsg (&e);

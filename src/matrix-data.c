@@ -831,22 +831,34 @@ static const char *
 context (struct file_handle *data_file)
 {
   static char buf[32];
-  int len;
-  char *p = dfm_get_record (data_file, &len);
-  
-  if (!p || !len)
-    strcpy (buf, "at end of line");
-  else
+
+  if (dfm_eof (data_file))
+    strcpy (buf, "at end of file");
+  else 
     {
-      char *cp = buf;
-      int n_copy = min (10, len);
-      cp = stpcpy (buf, "before `");
-      while (n_copy && isspace ((unsigned char) *p))
-	p++, n_copy++;
-      while (n_copy && !isspace ((unsigned char) *p))
-	*cp++ = *p++, n_copy--;
-      *cp++ = '\'';
-      *cp = 0;
+      struct len_string line;
+      const char *sp;
+      
+      dfm_get_record (data_file, &line);
+      sp = ls_c_str (&line);
+      while (sp < ls_end (&line) && isspace ((unsigned char) *sp))
+        sp++;
+      if (sp >= ls_end (&line))
+        strcpy (buf, "at end of line");
+      else
+        {
+          char *dp;
+          size_t copy_cnt = 0;
+
+          dp = stpcpy (buf, "before `");
+          while (sp < ls_end (&line) && !isspace ((unsigned char) *sp)
+                 && copy_cnt < 10) 
+            {
+              *dp++ = *sp++;
+              copy_cnt++; 
+            }
+          strcpy (dp, "'");
+        }
     }
   
   return buf;
@@ -856,68 +868,55 @@ context (struct file_handle *data_file)
 static int
 another_token (struct file_handle *data_file)
 {
-  char *cp, *ep;
-  int len;
-
   for (;;)
     {
-      cp = dfm_get_record (data_file, &len);
-      if (!cp)
-	return 0;
+      struct len_string line;
+      const char *cp;
+      
+      if (dfm_eof (data_file))
+        return 0;
+      dfm_get_record (data_file, &line);
 
-      ep = cp + len;
-      while (isspace ((unsigned char) *cp) && cp < ep)
+      cp = ls_c_str (&line);
+      while (isspace ((unsigned char) *cp) && cp < ls_end (&line))
 	cp++;
 
-      if (cp < ep)
-	break;
+      if (cp < ls_end (&line)) 
+        {
+          dfm_forward_columns (data_file, cp - ls_c_str (&line));
+          return 1;
+        }
 
-      dfm_fwd_record (data_file);
+      dfm_forward_record (data_file);
     }
-  
-  dfm_set_record (data_file, cp);
-
-  return 1;
 }
 
 /* Parse a MATRIX DATA token from mx->data_file into TOKEN. */
 static int
 (mget_token) (struct matrix_token *token, struct file_handle *data_file)
 {
-  char *cp, *ep;
-  int len;
+  struct len_string line;
   int first_column;
-    
-  for (;;)
-    {
-      cp = dfm_get_record (data_file, &len);
-      if (!cp)
-        return 0;
+  char *cp;
 
-      ep = cp + len;
-      while (isspace ((unsigned char) *cp) && cp < ep)
-	cp++;
+  if (!another_token (data_file))
+    return 0;
 
-      if (cp < ep)
-	break;
-
-      dfm_fwd_record (data_file);
-    }
-  
-  dfm_set_record (data_file, cp);
-  first_column = dfm_get_cur_col (data_file) + 1;
+  dfm_get_record (data_file, &line);
+  first_column = dfm_column_start (data_file);
 
   /* Three types of fields: quoted with ', quoted with ", unquoted. */
+  cp = ls_c_str (&line);
   if (*cp == '\'' || *cp == '"')
     {
       int quote = *cp;
 
       token->type = MSTR;
       token->string = ++cp;
-      while (cp < ep && *cp != quote)
+      while (cp < ls_end (&line) && *cp != quote)
 	cp++;
       token->length = cp - token->string;
-      if (cp < ep)
+      if (cp < ls_end (&line))
 	cp++;
       else
 	msg (SW, _("Scope of string exceeds line."));
@@ -927,7 +926,8 @@ static int
       int is_num = isdigit ((unsigned char) *cp) || *cp == '.';
 
       token->string = cp++;
-      while (cp < ep && !isspace ((unsigned char) *cp) && *cp != ','
+      while (cp < ls_end (&line)
+             && !isspace ((unsigned char) *cp) && *cp != ','
 	     && *cp != '-' && *cp != '+')
 	{
 	  if (isdigit ((unsigned char) *cp))
@@ -963,7 +963,7 @@ static int
 	token->type = MSTR;
     }
 
-  dfm_set_record (data_file, cp);
+  dfm_forward_columns (data_file, cp - ls_c_str (&line));
     
   return 1;
 }
@@ -973,24 +973,25 @@ static int
 static int
 force_eol (struct file_handle *data_file, const char *content)
 {
-  char *cp;
-  int len;
-  
-  cp = dfm_get_record (data_file, &len);
-  if (!cp)
+  struct len_string line;
+  const char *cp;
+
+  if (dfm_eof (data_file))
     return 0;
-  while (len && isspace (*cp))
-    cp++, len--;
+  dfm_get_record (data_file, &line);
+
+  cp = ls_c_str (&line);
+  while (isspace ((unsigned char) *cp) && cp < ls_end (&line))
+    cp++;
   
-  if (len)
+  if (cp < ls_end (&line))
     {
       msg (SE, _("End of line expected %s while reading %s."),
 	   context (data_file), content);
       return 0;
     }
   
-  dfm_fwd_record (data_file);
-  
+  dfm_forward_record (data_file);
   return 1;
 }
 

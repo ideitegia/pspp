@@ -53,7 +53,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
-printf  "\t1\t12\t123\t1234\t12345\t123456\t\t1234567\t12345678\tasdf\tjkl\n" >> $TEMPDIR/tabs.stat
+printf  "\t1\t12\t123\t1234\t12345\n" >> $TEMPDIR/tabs.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -78,7 +78,7 @@ diff -B -b $TEMPDIR/pspp.list - << EOF
 #========#======#=======#======#
 |X       |     1|  1- 80|A80   |
 +--------+------+-------+------+
-        1       12      123     1234    12345   123456          1234567 12345678 
+    1   12  123 1234    12345
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

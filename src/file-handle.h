@@ -72,5 +72,6 @@ const char *handle_get_name (const struct file_handle *handle);
 const char *handle_get_filename (const struct file_handle *handle);
 enum file_handle_mode handle_get_mode (const struct file_handle *);
 size_t handle_get_record_width (const struct file_handle *);
+size_t handle_get_tab_width (const struct file_handle *);
 
 #endif /* !file_handle.h */

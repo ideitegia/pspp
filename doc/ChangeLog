@@ -1,3 +1,8 @@
+Sun May 30 22:44:25 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Update FILE HANDLE, DATA LIST FREE, DATA LIST LIST
+	documentation to reflect latest changes.
+
 Mon Apr 19 22:46:37 2004  Ben Pfaff  <blp@gnu.org>
 
 	* pspp.texi: Minor updates to data file and portable file

@@ -163,10 +163,10 @@ void
 st_bare_pad_len_copy (char *dest, const char *src, size_t n, size_t len)
 {
   if (len >= n)
-    memcpy (dest, src, n);
+    memmove (dest, src, n);
   else
     {
-      memcpy (dest, src, len);
+      memmove (dest, src, len);
       memset (&dest[len], ' ', n - len);
     }
 }
@@ -195,30 +195,26 @@ st_pad_copy (char *dest, const char *src, size_t n)
     }
 }
 
-/* Initializes ST inside pool POOL (which may be a null pointer) with
-   initial contents S. */
+/* Initializes ST with initial contents S. */
 void
-ds_create (struct pool *pool, struct string *st, const char *s)
+ds_create (struct string *st, const char *s)
 {
-  st->pool = pool;
   st->length = strlen (s);
-  st->size = 8 + st->length * 2;
-  st->string = pool_malloc (pool, st->size + 1);
+  st->capacity = 8 + st->length * 2;
+  st->string = xmalloc (st->capacity + 1);
   strcpy (st->string, s);
 }
 
-/* Initializes ST inside POOL (which may be null), making room for at
-   least SIZE characters. */
+/* Initializes ST, making room for at least CAPACITY characters. */
 void
-ds_init (struct pool *pool, struct string *st, size_t size)
+ds_init (struct string *st, size_t capacity)
 {
-  st->pool = pool;
   st->length = 0;
-  if (size > 8)
-    st->size = size;
+  if (capacity > 8)
+    st->capacity = capacity;
   else
-    st->size = 8;
-  st->string = pool_malloc (pool, st->size + 1);
+    st->capacity = 8;
+  st->string = xmalloc (st->capacity + 1);
 }
 
 /* Replaces the contents of ST with STRING.  STRING may overlap with
@@ -226,17 +222,28 @@ ds_init (struct pool *pool, struct string *st, size_t size)
 void
 ds_replace (struct string *st, const char *string)
 {
-  char *s = st->string;
-  st->string = NULL;
-  ds_create (st->pool, st, string);
-  pool_free (st->pool, s);
+  size_t new_length = strlen (string);
+  if (new_length > st->capacity) 
+    {
+      /* The new length is longer than the allocated length, so
+         there can be no overlap. */
+      st->length = 0;
+      ds_concat (st, string, new_length);
+    }
+  else
+    {
+      /* Overlap is possible, but the new string will fit in the
+         allocated space, so we can just copy data. */
+      st->length = new_length;
+      memmove (st->string, string, st->length);
+    }
 }
 
 /* Frees ST. */
 void
 ds_destroy (struct string *st)
 {
-  pool_free (st->pool, st->string);
+  free (st->string);
 }
 
 /* Truncates ST to zero length. */
@@ -246,29 +253,45 @@ ds_clear (struct string *st)
   st->length = 0;
 }
 
-/* Ensures that ST can hold at least MIN_SIZE characters plus a null
-   terminator. */
+/* Pad ST on the right with copies of PAD until ST is at least
+   LENGTH characters in size.  If ST is initially LENGTH
+   characters or longer, this is a no-op. */
 void
-ds_extend (struct string *st, size_t min_size)
+ds_rpad (struct string *st, size_t length, char pad) 
 {
-  if (min_size > st->size)
+  assert (st != NULL);
+  if (st->length < length) 
     {
-      st->size *= 2;
-      if (st->size < min_size)
-	st->size = min_size * 2;
-      
-      st->string = pool_realloc (st->pool, st->string, st->size + 1);
+      if (st->capacity < length)
+        ds_extend (st, length);
+      memset (&st->string[st->length], pad, length - st->length);
+      st->length = length;
     }
 }
 
-/* Shrink ST to the minimum size need to contain its content. */
+/* Ensures that ST can hold at least MIN_CAPACITY characters plus a null
+   terminator. */
+void
+ds_extend (struct string *st, size_t min_capacity)
+{
+  if (min_capacity > st->capacity)
+    {
+      st->capacity *= 2;
+      if (st->capacity < min_capacity)
+	st->capacity = min_capacity * 2;
+      
+      st->string = xrealloc (st->string, st->capacity + 1);
+    }
+}
+
+/* Shrink ST to the minimum capacity need to contain its content. */
 void
 ds_shrink (struct string *st)
 {
-  if (st->size != st->length)
+  if (st->capacity != st->length)
     {
-      st->size = st->length;
-      st->string = pool_realloc (st->pool, st->string, st->size + 1);
+      st->capacity = st->length;
+      st->string = xrealloc (st->string, st->capacity + 1);
     }
 }
 
@@ -290,21 +313,21 @@ ds_length (const struct string *st)
 
 /* Returns the allocation size of ST. */
 size_t
-ds_size (const struct string *st)
+ds_capacity (const struct string *st)
 {
-  return st->size;
+  return st->capacity;
 }
 
 /* Returns the value of ST as a null-terminated string. */
 char *
-ds_value (const struct string *st)
+ds_c_str (const struct string *st)
 {
   ((char *) st->string)[st->length] = '\0';
   return st->string;
 }
 
 /* Returns a pointer to the null terminator ST.
-   This might not be an actual null character unless ds_value() has
+   This might not be an actual null character unless ds_c_str() has
    been called since the last modification to ST. */
 char *
 ds_end (const struct string *st)
@@ -314,7 +337,7 @@ ds_end (const struct string *st)
 
 /* Concatenates S onto ST. */
 void
-ds_concat (struct string *st, const char *s)
+ds_puts (struct string *st, const char *s)
 {
   size_t s_len;
 
@@ -328,7 +351,7 @@ ds_concat (struct string *st, const char *s)
 
 /* Concatenates LEN characters from BUF onto ST. */
 void
-ds_concat_buffer (struct string *st, const char *buf, size_t len)
+ds_concat (struct string *st, const char *buf, size_t len)
 {
   ds_extend (st, st->length + len);
   memcpy (st->string + st->length, buf, len);
@@ -361,7 +384,7 @@ ds_vprintf (struct string *st, const char *format, va_list args)
 
   int avail, needed;
 
-  avail = st->size - st->length + 1;
+  avail = st->capacity - st->length + 1;
   needed = vsnprintf (st->string + st->length, avail, format, args);
 
 
@@ -374,8 +397,8 @@ ds_vprintf (struct string *st, const char *format, va_list args)
   else
     while (needed == -1)
       {
-	ds_extend (st, (st->size + 1) * 2);
-	avail = st->size - st->length + 1;
+	ds_extend (st, (st->capacity + 1) * 2);
+	avail = st->capacity - st->length + 1;
 
 	needed = vsnprintf (st->string + st->length, avail, format, args);
 
@@ -386,21 +409,21 @@ ds_vprintf (struct string *st, const char *format, va_list args)
 
 /* Appends character CH to ST. */
 void
-ds_putchar (struct string *st, int ch)
+ds_putc (struct string *st, int ch)
 {
-  if (st->length == st->size)
+  if (st->length == st->capacity)
     ds_extend (st, st->length + 1);
   st->string[st->length++] = ch;
 }
 
-/* Reads a newline-terminated line from STREAM into ST.
+/* Appends to ST a newline-terminated line read from STREAM.
    Newline is the last character of ST on return, unless an I/O error
    or end of file is encountered after reading some characters.
    Returns 1 if a line is successfully read, or 0 if no characters at
    all were read before an I/O error or end of file was
    encountered. */
 int
-ds_getline (struct string *st, FILE *stream)
+ds_gets (struct string *st, FILE *stream)
 {
   int c;
 
@@ -410,7 +433,7 @@ ds_getline (struct string *st, FILE *stream)
 
   for (;;)
     {
-      ds_putchar (st, c);
+      ds_putc (st, c);
       if (c == '\n')
 	return 1;
 
@@ -438,7 +461,7 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
   /* Read the first line. */
   ds_clear (st);
   where->line_number++;
-  if (!ds_getline (st, stream))
+  if (!ds_gets (st, stream))
     return 0;
 
   /* Read additional lines, if any. */
@@ -446,7 +469,7 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
     {
       /* Remove trailing whitespace. */
       {
-	char *s = ds_value (st);
+	char *s = ds_c_str (st);
 	size_t len = ds_length (st);
       
 	while (len > 0 && isspace ((unsigned char) s[len - 1]))
@@ -455,13 +478,13 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
       }
 
       /* Check for trailing \.  Remove if found, bail otherwise. */
-      if (ds_length (st) == 0 || ds_value (st)[ds_length (st) - 1] != '\\')
+      if (ds_length (st) == 0 || ds_c_str (st)[ds_length (st) - 1] != '\\')
 	break;
       ds_truncate (st, ds_length (st) - 1);
 
       /* Append another line and go around again. */
       {
-	int success = ds_getline (st, stream);
+	int success = ds_gets (st, stream);
 	where->line_number++;
 	if (!success)
 	  return 1;
@@ -473,7 +496,7 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
     char *cp;
     int quote = 0;
       
-    for (cp = ds_value (st); *cp; cp++)
+    for (cp = ds_c_str (st); *cp; cp++)
       if (quote)
 	{
 	  if (*cp == quote)
@@ -485,7 +508,7 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
 	quote = *cp;
       else if (*cp == '#')
 	{
-	  ds_truncate (st, cp - ds_value (st));
+	  ds_truncate (st, cp - ds_c_str (st));
 	  break;
 	}
   }
@@ -495,24 +518,24 @@ ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
 
 /* Lengthed strings. */
 
-/* Creates a new lengthed string LS in POOL with contents as a copy of
+/* Creates a new lengthed string LS with contents as a copy of
    S. */
 void
-ls_create (struct pool *pool, struct len_string *ls, const char *s)
+ls_create (struct len_string *ls, const char *s)
 {
   ls->length = strlen (s);
-  ls->string = pool_alloc (pool, ls->length + 1);
+  ls->string = xmalloc (ls->length + 1);
   memcpy (ls->string, s, ls->length + 1);
 }
 
-/* Creates a new lengthed string LS in POOL with contents as a copy of
+/* Creates a new lengthed string LS with contents as a copy of
    BUFFER with length LEN. */
 void
-ls_create_buffer (struct pool *pool, struct len_string *ls,
+ls_create_buffer (struct len_string *ls,
 		  const char *buffer, size_t len)
 {
   ls->length = len;
-  ls->string = pool_malloc (pool, len + 1);
+  ls->string = xmalloc (len + 1);
   memcpy (ls->string, buffer, len);
   ls->string[len] = '\0';
 }
@@ -532,11 +555,11 @@ ls_shallow_copy (struct len_string *dst, const struct len_string *src)
   *dst = *src;
 }
 
-/* Frees the memory in POOL backing LS. */
+/* Frees the memory backing LS. */
 void
-ls_destroy (struct pool *pool, struct len_string *ls)
+ls_destroy (struct len_string *ls)
 {
-  pool_free (pool, ls->string);
+  free (ls->string);
 }
 
 /* Sets LS to a null pointer value. */
@@ -569,7 +592,7 @@ ls_length (const struct len_string *ls)
 
 /* Returns a pointer to the character string in LS. */
 char *
-ls_value (const struct len_string *ls)
+ls_c_str (const struct len_string *ls)
 {
   return (char *) ls->string;
 }

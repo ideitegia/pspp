@@ -288,7 +288,7 @@ outp_read_devices (void)
   where.line_number = 0;
   err_push_file_locator (&where);
 
-  ds_init (NULL, &line, 128);
+  ds_init (&line, 128);
 
   if (init_fn == NULL)
     {
@@ -315,7 +315,7 @@ outp_read_devices (void)
 	    msg (ME, _("Reading %s: %s."), init_fn, strerror (errno));
 	  break;
 	}
-      for (cp = ds_value (&line); isspace ((unsigned char) *cp); cp++);
+      for (cp = ds_c_str (&line); isspace ((unsigned char) *cp); cp++);
       if (!strncmp ("define", cp, 6) && isspace ((unsigned char) cp[6]))
 	outp_configure_macro (&cp[7]);
       else if (*cp)
@@ -511,7 +511,7 @@ tokener (void)
 	  while (*prog && *prog != quote)
 	    {
 	      if (*prog != '\\')
-		ds_putchar (&op_tokstr, *prog++);
+		ds_putc (&op_tokstr, *prog++);
 	      else
 		{
 		  int c;
@@ -590,14 +590,14 @@ tokener (void)
 		      msg (IS, _("Syntax error in string constant."));
                       continue;
 		    }
-		  ds_putchar (&op_tokstr, (unsigned char) c);
+		  ds_putc (&op_tokstr, (unsigned char) c);
 		}
 	    }
 	  prog++;
 	}
       else
 	while (*prog && !isspace ((unsigned char) *prog) && *prog != '=')
-	  ds_putchar (&op_tokstr, *prog++);
+	  ds_putc (&op_tokstr, *prog++);
       op_token = 'a';
     }
 
@@ -612,7 +612,7 @@ parse_options (char *s, struct outp_driver * d)
   prog = s;
   op_token = -1;
 
-  ds_init (NULL, &op_tokstr, 64);
+  ds_init (&op_tokstr, 64);
   while (tokener ())
     {
       char key[65];
@@ -624,7 +624,7 @@ parse_options (char *s, struct outp_driver * d)
 	}
 
       ds_truncate (&op_tokstr, 64);
-      strcpy (key, ds_value (&op_tokstr));
+      strcpy (key, ds_c_str (&op_tokstr));
 
       tokener ();
       if (op_token != '=')
@@ -1150,7 +1150,7 @@ outp_get_paper_size (char *size, int *h, int *v)
   where.filename = pprsz_fn;
   where.line_number = 0;
   err_push_file_locator (&where);
-  ds_init (NULL, &line, 128);
+  ds_init (&line, 128);
 
   if (pprsz_fn == NULL)
     {
@@ -1176,7 +1176,7 @@ outp_get_paper_size (char *size, int *h, int *v)
 	    msg (ME, _("Reading %s: %s."), pprsz_fn, strerror (errno));
 	  break;
 	}
-      for (cp = ds_value (&line); isspace ((unsigned char) *cp); cp++);
+      for (cp = ds_c_str (&line); isspace ((unsigned char) *cp); cp++);
       if (*cp == 0)
 	continue;
       if (*cp != '"')

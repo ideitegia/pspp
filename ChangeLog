@@ -1,3 +1,7 @@
+Sun May 30 18:19:03 2004  Ben Pfaff  <blp@gnu.org>
+
+	* config.ac: Check for valgrind/valgrind.h.
+
 Mon Mar 29 15:22:48 2004  Ben Pfaff  <blp@gnu.org>
 
 	* TODO: Updated.

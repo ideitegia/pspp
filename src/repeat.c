@@ -245,7 +245,7 @@ internal_cmd_do_repeat (void)
 	   command names must appear on a single line--they can't be
 	   spread out. */
 	{
-	  char *cp = ds_value (&getl_buf);
+	  char *cp = ds_c_str (&getl_buf);
 
 	  /* Skip leading indentors and any whitespace. */
 	  if (*cp == '+' || *cp == '-' || *cp == '.')
@@ -291,7 +291,7 @@ internal_cmd_do_repeat (void)
 	line_buf_tail->len = ds_length (&getl_buf);
 	line_buf_tail->line = xmalloc (ds_length (&getl_buf) + 1);
 	memcpy (line_buf_tail->line,
-		ds_value (&getl_buf), ds_length (&getl_buf) + 1);
+		ds_c_str (&getl_buf), ds_length (&getl_buf) + 1);
       }
   }
 
@@ -539,7 +539,7 @@ perform_DO_REPEAT_substitutions (void)
   /* Terminal dot. */
   int dot = 0;
 
-  ds_init (NULL, &output, ds_size (&getl_buf));
+  ds_init (&output, ds_capacity (&getl_buf));
 
   /* Strip trailing whitespace, check for & remove terminal dot. */
   while (ds_length (&getl_buf) > 0
@@ -551,7 +551,7 @@ perform_DO_REPEAT_substitutions (void)
       ds_truncate (&getl_buf, ds_length (&getl_buf) - 1);
     }
   
-  for (cp = ds_value (&getl_buf); cp < ds_end (&getl_buf); )
+  for (cp = ds_c_str (&getl_buf); cp < ds_end (&getl_buf); )
     {
       if (*cp == '\'' && !in_quote)
 	in_apos ^= 1;
@@ -560,7 +560,7 @@ perform_DO_REPEAT_substitutions (void)
       
       if (in_quote || in_apos || !CHAR_IS_ID1 (*cp))
 	{
-	  ds_putchar (&output, *cp++);
+	  ds_putc (&output, *cp++);
 	  continue;
 	}
 
@@ -580,16 +580,16 @@ perform_DO_REPEAT_substitutions (void)
 	substitution = find_DO_REPEAT_substitution (name);
 	if (!substitution)
 	  {
-	    ds_concat_buffer (&output, start, cp - start);
+	    ds_concat (&output, start, cp - start);
 	    continue;
 	  }
 
 	/* Force output buffer size, copy substitution. */
-	ds_concat (&output, substitution);
+	ds_puts (&output, substitution);
       }
     }
   if (dot)
-    ds_putchar (&output, get_endcmd() );
+    ds_putc (&output, get_endcmd() );
 
   ds_destroy (&getl_buf);
   getl_buf = output;

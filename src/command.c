@@ -486,7 +486,7 @@ parse_command_name (void)
       
       assert (word_cnt < sizeof words / sizeof *words);
       if (token == T_ID)
-        words[word_cnt++] = xstrdup (ds_value (&tokstr));
+        words[word_cnt++] = xstrdup (ds_c_str (&tokstr));
       else
         words[word_cnt++] = xstrdup ("-");
 
@@ -632,10 +632,10 @@ cmd_erase (void)
   if (!lex_force_string ())
     return CMD_FAILURE;
 
-  if (remove (ds_value (&tokstr)) == -1)
+  if (remove (ds_c_str (&tokstr)) == -1)
     {
       msg (SW, _("Error removing `%s': %s."),
-	   ds_value (&tokstr), strerror (errno));
+	   ds_c_str (&tokstr), strerror (errno));
       return CMD_FAILURE;
     }
 
@@ -713,7 +713,7 @@ run_command (void)
 	lex_get ();
 	if (!lex_force_string ())
 	  return CMD_FAILURE;
-	cmd = ds_value (&tokstr);
+	cmd = ds_c_str (&tokstr);
 	string = 1;
       }
     else

@@ -88,7 +88,8 @@ struct data_list_pgm
     int eof;			/* End of file encountered. */
     int nrec;			/* Number of records. */
     size_t case_size;           /* Case size in bytes. */
-    int delim;                  /* Specified delimeter */
+    char *delims;               /* Delimiters if any; not null-terminated. */
+    size_t delim_cnt;           /* Number of delimiter, or 0 for spaces. */
   };
 
 static int parse_fixed (struct data_list_pgm *);
@@ -121,7 +122,8 @@ cmd_data_list (void)
   dls->end = NULL;
   dls->eof = 0;
   dls->nrec = 0;
-  dls->delim=0;
+  dls->delims = NULL;
+  dls->delim_cnt = 0;
   dls->first = dls->last = NULL;
 
   while (token != '/')
@@ -168,45 +170,58 @@ cmd_data_list (void)
 	}
       else if (token == T_ID)
 	{
-	  /* Must match DLS_* constants. */
-	  static const char *id[] = {"FIXED", "FREE", "LIST", "NOTABLE",
-				     "TABLE", NULL};
-	  const char **p;
-	  int index;
+          if (lex_match_id ("NOTABLE"))
+            table = 0;
+          else if (lex_match_id ("TABLE"))
+            table = 1;
+          else 
+            {
+              int type;
+              if (lex_match_id ("FIXED"))
+                type = DLS_FIXED;
+              else if (lex_match_id ("FREE"))
+                type = DLS_FREE;
+              else if (lex_match_id ("LIST"))
+                type = DLS_LIST;
+              else 
+                {
+                  lex_error (NULL);
+                  goto error;
+                }
 
-	  for (p = id; *p; p++)
-	    if (lex_id_match (*p, tokid))
-	      break;
-	  if (*p == NULL)
-	    {
-	      lex_error (NULL);
-	      goto error;
-	    }
-	  
-	  lex_get ();
-
-	  index = p - id;
-	  if (index < 3)
-	    {
 	      if (dls->type != -1)
 		{
 		  msg (SE, _("Only one of FIXED, FREE, or LIST may "
-			    "be specified."));
+                             "be specified."));
 		  goto error;
 		}
-	      
-	      dls->type = index;
-	    }
-	  else
-	    table = index - 3;
-	}
-      else if (token=='(') {
-        lex_get();
-        if (lex_match_id ("TAB")) {
-          dls->delim='\t';
+	      dls->type = type;
+
+              if ((dls->type == DLS_FREE || dls->type == DLS_LIST)
+                  && lex_match ('(')) 
+                {
+                  while (!lex_match (')'))
+                    {
+                      int delim;
+
+                      if (lex_match_id ("TAB"))
+                        delim = '\t';
+                      else if (token == T_STRING && tokstr.length == 1)
+                        delim = tokstr.string[0];
+                      else 
+                        {
+                          lex_error (NULL);
+                          goto error;
+                        }
+
+                      dls->delims = xrealloc (dls->delims, dls->delim_cnt + 1);
+                      dls->delims[dls->delim_cnt++] = delim;
+
+                      lex_match (',');
+                    }
+                }
+            }
         }
-        lex_get();
-      }
       else
 	{
 	  lex_error (NULL);
@@ -938,90 +953,111 @@ dump_free_table (const struct data_list_pgm *dls)
 
 /* Input procedure. */ 
 
-/* Extracts a field from the current position in the current record.
-   Fields can be unquoted or quoted with single- or double-quote
-   characters.  *RET_LEN is set to the field length, *RET_CP is set to
-   the field itself.  After parsing the field, sets the current
-   position in the record to just past the field.  Returns 0 on
-   failure or a 1-based column number indicating the beginning of the
-   field on success. */
+/* Extracts a field from the current position in the current
+   record.  Fields can be unquoted or quoted with single- or
+   double-quote characters.  *FIELD is set to the field content.
+   After parsing the field, sets the current position in the
+   record to just past the field and any trailing delimiter.
+   END_BLANK is used internally; it should be initialized by the
+   caller to 0 and left alone afterward.  Returns 0 on failure or
+   a 1-based column number indicating the beginning of the field
+   on success. */
 static int
-cut_field (const struct data_list_pgm *dls, char **ret_cp, int *ret_len)
+cut_field (const struct data_list_pgm *dls, struct len_string *field,
+           int *end_blank)
 {
-  char *cp, *ep;
-  int len;
+  struct len_string line;
+  char *cp;
+  size_t column_start;
 
-  cp = dfm_get_record (dls->handle, &len);
-  if (!cp)
+  if (dfm_eof (dls->handle))
     return 0;
+  if (dls->delim_cnt == 0)
+    dfm_expand_tabs (dls->handle);
+  dfm_get_record (dls->handle, &line);
 
-  ep = cp + len;
-  if (dls->delim != 0) {
-    if (*cp==dls->delim) {
-      cp++;
-    }
-  } else {
-
-    /* Skip leading whitespace and commas. */
-    while ((isspace ((unsigned char) *cp) || *cp == ',') && cp < ep)
-      cp++;
-  }
-  if (cp >= ep)
-    return 0;
-
-  /* Three types of fields: quoted with ', quoted with ", unquoted. */
-  /* Quoting does not escape the effects of delimiters for explicitly */
-  /* specified delims */
-  /* (consistency with SPSS doco: */
-  /*  For data with explicitly specified value delimiters (for example,  */
-  /*  DATA LIST FREE (","):                                              */
-  /*   - Multiple delimiters without any intervening space can be used   */
-  /*     to specify missing data.                                        */
-  /*   - The specified delimiters cannot occur within a data value, even */
-  /*     if you enclose the value in quotation marks or apostrophes.     */
-  if (dls->delim==0 && (*cp == '\'' || *cp == '"'))
+  cp = ls_c_str (&line);
+  if (dls->delim_cnt == 0) 
     {
-      int quote = *cp;
+      /* Skip leading whitespace. */
+      while (cp < ls_end (&line) && isspace ((unsigned char) *cp))
+        cp++;
+      if (cp >= ls_end (&line))
+        return 0;
+      
+      /* Handle actual data, whether quoted or unquoted. */
+      if (*cp == '\'' || *cp == '"')
+        {
+          int quote = *cp;
 
-      *ret_cp = ++cp;
-      while (cp < ep && *cp != quote)
-	cp++;
-      if (dls->delim!=0) {
-        while(cp<ep && *cp!=dls->delim) {
-          cp++;
+          field->string = ++cp;
+          while (cp < ls_end (&line) && *cp != quote)
+            cp++;
+          field->length = cp - field->string;
+          if (cp < ls_end (&line))
+            cp++;
+          else
+            msg (SW, _("Quoted string missing terminating `%c'."), quote);
         }
-      } 
-      *ret_len = cp - *ret_cp;
-      if (cp < ep)
-	cp++;
       else
-	msg (SW, _("Scope of string exceeds line."));      
-    }
-  else
-    {
-      *ret_cp = cp;
-      if (dls->delim!=0) {
-	while(cp<ep && *cp!=dls->delim) {
-          cp++;
+        {
+          field->string = cp;
+          while (cp < ls_end (&line)
+                 && !isspace ((unsigned char) *cp) && *cp != ',')
+            cp++;
+          field->length = cp - field->string;
         }
-      } else {
 
-	while (cp < ep && !isspace ((unsigned char) *cp) && *cp != ',')
-	  cp++;
-      }
-      *ret_len = cp - *ret_cp;
+      /* Skip trailing whitespace and a single comma if present. */
+      while (cp < ls_end (&line) && isspace ((unsigned char) *cp))
+        cp++;
+      if (cp < ls_end (&line) && *cp == ',')
+        cp++;
     }
-
-  {
-    int beginning_column;
+  else 
+    {
+      if (cp >= ls_end (&line)) 
+        {
+          int column = dfm_column_start (dls->handle);
+               /* A blank line or a line that ends in \t has a
+             trailing blank field. */
+          if (column == 1 || (column > 1 && cp[-1] == '\t'))
+            {
+              if (*end_blank == 0)
+                {
+                  *end_blank = 1;
+                  field->string = ls_end (&line);
+                  field->length = 0;
+                  dfm_forward_record (dls->handle);
+                  return column;
+                }
+              else 
+                {
+                  *end_blank = 0;
+                  return 0;
+                }
+            }
+          else 
+            return 0;
+        }
+      else 
+        {
+          field->string = cp;
+          while (cp < ls_end (&line)
+                 && memchr (dls->delims, *cp, dls->delim_cnt) == NULL)
+            cp++; 
+          field->length = cp - field->string;
+          if (cp < ls_end (&line)) 
+            cp++;
+        }
+    }
+  
+  dfm_forward_columns (dls->handle, field->string - line.string);
+  column_start = dfm_column_start (dls->handle);
     
-    dfm_set_record (dls->handle, *ret_cp);
-    beginning_column = dfm_get_cur_col (dls->handle) + 1;
+  dfm_forward_columns (dls->handle, cp - field->string);
     
-    dfm_set_record (dls->handle, cp);
-    
-    return beginning_column;
-  }
+  return column_start;
 }
 
 typedef int data_list_read_func (const struct data_list_pgm *, struct ccase *);
@@ -1061,26 +1097,28 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
   struct dls_var_spec *var_spec = dls->first;
   int i;
 
-  if (!dfm_get_record (dls->handle, NULL))
+  if (dfm_eof (dls->handle))
     return -2;
   for (i = 1; i <= dls->nrec; i++)
     {
-      int len;
-      char *line = dfm_get_record (dls->handle, &len);
+      struct len_string line;
       
-      if (!line)
+      if (dfm_eof (dls->handle))
 	{
 	  /* Note that this can't occur on the first record. */
 	  msg (SW, _("Partial case of %d of %d records discarded."),
 	       i - 1, dls->nrec);
 	  return -2;
 	}
+      dfm_expand_tabs (dls->handle);
+      dfm_get_record (dls->handle, &line);
 
       for (; var_spec && i == var_spec->rec; var_spec = var_spec->next)
 	{
 	  struct data_in di;
 
-	  data_in_finite_line (&di, line, len, var_spec->fc, var_spec->lc);
+	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
+                               var_spec->fc, var_spec->lc);
 	  di.v = &c->data[var_spec->fv];
 	  di.flags = 0;
 	  di.f1 = var_spec->fc;
@@ -1089,7 +1127,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
 	  data_in (&di);
 	}
 
-      dfm_fwd_record (dls->handle);
+      dfm_forward_record (dls->handle);
     }
 
   return -1;
@@ -1103,27 +1141,27 @@ read_from_data_list_free (const struct data_list_pgm *dls,
                           struct ccase *c)
 {
   struct dls_var_spec *var_spec;
-  char *field;
-  int len;
+  int end_blank = 0;
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
+      struct len_string field;
       int column;
       
       /* Cut out a field and read in a new record if necessary. */
       for (;;)
 	{
-	  column = cut_field (dls, &field, &len);
+	  column = cut_field (dls, &field, &end_blank);
 	  if (column != 0)
 	    break;
 
-	  if (dfm_get_record (dls->handle, NULL))
-	    dfm_fwd_record (dls->handle);
-	  if (!dfm_get_record (dls->handle, NULL))
+	  if (!dfm_eof (dls->handle)) 
+            dfm_forward_record (dls->handle);
+	  if (dfm_eof (dls->handle))
 	    {
 	      if (var_spec != dls->first)
 		msg (SW, _("Partial case discarded.  The first variable "
-		     "missing was %s."), var_spec->name);
+                           "missing was %s."), var_spec->name);
 	      return -2;
 	    }
 	}
@@ -1131,8 +1169,8 @@ read_from_data_list_free (const struct data_list_pgm *dls,
       {
 	struct data_in di;
 
-	di.s = field;
-	di.e = field + len;
+	di.s = ls_c_str (&field);
+	di.e = ls_end (&field);
 	di.v = &c->data[var_spec->fv];
 	di.flags = 0;
 	di.f1 = column;
@@ -1151,25 +1189,26 @@ read_from_data_list_list (const struct data_list_pgm *dls,
                           struct ccase *c)
 {
   struct dls_var_spec *var_spec;
-  char *field;
-  int len;
+  int end_blank = 0;
 
-  if (!dfm_get_record (dls->handle, NULL))
+  if (dfm_eof (dls->handle))
     return -2;
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
+      struct len_string field;
+      int column;
+
       /* Cut out a field and check for end-of-line. */
-      int column = cut_field (dls, &field, &len);
-      
+      column = cut_field (dls, &field, &end_blank);
       if (column == 0)
 	{
-	  if (get_undefined() )
+	  if (get_undefined ())
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
-		 "These will be filled with the system-missing value "
-		 "or blanks, as appropriate."),
+                       "These will be filled with the system-missing value "
+                       "or blanks, as appropriate."),
 		 var_spec->name);
-	  for (; var_spec; var_spec = var_spec->next) 
+	  for (; var_spec; var_spec = var_spec->next)
             {
               int width = get_format_var_width (&var_spec->input);
               if (width == 0)
@@ -1183,8 +1222,8 @@ read_from_data_list_list (const struct data_list_pgm *dls,
       {
 	struct data_in di;
 
-	di.s = field;
-	di.e = field + len;
+	di.s = ls_c_str (&field);
+	di.e = ls_end (&field);
 	di.v = &c->data[var_spec->fv];
 	di.flags = 0;
 	di.f1 = column;
@@ -1193,7 +1232,7 @@ read_from_data_list_list (const struct data_list_pgm *dls,
       }
     }
 
-  dfm_fwd_record (dls->handle);
+  dfm_forward_record (dls->handle);
   return -1;
 }
 
@@ -1882,15 +1921,14 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
 {
   struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
     
-  char *line;		/* Current record. */
-  int len;		/* Length of current record. */
+  struct len_string line;       /* Current record. */
 
   int starts_beg;	/* Starting column. */
   int starts_end;	/* Ending column. */
   int occurs;		/* Number of repetitions. */
   int length;		/* Length of each occurrence. */
-  int cont_beg;	/* Starting column for continuation lines. */
-  int cont_end;	/* Ending column for continuation lines. */
+  int cont_beg;         /* Starting column for continuation lines. */
+  int cont_end;         /* Ending column for continuation lines. */
 
   int occurs_left;	/* Number of occurrences remaining. */
 
@@ -1901,11 +1939,12 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
   dfm_push (t->handle);
   
   /* Read the current record. */
-  dfm_bkwd_record (t->handle, 1);
-  line = dfm_get_record (t->handle, &len);
-  if (line == NULL)
+  dfm_reread_record (t->handle, 1);
+  dfm_expand_tabs (t->handle);
+  if (dfm_eof (t->handle))
     return -2;
-  dfm_fwd_record (t->handle);
+  dfm_get_record (t->handle, &line);
+  dfm_forward_record (t->handle);
 
   /* Calculate occurs, length. */
   occurs_left = occurs = realize_value (&t->occurs, c);
@@ -1959,8 +1998,8 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
     {
       struct rpd_parse_info info;
       info.trns = t;
-      info.line = line;
-      info.len = len;
+      info.line = ls_c_str (&line);
+      info.len = ls_length (&line);
       info.beg = starts_beg;
       info.end = starts_end;
       info.ofs = length;
@@ -1995,8 +2034,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
       assert (occurs_left >= 0);
 
       /* Read in another record. */
-      line = dfm_get_record (t->handle, &len);
-      if (line == NULL)
+      if (dfm_eof (t->handle))
         {
           tmsg (SE, RPD_ERR,
                 _("Unexpected end of file with %d repetitions "
@@ -2004,12 +2042,14 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
                 occurs_left, occurs);
           return -2;
         }
-      dfm_fwd_record (t->handle);
+      dfm_expand_tabs (t->handle);
+      dfm_get_record (t->handle, &line);
+      dfm_forward_record (t->handle);
 
       /* Parse this record. */
       info.trns = t;
-      info.line = line;
-      info.len = len;
+      info.line = ls_c_str (&line);
+      info.len = ls_length (&line);
       info.beg = cont_beg;
       info.end = cont_end;
       info.ofs = length;

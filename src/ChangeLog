@@ -1,3 +1,132 @@
+Sun May 30 18:35:19 2004  Ben Pfaff  <blp@gnu.org>
+
+	Fully implement arbitrary delimiters on DATA LIST, extending the
+	half implementation that was already there.
+
+	* data-list.c: (struct data_list_pgm) Remove `delim', add
+	`delims', `delim_cnt'.
+	(cmd_data_list) Initialize new members.  Parse delimiters and
+	clean up code a bit.
+	(cut_field) Extract fields with arbitrary delimiters.  Also, fix
+	handling of leading commas.
+	(read_from_data_list_fixed) Expand tabs.  Adapt to new DFM
+	interfaces.
+	(read_from_data_list_free) Adapt to new DFM interfaces.
+	(read_from_data_list_list) Ditto.
+	(repeating_data_trns_proc) Ditto.
+
+	* dfm.c: Split up reader and writer into separate code, because
+	they do different things.  Use struct string instead of explicit
+	allocation code, for clarity.
+	(enum dfm_reader_flags) New enum.
+	(struct dfm_fhuser_ext) Removed.
+	(struct dfm_reader_ext) New.
+	(get_reader) New function, used by just about all the reader
+	functions.
+	(dfm_close) Removed.
+	(close_reader) New function.
+	(dfm_open_for_reading) Rewrite initialization of dfm_fhuser_ext.
+	(dfm_open_for_writing) Ditto.
+	(macro force_line_buffer_expansion) Removed.
+	(count_tabs) Removed.
+	(tabs_to_spaces) Removed.
+	(read_record) Deal with new dfm_reader_ext.  Use struct string
+	functions.  Don't convert tabs to spaces.
+	(dfm_eof) New function.
+	(dfm_get_record) Changed interface, rewrote.
+	(dfm_expand_tabs) New function.
+	(dfm_fwd_record) Renamed dfm_forward_record(), updated to new
+	dfm_reader_ext, rewritten.
+	(dfm_bkwd_record) Renamed dfm_reread_record(), updated to new
+	dfm_reader_ext, rewritten.
+	(dfm_set_record) Removed in favor of dfm_forward_columns().
+	(dfm_forward_columns) New function.
+	(dfm_get_cur_col) Renamed dfm_column_start, updated to new
+	dfm_reader_ext, rewritten.
+	(static var dfm_r_class) Use close_reader for the destructor.
+	(struct dfm_writer_ext) New.
+	(dfm_put_record) Updated to new dfm_writer_ext, rewritten.  Uses
+	bounce buffer now instead of local allocation.
+	(close_writer) New function.
+	(static var dfm_writer_ext) Use close_writer for destructor.
+	(cmd_begin_data) Adapt to new dfm_reader_ext.
+
+	* file-handle.q: Add support for per-file tab width.
+	(struct private_file_handle) Add tab_width member.
+	(q2c specifications) Add tabwidth subcommand.
+	(cmd_file_handle) Put parsed tab width into private_file_handle.
+	(create_file_handle) Set default tab width.
+	(handle_get_tab_width) New function.
+
+	* file-type.c: (file_type_source_read) Adapt to new DFM interface.
+
+	* inpt-pgm.c: (reread_trns_proc) Ditto.
+
+	* matrix-data.c: (context) Ditto.
+	(another_token) Ditto.
+	(mget_token) Ditto.
+	(force_eol) Ditto.
+
+Sun May 30 18:33:59 2004  Ben Pfaff  <blp@gnu.org>
+
+	* casefile.c: (casefile_destroy) Fix memory leak by freeing
+	cf->filename.
+	(casereader_destroy) Don't close file descriptor -1.
+
+	* recode.c: (cmd_recode) Fix memory leak.
+
+	* set.q: (q2c specifications) Fix typo in user message.
+
+	* str.c: (st_bare_pad_len_copy) Change memcpy to memmove to avoid
+	undefined behavior for overlapping arguments.
+
+Sun May 30 18:31:48 2004  Ben Pfaff  <blp@gnu.org>
+
+	* casefile.c: valgrind doesn't implement posix_fadvise() yet, so
+	don't call it when we're running under valgrind.
+	(call_posix_fadvise) New function.
+	(casefile_to_disk) Use call_posix_fadvise().
+	(reader_open_file) Ditto.
+	
+Sun May 30 18:20:12 2004  Ben Pfaff  <blp@gnu.org>
+
+	Update our string ADTs, struct string and struct len_string.  Get
+	rid of pool support, which was largely unused.  Rename lots of
+	functions to have more obvious or consistent names.
+	
+	* ascii.c: Get rid of ascii_pool.  It was only used for string
+	allocations.
+	(ascii_open_global) Don't create ascii_pool.
+	(ascii_close_driver) Don't destroy ascii_pool.
+	(ascii_postopen_driver) Don't use pool.
+	(ascii_close_driver) Destroy strings manually.
+
+	* str.c: (ds_create) Remove pool argument, all references updated.
+	(ds_init) Ditto.
+	(ds_replace) Remove pool support, make more efficient when we
+	don't need to reallocate.
+	(ds_destroy) Remove pool support.
+	(ds_rpad) New function.
+	(ds_size) Renamed ds_capacity(), all references updated.
+	(ds_value) Renamed ds_c_str(), all references updated.
+	(ds_concat) Renamed ds_puts(), all references updated.
+	(ds_concat_buffer) Renamed ds_concat(), all references updated.
+	(ds_putchar) Renamed ds_putc(), all references updated.
+	(ds_getline) Renamed ds_gets(), all references updated.
+	(ls_create) Remove pool argument, all references updated.
+	(ls_create_buffer) Ditto.
+	(ls_destroy) Removed pool support.
+	(ls_value) Renamed ls_c_str(), all references updated.
+
+	* str.h: (ls_length) [__GNUC__] Add inline version.
+	(ls_c_str) [__GNUC__] Add inline version.
+	(ls_end) [__GNUC__] Add inline version.
+	(struct string) Remove pool member.  Rename `size' to `capacity',
+	all references updated.
+
+	* tab.c: (text_format) Instead of using pool argument to
+	ls_create_buffer(), call pool_register() on allocated data.
+
 Mon Apr 26 22:40:07 2004  Ben Pfaff  <blp@gnu.org>
 
 	We're abusing the current ASCII driver by telling it to allocate a

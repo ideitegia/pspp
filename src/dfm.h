@@ -28,21 +28,26 @@
 
 #include <stddef.h>
 
-/* I/O utilities. */
 struct file_handle;
-int dfm_open_for_reading (struct file_handle *handle);
-int dfm_open_for_writing (struct file_handle *handle);
-char *dfm_get_record (struct file_handle *handle, int *len);
-int dfm_put_record (struct file_handle *handle, const char *rec, size_t len);
+struct len_string;
 
-/* Motion control. */
-void dfm_fwd_record (struct file_handle *handle);
-void dfm_bkwd_record (struct file_handle *handle, int column);
+/* Input. */
+int dfm_open_for_reading (struct file_handle *);
+int dfm_eof (struct file_handle *);
+void dfm_get_record (struct file_handle *, struct len_string *);
+void dfm_expand_tabs (struct file_handle *);
 
-/* Weirdness. */
-void dfm_set_record (struct file_handle *handle, char *new_line);
-int dfm_get_cur_col (struct file_handle *handle);
-void dfm_push (struct file_handle *handle);
-void dfm_pop (struct file_handle *handle);
+void dfm_forward_record (struct file_handle *);
+void dfm_reread_record (struct file_handle *, size_t column);
+void dfm_forward_columns (struct file_handle *, size_t columns);
+size_t dfm_column_start (struct file_handle *);
+
+/* Output. */
+int dfm_open_for_writing (struct file_handle *);
+int dfm_put_record (struct file_handle *, const char *rec, size_t len);
+
+/* File stack. */
+void dfm_push (struct file_handle *);
+void dfm_pop (struct file_handle *);
 
 #endif /* dfm_h */

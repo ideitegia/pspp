@@ -156,7 +156,7 @@ html_option (struct outp_driver *this, const char *key, const struct string *val
       break;
     case 1:
       free (x->file.filename);
-      x->file.filename = xstrdup (ds_value (val));
+      x->file.filename = xstrdup (ds_c_str (val));
       break;
     case string_arg:
       {
@@ -172,7 +172,7 @@ html_option (struct outp_driver *this, const char *key, const struct string *val
 	  }
 	if (*dest)
 	  free (*dest);
-	*dest = xstrdup (ds_value (val));
+	*dest = xstrdup (ds_c_str (val));
       }
       break;
     default:
@@ -454,7 +454,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
     {
       fputs ("<P>", x->file.file);
       if (!ls_empty_p (t->cc))
-	escape_string (x->file.file, ls_value (t->cc), ls_length (t->cc));
+	escape_string (x->file.file, ls_c_str (t->cc), ls_length (t->cc));
       fputs ("</P>\n", x->file.file);
       
       return;
@@ -465,7 +465,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   if (!ls_empty_p (&t->title))
     {
       fprintf (x->file.file, "  <TR>\n    <TH COLSPAN=%d>", t->nc);
-      escape_string (x->file.file, ls_value (&t->title),
+      escape_string (x->file.file, ls_c_str (&t->title),
 		     ls_length (&t->title));
       fputs ("</TH>\n  </TR>\n", x->file.file);
     }
@@ -490,7 +490,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
             cc = t->cc + c + r * t->nc;
 	    if (*ct & TAB_JOIN) 
               {
-                j = (struct tab_joined_cell *) ls_value (cc);
+                j = (struct tab_joined_cell *) ls_c_str (cc);
                 cc = &j->contents;
                 if (j->x1 != c || j->y1 != r)
                   continue; 
@@ -533,7 +533,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	    
 	    if ( ! (*ct & TAB_EMPTY)  ) 
 	      {
-		char *s = ls_value (cc);
+		char *s = ls_c_str (cc);
 		size_t l = ls_length (cc);
 
 		while (l && isspace ((unsigned char) *s))

@@ -388,14 +388,14 @@ cmd_recode (void)
 	  
 	}
 
+      free (v);
+      v = NULL;
+
       if (!lex_match ('/'))
 	break;
       while (rcd->next)
 	rcd = rcd->next;
       rcd = rcd->next = xmalloc (sizeof *rcd);
-
-      free (v);
-      v = NULL;
     }
 
   if (token != '.')
@@ -461,7 +461,7 @@ parse_dest_spec (struct rcd_var * rcd, union value * v, size_t *max_dst_width)
       if (toklen > max)
 	max = toklen;
       v->c = xmalloc (max + 1);
-      st_pad_copy (v->c, ds_value (&tokstr), max + 1);
+      st_pad_copy (v->c, ds_c_str (&tokstr), max + 1);
       flags = RCD_DEST_STRING;
       *max_dst_width = max;
       lex_get ();
@@ -624,7 +624,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 	      if (!lex_force_string ())
 		return 0;
 	      c->f1.c = xmalloc (max_src_width + 1);
-	      st_pad_copy (c->f1.c, ds_value (&tokstr), max_src_width + 1);
+	      st_pad_copy (c->f1.c, ds_c_str (&tokstr), max_src_width + 1);
 	      lex_get ();
 	    }
 	}
@@ -810,7 +810,7 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
 				  c->data[v->src->fv].s,
 				  v->dest->width, v->src->width);
 	  else
-	    memcpy (c->data[v->dest->fv].s, cp->t.c, v->dest->width);
+	    memmove (c->data[v->dest->fv].s, cp->t.c, v->dest->width);
 	}
     }
 

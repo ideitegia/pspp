@@ -615,7 +615,7 @@ parse_primary (union any_node **n)
 
     case T_STRING:
       {
-        *n = allocate_str_con (ds_value (&tokstr), ds_length (&tokstr));
+        *n = allocate_str_con (ds_c_str (&tokstr), ds_length (&tokstr));
 	lex_get ();
 	return EXPR_STRING;
       }
@@ -1223,7 +1223,7 @@ parse_function (union any_node ** n)
     }
 
   ds_truncate (&tokstr, 31);
-  strcpy (fname, ds_value (&tokstr));
+  strcpy (fname, ds_c_str (&tokstr));
   cp = strrchr (fname, '.');
   if (cp && isdigit ((unsigned char) cp[1]))
     {

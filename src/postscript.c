@@ -567,7 +567,7 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 {
   struct ps_driver_ext *x = this->ext;
   int cat, subcat;
-  char *value = ds_value (val);
+  char *value = ds_c_str (val);
 
   cat = outp_match_keyword (key, option_tab, &option_info, &subcat);
 
@@ -898,8 +898,8 @@ output_encodings (struct outp_driver *this)
 
   struct string line, buf;
 
-  ds_init (NULL, &line, 128);
-  ds_init (NULL, &buf, 128);
+  ds_init (&line, 128);
+  ds_init (&buf, 128);
   for (pe = hsh_first (x->encodings, &iter); pe != NULL;
        pe = hsh_next (x->encodings, &iter)) 
     {
@@ -946,7 +946,7 @@ output_encodings (struct outp_driver *this)
 	      if (buf.length == 0) 
 		continue;
 
-	      pschar = strtok_r (ds_value (&buf), " \t\r\n", &sp);
+	      pschar = strtok_r (ds_c_str (&buf), " \t\r\n", &sp);
 	      code = strtok_r (NULL, " \t\r\n", &sp);
 	      if (*pschar == 0 || *code == 0)
 		continue;
@@ -984,14 +984,14 @@ output_encodings (struct outp_driver *this)
 	      
 	      if (ds_length (&line) + strlen (temp) > 70)
 		{
-		  ds_concat (&line, x->eol);
-		  fputs (ds_value (&line), x->file.file);
+		  ds_puts (&line, x->eol);
+		  fputs (ds_c_str (&line), x->file.file);
 		  ds_clear (&line);
 		}
-	      ds_concat (&line, temp);
+	      ds_puts (&line, temp);
 	    }
-	  ds_concat (&line, x->eol);
-	  fputs (ds_value (&line), x->file.file);
+	  ds_puts (&line, x->eol);
+	  fputs (ds_c_str (&line), x->file.file);
 
 	  if (fclose (f) == EOF)
 	    msg (MW, _("PostScript driver: Error closing encoding file `%s'."),
@@ -1104,7 +1104,7 @@ read_ps_encodings (struct outp_driver *this)
   where.line_number = 0;
   err_push_file_locator (&where);
 
-  ds_init (NULL, &line, 128);
+  ds_init (&line, 128);
     
   for (;;)
     {
@@ -2543,7 +2543,7 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
   buf_loc = buf;
 
   assert (!ls_null_p (&t->s));
-  cp = ls_value (&t->s);
+  cp = ls_c_str (&t->s);
   end = ls_end (&t->s);
   if (draw)
     {

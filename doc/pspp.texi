@@ -5122,6 +5122,7 @@ This example shows keywords abbreviated to their first 3 letters.
 
 @display
 DATA LIST FREE
+        [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
         FILE='filename'
         END=end_var
@@ -5132,16 +5133,23 @@ where each var_spec takes one of the forms
         var_list *
 @end display
 
-In free format, the input data is structured as a series of comma- or
-whitespace-delimited fields (end of line is one form of whitespace; it
-is not treated specially).  Field contents may be surrounded by matched
-pairs of apostrophes (@samp{'}) or quotes (@samp{"}), or they may be
-unenclosed.  For any type of field leading white space (up to the
-apostrophe or quote, if any) is not included in the field.
+In free format, the input data is, by default, structured as a series
+of fields separated by spaces, tabs, commas, or line breaks.  Each
+field's content may be unquoted, or it may be quoted with a pairs of
+apostrophes (@samp{'}) or double quotes (@samp{"}).  Unquoted white
+space separates fields but is not part of any field.  Any mix of
+spaces, tabs, and line breaks is equivalent to a single space for the
+purpose of separating fields, but consecutive commas will skip a
+field.
 
-Multiple consecutive delimiters are equivalent to a single delimiter.
-To specify an empty field, write an empty set of single or double
-quotes; for instance, @samp{""}.
+Alternatively, delimiters can be specified explicitly, as a
+parenthesized, comma-separated list of single-character strings
+immediately following FREE.  The word TAB may also be used to specify
+a tab character as a delimiter.  When delimiters are specified
+explicitly, only the given characters, plus line breaks, separate
+fields.  Furthermore, leading spaces at the beginnings of fields are
+not trimmed, consecutive delimiters define empty fields, and no form
+of quoting is allowed.
 
 The NOTABLE and TABLE subcommands are as in @cmd{DATA LIST FIXED} above.
 NOTABLE is the default.
@@ -5166,6 +5174,7 @@ on field width apply, but they are honored on output.
 
 @display
 DATA LIST LIST
+        [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
         FILE='filename'
         END=end_var
@@ -5211,14 +5220,19 @@ the current input program.  @xref{INPUT PROGRAM}.
 @display
 FILE HANDLE handle_name
         /NAME='filename'
-        /RECFORM=@{VARIABLE,FIXED,SPANNED@}
+        /MODE=@{CHARACTER,IMAGE@}
         /LRECL=rec_len
-        /MODE=@{CHARACTER,IMAGE,BINARY,MULTIPUNCH,360@}
+        /TABWIDTH=tab_width
 @end display
 
-Use @cmd{FILE HANDLE} to define the attributes of a file that does
-not use conventional variable-length records terminated by new-line
-characters.
+Use @cmd{FILE HANDLE} to associate a file handle name with a file and
+its attributes, so that later commands can refer to the file by its
+handle name.  Because names of text files can be specified directly on
+commands that access files, @cmd{FILE HANDLE} is only needed when a
+file is not an ordinary file containing lines of text.  However,
+@cmd{FILE HANDLE} may be used even for text files, and it may be
+easier to specify a file's name once and later refer to it by an
+abstract handle.
 
 Specify the file handle name as an identifier.  Any given identifier may
 only appear once in a PSPP run.  File handles may not be reassigned to a
@@ -5228,18 +5242,19 @@ HANDLE} command name.
 The NAME subcommand specifies the name of the file associated with the
 handle.  It is the only required subcommand.
 
-The RECFORM subcommand specifies how the file is laid out.  VARIABLE
-specifies variable-length lines terminated with new-lines, and it is the
-default.  FIXED specifies fixed-length records.  SPANNED is not
-supported.
+MODE specifies a file mode.  In CHARACTER mode, the default, the data
+file is opened in ANSI C text mode, so that local end of line
+conventions are followed, and each text line is read as one record.
+In CHARACTER mode, most input programs will expand tabs to spaces
+(@cmd{DATA LIST FREE} with explicitly specified delimiters is an
+exception).  By default, each tab is 4 characters wide, but an
+alternate width may be specified on TABWIDTH.  A tab width of 0
+suppresses tab expansion entirely.
 
-LRECL specifies the length of fixed-length records.  It is required if
-@code{/RECFORM FIXED} is specified.  
-
-MODE specifies a file mode.  CHARACTER, the default, causes the data
-file to be opened in ANSI C text mode.  BINARY causes the data file to
-be opened in ANSI C binary mode.  The other possibilities are not
-supported.
+By contrast, in BINARY mode, the data file is opened in ANSI C binary
+mode and records are a fixed length.  In BINARY mode, LRECL specifies
+the record length in bytes, with a default of 1024.  Tab characters
+are never expanded to spaces in binary mode.
 
 @node INPUT PROGRAM, LIST, FILE HANDLE, Data Input and Output
 @section INPUT PROGRAM
@@ -6624,7 +6639,7 @@ character codes.  On most modern computers, this is a form of ASCII.
 The aggregation functions listed above exclude all user-missing values
 from calculations.  To include user-missing values, insert a period
 (@samp{.}) between the function name and left parenthesis
-(e.g.~@samp{SUM.}).
+(e.g.@: @samp{SUM.}).
 
 Normally, only a single case (for SD and SD., two cases) need be
 non-missing in each group for the aggregate variable to be
@@ -9418,7 +9433,7 @@ character set translation table, followed by an 8-byte tag string.
 The 200-byte segment is divided into five 40-byte sections, each of
 which represents the string @code{@var{charset} SPSS PORT FILE} in a
 different character set encoding, where @var{charset} is the name of
-the character set used in the file, e.g. @code{ASCII} or
+the character set used in the file, e.g.@: @code{ASCII} or
 @code{EBCDIC}.  Each string is padded on the right with spaces in its
 respective character set.
 

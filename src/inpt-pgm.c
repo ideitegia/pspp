@@ -383,7 +383,7 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
   struct reread_trns *t = (struct reread_trns *) pt;
 
   if (t->column == NULL)
-    dfm_bkwd_record (t->handle, 1);
+    dfm_reread_record (t->handle, 1);
   else
     {
       union value column;
@@ -393,10 +393,10 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
 	{
 	  msg (SE, _("REREAD: Column numbers must be positive finite "
 	       "numbers.  Column set to 1."));
-	  dfm_bkwd_record (t->handle, 1);
+	  dfm_reread_record (t->handle, 1);
 	}
       else
-	dfm_bkwd_record (t->handle, column.f);
+	dfm_reread_record (t->handle, column.f);
     }
   return -1;
 }

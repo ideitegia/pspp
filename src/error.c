@@ -81,7 +81,7 @@ msg (int class, const char *format, ...)
 {
   struct string buf;
   
-  ds_init (NULL, &buf, 1024);
+  ds_init (&buf, 1024);
 
   /* Format the message into BUF. */
   {
@@ -283,13 +283,13 @@ err_vmsg (const struct error *e)
   assert (class >= 0 && class < ERR_CLASS_COUNT);
   assert (e->text != NULL);
   
-  ds_init (NULL, &msg, 64);
+  ds_init (&msg, 64);
   if (e->where.filename && (error_classes[class].flags & ERR_WITH_FILE))
     {
       ds_printf (&msg, "%s:", e->where.filename);
       if (e->where.line_number != -1)
 	ds_printf (&msg, "%d:", e->where.line_number);
-      ds_putchar (&msg, ' ');
+      ds_putc (&msg, ' ');
     }
 
   ds_printf (&msg, "%s: ", gettext (error_classes[class].banner));
@@ -304,9 +304,9 @@ err_vmsg (const struct error *e)
     ds_printf (&msg, "%s: ", cur_proc);
 
   if (e->title)
-    ds_concat (&msg, e->title);
+    ds_puts (&msg, e->title);
 
-  ds_concat (&msg, e->text);
+  ds_puts (&msg, e->text);
 
   /* FIXME: Check set_messages and set_errors to determine where to
      send errors and messages.
@@ -314,7 +314,7 @@ err_vmsg (const struct error *e)
      Please note that this is not trivial.  We have to avoid an
      infinite loop in reporting errors that originate in the output
      section. */
-  dump_message (ds_value (&msg), 8, puts_stdout, get_viewwidth());
+  dump_message (ds_c_str (&msg), 8, puts_stdout, get_viewwidth());
 
   ds_destroy (&msg);
 

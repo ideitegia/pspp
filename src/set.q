@@ -158,7 +158,7 @@ static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
      listing=custom;
      log=custom;
      lowres=lores:auto/on/off;
-     lpi=integer "x>0" "% must be greater than 0";
+     lpi=integer "x>0" "%s must be greater than 0";
      menus=menus:standard/extended;
      messages=messages:on/off/terminal/listing/both/none;
      mexpand=mexp:on/off;
@@ -595,7 +595,7 @@ stc_custom_pager (struct cmd_set *cmd UNUSED)
 	return 0;
       if (set_pager)
 	free (set_pager);
-      set_pager = xstrdup (ds_value (&tokstr));
+      set_pager = xstrdup (ds_c_str (&tokstr));
       lex_get ();
     }
   return 1;
@@ -776,7 +776,7 @@ stc_custom_journal (struct cmd_set *cmd UNUSED)
     set_journaling = 0;
   if (token == T_STRING)
     {
-      set_journal = xstrdup (ds_value (&tokstr));
+      set_journal = xstrdup (ds_c_str (&tokstr));
       lex_get ();
     }
   return 1;

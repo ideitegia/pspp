@@ -7,6 +7,7 @@ TESTS = \
 	command/beg-data.sh \
 	command/bignum.sh \
 	command/count.sh \
+	command/data-list.sh \
 	command/erase.sh \
 	command/file-label.sh \
 	command/filter.sh \

@@ -72,9 +72,9 @@ static int read_console (void);
 void
 getl_initialize (void)
 {
-  ds_create (NULL, &getl_include_path,
+  ds_create (&getl_include_path,
 	     fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
-  ds_init (NULL, &getl_buf, 256);
+  ds_init (&getl_buf, 256);
 }
 
 /* Close getline. */
@@ -109,9 +109,9 @@ void
 getl_add_include_dir (const char *path)
 {
   if (ds_length (&getl_include_path))
-    ds_putchar (&getl_include_path, PATH_DELIMITER);
+    ds_putc (&getl_include_path, PATH_DELIMITER);
 
-  ds_concat (&getl_include_path, path);
+  ds_puts (&getl_include_path, path);
 }
 
 /* Adds FN to the tail end of the list of script files to execute.
@@ -154,7 +154,7 @@ getl_include (const char *fn)
 
   {
     char *cur_dir = getl_get_current_directory ();
-    real_fn = fn_search_path (fn, ds_value (&getl_include_path), cur_dir);
+    real_fn = fn_search_path (fn, ds_c_str (&getl_include_path), cur_dir);
     free (cur_dir);
   }
 
@@ -273,7 +273,7 @@ handle_line_buffer (void)
     }
   while (s->cur_line == NULL);
 
-  ds_concat_buffer (&getl_buf, s->cur_line->line, s->cur_line->len);
+  ds_concat (&getl_buf, s->cur_line->line, s->cur_line->len);
 
   /* Advance pointers. */
   s->cur_line = s->cur_line->next;
@@ -309,7 +309,7 @@ getl_read_line (void)
 	  perform_DO_REPEAT_substitutions ();
 	  if (getl_head->print)
 	    tab_output_text (TAB_LEFT | TAT_FIX | TAT_PRINTF, "+%s",
-			     ds_value (&getl_buf));
+			     ds_c_str (&getl_buf));
 	  return 1;
 	}
       
@@ -326,7 +326,7 @@ getl_read_line (void)
 	    }
 	}
 
-      if (!ds_getline (&getl_buf, s->f))
+      if (!ds_gets (&getl_buf, s->f))
 	{
 	  if (ferror (s->f))
 	    msg (ME, _("Reading `%s': %s."), s->fn, strerror (errno));
@@ -337,13 +337,13 @@ getl_read_line (void)
 	ds_truncate (&getl_buf, ds_length (&getl_buf) - 1);
 
       if (get_echo())
-	tab_output_text (TAB_LEFT | TAT_FIX, ds_value (&getl_buf));
+	tab_output_text (TAB_LEFT | TAT_FIX, ds_c_str (&getl_buf));
 
       getl_head->ln++;
 
       /* Allows shebang invocation: `#! /usr/local/bin/pspp'. */
-      if (ds_value (&getl_buf)[0] == '#'
-	  && ds_value (&getl_buf)[1] == '!')
+      if (ds_c_str (&getl_buf)[0] == '#'
+	  && ds_c_str (&getl_buf)[1] == '!')
 	continue;
 
       return 1;
@@ -464,7 +464,7 @@ read_console (void)
 #endif
 
   ds_clear (&getl_buf);
-  ds_concat (&getl_buf, line);
+  ds_puts (&getl_buf, line);
 
   return 1;
 }
@@ -477,7 +477,7 @@ read_console (void)
 
   fputs (getl_prompt ? get_cprompt() : get_prompt(), stdout);
   ds_clear (&getl_buf);
-  if (ds_getline (&getl_buf, stdin))
+  if (ds_gets (&getl_buf, stdin))
     return 1;
 
   if (ferror (stdin))

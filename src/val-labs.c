@@ -151,7 +151,7 @@ get_label (struct variable **vars, int var_cnt)
               lex_error (_("expecting string"));
 	      return 0;
 	    }
-	  st_bare_pad_copy (value.s, ds_value (&tokstr), MAX_SHORT_STRING);
+	  st_bare_pad_copy (value.s, ds_c_str (&tokstr), MAX_SHORT_STRING);
 	}
       else
 	{
@@ -174,7 +174,7 @@ get_label (struct variable **vars, int var_cnt)
 	  msg (SW, _("Truncating value label to 60 characters."));
 	  ds_truncate (&tokstr, 60);
 	}
-      label = ds_value (&tokstr);
+      label = ds_c_str (&tokstr);
 
       for (i = 0; i < var_cnt; i++)
         val_labs_replace (vars[i]->val_labs, value, label);

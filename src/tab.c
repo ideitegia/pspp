@@ -433,7 +433,8 @@ text_format (struct tab_table *table, int opt, const char *text, va_list args,
   else
     len = strlen (text);
 
-  ls_create_buffer (table->container, s, text, len);
+  ls_create_buffer (s, text, len);
+  pool_register (table->container, free, s->string);
   
   if (opt & TAT_PRINTF)
     local_free (text);
@@ -1162,7 +1163,7 @@ tabi_title (int x, int y)
   cp = stpcpy (cp, ".  ");
   if (!ls_empty_p (&t->title))
     {
-      memcpy (cp, ls_value (&t->title), ls_length (&t->title));
+      memcpy (cp, ls_c_str (&t->title), ls_length (&t->title));
       cp += ls_length (&t->title);
     }
   *cp = 0;
@@ -1337,7 +1338,7 @@ render_strip (int x, int y, int r, int c1, int c2, int r1 UNUSED, int r2)
 		    }
 		} else {
 		  struct tab_joined_cell *j =
-		    (struct tab_joined_cell *) ls_value (&t->cc[index]);
+		    (struct tab_joined_cell *) ls_c_str (&t->cc[index]);
 
 		  if (j->hit != tab_hit)
 		    {
