@@ -19,22 +19,8 @@
 
 #include <stddef.h>
 
-/* Some old versions of Linux libc prototype stpcpy() in string.h but
-   fail to include it in their C library.  By not including string.h
-   on these systems we can avoid conflicting prototypes.  Of course,
-   in theory this might be dangerous, if the prototype specifies some
-   weird calling convention, but for GNU/Linux at least it shouldn't
-   cause problems.
-
-   This might be needed for systems other than GNU/Linux; let me
-   know. */
-
-#ifdef __linux__
 void *memcpy (void *, const void *, size_t);
 size_t strlen (const char *);
-#else
-#include "str.h"
-#endif
 
 /* Copies SRC to DEST, returning the address of the terminating '\0'
    in DEST. */
