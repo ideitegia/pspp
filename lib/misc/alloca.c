@@ -33,6 +33,7 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include "common.h"
 
 typedef void *pointer;		/* generic pointer type */
 #define	NULL	0		/* null pointer constant */

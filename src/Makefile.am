@@ -43,14 +43,10 @@ sysfile-info.c tab.c tab.h temporary.c title.c t-test.c val-labs.c	\
 var-labs.c var.h vars-atr.c vars-prs.c vector.c vector.h version.c	\
 version.h vfm.c vfm.h vfmP.h weight.c
 
-GMP_LIBS = ../lib/gmp/mpf/libmpf.a			\
-	../lib/gmp/mpn/libmpn.a			\
-	../lib/gmp/libgmp.a
-
 LDADD =	../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\
 	../lib/dcdflib/libdcdflib.a		\
-	@GMP_LIBS@ @INTLLIBS@
+	@LIBINTL@
 
 version.c:
 	echo "#include <config.h>" > version.c
@@ -72,16 +68,6 @@ version.c:
 	echo "	\"/usr/share/groff/font\";" >> version.c
 	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> version.c
 
-# q2c
 
-LOCAL_CC = @LOCAL_CC@
-LOCAL_COMPILE = $(LOCAL_CC) -c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-LOCAL_LINK = $(LOCAL_CC) $(LDFLAGS) -o $@
-
-q2c.o: q2c.c
-	$(LOCAL_COMPILE) $< -o q2c.o
-q2c: q2c.o
-	$(LOCAL_LINK) q2c.o ../lib/misc/libmisc.a -o q2c
-
-CLEANFILES = q2c
-MAINTAINERCLEANFILES = Makefile.in
+noinst_PROGRAMS = q2c
+q2c_SOURCES = q2c.c

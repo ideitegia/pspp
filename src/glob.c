@@ -87,6 +87,7 @@ extern void stifle_history ();
 #include "getline.h"
 #include "julcal/julcal.h"
 #include "lexer.h"
+#include "magic.h"
 #include "main.h"
 #include "settings.h"
 #include "str.h"
@@ -163,54 +164,6 @@ init_glob (int argc unused, char **argv)
 #elif __BORLANDC__
   _control87 (0xffff, 0x137f);
 #endif
-
-#if ENDIAN==UNKNOWN
-  {
-    /* Test for endianness borrowed from acspecific.m4, which was in
-     turn borrowed from Harbison&Steele. */
-    union
-      {
-	long l;
-	char c[sizeof (long)];
-      }
-    u;
-
-    u.l = 1;
-    if (u.c[sizeof u.l - 1] == 1)
-      endian = BIG;
-    else if (u.c[0] == 1)
-      endian = LITTLE;
-    else
-      msg (FE, _("Your machine does not appear to be either big- or little-"
-		 "endian.  At the moment, PSPP only supports machines of "
-		 "these standard endiannesses.  If you want to hack in "
-		 "others, contact the author."));
-  }
-#endif
-
-  /* PORTME: Set the value for second_lowest_value, which is the
-     "second lowest" possible value for a double.  This is the value
-     for LOWEST on MISSING VALUES, etc. */
-#ifndef SECOND_LOWEST_VALUE
-#if FPREP == FPREP_IEEE754
-  {
-    union
-      {
-	unsigned char c[8];
-	double d;
-      }
-    second_lowest_little = {{0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff}},
-    second_lowest_big = {{0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe}};
-
-    if (endian == LITTLE)
-      second_lowest_value = second_lowest_little.d;
-    else if (endian == BIG)
-      second_lowest_value = second_lowest_big.d;
-  }
-#else /* FPREP != FPREP_IEEE754 */
-#error Unknown floating-point representation.
-#endif /* FPREP != FPREP_IEEE754 */
-#endif /* !SECOND_LOWEST_VALUE */
 
   /* var.h */
   default_dict.var_by_name = avl_create (NULL, cmp_variable, NULL);

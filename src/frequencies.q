@@ -192,11 +192,8 @@ cmd_frequencies (void)
   int_pool = pool_create ();
   result = internal_cmd_frequencies ();
   pool_destroy (int_pool);
-  int_pool=0;
   pool_destroy (gen_pool);
-  gen_pool=0;
   free (v_variables);
-  v_variables=0;
   return result;
 }
 

@@ -710,7 +710,8 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    sp->f *= 60. * 60. * 24.;
 	  break;
 	case OP_DATE_MOYR:
-	  (--sp)->f = yrmoda (sp[1].f, sp[0].f, 1);
+          sp--;
+	  sp->f = yrmoda (sp[1].f, sp[0].f, 1);
 	  if (sp->f != SYSMIS)
 	    sp->f *= 60. * 60. * 24.;
 	  break;

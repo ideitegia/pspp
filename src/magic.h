@@ -25,16 +25,33 @@
 #include <float.h>
 #include <limits.h>
 
-#if ENDIAN != UNKNOWN
-#define endian ENDIAN
-#else
-extern int endian;
+/* Check that the floating-point representation is one that we
+   understand. */
+#ifndef FPREP_IEEE754
+#error Only IEEE-754 floating point currently supported.
 #endif
 
-#ifdef SECOND_LOWEST_VALUE
-#define second_lowest_value SECOND_LOWEST_VALUE
+/* Allows us to specify individual bytes of a double. */     
+union cvt_dbl {
+  unsigned char cvt_dbl_i[8];
+  double cvt_dbl_d;
+};
+
+
+/* "Second-lowest value" bytes for an IEEE-754 double. */
+#if WORDS_BIGENDIAN
+#define SECOND_LOWEST_BYTES {0xff,0xef,0xff,0xff, 0xff,0xff,0xff,0xfe}
 #else
-extern double second_lowest_value;
+#define SECOND_LOWEST_BYTES {0xfe,0xff,0xff,0xff, 0xff,0xff,0xef,0xff}
+#endif
+
+/* "Second-lowest value" for a double. */
+#if __GNUC__
+#define second_lowest_value                                               \
+        (__extension__ ((union cvt_dbl) {SECOND_LOWEST_BYTES}).cvt_dbl_d)
+#else /* not GNU C */
+extern union cvt_dbl second_lowest_value_union;
+#define second_lowest_value (second_lowest_value_union.cvt_dbl_d)
 #endif
 
 /* Used when we want a "missing value". */

@@ -80,7 +80,7 @@ int ipmpar(int *i)
   imach[2] = sizeof (long) * 8 - 1;
   imach[3] = INT_MAX;
 
-#if FPREP==FPREP_IEEE754
+#if FPREP_IEEE754
   imach[4] = 2;
   imach[5] = 24;
   imach[6] = -125;

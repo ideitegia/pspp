@@ -467,8 +467,9 @@ convert_IB (char *dst, const struct fmt_spec *fp, const union value *v)
 	}
     }
   memcpy (dst, temp, fp->w);
-  if (endian == LITTLE)
-    mm_reverse (dst, fp->w);
+#ifndef WORDS_BIGENDIAN
+  mm_reverse (dst, fp->w);
+#endif
 
   return 1;
 }
@@ -530,8 +531,9 @@ convert_PIB (char *dst, const struct fmt_spec *fp, const union value *v)
       frac *= 256.0;
       ((unsigned char *) dst)[i] = floor (frac);
     }
-  if (endian == LITTLE)
-    mm_reverse (dst, fp->w);
+#ifndef WORDS_BIGENDIAN
+  mm_reverse (dst, fp->w);
+#endif
 
   return 1;
 }

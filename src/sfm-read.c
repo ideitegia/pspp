@@ -44,6 +44,7 @@ char *alloca ();
 #include "avl.h"
 #include "error.h"
 #include "file-handle.h"
+#include "filename.h"
 #include "format.h"
 #include "getline.h"
 #include "magic.h"
@@ -104,6 +105,7 @@ void dump_dictionary (struct dictionary * dict);
 /* bswap_int32(): Reverse the byte order of 32-bit integer *X. */
 #if __linux__
 #include <asm/byteorder.h>
+#include <netinet/in.h>
 static inline void
 bswap_int32 (int32 * x)
 {
@@ -200,7 +202,7 @@ sfm_close (struct file_handle * h)
 
   ext->opened--;
   assert (ext->opened == 0);
-  if (EOF == fclose (ext->file))
+  if (EOF == fn_close (h->fn, ext->file))
     msg (ME, _("%s: Closing system file: %s."), h->fn, strerror (errno));
   free (ext->buf);
   free (h->ext);
@@ -284,7 +286,7 @@ sfm_read_dictionary (struct file_handle * h, struct sfm_read_info * inf)
   
   /* Open the physical disk file. */
   ext = xmalloc (sizeof (struct sfm_fhuser_ext));
-  ext->file = fopen (h->norm_fn, "rb");
+  ext->file = fn_open (h->norm_fn, "rb");
   if (ext->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for reading "
@@ -447,7 +449,7 @@ lossage:
   msg (VM (1), _("Error reading system-file header."));
   
   free (var_by_index);
-  fclose (ext->file);
+  fn_close (h->fn, ext->file);
   if (ext && ext->dict)
     free_dictionary (ext->dict);
   free (ext);
@@ -463,7 +465,7 @@ read_machine_int32_info (struct file_handle * h, int size, int count)
   struct sfm_fhuser_ext *ext = h->ext;
 
   int32 data[8];
-  int file_endian;
+  int file_bigendian;
 
   int i;
 
@@ -478,34 +480,26 @@ read_machine_int32_info (struct file_handle * h, int size, int count)
       bswap_int32 (&data[i]);
 
   /* PORTME: Check floating-point representation. */
-  switch (FPREP)
-    {
-    case FPREP_IEEE754:
-      if (data[4] != 1)
-	lose ((ME, _("%s: Floating-point representation in system file is not "
-	       "IEEE-754.  PSPP cannot convert between floating-point "
-	       "formats."), h->fn));
-      break;
-    default:
-      assert (0);
-    }
+#ifdef FPREP_IEEE754
+  if (data[4] != 1)
+    lose ((ME, _("%s: Floating-point representation in system file is not "
+                 "IEEE-754.  PSPP cannot convert between floating-point "
+                 "formats."), h->fn));
+#endif
 
   /* PORTME: Check recorded file endianness against intuited file
      endianness. */
-  file_endian = endian;
+#ifdef WORDS_BIGENDIAN
+  file_bigendian = 1;
+#else
+  file_bigendian = 0;
+#endif
   if (ext->reverse_endian)
-    {
-      if (file_endian == BIG)
-	file_endian = LITTLE;
-      else if (file_endian == LITTLE)
-	file_endian = BIG;
-      else
-	assert (0);
-    }
-  if ((file_endian == BIG) ^ (data[6] == 1))
+    file_bigendian ^= 1;
+  if (file_bigendian ^ (data[6] == 1))
     lose ((ME, _("%s: File-indicated endianness (%s) does not match endianness "
 	   "intuited from file header (%s)."),
-	   h->fn, file_endian == BIG ? _("big-endian") : _("little-endian"),
+	   h->fn, file_bigendian ? _("big-endian") : _("little-endian"),
 	   data[6] == 1 ? _("big-endian") : (data[6] == 2 ? _("little-endian")
 					  : _("unknown"))));
 
@@ -698,10 +692,11 @@ read_header (struct file_handle * h, struct sfm_read_info * inf)
       memcpy (inf->creation_time, hdr.creation_time, 8);
       inf->creation_time[8] = 0;
 
-      if (!ext->reverse_endian)
-	inf->endianness = endian;
-      else
-	inf->endianness = endian == BIG ? LITTLE : BIG;
+#ifdef WORDS_BIGENDIAN
+      inf->bigendian = !ext->reverse_endian;
+#else
+      inf->bigendian = ext->reverse_endian;
+#endif
 
       inf->compressed = hdr.compressed;
 

@@ -33,7 +33,7 @@ struct sfm_read_info
   {
     char creation_date[10];	/* `dd mmm yy' plus a null. */
     char creation_time[9];	/* `hh:mm:ss' plus a null. */
-    int endianness;		/* BIG or LITTLE. */
+    int bigendian;		/* 1=big-endian, 0=little-endian. */
     int compressed;		/* 0=no, 1=yes. */
     int ncases;			/* -1 if unknown. */
     char product[61];		/* Product name plus a null. */

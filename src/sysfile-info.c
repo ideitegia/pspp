@@ -102,10 +102,7 @@ cmd_sysfile_info (void)
   tab_text (t, 1, 2, TAB_LEFT | TAT_PRINTF, "%s %s by %s",
 		inf.creation_date, inf.creation_time, inf.product);
   tab_text (t, 0, 3, TAB_LEFT, _("Endian:"));
-  tab_text (t, 1, 3, TAB_LEFT,
-		(inf.endianness == BIG ? _("Big.")
-		 : (inf.endianness == LITTLE ? _("Little.")
-		    : (assert (0), _("<internal error>")))));
+  tab_text (t, 1, 3, TAB_LEFT, inf.bigendian ? _("Big.") : _("Little."));
   tab_text (t, 0, 4, TAB_LEFT, _("Variables:"));
   tab_text (t, 1, 4, TAB_LEFT | TAT_PRINTF, "%d",
 		d->nvar);

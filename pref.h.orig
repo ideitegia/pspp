@@ -80,41 +80,11 @@
 
 /* CPUs. */
 
-/* Check that the floating-point representation is one that we
-   understand. */
-#if FPREP==FPREP_IEEE754
-     
 #if SIZEOF_DOUBLE == 8
 #define second_lowest_flt64 second_lowest_value
 #else
 #error Must define second_lowest_flt64 for your architecture.
 #endif
-
-/* This trick borrowed from gcc-lib/.../include/float.h. */
-#if __GNUC__ && (ENDIAN==BIG || ENDIAN==LITTLE)
-#ifndef __DBL_UNION__
-#define __DBL_UNION__
-union blp_convert_double {
-  unsigned char convert_double_i[8];
-  double convert_double_d;
-};
-#endif /* !defined __DBL_UNION__ */
-#if ENDIAN==LITTLE
-#define SECOND_LOWEST_VALUE 						\
-	(__extension__ ((union blp_convert_double)			\
-			{{0xfe,0xff,0xff,0xff, 0xff,0xff,0xef,0xff}})	\
-	 .convert_double_d)
-#elif ENDIAN==BIG
-#define SECOND_LOWEST_VALUE 						\
-	(__extension__ ((union blp_convert_double)			\
-			{{0xff,0xef,0xff,0xff, 0xff,0xff,0xff,0xfe}})	\
-	 .convert_double_d)
-#endif /* endianness */
-#endif /* __GNUC__ and known endianness */
-
-#else /* FPREP != FPREP_IEEE754 */
-#error Floating point representation must be known at compile time.
-#endif /* fprep */
 
 /* Figure out which integer type on this system is a signed 32-bit
    integer. */

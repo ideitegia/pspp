@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "pool.h"
+#include "str.h"
 
 /* Fast, low-overhead memory block suballocator. */
 struct pool

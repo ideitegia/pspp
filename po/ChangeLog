@@ -1,53 +1,11 @@
-Sat Jan  1 23:27:03 2000  Ben Pfaff  <blp@gnu.org>
+2003-12-08  gettextize  <bug-gnu-gettext@gnu.org>
 
-	* POTFILES.in: Update.
+	* Makefile.in.in: New file, from gettext-0.12.1.
+	* Rules-quot: New file, from gettext-0.12.1.
+	* boldquot.sed: New file, from gettext-0.12.1.
+	* en@boldquot.header: New file, from gettext-0.12.1.
+	* en@quot.header: New file, from gettext-0.12.1.
+	* insert-header.sin: New file, from gettext-0.12.1.
+	* quot.sed: New file, from gettext-0.12.1.
+	* remove-potcdate.sin: New file, from gettext-0.12.1.
 
-Thu Jan  8 22:27:38 1998  Ben Pfaff  <blp@gnu.org>
-
-	* POTFILES.in: Recreate.
-
-	* Makefile.in.in: Upcase `pspp' within maintainer-clean target.
-
-Tue Dec  2 14:35:47 1997  Ben Pfaff  <blp@gnu.org>
-
-	* POTFILES.in: Add src/aggregate.c; alphabetize.
-
-Wed Oct  8 15:53:13 1997  Ben Pfaff  <blp@gnu.org>
-
-	* Makefile.in.in: Updated to gettext-0.10.32 while retaining local
- 	fixes.
-
-Tue Oct  7 20:22:25 1997  Ben Pfaff  <blp@gnu.org>
-
-	* Makefile.in.in: Maintainer-cleans Makefile.
-
-Thu Jul 17 01:51:23 1997  Ben Pfaff  <blp@gnu.org>
-
-	* POTFILES.in: Remove src/display.c.
-
-Sat Jul  5 23:44:30 1997  Ben Pfaff  <blp@gnu.org>
-
-	* POTFILES.in: Fix file list.
-
-Tue Jun  3 23:29:57 1997  Ben Pfaff  <blp@gnu.org>
-
-	* Makefile.in.in: Maintainer-cleans fiasco.pot.
-
-Mon Jun  2 14:22:59 1997  Ben Pfaff  <blp@gnu.org>
-
-	* Makefile.in.in: Maintainer-cleans cat-id-tbl.c, stamp-cat-id.
-
-	* POTFILES.in: Added all the files that have internationalized
-	strings; basically this is `grep -l `find . -name \*.[qc]`'.
-	
-Sun Jun  1 23:36:32 1997  Ben Pfaff  <blp@gnu.org>
-
-	* Makefile.in.in: New file, taken from gettext-0.10.27.
-
-	* POTFILES.in: New file (empty).
-
-----------------------------------------------------------------------
-Local Variables:
-mode: change-log
-version-control: never
-End:

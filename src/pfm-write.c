@@ -30,7 +30,7 @@
 #include "avl.h"
 #include "error.h"
 #include "file-handle.h"
-#include "gmp/gmp.h"
+#include "gmp.h"
 #include "magic.h"
 #include "pfm.h"
 #include "str.h"

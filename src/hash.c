@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "hash.h"
+#include "str.h"
 
 /* Note for constructing hash functions:
 

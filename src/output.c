@@ -287,8 +287,6 @@ outp_read_devices (void)
   where.line_number = 0;
   err_push_file_locator (&where);
 
-  ds_init (NULL, &line, 128);
-
   if (init_fn == NULL)
     {
       msg (IE, _("Cannot find output initialization file.  Use `-vv' to view "
@@ -304,6 +302,7 @@ outp_read_devices (void)
       goto exit;
     }
 
+  ds_init (NULL, &line, 128);
   for (;;)
     {
       char *cp;

@@ -26,8 +26,7 @@
 int endian;
 #endif
 
-#ifndef SECOND_LOWEST_VALUE
-/* "Second lowest" value for a flt64; that is, (-FLT64_MAX) + epsilon. */
-double second_lowest_value;
+/* magic.h */
+#ifndef __GNUC__
+union cvt_dbl second_lowest_value_union = {SECOND_LOWEST_BYTES};
 #endif
-

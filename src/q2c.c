@@ -86,11 +86,7 @@ char *tokstr;
 
 /* Utility functions. */
 
-#if !(__GNUC__ >= 2)
-#define nullstr ""
-#else
-const char nullstr[] = "";
-#endif
+char nullstr[] = "";
 
 /* Close all open files and delete the output file, on failure. */
 void
@@ -1134,7 +1130,7 @@ dump_declarations (void)
 	    dump (0, "long n_%s;", st_lower (sbc->name));
 	    break;
 
-	  default:
+	  default:;
 	    /* nothing */
 	  }
       }

@@ -563,21 +563,18 @@ write_rec_7_34 (struct sfm_write_info * inf)
   rec_7.elem_3[3] = -1;
 
   /* PORTME: 1=IEEE754, 2=IBM 370, 3=DEC VAX E. */
-#if FPREP==FPREP_IEEE754
+#ifdef FPREP_IEEE754
   rec_7.elem_3[4] = 1;
-#else
-#error Floating-point representation unknown here.
 #endif
 
   rec_7.elem_3[5] = 1;
 
   /* PORTME: 1=big-endian, 2=little-endian. */
-  if (endian == BIG)
-    rec_7.elem_3[6] = 1;
-  else if (endian == LITTLE)
-    rec_7.elem_3[6] = 2;
-  else
-    rec_7.elem_3[6] = 0;
+#if WORDS_BIGENDIAN
+  rec_7.elem_3[6] = 1;
+#else
+  rec_7.elem_3[6] = 2;
+#endif
 
   /* PORTME: 1=EBCDIC, 2=7-bit ASCII, 3=8-bit ASCII, 4=DEC Kanji. */
   rec_7.elem_3[7] = 2;

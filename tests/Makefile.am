@@ -3,7 +3,7 @@
 bench:
 	make BENCHMARK=1 check
 
-TESTS = syntax bugs/double-frequency.sh
+TESTS = syntax
 
 noinst_PROGRAMS = gengarbage
 

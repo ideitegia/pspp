@@ -451,14 +451,13 @@ parse_IB (struct data_in *i)
 
   /* We want the data to be in big-endian format.  If this is a
      little-endian machine, reverse the byte order. */
-  if (endian == LITTLE)
-    {
-      memcpy (buf, i->s, i->e - i->s);
-      mm_reverse (buf, i->e - i->s);
-      p = buf;
-    }
-  else
-    p = i->s;
+#ifdef WORDS_BIGENDIAN
+  p = i->s;
+#else
+  memcpy (buf, i->s, i->e - i->s);
+  mm_reverse (buf, i->e - i->s);
+  p = buf;
+#endif
 
   /* If the value is negative, we need to logical-NOT each value
      before adding it. */
@@ -492,12 +491,13 @@ parse_PIB (struct data_in *i)
   int j;
 
   i->v->f = 0.0;
-  if (endian == BIG)
-    for (j = 0; j < i->e - i->s; j++)
-      i->v->f = i->v->f * 256.0 + i->s[j];
-  else
-    for (j = i->e - i->s - 1; j >= 0; j--)
-      i->v->f = i->v->f * 256.0 + i->s[j];
+#if WORDS_BIGENDIAN
+  for (j = 0; j < i->e - i->s; j++)
+    i->v->f = i->v->f * 256.0 + i->s[j];
+#else
+  for (j = i->e - i->s - 1; j >= 0; j--)
+    i->v->f = i->v->f * 256.0 + i->s[j];
+#endif
 
   if (i->format.d)
     i->v->f /= pow (10.0, i->format.d);
