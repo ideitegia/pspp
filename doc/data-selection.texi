@@ -222,10 +222,14 @@ file to be analyzed separately using single statistical procedure
 commands.
 
 Specify a list of variable names to analyze multiple sets of
-data separately.  Groups of cases having the same values for these
+data separately.  Groups of adjacent cases having the same values for these
 variables are analyzed by statistical procedure commands as one group.
 An independent analysis is carried out for each group of cases, and the
 variable values for the group are printed along with the analysis.
+
+Groups are formed only by @emph{adjacent} cases.  To create a split 
+using a variable where like values are not adjacent in the working file,
+you should first sort the data by that variable (@pxref{SORT CASES}).
 
 Specify OFF to disable @cmd{SPLIT FILE} and resume analysis of the
 entire active file as a single group of data.
