@@ -20,6 +20,7 @@
 #if !lexer_h
 #define lexer_h 1
 
+#include <ctype.h>
 #include "bool.h"
 
 /* Returns nonzero if character CH may be the first character in an
@@ -111,6 +112,7 @@ int lex_force_string (void);
 int lex_id_match_len (const char *keyword_string, size_t keyword_len,
 		      const char *token_string, size_t token_len);
 int lex_id_match (const char *keyword_string, const char *token_string);
+int lex_id_to_token (const char *id, size_t len);
 	
 /* Weird token functions. */
 int lex_look_ahead (void);

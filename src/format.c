@@ -26,6 +26,7 @@
 #include "lexer.h"
 #include "misc.h"
 #include "str.h"
+#include "var.h"
 
 #define DEFFMT(LABEL, NAME, N_ARGS, IMIN_W, IMAX_W, OMIN_W, OMAX_W, CAT, \
 	       OUTPUT, SPSS_FMT) \
@@ -111,17 +112,46 @@ fmt_to_string (const struct fmt_spec *f)
   return buf;
 }
 
+/* Does checks in common betwen check_input_specifier() and
+   check_output_specifier() and returns true if so.  Otherwise,
+   emits an error message (if EMIT_ERROR is nonzero) and returns
+   false. */
+static bool
+check_common_specifier (const struct fmt_spec *spec, bool emit_error)
+{
+  struct fmt_desc *f = &formats[spec->type];
+  char *str = fmt_to_string (spec);
+
+  if ((f->cat & FCAT_EVEN_WIDTH) && spec->w % 2)
+    {
+      if (emit_error)
+        msg (SE, _("Format %s specifies an odd width %d, but "
+                   "format %s requires an even width."),
+             str, spec->w, f->name, f->Imin_w, f->Imax_w);
+      return false;
+    }
+  if (f->n_args > 1 && (spec->d < 0 || spec->d > 16))
+    {
+      if (emit_error)
+        msg (SE, _("Format %s specifies a bad number of "
+                   "implied decimal places %d.  Input format %s allows "
+                   "up to 16 implied decimal places."), str, spec->d, f->name);
+      return false;
+    }
+  return true;
+}
+
 /* Checks whether SPEC is valid as an input format and returns
    nonzero if so.  Otherwise, emits an error message (if
    EMIT_ERROR is nonzero) and returns zero. */
 int
 check_input_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f;
-  char *str;
+  struct fmt_desc *f = &formats[spec->type];
+  char *str = fmt_to_string (spec);
 
-  f = &formats[spec->type];
-  str = fmt_to_string (spec);
+  if (!check_common_specifier (spec, emit_error))
+    return false;
   if (spec->type == FMT_X)
     return 1;
   if (f->cat & FCAT_OUTPUT_ONLY)
@@ -138,22 +168,6 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
              str, spec->w, f->name, f->Imin_w, f->Imax_w);
       return 0;
     }
-  if ((f->cat & FCAT_EVEN_WIDTH) && spec->w % 2)
-    {
-      if (emit_error)
-        msg (SE, _("Input format %s specifies an odd width %d, but "
-                   "format %s requires an even width between %d and "
-                   "%d."), str, spec->w, f->name, f->Imin_w, f->Imax_w);
-      return 0;
-    }
-  if (f->n_args > 1 && (spec->d < 0 || spec->d > 16))
-    {
-      if (emit_error)
-        msg (SE, _("Input format %s specifies a bad number of "
-                   "implied decimal places %d.  Input format %s allows "
-                   "up to 16 implied decimal places."), str, spec->d, f->name);
-      return 0;
-    }
   return 1;
 }
 
@@ -163,11 +177,11 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
 int
 check_output_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f;
-  char *str;
+  struct fmt_desc *f = &formats[spec->type];
+  char *str = fmt_to_string (spec);
 
-  f = &formats[spec->type];
-  str = fmt_to_string (spec);
+  if (!check_common_specifier (spec, emit_error))
+    return false;
   if (spec->type == FMT_X)
     return 1;
   if (spec->w < f->Omin_w || spec->w > f->Omax_w)
@@ -190,39 +204,48 @@ check_output_specifier (const struct fmt_spec *spec, int emit_error)
              f->Omin_w + 1 + spec->d, spec->d, str);
       return 0;
     }
-  if ((f->cat & FCAT_EVEN_WIDTH) && spec->w % 2)
-    {
-      if (emit_error)
-        msg (SE, _("Output format %s specifies an odd width %d, but "
-                   "output format %s requires an even width between %d and "
-                   "%d."), str, spec->w, f->name, f->Omin_w, f->Omax_w);
-      return 0;
-    }
-  if (f->n_args > 1 && (spec->d < 0 || spec->d > 16))
-    {
-      if (emit_error)
-        msg (SE, _("Output format %s specifies a bad number of "
-                   "implied decimal places %d.  Output format %s allows "
-                   "a number of implied decimal places between 1 "
-                   "and 16."), str, spec->d, f->name);
-      return 0;
-    }
   return 1;
 }
 
-/* If a string variable has width W, you can't display it with a
-   format specifier with a required width MIN_LEN>W. */
-int
-check_string_specifier (const struct fmt_spec *f, int min_len)
+/* Checks that FORMAT is appropriate for a variable of the given
+   TYPE and returns true if so.  Otherwise returns false and (if
+   EMIT_ERROR is true) emits an error message. */
+bool
+check_specifier_type (const struct fmt_spec *format,
+                      int type, bool emit_error) 
 {
-  if ((f->type == FMT_A && min_len > f->w)
-      || (f->type == FMT_AHEX && min_len * 2 > f->w))
+  const struct fmt_desc *f = &formats[format->type];
+  assert (type == NUMERIC || type == ALPHA);
+  if ((type == ALPHA) != ((f->cat & FCAT_STRING) != 0))
     {
-      msg (SE, _("Can't display a string variable of width %d with "
-		 "format specifier %s."), min_len, fmt_to_string (f));
-      return 0;
+      if (emit_error)
+        msg (SE, _("%s variables are not compatible with %s format %s."),
+             type == ALPHA ? _("String") : _("Numeric"),
+             type == ALPHA ? _("numeric") : _("string"),
+             fmt_to_string (format));
+      return false;
     }
-  return 1;
+  return true;
+}
+  
+/* Checks that FORMAT is appropriate for a variable of the given
+   WIDTH and returns true if so.  Otherwise returns false and (if
+   EMIT_ERROR is true) emits an error message. */
+bool
+check_specifier_width (const struct fmt_spec *format,
+                       int width, bool emit_error) 
+{
+  if (!check_specifier_type (format, width != 0 ? ALPHA : NUMERIC, emit_error))
+    return false;
+  if (get_format_var_width (format) != width)
+    {
+      if (emit_error)
+        msg (SE, _("String variable with width %d not compatible with "
+                   "format %s."),
+             width, fmt_to_string (format));
+      return false;
+    }
+  return true;
 }
 
 /* Converts input format specifier INPUT into output format
@@ -387,7 +410,7 @@ int
 get_format_var_width (const struct fmt_spec *spec) 
 {
   if (spec->type == FMT_AHEX)
-    return spec->w * 2;
+    return spec->w / 2;
   else if (spec->type == FMT_A)
     return spec->w;
   else

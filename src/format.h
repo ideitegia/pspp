@@ -21,6 +21,9 @@
 #define format_h 1
 
 /* Display format types. */
+
+#include "bool.h"
+
 /* See the definitions of these functions and variables when modifying
    this list:
    misc.c:convert_fmt_ItoO()
@@ -87,7 +90,9 @@ int parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags);
 int parse_format_specifier_name (const char **cp, enum fmt_parse_flags);
 int check_input_specifier (const struct fmt_spec *spec, int emit_error);
 int check_output_specifier (const struct fmt_spec *spec, int emit_error);
-int check_string_specifier (const struct fmt_spec *spec, int min_len);
+bool check_specifier_type (const struct fmt_spec *, int type, bool emit_error);
+bool check_specifier_width (const struct fmt_spec *,
+                            int width, bool emit_error);
 void convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output);
 int get_format_var_width (const struct fmt_spec *);
 int parse_string_as_format (const char *s, int len, const struct fmt_spec *fp,

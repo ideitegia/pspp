@@ -81,7 +81,6 @@ static struct string put_tokstr;
 static double put_tokval;
 
 static void unexpected_eof (void);
-static inline int check_id (const char *id, size_t len);
 static void convert_numeric_string_to_char_string (int type);
 static int parse_string (int type);
 
@@ -363,7 +362,7 @@ lex_get (void)
 	  strncpy (tokid, ds_c_str (&tokstr), 8);
 	  tokid[8] = 0;
 
-	  token = check_id (ds_c_str (&tokstr), ds_length (&tokstr));
+	  token = lex_id_to_token (ds_c_str (&tokstr), ds_length (&tokstr));
 	  break;
 
 	default:
@@ -635,6 +634,23 @@ int
 lex_id_match (const char *kw, const char *tok)
 {
   return lex_id_match_len (kw, strlen (kw), tok, strlen (tok));
+}
+
+/* Returns the proper token type, either T_ID or a reserved keyword
+   enum, for ID[], which must contain LEN characters. */
+int
+lex_id_to_token (const char *id, size_t len)
+{
+  const char **kwp;
+
+  if (len < 2 || len > 4)
+    return T_ID;
+  
+  for (kwp = keywords; *kwp; kwp++)
+    if (!strcasecmp (*kwp, id))
+      return T_FIRST_KEYWORD + (kwp - keywords);
+
+  return T_ID;
 }
 
 /* Weird token functions. */
@@ -1000,23 +1016,6 @@ static void
 unexpected_eof (void)
 {
   msg (FE, _("Unexpected end of file."));
-}
-
-/* Returns the proper token type, either T_ID or a reserved keyword
-   enum, for ID[], which must contain LEN characters. */
-static inline int
-check_id (const char *id, size_t len)
-{
-  const char **kwp;
-
-  if (len < 2 || len > 4)
-    return T_ID;
-  
-  for (kwp = keywords; *kwp; kwp++)
-    if (!strcmp (*kwp, id))
-      return T_FIRST_KEYWORD + (kwp - keywords);
-
-  return T_ID;
 }
 
 /* When invoked, tokstr contains a string of binary, octal, or hex

@@ -77,7 +77,7 @@ internal_cmd_formats (int which)
       if (token == '.')
 	break;
 
-      if (!parse_variables (default_dict, &v, &cv, PV_SAME_TYPE))
+      if (!parse_variables (default_dict, &v, &cv, PV_NUMERIC))
 	return CMD_PART_SUCCESS_MAYBE;
       type = v[0]->type;
 
@@ -86,30 +86,10 @@ internal_cmd_formats (int which)
 	  msg (SE, _("`(' expected after variable list"));
 	  goto fail;
 	}
-      if (!parse_format_specifier (&f, 0) || !check_output_specifier (&f, 1))
+      if (!parse_format_specifier (&f, 0)
+          || !check_output_specifier (&f, true)
+          || !check_specifier_type (&f, NUMERIC, true))
 	goto fail;
-
-      /* Catch type mismatch errors. */
-      if ((type == ALPHA) ^ (0 != (formats[f.type].cat & FCAT_STRING)))
-	{
-	  msg (SE, _("Format %s may not be assigned to a %s variable."),
-	       fmt_to_string (&f), type == NUMERIC ? _("numeric") : _("string"));
-	  goto fail;
-	}
-
-      /* This is an additional check for string variables.  We can't
-         let the user specify an A8 format for a string variable with
-         width 4. */
-      if (type == ALPHA)
-	{
-	  /* Shortest string so far. */
-	  int min_len = INT_MAX;
-
-	  for (i = 0; i < cv; i++)
-	    min_len = min (min_len, v[i]->width);
-	  if (!check_string_specifier (&f, min_len))
-	    goto fail;
-	}
 
       if (!lex_match (')'))
 	{

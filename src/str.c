@@ -194,6 +194,31 @@ st_pad_copy (char *dest, const char *src, size_t n)
       dest[n - 1] = 0;
     }
 }
+
+/* Copies SRC to DST, truncating DST to N-1 characters if
+   necessary.  Always appends a null character. */
+void
+st_trim_copy (char *dst, const char *src, size_t n) 
+{
+  size_t len = strlen (src);
+  assert (n > 0);
+  if (len + 1 < n)
+    memcpy (dst, src, len + 1);
+  else 
+    {
+      memcpy (dst, src, n - 1);
+      dst[n - 1] = '\0';
+    }
+}
+
+
+/* Converts each character in S to uppercase. */
+void
+st_uppercase (char *s) 
+{
+  for (; *s != '\0'; s++)
+    *s = toupper ((unsigned char) *s);
+}
 
 /* Initializes ST with initial contents S. */
 void

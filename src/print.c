@@ -478,6 +478,21 @@ fail:
   return 0;
 }
 
+/* Verifies that FORMAT doesn't need a variable wider than WIDTH.
+   Returns true iff that is the case. */
+static bool
+check_string_width (const struct fmt_spec *format, const struct variable *v) 
+{
+  if (get_format_var_width (format) > v->width)
+    {
+      msg (SE, _("Variable %s has width %d so it cannot be output "
+                 "as format %s."),
+           v->name, v->width, fmt_to_string (format));
+      return false;
+    }
+  return true;
+}
+
 /* Parses a column specification for parse_specs(). */
 static int
 fixed_parse_compatible (void)
@@ -599,27 +614,14 @@ fixed_parse_compatible (void)
 
   dividend = (fx.lc - fx.fc + 1) / fx.nv;
   fx.spec.u.v.f.w = dividend;
-  if (!check_output_specifier (&fx.spec.u.v.f, 1))
+  if (!check_output_specifier (&fx.spec.u.v.f, true)
+      || !check_specifier_type (&fx.spec.u.v.f, type, true))
     return 0;
-  if ((type == ALPHA) ^ (formats[fx.spec.u.v.f.type].cat & FCAT_STRING))
-    {
-      msg (SE, _("%s variables cannot be displayed with format %s."),
-	   type == ALPHA ? _("String") : _("Numeric"),
-	   fmt_to_string (&fx.spec.u.v.f));
-      return 0;
-    }
-
-  /* Check that, for string variables, the user didn't specify a width
-     longer than an actual string width. */
   if (type == ALPHA)
     {
-      /* Minimum width of all the string variables specified. */
-      int min_len = fx.v[0]->width;
-
-      for (i = 1; i < fx.nv; i++)
-	min_len = min (min_len, fx.v[i]->width);
-      if (!check_string_specifier (&fx.spec.u.v.f, min_len))
-	return 0;
+      for (i = 0; i < fx.nv; i++)
+        if (!check_string_width (&fx.spec.u.v.f, fx.v[i]))
+          return false;
     }
 
   fx.spec.type = PRT_VAR;
@@ -688,15 +690,10 @@ dump_fmt_list (struct fmt_list * f)
 	      }
 
 	    v = fx.v[fx.cv++];
-	    if ((v->type == ALPHA) ^ (formats[f->f.type].cat & FCAT_STRING))
-	      {
-		msg (SE, _("Display format %s may not be used with a "
-			   "%s variable."), fmt_to_string (&f->f),
-		     v->type == ALPHA ? _("string") : _("numeric"));
-		return 0;
-	      }
-	    if (!check_string_specifier (&f->f, v->width))
-	      return 0;
+            if (!check_output_specifier (&f->f, true)
+                || !check_specifier_type (&f->f, v->type, true)
+                || !check_string_width (&f->f, v))
+              return false;
 
 	    fx.spec.type = PRT_VAR;
 	    fx.spec.u.v.v = v;

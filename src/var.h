@@ -21,6 +21,7 @@
 #define var_h 1
 
 #include <stddef.h>
+#include "bool.h"
 #include "format.h"
 #include "val.h"
 
@@ -84,6 +85,7 @@ struct variable
     void (*aux_dtor) (struct variable *);
   };
 
+bool var_is_valid_name (const char *, bool issue_error);
 int compare_var_names (const void *, const void *, void *);
 unsigned hash_var_name (const void *, void *);
 int compare_var_ptr_names (const void *, const void *, void *);

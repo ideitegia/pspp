@@ -1,3 +1,41 @@
+Fri Mar 11 11:50:30 2005  Ben Pfaff  <blp@gnu.org>
+
+	* format.c: (check_common_specifier) New function for checks
+	common to check_input_specifier() and check_output_specifier().
+	(check_input_specifier) Use check_common_specifier().
+	(check_output_specifier) Use check_common_specifier().
+	(check_string_specifier) Removed.
+	(check_specifier_type) New function.
+	(check_specifier_width) New function.
+	(get_format_var_width) Fix bug.
+
+	* formats.c: (internal_cmd_formats) Only accept numeric variables.
+
+	* lexer.c: (check_id) Rename lex_id_to_token(), make public,
+	update all references.  Make case-insensitive.
+
+	* pfm-read.c: Essentially rewrite the whole file.  Now much
+	cleaner.
+
+	* print.c: (check_string_width) New function.
+	(fixed_parse_compatible) Use check_string_width(),
+	check_specifier_type().
+	(dump_fmt_list) Ditto.
+
+	* str.c: (st_trim_copy) New function.
+	(st_uppercase) New function.
+
+	* vars-atr.c: (var_is_valid_name) New function.
+	
+	* expressions/parse.c: (type_coercion_core) Use
+	check_specifier_type().
+	
+Fri Mar 11 11:31:24 2005  Ben Pfaff  <blp@gnu.org>
+
+	* expressions/evaluate.c: (cmd_debug_evaluate) Fix memory leaks.
+
+	* expressions/parse.c: (no_match) Ditto.
+
 Wed Mar  9 09:54:27 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: (pspp_LDADD) Add libgsl-extras.a.

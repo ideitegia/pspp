@@ -336,7 +336,8 @@ type_coercion_core (struct expression *e,
 
     case OP_ni_format:
       if ((*node)->type == OP_format
-          && check_input_specifier (&(*node)->format.f, 0))
+          && check_input_specifier (&(*node)->format.f, false)
+          && check_specifier_type (&(*node)->format.f, NUMERIC, false))
         {
           if (do_coercion)
             (*node)->type = OP_ni_format;
@@ -346,7 +347,8 @@ type_coercion_core (struct expression *e,
 
     case OP_no_format:
       if ((*node)->type == OP_format
-          && check_output_specifier (&(*node)->format.f, 0))
+          && check_output_specifier (&(*node)->format.f, false)
+          && check_specifier_type (&(*node)->format.f, NUMERIC, false))
         {
           if (do_coercion)
             (*node)->type = OP_no_format;
@@ -1098,14 +1100,12 @@ no_match (const char *func_name,
     }
   else 
     {
-      ds_create (&s, _("Function invocation "));
+      ds_puts (&s, _("Function invocation "));
       put_invocation (&s, func_name, args, arg_cnt);
       ds_puts (&s, _(" does not match any known function.  Candidates are:"));
 
       for (f = first; f < last; f++)
-        {
-          ds_printf (&s, "\n%s", f->prototype);
-        }
+        ds_printf (&s, "\n%s", f->prototype);
     }
   ds_putc (&s, '.');
 

@@ -28,6 +28,7 @@
 #include "expressions/public.h"
 #include "file-handle.h"
 #include "hash.h"
+#include "lexer.h"
 #include "misc.h"
 #include "str.h"
 #include "value-labels.h"
@@ -230,6 +231,60 @@ is_user_missing (const union value *val, const struct variable *v)
   abort ();
 }
 
+/* Returns true if NAME is an acceptable name for a variable,
+   false otherwise.  If ISSUE_ERROR is true, issues an
+   explanatory error message on failure. */
+bool
+var_is_valid_name (const char *name, bool issue_error) 
+{
+  size_t length, i;
+  
+  assert (name != NULL);
+
+  length = strlen (name);
+  if (length < 1) 
+    {
+      if (issue_error)
+        msg (SE, _("Variable names must be at least 1 character long."));
+      return false;
+    }
+  else if (length > MAX_VAR_NAME_LEN) 
+    {
+      if (issue_error)
+        msg (SE, _("Variable name %s exceeds %d-character limit."),
+             (int) MAX_VAR_NAME_LEN);
+      return false;
+    }
+
+  for (i = 0; i < length; i++)
+    if (!CHAR_IS_IDN (name[i])) 
+      {
+        if (issue_error)
+          msg (SE, _("Character `%c' (in %s) may not appear in "
+                     "a variable name."),
+               name);
+        return false;
+      }
+        
+  if (!CHAR_IS_ID1 (name[0]))
+    {
+      if (issue_error)
+        msg (SE, _("Character `%c' (in %s), may not appear "
+                   "as the first character in a variable name."), name);
+      return false;
+    }
+
+  if (lex_id_to_token (name, strlen (name)) != T_ID) 
+    {
+      if (issue_error)
+        msg (SE, _("%s may not be used as a variable name because it "
+                   "is a reserved word."), name);
+      return false;
+    }
+
+  return true;
+}
+
 /* A hsh_compare_func that orders variables A and B by their
    names. */
 int

@@ -665,6 +665,7 @@ number("123", f3.0) => 123.00
 number(" 123", f3.0) => 12.00
 number("123", f3.1) => 12.30
 number("   ", f3.1) => sysmis
+number("123", a8) => error
 number("123", cca1.2) => error	# CCA is not an input format
 
 ltrim('   abc') => "abc"

@@ -248,8 +248,12 @@ cmd_debug_evaluate (void)
   retval = CMD_SUCCESS;
 
  done:
-  if (c != NULL)
-    case_destroy (c);
+  if (c != NULL) 
+    {
+      case_destroy (c);
+      free (c); 
+    }
+  dict_destroy (d);
   return retval;
 }
 

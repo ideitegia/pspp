@@ -22,6 +22,8 @@
 
 /* Portable file reading. */
 
+#include "bool.h"
+
 /* Portable file types. */
 enum pfm_type
   {
@@ -45,7 +47,7 @@ struct ccase;
 struct pfm_reader *pfm_open_reader (struct file_handle *,
                                     struct dictionary **,
                                     struct pfm_read_info *);
-int pfm_read_case (struct pfm_reader *, struct ccase *);
+bool pfm_read_case (struct pfm_reader *, struct ccase *);
 void pfm_close_reader (struct pfm_reader *);
 
 #endif /* pfm-read.h */

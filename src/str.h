@@ -126,6 +126,8 @@ char *st_spaces (int);
 void st_bare_pad_copy (char *dest, const char *src, size_t n);
 void st_bare_pad_len_copy (char *dest, const char *src, size_t n, size_t len);
 void st_pad_copy (char *dest, const char *src, size_t n);
+void st_trim_copy (char *dest, const char *src, size_t n);
+void st_uppercase (char *);
 
 /* Fixed-length strings. */
 struct fixed_string 
