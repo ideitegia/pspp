@@ -1,3 +1,9 @@
+Mon Apr  4 22:27:34 2005  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.c: (parse_aggregate_functions) If dict_create_var()
+	fails, don't dereference the resulting null pointer (PR 12427).
+	Also, fix double free error.
+
 Sat Mar 19 23:06:02 2005  Ben Pfaff  <blp@gnu.org>
 
 	* aggregate.c: (parse_aggregate_functions) Fix N_NO_VARS format.

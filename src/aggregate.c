@@ -545,16 +545,15 @@ parse_aggregate_functions (struct agr_proc *agr)
                          || function->alpha_type == NUMERIC)
                   {
                     destvar = dict_create_var (agr->dict, dest[i], 0);
-                        
-                    if ((func_index == N || func_index == NMISS)
-                        && dict_get_weight (default_dict) != NULL)
-                      destvar->print = destvar->write = f8_2; 
-                    else
-                      destvar->print = destvar->write = function->format;
+                    if (destvar != NULL) 
+                      {
+                        if ((func_index == N || func_index == NMISS)
+                            && dict_get_weight (default_dict) != NULL)
+                          destvar->print = destvar->write = f8_2; 
+                        else
+                          destvar->print = destvar->write = function->format;
+                      }
                   }
-                else 
-                  destvar = dict_create_var (agr->dict, dest[i],
-                                             v->src->width);
 	      } else {
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
@@ -572,7 +571,6 @@ parse_aggregate_functions (struct agr_proc *agr)
 			   "the aggregate variables and the break "
 			   "variables."),
 		     dest[i]);
-		free (dest[i]);
 		goto error;
 	      }
 
