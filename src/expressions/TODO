@@ -13,6 +13,10 @@ Needed:
 
     - Finish polishing code.  Many functions need comments.
 
+    - Test the remaining statistical distributions.
+
+    - Implement unimplemented functions.
+
 Extension ideas:
 
     - Short-circuit evaluation of logical ops
