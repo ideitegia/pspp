@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-03-11 17:04-0800\n"
+"POT-Creation-Date: 2005-03-13 09:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -728,7 +728,7 @@ msgid ""
 msgstr ""
 
 #: src/data-list.c:796 src/data-list.c:922 src/descript.c:880 src/print.c:796
-#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:871
+#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:873
 msgid "Variable"
 msgstr ""
 
@@ -1210,6 +1210,25 @@ msgstr ""
 msgid "installation error"
 msgstr ""
 
+#: src/filename.c:221
+#, c-format
+msgid "Searching for `%s'..."
+msgstr ""
+
+#: src/filename.c:229 src/filename.c:261
+msgid "Search unsuccessful!"
+msgstr ""
+
+#: src/filename.c:254
+#, c-format
+msgid "Found `%s'."
+msgstr ""
+
+#: src/filename.c:686
+#, c-format
+msgid "Not opening pipe file `%s' because SAFER option set."
+msgstr ""
+
 #: src/file-type.c:129
 msgid "MIXED, GROUPED, or NESTED expected."
 msgstr ""
@@ -1348,25 +1367,6 @@ msgstr ""
 msgid "Unknown record type %g."
 msgstr ""
 
-#: src/filename.c:221
-#, c-format
-msgid "Searching for `%s'..."
-msgstr ""
-
-#: src/filename.c:229 src/filename.c:261
-msgid "Search unsuccessful!"
-msgstr ""
-
-#: src/filename.c:254
-#, c-format
-msgid "Found `%s'."
-msgstr ""
-
-#: src/filename.c:686
-#, c-format
-msgid "Not opening pipe file `%s' because SAFER option set."
-msgstr ""
-
 #: src/flip.c:81
 msgid ""
 "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
@@ -1481,11 +1481,11 @@ msgstr ""
 msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/format.c:223 src/pfm-read.c:470 src/sfm-read.c:880
+#: src/format.c:223 src/pfm-read.c:473 src/sfm-read.c:880
 msgid "String"
 msgstr ""
 
-#: src/format.c:223 src/pfm-read.c:470 src/sfm-read.c:880
+#: src/format.c:223 src/pfm-read.c:473 src/sfm-read.c:880
 msgid "Numeric"
 msgstr ""
 
@@ -2569,91 +2569,92 @@ msgstr ""
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/pfm-read.c:400
-msgid "Missing SPSSPORT signature."
+#: src/pfm-read.c:401
+#, c-format
+msgid "%s: Not a portable file."
 msgstr ""
 
-#: src/pfm-read.c:422
+#: src/pfm-read.c:425
 #, c-format
 msgid "Bad date string length %d."
 msgstr ""
 
-#: src/pfm-read.c:424
+#: src/pfm-read.c:427
 #, c-format
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/pfm-read.c:462 src/sfm-read.c:867 src/sfm-read.c:875
+#: src/pfm-read.c:465 src/sfm-read.c:867 src/sfm-read.c:875
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/pfm-read.c:469
+#: src/pfm-read.c:472
 #, c-format
 msgid "%s variable %s has invalid format specifier %s."
 msgstr ""
 
-#: src/pfm-read.c:484
+#: src/pfm-read.c:487
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/pfm-read.c:488
+#: src/pfm-read.c:491
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/pfm-read.c:498
+#: src/pfm-read.c:501
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/pfm-read.c:510
+#: src/pfm-read.c:513
 msgid "Expected variable record."
 msgstr ""
 
-#: src/pfm-read.c:514
+#: src/pfm-read.c:517
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/pfm-read.c:522
+#: src/pfm-read.c:525
 #, c-format
 msgid "position %d: Invalid variable name `%s'."
 msgstr ""
 
-#: src/pfm-read.c:530
+#: src/pfm-read.c:533
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
 
-#: src/pfm-read.c:570
+#: src/pfm-read.c:573
 #, c-format
 msgid "Bad missing values for %s."
 msgstr ""
 
-#: src/pfm-read.c:588
+#: src/pfm-read.c:591
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/pfm-read.c:635
+#: src/pfm-read.c:638
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/pfm-read.c:638
+#: src/pfm-read.c:641
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types "
 "or widths."
 msgstr ""
 
-#: src/pfm-read.c:662
+#: src/pfm-read.c:665
 #, c-format
 msgid "Duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:665
+#: src/pfm-read.c:668
 #, c-format
 msgid "Duplicate label for value `%.*s' for variable %s."
 msgstr ""
@@ -3454,7 +3455,7 @@ msgstr ""
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:873
+#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:875
 msgid "Label"
 msgstr ""
 
@@ -3477,7 +3478,7 @@ msgstr ""
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:531 src/vfm.c:872 src/crosstabs.q:1099
+#: src/sysfile-info.c:531 src/vfm.c:874 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
 #: src/examine.q:1129 src/frequencies.q:1138 src/frequencies.q:1259
 msgid "Value"
@@ -4107,17 +4108,17 @@ msgstr ""
 msgid "Can't open %s as a %s because it is already open as a %s"
 msgstr ""
 
-#: src/file-handle.q:276
+#: src/file-handle.q:279
 #, c-format
 msgid "Can't open %s as a %s for %s because it is already open for %s"
 msgstr ""
 
-#: src/file-handle.q:281
+#: src/file-handle.q:287
 #, c-format
 msgid "Can't re-open %s as a %s for %s"
 msgstr ""
 
-#: src/file-handle.q:333
+#: src/file-handle.q:340
 msgid "expecting a file name or handle name"
 msgstr ""
 

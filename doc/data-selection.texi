@@ -212,7 +212,7 @@ When @cmd{SELECT IF} is specified following @cmd{TEMPORARY}
 @vindex SPLIT FILE
 
 @display
-SPLIT FILE [{LAYERED, SEPARATE}] BY var_list.
+SPLIT FILE [@{LAYERED, SEPARATE@}] BY var_list.
 SPLIT FILE OFF.
 @end display
 
