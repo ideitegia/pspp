@@ -24,8 +24,9 @@ AC_CHECK_LIB(gmp, mpf_get_str,,
           AC_MSG_ERROR([You must install libgmp])
         )
 )
-AC_CHECK_LIB(gslcblas,main)
-AC_CHECK_LIB(gsl,main)
+
+AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas]))
+AC_CHECK_LIB(gsl,gsl_set_error_handler,,AC_MSG_ERROR([You must install libgsl]))
 
 AC_CHECK_FUNC(getopt_long,,
 	AC_MSG_ERROR(`This application depends upon getopt_long'))
