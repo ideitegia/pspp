@@ -262,11 +262,7 @@ cmd_descriptives (void)
               else if (lex_match_id ("DEFAULT"))
                 dsc->show_stats |= DEFAULT_STATS;
               else
-		{
-		  dsc->show_stats |= 1ul << (match_statistic ());
-		  if (dsc->show_stats == DSC_NONE)
-		    dsc->show_stats = DEFAULT_STATS;
-		}
+		dsc->show_stats |= 1ul << (match_statistic ());
               lex_match (',');
             }
           if (dsc->show_stats == 0)

@@ -1,3 +1,8 @@
+Wed Jun  2 22:08:02 2004  Ben Pfaff  <blp@gnu.org>
+
+	* descript.c: (cmd_descriptives) Remove harmless but bogus test in
+	STATISTICS parsing.
+
 Mon May 31 20:45:24 2004  Ben Pfaff  <blp@gnu.org>
 
 	Fix memory leaks.
