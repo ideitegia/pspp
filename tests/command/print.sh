@@ -52,7 +52,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="create program"
-cat > $TEMPFILE/print.stat <<EOF_print
+cat > $TEMPDIR/print.stat <<EOF_print
 title 'Test PRINT transformation'.
 
 remark EOF
@@ -86,47 +86,33 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$here/../src/pspp -o raw-ascii $TEMPFILE/print.stat > $TEMPDIR/errs
+$here/../src/pspp -o raw-ascii $TEMPDIR/print.stat > $TEMPDIR/errs
 # Note   vv   --- there are errors in input.  Therefore, the  command must FAIL
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="compare error messages"
 diff -w $TEMPDIR/errs - <<EOF
-$TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0)
-        Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:1: warning: LIST: The expression on PRINT
-        SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a
+$TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0) Field does not form a valid floating-point constant.
+$TEMPDIR/data-list.data:1: warning: LIST: The expression on PRINT SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a
         negative number of lines.
-$TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0)
-        Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:4: warning: LIST: The expression on PRINT
-        SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a
+$TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0) Field does not form a valid floating-point constant.
+$TEMPDIR/data-list.data:4: warning: LIST: The expression on PRINT SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a
         negative number of lines.
-$TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0)
-        Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:6: warning: LIST: The expression on PRINT
-        SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a
+$TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0) Field does not form a valid floating-point constant.
+$TEMPDIR/data-list.data:6: warning: LIST: The expression on PRINT SPACE evaluated to -2147483648.  It's not possible to PRINT SPACE a
         negative number of lines.
-$TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0)
-        Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0)
-        Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:2: warning: LIST: Missing value(s) for all
-        variables from C onward.  These will be filled with the system-missing
+$TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0) Field does not form a valid floating-point constant.
+$TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0) Field does not form a valid floating-point constant.
+$TEMPDIR/data-list.data:2: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing
         value or blanks, as appropriate.
-$TEMPDIR/data-list.data:3: warning: LIST: Missing value(s) for all
-        variables from B onward.  These will be filled with the system-missing
+$TEMPDIR/data-list.data:3: warning: LIST: Missing value(s) for all variables from B onward.  These will be filled with the system-missing
         value or blanks, as appropriate.
-$TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0)
-        Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:4: warning: LIST: Missing value(s) for all
-        variables from C onward.  These will be filled with the system-missing
+$TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0) Field does not form a valid floating-point constant.
+$TEMPDIR/data-list.data:4: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing
         value or blanks, as appropriate.
-$TEMPDIR/data-list.data:5: warning: LIST: Missing value(s) for all
-        variables from C onward.  These will be filled with the system-missing
+$TEMPDIR/data-list.data:5: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing
         value or blanks, as appropriate.
-$TEMPDIR/data-list.data:6: warning: LIST: Missing value(s) for all
-        variables from B onward.  These will be filled with the system-missing
+$TEMPDIR/data-list.data:6: warning: LIST: Missing value(s) for all variables from B onward.  These will be filled with the system-missing
         value or blanks, as appropriate.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
