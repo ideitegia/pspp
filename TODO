@@ -1,4 +1,26 @@
-Time-stamp: <2004-03-20 19:16:04 blp>
+Time-stamp: <2004-03-24 19:52:48 blp>
+
+What Ben's working on now.
+--------------------------
+
+Expression parser/optimizer/evaluator revisions:
+
+	* Testing.
+
+	* Add random distributions.
+
+	* Get rid of Boolean/integer type mismatch errors.
+
+Procedures need to be able to make multiple passes.
+
+Write a better descriptive stats evaluator based on NR two-pass technique,
+revise all existing code to use it.
+
+Update q2c input format description.
+
+Rewrite output subsystem, break into multiple processes.
+
+CROSSTABS needs to be re-examined.
 
 TODO
 ----
