@@ -1340,8 +1340,7 @@ render_strip (int x, int y, int r, int c1, int c2, int r1 unused, int r2)
 		    {
 		      j->hit = tab_hit;
 
-		      if (j->x1 == c / 2 && j->y1 == r / 2
-			  && j->x2 <= c2 && j->y2 <= r2)
+		      if (j->x1 == c / 2 && j->y1 == r / 2)
 			{
 			  struct outp_text text;
 
@@ -1355,15 +1354,15 @@ render_strip (int x, int y, int r, int c1, int c2, int r1 unused, int r2)
 			    int c;
 
 			    for (c = j->x1, text.h = -t->wrv[j->x2];
-				 c < j->x2; c++)
-			      text.h += t->w[c] + t->wrv[c + 1];
+				 c < j->x2 && c < c2 / 2; c++) 
+                                text.h += t->w[c] + t->wrv[c + 1]; 
 			  }
 			  
 			  {
 			    int r;
 
 			    for (r = j->y1, text.v = -t->hrh[j->y2];
-				 r < j->y2; r++)
+				 r < j->y2 && r < r2 / 2; r++)
 			      text.v += t->h[r] + t->hrh[r + 1];
 			  }
 			  d->class->text_draw (d, &text);

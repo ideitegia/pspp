@@ -1,3 +1,7 @@
+Tue Feb  3 20:09:54 2004  Ben Pfaff  <blp@gnu.org>
+
+	* tab.c: (render_strip) Fix bug that sometimes caused joined text
+	  in joined cells to be rendered outside box boundaries.
 
 Tue Feb  3 18:56:45 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
