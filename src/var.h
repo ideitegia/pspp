@@ -151,19 +151,6 @@ struct get_proc
     int fv, nv;			/* First, # of values. */
   };
 
-/* Sort order. */
-enum
-  {
-    SRT_ASCEND,			/* A, B, C, ..., X, Y, Z. */
-    SRT_DESCEND			/* Z, Y, X, ..., C, B, A. */
-  };
-
-/* SORT CASES private data. */
-struct sort_cases_proc
-  {
-    int order;			/* SRT_ASCEND or SRT_DESCEND. */
-  };
-
 /* MEANS private data. */
 struct means_proc
   {
@@ -263,7 +250,6 @@ struct variable
 	struct frequencies_proc frq;
 	struct list_proc lst;
 	struct means_proc mns;
-	struct sort_cases_proc srt;
 	struct matrix_data_proc mxd;
 	struct match_files_proc mtf;
 	struct t_test_proc t_t;
@@ -301,6 +287,13 @@ struct vector
 struct ccase
   {
     union value data[1];
+  };
+
+/* Linked list of cases. */
+struct case_list 
+  {
+    struct case_list *next;
+    struct ccase c;
   };
 
 /* Dictionary. */ 

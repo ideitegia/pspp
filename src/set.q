@@ -119,6 +119,7 @@ int set_testing_mode;
 int set_undefined;
 int set_viewlength;
 int set_viewwidth;
+size_t set_max_workspace = 4L * 1024 * 1024;
 
 static void set_routing (int q, int *setting);
 static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
@@ -316,8 +317,18 @@ cmd_set (void)
     msg (SW, _("%s is not yet implemented."),"TB1");
   if (cmd.undef != -1)
     set_undefined = cmd.undef == STC_NOWARN ? 0 : 1;
-  if (cmd.n_workspace != NOT_LONG)
-    msg (SE, _("%s is obsolete."),"WORKSPACE");
+  if (cmd.n_workspace != NOT_LONG) 
+    {
+      if (cmd.n_workspace < 1024)
+        msg (SE, _("Workspace limit must be at least 1 MB."));
+      else
+        {
+          if (cmd.n_workspace > (size_t) -1 / 1024)
+            set_max_workspace = -1;
+          else
+            set_max_workspace = 1024 * cmd.n_workspace; 
+        }
+    }
 
   /* PC+ compatible syntax. */
   if (cmd.scrn != -1)

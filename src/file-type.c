@@ -88,9 +88,6 @@ struct file_type_pgm
     struct record_type *recs_tail;	/* Last in list of record types. */
   };
 
-/* Current FILE TYPE input program. */
-static struct file_type_pgm fty;
-
 static int parse_col_spec (struct col_spec *, const char *);
 static void create_col_var (struct col_spec *c);
 
@@ -98,32 +95,36 @@ static void create_col_var (struct col_spec *c);
 int
 cmd_file_type (void)
 {
+  static struct file_type_pgm *fty;
+
   /* Initialize. */
   discard_variables ();
-  fty.handle = inline_file;
-  fty.record.name[0] = 0;
-  fty.case_sbc.name[0] = 0;
-  fty.wild = fty.duplicate = fty.missing = fty.ordered = 0;
-  fty.had_rec_type = 0;
-  fty.recs_head = fty.recs_tail = NULL;
+
+  fty = xmalloc (sizeof *fty);
+  fty->handle = inline_file;
+  fty->record.name[0] = 0;
+  fty->case_sbc.name[0] = 0;
+  fty->wild = fty->duplicate = fty->missing = fty->ordered = 0;
+  fty->had_rec_type = 0;
+  fty->recs_head = fty->recs_tail = NULL;
 
   lex_match_id ("TYPE");
   if (lex_match_id ("MIXED"))
-    fty.type = FTY_MIXED;
+    fty->type = FTY_MIXED;
   else if (lex_match_id ("GROUPED"))
     {
-      fty.type = FTY_GROUPED;
-      fty.wild = 1;
-      fty.duplicate = 1;
-      fty.missing = 1;
-      fty.ordered = 1;
+      fty->type = FTY_GROUPED;
+      fty->wild = 1;
+      fty->duplicate = 1;
+      fty->missing = 1;
+      fty->ordered = 1;
     }
   else if (lex_match_id ("NESTED"))
-    fty.type = FTY_NESTED;
+    fty->type = FTY_NESTED;
   else
     {
       msg (SE, _("MIXED, GROUPED, or NESTED expected."));
-      return CMD_FAILURE;
+      goto error;
     }
 
   while (token != '.')
@@ -131,151 +132,155 @@ cmd_file_type (void)
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  fty.handle = fh_parse_file_handle ();
-	  if (!fty.handle)
-	    return CMD_FAILURE;
+	  fty->handle = fh_parse_file_handle ();
+	  if (!fty->handle)
+	    goto error;
 	}
       else if (lex_match_id ("RECORD"))
 	{
 	  lex_match ('=');
-	  if (!parse_col_spec (&fty.record, "####RECD"))
-	    return CMD_FAILURE;
+	  if (!parse_col_spec (&fty->record, "####RECD"))
+	    goto error;
 	}
       else if (lex_match_id ("CASE"))
 	{
-	  if (fty.type == FTY_MIXED)
+	  if (fty->type == FTY_MIXED)
 	    {
 	      msg (SE, _("The CASE subcommand is not valid on FILE TYPE "
 			 "MIXED."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  
 	  lex_match ('=');
-	  if (!parse_col_spec (&fty.case_sbc, "####CASE"))
-	    return CMD_FAILURE;
+	  if (!parse_col_spec (&fty->case_sbc, "####CASE"))
+	    goto error;
 	}
       else if (lex_match_id ("WILD"))
 	{
 	  lex_match ('=');
 	  if (lex_match_id ("WARN"))
-	    fty.wild = 1;
+	    fty->wild = 1;
 	  else if (lex_match_id ("NOWARN"))
-	    fty.wild = 0;
+	    fty->wild = 0;
 	  else
 	    {
 	      msg (SE, _("WARN or NOWARN expected after WILD."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("DUPLICATE"))
 	{
-	  if (fty.type == FTY_MIXED)
+	  if (fty->type == FTY_MIXED)
 	    {
 	      msg (SE, _("The DUPLICATE subcommand is not valid on "
 			 "FILE TYPE MIXED."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 
 	  lex_match ('=');
 	  if (lex_match_id ("WARN"))
-	    fty.duplicate = 1;
+	    fty->duplicate = 1;
 	  else if (lex_match_id ("NOWARN"))
-	    fty.duplicate = 0;
+	    fty->duplicate = 0;
 	  else if (lex_match_id ("CASE"))
 	    {
-	      if (fty.type != FTY_NESTED)
+	      if (fty->type != FTY_NESTED)
 		{
 		  msg (SE, _("DUPLICATE=CASE is only valid on "
 			     "FILE TYPE NESTED."));
-		  return CMD_FAILURE;
+		  goto error;
 		}
 	      
-	      fty.duplicate = 2;
+	      fty->duplicate = 2;
 	    }
 	  else
 	    {
 	      msg (SE, _("WARN%s expected after DUPLICATE."),
-		   (fty.type == FTY_NESTED ? _(", NOWARN, or CASE")
+		   (fty->type == FTY_NESTED ? _(", NOWARN, or CASE")
 		    : _(" or NOWARN")));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("MISSING"))
 	{
-	  if (fty.type == FTY_MIXED)
+	  if (fty->type == FTY_MIXED)
 	    {
 	      msg (SE, _("The MISSING subcommand is not valid on "
 			 "FILE TYPE MIXED."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  
 	  lex_match ('=');
 	  if (lex_match_id ("NOWARN"))
-	    fty.missing = 0;
+	    fty->missing = 0;
 	  else if (lex_match_id ("WARN"))
-	    fty.missing = 1;
+	    fty->missing = 1;
 	  else
 	    {
 	      msg (SE, _("WARN or NOWARN after MISSING."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("ORDERED"))
 	{
-	  if (fty.type != FTY_GROUPED)
+	  if (fty->type != FTY_GROUPED)
 	    {
 	      msg (SE, _("ORDERED is only valid on FILE TYPE GROUPED."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  
 	  lex_match ('=');
 	  if (lex_match_id ("YES"))
-	    fty.ordered = 1;
+	    fty->ordered = 1;
 	  else if (lex_match_id ("NO"))
-	    fty.ordered = 0;
+	    fty->ordered = 0;
 	  else
 	    {
 	      msg (SE, _("YES or NO expected after ORDERED."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else
 	{
 	  lex_error (_("while expecting a valid subcommand"));
-	  return CMD_FAILURE;
+	  goto error;
 	}
     }
 
-  if (fty.record.name[0] == 0)
+  if (fty->record.name[0] == 0)
     {
       msg (SE, _("The required RECORD subcommand was not present."));
-      return CMD_FAILURE;
+      goto error;
     }
 
-  if (fty.type == FTY_GROUPED)
+  if (fty->type == FTY_GROUPED)
     {
-      if (fty.case_sbc.name[0] == 0)
+      if (fty->case_sbc.name[0] == 0)
 	{
 	  msg (SE, _("The required CASE subcommand was not present."));
-	  return CMD_FAILURE;
+	  goto error;
 	}
       
-      if (!strcmp (fty.case_sbc.name, fty.record.name))
+      if (!strcmp (fty->case_sbc.name, fty->record.name))
 	{
 	  msg (SE, _("CASE and RECORD must specify different variable "
 		     "names."));
-	  return CMD_FAILURE;
+	  goto error;
 	}
     }
 
-  default_handle = fty.handle;
+  default_handle = fty->handle;
 
-  vfm_source = &file_type_source;
-  create_col_var (&fty.record);
-  if (fty.case_sbc.name[0])
-    create_col_var (&fty.case_sbc);
+  vfm_source = create_case_source (&file_type_source_class, fty);
+  create_col_var (&fty->record);
+  if (fty->case_sbc.name[0])
+    create_col_var (&fty->case_sbc);
 
   return CMD_SUCCESS;
+
+ error:
+  free (fty);
+  return CMD_FAILURE;
 }
 
 /* Creates a variable with attributes specified by struct col_spec C, and
@@ -298,6 +303,7 @@ parse_col_spec (struct col_spec *c, const char *def_name)
 {
   struct fmt_spec spec;
 
+  /* Name. */
   if (token == T_ID)
     {
       strcpy (c->name, tokid);
@@ -306,6 +312,7 @@ parse_col_spec (struct col_spec *c, const char *def_name)
   else
     strcpy (c->name, def_name);
 
+  /* First column. */
   if (!lex_force_int ())
     return 0;
   c->fc = lex_integer ();
@@ -316,6 +323,7 @@ parse_col_spec (struct col_spec *c, const char *def_name)
     }
   lex_get ();
 
+  /* Last column. */
   lex_negative_to_dash ();
   if (lex_match ('-'))
     {
@@ -335,6 +343,7 @@ parse_col_spec (struct col_spec *c, const char *def_name)
   else
     c->nc = 1;
 
+  /* Format specifier. */
   if (lex_match ('('))
     {
       const char *cp;
@@ -363,69 +372,53 @@ parse_col_spec (struct col_spec *c, const char *def_name)
 
 /* RECORD TYPE. */
 
-/* Structure being filled in by internal_cmd_record_type. */
-static struct record_type rct;
-
-static int internal_cmd_record_type (void);
-
 /* Parse the RECORD TYPE command. */
 int
 cmd_record_type (void)
 {
-  int result = internal_cmd_record_type ();
-
-  if (result == CMD_FAILURE)
-    {
-      int i;
-
-      if (formats[fty.record.fmt].cat & FCAT_STRING)
-	for (i = 0; i < rct.nv; i++)
-	  free (rct.v[i].c);
-      free (rct.v);
-    }
-
-  return result;
-}
-
-static int
-internal_cmd_record_type (void)
-{
-  /* Initialize the record_type structure. */
-  rct.next = NULL;
-  rct.flags = 0;
-  if (fty.duplicate)
-    rct.flags |= RCT_DUPLICATE;
-  if (fty.missing)
-    rct.flags |= RCT_MISSING;
-  rct.v = NULL;
-  rct.nv = 0;
-  rct.ft = n_trns;
-  if (fty.case_sbc.name[0])
-    rct.case_sbc = fty.case_sbc;
+  struct file_type_pgm *fty;
+  struct record_type *rct;
 
   /* Make sure we're inside a FILE TYPE structure. */
-  if (pgm_state != STATE_INPUT || vfm_source != &file_type_source)
+  if (pgm_state != STATE_INPUT
+      || !case_source_is_class (vfm_source, &file_type_source_class))
     {
       msg (SE, _("This command may only appear within a "
 		 "FILE TYPE/END FILE TYPE structure."));
       return CMD_FAILURE;
     }
 
-  if (fty.recs_tail && (fty.recs_tail->flags & RCT_OTHER))
+  fty = vfm_source->aux;
+
+  /* Initialize the record_type structure. */
+  rct = xmalloc (sizeof *rct);
+  rct->next = NULL;
+  rct->flags = 0;
+  if (fty->duplicate)
+    rct->flags |= RCT_DUPLICATE;
+  if (fty->missing)
+    rct->flags |= RCT_MISSING;
+  rct->v = NULL;
+  rct->nv = 0;
+  rct->ft = n_trns;
+  if (fty->case_sbc.name[0])
+    rct->case_sbc = fty->case_sbc;
+
+  if (fty->recs_tail && (fty->recs_tail->flags & RCT_OTHER))
     {
       msg (SE, _("OTHER may appear only on the last RECORD TYPE command."));
-      return CMD_FAILURE;
+      goto error;
     }
       
-  if (fty.recs_tail)
+  if (fty->recs_tail)
     {
-      fty.recs_tail->lt = n_trns - 1;
-      if (!(fty.recs_tail->flags & RCT_SKIP)
-	  && fty.recs_tail->ft == fty.recs_tail->lt)
+      fty->recs_tail->lt = n_trns - 1;
+      if (!(fty->recs_tail->flags & RCT_SKIP)
+	  && fty->recs_tail->ft == fty->recs_tail->lt)
 	{
 	  msg (SE, _("No input commands (DATA LIST, REPEATING DATA) "
 		     "for above RECORD TYPE."));
-	  return CMD_FAILURE;
+	  goto error;
 	}
     }
 
@@ -434,34 +427,34 @@ internal_cmd_record_type (void)
 
   /* Parse record type values. */
   if (lex_match_id ("OTHER"))
-    rct.flags |= RCT_OTHER;
+    rct->flags |= RCT_OTHER;
   else
     {
       int mv = 0;
 
       while (token == T_NUM || token == T_STRING)
 	{
-	  if (rct.nv >= mv)
+	  if (rct->nv >= mv)
 	    {
 	      mv += 16;
-	      rct.v = xrealloc (rct.v, mv * sizeof *rct.v);
+	      rct->v = xrealloc (rct->v, mv * sizeof *rct->v);
 	    }
 
-	  if (formats[fty.record.fmt].cat & FCAT_STRING)
+	  if (formats[fty->record.fmt].cat & FCAT_STRING)
 	    {
 	      if (!lex_force_string ())
-		return CMD_FAILURE;
-	      rct.v[rct.nv].c = xmalloc (fty.record.nc + 1);
-	      st_bare_pad_copy (rct.v[rct.nv].c, ds_value (&tokstr),
-				fty.record.nc + 1);
+		goto error;
+	      rct->v[rct->nv].c = xmalloc (fty->record.nc + 1);
+	      st_bare_pad_copy (rct->v[rct->nv].c, ds_value (&tokstr),
+				fty->record.nc + 1);
 	    }
 	  else
 	    {
 	      if (!lex_force_num ())
-		return CMD_FAILURE;
-	      rct.v[rct.nv].f = tokval;
+		goto error;
+	      rct->v[rct->nv].f = tokval;
 	    }
-	  rct.nv++;
+	  rct->nv++;
 	  lex_get ();
 
 	  lex_match (',');
@@ -472,90 +465,103 @@ internal_cmd_record_type (void)
   while (token != '.')
     {
       if (lex_match_id ("SKIP"))
-	rct.flags |= RCT_SKIP;
+	rct->flags |= RCT_SKIP;
       else if (lex_match_id ("CASE"))
 	{
-	  if (fty.type == FTY_MIXED)
+	  if (fty->type == FTY_MIXED)
 	    {
 	      msg (SE, _("The CASE subcommand is not allowed on "
 			 "the RECORD TYPE command for FILE TYPE MIXED."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 
 	  lex_match ('=');
-	  if (!parse_col_spec (&rct.case_sbc, ""))
-	    return CMD_FAILURE;
-	  if (rct.case_sbc.name[0])
+	  if (!parse_col_spec (&rct->case_sbc, ""))
+	    goto error;
+	  if (rct->case_sbc.name[0])
 	    {
 	      msg (SE, _("No variable name may be specified for the "
 			 "CASE subcommand on RECORD TYPE."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  
-	  if ((formats[rct.case_sbc.fmt].cat ^ formats[fty.case_sbc.fmt].cat)
+	  if ((formats[rct->case_sbc.fmt].cat ^ formats[fty->case_sbc.fmt].cat)
 	      & FCAT_STRING)
 	    {
 	      msg (SE, _("The CASE column specification on RECORD TYPE "
 			 "must give a format specifier that is the "
 			 "same type as that of the CASE column "
 			 "specification given on FILE TYPE."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("DUPLICATE"))
 	{
 	  lex_match ('=');
 	  if (lex_match_id ("WARN"))
-	    rct.flags |= RCT_DUPLICATE;
+	    rct->flags |= RCT_DUPLICATE;
 	  else if (lex_match_id ("NOWARN"))
-	    rct.flags &= ~RCT_DUPLICATE;
+	    rct->flags &= ~RCT_DUPLICATE;
 	  else
 	    {
 	      msg (SE, _("WARN or NOWARN expected on DUPLICATE "
 			 "subcommand."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("MISSING"))
 	{
 	  lex_match ('=');
 	  if (lex_match_id ("WARN"))
-	    rct.flags |= RCT_MISSING;
+	    rct->flags |= RCT_MISSING;
 	  else if (lex_match_id ("NOWARN"))
-	    rct.flags &= ~RCT_MISSING;
+	    rct->flags &= ~RCT_MISSING;
 	  else
 	    {
 	      msg (SE, _("WARN or NOWARN expected on MISSING subcommand."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("SPREAD"))
 	{
 	  lex_match ('=');
 	  if (lex_match_id ("YES"))
-	    rct.flags |= RCT_SPREAD;
+	    rct->flags |= RCT_SPREAD;
 	  else if (lex_match_id ("NO"))
-	    rct.flags &= ~RCT_SPREAD;
+	    rct->flags &= ~RCT_SPREAD;
 	  else
 	    {
 	      msg (SE, _("YES or NO expected on SPREAD subcommand."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else
 	{
 	  lex_error (_("while expecting a valid subcommand"));
-	  return CMD_FAILURE;
+	  goto error;
 	}
     }
 
-  if (fty.recs_head)
-    fty.recs_tail = fty.recs_tail->next = xmalloc (sizeof *fty.recs_tail);
+  if (fty->recs_head)
+    fty->recs_tail = fty->recs_tail->next = xmalloc (sizeof *fty->recs_tail);
   else
-    fty.recs_head = fty.recs_tail = xmalloc (sizeof *fty.recs_tail);
-  memcpy (fty.recs_tail, &rct, sizeof *fty.recs_tail);
+    fty->recs_head = fty->recs_tail = xmalloc (sizeof *fty->recs_tail);
+  memcpy (fty->recs_tail, &rct, sizeof *fty->recs_tail);
 
   return CMD_SUCCESS;
+
+ error:
+  if (formats[fty->record.fmt].cat & FCAT_STRING) 
+    {
+      int i;
+      
+      for (i = 0; i < rct->nv; i++)
+        free (rct->v[i].c); 
+    }
+  free (rct->v);
+  free (rct);
+
+  return CMD_FAILURE;
 }
 
 /* END FILE TYPE. */
@@ -563,20 +569,24 @@ internal_cmd_record_type (void)
 int
 cmd_end_file_type (void)
 {
-  if (pgm_state != STATE_INPUT || vfm_source != &file_type_source)
+  struct file_type_pgm *fty;
+
+  if (pgm_state != STATE_INPUT
+      || case_source_is_class (vfm_source, &file_type_source_class))
     {
       msg (SE, _("This command may only appear within a "
 		 "FILE TYPE/END FILE TYPE structure."));
       return CMD_FAILURE;
     }
+  fty = vfm_source->aux;
 
   lex_match_id ("TYPE");
 
-  if (fty.recs_tail)
+  if (fty->recs_tail)
     {
-      fty.recs_tail->lt = n_trns - 1;
-      if (!(fty.recs_tail->flags & RCT_SKIP)
-	  && fty.recs_tail->ft == fty.recs_tail->lt)
+      fty->recs_tail->lt = n_trns - 1;
+      if (!(fty->recs_tail->flags & RCT_SKIP)
+	  && fty->recs_tail->ft == fty->recs_tail->lt)
 	{
 	  msg (SE, _("No input commands (DATA LIST, REPEATING DATA) "
 		     "on above RECORD TYPE."));
@@ -609,64 +619,66 @@ cmd_end_file_type (void)
 /* Reads any number of cases into temp_case and calls write_case() for
    each one.  Compare data-list.c:read_from_data_list. */
 static void
-file_type_source_read (write_case_func *write_case UNUSED,
+file_type_source_read (struct case_source *source,
+                       write_case_func *write_case UNUSED,
                        write_case_data wc_data UNUSED)
 {
+  struct file_type_pgm *fty = source->aux;
   char *line;
   int len;
 
   struct fmt_spec format;
 
-  dfm_push (fty.handle);
+  dfm_push (fty->handle);
 
-  format.type = fty.record.fmt;
-  format.w = fty.record.nc;
+  format.type = fty->record.fmt;
+  format.w = fty->record.nc;
   format.d = 0;
-  while (NULL != (line = dfm_get_record (fty.handle, &len)))
+  while (NULL != (line = dfm_get_record (fty->handle, &len)))
     {
       struct record_type *iter;
       union value v;
       int i;
 
-      if (formats[fty.record.fmt].cat & FCAT_STRING)
+      if (formats[fty->record.fmt].cat & FCAT_STRING)
 	{
 	  struct data_in di;
 	  
-	  v.c = temp_case->data[fty.record.v->fv].s;
+	  v.c = temp_case->data[fty->record.v->fv].s;
 
 	  data_in_finite_line (&di, line, len,
-			       fty.record.fc, fty.record.fc + fty.record.nc);
+			       fty->record.fc, fty->record.fc + fty->record.nc);
 	  di.v = (union value *) v.c;
 	  di.flags = 0;
-	  di.f1 = fty.record.fc;
+	  di.f1 = fty->record.fc;
 	  di.format = format;
 	  data_in (&di);
 
-	  for (iter = fty.recs_head; iter; iter = iter->next)
+	  for (iter = fty->recs_head; iter; iter = iter->next)
 	    {
 	      if (iter->flags & RCT_OTHER)
 		goto found;
 	      for (i = 0; i < iter->nv; i++)
-		if (!memcmp (iter->v[i].c, v.c, fty.record.nc))
+		if (!memcmp (iter->v[i].c, v.c, fty->record.nc))
 		  goto found;
 	    }
-	  if (fty.wild)
-	    msg (SW, _("Unknown record type \"%.*s\"."), fty.record.nc, v.c);
+	  if (fty->wild)
+	    msg (SW, _("Unknown record type \"%.*s\"."), fty->record.nc, v.c);
 	}
       else
 	{
 	  struct data_in di;
 
 	  data_in_finite_line (&di, line, len,
-			       fty.record.fc, fty.record.fc + fty.record.nc);
+			       fty->record.fc, fty->record.fc + fty->record.nc);
 	  di.v = &v;
 	  di.flags = 0;
-	  di.f1 = fty.record.fc;
+	  di.f1 = fty->record.fc;
 	  di.format = format;
 	  data_in (&di);
 
-	  memcpy (&temp_case->data[fty.record.v->fv].f, &v.f, sizeof v.f);
-	  for (iter = fty.recs_head; iter; iter = iter->next)
+	  memcpy (&temp_case->data[fty->record.v->fv].f, &v.f, sizeof v.f);
+	  for (iter = fty->recs_head; iter; iter = iter->next)
 	    {
 	      if (iter->flags & RCT_OTHER)
 		goto found;
@@ -674,19 +686,19 @@ file_type_source_read (write_case_func *write_case UNUSED,
 		if (iter->v[i].f == v.f)
 		  goto found;
 	    }
-	  if (fty.wild)
+	  if (fty->wild)
 	    msg (SW, _("Unknown record type %g."), v.f);
 	}
-      dfm_fwd_record (fty.handle);
+      dfm_fwd_record (fty->handle);
       continue;
 
     found:
       /* Arrive here if there is a matching record_type, which is in
          iter. */
-      dfm_fwd_record (fty.handle);
+      dfm_fwd_record (fty->handle);
     }
 
-/*  switch(fty.type)
+/*  switch(fty->type)
    {
    case FTY_MIXED: read_from_file_type_mixed(); break;
    case FTY_GROUPED: read_from_file_type_grouped(); break;
@@ -694,29 +706,26 @@ file_type_source_read (write_case_func *write_case UNUSED,
    default: assert(0);
    } */
 
-  dfm_pop (fty.handle);
+  dfm_pop (fty->handle);
 }
 
 static void
-file_type_source_destroy_source (void)
+file_type_source_destroy (struct case_source *source)
 {
+  struct file_type_pgm *fty = source->aux;
   struct record_type *iter, *next;
 
   cancel_transformations ();
-  for (iter = fty.recs_head; iter; iter = next)
+  for (iter = fty->recs_head; iter; iter = next)
     {
       next = iter->next;
       free (iter);
     }
 }
 
-struct case_stream file_type_source =
+const struct case_source_class file_type_source_class =
   {
-    NULL,
-    file_type_source_read,
-    NULL,
-    NULL,
-    file_type_source_destroy_source,
-    NULL,
     "FILE TYPE",
+    file_type_source_read,
+    file_type_source_destroy,
   };

@@ -580,6 +580,7 @@ cleanup_freq_tab (struct variable *v)
 {
   assert (v->p.frq.tab.mode == FRQM_GENERAL);
   free (v->p.frq.tab.valid);
+  hsh_destroy (v->p.frq.tab.data);
 }
 
 /* Parses the VARIABLES subcommand, adding to

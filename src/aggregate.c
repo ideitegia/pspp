@@ -26,6 +26,7 @@
 #include "file-handle.h"
 #include "lexer.h"
 #include "misc.h"
+#include "pool.h"
 #include "settings.h"
 #include "sfm.h"
 #include "sort.h"
@@ -76,7 +77,7 @@ struct agr_func
   };
 
 /* Attributes of aggregation functions. */
-static struct agr_func agr_func_tab[] = 
+static const struct agr_func agr_func_tab[] = 
   {
     {"<NONE>",  0, -1,      {0, 0, 0}},
     {"SUM",     0, -1,      {FMT_F, 8, 2}},
@@ -115,6 +116,9 @@ enum
 
 /* ITEMWISE or COLUMNWISE. */
 static int missing;
+
+/* Sort program. */
+static struct sort_cases_pgm *sort;
 
 /* Aggregate variables. */
 static struct agr_var *agr_first, *agr_next;
@@ -157,15 +161,12 @@ static void debug_print (int flags);
 int
 cmd_aggregate (void)
 {
-  /* From sort.c. */
-  int parse_sort_variables (void);
-  
   /* Have we seen these subcommands? */
   unsigned seen = 0;
 
   outfile = NULL;
   missing = ITEMWISE;
-  v_sort = NULL;
+  sort = NULL;
   prev_case = NULL;
   
   agr_dict = dict_create ();
@@ -183,7 +184,7 @@ cmd_aggregate (void)
 	{
 	  if (seen & 1)
 	    {
-	      free (v_sort);
+	      destroy_sort_cases_pgm (sort);
 	      dict_destroy (agr_dict);
 	      msg (SE, _("%s subcommand given multiple times."),"OUTFILE");
 	      return CMD_FAILURE;
@@ -198,7 +199,7 @@ cmd_aggregate (void)
 	      outfile = fh_parse_file_handle ();
 	      if (outfile == NULL)
 		{
-		  free (v_sort);
+		  destroy_sort_cases_pgm (sort);
 		  dict_destroy (agr_dict);
 		  return CMD_FAILURE;
 		}
@@ -209,7 +210,7 @@ cmd_aggregate (void)
 	  lex_match ('=');
 	  if (!lex_match_id ("COLUMNWISE"))
 	    {
-	      free (v_sort);
+	      destroy_sort_cases_pgm (sort);
 	      dict_destroy (agr_dict);
 	      lex_error (_("while expecting COLUMNWISE"));
 	      return CMD_FAILURE;
@@ -224,7 +225,7 @@ cmd_aggregate (void)
 	{
 	  if (seen & 8)
 	    {
-	      free (v_sort);
+	      destroy_sort_cases_pgm (sort);
 	      dict_destroy (agr_dict);
 	      msg (SE, _("%s subcommand given multiple times."),"BREAK");
 	      return CMD_FAILURE;
@@ -232,7 +233,8 @@ cmd_aggregate (void)
 	  seen |= 8;
 
 	  lex_match ('=');
-	  if (!parse_sort_variables ())
+          sort = parse_sort ();
+          if (sort == NULL)
 	    {
 	      dict_destroy (agr_dict);
 	      return CMD_FAILURE;
@@ -241,11 +243,11 @@ cmd_aggregate (void)
 	  {
 	    int i;
 	    
-	    for (i = 0; i < nv_sort; i++)
+	    for (i = 0; i < sort->var_cnt; i++)
 	      {
 		struct variable *v;
 	      
-		v = dict_clone_var (agr_dict, v_sort[i], v_sort[i]->name);
+		v = dict_clone_var (agr_dict, sort->vars[i], sort->vars[i]->name);
 		assert (v != NULL);
 	      }
 	  }
@@ -261,7 +263,7 @@ cmd_aggregate (void)
   if (!parse_aggregate_functions ())
     {
       free_aggregate_functions ();
-      free (v_sort);
+      destroy_sort_cases_pgm (sort);
       return CMD_FAILURE;
     }
 
@@ -312,7 +314,7 @@ cmd_aggregate (void)
 
     if (outfile != NULL)
       type |= 4;
-    if (nv_sort != 0 && (seen & 4) == 0)
+    if (sort != NULL && (seen & 4) == 0)
       type |= 2;
     if (temporary)
       type |= 1;
@@ -323,7 +325,7 @@ cmd_aggregate (void)
 	cancel_temporary ();
 	/* fall through */
       case 2:
-	sort_cases (0);
+	sort_cases (sort, 0);
 	goto case0;
 	  
       case 1:
@@ -367,11 +369,11 @@ cmd_aggregate (void)
 	  
       case 6:
       case 7:
-	sort_cases (1);
+	sort_cases (sort, 1);
 	
 	if (!create_sysfile ())
 	  goto lossage;
-	read_sort_output (agr_11x_func, NULL);
+	read_sort_output (sort, agr_11x_func, NULL);
 	
 	{
 	  struct ccase *save_temp_case = temp_case;
@@ -391,7 +393,7 @@ cmd_aggregate (void)
   free (buf_1xx);
   
   /* Clean up. */
-  free (v_sort);
+  destroy_sort_cases_pgm (sort);
   free_aggregate_functions ();
   free (prev_case);
   
@@ -399,7 +401,7 @@ cmd_aggregate (void)
 
 lossage:
   /* Clean up. */
-  free (v_sort);
+  destroy_sort_cases_pgm (sort);
   free_aggregate_functions ();
   free (prev_case);
 
@@ -418,7 +420,7 @@ create_sysfile (void)
   if (!sfm_write_dictionary (&w))
     {
       free_aggregate_functions ();
-      free (v_sort);
+      destroy_sort_cases_pgm (sort);
       dict_destroy (agr_dict);
       return 0;
     }
@@ -443,7 +445,7 @@ parse_aggregate_functions (void)
       int n_dest;
 
       int include_missing;
-      struct agr_func *function;
+      const struct agr_func *function;
       int func_index;
 
       union value arg[2];
@@ -781,8 +783,8 @@ aggregate_single_case (struct ccase *input, struct ccase *output)
       {
 	int i;
 
-	for (i = 0; i < nv_sort; i++)
-	  n_elem += v_sort[i]->nv;
+	for (i = 0; i < sort->var_cnt; i++)
+	  n_elem += sort->vars[i]->nv;
       }
       
       prev_case = xmalloc (sizeof *prev_case * n_elem);
@@ -792,9 +794,9 @@ aggregate_single_case (struct ccase *input, struct ccase *output)
 	union value *iter = prev_case;
 	int i;
 
-	for (i = 0; i < nv_sort; i++)
+	for (i = 0; i < sort->var_cnt; i++)
 	  {
-	    struct variable *v = v_sort[i];
+	    struct variable *v = sort->vars[i];
 	    
 	    if (v->type == NUMERIC)
 	      (iter++)->f = input->data[v->fv].f;
@@ -817,9 +819,9 @@ aggregate_single_case (struct ccase *input, struct ccase *output)
     union value *iter = prev_case;
     int i;
     
-    for (i = 0; i < nv_sort; i++)
+    for (i = 0; i < sort->var_cnt; i++)
       {
-	struct variable *v = v_sort[i];
+	struct variable *v = sort->vars[i];
       
 	switch (v->type)
 	  {
@@ -856,9 +858,9 @@ not_equal:
     union value *iter = prev_case;
     int i;
 
-    for (i = 0; i < nv_sort; i++)
+    for (i = 0; i < sort->var_cnt; i++)
       {
-	struct variable *v = v_sort[i];
+	struct variable *v = sort->vars[i];
 	    
 	if (v->type == NUMERIC)
 	  (iter++)->f = input->data[v->fv].f;
@@ -1050,8 +1052,8 @@ dump_aggregate_info (struct ccase *output)
     {
       int i;
 
-      for (i = 0; i < nv_sort; i++)
-	n_elem += v_sort[i]->nv;
+      for (i = 0; i < sort->var_cnt; i++)
+	n_elem += sort->vars[i]->nv;
     }
     debug_printf (("n_elem=%d:", n_elem));
     memcpy (output->data, prev_case, sizeof (union value) * n_elem);
@@ -1212,7 +1214,7 @@ agr_00x_end_func (void *aux UNUSED)
      active file. */
   dump_aggregate_info (compaction_case);
   vfm_sink_info.ncases++;
-  vfm_sink->write ();
+  vfm_sink->class->write (vfm_sink, temp_case);
 }
 
 /* Transform the aggregate case buf_1xx, in internal format, to system
@@ -1325,9 +1327,9 @@ debug_print (int flags)
     int i;
 
     printf (" /BREAK=");
-    for (i = 0; i < nv_sort; i++)
-      printf ("%s(%c) ", v_sort[i]->name,
-	      v_sort[i]->p.srt.order == SRT_ASCEND ? 'A' : 'D');
+    for (i = 0; i < sort->var_cnt; i++)
+      printf ("%s(%c) ", sort->vars[i]->name,
+	      sort->vars[i]->p.srt.order == SRT_ASCEND ? 'A' : 'D');
     putc ('\n', stdout);
   }
   

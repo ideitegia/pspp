@@ -17,6 +17,8 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
+/* FIXME: does this work with long string variables? */
+
 #include <config.h>
 #include <assert.h>
 #include <ctype.h>
@@ -29,16 +31,10 @@
 #include "error.h"
 #include "lexer.h"
 #include "misc.h"
+#include "settings.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
-
-/* Variables to transpose. */
-static struct variable **var;
-static int nvar;
-
-/* Variable containing new variable names. */
-static struct variable *newnames;
 
 /* List of variable names. */
 struct varname
@@ -47,71 +43,104 @@ struct varname
     char name[9];
   };
 
-/* New variable names. */
-static struct varname *new_names_head, *new_names_tail;
-static int case_count;
+/* Represents a FLIP input program. */
+struct flip_pgm 
+  {
+    struct variable **var;      /* Variables to transpose. */
+    int var_cnt;                /* Number of variables. */
+    struct variable *newnames;  /* Variable containing new variable names. */
+    struct varname *new_names_head, *new_names_tail;
+                                /* New variable names. */
+    int case_count;             /* Number of cases. */
 
-static int build_dictionary (void);
+  };
+
+static void destroy_flip_pgm (struct flip_pgm *flip);
+static struct case_sink *flip_sink_create (struct flip_pgm *);
+static const struct case_source_class flip_source_class;
+static int build_dictionary (struct flip_pgm *flip);
 
 /* Parses and executes FLIP. */
 int
 cmd_flip (void)
 {
+  struct flip_pgm *flip;
+
+  flip = xmalloc (sizeof *flip);
+  flip->var = NULL;
+  flip->var_cnt = 0;
+  flip->newnames = NULL;
+  flip->new_names_head = flip->new_names_tail = NULL;
+  flip->case_count = 0;
+
   lex_match_id ("FLIP");
   lex_match ('/');
   if (lex_match_id ("VARIABLES"))
     {
       lex_match ('=');
-      if (!parse_variables (default_dict, &var, &nvar, PV_NO_DUPLICATE))
+      if (!parse_variables (default_dict, &flip->var, &flip->var_cnt, PV_NO_DUPLICATE))
 	return CMD_FAILURE;
       lex_match ('/');
     }
   else
-    dict_get_vars (default_dict, &var, &nvar, 1u << DC_SYSTEM);
+    dict_get_vars (default_dict, &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
 
   lex_match ('/');
   if (lex_match_id ("NEWNAMES"))
     {
       lex_match ('=');
-      newnames = parse_variable ();
-      if (!newnames)
-	{
-	  free (var);
-	  return CMD_FAILURE;
-	}
+      flip->newnames = parse_variable ();
+      if (!flip->newnames)
+        goto error;
     }
   else
-    newnames = dict_lookup_var (default_dict, "CASE_LBL");
+    flip->newnames = dict_lookup_var (default_dict, "CASE_LBL");
 
-  if (newnames)
+  if (flip->newnames)
     {
       int i;
       
-      for (i = 0; i < nvar; i++)
-	if (var[i] == newnames)
+      for (i = 0; i < flip->var_cnt; i++)
+	if (flip->var[i] == flip->newnames)
 	  {
-	    memmove (&var[i], &var[i + 1], sizeof *var * (nvar - i - 1));
-	    nvar--;
+	    memmove (&flip->var[i], &flip->var[i + 1], sizeof *flip->var * (flip->var_cnt - i - 1));
+	    flip->var_cnt--;
 	    break;
 	  }
     }
 
-  case_count = 0;
+  flip->case_count = 0;
   temp_trns = temporary = 0;
-  vfm_sink = &flip_stream;
-  new_names_tail = NULL;
+  vfm_sink = flip_sink_create (flip);
+  flip->new_names_tail = NULL;
   procedure (NULL, NULL, NULL, NULL);
 
   dict_clear (default_dict);
-  if (!build_dictionary ())
+  if (!build_dictionary (flip))
     {
       discard_variables ();
-      free (var);
-      return CMD_FAILURE;
+      goto error;
     }
 
-  free (var);
   return lex_end_of_command ();
+
+ error:
+  destroy_flip_pgm (flip);
+  return CMD_FAILURE;
+}
+
+static void
+destroy_flip_pgm (struct flip_pgm *flip) 
+{
+  struct varname *iter, *next;
+  
+  free (flip->var);
+  for (iter = flip->new_names_head; iter != NULL; iter = next) 
+    {
+      next = iter->next;
+      free (iter);
+    }
+  free (flip);
 }
 
 /* Make a new variable with base name NAME, which is bowdlerized and
@@ -165,21 +194,21 @@ make_new_var (char name[])
 
 /* Make a new dictionary for all the new variable names. */
 static int
-build_dictionary (void)
+build_dictionary (struct flip_pgm *flip)
 {
   dict_create_var_assert (default_dict, "CASE_LBL", 8);
 
-  if (!new_names_tail)
+  if (flip->new_names_head == NULL)
     {
       int i;
       
-      if (case_count > 99999)
+      if (flip->case_count > 99999)
 	{
 	  msg (SE, _("Cannot create more than 99999 variable names."));
 	  return 0;
 	}
       
-      for (i = 0; i < case_count; i++)
+      for (i = 0; i < flip->case_count; i++)
 	{
           struct variable *v;
 	  char s[9];
@@ -190,127 +219,91 @@ build_dictionary (void)
     }
   else
     {
-      struct varname *v, *n;
+      struct varname *v;
 
-      new_names_tail->next = NULL;
-      for (v = new_names_head; v; v = n)
-	{
-	  n = v->next;
-	  if (!make_new_var (v->name))
-	    {
-	      for (; v; v = n)
-		{
-		  n = v->next;
-		  free (v);
-		}
-	      return 0;
-	    }
-	  free (v);
-	}
+      for (v = flip->new_names_head; v; v = v->next)
+        if (!make_new_var (v->name))
+          return 0;
     }
   
   return 1;
 }
      
-
-/* Each case to be transposed. */
-struct flip_case
+/* Cases during transposition. */
+struct flip_sink_info 
   {
-    struct flip_case *next;
-    double v[1];
+    struct flip_pgm *flip;              /* FLIP program. */
+    int internal;			/* Internal or external flip. */
+    char *old_names;                    /* Old variable names. */
+    unsigned long case_cnt;             /* Number of cases. */
+    FILE *file;                         /* Temporary file. */
   };
 
-/* Sink: Cases during transposition. */
-static int internal;			/* Internal vs. external flipping. */
-static char *sink_old_names;		/* Old variable names. */
-static unsigned long sink_cases;	/* Number of cases. */
-static struct flip_case *head, *tail;	/* internal == 1: Cases. */
-static FILE *sink_file;			/* internal == 0: Temporary file. */
-
 /* Source: Cases after transposition. */
-static struct flip_case *src;		/* Internal transposition records. */
-static char *src_old_names;		/* Old variable names. */
-static unsigned long src_cases;		/* Number of cases. */
-static FILE *src_file;			/* src == NULL: Temporary file. */
+struct flip_source_info 
+  {
+    struct flip_pgm *flip;              /* FLIP program. */
+    char *old_names;    		/* Old variable names. */
+    unsigned long case_cnt;		/* Number of cases. */
+    FILE *file;                         /* Temporary file. */
+  };
 
-/* Initialize the FLIP stream. */
-static void 
-flip_stream_init (void)
+static const struct case_sink_class flip_sink_class;
+
+static FILE *flip_file (struct flip_sink_info *info);
+
+/* Creates a flip sink based on FLIP, of which it takes
+   ownership. */
+static struct case_sink *
+flip_sink_create (struct flip_pgm *flip) 
 {
-  internal = 1;
-  sink_cases = 0;
-  tail = NULL;
+  struct flip_sink_info *info = xmalloc (sizeof *info);
+
+  info->flip = flip;
+  info->case_cnt = 0;
   
   {
-    size_t n = nvar;
+    size_t n = flip->var_cnt;
     char *p;
     int i;
     
-    for (i = 0; i < nvar; i++)
-      n += strlen (var[i]->name);
-    p = sink_old_names = xmalloc (n);
-    for (i = 0; i < nvar; i++)
-      p = stpcpy (p, var[i]->name) + 1;
+    for (i = 0; i < flip->var_cnt; i++)
+      n += strlen (flip->var[i]->name);
+    p = info->old_names = xmalloc (n);
+    for (i = 0; i < flip->var_cnt; i++)
+      p = stpcpy (p, flip->var[i]->name) + 1;
   }
+
+  return create_case_sink (&flip_sink_class, info);
 }
 
-/* Reads the FLIP stream and passes it to write_case(). */
+/* Open the FLIP sink. */
 static void
-flip_stream_read (write_case_func *write_case, write_case_data wc_data)
+flip_sink_open (struct case_sink *sink) 
 {
-  if (src || (src == NULL && src_file == NULL))
-    {
-      /* Internal transposition, or empty file. */
-      int i, j;
-      char *p = src_old_names;
-      
-      for (i = 0; i < nvar; i++)
-	{
-	  struct flip_case *iter;
-	  
-	  st_bare_pad_copy (temp_case->data[0].s, p, 8);
-	  p = strchr (p, 0) + 1;
+  struct flip_sink_info *info = sink->aux;
 
-	  for (iter = src, j = 1; iter; iter = iter->next, j++)
-	    temp_case->data[j].f = iter->v[i];
-
-	  if (!write_case (wc_data))
-	    return;
-	}
-    }
-  else
-    {
-      int i;
-      char *p = src_old_names;
-      
-      for (i = 0; i < nvar; i++)
-	{
-	  st_bare_pad_copy (temp_case->data[0].s, p, 8);
-	  p = strchr (p, 0) + 1;
-
-	  if (fread (&temp_case->data[1], sizeof (double), src_cases,
-		     src_file) != src_cases)
-	    msg (FE, _("Error reading FLIP source file: %s."),
-		 strerror (errno));
-
-	  if (!write_case (wc_data))
-	    return;
-	}
-    }
+  info->file = tmpfile ();
+  if (!info->file)
+    msg (FE, _("Could not create temporary file for FLIP."));
 }
 
-/* Writes temp_case to the FLIP stream. */
+/* Writes case C to the FLIP sink. */
 static void
-flip_stream_write (void)
+flip_sink_write (struct case_sink *sink, struct ccase *c)
 {
-  sink_cases++;
+  struct flip_sink_info *info = sink->aux;
+  struct flip_pgm *flip = info->flip;
+  
+  info->case_cnt++;
 
-  if (newnames)
+  if (flip->newnames)
     {
       struct varname *v = xmalloc (sizeof (struct varname));
-      if (newnames->type == NUMERIC) 
+      v->next = NULL;
+      if (flip->newnames->type == NUMERIC) 
         {
-          double f = temp_case->data[newnames->fv].f;
+          double f = c->data[flip->newnames->fv].f;
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -328,236 +321,205 @@ flip_stream_write (void)
         }
       else
 	{
-	  int width = min (newnames->width, 8);
-	  memcpy (v->name, temp_case->data[newnames->fv].s, width);
+	  int width = min (flip->newnames->width, 8);
+	  memcpy (v->name, c->data[flip->newnames->fv].s, width);
 	  v->name[width] = 0;
 	}
       
-      if (new_names_tail == NULL)
-	new_names_head = v;
+      if (flip->new_names_head == NULL)
+	flip->new_names_head = v;
       else
-	new_names_tail->next = v;
-      new_names_tail = v;
+	flip->new_names_tail->next = v;
+      flip->new_names_tail = v;
     }
   else
-    case_count++;
+    flip->case_count++;
 
-  if (internal)
-    {
-#if 0
-      flip_case *c = malloc (sizeof (flip_case)
-			     + sizeof (double) * (nvar - 1));
-      
-      if (c != NULL)
-	{
-	  /* Write to internal file. */
-	  int i;
-
-	  for (i = 0; i < nvar; i++)
-	    if (var[i]->type == NUMERIC)
-	      c->v[i] = temp_case->data[var[i]->fv].f;
-	    else
-	      c->v[i] = SYSMIS;
-
-	  if (tail == NULL)
-	    head = c;
-	  else
-	    tail->next = c;
-	  tail = c;
-	  
-	  return;
-	}
-      else
-#endif
-	{
-	  /* Initialize external file. */
-	  struct flip_case *iter, *next;
-
-	  internal = 0;
-
-	  sink_file = tmpfile ();
-	  if (!sink_file)
-	    msg (FE, _("Could not create temporary file for FLIP."));
-
-	  if (tail)
-	    tail->next = NULL;
-	  for (iter = head; iter; iter = next)
-	    {
-	      next = iter->next;
-
-	      if (fwrite (iter->v, sizeof (double), nvar, sink_file)
-		  != (size_t) nvar)
-		msg (FE, _("Error writing FLIP file: %s."),
-		     strerror (errno));
-	      free (iter);
-	    }
-	}
-    }
 
   /* Write to external file. */
   {
-    double *d = local_alloc (sizeof *d * nvar);
+    double *d = local_alloc (sizeof *d * flip->var_cnt);
     int i;
 
-    for (i = 0; i < nvar; i++)
-      if (var[i]->type == NUMERIC)
-	d[i] = temp_case->data[var[i]->fv].f;
+    for (i = 0; i < flip->var_cnt; i++)
+      if (flip->var[i]->type == NUMERIC)
+	d[i] = c->data[flip->var[i]->fv].f;
       else
 	d[i] = SYSMIS;
 	  
-    if (fwrite (d, sizeof *d, nvar, sink_file) != (size_t) nvar)
+    if (fwrite (d, sizeof *d, flip->var_cnt, info->file) != (size_t) flip->var_cnt)
       msg (FE, _("Error writing FLIP file: %s."),
 	   strerror (errno));
 
     local_free (d);
   }
 }
-      
-/* Transpose the external file. */
-static void
-transpose_external_file (void)
-{
-  unsigned long n_cases;
-  unsigned long cur_case;
-  double *case_buf, *temp_buf;
 
-  n_cases = 4 * 1024 * 1024 / ((nvar + 1) * sizeof *case_buf);
-  if (n_cases < 2)
-    n_cases = 2;
+/* Destroy sink's internal data. */
+static void
+flip_sink_destroy (struct case_sink *sink)
+{
+  struct flip_sink_info *info = sink->aux;
+  
+  free (info->old_names);
+  destroy_flip_pgm (info->flip);
+  free (info);
+}
+
+/* Convert the FLIP sink into a source. */
+static struct case_source *
+flip_sink_make_source (struct case_sink *sink)
+{
+  struct flip_sink_info *sink_info = sink->aux;
+  struct flip_source_info *source_info;
+
+  source_info = xmalloc (sizeof *source_info);
+  source_info->flip = sink_info->flip;
+  source_info->old_names = sink_info->old_names;
+  source_info->case_cnt = sink_info->case_cnt;
+  source_info->file = flip_file (sink_info);
+  fclose (sink_info->file);
+
+  free (sink_info);
+
+  return create_case_source (&flip_source_class, source_info);
+}
+
+/* Transposes the external file into a new file and returns a
+   pointer to the transposed file. */
+static FILE *
+flip_file (struct flip_sink_info *info)
+{
+  struct flip_pgm *flip = info->flip;
+  size_t case_bytes;
+  size_t case_capacity;
+  size_t case_idx;
+  union value *input_buf, *output_buf;
+  FILE *input_file, *output_file;
+
+  /* Allocate memory for many cases. */
+  case_bytes = flip->var_cnt * sizeof *input_buf;
+  case_capacity = set_max_workspace / case_bytes;
+  if (case_capacity > info->case_cnt)
+    case_capacity = info->case_cnt;
+  if (case_capacity < 2)
+    case_capacity = 2;
   for (;;)
     {
-      assert (n_cases >= 2 /* 1 */);
-      case_buf = ((n_cases <= 2 ? xmalloc : (void *(*)(size_t)) malloc)
-		  ((nvar + 1) * sizeof *case_buf * n_cases));
-      if (case_buf)
+      size_t bytes = case_bytes * case_capacity;
+      if (case_capacity > 2)
+        input_buf = malloc (bytes);
+      else
+        input_buf = xmalloc (bytes);
+      if (input_buf != NULL)
 	break;
 
-      n_cases /= 2;
-      if (n_cases < 2)
-	n_cases = 2;
+      case_capacity /= 2;
+      if (case_capacity < 2)
+	case_capacity = 2;
     }
 
-  /* A temporary buffer that holds n_cases elements. */
-  temp_buf = &case_buf[nvar * n_cases];
+  /* Use half the allocated memory for input_buf, half for
+     output_buf. */
+  case_capacity /= 2;
+  output_buf = input_buf + flip->var_cnt * case_capacity;
 
-  src_file = tmpfile ();
-  if (!src_file)
-    msg (FE, _("Error creating FLIP source file."));
-  
-  if (fseek (sink_file, 0, SEEK_SET) != 0)
+  input_file = info->file;
+  if (fseek (input_file, 0, SEEK_SET) != 0)
     msg (FE, _("Error rewinding FLIP file: %s."), strerror (errno));
 
-  for (cur_case = 0; cur_case < sink_cases; )
+  output_file = tmpfile ();
+  if (output_file == NULL)
+    msg (FE, _("Error creating FLIP source file."));
+  
+  for (case_idx = 0; case_idx < info->case_cnt; )
     {
-      unsigned long read_cases = min (sink_cases - cur_case, n_cases);
+      unsigned long read_cases = min (info->case_cnt - case_idx,
+                                      case_capacity);
       int i;
 
-      if (read_cases != fread (case_buf, sizeof *case_buf * nvar,
-			       read_cases, sink_file))
+      if (read_cases != fread (input_buf, case_bytes, read_cases, input_file))
 	msg (FE, _("Error reading FLIP file: %s."), strerror (errno));
 
-      for (i = 0; i < nvar; i++)
+      for (i = 0; i < flip->var_cnt; i++)
 	{
 	  unsigned long j;
 	  
 	  for (j = 0; j < read_cases; j++)
-	    temp_buf[j] = case_buf[i + j * nvar];
+	    output_buf[j] = input_buf[i + j * flip->var_cnt];
 
-	  if (fseek (src_file,
-		     sizeof *case_buf * (cur_case + i * sink_cases),
-		     SEEK_SET) != 0)
+	  if (fseek (output_file,
+                     sizeof *input_buf * (case_idx + i * info->case_cnt),
+                     SEEK_SET) != 0)
 	    msg (FE, _("Error seeking FLIP source file: %s."),
 		       strerror (errno));
 
-	  if (fwrite (temp_buf, sizeof *case_buf, read_cases, src_file)
+	  if (fwrite (output_buf, sizeof *output_buf, read_cases, output_file)
 	      != read_cases)
 	    msg (FE, _("Error writing FLIP source file: %s."),
 		 strerror (errno));
 	}
 
-      cur_case += read_cases;
+      case_idx += read_cases;
     }
 
-  if (fseek (src_file, 0, SEEK_SET) != 0)
+  if (fseek (output_file, 0, SEEK_SET) != 0)
     msg (FE, _("Error rewind FLIP source file: %s."), strerror (errno));
 
-  fclose (sink_file);
-
-  free (case_buf);
+  free (input_buf);
+  return output_file;
 }
 
-/* Change the FLIP stream from sink to source mode. */
+/* FLIP sink class. */
+static const struct case_sink_class flip_sink_class = 
+  {
+    "FLIP",
+    flip_sink_open,
+    flip_sink_write,
+    flip_sink_destroy,
+    flip_sink_make_source,
+  };
+
+/* Reads the FLIP stream and passes it to WRITE_CASE(). */
 static void
-flip_stream_mode (void)
+flip_source_read (struct case_source *source,
+                  write_case_func *write_case, write_case_data wc_data)
 {
-  src_cases = sink_cases;
-  src_old_names = sink_old_names;
-  sink_old_names = NULL;
-  
-  if (internal)
+  struct flip_source_info *info = source->aux;
+  struct flip_pgm *flip = info->flip;
+  int i;
+  char *p = info->old_names;
+      
+  for (i = 0; i < flip->var_cnt; i++)
     {
-      if (tail)
-	{
-	  tail->next = NULL;
-	  src = head;
-	}
-      else
-	{
-	  src = NULL;
-	  src_file = NULL;
-	}
-    }
-  else
-    {
-      src = NULL;
-      transpose_external_file ();
+      st_bare_pad_copy (temp_case->data[0].s, p, 8);
+      p = strchr (p, 0) + 1;
+
+      if (fread (&temp_case->data[1], sizeof (double), info->case_cnt,
+                 info->file) != info->case_cnt)
+        msg (FE, _("Error reading FLIP source file: %s."),
+             strerror (errno));
+
+      if (!write_case (wc_data))
+        return;
     }
 }
 
 /* Destroy source's internal data. */
 static void
-flip_stream_destroy_source (void)
+flip_source_destroy (struct case_source *source)
 {
-  free (src_old_names);
-  if (internal)
-    {
-      struct flip_case *iter, *next;
+  struct flip_source_info *info = source->aux;
 
-      for (iter = src; iter; iter = next)
-	{
-	  next = iter->next;
-	  free (iter);
-	}
-    }
-  else
-    fclose (src_file);
+  destroy_flip_pgm (info->flip);
+  free (info->old_names);
+  fclose (info->file);
+  free (info);
 }
 
-/* Destroy sink's internal data. */
-static void
-flip_stream_destroy_sink (void)
-{
-  struct flip_case *iter, *next;
-  
-  free (sink_old_names);
-  if (tail == NULL)
-    return;
-
-  tail->next = NULL;
-  for (iter = head; iter; iter = next)
-    {
-      next = iter->next;
-      free (iter);
-    }
-}
-
-struct case_stream flip_stream = 
+static const struct case_source_class flip_source_class = 
   {
-    flip_stream_init,
-    flip_stream_read,
-    flip_stream_write,
-    flip_stream_mode,
-    flip_stream_destroy_source,
-    flip_stream_destroy_sink,
     "FLIP",
+    flip_source_read,
+    flip_source_destroy
   };

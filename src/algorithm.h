@@ -27,11 +27,32 @@ void *find (const void *array, size_t count, size_t size,
             const void *target,
             algo_compare_func *compare, void *aux);
 
+/* Counts and return the number of elements in ARRAY, which
+   contains COUNT elements of SIZE bytes each, which are equal to
+   ELEMENT as compared with COMPARE.  AUX is passed as auxiliary
+   data to COMPARE. */
+size_t count_equal (const void *array, size_t count, size_t size,
+                    const void *element,
+                    algo_compare_func *compare, void *aux);
+
+/* Counts and return the number of elements in ARRAY, which
+   contains COUNT elements of SIZE bytes each, for which
+   PREDICATE returns nonzero.  AUX is passed as auxiliary data to
+   PREDICATE. */
+size_t count_if (const void *array, size_t count, size_t size,
+                 algo_predicate_func *predicate, void *aux);
+
 /* Sorts ARRAY, which contains COUNT elements of SIZE bytes each,
    using COMPARE for comparisons.  AUX is passed to each
    comparison as auxiliary data. */
 void sort (void *array, size_t count, size_t size,
            algo_compare_func *compare, void *aux);
+
+/* Tests whether ARRAY, which contains COUNT elements of SIZE
+   bytes each, is sorted in order according to COMPARE.  AUX is
+   passed to COMPARE as auxiliary data. */
+int is_sorted (const void *array, size_t count, size_t size,
+               algo_compare_func *compare, void *aux);
 
 /* Makes the elements in ARRAY unique, by moving up duplicates,
    and returns the new number of elements in the array.  Sorted
@@ -50,6 +71,14 @@ size_t sort_unique (void *array, size_t count, size_t size,
    elements for which PREDICATE returns nonzero.  Not stable. */
 size_t partition (void *array, size_t count, size_t size,
                   algo_predicate_func *predicate, void *aux);
+
+/* Checks whether ARRAY, which contains COUNT elements of SIZE
+   bytes each, is partitioned such that PREDICATE returns nonzero
+   for the first NONZERO_CNT elements and zero for the remaining
+   elements.  AUX is passed as auxiliary data to PREDICATE. */
+int is_partitioned (const void *array, size_t count, size_t size,
+                    size_t nonzero_cnt,
+                    algo_predicate_func *predicate, void *aux);
 
 /* Randomly reorders ARRAY, which contains COUNT elements of SIZE
    bytes each.  Uses RANDOM as a source of random data, passing
@@ -95,10 +124,10 @@ void *binary_search (const void *array, size_t count, size_t size,
    elements of SIZE bytes, according to COMPARE.  Returns a
    strcmp()-type result.  AUX is passed to COMPARE as auxiliary
    data. */
-int lexicographical_compare (const void *array1, size_t count1,
-                             const void *array2, size_t count2,
-                             size_t size,
-                             algo_compare_func *compare, void *aux);
+int lexicographical_compare_3way (const void *array1, size_t count1,
+                                  const void *array2, size_t count2,
+                                  size_t size,
+                                  algo_compare_func *compare, void *aux);
 
 /* Computes the generalized set difference, ARRAY1 minus ARRAY2,
    into RESULT, and returns the number of elements written to
@@ -121,5 +150,44 @@ size_t set_difference (const void *array1, size_t count1,
    as auxiliary data. */
 void *adjacent_find_equal (const void *array, size_t count, size_t size,
                            algo_compare_func *compare, void *aux);
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   the first COUNT - 1 elements of these form a heap, followed by
+   a single element not part of the heap.  This function adds the
+   final element, forming a heap of COUNT elements in ARRAY.
+   Uses COMPARE to compare elements, passing AUX as auxiliary
+   data. */
+void push_heap (void *array, size_t count, size_t size,
+                algo_compare_func *compare, void *aux);
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   all COUNT elements form a heap.  This function moves the
+   largest element in the heap to the final position in ARRAY and
+   reforms a heap of the remaining COUNT - 1 elements at the
+   beginning of ARRAY.  Uses COMPARE to compare elements, passing
+   AUX as auxiliary data. */
+void pop_heap (void *array, size_t count, size_t size,
+               algo_compare_func *compare, void *aux);
+
+/* Turns ARRAY, which contains COUNT elements of SIZE bytes, into
+   a heap.  Uses COMPARE to compare elements, passing AUX as
+   auxiliary data. */
+void make_heap (void *array, size_t count, size_t size,
+                algo_compare_func *compare, void *aux);
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   all COUNT elements form a heap.  This function turns the heap
+   into a fully sorted array.  Uses COMPARE to compare elements,
+   passing AUX as auxiliary data. */
+void sort_heap (void *array, size_t count, size_t size,
+                algo_compare_func *compare, void *aux);
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  This
+   function tests whether ARRAY is a heap and returns 1 if so, 0
+   otherwise.  Uses COMPARE to compare elements, passing AUX as
+   auxiliary data. */
+int is_heap (const void *array, size_t count, size_t size,
+             algo_compare_func *compare, void *aux);
+
 
 #endif /* sort-algo.h */

@@ -1,3 +1,175 @@
+Tue Mar  2 11:36:52 2004  Ben Pfaff  <blp@gnu.org>
+
+	* frequencies.q: (cleanup_freq_tab) Avoid memory leak by
+	destroying hash table.
+
+	* glob.c: (read_active_file) Variable not referenced, removed.
+	(cancel_input_pgm) Ditto.
+
+	* levene.c: Add #include <stdlib.h> needed to call free().
+
+	* aggregate.c: (parse_aggregate_functions) Make `function'
+	variable const.
+
+Tue Mar  2 11:30:56 2004  Ben Pfaff  <blp@gnu.org>
+
+	Start working to eliminate VFM dependence on static variables.
+
+	* command.c: (cmd_parse) Use case_source_is_class().
+
+	* data-list.c: Rewrite to eliminate use of static variables.
+
+	* dfm.c: (cmd_begin_data) Use case_source_is_class().
+
+	* file-handle.q: (fh_handle_name) Make parameter const.
+
+	* file-type.c: Rewrite to eliminate use of static variables.
+
+	* flip.c: Rewrite to eliminate use of static variables.
+
+	* format.c: (get_format_var_width) New function.
+
+	* get.c: Eliminate use of static variables.
+
+	* inpt-pgm.c: Eliminate use of static variables.
+
+	* matrix-data.c: Eliminate use of static variables.
+
+	* set.q: (set_max_workspace) New variable.
+	(cmd_set) Use SET WORKSPACE to modify set_max_workspace.
+
+	* var.h: (struct case_list) Move here from vfmP.h.
+
+	* vars-atr.c: (discard_variables) Handle new vfm_source type.
+
+	* vfm.c: (vfm_source) Change type from struct case_stream to
+	struct case_source.
+	(vfm_sink) Change type from struct case_stream to struct
+	case_sink.
+	(static var paging) Rename workspace_overflow, all references
+	updated.
+	(procedure) Use new class structures.
+	(process_active_file) Ditto.
+	(process_active_file_write_case) Ditto.
+	(prepare_for_writing) Use set_max_workspace.  Use new class
+	structures.
+	(close_active_file) Use new class structures.  Free old sink.
+	(global var disk_source_file) Removed.
+	(global var disk_sink_file) Removed.
+	(disk_stream_init) Removed.
+	(disk_stream_read) Removed.
+	(disk_stream_write) Removed.
+	(disk_stream_mode) Removed.
+	(disk_stream_destroy_source) Removed.
+	(disk_stream_destroy_sink) Removed.
+	(global var vfm_disk_stream) Removed.
+	(disk_sink_create) New function.
+	(disk_sink_write) New function.
+	(disk_sink_destroy) New function.
+	(disk_sink_make_source) New function.
+	(disk_sink_class) New static var.
+	(disk_source_read) New function.
+	(disk_source_destroy) New function.
+	(global var vfm_source_class) New var.
+	(global var memory_source_cases) Removed.
+	(global var memory_sink_cases) Removed.
+	(global var memory_sink_max_cases) Removed.
+	(struct memory_sink_info) New struct.
+	(memory_stream_init) Removed.
+	(memory_stream_read) Removed.
+	(memory_stream_write) Removed.
+	(memory_stream_mode) Removed.
+	(memory_stream_destroy_source) Removed.
+	(memory_stream_destroy_sink) Removed.
+	(global var vfm_memory_stream) Removed.
+	(page_to_disk) Renamed write_active_file_to_disk().
+	(memory_sink_create) New function.
+	(memory_sink_write) New function.
+	(memory_sink_destroy) New function.
+	(memory_sink_make_source) New function.
+	(memory_sink_class) New static var.
+	(memory_source_read) New function.
+	(memory_source_destroy) New function.
+	(memory_source_get_cases) New function.
+	(memory_source_set_cases) New function.
+	(global var vfm_source_class) New var.
+	(procedure_write_case) Use new class structures.
+	(create_case_source) New function.
+	(case_source_is_complex) New function.
+	(case_source_is_class) New function.
+	(create_case_sink) New function.
+
+	* vfm.h: (global variable reinit_sysmis) Not used, removed.
+	(global variable reinit_blanks) Not used, removed.
+	(global variable init_zero) Not used, removed.
+	(global variable init_blanks) Not used, removed.
+	(struct case_source) New struct.
+	(struct case_source_class) New struct.
+	(struct case_sink) New struct.
+	(struct case_sink_class) New struct.
+	(struct case_stream) Removed.
+
+	* vfmP.h: (struct case_list) Moved to var.h.
+
+Tue Mar  2 11:28:30 2004  Ben Pfaff  <blp@gnu.org>
+
+	* algorithm.c: (count_equal) New function.
+	(count_if) New function.
+	(unique) Add assertions.
+	(partition) Add assertions.
+	(is_partitioned) New function.
+	(copy_if) Add assertions.
+	(remove_equal) Add assertions.
+	(lexicographical_compare) Rename lexicographical_compare_3way.
+	(sort) Add assertions.  Rephrase some code.
+	(is_sorted) New function.
+
+Sun Feb 29 23:24:57 2004  Ben Pfaff  <blp@gnu.org>
+
+	Rewrite SORT CASES.
+
+	* sort.c: Completely rewrite.
+
+	* sort.h: Expose interface via struct sort_cases_pgm, not via
+	global variables.
+
+	* aggregate.c: (sort) New static var.
+	(cmd_aggregate) Use sort.
+	(create_sysfile) Ditto.
+	(aggregate_single_case) Ditto.
+	(dump_aggregate_info) Ditto.
+	(agr_00x_end_func) Ditto.
+	(debug_print) Ditto.
+
+	* var.h: (enum SRT_ASCEND) Removed.
+	(enum SRT_DESCEND) Removed.
+	(struct sort_cases_proc) Removed.
+	(struct variable) Remove p.srt member.
+
+Sun Feb 29 23:22:45 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of the old, crappy heap structure and replace it by a new,
+	shiny, C++ STL-like heap structure.
+	
+	* Makefile.am: (pspp_SOURCES) Remove heap.c, heap.h.
+
+	* algorithm.c: (push_heap) New function.
+	(heapify) Ditto.
+	(pop_heap) Ditto.
+	(make_heap) Ditto.
+	(sort_heap) Ditto.
+	(is_heap) Ditto.
+	
+	* heap.c: Removed.
+
+	* heap.h: Removed.
+
+Sun Feb 29 23:21:53 2004  Ben Pfaff  <blp@gnu.org>
+
+	Increase warning level.
+	
+	* Makefile.am: (AM_CFLAGS) Remove -Wnouninitialized.
+
 Sat Feb 21 17:38:58 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
         * main.c: Added a signal handler for SIGSEGV requesting a bug report.

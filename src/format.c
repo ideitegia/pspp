@@ -340,3 +340,13 @@ parse_format_specifier (struct fmt_spec *input, int allow_xt)
   return 1;
 }
 
+int
+get_format_var_width (const struct fmt_spec *spec) 
+{
+  if (spec->type == FMT_AHEX)
+    return spec->w * 2;
+  else if (spec->type == FMT_A)
+    return spec->w;
+  else
+    return 0;
+}

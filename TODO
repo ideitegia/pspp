@@ -1,19 +1,14 @@
-Time-stamp: <2004-02-03 18:31:06 blp>
+Time-stamp: <2004-02-24 19:22:15 blp>
 
 TODO
 ----
 
-random.c should not know about set_seed.
+Use posix_fadvise(POSIX_FADV_SEQUENTIAL) where available.
 
-Probably should get rid of approx.h.  The user really needs to be responsible
-for his own precision.
+random.c should not know about set_seed.
 
 Use AFM files instead of Groff font files, and include AFMs for our default
 fonts with the distribution.
-
-The way that data-in.c and data-out.c deal with strings is wrong.  Instead of
-the way it's done now, we should make it dynamically allocate a buffer and
-return a pointer to it.  This is a much safer interface.
 
 Add libplot output driver.  Suggested by Robert S. Maier
 <rsm@math.arizona.edu>: "it produces output in idraw-editable PS format, PCL5

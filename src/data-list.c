@@ -50,15 +50,20 @@
 /* Describes how to parse one variable. */
 struct dls_var_spec
   {
-    struct dls_var_spec *next;
+    struct dls_var_spec *next;  /* Next specification in list. */
+
+    /* Both free and fixed formats. */
+    struct fmt_spec input;	/* Input format of this field. */
     struct variable *v;		/* Associated variable.  Used only in
 				   parsing.  Not safe later. */
-    char name[9];		/* Free-format: Name of variable. */
-    int rec;			/* Fixed-format: Record number (1-based). */
-    int fc, lc;			/* Fixed-format: Column numbers in record. */
-    struct fmt_spec input;	/* Input format of this field. */
     int fv;			/* First value in case. */
-    int width;			/* 0=numeric, >0=width of alpha field. */
+
+    /* Fixed format only. */
+    int rec;			/* Record number (1-based). */
+    int fc, lc;			/* Column numbers in record. */
+
+    /* Free format only. */
+    char name[9];		/* Name of variable. */
   };
 
 /* Constants for DATA LIST type. */
@@ -74,7 +79,7 @@ enum
 struct data_list_pgm
   {
     struct trns_header h;
-    struct dls_var_spec *spec;	/* Variable parsing specifications. */
+    struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
     struct file_handle *handle;	/* Input file, never NULL. */
     /* Do not reorder preceding fields. */
 
@@ -84,19 +89,12 @@ struct data_list_pgm
     int nrec;			/* Number of records. */
   };
 
-/* Holds information on parsing the data file. */
-static struct data_list_pgm dls;
-
-/* Pointer to a pointer to where the first dls_var_spec should go. */
-static struct dls_var_spec **first;
-
-/* Last dls_var_spec in the chain.  Used for building the linked-list. */
-static struct dls_var_spec *next;
-
-static int parse_fixed (void);
-static int parse_free (void);
-static void dump_fixed_table (void);
-static void dump_free_table (void);
+static int parse_fixed (struct data_list_pgm *);
+static int parse_free (struct dls_var_spec **, struct dls_var_spec **);
+static void dump_fixed_table (const struct dls_var_spec *specs,
+                              const struct file_handle *handle, int nrec);
+static void dump_free_table (const struct data_list_pgm *);
+static void destroy_dls_var_spec (struct dls_var_spec *);
 static void destroy_dls (struct trns_header *);
 static int read_one_case (struct trns_header *, struct ccase *);
 
@@ -106,38 +104,40 @@ static int read_one_case (struct trns_header *, struct ccase *);
 int
 cmd_data_list (void)
 {
+  /* DATA LIST program under construction. */
+  struct data_list_pgm *dls;
+
   /* 0=print no table, 1=print table.  (TABLE subcommand.)  */
   int table = -1;
 
   lex_match_id ("DATA");
   lex_match_id ("LIST");
 
-  if (vfm_source != &input_program_source
-      && vfm_source != &file_type_source)
+  if (!case_source_is_complex (vfm_source))
     discard_variables ();
 
-  dls.handle = default_handle;
-  dls.type = -1;
-  dls.end = NULL;
-  dls.eof = 0;
-  dls.nrec = 0;
-  dls.spec = NULL;
-  next = NULL;
-  first = &dls.spec;
+  dls = xmalloc (sizeof *dls);
+  dls->handle = default_handle;
+  dls->type = -1;
+  dls->end = NULL;
+  dls->eof = 0;
+  dls->nrec = 0;
+  dls->first = dls->last = NULL;
 
   while (token != '/')
     {
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  dls.handle = fh_parse_file_handle ();
-	  if (!dls.handle)
-	    return CMD_FAILURE;
-	  if (vfm_source == &file_type_source && dls.handle != default_handle)
+	  dls->handle = fh_parse_file_handle ();
+	  if (!dls->handle)
+	    goto error;
+	  if (case_source_is_class (vfm_source, &file_type_source_class)
+              && dls->handle != default_handle)
 	    {
 	      msg (SE, _("DATA LIST may not use a different file from "
 			 "that specified on its surrounding FILE TYPE."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("RECORDS"))
@@ -145,25 +145,25 @@ cmd_data_list (void)
 	  lex_match ('=');
 	  lex_match ('(');
 	  if (!lex_force_int ())
-	    return CMD_FAILURE;
-	  dls.nrec = lex_integer ();
+	    goto error;
+	  dls->nrec = lex_integer ();
 	  lex_get ();
 	  lex_match (')');
 	}
       else if (lex_match_id ("END"))
 	{
-	  if (dls.end)
+	  if (dls->end)
 	    {
 	      msg (SE, _("The END subcommand may only be specified once."));
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  
 	  lex_match ('=');
 	  if (!lex_force_id ())
-	    return CMD_FAILURE;
-	  dls.end = dict_lookup_var (default_dict, tokid);
-	  if (!dls.end) 
-            dls.end = dict_create_var_assert (default_dict, tokid, 0);
+	    goto error;
+	  dls->end = dict_lookup_var (default_dict, tokid);
+	  if (!dls->end) 
+            dls->end = dict_create_var_assert (default_dict, tokid, 0);
 	  lex_get ();
 	}
       else if (token == T_ID)
@@ -180,7 +180,7 @@ cmd_data_list (void)
 	  if (*p == NULL)
 	    {
 	      lex_error (NULL);
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  
 	  lex_get ();
@@ -188,14 +188,14 @@ cmd_data_list (void)
 	  index = p - id;
 	  if (index < 3)
 	    {
-	      if (dls.type != -1)
+	      if (dls->type != -1)
 		{
 		  msg (SE, _("Only one of FIXED, FREE, or LIST may "
 			    "be specified."));
-		  return CMD_FAILURE;
+		  goto error;
 		}
 	      
-	      dls.type = index;
+	      dls->type = index;
 	    }
 	  else
 	    table = index - 3;
@@ -203,65 +203,71 @@ cmd_data_list (void)
       else
 	{
 	  lex_error (NULL);
-	  return CMD_FAILURE;
+	  goto error;
 	}
     }
 
-  default_handle = dls.handle;
+  default_handle = dls->handle;
 
-  if (dls.type == -1)
-    dls.type = DLS_FIXED;
+  if (dls->type == -1)
+    dls->type = DLS_FIXED;
 
   if (table == -1)
     {
-      if (dls.type == DLS_FREE)
+      if (dls->type == DLS_FREE)
 	table = 0;
       else
 	table = 1;
     }
 
-  if (dls.type == DLS_FIXED)
+  if (dls->type == DLS_FIXED)
     {
-      if (!parse_fixed ())
-	return CMD_FAILURE;
+      if (!parse_fixed (dls))
+	goto error;
       if (table)
-	dump_fixed_table ();
+	dump_fixed_table (dls->first, dls->handle, dls->nrec);
     }
   else
     {
-      if (!parse_free ())
-	return CMD_FAILURE;
+      if (!parse_free (&dls->first, &dls->last))
+	goto error;
       if (table)
-	dump_free_table ();
+	dump_free_table (dls);
     }
 
   if (vfm_source != NULL)
     {
       struct data_list_pgm *new_pgm;
 
-      dls.h.proc = read_one_case;
-      dls.h.free = destroy_dls;
+      dls->h.proc = read_one_case;
+      dls->h.free = destroy_dls;
 
       new_pgm = xmalloc (sizeof *new_pgm);
       memcpy (new_pgm, &dls, sizeof *new_pgm);
-      add_transformation ((struct trns_header *) new_pgm);
+      add_transformation (&new_pgm->h);
     }
-  else
-    vfm_source = &data_list_source;
+  else 
+    vfm_source = create_case_source (&data_list_source_class, dls);
 
   return CMD_SUCCESS;
+
+ error:
+  destroy_dls_var_spec (dls->first);
+  free (dls);
+  return CMD_FAILURE;
 }
 
 static void
-append_var_spec (struct dls_var_spec *spec)
+append_var_spec (struct dls_var_spec **first, struct dls_var_spec **last,
+                 struct dls_var_spec *spec)
 {
-  if (next == 0)
-    *first = next = xmalloc (sizeof *spec);
-  else
-    next = next->next = xmalloc (sizeof *spec);
+  spec->next = NULL;
 
-  memcpy (next, spec, sizeof *spec);
-  next->next = NULL;
+  if (*first == NULL)
+    *first = spec;
+  else 
+    (*last)->next = spec;
+  *last = spec;
 }
 
 /* Fixed-format parsing. */
@@ -278,30 +284,27 @@ struct fmt_list
 /* Used as "local" variables among the fixed-format parsing funcs.  If
    it were guaranteed that PSPP were going to be compiled by gcc,
    I'd make all these functions a single set of nested functions. */
-static struct
+struct fixed_parsing_state
   {
     char **name;		/* Variable names. */
-    int nname;			/* Number of names. */
-    int cname;			/* dump_fmt_list: index of next name to use. */
+    int name_cnt;		/* Number of names. */
 
     int recno;			/* Index of current record. */
     int sc;			/* 1-based column number of starting column for
 				   next field to output. */
+  };
 
-    struct dls_var_spec spec;	/* Next specification to output. */
-    int fc, lc;			/* First, last column in set of fields specified
-				   together. */
-
-    int level;			/* Nesting level in fixed_parse_fortran(). */
-  }
-fx;
-
-static int fixed_parse_compatible (void);
-static struct fmt_list *fixed_parse_fortran (void);
+static int fixed_parse_compatible (struct fixed_parsing_state *,
+                                   struct dls_var_spec **,
+                                   struct dls_var_spec **);
+static int fixed_parse_fortran (struct fixed_parsing_state *,
+                                struct dls_var_spec **,
+                                struct dls_var_spec **);
 
 static int
-parse_fixed (void)
+parse_fixed (struct data_list_pgm *dls)
 {
+  struct fixed_parsing_state fx;
   int i;
 
   fx.recno = 0;
@@ -329,21 +332,18 @@ parse_fixed (void)
 	    }
 	  fx.sc = 1;
 	}
-      fx.spec.rec = fx.recno;
 
-      if (!parse_DATA_LIST_vars (&fx.name, &fx.nname, PV_NONE))
+      if (!parse_DATA_LIST_vars (&fx.name, &fx.name_cnt, PV_NONE))
 	return 0;
 
       if (token == T_NUM)
 	{
-	  if (!fixed_parse_compatible ())
+	  if (!fixed_parse_compatible (&fx, &dls->first, &dls->last))
 	    goto fail;
 	}
       else if (token == '(')
 	{
-	  fx.level = 0;
-	  fx.cname = 0;
-	  if (!fixed_parse_fortran ())
+	  if (!fixed_parse_fortran (&fx, &dls->first, &dls->last))
 	    goto fail;
 	}
       else
@@ -353,18 +353,23 @@ parse_fixed (void)
 	  goto fail;
 	}
 
-      for (i = 0; i < fx.nname; i++)
+      for (i = 0; i < fx.name_cnt; i++)
 	free (fx.name[i]);
       free (fx.name);
     }
-  if (dls.nrec && next->rec > dls.nrec)
+  if (dls->first == NULL) 
+    {
+      msg (SE, _("At least one variable must be specified."));
+      return 0;
+    }
+  if (dls->nrec && dls->last->rec > dls->nrec)
     {
       msg (SE, _("Variables are specified on records that "
 		 "should not exist according to RECORDS subcommand."));
       return 0;
     }
-  else if (!dls.nrec)
-    dls.nrec = next->rec;
+  else if (!dls->nrec)
+    dls->nrec = dls->last->rec;
   if (token != '.')
     {
       lex_error (_("expecting end of command"));
@@ -373,41 +378,45 @@ parse_fixed (void)
   return 1;
 
 fail:
-  for (i = 0; i < fx.nname; i++)
+  for (i = 0; i < fx.name_cnt; i++)
     free (fx.name[i]);
   free (fx.name);
   return 0;
 }
 
 static int
-fixed_parse_compatible (void)
+fixed_parse_compatible (struct fixed_parsing_state *fx,
+                        struct dls_var_spec **first, struct dls_var_spec **last)
 {
-  int dividend;
+  struct fmt_spec input;
+  int fc, lc;
+  int width;
   int i;
 
+  /* First column. */
   if (!lex_force_int ())
     return 0;
-  
-  fx.fc = lex_integer ();
-  if (fx.fc < 1)
+  fc = lex_integer ();
+  if (fc < 1)
     {
       msg (SE, _("Column positions for fields must be positive."));
       return 0;
     }
   lex_get ();
 
+  /* Last column. */
   lex_negative_to_dash ();
   if (lex_match ('-'))
     {
       if (!lex_force_int ())
 	return 0;
-      fx.lc = lex_integer ();
-      if (fx.lc < 1)
+      lc = lex_integer ();
+      if (lc < 1)
 	{
 	  msg (SE, _("Column positions for fields must be positive."));
 	  return 0;
 	}
-      else if (fx.lc < fx.fc)
+      else if (lc < fc)
 	{
 	  msg (SE, _("The ending column for a field must be "
 		     "greater than the starting column."));
@@ -417,9 +426,19 @@ fixed_parse_compatible (void)
       lex_get ();
     }
   else
-    fx.lc = fx.fc;
+    lc = fc;
 
-  fx.spec.input.w = fx.lc - fx.fc + 1;
+  /* Divide columns evenly. */
+  input.w = (lc - fc + 1) / fx->name_cnt;
+  if ((lc - fc + 1) % fx->name_cnt)
+    {
+      msg (SE, _("The %d columns %d-%d "
+		 "can't be evenly divided into %d fields."),
+	   lc - fc + 1, fc, lc, fx->name_cnt);
+      return 0;
+    }
+
+  /* Format specifier. */
   if (lex_match ('('))
     {
       struct fmt_desc *fdp;
@@ -428,8 +447,8 @@ fixed_parse_compatible (void)
 	{
 	  const char *cp;
 
-	  fx.spec.input.type = parse_format_specifier_name (&cp, 0);
-	  if (fx.spec.input.type == -1)
+	  input.type = parse_format_specifier_name (&cp, 0);
+	  if (input.type == -1)
 	    return 0;
 	  if (*cp)
 	    {
@@ -442,7 +461,7 @@ fixed_parse_compatible (void)
 	  lex_match (',');
 	}
       else
-	fx.spec.input.type = FMT_F;
+	input.type = FMT_F;
 
       if (lex_integer_p ())
 	{
@@ -453,102 +472,88 @@ fixed_parse_compatible (void)
 	      return 0;
 	    }
 	  
-	  fx.spec.input.d = lex_integer ();
+	  input.d = lex_integer ();
 	  lex_get ();
 	}
       else
-	fx.spec.input.d = 0;
+	input.d = 0;
 
-      fdp = &formats[fx.spec.input.type];
-      if (fdp->n_args < 2 && fx.spec.input.d)
+      fdp = &formats[input.type];
+      if (fdp->n_args < 2 && input.d)
 	{
 	  msg (SE, _("Input format %s doesn't accept decimal places."),
 	       fdp->name);
 	  return 0;
 	}
       
-      if (fx.spec.input.d > 16)
-	fx.spec.input.d = 16;
+      if (input.d > 16)
+	input.d = 16;
 
       if (!lex_force_match (')'))
 	return 0;
     }
   else
     {
-      fx.spec.input.type = FMT_F;
-      fx.spec.input.d = 0;
+      input.type = FMT_F;
+      input.d = 0;
     }
-
-  fx.sc = fx.lc + 1;
-
-  if ((fx.lc - fx.fc + 1) % fx.nname)
-    {
-      msg (SE, _("The %d columns %d-%d "
-		 "can't be evenly divided into %d fields."),
-	   fx.lc - fx.fc + 1, fx.fc, fx.lc, fx.nname);
-      return 0;
-    }
-
-  dividend = (fx.lc - fx.fc + 1) / fx.nname;
-  fx.spec.input.w = dividend;
-  if (!check_input_specifier (&fx.spec.input))
+  if (!check_input_specifier (&input))
     return 0;
 
-  for (i = 0; i < fx.nname; i++)
+  /* Start column for next specification. */
+  fx->sc = lc + 1;
+
+  /* Width of variables to create. */
+  if (input.type == FMT_A || input.type == FMT_AHEX) 
+    width = input.w;
+  else
+    width = 0;
+
+  /* Create variables and var specs. */
+  for (i = 0; i < fx->name_cnt; i++)
     {
-      int type;
-      int width;
+      struct dls_var_spec *spec;
       struct variable *v;
 
-      if (fx.spec.input.type == FMT_A || fx.spec.input.type == FMT_AHEX) 
-        {
-          type = ALPHA;
-          width = dividend; 
-        }
-      else 
-        {
-          type = NUMERIC;
-          width = 0;
-        }
-
-      v = dict_create_var (default_dict, fx.name[i], width);
-      if (v)
+      v = dict_create_var (default_dict, fx->name[i], width);
+      if (v != NULL)
 	{
-	  convert_fmt_ItoO (&fx.spec.input, &v->print);
+	  convert_fmt_ItoO (&input, &v->print);
 	  v->write = v->print;
-          if (vfm_source != &input_program_source
-              && vfm_source != &file_type_source)
+          if (!case_source_is_complex (vfm_source))
             v->init = 0;
 	}
       else
 	{
-	  v = dict_lookup_var_assert (default_dict, fx.name[i]);
-	  if (!vfm_source)
+	  v = dict_lookup_var_assert (default_dict, fx->name[i]);
+	  if (vfm_source == NULL)
 	    {
-	      msg (SE, _("%s is a duplicate variable name."), fx.name[i]);
+	      msg (SE, _("%s is a duplicate variable name."), fx->name[i]);
 	      return 0;
 	    }
-	  if (type != v->type)
+	  if ((width != 0) != (v->width != 0))
 	    {
 	      msg (SE, _("There is already a variable %s of a "
 			 "different type."),
-		   fx.name[i]);
+		   fx->name[i]);
 	      return 0;
 	    }
-	  if (type == ALPHA && dividend != v->width)
+	  if (width != 0 && width != v->width)
 	    {
 	      msg (SE, _("There is already a string variable %s of a "
-			 "different width."), fx.name[i]);
+			 "different width."), fx->name[i]);
 	      return 0;
 	    }
 	}
 
-      fx.spec.v = v;
-      fx.spec.fc = fx.fc + dividend * i;
-      fx.spec.lc = fx.spec.fc + dividend - 1;
-      fx.spec.fv = v->fv;
-      fx.spec.width = v->width;
-      append_var_spec (&fx.spec);
+      spec = xmalloc (sizeof *spec);
+      spec->input = input;
+      spec->v = v;
+      spec->fv = v->fv;
+      spec->rec = fx->recno;
+      spec->fc = fc + input.w * i;
+      spec->lc = spec->fc + input.w - 1;
+      append_var_spec (first, last, spec);
     }
   return 1;
 }
@@ -570,147 +575,162 @@ destroy_fmt_list (struct fmt_list *f, int recurse)
 
 /* Takes a hierarchically structured fmt_list F as constructed by
    fixed_parse_fortran(), and flattens it into a linear list of
-   dls_var_spec's. */
+   dls_var_spec's.  NAME_IDX is used to take values from the list
+   of names in FX; it should initially point to a value of 0. */
 static int
-dump_fmt_list (struct fmt_list *f)
+dump_fmt_list (struct fixed_parsing_state *fx, struct fmt_list *f,
+               struct dls_var_spec **first, struct dls_var_spec **last,
+               int *name_idx)
 {
   int i;
 
   for (; f; f = f->next)
     if (f->f.type == FMT_X)
-      fx.sc += f->count;
+      fx->sc += f->count;
     else if (f->f.type == FMT_T)
-      fx.sc = f->f.w;
+      fx->sc = f->f.w;
     else if (f->f.type == FMT_NEWREC)
       {
-	fx.recno += f->count;
-	fx.sc = 1;
+	fx->recno += f->count;
+	fx->sc = 1;
       }
     else
       for (i = 0; i < f->count; i++)
 	if (f->f.type == FMT_DESCEND)
 	  {
-	    if (!dump_fmt_list (f->down))
+	    if (!dump_fmt_list (fx, f->down, first, last, name_idx))
 	      return 0;
 	  }
 	else
 	  {
-	    int type;
+            struct dls_var_spec *spec;
             int width;
 	    struct variable *v;
 
             if (formats[f->f.type].cat & FCAT_STRING) 
-              {
-                type = ALPHA;
-                width = f->f.w;
-              }
-            else 
-              {
-                type = NUMERIC;
-                width = 0;
-              }
-	    if (fx.cname >= fx.nname)
+              width = f->f.w;
+            else
+              width = 0;
+	    if (*name_idx >= fx->name_cnt)
 	      {
 		msg (SE, _("The number of format "
-			   "specifications exceeds the number of "
-			   "variable names given."));
+			   "specifications exceeds the given number of "
+			   "variable names."));
 		return 0;
 	      }
 	    
-	    fx.spec.v = v = dict_create_var (default_dict,
-					     fx.name[fx.cname++],
-					     width);
+	    v = dict_create_var (default_dict, fx->name[(*name_idx)++], width);
 	    if (!v)
 	      {
-		msg (SE, _("%s is a duplicate variable name."), fx.name[i]);
+		msg (SE, _("%s is a duplicate variable name."), fx->name[i]);
 		return 0;
 	      }
 	    
-            if (vfm_source != &input_program_source
-                && vfm_source != &file_type_source)
+            if (!case_source_is_complex (vfm_source))
               v->init = 0;
 
-	    fx.spec.input = f->f;
-	    convert_fmt_ItoO (&fx.spec.input, &v->print);
+            spec = xmalloc (sizeof *spec);
+            spec->v = v;
+	    spec->input = f->f;
+	    spec->fv = v->fv;
+	    spec->rec = fx->recno;
+	    spec->fc = fx->sc;
+	    spec->lc = fx->sc + f->f.w - 1;
+	    append_var_spec (first, last, spec);
+
+	    convert_fmt_ItoO (&spec->input, &v->print);
 	    v->write = v->print;
 
-	    fx.spec.rec = fx.recno;
-	    fx.spec.fc = fx.sc;
-	    fx.spec.lc = fx.sc + f->f.w - 1;
-	    fx.spec.fv = v->fv;
-	    fx.spec.width = v->width;
-	    append_var_spec (&fx.spec);
-
-	    fx.sc += f->f.w;
+	    fx->sc += f->f.w;
 	  }
   return 1;
 }
 
-/* Calls itself recursively to parse nested levels of parentheses.
-   Returns to its original caller: NULL, to indicate error; non-NULL,
-   but nothing useful, to indicate success (it returns a free()'d
-   block). */
+/* Recursively parses a FORTRAN-like format specification.  LEVEL
+   is the level of recursion, starting from 0.  Returns the
+   parsed specification if successful, or a null pointer on
+   failure.  */
 static struct fmt_list *
-fixed_parse_fortran (void)
+fixed_parse_fortran_internal (struct fixed_parsing_state *fx,
+                              struct dls_var_spec **first,
+                              struct dls_var_spec **last)
 {
-  struct fmt_list *head;
-  struct fmt_list *fl = NULL;
+  struct fmt_list *head = NULL;
+  struct fmt_list *tail = NULL;
 
-  lex_get ();			/* Skip opening parenthesis. */
+  lex_force_match ('(');
   while (token != ')')
     {
-      if (fl)
-	fl = fl->next = xmalloc (sizeof *fl);
-      else
-	head = fl = xmalloc (sizeof *fl);
+      /* New fmt_list. */
+      struct fmt_list *new = xmalloc (sizeof *new);
+      new->next = NULL;
 
+      /* Append new to list. */
+      if (head != NULL)
+	tail->next = new;
+      else
+	head = new;
+      tail = new;
+
+      /* Parse count. */
       if (lex_integer_p ())
 	{
-	  fl->count = lex_integer ();
+	  new->count = lex_integer ();
 	  lex_get ();
 	}
       else
-	fl->count = 1;
+	new->count = 1;
 
+      /* Parse format specifier. */
       if (token == '(')
 	{
-	  fl->f.type = FMT_DESCEND;
-	  fx.level++;
-	  fl->down = fixed_parse_fortran ();
-	  fx.level--;
-	  if (!fl->down)
+	  new->f.type = FMT_DESCEND;
+	  new->down = fixed_parse_fortran_internal (fx, first, last);
+	  if (new->down == NULL)
 	    goto fail;
 	}
       else if (lex_match ('/'))
-	fl->f.type = FMT_NEWREC;
-      else if (!parse_format_specifier (&fl->f, 1)
-	       || !check_input_specifier (&fl->f))
+	new->f.type = FMT_NEWREC;
+      else if (!parse_format_specifier (&new->f, 1)
+	       || !check_input_specifier (&new->f))
 	goto fail;
 
       lex_match (',');
     }
-  fl->next = NULL;
-  lex_get ();
+  lex_force_match (')');
 
-  if (fx.level)
-    return head;
-
-  fl->next = NULL;
-  dump_fmt_list (head);
-  if (fx.cname < fx.nname)
-    {
-      msg (SE, _("There aren't enough format specifications "
-	   "to match the number of variable names given."));
-      goto fail;
-    }
-  destroy_fmt_list (head, 1);
   return head;
 
 fail:
-  fl->next = NULL;
   destroy_fmt_list (head, 0);
 
   return NULL;
+}
+
+/* Parses a FORTRAN-like format specification.  Returns nonzero
+   if successful. */
+static int
+fixed_parse_fortran (struct fixed_parsing_state *fx,
+                     struct dls_var_spec **first, struct dls_var_spec **last)
+{
+  struct fmt_list *list;
+  int name_idx;
+
+  list = fixed_parse_fortran_internal (fx, first, last);
+  if (list == NULL)
+    return 0;
+  
+  name_idx = 0;
+  dump_fmt_list (fx, list, first, last, &name_idx);
+  destroy_fmt_list (list, 1);
+  if (name_idx < fx->name_cnt)
+    {
+      msg (SE, _("There aren't enough format specifications "
+                 "to match the number of variable names given."));
+      return 0; 
+    }
+
+  return 1;
 }
 
 /* Displays a table giving information on fixed-format variable
@@ -720,15 +740,16 @@ fail:
    column; then right-justify the starting column and left-justify the
    ending column. */
 static void
-dump_fixed_table (void)
+dump_fixed_table (const struct dls_var_spec *specs,
+                  const struct file_handle *handle, int nrec)
 {
-  struct dls_var_spec *spec;
+  const struct dls_var_spec *spec;
   struct tab_table *t;
   char *buf;
   const char *filename;
   int i;
 
-  for (i = 0, spec = *first; spec; spec = spec->next)
+  for (i = 0, spec = specs; spec; spec = spec->next)
     i++;
   t = tab_create (4, i + 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
@@ -741,7 +762,7 @@ dump_fixed_table (void)
   tab_hline (t, TAL_2, 0, 3, 1);
   tab_dim (t, tab_natural_dimensions);
 
-  for (i = 1, spec = *first; spec; spec = spec->next, i++)
+  for (i = 1, spec = specs; spec; spec = spec->next, i++)
     {
       tab_text (t, 0, i, TAB_LEFT, spec->v->name);
       tab_text (t, 1, i, TAT_PRINTF, "%d", spec->rec);
@@ -751,27 +772,17 @@ dump_fixed_table (void)
 		    fmt_to_string (&spec->input));
     }
 
-  if (*first == dls.spec)
-    {
-      filename = fh_handle_name (dls.handle);
-      if (filename == NULL)
-	filename = "";
-      buf = local_alloc (strlen (filename) + INT_DIGITS + 80);
-      sprintf (buf, (dls.handle != inline_file
-		     ? 
-		     ngettext("Reading %d record from file %s.",
-			      "Reading %d records from file %s.",dls.nrec)
-		     : 
-		     ngettext("Reading %d record from the command file.",
-			      "Reading %d records from the command file.",
-			      dls.nrec)),
-	       dls.nrec, filename);
-    }
-  else
-    {
-      buf = local_alloc (strlen (_("Occurrence data specifications.")) + 1);
-      strcpy (buf, _("Occurrence data specifications."));
-    }
+  filename = fh_handle_name (handle);
+  if (filename == NULL)
+    filename = "";
+  buf = local_alloc (strlen (filename) + INT_DIGITS + 80);
+  sprintf (buf, (handle != inline_file
+                 ? ngettext ("Reading %d record from file %s.",
+                             "Reading %d records from file %s.", nrec)
+                 : ngettext ("Reading %d record from the command file.",
+                             "Reading %d records from the command file.",
+                             nrec)),
+           nrec, filename);
   
   tab_title (t, 0, buf);
   tab_submit (t);
@@ -782,66 +793,69 @@ dump_fixed_table (void)
 /* Free-format parsing. */
 
 static int
-parse_free (void)
+parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 {
-  struct dls_var_spec spec;
-  struct fmt_spec in, out;
-  char **name;
-  int nname;
-  int i;
-
   lex_get ();
   while (token != '.')
     {
+      struct fmt_spec input, output;
+      char **name;
+      int name_cnt;
       int width;
+      int i;
 
-      if (!parse_DATA_LIST_vars (&name, &nname, PV_NONE))
+      if (!parse_DATA_LIST_vars (&name, &name_cnt, PV_NONE))
 	return 0;
       if (lex_match ('('))
 	{
-	  if (!parse_format_specifier (&in, 0) || !check_input_specifier (&in))
-	    goto fail;
-	  if (!lex_force_match (')'))
-	    goto fail;
-	  convert_fmt_ItoO (&in, &out);
+	  if (!parse_format_specifier (&input, 0)
+              || !check_input_specifier (&input)
+              || !lex_force_match (')')) 
+            {
+              for (i = 0; i < name_cnt; i++)
+                free (name[i]);
+              free (name);
+              return 0; 
+            }
+	  convert_fmt_ItoO (&input, &output);
 	}
       else
 	{
 	  lex_match ('*');
-	  in.type = FMT_F;
-	  in.w = 8;
-	  in.d = 0;
-	  out = set_format;
+	  input.type = FMT_F;
+	  input.w = 8;
+	  input.d = 0;
+	  output = set_format;
 	}
 
-      spec.input = in;
-      if (in.type == FMT_A || in.type == FMT_AHEX)
-	width = in.w;
+      if (input.type == FMT_A || input.type == FMT_AHEX)
+	width = input.w;
       else
 	width = 0;
-      for (i = 0; i < nname; i++)
+      for (i = 0; i < name_cnt; i++)
 	{
+          struct dls_var_spec *spec;
 	  struct variable *v;
 
-	  spec.v = v = dict_create_var (default_dict, name[i], width);
+	  v = dict_create_var (default_dict, name[i], width);
 	  if (!v)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
 	      return 0;
 	    }
-	  
-	  v->print = v->write = out;
+	  v->print = v->write = output;
 
-          if (vfm_source != &input_program_source
-              && vfm_source != &file_type_source)
+          if (!case_source_is_complex (vfm_source))
             v->init = 0;
 
-	  strcpy (spec.name, name[i]);
-	  spec.fv = v->fv;
-	  spec.width = width;
-	  append_var_spec (&spec);
+          spec = xmalloc (sizeof *spec);
+          spec->input = input;
+          spec->v = v;
+	  spec->fv = v->fv;
+	  strcpy (spec->name, name[i]);
+	  append_var_spec (first, last, spec);
 	}
-      for (i = 0; i < nname; i++)
+      for (i = 0; i < name_cnt; i++)
 	free (name[i]);
       free (name);
     }
@@ -849,25 +863,19 @@ parse_free (void)
   if (token != '.')
     lex_error (_("expecting end of command"));
   return 1;
-
-fail:
-  for (i = 0; i < nname; i++)
-    free (name[i]);
-  free (name);
-  return 0;
 }
 
 /* Displays a table giving information on free-format variable parsing
    on DATA LIST. */
 static void
-dump_free_table (void)
+dump_free_table (const struct data_list_pgm *dls)
 {
   struct tab_table *t;
   int i;
   
   {
     struct dls_var_spec *spec;
-    for (i = 0, spec = dls.spec; spec; spec = spec->next)
+    for (i = 0, spec = dls->first; spec; spec = spec->next)
       i++;
   }
   
@@ -883,7 +891,7 @@ dump_free_table (void)
   {
     struct dls_var_spec *spec;
     
-    for (i = 1, spec = dls.spec; spec; spec = spec->next, i++)
+    for (i = 1, spec = dls->first; spec; spec = spec->next, i++)
       {
 	tab_text (t, 0, i, TAB_LEFT, spec->v->name);
 	tab_text (t, 1, i, TAB_LEFT | TAT_FIX, fmt_to_string (&spec->input));
@@ -893,11 +901,11 @@ dump_free_table (void)
   {
     const char *filename;
 
-    filename = fh_handle_name (dls.handle);
+    filename = fh_handle_name (dls->handle);
     if (filename == NULL)
       filename = "";
     tab_title (t, 1,
-	       (dls.handle != inline_file
+	       (dls->handle != inline_file
 		? _("Reading free-form data from file %s.")
 		: _("Reading free-form data from the command file.")),
 	       filename);
@@ -909,10 +917,6 @@ dump_free_table (void)
 
 /* Input procedure. */ 
 
-/* Pointer to relevant parsing data.  Static just to avoid passing it
-   around so much. */
-static struct data_list_pgm *dlsp;
-
 /* Extracts a field from the current position in the current record.
    Fields can be unquoted or quoted with single- or double-quote
    characters.  *RET_LEN is set to the field length, *RET_CP is set to
@@ -921,12 +925,12 @@ static struct data_list_pgm *dlsp;
    failure or a 1-based column number indicating the beginning of the
    field on success. */
 static int
-cut_field (char **ret_cp, int *ret_len)
+cut_field (const struct data_list_pgm *dls, char **ret_cp, int *ret_len)
 {
   char *cp, *ep;
   int len;
 
-  cp = dfm_get_record (dlsp->handle, &len);
+  cp = dfm_get_record (dls->handle, &len);
   if (!cp)
     return 0;
 
@@ -963,112 +967,65 @@ cut_field (char **ret_cp, int *ret_len)
   {
     int beginning_column;
     
-    dfm_set_record (dlsp->handle, *ret_cp);
-    beginning_column = dfm_get_cur_col (dlsp->handle) + 1;
+    dfm_set_record (dls->handle, *ret_cp);
+    beginning_column = dfm_get_cur_col (dls->handle) + 1;
     
-    dfm_set_record (dlsp->handle, cp);
+    dfm_set_record (dls->handle, cp);
     
     return beginning_column;
   }
 }
 
-static int read_from_data_list_fixed (void);
-static int read_from_data_list_free (void);
-static int read_from_data_list_list (void);
+typedef int data_list_read_func (const struct data_list_pgm *);
+static data_list_read_func read_from_data_list_fixed;
+static data_list_read_func read_from_data_list_free;
+static data_list_read_func read_from_data_list_list;
 
-/* FLAG==0: reads any number of cases into temp_case and calls
-   write_case() for each one, returns garbage.  FLAG!=0: reads one
-   case into temp_case and returns -2 on eof, -1 otherwise.
-   Uses dlsp as the relevant parsing description. */
-static int
-do_reading (int flag, write_case_func *write_case, write_case_data wc_data)
+/* Returns the proper function to read the kind of DATA LIST
+   data specified by DLS. */
+static data_list_read_func *
+get_data_list_read_func (const struct data_list_pgm *dls) 
 {
-  int (*func) (void);
-
-  int code;
-
-  dfm_push (dlsp->handle);
-
-  switch (dlsp->type)
+  switch (dls->type)
     {
     case DLS_FIXED:
-      func = read_from_data_list_fixed;
+      return read_from_data_list_fixed;
       break;
+
     case DLS_FREE:
-      func = read_from_data_list_free;
+      return read_from_data_list_free;
       break;
+
     case DLS_LIST:
-      func = read_from_data_list_list;
+      return read_from_data_list_list;
       break;
+
     default:
       assert (0);
     }
-  if (flag)
-    {
-      code = func ();
-      if (code == -2)
-	{
-	  if (dlsp->eof == 1)
-	    {
-	      msg (SE, _("Attempt to read past end of file."));
-	      err_failure ();
-	      return -2;
-	    }
-	  dlsp->eof = 1;
-	}
-      else
-	dlsp->eof = 0;
-
-      if (dlsp->end != NULL)
-	{
-	  if (code == -2)
-	    {
-	      printf ("end of file, setting %s to 1\n", dlsp->end->name);
-	      temp_case->data[dlsp->end->fv].f = 1.0;
-	      code = -1;
-	    }
-	  else
-	    {
-	      printf ("not end of file, setting %s to 0\n", dlsp->end->name);
-	      temp_case->data[dlsp->end->fv].f = 0.0;
-	    }
-	}
-    }
-  else
-    {
-      while (func () != -2)
-	if (!write_case (wc_data))
-	  {
-	    debug_printf ((_("abort in write_case()\n")));
-	    break;
-	  }
-      fh_close_handle (dlsp->handle);
-    }
-  dfm_pop (dlsp->handle);
-
-  return code;
 }
 
 /* Reads a case from the data file and parses it according to
-   fixed-format syntax rules. */
+   fixed-format syntax rules.  Returns -1 on success, -2 at end
+   of file. */
 static int
-read_from_data_list_fixed (void)
+read_from_data_list_fixed (const struct data_list_pgm *dls)
 {
-  struct dls_var_spec *var_spec = dlsp->spec;
+  struct dls_var_spec *var_spec = dls->first;
   int i;
 
-  if (!dfm_get_record (dlsp->handle, NULL))
+  if (!dfm_get_record (dls->handle, NULL))
     return -2;
-  for (i = 1; i <= dlsp->nrec; i++)
+  for (i = 1; i <= dls->nrec; i++)
     {
       int len;
-      char *line = dfm_get_record (dlsp->handle, &len);
+      char *line = dfm_get_record (dls->handle, &len);
       
       if (!line)
 	{
 	  /* Note that this can't occur on the first record. */
 	  msg (SW, _("Partial case of %d of %d records discarded."),
-	       i - 1, dlsp->nrec);
+	       i - 1, dls->nrec);
 	  return -2;
 	}
 
@@ -1085,37 +1042,38 @@ read_from_data_list_fixed (void)
 	  data_in (&di);
 	}
 
-      dfm_fwd_record (dlsp->handle);
+      dfm_fwd_record (dls->handle);
     }
 
   return -1;
 }
 
 /* Reads a case from the data file and parses it according to
-   free-format syntax rules. */
+   free-format syntax rules.  Returns -1 on success, -2 at end of
+   file. */
 static int
-read_from_data_list_free (void)
+read_from_data_list_free (const struct data_list_pgm *dls)
 {
   struct dls_var_spec *var_spec;
   char *field;
   int len;
 
-  for (var_spec = dlsp->spec; var_spec; var_spec = var_spec->next)
+  for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
       int column;
       
       /* Cut out a field and read in a new record if necessary. */
       for (;;)
 	{
-	  column = cut_field (&field, &len);
+	  column = cut_field (dls, &field, &len);
 	  if (column != 0)
 	    break;
 
-	  if (dfm_get_record (dlsp->handle, NULL))
-	    dfm_fwd_record (dlsp->handle);
-	  if (!dfm_get_record (dlsp->handle, NULL))
+	  if (dfm_get_record (dls->handle, NULL))
+	    dfm_fwd_record (dls->handle);
+	  if (!dfm_get_record (dls->handle, NULL))
 	    {
-	      if (var_spec != dlsp->spec)
+	      if (var_spec != dls->first)
 		msg (SW, _("Partial case discarded.  The first variable "
 		     "missing was %s."), var_spec->name);
 	      return -2;
@@ -1138,21 +1096,22 @@ read_from_data_list_free (void)
 }
 
 /* Reads a case from the data file and parses it according to
-   list-format syntax rules. */
+   list-format syntax rules.  Returns -1 on success, -2 at end of
+   file. */
 static int
-read_from_data_list_list (void)
+read_from_data_list_list (const struct data_list_pgm *dls)
 {
   struct dls_var_spec *var_spec;
   char *field;
   int len;
 
-  if (!dfm_get_record (dlsp->handle, NULL))
+  if (!dfm_get_record (dls->handle, NULL))
     return -2;
 
-  for (var_spec = dlsp->spec; var_spec; var_spec = var_spec->next)
+  for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
       /* Cut out a field and check for end-of-line. */
-      int column = cut_field (&field, &len);
+      int column = cut_field (dls, &field, &len);
       
       if (column == 0)
 	{
@@ -1161,11 +1120,14 @@ read_from_data_list_list (void)
 		 "These will be filled with the system-missing value "
 		 "or blanks, as appropriate."),
 		 var_spec->name);
-	  for (; var_spec; var_spec = var_spec->next)
-	    if (var_spec->width == 0)
-	      temp_case->data[var_spec->fv].f = SYSMIS;
-	    else
-	      memset (temp_case->data[var_spec->fv].s, ' ', var_spec->width);
+	  for (; var_spec; var_spec = var_spec->next) 
+            {
+              int width = get_format_var_width (&var_spec->input);
+              if (width == 0)
+                temp_case->data[var_spec->fv].f = SYSMIS;
+              else
+                memset (temp_case->data[var_spec->fv].s, ' ', width); 
+            }
 	  break;
 	}
       
@@ -1182,7 +1144,7 @@ read_from_data_list_list (void)
       }
     }
 
-  dfm_fwd_record (dlsp->handle);
+  dfm_fwd_record (dls->handle);
   return -1;
 }
 
@@ -1205,8 +1167,9 @@ static void
 destroy_dls (struct trns_header *pgm)
 {
   struct data_list_pgm *dls = (struct data_list_pgm *) pgm;
-  destroy_dls_var_spec (dls->spec);
+  destroy_dls_var_spec (dls->first);
   fh_close_handle (dls->handle);
+  free (pgm);
 }
 
 /* Note that since this is exclusively an input program, C is
@@ -1214,35 +1177,81 @@ destroy_dls (struct trns_header *pgm)
 static int
 read_one_case (struct trns_header *t, struct ccase *c UNUSED)
 {
-  dlsp = (struct data_list_pgm *) t;
-  return do_reading (1, NULL, NULL);
+  struct data_list_pgm *dls = (struct data_list_pgm *) t;
+  data_list_read_func *read_func;
+  int retval;
+
+  dfm_push (dls->handle);
+
+  read_func = get_data_list_read_func (dls);
+  retval = read_func (dls);
+
+  /* Handle end of file. */
+  if (retval == -2)
+    {
+      /* If we already encountered end of file then this is an
+         error. */
+      if (dls->eof == 1)
+        {
+          msg (SE, _("Attempt to read past end of file."));
+          err_failure ();
+          dfm_pop (dls->handle);
+          return -2;
+        }
+
+      /* Otherwise simply note it. */
+      dls->eof = 1;
+    }
+  else
+    dls->eof = 0;
+
+  /* If there was an END subcommand handle it. */
+  if (dls->end != NULL) 
+    {
+      if (retval == -2)
+        {
+          temp_case->data[dls->end->fv].f = 1.0;
+          retval = -1;
+        }
+      else
+        temp_case->data[dls->end->fv].f = 0.0;
+    }
+  
+  dfm_pop (dls->handle);
+
+  return retval;
 }
 
 /* Reads all the records from the data file and passes them to
    write_case(). */
 static void
-data_list_source_read (write_case_func *write_case, write_case_data wc_data)
+data_list_source_read (struct case_source *source,
+                       write_case_func *write_case, write_case_data wc_data)
 {
-  dlsp = &dls;
-  do_reading (0, write_case, wc_data);
+  struct data_list_pgm *dls = source->aux;
+  data_list_read_func *read_func = get_data_list_read_func (dls);
+
+  dfm_push (dls->handle);
+  while (read_func (dls) != -2)
+    if (!write_case (wc_data))
+      break;
+  dfm_pop (dls->handle);
+
+  fh_close_handle (dls->handle);
 }
 
 /* Destroys the source's internal data. */
 static void
-data_list_source_destroy_source (void)
+data_list_source_destroy (struct case_source *source)
 {
-  destroy_dls (&dls.h);
+  destroy_dls (source->aux);
 }
 
-struct case_stream data_list_source = 
+const struct case_source_class data_list_source_class = 
   {
-    NULL,
-    data_list_source_read,
-    NULL,
-    NULL,
-    data_list_source_destroy_source,
-    NULL,
     "DATA LIST",
+    data_list_source_read,
+    data_list_source_destroy,
   };
 
 /* REPEATING DATA. */
@@ -1258,7 +1267,7 @@ struct rpd_num_or_var
 struct repeating_data_trns
   {
     struct trns_header h;
-    struct dls_var_spec *spec;	/* Variable parsing specifications. */
+    struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
     struct file_handle *handle;	/* Input file, never NULL. */
 
     struct rpd_num_or_var starts_beg;	/* STARTS=, before the dash. */
@@ -1278,13 +1287,11 @@ struct repeating_data_trns
     write_case_data wc_data;
   };
 
-/* Information about the transformation being parsed. */
-static struct repeating_data_trns rpd;
-
 int repeating_data_trns_proc (struct trns_header *, struct ccase *);
 void repeating_data_trns_free (struct trns_header *);
 static int parse_num_or_var (struct rpd_num_or_var *, const char *);
-static int parse_repeating_data (void);
+static int parse_repeating_data (struct dls_var_spec **,
+                                 struct dls_var_spec **);
 static void find_variable_input_spec (struct variable *v,
 				      struct fmt_spec *spec);
 
@@ -1292,6 +1299,8 @@ static void find_variable_input_spec (struct variable *v,
 int
 cmd_repeating_data (void)
 {
+  struct repeating_data_trns *rpd;
+
   /* 0=print no table, 1=print table.  (TABLE subcommand.)  */
   int table = 1;
 
@@ -1301,20 +1310,18 @@ cmd_repeating_data (void)
   lex_match_id ("REPEATING");
   lex_match_id ("DATA");
 
-  assert (vfm_source == &input_program_source
-	  || vfm_source == &file_type_source);
-  
-  rpd.handle = default_handle;
-  rpd.starts_beg.num = 0;
-  rpd.starts_beg.var = NULL;
-  rpd.starts_end = rpd.occurs = rpd.length = rpd.cont_beg
-    = rpd.cont_end = rpd.starts_beg;
-  rpd.id_beg = rpd.id_end = 0;
-  rpd.id_var = NULL;
-  rpd.id_value = NULL;
-  rpd.spec = NULL;
-  first = &rpd.spec;
-  next = NULL;
+  assert (case_source_is_complex (vfm_source));
+
+  rpd = xmalloc (sizeof *rpd);
+  rpd->handle = default_handle;
+  rpd->first = rpd->last = NULL;
+  rpd->starts_beg.num = 0;
+  rpd->starts_beg.var = NULL;
+  rpd->starts_end = rpd->occurs = rpd->length = rpd->cont_beg
+    = rpd->cont_end = rpd->starts_beg;
+  rpd->id_beg = rpd->id_end = 0;
+  rpd->id_var = NULL;
+  rpd->id_value = NULL;
 
   lex_match ('/');
   
@@ -1323,14 +1330,14 @@ cmd_repeating_data (void)
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  rpd.handle = fh_parse_file_handle ();
-	  if (!rpd.handle)
-	    return CMD_FAILURE;
-	  if (rpd.handle != default_handle)
+	  rpd->handle = fh_parse_file_handle ();
+	  if (!rpd->handle)
+	    goto error;
+	  if (rpd->handle != default_handle)
 	    {
 	      msg (SE, _("REPEATING DATA must use the same file as its "
 			 "corresponding DATA LIST or FILE TYPE."));
-	      return CMD_FAILURE;
+              goto error;
 	    }
 	}
       else if (lex_match_id ("STARTS"))
@@ -1339,33 +1346,33 @@ cmd_repeating_data (void)
 	  if (seen & 1)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"STARTS");
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  seen |= 1;
 
-	  if (!parse_num_or_var (&rpd.starts_beg, "STARTS beginning column"))
-	    return CMD_FAILURE;
+	  if (!parse_num_or_var (&rpd->starts_beg, "STARTS beginning column"))
+	    goto error;
 
 	  lex_negative_to_dash ();
 	  if (lex_match ('-'))
 	    {
-	      if (!parse_num_or_var (&rpd.starts_end, "STARTS ending column"))
-		return CMD_FAILURE;
+	      if (!parse_num_or_var (&rpd->starts_end, "STARTS ending column"))
+		goto error;
 	    } else {
-	      /* Otherwise, rpd.starts_end is left uninitialized.
+	      /* Otherwise, rpd->starts_end is left uninitialized.
 		 This is okay.  We will initialize it later from the
 		 record length of the file.  We can't do this now
 		 because we can't be sure that the user has specified
 		 the file handle yet. */
 	    }
 
-	  if (rpd.starts_beg.num != 0 && rpd.starts_end.num != 0
-	      && rpd.starts_beg.num > rpd.starts_end.num)
+	  if (rpd->starts_beg.num != 0 && rpd->starts_end.num != 0
+	      && rpd->starts_beg.num > rpd->starts_end.num)
 	    {
 	      msg (SE, _("STARTS beginning column (%d) exceeds "
 			 "STARTS ending column (%d)."),
-		   rpd.starts_beg.num, rpd.starts_end.num);
-	      return CMD_FAILURE;
+		   rpd->starts_beg.num, rpd->starts_end.num);
+	      goto error;
 	    }
 	}
       else if (lex_match_id ("OCCURS"))
@@ -1374,12 +1381,12 @@ cmd_repeating_data (void)
 	  if (seen & 2)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"OCCURS");
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  seen |= 2;
 
-	  if (!parse_num_or_var (&rpd.occurs, "OCCURS"))
-	    return CMD_FAILURE;
+	  if (!parse_num_or_var (&rpd->occurs, "OCCURS"))
+	    goto error;
 	}
       else if (lex_match_id ("LENGTH"))
 	{
@@ -1387,12 +1394,12 @@ cmd_repeating_data (void)
 	  if (seen & 4)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"LENGTH");
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  seen |= 4;
 
-	  if (!parse_num_or_var (&rpd.length, "LENGTH"))
-	    return CMD_FAILURE;
+	  if (!parse_num_or_var (&rpd->length, "LENGTH"))
+	    goto error;
 	}
       else if (lex_match_id ("CONTINUED"))
 	{
@@ -1400,32 +1407,32 @@ cmd_repeating_data (void)
 	  if (seen & 8)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"CONTINUED");
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  seen |= 8;
 
 	  if (!lex_match ('/'))
 	    {
-	      if (!parse_num_or_var (&rpd.cont_beg, "CONTINUED beginning column"))
-		return CMD_FAILURE;
+	      if (!parse_num_or_var (&rpd->cont_beg, "CONTINUED beginning column"))
+		goto error;
 
 	      lex_negative_to_dash ();
 	      if (lex_match ('-')
-		  && !parse_num_or_var (&rpd.cont_end,
+		  && !parse_num_or_var (&rpd->cont_end,
 					"CONTINUED ending column"))
-		return CMD_FAILURE;
+		goto error;
 	  
-	      if (rpd.cont_beg.num != 0 && rpd.cont_end.num != 0
-		  && rpd.cont_beg.num > rpd.cont_end.num)
+	      if (rpd->cont_beg.num != 0 && rpd->cont_end.num != 0
+		  && rpd->cont_beg.num > rpd->cont_end.num)
 		{
 		  msg (SE, _("CONTINUED beginning column (%d) exceeds "
 			     "CONTINUED ending column (%d)."),
-		       rpd.cont_beg.num, rpd.cont_end.num);
-		  return CMD_FAILURE;
+		       rpd->cont_beg.num, rpd->cont_end.num);
+		  goto error;
 		}
 	    }
 	  else
-	    rpd.cont_beg.num = 1;
+	    rpd->cont_beg.num = 1;
 	}
       else if (lex_match_id ("ID"))
 	{
@@ -1433,19 +1440,19 @@ cmd_repeating_data (void)
 	  if (seen & 16)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"ID");
-	      return CMD_FAILURE;
+	      goto error;
 	    }
 	  seen |= 16;
 	  
 	  if (!lex_force_int ())
-	    return CMD_FAILURE;
+	    goto error;
 	  if (lex_integer () < 1)
 	    {
 	      msg (SE, _("ID beginning column (%ld) must be positive."),
 		   lex_integer ());
-	      return CMD_FAILURE;
+	      goto error;
 	    }
-	  rpd.id_beg = lex_integer ();
+	  rpd->id_beg = lex_integer ();
 	  
 	  lex_get ();
 	  lex_negative_to_dash ();
@@ -1453,34 +1460,34 @@ cmd_repeating_data (void)
 	  if (lex_match ('-'))
 	    {
 	      if (!lex_force_int ())
-		return CMD_FAILURE;
+		goto error;
 	      if (lex_integer () < 1)
 		{
 		  msg (SE, _("ID ending column (%ld) must be positive."),
 		       lex_integer ());
-		  return CMD_FAILURE;
+		  goto error;
 		}
-	      if (lex_integer () < rpd.id_end)
+	      if (lex_integer () < rpd->id_end)
 		{
 		  msg (SE, _("ID ending column (%ld) cannot be less than "
 			     "ID beginning column (%d)."),
-		       lex_integer (), rpd.id_beg);
-		  return CMD_FAILURE;
+		       lex_integer (), rpd->id_beg);
+		  goto error;
 		}
 	      
-	      rpd.id_end = lex_integer ();
+	      rpd->id_end = lex_integer ();
 	      lex_get ();
 	    }
-	  else rpd.id_end = rpd.id_beg;
+	  else rpd->id_end = rpd->id_beg;
 
 	  if (!lex_force_match ('='))
-	    return CMD_FAILURE;
-	  rpd.id_var = parse_variable ();
-	  if (rpd.id_var == NULL)
-	    return CMD_FAILURE;
+	    goto error;
+	  rpd->id_var = parse_variable ();
+	  if (rpd->id_var == NULL)
+	    goto error;
 
-	  find_variable_input_spec (rpd.id_var, &rpd.id_spec);
-          rpd.id_value = xmalloc (sizeof *rpd.id_value * rpd.id_var->nv);
+	  find_variable_input_spec (rpd->id_var, &rpd->id_spec);
+          rpd->id_value = xmalloc (sizeof *rpd->id_value * rpd->id_var->nv);
 	}
       else if (lex_match_id ("TABLE"))
 	table = 1;
@@ -1491,11 +1498,11 @@ cmd_repeating_data (void)
       else
 	{
 	  lex_error (NULL);
-	  return CMD_FAILURE;
+	  goto error;
 	}
 
       if (!lex_force_match ('/'))
-	return CMD_FAILURE;
+	goto error;
     }
 
   /* Comes here when DATA specification encountered. */
@@ -1505,47 +1512,47 @@ cmd_repeating_data (void)
 	msg (SE, _("Missing required specification STARTS."));
       if ((seen & 2) == 0)
 	msg (SE, _("Missing required specification OCCURS."));
-      return CMD_FAILURE;
+      goto error;
     }
 
   /* Enforce ID restriction. */
   if ((seen & 16) && !(seen & 8))
     {
       msg (SE, _("ID specified without CONTINUED."));
-      return CMD_FAILURE;
+      goto error;
     }
 
   /* Calculate starts_end, cont_end if necessary. */
-  if (rpd.starts_end.num == 0 && rpd.starts_end.var == NULL)
-    rpd.starts_end.num = fh_record_width (rpd.handle);
-  if (rpd.cont_end.num == 0 && rpd.starts_end.var == NULL)
-    rpd.cont_end.num = fh_record_width (rpd.handle);
+  if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL)
+    rpd->starts_end.num = fh_record_width (rpd->handle);
+  if (rpd->cont_end.num == 0 && rpd->starts_end.var == NULL)
+    rpd->cont_end.num = fh_record_width (rpd->handle);
       
   /* Calculate length if possible. */
   if ((seen & 4) == 0)
     {
       struct dls_var_spec *iter;
       
-      for (iter = rpd.spec; iter; iter = iter->next)
+      for (iter = rpd->first; iter; iter = iter->next)
 	{
-	  if (iter->lc > rpd.length.num)
-	    rpd.length.num = iter->lc;
+	  if (iter->lc > rpd->length.num)
+	    rpd->length.num = iter->lc;
 	}
-      assert (rpd.length.num != 0);
+      assert (rpd->length.num != 0);
     }
   
   lex_match ('=');
-  if (!parse_repeating_data ())
-    return CMD_FAILURE;
+  if (!parse_repeating_data (&rpd->first, &rpd->last))
+    goto error;
 
   if (table)
-    dump_fixed_table ();
+    dump_fixed_table (rpd->first, rpd->handle, rpd->last->rec);
 
   {
     struct repeating_data_trns *new_trns;
 
-    rpd.h.proc = repeating_data_trns_proc;
-    rpd.h.free = repeating_data_trns_free;
+    rpd->h.proc = repeating_data_trns_proc;
+    rpd->h.free = repeating_data_trns_free;
 
     new_trns = xmalloc (sizeof *new_trns);
     memcpy (new_trns, &rpd, sizeof *new_trns);
@@ -1553,6 +1560,11 @@ cmd_repeating_data (void)
   }
 
   return lex_end_of_command ();
+
+ error:
+  destroy_dls_var_spec (rpd->first);
+  free (rpd->id_value);
+  return CMD_FAILURE;
 }
 
 /* Because of the way that DATA LIST is structured, it's not trivial
@@ -1572,7 +1584,7 @@ find_variable_input_spec (struct variable *v, struct fmt_spec *spec)
 	{
 	  struct dls_var_spec *iter;
 
-	  for (iter = pgm->spec; iter; iter = iter->next)
+	  for (iter = pgm->first; iter; iter = iter->next)
 	    if (iter->v == v)
 	      {
 		*spec = iter->input;
@@ -1624,8 +1636,9 @@ parse_num_or_var (struct rpd_num_or_var *value, const char *message)
 /* Parses data specifications for repeating data groups.  Taken from
    parse_fixed().  Returns nonzero only if successful.  */
 static int
-parse_repeating_data (void)
+parse_repeating_data (struct dls_var_spec **first, struct dls_var_spec **last)
 {
+  struct fixed_parsing_state fx;
   int i;
 
   fx.recno = 0;
@@ -1633,21 +1646,17 @@ parse_repeating_data (void)
 
   while (token != '.')
     {
-      fx.spec.rec = fx.recno;
-
-      if (!parse_DATA_LIST_vars (&fx.name, &fx.nname, PV_NONE))
+      if (!parse_DATA_LIST_vars (&fx.name, &fx.name_cnt, PV_NONE))
 	return 0;
 
       if (token == T_NUM)
 	{
-	  if (!fixed_parse_compatible ())
+	  if (!fixed_parse_compatible (&fx, first, last))
 	    goto fail;
 	}
       else if (token == '(')
 	{
-	  fx.level = 0;
-	  fx.cname = 0;
-	  if (!fixed_parse_fortran ())
+	  if (!fixed_parse_fortran (&fx, first, last))
 	    goto fail;
 	}
       else
@@ -1657,7 +1666,7 @@ parse_repeating_data (void)
 	  goto fail;
 	}
 
-      for (i = 0; i < fx.nname; i++)
+      for (i = 0; i < fx.name_cnt; i++)
 	free (fx.name[i]);
       free (fx.name);
     }
@@ -1669,8 +1678,8 @@ parse_repeating_data (void)
   
   return 1;
 
-fail:
-  for (i = 0; i < fx.nname; i++)
+ fail:
+  for (i = 0; i < fx.name_cnt; i++)
     free (fx.name[i]);
   free (fx.name);
   return 0;
@@ -1700,23 +1709,28 @@ realize_value (struct rpd_num_or_var *n, struct ccase *c)
     return 0;
 }
 
-/* Parses one record of repeated data and outputs corresponding cases.
-   Repeating data is present in line LINE having length LEN.
-   Repeating data begins in column BEG and continues through column
-   END inclusive (1-based columns); occurrences are offset OFS columns
-   from each other.  C is the case that will be filled in; T is the
-   REPEATING DATA transformation.  The record ID will be verified if
-   COMPARE_ID is nonzero; if it is zero, then the record ID is
-   initialized to the ID present in the case (assuming that ID
-   location was specified by the user).  Returns number of occurrences
-   parsed up to the specified maximum of MAX_OCCURS. */
+/* Parameter record passed to rpd_parse_record(). */
+struct rpd_parse_info 
+  {
+    struct repeating_data_trns *trns;  /* REPEATING DATA transformation. */
+    const char *line;   /* Line being parsed. */
+    size_t len;         /* Line length. */
+    int beg, end;       /* First and last column of first occurrence. */
+    int ofs;            /* Column offset between repeated occurrences. */
+    struct ccase *c;    /* Case to fill in. */
+    int verify_id;      /* Zero to initialize ID, nonzero to verify it. */
+    int max_occurs;     /* Max number of occurrences to parse. */
+  };
+
+/* Parses one record of repeated data and outputs corresponding
+   cases.  Returns number of occurrences parsed up to the
+   maximum specified in INFO. */
 static int
-rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
-		  struct repeating_data_trns *t,
-		  char *line, int len, int compare_id, int max_occurs)
+rpd_parse_record (const struct rpd_parse_info *info)
 {
+  struct repeating_data_trns *t = info->trns;
+  int cur = info->beg;
   int occurrences;
-  int cur = beg;
 
   /* Handle record ID values. */
   if (t->id_beg != 0)
@@ -1727,8 +1741,8 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
       {
 	struct data_in di;
 
-	data_in_finite_line (&di, line, len, t->id_beg, t->id_end);
-	di.v = compare_id ? id_temp : t->id_value;
+	data_in_finite_line (&di, info->line, info->len, t->id_beg, t->id_end);
+	di.v = info->verify_id ? id_temp : t->id_value;
 	di.flags = 0;
 	di.f1 = t->id_beg;
 	di.format = t->id_spec;
@@ -1737,7 +1751,7 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 	  return 0;
       }
 
-      if (compare_id
+      if (info->verify_id
           && compare_values (id_temp, t->id_value, t->id_var->width) != 0)
 	{
 	  char expected_str [MAX_FORMATTED_LEN + 1];
@@ -1763,35 +1777,35 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
   {
     int warned = 0;
 
-    for (occurrences = 0; occurrences < max_occurs; )
+    for (occurrences = 0; occurrences < info->max_occurs; )
       {
-	if (cur + ofs > end + 1)
+	if (cur + info->ofs > info->end + 1)
 	  break;
 	occurrences++;
 
 	{
-	  struct dls_var_spec *var_spec = t->spec;
+	  struct dls_var_spec *var_spec = t->first;
 	
 	  for (; var_spec; var_spec = var_spec->next)
 	    {
 	      int fc = var_spec->fc - 1 + cur;
 	      int lc = var_spec->lc - 1 + cur;
 
-	      if (fc > len && !warned && var_spec->input.type != FMT_A)
+	      if (fc > info->len && !warned && var_spec->input.type != FMT_A)
 		{
 		  warned = 1;
 
 		  tmsg (SW, RPD_ERR,
 			_("Variable %s starting in column %d extends "
 			  "beyond physical record length of %d."),
-			var_spec->v->name, fc, len);
+			var_spec->v->name, fc, info->len);
 		}
 	      
 	      {
 		struct data_in di;
 
-		data_in_finite_line (&di, line, len, fc, lc);
-		di.v = &c->data[var_spec->fv];
+		data_in_finite_line (&di, info->line, info->len, fc, lc);
+		di.v = &info->c->data[var_spec->fv];
 		di.flags = 0;
 		di.f1 = fc + 1;
 		di.format = var_spec->input;
@@ -1802,7 +1816,7 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 	    }
 	}
 
-	cur += ofs;
+	cur += info->ofs;
 
 	if (!t->write_case (t->wc_data))
 	  return 0;
@@ -1818,132 +1832,147 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 int
 repeating_data_trns_proc (struct trns_header *trns, struct ccase *c)
 {
-  dfm_push (dlsp->handle);
+  struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
+    
+  char *line;		/* Current record. */
+  int len;		/* Length of current record. */
+
+  int starts_beg;	/* Starting column. */
+  int starts_end;	/* Ending column. */
+  int occurs;		/* Number of repetitions. */
+  int length;		/* Length of each occurrence. */
+  int cont_beg;	/* Starting column for continuation lines. */
+  int cont_end;	/* Ending column for continuation lines. */
+
+  int occurs_left;	/* Number of occurrences remaining. */
+
+  int code;		/* Return value from rpd_parse_record(). */
+    
+  int skip_first_record = 0;
+    
+  dfm_push (t->handle);
   
-  {
-    struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
-    
-    char *line;		/* Current record. */
-    int len;		/* Length of current record. */
+  /* Read the current record. */
+  dfm_bkwd_record (t->handle, 1);
+  line = dfm_get_record (t->handle, &len);
+  if (line == NULL)
+    return -2;
+  dfm_fwd_record (t->handle);
 
-    int starts_beg;	/* Starting column. */
-    int starts_end;	/* Ending column. */
-    int occurs;		/* Number of repetitions. */
-    int length;		/* Length of each occurrence. */
-    int cont_beg;	/* Starting column for continuation lines. */
-    int cont_end;	/* Ending column for continuation lines. */
-
-    int occurs_left;	/* Number of occurrences remaining. */
-
-    int code;		/* Return value from rpd_parse_record(). */
-    
-    int skip_first_record = 0;
-    
-    /* Read the current record. */
-    dfm_bkwd_record (dlsp->handle, 1);
-    line = dfm_get_record (dlsp->handle, &len);
-    if (line == NULL)
-      return -2;
-    dfm_fwd_record (dlsp->handle);
-
-    /* Calculate occurs, length. */
-    occurs_left = occurs = realize_value (&t->occurs, c);
-    if (occurs <= 0)
-      {
-	tmsg (SE, RPD_ERR, _("Invalid value %d for OCCURS."), occurs);
-	return -3;
-      }
-    starts_beg = realize_value (&t->starts_beg, c);
-    if (starts_beg <= 0)
-      {
-	tmsg (SE, RPD_ERR, _("Beginning column for STARTS (%d) must be "
-			     "at least 1."),
-	      starts_beg);
-	return -3;
-      }
-    starts_end = realize_value (&t->starts_end, c);
-    if (starts_end < starts_beg)
-      {
-	tmsg (SE, RPD_ERR, _("Ending column for STARTS (%d) is less than "
-			     "beginning column (%d)."),
-	      starts_end, starts_beg);
-	skip_first_record = 1;
-      }
-    length = realize_value (&t->length, c);
-    if (length < 0)
-      {
-	tmsg (SE, RPD_ERR, _("Invalid value %d for LENGTH."), length);
-	length = 1;
-	occurs = occurs_left = 1;
-      }
-    cont_beg = realize_value (&t->cont_beg, c);
-    if (cont_beg < 0)
-      {
-	tmsg (SE, RPD_ERR, _("Beginning column for CONTINUED (%d) must be "
-			     "at least 1."),
-	      cont_beg);
-	return -2;
-      }
-    cont_end = realize_value (&t->cont_end, c);
-    if (cont_end < cont_beg)
-      {
-	tmsg (SE, RPD_ERR, _("Ending column for CONTINUED (%d) is less than "
-			     "beginning column (%d)."),
-	      cont_end, cont_beg);
-	return -2;
-      }
-
-    /* Parse the first record. */
-    if (!skip_first_record)
-      {
-	code = rpd_parse_record (starts_beg, starts_end, length, c, t, line,
-				 len, 0, occurs_left);
-	if (!code)
-	  return -2;
-      }
-    else if (cont_beg == 0)
+  /* Calculate occurs, length. */
+  occurs_left = occurs = realize_value (&t->occurs, c);
+  if (occurs <= 0)
+    {
+      tmsg (SE, RPD_ERR, _("Invalid value %d for OCCURS."), occurs);
       return -3;
+    }
+  starts_beg = realize_value (&t->starts_beg, c);
+  if (starts_beg <= 0)
+    {
+      tmsg (SE, RPD_ERR, _("Beginning column for STARTS (%d) must be "
+                           "at least 1."),
+            starts_beg);
+      return -3;
+    }
+  starts_end = realize_value (&t->starts_end, c);
+  if (starts_end < starts_beg)
+    {
+      tmsg (SE, RPD_ERR, _("Ending column for STARTS (%d) is less than "
+                           "beginning column (%d)."),
+            starts_end, starts_beg);
+      skip_first_record = 1;
+    }
+  length = realize_value (&t->length, c);
+  if (length < 0)
+    {
+      tmsg (SE, RPD_ERR, _("Invalid value %d for LENGTH."), length);
+      length = 1;
+      occurs = occurs_left = 1;
+    }
+  cont_beg = realize_value (&t->cont_beg, c);
+  if (cont_beg < 0)
+    {
+      tmsg (SE, RPD_ERR, _("Beginning column for CONTINUED (%d) must be "
+                           "at least 1."),
+            cont_beg);
+      return -2;
+    }
+  cont_end = realize_value (&t->cont_end, c);
+  if (cont_end < cont_beg)
+    {
+      tmsg (SE, RPD_ERR, _("Ending column for CONTINUED (%d) is less than "
+                           "beginning column (%d)."),
+            cont_end, cont_beg);
+      return -2;
+    }
 
-    /* Make sure, if some occurrences are left, that we have
-       continuation records. */
-    occurs_left -= code;
-    if (occurs_left != 0 && cont_beg == 0)
-      {
-	tmsg (SE, RPD_ERR,
-	      _("Number of repetitions specified on OCCURS (%d) "
-		"exceed number of repetitions available in "
-		"space on STARTS (%d), and CONTINUED not specified."),
-	      occurs, code);
-	return -2;
-      }
+  /* Parse the first record. */
+  if (!skip_first_record)
+    {
+      struct rpd_parse_info info;
+      info.trns = t;
+      info.line = line;
+      info.len = len;
+      info.beg = starts_beg;
+      info.end = starts_end;
+      info.c = c;
+      info.verify_id = 0;
+      info.max_occurs = occurs_left;
+      code = rpd_parse_record (&info);;
+      if (!code)
+        return -2;
+    }
+  else if (cont_beg == 0)
+    return -3;
 
-    /* Go on to additional records. */
-    while (occurs_left != 0)
-      {
-	assert (occurs_left >= 0);
+  /* Make sure, if some occurrences are left, that we have
+     continuation records. */
+  occurs_left -= code;
+  if (occurs_left != 0 && cont_beg == 0)
+    {
+      tmsg (SE, RPD_ERR,
+            _("Number of repetitions specified on OCCURS (%d) "
+              "exceed number of repetitions available in "
+              "space on STARTS (%d), and CONTINUED not specified."),
+            occurs, code);
+      return -2;
+    }
 
-	/* Read in another record. */
-	line = dfm_get_record (dlsp->handle, &len);
-	if (line == NULL)
-	  {
-	    tmsg (SE, RPD_ERR,
-		  _("Unexpected end of file with %d repetitions "
-		    "remaining out of %d."),
-		  occurs_left, occurs);
-	    return -2;
-	  }
-	dfm_fwd_record (dlsp->handle);
+  /* Go on to additional records. */
+  while (occurs_left != 0)
+    {
+      struct rpd_parse_info info;
 
-	/* Parse this record. */
-	code = rpd_parse_record (cont_beg, cont_end, length, c, t, line,
-				 len, 1, occurs_left);
-	if (!code)
-	  return -2;
-	occurs_left -= code;
-      }
-  }
+      assert (occurs_left >= 0);
+
+      /* Read in another record. */
+      line = dfm_get_record (t->handle, &len);
+      if (line == NULL)
+        {
+          tmsg (SE, RPD_ERR,
+                _("Unexpected end of file with %d repetitions "
+                  "remaining out of %d."),
+                occurs_left, occurs);
+          return -2;
+        }
+      dfm_fwd_record (t->handle);
+
+      /* Parse this record. */
+      info.trns = t;
+      info.line = line;
+      info.len = len;
+      info.beg = cont_beg;
+      info.end = cont_end;
+      info.c = c;
+      info.verify_id = 1;
+      info.max_occurs = occurs_left;
+      code = rpd_parse_record (&info);;
+      if (!code)
+        return -2;
+      occurs_left -= code;
+    }
     
-  dfm_pop (dlsp->handle);
+  dfm_pop (t->handle);
 
   /* FIXME: This is a kluge until we've implemented multiplexing of
      transformations. */
@@ -1955,7 +1984,7 @@ repeating_data_trns_free (struct trns_header *rpd_)
 {
   struct repeating_data_trns *rpd = (struct repeating_data_trns *) rpd_;
 
-  destroy_dls_var_spec (rpd->spec);
+  destroy_dls_var_spec (rpd->first);
   fh_close_handle (rpd->handle);
   free (rpd->id_value);
 }

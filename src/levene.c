@@ -29,6 +29,7 @@
 #include "stats.h"
 
 #include <math.h>
+#include <stdlib.h>
 
 
 /* This module calculates the Levene statistic for variables.

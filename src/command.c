@@ -201,7 +201,8 @@ cmd_parse (void)
 
   /* If we're in a FILE TYPE structure, only certain commands can be
      allowed. */
-  if (pgm_state == STATE_INPUT && vfm_source == &file_type_source
+  if (pgm_state == STATE_INPUT
+      && case_source_is_class (vfm_source, &file_type_source_class)
       && !FILE_TYPE_okay (cp))
     return CMD_FAILURE;
 

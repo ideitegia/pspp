@@ -241,7 +241,7 @@ fh_get_handle_by_name (const char name[9])
 
    Useful for printing error messages about use of file handles.  */
 const char *
-fh_handle_name (struct file_handle *h)
+fh_handle_name (const struct file_handle *h)
 {
   static char *buf = NULL;
 

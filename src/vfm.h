@@ -28,61 +28,86 @@ extern time_t last_vfm_invocation;
 /* This is the case that is to be filled in by input programs. */
 extern struct ccase *temp_case;
 
-/* `value' indexes to initialize to particular values for certain cases. */
-extern struct long_vec reinit_sysmis;	/* SYSMIS for every case. */
-extern struct long_vec reinit_blanks;	/* Blanks for every case. */
-extern struct long_vec init_zero;	/* Zero for first case only. */
-extern struct long_vec init_blanks;	/* Blanks for first case only. */
-
 typedef struct write_case_data *write_case_data;
 typedef int write_case_func (write_case_data);
+
+/* The current active file, from which cases are read. */
+extern struct case_source *vfm_source;
 
-/* A case stream: either a source or a sink, depending on context. */
-struct case_stream
+/* A case source. */
+struct case_source 
   {
-    /* Initializes sink. */
-    void (*init) (void);
+    const struct case_source_class *class;      /* Class. */
+    void *aux;                                  /* Auxiliary data. */
+  };
+
+/* A case source class. */
+struct case_source_class
+  {
+    const char *name;                   /* Identifying name. */
     
     /* Reads all the cases and calls WRITE_CASE passing the given
        AUX data for each one. */
-    void (*read) (write_case_func *, write_case_data);
+    void (*read) (struct case_source *, write_case_func *, write_case_data);
 
-    /* Writes a single case, temp_case. */
-    void (*write) (void);
-
-    /* Switches mode from sink to source. */
-    void (*mode) (void);
-    
-    /* Discards source's internal data. */
-    void (*destroy_source) (void);
-
-    /* Discards sink's internal data. */
-    void (*destroy_sink) (void);
-
-    /* Identifying name for the stream. */
-    const char *name;
+    /* Destroys the source. */
+    void (*destroy) (struct case_source *);
   };
 
-/* This is used to read from the active file. */
-extern struct case_stream *vfm_source;
+extern const struct case_source_class memory_source_class;
+extern const struct case_source_class disk_source_class;
+extern const struct case_source_class data_list_source_class;
+extern const struct case_source_class file_type_source_class;
+extern const struct case_source_class input_program_source_class;
+extern const struct case_source_class get_source_class;
+extern const struct case_source_class import_source_class;
+extern const struct case_source_class sort_source_class;
 
-/* This is used to write to the replacement active file. */
-extern struct case_stream *vfm_sink;
+struct case_source *create_case_source (const struct case_source_class *,
+                                        void *);
+int case_source_is_complex (const struct case_source *);
+int case_source_is_class (const struct case_source *,
+                          const struct case_source_class *);
+struct case_list *memory_source_get_cases (const struct case_source *);
+void memory_source_set_cases (const struct case_source *,
+                                     struct case_list *);
+
+/* The replacement active file, to which cases are written. */
+extern struct case_sink *vfm_sink;
 
-/* General data streams. */
-extern struct case_stream vfm_memory_stream;
-extern struct case_stream vfm_disk_stream;
-extern struct case_stream sort_stream;
-extern struct case_stream flip_stream;
+/* A case sink. */
+struct case_sink 
+  {
+    const struct case_sink_class *class;        /* Class. */
+    void *aux;                                  /* Auxiliary data. */
+  };
 
-/* Streams that are only sources. */
-extern struct case_stream data_list_source;
-extern struct case_stream input_program_source;
-extern struct case_stream file_type_source;
-extern struct case_stream get_source;
-extern struct case_stream import_source;
-extern struct case_stream matrix_data_source;
+/* A case sink class. */
+struct case_sink_class
+  {
+    const char *name;                   /* Identifying name. */
+    
+    /* Creates the sink and opens it for writing. */
+    void (*open) (struct case_sink *);
+                  
+    /* Writes a case to the sink. */
+    void (*write) (struct case_sink *, struct ccase *);
+    
+    /* Closes and destroys the sink. */
+    void (*destroy) (struct case_sink *);
 
+    /* Closes and destroys the sink and returns a source that can
+       read back the cases that were written, perhaps transformed
+       in some way. */
+    struct case_source *(*make_source) (struct case_sink *);
+  };
+
+extern const struct case_sink_class memory_sink_class;
+extern const struct case_sink_class disk_sink_class;
+extern const struct case_sink_class sort_sink_class;
+
+struct case_sink *create_case_sink (const struct case_sink_class *, void *);
+
 /* Number of cases to lag. */
 extern int n_lag;
 
@@ -92,7 +117,7 @@ void procedure (void (*beginfunc) (void *aux),
                 void *aux);
 struct ccase *lagged_case (int n_before);
 void compact_case (struct ccase *dest, const struct ccase *src);
-void page_to_disk (void);
+void write_active_file_to_disk (void);
 
 void process_active_file (void (*beginfunc) (void *),
 			  int (*casefunc) (struct ccase *curcase, void *),

@@ -92,7 +92,7 @@ struct file_handle *fh_parse_file_handle (void);
 void fh_close_handle (struct file_handle *handle);
 
 /* Handle info. */
-const char *fh_handle_name (struct file_handle *handle);
+const char *fh_handle_name (const struct file_handle *handle);
 char *fh_handle_filename (struct file_handle *handle);
 size_t fh_record_width (struct file_handle *handle);
 

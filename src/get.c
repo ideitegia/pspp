@@ -54,12 +54,6 @@ struct save_trns
 #define GTSV_OPT_MATCH_FILES	004	/* The MATCH FILES procedure. */
 #define GTSV_OPT_NONE		0
 
-/* The file being read by the input program. */
-static struct file_handle *get_file;
-
-/* The transformation being used by the SAVE procedure. */
-static struct save_trns *trns;
-
 static int trim_dictionary (struct dictionary * dict, int *options);
 static int save_write_case_func (struct ccase *, void *);
 static int save_trns_proc (struct trns_header *, struct ccase *);
@@ -120,16 +114,21 @@ cmd_get (void)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = &get_source;
-  get_file = handle;
+  vfm_source = create_case_source (&get_source_class, handle);
 
   return CMD_SUCCESS;
 }
 
-/* Parses the SAVE (for XSAVE==0) and XSAVE (for XSAVE==1)
-   commands.  */
+/* SAVE or XSAVE command? */
+enum save_cmd 
+  {
+    CMD_SAVE,
+    CMD_XSAVE
+  };
+
+/* Parses the SAVE and XSAVE commands.  */
 static int
-cmd_save_internal (int xsave)
+cmd_save_internal (enum save_cmd save_cmd)
 {
   struct file_handle *handle;
   struct dictionary *dict;
@@ -178,7 +177,7 @@ cmd_save_internal (int xsave)
     }
 
   /* Fill in transformation structure. */
-  t = trns = xmalloc (sizeof *t);
+  t = xmalloc (sizeof *t);
   t->h.proc = save_trns_proc;
   t->h.free = save_trns_free;
   t->f = handle;
@@ -189,15 +188,16 @@ cmd_save_internal (int xsave)
   t->case_buf = xmalloc (sizeof *t->case_buf * inf.case_size);
   dict_destroy (dict);
 
-  if (xsave == 0)
-    /* SAVE. */
+  if (save_cmd == CMD_SAVE)
     {
-      procedure (NULL, save_write_case_func, NULL, NULL);
+      procedure (NULL, save_write_case_func, NULL, t);
       save_trns_free (&t->h);
     }
-  else
-    /* XSAVE. */
-    add_transformation (&t->h);
+  else 
+    {
+      assert (save_cmd == CMD_XSAVE);
+      add_transformation (&t->h); 
+    }
 
   return CMD_SUCCESS;
 }
@@ -206,32 +206,26 @@ cmd_save_internal (int xsave)
 int
 cmd_save (void)
 {
-  return cmd_save_internal (0);
+  return cmd_save_internal (CMD_SAVE);
 }
 
 /* Parses the XSAVE transformation command. */
 int
 cmd_xsave (void)
 {
-  return cmd_save_internal (1);
+  return cmd_save_internal (CMD_XSAVE);
 }
 
-static int
-save_write_case_func (struct ccase * c, void *aux UNUSED)
+/* Writes the given C to the file specified by T. */
+static void
+do_write_case (struct save_trns *t, struct ccase *c) 
 {
-  save_trns_proc (&trns->h, c);
-  return 1;
-}
-
-static int
-save_trns_proc (struct trns_header * t UNUSED, struct ccase * c)
-{
-  flt64 *p = trns->case_buf;
+  flt64 *p = t->case_buf;
   int i;
 
-  for (i = 0; i < trns->nvar; i++)
+  for (i = 0; i < t->nvar; i++)
     {
-      struct variable *v = trns->var[i];
+      struct variable *v = t->var[i];
       if (v->type == NUMERIC)
 	{
 	  double src = c->data[v->fv].f;
@@ -249,7 +243,21 @@ save_trns_proc (struct trns_header * t UNUSED, struct ccase * c)
 	}
     }
 
-  sfm_write_case (trns->f, trns->case_buf, p - trns->case_buf);
+  sfm_write_case (t->f, t->case_buf, p - t->case_buf);
+}
+
+static int
+save_write_case_func (struct ccase * c, void *aux UNUSED)
+{
+  do_write_case (aux, c);
+  return 1;
+}
+
+static int
+save_trns_proc (struct trns_header *h, struct ccase * c)
+{
+  struct save_trns *t = (struct save_trns *) h;
+  do_write_case (t, c);
   return -1;
 }
 
@@ -467,33 +475,33 @@ dump_dict_variables (struct dictionary * dict)
 
 /* Clears internal state related to GET input procedure. */
 static void
-get_source_destroy_source (void)
+get_source_destroy (struct case_source *source)
 {
+  struct file_handle *handle = source->aux;
+
   /* It is not necessary to destroy the dictionary because if we get
      to this point then the dictionary is default_dict. */
-  fh_close_handle (get_file);
+  fh_close_handle (handle);
 }
 
 /* Reads all the cases from the data file and passes them to
    write_case(). */
 static void
-get_source_read (write_case_func *write_case, write_case_data wc_data)
+get_source_read (struct case_source *source,
+                 write_case_func *write_case, write_case_data wc_data)
 {
-  while (sfm_read_case (get_file, temp_case->data, default_dict)
+  struct file_handle *handle = source->aux;
+
+  while (sfm_read_case (handle, temp_case->data, default_dict)
 	 && write_case (wc_data))
     ;
-  get_source_destroy_source ();
 }
 
-struct case_stream get_source =
+const struct case_source_class get_source_class =
   {
-    NULL,
-    get_source_read,
-    NULL,
-    NULL,
-    get_source_destroy_source,
-    NULL,
     "GET",
+    get_source_read,
+    get_source_destroy,
   };
 
 
@@ -1402,8 +1410,7 @@ cmd_import (void)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = &import_source;
-  get_file = handle;
+  vfm_source = create_case_source (&import_source_class, handle);
 
   return CMD_SUCCESS;
 }
@@ -1411,23 +1418,20 @@ cmd_import (void)
 /* Reads all the cases from the data file and passes them to
    write_case(). */
 static void
-import_source_read (write_case_func *write_case, write_case_data wc_data)
+import_source_read (struct case_source *source,
+                    write_case_func *write_case, write_case_data wc_data)
 {
-  while (pfm_read_case (get_file, temp_case->data, default_dict)
-	 && write_case (wc_data))
-    ;
-  get_source_destroy_source ();
+  struct file_handle *handle = source->aux;
+  while (pfm_read_case (handle, temp_case->data, default_dict))
+    if (!write_case (wc_data))
+      break;
 }
 
-struct case_stream import_source =
+const struct case_source_class import_source_class =
   {
-    NULL,
-    import_source_read,
-    NULL,
-    NULL,
-    get_source_destroy_source,
-    NULL,
     "IMPORT",
+    import_source_read,
+    get_source_destroy,
   };
 
 static int export_write_case_func (struct ccase *c, void *);
@@ -1480,7 +1484,7 @@ cmd_export (void)
     }
 
   /* Fill in transformation structure. */
-  t = trns = xmalloc (sizeof *t);
+  t = xmalloc (sizeof *t);
   t->h.proc = save_trns_proc;
   t->h.free = save_trns_free;
   t->f = handle;
@@ -1491,21 +1495,22 @@ cmd_export (void)
   t->case_buf = xmalloc (sizeof *t->case_buf * t->nvar);
   dict_destroy (dict);
 
-  procedure (NULL, export_write_case_func, NULL, NULL);
+  procedure (NULL, export_write_case_func, NULL, t);
   save_trns_free (&t->h);
 
   return CMD_SUCCESS;
 }
 
 static int
-export_write_case_func (struct ccase *c, void *aux UNUSED)
+export_write_case_func (struct ccase *c, void *aux)
 {
-  union value *p = (union value *) trns->case_buf;
+  struct save_trns *t = aux;
+  union value *p = (union value *) t->case_buf;
   int i;
 
-  for (i = 0; i < trns->nvar; i++)
+  for (i = 0; i < t->nvar; i++)
     {
-      struct variable *v = trns->var[i];
+      struct variable *v = t->var[i];
 
       if (v->type == NUMERIC)
 	*p++ = c->data[v->fv];
@@ -1513,6 +1518,6 @@ export_write_case_func (struct ccase *c, void *aux UNUSED)
 	(*p++).c = c->data[v->fv].s;
     }
 
-  pfm_write_case (trns->f, (union value *) trns->case_buf);
+  pfm_write_case (t->f, (union value *) t->case_buf);
   return 1;
 }

@@ -46,12 +46,11 @@ enum value_init_type
     INP_REINIT = 0,		/* Reinitialize for each iteration. */
   };
 
-/* Array that tells INPUT PROGRAM how to initialize each `union
-   value'.  */
-static enum value_init_type *inp_init;
-
-/* Number of bytes allocated for inp_init. */
-static size_t inp_nval;
+struct input_program_pgm 
+  {
+    enum value_init_type *init; /* How to initialize each `union value'. */
+    size_t init_cnt;            /* Number of elements in inp_init. */
+  };
 
 static int end_case_trns_proc (struct trns_header *, struct ccase *);
 static int end_file_trns_proc (struct trns_header * t, struct ccase * c);
@@ -65,7 +64,7 @@ cmd_input_program (void)
   lex_match_id ("PROGRAM");
   discard_variables ();
 
-  vfm_source = &input_program_source;
+  vfm_source = create_case_source (&input_program_source_class, NULL);
 
   return lex_end_of_command ();
 }
@@ -73,13 +72,14 @@ cmd_input_program (void)
 int
 cmd_end_input_program (void)
 {
+  struct input_program_pgm *inp;
   size_t i;
 
   lex_match_id ("END");
   lex_match_id ("INPUT");
   lex_match_id ("PROGRAM");
 
-  if (vfm_source != &input_program_source)
+  if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
       msg (SE, _("No matching INPUT PROGRAM command."));
       return CMD_FAILURE;
@@ -89,15 +89,16 @@ cmd_end_input_program (void)
     msg (SW, _("No data-input or transformation commands specified "
 	 "between INPUT PROGRAM and END INPUT PROGRAM."));
 
-  /* Mark the boundary between INPUT PROGRAM and more-mundane
-     transformations. */
+  /* Mark the boundary between INPUT PROGRAM transformations and
+     ordinary transformations. */
   f_trns = n_trns;
 
   /* Figure out how to initialize temp_case. */
-  inp_nval = dict_get_next_value_idx (default_dict);
-  inp_init = xmalloc (inp_nval * sizeof *inp_init);
-  for (i = 0; i < inp_nval; i++)
-    inp_init[i] = -1;
+  inp = xmalloc (sizeof *inp);
+  inp->init_cnt = dict_get_next_value_idx (default_dict);
+  inp->init = xmalloc (inp->init_cnt * sizeof *inp->init);
+  for (i = 0; i < inp->init_cnt; i++)
+    inp->init[i] = -1;
   for (i = 0; i < dict_get_var_cnt (default_dict); i++)
     {
       struct variable *var = dict_get_var (default_dict, i);
@@ -108,22 +109,25 @@ cmd_end_input_program (void)
       value_init |= var->reinit ? INP_REINIT : INP_INIT_ONCE;
 
       for (j = 0; j < var->nv; j++)
-        inp_init[j + var->fv] = value_init;
+        inp->init[j + var->fv] = value_init;
     }
-  for (i = 0; i < inp_nval; i++)
-    assert (inp_init[i] != -1);
+  for (i = 0; i < inp->init_cnt; i++)
+    assert (inp->init[i] != -1);
+
+  /* Put inp into vfm_source for later use. */
+  vfm_source->aux = inp;
 
   return lex_end_of_command ();
 }
 
 /* Initializes temp_case.  Called before the first case is read. */
 static void
-init_case (void)
+init_case (struct input_program_pgm *inp)
 {
   size_t i;
 
-  for (i = 0; i < inp_nval; i++)
-    switch (inp_init[i]) 
+  for (i = 0; i < inp->init_cnt; i++)
+    switch (inp->init[i]) 
       {
       case INP_NUMERIC | INP_INIT_ONCE:
         temp_case->data[i].f = 0.0;
@@ -142,12 +146,12 @@ init_case (void)
 
 /* Clears temp_case.  Called between reading successive records. */
 static void
-clear_case (void)
+clear_case (struct input_program_pgm *inp)
 {
   size_t i;
 
-  for (i = 0; i < inp_nval; i++)
-    switch (inp_init[i]) 
+  for (i = 0; i < inp->init_cnt; i++)
+    switch (inp->init[i]) 
       {
       case INP_NUMERIC | INP_INIT_ONCE:
         break;
@@ -169,17 +173,21 @@ clear_case (void)
    file.  -1 means go on to the next transformation.  Otherwise the
    return value is the index of the transformation to go to next. */
 static void
-input_program_source_read (write_case_func *write_case,
+input_program_source_read (struct case_source *source,
+                           write_case_func *write_case,
                            write_case_data wc_data)
 {
+  struct input_program_pgm *inp = source->aux;
   int i;
 
   /* Nonzero if there were any END CASE commands in the set of
-     transformations. */
+     transformations.  If so, we don't automatically write out
+     cases. */
   int end_case = 0;
 
-  /* We don't automatically write out cases if the user took over
-     that prerogative.  */
+  assert (inp != NULL);
+  
+  /* Figure end_case. */
   for (i = 0; i < f_trns; i++)
     if (t_trns[i]->proc == end_case_trns_proc)
       end_case = 1;
@@ -190,7 +198,7 @@ input_program_source_read (write_case_func *write_case,
     if (t_trns[i]->proc == repeating_data_trns_proc)
       repeating_data_set_write_case (t_trns[i], write_case, wc_data);
 
-  init_case ();
+  init_case (inp);
   for (;;)
     {
       /* Index of current transformation. */
@@ -214,7 +222,7 @@ input_program_source_read (write_case_func *write_case,
             {
               if (!write_case (wc_data))
                 return;
-              clear_case ();
+              clear_case (inp);
               i++;
               continue;
             }
@@ -247,27 +255,29 @@ input_program_source_read (write_case_func *write_case,
 
       /* Blank out the case for the next iteration. */
     next_case:
-      clear_case ();
+      clear_case (inp);
     }
 }
 
 static void
-input_program_source_destroy_source (void)
+input_program_source_destroy (struct case_source *source)
 {
+  struct input_program_pgm *inp = source->aux;
+
   cancel_transformations ();
-  free (inp_init);
-  inp_init = NULL;
+
+  if (inp != NULL) 
+    {
+      free (inp->init);
+      free (inp);
+    }
 }
 
-struct case_stream input_program_source =
+const struct case_source_class input_program_source_class =
   {
-    NULL,
-    input_program_source_read,
-    NULL,
-    NULL,
-    input_program_source_destroy_source,
-    NULL,
     "INPUT PROGRAM",
+    input_program_source_read,
+    input_program_source_destroy,
   };
 
 int
@@ -278,7 +288,7 @@ cmd_end_case (void)
   lex_match_id ("END");
   lex_match_id ("CASE");
 
-  if (vfm_source != &input_program_source)
+  if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
       msg (SE, _("This command may only be executed between INPUT PROGRAM "
 		 "and END INPUT PROGRAM."));
@@ -415,7 +425,7 @@ cmd_end_file (void)
   lex_match_id ("END");
   lex_match_id ("FILE");
 
-  if (vfm_source != &input_program_source)
+  if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
       msg (SE, _("This command may only be executed between INPUT PROGRAM "
 		 "and END INPUT PROGRAM."));

@@ -98,6 +98,7 @@
 
  */
 
+#include <stddef.h>
 #include <float.h>
 
 /* The value that blank numeric fields are set to when read in;
@@ -249,5 +250,9 @@ extern int set_viewlength;
 
 /* Screen width. */
 extern int set_viewwidth;
+
+/* Approximate maximum amount of memory to use for cases, in
+   bytes. */
+extern size_t set_max_workspace;
 
 #endif /* !settings_h */

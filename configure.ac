@@ -88,7 +88,7 @@ AC_REPLACE_FUNCS([memmove memset stpcpy strpbrk strerror strtol strtoul \
  		  memchr getline getdelim strcasecmp strncasecmp memmem \
 		  strtok_r])
 AC_CHECK_FUNCS([gethostname strstr strtod __setfpucw isinf isnan finite \
-		getpid feholdexcept])
+		getpid feholdexcept mkdtemp])
 
 AC_PROG_LN_S
 

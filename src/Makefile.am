@@ -12,7 +12,7 @@ AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
 -I$(top_srcdir)/intl
 
 if cc_is_gcc
-AM_CFLAGS=-Wall -W -Wno-uninitialized -Wwrite-strings -Wstrict-prototypes \
+AM_CFLAGS=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes 
 endif
 
@@ -43,7 +43,7 @@ dictionary.c do-if.c do-ifP.h error.c error.h expr-evl.c expr-opt.c	\
 expr-prs.c expr.h exprP.h file-handle.h file-type.c	\
 filename.c filename.h flip.c font.h format.c format.def format.h	\
 formats.c get.c getline.c getline.h glob.c glob.h		\
-groff-font.c hash.c hash.h heap.c heap.h html.c htmlP.h include.c	\
+groff-font.c hash.c hash.h html.c htmlP.h include.c	\
 inpt-pgm.c lexer.c lexer.h levene.c levene.h \
 log.h loop.c magic.c magic.h main.c	\
 main.h matrix-data.c matrix.c matrix.h mis-val.c misc.c misc.h	\

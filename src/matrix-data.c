@@ -42,14 +42,14 @@
    too. */
 
 /* Format type enums. */
-enum
+enum format_type
   {
     LIST,
     FREE
   };
 
 /* Matrix section enums. */
-enum
+enum matrix_section
   {
     LOWER,
     UPPER,
@@ -57,14 +57,14 @@ enum
   };
 
 /* Diagonal inclusion enums. */
-enum
+enum include_diagonal
   {
     DIAGONAL,
     NODIAGONAL
   };
 
 /* CONTENTS types. */
-enum
+enum content_type
   {
     N_VECTOR,
     N_SCALAR,
@@ -85,7 +85,7 @@ enum
   };
 
 /* 0=vector, 1=matrix, 2=scalar. */
-static int content_type[PROX + 1] = 
+static const int content_type[PROX + 1] = 
   {
     0, 2, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
   };
@@ -97,53 +97,48 @@ static const char *content_names[PROX + 1] =
     "DFE", "MAT", "COV", "CORR", "PROX",
   };
 
-/* The data file to be read. */
-static struct file_handle *data_file;
+/* A MATRIX DATA input program. */
+struct matrix_data_pgm 
+  {
+    struct pool *container;     /* Arena used for all allocations. */
+    struct file_handle *data_file; /* The data file to be read. */
 
-/* Format type. */
-static int fmt;			/* LIST or FREE. */
-static int section;		/* LOWER or UPPER or FULL. */
-static int diag;		/* DIAGONAL or NODIAGONAL. */
+    /* Format. */
+    enum format_type fmt;	/* LIST or FREE. */
+    enum matrix_section section;/* LOWER or UPPER or FULL. */
+    enum include_diagonal diag; /* DIAGONAL or NODIAGONAL. */
 
-/* Arena used for all the MATRIX DATA allocations. */
-static struct pool *container;
+    int explicit_rowtype;       /* ROWTYPE_ specified explicitly in data? */
+    struct variable *rowtype_, *varname_; /* ROWTYPE_, VARNAME_ variables. */
+    
+    struct variable *single_split; /* Single SPLIT FILE variable. */
 
-/* ROWTYPE_ specified explicitly in data? */
-static int explicit_rowtype;
+    /* Factor variables.  */
+    int n_factors;              /* Number of factor variables. */
+    struct variable **factors;  /* Factor variables. */
+    int is_per_factor[PROX + 1]; /* Is there per-factor data? */
 
-/* ROWTYPE_, VARNAME_ variables. */
-static struct variable *rowtype_, *varname_;
+    int cells;                  /* Number of cells, or -1 if none. */
 
-/* Is is per-factor data? */
-int is_per_factor[PROX + 1];
+    int pop_n;                  /* Population N specified by user. */
 
-/* Single SPLIT FILE variable. */
-static struct variable *single_split;
+    /* CONTENTS subcommand. */
+    int contents[EOC * 3 + 1];  /* Contents. */
+    int n_contents;             /* Number of entries. */
 
-/* Factor variables.  */
-static int n_factors;
-static struct variable **factors;
+    
+    int n_continuous;           /* Number of continuous variables. */
+    int first_continuous;       /* Index into default_dict.var of
+                                   first continuous variable. */
+  };
 
-/* Number of cells, or -1 if none. */
-static int cells;
-
-/* Population N specified by user. */
-static int pop_n;
-
-/* CONTENTS subcommand. */
-static int contents[EOC * 3 + 1];
-static int n_contents;
-
-/* Number of continuous variables. */
-static int n_continuous;
-
-/* Index into default_dict.var of first continuous variables. */
-static int first_continuous;
+static const struct case_source_class matrix_data_with_rowtype_source_class;
+static const struct case_source_class matrix_data_without_rowtype_source_class;
 
 static int compare_variables_by_mxd_vartype (const void *pa,
 					     const void *pb);
-static void read_matrices_without_rowtype (void);
-static void read_matrices_with_rowtype (void);
+static void read_matrices_without_rowtype (struct matrix_data_pgm *);
+static void read_matrices_with_rowtype (struct matrix_data_pgm *);
 static int string_to_content_type (char *, int *);
 
 #if DEBUGGING
@@ -153,25 +148,35 @@ static void debug_print (void);
 int
 cmd_matrix_data (void)
 {
+  struct pool *pool;
+  struct matrix_data_pgm *mx;
+  
   unsigned seen = 0;
   
   lex_match_id ("MATRIX");
   lex_match_id ("DATA");
 
-  container = pool_create ();
-
   discard_variables ();
 
-  data_file = inline_file;
-  fmt = LIST;
-  section = LOWER;
-  diag = DIAGONAL;
-  single_split = NULL;
-  n_factors = 0;
-  factors = NULL;
-  cells = -1;
-  pop_n = -1;
-  n_contents = 0;
+  pool = pool_create ();
+  mx = pool_alloc (pool, sizeof *mx);
+  mx->container = pool;
+  mx->data_file = inline_file;
+  mx->fmt = LIST;
+  mx->section = LOWER;
+  mx->diag = DIAGONAL;
+  mx->explicit_rowtype = 0;
+  mx->rowtype_ = NULL;
+  mx->varname_ = NULL;
+  mx->single_split = NULL;
+  mx->n_factors = 0;
+  mx->factors = NULL;
+  memset (mx->is_per_factor, 0, sizeof mx->is_per_factor);
+  mx->cells = -1;
+  mx->pop_n = -1;
+  mx->n_contents = 0;
+  mx->n_continuous = 0;
+  mx->first_continuous = 0;
   while (token != '.')
     {
       lex_match ('/');
@@ -221,23 +226,24 @@ cmd_matrix_data (void)
 		    new_var->p.mxd.subtype = i;
 		  }
 		else
-		  explicit_rowtype = 1;
+		  mx->explicit_rowtype = 1;
 		free (v[i]);
 	      }
 	    free (v);
 	  }
 	  
 	  {
-	    rowtype_ = dict_create_var_assert (default_dict, "ROWTYPE_", 8);
-	    rowtype_->p.mxd.vartype = MXD_ROWTYPE;
-	    rowtype_->p.mxd.subtype = 0;
+	    mx->rowtype_ = dict_create_var_assert (default_dict,
+                                                   "ROWTYPE_", 8);
+	    mx->rowtype_->p.mxd.vartype = MXD_ROWTYPE;
+	    mx->rowtype_->p.mxd.subtype = 0;
 	  }
 	}
       else if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  data_file = fh_parse_file_handle ();
-	  if (!data_file)
+	  mx->data_file = fh_parse_file_handle ();
+	  if (mx->data_file == NULL)
 	    goto lossage;
 	}
       else if (lex_match_id ("FORMAT"))
@@ -247,19 +253,19 @@ cmd_matrix_data (void)
 	  while (token == T_ID)
 	    {
 	      if (lex_match_id ("LIST"))
-		fmt = LIST;
+		mx->fmt = LIST;
 	      else if (lex_match_id ("FREE"))
-		fmt = FREE;
+		mx->fmt = FREE;
 	      else if (lex_match_id ("LOWER"))
-		section = LOWER;
+		mx->section = LOWER;
 	      else if (lex_match_id ("UPPER"))
-		section = UPPER;
+		mx->section = UPPER;
 	      else if (lex_match_id ("FULL"))
-		section = FULL;
+		mx->section = FULL;
 	      else if (lex_match_id ("DIAGONAL"))
-		diag = DIAGONAL;
+		mx->diag = DIAGONAL;
 	      else if (lex_match_id ("NODIAGONAL"))
-		diag = NODIAGONAL;
+		mx->diag = NODIAGONAL;
 	      else 
 		{
 		  lex_error (_("in FORMAT subcommand"));
@@ -294,12 +300,13 @@ cmd_matrix_data (void)
 		  goto lossage;
 		}
 
-	      single_split = dict_create_var_assert (default_dict, tokid, 0);
+	      mx->single_split = dict_create_var_assert (default_dict,
+                                                         tokid, 0);
 	      lex_get ();
 
-	      single_split->p.mxd.vartype = MXD_CONTINUOUS;
+	      mx->single_split->p.mxd.vartype = MXD_CONTINUOUS;
 
-              dict_set_split_vars (default_dict, &single_split, 1);
+              dict_set_split_vars (default_dict, &mx->single_split, 1);
 	    }
 	  else
 	    {
@@ -341,22 +348,22 @@ cmd_matrix_data (void)
 	    }
 	  seen |= 4;
 
-	  if (!parse_variables (default_dict, &factors, &n_factors, PV_NONE))
+	  if (!parse_variables (default_dict, &mx->factors, &mx->n_factors, PV_NONE))
 	    goto lossage;
 	  
 	  {
 	    int i;
 	    
-	    for (i = 0; i < n_factors; i++)
+	    for (i = 0; i < mx->n_factors; i++)
 	      {
-		if (factors[i]->p.mxd.vartype != MXD_CONTINUOUS)
+		if (mx->factors[i]->p.mxd.vartype != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Factor variable %s is already another type."),
 			 tokid);
 		    goto lossage;
 		  }
-		factors[i]->p.mxd.vartype = MXD_FACTOR;
-		factors[i]->p.mxd.subtype = i;
+		mx->factors[i]->p.mxd.vartype = MXD_FACTOR;
+		mx->factors[i]->p.mxd.subtype = i;
 	      }
 	  }
 	}
@@ -364,7 +371,7 @@ cmd_matrix_data (void)
 	{
 	  lex_match ('=');
 	  
-	  if (cells != -1)
+	  if (mx->cells != -1)
 	    {
 	      msg (SE, _("CELLS subcommand multiply specified."));
 	      goto lossage;
@@ -376,14 +383,14 @@ cmd_matrix_data (void)
 	      goto lossage;
 	    }
 
-	  cells = lex_integer ();
+	  mx->cells = lex_integer ();
 	  lex_get ();
 	}
       else if (lex_match_id ("N"))
 	{
 	  lex_match ('=');
 
-	  if (pop_n != -1)
+	  if (mx->pop_n != -1)
 	    {
 	      msg (SE, _("N subcommand multiply specified."));
 	      goto lossage;
@@ -395,7 +402,7 @@ cmd_matrix_data (void)
 	      goto lossage;
 	    }
 
-	  pop_n = lex_integer ();
+	  mx->pop_n = lex_integer ();
 	  lex_get ();
 	}
       else if (lex_match_id ("CONTENTS"))
@@ -417,7 +424,7 @@ cmd_matrix_data (void)
 	    int i;
 	    
 	    for (i = 0; i <= PROX; i++)
-	      is_per_factor[i] = 0;
+	      mx->is_per_factor[i] = 0;
 	  }
 
 	  for (;;)
@@ -439,7 +446,7 @@ cmd_matrix_data (void)
 		      msg (SE, _("Mismatched right parenthesis (`(')."));
 		      goto lossage;
 		    }
-		  if (contents[n_contents - 1] == LPAREN)
+		  if (mx->contents[mx->n_contents - 1] == LPAREN)
 		    {
 		      msg (SE, _("Empty parentheses not allowed."));
 		      goto lossage;
@@ -476,9 +483,9 @@ cmd_matrix_data (void)
 		  collide |= (1 << collide_index);
 		  
 		  item = content_type;
-		  is_per_factor[item] = inside_parens;
+		  mx->is_per_factor[item] = inside_parens;
 		}
-	      contents[n_contents++] = item;
+	      mx->contents[mx->n_contents++] = item;
 
 	      if (token == '/' || token == '.')
 		break;
@@ -489,7 +496,7 @@ cmd_matrix_data (void)
 	      msg (SE, _("Missing right parenthesis."));
 	      goto lossage;
 	    }
-	  contents[n_contents] = EOC;
+	  mx->contents[mx->n_contents] = EOC;
 	}
       else 
 	{
@@ -510,17 +517,17 @@ cmd_matrix_data (void)
       goto lossage;
     }
   
-  if (!n_contents && !explicit_rowtype)
+  if (!mx->n_contents && !mx->explicit_rowtype)
     {
       msg (SW, _("CONTENTS subcommand not specified: assuming file "
 		 "contains only CORR matrix."));
 
-      contents[0] = CORR;
-      contents[1] = EOC;
-      n_contents = 0;
+      mx->contents[0] = CORR;
+      mx->contents[1] = EOC;
+      mx->n_contents = 0;
     }
 
-  if (n_factors && !explicit_rowtype && cells == -1)
+  if (mx->n_factors && !mx->explicit_rowtype && mx->cells == -1)
     {
       msg (SE, _("Missing CELLS subcommand.  CELLS is required "
 		 "when ROWTYPE_ is not given in the data and "
@@ -528,7 +535,7 @@ cmd_matrix_data (void)
       goto lossage;
     }
 
-  if (explicit_rowtype && single_split)
+  if (mx->explicit_rowtype && mx->single_split)
     {
       msg (SE, _("Split file values must be present in the data when "
 		 "ROWTYPE_ is present."));
@@ -537,9 +544,9 @@ cmd_matrix_data (void)
       
   /* Create VARNAME_. */
   {
-    varname_ = dict_create_var_assert (default_dict, "VARNAME_", 8);
-    varname_->p.mxd.vartype = MXD_VARNAME;
-    varname_->p.mxd.subtype = 0;
+    mx->varname_ = dict_create_var_assert (default_dict, "VARNAME_", 8);
+    mx->varname_->p.mxd.vartype = MXD_VARNAME;
+    mx->varname_->p.mxd.subtype = 0;
   }
   
   /* Sort the dictionary variables into the desired order for the
@@ -567,7 +574,7 @@ cmd_matrix_data (void)
     
     int i;
 
-    first_continuous = -1;
+    mx->first_continuous = -1;
     for (i = 0; i < dict_get_var_cnt (default_dict); i++)
       {
 	struct variable *v = dict_get_var (default_dict, i);
@@ -577,13 +584,13 @@ cmd_matrix_data (void)
 	v->print = v->write = fmt_tab[type];
 
 	if (type == MXD_CONTINUOUS)
-	  n_continuous++;
-	if (first_continuous == -1 && type == MXD_CONTINUOUS)
-	  first_continuous = i;
+	  mx->n_continuous++;
+	if (mx->first_continuous == -1 && type == MXD_CONTINUOUS)
+	  mx->first_continuous = i;
       }
   }
 
-  if (n_continuous == 0)
+  if (mx->n_continuous == 0)
     {
       msg (SE, _("No continuous variables specified."));
       goto lossage;
@@ -593,19 +600,19 @@ cmd_matrix_data (void)
   debug_print ();
 #endif
 
-  if (explicit_rowtype)
-    read_matrices_with_rowtype ();
+  if (mx->explicit_rowtype)
+    read_matrices_with_rowtype (mx);
   else
-    read_matrices_without_rowtype ();
+    read_matrices_without_rowtype (mx);
 
-  pool_destroy (container);
+  pool_destroy (mx->container);
 
   return CMD_SUCCESS;
 
 lossage:
   discard_variables ();
-  free (factors);
-  pool_destroy (container);
+  free (mx->factors);
+  pool_destroy (mx->container);
   return CMD_FAILURE;
 }
 
@@ -732,25 +739,25 @@ debug_print (void)
   if (cells != -1)
     printf ("\t/CELLS=%d\n", cells);
 
-  if (pop_n != -1)
-    printf ("\t/N=%d\n", pop_n);
+  if (mx->pop_n != -1)
+    printf ("\t/N=%d\n", mx->pop_n);
 
-  if (n_contents)
+  if (mx->n_contents)
     {
       int i;
       int space = 0;
       
       printf ("\t/CONTENTS=");
-      for (i = 0; i < n_contents; i++)
+      for (i = 0; i < mx->n_contents; i++)
 	{
-	  if (contents[i] == LPAREN)
+	  if (mx->contents[i] == LPAREN)
 	    {
 	      if (space)
 		printf (" ");
 	      printf ("(");
 	      space = 0;
 	    }
-	  else if (contents[i] == RPAREN)
+	  else if (mx->contents[i] == RPAREN)
 	    {
 	      printf (")");
 	      space = 1;
@@ -758,10 +765,10 @@ debug_print (void)
 	  else 
 	    {
 
-	      assert (contents[i] >= 0 && contents[i] <= PROX);
+	      assert (mx->contents[i] >= 0 && mx->contents[i] <= PROX);
 	      if (space)
 		printf (" ");
-	      printf ("%s", content_names[contents[i]]);
+	      printf ("%s", content_names[mx->contents[i]]);
 	      space = 1;
 	    }
 	}
@@ -773,66 +780,54 @@ debug_print (void)
 /* Matrix tokenizer. */
 
 /* Matrix token types. */
-enum
+enum matrix_token_type
   {
-    MNULL,		/* No token. */
     MNUM,		/* Number. */
-    MSTR,		/* String. */
-    MSTOP		/* End of file. */
+    MSTR		/* String. */
   };
 
-/* Current matrix token. */
-static int mtoken;
+struct matrix_token
+  {
+    enum matrix_token_type type; 
+    double number;       /* MNUM: token value. */
+    char *string;        /* MSTR: token string; not null-terminated. */
+    int length;          /* MSTR: tokstr length. */
+  };
 
-/* Token string if applicable; not null-terminated. */
-static char *mtokstr;
-
-/* Length of mtokstr in characters. */
-static int mtoklen;
-
-/* Token value if applicable. */
-static double mtokval;
-
-static int mget_token (void);
+static int mget_token (struct matrix_token *, struct file_handle *);
 
 #if DEBUGGING
-#define mget_token() mget_token_dump()
-
-static int
-mget_token_dump (void)
-{
-  int result = (mget_token) ();
-  mdump_token ();
-  return result;
-}
+#define mget_token(TOKEN, HANDLE) mget_token_dump(TOKEN, HANDLE)
 
 static void
-mdump_token (void)
+mdump_token (const struct matrix_token *token)
 {
-  switch (mtoken)
+  switch (token->type)
     {
-    case MNULL:
-      printf (" <NULLTOK>");
-      break;
     case MNUM:
-      printf (" #%g", mtokval);
+      printf (" #%g", token->number);
       break;
     case MSTR:
-      printf (" #'%.*s'", mtoklen, mtokstr);
-      break;
-    case MSTOP:
-      printf (" <STOP>");
+      printf (" '%.*s'", token->length, token->string);
       break;
     default:
       assert (0);
     }
   fflush (stdout);
 }
+
+static int
+mget_token_dump (struct matrix_token *token, struct file_handle *data_file)
+{
+  int result = (mget_token) (token, data_file);
+  mdump_token (token);
+  return result;
+}
 #endif
 
-/* Return the current position in the data file. */
+/* Return the current position in DATA_FILE. */
 static const char *
-context (void)
+context (struct file_handle *data_file)
 {
   static char buf[32];
   int len;
@@ -858,14 +853,11 @@ context (void)
 
 /* Is there at least one token left in the data file? */
 static int
-another_token (void)
+another_token (struct file_handle *data_file)
 {
   char *cp, *ep;
   int len;
 
-  if (mtoken == MSTOP)
-    return 0;
-  
   for (;;)
     {
       cp = dfm_get_record (data_file, &len);
@@ -887,9 +879,9 @@ another_token (void)
   return 1;
 }
 
-/* Parse a MATRIX DATA token from data_file into mtok*. */
+/* Parse a MATRIX DATA token from mx->data_file into TOKEN. */
 static int
-(mget_token) (void)
+(mget_token) (struct matrix_token *token, struct file_handle *data_file)
 {
   char *cp, *ep;
   int len;
@@ -899,12 +891,7 @@ static int
     {
       cp = dfm_get_record (data_file, &len);
       if (!cp)
-	{
-	  if (mtoken == MSTOP)
-	    return 0;
-	  mtoken = MSTOP;
-	  return 1;
-	}
+        return 0;
 
       ep = cp + len;
       while (isspace ((unsigned char) *cp) && cp < ep)
@@ -924,11 +911,11 @@ static int
     {
       int quote = *cp;
 
-      mtoken = MSTR;
-      mtokstr = ++cp;
+      token->type = MSTR;
+      token->string = ++cp;
       while (cp < ep && *cp != quote)
 	cp++;
-      mtoklen = cp - mtokstr;
+      token->length = cp - token->string;
       if (cp < ep)
 	cp++;
       else
@@ -938,7 +925,7 @@ static int
     {
       int is_num = isdigit ((unsigned char) *cp) || *cp == '.';
 
-      mtokstr = cp++;
+      token->string = cp++;
       while (cp < ep && !isspace ((unsigned char) *cp) && *cp != ','
 	     && *cp != '-' && *cp != '+')
 	{
@@ -953,26 +940,26 @@ static int
 	    cp++;
 	}
       
-      mtoklen = cp - mtokstr;
-      assert (mtoklen);
+      token->length = cp - token->string;
+      assert (token->length);
 
       if (is_num)
 	{
 	  struct data_in di;
 
-	  di.s = mtokstr;
-	  di.e = mtokstr + mtoklen;
-	  di.v = (union value *) &mtokval;
+	  di.s = token->string;
+	  di.e = token->string + token->length;
+	  di.v = (union value *) &token->number;
 	  di.f1 = first_column;
 	  di.format.type = FMT_F;
-	  di.format.w = mtoklen;
+	  di.format.w = token->length;
 	  di.format.d = 0;
 
 	  if (!data_in (&di))
 	    return 0;
 	}
       else
-	mtoken = MSTR;
+	token->type = MSTR;
     }
 
   dfm_set_record (data_file, cp);
@@ -981,16 +968,13 @@ static int
 }
 
 /* Forcibly skip the end of a line for content type CONTENT in
-   data_file. */
+   DATA_FILE. */
 static int
-force_eol (const char *content)
+force_eol (struct file_handle *data_file, const char *content)
 {
   char *cp;
   int len;
   
-  if (fmt == FREE)
-    return 1;
-
   cp = dfm_get_record (data_file, &len);
   if (!cp)
     return 0;
@@ -1000,7 +984,7 @@ force_eol (const char *content)
   if (len)
     {
       msg (SE, _("End of line expected %s while reading %s."),
-	   context (), content);
+	   context (data_file), content);
       return 0;
     }
   
@@ -1023,73 +1007,74 @@ static int max_cell_index;
 /* SPLIT FILE variable values. */
 static double *split_values;
 
-static int nr_read_splits (int compare);
-static int nr_read_factors (int cell);
-static void nr_output_data (write_case_func *, write_case_data);
-static void matrix_data_read_without_rowtype (write_case_func *,
+static int nr_read_splits (struct matrix_data_pgm *, int compare);
+static int nr_read_factors (struct matrix_data_pgm *, int cell);
+static void nr_output_data (struct matrix_data_pgm *,
+                            write_case_func *, write_case_data);
+static void matrix_data_read_without_rowtype (struct case_source *source,
+                                              write_case_func *,
                                               write_case_data);
 
 /* Read from the data file and write it to the active file. */
 static void
-read_matrices_without_rowtype (void)
+read_matrices_without_rowtype (struct matrix_data_pgm *mx)
 {
-  if (cells == -1)
-    cells = 1;
+  if (mx->cells == -1)
+    mx->cells = 1;
   
-  mtoken = MNULL;
   split_values = xmalloc (sizeof *split_values
                           * dict_get_split_cnt (default_dict));
-  nr_factor_values = xmalloc (sizeof *nr_factor_values * n_factors * cells);
+  nr_factor_values = xmalloc (sizeof *nr_factor_values * mx->n_factors * mx->cells);
   max_cell_index = 0;
 
-  matrix_data_source.read = matrix_data_read_without_rowtype;
-  vfm_source = &matrix_data_source;
+  vfm_source = create_case_source (&matrix_data_without_rowtype_source_class,
+                                   mx);
   
   procedure (NULL, NULL, NULL, NULL);
 
   free (split_values);
   free (nr_factor_values);
 
-  fh_close_handle (data_file);
+  fh_close_handle (mx->data_file);
 }
 
 /* Mirror data across the diagonal of matrix CP which contains
    CONTENT type data. */
 static void
-fill_matrix (int content, double *cp)
+fill_matrix (struct matrix_data_pgm *mx, int content, double *cp)
 {
   int type = content_type[content];
 
-  if (type == 1 && section != FULL)
+  if (type == 1 && mx->section != FULL)
     {
-      if (diag == NODIAGONAL)
+      if (mx->diag == NODIAGONAL)
 	{
 	  const double fill = content == CORR ? 1.0 : SYSMIS;
 	  int i;
 
-	  for (i = 0; i < n_continuous; i++)
-	    cp[i * (1 + n_continuous)] = fill;
+	  for (i = 0; i < mx->n_continuous; i++)
+	    cp[i * (1 + mx->n_continuous)] = fill;
 	}
       
       {
 	int c, r;
 	
-	if (section == LOWER)
+	if (mx->section == LOWER)
 	  {
-	    int n_lines = n_continuous;
-	    if (section != FULL && diag == NODIAGONAL)
+	    int n_lines = mx->n_continuous;
+	    if (mx->section != FULL && mx->diag == NODIAGONAL)
 	      n_lines--;
 	    
 	    for (r = 1; r < n_lines; r++)
 	      for (c = 0; c < r; c++)
-		cp[r + c * n_continuous] = cp[c + r * n_continuous];
+		cp[r + c * mx->n_continuous] = cp[c + r * mx->n_continuous];
 	  }
 	else 
 	  {
-	    assert (section == UPPER);
-	    for (r = 1; r < n_continuous; r++)
+	    assert (mx->section == UPPER);
+	    for (r = 1; r < mx->n_continuous; r++)
 	      for (c = 0; c < r; c++)
-		cp[c + r * n_continuous] = cp[r + c * n_continuous];
+		cp[c + r * mx->n_continuous] = cp[r + c * mx->n_continuous];
 	  }
       }
     }
@@ -1097,16 +1082,17 @@ fill_matrix (int content, double *cp)
     {
       int c;
 
-      for (c = 1; c < n_continuous; c++)
+      for (c = 1; c < mx->n_continuous; c++)
 	cp[c] = cp[0];
     }
 }
 
-/* Read data lines for content type CONTENT from the data file.  If
-   PER_FACTOR is nonzero, then factor information is read from the
-   data file.  Data is for cell number CELL. */
+/* Read data lines for content type CONTENT from the data file.
+   If PER_FACTOR is nonzero, then factor information is read from
+   the data file.  Data is for cell number CELL. */
 static int
-nr_read_data_lines (int per_factor, int cell, int content, int compare)
+nr_read_data_lines (struct matrix_data_pgm *mx,
+                    int per_factor, int cell, int content, int compare)
 {
   /* Content type. */
   const int type = content_type[content];
@@ -1125,47 +1111,47 @@ nr_read_data_lines (int per_factor, int cell, int content, int compare)
     n_lines = 1;
   else
     {
-      n_lines = n_continuous;
-      if (section != FULL && diag == NODIAGONAL)
+      n_lines = mx->n_continuous;
+      if (mx->section != FULL && mx->diag == NODIAGONAL)
 	n_lines--;
     }
 
   cp = nr_data[content][cell];
-  if (type == 1 && section == LOWER && diag == NODIAGONAL)
-    cp += n_continuous;
+  if (type == 1 && mx->section == LOWER && mx->diag == NODIAGONAL)
+    cp += mx->n_continuous;
 
   for (i = 0; i < n_lines; i++)
     {
       int n_cols;
       
-      if (!nr_read_splits (1))
+      if (!nr_read_splits (mx, 1))
 	return 0;
-      if (per_factor && !nr_read_factors (cell))
+      if (per_factor && !nr_read_factors (mx, cell))
 	return 0;
       compare = 1;
 
       switch (type)
 	{
 	case 0:
-	  n_cols = n_continuous;
+	  n_cols = mx->n_continuous;
 	  break;
 	case 1:
-	  switch (section)
+	  switch (mx->section)
 	    {
 	    case LOWER:
 	      n_cols = i + 1;
 	      break;
 	    case UPPER:
 	      cp += i;
-	      n_cols = n_continuous - i;
-	      if (diag == NODIAGONAL)
+	      n_cols = mx->n_continuous - i;
+	      if (mx->diag == NODIAGONAL)
 		{
 		  n_cols--;
 		  cp++;
 		}
 	      break;
 	    case FULL:
-	      n_cols = n_continuous;
+	      n_cols = mx->n_continuous;
 	      break;
 	    default:
 	      assert (0);
@@ -1183,27 +1169,30 @@ nr_read_data_lines (int per_factor, int cell, int content, int compare)
 	
 	for (j = 0; j < n_cols; j++)
 	  {
-	    if (!mget_token ())
+            struct matrix_token token;
+	    if (!mget_token (&token, mx->data_file))
 	      return 0;
-	    if (mtoken != MNUM)
+	    if (token.type != MNUM)
 	      {
 		msg (SE, _("expecting value for %s %s"),
-		     dict_get_var (default_dict, j)->name, context ());
+		     dict_get_var (default_dict, j)->name,
+                     context (mx->data_file));
 		return 0;
 	      }
 
-	    *cp++ = mtokval;
+	    *cp++ = token.number;
 	  }
-	if (!force_eol (content_names[content]))
+	if (mx->fmt != FREE
+            && !force_eol (mx->data_file, content_names[content]))
 	  return 0;
 	debug_printf (("\n"));
       }
 
-      if (section == LOWER)
-	cp += n_continuous - n_cols;
+      if (mx->section == LOWER)
+	cp += mx->n_continuous - n_cols;
     }
 
-  fill_matrix (content, nr_data[content][cell]);
+  fill_matrix (mx, content, nr_data[content][cell]);
 
   return 1;
 }
@@ -1211,13 +1200,16 @@ nr_read_data_lines (int per_factor, int cell, int content, int compare)
 /* When ROWTYPE_ does not appear in the data, reads the matrices and
    writes them to the output file.  Returns success. */
 static void
-matrix_data_read_without_rowtype (write_case_func *write_case,
+matrix_data_read_without_rowtype (struct case_source *source,
+                                  write_case_func *write_case,
                                   write_case_data wc_data)
 {
+  struct matrix_data_pgm *mx = source->aux;
+
   {
     int *cp;
 
-    nr_data = pool_alloc (container, (PROX + 1) * sizeof *nr_data);
+    nr_data = pool_alloc (mx->container, (PROX + 1) * sizeof *nr_data);
     
     {
       int i;
@@ -1226,25 +1218,25 @@ matrix_data_read_without_rowtype (write_case_func *write_case,
 	nr_data[i] = NULL;
     }
     
-    for (cp = contents; *cp != EOC; cp++)
+    for (cp = mx->contents; *cp != EOC; cp++)
       if (*cp != LPAREN && *cp != RPAREN)
 	{
-	  int per_factor = is_per_factor[*cp];
+	  int per_factor = mx->is_per_factor[*cp];
 	  int n_entries;
 	  
-	  n_entries = n_continuous;
+	  n_entries = mx->n_continuous;
 	  if (content_type[*cp] == 1)
-	    n_entries *= n_continuous;
+	    n_entries *= mx->n_continuous;
 	  
 	  {
-	    int n_vectors = per_factor ? cells : 1;
+	    int n_vectors = per_factor ? mx->cells : 1;
 	    int i;
 	    
-	    nr_data[*cp] = pool_alloc (container,
+	    nr_data[*cp] = pool_alloc (mx->container,
 				       n_vectors * sizeof **nr_data);
 	    
 	    for (i = 0; i < n_vectors; i++)
-	      nr_data[*cp][i] = pool_alloc (container,
+	      nr_data[*cp][i] = pool_alloc (mx->container,
 					    n_entries * sizeof ***nr_data);
 	  }
 	}
@@ -1254,10 +1246,10 @@ matrix_data_read_without_rowtype (write_case_func *write_case,
     {
       int *bp, *ep, *np;
       
-      if (!nr_read_splits (0))
+      if (!nr_read_splits (mx, 0))
 	return;
       
-      for (bp = contents; *bp != EOC; bp = np)
+      for (bp = mx->contents; *bp != EOC; bp = np)
 	{
 	  int per_factor;
 
@@ -1284,20 +1276,21 @@ matrix_data_read_without_rowtype (write_case_func *write_case,
 	  {
 	    int i;
 	      
-	    for (i = 0; i < (per_factor ? cells : 1); i++)
+	    for (i = 0; i < (per_factor ? mx->cells : 1); i++)
 	      {
 		int *cp;
 
 		for (cp = bp; cp < ep; cp++) 
-		  if (!nr_read_data_lines (per_factor, i, *cp, cp != bp))
+		  if (!nr_read_data_lines (mx, per_factor, i, *cp, cp != bp))
 		    return;
 	      }
 	  }
 	}
 
-      nr_output_data (write_case, wc_data);
+      nr_output_data (mx, write_case, wc_data);
 
-      if (dict_get_split_cnt (default_dict) == 0 || !another_token ())
+      if (dict_get_split_cnt (default_dict) == 0
+          || !another_token (mx->data_file))
 	return;
     }
 }
@@ -1306,7 +1299,7 @@ matrix_data_read_without_rowtype (write_case_func *write_case,
    values read to the last values read and returns 1 if they're equal,
    0 otherwise. */
 static int
-nr_read_splits (int compare)
+nr_read_splits (struct matrix_data_pgm *mx, int compare)
 {
   static int just_read = 0;
   size_t split_cnt;
@@ -1321,7 +1314,7 @@ nr_read_splits (int compare)
   if (dict_get_split_vars (default_dict) == NULL)
     return 1;
 
-  if (single_split)
+  if (mx->single_split)
     {
       if (!compare)
 	split_values[0]
@@ -1335,18 +1328,19 @@ nr_read_splits (int compare)
   split_cnt = dict_get_split_cnt (default_dict);
   for (i = 0; i < split_cnt; i++) 
     {
-      if (!mget_token ())
+      struct matrix_token token;
+      if (!mget_token (&token, mx->data_file))
         return 0;
-      if (mtoken != MNUM)
+      if (token.type != MNUM)
         {
           msg (SE, _("Syntax error expecting SPLIT FILE value %s."),
-               context ());
+               context (mx->data_file));
           return 0;
         }
 
       if (!compare)
-        split_values[i] = mtokval;
-      else if (split_values[i] != mtokval)
+        split_values[i] = token.number;
+      else if (split_values[i] != token.number)
         {
           msg (SE, _("Expecting value %g for %s."),
                split_values[i], dict_get_split_vars (default_dict)[i]->name);
@@ -1361,11 +1355,11 @@ nr_read_splits (int compare)
    values read to the last values read and returns 1 if they're equal,
    0 otherwise. */
 static int
-nr_read_factors (int cell)
+nr_read_factors (struct matrix_data_pgm *mx, int cell)
 {
   int compare;
   
-  if (n_factors == 0)
+  if (mx->n_factors == 0)
     return 1;
 
   assert (max_cell_index >= cell);
@@ -1380,24 +1374,25 @@ nr_read_factors (int cell)
   {
     int i;
     
-    for (i = 0; i < n_factors; i++)
+    for (i = 0; i < mx->n_factors; i++)
       {
-	if (!mget_token ())
+        struct matrix_token token;
+	if (!mget_token (&token, mx->data_file))
 	  return 0;
-	if (mtoken != MNUM)
+	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting factor value %s."),
-		 context ());
+		 context (mx->data_file));
 	    return 0;
 	  }
 	
 	if (!compare)
-	  nr_factor_values[i + n_factors * cell] = mtokval;
-	else if (nr_factor_values[i + n_factors * cell] != mtokval)
+	  nr_factor_values[i + mx->n_factors * cell] = token.number;
+	else if (nr_factor_values[i + mx->n_factors * cell] != token.number)
 	  {
 	    msg (SE, _("Syntax error expecting value %g for %s %s."),
-		 nr_factor_values[i + n_factors * cell],
-		 factors[i]->name, context ());
+		 nr_factor_values[i + mx->n_factors * cell],
+		 mx->factors[i]->name, context (mx->data_file));
 	    return 0;
 	  }
       }
@@ -1409,37 +1404,37 @@ nr_read_factors (int cell)
 /* Write the contents of a cell having content type CONTENT and data
    CP to the active file. */
 static void
-dump_cell_content (int content, double *cp,
+dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
                    write_case_func *write_case, write_case_data wc_data)
 {
   int type = content_type[content];
 
   {
-    st_bare_pad_copy (temp_case->data[rowtype_->fv].s,
+    st_bare_pad_copy (temp_case->data[mx->rowtype_->fv].s,
 		      content_names[content], 8);
     
     if (type != 1)
-      memset (&temp_case->data[varname_->fv].s, ' ', 8);
+      memset (&temp_case->data[mx->varname_->fv].s, ' ', 8);
   }
 
   {
-    int n_lines = (type == 1) ? n_continuous : 1;
+    int n_lines = (type == 1) ? mx->n_continuous : 1;
     int i;
 		
     for (i = 0; i < n_lines; i++)
       {
 	int j;
 
-	for (j = 0; j < n_continuous; j++)
+	for (j = 0; j < mx->n_continuous; j++)
 	  {
-            int fv = dict_get_var (default_dict, first_continuous + j)->fv;
+            int fv = dict_get_var (default_dict, mx->first_continuous + j)->fv;
 	    temp_case->data[fv].f = *cp;
 	    cp++;
 	  }
 	if (type == 1)
-	  st_bare_pad_copy (temp_case->data[varname_->fv].s,
+	  st_bare_pad_copy (temp_case->data[mx->varname_->fv].s,
                             dict_get_var (default_dict,
-                                          first_continuous + i)->name,
+                                          mx->first_continuous + i)->name,
 			    8);
 	write_case (wc_data);
       }
@@ -1448,7 +1443,8 @@ dump_cell_content (int content, double *cp,
 
 /* Finally dump out everything from nr_data[] to the output file. */
 static void
-nr_output_data (write_case_func *write_case, write_case_data wc_data)
+nr_output_data (struct matrix_data_pgm *mx,
+                write_case_func *write_case, write_case_data wc_data)
 {
   {
     struct variable *const *split;
@@ -1460,20 +1456,20 @@ nr_output_data (write_case_func *write_case, write_case_data wc_data)
       temp_case->data[split[i]->fv].f = split_values[i];
   }
 
-  if (n_factors)
+  if (mx->n_factors)
     {
       int cell;
 
-      for (cell = 0; cell < cells; cell++)
+      for (cell = 0; cell < mx->cells; cell++)
 	{
 	  {
 	    int factor;
 
-	    for (factor = 0; factor < n_factors; factor++)
+	    for (factor = 0; factor < mx->n_factors; factor++)
 	      {
-		temp_case->data[factors[factor]->fv].f
-		  = nr_factor_values[factor + cell * n_factors];
-		debug_printf (("f:%s ", factors[factor]->name));
+		temp_case->data[mx->factors[factor]->fv].f
+		  = nr_factor_values[factor + cell * mx->n_factors];
+		debug_printf (("f:%s ", mx->factors[factor]->name));
 	      }
 	  }
 	  
@@ -1481,12 +1477,12 @@ nr_output_data (write_case_func *write_case, write_case_data wc_data)
 	    int content;
 	    
 	    for (content = 0; content <= PROX; content++)
-	      if (is_per_factor[content])
+	      if (mx->is_per_factor[content])
 		{
 		  assert (nr_data[content] != NULL
 			  && nr_data[content][cell] != NULL);
 
-		  dump_cell_content (content, nr_data[content][cell],
+		  dump_cell_content (mx, content, nr_data[content][cell],
                                      write_case, wc_data);
 		}
 	  }
@@ -1499,13 +1495,13 @@ nr_output_data (write_case_func *write_case, write_case_data wc_data)
     {
       int factor;
 
-      for (factor = 0; factor < n_factors; factor++)
-	temp_case->data[factors[factor]->fv].f = SYSMIS;
+      for (factor = 0; factor < mx->n_factors; factor++)
+	temp_case->data[mx->factors[factor]->fv].f = SYSMIS;
     }
     
     for (content = 0; content <= PROX; content++)
-      if (!is_per_factor[content] && nr_data[content] != NULL)
-	dump_cell_content (content, nr_data[content][0],
+      if (!mx->is_per_factor[content] && nr_data[content] != NULL)
+	dump_cell_content (mx, content, nr_data[content][0],
                            write_case, wc_data);
   }
 }
@@ -1530,58 +1526,62 @@ struct factor_data *wr_data;
 /* Current factor. */
 struct factor_data *wr_current;
 
-static int wr_read_splits (write_case_func *, write_case_data);
-static int wr_output_data (write_case_func *, write_case_data);
-static int wr_read_rowtype (void);
-static int wr_read_factors (void);
-static int wr_read_indeps (void);
-static void matrix_data_read_with_rowtype (write_case_func *,
+static int wr_read_splits (struct matrix_data_pgm *,
+                           write_case_func *, write_case_data);
+static int wr_output_data (struct matrix_data_pgm *, write_case_func *, write_case_data);
+static int wr_read_rowtype (const struct matrix_token *, struct file_handle *);
+static int wr_read_factors (struct matrix_data_pgm *);
+static int wr_read_indeps (struct matrix_data_pgm *);
+static void matrix_data_read_with_rowtype (struct case_source *,
+                                           write_case_func *,
                                            write_case_data);
 
 /* When ROWTYPE_ appears in the data, reads the matrices and writes
    them to the output file. */
 static void
-read_matrices_with_rowtype (void)
+read_matrices_with_rowtype (struct matrix_data_pgm *mx)
 {
-  mtoken = MNULL;
   wr_data = wr_current = NULL;
   split_values = NULL;
-  cells = 0;
+  mx->cells = 0;
 
-  matrix_data_source.read = matrix_data_read_with_rowtype;
-  vfm_source = &matrix_data_source;
+  vfm_source = create_case_source (&matrix_data_with_rowtype_source_class, mx);
   
   procedure (NULL, NULL, NULL, NULL);
 
   free (split_values);
-  fh_close_handle (data_file);
+  fh_close_handle (mx->data_file);
 }
 
 /* Read from the data file and write it to the active file. */
 static void
-matrix_data_read_with_rowtype (write_case_func *write_case,
+matrix_data_read_with_rowtype (struct case_source *source,
+                               write_case_func *write_case,
                                write_case_data wc_data)
 {
+  struct matrix_data_pgm *mx = source->aux;
+
   do
     {
-      if (!wr_read_splits (write_case, wc_data))
+      if (!wr_read_splits (mx, write_case, wc_data))
 	return;
 
-      if (!wr_read_factors ())
+      if (!wr_read_factors (mx))
 	return;
 
-      if (!wr_read_indeps ())
+      if (!wr_read_indeps (mx))
 	return;
     }
-  while (another_token ());
+  while (another_token (mx->data_file));
 
-  wr_output_data (write_case, wc_data);
+  wr_output_data (mx, write_case, wc_data);
 }
 
 /* Read the split file variables.  If they differ from the previous
    set of split variables then output the data.  Returns success. */
 static int 
-wr_read_splits (write_case_func *write_case, write_case_data wc_data)
+wr_read_splits (struct matrix_data_pgm *mx,
+                write_case_func *write_case, write_case_data wc_data)
 {
   int compare;
   size_t split_cnt;
@@ -1605,23 +1605,24 @@ wr_read_splits (write_case_func *write_case, write_case_data wc_data)
 
     for (i = 0; i < split_cnt; i++)
       {
-	if (!mget_token ())
+        struct matrix_token token;
+	if (!mget_token (&token, mx->data_file))
 	  return 0;
-	if (mtoken != MNUM)
+	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error %s expecting SPLIT FILE value."),
-		 context ());
+		 context (mx->data_file));
 	    return 0;
 	  }
 
-	if (compare && split_values[i] != mtokval && !different)
+	if (compare && split_values[i] != token.number && !different)
 	  {
-	    if (!wr_output_data (write_case, wc_data))
+	    if (!wr_output_data (mx, write_case, wc_data))
 	      return 0;
 	    different = 1;
-	    cells = 0;
+	    mx->cells = 0;
 	  }
-	split_values[i] = mtokval;
+	split_values[i] = token.number;
       }
   }
 
@@ -1647,26 +1648,28 @@ compare_doubles (const void *a_, const void *b_, void *aux UNUSED)
     return -1;
 }
 
-/* Return strcmp()-type comparison of the n_factors factors at _A and
+/* Return strcmp()-type comparison of the MX->n_factors factors at _A and
    _B.  Sort missing values toward the end. */
 static int
-compare_factors (const void *a_, const void *b_)
+compare_factors (const void *a_, const void *b_, void *mx_)
 {
+  struct matrix_data_pgm *mx = mx_;
   struct factor_data *const *pa = a_;
   struct factor_data *const *pb = b_;
   const double *a = (*pa)->factors;
   const double *b = (*pb)->factors;
 
-  return lexicographical_compare (a, n_factors,
-                                  b, n_factors,
-                                  sizeof *a,
-                                  compare_doubles, NULL);
+  return lexicographical_compare_3way (a, mx->n_factors,
+                                       b, mx->n_factors,
+                                       sizeof *a,
+                                       compare_doubles, NULL);
 }
 
 /* Write out the data for the current split file to the active
    file. */
 static int 
-wr_output_data (write_case_func *write_case, write_case_data wc_data)
+wr_output_data (struct matrix_data_pgm *mx,
+                write_case_func *write_case, write_case_data wc_data)
 {
   {
     struct variable *const *split;
@@ -1684,17 +1687,17 @@ wr_output_data (write_case_func *write_case, write_case_data wc_data)
     struct factor_data *iter;
     int i;
 
-    factors = xmalloc (sizeof *factors * cells);
+    factors = xmalloc (sizeof *factors * mx->cells);
 
     for (i = 0, iter = wr_data; iter; iter = iter->next, i++)
       factors[i] = iter;
 
-    qsort (factors, cells, sizeof *factors, compare_factors);
+    sort (factors, mx->cells, sizeof *factors, compare_factors, mx);
 
     wr_data = factors[0];
-    for (i = 0; i < cells - 1; i++)
+    for (i = 0; i < mx->cells - 1; i++)
       factors[i]->next = factors[i + 1];
-    factors[cells - 1]->next = NULL;
+    factors[mx->cells - 1]->next = NULL;
 
     free (factors);
   }
@@ -1708,9 +1711,9 @@ wr_output_data (write_case_func *write_case, write_case_data wc_data)
 	{
 	  int factor;
 
-	  for (factor = 0; factor < n_factors; factor++)
+	  for (factor = 0; factor < mx->n_factors; factor++)
 	    {
-	      temp_case->data[factors[factor]->fv].f
+	      temp_case->data[mx->factors[factor]->fv].f
 		= iter->factors[factor];
 	      debug_printf (("f:%s ", factors[factor]->name));
 	    }
@@ -1727,8 +1730,8 @@ wr_output_data (write_case_func *write_case, write_case_data wc_data)
 	      {
 		int type = content_type[content];
 		int n_lines = (type == 1
-			       ? (n_continuous
-				  - (section != FULL && diag == NODIAGONAL))
+			       ? (mx->n_continuous
+				  - (mx->section != FULL && mx->diag == NODIAGONAL))
 			       : 1);
 		
 		if (n_lines != iter->n_rows[content])
@@ -1742,35 +1745,38 @@ wr_output_data (write_case_func *write_case, write_case_data wc_data)
 		  }
 	      }
 
-	      fill_matrix (content, iter->data[content]);
+	      fill_matrix (mx, content, iter->data[content]);
 
-	      dump_cell_content (content, iter->data[content],
+	      dump_cell_content (mx, content, iter->data[content],
                                  write_case, wc_data);
 	    }
 	}
       }
   }
   
-  pool_destroy (container);
-  container = pool_create ();
+  pool_destroy (mx->container);
+  mx->container = pool_create ();
   
   wr_data = wr_current = NULL;
   
   return 1;
 }
 
-/* Read ROWTYPE_ from the data file.  Return success. */
+/* Sets ROWTYPE_ based on the given TOKEN read from DATA_FILE.
+   Return success. */
 static int 
-wr_read_rowtype (void)
+wr_read_rowtype (const struct matrix_token *token,
+                 struct file_handle *data_file)
 {
   if (wr_content != -1)
     {
-      msg (SE, _("Multiply specified ROWTYPE_ %s."), context ());
+      msg (SE, _("Multiply specified ROWTYPE_ %s."), context (data_file));
       return 0;
     }
-  if (mtoken != MSTR)
+  if (token->type != MSTR)
     {
-      msg (SE, _("Syntax error %s expecting ROWTYPE_ string."), context ());
+      msg (SE, _("Syntax error %s expecting ROWTYPE_ string."),
+           context (data_file));
       return 0;
     }
   
@@ -1778,8 +1784,8 @@ wr_read_rowtype (void)
     char s[16];
     char *cp;
     
-    memcpy (s, mtokstr, min (15, mtoklen));
-    s[min (15, mtoklen)] = 0;
+    memcpy (s, token->string, min (15, token->length));
+    s[min (15, token->length)] = 0;
 
     for (cp = s; *cp; cp++)
       *cp = toupper ((unsigned char) *cp);
@@ -1789,7 +1795,7 @@ wr_read_rowtype (void)
 
   if (wr_content == -1)
     {
-      msg (SE, _("Syntax error %s."), context ());
+      msg (SE, _("Syntax error %s."), context (data_file));
       return 0;
     }
 
@@ -1799,40 +1805,42 @@ wr_read_rowtype (void)
 /* Read the factors for the current row.  Select a set of factors and
    point wr_current to it. */
 static int 
-wr_read_factors (void)
+wr_read_factors (struct matrix_data_pgm *mx)
 {
-  double *factor_values = local_alloc (sizeof *factor_values * n_factors);
+  double *factor_values = local_alloc (sizeof *factor_values * mx->n_factors);
 
   wr_content = -1;
   {
     int i;
   
-    for (i = 0; i < n_factors; i++)
+    for (i = 0; i < mx->n_factors; i++)
       {
-	if (!mget_token ())
+        struct matrix_token token;
+	if (!mget_token (&token, mx->data_file))
 	  goto lossage;
-	if (mtoken == MSTR)
+	if (token.type == MSTR)
 	  {
-	    if (!wr_read_rowtype ())
+	    if (!wr_read_rowtype (&token, mx->data_file))
 	      goto lossage;
-	    if (!mget_token ())
+	    if (!mget_token (&token, mx->data_file))
 	      goto lossage;
 	  }
-	if (mtoken != MNUM)
+	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting factor value %s."),
-		 context ());
+		 context (mx->data_file));
 	    goto lossage;
 	  }
 	
-	factor_values[i] = mtokval;
+	factor_values[i] = token.number;
       }
   }
   if (wr_content == -1)
     {
-      if (!mget_token ())
+      struct matrix_token token;
+      if (!mget_token (&token, mx->data_file))
 	goto lossage;
-      if (!wr_read_rowtype ())
+      if (!wr_read_rowtype (&token, mx->data_file))
 	goto lossage;
     }
   
@@ -1842,7 +1850,7 @@ wr_read_factors (void)
     {
       int i;
       
-      for (i = 0; i < n_factors; i++)
+      for (i = 0; i < mx->n_factors; i++)
 	if (factor_values[i] != wr_current->factors[i])
 	  goto cache_miss;
       goto winnage;
@@ -1857,7 +1865,7 @@ cache_miss:
       {
 	int i;
 
-	for (i = 0; i < n_factors; i++)
+	for (i = 0; i < mx->n_factors; i++)
 	  if (factor_values[i] != iter->factors[i])
 	    goto next_item;
 	
@@ -1870,14 +1878,14 @@ cache_miss:
 
   /* Not found.  Make a new item. */
   {
-    struct factor_data *new = pool_alloc (container, sizeof *new);
+    struct factor_data *new = pool_alloc (mx->container, sizeof *new);
 
-    new->factors = pool_alloc (container, sizeof *new->factors * n_factors);
+    new->factors = pool_alloc (mx->container, sizeof *new->factors * mx->n_factors);
     
     {
       int i;
 
-      for (i = 0; i < n_factors; i++)
+      for (i = 0; i < mx->n_factors; i++)
 	new->factors[i] = factor_values[i];
     }
     
@@ -1893,7 +1901,7 @@ cache_miss:
 
     new->next = wr_data;
     wr_data = wr_current = new;
-    cells++;
+    mx->cells++;
   }
 
 winnage:
@@ -1907,7 +1915,7 @@ lossage:
 
 /* Read the independent variables into wr_current. */
 static int 
-wr_read_indeps (void)
+wr_read_indeps (struct matrix_data_pgm *mx)
 {
   struct factor_data *c = wr_current;
   const int type = content_type[wr_content];
@@ -1918,15 +1926,15 @@ wr_read_indeps (void)
   /* Allocate room for data if necessary. */
   if (c->data[wr_content] == NULL)
     {
-      int n_items = n_continuous;
+      int n_items = mx->n_continuous;
       if (type == 1)
-	n_items *= n_continuous;
+	n_items *= mx->n_continuous;
       
-      c->data[wr_content] = pool_alloc (container,
+      c->data[wr_content] = pool_alloc (mx->container,
 					sizeof **c->data * n_items);
     }
 
-  cp = &c->data[wr_content][n_rows * n_continuous];
+  cp = &c->data[wr_content][n_rows * mx->n_continuous];
 
   /* Figure out how much to read from this line. */
   switch (type)
@@ -1940,36 +1948,36 @@ wr_read_indeps (void)
 	  return 0;
 	}
       if (type == 0)
-	n_cols = n_continuous;
+	n_cols = mx->n_continuous;
       else
 	n_cols = 1;
       break;
     case 1:
-      if (n_rows >= n_continuous - (section != FULL && diag == NODIAGONAL))
+      if (n_rows >= mx->n_continuous - (mx->section != FULL && mx->diag == NODIAGONAL))
 	{
 	  msg (SE, _("Too many rows of matrix data for %s."),
 	       content_names[wr_content]);
 	  return 0;
 	}
       
-      switch (section)
+      switch (mx->section)
 	{
 	case LOWER:
 	  n_cols = n_rows + 1;
-	  if (diag == NODIAGONAL)
-	    cp += n_continuous;
+	  if (mx->diag == NODIAGONAL)
+	    cp += mx->n_continuous;
 	  break;
 	case UPPER:
 	  cp += n_rows;
-	  n_cols = n_continuous - n_rows;
-	  if (diag == NODIAGONAL)
+	  n_cols = mx->n_continuous - n_rows;
+	  if (mx->diag == NODIAGONAL)
 	    {
 	      n_cols--;
 	      cp++;
 	    }
 	  break;
 	case FULL:
-	  n_cols = n_continuous;
+	  n_cols = mx->n_continuous;
 	  break;
 	default:
 	  assert (0);
@@ -1988,19 +1996,21 @@ wr_read_indeps (void)
 	
     for (j = 0; j < n_cols; j++)
       {
-	if (!mget_token ())
+        struct matrix_token token;
+	if (!mget_token (&token, mx->data_file))
 	  return 0;
-	if (mtoken != MNUM)
+	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting value for %s %s."),
-                 dict_get_var (default_dict, first_continuous + j)->name,
-                 context ());
+                 dict_get_var (default_dict, mx->first_continuous + j)->name,
+                 context (mx->data_file));
 	    return 0;
 	  }
 
-	*cp++ = mtokval;
+	*cp++ = token.number;
       }
-    if (!force_eol (content_names[wr_content]))
+    if (mx->fmt != FREE
+        && !force_eol (mx->data_file, content_names[wr_content]))
       return 0;
     debug_printf (("\n"));
   }
@@ -2010,14 +2020,17 @@ wr_read_indeps (void)
 
 /* Matrix source. */
 
-struct case_stream matrix_data_source = 
+static const struct case_source_class matrix_data_with_rowtype_source_class = 
   {
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
     "MATRIX DATA",
+    matrix_data_read_with_rowtype,
+    NULL,
   };
 
+static const struct case_source_class 
+matrix_data_without_rowtype_source_class =
+  {
+    "MATRIX DATA",
+    matrix_data_read_without_rowtype,
+    NULL,
+  };

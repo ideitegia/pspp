@@ -55,9 +55,11 @@ discard_variables (void)
 
   n_lag = 0;
   
-  if (vfm_source)
+  if (vfm_source != NULL)
     {
-      vfm_source->destroy_source ();
+      if (vfm_source->class->destroy != NULL)
+        vfm_source->class->destroy (vfm_source);
+      free (vfm_source);
       vfm_source = NULL;
     }
 

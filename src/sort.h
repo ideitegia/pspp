@@ -22,12 +22,31 @@
 
 #include "vfm.h"
 
-/* SORT CASES programmatic interface. */
-int sort_cases (int separate);
-void read_sort_output (write_case_func *, write_case_data);
+/* Sort direction. */
+enum sort_direction
+  {
+    SRT_ASCEND,			/* A, B, C, ..., X, Y, Z. */
+    SRT_DESCEND			/* Z, Y, X, ..., C, B, A. */
+  };
 
-/* Variables to sort. */
-extern struct variable **v_sort;
-extern int nv_sort;
+/* SORT CASES input program. */
+struct sort_cases_pgm 
+  {
+    int ref_cnt;                        /* Reference count. */
+                        
+    struct variable **vars;             /* Variables to sort. */
+    enum sort_direction *dirs;          /* Sort directions. */
+    int var_cnt;                        /* Number of variables to sort. */
+
+    struct internal_sort *isrt;         /* Internal sort output. */
+    struct external_sort *xsrt;         /* External sort output. */
+  };
+
+/* SORT CASES programmatic interface. */
+struct sort_cases_pgm *parse_sort (void);
+int sort_cases (struct sort_cases_pgm *, int separate);
+void read_sort_output (struct sort_cases_pgm *,
+                       write_case_func *, write_case_data);
+void destroy_sort_cases_pgm (struct sort_cases_pgm *);
 
 #endif /* !sort_h */

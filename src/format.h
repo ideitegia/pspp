@@ -85,6 +85,7 @@ int check_input_specifier (const struct fmt_spec *spec);
 int check_output_specifier (const struct fmt_spec *spec);
 int check_string_specifier (const struct fmt_spec *spec, int min_len);
 void convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output);
+int get_format_var_width (const struct fmt_spec *);
 int parse_string_as_format (const char *s, int len, const struct fmt_spec *fp,
 			    int fc, union value *v);
 void data_out (char *s, const struct fmt_spec *fp, const union value *v);

@@ -111,9 +111,6 @@ int FILTER_before_TEMPORARY;
 
 struct file_handle *default_handle;
 
-void (*read_active_file) (void);
-void (*cancel_input_pgm) (void);
-
 struct ctl_stmt *ctl_stack;
 
 /* log.h */

@@ -22,13 +22,6 @@
 
 #include "var.h"
 
-/* Linked list of cases. */
-struct case_list 
-  {
-    struct case_list *next;
-    struct ccase c;
-  };
-
 /* Describes a data stream, either a source or a sink. */
 struct stream_info
   {
@@ -42,18 +35,6 @@ extern struct stream_info vfm_source_info;
 
 /* Information about the data sink. */
 extern struct stream_info vfm_sink_info;
-
-/* Memory case stream. */
-
-/* List of cases stored in the stream. */
-extern struct case_list *memory_source_cases;
-extern struct case_list *memory_sink_cases;
-
-/* Current case. */
-extern struct case_list *memory_sink_iter;
-
-/* Maximum number of cases. */
-extern int memory_sink_max_cases;
 
 /* Nonzero if the case needs to have values deleted before being
    stored, zero otherwise. */

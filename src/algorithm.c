@@ -91,21 +91,28 @@
 
 #include <config.h>
 #include "algorithm.h"
-#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
 #include "random.h"
+
+/* Some of the assertions in this file are very expensive.  If
+   we're optimizing, don't include them. */
+#if __OPTIMIZE__
+#define NDEBUG
+#endif
+#include <assert.h>
 
 /* Finds an element in ARRAY, which contains COUNT elements of
    SIZE bytes each, using COMPARE for comparisons.  Returns the
    first element in ARRAY that matches TARGET, or a null pointer
    on failure.  AUX is passed to each comparison as auxiliary
    data. */
-void *find (const void *array, size_t count, size_t size,
-            const void *target,
-            algo_compare_func *compare, void *aux) 
+void *
+find (const void *array, size_t count, size_t size,
+      const void *target,
+      algo_compare_func *compare, void *aux) 
 {
   const unsigned char *element = array;
 
@@ -118,6 +125,51 @@ void *find (const void *array, size_t count, size_t size,
     }
 
   return NULL;
+}
+
+/* Counts and return the number of elements in ARRAY, which
+   contains COUNT elements of SIZE bytes each, which are equal to
+   ELEMENT as compared with COMPARE.  AUX is passed as auxiliary
+   data to COMPARE. */
+size_t
+count_equal (const void *array, size_t count, size_t size,
+             const void *element,
+             algo_compare_func *compare, void *aux)
+{
+  const unsigned char *first = array;
+  size_t equal_cnt = 0;
+
+  while (count-- > 0) 
+    {
+      if (compare (element, first, aux) == 0)
+        equal_cnt++;
+      
+      first += size;
+    }
+
+  return equal_cnt;
+}
+
+/* Counts and return the number of elements in ARRAY, which
+   contains COUNT elements of SIZE bytes each, for which
+   PREDICATE returns nonzero.  AUX is passed as auxiliary data to
+   PREDICATE. */
+size_t
+count_if (const void *array, size_t count, size_t size,
+          algo_predicate_func *predicate, void *aux) 
+{
+  const unsigned char *first = array;
+  size_t nonzero_cnt = 0;
+
+  while (count-- > 0) 
+    {
+      if (predicate (first, aux) != 0)
+        nonzero_cnt++;
+      
+      first += size;
+    }
+
+  return nonzero_cnt;
 }
 
 /* Byte-wise swap two items of size SIZE. */
@@ -148,8 +200,11 @@ unique (void *array, size_t count, size_t size,
   for (;;) 
     {
       first += size;
-      if (first >= last)
-        return count;
+      if (first >= last) 
+        {
+          assert (adjacent_find_equal (array, count, size, compare, aux) == NULL);
+          return count; 
+        }
 
       if (compare (result, first, aux)) 
         {
@@ -181,8 +236,9 @@ size_t
 partition (void *array, size_t count, size_t size,
            algo_predicate_func *predicate, void *aux) 
 {
+  size_t nonzero_cnt = count;
   char *first = array;
-  char *last = first + count * size;
+  char *last = first + nonzero_cnt * size;
 
   for (;;)
     {
@@ -191,13 +247,13 @@ partition (void *array, size_t count, size_t size,
       for (;;) 
         {
           if (first == last)
-            return count;
+            goto done;
           else if (!predicate (first, aux)) 
             break;
 
           first += size; 
         }
-      count--;
+      nonzero_cnt--;
 
       /* Move LAST backward to point to last element that passes
          PREDICATE. */
@@ -206,11 +262,11 @@ partition (void *array, size_t count, size_t size,
           last -= size;
 
           if (first == last)
-            return count;
+            goto done;
           else if (predicate (last, aux)) 
             break;
           else
-            count--;
+            nonzero_cnt--;
         }
       
       /* By swapping FIRST and LAST we extend the starting and
@@ -219,6 +275,32 @@ partition (void *array, size_t count, size_t size,
       SWAP (first, last, size);
       first += size;
     }
+
+ done:
+  assert (is_partitioned (array, count, size, nonzero_cnt, predicate, aux));
+  return nonzero_cnt; 
+}
+
+/* Checks whether ARRAY, which contains COUNT elements of SIZE
+   bytes each, is partitioned such that PREDICATE returns nonzero
+   for the first NONZERO_CNT elements and zero for the remaining
+   elements.  AUX is passed as auxiliary data to PREDICATE. */
+int
+is_partitioned (const void *array, size_t count, size_t size,
+                size_t nonzero_cnt,
+                algo_predicate_func *predicate, void *aux) 
+{
+  const unsigned char *first = array;
+  size_t idx;
+
+  assert (nonzero_cnt <= count);
+  for (idx = 0; idx < nonzero_cnt; idx++)
+    if (predicate (first + idx * size, aux) == 0)
+      return 0;
+  for (idx = nonzero_cnt; idx < count; idx++)
+    if (predicate (first + idx * size, aux) != 0)
+      return 0;
+  return 1;
 }
 
 /* A algo_random_func that uses random.h. */
@@ -258,6 +340,7 @@ copy_if (const void *array, size_t count, size_t size,
   const unsigned char *input = array;
   const unsigned char *last = input + size * count;
   unsigned char *output = result;
+  size_t nonzero_cnt = 0;
   
   while (input < last)
     {
@@ -265,14 +348,16 @@ copy_if (const void *array, size_t count, size_t size,
         {
           memcpy (output, input, size);
           output += size;
+          nonzero_cnt++;
         }
-      else
-        count--;
 
       input += size;
     }
 
-  return count;
+  assert (nonzero_cnt == count_if (array, count, size, predicate, aux));
+  assert (nonzero_cnt == count_if (result, nonzero_cnt, size, predicate, aux));
+
+  return nonzero_cnt;
 }
 
 /* A predicate and its auxiliary data. */
@@ -306,7 +391,7 @@ remove_equal (void *array, size_t count, size_t size,
   for (;;)
     {
       if (first >= last)
-        return count;
+        goto done;
       if (compare (first, element, aux) == 0)
         break;
 
@@ -319,7 +404,7 @@ remove_equal (void *array, size_t count, size_t size,
     {
       first += size;
       if (first >= last)
-        return count;
+        goto done;
 
       if (compare (first, element, aux) == 0) 
         {
@@ -331,6 +416,8 @@ remove_equal (void *array, size_t count, size_t size,
       result += size;
     }
 
+ done:
+  assert (count_equal (array, count, size, element, compare, aux) == 0);
   return count;
 }
 
@@ -383,6 +470,8 @@ binary_search (const void *array, size_t count, size_t size,
             return (void *) element;
         }
     }
+
+  assert (find (array, count, size, value, compare, aux) == NULL);
   return NULL;
 }
 
@@ -392,10 +481,10 @@ binary_search (const void *array, size_t count, size_t size,
    strcmp()-type result.  AUX is passed to COMPARE as auxiliary
    data. */
 int
-lexicographical_compare (const void *array1, size_t count1,
-                         const void *array2, size_t count2,
-                         size_t size,
-                         algo_compare_func *compare, void *aux) 
+lexicographical_compare_3way (const void *array1, size_t count1,
+                              const void *array2, size_t count2,
+                              size_t size,
+                              algo_compare_func *compare, void *aux) 
 {
   const unsigned char *first1 = array1;
   const unsigned char *first2 = array2;
@@ -471,21 +560,20 @@ typedef struct
       stack size is needed (actually O(1) in this case)!  */
 
 void
-sort (void *const pbase, size_t total_elems, size_t size,
-      algo_compare_func *cmp, void *aux)
+sort (void *array, size_t count, size_t size,
+      algo_compare_func *compare, void *aux)
 {
-  register char *base_ptr = (char *) pbase;
-
+  char *const first = array;
   const size_t max_thresh = MAX_THRESH * size;
 
-  if (total_elems == 0)
+  if (count == 0)
     /* Avoid lossage with unsigned arithmetic below.  */
     return;
 
-  if (total_elems > MAX_THRESH)
+  if (count > MAX_THRESH)
     {
-      char *lo = base_ptr;
-      char *hi = &lo[size * (total_elems - 1)];
+      char *lo = first;
+      char *hi = &lo[size * (count - 1)];
       stack_node stack[STACK_SIZE];
       stack_node *top = stack + 1;
 
@@ -502,13 +590,13 @@ sort (void *const pbase, size_t total_elems, size_t size,
 
 	  char *mid = lo + size * ((hi - lo) / size >> 1);
 
-	  if ((*cmp) ((void *) mid, (void *) lo, aux) < 0)
+	  if (compare (mid, lo, aux) < 0)
 	    SWAP (mid, lo, size);
-	  if ((*cmp) ((void *) hi, (void *) mid, aux) < 0)
+	  if (compare (hi, mid, aux) < 0)
 	    SWAP (mid, hi, size);
 	  else
 	    goto jump_over;
-	  if ((*cmp) ((void *) mid, (void *) lo, aux) < 0)
+	  if (compare (mid, lo, aux) < 0)
 	    SWAP (mid, lo, size);
 	jump_over:;
 
@@ -520,10 +608,10 @@ sort (void *const pbase, size_t total_elems, size_t size,
 	     that this algorithm runs much faster than others. */
 	  do
 	    {
-	      while ((*cmp) ((void *) left_ptr, (void *) mid, aux) < 0)
+	      while (compare (left_ptr, mid, aux) < 0)
 		left_ptr += size;
 
-	      while ((*cmp) ((void *) mid, (void *) right_ptr, aux) < 0)
+	      while (compare (mid, right_ptr, aux) < 0)
 		right_ptr -= size;
 
 	      if (left_ptr < right_ptr)
@@ -577,18 +665,18 @@ sort (void *const pbase, size_t total_elems, size_t size,
         }
     }
 
-  /* Once the BASE_PTR array is partially sorted by quicksort the rest
+  /* Once the FIRST array is partially sorted by quicksort the rest
      is completely sorted using insertion sort, since this is efficient
-     for partitions below MAX_THRESH size. BASE_PTR points to the beginning
+     for partitions below MAX_THRESH size. FIRST points to the beginning
      of the array to sort, and END_PTR points at the very last element in
      the array (*not* one beyond it!). */
 
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
   {
-    char *const end_ptr = &base_ptr[size * (total_elems - 1)];
-    char *tmp_ptr = base_ptr;
-    char *thresh = min(end_ptr, base_ptr + max_thresh);
+    char *const end_ptr = &first[size * (count - 1)];
+    char *tmp_ptr = first;
+    char *thresh = min(end_ptr, first + max_thresh);
     register char *run_ptr;
 
     /* Find smallest element in first threshold and place it at the
@@ -596,19 +684,19 @@ sort (void *const pbase, size_t total_elems, size_t size,
        and the operation speeds up insertion sort's inner loop. */
 
     for (run_ptr = tmp_ptr + size; run_ptr <= thresh; run_ptr += size)
-      if ((*cmp) ((void *) run_ptr, (void *) tmp_ptr, aux) < 0)
+      if (compare (run_ptr, tmp_ptr, aux) < 0)
         tmp_ptr = run_ptr;
 
-    if (tmp_ptr != base_ptr)
-      SWAP (tmp_ptr, base_ptr, size);
+    if (tmp_ptr != first)
+      SWAP (tmp_ptr, first, size);
 
     /* Insertion sort, running from left-hand-side up to right-hand-side.  */
 
-    run_ptr = base_ptr + size;
+    run_ptr = first + size;
     while ((run_ptr += size) <= end_ptr)
       {
 	tmp_ptr = run_ptr - size;
-	while ((*cmp) ((void *) run_ptr, (void *) tmp_ptr, aux) < 0)
+	while (compare (run_ptr, tmp_ptr, aux) < 0)
 	  tmp_ptr -= size;
 
 	tmp_ptr += size;
@@ -629,6 +717,25 @@ sort (void *const pbase, size_t total_elems, size_t size,
           }
       }
   }
+
+  assert (is_sorted (array, count, size, compare, aux));
+}
+
+/* Tests whether ARRAY, which contains COUNT elements of SIZE
+   bytes each, is sorted in order according to COMPARE.  AUX is
+   passed to COMPARE as auxiliary data. */
+int
+is_sorted (const void *array, size_t count, size_t size,
+           algo_compare_func *compare, void *aux) 
+{
+  const unsigned char *first = array;
+  size_t idx;
+      
+  for (idx = 0; idx + 1 < count; idx++)
+    if (compare (first + idx * size, first + (idx + 1) * size, aux) > 0)
+      return 0; 
+  
+  return 1;
 }
 
 /* Computes the generalized set difference, ARRAY1 minus ARRAY2,
@@ -703,5 +810,141 @@ adjacent_find_equal (const void *array, size_t count, size_t size,
     }
 
   return NULL;
+}
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   the first COUNT - 1 elements of these form a heap, followed by
+   a single element not part of the heap.  This function adds the
+   final element, forming a heap of COUNT elements in ARRAY.
+   Uses COMPARE to compare elements, passing AUX as auxiliary
+   data. */
+void
+push_heap (void *array, size_t count, size_t size,
+           algo_compare_func *compare, void *aux) 
+{
+  unsigned char *first = array;
+  size_t i;
+  
+  assert (count < 1 || is_heap (array, count - 1, size, compare, aux));
+  for (i = count; i > 1; i /= 2) 
+    {
+      unsigned char *parent = first + (i / 2 - 1) * size;
+      unsigned char *element = first + (i - 1) * size;
+      if (compare (parent, element, aux) < 0)
+        SWAP (parent, element, size);
+      else
+        break; 
+    }
+  assert (is_heap (array, count, size, compare, aux));
+}
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   the children of ARRAY[idx - 1] are heaps, but ARRAY[idx - 1]
+   may be smaller than its children.  This function fixes that,
+   so that ARRAY[idx - 1] itself is a heap.  Uses COMPARE to
+   compare elements, passing AUX as auxiliary data. */
+static void
+heapify (void *array, size_t count, size_t size,
+         size_t idx,
+         algo_compare_func *compare, void *aux) 
+{
+  unsigned char *first = array;
+  
+  for (;;) 
+    {
+      size_t left = 2 * idx;
+      size_t right = left + 1;
+      size_t largest = idx;
+
+      if (left <= count
+          && compare (first + size * (left - 1),
+                      first + size * (idx - 1), aux) > 0)
+        largest = left;
+
+      if (right <= count
+          && compare (first + size * (right - 1),
+                      first + size * (largest - 1), aux) > 0)
+        largest = right;
+
+      if (largest == idx)
+        break;
+
+      SWAP (first + size * (idx - 1), first + size * (largest - 1), size);
+      idx = largest;
+    }
+}
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   all COUNT elements form a heap.  This function moves the
+   largest element in the heap to the final position in ARRAY and
+   reforms a heap of the remaining COUNT - 1 elements at the
+   beginning of ARRAY.  Uses COMPARE to compare elements, passing
+   AUX as auxiliary data. */
+void
+pop_heap (void *array, size_t count, size_t size,
+          algo_compare_func *compare, void *aux) 
+{
+  unsigned char *first = array;
+
+  assert (is_heap (array, count, size, compare, aux));
+  SWAP (first, first + (count - 1) * size, size);
+  heapify (first, count - 1, size, 1, compare, aux);
+  assert (count < 1 || is_heap (array, count - 1, size, compare, aux));
+}
+
+/* Turns ARRAY, which contains COUNT elements of SIZE bytes, into
+   a heap.  Uses COMPARE to compare elements, passing AUX as
+   auxiliary data. */
+void
+make_heap (void *array, size_t count, size_t size,
+           algo_compare_func *compare, void *aux) 
+{
+  size_t idx;
+  
+  for (idx = count / 2; idx >= 1; idx--)
+    heapify (array, count, size, idx, compare, aux);
+  assert (count < 1 || is_heap (array, count, size, compare, aux));
+}
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  Initially
+   all COUNT elements form a heap.  This function turns the heap
+   into a fully sorted array.  Uses COMPARE to compare elements,
+   passing AUX as auxiliary data. */
+void
+sort_heap (void *array, size_t count, size_t size,
+           algo_compare_func *compare, void *aux) 
+{
+  unsigned char *first = array;
+  size_t idx;
+
+  assert (is_heap (array, count, size, compare, aux));
+  for (idx = count; idx >= 2; idx--)
+    {
+      SWAP (first, first + (idx - 1) * size, size);
+      heapify (array, idx - 1, size, 1, compare, aux);
+    }
+  assert (is_sorted (array, count, size, compare, aux));
+}
+
+/* ARRAY contains COUNT elements of SIZE bytes each.  This
+   function tests whether ARRAY is a heap and returns 1 if so, 0
+   otherwise.  Uses COMPARE to compare elements, passing AUX as
+   auxiliary data. */
+int
+is_heap (const void *array, size_t count, size_t size,
+         algo_compare_func *compare, void *aux) 
+{
+  const unsigned char *first = array;
+  size_t child;
+  
+  for (child = 2; child <= count; child++)
+    {
+      size_t parent = child / 2;
+      if (compare (first + (parent - 1) * size,
+                   first + (child - 1) * size, aux) < 0)
+        return 0;
+    }
+
+  return 1;
 }
 

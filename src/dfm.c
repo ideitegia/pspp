@@ -650,9 +650,9 @@ cmd_begin_data (void)
   /* FIXME: figure out the *exact* conditions, not these really
      lenient conditions. */
   if (vfm_source == NULL
-      || vfm_source == &vfm_memory_stream
-      || vfm_source == &vfm_disk_stream
-      || vfm_source == &sort_stream)
+      || case_source_is_class (vfm_source, &memory_source_class)
+      || case_source_is_class (vfm_source, &disk_source_class)
+      || case_source_is_class (vfm_source, &sort_source_class))
     {
       msg (SE, _("This command is not valid here since the current "
 	   "input program does not access the inline file."));
