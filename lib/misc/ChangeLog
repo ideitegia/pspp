@@ -1,3 +1,10 @@
+Fri Dec 12 22:59:37 2003  Ben Pfaff  <blp@gnu.org>
+
+	* qsort.c: Removed because it was unused.
+
+	* Makefile.am: Revised accordingly, and simplified because
+	Automake 1.7 is smarter than 1.4 was.	
+	
 Sun Jan  2 21:35:47 2000  Ben Pfaff  <blp@gnu.org>
 
 	* qsort.c: Change headers.  Fix __attribute__ for gcc 2.7.2.
