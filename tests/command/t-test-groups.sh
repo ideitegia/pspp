@@ -49,19 +49,22 @@ activity="create program"
 cat > $TEMPDIR/out.stat <<EOF
 data list list /id * indep * dep1 * dep2 *.
 begin data.
-1  1 1 3
-2  1 2 4
-3  1 2 4 
-4  1 2 4 
-5  1 3 5
-6  2 3 1
-7  2 4 2
-8  2 4 2
-9  2 4 2
-10 2 5 3
+1  1.1 1 3
+2  1.1 2 4
+3  1.1 2 4 
+4  1.1 2 4 
+5  1.1 3 5
+6  2.1 3 1
+7  2.1 4 2
+8  2.1 4 2
+9  2.1 4 2
+10 2.1 5 3
+11 3.1 2 2
 end data.
 
-t-test /GROUPS=indep(1,2) /var=dep1 dep2.
+* Note that this last case should be IGNORED since it doesn't have a dependent variable of either 1 or 2
+
+t-test /GROUPS=indep(1.1,2.1) /var=dep1 dep2.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -86,10 +89,10 @@ diff -B -b $TEMPDIR/pspp.list - <<EOF
 #==========#=#====#==============#========#
 #     INDEP|N|Mean|Std. Deviation|SE. Mean#
 #==========#=#====#==============#========#
-#DEP1 1    |5|2.00|          .707|    .316#
-#     2    |5|4.00|          .707|    .316#
-#DEP2 1    |5|4.00|          .707|    .316#
-#     2    |5|2.00|          .707|    .316#
+#DEP1 1.1  |5|2.00|          .707|    .316#
+#     2.1  |5|4.00|          .707|    .316#
+#DEP2 1.1  |5|4.00|          .707|    .316#
+#     2.1  |5|2.00|          .707|    .316#
 #==========#=#====#==============#========#
 
 2.2 T-TEST.  Independent Samples Test

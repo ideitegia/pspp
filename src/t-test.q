@@ -36,7 +36,6 @@
 #include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
-#include "pool.h"
 #include "hash.h"
 #include "stats.h"
 #include "t-test.h"
@@ -58,17 +57,15 @@
 
 static struct cmd_t_test cmd;
 
-
-static struct pool *t_test_pool ;
-
 /* Variable for the GROUPS subcommand, if given. */
-static struct variable *groups;
+static struct variable *indep_var;
 
 /* GROUPS: Number of values specified by the user; the values
    specified if any. */
 
-static int n_groups_values;
+static int n_group_values;
 static union value groups_values[2];
+static enum comparison criteria[2];
 
 
 /* PAIRS: Number of pairs to be compared ; each pair. */
@@ -93,11 +90,10 @@ struct pair
   /* The std deviation of the differences */
   double std_dev_diff;
 };
+
 static struct pair *pairs=0;
 
-
 static int parse_value (union value * v, int type) ;
-
 
 /* Structures and Functions for the Statistics Summary Box */
 struct ssbox;
@@ -275,11 +271,9 @@ cmd_t_test(void)
       break;
     case T_IND_SAMPLES:
       procedure(group_precalc,group_calc,group_postcalc, NULL);
-      levene(groups, cmd.n_variables, cmd.v_variables);
+      levene(indep_var, cmd.n_variables, cmd.v_variables);
       break;
     }
-
-  t_test_pool = pool_create ();
 
   ssbox_create(&stat_summary_box,&cmd,mode);
   ssbox_populate(&stat_summary_box,&cmd);
@@ -291,11 +285,6 @@ cmd_t_test(void)
   trbox_create(&test_results_box,&cmd,mode);
   trbox_populate(&test_results_box,&cmd);
   trbox_finalize(&test_results_box);
-
-  pool_destroy (t_test_pool);
-
-  t_test_pool=0;
-
 
   n_pairs=0;
   free(pairs);
@@ -318,6 +307,7 @@ cmd_t_test(void)
 static int
 tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 {
+
   lex_match('=');
 
   if (token != T_ALL && 
@@ -328,27 +318,28 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
     return 0;
   }
 
-  groups = parse_variable ();
-  if (!groups)
+  indep_var = parse_variable ();
+  if (!indep_var)
     {
       lex_error ("expecting variable name in GROUPS subcommand");
       return 0;
     }
 
-  if (groups->type == T_STRING && groups->width > MAX_SHORT_STRING)
+  if (indep_var->type == T_STRING && indep_var->width > MAX_SHORT_STRING)
     {
       msg (SE, _("Long string variable %s is not valid here."),
-	   groups->name);
+	   indep_var->name);
       return 0;
     }
 
   if (!lex_match ('('))
     {
-      if (groups->type == NUMERIC)
+      if (indep_var->type == NUMERIC)
 	{
-	  n_groups_values = 2;
 	  groups_values[0].f = 1;
 	  groups_values[1].f = 2;
+	  criteria[0] = criteria[1] = CMP_EQ;
+	  n_group_values = 2;
 	  return 1;
 	}
       else
@@ -359,21 +350,27 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 	}
     }
 
-  if (!parse_value (&groups_values[0],groups->type))
-    return 0;
-  n_groups_values = 1;
+  if (!parse_value (&groups_values[0],indep_var->type))
+      return 0;
 
   lex_match (',');
   if (lex_match (')'))
-    return 1;
+    {
+      criteria[0] =  CMP_LE;
+      criteria[1] =  CMP_GT;
+      groups_values[1] = groups_values[0];
+      n_group_values = 1;
+      return 1;
+    }
 
-  if (!parse_value (&groups_values[1],groups->type))
+  if (!parse_value (&groups_values[1],indep_var->type))
     return 0;
-  n_groups_values = 2;
-
+  
+  n_group_values = 2;
   if (!lex_force_match (')'))
     return 0;
 
+  criteria[0] = criteria[1] = CMP_EQ;
   return 1;
 }
 
@@ -644,7 +641,7 @@ ssbox_independent_samples_init(struct ssbox *this,
   ssbox_base_init(this, hsize,vsize);
   tab_title (this->t, 0, _("Group Statistics"));
   tab_vline(this->t,0,1,0,vsize);
-  tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, groups->name);
+  tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, indep_var->name);
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
@@ -659,18 +656,26 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 {
   int i;
 
+  char *val_lab0=0;
   char *val_lab1=0;
-  char *val_lab2=0;
 
-  if ( groups->type == NUMERIC ) 
+  char prefix[2][3]={"",""};
+
+  if ( indep_var->type == NUMERIC ) 
     {
-      val_lab1 = val_labs_find( groups->val_labs,groups_values[0]); 
-      val_lab2 = val_labs_find( groups->val_labs,groups_values[1]);
+      val_lab0 = val_labs_find( indep_var->val_labs,groups_values[0]); 
+      val_lab1 = val_labs_find( indep_var->val_labs,groups_values[1]);
     }
   else
     {
-      val_lab1 = groups_values[0].s;
-      val_lab2 = groups_values[1].s;
+      val_lab0 = groups_values[0].s;
+      val_lab1 = groups_values[1].s;
+    }
+
+  if (n_group_values == 1) 
+    {
+      strcpy(prefix[0],"< ");
+      strcpy(prefix[1],">=");
     }
 
   assert(ssb->t);
@@ -681,16 +686,20 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT, cmd->v_variables[i]->name);
 
+      if (val_lab0)
+	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
+		  "%s%s", prefix[0], val_lab0);
+      else
+	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
+		  "%s%g", prefix[0], groups_values[0].f); 
+
+
       if (val_lab1)
-	tab_text (ssb->t, 1, i*2+1, TAB_LEFT, val_lab1);
+	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
+		  "%s%s", prefix[1], val_lab1);
       else
-	tab_float(ssb->t, 1 ,i*2+1, TAB_LEFT, groups_values[0].f, 2,0);
-
-
-      if (val_lab2)
-	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT, val_lab2);
-      else
-	tab_float(ssb->t, 1 ,i*2+1+1, TAB_LEFT, groups_values[1].f,2,0);
+	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
+		  "%s%g", prefix[1], groups_values[1].f); 
 
       /* Fill in the group statistics */
       for ( g=0; g < 2 ; ++g ) 
@@ -1567,16 +1576,40 @@ paired_postcalc (void *aux UNUSED)
     }
 }
 
+/* Return the group # corresponding to the 
+   independent variable with the value val 
+*/
 static int
-get_group(const union value *val, struct variable *var)
+get_group(const union value *val, struct variable *indep)
 {
-  if ( 0 == compare_values(val,&groups_values[0],var->width) )
-    return 0;
-  else if (0 == compare_values(val,&groups_values[1],var->width) )
-    return 1;
+  int i; 
 
-  /* Never reached */
-  assert(0);
+  for (i = 0; i < 2  ; ++i )
+    {
+      const int cmp = compare_values(val,&groups_values[i],indep->width) ;
+      switch ( criteria[i])
+	{
+	case CMP_EQ: 
+	  if ( 0 == cmp )   return i;
+	  break;	   
+	case CMP_LT:	   
+	  if ( 0 >  cmp )  return i;
+	  break;	   
+	case CMP_LE:	   
+	  if ( cmp <= 0 )   return i;
+	  break;
+	case CMP_GT:
+	  if ( cmp > 0 ) return i;
+	  break;
+	case CMP_GE:
+	  if ( cmp >= 0 ) return i;
+	  break;
+	default:
+	  assert(0);
+	};
+    }
+
+  /* No groups matched */
   return -1;
 }
 
@@ -1597,10 +1630,15 @@ group_precalc (void *aux UNUSED)
 
       for (j=0 ; j < 2 ; ++j)
 	{
-	  ttpr->gs[j].sum=0;
-	  ttpr->gs[j].n=0;
-	  ttpr->gs[j].ssq=0;
-	  ttpr->gs[j].id = groups_values[j];
+	  ttpr->gs[j].sum = 0;
+	  ttpr->gs[j].n = 0;
+	  ttpr->gs[j].ssq = 0;
+	
+	  if ( n_group_values == 2 ) 
+	    ttpr->gs[j].id = groups_values[j];
+	  else
+	    ttpr->gs[j].id = groups_values[0];
+	  ttpr->gs[j].criterion = criteria[j];
 	}
     }
 
@@ -1610,16 +1648,22 @@ static int
 group_calc (struct ccase *c, void *aux UNUSED)
 {
   int i;
-  union value *gv = &c->data[groups->fv];
+  int g;
+  union value *gv = &c->data[indep_var->fv];
 
   double weight = dict_get_case_weight(default_dict,c);
 
-  gv = &c->data[groups->fv];
+  gv = &c->data[indep_var->fv];
+
+  g = get_group(gv,indep_var);
+
+  /* If the independent variable doesn't match either of the values 
+     for this case then move on to the next case */
+  if (g == -1 ) 
+    return 0;
 
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      int g = get_group(gv,groups);
-
       struct group_statistics *gs = &cmd.v_variables[i]->p.t_t.gs[g];
 
       union value *val=&c->data[cmd.v_variables[i]->fv];

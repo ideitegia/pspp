@@ -24,6 +24,7 @@ TESTS = command/aggregate.sh \
 	command/t-test-1s.sh \
 	command/t-test-pairs.sh \
 	command/t-test-groups.sh \
+	command/t-test-1-indep-val.sh \
 	command/weight.sh \
 	bugs/alpha-freq.sh \
 	bugs/compute-fmt.sh \

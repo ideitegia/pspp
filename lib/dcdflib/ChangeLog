@@ -1,3 +1,10 @@
+Fri Mar 12 08:43:39 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+        * dcdflib.c: Removed the ftnstop function which called exit(1), on
+	certain error conditions.  Instead, E0000 now sets status to -999
+	and returns.
+
+	
 Sun Aug  9 11:16:26 1998  Ben Pfaff  <blp@gnu.org>
 
 	* dcdflib.COPYING: Renamed COPYING.

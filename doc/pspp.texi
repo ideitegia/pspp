@@ -7484,6 +7484,7 @@ far.
 @node DESCRIPTIVES, FREQUENCIES, Statistics, Statistics
 @section DESCRIPTIVES
 
+@vindex DESCRIPTIVES
 @display
 DESCRIPTIVES
         /VARIABLES=var_list
@@ -7573,6 +7574,7 @@ respectively.
 @node FREQUENCIES, CROSSTABS, DESCRIPTIVES, Statistics
 @section FREQUENCIES
 
+@vindex FREQUENCIES
 @display
 FREQUENCIES
         /VARIABLES=var_list
@@ -7675,6 +7677,7 @@ particular percentiles can be requested with the PERCENTILES subcommand.
 @node CROSSTABS, T-TEST, FREQUENCIES, Statistics
 @section CROSSTABS
 
+@vindex CROSSTABS
 @display
 CROSSTABS
         /TABLES=var_list BY var_list [BY var_list]@dots{}
@@ -7859,9 +7862,9 @@ Fixes for any of these deficiencies would be welcomed.
 
 @node T-TEST, , CROSSTABS, Statistics
 @comment  node-name,  next,  previous,  up
-
 @section T-TEST
 
+@vindex T-TEST
 @display
 T-TEST
         /MISSING=@{ANALYSIS,LISTWISE@} @{EXCLUDE,INCLUDE@}
@@ -7941,12 +7944,21 @@ The @cmd{GROUPS} subcommand invokes Independent Samples mode or
 `Groups' mode. 
 This mode is used to test whether two groups of values have the
 same population mean.
+In this mode, you must also use the @cmd{/VARIABLES} subcommand to
+tell PSPP the dependent variables you wish to test.
+
 The variable given in the @cmd{GROUPS} subcommand is the independent
 variable which determines to which group the samples belong.
 The values in parentheses are the specific values of the independent
 variable for each group.
-In this mode, you must also use the @cmd{/VARIABLES} subcommand to
-tell PSPP the dependent variables you wish to test.
+If the parentheses are omitted, and no values are given, the default values 
+of 1.0 and 2.0 are assumed.
+If only one value is given, then cases where the independent variable is
+less than  or equal to this value belong to the first group, and cases
+greater than this value belong to the second group.
+If only one value is given, then the independent variable must be
+numeric.
+
 
 @node Paired Samples Mode, , Independent Samples Mode, T-TEST
 @comment  node-name,  next,  previous,  up

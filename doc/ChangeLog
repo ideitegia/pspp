@@ -1,3 +1,10 @@
+Fri Mar 12 16:33:12 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* Added indeces for the commands in the STATISTICS section
+
+	* Added notes on the T-TEST Independent samples command about
+	single values for the independent variable.
+	
 Tue Mar  9 22:34:17 2004  Ben Pfaff  <blp@gnu.org>
 
 	* Updated.

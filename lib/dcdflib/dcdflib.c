@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "cdflib.h"
+#include <assert.h>
 
 static void E0000(int,int*,double*,double*,unsigned long*,
                   unsigned long*,double*,double*,double*,
@@ -6352,7 +6353,12 @@ static unsigned long qbdd,qcond,qdum1,qdum2,qincr,qlim,qok,qup;
 DINVR:
     if(*status > 0) goto S310;
     qcond = !qxmon(small,*x,big);
-    if(qcond) ftnstop((char *) " SMALL, X, BIG not monotone in INVR");
+    if(qcond) 
+	{
+	*status = -999;
+	return;
+	}
+
     xsave = *x;
 /*
      See that SMALL and BIG bound the zero and set QINCR
@@ -6676,8 +6682,10 @@ void dstinv(double *zsmall,double *zbig,double *zabsst,
 **********************************************************************
 */
 {
-    E0000(1,NULL,NULL,NULL,NULL,NULL,zabsst,zabsto,zbig,zrelst,zrelto,zsmall,
-    zstpmu);
+  int status=0;
+  E0000(1,&status,NULL,NULL,NULL,NULL,zabsst,zabsto,zbig,zrelst,zrelto,zsmall,
+	zstpmu);
+  assert(status == 0 );
 }
 double dt1(double *p,double *q,double *df)
 /*
@@ -9080,14 +9088,4 @@ long fifmod(long a,long b)
 /* b - denominator */
 {
   return a % b;
-}
-/************************************************************************
-FTNSTOP:
-Prints msg to standard error and then exits
-************************************************************************/
-void ftnstop(char* msg)
-/* msg - error message */
-{
-  if (msg != NULL) fprintf(stderr,"%s\n",msg);
-  exit(EXIT_FAILURE); /* EXIT_FAILURE from stdlib.h, or use an int */
 }

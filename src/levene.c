@@ -51,6 +51,9 @@
 
  */
 
+static struct group_statistics *get_group(int v, struct group_statistics *key);
+
+/* First pass */
 static void levene_precalc (void *);
 static int levene_calc (struct ccase *, void *);
 static void levene_postcalc (void *);
@@ -100,30 +103,37 @@ levene(struct variable *v_indep, int n_dep, struct variable **v_dep)
 
 static struct hsh_table **hash;
 
+/* Return -1 if the id of a is less than b; +1 if greater than and 
+   0 if equal */
 static int 
-compare_group_id(const void *a_, const void *b_, void *aux)
+compare_group(const struct group_statistics *a, 
+		 const struct group_statistics *b, 
+		 int width)
 {
-  const struct group_statistics *a = (struct group_statistics *) a_;
-  const struct group_statistics *b = (struct group_statistics *) b_;
+  int id_cmp = compare_values(&a->id, &b->id, width);
 
-  int width = (int) aux;
-  
-  return compare_values(&a->id, &b->id, width);
+  if (id_cmp == 0 ) 
+    {
+      int c;
+      c= memcmp(&a->criterion,&b->criterion,sizeof(enum comparison));
+      return c;
+    }
+  else
+    return id_cmp;
 }
 
 
 static unsigned 
-hash_group_id(const void *g_, void *aux)
+hash_group(const struct group_statistics *g, int width)
 {
-  const struct group_statistics *g = (struct group_statistics *) g_;
-
-  int width = (int) aux;
+  unsigned id_hash;
 
   if ( 0 == width ) 
-    return hsh_hash_double (g->id.f);
+    id_hash = hsh_hash_double (g->id.f);
   else
-    return hsh_hash_bytes (g->id.s, width);
+    id_hash = hsh_hash_bytes (g->id.s, width);
 
+  return id_hash;
 }
 
 /* Internal variables used in calculating the Levene statistic */
@@ -147,6 +157,8 @@ struct lz_stats
 /* An array of lz_stats for each variable */
 static struct lz_stats *lz;
 
+/* Set to 1 if the groups require inequality comparisions */ 
+static int inequality_compare;
 
 
 static void 
@@ -166,7 +178,8 @@ levene_precalc (void *_l)
       int number_of_groups = v->p.t_t.n_groups ; 
 
       hash[i] = hsh_create (l->n_dep * number_of_groups,
-			    compare_group_id, hash_group_id,
+			    (hsh_compare_func *) compare_group, 
+			    (hsh_hash_func *) hash_group,
 			    0,(void *) l->v_indep->width);
 
       lz[i].grand_total = 0;
@@ -176,8 +189,12 @@ levene_precalc (void *_l)
       for (g = 0 ; g < v->p.t_t.n_groups ; ++g ) 
 	{
 	  struct group_statistics *gs = &v->p.t_t.gs[g];
-	  gs->lz_total=0;
-	  hsh_insert(hash[i],gs);
+	  gs->lz_total = 0;
+	  hsh_insert(hash[i], gs);
+	  if ( gs->criterion != CMP_EQ ) 
+	    {
+	      inequality_compare = 1;
+	    }
 	}
     }
 
@@ -193,14 +210,16 @@ levene_calc (struct ccase *c, void *_l)
   double weight = dict_get_case_weight(default_dict,c); 
   
   key.id = *gv;
+  key.criterion = CMP_EQ;
 
   for (var = 0; var < l->n_dep; ++var) 
     {
       double levene_z;
       union value *v = &c->data[l->v_dep[var]->fv];
       struct group_statistics *gs;
-      gs = hsh_find(hash[var],&key);
-      assert(0 == compare_values(&gs->id, &key.id, l->v_indep->width));
+      gs = get_group(var,&key); 
+      if ( 0 == gs ) 
+	continue ;
 
       /* FIXME: handle SYSMIS properly */
 
@@ -271,15 +290,16 @@ levene2_calc (struct ccase *c, void *_l)
   struct group_statistics key;
 
   key.id = *gv;
+  key.criterion = CMP_EQ;
 
   for (var = 0; var < l->n_dep; ++var) 
     {
       double levene_z;
       union value *v = &c->data[l->v_dep[var]->fv];
       struct group_statistics *gs;
-      gs = hsh_find(hash[var],&key);
-      assert(gs);
-      assert(0 == compare_values(&gs->id, &key.id, l->v_indep->width));
+      gs = get_group(var,&key); 
+      if ( 0 == gs ) 
+	continue;
 
       /* FIXME: handle SYSMIS properly */
 
@@ -333,3 +353,45 @@ levene2_postcalc (void *_l)
 }
 
 
+/* Return the group belonging to the v_th dependent variable
+   which matches the key */
+static struct group_statistics *
+get_group(int v, struct group_statistics *key)
+{
+  struct group_statistics *gs;
+  gs = hsh_find(hash[v],key);
+
+
+  if ( ( !gs )  && inequality_compare) 
+    {
+      /* Here we degrade to a linear search.
+	 This would seem inefficient.  However, it should only ever happen 
+	 with the T-TEST, for which there are exactly two groups */
+
+      struct hsh_iterator hi;
+
+      assert( hsh_count(hash[v]) == 2 ) ;
+      for(gs = (struct group_statistics *) hsh_first(hash[v],&hi);
+	  gs != 0 ;
+	  gs = (struct group_statistics *) hsh_next(hash[v],&hi) )
+	{
+	  int cmp;
+
+	  cmp = compare_values(&gs->id, &key->id, 0);
+
+	  assert( cmp != 0 ); /* or else the hash would have found something */
+
+	  if ( cmp == -1 && 
+	       ( gs->criterion == CMP_GT || gs->criterion == CMP_GE ) 
+	     ) 
+	    break;
+
+	  if ( cmp == 1 && 
+	       ( gs->criterion == CMP_LT || gs->criterion == CMP_LE ) 
+	     ) 
+	    break;
+	}
+    }
+
+  return gs;
+}
