@@ -34,6 +34,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <gsl/gsl_cdf.h>
 #include "algorithm.h"
 #include "alloc.h"
 #include "hash.h"
@@ -43,7 +44,6 @@
 #include "error.h"
 #include "magic.h"
 #include "misc.h"
-#include "stats.h"
 #include "output.h"
 #include "tab.h"
 #include "value-labels.h"
@@ -2030,7 +2030,7 @@ display_chisq (void)
 	  tab_float (chisq, 1, 0, TAB_RIGHT, chisq_v[i], 8, 3);
 	  tab_float (chisq, 2, 0, TAB_RIGHT, df[i], 8, 0);
 	  tab_float (chisq, 3, 0, TAB_RIGHT,
-		     chisq_sig (chisq_v[i], df[i]), 8, 3);
+		     gsl_cdf_chisq_Q (chisq_v[i], df[i]), 8, 3);
 	}
       else
 	{
@@ -2695,10 +2695,10 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 
 		if (cmd.a_statistics[CRS_ST_D])
 		  {
-		    d_yx_cum += fij * sqr (Dr * (Cij - Dij)
-					   - (P - Q) * (W - row_tot[i]));
-		    d_xy_cum += fij * sqr (Dc * (Dij - Cij)
-					   - (Q - P) * (W - col_tot[j]));
+		    d_yx_cum += fij * pow2 (Dr * (Cij - Dij)
+                                            - (P - Q) * (W - row_tot[i]));
+		    d_xy_cum += fij * pow2 (Dc * (Dij - Cij)
+                                            - (Q - P) * (W - col_tot[j]));
 		  }
 		
 		if (++j == n_cols)
@@ -2718,8 +2718,8 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
       }
 
       btau_var = ((btau_cum
-		   - (W * sqr (W * (P - Q) / sqrt (Dr * Dc) * (Dr + Dc))))
-		  / sqr (Dr * Dc));
+		   - (W * pow2 (W * (P - Q) / sqrt (Dr * Dc) * (Dr + Dc))))
+		  / pow2 (Dr * Dc));
       if (cmd.a_statistics[CRS_ST_BTAU])
 	{
 	  ase[3] = sqrt (btau_var);
@@ -2744,17 +2744,17 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 	  somers_d_ase[0] = 2. * btau_var / (Dr + Dc) * sqrt (Dr * Dc);
 	  somers_d_t[0] = (somers_d_v[0]
 			   / (4 / (Dc + Dr)
-			      * sqrt (ctau_cum - sqr (P - Q) / W)));
+			      * sqrt (ctau_cum - pow2 (P - Q) / W)));
 	  somers_d_v[1] = (P - Q) / Dc;
-	  somers_d_ase[1] = 2. / sqr (Dc) * sqrt (d_xy_cum);
+	  somers_d_ase[1] = 2. / pow2 (Dc) * sqrt (d_xy_cum);
 	  somers_d_t[1] = (somers_d_v[1]
 			   / (2. / Dc
-			      * sqrt (ctau_cum - sqr (P - Q) / W)));
+			      * sqrt (ctau_cum - pow2 (P - Q) / W)));
 	  somers_d_v[2] = (P - Q) / Dr;
-	  somers_d_ase[2] = 2. / sqr (Dr) * sqrt (d_yx_cum);
+	  somers_d_ase[2] = 2. / pow2 (Dr) * sqrt (d_yx_cum);
 	  somers_d_t[2] = (somers_d_v[2]
 			   / (2. / Dr
-			      * sqrt (ctau_cum - sqr (P - Q) / W)));
+			      * sqrt (ctau_cum - pow2 (P - Q) / W)));
 	}
 
       free (cum);
@@ -2847,12 +2847,12 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 		     / (W * (W * W - sum_rici) * (W * W - sum_rici)));
 #if 0
       t[8] = v[8] / sqrt (W * (((sum_fii * (W - sum_fii))
-				/ sqr (W * W - sum_rici))
+				/ pow2 (W * W - sum_rici))
 			       + ((2. * (W - sum_fii)
 				   * (2. * sum_fii * sum_rici
 				      - W * sum_fiiri_ci))
 				  / cube (W * W - sum_rici))
-			       + (sqr (W - sum_fii)
+			       + (pow2 (W - sum_fii)
 				  * (W * sum_fijri_ci2 - 4.
 				     * sum_rici * sum_rici)
 				  / pow4 (W * W - sum_rici))));
@@ -3015,7 +3015,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	    {
 	      const int deltaj = j == cm_index;
 	      accum += (mat[j + i * n_cols]
-			* sqr ((j == fim_index[i])
+			* pow2 ((j == fim_index[i])
 			       - deltaj
 			       + v[0] * deltaj));
 	    }
@@ -3031,7 +3031,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	  if (cm_index != fim_index[i])
 	    accum += (mat[i * n_cols + fim_index[i]]
 		      + mat[i * n_cols + cm_index]);
-	t[2] = v[2] / (sqrt (accum - sqr (sum_fim - cm) / W) / (W - cm));
+	t[2] = v[2] / (sqrt (accum - pow2 (sum_fim - cm) / W) / (W - cm));
       }
 
       /* ASE1 for X given Y. */
@@ -3043,7 +3043,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	    {
 	      const int deltaj = i == rm_index;
 	      accum += (mat[j + i * n_cols]
-			* sqr ((i == fmj_index[j])
+			* pow2 ((i == fmj_index[j])
 			       - deltaj
 			       + v[0] * deltaj));
 	    }
@@ -3059,7 +3059,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	  if (rm_index != fmj_index[j])
 	    accum += (mat[j + n_cols * fmj_index[j]]
 		      + mat[j + n_cols * rm_index]);
-	t[1] = v[1] / (sqrt (accum - sqr (sum_fmj - rm) / W) / (W - rm));
+	t[1] = v[1] / (sqrt (accum - pow2 (sum_fmj - rm) / W) / (W - rm));
       }
 
       /* Symmetric ASE0 and ASE1. */
@@ -3072,12 +3072,12 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	    {
 	      int temp0 = (fmj_index[j] == i) + (fim_index[i] == j);
 	      int temp1 = (i == rm_index) + (j == cm_index);
-	      accum0 += mat[j + i * n_cols] * sqr (temp0 - temp1);
+	      accum0 += mat[j + i * n_cols] * pow2 (temp0 - temp1);
 	      accum1 += (mat[j + i * n_cols]
-			 * sqr (temp0 + (v[0] - 1.) * temp1));
+			 * pow2 (temp0 + (v[0] - 1.) * temp1));
 	    }
 	ase[0] = sqrt (accum1 - 4. * W * v[0] * v[0]) / (2. * W - rm - cm);
-	t[0] = v[0] / (sqrt (accum0 - sqr ((sum_fim + sum_fmj - cm - rm) / W))
+	t[0] = v[0] / (sqrt (accum0 - pow2 ((sum_fim + sum_fmj - cm - rm) / W))
 		       / (2. * W - rm - cm));
       }
 
@@ -3093,7 +3093,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	for (sum_fij2_ri = sum_fij2_ci = 0., i = 0; i < n_rows; i++)
 	  for (j = 0; j < n_cols; j++)
 	    {
-	      double temp = sqr (mat[j + i * n_cols]);
+	      double temp = pow2 (mat[j + i * n_cols]);
 	      sum_fij2_ri += temp / row_tot[i];
 	      sum_fij2_ci += temp / col_tot[j];
 	    }
@@ -3131,7 +3131,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	    if (entry <= 0.)
 	      continue;
 	    
-	    P += entry * sqr (log (col_tot[j] * row_tot[i] / (W * entry)));
+	    P += entry * pow2 (log (col_tot[j] * row_tot[i] / (W * entry)));
 	    UXY -= entry / W * log (entry / W);
 	  }
 
@@ -3143,27 +3143,27 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	    if (entry <= 0.)
 	      continue;
 	    
-	    ase1_yx += entry * sqr (UY * log (entry / row_tot[i])
+	    ase1_yx += entry * pow2 (UY * log (entry / row_tot[i])
 				    + (UX - UXY) * log (col_tot[j] / W));
-	    ase1_xy += entry * sqr (UX * log (entry / col_tot[j])
+	    ase1_xy += entry * pow2 (UX * log (entry / col_tot[j])
 				    + (UY - UXY) * log (row_tot[i] / W));
-	    ase1_sym += entry * sqr ((UXY
+	    ase1_sym += entry * pow2 ((UXY
 				      * log (row_tot[i] * col_tot[j] / (W * W)))
 				     - (UX + UY) * log (entry / W));
 	  }
       
       v[5] = 2. * ((UX + UY - UXY) / (UX + UY));
-      ase[5] = (2. / (W * sqr (UX + UY))) * sqrt (ase1_sym);
+      ase[5] = (2. / (W * pow2 (UX + UY))) * sqrt (ase1_sym);
       t[5] = v[5] / ((2. / (W * (UX + UY)))
-		     * sqrt (P - sqr (UX + UY - UXY) / W));
+		     * sqrt (P - pow2 (UX + UY - UXY) / W));
 		    
       v[6] = (UX + UY - UXY) / UX;
       ase[6] = sqrt (ase1_xy) / (W * UX * UX);
-      t[6] = v[6] / (sqrt (P - W * sqr (UX + UY - UXY)) / (W * UX));
+      t[6] = v[6] / (sqrt (P - W * pow2 (UX + UY - UXY)) / (W * UX));
       
       v[7] = (UX + UY - UXY) / UY;
       ase[7] = sqrt (ase1_yx) / (W * UY * UY);
-      t[7] = v[7] / (sqrt (P - W * sqr (UX + UY - UXY)) / (W * UY));
+      t[7] = v[7] / (sqrt (P - W * pow2 (UX + UY - UXY)) / (W * UY));
     }
 
   /* Somers' D. */

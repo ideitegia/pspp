@@ -97,10 +97,12 @@
 #include "alloc.h"
 #include "random.h"
 
-/* Some of the assertions in this file are very expensive.  If
-   we're optimizing, don't include them. */
-#if __OPTIMIZE__
-#define NDEBUG
+/* Some of the assertions in this file are very expensive.  We
+   don't use them by default. */
+#ifdef EXTRA_CHECKS
+#define expensive_assert(X) assert(X)
+#else
+#define expensive_assert(X) ((void) 0)
 #endif
 #include "error.h"
 
@@ -202,7 +204,8 @@ unique (void *array, size_t count, size_t size,
       first += size;
       if (first >= last) 
         {
-          assert (adjacent_find_equal (array, count, size, compare, aux) == NULL);
+          assert (adjacent_find_equal (array, count,
+                                       size, compare, aux) == NULL);
           return count; 
         }
 
@@ -471,7 +474,7 @@ binary_search (const void *array, size_t count, size_t size,
         }
     }
 
-  assert (find (array, count, size, value, compare, aux) == NULL);
+  expensive_assert (find (array, count, size, value, compare, aux) == NULL);
   return NULL;
 }
 
@@ -825,7 +828,8 @@ push_heap (void *array, size_t count, size_t size,
   unsigned char *first = array;
   size_t i;
   
-  assert (count < 1 || is_heap (array, count - 1, size, compare, aux));
+  expensive_assert (count < 1 || is_heap (array, count - 1,
+                                          size, compare, aux));
   for (i = count; i > 1; i /= 2) 
     {
       unsigned char *parent = first + (i / 2 - 1) * size;
@@ -835,7 +839,7 @@ push_heap (void *array, size_t count, size_t size,
       else
         break; 
     }
-  assert (is_heap (array, count, size, compare, aux));
+  expensive_assert (is_heap (array, count, size, compare, aux));
 }
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  Initially
@@ -886,10 +890,11 @@ pop_heap (void *array, size_t count, size_t size,
 {
   unsigned char *first = array;
 
-  assert (is_heap (array, count, size, compare, aux));
+  expensive_assert (is_heap (array, count, size, compare, aux));
   SWAP (first, first + (count - 1) * size, size);
   heapify (first, count - 1, size, 1, compare, aux);
-  assert (count < 1 || is_heap (array, count - 1, size, compare, aux));
+  expensive_assert (count < 1 || is_heap (array, count - 1,
+                                          size, compare, aux));
 }
 
 /* Turns ARRAY, which contains COUNT elements of SIZE bytes, into
@@ -903,7 +908,7 @@ make_heap (void *array, size_t count, size_t size,
   
   for (idx = count / 2; idx >= 1; idx--)
     heapify (array, count, size, idx, compare, aux);
-  assert (count < 1 || is_heap (array, count, size, compare, aux));
+  expensive_assert (count < 1 || is_heap (array, count, size, compare, aux));
 }
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  Initially
@@ -917,13 +922,13 @@ sort_heap (void *array, size_t count, size_t size,
   unsigned char *first = array;
   size_t idx;
 
-  assert (is_heap (array, count, size, compare, aux));
+  expensive_assert (is_heap (array, count, size, compare, aux));
   for (idx = count; idx >= 2; idx--)
     {
       SWAP (first, first + (idx - 1) * size, size);
       heapify (array, idx - 1, size, 1, compare, aux);
     }
-  assert (is_sorted (array, count, size, compare, aux));
+  expensive_assert (is_sorted (array, count, size, compare, aux));
 }
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  This

@@ -1,3 +1,140 @@
+Mon Mar 29 16:26:40 2004  Ben Pfaff  <blp@gnu.org>
+
+	* debug.c: Removed.  Moved cmd_debug_evaluate() into expr-evl.c.
+
+	* expr-evl.c: (cmd_debug_evaluate) Moved here from debug.c.
+
+Mon Mar 29 16:03:08 2004  Ben Pfaff  <blp@gnu.org>
+
+	* algorithm.c: By default turn off some of the more expensive
+	assertions.
+	(expensive_assert) New macro which expands to assert if
+	EXTRA_CHECKS is defined, to nothing otherwise.
+	(unique) Use expensive_assert().
+	(binary_search) Ditto.
+	(push_heap) Ditto.
+	(pop_heap) Ditto.
+	(make_heap) Ditto.
+	(sort_heap) Ditto.
+
+	* command.c: (conflicting_3char_prefixes) Words that are the same
+	don't cause conflicts when they are abbreviated to the first three
+	letters.
+
+	* expr-evl.c: (CONCAT_func) Fix memory leak by incrementing struct
+	nonterm_node's n earlier.
+	(generic_str_func) Ditto.
+	
+Mon Mar 29 15:32:17 2004  Ben Pfaff  <blp@gnu.org>
+
+	Add support for multipass procedures.  Rewrite DESCRIPTIVES to
+	test multipass support, take advantage of new moments
+	calculation, and to not be such crappy code.  Get rid of q2c
+	processing for DESCRIPTIVES.
+
+	* vfm.c: (struct multipass_split_aux_data) New structure.
+	(multipass_procedure_with_splits) New function.
+	(multipass_split_callback) New function.
+	(multipass_split_output) New function.
+	* descript.q: Removed.
+
+	* descript.c: New file.
+
+	* var.h: Removed descriptives enums.
+	(struct descriptives_proc) Removed.
+	(struct variable) Removed p.dsc.
+
+	* Makefile.am: (q_sources_c) Remove descript.c.
+	(q_sources_q) Removed descript.q.
+	
+Mon Mar 29 15:31:55 2004  Ben Pfaff  <blp@gnu.org>
+
+	New manager for keeping track of used workspace.
+	
+	* workspace.c: New file.
+
+	* workspace.h: New file.
+
+	* Makefile.am: (pspp_SOURCES) Add workspace.c, workspace.h.
+
+	* sort.c: (do_internal_sort) Use workspace_malloc().
+	(destroy_internal_sort) Use workspace_free().
+
+Mon Mar 29 15:31:08 2004  Ben Pfaff  <blp@gnu.org>
+
+	New `struct casefile' for managing sets of cases.
+
+	* casefile.c: New file.
+
+	* casefile.h: New file.
+
+	* command.def: Add DEBUG CASEFILE command.
+
+	* Makefile.am: (pspp_SOURCES) Add casefile.c, casefile.h.
+
+	* sort.c: (sort_cases) Move logic for sending storage file to disk
+	into do_external_sort().
+	(struct internal_sort) Use an array of ccase pointers instead of a
+	case_list.
+	(do_internal_sort) Rewrite to handle casefiles.
+	(compare_case_list) Removed.
+	(compare_cases) New function.
+	(compare_case_dblptrs) New function.
+	(read_internal_sort_output) Deal with new struct internal_sort.
+
+	* vfm.c: (static var workspace_overflow) Removed.
+	(struct storage_stream_info) Removed all the members.  Added
+	struct casefile * member.
+	(storage_sink_open) Use casefile.
+	(open_storage_file) Removed.
+	(write_storage_file) Removed.
+	(storage_to_disk) Removed.
+	(destroy_storage_stream_info) Use casefile.
+	(storage_sink_write) Use casefile.
+	(storage_sink_make_source) Use casefile.
+	(storage_source_count) Use casefile.
+	(storage_source_read) Use casefile.
+	(storage_source_on_disk) Removed.
+	(storage_source_get_cases) Removed.
+	(storage_source_set_cases) Removed.
+	(storage_source_get_casefile) New function.
+	
+Mon Mar 29 15:30:09 2004  Ben Pfaff  <blp@gnu.org>
+
+	New `struct moments' for calculating moments.
+
+	* stats.c: Removed.
+
+	* stats.h: Removed.
+
+	* moments.c: New file.
+
+	* moments.h: New file.
+
+	* command.def: Add DEBUG MOMENTS command.
+
+	* Makefile.am: (pspp_SOURCES) Add moments.c, moments.h.  Remove
+	stats.c, stats.h.
+
+	* aggregate.c: Modify AGGREGATE to use the new moments
+	calculation, even if not in such a great way.
+	(struct agr_var) Add `moments' member.
+	(parse_aggregate_functions) Set `moments' member to null.
+	(agr_destroy) Destroy `moments' member.
+	(accumulate_aggregate_info) Use `moments' for standard deviation.
+	(dump_aggregate_info) Ditto.
+	(initialize_aggregate_info) Create or clear `moments'.
+
+	* misc.h: Add pow2(), pow3(), pow4() functions in place of sqr(),
+	cube(), pow4() that were in stats.h.  All references updated.
+
+	* crosstabs.q: stats.h had chi-square significance functions.  Use
+	GSL instead.
+	(display_chisq) Use gsl_cdf_chisq_Q() instead of chisq_sig().
+
+	* expr-evl.c: (expr_evaluate) Use moments_of_values() for
+	OP_CFVAR, OP_MEAN, OP_SD, OP_VARIANCE.
+		
 Fri Mar 26 14:21:23 2004  Ben Pfaff  <blp@gnu.org>
 
 	* dictionary.c: (dict_compact_values) Compacted values need to

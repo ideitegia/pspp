@@ -39,7 +39,6 @@
 	(((unsigned char *) X)[(Y) / CHAR_BIT] & (1 << ((Y) % CHAR_BIT)))
 
 /* Returns 2**X, 0 <= X < 32. */
-#define BIT_INDEX(X) 				\
-	(1ul << (X))
+#define BIT_INDEX(X) (1ul << (X))
 
 #endif /* bitvector.h */

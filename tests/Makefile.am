@@ -6,7 +6,6 @@ TESTS = command/aggregate.sh \
 	command/beg-data.sh \
 	command/bignum.sh \
 	command/count.sh \
-	command/descriptives.sh \
 	command/erase.sh \
 	command/file-label.sh \
 	command/filter.sh \
@@ -42,7 +41,11 @@ TESTS = command/aggregate.sh \
 	bugs/t-test.sh \
 	bugs/temporary.sh \
 	bugs/val-labs.sh \
-	xforms/expressions.sh
+	xforms/casefile.sh \
+	xforms/expressions.sh \
+	stats/descript-basic.sh \
+	stats/descript-missing.sh \
+	stats/moments.sh
 
 noinst_PROGRAMS = gengarbage
 

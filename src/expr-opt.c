@@ -31,7 +31,6 @@
 #include "julcal/julcal.h"
 #include "misc.h"
 #include "pool.h"
-#include "stats.h"
 #include "str.h"
 #include "var.h"
 

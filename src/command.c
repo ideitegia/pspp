@@ -293,6 +293,12 @@ conflicting_3char_prefixes (const char *a, const char *b)
   bw = find_word (b, &bw_len);
   assert (aw != NULL && bw != NULL);
 
+  /* Words that are the same don't conflict. */
+  if (aw_len == bw_len && !memcmp (aw, bw, aw_len))
+    return 0;
+  
+  /* Words that are otherwise the same in the first three letters
+     do conflict. */
   return ((aw_len > 3 && bw_len > 3)
           || (aw_len == 3 && bw_len > 3)
           || (bw_len == 3 && aw_len > 3)) && !memcmp (aw, bw, 3);

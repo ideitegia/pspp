@@ -42,9 +42,9 @@
 #include "julcal/julcal.h"
 #include "magic.h"
 #include "misc.h"
+#include "moments.h"
 #include "pool.h"
 #include "random.h"
-#include "stats.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
@@ -421,22 +421,18 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	case OP_CFVAR:
 	  {
 	    int n_args = *op++;
-	    int nv = 0;
-	    double sum[2] =
-	    {0.0, 0.0};
+            double weight, mean, variance;
 
 	    sp -= n_args - 1;
-	    for (i = 0; i < n_args; i++)
-	      if (sp[i].f != SYSMIS)
-		{
-		  nv++;
-		  sum[0] += sp[i].f;
-		  sum[1] += sp[i].f * sp[i].f;
-		}
-	    if (nv < *op++)
+
+            moments_of_values (sp, n_args,
+                               &weight, &mean, &variance, NULL, NULL);
+            
+	    if (weight < *op++ || mean == SYSMIS
+                || mean == 0 || variance == SYSMIS)
 	      sp->f = SYSMIS;
 	    else
-	      sp->f = calc_cfvar (sum, nv);
+	      sp->f = sqrt (variance) / mean;
 	  }
 	  break;
 	case OP_MAX:
@@ -475,21 +471,13 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	case OP_MEAN:
 	  {
 	    int n_args = *op++;
-	    int nv = 0;
-	    double sum[1] =
-	    {0.0};
+            double weight, mean;
 
 	    sp -= n_args - 1;
-	    for (i = 0; i < n_args; i++)
-	      if (sp[i].f != SYSMIS)
-		{
-		  nv++;
-		  sum[0] += sp[i].f;
-		}
-	    if (nv < *op++)
-	      sp->f = SYSMIS;
-	    else
-	      sp->f = calc_mean (sum, nv);
+
+            moments_of_values (sp, n_args,
+                               &weight, &mean, NULL, NULL, NULL);
+            sp->f = weight < *op++ ? SYSMIS : mean;
 	  }
 	  break;
 	case OP_MIN:
@@ -590,23 +578,12 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	case OP_SD:
 	  {
 	    int n_args = *op++;
-	    int nv = 0;
-	    double sum[2];
-
-	    sum[0] = sum[1] = 0.0;
+            double weight, variance;
 
 	    sp -= n_args - 1;
-	    for (i = 0; i < n_args; i++)
-	      if (sp[i].f != SYSMIS)
-		{
-		  nv++;
-		  sum[0] += sp[i].f;
-		  sum[1] += sp[i].f * sp[i].f;
-		}
-	    if (nv < *op++)
-	      sp->f = SYSMIS;
-	    else
-	      sp->f = calc_stddev (calc_variance (sum, nv));
+            moments_of_values (sp, n_args,
+                               &weight, NULL, &variance, NULL, NULL);
+            sp->f = weight < *op++ ? SYSMIS : sqrt (variance);
 	  }
 	  break;
 	case OP_SUM:
@@ -631,23 +608,12 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	case OP_VARIANCE:
 	  {
 	    int n_args = *op++;
-	    int nv = 0;
-	    double sum[2];
-
-	    sum[0] = sum[1] = 0.0;
+            double weight, variance;
 
 	    sp -= n_args - 1;
-	    for (i = 0; i < n_args; i++)
-	      if (sp[i].f != SYSMIS)
-		{
-		  nv++;
-		  sum[0] += sp[i].f;
-		  sum[1] += sp[i].f * sp[i].f;
-		}
-	    if (nv < *op++)
-	      sp->f = SYSMIS;
-	    else
-	      sp->f = calc_variance (sum, nv);
+            moments_of_values (sp, n_args,
+                               &weight, NULL, &variance, NULL, NULL);
+            sp->f = weight < *op++ ? SYSMIS : variance;
 	  }
 	  break;
 

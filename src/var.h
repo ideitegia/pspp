@@ -115,36 +115,6 @@ struct list_proc
     int vert;			/* Whether to print the varname vertically. */
   };
 
-/* DESCRIPTIVES private data.  Note that the DESCRIPTIVES procedure also
-   has a transformation, descriptives_trns. */
-enum
-  {
-    /* As these are used as bit indexes, there must be 32 or fewer.
-       Be very careful in adjusting these, see the structure below
-       and the table in descriptives.q. */
-    dsc_mean = 0, dsc_semean, dsc_stddev, dsc_variance, dsc_kurt,
-    dsc_sekurt, dsc_skew, dsc_seskew, dsc_range, dsc_min,
-    dsc_max, dsc_sum, dsc_n_stats
-  };
-
-struct descriptives_proc
-  {
-    /* Miscellaneous. */
-    int dup;			/* Finds duplicates in list of
-				   variables. */
-    char zname[10];		/* Name for z-score variable. */
-
-    /* Counts. */
-    double valid, miss;		/* Valid, missing--general. */
-
-    /* Mean, moments about the mean. */
-    double X_bar, M2, M3, M4;
-    double min, max;
-
-    /* Statistics. */
-    double stats[dsc_n_stats];	/* Everything glommed together. */
-  };
-
 /* GET private data. */
 struct get_proc
   {
@@ -244,7 +214,6 @@ struct variable
     union
       {
 	struct crosstab_proc crs;
-	struct descriptives_proc dsc;
 	struct frequencies_proc frq;
 	struct list_proc lst;
 	struct means_proc mns;

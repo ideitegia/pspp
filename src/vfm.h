@@ -75,11 +75,7 @@ int case_source_is_complex (const struct case_source *);
 int case_source_is_class (const struct case_source *,
                           const struct case_source_class *);
 
-int storage_source_on_disk (const struct case_source *);
-struct case_list *storage_source_get_cases (const struct case_source *);
-void storage_source_set_cases (const struct case_source *,
-                               struct case_list *);
-void storage_source_to_disk (struct case_source *source);
+struct casefile *storage_source_get_casefile (struct case_source *);
 
 /* The replacement active file, to which cases are written. */
 extern struct case_sink *vfm_sink;
@@ -123,6 +119,9 @@ extern const struct case_sink_class null_sink_class;
 struct case_sink *create_case_sink (const struct case_sink_class *,
                                     const struct dictionary *,
                                     void *);
+void case_sink_open (struct case_sink *);
+void case_sink_write (struct case_sink *, const struct ccase *);
+void case_sink_destroy (struct case_sink *);
 void free_case_sink (struct case_sink *);
 
 /* Number of cases to lag. */
@@ -134,5 +133,9 @@ void procedure_with_splits (void (*begin_func) (void *aux),
                             void (*end_func) (void *aux),
                             void *aux);
 struct ccase *lagged_case (int n_before);
+
+void multipass_procedure_with_splits (void (*) (const struct casefile *,
+                                                void *),
+                                      void *aux);
 
 #endif /* !vfm_h */

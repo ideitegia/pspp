@@ -1,3 +1,23 @@
+Mon Mar 29 15:25:09 2004  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (TESTS) Add xforms/casefile.sh,
+	stats/descript-basic.sh, stats/descript-missing.sh,
+	stats/moments.sh.  Remove command/descriptives.sh.
+
+	* command/descriptives.sh: Removed.
+
+	* command/weight.sh: Fix output (statistic values were wrong!).
+
+	* stats/descript-basic.sh: New test.
+	
+	* stats/descript-missing.sh: New test.
+	
+	* stats/moments.sh: New test.
+
+	* xforms/casefile.sh: New test.
+
+	* xforms/expressions.sh: Cleans up after itself now.
+
 Fri Mar 26 00:55:48 2004  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: (TESTS) Add xforms/expressions.sh, remove

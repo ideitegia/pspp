@@ -14,7 +14,7 @@ export STAT_CONFIG_PATH=$top_srcdir/config
 
 cleanup()
 {
-     #rm -rf $TEMPDIR
+     rm -rf $TEMPDIR
      :
 }
 

@@ -37,7 +37,6 @@
 #include "algorithm.h"
 #include "magic.h"
 #include "misc.h"
-#include "stats.h"
 #include "output.h"
 #include "som.h"
 #include "str.h"

@@ -27,7 +27,7 @@
 #include "var.h"
 #include "vfm.h"
 #include "alloc.h"
-#include "stats.h"
+#include "misc.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -348,7 +348,7 @@ levene2_calc (struct ccase *c, void *_l)
       if ( ! l->is_missing(v,var) )
 	{
 	  levene_z = fabs(v->f - gs->mean); 
-	  lz_denominator[i] += weight * sqr(levene_z - gs->lz_mean);
+	  lz_denominator[i] += weight * pow2(levene_z - gs->lz_mean);
 	}
     }
 
@@ -373,7 +373,7 @@ levene2_postcalc (void *_l)
 	  g = (struct group_statistics *) hsh_next(hash[v],&hi) )
 	{
 
-	  lz_numerator += g->n * sqr(g->lz_mean - lz[v].grand_mean );
+	  lz_numerator += g->n * pow2(g->lz_mean - lz[v].grand_mean );
       
 
 	}

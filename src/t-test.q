@@ -31,13 +31,13 @@
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
+#include "misc.h"
 #include "tab.h"
 #include "som.h"
 #include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
 #include "hash.h"
-#include "stats.h"
 #include "t-test.h"
 #include "levene.h"
 
@@ -972,9 +972,9 @@ trbox_independent_samples_populate(struct trbox *self,
       df = gs0->n + gs1->n - 2.0 ;
       tab_float (self->t, 5, i*2+3, TAB_RIGHT, df, 2, 0);
 
-      pooled_variance = ( (gs0->n )*sqr(gs0->s_std_dev)
+      pooled_variance = ( (gs0->n )*pow2(gs0->s_std_dev)
 			  + 
-			  (gs1->n )*sqr(gs1->s_std_dev) 
+			  (gs1->n )*pow2(gs1->s_std_dev) 
 			) / df  ;
 
       t = (gs0->mean - gs1->mean) / sqrt(pooled_variance) ;
@@ -991,7 +991,7 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_float(self->t, 7, i*2+3, TAB_RIGHT, mean_diff, 8, 3);
 
 
-      std_err_diff = sqrt( sqr(gs0->se_mean) + sqr(gs1->se_mean));
+      std_err_diff = sqrt( pow2(gs0->se_mean) + pow2(gs1->se_mean));
       tab_float(self->t, 8, i*2+3, TAB_RIGHT, std_err_diff, 8, 3);
 
 
@@ -1014,18 +1014,18 @@ trbox_independent_samples_populate(struct trbox *self,
 		TAB_LEFT, _("Equal variances not assumed"));
 
 
-      se2 = (sqr(gs0->s_std_dev)/(gs0->n -1) ) +
-	(sqr(gs1->s_std_dev)/(gs1->n -1) );
+      se2 = (pow2(gs0->s_std_dev)/(gs0->n -1) ) +
+	(pow2(gs1->s_std_dev)/(gs1->n -1) );
 
       t = mean_diff / sqrt(se2) ;
       tab_float (self->t, 4, i*2+3+1, TAB_RIGHT, t, 8, 3);
 		
-      df = sqr(se2) / ( 
-		       (sqr(sqr(gs0->s_std_dev)/(gs0->n - 1 )) 
+      df = pow2(se2) / ( 
+		       (pow2(pow2(gs0->s_std_dev)/(gs0->n - 1 )) 
 			/(gs0->n -1 )
 			)
 		       + 
-		       (sqr(sqr(gs1->s_std_dev)/(gs1->n - 1 ))
+		       (pow2(pow2(gs1->s_std_dev)/(gs1->n - 1 ))
 			/(gs1->n -1 )
 			)
 		       ) ;
@@ -1134,7 +1134,7 @@ trbox_paired_populate(struct trbox *trb,
 
       t = (pairs[i].mean[0] - pairs[i].mean[1])
 	/ sqrt (
-		( sqr (pairs[i].s_std_dev[0]) + sqr (pairs[i].s_std_dev[1]) -
+		( pow2 (pairs[i].s_std_dev[0]) + pow2 (pairs[i].s_std_dev[1]) -
 		  2 * pairs[i].correlation * 
 		  pairs[i].s_std_dev[0] * pairs[i].s_std_dev[1] )
 		/ (n - 1)
@@ -1294,7 +1294,7 @@ pscbox(void)
 
       double correlation_t = 
 	pairs[i].correlation * sqrt(df) /
-	sqrt(1 - sqr(pairs[i].correlation));
+	sqrt(1 - pow2(pairs[i].correlation));
 
 
       /* row headings */
@@ -1569,13 +1569,13 @@ paired_calc (struct ccase *c, void *aux UNUSED)
 	pairs[i].sum[0] += weight * val0->f;
 	pairs[i].sum[1] += weight * val1->f;
 
-	pairs[i].ssq[0] += weight * sqr(val0->f);
-	pairs[i].ssq[1] += weight * sqr(val1->f);
+	pairs[i].ssq[0] += weight * pow2(val0->f);
+	pairs[i].ssq[1] += weight * pow2(val1->f);
 
 	pairs[i].sum_of_prod += weight * val0->f * val1->f ;
 
 	pairs[i].sum_of_diffs += weight * ( val0->f - val1->f ) ;
-	pairs[i].ssq_diffs += weight * sqr(val0->f - val1->f);
+	pairs[i].ssq_diffs += weight * pow2(val0->f - val1->f);
       }
     }
 
@@ -1596,11 +1596,11 @@ paired_postcalc (void *aux UNUSED)
 	{
 	  pairs[i].mean[j] = pairs[i].sum[j] / n ;
 	  pairs[i].s_std_dev[j] = sqrt((pairs[i].ssq[j] / n - 
-					      sqr(pairs[i].mean[j]))
+					      pow2(pairs[i].mean[j]))
 				     );
 
 	  pairs[i].std_dev[j] = sqrt(n/(n-1)*(pairs[i].ssq[j] / n - 
-					      sqr(pairs[i].mean[j]))
+					      pow2(pairs[i].mean[j]))
 				     );
 	}
       
@@ -1616,7 +1616,7 @@ paired_postcalc (void *aux UNUSED)
       pairs[i].std_dev_diff = sqrt (  n / (n - 1) * (
 				    ( pairs[i].ssq_diffs / n )
 				    - 
-				    sqr(pairs[i].mean_diff )
+				    pow2(pairs[i].mean_diff )
 				    ) );
     }
 }
@@ -1739,7 +1739,7 @@ group_calc (struct ccase *c, void *aux UNUSED)
 	{
 	  gs->n+=weight;
 	  gs->sum+=weight * val->f;
-	  gs->ssq+=weight * sqr(val->f);
+	  gs->ssq+=weight * pow2(val->f);
 	}
     }
 

@@ -17,16 +17,12 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#include <config.h>
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "error.h"
-#include "expr.h"
-#include "lexer.h"
-#include "moments.h"
-#include "var.h"
+#ifndef HEADER_WORKSPACE
+#define HEADER_WORKSPACE
 
+#include <stddef.h>
+
+void *workspace_malloc (size_t);
+void workspace_free (void *, size_t);
+
+#endif /* workspace.h */

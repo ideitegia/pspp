@@ -26,11 +26,11 @@
 #include "file-handle.h"
 #include "lexer.h"
 #include "misc.h"
+#include "moments.h"
 #include "pool.h"
 #include "settings.h"
 #include "sfm.h"
 #include "sort.h"
-#include "stats.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
@@ -53,6 +53,7 @@ struct agr_var
     int int1, int2;
     char *string;
     int missing;
+    struct moments *moments;
   };
 
 /* Aggregation functions. */
@@ -511,6 +512,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	    agr->vars = v;
           tail = v;
 	  tail->next = NULL;
+          v->moments = NULL;
 	  
 	  /* Create the target variable in the aggregate
              dictionary. */
@@ -663,6 +665,8 @@ agr_destroy (struct agr_proc *agr)
 	    free (iter->arg[i].c);
 	  free (iter->string);
 	}
+      else if (iter->function == SD)
+        moments_destroy (iter->moments);
       free (iter);
     }
   free (agr->prev_break);
@@ -825,14 +829,9 @@ accumulate_aggregate_info (struct agr_proc *agr,
             iter->dbl[0] += v->f * weight;
             iter->dbl[1] += weight;
             break;
-	  case SD: 
-            {
-              double product = v->f * weight;
-              iter->dbl[0] += product;
-              iter->dbl[1] += product * v->f;
-              iter->dbl[2] += weight;
-              break; 
-            }
+	  case SD:
+            moments_pass_two (iter->moments, v->f, weight);
+            break;
 	  case MAX:
 	    iter->dbl[0] = max (iter->dbl[0], v->f);
 	    iter->int1 = 1;
@@ -992,9 +991,17 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    v->f = i->dbl[1] != 0.0 ? i->dbl[0] / i->dbl[1] : SYSMIS;
 	    break;
 	  case SD:
-	    v->f = ((i->dbl[2] > 1.0)
-		    ? calc_stddev (calc_variance (i->dbl, i->dbl[2]))
-		    : SYSMIS);
+            {
+              double variance;
+
+              /* FIXME: we should use two passes. */
+              moments_calculate (i->moments, NULL, NULL, &variance,
+                                 NULL, NULL);
+              if (variance != SYSMIS)
+                v->f = sqrt (variance);
+              else
+                v->f = SYSMIS; 
+            }
 	    break;
 	  case MAX:
 	  case MIN:
@@ -1088,6 +1095,12 @@ initialize_aggregate_info (struct agr_proc *agr)
 	case MAX | FSTRING:
 	  memset (iter->string, 0, iter->src->width);
 	  break;
+        case SD:
+          if (iter->moments == NULL)
+            iter->moments = moments_create (MOMENT_VARIANCE);
+          else
+            moments_clear (iter->moments);
+          break;
 	default:
 	  iter->dbl[0] = iter->dbl[1] = iter->dbl[2] = 0.0;
 	  iter->int1 = iter->int2 = 0;

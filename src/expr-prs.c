@@ -971,6 +971,7 @@ CONCAT_func (const struct function *f UNUSED, int x UNUSED, union any_node **n)
       type = parse_or (&(*n)->nonterm.arg[(*n)->nonterm.n]);
       if (type == EXPR_ERROR)
 	goto fail;
+      (*n)->nonterm.n++;
       if (type != EXPR_STRING)
 	{
 	  msg (SE, _("Argument %d to CONCAT is type %s.  All arguments "
@@ -978,7 +979,6 @@ CONCAT_func (const struct function *f UNUSED, int x UNUSED, union any_node **n)
 	       (*n)->nonterm.n + 1, expr_type_name (type));
 	  goto fail;
 	}
-      (*n)->nonterm.n++;
 
       if (!lex_match (','))
 	break;
@@ -1068,6 +1068,7 @@ generic_str_func (const struct function *f, int x UNUSED, union any_node **n)
 	    goto fail;
           else if (actual_type == EXPR_BOOLEAN)
             actual_type = EXPR_NUMERIC;
+          nonterm->n++;
 	  if (actual_type != wanted_type)
 	    {
 	      msg (SE, _("Argument %d to %s was expected to be of %s type.  "
@@ -1076,7 +1077,6 @@ generic_str_func (const struct function *f, int x UNUSED, union any_node **n)
 		   expr_type_name (actual_type), expr_type_name (wanted_type));
 	      goto fail;
 	    }
-	  nonterm->n++;
 	}
       else if (*cp == 'f')
 	{
@@ -1682,3 +1682,75 @@ struct op_desc ops[OP_SENTINEL] =
   {
 #include "expr.def"
   };
+
+#include "command.h"
+
+int
+cmd_debug_evaluate (void)
+{
+  struct expression *expr;
+  union value value;
+  enum expr_type expr_flags;
+  int dump_postfix = 0;
+
+  discard_variables ();
+
+  expr_flags = 0;
+  if (lex_match_id ("NOOPTIMIZE"))
+    expr_flags |= EXPR_NO_OPTIMIZE;
+  if (lex_match_id ("POSTFIX"))
+    dump_postfix = 1;
+  if (token != '/') 
+    {
+      lex_force_match ('/');
+      return CMD_FAILURE;
+    }
+  fprintf (stderr, "%s => ", lex_rest_of_line (NULL));
+  lex_get ();
+
+  expr = expr_parse (EXPR_ANY | expr_flags);
+  if (!expr || token != '.') 
+    {
+      if (expr != NULL)
+        expr_free (expr);
+      fprintf (stderr, "error\n");
+      return CMD_FAILURE; 
+    }
+
+  if (dump_postfix) 
+    expr_debug_print_postfix (expr);
+  else 
+    {
+      expr_evaluate (expr, NULL, 0, &value);
+      switch (expr_get_type (expr)) 
+        {
+        case EXPR_NUMERIC:
+          if (value.f == SYSMIS)
+            fprintf (stderr, "sysmis\n");
+          else
+            fprintf (stderr, "%.2f\n", value.f);
+          break;
+      
+        case EXPR_BOOLEAN:
+          if (value.f == SYSMIS)
+            fprintf (stderr, "sysmis\n");
+          else if (value.f == 0.0)
+            fprintf (stderr, "false\n");
+          else
+            fprintf (stderr, "true\n");
+          break;
+
+        case EXPR_STRING:
+          fputc ('"', stderr);
+          fwrite (value.c + 1, value.c[0], 1, stderr);
+          fputs ("\"\n", stderr);
+          break;
+
+        default:
+          assert (0);
+        }
+    }
+  
+  expr_free (expr);
+  return CMD_SUCCESS;
+}

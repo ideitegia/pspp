@@ -18,15 +18,36 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "workspace.h"
 #include <assert.h>
-#include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "command.h"
-#include "error.h"
-#include "expr.h"
-#include "lexer.h"
-#include "moments.h"
-#include "var.h"
+#include "settings.h"
 
+static size_t workspace_used;
+
+/* Returns a block SIZE bytes in size, charging it against the
+   workspace limit.  Returns a null pointer if the workspace
+   limit is reached. */
+void *
+workspace_malloc (size_t size) 
+{
+  if (workspace_used + size > get_max_workspace ())
+    return NULL;
+
+  workspace_used += size;
+  return xmalloc (size);
+}
+
+/* Frees BLOCK, which is SIZE bytes long, and credits it toward
+   the workspace limit. */
+void
+workspace_free (void *block, size_t size) 
+{
+  if (block != NULL) 
+    {
+      assert (workspace_used >= size);
+      free (block);
+      workspace_used -= size;
+    }
+}
