@@ -52,7 +52,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="create program"
-cat > $TEMPDIR/print.stat <<EOF_print
+cat > $TEMPDIR/print.stat << foobar
 title 'Test PRINT transformation'.
 
 remark EOF
@@ -81,7 +81,7 @@ data list list table file='$TEMPDIR/data-list.data'/A B C D.
 print table/A B C D.
 list.
 
-EOF_print
+foobar
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -109,7 +109,6 @@ $TEMPDIR/data-list.data:6: warning: LIST: Missing value(s) for all variables fro
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
-cp $TEMPDIR/pspp.list /tmp/out
 activity="compare output"
 diff -b -B $TEMPDIR/pspp.list - << EOF
 ----------------------------------------------------------------------

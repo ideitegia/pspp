@@ -1,8 +1,5 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-bench:
-	make BENCHMARK=1 check
-
 TESTS_ENVIRONMENT=top_srcdir=${top_srcdir}
 TESTS = command/aggregate.sh \
 	command/autorecod.sh \
@@ -12,7 +9,9 @@ TESTS = command/aggregate.sh \
 	command/descriptives.sh \
 	command/flip.sh \
 	command/lag.sh \
+	command/loop.sh \
 	command/print.sh \
+	command/sample.sh \
 	command/sort.sh \
 	command/tabs.sh \
 	command/split-file.sh \
@@ -26,18 +25,15 @@ noinst_DATA = sort.data
 sort.data: gengarbage$(EXTEXT)
 	./gengarbage | head -1000 > $@
 
-EXTRA_DIST = bignum.data	\
-bignum.stat compute.stat count.stat crosstabs.stat data-fmts.stat	\
-data-list.data data-list.stat descript.stat do-if.stat do-repeat.stat	\
-expr.stat file-lab.stat filter.stat flip.stat gengarbage.c		\
-inpt-pgm.stat lag.stat list.data list.stat loop.stat mtch-file.stat	\
-means.stat mdfy-vars.stat print.stat pcs-if.stat recode.stat		\
-repeating.stat reread.data reread.stat sample.stat sort.stat		\
-splt-file.stat sys-info.stat t-test.stat tabs.stat temporary.stat	\
+EXTRA_DIST = \
+compute.stat crosstabs.stat data-fmts.stat	\
+data-list.data data-list.stat do-if.stat do-repeat.stat	\
+expr.stat file-lab.stat filter.stat gengarbage.c		\
+inpt-pgm.stat list.data list.stat mtch-file.stat	\
+means.stat mdfy-vars.stat pcs-if.stat recode.stat		\
+repeating.stat reread.data reread.stat  \
+sys-info.stat t-test.stat temporary.stat	\
 time-date.stat vector.stat weighting.data weighting.stat $(TESTS)
-
-dist-hook:
-	cp -rp $(srcdir)/expect $(distdir)
 
 DISTCLEANFILES = *.save sort.data pspp.* foo* msgs *.actual
 
