@@ -54,10 +54,12 @@ frequencies v1 v2.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
+cd $top_srcdir; top_srcdir=`pwd`
+
 cd $TEMPDIR
 
 activity="run data"
-$here/../src/pspp $TEMPDIR/ff.stat
+$here/../src/pspp -B $top_srcdir/config $TEMPDIR/ff.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

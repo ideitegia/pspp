@@ -1,5 +1,7 @@
 #!/bin/sh
 
+build_dir=`pwd`
+
 
 # This script tests that incorrect syntax on various commands produces the 
 # appropriate error messages
@@ -7,52 +9,59 @@
 set -e
 RESULT=pass
 
-srcdir=${srcdir:-.}
 
-for x in `cd $srcdir; echo *.stat *.data`; do 
-    if [ ! -e $x ]; then
-	ln -s $srcdir/$x .
-    fi
-done
+#for x in `cd $srcdir; echo *.stat *.data`; do 
+#    if [ ! -e $x ]; then
+#	ln -s $srcdir/$x .
+#    fi
+#done
 
 rm -f *.actual
 if [ -z "$BENCHMARK" ]; then
-    for x in *.stat; do
+    for t in $top_srcdir/tests/*.stat; do
+    	x=`basename $t`
 	echo -n "$x ... "
-	../src/pspp --testing-mode $x >$x.actual
-	if [ -f $srcdir/expect/$x ]; then
-	    if diff -u $srcdir/expect/$x $x.actual; then 
-		echo "pass"; rm $x.actual
+#	if [ $x = bignum.stat ] ; then continue ; fi
+#	if [ $x = data-list.stat ] ; then continue ; fi
+#	if [ $x = do-repeat.stat ] ; then continue ; fi
+#	if [ $x = list.stat ] ; then continue ; fi
+#	if [ $x = print.stat ] ; then continue ; fi
+#	if [ $x = reread.stat ] ; then continue ; fi
+#	if [ $x = weighting.stat ] ; then continue ; fi
+	cat $t | ../src/pspp -B $top_srcdir/config --testing-mode - > $build_dir/$x.actual 
+	if [ -f $top_srcdir/tests/expect/$x ]; then
+	    if diff -u $top_srcdir/tests/expect/$x $build_dir/$x.actual; then 
+		echo "pass"; rm $build_dir/$x.actual
 	    else 
-		echo "FAIL"; RESULT=fail
+		echo "FAIL"; RESULT=fail ; exit 1
 	    fi
 	else
-	    if [ -s $x.actual ]; then 
-		echo "FAIL"; RESULT=fail
-		diff -u /dev/null $x.actual || true
+	    if [ -s $build_dir/$x.actual ]; then 
+		diff -u /dev/null $build_dir/$x.actual || true
+		echo "FAIL"; RESULT=fail ; exit 1
 	    else 
-		echo "pass"; rm $x.actual
+		echo "pass"; rm $build_dir/$x.actual
 	    fi
 	fi
     done
 else
-    mkdir benchmark || true
-    rm -f benchmark/*
-    for x in *.stat; do
+    mkdir $build_dir/benchmark || true
+    rm -f $build_dir/benchmark/*
+    for x in $top_srcdir/tests/*.stat; do
 	echo -n "$x ... "
-	../src/pspp --testing-mode $x > benchmark/$x
-	if [ ! -s benchmark/$x ]; then
-	    rm benchmark/$x
+	../src/pspp -B $top_srcdir/config --testing-mode $x > $build_dir/benchmark/$x
+	if [ ! -s $build_dirbenchmark/$x ]; then
+	    rm $build_dir/benchmark/$x
 	fi
 	echo
     done
 fi
 
-for x in *.stat *.data; do
-    if [ -h $x ]; then
-	rm $x
-    fi
-done
+# for x in *.stat *.data; do
+#   if [ -h $x ]; then
+#	rm $x
+#    fi
+#done
 
 if [ $RESULT = fail ]; then exit 1; fi
 

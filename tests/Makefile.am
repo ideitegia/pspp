@@ -3,6 +3,7 @@
 bench:
 	make BENCHMARK=1 check
 
+TESTS_ENVIRONMENT=top_srcdir=${top_srcdir}
 TESTS = syntax bugs/double-frequency.sh bugs/html-frequency.sh
 
 noinst_PROGRAMS = gengarbage
@@ -19,7 +20,7 @@ inpt-pgm.stat lag.stat list.data list.stat loop.stat mtch-file.stat	\
 means.stat mdfy-vars.stat print.stat pcs-if.stat recode.stat		\
 repeating.stat reread.data reread.stat sample.stat sort.stat		\
 splt-file.stat sys-info.stat t-test.stat tabs.stat temporary.stat	\
-time-date.stat vector.stat weighting.data weighting.stat syntax
+time-date.stat vector.stat weighting.data weighting.stat $(TESTS)
 
 dist-hook:
 	cp -rp $(srcdir)/expect $(distdir)

@@ -1,3 +1,2 @@
-mdfy-vars.stat:22: error: RENAME VARIABLES: Duplicate variable name `T2' after
-        renaming.
-mdfy-vars.stat:22: warning: This command not executed.
+-:22: error: RENAME VARIABLES: Duplicate variable name `T2' after renaming.
+-:22: warning: This command not executed.

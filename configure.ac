@@ -99,7 +99,10 @@ AC_SUBST(CFLAGS)
 
 AH_BOTTOM([#include <pref.h>])
 
-AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile intl/Makefile
+dnl This is needed otherwise --with-included-gettext fails
+AH_BOTTOM([#include <locale.h>])
+
+AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile intl/Makefile 
 		 lib/Makefile lib/julcal/Makefile lib/misc/Makefile 
 		 lib/dcdflib/Makefile doc/Makefile src/Makefile 
 		 config/Makefile tests/Makefile])

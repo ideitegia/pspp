@@ -1,3 +1,8 @@
+2003-12-13  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* Makefile.in.in: Upgrade to gettext-0.11.5.
+	* cat-id-tbl.c: Remove file.
+
 2003-12-08  gettextize  <bug-gnu-gettext@gnu.org>
 
 	* Makefile.in.in: New file, from gettext-0.12.1.
