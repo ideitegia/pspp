@@ -1,3 +1,8 @@
+Tue Dec 30 22:37:04 2003  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Add "squeeze=on top-margin=0 bottom-margin=0" to
+	raw-ascii to make test output more readable.
+
 Sun May 24 22:40:13 1998  Ben Pfaff  <blp@gnu.org>
 
 	* ps-prologue: Add %%DocumentMedia: comment.

@@ -1,3 +1,17 @@
+Tue Dec 30 22:35:16 2003  Ben Pfaff  <blp@gnu.org>
+
+	* ascii.c: (ascii_option) Fix implementation of headers option.
+
+Tue Dec 30 22:32:53 2003  Ben Pfaff  <blp@gnu.org>
+
+	* ascii.c: Add a "squeeze" option to the ASCII driver to squeeze
+	multiple blank lines into one.
+	(struct ascii_driver_ext) Add squeeze_blank_lines option.
+	(ascii_preopen_driver) Initialize squeeze_blank_lines.
+	(static var option_tab) Add squeeze entry.
+	(ascii_option) Set squeeze_blank_lines.
+	(output_lines) Implement squeezing blank lines.
+
 Wed Dec 31 07:19:46 WST 2003 John Darrington <john@darrington.wattle.id.au>
 
 	* Removed redundant code from output.h

@@ -49,6 +49,7 @@
    width=130
    lpi=6                        Only used to determine font size.
    cpi=10                       
+   squeeze=off|on               Squeeze multiple newlines into exactly one.
 
    left-margin=0
    right-margin=0
@@ -161,6 +162,7 @@ struct ascii_driver_ext
     struct len_string fonts[FSTY_COUNT]; /* Font styles; NULL=overstrike. */
     int overstrike_style;	/* OVS_SINGLE or OVS_LINE. */
     int carriage_return_style;	/* Carriage return style. */
+    int squeeze_blank_lines;    /* 1=squeeze multiple blank lines into one. */
 
     /* Internal state. */
     struct file_ext file;	/* Output file. */
@@ -235,6 +237,7 @@ ascii_preopen_driver (struct outp_driver *this)
     ls_null (&x->fonts[i]);
   x->overstrike_style = OVS_SINGLE;
   x->carriage_return_style = CRS_BS;
+  x->squeeze_blank_lines = 0;
   x->file.filename = NULL;
   x->file.mode = "wb";
   x->file.file = NULL;
@@ -438,6 +441,7 @@ static struct outp_option option_tab[] =
     {"overstrike-style", 3, 0},
     {"tab-width", nonneg_int_arg, 4},
     {"carriage-return-style", 4, 0},
+    {"squeeze", boolean_arg, 2},
     {"", 0, 0},
   };
 static struct outp_option_info option_info;
@@ -622,11 +626,14 @@ ascii_option (struct outp_driver *this, const char *key,
 	switch (subcat)
 	  {
 	  case 0:
-	    x->headers = 0;
+	    x->headers = setting;
 	    break;
 	  case 1:
 	    x->paginate = setting;
 	    break;
+          case 2:
+            x->squeeze_blank_lines = setting;
+            break;
 	  default:
 	    assert (0);
 	  }
@@ -1332,9 +1339,8 @@ static void
 output_lines (struct outp_driver *this, int first, int count)
 {
   struct ascii_driver_ext *ext = this->ext;
+  int line_num;
 
-  unsigned short *p = &ext->page[ext->w * first];
-  int *len = &ext->line_len[first];
   struct len_string *newline = &ext->ops[OPS_NEWLINE];
 
   int n_chars;
@@ -1343,14 +1349,23 @@ output_lines (struct outp_driver *this, int first, int count)
   if (NULL == ext->file.file)
     return;
 
-  while (count--)		/* Iterate over all the lines to be output. */
+  /* Iterate over all the lines to be output. */
+  for (line_num = first; line_num < first + count; line_num++)
     {
-      unsigned short *end_p;
+      unsigned short *p = &ext->page[ext->w * line_num];
+      unsigned short *end_p = p + ext->line_len[line_num];
       unsigned short *bp, *ep;
       unsigned short attr = 0;
 
-      end_p = p + *len++;
       assert (end_p >= p);
+
+      /* Squeeze multiple blank lines into a single blank line if
+         requested. */
+      if (ext->squeeze_blank_lines
+          && line_num > first
+          && ext->line_len[line_num] == 0
+          && ext->line_len[line_num - 1] == 0)
+        continue;
 
       /* Output every character in the line in the appropriate
          manner. */
@@ -1469,7 +1484,6 @@ output_lines (struct outp_driver *this, int first, int count)
 	      ep = bp;
 	    }
 	}
-      p += ext->w;
 
       output_string (this, ls_value (newline), ls_end (newline));
     }
