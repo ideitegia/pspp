@@ -89,7 +89,7 @@ activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-diff $TEMPDIR/pspp.list - << EOF
+diff -b -B $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|

@@ -92,7 +92,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 # NOTE:  In the following data: Only the extreme values have been checked
 # The descriptives have been blindly pasted.
 activity="compare results"
-diff $TEMPDIR/pspp.list - << EOF
+diff -b -B $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|

@@ -71,7 +71,7 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff $TEMPDIR/pspp.list - << EOF
+diff -b -B $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|

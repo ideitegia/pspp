@@ -87,7 +87,7 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-diff $TEMPDIR/pspp.list - << EOF
+diff -b -B $TEMPDIR/pspp.list - << EOF
 1.1 EXAMINE.  Case Processing Summary
 #==#===============================#
 #  #             Cases             #

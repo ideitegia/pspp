@@ -86,7 +86,8 @@ AC_HEADER_TIME
 
 AC_C_CONST
 AC_C_INLINE
-AC_TYPE_OFF_T
+dnl  Dont use AC_TYPE_OFF_T --- it doesnt generate the HAVE_TYPE macro
+AC_CHECK_TYPES(off_t) 
 AC_TYPE_SIZE_T
 AC_STRUCT_TM
 
