@@ -41,6 +41,8 @@ static void usage (void);
 
 char *subst_vars (char *);
 
+static int testing_mode=0;
+
 /* Parses the command line specified by ARGC and ARGV as received by
    main(). */
 void
@@ -64,7 +66,7 @@ parse_command_line (int argc, char **argv)
     {"pipe", no_argument, NULL, 'p'},
     {"recon", no_argument, NULL, 'n'},
     {"safer", no_argument, NULL, 's'},
-    {"testing-mode", no_argument, &set_testing_mode, 1},
+    {"testing-mode", no_argument, &testing_mode, 1},
     {"verbose", no_argument, NULL, 'v'},
     {"version", no_argument, NULL, 'V'},
     {0, 0, 0, 0},
@@ -147,7 +149,7 @@ parse_command_line (int argc, char **argv)
 	  no_statrc = 1;
 	  break;
 	case 's':
-	  set_safer = 1;
+	  make_safe();
 	  break;
 	case 'v':
 	  err_verbosity++;
@@ -172,11 +174,13 @@ parse_command_line (int argc, char **argv)
 	}
     }
 
-  if (set_testing_mode)
+
+  if (testing_mode)
     {
       /* FIXME: Later this option should do some other things, too. */
-      set_viewwidth = 9999;
+      force_long_view();
     }
+    
 
   for (i = optind; i < argc; i++)
     {

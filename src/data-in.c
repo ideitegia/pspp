@@ -145,13 +145,13 @@ parse_numeric (struct data_in *i)
   
   if (type != FMT_DOT)
     {
-      decimal = set_decimal;
-      grouping = set_grouping;
+      decimal = get_decimal();
+      grouping = get_grouping();
     }
   else
     {
-      decimal = set_grouping;
-      grouping = set_decimal;
+      decimal = get_grouping();
+      grouping = get_decimal();
     }
 
   i->v->f = SYSMIS;
@@ -1491,7 +1491,7 @@ default_result (struct data_in *i)
   if (fmt->cat & FCAT_STRING)
     memset (i->v->s, ' ', i->format.w);
   else
-    i->v->f = set_blanks;
+    i->v->f = get_blanks();
 }
 
 int
@@ -1529,7 +1529,7 @@ data_in (struct data_in *i)
 
 	  if (++cp == i->e)
 	    {
-	      i->v->f = set_blanks;
+	      i->v->f = get_blanks();
 	      return 1;
 	    }
 	}

@@ -17,24 +17,10 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if !random_h
-#define random_h 1
+#if !copyleft_h
+#define copyleft_h 1
 
-#include <stddef.h>
+extern char lack_of_warranty[];
+extern char copyleft[];
 
-struct rng *rng_create (void);
-void rng_destroy (struct rng *);
-void rng_seed (struct rng *, const void *, size_t);
-void rng_get_bytes (struct rng *, void *, size_t);
-int rng_get_int (struct rng *);
-unsigned rng_get_unsigned (struct rng *);
-double rng_get_double (struct rng *);
-double rng_get_double_normal (struct rng *);
-
-struct rng *pspp_rng (void);
-
-/* Return a `random' seed by using the real time clock */
-unsigned long random_seed(void);
-
-
-#endif /* random.h */
+#endif

@@ -1,3 +1,24 @@
+Sat Mar 20 00:05:42 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* set.q:  Implemented the SHOW command, and synced it to the existing 
+	SET cmd.
+
+	Added a handler for SIGWINCH so that viewlength and viewwidth follow
+	changes as the window size is changed.
+
+	Added fallback to set viewlength and viewwidth from LINES and COLUMS
+	environment variables if other methods are not available.
+
+	glob.c: Removed a lot of global variables from glob.c and encapsulated 
+	them in set.q
+
+	random.c: Tidied up the way the random seed is set.
+
+	str.c: Added a ds_vprintf function.
+
+	error.c: Extended dump_message so that messages are always broken at
+	'\n' characters.
+	
 Thu Mar 18 11:07:14 2004  Ben Pfaff  <blp@gnu.org>
 
 	* pfm-write.c: (bufwrite) Write out the correct element for string

@@ -73,58 +73,55 @@
 #include "output.h"
 #include "var.h"
 #include "format.h"
+#include "copyleft.h"
+#include "random.h"
 
-double set_blanks;
-int set_compression;
-struct set_cust_currency set_cc[5];
-int set_cpi;
-char *set_cprompt;
-int set_decimal;
-int set_grouping;
-char *set_dprompt;
-int set_echo;
-int set_endcmd;
-int set_errorbreak;
-int set_errors, set_messages, set_results;
-struct fmt_spec set_format;
-int set_headers;
-int set_include;
-char *set_journal;
-int set_journaling;
-int set_lpi;
-int set_messages;
-int set_mexpand;
-int set_miterate;
-int set_mnest;
-int set_more;
-int set_mprint;
-int set_mxerrs;
-int set_mxloops;
-int set_mxwarns;
-int set_nullline;
-int set_printback;
-int set_output = 1;
+#include "signal.h"
+
+#if HAVE_LIBTERMCAP
+#if HAVE_TERMCAP_H
+#include <termcap.h>
+#else /* !HAVE_TERMCAP_H */
+int tgetent (char *, const char *);
+int tgetnum (const char *);
+#endif /* !HAVE_TERMCAP_H */
+#endif /* !HAVE_LIBTERMCAP */
+
+static int set_errors;
+static int set_messages;
+static int set_results;
+
+static double set_blanks=SYSMIS;
+
+static struct fmt_spec set_format={FMT_F,8,2};
+
+static struct set_cust_currency set_cc[5];
+  
+static char *set_journal;
+static int set_journaling;
+
+static int set_listing=1;
+
 #if !USE_INTERNAL_PAGER
-char *set_pager;
+static char *set_pager=0;
 #endif /* !USE_INTERNAL_PAGER */
-int set_printer;
-char *set_prompt;
-char *set_results_file;
-int set_safer;
-int set_scompression;
-int set_screen;
-long set_seed;
-int set_seed_used;
-int set_testing_mode;
-int set_undefined;
-int set_viewlength;
-int set_viewwidth;
-size_t set_max_workspace = 4L * 1024 * 1024;
 
+static unsigned long set_seed;
+static int seed_flag=0;
+
+static int long_view=0;
+int set_testing_mode=0;
+static int set_viewlength;
+static int set_viewwidth;
+
+void aux_show_warranty(void);
+void aux_show_copying(void);
+
+static const char *route_to_string(int routing);
 static void set_routing (int q, int *setting);
+
 static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
 		    int cc_name);
-
 /* (specification)
    "SET" (stc_):
      automenu=automenu:on/off;
@@ -140,9 +137,9 @@ static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
      cce=string;
      color=custom;
      compression=compress:on/off;
-     cpi=integer;
+     cpi=integer "x>0" "%s must be greater than 0";
      cprompt=string;
-     decimal=dec:dot/_comma;
+     decimal=dec:dot/comma;
      disk=custom;
      dprompt=string;
      echo=echo:on/off;
@@ -161,16 +158,16 @@ static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
      listing=custom;
      log=custom;
      lowres=lores:auto/on/off;
-     lpi=integer;
+     lpi=integer "x>0" "% must be greater than 0";
      menus=menus:standard/extended;
      messages=messages:on/off/terminal/listing/both/none;
      mexpand=mexp:on/off;
-     miterate=integer;
-     mnest=integer;
+     miterate=integer "x>0" "%s must be greater than 0";
+     mnest=integer "x>0" "%s must be greater than 0";
      more=more:on/off;
      mprint=mprint:on/off;
-     mxerrs=integer;
-     mxloops=integer;
+     mxerrs=integer "x >= 1" "%s must be at least 1";
+     mxloops=integer "x >=1" "%s must be at least 1";
      mxmemory=integer;
      mxwarns=integer;
      nulline=null:on/off;
@@ -191,63 +188,181 @@ static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
      tbfonts=string;
      undefined=undef:warn/nowarn;
      viewlength=custom;
-     viewwidth=integer;
+     viewwidth=custom;
      width=custom;
      workdev=custom;
-     workspace=integer;
+     workspace=integer "x>=1024" "%s must be at least 1 MB";
      xsort=xsort:yes/no.
 */
 
 /* (declarations) */
-/* (functions) */
 
-int internal_cmd_set (void);
+/* (_functions) */
+
+static int
+aux_stc_custom_blanks(struct cmd_set *cmd UNUSED)
+{
+  if ( set_blanks == SYSMIS ) 
+    msg(MM, "SYSMIS");
+  else
+    msg(MM, "%g", set_blanks);
+  return 0;
+}
+
+
+static int
+aux_stc_custom_color(struct cmd_set *cmd UNUSED)
+{
+  msg (MW, _("%s is obsolete."),"COLOR");
+  return 0;
+}
+
+static int
+aux_stc_custom_listing(struct cmd_set *cmd UNUSED)
+{
+  if ( set_listing ) 
+    msg(MM, _("LISTING is ON"));
+  else
+    msg(MM, _("LISTING is OFF"));
+
+  return 0;
+}
+
+static int
+aux_stc_custom_disk(struct cmd_set *cmd UNUSED)
+{
+  return aux_stc_custom_listing(cmd);
+}
+
+static int
+aux_stc_custom_format(struct cmd_set *cmd UNUSED)
+{
+  msg(MM, fmt_to_string(&set_format));
+  return 0;
+}
+
+
+
+static int
+aux_stc_custom_journal(struct cmd_set *cmd UNUSED)
+{
+  if (set_journaling) 
+    msg(MM, set_journal);
+  else
+    msg(MM, _("Journalling is off") );
+	
+  return 0;
+}
+
+static int
+aux_stc_custom_length(struct cmd_set *cmd UNUSED)
+{
+  msg(MM, "%d", set_viewlength);
+  return 0;
+}
+
+static int
+aux_stc_custom_log(struct cmd_set *cmd )
+{
+  return aux_stc_custom_journal (cmd);
+}
+
+static int
+aux_stc_custom_pager(struct cmd_set *cmd UNUSED)
+{
+#if !USE_INTERNAL_PAGER 
+  if ( set_pager ) 
+    msg(MM, set_pager);
+  else
+    msg(MM, "No pager");
+#else /* USE_INTERNAL_PAGER */
+  msg (MM, "Internal pager.");
+#endif /* USE_INTERNAL_PAGER */
+
+  return 0;
+}
+
+static int
+aux_stc_custom_rcolor(struct cmd_set *cmd UNUSED)
+{
+  msg (SW, _("%s is obsolete."),"RCOLOR");
+  return 0;
+}
+
+static int
+aux_stc_custom_results(struct cmd_set *cmd UNUSED)
+{
+  
+  msg(MM, route_to_string(set_results) );
+
+  return 0;
+}
+
+static int
+aux_stc_custom_seed(struct cmd_set *cmd UNUSED)
+{
+  msg(MM, "%ld",set_seed);
+  return 0;
+}
+
+static int
+aux_stc_custom_viewlength(struct cmd_set *cmd UNUSED)
+{
+  msg(MM, "%d", set_viewlength);
+  return 0;
+}
+
+static int
+aux_stc_custom_viewwidth(struct cmd_set *cmd UNUSED)
+{
+  msg(MM, "%d", set_viewwidth);
+  return 0;
+}
+
+static int
+aux_stc_custom_width(struct cmd_set *cmd UNUSED)
+{
+  msg(MM, "%d", set_viewwidth);
+  return 0;
+}
+
+static int
+aux_stc_custom_workdev(struct cmd_set *cmd UNUSED)
+{
+  msg (SW, _("%s is obsolete."),"WORKDEV");
+  return 0;
+}
+
+
+
+/* (aux_functions) 
+     warranty=show_warranty;
+     copying=show_copying.
+*/
+
+
+static struct cmd_set cmd;
+
+int
+cmd_show (void)
+{
+  lex_match_id ("SHOW");
+
+  if (!aux_parse_set (&cmd))
+    return CMD_FAILURE;
+
+  return CMD_SUCCESS;
+}
 
 int
 cmd_set (void)
 {
-  struct cmd_set cmd;
 
   lex_match_id ("SET");
 
   if (!parse_set (&cmd))
     return CMD_FAILURE;
 
-  if (cmd.sbc_block)
-    msg (SW, _("%s is obsolete."),"BLOCK");
-
-  if (cmd.sbc_boxstring)
-    msg (SW, _("%s is obsolete."),"BOXSTRING");
-
-  if (cmd.compress != -1)
-    {
-      msg (MW, _("Active file compression is not yet implemented "
-		 "(and probably won't be)."));
-      set_compression = cmd.compress == STC_OFF ? 0 : 1;
-    }
-  if (cmd.scompress != -1)
-    set_scompression = cmd.scompress == STC_OFF ? 0 : 1;
-  if (cmd.n_cpi != NOT_LONG)
-    {
-      if (cmd.n_cpi <= 0)
-	msg (SE, _("CPI must be greater than 0."));
-      else
-	set_cpi = cmd.n_cpi;
-    }
-  if (cmd.sbc_histogram)
-    msg (MW, _("%s is obsolete."),"HISTOGRAM");
-  if (cmd.n_lpi != NOT_LONG)
-    {
-      if (cmd.n_lpi <= 0)
-	msg (SE, _("LPI must be greater than 0."));
-      else
-	set_lpi = cmd.n_lpi;
-    }
-  
-  /* Windows compatible syntax. */
-  if (cmd.sbc_case)
-    msg (SW, _("CASE is not implemented and probably won't be.  If you care, "
-	       "complain about it."));
   if (cmd.sbc_cca)
     set_ccx (cmd.s_cca, &set_cc[0], 'A');
   if (cmd.sbc_ccb)
@@ -258,135 +373,60 @@ cmd_set (void)
     set_ccx (cmd.s_ccd, &set_cc[3], 'D');
   if (cmd.sbc_cce)
     set_ccx (cmd.s_cce, &set_cc[4], 'E');
-  if (cmd.dec != -1)
-    {
-      set_decimal = cmd.dec == STC_DOT ? '.' : ',';
-      set_grouping = cmd.dec == STC_DOT ? ',' : '.';
-    }
-  if (cmd.errors != -1)
+
+  if (cmd.sbc_errors)
     set_routing (cmd.errors, &set_errors);
-  if (cmd.headers != -1)
-    set_headers = cmd.headers == STC_NO ? 0 : (cmd.headers == STC_YES ? 1 : 2);
-  if (cmd.messages != -1)
+  if (cmd.sbc_messages)
     set_routing (cmd.messages, &set_messages);
-  if (cmd.mexp != -1)
-    set_mexpand = cmd.mexp == STC_OFF ? 0 : 1;
-  if (cmd.n_miterate != NOT_LONG)
-    {
-      if (cmd.n_miterate > 0)
-	set_miterate = cmd.n_miterate;
-      else
-	msg (SE, _("Value for MITERATE (%ld) must be greater than 0."),
-	     cmd.n_miterate);
-    }
-  if (cmd.n_mnest != NOT_LONG)
-    {
-      if (cmd.n_mnest > 0)
-	set_mnest = cmd.n_mnest;
-      else
-	msg (SE, _("Value for MNEST (%ld) must be greater than 0."),
-	     cmd.n_mnest);
-    }
-  if (cmd.mprint != -1)
-    set_mprint = cmd.mprint == STC_OFF ? 0 : 1;
-  if (cmd.n_mxerrs != NOT_LONG)
-    {
-      if (set_mxerrs < 1)
-	msg (SE, _("MXERRS must be at least 1."));
-      else
-	set_mxerrs = cmd.n_mxerrs;
-    }
-  if (cmd.n_mxloops != NOT_LONG)
-    {
-      if (set_mxloops < 1)
-	msg (SE, _("MXLOOPS must be at least 1."));
-      else
-	set_mxloops = cmd.n_mxloops;
-    }
-  if (cmd.n_mxmemory != NOT_LONG)
-    msg (SE, _("%s is obsolete."),"MXMEMORY");
-  if (cmd.n_mxwarns != NOT_LONG)
-    set_mxwarns = cmd.n_mxwarns;
-  if (cmd.prtbck != -1)
-    set_printback = cmd.prtbck == STC_OFF ? 0 : 1;
-  if (cmd.s_scripttab)
-    msg (SE, _("%s is obsolete."),"SCRIPTTAB");
-  if (cmd.s_tbfonts)
-    msg (SW, _("%s is not yet implemented."),"TBFONTS");
-  if (cmd.s_tb1)
-    msg (SW, _("%s is not yet implemented."),"TB1");
-  if (cmd.undef != -1)
-    set_undefined = cmd.undef == STC_NOWARN ? 0 : 1;
-  if (cmd.n_workspace != NOT_LONG) 
-    {
-      if (cmd.n_workspace < 1024)
-        msg (SE, _("Workspace limit must be at least 1 MB."));
-      else
-        {
-          if (cmd.n_workspace > (size_t) -1 / 1024)
-            set_max_workspace = -1;
-          else
-            set_max_workspace = 1024 * cmd.n_workspace; 
-        }
-    }
 
   /* PC+ compatible syntax. */
-  if (cmd.scrn != -1)
+  if (cmd.sbc_screen)
     outp_enable_device (cmd.scrn == STC_OFF ? 0 : 1, OUTP_DEV_SCREEN);
-
-  if (cmd.automenu != -1)
-    msg (SW, _("%s is obsolete."),"AUTOMENU");
-  if (cmd.beep != -1)
-    msg (SW, _("%s is obsolete."),"BEEP");
-
-  if (cmd.s_cprompt)
-    {
-      free (set_cprompt);
-      set_cprompt = cmd.s_cprompt;
-      cmd.s_cprompt = NULL;
-    }
-  if (cmd.s_dprompt)
-    {
-      free (set_dprompt);
-      set_dprompt = cmd.s_dprompt;
-      cmd.s_dprompt = NULL;
-    }
-  if (cmd.echo != -1)
-    set_echo = cmd.echo == STC_OFF ? 0 : 1;
-  if (cmd.s_endcmd)
-    set_endcmd = cmd.s_endcmd[0];
-  if (cmd.eject != -1)
-    msg (SW, _("%s is obsolete."),"EJECT");
-  if (cmd.errbrk != -1)
-    set_errorbreak = cmd.errbrk == STC_OFF ? 0 : 1;
-  if (cmd.helpwin != -1)
-    msg (SW, _("%s is obsolete."),"HELPWINDOWS");
-  if (cmd.inc != -1)
-    set_include = cmd.inc == STC_OFF ? 0 : 1;
-  if (cmd.menus != -1)
-    msg (MW, _("%s is obsolete."),"MENUS");
-  if (cmd.null != -1)
-    set_nullline = cmd.null == STC_OFF ? 0 : 1;
-  if (cmd.more != -1)
-    set_more = cmd.more == STC_OFF ? 0 : 1;
-  if (cmd.prtr != -1)
+  if (cmd.sbc_printer)
     outp_enable_device (cmd.prtr == STC_OFF ? 0 : 1, OUTP_DEV_PRINTER);
-  if (cmd.s_prompt)
-    {
-      free (set_prompt);
-      set_prompt = cmd.s_prompt;
-      cmd.s_prompt = NULL;
-    }
-  if (cmd.ptrans != -1)
-    msg (SW, _("%s is obsolete."),"PTRANSLATE");
-  if (cmd.runrev != -1)
-    msg (SW, _("%s is obsolete."),"RUNREVIEW");
-  if (cmd.safe == STC_ON)
-    set_safer = 1;
-  if (cmd.xsort != -1)
-    msg (SW, _("%s is obsolete."),"XSORT");
 
-  free_set (&cmd);
+  if (cmd.sbc_automenu )
+    msg (SW, _("%s is obsolete."),"AUTOMENU");
+  if (cmd.sbc_beep )
+    msg (SW, _("%s is obsolete."),"BEEP");
+  if (cmd.sbc_block)
+    msg (SW, _("%s is obsolete."),"BLOCK");
+  if (cmd.sbc_boxstring)
+    msg (SW, _("%s is obsolete."),"BOXSTRING");
+  if (cmd.sbc_eject )
+    msg (SW, _("%s is obsolete."),"EJECT");
+  if (cmd.sbc_helpwindows )
+    msg (SW, _("%s is obsolete."),"HELPWINDOWS");
+  if (cmd.sbc_histogram)
+    msg (MW, _("%s is obsolete."),"HISTOGRAM");
+  if (cmd.sbc_menus )
+    msg (MW, _("%s is obsolete."),"MENUS");
+  if (cmd.sbc_ptranslate )
+    msg (SW, _("%s is obsolete."),"PTRANSLATE");
+  if (cmd.sbc_runreview )
+    msg (SW, _("%s is obsolete."),"RUNREVIEW");
+  if (cmd.sbc_xsort )
+    msg (SW, _("%s is obsolete."),"XSORT");
+  if (cmd.sbc_mxmemory )
+    msg (SE, _("%s is obsolete."),"MXMEMORY");
+  if (cmd.sbc_scripttab)
+    msg (SE, _("%s is obsolete."),"SCRIPTTAB");
+
+  if (cmd.sbc_tbfonts)
+    msg (SW, _("%s is not yet implemented."),"TBFONTS");
+  if (cmd.sbc_tb1 && cmd.s_tb1)
+    msg (SW, _("%s is not yet implemented."),"TB1");
+
+  /* Windows compatible syntax. */
+  if (cmd.sbc_case)
+    msg (SW, _("CASE is not implemented and probably won't be.  "
+	"If you care, complain about it."));
+
+  if (cmd.sbc_compression)
+    {
+      msg (MW, _("Active file compression is not yet implemented "
+		 "(and probably won't be)."));
+    }
 
   return CMD_SUCCESS;
 }
@@ -463,6 +503,50 @@ set_ccx (const char *cc_string, struct set_cust_currency * cc, int cc_name)
   return 1;
 }
 
+
+const char *
+route_to_string(int routing)
+{
+  static char s[255];
+  
+  s[0]='\0';
+
+  if ( routing == 0 )
+    {
+      strcpy(s, _("None"));
+      return s;
+    }
+
+  if (routing & SET_ROUTE_DISABLE ) 
+    {
+    strcpy(s, _("Disabled") );
+    return s;
+    }
+
+  if (routing & SET_ROUTE_SCREEN)
+    strcat(s, _("Screen") );
+  
+  if (routing & SET_ROUTE_LISTING)
+    {
+      if(s[0] != '\0') 
+	strcat(s,", ");
+	
+      strcat(s, _("Listing") );
+    }
+
+  if (routing & SET_ROUTE_OTHER)
+    {
+      if(s[0] != '\0') 
+	strcat(s,", ");
+      strcat(s, _("Other") );
+    }
+ 
+    
+  return s;
+  
+    
+}
+
 /* Sets *SETTING, which is a combination of SET_ROUTE_* bits that
    indicates what to do with some sort of output, to the value
    indicated by Q, which is a value provided by the input parser. */
@@ -471,10 +555,10 @@ set_routing (int q, int *setting)
 {
   switch (q)
     {
-    case STC_ON:
+    case STC_OFF:
       *setting |= SET_ROUTE_DISABLE;
       break;
-    case STC_OFF:
+    case STC_ON:
       *setting &= ~SET_ROUTE_DISABLE;
       break;
     case STC_TERMINAL:
@@ -570,7 +654,9 @@ stc_custom_length (struct cmd_set *cmd UNUSED)
       lex_get ();
     }
 
-  /* FIXME: Set page length. */
+  if ( page_length != -1 ) 
+    set_viewlength = page_length;
+
   return 1;
 }
 
@@ -620,7 +706,7 @@ stc_custom_seed (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("RANDOM"))
-    set_seed = NOT_LONG;
+    set_seed = random_seed();
   else
     {
       if (!lex_force_num ())
@@ -628,7 +714,8 @@ stc_custom_seed (struct cmd_set *cmd UNUSED)
       set_seed = tokval;
       lex_get ();
     }
-  set_seed_used=1;
+  seed_flag = 1;
+
   return 1;
 }
 
@@ -655,7 +742,7 @@ stc_custom_width (struct cmd_set *cmd UNUSED)
       lex_get ();
     }
 
-  /* FIXME: Set page width. */
+  set_viewwidth = page_width;
   return 1;
 }
 
@@ -755,29 +842,29 @@ stc_custom_listing (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("ON") || lex_match_id ("YES"))
-    outp_enable_device (1, OUTP_DEV_LISTING);
+    set_listing = 1;
   else if (lex_match_id ("OFF") || lex_match_id ("NO"))
-    outp_enable_device (0, OUTP_DEV_LISTING);
+    set_listing = 0;
   else
     {
       /* FIXME */
+      return 0;
     }
+  outp_enable_device (set_listing, OUTP_DEV_LISTING);
 
-  return 0;
+  return 1;
 }
 
 static int
 stc_custom_disk (struct cmd_set *cmd UNUSED)
 {
-  stc_custom_listing (cmd);
-  return 0;
+  return stc_custom_listing (cmd);
 }
 
 static int
 stc_custom_log (struct cmd_set *cmd UNUSED)
 { 
-  stc_custom_journal (cmd);
-  return 0;
+  return stc_custom_journal (cmd);
 }
 
 static int
@@ -830,6 +917,20 @@ stc_custom_rcolor (struct cmd_set *cmd UNUSED)
 }
 
 static int
+stc_custom_viewwidth (struct cmd_set *cmd UNUSED)
+{
+  lex_match ('=');
+
+  if ( !lex_force_int() ) 
+    return 0;
+
+  set_viewwidth = lex_integer();
+  lex_get();
+  
+  return 1;
+}
+
+static int
 stc_custom_viewlength (struct cmd_set *cmd UNUSED)
 {
   if (lex_match_id ("MINIMUM"))
@@ -876,6 +977,353 @@ stc_custom_workdev (struct cmd_set *cmd UNUSED)
   msg (SE, _("Drive letter expected in WORKDEV subcommand."));
   return 0;
 }
+
+
+
+static void 
+set_viewport(void)
+{
+#if HAVE_LIBTERMCAP
+  static char term_buffer[16384];
+#endif
+
+  /* Workable defaults before we determine the real terminal size. */
+  set_viewwidth = 79;
+  set_viewlength = 24;
+
+
+
+#if __DJGPP__ || __BORLANDC__
+  {
+    struct text_info ti;
+
+    gettextinfo (&ti);
+    set_viewlength = max (ti.screenheight, 25);
+    set_viewwidth = max (ti.screenwidth, 79);
+  }
+#elif HAVE_LIBTERMCAP
+  {
+    char *termtype;
+    int success;
+
+    /* This code stolen from termcap.info, though modified. */
+    termtype = getenv ("TERM");
+    if (!termtype)
+      msg (FE, _("Specify a terminal type with `setenv TERM <yourtype>'."));
+
+    success = tgetent (term_buffer, termtype);
+    if (success <= 0)
+      {
+	if (success < 0)
+	  msg (IE, _("Could not access the termcap data base."));
+	else
+	  msg (IE, _("Terminal type `%s' is not defined."), termtype);
+      }
+    else
+      {
+	set_viewlength = tgetnum ("li");
+	set_viewwidth = tgetnum ("co") - 1;
+      }
+  }
+#else
+  {
+  char *s;
+
+  /* Try the environment variables */
+  s = getenv("COLUMNS");
+  if ( s )  set_viewwidth = atoi(s);
+
+  s = getenv("LINES");
+  if ( s )  set_viewlength = atoi(s);
+  }
+#endif /* !HAVE_LIBTERMCAP */
+
+}
+
+/* Public functions */
+
+void
+init_settings(void)
+{
+  cmd.s_dprompt = xstrdup (_("data> "));
+  cmd.s_cprompt = xstrdup ("    > ");  
+  cmd.s_prompt = xstrdup ("PSPP> ");
+  cmd.s_endcmd = xstrdup (".");
+
+  assert(cmd.safe == 0 );
+  cmd.safe = STC_OFF;
+
+  cmd.dec = STC_DOT;
+  cmd.n_cpi = 6;
+  cmd.n_lpi = 10;
+  cmd.echo = STC_OFF;
+  cmd.more = STC_ON;
+  cmd.headers = STC_YES;
+  cmd.errbrk = STC_OFF;
+
+  cmd.scompress = STC_OFF;
+  cmd.undef = STC_WARN;
+  cmd.mprint = STC_ON ;
+  cmd.prtbck = STC_ON ;
+  cmd.null = STC_ON ;
+  cmd.inc = STC_ON ;
+
+  set_journal = xstrdup ("pspp.jnl");
+  set_journaling = 1;
+
+  cmd.n_mxwarns = 100;
+  cmd.n_mxerrs = 100;
+  cmd.n_mxloops = 1;
+  cmd.n_workspace = 4L * 1024 * 1024;
+
+
+#if !USE_INTERNAL_PAGER
+  {
+    char *pager;
+
+    pager = getenv ("STAT_PAGER");
+    if (!pager)  set_pager = getenv ("PAGER");
+
+    if (pager)  
+      set_pager = xstrdup (pager);
+#if DEFAULT_PAGER
+    else
+      set_pager = xstrdup (DEFAULT_PAGER);
+#endif /* DEFAULT_PAGER */
+  }
+#endif /* !USE_INTERNAL_PAGER */
+
+
+  {
+    int i;
+    
+    for (i = 0; i < 5; i++)
+      {
+	struct set_cust_currency *cc = &set_cc[i];
+	strcpy (cc->buf, "-");
+	cc->neg_prefix = cc->buf;
+	cc->prefix = &cc->buf[1];
+	cc->suffix = &cc->buf[1];
+	cc->neg_suffix = &cc->buf[1];
+	cc->decimal = '.';
+	cc->grouping = ',';
+      }
+  }
+
+  if ( ! long_view )
+    {
+      set_viewport();
+      signal (SIGWINCH,set_viewport);
+    }
+
+}
+
+void
+force_long_view(void)
+{
+  long_view = 1;
+  set_viewwidth=9999;
+}
+
+int 
+safer_mode(void)
+{
+  return !(cmd.safe != STC_ON) ;
+}
+
+
+/* Set safer mode */
+void
+make_safe(void)
+{
+  cmd.safe = STC_ON;
+}
+
+
+char 
+get_decimal(void)
+{
+  return (cmd.dec == STC_DOT ? '.' : ',');
+}
+
+
+char
+get_grouping(void)
+{
+  return (cmd.dec == STC_DOT ? ',' : '.');
+}
+ 
+
+char * 
+get_prompt(void)
+{
+  return cmd.s_prompt;
+}
+
+char * 
+get_dprompt(void)
+{
+  return cmd.s_dprompt;
+}
+
+char * 
+get_cprompt(void)
+{
+  return cmd.s_cprompt;
+}
+
+
+int
+get_echo(void)
+{
+    return (cmd.echo != STC_OFF );
+}
+
+
+int 
+get_errorbreak(void)
+{
+  return (cmd.errbrk != STC_OFF);
+}
+
+
+int 
+get_scompression(void)
+{
+  return (cmd.scompress != STC_OFF );
+}
+
+int
+get_undefined(void)
+{
+  return (cmd.undef != STC_NOWARN);
+}
+
+int
+get_mxwarns(void)
+{  
+  return cmd.n_mxwarns;
+}
+
+int
+get_mxerrs(void)
+{
+  return cmd.n_mxerrs;
+}
+
+int
+get_mprint(void)
+{
+  return ( cmd.mprint != STC_OFF );
+}
+
+int
+get_printback(void)
+{
+  return (cmd.prtbck != STC_OFF );
+}
+
+int
+get_mxloops(void)
+{
+  return cmd.n_mxloops;
+}
+
+int
+get_nullline(void)
+{
+  return (cmd.null != STC_OFF );
+}
+
+int
+get_include(void)
+{
+ return (cmd.inc != STC_OFF );
+}
+
+unsigned char
+get_endcmd(void)
+{
+  return cmd.s_endcmd[0];
+}
+
+
+size_t
+get_max_workspace(void)
+{
+  return cmd.n_workspace;
+}
+
+double
+get_blanks(void)
+{
+  return set_blanks;
+}
+
+struct fmt_spec 
+get_format(void)
+{ 
+  return set_format;
+}
+
+/* CCA through CCE. */
+const struct set_cust_currency *
+get_cc(int i)
+{
+  return &set_cc[i];
+}
+
+void
+aux_show_warranty(void)
+{
+  msg(MM,lack_of_warranty);
+}
+
+void
+aux_show_copying(void)
+{
+  msg(MM,copyleft);
+}
+
+
+int
+get_viewlength(void)
+{
+  return set_viewlength;
+}
+
+int
+get_viewwidth(void)
+{
+  return set_viewwidth;
+}
+
+const char *
+get_pager(void)
+{
+  return set_pager;
+}
+
+/* Return 1 if the seed has been set since the last time this function
+   was called.
+   Fill the value pointed to by seed with the seed .
+*/
+int
+seed_is_set(unsigned long *seed)
+{
+  int result = 0;
+
+  *seed = set_seed ;
+
+  if ( seed_flag ) 
+    result = 1;
+  
+  seed_flag = 0;
+
+  return result;
+    
+}
+
 
 /*
    Local Variables:

@@ -40,15 +40,40 @@ struct rng
     double next_normal;
   };
 
+
+/* Return a `random' seed by using the real time clock */
+unsigned long
+random_seed(void)
+{
+  time_t t;
+  
+  time(&t);
+
+  return (unsigned long) t;
+}
+
 /* Creates a new random number generator, seeds it based on
    the current time, and returns it. */
 struct rng *
 rng_create (void) 
 {
   struct rng *rng;
-  static time_t t=0;
+  static unsigned long seed=0;
+  unsigned long s;
 
   rng = xmalloc (sizeof *rng);
+
+
+  if ( seed_is_set(&s) ) 
+    {
+      seed = s;
+    }
+  else if ( seed == 0 ) 
+    {
+      seed = random_seed();
+    }
+  assert(seed);
+  /* 
   if (t == 0 || set_seed_used)
   {
     if (set_seed == NOT_LONG) 
@@ -59,7 +84,8 @@ rng_create (void)
   }
   else
     t++;
-  rng_seed (rng, &t, sizeof t);
+  */
+  rng_seed (rng, &seed, sizeof seed);
   rng->next_normal = NOT_DOUBLE;
   return rng;
 }

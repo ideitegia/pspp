@@ -839,7 +839,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 	  input.type = FMT_F;
 	  input.w = 8;
 	  input.d = 0;
-	  output = set_format;
+	  output = get_format();
 	}
 
       if (input.type == FMT_A || input.type == FMT_AHEX)
@@ -1129,7 +1129,7 @@ read_from_data_list_list (const struct data_list_pgm *dls,
       
       if (column == 0)
 	{
-	  if (set_undefined)
+	  if (get_undefined() )
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
 		 "These will be filled with the system-missing value "
 		 "or blanks, as appropriate."),

@@ -74,7 +74,7 @@ char *outp_subtitle;
 
 /* A set of OUTP_DEV_* bits indicating the devices that are
    disabled. */
-int disabled_devices;
+static int disabled_devices;
 
 static void destroy_driver (struct outp_driver *);
 static void configure_driver (char *);
@@ -206,12 +206,12 @@ find_defn_value (const char *key)
       return d->value;
   if (!strcmp (key, "viewwidth"))
     {
-      sprintf (buf, "%d", set_viewwidth);
+      sprintf (buf, "%d", get_viewwidth());
       return buf;
     }
   else if (!strcmp (key, "viewlength"))
     {
-      sprintf (buf, "%d", set_viewlength);
+      sprintf (buf, "%d", get_viewlength());
       return buf;
     }
   else
@@ -455,7 +455,7 @@ outp_done (void)
 void
 outp_list_classes (void)
 {
-  int width = set_viewwidth;
+  int width = get_viewwidth();
   struct outp_driver_class_list *c;
 
   printf (_("Driver classes:\n\t"));
@@ -465,7 +465,7 @@ outp_list_classes (void)
       if ((int) strlen (c->class->name) + 1 > width)
 	{
 	  printf ("\n\t");
-	  width = set_viewwidth - 8;
+	  width = get_viewwidth() - 8;
 	}
       else
 	putc (' ', stdout);

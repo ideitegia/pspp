@@ -8057,6 +8057,7 @@ encountered in the input.
 * INCLUDE::                     Include a file within the current one.
 * QUIT::                        Terminate the PSPP session.
 * SET::                         Adjust PSPP runtime parameters.
+* SHOW::                        Display runtime parameters.
 * SUBTITLE::                    Provide a document subtitle.
 * TITLE::                       Provide a document title.
 @end menu
@@ -8236,7 +8237,7 @@ to the operating system.
 
 This command is not valid within a command file.
 
-@node SET, SUBTITLE, QUIT, Utilities
+@node SET, SHOW, QUIT, Utilities
 @section SET
 @vindex SET
 
@@ -8551,7 +8552,33 @@ Be aware that this setting does not guarantee safety (commands can still
 overwrite files, for instance) but it is an improvement.
 @end table
 
-@node SUBTITLE, TITLE, SET, Utilities
+@node SHOW, SUBTITLE, SET, Utilities
+@comment  node-name,  next,  previous,  up
+@section SHOW
+@vindex SHOW
+
+@display
+SHOW
+        /@var{subcommand}
+        
+@end display
+
+@cmd{SHOW} can be used to display the current state of PSPP's
+execution parameters.  All of the parameters which can be changed 
+using  @code{SET} @xref{SET}, can be examined using @cmd{SHOW}, by
+using a subcommand with the same name.
+In addition, @code{SHOW} supports the following subcommands:
+
+@table @code
+@item WARRANTY
+Show details of the lack of warranty for PSPP.
+@item COPYING
+Display the terms of PSPP's copyright licence @ref{License}.
+@end table
+
+
+
+@node SUBTITLE, TITLE, SHOW, Utilities
 @section SUBTITLE
 @vindex SUBTITLE
 

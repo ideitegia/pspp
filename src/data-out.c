@@ -413,8 +413,8 @@ convert_E (char *dst, const struct fmt_spec *fp, double number)
 
   /* The C locale always uses a period `.' as a decimal point.
      Translate to comma if necessary. */
-  if ((set_decimal == ',' && fp->type != FMT_DOT)
-      || (set_decimal == '.' && fp->type == FMT_DOT))
+  if ((get_decimal() == ',' && fp->type != FMT_DOT)
+      || (get_decimal() == '.' && fp->type == FMT_DOT))
     {
       char *cp = strchr (buf, '.');
       if (cp)
@@ -1026,7 +1026,7 @@ insert_commas (char *dst, const char *src, const struct fmt_spec *fp)
       if (i % 3 == 0 && n_digits > i && n_items > n_reserved)
 	{
 	  n_items--;
-	  *dst++ = fp->type == FMT_COMMA ? set_grouping : set_decimal;
+	  *dst++ = fp->type == FMT_COMMA ? get_grouping() : get_decimal();
 	}
       *dst++ = *sp++;
     }
@@ -1052,7 +1052,7 @@ year4 (int year)
 static int
 try_CCx (char *dst, const struct fmt_spec *fp, double number)
 {
-  struct set_cust_currency *cc = &set_cc[fp->type - FMT_CCA];
+  const struct set_cust_currency *cc = get_cc(fp->type - FMT_CCA);
 
   struct fmt_spec f;
 
@@ -1062,7 +1062,7 @@ try_CCx (char *dst, const struct fmt_spec *fp, double number)
 
   /* Determine length available, decimal character for number
      proper. */
-  f.type = cc->decimal == set_decimal ? FMT_COMMA : FMT_DOT;
+  f.type = cc->decimal == get_decimal() ? FMT_COMMA : FMT_DOT;
   f.w = fp->w - strlen (cc->prefix) - strlen (cc->suffix);
   if (number < 0)
     f.w -= strlen (cc->neg_prefix) + strlen (cc->neg_suffix) - 1;
@@ -1297,8 +1297,8 @@ try_F (char *dst, const struct fmt_spec *fp, double number)
       if (n == n_int + n_dec)
 	{
 	  /* Convert periods `.' to commas `,' for our foreign friends. */
-	  if ((set_decimal == ',' && fp->type != FMT_DOT)
-	      || (set_decimal == '.' && fp->type == FMT_DOT))
+	  if ((get_decimal() == ',' && fp->type != FMT_DOT)
+	      || (get_decimal() == '.' && fp->type == FMT_DOT))
 	    {
 	      cp = strchr (cp, '.');
 	      if (cp)

@@ -350,40 +350,50 @@ ds_concat_buffer (struct string *st, const char *buf, size_t len)
   st->length += len;
 }
 
+void ds_vprintf (struct string *st, const char *format, va_list args);
+
+
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
 ds_printf (struct string *st, const char *format, ...)
+{
+  va_list args;
+
+  va_start (args, format);
+  ds_vprintf(st,format,args);
+  va_end (args);
+
+}
+
+/* Formats FORMAT as a printf string and appends the result to ST. */
+void
+ds_vprintf (struct string *st, const char *format, va_list args)
 {
   /* Fscking glibc silently changed behavior between 2.0 and 2.1.
      Fsck fsck fsck.  Before, it returned -1 on buffer overflow.  Now,
      it returns the number of characters (not bytes) that would have
      been written. */
-  va_list args;
 
   int avail, needed;
 
-  va_start (args, format);
   avail = st->size - st->length + 1;
   needed = vsnprintf (st->string + st->length, avail, format, args);
-  va_end (args);
+
 
   if (needed >= avail)
     {
       ds_extend (st, st->length + needed);
       
-      va_start (args, format);
       vsprintf (st->string + st->length, format, args);
-      va_end (args);
     }
   else
     while (needed == -1)
       {
 	ds_extend (st, (st->size + 1) * 2);
 	avail = st->size - st->length + 1;
-	
-	va_start (args, format);
+
 	needed = vsnprintf (st->string + st->length, avail, format, args);
-	va_end (args);
+
       }
 
   st->length += needed;

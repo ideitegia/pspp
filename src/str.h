@@ -180,6 +180,7 @@ int ds_get_config_line (FILE *, struct string *, struct file_locator *);
 void ds_putchar (struct string *, int ch);
 void ds_concat (struct string *, const char *);
 void ds_concat_buffer (struct string *, const char *buf, size_t len);
+void ds_vprintf (struct string *st, const char *format, va_list args);
 void ds_printf (struct string *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 

@@ -107,7 +107,7 @@ vec_print (const struct vector *vec)
 
   for (i = 0; i < vec->n; i++)
     {
-      if (i % ((set_viewwidth - 4) / 8) == 0)
+      if (i % ((get_viewwidth() - 4) / 8) == 0)
 	{
 	  if (i)
 	    putchar ('\n');

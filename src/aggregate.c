@@ -326,7 +326,7 @@ create_sysfile (struct agr_proc *agr)
   struct sfm_write_info w;
   w.h = agr->out_file;
   w.dict = agr->dict;
-  w.compress = set_scompression;
+  w.compress = get_scompression();
   if (!sfm_write_dictionary (&w))
     return 0;
 

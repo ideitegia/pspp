@@ -794,12 +794,12 @@ lex_preprocess_line (void)
       len--;
 
     /* Check for and remove terminal dot. */
-    if (len > 0 && s[len - 1] == set_endcmd)
+    if (len > 0 && s[len - 1] == get_endcmd() )
       {
 	dot = 1;
 	len--;
       }
-    else if (len == 0 && set_nullline)
+    else if (len == 0 && get_nullline() )
       dot = 1;
     else
       dot = 0;

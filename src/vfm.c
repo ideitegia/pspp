@@ -492,7 +492,7 @@ storage_sink_open (struct case_sink *sink)
   else 
     {
       info->mode = MEMORY; 
-      info->max_cases = (set_max_workspace
+      info->max_cases = (get_max_workspace()
                          / (sizeof (struct case_list) + info->case_size));
     }
 }
@@ -598,7 +598,7 @@ storage_sink_write (struct case_sink *sink, const struct ccase *c)
           workspace_overflow = 1;
           msg (MW, _("Workspace limit of %d KB (%d cases at %d bytes each) "
                      "overflowed.  Writing active file to disk."),
-               set_max_workspace / 1024, info->max_cases,
+               get_max_workspace() / 1024, info->max_cases,
                sizeof (struct case_list) + info->case_size);
 
           storage_to_disk (info, sink->value_cnt);

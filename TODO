@@ -16,8 +16,6 @@ In debug mode hash table code should verify that collisions are reasonably low.
 
 Use posix_fadvise(POSIX_FADV_SEQUENTIAL) where available.
 
-random.c should not know about set_seed.
-
 Use AFM files instead of Groff font files, and include AFMs for our default
 fonts with the distribution.
 

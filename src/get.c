@@ -299,7 +299,7 @@ static int rename_variables (struct dictionary * dict);
 static int
 trim_dictionary (struct dictionary *dict, int *options)
 {
-  if (set_scompression)
+  if (get_scompression())
     *options |= GTSV_OPT_COMPRESSED;
 
   if (*options & GTSV_OPT_SAVE)

@@ -57,6 +57,8 @@ extern int write_history (char *);
 #endif /* no readline/history.h */
 #endif /* -lhistory */
 
+extern struct cmd_set cmd;
+
 static struct string getl_include_path;
 
 /* Number of levels of DO REPEAT structures we're nested inside.  If
@@ -334,7 +336,7 @@ getl_read_line (void)
       if (ds_length (&getl_buf) > 0 && ds_end (&getl_buf)[-1] == '\n')
 	ds_truncate (&getl_buf, ds_length (&getl_buf) - 1);
 
-      if (set_echo)
+      if (get_echo())
 	tab_output_text (TAB_LEFT | TAT_FIX, ds_value (&getl_buf));
 
       getl_head->ln++;
@@ -436,15 +438,15 @@ read_console (void)
   switch (getl_prompt)
     {
     case GETL_PRPT_STANDARD:
-      prompt = set_prompt;
+      prompt = get_prompt();
       break;
 
     case GETL_PRPT_CONTINUATION:
-      prompt = set_cprompt;
+      prompt = get_cprompt();
       break;
 
     case GETL_PRPT_DATA:
-      prompt = set_dprompt;
+      prompt = get_dprompt();
       break;
 
     default:
@@ -472,7 +474,7 @@ read_console (void)
   err_error_count = err_warning_count = 0;
   err_already_flagged = 0;
 
-  fputs (getl_prompt ? set_cprompt : set_prompt, stdout);
+  fputs (getl_prompt ? get_cprompt() : get_prompt(), stdout);
   ds_clear (&getl_buf);
   if (ds_getline (&getl_buf, stdin))
     return 1;

@@ -418,7 +418,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c,
   if (two->flags == 0)
     {
       two->pass++;
-      if (two->pass > set_mxloops)
+      if (two->pass > get_mxloops() )
          return two->loop_term;
     }
 

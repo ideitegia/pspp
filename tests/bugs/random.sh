@@ -63,10 +63,12 @@ list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
+activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
+activity="compare output"
 diff -b -B -w $TEMPDIR/pspp.list - << EOF
       R1
 --------

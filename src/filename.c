@@ -695,7 +695,7 @@ fn_open (const char *fn, const char *mode)
 #ifdef unix
   if (fn[0] == '|')
     {
-      if (set_safer)
+      if (safer_mode())
 	return safety_violation (fn);
 
       return popen (&fn[1], mode);
@@ -705,7 +705,7 @@ fn_open (const char *fn, const char *mode)
       char *s;
       FILE *f;
 
-      if (set_safer)
+      if (safer_mode())
 	return safety_violation (fn);
       
       s = local_alloc (strlen (fn));

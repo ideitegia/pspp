@@ -231,7 +231,7 @@ do_internal_sort (struct sort_cases_pgm *scp, int separate)
       if (case_cnt <= 0)
         return isrt;
 
-      if (case_cnt > set_max_workspace / sizeof *case_array)
+      if (case_cnt > get_max_workspace() / sizeof *case_array)
         goto error;
 
       case_list = storage_source_get_cases (vfm_source);
@@ -780,7 +780,7 @@ allocate_cases (struct initial_run_state *irs)
                       + sizeof *irs->free_list
                       + irs->xsrt->scp->case_size
                       + 4 * sizeof (void *));
-  max_cases = set_max_workspace / approx_case_cost;
+  max_cases = get_max_workspace() / approx_case_cost;
   irs->records = malloc (sizeof *irs->records * max_cases);
   for (i = 0; i < max_cases; i++)
     {
@@ -806,7 +806,7 @@ allocate_cases (struct initial_run_state *irs)
       msg (SE, _("Out of memory.  Could not allocate room for minimum of %d "
 		 "cases of %d bytes each.  (PSPP workspace is currently "
 		 "restricted to a maximum of %d KB.)"),
-	   MIN_BUFFER_TOTAL_SIZE_RECS, approx_case_cost, set_max_workspace / 1024);
+	   MIN_BUFFER_TOTAL_SIZE_RECS, approx_case_cost, get_max_workspace() / 1024);
       return 0;
     }
   return 1;
@@ -1019,7 +1019,7 @@ merge (struct external_sort *xsrt)
   /* Allocate as many cases as possible into cases. */
   approx_case_cost = (sizeof *mrg.cases
                       + xsrt->scp->case_size + 4 * sizeof (void *));
-  mrg.case_cnt = set_max_workspace / approx_case_cost;
+  mrg.case_cnt = get_max_workspace() / approx_case_cost;
   mrg.cases = malloc (sizeof *mrg.cases * mrg.case_cnt);
   if (mrg.cases == NULL)
     goto done;
@@ -1037,7 +1037,7 @@ merge (struct external_sort *xsrt)
       msg (SE, _("Out of memory.  Could not allocate room for minimum of %d "
 		 "cases of %d bytes each.  (PSPP workspace is currently "
 		 "restricted to a maximum of %d KB.)"),
-	   MIN_BUFFER_TOTAL_SIZE_RECS, approx_case_cost, set_max_workspace / 1024);
+	   MIN_BUFFER_TOTAL_SIZE_RECS, approx_case_cost, get_max_workspace() / 1024);
       return 0;
     }
 

@@ -548,7 +548,7 @@ perform_DO_REPEAT_substitutions (void)
   while (ds_length (&getl_buf) > 0
 	 && isspace ((unsigned char) ds_end (&getl_buf)[-1]))
     ds_truncate (&getl_buf, ds_length (&getl_buf) - 1);
-  if (ds_length (&getl_buf) > 0 && ds_end (&getl_buf)[-1] == set_endcmd)
+  if (ds_length (&getl_buf) > 0 && ds_end (&getl_buf)[-1] == get_endcmd() )
     {
       dot = 1;
       ds_truncate (&getl_buf, ds_length (&getl_buf) - 1);
@@ -592,7 +592,7 @@ perform_DO_REPEAT_substitutions (void)
       }
     }
   if (dot)
-    ds_putchar (&output, (unsigned char) set_endcmd);
+    ds_putchar (&output, get_endcmd() );
 
   ds_destroy (&getl_buf);
   getl_buf = output;

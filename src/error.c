@@ -79,14 +79,16 @@ tmsg (int class, const char *title, const char *format, ...)
 void
 msg (int class, const char *format, ...)
 {
-  char buf[1024];
+  struct string buf;
   
+  ds_init (NULL, &buf, 1024);
+
   /* Format the message into BUF. */
   {
     va_list args;
 
     va_start (args, format);
-    vsnprintf (buf, 1024, format, args);
+    ds_vprintf (&buf, format, args);
     va_end (args);
   }
   
@@ -97,7 +99,7 @@ msg (int class, const char *format, ...)
     e.class = class;
     err_location (&e.where);
     e.title = NULL;
-    e.text = buf;
+    e.text = buf.string;
     err_vmsg (&e);
   }
 }
@@ -186,14 +188,14 @@ err_check_count (void)
 {
   int error_class = getl_interactive ? MM : FE;
 
-  if (set_errorbreak && err_error_count)
+  if (get_errorbreak() && err_error_count)
     msg (error_class, _("Terminating execution of syntax file due to error."));
-  else if (err_error_count > set_mxerrs)
+  else if (err_error_count > get_mxerrs() )
     msg (error_class, _("Errors (%d) exceeds limit (%d)."),
-	 err_error_count, set_mxerrs);
-  else if (err_error_count + err_warning_count > set_mxwarns)
+	 err_error_count, get_mxerrs());
+  else if (err_error_count + err_warning_count > get_mxwarns() )
     msg (error_class, _("Warnings (%d) exceed limit (%d)."),
-	 err_error_count + err_warning_count, set_mxwarns);
+	 err_error_count + err_warning_count, get_mxwarns() );
   else
     return;
 
@@ -243,7 +245,7 @@ err_vmsg (const struct error *e)
   /* Describes one class of error. */
   struct error_class
     {
-      int flags;		/* Zero or more of MSG_*. */
+      int flags;		/* Zero or more of ERR_*. */
       int *count;		/* Counting category. */
       const char *banner;	/* Banner. */
     };
@@ -310,7 +312,7 @@ err_vmsg (const struct error *e)
      Please note that this is not trivial.  We have to avoid an
      infinite loop in reporting errors that originate in the output
      section. */
-  dump_message (ds_value (&msg), 8, puts_stdout, set_viewwidth);
+  dump_message (ds_value (&msg), 8, puts_stdout, get_viewwidth());
 
   ds_destroy (&msg);
 
@@ -337,13 +339,20 @@ puts_stdout (const char *s)
   puts (s);
 }
 
+/* Returns 1 if the line must be broken here */
+static int
+compulsory_break(int c)
+{
+  return ( c == '\n' );
+}
+
 /* Returns 1 if C is a `break character', that is, if it is a good
    place to break a message into lines. */
 static inline int
 char_is_break (int quote, int c)
 {
   return ((quote && c == DIR_SEPARATOR)
-	  || (!quote && (isspace (c) || c == '-' || c == '/')));
+	  || (!quote && (isspace (c) || c == '-' || c == '/'))); 
 }
 
 /* Returns 1 if C is a break character where the break should be made
@@ -399,12 +408,13 @@ dump_message (char *msg, unsigned indent, void (*func) (const char *),
   if (indent > width / 3)
     indent = width / 3;
   
-  buf = local_alloc (width + 1);
+  buf = local_alloc (width + 2);
 
   /* Advance WIDTH characters into MSG.
      If that's a valid breakpoint, keep it; otherwise, back up.
      Output the line. */
-  for (cp = msg; (unsigned) (cp - msg) < width - 1; cp++)
+  for (cp = msg; (unsigned) (cp - msg) < width - 1 && 
+	 ! compulsory_break(*cp); cp++)
     if (*cp == '"')
       quote ^= 1;
 
@@ -430,44 +440,71 @@ dump_message (char *msg, unsigned indent, void (*func) (const char *),
     *cp = c;
   }
 
+
   /* Repeat above procedure for remaining lines. */
   for (;;)
     {
+      static int hard_break=0;
+
+      int idx=0;
       char *cp2;
 
       /* Advance past whitespace. */
-      while (isspace ((unsigned char) *cp))
+      if (! hard_break ) 
+	while ( isspace ((unsigned char) *cp) )
+	  cp++;
+      else
 	cp++;
+
       if (*cp == 0)
-	break;
+	  break; 
+
 
       /* Advance WIDTH - INDENT characters. */
-      for (cp2 = cp; (unsigned) (cp2 - cp) < width - indent && *cp2; cp2++)
+      for (cp2 = cp; (unsigned) (cp2 - cp) < width - indent && 
+	     *cp2 && !compulsory_break(*cp2);  cp2++)
 	if (*cp2 == '"')
 	  quote ^= 1;
+      
+      if ( compulsory_break(*cp2) )
+	hard_break = 1;
+      else
+	hard_break = 0;
+
 
       /* Back up if this isn't a breakpoint. */
       {
 	unsigned w = cp2 - cp;
-	if (*cp2)
-	  for (cp2--; !char_is_break (quote, (unsigned char) *cp2) && cp2 > cp;
+	if (*cp2 && ! compulsory_break(*cp2) )
+	for (cp2--; !char_is_break (quote, (unsigned char) *cp2) && 
+	       cp2 > cp;
 	       cp2--)
+	  {
+
 	    if (*cp2 == '"')
 	      quote ^= 1;
+	  }
 
 	if (w == width - indent
 	    && (unsigned) (cp2 - cp) <= (width - indent) * BREAK_LONG_WORD)
-	  for (; (unsigned) (cp2 - cp) < width - indent && *cp2; cp2++)
+	  for (; (unsigned) (cp2 - cp) < width - indent && *cp2 ; cp2++)
 	    if (*cp2 == '"')
 	      quote ^= 1;
       }
 
+      
       /* Write out the line. */
+
       memset (buf, ' ', indent);
       memcpy (&buf[indent], cp, cp2 - cp);
-      buf[indent + cp2 - cp] = '\0';
-      func (buf);
 
+      if ( hard_break) 
+	{
+	  buf[indent + idx + cp2 - cp] = '\n';
+	  ++idx;
+	}
+      buf[indent + idx + cp2 - cp] = '\0';
+      func (buf);
       cp = cp2;
     }
 

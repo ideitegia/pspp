@@ -34,15 +34,6 @@
 #endif
 #endif
 
-#if HAVE_LIBTERMCAP
-#if HAVE_TERMCAP_H
-#include <termcap.h>
-#else /* !HAVE_TERMCAP_H */
-int tgetent (char *, char *);
-int tgetnum (char *);
-#endif /* !HAVE_TERMCAP_H */
-#endif /* !HAVE_LIBTERMCAP */
-
 #if HAVE_LIBHISTORY
 #if HAVE_READLINE_HISTORY_H
 #include <readline/history.h>
@@ -120,9 +111,6 @@ int logging;
 
 static void get_date (void);
 
-#if HAVE_LIBTERMCAP
-static char term_buffer[16384];
-#endif
 
 void
 init_glob (int argc UNUSED, char **argv)
@@ -136,10 +124,6 @@ init_glob (int argc UNUSED, char **argv)
   bindtextdomain (PACKAGE, locale_dir);
   textdomain (PACKAGE);
 #endif /* ENABLE_NLS */
-
-  /* Workable defaults before we determine the real terminal size. */
-  set_viewwidth = 79;
-  set_viewlength = 24;
 
   fn_init ();
   getl_initialize ();
@@ -184,111 +168,8 @@ init_glob (int argc UNUSED, char **argv)
     cur_proc = NULL;
   }
 
-  /* settings.h */
-#if !USE_INTERNAL_PAGER
-  {
-    char *pager;
 
-    pager = getenv ("STAT_PAGER");
-    if (!pager)
-      pager = getenv ("PAGER");
-    if (pager)
-      set_pager = xstrdup (pager);
-#if DEFAULT_PAGER
-    else
-      set_pager = xstrdup (DEFAULT_PAGER);
-#endif /* DEFAULT_PAGER */
-  }
-#endif /* !USE_INTERNAL_PAGER */
-
-  set_blanks = SYSMIS;
-  set_scompression = 1;
-  set_format.type = FMT_F;
-  set_format.w = 8;
-  set_format.d = 2;
-  set_cpi = 6;
-  set_lpi = 10;
-  set_results_file = xstrdup ("pspp.prc");
-  set_dprompt = xstrdup (_("data> "));
-  
-  {
-    int i;
-    
-    for (i = 0; i < 5; i++)
-      {
-	struct set_cust_currency *cc = &set_cc[i];
-	strcpy (cc->buf, "-");
-	cc->neg_prefix = cc->buf;
-	cc->prefix = &cc->buf[1];
-	cc->suffix = &cc->buf[1];
-	cc->neg_suffix = &cc->buf[1];
-	cc->decimal = '.';
-	cc->grouping = ',';
-      }
-  }
-  
-  set_decimal = '.';
-  set_grouping = ',';
-  set_headers = 1;
-  set_journaling = 1;
-  set_journal = xstrdup ("pspp.jnl");
-  set_messages = 1;
-  set_mexpand = 1;
-  set_mprint = 1;
-  set_mxerrs = 50;
-  set_mxwarns = 100;
-  set_printback = 1;
-  set_undefined = 1;
-
-  set_cprompt = xstrdup ("    > ");
-  set_echo = 0;
-  set_endcmd = '.';
-  set_errorbreak = 0;
-  set_include = 1;
-  set_nullline = 1;
-  set_more = 1;
-  set_prompt = xstrdup ("PSPP> ");
-  set_seed = NOT_LONG;
-
-#if __DJGPP__ || __BORLANDC__
-  {
-    struct text_info ti;
-
-    gettextinfo (&ti);
-    set_viewlength = max (ti.screenheight, 25);
-    set_viewwidth = max (ti.screenwidth, 79);
-  }
-#elif HAVE_LIBTERMCAP
-  {
-    char *termtype;
-    int success;
-
-    /* This code stolen from termcap.info, though modified. */
-    termtype = getenv ("TERM");
-    if (!termtype)
-      msg (FE, _("Specify a terminal type with `setenv TERM <yourtype>'."));
-
-    success = tgetent (term_buffer, termtype);
-    if (success <= 0)
-      {
-	if (success < 0)
-	  msg (IE, _("Could not access the termcap data base."));
-	else
-	  msg (IE, _("Terminal type `%s' is not defined."), termtype);
-	msg (MM, _("Assuming screen of size 79x25."));
-	set_viewlength = 25;
-	set_viewwidth = 79;
-      }
-    else
-      {
-	set_viewlength = tgetnum ("li");
-	set_viewwidth = tgetnum ("co") - 1;
-      }
-  }
-#else /* !HAVE_LIBTERMCAP */
-  set_viewlength = 25;
-  set_viewwidth = 79;
-#endif /* !HAVE_LIBTERMCAP */
+  init_settings();
 
   /* log.h */
   logging = 1;
