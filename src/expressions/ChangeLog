@@ -1,3 +1,15 @@
+Thu Mar  3 22:10:25 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* Makefile.am evaluate.h.pl evaluate.inc.pl operations.h.pl
+	  optimize.inc.pl parse.inc.p:  
+
+	  Renamed generate.pl to PSPP_expressions.pm and adjusted *.pl
+	  to suit. 
+
+	  Fixed everything so that it can be built from an arbitrary
+	  directory.
+
+
 Mon Feb 28 23:52:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	* New directory.

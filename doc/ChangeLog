@@ -1,3 +1,7 @@
+Thu Mar  3 22:06:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* expressions.texi:  corrected some mismatched parentheses.
+
 Mon Feb 28 23:19:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* expressions.texi: Revise.  Describe new functions.

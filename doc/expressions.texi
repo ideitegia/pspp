@@ -1123,7 +1123,7 @@ The individual distributions are described individually below.
 
 The following continuous distributions are available:
 
-@deftypefn {Function} {} PDF.BETA (@var{x}
+@deftypefn {Function} {} PDF.BETA (@var{x})
 @deftypefnx {Function} {} CDF.BETA (@var{x}, @var{a}, @var{b})
 @deftypefnx {Function} {} IDF.BETA (@var{p}, @var{a}, @var{b})
 @deftypefnx {Function} {} RV.BETA (@var{a}, @var{b})
@@ -1377,7 +1377,7 @@ Constraints: @var{a} > 0, @var{b} > 0, @var{x} >= 0, 0 <= @var{p} < 1.
 
 The following discrete distributions are available:
 
-@deftypefn {Function} {} PDF.BERNOULLI (@var{x}
+@deftypefn {Function} {} PDF.BERNOULLI (@var{x})
 @deftypefnx {Function} {} CDF.BERNOULLI (@var{x}, @var{p})
 @deftypefnx {Function} {} RV.BERNOULLI (@var{p})
 Bernoulli distribution with probability of success @var{p}.

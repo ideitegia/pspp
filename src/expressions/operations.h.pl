@@ -1,4 +1,12 @@
-do 'generate.pl';
+#!/usr/bin/perl
+
+use PSPP_expressions ;
+#
+# Produce output.
+print_header ();
+generate_output ();
+print_trailer ();
+
 
 sub generate_output {
     print "#include <stdlib.h>\n";

@@ -1,3 +1,7 @@
+Thu Mar  3 22:06:19 WST 2005 John Darrington <john@darrington.wattle.id.au> 
+
+	* configure.ac: Added AC_PROG_RANLIB --- needed by autoconf 1.9
+
 Mon Feb 28 23:16:58 2005  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Check for perl.  Check for bool.  Substitute

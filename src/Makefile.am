@@ -12,7 +12,6 @@ pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 bin_PROGRAMS = pspp
 
-DISTCLEANFILES = foo 
 MAINTAINERCLEANFILES = Makefile.in
 EXTRA_DIST = $(q_sources_q) q2c.c
 ETAGS_ARGS = -l c $(q_sources_c)
@@ -24,6 +23,9 @@ $(q_sources_c): q2c$(EXEEXT)
 
 q_sources_c = correlations.c crosstabs.c examine.c file-handle.c	\
 frequencies.c list.c means.c oneway.c set.c  t-test.c 
+
+CLEANFILES=$(q_sources_c)
+DISTCLEANFILES=version.c
 
 q_sources_q = correlations.q crosstabs.q examine.q file-handle.q	\
 frequencies.q list.q means.q oneway.q set.q  t-test.q
@@ -42,6 +44,7 @@ endif
 pspp_SOURCES = $(q_sources_c) $(chart_sources) \
 aggregate.c algorithm.c algorithm.h	\
 alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
+bool.h \
 calendar.c calendar.h case.c case.h casefile.c casefile.h chart.c	\
 chart.h cmdline.c cmdline.h command.c command.def \
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\

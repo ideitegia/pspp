@@ -9,6 +9,7 @@ AM_INIT_AUTOMAKE
 dnl Checks for programs.
 AC_GNU_SOURCE
 AC_PROG_CC
+AC_PROG_RANLIB
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 

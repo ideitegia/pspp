@@ -19,11 +19,6 @@ our (%ops);
 our (@funcs, @opers);
 parse_input ();
 
-# Produce output.
-print_header ();
-generate_output ();
-print_trailer ();
-
 # Command line.
 
 # Parses the command line.

@@ -1,4 +1,11 @@
-do 'generate.pl';
+use PSPP_expressions ;
+#
+#
+#
+# Produce output.
+print_header ();
+generate_output ();
+print_trailer ();
 
 sub generate_output {
     my (@members) = ("\"\"", "\"\"", 0, 0, 0, "{}", 0, 0);

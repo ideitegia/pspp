@@ -91,8 +91,25 @@ sort.data: gengarbage$(EXTEXT)
 EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data \
 	bugs/computebug.stat bugs/computebug.out \
 	bugs/recode-copy-bug-1.stat bugs/recode-copy-bug-2.stat \
-	bugs/recode-copy-bug-1.out bugs/recode-copy-bug-2.out
+	bugs/recode-copy-bug-1.out bugs/recode-copy-bug-2.out \
+	expressions/randist/beta.out \
+	expressions/randist/cauchy.out \
+	expressions/randist/chisq.out \
+	expressions/randist/exp.out \
+	expressions/randist/f.out \
+	expressions/randist/gamma.out \
+	expressions/randist/laplace.out \
+	expressions/randist/lnormal.out \
+	expressions/randist/logistic.out \
+	expressions/randist/normal.out \
+	expressions/randist/pareto.out \
+	expressions/randist/randist.pl \
+	expressions/randist/randist.txt \
+	expressions/randist/t.out \
+	expressions/randist/uniform.out \
+	expressions/randist/weibull.out
 
 DISTCLEANFILES = *.save sort.data pspp.* foo* msgs *.actual
 
 MAINTAINERCLEANFILES = Makefile.in
+

@@ -5,23 +5,29 @@ include $(top_srcdir)/src/Make.build
 noinst_LIBRARIES = libexpressions.a
 
 libexpressions_a_SOURCES = evaluate.c helpers.c helpers.h optimize.c	\
-parse.c private.h public.h
+	parse.c private.h public.h \
+	evaluate.inc.pl PSPP_expressions.pm operations.def \
+	evaluate.h.pl operations.h.pl optimize.inc.pl parse.inc.pl
 
 BUILT_SOURCES = evaluate.h evaluate.inc operations.h optimize.inc parse.inc
+CLEANFILES = evaluate.h evaluate.inc operations.h optimize.inc parse.inc
+
 
 PERL = @PERL@
 
-evaluate.inc: evaluate.inc.pl generate.pl operations.def 
-	$(PERL) evaluate.inc.pl -o evaluate.inc
+helpers = $(srcdir)/PSPP_expressions.pm $(srcdir)/operations.def
 
-evaluate.h: evaluate.h.pl generate.pl operations.def
-	$(PERL) evaluate.h.pl -o evaluate.h
+evaluate.inc: $(srcdir)/evaluate.inc.pl $(helpers)
+	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
 
-operations.h: operations.h.pl generate.pl operations.def
-	$(PERL) operations.h.pl -o operations.h
+evaluate.h: $(srcdir)/evaluate.h.pl $(helpers)
+	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
 
-optimize.inc: optimize.inc.pl generate.pl operations.def
-	$(PERL) optimize.inc.pl -o optimize.inc
+operations.h: $(srcdir)/operations.h.pl $(helpers)
+	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
 
-parse.inc: parse.inc.pl generate.pl operations.def
-	$(PERL) parse.inc.pl -o parse.inc
+optimize.inc: $(srcdir)/optimize.inc.pl $(helpers)
+	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
+
+parse.inc: $(srcdir)/parse.inc.pl $(helpers)
+	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
