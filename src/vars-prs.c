@@ -392,7 +392,8 @@ parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
 	  lex_error ("expecting variable name");
 	  goto fail;
 	}
-      if (tokid[0] == '#' && (pv_opts & PV_NO_SCRATCH))
+      if (dict_class_from_id (tokid) == DC_SCRATCH
+          && (pv_opts & PV_NO_SCRATCH))
 	{
 	  msg (SE, _("Scratch variables not allowed here."));
 	  goto fail;

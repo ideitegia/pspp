@@ -312,7 +312,7 @@ trim_dictionary (struct dictionary *dict, int *options)
       v = xmalloc (sizeof *v * dict_get_var_cnt (dict));
       nv = 0;
       for (i = 0; i < dict_get_var_cnt (dict); i++) 
-        if (dict_get_var (dict, i)->name[0] == '#')
+        if (dict_class_from_id (dict_get_var (dict, i)->name) == DC_SCRATCH)
           v[nv++] = dict_get_var (dict, i);
       dict_delete_vars (dict, v, nv);
       free (v);

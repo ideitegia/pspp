@@ -105,7 +105,7 @@ cmd_filter (void)
 	  return CMD_FAILURE;
 	}
 
-      if (v->name[0] == '#')
+      if (dict_class_from_id (v->name) == DC_SCRATCH)
 	{
 	  msg (SE, _("The filter variable may not be scratch."));
 	  return CMD_FAILURE;

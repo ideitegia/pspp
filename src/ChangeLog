@@ -1,3 +1,23 @@
+Wed Mar 10 23:25:13 2004  Ben Pfaff  <blp@gnu.org>
+
+	Change explicit variable name checks into use of
+	dict_class_from_id().
+
+	* dictionary.c: (dict_create_var)  Change explicit variable name
+	check into use of dict_class_from_id().
+
+	* get.c: (trim_dictionary) Ditto.
+
+	* sel-if.c: (cmd_filter) Ditto.
+
+	* sysfile-info.c: (cmd_display) Ditto.
+
+	* vars-prs.c: (parse_DATA_LIST_vars) Ditto.
+
+	* vfm.c: (arrange_compaction) Ditto.
+
+	* weight.c: (cmd_weight) Ditto.
+
 Wed Mar 10 21:16:34 2004  Ben Pfaff  <blp@gnu.org>
 
 	* temporary.c: (cmd_temporary) When TEMPORARY was the first

@@ -54,7 +54,7 @@ cmd_weight (void)
 	  msg (SE, _("The weighting variable must be numeric."));
 	  return CMD_FAILURE;
 	}
-      if (v->name[0] == '#')
+      if (dict_class_from_id (v->name) == DC_SCRATCH)
 	{
 	  msg (SE, _("The weighting variable may not be scratch."));
 	  return CMD_FAILURE;

@@ -236,7 +236,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->fv = d->next_value_idx;
   v->nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
   v->init = 1;
-  v->reinit = name[0] != '#';
+  v->reinit = dict_class_from_id (name) != DC_SCRATCH;
   v->miss_type = MISSING_NONE;
   if (v->type == NUMERIC)
     {

@@ -346,7 +346,7 @@ arrange_compaction (void)
       {
         struct variable *v = dict_get_var (temp_dict, i);
 
-        if (v->name[0] != '#')
+        if (dict_class_from_id (v->name) != DC_SCRATCH)
           {
             assert (v->nv > 0);
             count_values += v->nv;
@@ -1260,7 +1260,7 @@ compact_case (struct ccase *dest, const struct ccase *src)
     {
       struct variable *v = dict_get_var (default_dict, i);
       
-      if (v->name[0] == '#')
+      if (dict_class_from_id (v->name) == DC_SCRATCH)
 	continue;
 
       if (v->type == NUMERIC)
@@ -1285,7 +1285,7 @@ finish_compaction (void)
     {
       struct variable *v = dict_get_var (default_dict, i);
 
-      if (v->name[0] == '#') 
+      if (dict_class_from_id (v->name) == DC_SCRATCH) 
         dict_delete_var (default_dict, v);
       else
         i++;

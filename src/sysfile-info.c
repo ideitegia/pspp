@@ -247,7 +247,7 @@ cmd_display (void)
 	{
 	  int i, m;
 	  for (i = 0, m = n; i < n; i++)
-	    if (vl[i]->name[0] != '#')
+	    if (dict_class_from_id (vl[i]->name) != DC_SCRATCH)
 	      {
 		vl[i] = NULL;
 		m--;
