@@ -34,6 +34,7 @@
 #include "expr.h"
 #include "exprP.h"
 #include "error.h"
+#include <gsl/gsl_randist.h>
 #include <math.h>
 #include <errno.h>
 #include <stdio.h>
@@ -46,7 +47,7 @@
 #include "misc.h"
 #include "moments.h"
 #include "pool.h"
-#include "random.h"
+#include "settings.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
@@ -1122,11 +1123,11 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_idx,
 	  break;
 	case OP_NORMAL:
 	  if (sp->f != SYSMIS)
-	    sp->f *= rng_get_double_normal (pspp_rng ());
+	    sp->f = gsl_ran_gaussian (get_rng (), sp->f);
 	  break;
 	case OP_UNIFORM:
 	  if (sp->f != SYSMIS)
-	    sp->f *= rng_get_double (pspp_rng ());
+	    sp->f *= gsl_rng_uniform (get_rng ());
 	  break;
 	case OP_SYSMIS:
 	  sp->f = sp->f == SYSMIS || !finite (sp->f);

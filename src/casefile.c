@@ -739,9 +739,9 @@ exit_handler (void)
     casefile_destroy (casefiles);
 }
 
+#include <gsl/gsl_rng.h>
 #include <stdarg.h>
 #include "command.h"
-#include "random.h"
 #include "lexer.h"
 
 static void test_casefile (int pattern, size_t value_cnt, size_t case_cnt);
@@ -800,11 +800,10 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
   struct casefile *cf;
   struct casereader *r1, *r2;
   struct ccase c;
-  struct rng *rng;
+  gsl_rng *rng;
   size_t i, j;
 
-  rng = rng_create ();
-  rng_seed (rng, &zero, sizeof zero);
+  rng = gsl_rng_alloc (gsl_rng_mt19937);
   cf = casefile_create (value_cnt);
   for (i = 0; i < case_cnt; i++)
     write_random_case (cf, i);
@@ -831,7 +830,7 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
       for (i = j = 0; i < case_cnt; i++) 
         {
           read_and_verify_random_case (cf, r1, i);
-          if (rng_get_int (rng) % pattern == 0) 
+          if (gsl_rng_get (rng) % pattern == 0) 
             read_and_verify_random_case (cf, r2, j++); 
           if (i == case_cnt / 2)
             casefile_to_disk (cf);
@@ -871,7 +870,7 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
       casereader_destroy (r1);
     }
   casefile_destroy (cf);
-  rng_destroy (rng);
+  gsl_rng_free (rng);
 }
 
 static void

@@ -64,6 +64,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <time.h>
 #include "alloc.h"
 #include "command.h"
 #include "lexer.h"
@@ -74,7 +75,6 @@
 #include "var.h"
 #include "format.h"
 #include "copyleft.h"
-#include "random.h"
 
 #include "signal.h"
 
@@ -106,8 +106,7 @@ static int set_listing=1;
 static char *set_pager=0;
 #endif /* !USE_INTERNAL_PAGER */
 
-static unsigned long set_seed;
-static int seed_flag=0;
+static gsl_rng *rng;
 
 static int long_view=0;
 int set_testing_mode=0;
@@ -122,6 +121,9 @@ static void set_routing (int q, int *setting);
 
 static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
 		    int cc_name);
+static void set_rng (unsigned long);
+static unsigned long random_seed (void);
+
 /* (specification)
    "SET" (stc_):
      automenu=automenu:on/off;
@@ -301,7 +303,6 @@ aux_stc_custom_results(struct cmd_set *cmd UNUSED)
 static int
 aux_stc_custom_seed(struct cmd_set *cmd UNUSED)
 {
-  msg(MM, "%ld",set_seed);
   return 0;
 }
 
@@ -704,15 +705,14 @@ stc_custom_seed (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("RANDOM"))
-    set_seed = random_seed();
+    set_rng (random_seed ());
   else
     {
       if (!lex_force_num ())
 	return 0;
-      set_seed = tokval;
+      set_rng (tokval);
       lex_get ();
     }
-  seed_flag = 1;
 
   return 1;
 }
@@ -1313,26 +1313,28 @@ get_pager(void)
   return set_pager;
 }
 
-/* Return 1 if the seed has been set since the last time this function
-   was called.
-   Fill the value pointed to by seed with the seed .
-*/
-int
-seed_is_set(unsigned long *seed)
+gsl_rng *
+get_rng (void)
 {
-  int result = 0;
-
-  *seed = set_seed ;
-
-  if ( seed_flag ) 
-    result = 1;
-  
-  seed_flag = 0;
-
-  return result;
-    
+  if (rng == NULL)
+    set_rng (random_seed ());
+  return rng;
 }
 
+static void
+set_rng (unsigned long seed) 
+{
+  rng = gsl_rng_alloc (gsl_rng_mt19937);
+  if (rng == NULL)
+    out_of_memory ();
+  gsl_rng_set (rng, seed);
+}
+
+static unsigned long
+random_seed (void) 
+{
+  return time (0);
+}
 
 static int global_algorithm = ENHANCED;
 static int cmd_algorithm = ENHANCED;

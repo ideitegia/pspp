@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include <gsl/gsl_rng.h>
 #include <limits.h>
 #include <stdio.h>
 #include <math.h>
@@ -25,7 +26,7 @@
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
-#include "random.h"
+#include "settings.h"
 #include "str.h"
 #include "var.h"
 
@@ -63,6 +64,9 @@ cmd_sample (void)
     return CMD_FAILURE;
   if (!lex_integer_p ())
     {
+      unsigned long min = gsl_rng_min (get_rng ());
+      unsigned long max = gsl_rng_max (get_rng ());
+
       type = TYPE_FRACTION;
       if (tokval <= 0 || tokval >= 1)
 	{
@@ -71,7 +75,7 @@ cmd_sample (void)
 	  return CMD_FAILURE;
 	}
 	  
-      frac = tokval * UINT_MAX;
+      frac = tokval * (max - min) + min;
       a = b = 0;
     }
   else
@@ -119,7 +123,7 @@ sample_trns_proc (struct trns_header * trns, struct ccase *c UNUSED,
 
   if (t->type == TYPE_FRACTION) 
     {
-      if (rng_get_unsigned (pspp_rng ()) <= t->frac)
+      if (gsl_rng_get (get_rng ()) <= t->frac)
         return -1;
       else
         return -2;
@@ -128,7 +132,7 @@ sample_trns_proc (struct trns_header * trns, struct ccase *c UNUSED,
   if (t->m >= t->n)
     return -2;
 
-  U = rng_get_double (pspp_rng ());
+  U = gsl_rng_uniform (get_rng ());
   if ((t->N - t->t) * U >= t->n - t->m)
     {
       t->t++;

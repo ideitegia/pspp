@@ -227,11 +227,8 @@ const char *get_pager(void);
 #endif /* !USE_INTERNAL_PAGER */
 
 
-/* Return 1 if the seed has been set since the last time this function
-   was called.
-   Fill the value pointed to by seed with the seed .
-*/
-int seed_is_set(unsigned long *seed);
+#include <gsl/gsl_rng.h>
+gsl_rng *get_rng (void);
 
 
 enum {ENHANCED,COMPATIBLE};

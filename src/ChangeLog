@@ -1,3 +1,35 @@
+Mon Nov 15 23:47:40 2004  Ben Pfaff  <blp@gnu.org>
+
+	Adopt GSL random number generators, paving the way for providing
+	the complete suite of random number generators on expressions.
+	
+	* Makefile.am: Remove random.c, random.h.
+
+	* random.c: Removed.
+
+	* random.h: Removed.
+
+	* algorithm.c: (algo_default_random) Use GSL functions.
+
+	* casefile.c: (test_casefile) Use GSL RNG functions.
+
+	* expr-evl.c: (expr_evaluate) Use GSL RNG functions for OP_NORMAL,
+	OP_UNIFORM.
+
+	* sample.c: (cmd_sample) Use GSL RNG functions.
+	(sample_trns_proc) Ditto.
+
+	* set.q: (static var set_seed) Removed.
+	(static var seed_flag) Removed.
+	(static var rng) New variable.
+	(aux_stc_custom_seed) No seed value anymore, don't print anything.
+	(stc_custom_seed) Use new seed functions.
+	(seed_is_set) Removed.
+	(get_rng) New function that composes the entire external
+	interface.
+	(set_rng) New function.
+	(random_seed) New function.
+
 Mon Nov 15 22:08:25 2004  Ben Pfaff  <blp@gnu.org>
 
 	* expr-evl.c: (expr_evaluate) Fix XDATE.JDAY formula.  Thanks to

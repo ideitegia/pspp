@@ -67,7 +67,7 @@ matrix-data.c mis-val.c misc.c misc.h modify-vars.c			\
 moments.c moments.h numeric.c output.c output.h permissions.c \
 pfm-read.c pfm-read.h	\
 pfm-write.c pfm-write.h \
-pool.c pool.h postscript.c print.c random.c random.h recode.c	\
+pool.c pool.h postscript.c print.c recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
 sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
 sort.c sort.h \

@@ -91,11 +91,12 @@
 
 #include <config.h>
 #include "algorithm.h"
+#include <gsl/gsl_rng.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
-#include "random.h"
+#include "settings.h"
 
 /* Some of the assertions in this file are very expensive.  We
    don't use them by default. */
@@ -310,7 +311,8 @@ is_partitioned (const void *array, size_t count, size_t size,
 unsigned
 algo_default_random (unsigned max, void *aux UNUSED) 
 {
-  return rng_get_unsigned (pspp_rng ()) % max;
+  unsigned long r_min = gsl_rng_min (get_rng ());
+  return (gsl_rng_get (get_rng ()) - r_min) % max;
 }
 
 /* Randomly reorders ARRAY, which contains COUNT elements of SIZE
