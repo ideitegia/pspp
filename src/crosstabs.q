@@ -148,10 +148,10 @@ static struct pool *pl_tc;	/* For table cells. */
 static struct pool *pl_col;	/* For column data. */
 
 static int internal_cmd_crosstabs (void);
-static void precalc (void);
-static int calc_general (struct ccase *);
-static int calc_integer (struct ccase *);
-static void postcalc (void);
+static void precalc (void *);
+static int calc_general (struct ccase *, void *);
+static int calc_integer (struct ccase *, void *);
+static void postcalc (void *);
 static void submit (struct tab_table *);
 
 #if DEBUGGING
@@ -277,7 +277,8 @@ internal_cmd_crosstabs (void)
   else
     write = CRS_WR_NONE;
 
-  procedure (precalc, mode == GENERAL ? calc_general : calc_integer, postcalc);
+  procedure (precalc, mode == GENERAL ? calc_general : calc_integer, postcalc,
+             NULL);
 
   return CMD_SUCCESS;
 }
@@ -515,7 +516,7 @@ static unsigned hash_table_entry (const void *, void *);
 
 /* Set up the crosstabulation tables for processing. */
 static void
-precalc (void)
+precalc (void *aux UNUSED)
 {
   if (mode == GENERAL)
     {
@@ -584,7 +585,7 @@ precalc (void)
 
 /* Form crosstabulations for general mode. */
 static int
-calc_general (struct ccase *c)
+calc_general (struct ccase *c, void *aux UNUSED)
 {
   /* Case weight. */
   double weight = dict_get_case_weight (default_dict, c);
@@ -654,7 +655,7 @@ calc_general (struct ccase *c)
 }
 
 static int
-calc_integer (struct ccase *c)
+calc_integer (struct ccase *c, void *aux UNUSED)
 {
   /* Case weight. */
   double weight = dict_get_case_weight (default_dict, c);
@@ -807,7 +808,7 @@ static void output_pivot_table (struct table_entry **, struct table_entry **,
 static void make_summary_table (void);
 
 static void
-postcalc (void)
+postcalc (void *aux UNUSED)
 {
   if (mode == GENERAL)
     {

@@ -178,9 +178,9 @@ static void dump_z_table (void);
 static void run_z_pass (void);
 
 /* Procedure execution functions. */
-static int calc (struct ccase *);
-static void precalc (void);
-static void postcalc (void);
+static int calc (struct ccase *, void *);
+static void precalc (void *);
+static void postcalc (void *);
 static void display (void);
 
 /* Parser and outline. */
@@ -289,7 +289,7 @@ cmd_descriptives (void)
 
   /* Data pass! */
   bad_weight = 0;
-  procedure (precalc, calc, postcalc);
+  procedure (precalc, calc, postcalc, NULL);
 
   if (bad_weight)
     msg (SW, _("At least one case in the data file had a weight value "
@@ -569,7 +569,7 @@ run_z_pass (void)
 /* Statistical calculation. */
 
 static void
-precalc (void)
+precalc (void *aux UNUSED)
 {
   int i;
 
@@ -593,7 +593,7 @@ precalc (void)
 }
 
 static int
-calc (struct ccase * c)
+calc (struct ccase * c, void *aux UNUSED)
 {
   int i;
 
@@ -685,7 +685,7 @@ iterate:
 }
 
 static void
-postcalc (void)
+postcalc (void *aux UNUSED)
 {
   int i;
 

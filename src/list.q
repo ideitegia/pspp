@@ -77,11 +77,11 @@ static int n_chars_width (struct outp_driver *d);
 static void write_line (struct outp_driver *d, char *s);
 
 /* Other functions. */
-static int list_cases (struct ccase *);
+static int list_cases (struct ccase *, void *);
 static void determine_layout (void);
 static void clean_up (void);
 static void write_header (struct outp_driver *);
-static void write_all_headers (void);
+static void write_all_headers (void *);
 
 /* Returns the number of text lines that can fit on the remainder of
    the page. */
@@ -227,7 +227,7 @@ cmd_list (void)
   determine_layout ();
 
   case_num = 0;
-  procedure (write_all_headers, list_cases, NULL);
+  procedure (write_all_headers, list_cases, NULL, NULL);
   free (line_buf);
 
   clean_up ();
@@ -238,7 +238,7 @@ cmd_list (void)
 /* Writes headers to all devices.  This is done at the beginning of
    each SPLIT FILE group. */
 static void
-write_all_headers (void)
+write_all_headers (void *aux UNUSED)
 {
   struct outp_driver *d;
 
@@ -618,7 +618,7 @@ determine_layout (void)
 }
 
 static int
-list_cases (struct ccase *c)
+list_cases (struct ccase *c, void *aux UNUSED)
 {
   struct outp_driver *d;
   

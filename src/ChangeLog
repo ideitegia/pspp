@@ -1,3 +1,58 @@
+Thu Feb 12 23:35:15 2004  Ben Pfaff  <blp@gnu.org>
+
+	Add auxiliary argument to procedure() interface.  Associated small
+	clean-ups of vfm interface.
+	
+	* Updated every caller of procedure() and process_active_file() to
+	reflect modified interface.  Simple, ordinary changes not listed
+	otherwise below.
+
+	* Updated every function that implements struct case_stream's
+	`read' function to take a write_case_func and a write_case_data.
+	Also updated every caller of write_case() to instead call them
+	through these arguments.  In some cases this meant that the extra
+	args had to be threaded through a couple of extra levels.  This
+	wasn't difficult or interesting so the details won't be given.
+
+	* data-list.c: (struct repeating_data_trns) Add members
+	`write_case', `wc_data' as kluge.
+	(read_one_set_of_repetitions) Rename repeating_data_trns_proc and
+	make non-static.
+	(repeating_data_set_write_case) New function.
+
+	* data-list.h: New file to declare repeating_data_trns_proc() and
+	repeating_data_set_write_case().
+
+	* inpt-pgm.c: (input_program_source_read) Call
+	repeating_data_set_write_case() for all the REPEATING DATA
+	transformations, so that they know where to send their cases.
+	It's a big kluge.  Also kluge in END CASE.
+	(end_case_trns_proc) Never called anymore, but we still need it,
+	so just assert(0).
+
+	* sort.c: (read_sort_output) Update to match struct case_stream
+	`read' member.
+
+	* vfm.c: (struct write_case_data) New structure.
+	(proc_func) Removed.
+	(virt_proc_func) Removed.
+	(begin_func) Removed.
+	(virt_begin_func) Removed.
+	(end_func) Removed.
+	(write_case) Removed.
+	(procedure) Added an auxiliary parameter to each function pointer
+	argument's prototype.  Added an auxiliary data parameter.
+	Rewrote.
+	(process_active_file) Ditto.
+	(process_active_file_write_case) Pass aux data along.
+	(close_active_file) Ditto.
+	(procedure_write_case) Ditto.
+	(SPLIT_FILE_procfunc) Ditto.
+
+	* vfm.h: (typedef write_case_data) New.
+	(typedef write_case_func) New.
+	(struct case_stream) Add parameters to `read' member prototype.
+	
 Thu Feb 12 19:24:53 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q:  Added calculations for independent samples. (But no Levene

@@ -35,14 +35,18 @@ extern struct long_vec reinit_blanks;	/* Blanks for every case. */
 extern struct long_vec init_zero;	/* Zero for first case only. */
 extern struct long_vec init_blanks;	/* Blanks for first case only. */
 
+typedef struct write_case_data *write_case_data;
+typedef int write_case_func (write_case_data);
+
 /* A case stream: either a source or a sink, depending on context. */
 struct case_stream
   {
     /* Initializes sink. */
     void (*init) (void);
     
-    /* Reads all the cases and passes them to WRITE_CASE. */
-    void (*read) (void);
+    /* Reads all the cases and calls WRITE_CASE passing the given
+       AUX data for each one. */
+    void (*read) (write_case_func *, write_case_data);
 
     /* Writes a single case, temp_case. */
     void (*write) (void);
@@ -83,18 +87,18 @@ extern struct case_stream matrix_data_source;
 /* Number of cases to lag. */
 extern int n_lag;
 
-extern int (*write_case) (void);
-
-void procedure (void (*beginfunc) (void),
-		int (*procfunc) (struct ccase *curcase),
-		void (*endfunc) (void));
+void procedure (void (*beginfunc) (void *aux),
+		int (*procfunc) (struct ccase *curcase, void *aux),
+		void (*endfunc) (void *aux),
+                void *aux);
 struct ccase *lagged_case (int n_before);
 void compact_case (struct ccase *dest, const struct ccase *src);
 void page_to_disk (void);
 
-void process_active_file (void (*beginfunc) (void),
-			  int (*casefunc) (struct ccase *curcase),
-			  void (*endfunc) (void));
+void process_active_file (void (*beginfunc) (void *),
+			  int (*casefunc) (struct ccase *curcase, void *),
+			  void (*endfunc) (void *),
+                          void *aux);
 void process_active_file_output_case (void);
 
 #endif /* !vfm_h */

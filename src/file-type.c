@@ -610,7 +610,8 @@ cmd_end_file_type (void)
 /* Reads any number of cases into temp_case and calls write_case() for
    each one.  Compare data-list.c:read_from_data_list. */
 static void
-file_type_source_read (void)
+file_type_source_read (write_case_func *write_case UNUSED,
+                       write_case_data wc_data UNUSED)
 {
   char *line;
   int len;

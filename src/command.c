@@ -561,7 +561,7 @@ int
 cmd_execute (void)
 {
   lex_match_id ("EXECUTE");
-  procedure (NULL, NULL, NULL);
+  procedure (NULL, NULL, NULL, NULL);
   return lex_end_of_command ();
 }
 

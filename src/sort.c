@@ -62,7 +62,7 @@ static int compare_case_lists (const void *, const void *);
 static int do_internal_sort (int separate);
 static int do_external_sort (int separate);
 int parse_sort_variables (void);
-void read_sort_output (int (*write_case) (void));
+void read_sort_output (write_case_func *write_case, write_case_data wc_data);
 
 /* Performs the SORT CASES procedures. */
 int
@@ -154,7 +154,7 @@ sort_cases (int separate)
 
   /* Not sure this is necessary but it's good to be safe. */
   if (separate && vfm_source == &sort_stream)
-    procedure (NULL, NULL, NULL);
+    procedure (NULL, NULL, NULL, NULL);
   
   /* SORT CASES cancels PROCESS IF. */
   expr_free (process_if_expr);
@@ -175,7 +175,7 @@ do_internal_sort (int separate)
   if (vfm_source != &vfm_disk_stream)
     {
       if (vfm_source != &vfm_memory_stream)
-	procedure (NULL, NULL, NULL);
+	procedure (NULL, NULL, NULL, NULL);
       if (vfm_source == &vfm_memory_stream)
 	{
 	  struct case_list **case_tab = malloc (sizeof *case_tab
@@ -745,7 +745,7 @@ write_initial_runs (int separate)
 	vfm_sink->destroy_sink ();
       vfm_sink = &sort_stream;
     }
-  procedure (NULL, NULL, NULL);
+  procedure (NULL, NULL, NULL, NULL);
 
   /* Final iterations of steps R4, R5, R6, R7, R2, R3, ... */
   for (;;)
@@ -1221,16 +1221,16 @@ lossage:
 /* Reads all the records from the source stream and passes them
    to write_case(). */
 static void
-sort_stream_read (void)
+sort_stream_read (write_case_func *write_case, write_case_data wc_data)
 {
-  read_sort_output (write_case);
+  read_sort_output (write_case, wc_data);
 }
 
 /* Reads all the records from the output stream and passes them to the
    function provided, which must have an interface identical to
    write_case(). */
 void
-read_sort_output (int (*write_case) (void))
+read_sort_output (write_case_func *write_case, write_case_data wc_data)
 {
   int i;
   FILE *f;
@@ -1243,7 +1243,7 @@ read_sort_output (int (*write_case) (void))
       for (p = separate_case_tab; *p; p++)
 	{
 	  temp_case = &(*p)->c;
-	  write_case ();
+	  write_case (wc_data);
 	}
       
       free (separate_case_tab);
@@ -1275,7 +1275,7 @@ read_sort_output (int (*write_case) (void))
 	      break;
 	    }
 
-	  if (!write_case ())
+	  if (!write_case (wc_data))
 	    break;
 	}
 

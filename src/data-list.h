@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 2004 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,17 +17,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if !sort_h
-#define sort_h 1
+#ifndef INCLUDED_DATA_LIST_H
+#define INCLUDED_DATA_LIST_H
 
+/* FIXME: This header is a kluge and should go away when we come
+   up with a less-klugy solution. */
+
+#include "var.h"
 #include "vfm.h"
 
-/* SORT CASES programmatic interface. */
-int sort_cases (int separate);
-void read_sort_output (write_case_func *, write_case_data);
+int repeating_data_trns_proc (struct trns_header *, struct ccase *);
+void repeating_data_set_write_case (struct trns_header *,
+                                    write_case_func *, write_case_data);
 
-/* Variables to sort. */
-extern struct variable **v_sort;
-extern int nv_sort;
-
-#endif /* !sort_h */
+#endif /* data-list.h */

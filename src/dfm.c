@@ -669,7 +669,7 @@ cmd_begin_data (void)
   /* We don't actually read from the inline file.  The input procedure
      is what reads from it. */
   getl_prompt = GETL_PRPT_DATA;
-  procedure (NULL, NULL, NULL);
+  procedure (NULL, NULL, NULL, NULL);
 
   ext = inline_file->ext;
 

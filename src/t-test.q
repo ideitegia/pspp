@@ -164,21 +164,21 @@ enum {
 };
 
 
-static int common_calc (struct ccase *);
-static void common_precalc (void);
-static void common_postcalc (void);
+static int common_calc (struct ccase *, void *);
+static void common_precalc (void *);
+static void common_postcalc (void *);
 
-static int one_sample_calc (struct ccase *);
-static void one_sample_precalc (void);
-static void one_sample_postcalc (void);
+static int one_sample_calc (struct ccase *, void *);
+static void one_sample_precalc (void *);
+static void one_sample_postcalc (void *);
 
-static int  paired_calc (struct ccase *);
-static void paired_precalc (void);
-static void paired_postcalc (void);
+static int  paired_calc (struct ccase *, void *);
+static void paired_precalc (void *);
+static void paired_postcalc (void *);
 
-static void group_precalc (void);
-static int  group_calc (struct ccase *);
-static void group_postcalc (void);
+static void group_precalc (void *);
+static int  group_calc (struct ccase *, void *);
+static void group_postcalc (void *);
 
 
 static int compare_var_name (const void *a_, const void *b_, void *v_ UNUSED);
@@ -269,18 +269,18 @@ cmd_t_test(void)
     }
 
 
-  procedure(common_precalc,common_calc,common_postcalc);
+  procedure(common_precalc,common_calc,common_postcalc, NULL);
 
   switch(mode)
     {
     case T_1_SAMPLE:
-      procedure(one_sample_precalc,one_sample_calc,one_sample_postcalc);
+      procedure(one_sample_precalc,one_sample_calc,one_sample_postcalc, NULL);
       break;
     case T_PAIRED:
-      procedure(paired_precalc,paired_calc,paired_postcalc);
+      procedure(paired_precalc,paired_calc,paired_postcalc, NULL);
       break;
     case T_IND_SAMPLES:
-      procedure(group_precalc,group_calc,group_postcalc);
+      procedure(group_precalc,group_calc,group_postcalc, NULL);
       break;
 
     }
@@ -1347,7 +1347,7 @@ pscbox(void)
 
 /* Per case calculations common to all variants of the T test */
 static int 
-common_calc (struct ccase *c)
+common_calc (struct ccase *c, void *aux UNUSED)
 {
   int i;
 
@@ -1373,7 +1373,7 @@ common_calc (struct ccase *c)
 
 /* Pre calculations common to all variants of the T test */
 static void 
-common_precalc (void)
+common_precalc (void *aux UNUSED)
 {
   int i=0;
 
@@ -1391,7 +1391,7 @@ common_precalc (void)
 
 /* Post calculations common to all variants of the T test */
 void 
-common_postcalc (void)
+common_postcalc (void *aux UNUSED)
 {
   int i=0;
 
@@ -1417,7 +1417,7 @@ common_postcalc (void)
 
 /* Per case calculations for one sample t test  */
 static int 
-one_sample_calc (struct ccase *c)
+one_sample_calc (struct ccase *c, void *aux UNUSED)
 {
   int i;
 
@@ -1440,7 +1440,7 @@ one_sample_calc (struct ccase *c)
 
 /* Pre calculations for one sample t test */
 static void 
-one_sample_precalc (void)
+one_sample_precalc (void *aux UNUSED)
 {
   int i=0;
   
@@ -1455,7 +1455,7 @@ one_sample_precalc (void)
 
 /* Post calculations for one sample t test */
 static void 
-one_sample_postcalc (void)
+one_sample_postcalc (void *aux UNUSED)
 {
   int i=0;
   
@@ -1490,7 +1490,7 @@ hash_var_name (const void *a_, void *v_ UNUSED)
 
 
 static void 
-paired_precalc (void)
+paired_precalc (void *aux UNUSED)
 {
   int i;
 
@@ -1504,7 +1504,7 @@ paired_precalc (void)
 }
 
 static int  
-paired_calc (struct ccase *c)
+paired_calc (struct ccase *c, void *aux UNUSED)
 {
   int i;
 
@@ -1530,7 +1530,7 @@ paired_calc (struct ccase *c)
 }
 
 static void 
-paired_postcalc (void)
+paired_postcalc (void *aux UNUSED)
 {
   int i;
 
@@ -1582,7 +1582,7 @@ get_group(const union value *val, struct variable *var)
 
 
 static void 
-group_precalc (void)
+group_precalc (void *aux UNUSED)
 {
   int i;
   int j;
@@ -1602,7 +1602,7 @@ group_precalc (void)
 }
 
 static int  
-group_calc (struct ccase *c)
+group_calc (struct ccase *c, void *aux UNUSED)
 {
   int i;
   union value *gv = &c->data[groups->fv];
@@ -1626,7 +1626,7 @@ group_calc (struct ccase *c)
 }
 
 static void 
-group_postcalc (void)
+group_postcalc (void *aux UNUSED)
 {
   int i;
   int j;

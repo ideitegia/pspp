@@ -61,7 +61,7 @@ static struct file_handle *get_file;
 static struct save_trns *trns;
 
 static int trim_dictionary (struct dictionary * dict, int *options);
-static int save_write_case_func (struct ccase *);
+static int save_write_case_func (struct ccase *, void *);
 static int save_trns_proc (struct trns_header *, struct ccase *);
 static void save_trns_free (struct trns_header *);
 
@@ -192,7 +192,7 @@ cmd_save_internal (int xsave)
   if (xsave == 0)
     /* SAVE. */
     {
-      procedure (NULL, save_write_case_func, NULL);
+      procedure (NULL, save_write_case_func, NULL, NULL);
       save_trns_free (&t->h);
     }
   else
@@ -217,7 +217,7 @@ cmd_xsave (void)
 }
 
 static int
-save_write_case_func (struct ccase * c)
+save_write_case_func (struct ccase * c, void *aux UNUSED)
 {
   save_trns_proc (&trns->h, c);
   return 1;
@@ -477,10 +477,10 @@ get_source_destroy_source (void)
 /* Reads all the cases from the data file and passes them to
    write_case(). */
 static void
-get_source_read (void)
+get_source_read (write_case_func *write_case, write_case_data wc_data)
 {
   while (sfm_read_case (get_file, temp_case->data, default_dict)
-	 && write_case ())
+	 && write_case (wc_data))
     ;
   get_source_destroy_source ();
 }
@@ -546,9 +546,9 @@ static void mtf_free_file (struct mtf_file *file);
 static int mtf_merge_dictionary (struct mtf_file *f);
 static void mtf_delete_file_in_place (struct mtf_file **file);
 
-static void mtf_read_nonactive_records (void);
-static void mtf_processing_finish (void);
-static int mtf_processing (struct ccase *);
+static void mtf_read_nonactive_records (void *);
+static void mtf_processing_finish (void *);
+static int mtf_processing (struct ccase *, void *);
 
 static char *var_type_description (struct variable *);
 
@@ -857,7 +857,7 @@ cmd_match_files (void)
           dict_get_var_cnt (mtf_master) * sizeof *mtf_seq_nums);
 
   process_active_file (mtf_read_nonactive_records, mtf_processing,
-		       mtf_processing_finish);
+		       mtf_processing_finish, NULL);
   mtf_master = NULL;
   
   mtf_free ();
@@ -870,7 +870,7 @@ lossage:
 
 /* Repeats 2...8 an arbitrary number of times. */
 static void
-mtf_processing_finish (void)
+mtf_processing_finish (void *aux UNUSED)
 {
   /* Find the active file and delete it. */
   {
@@ -885,7 +885,7 @@ mtf_processing_finish (void)
   }
   
   while (mtf_head && mtf_head->type == MTF_FILE)
-    if (!mtf_processing (temp_case))
+    if (!mtf_processing (temp_case, NULL))
       break;
 }
 
@@ -980,7 +980,7 @@ mtf_delete_file_in_place (struct mtf_file **file)
 
 /* Read a record from every input file except the active file. */
 static void
-mtf_read_nonactive_records (void)
+mtf_read_nonactive_records (void *aux UNUSED)
 {
   struct mtf_file *iter;
 
@@ -1046,7 +1046,7 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
 
 /* Perform one iteration of steps 3...7 above. */
 static int
-mtf_processing (struct ccase *c UNUSED)
+mtf_processing (struct ccase *c UNUSED, void *aux UNUSED)
 {
   /* List of files with minimum BY values. */
   struct mtf_file *min_head, *min_tail;
@@ -1412,10 +1412,10 @@ cmd_import (void)
 /* Reads all the cases from the data file and passes them to
    write_case(). */
 static void
-import_source_read (void)
+import_source_read (write_case_func *write_case, write_case_data wc_data)
 {
   while (pfm_read_case (get_file, temp_case->data, default_dict)
-	 && write_case ())
+	 && write_case (wc_data))
     ;
   get_source_destroy_source ();
 }
@@ -1431,7 +1431,7 @@ struct case_stream import_source =
     "IMPORT",
   };
 
-static int export_write_case_func (struct ccase *c);
+static int export_write_case_func (struct ccase *c, void *);
      
 /* Parses the EXPORT command.  */
 /* FIXME: same as cmd_save_internal(). */
@@ -1492,14 +1492,14 @@ cmd_export (void)
   t->case_buf = xmalloc (sizeof *t->case_buf * t->nvar);
   dict_destroy (dict);
 
-  procedure (NULL, export_write_case_func, NULL);
+  procedure (NULL, export_write_case_func, NULL, NULL);
   save_trns_free (&t->h);
 
   return CMD_SUCCESS;
 }
 
 static int
-export_write_case_func (struct ccase *c)
+export_write_case_func (struct ccase *c, void *aux UNUSED)
 {
   union value *p = (union value *) trns->case_buf;
   int i;

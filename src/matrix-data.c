@@ -1029,8 +1029,9 @@ static double *split_values;
 
 static int nr_read_splits (int compare);
 static int nr_read_factors (int cell);
-static void nr_output_data (void);
-static int matrix_data_read_without_rowtype (void);
+static void nr_output_data (write_case_func *, write_case_data);
+static void matrix_data_read_without_rowtype (write_case_func *,
+                                              write_case_data);
 
 /* Read from the data file and write it to the active file. */
 static void
@@ -1045,10 +1046,10 @@ read_matrices_without_rowtype (void)
   nr_factor_values = xmalloc (sizeof *nr_factor_values * n_factors * cells);
   max_cell_index = 0;
 
-  matrix_data_source.read = (void (*)(void)) matrix_data_read_without_rowtype;
+  matrix_data_source.read = matrix_data_read_without_rowtype;
   vfm_source = &matrix_data_source;
   
-  procedure (NULL, NULL, NULL);
+  procedure (NULL, NULL, NULL, NULL);
 
   free (split_values);
   free (nr_factor_values);
@@ -1213,8 +1214,9 @@ nr_read_data_lines (int per_factor, int cell, int content, int compare)
 
 /* When ROWTYPE_ does not appear in the data, reads the matrices and
    writes them to the output file.  Returns success. */
-static int
-matrix_data_read_without_rowtype (void)
+static void
+matrix_data_read_without_rowtype (write_case_func *write_case,
+                                  write_case_data wc_data)
 {
   {
     int *cp;
@@ -1257,7 +1259,7 @@ matrix_data_read_without_rowtype (void)
       int *bp, *ep, *np;
       
       if (!nr_read_splits (0))
-	return 0;
+	return;
       
       for (bp = contents; *bp != EOC; bp = np)
 	{
@@ -1292,15 +1294,15 @@ matrix_data_read_without_rowtype (void)
 
 		for (cp = bp; cp < ep; cp++) 
 		  if (!nr_read_data_lines (per_factor, i, *cp, cp != bp))
-		    return 0;
+		    return;
 	      }
 	  }
 	}
 
-      nr_output_data ();
+      nr_output_data (write_case, wc_data);
 
       if (dict_get_split_cnt (default_dict) == 0 || !another_token ())
-	return 1;
+	return;
     }
 }
 
@@ -1411,7 +1413,8 @@ nr_read_factors (int cell)
 /* Write the contents of a cell having content type CONTENT and data
    CP to the active file. */
 static void
-dump_cell_content (int content, double *cp)
+dump_cell_content (int content, double *cp,
+                   write_case_func *write_case, write_case_data wc_data)
 {
   int type = content_type[content];
 
@@ -1442,14 +1445,14 @@ dump_cell_content (int content, double *cp)
                             dict_get_var (default_dict,
                                           first_continuous + i)->name,
 			    8);
-	write_case ();
+	write_case (wc_data);
       }
   }
 }
 
 /* Finally dump out everything from nr_data[] to the output file. */
 static void
-nr_output_data (void)
+nr_output_data (write_case_func *write_case, write_case_data wc_data)
 {
   {
     struct variable *const *split;
@@ -1487,7 +1490,8 @@ nr_output_data (void)
 		  assert (nr_data[content] != NULL
 			  && nr_data[content][cell] != NULL);
 
-		  dump_cell_content (content, nr_data[content][cell]);
+		  dump_cell_content (content, nr_data[content][cell],
+                                     write_case, wc_data);
 		}
 	  }
 	}
@@ -1505,7 +1509,8 @@ nr_output_data (void)
     
     for (content = 0; content <= PROX; content++)
       if (!is_per_factor[content] && nr_data[content] != NULL)
-	dump_cell_content (content, nr_data[content][0]);
+	dump_cell_content (content, nr_data[content][0],
+                           write_case, wc_data);
   }
 }
 
@@ -1529,12 +1534,13 @@ struct factor_data *wr_data;
 /* Current factor. */
 struct factor_data *wr_current;
 
-static int wr_read_splits (void);
-static int wr_output_data (void);
+static int wr_read_splits (write_case_func *, write_case_data);
+static int wr_output_data (write_case_func *, write_case_data);
 static int wr_read_rowtype (void);
 static int wr_read_factors (void);
 static int wr_read_indeps (void);
-static int matrix_data_read_with_rowtype (void);
+static void matrix_data_read_with_rowtype (write_case_func *,
+                                           write_case_data);
 
 /* When ROWTYPE_ appears in the data, reads the matrices and writes
    them to the output file. */
@@ -1546,40 +1552,40 @@ read_matrices_with_rowtype (void)
   split_values = NULL;
   cells = 0;
 
-  matrix_data_source.read = (void (*)(void)) matrix_data_read_with_rowtype;
+  matrix_data_source.read = matrix_data_read_with_rowtype;
   vfm_source = &matrix_data_source;
   
-  procedure (NULL, NULL, NULL);
+  procedure (NULL, NULL, NULL, NULL);
 
   free (split_values);
   fh_close_handle (data_file);
 }
 
 /* Read from the data file and write it to the active file. */
-static int
-matrix_data_read_with_rowtype (void)
+static void
+matrix_data_read_with_rowtype (write_case_func *write_case,
+                               write_case_data wc_data)
 {
   do
     {
-      if (!wr_read_splits ())
-	return 0;
+      if (!wr_read_splits (write_case, wc_data))
+	return;
 
       if (!wr_read_factors ())
-	return 0;
+	return;
 
       if (!wr_read_indeps ())
-	return 0;
+	return;
     }
   while (another_token ());
 
-  wr_output_data ();
-  return 1;
+  wr_output_data (write_case, wc_data);
 }
 
 /* Read the split file variables.  If they differ from the previous
    set of split variables then output the data.  Returns success. */
 static int 
-wr_read_splits (void)
+wr_read_splits (write_case_func *write_case, write_case_data wc_data)
 {
   int compare;
   size_t split_cnt;
@@ -1614,7 +1620,7 @@ wr_read_splits (void)
 
 	if (compare && split_values[i] != mtokval && !different)
 	  {
-	    if (!wr_output_data ())
+	    if (!wr_output_data (write_case, wc_data))
 	      return 0;
 	    different = 1;
 	    cells = 0;
@@ -1664,7 +1670,7 @@ compare_factors (const void *a_, const void *b_)
 /* Write out the data for the current split file to the active
    file. */
 static int 
-wr_output_data (void)
+wr_output_data (write_case_func *write_case, write_case_data wc_data)
 {
   {
     struct variable *const *split;
@@ -1742,7 +1748,8 @@ wr_output_data (void)
 
 	      fill_matrix (content, iter->data[content]);
 
-	      dump_cell_content (content, iter->data[content]);
+	      dump_cell_content (content, iter->data[content],
+                                 write_case, wc_data);
 	    }
 	}
       }

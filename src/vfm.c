@@ -50,6 +50,15 @@
 
 #include "debug-print.h"
 
+/* Procedure execution data. */
+struct write_case_data
+  {
+    void (*beginfunc) (void *);
+    int (*procfunc) (struct ccase *, void *);
+    void (*endfunc) (void *);
+    void *aux;
+  };
+
 /* This is used to read from the active file. */
 struct case_stream *vfm_source;
 
@@ -98,14 +107,6 @@ static int paging = 0;
 /* Time at which vfm was last invoked. */
 time_t last_vfm_invocation;
 
-/* Functions called during procedure processing. */
-static int (*proc_func) (struct ccase *);	/* Called for each case. */
-static int (*virt_proc_func) (struct ccase *);	/* From SPLIT_FILE_procfunc. */
-static void (*begin_func) (void);	/* Called at beginning of a series. */
-static void (*virt_begin_func) (void);	/* Called by SPLIT_FILE_procfunc. */
-static void (*end_func) (void);	/* Called after end of a series. */
-int (*write_case) (void);
-
 /* Number of cases passed to proc_func(). */
 static int case_count;
 
@@ -116,53 +117,66 @@ static int lag_head;		/* Index where next case will be added. */
 static struct ccase **lag_queue; /* Array of n_lag ccase * elements. */
 
 static void open_active_file (void);
-static void close_active_file (void);
-static int SPLIT_FILE_procfunc (struct ccase *);
+static void close_active_file (struct write_case_data *);
+static int SPLIT_FILE_procfunc (struct ccase *, void *);
 static void finish_compaction (void);
 static void lag_case (void);
-static int procedure_write_case (void);
+static int procedure_write_case (struct write_case_data *);
 
 /* Public functions. */
 
-/* Reads all the cases from the active file, transforms them by the
-   active set of transformations, calls PROCFUNC with CURCASE set to
-   the case and CASENUM set to the case number, and writes them to a
-   new active file.
+/* Reads all the cases from the active file, transforms them by
+   the active set of transformations, calls PROCFUNC with CURCASE
+   set to the case , and writes them to a new active file.
 
    Divides the active file into zero or more series of one or more
    cases each.  BEGINFUNC is called before each series.  ENDFUNC is
-   called after each series. */
-void
-procedure (void (*beginfunc) (void),
-	   int (*procfunc) (struct ccase *curcase),
-	   void (*endfunc) (void))
-{
-  end_func = endfunc;
-  write_case = procedure_write_case;
+   called after each series.
 
-  if (dict_get_split_cnt (default_dict) != 0 && procfunc != NULL)
+   Arbitrary user-specified data AUX is passed to BEGINFUNC,
+   PROCFUNC, and ENDFUNC as auxiliary data. */
+void
+procedure (void (*beginfunc) (void *),
+	   int (*procfunc) (struct ccase *curcase, void *),
+	   void (*endfunc) (void *),
+           void *aux)
+{
+  struct write_case_data procedure_write_data;
+  struct write_case_data split_file_data;
+
+  if (dict_get_split_cnt (default_dict) == 0) 
     {
-      virt_proc_func = procfunc;
-      proc_func = SPLIT_FILE_procfunc;
-      
-      virt_begin_func = beginfunc;
-      begin_func = NULL;
-    } else {
-      begin_func = beginfunc;
-      proc_func = procfunc;
+      /* Normally we just use the data passed by the user. */
+      procedure_write_data.beginfunc = beginfunc;
+      procedure_write_data.procfunc = procfunc;
+      procedure_write_data.endfunc = endfunc;
+      procedure_write_data.aux = aux;
+    }
+  else
+    {
+      /* Under SPLIT FILE, we add a layer of indirection. */
+      procedure_write_data.beginfunc = NULL;
+      procedure_write_data.procfunc = SPLIT_FILE_procfunc;
+      procedure_write_data.endfunc = endfunc;
+      procedure_write_data.aux = &split_file_data;
+
+      split_file_data.beginfunc = beginfunc;
+      split_file_data.procfunc = procfunc;
+      split_file_data.endfunc = endfunc;
+      split_file_data.aux = aux;
     }
 
   last_vfm_invocation = time (NULL);
 
   open_active_file ();
-  vfm_source->read ();
-  close_active_file ();
+  vfm_source->read (procedure_write_case, &procedure_write_data);
+  close_active_file (&procedure_write_data);
 }
 
 /* Active file processing support.  Subtly different semantics from
    procedure(). */
 
-static int process_active_file_write_case (void);
+static int process_active_file_write_case (struct write_case_data *data);
 
 /* The casefunc might want us to stop calling it. */
 static int not_canceled;
@@ -175,28 +189,35 @@ static int not_canceled;
 
    process_active_file() ignores TEMPORARY, SPLIT FILE, and N. */
 void
-process_active_file (void (*beginfunc) (void),
-		     int (*casefunc) (struct ccase *curcase),
-		     void (*endfunc) (void))
+process_active_file (void (*beginfunc) (void *),
+		     int (*casefunc) (struct ccase *curcase, void *),
+		     void (*endfunc) (void *),
+                     void *aux)
 {
-  proc_func = casefunc;
-  write_case = process_active_file_write_case;
+  struct write_case_data process_active_write_data;
+
+  process_active_write_data.beginfunc = beginfunc;
+  process_active_write_data.procfunc = casefunc;
+  process_active_write_data.endfunc = endfunc;
+  process_active_write_data.aux = aux;
+
   not_canceled = 1;
 
   open_active_file ();
-  beginfunc ();
+  beginfunc (aux);
   
   /* There doesn't necessarily need to be an active file. */
   if (vfm_source)
-    vfm_source->read ();
+    vfm_source->read (process_active_file_write_case,
+                      &process_active_write_data);
   
-  endfunc ();
-  close_active_file ();
+  endfunc (aux);
+  close_active_file (&process_active_write_data);
 }
 
 /* Pass the current case to casefunc. */
 static int
-process_active_file_write_case (void)
+process_active_file_write_case (struct write_case_data *data)
 {
   /* Index of current transformation. */
   int cur_trns;
@@ -230,7 +251,7 @@ process_active_file_write_case (void)
       && !FILTERED
       && (process_if_expr == NULL ||
 	  expr_evaluate (process_if_expr, temp_case, NULL) == 1.0))
-    not_canceled = proc_func (temp_case);
+    not_canceled = data->procfunc (temp_case, data->aux);
   
   case_count++;
   
@@ -515,11 +536,11 @@ open_active_file (void)
 
 /* Closes the active file. */
 static void
-close_active_file (void)
+close_active_file (struct write_case_data *data)
 {
   /* Close the current case group. */
-  if (case_count && end_func != NULL)
-    end_func ();
+  if (case_count && data->endfunc != NULL)
+    data->endfunc (data->aux);
 
   /* Stop lagging (catch up?). */
   if (n_lag)
@@ -619,7 +640,7 @@ disk_stream_init (void)
 /* Reads all cases from the disk source and passes them one by one to
    write_case(). */
 static void
-disk_stream_read (void)
+disk_stream_read (write_case_func *write_case, write_case_data wc_data)
 {
   int i;
 
@@ -634,7 +655,7 @@ disk_stream_read (void)
 	  return;
 	}
 
-      if (!write_case ())
+      if (!write_case (wc_data))
 	return;
     }
 }
@@ -738,7 +759,7 @@ memory_stream_init (void)
 
 /* Reads the case stream from memory and passes it to write_case(). */
 static void
-memory_stream_read (void)
+memory_stream_read (write_case_func *write_case, write_case_data wc_data)
 {
   while (memory_source_cases != NULL)
     {
@@ -750,7 +771,7 @@ memory_stream_read (void)
 	free (current);
       }
       
-      if (!write_case ())
+      if (!write_case (wc_data))
 	return;
     }
 }
@@ -954,7 +975,7 @@ lagged_case (int n_before)
    otherwise.  Do not call this function again after it has returned
    zero once.  */
 int
-procedure_write_case (void)
+procedure_write_case (write_case_data wc_data)
 {
   /* Index of current transformation. */
   int cur_trns;
@@ -1012,16 +1033,16 @@ procedure_write_case (void)
     }
 
   /* Call the beginning of group function. */
-  if (!case_count && begin_func != NULL)
-    begin_func ();
+  if (!case_count && wc_data->beginfunc != NULL)
+    wc_data->beginfunc (wc_data->aux);
 
   /* Call the procedure if there is one and FILTER and PROCESS IF
      don't prohibit it. */
-  if (proc_func != NULL
+  if (wc_data->procfunc != NULL
       && !FILTERED
       && (process_if_expr == NULL ||
 	  expr_evaluate (process_if_expr, temp_case, NULL) == 1.0))
-    proc_func (temp_case);
+    wc_data->procfunc (temp_case, wc_data->aux);
 
   case_count++;
   
@@ -1125,8 +1146,9 @@ dump_splits (struct ccase *c)
    SPLIT FILE is active.  This function forms a wrapper around that
    procfunc by dividing the input into series. */
 static int
-SPLIT_FILE_procfunc (struct ccase *c)
+SPLIT_FILE_procfunc (struct ccase *c, void *data_)
 {
+  struct write_case_data *data = data_;
   static struct ccase *prev_case;
   struct variable *const *split;
   size_t split_cnt;
@@ -1142,10 +1164,10 @@ SPLIT_FILE_procfunc (struct ccase *c)
       memcpy (prev_case, c, vfm_sink_info.case_size);
 
       dump_splits (c);
-      if (virt_begin_func != NULL)
-	virt_begin_func ();
+      if (data->beginfunc != NULL)
+	data->beginfunc (data->aux);
       
-      return virt_proc_func (c);
+      return data->procfunc (c, data->aux);
     }
 
   /* Compare the value of each SPLIT FILE variable to the values on
@@ -1170,19 +1192,19 @@ SPLIT_FILE_procfunc (struct ccase *c)
 	  assert (0);
 	}
     }
-  return virt_proc_func (c);
+  return data->procfunc (c, data->aux);
   
 not_equal:
   /* The values of the SPLIT FILE variable are different from the
      values on the previous case.  That means that it's time to begin
      a new series. */
-  if (end_func != NULL)
-    end_func ();
+  if (data->endfunc != NULL)
+    data->endfunc (data->aux);
   dump_splits (c);
-  if (virt_begin_func != NULL)
-    virt_begin_func ();
+  if (data->beginfunc != NULL)
+    data->beginfunc (data->aux);
   memcpy (prev_case, c, vfm_sink_info.case_size);
-  return virt_proc_func (c);
+  return data->procfunc (c, data->aux);
 }
 
 /* Case compaction. */

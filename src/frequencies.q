@@ -160,9 +160,9 @@ static struct pool *gen_pool;	/* General mode. */
 
 static void determine_charts (void);
 
-static void precalc (void);
-static int calc (struct ccase *);
-static void postcalc (void);
+static void precalc (void *);
+static int calc (struct ccase *, void *);
+static void postcalc (void *);
 
 static void postprocess_freq_tab (struct variable *);
 static void dump_full (struct variable *);
@@ -246,7 +246,7 @@ internal_cmd_frequencies (void)
     cmd.sort = FRQ_AVALUE;
 
   /* Do it! */
-  procedure (precalc, calc, postcalc);
+  procedure (precalc, calc, postcalc, NULL);
 
   return CMD_SUCCESS;
 }
@@ -355,7 +355,7 @@ determine_charts (void)
 
 /* Add data from case C to the frequency table. */
 static int
-calc (struct ccase *c)
+calc (struct ccase *c, void *aux UNUSED)
 {
   double weight;
   int i;
@@ -408,7 +408,7 @@ calc (struct ccase *c)
 /* Prepares each variable that is the target of FREQUENCIES by setting
    up its hash table. */
 static void
-precalc (void)
+precalc (void *aux UNUSED)
 {
   int i;
 
@@ -451,7 +451,7 @@ precalc (void)
 /* Finishes up with the variables after frequencies have been
    calculated.  Displays statistics, percentiles, ... */
 static void
-postcalc (void)
+postcalc (void *aux UNUSED)
 {
   int i;
 

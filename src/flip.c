@@ -100,7 +100,7 @@ cmd_flip (void)
   temp_trns = temporary = 0;
   vfm_sink = &flip_stream;
   new_names_tail = NULL;
-  procedure (NULL, NULL, NULL);
+  procedure (NULL, NULL, NULL, NULL);
 
   dict_clear (default_dict);
   if (!build_dictionary ())
@@ -258,7 +258,7 @@ flip_stream_init (void)
 
 /* Reads the FLIP stream and passes it to write_case(). */
 static void
-flip_stream_read (void)
+flip_stream_read (write_case_func *write_case, write_case_data wc_data)
 {
   if (src || (src == NULL && src_file == NULL))
     {
@@ -276,7 +276,7 @@ flip_stream_read (void)
 	  for (iter = src, j = 1; iter; iter = iter->next, j++)
 	    temp_case->data[j].f = iter->v[i];
 
-	  if (!write_case ())
+	  if (!write_case (wc_data))
 	    return;
 	}
     }
@@ -295,7 +295,7 @@ flip_stream_read (void)
 	    msg (FE, _("Error reading FLIP source file: %s."),
 		 strerror (errno));
 
-	  if (!write_case ())
+	  if (!write_case (wc_data))
 	    return;
 	}
     }

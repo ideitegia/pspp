@@ -18,6 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
+#include "data-list.h"
 #include <assert.h>
 #include <ctype.h>
 #include <float.h>
@@ -967,14 +968,13 @@ cut_field (char **ret_cp, int *ret_len)
 static int read_from_data_list_fixed (void);
 static int read_from_data_list_free (void);
 static int read_from_data_list_list (void);
-static int do_reading (int flag);
 
 /* FLAG==0: reads any number of cases into temp_case and calls
    write_case() for each one, returns garbage.  FLAG!=0: reads one
    case into temp_case and returns -2 on eof, -1 otherwise.
    Uses dlsp as the relevant parsing description. */
 static int
-do_reading (int flag)
+do_reading (int flag, write_case_func *write_case, write_case_data wc_data)
 {
   int (*func) (void);
 
@@ -1030,7 +1030,7 @@ do_reading (int flag)
   else
     {
       while (func () != -2)
-	if (!write_case ())
+	if (!write_case (wc_data))
 	  {
 	    debug_printf ((_("abort in write_case()\n")));
 	    break;
@@ -1202,16 +1202,16 @@ static int
 read_one_case (struct trns_header *t, struct ccase *c UNUSED)
 {
   dlsp = (struct data_list_pgm *) t;
-  return do_reading (1);
+  return do_reading (1, NULL, NULL);
 }
 
 /* Reads all the records from the data file and passes them to
    write_case(). */
 static void
-data_list_source_read (void)
+data_list_source_read (write_case_func *write_case, write_case_data wc_data)
 {
   dlsp = &dls;
-  do_reading (0);
+  do_reading (0, write_case, wc_data);
 }
 
 /* Destroys the source's internal data. */
@@ -1258,12 +1258,14 @@ struct repeating_data_trns
     int id_beg, id_end;			/* ID subcommand, beginning & end columns. */
     struct variable *id_var;		/* ID subcommand, DATA LIST variable. */
     struct fmt_spec id_spec;		/* ID subcommand, input format spec. */
+    write_case_func *write_case;
+    write_case_data wc_data;
   };
 
 /* Information about the transformation being parsed. */
 static struct repeating_data_trns rpd;
 
-static int read_one_set_of_repetitions (struct trns_header *, struct ccase *);
+int repeating_data_trns_proc (struct trns_header *, struct ccase *);
 static int parse_num_or_var (struct rpd_num_or_var *, const char *);
 static int parse_repeating_data (void);
 static void find_variable_input_spec (struct variable *v,
@@ -1523,7 +1525,7 @@ cmd_repeating_data (void)
   {
     struct repeating_data_trns *new_trns;
 
-    rpd.h.proc = read_one_set_of_repetitions;
+    rpd.h.proc = repeating_data_trns_proc;
     rpd.h.free = destroy_dls;
 
     new_trns = xmalloc (sizeof *new_trns);
@@ -1787,7 +1789,7 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 
 	cur += ofs;
 
-	if (!write_case ())
+	if (!t->write_case (t->wc_data))
 	  return 0;
       }
   }
@@ -1798,8 +1800,8 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 /* Analogous to read_one_case; reads one set of repetitions of the
    elements in the REPEATING DATA structure.  Returns -1 on success,
    -2 on end of file or on failure. */
-static int
-read_one_set_of_repetitions (struct trns_header *trns, struct ccase *c)
+int
+repeating_data_trns_proc (struct trns_header *trns, struct ccase *c)
 {
   dfm_push (dlsp->handle);
   
@@ -1931,4 +1933,20 @@ read_one_set_of_repetitions (struct trns_header *trns, struct ccase *c)
   /* FIXME: This is a kluge until we've implemented multiplexing of
      transformations. */
   return -3;
+}
+
+/* This is a kluge.  It is only here until I have more time
+   tocome up with something better.  It lets
+   repeating_data_trns_proc() know how to write the cases that it
+   composes. */
+void
+repeating_data_set_write_case (struct trns_header *trns,
+                               write_case_func *write_case,
+                               write_case_data wc_data) 
+{
+  struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
+
+  assert (trns->proc == repeating_data_trns_proc);
+  t->write_case = write_case;
+  t->wc_data = wc_data;
 }

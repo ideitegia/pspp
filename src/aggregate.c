@@ -141,11 +141,11 @@ static int aggregate_single_case (struct ccase *input, struct ccase *output);
 static int create_sysfile (void);
 
 static int agr_00x_trns_proc (struct trns_header *, struct ccase *);
-static void agr_00x_end_func (void);
+static void agr_00x_end_func (void *);
 static int agr_10x_trns_proc (struct trns_header *, struct ccase *);
 static void agr_10x_trns_free (struct trns_header *);
-static void agr_10x_end_func (void);
-static int agr_11x_func (void);
+static void agr_10x_end_func (void *);
+static int agr_11x_func (write_case_data);
 
 #if DEBUGGING
 static void debug_print (int flags);
@@ -343,7 +343,7 @@ cmd_aggregate (void)
 	  
 	  agr_dict = NULL;
 
-	  procedure (NULL, NULL, agr_00x_end_func);
+	  procedure (NULL, NULL, agr_00x_end_func, NULL);
 	  break;
 	}
 
@@ -359,7 +359,7 @@ cmd_aggregate (void)
 	    t->free = agr_10x_trns_free;
 	    add_transformation (t);
 
-	    procedure (NULL, NULL, agr_10x_end_func);
+	    procedure (NULL, NULL, agr_10x_end_func, NULL);
 	  }
 	  
 	  break;
@@ -371,12 +371,12 @@ cmd_aggregate (void)
 	
 	if (!create_sysfile ())
 	  goto lossage;
-	read_sort_output (agr_11x_func);
+	read_sort_output (agr_11x_func, NULL);
 	
 	{
 	  struct ccase *save_temp_case = temp_case;
 	  temp_case = NULL;
-	  agr_11x_func ();
+	  agr_11x_func (NULL);
 	  temp_case = save_temp_case;
 	}
 	
@@ -1207,7 +1207,7 @@ agr_00x_trns_proc (struct trns_header *h UNUSED, struct ccase *c)
    the cases have been output; very little has been cleaned up at this
    point. */
 static void
-agr_00x_end_func (void)
+agr_00x_end_func (void *aux UNUSED)
 {
   /* Ensure that info for the last break group gets written to the
      active file. */
@@ -1272,7 +1272,7 @@ agr_10x_trns_free (struct trns_header *h UNUSED)
 /* Ensure that info for the last break group gets written to the
    system file. */
 static void
-agr_10x_end_func (void)
+agr_10x_end_func (void *aux UNUSED)
 {
   dump_aggregate_info (buf_1xx);
   write_case_to_sfm ();
@@ -1283,7 +1283,7 @@ agr_10x_end_func (void)
    appropriate.  If temp_case is NULL, finishes up writing the last
    case if necessary. */
 static int
-agr_11x_func (void)
+agr_11x_func (write_case_data wc_data UNUSED)
 {
   if (temp_case != NULL)
     {

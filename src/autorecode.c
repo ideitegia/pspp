@@ -76,7 +76,7 @@ static int print;
 
 static int autorecode_trns_proc (struct trns_header *, struct ccase *);
 static void autorecode_trns_free (struct trns_header *);
-static int autorecode_proc_func (struct ccase *);
+static int autorecode_proc_func (struct ccase *, void *);
 static hsh_compare_func compare_alpha_value, compare_numeric_value;
 static hsh_hash_func hash_alpha_value, hash_numeric_value;
 static void recode (void);
@@ -153,7 +153,7 @@ cmd_autorecode (void)
       h_trans[i] = hsh_create (10, compare_numeric_value,
 			       hash_numeric_value, NULL, NULL);
 
-  procedure (NULL, autorecode_proc_func, NULL);
+  procedure (NULL, autorecode_proc_func, NULL, NULL);
 
   for (i = 0; i < nv_dest; i++)
     {
@@ -309,7 +309,7 @@ hash_numeric_value (const void *a_, void *foo UNUSED)
 }
 
 static int
-autorecode_proc_func (struct ccase * c)
+autorecode_proc_func (struct ccase *c, void *aux UNUSED)
 {
   int i;
 

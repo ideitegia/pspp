@@ -309,7 +309,7 @@ cmd_modify_vars (void)
   if (already_encountered & (1 | 4))
     {
       /* Read the data. */
-      procedure (NULL, NULL, NULL);
+      procedure (NULL, NULL, NULL, NULL);
     }
 
   if (!rearrange_dict (default_dict, &vm))

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
+#include "data-list.h"
 #include "dfm.h"
 #include "error.h"
 #include "expr.h"
@@ -168,7 +169,8 @@ clear_case (void)
    file.  -1 means go on to the next transformation.  Otherwise the
    return value is the index of the transformation to go to next. */
 static void
-input_program_source_read (void)
+input_program_source_read (write_case_func *write_case,
+                           write_case_data wc_data)
 {
   int i;
 
@@ -181,6 +183,12 @@ input_program_source_read (void)
   for (i = 0; i < f_trns; i++)
     if (t_trns[i]->proc == end_case_trns_proc)
       end_case = 1;
+
+  /* FIXME: This code should not be necessary.  It is an ugly
+     kluge. */
+  for (i = 0; i < f_trns; i++)
+    if (t_trns[i]->proc == repeating_data_trns_proc)
+      repeating_data_set_write_case (t_trns[i], write_case, wc_data);
 
   init_case ();
   for (;;)
@@ -201,6 +209,16 @@ input_program_source_read (void)
 	  if (t_trns[i]->proc == end_case_trns_proc)
 	    printf ("\n");
 #endif
+
+          if (t_trns[i]->proc == end_case_trns_proc) 
+            {
+              if (!write_case (wc_data))
+                return;
+              clear_case ();
+              i++;
+              continue;
+            }
+
 	  code = t_trns[i]->proc (t_trns[i], temp_case);
 	  switch (code)
 	    {
@@ -224,7 +242,7 @@ input_program_source_read (void)
 
       /* Write the case if appropriate. */
       if (!end_case)
-	if (!write_case ())
+	if (!write_case (wc_data))
 	  return;
 
       /* Blank out the case for the next iteration. */
@@ -278,13 +296,7 @@ cmd_end_case (void)
 int
 end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED)
 {
-#if DEBUGGING
-  printf ("END CASE\n");
-#endif
-  if (!write_case ())
-    return -2;
-  clear_case ();
-  return -1;
+  assert (0);
 }
 
 /* REREAD transformation. */
