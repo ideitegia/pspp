@@ -133,7 +133,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
+$SUPERVISOR $here/../src/pspp --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
 
 activity="compare results"
 diff -b -B $TEMPDIR/epoch.out - <<EOF

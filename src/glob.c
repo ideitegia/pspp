@@ -96,6 +96,8 @@ int n_trns;
 int m_trns;
 int f_trns;
 
+short test_mode=0;
+
 int FILTER_before_TEMPORARY;
 
 struct file_handle *default_handle;

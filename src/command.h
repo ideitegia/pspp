@@ -54,10 +54,13 @@ int cmd_parse (void);
 	int FUNC (void);
 #define SPCCMD(NAME, T1, T2, T3, T4, FUNC)	\
 	int FUNC (void);
+#define DBGCMD(NAME, T1, T2, T3, T4, FUNC)	\
+	int FUNC (void);
 #define UNIMPL(NAME, T1, T2, T3, T4)
 #include "command.def"
 #undef DEFCMD
 #undef SPCCMD
 #undef UNIMPL
+#undef DBGCMD
 
 #endif /* !command_h */

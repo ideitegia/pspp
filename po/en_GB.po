@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-03-07 06:29+0800\n"
+"POT-Creation-Date: 2005-03-08 12:50+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -226,9 +226,9 @@ msgstr ""
 msgid "Source variable count (%d) does not match target variable count (%d)."
 msgstr ""
 
-#: src/autorecode.c:139 src/command.c:780 src/compute.c:277
+#: src/autorecode.c:139 src/command.c:791 src/compute.c:277
 #: src/data-list.c:410 src/data-list.c:900 src/data-list.c:1751
-#: src/do-if.c:253 src/get.c:406 src/lexer.c:419 src/loop.c:241
+#: src/do-if.c:253 src/get.c:406 src/lexer.c:421 src/loop.c:241
 #: src/matrix-data.c:527 src/print.c:335 src/print.c:1048 src/recode.c:405
 #: src/sel-if.c:54 src/sel-if.c:131 src/vector.c:193 src/file-handle.q:140
 msgid "expecting end of command"
@@ -289,13 +289,13 @@ msgstr ""
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
 
-#: src/cmdline.c:142 src/cmdline.c:161 src/cmdline.c:173 src/command.c:202
+#: src/cmdline.c:143 src/cmdline.c:162 src/cmdline.c:174 src/command.c:207
 #: src/set.q:425 src/set.q:427 src/set.q:994
 #, c-format
 msgid "%s is not yet implemented."
 msgstr ""
 
-#: src/cmdline.c:243
+#: src/cmdline.c:245
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -345,32 +345,32 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/cmdline.c:281
+#: src/cmdline.c:283
 #, c-format
 msgid ""
 "\n"
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/command.c:140
+#: src/command.c:145
 #, c-format
 msgid "%s not allowed inside FILE TYPE/END FILE TYPE."
 msgstr ""
 
-#: src/command.c:144
+#: src/command.c:149
 #, c-format
 msgid "%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."
 msgstr ""
 
-#: src/command.c:147
+#: src/command.c:152
 msgid "RECORD TYPE must be the first command inside a FILE TYPE structure."
 msgstr ""
 
-#: src/command.c:192
+#: src/command.c:197
 msgid "expecting command name"
 msgstr ""
 
-#: src/command.c:221
+#: src/command.c:226
 #, c-format
 msgid ""
 "%s is not allowed (1) before a command to specify the input program, such as "
@@ -378,57 +378,57 @@ msgid ""
 "PROGRAM and END INPUT PROGRAM."
 msgstr ""
 
-#: src/command.c:225
+#: src/command.c:230
 #, c-format
 msgid "%s is not allowed within an input program."
 msgstr ""
 
-#: src/command.c:226 src/command.c:227
+#: src/command.c:231 src/command.c:232
 #, c-format
 msgid "%s is only allowed within an input program."
 msgstr ""
 
-#: src/command.c:506
+#: src/command.c:511
 #, c-format
 msgid "Unknown command %s."
 msgstr ""
 
-#: src/command.c:606
+#: src/command.c:617
 msgid ""
 "This command is not accepted in a syntax file.  Instead, use FINISH to "
 "terminate a syntax file."
 msgstr ""
 
-#: src/command.c:624
+#: src/command.c:635
 msgid ""
 "This command is not executed in interactive mode.  Instead, PSPP drops down "
 "to the command prompt.  Use EXIT if you really want to quit."
 msgstr ""
 
-#: src/command.c:667 src/command.c:798 src/permissions.c:101
+#: src/command.c:678 src/command.c:809 src/permissions.c:101
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
-#: src/command.c:679
+#: src/command.c:690
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr ""
 
-#: src/command.c:729
+#: src/command.c:740
 #, c-format
 msgid "Couldn't fork: %s."
 msgstr ""
 
-#: src/command.c:771
+#: src/command.c:782
 #, c-format
 msgid "Error executing command: %s."
 msgstr ""
 
-#: src/command.c:819
+#: src/command.c:830
 msgid "No operating system support for this command."
 msgstr ""
 
-#: src/command.c:842
+#: src/command.c:853
 msgid "This command is not valid in a syntax file."
 msgstr ""
 
@@ -480,160 +480,159 @@ msgstr ""
 msgid ", field type %s) "
 msgstr ""
 
-#: src/data-in.c:223
+#: src/data-in.c:210
+msgid "Field does not form a valid floating-point constant."
+msgstr ""
+
+#: src/data-in.c:239
 msgid "Field contents followed by garbage."
 msgstr ""
 
-#: src/data-in.c:256
-msgid "Overflow in floating-point constant."
-msgstr ""
-
-#: src/data-in.c:262
+#: src/data-in.c:257
 msgid "Underflow in floating-point constant."
 msgstr ""
 
 #: src/data-in.c:268
-msgid "Field does not form a valid floating-point constant."
+msgid "Overflow in floating-point constant."
 msgstr ""
 
-#: src/data-in.c:294
+#: src/data-in.c:301
 msgid "All characters in field must be digits."
 msgstr ""
 
-#: src/data-in.c:319
+#: src/data-in.c:325
 msgid "Unrecognized character in field."
 msgstr ""
 
-#: src/data-in.c:337 src/data-in.c:587
+#: src/data-in.c:343 src/data-in.c:596
 msgid "Field must have even length."
 msgstr ""
 
-#: src/data-in.c:347 src/data-in.c:597
+#: src/data-in.c:353 src/data-in.c:606
 msgid "Field must contain only hex digits."
 msgstr ""
 
-#: src/data-in.c:385
+#: src/data-in.c:392
 #, c-format
 msgid ""
 "Quality of zoned decimal (Z) input format code is suspect.  Check your "
 "results three times. Report bugs to %s."
 msgstr ""
 
-#: src/data-in.c:397
+#: src/data-in.c:404
 msgid "Zoned decimal field contains fewer than 2 characters."
 msgstr ""
 
-#: src/data-in.c:405
+#: src/data-in.c:412
 msgid "Bad sign byte in zoned decimal number."
 msgstr ""
 
-#: src/data-in.c:422
+#: src/data-in.c:432
 msgid "Format error in zoned decimal number."
 msgstr ""
 
-#: src/data-in.c:436
+#: src/data-in.c:446
 msgid "Error in syntax of zoned decimal number."
 msgstr ""
 
-#: src/data-in.c:637
+#: src/data-in.c:646
 msgid "Unexpected end of field."
 msgstr ""
 
-#: src/data-in.c:663
+#: src/data-in.c:672
 msgid "Digit expected in field."
 msgstr ""
 
-#: src/data-in.c:688
+#: src/data-in.c:697
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
 msgstr ""
 
-#: src/data-in.c:713
+#: src/data-in.c:722
 msgid "Delimiter expected between fields in date."
 msgstr ""
 
-#: src/data-in.c:810
+#: src/data-in.c:755
+#, c-format
+msgid "Parse error at `%c' expecting %s."
+msgstr ""
+
+#: src/data-in.c:769
+#, c-format
+msgid "Unknown %s `%.*s'."
+msgstr ""
+
+#: src/data-in.c:819
 #, c-format
 msgid "Month (%ld) must be between 1 and 12."
 msgstr ""
 
-#: src/data-in.c:851
-#, c-format
-msgid "Month (%s) must be between I and XII."
+#: src/data-in.c:823
+msgid "month"
 msgstr ""
 
-#: src/data-in.c:878
-#, c-format
-msgid "Month name (%s...) is too long."
-msgstr ""
-
-#: src/data-in.c:889
-#, c-format
-msgid "Bad month name (%s)."
-msgstr ""
-
-#: src/data-in.c:905
+#: src/data-in.c:837
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
 msgstr ""
 
-#: src/data-in.c:916
+#: src/data-in.c:848
 #, c-format
 msgid "Trailing garbage \"%s\" following date."
 msgstr ""
 
-#: src/data-in.c:931
+#: src/data-in.c:863
 #, c-format
 msgid "Julian day (%d) must be between 1 and 366."
 msgstr ""
 
-#: src/data-in.c:943
+#: src/data-in.c:875
 #, c-format
 msgid "Year (%d) must be between 1582 and 19999."
 msgstr ""
 
-#: src/data-in.c:959
+#: src/data-in.c:891
 #, c-format
 msgid "Quarter (%ld) must be between 1 and 4."
 msgstr ""
 
-#: src/data-in.c:969
+#: src/data-in.c:901
 msgid "`Q' expected between quarter and year."
 msgstr ""
 
-#: src/data-in.c:985
+#: src/data-in.c:917
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
 msgstr ""
 
-#: src/data-in.c:996
+#: src/data-in.c:928
 msgid "`WK' expected between week and year."
 msgstr ""
 
-#: src/data-in.c:1019
+#: src/data-in.c:950
 msgid "Delimiter expected between fields in time."
 msgstr ""
 
-#: src/data-in.c:1031
+#: src/data-in.c:962
 #, c-format
 msgid "Hour (%ld) must be positive."
 msgstr ""
 
-#: src/data-in.c:1043
+#: src/data-in.c:974
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
 msgstr ""
 
-#: src/data-in.c:1090
+#: src/data-in.c:1021
 #, c-format
 msgid "Hour (%ld) must be between 0 and 23."
 msgstr ""
 
-#: src/data-in.c:1104 src/data-in.c:1139
-msgid "Day of the week expected in date value."
+#: src/data-in.c:1049
+msgid "weekday"
 msgstr ""
 
-#: src/data-in.c:1477
+#: src/data-in.c:1378
 #, c-format
 msgid "Field too long (%d characters).  Truncated after character %d."
 msgstr ""
@@ -1861,101 +1860,101 @@ msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
 
-#: src/lexer.c:251
+#: src/lexer.c:254
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/lexer.c:369
+#: src/lexer.c:371
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/lexer.c:371
+#: src/lexer.c:373
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/lexer.c:392
+#: src/lexer.c:394
 msgid "Syntax error at end of file."
 msgstr ""
 
-#: src/lexer.c:402
+#: src/lexer.c:404
 #, c-format
 msgid "Syntax error %s at `%s'."
 msgstr ""
 
-#: src/lexer.c:405
+#: src/lexer.c:407
 #, c-format
 msgid "Syntax error at `%s'."
 msgstr ""
 
-#: src/lexer.c:525
+#: src/lexer.c:526
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/lexer.c:542
+#: src/lexer.c:543
 #, c-format
 msgid "expecting %s"
 msgstr ""
 
-#: src/lexer.c:556 src/val-labs.c:154
+#: src/lexer.c:557 src/val-labs.c:154
 msgid "expecting string"
 msgstr ""
 
-#: src/lexer.c:570 src/val-labs.c:163
+#: src/lexer.c:571 src/val-labs.c:163
 msgid "expecting integer"
 msgstr ""
 
-#: src/lexer.c:584
+#: src/lexer.c:585
 msgid "expecting number"
 msgstr ""
 
-#: src/lexer.c:598
+#: src/lexer.c:599
 msgid "expecting identifier"
 msgstr ""
 
-#: src/lexer.c:867
+#: src/lexer.c:868
 msgid "<ERROR>"
 msgstr ""
 
-#: src/lexer.c:1000 src/pfm-read.c:129 src/repeat.c:214
+#: src/lexer.c:1002 src/pfm-read.c:129 src/repeat.c:214
 msgid "Unexpected end of file."
 msgstr ""
 
-#: src/lexer.c:1026
+#: src/lexer.c:1028
 msgid "binary"
 msgstr ""
 
-#: src/lexer.c:1026
+#: src/lexer.c:1028
 msgid "octal"
 msgstr ""
 
-#: src/lexer.c:1026
+#: src/lexer.c:1028
 msgid "hex"
 msgstr ""
 
-#: src/lexer.c:1040
+#: src/lexer.c:1042
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/lexer.c:1069
+#: src/lexer.c:1071
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/lexer.c:1100
+#: src/lexer.c:1102
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/lexer.c:1172
+#: src/lexer.c:1174
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/lexer.c:1187
+#: src/lexer.c:1189
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."

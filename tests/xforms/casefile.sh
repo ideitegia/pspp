@@ -52,7 +52,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp $TEMPDIR/casefile.stat > $TEMPDIR/casefile.out
+$SUPERVISOR $here/../src/pspp --testing-mode $TEMPDIR/casefile.stat > $TEMPDIR/casefile.out
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"

@@ -27,6 +27,7 @@
 #include "alloc.h"
 #include "dictionary.h"
 #include "error.h"
+#include "glob.h"
 #include "getline.h"
 #include "lexer.h"
 #include "main.h"
@@ -63,20 +64,24 @@ struct command
     int (*func) (void);		/* Function to call. */
     int skip_entire_name;       /* If zero, we don't skip the
                                    final token in the command name. */
+    short debug;                /* Set if this cmd available only in test mode*/
   };
 
 /* Define the command array. */
 #define DEFCMD(NAME, T1, T2, T3, T4, FUNC)		\
-	{NAME, {T1, T2, T3, T4}, FUNC, 1},
+	{NAME, {T1, T2, T3, T4}, FUNC, 1, 0},
+#define DBGCMD(NAME, T1, T2, T3, T4, FUNC)		\
+	{NAME, {T1, T2, T3, T4}, FUNC, 1, 1},
 #define SPCCMD(NAME, T1, T2, T3, T4, FUNC)		\
-	{NAME, {T1, T2, T3, T4}, FUNC, 0},
+	{NAME, {T1, T2, T3, T4}, FUNC, 0, 0},
 #define UNIMPL(NAME, T1, T2, T3, T4)			\
-	{NAME, {T1, T2, T3, T4}, NULL, 1},
+	{NAME, {T1, T2, T3, T4}, NULL, 1, 0},
 static const struct command commands[] = 
   {
 #include "command.def"
   };
 #undef DEFCMD
+#undef DBGCMD
 #undef UNIMPL
 
 
@@ -99,7 +104,7 @@ pspp_completion_function (const char *text,   int state)
 
       cmd = &commands[state + skip];
   
-      if ( cmd->transition[pgm_state] == STATE_ERROR ) 
+      if ( cmd->transition[pgm_state] == STATE_ERROR || ( cmd->debug  &&  ! test_mode ) ) 
 	{
 	  skip++; 
 	  continue;
@@ -543,6 +548,8 @@ parse_command_name (void)
             {
               if (command->skip_entire_name)
                 lex_get ();
+	      if ( command->debug & !test_mode ) 
+		goto error;
               free_words (words, word_cnt);
               return command;
             }
@@ -586,10 +593,14 @@ parse_command_name (void)
           free (words[word_cnt]);
         }
 
+      if ( command->debug && !test_mode ) 
+	goto error;
+
       free_words (words, word_cnt);
       return command;
     }
 
+error:
   unknown_command_error (words, word_cnt);
   free_words (words, word_cnt);
   return NULL;

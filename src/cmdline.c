@@ -36,6 +36,7 @@
 #include "var.h"
 #include "version.h"
 #include "copyleft.h"
+#include "glob.h"
 
 void welcome (void);
 static void usage (void);
@@ -201,6 +202,7 @@ parse_command_line (int argc, char **argv)
     {
       /* FIXME: Later this option should do some other things, too. */
       force_long_view();
+      test_mode = 1;
     }
     
 
