@@ -5,7 +5,7 @@ noinst_LIBRARIES = libmisc.a
 INCLUDES = -I$(srcdir) -I$(top_srcdir)/src -I$(top_srcdir) \
 -I$(top_srcdir)/intl
 
-libmisc_a_SOURCES = qsort.c getopt.c getopt1.c
+libmisc_a_SOURCES = qsort.c 
 libmisc_a_LIBADD = @ALLOCA@ @LIBOBJS@
 libmisc_a_DEPENDENCIES = @ALLOCA@ @LIBOBJS@
 

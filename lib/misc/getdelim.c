@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
-#include "common.h"
 
 /* Reads a DELIMITER-separated field of any length from file STREAM.
    *LINEPTR is a malloc'd string of size N; if *LINEPTR is NULL, it is

@@ -19,6 +19,10 @@ AC_CHECK_LIB(m, sin)
 AC_CHECK_LIB(gmp, mpf_get_str, [LIBS="-lgmp $LIBS"],
 	     [AC_CHECK_LIB(gmp, __gmpf_get_str, [LIBS="-lgmp $LIBS"])],
 	     AC_MSG_ERROR(`You must install libgmp'))
+
+AC_CHECK_FUNC(getopt_long,,
+	AC_MSG_ERROR(`This application depends upon getopt_long'))
+
   
 AC_CHECK_LIB(ncurses, tgetent, LIBS="-lncurses $LIBS" termcap=yes,
   AC_CHECK_LIB(termcap, tgetent, LIBS="-ltermcap $LIBS" termcap=yes,
