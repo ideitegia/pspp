@@ -50,7 +50,7 @@ activity="generate stat program"
 cat > $TEMPDIR/sort.stat <<EOF
 title 'Test SORT procedure'.
 
-data list file='$here/sort.data' notable /X000 to X126 1-127.
+data list file='$here/sort.data' notable /X000 to X126 1-127(a).
 sort by X000 to x005.
 print /X000 to X005.
 execute.
@@ -68,10 +68,9 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check sorted"
 sort $TEMPDIR/pspp.list  > $TEMPDIR/sortsort
-cp $TEMPDIR/pspp.list ~/pspp.list
 if [ $? -ne 0 ] ; then no_result ; fi
 
-diff -u -B -b $TEMPDIR/sortsort $TEMPDIR/pspp.list
+diff -B -b $TEMPDIR/sortsort $TEMPDIR/pspp.list
 if [ $? -ne 0 ] ; then fail ; fi
 
 # 2. It should be six elements wide

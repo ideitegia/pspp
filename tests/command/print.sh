@@ -112,7 +112,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="compare output"
-diff -u -b -B $TEMPDIR/pspp.list - << EOF
+diff -b -B $TEMPDIR/pspp.list - << EOF
 ----------------------------------------------------------------------
 There is no test for DATA LIST FIXED since it is imagined that the
 rest of the tests give it a pretty good workout.
