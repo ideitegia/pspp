@@ -1,0 +1,5 @@
+To build this project from the sources direct from the 
+cvs archive use:
+
+make -f Smake
+
