@@ -514,6 +514,8 @@ get_freq_comparator (int frq_sort, int var_type)
     case FRQ_DFREQ | (ALPHA << 16):     return compare_freq_alpha_d;
     default: assert (0);
     }
+
+  return 0;
 }
 
 static int
@@ -831,12 +833,13 @@ hash_value_numeric (const void *value_, void *foo unused)
 
 /* Hash of string values. */
 static unsigned
-hash_value_alpha (const void *value_, void *len_)
+hash_value_alpha (const void *value_, void *len_ unused)
 {
   const struct freq *value = value_;
-  int *len = len_;
 
-  return hsh_hash_bytes (value->v.s, *len);
+  static int len = MAX_SHORT_STRING;
+
+  return hsh_hash_bytes (value->v.s, len);
 }
 
 /* Ascending numeric compare of values. */

@@ -21,6 +21,7 @@ TESTS = command/aggregate.sh \
 	command/tabs.sh \
 	command/split-file.sh \
 	command/weight.sh \
+	bugs/alpha-freq.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh \
 	bugs/crosstabs.sh
