@@ -17,8 +17,11 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
+
+
 #ifndef GROUP_H
 #define GROUP_H
+
 
 #include "val.h"
 
@@ -83,6 +86,22 @@ struct group_statistics
 
 
   };
+
+
+
+
+/* These funcs are usefull for hash tables */
+
+/* Return -1 if the id of a is less than b; +1 if greater than and 
+   0 if equal */
+int  compare_group(const struct group_statistics *a, 
+		   const struct group_statistics *b, 
+		   int width);
+
+unsigned hash_group(const struct group_statistics *g, int width);
+
+void  free_group(struct group_statistics *v, void *aux);
+
 
 
 #endif

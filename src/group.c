@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
    Written by John Darrington <john@darrington.wattle.id.au>
 
    This program is free software; you can redistribute it and/or
@@ -17,27 +17,47 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#ifndef T_TEST_H
-#define T_TEST_H
-
-#include "val.h"
-
+#include "hash.h"
 #include "group.h"
+#include <string.h>
 
-/* T-TEST private data */
-struct t_test_proc
+
+/* Return -1 if the id of a is less than b; +1 if greater than and 
+   0 if equal */
+int 
+compare_group(const struct group_statistics *a, 
+		 const struct group_statistics *b, 
+		 int width)
 {
-  /* Stats for the `universal group' */
-  struct group_statistics ugs;
+  int id_cmp = compare_values(&a->id, &b->id, width);
 
-  /* Number of groups */
-  int n_groups ;
+  if (id_cmp == 0 ) 
+    {
+      int c;
+      c= memcmp(&a->criterion,&b->criterion,sizeof(enum comparison));
+      return c;
+    }
+  else
+    return id_cmp;
+}
 
-  /* Stats for individual groups */
-  struct group_statistics *gs;
 
-  /* The levene statistic */
-  double levene ;
-};
+unsigned 
+hash_group(const struct group_statistics *g, int width)
+{
+  unsigned id_hash;
 
-#endif
+  if ( 0 == width ) 
+    id_hash = hsh_hash_double (g->id.f);
+  else
+    id_hash = hsh_hash_bytes (g->id.s, width);
+
+  return id_hash;
+}
+
+
+void  
+free_group(struct group_statistics *v, void *aux)
+{
+  free(v);
+}

@@ -39,7 +39,7 @@
 #include "var.h"
 #include "vfm.h"
 #include "hash.h"
-#include "t-test.h"
+#include "group_proc.h"
 #include "casefile.h"
 #include "levene.h"
 
@@ -309,7 +309,7 @@ cmd_t_test(void)
       /* Destroy any group statistics we created */
       for (i= 0 ; i < cmd.n_variables ; ++i ) 
 	{
-	  free(cmd.v_variables[i]->p.t_t.gs);
+	  free(cmd.v_variables[i]->p.grp_data.gs);
 	}
     }
     
@@ -715,7 +715,7 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
       /* Fill in the group statistics */
       for ( g=0; g < 2 ; ++g ) 
 	{
-	  struct group_statistics *gs = &cmd->v_variables[i]->p.t_t.gs[g];
+	  struct group_statistics *gs = &cmd->v_variables[i]->p.grp_data.gs[g];
 
 	  tab_float(ssb->t, 2 ,i*2+g+1, TAB_RIGHT, gs->n, 2, 0);
 	  tab_float(ssb->t, 3 ,i*2+g+1, TAB_RIGHT, gs->mean, 8, 2);
@@ -768,7 +768,7 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 	{
 	  struct group_statistics *gs;
 
-	  gs=&pairs[i].v[j]->p.t_t.ugs;
+	  gs=&pairs[i].v[j]->p.grp_data.ugs;
 
 	  /* Titles */
 
@@ -795,7 +795,7 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
   for (i=0; i < cmd->n_variables; ++i)
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
 
       tab_text (ssb->t, 0, i+1, TAB_LEFT, cmd->v_variables[i]->name);
       tab_float (ssb->t,1, i+1, TAB_RIGHT, gs->n, 2, 0);
@@ -929,8 +929,8 @@ trbox_independent_samples_populate(struct trbox *self,
       double std_err_diff;
       double mean_diff;
 
-      struct group_statistics *gs0 = &cmd->v_variables[i]->p.t_t.gs[0];
-      struct group_statistics *gs1 = &cmd->v_variables[i]->p.t_t.gs[1];
+      struct group_statistics *gs0 = &cmd->v_variables[i]->p.grp_data.gs[0];
+      struct group_statistics *gs1 = &cmd->v_variables[i]->p.grp_data.gs[1];
 	  
       tab_text (self->t, 0, i*2+3, TAB_LEFT, cmd->v_variables[i]->name);
 
@@ -938,11 +938,11 @@ trbox_independent_samples_populate(struct trbox *self,
 
 
       tab_float(self->t, 2, i*2+3, TAB_CENTER, 
-		cmd->v_variables[i]->p.t_t.levene, 8,3);
+		cmd->v_variables[i]->p.grp_data.levene, 8,3);
 
       /* Now work out the significance of the Levene test */
-      df1 = 1; df2 = cmd->v_variables[i]->p.t_t.ugs.n - 2;
-      q = gsl_cdf_fdist_Q(cmd->v_variables[i]->p.t_t.levene, df1, df2);
+      df1 = 1; df2 = cmd->v_variables[i]->p.grp_data.ugs.n - 2;
+      q = gsl_cdf_fdist_Q(cmd->v_variables[i]->p.grp_data.levene, df1, df2);
 
       tab_float(self->t, 3, i*2+3, TAB_CENTER, q, 8,3 );
 
@@ -1179,7 +1179,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
       double p,q;
       double df;
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
 
 
       tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
@@ -1340,7 +1340,7 @@ common_calc (const struct ccase *c, void *_cmd)
       struct variable *v = cmd->v_variables[i];
       const union value *val = case_data (c, v->fv);
 
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
 
       if (! value_is_missing(val,v) )
 	{
@@ -1361,7 +1361,7 @@ common_precalc ( struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
       
       gs->sum=0;
       gs->n=0;
@@ -1380,7 +1380,7 @@ common_postcalc (  struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
       
       gs->mean=gs->sum / gs->n;
       gs->s_std_dev= sqrt(
@@ -1428,7 +1428,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
       struct variable *v = cmd->v_variables[i];
       const union value *val = case_data (c, v->fv);
 
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
       
       if ( ! value_is_missing(val,v))
 	gs->sum_diff += weight * (val->f - cmd->n_testval);
@@ -1446,7 +1446,7 @@ one_sample_precalc ( struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
       
       gs->sum_diff=0;
     }
@@ -1461,7 +1461,7 @@ one_sample_postcalc (struct cmd_t_test *cmd)
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.grp_data.ugs;
 
       gs->mean_diff = gs->sum_diff / gs->n ;
     }
@@ -1648,7 +1648,7 @@ group_precalc (struct cmd_t_test *cmd )
 
   for(i=0; i< cmd->n_variables ; ++i) 
     {
-      struct t_test_proc *ttpr = &cmd->v_variables[i]->p.t_t;
+      struct group_proc *ttpr = &cmd->v_variables[i]->p.grp_data;
 
       /* There's always 2 groups for a T - TEST */
       ttpr->n_groups = 2;
@@ -1714,7 +1714,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
     {
       struct variable *var = cmd->v_variables[i];
 
-      struct group_statistics *gs = &var->p.t_t.gs[g];
+      struct group_statistics *gs = &var->p.grp_data.gs[g];
 
       const union value *val = case_data (c, var->fv);
 
@@ -1741,7 +1741,7 @@ group_postcalc ( struct cmd_t_test *cmd )
       for (j=0 ; j < 2 ; ++j)
 	{
 	  struct group_statistics *gs;
-	  gs=&cmd->v_variables[i]->p.t_t.gs[j];
+	  gs=&cmd->v_variables[i]->p.grp_data.gs[j];
 
 	  gs->mean = gs->sum / gs->n;
 	  

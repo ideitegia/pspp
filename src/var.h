@@ -22,8 +22,7 @@
 
 #include <stddef.h>
 #include "format.h"
-#include "t-test.h"
-#include "oneway.h"
+#include "group_proc.h"
 #include "val.h"
 
 /* Frequency tables. */
@@ -220,8 +219,7 @@ struct variable
 	struct means_proc mns;
 	struct matrix_data_proc mxd;
 	struct match_files_proc mtf;
-	struct t_test_proc t_t;
-	struct oneway_proc ww;
+	struct group_proc grp_data;
       }
     p;
   };

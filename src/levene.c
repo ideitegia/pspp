@@ -30,7 +30,7 @@
 #include "vfm.h"
 #include "alloc.h"
 #include "misc.h"
-
+#include "group.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -134,40 +134,6 @@ levene(const struct casefile *cf,
 
 static struct hsh_table **hash;
 
-
-/* Return -1 if the id of a is less than b; +1 if greater than and 
-   0 if equal */
-static int 
-compare_group(const struct group_statistics *a, 
-		 const struct group_statistics *b, 
-		 int width)
-{
-  int id_cmp = compare_values(&a->id, &b->id, width);
-
-  if (id_cmp == 0 ) 
-    {
-      int c;
-      c= memcmp(&a->criterion,&b->criterion,sizeof(enum comparison));
-      return c;
-    }
-  else
-    return id_cmp;
-}
-
-
-static unsigned 
-hash_group(const struct group_statistics *g, int width)
-{
-  unsigned id_hash;
-
-  if ( 0 == width ) 
-    id_hash = hsh_hash_double (g->id.f);
-  else
-    id_hash = hsh_hash_bytes (g->id.s, width);
-
-  return id_hash;
-}
-
 /* Internal variables used in calculating the Levene statistic */
 
 /* Per variable statistics */
@@ -206,7 +172,7 @@ levene_precalc (const struct levene_info *l)
     {
       struct variable *v = l->v_dep[i];
       int g;
-      int number_of_groups = v->p.t_t.n_groups ; 
+      int number_of_groups = v->p.grp_data.n_groups ; 
 
       hash[i] = hsh_create (l->n_dep * number_of_groups,
 			    (hsh_compare_func *) compare_group, 
@@ -217,9 +183,9 @@ levene_precalc (const struct levene_info *l)
       lz[i].total_n = 0;
       lz[i].n_groups = number_of_groups;
 
-      for (g = 0 ; g < v->p.t_t.n_groups ; ++g ) 
+      for (g = 0 ; g < v->p.grp_data.n_groups ; ++g ) 
 	{
-	  struct group_statistics *gs = &v->p.t_t.gs[g];
+	  struct group_statistics *gs = &v->p.grp_data.gs[g];
 	  gs->lz_total = 0;
 	  hsh_insert(hash[i], gs);
 	  if ( gs->criterion != CMP_EQ ) 
@@ -400,12 +366,12 @@ levene2_postcalc (void *_l)
       
 
 	}
-      lz_numerator *= ( l->v_dep[v]->p.t_t.ugs.n - 
-			l->v_dep[v]->p.t_t.n_groups );
+      lz_numerator *= ( l->v_dep[v]->p.grp_data.ugs.n - 
+			l->v_dep[v]->p.grp_data.n_groups );
 
-      lz_denominator[v] /= (l->v_dep[v]->p.t_t.n_groups - 1);
+      lz_denominator[v] /= (l->v_dep[v]->p.grp_data.n_groups - 1);
       
-      l->v_dep[v]->p.t_t.levene = lz_numerator/lz_denominator[v] ;
+      l->v_dep[v]->p.grp_data.levene = lz_numerator/lz_denominator[v] ;
     }
 
   /* Now clear up after ourselves */

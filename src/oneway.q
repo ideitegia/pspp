@@ -39,7 +39,7 @@
 #include "vfm.h"
 #include "hash.h"
 #include "casefile.h"
-#include "oneway.h"
+#include "group_proc.h"
 #include "group.h"
 #include "levene.h"
 
@@ -166,7 +166,7 @@ cmd_oneway(void)
   /* Clean up */
   for (i = 0 ; i < n_vars ; ++i ) 
     {
-      struct hsh_table *group_hash = vars[i]->p.ww.group_hash;
+      struct hsh_table *group_hash = vars[i]->p.grp_data.group_hash;
 
       hsh_destroy(group_hash);
     }
@@ -254,8 +254,8 @@ show_anova_table(void)
 
   for ( i=0 ; i < n_vars ; ++i ) 
     {
-      struct group_statistics *totals = &vars[i]->p.ww.ugs;
-      struct hsh_table *group_hash = vars[i]->p.ww.group_hash;
+      struct group_statistics *totals = &vars[i]->p.grp_data.ugs;
+      struct hsh_table *group_hash = vars[i]->p.grp_data.group_hash;
       struct hsh_iterator g;
       struct group_statistics *gs;
       double ssa=0;
@@ -283,11 +283,11 @@ show_anova_table(void)
 
       {
 	const double sst = totals->ssq - ( totals->sum * totals->sum) / totals->n ;
-	const double df1 = vars[i]->p.ww.n_groups - 1;
-	const double df2 = totals->n - vars[i]->p.ww.n_groups ;
+	const double df1 = vars[i]->p.grp_data.n_groups - 1;
+	const double df2 = totals->n - vars[i]->p.grp_data.n_groups ;
 	const double msa = ssa / df1;
 	
-	vars[i]->p.ww.mse  = (sst - ssa) / df2;
+	vars[i]->p.grp_data.mse  = (sst - ssa) / df2;
 	
 	
 	/* Sums of Squares */
@@ -303,11 +303,11 @@ show_anova_table(void)
 
 	/* Mean Squares */
 	tab_float (t, 4, i * 3 + 1, TAB_RIGHT, msa, 8, 3);
-	tab_float (t, 4, i * 3 + 2, TAB_RIGHT, vars[i]->p.ww.mse, 8, 3);
+	tab_float (t, 4, i * 3 + 2, TAB_RIGHT, vars[i]->p.grp_data.mse, 8, 3);
 	
 
 	{ 
-	  const double F = msa/vars[i]->p.ww.mse ;
+	  const double F = msa/vars[i]->p.grp_data.mse ;
 
 	  /* The F value */
 	  tab_float (t, 5, i * 3 + 1, 0,  F, 8, 3);
@@ -345,7 +345,7 @@ show_descriptives(void)
 
 
   for ( v = 0 ; v < n_vars ; ++v ) 
-    n_rows += vars[v]->p.ww.n_groups + 1;
+    n_rows += vars[v]->p.grp_data.n_groups + 1;
 
   t = tab_create (n_cols,n_rows,0);
   tab_headers (t, 2, 0, 2, 0);
@@ -392,12 +392,12 @@ show_descriptives(void)
 
       struct hsh_iterator g;
       struct group_statistics *gs;
-      struct group_statistics *totals = &vars[v]->p.ww.ugs; 
+      struct group_statistics *totals = &vars[v]->p.grp_data.ugs; 
 
       int count = 0 ;      
       char *s = (vars[v]->label) ? vars[v]->label : vars[v]->name;
 
-      struct hsh_table *group_hash = vars[v]->p.ww.group_hash;
+      struct hsh_table *group_hash = vars[v]->p.grp_data.group_hash;
 
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);
@@ -480,7 +480,7 @@ show_descriptives(void)
       tab_float(t, 8, row + count, 0,  totals->minimum, 8, 2); 
       tab_float(t, 9, row + count, 0,  totals->maximum, 8, 2); 
 
-      row += vars[v]->p.ww.n_groups + 1;
+      row += vars[v]->p.grp_data.n_groups + 1;
     }
 
 
@@ -527,8 +527,18 @@ show_homogeneity(void)
   for ( v=0 ; v < n_vars ; ++v ) 
     {
       char *s = (vars[v]->label) ? vars[v]->label : vars[v]->name;
+      struct group_statistics *totals = &vars[v]->p.grp_data.ugs;
+
+      const double df1 = vars[v]->p.grp_data.n_groups - 1;
+      const double df2 = totals->n - vars[v]->p.grp_data.n_groups ;
+
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
+
+
+
+      tab_float (t, 2, v + 1, TAB_RIGHT, df1 ,8,0);
+      tab_float (t, 3, v + 1, TAB_RIGHT, df2 ,8,0);
     }
 
   tab_submit (t);
@@ -680,8 +690,8 @@ show_contrast_tests(void)
 	  int ci;
 	  double contrast_value = 0.0;
 	  double coef_msq = 0.0;
-	  struct oneway_proc *ww = &vars[v]->p.ww ;
-	  struct hsh_table *group_hash = ww->group_hash;
+	  struct group_proc *grp_data = &vars[v]->p.grp_data ;
+	  struct hsh_table *group_hash = grp_data->group_hash;
 	  struct hsh_iterator g;
 	  struct group_statistics *gs;
 
@@ -758,7 +768,7 @@ show_contrast_tests(void)
 		     TAB_RIGHT, contrast_value, 8,2);
 
 
-	  std_error_contrast = sqrt(vars[v]->p.ww.mse * coef_msq);
+	  std_error_contrast = sqrt(vars[v]->p.grp_data.mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_float (t,  4, (v * lines_per_variable) + i + 1, 
@@ -773,7 +783,7 @@ show_contrast_tests(void)
 		     TAB_RIGHT, T,
 		     8,3);
 
-	  df = ww->ugs.n - ww->n_groups;
+	  df = grp_data->ugs.n - grp_data->n_groups;
 
 	  /* Degrees of Freedom */
 	  tab_float (t,  6, (v * lines_per_variable) + i + 1, 
@@ -834,34 +844,6 @@ static void  postcalc (  struct cmd_oneway *cmd UNUSED );
 
 static void  precalc ( struct cmd_oneway *cmd UNUSED );
 
-int  compare_group_id (const struct group_statistics *a, 
-		       const struct group_statistics *b, int width);
-
-unsigned int hash_group_id(const struct group_statistics *v, int width);
-
-void  free_group_id(struct group_statistics *v, void *aux UNUSED);
-
-
-
-
-int 
-compare_group_id (const struct group_statistics *a, 
-		  const struct group_statistics *b, int width)
-{
-  return compare_values(&a->id, &b->id, width);
-}
-
-unsigned int
-hash_group_id(const struct group_statistics *v, int width)
-{
-  return hash_value ( &v->id, width);
-}
-
-void 
-free_group_id(struct group_statistics *v, void *aux UNUSED)
-{
-  free(v);
-}
 
 
 /* Pre calculations */
@@ -872,20 +854,21 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 
   for(i=0; i< n_vars ; ++i) 
     {
-      struct group_statistics *totals = &vars[i]->p.ww.ugs;
+      struct group_statistics *totals = &vars[i]->p.grp_data.ugs;
       
       /* Create a hash for each of the dependent variables.
 	 The hash contains a group_statistics structure, 
 	 and is keyed by value of the independent variable */
 
-      vars[i]->p.ww.group_hash = 
+      vars[i]->p.grp_data.group_hash = 
 	hsh_create(4, 
-		   (hsh_compare_func *) compare_group_id,
-		   (hsh_hash_func *) hash_group_id,
-		   (hsh_free_func *) free_group_id,
+		   (hsh_compare_func *) compare_group,
+		   (hsh_hash_func *) hash_group,
+		   (hsh_free_func *) free_group,
 		   (void *) indep_var->width );
 
 
+      totals->criterion = CMP_EQ;
       totals->sum=0;
       totals->n=0;
       totals->ssq=0;
@@ -913,6 +896,8 @@ calculate(const struct casefile *cf, void *cmd_)
 
   precalc(cmd);
 
+
+
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
@@ -933,7 +918,7 @@ calculate(const struct casefile *cf, void *cmd_)
 
 	  const union value *val = case_data (&c, v->fv);
 
-	  struct hsh_table *group_hash = vars[i]->p.ww.group_hash;
+	  struct hsh_table *group_hash = vars[i]->p.grp_data.group_hash;
 
 	  struct group_statistics *gs;
 
@@ -944,6 +929,7 @@ calculate(const struct casefile *cf, void *cmd_)
 	      gs = (struct group_statistics *) 
 		xmalloc (sizeof(struct group_statistics));
 
+	      gs->criterion = CMP_EQ;
 	      gs->id = *indep_val;
 	      gs->sum=0;
 	      gs->n=0;
@@ -957,7 +943,7 @@ calculate(const struct casefile *cf, void *cmd_)
 	  
 	  if (! value_is_missing(val,v) )
 	    {
-	      struct group_statistics *totals = &vars[i]->p.ww.ugs;
+	      struct group_statistics *totals = &vars[i]->p.grp_data.ugs;
 
 	      totals->n+=weight;
 	      totals->sum+=weight * val->f;
@@ -980,13 +966,17 @@ calculate(const struct casefile *cf, void *cmd_)
 		gs->maximum = val->f * weight;
 	    }
 
-	  vars[i]->p.ww.n_groups = hsh_count ( group_hash );
+	  vars[i]->p.grp_data.n_groups = hsh_count ( group_hash );
 	}
   
     }
   casereader_destroy (r);
 
   postcalc(cmd);
+
+  /* 
+  levene(cf, indep_var, n_vars, vars, LEV_LISTWISE, value_is_missing);
+  */
 
   ostensible_number_of_groups = hsh_count (global_group_hash);
 
@@ -1002,8 +992,8 @@ postcalc (  struct cmd_oneway *cmd UNUSED )
 
   for(i = 0; i < n_vars ; ++i) 
     {
-      struct hsh_table *group_hash = vars[i]->p.ww.group_hash;
-      struct group_statistics *totals = &vars[i]->p.ww.ugs;
+      struct hsh_table *group_hash = vars[i]->p.grp_data.group_hash;
+      struct group_statistics *totals = &vars[i]->p.grp_data.ugs;
 
       struct hsh_iterator g;
       struct group_statistics *gs;

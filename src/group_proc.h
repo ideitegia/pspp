@@ -19,17 +19,25 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#ifndef ONEWAY_H
-#define ONEWAY_H
+#ifndef GROUP_DATA_H
+#define GROUP_DATA_H
 
-/* ONEWAY private data */
-struct oneway_proc
+#include "group.h"
+
+/* private data for commands dealing with grouped data*/
+struct group_proc
 {
   /* Stats for the `universal group'  (ie the totals) */
   struct group_statistics ugs;
 
   /* The number of groups */
   int n_groups;
+
+  /* The levene statistic */
+  double levene ;
+
+  /* Stats for individual groups */
+  struct group_statistics *gs;
 
   /* A hash of group statistics keyed by the value of the 
      independent variable */
