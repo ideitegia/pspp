@@ -461,8 +461,8 @@ read_record (struct file_handle *h)
      reason, I'm sure.  I'm too scared to eliminate this code.  */
   if (handle_get_mode (h) == MODE_TEXT)
     {
-      while (ext->len && isspace ((unsigned char) ext->line[ext->len - 1]))
-	ext->len--;
+      /*      while (ext->len && isspace ((unsigned char) ext->line[ext->len - 1]))
+	      ext->len--;*/
       
       /* Convert tabs to spaces. */
   		
