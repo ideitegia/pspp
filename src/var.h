@@ -433,7 +433,7 @@ enum
     PV_NUMERIC = 0020,		/* Vars must be numeric. */
     PV_STRING = 0040,		/* Vars must be string. */
     PV_SAME_TYPE = 00100,	/* All vars must be the same type. */
-    PV_NO_SCRATCH = 00200,	/* Disallow scratch variables. */
+    PV_NO_SCRATCH = 00200 	/* Disallow scratch variables. */
   };
 
 struct variable *parse_variable (void);

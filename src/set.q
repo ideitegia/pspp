@@ -84,7 +84,6 @@
 #else /* !HAVE_TERMCAP_H */
 int tgetent (char *, const char *);
 int tgetnum (const char *);
-int tgetflag (const char *);
 #endif /* !HAVE_TERMCAP_H */
 #endif /* !HAVE_LIBTERMCAP */
 
@@ -1021,10 +1020,10 @@ set_viewport(int sig_num UNUSED)
 	   not available. It's supposed to do it, but not all platforms 
 	   do (eg Cygwin) .
 	*/
-        if ( tgetflag("li")) 
+        if ( -1 != tgetnum("li")) 
 	  set_viewlength = tgetnum ("li");
 
-        if ( tgetflag("co")) 
+        if ( -1 != tgetnum("co")) 
 	  set_viewwidth = tgetnum ("co") - 1;
       }
   }
@@ -1332,6 +1331,56 @@ seed_is_set(unsigned long *seed)
 
   return result;
     
+}
+
+
+static int global_algorithm = ENHANCED;
+static int cmd_algorithm = ENHANCED;
+static int *algorithm = &global_algorithm;
+
+static int syntax = ENHANCED;
+
+/* Set the algorithm option globally */
+void 
+set_algorithm(int x)
+{
+  global_algorithm = x;
+}
+
+/* Set the algorithm option for this command only */
+void 
+set_cmd_algorithm(int x)
+{
+  cmd_algorithm = x; 
+  algorithm = &cmd_algorithm;
+}
+
+/* Unset the algorithm option for this command */
+void
+unset_cmd_algorithm(void)
+{
+  algorithm = &global_algorithm;
+}
+
+/* Return the current algorithm setting */
+int
+get_algorithm(void)
+{
+  return *algorithm;
+}
+
+/* Set the syntax option */
+void 
+set_syntax(int x)
+{
+  syntax = x;
+}
+
+/* Get the current syntax setting */
+int
+get_syntax(void)
+{
+  return syntax;
 }
 
 

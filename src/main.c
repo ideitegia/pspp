@@ -28,6 +28,7 @@
 #include "glob.h"
 #include "lexer.h"
 #include "output.h"
+#include "settings.h"
 #include <signal.h>
 
 #include <stdlib.h>
@@ -105,6 +106,7 @@ parse_script (void)
 static int
 execute_command (void)
 {
+  int result;
   /* Read the command's first token.
      We may hit end of file.
      If so, give the line reader a chance to proceed to the next file.
@@ -123,7 +125,12 @@ execute_command (void)
 
   /* Parse the command. */
   getl_prompt = GETL_PRPT_CONTINUATION;
-  return cmd_parse ();
+  result =  cmd_parse ();
+ 
+  /* Unset the /ALGORITHM subcommand if it was used */
+  unset_cmd_algorithm ();
+
+  return result;
 }
 
 /* Print an error message corresponding to the command return code

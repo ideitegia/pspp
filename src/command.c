@@ -771,11 +771,11 @@ cmd_host (void)
   /* Make sure that the system has a command interpreter, then run a
      command. */
   if (system (NULL) != 0)
-    success = run_command ();
+    code = run_command ();
   else
     {
       msg (SE, _("No operating system support for this command."));
-      success = CMD_FAILURE;
+      code = CMD_FAILURE;
     }
 #endif /* !unix */
 

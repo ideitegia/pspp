@@ -2160,6 +2160,17 @@ Configuration options are used to change PSPP's configuration for the
 current run.  The configuration options are:
 
 @table @code
+@item -a @{compatible|enhanced@}
+@itemx --algorithm=@{compatible|enhanced@}
+
+If you chose @code{compatible}, then PSPP will use the same  algorithms 
+as used by some proprietary statistical analysis packages.
+This is not recommended, as  these algorithms are inferior and in some cases 
+compeletely broken.
+The default setting is @code{enhanced}.
+Certain commands have subcommands which allow you to override this setting on 
+a per command basis.
+
 @item -B @var{dir}
 @itemx --config-dir=@var{dir}
 
@@ -2289,6 +2300,15 @@ device driver classes, then terminates.
 @item --list
 
 Lists the available device driver classes, then terminates.
+
+@item -x @{compatible|enhanced@}
+@itemx --syntax=@{compatible|enhanced@}
+
+If you chose @code{compatible}, then PSPP will only accept command syntax that 
+is compatible with the proprietary program SPSS.
+If you choose @code{enhanced} then additional syntax will be available.
+The default is @code{enhanced}.
+
 
 @item -V
 @item --version
@@ -7644,9 +7664,13 @@ value, and MODE, the mode.  (If there are multiple modes, the smallest
 value is reported.)  By default, the mean, standard deviation of the
 mean, minimum, and maximum are reported for each variable.
 
-NTILES causes the specified quartiles to be reported.  For instance,
-@code{/NTILES=4} would cause quartiles to be reported.  In addition,
-particular percentiles can be requested with the PERCENTILES subcommand.
+PERCENTILES causes the specified percentiles to be reported.
+The percentiles should  be presented at a list of numbers between 0
+and 100 inclusive.  
+The NTILES subcommand causes the percentiles to be reported at the
+boundaries of the data set divided into the specified number of ranges.
+For instance, @code{/NTILES=4} would cause quartiles to be reported.
+
 
 @node CROSSTABS, T-TEST, FREQUENCIES, Statistics
 @section CROSSTABS

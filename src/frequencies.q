@@ -45,6 +45,7 @@
 #include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
+#include "settings.h"
 
 #include "debug-print.h"
 
@@ -109,9 +110,21 @@ static struct frq_info st_name[frq_n_stats + 1] =
 };
 
 /* Percentiles to calculate. */
-static double *percentiles;
-static double *percentile_values;
+
+struct percentile
+{
+  double p;        /* the %ile to be calculated */
+  double value;    /* the %ile's value */
+  double x1;       /* The datum value <= the percentile */
+  double x2;       /* The datum value >= the percentile */
+  int flag;        
+  int flag2;       /* Set to 1 if this percentile value has been found */
+};
+
+static struct percentile *percentiles;
 static int n_percentiles;
+
+static int implicit_50th ; 
 
 /* Groups of statistics. */
 #define BI          BIT_INDEX
@@ -202,7 +215,6 @@ internal_cmd_frequencies (void)
   int i;
 
   n_percentiles = 0;
-  percentile_values = NULL;
   percentiles = NULL;
 
   n_variables = 0;
@@ -566,15 +578,21 @@ postprocess_freq_tab (struct variable *v)
   sort (ft->missing, ft->n_missing, sizeof *ft->missing, compare, v);
 
   /* Summary statistics. */
-  ft->total_cases = ft->valid_cases = 0.0;
-  for (f = ft->valid; f < ft->valid + ft->n_valid; f++) 
+  ft->valid_cases = 0.0;
+  for(i = 0 ;  i < ft->n_valid ; ++i ) 
     {
-      ft->total_cases += f->c;
+      f = &ft->valid[i];
+      ft->valid_cases += f->c;
 
-      if ((v->type != NUMERIC || f->v.f != SYSMIS)
-          && (cmd.miss != FRQ_EXCLUDE || !is_user_missing (&f->v, v)))
-        ft->valid_cases += f->c;
     }
+
+  ft->total_cases = ft->valid_cases ; 
+  for(i = 0 ;  i < ft->n_missing ; ++i ) 
+    {
+      f = &ft->missing[i];
+      ft->total_cases += f->c;
+    }
+
 }
 
 /* Frees the frequency table for variable V. */
@@ -761,24 +779,20 @@ add_percentile (double x)
   int i;
 
   for (i = 0; i < n_percentiles; i++)
-    if (x <= percentiles[i])
+    if (x <= percentiles[i].p)
       break;
-  if (i >= n_percentiles || tokval != percentiles[i])
+
+  if (i >= n_percentiles || tokval != percentiles[i].p)
     {
       percentiles
         = pool_realloc (int_pool, percentiles,
-                        (n_percentiles + 1) * sizeof *percentiles);
-      percentile_values
-        = pool_realloc (int_pool, percentile_values,
-                        (n_percentiles + 1) * sizeof *percentile_values);
-      if (i < n_percentiles) 
-        {
+                        (n_percentiles + 1) * sizeof (struct percentile ));
+
+      if (i < n_percentiles)
           memmove (&percentiles[i + 1], &percentiles[i],
-                   (n_percentiles - i) * sizeof *percentiles);
-          memmove (&percentile_values[i + 1], &percentile_values[i],
-                   (n_percentiles - i) * sizeof *percentile_values);
-        }
-      percentiles[i] = x;
+                   (n_percentiles - i) * sizeof (struct percentile) );
+
+      percentiles[i].p = x;
       n_percentiles++;
     }
 }
@@ -797,10 +811,9 @@ frq_custom_percentiles (struct cmd_frequencies *cmd UNUSED)
   
   do
     {
-      if (tokval <= 0 || tokval >= 100)
+      if (tokval < 0 || tokval > 100)
 	{
-	  msg (SE, _("Percentiles must be greater than "
-		     "0 and less than 100."));
+	  msg (SE, _("Percentiles must be between 0 and 100."));
 	  return 0;
 	}
       
@@ -1170,29 +1183,119 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 {
   double W = v->p.frq.tab.valid_cases;
   struct moments *m;
-  struct freq *f;
+  struct freq *f=0; 
   int most_often;
   double X_mode;
 
-  double cum_total;
+  double rank;
   int i = 0;
-  double previous_value;
+  int idx;
+  double *median_value;
 
   /* Calculate percentiles. */
-  cum_total = 0;
-  previous_value = SYSMIS;
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
-    {
-      cum_total += f->c ;
-      for (; i < n_percentiles; i++) 
-        {
-          if (cum_total / v->p.frq.tab.valid_cases < percentiles[i])
-            break;
 
-          percentile_values[i] = previous_value;
-        }
-      previous_value = f->v.f;
+  /* If the 50th percentile was not explicitly requested then we must 
+     calculate it anyway --- it's the median */
+  median_value = 0 ;
+  for (i = 0; i < n_percentiles; i++) 
+    {
+      if (percentiles[i].p == 0.5)
+	{
+	  median_value = &percentiles[i].value;
+	  break;
+	}
     }
+
+  if ( 0 == median_value )  
+    {
+      add_percentile (0.5);
+      implicit_50th = 1;
+    }
+
+  for (i = 0; i < n_percentiles; i++) 
+    {
+      percentiles[i].flag = 0;
+      percentiles[i].flag2 = 0;
+    }
+
+  rank = 0;
+  for (idx = 0; idx < v->p.frq.tab.n_valid; ++idx)
+    {
+      static double prev_value = SYSMIS;
+      f = &v->p.frq.tab.valid[idx]; 
+      rank += f->c ;
+      for (i = 0; i < n_percentiles; i++) 
+        {
+	  double tp;
+	  if ( percentiles[i].flag2  ) continue ; 
+
+	  if ( get_algorithm() != COMPATIBLE ) 
+	    tp = 
+	      (v->p.frq.tab.valid_cases - 1) *  percentiles[i].p;
+	  else
+	    tp = 
+	      (v->p.frq.tab.valid_cases + 1) *  percentiles[i].p - 1;
+
+	  if ( percentiles[i].flag ) 
+	    {
+	      percentiles[i].x2 = f->v.f;
+	      percentiles[i].x1 = prev_value;
+	      percentiles[i].flag2 = 1;
+	      continue;
+	    }
+
+          if (rank >  tp ) 
+	  {
+	    if ( f->c > 1 && rank - (f->c - 1) > tp ) 
+	      {
+		percentiles[i].x2 = percentiles[i].x1 = f->v.f;
+		percentiles[i].flag2 = 1;
+	      }
+	    else
+	      {
+		percentiles[i].flag=1;
+	      }
+
+	    continue;
+	  }
+        }
+      prev_value = f->v.f;
+    }
+
+  for (i = 0; i < n_percentiles; i++) 
+    {
+      /* Catches the case when p == 100% */
+      if ( ! percentiles[i].flag2 ) 
+	percentiles[i].x1 = percentiles[i].x2 = f->v.f;
+
+      /*
+      printf("percentile %d (p==%.2f); X1 = %g; X2 = %g\n",
+	     i,percentiles[i].p,percentiles[i].x1,percentiles[i].x2);
+      */
+    }
+
+  for (i = 0; i < n_percentiles; i++) 
+    {
+      struct freq_tab *ft = &v->p.frq.tab;
+      double s;
+
+      double dummy;
+      if ( get_algorithm() != COMPATIBLE ) 
+	{
+	  s = modf((ft->valid_cases - 1) *  percentiles[i].p , &dummy);
+	}
+      else
+	{
+	  s = modf((ft->valid_cases + 1) *  percentiles[i].p -1, &dummy);
+	}
+
+      percentiles[i].value = percentiles[i].x1 + 
+	( percentiles[i].x2 - percentiles[i].x1) * s ; 
+
+      if ( percentiles[i].p == 0.50) 
+	median_value = &percentiles[i].value; 
+    }
+
 
   /* Calculate the mode. */
   most_often = -1;
@@ -1227,7 +1330,7 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   d[frq_max] = v->p.frq.tab.valid[v->p.frq.tab.n_valid - 1].v.f;
   d[frq_mode] = X_mode;
   d[frq_range] = d[frq_max] - d[frq_min];
-  d[frq_median] = SYSMIS;
+  d[frq_median] = *median_value;
   d[frq_sum] = d[frq_mean] * W;
   d[frq_stddev] = sqrt (d[frq_variance]);
   d[frq_semean] = d[frq_stddev] / sqrt (W);
@@ -1243,6 +1346,11 @@ dump_statistics (struct variable * v, int show_varname)
   struct tab_table *t;
   int i, r;
 
+  int n_explicit_percentiles = n_percentiles;
+
+  if ( implicit_50th && n_percentiles > 0 ) 
+    --n_percentiles;
+
   if (v->type == ALPHA)
     return;
   if (v->p.frq.tab.n_valid == 0)
@@ -1253,29 +1361,45 @@ dump_statistics (struct variable * v, int show_varname)
     }
   calc_stats (v, stat_value);
 
-  t = tab_create (2, n_stats + n_percentiles, 0);
+  t = tab_create (3, n_stats + n_explicit_percentiles + 2, 0);
   tab_dim (t, tab_natural_dimensions);
-  tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, n_stats - 1);
-  for (i = r = 0; i < frq_n_stats; i++)
+
+  tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
+
+
+  tab_vline (t, TAL_1 , 2, 0, tab_nr(t) - 1);
+  tab_vline (t, TAL_1 | TAL_SPACING , 1, 0, tab_nr(t) - 1 ) ;
+  
+  r=2; /* N missing and N valid are always dumped */
+
+  for (i = 0; i < frq_n_stats; i++)
     if (stats & BIT_INDEX (i))
       {
 	tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
 		      gettext (st_name[i].s10));
-	tab_float (t, 1, r, TAB_NONE, stat_value[i], 11, 3);
+	tab_float (t, 2, r, TAB_NONE, stat_value[i], 11, 3);
 	r++;
       }
 
-  for (i = 0; i < n_percentiles; i++, r++) 
+  tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("N"));
+  tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Valid"));
+  tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("Missing"));
+
+  tab_float(t, 2, 0, TAB_NONE, v->p.frq.tab.valid_cases, 11, 0);
+  tab_float(t, 2, 1, TAB_NONE, 
+	    v->p.frq.tab.total_cases - v->p.frq.tab.valid_cases, 11, 0);
+
+
+  for (i = 0; i < n_explicit_percentiles; i++, r++) 
     {
-      struct string ds;
+      if ( i == 0 ) 
+	{ 
+	  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Percentiles"));
+	}
 
-      ds_init (gen_pool, &ds, 20);
-      ds_printf (&ds, "%s %d", _("Percentile"), (int) (percentiles[i] * 100));
+      tab_float (t, 1, r, TAB_LEFT, percentiles[i].p * 100, 3, 0 );
+      tab_float (t, 2, r, TAB_NONE, percentiles[i].value, 11, 3);
 
-      tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, ds.string);
-      tab_float (t, 1, r, TAB_NONE, percentile_values[i], 11, 3);
-
-      ds_destroy (&ds);
     }
 
   tab_columns (t, SOM_COL_DOWN, 1);
@@ -1288,7 +1412,8 @@ dump_statistics (struct variable * v, int show_varname)
     }
   else
     tab_flags (t, SOMF_NO_TITLE);
-  
+
+
   tab_submit (t);
 }
 /* 

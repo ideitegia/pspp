@@ -234,4 +234,26 @@ const char *get_pager(void);
 int seed_is_set(unsigned long *seed);
 
 
+enum {ENHANCED,COMPATIBLE};
+
+
+/* Set the algorithm option globally */
+void set_algorithm(int x);
+
+/* Set the algorithm option for this command only */
+void set_cmd_algorithm(int x);
+
+/* Unset the algorithm option for this command */
+void unset_cmd_algorithm(void);
+
+/* Return the current algorithm setting */
+int get_algorithm(void);
+
+/* Set the syntax option */
+void set_syntax(int x);
+
+/* Get the current syntax setting */
+int get_syntax(void);
+
+
 #endif /* !settings_h */

@@ -100,7 +100,7 @@
 /* Directory separator character for this OS, if applicable. */
 #ifndef __MSDOS__
 #define DIR_SEPARATOR '/'
-#elif
+#else
 #define DIR_SEPARATOR '\\'
 #endif
 

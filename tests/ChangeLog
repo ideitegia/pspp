@@ -1,3 +1,8 @@
+Sat Mar 27 11:29:06 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* bugs/get.sh Added regression test for a bug in loading a dictionary
+	with the GET command.
+
 Tue Mar 30 22:10:08 2004  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: (TESTS) Add bugs/multipass.sh.

@@ -13,6 +13,7 @@ AC_PROG_CC
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 
 
+
 dnl Internationalization macros.
 AM_GNU_GETTEXT
 AM_GNU_GETTEXT_VERSION	dnl Prevents autoreconf complaint.
@@ -95,8 +96,11 @@ AC_CHECK_FUNCS([gethostname strstr strtod __setfpucw isinf isnan finite \
 AC_PROG_LN_S
 
 
-
 AH_BOTTOM([#include <pref.h>])
+
+
+AM_CONDITIONAL(unix, test x"$host_os" != x"msdos" )
+AM_CONDITIONAL(msdos, test x"$host_os" == x"msdos" )
 
 dnl This is needed otherwise --with-included-gettext fails
 AH_BOTTOM([#include <locale.h>])

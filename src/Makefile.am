@@ -8,13 +8,28 @@ pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 bin_PROGRAMS = pspp
 
+
+
 AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
--I$(top_srcdir)/intl
+-I$(top_srcdir)/intl 
+
+AM_CFLAGS=
 
 if cc_is_gcc
-AM_CFLAGS=-Wall -W -Wwrite-strings -Wstrict-prototypes \
--Wpointer-arith -Wno-sign-compare -Wmissing-prototypes 
+AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
+-Wpointer-arith -Wno-sign-compare -Wmissing-prototypes \
+-ansi 
 endif
+
+if unix
+AM_CFLAGS+=-Dunix
+endif
+
+if msdos
+AM_CFLAGS+=-D__MSDOS__
+endif
+
+
 
 CLEANFILES =  $(q_sources_c) version.c
 DISTCLEANFILES = foo 
@@ -37,9 +52,10 @@ pspp_SOURCES = $(q_sources_c) aggregate.c algorithm.c algorithm.h	\
 alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
 casefile.c casefile.h cmdline.c cmdline.h command.c command.def		\
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
-data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
+data-list.c data-list.h data-out.c date.c debug.c debug-print.h descript.c	\
 devind.c devind.h dfm.c dfm.h dictionary.c do-if.c do-ifP.h error.c	\
-error.h expr-evl.c expr-opt.c expr-prs.c expr.h exprP.h file-handle.h	\
+error.h expr-evl.c expr-opt.c expr-prs.c expr.h exprP.h expr.def        \
+file-handle.h	\
 file-type.c filename.c filename.h flip.c font.h format.c format.def	\
 format.h formats.c get.c getline.c getline.h glob.c glob.h		\
 groff-font.c hash.c hash.h html.c htmlP.h include.c inpt-pgm.c lexer.c	\
@@ -50,6 +66,7 @@ pfm.h pool.c pool.h postscript.c print.c random.c random.h recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
 sfm-read.c sfm-write.c sfm.h sfmP.h som.c som.h sort.c sort.h		\
 split-file.c str.c str.h sysfile-info.c tab.c tab.h temporary.c		\
+stat.h \
 title.c t-test.h val.h val-labs.c value-labels.c value-labels.h		\
 var-labs.c var.h vars-atr.c vars-prs.c vector.c version.c version.h	\
 vfm.c vfm.h vfmP.h weight.c workspace.c workspace.h

@@ -1,3 +1,15 @@
+Sat Apr  3 15:00:18 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+        * frequencies.q:  Fixed the calculation of percentiles
+
+	* Makefile.am:  Added the --ansi flag and dealt with the
+	consequences.  Added some entries to PSPP_sources so that
+	make distcheck would pass
+
+	* cmdline.c:   Added the --syntax and --algorithm options
+
+	* q2c.c:  Added an implicit /ALGORITHM subcommand to everything.
+
 Fri Apr  2 11:25:22 WAST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q, levene.c, levene.h  Converted t-test (incl levene) to 
@@ -7,6 +19,9 @@ Wed Mar 31 22:36:22 2004  Ben Pfaff  <blp@gnu.org>
 
 	* frequencies.q: (calc_stats) Use moments data structure and
 	calc_seskew(), calc_sekurt() functions.
+
+	* set.q main.c settings.h Added support for --syntax and --algorithm 
+	options
 
 Tue Mar 30 22:04:19 2004  Ben Pfaff  <blp@gnu.org>
 

@@ -13,7 +13,6 @@ TESTS = command/aggregate.sh \
 	command/lag.sh \
 	command/list.sh \
 	command/loop.sh \
-	command/percentiles.sh \
 	command/print.sh \
 	command/sample.sh \
 	command/sort.sh \
@@ -34,6 +33,7 @@ TESTS = command/aggregate.sh \
 	bugs/alpha-freq.sh \
 	bugs/compute-fmt.sh \
 	bugs/double-frequency.sh \
+	bugs/get.sh \
 	bugs/html-frequency.sh \
 	bugs/crosstabs.sh \
 	bugs/data-crash.sh \
@@ -47,7 +47,9 @@ TESTS = command/aggregate.sh \
 	xforms/expressions.sh \
 	stats/descript-basic.sh \
 	stats/descript-missing.sh \
-	stats/moments.sh
+	stats/moments.sh \
+	stats/percentiles-enhanced.sh \
+	stats/percentiles-compatible.sh
 
 noinst_PROGRAMS = gengarbage
 

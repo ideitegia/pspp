@@ -50,6 +50,7 @@ parse_command_line (int argc, char **argv)
 {
   static struct option long_options[] =
   {
+    {"algorithm", required_argument, NULL, 'a'},
     {"command", required_argument, NULL, 'c'},
     {"config-directory", required_argument, NULL, 'B'},
     {"device", required_argument, NULL, 'o'},
@@ -66,6 +67,7 @@ parse_command_line (int argc, char **argv)
     {"pipe", no_argument, NULL, 'p'},
     {"recon", no_argument, NULL, 'n'},
     {"safer", no_argument, NULL, 's'},
+    {"syntax", required_argument, NULL, 'x'},
     {"testing-mode", no_argument, &testing_mode, 1},
     {"verbose", no_argument, NULL, 'v'},
     {"version", no_argument, NULL, 'V'},
@@ -80,12 +82,37 @@ parse_command_line (int argc, char **argv)
 
   for (;;)
     {
-      c = getopt_long (argc, argv, "B:c:f:hiI:lno:prsvV", long_options, NULL);
+      c = getopt_long (argc, argv, "a:x:B:c:f:hiI:lno:prsvV", long_options, NULL);
       if (c == -1)
 	break;
 
       switch (c)
 	{
+	  /* Compatibility options */
+        case 'a':
+	  if ( 0 == strcmp(optarg,"compatible") )
+	      set_algorithm(COMPATIBLE);
+	  else if ( 0 == strcmp(optarg,"enhanced"))
+	      set_algorithm(ENHANCED);
+	  else
+	    {
+	      usage();
+	      assert(0);
+	    }
+	  break;
+
+	case 'x':	  
+	  if ( 0 == strcmp(optarg,"compatible") )
+	    set_syntax(COMPATIBLE);
+	  else if ( 0 == strcmp(optarg,"enhanced"))
+	    set_syntax(ENHANCED);
+	  else
+	    {
+	      usage();
+	      assert(0);
+	    }
+	  break;
+
 	case 'c':
 	  {
 	    static int n_cmds;
@@ -223,6 +250,9 @@ N_("PSPP, a program for statistical analysis of sample data.\n"
 "\nIf a long option shows an argument as mandatory, then it is mandatory\n"
 "for the equivalent short option also.  Similarly for optional arguments.\n"
 "\nConfiguration:\n"
+"  -a, --algorithm={compatible|enhanced}\n"
+"                            set to `compatible' if you want output\n"
+"                            calculated from broken algorithms\n"
 "  -B, --config-dir=DIR      set configuration directory to DIR\n"
 "  -o, --device=DEVICE       select output driver DEVICE and disable defaults\n"
 "  -d, --define=VAR[=VALUE]  set environment variable VAR to VALUE, or empty\n"
@@ -238,6 +268,9 @@ N_("PSPP, a program for statistical analysis of sample data.\n"
 "  -n, --edit                just check syntax; don't actually run the code\n"
 "  -r, --no-statrc           disable execution of .pspp/rc at startup\n"
 "  -s, --safer               don't allow some unsafe operations\n"
+"  -x, --syntax={compatible|enhanced}\n"
+"                            set to `compatible' if you want only to accept\n"
+"                            spss compatible syntax\n"
 "\nInformative output:\n"
 "  -h, --help                print this help, then exit\n"
 "  -l, --list                print a list of known driver classes, then exit\n"

@@ -37,7 +37,7 @@ enum
     CMD_SUCCESS,		/* Command successfully parsed and executed. */
     CMD_PART_SUCCESS_MAYBE,	/* Command may have been partially executed. */
     CMD_PART_SUCCESS,		/* Command fully executed up to error. */
-    CMD_TRAILING_GARBAGE,	/* Command followed by garbage. */
+    CMD_TRAILING_GARBAGE 	/* Command followed by garbage. */
   };
 
 extern int pgm_state;

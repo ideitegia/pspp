@@ -186,7 +186,7 @@ fn_tilde_expand (const char *input)
 }
 #else /* !unix */
 char *
-fn_tilde_expand (char *input)
+fn_tilde_expand (const char *input)
 {
   return xstrdup (input);
 }
@@ -525,6 +525,7 @@ fn_basename (const char *filename)
 }
 #endif
 
+#if unix
 /* Returns the current working directory, as a malloc()'d string.
    From libc.info. */
 char *
@@ -544,6 +545,22 @@ fn_get_cwd (void)
       buffer = xmalloc (size);
     }
 }
+#else
+char *
+fn_get_cwd (void)
+{
+  int size = 2;
+  char *buffer = xmalloc (size);
+  if ( buffer) 
+  {
+    buffer[0]='.';
+    buffer[1]='\0';
+  }
+
+  return buffer;
+     
+}
+#endif
 
 /* Find out information about files. */
 

@@ -33,7 +33,7 @@ enum
     ERR_CLASS_COUNT,		/* Number of message classes. */
     ERR_CLASS_MASK = 0xf,	/* Bitmask for class. */
     ERR_VERBOSITY_SHIFT = 4,	/* Shift count for verbosity. */
-    ERR_VERBOSITY_MASK = 0xf,	/* Bitmask for verbosity. */
+    ERR_VERBOSITY_MASK = 0xf 	/* Bitmask for verbosity. */
   };
 
 /* If passed to msg() as CLASS, the return value will cause the message
@@ -97,7 +97,7 @@ void err_assert_fail(const char *expr, const char *file, int line);
 #undef assert
 
 			       
-#define assert(expr) ( (void) ( expr ? 0 : \
+#define assert(expr) ( (void) ( expr ? (void) 0 : \
 	       err_assert_fail(__STRING(expr), __FILE__, __LINE__)) )
 
 
