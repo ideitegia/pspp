@@ -28,16 +28,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "val.h"
 
+
+struct moments1;
+
 struct metrics
 {
   double n;
 
   double n_missing;
   
-  double ssq;
-  
-  double sum;
-
   double min;
 
   double max;
@@ -49,6 +48,11 @@ struct metrics
   double var;
 
   double stddev;
+
+  struct moments1 *moments;
+
+  double skewness;
+  double kurtosis;
 
   double trimmed_mean;
 
@@ -111,7 +115,7 @@ void weighted_value_free(struct weighted_value *wv);
 
 struct factor_statistics {
 
-  /* The value of the independent variable */
+  /* The values of the independent variables */
   union value id[2];
 
   /* The an array stats for this factor, one for each dependent var */
@@ -129,18 +133,15 @@ create_factor_statistics (int n, union value *id0, union value *id1);
 void factor_statistics_free(struct factor_statistics *f);
 
 
+/* Compare f0 and f1.
+   width is the width of the independent variable */
 int 
 factor_statistics_compare(const struct factor_statistics *f0,
-	                  const struct factor_statistics *f1, void *aux);
+	                  const struct factor_statistics *f1, int width);
 
 			      
 
 unsigned int 
-factor_statistics_hash(const struct factor_statistics *f, void *aux);
-
-
-
-
-
+factor_statistics_hash(const struct factor_statistics *f, int width);
 
 #endif

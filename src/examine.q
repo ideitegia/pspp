@@ -41,6 +41,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "casefile.h"
 #include "factor_stats.h"
+#include "moments.h"
+
 /* (headers) */
 #include "chart.h"
 
@@ -120,8 +122,6 @@ print_factors(void)
 	  */
 
 		 
-	  printf("Sum is %g; ",(*fs)->m[0].sum);
-	  printf("N is %g; ",(*fs)->m[0].n);
 	  printf("Mean is %g\n",(*fs)->m[0].mean);
 
 	  fs++ ;
@@ -1408,10 +1408,41 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Skewness"));
 
+
+  tab_float (tbl, col + 2,
+	     row + 11,
+	     TAB_CENTER,
+	     m->skewness,
+	     8,3);
+
+  /* stderr of skewness */
+  tab_float (tbl, col + 3,
+	     row + 11,
+	     TAB_CENTER,
+	     calc_seskew(m->n),
+	     8,3);
+
+
   tab_text (tbl, col, 
 	    row + 12,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Kurtosis"));
+
+
+  tab_float (tbl, col + 2,
+	     row + 12,
+	     TAB_CENTER,
+	     m->kurtosis,
+	     8,3);
+
+  /* stderr of kurtosis */
+  tab_float (tbl, col + 3,
+	     row + 12,
+	     TAB_CENTER,
+	     calc_sekurt(m->n),
+	     8,3);
+
+
 }
 
 

@@ -36,9 +36,17 @@ AC_CHECK_LIB(gnugetopt,getopt_long)
 AC_CHECK_FUNC(getopt_long,,
 	AC_MSG_ERROR(`This application depends upon getopt_long'))
 
+AC_ARG_WITH(ncurses,
+[  --without-ncurses         don't compile in ncurses command line editing])
+
+
+if test "x$with_ncurses" = x"yes"; then 
 AC_CHECK_LIB(ncurses, tgetent, LIBS="-lncurses $LIBS" termcap=yes,
   AC_CHECK_LIB(termcap, tgetent, LIBS="-ltermcap $LIBS" termcap=yes,
                termcap=no))
+fi
+
+
 if test "$termcap" = yes; then
   AC_CHECK_HEADERS(termcap.h)
   AC_DEFINE(HAVE_LIBTERMCAP, 1, 

@@ -159,8 +159,8 @@ Case#  QUALITY        W    BRAND
 #               Maximum                                    #  7.000  |          #
 #               Range                                      #  6.000  |          #
 #               Interquartile Range                        #         |          #
-#               Skewness                                   #         |          #
-#               Kurtosis                                   #         |          #
+#               Skewness                                   #   .059  |   .472   #
+#               Kurtosis                                   #  -.358  |   .918   #
 #==========================================================#=========#==========#
 
 2.4 EXAMINE.  Case Processing Summary
@@ -220,8 +220,8 @@ Case#  QUALITY        W    BRAND
 #                           Maximum                                    #  4.000  |          #
 #                           Range                                      #  3.000  |          #
 #                           Interquartile Range                        #         |          #
-#                           Skewness                                   #         |          #
-#                           Kurtosis                                   #         |          #
+#                           Skewness                                   #   .475  |   .752   #
+#                           Kurtosis                                   #  -1.546 |   1.481  #
 #               -------------------------------------------------------#---------+----------#
 #               Bloggs      Mean                                       #   3.50  |   .378   #
 #                           95% Confidence Interval for MeanLower Bound#  3.525  |          #
@@ -234,8 +234,8 @@ Case#  QUALITY        W    BRAND
 #                           Maximum                                    #  5.000  |          #
 #                           Range                                      #  3.000  |          #
 #                           Interquartile Range                        #         |          #
-#                           Skewness                                   #         |          #
-#                           Kurtosis                                   #         |          #
+#                           Skewness                                   #  -.468  |   .752   #
+#                           Kurtosis                                   #  -.831  |   1.481  #
 #               -------------------------------------------------------#---------+----------#
 #               Charlies    Mean                                       #   4.88  |   .441   #
 #                           95% Confidence Interval for MeanLower Bound#  4.904  |          #
@@ -248,8 +248,8 @@ Case#  QUALITY        W    BRAND
 #                           Maximum                                    #  7.000  |          #
 #                           Range                                      #  4.000  |          #
 #                           Interquartile Range                        #         |          #
-#                           Skewness                                   #         |          #
-#                           Kurtosis                                   #         |          #
+#                           Skewness                                   #   .304  |   .752   #
+#                           Kurtosis                                   #   .146  |   1.481  #
 #======================================================================#=========#==========#
 
 EOF

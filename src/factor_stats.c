@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "algorithm.h"
 #include "alloc.h"
+#include "moments.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -37,12 +38,13 @@ metrics_precalc(struct metrics *fs)
 {
   assert (fs) ;
 
-  fs->n = 0;
   fs->n_missing = 0;
-  fs->ssq = 0;
-  fs->sum = 0;
+
   fs->min = DBL_MAX;
   fs->max = -DBL_MAX;
+
+
+  fs->moments = moments1_create(MOMENT_KURTOSIS);
 
   fs->ordered_data = hsh_create(20,
 				(hsh_compare_func *) compare_values,
@@ -70,9 +72,9 @@ metrics_calc(struct metrics *fs, const union value *val,
     }
 
   x = val->f;
-  fs->n    += weight;
-  fs->ssq  += x * x * weight;
-  fs->sum  += x * weight;
+
+  moments1_add(fs->moments, x, weight);
+
 
   if ( x < fs->min) fs->min = x;
   if ( x > fs->max) fs->max = x;
@@ -116,24 +118,26 @@ metrics_calc(struct metrics *fs, const union value *val,
 void
 metrics_postcalc(struct metrics *m)
 {
-  double sample_var; 
   double cc = 0.0;
   double tc ;
   int k1, k2 ;
   int i;
   int j = 1;  
 
-  m->mean = m->sum / m->n;
 
-  sample_var = ( m->ssq / m->n  - m->mean * m->mean );
+  moments1_calculate (m->moments, &m->n, &m->mean, &m->var, 
+		      &m->skewness, &m->kurtosis);
 
-  m->var  = m->n * sample_var / ( m->n - 1) ;
+  moments1_destroy (m->moments);
+
+
   m->stddev = sqrt(m->var);
-
 
   /* FIXME: Check this is correct ???
      Shouldn't we use the sample variance ??? */
   m->stderr = sqrt (m->var / m->n) ;
+
+
 
   m->wvp = (struct weighted_value **) hsh_sort(m->ordered_data);
   m->n_data = hsh_count(m->ordered_data);
@@ -251,7 +255,7 @@ factor_statistics_free(struct factor_statistics *f)
 
 int 
 factor_statistics_compare(const struct factor_statistics *f0,
-	                  const struct factor_statistics *f1, void *aux)
+	                  const struct factor_statistics *f1, int width)
 {
 
   int cmp0;
@@ -259,7 +263,7 @@ factor_statistics_compare(const struct factor_statistics *f0,
   assert(f0);
   assert(f1);
 
-  cmp0 = compare_values(&f0->id[0], &f1->id[0], aux);
+  cmp0 = compare_values(&f0->id[0], &f1->id[0], width);
 
   if ( cmp0 != 0 ) 
     return cmp0;
@@ -271,20 +275,20 @@ factor_statistics_compare(const struct factor_statistics *f0,
   if ( ( f0->id[1].f != SYSMIS )  && (f1->id[1].f == SYSMIS) ) 
     return -1;
 
-  return compare_values(&f0->id[1], &f1->id[1], aux);
+  return compare_values(&f0->id[1], &f1->id[1], width);
   
 }
 
 unsigned int 
-factor_statistics_hash(const struct factor_statistics *f, void *aux)
+factor_statistics_hash(const struct factor_statistics *f, int width)
 {
   
   unsigned int h;
 
-  h = hash_value(&f->id[0], aux);
+  h = hash_value(&f->id[0], width);
   
   if ( f->id[1].f != SYSMIS )
-    h += hash_value(&f->id[1], aux);
+    h += hash_value(&f->id[1], width);
 
 
   return h;
