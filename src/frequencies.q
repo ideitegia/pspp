@@ -279,7 +279,9 @@ static hsh_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 static void do_piechart(const struct variable *var,
 			const struct freq_tab *frq_tab);
 
-void freq_tab_to_hist(const struct freq_tab *ft, gsl_histogram *hist);
+gsl_histogram * 
+freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var);
+
 
 
 /* Parser and outline. */
@@ -629,16 +631,16 @@ postcalc (void *aux UNUSED)
 	{
 	  double d[frq_n_stats];
 	  struct normal_curve norm;
+	  gsl_histogram *hist ;
 
-	  gsl_histogram *hist = gsl_histogram_alloc(7);
 
-	  norm.N = vf->tab.total_cases;
+	  norm.N = vf->tab.valid_cases;
 
 	  calc_stats(v,d);
 	  norm.mean = d[frq_mean];
 	  norm.stddev = d[frq_stddev];
 
-	  freq_tab_to_hist(ft, hist);
+	  hist = freq_tab_to_hist(ft,v);
 
 	  histogram_plot(hist, var_to_string(v), &norm, normal);
 
@@ -1537,33 +1539,32 @@ dump_statistics (struct variable *v, int show_varname)
 }
 
 
-
-/* Populate a gsl_histogram from a freq_tab */
-void
-freq_tab_to_hist(const struct freq_tab *ft, gsl_histogram *hist)
+/* Create a gsl_histogram from a freq_tab */
+gsl_histogram *
+freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
 {
   int i;
   double x_min = DBL_MAX;
   double x_max = -DBL_MAX;
-  
+
+  gsl_histogram *hist;
+  const double bins = 11;
+
   struct hsh_iterator hi;
   struct hsh_table *fh = ft->data;
   struct freq *frq;
 
-  gsl_histogram_reset(hist);
-
   /* Find out the extremes of the x value */
-
-  for ( frq = hsh_first(fh, &hi); 
-	frq != 0; 
-	frq = hsh_next(fh, &hi) ) 
+  for ( frq = hsh_first(fh, &hi); frq != 0; frq = hsh_next(fh, &hi) ) 
     {
+      if ( is_missing(&frq->v, var))
+	continue;
+
       if ( frq->v.f < x_min ) x_min = frq->v.f ;
       if ( frq->v.f > x_max ) x_max = frq->v.f ;
     }
 
-
-  gsl_histogram_set_ranges_uniform(hist, x_min, x_max);
+  hist = histogram_create(bins, x_min, x_max);
 
   for( i = 0 ; i < ft->n_valid ; ++i ) 
     {
@@ -1571,7 +1572,9 @@ freq_tab_to_hist(const struct freq_tab *ft, gsl_histogram *hist)
       gsl_histogram_accumulate(hist, frq->v.f, frq->c);
     }
 
+  return hist;
 }
+
 
 static struct slice *
 freq_tab_to_slice_array(const struct freq_tab *frq_tab, 
@@ -1602,9 +1605,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
       slices[i].label = value_to_string(&frq->v, var);
 
       slices[i].magnetude = frq->c;
-
     }
-
 
   return slices;
 }
@@ -1622,10 +1623,7 @@ do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
   piechart_plot(var_to_string(var), slices, n_slices);
 
   free(slices);
-  
 }
-
-
 
 /* 
    Local Variables:

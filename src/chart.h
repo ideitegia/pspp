@@ -77,6 +77,7 @@ int  chart_initialise(struct chart *ch);
 void chart_finalise(struct chart *ch);
 
 
+double chart_rounded_tick(double tick);
 
 void chart_write_xlabel(struct chart *ch, const char *label);
 void chart_write_ylabel(struct chart *ch, const char *label);
@@ -118,8 +119,17 @@ struct normal_curve
 void histogram_write_legend(struct chart *ch, const struct normal_curve *norm);
 
 
+/* Plot a gsl_histogram */
 void histogram_plot(const gsl_histogram *hist, const char *factorname,
 		    const struct normal_curve *norm, short show_normal);
+
+
+/* Create a gsl_histogram and set it's parameters based upon 
+   x_min, x_max and bins. 
+   The caller is responsible for freeing the histogram.
+*/
+gsl_histogram * histogram_create(double bins, double x_min, double x_max) ;
+
 
 
 
@@ -155,6 +165,7 @@ void chart_write_yscale(struct chart *ch,
 
 
 void chart_datum(struct chart *ch, int dataset, double x, double y);
+
 
 
 

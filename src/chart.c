@@ -183,12 +183,9 @@ chart_finalise(struct chart *chart)
 
 
 
-static double chart_rounded_tick(double tick);
-
-  
 /* Adjust tick to be a sensible value 
    ie:  ... 0.1,0.2,0.5,   1,2,5,  10,20,50 ... */
-static double
+double
 chart_rounded_tick(double tick)
 {
 

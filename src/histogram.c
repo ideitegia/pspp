@@ -23,35 +23,13 @@
 #include <plot.h>
 #include <math.h>
 #include <gsl/gsl_histogram.h>
+#include <gsl/gsl_randist.h>
 #include <assert.h>
 
 #include "hash.h"
 
 #include "var.h"
 #include "chart.h"
-
-/* Number of bins in which to divide data */
-#define BINS 7
-
-/* The approximate no of ticks on the y axis */
-#define YTICKS 10
-
-#ifndef M_PI 
-#define M_PI ( 22.0 / 7.0 )
-#endif
-
-
-static double gaussian(double x, double mu, double sigma ) ;
-
-
-static double
-gaussian(double x, double mu, double sigma )
-{
-  return (exp( - (( x - mu )* (x - mu) / (2.0 * sigma * sigma)  ))
-    / ( sigma * sqrt( M_PI * 2.0) ))  ;
-}
-
-
 
 /* Write the legend of the chart */
 void
@@ -116,7 +94,6 @@ hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
 	    x_pos + width / 2.0, buf);
   }
 
-
 }
 
 
@@ -155,11 +132,13 @@ histogram_plot(const gsl_histogram *hist,
     double x_min, x_max, not_used ;
     double abscissa_scale ;
     double ordinate_scale ;
-
+    double range ;
 
     gsl_histogram_get_range(hist, 0, &x_min, &not_used);
-    gsl_histogram_get_range(hist, bins - 1, &x_max, &not_used);
-    
+    range = not_used - x_min;
+    gsl_histogram_get_range(hist, bins - 1, &not_used, &x_max);
+    assert(range == x_max - not_used);
+
     abscissa_scale = (ch.data_right - ch.data_left) / (x_max - x_min);
     ordinate_scale = (ch.data_top - ch.data_bottom) / 
       gsl_histogram_max_val(hist) ;
@@ -170,15 +149,44 @@ histogram_plot(const gsl_histogram *hist,
 	 d += (ch.data_right - ch.data_left) / 100.0)
       {    
 	const double x = (d - ch.data_left) / abscissa_scale + x_min ; 
-	
-	pl_fcont_r(ch.lp,  d, 
-		   ch.data_bottom  + norm->N * ordinate_scale *
-		   gaussian(x, norm->mean, norm->stddev) 
-		   );
+	const double y = norm->N * range * 
+	  gsl_ran_gaussian_pdf(x - norm->mean, norm->stddev);
+
+	pl_fcont_r(ch.lp,  d,  ch.data_bottom  + y * ordinate_scale);
+
       }
     pl_endpath_r(ch.lp);
 
   }
   chart_finalise(&ch);
+}
+
+
+gsl_histogram *
+histogram_create(double bins, double x_min, double x_max)
+{
+  int n;
+  double bin_width ;
+  double bin_width_2 ;
+  double upper_limit, lower_limit;
+
+  gsl_histogram *hist = gsl_histogram_alloc(bins);
+
+
+  bin_width = chart_rounded_tick((x_max - x_min)/ bins);
+  bin_width_2 = bin_width / 2.0;
+    
+  n =  ceil( x_max / (bin_width_2) ) ; 
+  if ( ! (n % 2 ) ) n++;
+  upper_limit = n * bin_width_2;
+
+  n =  floor( x_min / (bin_width_2) ) ; 
+  if ( ! (n % 2 ) ) n--;
+  lower_limit = n * bin_width_2;
+
+  gsl_histogram_set_ranges_uniform(hist, lower_limit, upper_limit);
+
+
+  return hist;
 }
 

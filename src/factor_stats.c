@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <math.h>
 #include <float.h>
 #include <assert.h>
-
+#include <chart.h>
 
 
 void
@@ -52,7 +52,7 @@ metrics_precalc(struct metrics *m)
 				(hsh_free_func *) weighted_value_free,
 				(void *) 0);
 
-  m->histogram = gsl_histogram_alloc(10);
+
 
 }
 
@@ -191,8 +191,7 @@ metrics_postcalc(struct metrics *m)
   m->trimmed_mean += (m->wvp[k1 + 1]->cc - tc) * m->wvp[k1 + 1]->v.f ;
   m->trimmed_mean /= 0.9 * m->n ;
 
-
-  gsl_histogram_set_ranges_uniform(m->histogram, m->min, m->max);
+  m->histogram = histogram_create(10, m->min, m->max);
 
   for ( i = 0 ; i < m->n_data ; ++i ) 
     {
