@@ -158,6 +158,12 @@ loop is executed MXLOOPS (@pxref{SET}) times.
 
 @cmd{BREAK} also terminates @cmd{LOOP} execution (@pxref{BREAK}).
 
+Loop index variables are by default reset to system-missing from one
+case to another, not left, unless a scratch variable is used as index.
+When loops are nested, this is usually undesired behavior, which can
+be corrected with @cmd{LEAVE} (@pxref{LEAVE}) or by using a scratch
+variable as the loop index.
+
 When @cmd{LOOP} or @cmd{END LOOP} is specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
 (@pxref{LAG}).
