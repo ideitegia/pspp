@@ -1,3 +1,10 @@
+
+Thu Dec 11 21:38:24 WST 2003 John Darrington <john@darrington.wattle.id.au>
+
+	* Fixed a bug apparent when using the FREQUENCIES command with the
+	html driver.  The html driver was incorrectly trying to display 
+	empty cells.
+
 Sun Jan  2 21:40:13 2000  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Reorganized.  Put locale dir in version.c instead

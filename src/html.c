@@ -556,18 +556,19 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	    strcpy (cp, ">");
 	    fputs (header, x->file.file);
 	    
-	    {
-	      char *s = ls_value (cc);
-	      size_t l = ls_length (cc);
+	    if ( ! (*ct & TAB_EMPTY)  ) 
+	      {
+		char *s = ls_value (cc);
+		size_t l = ls_length (cc);
 
-	      while (l && isspace ((unsigned char) *s))
-		{
-		  l--;
-		  s++;
-		}
+		while (l && isspace ((unsigned char) *s))
+		  {
+		    l--;
+		    s++;
+		  }
 	      
-	      escape_string (x->file.file, s, l);
-	    }
+		escape_string (x->file.file, s, l);
+	      }
 
 	    fprintf (x->file.file, "</T%c>\n", tag);
 	  }

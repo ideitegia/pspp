@@ -132,6 +132,7 @@ tab_destroy (struct tab_table *t)
 {
   assert (t != NULL);
   pool_destroy (t->container);
+  t->container=0;
 }
 
 /* Sets the width and height of a table, in columns and rows,

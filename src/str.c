@@ -331,7 +331,11 @@ ds_end (const struct string *st)
 void
 ds_concat (struct string *st, const char *s)
 {
-  size_t s_len = strlen (s);
+  size_t s_len;
+
+  if (!s) return;
+
+  s_len = strlen (s);
   ds_extend (st, st->length + s_len);
   strcpy (st->string + st->length, s);
   st->length += s_len;

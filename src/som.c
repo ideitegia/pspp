@@ -64,10 +64,10 @@ som_blank_line (void)
 }
 
 /* Driver. */
-struct outp_driver *d;
+static struct outp_driver *d=0;
 
 /* Table. */
-struct som_table *t;
+static struct som_table *t=0;
 
 /* Flags. */
 static unsigned flags;

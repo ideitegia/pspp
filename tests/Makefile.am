@@ -3,7 +3,7 @@
 bench:
 	make BENCHMARK=1 check
 
-TESTS = syntax
+TESTS = syntax bugs/double-frequency.sh bugs/html-frequency.sh
 
 noinst_PROGRAMS = gengarbage
 
