@@ -37,6 +37,7 @@ TESTS = command/aggregate.sh \
 	bugs/html-frequency.sh \
 	bugs/crosstabs.sh \
 	bugs/data-crash.sh \
+	bugs/multipass.sh \
 	bugs/random.sh \
 	bugs/t-test.sh \
 	bugs/temporary.sh \
