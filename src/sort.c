@@ -507,7 +507,7 @@ rmdir_temp_dir (struct external_sort *xsrt)
 {
   if (xsrt->temp_dir != NULL && rmdir (xsrt->temp_dir) == -1) 
     {
-      msg (SE, _("%s: Error removing directory for temporary files: %s."),
+      msg (SW, _("%s: Error removing directory for temporary files: %s."),
            xsrt->temp_dir, strerror (errno));
       xsrt->temp_dir = NULL; 
     }
@@ -569,7 +569,7 @@ remove_temp_file (struct external_sort *xsrt, int file_idx)
     {
       char *temp_file = get_temp_file_name (xsrt, file_idx);
       if (simulate_error () || remove (temp_file) != 0)
-        msg (SE, _("%s: Error removing temporary file: %s."),
+        msg (SW, _("%s: Error removing temporary file: %s."),
              temp_file, strerror (errno));
     }
 }
@@ -1383,6 +1383,7 @@ read_external_sort_output (struct external_sort *xsrt,
         break;
     }
   free (c);
+  close_temp_file (xsrt, file_idx, file);
 }
 
 static void

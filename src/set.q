@@ -84,6 +84,7 @@
 #else /* !HAVE_TERMCAP_H */
 int tgetent (char *, const char *);
 int tgetnum (const char *);
+int tgetflag (const char *);
 #endif /* !HAVE_TERMCAP_H */
 #endif /* !HAVE_LIBTERMCAP */
 
@@ -985,11 +986,8 @@ set_viewport(int sig_num UNUSED)
   static char term_buffer[16384];
 #endif
 
-  /* Workable defaults before we determine the real terminal size. */
-  set_viewwidth = 79;
-  set_viewlength = 24;
-
-
+  set_viewwidth = -1;
+  set_viewlength = -1;
 
 #if __DJGPP__ || __BORLANDC__
   {
@@ -1007,7 +1005,7 @@ set_viewport(int sig_num UNUSED)
     /* This code stolen from termcap.info, though modified. */
     termtype = getenv ("TERM");
     if (!termtype)
-      msg (FE, _("Specify a terminal type with `setenv TERM <yourtype>'."));
+      msg (FE, _("Specify a terminal type with the TERM environment variable."));
 
     success = tgetent (term_buffer, termtype);
     if (success <= 0)
@@ -1019,22 +1017,36 @@ set_viewport(int sig_num UNUSED)
       }
     else
       {
-	set_viewlength = tgetnum ("li");
-	set_viewwidth = tgetnum ("co") - 1;
+	/* NOTE: Do not rely upon tgetnum returning -1 if the value is 
+	   not available. It's supposed to do it, but not all platforms 
+	   do (eg Cygwin) .
+	*/
+        if ( tgetflag("li")) 
+	  set_viewlength = tgetnum ("li");
+
+        if ( tgetflag("co")) 
+	  set_viewwidth = tgetnum ("co") - 1;
       }
   }
-#else
-  {
-  char *s;
+#endif /* HAVE_LIBTERMCAP */
 
   /* Try the environment variables */
-  s = getenv("COLUMNS");
-  if ( s )  set_viewwidth = atoi(s);
+  if ( -1 ==  set_viewwidth ) 
+    { 
+      char *s = getenv("COLUMNS");
+      if ( s )  set_viewwidth = atoi(s);
+    }
 
-  s = getenv("LINES");
-  if ( s )  set_viewlength = atoi(s);
-  }
-#endif /* !HAVE_LIBTERMCAP */
+  if ( -1 ==  set_viewwidth ) 
+    {
+      char *s = getenv("LINES");
+      if ( s )  set_viewlength = atoi(s);
+    }
+
+
+  /* Last resort.  Use hard coded values */
+  if ( 0  >  set_viewwidth ) set_viewwidth = 79;
+  if ( 0  >  set_viewlength ) set_viewlength = 24;
 
 }
 

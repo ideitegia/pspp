@@ -1,3 +1,11 @@
+Tue Mar 23 08:00:42 WAST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* sort.c: Added missing call to temp_file_close.  Changed error 
+	messages to warnings.
+
+	* set.q: Improved setting of set_view{length,width} to be more tolerant
+	of buggy OSes.
+
 Sun Mar 21 10:11:14 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
         * val-labs.c: Fixed a bug where PSPP would crash, if VALUE LABELS was
