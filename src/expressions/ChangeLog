@@ -1,3 +1,9 @@
+Thu Mar  3 23:53:32 2005  Ben Pfaff  <blp@gnu.org>
+
+	* PSPP_expressions.pm: Renamed it back to generate.pl but fixed
+	the real problem that was preventing the build from a separate
+	directory.  I liked it my way better ;-)
+	
 Thu Mar  3 23:17:51 2005  Ben Pfaff  <blp@gnu.org>
 
 	* parse.c: (expr_parse) Fix parameter type.  Thanks to John

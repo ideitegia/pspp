@@ -6,16 +6,15 @@ noinst_LIBRARIES = libexpressions.a
 
 libexpressions_a_SOURCES = evaluate.c helpers.c helpers.h optimize.c	\
 	parse.c private.h public.h \
-	evaluate.inc.pl PSPP_expressions.pm operations.def \
+	evaluate.inc.pl generate.pl operations.def \
 	evaluate.h.pl operations.h.pl optimize.inc.pl parse.inc.pl
 
 BUILT_SOURCES = evaluate.h evaluate.inc operations.h optimize.inc parse.inc
 CLEANFILES = evaluate.h evaluate.inc operations.h optimize.inc parse.inc
 
-
 PERL = @PERL@
 
-helpers = $(srcdir)/PSPP_expressions.pm $(srcdir)/operations.def
+helpers = $(srcdir)/generate.pl $(srcdir)/operations.def
 
 evaluate.inc: $(srcdir)/evaluate.inc.pl $(helpers)
 	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def

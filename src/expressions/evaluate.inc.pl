@@ -1,9 +1,4 @@
-use PSPP_expressions ;
-
-print_header ();
-generate_output ();
-print_trailer ();
-
+do 'generate.pl';
 
 sub generate_output {
     for my $opname (@order) {
