@@ -23,54 +23,8 @@
 #include <stddef.h>
 #include "format.h"
 #include "t-test.h"
+#include "val.h"
 
-/* Values. */
-
-/* Max length of a short string value, generally 8 chars. */
-#define MAX_SHORT_STRING ((SIZEOF_DOUBLE)>=8 ? ((SIZEOF_DOUBLE)+1)/2*2 : 8)
-#define MIN_LONG_STRING (MAX_SHORT_STRING+1)
-
-/* Max string length. */
-#define MAX_STRING 255
-
-/* FYI: It is a bad situation if sizeof(flt64) < MAX_SHORT_STRING:
-   then short string missing values can be truncated in system files
-   because there's only room for as many characters as can fit in a
-   flt64. */
-#if MAX_SHORT_STRING > 8
-#error MAX_SHORT_STRING must be less than 8.
-#endif
-
-/* Special values. */
-#define SYSMIS (-DBL_MAX)
-#define LOWEST second_lowest_value
-#define HIGHEST DBL_MAX
-
-/* Describes one value, which is either a floating-point number or a
-   short string. */
-union value
-  {
-    /* A numeric value. */
-    double f;
-
-    /* A short-string value. */
-    unsigned char s[MAX_SHORT_STRING];
-
-    /* Used by evaluate_expression() to return a string result.
-       As currently implemented, it's a pointer to a dynamic
-       buffer in the appropriate expression.
-
-       Also used by the AGGREGATE procedure in handling string
-       values. */
-    unsigned char *c;
-  };
-
-/* Maximum number of `union value's in a single number or string
-   value. */
-#define MAX_ELEMS_PER_VALUE (MAX_STRING / sizeof (union value) + 1)
-
-int compare_values (union value *a, union value *b, int width);
-
 /* Frequency tables. */
 
 /* Frequency table entry. */

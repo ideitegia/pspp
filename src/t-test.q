@@ -40,6 +40,7 @@
 #include "hash.h"
 #include "stats.h"
 #include "t-test.h"
+#include "levene.h"
 
 /* (specification)
    "T-TEST" (tts_):
@@ -57,8 +58,6 @@
 
 static struct cmd_t_test cmd;
 
-int value_compare(const union value *a, const union value *b, int width);
-
 
 static struct pool *t_test_pool ;
 
@@ -67,14 +66,9 @@ static struct variable *groups;
 
 /* GROUPS: Number of values specified by the user; the values
    specified if any. */
+
 static int n_groups_values;
 static union value groups_values[2];
-
-/* Array of statistics for each group */
-typedef struct t_test_proc group_stats_t[2];
-static  group_stats_t *groups_stats;
-
-
 
 
 /* PAIRS: Number of pairs to be compared ; each pair. */
@@ -281,10 +275,9 @@ cmd_t_test(void)
       break;
     case T_IND_SAMPLES:
       procedure(group_precalc,group_calc,group_postcalc, NULL);
+      levene(groups, cmd.n_variables, cmd.v_variables);
       break;
-
     }
-  
 
   t_test_pool = pool_create ();
 
@@ -293,9 +286,7 @@ cmd_t_test(void)
   ssbox_finalize(&stat_summary_box);
 
   if ( mode == T_PAIRED) 
-    {
       pscbox();
-    }
 
   trbox_create(&test_results_box,&cmd,mode);
   trbox_populate(&test_results_box,&cmd);
@@ -309,6 +300,17 @@ cmd_t_test(void)
   n_pairs=0;
   free(pairs);
   pairs=0;
+
+
+  if ( mode == T_IND_SAMPLES) 
+    {
+      int i;
+      /* Destroy any group statistics we created */
+      for (i= 0 ; i < cmd.n_variables ; ++i ) 
+	{
+	  free(cmd.v_variables[i]->p.t_t.gs);
+	}
+    }
     
   return CMD_SUCCESS;
 }
@@ -693,14 +695,13 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
       /* Fill in the group statistics */
       for ( g=0; g < 2 ; ++g ) 
 	{
-	  struct t_test_proc *ttp = &groups_stats[i][g];
+	  struct group_statistics *gs = &cmd->v_variables[i]->p.t_t.gs[g];
 
-	  tab_float(ssb->t, 2 ,i*2+g+1, TAB_RIGHT, ttp->n, 2, 0);
-	  tab_float(ssb->t, 3 ,i*2+g+1, TAB_RIGHT, ttp->mean, 8, 2);
-	  tab_float(ssb->t, 4 ,i*2+g+1, TAB_RIGHT, ttp->std_dev, 8, 3);
-	  tab_float(ssb->t, 5 ,i*2+g+1, TAB_RIGHT, ttp->se_mean, 8, 3);
+	  tab_float(ssb->t, 2 ,i*2+g+1, TAB_RIGHT, gs->n, 2, 0);
+	  tab_float(ssb->t, 3 ,i*2+g+1, TAB_RIGHT, gs->mean, 8, 2);
+	  tab_float(ssb->t, 4 ,i*2+g+1, TAB_RIGHT, gs->std_dev, 8, 3);
+	  tab_float(ssb->t, 5 ,i*2+g+1, TAB_RIGHT, gs->se_mean, 8, 3);
 	}
-
     }
 }
 
@@ -745,19 +746,19 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 
       for (j=0 ; j < 2 ; ++j) 
 	{
-	  struct t_test_proc *ttp;
+	  struct group_statistics *gs;
 
-	  ttp=&pairs[i].v[j]->p.t_t;
+	  gs=&pairs[i].v[j]->p.t_t.ugs;
 
 	  /* Titles */
 
 	  tab_text (ssb->t, 1, i*2+j+1, TAB_LEFT, pairs[i].v[j]->name);
 
 	  /* Values */
-	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, ttp->mean, 8, 2);
-	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, ttp->n, 2, 0);
-	  tab_float (ssb->t,4, i*2+j+1, TAB_RIGHT, ttp->std_dev, 8, 3);
-	  tab_float (ssb->t,5, i*2+j+1, TAB_RIGHT, ttp->se_mean, 8, 3);
+	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, gs->mean, 8, 2);
+	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, gs->n, 2, 0);
+	  tab_float (ssb->t,4, i*2+j+1, TAB_RIGHT, gs->std_dev, 8, 3);
+	  tab_float (ssb->t,5, i*2+j+1, TAB_RIGHT, gs->se_mean, 8, 3);
 
 	}
 
@@ -775,14 +776,14 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      struct t_test_proc *ttp;
-      ttp= &cmd->v_variables[i]->p.t_t;
+      struct group_statistics *gs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
 
       tab_text (ssb->t, 0, i+1, TAB_LEFT, cmd->v_variables[i]->name);
-      tab_float (ssb->t,1, i+1, TAB_RIGHT, ttp->n, 2, 0);
-      tab_float (ssb->t,2, i+1, TAB_RIGHT, ttp->mean, 8, 2);
-      tab_float (ssb->t,3, i+1, TAB_RIGHT, ttp->std_dev, 8, 2);
-      tab_float (ssb->t,4, i+1, TAB_RIGHT, ttp->se_mean, 8, 3);
+      tab_float (ssb->t,1, i+1, TAB_RIGHT, gs->n, 2, 0);
+      tab_float (ssb->t,2, i+1, TAB_RIGHT, gs->mean, 8, 2);
+      tab_float (ssb->t,3, i+1, TAB_RIGHT, gs->std_dev, 8, 2);
+      tab_float (ssb->t,4, i+1, TAB_RIGHT, gs->se_mean, 8, 3);
     }
   
 }
@@ -907,30 +908,47 @@ trbox_independent_samples_populate(struct trbox *self,
       double t;
       double df;
 
+      double df1, df2;
+
       double pooled_variance;
       double std_err_diff;
       double mean_diff;
 
-      struct t_test_proc *ttp0;
-      struct t_test_proc *ttp1;
-      ttp0=&groups_stats[i][0];
-      ttp1=&groups_stats[i][1];
-
+      struct group_statistics *gs0 = &cmd->v_variables[i]->p.t_t.gs[0];
+      struct group_statistics *gs1 = &cmd->v_variables[i]->p.t_t.gs[1];
 	  
       tab_text (self->t, 0, i*2+3, TAB_LEFT, cmd->v_variables[i]->name);
 
       tab_text (self->t, 1, i*2+3, TAB_LEFT, _("Equal variances assumed"));
 
-      df = ttp0->n + ttp1->n - 2.0 ;
+
+      tab_float(self->t, 2, i*2+3, TAB_CENTER, 
+		cmd->v_variables[i]->p.t_t.levene, 8,3);
+
+
+      /* Now work out the significance of the Levene test */
+
+      which=1; df1 = 1; df2 = cmd->v_variables[i]->p.t_t.ugs.n - 2;
+      cdff(&which,&p,&q,&cmd->v_variables[i]->p.t_t.levene,
+	   &df1,&df2,&status,&bound);
+
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating F statistic (cdff returned %d)."),status);
+	}
+
+      tab_float(self->t, 3, i*2+3, TAB_CENTER, q, 8,3 );
+
+      df = gs0->n + gs1->n - 2.0 ;
       tab_float (self->t, 5, i*2+3, TAB_RIGHT, df, 2, 0);
 
-      pooled_variance = ( (ttp0->n )*sqr(ttp0->s_std_dev)
+      pooled_variance = ( (gs0->n )*sqr(gs0->s_std_dev)
 			  + 
-			  (ttp1->n )*sqr(ttp1->s_std_dev) 
+			  (gs1->n )*sqr(gs1->s_std_dev) 
 			) / df  ;
 
-      t = (ttp0->mean - ttp1->mean) / sqrt(pooled_variance) ;
-      t /= sqrt((ttp0->n + ttp1->n)/(ttp0->n*ttp1->n)); 
+      t = (gs0->mean - gs1->mean) / sqrt(pooled_variance) ;
+      t /= sqrt((gs0->n + gs1->n)/(gs0->n*gs1->n)); 
 
       tab_float (self->t, 4, i*2+3, TAB_RIGHT, t, 8, 3);
 
@@ -944,11 +962,11 @@ trbox_independent_samples_populate(struct trbox *self,
 
       tab_float(self->t, 6, i*2+3, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
 
-      mean_diff = ttp0->mean - ttp1->mean;
+      mean_diff = gs0->mean - gs1->mean;
       tab_float(self->t, 7, i*2+3, TAB_RIGHT, mean_diff, 8, 3);
 
 
-      std_err_diff = sqrt( sqr(ttp0->se_mean) + sqr(ttp1->se_mean));
+      std_err_diff = sqrt( sqr(gs0->se_mean) + sqr(gs1->se_mean));
       tab_float(self->t, 8, i*2+3, TAB_RIGHT, std_err_diff, 8, 3);
 
 
@@ -976,19 +994,19 @@ trbox_independent_samples_populate(struct trbox *self,
 		TAB_LEFT, _("Equal variances not assumed"));
 
 
-      se2 = (sqr(ttp0->s_std_dev)/(ttp0->n -1) ) +
-	(sqr(ttp1->s_std_dev)/(ttp1->n -1) );
+      se2 = (sqr(gs0->s_std_dev)/(gs0->n -1) ) +
+	(sqr(gs1->s_std_dev)/(gs1->n -1) );
 
       t = mean_diff / sqrt(se2) ;
       tab_float (self->t, 4, i*2+3+1, TAB_RIGHT, t, 8, 3);
 		
       df = sqr(se2) / ( 
-		       (sqr(sqr(ttp0->s_std_dev)/(ttp0->n - 1 )) 
-			/(ttp0->n -1 )
+		       (sqr(sqr(gs0->s_std_dev)/(gs0->n - 1 )) 
+			/(gs0->n -1 )
 			)
 		       + 
-		       (sqr(sqr(ttp1->s_std_dev)/(ttp1->n - 1 ))
-			/(ttp1->n -1 )
+		       (sqr(sqr(gs1->s_std_dev)/(gs1->n - 1 ))
+			/(gs1->n -1 )
 			)
 		       ) ;
       tab_float (self->t, 5, i*2+3+1, TAB_RIGHT, df, 8, 3);
@@ -1025,11 +1043,7 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_float(self->t, 10, i*2+3+1, TAB_RIGHT, 
 		mean_diff + t * std_err_diff, 8, 3); 
 
-
-
-
       }
-
     }
 }
 
@@ -1086,10 +1100,10 @@ trbox_paired_populate(struct trbox *trb,
       struct variable *v0 = pairs[i].v[0];
       struct variable *v1 = pairs[i].v[1];
 
-      struct t_test_proc *ttp0 = &v0->p.t_t;
-      struct t_test_proc *ttp1 = &v1->p.t_t;
+      struct group_statistics *gs0 = &v0->p.t_t.ugs;
+      struct group_statistics *gs1 = &v1->p.t_t.ugs;
 
-      double n = ttp0->n;
+      double n = gs0->n;
       double t;
       double df = n - 1;
       
@@ -1123,10 +1137,10 @@ trbox_paired_populate(struct trbox *trb,
       tab_float(trb->t, 6, i+3, TAB_RIGHT, 
 		pairs[i].mean_diff + t * se_mean , 8, 4); 
 
-      t = ( ttp0->mean - ttp1->mean)
+      t = ( gs0->mean - gs1->mean)
 	/ sqrt ( 
-		(  sqr(ttp0->s_std_dev) + sqr(ttp1->s_std_dev)  - 
-		   2 * pairs[i].correlation * ttp0->s_std_dev * ttp1->s_std_dev  		   )
+		(  sqr(gs0->s_std_dev) + sqr(gs1->s_std_dev)  - 
+		   2 * pairs[i].correlation * gs0->s_std_dev * gs1->s_std_dev  		   )
 		/ (n-1) )
 	;
 
@@ -1146,9 +1160,7 @@ trbox_paired_populate(struct trbox *trb,
 
       tab_float(trb->t, 9, i+3, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
 
-
     }
-
 }
 
 /* Initialize the one sample trbox */
@@ -1203,18 +1215,18 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
       double df;
       int status;
       double bound;
-      struct t_test_proc *ttp;
-      ttp= &cmd->v_variables[i]->p.t_t;
+      struct group_statistics *gs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
 
 
       tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
 
-      t = (ttp->mean - cmd->n_testval ) * sqrt(ttp->n) / ttp->std_dev ;
+      t = (gs->mean - cmd->n_testval ) * sqrt(gs->n) / gs->std_dev ;
 
       tab_float (trb->t, 1, i+3, TAB_RIGHT, t, 8,3);
 
       /* degrees of freedom */
-      df = ttp->n - 1;
+      df = gs->n - 1;
 
       tab_float (trb->t, 2, i+3, TAB_RIGHT, df, 8,0);
 
@@ -1230,7 +1242,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 	 the correct tail*/
       tab_float (trb->t, 3, i+3, TAB_RIGHT, 2.0*(t>0?q:p), 8,3);
 
-      tab_float (trb->t, 4, i+3, TAB_RIGHT, ttp->mean_diff, 8,3);
+      tab_float (trb->t, 4, i+3, TAB_RIGHT, gs->mean_diff, 8,3);
 
 
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
@@ -1243,10 +1255,10 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 	}
 
       tab_float (trb->t, 5, i+3, TAB_RIGHT,
-		 ttp->mean_diff - t * ttp->se_mean, 8,4);
+		 gs->mean_diff - t * gs->se_mean, 8,4);
 
       tab_float (trb->t, 6, i+3, TAB_RIGHT,
-		 ttp->mean_diff + t * ttp->se_mean, 8,4);
+		 gs->mean_diff + t * gs->se_mean, 8,4);
     }
 }
 
@@ -1306,7 +1318,7 @@ pscbox(void)
       int status;
       double bound;
 
-      double df = pairs[i].v[0]->p.t_t.n -2;
+      double df = pairs[i].v[0]->p.t_t.ugs.n -2;
 
       double correlation_t = 
 	pairs[i].correlation * sqrt(df) /
@@ -1323,7 +1335,7 @@ pscbox(void)
 
       /* row data */
       tab_float(table, 3, i+1, TAB_RIGHT, pairs[i].correlation, 8, 3);
-      tab_float(table, 2, i+1, TAB_RIGHT, pairs[i].v[0]->p.t_t.n , 4, 0);
+      tab_float(table, 2, i+1, TAB_RIGHT, pairs[i].v[0]->p.t_t.ugs.n , 4, 0);
 
 
       cdft(&which, &p, &q, &correlation_t, &df, &status, &bound);
@@ -1355,17 +1367,17 @@ common_calc (struct ccase *c, void *aux UNUSED)
 
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct t_test_proc *ttp;
+      struct group_statistics *gs;
       struct variable *v = cmd.v_variables[i];
       union value *val = &c->data[v->fv];
 
-      ttp= &cmd.v_variables[i]->p.t_t;
+      gs= &cmd.v_variables[i]->p.t_t.ugs;
 
       if (val->f != SYSMIS) 
 	{
-	  ttp->n+=weight;
-	  ttp->sum+=weight * val->f;
-	  ttp->ssq+=weight * val->f * val->f;
+	  gs->n+=weight;
+	  gs->sum+=weight * val->f;
+	  gs->ssq+=weight * val->f * val->f;
 	}
     }
   return 0;
@@ -1379,13 +1391,13 @@ common_precalc (void *aux UNUSED)
 
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct t_test_proc *ttp;
-      ttp= &cmd.v_variables[i]->p.t_t;
+      struct group_statistics *gs;
+      gs= &cmd.v_variables[i]->p.t_t.ugs;
       
-      ttp->sum=0;
-      ttp->n=0;
-      ttp->ssq=0;
-      ttp->sum_diff=0;
+      gs->sum=0;
+      gs->n=0;
+      gs->ssq=0;
+      gs->sum_diff=0;
     }
 }
 
@@ -1397,21 +1409,21 @@ common_postcalc (void *aux UNUSED)
 
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct t_test_proc *ttp;
-      ttp= &cmd.v_variables[i]->p.t_t;
+      struct group_statistics *gs;
+      gs= &cmd.v_variables[i]->p.t_t.ugs;
       
-      ttp->mean=ttp->sum / ttp->n;
-      ttp->s_std_dev= sqrt(
-			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+      gs->mean=gs->sum / gs->n;
+      gs->s_std_dev= sqrt(
+			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
 			 ) ;
 
-      ttp->std_dev= sqrt(
-			 ttp->n/(ttp->n-1) *
-			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+      gs->std_dev= sqrt(
+			 gs->n/(gs->n-1) *
+			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
 			 ) ;
 
-      ttp->se_mean = ttp->std_dev / sqrt(ttp->n);
-      ttp->mean_diff= ttp->sum_diff / ttp->n;
+      gs->se_mean = gs->std_dev / sqrt(gs->n);
+      gs->mean_diff= gs->sum_diff / gs->n;
     }
 }
 
@@ -1425,14 +1437,14 @@ one_sample_calc (struct ccase *c, void *aux UNUSED)
 
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct t_test_proc *ttp;
+      struct group_statistics *gs;
       struct variable *v = cmd.v_variables[i];
       union value *val = &c->data[v->fv];
 
-      ttp= &cmd.v_variables[i]->p.t_t;
+      gs= &cmd.v_variables[i]->p.t_t.ugs;
       
       if (val->f != SYSMIS) 
-	ttp->sum_diff += weight * (val->f - cmd.n_testval);
+	gs->sum_diff += weight * (val->f - cmd.n_testval);
     }
 
   return 0;
@@ -1446,10 +1458,10 @@ one_sample_precalc (void *aux UNUSED)
   
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct t_test_proc *ttp;
-      ttp= &cmd.v_variables[i]->p.t_t;
+      struct group_statistics *gs;
+      gs= &cmd.v_variables[i]->p.t_t.ugs;
       
-      ttp->sum_diff=0;
+      gs->sum_diff=0;
     }
 }
 
@@ -1461,11 +1473,11 @@ one_sample_postcalc (void *aux UNUSED)
   
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct t_test_proc *ttp;
-      ttp= &cmd.v_variables[i]->p.t_t;
+      struct group_statistics *gs;
+      gs= &cmd.v_variables[i]->p.t_t.ugs;
 
       
-      ttp->mean_diff = ttp->sum_diff / ttp->n ;
+      gs->mean_diff = gs->sum_diff / gs->n ;
     }
 }
 
@@ -1489,6 +1501,7 @@ hash_var_name (const void *a_, void *v_ UNUSED)
 }
 
 
+
 static void 
 paired_precalc (void *aux UNUSED)
 {
@@ -1503,6 +1516,7 @@ paired_precalc (void *aux UNUSED)
 
 }
 
+
 static int  
 paired_calc (struct ccase *c, void *aux UNUSED)
 {
@@ -1516,15 +1530,14 @@ paired_calc (struct ccase *c, void *aux UNUSED)
       union value *val0 = &c->data[v0->fv];
       union value *val1 = &c->data[v1->fv];
 
-      pairs[i].correlation += ( val0->f - pairs[i].v[0]->p.t_t.mean )
+      pairs[i].correlation += ( val0->f - pairs[i].v[0]->p.t_t.ugs.mean )
 	                      *
-	                      ( val1->f - pairs[i].v[1]->p.t_t.mean );
+	                      ( val1->f - pairs[i].v[1]->p.t_t.ugs.mean );
 
       pairs[i].sum_of_diffs += val0->f - val1->f ;
       pairs[i].ssq_diffs += sqr(val0->f - val1->f);
 
     }
-
 
   return 0;
 }
@@ -1536,11 +1549,11 @@ paired_postcalc (void *aux UNUSED)
 
   for(i=0; i < n_pairs ; ++i )
     {
-      const double n = pairs[i].v[0]->p.t_t.n ;
+      const double n = pairs[i].v[0]->p.t_t.ugs.n ;
       
-      pairs[i].correlation /= pairs[i].v[0]->p.t_t.std_dev * 
-                              pairs[i].v[1]->p.t_t.std_dev ;
-      pairs[i].correlation /= pairs[i].v[0]->p.t_t.n -1; 
+      pairs[i].correlation /= pairs[i].v[0]->p.t_t.ugs.std_dev * 
+                              pairs[i].v[1]->p.t_t.ugs.std_dev ;
+      pairs[i].correlation /= pairs[i].v[0]->p.t_t.ugs.n -1; 
 
 
       pairs[i].mean_diff = pairs[i].sum_of_diffs / n ;
@@ -1551,28 +1564,15 @@ paired_postcalc (void *aux UNUSED)
 				    - 
 				    sqr(pairs[i].mean_diff )
 				    ) );
-
     }
 }
-
-
-/* Compare two (union value)s */
-int
-value_compare(const union value *a, const union value *b, int width)
-{
-  if (width == 0)
-    return (a->f < b->f) ? -1 : ( a->f > b->f ) ;
-  else
-    return memcmp (a->s, b->s, width);
-}
-
 
 static int
 get_group(const union value *val, struct variable *var)
 {
-  if ( 0 == value_compare(val,&groups_values[0],var->width) )
+  if ( 0 == compare_values(val,&groups_values[0],var->width) )
     return 0;
-  else if (0 == value_compare(val,&groups_values[1],var->width) )
+  else if (0 == compare_values(val,&groups_values[1],var->width) )
     return 1;
 
   /* Never reached */
@@ -1587,15 +1587,20 @@ group_precalc (void *aux UNUSED)
   int i;
   int j;
 
-  groups_stats = xmalloc(sizeof(group_stats_t) * cmd.n_variables);
-
   for(i=0; i< cmd.n_variables ; ++i) 
     {
+      struct t_test_proc *ttpr = &cmd.v_variables[i]->p.t_t;
+
+      /* There's always 2 groups for a T - TEST */
+      ttpr->n_groups = 2;
+      ttpr->gs = xmalloc(sizeof(struct group_statistics) * 2) ;
+
       for (j=0 ; j < 2 ; ++j)
 	{
-	  groups_stats[i][j].sum=0;
-	  groups_stats[i][j].n=0;
-	  groups_stats[i][j].ssq=0;
+	  ttpr->gs[j].sum=0;
+	  ttpr->gs[j].n=0;
+	  ttpr->gs[j].ssq=0;
+	  ttpr->gs[j].id = groups_values[j];
 	}
     }
 
@@ -1614,16 +1619,19 @@ group_calc (struct ccase *c, void *aux UNUSED)
   for(i=0; i< cmd.n_variables ; ++i) 
     {
       int g = get_group(gv,groups);
-      struct t_test_proc *ttp=&groups_stats[i][g];
+
+      struct group_statistics *gs = &cmd.v_variables[i]->p.t_t.gs[g];
+
       union value *val=&c->data[cmd.v_variables[i]->fv];
 
-      ttp->n+=weight;
-      ttp->sum+=weight * val->f;
-      ttp->ssq+=weight * sqr(val->f);
+      gs->n+=weight;
+      gs->sum+=weight * val->f;
+      gs->ssq+=weight * sqr(val->f);
     }
 
   return 0;
 }
+
 
 static void 
 group_postcalc (void *aux UNUSED)
@@ -1635,22 +1643,22 @@ group_postcalc (void *aux UNUSED)
     {
       for (j=0 ; j < 2 ; ++j)
 	{
-	  struct t_test_proc *ttp;
-	  ttp=&groups_stats[i][j];
+	  struct group_statistics *gs;
+	  gs=&cmd.v_variables[i]->p.t_t.gs[j];
 
-	  ttp->mean = ttp->sum / ttp->n;
+	  gs->mean = gs->sum / gs->n;
 	  
-	  ttp->s_std_dev= sqrt(
-			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+	  gs->s_std_dev= sqrt(
+			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
 			 ) ;
 
-	  ttp->std_dev= sqrt(
-			 ttp->n/(ttp->n-1) *
-			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+	  gs->std_dev= sqrt(
+			 gs->n/(gs->n-1) *
+			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
 			 ) ;
 	  
-	  ttp->se_mean = ttp->std_dev / sqrt(ttp->n);
+	  gs->se_mean = gs->std_dev / sqrt(gs->n);
 	}
-      
     }
 }
+

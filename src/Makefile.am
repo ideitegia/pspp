@@ -44,7 +44,8 @@ expr-prs.c expr.h exprP.h file-handle.h file-type.c	\
 filename.c filename.h flip.c font.h format.c format.def format.h	\
 formats.c get.c getline.c getline.h glob.c glob.h		\
 groff-font.c hash.c hash.h heap.c heap.h html.c htmlP.h include.c	\
-inpt-pgm.c lexer.c lexer.h log.h loop.c magic.c magic.h main.c	\
+inpt-pgm.c lexer.c lexer.h levene.c levene.h \
+log.h loop.c magic.c magic.h main.c	\
 main.h matrix-data.c matrix.c matrix.h mis-val.c misc.c misc.h	\
 modify-vars.c numeric.c output.c output.h pfm-read.c pfm-write.c pfm.h	\
 pool.c pool.h postscript.c print.c random.c random.h recode.c		\

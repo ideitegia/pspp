@@ -20,9 +20,15 @@
 #ifndef T_TEST_H
 #define T_TEST_H
 
-/* T-TEST private data */
-struct t_test_proc
+#include "val.h"
+
+/* Statistics for grouped data */
+struct group_statistics
   {
+    /* The value of the independent variable for this group */
+    union value id;
+
+    /* The arithmetic mean */
     double mean;
 
     /* Population std. deviation */
@@ -42,11 +48,35 @@ struct t_test_proc
     /* Std Err of Mean */
     double se_mean;
 
-    /* Sum of differnces */
+    /* Sum of differences */
     double sum_diff;
 
     /* Mean of differences */
     double mean_diff ;
+
+    /* Running total of the Levene for this group */
+    double lz_total;
+    
+    /* Group mean of Levene */
+    double lz_mean; 
+
   };
+
+
+/* T-TEST private data */
+struct t_test_proc
+{
+  /* Stats for the `universal group' */
+  struct group_statistics ugs;
+
+  /* Number of groups */
+  int n_groups ;
+
+  /* Stats for individual groups */
+  struct group_statistics *gs;
+
+  /* The levene statistic */
+  double levene ;
+};
 
 #endif

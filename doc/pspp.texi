@@ -7470,6 +7470,7 @@ far.
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.
 * CROSSTABS::                   Crosstabulation tables.
+* T-TEST::                      Test Hypotheses about means.
 @end menu
 
 @node DESCRIPTIVES, FREQUENCIES, Statistics, Statistics
@@ -7663,7 +7664,7 @@ NTILES causes the specified quartiles to be reported.  For instance,
 @code{/NTILES=4} would cause quartiles to be reported.  In addition,
 particular percentiles can be requested with the PERCENTILES subcommand.
 
-@node CROSSTABS,  , FREQUENCIES, Statistics
+@node CROSSTABS, T-TEST, FREQUENCIES, Statistics
 @section CROSSTABS
 
 @display
@@ -7841,6 +7842,118 @@ Approximate T of uncertainty coefficient is wrong.
 @end itemize
 
 Fixes for any of these deficiencies would be welcomed.
+
+@node T-TEST, , CROSSTABS, Statistics
+@comment  node-name,  next,  previous,  up
+
+@section T-TEST
+
+@display
+T-TEST
+        /MISSING=@{ANALYSIS,LISTWISE@} @{EXCLUDE,INCLUDE@}
+        /CRITERIA=CIN(confidence)
+
+
+(One Sample mode.)
+        TESTVAL=test_value
+        /VARIABLES=var_list
+
+
+(Independent Samples mode.)
+        GROUPS=var(value1 [, value2])
+        /VARIABLES=var_list
+
+
+(Paired Samples mode.)
+        PAIRS=var_list [WITH var_list [(PAIRED)] ]
+
+@end display
+
+
+The @cmd{T-TEST} procedure outputs tables used in testing hypotheses about 
+means.  
+It operates in one of three modes:
+@itemize
+@item One Sample mode.
+@item Independent Groups mode.
+@item Paired mode.
+@end itemize
+
+@noindent
+Each of these modes are described in more detail below.
+There are two optional subcommands which are common to all modes.
+
+The @cmd{/CRITERIA} subcommand tells PSPP the confidence interval used
+in the tests.  The default value is 0.95.
+
+
+The @cmd{MISSING} subcommand determines the handling of missing
+variables.  
+If INCLUDE is set, then user-missing values are included in the
+calculations.  
+If EXCLUDE is set, which is the default, user-missing
+values are excluded.  
+If LISTWISE is set, then
+the entire case is excluded whenever any value in that case has a
+system-missing or, if INCLUDE is set, user-missing value.
+If ANALYSIS is set, then cases are excluded only where a value used in
+the analysis has a system-missing or, if INCLUDE is set, user-missing value.
+
+
+@menu
+* One Sample Mode::              Testing against a hypothesised mean
+* Independent Samples Mode::     Testing two independent groups for the same mean
+* Paired Samples Mode::          Testing two interdependet groups for the same mean
+@end menu
+
+@node One Sample Mode, Independent Samples Mode, T-TEST, T-TEST
+@comment  node-name,  next,  previous,  up
+
+@subsection One Sample Mode
+
+The @cmd{TESTVAL} subcommand invokes the One Sample mode.
+This mode is used to test a population mean against a hypothesised
+mean. 
+The value given to the @cmd{TESTVAL} subcommand is the value against
+which you wish to test.
+In this mode, you must also use the @cmd{/VARIABLES} subcommand to
+tell PSPP which variables you wish to test.
+
+@node Independent Samples Mode, Paired Samples Mode, One Sample Mode, T-TEST
+@comment  node-name,  next,  previous,  up
+@subsection Independent Samples Mode
+
+The @cmd{GROUPS} subcommand invokes Independent Samples mode or
+`Groups' mode. 
+This mode is used to test whether two groups of values have the
+same population mean.
+The variable given in the @cmd{GROUPS} subcommand is the independent
+variable which determines to which group the samples belong.
+The values in parentheses are the specific values of the independent
+variable for each group.
+In this mode, you must also use the @cmd{/VARIABLES} subcommand to
+tell PSPP the dependent variables you wish to test.
+
+@node Paired Samples Mode, , Independent Samples Mode, T-TEST
+@comment  node-name,  next,  previous,  up
+@subsection Paired Samples Mode
+
+The @cmd{PAIRS} subcommand introduces Paired Samples mode.
+Use this mode when repeated measures have been taken from the same
+samples.
+If the the @code{WITH} keyword is omitted, then tables for all
+combinations of variables given in the @cmd{PAIRS} subcommand are
+generated. 
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tables for each respective pair of variables are
+generated.
+In the event that the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tables for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are generated.
+
 
 @node Utilities, Not Implemented, Statistics, Top
 @chapter Utilities

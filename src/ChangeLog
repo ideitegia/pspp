@@ -1,3 +1,18 @@
+Wed Feb 18 21:48:54 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* Moved the declarations relating to values to their own header file
+	  (val.h)
+
+	* Added levene.c and levene.h
+
+	* vars-atr.c: Changed the signature of compare_values to 
+	take const * arguments.
+		
+	* t-test.q: Changed the structure of struct t_test_proc 
+       variables now contain their own group statistics information.
+       Eventually, t_test_proc might get renamed, because it'd be 
+       applicable to other commands too.
+
 Mon Feb 16 23:15:51 2004  Ben Pfaff  <blp@gnu.org>
 
 	* data-out.c: Clean up.  Changed interface of convert_*() to take
