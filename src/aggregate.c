@@ -161,15 +161,8 @@ cmd_aggregate (void)
   /* Have we seen these subcommands? */
   unsigned seen = 0;
 
-  agr.writer = NULL;
-  agr.sink = NULL;
+  memset(&agr, 0 , sizeof (agr));
   agr.missing = ITEMWISE;
-  agr.sort = NULL;
-  agr.break_vars = NULL;
-  agr.agr_vars = NULL;
-  agr.dict = NULL;
-  agr.case_cnt = 0;
-  agr.prev_break = NULL;
   
   agr.dict = dict_create ();
   dict_set_label (agr.dict, dict_get_label (default_dict));
@@ -670,6 +663,7 @@ agr_destroy (struct agr_proc *agr)
     }
   if (agr->dict != NULL)
     dict_destroy (agr->dict);
+
   case_destroy (&agr->agr_case);
 }
 

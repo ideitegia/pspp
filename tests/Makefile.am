@@ -41,6 +41,7 @@ TESTS = \
 	command/tabs.sh \
 	command/use.sh \
 	command/weight.sh \
+	bugs/agg_crash.sh \
 	bugs/alpha-freq.sh \
 	bugs/big-input.sh \
 	bugs/big-input-2.sh \

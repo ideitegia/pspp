@@ -1,3 +1,9 @@
+Tue Jan 25 21:01:43 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* aggregate.c: Initialised the complete agr_proc structure.
+	Closes bug #11675
+
+
 Sun Jan 23 23:02:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	* print.c: (print_trns_free) Close the dfm writer if there is one,
