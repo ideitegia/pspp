@@ -1,3 +1,17 @@
+Wed Mar  9 09:54:27 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (pspp_LDADD) Add libgsl-extras.a.
+
+	* expressions/helpers.c: (struct func_params) Removed.
+	(generalized_idf) Removed.
+	(cdf_beta) Removed.
+	(idf_beta) Removed.
+	(idf_fdist) Use gslextras_cdf_beta_Pinv() instead of idf_beta().
+
+	* expressions/operations.def: Implement IDF.BETA, CDF.BINOM,
+	CDF.GEOM, CDF.HYPER, CDF.NEGBIN, CDF.POISSON using gsl-extras.
+	Implement SIG.F, which I had overlooked previously.
+
 Tue Mar  8 12:47:53 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* command.c command.def glob.[ch] cmdline.c: Made DEBUG cmds
@@ -64,22 +78,23 @@ Sun Mar  6 17:07:20 2005  Ben Pfaff  <blp@gnu.org>
 
 Sun Mar  6 22:09:20 2005  Ben Pfaff  <blp@gnu.org>
 
-	* operations.def: (NUMBER) Use DI_IMPLIED_DECIMALS.
+	* expressions/operations.def: (NUMBER) Use DI_IMPLIED_DECIMALS.
 
 Sun Mar  6 19:33:24 2005  Ben Pfaff  <blp@gnu.org>
 
-	* operations.def: (VEC_ELEM_NUM) Treat user-missing values as
-	system-missing.
+	* expressions/operations.def: (VEC_ELEM_NUM) Treat user-missing
+	values as system-missing.
 
-	* parse.c: (parse_vector_element) Fix order of arguments in call
-	to expr_allocate_binary().
+	* expressions/parse.c: (parse_vector_element) Fix order of
+	arguments in call to expr_allocate_binary().
 
 Sun Mar  6 17:51:05 2005  Ben Pfaff  <blp@gnu.org>
 
-	* optimize.c: (optimize_tree) Fix optimization bug for x**2.
+	* expressions/optimize.c: (optimize_tree) Fix optimization bug for
+	x**2.
 
-	* parse.c: (type_coercion_core) Set *node to NULL on failure, as
-	indicated by function comment.
+	* expressions/parse.c: (type_coercion_core) Set *node to NULL on
+	failure, as indicated by function comment.
 	(parse_binary_operators) Always return NULL on type_coercion()
 	failure.  Should have been doing this anyway, but bug in
 	type_coercion_core() filtered through.
@@ -88,29 +103,31 @@ Sun Mar  6 17:51:05 2005  Ben Pfaff  <blp@gnu.org>
 
 Sun Mar  6 10:47:13 2005  Ben Pfaff  <blp@gnu.org>
 
-	* operations.def: Add VALUE function.
+	* expressions/operations.def: Add VALUE function.
 
-	* parse.c: (parse_function) Need an unary composite node for
-	variables in A TO B, not a variable node.  Use
+	* expressions/parse.c: (parse_function) Need an unary composite
+	node for variables in A TO B, not a variable node.  Use
 	allocate_unary_variable().
 	(parse_primary) Use allocate_unary_variable().
 	(allocate_unary_variable) New function.
 
 Thu Mar  3 23:53:32 2005  Ben Pfaff  <blp@gnu.org>
 
-	* PSPP_expressions.pm: Renamed it back to generate.pl but fixed
-	the real problem that was preventing the build from a separate
-	directory.  I liked it my way better ;-)
+	* expressions/PSPP_expressions.pm: Renamed it back to generate.pl
+	but fixed the real problem that was preventing the build from a
+	separate directory.  I liked it my way better ;-)
 	
 Thu Mar  3 23:17:51 2005  Ben Pfaff  <blp@gnu.org>
 
-	* parse.c: (expr_parse) Fix parameter type.  Thanks to John
-	Darrington <john@darrington.wattle.id.au> for reporting this bug.
+	* expressions/parse.c: (expr_parse) Fix parameter type.  Thanks to
+	John Darrington <john@darrington.wattle.id.au> for reporting this
+	bug.
 
 Thu Mar  3 22:10:25 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
-	* Makefile.am evaluate.h.pl evaluate.inc.pl operations.h.pl
-	  optimize.inc.pl parse.inc.p:  
+	* expressions/Makefile.am expressions/evaluate.h.pl
+	  expressions/evaluate.inc.pl expressions/operations.h.pl
+	  expressions/optimize.inc.pl expressions/parse.inc.p:
 
 	  Renamed generate.pl to PSPP_expressions.pm and adjusted *.pl
 	  to suit. 

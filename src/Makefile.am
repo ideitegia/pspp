@@ -76,6 +76,7 @@ vfm.c vfm.h vfmP.h weight.c
 pspp_LDADD = \
 	../lib/misc/libmisc.a			\
 	expressions/libexpressions.a		\
+	../lib/gsl-extras/libgsl-extras.a	\
 	-lplot \
 	@LIBINTL@
 

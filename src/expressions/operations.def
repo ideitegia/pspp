@@ -617,7 +617,8 @@ operator BOOLEAN_TO_NUM (boolean x) = x;
 function PDF.BETA (x >= 0 && x <= 1, a > 0, b > 0)
      = gsl_ran_beta_pdf (x, a, b);
 function CDF.BETA (x >= 0 && x <= 1, a > 0, b > 0) = gsl_cdf_beta_P (x, a, b);
-function IDF.BETA (P >= 0 && P <= 1, a > 0, b > 0) = idf_beta (P, a, b);
+function IDF.BETA (P >= 0 && P <= 1, a > 0, b > 0)
+     = gslextras_cdf_beta_Pinv (P, a, b);
 no_opt function RV.BETA (a > 0, b > 0) = gsl_ran_beta (get_rng (), a, b);
 function NCDF.BETA (x >= 0, a > 0, b > 0, lambda > 0)
      = ncdf_beta (x, a, b, lambda);
@@ -665,7 +666,7 @@ function PDF.F (x >= 0, df1 > 0, df2 > 0) = gsl_ran_fdist_pdf (x, df1, df2);
 no_opt function RV.F (df1 > 0, df2 > 0) = gsl_ran_fdist (get_rng (), df1, df2);
 function NCDF.F (x >= 0, df1 > 0, df2 > 0, lambda >= 0) = unimplemented;
 function NPDF.F (x >= 0, df1 > 0, df2 > 0, lmabda >= 0) = unimplemented;
-function SIG.F (x >= 0, df1 > 0, df2 > 0) = unimplemented;
+function SIG.F (x >= 0, df1 > 0, df2 > 0) = gsl_cdf_fdist_Q (x, df1, df2);
 
 // Gamma distribution.
 function CDF.GAMMA (x >= 0, a > 0, b > 0) = gsl_cdf_gamma_P (x, a, 1. / b);
@@ -820,7 +821,7 @@ no_opt function RV.BERNOULLI (p >= 0 && p <= 1)
 
 // Binomial distribution.
 function CDF.BINOM (k, n > 0 && n == floor (n), p >= 0 && p <= 1)
-     = unimplemented;
+     = gslextras_cdf_binomial_P (k, p, n);
 function PDF.BINOM (k >= 0 && k == floor (k) && k <= n,
                     n > 0 && n == floor (n),
                     p >= 0 && p <= 1)
@@ -829,7 +830,8 @@ no_opt function RV.BINOM (p > 0 && p == floor (p), n >= 0 && n <= 1)
      = gsl_ran_binomial (get_rng (), p, n);
 
 // Geometric distribution.
-function CDF.GEOM (k >= 1 && k == floor (k), p >= 0 && p <= 1) = unimplemented;
+function CDF.GEOM (k >= 1 && k == floor (k), p >= 0 && p <= 1)
+     = gslextras_cdf_geometric_P (k, p);
 function PDF.GEOM (k >= 1 && k == floor (k),
                    p >= 0 && p <= 1)
      = gsl_ran_geometric_pdf (k, p);
@@ -840,7 +842,7 @@ function CDF.HYPER (k >= 0 && k == floor (k) && k <= c,
                     a > 0 && a == floor (a),
                     b > 0 && b == floor (b) && b <= a,
                     c > 0 && c == floor (c) && c <= a)
-     = unimplemented;
+     = gslextras_cdf_hypergeometric_P (k, c, a - c, b);
 function PDF.HYPER (k >= 0 && k == floor (k) && k <= c,
                     a > 0 && a == floor (a),
                     b > 0 && b == floor (b) && b <= a,
@@ -858,14 +860,16 @@ no_opt extension function RV.LOG (p > 0 && p <= 1)
      = gsl_ran_logarithmic (get_rng (), p);
 
 // Negative binomial distribution.
-function CDF.NEGBIN (k >= 1, n == floor (n), p > 0 && p <= 1) = unimplemented;
+function CDF.NEGBIN (k >= 1, n == floor (n), p > 0 && p <= 1)
+     = gslextras_cdf_negative_binomial_P (k, p, n);
 function PDF.NEGBIN (k >= 1, n == floor (n), p > 0 && p <= 1)
      = gsl_ran_negative_binomial_pdf (k, p, n);
 no_opt function RV.NEGBIN (n == floor (n), p > 0 && p <= 1) 
      = gsl_ran_negative_binomial (get_rng (), p, n);
 
 // Poisson distribution.
-function CDF.POISSON (k >= 0 && k == floor (k), mu > 0) = unimplemented;
+function CDF.POISSON (k >= 0 && k == floor (k), mu > 0)
+     = gslextras_cdf_poisson_P (k, mu);
 function PDF.POISSON (k >= 0 && k == floor (k), mu > 0)
      = gsl_ran_poisson_pdf (k, mu);
 no_opt function RV.POISSON (mu > 0) = gsl_ran_poisson (get_rng (), mu);

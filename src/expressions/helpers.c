@@ -165,84 +165,6 @@ copy_string (struct expression *e, const char *old, size_t length)
   return s;
 }
 
-struct func_params 
-  {
-    double Ptarget;
-    double a;
-    double b;
-  };
-
-static double
-generalized_idf (double P, double a, double b, double (*cdf) (double, void *)) 
-{
-  struct func_params params;
-  gsl_function f;
-  gsl_root_fsolver *fsolver;
-  int iter;
-  int status;
-  double root;
-
-  if (P < 0 || P > 1)
-    return SYSMIS;
-
-  params.Ptarget = P;
-  params.a = a;
-  params.b = b;
-  
-  f.function = cdf;
-  f.params = &params;
-
-  fsolver = gsl_root_fsolver_alloc (gsl_root_fsolver_brent);
-  gsl_root_fsolver_set (fsolver, &f, 0, 1);
-
-  iter = 0;
-  do 
-    {
-      double x_lower, x_upper;
-      
-      status = gsl_root_fsolver_iterate (fsolver);
-      if (status != 0)
-        return SYSMIS;
-
-      x_lower = gsl_root_fsolver_x_lower (fsolver);
-      x_upper = gsl_root_fsolver_x_upper (fsolver);
-      status = gsl_root_test_interval (x_lower, x_upper, 0, 2 * DBL_EPSILON);
-    }
-  while (status == GSL_CONTINUE && ++iter < 100);
-
-  root = gsl_root_fsolver_root (fsolver);
-  gsl_root_fsolver_free (fsolver);
-  return root;
-}
-
-static double
-cdf_beta (double x, void *params_) 
-{
-  struct func_params *params = params_;
-
-  return gsl_cdf_beta_P (x, params->a, params->b) - params->Ptarget;
-}
-
-double
-idf_beta (double P, double a, double b) 
-{
-#if 1
-  return generalized_idf (P, a, b, cdf_beta);
-#else
-  double x = a / (a + b);
-  double dx = 1.;
-  while (fabs (dx) > 2 * DBL_EPSILON) 
-    {
-      dx = (gsl_sf_beta_inc (a, b, x) - P) / gsl_ran_beta_pdf (x, a, b);
-      x -= dx;
-      if (x < 0)
-        x += (dx - x) / 2;
-    }
-
-  return x;
-#endif
-}
-
 /* Returns the noncentral beta cumulative distribution function
    value for the given arguments.
 
@@ -390,7 +312,7 @@ cdf_bvnor (double x0, double x1, double r)
 double
 idf_fdist (double P, double df1, double df2) 
 {
-  double temp = idf_beta (P, df1 / 2, df2 / 2);
+  double temp = gslextras_cdf_beta_Pinv (P, df1 / 2, df2 / 2);
   return temp * df2 / ((1. - temp) * df1);
 }
 

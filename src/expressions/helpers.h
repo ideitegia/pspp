@@ -14,6 +14,7 @@
 #include "dictionary.h"
 #include "error.h"
 #include "calendar.h"
+#include "gsl-extras/gsl-extras.h"
 #include "misc.h"
 #include "moments.h"
 #include "settings.h"

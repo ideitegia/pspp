@@ -149,7 +149,7 @@ if test x"$enable_debug" = x"yes"  ; then
 fi
 
 AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile 
-		 lib/Makefile lib/misc/Makefile 
+		 lib/Makefile lib/misc/Makefile lib/gsl-extras/Makefile
 		 doc/Makefile 
 		 src/Makefile src/expressions/Makefile
 		 config/Makefile

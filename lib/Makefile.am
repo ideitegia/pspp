@@ -1,5 +1,5 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-SUBDIRS = misc 
+SUBDIRS = misc gsl-extras
 
 MAINTAINERCLEANFILES = Makefile.in

@@ -1,3 +1,9 @@
+Wed Mar  9 09:53:50 2005  Ben Pfaff  <blp@gnu.org>
+
+	* gsl-extras/: New directory.
+
+	* Makefile.am: (SUBDIRS) Add gsl-extras.
+
 Mon Feb 28 23:20:05 2005  Ben Pfaff  <blp@gnu.org>
 
 	* julcal/: Removed directory.
