@@ -1,3 +1,13 @@
+Fri Jan  7 08:00:05 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* Makefile.am chart.[ch]  histogram.[ch] piechart.c (Modified);
+          plot-hist.c plot-chart.c (Added) Reorganised these files in an
+          attempt to seperate the creation and processing of charts from their
+          actuall renedering.
+
+        * examine.q frequencies.q generated charts conditional upon the NO_CHARTS
+          macro.
+
 Thu Jan  6 18:48:58 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* main.c Added a signal handler for SIGFPE

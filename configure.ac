@@ -22,6 +22,16 @@ dnl Checks for libraries.
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_CHECK_LIB(m, sin)
+AC_ARG_WITH(libplot, [  --without-libplot         don't compile in support of charts (using libplot)])
+
+if test x"$with_libplot" != x"no" ; then 
+	AC_CHECK_LIB(plot, pl_newpl_r,,
+	  AC_MSG_ERROR([You must install libplot (or use --without-libplot)])
+	)
+fi
+AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
+
+
 AC_CHECK_LIB(gmp, mpf_get_str,,
 	AC_CHECK_LIB(gmp, __gmpf_get_str,,
           AC_MSG_ERROR([You must install libgmp])

@@ -17,39 +17,12 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
+#ifndef HISTOGRAM_H
+#define HISTOGRAM_H
 
-#include <math.h>
-#include <float.h>
+#include <gsl/gsl_histogram.h>
 
-#include "chart.h"
 
-/* Adjust tick to be a sensible value 
-   ie:  ... 0.1,0.2,0.5,   1,2,5,  10,20,50 ... */
-double
-chart_rounded_tick(double tick)
-{
+gsl_histogram * histogram_create(double bins, double x_min, double x_max);
 
-  int i;
-
-  double diff = DBL_MAX;
-  double t = tick;
-    
-  static const double standard_ticks[] = {1, 2, 5, 10};
-
-  const double factor = pow(10,ceil(log10(standard_ticks[0] / tick))) ;
-
-  for (i = 3  ; i >= 0 ; --i) 
-    {
-      const double d = fabs( tick - standard_ticks[i] / factor ) ;
-
-      if ( d < diff ) 
-	{
-	  diff = d;
-	  t = standard_ticks[i] / factor ;
-	}
-    }
-
-  return t;
-    
-}
-
+#endif

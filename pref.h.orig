@@ -16,6 +16,10 @@
 #define GLOBAL_DEBUGGING 1
 #endif
 
+#if !HAVE_LIBPLOT
+#define NO_CHARTS 1
+#endif
+
 /* Define these if DEBUGGING is off and you want to make certain
    additional optimizations. */
 #if !DEBUGGING

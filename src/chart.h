@@ -21,11 +21,14 @@
 #ifndef CHART_H
 #define CHART_H
 
+#include <config.h>
 #include <stdio.h>
-#include <plot.h>
 #include <gsl/gsl_histogram.h>
-
 #include "var.h"
+
+#ifndef NO_CHARTS
+#include <plot.h>
+#endif
 
 
 /* Array of standard colour names */
@@ -34,8 +37,10 @@ extern const char *data_colour[];
 
 struct chart {
 
+#ifndef NO_CHARTS
   plPlotter *lp ;
   plPlotterParams *pl_params;
+#endif
 
   /* The geometry of the chart 
      See diagram at the foot of this file.

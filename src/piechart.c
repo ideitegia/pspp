@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA. */
 
 
-#include <config.h>
+#include "config.h"
 #include "chart.h"
 #include <float.h>
 #include <assert.h>
@@ -46,6 +46,8 @@ draw_segment(struct chart *ch,
 	     const char *colour) ;
 
 
+
+#ifndef NO_CHARTS
 
 /* Draw a piechart */
 void
@@ -208,3 +210,13 @@ draw_segment(struct chart *ch,
 
   pl_restorestate_r(ch->lp);
 }
+
+#else
+
+
+void
+piechart_plot(const char *title, const struct slice *slices, int n_slices)
+{
+}
+
+#endif

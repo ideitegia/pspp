@@ -264,6 +264,7 @@ output_examine(void)
 				   cmd.v_id);
 	    }
 
+#ifndef NO_CHARTS
 	  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 	    {
 	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
@@ -279,6 +280,7 @@ output_examine(void)
 				 &normal, 0);
 		}
 	    }
+#endif
 
 	}
 
@@ -330,6 +332,7 @@ output_examine(void)
 		  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
 		    np_plot(&(*fs)->m[v], s);
 
+#ifndef NO_CHARTS
 		  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 		    {
 		      struct normal_curve normal;
@@ -341,6 +344,7 @@ output_examine(void)
 		      histogram_plot((*fs)->m[v].histogram, 
 				     s,  &normal, 0);
 		    }
+#endif
 		  
 		} /* for ( fs .... */
 
@@ -1626,6 +1630,7 @@ box_plot_variables(const struct factor *fctr,
 		   struct variable **vars, int n_vars, 
 		   const struct variable *id)
 {
+#ifndef NO_CHARTS
   int i;
   struct factor_statistics **fs ;
 
@@ -1675,7 +1680,7 @@ box_plot_variables(const struct factor *fctr,
       chart_finalise(&ch);
 
     }
-
+#endif
 }
 
 
@@ -1689,6 +1694,7 @@ box_plot_group(const struct factor *fctr,
 	       int n_vars,
 	       const struct variable *id)
 {
+#ifndef NO_CHARTS
   int i;
 
   for ( i = 0 ; i < n_vars ; ++i ) 
@@ -1743,7 +1749,7 @@ box_plot_group(const struct factor *fctr,
 
       chart_finalise(&ch);
     }
-
+#endif
 }
 
 
@@ -1752,6 +1758,7 @@ box_plot_group(const struct factor *fctr,
 void
 np_plot(const struct metrics *m, const char *factorname)
 {
+#ifndef NO_CHARTS
   int i;
   double yfirst=0, ylast=0;
 
@@ -1830,7 +1837,7 @@ np_plot(const struct metrics *m, const char *factorname)
 
   chart_finalise(&np_chart);
   chart_finalise(&dnp_chart);
-
+#endif
 }
 
 
