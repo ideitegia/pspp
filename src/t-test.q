@@ -46,7 +46,7 @@
 /* (specification)
    "T-TEST" (tts_):
      +groups=custom;
-     +testval=double;
+     testval=double;
      variables=varlist("PV_NO_SCRATCH | PV_NUMERIC");
      pairs=custom;
      +missing=miss:!analysis/listwise,
@@ -1248,7 +1248,7 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
   tab_vline(self->t, TAL_2, 1, 0, vsize - 1);
 
   tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER | TAT_PRINTF, 
-		 _("Test Value = %f"),cmd->n_testval);
+		 _("Test Value = %f"), cmd->n_testval[0]);
 
   tab_box(self->t, -1, -1, -1, TAL_1, 1,1,hsize-1,vsize-1);
 
@@ -1288,7 +1288,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
       tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
 
-      t = (gs->mean - cmd->n_testval ) * sqrt(gs->n) / gs->std_dev ;
+      t = (gs->mean - cmd->n_testval[0] ) * sqrt(gs->n) / gs->std_dev ;
 
       tab_float (trb->t, 1, i+3, TAB_RIGHT, t, 8,3);
 
@@ -1536,7 +1536,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
       gs= &cmd->v_variables[i]->p.grp_data.ugs;
       
       if ( ! value_is_missing(val,v))
-	gs->sum_diff += weight * (val->f - cmd->n_testval);
+	gs->sum_diff += weight * (val->f - cmd->n_testval[0]);
     }
 
   return 0;

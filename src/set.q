@@ -1063,8 +1063,8 @@ init_settings(void)
   cmd.safe = STC_OFF;
 
   cmd.dec = STC_DOT;
-  cmd.n_cpi = 6;
-  cmd.n_lpi = 10;
+  cmd.n_cpi[0] = 6;
+  cmd.n_lpi[0] = 10;
   cmd.echo = STC_OFF;
   cmd.more = STC_ON;
   cmd.headers = STC_YES;
@@ -1080,10 +1080,10 @@ init_settings(void)
   set_journal = xstrdup ("pspp.jnl");
   set_journaling = 1;
 
-  cmd.n_mxwarns = 100;
-  cmd.n_mxerrs = 100;
-  cmd.n_mxloops = 1;
-  cmd.n_workspace = 4L * 1024 * 1024;
+  cmd.n_mxwarns[0] = 100;
+  cmd.n_mxerrs[0] = 100;
+  cmd.n_mxloops[0] = 1;
+  cmd.n_workspace[0] = 4L * 1024 * 1024;
 
 
 #if !USE_INTERNAL_PAGER
@@ -1211,13 +1211,13 @@ get_undefined(void)
 int
 get_mxwarns(void)
 {  
-  return cmd.n_mxwarns;
+  return cmd.n_mxwarns[0];
 }
 
 int
 get_mxerrs(void)
 {
-  return cmd.n_mxerrs;
+  return cmd.n_mxerrs[0];
 }
 
 int
@@ -1235,7 +1235,7 @@ get_printback(void)
 int
 get_mxloops(void)
 {
-  return cmd.n_mxloops;
+  return cmd.n_mxloops[0];
 }
 
 int
@@ -1260,7 +1260,7 @@ get_endcmd(void)
 size_t
 get_max_workspace(void)
 {
-  return cmd.n_workspace;
+  return cmd.n_workspace[0];
 }
 
 double

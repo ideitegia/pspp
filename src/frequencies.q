@@ -78,8 +78,8 @@
 	    norm:!nonormal/normal,
 	    incr:increment(d:inc,"%s>0");
      grouped=custom;
-     ntiles=custom;
-     percentiles=custom;
+     ntiles=integer;
+     +percentiles = double list;
      statistics[st_]=1|mean,2|semean,3|median,4|mode,5|stddev,6|variance,
 	    7|kurtosis,8|skewness,9|range,10|minimum,11|maximum,12|sum,
 	    13|default,14|seskewness,15|sekurtosis,all,none.
@@ -125,6 +125,10 @@ struct percentile
   int flag;        
   int flag2;       /* Set to 1 if this percentile value has been found */
 };
+
+
+static void add_percentile (double x) ;
+
 
 static struct percentile *percentiles;
 static int n_percentiles;
@@ -264,6 +268,28 @@ internal_cmd_frequencies (void)
   determine_charts ();
   if (chart != GFT_NONE || cmd.sbc_ntiles)
     cmd.sort = FRQ_AVALUE;
+
+  /* Work out what percentiles need to be calculated */
+  if ( cmd.sbc_percentiles ) 
+    {
+      for ( i = 0 ; i < MAXLISTS ; ++i ) 
+	{
+	  int pl;
+	  subc_list_double *ptl_list = &cmd.dl_percentiles[i];
+	  for ( pl = 0 ; pl < subc_list_double_count(ptl_list); ++pl)
+	      add_percentile(subc_list_double_at(ptl_list,pl) / 100.0 );
+	}
+    }
+  if ( cmd.sbc_ntiles ) 
+    {
+      for ( i = 0 ; i < cmd.sbc_ntiles ; ++i ) 
+	{
+	  int j;
+	  for (j = 0; j <= cmd.n_ntiles[i]; ++j ) 
+	      add_percentile(j / (double) cmd.n_ntiles[i]);
+	}
+    }
+  
 
   /* Do it! */
   procedure_with_splits (precalc, calc, postcalc, NULL);
@@ -826,8 +852,14 @@ add_percentile (double x)
   int i;
 
   for (i = 0; i < n_percentiles; i++)
-    if (x <= percentiles[i].p)
-      break;
+    {
+      /* Do nothing if it's already in the list */
+      if ( fabs(x - percentiles[i].p) < DBL_EPSILON ) 
+	return;
+
+      if (x < percentiles[i].p)
+	break;
+    }
 
   if (i >= n_percentiles || tokval != percentiles[i].p)
     {
@@ -844,50 +876,6 @@ add_percentile (double x)
     }
 }
 
-/* Parses the PERCENTILES subcommand, adding user-specified
-   percentiles to the list. */
-static int
-frq_custom_percentiles (struct cmd_frequencies *cmd UNUSED)
-{
-  lex_match ('=');
-  if (token != T_NUM)
-    {
-      msg (SE, _("Percentile list expected after PERCENTILES."));
-      return 0;
-    }
-  
-  do
-    {
-      if (tokval < 0 || tokval > 100)
-	{
-	  msg (SE, _("Percentiles must be between 0 and 100."));
-	  return 0;
-	}
-      
-      add_percentile (tokval / 100.0);
-      lex_get ();
-      lex_match (',');
-    }
-  while (token == T_NUM);
-  return 1;
-}
-
-/* Parses the NTILES subcommand, adding the percentiles that
-   correspond to the specified evenly-distributed ntiles. */
-static int
-frq_custom_ntiles (struct cmd_frequencies *cmd UNUSED)
-{
-  int i;
-
-  lex_match ('=');
-  if (!lex_force_int ())
-    return 0;
-  for (i = 1; i < lex_integer (); i++)
-    add_percentile (1.0 / lex_integer () * i);
-  lex_get ();
-  return 1;
-}
-
 /* Comparison functions. */
 
 /* Hash of numeric values. */

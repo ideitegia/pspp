@@ -1,3 +1,10 @@
+Mon Nov  1 12:46:17 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* q2c.c frequencies.q set.q t-test.q  Fixed the q2c parsing of DBL 
+	subcommand types.  Changed frequencies.q to use it rather then the 
+	custom parser.  Dealt with the consequences.  Added a test for NTILES
+	subcommand of frequencies.
+
 Sat Oct 30 09:16:29 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* oneway.q   Fixed up the behaviour when given missing values

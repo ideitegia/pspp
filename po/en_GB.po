@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-10-30 17:37+0800\n"
+"POT-Creation-Date: 2004-11-01 11:56+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -3808,7 +3808,7 @@ msgstr ""
 
 #: src/sysfile-info.c:529 src/vfm.c:875 src/crosstabs.q:1068
 #: src/crosstabs.q:1095 src/crosstabs.q:1115 src/crosstabs.q:1137
-#: src/frequencies.q:1068 src/frequencies.q:1186
+#: src/frequencies.q:1058 src/frequencies.q:1176
 msgid "Value"
 msgstr ""
 
@@ -4033,26 +4033,26 @@ msgstr ""
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:772 src/frequencies.q:1066 src/frequencies.q:1433
+#: src/crosstabs.q:772 src/frequencies.q:1056 src/frequencies.q:1423
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:773 src/frequencies.q:1133 src/frequencies.q:1434
+#: src/crosstabs.q:773 src/frequencies.q:1123 src/frequencies.q:1424
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:774 src/crosstabs.q:977 src/crosstabs.q:1690
-#: src/frequencies.q:1142 src/oneway.q:287 src/oneway.q:464
+#: src/frequencies.q:1132 src/oneway.q:287 src/oneway.q:464
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:784 src/frequencies.q:1432 src/oneway.q:374
+#: src/crosstabs.q:784 src/frequencies.q:1422 src/oneway.q:374
 #: src/t-test.q:680 src/t-test.q:703 src/t-test.q:828 src/t-test.q:1365
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:785 src/frequencies.q:1070 src/frequencies.q:1071
-#: src/frequencies.q:1072
+#: src/crosstabs.q:785 src/frequencies.q:1060 src/frequencies.q:1061
+#: src/frequencies.q:1062
 msgid "Percent"
 msgstr ""
 
@@ -4324,85 +4324,76 @@ msgstr ""
 msgid "S.E. Skew"
 msgstr ""
 
-#: src/frequencies.q:289
+#: src/frequencies.q:306
 msgid ""
 "At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be "
 "assumed.  Argument values will be given precedence increasing along the "
 "order given."
 msgstr ""
 
-#: src/frequencies.q:372
+#: src/frequencies.q:389
 #, c-format
 msgid ""
 "MAX must be greater than or equal to MIN, if both are specified.  However, "
 "MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
 msgstr ""
 
-#: src/frequencies.q:696
+#: src/frequencies.q:713
 msgid ""
 "Upper limit of integer mode value range must be greater than lower limit."
 msgstr ""
 
-#: src/frequencies.q:708
+#: src/frequencies.q:725
 #, c-format
 msgid "Variable %s specified multiple times on VARIABLES subcommand."
 msgstr ""
 
-#: src/frequencies.q:721
+#: src/frequencies.q:738
 #, c-format
 msgid "Integer mode specified, but %s is not a numeric variable."
 msgstr ""
 
-#: src/frequencies.q:783
+#: src/frequencies.q:800
 msgid "`)' expected after GROUPED interval list."
 msgstr ""
 
-#: src/frequencies.q:796
+#: src/frequencies.q:813
 #, c-format
 msgid "Variables %s specified on GROUPED but not on VARIABLES."
 msgstr ""
 
-#: src/frequencies.q:799
+#: src/frequencies.q:816
 #, c-format
 msgid "Variables %s specified multiple times on GROUPED subcommand."
 msgstr ""
 
-#: src/frequencies.q:855
-msgid "Percentile list expected after PERCENTILES."
-msgstr ""
-
-#: src/frequencies.q:863
-#, fuzzy
-msgid "Percentiles must be between 0 and 100."
-msgstr "Frame colour must be between 0 and 6."
-
-#: src/frequencies.q:1067 src/frequencies.q:1158 src/frequencies.q:1159
-#: src/frequencies.q:1189
+#: src/frequencies.q:1057 src/frequencies.q:1148 src/frequencies.q:1149
+#: src/frequencies.q:1179
 msgid "Cum"
 msgstr ""
 
-#: src/frequencies.q:1069
+#: src/frequencies.q:1059
 msgid "Frequency"
 msgstr ""
 
-#: src/frequencies.q:1088
+#: src/frequencies.q:1078
 msgid "Value Label"
 msgstr ""
 
-#: src/frequencies.q:1187
+#: src/frequencies.q:1177
 msgid "Freq"
 msgstr ""
 
-#: src/frequencies.q:1188 src/frequencies.q:1190
+#: src/frequencies.q:1178 src/frequencies.q:1180
 msgid "Pct"
 msgstr ""
 
-#: src/frequencies.q:1406
+#: src/frequencies.q:1396
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
 msgstr ""
 
-#: src/frequencies.q:1445
+#: src/frequencies.q:1435
 msgid "Percentiles"
 msgstr ""
 
@@ -4846,3 +4837,7 @@ msgstr ""
 #, c-format
 msgid "%s & %s"
 msgstr ""
+
+#, fuzzy
+#~ msgid "Percentiles must be between 0 and 100."
+#~ msgstr "Frame colour must be between 0 and 6."

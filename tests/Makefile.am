@@ -57,6 +57,7 @@ TESTS = \
 	stats/descript-mean-bug.sh \
 	stats/moments.sh \
 	stats/percentiles-compatible.sh \
+	stats/ntiles.sh \
 	stats/percentiles-enhanced.sh
 
 noinst_PROGRAMS = gengarbage

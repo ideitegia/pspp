@@ -1137,11 +1137,11 @@ dump_declarations (void)
 
 	  case SBC_INT:
 	  case SBC_PINT:
-	    dump (0, "long n_%s;", st_lower (sbc->name));
+	    dump (0, "long n_%s[MAXLISTS];", st_lower (sbc->name));
 	    break;
 
 	  case SBC_DBL:
-	    dump (0, "double n_%s;", st_lower (sbc->name));
+	    dump (0, "double n_%s[MAXLISTS];", st_lower (sbc->name));
 	    break;
 
 	  case SBC_DBL_LIST:
@@ -1254,16 +1254,23 @@ dump_vars_init (int persistent)
 		break;
 
 	      case SBC_DBL_LIST:
-		dump (0, "int i;");
-		dump (0, "for (i = 0; i < MAXLISTS; ++i)");
 		dump (1, "{");
+		dump (0, "int i;");
+		dump (1, "for (i = 0; i < MAXLISTS; ++i)");
 		dump (0, "subc_list_double_create(&p->dl_%s[i]) ;",
 		      st_lower (sbc->name)
 		      );
-		dump (-1, "}");
+		dump (-2, "}");
 		break;
 
 	      case SBC_DBL:
+		dump (1, "{");
+		dump (0, "int i;");
+		dump (1, "for (i = 0; i < MAXLISTS; ++i)");
+		dump (0, "p->n_%s[i] = SYSMIS;", st_lower (sbc->name));
+		dump (-2, "}");
+		break;
+
 	      case SBC_CUSTOM:
 		/* nothing */
 		break;
@@ -1308,7 +1315,11 @@ dump_vars_init (int persistent)
 
 	      case SBC_INT:
 	      case SBC_PINT:
-		dump (0, "p->n_%s = NOT_LONG;", st_lower (sbc->name));
+		dump (1, "{");
+		dump (0, "int i;");
+		dump (1, "for (i = 0; i < MAXLISTS; ++i)");
+		dump (0, "p->n_%s[i] = NOT_LONG;", st_lower (sbc->name));
+		dump (-2, "}");
 		break;
 
 	      default:
@@ -1614,7 +1625,8 @@ dump_subcommand (const subcommand *sbc)
     {
       dump (1, "if (!lex_force_num ())");
       dump (0, "goto lossage;");
-      dump (-1, "p->n_%s = lex_double ();", st_lower (sbc->name));
+      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_double ();", 
+	    st_lower (sbc->name), st_lower (sbc->name) );
       dump (0, "lex_get();");
     }
   else if (sbc->type == SBC_INT)
@@ -1638,7 +1650,7 @@ dump_subcommand (const subcommand *sbc)
 	  dump (0, "goto lossage;");
 	  dump (-1, "}");
       }
-      dump (-1, "p->n_%s = x;", st_lower (sbc->name));
+      dump (0, "p->n_%s[p->sbc_%s - 1] = x;", st_lower (sbc->name), st_lower(sbc->name) );
       dump (-1,"}");
     }
   else if (sbc->type == SBC_PINT)
@@ -1848,7 +1860,12 @@ dump_aux_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_INT)
     {
-      dump (0, "msg(MM,\"%s is %%ld\",p->n_%s);", sbc->name,st_lower(sbc->name) ); 
+      dump (1, "{");
+      dump (0, "int i;");
+      dump (1, "for (i = 0; i < MAXLISTS; ++i)");
+      dump (0, "msg(MM,\"%s is %%ld\",p->n_%s[i]);", sbc->name,st_lower(sbc->name) ); 
+      outdent();
+      dump (-1, "}");
     }
   else if (sbc->type == SBC_CUSTOM)
     {
@@ -2105,7 +2122,7 @@ main (int argc, char *argv[])
 	  continue;
 	}
       
-      dump (0, "#line %d \"%s\"", oln - 1, ofn);
+      dump (0, "#line %d \"%s\"", oln + 1, ofn);
       if (!strcmp (directive, "specification"))
 	{
 	  /* Skip leading slash-star line. */
