@@ -1,3 +1,9 @@
+Fri Dec 19 15:50:45 2003  Ben Pfaff  <blp@gnu.org>
+
+	* descript.q: (display) Use sort() algorithm instead of qsort().
+	(compare_func) Removed.
+	(descriptives_compare_variables) New function.
+
 Fri Dec 19 15:08:38 2003  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of AVL trees.  Hashes are more appropriate for everything

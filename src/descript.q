@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
+#include "algorithm.h"
 #include "alloc.h"
 #include "bitvector.h"
 #include "command.h"
@@ -756,7 +757,7 @@ postcalc (void)
 
 /* Statistical display. */
 
-static int compare_func (struct variable ** a, struct variable ** b);
+static algo_compare_func descriptives_compare_variables;
 
 static void
 display (void)
@@ -774,8 +775,8 @@ display (void)
      is zero.  d_glob_miss_list is (potentially) nonzero.  */
 
   if (sortby_stat != -2)
-    qsort (v_variables, n_variables, sizeof (struct variable *),
-	   (int (*)(const void *, const void *)) compare_func);
+    sort (v_variables, n_variables, sizeof *v_variables,
+	   descriptives_compare_variables, &cmd);
 
   for (nc = i = 0; i < dsc_n_stats; i++)
     if (stats & BIT_INDEX (i))
@@ -834,29 +835,33 @@ display (void)
   tab_submit (t);
 }
 
+/* Compares variables A and B according to the ordering specified
+   by CMD. */
 static int
-compare_func (struct variable ** a, struct variable ** b)
+descriptives_compare_variables (const void *a_, const void *b_, void *cmd_)
 {
-  double temp;
+  struct variable *const *ap = a_;
+  struct variable *const *bp = b_;
+  struct variable *a = *ap;
+  struct variable *b = *bp;
+  struct cmd_descriptives *cmd = cmd_;
 
-  if (cmd.order == DSC_D)
+  int result;
+
+  if (cmd->sortby == DSC_NAME)
+    result = strcmp (a->name, b->name);
+  else 
     {
-      struct variable **t;
-      t = a;
-      a = b;
-      b = t;
+      double as = a->p.dsc.stats[sortby_stat];
+      double bs = b->p.dsc.stats[sortby_stat];
+
+      result = as < bs ? -1 : as > bs;
     }
 
-  if (cmd.sortby == DSC_NAME)
-    return strcmp ((*a)->name, (*b)->name);
-  temp = ((*a)->p.dsc.stats[sortby_stat]
-	  - (*b)->p.dsc.stats[sortby_stat]);
-  if (temp > 0)
-    return 1;
-  else if (temp < 0)
-    return -1;
-  else
-    return 0;
+  if (cmd->order == DSC_D)
+    result = -result;
+
+  return result;
 }
 
 /*
