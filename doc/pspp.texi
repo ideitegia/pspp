@@ -9,6 +9,10 @@
 @c @setchapternewpage odd
 @c %**end of header
 
+@macro cmd{CMDNAME}
+\CMDNAME\
+@end macro
+
 @iftex
 @finalout
 @end iftex
@@ -202,20 +206,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 @cindex credits
 @cindex authors
 
-@cindex Minton, Claire
-@cindex @cite{Cat's Cradle}
-@cindex Vonnegut, Kurt, Jr.
-@cindex quotations
-@quotation
-I'm always embarrassed when I see an index an author has made of his own
-work.  It's a shameless exhibition---to the @i{trained} eye.  Never
-index your own book.
-
----Claire Minton, @cite{Cat's Cradle}, Kurt Vonnegut, Jr.
-@end quotation
-
 @cindex Pfaff, Ben
-Most of PSPP, as well as this manual (including the indices),
+Most of PSPP, as well as this manual,
 was written by Ben Pfaff.  @xref{Contacting the Author}, for
 instructions on contacting the author.
 
@@ -292,7 +284,7 @@ system and compiler.  Running @code{configure} takes a while.  While
 running, it displays some messages telling which features it is checking
 for.
 
-You can optionally supply some options to @code{configure} in order to
+You can optionally supply some options to @code{configure} to
 give it hints about how to do its job.  Type @code{./configure --help}
 to see a list of options.  One of the most useful options is
 @samp{--with-checker}, which enables the use of the Checker memory
@@ -491,7 +483,7 @@ precedence over those given by later items.
 
 @enumerate
 @item
-Syntax commands that modify settings, such as @code{SET}. @xref{SET}.
+Syntax commands that modify settings, such as @cmd{SET}.  @xref{SET}.
 
 @item
 Command-line options.  @xref{Invocation}.
@@ -942,8 +934,7 @@ scaled point (65536 @code{sp} = 1 @code{pt})
 @end table
 
 @item
-If no explicit unit is given, a DWIM@footnote{Do What I Mean}
-``feature'' attempts to guess the best unit:
+If no explicit unit is given, PSPP attempts to guess the best unit:
 
 @itemize @minus
 @item
@@ -1223,7 +1214,7 @@ Default: @code{ps-prologue}.
 @item device-file=@var{device-file-name}
 
 Sets the name of the Groff-format device description file.  The
-PostScript driver reads this in order to know about the scaling of fonts
+PostScript driver reads this to know about the scaling of fonts
 and so on.  The format of such files is described in groff_font(5),
 included with Groff.  Default: @code{DESC}.
 
@@ -1698,7 +1689,7 @@ double-width lines, one each from the top, bottom, left and right.
 
 @item box[1100]="\xda"
 
-Sets @samp{"\xda"}, which under MS-DOG is a box character suitable for
+Sets @samp{"\xda"}, which under MS-DOS is a box character suitable for
 the top-left corner of a box, as the character for the intersection of
 two single-width lines, one each from the right and bottom.
 
@@ -2277,8 +2268,8 @@ implemented, as startup syntax files aren't, either.
 @item -s
 @itemx --safer
 
-Disables certain unsafe operations.  This includes the @code{ERASE} and
-@code{HOST} commands, as well as use of pipes as input and output files.
+Disables certain unsafe operations.  This includes the ERASE and
+HOST commands, as well as use of pipes as input and output files.
 @end table
 
 @node Informational options,  , Language control options, Invocation
@@ -2593,10 +2584,10 @@ line is an error.)
 @quotation
 @cindex terminal dot, changing
 @cindex dot, terminal, changing
-@strong{Please note:} The character used for the @dfn{terminal dot} can
-be changed with the SET command.  This is strongly discouraged, and
-throughout all the remainder of this manual it will be assumed that the
-default setting is in effect.
+@strong{Please note:} The character used for the @dfn{terminal dot}
+can be changed with @cmd{SET}'s ENDCMD subcommand (@pxref{SET}).  This
+is strongly discouraged, and throughout all the remainder of this
+manual it will be assumed that the default setting is in effect.
 @end quotation
 
 @end table
@@ -2625,7 +2616,7 @@ an arbitrary number of times.  Let's pick apart what it says above:
 @cindex commands, names
 @item
 A command begins with a command name of one or more keywords, such as
-@code{FREQUENCIES}, @code{DATA LIST}, or @code{N OF CASES}.  @var{cmd}
+@cmd{FREQUENCIES}, @cmd{DATA LIST}, or @cmd{N OF CASES}.  @var{cmd}
 may be abbreviated to its first word if that is unambiguous; each word
 in @var{cmd} may be abbreviated to a unique prefix of three or more
 characters as described above.
@@ -2711,7 +2702,7 @@ commands}.
 @cindex file definition commands
 Give instructions for reading data from text files or from special
 binary ``system files''.  Most of these commands discard any previous
-data or variables in order to replace it with the new data and
+data or variables to replace it with the new data and
 variables.  At least one must appear before the first command in any of
 the categories below.  @xref{Data Input and Output}.
 
@@ -2748,10 +2739,10 @@ The main restriction is that variables must be defined with one of the
 file-definition commands before they are otherwise referred to.
 
 Of course, there are specific rules, for those who are interested.
-PSPP possesses five internal states, called initial, INPUT
-PROGRAM, FILE TYPE, transformation, and procedure states.  (Please note
-the distinction between the INPUT PROGRAM and FILE TYPE @emph{commands}
-and the INPUT PROGRAM and FILE TYPE @emph{states}.)
+PSPP possesses five internal states, called initial, INPUT PROGRAM,
+FILE TYPE, transformation, and procedure states.  (Please note the
+distinction between the @cmd{INPUT PROGRAM} and @cmd{FILE TYPE}
+@emph{commands} and the INPUT PROGRAM and FILE TYPE @emph{states}.)
 
 PSPP starts up in the initial state.  Each successful completion
 of a command may cause a state transition.  Each type of command has its
@@ -2763,12 +2754,12 @@ own rules for state transitions:
 @item
 Legal in all states.
 @item
-Do not cause state transitions.  Exception: when the N OF CASES command
+Do not cause state transitions.  Exception: when @cmd{N OF CASES}
 is executed in the procedure state, it causes a transition to the
 transformation state.
 @end itemize
 
-@item DATA LIST
+@item @cmd{DATA LIST}
 @itemize @bullet
 @item
 Legal in all states.
@@ -2780,7 +2771,7 @@ Clears the active file if executed in the procedure or transformation
 state.
 @end itemize
 
-@item INPUT PROGRAM
+@item @cmd{INPUT PROGRAM}
 @itemize @bullet
 @item
 Invalid in INPUT PROGRAM and FILE TYPE states.
@@ -2790,7 +2781,7 @@ Causes a transition to the INPUT PROGRAM state.
 Clears the active file.
 @end itemize
 
-@item FILE TYPE
+@item @cmd{FILE TYPE}
 @itemize @bullet
 @item
 Invalid in INPUT PROGRAM and FILE TYPE states.
@@ -2807,7 +2798,8 @@ Invalid in INPUT PROGRAM and FILE TYPE states.
 @item
 Cause a transition to the transformation state.
 @item
-Clear the active file, except for ADD FILES, MATCH FILES, and UPDATE.
+Clear the active file, except for @cmd{ADD FILES}, @cmd{MATCH FILES},
+and @cmd{UPDATE}.
 @end itemize
 
 @item Transformations
@@ -2913,11 +2905,12 @@ figure for the maximum length of a short string.
 @end quotation
 
 @item Position
-Variables in the dictionary are arranged in a specific order.  The
-DISPLAY command can be used to show this order: see @ref{DISPLAY}.
+Variables in the dictionary are arranged in a specific order.
+@cmd{DISPLAY} can be used to show this order: see @ref{DISPLAY}.
 
-@item Orientation
-Dexter or sinister.  @xref{LEAVE}.
+@item Initialization
+Either reinitialized to 0 or spaces for each case, or left at its
+existing value.  @xref{LEAVE}.
 
 @cindex missing values
 @cindex values, missing
@@ -3013,7 +3006,7 @@ separating them by commas.
 @cindex @code{TO}
 @item
 (This method cannot be used on commands that define the dictionary, such
-as @code{DATA LIST}.)  The syntax is the names of two existing variables,
+as @cmd{DATA LIST}.)  The syntax is the names of two existing variables,
 separated by the reserved keyword @code{TO}.  The meaning is to include
 every variable in the dictionary between and including the variables
 specified.  For instance, if the dictionary contains six variables with
@@ -3023,7 +3016,7 @@ variables @code{X2}, @code{GOAL}, and @code{MET}.
 
 @item
 (This method can be used only on commands that define the dictionary,
-such as @code{DATA LIST}.)  It is used to define sequences of variables
+such as @cmd{DATA LIST}.)  It is used to define sequences of variables
 that end in consecutive integers.  The syntax is two identifiers that
 end in numbers.  This method is best illustrated with examples:
 
@@ -3067,7 +3060,7 @@ Each of the syntaxes @code{QUES001 TO QUES9} and @code{QUES6 TO QUES3}
 are invalid, although for different reasons, which should be evident.
 @end itemize
 
-Note that after a set of variables has been defined with @code{DATA LIST}
+Note that after a set of variables has been defined with @cmd{DATA LIST}
 or another command with this method, the same set can be referenced on
 later commands using the same syntax.
 
@@ -3089,8 +3082,10 @@ desired number of decimal places, if appropriate.  If @var{d} is not
 included then it is assumed to be 0.  Some formats do not allow @var{d}
 to be specified.
 
-When an input format is specified on DATA LIST or another command, then
-it is converted to an output format for the purposes of PRINT and other
+When an input format is specified on @cmd{DATA LIST} or another
+command, then
+it is converted to an output format for the purposes of @cmd{PRINT}
+and other
 data output commands.  For most purposes, input and output formats are
 the same; the salient differences are described below.
 
@@ -3401,21 +3396,23 @@ The default output @var{w} is half the input @var{w}.
 
 Most of the time, variables don't retain their values between cases.
 Instead, either they're being read from a data file or the active file,
-in which case they assume the value read, or, if created with COMPUTE or
+in which case they assume the value read, or, if created with
+@cmd{COMPUTE} or
 another transformation, they're initialized to the system-missing value
 or to blanks, depending on type.
 
 However, sometimes it's useful to have a variable that keeps its value
-between cases.  You can do this with LEAVE (@pxref{LEAVE}), or you can
+between cases.  You can do this with @cmd{LEAVE} (@pxref{LEAVE}), or you can
 use a @dfn{scratch variable}.  Scratch variables are variables whose
 names begin with an octothorpe (@samp{#}).  
 
-Scratch variables have the same properties as variables left with LEAVE:
+Scratch variables have the same properties as variables left with
+@cmd{LEAVE}:
 they retain their values between cases, and for the first case they are
 initialized to 0 or blanks.  They have the additional property that they
 are deleted before the execution of any procedure.  For this reason,
 scratch variables can't be used for analysis.  To obtain the same
-effect, use COMPUTE (@pxref{COMPUTE}) to copy the scratch variable's
+effect, use @cmd{COMPUTE} (@pxref{COMPUTE}) to copy the scratch variable's
 value into an ordinary variable, then analysis that variable.
 
 @node Files, BNF, Variables, Language
@@ -3434,15 +3431,15 @@ most important of these files:
 @itemx syntax file
 These names (synonyms) refer to the file that contains instructions to
 PSPP that tell it what to do.  The syntax file's name is specified on
-the PSPP command line.  Syntax files can also be pulled in with the
-@code{INCLUDE} command.
+the PSPP command line.  Syntax files can also be pulled in with
+@cmd{INCLUDE} (@pxref{INCLUDE}).
 
 @cindex file, data
 @cindex data file
 @item data file
 Data files contain raw data in ASCII format suitable for being read in
-by the @code{DATA LIST} command.  Data can be embedded in the syntax
-file with @code{BEGIN DATA} and @code{END DATA} commands: this makes the
+by @cmd{DATA LIST}.  Data can be embedded in the syntax
+file with @cmd{BEGIN DATA} and @cmd{END DATA}: this makes the
 syntax file a data file too.
 
 @cindex file, output
@@ -4044,15 +4041,19 @@ anyway.  If @var{variable} is system-missing, results in system-missing.
 Pseudo-random number generation functions take numeric arguments and
 produce numeric results.
 
-@cindex Knuth
-The system's C library random generator is used as a basis for
-generating random numbers, since random number generation is a
-system-dependent task.  However, Knuth's Algorithm B is used to
-shuffle the resultant values, which is enough to make even a stream of
-consecutive integers random enough for most applications.
-
-(If you're worried about the quality of the random number generator,
+PSPP uses the alleged RC4 cipher as a pseudo-random number generator
+(PRNG).  The bytes output by this PRNG are system-independent for a
+given random seed, but differences in endianness and floating-point
+formats will make PRNG results differ from system to system.  RC4
+should produce high-quality random numbers for simulation purposes.
+(If you're concerned about the quality of the random number generator,
 well, you're using a statistical processing package---analyze it!)
+
+PSPP's implementation of RC4 has not undergone any security auditing.
+Furthermore, various precautions that would be necessary for secure
+operation, such as secure seeding and discarding the first several
+bytes of output, have not been taken.  Therefore, PSPP's
+implementation of RC4 should not be used for security purposes.
 
 @cindex random numbers, normally-distributed
 @deftypefn {Function} {} NORMAL (@var{number})
@@ -4112,8 +4113,9 @@ system-missing.
 
 Statistical functions compute descriptive statistics on a list of
 values.  Some statistics can be computed on numeric or string values;
-other can only be computed on numeric values.  They result in the same
-type as their arguments.
+other can only be computed on numeric values.  Their results have the
+same type as their arguments.  The current case's weighting factor
+(@pxref{WEIGHT}) has no effect on statistical functions.
 
 @cindex arguments, minimum valid
 @cindex minimum valid number of arguments
@@ -4907,13 +4909,13 @@ BEGIN DATA.
 END DATA.
 @end display
 
-BEGIN DATA and END DATA can be used to embed raw ASCII data in a PSPP
-syntax file.  DATA LIST or another input procedure must be used before
-BEGIN DATA (@pxref{DATA LIST}).  BEGIN DATA and END DATA must be used
-together.  The END DATA command must appear by itself on a single line,
-with no leading whitespace and exactly one space between the words
-@code{END} and @code{DATA}, followed immediately by the terminal dot,
-like this:
+@cmd{BEGIN DATA} and @cmd{END DATA} can be used to embed raw ASCII
+data in a PSPP syntax file.  @cmd{DATA LIST} or another input
+procedure must be used before @cmd{BEGIN DATA} (@pxref{DATA LIST}).
+@cmd{BEGIN DATA} and @cmd{END DATA} must be used together.  @cmd{END
+DATA} must appear by itself on a single line, with no leading
+whitespace and exactly one space between the words @code{END} and
+@code{DATA}, followed immediately by the terminal dot, like this:
 
 @example
 END DATA.
@@ -4927,7 +4929,7 @@ END DATA.
 CLEAR TRANSFORMATIONS.
 @end display
 
-The CLEAR TRANSFORMATIONS command clears out all pending
+@cmd{CLEAR TRANSFORMATIONS} clears out all pending
 transformations.  It does not cancel the current input program.  It is
 valid only when PSPP is interactive, not in syntax files.
 
@@ -4939,18 +4941,18 @@ valid only when PSPP is interactive, not in syntax files.
 @cindex data, embedding in syntax files
 @cindex embedding data in syntax files
 
-Used to read text or binary data, DATA LIST is the most
+Used to read text or binary data, @cmd{DATA LIST} is the most
 fundamental data-reading command.  Even the more sophisticated input
-methods use DATA LIST commands as a building block.
-Understanding DATA LIST is important to understanding how to use
+methods use @cmd{DATA LIST} commands as a building block.
+Understanding @cmd{DATA LIST} is important to understanding how to use
 PSPP to read your data files.
 
-There are two major variants of DATA LIST, which are fixed
+There are two major variants of @cmd{DATA LIST}, which are fixed
 format and free format.  In addition, free format has a minor variant,
 list format, which is discussed in terms of its differences from vanilla
 free format.
 
-Each form of DATA LIST is described in detail below.
+Each form of @cmd{DATA LIST} is described in detail below.
 
 @menu
 * DATA LIST FIXED::             Fixed columnar locations for data.
@@ -4979,7 +4981,7 @@ where each var_spec takes one of the forms
         var_list (fortran_spec)
 @end display
 
-DATA LIST FIXED is used to read data files that have values at fixed
+@cmd{DATA LIST FIXED} is used to read data files that have values at fixed
 positions on each line of single-line or multiline records.  The
 keyword FIXED is optional.
 
@@ -4987,40 +4989,40 @@ The FILE subcommand must be used if input is to be taken from an
 external file.  It may be used to specify a filename as a string or a
 file handle (@pxref{FILE HANDLE}).  If the FILE subcommand is not used,
 then input is assumed to be specified within the command file using
-BEGIN DATA@dots{}END DATA (@pxref{BEGIN DATA}).
+@cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
 
 The optional RECORDS subcommand, which takes a single integer as an
 argument, is used to specify the number of lines per record.  If RECORDS
 is not specified, then the number of lines per record is calculated from
-the list of variable specifications later in the DATA LIST command.
+the list of variable specifications later in @cmd{DATA LIST}.
 
-The END subcommand is only useful in conjunction with the INPUT PROGRAM
-input procedure, and for that reason it is not discussed here
-(@pxref{INPUT PROGRAM}).
+The END subcommand is only useful in conjunction with @cmd{INPUT
+PROGRAM}.  @xref{INPUT PROGRAM}, for details.
 
-DATA LIST can optionally output a table describing how the data file
+@cmd{DATA LIST} can optionally output a table describing how the data file
 will be read.  The TABLE subcommand enables this output, and NOTABLE
 disables it.  The default is to output the table.
 
-The list of variables to be read from the data list must come last in
-the DATA LIST command.  Each line in the data record is introduced by a
-slash (@samp{/}).  Optionally, a line number may follow the slash.
-Following, any number of variable specifications may be present.
+The list of variables to be read from the data list must come last.
+Each line in the data record is introduced by a slash (@samp{/}).
+Optionally, a line number may follow the slash.  Following, any number
+of variable specifications may be present.
 
 Each variable specification consists of a list of variable names
 followed by a description of their location on the input line.  Sets of
-variables may specified using DATA LIST's TO convention (@pxref{Sets of
+variables may specified using the @code{DATA LIST} TO convention
+(@pxref{Sets of
 Variables}).  There are two ways to specify the location of the variable
-on the line: SPSS style and FORTRAN style.
+on the line: PSPP style and FORTRAN style.
 
-With SPSS style, the starting column and ending column for the field
+With PSPP style, the starting column and ending column for the field
 are specified after the variable name, separated by a dash (@samp{-}).
 For instance, the third through fifth columns on a line would be
 specified @samp{3-5}.  By default, variables are considered to be in
 @samp{F} format (@pxref{Input/Output Formats}).  (This default can be
 changed; see @ref{SET} for more information.)
 
-When using SPSS style, to use a variable format other than the default,
+When using PSPP style, to use a variable format other than the default,
 specify the format type in parentheses after the column numbers.  For
 instance, for alphanumeric @samp{A} format, use @samp{(A)}.  
 
@@ -5035,7 +5037,7 @@ implied decimal places are not applied.
 Changing the variable format and adding implied decimal places can be
 done together; for instance, @samp{(N,5)}.
 
-When using SPSS style, the input and output width of each variable is
+When using PSPP style, the input and output width of each variable is
 computed from the field width.  The field width must be evenly divisible
 into the number of variables specified.
 
@@ -5070,10 +5072,10 @@ Group the given specifiers together.  This is most useful when preceded
 by a repeat count.  Groups may be nested arbitrarily.
 @end table
 
-FORTRAN and SPSS styles may be freely intermixed.  SPSS style leaves the
+FORTRAN and PSPP styles may be freely intermixed.  PSPP style leaves the
 active column immediately after the ending column specified.  Record
 motion using @code{NEWREC} in FORTRAN style also applies to later
-FORTRAN and SPSS specifiers.
+FORTRAN and PSPP specifiers.
  
 @menu
 * DATA LIST FIXED Examples::    Examples of DATA LIST FIXED.
@@ -5192,10 +5194,10 @@ Multiple consecutive delimiters are equivalent to a single delimiter.
 To specify an empty field, write an empty set of single or double
 quotes; for instance, @samp{""}.
 
-The NOTABLE and TABLE subcommands are as in DATA LIST FIXED above.
+The NOTABLE and TABLE subcommands are as in @cmd{DATA LIST FIXED} above.
 NOTABLE is the default.
 
-The FILE and END subcommands are as in DATA LIST FIXED above.
+The FILE and END subcommands are as in @cmd{DATA LIST FIXED} above.
 
 The variables to be parsed are given as a single list of variable names.
 This list must be introduced by a single slash (@samp{/}).  The set of
@@ -5225,10 +5227,11 @@ where each var_spec takes one of the forms
         var_list *
 @end display
 
-Syntactically and semantically, DATA LIST LIST is equivalent to DATA
-LIST FREE, with one exception: each input line is expected to correspond
-to exactly one input record.  If more or fewer fields are found on an
-input line than expected, an appropriate diagnostic is issued.
+With one exception, @cmd{DATA LIST LIST} is syntactically and
+semantically equivalent to @cmd{DATA LIST FREE}.  The exception is
+that each input line is expected to correspond to exactly one input
+record.  If more or fewer fields are found on an input line than
+expected, an appropriate diagnostic is issued.
 
 @node END CASE, END FILE, DATA LIST, Data Input and Output
 @section END CASE
@@ -5238,8 +5241,8 @@ input line than expected, an appropriate diagnostic is issued.
 END CASE.
 @end display
 
-END CASE is used within INPUT PROGRAM to output the current case.
-@xref{INPUT PROGRAM}.
+@cmd{END CASE} is used only within @cmd{INPUT PROGRAM} to output the
+current case.  @xref{INPUT PROGRAM}, for details.
 
 @node END FILE, FILE HANDLE, END CASE, Data Input and Output
 @section END FILE
@@ -5249,8 +5252,8 @@ END CASE is used within INPUT PROGRAM to output the current case.
 END FILE.
 @end display
 
-END FILE is used within INPUT PROGRAM to terminate the current input
-program.  @xref{INPUT PROGRAM}.
+@cmd{END FILE} is used only within @cmd{INPUT PROGRAM} to terminate
+the current input program.  @xref{INPUT PROGRAM}.
 
 @node FILE HANDLE, INPUT PROGRAM, END FILE, Data Input and Output
 @section FILE HANDLE
@@ -5264,14 +5267,14 @@ FILE HANDLE handle_name
         /MODE=@{CHARACTER,IMAGE,BINARY,MULTIPUNCH,360@}
 @end display
 
-Use the FILE HANDLE command to define the attributes of a file that does
+Use @cmd{FILE HANDLE} to define the attributes of a file that does
 not use conventional variable-length records terminated by newline
 characters.
 
 Specify the file handle name as an identifier.  Any given identifier may
 only appear once in a PSPP run.  File handles may not be reassigned to a
-different file.  The file handle name must immediately follow the FILE
-HANDLE command name.
+different file.  The file handle name must immediately follow the @cmd{FILE
+HANDLE} command name.
 
 The NAME subcommand specifies the name of the file associated with the
 handle.  It is the only required subcommand.
@@ -5299,38 +5302,43 @@ INPUT PROGRAM.
 END INPUT PROGRAM.
 @end display
 
-The INPUT PROGRAM@dots{}END INPUT PROGRAM construct is used to specify a
-complex input program.  By placing data input commands within INPUT
-PROGRAM, PSPP programs can take advantage of more complex file
-structures than available by using DATA LIST by itself.
+@cmd{INPUT PROGRAM}@dots{}@cmd{END INPUT PROGRAM} specifies a
+complex input program.  By placing data input commands within @cmd{INPUT
+PROGRAM}, PSPP programs can take advantage of more complex file
+structures than available with only @cmd{DATA LIST}.
 
-The first sort of extended input program is to simply put multiple DATA
-LIST commands within the INPUT PROGRAM.  This will cause all of the data
+The first sort of extended input program is to simply put multiple @cmd{DATA
+LIST} commands within the @cmd{INPUT PROGRAM}.  This will cause all of
+the data
 files to be read in parallel.  Input will stop when end of file is
 reached on any of the data files.
 
 Transformations, such as conditional and looping constructs, can also be
-included within an INPUT PROGRAM.  These can be used to combine input
+included within @cmd{INPUT PROGRAM}.  These can be used to combine input
 from several data files in more complex ways.  However, input will still
 stop when end of file is reached on any of the data files.
 
-To prevent INPUT PROGRAM from terminating at the first end of file, use
-the END subcommand on DATA LIST.  This subcommand takes a variable name,
+To prevent @cmd{INPUT PROGRAM} from terminating at the first end of
+file, use
+the END subcommand on @cmd{DATA LIST}.  This subcommand takes a
+variable name,
 which should be a numeric scratch variable (@pxref{Scratch Variables}).
 (It need not be a scratch variable but otherwise the results can be
 surprising.)  The value of this variable is set to 0 when reading the
 data file, or 1 when end of file is encountered.
 
-Some additional commands are useful in conjunction with INPUT PROGRAM.
-END CASE is the first one.  Normally each loop through the INPUT PROGRAM
-structure produces one case.  But with END CASE you can control exactly
-when cases are output.  When END CASE is used, looping from the end of
-INPUT PROGRAM to the beginning does not cause a case to be output.
+Two additional commands are useful in conjunction with @cmd{INPUT PROGRAM}.
+@cmd{END CASE} is the first.  Normally each loop through the
+@cmd{INPUT PROGRAM}
+structure produces one case.  @cmd{END CASE} controls exactly
+when cases are output.  When @cmd{END CASE} is used, looping from the end of
+@cmd{INPUT PROGRAM} to the beginning does not cause a case to be output.
 
-END FILE is the other command.  When the END subcommand is used on DATA
-LIST, there is no way for the INPUT PROGRAM construct to stop looping,
-so an infinite loop results.  The END FILE command, when executed,
-stops the flow of input data and passes out of the INPUT PROGRAM
+@cmd{END FILE} is the second.  When the END subcommand is used on @cmd{DATA
+LIST}, there is no way for the @cmd{INPUT PROGRAM} construct to stop
+looping,
+so an infinite loop results.  @cmd{END FILE}, when executed,
+stops the flow of input data and passes out of the @cmd{INPUT PROGRAM}
 structure.
 
 All this is very confusing.  A few examples should help to clarify.
@@ -5365,7 +5373,7 @@ END INPUT PROGRAM.
 LIST.
 @end example
 
-This example reads variable X from @file{a.data} and variable Y from
+The above example reads variable X from @file{a.data} and variable Y from
 @file{b.data}.  If one file is shorter than the other then the missing
 field is set to the system-missing value alongside the present value for
 the remaining length of the longer file.
@@ -5447,7 +5455,7 @@ LIST
                 @{NOWEIGHT,WEIGHT@}
 @end display
 
-The LIST procedure prints the values of specified variables to the
+The @cmd{LIST} procedure prints the values of specified variables to the
 listing file.
 
 The VARIABLES subcommand specifies the variables whose values are to be
@@ -5470,11 +5478,11 @@ omitted from the output.
 Case numbers start from 1.  They are counted after all transformations
 have been considered.
 
-LIST will attempt to fit all the values on a single line.  If necessary,
-variable names will be display vertically in order to fit.  If values
+@cmd{LIST} attempts to fit all the values on a single line.  If needed
+to make them fit, variable names are displayed vertically.  If values
 cannot fit on a single line, then a multi-line format will be used.
 
-LIST is a procedure.  It causes the data to be read.
+@cmd{LIST} is a procedure.  It causes the data to be read.
 
 @node MATRIX DATA, NEW FILE, LIST, Data Input and Output
 @section MATRIX DATA
@@ -5493,23 +5501,26 @@ MATRIX DATA
                    DFE,MAT,COV,CORR,PROX@}
 @end display
 
-The MATRIX DATA command reads square matrices in one of several textual
-formats.  MATRIX DATA clears the dictionary and replaces it and reads a
+@cmd{MATRIX DATA} command reads square matrices in one of several textual
+formats.  @cmd{MATRIX DATA} clears the dictionary and replaces it and
+reads a
 data file.
 
 Use VARIABLES to specify the variables that form the rows and columns of
-the matrices.  You may not specify a variable named VARNAME_.  You
+the matrices.  You may not specify a variable named @code{VARNAME_}.  You
 should specify VARIABLES first.
 
 Specify the file to read on FILE, either as a file name string or a file
 handle (@pxref{FILE HANDLE}).  If FILE is not specified then matrix data
-must immediately follow MATRIX DATA with a BEGIN DATA@dots{}END DATA
+must immediately follow @cmd{MATRIX DATA} with a @cmd{BEGIN
+DATA}@dots{}@cmd{END DATA}
 construct (@pxref{BEGIN DATA}).
 
 The FORMAT subcommand specifies how the matrices are formatted.  LIST,
 the default, indicates that there is one line per row of matrix data;
 FREE allows single matrix rows to be broken across multiple lines.  This
-is analogous to the difference between DATA LIST FREE and DATA LIST LIST
+is analogous to the difference between @cmd{DATA LIST FREE} and
+@cmd{DATA LIST LIST}
 (@pxref{DATA LIST}).  LOWER, the default, indicates that the lower
 triangle of the matrix is given; UPPER indicates the upper triangle; and
 FULL indicates that the entire matrix is given.  DIAGONAL, the default,
@@ -5517,7 +5528,7 @@ indicates that the diagonal is part of the data; NODIAGONAL indicates
 that it is omitted.  DIAGONAL/NODIAGONAL have no effect when FULL is
 specified.
 
-The SPLIT subcommand is used to specify SPLIT FILE variables for the
+The SPLIT subcommand is used to specify @cmd{SPLIT FILE} variables for the
 input matrices (@pxref{SPLIT FILE}).  Specify either a single variable
 not specified on VARIABLES, or one or more variables that are specified
 on VARIABLES.  In the former case, the SPLIT values are not present in
@@ -5535,7 +5546,7 @@ combinations that are given.  For instance, if factor variable A has 2
 values and factor variable B has 3 values, specify 6.
 
 The N subcommand specifies a population number of observations.  When N
-is specified, one N record is output for each SPLIT FILE.
+is specified, one N record is output for each @cmd{SPLIT FILE}.
 
 Use CONTENTS to specify what sort of information the matrices include.
 Each possible option is described in more detail below.  When ROWTYPE_
@@ -5570,8 +5581,8 @@ Correlation matrix.
 Proximities matrix.
 @end table
 
-The exact semantics of the matrices read by MATRIX DATA are complex.
-Right now MATRIX DATA isn't too useful due to a lack of procedures
+The exact semantics of the matrices read by @cmd{MATRIX DATA} are complex.
+Right now @cmd{MATRIX DATA} isn't too useful due to a lack of procedures
 accepting or producing related data, so these semantics aren't
 documented.  Later, they'll be described here in detail.
 
@@ -5583,7 +5594,7 @@ documented.  Later, they'll be described here in detail.
 NEW FILE.
 @end display
 
-The NEW FILE command clears the current active file.
+@cmd{NEW FILE} command clears the current active file.
 
 @node PRINT, PRINT EJECT, NEW FILE, Data Input and Output
 @section PRINT
@@ -5603,12 +5614,12 @@ arg takes one of the following forms:
         var_list *
 @end display
 
-The PRINT transformation writes variable data to an output file.  PRINT
-is executed when a procedure causes the data to be read.  In order to
-execute the PRINT transformation without invoking a procedure, use the
-EXECUTE command (@pxref{EXECUTE}).
+The @cmd{PRINT} transformation writes variable data to an output file.
+@cmd{PRINT} is executed when a procedure causes the data to be read.
+Follow @cmd{PRINT} by @cmd{EXECUTE} to print variable data without
+invoking a procedure (@pxref{EXECUTE}).
 
-All PRINT subcommands are optional.
+All @cmd{PRINT} subcommands are optional.
 
 The OUTFILE subcommand specifies the file to receive the output.  The
 file may be a file name as a string or a file handle (@pxref{FILE
@@ -5636,7 +5647,8 @@ printed.  Otherwise, the string will be printed at the current position
 on the line.
 
 Variables to be printed can be specified in the same ways as available
-for DATA LIST FIXED (@pxref{DATA LIST FIXED}).  In addition, a variable
+for @cmd{DATA LIST FIXED} (@pxref{DATA LIST FIXED}).  In addition, a
+variable
 list may be followed by an asterisk (@samp{*}), which indicates that the
 variables should be printed in their dictionary print formats, separated
 by spaces.  A variable list followed by a slash or the end of command
@@ -5665,7 +5677,7 @@ arg takes one of the following forms:
         var_list *
 @end display
 
-PRINT EJECT is used to write data to an output file.  Before the data is
+@cmd{PRINT EJECT} writes data to an output file.  Before the data is
 written, the current page in the listing file is ejected.
 
 @xref{PRINT}, for more information on syntax and usage.
@@ -5678,7 +5690,7 @@ written, the current page in the listing file is ejected.
 PRINT SPACE OUTFILE='filename' n_lines.
 @end display
 
-The PRINT SPACE prints one or more blank lines to an output file.
+@cmd{PRINT SPACE} prints one or more blank lines to an output file.
 
 The OUTFILE subcommand is optional.  It may be used to direct output to
 a file specified by file name as a string or file handle (@pxref{FILE
@@ -5697,14 +5709,15 @@ printed.  The expression must evaluate to a nonnegative value.
 REREAD FILE=handle COLUMN=column.
 @end display
 
-The REREAD transformation allows the previous input line in a data file
-already processed by DATA LIST or another input command to be re-read
+The @cmd{REREAD} transformation allows the previous input line in a
+data file
+already processed by @cmd{DATA LIST} or another input command to be re-read
 for further processing.
 
 The FILE subcommand, which is optional, is used to specify the file to
 have its line re-read.  The file must be specified in the form of a file
 handle (@pxref{FILE HANDLE}).  If FILE is not specified then the last
-file specified on DATA LIST will be assumed (last file specified
+file specified on @cmd{DATA LIST} will be assumed (last file specified
 lexically, not in terms of flow-of-control).
 
 By default, the line re-read is re-read in its entirety.  With the
@@ -5713,8 +5726,8 @@ re-reading.  Specify an expression (@pxref{Expressions}) evaluating to
 the first column that should be included in the re-read line.  Columns
 are numbered from 1 at the left margin.
 
-Multiple REREAD commands will not back up in the data file.  Instead,
-they will re-read the same line multiple times.
+Issuing @code{REREAD} multiple times will not back up in the data
+file.  Instead, it will re-read the same line multiple times.
 
 @node REPEATING DATA, WRITE, REREAD, Data Input and Output
 @section REPEATING DATA
@@ -5736,10 +5749,11 @@ where each var_spec takes one of the forms
         var_list (fortran_spec)
 @end display
 
-The REPEATING DATA command is used to parse groups of data repeating in
+@cmd{REPEATING DATA} parses groups of data repeating in
 a uniform format, possibly with several groups on a single line.  Each
-group of data corresponds with one case.  REPEATING DATA may only be
-used within an INPUT PROGRAM structure.  When used with DATA LIST, it
+group of data corresponds with one case.  @cmd{REPEATING DATA} may only be
+used within an @cmd{INPUT PROGRAM} structure (@pxref{INPUT PROGRAM}).
+When used with @cmd{DATA LIST}, it
 can be used to parse groups of cases that share a subset of variables
 but differ in their other data.
 
@@ -5758,17 +5772,17 @@ current record.
 The DATA subcommand is required.  It must be the last subcommand
 specified.  It is used to specify the data present within each repeating
 group.  Column numbers are specified relative to the beginning of a
-group at column 1.  Data is specified in the same way as with DATA LIST
-FIXED (@pxref{DATA LIST FIXED}).
+group at column 1.  Data is specified in the same way as with @cmd{DATA LIST
+FIXED} (@pxref{DATA LIST FIXED}).
 
 All other subcommands are optional.
 
 FILE specifies the file to read, either a file name as a string or a
 file handle (@pxref{FILE HANDLE}).  If FILE is not present then the
-default is the last file handle used on DATA LIST (lexically, not in
+default is the last file handle used on @cmd{DATA LIST} (lexically, not in
 terms of flow of control).
 
-By default REPEATING DATA will output a table describing how it will
+By default @cmd{REPEATING DATA} will output a table describing how it will
 parse the input data.  Specifying NOTABLE will disable this behavior;
 specifying TABLE will explicitly enable it.
 
@@ -5783,14 +5797,14 @@ margin and continues through the entire field width, no column
 specifications are necessary on CONTINUED.  Otherwise, specify the
 possible range of columns in the same way as on STARTS.
 
-When data groups are continued from line to line, it's easily possible
-for cases to get out of sync if hand editing is not done carefully.  The
+When data groups are continued from line to line, it is easy
+for cases to get out of sync through careless hand editing.  The
 ID subcommand allows a case identifier to be present on each line of
-repeating data groups.  REPEATING DATA will check for the same
+repeating data groups.  @cmd{REPEATING DATA} will check for the same
 identifier on each line and report mismatches.  Specify the range of
 columns that the identifier will occupy, followed by an equals sign
 (@samp{=}) and the identifier variable name.  The variable must already
-have been declared with NUMERIC or another command.
+have been declared with @cmd{NUMERIC} or another command.
 
 @node WRITE,  , REPEATING DATA, Data Input and Output
 @section WRITE
@@ -5810,13 +5824,13 @@ arg takes one of the following forms:
         var_list *
 @end display
 
-WRITE is used to write text or binary data to an output file.  
+@code{WRITE} writes text or binary data to an output file.  
 
 @xref{PRINT}, for more information on syntax and usage.  The main
-difference between PRINT and WRITE is that whereas by default PRINT uses
-variables' print formats, WRITE uses write formats.
+difference between @code{PRINT} and @code{WRITE} is that @cmd{WRITE}
+uses write formats by default, where PRINT uses print formats.
 
-The sole additional difference is that if WRITE is used to send output
+The sole additional difference is that if @cmd{WRITE} is used to send output
 to a binary file, carriage control characters will not be output.
 @xref{FILE HANDLE}, for information on how to declare a file as binary.
 
@@ -5845,7 +5859,7 @@ portable files.
 APPLY DICTIONARY FROM='filename'.
 @end display
 
-The APPLY DICTIONARY command applies the variable labels, value labels,
+@cmd{APPLY DICTIONARY} applies the variable labels, value labels,
 and missing values from variables in a system file to corresponding
 variables in the active file.  In some cases it also updates the
 weighting variable.
@@ -5879,7 +5893,8 @@ active file, then the active file weighting variable, if any, is
 retained.  Otherwise, the weighting variable in the system file becomes
 the active file weighting variable.
 
-APPLY DICTIONARY takes effect immediately.  It does not read the active
+@cmd{APPLY DICTIONARY} takes effect immediately.  It does not read the
+active
 file.  The system file is not modified.
 
 @node EXPORT, GET, APPLY DICTIONARY, System and Portable Files
@@ -5894,7 +5909,7 @@ EXPORT
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-The EXPORT procedure writes the active file dictionary and data to a
+The @cmd{EXPORT} procedure writes the active file dictionary and data to a
 specified portable file.
 
 The OUTFILE subcommand, which is the only required subcommand, specifies
@@ -5904,7 +5919,7 @@ the portable file to be written as a file name string or a file handle
 DROP, KEEP, and RENAME follow the same format as the SAVE procedure
 (@pxref{SAVE}).
 
-EXPORT is a procedure.  It causes the active file to be read.
+@cmd{EXPORT} is a procedure.  It causes the active file to be read.
 
 @node GET, IMPORT, EXPORT, System and Portable Files
 @section GET
@@ -5918,7 +5933,7 @@ GET
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-The GET transformation clears the current dictionary and active file and
+@cmd{GET} clears the current dictionary and active file and
 replaces them with the dictionary and data from a specified system file.
 
 The FILE subcommand is the only required subcommand.  Specify the system
@@ -5943,14 +5958,12 @@ eliminated.  When this is done, only a single variable may be renamed at
 once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
 deprecated.
 
-DROP, KEEP, and RENAME are performed in left-to-right order.  They each
-may be present any number of times.
+DROP, KEEP, and RENAME are performed in left-to-right order.  They
+each may be present any number of times.  @cmd{GET} never modifies a
+system file on disk.  Only the active file read from the system file
+is affected by these subcommands.
 
-Please note that DROP, KEEP, and RENAME do not cause the system file on
-disk to be modified.  Only the active file read from the system file is
-changed.
-
-GET does not cause the data to be read, only the dictionary.  The data
+@cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.
 
 @node IMPORT, MATCH FILES, GET, System and Portable Files
@@ -5966,7 +5979,8 @@ IMPORT
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-The IMPORT transformation clears the active file dictionary and data and
+The @cmd{IMPORT} transformation clears the active file dictionary and
+data and
 replaces them with a dictionary and data from a portable file on disk.
 
 The FILE subcommand, which is the only required subcommand, specifies
@@ -5975,9 +5989,9 @@ the portable file to be read as a file name string or a file handle
 
 The TYPE subcommand is currently not used.
 
-DROP, KEEP, and RENAME follow the syntax used by GET (@pxref{GET}).
+DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
 
-IMPORT does not cause the data to be read, only the dictionary.  The
+@cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
 data is read later, when a procedure is executed.
 
 @node MATCH FILES, SAVE, IMPORT, System and Portable Files
@@ -5997,7 +6011,7 @@ MATCH FILES
         /MAP
 @end display
 
-The MATCH FILES command merges one or more system files, optionally
+@cmd{MATCH FILES} merges one or more system files, optionally
 including the active file.  Records with the same values for BY
 variables are combined into a single record.  Records with different
 values are output in order.  Thus, multiple sorted system files are
@@ -6010,13 +6024,13 @@ in all the files specified on FILE and TABLE.  BY should usually be
 specified.  If TABLE is used then BY is required.
 
 Specify FILE with a system file as a file name string or file handle
-(@pxref{FILE HANDLE}).  An asterisk (@samp{*}) may also be specified to
+(@pxref{FILE HANDLE}), or with an asterisk (@samp{*}) to
 indicate the current active file.  The files specified on FILE are
 merged together based on the BY variables, or combined case-by-case if
 BY is not specified.  Normally at least two FILE subcommands should be
 specified.
 
-Specify TABLE with a system file in order to use it as a @dfn{table
+Specify TABLE with a system file to use it as a @dfn{table
 lookup file}.  Records in table lookup files are not used up after
 they've been used once.  This means that data in table lookup files can
 correspond to any number of records in FILE files.  Table lookup files
@@ -6027,7 +6041,7 @@ files.
 Any number of FILE and TABLE subcommands may be specified.  Each
 instance of FILE or TABLE can be followed by DROP, KEEP, and/or RENAME
 subcommands.  These take the same form as the corresponding subcommands
-of GET (@pxref{GET}), and perform the same functions.
+of @cmd{GET} (@pxref{GET}), and perform the same functions.
 
 Variables belonging to files that are not present for the current case
 are set to the system-missing value for numeric variables or spaces for
@@ -6048,10 +6062,11 @@ SAVE
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-The SAVE procedure causes the dictionary and data in the active file to
+The @cmd{SAVE} procedure causes the dictionary and data in the active
+file to
 be written to a system file.
 
-The FILE subcommand is the only required subcommand.  Specify the system
+FILE is the only required subcommand.  Specify the system
 file to be written as a string file name or a file handle (@pxref{FILE
 HANDLE}).
 
@@ -6065,7 +6080,7 @@ of variables not to be written.  In contrast, KEEP specifies variables
 to be written, with all variables not specified not written.
 
 Normally variables are saved to a system file under the same names they
-have in the active file.  Use the RENAME command to change these names.
+have in the active file.  Use the RENAME subcommand to change these names.
 Specify, within parentheses, a list of variable names followed by an
 equals sign (@samp{=}) and the names that they should be renamed to.
 Multiple parenthesized groups of variable names can be included on a
@@ -6077,13 +6092,12 @@ eliminated.  When this is done, only a single variable may be renamed at
 once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
 deprecated.
 
-DROP, KEEP, and RENAME are performed in left-to-right order.  They each
-may be present any number of times.
+DROP, KEEP, and RENAME are performed in left-to-right order.  They
+each may be present any number of times.  @cmd{SAVE} never modifies
+the active file.  DROP, KEEP, and RENAME only affect the system file
+written to disk.
 
-Please note that DROP, KEEP, and RENAME do not cause the active file to
-be modified.  Only the system file written to disk is changed.
-
-SAVE causes the data to be read.  It is a procedure.
+@cmd{SAVE} causes the data to be read.  It is a procedure.
 
 @node SYSFILE INFO, XSAVE, SAVE, System and Portable Files
 @section SYSFILE INFO
@@ -6093,13 +6107,13 @@ SAVE causes the data to be read.  It is a procedure.
 SYSFILE INFO FILE='filename'.
 @end display
 
-The SYSFILE INFO command reads the dictionary in a system file and
+@cmd{SYSFILE INFO} reads the dictionary in a system file and
 displays the information in its dictionary.
 
-Specify a file name or file handle.  SYSFILE INFO will read that file as
-a system file and display information on its dictionary.
+Specify a file name or file handle.  @cmd{SYSFILE INFO} reads that file as
+a system file and displays information on its dictionary.
 
-The file does not replace the current active file.
+@cmd{SYSFILE INFO} does not affect the current active file.
 
 @node XSAVE,  , SYSFILE INFO, System and Portable Files
 @section XSAVE
@@ -6114,12 +6128,14 @@ XSAVE
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
-The XSAVE transformation writes the active file dictionary and data to a
+The @cmd{XSAVE} transformation writes the active file dictionary and
+data to a
 system file stored on disk.
 
-XSAVE is a transformation, not a procedure.  It is executed when the
+@cmd{XSAVE} is a transformation, not a procedure.  It is executed when the
 data is read by a procedure or procedure-like command.  In all other
-respects, XSAVE is identical to SAVE.  @xref{SAVE}, for more information
+respects, @cmd{XSAVE} is identical to @cmd{SAVE}.  @xref{SAVE}, for
+more information
 on syntax and usage.
 
 @node Variable Attributes, Data Manipulation, System and Portable Files, Top
@@ -6155,9 +6171,9 @@ ADD VALUE LABELS
         /var_list value 'label' [value 'label']@dots{}
 @end display
 
-ADD VALUE LABELS has the same syntax and purpose as VALUE LABELS (see
-above), but it does not clear away value labels from the variables
-before adding the ones specified.
+@cmd{ADD VALUE LABELS} has the same syntax and purpose as @cmd{VALUE
+LABELS} (@pxref{VALUE LABELS}), but it does not clear value
+labels from the variables before adding the ones specified.
 
 @node DISPLAY, DISPLAY VECTORS, ADD VALUE LABELS, Variable Attributes
 @section DISPLAY
@@ -6168,7 +6184,7 @@ DISPLAY @{NAMES,INDEX,LABELS,VARIABLES,DICTIONARY,SCRATCH@}
         [SORTED] [var_list]
 @end display
 
-DISPLAY displays requested information on variables.  Variables can
+@cmd{DISPLAY} displays requested information on variables.  Variables can
 optionally be sorted alphabetically.  The entire dictionary or just
 specified variables can be described.
 
@@ -6210,8 +6226,7 @@ that they occur in the active file dictionary.
 DISPLAY VECTORS.
 @end display
 
-The DISPLAY VECTORS command causes a list of the currently declared
-vectors to be displayed.
+@cmd{DISPLAY VECTORS} lists all the currently declared vectors.
 
 @node FORMATS, LEAVE, DISPLAY VECTORS, Variable Attributes
 @section FORMATS
@@ -6221,7 +6236,7 @@ vectors to be displayed.
 FORMATS var_list (fmt_spec).
 @end display
 
-The FORMATS command set the print and write formats for the specified
+@cmd{FORMATS} set both print and write formats for the specified
 variables to the specified format specification.  @xref{Input/Output
 Formats}.
 
@@ -6232,8 +6247,8 @@ will be changed.
 Additional lists of variables and formats may be included if they are
 delimited by a slash (@samp{/}).
 
-The FORMATS command takes effect immediately.  It is not affected by
-conditional and looping structures such as DO IF or LOOP.
+@cmd{FORMATS} takes effect immediately.  It is not affected by
+conditional and looping structures such as @cmd{DO IF} or @cmd{LOOP}.
 
 @node LEAVE, MISSING VALUES, FORMATS, Variable Attributes
 @section LEAVE
@@ -6243,13 +6258,13 @@ conditional and looping structures such as DO IF or LOOP.
 LEAVE var_list.
 @end display
 
-The LEAVE command prevents the specified variables from being
+@cmd{LEAVE} prevents the specified variables from being
 reinitialized whenever a new case is processed.
 
 Normally, when a data file is processed, every variable in the active
 file is initialized to the system-missing value or spaces at the
 beginning of processing for each case.  When a variable has been
-specified on LEAVE, this is not the case.  Instead, that variable is
+specified on @cmd{LEAVE}, this is not the case.  Instead, that variable is
 initialized to 0 (not system-missing) or spaces for the first case.
 After that, it retains its value between cases.
 
@@ -6279,10 +6294,10 @@ END DATA.
 999  2081.00
 @end example
 
-It is best to use the LEAVE command immediately before invoking a
-procedure command, because it is reset by certain transformations---for
-instance, COMPUTE and IF.  LEAVE is also reset by all procedure
-invocations.
+It is best to use @cmd{LEAVE} command immediately before invoking a
+procedure command, because the left status of variables is reset by
+certain transformations---for instance, @cmd{COMPUTE} and @cmd{IF}.
+Left status is also reset by all procedure invocations.
 
 @node MISSING VALUES, MODIFY VARS, LEAVE, Variable Attributes
 @section MISSING VALUES
@@ -6304,7 +6319,7 @@ As part of a range, LO or LOWEST may take the place of num1;
 HI or HIGHEST may take the place of num2.
 @end display
 
-The MISSING VALUES command sets user-missing values for numeric and
+@cmd{MISSING VALUES} sets user-missing values for numeric and
 short string variables.  Long string variables may not have missing
 values.
 
@@ -6314,8 +6329,9 @@ for numeric variables only, a range of values optionally accompanied by
 a single discrete value.  Ranges may be open-ended on one end, indicated
 through the use of the keyword LO or LOWEST or HI or HIGHEST.
 
-The MISSING VALUES command takes effect immediately.  It is not affected
-by conditional and looping constructs such as DO IF or LOOP.
+The @cmd{MISSING VALUES} command takes effect immediately.  It is not
+affected by conditional and looping constructs such as @cmd{DO IF} or
+@cmd{LOOP}.
 
 @node MODIFY VARS, NUMERIC, MISSING VALUES, Variable Attributes
 @section MODIFY VARS
@@ -6329,8 +6345,8 @@ MODIFY VARS
         /MAP    
 @end display
 
-The MODIFY VARS commands allows variables in the active file to be
-reordered, renamed, or deleted from the active file.
+@cmd{MODIFY VARS} reorders, renames, and deletes variables in the
+active file.
 
 At least one subcommand must be specified, and no subcommand may be
 specified more than once.  DROP and KEEP may not both be specified.
@@ -6358,8 +6374,8 @@ file.  Any unlisted variables are deleted from the active file.
 
 MAP is currently ignored.
 
-MODIFY VARS takes effect immediately.  It does not cause the data to be
-read.
+If either DROP or KEEP is specified, the data is read; otherwise it is
+not.
 
 @node NUMERIC, PRINT FORMATS, MODIFY VARS, Variable Attributes
 @section NUMERIC
@@ -6369,17 +6385,16 @@ read.
 NUMERIC /var_list [(fmt_spec)].
 @end display
 
-The NUMERIC command explicitly declares new numeric variables,
-optionally setting their output formats.
+@cmd{NUMERIC} explicitly declares new numeric variables, optionally
+setting their output formats.
 
 Specify a slash (@samp{/}), followed by the names of the new numeric
 variables.  If you wish to set their output formats, follow their names
 by an output format specification in parentheses (@pxref{Input/Output
-Formats}).  If no output format specification is given then the
-variables will default to F8.2.
+Formats}); otherwise, the default is F8.2.
 
-Variables created with NUMERIC will be initialized to the system-missing
-value.
+Variables created with @cmd{NUMERIC} are initialized to the
+system-missing value.
 
 @node PRINT FORMATS, RENAME VARIABLES, NUMERIC, Variable Attributes
 @section PRINT FORMATS
@@ -6389,11 +6404,11 @@ value.
 PRINT FORMATS var_list (fmt_spec).
 @end display
 
-The PRINT FORMATS command sets the print formats for the specified
+@cmd{PRINT FORMATS} sets the print formats for the specified
 variables to the specified format specification.
 
-Syntax is identical to that of FORMATS (@pxref{FORMATS}), but the PRINT
-FORMATS command sets only print formats, not write formats.
+Its syntax is identical to that of @cmd{FORMATS} (@pxref{FORMATS}),
+but @cmd{PRINT FORMATS} sets only print formats, not write formats.
 
 @node RENAME VARIABLES, VALUE LABELS, PRINT FORMATS, Variable Attributes
 @section RENAME VARIABLES
@@ -6403,16 +6418,14 @@ FORMATS command sets only print formats, not write formats.
 RENAME VARIABLES (old_names=new_names)@dots{} .
 @end display
 
-The RENAME VARIABLES command allows the names of variables in the active
-file to be changed.
-
-To rename variables, specify lists of the old variable names and new
+@cmd{RENAME VARIABLES} changes the names of variables in the active
+file.  Specify lists of the old variable names and new
 variable names, separated by an equals sign (@samp{=}), within
 parentheses.  There must be the same number of old and new variable
 names.  Each old variable is renamed to the corresponding new variable
 name.  Multiple parenthesized groups of variables may be specified.
 
-RENAME VARIABLES takes effect immediately.  It does not cause the data
+@cmd{RENAME VARIABLES} takes effect immediately.  It does not cause the data
 to be read.
 
 @node VALUE LABELS, STRING, RENAME VARIABLES, Variable Attributes
@@ -6424,16 +6437,19 @@ VALUE LABELS
         /var_list value 'label' [value 'label']@dots{}
 @end display
 
-The VALUE LABELS command allows values of numeric and short string
+@cmd{VALUE LABELS} allows values of numeric and short string
 variables to be associated with labels.  In this way, a short value can
 stand for a long value.
 
-In order to set up value labels for a set of variables, specify the
+To set up value labels for a set of variables, specify the
 variable names after a slash (@samp{/}), followed by a list of values
-and their associated labels, separated by spaces.
+and their associated labels, separated by spaces.  Long string
+variables may not be specified.
 
-Before the VALUE LABELS command is executed, any existing value labels
-are cleared from the variables specified.
+Before @cmd{VALUE LABELS} is executed, any existing value labels
+are cleared from the variables specified.  Use @cmd{ADD VALUE LABELS}
+(@pxref{ADD VALUE LABELS}) to add value labels without clearing those
+already present.
 
 @node STRING, VARIABLE LABELS, VALUE LABELS, Variable Attributes
 @section STRING
@@ -6443,7 +6459,7 @@ are cleared from the variables specified.
 STRING /var_list (fmt_spec).
 @end display
 
-The STRING command creates new string variables for use in
+@cmd{STRING} creates new string variables for use in
 transformations.
 
 Specify a slash (@samp{/}), followed by the names of the string
@@ -6462,8 +6478,8 @@ VARIABLE LABELS
         /var_list 'var_label'.
 @end display
 
-The VARIABLE LABELS command is used to associate an explanatory name
-with a group of variables.  This name (a variable label) is displayed by
+@cmd{VARIABLE LABELS} associates explanatory names
+with variables.  This name, called a @dfn{variable label}, is displayed by
 statistical procedures.
 
 To assign a variable label to a group of variables, specify a slash
@@ -6480,7 +6496,7 @@ Two possible syntaxes:
         VECTOR vec_name_list(count).
 @end display
 
-The VECTOR command allows a group of variables to be accessed as if they
+@cmd{VECTOR} allows a group of variables to be accessed as if they
 were consecutive members of an array with a vector(index) notation.
 
 To make a vector out of a set of existing variables, specify a name for
@@ -6489,20 +6505,20 @@ belong in the vector.
 
 To make a vector and create variables at the same time, specify one or
 more vector names followed by a count in parentheses.  This will cause
-variables named @code{@var{vec}1} through @code{@var{vec}@var{count}} to
-be created as numeric variables.  Variable names including numeric
-suffixes may not exceed 8 characters in length, and none of the
-variables may exist prior to the VECTOR command.
+variables named @code{@var{vec}1} through @code{@var{vec}@var{count}}
+to be created as numeric variables with print and write format F8.2.
+Variable names including numeric suffixes may not exceed 8 characters
+in length, and none of the variables may exist prior to @cmd{VECTOR}.
 
 All the variables in a vector must be the same type.
 
-Vectors created with VECTOR disappear after any procedure or
+Vectors created with @cmd{VECTOR} disappear after any procedure or
 procedure-like command is executed.  The variables contained in the
 vectors remain, unless they are scratch variables (@pxref{Scratch
 Variables}).
 
 Variables within a vector may be references in expressions using
-vector(index) syntax.
+@code{vector(index)} syntax.
 
 @node WRITE FORMATS,  , VECTOR, Variable Attributes
 @section WRITE FORMATS
@@ -6512,11 +6528,10 @@ vector(index) syntax.
 WRITE FORMATS var_list (fmt_spec).
 @end display
 
-The WRITE FORMATS command sets the write formats for the specified
-variables to the specified format specification.
-
-Syntax is identical to that of FORMATS (@pxref{FORMATS}), but the WRITE
-FORMATS command sets only write formats, not print formats.
+@cmd{WRITE FORMATS} sets the write formats for the specified variables
+to the specified format specification.  Its syntax is identical to
+that of FORMATS (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
+write formats, not print formats.
 
 @node Data Manipulation, Data Selection, Variable Attributes, Top
 @chapter Data transformations
@@ -6551,7 +6566,7 @@ AGGREGATE
         /dest_vars=agr_func(src_vars, args@dots{})@dots{}
 @end display
 
-The AGGREGATE command summarizes groups of cases into single cases.
+@cmd{AGGREGATE} summarizes groups of cases into single cases.
 Cases are divided into groups that have the same values for one or more
 variables called @dfn{break variables}.  Several functions are available
 for summarizing case contents.
@@ -6651,13 +6666,15 @@ instance, @samp{SUM.}).  These functions are the same as the above,
 except that they cause user-missing values, which are normally excluded
 from calculations, to be included.
 
-Normally, only a single case (2 for SD and SD.) need be non-missing in
+Normally, only a single case (for SD and SD., two cases) need be
+non-missing in
 each group in order for the aggregate variable to be non-missing.  If
 /MISSING=COLUMNWISE is specified, the behavior reverses: that is, a
 single missing value is enough to make the aggregate variable become a
 missing value.
 
-AGGREGATE ignores the current SPLIT FILE settings and causes them to be
+@cmd{AGGREGATE} ignores the current @cmd{SPLIT FILE} settings and causes
+them to be
 canceled (@pxref{SPLIT FILE}).  
 
 @node AUTORECODE, COMPUTE, AGGREGATE, Data Manipulation
@@ -6670,7 +6687,7 @@ AUTORECODE VARIABLES=src_vars INTO dest_vars
         /PRINT
 @end display
 
-The AUTORECODE procedure considers the @var{n} values that a variable
+The @cmd{AUTORECODE} procedure considers the @var{n} values that a variable
 takes on and maps them onto values 1@dots{}@var{n} on a new numeric
 variable.
 
@@ -6688,25 +6705,40 @@ to 1), specify DESCENDING.
 
 PRINT is currently ignored.
 
-AUTORECODE is a procedure.  It causes the data to be read.
+@cmd{AUTORECODE} is a procedure.  It causes the data to be read.
 
 @node COMPUTE, COUNT, AUTORECODE, Data Manipulation
 @section COMPUTE
 @vindex COMPUTE
 
-
 @display
-COMPUTE var_name = expression.
+COMPUTE variable = expression.
+  or
+COMPUTE vector(index) = expression.
 @end display
 
-@code{COMPUTE} creates a variable with the name specified (if
-necessary), then evaluates the given expression for every case and
-assigns the result to the variable.  @xref{Expressions}.
+@cmd{COMPUTE} assigns the value of an expression to a target
+variable.  For each case, the expression is evaluated and its value
+assigned to the target variable.  Numeric and short and long string
+variables may be assigned.  When a string expression's width differs
+from the target variable's width, the string result of the expression
+is truncated or padded with spaces on the right as necessary.  The
+expression and variable types must match.
 
-Numeric variables created or computed by @code{COMPUTE} are assigned an
-output width of 8 characters with two decimal places (@code{F8.2}).
-String variables created or computed by @code{COMPUTE} have the same
-width as the existing variable or constant.
+For numeric variables only, the target variable need not already
+exist.  Numeric variables created by @cmd{COMPUTE} are assigned an
+@code{F8.2} output format.  String variables must be declared before
+they can be used as targets for @cmd{COMPUTE}.
+
+The target variable may be specified as an element of a vector
+(@pxref{VECTOR}).  In this case, a vector index expression must be
+specified in parentheses following the vector name.  The index
+expression must evaluate to a numeric value that, after rounding down
+to the nearest integer, is a valid index for the named vector.
+
+Using @cmd{COMPUTE} to assign to a variable specified on @cmd{LEAVE}
+(@pxref{LEAVE}) resets the variable's left state.  Therefore,
+@code{LEAVE} should be specified following @cmd{COMPUTE}, not before.
 
 COMPUTE is a transformation.  It does not cause the active file to be
 read.
@@ -6728,7 +6760,7 @@ In addition, num1 and num2 can be LO or LOWEST, or HI or HIGHEST,
 respectively.
 @end display
 
-@code{COUNT} creates or replaces a numeric @dfn{target} variable that
+@cmd{COUNT} creates or replaces a numeric @dfn{target} variable that
 counts the occurrence of a @dfn{criterion} value or set of values over
 one or more @dfn{test} variables for each case.
 
@@ -6741,11 +6773,10 @@ User-missing values of test variables are treated just like any other
 values.  They are @strong{not} treated as system-missing values.
 User-missing values that are criterion values or inside ranges of
 criterion values are counted as any other values.  However (for numeric
-variables), keyword @code{MISSING} may be used to refer to all system-
+variables), keyword MISSING may be used to refer to all system-
 and user-missing values.
 
-
-@code{COUNT} target variables are assigned values in the order
+@cmd{COUNT} target variables are assigned values in the order
 specified.  In the command @code{COUNT A=A B(1) /B=A B(2).}, the
 following actions occur:
 
@@ -6764,7 +6795,7 @@ value of @code{A} is counted.
 @code{B} is assigned this value.
 @end itemize
 
-Despite this ordering, all @code{COUNT} criterion variables must exist
+Despite this ordering, all @cmd{COUNT} criterion variables must exist
 before the procedure is executed---they may not be created as target
 variables earlier in the command!  Break such a command into two
 separate commands.
@@ -6783,7 +6814,7 @@ for each case and assigns the count to variable @code{QCOUNT}.
 
 @item
 Print out the total number of times the value 1 occurs throughout
-@emph{all} cases using @code{DESCRIPTIVES}.  @xref{DESCRIPTIVES}, for
+@emph{all} cases using @cmd{DESCRIPTIVES}.  @xref{DESCRIPTIVES}, for
 details.
 @end enumerate
 
@@ -6802,11 +6833,11 @@ assigns the count to variable @code{QVALID}.
 
 @item
 Multiplies each value of @code{QVALID} by 10 to obtain a percentage of
-valid values, using @code{COMPUTE}.  @xref{COMPUTE}, for details.
+valid values, using @cmd{COMPUTE}.  @xref{COMPUTE}, for details.
 
 @item
 Print out the percentage of valid values across all cases, using
-@code{DESCRIPTIVES}.  @xref{DESCRIPTIVES}, for details.
+@cmd{DESCRIPTIVES}.  @xref{DESCRIPTIVES}, for details.
 @end enumerate
 
 @example
@@ -6824,16 +6855,17 @@ DESCRIPTIVES QVALID /STATISTICS=MEAN.
 FLIP /VARIABLES=var_list /NEWNAMES=var_name.
 @end display
 
-The FLIP command transposes rows and columns in the active file.  It
+@cmd{FLIP} transposes rows and columns in the active file.  It
 causes cases to be swapped with variables, and vice versa.
 
-There are no required subcommands.  The VARIABLES subcommand specifies
+No subcommands are required.  The VARIABLES subcommand specifies
 variables that will be transformed into cases.  Variables not specified
 are discarded.  By default, all variables are selected for
 transposition.
 
 The variables specified by NEWNAMES, which must be a string variable, is
-used to give names to the variables created by FLIP.  If NEWNAMES is not
+used to give names to the variables created by @cmd{FLIP}.  If
+NEWNAMES is not
 specified then the default is a variable named CASE_LBL, if it exists.
 If it does not then the variables created by FLIP are named VAR000
 through VAR999, then VAR1000, VAR1001, and so on.
@@ -6848,7 +6880,8 @@ FLIP operation aborts.
 
 The resultant dictionary contains a CASE_LBL variable, which stores the
 names of the variables in the dictionary before the transposition.  If
-the active file is subsequently transposed using FLIP, this variable can
+the active file is subsequently transposed using @cmd{FLIP}, this
+variable can
 be used to recreate the original variable names.
 
 @node IF, RECODE, FLIP, Data Manipulation
@@ -6856,30 +6889,34 @@ be used to recreate the original variable names.
 @vindex IF
 
 @display
-Two possible syntaxes: 
-        IF test_expr target_var=target_expr.
-        IF test_expr target_vec(target_index)=target_expr.
+IF condition variable=expression.
+  or
+IF condition vector(index)=expression.
 @end display
 
-The IF transformation conditionally assigns the value of a target
+The @cmd{IF} transformation conditionally assigns the value of a target
 expression to a target variable, based on the truth of a test
 expression.
 
 Specify a boolean-valued expression (@pxref{Expressions}) to be tested
-following the IF keyword.  This expression is calculated for each case.
-If the value is true, then the value of target_expr is computed and
-assigned to target_var.  If the value is false or missing, nothing is
-done.  Numeric and short and long string variables may be used.  The
-type of target_expr must match the type of target_var.
+following the IF keyword.  This expression is evaluated for each case.
+If the value is true, then the value of the expression is computed and
+assigned to the specified variable.  If the value is false or missing,
+nothing is done.  Numeric and short and long string variables may be
+assigned.  When a string expression's width differs from the target
+variable's width, the string result of the expression is truncated or
+padded with spaces on the right as necessary.  The expression and
+variable types must match.
 
-For numeric variables only, target_var need not exist before the IF
-transformation is executed.  In this case, target_var is assigned the
-system-missing value if the IF condition is not true.  String variables
-must be declared before they can be used as targets for IF.
+The target variable may be specified as an element of a vector
+(@pxref{VECTOR}).  In this case, a vector index expression must be
+specified in parentheses following the vector name.  The index
+expression must evaluate to a numeric value that, after rounding down
+to the nearest integer, is a valid index for the named vector.
 
-In addition to ordinary variables, the target variable may be an element
-of a vector.  In this case, the vector index must be specified in
-parentheses following the vector name.
+Using @cmd{IF} to assign to a variable specified on @cmd{LEAVE}
+(@pxref{LEAVE}) resets the variable's left state.  Therefore,
+@code{LEAVE} should be specified following @cmd{IF}, not before.
 
 @node RECODE, SORT CASES, IF, Data Manipulation
 @section RECODE
@@ -6905,8 +6942,8 @@ dest_value may take the following forms:
         COPY
 @end display
 
-The RECODE command is used to translate data from one range of values to
-another, using flexible user-specified mappings.  Data may be remapped
+@cmd{RECODE} translates data from one range of values to
+another, via flexible user-specified mappings.  Data may be remapped
 in-place or copied to new variables.  Numeric, short string, and long
 string data can be recoded.
 
@@ -6914,7 +6951,8 @@ Specify the list of source variables, followed by one or more mapping
 specifications each enclosed in parentheses.  If the data is to be
 copied to new variables, specify INTO, then the list of target
 variables.  String target variables must already have been declared
-using STRING or another transformation, but numeric target variables can
+using @cmd{STRING} or another transformation, but numeric target
+variables can
 be created on the fly.  There must be exactly as many target variables
 as source variables.  Each source variable is remapped into its
 corresponding target variable.
@@ -6944,8 +6982,8 @@ which must be the last specified mapping.  CONVERT causes a number
 specified as a string to be converted to a numeric value.  If the string
 cannot be parsed as a number, then the system-missing value is assigned.
 
-Multiple recodings can be specified on the same RECODE command.
-Introduce additional recodings with a slash (@samp{/}) in order to
+Multiple recodings can be specified on a single @cmd{RECODE} invocation.
+Introduce additional recodings with a slash (@samp{/}) to
 separate them from the previous recodings.
 
 @node SORT CASES,  , RECODE, Data Manipulation
@@ -6956,7 +6994,7 @@ separate them from the previous recodings.
 SORT CASES BY var_list.
 @end display
 
-SORT CASES sorts the active file by the values of one or more
+@cmd{SORT CASES} sorts the active file by the values of one or more
 variables.
 
 Specify BY and a list of variables to sort by.  By default, variables
@@ -6965,10 +7003,10 @@ are sorted in ascending order.  To override sort order, specify (D) or
 for ascending order.  These apply to the entire list of variables
 preceding them.
 
-SORT CASES is a procedure.  It causes the data to be read.
+@cmd{SORT CASES} is a procedure.  It causes the data to be read.
 
-SORT CASES will attempt to sort the entire active file in main memory.
-If main memory is exhausted then it will use a merge sort algorithm that
+@cmd{SORT CASES} attempts to sort the entire active file in main memory.
+If main memory is exhausted, it falls back to a merge sort algorithm that
 involves writing and reading numerous temporary files.  Environment
 variables determine the temporary files' location.  The first of
 SPSSTMPDIR, SPSSXTMPDIR, or TMPDIR that is set determines the location.
@@ -7003,20 +7041,20 @@ FILTER BY var_name.
 FILTER OFF.
 @end display
 
-The FILTER command allows a boolean-valued variable to be used to select
+@cmd{FILTER} allows a boolean-valued variable to be used to select
 cases from the data stream for processing.
 
-In order to set up filtering, specify BY and a variable name.  Keyword
+To set up filtering, specify BY and a variable name.  Keyword
 BY is optional but recommended.  Cases which have a zero or system- or
 user-missing value are excluded from analysis, but not deleted from the
 data stream.  Cases with other values are analyzed.
 
-Use FILTER OFF to turn off case filtering.
+@code{FILTER OFF} turns off case filtering.
 
 Filtering takes place immediately before cases pass to a procedure for
-analysis.  Only one filter variable may be active at once.  Normally,
-case filtering continues until it is explicitly turned off with FILTER
-OFF.  However, if FILTER is placed after TEMPORARY, then filtering stops
+analysis.  Only one filter variable may be active at a time.  Normally,
+case filtering continues until it is explicitly turned off with @code{FILTER
+OFF}.  However, if @cmd{FILTER} is placed after TEMPORARY, filtering stops
 after execution of the next procedure or procedure-like command.
 
 @node N OF CASES, PROCESS IF, FILTER, Data Selection
@@ -7027,26 +7065,26 @@ after execution of the next procedure or procedure-like command.
 N [OF CASES] num_of_cases [ESTIMATED].
 @end display
 
-Sometimes you may want to disregard cases of your input.  The @code{N}
-command can be used to do this.  @code{N 100} tells PSPP to
-disregard all cases after the first 100.
+Sometimes you may want to disregard cases of your input.  @cmd{N} can
+do this.  @code{N 100} tells PSPP to disregard all cases after the
+first 100.
 
-If the value specified for @code{N} is greater than the number of cases
+If the value specified for @cmd{N} is greater than the number of cases
 read in, the value is ignored.
 
-@code{N} does not discard cases or cause them not to be read in.  It
+@cmd{N} does not discard cases or prevent them from being read.  It
 just causes cases beyond the last one specified to be ignored by data
 analysis commands.
 
-A later @code{N} command can increase or decrease the number of cases
+A later @cmd{N} command can increase or decrease the number of cases
 selected.  (To select all the cases without knowing how many there are,
 specify a very high number: 100000 or whatever you think is large enough.)
 
-Transformation procedures performed after @code{N} is executed
+Transformation procedures performed after @cmd{N} is executed
 @emph{do} cause cases to be discarded.
 
-The @code{SAMPLE}, @code{PROCESS IF}, and @code{SELECT IF} commands have
-precedence over @code{N}---the same results are obtained by both of the
+@cmd{SAMPLE}, @cmd{PROCESS IF}, and @cmd{SELECT IF} have
+precedence over @cmd{N}---the same results are obtained by both of the
 following fragments, given the same random number seeds:
 
 @example
@@ -7064,10 +7102,11 @@ N 100.
 Both fragments above first randomly sample approximately half of the
 cases, then select the first 100 of those sampled.
 
-@code{N} with the @code{ESTIMATED} keyword can be used to give an
-estimated number of cases before DATA LIST or another command to
-read in data.  (@code{ESTIMATED} never limits the number of cases
-processed by procedures.)
+@cmd{N} with the @code{ESTIMATED} keyword gives an
+estimated number of cases before @cmd{DATA LIST} or another command to
+read in data.  @code{ESTIMATED} never limits the number of cases
+processed by procedures.  PSPP currently does not make use of
+case count estimates.
 
 @node PROCESS IF, SAMPLE, N OF CASES, Data Selection
 @section PROCESS IF
@@ -7077,7 +7116,7 @@ processed by procedures.)
 PROCESS IF expression.
 @end example
 
-The PROCESS IF command is used to temporarily eliminate cases from the
+@cmd{PROCESS IF} temporarily eliminates cases from the
 data stream.  Its effects are active only through the execution of the
 next procedure or procedure-like command.
 
@@ -7086,16 +7125,17 @@ expression is true for a particular case, the case will be analyzed.  If
 the expression has a false or missing value, then the case will be
 deleted from the data stream for this procedure only.
 
-Regardless of its placement relative to other commands, PROCESS IF
+Regardless of its placement relative to other commands, @cmd{PROCESS IF}
 always takes effect immediately before data passes to the procedure.
-Only one PROCESS IF command may be in effect at any given time.
+Only one @cmd{PROCESS IF} command may be in effect at any given time.
 
-The effects of PROCESS IF are similar not identical to the effects of
-executing TEMPORARY then SELECT IF (@pxref{SELECT IF}).
+The effects of @cmd{PROCESS IF} are similar, but not identical, to the
+effects of executing @cmd{TEMPORARY}, then @cmd{SELECT IF}
+(@pxref{SELECT IF}).
 
-Use of PROCESS IF is deprecated.  It is included for compatibility with
-old command files.  New syntax files should use SELECT IF or FILTER
-instead.
+@cmd{PROCESS IF} is deprecated.  It is included for compatibility with
+old command files.  New syntax files should use @cmd{SELECT IF} or
+@cmd{FILTER} instead.
 
 @node SAMPLE, SELECT IF, PROCESS IF, Data Selection
 @section SAMPLE
@@ -7105,10 +7145,10 @@ instead.
 SAMPLE num1 [FROM num2].
 @end display
 
-@code{SAMPLE} is used to randomly sample a proportion of the cases in
-the active file.  @code{SAMPLE} is temporary, affecting only the next
-procedure, unless that is a data transformation, such as @code{SELECT IF}
-or @code{RECODE}.
+@cmd{SAMPLE} is used to randomly sample a proportion of the cases in
+the active file.  @cmd{SAMPLE} is temporary, affecting only the next
+procedure, unless that is a data transformation, such as @cmd{SELECT IF}
+or @cmd{RECODE}.
 
 The proportion to sample can be expressed as a single number between 0
 and 1.  If @code{k} is the number specified, and @code{N} is the number
@@ -7134,18 +7174,20 @@ active, exactly @var{m} cases will be selected @emph{from the first
 @var{N} cases in the active file.}
 @end enumerate
 
-@code{SAMPLE}, @code{SELECT IF}, and @code{PROCESS IF} are performed in
+@cmd{SAMPLE}, @cmd{SELECT IF}, and @code{PROCESS IF} are performed in
 the order specified by the syntax file.
 
-@code{SAMPLE} is ignored before @code{SORT CASES}.
+@cmd{SAMPLE} is ignored before @code{SORT CASES}.
 
-@code{SAMPLE} is always performed before @code{N OF CASES}, regardless
+@cmd{SAMPLE} is always performed before @code{N OF CASES}, regardless
 of ordering in the syntax file.  @xref{N OF CASES}.
 
-The same values for @code{SAMPLE} may result in different samples.  To
+The same values for @cmd{SAMPLE} may result in different samples.  To
 obtain the same sample, use the @code{SET} command to set the random
-number seed to the same value before each @code{SAMPLE}.  By default,
-the random number seed is based on the system time.
+number seed to the same value before each @cmd{SAMPLE}.  Different
+samples may still result when the file is processed on systems with
+differing endianness or floating-point formats.  By default, the
+random number seed is based on the system time.
 
 @node SELECT IF, SPLIT FILE, SAMPLE, Data Selection
 @section SELECT IF
@@ -7155,9 +7197,9 @@ the random number seed is based on the system time.
 SELECT IF expression.
 @end display
 
-The SELECT IF command is used to select particular cases for analysis
-based on the value of a boolean expression.  Cases not selected are
-permanently eliminated, unless TEMPORARY is in effect
+@cmd{SELECT IF} selects cases for analysis based on the value of a
+boolean expression.  Cases not selected are permanently eliminated
+from the active file, unless @cmd{TEMPORARY} is in effect
 (@pxref{TEMPORARY}).
 
 Specify a boolean expression (@pxref{Expressions}).  If the value of the
@@ -7165,7 +7207,7 @@ expression is true for a particular case, the case will be analyzed.  If
 the expression has a false or missing value, then the case will be
 deleted from the data stream.
 
-Always place SELECT IF commands as early in the command file as
+Place @cmd{SELECT IF} as early in the command file as
 possible.  Cases that are deleted early can be processed more
 efficiently in time and space.
 
@@ -7179,17 +7221,17 @@ Two possible syntaxes:
         SPLIT FILE OFF.
 @end display
 
-The SPLIT FILE command allows multiple sets of data present in one data
+@cmd{SPLIT FILE} allows multiple sets of data present in one data
 file to be analyzed separately using single statistical procedure
 commands.
 
-Specify a list of variable names in order to analyze multiple sets of
+Specify a list of variable names to analyze multiple sets of
 data separately.  Groups of cases having the same values for these
 variables are analyzed by statistical procedure commands as one group.
 An independent analysis is carried out for each group of cases, and the
 variable values for the group are printed along with the analysis.
 
-Specify OFF in order to disable SPLIT FILE and resume analysis of the
+Specify OFF to disable @cmd{SPLIT FILE} and resume analysis of the
 entire active file as a single group of data.
 
 @node TEMPORARY, WEIGHT, SPLIT FILE, Data Selection
@@ -7200,14 +7242,15 @@ entire active file as a single group of data.
 TEMPORARY.
 @end display
 
-The TEMPORARY command is used to make the effects of transformations
+@cmd{TEMPORARY} is used to make the effects of transformations
 following its execution temporary.  These transformations will
 affect only the execution of the next procedure or procedure-like
 command.  Their effects will not be saved to the active file.
 
 The only specification is the command name.
 
-TEMPORARY may not appear within a DO IF or LOOP construct.  It may
+@cmd{TEMPORARY} may not appear within a @cmd{DO IF} or @cmd{LOOP}
+construct.  It may
 appear only once between procedures and procedure-like commands.
 
 An example may help to clarify:
@@ -7229,8 +7272,8 @@ DESCRIPTIVES X.
 DESCRIPTIVES X.
 @end example
 
-The data read by the first DESCRIPTIVES command are 4, 5, 8,
-10.5, 13, 15.  The data read by the first DESCRIPTIVES command are 1, 2,
+The data read by the first @cmd{DESCRIPTIVES} are 4, 5, 8,
+10.5, 13, 15.  The data read by the first @cmd{DESCRIPTIVES} are 1, 2,
 5, 7.5, 10, 12.
 
 @node WEIGHT,  , TEMPORARY, Data Selection
@@ -7242,11 +7285,11 @@ WEIGHT BY var_name.
 WEIGHT OFF.
 @end display
 
-WEIGHT can be used to assign cases varying weights in order to
-change the frequency distribution of the active file.  Execution of
-WEIGHT is delayed until data have been read in.
+@cmd{WEIGHT} assigns cases varying weights,
+changing the frequency distribution of the active file.  Execution of
+@cmd{WEIGHT} is delayed until data have been read.
 
-If a variable name is specified, WEIGHT causes the values of that
+If a variable name is specified, @cmd{WEIGHT} causes the values of that
 variable to be used as weighting factors for subsequent statistical
 procedures.  Use of keyword BY is optional but recommended.  Weighting
 variables must be numeric.  Scratch variables may not be used for
@@ -7255,11 +7298,15 @@ weighting (@pxref{Scratch Variables}).
 When OFF is specified, subsequent statistical procedures will weight all
 cases equally.
 
-Weighting values do not need to be integers.  However, negative and
-system- and user-missing values for the weighting variable are
-interpreted as weighting factors of 0.
+A positive integer weighting factor @var{w} on a case will yield the
+same statistical output as would replicating the case @var{w} times.
+A weighting factor of 0 is treated for statistical purposes as if the
+case did not exist in the input.  Weighting values need not be
+integers, but negative and system-missing values for the weighting
+variable are interpreted as weighting factors of 0.  User-missing
+values are not treated specially.
 
-WEIGHT does not cause cases in the active file to be replicated in
+@cmd{WEIGHT} does not cause cases in the active file to be replicated in
 memory.
 
 @node Conditionals and Looping, Statistics, Data Selection, Top
@@ -7287,11 +7334,11 @@ looping, and flow of control.
 BREAK.
 @end display
 
-BREAK terminates execution of the innermost currently executing LOOP
-construct.
+@cmd{BREAK} terminates execution of the innermost currently executing
+@cmd{LOOP} construct.
 
-BREAK is allowed only inside a LOOP construct.  @xref{LOOP}, for more
-details.
+@cmd{BREAK} is allowed only inside @cmd{LOOP}@dots{}@cmd{END LOOP}.
+@xref{LOOP}, for more details.
 
 @node DO IF, DO REPEAT, BREAK, Conditionals and Looping
 @section DO IF
@@ -7308,15 +7355,16 @@ DO IF condition.
 END IF.
 @end display
 
-The DO IF command allows one of several sets of transformations to be
+@cmd{DO IF} allows one of several sets of transformations to be
 executed, depending on user-specified conditions.
 
-Specify a boolean expression.  If the condition is true, then the block
-of code following DO IF is executed.  If the condition is missing, then
-none of the code blocks is executed.  If the condition is false, then
-the boolean expressions on the first ELSE IF, if present, is tested in
+If the specified boolean expression evaluates as true, then the block
+of code following @cmd{DO IF} is executed.  If it evaluates as
+missing, then
+none of the code blocks is executed.  If it is false, then
+the boolean expression on the first @cmd{ELSE IF}, if present, is tested in
 turn, with the same rules applied.  If all expressions evaluate to
-false, then the ELSE code block is executed, if it is present.
+false, then the @cmd{ELSE} code block is executed, if it is present.
 
 @node DO REPEAT, LOOP, DO IF, Conditionals and Looping
 @section DO REPEAT
@@ -7337,15 +7385,15 @@ num_or_range takes one of the following forms:
         num1 TO num2
 @end display
 
-The DO REPEAT command causes a block of code to be repeated a number of
-times with different variables, numbers, or strings textually
-substituted into the block with each repetition.
+@cmd{DO REPEAT} repeats a block of code, textually substituting
+different variables, numbers, or strings into the block with each
+repetition.
 
 Specify a repeat variable name followed by an equals sign (@samp{=}) and
 the list of replacements.  Replacements can be a list of variables
 (which may be existing variables or new variables or a combination
 thereof), of numbers, or of strings.  When new variable names are
-specified, DO REPEAT creates them as numeric variables.  When numbers
+specified, @cmd{DO REPEAT} creates them as numeric variables.  When numbers
 are specified, runs of integers may be indicated with TO notation, for
 instance @samp{1 TO 5} and @samp{1 2 3 4 5} would be equivalent.  There
 is no equivalent notation for string values.
@@ -7353,7 +7401,7 @@ is no equivalent notation for string values.
 Multiple repeat variables can be specified.  When this is done, each
 variable must have the same number of replacements.
 
-The code within DO REPEAT is repeated as many times as there are
+The code within @cmd{DO REPEAT} is repeated as many times as there are
 replacements for each variable.  The first time, the first value for
 each repeat variable is substituted; the second time, the second value
 for each repeat variable is substituted; and so on.
@@ -7364,7 +7412,7 @@ including command and subcommand names.  For this reason it is not a
 good idea to select words commonly used in command and subcommand names
 as repeat variable identifiers.
 
-If PRINT is specified on END REPEAT, the commands after substitutions
+If PRINT is specified on @cmd{END REPEAT}, the commands after substitutions
 are made are printed to the listing file, prefixed by a plus sign
 (@samp{+}).
 
@@ -7378,10 +7426,10 @@ LOOP [index_var=start TO end [BY incr]] [IF condition].
 END LOOP [IF condition].
 @end display
 
-The LOOP command allows a group of commands to be iterated.  A number of
+@cmd{LOOP} iterates a group of commands.  A number of
 termination options are offered.
 
-Specify index_var in order to make that variable count from one value to
+Specify index_var to make that variable count from one value to
 another by a particular increment.  index_var must be a pre-existing
 numeric variable.  start, end, and incr are numeric expressions
 (@pxref{Expressions}.)  
@@ -7399,25 +7447,23 @@ start.
 Modifying index_var within the loop is allowed, but it has no effect on
 the value of index_var in the next iteration.
 
-Specify a boolean expression for the condition on the LOOP command to
+Specify a boolean expression for the condition on @cmd{LOOP} to
 cause the loop to be executed only if the condition is true.  If the
 condition is false or missing before the loop contents are executed the
 first time, the loop contents are not executed at all.
 
-If index and condition clauses are both present on LOOP, the index
+If index and condition clauses are both present on @cmd{LOOP}, the index
 clause is always evaluated first.
 
-Specify a boolean expression for the condition on the END LOOP to cause
+Specify a boolean expression for the condition on @cmd{END LOOP} to cause
 the loop to terminate if the condition is not true after the enclosed
 code block is executed.  The condition is evaluated at the end of the
 loop, not at the beginning.
 
 If the index clause and both condition clauses are not present, then the
-loop is executed MXLOOPS (@pxref{SET}) times or until BREAK
-(@pxref{BREAK}) is executed.
+loop is executed MXLOOPS (@pxref{SET}) times.
 
-The BREAK command provides another way to terminate execution of a LOOP
-construct.
+@cmd{BREAK} also terminates @cmd{LOOP} execution (@pxref{BREAK}).
 
 @node Statistics, Utilities, Conditionals and Looping, Top
 @chapter Statistics
@@ -7448,7 +7494,8 @@ DESCRIPTIVES
               @{A,D@}
 @end display
 
-The DESCRIPTIVES procedure reads the active file and outputs descriptive
+The @cmd{DESCRIPTIVES} procedure reads the active file and outputs
+descriptive
 statistics requested by the user.  In addition, it can optionally
 compute Z-scores.
 
@@ -7466,11 +7513,11 @@ the entire case is excluded whenever any value in that case has a
 system-missing or, if INCLUDE is set, user-missing value.
 
 The FORMAT subcommand affects the output format.  Currently the
-LABELS/NOLABELS and NOINDEX/INDEX settings is not used.  When SERIAL is
+LABELS/NOLABELS and NOINDEX/INDEX settings are not used.  When SERIAL is
 set, both valid and missing number of cases are listed in the output;
 when NOSERIAL is set, only valid cases are listed.
 
-The SAVE subcommand causes DESCRIPTIVES to calculate Z scores for all
+The SAVE subcommand causes @cmd{DESCRIPTIVES} to calculate Z scores for all
 the specified variables.  The Z scores are saved to new variables.
 Variable names are generated by trying first the original variable name
 with Z prepended and truncated to a maximum of 8 characters, then the
@@ -7548,16 +7595,14 @@ FREQUENCIES
         /VARIABLES=var_list (low,high)@dots{}
 @end display
 
-FREQUENCIES causes the data to be read and frequency tables to be built
-and output for specified variables.  FREQUENCIES can also calculate and
-display descriptive statistics (including median and mode) and
-percentiles.
+The @cmd{FREQUENCIES} procedure outputs frequency tables for specified
+variables.
+@cmd{FREQUENCIES} can also calculate and display descriptive statistics
+(including median and mode) and percentiles.
 
-In the future, FREQUENCIES will also support graphical output in the
+In the future, @cmd{FREQUENCIES} will also support graphical output in the
 form of bar charts and histograms.  In addition, it will be able to
-support percentiles for grouped data.  (As a historical note, these
-options were supported in a version of PSPP written years ago, but the
-code has not survived.)
+support percentiles for grouped data.
 
 The VARIABLES subcommand is the only required subcommand.  Specify the
 variables to be analyzed.  In most cases, this is all that is required.
@@ -7613,7 +7658,7 @@ in frequency tables or statistics.  When INCLUDE is set, user-missing
 are included.  System-missing values are never included in statistics,
 but are listed in frequency tables.
 
-The available STATISTICS are the same as available in DESCRIPTIVES
+The available STATISTICS are the same as available in @cmd{DESCRIPTIVES}
 (@pxref{DESCRIPTIVES}), with the addition of MEDIAN, the data's median
 value, and MODE, the mode.  (If there are multiple modes, the smallest
 value is reported.)  By default, the mean, standard deviation of the
@@ -7646,7 +7691,7 @@ CROSSTABS
         /VARIABLES=var_list (low,high)@dots{}
 @end display
 
-CROSSTABS reads the active file and builds and displays crosstabulation
+The @cmd{CROSSTABS} procedure displays crosstabulation
 tables requested by the user.  It can calculate several statistics for
 each cell in the crosstabulation tables.  In addition, a number of
 statistics can be calculated for each table itself.
@@ -7785,11 +7830,11 @@ followings bugs:
 
 @itemize @bullet
 @item
-Pearson's R (but not Spearman!) is off a little.
+Pearson's R (but not Spearman) is off a little.
 @item
 T values for Spearman's R and Pearson's R are wrong.
 @item
-How to calculate significance of symmetric and directional measures?
+Significance of symmetric and directional measures is not calculated.
 @item
 Asymmetric ASEs and T values for lambda are wrong.
 @item
@@ -7797,17 +7842,18 @@ ASE of Goodman and Kruskal's tau is not calculated.
 @item
 ASE of symmetric somers' d is wrong.
 @item
-Approx. T of uncertainty coefficient is wrong.
+Approximate T of uncertainty coefficient is wrong.
 @end itemize
 
-Fix for any of these deficiencies would be welcomed.
+Fixes for any of these deficiencies would be welcomed.
 
 @node Utilities, Not Implemented, Statistics, Top
 @chapter Utilities
 
 Commands that don't fit any other category are placed here.
 
-Most of these commands are not affected by commands like IF and LOOP:
+Most of these commands are not affected by commands like @cmd{IF} and
+@cmd{LOOP}:
 they take effect only once, unconditionally, at the time that they are
 encountered in the input.
 
@@ -7819,11 +7865,11 @@ encountered in the input.
 * DROP DOCUMENTS::              Remove documents from the active file.
 * EXECUTE::                     Execute pending transformations.
 * FILE LABEL::                  Set the active file's label.
+* FINISH::                      Terminate the PSPP session.
 * INCLUDE::                     Include a file within the current one.
 * QUIT::                        Terminate the PSPP session.
 * SET::                         Adjust PSPP runtime parameters.
 * SUBTITLE::                    Provide a document subtitle.
-* SYSFILE INFO::                Display the dictionary in a system file.
 * TITLE::                       Provide a document title.
 @end menu
 
@@ -7838,11 +7884,11 @@ Two possibles syntaxes:
         *comment text @dots{} .
 @end display
 
-The COMMENT command is ignored.  It is used to provide information to
+@cmd{COMMENT} is ignored.  It is used to provide information to
 the author and other readers of the PSPP syntax file.  
 
-A COMMENT command can extend over any number of lines.  Don't forget to
-terminate it with a dot or a blank line!
+@cmd{COMMENT} can extend over any number of lines.  Don't forget to
+terminate it with a dot or a blank line.
 
 @node DOCUMENT, DISPLAY DOCUMENTS, COMMENT, Utilities
 @section DOCUMENT
@@ -7852,15 +7898,16 @@ terminate it with a dot or a blank line!
 DOCUMENT documentary_text.
 @end display
 
-The DOCUMENT command adds one or more lines of descriptive commentary to
-the active file.  Documents added in this way are saved to system files.
-They can be viewed using SYSFILE INFO or DISPLAY DOCUMENTS.  They can be
-removed from the active file with DROP DOCUMENTS.
+@cmd{DOCUMENT} adds one or more lines of descriptive commentary to the
+active file.  Documents added in this way are saved to system files.
+They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
+DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.
 
 Specify the documentary text following the DOCUMENT keyword.  You can
 extend the documentary text over as many lines as necessary.  Lines are
-truncated at 80 characters width.  Don't forget to terminate the
-DOCUMENT command with a dot or a blank line.
+truncated at 80 characters width.  Don't forget to terminate
+the command with a dot or a blank line.
 
 @node DISPLAY DOCUMENTS, DISPLAY FILE LABEL, DOCUMENT, Utilities
 @section DISPLAY DOCUMENTS
@@ -7870,7 +7917,7 @@ DOCUMENT command with a dot or a blank line.
 DISPLAY DOCUMENTS.
 @end display
 
-DISPLAY DOCUMENTS displays the documents in the active file.  Each
+@cmd{DISPLAY DOCUMENTS} displays the documents in the active file.  Each
 document is preceded by a line giving the time and date that it was
 added.  @xref{DOCUMENT}.
 
@@ -7882,7 +7929,8 @@ added.  @xref{DOCUMENT}.
 DISPLAY FILE LABEL.
 @end display
 
-DISPLAY FILE LABEL displays the file label contained in the active file,
+@cmd{DISPLAY FILE LABEL} displays the file label contained in the
+active file,
 if any.  @xref{FILE LABEL}.
 
 @node DROP DOCUMENTS, EXECUTE, DISPLAY FILE LABEL, Utilities
@@ -7893,10 +7941,10 @@ if any.  @xref{FILE LABEL}.
 DROP DOCUMENTS.
 @end display
 
-The DROP DOCUMENTS command removes all documents from the active file.
-New documents can be added with the DOCUMENT utility (@pxref{DOCUMENT}).
+@cmd{DROP DOCUMENTS} removes all documents from the active file.
+New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
 
-DROP DOCUMENTS only changes the active file.  It does not modify any
+@cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
 system files stored on disk.
 
 @node EXECUTE, FILE LABEL, DROP DOCUMENTS, Utilities
@@ -7907,7 +7955,7 @@ system files stored on disk.
 EXECUTE.
 @end display
 
-The EXECUTE utility causes the active file to be read and all pending
+@cmd{EXECUTE} causes the active file to be read and all pending
 transformations to be executed.
 
 @node FILE LABEL, FINISH, EXECUTE, Utilities
@@ -7918,14 +7966,12 @@ transformations to be executed.
 FILE LABEL file_label.
 @end display
 
-Use the FILE LABEL command to provide a title for the active file.  This
+@cmd{FILE LABEL} provides a title for the active file.  This
 title will be saved into system files and portable files that are
 created during this PSPP run.
 
-It is not necessary to include quotes around file_label.  If they are
-included then they become part of the file label.
-
-
+file_label need not be quoted.  If quotes are
+included, they become part of the file label.
 
 @node FINISH, INCLUDE, FILE LABEL, Utilities
 @section FINISH
@@ -7935,11 +7981,10 @@ included then they become part of the file label.
 FINISH.
 @end display
 
-The FINISH command terminates the current PSPP session and returns
+@cmd{FINISH} terminates the current PSPP session and returns
 control to the operating system.
 
 This command is not valid in interactive mode.
-
 
 @node INCLUDE, QUIT, FINISH, Utilities
 @section INCLUDE
@@ -7952,11 +7997,11 @@ Two possible syntaxes:
         @@filename.
 @end display
 
-The INCLUDE command causes the PSPP command processor to read an
+@cmd{INCLUDE} causes the PSPP command processor to read an
 additional command file as if it were included bodily in the current
 command file.
 
-INCLUDE files may be nested to any depth, up to the limit of available
+Include files may be nested to any depth, up to the limit of available
 memory.
 
 @node QUIT, SET, INCLUDE, Utilities
@@ -7969,7 +8014,7 @@ Two possible syntaxes:
         EXIT.
 @end display
 
-The QUIT command terminates the current PSPP session and returns control
+@cmd{QUIT} terminates the current PSPP session and returns control
 to the operating system.  
 
 This command is not valid within a command file.
@@ -8074,12 +8119,12 @@ SET
         /XSORT=@{YES,NO@}
 @end display
 
-The SET command allows the user to adjust several parameters relating to
+@cmd{SET} allows the user to adjust several parameters relating to
 PSPP's execution.  Since there are many subcommands to this command, its
 subcommands will be examined in groups.
 
-As a general comment, ON and YES are considered synonymous, and
-so are OFF and NO, when used as subcommand values.
+On subcommands that take boolean values, ON and YES are synonym, and
+as are OFF and NO, when used as subcommand values.
 
 The data input subcommands affect the way that data is read from data
 files.  The data input subcommands are
@@ -8122,7 +8167,7 @@ online user.  The interaction subcommands are
 The command continuation prompt.  The default is @samp{    > }.
 
 @item DPROMPT
-Prompt used when expecting data input within BEGIN DATA (@pxref{BEGIN
+Prompt used when expecting data input within @cmd{BEGIN DATA} (@pxref{BEGIN
 DATA}).  The default is @samp{data> }.
 
 @item ERRORBREAK
@@ -8161,7 +8206,7 @@ execute.  The program execution subcommands are
 Currently not used.
 
 @item MXLOOPS
-The maximum number of iterations for an uncontrolled loop.
+The maximum number of iterations for an uncontrolled loop (@pxref{LOOP}).
 
 @item SEED
 The initial pseudo-random number seed.  Set to a real number or to
@@ -8264,8 +8309,8 @@ produced by PSPP.  These subcommands are
 Not currently used.
 
 @item SCOMPRESSION
-Whether system files created by SAVE or XSAVE are compressed by default.
-The default is ON.
+Whether system files created by @cmd{SAVE} or @cmd{XSAVE} are
+compressed by default.  The default is ON.
 @end table
 
 Security subcommands affect the operations that commands are allowed to
@@ -8294,12 +8339,12 @@ overwrite files, for instance) but it is an improvement.
 @vindex SUBTITLE
 
 @display
-Two possible syntaxes:
-        SUBTITLE 'subtitle_string'.
-        SUBTITLE subtitle_string.
+SUBTITLE 'subtitle_string'.
+  or
+SUBTITLE subtitle_string.
 @end display
 
-The SUBTITLE command is used to provide a subtitle to a particular PSPP
+@cmd{SUBTITLE} provides a subtitle to a particular PSPP
 run.  This subtitle appears at the top of each output page below the
 title, if headers are enabled on the output device.
 
@@ -8312,12 +8357,12 @@ converted to all uppercase.
 @vindex TITLE
 
 @display
-Two possible syntaxes:
-        TITLE 'title_string'.
-        TITLE title_string.
+TITLE 'title_string'.
+  or
+TITLE title_string.
 @end display
 
-The TITLE command is used to provide a title to a particular PSPP run.
+@cmd{TITLE} provides a title to a particular PSPP run.
 This title appears at the top of each output page, if headers are enabled
 on the output device.
 
@@ -8489,7 +8534,7 @@ would be longer than 60 characters; otherwise it is padded on the right
 with spaces.
 
 @item int32 layout_code;
-Always set to 2.  PSPP reads this value in order to determine the
+Always set to 2.  PSPP reads this value to determine the
 file's endianness.
 
 @item int32 case_size;
@@ -9759,22 +9804,6 @@ error on behalf of the custom handler.
 
 @node Bugs, Function Index, q2c Input Format, Top
 @chapter Bugs
-
-@quotation
-As of fvwm 0.99 there were exactly 39.342 unidentified bugs.  Identified
-bugs have mostly been fixed, though.  Since then 9.34 bugs have been
-fixed.  Assuming that there are at least 10 unidentified bugs for every
-identified one, that leaves us with 39.342 - 9.34 + 10 * 9.34 = 123.422
-unidentified bugs.  If we follow this to its logical conclusion we
-will have an infinite number of unidentified bugs before the number of
-bugs can start to diminish, at which point the program will be
-bug-free.  Since this is a computer program infinity = 3.4028e+38 if you
-don't insist on double-precision.  At the current rate of bug discovery
-we should expect to achieve this point in 3.37e+27 years.  I guess I
-better plan on passing this thing on to my children@enddots{}
-
----Robert Nation, @cite{fvwm manpage}.
-@end quotation
 
 @menu
 * Known bugs::                  Pointers to other files.
