@@ -31,58 +31,28 @@
 
 /* Declarations. */
 
-#include "debug-print.h"
-
-/* Variable list. */
-static struct variable **v;
-
-/* Number of variables. */
-static int nv;
-
 static int do_value_labels (int);
-static int verify_val_labs (int erase);
-static int get_label (void);
-
-#if DEBUGGING
-static void debug_print (void);
-#endif
+static int verify_val_labs (struct variable **vars, int var_cnt);
+static void erase_labels (struct variable **vars, int var_cnt);
+static int get_label (struct variable **vars, int var_cnt);
 
 /* Stubs. */
-
-static void
-init (void)
-{
-  v = NULL;
-}
-
-static void
-done (void)
-{
-  free (v);
-}
 
 int
 cmd_value_labels (void)
 {
-  int code;
-  init ();
   lex_match_id ("VALUE");
   lex_match_id ("LABELS");
-  code = do_value_labels (1);
-  done ();
-  return code;
+  return do_value_labels (1);
 }
 
 int
 cmd_add_value_labels (void)
 {
-  int code;
   lex_match_id ("ADD");
   lex_match_id ("VALUE");
   lex_match_id ("LABELS");
-  code = do_value_labels (0);
-  done ();
-  return code;
+  return do_value_labels (0);
 }
 
 /* Do it. */
@@ -90,23 +60,27 @@ cmd_add_value_labels (void)
 static int
 do_value_labels (int erase)
 {
+  struct variable **vars; /* Variable list. */
+  int var_cnt;            /* Number of variables. */
+
   lex_match ('/');
   
   while (token != '.')
     {
-      parse_variables (default_dict, &v, &nv, PV_SAME_TYPE);
-      if (!verify_val_labs (erase))
-	return CMD_PART_SUCCESS_MAYBE;
+      parse_variables (default_dict, &vars, &var_cnt, PV_SAME_TYPE);
+      if (!verify_val_labs (vars, var_cnt))
+        goto lossage;
+      if (erase)
+        erase_labels (vars, var_cnt);
       while (token != '/' && token != '.')
-	if (!get_label ())
-	  return CMD_PART_SUCCESS_MAYBE;
+	if (!get_label (vars, var_cnt))
+          goto lossage;
 
       if (token != '/')
 	break;
       lex_get ();
 
-      free (v);
-      v = NULL;
+      free (vars);
     }
 
   if (token != '.')
@@ -115,23 +89,23 @@ do_value_labels (int erase)
       return CMD_TRAILING_GARBAGE;
     }
 
-#if 0 && DEBUGGING
-  debug_print ();
-#endif
   return CMD_SUCCESS;
+
+ lossage:
+  free (vars);
+  return CMD_PART_SUCCESS_MAYBE;
 }
 
+/* Verifies that none of the VAR_CNT variables in VARS are long
+   string variables. */
 static int
-verify_val_labs (int erase)
+verify_val_labs (struct variable **vars, int var_cnt)
 {
   int i;
 
-  if (!nv)
-    return 1;
-
-  for (i = 0; i < nv; i++)
+  for (i = 0; i < var_cnt; i++)
     {
-      struct variable *vp = v[i];
+      struct variable *vp = vars[i];
 
       if (vp->type == ALPHA && vp->width > 8)
 	{
@@ -139,41 +113,39 @@ verify_val_labs (int erase)
 		     "string variables such as %s."), vp->name);
 	  return 0;
 	}
-
-      if (erase)
-        val_labs_clear (vp->val_labs);
     }
   return 1;
 }
 
-/* Parse all the labels for a particular set of variables and add the
-   specified labels to those variables. */
-static int
-get_label (void)
+/* Erases all the labels for the VAR_CNT variables in VARS. */
+static void
+erase_labels (struct variable **vars, int var_cnt) 
 {
   int i;
 
-  /* Make sure there's some variables. */
-  if (!nv)
-    {
-      if (token != T_STRING && token != T_NUM)
-	return 0;
-      lex_get ();
-      return 1;
-    }
+  /* Erase old value labels if desired. */
+  for (i = 0; i < var_cnt; i++)
+    val_labs_clear (vars[i]->val_labs);
+}
 
+/* Parse all the labels for the VAR_CNT variables in VARS and add
+   the specified labels to those variables.  */
+static int
+get_label (struct variable **vars, int var_cnt)
+{
   /* Parse all the labels and add them to the variables. */
   do
     {
       union value value;
       char *label;
+      int i;
 
       /* Set value. */
-      if (v[0]->type == ALPHA)
+      if (vars[0]->type == ALPHA)
 	{
 	  if (token != T_STRING)
 	    {
-	      msg (SE, _("String expected for value."));
+              lex_error (_("expecting string"));
 	      return 0;
 	    }
 	  st_bare_pad_copy (value.s, ds_value (&tokstr), MAX_SHORT_STRING);
@@ -182,16 +154,16 @@ get_label (void)
 	{
 	  if (token != T_NUM)
 	    {
-	      msg (SE, _("Number expected for value."));
+	      lex_error (_("expecting integer"));
 	      return 0;
 	    }
 	  if (!lex_integer_p ())
 	    msg (SW, _("Value label `%g' is not integer."), tokval);
 	  value.f = tokval;
 	}
+      lex_get ();
 
       /* Set label. */
-      lex_get ();
       if (!lex_force_string ())
 	return 0;
       if (ds_length (&tokstr) > 60)
@@ -201,8 +173,8 @@ get_label (void)
 	}
       label = ds_value (&tokstr);
 
-      for (i = 0; i < nv; i++)
-        val_labs_replace (v[i]->val_labs, value, label);
+      for (i = 0; i < var_cnt; i++)
+        val_labs_replace (vars[i]->val_labs, value, label);
 
       lex_get ();
     }
@@ -210,31 +182,3 @@ get_label (void)
 
   return 1;
 }
-
-#if 0 && DEBUGGING
-static void
-debug_print ()
-{
-  int i;
-
-  puts (_("Value labels:"));
-  for (i = 0; i < nvar; i++)
-    {
-      struct hsh_iterator i;
-      struct value_label *val;
-
-      printf ("  %s\n", var[i]->name);
-      if (var[i]->val_lab) 
-        {
-          for (val = hsh_first (var[i]->val_lab, &i); val != NULL;
-               val = hsh_next (var[i]->val_lab, &i))
-            if (var[i]->type == NUMERIC)
-              printf ("    %g:  `%s'\n", val->v.f, val->s);
-            else
-              printf ("    `%.8s':  `%s'\n", val->v.s, val->s); 
-        }
-      else
-	printf (_("    (no value labels)\n"));
-    }
-}
-#endif /* DEBUGGING */

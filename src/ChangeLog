@@ -1,3 +1,23 @@
+Sun Mar 14 23:56:09 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static vars in VALUE LABELS, ADD VALUE LABELS.
+
+	* val-labs.c: (static var v) Removed.
+	(static var nv) Removed.
+	[DEBUGGING] (debug_print) Removed.
+	(verify_val_labs) Add struct variable **, int parameters.
+	(get_label) Ditto.  Improve error messages, streamline.
+	(erase_labels) New function for erasing value labels, taking over
+	part of verify_val_labs()'s function.
+	(init) Removed.
+	(done) Removed.
+	(cmd_value_labels) No need to call init() or done() anymore.
+	(cmd_add_value_labels) Ditto.
+	(do_value_labels) Add vars, var_cnt local variables.  Clean up
+	after them internally.  Call erase_labels() if we should.  Don't
+	call debug_print().
+	
+
 Sun Mar 14 23:33:53 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static vars in MATCH FILES.
