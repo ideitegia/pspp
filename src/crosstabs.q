@@ -1783,6 +1783,7 @@ enum_var_values (struct table_entry **beg, int cnt, union value **values, int *n
 	union value *v;
 	int i;
     
+	avl_traverser_init(trav);
 	i = 0;
 	while (NULL != (v = avl_traverse (tree, &trav)))
 	  (*values)[i++] = *v;
