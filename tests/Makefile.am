@@ -31,7 +31,7 @@ noinst_DATA = sort.data
 sort.data: gengarbage$(EXTEXT)
 	./gengarbage | head -1000 > $@
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data
 
 DISTCLEANFILES = *.save sort.data pspp.* foo* msgs *.actual
 

@@ -47,7 +47,7 @@ cd $TEMPDIR
 
 # Copy this file --- it's shared with another test
 activity="create data"
-cp $here/data-list.data $TEMPDIR
+cp $top_srcdir/tests/data-list.data $TEMPDIR
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

@@ -47,7 +47,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TEMPDIR/weight.stat <<EOF
-data list file='$here/weighting.data'/AVAR 1-5 BVAR 6-10.
+data list file='$top_srcdir/tests/weighting.data'/AVAR 1-5 BVAR 6-10.
 weight by BVAR.
 
 descriptives AVAR /statistics all /format serial.
@@ -63,7 +63,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
 diff -B -b $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from file "$here/weighting.data".
+1.1 DATA LIST.  Reading 1 record from file "$top_srcdir/tests/weighting.data".
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#
