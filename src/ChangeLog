@@ -1,3 +1,14 @@
+Fri Apr 16 23:59:51 2004  Ben Pfaff  <blp@gnu.org>
+
+	Contrary to what I'd always understood, there is an efficient
+	algorithm for deletion from a hash table populated via linear
+	probing.  This change implements it.
+	
+	* hash.c: (hsh_rehash) Probe in increasing order.
+	(hsh_probe) Ditto.
+	(locate_matching_entry) Ditto.
+	(hsh_delete) Use Knuth's Algorithm 6.4R for deletion.
+
 Tue Apr 13 19:24:15 2004  Ben Pfaff  <blp@gnu.org>
 
 	* moments.c (calc_moments): Adjust calculation of kurtosis to

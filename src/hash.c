@@ -212,17 +212,14 @@ hsh_rehash (struct hsh_table *h, size_t new_size)
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
   for (table_p = begin; table_p < end; table_p++)
-    {
-      void **entry;
-
-      if (*table_p == NULL)
-	continue;
-      entry = &h->entries[h->hash (*table_p, h->aux) & (h->size - 1)];
-      while (*entry)
-	if (--entry < h->entries)
-	  entry = &h->entries[h->size - 1];
-      *entry = *table_p;
-    }
+    if (*table_p != NULL)
+      {
+        void **entry = &h->entries[h->hash (*table_p, h->aux) & (h->size - 1)];
+        while (*entry != NULL)
+          if (++entry >= h->entries + h->size)
+            entry = h->entries;
+        *entry = *table_p;
+      }
   free (begin);
 }
 
@@ -337,8 +334,8 @@ hsh_probe (struct hsh_table *h, const void *target)
     {
       if (!h->compare (*entry, target, h->aux))
 	return entry;
-      if (--entry < h->entries)
-	entry = &h->entries[h->size - 1];
+      if (++entry >= h->entries + h->size)
+	entry = h->entries;
     }
   h->used++;
   return entry;
@@ -388,8 +385,8 @@ locate_matching_entry (struct hsh_table *h, const void *target)
     {
       if (!h->compare (*entry, target, h->aux))
 	return entry;
-      if (--entry < h->entries)
-	entry = &h->entries[h->size - 1];
+      if (++entry >= h->entries + h->size)
+	entry = h->entries;
     }
   return NULL;
 }
@@ -406,20 +403,43 @@ hsh_find (struct hsh_table *h, const void *target)
 /* Deletes the entry in hash table H that matches TARGET.
    Returns nonzero if an entry was deleted.
 
-   Note: this function is very slow because it rehashes the
-   entire table.  Don't use this hash table implementation if
-   deletion is a common operation. */
+   Uses Knuth's Algorithm 6.4R (Deletion with linear probing).
+   Because our load factor is at most 1/2, the average number of
+   moves that this algorithm makes should be at most 2 - ln 2 ~=
+   1.65.
+
+   Not well tested. */
 int
 hsh_delete (struct hsh_table *h, const void *target) 
 {
   void **entry = locate_matching_entry (h, target);
   if (entry != NULL) 
     {
+      ptrdiff_t i;
+      
+      h->used--;
       if (h->free != NULL)
         h->free (*entry, h->aux);
       *entry = 0;
-      hsh_rehash (h, h->size);
-      return 1;
+
+      i = entry - h->entries;
+      for (;;) 
+        {
+          unsigned r;
+          ptrdiff_t j = i;
+
+          do 
+            {
+              if (--i < 0)
+                i = h->size - 1;
+              if (h->entries[i] == NULL)
+                return 1;
+              
+              r = h->hash (h->entries[i], h->aux) & (h->size - 1);
+            }
+          while ((i <= r && r < j) || (r < j && j < i) || (j < i && i <= r));
+          h->entries[i] = h->entries[j]; 
+        }
     }
   else
     return 0;
