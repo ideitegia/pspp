@@ -1,3 +1,8 @@
+Sat Nov  6 21:24:31 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q  Changed the definition of factors to be a composite, and
+	dealt with the consequences.
+
 Sat Nov  6 20:40:38 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q Fixed problem where examine wasn't dealing properly with 

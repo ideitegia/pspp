@@ -222,38 +222,33 @@ xmn_custom_nototal(struct cmd_examine *p)
 int 
 compare_factors (const struct factor *f1, 
 		 const struct factor *f2, 
-		 void *aux UNUSED)
+		 void *aux)
 {
-  int v1_cmp;
+  int indep_var_cmp = strcmp(f1->indep_var->name, f2->indep_var->name);
 
-  v1_cmp = strcmp(f1->v1->name, f2->v1->name);
+  if ( 0 != indep_var_cmp ) 
+    return indep_var_cmp;
 
-  if ( 0 != v1_cmp ) 
-    return v1_cmp;
-
-  if ( f1->v2 == 0 && f2->v2 == 0 ) 
+  /* If the names are identical, and there are no subfactors then
+   the factors are identical */
+  if ( ! f1->subfactor &&  ! f2->subfactor ) 
     return 0;
+    
+  /* ... otherwise we must compare the subfactors */
 
-  if ( f1->v2 == 0 && f2->v2 != 0 ) 
-    return -1;
-
-  if ( f1->v2 != 0 && f2->v2 == 0 ) 
-    return +1;
-
-  return strcmp(f1->v2->name, f2->v2->name);
+  return compare_factors(f1->subfactor, f2->subfactor, aux);
 
 }
 
 /* Create a hash of a factor */
 unsigned 
-hash_factor( const struct factor *f, 
-	     void *aux UNUSED)
+hash_factor( const struct factor *f, void *aux)
 {
   unsigned h;
-  h = hsh_hash_string(f->v1->name);
+  h = hsh_hash_string(f->indep_var->name);
   
-  if ( f->v2 ) 
-    h += hsh_hash_string(f->v2->name);
+  if ( f->subfactor ) 
+    h += hash_factor(f->subfactor, aux);
 
   return h;
 }
@@ -261,10 +256,12 @@ hash_factor( const struct factor *f,
 
 /* Free up a factor */
 void
-free_factor(struct factor *f, void *aux UNUSED)
+free_factor(struct factor *f, void *aux)
 {
-  hsh_destroy(f->hash_table_v1);
-  hsh_destroy(f->hash_table_v2);
+  hsh_destroy(f->hash_table_val);
+
+  if ( f->subfactor ) 
+    free_factor(f->subfactor, aux);
 
   free(f);
 }
@@ -320,36 +317,38 @@ examine_parse_independent_vars(struct cmd_examine *cmd,
   if ( !f ) 
     {
       f = xmalloc(sizeof(struct factor));
-      f->v2 = 0;
-      f->v1 = 0;
-      f->hash_table_v2 = 0;
-      f->hash_table_v1 = 0;
+      f->indep_var = 0;
+      f->hash_table_val = 0;
+      f->subfactor = 0;
     }
   
-  f->v1 = parse_variable();
+  f->indep_var = parse_variable();
   
-  if ( ! f->hash_table_v1 ) 
-    f->hash_table_v1 = hsh_create(4,(hsh_compare_func *)compare_values,
+  if ( ! f->hash_table_val ) 
+    f->hash_table_val = hsh_create(4,(hsh_compare_func *)compare_values,
 				  (hsh_hash_func *)hash_value,
-				  0,(void *) f->v1->width);
+				  0,(void *) f->indep_var->width);
 
   if ( token == T_BY ) 
     {
       lex_match(T_BY);
+
       if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
 	  && token != T_ALL)
 	return 2;
 
-      f->v2 = parse_variable();
+      f->subfactor = xmalloc(sizeof(struct factor));
+
+      f->subfactor->indep_var = parse_variable();
       
-      if ( !f->hash_table_v2 ) 
-	{
-	  f->hash_table_v2 = hsh_create(4,
-					(hsh_compare_func *) compare_values,
-					(hsh_hash_func *) hash_value,
-					0, 
-					(void *) f->v2->width);
-	}
+      f->subfactor->subfactor = 0;
+
+      f->subfactor->hash_table_val = 
+	hsh_create(4,
+		   (hsh_compare_func *) compare_values,
+		   (hsh_hash_func *) hash_value,
+		   0, 
+		   (void *) f->subfactor->indep_var->width);
     }
 
   hsh_insert(hash_table_factors, f);
@@ -393,17 +392,17 @@ show_descriptives(struct variable **dependent_var,
     }
   else
     {
-      assert(factor->v1);
-      if ( factor->v2 == 0 ) 
+      assert(factor->indep_var);
+      if ( factor->subfactor == 0 ) 
 	{
 	  heading_columns = 2;
-	  n_rows += n_dep_var * hsh_count(factor->hash_table_v1) * n_stat_rows;
+	  n_rows += n_dep_var * hsh_count(factor->hash_table_val) * n_stat_rows;
 	}
       else
 	{
 	  heading_columns = 3;
-	  n_rows += n_dep_var * hsh_count(factor->hash_table_v1) * 
-	    hsh_count(factor->hash_table_v2) * n_stat_rows ;
+	  n_rows += n_dep_var * hsh_count(factor->hash_table_val) * 
+	    hsh_count(factor->subfactor->hash_table_val) * n_stat_rows ;
 	}
     }
 
@@ -411,7 +410,7 @@ show_descriptives(struct variable **dependent_var,
 
   t = tab_create (n_cols, n_rows, 0);
 
-  tab_headers (t, heading_columns, 0, heading_rows, 0);
+  tab_headers (t, heading_columns + 1, 0, heading_rows, 0);
 
   tab_dim (t, tab_natural_dimensions);
 
@@ -440,9 +439,9 @@ show_descriptives(struct variable **dependent_var,
 	
       if ( factor ) 
 	{
-	  n_factors = hsh_count(factor->hash_table_v1);
-	  if (  factor->v2 ) 
-	    n_subfactors = hsh_count(factor->hash_table_v2);
+	  n_factors = hsh_count(factor->hash_table_val);
+	  if (  factor->subfactor ) 
+	    n_subfactors = hsh_count(factor->subfactor->hash_table_val);
 	}
 
 
@@ -460,13 +459,13 @@ show_descriptives(struct variable **dependent_var,
 	  int count = 0;
 
       tab_text (t, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		var_to_string(factor->v1));
+		var_to_string(factor->indep_var));
 
 
 
-	  for ( v  = hsh_first(factor->hash_table_v1, &hi);
+	  for ( v  = hsh_first(factor->hash_table_val, &hi);
 		v != 0;
-		v  = hsh_next(factor->hash_table_v1,  &hi))
+		v  = hsh_next(factor->hash_table_val,  &hi))
 	    {
 	      struct hsh_iterator h2;
 	      union value *vv;
@@ -474,23 +473,23 @@ show_descriptives(struct variable **dependent_var,
 	      tab_text (t, 1, 
 			row  + count * n_subfactors * n_stat_rows,
 			TAB_RIGHT | TAT_TITLE, 
-			value_to_string(v, factor->v1)
+			value_to_string(v, factor->indep_var)
 			);
 
 	      if ( count > 0 ) 
 		tab_hline (t, TAL_1, 1, n_cols - 1,  
 			   row  + count * n_subfactors * n_stat_rows);
 
-	      if ( factor->v2 ) 
+	      if ( factor->subfactor ) 
 		{
 		  int count2=0;
 
 		  tab_text (t, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-			    var_to_string(factor->v2));
+			    var_to_string(factor->subfactor->indep_var));
 
-		  for ( vv = hsh_first(factor->hash_table_v2, &h2);
+		  for ( vv = hsh_first(factor->subfactor->hash_table_val, &h2);
 			vv != 0;
-			vv = hsh_next(factor->hash_table_v2, &h2))
+			vv = hsh_next(factor->subfactor->hash_table_val, &h2))
 		    {
 			
 		      tab_text(t, 2, 
@@ -498,7 +497,7 @@ show_descriptives(struct variable **dependent_var,
 			       + count * n_subfactors * n_stat_rows 
 			       + count2 * n_stat_rows,
 			       TAB_RIGHT | TAT_TITLE ,
-			       value_to_string(vv, factor->v2)
+			       value_to_string(vv, factor->subfactor->indep_var)
 			       );
 
 		      if ( count2 > 0 ) 
@@ -654,17 +653,17 @@ show_summary(struct variable **dependent_var,
     }
   else
     {
-      assert(factor->v1);
-      if ( factor->v2 == 0 ) 
+      assert(factor->indep_var);
+      if ( factor->subfactor == 0 ) 
 	{
 	  heading_columns = 2;
-	  n_rows += n_dep_var * hsh_count(factor->hash_table_v1);
+	  n_rows += n_dep_var * hsh_count(factor->hash_table_val);
 	}
       else
 	{
 	  heading_columns = 3;
-	  n_rows += n_dep_var * hsh_count(factor->hash_table_v1) * 
-	    hsh_count(factor->hash_table_v2) ;
+	  n_rows += n_dep_var * hsh_count(factor->hash_table_val) * 
+	    hsh_count(factor->subfactor->hash_table_val) ;
 	}
     }
 
@@ -708,11 +707,11 @@ show_summary(struct variable **dependent_var,
   if ( factor ) 
     {
       tab_text (t, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		var_to_string(factor->v1));
+		var_to_string(factor->indep_var));
 
-      if ( factor->v2 ) 
+      if ( factor->subfactor ) 
 	tab_text (t, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		  var_to_string(factor->v2));
+		  var_to_string(factor->subfactor->indep_var));
     }
 
   for ( i = 0 ; i < 3 ; ++i ) 
@@ -741,9 +740,9 @@ show_summary(struct variable **dependent_var,
 	
       if ( factor ) 
 	{
-	  n_factors = hsh_count(factor->hash_table_v1);
-	  if (  factor->v2 ) 
-	    n_subfactors = hsh_count(factor->hash_table_v2);
+	  n_factors = hsh_count(factor->hash_table_val);
+	  if (  factor->subfactor ) 
+	    n_subfactors = hsh_count(factor->subfactor->hash_table_val);
 	}
 
       tab_text (t, 
@@ -758,9 +757,9 @@ show_summary(struct variable **dependent_var,
 	  union value *v;
 	  int count = 0;
 
-	  for ( v  = hsh_first(factor->hash_table_v1, &hi);
+	  for ( v  = hsh_first(factor->hash_table_val, &hi);
 		v != 0;
-		v  = hsh_next(factor->hash_table_v1,  &hi))
+		v  = hsh_next(factor->hash_table_val,  &hi))
 	    {
 	      struct hsh_iterator h2;
 	      union value *vv;
@@ -769,22 +768,22 @@ show_summary(struct variable **dependent_var,
 			i * n_factors * n_subfactors + heading_rows
 			+ count * n_subfactors,
 			TAB_RIGHT | TAT_TITLE, 
-			value_to_string(v, factor->v1)
+			value_to_string(v, factor->indep_var)
 			);
 
-	      if ( factor->v2 ) 
+	      if ( factor->subfactor ) 
 		{
 		  int count2=0;
-		  for ( vv = hsh_first(factor->hash_table_v2, &h2);
+		  for ( vv = hsh_first(factor->subfactor->hash_table_val, &h2);
 			vv != 0;
-			vv = hsh_next(factor->hash_table_v2, &h2))
+			vv = hsh_next(factor->subfactor->hash_table_val, &h2))
 		    {
 			
 		      tab_text(t, 2, 
 			       i * n_factors * n_subfactors + heading_rows
 			       + count * n_subfactors + count2,
 			       TAB_RIGHT | TAT_TITLE ,
-			       value_to_string(vv, factor->v2)
+			       value_to_string(vv, factor->subfactor->indep_var)
 			       );
 			
 		      count2++;
@@ -823,9 +822,10 @@ run_examine(const struct casefile *cf, void *cmd_)
 	    fctr != 0;
 	    fctr = hsh_next (hash_table_factors, &hi) )
 	{
-	  hsh_clear(fctr->hash_table_v1);
-	  if ( fctr->hash_table_v2  ) 
-	      hsh_clear(fctr->hash_table_v2);
+	  hsh_clear(fctr->hash_table_val);
+
+	  while ( (fctr = fctr->subfactor) )
+	    hsh_clear(fctr->hash_table_val);
 	}
     }
 
@@ -845,13 +845,13 @@ run_examine(const struct casefile *cf, void *cmd_)
 		fctr != 0;
 		fctr = hsh_next (hash_table_factors, &hi) )
 	    {
-	      const union value *val = case_data (&c, fctr->v1->fv);
-	      hsh_insert(fctr->hash_table_v1, (void *) val);
+	      const union value *val = case_data (&c, fctr->indep_var->fv);
+	      hsh_insert(fctr->hash_table_val, (void *) val);
 
-	      if ( fctr->hash_table_v2  ) 
+	      if ( fctr->subfactor  ) 
 		{
-		  val = case_data (&c, fctr->v2->fv);
-		  hsh_insert(fctr->hash_table_v2, (void *) val);
+		  val = case_data (&c, fctr->subfactor->indep_var->fv);
+		  hsh_insert(fctr->subfactor->hash_table_val, (void *) val);
 		}
 	    }
 	}
@@ -883,19 +883,19 @@ show_extremes(struct variable **dependent_var,
     }
   else
     {
-      assert(factor->v1);
-      if ( factor->v2 == 0 ) 
+      assert(factor->indep_var);
+      if ( factor->subfactor == 0 ) 
 	{
 	  heading_columns = 2 + 1;
 	  n_rows += n_dep_var * 2 * n_extremities 
-	    * hsh_count(factor->hash_table_v1);
+	    * hsh_count(factor->hash_table_val);
 	}
       else
 	{
 	  heading_columns = 3 + 1;
 	  n_rows += n_dep_var * 2 * n_extremities 
-	    * hsh_count(factor->hash_table_v1)
-	    * hsh_count(factor->hash_table_v2) ;
+	    * hsh_count(factor->hash_table_val)
+	    * hsh_count(factor->subfactor->hash_table_val) ;
 	}
     }
 
@@ -933,11 +933,11 @@ show_extremes(struct variable **dependent_var,
   if ( factor ) 
     {
       tab_text (t, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		var_to_string(factor->v1));
+		var_to_string(factor->indep_var));
 
-      if ( factor->v2 ) 
+      if ( factor->subfactor ) 
 	tab_text (t, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		  var_to_string(factor->v2));
+		  var_to_string(factor->subfactor->indep_var));
     }
 
   tab_text (t, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _("Value"));
@@ -951,9 +951,9 @@ show_extremes(struct variable **dependent_var,
 	
       if ( factor ) 
 	{
-	  n_factors = hsh_count(factor->hash_table_v1);
-	  if (  factor->v2 ) 
-	    n_subfactors = hsh_count(factor->hash_table_v2);
+	  n_factors = hsh_count(factor->hash_table_val);
+	  if (  factor->subfactor ) 
+	    n_subfactors = hsh_count(factor->subfactor->hash_table_val);
 	}
 
       tab_text (t, 
@@ -977,9 +977,9 @@ show_extremes(struct variable **dependent_var,
 	  union value *v;
 	  int count = 0;
 
-	  for ( v  = hsh_first(factor->hash_table_v1, &hi);
+	  for ( v  = hsh_first(factor->hash_table_val, &hi);
 		v != 0;
-		v  = hsh_next(factor->hash_table_v1,  &hi))
+		v  = hsh_next(factor->hash_table_val,  &hi))
 	    {
 	      struct hsh_iterator h2;
 	      union value *vv;
@@ -988,7 +988,7 @@ show_extremes(struct variable **dependent_var,
 			(i * n_factors * n_subfactors 
 			 + count * n_subfactors),
 			TAB_RIGHT | TAT_TITLE, 
-			value_to_string(v, factor->v1)
+			value_to_string(v, factor->indep_var)
 			);
 
 	      if ( count > 0 ) 
@@ -998,19 +998,19 @@ show_extremes(struct variable **dependent_var,
 			    + count * n_subfactors));
 
 
-	      if ( factor->v2 ) 
+	      if ( factor->subfactor ) 
 		{
 		  int count2=0;
-		  for ( vv = hsh_first(factor->hash_table_v2, &h2);
+		  for ( vv = hsh_first(factor->subfactor->hash_table_val, &h2);
 			vv != 0;
-			vv = hsh_next(factor->hash_table_v2, &h2))
+			vv = hsh_next(factor->subfactor->hash_table_val, &h2))
 		    {
 			
 		      tab_text(t, 2, heading_rows + 2 * n_extremities *
 			       (i * n_factors * n_subfactors 
 				+ count * n_subfactors + count2 ),
 			       TAB_RIGHT | TAT_TITLE ,
-			       value_to_string(vv, factor->v2)
+			       value_to_string(vv, factor->subfactor->indep_var)
 			       );
 
 
