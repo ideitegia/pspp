@@ -680,14 +680,17 @@ string_to_content_type (char *s, int *collide)
 /* Compare two variables using p.mxd.vartype and p.mxd.subtype
    fields. */
 static int
-compare_variables_by_mxd_vartype (const void *pa, const void *pb)
+compare_variables_by_mxd_vartype (const void *a_, const void *b_)
 {
-  struct matrix_data_proc *a = &(*((struct variable **) pa))->p.mxd;
-  struct matrix_data_proc *b = &(*((struct variable **) pb))->p.mxd;
-  
-  return (a->vartype != b->vartype
-	  ? a->vartype - b->vartype
-	  : a->subtype - b->subtype);
+  struct variable *const *pa = a_;
+  struct variable *const *pb = b_;
+  const struct matrix_data_proc *a = &(*pa)->p.mxd;
+  const struct matrix_data_proc *b = &(*pb)->p.mxd;
+
+  if (a->vartype != b->vartype)
+    return a->vartype > b->vartype ? 1 : -1;
+  else
+    return a->subtype < b->subtype ? -1 : a->subtype > b->subtype;
 }
 
 #if DEBUGGING

@@ -1,3 +1,7 @@
+Fri Dec 19 16:23:45 2003  Ben Pfaff  <blp@gnu.org>
+
+	* matrix-data.c (compare_variables_by_mxd_vartype): Rewrite.
+
 Fri Dec 19 15:54:45 2003  Ben Pfaff  <blp@gnu.org>
 
 	* expr-prs.c: (cmp_func) Removed.
