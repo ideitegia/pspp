@@ -338,7 +338,7 @@ binary_search (const void *array, size_t count, size_t size,
 {
   assert (array != NULL);
   assert (count <= INT_MAX);
-  assert (aux != NULL);
+  assert (compare != NULL);
 
   if (count != 0) 
     {

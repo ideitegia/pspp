@@ -1,3 +1,7 @@
+Fri Dec 19 23:27:45 2003  Ben Pfaff  <blp@gnu.org>
+
+	* algorithm.c: (binary_search) Fix assertion.
+
 Fri Dec 19 21:31:48 2003  Ben Pfaff  <blp@gnu.org>
 
 	* sysfile-info.c: (compare_vectors_by_name) Rewrite.
