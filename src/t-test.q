@@ -215,8 +215,6 @@ int
 cmd_t_test(void)
 {
 
-
-
   if ( !parse_t_test(&cmd) )
     return CMD_FAILURE;
 

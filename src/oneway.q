@@ -688,6 +688,22 @@ show_contrast_tests(void)
 	  double T;
 	  double std_error_contrast ;
 	  double df;
+	  double sec_vneq=0.0;
+
+
+	  /* Note: The calculation of the degrees of freedom in the variances 
+	     not  equal case is painfull!!
+	     The following formula may help to understand it:
+	     \frac{\left(\sum_{i=1}^k{c_i^2\frac{s_i^2}{n_i}}\right)^2}
+	     {
+	     \sum_{i=1}^k\left(
+                \frac{\left(c_i^2\frac{s_i^2}{n_i}\right)^2}  {n_i-1}
+	     \right)
+	     }
+	  */
+
+	  double df_denominator = 0.0;
+	  double df_numerator = 0.0;
 
 	  
 	  if ( i == 0 ) 
@@ -715,12 +731,25 @@ show_contrast_tests(void)
 	       gs != 0;
 	       ++ci, gs = hsh_next(group_hash,&g))
 	    {
+
 	      const double coef = subc_list_double_at(&cmd.dl_contrast[i],ci);
+	      const double winv = (gs->std_dev * gs->std_dev) / gs->n;
 
 	      contrast_value += coef * gs->mean;
 
 	      coef_msq += (coef * coef) / gs->n ; 
+
+	      sec_vneq += (coef * coef) * (gs->std_dev * gs->std_dev ) /gs->n ;
+
+	      df_numerator += (coef * coef) * winv;
+	      df_denominator += pow2((coef * coef) * winv) / (gs->n - 1);
+
 	    }
+	  sec_vneq = sqrt(sec_vneq);
+
+
+	  df_numerator = pow2(df_numerator);
+	  
 
 	  tab_float (t,  3, (v * lines_per_variable) + i + 1, 
 		     TAB_RIGHT, contrast_value, 8,2);
@@ -756,6 +785,37 @@ show_contrast_tests(void)
 	  tab_float (t,  7, (v * lines_per_variable) + i + 1, 
 		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q(T,df),
 		     8,3);
+
+
+	  /* Now for the Variances NOT Equal case */
+
+	  /* Std. Error */
+	  tab_float (t,  4, 
+		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast, 
+		     TAB_RIGHT, sec_vneq,
+		     8,3);
+
+
+	  T = contrast_value / sec_vneq;
+	  tab_float (t,  5, 
+		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast, 
+		     TAB_RIGHT, T,
+		     8,3);
+
+
+	  df = df_numerator / df_denominator;
+
+	  tab_float (t,  6, 
+		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast, 
+		     TAB_RIGHT, df,
+		     8,3);
+
+	  /* The Significance */
+
+	  tab_float (t, 7, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
+		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q(T,df),
+		     8,3);
+
 
 	}
 
