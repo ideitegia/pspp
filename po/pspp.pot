@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-02-13 14:00+0800\n"
+"POT-Creation-Date: 2005-02-15 20:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,28 +45,28 @@ msgstr ""
 msgid "expecting `('"
 msgstr ""
 
-#: src/aggregate.c:456
+#: src/aggregate.c:458
 #, c-format
 msgid "Missing argument %d to %s."
 msgstr ""
 
-#: src/aggregate.c:464
+#: src/aggregate.c:466
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
 msgstr ""
 
-#: src/aggregate.c:474 src/expr-prs.c:627
+#: src/aggregate.c:476 src/expr-prs.c:627
 msgid "expecting `)'"
 msgstr ""
 
-#: src/aggregate.c:486
+#: src/aggregate.c:488
 #, c-format
 msgid ""
 "Number of source variables (%d) does not match number of target variables (%"
 "d)."
 msgstr ""
 
-#: src/aggregate.c:555
+#: src/aggregate.c:556
 #, c-format
 msgid ""
 "Variable name %s is not unique within the aggregate file dictionary, which "
@@ -3055,6 +3055,10 @@ msgstr ""
 #: src/postscript.c:2337
 #, c-format
 msgid "PostScript driver: Cannot find encoding `%s' for PostScript font `%s'."
+msgstr ""
+
+#: src/postscript.c:2885
+msgid "Charts are currently unsupported with postscript drivers."
 msgstr ""
 
 #: src/print.c:179

@@ -21,7 +21,9 @@ src_files=$(filter-out $(src_cq_files), $(src_c_files)) $(src_q_files)
 .PHONY: po/POTFILES.in
 po/POTFILES.in: 
 	@$(RM) po/potfile-temp
-	for f in $(src_files) ; do echo $$f >> po/potfile-temp ; done
+	for f in $(src_files) ; do \
+	if [ $$f = "src/version.c" ] ; then continue ; fi ; \
+	echo $$f >> po/potfile-temp ; done
 	@if ( ! test -e $@ ) || ( ! diff  -q po/potfile-temp $@ ) ; then  mv po/potfile-temp $@ ; else $(RM) po/potfile-temp ; fi
 
 install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in ABOUT-NLS
