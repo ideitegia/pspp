@@ -10,6 +10,7 @@ TESTS = command/aggregate.sh \
 	command/file-label.sh \
 	command/flip.sh \
 	command/lag.sh \
+	command/list.sh \
 	command/loop.sh \
 	command/print.sh \
 	command/sample.sh \
@@ -30,8 +31,8 @@ EXTRA_DIST = \
 compute.stat crosstabs.stat data-fmts.stat	\
 data-list.data do-if.stat do-repeat.stat	\
 expr.stat filter.stat gengarbage.c		\
-inpt-pgm.stat list.data list.stat mtch-file.stat	\
-means.stat mdfy-vars.stat pcs-if.stat recode.stat		\
+inpt-pgm.stat list.data mtch-file.stat  \
+means.stat mdfy-vars.stat pcs-if.stat recode.stat \
 repeating.stat reread.data reread.stat  \
 sys-info.stat t-test.stat temporary.stat	\
 time-date.stat vector.stat weighting.data weighting.stat $(TESTS)
