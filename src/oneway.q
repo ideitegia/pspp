@@ -387,7 +387,7 @@ show_descriptives(void)
   for ( v=0 ; v < n_vars ; ++v ) 
     {
       double T;
-      double stderr;
+      double std_error;
 
 
       struct hsh_iterator g;
@@ -430,19 +430,19 @@ show_descriptives(void)
 	  
 	  tab_float (t, 4, row + count, 0, gs->std_dev,8,2);
 
-	  stderr = gs->std_dev/sqrt(gs->n) ;
+	  std_error = gs->std_dev/sqrt(gs->n) ;
 	  tab_float (t, 5, row + count, 0, 
-		     stderr, 8,2);
+		     std_error, 8,2);
 
 	  /* Now the confidence interval */
       
 	  T = gsl_cdf_tdist_Qinv(q,gs->n - 1);
 
 	  tab_float(t, 6, row + count, 0,
-		    gs->mean - T * stderr, 8, 2); 
+		    gs->mean - T * std_error, 8, 2); 
 
 	  tab_float(t, 7, row + count, 0,
-		    gs->mean + T * stderr, 8, 2); 
+		    gs->mean + T * std_error, 8, 2); 
 
 	  /* Min and Max */
 
@@ -461,19 +461,19 @@ show_descriptives(void)
 
       tab_float (t, 4, row + count, 0, totals->std_dev,8,2);
 
-      stderr = totals->std_dev/sqrt(totals->n) ;
+      std_error = totals->std_dev/sqrt(totals->n) ;
 
-      tab_float (t, 5, row + count, 0, stderr, 8,2);
+      tab_float (t, 5, row + count, 0, std_error, 8,2);
 
       /* Now the confidence interval */
       
       T = gsl_cdf_tdist_Qinv(q,totals->n - 1);
 
       tab_float(t, 6, row + count, 0,
-		totals->mean - T * stderr, 8, 2); 
+		totals->mean - T * std_error, 8, 2); 
 
       tab_float(t, 7, row + count, 0,
-		totals->mean + T * stderr, 8, 2); 
+		totals->mean + T * std_error, 8, 2); 
 
       /* Min and Max */
 
@@ -686,7 +686,7 @@ show_contrast_tests(void)
 	  struct group_statistics *gs;
 
 	  double T;
-	  double stderr_contrast ;
+	  double std_error_contrast ;
 	  double df;
 
 	  
@@ -729,14 +729,14 @@ show_contrast_tests(void)
 		     TAB_RIGHT, contrast_value, 8,2);
 
 
-	  stderr_contrast = sqrt(vars[v]->p.ww.mse * coef_msq);
+	  std_error_contrast = sqrt(vars[v]->p.ww.mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_float (t,  4, (v * lines_per_variable) + i + 1, 
-		     TAB_RIGHT, stderr_contrast,
+		     TAB_RIGHT, std_error_contrast,
 		     8,3);
 
-	  T = fabs(contrast_value / stderr_contrast) ;
+	  T = fabs(contrast_value / std_error_contrast) ;
 
 	  /* T Statistic */
 
