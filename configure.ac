@@ -77,9 +77,13 @@ if test "$ac_cv_lib_readline_readline" = yes; then
 fi
 
 dnl Checks for header files.
+AC_ARG_WITH(valgrind, [  --without-valgrind        don't compile in valgrind])
+if test "x$with_valgrind" != x"no"; then 
+ AC_CHECK_HEADERS([valgrind/valgrind.h])
+fi
 AC_CHECK_HEADERS([limits.h memory.h sys/stat.h sys/time.h sys/types.h \
-                  fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h \
-		  valgrind/valgrind.h])
+                  fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h] )
+
 AC_HEADER_STAT
 AC_HEADER_STDC
 AC_HEADER_TIME

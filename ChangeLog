@@ -1,3 +1,8 @@
+Mon Feb 21 15:04:55 WST 2005 John Darrington <john@darrington.wattle.id.au> 
+
+	* configure.ac: Added a --without-valgrind option to cope with
+	building on machines with a broken valgrind installation
+
 Fri Jan  7 08:01:02 WST 2005 John Darrington <john@darrington.wattle.id.au> 
 
 	* configure.ac pref.h.orig: Compilation with libplot is now optional
