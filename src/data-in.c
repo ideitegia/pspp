@@ -140,6 +140,8 @@ parse_numeric (struct data_in *i)
       if (*i->s == '-' || *i->s == '+')
 	i->s++;
     }
+  else
+    sign = 1;
   
   if (type != FMT_DOT)
     {

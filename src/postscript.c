@@ -1106,8 +1106,6 @@ read_ps_encodings (struct outp_driver *this)
     
   for (;;)
     {
-      char *bp;
-
       if (!ds_get_config_line (f, &line, &where))
 	{
 	  if (ferror (f))
@@ -1115,7 +1113,7 @@ read_ps_encodings (struct outp_driver *this)
 	  break;
 	}
 
-      add_encoding (this, bp);
+      add_encoding (this, line.string);
     }
 
   ds_destroy (&line);
@@ -2410,6 +2408,8 @@ write_text (struct outp_driver *this,
     case OUTP_T_JUST_CENTER:
       ofs = width_left / 2;
       break;
+    default:
+      assert (0);
     }
 
   lp = line;
@@ -2547,11 +2547,16 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
       x = t->x;
       y = t->y;
     }
+  else
+    x = y = 0;
   width = width_left = (t->options & OUTP_T_HORZ) ? t->h : INT_MAX;
   height_left = (t->options & OUTP_T_VERT) ? t->v : INT_MAX;
   max_height = 0;
   prev_char = -1;
   space_char = NULL;
+  space_buf_loc = NULL;
+  space_width_left = 0;
+  
 
   if (!width || !height_left)
     goto exit;
@@ -2566,9 +2571,12 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
 
       /* Set char_name to the name of the character or ligature at
          *cp. */
+      local_char_name[0] = *cp;
+      char_name = local_char_name;
       if (ext->current->font->ligatures && *cp == 'f')
 	{
-	  int lig = 0;
+	  int lig;
+          char_name = NULL;
 
 	  if (cp < end - 1)
 	    switch (cp[1])
@@ -2599,8 +2607,6 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
 	      local_char_name[0] = *cp++;	/* 'f' */
 	      char_name = local_char_name;
 	    }
-	  else
-	    cp += strlen (char_name);
 	}
       else if (*cp == '\n')
 	{
@@ -2623,11 +2629,7 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
 	     set separate to 1. */
 	  continue;
 	}
-      else
-	{
-	  local_char_name[0] = *cp++;
-	  char_name = local_char_name;
-	}
+      cp += strlen (char_name);
 
       /* Figure out what size this character is, and what kern
          adjustment we need. */

@@ -487,6 +487,11 @@ parse_dest_spec (struct rcd_var * rcd, union value * v, size_t *max_dst_width)
 	  v->c = NULL;
 	}
     }
+  else 
+    {
+      lex_error (_("expecting output value"));
+      return 0;
+    }
 
   if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_ERROR)
     rcd->flags |= flags;
@@ -776,10 +781,11 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
                   int case_num UNUSED)
 {
   struct rcd_var *v;
-  struct coding *cp;
 
   for (v = ((struct recode_trns *) t)->codings; v; v = v->next)
     {
+      struct coding *cp;
+
       switch (v->flags & RCD_SRC_MASK)
 	{
 	case RCD_SRC_NUMERIC:
@@ -788,6 +794,8 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
 	case RCD_SRC_STRING:
 	  cp = find_src_string (v, c);
 	  break;
+        default:
+          assert (0);
 	}
       if (!cp)
 	continue;

@@ -92,7 +92,7 @@ groff_read_font (const char *fn)
   char *key;
 
   /* 0=kernpairs section, 1=charset section. */
-  int charset;
+  int charset = 0;
 
   /* Index for previous line. */
   int prev_index = -1;

@@ -1,3 +1,63 @@
+Wed Mar  3 20:44:37 2004  Ben Pfaff  <blp@gnu.org>
+
+	Fix a lot of "possibly uninitialized variable" warnings.  Some of
+	them are even real bugs.  A few of them make me wonder how the
+	code ever worked.
+
+	* aggregate.c: (parse_aggregate_functions) Initialize `function.
+
+	* ascii.c: (output_lines) Add default case to switch.
+
+	* crosstabs.q: Remove static variable `expected' and all
+	references to it.
+	(display_crosstabulation) Always calculate expected value.
+	(calc_chisq) Ditto.
+	(output_pivot_table) Initialize `cmp'.
+	(display_crosstabulation) New variable `last_row', which is
+	initialized.
+
+	* data-in.c: (parse_numeric) Always initialize sign.  How did this
+	work at all?!
+
+	* data-list.c: (repeating_data_trns_proc) Always initialize code.
+	Always set info.ofs.  (How did this work?!)
+
+	* expr-opt.c: (optimize_tree) Always initialize `m'.
+	(evaluate_tree) Always initialize `c'.  (How did this work?)
+
+	* frequencies.q: (frq_custom_variables) Always initialize min,
+	max.
+	(frq_custom_grouped) Always initialize `dl'.
+
+	* groff-font.c: (groff_read_font) Always initialize char_set.
+
+	* matrix-data.c: (nr_output_data) Initialize `split'.
+	(wr_read_splits) Remove shadowing split_cnt declaration.
+	(wr_output_data) Initialize `split'.
+
+	* output.c: (tokener) Skip add character on syntax error.
+
+	* pool.c: (pool_strndup) Always set `copy'.  (How did this work?!)
+
+	* postscript.c: (read_ps_encodings) Use line.string instead of
+	uninitialized `bp'.
+	(write_text) Add default case to switch.
+	(text) Always initialize multiple variables.  Fix bug with
+	ligatures.
+
+	* print.c: (fixed_parse_fortran) Initialize head.
+	(alloc_line) Add default case to switch.
+
+	* recode.c: (parse_dest_spec) Handle case where nothing matches.
+	(recode_trns_proc) Move variable declaration inward.  Add default
+	case to switch.
+
+	* sfm-read.c: (read_header) Initialize skip_amt.
+
+	* sysfile-info.c: (display_variables) Always initialize pc.
+
+	* vars-prs.c: Initialized `included'.
+
 Wed Mar  3 09:30:09 2004  Ben Pfaff  <blp@gnu.org>
 
 	* main.c: (main) sigaction()'s sa_flags member was uninitialized.

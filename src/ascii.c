@@ -1461,6 +1461,8 @@ output_lines (struct outp_driver *this, int first, int count)
 		  ch = *ep;
 		  n_passes = 3;
 		  break;
+                default:
+                  assert (0);
 		}
 	      output_char (this, 1, ch);
 	      n_chars += ep - bp + 1;

@@ -458,6 +458,7 @@ parse_aggregate_functions (void)
       dest_label = NULL;
       n_dest = 0;
       src = NULL;
+      function = NULL;
       n_src = 0;
       arg[0].c = NULL;
       arg[1].c = NULL;

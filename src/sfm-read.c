@@ -523,7 +523,7 @@ read_header (struct file_handle * h, struct sfm_read_info * inf)
   struct sysfile_header hdr;		/* Disk buffer. */
   struct dictionary *dict;		/* File dictionary. */
   char prod_name[sizeof hdr.prod_name + 1];	/* Buffer for product name. */
-  int skip_amt;			/* Amount of product name to omit. */
+  int skip_amt = 0;			/* Amount of product name to omit. */
   int i;
 
   /* Create the dictionary. */

@@ -1452,6 +1452,7 @@ nr_output_data (struct matrix_data_pgm *mx,
     size_t i;
 
     split_cnt = dict_get_split_cnt (default_dict);
+    split = dict_get_split_vars (default_dict);
     for (i = 0; i < split_cnt; i++)
       temp_case->data[split[i]->fv].f = split_values[i];
   }
@@ -1600,7 +1601,6 @@ wr_read_splits (struct matrix_data_pgm *mx,
   
   {
     int different = 0;
-    size_t split_cnt;
     int i;
 
     for (i = 0; i < split_cnt; i++)
@@ -1677,6 +1677,7 @@ wr_output_data (struct matrix_data_pgm *mx,
     size_t i;
 
     split_cnt = dict_get_split_cnt (default_dict);
+    split = dict_get_split_vars (default_dict);
     for (i = 0; i < split_cnt; i++)
       temp_case->data[split[i]->fv].f = split_values[i];
   }

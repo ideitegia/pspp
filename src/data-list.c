@@ -1917,26 +1917,27 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
       info.len = len;
       info.beg = starts_beg;
       info.end = starts_end;
+      info.ofs = length;
       info.c = c;
       info.verify_id = 0;
       info.max_occurs = occurs_left;
-      code = rpd_parse_record (&info);;
+      code = rpd_parse_record (&info);
       if (!code)
         return -2;
+      occurs_left -= code;
     }
   else if (cont_beg == 0)
     return -3;
 
   /* Make sure, if some occurrences are left, that we have
      continuation records. */
-  occurs_left -= code;
-  if (occurs_left != 0 && cont_beg == 0)
+  if (occurs_left > 0 && cont_beg == 0)
     {
       tmsg (SE, RPD_ERR,
             _("Number of repetitions specified on OCCURS (%d) "
               "exceed number of repetitions available in "
               "space on STARTS (%d), and CONTINUED not specified."),
-            occurs, code);
+            occurs, (starts_end - starts_beg + 1) / length);
       return -2;
     }
 
@@ -1965,6 +1966,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
       info.len = len;
       info.beg = cont_beg;
       info.end = cont_end;
+      info.ofs = length;
       info.c = c;
       info.verify_id = 1;
       info.max_occurs = occurs_left;

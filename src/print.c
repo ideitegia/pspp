@@ -717,7 +717,7 @@ dump_fmt_list (struct fmt_list * f)
 static struct fmt_list *
 fixed_parse_fortran (void)
 {
-  struct fmt_list *head;
+  struct fmt_list *head = NULL;
   struct fmt_list *fl = NULL;
 
   lex_get ();			/* skip opening parenthesis */
@@ -886,8 +886,8 @@ alloc_line (void)
 	  pot_w = i->fc + 1;
 	  break;
 	case PRT_ERROR:
+        default:
 	  assert (0);
-	  break;
 	}
       if (pot_w > w)
 	w = pot_w;

@@ -368,11 +368,9 @@ display_variables (struct variable **vl, int n, int as)
   nr = n + 5;
   tab_hline (t, TAL_2, 0, nc - 1, 1);
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Variable"));
+  pc = (as == AS_INDEX ? 1 : 3);
   if (as != AS_NAMES)
-    {
-      pc = (as == AS_INDEX ? 1 : 3);
-      tab_text (t, pc, 0, TAB_LEFT | TAT_TITLE, _("Position"));
-    }
+    tab_text (t, pc, 0, TAB_LEFT | TAT_TITLE, _("Position"));
   if (as == AS_DICTIONARY || as == AS_VARIABLES)
     tab_joint_text (t, 1, 0, 2, 0, TAB_LEFT | TAT_TITLE, _("Description"));
   else if (as == AS_LABELS)

@@ -589,7 +589,7 @@ static int
 frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
 {
   int mode;
-  int min, max;
+  int min = 0, max = 0;
 
   int old_n_variables = n_variables;
   int i;
@@ -716,8 +716,11 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
 		return 0;
 	      }
 	  }
-	else
-	  nl = 0;
+	else 
+          {
+            nl = 0;
+            dl = NULL;
+          }
 
 	for (i = 0; i < n; i++)
 	  {

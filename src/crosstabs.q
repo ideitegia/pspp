@@ -135,7 +135,6 @@ static int mode;
 /* CELLS. */
 static int num_cells;		/* Number of cells requested. */
 static int cells[8];		/* Cells requested. */
-static int expected;		/* Nonzero if expected value is needed. */
 
 /* WRITE. */
 static int write;		/* One of WR_* that specifies the WRITE style. */
@@ -198,7 +197,6 @@ internal_cmd_crosstabs (void)
   mode = variables ? INTEGER : GENERAL;
 
   /* CELLS. */
-  expected = 0;
   if (!cmd.sbc_cells)
     {
       cmd.a_cells[CRS_CL_COUNT] = 1;
@@ -228,11 +226,7 @@ internal_cmd_crosstabs (void)
       cmd.a_cells[CRS_CL_NONE] = 0;
       for (num_cells = i = 0; i < CRS_CL_count; i++)
 	if (cmd.a_cells[i])
-	  {
-	    if (i >= CRS_CL_EXPECTED)
-	      expected = 1;
-	    cmd.a_cells[num_cells++] = i;
-	  }
+          cmd.a_cells[num_cells++] = i;
     }
 
   /* STATISTICS. */
@@ -1036,7 +1030,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
   int tc = pe - pb;		/* Table count. */
 
   /* Table entry for header comparison. */
-  struct table_entry *cmp;
+  struct table_entry *cmp = NULL;
 
   x = xtab[(*pb)->table];
   enum_var_values (pb, pe - pb, COL_VAR, &cols, &n_cols);
@@ -1817,10 +1811,7 @@ display_crosstabulation (void)
 	  tab_hline (table, TAL_1, -1, n_cols, 0);
 	for (c = 0; c < n_cols; c++)
 	  {
-	    double expected_value;
-
-	    if (expected)
-	      expected_value = row_tot[r] * col_tot[c] / W;
+	    double expected_value = row_tot[r] * col_tot[c] / W;
 	    for (i = 0; i < num_cells; i++)
 	      {
 		double v;
@@ -1920,6 +1911,7 @@ display_crosstabulation (void)
   /* Column totals, grand total. */
   {
     int c, j;
+    int last_row = 0;
 
     if (num_cells > 1)
       tab_hline (table, TAL_1, -1, n_cols, 0);
@@ -1963,9 +1955,10 @@ display_crosstabulation (void)
 
 	    j++;
 	  }
+        last_row = j;
       }
 
-    tab_offset (table, -1, tab_row (table) + j);
+    tab_offset (table, -1, tab_row (table) + last_row);
   }
   
   tab_offset (table, 0, -1);
@@ -2368,8 +2361,7 @@ calc_chisq (double chisq[N_CHISQ], int df[N_CHISQ],
 	const double freq = mat[n_cols * r + c];
 	const double residual = freq - expected;
     
-	if (expected)
-	  chisq[0] += residual * residual / expected;
+        chisq[0] += residual * residual / expected;
 	if (freq)
 	  chisq[1] += freq * log (expected / freq);
       }
@@ -2542,8 +2534,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 	      const double freq = mat[n_cols * r + c];
 	      const double residual = freq - expected;
     
-	      if (expected)
-		Xp += residual * residual / expected;
+              Xp += residual * residual / expected;
 	    }
       }
 

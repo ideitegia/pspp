@@ -124,7 +124,7 @@ parse_var_set_vars (struct var_set *vs,
 {
   size_t vs_var_cnt;
   int i;
-  char *included;
+  char *included = NULL;
 
   struct variable *v1, *v2;
   int count, mv;

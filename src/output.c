@@ -588,6 +588,7 @@ tokener (void)
 		      break;
 		    default:
 		      msg (IS, _("Syntax error in string constant."));
+                      continue;
 		    }
 		  ds_putchar (&op_tokstr, (unsigned char) c);
 		}

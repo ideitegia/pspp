@@ -302,6 +302,8 @@ pool_strndup (struct pool *pool, const char *string, size_t length)
         copy = ((char *) b) + b->ofs;
         b->ofs += size;
       }
+    else
+      copy = pool_alloc (pool, size);
   }
 #else
   copy = pool_alloc (pool, size);

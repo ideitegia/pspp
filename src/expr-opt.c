@@ -145,7 +145,7 @@ optimize_tree (struct nonterm_node * n)
       int nvar = 0;
 
       /* New node. */
-      struct nonterm_node *m;
+      struct nonterm_node *m = NULL;
 
       /* Argument copying counter. */
       int c;
@@ -768,7 +768,7 @@ evaluate_tree (struct nonterm_node * n)
     case OP_RTRIM:
     case OP_RTRIM_OPT:
       {
-	int c;
+	int c = ' ';
 	char *cp = s0;
 
 	if (n->type == OP_LTRIM_OPT || n->type == OP_RTRIM_OPT)
@@ -778,7 +778,6 @@ evaluate_tree (struct nonterm_node * n)
 		c = n->type == OP_LTRIM_OPT ? 'L' : 'R';
 		msg (SE, _("Second argument to %cTRIM() must be at least one "
 		     "character in length."), c);
-		c = ' ';
 	      }
 	    else
 	      c = s1[0];
