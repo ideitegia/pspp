@@ -34,7 +34,7 @@ struct dictionary
     struct variable **var;	/* Variables. */
     size_t var_cnt, var_cap;    /* Number of variables, capacity. */
     struct hsh_table *name_tab;	/* Variable index by name. */
-    int value_cnt;              /* Number of `union value's per case. */
+    int next_value_idx;         /* Index of next `union value' to allocate. */
     struct variable **split;    /* SPLIT FILE vars. */
     size_t split_cnt;           /* SPLIT FILE count. */
     struct variable *weight;    /* WEIGHT variable. */
@@ -46,6 +46,7 @@ struct dictionary
     size_t vector_cnt;          /* Number of vectors. */
   };
 
+/* Creates and returns a new dictionary. */
 struct dictionary *
 dict_create (void) 
 {
@@ -54,7 +55,7 @@ dict_create (void)
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
   d->name_tab = hsh_create (8, compare_variables, hash_variable, NULL, NULL);
-  d->value_cnt = 0;
+  d->next_value_idx = 0;
   d->split = NULL;
   d->split_cnt = 0;
   d->weight = NULL;
@@ -68,6 +69,8 @@ dict_create (void)
   return d;
 }
 
+/* Creates and returns a (deep) copy of an existing
+   dictionary. */
 struct dictionary *
 dict_clone (const struct dictionary *s) 
 {
@@ -79,7 +82,7 @@ dict_clone (const struct dictionary *s)
   d = dict_create ();
   for (i = 0; i < s->var_cnt; i++)
     dict_clone_var (d, s->var[i], s->var[i]->name);
-  d->value_cnt = s->value_cnt;
+  d->next_value_idx = s->next_value_idx;
 
   d->split_cnt = s->split_cnt;
   if (d->split_cnt > 0) 
@@ -106,6 +109,8 @@ dict_clone (const struct dictionary *s)
   return d;
 }
 
+/* Clears the contents from a dictionary without destroying the
+   dictionary itself. */
 void
 dict_clear (struct dictionary *d) 
 {
@@ -126,7 +131,7 @@ dict_clear (struct dictionary *d)
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
   hsh_clear (d->name_tab);
-  d->value_cnt = 0;
+  d->next_value_idx = 0;
   free (d->split);
   d->split = NULL;
   d->split_cnt = 0;
@@ -140,6 +145,7 @@ dict_clear (struct dictionary *d)
   dict_clear_vectors (d);
 }
 
+/* Clears a dictionary and destroys it. */
 void
 dict_destroy (struct dictionary *d)
 {
@@ -151,6 +157,7 @@ dict_destroy (struct dictionary *d)
     }
 }
 
+/* Returns the number of variables in D. */
 size_t
 dict_get_var_cnt (const struct dictionary *d) 
 {
@@ -159,6 +166,9 @@ dict_get_var_cnt (const struct dictionary *d)
   return d->var_cnt;
 }
 
+/* Returns the variable in D with index IDX, which must be
+   between 0 and the count returned by dict_get_var_cnt(),
+   exclusive. */
 struct variable *
 dict_get_var (const struct dictionary *d, size_t idx) 
 {
@@ -168,6 +178,10 @@ dict_get_var (const struct dictionary *d, size_t idx)
   return d->var[idx];
 }
 
+/* Sets *VARS to an array of pointers to variables in D and *CNT
+   to the number of variables in *D.  By default all variables
+   are returned, but bits may be set in EXCLUDE_CLASSES to
+   exclude ordinary, system, and/or scratch variables. */
 void
 dict_get_vars (const struct dictionary *d, struct variable ***vars,
                size_t *cnt, unsigned exclude_classes)
@@ -195,6 +209,9 @@ dict_get_vars (const struct dictionary *d, struct variable ***vars,
   assert (*cnt == count);
 }
 
+/* Creates and returns a new variable in D with the given NAME
+   and WIDTH.  Returns a null pointer if the given NAME would
+   duplicate that of an existing variable in the dictionary. */
 struct variable *
 dict_create_var (struct dictionary *d, const char *name, int width) 
 {
@@ -216,7 +233,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->index = d->var_cnt;
   v->type = width == 0 ? NUMERIC : ALPHA;
   v->width = width;
-  v->fv = d->value_cnt;
+  v->fv = d->next_value_idx;
   v->nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
   v->init = 1;
   v->reinit = name[0] != '#';
@@ -245,11 +262,14 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   d->var[v->index] = v;
   d->var_cnt++;
   hsh_force_insert (d->name_tab, v);
-  d->value_cnt += v->nv;
+  d->next_value_idx += v->nv;
 
   return v;
 }
 
+/* Creates and returns a new variable in D with the given NAME
+   and WIDTH.  Assert-fails if the given NAME would duplicate
+   that of an existing variable in the dictionary. */
 struct variable *
 dict_create_var_assert (struct dictionary *d, const char *name, int width) 
 {
@@ -258,6 +278,8 @@ dict_create_var_assert (struct dictionary *d, const char *name, int width)
   return v;
 }
 
+/* Creates a new variable in D named NAME, as a copy of existing
+   variable OV, which need not be in D or in any dictionary. */
 struct variable *
 dict_clone_var (struct dictionary *d, const struct variable *ov,
                 const char *name)
@@ -287,6 +309,9 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
   return nv;
 }
 
+/* Changes the name of V in D to name NEW_NAME.  Assert-fails if
+   a variable named NEW_NAME is already in D, except that
+   NEW_NAME may be the same as V's existing name. */
 void 
 dict_rename_var (struct dictionary *d, struct variable *v,
                  const char *new_name) 
@@ -307,6 +332,8 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   hsh_force_insert (d->name_tab, v);
 }
 
+/* Returns the variable named NAME in D, or a null pointer if no
+   variable has that name. */
 struct variable *
 dict_lookup_var (const struct dictionary *d, const char *name)
 {
@@ -322,6 +349,8 @@ dict_lookup_var (const struct dictionary *d, const char *name)
   return hsh_find (d->name_tab, &v);
 }
 
+/* Returns the variable named NAME in D.  Assert-fails if no
+   variable has that name. */
 struct variable *
 dict_lookup_var_assert (const struct dictionary *d, const char *name)
 {
@@ -330,6 +359,7 @@ dict_lookup_var_assert (const struct dictionary *d, const char *name)
   return v;
 }
 
+/* Returns nonzero if variable V is in dictionary D. */
 int
 dict_contains_var (const struct dictionary *d, const struct variable *v)
 {
@@ -339,6 +369,8 @@ dict_contains_var (const struct dictionary *d, const struct variable *v)
   return dict_lookup_var (d, v->name) == v;
 }
 
+/* Compares two double pointers to variables, which should point
+   to elements of a struct dictionary's `var' member array. */
 static int
 compare_variable_dblptrs (const void *a_, const void *b_, void *aux UNUSED) 
 {
@@ -353,12 +385,23 @@ compare_variable_dblptrs (const void *a_, const void *b_, void *aux UNUSED)
     return 0;
 }
 
+/* Deletes variable V from dictionary D and frees V.
+
+   This is a very bad idea if there might be any pointers to V
+   from outside D.  In general, no variable in default_dict
+   should be deleted when any transformations are active, because
+   those transformations might reference the deleted variable.
+   The safest time to delete a variable is just after a procedure
+   has been executed, as done by MODIFY VARS.
+
+   Pointers to V within D are not a problem, because
+   dict_delete_var() knows to remove V from split variables,
+   weights, filters, etc. */
 void
 dict_delete_var (struct dictionary *d, struct variable *v) 
 {
   size_t i;
 
-  /* FIXME?  Does not sync d->value_cnt. */
   assert (d != NULL);
   assert (v != NULL);
   assert (dict_contains_var (d, v));
@@ -390,9 +433,10 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   val_labs_destroy (v->val_labs);
   free (v->label);
   free (v);
-
 }
 
+/* Deletes the COUNT variables listed in VARS from D.  This is
+   unsafe; see the comment on dict_delete_var() for details. */
 void 
 dict_delete_vars (struct dictionary *d,
                   struct variable *const *vars, size_t count) 
@@ -406,6 +450,10 @@ dict_delete_vars (struct dictionary *d,
     dict_delete_var (d, *vars++);
 }
 
+/* Reorders the variables in D, placing the COUNT variables
+   listed in ORDER in that order at the beginning of D.  The
+   other variables in D, if any, retain their relative
+   positions. */
 void 
 dict_reorder_vars (struct dictionary *d,
                    struct variable *const *order, size_t count) 
@@ -437,6 +485,12 @@ dict_reorder_vars (struct dictionary *d,
   d->var = new_var;
 }
 
+/* Renames COUNT variables specified in VARS to the names given
+   in NEW_NAMES within dictionary D.  If the renaming would
+   result in a duplicate variable name, returns zero and stores a
+   name that would be duplicated into *ERR_NAME (if ERR_NAME is
+   non-null).  Otherwise, the renaming is successful, and nonzero
+   is returned. */
 int
 dict_rename_vars (struct dictionary *d,
                   struct variable **vars, char **new_names,
@@ -461,6 +515,7 @@ dict_rename_vars (struct dictionary *d,
   for (i = 0; i < count; i++)
     {
       assert (new_names[i] != NULL);
+      assert (*new_names[i] != '\0');
       assert (strlen (new_names[i]) < 9);
       strcpy (vars[i]->name, new_names[i]);
       if (hsh_insert (d->name_tab, vars[i]) != NULL) 
@@ -490,6 +545,8 @@ dict_rename_vars (struct dictionary *d,
   return success;
 }
 
+/* Returns the weighting variable in dictionary D, or a null
+   pointer if the dictionary is unweighted. */
 struct variable *
 dict_get_weight (const struct dictionary *d) 
 {
@@ -499,6 +556,9 @@ dict_get_weight (const struct dictionary *d)
   return d->weight;
 }
 
+/* Returns the value of D's weighting variable in case C, except
+   that a negative weight is returned as 0.  Returns 1 if the
+   dictionary is unweighted. */
 double
 dict_get_case_weight (const struct dictionary *d, const struct ccase *c)
 {
@@ -516,6 +576,8 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c)
     }
 }
 
+/* Sets the weighting variable of D to V, or turning off
+   weighting if V is a null pointer. */
 void
 dict_set_weight (struct dictionary *d, struct variable *v) 
 {
@@ -526,6 +588,8 @@ dict_set_weight (struct dictionary *d, struct variable *v)
   d->weight = v;
 }
 
+/* Returns the filter variable in dictionary D (see cmd_filter())
+   or a null pointer if the dictionary is unfiltered. */
 struct variable *
 dict_get_filter (const struct dictionary *d) 
 {
@@ -535,6 +599,8 @@ dict_get_filter (const struct dictionary *d)
   return d->filter;
 }
 
+/* Sets V as the filter variable for dictionary D.  Passing a
+   null pointer for V turn off filtering. */
 void
 dict_set_filter (struct dictionary *d, struct variable *v)
 {
@@ -544,6 +610,8 @@ dict_set_filter (struct dictionary *d, struct variable *v)
   d->filter = v;
 }
 
+/* Returns the case limit for dictionary D, or zero if the number
+   of cases is unlimited (see cmd_n()). */
 int
 dict_get_case_limit (const struct dictionary *d) 
 {
@@ -552,6 +620,8 @@ dict_get_case_limit (const struct dictionary *d)
   return d->case_limit;
 }
 
+/* Sets CASE_LIMIT as the case limit for dictionary D.  Zero for
+   CASE_LIMIT indicates no limit. */
 void
 dict_set_case_limit (struct dictionary *d, int case_limit) 
 {
@@ -561,29 +631,48 @@ dict_set_case_limit (struct dictionary *d, int case_limit)
   d->case_limit = case_limit;
 }
 
+/* Returns the index of the next value to be added to D.  This
+   value is the number of `union value's that need to be
+   allocated to store a case for dictionary D. */
 int
-dict_get_value_cnt (const struct dictionary *d) 
+dict_get_next_value_idx (const struct dictionary *d) 
 {
   assert (d != NULL);
 
-  return d->value_cnt;
+  return d->next_value_idx;
 }
 
+/* Returns the number of bytes needed to store a case for
+   dictionary D. */
+size_t
+dict_get_case_size (const struct dictionary *d) 
+{
+  assert (d != NULL);
+
+  return sizeof (union value) * dict_get_next_value_idx (d);
+}
+
+/* Reassigns values in dictionary D so that fragmentation is
+   eliminated. */
 void
 dict_compact_values (struct dictionary *d) 
 {
   size_t i;
 
-  d->value_cnt = 0;
+  d->next_value_idx = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
 
-      v->fv = d->value_cnt;
-      d->value_cnt += v->nv;
+      v->fv = d->next_value_idx;
+      d->next_value_idx += v->nv;
     }
 }
 
+/* Returns the SPLIT FILE vars (see cmd_split_file()).  Call
+   dict_get_split_cnt() to determine how many SPLIT FILE vars
+   there are.  Returns a null pointer if and only if there are no
+   SPLIT FILE vars. */
 struct variable *const *
 dict_get_split_vars (const struct dictionary *d) 
 {
@@ -592,6 +681,7 @@ dict_get_split_vars (const struct dictionary *d)
   return d->split;
 }
 
+/* Returns the number of SPLIT FILE vars. */
 size_t
 dict_get_split_cnt (const struct dictionary *d) 
 {
@@ -600,6 +690,7 @@ dict_get_split_cnt (const struct dictionary *d)
   return d->split_cnt;
 }
 
+/* Sets CNT split vars SPLIT in dictionary D. */
 void
 dict_set_split_vars (struct dictionary *d,
                      struct variable *const *split, size_t cnt)
@@ -612,6 +703,8 @@ dict_set_split_vars (struct dictionary *d,
   memcpy (d->split, split, cnt * sizeof *d->split);
 }
 
+/* Returns the file label for D, or a null pointer if D is
+   unlabeled (see cmd_file_label()). */
 const char *
 dict_get_label (const struct dictionary *d) 
 {
@@ -620,6 +713,8 @@ dict_get_label (const struct dictionary *d)
   return d->label;
 }
 
+/* Sets D's file label to LABEL, truncating it to a maximum of 60
+   characters. */
 void
 dict_set_label (struct dictionary *d, const char *label) 
 {
@@ -638,6 +733,8 @@ dict_set_label (struct dictionary *d, const char *label)
     }
 }
 
+/* Returns the documents for D, or a null pointer if D has no
+   documents (see cmd_document()).. */
 const char *
 dict_get_documents (const struct dictionary *d) 
 {
@@ -646,6 +743,8 @@ dict_get_documents (const struct dictionary *d)
   return d->documents;
 }
 
+/* Sets the documents for D to DOCUMENTS, or removes D's
+   documents if DOCUMENT is a null pointer. */
 void
 dict_set_documents (struct dictionary *d, const char *documents)
 {
@@ -658,6 +757,9 @@ dict_set_documents (struct dictionary *d, const char *documents)
     d->documents = xstrdup (documents);
 }
 
+/* Creates in D a vector named NAME that contains CNT variables
+   VAR (see cmd_vector()).  Returns nonzero if successful, or
+   zero if a vector named NAME already exists in D. */
 int
 dict_create_vector (struct dictionary *d,
                     const char *name,
@@ -686,6 +788,8 @@ dict_create_vector (struct dictionary *d,
   return 1;
 }
 
+/* Returns the vector in D with index IDX, which must be less
+   than dict_get_vector_cnt (D). */
 const struct vector *
 dict_get_vector (const struct dictionary *d, size_t idx) 
 {
@@ -695,6 +799,7 @@ dict_get_vector (const struct dictionary *d, size_t idx)
   return d->vector[idx];
 }
 
+/* Returns the number of vectors in D. */
 size_t
 dict_get_vector_cnt (const struct dictionary *d) 
 {
@@ -703,6 +808,8 @@ dict_get_vector_cnt (const struct dictionary *d)
   return d->vector_cnt;
 }
 
+/* Looks up and returns the vector within D with the given
+   NAME. */
 const struct vector *
 dict_lookup_vector (const struct dictionary *d, const char *name) 
 {
@@ -717,6 +824,7 @@ dict_lookup_vector (const struct dictionary *d, const char *name)
   return NULL;
 }
 
+/* Deletes all vectors from D. */
 void
 dict_clear_vectors (struct dictionary *d) 
 {

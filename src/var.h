@@ -396,7 +396,8 @@ void dict_set_filter (struct dictionary *, struct variable *);
 int dict_get_case_limit (const struct dictionary *);
 void dict_set_case_limit (struct dictionary *, int);
 
-int dict_get_value_cnt (const struct dictionary *);
+int dict_get_next_value_idx (const struct dictionary *);
+size_t dict_get_case_size (const struct dictionary *);
 void dict_compact_values (struct dictionary *);
 
 struct variable *const *dict_get_split_vars (const struct dictionary *);

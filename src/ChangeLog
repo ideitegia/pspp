@@ -1,3 +1,28 @@
+Mon Feb 16 12:49:53 2004  Ben Pfaff  <blp@gnu.org>
+
+	Clean up struct dictionary's value_cnt usage.
+
+	* dictionary.c: Add a function comment to each function.
+	(struct dictionary) Rename value_cnt to next_value_idx, which more
+	accurately reflects its meaning.  All references updated.
+	(dict_rename_vars) Add assertion.
+	(dict_get_value_cnt) Rename dict_get_next_value_idx().  All
+	references updated.
+	(dict_get_case_size) New function.
+
+	* aggregate.c: (create_sysfile) Use dict_get_case_size().
+
+	* get.c: (mtf_read_nonactive_records) Ditto.
+
+	* sort.c: (allocate_cases) Ditto.
+	(write_initial_runs) Ditto.
+	(merge) Ditto.
+	(merge_once) Ditto.
+
+	* vfm.c: (prepare_for_writing) Ditto.
+	(setup_lag) Ditto.
+	(lag_case) Ditto.
+
 Mon Feb 16 00:17:55 2004  Ben Pfaff  <blp@gnu.org>
 
 	Make vfm.c slightly less grotesque.

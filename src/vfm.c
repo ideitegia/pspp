@@ -275,10 +275,8 @@ prepare_for_writing (void)
      file--it's just a waste of time and space. */
 
   vfm_sink_info.ncases = 0;
-  vfm_sink_info.nval = dict_get_value_cnt (default_dict);
-  vfm_sink_info.case_size = (sizeof (struct ccase)
-			     + ((dict_get_value_cnt (default_dict) - 1)
-                                * sizeof (union value)));
+  vfm_sink_info.nval = dict_get_next_value_idx (default_dict);
+  vfm_sink_info.case_size = dict_get_case_size (default_dict);
   
   if (vfm_sink == NULL)
     {
@@ -318,14 +316,17 @@ arrange_compaction (void)
             count_values += v->nv;
           } 
       }
-    assert (temporary == 2 || count_values <= dict_get_value_cnt (temp_dict));
+    assert (temporary == 2
+            || count_values <= dict_get_next_value_idx (temp_dict));
   }
   
   /* Compaction is only necessary if the number of `value's to output
      differs from the number already present. */
   compaction_nval = count_values;
-  compaction_necessary = (temporary == 2
-                          || count_values != dict_get_value_cnt (temp_dict));
+  if (temporary == 2 || count_values != dict_get_next_value_idx (temp_dict))
+    compaction_necessary = 1;
+  else
+    compaction_necessary = 0;
   
   if (vfm_sink->init)
     vfm_sink->init ();
@@ -399,8 +400,7 @@ setup_lag (void)
   lag_head = 0;
   lag_queue = xmalloc (n_lag * sizeof *lag_queue);
   for (i = 0; i < n_lag; i++)
-    lag_queue[i] = xmalloc (dict_get_value_cnt (temp_dict)
-                            * sizeof **lag_queue);
+    lag_queue[i] = xmalloc (dict_get_case_size (temp_dict));
 }
 
 /* There is a lot of potential confusion in the vfm and related
@@ -881,7 +881,7 @@ lag_case (void)
   if (lag_count < n_lag)
     lag_count++;
   memcpy (lag_queue[lag_head], temp_case,
-          sizeof (union value) * dict_get_value_cnt (temp_dict));
+          dict_get_case_size (temp_dict));
   if (++lag_head >= n_lag)
     lag_head = 0;
 }

@@ -424,9 +424,7 @@ create_sysfile (void)
     }
     
   buf64_1xx = xmalloc (sizeof *buf64_1xx * w.case_size);
-  buf_1xx = xmalloc (sizeof (struct ccase)
-                     + (sizeof (union value)
-                        * (dict_get_value_cnt (agr_dict) - 1)));
+  buf_1xx = xmalloc (dict_get_case_size (agr_dict));
 
   return 1;
 }

@@ -489,8 +489,8 @@ allocate_cases (void)
 {
   /* This is the size of one case. */
   const int case_size = (sizeof (struct repl_sel_tree)
-			 + (sizeof (union value)
-                            * (dict_get_value_cnt (default_dict) - 1))
+			 + dict_get_case_size (default_dict)
+                         - sizeof (union value)
 			 + sizeof (struct repl_sel_tree *));
 
   x = NULL;
@@ -506,8 +506,8 @@ allocate_cases (void)
       for (i = 0; i < x_max; i++)
 	{
 	  x[i] = malloc (sizeof (struct repl_sel_tree)
-			 + (sizeof (union value)
-                            * (dict_get_value_cnt (default_dict) - 1)));
+                         + dict_get_case_size (default_dict)
+			 - sizeof (union value));
 	  if (x[i] == NULL)
 	    break;
 	}
@@ -733,8 +733,7 @@ write_initial_runs (int separate)
 	J->rn = 0;
 	J->fe = x[(x_max + j) / 2];
 	J->fi = x[j / 2];
-	memset (J->record, 0,
-                dict_get_value_cnt (default_dict) * sizeof (union value));
+	memset (J->record, 0, dict_get_case_size (default_dict));
       }
   }
 
@@ -921,11 +920,10 @@ merge (void)
   order = MAX_MERGE_ORDER;
   if (x_max / order < MIN_BUFFER_SIZE_RECS)
     order = x_max / MIN_BUFFER_SIZE_RECS;
-  else if (x_max / order * sizeof (union value) * dict_get_value_cnt (default_dict)
+  else if (x_max / order * dict_get_case_size (default_dict)
 	   < MIN_BUFFER_SIZE_BYTES)
     order = x_max / (MIN_BUFFER_SIZE_BYTES
-		     / (sizeof (union value)
-                        * (dict_get_value_cnt (default_dict) - 1)));
+                     / dict_get_case_size (default_dict));
 
   /* Make sure the order of merge is bounded. */
   if (order < 2)
@@ -1065,9 +1063,8 @@ merge_once (int run_index[], int run_length[], int n_runs)
 
 	  buffered[i] = min (records_per_buffer, run_length[i]);
 	  for (j = 0; j < buffered[i]; j++)
-	    if ((int) fread (x[j + ofs]->record, sizeof (union value),
-			     dict_get_value_cnt (default_dict), handle[i])
-		!= dict_get_value_cnt (default_dict))
+	    if (fread (x[j + ofs]->record,
+                       dict_get_case_size (default_dict), 1, handle[i]) != 1)
 	      {
 		sprintf (tmp_extname, "%08x", run_index[i]);
 		if (ferror (handle[i]))
@@ -1094,10 +1091,9 @@ merge_once (int run_index[], int run_length[], int n_runs)
 			    x[buffer_ptr[i]]->record) > 0)
 	  min = i;
 
-      if ((int) fwrite (x[buffer_ptr[min]]->record, sizeof (union value),
-			dict_get_value_cnt (default_dict),
-                        handle[N_INPUT_BUFFERS])
-	  != dict_get_value_cnt (default_dict))
+      if (fwrite (x[buffer_ptr[min]]->record,
+                  dict_get_case_size (default_dict), 1,
+                  handle[N_INPUT_BUFFERS]) != 1)
 	{
 	  sprintf (tmp_extname, "%08x", run_index[i]);
 	  msg (SE, _("%s: Error writing temporary file in "
@@ -1124,10 +1120,9 @@ merge_once (int run_index[], int run_length[], int n_runs)
 
 	      buffered[min] = min (records_per_buffer, run_length[min]);
 	      for (j = 0; j < buffered[min]; j++)
-		if ((int) fread (x[j + ofs]->record, sizeof (union value),
-				 dict_get_value_cnt (default_dict),
-                                 handle[min])
-		    != dict_get_value_cnt (default_dict))
+		if (fread (x[j + ofs]->record,
+                           dict_get_case_size (default_dict), 1, handle[min])
+                    != 1)
 		  {
 		    sprintf (tmp_extname, "%08x", run_index[min]);
 		    if (ferror (handle[min]))

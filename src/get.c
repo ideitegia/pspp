@@ -989,8 +989,7 @@ mtf_read_nonactive_records (void *aux UNUSED)
       if (iter->handle)
 	{
 	  assert (iter->input == NULL);
-	  iter->input = xmalloc (sizeof *iter->input
-                                 * dict_get_value_cnt (iter->dict));
+	  iter->input = xmalloc (dict_get_case_size (iter->dict));
 	  
 	  if (!sfm_read_case (iter->handle, iter->input, iter->dict))
 	    mtf_delete_file_in_place (&iter);

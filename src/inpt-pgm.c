@@ -85,7 +85,7 @@ cmd_end_input_program (void)
       return CMD_FAILURE;
     }
   
-  if (dict_get_value_cnt (default_dict) == 0)
+  if (dict_get_next_value_idx (default_dict) == 0)
     msg (SW, _("No data-input or transformation commands specified "
 	 "between INPUT PROGRAM and END INPUT PROGRAM."));
 
@@ -94,7 +94,7 @@ cmd_end_input_program (void)
   f_trns = n_trns;
 
   /* Figure out how to initialize temp_case. */
-  inp_nval = dict_get_value_cnt (default_dict);
+  inp_nval = dict_get_next_value_idx (default_dict);
   inp_init = xmalloc (inp_nval * sizeof *inp_init);
   for (i = 0; i < inp_nval; i++)
     inp_init[i] = -1;
