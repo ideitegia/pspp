@@ -11,7 +11,7 @@ aclocal.m4:
 	aclocal -I m4
 
 
-install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in
+install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in ABOUT-NLS
 	automake --add-missing
 
 po/Makefile.in.in intl ABOUT-NLS:
@@ -32,6 +32,7 @@ po/Makefile.in.in intl ABOUT-NLS:
 .PHONY: clean
 clean:
 	$(RM) config.sub config.guess
+	$(RM) ABOUT-NLS
 	$(RM) -r autom4te.cache
 	$(RM) aclocal.m4
 	$(RM) missing mkinstalldirs
