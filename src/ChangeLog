@@ -1,3 +1,7 @@
+Sun Mar  6 23:25:40 2005  Ben Pfaff  <blp@gnu.org>
+
+	* data-in.c: Use `bool' throughout, where relevant.
+
 Sun Mar  6 19:52:22 2005  Ben Pfaff  <blp@gnu.org>
 
 	DATA LIST with free-field formats should not have implied decimal
