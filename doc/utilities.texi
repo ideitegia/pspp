@@ -20,6 +20,7 @@ encountered in the input.
 * FINISH::                      Terminate the PSPP session.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
+* PERMISSIONS::                 Change permissions on a file.
 * QUIT::                        Terminate the PSPP session.
 * SET::                         Adjust PSPP runtime parameters.
 * SHOW::                        Display runtime parameters.
@@ -169,7 +170,7 @@ to the operating system.
 This command cannot be used if the SAFER setting is active.
 
 
-@node INCLUDE, QUIT, HOST, Utilities
+@node INCLUDE, PERMISSIONS, HOST, Utilities
 @section INCLUDE
 @vindex INCLUDE
 @vindex @@
@@ -187,7 +188,31 @@ command file.
 Include files may be nested to any depth, up to the limit of available
 memory.
 
-@node QUIT, SET, INCLUDE, Utilities
+@node PERMISSIONS, QUIT, INCLUDE, Utilities
+@comment  node-name,  next,  previous,  up
+@section PERMISSIONS
+@vindex PERMISSIONS
+@cindex mode
+@cindex file mode
+@cindex changing file permissions
+
+@display
+PERMISSIONS
+        FILE='filename'
+        /PERMISSIONS = @{READONLY,WRITEABLE@}.
+@end display
+
+@cmd{PERMISSIONS} changes the permissions of a file.  
+There is one mandatory subcommand which specifies the permissions to
+which the file should be changed.  
+If you set a file's  permission  to READONLY, then the file will become
+unwritable either by you or anyone else on the system.
+If you set the permission to WRITEABLE, then the file will become
+writeable by you; the permissions afforded to others will be
+unchanged.
+
+
+@node QUIT, SET, PERMISSIONS, Utilities
 @section QUIT
 @vindex QUIT
 

@@ -3,8 +3,6 @@
 @setfilename pspp.info
 @settitle PSPP
 @set TIMESTAMP Time-stamp:  Sat Oct 30 17:30:39 WST 2004
-@set EDITION 0.21
-@set VERSION 0.31
 @c For double-sided printing, uncomment:
 @c @setchapternewpage odd
 @c %**end of header
@@ -56,6 +54,8 @@ versions, except that this permission notice may be stated in a
 translation approved by the Free Software Foundation.
 @end ifinfo
 
+@include version.texi
+
 @titlepage
 @title PSPP
 @subtitle A System for Statistical Analysis
@@ -83,6 +83,7 @@ approved by the Foundation.
 @end titlepage
 
 @contents
+
 
 @node Top, Introduction, (dir), (dir)
 @ifinfo

@@ -64,7 +64,8 @@ groff-font.c group.c group.h group_proc.h \
 hash.c hash.h html.c htmlP.h include.c inpt-pgm.c lexer.c	\
 lexer.h levene.c levene.h log.h loop.c magic.c magic.h main.c main.h	\
 matrix-data.c mis-val.c misc.c misc.h modify-vars.c			\
-moments.c moments.h numeric.c output.c output.h pfm-read.c pfm-read.h	\
+moments.c moments.h numeric.c output.c output.h permissions.c \
+pfm-read.c pfm-read.h	\
 pfm-write.c pfm-write.h \
 pool.c pool.h postscript.c print.c random.c random.h recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\

@@ -1,3 +1,7 @@
+Tue Nov 16 13:19:18 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* permissions.c command.def Added the PERMISSIONS command
+
 Mon Nov 15 01:33:32 2004  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: (dump_header) Don't try to emit #includes at very top of

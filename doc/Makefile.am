@@ -2,7 +2,7 @@
 
 info_TEXINFOS = pspp.texinfo 
 
-pspp_TEXINFOS = \
+pspp_TEXINFOS = version.texi \
 	bugs.texi \
 	command-index.texi \
 	concept-index.texi \

@@ -160,7 +160,7 @@ write_legend(struct chart *chart, const char *heading,
 
 /* Plot a data point */
 void
-chart_datum(struct chart *ch, int dataset, double x, double y)
+chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
 {
   const double x_pos = 
     (x - ch->x_min) * ch->abscissa_scale + ch->data_left ; 
