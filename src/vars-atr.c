@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "do-ifP.h"
 #include "expr.h"
 #include "file-handle.h"
@@ -33,6 +34,44 @@
 #include "vfm.h"
 
 #include "debug-print.h"
+
+void *
+var_attach_aux (struct variable *v,
+                void *aux, void (*aux_dtor) (struct variable *)) 
+{
+  assert (v->aux == NULL);
+  assert (aux != NULL);
+  v->aux = aux;
+  v->aux_dtor = aux_dtor;
+  return aux;
+}
+
+void *
+var_detach_aux (struct variable *v) 
+{
+  void *aux = v->aux;
+  assert (aux != NULL);
+  v->aux = NULL;
+  return aux;
+}
+
+void
+var_clear_aux (struct variable *v) 
+{
+  assert (v != NULL);
+  if (v->aux != NULL) 
+    {
+      if (v->aux_dtor != NULL)
+        v->aux_dtor (v);
+      v->aux = NULL;
+    }
+}
+
+void
+var_dtor_free (struct variable *v) 
+{
+  free (v->aux);
+}
 
 /* Compares A and B, which both have the given WIDTH, and returns
    a strcmp()-type result. */
@@ -67,7 +106,7 @@ void
 discard_variables (void)
 {
   dict_clear (default_dict);
-  default_handle = inline_file;
+  default_handle = NULL;
 
   n_lag = 0;
   

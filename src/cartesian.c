@@ -27,7 +27,7 @@
 struct dataset
 {
   int n_data;
-  char *label;
+  const char *label;
 };
 
 

@@ -17,9 +17,14 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
+#include <config.h>
+#include <stdlib.h>
+#include "alloc.h"
 #include "hash.h"
 #include "group.h"
-#include <string.h>
+#include "group_proc.h"
+#include "str.h"
+#include "var.h"
 
 
 /* Return -1 if the id of a is less than b; +1 if greater than and 
@@ -48,7 +53,17 @@ hash_group(const struct group_statistics *g, int width)
 
 
 void  
-free_group(struct group_statistics *v, void *aux)
+free_group(struct group_statistics *v, void *aux UNUSED)
 {
   free(v);
+}
+
+
+struct group_proc *
+group_proc_get (struct variable *v)
+{
+  /* This is not ideal, obviously. */
+  if (v->aux == NULL) 
+    var_attach_aux (v, xmalloc (sizeof (struct group_proc)), var_dtor_free);
+  return v->aux;
 }

@@ -25,6 +25,7 @@
 #include "case.h"
 #include "command.h"
 #include "devind.h"
+#include "dictionary.h"
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
@@ -36,6 +37,7 @@
 #include "var.h"
 #include "vfm.h"
 #include "format.h"
+/* (headers) */
 
 #include "debug-print.h"
 

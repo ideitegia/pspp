@@ -30,6 +30,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "casefile.h"
+#include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"

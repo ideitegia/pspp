@@ -89,7 +89,7 @@ static const char subcat_name[]="Gender";
 
 struct subcat {
   const double *data;
-  char   *label;
+  const char *label;
 };
 
 static const struct subcat sub_catagory[SUB_CATAGORIES] = 

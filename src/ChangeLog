@@ -1,3 +1,229 @@
+Mon Nov 15 01:33:32 2004  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: (dump_header) Don't try to emit #includes at very top of
+	output file because that will precede #include <config.h>, which
+	is bad.
+	(main) Add needed headers to /* (header) */ code.
+
+Mon Nov 15 01:21:36 2004  Ben Pfaff  <blp@gnu.org>
+
+	Instead of making system or portable file readers responsible for
+	dropping and reordering variables, make them read full cases and
+	let the caller take care of any changes.
+
+	* get.c: New "case map" structure to handle this.  Use for GET,
+	IMPORT, MATCH FILES.  Essentially rewrite the whole file.
+
+	* pfm-read.c: (pfm_read_case) Read into provided case.  Signature
+	changed appropriately.
+
+	* sfm-read.c: (sfm_read_case) Ditto.
+
+Mon Nov 15 00:47:45 2004  Ben Pfaff  <blp@gnu.org>
+
+	Decided that case_serialize() and case_unserialize() were too
+	abstract.  Also we need a couple more functions to avoid excessive
+	copying for data in/out fast paths.
+
+	* case.c: (case_serial_size) Removed.
+	(case_serialize) Rename case_to_values() and make its argument
+	explicitly an array of union values.
+	(case_unserialize) Rename case_from_values() and make its argument
+	explicitly an array of union values.
+	(case_data_all) New function.
+	(case_data_all_rw) New function.
+
+	* casefile.c: (struct casefile) Change buffer from array of
+	unsigned char to array of union value for better accuracy.
+	Redefine buffer_used and buffer_size in terms of values, not
+	bytes.  Remove case_size because it is now redundant with
+	value_cnt.  Fix up all references to these members.
+
+Mon Nov 15 00:45:46 2004  Ben Pfaff  <blp@gnu.org>
+
+	* barchart.c: (struct subcat) Make `label' member const to silence
+	GCC warning with -Wwrite-strings.
+
+	* cartesian.c: (struct dataset) Ditto.
+
+	* case.c: Don't re-define NDEBUG if already defined.
+	Add lots of comments.
+
+	* str.c: Fix includes.
+
+	* crosstabs.q: Fix includes.
+
+	* examine.q: Fix includes.  Fix GCC warning about unused
+	variables.
+	
+	* frequencies.q: (stat macro) Removed and replaced where used by
+	its expansion.
+
+	* list.q: Fix includes.
+
+	* oneway.q: Fix includes.
+
+	* piechart.c: Fix includes.  Only define M_PI if not already
+	defined.
+
+	* sfm-read.c: (bswap) New function.
+	(bswap_int32) Write in terms of bswap.
+	(bswap_flt64) Ditto.
+
+	* str.c: (ds_data) Add external definition here, needed because
+	str.h has only an `extern inline' version.
+
+	* value-labels.c: Fix includes.
+
+Mon Nov 15 00:40:55 2004  Ben Pfaff  <blp@gnu.org>
+
+	Instead of providing a system or portable file writer with a raw
+	case in the format needed for output, provide it with a regular
+	case.  The writer takes care of any needed translation.
+
+	* aggregate.c: Adopt new scheme for AGGREGATE.
+	(struct agr_proc) sfm_agr_case member removed.
+	(write_case_to_sfm) Removed because the new interface is easier to
+	use.
+
+	* get.c: Adopt new scheme for SAVE, XSAVE, EXPORT.
+
+	* pfm-write.c: Implement new scheme.
+
+	* sfm-write.c: Ditto.
+
+Mon Nov 15 00:32:24 2004  Ben Pfaff  <blp@gnu.org>
+
+	Instead of treating `struct file_handle' as a class to subclass
+	into data files, system files, and portable files, instead use it
+	as a helper that coordinates access.  Now it is opaque, too.
+
+	This means that most references to a struct file_handle are now
+	changed into references to one of struct dfm_reader, struct
+	dfm_writer, struct sfm_reader, struct sfm_writer, struct
+	pfm_reader, or struct pfm_writer, according to what's being read
+	or written.
+
+	Most related changes are only worth summarizing briefly.
+
+	* dictionary.c: (dict_clear) Destroy aux data in deleted
+	variables.
+	(dict_clear_aux) New function.
+	(dict_create_var) Initialize aux, aux_dtor.
+	(dict_delete_var) Destroy aux data in deleted variable.
+
+	* file-handle.h: (struct fh_ext_class) Removed.
+	(struct file_handle) Removed.
+	(fh_init_files) Removed.
+
+	* file-handle.q: Changed references to a handle's `private' member
+	to direct references.
+	(struct private_file_handle) Renamed file_handle.
+	Add next, open_cnt, type, open_mode, aux members.
+	(struct file_handle_list) Removed.
+	(extern var inline_file) Removed.
+	(static var file_handles) Changed from file_handle_list * to
+	file_handle *.
+	(create_file_handle) Initialize new members.
+	(fh_close_handle) Removed.
+	(mode_name) New function.
+	(fh_open) New function.
+	(fh_close) New function.
+	(fh_parse_file_handle) Renamed fh_parse().
+
+	* glob.c: (init_glob) Remove fh_init_files() call.
+	
+	* aggregate.c: use sfm_writer.
+	(create_sysfile) Removed because the new interface is simpler.
+	
+	* apply-dict.c: Use sfm_reader.
+
+	* data-list.c: Use dfm_reader.
+
+	* file-type.c: Use dfm_reader.
+
+	* get.c: Use sfm_reader, sfm_writer, pfm_reader, pfm_writer.
+
+	* inpt-pgm.c: Use dfm_reader.
+
+	* print.c: Use dfm_writer.
+
+	* sysfile-info: Use sfm_reader.
+
+	* dfm-read.c: Adopt new file handle infrastructure.
+
+	* dfm-write.c: Ditto.
+
+	* pfm-read.c: Ditto.
+	
+	* pfm-write.c: Ditto.
+
+	* sfm-read.c: Ditto.
+
+	* sfm-write.c: Ditto.
+	
+Mon Nov 15 00:31:44 2004  Ben Pfaff  <blp@gnu.org>
+
+	Break dictionary functions into separate header file.
+
+	* dictionary.h: New file.
+
+	* var.h: Moved dict_*() functions to dictionary.h.
+
+Mon Nov 15 00:30:33 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of procedure-specific union in struct variable, using
+	instead a void * pointer and a destructor function.
+
+	Most related changes are only worth brief summaries.
+
+	* crosstabs.q: Fix includes.  Use new struct var_range in lieu of
+	old p.crs member in struct variable.
+	
+	* frequencies.q: Fix includes.  Use new struct var_freqs in lieu
+	of old p.frq member in struct variable.
+
+	* histogram.c: (draw_histogram) Takes new freq_tab arg because
+	it's no longer possible to grab this from var->p.frq.
+
+	* piechart.c: (draw_piechart) Ditto.
+
+	* group.c: (group_proc_get) New function.
+
+	* levene.c: Use group_proc_get() in lieu of old p.grp_data member
+	in struct variable.
+
+	* oneway.q: Ditto.
+
+	* t-test.q: Ditto.
+
+	* main.c: (execute_command) Clear aux data in default_dict after
+	each command.  (It's debatable whether this should be done.)
+
+	* matrix-data.c: Use new struct mxd_var in lieu of old p.mxd
+	member in struct variable.
+
+	* means.q: Get rid of integer mode, which is not included in
+	recent SPSS and was the only code that wanted per-variable private
+	data.
+
+	* var.h: (struct crosstab_proc) Removed.
+	(struct frequencies_proc) Removed.
+	(struct list_proc) Removed.
+	(struct get_proc) Removed.
+	(struct means_proc) Removed.
+	(struct matrix_data_proc) Removed.
+	(struct match_files_proc) Removed.
+	(lots of enums) Removed.
+	(struct variable) Removed members `p', `get'.  Add member
+	`aux_dtor'.
+
+	* vars-atr.c: (var_attach_aux) New function.
+	(var_detach_aux) New function.
+	(var_clear_aux) New function.
+	(var_dtor_free) New function.
+	(discard_variables) Use NULL instead of inline_file.
+
 Fri Nov 12 10:07:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* value-labs.c  Fixed the implmentation of value_to_string, so 

@@ -23,14 +23,17 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "hash.h"
 #include "lexer.h"
 #include "misc.h"
-#include "pfm.h"
+#include "pfm-read.h"
+#include "pfm-write.h"
 #include "settings.h"
-#include "sfm.h"
+#include "sfm-read.h"
+#include "sfm-write.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -39,192 +42,237 @@
 
 #include "debug-print.h"
 
-/* GET or IMPORT input program. */
+/* Rearranging and reducing a dictionary. */
+static void start_case_map (struct dictionary *);
+static struct case_map *finish_case_map (struct dictionary *);
+static void map_case (const struct case_map *,
+                      const struct ccase *, struct ccase *);
+static void destroy_case_map (struct case_map *);
+
+/* Operation type. */
+enum operation 
+  {
+    OP_READ,    /* GET or IMPORT. */
+    OP_SAVE,    /* SAVE or XSAVE. */
+    OP_EXPORT,  /* EXPORT. */
+    OP_MATCH    /* MATCH FILES. */
+  };
+
+static int trim_dictionary (struct dictionary *,
+                            enum operation, int *compress);
+
+/* GET input program. */
 struct get_pgm 
   {
-    struct file_handle *handle; /* File to GET or IMPORT from. */
-    size_t case_size;           /* Case size in bytes. */
+    struct sfm_reader *reader;  /* System file reader. */
+    struct case_map *map;       /* Map from system file to active file dict. */
+    struct ccase bounce;        /* Bounce buffer. */
   };
 
-/* XSAVE transformation (and related SAVE, EXPORT procedures). */
-struct save_trns
-  {
-    struct trns_header h;
-    struct file_handle *f;	/* Associated system file. */
-    int nvar;			/* Number of variables. */
-    struct variable **var;      /* Variables. */
-    flt64 *case_buf;		/* Case transfer buffer. */
-  };
-
-/* Options bits set by trim_dictionary(). */
-#define GTSV_OPT_COMPRESSED	001	/* Compression; (X)SAVE only. */
-#define GTSV_OPT_SAVE		002	/* The SAVE/XSAVE/EXPORT procedures. */
-#define GTSV_OPT_MATCH_FILES	004	/* The MATCH FILES procedure. */
-#define GTSV_OPT_NONE		0
-
-static int trim_dictionary (struct dictionary * dict, int *options);
-static int save_write_case_func (struct ccase *, void *);
-static trns_proc_func save_trns_proc;
-static trns_free_func save_trns_free;
+static void get_pgm_free (struct get_pgm *);
 
 /* Parses the GET command. */
 int
 cmd_get (void)
 {
-  struct file_handle *handle;
-  struct dictionary *dict;
-  struct get_pgm *pgm;
-  int options = GTSV_OPT_NONE;
+  struct get_pgm *pgm = NULL;
+  struct file_handle *fh;
+  struct dictionary *dict = NULL;
+
+  pgm = xmalloc (sizeof *pgm);
+  pgm->reader = NULL;
+  pgm->map = NULL;
+  case_nullify (&pgm->bounce);
 
   discard_variables ();
 
   lex_match ('/');
   if (lex_match_id ("FILE"))
     lex_match ('=');
+  fh = fh_parse ();
+  if (fh == NULL)
+    goto error;
 
-  handle = fh_parse_file_handle ();
-  if (handle == NULL)
-    return CMD_FAILURE;
+  pgm->reader = sfm_open_reader (fh, &dict, NULL);
+  if (pgm->reader == NULL)
+    goto error;
+  case_create (&pgm->bounce, dict_get_next_value_idx (dict));
 
-  dict = sfm_read_dictionary (handle, NULL);
-  if (dict == NULL)
-    return CMD_FAILURE;
-
-  if (0 == trim_dictionary (dict, &options))
-    {
-      fh_close_handle (handle);
-      return CMD_FAILURE;
-    }
-
-  dict_compact_values (dict);
+  start_case_map (dict);
+  if (!trim_dictionary (dict, OP_READ, NULL))
+    goto error;
+  pgm->map = finish_case_map (dict);
 
   dict_destroy (default_dict);
   default_dict = dict;
 
-  pgm = xmalloc (sizeof *pgm);
-  pgm->handle = handle;
-  pgm->case_size = dict_get_case_size (default_dict);
   vfm_source = create_case_source (&get_source_class, default_dict, pgm);
 
   return CMD_SUCCESS;
+
+ error:
+  get_pgm_free (pgm);
+  if (dict != NULL)
+    dict_destroy (dict);
+  return CMD_FAILURE;
 }
 
-/* SAVE or XSAVE command? */
-enum save_cmd 
+/* Frees a struct get_pgm. */
+static void
+get_pgm_free (struct get_pgm *pgm) 
+{
+  if (pgm != NULL) 
+    {
+      sfm_close_reader (pgm->reader);
+      destroy_case_map (pgm->map);
+      case_destroy (&pgm->bounce);
+      free (pgm);
+    }
+}
+
+/* Clears internal state related to GET input procedure. */
+static void
+get_source_destroy (struct case_source *source)
+{
+  struct get_pgm *pgm = source->aux;
+  get_pgm_free (pgm);
+}
+
+/* Reads all the cases from the data file into C and passes them
+   to WRITE_CASE one by one, passing WC_DATA. */
+static void
+get_source_read (struct case_source *source,
+                 struct ccase *c,
+                 write_case_func *write_case, write_case_data wc_data)
+{
+  struct get_pgm *pgm = source->aux;
+  int ok;
+
+  do
+    {
+      if (pgm->map == NULL)
+        ok = sfm_read_case (pgm->reader, c);
+      else
+        {
+          ok = sfm_read_case (pgm->reader, &pgm->bounce);
+          if (ok)
+            map_case (pgm->map, &pgm->bounce, c);
+        }
+
+      if (ok)
+        ok = write_case (wc_data);
+    }
+  while (ok);
+}
+
+const struct case_source_class get_source_class =
   {
-    CMD_SAVE,
-    CMD_XSAVE
+    "GET",
+    NULL,
+    get_source_read,
+    get_source_destroy,
+  };
+
+/* XSAVE transformation and SAVE procedure. */
+struct save_trns
+  {
+    struct trns_header h;
+    struct sfm_writer *writer;  /* System file writer. */
+    struct case_map *map;       /* Map from active file to system file dict. */
+    struct ccase bounce;        /* Bounce buffer. */
   };
 
-/* Parses the SAVE and XSAVE commands.  */
-static int
-cmd_save_internal (enum save_cmd save_cmd)
+static int save_write_case_func (struct ccase *, void *);
+static trns_proc_func save_trns_proc;
+static trns_free_func save_trns_free;
+
+/* Parses the SAVE or XSAVE command
+   and returns the parsed transformation. */
+static struct save_trns *
+cmd_save_internal (void)
 {
-  struct file_handle *handle;
-  struct dictionary *dict;
-  int options = GTSV_OPT_SAVE;
+  struct file_handle *fh;
+  struct dictionary *dict = NULL;
+  struct save_trns *t = NULL;
+  int compress = get_scompression ();
 
-  struct save_trns *t;
-  struct sfm_write_info inf;
-
-  int i;
-
-  lex_match ('/');
-  if (lex_match_id ("OUTFILE"))
-    lex_match ('=');
-
-  handle = fh_parse_file_handle ();
-  if (handle == NULL)
-    return CMD_FAILURE;
-
-  dict = dict_clone (default_dict);
-  for (i = 0; i < dict_get_var_cnt (dict); i++) 
-    dict_get_var (dict, i)->aux = dict_get_var (default_dict, i);
-  if (0 == trim_dictionary (dict, &options))
-    {
-      fh_close_handle (handle);
-      return CMD_FAILURE;
-    }
-
-  /* Write dictionary. */
-  inf.h = handle;
-  inf.dict = dict;
-  inf.compress = !!(options & GTSV_OPT_COMPRESSED);
-  if (!sfm_write_dictionary (&inf))
-    {
-      dict_destroy (dict);
-      fh_close_handle (handle);
-      return CMD_FAILURE;
-    }
-
-  /* Fill in transformation structure. */
   t = xmalloc (sizeof *t);
   t->h.proc = save_trns_proc;
   t->h.free = save_trns_free;
-  t->f = handle;
-  t->nvar = dict_get_var_cnt (dict);
-  t->var = xmalloc (sizeof *t->var * t->nvar);
-  for (i = 0; i < t->nvar; i++)
-    t->var[i] = dict_get_var (dict, i)->aux;
-  t->case_buf = xmalloc (sizeof *t->case_buf * inf.case_size);
+  t->writer = NULL;
+  t->map = NULL;
+  case_nullify (&t->bounce);
+  
+  lex_match ('/');
+  if (lex_match_id ("OUTFILE"))
+    lex_match ('=');
+  fh = fh_parse ();
+  if (fh == NULL)
+    goto error;
+
+  dict = dict_clone (default_dict);
+  start_case_map (dict);
+  if (!trim_dictionary (dict, OP_SAVE, &compress))
+    goto error;
+  t->map = finish_case_map (dict);
+  if (t->map != NULL)
+    case_create (&t->bounce, dict_get_next_value_idx (dict));
+
+  t->writer = sfm_open_writer (fh, dict, compress);
+  if (t->writer == NULL)
+    goto error;
+
   dict_destroy (dict);
 
-  if (save_cmd == CMD_SAVE)
-    {
-      procedure (save_write_case_func, t);
-      save_trns_free (&t->h);
-    }
-  else 
-    {
-      assert (save_cmd == CMD_XSAVE);
-      add_transformation (&t->h); 
-    }
+  return t;
 
-  return CMD_SUCCESS;
+ error:
+  assert (t != NULL);
+  dict_destroy (dict);
+  save_trns_free (&t->h);
+  return NULL;
 }
 
 /* Parses and performs the SAVE procedure. */
 int
 cmd_save (void)
 {
-  return cmd_save_internal (CMD_SAVE);
+  struct save_trns *t = cmd_save_internal ();
+  if (t != NULL) 
+    {
+      procedure (save_write_case_func, t);
+      save_trns_free (&t->h);
+      return CMD_SUCCESS;
+    }
+  else
+    return CMD_FAILURE;
 }
 
 /* Parses the XSAVE transformation command. */
 int
 cmd_xsave (void)
 {
-  return cmd_save_internal (CMD_XSAVE);
+  struct save_trns *t = cmd_save_internal ();
+  if (t != NULL) 
+    {
+      add_transformation (&t->h);
+      return CMD_SUCCESS; 
+    }
+  else
+    return CMD_FAILURE;
 }
 
 /* Writes the given C to the file specified by T. */
 static void
 do_write_case (struct save_trns *t, struct ccase *c) 
 {
-  flt64 *p = t->case_buf;
-  int i;
-
-  for (i = 0; i < t->nvar; i++)
+  if (t->map == NULL)
+    sfm_write_case (t->writer, c);
+  else 
     {
-      struct variable *v = t->var[i];
-      if (v->type == NUMERIC)
-	{
-	  double src = case_num (c, v->fv);
-	  if (src == SYSMIS)
-	    *p++ = -FLT64_MAX;
-	  else
-	    *p++ = src;
-	}
-      else
-	{
-	  memcpy (p, case_str (c, v->fv), v->width);
-	  memset (&((char *) p)[v->width], ' ',
-		  REM_RND_UP (v->width, sizeof *p));
-	  p += DIV_RND_UP (v->width, sizeof *p);
-	}
+      map_case (t->map, c, &t->bounce);
+      sfm_write_case (t->writer, &t->bounce);
     }
-
-  sfm_write_case (t->f, t->case_buf, p - t->case_buf);
 }
 
 /* Writes case C to the system file specified on SAVE. */
@@ -246,33 +294,39 @@ save_trns_proc (struct trns_header *h, struct ccase *c, int case_num UNUSED)
 
 /* Frees a SAVE transformation. */
 static void
-save_trns_free (struct trns_header *pt)
+save_trns_free (struct trns_header *t_)
 {
-  struct save_trns *t = (struct save_trns *) pt;
+  struct save_trns *t = (struct save_trns *) t_;
 
-  fh_close_handle (t->f);
-  free (t->var);
-  free (t->case_buf);
-  free (t);
+  if (t != NULL) 
+    {
+      sfm_close_writer (t->writer);
+      destroy_case_map (t->map);
+      case_destroy (&t->bounce);
+    }
 }
 
-static int rename_variables (struct dictionary * dict);
+static int rename_variables (struct dictionary *dict);
 
-/* The GET and SAVE commands have a common structure after the
-   FILE/OUTFILE subcommand.  This function parses this structure and
-   returns nonzero on success, zero on failure.  It both reads
-   *OPTIONS, for the GTSV_OPT_SAVE bit, and writes it, for the
-   GTSV_OPT_COMPRESSED bit. */
+/* Commands that read and write system files share a great deal
+   of common syntactic structure for rearranging and dropping
+   variables.  This function parses this syntax and modifies DICT
+   appropriately.
+
+   OP is the operation being performed.  For operations that
+   write a system file, *COMPRESS is set to 1 if the system file
+   should be compressed, 0 otherwise.
+   
+   Returns nonzero on success, zero on failure. */
 /* FIXME: IN, FIRST, LAST, MAP. */
-/* FIXME?  Should we call dict_compact_values() on dict as a
-   final step? */
 static int
-trim_dictionary (struct dictionary *dict, int *options)
+trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
 {
+  assert ((compress != NULL) == (op == OP_SAVE));
   if (get_scompression())
-    *options |= GTSV_OPT_COMPRESSED;
+    *compress = 1;
 
-  if (*options & GTSV_OPT_SAVE)
+  if (op == OP_SAVE || op == OP_EXPORT)
     {
       /* Delete all the scratch variables. */
       struct variable **v;
@@ -288,12 +342,12 @@ trim_dictionary (struct dictionary *dict, int *options)
       free (v);
     }
   
-  while ((*options & GTSV_OPT_MATCH_FILES) || lex_match ('/'))
+  while (op == OP_MATCH || lex_match ('/'))
     {
-      if (!(*options & GTSV_OPT_MATCH_FILES) && lex_match_id ("COMPRESSED"))
-	*options |= GTSV_OPT_COMPRESSED;
-      else if (!(*options & GTSV_OPT_MATCH_FILES) && lex_match_id ("UNCOMPRESSED"))
-	*options &= ~GTSV_OPT_COMPRESSED;
+      if (op == OP_SAVE && lex_match_id ("COMPRESSED"))
+	*compress = 1;
+      else if (op == OP_SAVE && lex_match_id ("UNCOMPRESSED"))
+	*compress = 0;
       else if (lex_match_id ("DROP"))
 	{
 	  struct variable **v;
@@ -342,8 +396,8 @@ trim_dictionary (struct dictionary *dict, int *options)
 	  return 0;
 	}
 
-      if (*options & GTSV_OPT_MATCH_FILES)
-	return 1;
+      if (op == OP_MATCH)
+        goto success;
     }
 
   if (token != '.')
@@ -351,13 +405,16 @@ trim_dictionary (struct dictionary *dict, int *options)
       lex_error (_("expecting end of command"));
       return 0;
     }
-  
+
+ success:
+  if (op != OP_MATCH)
+    dict_compact_values (dict);
   return 1;
 }
 
 /* Parses and performs the RENAME subcommand of GET and SAVE. */
 static int
-rename_variables (struct dictionary * dict)
+rename_variables (struct dictionary *dict)
 {
   int i;
 
@@ -444,40 +501,88 @@ done:
   return success;
 }
 
-/* Clears internal state related to GET input procedure. */
-static void
-get_source_destroy (struct case_source *source)
-{
-  struct get_pgm *pgm = source->aux;
-
-  /* It is not necessary to destroy the dictionary because if we get
-     to this point then the dictionary is default_dict. */
-  fh_close_handle (pgm->handle);
-  free (pgm);
-}
-
-/* Reads all the cases from the data file into C and passes them
-   to WRITE_CASE one by one, passing WC_DATA. */
-static void
-get_source_read (struct case_source *source,
-                 struct ccase *c,
-                 write_case_func *write_case, write_case_data wc_data)
-{
-  struct get_pgm *pgm = source->aux;
-
-  while (sfm_read_case (pgm->handle, c, default_dict)
-	 && write_case (wc_data))
-    ;
-}
-
-const struct case_source_class get_source_class =
+/* EXPORT procedure. */
+struct export_proc 
   {
-    "GET",
-    NULL,
-    get_source_read,
-    get_source_destroy,
+    struct pfm_writer *writer;  /* System file writer. */
+    struct case_map *map;       /* Map from active file to system file dict. */
+    struct ccase bounce;        /* Bounce buffer. */
   };
 
+static int export_write_case_func (struct ccase *, void *);
+static void export_proc_free (struct export_proc *);
+     
+/* Parses the EXPORT command.  */
+/* FIXME: same as cmd_save_internal(). */
+int
+cmd_export (void)
+{
+  struct file_handle *fh;
+  struct dictionary *dict;
+  struct export_proc *proc;
+
+  proc = xmalloc (sizeof *proc);
+  proc->writer = NULL;
+  proc->map = NULL;
+  case_nullify (&proc->bounce);
+
+  lex_match ('/');
+  if (lex_match_id ("OUTFILE"))
+    lex_match ('=');
+  fh = fh_parse ();
+  if (fh == NULL)
+    return CMD_FAILURE;
+
+  dict = dict_clone (default_dict);
+  start_case_map (dict);
+  if (!trim_dictionary (dict, OP_EXPORT, NULL))
+    goto error;
+  proc->map = finish_case_map (dict);
+  if (proc->map != NULL)
+    case_create (&proc->bounce, dict_get_next_value_idx (dict));
+
+  proc->writer = pfm_open_writer (fh, dict);
+  if (proc->writer == NULL)
+    goto error;
+  
+  dict_destroy (dict);
+
+  procedure (export_write_case_func, proc);
+  export_proc_free (proc);
+
+  return CMD_SUCCESS;
+
+ error:
+  dict_destroy (dict);
+  export_proc_free (proc);
+  return CMD_FAILURE;
+}
+
+/* Writes case C to the EXPORT file. */
+static int
+export_write_case_func (struct ccase *c, void *aux) 
+{
+  struct export_proc *proc = aux;
+  if (proc->map == NULL)
+    pfm_write_case (proc->writer, c);
+  else 
+    {
+      map_case (proc->map, c, &proc->bounce);
+      pfm_write_case (proc->writer, &proc->bounce);
+    }
+  return 1;
+}
+
+static void
+export_proc_free (struct export_proc *proc) 
+{
+  if (proc != NULL) 
+    {
+      pfm_close_writer (proc->writer);
+      destroy_case_map (proc->map);
+      case_destroy (&proc->bounce);
+    }
+}
 
 /* MATCH FILES. */
 
@@ -499,7 +604,8 @@ struct mtf_file
     
     int type;			/* One of MTF_*. */
     struct variable **by;	/* List of BY variables for this file. */
-    struct file_handle *handle;	/* File handle for the file. */
+    struct file_handle *handle; /* File handle. */
+    struct sfm_reader *reader;  /* System file reader. */
     struct dictionary *dict;	/* Dictionary from system file. */
     char in[9];			/* Name of the variable from IN=. */
     char first[9], last[9];	/* Name of the variables from FIRST=, LAST=. */
@@ -534,12 +640,16 @@ static int mtf_processing (struct ccase *, void *);
 
 static char *var_type_description (struct variable *);
 
+static void set_master (struct variable *, struct variable *master);
+static struct variable *get_master (struct variable *);
+
 /* Parse and execute the MATCH FILES command. */
 int
 cmd_match_files (void)
 {
   struct mtf_proc mtf;
   struct mtf_file *first_table = NULL;
+  struct mtf_file *iter;
   
   int seen = 0;
   
@@ -562,28 +672,23 @@ cmd_match_files (void)
 	  if (seen & 1)
 	    {
 	      msg (SE, _("The BY subcommand may be given once at most."));
-	      goto lossage;
+	      goto error;
 	    }
 	  seen |= 1;
 	      
 	  lex_match ('=');
 	  if (!parse_variables (mtf.dict, &mtf.by, &mtf.by_cnt,
 				PV_NO_DUPLICATE | PV_NO_SCRATCH))
-	    goto lossage;
+	    goto error;
 	}
       else if (token != T_ID)
 	{
 	  lex_error (NULL);
-	  goto lossage;
+	  goto error;
 	}
       else if (lex_id_match ("FILE", tokid) || lex_id_match ("TABLE", tokid))
 	{
 	  struct mtf_file *file = xmalloc (sizeof *file);
-
-	  file->in[0] = file->first[0] = file->last[0] = '\0';
-	  file->dict = NULL;
-	  file->by = NULL;
-          case_nullify (&file->input);
 
 	  if (lex_match_id ("FILE"))
 	    file->type = MTF_FILE;
@@ -594,6 +699,15 @@ cmd_match_files (void)
 	    }
 	  else
 	    assert (0);
+
+	  file->by = NULL;
+          file->handle = NULL;
+          file->reader = NULL;
+	  file->dict = NULL;
+	  file->in[0] = '\0';
+          file->first[0] = '\0';
+          file->last[0] = '\0';
+          case_nullify (&file->input);
 
 	  /* FILEs go first, then TABLEs. */
 	  if (file->type == MTF_TABLE || first_table == NULL)
@@ -624,13 +738,14 @@ cmd_match_files (void)
 	  
 	  if (lex_match ('*'))
 	    {
-	      file->handle = NULL;
-
+              file->handle = NULL;
+	      file->reader = NULL;
+              
 	      if (seen & 2)
 		{
 		  msg (SE, _("The active file may not be specified more "
 			     "than once."));
-		  goto lossage;
+		  goto error;
 		}
 	      seen |= 2;
 
@@ -639,7 +754,7 @@ cmd_match_files (void)
 		{
 		  msg (SE, _("Cannot specify the active file since no active "
 			     "file has been defined."));
-		  goto lossage;
+		  goto error;
 		}
 
               if (temporary != 0)
@@ -650,25 +765,21 @@ cmd_match_files (void)
                          "Temporary transformations will be made permanent."));
                   cancel_temporary (); 
                 }
+
+              file->dict = default_dict;
 	    }
 	  else
 	    {
-	      file->handle = fh_parse_file_handle ();
-	      if (!file->handle)
-		goto lossage;
-	    }
+              file->handle = fh_parse ();
+	      if (file->handle == NULL)
+		goto error;
 
-	  if (file->handle)
-	    {
-	      file->dict = sfm_read_dictionary (file->handle, NULL);
-	      if (!file->dict)
-		goto lossage;
+              file->reader = sfm_open_reader (file->handle, &file->dict, NULL);
+              if (file->reader == NULL)
+                goto error;
+
               case_create (&file->input, dict_get_next_value_idx (file->dict));
 	    }
-	  else
-	    file->dict = default_dict;
-	  if (!mtf_merge_dictionary (mtf.dict, file))
-	    goto lossage;
 	}
       else if (lex_id_match ("IN", tokid)
 	       || lex_id_match ("FIRST", tokid)
@@ -681,7 +792,7 @@ cmd_match_files (void)
 	    {
 	      msg (SE, _("IN, FIRST, and LAST subcommands may not occur "
 			 "before the first FILE or TABLE."));
-	      goto lossage;
+	      goto error;
 	    }
 
 	  if (lex_match_id ("IN"))
@@ -709,7 +820,7 @@ cmd_match_files (void)
 	  if (token != T_ID)
 	    {
 	      lex_error (NULL);
-	      goto lossage;
+	      goto error;
 	    }
 
 	  if (*name)
@@ -717,7 +828,7 @@ cmd_match_files (void)
 	      msg (SE, _("Multiple %s subcommands for a single FILE or "
 			 "TABLE."),
 		   sbc);
-	      goto lossage;
+	      goto error;
 	    }
 	  strcpy (name, tokid);
 	  lex_get ();
@@ -727,24 +838,22 @@ cmd_match_files (void)
 	      msg (SE, _("Duplicate variable name %s while creating %s "
 			 "variable."),
 		   name, sbc);
-	      goto lossage;
+	      goto error;
 	    }
 	}
       else if (lex_id_match ("RENAME", tokid)
 	       || lex_id_match ("KEEP", tokid)
 	       || lex_id_match ("DROP", tokid))
 	{
-	  int options = GTSV_OPT_MATCH_FILES;
-	  
 	  if (mtf.tail == NULL)
 	    {
 	      msg (SE, _("RENAME, KEEP, and DROP subcommands may not occur "
 			 "before the first FILE or TABLE."));
-	      goto lossage;
+	      goto error;
 	    }
 
-	  if (!trim_dictionary (mtf.tail->dict, &options))
-	    goto lossage;
+	  if (!trim_dictionary (mtf.tail->dict, OP_MATCH, NULL))
+	    goto error;
 	}
       else if (lex_match_id ("MAP"))
 	{
@@ -753,10 +862,13 @@ cmd_match_files (void)
       else
 	{
 	  lex_error (NULL);
-	  goto lossage;
+	  goto error;
 	}
     }
   while (token != '.');
+
+  for (iter = mtf.head; iter != NULL; iter = iter->next) 
+    mtf_merge_dictionary (mtf.dict, iter);
 
   if (seen & 4)
     {
@@ -764,15 +876,13 @@ cmd_match_files (void)
 	{
 	  msg (SE, _("The BY subcommand is required when a TABLE subcommand "
 		     "is given."));
-	  goto lossage;
+	  goto error;
 	}
     }
 
   if (seen & 1)
     {
-      struct mtf_file *iter;
-
-      for (iter = mtf.head; iter; iter = iter->next)
+      for (iter = mtf.head; iter != NULL; iter = iter->next)
 	{
 	  int i;
 	  
@@ -786,7 +896,7 @@ cmd_match_files (void)
 		  msg (SE, _("File %s lacks BY variable %s."),
 		       iter->handle ? handle_get_name (iter->handle) : "*",
 		       mtf.by[i]->name);
-		  goto lossage;
+		  goto error;
 		}
 	    }
 	}
@@ -852,7 +962,7 @@ cmd_match_files (void)
   mtf_free (&mtf);
   return CMD_SUCCESS;
   
-lossage:
+error:
   mtf_free (&mtf);
   return CMD_FAILURE;
 }
@@ -903,12 +1013,11 @@ var_type_description (struct variable *v)
 static void
 mtf_free_file (struct mtf_file *file)
 {
-  fh_close_handle (file->handle);
-  if (file->dict != NULL && file->dict != default_dict)
-    dict_destroy (file->dict);
   free (file->by);
-  if (file->handle)
-    case_destroy (&file->input);
+  sfm_close_reader (file->reader);
+  if (file->dict != default_dict)
+    dict_destroy (file->dict);
+  case_destroy (&file->input);
   free (file);
 }
 
@@ -954,7 +1063,7 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
     for (i = 0; i < dict_get_var_cnt (f->dict); i++)
       {
 	struct variable *v = dict_get_var (f->dict, i);
-        union value *out = case_data_rw (mtf->mtf_case, v->p.mtf.master->fv);
+        union value *out = case_data_rw (mtf->mtf_case, get_master (v)->fv);
 	  
 	if (v->type == NUMERIC)
           out->f = SYSMIS;
@@ -977,7 +1086,7 @@ mtf_read_nonactive_records (void *mtf_ UNUSED)
     {
       if (iter->handle)
 	{
-	  if (!sfm_read_case (iter->handle, &iter->input, iter->dict))
+	  if (!sfm_read_case (iter->reader, &iter->input))
 	    mtf_delete_file_in_place (mtf, &iter);
 	  else
 	    iter = iter->next;
@@ -1121,7 +1230,7 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	    case 1:
 	      if (iter->handle == NULL)
 		return 1;
-	      if (sfm_read_case (iter->handle, &iter->input, iter->dict))
+	      if (sfm_read_case (iter->reader, &iter->input))
 		goto again;
 	      mtf_delete_file_in_place (mtf, &iter);
 	      break;
@@ -1149,14 +1258,14 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
               struct ccase *record;
               union value *out;
 	  
-	      if (mtf->seq_nums[v->p.mtf.master->index] == mtf->seq_num)
+	      if (mtf->seq_nums[get_master (v)->index] == mtf->seq_num)
 		continue;
-              mtf->seq_nums[v->p.mtf.master->index] = mtf->seq_num;
+              mtf->seq_nums[get_master (v)->index] = mtf->seq_num;
 
               record = case_is_null (&iter->input) ? c : &iter->input;
 
               assert (v->type == NUMERIC || v->type == ALPHA);
-              out = case_data_rw (mtf->mtf_case, v->p.mtf.master->fv);
+              out = case_data_rw (mtf->mtf_case, get_master (v)->fv);
 	      if (v->type == NUMERIC)
 		out->f = case_num (record, v->fv);
 	      else
@@ -1176,11 +1285,11 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	      struct variable *v = dict_get_var (iter->dict, i);
               union value *out;
 	  
-	      if (mtf->seq_nums[v->p.mtf.master->index] == mtf->seq_num)
+	      if (mtf->seq_nums[get_master (v)->index] == mtf->seq_num)
 		continue;
-              mtf->seq_nums[v->p.mtf.master->index] = mtf->seq_num;
+              mtf->seq_nums[get_master (v)->index] = mtf->seq_num;
 
-              out = case_data_rw (mtf->mtf_case, v->p.mtf.master->fv);
+              out = case_data_rw (mtf->mtf_case, get_master (v)->fv);
 	      if (v->type == NUMERIC)
                 out->f = SYSMIS;
 	      else
@@ -1202,9 +1311,9 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	{
 	  struct mtf_file *next = iter->next_min;
 	  
-	  if (iter->handle)
+	  if (iter->reader != NULL)
 	    {
-	      if (!sfm_read_case (iter->handle, &iter->input, iter->dict))
+	      if (!sfm_read_case (iter->reader, &iter->input))
 		mtf_delete_file_in_place (mtf, &iter);
 	    }
 
@@ -1218,8 +1327,7 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
   return (mtf->head && mtf->head->type != MTF_TABLE);
 }
 
-/* Merge the dictionary for file F into the master dictionary
-   mtf_dict. */
+/* Merge the dictionary for file F into master dictionary M. */
 static int
 mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 {
@@ -1286,24 +1394,54 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 		 var_type_description (dv), var_type_description (mv));
 	    return 0;
 	  }
-	dv->p.mtf.master = mv;
+        set_master (dv, mv);
       }
   }
 
   return 1;
 }
+
+/* Marks V's master variable as MASTER. */
+static void
+set_master (struct variable *v, struct variable *master) 
+{
+  var_attach_aux (v, master, NULL);
+}
+
+/* Returns the master variable corresponding to V,
+   as set with set_master(). */
+static struct variable *
+get_master (struct variable *v) 
+{
+  assert (v->aux != NULL);
+  return v->aux;
+}
 
 /* IMPORT command. */
+
+/* IMPORT input program. */
+struct import_pgm 
+  {
+    struct pfm_reader *reader;  /* Portable file reader. */
+    struct case_map *map;       /* Map from system file to active file dict. */
+    struct ccase bounce;        /* Bounce buffer. */
+  };
+
+static void import_pgm_free (struct import_pgm *);
 
 /* Parses the IMPORT command. */
 int
 cmd_import (void)
 {
-  struct file_handle *handle = NULL;
-  struct dictionary *dict;
-  struct get_pgm *pgm;
-  int options = GTSV_OPT_NONE;
+  struct import_pgm *pgm = NULL;
+  struct file_handle *fh = NULL;
+  struct dictionary *dict = NULL;
   int type;
+
+  pgm = xmalloc (sizeof *pgm);
+  pgm->reader = NULL;
+  pgm->map = NULL;
+  case_nullify (&pgm->bounce);
 
   for (;;)
     {
@@ -1313,8 +1451,8 @@ cmd_import (void)
 	{
 	  lex_match ('=');
 
-	  handle = fh_parse_file_handle ();
-	  if (handle == NULL)
+	  fh = fh_parse ();
+	  if (fh == NULL)
 	    return CMD_FAILURE;
 	}
       else if (lex_match_id ("TYPE"))
@@ -1341,41 +1479,76 @@ cmd_import (void)
 
   discard_variables ();
 
-  dict = pfm_read_dictionary (handle, NULL);
-  if (dict == NULL)
+  pgm->reader = pfm_open_reader (fh, &dict, NULL);
+  if (pgm->reader == NULL)
     return CMD_FAILURE;
-
-  if (0 == trim_dictionary (dict, &options))
-    {
-      fh_close_handle (handle);
-      return CMD_FAILURE;
-    }
-
-  dict_compact_values (dict);
-
+  case_create (&pgm->bounce, dict_get_next_value_idx (dict));
+  
+  start_case_map (dict);
+  if (!trim_dictionary (dict, OP_READ, NULL))
+    goto error;
+  pgm->map = finish_case_map (dict);
+  
   dict_destroy (default_dict);
   default_dict = dict;
 
-  pgm = xmalloc (sizeof *pgm);
-  pgm->handle = handle;
-  pgm->case_size = dict_get_case_size (default_dict);
   vfm_source = create_case_source (&import_source_class, default_dict, pgm);
 
   return CMD_SUCCESS;
+
+ error:
+  import_pgm_free (pgm);
+  if (dict != NULL)
+    dict_destroy (dict);
+  return CMD_FAILURE;
 }
 
-/* Reads all the cases from the data file and passes them to
-   write_case(). */
+/* Frees a struct import_pgm. */
+static void
+import_pgm_free (struct import_pgm *pgm) 
+{
+  if (pgm != NULL) 
+    {
+      pfm_close_reader (pgm->reader);
+      destroy_case_map (pgm->map);
+      case_destroy (&pgm->bounce);
+      free (pgm);
+    }
+}
+
+/* Clears internal state related to IMPORT input procedure. */
+static void
+import_source_destroy (struct case_source *source)
+{
+  struct import_pgm *pgm = source->aux;
+  import_pgm_free (pgm);
+}
+
+/* Reads all the cases from the data file into C and passes them
+   to WRITE_CASE one by one, passing WC_DATA. */
 static void
 import_source_read (struct case_source *source,
-                    struct ccase *c,
-                    write_case_func *write_case, write_case_data wc_data)
+                 struct ccase *c,
+                 write_case_func *write_case, write_case_data wc_data)
 {
-  struct get_pgm *pgm = source->aux;
-  
-  while (pfm_read_case (pgm->handle, c, default_dict))
-    if (!write_case (wc_data))
-      break;
+  struct import_pgm *pgm = source->aux;
+  int ok;
+
+  do
+    {
+      if (pgm->map == NULL)
+        ok = pfm_read_case (pgm->reader, c);
+      else
+        {
+          ok = pfm_read_case (pgm->reader, &pgm->bounce);
+          if (ok)
+            map_case (pgm->map, &pgm->bounce, c);
+        }
+
+      if (ok)
+        ok = write_case (wc_data);
+    }
+  while (ok);
 }
 
 const struct case_source_class import_source_class =
@@ -1383,85 +1556,128 @@ const struct case_source_class import_source_class =
     "IMPORT",
     NULL,
     import_source_read,
-    get_source_destroy,
+    import_source_destroy,
   };
+
 
-static int export_write_case_func (struct ccase *c, void *);
-     
-/* Parses the EXPORT command.  */
-/* FIXME: same as cmd_save_internal(). */
-int
-cmd_export (void)
+/* Case map.
+
+   A case map copies data from a case that corresponds for one
+   dictionary to a case that corresponds to a second dictionary
+   derived from the first by, optionally, deleting, reordering,
+   or renaming variables.  (No new variables may be created.)
+   */
+
+/* A case map. */
+struct case_map
+  {
+    size_t value_cnt;   /* Number of values in map. */
+    int *map;           /* For each destination index, the
+                           corresponding source index. */
+  };
+
+/* Prepares dictionary D for producing a case map.  Afterward,
+   the caller may delete, reorder, or rename variables within D
+   at will before using finish_case_map() to produce the case
+   map.
+
+   Uses D's aux members, which may not otherwise be in use. */
+static void
+start_case_map (struct dictionary *d) 
 {
-  struct file_handle *handle;
-  struct dictionary *dict;
-  int options = GTSV_OPT_SAVE;
-
-  struct save_trns *t;
-
-  int i;
-
-  lex_match ('/');
-  if (lex_match_id ("OUTFILE"))
-    lex_match ('=');
-
-  handle = fh_parse_file_handle ();
-  if (handle == NULL)
-    return CMD_FAILURE;
-
-  dict = dict_clone (default_dict);
-  for (i = 0; i < dict_get_var_cnt (dict); i++)
-    dict_get_var (dict, i)->aux = dict_get_var (default_dict, i);
-  if (0 == trim_dictionary (dict, &options))
+  size_t var_cnt = dict_get_var_cnt (d);
+  size_t i;
+  
+  for (i = 0; i < var_cnt; i++)
     {
-      fh_close_handle (handle);
-      return CMD_FAILURE;
+      struct variable *v = dict_get_var (d, i);
+      int *src_fv = xmalloc (sizeof *src_fv);
+      *src_fv = v->fv;
+      var_attach_aux (v, src_fv, var_dtor_free);
     }
-
-  /* Write dictionary. */
-  if (!pfm_write_dictionary (handle, dict))
-    {
-      dict_destroy (dict);
-      fh_close_handle (handle);
-      return CMD_FAILURE;
-    }
-
-  /* Fill in transformation structure. */
-  t = xmalloc (sizeof *t);
-  t->h.proc = save_trns_proc;
-  t->h.free = save_trns_free;
-  t->f = handle;
-  t->nvar = dict_get_var_cnt (dict);
-  t->var = xmalloc (sizeof *t->var * t->nvar);
-  for (i = 0; i < t->nvar; i++)
-    t->var[i] = dict_get_var (dict, i)->aux;
-  t->case_buf = xmalloc (sizeof *t->case_buf * t->nvar);
-  dict_destroy (dict);
-
-  procedure (export_write_case_func, t);
-  save_trns_free (&t->h);
-
-  return CMD_SUCCESS;
 }
 
-/* Writes case C to the EXPORT file. */
-static int
-export_write_case_func (struct ccase *c, void *aux)
+/* Produces a case map from dictionary D, which must have been
+   previously prepared with start_case_map().
+
+   Does not retain any reference to D, and clears the aux members
+   set up by start_case_map().
+
+   Returns the new case map, or a null pointer if no mapping is
+   required (that is, no data has changed position). */
+static struct case_map *
+finish_case_map (struct dictionary *d) 
 {
-  struct save_trns *t = aux;
-  union value *p = (union value *) t->case_buf;
-  int i;
+  struct case_map *map;
+  size_t var_cnt = dict_get_var_cnt (d);
+  size_t i;
+  int identity_map;
 
-  for (i = 0; i < t->nvar; i++)
+  map = xmalloc (sizeof *map);
+  map->value_cnt = dict_get_next_value_idx (d);
+  map->map = xmalloc (sizeof *map->map * map->value_cnt);
+  for (i = 0; i < map->value_cnt; i++)
+    map->map[i] = -1;
+
+  identity_map = 1;
+  for (i = 0; i < var_cnt; i++) 
     {
-      struct variable *v = t->var[i];
+      struct variable *v = dict_get_var (d, i);
+      int src_fv = *(int *) var_detach_aux (v);
+      size_t idx;
 
-      if (v->type == NUMERIC)
-	(*p++).f = case_num (c, v->fv);
-      else
-	(*p++).c = (char *) case_str (c, v->fv);
+      if (v->fv != src_fv)
+        identity_map = 0;
+      
+      for (idx = 0; idx < v->nv; idx++)
+        {
+          int src_idx = src_fv + idx;
+          int dst_idx = v->fv + idx;
+          
+          assert (map->map[dst_idx] == -1);
+          map->map[dst_idx] = src_idx;
+        }
     }
 
-  pfm_write_case (t->f, (union value *) t->case_buf);
-  return 1;
+  if (identity_map) 
+    {
+      destroy_case_map (map);
+      return NULL;
+    }
+
+  while (map->value_cnt > 0 && map->map[map->value_cnt - 1] == -1)
+    map->value_cnt--;
+
+  return map;
+}
+
+/* Maps from SRC to DST, applying case map MAP. */
+static void
+map_case (const struct case_map *map,
+          const struct ccase *src, struct ccase *dst) 
+{
+  size_t dst_idx;
+
+  assert (map != NULL);
+  assert (src != NULL);
+  assert (dst != NULL);
+  assert (src != dst);
+
+  for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
+    {
+      int src_idx = map->map[dst_idx];
+      if (src_idx != -1)
+        *case_data_rw (dst, dst_idx) = *case_data (src, src_idx);
+    }
+}
+
+/* Destroys case map MAP. */
+static void
+destroy_case_map (struct case_map *map) 
+{
+  if (map != NULL) 
+    {
+      free (map->map);
+      free (map);
+    }
 }

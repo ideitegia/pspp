@@ -17,8 +17,8 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if !dfm_h
-#define dfm_h 1
+#ifndef DFM_READ_H
+#define DFM_READ_H
 
 /* Data file manager (dfm).
 
@@ -32,22 +32,20 @@ struct file_handle;
 struct len_string;
 
 /* Input. */
-int dfm_open_for_reading (struct file_handle *);
-int dfm_eof (struct file_handle *);
-void dfm_get_record (struct file_handle *, struct len_string *);
-void dfm_expand_tabs (struct file_handle *);
+struct dfm_reader *dfm_open_reader (struct file_handle *);
+void dfm_close_reader (struct dfm_reader *);
+int dfm_eof (struct dfm_reader *);
+void dfm_get_record (struct dfm_reader *, struct len_string *);
+void dfm_expand_tabs (struct dfm_reader *);
 
-void dfm_forward_record (struct file_handle *);
-void dfm_reread_record (struct file_handle *, size_t column);
-void dfm_forward_columns (struct file_handle *, size_t columns);
-size_t dfm_column_start (struct file_handle *);
-
-/* Output. */
-int dfm_open_for_writing (struct file_handle *);
-int dfm_put_record (struct file_handle *, const char *rec, size_t len);
+/* Line control. */
+void dfm_forward_record (struct dfm_reader *);
+void dfm_reread_record (struct dfm_reader *, size_t column);
+void dfm_forward_columns (struct dfm_reader *, size_t columns);
+size_t dfm_column_start (struct dfm_reader *);
 
 /* File stack. */
-void dfm_push (struct file_handle *);
-void dfm_pop (struct file_handle *);
+void dfm_push (struct dfm_reader *);
+void dfm_pop (struct dfm_reader *);
 
-#endif /* dfm_h */
+#endif /* dfm-read.h */

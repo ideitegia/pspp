@@ -18,11 +18,12 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include "error.h"
+#include "dictionary.h"
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
 #include "case.h"
+#include "error.h"
 #include "hash.h"
 #include "misc.h"
 #include "str.h"
@@ -124,6 +125,7 @@ dict_clear (struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++) 
     {
       struct variable *v = d->var[i];
+      var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       free (v->label);
       free (v); 
@@ -144,6 +146,19 @@ dict_clear (struct dictionary *d)
   free (d->documents);
   d->documents = NULL;
   dict_clear_vectors (d);
+}
+
+/* Destroys the aux data for every variable in D, by calling
+   var_clear_aux() for each variable. */
+void
+dict_clear_aux (struct dictionary *d) 
+{
+  int i;
+  
+  assert (d != NULL);
+  
+  for (i = 0; i < d->var_cnt; i++)
+    var_clear_aux (d->var[i]);
 }
 
 /* Clears a dictionary and destroys it. */
@@ -254,6 +269,8 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->write = v->print;
   v->val_labs = val_labs_create (v->width);
   v->label = NULL;
+  v->aux = NULL;
+  v->aux_dtor = NULL;
 
   /* Update dictionary. */
   if (d->var_cnt >= d->var_cap) 
@@ -410,7 +427,10 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   assert (dict_contains_var (d, v));
   assert (d->var[v->index] == v);
 
-  /* Remove v from splits, weight, filter variables. */
+  /* Delete aux data. */
+  var_clear_aux (v);
+
+  /* Remove V from splits, weight, filter variables. */
   d->split_cnt = remove_equal (d->split, d->split_cnt, sizeof *d->split,
                                &v,
                                compare_variable_dblptrs, NULL);
@@ -420,7 +440,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
     d->filter = NULL;
   dict_clear_vectors (d);
 
-  /* Remove v from var array. */
+  /* Remove V from var array. */
   d->var_cnt--;
   memmove (d->var + v->index, d->var + v->index + 1,
            (d->var_cnt - v->index) * sizeof *d->var);

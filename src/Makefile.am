@@ -54,7 +54,8 @@ case.c case.h \
 casefile.c casefile.h cmdline.c cmdline.h command.c command.def		\
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
-devind.c devind.h dfm.c dfm.h dictionary.c do-if.c do-ifP.h error.c	\
+devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h	\
+dictionary.c dictionary.h do-if.c do-ifP.h error.c \
 error.h expr-evl.c expr-opt.c expr-prs.c expr.h exprP.h expr.def        \
 factor_stats.c factor_stats.h file-handle.h	\
 file-type.c filename.c filename.h flip.c font.h format.c format.def	\
@@ -63,10 +64,12 @@ groff-font.c group.c group.h group_proc.h \
 hash.c hash.h html.c htmlP.h include.c inpt-pgm.c lexer.c	\
 lexer.h levene.c levene.h log.h loop.c magic.c magic.h main.c main.h	\
 matrix-data.c mis-val.c misc.c misc.h modify-vars.c			\
-moments.c moments.h numeric.c output.c output.h pfm-read.c pfm-write.c	\
-pfm.h pool.c pool.h postscript.c print.c random.c random.h recode.c	\
+moments.c moments.h numeric.c output.c output.h pfm-read.c pfm-read.h	\
+pfm-write.c pfm-write.h \
+pool.c pool.h postscript.c print.c random.c random.h recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
-sfm-read.c sfm-write.c sfm.h sfmP.h som.c som.h sort.c sort.h		\
+sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
+sort.c sort.h \
 split-file.c str.c str.h subclist.c subclist.h \
 sysfile-info.c tab.c tab.h temporary.c stat.h \
 title.c  val.h val-labs.c value-labels.c value-labels.h		\

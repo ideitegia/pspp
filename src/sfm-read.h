@@ -17,41 +17,29 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#if !pfm_h
-#define pfm_h 1
+#ifndef SFM_READ_H
+#define SFM_READ_H 1
 
-/* Portable file manager (pfm).
+/* Reading system files. */
 
-   This module is in charge of reading and writing portable files.
-   pfm is an fhuser, so see file-handle.h for the fhuser interface.  */
-
-/* Portable file types. */
-enum
+/* System file info that doesn't fit in struct dictionary. */
+struct sfm_read_info
   {
-    PFM_COMM,
-    PFM_TAPE
-  };
-
-/* Information produced by pfm_read_dictionary() that doesn't fit into
-   a dictionary struct. */
-struct pfm_read_info
-  {
-    char creation_date[11];	/* `dd mm yyyy' plus a null. */
+    char creation_date[10];	/* `dd mmm yy' plus a null. */
     char creation_time[9];	/* `hh:mm:ss' plus a null. */
+    int big_endian;		/* 1=big-endian, 0=little-endian. */
+    int compressed;		/* 0=no, 1=yes. */
+    int case_cnt;               /* -1 if unknown. */
     char product[61];		/* Product name plus a null. */
-    char subproduct[61];	/* Subproduct name plus a null. */
   };
 
 struct dictionary;
 struct file_handle;
 struct ccase;
-union value;
+struct sfm_reader *sfm_open_reader (struct file_handle *,
+                                    struct dictionary **,
+                                    struct sfm_read_info *);
+int sfm_read_case (struct sfm_reader *, struct ccase *);
+void sfm_close_reader (struct sfm_reader *);
 
-struct dictionary *pfm_read_dictionary (struct file_handle *,
-					struct pfm_read_info *);
-int pfm_read_case (struct file_handle *, struct ccase *, struct dictionary *);
-
-int pfm_write_dictionary (struct file_handle *, struct dictionary *);
-int pfm_write_case (struct file_handle *, const union value *elem);
-
-#endif /* !pfm_h */
+#endif /* sfm-read.h */

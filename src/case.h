@@ -28,18 +28,18 @@
    case_move() or case_clone() instead of copying.  */
 struct ccase 
   {
-    struct case_data *case_data;
+    struct case_data *case_data;        /* Actual data. */
 #if GLOBAL_DEBUGGING
-    struct ccase *this;
+    struct ccase *this;                 /* Detects unauthorized move/copy. */
 #endif
   };
 
 /* Invisible to user code. */
 struct case_data
   {
-    size_t value_cnt;
-    unsigned ref_cnt;
-    union value values[1];
+    size_t value_cnt;                   /* Number of values. */
+    unsigned ref_cnt;                   /* Reference count. */
+    union value values[1];              /* Values. */
   };
 
 #ifdef GLOBAL_DEBUGGING
@@ -63,15 +63,18 @@ CASE_INLINE void case_copy (struct ccase *dst, size_t dst_idx,
                             const struct ccase *src, size_t src_idx,
                             size_t cnt);
 
-CASE_INLINE size_t case_serial_size (size_t value_cnt);
-CASE_INLINE void case_serialize (const struct ccase *, void *, size_t);
-CASE_INLINE void case_unserialize (struct ccase *, const void *, size_t);
+CASE_INLINE void case_to_values (const struct ccase *, union value *, size_t);
+CASE_INLINE void case_from_values (struct ccase *,
+                                   const union value *, size_t);
 
 CASE_INLINE const union value *case_data (const struct ccase *, size_t idx);
 CASE_INLINE double case_num (const struct ccase *, size_t idx);
 CASE_INLINE const char *case_str (const struct ccase *, size_t idx);
 
 CASE_INLINE union value *case_data_rw (struct ccase *, size_t idx);
+
+const union value *case_data_all (const struct ccase *);
+union value *case_data_all_rw (struct ccase *);
 
 void case_unshare (struct ccase *);
 
@@ -126,28 +129,22 @@ case_copy (struct ccase *dst, size_t dst_idx,
              sizeof *dst->case_data->values * value_cnt); 
 }
 
-static inline size_t
-case_serial_size (size_t value_cnt) 
-{
-  return value_cnt * sizeof (union value);
-}
-
 static inline void
-case_serialize (const struct ccase *c, void *output,
+case_to_values (const struct ccase *c, union value *output,
                 size_t output_size UNUSED) 
 {
   memcpy (output, c->case_data->values,
-          case_serial_size (c->case_data->value_cnt));
+          c->case_data->value_cnt * sizeof *output);
 }
 
 static inline void
-case_unserialize (struct ccase *c, const void *input,
+case_from_values (struct ccase *c, const union value *input,
                   size_t input_size UNUSED) 
 {
   if (c->case_data->ref_cnt > 1)
     case_unshare (c);
   memcpy (c->case_data->values, input,
-          case_serial_size (c->case_data->value_cnt));
+          c->case_data->value_cnt * sizeof *input);
 }
 
 static inline const union value *

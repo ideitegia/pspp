@@ -29,6 +29,7 @@
 #include "str.h"
 #include "case.h"
 #include "command.h"
+#include "dictionary.h"
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
@@ -42,6 +43,7 @@
 #include "group_proc.h"
 #include "casefile.h"
 #include "levene.h"
+/* (headers) */
 
 /* (specification)
    "T-TEST" (tts_):
@@ -342,7 +344,7 @@ cmd_t_test(void)
       /* Destroy any group statistics we created */
       for (v = 0 ; v < cmd.n_variables ; ++v ) 
 	{
-	  struct group_proc *grpp = &cmd.v_variables[v]->p.grp_data;
+	  struct group_proc *grpp = group_proc_get (cmd.v_variables[v]);
 	  free(grpp->group_hash);
 	}
     }
@@ -749,7 +751,7 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
   for (i=0; i < cmd->n_variables; ++i)
     {
       struct variable *var = cmd->v_variables[i];
-      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       int count=0;
 
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT, cmd->v_variables[i]->name);
@@ -849,7 +851,7 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 	{
 	  struct group_statistics *gs;
 
-	  gs=&pairs[i].v[j]->p.grp_data.ugs;
+	  gs = &group_proc_get (pairs[i].v[j])->ugs;
 
 	  /* Titles */
 
@@ -875,8 +877,7 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      struct group_statistics *gs = &group_proc_get (cmd->v_variables[i])->ugs;
 
       tab_text (ssb->t, 0, i+1, TAB_LEFT, cmd->v_variables[i]->name);
       tab_float (ssb->t,1, i+1, TAB_RIGHT, gs->n, 2, 0);
@@ -1011,8 +1012,9 @@ trbox_independent_samples_populate(struct trbox *self,
       double mean_diff;
 
       struct variable *var = cmd->v_variables[i];
+      struct group_proc *grp_data = group_proc_get (var);
 
-      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      struct hsh_table *grp_hash = grp_data->group_hash;
 
       struct group_statistics *gs0 ;
       struct group_statistics *gs1 ;
@@ -1041,12 +1043,11 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_text (self->t, 1, i*2+3, TAB_LEFT, _("Equal variances assumed"));
 
 
-      tab_float(self->t, 2, i*2+3, TAB_CENTER, 
-		cmd->v_variables[i]->p.grp_data.levene, 8,3);
+      tab_float(self->t, 2, i*2+3, TAB_CENTER, grp_data->levene, 8,3);
 
       /* Now work out the significance of the Levene test */
-      df1 = 1; df2 = cmd->v_variables[i]->p.grp_data.ugs.n - 2;
-      q = gsl_cdf_fdist_Q(cmd->v_variables[i]->p.grp_data.levene, df1, df2);
+      df1 = 1; df2 = grp_data->ugs.n - 2;
+      q = gsl_cdf_fdist_Q(grp_data->levene, df1, df2);
 
       tab_float(self->t, 3, i*2+3, TAB_CENTER, q, 8,3 );
 
@@ -1282,8 +1283,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
       double t;
       double p,q;
       double df;
-      struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      struct group_statistics *gs = &group_proc_get (cmd->v_variables[i])->ugs;
 
 
       tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
@@ -1445,7 +1445,7 @@ common_calc (const struct ccase *c, void *_cmd)
       struct variable *v = cmd->v_variables[i];
       const union value *val = case_data (c, v->fv);
 
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      gs= &group_proc_get (cmd->v_variables[i])->ugs;
 
       if (! value_is_missing(val,v) )
 	{
@@ -1466,7 +1466,7 @@ common_precalc ( struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      gs= &group_proc_get (cmd->v_variables[i])->ugs;
       
       gs->sum=0;
       gs->n=0;
@@ -1485,7 +1485,7 @@ common_postcalc (  struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      gs= &group_proc_get (cmd->v_variables[i])->ugs;
       
       gs->mean=gs->sum / gs->n;
       gs->s_std_dev= sqrt(
@@ -1533,7 +1533,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
       struct variable *v = cmd->v_variables[i];
       const union value *val = case_data (c, v->fv);
 
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      gs= &group_proc_get (cmd->v_variables[i])->ugs;
       
       if ( ! value_is_missing(val,v))
 	gs->sum_diff += weight * (val->f - cmd->n_testval[0]);
@@ -1551,7 +1551,7 @@ one_sample_precalc ( struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      gs= &group_proc_get (cmd->v_variables[i])->ugs;
       
       gs->sum_diff=0;
     }
@@ -1566,7 +1566,7 @@ one_sample_postcalc (struct cmd_t_test *cmd)
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd->v_variables[i]->p.grp_data.ugs;
+      gs= &group_proc_get (cmd->v_variables[i])->ugs;
 
       gs->mean_diff = gs->sum_diff / gs->n ;
     }
@@ -1715,7 +1715,7 @@ group_precalc (struct cmd_t_test *cmd )
 
   for(i=0; i< cmd->n_variables ; ++i) 
     {
-      struct group_proc *ttpr = &cmd->v_variables[i]->p.grp_data;
+      struct group_proc *ttpr = group_proc_get (cmd->v_variables[i]);
 
       /* There's always 2 groups for a T - TEST */
       ttpr->n_groups = 2;
@@ -1791,7 +1791,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
     {
       struct variable *var = cmd->v_variables[i];
       const union value *val = case_data (c, var->fv);
-      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       struct group_statistics *gs;
 
       gs = hsh_find(grp_hash, (void *) gv);
@@ -1821,7 +1821,7 @@ group_postcalc ( struct cmd_t_test *cmd )
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct variable *var = cmd->v_variables[i];
-      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       struct hsh_iterator g;
       struct group_statistics *gs;
       int count=0;

@@ -29,7 +29,8 @@
 #include "command.h"
 #include "data-in.h"
 #include "debug-print.h"
-#include "dfm.h"
+#include "dfm-read.h"
+#include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "format.h"
@@ -82,12 +83,12 @@ struct data_list_pgm
     struct trns_header h;
 
     struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
-    struct file_handle *handle;	/* Input file, never NULL. */
+    struct dfm_reader *reader;  /* Data file reader. */
 
     int type;			/* A DLS_* constant. */
     struct variable *end;	/* Variable specified on END subcommand. */
     int eof;			/* End of file encountered. */
-    int nrec;			/* Number of records. */
+    int rec_cnt;                /* Number of records. */
     size_t case_size;           /* Case size in bytes. */
     char *delims;               /* Delimiters if any; not null-terminated. */
     size_t delim_cnt;           /* Number of delimiter, or 0 for spaces. */
@@ -95,9 +96,10 @@ struct data_list_pgm
 
 static int parse_fixed (struct data_list_pgm *);
 static int parse_free (struct dls_var_spec **, struct dls_var_spec **);
-static void dump_fixed_table (const struct dls_var_spec *specs,
-                              const struct file_handle *handle, int nrec);
-static void dump_free_table (const struct data_list_pgm *);
+static void dump_fixed_table (const struct dls_var_spec *,
+                              const struct file_handle *, int rec_cnt);
+static void dump_free_table (const struct data_list_pgm *,
+                             const struct file_handle *);
 static void destroy_dls_var_spec (struct dls_var_spec *);
 static trns_free_func data_list_trns_free;
 static trns_proc_func data_list_trns_proc;
@@ -108,21 +110,19 @@ static trns_proc_func data_list_trns_proc;
 int
 cmd_data_list (void)
 {
-  /* DATA LIST program under construction. */
-  struct data_list_pgm *dls;
-
-  /* 0=print no table, 1=print table.  (TABLE subcommand.)  */
-  int table = -1;
+  struct data_list_pgm *dls;     /* DATA LIST program under construction. */
+  int table = -1;                /* Print table if nonzero, -1=undecided. */
+  struct file_handle *fh = NULL; /* File handle of source, NULL=inline file. */
 
   if (!case_source_is_complex (vfm_source))
     discard_variables ();
 
   dls = xmalloc (sizeof *dls);
-  dls->handle = default_handle;
+  dls->reader = NULL;
   dls->type = -1;
   dls->end = NULL;
   dls->eof = 0;
-  dls->nrec = 0;
+  dls->rec_cnt = 0;
   dls->delims = NULL;
   dls->delim_cnt = 0;
   dls->first = dls->last = NULL;
@@ -132,11 +132,11 @@ cmd_data_list (void)
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  dls->handle = fh_parse_file_handle ();
-	  if (!dls->handle)
+	  fh = fh_parse ();
+	  if (fh == NULL)
 	    goto error;
 	  if (case_source_is_class (vfm_source, &file_type_source_class)
-              && dls->handle != default_handle)
+              && fh != default_handle)
 	    {
 	      msg (SE, _("DATA LIST may not use a different file from "
 			 "that specified on its surrounding FILE TYPE."));
@@ -149,7 +149,7 @@ cmd_data_list (void)
 	  lex_match ('(');
 	  if (!lex_force_int ())
 	    goto error;
-	  dls->nrec = lex_integer ();
+	  dls->rec_cnt = lex_integer ();
 	  lex_get ();
 	  lex_match (')');
 	}
@@ -231,7 +231,7 @@ cmd_data_list (void)
     }
 
   dls->case_size = dict_get_case_size (default_dict);
-  default_handle = dls->handle;
+  default_handle = fh;
 
   if (dls->type == -1)
     dls->type = DLS_FIXED;
@@ -249,17 +249,18 @@ cmd_data_list (void)
       if (!parse_fixed (dls))
 	goto error;
       if (table)
-	dump_fixed_table (dls->first, dls->handle, dls->nrec);
+	dump_fixed_table (dls->first, fh, dls->rec_cnt);
     }
   else
     {
       if (!parse_free (&dls->first, &dls->last))
 	goto error;
       if (table)
-	dump_free_table (dls);
+	dump_free_table (dls, fh);
     }
 
-  if (!dfm_open_for_reading (dls->handle))
+  dls->reader = dfm_open_reader (fh);
+  if (dls->reader == NULL)
     goto error;
 
   if (vfm_source != NULL)
@@ -393,14 +394,14 @@ parse_fixed (struct data_list_pgm *dls)
       msg (SE, _("At least one variable must be specified."));
       return 0;
     }
-  if (dls->nrec && dls->last->rec > dls->nrec)
+  if (dls->rec_cnt && dls->last->rec > dls->rec_cnt)
     {
       msg (SE, _("Variables are specified on records that "
 		 "should not exist according to RECORDS subcommand."));
       return 0;
     }
-  else if (!dls->nrec)
-    dls->nrec = dls->last->rec;
+  else if (!dls->rec_cnt)
+    dls->rec_cnt = dls->last->rec;
   if (token != '.')
     {
       lex_error (_("expecting end of command"));
@@ -778,12 +779,10 @@ fixed_parse_fortran (struct fixed_parsing_state *fx,
    ending column. */
 static void
 dump_fixed_table (const struct dls_var_spec *specs,
-                  const struct file_handle *handle, int nrec)
+                  const struct file_handle *fh, int rec_cnt)
 {
   const struct dls_var_spec *spec;
   struct tab_table *t;
-  char *buf;
-  const char *filename;
   int i;
 
   for (i = 0, spec = specs; spec; spec = spec->next)
@@ -809,21 +808,16 @@ dump_fixed_table (const struct dls_var_spec *specs,
 		    fmt_to_string (&spec->input));
     }
 
-  filename = handle_get_filename (handle);
-  if (filename == NULL)
-    filename = "";
-  buf = local_alloc (strlen (filename) + INT_DIGITS + 80);
-  sprintf (buf, (handle != inline_file
-                 ? ngettext ("Reading %d record from file %s.",
-                             "Reading %d records from file %s.", nrec)
-                 : ngettext ("Reading %d record from the command file.",
-                             "Reading %d records from the command file.",
-                             nrec)),
-           nrec, filename);
-  
-  tab_title (t, 0, buf);
+  if (fh != NULL)
+    tab_title (t, 1, ngettext ("Reading %d record from file %s.",
+                               "Reading %d records from file %s.", rec_cnt),
+               rec_cnt, handle_get_filename (fh));
+  else
+    tab_title (t, 1, ngettext ("Reading %d record from the command file.",
+                               "Reading %d records from the command file.",
+                               rec_cnt),
+               rec_cnt);
   tab_submit (t);
-  local_free (buf);
 }
 
 /* Free-format parsing. */
@@ -907,7 +901,8 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 /* Displays a table giving information on free-format variable parsing
    on DATA LIST. */
 static void
-dump_free_table (const struct data_list_pgm *dls)
+dump_free_table (const struct data_list_pgm *dls,
+                 const struct file_handle *fh)
 {
   struct tab_table *t;
   int i;
@@ -936,19 +931,12 @@ dump_free_table (const struct data_list_pgm *dls)
 	tab_text (t, 1, i, TAB_LEFT | TAT_FIX, fmt_to_string (&spec->input));
       }
   }
-  
-  {
-    const char *filename;
 
-    filename = handle_get_filename (dls->handle);
-    if (filename == NULL)
-      filename = "";
-    tab_title (t, 1,
-	       (dls->handle != inline_file
-		? _("Reading free-form data from file %s.")
-		: _("Reading free-form data from the command file.")),
-	       filename);
-  }
+  if (fh != NULL)
+    tab_title (t, 1, _("Reading free-form data from file %s."),
+               handle_get_filename (fh));
+  else
+    tab_title (t, 1, _("Reading free-form data from the command file."));
   
   tab_submit (t);
 }
@@ -972,11 +960,11 @@ cut_field (const struct data_list_pgm *dls, struct len_string *field,
   char *cp;
   size_t column_start;
 
-  if (dfm_eof (dls->handle))
+  if (dfm_eof (dls->reader))
     return 0;
   if (dls->delim_cnt == 0)
-    dfm_expand_tabs (dls->handle);
-  dfm_get_record (dls->handle, &line);
+    dfm_expand_tabs (dls->reader);
+  dfm_get_record (dls->reader, &line);
 
   cp = ls_c_str (&line);
   if (dls->delim_cnt == 0) 
@@ -1020,7 +1008,7 @@ cut_field (const struct data_list_pgm *dls, struct len_string *field,
     {
       if (cp >= ls_end (&line)) 
         {
-          int column = dfm_column_start (dls->handle);
+          int column = dfm_column_start (dls->reader);
                /* A blank line or a line that ends in \t has a
              trailing blank field. */
           if (column == 1 || (column > 1 && cp[-1] == '\t'))
@@ -1030,7 +1018,7 @@ cut_field (const struct data_list_pgm *dls, struct len_string *field,
                   *end_blank = 1;
                   field->string = ls_end (&line);
                   field->length = 0;
-                  dfm_forward_record (dls->handle);
+                  dfm_forward_record (dls->reader);
                   return column;
                 }
               else 
@@ -1054,10 +1042,10 @@ cut_field (const struct data_list_pgm *dls, struct len_string *field,
         }
     }
   
-  dfm_forward_columns (dls->handle, field->string - line.string);
-  column_start = dfm_column_start (dls->handle);
+  dfm_forward_columns (dls->reader, field->string - line.string);
+  column_start = dfm_column_start (dls->reader);
     
-  dfm_forward_columns (dls->handle, cp - field->string);
+  dfm_forward_columns (dls->reader, cp - field->string);
     
   return column_start;
 }
@@ -1099,21 +1087,21 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
   struct dls_var_spec *var_spec = dls->first;
   int i;
 
-  if (dfm_eof (dls->handle))
+  if (dfm_eof (dls->reader))
     return -2;
-  for (i = 1; i <= dls->nrec; i++)
+  for (i = 1; i <= dls->rec_cnt; i++)
     {
       struct len_string line;
       
-      if (dfm_eof (dls->handle))
+      if (dfm_eof (dls->reader))
 	{
 	  /* Note that this can't occur on the first record. */
 	  msg (SW, _("Partial case of %d of %d records discarded."),
-	       i - 1, dls->nrec);
+	       i - 1, dls->rec_cnt);
 	  return -2;
 	}
-      dfm_expand_tabs (dls->handle);
-      dfm_get_record (dls->handle, &line);
+      dfm_expand_tabs (dls->reader);
+      dfm_get_record (dls->reader, &line);
 
       for (; var_spec && i == var_spec->rec; var_spec = var_spec->next)
 	{
@@ -1129,7 +1117,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
 	  data_in (&di);
 	}
 
-      dfm_forward_record (dls->handle);
+      dfm_forward_record (dls->reader);
     }
 
   return -1;
@@ -1157,9 +1145,9 @@ read_from_data_list_free (const struct data_list_pgm *dls,
 	  if (column != 0)
 	    break;
 
-	  if (!dfm_eof (dls->handle)) 
-            dfm_forward_record (dls->handle);
-	  if (dfm_eof (dls->handle))
+	  if (!dfm_eof (dls->reader)) 
+            dfm_forward_record (dls->reader);
+	  if (dfm_eof (dls->reader))
 	    {
 	      if (var_spec != dls->first)
 		msg (SW, _("Partial case discarded.  The first variable "
@@ -1193,7 +1181,7 @@ read_from_data_list_list (const struct data_list_pgm *dls,
   struct dls_var_spec *var_spec;
   int end_blank = 0;
 
-  if (dfm_eof (dls->handle))
+  if (dfm_eof (dls->reader))
     return -2;
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
@@ -1234,7 +1222,7 @@ read_from_data_list_list (const struct data_list_pgm *dls,
       }
     }
 
-  dfm_forward_record (dls->handle);
+  dfm_forward_record (dls->reader);
   return -1;
 }
 
@@ -1259,7 +1247,7 @@ data_list_trns_free (struct trns_header *pgm)
   struct data_list_pgm *dls = (struct data_list_pgm *) pgm;
   free (dls->delims);
   destroy_dls_var_spec (dls->first);
-  fh_close_handle (dls->handle);
+  dfm_close_reader (dls->reader);
   free (pgm);
 }
 
@@ -1272,7 +1260,7 @@ data_list_trns_proc (struct trns_header *t, struct ccase *c,
   data_list_read_func *read_func;
   int retval;
 
-  dfm_push (dls->handle);
+  dfm_push (dls->reader);
 
   read_func = get_data_list_read_func (dls);
   retval = read_func (dls, c);
@@ -1286,7 +1274,7 @@ data_list_trns_proc (struct trns_header *t, struct ccase *c,
         {
           msg (SE, _("Attempt to read past end of file."));
           err_failure ();
-          dfm_pop (dls->handle);
+          dfm_pop (dls->reader);
           return -2;
         }
 
@@ -1308,7 +1296,7 @@ data_list_trns_proc (struct trns_header *t, struct ccase *c,
         case_data_rw (c, dls->end->fv)->f = 0.0;
     }
   
-  dfm_pop (dls->handle);
+  dfm_pop (dls->reader);
 
   return retval;
 }
@@ -1323,13 +1311,11 @@ data_list_source_read (struct case_source *source,
   struct data_list_pgm *dls = source->aux;
   data_list_read_func *read_func = get_data_list_read_func (dls);
 
-  dfm_push (dls->handle);
+  dfm_push (dls->reader);
   while (read_func (dls, c) != -2)
     if (!write_case (wc_data))
       break;
-  dfm_pop (dls->handle);
-
-  fh_close_handle (dls->handle);
+  dfm_pop (dls->reader);
 }
 
 /* Destroys the source's internal data. */
@@ -1361,7 +1347,7 @@ struct repeating_data_trns
   {
     struct trns_header h;
     struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
-    struct file_handle *handle;	/* Input file, never NULL. */
+    struct dfm_reader *reader;  	/* Input file, never NULL. */
 
     struct rpd_num_or_var starts_beg;	/* STARTS=, before the dash. */
     struct rpd_num_or_var starts_end;	/* STARTS=, after the dash. */
@@ -1392,17 +1378,14 @@ int
 cmd_repeating_data (void)
 {
   struct repeating_data_trns *rpd;
-
-  /* 0=print no table, 1=print table.  (TABLE subcommand.)  */
-  int table = 1;
-
-  /* Bits are set when a particular subcommand has been seen. */
-  unsigned seen = 0;
+  int table = 1;                /* Print table? */
+  unsigned seen = 0;            /* Mark subcommands as already seen. */
+  struct file_handle *const fh = default_handle;
   
   assert (case_source_is_complex (vfm_source));
 
   rpd = xmalloc (sizeof *rpd);
-  rpd->handle = default_handle;
+  rpd->reader = dfm_open_reader (default_handle);
   rpd->first = rpd->last = NULL;
   rpd->starts_beg.num = 0;
   rpd->starts_beg.var = NULL;
@@ -1418,11 +1401,12 @@ cmd_repeating_data (void)
     {
       if (lex_match_id ("FILE"))
 	{
+          struct file_handle *file;
 	  lex_match ('=');
-	  rpd->handle = fh_parse_file_handle ();
-	  if (!rpd->handle)
+	  file = fh_parse ();
+	  if (file == NULL)
 	    goto error;
-	  if (rpd->handle != default_handle)
+	  if (file != fh)
 	    {
 	      msg (SE, _("REPEATING DATA must use the same file as its "
 			 "corresponding DATA LIST or FILE TYPE."));
@@ -1613,9 +1597,9 @@ cmd_repeating_data (void)
 
   /* Calculate starts_end, cont_end if necessary. */
   if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL)
-    rpd->starts_end.num = handle_get_record_width (rpd->handle);
+    rpd->starts_end.num = handle_get_record_width (fh);
   if (rpd->cont_end.num == 0 && rpd->starts_end.var == NULL)
-    rpd->cont_end.num = handle_get_record_width (rpd->handle);
+    rpd->cont_end.num = handle_get_record_width (fh);
       
   /* Calculate length if possible. */
   if ((seen & 4) == 0)
@@ -1635,7 +1619,7 @@ cmd_repeating_data (void)
     goto error;
 
   if (table)
-    dump_fixed_table (rpd->first, rpd->handle, rpd->last->rec);
+    dump_fixed_table (rpd->first, fh, rpd->last->rec);
 
   {
     struct repeating_data_trns *new_trns;
@@ -1939,15 +1923,15 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
     
   int skip_first_record = 0;
     
-  dfm_push (t->handle);
+  dfm_push (t->reader);
   
   /* Read the current record. */
-  dfm_reread_record (t->handle, 1);
-  dfm_expand_tabs (t->handle);
-  if (dfm_eof (t->handle))
+  dfm_reread_record (t->reader, 1);
+  dfm_expand_tabs (t->reader);
+  if (dfm_eof (t->reader))
     return -2;
-  dfm_get_record (t->handle, &line);
-  dfm_forward_record (t->handle);
+  dfm_get_record (t->reader, &line);
+  dfm_forward_record (t->reader);
 
   /* Calculate occurs, length. */
   occurs_left = occurs = realize_value (&t->occurs, c);
@@ -2037,7 +2021,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
       assert (occurs_left >= 0);
 
       /* Read in another record. */
-      if (dfm_eof (t->handle))
+      if (dfm_eof (t->reader))
         {
           tmsg (SE, RPD_ERR,
                 _("Unexpected end of file with %d repetitions "
@@ -2045,9 +2029,9 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
                 occurs_left, occurs);
           return -2;
         }
-      dfm_expand_tabs (t->handle);
-      dfm_get_record (t->handle, &line);
-      dfm_forward_record (t->handle);
+      dfm_expand_tabs (t->reader);
+      dfm_get_record (t->reader, &line);
+      dfm_forward_record (t->reader);
 
       /* Parse this record. */
       info.trns = t;
@@ -2065,7 +2049,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
       occurs_left -= code;
     }
     
-  dfm_pop (t->handle);
+  dfm_pop (t->reader);
 
   /* FIXME: This is a kluge until we've implemented multiplexing of
      transformations. */
@@ -2079,7 +2063,7 @@ repeating_data_trns_free (struct trns_header *rpd_)
   struct repeating_data_trns *rpd = (struct repeating_data_trns *) rpd_;
 
   destroy_dls_var_spec (rpd->first);
-  fh_close_handle (rpd->handle);
+  dfm_close_reader (rpd->reader);
   free (rpd->id_value);
 }
 

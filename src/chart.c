@@ -17,7 +17,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-
+#include <config.h>
 #include <stdio.h>
 #include <plot.h>
 #include <stdarg.h>
@@ -28,6 +28,7 @@
 #include <math.h>
 
 #include "chart.h"
+#include "str.h"
 
 
 const char *data_colour[] = {

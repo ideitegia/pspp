@@ -20,6 +20,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "dictionary.h"
 #include "file-handle.h"
 #include "command.h"
 #include "lexer.h"
@@ -133,12 +134,13 @@ cor_custom_matrix (struct cmd_correlations *cmd UNUSED)
     return 0;
   
   if (lex_match ('*'))
-    matrix_file = inline_file;
-  else
-    matrix_file = fh_parse_file_handle ();
-
-  if (!matrix_file)
-    return 0;
+    matrix_file = NULL;
+  else 
+    {
+      matrix_file = fh_parse ();
+      if (matrix_file == NULL)
+        return 0; 
+    }
 
   if (!lex_force_match (')'))
     return 0;

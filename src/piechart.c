@@ -19,16 +19,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA. */
 
 
+#include <config.h>
 #include "chart.h"
 #include <float.h>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include "str.h"
 #include "value-labels.h"
 
 
 /* Pie charts of course need to know Pi :) */
+#ifndef M_PI
 #define M_PI ( 22.0 / 7.0 ) 
+#endif
 
 
 #define min(A,B) ((A>B)?B:A)
@@ -45,11 +49,10 @@ draw_segment(struct chart *ch,
 
 /* Draw a pie chart */
 void
-draw_piechart(struct chart *ch, const struct variable *var)
+draw_piechart(struct chart *ch, const struct variable *var,
+              const struct freq_tab *frq_tab)
 {
   int i;
-
-  const struct freq_tab *frq_tab = &var->p.frq.tab ;
 
   const int n_data = frq_tab->n_valid;
   const double left_label = ch->data_left + 

@@ -115,6 +115,7 @@ struct normal_curve
 
 void draw_histogram(struct chart *ch, 
 		    const struct variable *v,
+                    const struct freq_tab *frq_tab,
 		    const char *title, 
 		    struct normal_curve *norm,
 		    int show_normal);
@@ -123,7 +124,8 @@ void draw_histogram(struct chart *ch,
 double chart_rounded_tick(double tick);
 
 
-void draw_piechart(struct chart *ch, const struct variable *v);
+void draw_piechart(struct chart *ch, const struct variable *v,
+                   const struct freq_tab *);
 
 void draw_scatterplot(struct chart *ch);
 

@@ -28,10 +28,17 @@
 #ifdef GLOBAL_DEBUGGING
 #undef NDEBUG
 #else
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #endif
 #include <assert.h>
 
+/* Changes C not to share data with any other case.
+   C must be a case with a reference count greater than 1.
+   There should be no reason for external code to call this
+   function explicitly.  It will be called automatically when
+   needed. */
 void
 case_unshare (struct ccase *c) 
 {
@@ -49,6 +56,8 @@ case_unshare (struct ccase *c)
           sizeof *cd->values * cd->value_cnt); 
 }
 
+/* Returns the number of bytes needed by a case with VALUE_CNT
+   values. */
 static inline size_t
 case_size (size_t value_cnt) 
 {
@@ -57,6 +66,7 @@ case_size (size_t value_cnt)
 }
 
 #ifdef GLOBAL_DEBUGGING
+/* Initializes C as a null case. */
 void
 case_nullify (struct ccase *c) 
 {
@@ -66,6 +76,7 @@ case_nullify (struct ccase *c)
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Returns true iff C is a null case. */
 int
 case_is_null (const struct ccase *c) 
 {
@@ -73,6 +84,9 @@ case_is_null (const struct ccase *c)
 }
 #endif /* GLOBAL_DEBUGGING */
 
+/* Initializes C as a new case that can store VALUE_CNT values.
+   The values have indeterminate contents until explicitly
+   written. */
 void
 case_create (struct ccase *c, size_t value_cnt) 
 {
@@ -81,6 +95,7 @@ case_create (struct ccase *c, size_t value_cnt)
 }
 
 #ifdef GLOBAL_DEBUGGING
+/* Initializes CLONE as a copy of ORIG. */
 void
 case_clone (struct ccase *clone, const struct ccase *orig)
 {
@@ -100,6 +115,8 @@ case_clone (struct ccase *clone, const struct ccase *orig)
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Replaces DST by SRC and nullifies SRC.
+   DST and SRC must be initialized cases at entry. */
 void
 case_move (struct ccase *dst, struct ccase *src) 
 {
@@ -116,6 +133,7 @@ case_move (struct ccase *dst, struct ccase *src)
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Destroys case C. */
 void
 case_destroy (struct ccase *c) 
 {
@@ -134,6 +152,9 @@ case_destroy (struct ccase *c)
 }
 #endif /* GLOBAL_DEBUGGING */
 
+/* Attempts to create C as a new case that holds VALUE_CNT
+   values.  Returns nonzero if successful, zero if memory
+   allocation failed. */
 int
 case_try_create (struct ccase *c, size_t value_cnt) 
 {
@@ -156,6 +177,9 @@ case_try_create (struct ccase *c, size_t value_cnt)
     }
 }
 
+/* Tries to initialize CLONE as a copy of ORIG.
+   Returns nonzero if successful, zero if memory allocation
+   failed. */
 int
 case_try_clone (struct ccase *clone, const struct ccase *orig) 
 {
@@ -164,6 +188,8 @@ case_try_clone (struct ccase *clone, const struct ccase *orig)
 }
 
 #ifdef GLOBAL_DEBUGGING
+/* Copies VALUE_CNT values from SRC (starting at SRC_IDX) to DST
+   (starting at DST_IDX). */
 void
 case_copy (struct ccase *dst, size_t dst_idx,
            const struct ccase *src, size_t src_idx,
@@ -191,50 +217,51 @@ case_copy (struct ccase *dst, size_t dst_idx,
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
-size_t
-case_serial_size (size_t value_cnt) 
-{
-  return value_cnt * sizeof (union value);
-}
-#endif /* GLOBAL_DEBUGGING */
-
-#ifdef GLOBAL_DEBUGGING
+/* Copies case C to OUTPUT.
+   OUTPUT_SIZE is the number of `union values' in OUTPUT,
+   which must match the number of `union values' in C. */
 void
-case_serialize (const struct ccase *c, void *output,
+case_to_values (const struct ccase *c, union value *output,
                 size_t output_size UNUSED) 
 {
   assert (c != NULL);
   assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
-  assert (output_size == case_serial_size (c->case_data->value_cnt));
+  assert (output_size == c->case_data->value_cnt);
   assert (output != NULL || output_size == 0);
 
   memcpy (output, c->case_data->values,
-          case_serial_size (c->case_data->value_cnt));
+          c->case_data->value_cnt * sizeof *output);
 }
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Copies INPUT into case C.
+   INPUT_SIZE is the number of `union values' in INPUT,
+   which must match the number of `union values' in C. */
 void
-case_unserialize (struct ccase *c, const void *input,
+case_from_values (struct ccase *c, const union value *input,
                   size_t input_size UNUSED) 
 {
   assert (c != NULL);
   assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
-  assert (input_size == case_serial_size (c->case_data->value_cnt));
+  assert (input_size == c->case_data->value_cnt);
   assert (input != NULL || input_size == 0);
 
   if (c->case_data->ref_cnt > 1)
     case_unshare (c);
   memcpy (c->case_data->values, input,
-          case_serial_size (c->case_data->value_cnt));
+          c->case_data->value_cnt * sizeof *input);
 }
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Returns a pointer to the `union value' used for the
+   element of C numbered IDX.
+   The caller must not modify the returned data. */
 const union value *
 case_data (const struct ccase *c, size_t idx) 
 {
@@ -249,6 +276,8 @@ case_data (const struct ccase *c, size_t idx)
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Returns the numeric value of the `union value' in C numbered
+   IDX. */
 double
 case_num (const struct ccase *c, size_t idx) 
 {
@@ -263,6 +292,10 @@ case_num (const struct ccase *c, size_t idx)
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Returns the string value of the `union value' in C numbered
+   IDX.
+   (Note that the value is not null-terminated.)
+   The caller must not modify the return value. */
 const char *
 case_str (const struct ccase *c, size_t idx) 
 {
@@ -277,6 +310,9 @@ case_str (const struct ccase *c, size_t idx)
 #endif /* GLOBAL_DEBUGGING */
 
 #ifdef GLOBAL_DEBUGGING
+/* Returns a pointer to the `union value' used for the
+   element of C numbered IDX.
+   The caller is allowed to modify the returned data. */
 union value *
 case_data_rw (struct ccase *c, size_t idx) 
 {
@@ -291,3 +327,37 @@ case_data_rw (struct ccase *c, size_t idx)
   return &c->case_data->values[idx];
 }
 #endif /* GLOBAL_DEBUGGING */
+
+/* Returns a pointer to the array of `union value's used for C.
+   The caller must *not* modify the returned data.
+
+   NOTE: This function breaks the case abstraction.  It should
+   *not* be used often.  Prefer the other case functions. */
+const union value *
+case_data_all (const struct ccase *c) 
+{
+  assert (c != NULL);
+  assert (c->this == c);
+  assert (c->case_data != NULL);
+  assert (c->case_data->ref_cnt > 0);
+
+  return c->case_data->values;
+}
+
+/* Returns a pointer to the array of `union value's used for C.
+   The caller is allowed to modify the returned data.
+
+   NOTE: This function breaks the case abstraction.  It should
+   *not* be used often.  Prefer the other case functions. */
+union value *
+case_data_all_rw (struct ccase *c) 
+{
+  assert (c != NULL);
+  assert (c->this == c);
+  assert (c->case_data != NULL);
+  assert (c->case_data->ref_cnt > 0);
+
+  if (c->case_data->ref_cnt > 1)
+    case_unshare (c);
+  return c->case_data->values;
+}

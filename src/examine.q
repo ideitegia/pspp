@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "alloc.h"
 #include "str.h"
 #include "case.h"
+#include "dictionary.h"
 #include "command.h"
 #include "lexer.h"
 #include "error.h"
@@ -40,6 +41,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "casefile.h"
 #include "factor_stats.h"
+/* (headers) */
 #include "chart.h"
 
 /* (specification)
@@ -125,7 +127,7 @@ void np_plot(const struct metrics *m, const char *varname);
 
 
 /* Per Split function */
-static void run_examine(const struct casefile *cf, void *cmd_);
+static void run_examine(const struct casefile *cf, void *);
 
 static void output_examine(void);
 
@@ -152,7 +154,7 @@ cmd_examine(void)
 
   totals->stats = xmalloc(sizeof ( struct metrics ) * n_dependent_vars);
 
-  multipass_procedure_with_splits (run_examine, &cmd);
+  multipass_procedure_with_splits (run_examine, NULL);
 
 
   hsh_destroy(hash_table_factors);
@@ -942,7 +944,7 @@ static int bad_weight_warn = 1;
 
 
 static void 
-run_examine(const struct casefile *cf, void *cmd_)
+run_examine(const struct casefile *cf, void *aux UNUSED)
 {
   struct hsh_iterator hi;
   struct factor *fctr;
@@ -950,8 +952,6 @@ run_examine(const struct casefile *cf, void *cmd_)
   struct casereader *r;
   struct ccase c;
   int v;
-
-  const struct cmd_examine *cmd = (struct cmd_examine *) cmd_;
 
   /* Make sure we haven't got rubbish left over from a 
      previous split */

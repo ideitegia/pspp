@@ -30,18 +30,18 @@
 /* Record Type 1: General Information. */
 struct sysfile_header
   {
-    char rec_type[4] P;		/* Record-type code, "$FL2". */
-    char prod_name[60] P;	/* Product identification. */
-    int32 layout_code P;	/* 2. */
-    int32 case_size P;		/* Number of `value's per case. */
-    int32 compressed P;		/* 1=compressed, 0=not compressed. */
-    int32 weight_index P;	/* 1-based index of weighting var, or zero. */
-    int32 ncases P;		/* Number of cases, -1 if unknown. */
-    flt64 bias P;		/* Compression bias (100.0). */
-    char creation_date[9] P;	/* `dd mmm yy' creation date of file. */
-    char creation_time[8] P;	/* `hh:mm:ss' 24-hour creation time. */
-    char file_label[64] P;	/* File label. */
-    char padding[3] P;		/* Ignored padding. */
+    char rec_type[4] P;		/* 00: Record-type code, "$FL2". */
+    char prod_name[60] P;	/* 04: Product identification. */
+    int32 layout_code P;	/* 40: 2. */
+    int32 case_size P;		/* 44: Number of `value's per case. */
+    int32 compress P;		/* 48: 1=compressed, 0=not compressed. */
+    int32 weight_idx P;         /* 4c: 1-based index of weighting var, or 0. */
+    int32 case_cnt P;		/* 50: Number of cases, -1 if unknown. */
+    flt64 bias P;		/* 54: Compression bias (100.0). */
+    char creation_date[9] P;	/* 5c: `dd mmm yy' creation date of file. */
+    char creation_time[8] P;	/* 65: `hh:mm:ss' 24-hour creation time. */
+    char file_label[64] P;	/* 6d: File label. */
+    char padding[3] P;		/* ad: Ignored padding. */
   };
 
 /* Record Type 2: Variable. */

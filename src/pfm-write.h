@@ -1,8 +1,6 @@
 /* PSPP - computes sample statistics.
-
-   Copyright (C) 2004 Free Software Foundation, Inc.
-
-   Written by John Darrington <john@darrington.wattle.id.au>
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -19,33 +17,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#ifndef GROUP_DATA_H
-#define GROUP_DATA_H
+#ifndef PFM_WRITE_H
+#define PFM_WRITE_H
 
-#include "group.h"
+/* Portable file writing. */
 
-/* private data for commands dealing with grouped data*/
-struct group_proc
-{
-  /* Stats for the `universal group'  (ie the totals) */
-  struct group_statistics ugs;
+struct file_handle;
+struct dictionary;
+struct ccase;
+struct pfm_writer *pfm_open_writer (struct file_handle *,
+                                    const struct dictionary *);
+int pfm_write_case (struct pfm_writer *, struct ccase *);
+void pfm_close_writer (struct pfm_writer *);
 
-  /* The number of groups */
-  int n_groups;
-
-  /* The levene statistic */
-  double levene ;
-
-  /* A hash of group statistics keyed by the value of the 
-     independent variable */
-  struct hsh_table *group_hash;
-
-  /* Mean square error */
-  double mse ; 
-
-};
-
-struct variable;
-struct group_proc *group_proc_get (struct variable *);
-
-#endif
+#endif /* pfm-write.h */

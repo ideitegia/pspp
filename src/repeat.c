@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "getline.h"
 #include "lexer.h"

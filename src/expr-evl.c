@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include "case.h"
 #include "data-in.h"
+#include "dictionary.h"
 #include "error.h"
 #include "julcal/julcal.h"
 #include "magic.h"

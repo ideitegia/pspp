@@ -70,6 +70,7 @@ extern void stifle_history ();
 
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"
@@ -176,9 +177,6 @@ init_glob (int argc UNUSED, char **argv)
   logfn = xstrdup ("pspp.log");
   logfile = NULL;
 
-  /* file-handle.h */
-  fh_init_files ();
-  
   get_date ();
 }
 

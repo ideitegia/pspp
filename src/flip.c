@@ -27,6 +27,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "lexer.h"
 #include "misc.h"

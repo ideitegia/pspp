@@ -78,6 +78,7 @@ write_legend(struct chart *ch, struct normal_curve *norm)
 void
 draw_histogram(struct chart *ch, 
 	       const struct variable *var,
+               const struct freq_tab *frq_tab,
 	       const char *title, 
 	       struct normal_curve *norm,
 	       int show_normal)
@@ -95,8 +96,6 @@ draw_histogram(struct chart *ch,
 
 
   double ordinate_values[BINS];
-
-  const struct freq_tab *frq_tab = &var->p.frq.tab ;
 
   struct hsh_iterator hi;
   struct hsh_table *fh = frq_tab->data;

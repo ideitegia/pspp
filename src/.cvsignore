@@ -2,10 +2,12 @@ Makefile
 Makefile.in
 correlations.c
 crosstabs.c
+examine.c
 file-handle.c
 frequencies.c
 list.c
 means.c
+oneway.c
 pspp
 q2c
 set.c

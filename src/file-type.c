@@ -18,13 +18,14 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
 #include "data-in.h"
-#include "dfm.h"
+#include "dfm-read.h"
+#include "dictionary.h"
+#include "error.h"
 #include "file-handle.h"
 #include "format.h"
 #include "lexer.h"
@@ -75,7 +76,7 @@ struct record_type
 struct file_type_pgm
   {
     int type;			/* One of the FTY_* constants. */
-    struct file_handle *handle;	/* File handle of input file. */
+    struct dfm_reader *reader;  /* Data file to read. */
     struct col_spec record;	/* RECORD subcommand. */
     struct col_spec case_sbc;	/* CASE subcommand. */
     int wild;			/* 0=NOWARN, 1=WARN. */
@@ -97,13 +98,14 @@ static void create_col_var (struct col_spec *c);
 int
 cmd_file_type (void)
 {
-  static struct file_type_pgm *fty;
+  static struct file_type_pgm *fty;     /* FIXME: static? WTF? */
+  struct file_handle *fh = NULL;
 
   /* Initialize. */
   discard_variables ();
 
   fty = xmalloc (sizeof *fty);
-  fty->handle = inline_file;
+  fty->reader = NULL;
   fty->record.name[0] = 0;
   fty->case_sbc.name[0] = 0;
   fty->wild = fty->duplicate = fty->missing = fty->ordered = 0;
@@ -133,8 +135,8 @@ cmd_file_type (void)
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  fty->handle = fh_parse_file_handle ();
-	  if (!fty->handle)
+	  fh = fh_parse ();
+	  if (fh == NULL)
 	    goto error;
 	}
       else if (lex_match_id ("RECORD"))
@@ -270,9 +272,10 @@ cmd_file_type (void)
 	}
     }
 
-  if (!dfm_open_for_reading (fty->handle))
+  fty->reader = dfm_open_reader (fh);
+  if (fty->reader == NULL)
     goto error;
-  default_handle = fty->handle;
+  default_handle = fh;
 
   create_col_var (&fty->record);
   if (fty->case_sbc.name[0])
@@ -626,20 +629,20 @@ file_type_source_read (struct case_source *source,
   struct file_type_pgm *fty = source->aux;
   struct fmt_spec format;
 
-  dfm_push (fty->handle);
+  dfm_push (fty->reader);
 
   format.type = fty->record.fmt;
   format.w = fty->record.nc;
   format.d = 0;
-  while (!dfm_eof (fty->handle))
+  while (!dfm_eof (fty->reader))
     {
       struct len_string line;
       struct record_type *iter;
       union value v;
       int i;
 
-      dfm_expand_tabs (fty->handle);
-      dfm_get_record (fty->handle, &line);
+      dfm_expand_tabs (fty->reader);
+      dfm_get_record (fty->reader, &line);
       if (formats[fty->record.fmt].cat & FCAT_STRING)
 	{
 	  struct data_in di;
@@ -689,13 +692,13 @@ file_type_source_read (struct case_source *source,
 	  if (fty->wild)
 	    msg (SW, _("Unknown record type %g."), v.f);
 	}
-      dfm_forward_record (fty->handle);
+      dfm_forward_record (fty->reader);
       continue;
 
     found:
       /* Arrive here if there is a matching record_type, which is in
          iter. */
-      dfm_forward_record (fty->handle);
+      dfm_forward_record (fty->reader);
     }
 
 /*  switch(fty->type)
@@ -706,7 +709,7 @@ file_type_source_read (struct case_source *source,
    default: assert(0);
    } */
 
-  dfm_pop (fty->handle);
+  dfm_pop (fty->reader);
 }
 
 static void
@@ -716,6 +719,7 @@ file_type_source_destroy (struct case_source *source)
   struct record_type *iter, *next;
 
   cancel_transformations ();
+  dfm_close_reader (fty->reader);
   for (iter = fty->recs_head; iter; iter = next)
     {
       next = iter->next;

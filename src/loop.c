@@ -22,6 +22,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"

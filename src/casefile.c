@@ -37,7 +37,7 @@
 #include <valgrind/valgrind.h>
 #endif
 
-#define IO_BUF_SIZE 8192
+#define IO_BUF_SIZE (8192 / sizeof (union value))
 
 /* A casefile is a sequentially accessible array of immutable
    cases.  It may be stored in memory or on disk as workspace
@@ -57,7 +57,6 @@ struct casefile
     /* Basic data. */
     struct casefile *next, *prev;       /* Next, prev in global list. */
     size_t value_cnt;                   /* Case size in `union value's. */
-    size_t case_size;                   /* Case size in bytes. */
     size_t case_acct_size;              /* Case size for accounting. */
     unsigned long case_cnt;             /* Number of cases stored. */
     enum { MEMORY, DISK } storage;      /* Where cases are stored. */
@@ -71,9 +70,9 @@ struct casefile
     /* Disk storage. */
     int fd;                             /* File descriptor, -1 if none. */
     char *filename;                     /* Filename. */
-    unsigned char *buffer;              /* I/O buffer, NULL if none. */
-    size_t buffer_used;                 /* Number of bytes used in buffer. */
-    size_t buffer_size;                 /* Buffer size in bytes. */
+    union value *buffer;                /* I/O buffer, NULL if none. */
+    size_t buffer_used;                 /* Number of values used in buffer. */
+    size_t buffer_size;                 /* Buffer size in values. */
   };
 
 /* For reading out the cases in a casefile. */
@@ -86,8 +85,8 @@ struct casereader
 
     /* Disk storage. */
     int fd;                             /* File descriptor. */
-    unsigned char *buffer;              /* I/O buffer. */
-    size_t buffer_pos;                  /* Byte offset of buffer position. */
+    union value *buffer;                /* I/O buffer. */
+    size_t buffer_pos;                  /* Offset of buffer position. */
     struct ccase c;                     /* Current case. */
   };
 
@@ -107,8 +106,8 @@ static void fill_buffer (struct casereader *reader);
 
 static int safe_open (const char *filename, int flags);
 static int safe_close (int fd);
-static int full_read (int fd, char *buffer, size_t size);
-static int full_write (int fd, const char *buffer, size_t size);
+static int full_read (int fd, void *buffer, size_t size);
+static int full_write (int fd, const void *buffer, size_t size);
 
 /* Creates and returns a casefile to store cases of VALUE_CNT
    `union value's each. */
@@ -122,8 +121,7 @@ casefile_create (size_t value_cnt)
     cf->next->prev = cf;
   casefiles = cf;
   cf->value_cnt = value_cnt;
-  cf->case_size = case_serial_size (value_cnt);
-  cf->case_acct_size = cf->case_size + 4 * sizeof (void *);
+  cf->case_acct_size = (cf->value_cnt + 4) * sizeof *cf->buffer;
   cf->case_cnt = 0;
   cf->storage = MEMORY;
   cf->mode = WRITE;
@@ -133,9 +131,9 @@ casefile_create (size_t value_cnt)
   cf->fd = -1;
   cf->filename = NULL;
   cf->buffer = NULL;
-  cf->buffer_size = ROUND_UP (cf->case_size, IO_BUF_SIZE);
-  if (cf->case_size > 0 && cf->buffer_size % cf->case_size > 512)
-    cf->buffer_size = cf->case_size;
+  cf->buffer_size = ROUND_UP (cf->value_cnt, IO_BUF_SIZE);
+  if (cf->value_cnt > 0 && cf->buffer_size % cf->value_cnt > 64)
+    cf->buffer_size = cf->value_cnt;
   cf->buffer_used = 0;
   register_atexit ();
   return cf;
@@ -312,9 +310,9 @@ casefile_append_xfer (struct casefile *cf, struct ccase *c)
 static void
 write_case_to_disk (struct casefile *cf, const struct ccase *c) 
 {
-  case_serialize (c, cf->buffer + cf->buffer_used, cf->case_size);
-  cf->buffer_used += cf->case_size;
-  if (cf->buffer_used + cf->case_size > cf->buffer_size)
+  case_to_values (c, cf->buffer + cf->buffer_used, cf->value_cnt);
+  cf->buffer_used += cf->value_cnt;
+  if (cf->buffer_used + cf->value_cnt > cf->buffer_size)
     flush_buffer (cf);
 }
 
@@ -325,7 +323,8 @@ flush_buffer (struct casefile *cf)
 {
   if (cf->buffer_used > 0) 
     {
-      if (!full_write (cf->fd, cf->buffer, cf->buffer_size)) 
+      if (!full_write (cf->fd, cf->buffer,
+                       cf->buffer_size * sizeof *cf->buffer)) 
         msg (FE, _("Error writing temporary file: %s."), strerror (errno));
 
       cf->buffer_used = 0;
@@ -371,7 +370,7 @@ casefile_to_disk (const struct casefile *cf_)
   struct casereader *reader;
   
   assert (cf != NULL);
-  
+
   if (cf->storage == MEMORY)
     {
       size_t idx, block_cnt;
@@ -383,8 +382,8 @@ casefile_to_disk (const struct casefile *cf_)
       cf->storage = DISK;
       if (!make_temp_file (&cf->fd, &cf->filename))
         err_failure ();
-      cf->buffer = xmalloc (cf->buffer_size);
-      memset (cf->buffer, 0, cf->buffer_size);
+      cf->buffer = xmalloc (cf->buffer_size * sizeof *cf->buffer);
+      memset (cf->buffer, 0, cf->buffer_size * sizeof *cf->buffer);
 
       case_bytes -= cf->case_cnt * cf->case_acct_size;
       for (idx = 0; idx < cf->case_cnt; idx++)
@@ -482,7 +481,6 @@ static void
 reader_open_file (struct casereader *reader) 
 {
   struct casefile *cf = reader->cf;
-  size_t buffer_case_cnt;
   off_t file_ofs;
 
   if (reader->case_idx >= cf->case_cnt)
@@ -508,17 +506,17 @@ reader_open_file (struct casereader *reader)
     }
   else 
     {
-      reader->buffer = xmalloc (cf->buffer_size);
-      memset (reader->buffer, 0, cf->buffer_size); 
+      reader->buffer = xmalloc (cf->buffer_size * sizeof *cf->buffer);
+      memset (reader->buffer, 0, cf->buffer_size * sizeof *cf->buffer); 
     }
 
-  if (cf->case_size != 0) 
+  if (cf->value_cnt != 0) 
     {
-      buffer_case_cnt = cf->buffer_size / cf->case_size;
-      file_ofs = ((off_t) reader->case_idx
-                  / buffer_case_cnt * cf->buffer_size);
+      size_t buffer_case_cnt = cf->buffer_size / cf->value_cnt;
+      file_ofs = ((off_t) reader->case_idx / buffer_case_cnt
+                  * cf->buffer_size * sizeof *cf->buffer);
       reader->buffer_pos = (reader->case_idx % buffer_case_cnt
-                            * cf->case_size);
+                            * cf->value_cnt);
     }
   else 
     file_ofs = 0;
@@ -526,7 +524,7 @@ reader_open_file (struct casereader *reader)
     msg (FE, _("%s: Seeking temporary file: %s."),
          cf->filename, strerror (errno));
 
-  if (cf->case_cnt > 0 && cf->case_size > 0)
+  if (cf->case_cnt > 0 && cf->value_cnt > 0)
     fill_buffer (reader);
 
   case_create (&reader->c, cf->value_cnt);
@@ -536,11 +534,12 @@ reader_open_file (struct casereader *reader)
 static void
 fill_buffer (struct casereader *reader)
 {
-  int retval = full_read (reader->fd, reader->buffer, reader->cf->buffer_size);
+  int retval = full_read (reader->fd, reader->buffer,
+                          reader->cf->buffer_size * sizeof *reader->buffer);
   if (retval < 0)
     msg (FE, _("%s: Reading temporary file: %s."),
          reader->cf->filename, strerror (errno));
-  else if (retval != reader->cf->buffer_size)
+  else if (retval != reader->cf->buffer_size * sizeof *reader->buffer)
     msg (FE, _("%s: Temporary file ended unexpectedly."),
          reader->cf->filename); 
 }
@@ -575,15 +574,15 @@ casereader_read (struct casereader *reader, struct ccase *c)
     }
   else 
     {
-      if (reader->buffer_pos + reader->cf->case_size > reader->cf->buffer_size)
+      if (reader->buffer_pos + reader->cf->value_cnt > reader->cf->buffer_size)
         {
           fill_buffer (reader);
           reader->buffer_pos = 0;
         }
 
-      case_unserialize (&reader->c, reader->buffer + reader->buffer_pos,
-                        reader->cf->case_size);
-      reader->buffer_pos += reader->cf->case_size;
+      case_from_values (&reader->c, reader->buffer + reader->buffer_pos,
+                        reader->cf->value_cnt);
+      reader->buffer_pos += reader->cf->value_cnt;
       reader->case_idx++;
 
       case_clone (c, &reader->c);
@@ -679,8 +678,9 @@ static int safe_close (int fd)
 /* Calls read(), passing FD, BUFFER, and SIZE, repeating as
    necessary to deal with interrupted calls. */
 static int
-full_read (int fd, char *buffer, size_t size) 
+full_read (int fd, void *buffer_, size_t size) 
 {
+  char *buffer = buffer_;
   size_t bytes_read = 0;
   
   while (bytes_read < size)
@@ -700,8 +700,9 @@ full_read (int fd, char *buffer, size_t size)
 /* Calls write(), passing FD, BUFFER, and SIZE, repeating as
    necessary to deal with interrupted calls. */
 static int
-full_write (int fd, const char *buffer, size_t size) 
+full_write (int fd, const void *buffer_, size_t size) 
 {
+  const char *buffer = buffer_;
   size_t bytes_written = 0;
   
   while (bytes_written < size)
@@ -830,8 +831,8 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
       for (i = j = 0; i < case_cnt; i++) 
         {
           read_and_verify_random_case (cf, r1, i);
-          if (rng_get_int (rng) % pattern == 0)
-            read_and_verify_random_case (cf, r2, j++);
+          if (rng_get_int (rng) % pattern == 0) 
+            read_and_verify_random_case (cf, r2, j++); 
           if (i == case_cnt / 2)
             casefile_to_disk (cf);
         }

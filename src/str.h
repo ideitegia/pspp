@@ -40,7 +40,7 @@
   char *strtok_r (char *, const char *, char **);
 #endif
 
-#if !HAVE_STPCPY && !__linux__
+#if !HAVE_STPCPY
   char *stpcpy (char *dest, const char *src);
 #endif
 

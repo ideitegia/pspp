@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "bitvector.h"
+#include "dictionary.h"
 #include "error.h"
 #include "hash.h"
 #include "lexer.h"

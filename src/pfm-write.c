@@ -18,7 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include "pfm.h"
+#include "pfm-write.h"
 #include "error.h"
 #include <ctype.h>
 #include <errno.h>
@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include "alloc.h"
+#include "case.h"
+#include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "gmp.h"
@@ -40,142 +42,124 @@
 
 #include "debug-print.h"
 
-/* pfm writer file_handle extension. */
-struct pfm_fhuser_ext
+/* Portable file writer. */
+struct pfm_writer
   {
-    FILE *file;			/* Actual file. */
+    struct file_handle *fh;     /* File handle. */
+    FILE *file;			/* File stream. */
 
     int lc;			/* Number of characters on this line so far. */
 
-    int nvars;			/* Number of variables. */
-    int *vars;			/* Variable widths. */
+    size_t var_cnt;             /* Number of variables. */
+    struct pfm_var *vars;       /* Variables. */
   };
 
-static struct fh_ext_class pfm_w_class;
+/* A variable to write to the portable file. */
+struct pfm_var 
+  {
+    int width;                  /* 0=numeric, otherwise string var width. */
+    int fv;                     /* Starting case index. */
+  };
 
-static int bufwrite (struct file_handle *h, const void *buf, size_t nbytes);
-static int write_header (struct file_handle *h);
-static int write_version_data (struct file_handle *h);
-static int write_variables (struct file_handle *h, struct dictionary *d);
-static int write_value_labels (struct file_handle *h, struct dictionary *d);
+static int buf_write (struct pfm_writer *, const void *, size_t);
+static int write_header (struct pfm_writer *);
+static int write_version_data (struct pfm_writer *);
+static int write_variables (struct pfm_writer *, const struct dictionary *);
+static int write_value_labels (struct pfm_writer *, const struct dictionary *);
 
 /* Writes the dictionary DICT to portable file HANDLE.  Returns
    nonzero only if successful. */
-int
-pfm_write_dictionary (struct file_handle *handle, struct dictionary *dict)
+struct pfm_writer *
+pfm_open_writer (struct file_handle *fh, const struct dictionary *dict)
 {
-  struct pfm_fhuser_ext *ext;
-  
-  if (handle->class != NULL)
-    {
-      msg (ME, _("Cannot write file %s as portable file: already opened "
-		 "for %s."),
-	   handle_get_name (handle), handle->class->name);
-      return 0;
-    }
+  struct pfm_writer *w = NULL;
+  size_t i;
 
-  msg (VM (1), _("%s: Opening portable-file handle %s for writing."),
-       handle_get_filename (handle), handle_get_name (handle));
+  if (!fh_open (fh, "portable file", "we"))
+    goto error;
   
   /* Open the physical disk file. */
-  handle->class = &pfm_w_class;
-  handle->ext = ext = xmalloc (sizeof (struct pfm_fhuser_ext));
-  ext->file = fopen (handle_get_filename (handle), "wb");
-  ext->lc = 0;
-  if (ext->file == NULL)
+  w = xmalloc (sizeof *w);
+  w->fh = fh;
+  w->file = fopen (handle_get_filename (fh), "wb");
+  w->lc = 0;
+  w->var_cnt = 0;
+  w->vars = NULL;
+  
+  /* Check that file create succeeded. */
+  if (w->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
 	   "as a portable file: %s."),
-           handle_get_filename (handle), strerror (errno));
+           handle_get_filename (fh), strerror (errno));
       err_cond_fail ();
-      free (ext);
-      return 0;
+      goto error;
     }
   
-  {
-    int i;
+  w->var_cnt = dict_get_var_cnt (dict);
+  w->vars = xmalloc (sizeof *w->vars * w->var_cnt);
+  for (i = 0; i < w->var_cnt; i++) 
+    {
+      const struct variable *dv = dict_get_var (dict, i);
+      struct pfm_var *pv = &w->vars[i];
+      pv->width = dv->width;
+      pv->fv = dv->fv;
+    }
 
-    ext->nvars = dict_get_var_cnt (dict);
-    ext->vars = xmalloc (sizeof *ext->vars * ext->nvars);
-    for (i = 0; i < ext->nvars; i++)
-      ext->vars[i] = dict_get_var (dict, i)->width;
-  }
+  /* Write file header. */
+  if (!write_header (w)
+      || !write_version_data (w)
+      || !write_variables (w, dict)
+      || !write_value_labels (w, dict)
+      || !buf_write (w, "F", 1))
+    goto error;
 
-  /* Write the file header. */
-  if (!write_header (handle))
-    goto lossage;
+  return w;
 
-  /* Write version data. */
-  if (!write_version_data (handle))
-    goto lossage;
-
-  /* Write variables. */
-  if (!write_variables (handle, dict))
-    goto lossage;
-
-  /* Write value labels. */
-  if (!write_value_labels (handle, dict))
-    goto lossage;
-
-  /* Write beginning of data marker. */
-  if (!bufwrite (handle, "F", 1))
-    goto lossage;
-
-  msg (VM (2), _("Wrote portable-file header successfully."));
-
-  return 1;
-
-lossage:
-  msg (VM (1), _("Error writing portable-file header."));
-  fclose (ext->file);
-  free (ext->vars);
-  handle->class = NULL;
-  handle->ext = NULL;
-  return 0;
+error:
+  pfm_close_writer (w);
+  return NULL;
 }
   
 /* Write NBYTES starting at BUF to the portable file represented by
    H.  Break lines properly every 80 characters.  */
 static int
-bufwrite (struct file_handle *h, const void *buf_, size_t nbytes)
+buf_write (struct pfm_writer *w, const void *buf_, size_t nbytes)
 {
   const char *buf = buf_;
-  struct pfm_fhuser_ext *ext = h->ext;
 
   assert (buf != NULL);
-  while (nbytes + ext->lc >= 80)
+  while (nbytes + w->lc >= 80)
     {
-      size_t n = 80 - ext->lc;
+      size_t n = 80 - w->lc;
       
-      if (n && 1 != fwrite (buf, n, 1, ext->file))
-	goto lossage;
+      if (n && fwrite (buf, n, 1, w->file) != 1)
+	goto error;
       
-      /* PORTME: line ends. */
-      if (1 != fwrite ("\r\n", 2, 1, ext->file))
-	goto lossage;
+      if (fwrite ("\r\n", 2, 1, w->file) != 1)
+	goto error;
 
       nbytes -= n;
       buf += n;
-      ext->lc = 0;
+      w->lc = 0;
     }
 
-  if (nbytes && 1 != fwrite (buf, nbytes, 1, ext->file))
-    goto lossage;
-  ext->lc += nbytes;
+  if (nbytes && 1 != fwrite (buf, nbytes, 1, w->file))
+    goto error;
+  w->lc += nbytes;
   
   return 1;
 
- lossage:
-  abort ();
+ error:
   msg (ME, _("%s: Writing portable file: %s."),
-       handle_get_filename (h), strerror (errno));
+       handle_get_filename (w->fh), strerror (errno));
   return 0;
 }
 
 /* Write D to the portable file as a floating-point field, and return
    success. */
 static int
-write_float (struct file_handle *h, double d)
+write_float (struct pfm_writer *w, double d)
 {
   int neg = 0;
   char *mantissa;
@@ -191,7 +175,7 @@ write_float (struct file_handle *h, double d)
     }
   
   if (d == fabs (SYSMIS) || d == HUGE_VAL)
-    return bufwrite (h, "*.", 2);
+    return buf_write (w, "*.", 2);
   
   /* Use GNU libgmp2 to convert D into base-30. */
   {
@@ -238,7 +222,7 @@ write_float (struct file_handle *h, double d)
     }
   *cp++ = '/';
   
-  success = bufwrite (h, buf, cp - buf);
+  success = buf_write (w, buf, cp - buf);
   local_free (buf);
   free (mantissa);
   return success;
@@ -246,7 +230,7 @@ write_float (struct file_handle *h, double d)
 
 /* Write N to the portable file as an integer field, and return success. */
 static int
-write_int (struct file_handle *h, int n)
+write_int (struct pfm_writer *w, int n)
 {
   char buf[64];
   char *bp = &buf[64];
@@ -277,27 +261,27 @@ write_int (struct file_handle *h, int n)
   if (neg)
     *--bp = '-';
 
-  return bufwrite (h, bp, &buf[64] - bp);
+  return buf_write (w, bp, &buf[64] - bp);
 }
 
 /* Write S to the portable file as a string field. */
 static int
-write_string (struct file_handle *h, const char *s)
+write_string (struct pfm_writer *w, const char *s)
 {
   size_t n = strlen (s);
-  return write_int (h, (int) n) && bufwrite (h, s, n);
+  return write_int (w, (int) n) && buf_write (w, s, n);
 }
 
 /* Write file header. */
 static int
-write_header (struct file_handle *h)
+write_header (struct pfm_writer *w)
 {
   /* PORTME. */
   {
     int i;
 
     for (i = 0; i < 5; i++)
-      if (!bufwrite (h, "ASCII SPSS PORT FILE                    ", 40))
+      if (!buf_write (w, "ASCII SPSS PORT FILE                    ", 40))
 	return 0;
   }
   
@@ -312,11 +296,11 @@ write_header (struct file_handle *h)
 	"0000000000000000000000000000000000000000000000000000000000000000"
       };
 
-    if (!bufwrite (h, spss2ascii, 256))
+    if (!buf_write (w, spss2ascii, 256))
       return 0;
   }
 
-  if (!bufwrite (h, "SPSSPORT", 8))
+  if (!buf_write (w, "SPSSPORT", 8))
     return 0;
 
   return 1;
@@ -324,9 +308,9 @@ write_header (struct file_handle *h)
 
 /* Writes version, date, and identification records. */
 static int
-write_version_data (struct file_handle *h)
+write_version_data (struct pfm_writer *w)
 {
-  if (!bufwrite (h, "A", 1))
+  if (!buf_write (w, "A", 1))
     return 0;
   
   {
@@ -348,16 +332,16 @@ write_version_data (struct file_handle *h)
     sprintf (date_str, "%04d%02d%02d",
 	     tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday);
     sprintf (time_str, "%02d%02d%02d", tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
-    if (!write_string (h, date_str) || !write_string (h, time_str))
+    if (!write_string (w, date_str) || !write_string (w, time_str))
       return 0;
   }
 
   /* Product identification. */
-  if (!bufwrite (h, "1", 1) || !write_string (h, version))
+  if (!buf_write (w, "1", 1) || !write_string (w, version))
     return 0;
 
   /* Subproduct identification. */
-  if (!bufwrite (h, "3", 1) || !write_string (h, host_system))
+  if (!buf_write (w, "3", 1) || !write_string (w, host_system))
     return 0;
 
   return 1;
@@ -365,31 +349,31 @@ write_version_data (struct file_handle *h)
 
 /* Write format F to file H, and return success. */
 static int
-write_format (struct file_handle *h, struct fmt_spec *f)
+write_format (struct pfm_writer *w, struct fmt_spec *f)
 {
-  return (write_int (h, formats[f->type].spss)
-	  && write_int (h, f->w)
-	  && write_int (h, f->d));
+  return (write_int (w, formats[f->type].spss)
+	  && write_int (w, f->w)
+	  && write_int (w, f->d));
 }
 
 /* Write value V for variable VV to file H, and return success. */
 static int
-write_value (struct file_handle *h, union value *v, struct variable *vv)
+write_value (struct pfm_writer *w, union value *v, struct variable *vv)
 {
   if (vv->type == NUMERIC)
-    return write_float (h, v->f);
+    return write_float (w, v->f);
   else
-    return write_int (h, vv->width) && bufwrite (h, v->s, vv->width);
+    return write_int (w, vv->width) && buf_write (w, v->s, vv->width);
 }
 
 /* Write variable records, and return success. */
 static int
-write_variables (struct file_handle *h, struct dictionary *dict)
+write_variables (struct pfm_writer *w, const struct dictionary *dict)
 {
   int i;
   
-  if (!bufwrite (h, "4", 1) || !write_int (h, dict_get_var_cnt (dict))
-      || !write_int (h, 161))
+  if (!buf_write (w, "4", 1) || !write_int (w, dict_get_var_cnt (dict))
+      || !write_int (w, 161))
     return 0;
 
   for (i = 0; i < dict_get_var_cnt (dict); i++)
@@ -404,17 +388,17 @@ write_variables (struct file_handle *h, struct dictionary *dict)
 
       struct variable *v = dict_get_var (dict, i);
       
-      if (!bufwrite (h, "7", 1) || !write_int (h, v->width)
-	  || !write_string (h, v->name)
-	  || !write_format (h, &v->print) || !write_format (h, &v->write))
+      if (!buf_write (w, "7", 1) || !write_int (w, v->width)
+	  || !write_string (w, v->name)
+	  || !write_format (w, &v->print) || !write_format (w, &v->write))
 	return 0;
 
       for (m = miss_types[v->miss_type], j = 0; j < (int) strlen (m); j++)
-	if ((m[j] != ' ' && !bufwrite (h, &m[j], 1))
-	    || !write_value (h, &v->missing[j], v))
+	if ((m[j] != ' ' && !buf_write (w, &m[j], 1))
+	    || !write_value (w, &v->missing[j], v))
 	  return 0;
 
-      if (v->label && (!bufwrite (h, "C", 1) || !write_string (h, v->label)))
+      if (v->label && (!buf_write (w, "C", 1) || !write_string (w, v->label)))
 	return 0;
     }
 
@@ -423,7 +407,7 @@ write_variables (struct file_handle *h, struct dictionary *dict)
 
 /* Write value labels to disk.  FIXME: Inefficient. */
 static int
-write_value_labels (struct file_handle *h, struct dictionary *dict)
+write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 {
   int i;
 
@@ -436,16 +420,16 @@ write_value_labels (struct file_handle *h, struct dictionary *dict)
       if (!val_labs_count (v->val_labs))
 	continue;
 
-      if (!bufwrite (h, "D", 1)
-	  || !write_int (h, 1)
-	  || !write_string (h, v->name)
-	  || !write_int (h, val_labs_count (v->val_labs)))
+      if (!buf_write (w, "D", 1)
+	  || !write_int (w, 1)
+	  || !write_string (w, v->name)
+	  || !write_int (w, val_labs_count (v->val_labs)))
 	return 0;
 
       for (vl = val_labs_first_sorted (v->val_labs, &j); vl != NULL;
            vl = val_labs_next (v->val_labs, &j)) 
-	if (!write_value (h, &vl->value, v)
-	    || !write_string (h, vl->label)) 
+	if (!write_value (w, &vl->value, v)
+	    || !write_string (w, vl->label)) 
           {
             val_labs_done (&j);
             return 0; 
@@ -458,24 +442,23 @@ write_value_labels (struct file_handle *h, struct dictionary *dict)
 /* Writes case ELEM to the portable file represented by H.  Returns
    success. */
 int 
-pfm_write_case (struct file_handle *h, const union value *elem)
+pfm_write_case (struct pfm_writer *w, struct ccase *c)
 {
-  struct pfm_fhuser_ext *ext = h->ext;
-  
   int i;
   
-  for (i = 0; i < ext->nvars; i++)
+  for (i = 0; i < w->var_cnt; i++)
     {
-      const int width = ext->vars[i];
+      struct pfm_var *v = &w->vars[i];
       
-      if (width == 0)
+      if (v->width == 0)
 	{
-	  if (!write_float (h, elem[i].f))
+	  if (!write_float (w, case_num (c, v->fv)))
 	    return 0;
 	}
       else
 	{
-	  if (!write_int (h, width) || !bufwrite (h, elem[i].c, width))
+	  if (!write_int (w, v->width)
+              || !buf_write (w, case_str (c, v->fv), v->width))
 	    return 0;
 	}
     }
@@ -484,33 +467,30 @@ pfm_write_case (struct file_handle *h, const union value *elem)
 }
 
 /* Closes a portable file after we're done with it. */
-static void
-pfm_close (struct file_handle *h)
+void
+pfm_close_writer (struct pfm_writer *w)
 {
-  struct pfm_fhuser_ext *ext = h->ext;
+  if (w == NULL)
+    return;
+
+  fh_close (w->fh, "portable file", "we");
   
-  {
-    char buf[80];
+  if (w->file != NULL)
+    {
+      char buf[80];
     
-    int n = 80 - ext->lc;
-    if (n == 0)
-      n = 80;
+      int n = 80 - w->lc;
+      if (n == 0)
+        n = 80;
 
-    memset (buf, 'Z', n);
-    bufwrite (h, buf, n);
-  }
+      memset (buf, 'Z', n);
+      buf_write (w, buf, n);
 
-  if (EOF == fclose (ext->file))
-    msg (ME, _("%s: Closing portable file: %s."),
-         handle_get_filename (h), strerror (errno));
+      if (fclose (w->file) == EOF)
+        msg (ME, _("%s: Closing portable file: %s."),
+             handle_get_filename (w->fh), strerror (errno));
+    }
 
-  free (ext->vars);
-  free (ext);
+  free (w->vars);
+  free (w);
 }
-
-static struct fh_ext_class pfm_w_class =
-{
-  6,
-  N_("writing as a portable file"),
-  pfm_close,
-};

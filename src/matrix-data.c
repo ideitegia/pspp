@@ -27,7 +27,8 @@
 #include "case.h"
 #include "command.h"
 #include "data-in.h"
-#include "dfm.h"
+#include "dfm-read.h"
+#include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "lexer.h"
@@ -41,6 +42,19 @@
 
 /* FIXME: /N subcommand not implemented.  It should be pretty simple,
    too. */
+
+/* Different types of variables for MATRIX DATA procedure.  Order is
+   important: these are used for sort keys. */
+enum
+  {
+    MXD_SPLIT,			/* SPLIT FILE variables. */
+    MXD_ROWTYPE,		/* ROWTYPE_. */
+    MXD_FACTOR,			/* Factor variables. */
+    MXD_VARNAME,		/* VARNAME_. */
+    MXD_CONTINUOUS,		/* Continuous variables. */
+
+    MXD_COUNT
+  };
 
 /* Format type enums. */
 enum format_type
@@ -102,7 +116,7 @@ static const char *content_names[PROX + 1] =
 struct matrix_data_pgm 
   {
     struct pool *container;     /* Arena used for all allocations. */
-    struct file_handle *data_file; /* The data file to be read. */
+    struct dfm_reader *reader;  /* Data file to read. */
 
     /* Format. */
     enum format_type fmt;	/* LIST or FREE. */
@@ -133,21 +147,30 @@ struct matrix_data_pgm
                                    first continuous variable. */
   };
 
+/* Auxiliary data attached to MATRIX DATA variables. */
+struct mxd_var 
+  {
+    int var_type;		/* Variable type. */
+    int sub_type;		/* Subtype. */
+  };
+
 static const struct case_source_class matrix_data_with_rowtype_source_class;
 static const struct case_source_class matrix_data_without_rowtype_source_class;
 
-static int compare_variables_by_mxd_vartype (const void *pa,
+static int compare_variables_by_mxd_var_type (const void *pa,
 					     const void *pb);
 static void read_matrices_without_rowtype (struct matrix_data_pgm *);
 static void read_matrices_with_rowtype (struct matrix_data_pgm *);
 static int string_to_content_type (char *, int *);
+static void attach_mxd_aux (struct variable *, int var_type, int sub_type);
 
 int
 cmd_matrix_data (void)
 {
   struct pool *pool;
   struct matrix_data_pgm *mx;
-  
+  struct file_handle *fh = NULL;
+    
   unsigned seen = 0;
   
   discard_variables ();
@@ -155,7 +178,7 @@ cmd_matrix_data (void)
   pool = pool_create ();
   mx = pool_alloc (pool, sizeof *mx);
   mx->container = pool;
-  mx->data_file = inline_file;
+  mx->reader = NULL;
   mx->fmt = LIST;
   mx->section = LOWER;
   mx->diag = DIAGONAL;
@@ -216,9 +239,8 @@ cmd_matrix_data (void)
 		if (strcmp (v[i], "ROWTYPE_"))
 		  {
 		    new_var = dict_create_var_assert (default_dict, v[i], 0);
-		    new_var->p.mxd.vartype = MXD_CONTINUOUS;
-		    new_var->p.mxd.subtype = i;
-		  }
+                    attach_mxd_aux (new_var, MXD_CONTINUOUS, i);
+                  }
 		else
 		  mx->explicit_rowtype = 1;
 		free (v[i]);
@@ -226,18 +248,15 @@ cmd_matrix_data (void)
 	    free (v);
 	  }
 	  
-	  {
-	    mx->rowtype_ = dict_create_var_assert (default_dict,
-                                                   "ROWTYPE_", 8);
-	    mx->rowtype_->p.mxd.vartype = MXD_ROWTYPE;
-	    mx->rowtype_->p.mxd.subtype = 0;
-	  }
+          mx->rowtype_ = dict_create_var_assert (default_dict,
+                                                 "ROWTYPE_", 8);
+          attach_mxd_aux (mx->rowtype_, MXD_ROWTYPE, 0);
 	}
       else if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  mx->data_file = fh_parse_file_handle ();
-	  if (mx->data_file == NULL)
+	  fh = fh_parse ();
+	  if (fh == NULL)
 	    goto lossage;
 	}
       else if (lex_match_id ("FORMAT"))
@@ -296,9 +315,8 @@ cmd_matrix_data (void)
 
 	      mx->single_split = dict_create_var_assert (default_dict,
                                                          tokid, 0);
+              attach_mxd_aux (mx->single_split, MXD_CONTINUOUS, 0);
 	      lex_get ();
-
-	      mx->single_split->p.mxd.vartype = MXD_CONTINUOUS;
 
               dict_set_split_vars (default_dict, &mx->single_split, 1);
 	    }
@@ -320,14 +338,16 @@ cmd_matrix_data (void)
 
             for (i = 0; i < split_cnt; i++)
               {
-		if (split[i]->p.mxd.vartype != MXD_CONTINUOUS)
+                struct mxd_var *mv = split[i]->aux;
+                assert (mv != NULL);
+		if (mv->var_type != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Split variable %s is already another type."),
 			 tokid);
 		    goto lossage;
 		  }
-		split[i]->p.mxd.vartype = MXD_SPLIT;
-		split[i]->p.mxd.subtype = i;
+                var_clear_aux (split[i]);
+                attach_mxd_aux (split[i], MXD_SPLIT, i);
               }
 	  }
 	}
@@ -350,14 +370,17 @@ cmd_matrix_data (void)
 	    
 	    for (i = 0; i < mx->n_factors; i++)
 	      {
-		if (mx->factors[i]->p.mxd.vartype != MXD_CONTINUOUS)
+                struct variable *v = mx->factors[i];
+                struct mxd_var *mv = v->aux;
+                assert (mv != NULL);
+		if (mv->var_type != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Factor variable %s is already another type."),
 			 tokid);
 		    goto lossage;
 		  }
-		mx->factors[i]->p.mxd.vartype = MXD_FACTOR;
-		mx->factors[i]->p.mxd.subtype = i;
+                var_clear_aux (v);
+                attach_mxd_aux (v, MXD_FACTOR, i);
 	      }
 	  }
 	}
@@ -537,11 +560,8 @@ cmd_matrix_data (void)
     }
       
   /* Create VARNAME_. */
-  {
-    mx->varname_ = dict_create_var_assert (default_dict, "VARNAME_", 8);
-    mx->varname_->p.mxd.vartype = MXD_VARNAME;
-    mx->varname_->p.mxd.subtype = 0;
-  }
+  mx->varname_ = dict_create_var_assert (default_dict, "VARNAME_", 8);
+  attach_mxd_aux (mx->varname_, MXD_VARNAME, 0);
   
   /* Sort the dictionary variables into the desired order for the
      system file output. */
@@ -550,7 +570,7 @@ cmd_matrix_data (void)
     size_t nv;
 
     dict_get_vars (default_dict, &v, &nv, 0);
-    qsort (v, nv, sizeof *v, compare_variables_by_mxd_vartype);
+    qsort (v, nv, sizeof *v, compare_variables_by_mxd_var_type);
     dict_reorder_vars (default_dict, v, nv);
     free (v);
   }
@@ -572,7 +592,8 @@ cmd_matrix_data (void)
     for (i = 0; i < dict_get_var_cnt (default_dict); i++)
       {
 	struct variable *v = dict_get_var (default_dict, i);
-	int type = v->p.mxd.vartype;
+        struct mxd_var *mv = v->aux;
+	int type = mv->var_type;
 	
 	assert (type >= 0 && type < MXD_COUNT);
 	v->print = v->write = fmt_tab[type];
@@ -590,13 +611,16 @@ cmd_matrix_data (void)
       goto lossage;
     }
 
-  if (!dfm_open_for_reading (mx->data_file))
+  mx->reader = dfm_open_reader (fh);
+  if (mx->reader == NULL)
     goto lossage;
 
   if (mx->explicit_rowtype)
     read_matrices_with_rowtype (mx);
   else
     read_matrices_without_rowtype (mx);
+
+  dfm_close_reader (mx->reader);
 
   pool_destroy (mx->container);
 
@@ -654,20 +678,34 @@ string_to_content_type (char *s, int *collide)
   return -1;
 }
 
-/* Compare two variables using p.mxd.vartype and p.mxd.subtype
+/* Compare two variables using p.mxd.var_type and p.mxd.sub_type
    fields. */
 static int
-compare_variables_by_mxd_vartype (const void *a_, const void *b_)
+compare_variables_by_mxd_var_type (const void *a_, const void *b_)
 {
   struct variable *const *pa = a_;
   struct variable *const *pb = b_;
-  const struct matrix_data_proc *a = &(*pa)->p.mxd;
-  const struct matrix_data_proc *b = &(*pb)->p.mxd;
-
-  if (a->vartype != b->vartype)
-    return a->vartype > b->vartype ? 1 : -1;
+  const struct mxd_var *a = (*pa)->aux;
+  const struct mxd_var *b = (*pb)->aux;
+  
+  if (a->var_type != b->var_type)
+    return a->var_type > b->var_type ? 1 : -1;
   else
-    return a->subtype < b->subtype ? -1 : a->subtype > b->subtype;
+    return a->sub_type < b->sub_type ? -1 : a->sub_type > b->sub_type;
+}
+
+/* Attaches a struct mxd_var with the specific member values to
+   V. */
+static void
+attach_mxd_aux (struct variable *v, int var_type, int sub_type) 
+{
+  struct mxd_var *mv;
+  
+  assert (v->aux == NULL);
+  mv = xmalloc (sizeof *mv);
+  mv->var_type = var_type;
+  mv->sub_type = sub_type;
+  var_attach_aux (v, mv, var_dtor_free);
 }
 
 /* Matrix tokenizer. */
@@ -688,10 +726,10 @@ struct matrix_token
     int length;          /* MSTR: tokstr length. */
   };
 
-static int mget_token (struct matrix_token *, struct file_handle *);
+static int mget_token (struct matrix_token *, struct dfm_reader *);
 
 #if DEBUGGING
-#define mget_token(TOKEN, HANDLE) mget_token_dump(TOKEN, HANDLE)
+#define mget_token(TOKEN, READER) mget_token_dump(TOKEN, READER)
 
 static void
 mdump_token (const struct matrix_token *token)
@@ -711,28 +749,28 @@ mdump_token (const struct matrix_token *token)
 }
 
 static int
-mget_token_dump (struct matrix_token *token, struct file_handle *data_file)
+mget_token_dump (struct matrix_token *token, struct dfm_reader *reader)
 {
-  int result = (mget_token) (token, data_file);
+  int result = (mget_token) (token, reader);
   mdump_token (token);
   return result;
 }
 #endif
 
-/* Return the current position in DATA_FILE. */
+/* Return the current position in READER. */
 static const char *
-context (struct file_handle *data_file)
+context (struct dfm_reader *reader)
 {
   static char buf[32];
 
-  if (dfm_eof (data_file))
+  if (dfm_eof (reader))
     strcpy (buf, "at end of file");
   else 
     {
       struct len_string line;
       const char *sp;
       
-      dfm_get_record (data_file, &line);
+      dfm_get_record (reader, &line);
       sp = ls_c_str (&line);
       while (sp < ls_end (&line) && isspace ((unsigned char) *sp))
         sp++;
@@ -759,16 +797,16 @@ context (struct file_handle *data_file)
 
 /* Is there at least one token left in the data file? */
 static int
-another_token (struct file_handle *data_file)
+another_token (struct dfm_reader *reader)
 {
   for (;;)
     {
       struct len_string line;
       const char *cp;
       
-      if (dfm_eof (data_file))
+      if (dfm_eof (reader))
         return 0;
-      dfm_get_record (data_file, &line);
+      dfm_get_record (reader, &line);
 
       cp = ls_c_str (&line);
       while (isspace ((unsigned char) *cp) && cp < ls_end (&line))
@@ -776,27 +814,27 @@ another_token (struct file_handle *data_file)
 
       if (cp < ls_end (&line)) 
         {
-          dfm_forward_columns (data_file, cp - ls_c_str (&line));
+          dfm_forward_columns (reader, cp - ls_c_str (&line));
           return 1;
         }
 
-      dfm_forward_record (data_file);
+      dfm_forward_record (reader);
     }
 }
 
-/* Parse a MATRIX DATA token from mx->data_file into TOKEN. */
+/* Parse a MATRIX DATA token from READER into TOKEN. */
 static int
-(mget_token) (struct matrix_token *token, struct file_handle *data_file)
+(mget_token) (struct matrix_token *token, struct dfm_reader *reader)
 {
   struct len_string line;
   int first_column;
   char *cp;
 
-  if (!another_token (data_file))
+  if (!another_token (reader))
     return 0;
 
-  dfm_get_record (data_file, &line);
-  first_column = dfm_column_start (data_file);
+  dfm_get_record (reader, &line);
+  first_column = dfm_column_start (reader);
 
   /* Three types of fields: quoted with ', quoted with ", unquoted. */
   cp = ls_c_str (&line);
@@ -856,22 +894,22 @@ static int
 	token->type = MSTR;
     }
 
-  dfm_forward_columns (data_file, cp - ls_c_str (&line));
+  dfm_forward_columns (reader, cp - ls_c_str (&line));
     
   return 1;
 }
 
 /* Forcibly skip the end of a line for content type CONTENT in
-   DATA_FILE. */
+   READER. */
 static int
-force_eol (struct file_handle *data_file, const char *content)
+force_eol (struct dfm_reader *reader, const char *content)
 {
   struct len_string line;
   const char *cp;
 
-  if (dfm_eof (data_file))
+  if (dfm_eof (reader))
     return 0;
-  dfm_get_record (data_file, &line);
+  dfm_get_record (reader, &line);
 
   cp = ls_c_str (&line);
   while (isspace ((unsigned char) *cp) && cp < ls_end (&line))
@@ -880,11 +918,11 @@ force_eol (struct file_handle *data_file, const char *content)
   if (cp < ls_end (&line))
     {
       msg (SE, _("End of line expected %s while reading %s."),
-	   context (data_file), content);
+	   context (reader), content);
       return 0;
     }
   
-  dfm_forward_record (data_file);
+  dfm_forward_record (reader);
   return 1;
 }
 
@@ -932,8 +970,6 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
 
   free (nr.split_values);
   free (nr.factor_values);
-
-  fh_close_handle (mx->data_file);
 }
 
 /* Mirror data across the diagonal of matrix CP which contains
@@ -1063,20 +1099,20 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	for (j = 0; j < n_cols; j++)
 	  {
             struct matrix_token token;
-	    if (!mget_token (&token, mx->data_file))
+	    if (!mget_token (&token, mx->reader))
 	      return 0;
 	    if (token.type != MNUM)
 	      {
 		msg (SE, _("expecting value for %s %s"),
 		     dict_get_var (default_dict, j)->name,
-                     context (mx->data_file));
+                     context (mx->reader));
 		return 0;
 	      }
 
 	    *cp++ = token.number;
 	  }
 	if (mx->fmt != FREE
-            && !force_eol (mx->data_file, content_names[content]))
+            && !force_eol (mx->reader, content_names[content]))
 	  return 0;
 	debug_printf (("\n"));
       }
@@ -1185,7 +1221,7 @@ matrix_data_read_without_rowtype (struct case_source *source,
       nr_output_data (nr, c, write_case, wc_data);
 
       if (dict_get_split_cnt (default_dict) == 0
-          || !another_token (mx->data_file))
+          || !another_token (mx->reader))
 	return;
     }
 }
@@ -1212,9 +1248,11 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
 
   if (mx->single_split)
     {
-      if (!compare)
-	nr->split_values[0]
-          = ++dict_get_split_vars (default_dict)[0]->p.mxd.subtype;
+      if (!compare) 
+        {
+          struct mxd_var *mv = dict_get_split_vars (default_dict)[0]->aux;
+          nr->split_values[0] = ++mv->sub_type; 
+        }
       return 1;
     }
 
@@ -1225,12 +1263,12 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
   for (i = 0; i < split_cnt; i++) 
     {
       struct matrix_token token;
-      if (!mget_token (&token, mx->data_file))
+      if (!mget_token (&token, mx->reader))
         return 0;
       if (token.type != MNUM)
         {
           msg (SE, _("Syntax error expecting SPLIT FILE value %s."),
-               context (mx->data_file));
+               context (mx->reader));
           return 0;
         }
 
@@ -1275,12 +1313,12 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
     for (i = 0; i < mx->n_factors; i++)
       {
         struct matrix_token token;
-	if (!mget_token (&token, mx->data_file))
+	if (!mget_token (&token, mx->reader))
 	  return 0;
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting factor value %s."),
-		 context (mx->data_file));
+		 context (mx->reader));
 	    return 0;
 	  }
 	
@@ -1290,7 +1328,7 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
 	  {
 	    msg (SE, _("Syntax error expecting value %g for %s %s."),
 		 nr->factor_values[i + mx->n_factors * cell],
-		 mx->factors[i]->name, context (mx->data_file));
+		 mx->factors[i]->name, context (mx->reader));
 	    return 0;
 	  }
       }
@@ -1434,7 +1472,7 @@ static int wr_read_splits (struct wr_aux_data *, struct ccase *,
 static int wr_output_data (struct wr_aux_data *, struct ccase *,
                            write_case_func *, write_case_data);
 static int wr_read_rowtype (struct wr_aux_data *, 
-                            const struct matrix_token *, struct file_handle *);
+                            const struct matrix_token *, struct dfm_reader *);
 static int wr_read_factors (struct wr_aux_data *);
 static int wr_read_indeps (struct wr_aux_data *);
 static void matrix_data_read_with_rowtype (struct case_source *,
@@ -1461,7 +1499,6 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
   procedure (NULL, NULL);
 
   free (wr.split_values);
-  fh_close_handle (mx->data_file);
 }
 
 /* Read from the data file and write it to the active file. */
@@ -1485,7 +1522,7 @@ matrix_data_read_with_rowtype (struct case_source *source,
       if (!wr_read_indeps (wr))
 	return;
     }
-  while (another_token (mx->data_file));
+  while (another_token (mx->reader));
 
   wr_output_data (wr, c, write_case, wc_data);
 }
@@ -1520,12 +1557,12 @@ wr_read_splits (struct wr_aux_data *wr,
     for (i = 0; i < split_cnt; i++)
       {
         struct matrix_token token;
-	if (!mget_token (&token, mx->data_file))
+	if (!mget_token (&token, mx->reader))
 	  return 0;
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error %s expecting SPLIT FILE value."),
-		 context (mx->data_file));
+		 context (mx->reader));
 	    return 0;
 	  }
 
@@ -1680,22 +1717,22 @@ wr_output_data (struct wr_aux_data *wr,
   return 1;
 }
 
-/* Sets ROWTYPE_ based on the given TOKEN read from DATA_FILE.
+/* Sets ROWTYPE_ based on the given TOKEN read from READER.
    Return success. */
 static int 
 wr_read_rowtype (struct wr_aux_data *wr,
                  const struct matrix_token *token,
-                 struct file_handle *data_file)
+                 struct dfm_reader *reader)
 {
   if (wr->content != -1)
     {
-      msg (SE, _("Multiply specified ROWTYPE_ %s."), context (data_file));
+      msg (SE, _("Multiply specified ROWTYPE_ %s."), context (reader));
       return 0;
     }
   if (token->type != MSTR)
     {
       msg (SE, _("Syntax error %s expecting ROWTYPE_ string."),
-           context (data_file));
+           context (reader));
       return 0;
     }
   
@@ -1714,7 +1751,7 @@ wr_read_rowtype (struct wr_aux_data *wr,
 
   if (wr->content == -1)
     {
-      msg (SE, _("Syntax error %s."), context (data_file));
+      msg (SE, _("Syntax error %s."), context (reader));
       return 0;
     }
 
@@ -1736,19 +1773,19 @@ wr_read_factors (struct wr_aux_data *wr)
     for (i = 0; i < mx->n_factors; i++)
       {
         struct matrix_token token;
-	if (!mget_token (&token, mx->data_file))
+	if (!mget_token (&token, mx->reader))
 	  goto lossage;
 	if (token.type == MSTR)
 	  {
-	    if (!wr_read_rowtype (wr, &token, mx->data_file))
+	    if (!wr_read_rowtype (wr, &token, mx->reader))
 	      goto lossage;
-	    if (!mget_token (&token, mx->data_file))
+	    if (!mget_token (&token, mx->reader))
 	      goto lossage;
 	  }
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting factor value %s."),
-		 context (mx->data_file));
+		 context (mx->reader));
 	    goto lossage;
 	  }
 	
@@ -1758,9 +1795,9 @@ wr_read_factors (struct wr_aux_data *wr)
   if (wr->content == -1)
     {
       struct matrix_token token;
-      if (!mget_token (&token, mx->data_file))
+      if (!mget_token (&token, mx->reader))
 	goto lossage;
-      if (!wr_read_rowtype (wr, &token, mx->data_file))
+      if (!wr_read_rowtype (wr, &token, mx->reader))
 	goto lossage;
     }
   
@@ -1920,20 +1957,20 @@ wr_read_indeps (struct wr_aux_data *wr)
     for (j = 0; j < n_cols; j++)
       {
         struct matrix_token token;
-	if (!mget_token (&token, mx->data_file))
+	if (!mget_token (&token, mx->reader))
 	  return 0;
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting value for %s %s."),
                  dict_get_var (default_dict, mx->first_continuous + j)->name,
-                 context (mx->data_file));
+                 context (mx->reader));
 	    return 0;
 	  }
 
 	*cp++ = token.number;
       }
     if (mx->fmt != FREE
-        && !force_eol (mx->data_file, content_names[wr->content]))
+        && !force_eol (mx->reader, content_names[wr->content]))
       return 0;
     debug_printf (("\n"));
   }
@@ -1959,3 +1996,4 @@ matrix_data_without_rowtype_source_class =
     matrix_data_read_without_rowtype,
     NULL,
   };
+

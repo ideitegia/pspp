@@ -25,7 +25,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
-#include "dfm.h"
+#include "dfm-write.h"
 #include "error.h"
 #include "expr.h"
 #include "file-handle.h"
@@ -70,14 +70,15 @@ enum
     PRT_CMD_MASK = 1,		/* Command type mask. */
     PRT_PRINT = 0,		/* PRINT transformation identifier. */
     PRT_WRITE = 1,		/* WRITE transformation identifier. */
-    PRT_EJECT = 002		/* Can be combined with CMD_PRINT only. */
+    PRT_EJECT = 002,		/* Can be combined with CMD_PRINT only. */
+    PRT_BINARY = 004            /* File is binary, omit newlines. */
   };
 
 /* PRINT, PRINT EJECT, WRITE private data structure. */
 struct print_trns
   {
     struct trns_header h;
-    struct file_handle *handle;	/* Output file, NULL=listing file. */
+    struct dfm_writer *writer;	/* Output file, NULL=listing file. */
     int options;		/* PRT_* bitmapped field. */
     struct prt_out_spec *spec;	/* Output specifications. */
     int max_width;		/* Maximum line width including null. */
@@ -100,8 +101,8 @@ static int internal_cmd_print (int flags);
 static trns_proc_func print_trns_proc;
 static trns_free_func print_trns_free;
 static int parse_specs (void);
-static void dump_table (void);
-static void append_var_spec (struct prt_out_spec *spec);
+static void dump_table (const struct file_handle *);
+static void append_var_spec (struct prt_out_spec *);
 static void alloc_line (void);
 
 /* Basic parsing. */
@@ -132,16 +133,14 @@ cmd_write (void)
 static int
 internal_cmd_print (int f)
 {
-  /* 0=print no table, 1=print table.  (TABLE subcommand.)  */
-  int table = 0;
-
-  /* malloc()'d transformation. */
-  struct print_trns *trns;
+  int table = 0;                /* Print table? */
+  struct print_trns *trns;      /* malloc()'d transformation. */
+  struct file_handle *fh = NULL;
 
   /* Fill in prt to facilitate error-handling. */
   prt.h.proc = print_trns_proc;
   prt.h.free = print_trns_free;
-  prt.handle = NULL;
+  prt.writer = NULL;
   prt.options = f;
   prt.spec = NULL;
   prt.line = NULL;
@@ -157,16 +156,16 @@ internal_cmd_print (int f)
 	{
 	  lex_match ('=');
 
-	  prt.handle = fh_parse_file_handle ();
-	  if (!prt.handle)
-	    goto lossage;
+	  fh = fh_parse ();
+	  if (fh == NULL)
+	    goto error;
 	}
       else if (lex_match_id ("RECORDS"))
 	{
 	  lex_match ('=');
 	  lex_match ('(');
 	  if (!lex_force_int ())
-	    goto lossage;
+	    goto error;
 	  nrec = lex_integer ();
 	  lex_get ();
 	  lex_match (')');
@@ -178,20 +177,27 @@ internal_cmd_print (int f)
       else
 	{
 	  lex_error (_("expecting a valid subcommand"));
-	  goto lossage;
+	  goto error;
 	}
     }
 
   /* Parse variables and strings. */
   if (!parse_specs ())
-    goto lossage;
-  
-  if (prt.handle != NULL && !dfm_open_for_writing (prt.handle))
-    goto lossage;
+    goto error;
+
+  if (fh != NULL)
+    {
+      prt.writer = dfm_open_writer (fh);
+      if (prt.writer == NULL)
+        goto error;
+
+      if (handle_get_mode (fh) == MODE_BINARY)
+        prt.options |= PRT_BINARY;
+    }
 
   /* Output the variable table if requested. */
   if (table)
-    dump_table ();
+    dump_table (fh);
 
   /* Count the maximum line width.  Allocate linebuffer if
      applicable. */
@@ -204,7 +210,7 @@ internal_cmd_print (int f)
 
   return CMD_SUCCESS;
 
- lossage:
+ error:
   print_trns_free ((struct trns_header *) & prt);
   return CMD_FAILURE;
 }
@@ -775,7 +781,7 @@ fail:
 /* Prints the table produced by the TABLE subcommand to the listing
    file. */
 static void
-dump_table (void)
+dump_table (const struct file_handle *fh)
 {
   struct prt_out_spec *spec;
   struct tab_table *t;
@@ -831,9 +837,9 @@ dump_table (void)
 	assert (0);
       }
 
-  if (prt.handle != NULL)
+  if (fh != NULL)
     tab_title (t, 1, _("Writing %d record(s) to file %s."),
-               recno, handle_get_filename (prt.handle));
+               recno, handle_get_filename (fh));
   else
     tab_title (t, 1, _("Writing %d record(s) to the listing file."), recno);
   tab_submit (t);
@@ -911,15 +917,14 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
   if (t->options & PRT_EJECT)
     som_eject_page ();
 
-  /* Note that a field written to a place where a field has already
-     been written truncates the record.  `PRINT /A B (T10,F8,T1,F8).'
-     only outputs B.  This is an example of bug-for-bug compatibility,
-     in the author's opinion. */
+  /* Note that a field written to a place where a field has
+     already been written truncates the record.  `PRINT /A B
+     (T10,F8,T1,F8).' only outputs B.  */
   for (i = t->spec; i; i = i->next)
     switch (i->type)
       {
       case PRT_NEWLINE:
-	if (t->handle == NULL)
+	if (t->writer == NULL)
 	  {
 	    buf[len] = 0;
 	    tab_output_text (TAT_FIX | TAT_NOWRAP, buf);
@@ -927,7 +932,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
 	else
 	  {
 	    if ((t->options & PRT_CMD_MASK) == PRT_PRINT
-		|| handle_get_mode (t->handle) != MODE_BINARY)
+                || !(t->options & PRT_BINARY))
 	      {
 		/* PORTME: Line ends. */
 #ifdef __MSDOS__
@@ -936,7 +941,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
 		buf[len++] = '\n';
 	      }
 
-	    dfm_put_record (t->handle, buf, len);
+	    dfm_put_record (t->writer, buf, len);
 	  }
 
 	memset (buf, ' ', t->max_width);
@@ -1003,7 +1008,7 @@ struct print_space_trns
 {
   struct trns_header h;
 
-  struct file_handle *handle;	/* Output file, NULL=listing file. */
+  struct dfm_writer *writer;    /* Output data file. */
   struct expression *e;		/* Number of lines; NULL=1. */
 }
 print_space_trns;
@@ -1015,20 +1020,21 @@ int
 cmd_print_space (void)
 {
   struct print_space_trns *t;
-  struct file_handle *handle;
+  struct file_handle *fh;
   struct expression *e;
+  struct dfm_writer *writer;
 
   if (lex_match_id ("OUTFILE"))
     {
       lex_match ('=');
 
-      handle = fh_parse_file_handle ();
-      if (handle == NULL)
+      fh = fh_parse ();
+      if (fh == NULL)
 	return CMD_FAILURE;
       lex_get ();
     }
   else
-    handle = NULL;
+    fh = NULL;
 
   if (token != '.')
     {
@@ -1043,19 +1049,25 @@ cmd_print_space (void)
   else
     e = NULL;
 
-  if (handle != NULL && !dfm_open_for_writing (handle))
+  if (fh != NULL)
     {
-      expr_free (e);
-      return CMD_FAILURE;
+      writer = dfm_open_writer (fh);
+      if (writer == NULL) 
+        {
+          expr_free (e);
+          return CMD_FAILURE;
+        } 
     }
-
+  else
+    writer = NULL;
+  
   t = xmalloc (sizeof *t);
   t->h.proc = print_space_trns_proc;
   if (e)
     t->h.free = print_space_trns_free;
   else
     t->h.free = NULL;
-  t->handle = handle;
+  t->writer = writer;
   t->e = e;
 
   add_transformation ((struct trns_header *) t);
@@ -1087,7 +1099,7 @@ print_space_trns_proc (struct trns_header * trns, struct ccase * c,
   else
     n = 1;
 
-  if (t->handle == NULL)
+  if (t->writer == NULL)
     while (n--)
       som_blank_line ();
   else
@@ -1102,7 +1114,7 @@ print_space_trns_proc (struct trns_header * trns, struct ccase * c,
       buf[0] = '\n';
 #endif
       while (n--)
-	dfm_put_record (t->handle, buf, LINE_END_WIDTH);
+	dfm_put_record (t->writer, buf, LINE_END_WIDTH);
     }
 
   return -1;

@@ -25,7 +25,8 @@
 #include "case.h"
 #include "command.h"
 #include "data-list.h"
-#include "dfm.h"
+#include "dfm-read.h"
+#include "dictionary.h"
 #include "error.h"
 #include "expr.h"
 #include "file-handle.h"
@@ -312,7 +313,7 @@ struct reread_trns
   {
     struct trns_header h;
 
-    struct file_handle *handle;	/* File to move file pointer back on. */
+    struct dfm_reader *reader;	/* File to move file pointer back on. */
     struct expression *column;	/* Column to reset file pointer to. */
   };
 
@@ -320,16 +321,11 @@ struct reread_trns
 int
 cmd_reread (void)
 {
-  /* File to be re-read. */
-  struct file_handle *h;
-  
-  /* Expression for column to set file pointer to. */
-  struct expression *e;
+  struct file_handle *fh;       /* File to be re-read. */
+  struct expression *e;         /* Expression for column to set. */
+  struct reread_trns *t;        /* Created transformation. */
 
-  /* Created transformation. */
-  struct reread_trns *t;
-
-  h = default_handle;
+  fh = default_handle;
   e = NULL;
   while (token != '.')
     {
@@ -351,8 +347,8 @@ cmd_reread (void)
       else if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-          h = fh_parse_file_handle ();
-	  if (h == NULL)
+          fh = fh_parse ();
+	  if (fh == NULL)
 	    {
 	      expr_free (e);
 	      return CMD_FAILURE;
@@ -369,7 +365,7 @@ cmd_reread (void)
   t = xmalloc (sizeof *t);
   t->h.proc = reread_trns_proc;
   t->h.free = reread_trns_free;
-  t->handle = h;
+  t->reader = dfm_open_reader (fh);
   t->column = e;
   add_transformation ((struct trns_header *) t);
 
@@ -384,7 +380,7 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
   struct reread_trns *t = (struct reread_trns *) pt;
 
   if (t->column == NULL)
-    dfm_reread_record (t->handle, 1);
+    dfm_reread_record (t->reader, 1);
   else
     {
       union value column;
@@ -394,19 +390,21 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
 	{
 	  msg (SE, _("REREAD: Column numbers must be positive finite "
 	       "numbers.  Column set to 1."));
-	  dfm_reread_record (t->handle, 1);
+	  dfm_reread_record (t->reader, 1);
 	}
       else
-	dfm_reread_record (t->handle, column.f);
+	dfm_reread_record (t->reader, column.f);
     }
   return -1;
 }
 
 /* Frees a REREAD transformation. */
 static void
-reread_trns_free (struct trns_header * t)
+reread_trns_free (struct trns_header *t_)
 {
-  expr_free (((struct reread_trns *) t)->column);
+  struct reread_trns *t = (struct reread_trns *) t_;
+  expr_free (t->column);
+  dfm_close_reader (t->reader);
 }
 
 /* Parses END FILE command. */

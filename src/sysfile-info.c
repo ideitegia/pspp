@@ -24,13 +24,14 @@
 #include "algorithm.h"
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "hash.h"
 #include "lexer.h"
 #include "misc.h"
 #include "output.h"
-#include "sfm.h"
+#include "sfm-read.h"
 #include "som.h"
 #include "tab.h"
 #include "value-labels.h"
@@ -73,21 +74,22 @@ cmd_sysfile_info (void)
   struct file_handle *h;
   struct dictionary *d;
   struct tab_table *t;
-  struct sfm_read_info inf;
+  struct sfm_reader *reader;
+  struct sfm_read_info info;
   int r, nr;
   int i;
 
   lex_match_id ("FILE");
   lex_match ('=');
 
-  h = fh_parse_file_handle ();
+  h = fh_parse ();
   if (!h)
     return CMD_FAILURE;
 
-  d = sfm_read_dictionary (h, &inf);
-  fh_close_handle (h);
-  if (!d)
+  reader = sfm_open_reader (h, &d, &info);
+  if (!reader)
     return CMD_FAILURE;
+  sfm_close_reader (reader);
 
   t = tab_create (2, 9, 0);
   tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, 8);
@@ -102,15 +104,15 @@ cmd_sysfile_info (void)
   }
   tab_text (t, 0, 2, TAB_LEFT, _("Created:"));
   tab_text (t, 1, 2, TAB_LEFT | TAT_PRINTF, "%s %s by %s",
-		inf.creation_date, inf.creation_time, inf.product);
+		info.creation_date, info.creation_time, info.product);
   tab_text (t, 0, 3, TAB_LEFT, _("Endian:"));
-  tab_text (t, 1, 3, TAB_LEFT, inf.bigendian ? _("Big.") : _("Little."));
+  tab_text (t, 1, 3, TAB_LEFT, info.big_endian ? _("Big.") : _("Little."));
   tab_text (t, 0, 4, TAB_LEFT, _("Variables:"));
   tab_text (t, 1, 4, TAB_LEFT | TAT_PRINTF, "%d",
 		dict_get_var_cnt (d));
   tab_text (t, 0, 5, TAB_LEFT, _("Cases:"));
   tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF,
-		inf.ncases == -1 ? _("Unknown") : "%d", inf.ncases);
+		info.case_cnt == -1 ? _("Unknown") : "%d", info.case_cnt);
   tab_text (t, 0, 6, TAB_LEFT, _("Type:"));
   tab_text (t, 1, 6, TAB_LEFT, _("System File."));
   tab_text (t, 0, 7, TAB_LEFT, _("Weight:"));
@@ -121,7 +123,7 @@ cmd_sysfile_info (void)
   }
   tab_text (t, 0, 8, TAB_LEFT, _("Mode:"));
   tab_text (t, 1, 8, TAB_LEFT | TAT_PRINTF,
-		_("Compression %s."), inf.compressed ? _("on") : _("off"));
+		_("Compression %s."), info.compressed ? _("on") : _("off"));
   tab_dim (t, tab_natural_dimensions);
   tab_submit (t);
 

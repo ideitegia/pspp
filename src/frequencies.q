@@ -30,6 +30,7 @@
 #include "alloc.h"
 #include "bitvector.h"
 #include "case.h"
+#include "dictionary.h"
 #include "hash.h"
 #include "pool.h"
 #include "command.h"
@@ -48,6 +49,7 @@
 #include "vfm.h"
 #include "settings.h"
 #include "chart.h"
+/* (headers) */
 
 #include "debug-print.h"
 
@@ -86,6 +88,14 @@
 */
 /* (declarations) */
 /* (functions) */
+
+/* Statistics. */
+enum
+  {
+    frq_mean = 0, frq_semean, frq_median, frq_mode, frq_stddev, frq_variance,
+    frq_kurt, frq_sekurt, frq_skew, frq_seskew, frq_range, frq_min, frq_max,
+    frq_sum, frq_n_stats
+  };
 
 /* Description of a statistic. */
 struct frq_info
@@ -128,7 +138,6 @@ struct percentile
 
 
 static void add_percentile (double x) ;
-
 
 static struct percentile *percentiles;
 static int n_percentiles;
@@ -179,12 +188,31 @@ static struct variable **v_variables;
 static struct pool *int_pool;	/* Integer mode. */
 static struct pool *gen_pool;	/* General mode. */
 
-/* Easier access to a_statistics. */
-#define stat cmd.a_statistics
+/* Per-variable frequency data. */
+struct var_freqs
+  {
+    /* Freqency table. */
+    struct freq_tab tab;	/* Frequencies table to use. */
+
+    /* Percentiles. */
+    int n_groups;		/* Number of groups. */
+    double *groups;		/* Groups. */
+
+    /* Statistics. */
+    double stat[frq_n_stats];
+  };
+
+static inline struct var_freqs *
+get_var_freqs (struct variable *v)
+{
+  assert (v != NULL);
+  assert (v->aux != NULL);
+  return v->aux;
+}
 
 static void determine_charts (void);
 
-static void calc_stats (struct variable * v, double d[frq_n_stats]);
+static void calc_stats (struct variable *v, double d[frq_n_stats]);
 
 static void precalc (void *);
 static int calc (struct ccase *, void *);
@@ -233,9 +261,6 @@ internal_cmd_frequencies (void)
   n_variables = 0;
   v_variables = NULL;
 
-  for (i = 0; i < dict_get_var_cnt (default_dict); i++)
-    dict_get_var(default_dict, i)->p.frq.used = 0;
-
   if (!parse_frequencies (&cmd))
     return CMD_FAILURE;
 
@@ -244,14 +269,14 @@ internal_cmd_frequencies (void)
 
   /* Figure out statistics to calculate. */
   stats = 0;
-  if (stat[FRQ_ST_DEFAULT] || !cmd.sbc_statistics)
+  if (cmd.a_statistics[FRQ_ST_DEFAULT] || !cmd.sbc_statistics)
     stats |= frq_default;
-  if (stat[FRQ_ST_ALL])
+  if (cmd.a_statistics[FRQ_ST_ALL])
     stats |= frq_all;
   if (cmd.sort != FRQ_AVALUE && cmd.sort != FRQ_DVALUE)
     stats &= ~frq_median;
   for (i = 0; i < frq_n_stats; i++)
-    if (stat[st_name[i].st_indx])
+    if (cmd.a_statistics[st_name[i].st_indx])
       stats |= BIT_INDEX (i);
   if (stats & frq_kurt)
     stats |= frq_sekurt;
@@ -416,9 +441,9 @@ calc (struct ccase *c, void *aux UNUSED)
     {
       struct variable *v = v_variables[i];
       const union value *val = case_data (c, v->fv);
-      struct freq_tab *ft = &v->p.frq.tab;
+      struct freq_tab *ft = &get_var_freqs (v)->tab;
 
-      switch (v->p.frq.tab.mode)
+      switch (ft->mode)
 	{
 	  case FRQM_GENERAL:
 	    {
@@ -439,15 +464,15 @@ calc (struct ccase *c, void *aux UNUSED)
 	case FRQM_INTEGER:
 	  /* Integer mode. */
 	  if (val->f == SYSMIS)
-	    v->p.frq.tab.sysmis += weight;
+	    ft->sysmis += weight;
 	  else if (val->f > INT_MIN+1 && val->f < INT_MAX-1)
 	    {
 	      int i = val->f;
-	      if (i >= v->p.frq.tab.min && i <= v->p.frq.tab.max)
-		v->p.frq.tab.vector[i - v->p.frq.tab.min] += weight;
+	      if (i >= ft->min && i <= ft->max)
+		ft->vector[i - ft->min] += weight;
 	    }
 	  else
-	    v->p.frq.tab.out_of_range += weight;
+	    ft->out_of_range += weight;
 	  break;
 	default:
 	  assert (0);
@@ -469,8 +494,9 @@ precalc (void *aux UNUSED)
   for (i = 0; i < n_variables; i++)
     {
       struct variable *v = v_variables[i];
+      struct freq_tab *ft = &get_var_freqs (v)->tab;
 
-      if (v->p.frq.tab.mode == FRQM_GENERAL)
+      if (ft->mode == FRQM_GENERAL)
 	{
           hsh_hash_func *hash;
 	  hsh_compare_func *compare;
@@ -485,16 +511,16 @@ precalc (void *aux UNUSED)
               hash = hash_value_alpha;
               compare = compare_value_alpha_a;
             }
-	  v->p.frq.tab.data = hsh_create (16, compare, hash, NULL, v);
+	  ft->data = hsh_create (16, compare, hash, NULL, v);
 	}
       else
 	{
 	  int j;
 
-	  for (j = (v->p.frq.tab.max - v->p.frq.tab.min); j >= 0; j--)
-	    v->p.frq.tab.vector[j] = 0.0;
-	  v->p.frq.tab.out_of_range = 0.0;
-	  v->p.frq.tab.sysmis = 0.0;
+	  for (j = (ft->max - ft->min); j >= 0; j--)
+	    ft->vector[j] = 0.0;
+	  ft->out_of_range = 0.0;
+	  ft->sysmis = 0.0;
 	}
     }
 }
@@ -509,13 +535,15 @@ postcalc (void *aux UNUSED)
   for (i = 0; i < n_variables; i++)
     {
       struct variable *v = v_variables[i];
+      struct var_freqs *vf = get_var_freqs (v);
+      struct freq_tab *ft = &vf->tab;
       int n_categories;
       int dumped_freq_tab = 1;
 
       postprocess_freq_tab (v);
 
       /* Frequencies tables. */
-      n_categories = v->p.frq.tab.n_valid + v->p.frq.tab.n_missing;
+      n_categories = ft->n_valid + ft->n_missing;
       if (cmd.table == FRQ_TABLE
 	  || (cmd.table == FRQ_LIMIT && n_categories <= cmd.limit))
 	switch (cmd.cond)
@@ -547,17 +575,16 @@ postcalc (void *aux UNUSED)
 	{
 	  struct chart ch;
 	  double d[frq_n_stats];
-	  struct frequencies_proc *frq = &v->p.frq;
 	  
 	  struct normal_curve norm;
-	  norm.N = frq->tab.total_cases ;
+	  norm.N = vf->tab.total_cases;
 
 	  calc_stats(v,d);
 	  norm.mean = d[frq_mean];
 	  norm.stddev = d[frq_stddev];
 
 	  chart_initialise(&ch);
-	  draw_histogram(&ch, v_variables[i], "HISTOGRAM",&norm,normal);
+	  draw_histogram(&ch, v_variables[i], ft, "HISTOGRAM",&norm,normal);
 	  chart_finalise(&ch);
 	}
 
@@ -568,7 +595,7 @@ postcalc (void *aux UNUSED)
 
 	  chart_initialise(&ch);
 	  
-	  draw_piechart(&ch, v_variables[i]);
+	  draw_piechart(&ch, v_variables[i], ft);
 
 	  chart_finalise(&ch);
 	}
@@ -624,9 +651,9 @@ postprocess_freq_tab (struct variable *v)
   struct freq *freqs, *f;
   size_t i;
 
-  assert (v->p.frq.tab.mode == FRQM_GENERAL);
+  ft = &get_var_freqs (v)->tab;
+  assert (ft->mode == FRQM_GENERAL);
   compare = get_freq_comparator (cmd.sort, v->type);
-  ft = &v->p.frq.tab;
 
   /* Extract data from hash table. */
   count = hsh_count (ft->data);
@@ -672,9 +699,10 @@ postprocess_freq_tab (struct variable *v)
 static void
 cleanup_freq_tab (struct variable *v)
 {
-  assert (v->p.frq.tab.mode == FRQM_GENERAL);
-  free (v->p.frq.tab.valid);
-  hsh_destroy (v->p.frq.tab.data);
+  struct freq_tab *ft = &get_var_freqs (v)->tab;
+  assert (ft->mode == FRQM_GENERAL);
+  free (ft->valid);
+  hsh_destroy (ft->data);
 }
 
 /* Parses the VARIABLES subcommand, adding to
@@ -696,9 +724,6 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
   if (!parse_variables (default_dict, &v_variables, &n_variables,
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
-
-  for (i = old_n_variables; i < n_variables; i++)
-    v_variables[i]->p.frq.tab.mode = FRQM_GENERAL;
 
   if (!lex_match ('('))
     mode = FRQM_GENERAL;
@@ -728,42 +753,40 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
   for (i = old_n_variables; i < n_variables; i++)
     {
       struct variable *v = v_variables[i];
+      struct var_freqs *vf;
 
-      if (v->p.frq.used != 0)
+      if (v->aux != NULL)
 	{
 	  msg (SE, _("Variable %s specified multiple times on VARIABLES "
 		     "subcommand."), v->name);
 	  return 0;
 	}
-      
-      v->p.frq.used = 1;		/* Used simply as a marker. */
+      if (mode == FRQM_INTEGER && v->type != NUMERIC)
+        {
+          msg (SE, _("Integer mode specified, but %s is not a numeric "
+                     "variable."), v->name);
+          return 0;
+        }
 
-      v->p.frq.tab.valid = v->p.frq.tab.missing = NULL;
-
+      vf = var_attach_aux (v, xmalloc (sizeof *vf), var_dtor_free);
+      vf->tab.mode = mode;
+      vf->tab.valid = vf->tab.missing = NULL;
       if (mode == FRQM_INTEGER)
 	{
-	  if (v->type != NUMERIC)
-	    {
-	      msg (SE, _("Integer mode specified, but %s is not a numeric "
-			 "variable."), v->name);
-	      return 0;
-	    }
-	  
-	  v->p.frq.tab.min = min;
-	  v->p.frq.tab.max = max;
-	  v->p.frq.tab.vector = pool_alloc (int_pool,
-					    sizeof (struct freq) * (max - min + 1));
+	  vf->tab.min = min;
+	  vf->tab.max = max;
+	  vf->tab.vector = pool_alloc (int_pool,
+                                       sizeof (struct freq) * (max - min + 1));
 	}
       else
-	v->p.frq.tab.vector = NULL;
-
-      v->p.frq.n_groups = 0;
-      v->p.frq.groups = NULL;
+	vf->tab.vector = NULL;
+      vf->n_groups = 0;
+      vf->groups = NULL;
     }
   return 1;
 }
 
-/* Parses the GROUPED subcommand, setting the frq.{n_grouped,grouped}
+/* Parses the GROUPED subcommand, setting the n_grouped, grouped
    fields of specified variables. */
 static int
 frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
@@ -817,19 +840,22 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
           }
 
 	for (i = 0; i < n; i++)
-	  {
-	    if (v[i]->p.frq.used == 0)
-	      msg (SE, _("Variables %s specified on GROUPED but not on "
-		   "VARIABLES."), v[i]->name);
-	    if (v[i]->p.frq.groups != NULL)
-	      msg (SE, _("Variables %s specified multiple times on GROUPED "
-		   "subcommand."), v[i]->name);
-	    else
-	      {
-		v[i]->p.frq.n_groups = nl;
-		v[i]->p.frq.groups = dl;
-	      }
-	  }
+          if (v[i]->aux == NULL)
+            msg (SE, _("Variables %s specified on GROUPED but not on "
+                       "VARIABLES."), v[i]->name);
+          else 
+            {
+              struct var_freqs *vf = get_var_freqs (v[i]);
+                
+              if (vf->groups != NULL)
+                msg (SE, _("Variables %s specified multiple times on GROUPED "
+                           "subcommand."), v[i]->name);
+              else
+                {
+                  vf->n_groups = nl;
+                  vf->groups = dl;
+                }
+            }
 	free (v);
 	if (!lex_match ('/'))
 	  break;
@@ -1032,9 +1058,10 @@ full_dim (struct tab_table *t, struct outp_driver *d)
 
 /* Displays a full frequency table for variable V. */
 static void
-dump_full (struct variable * v)
+dump_full (struct variable *v)
 {
   int n_categories;
+  struct freq_tab *ft;
   struct freq *f;
   struct tab_table *t;
   int r;
@@ -1067,7 +1094,8 @@ dump_full (struct variable * v)
 
   int lab = cmd.labels == FRQ_LABELS;
 
-  n_categories = v->p.frq.tab.n_valid + v->p.frq.tab.n_missing;
+  ft = &get_var_freqs (v)->tab;
+  n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (5 + lab, n_categories + 3, 0);
   tab_headers (t, 0, 0, 2, 0);
   tab_dim (t, full_dim);
@@ -1079,14 +1107,14 @@ dump_full (struct variable * v)
 		  TAB_CENTER | TAT_TITLE, gettext (p->s));
 
   r = 2;
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+  for (f = ft->valid; f < ft->missing; f++)
     {
       double percent, valid_percent;
 
       cum_freq += f->c;
 
-      percent = f->c / v->p.frq.tab.total_cases * 100.0;
-      valid_percent = f->c / v->p.frq.tab.valid_cases * 100.0;
+      percent = f->c / ft->total_cases * 100.0;
+      valid_percent = f->c / ft->valid_cases * 100.0;
       cum_total += valid_percent;
 
       if (lab)
@@ -1103,7 +1131,7 @@ dump_full (struct variable * v)
       tab_float (t, 4 + lab, r, TAB_NONE, cum_total, 5, 1);
       r++;
     }
-  for (; f < &v->p.frq.tab.valid[n_categories]; f++)
+  for (; f < &ft->valid[n_categories]; f++)
     {
       cum_freq += f->c;
 
@@ -1117,7 +1145,7 @@ dump_full (struct variable * v)
       tab_value (t, 0 + lab, r, TAB_NONE, &f->v, &v->print);
       tab_float (t, 1 + lab, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2 + lab, r, TAB_NONE,
-		     f->c / v->p.frq.tab.total_cases * 100.0, 5, 1);
+		     f->c / ft->total_cases * 100.0, 5, 1);
       tab_text (t, 3 + lab, r, TAB_NONE, _("Missing"));
       r++;
     }
@@ -1159,15 +1187,17 @@ condensed_dim (struct tab_table *t, struct outp_driver *d)
 
 /* Display condensed frequency table for variable V. */
 static void
-dump_condensed (struct variable * v)
+dump_condensed (struct variable *v)
 {
   int n_categories;
+  struct freq_tab *ft;
   struct freq *f;
   struct tab_table *t;
   int r;
   double cum_total = 0.0;
 
-  n_categories = v->p.frq.tab.n_valid + v->p.frq.tab.n_missing;
+  ft = &get_var_freqs (v)->tab;
+  n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (4, n_categories + 2, 0);
 
   tab_headers (t, 0, 0, 2, 0);
@@ -1179,12 +1209,12 @@ dump_condensed (struct variable * v)
   tab_dim (t, condensed_dim);
 
   r = 2;
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+  for (f = ft->valid; f < ft->missing; f++)
     {
       double percent;
 
-      percent = f->c / v->p.frq.tab.total_cases * 100.0;
-      cum_total += f->c / v->p.frq.tab.valid_cases * 100.0;
+      percent = f->c / ft->total_cases * 100.0;
+      cum_total += f->c / ft->valid_cases * 100.0;
 
       tab_value (t, 0, r, TAB_NONE, &f->v, &v->print);
       tab_float (t, 1, r, TAB_NONE, f->c, 8, 0);
@@ -1192,12 +1222,12 @@ dump_condensed (struct variable * v)
       tab_float (t, 3, r, TAB_NONE, cum_total, 3, 0);
       r++;
     }
-  for (; f < &v->p.frq.tab.valid[n_categories]; f++)
+  for (; f < &ft->valid[n_categories]; f++)
     {
       tab_value (t, 0, r, TAB_NONE, &f->v, &v->print);
       tab_float (t, 1, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2, r, TAB_NONE,
-		 f->c / v->p.frq.tab.total_cases * 100.0, 3, 0);
+		 f->c / ft->total_cases * 100.0, 3, 0);
       r++;
     }
 
@@ -1215,9 +1245,10 @@ dump_condensed (struct variable * v)
 /* Calculates all the pertinent statistics for variable V, putting
    them in array D[].  FIXME: This could be made much more optimal. */
 static void
-calc_stats (struct variable * v, double d[frq_n_stats])
+calc_stats (struct variable *v, double d[frq_n_stats])
 {
-  double W = v->p.frq.tab.valid_cases;
+  struct freq_tab *ft = &get_var_freqs (v)->tab;
+  double W = ft->valid_cases;
   struct moments *m;
   struct freq *f=0; 
   int most_often;
@@ -1255,10 +1286,10 @@ calc_stats (struct variable * v, double d[frq_n_stats])
     }
 
   rank = 0;
-  for (idx = 0; idx < v->p.frq.tab.n_valid; ++idx)
+  for (idx = 0; idx < ft->n_valid; ++idx)
     {
       static double prev_value = SYSMIS;
-      f = &v->p.frq.tab.valid[idx]; 
+      f = &ft->valid[idx]; 
       rank += f->c ;
       for (i = 0; i < n_percentiles; i++) 
         {
@@ -1267,10 +1298,10 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 
 	  if ( get_algorithm() != COMPATIBLE ) 
 	    tp = 
-	      (v->p.frq.tab.valid_cases - 1) *  percentiles[i].p;
+	      (ft->valid_cases - 1) *  percentiles[i].p;
 	  else
 	    tp = 
-	      (v->p.frq.tab.valid_cases + 1) *  percentiles[i].p - 1;
+	      (ft->valid_cases + 1) *  percentiles[i].p - 1;
 
 	  if ( percentiles[i].flag ) 
 	    {
@@ -1312,17 +1343,17 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 
   for (i = 0; i < n_percentiles; i++) 
     {
-      struct freq_tab *ft = &v->p.frq.tab;
+      struct freq_tab *ft = &get_var_freqs (v)->tab;
       double s;
 
       double dummy;
       if ( get_algorithm() != COMPATIBLE ) 
 	{
-	  s = modf((ft->valid_cases - 1) *  percentiles[i].p , &dummy);
+	  s = modf((ft->valid_cases - 1) * percentiles[i].p , &dummy);
 	}
       else
 	{
-	  s = modf((ft->valid_cases + 1) *  percentiles[i].p -1, &dummy);
+	  s = modf((ft->valid_cases + 1) * percentiles[i].p -1, &dummy);
 	}
 
       percentiles[i].value = percentiles[i].x1 + 
@@ -1336,7 +1367,7 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   /* Calculate the mode. */
   most_often = -1;
   X_mode = SYSMIS;
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+  for (f = ft->valid; f < ft->missing; f++)
     {
       if (most_often < f->c) 
         {
@@ -1353,17 +1384,17 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 
   /* Calculate moments. */
   m = moments_create (MOMENT_KURTOSIS);
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+  for (f = ft->valid; f < ft->missing; f++)
     moments_pass_one (m, f->v.f, f->c);
-  for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
+  for (f = ft->valid; f < ft->missing; f++)
     moments_pass_two (m, f->v.f, f->c);
   moments_calculate (m, NULL, &d[frq_mean], &d[frq_variance],
                      &d[frq_skew], &d[frq_kurt]);
   moments_destroy (m);
                      
   /* Formulas below are taken from _SPSS Statistical Algorithms_. */
-  d[frq_min] = v->p.frq.tab.valid[0].v.f;
-  d[frq_max] = v->p.frq.tab.valid[v->p.frq.tab.n_valid - 1].v.f;
+  d[frq_min] = ft->valid[0].v.f;
+  d[frq_max] = ft->valid[ft->n_valid - 1].v.f;
   d[frq_mode] = X_mode;
   d[frq_range] = d[frq_max] - d[frq_min];
   d[frq_median] = *median_value;
@@ -1376,8 +1407,9 @@ calc_stats (struct variable * v, double d[frq_n_stats])
 
 /* Displays a table of all the statistics requested for variable V. */
 static void
-dump_statistics (struct variable * v, int show_varname)
+dump_statistics (struct variable *v, int show_varname)
 {
+  struct freq_tab *ft;
   double stat_value[frq_n_stats];
   struct tab_table *t;
   int i, r;
@@ -1389,7 +1421,8 @@ dump_statistics (struct variable * v, int show_varname)
 
   if (v->type == ALPHA)
     return;
-  if (v->p.frq.tab.n_valid == 0)
+  ft = &get_var_freqs (v)->tab;
+  if (ft->n_valid == 0)
     {
       msg (SW, _("No valid data for variable %s; statistics not displayed."),
 	   v->name);
@@ -1421,9 +1454,8 @@ dump_statistics (struct variable * v, int show_varname)
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Valid"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("Missing"));
 
-  tab_float(t, 2, 0, TAB_NONE, v->p.frq.tab.valid_cases, 11, 0);
-  tab_float(t, 2, 1, TAB_NONE, 
-	    v->p.frq.tab.total_cases - v->p.frq.tab.valid_cases, 11, 0);
+  tab_float(t, 2, 0, TAB_NONE, ft->valid_cases, 11, 0);
+  tab_float(t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, 11, 0);
 
 
   for (i = 0; i < n_explicit_percentiles; i++, r++) 

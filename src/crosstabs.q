@@ -38,6 +38,7 @@
 #include "algorithm.h"
 #include "alloc.h"
 #include "case.h"
+#include "dictionary.h"
 #include "hash.h"
 #include "pool.h"
 #include "command.h"
@@ -46,10 +47,13 @@
 #include "magic.h"
 #include "misc.h"
 #include "output.h"
+#include "str.h"
 #include "tab.h"
 #include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
+
+/* (headers) */
 
 #include "debug-print.h"
 
@@ -104,6 +108,22 @@ struct crosstab
     struct variable *vars[2];	/* At least two variables; sorted by
 				   larger indices first. */
   };
+
+/* Integer mode variable info. */
+struct var_range
+  {
+    int min;			/* Minimum value. */
+    int max;			/* Maximum value + 1. */
+    int count;			/* max - min. */
+  };
+
+static inline struct var_range *
+get_var_range (struct variable *v) 
+{
+  assert (v != NULL);
+  assert (v->aux != NULL);
+  return v->aux;
+}
 
 /* Indexes into crosstab.v. */
 enum
@@ -426,11 +446,13 @@ crs_custom_variables (struct cmd_crosstabs *cmd UNUSED)
 	}
       lex_get ();
       
-      for (i = orig_nv; i < variables_cnt; i++)
-	{
-	  variables[i]->p.crs.min = min;
-	  variables[i]->p.crs.max = max + 1.;
-	  variables[i]->p.crs.count = max - min + 1;
+      for (i = orig_nv; i < variables_cnt; i++) 
+        {
+          struct var_range *vr = xmalloc (sizeof *vr);
+          vr->min = min;
+	  vr->max = max + 1.;
+	  vr->count = max - min + 1;
+          var_attach_aux (variables[i], vr, var_dtor_free);
 	}
       
       if (token == '/')
@@ -475,14 +497,14 @@ precalc (void *aux UNUSED)
 
 	  x->ofs = n_sorted_tab;
 
-	  for (j = 2; j < x->nvar; j++)
-	    count *= x->vars[j - 2]->p.crs.count;
-
+	  for (j = 2; j < x->nvar; j++) 
+            count *= get_var_range (x->vars[j - 2])->count;
+          
 	  sorted_tab = xrealloc (sorted_tab,
 				 sizeof *sorted_tab * (n_sorted_tab + count));
 	  v = local_alloc (sizeof *v * x->nvar);
-	  for (j = 2; j < x->nvar; j++)
-	    v[j] = x->vars[j]->p.crs.min;
+	  for (j = 2; j < x->nvar; j++) 
+            v[j] = get_var_range (x->vars[j])->min; 
 	  for (j = 0; j < count; j++)
 	    {
 	      struct table_entry *te;
@@ -493,8 +515,9 @@ precalc (void *aux UNUSED)
 	      te->table = i;
 	      
 	      {
-		const int mat_size = (x->vars[0]->p.crs.count
-				      * x->vars[1]->p.crs.count);
+                int row_cnt = get_var_range (x->vars[0])->count;
+                int col_cnt = get_var_range (x->vars[1])->count;
+		const int mat_size = row_cnt * col_cnt;
 		int m;
 		
 		te->u.data = xmalloc (sizeof *te->u.data * mat_size);
@@ -504,11 +527,14 @@ precalc (void *aux UNUSED)
 	      
 	      for (k = 2; k < x->nvar; k++)
 		te->values[k].f = v[k];
-	      for (k = 2; k < x->nvar; k++)
-		if (++v[k] >= x->vars[k]->p.crs.max)
-		  v[k] = x->vars[k]->p.crs.min;
-		else
-		  break;
+	      for (k = 2; k < x->nvar; k++) 
+                {
+                  struct var_range *vr = get_var_range (x->vars[k]);
+                  if (++v[k] >= vr->max)
+                    v[k] = vr->min;
+                  else
+                    break; 
+                }
 	    }
 	  local_free (v);
 	}
@@ -615,10 +641,11 @@ calc_integer (struct ccase *c, void *aux UNUSED)
       for (i = 0; i < x->nvar; i++)
 	{
 	  struct variable *const v = x->vars[i];
+          struct var_range *vr = get_var_range (v);
 	  double value = case_num (c, v->fv);
 	  
 	  /* Note that the first test also rules out SYSMIS. */
-	  if ((value < v->p.crs.min || value >= v->p.crs.max)
+	  if ((value < vr->min || value >= vr->max)
 	      || (cmd.miss == CRS_TABLE && is_num_user_missing (value, v)))
 	    {
 	      x->missing += weight;
@@ -627,15 +654,19 @@ calc_integer (struct ccase *c, void *aux UNUSED)
 	  
 	  if (i > 1)
 	    {
-	      ofs += fact * ((int) value - v->p.crs.min);
-	      fact *= v->p.crs.count;
+	      ofs += fact * ((int) value - vr->min);
+	      fact *= vr->count;
 	    }
 	}
       
       {
-	const int row = case_num (c, x->vars[ROW_VAR]->fv) - x->vars[ROW_VAR]->p.crs.min;
-	const int col = case_num (c, x->vars[COL_VAR]->fv) - x->vars[COL_VAR]->p.crs.min;
-	const int col_dim = x->vars[COL_VAR]->p.crs.count;
+        struct variable *row_var = x->vars[ROW_VAR];
+	const int row = case_num (c, row_var->fv) - get_var_range (row_var)->min;
+
+        struct variable *col_var = x->vars[COL_VAR];
+	const int col = case_num (c, col_var->fv) - get_var_range (col_var)->min;
+
+	const int col_dim = get_var_range (col_var)->count;
 
 	sorted_tab[ofs]->u.data[col + row * col_dim] += weight;
       }
@@ -804,8 +835,8 @@ make_summary_table (void)
       else
 	{
 	  const struct crosstab *const x = xtab[(*pb)->table];
-	  const int n_cols = x->vars[COL_VAR]->p.crs.count;
-	  const int n_rows = x->vars[ROW_VAR]->p.crs.count;
+	  const int n_cols = get_var_range (x->vars[COL_VAR])->count;
+	  const int n_rows = get_var_range (x->vars[ROW_VAR])->count;
 	  const int count = n_cols * n_rows;
 	    
 	  for (valid = 0.; pb < pe; pb++)
@@ -1569,7 +1600,7 @@ compare_value (const void *a_, const void *b_, void *width_)
 
 /* Given an array of ENTRY_CNT table_entry structures starting at
    ENTRIES, creates a sorted list of the values that the variable
-   with index VAR_INDEX takes on.  The values are returned as a
+   with index VAR_IDX takes on.  The values are returned as a
    malloc()'darray stored in *VALUES, with the number of values
    stored in *VALUE_CNT.
    */
@@ -1577,9 +1608,11 @@ static void
 enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
                  union value **values, int *value_cnt)
 {
+  struct variable *v = xtab[(*entries)->table]->vars[var_idx];
+
   if (mode == GENERAL)
     {
-      int width = xtab[(*entries)->table]->vars[var_idx]->width;
+      int width = v->width;
       int i;
 
       *values = xmalloc (sizeof **values * entry_cnt);
@@ -1590,15 +1623,14 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
     }
   else
     {
-      struct crosstab_proc *crs
-        = &xtab[(*entries)->table]->vars[var_idx]->p.crs;
+      struct var_range *vr = get_var_range (v);
       int i;
       
       assert (mode == INTEGER);
-      *values = xmalloc (sizeof **values * crs->count);
-      for (i = 0; i < crs->count; i++)
-	(*values)[i].f = i + crs->min;
-      *value_cnt = crs->count;
+      *values = xmalloc (sizeof **values * vr->count);
+      for (i = 0; i < vr->count; i++)
+	(*values)[i].f = i + vr->min;
+      *value_cnt = vr->count;
     }
 }
 

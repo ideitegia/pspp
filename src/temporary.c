@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "hash.h"

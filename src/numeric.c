@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "lexer.h"
 #include "str.h"

@@ -326,6 +326,13 @@ ds_c_str (const struct string *st)
   return st->string;
 }
 
+/* Returns the string data inside ST. */
+char *
+ds_data (const struct string *st)
+{
+  return st->string;
+}
+
 /* Returns a pointer to the null terminator ST.
    This might not be an actual null character unless ds_c_str() has
    been called since the last modification to ST. */

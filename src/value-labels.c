@@ -21,9 +21,9 @@
 #include "value-labels.h"
 #include "error.h"
 #include <stdlib.h>
-#include <string.h>
 #include "alloc.h"
 #include "hash.h"
+#include "str.h"
 
 static hsh_compare_func compare_int_val_lab;
 static hsh_hash_func hash_int_val_lab;

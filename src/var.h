@@ -22,7 +22,6 @@
 
 #include <stddef.h>
 #include "format.h"
-#include "group_proc.h"
 #include "val.h"
 
 /* Frequency tables. */
@@ -67,93 +66,6 @@ struct freq_tab
     double valid_cases;		/* Sum of weights of valid cases. */
   };
 
-/* Procedures' private per-variable data. */
-
-/* Structure name suffixes for private data:
-   _proc: for a procedure (i.e., LIST -> list_proc).
-   _trns: for a transformation (i.e., COMPUTE -> compute_trns.
-   _pgm: for an input program (i.e., DATA LIST -> data_list_pgm). */
-
-/* CROSSTABS private data. */
-struct crosstab_proc
-  {
-    /* Integer mode only. */
-    int min;			/* Minimum value. */
-    int max;			/* Maximum value + 1. */
-    int count;			/* max - min. */
-  };
-
-
-/* FREQUENCIES private data. */
-enum
-  {
-    frq_mean = 0, frq_semean, frq_median, frq_mode, frq_stddev, frq_variance,
-    frq_kurt, frq_sekurt, frq_skew, frq_seskew, frq_range, frq_min, frq_max,
-    frq_sum, frq_n_stats
-  };
-
-struct frequencies_proc
-  {
-    int used;                   /* 1=This variable already used. */
-
-    /* Freqency table. */
-    struct freq_tab tab;	/* Frequencies table to use. */
-
-    /* Percentiles. */
-    int n_groups;		/* Number of groups. */
-    double *groups;		/* Groups. */
-
-    /* Statistics. */
-    double stat[frq_n_stats];
-  };
-
-/* LIST private data. */
-struct list_proc
-  {
-    int newline;		/* Whether a new line begins here. */
-    int width;			/* Field width. */
-    int vert;			/* Whether to print the varname vertically. */
-  };
-
-/* GET private data. */
-struct get_proc
-  {
-    int fv, nv;			/* First, # of values. */
-  };
-
-/* MEANS private data. */
-struct means_proc
-  {
-    double min, max;		/* Range for integer mode. */
-  };
-
-/* Different types of variables for MATRIX DATA procedure.  Order is
-   important: these are used for sort keys. */
-enum
-  {
-    MXD_SPLIT,			/* SPLIT FILE variables. */
-    MXD_ROWTYPE,		/* ROWTYPE_. */
-    MXD_FACTOR,			/* Factor variables. */
-    MXD_VARNAME,		/* VARNAME_. */
-    MXD_CONTINUOUS,		/* Continuous variables. */
-
-    MXD_COUNT
-  };
-
-/* MATRIX DATA private data. */
-struct matrix_data_proc
-  {
-    int vartype;		/* Variable type. */
-    int subtype;		/* Subtype. */
-  };
-
-/* MATCH FILES private data. */
-struct match_files_proc
-  {
-    struct variable *master;	/* Corresponding master file variable. */
-  };
-
-
 /* Script variables. */
 
 /* Variable type. */
@@ -164,8 +76,7 @@ enum
   };
 
 /* Types of missing values.  Order is significant, see
-   mis-val.c:parse_numeric(), sfm-read.c:sfm_read_dictionary()
-   sfm-write.c:sfm_write_dictionary(),
+   mis-val.c:parse_numeric(), sfm-read.c, sfm-write.c,
    sysfile-info.c:cmd_sysfile_info(), mis-val.c:copy_missing_values(),
    pfm-read.c:read_variables(), pfm-write.c:write_variables(),
    apply-dict.c:cmd_apply_dictionary(), and more (?). */
@@ -208,24 +119,19 @@ struct variable
     struct val_labs *val_labs;  /* Value labels. */
     char *label;		/* Variable label. */
 
-    /* Per-procedure info. */
+    /* Per-command info. */
     void *aux;
-    struct get_proc get;
-    union
-      {
-	struct crosstab_proc crs;
-	struct frequencies_proc frq;
-	struct list_proc lst;
-	struct means_proc mns;
-	struct matrix_data_proc mxd;
-	struct match_files_proc mtf;
-	struct group_proc grp_data;
-      }
-    p;
+    void (*aux_dtor) (struct variable *);
   };
 
 int compare_variables (const void *, const void *, void *);
 unsigned hash_variable (const void *, void *);
+
+void *var_attach_aux (struct variable *,
+                      void *aux, void (*aux_dtor) (struct variable *));
+void var_clear_aux (struct variable *);
+void *var_detach_aux (struct variable *);
+void var_dtor_free (struct variable *);
 
 /* Classes of variables. */
 enum dict_class 
@@ -247,82 +153,6 @@ struct vector
     int cnt;			/* Number of variables. */
   };
 
-/* Dictionary. */ 
-
-/* Complete dictionary state. */
-struct dictionary;
-
-struct dictionary *dict_create (void);
-struct dictionary *dict_clone (const struct dictionary *);
-void dict_clear (struct dictionary *);
-void dict_destroy (struct dictionary *);
-
-size_t dict_get_var_cnt (const struct dictionary *);
-struct variable *dict_get_var (const struct dictionary *, size_t idx);
-void dict_get_vars (const struct dictionary *,
-                    struct variable ***vars, size_t *cnt,
-                    unsigned exclude_classes);
-
-struct variable *dict_create_var (struct dictionary *, const char *,
-                                  int width);
-struct variable *dict_create_var_assert (struct dictionary *, const char *,
-                                  int width);
-struct variable *dict_clone_var (struct dictionary *, const struct variable *,
-                                 const char *);
-void dict_rename_var (struct dictionary *, struct variable *, const char *);
-
-struct variable *dict_lookup_var (const struct dictionary *, const char *);
-struct variable *dict_lookup_var_assert (const struct dictionary *,
-                                         const char *);
-int dict_contains_var (const struct dictionary *, const struct variable *);
-void dict_delete_var (struct dictionary *, struct variable *);
-void dict_delete_vars (struct dictionary *,
-                       struct variable *const *, size_t count);
-void dict_reorder_vars (struct dictionary *,
-                        struct variable *const *, size_t count);
-int dict_rename_vars (struct dictionary *,
-                      struct variable **, char **new_names,
-                      size_t count, char **err_name);
-
-struct ccase;
-struct variable *dict_get_weight (const struct dictionary *);
-double dict_get_case_weight (const struct dictionary *, 
-			     const struct ccase *, int *);
-void dict_set_weight (struct dictionary *, struct variable *);
-
-struct variable *dict_get_filter (const struct dictionary *);
-void dict_set_filter (struct dictionary *, struct variable *);
-
-int dict_get_case_limit (const struct dictionary *);
-void dict_set_case_limit (struct dictionary *, int);
-
-int dict_get_next_value_idx (const struct dictionary *);
-size_t dict_get_case_size (const struct dictionary *);
-
-void dict_compact_values (struct dictionary *);
-size_t dict_get_compacted_value_cnt (const struct dictionary *);
-int *dict_get_compacted_idx_to_fv (const struct dictionary *);
-
-struct variable *const *dict_get_split_vars (const struct dictionary *);
-size_t dict_get_split_cnt (const struct dictionary *);
-void dict_set_split_vars (struct dictionary *,
-                          struct variable *const *, size_t cnt);
-
-const char *dict_get_label (const struct dictionary *);
-void dict_set_label (struct dictionary *, const char *);
-
-const char *dict_get_documents (const struct dictionary *);
-void dict_set_documents (struct dictionary *, const char *);
-
-int dict_create_vector (struct dictionary *,
-                        const char *name,
-                        struct variable **, size_t cnt);
-const struct vector *dict_get_vector (const struct dictionary *,
-                                      size_t idx);
-size_t dict_get_vector_cnt (const struct dictionary *);
-const struct vector *dict_lookup_vector (const struct dictionary *,
-                                         const char *name);
-void dict_clear_vectors (struct dictionary *);
 
 void discard_variables (void);
 
@@ -360,6 +190,7 @@ void cancel_temporary (void);
 
 /* Functions. */
 
+struct ccase;
 void dump_split_vars (const struct ccase *);
 typedef int (* is_missing_func )(const union value *, const struct variable *);
 

@@ -19,9 +19,9 @@
 
 #include <config.h>
 #include "alloc.h"
-#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "error.h"
 #include "str.h"
 
 /* Public functions. */

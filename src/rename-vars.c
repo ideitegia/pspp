@@ -22,6 +22,7 @@
 #include "error.h"
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "hash.h"
 #include "lexer.h"

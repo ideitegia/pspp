@@ -20,6 +20,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "dictionary.h"
 #include "error.h"
 #include "alloc.h"
 #include "command.h"
@@ -35,8 +36,6 @@
 /* (specification)
    means (mns_):
      *tables=custom;
-     +variables=custom;
-     +crossbreak=custom;
      +format=lab:!labels/nolabels/nocatlabs,
             name:!names/nonames,
             val:!values/novalues,
@@ -130,17 +129,14 @@ mns_custom_tables (struct cmd_means *cmd)
     return 2;
   lex_match ('=');
 
-  if (cmd->sbc_tables || cmd->sbc_crossbreak)
+  if (cmd->sbc_tables)
     {
-      msg (SE, _("TABLES or CROSSBREAK subcommand may not appear more "
+      msg (SE, _("TABLES subcommand may not appear more "
 		 "than once."));
       return 0;
     }
 
-  if (cmd->sbc_variables) 
-    var_set = var_set_create_from_array (v_var, n_var);
-  else
-    var_set = var_set_create_from_dict (default_dict);
+  var_set = var_set_create_from_dict (default_dict);
   assert (var_set != NULL);
 
   do
@@ -158,48 +154,6 @@ mns_custom_tables (struct cmd_means *cmd)
 
       nv_dim[n_dim - 1] = nvl;
       v_dim[n_dim - 1] = vl;
-
-      if (cmd->sbc_variables)
-	{
-	  int i;
-
-	  for (i = 0; i < nv_dim[0]; i++)
-	    {
-	      struct means_proc *v_inf = &v_dim[0][i]->p.mns;
-
-	      if (v_inf->min == SYSMIS)
-		{
-		  msg (SE, _("Variable %s specified on TABLES or "
-			     "CROSSBREAK, but not specified on "
-			     "VARIABLES."),
-		       v_dim[0][i]->name);
-                  goto lossage;
-		}
-	      
-	      if (n_dim == 1)
-		{
-		  v_inf->min = (int) v_inf->min;
-		  v_inf->max = (int) v_inf->max;
-		} else {
-		  if (v_inf->min == LOWEST || v_inf->max == HIGHEST)
-		    {
-		      msg (SE, _("LOWEST and HIGHEST may not be used "
-				 "for independent variables (%s)."),
-			   v_dim[0][i]->name);
-                      goto lossage;
-		    }
-		  if (v_inf->min != (int) v_inf->min
-		      || v_inf->max != (int) v_inf->max)
-		    {
-		      msg (SE, _("Independent variables (%s) may not "
-				 "have noninteger endpoints in their "
-				 "ranges."),
-			   v_dim[0][i]->name);
-                      goto lossage;
-		    }
-		}
-	    }
-	}
     }
   while (lex_match (T_BY));
 
@@ -209,98 +163,6 @@ mns_custom_tables (struct cmd_means *cmd)
  lossage:
   var_set_destroy (var_set);
   return 0;
-}
-
-/* Parse CROSSBREAK subcommand. */
-static int
-mns_custom_crossbreak (struct cmd_means *cmd)
-{
-  return mns_custom_tables (cmd);
-}
-
-/* Parses the VARIABLES subcommand. */
-static int
-mns_custom_variables (struct cmd_means *cmd)
-{
-  if (cmd->sbc_tables)
-    {
-      msg (SE, _("VARIABLES must precede TABLES."));
-      return 0;
-    }
-
-  if (cmd->sbc_variables == 1)
-    {
-      int i;
-      
-      for (i = 0; i < dict_get_var_cnt (default_dict); i++)
-	dict_get_var (default_dict, i)->p.mns.min = SYSMIS;
-    }
-  
-  do
-    {
-      int orig_n = n_var;
-      
-      double min, max;
-      
-      if (!parse_variables (default_dict, &v_var, &n_var,
-			    PV_APPEND | PV_NO_DUPLICATE | PV_NO_SCRATCH))
-	return 0;
-
-      if (!lex_force_match ('('))
-	return 0;
-
-      /* Lower value. */
-      if (token == T_ID
-	  && (!strcmp (tokid, "LO") || lex_id_match ("LOWEST", tokid)))
-	min = LOWEST;
-      else
-	{
-	  if (!lex_force_num ())
-	    return 0;
-	  min = tokval;
-	}
-      lex_get ();
-
-      lex_match (',');
-
-      /* Higher value. */
-      if (token == T_ID
-	  && (!strcmp (tokid, "HI") || lex_id_match ("HIGHEST", tokid)))
-	max = HIGHEST;
-      else
-	{
-	  if (!lex_force_num ())
-	    return 0;
-	  max = tokval;
-	}
-      lex_get ();
-
-      if (!lex_force_match (')'))
-	return 0;
-
-      /* Range check. */
-      if (max < min)
-	{
-	  msg (SE, _("Upper value (%g) is less than lower value "
-		     "(%g) on VARIABLES subcommand."), max, min);
-	  return 0;
-	}
-      
-      {
-	int i;
-
-	for (i = orig_n; i < n_var; i++)
-	  {
-	    struct means_proc *v_inf = &v_var[i]->p.mns;
-
-	    v_inf->min = min;
-	    v_inf->max = max;
-	  }
-      }
-    }
-  while (token != '/' && token != '.');
-  
-  return 1;
 }
 
 /* 

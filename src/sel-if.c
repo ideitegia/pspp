@@ -20,6 +20,7 @@
 #include <config.h>
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "expr.h"
 #include "lexer.h"

@@ -24,6 +24,8 @@
 #include "error.h"
 #include "case.h"
 #include "casefile.h"
+#include "dictionary.h"
+#include "group_proc.h"
 #include "hash.h"
 #include "str.h"
 #include "var.h"
@@ -162,17 +164,18 @@ levene_precalc (const struct levene_info *l)
   for(i = 0; i < l->n_dep ; ++i ) 
     {
       struct variable *var = l->v_dep[i];
+      struct group_proc *gp = group_proc_get (var);
       struct group_statistics *gs;
       struct hsh_iterator hi;
 
       lz[i].grand_total = 0;
       lz[i].total_n = 0;
-      lz[i].n_groups = var->p.grp_data.n_groups ; 
+      lz[i].n_groups = gp->n_groups ; 
 
       
-      for ( gs = hsh_first(var->p.grp_data.group_hash, &hi);
+      for ( gs = hsh_first(gp->group_hash, &hi);
 	    gs != 0;
-	    gs = hsh_next(var->p.grp_data.group_hash, &hi))
+	    gs = hsh_next(gp->group_hash, &hi))
 	{
 	  gs->lz_total = 0;
 	}
@@ -212,11 +215,12 @@ levene_calc (const struct ccase *c, void *_l)
   for (i = 0; i < l->n_dep; ++i) 
     {
       struct variable *var = l->v_dep[i];
+      struct group_proc *gp = group_proc_get (var);
       double levene_z;
       const union value *v = case_data (c, var->fv);
       struct group_statistics *gs;
 
-      gs = hsh_find(var->p.grp_data.group_hash,(void *) &key );
+      gs = hsh_find(gp->group_hash,(void *) &key );
 
       if ( 0 == gs ) 
 	continue ;
@@ -271,7 +275,7 @@ levene2_precalc (void *_l)
       struct group_statistics *g;
 
       struct variable *var = l->v_dep[v] ;
-      struct hsh_table *hash = var->p.grp_data.group_hash;
+      struct hsh_table *hash = group_proc_get (var)->group_hash;
 
 
       for(g = (struct group_statistics *) hsh_first(hash,&hi);
@@ -321,7 +325,7 @@ levene2_calc (const struct ccase *c, void *_l)
       const union value *v = case_data (c, var->fv);
       struct group_statistics *gs;
 
-      gs = hsh_find(var->p.grp_data.group_hash,(void *) &key );
+      gs = hsh_find(group_proc_get (var)->group_hash,(void *) &key );
 
       if ( 0 == gs ) 
 	continue;
@@ -351,7 +355,8 @@ levene2_postcalc (void *_l)
       struct group_statistics *g;
 
       struct variable *var = l->v_dep[v] ;
-      struct hsh_table *hash = var->p.grp_data.group_hash;
+      struct group_proc *gp = group_proc_get (var);
+      struct hsh_table *hash = gp->group_hash;
 
       for(g = (struct group_statistics *) hsh_first(hash,&hi);
 	  g != 0 ;
@@ -359,12 +364,11 @@ levene2_postcalc (void *_l)
 	{
 	  lz_numerator += g->n * pow2(g->lz_mean - lz[v].grand_mean );
 	}
-      lz_numerator *= ( l->v_dep[v]->p.grp_data.ugs.n - 
-			l->v_dep[v]->p.grp_data.n_groups );
+      lz_numerator *= ( gp->ugs.n - gp->n_groups );
 
-      lz_denominator[v] *= (l->v_dep[v]->p.grp_data.n_groups - 1);
+      lz_denominator[v] *= (gp->n_groups - 1);
 
-      l->v_dep[v]->p.grp_data.levene = lz_numerator / lz_denominator[v] ;
+      gp->levene = lz_numerator / lz_denominator[v] ;
 
     }
 

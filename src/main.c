@@ -23,12 +23,14 @@
 #include "main.h"
 #include "cmdline.h"
 #include "command.h"
+#include "dictionary.h"
 #include "error.h"
 #include "getline.h"
 #include "glob.h"
 #include "lexer.h"
 #include "output.h"
 #include "settings.h"
+#include "var.h"
 #include <signal.h>
 
 #include <stdlib.h>
@@ -100,6 +102,7 @@ static int
 execute_command (void)
 {
   int result;
+  
   /* Read the command's first token.
      We may hit end of file.
      If so, give the line reader a chance to proceed to the next file.
@@ -122,6 +125,9 @@ execute_command (void)
  
   /* Unset the /ALGORITHM subcommand if it was used */
   unset_cmd_algorithm ();
+
+  /* Clear any auxiliary data from the dictionary. */
+  dict_clear_aux (default_dict);
 
   return result;
 }

@@ -18,7 +18,7 @@
    02111-1307, USA. */
 
 #include <config.h>
-#include "sfm.h"
+#include "sfm-write.h"
 #include "sfmP.h"
 #include "error.h"
 #include <stdlib.h>
@@ -29,6 +29,8 @@
 #include <unistd.h>	/* Required by SunOS4. */
 #endif
 #include "alloc.h"
+#include "case.h"
+#include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "getline.h"
@@ -42,109 +44,131 @@
 
 #include "debug-print.h"
 
-/* PORTME: This file may require substantial revision for those
-   systems that don't meet the typical 32-bit integer/64-bit double
-   model.  It's kinda hard to tell without having one of them on my
-   desk.  */
-
 /* Compression bias used by PSPP.  Values between (1 -
    COMPRESSION_BIAS) and (251 - COMPRESSION_BIAS) inclusive can be
    compressed. */
 #define COMPRESSION_BIAS 100
 
-/* sfm writer file_handle extension. */
-struct sfm_fhuser_ext
+/* System file writer. */
+struct sfm_writer
   {
-    FILE *file;			/* Actual file. */
+    struct file_handle *fh;     /* File handle. */
+    FILE *file;			/* File stream. */
 
-    int compressed;		/* 1=compressed, 0=not compressed. */
+    int needs_translation;      /* 0=use fast path, 1=translation needed. */
+    int compress;		/* 1=compressed, 0=not compressed. */
+    int case_cnt;		/* Number of cases written so far. */
+    size_t flt64_cnt;           /* Number of flt64 elements in case. */
+
+    /* Compression buffering. */
     flt64 *buf;			/* Buffered data. */
     flt64 *end;			/* Buffer end. */
     flt64 *ptr;			/* Current location in buffer. */
     unsigned char *x;		/* Location in current instruction octet. */
     unsigned char *y;		/* End of instruction octet. */
-    int n_cases;		/* Number of cases written so far. */
 
-    char *elem_type; 		/* ALPHA or NUMERIC for each flt64 element. */
+    /* Variables. */
+    struct sfm_var *vars;       /* Variables. */
+    size_t var_cnt;             /* Number of variables. */
   };
 
-static struct fh_ext_class sfm_w_class;
+/* A variable in a system file. */
+struct sfm_var 
+  {
+    int width;                  /* 0=numeric, otherwise string width. */
+    int fv;                     /* Index into case. */
+    size_t flt64_cnt;           /* Number of flt64 elements. */
+  };
 
 static char *append_string_max (char *, const char *, const char *);
-static int write_header (struct sfm_write_info *inf);
-static int bufwrite (struct file_handle *h, const void *buf, size_t nbytes);
-static int write_variable (struct sfm_write_info *inf, struct variable *v);
-static int write_value_labels (struct sfm_write_info *inf, struct variable * s, int index);
-static int write_rec_7_34 (struct sfm_write_info *inf);
-static int write_documents (struct sfm_write_info *inf);
+static int write_header (struct sfm_writer *, const struct dictionary *);
+static int buf_write (struct sfm_writer *, const void *, size_t);
+static int write_variable (struct sfm_writer *, struct variable *);
+static int write_value_labels (struct sfm_writer *,
+                               struct variable *, int idx);
+static int write_rec_7_34 (struct sfm_writer *);
+static int write_documents (struct sfm_writer *, const struct dictionary *);
+static int does_dict_need_translation (const struct dictionary *);
 
-/* Writes the dictionary INF->dict to system file INF->h.  The system
-   file is compressed if INF->compress is nonzero.  INF->case_size is
-   set to the number of flt64 elements in a single case.  Returns
-   nonzero only if successful. */
-int
-sfm_write_dictionary (struct sfm_write_info *inf)
+static inline int
+var_flt64_cnt (const struct variable *v) 
 {
-  struct dictionary *d = inf->dict;
-  struct sfm_fhuser_ext *ext;
+  return v->type == NUMERIC ? 1 : DIV_RND_UP (v->width, sizeof (flt64));
+}
+
+/* Opens the system file designated by file handle FH for writing
+   cases from dictionary D.  If COMPRESS is nonzero, the
+   system file will be compressed.
+
+   No reference to D is retained, so it may be modified or
+   destroyed at will after this function returns. */
+struct sfm_writer *
+sfm_open_writer (struct file_handle *fh,
+                 const struct dictionary *d, int compress)
+{
+  struct sfm_writer *w = NULL;
+  int idx;
   int i;
-  int index;
 
-  if (inf->h->class != NULL)
+  if (!fh_open (fh, "system file", "we"))
+    goto error;
+
+  /* Create and initialize writer. */
+  w = xmalloc (sizeof *w);
+  w->fh = fh;
+  w->file = fopen (handle_get_filename (fh), "wb");
+
+  w->needs_translation = does_dict_need_translation (d);
+  w->compress = compress;
+  w->case_cnt = 0;
+  w->flt64_cnt = 0;
+
+  w->buf = w->end = w->ptr = NULL;
+  w->x = w->y = NULL;
+
+  w->var_cnt = dict_get_var_cnt (d);
+  w->vars = xmalloc (sizeof *w->vars * w->var_cnt);
+  for (i = 0; i < w->var_cnt; i++) 
     {
-      msg (ME, _("Cannot write file %s as system file: "
-                 "already opened for %s."),
-	   handle_get_name (inf->h), inf->h->class->name);
-      return 0;
+      const struct variable *dv = dict_get_var (d, i);
+      struct sfm_var *sv = &w->vars[i];
+      sv->width = dv->width;
+      sv->fv = dv->fv;
+      sv->flt64_cnt = var_flt64_cnt (dv);
     }
 
-  msg (VM (1), _("%s: Opening system-file handle %s for writing."),
-       handle_get_filename (inf->h), handle_get_name (inf->h));
-  
-  /* Open the physical disk file. */
-  inf->h->class = &sfm_w_class;
-  inf->h->ext = ext = xmalloc (sizeof (struct sfm_fhuser_ext));
-  ext->file = fopen (handle_get_filename (inf->h), "wb");
-  ext->elem_type = NULL;
-  if (ext->file == NULL)
+  /* Check that file create succeeded. */
+  if (w->file == NULL)
     {
-      msg (ME, _("An error occurred while opening \"%s\" for writing "
+      msg (ME, _("Error opening \"%s\" for writing "
                  "as a system file: %s."),
-           handle_get_filename (inf->h), strerror (errno));
+           handle_get_filename (w->fh), strerror (errno));
       err_cond_fail ();
-      free (ext);
-      return 0;
+      goto error;
     }
-
-  /* Initialize the sfm_fhuser_ext structure. */
-  ext->compressed = inf->compress;
-  ext->buf = ext->ptr = NULL;
-  ext->x = ext->y = NULL;
-  ext->n_cases = 0;
 
   /* Write the file header. */
-  if (!write_header (inf))
-    goto lossage;
+  if (!write_header (w, d))
+    goto error;
 
   /* Write basic variable info. */
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    write_variable (inf, dict_get_var (d, i));
+    write_variable (w, dict_get_var (d, i));
 
   /* Write out value labels. */
-  for (index = i = 0; i < dict_get_var_cnt (d); i++)
+  for (idx = i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *v = dict_get_var (d, i);
 
-      if (!write_value_labels (inf, v, index))
-	goto lossage;
-      index += (v->type == NUMERIC ? 1
-		: DIV_RND_UP (v->width, sizeof (flt64)));
+      if (!write_value_labels (w, v, idx))
+	goto error;
+      idx += var_flt64_cnt (v);
     }
 
-  if (dict_get_documents (d) != NULL && !write_documents (inf))
-    goto lossage;
-  if (!write_rec_7_34 (inf))
-    goto lossage;
+  if (dict_get_documents (d) != NULL && !write_documents (w, d))
+    goto error;
+  if (!write_rec_7_34 (w))
+    goto error;
 
   /* Write record 999. */
   {
@@ -158,22 +182,41 @@ sfm_write_dictionary (struct sfm_write_info *inf)
     rec_999.rec_type = 999;
     rec_999.filler = 0;
 
-    if (!bufwrite (inf->h, &rec_999, sizeof rec_999))
-      goto lossage;
+    if (!buf_write (w, &rec_999, sizeof rec_999))
+      goto error;
   }
 
-  msg (VM (2), _("Wrote system-file header successfully."));
+  if (w->compress) 
+    {
+      w->buf = xmalloc (sizeof *w->buf * 128);
+      w->ptr = w->buf;
+      w->end = &w->buf[128];
+      w->x = (unsigned char *) w->ptr++;
+      w->y = (unsigned char *) w->ptr;
+    }
   
-  return 1;
+  return w;
 
-lossage:
-  msg (VM (1), _("Error writing system-file header."));
-  fclose (ext->file);
-  inf->h->class = NULL;
-  inf->h->ext = NULL;
-  free (ext->elem_type);
-  ext->elem_type = NULL;
-  return 0;
+ error:
+  sfm_close_writer (w);
+  return NULL;
+}
+
+static int
+does_dict_need_translation (const struct dictionary *d)
+{
+  size_t case_idx;
+  size_t i;
+
+  case_idx = 0;
+  for (i = 0; i < dict_get_var_cnt (d); i++) 
+    {
+      struct variable *v = dict_get_var (d, i);
+      if (v->fv != case_idx)
+        return 0;
+      case_idx += v->nv;
+    }
+  return 1;
 }
 
 /* Returns value of X truncated to two least-significant digits. */
@@ -187,13 +230,10 @@ rerange (int x)
   return x;
 }
 
-/* Write the sysfile_header header to the system file represented by
-   INF. */
+/* Write the sysfile_header header to system file W. */
 static int
-write_header (struct sfm_write_info *inf)
+write_header (struct sfm_writer *w, const struct dictionary *d)
 {
-  struct dictionary *d = inf->dict;
-  struct sfm_fhuser_ext *ext = inf->h->ext;
   struct sysfile_header hdr;
   char *p;
   int i;
@@ -210,31 +250,17 @@ write_header (struct sfm_write_info *inf)
 
   hdr.layout_code = 2;
 
-  hdr.case_size = 0;
+  w->flt64_cnt = 0;
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      struct variable *v = dict_get_var (d, i);
-      hdr.case_size += (v->type == NUMERIC ? 1
-			: DIV_RND_UP (v->width, sizeof (flt64)));
-    }
-  inf->case_size = hdr.case_size;
+    w->flt64_cnt += var_flt64_cnt (dict_get_var (d, i));
+  hdr.case_size = w->flt64_cnt;
 
-  p = ext->elem_type = xmalloc (inf->case_size);
-  for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      struct variable *v = dict_get_var (d, i);
-      int count = (v->type == NUMERIC ? 1
-                   : DIV_RND_UP (v->width, sizeof (flt64)));
-      while (count--)
-        *p++ = v->type;
-    }
-
-  hdr.compressed = inf->compress;
+  hdr.compress = w->compress;
 
   if (dict_get_weight (d) != NULL)
     {
       struct variable *weight_var;
-      int recalc_weight_index = 1;
+      int recalc_weight_idx = 1;
       int i;
 
       weight_var = dict_get_weight (d);
@@ -243,18 +269,17 @@ write_header (struct sfm_write_info *inf)
 	  struct variable *v = dict_get_var (d, i);
           if (v == weight_var)
             break;
-	  recalc_weight_index += (v->type == NUMERIC ? 1
-				  : DIV_RND_UP (v->width, sizeof (flt64)));
+	  recalc_weight_idx += var_flt64_cnt (v);
 	}
-      hdr.weight_index = recalc_weight_index;
+      hdr.weight_idx = recalc_weight_idx;
     }
   else
-    hdr.weight_index = 0;
+    hdr.weight_idx = 0;
 
-  hdr.ncases = -1;
+  hdr.case_cnt = -1;
   hdr.bias = COMPRESSION_BIAS;
 
-  if ((time_t) - 1 == time (&t))
+  if (time (&t) == (time_t) -1)
     {
       memcpy (hdr.creation_date, "01 Jan 70", 9);
       memcpy (hdr.creation_time, "00:00:00", 8);
@@ -262,10 +287,10 @@ write_header (struct sfm_write_info *inf)
   else
     {
       static const char *month_name[12] =
-      {
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-      };
+        {
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        };
       struct tm *tmp = localtime (&t);
       int day = rerange (tmp->tm_mday);
       int mon = rerange (tmp->tm_mon + 1);
@@ -291,7 +316,7 @@ write_header (struct sfm_write_info *inf)
   
   memset (hdr.padding, 0, sizeof hdr.padding);
 
-  if (!bufwrite (inf->h, &hdr, sizeof hdr))
+  if (!buf_write (w, &hdr, sizeof hdr))
     return 0;
   return 1;
 }
@@ -305,18 +330,18 @@ write_format_spec (struct fmt_spec *src, int32 *dest)
 }
 
 /* Write the variable record(s) for primary variable P and secondary
-   variable S to the system file represented by INF. */
+   variable S to system file W. */
 static int
-write_variable (struct sfm_write_info *inf, struct variable *v)
+write_variable (struct sfm_writer *w, struct variable *v)
 {
   struct sysfile_variable sv;
 
   /* Missing values. */
-  flt64 m[3];			/* Missing value values. */
-  int nm;			/* Number of missing values, possibly negative. */
+  flt64 m[3];           /* Missing value values. */
+  int nm;               /* Number of missing values, possibly negative. */
 
   sv.rec_type = 2;
-  sv.type = (v->type == NUMERIC ? 0 : v->width);
+  sv.type = v->width;
   sv.has_var_label = (v->label != NULL);
 
   switch (v->miss_type)
@@ -373,7 +398,7 @@ write_variable (struct sfm_write_info *inf, struct variable *v)
   write_format_spec (&v->write, &sv.write);
   memcpy (sv.name, v->name, strlen (v->name));
   memset (&sv.name[strlen (v->name)], ' ', 8 - strlen (v->name));
-  if (!bufwrite (inf->h, &sv, sizeof sv))
+  if (!buf_write (w, &sv, sizeof sv))
     return 0;
 
   if (v->label)
@@ -392,11 +417,11 @@ write_variable (struct sfm_write_info *inf, struct variable *v)
       memcpy (l.label, v->label, l.label_len);
       memset (&l.label[l.label_len], ' ', ext_len - l.label_len);
 
-      if (!bufwrite (inf->h, &l, offsetof (struct label, label) + ext_len))
-	  return 0;
+      if (!buf_write (w, &l, offsetof (struct label, label) + ext_len))
+        return 0;
     }
 
-  if (nm && !bufwrite (inf->h, m, sizeof *m * nm))
+  if (nm && !buf_write (w, m, sizeof *m * nm))
     return 0;
 
   if (v->type == ALPHA && v->width > (int) sizeof (flt64))
@@ -413,7 +438,7 @@ write_variable (struct sfm_write_info *inf, struct variable *v)
 
       pad_count = DIV_RND_UP (v->width, (int) sizeof (flt64)) - 1;
       for (i = 0; i < pad_count; i++)
-	if (!bufwrite (inf->h, &sv, sizeof sv))
+	if (!buf_write (w, &sv, sizeof sv))
 	  return 0;
     }
 
@@ -421,10 +446,10 @@ write_variable (struct sfm_write_info *inf, struct variable *v)
 }
 
 /* Writes the value labels for variable V having system file variable
-   index INDEX to the system file associated with INF.  Returns
+   index IDX to system file W.  Returns
    nonzero only if successful. */
 static int
-write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
+write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 {
   struct value_label_rec
     {
@@ -433,7 +458,7 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
       flt64 labels[1] P;
     };
 
-  struct variable_index_rec
+  struct var_idx_rec
     {
       int32 rec_type P;
       int32 n_vars P;
@@ -442,7 +467,7 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
 
   struct val_labs_iterator *i;
   struct value_label_rec *vlr;
-  struct variable_index_rec vir;
+  struct var_idx_rec vir;
   struct val_lab *vl;
   size_t vlr_size;
   flt64 *loc;
@@ -475,7 +500,7 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
       loc += DIV_RND_UP (len + 1, sizeof (flt64));
     }
   
-  if (!bufwrite (inf->h, vlr, vlr_size))
+  if (!buf_write (w, vlr, vlr_size))
     {
       free (vlr);
       return 0;
@@ -484,8 +509,8 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
 
   vir.rec_type = 4;
   vir.n_vars = 1;
-  vir.vars[0] = index + 1;
-  if (!bufwrite (inf->h, &vir, sizeof vir))
+  vir.vars[0] = idx + 1;
+  if (!buf_write (w, &vir, sizeof vir))
     return 0;
 
   return 1;
@@ -493,14 +518,13 @@ write_value_labels (struct sfm_write_info * inf, struct variable *v, int index)
 
 /* Writes record type 6, document record. */
 static int
-write_documents (struct sfm_write_info * inf)
+write_documents (struct sfm_writer *w, const struct dictionary *d)
 {
-  struct dictionary *d = inf->dict;
   struct
-  {
-    int32 rec_type P;		/* Always 6. */
-    int32 n_lines P;		/* Number of lines of documents. */
-  }
+    {
+      int32 rec_type P;		/* Always 6. */
+      int32 n_lines P;		/* Number of lines of documents. */
+    }
   rec_6;
 
   const char *documents;
@@ -511,9 +535,9 @@ write_documents (struct sfm_write_info * inf)
 
   rec_6.rec_type = 6;
   rec_6.n_lines = n_lines;
-  if (!bufwrite (inf->h, &rec_6, sizeof rec_6))
+  if (!buf_write (w, &rec_6, sizeof rec_6))
     return 0;
-  if (!bufwrite (inf->h, documents, 80 * n_lines))
+  if (!buf_write (w, documents, 80 * n_lines))
     return 0;
 
   return 1;
@@ -521,7 +545,7 @@ write_documents (struct sfm_write_info * inf)
 
 /* Writes record type 7, subtypes 3 and 4. */
 static int
-write_rec_7_34 (struct sfm_write_info * inf)
+write_rec_7_34 (struct sfm_writer *w)
 {
   struct
     {
@@ -588,7 +612,7 @@ write_rec_7_34 (struct sfm_write_info * inf)
   rec_7.elem_4[1] = FLT64_MAX;
   rec_7.elem_4[2] = second_lowest_flt64;
 
-  if (!bufwrite (inf->h, &rec_7, sizeof rec_7))
+  if (!buf_write (w, &rec_7, sizeof rec_7))
     return 0;
   return 1;
 }
@@ -596,15 +620,13 @@ write_rec_7_34 (struct sfm_write_info * inf)
 /* Write NBYTES starting at BUF to the system file represented by
    H. */
 static int
-bufwrite (struct file_handle * h, const void *buf, size_t nbytes)
+buf_write (struct sfm_writer *w, const void *buf, size_t nbytes)
 {
-  struct sfm_fhuser_ext *ext = h->ext;
-
-  assert (buf);
-  if (1 != fwrite (buf, nbytes, 1, ext->file))
+  assert (buf != NULL);
+  if (fwrite (buf, nbytes, 1, w->file) != 1)
     {
       msg (ME, _("%s: Writing system file: %s."),
-           handle_get_filename (h), strerror (errno));
+           handle_get_filename (w->fh), strerror (errno));
       return 0;
     }
   return 1;
@@ -625,132 +647,169 @@ append_string_max (char *dest, const char *src, const char *end)
    element.  If there's not room, pads out the current instruction
    octet with zero and dumps out the buffer. */
 static inline int
-ensure_buf_space (struct file_handle *h)
+ensure_buf_space (struct sfm_writer *w)
 {
-  struct sfm_fhuser_ext *ext = h->ext;
-
-  if (ext->ptr >= ext->end)
+  if (w->ptr >= w->end)
     {
-      memset (ext->x, 0, ext->y - ext->x);
-      ext->x = ext->y;
-      ext->ptr = ext->buf;
-      if (!bufwrite (h, ext->buf, sizeof *ext->buf * 128))
+      memset (w->x, 0, w->y - w->x);
+      w->x = w->y;
+      w->ptr = w->buf;
+      if (!buf_write (w, w->buf, sizeof *w->buf * 128))
 	return 0;
     }
   return 1;
 }
 
-/* Writes case ELEM consisting of N_ELEM flt64 elements to the system
-   file represented by H.  Return success. */
+static void write_compressed_data (struct sfm_writer *w, const flt64 *elem);
+
+/* Writes case C to system file W.
+   Returns nonzero if successful. */
 int
-sfm_write_case (struct file_handle * h, const flt64 *elem, int n_elem)
+sfm_write_case (struct sfm_writer *w, struct ccase *c)
 {
-  struct sfm_fhuser_ext *ext = h->ext;
-  const flt64 *end_elem = &elem[n_elem];
-  char *elem_type = ext->elem_type;
+  w->case_cnt++;
 
-  ext->n_cases++;
-
-  if (ext->compressed == 0)
-    return bufwrite (h, elem, sizeof *elem * n_elem);
-
-  if (ext->buf == NULL)
+  if (!w->needs_translation && !w->compress
+      && sizeof (flt64) == sizeof (union value)) 
     {
-      ext->buf = xmalloc (sizeof *ext->buf * 128);
-      ext->ptr = ext->buf;
-      ext->end = &ext->buf[128];
-      ext->x = (unsigned char *) (ext->ptr++);
-      ext->y = (unsigned char *) (ext->ptr);
+      /* Fast path: external and internal representations are the
+         same and the dictionary is properly ordered.  Write
+         directly to file. */
+      buf_write (w, case_data_all (c), sizeof (union value) * w->flt64_cnt);
     }
-  for (; elem < end_elem; elem++, elem_type++)
+  else 
     {
-      if (ext->x >= ext->y)
-	{
-	  if (!ensure_buf_space (h))
-	    return 0;
-	  ext->x = (unsigned char *) (ext->ptr++);
-	  ext->y = (unsigned char *) (ext->ptr);
-	}
+      /* Slow path: internal and external representations differ.
+         Write into a bounce buffer, then write to W. */
+      flt64 *bounce;
+      flt64 *bounce_cur;
+      size_t bounce_size;
+      size_t i;
 
-      if (*elem_type == NUMERIC)
+      bounce_size = sizeof *bounce * w->flt64_cnt;
+      bounce = bounce_cur = local_alloc (bounce_size);
+
+      for (i = 0; i < w->var_cnt; i++) 
         {
-	  if (*elem == -FLT64_MAX)
-            {
-	      *ext->x++ = 255;
-              continue;
-            }
-	  else if (*elem > INT_MIN && *elem < INT_MAX)
-	    {
-	      int value = *elem;
+          struct sfm_var *v = &w->vars[i];
 
-	      if (value >= 1 - COMPRESSION_BIAS
-		  && value <= 251 - COMPRESSION_BIAS
-		  && value == *elem)
+          if (v->width == 0) 
+            *bounce_cur = case_num (c, v->fv);
+          else 
+            memcpy (bounce_cur, case_data (c, v->fv)->s, v->width);
+          bounce_cur += v->flt64_cnt;
+        }
+
+      if (!w->compress)
+        buf_write (w, bounce, bounce_size);
+      else
+        write_compressed_data (w, bounce);
+
+      local_free (bounce); 
+    }
+  
+  return 1;
+}
+
+static void
+put_instruction (struct sfm_writer *w, unsigned char instruction) 
+{
+  if (w->x >= w->y)
+    {
+      if (!ensure_buf_space (w))
+        return;
+      w->x = (unsigned char *) w->ptr++;
+      w->y = (unsigned char *) w->ptr;
+    }
+  *w->x++ = instruction;
+}
+
+static void
+put_element (struct sfm_writer *w, const flt64 *elem) 
+{
+  if (!ensure_buf_space (w))
+    return;
+  memcpy (w->ptr++, elem, sizeof *elem);
+}
+
+static void
+write_compressed_data (struct sfm_writer *w, const flt64 *elem) 
+{
+  size_t i;
+
+  for (i = 0; i < w->var_cnt; i++)
+    {
+      struct sfm_var *v = &w->vars[i];
+
+      if (v->width == 0) 
+        {
+          if (*elem == -FLT64_MAX)
+            put_instruction (w, 255);
+          else if (*elem >= 1 - COMPRESSION_BIAS
+                   && *elem <= 251 - COMPRESSION_BIAS
+                   && *elem == (int) *elem) 
+            put_instruction (w, (int) *elem + COMPRESSION_BIAS);
+          else
+            {
+              put_instruction (w, 253);
+              put_element (w, elem);
+            }
+          elem++;
+        }
+      else 
+        {
+          size_t j;
+          
+          for (j = 0; j < v->flt64_cnt; j++, elem++) 
+            {
+              if (!memcmp (elem, "        ", sizeof (flt64)))
+                put_instruction (w, 254);
+              else 
                 {
-		  *ext->x++ = value + COMPRESSION_BIAS;
-                  continue;
+                  put_instruction (w, 253);
+                  put_element (w, elem);
                 }
             }
         }
-      else
-	{
-          if (0 == memcmp ((char *) elem,
-	                   "                                           ",
-		           sizeof (flt64)))
-            {
-	      *ext->x++ = 254;
-              continue;
-            }
-        }
-      
-      *ext->x++ = 253;
-      if (!ensure_buf_space (h))
-	return 0;
-      *ext->ptr++ = *elem;
     }
-
-  return 1;
 }
 
 /* Closes a system file after we're done with it. */
-static void
-sfm_close (struct file_handle * h)
+void
+sfm_close_writer (struct sfm_writer *w)
 {
-  struct sfm_fhuser_ext *ext = h->ext;
+  if (w == NULL)
+    return;
 
-  if (ext->buf != NULL && ext->ptr > ext->buf)
+  fh_close (w->fh, "system file", "we");
+  
+  if (w->file != NULL) 
     {
-      memset (ext->x, 0, ext->y - ext->x);
-      bufwrite (h, ext->buf, (ext->ptr - ext->buf) * sizeof *ext->buf);
+      /* Flush buffer. */
+      if (w->buf != NULL && w->ptr > w->buf)
+        {
+          memset (w->x, 0, w->y - w->x);
+          buf_write (w, w->buf, (w->ptr - w->buf) * sizeof *w->buf);
+        }
+
+      /* Seek back to the beginning and update the number of cases.
+         This is just a courtesy to later readers, so there's no need
+         to check return values or report errors. */
+      if (!fseek (w->file, offsetof (struct sysfile_header, case_cnt), SEEK_SET))
+        {
+          int32 case_cnt = w->case_cnt;
+
+          /* I don't really care about the return value: it doesn't
+             matter whether this data is written. */
+          fwrite (&case_cnt, sizeof case_cnt, 1, w->file);
+        }
+
+      if (fclose (w->file) == EOF)
+        msg (ME, _("%s: Closing system file: %s."),
+             handle_get_filename (w->fh), strerror (errno));
     }
 
-  /* Attempt to seek back to the beginning in order to write the
-     number of cases.  If that's not possible (i.e., we're writing to
-     a tty or a pipe), then it's not a big deal because we wrote the
-     code that indicates an unknown number of cases. */
-  if (0 == fseek (ext->file, offsetof (struct sysfile_header, ncases),
-		  SEEK_SET))
-    {
-      int32 n_cases = ext->n_cases;
-
-      /* I don't really care about the return value: it doesn't matter
-         whether this data is written.  This is the only situation in
-         which you will see me fail to check a return value. */
-      fwrite (&n_cases, sizeof n_cases, 1, ext->file);
-    }
-
-  if (EOF == fclose (ext->file))
-    msg (ME, _("%s: Closing system file: %s."),
-         handle_get_filename (h), strerror (errno));
-  free (ext->buf);
-
-  free (ext->elem_type);
-  free (ext);
+  free (w->buf);
+  free (w->vars);
+  free (w);
 }
-
-static struct fh_ext_class sfm_w_class =
-{
-  4,
-  N_("writing as a system file"),
-  sfm_close,
-};
