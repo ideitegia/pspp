@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2003-12-11 14:43+0800\n"
+"POT-Creation-Date: 2003-12-11 15:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3256,162 +3256,162 @@ msgstr ""
 msgid "Output driver `%s' referenced but never defined."
 msgstr ""
 
-#: src/output.c:292
+#: src/output.c:294
 msgid "Cannot find output initialization file.  Use `-vv' to view search path."
 msgstr ""
 
-#: src/output.c:297
+#: src/output.c:299
 #, c-format
 msgid "%s: Opening device description file..."
 msgstr ""
 
-#: src/output.c:301 src/output.c:1161 src/postscript.c:1114
+#: src/output.c:303 src/output.c:1162 src/postscript.c:1114
 #, c-format
 msgid "Opening %s: %s."
 msgstr ""
 
-#: src/output.c:313 src/output.c:1173 src/postscript.c:1131
+#: src/output.c:314 src/output.c:1174 src/postscript.c:1131
 #, c-format
 msgid "Reading %s: %s."
 msgstr ""
 
-#: src/output.c:335 src/output.c:487
+#: src/output.c:336 src/output.c:488
 msgid "Syntax error."
 msgstr ""
 
-#: src/output.c:345 src/postscript.c:1142
+#: src/output.c:346 src/postscript.c:1142
 #, c-format
 msgid "Closing %s: %s."
 msgstr ""
 
-#: src/output.c:350
+#: src/output.c:351
 msgid "No output drivers are active."
 msgstr ""
 
-#: src/output.c:353
+#: src/output.c:354
 msgid "Device definition file read successfully."
 msgstr ""
 
-#: src/output.c:355
+#: src/output.c:356
 msgid "Error reading device definition file."
 msgstr ""
 
-#: src/output.c:459
+#: src/output.c:460
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output.c:588
+#: src/output.c:589
 msgid "Syntax error in string constant."
 msgstr ""
 
-#: src/output.c:619
+#: src/output.c:620
 msgid "Syntax error in options."
 msgstr ""
 
-#: src/output.c:629
+#: src/output.c:630
 msgid "Syntax error in options (`=' expected)."
 msgstr ""
 
-#: src/output.c:636
+#: src/output.c:637
 msgid "Syntax error in options (value expected after `=')."
 msgstr ""
 
-#: src/output.c:708
+#: src/output.c:709
 msgid "Driver name expected."
 msgstr ""
 
-#: src/output.c:729
+#: src/output.c:730
 msgid "Class name expected."
 msgstr ""
 
-#: src/output.c:738
+#: src/output.c:739
 #, c-format
 msgid "Unknown output driver class `%s'."
 msgstr ""
 
-#: src/output.c:745
+#: src/output.c:746
 #, c-format
 msgid "Can't initialize output driver class `%s'."
 msgstr ""
 
-#: src/output.c:752
+#: src/output.c:753
 #, c-format
 msgid "Can't initialize output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output.c:774
+#: src/output.c:775
 #, c-format
 msgid "Unknown device type `%s'."
 msgstr ""
 
-#: src/output.c:786
+#: src/output.c:787
 #, c-format
 msgid "Can't complete initialization of output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output.c:833
+#: src/output.c:834
 #, c-format
 msgid "Can't deinitialize output driver class `%s'."
 msgstr ""
 
-#: src/output.c:906
+#: src/output.c:907
 #, c-format
 msgid "Trying to find keyword `%s'...\n"
 msgstr ""
 
-#: src/output.c:1023
+#: src/output.c:1024
 #, c-format
 msgid "Unit \"%s\" is unknown in dimension \"%s\"."
 msgstr ""
 
-#: src/output.c:1038
+#: src/output.c:1039
 #, c-format
 msgid "Bad dimension \"%s\"."
 msgstr ""
 
-#: src/output.c:1064
+#: src/output.c:1065
 #, c-format
 msgid "`x' expected in paper size `%s'."
 msgstr ""
 
-#: src/output.c:1074
+#: src/output.c:1075
 #, c-format
 msgid "Trailing garbage `%s' on paper size `%s'."
 msgstr ""
 
-#: src/output.c:1123
+#: src/output.c:1124
 msgid "Paper size name must not be empty."
 msgstr ""
 
-#: src/output.c:1153
+#: src/output.c:1154
 msgid "Cannot find `papersize' configuration file."
 msgstr ""
 
-#: src/output.c:1157
+#: src/output.c:1158
 #, c-format
 msgid "%s: Opening paper size definition file..."
 msgstr ""
 
-#: src/output.c:1200
+#: src/output.c:1201
 msgid "Syntax error in paper size definition."
 msgstr ""
 
-#: src/output.c:1229
+#: src/output.c:1230
 msgid "Paper size definition file read successfully."
 msgstr ""
 
-#: src/output.c:1231
+#: src/output.c:1232
 msgid "Error reading paper size definition file."
 msgstr ""
 
-#: src/output.c:1300
+#: src/output.c:1301
 #, c-format
 msgid "Error closing page on %s device of %s class."
 msgstr ""
 
-#: src/output.c:1304
+#: src/output.c:1305
 #, c-format
 msgid "Error opening page on %s device of %s class."
 msgstr ""
