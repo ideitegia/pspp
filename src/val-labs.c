@@ -158,12 +158,12 @@ get_label (struct variable **vars, int var_cnt)
 	}
       else
 	{
-	  if (token != T_NUM)
+	  if (!lex_is_number ())
 	    {
 	      lex_error (_("expecting integer"));
 	      return 0;
 	    }
-	  if (!lex_integer_p ())
+	  if (!lex_is_integer ())
 	    msg (SW, _("Value label `%g' is not integer."), tokval);
 	  value.f = tokval;
 	}

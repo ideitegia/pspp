@@ -1,3 +1,30 @@
+Sun Mar  6 17:07:20 2005  Ben Pfaff  <blp@gnu.org>
+
+	When the lexer sees something like `-5' in the input, it has to
+	decide whether it's a negative numeric constant token or a '-'
+	token followed by a positive numeric constant token.  It always
+	decides on the former, and then the parser can call
+	lex_negative_to_dash() if it wants the latter.  However, this
+	doesn't work for the case of `-0', because negative zero is
+	(portably) indistinguishable from positive zero.  So now we divide
+	T_NUM into two tokens, T_POS_NUM and T_NEG_NUM, to make the
+	distinction clear.  This requires a little bit of extra effort,
+	because there were several references to T_NUM in the code base.
+	
+	* lexer.c: (lex_get) Use T_NEG_NUM and T_POS_NUM to distinguish
+	positive and negative numeric constants.
+	(lex_double_p) Renamed lex_is_number().  Changed return type to
+	bool.  Updated all relevant references to T_NUM to instead use
+	this function.
+	(lex_double) Renamed lex_number().  All references updated.
+	(lex_integer_p) Renamed lex_is_integer().  Changed return type to
+	bool.  All references updated.
+	(lex_token_representation) Understand T_NEG_NUM and T_POS_NUM.
+	(lex_negative_to_dash) Ditto.
+	(dump_token) Ditto.
+	
+	* lexer.h: (enum) Add T_POS_NUM, T_NEG_NUM.  Remove T_NUM.
+
 Thu Mar  3 22:08:35 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* Makefile.am : Fixed up CLEANFILES target.

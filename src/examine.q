@@ -413,9 +413,9 @@ xmn_custom_percentiles(struct cmd_examine *p UNUSED)
 
   lex_match('(');
 
-  while ( lex_double_p() ) 
+  while ( lex_is_number() ) 
     {
-      subc_list_double_push(&percentile_list,lex_double());
+      subc_list_double_push(&percentile_list,lex_number());
 
       lex_get();
 

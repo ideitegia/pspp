@@ -1,3 +1,7 @@
+Sun Mar  6 17:56:27 2005  Ben Pfaff  <blp@gnu.org>
+
+	* expressions/expressions.sh: Add tests for generic optimizations.
+
 Sun Mar  6 11:03:58 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Add expressions/variables.sh.  Remove expr.stat.

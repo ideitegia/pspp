@@ -62,7 +62,7 @@ cmd_sample (void)
 
   if (!lex_force_num ())
     return CMD_FAILURE;
-  if (!lex_integer_p ())
+  if (!lex_is_integer ())
     {
       unsigned long min = gsl_rng_min (get_rng ());
       unsigned long max = gsl_rng_max (get_rng ());

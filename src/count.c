@@ -244,13 +244,13 @@ parse_numeric_criteria (struct counting * c)
 	}
 
       cur = &c->crit.n[n++];
-      if (token == T_NUM)
+      if (lex_is_number ())
 	{
 	  cur->a = tokval;
 	  lex_get ();
 	  if (lex_match_id ("THRU"))
 	    {
-	      if (token == T_NUM)
+	      if (lex_is_number ())
 		{
 		  if (!lex_force_num ())
 		    return 0;
@@ -282,7 +282,7 @@ parse_numeric_criteria (struct counting * c)
 	{
 	  if (!lex_force_match_id ("THRU"))
 	    return 0;
-	  if (token == T_NUM)
+	  if (lex_is_number ())
 	    {
 	      cur->type = CNT_LOW;
 	      cur->a = tokval;

@@ -501,14 +501,14 @@ read_values (double **values, double **weights, size_t *cnt)
   *values = NULL;
   *weights = NULL;
   *cnt = 0;
-  while (token == T_NUM) 
+  while (lex_is_number ())
     {
       double value = tokval;
       double weight = 1.;
       lex_get ();
       if (lex_match ('*'))
         {
-          if (token != T_NUM) 
+          if (!lex_is_number ())
             {
               lex_error (_("expecting weight value"));
               return 0;

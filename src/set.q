@@ -650,7 +650,7 @@ stc_custom_epoch (struct cmd_set *cmd UNUSED)
   lex_match ('=');
   if (lex_match_id ("AUTOMATIC"))
     set_epoch = -1;
-  else if (lex_integer_p ()) 
+  else if (lex_is_integer ()) 
     {
       int new_epoch = lex_integer ();
       lex_get ();

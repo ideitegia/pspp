@@ -269,13 +269,12 @@ type_check (struct expression *e,
 /* Considers whether *NODE may be coerced to type REQUIRED_TYPE.
    Returns true if possible, false if disallowed.
 
-   If DO_COERCION is zero, then *NODE is not modified and there
+   If DO_COERCION is false, then *NODE is not modified and there
    are no side effects.
 
-   Otherwise, DO_COERCION is nonzero.  In this case, we perform
-   the coercion if possible, possibly modifying *NODE.  If the
-   coercion is not possible then we free *NODE and set *NODE to
-   a null pointer.
+   If DO_COERCION is true, we perform the coercion if possible,
+   modifying *NODE if necessary.  If the coercion is not possible
+   then we free *NODE and set *NODE to a null pointer.
 
    This function's interface is somewhat awkward.  Use one of the
    wrapper functions type_coercion(), type_coercion_assert(), or
@@ -389,10 +388,13 @@ type_coercion_core (struct expression *e,
     }
 
   if (do_coercion) 
-    msg (SE, _("Type mismatch while applying %s operator: "
-               "cannot convert %s to %s."),
-         operator_name,
-         atom_type_name (actual_type), atom_type_name (required_type));
+    {
+      msg (SE, _("Type mismatch while applying %s operator: "
+                 "cannot convert %s to %s."),
+           operator_name,
+           atom_type_name (actual_type), atom_type_name (required_type));
+      *node = NULL;
+    }
   return false;
 }
 
@@ -519,7 +521,7 @@ parse_binary_operators (struct expression *e, union any_node *node,
 
       /* Convert the left-hand side to type OPERAND_TYPE. */
       if (!type_coercion (e, operand_type, &node, operator->name))
-        return node;
+        return NULL;
 
       /* Parse the right-hand side and coerce to type
          OPERAND_TYPE. */
@@ -653,7 +655,7 @@ parse_add (struct expression *e)
   static const struct operator ops[] = 
     {
       { '+', OP_ADD, "addition (\"+\")" },
-      { '-', OP_SUB, "subtraction (\"-\")-" },
+      { '-', OP_SUB, "subtraction (\"-\")" },
     };
   
   return parse_binary_operators (e, parse_mul (e),
@@ -800,7 +802,8 @@ parse_primary (struct expression *e)
         }
       break;
       
-    case T_NUM: 
+    case T_POS_NUM: 
+    case T_NEG_NUM: 
       {
         union any_node *node = expr_allocate_number (e, tokval);
         lex_get ();

@@ -153,7 +153,7 @@ parse_num_or_range (struct num_or_range * nor)
       nor->d[0] = LOWEST;
       nor->d[1] = tokval;
     }
-  else if (token == T_NUM)
+  else if (lex_is_number ())
     {
       nor->d[0] = tokval;
       lex_get ();

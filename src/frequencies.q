@@ -868,7 +868,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
 	  {
 	    nl = ml = 0;
 	    dl = NULL;
-	    while (token == T_NUM)
+	    while (lex_integer ())
 	      {
 		if (nl >= ml)
 		  {

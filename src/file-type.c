@@ -435,7 +435,7 @@ cmd_record_type (void)
     {
       int mv = 0;
 
-      while (token == T_NUM || token == T_STRING)
+      while (lex_is_number () || token == T_STRING)
 	{
 	  if (rct->nv >= mv)
 	    {

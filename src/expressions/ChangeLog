@@ -1,3 +1,15 @@
+Sun Mar  6 17:51:05 2005  Ben Pfaff  <blp@gnu.org>
+
+	* optimize.c: (optimize_tree) Fix optimization bug for x**2.
+
+	* parse.c: (type_coercion_core) Set *node to NULL on failure, as
+	indicated by function comment.
+	(parse_binary_operators) Always return NULL on type_coercion()
+	failure.  Should have been doing this anyway, but bug in
+	type_coercion_core() filtered through.
+	(parse_add) Fix typo in user message.
+	(parse_primary) Understand T_NEG_NUM and T_POS_NUM.
+
 Sun Mar  6 10:47:13 2005  Ben Pfaff  <blp@gnu.org>
 
 	* operations.def: Add VALUE function.

@@ -102,6 +102,9 @@ optimize_tree (union any_node *node, struct expression *e)
   struct composite_node *n = &node->composite;
   assert (is_composite (node->type));
 
+  /* If you add to these optimizations, please also add a
+     correctness test in tests/expressions/expressions.sh. */
+
   /* x+0, x-0, 0+x => x. */
   if ((n->type == OP_ADD || n->type == OP_SUB) && eq_double (n->args[1], 0.))
     return n->args[0];
@@ -115,7 +118,7 @@ optimize_tree (union any_node *node, struct expression *e)
   else if (n->type == OP_MUL && eq_double (n->args[0], 1.))
     return n->args[1];
   
-  /* 0*x, 0/x, x*0, MOD(0,x) => x. */
+  /* 0*x, 0/x, x*0, MOD(0,x) => 0. */
   else if (((n->type == OP_MUL || n->type == OP_DIV || n->type == OP_MOD_nn)
             && eq_double (n->args[0], 0.))
            || (n->type == OP_MUL && eq_double (n->args[1], 0.)))
@@ -126,8 +129,8 @@ optimize_tree (union any_node *node, struct expression *e)
     return n->args[0];
   
   /* x**2 => SQUARE(x). */
-  else if (n->type == OP_POW && eq_double (n->args[2], 2))
-    return expr_allocate_unary (e,OP_SQUARE, node);
+  else if (n->type == OP_POW && eq_double (n->args[1], 2))
+    return expr_allocate_unary (e, OP_SQUARE, n->args[0]);
 
   /* Otherwise, nothing to do. */
   else

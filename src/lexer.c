@@ -44,7 +44,7 @@
 /* Current token. */
 int token;
 
-/* T_NUM: the token's value. */
+/* T_POS_NUM, T_NEG_NUM: the token's value. */
 double tokval;
 
 /* T_ID: the identifier. */
@@ -224,8 +224,11 @@ lex_get (void)
 		    token = '-';
 		    break;
 		  }
+                token = T_NEG_NUM;
 	      }
-
+            else 
+              token = T_POS_NUM;
+                
 	    /* Parse the number, copying it into tokstr. */
 	    while (isdigit ((unsigned char) *prog))
 	      ds_putc (&tokstr, *prog++);
@@ -256,7 +259,6 @@ lex_get (void)
 		ds_putc (&tokstr, '0');
 	      }
 
-	    token = T_NUM;
 	    break;
 	  }
 
@@ -425,11 +427,27 @@ lex_end_of_command (void)
 
 /* Token testing functions. */
 
-/* Returns nonzero if the current token is an integer. */
-int
-lex_integer_p (void)
+/* Returns true if the current token is a number. */
+bool
+lex_is_number (void) 
 {
-  return (token == T_NUM
+  return token == T_POS_NUM || token == T_NEG_NUM;
+}
+
+/* Returns the value of the current token, which must be a
+   floating point number. */
+double
+lex_number (void)
+{
+  assert (lex_is_number ());
+  return tokval;
+}
+
+/* Returns true iff the current token is an integer. */
+bool
+lex_is_integer (void)
+{
+  return (lex_is_number ()
 	  && tokval != NOT_LONG
 	  && tokval >= LONG_MIN
 	  && tokval <= LONG_MAX
@@ -441,26 +459,9 @@ lex_integer_p (void)
 long
 lex_integer (void)
 {
-  assert (lex_integer_p ());
+  assert (lex_is_integer ());
   return tokval;
 }
-/* Returns nonzero if the current token is an floating point. */
-int
-lex_double_p (void)
-{
-  return ( token == T_NUM
-	   && tokval != NOT_DOUBLE );
-}
-
-/* Returns the value of the current token, which must be a
-   floating point number. */
-double
-lex_double (void)
-{
-  assert (lex_double_p ());
-  return tokval;
-}
-
   
 /* Token matching functions. */
 
@@ -498,7 +499,7 @@ lex_match_id (const char *s)
 int
 lex_match_int (int x)
 {
-  if (lex_integer_p () && lex_integer () == x)
+  if (lex_is_integer () && lex_integer () == x)
     {
       lex_get ();
       return 1;
@@ -563,7 +564,7 @@ lex_force_string (void)
 int
 lex_force_int (void)
 {
-  if (lex_integer_p ())
+  if (lex_is_integer ())
     return 1;
   else
     {
@@ -577,7 +578,7 @@ lex_force_int (void)
 int
 lex_force_num (void)
 {
-  if (token == T_NUM)
+  if (lex_is_number ())
     return 1;
   else
     {
@@ -877,7 +878,8 @@ lex_token_representation (void)
   switch (token)
     {
     case T_ID:
-    case T_NUM:
+    case T_POS_NUM:
+    case T_NEG_NUM:
       return xstrdup (ds_c_str (&tokstr));
       break;
 
@@ -952,9 +954,9 @@ lex_token_representation (void)
 void
 lex_negative_to_dash (void)
 {
-  if (token == T_NUM && tokval < 0.0)
+  if (token == T_NEG_NUM)
     {
-      token = T_NUM;
+      token = T_POS_NUM;
       tokval = -tokval;
       ds_replace (&tokstr, ds_c_str (&tokstr) + 1);
       save_token ();
@@ -1216,7 +1218,8 @@ dump_token (void)
       fprintf (stderr, "ID\t%s\n", tokid);
       break;
 
-    case T_NUM:
+    case T_POS_NUM:
+    case T_NEG_NUM:
       fprintf (stderr, "NUM\t%f\n", tokval);
       break;
 

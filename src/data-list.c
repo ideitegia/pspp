@@ -350,7 +350,7 @@ parse_fixed (struct data_list_pgm *dls)
       while (lex_match ('/'))
 	{
 	  fx.recno++;
-	  if (lex_integer_p ())
+	  if (lex_is_integer ())
 	    {
 	      if (lex_integer () < fx.recno)
 		{
@@ -371,7 +371,7 @@ parse_fixed (struct data_list_pgm *dls)
       if (!parse_DATA_LIST_vars (&fx.name, &fx.name_cnt, PV_NONE))
 	return 0;
 
-      if (token == T_NUM)
+      if (lex_is_number ())
 	{
 	  if (!fixed_parse_compatible (&fx, &dls->first, &dls->last))
 	    goto fail;
@@ -501,7 +501,7 @@ fixed_parse_compatible (struct fixed_parsing_state *fx,
       else
 	input.type = FMT_F;
 
-      if (lex_integer_p ())
+      if (lex_is_integer ())
 	{
 	  if (lex_integer () < 1)
 	    {
@@ -713,7 +713,7 @@ fixed_parse_fortran_internal (struct fixed_parsing_state *fx,
       tail = new;
 
       /* Parse count. */
-      if (lex_integer_p ())
+      if (lex_is_integer ())
 	{
 	  new->count = lex_integer ();
 	  lex_get ();
@@ -1690,7 +1690,7 @@ parse_num_or_var (struct rpd_num_or_var *value, const char *message)
 	  return 0;
 	}
     }
-  else if (lex_integer_p ())
+  else if (lex_is_integer ())
     {
       value->num = lex_integer ();
       
@@ -1725,7 +1725,7 @@ parse_repeating_data (struct dls_var_spec **first, struct dls_var_spec **last)
       if (!parse_DATA_LIST_vars (&fx.name, &fx.name_cnt, PV_NONE))
 	return 0;
 
-      if (token == T_NUM)
+      if (lex_is_number ())
 	{
 	  if (!fixed_parse_compatible (&fx, first, last))
 	    goto fail;

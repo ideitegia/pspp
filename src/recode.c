@@ -445,7 +445,7 @@ parse_dest_spec (struct rcd_var * rcd, union value * v, size_t *max_dst_width)
 
   v->c = NULL;
 
-  if (token == T_NUM)
+  if (lex_is_number ())
     {
       v->f = tokval;
       lex_get ();
@@ -540,7 +540,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 		    return 0;
 		  if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
 		    c->type = RCD_ELSE;
-		  else if (token == T_NUM)
+		  else if (lex_is_number ())
 		    {
 		      c->type = RCD_LOW;
 		      c->f1.f = tokval;
@@ -568,7 +568,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 		  return 0;
 		}
 	    }
-	  else if (token == T_NUM)
+	  else if (lex_is_number ())
 	    {
 	      c->f1.f = tokval;
 	      lex_get ();
@@ -576,7 +576,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 		{
 		  if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
 		    c->type = RCD_HIGH;
-		  else if (token == T_NUM)
+		  else if (lex_is_number ())
 		    {
 		      c->type = RCD_RANGE;
 		      c->f2.f = tokval;

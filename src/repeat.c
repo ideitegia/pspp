@@ -169,7 +169,7 @@ internal_cmd_do_repeat (void)
       
       if (token == T_ID)
 	result = parse_ids (e);
-      else if (token == T_NUM)
+      else if (lex_is_number ())
 	result = parse_numbers (e);
       else if (token == T_STRING)
 	result = parse_strings (e);

@@ -1461,7 +1461,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 
 	  if (s->value == VAL_INT)
 	    {
-	      dump (1, "if (!lex_integer_p ())");
+	      dump (1, "if (!lex_is_integer ())");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
 		    "requires an integer argument.\"));",
@@ -1473,7 +1473,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	    }
 	  else
 	    {
-	      dump (1, "if (token != T_NUM)");
+	      dump (1, "if (!lex_is_number ())");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"Number expected after %s "
 		    "specifier of %s subcommand.\"));",
@@ -1661,7 +1661,7 @@ dump_subcommand (const subcommand *sbc)
     {
       dump (1, "if (!lex_force_num ())");
       dump (0, "goto lossage;");
-      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_double ();", 
+      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_number ();", 
 	    st_lower (sbc->name), st_lower (sbc->name) );
       dump (0, "lex_get();");
     }
@@ -1713,7 +1713,7 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1,"}");
 
-      dump (0, "subc_list_double_push(&p->dl_%s[p->sbc_%s-1],lex_double ());", 
+      dump (0, "subc_list_double_push(&p->dl_%s[p->sbc_%s-1],lex_number ());", 
 	    st_lower (sbc->name),st_lower (sbc->name)
 	    );
 

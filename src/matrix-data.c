@@ -394,7 +394,7 @@ cmd_matrix_data (void)
 	      goto lossage;
 	    }
 
-	  if (!lex_integer_p () || lex_integer () < 1)
+	  if (!lex_is_integer () || lex_integer () < 1)
 	    {
 	      lex_error (_("expecting positive integer"));
 	      goto lossage;
@@ -413,7 +413,7 @@ cmd_matrix_data (void)
 	      goto lossage;
 	    }
 
-	  if (!lex_integer_p () || lex_integer () < 1)
+	  if (!lex_is_integer () || lex_integer () < 1)
 	    {
 	      lex_error (_("expecting positive integer"));
 	      goto lossage;

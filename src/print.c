@@ -287,7 +287,7 @@ parse_specs (void)
 	  int prev_recno = fx.recno;
 
 	  fx.recno++;
-	  if (token == T_NUM)
+	  if (lex_is_number ())
 	    {
 	      if (!lex_force_int ())
 		return 0;
@@ -349,7 +349,7 @@ parse_string_argument (void)
   lex_get ();
 
   /* Parse the included column range. */
-  if (token == T_NUM)
+  if (lex_is_number ())
     {
       /* Width of column range in characters. */
       int c_len;
@@ -360,7 +360,7 @@ parse_string_argument (void)
       /* 1-based index of last column in range. */
       int lc;
 
-      if (!lex_integer_p () || lex_integer () <= 0)
+      if (!lex_is_integer () || lex_integer () <= 0)
 	{
 	  msg (SE, _("%g is not a valid column location."), tokval);
 	  goto fail;
@@ -371,7 +371,7 @@ parse_string_argument (void)
       lex_negative_to_dash ();
       if (lex_match ('-'))
 	{
-	  if (!lex_integer_p ())
+	  if (!lex_is_integer ())
 	    {
 	      msg (SE, _("Column location expected following `%d-'."),
 		   fx.spec.fc + 1);
@@ -434,7 +434,7 @@ parse_variable_argument (void)
   if (!parse_variables (default_dict, &fx.v, &fx.nv, PV_DUPLICATE))
     return 0;
 
-  if (token == T_NUM)
+  if (lex_is_number ())
     {
       if (!fixed_parse_compatible ())
 	goto fail;
@@ -553,7 +553,7 @@ fixed_parse_compatible (void)
       else
 	fx.spec.u.v.f.type = FMT_F;
 
-      if (token == T_NUM)
+      if (lex_is_number ())
 	{
 	  if (!lex_force_int ())
 	    return 0;
@@ -727,9 +727,9 @@ fixed_parse_fortran (void)
       else
 	head = fl = xmalloc (sizeof *fl);
 
-      if (token == T_NUM)
+      if (lex_is_number ())
 	{
-	  if (!lex_integer_p ())
+	  if (!lex_is_integer ())
 	    goto fail;
 	  fl->count = lex_integer ();
 	  lex_get ();

@@ -20,6 +20,8 @@
 #if !lexer_h
 #define lexer_h 1
 
+#include "bool.h"
+
 /* Returns nonzero if character CH may be the first character in an
    identifier. */
 #define CHAR_IS_ID1(CH)				\
@@ -41,7 +43,8 @@
 enum
   {
     T_ID = 256, /* Identifier. */
-    T_NUM,	/* Number. */
+    T_POS_NUM,	/* Positive number. */
+    T_NEG_NUM,	/* Negative number. */
     T_STRING,	/* Quoted string. */
     T_STOP,	/* End of input. */
 
@@ -86,10 +89,10 @@ void lex_error (const char *, ...);
 int lex_end_of_command (void);
 
 /* Token testing functions. */
-int lex_integer_p (void);
+bool lex_is_number (void);
+double lex_number (void);
+bool lex_is_integer (void);
 long lex_integer (void);
-int lex_double_p (void);
-double lex_double (void);
 
 /* Token matching functions. */
 int lex_match (int);

@@ -450,7 +450,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 		    arg[i].c = xstrdup (ds_c_str (&tokstr));
 		    type = ALPHA;
 		  }
-		else if (token == T_NUM)
+		else if (lex_is_number ())
 		  {
 		    arg[i].f = tokval;
 		    type = NUMERIC;

@@ -1273,6 +1273,20 @@ SYSMIS($SYSMIS) => true
 SYSMIS(1 + $SYSMIS) => true
 
 # FIXME: out-of-range and nearly out-of-range values on dates
+
+# Tests correctness of generic optimizations in optimize_tree().
+(X = 10.00); x + 0 => 10.00
+(X = -3.00); x - 0 => -3.00
+(X = 5.00); 0 + x => 5.00
+(X = 10.00); x * 1 => 10.00
+(X = -3.00); 1 * x => -3.00
+(X = 5.00); x / 1 => 5.00
+(X = 10.00); 0 * x => 0.00
+(X = -3.00); x * 0 => 0.00
+(X = 5.00); 0 / x => 0.00
+(X = 5.00); mod(0, x) => 0.00
+(X = 5.00); x ** 1 => 5.00
+(X = 5.00); x ** 2 => 25.00
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 

@@ -140,7 +140,7 @@ cmd_debug_evaluate (void)
           if (!lex_force_match ('='))
             goto done;
 
-          if (token == T_NUM) 
+          if (lex_is_number ())
             {
               width = 0;
               fprintf (stderr, "(%s = %.2f)", name, tokval); 
@@ -174,7 +174,7 @@ cmd_debug_evaluate (void)
             }
           case_resize (c, old_value_cnt, dict_get_next_value_idx (d));
 
-          if (token == T_NUM)
+          if (lex_is_number ())
             case_data_rw (c, v->fv)->f = tokval;
           else
             memcpy (case_data_rw (c, v->fv)->s, ds_data (&tokstr),
@@ -198,7 +198,7 @@ cmd_debug_evaluate (void)
   lex_get ();
 
   expr = expr_parse_any (d, optimize);
-  if (!expr || token != '.') 
+  if (!expr || lex_end_of_command () != CMD_SUCCESS)
     {
       if (expr != NULL)
         expr_free (expr);
