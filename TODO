@@ -1,11 +1,9 @@
-Time-stamp: <2004-04-19 20:52:04 blp>
+Time-stamp: <2004-04-19 22:54:32 blp>
 
 What Ben's working on now.
 --------------------------
 
 Update q2c input format description.
-
-Fix portable file description in documentation, bring code in sync.
 
 Rewrite output subsystem, break into multiple processes.
 
