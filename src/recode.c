@@ -697,7 +697,7 @@ find_src_numeric (struct rcd_var * v, struct ccase * c)
 	  if ((v->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
 	    c->data[v->dest->fv].f = v->sysmis.f;
 	  else
-	    memcpy (c->data[v->dest->fv].s, v->sysmis.c,
+	    memcpy (c->data[v->dest->fv].s, v->sysmis.s,
 		    v->dest->width);
 	}
       return NULL;
