@@ -215,13 +215,16 @@ do_internal_sort (int separate)
   return 0;
 }
 
-/* Compares the NV_SORT variables in V_SORT[] between the `case_list's
-   at _A and _B, and returns a strcmp()-type result. */
+/* Compares the NV_SORT variables in V_SORT[] between the
+   `case_list's at A and B, and returns a strcmp()-type
+   result. */
 static int
-compare_case_lists (const void *pa, const void *pb)
+compare_case_lists (const void *a_, const void *b_)
 {
-  struct case_list *a = *(struct case_list **) pa;
-  struct case_list *b = *(struct case_list **) pb;
+  struct case_list *const *pa = a_;
+  struct case_list *const *pb = b_;
+  struct case_list *a = *pa;
+  struct case_list *b = *pb;
   struct variable *v;
   int result = 0;
   int i;
@@ -232,27 +235,21 @@ compare_case_lists (const void *pa, const void *pb)
       
       if (v->type == NUMERIC)
 	{
-	  if (approx_ne (a->c.data[v->fv].f, b->c.data[v->fv].f))
-	    {
-	      result = (a->c.data[v->fv].f > b->c.data[v->fv].f) ? 1 : -1;
-	      break;
-	    }
+          double af = a->c.data[v->fv].f;
+          double bf = b->c.data[v->fv].f;
+
+          result = af < bf ? -1 : af > bf;
 	}
       else
-	{
-	  result = memcmp (a->c.data[v->fv].s, b->c.data[v->fv].s, v->width);
-	  if (result != 0)
-	    break;
-	}
+        result = memcmp (a->c.data[v->fv].s, b->c.data[v->fv].s, v->width);
+
+      if (result != 0)
+        break;
     }
 
-  if (v->p.srt.order == SRT_ASCEND)
-    return result;
-  else
-    {
-      assert (v->p.srt.order == SRT_DESCEND);
-      return -result;
-    }
+  if (v->p.srt.order == SRT_DESCEND)
+    result = -result;
+  return result;
 }
 
 /* External sort. */
