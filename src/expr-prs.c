@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <stdlib.h>
+#include "algorithm.h"
 #include "alloc.h"
 #include "error.h"
 #include "expr.h"
@@ -57,8 +58,8 @@ static union any_node *append_nonterminal_arg (union any_node *,
 					       union any_node *);
 static int type_check (union any_node **n, int type, int flags);
 
+static algo_compare_func compare_functions;
 static void init_func_tab (void);
-static int cmp_func (const void *a, const void *b);
 
 #if DEBUGGING
 static void debug_print_tree (union any_node *, int);
@@ -1275,7 +1276,8 @@ parse_function (union any_node ** n)
     struct function f;
     f.s = fname;
     
-    fp = bsearch (&f, func_tab, func_count, sizeof *func_tab, cmp_func);
+    fp = binary_search (func_tab, func_count, sizeof *func_tab, &f,
+                        compare_functions, NULL);
   }
   
   if (!fp)
@@ -1618,10 +1620,15 @@ static struct function func_tab[] =
   {"SUBSTR", OP_SUBSTR, generic_str_func, "ssn/n"},
 };
 
+/* An algo_compare_func that compares functions A and B based on
+   their names. */
 static int
-cmp_func (const void *a, const void *b)
+compare_functions (const void *a_, const void *b_, void *aux unused)
 {
-  return strcmp (*(char **) a, *(char **) b);
+  const struct function *a = a_;
+  const struct function *b = b_;
+
+  return strcmp (a->s, b->s);
 }
 
 static void
@@ -1636,7 +1643,7 @@ init_func_tab (void)
   }
 
   func_count = sizeof func_tab / sizeof *func_tab;
-  qsort (func_tab, func_count, sizeof *func_tab, cmp_func);
+  sort (func_tab, func_count, sizeof *func_tab, compare_functions, NULL);
 }
 
 /* Debug output. */

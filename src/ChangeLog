@@ -1,3 +1,12 @@
+Fri Dec 19 15:54:45 2003  Ben Pfaff  <blp@gnu.org>
+
+	* expr-prs.c: (cmp_func) Removed.
+	(parse_function) Use binary_search() algorithm.
+	(compare_functions) New function.
+	(init_func_tab) Use sort() algorithm.
+
+	* algorithm.c: (binary_search) New algorithm.
+
 Fri Dec 19 15:50:45 2003  Ben Pfaff  <blp@gnu.org>
 
 	* descript.q: (display) Use sort() algorithm instead of qsort().

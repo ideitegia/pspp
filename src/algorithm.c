@@ -71,6 +71,8 @@
  */
 
 #include <config.h>
+#include <assert.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
@@ -322,6 +324,43 @@ remove_copy_if (const void *array, size_t count, size_t size,
   pred_aux.predicate = predicate;
   pred_aux.aux = aux;
   return copy_if (array, count, size, result, not, &pred_aux);
+}
+
+/* Searches ARRAY, which contains COUNT of SIZE bytes each, using
+   a binary search.  Returns any element that equals VALUE, if
+   one exists, or a null pointer otherwise.  ARRAY must ordered
+   according to COMPARE.  AUX is passed to COMPARE as auxiliary
+   data. */
+void *
+binary_search (const void *array, size_t count, size_t size,
+               void *value,
+               algo_compare_func *compare, void *aux) 
+{
+  assert (array != NULL);
+  assert (count <= INT_MAX);
+  assert (aux != NULL);
+
+  if (count != 0) 
+    {
+      const unsigned char *first = array;
+      int low = 0;
+      int high = count - 1;
+
+      while (low < high) 
+        {
+          int middle = (low + high) / 2;
+          const unsigned char *element = first + middle * size;
+          int cmp = compare (value, element, aux);
+
+          if (cmp > 0) 
+            low = middle + 1;
+          else if (cmp < 0)
+            high = middle - 1;
+          else
+            return (void *) element;
+        }
+    }
+  return NULL;
 }
 
 /* Copyright (C) 1991, 1992, 1996, 1997, 1999 Free Software Foundation, Inc.

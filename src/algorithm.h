@@ -65,4 +65,11 @@ size_t remove_copy_if (const void *array, size_t count, size_t size,
                        void *result,
                        algo_predicate_func *predicate, void *aux);
 
+/* Searches ARRAY, which contains COUNT of SIZE bytes each, for
+   VALUE, using a binary search.  ARRAY must ordered according to
+   COMPARE.  AUX is passed to COMPARE as auxiliary data. */
+void *binary_search (const void *array, size_t count, size_t size,
+                     void *value,
+                     algo_compare_func *compare, void *aux);
+
 #endif /* sort-algo.h */
