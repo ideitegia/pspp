@@ -57,12 +57,12 @@ void subc_list_double_push(subc_list_double *l, double d) ;
 void subc_list_int_push(subc_list_int *l, int i) ;
 
 /* Index into the list */
-double subc_list_double_at(subc_list_double *l, int idx);
-int subc_list_int_at(subc_list_int *l, int idx);
+double subc_list_double_at(const subc_list_double *l, int idx);
+int subc_list_int_at(const subc_list_int *l, int idx);
 
 /* Return the number of values in the list */
-int subc_list_double_count(subc_list_double *l);
-int subc_list_int_count(subc_list_int *l);
+int subc_list_double_count(const subc_list_double *l);
+int subc_list_int_count(const subc_list_int *l);
 
 /* Destroy the list */
 void subc_list_double_destroy(subc_list_double *l) ;

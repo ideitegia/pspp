@@ -28,6 +28,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "val.h"
 #include <gsl/gsl_histogram.h>
+#include "subclist.h"
+#include "percentiles.h"
 
 struct moments1;
 
@@ -58,18 +60,28 @@ struct metrics
 
   double trimmed_mean;
 
-  /* A hash of data for this factor.
-   */
+  /* A hash of data for this factor. */
   struct hsh_table *ordered_data;
 
   /* A Pointer to this hash table AFTER it has been SORTED and crunched */
   struct weighted_value **wvp;
 
-
   /* The number of values in the above array
      (if all the weights are 1, then this will
      be the same as n) */
   int n_data;
+
+  /* Percentile stuff */
+
+  /* A hash of struct percentiles */
+  struct hsh_table *ptile_hash;
+
+  /* Algorithm to be used for calculating percentiles */
+  enum pc_alg ptile_alg;
+
+  /* Tukey's Hinges */
+  double hinges[3];
+
 };
 
 

@@ -152,13 +152,13 @@ Case#  QUALITY        W    BRAND
 #               95% Confidence Interval for MeanLower Bound#  3.562  |          #
 #                                               Upper Bound#  3.521  |          #
 #               5% Trimmed Mean                            #   3.50  |          #
-#               Median                                     #         |          #
+#               Median                                     #   4.00  |          #
 #               Variance                                   #  2.520  |          #
 #               Std. Deviation                             #  1.587  |          #
 #               Minimum                                    #  1.000  |          #
 #               Maximum                                    #  7.000  |          #
 #               Range                                      #  6.000  |          #
-#               Interquartile Range                        #         |          #
+#               Interquartile Range                        #   2.75  |          #
 #               Skewness                                   #   .059  |   .472   #
 #               Kurtosis                                   #  -.358  |   .918   #
 #==========================================================#=========#==========#
@@ -213,13 +213,13 @@ Case#  QUALITY        W    BRAND
 #                           95% Confidence Interval for MeanLower Bound#  2.279  |          #
 #                                                           Upper Bound#  2.221  |          #
 #                           5% Trimmed Mean                            #   2.22  |          #
-#                           Median                                     #         |          #
+#                           Median                                     #   2.00  |          #
 #                           Variance                                   #  1.643  |          #
 #                           Std. Deviation                             #  1.282  |          #
 #                           Minimum                                    #  1.000  |          #
 #                           Maximum                                    #  4.000  |          #
 #                           Range                                      #  3.000  |          #
-#                           Interquartile Range                        #         |          #
+#                           Interquartile Range                        #   2.75  |          #
 #                           Skewness                                   #   .475  |   .752   #
 #                           Kurtosis                                   #  -1.546 |   1.481  #
 #               -------------------------------------------------------#---------+----------#
@@ -227,13 +227,13 @@ Case#  QUALITY        W    BRAND
 #                           95% Confidence Interval for MeanLower Bound#  3.525  |          #
 #                                                           Upper Bound#  3.475  |          #
 #                           5% Trimmed Mean                            #   3.50  |          #
-#                           Median                                     #         |          #
+#                           Median                                     #   4.00  |          #
 #                           Variance                                   #  1.143  |          #
 #                           Std. Deviation                             #  1.069  |          #
 #                           Minimum                                    #  2.000  |          #
 #                           Maximum                                    #  5.000  |          #
 #                           Range                                      #  3.000  |          #
-#                           Interquartile Range                        #         |          #
+#                           Interquartile Range                        #   1.75  |          #
 #                           Skewness                                   #  -.468  |   .752   #
 #                           Kurtosis                                   #  -.831  |   1.481  #
 #               -------------------------------------------------------#---------+----------#
@@ -241,13 +241,13 @@ Case#  QUALITY        W    BRAND
 #                           95% Confidence Interval for MeanLower Bound#  4.904  |          #
 #                                                           Upper Bound#  4.846  |          #
 #                           5% Trimmed Mean                            #   4.86  |          #
-#                           Median                                     #         |          #
+#                           Median                                     #   5.00  |          #
 #                           Variance                                   #  1.554  |          #
 #                           Std. Deviation                             #  1.246  |          #
 #                           Minimum                                    #  3.000  |          #
 #                           Maximum                                    #  7.000  |          #
 #                           Range                                      #  4.000  |          #
-#                           Interquartile Range                        #         |          #
+#                           Interquartile Range                        #   1.75  |          #
 #                           Skewness                                   #   .304  |   .752   #
 #                           Kurtosis                                   #   .146  |   1.481  #
 #======================================================================#=========#==========#

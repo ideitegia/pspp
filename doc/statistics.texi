@@ -230,6 +230,7 @@ EXAMINE
         /COMPARE=@{GROUPS,VARIABLES@}
         /ID=@{case_number, var_name@}
         /@{TOTAL,NOTOTAL@}
+        /PERCENTILE=[value_list]=@{HAVERAGE, WAVERAGE, ROUND, AEMPIRICAL, EMPIRICAL @}
         /MISSING=@{LISTWISE, PAIRWISE@} [@{EXCLUDE, INCLUDE@}] 
 		[@{NOREPORT,REPORT@}]
 
@@ -260,6 +261,11 @@ The PLOT subcommand specifies which plots are to be produced if any.
 
 The CINTERVAL subcommand specifies the confidence interval to use in
 calculation of the descriptives command.  The default it 95%.
+
+The PERCENTILES subcommand specifies which percentiles are to be calculated, 
+and which algorithm to use for calculating them.  The default is to
+calculate the 5, 10, 25, 50, 75, 90, 95 percentiles using the
+HAVERAGE algorithm.
 
 The TOTAL and NOTOTAL subcommands are mutually exclusive.  If NOTOTAL
 is given and factors have been specified in the VARIABLES subcommand,

@@ -42,6 +42,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "casefile.h"
 #include "factor_stats.h"
 #include "moments.h"
+#include "percentiles.h"
 
 /* (headers) */
 #include "chart.h"
@@ -55,6 +56,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    rep:report/!noreport,
    incl:include/!exclude;
    +compare=cmp:variables/!groups;
+   +percentiles=custom;
    +plot[plt_]=stemleaf,boxplot,npplot,:spreadlevel(*d:n),histogram,all,none;
    +cinterval=double;
    +statistics[st_]=descriptives,:extreme(*d:n),all,none.
@@ -112,6 +114,11 @@ static void show_descriptives(struct variable **dependent_var,
 			      int n_dep_var, 
 			      struct factor *factor);
 
+static void show_percentiles(struct variable **dependent_var, 
+			      int n_dep_var, 
+			      struct factor *factor);
+
+
 
 void np_plot(const struct metrics *m, const char *factorname);
 
@@ -131,9 +138,21 @@ void factor_calc(struct ccase *c, int case_no,
 static is_missing_func value_is_missing;
 
 
+/* PERCENTILES */
+
+static subc_list_double percentile_list;
+
+static enum pc_alg percentile_algorithm;
+
+static short sbc_percentile;
+
+
 int
 cmd_examine(void)
 {
+
+  subc_list_double_create(&percentile_list);
+  percentile_algorithm = PC_HAVERAGE;
 
   if ( !parse_examine(&cmd) )
     return CMD_FAILURE;
@@ -150,10 +169,22 @@ cmd_examine(void)
   if ( ! cmd.sbc_cinterval) 
     cmd.n_cinterval[0] = 95.0;
 
+
+  /* If descriptives have been requested, make sure the 
+     quartiles are calculated */
+  if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES] )
+    {
+      subc_list_double_push(&percentile_list, 25);
+      subc_list_double_push(&percentile_list, 50);
+      subc_list_double_push(&percentile_list, 75);
+    }
+
   multipass_procedure_with_splits (run_examine, &cmd);
 
   if ( totals ) 
     free(totals);
+
+  subc_list_double_destroy(&percentile_list);
 
   return CMD_SUCCESS;
 };
@@ -180,6 +211,8 @@ output_examine(void)
 	    show_descriptives(dependent_vars, n_dependent_vars, 0);
 
 	}
+      if ( sbc_percentile ) 
+	show_percentiles(dependent_vars, n_dependent_vars, 0);
 
       if ( cmd.sbc_plot) 
 	{
@@ -208,7 +241,6 @@ output_examine(void)
 
 	}
 
-
     }
 
 
@@ -226,6 +258,10 @@ output_examine(void)
 	  if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES]) 
 	    show_descriptives(dependent_vars, n_dependent_vars, fctr);
 	}
+
+      if ( sbc_percentile ) 
+	show_percentiles(dependent_vars, n_dependent_vars, fctr);
+
 
       if ( cmd.sbc_plot) 
 	{
@@ -290,6 +326,88 @@ output_examine(void)
 }
 
 
+static struct hsh_table *
+list_to_ptile_hash(const subc_list_double *l)
+{
+  int i;
+  
+  struct hsh_table *h ; 
+
+  h = hsh_create(subc_list_double_count(l), 
+		 (hsh_compare_func *) ptile_compare,
+		 (hsh_hash_func *) ptile_hash, 
+		 (hsh_free_func *) free,
+		 0);
+
+
+  for ( i = 0 ; i < subc_list_double_count(l) ; ++i )
+    {
+      struct percentile *p = xmalloc (sizeof (struct percentile));
+      
+      p->p = subc_list_double_at(l,i);
+
+      hsh_insert(h, p);
+
+    }
+
+  return h;
+
+}
+
+/* Parse the PERCENTILES subcommand */
+static int
+xmn_custom_percentiles(struct cmd_examine *p UNUSED)
+{
+  sbc_percentile = 1;
+
+  lex_match('=');
+
+  lex_match('(');
+
+  while ( lex_double_p() ) 
+    {
+      subc_list_double_push(&percentile_list,lex_double());
+
+      lex_get();
+
+      lex_match(',') ;
+    }
+  lex_match(')');
+
+  lex_match('=');
+
+  if ( lex_match_id("HAVERAGE"))
+    percentile_algorithm = PC_HAVERAGE; 
+
+  else if ( lex_match_id("WAVERAGE"))
+    percentile_algorithm = PC_WAVERAGE; 
+
+  else if ( lex_match_id("ROUND"))
+    percentile_algorithm = PC_ROUND;
+
+  else if ( lex_match_id("EMPIRICAL"))
+    percentile_algorithm = PC_EMPIRICAL;
+
+  else if ( lex_match_id("AEMPIRICAL"))
+    percentile_algorithm = PC_AEMPIRICAL; 
+
+  else if ( lex_match_id("NONE"))
+    percentile_algorithm = PC_NONE; 
+
+
+  if ( 0 == subc_list_double_count(&percentile_list))
+    {
+      subc_list_double_push(&percentile_list, 5);
+      subc_list_double_push(&percentile_list, 10);
+      subc_list_double_push(&percentile_list, 25);
+      subc_list_double_push(&percentile_list, 50);
+      subc_list_double_push(&percentile_list, 75);
+      subc_list_double_push(&percentile_list, 90);
+      subc_list_double_push(&percentile_list, 95);
+    }
+
+  return 1;
+}
 
 /* TOTAL and NOTOTAL are simple, mutually exclusive flags */
 static int
@@ -398,6 +516,9 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
 
 
 
+
+void populate_percentiles(struct tab_table *tbl, int col, int row, 
+			  const struct metrics *m);
 
 void populate_descriptives(struct tab_table *t, int col, int row, 
 			   const struct metrics *fs);
@@ -552,11 +673,17 @@ run_examine(const struct casefile *cf, void *cmd_ )
 		fs != 0 ;
 		fs = hsh_next(fctr->fstats, &hi))
 	    {
+	      
+	      fs->m[v].ptile_hash = list_to_ptile_hash(&percentile_list);
+	      fs->m[v].ptile_alg = percentile_algorithm;
 	      metrics_postcalc(&fs->m[v]);
 	    }
 
 	  fctr = fctr->next;
 	}
+
+      totals[v].ptile_hash = list_to_ptile_hash(&percentile_list);
+      totals[v].ptile_alg = percentile_algorithm;
       metrics_postcalc(&totals[v]);
     }
 
@@ -1252,6 +1379,11 @@ show_descriptives(struct variable **dependent_var,
 
 
 
+
+
+
+
+
 /* Fill in the descriptives data */
 void
 populate_descriptives(struct tab_table *tbl, int col, int row, 
@@ -1325,6 +1457,21 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Median"));
 
+  {
+    struct percentile *p;
+    double d = 50;
+    
+    p = hsh_find(m->ptile_hash, &d);
+    
+    assert(p);
+
+    tab_float (tbl, col + 2, 
+	       row + 4,
+	       TAB_CENTER,
+	       p->v,
+	       8, 2);
+  }
+
   tab_text (tbl, col, 
 	    row + 5,
 	    TAB_LEFT | TAT_TITLE,
@@ -1389,6 +1536,28 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 	    row + 10,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Interquartile Range"));
+
+  {
+    struct percentile *p1;
+    struct percentile *p2;
+
+    double d = 75;
+    p1 = hsh_find(m->ptile_hash, &d);
+
+    d = 25;
+    p2 = hsh_find(m->ptile_hash, &d);
+
+    assert(p1);
+    assert(p2);
+
+    tab_float (tbl, col + 2, 
+	       row + 10,
+	       TAB_CENTER,
+	       p1->v - p2->v,
+	       8, 2);
+  }
+
+
 
   tab_text (tbl, col, 
 	    row + 11,
@@ -1518,3 +1687,259 @@ np_plot(const struct metrics *m, const char *factorname)
   chart_finalise(&dnp_chart);
 
 }
+
+
+
+
+/* Show the percentiles */
+void
+show_percentiles(struct variable **dependent_var, 
+		  int n_dep_var, 
+		  struct factor *fctr)
+{
+  struct tab_table *tbl;
+  int i;
+  
+  int n_cols, n_rows;
+  int n_factors;
+
+  struct hsh_table *ptiles ;
+
+  int n_heading_columns;
+  const int n_heading_rows = 2;
+  const int n_stat_rows = 2;
+
+  int n_ptiles ;
+
+  if ( fctr )
+    {
+      struct factor_statistics **fs = fctr->fs ; 
+      n_heading_columns = 3;
+      n_factors = hsh_count(fctr->fstats);
+
+      ptiles = (*fs)->m[0].ptile_hash;
+
+      if ( fctr->indep_var[1] )
+	  n_heading_columns = 4;
+    }
+  else
+    {
+      n_factors = 1;
+      n_heading_columns = 2;
+
+      ptiles = totals[0].ptile_hash;
+    }
+
+  n_ptiles = hsh_count(ptiles);
+
+  n_rows = n_heading_rows + n_dep_var * n_stat_rows * n_factors;
+
+  n_cols = n_heading_columns + n_ptiles ; 
+
+  tbl = tab_create (n_cols, n_rows, 0);
+
+  tab_headers (tbl, n_heading_columns + 1, 0, n_heading_rows, 0);
+
+  tab_dim (tbl, tab_natural_dimensions);
+
+  /* Outline the box and have no internal lines*/
+  tab_box (tbl, 
+	   TAL_2, TAL_2,
+	   -1, -1,
+	   0, 0,
+	   n_cols - 1, n_rows - 1);
+
+  tab_hline (tbl, TAL_2, 0, n_cols - 1, n_heading_rows );
+
+  tab_vline (tbl, TAL_2, n_heading_columns, 0, n_rows - 1);
+
+
+  tab_title (tbl, 0, _("Percentiles"));
+
+
+  tab_hline (tbl, TAL_1, n_heading_columns, n_cols - 1, 1 );
+
+
+  tab_box (tbl, 
+	   -1, -1,
+	   -1, TAL_1,
+	   0, n_heading_rows,
+	   n_heading_columns - 1, n_rows - 1);
+
+
+  tab_box (tbl, 
+	   -1, -1,
+	   -1, TAL_1,
+	   n_heading_columns, n_heading_rows - 1,
+	   n_cols - 1, n_rows - 1);
+
+  tab_joint_text(tbl, n_heading_columns + 1, 0,
+		 n_cols - 1 , 0,
+		 TAB_CENTER | TAT_TITLE ,
+		 _("Percentiles"));
+
+
+  {
+    /* Put in the percentile break points as headings */
+
+    struct percentile **p = (struct percentile **) hsh_sort(ptiles);
+
+    i = 0;
+    while ( (*p)  ) 
+      {
+	tab_float(tbl, n_heading_columns + i++ , 1, 
+		  TAB_CENTER,
+		  (*p)->p, 8, 0);
+	
+	p++;
+      }
+
+  }
+
+  for ( i = 0 ; i < n_dep_var ; ++i ) 
+    {
+      const int n_stat_rows = 2;
+      const int row = n_heading_rows + i * n_stat_rows * n_factors ;
+
+      if ( i > 0 )
+	tab_hline(tbl, TAL_1, 0, n_cols - 1, row );
+
+      tab_text (tbl, 0,
+		i * n_stat_rows * n_factors  + n_heading_rows,
+		TAB_LEFT | TAT_TITLE, 
+		var_to_string(dependent_var[i])
+		);
+
+      if ( fctr  )
+	{
+	  struct factor_statistics **fs = fctr->fs;
+	  int count = 0;
+
+	  tab_text (tbl, 1, n_heading_rows - 1, 
+		    TAB_CENTER | TAT_TITLE, 
+		    var_to_string(fctr->indep_var[0]));
+
+
+	  if ( fctr->indep_var[1])
+	    tab_text (tbl, 2, n_heading_rows - 1, TAB_CENTER | TAT_TITLE, 
+		      var_to_string(fctr->indep_var[1]));
+
+	  while( *fs ) 
+	    {
+
+	      static union value prev ;
+
+	      const int row = n_heading_rows + n_stat_rows  * 
+		( ( i  * n_factors  ) +  count );
+
+
+	      if ( 0 != compare_values(&prev, &(*fs)->id[0], 
+				       fctr->indep_var[0]->width))
+		{
+		  
+		  if ( count > 0 ) 
+		    tab_hline (tbl, TAL_1, 1, n_cols - 1, row);
+
+		  tab_text (tbl, 
+			    1, row,
+			    TAB_LEFT | TAT_TITLE, 
+			    value_to_string(&(*fs)->id[0], fctr->indep_var[0])
+			    );
+
+
+		}
+
+	      prev = (*fs)->id[0];
+
+	      if (fctr->indep_var[1] && count > 0 ) 
+		tab_hline(tbl, TAL_1, 2, n_cols - 1, row);
+
+	      if ( fctr->indep_var[1]) 
+		tab_text (tbl, 2, row,
+			  TAB_LEFT | TAT_TITLE, 
+			  value_to_string(&(*fs)->id[1], fctr->indep_var[1])
+			  );
+
+
+	      populate_percentiles(tbl, n_heading_columns - 1, 
+				row, &(*fs)->m[i]);
+
+
+	      count++ ; 
+	      fs++;
+	    }
+
+
+	}
+      else 
+	{
+	  populate_percentiles(tbl, n_heading_columns - 1, 
+				i * n_stat_rows * n_factors  + n_heading_rows,
+				&totals[i]);
+	}
+
+
+    }
+
+
+  tab_submit(tbl);
+
+
+}
+
+
+
+
+void
+populate_percentiles(struct tab_table *tbl, int col, int row, 
+		     const struct metrics *m)
+{
+  int i;
+
+  struct percentile **p = (struct percentile **) hsh_sort(m->ptile_hash);
+  
+  tab_text (tbl, 
+	    col, row + 1,
+	    TAB_LEFT | TAT_TITLE, 
+	    _("Tukey\'s Hinges")
+	    );
+
+  tab_text (tbl, 
+	    col, row, 
+	    TAB_LEFT | TAT_TITLE, 
+	    ptile_alg_desc[m->ptile_alg]
+	    );
+
+
+  i = 0;
+  while ( (*p)  ) 
+    {
+      tab_float(tbl, col + i + 1 , row, 
+		TAB_CENTER,
+		(*p)->v, 8, 2);
+      if ( (*p)->p == 25 ) 
+	tab_float(tbl, col + i + 1 , row + 1, 
+		  TAB_CENTER,
+		  m->hinges[0], 8, 2);
+
+      if ( (*p)->p == 50 ) 
+	tab_float(tbl, col + i + 1 , row + 1, 
+		  TAB_CENTER,
+		  m->hinges[1], 8, 2);
+
+      if ( (*p)->p == 75 ) 
+	tab_float(tbl, col + i + 1 , row + 1, 
+		  TAB_CENTER,
+		  m->hinges[2], 8, 2);
+
+
+      i++;
+
+      p++;
+    }
+
+
+
+
+}
+

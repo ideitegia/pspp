@@ -1,3 +1,9 @@
+Wed Dec 29 08:18:08 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* percentiles.[ch] Added. Calculates percentiles and Tukey hinges
+
+	* examine.q factor_stats.[ch]  Added calculation of percentiles
+
 Fri Dec 24 15:09:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q Fixed bug #11227 Made t-test work when the independent

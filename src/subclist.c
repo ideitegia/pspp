@@ -53,7 +53,7 @@ subc_list_double_push(subc_list_double *l, double d)
 
 /* Return the number of items in the list */
 int 
-subc_list_double_count(subc_list_double *l)
+subc_list_double_count(const subc_list_double *l)
 {
   return l->n_data;
 }
@@ -61,7 +61,7 @@ subc_list_double_count(subc_list_double *l)
 
 /* Index into the list (array) */
 double
-subc_list_double_at(subc_list_double *l, int idx)
+subc_list_double_at(const subc_list_double *l, int idx)
 {
   return l->data[idx];
 }

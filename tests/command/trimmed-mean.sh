@@ -100,13 +100,13 @@ diff $TEMPDIR/pspp.list - << EOF
 # 95% Confidence Interval for MeanLower Bound#  2.021  |          #
 #                                 Upper Bound#  2.017  |          #
 # 5% Trimmed Mean                            #   2.00  |          #
-# Median                                     #         |          #
+# Median                                     #   2.00  |          #
 # Variance                                   #   .058  |          #
 # Std. Deviation                             #   .242  |          #
 # Minimum                                    #  1.000  |          #
 # Maximum                                    #  3.000  |          #
 # Range                                      #  2.000  |          #
-# Interquartile Range                        #         |          #
+# Interquartile Range                        #   .00   |          #
 # Skewness                                   #  1.194  |   .330   #
 # Kurtosis                                   #  15.732 |   .650   #
 #============================================#=========#==========#

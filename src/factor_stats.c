@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "algorithm.h"
 #include "alloc.h"
 #include "moments.h"
+#include "percentiles.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -51,9 +52,6 @@ metrics_precalc(struct metrics *m)
 				(hsh_hash_func *) hash_value,
 				(hsh_free_func *) weighted_value_free,
 				(void *) 0);
-
-
-
 }
 
 
@@ -152,7 +150,6 @@ metrics_postcalc(struct metrics *m)
       gsl_histogram_accumulate(m->histogram, wv[i]->v.f, wv[i]->w);
     }
 
-
   /* Trimmed mean calculation */
   if ( m->n_data <= 1 ) 
     {
@@ -175,8 +172,9 @@ metrics_postcalc(struct metrics *m)
       
       if ( cc < tc ) 
 	k1 = i;
-
     }
+
+  
 
   k2 = m->n_data;
   for ( i = m->n_data -1  ; i >= 0; --i ) 
@@ -184,6 +182,12 @@ metrics_postcalc(struct metrics *m)
       if ( tc > m->n - m->wvp[i]->cc) 
 	k2 = i;
     }
+
+
+  /* Calculate the percentiles */
+  ptiles(m->ptile_hash, m->wvp, m->n_data, m->n, m->ptile_alg);
+
+  tukey_hinges(m->wvp, m->n_data, m->n, m->hinges);
 
   /* Special case here */
   if ( k1 + 1 == k2 ) 

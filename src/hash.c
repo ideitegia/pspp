@@ -142,7 +142,9 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
   struct hsh_table *h;
   int i;
 
-  assert (size > 0);
+  if ( size ==  0 ) 
+    return NULL;
+
   assert (compare != NULL);
   assert (hash != NULL);
   
