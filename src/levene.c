@@ -232,8 +232,8 @@ levene_postcalc (void *_l)
 
   for (v = 0; v < l->n_dep; ++v) 
     {
+      /* This is Z_LL */
       lz[v].grand_mean = lz[v].grand_total / lz[v].total_n ;
-
     }
 
 }
@@ -344,17 +344,15 @@ levene2_postcalc (void *_l)
 	  g != 0 ;
 	  g = (struct group_statistics *) hsh_next(hash,&hi) )
 	{
-
 	  lz_numerator += g->n * pow2(g->lz_mean - lz[v].grand_mean );
-      
-
 	}
       lz_numerator *= ( l->v_dep[v]->p.grp_data.ugs.n - 
 			l->v_dep[v]->p.grp_data.n_groups );
 
-      lz_denominator[v] /= (l->v_dep[v]->p.grp_data.n_groups - 1);
+      lz_denominator[v] *= (l->v_dep[v]->p.grp_data.n_groups - 1);
       
       l->v_dep[v]->p.grp_data.levene = lz_numerator/lz_denominator[v] ;
+
     }
 
   /* Now clear up after ourselves */

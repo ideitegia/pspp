@@ -18,19 +18,11 @@
    02111-1307, USA. */
 
 
-
 #ifndef GROUP_H
 #define GROUP_H
 
 
 #include "val.h"
-
-
-enum comparison
-  {
-    CMP_LE = -2,
-    CMP_EQ = 0,
-  };
 
 
 /* Statistics for grouped data */

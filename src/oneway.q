@@ -95,6 +95,10 @@ static void show_contrast_coeffs(void);
 static void show_contrast_tests(void);
 
 
+enum stat_table_t {STAT_DESC, STAT_HOMO};
+
+static enum stat_table_t stat_tables ;
+
 
 int
 cmd_oneway(void)
@@ -109,6 +113,25 @@ cmd_oneway(void)
     value_is_missing = is_system_missing;
   else
     value_is_missing = is_missing;
+
+  /* What statistics were requested */
+  if ( cmd.sbc_statistics ) 
+    {
+
+      for (i = 0 ; i < ONEWAY_ST_count ; ++i ) 
+	{
+	  if  ( ! cmd.a_statistics[i]  ) continue;
+
+	  switch (i) {
+	  case ONEWAY_ST_DESCRIPTIVES:
+	    stat_tables |= STAT_DESC;
+	    break;
+	  case ONEWAY_ST_HOMOGENEITY:
+	    stat_tables |= STAT_HOMO;
+	    break;
+	  }
+	}
+    }
 
   multipass_procedure_with_splits (calculate, &cmd);
 
@@ -133,26 +156,11 @@ cmd_oneway(void)
 	msg(SW,_("Coefficients for contrast %d do not total zero"),i + 1);
     }
 
+  if ( stat_tables & STAT_DESC ) 
+    show_descriptives();
 
-
-  /* Show the statistics tables */
-  if ( cmd.sbc_statistics ) 
-    {
-    for (i = 0 ; i < ONEWAY_ST_count ; ++i ) 
-      {
-	if  ( ! cmd.a_statistics[i]  ) continue;
-
-	switch (i) {
-	case ONEWAY_ST_DESCRIPTIVES:
-	  show_descriptives();
-	  break;
-	case ONEWAY_ST_HOMOGENEITY:
-	  show_homogeneity();
-	  break;
-	}
-      }
-  }
-
+  if ( stat_tables & STAT_HOMO )
+    show_homogeneity();
 
   show_anova_table();
      
@@ -526,19 +534,23 @@ show_homogeneity(void)
 
   for ( v=0 ; v < n_vars ; ++v ) 
     {
-      char *s = (vars[v]->label) ? vars[v]->label : vars[v]->name;
-      struct group_statistics *totals = &vars[v]->p.grp_data.ugs;
+      double F;
+      const struct variable *var = vars[v];
+      const char *s = (var->label) ? var->label : var->name;
+      const struct group_statistics *totals = &var->p.grp_data.ugs;
 
-      const double df1 = vars[v]->p.grp_data.n_groups - 1;
-      const double df2 = totals->n - vars[v]->p.grp_data.n_groups ;
-
+      const double df1 = var->p.grp_data.n_groups - 1;
+      const double df2 = totals->n - var->p.grp_data.n_groups ;
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
-
-
+      F = var->p.grp_data.levene;
+      tab_float (t, 1, v + 1, TAB_RIGHT, F, 8,3);
       tab_float (t, 2, v + 1, TAB_RIGHT, df1 ,8,0);
       tab_float (t, 3, v + 1, TAB_RIGHT, df2 ,8,0);
+
+      /* Now the significance */
+      tab_float (t, 4, v + 1, TAB_RIGHT,gsl_cdf_fdist_Q(F,df1,df2), 8, 3);
     }
 
   tab_submit (t);
@@ -884,7 +896,6 @@ calculate(const struct casefile *cf, void *cmd_)
   struct casereader *r;
   struct ccase c;
 
-
   struct cmd_oneway *cmd = (struct cmd_oneway *) cmd_;
 
   global_group_hash = hsh_create(4, 
@@ -893,8 +904,9 @@ calculate(const struct casefile *cf, void *cmd_)
 				 0,
 				 (void *) indep_var->width );
 
-  precalc(cmd);
 
+
+  precalc(cmd);
 
 
   for(r = casefile_get_reader (cf);
@@ -972,9 +984,9 @@ calculate(const struct casefile *cf, void *cmd_)
 
   postcalc(cmd);
 
-  /* 
-  levene(cf, indep_var, n_vars, vars, LEV_LISTWISE, value_is_missing);
-  */
+  
+  if ( stat_tables & STAT_HOMO ) 
+    levene(cf, indep_var, n_vars, vars, LEV_LISTWISE, value_is_missing);
 
   ostensible_number_of_groups = hsh_count (global_group_hash);
 

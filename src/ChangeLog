@@ -1,3 +1,11 @@
+Sat Oct 30 09:16:29 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* levene.c oneway.q Fixed a buglet with the levene statistic and
+	incorporated the levene test into the oneway command.
+
+        * group.h  t-test.q  Moved the CMP_EQ and CMP_LE symbols out of 
+	global scope, since they're only relevant to T-TEST
+
 Fri Oct 29 17:39:03 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
         * group.c group.h group_proc.h levene.c oneway.q t-test.q

@@ -66,9 +66,11 @@ static is_missing_func value_is_missing;
 /* Variable for the GROUPS subcommand, if given. */
 static struct variable *indep_var;
 
-/* GROUPS: Number of values specified by the user; the values
-   specified if any. */
-
+enum comparison
+  {
+    CMP_LE = -2,
+    CMP_EQ = 0,
+  };
 
 struct group_properties
 {
