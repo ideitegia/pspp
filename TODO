@@ -1,4 +1,4 @@
-Time-stamp: <2004-04-19 22:54:32 blp>
+Time-stamp: <2004-04-24 22:23:04 blp>
 
 What Ben's working on now.
 --------------------------
@@ -366,7 +366,7 @@ For each case we read from the input program:
 3. Write case to replacement active file.
 4. Execute temporary transformations.  If these drop the case, stop.
 5. Post-TEMPORARY N OF CASES.  If we have already analyzed N cases, stop.
-6. FILTER, PROCESS IF.  If these drop the case, go to 5.
+6. FILTER, PROCESS IF.  If these drop the case, stop.
 7. Pass case to procedure.
 
 Ugly cases:
