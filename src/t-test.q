@@ -39,6 +39,7 @@
 #include "pool.h"
 #include "hash.h"
 #include "stats.h"
+#include "t-test.h"
 
 /* (specification)
    "T-TEST" (tts_):
@@ -56,6 +57,7 @@
 
 static struct cmd_t_test cmd;
 
+int value_compare(const union value *a, const union value *b, int width);
 
 
 static struct pool *t_test_pool ;
@@ -67,6 +69,13 @@ static struct variable *groups;
    specified if any. */
 static int n_groups_values;
 static union value groups_values[2];
+
+/* Array of statistics for each group */
+typedef struct t_test_proc group_stats_t[2];
+static  group_stats_t *groups_stats;
+
+
+
 
 /* PAIRS: Number of pairs to be compared ; each pair. */
 static int n_pairs = 0 ;
@@ -122,7 +131,7 @@ void ssbox_finalize(struct ssbox *ssb);
 
 /* A function to create, populate and submit the Paired Samples Correlation 
    box */
-void pscbox(struct cmd_t_test *cmd);
+void pscbox(void);
 
 
 /* Structures and Functions for the Test Results Box */
@@ -167,8 +176,14 @@ static int  paired_calc (struct ccase *);
 static void paired_precalc (void);
 static void paired_postcalc (void);
 
+static void group_precalc (void);
+static int  group_calc (struct ccase *);
+static void group_postcalc (void);
+
+
 static int compare_var_name (const void *a_, const void *b_, void *v_ UNUSED);
 static unsigned hash_var_name (const void *a_, void *v_ UNUSED);
+
 
 
 int
@@ -264,6 +279,10 @@ cmd_t_test(void)
     case T_PAIRED:
       procedure(paired_precalc,paired_calc,paired_postcalc);
       break;
+    case T_IND_SAMPLES:
+      procedure(group_precalc,group_calc,group_postcalc);
+      break;
+
     }
   
 
@@ -275,7 +294,7 @@ cmd_t_test(void)
 
   if ( mode == T_PAIRED) 
     {
-      pscbox(&cmd);
+      pscbox();
     }
 
   trbox_create(&test_results_box,&cmd,mode);
@@ -656,6 +675,8 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
   for (i=0; i < cmd->n_variables; ++i)
     {
+      int g;
+
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT, cmd->v_variables[i]->name);
 
       if (val_lab1)
@@ -663,10 +684,23 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
       else
 	tab_float(ssb->t, 1 ,i*2+1, TAB_LEFT, groups_values[0].f, 2,0);
 
+
       if (val_lab2)
 	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT, val_lab2);
       else
 	tab_float(ssb->t, 1 ,i*2+1+1, TAB_LEFT, groups_values[1].f,2,0);
+
+      /* Fill in the group statistics */
+      for ( g=0; g < 2 ; ++g ) 
+	{
+	  struct t_test_proc *ttp = &groups_stats[i][g];
+
+	  tab_float(ssb->t, 2 ,i*2+g+1, TAB_RIGHT, ttp->n, 2, 0);
+	  tab_float(ssb->t, 3 ,i*2+g+1, TAB_RIGHT, ttp->mean, 8, 2);
+	  tab_float(ssb->t, 4 ,i*2+g+1, TAB_RIGHT, ttp->std_dev, 8, 3);
+	  tab_float(ssb->t, 5 ,i*2+g+1, TAB_RIGHT, ttp->se_mean, 8, 3);
+	}
+
     }
 }
 
@@ -835,7 +869,7 @@ trbox_independent_samples_init(struct trbox *self,
   tab_hline(self->t,TAL_1, hsize-2,hsize-1,2);
   tab_box(self->t,-1,-1,-1,TAL_1, hsize-2,2,hsize-1,vsize-1);
   tab_joint_text(self->t, 2, 0, 3, 0, 
-		 TAB_CENTER,_("Levine's Test for Equality of Variances"));
+		 TAB_CENTER,_("Levene's Test for Equality of Variances"));
   tab_joint_text(self->t, 4,0,hsize-1,0,
 		 TAB_CENTER,_("t-test for Equality of Means"));
 
@@ -865,12 +899,137 @@ trbox_independent_samples_populate(struct trbox *self,
   assert(self);
   for (i=0; i < cmd->n_variables; ++i)
     {
+      int which =1;
+      double p,q;
+      int status;
+      double bound;
+
+      double t;
+      double df;
+
+      double pooled_variance;
+      double std_err_diff;
+      double mean_diff;
+
+      struct t_test_proc *ttp0;
+      struct t_test_proc *ttp1;
+      ttp0=&groups_stats[i][0];
+      ttp1=&groups_stats[i][1];
+
+	  
       tab_text (self->t, 0, i*2+3, TAB_LEFT, cmd->v_variables[i]->name);
 
       tab_text (self->t, 1, i*2+3, TAB_LEFT, _("Equal variances assumed"));
 
+      df = ttp0->n + ttp1->n - 2.0 ;
+      tab_float (self->t, 5, i*2+3, TAB_RIGHT, df, 2, 0);
+
+      pooled_variance = ( (ttp0->n )*sqr(ttp0->s_std_dev)
+			  + 
+			  (ttp1->n )*sqr(ttp1->s_std_dev) 
+			) / df  ;
+
+      t = (ttp0->mean - ttp1->mean) / sqrt(pooled_variance) ;
+      t /= sqrt((ttp0->n + ttp1->n)/(ttp0->n*ttp1->n)); 
+
+      tab_float (self->t, 4, i*2+3, TAB_RIGHT, t, 8, 3);
+
+
+      which=1; /* get p & q from t & df */
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+      tab_float(self->t, 6, i*2+3, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
+
+      mean_diff = ttp0->mean - ttp1->mean;
+      tab_float(self->t, 7, i*2+3, TAB_RIGHT, mean_diff, 8, 3);
+
+
+      std_err_diff = sqrt( sqr(ttp0->se_mean) + sqr(ttp1->se_mean));
+      tab_float(self->t, 8, i*2+3, TAB_RIGHT, std_err_diff, 8, 3);
+
+
+      /* Now work out the confidence interval */
+      q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
+      p = 1 - q ;
+      which=2; /* Calc T from p,q and df */
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+      tab_float(self->t, 9, i*2+3, TAB_RIGHT, 
+		mean_diff - t * std_err_diff, 8, 3); 
+
+      tab_float(self->t, 10, i*2+3, TAB_RIGHT, 
+		mean_diff + t * std_err_diff, 8, 3); 
+
+
+      {
+	double se2;
+      /* Now for the \sigma_1 != \sigma_2 case */
       tab_text (self->t, 1, i*2+3+1, 
 		TAB_LEFT, _("Equal variances not assumed"));
+
+
+      se2 = (sqr(ttp0->s_std_dev)/(ttp0->n -1) ) +
+	(sqr(ttp1->s_std_dev)/(ttp1->n -1) );
+
+      t = mean_diff / sqrt(se2) ;
+      tab_float (self->t, 4, i*2+3+1, TAB_RIGHT, t, 8, 3);
+		
+      df = sqr(se2) / ( 
+		       (sqr(sqr(ttp0->s_std_dev)/(ttp0->n - 1 )) 
+			/(ttp0->n -1 )
+			)
+		       + 
+		       (sqr(sqr(ttp1->s_std_dev)/(ttp1->n - 1 ))
+			/(ttp1->n -1 )
+			)
+		       ) ;
+      tab_float (self->t, 5, i*2+3+1, TAB_RIGHT, df, 8, 3);
+
+      which=1; /* get p & q from t & df */
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+      tab_float(self->t, 6, i*2+3+1, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
+
+      /* Now work out the confidence interval */
+      q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
+      p = 1 - q ;
+      which=2; /* Calc T from p,q and df */
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+
+      tab_float(self->t, 7, i*2+3+1, TAB_RIGHT, mean_diff, 8, 3);
+
+
+      tab_float(self->t, 8, i*2+3+1, TAB_RIGHT, std_err_diff, 8, 3);
+
+
+      tab_float(self->t, 9, i*2+3+1, TAB_RIGHT, 
+		mean_diff - t * std_err_diff, 8, 3); 
+
+      tab_float(self->t, 10, i*2+3+1, TAB_RIGHT, 
+		mean_diff + t * std_err_diff, 8, 3); 
+
+
+
+
+      }
+
     }
 }
 
@@ -985,7 +1144,7 @@ trbox_paired_populate(struct trbox *trb,
 	}
 
 
-      tab_float(trb->t, 9, i+3, TAB_RIGHT, p*2.0 , 8, 3);
+      tab_float(trb->t, 9, i+3, TAB_RIGHT, 2.0*(t>0?q:p) , 8, 3);
 
 
     }
@@ -1067,8 +1226,9 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 	}
 
 
-      /* Multiply by 2 to get 2-tailed significance */
-      tab_float (trb->t, 3, i+3, TAB_RIGHT, q*2.0, 8,3);
+      /* Multiply by 2 to get 2-tailed significance, makeing sure we've got 
+	 the correct tail*/
+      tab_float (trb->t, 3, i+3, TAB_RIGHT, 2.0*(t>0?q:p), 8,3);
 
       tab_float (trb->t, 4, i+3, TAB_RIGHT, ttp->mean_diff, 8,3);
 
@@ -1115,7 +1275,7 @@ trbox_base_finalize(struct trbox *trb)
 
 /* Create , populate and submit the Paired Samples Correlation box */
 void
-pscbox(struct cmd_t_test *cmd)
+pscbox(void)
 {
   const int rows=1+n_pairs;
   const int cols=5;
@@ -1137,7 +1297,6 @@ pscbox(struct cmd_t_test *cmd)
   tab_text(table, 2,0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text(table, 3,0, TAB_CENTER | TAT_TITLE, _("Correlation"));
   tab_text(table, 4,0, TAB_CENTER | TAT_TITLE, _("Sig."));
-
 
   for (i=0; i < n_pairs; ++i)
     {
@@ -1175,10 +1334,7 @@ pscbox(struct cmd_t_test *cmd)
 	}
 
 
-      tab_float(table, 4, i+1, TAB_RIGHT, q*2.0, 8, 3);
-
-
-
+      tab_float(table, 4, i+1, TAB_RIGHT, 2.0*(correlation_t>0?q:p), 8, 3);
       
     }
 
@@ -1396,5 +1552,105 @@ paired_postcalc (void)
 				    sqr(pairs[i].mean_diff )
 				    ) );
 
+    }
+}
+
+
+/* Compare two (union value)s */
+int
+value_compare(const union value *a, const union value *b, int width)
+{
+  if (width == 0)
+    return (a->f < b->f) ? -1 : ( a->f > b->f ) ;
+  else
+    return memcmp (a->s, b->s, width);
+}
+
+
+static int
+get_group(const union value *val, struct variable *var)
+{
+  if ( 0 == value_compare(val,&groups_values[0],var->width) )
+    return 0;
+  else if (0 == value_compare(val,&groups_values[1],var->width) )
+    return 1;
+
+  /* Never reached */
+  assert(0);
+  return -1;
+}
+
+
+static void 
+group_precalc (void)
+{
+  int i;
+  int j;
+
+  groups_stats = xmalloc(sizeof(group_stats_t) * cmd.n_variables);
+
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      for (j=0 ; j < 2 ; ++j)
+	{
+	  groups_stats[i][j].sum=0;
+	  groups_stats[i][j].n=0;
+	  groups_stats[i][j].ssq=0;
+	}
+    }
+
+}
+
+static int  
+group_calc (struct ccase *c)
+{
+  int i;
+  union value *gv = &c->data[groups->fv];
+
+  double weight = dict_get_case_weight(default_dict,c);
+
+  gv = &c->data[groups->fv];
+
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      int g = get_group(gv,groups);
+      struct t_test_proc *ttp=&groups_stats[i][g];
+      union value *val=&c->data[cmd.v_variables[i]->fv];
+
+      ttp->n+=weight;
+      ttp->sum+=weight * val->f;
+      ttp->ssq+=weight * sqr(val->f);
+    }
+
+  return 0;
+}
+
+static void 
+group_postcalc (void)
+{
+  int i;
+  int j;
+
+  for(i=0; i< cmd.n_variables ; ++i) 
+    {
+      for (j=0 ; j < 2 ; ++j)
+	{
+	  struct t_test_proc *ttp;
+	  ttp=&groups_stats[i][j];
+
+	  ttp->mean = ttp->sum / ttp->n;
+	  
+	  ttp->s_std_dev= sqrt(
+			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+			 ) ;
+
+	  ttp->std_dev= sqrt(
+			 ttp->n/(ttp->n-1) *
+			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+			 ) ;
+	  
+	  ttp->se_mean = ttp->std_dev / sqrt(ttp->n);
+	}
+      
     }
 }

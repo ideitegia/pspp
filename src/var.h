@@ -22,6 +22,7 @@
 
 #include <stddef.h>
 #include "format.h"
+#include "t-test.h"
 
 /* Values. */
 
@@ -126,36 +127,6 @@ struct crosstab_proc
     int min;			/* Minimum value. */
     int max;			/* Maximum value + 1. */
     int count;			/* max - min. */
-  };
-
-
-/* T-TEST private data */
-struct t_test_proc
-  {
-    double mean;
-
-    /* Population std. deviation */
-    double std_dev;
-
-    /* Sample std. deviation */
-    double s_std_dev;
-    
-    /* count */
-    double n;
-
-    double sum;
-
-    /* Sum of squares */
-    double ssq;
-
-    /* Std Err of Mean */
-    double se_mean;
-
-    /* Sum of differnces */
-    double sum_diff;
-
-    /* Mean of differences */
-    double mean_diff ;
   };
 
 

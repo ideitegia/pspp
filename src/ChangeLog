@@ -1,3 +1,10 @@
+Thu Feb 12 19:24:53 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q:  Added calculations for independent samples. (But no Levene
+	test yet!)
+
+	* Makefile.am: Moved q_sources_c into own variable 
+
 Wed Feb 11 23:56:51 2004  Ben Pfaff  <blp@gnu.org>
 
 	Miscellaneous cleanups.

@@ -32,6 +32,7 @@
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
+#include "pool.h"
 
 /* Declarations. */
 
