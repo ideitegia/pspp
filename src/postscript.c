@@ -957,7 +957,7 @@ output_encodings (struct outp_driver *this)
 	    {
 	      char *sp;	
 
-	      if (buf.length == 0 ) 
+	      if (buf.length == 0) 
 		continue;
 
 	      pschar = strtok_r (ds_value (&buf), " \t\r\n", &sp);
