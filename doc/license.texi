@@ -1,4 +1,4 @@
-@node License, Credits, Introduction, Top
+@node License, Invocation, Introduction, Top
 @chapter Your rights and obligations
 @cindex license
 @cindex your rights and obligations

@@ -1,3 +1,13 @@
+Sat Jan  8 16:46:28 2005  Ben Pfaff  <blp@gnu.org>
+
+	* credits.texi: Removed.
+
+	* bugs.texi: Rewrote.  Moved known bugs to savannah website.
+
+	* not-implemented.texi: AGGREGATE and AUTORECODE are implemented.
+
+Tue Nov 16 13:18:53 WST 2004 John Darrington <john@darrington.wattle.id.au>
+	
 	* statistics.texi Added documentation about the EXAMINE cmd
 
 Tue Nov 16 13:18:53 WST 2004 John Darrington <john@darrington.wattle.id.au>

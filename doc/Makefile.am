@@ -7,7 +7,6 @@ pspp_TEXINFOS = version.texi \
 	command-index.texi \
 	concept-index.texi \
 	configuring.texi \
-	credits.texi \
 	data-file-format.texi \
 	data-io.texi \
 	data-selection.texi \

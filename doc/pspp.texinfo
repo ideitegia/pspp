@@ -98,7 +98,6 @@ data.  This is edition @value{EDITION}, for PSPP version
 @menu
 * Introduction::                Description of the package.
 * License::                     Your rights and obligations.
-* Credits::                     Acknowledgement of authors.
 
 * Invocation::                  Starting and running PSPP.
 * Language::                    Basics of the PSPP command language.
@@ -130,7 +129,6 @@ data.  This is edition @value{EDITION}, for PSPP version
 
 @include introduction.texi
 @include license.texi
-@include credits.texi
 
 @include invoking.texi
 @include language.texi

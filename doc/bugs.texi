@@ -1,85 +1,23 @@
 @node Bugs, Function Index, Not Implemented, Top
 @chapter Bugs
 
-@menu
-* Known bugs::                  Pointers to other files.
-* Contacting the Author::       Where to send the bug reports.
-@end menu
-
-@node Known bugs, Contacting the Author, Bugs, Bugs
-@section Known bugs
-
-This is the list of known bugs in PSPP.  In addition, @xref{Not
-Implemented}, and @xref{Functions Not Implemented}, for lists of bugs
-due to features not implemented.  For known bugs in individual language
-features, see the documentation for that feature.
-
-@itemize @bullet
-@item
-Nothing has yet been tested exhaustively. Be cautious using PSPP to
-make important decisions.
-
-@item
-@code{make check} fails on some systems that don't like the syntax.  I'm
-not sure why.  If someone could make an attempt to track this down, it
-would be appreciated.
-
-@item
-PostScript driver bugs:
-
-@itemize @minus
-@item
-Does not support driver arguments `max-fonts-simult' or
-`optimize-text-size'.
-
-@item
-Minor problems with font-encodings.
-
-@item
-Fails to align fonts along their baselines.
-
-@item
-Does not support certain bizarre line intersections--should
-never crop up in practice.
-
-@item
-Does not gracefully substitute for existing fonts whose
-encodings are missing.
-
-@item
-Does not perform italic correction or left italic correction
-on font changes.
-
-@item
-Encapsulated PostScript is unimplemented.
-@end itemize
-
-@item
-ASCII driver bugs:
-
-@itemize @minus
-Does not support `infinite length' or `infinite width' paper.
-@end itemize
-@end itemize
-
-See below for information on reporting bugs not listed here.
-
-@node Contacting the Author,  , Known bugs, Bugs
-@section Contacting the Author
-
-The author can be contacted at e-mail address
-@ifinfo
-<blp@@gnu.org>.
-@end ifinfo
-@iftex
-@code{<blp@@gnu.org>}.
-@end iftex
-
-PSPP bug reports should be sent to 
+PSPP does have bugs.  We do our best to fix them, but our limited
+resources mean that some may remain for a long time.  Our best
+alternative is to make you aware of PSPP's known bugs.  To see a list,
+visit PSPP's project webpage at
+@uref{https://savannah.gnu.org/projects/pspp}.  You can also submit
+your own bug report there: click on ``Bugs,'' then on ``Submit a
+Bug,'' and fill out the form.  Alternatively, PSPP bug reports may be
+sent by email to
 @ifinfo
 <bug-gnu-pspp@@gnu.org>.
 @end ifinfo
 @iftex
 @code{<bug-gnu-pspp@@gnu.org>}.
 @end iftex
+
+@xref{Not Implemented}, and @xref{Functions Not Implemented}, for
+lists of bugs due to features not implemented.  For known bugs in
+individual language features, see the documentation for that feature.
+
 @setfilename ignored

@@ -1,4 +1,4 @@
-@node Invocation, Language, Credits, Top
+@node Invocation, Language, License, Top
 @chapter Invoking PSPP
 @cindex invocation
 @cindex PSPP, invoking

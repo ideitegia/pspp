@@ -8,17 +8,11 @@ The following transformations and utilities are not yet implemented, but
 they will be supported in a later release.
 
 @table @asis
-@item AGGREGATE               
-Save an aggregated file                         
-
 @item ALSCAL                  
 Multidimensional scaling                        
 
 @item ANOVA                   
 Factorial analysis of variance                  
-
-@item AUTORECODE              
-Recodes variables                               
 
 @item BOX-JENKINS             
 Time series analysis                            
