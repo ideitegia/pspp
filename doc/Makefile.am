@@ -8,4 +8,4 @@ MAKEINFO = makeinfo --no-validate
 
 EXTRA_DIST = pspp.man
 
-MAINTAINERCLEANFILES = Makefile.in README.html
+MAINTAINERCLEANFILES = Makefile.in README.html pspp.info pspp.info-*

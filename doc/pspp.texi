@@ -2,9 +2,9 @@
 @c %**start of header
 @setfilename pspp.info
 @settitle PSPP
-@set TIMESTAMP Time-stamp: <2003-12-17 10:07:31 blp>
+@set TIMESTAMP Time-stamp:  Sat Dec 20 20:25:33 WST 2003 jmd
 @set EDITION 0.2
-@set VERSION 0.2
+@set VERSION 0.3
 @c For double-sided printing, uncomment:
 @c @setchapternewpage odd
 @c %**end of header
@@ -13,13 +13,12 @@
 @finalout
 @end iftex
 
-@ifinfo
-@format
-START-INFO-DIR-ENTRY
+@dircategory Math
+@direntry
 * PSPP: (pspp).             Statistical analysis package.
-END-INFO-DIR-ENTRY
-@end format
+@end direntry
 
+@ifinfo
 PSPP, for statistical analysis of sampled data, by Ben Pfaff.
 
 This file documents PSPP, a statistical package for analysis of
@@ -178,7 +177,7 @@ source code from an anonymous ftp site, give out the name of that site.
 
 The General Public License is given in full in the source distribution
 as file @file{COPYING}.  In Debian GNU/Linux, this file is also
-available as file @file{/usr/doc/copyright/GPL}.
+available as file @file{/usr/share/common-licenses/GPL-2}.
 
 To quote the GPL itself:
 
@@ -195,7 +194,7 @@ General Public License for more details.
 
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
-675 Mass Ave, Cambridge, MA 02139, USA.
+59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 @end quotation
 
 @node Credits, Installation, License, Top
@@ -229,7 +228,7 @@ instructions on contacting the author.
 The PSPP source code incorporates @code{julcal10} originally
 written by Michael A. Covington and translated into C by Jim Van Zandt.
 The original package can be found in directory
-@file{ftp://ftp.cdrom.com/pub/algorithms/c/julcal10}.  The entire
+@url{ftp://ftp.cdrom.com/pub/algorithms/c/julcal10}.  The entire
 contents of that directory constitute the package.  The files actually
 used in PSPP are @code{julcal.c} and @code{julcal.h}.
 
@@ -492,7 +491,7 @@ precedence over those given by later items.
 
 @enumerate
 @item
-Syntax commands that modify settings, such as @code{SET}.
+Syntax commands that modify settings, such as @code{SET}. @xref{SET}.
 
 @item
 Command-line options.  @xref{Invocation}.
@@ -547,7 +546,7 @@ It is an error if the last line in the file ends in a backslash.
 @end itemize
 
 @item
-Comments are introduced by an octothorpe (#), and continue until the
+Comments are introduced by an octothorpe (@samp{#}), and continue until the
 end of the line.
 
 @itemize @minus
@@ -1552,7 +1551,7 @@ The ASCII driver is described in further detail below.
 @item output-file=@var{filename}
 
 File to which output should be sent.  This can be an ordinary filename
-(i.e., @code{"pspp.ps"}), a pipe filename (i.e., @code{"|lpr"}), or
+(e.g., @code{"pspp.txt"}), a pipe filename (e.g., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.list"}.
 
 @item char-set=@var{char-set-type}
@@ -2432,7 +2431,7 @@ representations of the same identifier.
 @cindex keywords
 Identifiers other than variable names may be abbreviated to their first
 3 characters if this abbreviation is unambiguous.  These identifiers are
-often called @dfn{keywords}.  (Unique abbreviations of more than 3
+often called @dfn{keywords}.  (Unique abbreviations of 3 or more
 characters are also accepted: @samp{FRE}, @samp{FREQ}, and
 @samp{FREQUENCIES} are equivalent when the last is a keyword.)
 
@@ -2703,11 +2702,13 @@ Commands in PSPP are divided roughly into six categories:
 
 @table @strong
 @item Utility commands
+@cindex utility commands
 Set or display various global options that affect PSPP operations.
 May appear anywhere in a syntax file.  @xref{Utilities, , Utility
 commands}.
 
 @item File definition commands
+@cindex file definition commands
 Give instructions for reading data from text files or from special
 binary ``system files''.  Most of these commands discard any previous
 data or variables in order to replace it with the new data and
@@ -2715,18 +2716,22 @@ variables.  At least one must appear before the first command in any of
 the categories below.  @xref{Data Input and Output}.
 
 @item Input program commands
+@cindex input program commands
 Though rarely used, these provide powerful tools for reading data files
 in arbitrary textual or binary formats.  @xref{INPUT PROGRAM}.
 
 @item Transformations
+@cindex transformations
 Perform operations on data and write data to output files.  Transformations
 are not carried out until a procedure is executed.  
 
 @item Restricted transformations
+@cindex restricted transformations
 Same as transformations for most purposes.  @xref{Order of Commands}, for a
 detailed description of the differences.
 
 @item Procedures
+@cindex procedures
 Analyze data, writing results of analyses to the listing file.  Cause
 transformations specified earlier in the file to be performed.  In a
 more general sense, a @dfn{procedure} is any command that causes the
@@ -2756,7 +2761,7 @@ own rules for state transitions:
 @item Utility commands
 @itemize @bullet
 @item
-Legal in all states, except Pennsylvania.
+Legal in all states.
 @item
 Do not cause state transitions.  Exception: when the N OF CASES command
 is executed in the procedure state, it causes a transition to the
@@ -2862,12 +2867,12 @@ handle missing values.
 @node Variables, Files, Missing Observations, Language
 @section Variables
 @cindex variables
+@cindex dictionary
 
 Variables are the basic unit of data storage in PSPP.  All the
 variables in a file taken together, apart from any associated data, are
-said to form a @dfn{dictionary}.  Each case contain a value for each
-variable.  Some details of variables are described in the sections
-below.
+said to form a @dfn{dictionary}.  
+Some details of variables are described in the sections below.
 
 @menu
 * Attributes::                  Attributes of variables.
@@ -3008,7 +3013,7 @@ separating them by commas.
 @cindex @code{TO}
 @item
 (This method cannot be used on commands that define the dictionary, such
-as @code{DATA LIST}.)  The syntax is the names of two existed variables,
+as @code{DATA LIST}.)  The syntax is the names of two existing variables,
 separated by the reserved keyword @code{TO}.  The meaning is to include
 every variable in the dictionary between and including the variables
 specified.  For instance, if the dictionary contains six variables with
@@ -3062,7 +3067,7 @@ Each of the syntaxes @code{QUES001 TO QUES9} and @code{QUES6 TO QUES3}
 are invalid, although for different reasons, which should be evident.
 @end itemize
 
-Note that after a set of variables has been defined on @code{DATA LIST}
+Note that after a set of variables has been defined with @code{DATA LIST}
 or another command with this method, the same set can be referenced on
 later commands using the same syntax.
 
@@ -3589,13 +3594,13 @@ full-fledged expressions in themselves.
 There is a third type for arguments and results, the @dfn{Boolean} type,
 which is used to represent true/false conditions.  Booleans have only
 three possible values: 0 (false), 1 (true), and system-missing.
-System-missing is neither true or false.
+System-missing is neither true nor false.
 
 @itemize @bullet
 @item
 A numeric expression that has value 0, 1, or system-missing may be used
 in place of a Boolean.  Thus, the expression @code{0 AND 1} is valid
-(although it is always true).
+(although it is always false).
 
 @item
 A numeric expression with any other value will cause an error if it is
@@ -3742,7 +3747,7 @@ time.  (The default value is 0.000000001, or
 @code{10**(-9)}.)
 @end ifinfo
 @tex
-$10 ^ -9$.)
+$10 ^{-9}$.)
 @end tex
 Use of epsilon allows for round-off errors.  Use of epsilon is also
 idiotic, but the author is not a numeric analyst.
@@ -3857,7 +3862,7 @@ not positive, the result is system-missing.
 @end deftypefn
 
 @deftypefn {Function} {} LN (@var{number})
-Takes the base-@samp{e} logarithm of @var{number}.  If @var{number} is
+Takes the base-@i{e} logarithm of @var{number}.  If @var{number} is
 not positive, the result is system-missing.
 @end deftypefn
 
@@ -3955,18 +3960,19 @@ portable.
 @end quotation
 
 @cindex cosine
-@deftypefn {Function} {} COS (@var{radians})
-Takes the cosine of @var{radians}.
+@deftypefn {Function} {} COS (@var{angle})
+Takes the cosine of @var{angle} which should be in radians.
 @end deftypefn
 
 @cindex sine
 @deftypefn {Function} {} SIN (@var{angle})
-Takes the sine of @var{radians}.
+Takes the sine of @var{angle} which should be in radians.
 @end deftypefn
 
 @cindex tangent
 @deftypefn {Function} {} TAN (@var{angle})
-Takes the tangent of @var{radians}.  Results in system-missing at values
+Takes the tangent of @var{angle} which should be in radians.
+Results in system-missing at values
 of @var{angle} that are too close to odd multiples of pi/2.
 Portability: none.
 @end deftypefn
@@ -4059,7 +4065,14 @@ distributed with a mean of 0 and a standard deviation of @var{number}.
 Results in a random number between 0 and @var{number}.  Results from
 @code{UNIFORM} are evenly distributed across its entire range.  There
 may be a maximum on the largest random number ever generated---this is
-often 2**31-1 (2,147,483,647), but it may be orders of magnitude
+often 
+@ifinfo 
+2**31-1 
+@end ifinfo
+@tex
+$2^{31}-1$
+@end tex
+(2,147,483,647), but it may be orders of magnitude
 higher or lower.
 @end deftypefn
 
@@ -4613,7 +4626,7 @@ days @var{date-or-time} includes.  For a date, results in the date
 corresponding to the latest midnight at or before @var{date-or-time};
 that is, gives the date that @var{date-or-time} is in.
 (XDATE.DATE(@var{x}) is equivalent to TRUNC(@var{x}/86400)*86400.)
-Applying this function to a time is a Portability: none feature.
+Applying this function to a time is a non-portable feature.
 @end deftypefn
 
 @cindex hours
@@ -4625,7 +4638,7 @@ whole days represented by @var{date-or-time}.  For a date, results in
 the hour (as an integer between 0 and 23) corresponding to
 @var{date-or-time}.  (XDATE.HOUR(@var{x}) is equivalent to
 MOD(TRUNC(@var{x}/3600),24))  Applying this function to a time is a
-Portability: none feature.
+non-portable feature.
 @end deftypefn
 
 @cindex day of the year
@@ -4649,7 +4662,7 @@ corresponding to @var{date}.
 Results in the number of minutes (as an integer between 0 and 59) after
 the last hour in @var{time-or-date}.  (XDATE.MINUTE(@var{x}) is
 equivalent to MOD(TRUNC(@var{x}/60),60)) Applying this function to a
-time is a Portability: none feature.
+time is a non-portable feature.
 @end deftypefn
 
 @cindex months
@@ -4673,7 +4686,7 @@ corresponding to @var{date}.
 Results in the number of whole seconds after the last whole minute (as
 an integer between 0 and 59) in @var{time-or-date}.
 (XDATE.SECOND(@var{x}) is equivalent to MOD(@var{x}, 60).)  Applying
-this function to a time is a Portability: none feature.
+this function to a time is a non-portable feature.
 @end deftypefn
 
 @cindex days
@@ -4844,8 +4857,16 @@ unary, the second is binary.
 @cindex input
 @cindex output
 @cindex data
+@cindex cases
+@cindex observations
 
-Data is the focus of the PSPP language.  This chapter examines
+Data are the focus of the PSPP language.  
+Each datum  belongs to a @dfn{case} (also called an @dfn{observation}).
+Each case represents an individual or `experimental unit'.
+For example, in the results of a survey, the names of the respondents,
+their sex, age @i{etc}. and their responses are all data and the data
+pertaining to single respondent is a case.
+This chapter examines
 the PSPP commands for defining variables and reading and writing data.
 
 @quotation
@@ -6333,7 +6354,7 @@ The DROP subcommand deletes a specified list of variables from the
 active file.
 
 The KEEP subcommand keeps the specified list of variables in the active
-file.  Any unlisted variables are delete from the active file.
+file.  Any unlisted variables are deleted from the active file.
 
 MAP is currently ignored.
 
@@ -6499,6 +6520,7 @@ FORMATS command sets only write formats, not print formats.
 
 @node Data Manipulation, Data Selection, Variable Attributes, Top
 @chapter Data transformations
+@cindex transformations
 
 The PSPP procedures examined in this chapter manipulate data and
 prepare the active file for later analyses.  They do not produce output,
@@ -6670,6 +6692,8 @@ AUTORECODE is a procedure.  It causes the data to be read.
 
 @node COMPUTE, COUNT, AUTORECODE, Data Manipulation
 @section COMPUTE
+@vindex COMPUTE
+
 
 @display
 COMPUTE var_name = expression.
@@ -6680,7 +6704,7 @@ necessary), then evaluates the given expression for every case and
 assigns the result to the variable.  @xref{Expressions}.
 
 Numeric variables created or computed by @code{COMPUTE} are assigned an
-output width of 8 character with two decimal places (@code{F8.2}).
+output width of 8 characters with two decimal places (@code{F8.2}).
 String variables created or computed by @code{COMPUTE} have the same
 width as the existing variable or constant.
 
@@ -6689,6 +6713,7 @@ read.
 
 @node COUNT, FLIP, COMPUTE, Data Manipulation
 @section COUNT
+@vindex COUNT
 
 @display
 COUNT var_name = var@dots{} (value@dots{}).
@@ -6828,6 +6853,7 @@ be used to recreate the original variable names.
 
 @node IF, RECODE, FLIP, Data Manipulation
 @section IF
+@vindex IF
 
 @display
 Two possible syntaxes: 
@@ -6857,6 +6883,7 @@ parentheses following the vector name.
 
 @node RECODE, SORT CASES, IF, Data Manipulation
 @section RECODE
+@vindex RECODE
 
 @display
 RECODE var_list (src_value@dots{}=dest_value)@dots{} [INTO var_list].
@@ -7883,7 +7910,7 @@ EXECUTE.
 The EXECUTE utility causes the active file to be read and all pending
 transformations to be executed.
 
-@node FILE LABEL, INCLUDE, EXECUTE, Utilities
+@node FILE LABEL, FINISH, EXECUTE, Utilities
 @section FILE LABEL
 @vindex FILE LABEL
 
@@ -7898,7 +7925,23 @@ created during this PSPP run.
 It is not necessary to include quotes around file_label.  If they are
 included then they become part of the file label.
 
-@node INCLUDE, QUIT, FILE LABEL, Utilities
+
+
+@node FINISH, INCLUDE, FILE LABEL, Utilities
+@section FINISH
+@vindex FINISH
+
+@display
+FINISH.
+@end display
+
+The FINISH command terminates the current PSPP session and returns
+control to the operating system.
+
+This command is not valid in interactive mode.
+
+
+@node INCLUDE, QUIT, FINISH, Utilities
 @section INCLUDE
 @vindex INCLUDE
 @vindex @@
@@ -8240,7 +8283,6 @@ The ERASE command.
 The HOST command.
 @item
 Pipe filenames (filenames beginning or ending with @samp{|}).
-@item
 @end itemize
 
 Be aware that this setting does not guarantee safety (commands can still
@@ -8259,7 +8301,7 @@ Two possible syntaxes:
 
 The SUBTITLE command is used to provide a subtitle to a particular PSPP
 run.  This subtitle appears at the top of each output page below the
-title, if titles are enabled on the output device.
+title, if headers are enabled on the output device.
 
 Specify a subtitle as a string in quotes.  The alternate syntax that did
 not require quotes is now obsolete.  If it is used then the subtitle is
@@ -8276,7 +8318,7 @@ Two possible syntaxes:
 @end display
 
 The TITLE command is used to provide a title to a particular PSPP run.
-This title appears at the top of each output page, if titles are enabled
+This title appears at the top of each output page, if headers are enabled
 on the output device.
 
 Specify a title as a string in quotes.  The alternate syntax that did
@@ -8296,6 +8338,8 @@ they will be supported in a later release.
 @item
 ADD FILES
 @item
+ANOVA
+@item
 DEFINE
 @item
 FILE TYPE
@@ -8305,6 +8349,8 @@ GET SAS
 GET TRANSLATE
 @item
 MCONVERT
+@item
+PLOT
 @item
 PRESERVE
 @item
