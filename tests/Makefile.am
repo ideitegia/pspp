@@ -9,6 +9,8 @@ TESTS = command/aggregate.sh \
 	command/beg-data.sh \
 	command/bignum.sh \
 	command/count.sh \
+	command/descriptives.sh \
+	command/flip.sh \
 	command/sort.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh
