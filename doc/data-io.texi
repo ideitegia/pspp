@@ -1,0 +1,1000 @@
+@node Data Input and Output, System and Portable Files, Expressions, Top
+@chapter Data Input and Output
+@cindex input
+@cindex output
+@cindex data
+@cindex cases
+@cindex observations
+
+Data are the focus of the PSPP language.  
+Each datum  belongs to a @dfn{case} (also called an @dfn{observation}).
+Each case represents an individual or `experimental unit'.
+For example, in the results of a survey, the names of the respondents,
+their sex, age @i{etc}. and their responses are all data and the data
+pertaining to single respondent is a case.
+This chapter examines
+the PSPP commands for defining variables and reading and writing data.
+
+@quotation
+@strong{Please note:} Data is not actually read until a procedure is
+executed.  These commands tell PSPP how to read data, but they
+do not @emph{cause} PSPP to read data.
+@end quotation
+
+@menu
+* BEGIN DATA::                  Embed data within a syntax file.
+* CLEAR TRANSFORMATIONS::       Clear pending transformations.
+* DATA LIST::                   Fundamental data reading command.
+* END CASE::                    Output the current case.
+* END FILE::                    Terminate the current input program.
+* FILE HANDLE::                 Support for fixed-length records.
+* INPUT PROGRAM::               Support for complex input programs.
+* LIST::                        List cases in the active file.
+* MATRIX DATA::                 Read matrices in text format.
+* NEW FILE::                    Clear the active file and dictionary.
+* PRINT::                       Display values in print formats.
+* PRINT EJECT::                 Eject the current page then print.
+* PRINT SPACE::                 Print blank lines.
+* REREAD::                      Take another look at the previous input line.
+* REPEATING DATA::              Multiple cases on a single line.
+* WRITE::                       Display values in write formats.
+@end menu
+
+@node BEGIN DATA, CLEAR TRANSFORMATIONS, Data Input and Output, Data Input and Output
+@section BEGIN DATA
+@vindex BEGIN DATA
+@vindex END DATA
+@cindex Embedding data in syntax files
+@cindex Data, embedding in syntax files
+
+@display
+BEGIN DATA.
+@dots{}
+END DATA.
+@end display
+
+@cmd{BEGIN DATA} and @cmd{END DATA} can be used to embed raw ASCII
+data in a PSPP syntax file.  @cmd{DATA LIST} or another input
+procedure must be used before @cmd{BEGIN DATA} (@pxref{DATA LIST}).
+@cmd{BEGIN DATA} and @cmd{END DATA} must be used together.  @cmd{END
+DATA} must appear by itself on a single line, with no leading
+whitespace and exactly one space between the words @code{END} and
+@code{DATA}, followed immediately by the terminal dot, like this:
+
+@example
+END DATA.
+@end example
+
+@node CLEAR TRANSFORMATIONS, DATA LIST, BEGIN DATA, Data Input and Output
+@section CLEAR TRANSFORMATIONS
+@vindex CLEAR TRANSFORMATIONS
+
+@display
+CLEAR TRANSFORMATIONS.
+@end display
+
+@cmd{CLEAR TRANSFORMATIONS} clears out all pending
+transformations.  It does not cancel the current input program.  It is
+valid only when PSPP is interactive, not in syntax files.
+
+@node DATA LIST, END CASE, CLEAR TRANSFORMATIONS, Data Input and Output
+@section DATA LIST
+@vindex DATA LIST
+@cindex reading data from a file
+@cindex data, reading from a file
+@cindex data, embedding in syntax files
+@cindex embedding data in syntax files
+
+Used to read text or binary data, @cmd{DATA LIST} is the most
+fundamental data-reading command.  Even the more sophisticated input
+methods use @cmd{DATA LIST} commands as a building block.
+Understanding @cmd{DATA LIST} is important to understanding how to use
+PSPP to read your data files.
+
+There are two major variants of @cmd{DATA LIST}, which are fixed
+format and free format.  In addition, free format has a minor variant,
+list format, which is discussed in terms of its differences from vanilla
+free format.
+
+Each form of @cmd{DATA LIST} is described in detail below.
+
+@menu
+* DATA LIST FIXED::             Fixed columnar locations for data.
+* DATA LIST FREE::              Any spacing you like.
+* DATA LIST LIST::              Each case must be on a single line.
+@end menu
+
+@node DATA LIST FIXED, DATA LIST FREE, DATA LIST, DATA LIST
+@subsection DATA LIST FIXED
+@vindex DATA LIST FIXED
+@cindex reading fixed-format data
+@cindex fixed-format data, reading
+@cindex data, fixed-format, reading
+@cindex embedding fixed-format data
+
+@display
+DATA LIST [FIXED]
+        @{TABLE,NOTABLE@}
+        FILE='filename'
+        RECORDS=record_count
+        END=end_var
+        /[line_no] var_spec@dots{}
+
+where each var_spec takes one of the forms
+        var_list start-end [type_spec]
+        var_list (fortran_spec)
+@end display
+
+@cmd{DATA LIST FIXED} is used to read data files that have values at fixed
+positions on each line of single-line or multiline records.  The
+keyword FIXED is optional.
+
+The FILE subcommand must be used if input is to be taken from an
+external file.  It may be used to specify a filename as a string or a
+file handle (@pxref{FILE HANDLE}).  If the FILE subcommand is not used,
+then input is assumed to be specified within the command file using
+@cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
+
+The optional RECORDS subcommand, which takes a single integer as an
+argument, is used to specify the number of lines per record.  If RECORDS
+is not specified, then the number of lines per record is calculated from
+the list of variable specifications later in @cmd{DATA LIST}.
+
+The END subcommand is only useful in conjunction with @cmd{INPUT
+PROGRAM}.  @xref{INPUT PROGRAM}, for details.
+
+@cmd{DATA LIST} can optionally output a table describing how the data file
+will be read.  The TABLE subcommand enables this output, and NOTABLE
+disables it.  The default is to output the table.
+
+The list of variables to be read from the data list must come last.
+Each line in the data record is introduced by a slash (@samp{/}).
+Optionally, a line number may follow the slash.  Following, any number
+of variable specifications may be present.
+
+Each variable specification consists of a list of variable names
+followed by a description of their location on the input line.  Sets of
+variables may specified using the @code{DATA LIST} TO convention
+(@pxref{Sets of
+Variables}).  There are two ways to specify the location of the variable
+on the line: PSPP style and FORTRAN style.
+
+With PSPP style, the starting column and ending column for the field
+are specified after the variable name, separated by a dash (@samp{-}).
+For instance, the third through fifth columns on a line would be
+specified @samp{3-5}.  By default, variables are considered to be in
+@samp{F} format (@pxref{Input/Output Formats}).  (This default can be
+changed; see @ref{SET} for more information.)
+
+When using PSPP style, to use a variable format other than the default,
+specify the format type in parentheses after the column numbers.  For
+instance, for alphanumeric @samp{A} format, use @samp{(A)}.  
+
+In addition, implied decimal places can be specified in parentheses
+after the column numbers.  As an example, suppose that a data file has a
+field in which the characters @samp{1234} should be interpreted as
+having the value 12.34.  Then this field has two implied decimal places,
+and the corresponding specification would be @samp{(2)}.  If a field
+that has implied decimal places contains a decimal point, then the
+implied decimal places are not applied.
+
+Changing the variable format and adding implied decimal places can be
+done together; for instance, @samp{(N,5)}.
+
+When using PSPP style, the input and output width of each variable is
+computed from the field width.  The field width must be evenly divisible
+into the number of variables specified.
+
+FORTRAN style is an altogether different approach to specifying field
+locations.  With this approach, a list of variable input format
+specifications, separated by commas, are placed after the variable names
+inside parentheses.  Each format specifier advances as many characters
+into the input line as it uses.
+
+In addition to the standard format specifiers (@pxref{Input/Output
+Formats}), FORTRAN style defines some extensions:
+
+@table @asis
+@item @code{X}
+Advance the current column on this line by one character position.
+
+@item @code{T}@var{x}
+Set the current column on this line to column @var{x}, with column
+numbers considered to begin with 1 at the left margin.
+
+@item @code{NEWREC}@var{x}
+Skip forward @var{x} lines in the current record, resetting the active
+column to the left margin.
+
+@item Repeat count
+Any format specifier may be preceded by a number.  This causes the
+action of that format specifier to be repeated the specified number of
+times.
+
+@item (@var{spec1}, @dots{}, @var{specN})
+Group the given specifiers together.  This is most useful when preceded
+by a repeat count.  Groups may be nested arbitrarily.
+@end table
+
+FORTRAN and PSPP styles may be freely intermixed.  PSPP style leaves the
+active column immediately after the ending column specified.  Record
+motion using @code{NEWREC} in FORTRAN style also applies to later
+FORTRAN and PSPP specifiers.
+ 
+@menu
+* DATA LIST FIXED Examples::    Examples of DATA LIST FIXED.
+@end menu
+
+@node DATA LIST FIXED Examples,  , DATA LIST FIXED, DATA LIST FIXED
+@unnumberedsubsubsec Examples
+
+@enumerate
+@item
+@example
+DATA LIST TABLE /NAME 1-10 (A) INFO1 TO INFO3 12-17 (1).
+
+BEGIN DATA.
+John Smith 102311
+Bob Arnold 122015
+Bill Yates  918 6
+END DATA.
+@end example
+
+Defines the following variables:
+
+@itemize @bullet
+@item
+@code{NAME}, a 10-character-wide long string variable, in columns 1
+through 10.
+
+@item
+@code{INFO1}, a numeric variable, in columns 12 through 13.
+
+@item
+@code{INFO2}, a numeric variable, in columns 14 through 15.
+
+@item
+@code{INFO3}, a numeric variable, in columns 16 through 17.
+@end itemize
+
+The @code{BEGIN DATA}/@code{END DATA} commands cause three cases to be
+defined:
+
+@example
+Case   NAME         INFO1   INFO2   INFO3
+   1   John Smith     10      23      11
+   2   Bob Arnold     12      20      15
+   3   Bill Yates      9      18       6
+@end example
+
+The @code{TABLE} keyword causes PSPP to print out a table
+describing the four variables defined.
+
+@item
+@example
+DAT LIS FIL="survey.dat"
+        /ID 1-5 NAME 7-36 (A) SURNAME 38-67 (A) MINITIAL 69 (A)
+        /Q01 TO Q50 7-56
+        /.
+@end example
+
+Defines the following variables:
+
+@itemize @bullet
+@item
+@code{ID}, a numeric variable, in columns 1-5 of the first record.
+
+@item
+@code{NAME}, a 30-character long string variable, in columns 7-36 of the
+first record.
+
+@item
+@code{SURNAME}, a 30-character long string variable, in columns 38-67 of
+the first record.
+
+@item
+@code{MINITIAL}, a 1-character short string variable, in column 69 of
+the first record.
+
+@item
+Fifty variables @code{Q01}, @code{Q02}, @code{Q03}, @dots{}, @code{Q49},
+@code{Q50}, all numeric, @code{Q01} in column 7, @code{Q02} in column 8,
+@dots{}, @code{Q49} in column 55, @code{Q50} in column 56, all in the second
+record.
+@end itemize
+
+Cases are separated by a blank record.
+
+Data is read from file @file{survey.dat} in the current directory.
+
+This example shows keywords abbreviated to their first 3 letters.
+
+@end enumerate
+
+@node DATA LIST FREE, DATA LIST LIST, DATA LIST FIXED, DATA LIST
+@subsection DATA LIST FREE
+@vindex DATA LIST FREE
+
+@display
+DATA LIST FREE
+        [(@{TAB,'c'@}, @dots{})]
+        [@{NOTABLE,TABLE@}]
+        FILE='filename'
+        END=end_var
+        /var_spec@dots{}
+
+where each var_spec takes one of the forms
+        var_list [(type_spec)]
+        var_list *
+@end display
+
+In free format, the input data is, by default, structured as a series
+of fields separated by spaces, tabs, commas, or line breaks.  Each
+field's content may be unquoted, or it may be quoted with a pairs of
+apostrophes (@samp{'}) or double quotes (@samp{"}).  Unquoted white
+space separates fields but is not part of any field.  Any mix of
+spaces, tabs, and line breaks is equivalent to a single space for the
+purpose of separating fields, but consecutive commas will skip a
+field.
+
+Alternatively, delimiters can be specified explicitly, as a
+parenthesized, comma-separated list of single-character strings
+immediately following FREE.  The word TAB may also be used to specify
+a tab character as a delimiter.  When delimiters are specified
+explicitly, only the given characters, plus line breaks, separate
+fields.  Furthermore, leading spaces at the beginnings of fields are
+not trimmed, consecutive delimiters define empty fields, and no form
+of quoting is allowed.
+
+The NOTABLE and TABLE subcommands are as in @cmd{DATA LIST FIXED} above.
+NOTABLE is the default.
+
+The FILE and END subcommands are as in @cmd{DATA LIST FIXED} above.
+
+The variables to be parsed are given as a single list of variable names.
+This list must be introduced by a single slash (@samp{/}).  The set of
+variable names may contain format specifications in parentheses
+(@pxref{Input/Output Formats}).  Format specifications apply to all
+variables back to the previous parenthesized format specification.  
+
+In addition, an asterisk may be used to indicate that all variables
+preceding it are to have input/output format @samp{F8.0}.
+
+Specified field widths are ignored on input, although all normal limits
+on field width apply, but they are honored on output.
+
+@node DATA LIST LIST,  , DATA LIST FREE, DATA LIST
+@subsection DATA LIST LIST
+@vindex DATA LIST LIST
+
+@display
+DATA LIST LIST
+        [(@{TAB,'c'@}, @dots{})]
+        [@{NOTABLE,TABLE@}]
+        FILE='filename'
+        END=end_var
+        /var_spec@dots{}
+
+where each var_spec takes one of the forms
+        var_list [(type_spec)]
+        var_list *
+@end display
+
+With one exception, @cmd{DATA LIST LIST} is syntactically and
+semantically equivalent to @cmd{DATA LIST FREE}.  The exception is
+that each input line is expected to correspond to exactly one input
+record.  If more or fewer fields are found on an input line than
+expected, an appropriate diagnostic is issued.
+
+@node END CASE, END FILE, DATA LIST, Data Input and Output
+@section END CASE
+@vindex END CASE
+
+@display
+END CASE.
+@end display
+
+@cmd{END CASE} is used only within @cmd{INPUT PROGRAM} to output the
+current case.  @xref{INPUT PROGRAM}, for details.
+
+@node END FILE, FILE HANDLE, END CASE, Data Input and Output
+@section END FILE
+@vindex END FILE
+
+@display
+END FILE.
+@end display
+
+@cmd{END FILE} is used only within @cmd{INPUT PROGRAM} to terminate
+the current input program.  @xref{INPUT PROGRAM}.
+
+@node FILE HANDLE, INPUT PROGRAM, END FILE, Data Input and Output
+@section FILE HANDLE
+@vindex FILE HANDLE
+
+@display
+FILE HANDLE handle_name
+        /NAME='filename'
+        /MODE=@{CHARACTER,IMAGE@}
+        /LRECL=rec_len
+        /TABWIDTH=tab_width
+@end display
+
+Use @cmd{FILE HANDLE} to associate a file handle name with a file and
+its attributes, so that later commands can refer to the file by its
+handle name.  Because names of text files can be specified directly on
+commands that access files, @cmd{FILE HANDLE} is only needed when a
+file is not an ordinary file containing lines of text.  However,
+@cmd{FILE HANDLE} may be used even for text files, and it may be
+easier to specify a file's name once and later refer to it by an
+abstract handle.
+
+Specify the file handle name as an identifier.  Any given identifier may
+only appear once in a PSPP run.  File handles may not be reassigned to a
+different file.  The file handle name must immediately follow the @cmd{FILE
+HANDLE} command name.
+
+The NAME subcommand specifies the name of the file associated with the
+handle.  It is the only required subcommand.
+
+MODE specifies a file mode.  In CHARACTER mode, the default, the data
+file is opened in ANSI C text mode, so that local end of line
+conventions are followed, and each text line is read as one record.
+In CHARACTER mode, most input programs will expand tabs to spaces
+(@cmd{DATA LIST FREE} with explicitly specified delimiters is an
+exception).  By default, each tab is 4 characters wide, but an
+alternate width may be specified on TABWIDTH.  A tab width of 0
+suppresses tab expansion entirely.
+
+By contrast, in BINARY mode, the data file is opened in ANSI C binary
+mode and records are a fixed length.  In BINARY mode, LRECL specifies
+the record length in bytes, with a default of 1024.  Tab characters
+are never expanded to spaces in binary mode.
+
+@node INPUT PROGRAM, LIST, FILE HANDLE, Data Input and Output
+@section INPUT PROGRAM
+@vindex INPUT PROGRAM
+
+@display
+INPUT PROGRAM.
+@dots{} input commands @dots{}
+END INPUT PROGRAM.
+@end display
+
+@cmd{INPUT PROGRAM}@dots{}@cmd{END INPUT PROGRAM} specifies a
+complex input program.  By placing data input commands within @cmd{INPUT
+PROGRAM}, PSPP programs can take advantage of more complex file
+structures than available with only @cmd{DATA LIST}.
+
+The first sort of extended input program is to simply put multiple @cmd{DATA
+LIST} commands within the @cmd{INPUT PROGRAM}.  This will cause all of
+the data
+files to be read in parallel.  Input will stop when end of file is
+reached on any of the data files.
+
+Transformations, such as conditional and looping constructs, can also be
+included within @cmd{INPUT PROGRAM}.  These can be used to combine input
+from several data files in more complex ways.  However, input will still
+stop when end of file is reached on any of the data files.
+
+To prevent @cmd{INPUT PROGRAM} from terminating at the first end of
+file, use
+the END subcommand on @cmd{DATA LIST}.  This subcommand takes a
+variable name,
+which should be a numeric scratch variable (@pxref{Scratch Variables}).
+(It need not be a scratch variable but otherwise the results can be
+surprising.)  The value of this variable is set to 0 when reading the
+data file, or 1 when end of file is encountered.
+
+Two additional commands are useful in conjunction with @cmd{INPUT PROGRAM}.
+@cmd{END CASE} is the first.  Normally each loop through the
+@cmd{INPUT PROGRAM}
+structure produces one case.  @cmd{END CASE} controls exactly
+when cases are output.  When @cmd{END CASE} is used, looping from the end of
+@cmd{INPUT PROGRAM} to the beginning does not cause a case to be output.
+
+@cmd{END FILE} is the second.  When the END subcommand is used on @cmd{DATA
+LIST}, there is no way for the @cmd{INPUT PROGRAM} construct to stop
+looping,
+so an infinite loop results.  @cmd{END FILE}, when executed,
+stops the flow of input data and passes out of the @cmd{INPUT PROGRAM}
+structure.
+
+All this is very confusing.  A few examples should help to clarify.
+
+@example
+INPUT PROGRAM.
+        DATA LIST NOTABLE FILE='a.data'/X 1-10.
+        DATA LIST NOTABLE FILE='b.data'/Y 1-10.
+END INPUT PROGRAM.
+LIST.
+@end example
+
+The example above reads variable X from file @file{a.data} and variable
+Y from file @file{b.data}.  If one file is shorter than the other then
+the extra data in the longer file is ignored.
+
+@example
+INPUT PROGRAM.
+        NUMERIC #A #B.
+        
+        DO IF NOT #A.
+                DATA LIST NOTABLE END=#A FILE='a.data'/X 1-10.
+        END IF.
+        DO IF NOT #B.
+                DATA LIST NOTABLE END=#B FILE='b.data'/Y 1-10.
+        END IF.
+        DO IF #A AND #B.
+                END FILE.
+        END IF.
+        END CASE.
+END INPUT PROGRAM.
+LIST.
+@end example
+
+The above example reads variable X from @file{a.data} and variable Y from
+@file{b.data}.  If one file is shorter than the other then the missing
+field is set to the system-missing value alongside the present value for
+the remaining length of the longer file.
+
+@example
+INPUT PROGRAM.
+        NUMERIC #A #B.
+
+        DO IF #A.
+                DATA LIST NOTABLE END=#B FILE='b.data'/X 1-10.
+                DO IF #B.
+                        END FILE.
+                ELSE.
+                        END CASE.
+                END IF.
+        ELSE.
+                DATA LIST NOTABLE END=#A FILE='a.data'/X 1-10.
+                DO IF NOT #A.
+                        END CASE.
+                END IF.
+        END IF.
+END INPUT PROGRAM.
+LIST.
+@end example
+
+The above example reads data from file @file{a.data}, then from
+@file{b.data}, and concatenates them into a single active file.
+
+@example
+INPUT PROGRAM.
+        NUMERIC #EOF.
+
+        LOOP IF NOT #EOF.
+                DATA LIST NOTABLE END=#EOF FILE='a.data'/X 1-10.
+                DO IF NOT #EOF.
+                        END CASE.
+                END IF.
+        END LOOP.
+
+        COMPUTE #EOF = 0.
+        LOOP IF NOT #EOF.
+                DATA LIST NOTABLE END=#EOF FILE='b.data'/X 1-10.
+                DO IF NOT #EOF.
+                        END CASE.
+                END IF.
+        END LOOP.
+
+        END FILE.
+END INPUT PROGRAM.
+LIST.
+@end example
+
+The above example does the same thing as the previous example, in a
+different way.
+
+@example
+INPUT PROGRAM.
+        LOOP #I=1 TO 50.
+                COMPUTE X=UNIFORM(10).
+                END CASE.
+        END LOOP.
+        END FILE.
+END INPUT PROGRAM.
+LIST/FORMAT=NUMBERED.
+@end example
+
+The above example causes an active file to be created consisting of 50
+random variates between 0 and 10.
+
+@node LIST, MATRIX DATA, INPUT PROGRAM, Data Input and Output
+@section LIST
+@vindex LIST
+
+@display
+LIST
+        /VARIABLES=var_list
+        /CASES=FROM start_index TO end_index BY incr_index
+        /FORMAT=@{UNNUMBERED,NUMBERED@} @{WRAP,SINGLE@} 
+                @{NOWEIGHT,WEIGHT@}
+@end display
+
+The @cmd{LIST} procedure prints the values of specified variables to the
+listing file.
+
+The VARIABLES subcommand specifies the variables whose values are to be
+printed.  Keyword VARIABLES is optional.  If VARIABLES subcommand is not
+specified then all variables in the active file are printed.
+
+The CASES subcommand can be used to specify a subset of cases to be
+printed.  Specify FROM and the case number of the first case to print,
+TO and the case number of the last case to print, and BY and the number
+of cases to advance between printing cases, or any subset of those
+settings.  If CASES is not specified then all cases are printed.
+
+The FORMAT subcommand can be used to change the output format.  NUMBERED
+will print case numbers along with each case; UNNUMBERED, the default,
+causes the case numbers to be omitted.  The WRAP and SINGLE settings are
+currently not used.  WEIGHT will cause case weights to be printed along
+with variable values; NOWEIGHT, the default, causes case weights to be
+omitted from the output.
+
+Case numbers start from 1.  They are counted after all transformations
+have been considered.
+
+@cmd{LIST} attempts to fit all the values on a single line.  If needed
+to make them fit, variable names are displayed vertically.  If values
+cannot fit on a single line, then a multi-line format will be used.
+
+@cmd{LIST} is a procedure.  It causes the data to be read.
+
+@node MATRIX DATA, NEW FILE, LIST, Data Input and Output
+@section MATRIX DATA
+@vindex MATRIX DATA
+
+@display
+MATRIX DATA
+        /VARIABLES=var_list
+        /FILE='filename'
+        /FORMAT=@{LIST,FREE@} @{LOWER,UPPER,FULL@} @{DIAGONAL,NODIAGONAL@}
+        /SPLIT=@{new_var,var_list@}
+        /FACTORS=var_list
+        /CELLS=n_cells
+        /N=n
+        /CONTENTS=@{N_VECTOR,N_SCALAR,N_MATRIX,MEAN,STDDEV,COUNT,MSE,
+                   DFE,MAT,COV,CORR,PROX@}
+@end display
+
+@cmd{MATRIX DATA} command reads square matrices in one of several textual
+formats.  @cmd{MATRIX DATA} clears the dictionary and replaces it and
+reads a
+data file.
+
+Use VARIABLES to specify the variables that form the rows and columns of
+the matrices.  You may not specify a variable named @code{VARNAME_}.  You
+should specify VARIABLES first.
+
+Specify the file to read on FILE, either as a file name string or a file
+handle (@pxref{FILE HANDLE}).  If FILE is not specified then matrix data
+must immediately follow @cmd{MATRIX DATA} with a @cmd{BEGIN
+DATA}@dots{}@cmd{END DATA}
+construct (@pxref{BEGIN DATA}).
+
+The FORMAT subcommand specifies how the matrices are formatted.  LIST,
+the default, indicates that there is one line per row of matrix data;
+FREE allows single matrix rows to be broken across multiple lines.  This
+is analogous to the difference between @cmd{DATA LIST FREE} and
+@cmd{DATA LIST LIST}
+(@pxref{DATA LIST}).  LOWER, the default, indicates that the lower
+triangle of the matrix is given; UPPER indicates the upper triangle; and
+FULL indicates that the entire matrix is given.  DIAGONAL, the default,
+indicates that the diagonal is part of the data; NODIAGONAL indicates
+that it is omitted.  DIAGONAL/NODIAGONAL have no effect when FULL is
+specified.
+
+The SPLIT subcommand is used to specify @cmd{SPLIT FILE} variables for the
+input matrices (@pxref{SPLIT FILE}).  Specify either a single variable
+not specified on VARIABLES, or one or more variables that are specified
+on VARIABLES.  In the former case, the SPLIT values are not present in
+the data and ROWTYPE_ may not be specified on VARIABLES.  In the latter
+case, the SPLIT values are present in the data.
+
+Specify a list of factor variables on FACTORS.  Factor variables must
+also be listed on VARIABLES.  Factor variables are used when there are
+some variables where, for each possible combination of their values,
+statistics on the matrix variables are included in the data.
+
+If FACTORS is specified and ROWTYPE_ is not specified on VARIABLES, the
+CELLS subcommand is required.  Specify the number of factor variable
+combinations that are given.  For instance, if factor variable A has 2
+values and factor variable B has 3 values, specify 6.
+
+The N subcommand specifies a population number of observations.  When N
+is specified, one N record is output for each @cmd{SPLIT FILE}.
+
+Use CONTENTS to specify what sort of information the matrices include.
+Each possible option is described in more detail below.  When ROWTYPE_
+is specified on VARIABLES, CONTENTS is optional; otherwise, if CONTENTS
+is not specified then /CONTENTS=CORR is assumed.
+
+@table @asis
+@item N
+@item N_VECTOR
+Number of observations as a vector, one value for each variable.
+@item N_SCALAR
+Number of observations as a single value.
+@item N_MATRIX
+Matrix of counts.
+@item MEAN
+Vector of means.
+@item STDDEV
+Vector of standard deviations.
+@item COUNT
+Vector of counts.
+@item MSE
+Vector of mean squared errors.
+@item DFE
+Vector of degrees of freedom.
+@item MAT
+Generic matrix.
+@item COV
+Covariance matrix.
+@item CORR
+Correlation matrix.
+@item PROX
+Proximities matrix.
+@end table
+
+The exact semantics of the matrices read by @cmd{MATRIX DATA} are complex.
+Right now @cmd{MATRIX DATA} isn't too useful due to a lack of procedures
+accepting or producing related data, so these semantics aren't
+documented.  Later, they'll be described here in detail.
+
+@node NEW FILE, PRINT, MATRIX DATA, Data Input and Output
+@section NEW FILE
+@vindex NEW FILE
+
+@display
+NEW FILE.
+@end display
+
+@cmd{NEW FILE} command clears the current active file.
+
+@node PRINT, PRINT EJECT, NEW FILE, Data Input and Output
+@section PRINT
+@vindex PRINT
+
+@display
+PRINT 
+        OUTFILE='filename'
+        RECORDS=n_lines
+        @{NOTABLE,TABLE@}
+        /[line_no] arg@dots{}
+
+arg takes one of the following forms:
+        'string' [start-end]
+        var_list start-end [type_spec]
+        var_list (fortran_spec)
+        var_list *
+@end display
+
+The @cmd{PRINT} transformation writes variable data to an output file.
+@cmd{PRINT} is executed when a procedure causes the data to be read.
+Follow @cmd{PRINT} by @cmd{EXECUTE} to print variable data without
+invoking a procedure (@pxref{EXECUTE}).
+
+All @cmd{PRINT} subcommands are optional.
+
+The OUTFILE subcommand specifies the file to receive the output.  The
+file may be a file name as a string or a file handle (@pxref{FILE
+HANDLE}).  If OUTFILE is not present then output will be sent to PSPP's
+output listing file.
+
+The RECORDS subcommand specifies the number of lines to be output.  The
+number of lines may optionally be surrounded by parentheses.
+
+TABLE will cause the PRINT command to output a table to the listing file
+that describes what it will print to the output file.  NOTABLE, the
+default, suppresses this output table.
+
+Introduce the strings and variables to be printed with a slash
+(@samp{/}).  Optionally, the slash may be followed by a number
+indicating which output line will be specified.  In the absence of this
+line number, the next line number will be specified.  Multiple lines may
+be specified using multiple slashes with the intended output for a line
+following its respective slash.
+
+Literal strings may be printed.  Specify the string itself.  Optionally
+the string may be followed by a column number or range of column
+numbers, specifying the location on the line for the string to be
+printed.  Otherwise, the string will be printed at the current position
+on the line.
+
+Variables to be printed can be specified in the same ways as available
+for @cmd{DATA LIST FIXED} (@pxref{DATA LIST FIXED}).  In addition, a
+variable
+list may be followed by an asterisk (@samp{*}), which indicates that the
+variables should be printed in their dictionary print formats, separated
+by spaces.  A variable list followed by a slash or the end of command
+will be interpreted the same way.
+
+If a FORTRAN type specification is used to move backwards on the current
+line, then text is written at that point on the line, the line will be
+truncated to that length, although additional text being added will
+again extend the line to that length.
+
+@node PRINT EJECT, PRINT SPACE, PRINT, Data Input and Output
+@section PRINT EJECT
+@vindex PRINT EJECT
+
+@display
+PRINT EJECT 
+        OUTFILE='filename'
+        RECORDS=n_lines
+        @{NOTABLE,TABLE@}
+        /[line_no] arg@dots{}
+
+arg takes one of the following forms:
+        'string' [start-end]
+        var_list start-end [type_spec]
+        var_list (fortran_spec)
+        var_list *
+@end display
+
+@cmd{PRINT EJECT} writes data to an output file.  Before the data is
+written, the current page in the listing file is ejected.
+
+@xref{PRINT}, for more information on syntax and usage.
+
+@node PRINT SPACE, REREAD, PRINT EJECT, Data Input and Output
+@section PRINT SPACE
+@vindex PRINT SPACE
+
+@display
+PRINT SPACE OUTFILE='filename' n_lines.
+@end display
+
+@cmd{PRINT SPACE} prints one or more blank lines to an output file.
+
+The OUTFILE subcommand is optional.  It may be used to direct output to
+a file specified by file name as a string or file handle (@pxref{FILE
+HANDLE}).  If OUTFILE is not specified then output will be directed to
+the listing file.
+
+n_lines is also optional.  If present, it is an expression
+(@pxref{Expressions}) specifying the number of blank lines to be
+printed.  The expression must evaluate to a nonnegative value.
+
+@node REREAD, REPEATING DATA, PRINT SPACE, Data Input and Output
+@section REREAD
+@vindex REREAD
+
+@display
+REREAD FILE=handle COLUMN=column.
+@end display
+
+The @cmd{REREAD} transformation allows the previous input line in a
+data file
+already processed by @cmd{DATA LIST} or another input command to be re-read
+for further processing.
+
+The FILE subcommand, which is optional, is used to specify the file to
+have its line re-read.  The file must be specified in the form of a file
+handle (@pxref{FILE HANDLE}).  If FILE is not specified then the last
+file specified on @cmd{DATA LIST} will be assumed (last file specified
+lexically, not in terms of flow-of-control).
+
+By default, the line re-read is re-read in its entirety.  With the
+COLUMN subcommand, a prefix of the line can be exempted from
+re-reading.  Specify an expression (@pxref{Expressions}) evaluating to
+the first column that should be included in the re-read line.  Columns
+are numbered from 1 at the left margin.
+
+Issuing @code{REREAD} multiple times will not back up in the data
+file.  Instead, it will re-read the same line multiple times.
+
+@node REPEATING DATA, WRITE, REREAD, Data Input and Output
+@section REPEATING DATA
+@vindex REPEATING DATA
+
+@display
+REPEATING DATA
+        /STARTS=start-end
+        /OCCURS=n_occurs
+        /FILE='filename'
+        /LENGTH=length
+        /CONTINUED[=cont_start-cont_end]
+        /ID=id_start-id_end=id_var
+        /@{TABLE,NOTABLE@}
+        /DATA=var_spec@dots{}
+
+where each var_spec takes one of the forms
+        var_list start-end [type_spec]
+        var_list (fortran_spec)
+@end display
+
+@cmd{REPEATING DATA} parses groups of data repeating in
+a uniform format, possibly with several groups on a single line.  Each
+group of data corresponds with one case.  @cmd{REPEATING DATA} may only be
+used within an @cmd{INPUT PROGRAM} structure (@pxref{INPUT PROGRAM}).
+When used with @cmd{DATA LIST}, it
+can be used to parse groups of cases that share a subset of variables
+but differ in their other data.
+
+The STARTS subcommand is required.  Specify a range of columns, using
+literal numbers or numeric variable names.  This range specifies the
+columns on the first line that are used to contain groups of data.  The
+ending column is optional.  If it is not specified, then the record
+width of the input file is used.  For the inline file (@pxref{BEGIN
+DATA}) this is 80 columns; for a file with fixed record widths it is the
+record width; for other files it is 1024 characters by default.
+
+The OCCURS subcommand is required.  It must be a number or the name of a
+numeric variable.  Its value is the number of groups present in the
+current record.
+
+The DATA subcommand is required.  It must be the last subcommand
+specified.  It is used to specify the data present within each repeating
+group.  Column numbers are specified relative to the beginning of a
+group at column 1.  Data is specified in the same way as with @cmd{DATA LIST
+FIXED} (@pxref{DATA LIST FIXED}).
+
+All other subcommands are optional.
+
+FILE specifies the file to read, either a file name as a string or a
+file handle (@pxref{FILE HANDLE}).  If FILE is not present then the
+default is the last file handle used on @cmd{DATA LIST} (lexically, not in
+terms of flow of control).
+
+By default @cmd{REPEATING DATA} will output a table describing how it will
+parse the input data.  Specifying NOTABLE will disable this behavior;
+specifying TABLE will explicitly enable it.
+
+The LENGTH subcommand specifies the length in characters of each group.
+If it is not present then length is inferred from the DATA subcommand.
+LENGTH can be a number or a variable name.
+
+Normally all the data groups are expected to be present on a single
+line.  Use the CONTINUED command to indicate that data can be continued
+onto additional lines.  If data on continuation lines starts at the left
+margin and continues through the entire field width, no column
+specifications are necessary on CONTINUED.  Otherwise, specify the
+possible range of columns in the same way as on STARTS.
+
+When data groups are continued from line to line, it is easy
+for cases to get out of sync through careless hand editing.  The
+ID subcommand allows a case identifier to be present on each line of
+repeating data groups.  @cmd{REPEATING DATA} will check for the same
+identifier on each line and report mismatches.  Specify the range of
+columns that the identifier will occupy, followed by an equals sign
+(@samp{=}) and the identifier variable name.  The variable must already
+have been declared with @cmd{NUMERIC} or another command.
+
+@cmd{REPEATING DATA} should be the last command given within an
+@cmd{INPUT PROGRAM}.  It should not be enclosed within a @cmd{LOOP}
+structure (@pxref{LOOP}).  Use @cmd{DATA LIST} before, not after,
+@cmd{REPEATING DATA}.
+
+@node WRITE,  , REPEATING DATA, Data Input and Output
+@section WRITE
+@vindex WRITE
+
+@display
+WRITE 
+        OUTFILE='filename'
+        RECORDS=n_lines
+        @{NOTABLE,TABLE@}
+        /[line_no] arg@dots{}
+
+arg takes one of the following forms:
+        'string' [start-end]
+        var_list start-end [type_spec]
+        var_list (fortran_spec)
+        var_list *
+@end display
+
+@code{WRITE} writes text or binary data to an output file.  
+
+@xref{PRINT}, for more information on syntax and usage.  The main
+difference between @code{PRINT} and @code{WRITE} is that @cmd{WRITE}
+uses write formats by default, where PRINT uses print formats.
+
+The sole additional difference is that if @cmd{WRITE} is used to send output
+to a binary file, carriage control characters will not be output.
+@xref{FILE HANDLE}, for information on how to declare a file as binary.
+@setfilename ignored

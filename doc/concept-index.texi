@@ -1,0 +1,4 @@
+@node Concept Index, Installation, Command Index, Top
+@chapter Concept Index
+@printindex cp
+@setfilename ignored

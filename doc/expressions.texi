@@ -1,0 +1,1229 @@
+@node Expressions, Data Input and Output, Language, Top
+@chapter Mathematical Expressions
+@cindex expressions, mathematical
+@cindex mathematical expressions
+
+Some PSPP commands use expressions, which share a common syntax
+among all PSPP commands.  Expressions are made up of
+@dfn{operands}, which can be numbers, strings, or variable names,
+separated by @dfn{operators}.  There are five types of operators:
+grouping, arithmetic, logical, relational, and functions.
+
+Every operator takes one or more @dfn{arguments} as input and produces
+or @dfn{returns} exactly one result as output.  Both strings and numeric
+values can be used as arguments and are produced as results, but each
+operator accepts only specific combinations of numeric and string values
+as arguments.  With few exceptions, operator arguments may be
+full-fledged expressions in themselves.
+
+@menu
+* Boolean Values::              Boolean values.
+* Missing Values in Expressions::  Using missing values in expressions.
+* Grouping Operators::          parentheses
+* Arithmetic Operators::        add sub mul div pow
+* Logical Operators::           AND NOT OR
+* Relational Operators::        EQ GE GT LE LT NE
+* Functions::                   More-sophisticated operators.
+* Order of Operations::         Operator precedence.
+@end menu
+
+@node Boolean Values, Missing Values in Expressions, Expressions, Expressions
+@section Boolean Values
+@cindex Boolean
+@cindex values, Boolean
+
+Some PSPP operators and expressions work with Boolean values, which
+represent true/false conditions.  Booleans have only three possible
+values: 0 (false), 1 (true), and system-missing (unknown).
+System-missing is neither true nor false and indicates that the true
+value is unknown.
+
+Boolean-typed operands or function arguments must take on one of these
+three values.  Other values are considered false, but cause an error
+when the expression is evaluated.
+
+Strings and Booleans are not compatible, and neither may be used in
+place of the other.
+
+@node Missing Values in Expressions, Grouping Operators, Boolean Values, Expressions
+@section Missing Values in Expressions
+
+String missing values are not treated specially in expressions.  Most
+numeric operators return system-missing when given system-missing
+arguments.  Exceptions are listed under particular operator
+descriptions.
+
+User-missing values for numeric variables are always transformed into
+the system-missing value, except inside the arguments  to the
+@code{VALUE} and @code{SYSMIS} functions.
+
+The missing-value functions can be used to precisely control how missing
+values are treated in expressions.  @xref{Missing Value Functions}, for
+more details.
+
+@node Grouping Operators, Arithmetic Operators, Missing Values in Expressions, Expressions
+@section Grouping Operators
+@cindex parentheses
+@cindex @samp{(  )}
+@cindex grouping operators
+@cindex operators, grouping
+
+Parentheses (@samp{()}) are the grouping operators.  Surround an
+expression with parentheses to force early evaluation.
+
+Parentheses also surround the arguments to functions, but in that
+situation they act as punctuators, not as operators.
+
+@node Arithmetic Operators, Logical Operators, Grouping Operators, Expressions
+@section Arithmetic Operators
+@cindex operators, arithmetic
+@cindex arithmetic operators
+
+The arithmetic operators take numeric arguments and produce numeric
+results.
+
+@table @code
+@cindex @samp{+}
+@cindex addition
+@item @var{a} + @var{b}
+Adds @var{a} and @var{b}, returning the sum.
+
+@cindex @samp{-}
+@cindex subtraction
+@item @var{a} - @var{b}
+Subtracts @var{b} from @var{a}, returning the difference.
+
+@cindex @samp{*}
+@cindex multiplication
+@item @var{a} * @var{b}
+Multiplies @var{a} and @var{b}, returning the product.
+
+@cindex @samp{/}
+@cindex division
+@item @var{a} / @var{b}
+Divides @var{a} by @var{b}, returning the quotient.  If @var{b} is
+zero, the result is system-missing.
+
+@cindex @samp{**}
+@cindex exponentiation
+@item @var{a} ** @var{b}
+Returns the result of raising @var{a} to the power @var{b}.  If
+@var{a} is negative and @var{b} is not an integer, the result is
+system-missing.  The result of @code{0**0} is system-missing as well.
+
+@cindex @samp{-}
+@cindex negation
+@item - @var{a}
+Reverses the sign of @var{a}.  
+@end table
+
+@node Logical Operators, Relational Operators, Arithmetic Operators, Expressions
+@section Logical Operators
+@cindex logical operators
+@cindex operators, logical
+
+@cindex true
+@cindex false
+@cindex Boolean
+@cindex values, system-missing
+@cindex system-missing
+The logical operators take logical arguments and produce logical
+results, meaning ``true or false''.  PSPP logical operators are
+not true Boolean operators because they may also result in a
+system-missing value.
+
+@table @code
+@cindex @code{AND}
+@cindex @samp{&}
+@cindex intersection, logical
+@cindex logical intersection
+@item @var{a} AND @var{b}
+@itemx @var{a} & @var{b}
+True if both @var{a} and @var{b} are true, false otherwise.  If one
+argument is false, the result is false even if the other is missing.  If
+both arguments are missing, the result is missing.
+
+@cindex @code{OR}
+@cindex @samp{|}
+@cindex union, logical
+@cindex logical union
+@item @var{a} OR @var{b}
+@itemx @var{a} | @var{b}
+True if at least one of @var{a} and @var{b} is true.  If one argument is
+true, the result is true even if the other argument is missing.  If both
+arguments are missing, the result is missing.
+
+@cindex @code{NOT}
+@cindex @samp{~}
+@cindex inversion, logical
+@cindex logical inversion
+@item NOT @var{a}
+@itemx ~ @var{a}
+True if @var{a} is false.  If the argument is missing, then the result
+is missing.
+@end table
+
+@node Relational Operators, Functions, Logical Operators, Expressions
+@section Relational Operators
+
+The relational operators take numeric or string arguments and produce Boolean
+results.
+
+Strings cannot be compared to numbers.  When strings of different
+lengths are compared, the shorter string is right-padded with spaces
+to match the length of the longer string.
+
+The results of string comparisons, other than tests for equality or
+inequality, are dependent on the character set in use.  String
+comparisons are case-sensitive.
+
+@table @code
+@cindex equality, testing
+@cindex testing for equality
+@cindex @code{EQ}
+@cindex @samp{=}
+@item @var{a} EQ @var{b}
+@itemx @var{a} = @var{b}
+True if @var{a} is equal to @var{b}.
+
+@cindex less than or equal to
+@cindex @code{LE}
+@cindex @code{<=}
+@item @var{a} LE @var{b}
+@itemx @var{a} <= @var{b}
+True if @var{a} is less than or equal to @var{b}.
+
+@cindex less than
+@cindex @code{LT}
+@cindex @code{<}
+@item @var{a} LT @var{b}
+@itemx @var{a} < @var{b}
+True if @var{a} is less than @var{b}.
+
+@cindex greater than or equal to
+@cindex @code{GE}
+@cindex @code{>=}
+@item @var{a} GE @var{b}
+@itemx @var{a} >= @var{b}
+True if @var{a} is greater than or equal to @var{b}.
+
+@cindex greater than
+@cindex @code{GT}
+@cindex @samp{>}
+@item @var{a} GT @var{b}
+@itemx @var{a} > @var{b}
+True if @var{a} is greater than @var{b}.
+
+@cindex inequality, testing
+@cindex testing for inequality
+@cindex @code{NE}
+@cindex @code{~=}
+@cindex @code{<>}
+@item @var{a} NE @var{b}
+@itemx @var{a} ~= @var{b}
+@itemx @var{a} <> @var{b}
+True is @var{a} is not equal to @var{b}.
+@end table
+
+@node Functions, Order of Operations, Relational Operators, Expressions
+@section Functions
+@cindex functions
+
+@cindex mathematics
+@cindex operators
+@cindex parentheses
+@cindex @code{(}
+@cindex @code{)}
+@cindex names, of functions
+PSPP functions provide mathematical abilities above and beyond
+those possible using simple operators.  Functions have a common
+syntax: each is composed of a function name followed by a left
+parenthesis, one or more arguments, and a right parenthesis.  Function
+names are @strong{not} reserved; their names are specially treated
+only when followed by a left parenthesis: @code{EXP(10)} refers to the
+constant value @code{e} raised to the 10th power, but @code{EXP} by
+itself refers to the value of variable EXP.
+
+The sections below describe each function in detail.
+
+@menu
+* Advanced Mathematics::        EXP LG10 LN SQRT
+* Miscellaneous Mathematics::   ABS MOD MOD10 RND TRUNC
+* Trigonometry::                ACOS ARCOS ARSIN ARTAN ASIN ATAN COS SIN TAN
+* Missing Value Functions::     MISSING NMISS NVALID SYSMIS VALUE
+* Pseudo-Random Numbers::       NORMAL UNIFORM
+* Set Membership::              ANY RANGE
+* Statistical Functions::       CFVAR MAX MEAN MIN SD SUM VARIANCE
+* String Functions::            CONCAT INDEX LENGTH LOWER LPAD LTRIM NUMBER 
+                                RINDEX RPAD RTRIM STRING SUBSTR UPCASE
+* Time & Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
+* Miscellaneous Functions::     LAG YRMODA
+* Functions Not Implemented::   CDF.xxx CDFNORM IDF.xxx NCDF.xxx PROBIT RV.xxx
+@end menu
+
+@node Advanced Mathematics, Miscellaneous Mathematics, Functions, Functions
+@subsection Advanced Mathematical Functions
+@cindex mathematics, advanced
+
+Advanced mathematical functions take numeric arguments and produce
+numeric results.
+
+@deftypefn {Function} {} EXP (@var{exponent})
+Returns @i{e} (approximately 2.71828) raised to power @var{exponent}.
+@end deftypefn
+
+@cindex logarithms
+@deftypefn {Function} {} LG10 (@var{number})
+Takes the base-10 logarithm of @var{number}.  If @var{number} is
+not positive, the result is system-missing.
+@end deftypefn
+
+@deftypefn {Function} {} LN (@var{number})
+Takes the base-@i{e} logarithm of @var{number}.  If @var{number} is
+not positive, the result is system-missing.
+@end deftypefn
+
+@cindex square roots
+@deftypefn {Function} {} SQRT (@var{number})
+Takes the square root of @var{number}.  If @var{number} is negative,
+the result is system-missing.
+@end deftypefn
+
+@node Miscellaneous Mathematics, Trigonometry, Advanced Mathematics, Functions
+@subsection Miscellaneous Mathematical Functions
+@cindex mathematics, miscellaneous
+
+Miscellaneous mathematical functions take numeric arguments and produce
+numeric results.
+
+@cindex absolute value
+@deftypefn {Function} {} ABS (@var{number})
+Results in the absolute value of @var{number}.
+@end deftypefn
+
+@cindex modulus
+@deftypefn {Function} {} MOD (@var{numerator}, @var{denominator})
+Returns the remainder (modulus) of @var{numerator} divided by
+@var{denominator}.  If @var{denominator} is 0, the result is
+system-missing.  However, if @var{numerator} is 0 and
+@var{denominator} is system-missing, the result is 0.
+@end deftypefn
+
+@cindex modulus, by 10
+@deftypefn {Function} {} MOD10 (@var{number})
+Returns the remainder when @var{number} is divided by 10.  If
+@var{number} is negative, MOD10(@var{number}) is negative or zero.
+@end deftypefn
+
+@cindex rounding
+@deftypefn {Function} {} RND (@var{number})
+Takes the absolute value of @var{number} and rounds it to an integer.
+Then, if @var{number} was negative originally, negates the result.
+@end deftypefn
+
+@cindex truncation
+@deftypefn {Function} {} TRUNC (@var{number})
+Discards the fractional part of @var{number}; that is, rounds
+@var{number} towards zero.
+@end deftypefn
+
+@node Trigonometry, Missing Value Functions, Miscellaneous Mathematics, Functions
+@subsection Trigonometric Functions
+@cindex trigonometry
+
+Trigonometric functions take numeric arguments and produce numeric
+results.
+
+@cindex arccosine
+@cindex inverse cosine
+@deftypefn {Function} {} ARCOS (@var{number})
+Takes the arccosine, in radians, of @var{number}.  Results in
+system-missing if @var{number} is not between -1 and 1.
+@end deftypefn
+
+@cindex arcsine
+@cindex inverse sine
+@deftypefn {Function} {} ARSIN (@var{number})
+Takes the arcsine, in radians, of @var{number}.  Results in
+system-missing if @var{number} is not between -1 and 1 inclusive.
+@end deftypefn
+
+@cindex arctangent
+@cindex inverse tangent
+@deftypefn {Function} {} ARTAN (@var{number})
+Takes the arctangent, in radians, of @var{number}.
+@end deftypefn
+
+@cindex cosine
+@deftypefn {Function} {} COS (@var{angle})
+Takes the cosine of @var{angle} which should be in radians.
+@end deftypefn
+
+@cindex sine
+@deftypefn {Function} {} SIN (@var{angle})
+Takes the sine of @var{angle} which should be in radians.
+@end deftypefn
+
+@cindex tangent
+@deftypefn {Function} {} TAN (@var{angle})
+Takes the tangent of @var{angle} which should be in radians.
+Results in system-missing at values
+of @var{angle} that are too close to odd multiples of pi/2.
+Portability: none.
+@end deftypefn
+
+@node Missing Value Functions, Pseudo-Random Numbers, Trigonometry, Functions
+@subsection Missing-Value Functions
+@cindex missing values
+@cindex values, missing
+@cindex functions, missing-value
+
+Missing-value functions take various numeric arguments and yield
+various types of results.  Note that the normal rules of evaluation
+apply within expression arguments to these functions.  In particular,
+user-missing values for numeric variables are converted to
+system-missing values.
+
+@deftypefn {Function} {} MISSING (@var{expr})
+Returns 1 if @var{expr} has the system-missing value, 0 otherwise.
+@end deftypefn
+
+@deftypefn {Function} {} NMISS (@var{expr} [, @var{expr}]@dots{})
+Each argument must be a numeric expression.  Returns the number of
+system-missing values in the list.  As a special extension,
+the syntax @code{@var{var1} TO @var{var2}} may be used to refer to a
+range of variables; see @ref{Sets of Variables}, for more details.
+@end deftypefn
+
+@deftypefn {Function} {} NVALID (@var{expr} [, @var{expr}]@dots{})
+Each argument must be a numeric expression.  Returns the number of
+values in the list that are not system-missing.  As a special extension,
+the syntax @code{@var{var1} TO @var{var2}} may be used to refer to a
+range of variables; see @ref{Sets of Variables}, for more details.
+@end deftypefn
+
+@deftypefn {Function} {} SYSMIS (@var{expr})
+When @var{expr} is simply the name of a numeric variable, returns 1 if
+the variable has the system-missing value, 0 if it is user-missing or
+not missing.  If given @var{expr} takes another form, results in 1 if
+the value is system-missing, 0 otherwise.
+@end deftypefn
+
+@deftypefn {Function} {} VALUE (@var{variable})
+Prevents the user-missing values of @var{variable} from being
+transformed into system-missing values, and always results in the
+actual value of @var{variable}, whether it is user-missing,
+system-missing or not missing at all.
+@end deftypefn
+
+@node Pseudo-Random Numbers, Set Membership, Missing Value Functions, Functions
+@subsection Pseudo-Random Number Generation Functions
+@cindex random numbers
+@cindex pseudo-random numbers (see random numbers)
+
+Pseudo-random number generation functions take numeric arguments and
+produce numeric results.
+
+PSPP uses the alleged RC4 cipher as a pseudo-random number generator
+(PRNG).  The bytes output by this PRNG are system-independent for a
+given random seed, but differences in endianness and floating-point
+formats will make PRNG results differ from system to system.  RC4
+should produce high-quality random numbers for simulation purposes.
+(If you're concerned about the quality of the random number generator,
+well, you're using a statistical processing package---analyze it!)
+
+PSPP's implementation of RC4 has not undergone any security auditing.
+Furthermore, various precautions that would be necessary for secure
+operation, such as secure seeding and discarding the first several
+bytes of output, have not been taken.  Therefore, PSPP's
+implementation of RC4 should not be used for security purposes.
+
+@cindex random numbers, normally-distributed
+@deftypefn {Function} {} NORMAL (@var{number})
+Results in a random number.  Results from @code{NORMAL} are normally
+distributed with a mean of 0 and a standard deviation of @var{number}.
+@end deftypefn
+
+@cindex random numbers, uniformly-distributed
+@deftypefn {Function} {} UNIFORM (@var{number})
+Results in a random number between 0 and @var{number}.  Results from
+@code{UNIFORM} are evenly distributed across its entire range.  There
+may be a maximum on the largest random number ever generated---this is
+often 
+@ifinfo 
+2**31-1 
+@end ifinfo
+@tex
+$2^{31}-1$
+@end tex
+(2,147,483,647), but it may be orders of magnitude
+higher or lower.
+@end deftypefn
+
+@node Set Membership, Statistical Functions, Pseudo-Random Numbers, Functions
+@subsection Set-Membership Functions
+@cindex set membership
+@cindex membership, of set
+
+Set membership functions determine whether a value is a member of a set.
+They take a set of numeric arguments or a set of string arguments, and
+produce Boolean results.
+
+String comparisons are performed according to the rules given in
+@ref{Relational Operators}.
+
+@deftypefn {Function} {} ANY (@var{value}, @var{set} [, @var{set}]@dots{})
+Results in true if @var{value} is equal to any of the @var{set}
+values.  Otherwise, results in false.  If @var{value} is
+system-missing, returns system-missing.  System-missing values in
+@var{set} do not cause ANY to return system-missing.
+@end deftypefn
+
+@deftypefn {Function} {} RANGE (@var{value}, @var{low}, @var{high} [, @var{low}, @var{high}]@dots{})
+Results in true if @var{value} is in any of the intervals bounded by
+@var{low} and @var{high} inclusive.  Otherwise, results in false.
+Each @var{low} must be less than or equal to its corresponding
+@var{high} value.  @var{low} and @var{high} must be given in pairs.
+If @var{value} is system-missing, returns system-missing.
+System-missing values in @var{set} do not cause RANGE to return
+system-missing.
+@end deftypefn
+
+@node Statistical Functions, String Functions, Set Membership, Functions
+@subsection Statistical Functions
+@cindex functions, statistical
+@cindex statistics
+
+Statistical functions compute descriptive statistics on a list of
+values.  Some statistics can be computed on numeric or string values;
+other can only be computed on numeric values.  Their results have the
+same type as their arguments.  The current case's weighting factor
+(@pxref{WEIGHT}) has no effect on statistical functions.
+
+@cindex arguments, minimum valid
+@cindex minimum valid number of arguments
+With statistical functions it is possible to specify a minimum number of
+non-missing arguments for the function to be evaluated.  To do so,
+append a dot and the number to the function name.  For instance, to
+specify a minimum of three valid arguments to the MEAN function, use the
+name @code{MEAN.3}.
+
+@cindex coefficient of variation
+@cindex variation, coefficient of
+@deftypefn {Function} {} CFVAR (@var{number}, @var{number}[, @dots{}])
+Results in the coefficient of variation of the values of @var{number}.
+This function requires at least two valid arguments to give a
+non-missing result.  (The coefficient of variation is the standard
+deviation divided by the mean.)
+@end deftypefn
+
+@cindex maximum
+@deftypefn {Function} {} MAX (@var{value}, @var{value}[, @dots{}])
+Results in the value of the greatest @var{value}.  The @var{value}s may
+be numeric or string.  Although at least two arguments must be given,
+only one need be valid for MAX to give a non-missing result.
+@end deftypefn
+
+@cindex mean
+@deftypefn {Function} {} MEAN (@var{number}, @var{number}[, @dots{}])
+Results in the mean of the values of @var{number}.  Although at least
+two arguments must be given, only one need be valid for MEAN to give a
+non-missing result.
+@end deftypefn
+
+@cindex minimum
+@deftypefn {Function} {} MIN (@var{number}, @var{number}[, @dots{}])
+Results in the value of the least @var{value}.  The @var{value}s may
+be numeric or string.  Although at least two arguments must be given,
+only one need be valid for MAX to give a non-missing result.
+@end deftypefn
+
+@cindex standard deviation
+@cindex deviation, standard
+@deftypefn {Function} {} SD (@var{number}, @var{number}[, @dots{}])
+Results in the standard deviation of the values of @var{number}.
+This function requires at least two valid arguments to give a
+non-missing result.
+@end deftypefn
+
+@cindex sum
+@deftypefn {Function} {} SUM (@var{number}, @var{number}[, @dots{}])
+Results in the sum of the values of @var{number}.  Although at least two
+arguments must be given, only one need by valid for SUM to give a
+non-missing result.
+@end deftypefn
+
+@cindex variance
+@deftypefn {Function} {} VARIANCE (@var{number}, @var{number}[, @dots{}])
+Results in the variance of the values of @var{number}.  This function
+requires at least two valid arguments to give a non-missing result.
+@end deftypefn
+
+@node String Functions, Time & Date, Statistical Functions, Functions
+@subsection String Functions
+@cindex functions, string
+@cindex string functions
+
+String functions take various arguments and return various results.
+
+@cindex concatenation
+@cindex strings, concatenation of
+@deftypefn {Function} {} CONCAT (@var{string}, @var{string}[, @dots{}])
+Returns a string consisting of each @var{string} in sequence.
+@code{CONCAT("abc", "def", "ghi")} has a value of @code{"abcdefghi"}.
+The resultant string is truncated to a maximum of 255 characters.
+@end deftypefn
+
+@cindex searching strings
+@deftypefn {Function} {} INDEX (@var{haystack}, @var{needle})
+Returns a positive integer indicating the position of the first
+occurrence @var{needle} in @var{haystack}.  Returns 0 if @var{haystack}
+does not contain @var{needle}.  Returns system-missing if @var{needle}
+is an empty string.
+@end deftypefn
+
+@deftypefn {Function} {} INDEX (@var{haystack}, @var{needle}, @var{divisor})
+Divides @var{needle} into parts, each with length @var{divisor}.
+Searches @var{haystack} for the first occurrence of each part, and
+returns the smallest value.  Returns 0 if @var{haystack} does not
+contain any part in @var{needle}.  It is an error if @var{divisor}
+cannot be evenly divided into the length of @var{needle}.  Returns
+system-missing if @var{needle} is an empty string.
+@end deftypefn
+
+@cindex strings, finding length of
+@deftypefn {Function} {} LENGTH (@var{string})
+Returns the number of characters in @var{string}.
+@end deftypefn
+
+@cindex strings, case of
+@deftypefn {Function} {} LOWER (@var{string})
+Returns a string identical to @var{string} except that all uppercase
+letters are changed to lowercase letters.  The definitions of
+``uppercase'' and ``lowercase'' are system-dependent.
+@end deftypefn
+
+@cindex strings, padding
+@deftypefn {Function} {} LPAD (@var{string}, @var{length})
+If @var{string} is at least @var{length} characters in length, returns
+@var{string} unchanged.  Otherwise, returns @var{string} padded with
+spaces on the left side to length @var{length}.  Returns an empty string
+if @var{length} is system-missing, negative, or greater than 255.
+@end deftypefn
+
+@deftypefn {Function} {} LPAD (@var{string}, @var{length}, @var{padding})
+If @var{string} is at least @var{length} characters in length, returns
+@var{string} unchanged.  Otherwise, returns @var{string} padded with
+@var{padding} on the left side to length @var{length}.  Returns an empty
+string if @var{length} is system-missing, negative, or greater than 255, or
+if @var{padding} does not contain exactly one character.
+@end deftypefn
+
+@cindex strings, trimming
+@cindex whitespace, trimming
+@deftypefn {Function} {} LTRIM (@var{string})
+Returns @var{string}, after removing leading spaces.  Other whitespace,
+such as tabs, carriage returns, line feeds, and vertical tabs, is not
+removed.
+@end deftypefn
+
+@deftypefn {Function} {} LTRIM (@var{string}, @var{padding})
+Returns @var{string}, after removing leading @var{padding} characters.
+If @var{padding} does not contain exactly one character, returns an
+empty string.
+@end deftypefn
+
+@cindex numbers, converting from strings
+@cindex strings, converting to numbers
+@deftypefn {Function} {} NUMBER (@var{string}, @var{format})
+Returns the number produced when @var{string} is interpreted according
+to format specifier @var{format}.  If the format width @var{w} is less
+than the length of @var{string}, then only the first @var{w}
+characters in @var{string} are used, e.g.@: @code{NUMBER("123", F3.0)}
+and @code{NUMBER("1234", F3.0)} both have value 123.  If @var{w} is
+greater than @var{string}'s length, then it is treated as if it were
+right-padded with spaces.  If @var{string} is not in the correct
+format for @var{format}, system-missing is returned.
+@end deftypefn
+
+@cindex strings, searching backwards
+@deftypefn {Function} {} RINDEX (@var{string}, @var{format})
+Returns a positive integer indicating the position of the last
+occurrence of @var{needle} in @var{haystack}.  Returns 0 if
+@var{haystack} does not contain @var{needle}.  Returns system-missing if
+@var{needle} is an empty string.
+@end deftypefn
+
+@deftypefn {Function} {} RINDEX (@var{haystack}, @var{needle}, @var{divisor})
+Divides @var{needle} into parts, each with length @var{divisor}.
+Searches @var{haystack} for the last occurrence of each part, and
+returns the largest value.  Returns 0 if @var{haystack} does not contain
+any part in @var{needle}.  It is an error if @var{divisor} cannot be
+evenly divided into the length of @var{needle}.  Returns system-missing
+if @var{needle} is an empty string.
+@end deftypefn
+
+@cindex padding strings
+@cindex strings, padding
+@deftypefn {Function} {} RPAD (@var{string}, @var{length})
+If @var{string} is at least @var{length} characters in length, returns
+@var{string} unchanged.  Otherwise, returns @var{string} padded with
+spaces on the right to length @var{length}.  Returns an empty string if
+@var{length} is system-missing, negative, or greater than 255.
+@end deftypefn
+
+@deftypefn {Function} {} RPAD (@var{string}, @var{length}, @var{padding})
+If @var{string} is at least @var{length} characters in length, returns
+@var{string} unchanged.  Otherwise, returns @var{string} padded with
+@var{padding} on the right to length @var{length}.  Returns an empty
+string if @var{length} is system-missing, negative, or greater than 255,
+or if @var{padding} does not contain exactly one character.
+@end deftypefn
+
+@cindex strings, trimming
+@cindex whitespace, trimming
+@deftypefn {Function} {} RTRIM (@var{string})
+Returns @var{string}, after removing trailing spaces.  Other types of
+whitespace are not removed.
+@end deftypefn
+
+@deftypefn {Function} {} RTRIM (@var{string}, @var{padding})
+Returns @var{string}, after removing trailing @var{padding} characters.
+If @var{padding} does not contain exactly one character, returns an
+empty string.
+@end deftypefn
+
+@cindex strings, converting from numbers
+@cindex numbers, converting to strings
+@deftypefn {Function} {} STRING (@var{number}, @var{format})
+Returns a string corresponding to @var{number} in the format given by
+format specifier @var{format}.  For example, @code{STRING(123.56, F5.1)}
+has the value @code{"123.6"}.
+@end deftypefn
+
+@cindex substrings
+@cindex strings, taking substrings of
+@deftypefn {Function} {} SUBSTR (@var{string}, @var{start})
+Returns a string consisting of the value of @var{string} from position
+@var{start} onward.  Returns an empty string if @var{start} is system-missing
+or has a value less than 1 or greater than the number of characters in
+@var{string}.
+@end deftypefn
+
+@deftypefn {Function} {} SUBSTR (@var{string}, @var{start}, @var{count})
+Returns a string consisting of the first @var{count} characters from
+@var{string} beginning at position @var{start}.  Returns an empty string
+if @var{start} or @var{count} is system-missing, if @var{start} is less
+than 1 or greater than the number of characters in @var{string}, or if
+@var{count} is less than 1.  Returns a string shorter than @var{count}
+characters if @var{start} + @var{count} - 1 is greater than the number
+of characters in @var{string}.  Examples: @code{SUBSTR("abcdefg", 3, 2)}
+has value @code{"cd"}; @code{SUBSTR("Ben Pfaff", 5, 10)} has the value
+@code{"Pfaff"}.
+@end deftypefn
+
+@cindex case conversion
+@cindex strings, case of
+@deftypefn {Function} {} UPCASE (@var{string})
+Returns @var{string}, changing lowercase letters to uppercase letters.
+@end deftypefn
+
+@node Time & Date, Miscellaneous Functions, String Functions, Functions
+@subsection Time & Date Functions
+@cindex functions, time & date
+@cindex times
+@cindex dates
+
+@cindex dates, legal range of
+The legal range of dates for use in PSPP is 15 Oct 1582
+through 31 Dec 19999.
+
+@cindex arguments, invalid
+@cindex invalid arguments
+@quotation
+@strong{Please note:} Most time & date extraction functions will accept
+invalid arguments:
+
+@itemize @bullet
+@item
+Negative numbers in PSPP time format.
+@item
+Numbers less than 86,400 in PSPP date format.
+@end itemize
+
+However, sensible results are not guaranteed for these invalid values.
+The given equivalents for these functions are definitely not guaranteed
+for invalid values.
+@end quotation
+
+@quotation
+@strong{Please note also:} The time & date construction
+functions @strong{do} produce reasonable and useful results for
+out-of-range values; these are not considered invalid.
+@end quotation
+
+@menu
+* Time & Date Concepts::        How times & dates are defined and represented
+* Time Construction::           TIME.@{DAYS HMS@}
+* Time Extraction::             CTIME.@{DAYS HOURS MINUTES SECONDS@}
+* Date Construction::           DATE.@{DMY MDY MOYR QYR WKYR YRDAY@}
+* Date Extraction::             XDATE.@{DATE HOUR JDAY MDAY MINUTE MONTH
+                                       QUARTER SECOND TDAY TIME WEEK
+                                       WKDAY YEAR@}
+@end menu
+
+@node Time & Date Concepts, Time Construction, Time & Date, Time & Date
+@subsubsection How times & dates are defined and represented
+
+@cindex time, concepts
+@cindex time, intervals
+Times and dates are handled by PSPP as single numbers.  A
+@dfn{time} is an interval.  PSPP measures times in seconds.
+Thus, the following intervals correspond with the numeric values given:
+                
+@example
+          10 minutes                        600
+          1 hour                          3,600
+          1 day, 3 hours, 10 seconds     97,210
+          40 days                     3,456,000
+          10010 d, 14 min, 24 s     864,864,864
+@end example
+
+@cindex dates, concepts
+@cindex time, instants of
+A @dfn{date}, on the other hand, is a particular instant in the past or
+the future.  PSPP represents a date as a number of seconds after the
+midnight that separated 8 Oct 1582 and 9 Oct 1582.  (Please note that 15
+Oct 1582 immediately followed 9 Oct 1582.)  Thus, the midnights before
+the dates given below correspond with the numeric PSPP dates given:
+
+@example
+              15 Oct 1582                86,400
+               4 Jul 1776         6,113,318,400
+               1 Jan 1900        10,010,390,400
+               1 Oct 1978        12,495,427,200
+              24 Aug 1995        13,028,601,600
+@end example
+
+@cindex time, mathematical properties of
+@cindex mathematics, applied to times & dates
+@cindex dates, mathematical properties of
+@noindent
+Please note: 
+
+@itemize @bullet
+@item
+A time may be added to, or subtracted from, a date, resulting in a date.
+
+@item
+The difference of two dates may be taken, resulting in a time.  
+
+@item 
+Two times may be added to, or subtracted from, each other, resulting in
+a time.
+@end itemize
+
+(Adding two dates does not produce a useful result.)
+
+Since times and dates are merely numbers, the ordinary addition and
+subtraction operators are employed for these purposes.
+
+@quotation
+@strong{Please note:} Many dates and times have extremely large
+values---just look at the values above.  Thus, it is not a good idea to
+take powers of these values; also, the accuracy of some procedures may
+be affected.  If necessary, convert times or dates in seconds to some
+other unit, like days or years, before performing analysis.
+@end quotation
+
+@node Time Construction, Time Extraction, Time & Date Concepts, Time & Date
+@subsubsection Functions that Produce Times
+@cindex times, constructing
+@cindex constructing times
+
+These functions take numeric arguments and produce numeric results in
+PSPP time format.
+
+@cindex days
+@cindex time, in days
+@deftypefn {Function} {} TIME.DAYS (@var{ndays})
+Results in a time value corresponding to @var{ndays} days.
+(@code{TIME.DAYS(@var{x})} is equivalent to @code{@var{x} * 60 * 60 *
+24}.)
+@end deftypefn
+
+@cindex hours-minutes-seconds
+@cindex time, in hours-minutes-seconds
+@deftypefn {Function} {} TIME.HMS (@var{nhours}, @var{nmins}, @var{nsecs})
+Results in a time value corresponding to @var{nhours} hours, @var{nmins}
+minutes, and @var{nsecs} seconds.  (@code{TIME.HMS(@var{h}, @var{m},
+@var{s})} is equivalent to @code{@var{h}*60*60 + @var{m}*60 +
+@var{s}}.)
+@end deftypefn
+
+@node Time Extraction, Date Construction, Time Construction, Time & Date
+@subsubsection Functions that Examine Times
+@cindex extraction, of time
+@cindex time examination
+@cindex examination, of times
+@cindex time, lengths of
+
+These functions take numeric arguments in PSPP time format and
+give numeric results.
+
+@cindex days
+@cindex time, in days
+@deftypefn {Function} {} CTIME.DAYS (@var{time})
+Results in the number of days and fractional days in @var{time}.
+(@code{CTIME.DAYS(@var{x})} is equivalent to @code{@var{x}/60/60/24}.)
+@end deftypefn
+
+@cindex hours
+@cindex time, in hours
+@deftypefn {Function} {} CTIME.HOURS (@var{time})
+Results in the number of hours and fractional hours in @var{time}.
+(@code{CTIME.HOURS(@var{x})} is equivalent to @code{@var{x}/60/60}.)
+@end deftypefn
+
+@cindex minutes
+@cindex time, in minutes
+@deftypefn {Function} {} CTIME.MINUTES (@var{time})
+Results in the number of minutes and fractional minutes in @var{time}.
+(@code{CTIME.MINUTES(@var{x})} is equivalent to @code{@var{x}/60}.)
+@end deftypefn
+
+@cindex seconds
+@cindex time, in seconds
+@deftypefn {Function} {} CTIME.SECONDS (@var{time})
+Results in the number of seconds and fractional seconds in @var{time}.
+(@code{CTIME.SECONDS} does nothing; @code{CTIME.SECONDS(@var{x})} is
+equivalent to @code{@var{x}}.)
+@end deftypefn
+
+@node Date Construction, Date Extraction, Time Extraction, Time & Date
+@subsubsection Functions that Produce Dates
+@cindex dates, constructing
+@cindex constructing dates
+
+@cindex arguments, of date construction functions
+These functions take numeric arguments and give numeric results in the
+PSPP date format.  Arguments taken by these functions are:
+
+@table @var
+@item day
+Refers to a day of the month between 1 and 31.
+
+@item month
+Refers to a month of the year between 1 and 12.
+
+@item quarter
+Refers to a quarter of the year between 1 and 4.  The quarters of the
+year begin on the first days of months 1, 4, 7, and 10.
+
+@item week
+Refers to a week of the year between 1 and 53.
+
+@item yday
+Refers to a day of the year between 1 and 366.
+
+@item year
+Refers to a year between 1582 and 19999.
+@end table
+
+@cindex arguments, invalid
+If these functions' arguments are out-of-range, they are correctly
+normalized before conversion to date format.  Non-integers are rounded
+toward zero.
+
+@cindex day-month-year
+@cindex dates, day-month-year
+@deftypefn {Function} {} DATE.DMY (@var{day}, @var{month}, @var{year})
+@deftypefnx {Function} {} DATE.MDY (@var{month}, @var{day}, @var{year})
+Results in a date value corresponding to the midnight before day
+@var{day} of month @var{month} of year @var{year}.
+@end deftypefn
+
+@cindex month-year
+@cindex dates, month-year
+@deftypefn {Function} {} DATE.MOYR (@var{month}, @var{year})
+Results in a date value corresponding to the midnight before the first
+day of month @var{month} of year @var{year}.
+@end deftypefn
+
+@cindex quarter-year
+@cindex dates, quarter-year
+@deftypefn {Function} {} DATE.QYR (@var{quarter}, @var{year})
+Results in a date value corresponding to the midnight before the first
+day of quarter @var{quarter} of year @var{year}.
+@end deftypefn
+
+@cindex week-year
+@cindex dates, week-year
+@deftypefn {Function} {} DATE.WKYR (@var{week}, @var{year})
+Results in a date value corresponding to the midnight before the first
+day of week @var{week} of year @var{year}.
+@end deftypefn
+
+@cindex year-day
+@cindex dates, year-day
+@deftypefn {Function} {} DATE.YRDAY (@var{year}, @var{yday})
+Results in a date value corresponding to the midnight before day
+@var{yday} of year @var{year}.
+@end deftypefn
+
+@node Date Extraction,  , Date Construction, Time & Date
+@subsubsection Functions that Examine Dates
+@cindex extraction, of dates
+@cindex date examination
+
+@cindex arguments, of date extraction functions
+These functions take numeric arguments in PSPP date or time
+format and give numeric results.  These names are used for arguments:
+
+@table @var
+@item date
+A numeric value in PSPP date format.
+
+@item time
+A numeric value in PSPP time format.
+
+@item time-or-date
+A numeric value in PSPP time or date format.
+@end table
+
+@cindex days
+@cindex dates, in days
+@cindex time, in days
+@deftypefn {Function} {} XDATE.DATE (@var{time-or-date})
+For a time, results in the time corresponding to the number of whole
+days @var{date-or-time} includes.  For a date, results in the date
+corresponding to the latest midnight at or before @var{date-or-time};
+that is, gives the date that @var{date-or-time} is in.
+(XDATE.DATE(@var{x}) is equivalent to TRUNC(@var{x}/86400)*86400.)
+Applying this function to a time is a non-portable feature.
+@end deftypefn
+
+@cindex hours
+@cindex dates, in hours
+@cindex time, in hours
+@deftypefn {Function} {} XDATE.HOUR (@var{time-or-date})
+For a time, results in the number of whole hours beyond the number of
+whole days represented by @var{date-or-time}.  For a date, results in
+the hour (as an integer between 0 and 23) corresponding to
+@var{date-or-time}.  (XDATE.HOUR(@var{x}) is equivalent to
+MOD(TRUNC(@var{x}/3600),24))  Applying this function to a time is a
+non-portable feature.
+@end deftypefn
+
+@cindex day of the year
+@cindex dates, day of the year
+@deftypefn {Function} {} XDATE.JDAY (@var{date})
+Results in the day of the year (as an integer between 1 and 366)
+corresponding to @var{date}.
+@end deftypefn
+
+@cindex day of the month
+@cindex dates, day of the month
+@deftypefn {Function} {} XDATE.MDAY (@var{date})
+Results in the day of the month (as an integer between 1 and 31)
+corresponding to @var{date}.
+@end deftypefn
+
+@cindex minutes
+@cindex dates, in minutes
+@cindex time, in minutes
+@deftypefn {Function} {} XDATE.MINUTE (@var{time-or-date})
+Results in the number of minutes (as an integer between 0 and 59) after
+the last hour in @var{time-or-date}.  (XDATE.MINUTE(@var{x}) is
+equivalent to MOD(TRUNC(@var{x}/60),60)) Applying this function to a
+time is a non-portable feature.
+@end deftypefn
+
+@cindex months
+@cindex dates, in months
+@deftypefn {Function} {} XDATE.MONTH (@var{date})
+Results in the month of the year (as an integer between 1 and 12)
+corresponding to @var{date}.
+@end deftypefn
+
+@cindex quarters
+@cindex dates, in quarters
+@deftypefn {Function} {} XDATE.QUARTER (@var{date})
+Results in the quarter of the year (as an integer between 1 and 4)
+corresponding to @var{date}.
+@end deftypefn
+
+@cindex seconds
+@cindex dates, in seconds
+@cindex time, in seconds
+@deftypefn {Function} {} XDATE.SECOND (@var{time-or-date})
+Results in the number of whole seconds after the last whole minute (as
+an integer between 0 and 59) in @var{time-or-date}.
+(XDATE.SECOND(@var{x}) is equivalent to MOD(@var{x}, 60).)  Applying
+this function to a time is a non-portable feature.
+@end deftypefn
+
+@cindex days
+@cindex times, in days
+@deftypefn {Function} {} XDATE.TDAY (@var{time})
+Results in the number of whole days (as an integer) in @var{time}.
+(XDATE.TDAY(@var{x}) is equivalent to TRUNC(@var{x}/86400).)
+@end deftypefn
+
+@cindex time
+@cindex dates, time of day
+@deftypefn {Function} {} XDATE.TIME (@var{date})
+Results in the time of day at the instant corresponding to @var{date},
+in PSPP time format.  This is the number of seconds since
+midnight on the day corresponding to @var{date}.  (XDATE.TIME(@var{x}) is
+equivalent to TRUNC(@var{x}/86400)*86400.)
+@end deftypefn
+
+@cindex week
+@cindex dates, in weeks
+@deftypefn {Function} {} XDATE.WEEK (@var{date})
+Results in the week of the year (as an integer between 1 and 53)
+corresponding to @var{date}.
+@end deftypefn
+
+@cindex day of the week
+@cindex weekday
+@cindex dates, day of the week
+@cindex dates, in weekdays
+@deftypefn {Function} {} XDATE.WKDAY (@var{date})
+Results in the day of week (as an integer between 1 and 7) corresponding
+to @var{date}.  The days of the week are:
+
+@table @asis
+@item 1
+Sunday
+@item 2
+Monday
+@item 3
+Tuesday
+@item 4
+Wednesday
+@item 5
+Thursday
+@item 6
+Friday
+@item 7
+Saturday
+@end table
+@end deftypefn
+
+@cindex years
+@cindex dates, in years
+@deftypefn {Function} {} XDATE.YEAR (@var{date})
+Returns the year (as an integer between 1582 and 19999) corresponding to
+@var{date}.
+@end deftypefn
+
+@node Miscellaneous Functions, Functions Not Implemented, Time & Date, Functions
+@subsection Miscellaneous Functions
+@cindex functions, miscellaneous
+
+Miscellaneous functions take various arguments and produce various
+results.
+
+@cindex cross-case function
+@cindex function, cross-case
+@deftypefn {Function} {} LAG (@var{variable})
+@anchor{LAG}
+@var{variable} must be a numeric or string variable name.  @code{LAG}
+results in the value of that variable for the case before the current
+one.  In case-selection procedures, @code{LAG} results in the value of
+the variable for the last case selected.  Results in system-missing (for
+numeric variables) or blanks (for string variables) for the first case
+or before any cases are selected.
+@end deftypefn
+
+@deftypefn {Function} {} LAG (@var{variable}, @var{ncases})
+@var{variable} must be a numeric or string variable name.  @var{ncases}
+must be a small positive constant integer, although there is no explicit
+limit.  (Use of a large value for @var{ncases} will increase memory
+consumption, since PSPP must keep @var{ncases} cases in memory.)
+@code{LAG (@var{variable}, @var{ncases}} results in the value of
+@var{variable} that is @var{ncases} before the case currently being
+processed.  See @code{LAG (@var{variable})} above for more details.
+@end deftypefn
+
+@cindex date, Julian
+@cindex Julian date
+@deftypefn {Function} {} YRMODA (@var{year}, @var{month}, @var{day})
+@var{year} is a year between 0 and 199 or 1582 and 19999.  @var{month} is
+a month between 1 and 12.  @var{day} is a day between 1 and 31.  If
+@var{month} or @var{day} is out-of-range, it changes the next higher
+unit.  For instance, a @var{day} of 0 refers to the last day of the
+previous month, and a @var{month} of 13 refers to the first month of the
+next year.  @var{year} must be in range.  If @var{year} is between 0 and
+199, 1900 is added.  @var{year}, @var{month}, and @var{day} must all be
+integers.
+
+@code{YRMODA} results in the number of days between 15 Oct 1582 and
+the date specified, plus one.  The date passed to @code{YRMODA} must be
+on or after 15 Oct 1582.  15 Oct 1582 has a value of 1.
+@end deftypefn
+
+@node Functions Not Implemented,  , Miscellaneous Functions, Functions
+@subsection Functions Not Implemented
+@cindex functions, not implemented
+@cindex not implemented
+@cindex features, not implemented
+
+These functions are not yet implemented and thus not yet documented,
+since it's a hassle.
+
+@findex CDF.xxx
+@findex CDFNORM
+@findex IDF.xxx
+@findex NCDF.xxx
+@findex PROBIT
+@findex RV.xxx
+
+@itemize @bullet
+@item
+@code{CDF.xxx}
+@item
+@code{CDFNORM}
+@item
+@code{IDF.xxx}
+@item
+@code{NCDF.xxx}
+@item
+@code{PROBIT}
+@item
+@code{RV.xxx}
+@end itemize
+
+@node Order of Operations,  , Functions, Expressions
+@section Operator Precedence
+@cindex operator precedence
+@cindex precedence, operator
+@cindex order of operations
+@cindex operations, order of
+
+The following table describes operator precedence.  Smaller-numbered
+levels in the table have higher precedence.  Within a level, operations
+are performed from left to right, except for level 2 (exponentiation),
+where operations are performed from right to left.  If an operator
+appears in the table in two places (@code{-}), the first occurrence is
+unary, the second is binary.
+
+@enumerate
+@item
+@code{(  )}
+@item
+@code{**}
+@item
+@code{-}
+@item
+@code{*  /}
+@item
+@code{+  -}
+@item
+@code{EQ  GE  GT  LE  LT  NE}
+@item
+@code{AND  NOT  OR}
+@end enumerate
+@setfilename ignored

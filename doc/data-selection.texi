@@ -1,0 +1,315 @@
+@node Data Selection, Conditionals and Looping, Data Manipulation, Top
+@chapter Selecting data for analysis
+
+This chapter documents PSPP commands that temporarily or permanently
+select data records from the active file for analysis.
+
+@menu
+* FILTER::                      Exclude cases based on a variable.
+* N OF CASES::                  Limit the size of the active file.
+* PROCESS IF::                  Temporarily excluding cases.
+* SAMPLE::                      Select a specified proportion of cases.
+* SELECT IF::                   Permanently delete selected cases.
+* SPLIT FILE::                  Do multiple analyses with one command.
+* TEMPORARY::                   Make transformations' effects temporary.
+* WEIGHT::                      Weight cases by a variable.
+@end menu
+
+@node FILTER, N OF CASES, Data Selection, Data Selection
+@section FILTER
+@vindex FILTER
+
+@display
+FILTER BY var_name.
+FILTER OFF.
+@end display
+
+@cmd{FILTER} allows a boolean-valued variable to be used to select
+cases from the data stream for processing.
+
+To set up filtering, specify BY and a variable name.  Keyword
+BY is optional but recommended.  Cases which have a zero or system- or
+user-missing value are excluded from analysis, but not deleted from the
+data stream.  Cases with other values are analyzed.
+To filter based on a different condition, use
+transformations such as @cmd{COMPUTE} or @cmd{RECODE} to compute a
+filter variable of the required form, then specify that variable on
+@cmd{FILTER}.
+
+@code{FILTER OFF} turns off case filtering.
+
+Filtering takes place immediately before cases pass to a procedure for
+analysis.  Only one filter variable may be active at a time.  Normally,
+case filtering continues until it is explicitly turned off with @code{FILTER
+OFF}.  However, if @cmd{FILTER} is placed after TEMPORARY, it filters only
+the next procedure or procedure-like command.
+
+@node N OF CASES, PROCESS IF, FILTER, Data Selection
+@section N OF CASES
+@vindex N OF CASES
+
+@display
+N [OF CASES] num_of_cases [ESTIMATED].
+@end display
+
+Sometimes you may want to disregard cases of your input.  @cmd{N} can
+do this.  @code{N 100} tells PSPP to disregard all cases after the
+first 100.
+
+If the value specified for @cmd{N} is greater than the number of cases
+read in, the value is ignored.
+
+@cmd{N} does not discard cases or prevent them from being read.  It
+just causes cases beyond the last one specified to be ignored by data
+analysis commands.
+
+A later @cmd{N} command can increase or decrease the number of cases
+selected.  (To select all the cases without knowing how many there are,
+specify a very high number: 100000 or whatever you think is large enough.)
+
+Transformation procedures performed after @cmd{N} is executed
+@emph{do} cause cases to be discarded.
+
+@cmd{SAMPLE}, @cmd{PROCESS IF}, and @cmd{SELECT IF} have
+precedence over @cmd{N}---the same results are obtained by both of the
+following fragments, given the same random number seeds:
+
+@example
+@i{@dots{}set up, read in data@dots{}}
+N 100.
+SAMPLE .5.
+@i{@dots{}analyze data@dots{}}
+
+@i{@dots{}set up, read in data@dots{}}  
+SAMPLE .5.
+N 100.
+@i{@dots{}analyze data@dots{}}
+@end example
+
+Both fragments above first randomly sample approximately half of the
+cases, then select the first 100 of those sampled.
+
+@cmd{N} with the @code{ESTIMATED} keyword gives an
+estimated number of cases before @cmd{DATA LIST} or another command to
+read in data.  @code{ESTIMATED} never limits the number of cases
+processed by procedures.  PSPP currently does not make use of
+case count estimates.
+
+When @cmd{N} is specified after @cmd{TEMPORARY}, it affects only
+the next procedure (@pxref{TEMPORARY}).
+
+@node PROCESS IF, SAMPLE, N OF CASES, Data Selection
+@section PROCESS IF
+@vindex PROCESS IF
+
+@example
+PROCESS IF expression.
+@end example
+
+@cmd{PROCESS IF} temporarily eliminates cases from the
+data stream.  Its effects are active only through the execution of the
+next procedure or procedure-like command.
+
+Specify a boolean expression (@pxref{Expressions}).  If the value of the
+expression is true for a particular case, the case will be analyzed.  If
+the expression has a false or missing value, then the case will be
+deleted from the data stream for this procedure only.
+
+Regardless of its placement relative to other commands, @cmd{PROCESS IF}
+always takes effect immediately before data passes to the procedure.
+Only one @cmd{PROCESS IF} command may be in effect at any given time.
+
+The effects of @cmd{PROCESS IF} are similar, but not identical, to the
+effects of executing @cmd{TEMPORARY}, then @cmd{SELECT IF}
+(@pxref{SELECT IF}).
+
+The filtering performed by @cmd{PROCESS IF} takes place immediately
+before cases pass to a procedure for analysis.  Because @cmd{PROCESS
+IF} affects only a single procedure, its placement relative to
+@cmd{TEMPORARY} is unimportant.
+
+@cmd{PROCESS IF} is deprecated.  It is included for compatibility with
+old command files.  New syntax files should use @cmd{SELECT IF} or
+@cmd{FILTER} instead.
+
+@node SAMPLE, SELECT IF, PROCESS IF, Data Selection
+@section SAMPLE
+@vindex SAMPLE
+
+@display
+SAMPLE num1 [FROM num2].
+@end display
+
+@cmd{SAMPLE} randomly samples a proportion of the cases in the active
+file.  Unless it follows @cmd{TEMPORARY}, it operates as a
+transformation, permanently removing cases from the active file.
+
+The proportion to sample can be expressed as a single number between 0
+and 1.  If @code{k} is the number specified, and @code{N} is the number
+of currently-selected cases in the active file, then after
+@code{SAMPLE @var{k}.}, approximately @code{k*N} cases will be
+selected.
+
+The proportion to sample can also be specified in the style @code{SAMPLE
+@var{m} FROM @var{N}}.  With this style, cases are selected as follows:
+
+@enumerate
+@item
+If @var{N} is equal to the number of currently-selected cases in the
+active file, exactly @var{m} cases will be selected.
+
+@item
+If @var{N} is greater than the number of currently-selected cases in the
+active file, an equivalent proportion of cases will be selected.
+
+@item
+If @var{N} is less than the number of currently-selected cases in the
+active, exactly @var{m} cases will be selected @emph{from the first
+@var{N} cases in the active file.}
+@end enumerate
+
+@cmd{SAMPLE} and @cmd{SELECT IF} are performed in
+the order specified by the syntax file.
+
+@cmd{SAMPLE} is always performed before @code{N OF CASES}, regardless
+of ordering in the syntax file (@pxref{N OF CASES}).
+
+The same values for @cmd{SAMPLE} may result in different samples.  To
+obtain the same sample, use the @code{SET} command to set the random
+number seed to the same value before each @cmd{SAMPLE}.  Different
+samples may still result when the file is processed on systems with
+differing endianness or floating-point formats.  By default, the
+random number seed is based on the system time.
+
+@node SELECT IF, SPLIT FILE, SAMPLE, Data Selection
+@section SELECT IF
+@vindex SELECT IF
+
+@display
+SELECT IF expression.
+@end display
+
+@cmd{SELECT IF} selects cases for analysis based on the value of a
+boolean expression.  Cases not selected are permanently eliminated
+from the active file, unless @cmd{TEMPORARY} is in effect
+(@pxref{TEMPORARY}).
+
+Specify a boolean expression (@pxref{Expressions}).  If the value of the
+expression is true for a particular case, the case will be analyzed.  If
+the expression has a false or missing value, then the case will be
+deleted from the data stream.
+
+Place @cmd{SELECT IF} as early in the command file as
+possible.  Cases that are deleted early can be processed more
+efficiently in time and space.
+
+When @cmd{SELECT IF} is specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
+(@pxref{LAG}).
+
+@node SPLIT FILE, TEMPORARY, SELECT IF, Data Selection
+@section SPLIT FILE
+@vindex SPLIT FILE
+
+@display
+Two possible syntaxes:
+        SPLIT FILE BY var_list.
+        SPLIT FILE OFF.
+@end display
+
+@cmd{SPLIT FILE} allows multiple sets of data present in one data
+file to be analyzed separately using single statistical procedure
+commands.
+
+Specify a list of variable names to analyze multiple sets of
+data separately.  Groups of cases having the same values for these
+variables are analyzed by statistical procedure commands as one group.
+An independent analysis is carried out for each group of cases, and the
+variable values for the group are printed along with the analysis.
+
+Specify OFF to disable @cmd{SPLIT FILE} and resume analysis of the
+entire active file as a single group of data.
+
+When @cmd{SPLIT FILE} is specified after @cmd{TEMPORARY}, it affects only
+the next procedure (@pxref{TEMPORARY}).
+
+@node TEMPORARY, WEIGHT, SPLIT FILE, Data Selection
+@section TEMPORARY
+@vindex TEMPORARY
+
+@display
+TEMPORARY.
+@end display
+
+@cmd{TEMPORARY} is used to make the effects of transformations
+following its execution temporary.  These transformations will
+affect only the execution of the next procedure or procedure-like
+command.  Their effects will not be saved to the active file.
+
+The only specification on @cmd{TEMPORARY} is the command name.
+
+@cmd{TEMPORARY} may not appear within a @cmd{DO IF} or @cmd{LOOP}
+construct.  It may appear only once between procedures and
+procedure-like commands.
+
+Scratch variables cannot be used following @cmd{TEMPORARY}.
+
+An example may help to clarify:
+
+@example
+DATA LIST /X 1-2.
+BEGIN DATA.
+ 2
+ 4
+10
+15
+20
+24
+END DATA.
+COMPUTE X=X/2.
+TEMPORARY.
+COMPUTE X=X+3.
+DESCRIPTIVES X.
+DESCRIPTIVES X.
+@end example
+
+The data read by the first @cmd{DESCRIPTIVES} are 4, 5, 8,
+10.5, 13, 15.  The data read by the first @cmd{DESCRIPTIVES} are 1, 2,
+5, 7.5, 10, 12.
+
+@node WEIGHT,  , TEMPORARY, Data Selection
+@section WEIGHT
+@vindex WEIGHT
+
+@display
+WEIGHT BY var_name.
+WEIGHT OFF.
+@end display
+
+@cmd{WEIGHT} assigns cases varying weights,
+changing the frequency distribution of the active file.  Execution of
+@cmd{WEIGHT} is delayed until data have been read.
+
+If a variable name is specified, @cmd{WEIGHT} causes the values of that
+variable to be used as weighting factors for subsequent statistical
+procedures.  Use of keyword BY is optional but recommended.  Weighting
+variables must be numeric.  Scratch variables may not be used for
+weighting (@pxref{Scratch Variables}).
+
+When OFF is specified, subsequent statistical procedures will weight all
+cases equally.
+
+A positive integer weighting factor @var{w} on a case will yield the
+same statistical output as would replicating the case @var{w} times.
+A weighting factor of 0 is treated for statistical purposes as if the
+case did not exist in the input.  Weighting values need not be
+integers, but negative and system-missing values for the weighting
+variable are interpreted as weighting factors of 0.  User-missing
+values are not treated specially.
+
+When @cmd{WEIGHT} is specified after @cmd{TEMPORARY}, it affects only
+the next procedure (@pxref{TEMPORARY}).
+
+@cmd{WEIGHT} does not cause cases in the active file to be replicated in
+memory.
+@setfilename ignored

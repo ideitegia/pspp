@@ -1,0 +1,42 @@
+@node License, Credits, Introduction, Top
+@chapter Your rights and obligations
+@cindex license
+@cindex your rights and obligations
+@cindex rights, your
+@cindex obligations, your
+
+@cindex Free Software Foundation
+@cindex GNU General Public License
+@cindex General Public License
+@cindex GPL
+@cindex distribution
+@cindex redistribution
+Most of PSPP is distributed under the GNU General Public
+License.  The General Public License says, in effect, that you may
+modify and distribute PSPP as you like, as long as you grant the
+same rights to others.  It also states that you must provide source code
+when you distribute PSPP, or, if you obtained PSPP
+source code from an anonymous ftp site, give out the name of that site.
+
+The General Public License is given in full in the source distribution
+as file @file{COPYING}.  In Debian GNU/Linux, this file is also
+available as file @file{/usr/share/common-licenses/GPL-2}.
+
+To quote the GPL itself:
+
+@quotation
+This program is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+@end quotation
+@setfilename ignored

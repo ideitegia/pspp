@@ -1,0 +1,4 @@
+@node Function Index, Command Index, Bugs, Top
+@chapter Function Index
+@printindex fn
+@setfilename ignored

@@ -1,0 +1,164 @@
+\input texinfo @c -*- texinfo -*-
+@c %**start of header
+@setfilename pspp.info
+@settitle PSPP
+@set TIMESTAMP Time-stamp:  Sat Oct 30 17:30:39 WST 2004
+@set EDITION 0.21
+@set VERSION 0.31
+@c For double-sided printing, uncomment:
+@c @setchapternewpage odd
+@c %**end of header
+
+
+@macro cmd{CMDNAME}
+\CMDNAME\
+@end macro
+
+@iftex
+@finalout
+@end iftex
+
+@dircategory Math
+@direntry
+* PSPP: (pspp).             Statistical analysis package.
+@end direntry
+
+@ifinfo
+PSPP, for statistical analysis of sampled data, by Ben Pfaff.
+
+This file documents PSPP, a statistical package for analysis of
+sampled data that uses a command language compatible with SPSS.
+
+Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+
+This version of the PSPP documentation is consistent with version 2 of
+``texinfo.tex''.
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission notice
+identical to this one except for the removal of this paragraph (this
+paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above condition for modified 
+versions, except that this permission notice may be stated in a 
+translation approved by the Free Software Foundation.
+@end ifinfo
+
+@titlepage
+@title PSPP
+@subtitle A System for Statistical Analysis
+@subtitle Edition @value{EDITION}, for PSPP version @value{VERSION}
+@author by Ben Pfaff
+
+@page
+@vskip 0pt plus 1filll
+
+PSPP Copyright @copyright{} 1997, 1998 Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Foundation.
+@end titlepage
+
+@contents
+
+@node Top, Introduction, (dir), (dir)
+@ifinfo
+@top PSPP
+
+This file documents the PSPP package for statistical analysis of sampled
+data.  This is edition @value{EDITION}, for PSPP version
+@value{VERSION}, last modified at @value{TIMESTAMP}.
+
+@end ifinfo
+
+@menu
+* Introduction::                Description of the package.
+* License::                     Your rights and obligations.
+* Credits::                     Acknowledgement of authors.
+
+* Invocation::                  Starting and running PSPP.
+* Language::                    Basics of the PSPP command language.
+* Expressions::                 Numeric and string expression syntax.
+
+* Data Input and Output::       Reading data from user files.
+* System and Portable Files::   Dealing with system & portable files.
+* Variable Attributes::         Adjusting and examining variables.
+* Data Manipulation::           Simple operations on data.
+* Data Selection::              Select certain cases for analysis.
+* Conditionals and Looping::    Doing things many times or not at all.
+* Statistics::                  Basic statistical procedures.
+* Utilities::                   Other commands.
+
+* Not Implemented::             What's not here yet
+* Bugs::                        Known problems; submitting bug reports.
+
+* Function Index::              Index of PSPP functions for expressions.
+* Command Index::               Index of PSPP procedures.
+* Concept Index::               Index of concepts.
+
+* Installation::                How to compile and install PSPP.
+* Configuration::               Configuring PSPP.
+
+* Portable File Format::        Format of PSPP portable files.
+* Data File Format::            Format of PSPP system files.
+* q2c Input Format::            Format of syntax accepted by q2c.
+@end menu
+
+@include introduction.texi
+@include license.texi
+@include credits.texi
+
+@include invoking.texi
+@include language.texi
+@include expressions.texi
+@include data-io.texi
+@include files.texi
+@include variables.texi
+@include transformation.texi
+@include data-selection.texi
+@include flow-control.texi
+@include statistics.texi
+@include utilities.texi
+@include not-implemented.texi
+@include bugs.texi
+
+@include function-index.texi
+@include command-index.texi
+@include concept-index.texi
+
+@include installing.texi
+@include configuring.texi
+
+@include portable-file-format.texi
+@include data-file-format.texi
+@include q2c.texi
+
+@bye
+
+@c Local Variables:
+@c use (texinfo-multiple-files-update "pspp.texinfo")  in emacs to keep these files consistent
+@c compile-command: "makeinfo pspp.texi"
+@c End:

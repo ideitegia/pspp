@@ -1,0 +1,306 @@
+@node System and Portable Files, Variable Attributes, Data Input and Output, Top
+@chapter System Files and Portable Files
+
+The commands in this chapter read, write, and examine system files and
+portable files.
+
+@menu
+* APPLY DICTIONARY::            Apply system file dictionary to active file.
+* EXPORT::                      Write to a portable file.
+* GET::                         Read from a system file.
+* IMPORT::                      Read from a portable file.
+* MATCH FILES::                 Merge system files.
+* SAVE::                        Write to a system file.
+* SYSFILE INFO::                Display system file dictionary.
+* XSAVE::                       Write to a system file, as a transform.
+@end menu
+
+@node APPLY DICTIONARY, EXPORT, System and Portable Files, System and Portable Files
+@section APPLY DICTIONARY
+@vindex APPLY DICTIONARY
+
+@display
+APPLY DICTIONARY FROM='filename'.
+@end display
+
+@cmd{APPLY DICTIONARY} applies the variable labels, value labels,
+and missing values from variables in a system file to corresponding
+variables in the active file.  In some cases it also updates the
+weighting variable.
+
+Specify a system file with a file name string or as a file handle
+(@pxref{FILE HANDLE}).  The dictionary in the system file will be read,
+but it will not replace the active file dictionary.  The system file's
+data will not be read.
+
+Only variables with names that exist in both the active file and the
+system file are considered.  Variables with the same name but different
+types (numeric, string) will cause an error message.  Otherwise, the
+system file variables' attributes will replace those in their matching
+active file variables, as described below.
+
+If a system file variable has a variable label, then it will replace the
+active file variable's variable label.  If the system file variable does
+not have a variable label, then the active file variable's variable
+label, if any, will be retained.
+
+If the active file variable is numeric or short string, then value
+labels and missing values, if any, will be copied to the active file
+variable.  If the system file variable does not have value labels or
+missing values, then those in the active file variable, if any, will not
+be disturbed.
+
+Finally, weighting of the active file is updated (@pxref{WEIGHT}).  If
+the active file has a weighting variable, and the system file does not,
+or if the weighting variable in the system file does not exist in the
+active file, then the active file weighting variable, if any, is
+retained.  Otherwise, the weighting variable in the system file becomes
+the active file weighting variable.
+
+@cmd{APPLY DICTIONARY} takes effect immediately.  It does not read the
+active
+file.  The system file is not modified.
+
+@node EXPORT, GET, APPLY DICTIONARY, System and Portable Files
+@section EXPORT
+@vindex EXPORT
+
+@display
+EXPORT
+        /OUTFILE='filename'
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+@end display
+
+The @cmd{EXPORT} procedure writes the active file dictionary and data to a
+specified portable file.
+
+The OUTFILE subcommand, which is the only required subcommand, specifies
+the portable file to be written as a file name string or a file handle
+(@pxref{FILE HANDLE}).
+
+DROP, KEEP, and RENAME follow the same format as the SAVE procedure
+(@pxref{SAVE}).
+
+@cmd{EXPORT} is a procedure.  It causes the active file to be read.
+
+@node GET, IMPORT, EXPORT, System and Portable Files
+@section GET
+@vindex GET
+
+@display
+GET
+        /FILE='filename'
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+@end display
+
+@cmd{GET} clears the current dictionary and active file and
+replaces them with the dictionary and data from a specified system file.
+
+The FILE subcommand is the only required subcommand.  Specify the system
+file to be read as a string file name or a file handle (@pxref{FILE
+HANDLE}).
+
+By default, all the variables in a system file are read.  The DROP
+subcommand can be used to specify a list of variables that are not to be
+read.  By contrast, the KEEP subcommand can be used to specify variable
+that are to be read, with all other variables not read.
+
+Normally variables in a system file retain the names that they were
+saved under.  Use the RENAME subcommand to change these names.  Specify,
+within parentheses, a list of variable names followed by an equals sign
+(@samp{=}) and the names that they should be renamed to.  Multiple
+parenthesized groups of variable names can be included on a single
+RENAME subcommand.  Variables' names may be swapped using a RENAME
+subcommand of the form @samp{/RENAME=(A B=B A)}.
+
+Alternate syntax for the RENAME subcommand allows the parentheses to be
+eliminated.  When this is done, only a single variable may be renamed at
+once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
+deprecated.
+
+DROP, KEEP, and RENAME are performed in left-to-right order.  They
+each may be present any number of times.  @cmd{GET} never modifies a
+system file on disk.  Only the active file read from the system file
+is affected by these subcommands.
+
+@cmd{GET} does not cause the data to be read, only the dictionary.  The data
+is read later, when a procedure is executed.
+
+@node IMPORT, MATCH FILES, GET, System and Portable Files
+@section IMPORT
+@vindex IMPORT
+
+@display
+IMPORT
+        /FILE='filename'
+        /TYPE=@{COMM,TAPE@}
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+@end display
+
+The @cmd{IMPORT} transformation clears the active file dictionary and
+data and
+replaces them with a dictionary and data from a portable file on disk.
+
+The FILE subcommand, which is the only required subcommand, specifies
+the portable file to be read as a file name string or a file handle
+(@pxref{FILE HANDLE}).
+
+The TYPE subcommand is currently not used.
+
+DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
+
+@cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
+data is read later, when a procedure is executed.
+
+@node MATCH FILES, SAVE, IMPORT, System and Portable Files
+@section MATCH FILES
+@vindex MATCH FILES
+
+@display
+MATCH FILES
+        /BY var_list
+        /@{FILE,TABLE@}=@{*,'filename'@}
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+        /IN=var_name
+        /FIRST=var_name
+        /LAST=var_name
+        /MAP
+@end display
+
+@cmd{MATCH FILES} merges one or more system files, optionally
+including the active file.  Records with the same values for BY
+variables are combined into a single record.  Records with different
+values are output in order.  Thus, multiple sorted system files are
+combined into a single sorted system file based on the value of the BY
+variables.  The results of the merge become the new active file.
+
+The BY subcommand specifies a list of variables that are used to match
+records from each of the system files.  Variables specified must exist
+in all the files specified on FILE and TABLE.  BY should usually be
+specified.  If TABLE is used then BY is required.
+
+Specify FILE with a system file as a file name string or file handle
+(@pxref{FILE HANDLE}), or with an asterisk (@samp{*}) to
+indicate the current active file.  The files specified on FILE are
+merged together based on the BY variables, or combined case-by-case if
+BY is not specified.  Normally at least two FILE subcommands should be
+specified.
+
+Specify TABLE with a system file to use it as a @dfn{table
+lookup file}.  Records in table lookup files are not used up after
+they've been used once.  This means that data in table lookup files can
+correspond to any number of records in FILE files.  Table lookup files
+correspond to lookup tables in traditional relational database systems.
+It is incorrect to have records with duplicate BY values in table lookup
+files.
+
+Any number of FILE and TABLE subcommands may be specified.  Each
+instance of FILE or TABLE can be followed by DROP, KEEP, and/or RENAME
+subcommands.  These take the same form as the corresponding subcommands
+of @cmd{GET} (@pxref{GET}), and perform the same functions.
+
+Variables belonging to files that are not present for the current case
+are set to the system-missing value for numeric variables or spaces for
+string variables.
+
+IN, FIRST, LAST, and MAP are currently not used.
+
+@cmd{MATCH FILES} may not be specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}) if the active file is used as an input source.
+
+@node SAVE, SYSFILE INFO, MATCH FILES, System and Portable Files
+@section SAVE
+@vindex SAVE
+
+@display
+SAVE
+        /OUTFILE='filename'
+        /@{COMPRESSED,UNCOMPRESSED@}
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+@end display
+
+The @cmd{SAVE} procedure causes the dictionary and data in the active
+file to
+be written to a system file.
+
+FILE is the only required subcommand.  Specify the system
+file to be written as a string file name or a file handle (@pxref{FILE
+HANDLE}).
+
+The COMPRESS and UNCOMPRESS subcommand determine whether the saved
+system file is compressed.  By default, system files are compressed.
+This default can be changed with the SET command (@pxref{SET}).
+
+By default, all the variables in the active file dictionary are written
+to the system file.  The DROP subcommand can be used to specify a list
+of variables not to be written.  In contrast, KEEP specifies variables
+to be written, with all variables not specified not written.
+
+Normally variables are saved to a system file under the same names they
+have in the active file.  Use the RENAME subcommand to change these names.
+Specify, within parentheses, a list of variable names followed by an
+equals sign (@samp{=}) and the names that they should be renamed to.
+Multiple parenthesized groups of variable names can be included on a
+single RENAME subcommand.  Variables' names may be swapped using a
+RENAME subcommand of the form @samp{/RENAME=(A B=B A)}.
+
+Alternate syntax for the RENAME subcommand allows the parentheses to be
+eliminated.  When this is done, only a single variable may be renamed at
+once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
+deprecated.
+
+DROP, KEEP, and RENAME are performed in left-to-right order.  They
+each may be present any number of times.  @cmd{SAVE} never modifies
+the active file.  DROP, KEEP, and RENAME only affect the system file
+written to disk.
+
+@cmd{SAVE} causes the data to be read.  It is a procedure.
+
+@node SYSFILE INFO, XSAVE, SAVE, System and Portable Files
+@section SYSFILE INFO
+@vindex SYSFILE INFO
+
+@display 
+SYSFILE INFO FILE='filename'.
+@end display
+
+@cmd{SYSFILE INFO} reads the dictionary in a system file and
+displays the information in its dictionary.
+
+Specify a file name or file handle.  @cmd{SYSFILE INFO} reads that file as
+a system file and displays information on its dictionary.
+
+@cmd{SYSFILE INFO} does not affect the current active file.
+
+@node XSAVE,  , SYSFILE INFO, System and Portable Files
+@section XSAVE
+@vindex XSAVE
+
+@display
+XSAVE
+        /FILE='filename'
+        /@{COMPRESSED,UNCOMPRESSED@}
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+@end display
+
+The @cmd{XSAVE} transformation writes the active file dictionary and
+data to a
+system file stored on disk.
+
+@cmd{XSAVE} is a transformation, not a procedure.  It is executed when the
+data is read by a procedure or procedure-like command.  In all other
+respects, @cmd{XSAVE} is identical to @cmd{SAVE}.  @xref{SAVE}, for
+more information on syntax and usage.
+@setfilename ignored

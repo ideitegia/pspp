@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-10-26 18:37+0800\n"
+"POT-Creation-Date: 2004-10-30 17:37+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -957,8 +957,8 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:98 src/frequencies.q:96 src/oneway.q:367 src/t-test.q:634
-#: src/t-test.q:657 src/t-test.q:746 src/t-test.q:1061
+#: src/descript.c:98 src/frequencies.q:100 src/oneway.q:375 src/t-test.q:681
+#: src/t-test.q:704 src/t-test.q:827 src/t-test.q:1165
 msgid "Mean"
 msgstr ""
 
@@ -966,15 +966,15 @@ msgstr ""
 msgid "S E Mean"
 msgstr ""
 
-#: src/descript.c:100 src/frequencies.q:100
+#: src/descript.c:100 src/frequencies.q:104
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:101 src/frequencies.q:101
+#: src/descript.c:101 src/frequencies.q:105
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:102 src/frequencies.q:102
+#: src/descript.c:102 src/frequencies.q:106
 msgid "Kurtosis"
 msgstr ""
 
@@ -982,7 +982,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:104 src/frequencies.q:104
+#: src/descript.c:104 src/frequencies.q:108
 msgid "Skewness"
 msgstr ""
 
@@ -990,19 +990,19 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:106 src/frequencies.q:106
+#: src/descript.c:106 src/frequencies.q:110
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:107 src/frequencies.q:107 src/oneway.q:379
+#: src/descript.c:107 src/frequencies.q:111 src/oneway.q:387
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:108 src/frequencies.q:108 src/oneway.q:380
+#: src/descript.c:108 src/frequencies.q:112 src/oneway.q:388
 msgid "Maximum"
 msgstr ""
 
-#: src/descript.c:109 src/frequencies.q:109
+#: src/descript.c:109 src/frequencies.q:113
 msgid "Sum"
 msgstr ""
 
@@ -3808,7 +3808,7 @@ msgstr ""
 
 #: src/sysfile-info.c:529 src/vfm.c:875 src/crosstabs.q:1068
 #: src/crosstabs.q:1095 src/crosstabs.q:1115 src/crosstabs.q:1137
-#: src/frequencies.q:1023 src/frequencies.q:1140
+#: src/frequencies.q:1068 src/frequencies.q:1186
 msgid "Value"
 msgstr ""
 
@@ -4033,26 +4033,26 @@ msgstr ""
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:772 src/frequencies.q:1021 src/frequencies.q:1387
+#: src/crosstabs.q:772 src/frequencies.q:1066 src/frequencies.q:1433
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:773 src/frequencies.q:1088 src/frequencies.q:1388
+#: src/crosstabs.q:773 src/frequencies.q:1133 src/frequencies.q:1434
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:774 src/crosstabs.q:977 src/crosstabs.q:1690
-#: src/frequencies.q:1097 src/oneway.q:279 src/oneway.q:456
+#: src/frequencies.q:1142 src/oneway.q:287 src/oneway.q:464
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:784 src/frequencies.q:1386 src/oneway.q:366
-#: src/t-test.q:633 src/t-test.q:656 src/t-test.q:747 src/t-test.q:1261
+#: src/crosstabs.q:784 src/frequencies.q:1432 src/oneway.q:374
+#: src/t-test.q:680 src/t-test.q:703 src/t-test.q:828 src/t-test.q:1365
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:785 src/frequencies.q:1025 src/frequencies.q:1026
-#: src/frequencies.q:1027
+#: src/crosstabs.q:785 src/frequencies.q:1070 src/frequencies.q:1071
+#: src/frequencies.q:1072
 msgid "Percent"
 msgstr ""
 
@@ -4093,8 +4093,8 @@ msgstr ""
 msgid "Statistic"
 msgstr ""
 
-#: src/crosstabs.q:1069 src/oneway.q:249 src/oneway.q:674 src/t-test.q:898
-#: src/t-test.q:1067 src/t-test.q:1159
+#: src/crosstabs.q:1069 src/oneway.q:257 src/oneway.q:686 src/t-test.q:979
+#: src/t-test.q:1171 src/t-test.q:1263
 msgid "df"
 msgstr ""
 
@@ -4131,11 +4131,11 @@ msgstr ""
 msgid " 95%% Confidence Interval"
 msgstr ""
 
-#: src/crosstabs.q:1116 src/t-test.q:902 src/t-test.q:1064 src/t-test.q:1162
+#: src/crosstabs.q:1116 src/t-test.q:983 src/t-test.q:1168 src/t-test.q:1266
 msgid "Lower"
 msgstr ""
 
-#: src/crosstabs.q:1117 src/t-test.q:903 src/t-test.q:1065 src/t-test.q:1163
+#: src/crosstabs.q:1117 src/t-test.q:984 src/t-test.q:1169 src/t-test.q:1267
 msgid "Upper"
 msgstr ""
 
@@ -4304,105 +4304,105 @@ msgstr ""
 msgid "expecting a file name or handle name"
 msgstr ""
 
-#: src/frequencies.q:97
+#: src/frequencies.q:101
 msgid "S.E. Mean"
 msgstr ""
 
-#: src/frequencies.q:98
+#: src/frequencies.q:102
 msgid "Median"
 msgstr ""
 
-#: src/frequencies.q:99
+#: src/frequencies.q:103
 msgid "Mode"
 msgstr ""
 
-#: src/frequencies.q:103
+#: src/frequencies.q:107
 msgid "S.E. Kurt"
 msgstr ""
 
-#: src/frequencies.q:105
+#: src/frequencies.q:109
 msgid "S.E. Skew"
 msgstr ""
 
-#: src/frequencies.q:280
+#: src/frequencies.q:289
 msgid ""
 "At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be "
 "assumed.  Argument values will be given precedence increasing along the "
 "order given."
 msgstr ""
 
-#: src/frequencies.q:361
+#: src/frequencies.q:372
 #, c-format
 msgid ""
 "MAX must be greater than or equal to MIN, if both are specified.  However, "
 "MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
 msgstr ""
 
-#: src/frequencies.q:651
+#: src/frequencies.q:696
 msgid ""
 "Upper limit of integer mode value range must be greater than lower limit."
 msgstr ""
 
-#: src/frequencies.q:663
+#: src/frequencies.q:708
 #, c-format
 msgid "Variable %s specified multiple times on VARIABLES subcommand."
 msgstr ""
 
-#: src/frequencies.q:676
+#: src/frequencies.q:721
 #, c-format
 msgid "Integer mode specified, but %s is not a numeric variable."
 msgstr ""
 
-#: src/frequencies.q:738
+#: src/frequencies.q:783
 msgid "`)' expected after GROUPED interval list."
 msgstr ""
 
-#: src/frequencies.q:751
+#: src/frequencies.q:796
 #, c-format
 msgid "Variables %s specified on GROUPED but not on VARIABLES."
 msgstr ""
 
-#: src/frequencies.q:754
+#: src/frequencies.q:799
 #, c-format
 msgid "Variables %s specified multiple times on GROUPED subcommand."
 msgstr ""
 
-#: src/frequencies.q:810
+#: src/frequencies.q:855
 msgid "Percentile list expected after PERCENTILES."
 msgstr ""
 
-#: src/frequencies.q:818
+#: src/frequencies.q:863
 #, fuzzy
 msgid "Percentiles must be between 0 and 100."
 msgstr "Frame colour must be between 0 and 6."
 
-#: src/frequencies.q:1022 src/frequencies.q:1112 src/frequencies.q:1113
-#: src/frequencies.q:1143
+#: src/frequencies.q:1067 src/frequencies.q:1158 src/frequencies.q:1159
+#: src/frequencies.q:1189
 msgid "Cum"
 msgstr ""
 
-#: src/frequencies.q:1024
+#: src/frequencies.q:1069
 msgid "Frequency"
 msgstr ""
 
-#: src/frequencies.q:1043
+#: src/frequencies.q:1088
 msgid "Value Label"
 msgstr ""
 
-#: src/frequencies.q:1141
+#: src/frequencies.q:1187
 msgid "Freq"
 msgstr ""
 
-#: src/frequencies.q:1142 src/frequencies.q:1144
+#: src/frequencies.q:1188 src/frequencies.q:1190
 msgid "Pct"
 msgstr ""
 
-#: src/frequencies.q:1360
+#: src/frequencies.q:1406
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
 msgstr ""
 
-#: src/frequencies.q:1399
+#: src/frequencies.q:1445
 msgid "Percentiles"
 msgstr ""
 
@@ -4473,119 +4473,119 @@ msgstr ""
 msgid "Upper value (%g) is less than lower value (%g) on VARIABLES subcommand."
 msgstr ""
 
-#: src/oneway.q:125
+#: src/oneway.q:148
 msgid "Number of contrast coefficients must equal the number of groups"
 msgstr ""
 
-#: src/oneway.q:133
+#: src/oneway.q:156
 #, c-format
 msgid "Coefficients for contrast %d do not total zero"
 msgstr ""
 
-#: src/oneway.q:213 src/t-test.q:329 src/t-test.q:406
+#: src/oneway.q:221 src/t-test.q:364 src/t-test.q:449
 #, c-format
 msgid "`%s' is not a variable name"
 msgstr ""
 
-#: src/oneway.q:248
+#: src/oneway.q:256
 msgid "Sum of Squares"
 msgstr ""
 
-#: src/oneway.q:250
+#: src/oneway.q:258
 msgid "Mean Square"
 msgstr ""
 
-#: src/oneway.q:251 src/t-test.q:895
+#: src/oneway.q:259 src/t-test.q:976
 msgid "F"
 msgstr ""
 
-#: src/oneway.q:252 src/oneway.q:522
+#: src/oneway.q:260 src/oneway.q:530
 msgid "Significance"
 msgstr ""
 
-#: src/oneway.q:277
+#: src/oneway.q:285
 msgid "Between Groups"
 msgstr ""
 
-#: src/oneway.q:278
+#: src/oneway.q:286
 msgid "Within Groups"
 msgstr ""
 
-#: src/oneway.q:324
+#: src/oneway.q:332
 msgid "ANOVA"
 msgstr ""
 
-#: src/oneway.q:368 src/t-test.q:635 src/t-test.q:658 src/t-test.q:748
-#: src/t-test.q:1062
+#: src/oneway.q:376 src/t-test.q:682 src/t-test.q:705 src/t-test.q:829
+#: src/t-test.q:1166
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/oneway.q:369 src/oneway.q:672
+#: src/oneway.q:377 src/oneway.q:684
 msgid "Std. Error"
 msgstr ""
 
-#: src/oneway.q:374
+#: src/oneway.q:382
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/oneway.q:376
+#: src/oneway.q:384
 msgid "Lower Bound"
 msgstr ""
 
-#: src/oneway.q:377
+#: src/oneway.q:385
 msgid "Upper Bound"
 msgstr ""
 
-#: src/oneway.q:383
+#: src/oneway.q:391
 msgid "Descriptives"
 msgstr ""
 
-#: src/oneway.q:519
+#: src/oneway.q:527
 msgid "Levene Statistic"
 msgstr ""
 
-#: src/oneway.q:520
+#: src/oneway.q:528
 msgid "df1"
 msgstr ""
 
-#: src/oneway.q:521
+#: src/oneway.q:529
 msgid "df2"
 msgstr ""
 
-#: src/oneway.q:525
+#: src/oneway.q:533
 msgid "Test of Homogeneity of Variances"
 msgstr ""
 
-#: src/oneway.q:597
+#: src/oneway.q:609
 msgid "Contrast Coefficients"
 msgstr ""
 
-#: src/oneway.q:599 src/oneway.q:670
+#: src/oneway.q:611 src/oneway.q:682
 msgid "Contrast"
 msgstr ""
 
-#: src/oneway.q:668
+#: src/oneway.q:680
 msgid "Contrast Tests"
 msgstr ""
 
-#: src/oneway.q:671
+#: src/oneway.q:683
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/oneway.q:673 src/t-test.q:897 src/t-test.q:1066 src/t-test.q:1158
+#: src/oneway.q:685 src/t-test.q:978 src/t-test.q:1170 src/t-test.q:1262
 msgid "t"
 msgstr ""
 
-#: src/oneway.q:675 src/t-test.q:899 src/t-test.q:1068 src/t-test.q:1160
+#: src/oneway.q:687 src/t-test.q:980 src/t-test.q:1172 src/t-test.q:1264
 msgid "Sig. (2-tailed)"
 msgstr ""
 
-#: src/oneway.q:723
+#: src/oneway.q:735
 msgid "Assume equal variances"
 msgstr ""
 
-#: src/oneway.q:727
+#: src/oneway.q:739
 msgid "Does not assume equal"
 msgstr ""
 
@@ -4721,128 +4721,128 @@ msgstr ""
 msgid "data> "
 msgstr ""
 
-#: src/t-test.q:233
+#: src/t-test.q:266
 msgid "TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive."
 msgstr ""
 
-#: src/t-test.q:250
+#: src/t-test.q:283
 msgid "VARIABLES subcommand is not appropriate with PAIRS"
 msgstr ""
 
-#: src/t-test.q:287
+#: src/t-test.q:320
 msgid "One or more VARIABLES must be specified."
 msgstr ""
 
-#: src/t-test.q:342
+#: src/t-test.q:377
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/t-test.q:359
+#: src/t-test.q:397
 msgid ""
 "When applying GROUPS to a string variable, at least one value must be "
 "specified."
 msgstr ""
 
-#: src/t-test.q:441
+#: src/t-test.q:484
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
 msgstr ""
 
-#: src/t-test.q:458
+#: src/t-test.q:501
 msgid "At least two variables must be specified on PAIRS."
 msgstr ""
 
-#: src/t-test.q:631
+#: src/t-test.q:678
 msgid "One-Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:636 src/t-test.q:659 src/t-test.q:749
+#: src/t-test.q:683 src/t-test.q:706 src/t-test.q:830
 msgid "SE. Mean"
 msgstr ""
 
-#: src/t-test.q:653
+#: src/t-test.q:700
 msgid "Group Statistics"
 msgstr ""
 
-#: src/t-test.q:743
+#: src/t-test.q:824
 msgid "Paired Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:765 src/t-test.q:1087 src/t-test.q:1278
+#: src/t-test.q:846 src/t-test.q:1191 src/t-test.q:1382
 #, c-format
 msgid "Pair %d"
 msgstr ""
 
-#: src/t-test.q:883
+#: src/t-test.q:964
 msgid "Independent Samples Test"
 msgstr ""
 
-#: src/t-test.q:891
+#: src/t-test.q:972
 msgid "Levene's Test for Equality of Variances"
 msgstr ""
 
-#: src/t-test.q:893
+#: src/t-test.q:974
 msgid "t-test for Equality of Means"
 msgstr ""
 
-#: src/t-test.q:896 src/t-test.q:1263
+#: src/t-test.q:977 src/t-test.q:1367
 msgid "Sig."
 msgstr ""
 
-#: src/t-test.q:900 src/t-test.q:1161
+#: src/t-test.q:981 src/t-test.q:1265
 msgid "Mean Difference"
 msgstr ""
 
-#: src/t-test.q:901
+#: src/t-test.q:982
 msgid "Std. Error Difference"
 msgstr ""
 
-#: src/t-test.q:906 src/t-test.q:1058 src/t-test.q:1153
+#: src/t-test.q:987 src/t-test.q:1162 src/t-test.q:1257
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
 msgstr ""
 
-#: src/t-test.q:937
+#: src/t-test.q:1041
 msgid "Equal variances assumed"
 msgstr ""
 
-#: src/t-test.q:990
+#: src/t-test.q:1094
 msgid "Equal variances not assumed"
 msgstr ""
 
-#: src/t-test.q:1048
+#: src/t-test.q:1152
 msgid "Paired Samples Test"
 msgstr ""
 
-#: src/t-test.q:1051
+#: src/t-test.q:1155
 msgid "Paired Differences"
 msgstr ""
 
-#: src/t-test.q:1063
+#: src/t-test.q:1167
 msgid "Std. Error Mean"
 msgstr ""
 
-#: src/t-test.q:1142
+#: src/t-test.q:1246
 msgid "One-Sample Test"
 msgstr ""
 
-#: src/t-test.q:1147
+#: src/t-test.q:1251
 #, c-format
 msgid "Test Value = %f"
 msgstr ""
 
-#: src/t-test.q:1258
+#: src/t-test.q:1362
 msgid "Paired Samples Correlations"
 msgstr ""
 
-#: src/t-test.q:1262
+#: src/t-test.q:1366
 msgid "Correlation"
 msgstr ""
 
-#: src/t-test.q:1281
+#: src/t-test.q:1385
 #, c-format
 msgid "%s & %s"
 msgstr ""

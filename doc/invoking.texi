@@ -1,0 +1,279 @@
+@node Invocation, Language, Credits, Top
+@chapter Invoking PSPP
+@cindex invocation
+@cindex PSPP, invoking
+
+@cindex command line, options
+@cindex options, command-line
+@example
+pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var{device} ]
+       [ -d @var{var}[=@var{value}] | --define=@var{var}[=@var{value}] ] [-u @var{var} | --undef=@var{var} ]
+       [ -f @var{file} | --out-file=@var{file} ] [ -p | --pipe ] [ -I- | --no-include ]
+       [ -I @var{dir} | --include=@var{dir} ] [ -i | --interactive ] 
+       [ -n | --edit | --dry-run | --just-print | --recon ] 
+       [ -r | --no-statrc ] [ -h | --help ] [ -l | --list ] 
+       [ -c @var{command} | --command @var{command} ] [ -s | --safer ]
+       [ --testing-mode ] [ -V | --version ] [ -v | --verbose ] 
+       [ @var{key}=@var{value} ] @var{file}@enddots{}
+@end example
+
+@menu
+* Non-option Arguments::        Specifying syntax files and output devices.
+* Configuration Options::       Change the configuration for the current run.
+* Input and output options::    Controlling input and output files.
+* Language control options::    Language variants.
+* Informational options::       Helpful information about PSPP.
+@end menu
+
+@node Non-option Arguments, Configuration Options, Invocation, Invocation
+@section Non-option Arguments
+
+Syntax files and output device substitutions can be specified on
+PSPP's command line:
+
+@table @code
+@item @var{file}
+
+A file by itself on the command line will be executed as a syntax file.
+PSPP terminates after the syntax file runs, unless the @code{-i} or
+@code{--interactive} option is given (@pxref{Language control options}).
+
+@item @var{file1} @var{file2}
+
+When two or more filenames are given on the command line, the first
+syntax file is executed, then PSPP's dictionary is cleared, then the second
+syntax file is executed.
+
+@item @var{file1} + @var{file2}
+
+If syntax files' names are delimited by a plus sign (@samp{+}), then the
+dictionary is not cleared between their executions, as if they were
+concatenated together into a single file.
+
+@item @var{key}=@var{value}
+
+Defines an output device macro @var{key} to expand to @var{value},
+overriding any macro having the same @var{key} defined in the device
+configuration file.  @xref{Macro definitions}.
+
+@end table
+
+There is one other way to specify a syntax file, if your operating
+system supports it.  If you have a syntax file @file{foobar.stat}, put
+the notation
+
+@example
+#! /usr/local/bin/pspp
+@end example
+
+at the top, and mark the file as executable with @code{chmod +x
+foobar.stat}.  (If PSPP is not installed in @file{/usr/local/bin},
+then insert its actual installation directory into the syntax file
+instead.)  Now you should be able to invoke the syntax file just by
+typing its name.  You can include any options on the command line as
+usual.  PSPP entirely ignores any lines beginning with @samp{#!}.
+
+@node Configuration Options, Input and output options, Non-option Arguments, Invocation
+@section Configuration Options
+
+Configuration options are used to change PSPP's configuration for the
+current run.  The configuration options are:
+
+@table @code
+@item -a @{compatible|enhanced@}
+@itemx --algorithm=@{compatible|enhanced@}
+
+If you chose @code{compatible}, then PSPP will use the same  algorithms 
+as used by some proprietary statistical analysis packages.
+This is not recommended, as  these algorithms are inferior and in some cases 
+compeletely broken.
+The default setting is @code{enhanced}.
+Certain commands have subcommands which allow you to override this setting on 
+a per command basis.
+
+@item -B @var{dir}
+@itemx --config-dir=@var{dir}
+
+Sets the configuration directory to @var{dir}.  @xref{File locations}.
+
+@item -o @var{device}
+@itemx --device=@var{device}
+
+Selects the output device with name @var{device}.  If this option is
+given more than once, then all devices mentioned are selected.  This
+option disables all devices besides those mentioned on the command line.
+
+@item -d @var{var}[=@var{value}]
+@itemx --define=@var{var}[=@var{value}]
+
+Defines an `environment variable' named @var{var} having the optional
+value @var{value} specified.  @xref{Variable values}.
+
+@item -u @var{var}
+@itemx --undef=@var{var}
+
+Undefines the `environment variable' named @var{var}.  @xref{Variable
+values}.
+@end table
+
+@node Input and output options, Language control options, Configuration Options, Invocation
+@section Input and output options
+
+Input and output options affect how PSPP reads input and writes
+output.  These are the input and output options:
+
+@table @code
+@item -f @var{file}
+@itemx --out-file=@var{file}
+
+This overrides the output file name for devices designated as listing
+devices.  If a file named @var{file} already exists, it is overwritten.
+
+@item -p
+@itemx --pipe
+
+Allows PSPP to be used as a filter by causing the syntax file to be
+read from stdin and output to be written to stdout.  Conflicts with the
+@code{-f @var{file}} and @code{--file=@var{file}} options.
+
+@item -I-
+@itemx --no-include
+
+Clears all directories from the include path.  This includes all
+directories put in the include path by default.  @xref{Miscellaneous
+configuring}.
+
+@item -I @var{dir}
+@itemx --include=@var{dir}
+
+Appends directory @var{dir} to the path that is searched for include
+files in PSPP syntax files.
+
+@item -c @var{command}
+@itemx --command=@var{command}
+
+Execute literal command @var{command}.  The command is executed before
+startup syntax files, if any.
+
+@item --testing-mode
+
+Invoke heuristics to assist with testing PSPP.  For use by @code{make
+check} and similar scripts.
+@end table
+
+@node Language control options, Informational options, Input and output options, Invocation
+@section Language control options
+
+Language control options control how PSPP syntax files are parsed and
+interpreted.  The available language control options are:
+
+@table @code
+@item -i
+@itemx --interactive
+
+When a syntax file is specified on the command line, PSPP normally
+terminates after processing it.  Giving this option will cause PSPP to
+bring up a command prompt after processing the syntax file.
+
+In addition, this forces syntax files to be interpreted in interactive
+mode, rather than the default batch mode.  @xref{Tokenizing lines}, for
+information on the differences between batch mode and interactive mode
+command interpretation.
+
+@item -n
+@itemx --edit
+@itemx --dry-run
+@itemx --just-print
+@itemx --recon
+
+Only the syntax of any syntax file specified or of commands entered at
+the command line is checked.  Transformations are not performed and
+procedures are not executed.  Not yet implemented.
+
+@item -r
+@itemx --no-statrc
+
+Prevents the execution of the PSPP startup syntax file.  Not yet
+implemented, as startup syntax files aren't, either.
+
+@item -s
+@itemx --safer
+
+Disables certain unsafe operations.  This includes the ERASE and
+HOST commands, as well as use of pipes as input and output files.
+@end table
+
+@node Informational options,  , Language control options, Invocation
+@section Informational options
+
+Informational options cause information about PSPP to be written to
+the terminal.  Here are the available options:
+
+@table @code
+@item -h
+@item --help
+
+Prints a message describing PSPP command-line syntax and the available
+device driver classes, then terminates.
+
+@item -l
+@item --list
+
+Lists the available device driver classes, then terminates.
+
+@item -x @{compatible|enhanced@}
+@itemx --syntax=@{compatible|enhanced@}
+
+If you chose @code{compatible}, then PSPP will only accept command syntax that 
+is compatible with the proprietary program SPSS.
+If you choose @code{enhanced} then additional syntax will be available.
+The default is @code{enhanced}.
+
+
+@item -V
+@item --version
+
+Prints a brief message listing PSPP's version, warranties you don't
+have, copying conditions and copyright, and e-mail address for bug
+reports, then terminates.
+
+@item -v
+@item --verbose
+
+Increments PSPP's verbosity level.  Higher verbosity levels cause
+PSPP to display greater amounts of information about what it is
+doing.  Often useful for debugging PSPP's configuration.  
+
+This option can be given multiple times to set the verbosity level to
+that value.  The default verbosity level is 0, in which no informational
+messages will be displayed.
+
+Higher verbosity levels cause messages to be displayed when the
+corresponding events take place.
+
+@table @asis
+@item 1
+
+Driver and subsystem initializations.
+
+@item 2
+
+Completion of driver initializations.  Beginning of driver closings.
+
+@item 3
+
+Completion of driver closings.
+
+@item 4
+
+Files searched for; success of searches.
+
+@item 5
+
+Individual directories included in file searches.
+@end table
+
+Each verbosity level also includes messages from lower verbosity levels.
+
+@end table
+@setfilename ignored

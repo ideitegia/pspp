@@ -1,0 +1,401 @@
+@node Variable Attributes, Data Manipulation, System and Portable Files, Top
+@chapter Manipulating variables
+
+The variables in the active file dictionary are important.  There are
+several utility functions for examining and adjusting them.
+
+@menu
+* ADD VALUE LABELS::            Add value labels to variables.
+* DISPLAY::                     Display variable names & descriptions.
+* DISPLAY VECTORS::             Display a list of vectors.
+* FORMATS::                     Set print and write formats.
+* LEAVE::                       Don't clear variables between cases.
+* MISSING VALUES::              Set missing values for variables.
+* MODIFY VARS::                 Rename, reorder, and drop variables.
+* NUMERIC::                     Create new numeric variables.
+* PRINT FORMATS::               Set variable print formats.
+* RENAME VARIABLES::            Rename variables.
+* VALUE LABELS::                Set value labels for variables.
+* STRING::                      Create new string variables.
+* VARIABLE LABELS::             Set variable labels for variables.
+* VECTOR::                      Declare an array of variables.
+* WRITE FORMATS::               Set variable write formats.
+@end menu
+
+@node ADD VALUE LABELS, DISPLAY, Variable Attributes, Variable Attributes
+@section ADD VALUE LABELS
+@vindex ADD VALUE LABELS
+
+@display 
+ADD VALUE LABELS
+        /var_list value 'label' [value 'label']@dots{}
+@end display
+
+@cmd{ADD VALUE LABELS} has the same syntax and purpose as @cmd{VALUE
+LABELS} (@pxref{VALUE LABELS}), but it does not clear value
+labels from the variables before adding the ones specified.
+
+@node DISPLAY, DISPLAY VECTORS, ADD VALUE LABELS, Variable Attributes
+@section DISPLAY
+@vindex DISPLAY
+
+@display
+DISPLAY @{NAMES,INDEX,LABELS,VARIABLES,DICTIONARY,SCRATCH@}
+        [SORTED] [var_list]
+@end display
+
+@cmd{DISPLAY} displays requested information on variables.  Variables can
+optionally be sorted alphabetically.  The entire dictionary or just
+specified variables can be described.
+
+One of the following keywords can be present:
+
+@table @asis
+@item NAMES
+The variables' names are displayed.
+
+@item INDEX
+The variables' names are displayed along with a value describing their
+position within the active file dictionary.
+
+@item LABELS
+Variable names, positions, and variable labels are displayed.
+
+@item VARIABLES
+Variable names, positions, print and write formats, and missing values
+are displayed.
+
+@item DICTIONARY
+Variable names, positions, print and write formats, missing values,
+variable labels, and value labels are displayed.
+
+@item SCRATCH
+Varible names are displayed, for scratch variables only (@pxref{Scratch
+Variables}).
+@end table
+
+If SORTED is specified, then the variables are displayed in ascending
+order based on their names; otherwise, they are displayed in the order
+that they occur in the active file dictionary.
+
+@node DISPLAY VECTORS, FORMATS, DISPLAY, Variable Attributes
+@section DISPLAY VECTORS
+@vindex DISPLAY VECTORS
+
+@display
+DISPLAY VECTORS.
+@end display
+
+@cmd{DISPLAY VECTORS} lists all the currently declared vectors.
+
+@node FORMATS, LEAVE, DISPLAY VECTORS, Variable Attributes
+@section FORMATS
+@vindex FORMATS
+
+@display
+FORMATS var_list (fmt_spec).
+@end display
+
+@cmd{FORMATS} set both print and write formats for the specified
+variables to the specified format specification.  @xref{Input/Output
+Formats}.
+
+Specify a list of variables followed by a format specification in
+parentheses.  The print and write formats of the specified variables
+will be changed.
+
+Additional lists of variables and formats may be included if they are
+delimited by a slash (@samp{/}).
+
+@cmd{FORMATS} takes effect immediately.  It is not affected by
+conditional and looping structures such as @cmd{DO IF} or @cmd{LOOP}.
+
+@node LEAVE, MISSING VALUES, FORMATS, Variable Attributes
+@section LEAVE
+@vindex LEAVE
+
+@display
+LEAVE var_list.
+@end display
+
+@cmd{LEAVE} prevents the specified variables from being
+reinitialized whenever a new case is processed.
+
+Normally, when a data file is processed, every variable in the active
+file is initialized to the system-missing value or spaces at the
+beginning of processing for each case.  When a variable has been
+specified on @cmd{LEAVE}, this is not the case.  Instead, that variable is
+initialized to 0 (not system-missing) or spaces for the first case.
+After that, it retains its value between cases.
+
+This becomes useful for counters.  For instance, in the example below
+the variable SUM maintains a running total of the values in the ITEM
+variable.
+
+@example
+DATA LIST /ITEM 1-3.
+COMPUTE SUM=SUM+ITEM.
+PRINT /ITEM SUM.
+LEAVE SUM
+BEGIN DATA.
+123
+404
+555
+999
+END DATA.
+@end example
+
+@noindent Partial output from this example:
+
+@example
+123   123.00
+404   527.00
+555  1082.00
+999  2081.00
+@end example
+
+It is best to use @cmd{LEAVE} command immediately before invoking a
+procedure command, because the left status of variables is reset by
+certain transformations---for instance, @cmd{COMPUTE} and @cmd{IF}.
+Left status is also reset by all procedure invocations.
+
+@node MISSING VALUES, MODIFY VARS, LEAVE, Variable Attributes
+@section MISSING VALUES
+@vindex MISSING VALUES
+
+@display
+MISSING VALUES var_list (missing_values).
+
+missing_values takes one of the following forms:
+        num1
+        num1, num2
+        num1, num2, num3
+        num1 THRU num2
+        num1 THRU num2, num3
+        string1
+        string1, string2
+        string1, string2, string3
+As part of a range, LO or LOWEST may take the place of num1;
+HI or HIGHEST may take the place of num2.
+@end display
+
+@cmd{MISSING VALUES} sets user-missing values for numeric and
+short string variables.  Long string variables may not have missing
+values.
+
+Specify a list of variables, followed by a list of their user-missing
+values in parentheses.  Up to three discrete values may be given, or,
+for numeric variables only, a range of values optionally accompanied by
+a single discrete value.  Ranges may be open-ended on one end, indicated
+through the use of the keyword LO or LOWEST or HI or HIGHEST.
+
+The @cmd{MISSING VALUES} command takes effect immediately.  It is not
+affected by conditional and looping constructs such as @cmd{DO IF} or
+@cmd{LOOP}.
+
+@node MODIFY VARS, NUMERIC, MISSING VALUES, Variable Attributes
+@section MODIFY VARS
+@vindex MODIFY VARS
+
+@display 
+MODIFY VARS
+        /REORDER=@{FORWARD,BACKWARD@} @{POSITIONAL,ALPHA@} (var_list)@dots{}
+        /RENAME=(old_names=new_names)@dots{}
+        /@{DROP,KEEP@}=var_list
+        /MAP    
+@end display
+
+@cmd{MODIFY VARS} reorders, renames, and deletes variables in the
+active file.
+
+At least one subcommand must be specified, and no subcommand may be
+specified more than once.  DROP and KEEP may not both be specified.
+
+The REORDER subcommand changes the order of variables in the active
+file.  Specify one or more lists of variable names in parentheses.  By
+default, each list of variables is rearranged into the specified order.
+To put the variables into the reverse of the specified order, put
+keyword BACKWARD before the parentheses.  To put them into alphabetical
+order in the dictionary, specify keyword ALPHA before the parentheses.
+BACKWARD and ALPHA may also be combined.
+
+To rename variables in the active file, specify RENAME, an equals sign
+(@samp{=}), and lists of the old variable names and new variable names
+separated by another equals sign within parentheses.  There must be the
+same number of old and new variable names.  Each old variable is renamed to
+the corresponding new variable name.  Multiple parenthesized groups of
+variables may be specified.
+
+The DROP subcommand deletes a specified list of variables from the
+active file.
+
+The KEEP subcommand keeps the specified list of variables in the active
+file.  Any unlisted variables are deleted from the active file.
+
+MAP is currently ignored.
+
+If either DROP or KEEP is specified, the data is read; otherwise it is
+not.
+
+@cmd{MODIFY VARS} may not be specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}).
+
+@node NUMERIC, PRINT FORMATS, MODIFY VARS, Variable Attributes
+@section NUMERIC
+@vindex NUMERIC
+
+@display
+NUMERIC /var_list [(fmt_spec)].
+@end display
+
+@cmd{NUMERIC} explicitly declares new numeric variables, optionally
+setting their output formats.
+
+Specify a slash (@samp{/}), followed by the names of the new numeric
+variables.  If you wish to set their output formats, follow their names
+by an output format specification in parentheses (@pxref{Input/Output
+Formats}); otherwise, the default is F8.2.
+
+Variables created with @cmd{NUMERIC} are initialized to the
+system-missing value.
+
+@node PRINT FORMATS, RENAME VARIABLES, NUMERIC, Variable Attributes
+@section PRINT FORMATS
+@vindex PRINT FORMATS
+
+@display
+PRINT FORMATS var_list (fmt_spec).
+@end display
+
+@cmd{PRINT FORMATS} sets the print formats for the specified
+variables to the specified format specification.
+
+Its syntax is identical to that of @cmd{FORMATS} (@pxref{FORMATS}),
+but @cmd{PRINT FORMATS} sets only print formats, not write formats.
+
+@node RENAME VARIABLES, VALUE LABELS, PRINT FORMATS, Variable Attributes
+@section RENAME VARIABLES
+@vindex RENAME VARIABLES
+
+@display
+RENAME VARIABLES (old_names=new_names)@dots{} .
+@end display
+
+@cmd{RENAME VARIABLES} changes the names of variables in the active
+file.  Specify lists of the old variable names and new
+variable names, separated by an equals sign (@samp{=}), within
+parentheses.  There must be the same number of old and new variable
+names.  Each old variable is renamed to the corresponding new variable
+name.  Multiple parenthesized groups of variables may be specified.
+
+@cmd{RENAME VARIABLES} takes effect immediately.  It does not cause the data
+to be read.
+
+@cmd{RENAME VARIABLES} may not be specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}).
+
+@node VALUE LABELS, STRING, RENAME VARIABLES, Variable Attributes
+@section VALUE LABELS
+@vindex VALUE LABELS
+
+@display 
+VALUE LABELS
+        /var_list value 'label' [value 'label']@dots{}
+@end display
+
+@cmd{VALUE LABELS} allows values of numeric and short string
+variables to be associated with labels.  In this way, a short value can
+stand for a long value.
+
+To set up value labels for a set of variables, specify the
+variable names after a slash (@samp{/}), followed by a list of values
+and their associated labels, separated by spaces.  Long string
+variables may not be specified.
+
+Before @cmd{VALUE LABELS} is executed, any existing value labels
+are cleared from the variables specified.  Use @cmd{ADD VALUE LABELS}
+(@pxref{ADD VALUE LABELS}) to add value labels without clearing those
+already present.
+
+@node STRING, VARIABLE LABELS, VALUE LABELS, Variable Attributes
+@section STRING
+@vindex STRING
+
+@display
+STRING /var_list (fmt_spec).
+@end display
+
+@cmd{STRING} creates new string variables for use in
+transformations.
+
+Specify a slash (@samp{/}), followed by the names of the string
+variables to create and the desired output format specification in
+parentheses (@pxref{Input/Output Formats}).  Variable widths are
+implicitly derived from the specified output formats.
+
+Created variables are initialized to spaces.
+
+@node VARIABLE LABELS, VECTOR, STRING, Variable Attributes
+@section VARIABLE LABELS
+@vindex VARIABLE LABELS
+
+@display
+VARIABLE LABELS
+        /var_list 'var_label'.
+@end display
+
+@cmd{VARIABLE LABELS} associates explanatory names
+with variables.  This name, called a @dfn{variable label}, is displayed by
+statistical procedures.
+
+To assign a variable label to a group of variables, specify a slash
+(@samp{/}), followed by the list of variable names and the variable
+label as a string.
+
+@node VECTOR, WRITE FORMATS, VARIABLE LABELS, Variable Attributes
+@section VECTOR
+@vindex VECTOR
+
+@display
+Two possible syntaxes:
+        VECTOR vec_name=var_list.
+        VECTOR vec_name_list(count).
+@end display
+
+@cmd{VECTOR} allows a group of variables to be accessed as if they
+were consecutive members of an array with a vector(index) notation.
+
+To make a vector out of a set of existing variables, specify a name for
+the vector followed by an equals sign (@samp{=}) and the variables that
+belong in the vector.
+
+To make a vector and create variables at the same time, specify one or
+more vector names followed by a count in parentheses.  This will cause
+variables named @code{@var{vec}1} through @code{@var{vec}@var{count}}
+to be created as numeric variables with print and write format F8.2.
+Variable names including numeric suffixes may not exceed 8 characters
+in length, and none of the variables may exist prior to @cmd{VECTOR}.
+
+All the variables in a vector must be the same type.
+
+Vectors created with @cmd{VECTOR} disappear after any procedure or
+procedure-like command is executed.  The variables contained in the
+vectors remain, unless they are scratch variables (@pxref{Scratch
+Variables}).
+
+Variables within a vector may be references in expressions using
+@code{vector(index)} syntax.
+
+@node WRITE FORMATS,  , VECTOR, Variable Attributes
+@section WRITE FORMATS
+@vindex WRITE FORMATS
+
+@display
+WRITE FORMATS var_list (fmt_spec).
+@end display
+
+@cmd{WRITE FORMATS} sets the write formats for the specified variables
+to the specified format specification.  Its syntax is identical to
+that of FORMATS (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
+write formats, not print formats.
+@setfilename ignored

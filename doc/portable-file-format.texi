@@ -1,0 +1,438 @@
+@node Portable File Format, Data File Format, Configuration, Top
+@appendix Portable File Format
+
+These days, most computers use the same internal data formats for
+integer and floating-point data, if one ignores little differences like
+big- versus little-endian byte ordering.  However, occasionally it is
+necessary to exchange data between systems with incompatible data
+formats.  This is what portable files are designed to do.
+
+@strong{Please note:} Although all of the following information is
+correct, as far as the author has been able to ascertain, it is gleaned
+from examination of ASCII-formatted portable files only, so some of it
+may be incorrect in the general case.
+
+@menu
+* Portable File Characters::    
+* Portable File Structure::     
+* Portable File Header::        
+* Version and Date Info Record::  
+* Identification Records::      
+* Variable Count Record::       
+* Case Weight Variable Record::  
+* Variable Records::            
+* Value Label Records::         
+* Portable File Data::          
+@end menu
+
+@node Portable File Characters, Portable File Structure, Portable File Format, Portable File Format
+@section Portable File Characters
+
+Portable files are arranged as a series of lines of exactly 80
+characters each.  Each line is terminated by a carriage-return,
+line-feed sequence ``new-lines'').  New-lines are only used to avoid
+line length limits imposed by some OSes; they are not meaningful.
+
+The file must be terminated with a @samp{Z} character.  In addition, if
+the final line in the file does not have exactly 80 characters, then it
+is padded on the right with @samp{Z} characters.  (The file contents may
+be in any character set; the file contains a description of its own
+character set, as explained in the next section.  Therefore, the
+@samp{Z} character is not necessarily an ASCII @samp{Z}.)
+
+For the rest of the description of the portable file format, new-lines
+and the trailing @samp{Z}s will be ignored, as if they did not exist,
+because they are not an important part of understanding the file
+contents.
+
+@node Portable File Structure, Portable File Header, Portable File Characters, Portable File Format
+@section Portable File Structure
+
+Every portable file consists of the following records, in sequence:
+
+@itemize @bullet
+
+@item
+File header.
+
+@item
+Version and date info.
+
+@item
+Product identification.
+
+@item
+Subproduct identification (optional).
+
+@item
+Variable count.
+
+@item
+Case weight variable (optional).
+
+@item
+Variables.  Each variable record may optionally be followed by a
+missing value record and a variable label record.
+
+@item
+Value labels (optional).
+
+@item
+Data.
+@end itemize
+
+Most records are identified by a single-character tag code.  The file
+header and version info record do not have a tag.
+
+Other than these single-character codes, there are three types of fields
+in a portable file: floating-point, integer, and string.  Floating-point
+fields have the following format:
+
+@itemize @bullet
+
+@item
+Zero or more leading spaces.
+
+@item
+Optional asterisk (@samp{*}), which indicates a missing value.  The
+asterisk must be followed by a single character, generally a period
+(@samp{.}), but it appears that other characters may also be possible.
+This completes the specification of a missing value.
+
+@item
+Optional minus sign (@samp{-}) to indicate a negative number.
+
+@item
+A whole number, consisting of one or more base-30 digits: @samp{0}
+through @samp{9} plus capital letters @samp{A} through @samp{T}.
+
+@item
+Optional fraction, consisting of a radix point (@samp{.}) followed by
+one or more base-30 digits.
+
+@item
+Optional exponent, consisting of a plus or minus sign (@samp{+} or
+@samp{-}) followed by one or more base-30 digits.
+
+@item
+A forward slash (@samp{/}).
+@end itemize
+
+Integer fields take a form identical to floating-point fields, but they
+may not contain a fraction.
+
+String fields take the form of a integer field having value @var{n},
+followed by exactly @var{n} characters, which are the string content.
+
+@node Portable File Header, Version and Date Info Record, Portable File Structure, Portable File Format
+@section Portable File Header
+
+Every portable file begins with a 464-byte header, consisting of a
+200-byte collection of vanity splash strings, followed by a 256-byte
+character set translation table, followed by an 8-byte tag string.
+
+The 200-byte segment is divided into five 40-byte sections, each of
+which represents the string @code{@var{charset} SPSS PORT FILE} in a
+different character set encoding, where @var{charset} is the name of
+the character set used in the file, e.g.@: @code{ASCII} or
+@code{EBCDIC}.  Each string is padded on the right with spaces in its
+respective character set.
+
+It appears that these strings exist only to inform those who might view
+the file on a screen, and that they are not parsed by SPSS products.
+Thus, they can be safely ignored.  For those interested, the strings are
+supposed to be in the following character sets, in the specified order:
+EBCDIC, 7-bit ASCII, CDC 6-bit ASCII, 6-bit ASCII, Honeywell 6-bit
+ASCII.
+
+The 256-byte segment describes a mapping from the character set used in
+the portable file to an arbitrary character set having characters at the
+following positions:
+
+@table @asis
+@item 0--60
+
+Control characters.  Not important enough to describe in full here.
+
+@item 61--63
+
+Reserved.
+
+@item 64--73
+
+Digits @samp{0} through @samp{9}.
+
+@item 74--99
+
+Capital letters @samp{A} through @samp{Z}. 
+
+@item 100--125
+
+Lowercase letters @samp{a} through @samp{z}.
+
+@item 126
+
+Space.
+
+@item 127--130
+
+Symbols @code{.<(+}
+
+@item 131
+
+Solid vertical pipe.
+
+@item 132--142
+
+Symbols @code{&[]!$*);^-/}
+
+@item 143
+
+Broken vertical pipe.
+
+@item 144--150
+
+Symbols @code{,%_>}?@code{`:}   @c @code{?} is an inverted question mark
+
+@item 151
+
+British pound symbol.
+
+@item 152--155
+
+Symbols @code{@@'="}.
+
+@item 156
+
+Less than or equal symbol.
+
+@item 157
+
+Empty box.
+
+@item 158
+
+Plus or minus.
+
+@item 159
+
+Filled box.
+
+@item 160
+
+Degree symbol.
+
+@item 161
+
+Dagger.
+
+@item 162
+
+Symbol @samp{~}.
+
+@item 163
+
+En dash.
+
+@item 164
+
+Lower left corner box draw.
+
+@item 165
+
+Upper left corner box draw.
+
+@item 166
+
+Greater than or equal symbol.
+
+@item 167--176
+
+Superscript @samp{0} through @samp{9}.
+
+@item 177
+
+Lower right corner box draw.
+
+@item 178
+
+Upper right corner box draw.
+
+@item 179
+
+Not equal symbol.
+
+@item 180
+
+Em dash.
+
+@item 181
+
+Superscript @samp{(}.
+
+@item 182
+
+Superscript @samp{)}.
+
+@item 183
+
+Horizontal dagger (?).
+
+@item 184--186
+
+Symbols @samp{@{@}\}.
+@item 187
+
+Cents symbol.
+
+@item 188
+
+Centered dot, or bullet.
+
+@item 189--255
+
+Reserved.
+@end table
+
+Symbols that are not defined in a particular character set are set to
+the same value as symbol 64; i.e., to @samp{0}.
+
+The 8-byte tag string consists of the exact characters @code{SPSSPORT}
+in the portable file's character set, which can be used to verify that
+the file is indeed a portable file.
+
+@node Version and Date Info Record, Identification Records, Portable File Header, Portable File Format
+@section Version and Date Info Record
+
+This record does not have a tag code.  It has the following structure:
+
+@itemize @bullet
+@item
+A single character identifying the file format version.  The letter A
+represents version 0, and so on.
+
+@item
+An 8-character string field giving the file creation date in the format
+YYYYMMDD.
+
+@item
+A 6-character string field giving the file creation time in the format
+HHMMSS.
+@end itemize
+
+@node Identification Records, Variable Count Record, Version and Date Info Record, Portable File Format
+@section Identification Records
+
+The product identification record has tag code @samp{1}.  It consists of
+a single string field giving the name of the product that wrote the
+portable file.
+
+The subproduct identification record has tag code @samp{3}.  It
+consists of a single string field giving additional information on the
+product that wrote the portable file.
+
+@node Variable Count Record, Case Weight Variable Record, Identification Records, Portable File Format
+@section Variable Count Record
+
+The variable count record has tag code @samp{4}.  It consists of two
+integer fields.  The first contains the number of variables in the file
+dictionary.  The purpose of the second is unknown; it contains the value
+161 in all portable files examined so far.
+
+@node Case Weight Variable Record, Variable Records, Variable Count Record, Portable File Format
+@section Case Weight Variable Record
+
+The case weight variable record is optional.  If it is present, it
+indicates the variable used for weighting cases; if it is absent,
+cases are unweighted.  It has tag code @samp{6}.  It consists of a
+single string field that names the weighting variable.
+
+@node Variable Records, Value Label Records, Case Weight Variable Record, Portable File Format
+@section Variable Records
+
+Each variable record represents a single variable.  Variable records
+have tag code @samp{7}.  They have the following structure:
+
+@itemize @bullet
+
+@item
+Width (integer).  This is 0 for a numeric variable, and a number between 1
+and 255 for a string variable.
+
+@item
+Name (string).  1--8 characters long.  Must be in all capitals.
+
+@item
+Print format.  This is a set of three integer fields:
+
+@itemize @minus
+
+@item
+Format type (@pxref{Variable Record}).
+
+@item
+Format width.  1--40.
+
+@item
+Number of decimal places.  1--40.
+@end itemize
+
+@item
+Write format.  Same structure as the print format described above.
+@end itemize
+
+Each variable record can optionally be followed by a missing value
+record, which has tag code @samp{8}.  A missing value record has one
+field, the missing value itself (a floating-point or string, as
+appropriate).  Up to three of these missing value records can be used.
+
+There is also a record for missing value ranges, which has tag code
+@samp{B}.  It is followed by two fields representing the range, which
+are floating-point or string as appropriate.  If a missing value range
+is present, it may be followed by a single missing value record.
+
+Tag codes @samp{9} and @samp{A} represent @code{LO THRU @var{x}} and
+@code{@var{x} THRU HI} ranges, respectively.  Each is followed by a
+single field representing @var{x}.  If one of the ranges is present, it
+may be followed by a single missing value record.
+
+In addition, each variable record can optionally be followed by a
+variable label record, which has tag code @samp{C}.  A variable label
+record has one field, the variable label itself (string).
+
+@node Value Label Records, Portable File Data, Variable Records, Portable File Format
+@section Value Label Records
+
+Value label records have tag code @samp{D}.  They have the following
+format:
+
+@itemize @bullet
+@item
+Variable count (integer).
+
+@item
+List of variables (strings).  The variable count specifies the number in
+the list.  Variables are specified by their names.  All variables must
+be of the same type (numeric or string).
+
+@item
+Label count (integer).
+
+@item
+List of (value, label) tuples.  The label count specifies the number of
+tuples.  Each tuple consists of a value, which is numeric or string as
+appropriate to the variables, followed by a label (string).
+@end itemize
+
+@node Portable File Data,  , Value Label Records, Portable File Format
+@section Portable File Data
+
+The data record has tag code @samp{F}.  There is only one tag for all
+the data; thus, all the data must follow the dictionary.  The data is
+terminated by the end-of-file marker @samp{Z}, which is not valid as the
+beginning of a data element.
+
+Data elements are output in the same order as the variable records
+describing them.  String variables are output as string fields, and
+numeric variables are output as floating-point fields.
+@setfilename ignored

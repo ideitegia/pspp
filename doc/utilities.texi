@@ -1,0 +1,581 @@
+@node Utilities, Not Implemented, Statistics, Top
+@chapter Utilities
+
+Commands that don't fit any other category are placed here.
+
+Most of these commands are not affected by commands like @cmd{IF} and
+@cmd{LOOP}:
+they take effect only once, unconditionally, at the time that they are
+encountered in the input.
+
+@menu
+* COMMENT::                     Document your syntax file.
+* DOCUMENT::                    Document the active file.
+* DISPLAY DOCUMENTS::           Display active file documents.
+* DISPLAY FILE LABEL::          Display the active file label.
+* DROP DOCUMENTS::              Remove documents from the active file.
+* ERASE::                       Erase a file.
+* EXECUTE::                     Execute pending transformations.
+* FILE LABEL::                  Set the active file's label.
+* FINISH::                      Terminate the PSPP session.
+* HOST::                        Temporarily return to the operating system.
+* INCLUDE::                     Include a file within the current one.
+* QUIT::                        Terminate the PSPP session.
+* SET::                         Adjust PSPP runtime parameters.
+* SHOW::                        Display runtime parameters.
+* SUBTITLE::                    Provide a document subtitle.
+* TITLE::                       Provide a document title.
+@end menu
+
+@node COMMENT, DOCUMENT, Utilities, Utilities
+@section COMMENT
+@vindex COMMENT
+@vindex *
+
+@display 
+Two possibles syntaxes:
+        COMMENT comment text @dots{} .
+        *comment text @dots{} .
+@end display
+
+@cmd{COMMENT} is ignored.  It is used to provide information to
+the author and other readers of the PSPP syntax file.  
+
+@cmd{COMMENT} can extend over any number of lines.  Don't forget to
+terminate it with a dot or a blank line.
+
+@node DOCUMENT, DISPLAY DOCUMENTS, COMMENT, Utilities
+@section DOCUMENT
+@vindex DOCUMENT
+
+@display
+DOCUMENT documentary_text.
+@end display
+
+@cmd{DOCUMENT} adds one or more lines of descriptive commentary to the
+active file.  Documents added in this way are saved to system files.
+They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
+DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.
+
+Specify the documentary text following the DOCUMENT keyword.  You can
+extend the documentary text over as many lines as necessary.  Lines are
+truncated at 80 characters width.  Don't forget to terminate
+the command with a dot or a blank line.
+
+@node DISPLAY DOCUMENTS, DISPLAY FILE LABEL, DOCUMENT, Utilities
+@section DISPLAY DOCUMENTS
+@vindex DISPLAY DOCUMENTS
+
+@display
+DISPLAY DOCUMENTS.
+@end display
+
+@cmd{DISPLAY DOCUMENTS} displays the documents in the active file.  Each
+document is preceded by a line giving the time and date that it was
+added.  @xref{DOCUMENT}.
+
+@node DISPLAY FILE LABEL, DROP DOCUMENTS, DISPLAY DOCUMENTS, Utilities
+@section DISPLAY FILE LABEL
+@vindex DISPLAY FILE LABEL
+
+@display
+DISPLAY FILE LABEL.
+@end display
+
+@cmd{DISPLAY FILE LABEL} displays the file label contained in the
+active file,
+if any.  @xref{FILE LABEL}.
+
+@node DROP DOCUMENTS, ERASE, DISPLAY FILE LABEL, Utilities
+@section DROP DOCUMENTS
+@vindex DROP DOCUMENTS
+
+@display
+DROP DOCUMENTS.
+@end display
+
+@cmd{DROP DOCUMENTS} removes all documents from the active file.
+New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
+
+@cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
+system files stored on disk.
+
+
+@node ERASE, EXECUTE, DROP DOCUMENTS, Utilities
+@comment  node-name,  next,  previous,  up
+@section ERASE
+@vindex ERASE
+
+@display
+ERASE FILE file_name.
+@end display
+
+@cmd{ERASE FILE} deletes a file from the local filesystem.
+file_name must be quoted.
+This command cannot be used if the SAFER setting is active.
+
+
+@node EXECUTE, FILE LABEL, ERASE, Utilities
+@section EXECUTE
+@vindex EXECUTE
+
+@display
+EXECUTE.
+@end display
+
+@cmd{EXECUTE} causes the active file to be read and all pending
+transformations to be executed.
+
+@node FILE LABEL, FINISH, EXECUTE, Utilities
+@section FILE LABEL
+@vindex FILE LABEL
+
+@display
+FILE LABEL file_label.
+@end display
+
+@cmd{FILE LABEL} provides a title for the active file.  This
+title will be saved into system files and portable files that are
+created during this PSPP run.
+
+file_label need not be quoted.  If quotes are
+included, they become part of the file label.
+
+@node FINISH, HOST, FILE LABEL, Utilities
+@section FINISH
+@vindex FINISH
+
+@display
+FINISH.
+@end display
+
+@cmd{FINISH} terminates the current PSPP session and returns
+control to the operating system.
+
+This command is not valid in interactive mode.
+
+@node HOST, INCLUDE, FINISH, Utilities
+@comment  node-name,  next,  previous,  up
+@section HOST
+@vindex HOST
+
+@display
+HOST.
+@end display
+
+@cmd{HOST} suspends the current PSPP session and temporarily returns control 
+to the operating system.
+This command cannot be used if the SAFER setting is active.
+
+
+@node INCLUDE, QUIT, HOST, Utilities
+@section INCLUDE
+@vindex INCLUDE
+@vindex @@
+
+@display
+Two possible syntaxes:
+        INCLUDE 'filename'.
+        @@filename.
+@end display
+
+@cmd{INCLUDE} causes the PSPP command processor to read an
+additional command file as if it were included bodily in the current
+command file.
+
+Include files may be nested to any depth, up to the limit of available
+memory.
+
+@node QUIT, SET, INCLUDE, Utilities
+@section QUIT
+@vindex QUIT
+
+@display
+Two possible syntaxes:
+        QUIT.
+        EXIT.
+@end display
+
+@cmd{QUIT} terminates the current PSPP session and returns control
+to the operating system.  
+
+This command is not valid within a command file.
+
+@node SET, SHOW, QUIT, Utilities
+@section SET
+@vindex SET
+
+@display
+SET
+
+(data input)
+        /BLANKS=@{SYSMIS,'.',number@}
+        /DECIMAL=@{DOT,COMMA@}
+        /FORMAT=fmt_spec
+
+(program input)
+        /ENDCMD='.'
+        /NULLINE=@{ON,OFF@}
+
+(interaction)
+        /CPROMPT='cprompt_string'
+        /DPROMPT='dprompt_string'
+        /ERRORBREAK=@{OFF,ON@}
+        /MXERRS=max_errs
+        /MXWARNS=max_warnings
+        /PROMPT='prompt'
+        /VIEWLENGTH=@{MINIMUM,MEDIAN,MAXIMUM,n_lines@}
+        /VIEWWIDTH=n_characters
+
+(program execution)
+        /MEXPAND=@{ON,OFF@}
+        /MITERATE=max_iterations
+        /MNEST=max_nest
+        /MPRINT=@{ON,OFF@}
+        /MXLOOPS=max_loops
+        /SEED=@{RANDOM,seed_value@}
+        /UNDEFINED=@{WARN,NOWARN@}
+
+(data output)
+        /CC@{A,B,C,D,E@}=@{'npre,pre,suf,nsuf','npre.pre.suf.nsuf'@}
+        /DECIMAL=@{DOT,COMMA@}
+        /FORMAT=fmt_spec
+
+(output routing)
+        /ECHO=@{ON,OFF@}
+        /ERRORS=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
+        /INCLUDE=@{ON,OFF@}
+        /MESSAGES=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
+        /PRINTBACK=@{ON,OFF@}
+        /RESULTS=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
+
+(output activation)
+        /LISTING=@{ON,OFF@}
+        /PRINTER=@{ON,OFF@}
+        /SCREEN=@{ON,OFF@}
+
+(output driver options)
+        /HEADERS=@{NO,YES,BLANK@}
+        /LENGTH=@{NONE,length_in_lines@}
+        /LISTING=filename
+        /MORE=@{ON,OFF@}
+        /PAGER=@{OFF,"pager_name"@}
+        /WIDTH=@{NARROW,WIDTH,n_characters@}
+
+(logging)
+        /JOURNAL=@{ON,OFF@} [filename]
+        /LOG=@{ON,OFF@} [filename]
+
+(system files)
+        /COMPRESSION=@{ON,OFF@}
+        /SCOMPRESSION=@{ON,OFF@}
+
+(security)
+        /SAFER=ON
+
+(obsolete settings accepted for compatibility, but ignored)
+        /AUTOMENU=@{ON,OFF@}
+        /BEEP=@{ON,OFF@}
+        /BLOCK='c'
+        /BOXSTRING=@{'xxx','xxxxxxxxxxx'@}
+        /CASE=@{UPPER,UPLOW@}
+        /COLOR=@dots{}
+        /CPI=cpi_value
+        /DISK=@{ON,OFF@}
+        /EJECT=@{ON,OFF@}
+        /HELPWINDOWS=@{ON,OFF@}
+        /HIGHRES=@{ON,OFF@}
+        /HISTOGRAM='c'
+        /LOWRES=@{AUTO,ON,OFF@}
+        /LPI=lpi_value
+        /MENUS=@{STANDARD,EXTENDED@}
+        /MXMEMORY=max_memory
+        /PTRANSLATE=@{ON,OFF@}
+        /RCOLORS=@dots{}
+        /RUNREVIEW=@{AUTO,MANUAL@}
+        /SCRIPTTAB='c'
+        /TB1=@{'xxx','xxxxxxxxxxx'@}
+        /TBFONTS='string'
+        /WORKDEV=drive_letter
+        /WORKSPACE=workspace_size
+        /XSORT=@{YES,NO@}
+@end display
+
+@cmd{SET} allows the user to adjust several parameters relating to
+PSPP's execution.  Since there are many subcommands to this command, its
+subcommands will be examined in groups.
+
+On subcommands that take boolean values, ON and YES are synonym, and
+as are OFF and NO, when used as subcommand values.
+
+The data input subcommands affect the way that data is read from data
+files.  The data input subcommands are
+
+@table @asis
+@item BLANKS
+This is the value assigned to an item data item that is empty or
+contains only whitespace.  An argument of SYSMIS or '.' will cause the
+system-missing value to be assigned to null items.  This is the
+default.  Any real value may be assigned.
+
+@item DECIMAL
+The default DOT setting causes the decimal point character to be
+@samp{.}.  A setting of COMMA causes the decimal point character to be
+@samp{,}.
+
+@item FORMAT
+Allows the default numeric input/output format to be specified.  The
+default is F8.2.  @xref{Input/Output Formats}.
+@end table
+
+Program input subcommands affect the way that programs are parsed when
+they are typed interactively or run from a script.  They are
+
+@table @asis
+@item ENDCMD
+This is a single character indicating the end of a command.  The default
+is @samp{.}.  Don't change this.
+
+@item NULLINE
+Whether a blank line is interpreted as ending the current command.  The
+default is ON.
+@end table
+
+Interaction subcommands affect the way that PSPP interacts with an
+online user.  The interaction subcommands are
+
+@table @asis
+@item CPROMPT
+The command continuation prompt.  The default is @samp{    > }.
+
+@item DPROMPT
+Prompt used when expecting data input within @cmd{BEGIN DATA} (@pxref{BEGIN
+DATA}).  The default is @samp{data> }.
+
+@item ERRORBREAK
+Whether an error causes PSPP to stop processing the current command
+file after finishing the current command.  The default is OFF.
+
+@item MXERRS
+The maximum number of errors before PSPP halts processing of the current
+command file.  The default is 50.
+
+@item MXWARNS
+The maximum number of warnings + errors before PSPP halts processing the
+current command file.  The default is 100.
+
+@item PROMPT
+The command prompt.  The default is @samp{PSPP> }.
+
+@item VIEWLENGTH
+The length of the screen in lines.  MINIMUM means 25 lines, MEDIAN and
+MAXIMUM mean 43 lines.  Otherwise specify the number of lines.  Normally
+PSPP should auto-detect your screen size so this shouldn't have to be
+used.
+
+@item VIEWWIDTH
+The width of the screen in characters.  Normally 80 or 132.
+@end table
+
+Program execution subcommands control the way that PSPP commands
+execute.  The program execution subcommands are
+
+@table @asis
+@item MEXPAND
+@itemx MITERATE
+@itemx MNEST
+@itemx MPRINT
+Currently not used.
+
+@item MXLOOPS
+The maximum number of iterations for an uncontrolled loop (@pxref{LOOP}).
+
+@item SEED
+The initial pseudo-random number seed.  Set to a real number or to
+RANDOM, which will obtain an initial seed from the current time of day.
+
+@item UNDEFINED
+Currently not used.
+@end table
+
+Data output subcommands affect the format of output data.  These
+subcommands are
+
+@table @asis
+@item CCA
+@itemx CCB
+@itemx CCC
+@itemx CCD
+@itemx CCE
+Set up custom currency formats.  The argument is a string which must
+contain exactly three commas or exactly three periods.  If commas, then
+the grouping character for the currency format is @samp{,}, and the
+decimal point character is @samp{.}; if periods, then the situation is
+reversed.  
+
+The commas or periods divide the string into four fields, which are, in
+order, the negative prefix, prefix, suffix, and negative suffix.  When a
+value is formatted using the custom currency format, the prefix precedes
+the value formatted and the suffix follows it.  In addition, if the
+value is negative, the negative prefix precedes the prefix and the
+negative suffix follows the suffix.
+
+@item DECIMAL
+The default DOT setting causes the decimal point character to be
+@samp{.}.  A setting of COMMA causes the decimal point character to be
+@samp{,}.
+
+@item FORMAT
+Allows the default numeric input/output format to be specified.  The
+default is F8.2.  @xref{Input/Output Formats}.
+@end table
+
+Output routing subcommands affect where the output of transformations
+and procedures is sent.  These subcommands are
+
+@table @asis
+@item ECHO
+
+If turned on, commands are written to the listing file as they are read
+from command files.  The default is OFF.
+
+@itemx ERRORS
+@itemx INCLUDE
+@itemx MESSAGES
+@item PRINTBACK
+@item RESULTS
+Currently not used.
+@end table
+
+Output activation subcommands affect whether output devices of
+particular types are enabled.  These subcommands are
+
+@table @asis
+@item LISTING
+Enable or disable listing devices.
+
+@item PRINTER
+Enable or disable printer devices.
+
+@item SCREEN
+Enable or disable screen devices.
+@end table
+
+Output driver option subcommands affect output drivers' settings.  These
+subcommands are
+
+@table @asis
+@item HEADERS
+@itemx LENGTH
+@itemx LISTING
+@itemx MORE
+@itemx PAGER 
+@itemx WIDTH
+Currently not used.
+@end table
+
+Logging subcommands affect logging of commands executed to external
+files.  These subcommands are
+
+@table @asis
+@item JOURNAL
+@item LOG
+Not currently used.
+@end table
+
+System file subcommands affect the default format of system files
+produced by PSPP.  These subcommands are
+
+@table @asis
+@item COMPRESSION
+Not currently used.
+
+@item SCOMPRESSION
+Whether system files created by @cmd{SAVE} or @cmd{XSAVE} are
+compressed by default.  The default is ON.
+@end table
+
+Security subcommands affect the operations that commands are allowed to
+perform.  The security subcommands are
+
+@table @asis
+@item SAFER
+When set, this setting cannot ever be reset, for obvious security
+reasons.  Setting this option disables the following operations:
+
+@itemize @bullet
+@item
+The ERASE command.
+@item
+The HOST command.
+@item
+Pipe filenames (filenames beginning or ending with @samp{|}).
+@end itemize
+
+Be aware that this setting does not guarantee safety (commands can still
+overwrite files, for instance) but it is an improvement.
+@end table
+
+@node SHOW, SUBTITLE, SET, Utilities
+@comment  node-name,  next,  previous,  up
+@section SHOW
+@vindex SHOW
+
+@display
+SHOW
+        /@var{subcommand}
+        
+@end display
+
+@cmd{SHOW} can be used to display the current state of PSPP's
+execution parameters.  All of the parameters which can be changed 
+using  @code{SET} @xref{SET}, can be examined using @cmd{SHOW}, by
+using a subcommand with the same name.
+In addition, @code{SHOW} supports the following subcommands:
+
+@table @code
+@item WARRANTY
+Show details of the lack of warranty for PSPP.
+@item COPYING
+Display the terms of PSPP's copyright licence @ref{License}.
+@end table
+
+
+
+@node SUBTITLE, TITLE, SHOW, Utilities
+@section SUBTITLE
+@vindex SUBTITLE
+
+@display
+SUBTITLE 'subtitle_string'.
+  or
+SUBTITLE subtitle_string.
+@end display
+
+@cmd{SUBTITLE} provides a subtitle to a particular PSPP
+run.  This subtitle appears at the top of each output page below the
+title, if headers are enabled on the output device.
+
+Specify a subtitle as a string in quotes.  The alternate syntax that did
+not require quotes is now obsolete.  If it is used then the subtitle is
+converted to all uppercase.
+
+@node TITLE,  , SUBTITLE, Utilities
+@section TITLE
+@vindex TITLE
+
+@display
+TITLE 'title_string'.
+  or
+TITLE title_string.
+@end display
+
+@cmd{TITLE} provides a title to a particular PSPP run.
+This title appears at the top of each output page, if headers are enabled
+on the output device.
+
+Specify a title as a string in quotes.  The alternate syntax that did
+not require quotes is now obsolete.  If it is used then the title is
+converted to all uppercase.
+@setfilename ignored

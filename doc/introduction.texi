@@ -1,0 +1,34 @@
+@node Introduction, License, Top, Top
+@chapter Introduction
+@cindex introduction
+
+@cindex PSPP language
+@cindex language, PSPP
+PSPP is a tool for statistical analysis of sampled data.  It reads a
+syntax file and a data file, analyzes the data, and writes the results
+to a listing file or to standard output.
+
+The language accepted by PSPP is similar to those accepted by SPSS
+statistical products.  The details of PSPP's language are given
+later in this manual.
+
+@cindex files, PSPP
+@cindex output, PSPP
+@cindex PostScript
+@cindex graphics
+@cindex Ghostscript
+@cindex Free Software Foundation
+PSPP produces output in two forms: tables and charts.  Both of these can
+be written in several formats; currently, ASCII, PostScript, and HTML
+are supported.  In the future, more drivers, such as PCL and X Window
+System drivers, may be developed.  For now, Ghostscript, available from
+the Free Software Foundation, may be used to convert PostScript chart
+output to other formats.
+
+The current version of PSPP, @value{VERSION}, is woefully incomplete in
+terms of its statistical procedure support.  PSPP is a work in progress.
+The author hopes to support fully support all features in the products
+that PSPP replaces, eventually.  The author welcomes questions,
+comments, donations, and code submissions.  @xref{Bugs,,Submitting Bug
+Reports}, for instructions on contacting the author.
+@setfilename ignored

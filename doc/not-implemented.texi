@@ -1,0 +1,75 @@
+@node Not Implemented, Bugs, Utilities, Top
+@chapter Not Implemented
+
+This chapter lists parts of the PSPP language that are not yet
+implemented.
+
+The following transformations and utilities are not yet implemented, but
+they will be supported in a later release.
+
+@itemize @bullet
+@item
+ADD FILES
+@item
+ANOVA
+@item
+DEFINE
+@item
+FILE TYPE
+@item
+GET SAS
+@item
+GET TRANSLATE
+@item
+MCONVERT
+@item
+PLOT
+@item
+PRESERVE
+@item
+PROCEDURE OUTPUT
+@item
+RESTORE
+@item
+SAVE TRANSLATE
+@item
+UPDATE
+@end itemize
+
+The following transformations and utilities are not implemented.  There
+are no plans to support them in future releases.  Contributions to
+implement them will still be accepted.
+
+@itemize @bullet
+@item
+EDIT
+@item
+GET DATABASE
+@item
+GET OSIRIS
+@item
+GET SCSS
+@item
+GSET
+@item
+HELP
+@item
+INFO
+@item
+INPUT MATRIX
+@item
+KEYED DATA LIST
+@item
+NUMBERED and UNNUMBERED
+@item
+OPTIONS
+@item
+REVIEW
+@item
+SAVE SCSS
+@item
+SPSS MANAGER
+@item
+STATISTICS
+@end itemize
+@setfilename ignored
