@@ -37,11 +37,11 @@
 #include <math.h>
 #include <errno.h>
 #include <stdio.h>
-#include "approx.h"
 #include "data-in.h"
 #include "error.h"
 #include "julcal/julcal.h"
 #include "magic.h"
+#include "misc.h"
 #include "pool.h"
 #include "random.h"
 #include "stats.h"
@@ -102,7 +102,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	  sp--;
 	  if (sp[0].f == SYSMIS)
 	    {
-	      if (approx_eq (sp[1].f, 0.0))
+	      if (sp[1].f == 0.0)
 		sp->f = 1.0;
 	    }
 	  else if (sp[1].f == SYSMIS)
@@ -113,16 +113,14 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      else
 		sp->f = SYSMIS;
 	    }
-	  else if (approx_eq (sp[0].f, 0.0) && approx_eq (sp[1].f, 0.0))
+	  else if (sp[0].f == 0.0 && sp[1].f == 0.0)
 	    sp->f = SYSMIS;
 	  else
 	    sp->f = pow (sp[0].f, sp[1].f);
 	  break;
 
 	case OP_AND:
-	  /* Note that the equality operator (==) may be used here
-	     (instead of approx_eq) because booleans are always
-	     *exactly* 0, 1, or SYSMIS.
+	  /* Note that booleans are always one of 0, 1, or SYSMIS.
 
 	     Truth table (in order of detection):
 
@@ -193,7 +191,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      if (sp[1].f == SYSMIS)
 		sp->f = SYSMIS;
 	      else
-		sp->f = approx_eq (sp[0].f, sp[1].f);
+		sp->f = sp[0].f == sp[1].f;
 	    }
 	  break;
 	case OP_GE:
@@ -203,7 +201,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      if (sp[1].f == SYSMIS)
 		sp->f = SYSMIS;
 	      else
-		sp->f = approx_ge (sp[0].f, sp[1].f);
+		sp->f = sp[0].f >= sp[1].f;
 	    }
 	  break;
 	case OP_GT:
@@ -213,7 +211,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      if (sp[1].f == SYSMIS)
 		sp->f = SYSMIS;
 	      else
-		sp->f = approx_gt (sp[0].f, sp[1].f);
+		sp->f = sp[0].f > sp[1].f;
 	    }
 	  break;
 	case OP_LE:
@@ -223,7 +221,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      if (sp[1].f == SYSMIS)
 		sp->f = SYSMIS;
 	      else
-		sp->f = approx_le (sp[0].f, sp[1].f);
+		sp->f = sp[0].f <= sp[1].f;
 	    }
 	  break;
 	case OP_LT:
@@ -233,7 +231,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      if (sp[1].f == SYSMIS)
 		sp->f = SYSMIS;
 	      else
-		sp->f = approx_lt (sp[0].f, sp[1].f);
+		sp->f = sp[0].f < sp[1].f;
 	    }
 	  break;
 	case OP_NE:
@@ -243,7 +241,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      if (sp[1].f == SYSMIS)
 		sp->f = SYSMIS;
 	      else
-		sp->f = approx_ne (sp[0].f, sp[1].f);
+		sp->f = sp[0].f != sp[1].f;
 	    }
 	  break;
 
@@ -396,7 +394,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    if (sp->f == SYSMIS)
 	      break;
 	    for (i = 1; i <= n_args; i++)
-	      if (approx_eq (sp[0].f, sp[i].f))
+	      if (sp[0].f == sp[i].f)
 		{
 		  sp->f = 1.0;
 		  goto main_loop;
@@ -537,8 +535,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    for (i = 1; i <= n_args; i += 2)
 	      if (sp[i].f == SYSMIS || sp[i + 1].f == SYSMIS)
 		continue;
-	      else if (approx_ge (sp[0].f, sp[i].f)
-		       && approx_le (sp[0].f, sp[i + 1].f))
+	      else if (sp[0].f >= sp[i].f && sp[0].f <= sp[i + 1].f)
 		{
 		  sp->f = 1.0;
 		  goto main_loop;
@@ -1109,9 +1106,9 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    sp->f *= sp->f;
 	  break;
 	case OP_NUM_TO_BOOL:
-	  if (approx_eq (sp->f, 0.0))
+	  if (sp->f == 0.0)
 	    sp->f = 0.0;
-	  else if (approx_eq (sp->f, 1.0))
+	  else if (sp->f == 1.0)
 	    sp->f = 1.0;
 	  else if (sp->f != SYSMIS)
 	    {
@@ -1130,7 +1127,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    {
 	      if (sp[1].f == SYSMIS)
 		{
-		  if (approx_ne (sp[0].f, 0.0))
+		  if (sp[0].f != 0.0)
 		    sp->f = SYSMIS;
 		}
 	      else

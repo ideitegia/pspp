@@ -28,7 +28,6 @@
 #include <unistd.h>	/* Required by SunOS4. */
 #endif
 #include "alloc.h"
-#include "approx.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"
@@ -1149,7 +1148,7 @@ SPLIT_FILE_procfunc (struct ccase *c, void *data_)
       switch (v->type)
 	{
 	case NUMERIC:
-	  if (approx_ne (c->data[v->fv].f, prev_case->data[v->fv].f))
+	  if (c->data[v->fv].f != prev_case->data[v->fv].f)
 	    goto not_equal;
 	  break;
 	case ALPHA:

@@ -26,7 +26,6 @@
 #include <errno.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "data-in.h"
 #include "error.h"
 #include "julcal/julcal.h"
@@ -172,7 +171,7 @@ optimize_tree (struct nonterm_node * n)
 
       /* 0*SYSMIS=0, 0/SYSMIS=0; otherwise, SYSMIS and infinities
          produce SYSMIS. */
-      if (approx_eq (cval, 0.0) && n->type == OP_MUL)
+      if (cval == 0.0 && n->type == OP_MUL)
 	nvar = 0;
       else if (sysmis || !finite (cval))
 	{
@@ -198,7 +197,7 @@ optimize_tree (struct nonterm_node * n)
 	{
 	  /* Otherwise consolidate all the nonconstant terms. */
 	  m = xmalloc (sizeof (struct nonterm_node)
-		       + ((nvar + approx_ne (cval, def) - 1)
+		       + ((nvar + (cval != def) - 1)
 			  * sizeof (union any_node *)));
 	  for (i = c = 0; i < n->n; i++)
 	    if (n->arg[i]->type != OP_NUM_CON)
@@ -206,7 +205,7 @@ optimize_tree (struct nonterm_node * n)
 	    else
 	      free_node (n->arg[i]);
 
-	  if (approx_ne (cval, def))
+	  if (cval != def)
 	    {
 	      m->arg[c] = xmalloc (sizeof (struct num_con_node));
 	      m->arg[c]->num_con.type = OP_NUM_CON;
@@ -224,7 +223,7 @@ optimize_tree (struct nonterm_node * n)
     {
       if (n->arg[1]->type == OP_NUM_CON)
 	{
-	  if (approx_eq (n1, 1.0))
+	  if (n1 == 1.0)
 	    {
 	      struct nonterm_node *m = (struct nonterm_node *) n->arg[0];
 
@@ -232,7 +231,7 @@ optimize_tree (struct nonterm_node * n)
 	      free (n);
 	      return m;
 	    }
-	  else if (approx_eq (n1, 2.0))
+	  else if (n1 == 2.0)
 	    {
 	      n = xrealloc (n, sizeof (struct nonterm_node));
 	      n->type = OP_SQUARE;
@@ -286,7 +285,7 @@ evaluate_tree (struct nonterm_node * n)
       return optimize_tree (n);
 
     case OP_POW:
-      if (approx_eq (n0, 0.0) && approx_eq (n1, 0.0))
+      if (n0 == 0.0 && n1 == 0.0)
 	frnc (SYSMIS);
       else if (n0 == SYSMIS && n1 == 0.0)
 	frnc (1.0);
@@ -317,22 +316,22 @@ evaluate_tree (struct nonterm_node * n)
       break;
 
     case OP_EQ:
-      rnc (approx_eq (n0, n1));
+      rnc (n0 == n1);
       break;
     case OP_GE:
-      rnc (approx_ge (n0, n1));
+      rnc (n0 >= n1);
       break;
     case OP_GT:
-      rnc (approx_gt (n0, n1));
+      rnc (n0 > n1);
       break;
     case OP_LE:
-      rnc (approx_le (n0, n1));
+      rnc (n0 <= n1);
       break;
     case OP_LT:
-      rnc (approx_lt (n0, n1));
+      rnc (n0 < n1);
       break;
     case OP_NE:
-      rnc (approx_ne (n0, n1));
+      rnc (n0 != n1);
       break;
 
       /* String operators. */
@@ -414,7 +413,7 @@ evaluate_tree (struct nonterm_node * n)
 	  for (i = 1; i < n->n; i++)
 	    {
 	      ni = n->arg[i]->num_con.value;
-	      if (approx_eq (n0, ni))
+	      if (n0 == ni)
 		{
 		  frnc (1.0);
 		  goto any_done;
@@ -519,7 +518,7 @@ evaluate_tree (struct nonterm_node * n)
 	      if (min == SYSMIS || max == SYSMIS)
 		continue;
 	      sysmis = 0;
-	      if (approx_ge (n0, min) && approx_le (n0, max))
+	      if (n0 >= min && n0 <= max)
 		{
 		  frnc (1.0);
 		  goto range_done;
@@ -867,15 +866,15 @@ evaluate_tree (struct nonterm_node * n)
       rnc (1.0 / n0);
       break;
     case OP_MOD:
-      if (approx_eq (n0, 0.0) && n1 == SYSMIS)
+      if (n0 == 0.0 && n1 == SYSMIS)
 	frnc (0.0);
       else
 	rnc (fmod (n0, n1));
       break;
     case OP_NUM_TO_BOOL:
-      if (approx_eq (n0, 0.0))
+      if (n0 == 0.0)
 	n0 = 0.0;
-      else if (approx_eq (n0, 1.0))
+      else if (n0 == 1.0)
 	n0 = 1.0;
       else if (n0 != SYSMIS)
 	{

@@ -22,7 +22,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "do-ifP.h"
 #include "expr.h"
@@ -84,31 +83,25 @@ is_num_user_missing (double x, const struct variable *v)
     case MISSING_NONE:
       return 0;
     case MISSING_1:
-      return approx_eq (x, v->missing[0].f);
+      return x == v->missing[0].f;
     case MISSING_2:
-      return (approx_eq (x, v->missing[0].f)
-	      || approx_eq (x, v->missing[1].f));
+      return x == v->missing[0].f || x == v->missing[1].f;
     case MISSING_3:
-      return (approx_eq (x, v->missing[0].f)
-	      || approx_eq (x, v->missing[1].f)
-	      || approx_eq (x, v->missing[2].f));
+      return (x == v->missing[0].f || x == v->missing[1].f
+              || x == v->missing[2].f);
     case MISSING_RANGE:
-      return (approx_ge (x, v->missing[0].f)
-	      && approx_le (x, v->missing[1].f));
+      return x >= v->missing[0].f && x <= v->missing[1].f;
     case MISSING_LOW:
-      return approx_le (x, v->missing[0].f);
+      return x <= v->missing[0].f;
     case MISSING_HIGH:
-      return approx_ge (x, v->missing[0].f);
+      return x >= v->missing[0].f;
     case MISSING_RANGE_1:
-      return ((approx_ge (x, v->missing[0].f)
-	       && approx_le (x, v->missing[1].f))
-	      || approx_eq (x, v->missing[2].f));
+      return ((x >= v->missing[0].f && x <= v->missing[1].f)
+	      || x == v->missing[2].f);
     case MISSING_LOW_1:
-      return (approx_le (x, v->missing[0].f)
-	      || approx_eq (x, v->missing[1].f));
+      return x <= v->missing[0].f || x == v->missing[1].f;
     case MISSING_HIGH_1:
-      return (approx_ge (x, v->missing[0].f)
-	      || approx_eq (x, v->missing[1].f));
+      return x >= v->missing[0].f || x == v->missing[1].f;
     default:
       assert (0);
     }

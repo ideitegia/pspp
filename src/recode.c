@@ -20,9 +20,9 @@
 #include <config.h>
 #include <assert.h>
 #include <ctype.h>
+#include <math.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -716,19 +716,19 @@ find_src_numeric (struct rcd_var * v, struct ccase * c)
 	  return cp;
 	break;
       case RCD_SINGLE:
-	if (approx_eq (cmp, cp->f1.f))
+	if (cmp == cp->f1.f)
 	  return cp;
 	break;
       case RCD_HIGH:
-	if (approx_ge (cmp, cp->f1.f))
+	if (cmp >= cp->f1.f)
 	  return cp;
 	break;
       case RCD_LOW:
-	if (approx_le (cmp, cp->f1.f))
+	if (cmp <= cp->f1.f)
 	  return cp;
 	break;
       case RCD_RANGE:
-	if (approx_in_range (cmp, cp->f1.f, cp->f2.f))
+	if (cmp >= cp->f1.f && cmp <= cp->f2.f)
 	  return cp;
 	break;
       case RCD_ELSE:

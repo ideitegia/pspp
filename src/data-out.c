@@ -24,7 +24,6 @@
 #include <float.h>
 #include <stdlib.h>
 #include <time.h>
-#include "approx.h"
 #include "error.h"
 #include "format.h"
 #include "julcal/julcal.h"
@@ -1189,7 +1188,7 @@ try_F (char *dst, const struct fmt_spec *fp, double number)
       n_int = 0;
 
       /* Avoid printing `-.000'. 7/6/96. */
-      if (approx_eq (number, 0.0))
+      if (mag < EPSILON)
 	number = 0.0;
     }
   else
@@ -1198,7 +1197,7 @@ try_F (char *dst, const struct fmt_spec *fp, double number)
        digits in floor(number), including any sign.  */
     for (;;)
       {
-	if (mag >= power10[n_int])	/* Should this be approx_ge()? */
+	if (mag >= power10[n_int])
 	  {
 	    assert (delta[j]);
 	    n_int += delta[j++];

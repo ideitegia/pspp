@@ -20,12 +20,12 @@
 #include <config.h>
 #include <assert.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "do-ifP.h"
 #include "error.h"
 #include "expr.h"
 #include "lexer.h"
+#include "misc.h"
 #include "settings.h"
 #include "str.h"
 #include "var.h"
@@ -371,8 +371,7 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c)
       c->data[two->index->fv].f = t1.f;
 
       /* Throw out various pathological cases. */
-      if (!finite (t1.f) || !finite (t2.f) || !finite (t3.f)
-	  || approx_eq (t2.f, 0.0))
+      if (!finite (t1.f) || !finite (t2.f) || !finite (t3.f) || t2.f == 0.0)
 	return two->loop_term;
       debug_printf (("LOOP %s=%g TO %g BY %g.\n", two->index->name,
 		     t1.f, t3.f, t2.f));
@@ -382,7 +381,7 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c)
 	  two->flags &= ~LPC_RINDEX;
 
 	  /* incr>0 but init>term */
-	  if (approx_gt (t1.f, t3.f))
+	  if (t1.f > t3.f)
 	    return two->loop_term;
 	}
       else
@@ -391,7 +390,7 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c)
 	  two->flags |= LPC_RINDEX;
 
 	  /* incr<0 but init<term */
-	  if (approx_lt (t1.f, t3.f))
+	  if (t1.f < t3.f)
 	    return two->loop_term;
 	}
 
@@ -432,7 +431,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c)
   if (two->flags & LPC_RINDEX)
     {
       /* Test if we're at the end of the looping. */
-      if (approx_lt (two->curr, two->term))
+      if (two->curr < two->term)
 	return two->loop_term;
 
       /* Set the current value into the case. */
@@ -445,7 +444,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c)
   else if (two->flags & LPC_INDEX)
     {
       /* Test if we're at the end of the looping. */
-      if (approx_gt (two->curr, two->term))
+      if (two->curr > two->term)
 	return two->loop_term;
 
       /* Set the current value into the case. */

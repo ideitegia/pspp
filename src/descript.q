@@ -30,7 +30,6 @@
 #include "command.h"
 #include "lexer.h"
 #include "error.h"
-#include "approx.h"
 #include "magic.h"
 #include "stats.h"
 #include "som.h"
@@ -556,8 +555,7 @@ run_z_pass (void)
 	    }
 	  t->z[count].mean = v->p.dsc.stats[dsc_mean];
 	  t->z[count].std_dev = v->p.dsc.stats[dsc_stddev];
-	  if (t->z[count].std_dev == SYSMIS
-	      || approx_eq (t->z[count].std_dev, 0.0))
+	  if (t->z[count].std_dev == SYSMIS || t->z[count].std_dev == 0.0)
 	    t->z[count].mean = SYSMIS;
 	  count++;
 	}

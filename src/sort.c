@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "error.h"
 #include "expr.h"
@@ -849,7 +848,7 @@ compare_record (union value * a, union value * b)
 
       if (v->type == NUMERIC)
 	{
-	  if (approx_ne (a[v->fv].f, b[v->fv].f))
+	  if (a[v->fv].f != b[v->fv].f)
 	    {
 	      result = (a[v->fv].f > b[v->fv].f) ? 1 : -1;
 	      break;

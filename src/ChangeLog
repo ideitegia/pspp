@@ -1,3 +1,16 @@
+Wed Feb 18 22:21:35 2004  Ben Pfaff  <blp@gnu.org>
+
+	Got rid of approx.h.  In general, replaced all references to
+	approx_eq() by ==, approx_lt() by <, etc.  Other types of changes
+	noted below.
+
+	* Makefile.am: (pspp_SOURCES) Removed approx.h.
+
+	* data-out.c: (try_F) Replaced test for approx_eq(number, 0.0) by
+	test for mag < EPSILON.
+
+	* misc.h: Add definition of EPSILON.
+
 Wed Feb 18 21:32:44 2004  Ben Pfaff  <blp@gnu.org>
 
 	* vfm.c: (procedure) Add check to prevent recursive call.

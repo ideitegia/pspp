@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "data-in.h"
 #include "dfm.h"
@@ -672,7 +671,7 @@ file_type_source_read (write_case_func *write_case UNUSED,
 	      if (iter->flags & RCT_OTHER)
 		goto found;
 	      for (i = 0; i < iter->nv; i++)
-		if (approx_eq (iter->v[i].f, v.f))
+		if (iter->v[i].f == v.f)
 		  goto found;
 	    }
 	  if (fty.wild)

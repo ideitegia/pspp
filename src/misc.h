@@ -20,7 +20,10 @@
 #if !math_misc_h
 #define math_misc_h 1
 
+#include <float.h>
 #include <math.h>
+
+#define EPSILON (10 * DBL_EPSILON)
 
 /* HUGE_VAL is traditionally defined as positive infinity, or
    alternatively, DBL_MAX. */

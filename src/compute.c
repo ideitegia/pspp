@@ -21,11 +21,11 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "error.h"
 #include "expr.h"
 #include "lexer.h"
+#include "misc.h"
 #include "str.h"
 #include "var.h"
 

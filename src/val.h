@@ -20,6 +20,7 @@
 #if !val_h
 #define val_h 1
 
+#include <float.h>
 
 /* Values. */
 

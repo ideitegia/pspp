@@ -29,7 +29,6 @@
 #include <unistd.h>	/* Required by SunOS4. */
 #endif
 #include "alloc.h"
-#include "approx.h"
 #include "error.h"
 #include "file-handle.h"
 #include "getline.h"
@@ -676,13 +675,13 @@ sfm_write_case (struct file_handle * h, const flt64 *elem, int n_elem)
 	      *ext->x++ = 255;
               continue;
             }
-	  else
+	  else if (*elem > INT_MIN && *elem < INT_MAX)
 	    {
-	      int value = *elem < 0 ? *elem - EPSILON : *elem + EPSILON;
+	      int value = *elem;
 
 	      if (value >= 1 - COMPRESSION_BIAS
 		  && value <= 251 - COMPRESSION_BIAS
-		  && approx_eq (value, *elem))
+		  && value == *elem)
                 {
 		  *ext->x++ = value + COMPRESSION_BIAS;
                   continue;

@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "approx.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -418,22 +417,22 @@ count_numeric (struct counting * cnt, struct ccase * c)
 	    assert (0);
 	    break;
 	  case CNT_SINGLE:
-	    if (approx_ne (cmp, num->a))
+	    if (cmp != num->a)
 	      break;
 	    counter++;
 	    goto done;
 	  case CNT_HIGH:
-	    if (approx_lt (cmp, num->a))
+	    if (cmp < num->a)
 	      break;
 	    counter++;
 	    goto done;
 	  case CNT_LOW:
-	    if (approx_gt (cmp, num->a))
+	    if (cmp > num->a)
 	      break;
 	    counter++;
 	    goto done;
 	  case CNT_RANGE:
-	    if (approx_lt (cmp, num->a) || approx_gt (cmp, num->b))
+	    if (cmp < num->a || cmp > num->b)
 	      break;
 	    counter++;
 	    goto done;

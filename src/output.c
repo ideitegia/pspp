@@ -25,7 +25,6 @@
 #include <errno.h>
 #include <ctype.h>
 #include "alloc.h"
-#include "approx.h"
 #include "devind.h"
 #include "error.h"
 #include "filename.h"
@@ -959,7 +958,7 @@ outp_evaluate_dimension (char *dimen, char **tail)
       if (c <= 0.0 || ptail == s)
 	goto lossage;
       s = ptail;
-      if (approx_eq (c, 0.0))
+      if (c == 0.0)
 	goto lossage;
       if (value > 0)
 	value += b / c;
@@ -971,7 +970,7 @@ outp_evaluate_dimension (char *dimen, char **tail)
       double b;
       s = &ptail[1];
       b = strtod (s, &ptail);
-      if (approx_le (b, 0.0) || ptail == s)
+      if (b <= 0.0 || ptail == s)
 	goto lossage;
       s = ptail;
       value /= b;
@@ -1030,7 +1029,7 @@ outp_evaluate_dimension (char *dimen, char **tail)
       ptail += 2;
       value *= factor;
     }
-  if (approx_lt (value, 0.0))
+  if (value <= 0.0)
     goto lossage;
   if (tail)
     *tail = ptail;
