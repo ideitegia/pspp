@@ -1,4 +1,4 @@
-Time-stamp: <2004-04-06 21:56:37 blp>
+Time-stamp: <2004-04-19 20:52:04 blp>
 
 What Ben's working on now.
 --------------------------
@@ -17,6 +17,8 @@ other procedures).
 
 TODO
 ----
+
+Add compression to casefiles.
 
 Expressions need to be able to abbreviate function names.  XDATE.QUARTER
 abbreviates to XDA.QUA, etc.
