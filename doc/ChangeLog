@@ -1,3 +1,9 @@
+Mon Apr 19 22:46:37 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Minor updates to data file and portable file
+	descriptions based on emails from Aapi Hämäläinen
+	<aapi@soho.joensuu.fi>.
+
 Fri Mar 26 00:07:46 2004  Ben Pfaff  <blp@gnu.org>
 
 	* pspp.texi: Update chapter on expressions.

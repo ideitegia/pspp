@@ -1047,7 +1047,7 @@ Backspace (ASCII 8).
 Formfeed (ASCII 12).
 
 @item \n
-Newline (ASCII 10)
+New-line (ASCII 10)
 
 @item \r
 Carriage return (ASCII 13).
@@ -1137,7 +1137,7 @@ the output file.  Default: @code{clean7bit}.
 @item line-ends=@var{line-end-type}
 
 One of @code{cr}, @code{lf}, or @code{crlf}.  This controls what is used
-for newline in the output file.  Default: @code{cr}.
+for new-line in the output file.  Default: @code{cr}.
 
 @item optimize-line-size=@var{level}
 
@@ -1556,11 +1556,11 @@ The string written to the output to cause a formfeed.  See also
 @code{paginate}, described below, for a related setting.  Default:
 @code{"\f"}.
 
-@item newline-string=@var{newline-value}
+@item newline-string=@var{new-line-value}
 
-The string written to the output to cause a newline (carriage return
+The string written to the output to cause a new-line (carriage return
 plus linefeed).  The default, which can be specified explicitly with
-@code{newline-string=default}, is to use the system-dependent newline
+@code{newline-string=default}, is to use the system-dependent new-line
 sequence by opening the output file in text mode.  This is usually the
 right choice.
 
@@ -3593,14 +3593,14 @@ as arguments.  With few exceptions, operator arguments may be
 full-fledged expressions in themselves.
 
 @menu
-* Boolean Values::                 Boolean values.
+* Boolean Values::              Boolean values.
 * Missing Values in Expressions::  Using missing values in expressions.
-* Grouping Operators::             ( )
-* Arithmetic Operators::           + - * / **
-* Logical Operators::              AND NOT OR
-* Relational Operators::           EQ GE GT LE LT NE
-* Functions::                      More-sophisticated operators.
-* Order of Operations::            Operator precedence.
+* Grouping Operators::          parentheses
+* Arithmetic Operators::        add sub mul div pow
+* Logical Operators::           AND NOT OR
+* Relational Operators::        EQ GE GT LE LT NE
+* Functions::                   More-sophisticated operators.
+* Order of Operations::         Operator precedence.
 @end menu
 
 @node Boolean Values, Missing Values in Expressions, Expressions, Expressions
@@ -5217,7 +5217,7 @@ FILE HANDLE handle_name
 @end display
 
 Use @cmd{FILE HANDLE} to define the attributes of a file that does
-not use conventional variable-length records terminated by newline
+not use conventional variable-length records terminated by new-line
 characters.
 
 Specify the file handle name as an identifier.  Any given identifier may
@@ -5229,7 +5229,7 @@ The NAME subcommand specifies the name of the file associated with the
 handle.  It is the only required subcommand.
 
 The RECFORM subcommand specifies how the file is laid out.  VARIABLE
-specifies variable-length lines terminated with newlines, and it is the
+specifies variable-length lines terminated with new-lines, and it is the
 default.  FIXED specifies fixed-length records.  SPANNED is not
 supported.
 
@@ -7858,7 +7858,7 @@ Approximate T of uncertainty coefficient is wrong.
 
 Fixes for any of these deficiencies would be welcomed.
 
-@node T-TEST, , CROSSTABS, Statistics
+@node T-TEST,  , CROSSTABS, Statistics
 @comment  node-name,  next,  previous,  up
 @section T-TEST
 
@@ -7918,14 +7918,12 @@ which they would be needed. This is the default.
 
 
 @menu
-* One Sample Mode::              Testing against a hypothesised mean
-* Independent Samples Mode::     Testing two independent groups for the same mean
-* Paired Samples Mode::          Testing two interdependet groups for the same mean
+* One Sample Mode::             Testing against a hypothesised mean
+* Independent Samples Mode::    Testing two independent groups for equal mean
+* Paired Samples Mode::         Testing two interdependent groups for equal mean
 @end menu
 
 @node One Sample Mode, Independent Samples Mode, T-TEST, T-TEST
-@comment  node-name,  next,  previous,  up
-
 @subsection One Sample Mode
 
 The @cmd{TESTVAL} subcommand invokes the One Sample mode.
@@ -7936,7 +7934,7 @@ which you wish to test.
 In this mode, you must also use the @cmd{/VARIABLES} subcommand to
 tell PSPP which variables you wish to test.
 
-@node Independent Samples Mode, Paired Samples Mode, One Sample Mode, T-TEST
+@node Independent Samples Mode, Paired Samples Mode, T-TEST, T-TEST
 @comment  node-name,  next,  previous,  up
 @subsection Independent Samples Mode
 
@@ -7964,7 +7962,7 @@ the independent variable are excluded on a listwise basis, regardless
 of whether @cmd{/MISSING=LISTWISE} was specified.
 
 
-@node Paired Samples Mode, , Independent Samples Mode, T-TEST
+@node Paired Samples Mode,  , Independent Samples Mode, T-TEST
 @comment  node-name,  next,  previous,  up
 @subsection Paired Samples Mode
 
@@ -9137,7 +9135,7 @@ struct sysfile_machine_flt64_info
 
 @table @code
 @item int32 rec_type;
-Record type.  Always set to 3.
+Record type.  Always set to 7.
 
 @item int32 subtype;
 Record subtype.  Always set to 4.
@@ -9183,10 +9181,12 @@ struct sysfile_misc_info
 
 @table @code
 @item int32 rec_type;
-Record type.  Always set to 3.
+Record type.  Always set to 7.
 
 @item int32 subtype;
-Record subtype.  May take any value.
+Record subtype.  May take any value.  According to Aapi
+H@"am@"al@"ainen, value 5 indicates a set of grouped variables and 6
+indicates date info (probably related to USE).
 
 @item int32 size;
 Size of each piece of data in the data part.  Should have the value 4 or
@@ -9303,6 +9303,7 @@ may be incorrect in the general case.
 * Version and Date Info Record::  
 * Identification Records::      
 * Variable Count Record::       
+* Case Weight Variable Record::  
 * Variable Records::            
 * Value Label Records::         
 * Portable File Data::          
@@ -9313,9 +9314,8 @@ may be incorrect in the general case.
 
 Portable files are arranged as a series of lines of exactly 80
 characters each.  Each line is terminated by a carriage-return,
-line-feed sequence (henceforth, ``newline'').  Newlines are not
-delimiters: they are only used to avoid line-length limitations existing
-on some operating systems.
+line-feed sequence ``new-lines'').  New-lines are only used to avoid
+line length limits imposed by some OSes; they are not meaningful.
 
 The file must be terminated with a @samp{Z} character.  In addition, if
 the final line in the file does not have exactly 80 characters, then it
@@ -9324,7 +9324,7 @@ be in any character set; the file contains a description of its own
 character set, as explained in the next section.  Therefore, the
 @samp{Z} character is not necessarily an ASCII @samp{Z}.)
 
-For the rest of the description of the portable file format, newlines
+For the rest of the description of the portable file format, new-lines
 and the trailing @samp{Z}s will be ignored, as if they did not exist,
 because they are not an important part of understanding the file
 contents.
@@ -9350,6 +9350,9 @@ Subproduct identification (optional).
 
 @item
 Variable count.
+
+@item
+Case weight variable (optional).
 
 @item
 Variables.  Each variable record may optionally be followed by a
@@ -9388,18 +9391,18 @@ A whole number, consisting of one or more base-30 digits: @samp{0}
 through @samp{9} plus capital letters @samp{A} through @samp{T}.
 
 @item
-A fraction, consisting of a radix point (@samp{.}) followed by one or
-more base-30 digits (optional).
+Optional fraction, consisting of a radix point (@samp{.}) followed by
+one or more base-30 digits.
 
 @item
-An exponent, consisting of a plus or minus sign (@samp{+} or @samp{-})
-followed by one or more base-30 digits (optional).
+Optional exponent, consisting of a plus or minus sign (@samp{+} or
+@samp{-}) followed by one or more base-30 digits.
 
 @item
 A forward slash (@samp{/}).
 @end itemize
 
-Integer fields take form identical to floating-point fields, but they
+Integer fields take a form identical to floating-point fields, but they
 may not contain a fraction.
 
 String fields take the form of a integer field having value @var{n},
@@ -9413,10 +9416,11 @@ Every portable file begins with a 464-byte header, consisting of a
 character set translation table, followed by an 8-byte tag string.
 
 The 200-byte segment is divided into five 40-byte sections, each of
-which represents the string @code{ASCII SPSS PORT FILE} in a different
-character set encoding.  (If the file is encoded in EBCDIC then the
-string is actually @code{EBCDIC SPSS PORT FILE}, and so on.)  These
-strings are padded on the right with spaces in their own character set.
+which represents the string @code{@var{charset} SPSS PORT FILE} in a
+different character set encoding, where @var{charset} is the name of
+the character set used in the file, e.g. @code{ASCII} or
+@code{EBCDIC}.  Each string is padded on the right with spaces in its
+respective character set.
 
 It appears that these strings exist only to inform those who might view
 the file on a screen, and that they are not parsed by SPSS products.
@@ -9611,7 +9615,7 @@ The subproduct identification record has tag code @samp{3}.  It
 consists of a single string field giving additional information on the
 product that wrote the portable file.
 
-@node Variable Count Record, Variable Records, Identification Records, Portable File Format
+@node Variable Count Record, Case Weight Variable Record, Identification Records, Portable File Format
 @section Variable Count Record
 
 The variable count record has tag code @samp{4}.  It consists of two
@@ -9619,7 +9623,15 @@ integer fields.  The first contains the number of variables in the file
 dictionary.  The purpose of the second is unknown; it contains the value
 161 in all portable files examined so far.
 
-@node Variable Records, Value Label Records, Variable Count Record, Portable File Format
+@node Case Weight Variable Record, Variable Records, Variable Count Record, Portable File Format
+@section Case Weight Variable Record
+
+The case weight variable record is optional.  If it is present, it
+indicates the variable used for weighting cases; if it is absent,
+cases are unweighted.  It has tag code @samp{6}.  It consists of a
+single string field that names the weighting variable.
+
+@node Variable Records, Value Label Records, Case Weight Variable Record, Portable File Format
 @section Variable Records
 
 Each variable record represents a single variable.  Variable records
