@@ -1,3 +1,8 @@
+Wed Dec 10 23:36:16 2003  Ben Pfaff  <blp@gnu.org>
+
+	* lib/gmp/: Removed, because it no longer compiles with recent GCC
+	versions.
+
 Wed Dec 10 23:32:47 2003  Ben Pfaff  <blp@gnu.org>
 
 	* sysdeps/: Removed, because everything was too old to be useful
