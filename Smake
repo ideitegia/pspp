@@ -30,12 +30,12 @@ install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in ABOUT-NLS
 po/Makefile.in.in intl ABOUT-NLS:
 	touch -f Makefile.am Makefile.am-stamp
 	touch -f configure.ac configure.ac-stamp
-	cp -a configure.ac configure.ac-bak
-	cp -a Makefile.am Makefile.am-bak
+	cp -pR configure.ac configure.ac-bak
+	cp -pR Makefile.am Makefile.am-bak
 	gettextize -f -c --no-changelog --intl
-	cp -a Makefile.am-bak Makefile.am
+	cp -pR Makefile.am-bak Makefile.am
 	touch -f Makefile.am-stamp Makefile.am
-	cp -a configure.ac-bak configure.ac
+	cp -pR configure.ac-bak configure.ac
 	touch -f configure.ac-stamp configure.ac
 	$(RM) configure.ac-bak configure.ac-stamp
 	$(RM) Makefile.am-bak Makefile.am-stamp
