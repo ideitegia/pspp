@@ -1,3 +1,7 @@
+Tue Nov  9 09:38:43 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* Made Makefile.am aware of pspp.texi dependencies
+
 Fri Nov  5 17:46:46 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* Added a note to the about SPLIT requiring adjecent cases.

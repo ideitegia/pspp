@@ -2,7 +2,7 @@
 
 info_TEXINFOS = pspp.texinfo 
 
-EXTRA_DIST = pspp.man \
+pspp_TEXINFOS = \
 	bugs.texi \
 	command-index.texi \
 	concept-index.texi \
@@ -28,6 +28,10 @@ EXTRA_DIST = pspp.man \
 	utilities.texi \
 	variables.texi
 
+EXTRA_DIST = pspp.man \
+	$(pspp_TEXINFOS)
+
 
 CLEANFILES = pspp.info pspp.info-*
 MAINTAINERCLEANFILES=Makefile.in 
+
