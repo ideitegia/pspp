@@ -49,6 +49,7 @@ TESTS = \
 	xforms/expressions.sh \
 	stats/descript-basic.sh \
 	stats/descript-missing.sh \
+	stats/descript-mean-bug.sh \
 	stats/moments.sh \
 	stats/percentiles-compatible.sh \
 	stats/percentiles-enhanced.sh

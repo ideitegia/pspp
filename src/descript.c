@@ -742,8 +742,14 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
               continue;
             }
 
-          if (dv->moments != NULL)
-            moments_pass_one (dv->moments, x, weight);
+          if (dv->moments != NULL) 
+            {
+              if (dsc->max_moment > MOMENT_MEAN)
+                moments_pass_one (dv->moments, x, weight);
+              else
+                moments_pass_two (dv->moments, x, weight);
+            }
+
           if (x < dv->min)
             dv->min = x;
           if (x > dv->max)

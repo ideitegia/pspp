@@ -1,3 +1,8 @@
+Fri Apr  9 20:04:49 2004  Ben Pfaff  <blp@gnu.org>
+
+	* descript.c (calc_descriptives): Fix assert failure when only
+	MOMENT_MEAN is needed.
+
 2004-04-09  Michael Kiefte  <mkiefte@dal.ca>
 
 	* descript.c: 

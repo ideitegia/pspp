@@ -1,3 +1,10 @@
+Fri Apr  9 20:03:33 2004  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (TESTS) Add stats/descript-mean-bug.sh.
+
+	* stats/descript-mean-bug.sh: Add test for a bug where
+	DESCRIPTIVES asking only for the mean assert-failed.
+
 Sat Apr  3 11:42:31 2004  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: (TESTS) Add bugs/comment-at-eof.sh.  Alphabetize
