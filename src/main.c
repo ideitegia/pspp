@@ -56,13 +56,6 @@ void bug_handler(int sig);
    we hit end-of-file unexpectedly (or whatever). */
 int start_interactive;
 
-/* Initialise error handling on the gsl library */
-static void 
-err_handler_gsl (const char *reason, const char *file,
-	int line, int gsl_errno UNUSED)
-{
-  msg(FE, _("gsl error at %s:%d; reason: \"%s\""), file,line,reason);
-}
 
 /* Program entry point. */
 int
@@ -70,7 +63,7 @@ main (int argc, char **argv)
 {
   signal (SIGSEGV, bug_handler);
 
-  gsl_set_error_handler(err_handler_gsl);
+  gsl_set_error_handler_off();
 
   /* Initialization. */
   if (!outp_init ())

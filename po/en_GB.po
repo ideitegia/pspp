@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-04-03 14:42+0800\n"
+"POT-Creation-Date: 2004-04-04 14:18+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -730,7 +730,7 @@ msgid ""
 msgstr ""
 
 #: src/data-list.c:768 src/data-list.c:898 src/descript.c:826 src/print.c:792
-#: src/sysfile-info.c:132 src/sysfile-info.c:365 src/vfm.c:833
+#: src/sysfile-info.c:132 src/sysfile-info.c:365 src/vfm.c:832
 msgid "Variable"
 msgstr ""
 
@@ -2212,42 +2212,42 @@ msgstr ""
 msgid "<ERROR>"
 msgstr ""
 
-#: src/lexer.c:987 src/pfm-read.c:135 src/repeat.c:222
+#: src/lexer.c:993 src/pfm-read.c:135 src/repeat.c:222
 msgid "Unexpected end of file."
 msgstr ""
 
-#: src/lexer.c:1013
+#: src/lexer.c:1019
 msgid "binary"
 msgstr ""
 
-#: src/lexer.c:1013
+#: src/lexer.c:1019
 msgid "octal"
 msgstr ""
 
-#: src/lexer.c:1013
+#: src/lexer.c:1019
 msgid "hex"
 msgstr ""
 
-#: src/lexer.c:1027
+#: src/lexer.c:1033
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/lexer.c:1056
+#: src/lexer.c:1062
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/lexer.c:1087
+#: src/lexer.c:1093
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/lexer.c:1159
+#: src/lexer.c:1165
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/lexer.c:1174
+#: src/lexer.c:1180
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."
@@ -3964,7 +3964,7 @@ msgstr ""
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:372 src/sysfile-info.c:530 src/vfm.c:835
+#: src/sysfile-info.c:372 src/sysfile-info.c:530 src/vfm.c:834
 msgid "Label"
 msgstr ""
 
@@ -3987,7 +3987,7 @@ msgstr ""
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:529 src/vfm.c:834 src/crosstabs.q:1158
+#: src/sysfile-info.c:529 src/vfm.c:833 src/crosstabs.q:1158
 #: src/crosstabs.q:1185 src/crosstabs.q:1205 src/crosstabs.q:1227
 #: src/frequencies.q:1021 src/frequencies.q:1138
 msgid "Value"
