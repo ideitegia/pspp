@@ -250,6 +250,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
       v->print.w = v->width;
       v->print.d = 0;
     }
+  v->write = v->print;
   v->val_labs = val_labs_create (v->width);
   v->label = NULL;
 

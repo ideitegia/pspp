@@ -1,3 +1,11 @@
+Fri Feb 20 23:22:14 2004  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c: (dict_create_var) Fix root cause of bug worked
+	around by previous change log entry.
+	
+	* compute.c: (lvalue_finalize) Remove workaround from previous
+	change log entry.
+
 Fri Feb 20 14:37:41 WAST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* compute.c: Fixed a bug where the Format was not getting set for 
