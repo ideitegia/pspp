@@ -970,7 +970,16 @@ cut_field (const struct data_list_pgm *dls, char **ret_cp, int *ret_len)
     return 0;
 
   /* Three types of fields: quoted with ', quoted with ", unquoted. */
-  if (*cp == '\'' || *cp == '"')
+  /* Quoting does not escape the effects of delimiters for explicitly */
+  /* specified delims */
+  /* (consistency with SPSS doco: */
+  /*  For data with explicitly specified value delimiters (for example,  */
+  /*  DATA LIST FREE (","):                                              */
+  /*   - Multiple delimiters without any intervening space can be used   */
+  /*     to specify missing data.                                        */
+  /*   - The specified delimiters cannot occur within a data value, even */
+  /*     if you enclose the value in quotation marks or apostrophes.     */
+  if (dls->delim==0 && (*cp == '\'' || *cp == '"'))
     {
       int quote = *cp;
 
