@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename pspp.info
 @settitle PSPP
-@set TIMESTAMP Time-stamp: <2000-01-02 22:32:14 blp>
+@set TIMESTAMP Time-stamp: <2003-12-16 09:46:29 blp>
 @set EDITION 0.2
 @set VERSION 0.2
 @c For double-sided printing, uncomment:
@@ -7086,7 +7086,7 @@ or @code{RECODE}.
 The proportion to sample can be expressed as a single number between 0
 and 1.  If @code{k} is the number specified, and @code{N} is the number
 of currently-selected cases in the active file, then after
-@code{SAMPLE @var{k}.}, there will be @code{k*N}, plus or minus one, cases
+@code{SAMPLE @var{k}.}, approximately @code{k*N} cases will be
 selected.
 
 The proportion to sample can also be specified in the style @code{SAMPLE
