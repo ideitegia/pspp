@@ -23,6 +23,7 @@ TESTS = command/aggregate.sh \
 	command/split-file.sh \
 	command/t-test-1s.sh \
 	command/t-test-pairs.sh \
+	command/t-test-groups.sh \
 	command/weight.sh \
 	bugs/alpha-freq.sh \
 	bugs/double-frequency.sh \
