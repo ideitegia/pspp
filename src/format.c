@@ -58,7 +58,7 @@ parse_format_specifier_name (const char **cp, int allow_xt)
       /* Find format. */
       for (idx = 0; idx < FMT_NUMBER_OF_FORMATS; idx++)
         if (strlen (formats[idx].name) == ep - sp
-            && memcmp (formats[idx].name, sp, ep - sp))
+            && !memcmp (formats[idx].name, sp, ep - sp))
           break;
 
       /* Check format. */
@@ -84,8 +84,13 @@ parse_format_specifier_name (const char **cp, int allow_xt)
       idx = -1;
     }
       
-  if (cp != NULL)
-    *cp = ep;
+  if (cp != NULL) 
+    {
+      if (idx != -1)
+        *cp = ep;
+      else
+        *cp = NULL;
+    }
 
   return idx;
 }
