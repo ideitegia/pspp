@@ -216,8 +216,7 @@ cmd_matrix_data (void)
 		
 		if (strcmp (v[i], "ROWTYPE_"))
 		  {
-		    new_var = dict_create_var (default_dict, v[i], 0);
-                    assert (new_var != NULL);
+		    new_var = dict_create_var_assert (default_dict, v[i], 0);
 		    new_var->p.mxd.vartype = MXD_CONTINUOUS;
 		    new_var->p.mxd.subtype = i;
 		  }
@@ -229,8 +228,7 @@ cmd_matrix_data (void)
 	  }
 	  
 	  {
-	    rowtype_ = dict_create_var (default_dict, "ROWTYPE_", 8);
-            assert (rowtype_ != NULL);
+	    rowtype_ = dict_create_var_assert (default_dict, "ROWTYPE_", 8);
 	    rowtype_->p.mxd.vartype = MXD_ROWTYPE;
 	    rowtype_->p.mxd.subtype = 0;
 	  }
@@ -296,8 +294,7 @@ cmd_matrix_data (void)
 		  goto lossage;
 		}
 
-	      single_split = dict_create_var (default_dict, tokid, 0);
-              assert (single_split != NULL);
+	      single_split = dict_create_var_assert (default_dict, tokid, 0);
 	      lex_get ();
 
 	      single_split->p.mxd.vartype = MXD_CONTINUOUS;
@@ -540,8 +537,7 @@ cmd_matrix_data (void)
       
   /* Create VARNAME_. */
   {
-    varname_ = dict_create_var (default_dict, "VARNAME_", 8);
-    assert (varname_ != NULL);
+    varname_ = dict_create_var_assert (default_dict, "VARNAME_", 8);
     varname_->p.mxd.vartype = MXD_VARNAME;
     varname_->p.mxd.subtype = 0;
   }

@@ -86,23 +86,14 @@ dict_clone (const struct dictionary *s)
     {
       d->split = xmalloc (d->split_cnt * sizeof *d->split);
       for (i = 0; i < d->split_cnt; i++) 
-        {
-          d->split[i] = dict_lookup_var (d, s->split[i]->name);
-          assert (d->split[i] != NULL);
-        }
+        d->split[i] = dict_lookup_var_assert (d, s->split[i]->name);
     }
 
   if (s->weight != NULL) 
-    {
-      d->weight = dict_lookup_var (d, s->weight->name);
-      assert (d->weight != NULL); 
-    }
+    d->weight = dict_lookup_var_assert (d, s->weight->name);
 
   if (s->filter != NULL) 
-    {
-      d->filter = dict_lookup_var (d, s->filter->name);
-      assert (d->filter != NULL);
-    }
+    d->filter = dict_lookup_var_assert (d, s->filter->name);
 
   d->case_limit = s->case_limit;
   dict_set_label (d, dict_get_label (s));
@@ -227,7 +218,8 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->width = width;
   v->fv = d->value_cnt;
   v->nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
-  v->left = name[0] == '#';
+  v->init = 1;
+  v->reinit = name[0] != '#';
   v->miss_type = MISSING_NONE;
   if (v->type == NUMERIC)
     {
@@ -259,6 +251,14 @@ dict_create_var (struct dictionary *d, const char *name, int width)
 }
 
 struct variable *
+dict_create_var_assert (struct dictionary *d, const char *name, int width) 
+{
+  struct variable *v = dict_create_var (d, name, width);
+  assert (v != NULL);
+  return v;
+}
+
+struct variable *
 dict_clone_var (struct dictionary *d, const struct variable *ov,
                 const char *name)
 {
@@ -273,7 +273,8 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
   if (nv == NULL)
     return NULL;
 
-  nv->left = ov->left;
+  nv->init = 1;
+  nv->reinit = ov->reinit;
   nv->miss_type = ov->miss_type;
   memcpy (nv->missing, ov->missing, sizeof nv->missing);
   nv->print = ov->print;
@@ -319,6 +320,14 @@ dict_lookup_var (const struct dictionary *d, const char *name)
   v.name[8] = '\0';
 
   return hsh_find (d->name_tab, &v);
+}
+
+struct variable *
+dict_lookup_var_assert (const struct dictionary *d, const char *name)
+{
+  struct variable *v = dict_lookup_var (d, name);
+  assert (v != NULL);
+  return v;
 }
 
 int

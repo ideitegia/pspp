@@ -163,10 +163,7 @@ cmd_data_list (void)
 	    return CMD_FAILURE;
 	  dls.end = dict_lookup_var (default_dict, tokid);
 	  if (!dls.end) 
-            {
-              dls.end = dict_create_var (default_dict, tokid, 0);
-              assert (dls.end != NULL);
-            }
+            dls.end = dict_create_var_assert (default_dict, tokid, 0);
 	  lex_get ();
 	}
       else if (token == T_ID)
@@ -519,11 +516,13 @@ fixed_parse_compatible (void)
 	{
 	  convert_fmt_ItoO (&fx.spec.input, &v->print);
 	  v->write = v->print;
+          if (vfm_source != &input_program_source
+              && vfm_source != &file_type_source)
+            v->init = 0;
 	}
       else
 	{
-	  v = dict_lookup_var (default_dict, fx.name[i]);
-	  assert (v != NULL);
+	  v = dict_lookup_var_assert (default_dict, fx.name[i]);
 	  if (!vfm_source)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), fx.name[i]);
@@ -627,6 +626,10 @@ dump_fmt_list (struct fmt_list *f)
 		return 0;
 	      }
 	    
+            if (vfm_source != &input_program_source
+                && vfm_source != &file_type_source)
+              v->init = 0;
+
 	    fx.spec.input = f->f;
 	    convert_fmt_ItoO (&fx.spec.input, &v->print);
 	    v->write = v->print;
@@ -828,6 +831,10 @@ parse_free (void)
 	    }
 	  
 	  v->print = v->write = out;
+
+          if (vfm_source != &input_program_source
+              && vfm_source != &file_type_source)
+            v->init = 0;
 
 	  strcpy (spec.name, name[i]);
 	  spec.fv = v->fv;

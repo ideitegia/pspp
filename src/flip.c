@@ -167,8 +167,7 @@ make_new_var (char name[])
 static int
 build_dictionary (void)
 {
-  if (!dict_create_var (default_dict, "CASE_LBL", 8))
-    assert (0);
+  dict_create_var_assert (default_dict, "CASE_LBL", 8);
 
   if (!new_names_tail)
     {
@@ -186,8 +185,7 @@ build_dictionary (void)
 	  char s[9];
 
 	  sprintf (s, "VAR%03d", i);
-	  v = dict_create_var (default_dict, s, 0);
-          assert (v != NULL);
+	  v = dict_create_var_assert (default_dict, s, 0);
 	}
     }
   else

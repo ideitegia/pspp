@@ -254,12 +254,7 @@ internal_cmd_loop (void)
     {
       two->index = dict_lookup_var (default_dict, name);
       if (!two->index)
-	{
-	  two->index = dict_create_var (default_dict, name, 0);
-#if DEBUGGING
-	  envector (two->index);
-#endif
-	}
+        two->index = dict_create_var (default_dict, name, 0);
     }
   
   /* Push on control stack. */

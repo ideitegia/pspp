@@ -24,7 +24,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "cases.h"
 #include "command.h"
 #include "error.h"
 #include "getline.h"
@@ -329,14 +328,7 @@ internal_cmd_do_repeat (void)
 	    {
 	      /* Note that if the variable already exists there is no
 		 harm done. */
-	      struct variable *v = dict_create_var (default_dict,
-						    iter->replacement[i],
-						    0);
-
-	      /* If we created the variable then we need to initialize
-		 its observations to SYSMIS. */
-	      if (v)
-		envector (v);
+	      dict_create_var (default_dict, iter->replacement[i], 0);
 	    }
 	}
   }

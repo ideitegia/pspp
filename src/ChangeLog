@@ -1,3 +1,71 @@
+Sun Feb 15 23:14:59 2004  Ben Pfaff  <blp@gnu.org>
+
+	New functions dict_create_var_assert(), dict_lookup_var_assert().
+	Converted several dict_*_var()/assert pairs into a single
+	dict_*_var_assert().
+
+	* dictionary.c: (dict_create_var_assert) New function.
+	(dict_lookup_var_assert) New function.
+
+Sun Feb 15 23:06:08 2004  Ben Pfaff  <blp@gnu.org>
+
+	Got rid of "struct long_vec", envector(), devector(), etc.  Added
+	two members `init', `reinit' to struct variable as a substitute.
+	
+	* Makefile.am: (pspp_SOURCES) Removed cases.c, cases.h.
+	
+	* cases.c: Removed.
+
+	* cases.h: Removed.
+
+	* aggregate.c: (parse_aggregate_functions) destvar doesn't need
+	init.
+
+	* autorecode.c: (cmd_autorecode) destvars don't need init.
+
+	* compute.c: (lvalue_finalize) Set reinit.
+
+	* data-list.c: (fixed_parse_compatible) Don't need init usually.
+	(dump_fmt_list) Ditto.
+	(parse_free) Ditto.
+
+	* descript.q: (run_z_pass) Don't need init for z-scores.
+
+	* dictionary.c: (dict_create_var) Initialize `init', `reinit'
+	members.
+	(dict_clone_var) Copy `reinit' member, initialize `init' member.
+
+	* glob.c: (init_glob) Remove vec_init() calls.
+
+	* inpt-pgm.c: (cmd_end_input_program) Use `reinit', not `left'.
+	
+	* loop.c: (internal_cmd_loop) Don't need to call envector().
+
+	* numeric.c: (cmd_numeric) Ditto.
+	(cmd_string) Ditto.
+	(cmd_leave) Ditto.  Set `init', `reinit' members.
+
+	* recode.c: (cmd_recode) Don't need to call envector().
+
+	* repeat.c: (internal_cmd_do_repeat) Ditto.
+
+	* var.h: (struct variable) Remove `left'.  Add `init', `reinit'.
+	(force_create_variable) Removed prototype.
+	(force_dup_variable) Ditto.
+
+	* vector.c: (cmd_vector) Don't need to call envector().
+
+	* vfm.c: (reinit_sysmis) Removed.
+	(reinit_blanks) Removed.
+	(init_zero) Removed.
+	(init_blanks) Removed.
+	(process_active_file_write_case) No need to deal with vectors.
+	Call clear_temp_case().
+	(vector_initialization) Rewrite to use `init', `reinit'.
+	(close_active_file) No need to call vec_clear().
+	(procedure_write_case) Call clear_temp_case().
+	(clear_temp_case) New function.
+
 Sun Feb 15 20:50:36 2004  Ben Pfaff  <blp@gnu.org>
 
 	* pfm-write.c: (bufwrite) Get rid of nasty cast that also invoked

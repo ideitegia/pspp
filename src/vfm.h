@@ -20,7 +20,6 @@
 #if !vfm_h
 #define vfm_h 1
 
-#include "cases.h"
 #include <time.h>
 
 /* This is the time at which vfm was last invoked. */

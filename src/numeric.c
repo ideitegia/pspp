@@ -20,7 +20,6 @@
 #include <config.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "cases.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -80,7 +79,6 @@ cmd_numeric (void)
 	    {
 	      if (f.type != -1)
 		new_var->print = new_var->write = f;
-	      envector (new_var);
 	    }
 	}
 
@@ -160,10 +158,7 @@ cmd_string (void)
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
 	  else
-	    {
-	      new_var->print = new_var->write = f;
-	      envector (new_var);
-	    }
+            new_var->print = new_var->write = f;
 	}
 
       /* Clean up. */
@@ -198,11 +193,10 @@ cmd_leave (void)
     return CMD_FAILURE;
   for (i = 0; i < nv; i++)
     {
-      if (v[i]->left)
+      if (!v[i]->reinit)
 	continue;
-      devector (v[i]);
-      v[i]->left = 1;
-      envector (v[i]);
+      v[i]->reinit = 0;
+      v[i]->init = 1;
     }
   free (v);
 

@@ -220,11 +220,8 @@ cmd_count (void)
 	   the same dest var more than once. */
 	cnt->d = dict_lookup_var (default_dict, cnt->n);
 
-	if (!cnt->d) 
-          {
-            cnt->d = dict_create_var (default_dict, cnt->n, 0);
-            assert (cnt->d != NULL); 
-          }
+	if (cnt->d == NULL) 
+          cnt->d = dict_create_var_assert (default_dict, cnt->n, 0);
       }
 
 #if DEBUGGING

@@ -275,19 +275,20 @@ enum
 
 /* A variable's dictionary entry.  Note: don't reorder name[] from the
    first element; a pointer to `variable' should be a pointer to
-   member `name'.*/
+   member `name'.  FIXME: is this comment still accurate? */
 struct variable
   {
     /* Required by parse_variables() to be in this order.  */
     char name[9];		/* As a string. */
     int index;			/* Index into its dictionary's var[]. */
-    int type;			/* NUMERIC or ALPHA. */
+    int type;                   /* NUMERIC or ALPHA. */
 
     /* Also important but parse_variables() doesn't need it.  Still,
        check before reordering. */
     int width;			/* Size of string variables in chars. */
     int fv, nv;			/* Index into `value's, number of values. */
-    int left;			/* 0=reinitialize each case, 1=don't. */
+    unsigned init : 1;          /* 1=VFM must init and possibly reinit. */
+    unsigned reinit : 1;        /* Cases are: 1=reinitialized; 0=left. */
 
     /* Missing values. */
     int miss_type;		/* One of the MISSING_* constants. */
@@ -369,11 +370,15 @@ void dict_get_vars (const struct dictionary *,
 
 struct variable *dict_create_var (struct dictionary *, const char *,
                                   int width);
+struct variable *dict_create_var_assert (struct dictionary *, const char *,
+                                  int width);
 struct variable *dict_clone_var (struct dictionary *, const struct variable *,
                                  const char *);
 void dict_rename_var (struct dictionary *, struct variable *, const char *);
 
 struct variable *dict_lookup_var (const struct dictionary *, const char *);
+struct variable *dict_lookup_var_assert (const struct dictionary *,
+                                         const char *);
 int dict_contains_var (const struct dictionary *, const struct variable *);
 void dict_delete_var (struct dictionary *, struct variable *);
 void dict_delete_vars (struct dictionary *,
@@ -462,20 +467,6 @@ int is_missing (const union value *, const struct variable *);
 int is_system_missing (const union value *, const struct variable *);
 int is_user_missing (const union value *, const struct variable *);
 void copy_missing_values (struct variable *dest, const struct variable *src);
-
-#if GLOBAL_DEBUGGING
-struct variable *force_create_variable (struct dictionary *, const char *name,
-					int type, int width);
-struct variable *force_dup_variable (struct dictionary *,
-				     const struct variable *src,
-				     const char *name);
-#else
-#define force_create_variable(A, B, C, D)	\
-	create_variable (A, B, C, D)
-#define force_dup_variable(A, B, C)		\
-	dup_variable (A, B, C)
-#endif
-
 
 /* Transformations. */
 

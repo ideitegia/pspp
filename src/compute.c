@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "approx.h"
-#include "cases.h"
 #include "command.h"
 #include "error.h"
 #include "expr.h"
@@ -398,21 +397,14 @@ lvalue_finalize (struct lvalue *lvalue,
     {
       compute->variable = dict_lookup_var (default_dict, lvalue->var_name);
       if (compute->variable == NULL)
-        compute->variable = dict_create_var (default_dict, lvalue->var_name,
-                                             0);
-      assert (compute->variable != NULL);
-
+        compute->variable = dict_create_var_assert (default_dict,
+                                                    lvalue->var_name, 0);
       compute->fv = compute->variable->fv;
       compute->width = compute->variable->width;
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
-      if (compute->variable->left
-          && dict_class_from_id (compute->variable->name) != DC_SCRATCH)
-        {
-          devector (compute->variable);
-          compute->variable->left = 0;
-          envector (compute->variable);
-        }
+      if (dict_class_from_id (compute->variable->name) != DC_SCRATCH)
+        compute->variable->reinit = 1;
     }
   else 
     {

@@ -62,12 +62,6 @@ struct write_case_data
 /* This is used to read from the active file. */
 struct case_stream *vfm_source;
 
-/* `value' indexes to initialize to particular values for certain cases. */
-struct long_vec reinit_sysmis;		/* SYSMIS for every case. */
-struct long_vec reinit_blanks;		/* Blanks for every case. */
-struct long_vec init_zero;		/* Zero for first case only. */
-struct long_vec init_blanks;		/* Blanks for first case only. */
-
 /* This is used to write to the replacement active file. */
 struct case_stream *vfm_sink;
 
@@ -122,6 +116,7 @@ static int SPLIT_FILE_procfunc (struct ccase *, void *);
 static void finish_compaction (void);
 static void lag_case (void);
 static int procedure_write_case (struct write_case_data *);
+static void clear_temp_case (void);
 
 /* Public functions. */
 
@@ -256,16 +251,8 @@ process_active_file_write_case (struct write_case_data *data)
   case_count++;
   
  done:
-  {
-    long *lp;
+  clear_temp_case ();
 
-    /* This case is finished.  Initialize the variables for the next case. */
-    for (lp = reinit_sysmis.vec; *lp != -1;)
-      temp_case->data[*lp++].f = SYSMIS;
-    for (lp = reinit_blanks.vec; *lp != -1;)
-      memset (temp_case->data[*lp++].s, ' ', MAX_SHORT_STRING);
-  }
-  
   return 1;
 }
 
@@ -387,48 +374,29 @@ index_to_varname (int ccase_index)
 }
 #endif
 
-/* Initializes temp_case from the vectors that say which `value's need
-   to be initialized just once, and which ones need to be
+/* Initializes temp_case from the vectors that say which `value's
+   need to be initialized just once, and which ones need to be
    re-initialized before every case. */
 static void
 vector_initialization (void)
 {
-  int i;
-  long *lp;
+  size_t var_cnt = dict_get_var_cnt (default_dict);
+  size_t i;
   
-  /* Just once. */
-  for (i = 0; i < init_zero.n; i++)
-    temp_case->data[init_zero.vec[i]].f = 0.0;
-  for (i = 0; i < init_blanks.n; i++)
-    memset (temp_case->data[init_blanks.vec[i]].s, ' ', MAX_SHORT_STRING);
+  for (i = 0; i < var_cnt; i++) 
+    {
+      struct variable *v = dict_get_var (default_dict, i);
 
-  /* These vectors need to be repeatedly accessed, so we add a
-     sentinel to (hopefully) improve speed. */
-  vec_insert (&reinit_sysmis, -1);
-  vec_insert (&reinit_blanks, -1);
-
-  for (lp = reinit_sysmis.vec; *lp != -1;)
-    temp_case->data[*lp++].f = SYSMIS;
-  for (lp = reinit_blanks.vec; *lp != -1;)
-    memset (temp_case->data[*lp++].s, ' ', MAX_SHORT_STRING);
-  
-#if DEBUGGING
-  printf ("vfm: init_zero=");
-  for (i = 0; i < init_zero.n; i++)
-    printf ("%s%s", i ? "," : "", index_to_varname (init_zero.vec[i]));
-  printf (" init_blanks=");
-  for (i = 0; i < init_blanks.n; i++)
-    printf ("%s%s", i ? "," : "", index_to_varname (init_blanks.vec[i]));
-  printf (" reinit_sysmis=");
-  for (lp = reinit_sysmis.vec; *lp != -1; lp++)
-    printf ("%s%s", lp != reinit_sysmis.vec ? "," : "",
-	    index_to_varname (*lp));
-  printf (" reinit_blanks=");
-  for (lp = reinit_blanks.vec; *lp != -1; lp++)
-    printf ("%s%s", lp != reinit_blanks.vec ? "," : "",
-	    index_to_varname (*lp));
-  printf ("\n");
-#endif
+      if (v->type == NUMERIC) 
+        {
+          if (v->reinit)
+            temp_case->data[v->fv].f = 0.0;
+          else
+            temp_case->data[v->fv].f = SYSMIS;
+        }
+      else
+        memset (temp_case->data[v->fv].s, ' ', v->width);
+    }
 }
 
 /* Sets filter_index to an appropriate value. */
@@ -601,12 +569,6 @@ close_active_file (struct write_case_data *data)
 
   /* Cancel transformations. */
   cancel_transformations ();
-
-  /* Clear value-initialization vectors. */
-  vec_clear (&init_zero);
-  vec_clear (&init_blanks);
-  vec_clear (&reinit_sysmis);
-  vec_clear (&reinit_blanks);
 
   /* Turn off case limiter. */
   dict_set_case_limit (default_dict, 0);
@@ -1048,19 +1010,34 @@ procedure_write_case (write_case_data wc_data)
   
 done:
   debug_putc ('\n', stdout);
-  
-  {
-    long *lp;
 
-    /* This case is finished.  Initialize the variables for the next case. */
-    for (lp = reinit_sysmis.vec; *lp != -1;)
-      temp_case->data[*lp++].f = SYSMIS;
-    for (lp = reinit_blanks.vec; *lp != -1;)
-      memset (temp_case->data[*lp++].s, ' ', MAX_SHORT_STRING);
-  }
+  clear_temp_case ();
   
   /* Return previously determined value. */
   return more_cases;
+}
+
+/* Clears the variables in the temporary case that need to be
+   cleared between processing cases.  */
+static void
+clear_temp_case (void)
+{
+  /* FIXME?  This is linear in the number of variables, but
+     doesn't need to be, so it's an easy optimization target. */
+  size_t var_cnt = dict_get_var_cnt (default_dict);
+  size_t i;
+  
+  for (i = 0; i < var_cnt; i++) 
+    {
+      struct variable *v = dict_get_var (default_dict, i);
+      if (v->init && v->reinit) 
+        {
+          if (v->type == NUMERIC) 
+            temp_case->data[v->fv].f = SYSMIS;
+          else
+            memset (temp_case->data[v->fv].s, ' ', v->width);
+        } 
+    }
 }
 
 /* Appends TRNS to t_trns[], the list of all transformations to be

@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "alloc.h"
-#include "cases.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -169,9 +168,7 @@ cmd_vector (void)
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  v[i] = dict_create_var (default_dict, name, 0);
-                  assert (v[i] != NULL);
-		  envector (v[i]);
+		  v[i] = dict_create_var_assert (default_dict, name, 0);
 		}
               if (!dict_create_vector (default_dict, cp, v, nv))
                 assert (0);

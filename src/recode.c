@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "approx.h"
-#include "cases.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -416,13 +415,11 @@ cmd_recode (void)
 	rcd->dest = dict_create_var (default_dict, rcd->dest_name, 0);
 	if (!rcd->dest)
 	  {
-	    /* This can occur if a destname is duplicated.  We could
-	       give an error at parse time but I don't care enough. */
-	    rcd->dest = dict_lookup_var (default_dict, rcd->dest_name);
-	    assert (rcd->dest != NULL);
+	    /* FIXME: This can occur if a destname is duplicated.
+	       We could give an error at parse time but I don't
+	       care enough. */
+	    rcd->dest = dict_lookup_var_assert (default_dict, rcd->dest_name);
 	  }
-	else
-	  envector (rcd->dest);
       }
 
   trns = xmalloc (sizeof *trns);

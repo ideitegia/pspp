@@ -35,7 +35,7 @@ frequencies.q list.q means.q set.q t-test.q
 
 pspp_SOURCES = $(q_sources_c) \
 aggregate.c algorithm.c algorithm.h alloc.c alloc.h	\
-apply-dict.c approx.h ascii.c autorecode.c bitvector.h cases.c cases.h	\
+apply-dict.c approx.h ascii.c autorecode.c bitvector.h	\
 cmdline.c cmdline.h command.c command.def command.h compute.c		\
 count.c data-in.c data-in.h data-list.c	\
 data-out.c debug-print.h devind.c devind.h dfm.c dfm.h	\

@@ -157,8 +157,8 @@ cmd_autorecode (void)
 
   for (i = 0; i < nv_dest; i++)
     {
-      v_dest[i] = dict_create_var (default_dict, n_dest[i], 0);
-      assert (v_dest[i] != NULL);
+      v_dest[i] = dict_create_var_assert (default_dict, n_dest[i], 0);
+      v_dest[i]->init = 0;
       free (n_dest[i]);
     }
   free (n_dest);

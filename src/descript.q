@@ -539,9 +539,9 @@ run_z_pass (void)
 	  struct variable *d;
 
 	  t->z[count].s = v;
-	  t->z[count].d = d = dict_create_var (default_dict,
-                                               v->p.dsc.zname, 0);
-          assert (d != NULL);
+	  t->z[count].d = d = dict_create_var_assert (default_dict,
+                                                      v->p.dsc.zname, 0);
+          d->init = 0;
 	  if (v->label)
 	    {
 	      d->label = xmalloc (strlen (v->label) + 12);

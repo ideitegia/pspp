@@ -169,11 +169,6 @@ init_glob (int argc UNUSED, char **argv)
   /* var.h */
   default_dict = dict_create ();
 
-  vec_init (&reinit_sysmis);
-  vec_init (&reinit_blanks);
-  vec_init (&init_zero);
-  vec_init (&init_blanks);
-
   last_vfm_invocation = time (NULL);
 
   /* lexer.h */

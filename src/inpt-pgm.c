@@ -105,7 +105,7 @@ cmd_end_input_program (void)
       size_t j;
       
       value_init = var->type == NUMERIC ? INP_NUMERIC : INP_STRING;
-      value_init |= var->left ? INP_INIT_ONCE : INP_REINIT;
+      value_init |= var->reinit ? INP_REINIT : INP_INIT_ONCE;
 
       for (j = 0; j < var->nv; j++)
         inp_init[j + var->fv] = value_init;
