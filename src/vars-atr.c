@@ -81,7 +81,7 @@ compare_values (const union value *a, const union value *b, int width)
   if (width == 0) 
     return a->f < b->f ? -1 : a->f > b->f;
   else
-    return memcmp (a->s, b->s, width);
+    return memcmp (a->s, b->s, min(MAX_SHORT_STRING, width));
 }
 
 /* Create a hash of v */
@@ -93,7 +93,7 @@ hash_value(const union value  *v, int width)
   if ( 0 == width ) 
     id_hash = hsh_hash_double (v->f);
   else
-    id_hash = hsh_hash_bytes (v->s, width);
+    id_hash = hsh_hash_bytes (v->s, min(MAX_SHORT_STRING, width));
 
   return id_hash;
 }

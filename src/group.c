@@ -25,6 +25,7 @@
 #include "group_proc.h"
 #include "str.h"
 #include "var.h"
+#include "misc.h"
 
 
 /* Return -1 if the id of a is less than b; +1 if greater than and 
@@ -38,15 +39,13 @@ compare_group(const struct group_statistics *a,
 }
 
 
+
 unsigned 
 hash_group(const struct group_statistics *g, int width)
 {
   unsigned id_hash;
 
-  if ( 0 == width ) 
-    id_hash = hsh_hash_double (g->id.f);
-  else
-    id_hash = hsh_hash_bytes (g->id.s, width);
+  id_hash = hash_value(&g->id, width);
 
   return id_hash;
 }

@@ -48,6 +48,15 @@ cd $TEMPDIR
 # Create command file.
 activity="create program"
 cat > $TEMPDIR/data-list.stat << EOF
+data list list ('|','X') /A B C D.
+begin data.
+1|23X45|2.03
+2X22|34|23|
+3|34|34X34
+end data.
+
+list.
+
 data list free/A B C D.
 begin data.
 ,1,2,3
@@ -95,6 +104,22 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
 diff -b -B $TEMPDIR/pspp.list - << EOF
+1.1 DATA LIST.  Reading free-form data from the command file.
++--------+------+
+|Variable|Format|
+#========#======#
+|A       |F8.0  |
+|B       |F8.0  |
+|C       |F8.0  |
+|D       |F8.0  |
++--------+------+
+
+       A        B        C        D
+-------- -------- -------- --------
+    1.00    23.00    45.00     2.03 
+    2.00    22.00    34.00    23.00 
+    3.00    34.00    34.00    34.00 
+
        A        B        C        D
 -------- -------- -------- --------
      .       1.00     2.00     3.00 

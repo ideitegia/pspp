@@ -74,7 +74,7 @@ struct group_statistics
 
 
 
-/* These funcs are usefull for hash tables */
+/* These funcs are useful for hash tables */
 
 /* Return -1 if the id of a is less than b; +1 if greater than and 
    0 if equal */

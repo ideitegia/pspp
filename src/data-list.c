@@ -208,7 +208,10 @@ cmd_data_list (void)
                       if (lex_match_id ("TAB"))
                         delim = '\t';
                       else if (token == T_STRING && tokstr.length == 1)
-                        delim = tokstr.string[0];
+			{
+			  delim = tokstr.string[0];
+			  lex_get();
+			}
                       else 
                         {
                           lex_error (NULL);

@@ -355,14 +355,22 @@ tukey_hinges(const struct weighted_value **wv,
 
   for ( i = 0 ; i < 3 ; i++ )
     {
-      assert(h[i] + 1< n_data);
 
       if ( h[i] >= 0 ) 
 	a_star = l[i] - wv[h[i]]->cc ;
       else
 	a_star = l[i];
 
-      a = a_star / ( wv[h[i]+1]->cc ) ; 
+      if ( h[i] + 1 >= n_data )
+      {
+	      assert( a_star < 1 ) ;
+	      hinge[i] = (1 - a_star) * wv[h[i]]->v.f;
+	      continue;
+      }
+      else 
+      {
+	      a = a_star / ( wv[h[i] + 1]->cc ) ; 
+      }
 
       if ( a_star >= 1.0 ) 
 	{
@@ -370,15 +378,15 @@ tukey_hinges(const struct weighted_value **wv,
 	  continue;
 	}
 
-      if ( wv[h[i]+1]->w >= 1)
+      if ( wv[h[i] + 1]->w >= 1)
 	{
-	  hinge[i] = ( 1 - a_star)* wv[h[i]]->v.f
-	    + a_star * wv[h[i]+1]->v.f;
+	  hinge[i] = ( 1 - a_star) * wv[h[i]]->v.f
+	    + a_star * wv[h[i] + 1]->v.f;
 
 	  continue;
 	}
 
-      hinge[i] = ( 1 - a)* wv[h[i]]->v.f + a * wv[h[i]+1]->v.f;
+      hinge[i] = (1 - a) * wv[h[i]]->v.f + a * wv[h[i] + 1]->v.f;
       
     }
 

@@ -1,3 +1,20 @@
+Sat Jan  1 19:01:16 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* data-list.c Fixed a bug in parsing delimiters.
+
+	* group.c vars-atr.c Fixed buglet in hash/compare functions for alpha
+	values.
+
+	* percentiles.c Properly handled calculation of Tukey hinges where
+	the number of data is small.
+
+	* oneway.q Used the generic value_to_string function for independent
+	variable instead of trying to do it ourselves.
+
+	* box-whisker.c Fixed a buglet which caused a crash if the number of
+	data was zero
+
+
 Fri Dec 31 16:47:45 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q box-whisker.c chart.h Implemented boxplots in EXAMINE

@@ -439,18 +439,8 @@ show_descriptives(void)
 	   gs != 0; 
 	   gs = hsh_next(group_hash,&g))
 	{
-	  const char *s = val_labs_find(indep_var->val_labs, gs->id );
-  
-	  if ( s ) 
-	    tab_text (t, 1, row + count, 
-		      TAB_LEFT | TAT_TITLE ,s);
-	  else if ( indep_var->width != 0 ) 
-	    tab_text (t, 1, row + count,
-		      TAB_LEFT | TAT_TITLE, gs->id.s);
-	  else
-	    tab_text (t, 1, row + count,
-		      TAB_LEFT | TAT_TITLE | TAT_PRINTF, "%g", gs->id.f);
-	  
+	  tab_text (t, 1, row + count, 
+		    TAB_LEFT | TAT_TITLE ,value_to_string(&gs->id,indep_var));
 
 	  /* Now fill in the numbers ... */
 

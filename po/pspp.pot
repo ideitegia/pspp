@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-12-31 08:53+0800\n"
+"POT-Creation-Date: 2005-01-01 18:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,9 +17,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/aggregate.c:187 src/aggregate.c:220 src/data-list.c:1421
-#: src/data-list.c:1456 src/data-list.c:1469 src/data-list.c:1482
-#: src/data-list.c:1515
+#: src/aggregate.c:187 src/aggregate.c:220 src/data-list.c:1424
+#: src/data-list.c:1459 src/data-list.c:1472 src/data-list.c:1485
+#: src/data-list.c:1518
 #, c-format
 msgid "%s subcommand given multiple times."
 msgstr ""
@@ -226,7 +226,7 @@ msgid "Source variable count (%d) does not match target variable count (%d)."
 msgstr ""
 
 #: src/autorecode.c:139 src/command.c:739 src/compute.c:294
-#: src/data-list.c:407 src/data-list.c:897 src/data-list.c:1748
+#: src/data-list.c:410 src/data-list.c:900 src/data-list.c:1751
 #: src/do-if.c:253 src/get.c:405 src/lexer.c:419 src/loop.c:241
 #: src/matrix-data.c:527 src/print.c:335 src/print.c:1045 src/recode.c:405
 #: src/sel-if.c:54 src/sel-if.c:131 src/vector.c:193 src/file-handle.q:138
@@ -655,254 +655,254 @@ msgstr ""
 msgid "Only one of FIXED, FREE, or LIST may be specified."
 msgstr ""
 
-#: src/data-list.c:354 src/print.c:296
+#: src/data-list.c:357 src/print.c:296
 #, c-format
 msgid ""
 "The record number specified, %ld, is before the previous record, %d.  Data "
 "fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/data-list.c:383 src/data-list.c:1737
+#: src/data-list.c:386 src/data-list.c:1740
 msgid ""
 "SPSS-like or FORTRAN-like format specification expected after variable names."
 msgstr ""
 
-#: src/data-list.c:394
+#: src/data-list.c:397
 msgid "At least one variable must be specified."
 msgstr ""
 
-#: src/data-list.c:399 src/print.c:328
+#: src/data-list.c:402 src/print.c:328
 msgid ""
 "Variables are specified on records that should not exist according to "
 "RECORDS subcommand."
 msgstr ""
 
-#: src/data-list.c:437 src/data-list.c:451 src/print.c:505 src/print.c:518
+#: src/data-list.c:440 src/data-list.c:454 src/print.c:505 src/print.c:518
 msgid "Column positions for fields must be positive."
 msgstr ""
 
-#: src/data-list.c:456
+#: src/data-list.c:459
 msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
-#: src/data-list.c:470 src/print.c:595
+#: src/data-list.c:473 src/print.c:595
 #, c-format
 msgid "The %d columns %d-%d can't be evenly divided into %d fields."
 msgstr ""
 
-#: src/data-list.c:490 src/print.c:546
+#: src/data-list.c:493 src/print.c:546
 msgid "A format specifier on this line has extra characters on the end."
 msgstr ""
 
-#: src/data-list.c:505 src/print.c:562
+#: src/data-list.c:508 src/print.c:562
 msgid "The value for number of decimal places must be at least 1."
 msgstr ""
 
-#: src/data-list.c:519 src/print.c:575
+#: src/data-list.c:522 src/print.c:575
 #, c-format
 msgid "Input format %s doesn't accept decimal places."
 msgstr ""
 
-#: src/data-list.c:566 src/data-list.c:662 src/data-list.c:876
+#: src/data-list.c:569 src/data-list.c:665 src/data-list.c:879
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr ""
 
-#: src/data-list.c:571
+#: src/data-list.c:574
 #, c-format
 msgid "There is already a variable %s of a different type."
 msgstr ""
 
-#: src/data-list.c:578
+#: src/data-list.c:581
 #, c-format
 msgid "There is already a string variable %s of a different width."
 msgstr ""
 
-#: src/data-list.c:653
+#: src/data-list.c:656
 msgid ""
 "The number of format specifications exceeds the given number of variable "
 "names."
 msgstr ""
 
-#: src/data-list.c:766 src/print.c:768
+#: src/data-list.c:769 src/print.c:768
 msgid ""
 "There aren't enough format specifications to match the number of variable "
 "names given."
 msgstr ""
 
-#: src/data-list.c:793 src/data-list.c:919 src/descript.c:880 src/print.c:799
+#: src/data-list.c:796 src/data-list.c:922 src/descript.c:880 src/print.c:799
 #: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:874
 msgid "Variable"
 msgstr ""
 
-#: src/data-list.c:794 src/print.c:800
+#: src/data-list.c:797 src/print.c:800
 msgid "Record"
 msgstr ""
 
-#: src/data-list.c:795 src/print.c:801
+#: src/data-list.c:798 src/print.c:801
 msgid "Columns"
 msgstr ""
 
-#: src/data-list.c:796 src/data-list.c:920 src/print.c:802
+#: src/data-list.c:799 src/data-list.c:923 src/print.c:802
 msgid "Format"
 msgstr ""
 
-#: src/data-list.c:812
+#: src/data-list.c:815
 #, c-format
 msgid "Reading %d record from file %s."
 msgid_plural "Reading %d records from file %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data-list.c:816
+#: src/data-list.c:819
 #, c-format
 msgid "Reading %d record from the command file."
 msgid_plural "Reading %d records from the command file."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data-list.c:936
+#: src/data-list.c:939
 #, c-format
 msgid "Reading free-form data from file %s."
 msgstr ""
 
-#: src/data-list.c:939
+#: src/data-list.c:942
 msgid "Reading free-form data from the command file."
 msgstr ""
 
-#: src/data-list.c:990
+#: src/data-list.c:993
 #, c-format
 msgid "Quoted string missing terminating `%c'."
 msgstr ""
 
-#: src/data-list.c:1099
+#: src/data-list.c:1102
 #, c-format
 msgid "Partial case of %d of %d records discarded."
 msgstr ""
 
-#: src/data-list.c:1153
+#: src/data-list.c:1156
 #, c-format
 msgid "Partial case discarded.  The first variable missing was %s."
 msgstr ""
 
-#: src/data-list.c:1197
+#: src/data-list.c:1200
 #, c-format
 msgid ""
 "Missing value(s) for all variables from %s onward.  These will be filled "
 "with the system-missing value or blanks, as appropriate."
 msgstr ""
 
-#: src/data-list.c:1275
+#: src/data-list.c:1278
 msgid "Attempt to read past end of file."
 msgstr ""
 
-#: src/data-list.c:1411
+#: src/data-list.c:1414
 msgid ""
 "REPEATING DATA must use the same file as its corresponding DATA LIST or FILE "
 "TYPE."
 msgstr ""
 
-#: src/data-list.c:1445
+#: src/data-list.c:1448
 #, c-format
 msgid "STARTS beginning column (%d) exceeds STARTS ending column (%d)."
 msgstr ""
 
-#: src/data-list.c:1501
+#: src/data-list.c:1504
 #, c-format
 msgid "CONTINUED beginning column (%d) exceeds CONTINUED ending column (%d)."
 msgstr ""
 
-#: src/data-list.c:1524
+#: src/data-list.c:1527
 #, c-format
 msgid "ID beginning column (%ld) must be positive."
 msgstr ""
 
-#: src/data-list.c:1539
+#: src/data-list.c:1542
 #, c-format
 msgid "ID ending column (%ld) must be positive."
 msgstr ""
 
-#: src/data-list.c:1545
+#: src/data-list.c:1548
 #, c-format
 msgid "ID ending column (%ld) cannot be less than ID beginning column (%d)."
 msgstr ""
 
-#: src/data-list.c:1585
+#: src/data-list.c:1588
 msgid "Missing required specification STARTS."
 msgstr ""
 
-#: src/data-list.c:1587
+#: src/data-list.c:1590
 msgid "Missing required specification OCCURS."
 msgstr ""
 
-#: src/data-list.c:1594
+#: src/data-list.c:1597
 msgid "ID specified without CONTINUED."
 msgstr ""
 
-#: src/data-list.c:1686
+#: src/data-list.c:1689
 msgid "String variable not allowed here."
 msgstr ""
 
-#: src/data-list.c:1696
+#: src/data-list.c:1699
 #, c-format
 msgid "%s (%d) must be at least 1."
 msgstr ""
 
-#: src/data-list.c:1702
+#: src/data-list.c:1705
 #, c-format
 msgid "Variable or integer expected for %s."
 msgstr ""
 
-#: src/data-list.c:1840
+#: src/data-list.c:1843
 #, c-format
 msgid "Encountered mismatched record ID \"%s\" expecting \"%s\"."
 msgstr ""
 
-#: src/data-list.c:1872
+#: src/data-list.c:1875
 #, c-format
 msgid ""
 "Variable %s starting in column %d extends beyond physical record length of %"
 "d."
 msgstr ""
 
-#: src/data-list.c:1940
+#: src/data-list.c:1943
 #, c-format
 msgid "Invalid value %d for OCCURS."
 msgstr ""
 
-#: src/data-list.c:1946
+#: src/data-list.c:1949
 #, c-format
 msgid "Beginning column for STARTS (%d) must be at least 1."
 msgstr ""
 
-#: src/data-list.c:1954
+#: src/data-list.c:1957
 #, c-format
 msgid "Ending column for STARTS (%d) is less than beginning column (%d)."
 msgstr ""
 
-#: src/data-list.c:1962
+#: src/data-list.c:1965
 #, c-format
 msgid "Invalid value %d for LENGTH."
 msgstr ""
 
-#: src/data-list.c:1969
+#: src/data-list.c:1972
 #, c-format
 msgid "Beginning column for CONTINUED (%d) must be at least 1."
 msgstr ""
 
-#: src/data-list.c:1977
+#: src/data-list.c:1980
 #, c-format
 msgid "Ending column for CONTINUED (%d) is less than beginning column (%d)."
 msgstr ""
 
-#: src/data-list.c:2009
+#: src/data-list.c:2012
 #, c-format
 msgid ""
 "Number of repetitions specified on OCCURS (%d) exceed number of repetitions "
 "available in space on STARTS (%d), and CONTINUED not specified."
 msgstr ""
 
-#: src/data-list.c:2027
+#: src/data-list.c:2030
 #, c-format
 msgid "Unexpected end of file with %d repetitions remaining out of %d."
 msgstr ""
@@ -958,7 +958,7 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:99 src/examine.q:1420 src/frequencies.q:112 src/oneway.q:396
+#: src/descript.c:99 src/examine.q:1418 src/frequencies.q:112 src/oneway.q:396
 #: src/t-test.q:690 src/t-test.q:713 src/t-test.q:836 src/t-test.q:1173
 msgid "Mean"
 msgstr ""
@@ -971,11 +971,11 @@ msgstr ""
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:102 src/examine.q:1498 src/frequencies.q:117
+#: src/descript.c:102 src/examine.q:1496 src/frequencies.q:117
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1605 src/frequencies.q:118
+#: src/descript.c:103 src/examine.q:1603 src/frequencies.q:118
 msgid "Kurtosis"
 msgstr ""
 
@@ -983,7 +983,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:105 src/examine.q:1585 src/frequencies.q:120
+#: src/descript.c:105 src/examine.q:1583 src/frequencies.q:120
 msgid "Skewness"
 msgstr ""
 
@@ -991,16 +991,16 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:107 src/examine.q:1546 src/frequencies.q:122
+#: src/descript.c:107 src/examine.q:1544 src/frequencies.q:122
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:108 src/examine.q:1523 src/frequencies.q:123
+#: src/descript.c:108 src/examine.q:1521 src/frequencies.q:123
 #: src/oneway.q:408
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:109 src/examine.q:1534 src/frequencies.q:124
+#: src/descript.c:109 src/examine.q:1532 src/frequencies.q:124
 #: src/oneway.q:409
 msgid "Maximum"
 msgstr ""
@@ -3723,7 +3723,7 @@ msgstr ""
 
 #: src/sysfile-info.c:531 src/vfm.c:875 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
-#: src/examine.q:1074 src/frequencies.q:1136 src/frequencies.q:1257
+#: src/examine.q:1082 src/frequencies.q:1136 src/frequencies.q:1257
 msgid "Value"
 msgstr ""
 
@@ -3944,32 +3944,32 @@ msgstr ""
 msgid "Summary."
 msgstr ""
 
-#: src/crosstabs.q:802 src/examine.q:858
+#: src/crosstabs.q:802 src/examine.q:867
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:803 src/examine.q:792 src/frequencies.q:1134
+#: src/crosstabs.q:803 src/examine.q:801 src/frequencies.q:1134
 #: src/frequencies.q:1507
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:804 src/examine.q:793 src/frequencies.q:1202
+#: src/crosstabs.q:804 src/examine.q:802 src/frequencies.q:1202
 #: src/frequencies.q:1508
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:805 src/crosstabs.q:1008 src/crosstabs.q:1722
-#: src/examine.q:794 src/frequencies.q:1211 src/oneway.q:307 src/oneway.q:486
+#: src/examine.q:803 src/frequencies.q:1211 src/oneway.q:307 src/oneway.q:476
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:815 src/examine.q:870 src/frequencies.q:1506
+#: src/crosstabs.q:815 src/examine.q:879 src/frequencies.q:1506
 #: src/oneway.q:395 src/t-test.q:689 src/t-test.q:712 src/t-test.q:837
 #: src/t-test.q:1372
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:816 src/examine.q:873 src/frequencies.q:1138
+#: src/crosstabs.q:816 src/examine.q:882 src/frequencies.q:1138
 #: src/frequencies.q:1139 src/frequencies.q:1140
 msgid "Percent"
 msgstr ""
@@ -4007,11 +4007,11 @@ msgid "adj. resid."
 msgstr ""
 
 #: src/crosstabs.q:1098 src/crosstabs.q:1125 src/crosstabs.q:1145
-#: src/crosstabs.q:1166 src/examine.q:1308
+#: src/crosstabs.q:1166 src/examine.q:1313
 msgid "Statistic"
 msgstr ""
 
-#: src/crosstabs.q:1100 src/oneway.q:278 src/oneway.q:707 src/t-test.q:987
+#: src/crosstabs.q:1100 src/oneway.q:278 src/oneway.q:697 src/t-test.q:987
 #: src/t-test.q:1179 src/t-test.q:1271
 msgid "df"
 msgstr ""
@@ -4190,75 +4190,75 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/examine.q:438 src/examine.q:450
+#: src/examine.q:446 src/examine.q:458
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/examine.q:852
+#: src/examine.q:861
 msgid "Case Processing Summary"
 msgstr ""
 
-#: src/examine.q:1058
+#: src/examine.q:1067
 msgid "Extreme Values"
 msgstr ""
 
-#: src/examine.q:1075
+#: src/examine.q:1083
 msgid "Case Number"
 msgstr ""
 
-#: src/examine.q:1163
+#: src/examine.q:1168
 msgid "Highest"
 msgstr ""
 
-#: src/examine.q:1168
+#: src/examine.q:1173
 msgid "Lowest"
 msgstr ""
 
-#: src/examine.q:1309 src/oneway.q:398 src/oneway.q:705
+#: src/examine.q:1314 src/oneway.q:398 src/oneway.q:695
 msgid "Std. Error"
 msgstr ""
 
-#: src/examine.q:1311 src/oneway.q:412
+#: src/examine.q:1316 src/oneway.q:412
 msgid "Descriptives"
 msgstr ""
 
-#: src/examine.q:1438 src/oneway.q:403
+#: src/examine.q:1436 src/oneway.q:403
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/examine.q:1444 src/oneway.q:405
+#: src/examine.q:1442 src/oneway.q:405
 msgid "Lower Bound"
 msgstr ""
 
-#: src/examine.q:1455 src/oneway.q:406
+#: src/examine.q:1453 src/oneway.q:406
 msgid "Upper Bound"
 msgstr ""
 
-#: src/examine.q:1467
+#: src/examine.q:1465
 msgid "5% Trimmed Mean"
 msgstr ""
 
-#: src/examine.q:1478 src/frequencies.q:114
+#: src/examine.q:1476 src/frequencies.q:114
 msgid "Median"
 msgstr ""
 
-#: src/examine.q:1510 src/oneway.q:397 src/t-test.q:691 src/t-test.q:714
+#: src/examine.q:1508 src/oneway.q:397 src/t-test.q:691 src/t-test.q:714
 #: src/t-test.q:838 src/t-test.q:1174
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/examine.q:1558
+#: src/examine.q:1556
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/examine.q:1708
+#: src/examine.q:1710
 #, c-format
-msgid "Boxplot of %s"
+msgid "Boxplot of %s vs. %s"
 msgstr ""
 
-#: src/examine.q:1734
+#: src/examine.q:1735
 msgid "Boxplot"
 msgstr ""
 
@@ -4482,7 +4482,7 @@ msgstr ""
 msgid "F"
 msgstr ""
 
-#: src/oneway.q:281 src/oneway.q:552
+#: src/oneway.q:281 src/oneway.q:542
 msgid "Significance"
 msgstr ""
 
@@ -4498,51 +4498,51 @@ msgstr ""
 msgid "ANOVA"
 msgstr ""
 
-#: src/oneway.q:549
+#: src/oneway.q:539
 msgid "Levene Statistic"
 msgstr ""
 
-#: src/oneway.q:550
+#: src/oneway.q:540
 msgid "df1"
 msgstr ""
 
-#: src/oneway.q:551
+#: src/oneway.q:541
 msgid "df2"
 msgstr ""
 
-#: src/oneway.q:555
+#: src/oneway.q:545
 msgid "Test of Homogeneity of Variances"
 msgstr ""
 
-#: src/oneway.q:631
+#: src/oneway.q:621
 msgid "Contrast Coefficients"
 msgstr ""
 
-#: src/oneway.q:633 src/oneway.q:703
+#: src/oneway.q:623 src/oneway.q:693
 msgid "Contrast"
 msgstr ""
 
-#: src/oneway.q:701
+#: src/oneway.q:691
 msgid "Contrast Tests"
 msgstr ""
 
-#: src/oneway.q:704
+#: src/oneway.q:694
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/oneway.q:706 src/t-test.q:986 src/t-test.q:1178 src/t-test.q:1270
+#: src/oneway.q:696 src/t-test.q:986 src/t-test.q:1178 src/t-test.q:1270
 msgid "t"
 msgstr ""
 
-#: src/oneway.q:708 src/t-test.q:988 src/t-test.q:1180 src/t-test.q:1272
+#: src/oneway.q:698 src/t-test.q:988 src/t-test.q:1180 src/t-test.q:1272
 msgid "Sig. (2-tailed)"
 msgstr ""
 
-#: src/oneway.q:754
+#: src/oneway.q:744
 msgid "Assume equal variances"
 msgstr ""
 
-#: src/oneway.q:758
+#: src/oneway.q:748
 msgid "Does not assume equal"
 msgstr ""
 

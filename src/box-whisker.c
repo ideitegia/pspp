@@ -20,6 +20,7 @@
 
 #include "chart.h"
 #include <math.h>
+#include <assert.h>
 #include "misc.h"
 
 #include "factor_stats.h"
@@ -74,15 +75,12 @@ boxplot_draw_boxplot(struct chart *ch,
 		     double box_centre, 
 		     double box_width,
 		     struct metrics *m,
-		     /* 
-		     const double hinge[3],
-		     struct weighted_value **wvp,
-		     int n_data,
-		     */
 		     const char *name)
 {
   double whisker[2];
   int i;
+
+  assert(m);
 
 
   const double *hinge = m->hinge;
@@ -103,6 +101,10 @@ boxplot_draw_boxplot(struct chart *ch,
 
   const double box_top = 
     ch->data_bottom + ( hinge[2] - ch->y_min ) * ch->ordinate_scale;
+
+  /* Can't really draw a boxplot if there's no data */
+  if ( n_data == 0 ) 
+	  return ;
 
   whisker[1] = hinge[2];
   whisker[0] = wvp[0]->v.f;
