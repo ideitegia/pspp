@@ -1,3 +1,8 @@
+Sat Apr  3 11:43:37 2004  Ben Pfaff  <blp@gnu.org>
+
+	* lexer.c: (lex_skip_comment) Handle end-of-file correctly (I
+	hope).
+
 Sat Apr  3 15:00:18 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
         * frequencies.q:  Fixed the calculation of percentiles

@@ -1,3 +1,11 @@
+Sat Apr  3 11:42:31 2004  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: (TESTS) Add bugs/comment-at-eof.sh.  Alphabetize
+	test order.
+	
+	* bugs/comment-at-eof.sh: Add test for a bug where a comment at
+	end of file caused an infinite loop.
+
 Sat Mar 27 11:29:06 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* bugs/get.sh Added regression test for a bug in loading a dictionary

@@ -71,7 +71,7 @@ static char *prog;
 /* Nonzero only if this line ends with a terminal dot. */
 static int dot;
 
-/* Nonzero only if the last token returned was T_EOF. */
+/* Nonzero only if the last token returned was T_STOP. */
 static int eof;
 
 /* If nonzero, next token returned by lex_get().
@@ -968,7 +968,13 @@ lex_skip_comment (void)
 {
   for (;;)
     {
-      lex_get_line ();
+      if (!lex_get_line ()) 
+        {
+          put_token = T_STOP;
+          eof = 1;
+          return;
+        }
+      
       if (put_token == '.')
 	break;
 
