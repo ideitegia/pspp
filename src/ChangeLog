@@ -1,3 +1,8 @@
+Thu Dec 11 15:13:58 WST 2003 John Darrington <john@darrington.wattle.id.au>
+
+        * output.c:  Fixed a bug where pspp would crash if it couldn't find
+ 	its startup files.
+
 Thu Dec 11 15:09:04 WST 2003 John Darrington <john@darrington.wattle.id.au>
 
 	* frequencies.q: Fixed a bug where the program would crash if more that         one 'FREQUENCIES' command appeared in a file.
