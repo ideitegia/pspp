@@ -9,7 +9,7 @@ Thu Jan  1 23:16:41 2004  Ben Pfaff  <blp@gnu.org>
 	* tab.c: (tab_output_text) Don't call
 	d->class->text_set_font_by_name if it's a null pointer.
 	(macro UNROLL_LOOP) Eliminate.
-	(macro UNROLL_3_LOOPS) Eliminate
+	(macro UNROLL_3_LOOPS) Eliminate.
 	(tabi_render) Rewrite not to use the above macros.
 
 Thu Jan  1 23:09:07 2004  Ben Pfaff  <blp@gnu.org>

@@ -1,6 +1,8 @@
-/* PSPP - computes sample statistics.
+/* PSPP - computes sample statistics. -*-c-*-
+
    Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
    Written by John Williams <johnr.williams@stonebow.otago.ac.nz>.
+   Almost completly re-written by John Darrington 2004
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -29,27 +31,31 @@
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
+#include "tab.h"
+#include "som.h"
 #include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
+#include "pool.h"
 
 /* (specification)
    "T-TEST" (tts_):
      groups=custom;
+     testval=double;
      variables=varlist("PV_NO_SCRATCH | PV_NUMERIC");
-     *+pairs=custom;
+     pairs=custom;
      +missing=miss:!analysis/listwise,
              incl:include/!exclude;
-     +format=fmt:!labels/nolabels;
-     +criteria=:ci(d:criteria,"%s > 0. && %s < 1.").
+     format=fmt:!labels/nolabels;
+     criteria=:cin(d:criteria,"%s > 0. && %s < 1.").
 */
 /* (declarations) */
 /* (functions) */
 
-#include "debug-print.h"
-
-/* Command parsing information. */
 static struct cmd_t_test cmd;
+
+
+static struct pool *t_test_pool ;
 
 /* Variable for the GROUPS subcommand, if given. */
 static struct variable *groups;
@@ -59,400 +65,156 @@ static struct variable *groups;
 static int n_groups_values;
 static union value groups_values[2];
 
-/* PAIRED: Number of pairs; each pair. */
-static int n_pairs;
-static struct variable *(*pairs)[2];
+/* PAIRS: Number of pairs to be compared ; each pair. */
+static int n_pairs ;
+typedef struct variable *pair_t[2] ;
+static pair_t *pairs;
 
-/* Routines to scan data and perform t-tests */
-static void precalc (void);
-static void postcalc (void);
-static void g_postcalc (void);
-static void t_pairs (void);
-static void t_groups (void);
-static int groups_calc (struct ccase *);
-static int pairs_calc (struct ccase *);
-static int z_calc (struct ccase *);
 
-struct value_list
-  {
-    double sum;
-    double ss;
-    double n;
-    struct value_list *next;
-  };
+static int parse_value (union value * v, int type) ;
 
-/* general workhorses - should  move these to a separate library... */
-double variance (double n, double ss, double sum);
 
-double covariance (double x_sum, double x_n,
-		   double y_sum, double y_n, double ss);
+/* Structures and Functions for the Statistics Summary Box */
+struct ssbox;
+typedef void populate_ssbox_func(struct ssbox *ssb,
+					    struct cmd_t_test *cmd);
+typedef void finalize_ssbox_func(struct ssbox *ssb);
 
-double pooled_variance (double n_1, double var_1,
-			double n_2, double var_2);
-
-double oneway (double *f, double *p, struct value_list *list);
-
-double pearson_r (double c_xy, double c_xx, double c_yy);
-
-double f_sig (double f, double dfn, double dfd);
-double t_crt (double df, double q);
-double t_sig (double t, double df);
-
-/* massive function simply to remove any responsibility for output
-   from the function which does the actual t-test calculations */
-void print_t_groups (struct variable * grps, union value * g1, union value * g2,
-		     double n1, double n2, double mean1, double mean2,
-		     double sd1, double sd2, double se1, double se2,
-		     double diff, double l_f, double l_p,
-		     double p_t, double p_sig, double p_df, double p_sed,
-		     double p_l, double p_h,
-		     double s_t, double s_sig, double s_df, double s_sed,
-		     double s_l, double s_h);
-
-/* Global variables to communicate between calc() and postcalc()
-   should move to a structure in the p union of variable... */
-static double v1_n, v1_ss, v1_sum, v1_se, v1_var, v1_mean;
-static double v2_n, v2_ss, v2_sum, v2_se, v2_var, v2_mean;
-static double v1_z_sum, v1_z_ss;
-static double v2_z_sum, v2_z_ss;
-static double diff, se_diff, sp, xy_sum, xy_diff, xy_ss;
-static int cur_var;
-
-/* some defines for CDFlib */
-#define FIND_P 1
-#define FIND_CRITICAL_VALUE 2
-#define ERROR_SIG -1
-
-#ifdef DEBUGGING
-static void debug_print (void);
-#endif
-
-/* Parses and executes the T-TEST procedure. */
-int
-cmd_t_test (void)
+struct ssbox
 {
-  struct cmd_t_test cmd;
+  struct tab_table *t;
+
+  populate_ssbox_func *populate;
+  finalize_ssbox_func *finalize;
+
+};
+
+/* Create a ssbox */
+void ssbox_create(struct ssbox *ssb,   struct cmd_t_test *cmd, int mode);
+
+/* Populate a ssbox according to cmd */
+void ssbox_populate(struct ssbox *ssb, struct cmd_t_test *cmd);
+
+/* Submit and destroy a ssbox */
+void ssbox_finalize(struct ssbox *ssb);
+
+
+
+/* Structures and Functions for the Test Results Box */
+struct trbox;
+
+typedef void populate_trbox_func(struct trbox *trb,
+				 struct cmd_t_test *cmd);
+typedef void finalize_trbox_func(struct trbox *trb);
+
+struct trbox {
+  struct tab_table *t;
+  populate_trbox_func *populate;
+  finalize_trbox_func *finalize;
+};
+
+/* Create a trbox */
+void trbox_create(struct trbox *trb,   struct cmd_t_test *cmd, int mode);
+
+/* Populate a ssbox according to cmd */
+void trbox_populate(struct trbox *trb, struct cmd_t_test *cmd);
+
+/* Submit and destroy a ssbox */
+void trbox_finalize(struct trbox *trb);
+
+/* Which mode was T-TEST invoked */
+enum {
+  T_1_SAMPLE = 0 ,
+  T_IND_SAMPLES, 
+  T_PAIRED
+};
+
+int
+cmd_t_test(void)
+{
+  int mode;
+
+  struct ssbox stat_summary_box;
+  struct trbox test_results_box;
+
   
   if (!lex_force_match_id ("T"))
     return CMD_FAILURE;
+
   lex_match ('-');
   lex_match_id ("TEST");
 
-  if (!parse_t_test (&cmd))
+  if ( !parse_t_test(&cmd) )
     return CMD_FAILURE;
 
-#if DEBUGGING
-  debug_print ();
-#endif
 
-  if (n_pairs > 0)
-    procedure (precalc, pairs_calc, postcalc);
-  else
-    /* probably groups then... */
+  if (! cmd.sbc_criteria)
+    cmd.criteria=0.95;
+
+
+  if ( cmd.sbc_testval + cmd.sbc_groups + cmd.sbc_pairs != 1 ) 
     {
-      printf ("\n\n  t-tests for independent samples of %s %s\n",
-	      groups->name, groups->label);
-
-      for (cur_var = 0; cur_var < cmd.n_variables; cur_var++)
-	{
-	  v1_n = v1_ss = v1_sum = v1_se = v1_var = v1_mean = 0.0;
-	  v2_n = v2_ss = v2_sum = v2_se = v2_var = v2_mean = 0.0;
-	  v1_z_sum = v1_z_ss = v2_z_sum = v2_z_ss = 0.0;
-	  diff = se_diff = sp = xy_diff = xy_ss = xy_sum = 0.0;
-
-	  procedure (precalc, groups_calc, g_postcalc);
-	  procedure (precalc, z_calc, postcalc);
-	}
+      msg(SE, 
+	  _("Exactly one of TESTVAL, GROUPS or PAIRS subcommands is required")
+	  );
+      return CMD_FAILURE;
     }
 
+  if (cmd.sbc_testval) 
+    mode=T_1_SAMPLE;
+  else if (cmd.sbc_groups)
+    mode=T_IND_SAMPLES;
+  else
+    mode=T_PAIRED;
+
+  if ( mode == T_PAIRED && cmd.sbc_variables) 
+    {
+      msg(SE, _("VARIABLES subcommand is not appropriate with PAIRS"));
+      return CMD_FAILURE;
+    }
+
+
+
+  t_test_pool = pool_create ();
+
+  ssbox_create(&stat_summary_box,&cmd,mode);
+  trbox_create(&test_results_box,&cmd,mode);
+
+  ssbox_populate(&stat_summary_box,&cmd);
+  trbox_populate(&test_results_box,&cmd);
+
+  ssbox_finalize(&stat_summary_box);
+  trbox_finalize(&test_results_box);
+
+  pool_destroy (t_test_pool);
+
+  t_test_pool=0;
+
+    
   return CMD_SUCCESS;
 }
 
-void
-precalc (void)
-{
-  return;			/* rilly void... */
-}
 
-int
-groups_calc (struct ccase * c)
-{
-  int bad_weight;
-  double group, w;
-  struct variable *v = cmd.v_variables[cur_var];
-  double X = c->data[v->fv].f;
-
-  /* Get the weight for this case. */
-  w = dict_get_case_weight (default_dict, c);
-  if (w <= 0.0 || w == SYSMIS)
-    {
-      w = 0.0;
-      bad_weight = 1;
-      printf ("Bad weight\n");
-    }
-
-  if (X == SYSMIS || X == 0.0)	/* FIXME: should be USER_MISSING? */
-    {
-      /* printf("Missing value\n"); */
-      return 1;
-    }
-  else
-    {
-      X = X * w;
-      group = c->data[groups->fv].f;
-
-      if (group == groups_values[0].f)
-	{
-	  v1_sum += X;
-	  v1_ss += X * X;
-	  v1_n += w;
-	}
-      else if (group == groups_values[1].f)
-	{
-	  v2_sum += X;
-	  v2_ss += X * X;
-	  v2_n += w;
-	}
-    }
-
-  return 1;
-}
-
-void
-g_postcalc (void)
-{
-  v1_mean = v1_sum / v1_n;
-  v2_mean = v2_sum / v2_n;
-  return;
-}
-
-int				/* this pass generates the z-zcores */
-z_calc (struct ccase * c)
-{
-  double group, z, w;
-  struct variable *v = cmd.v_variables[cur_var];
-  double X = c->data[v->fv].f;
-
-  z = 0.0;
-
-  /* Get the weight for this case. */
-  w = dict_get_case_weight (default_dict, c);
-
-  if (X == SYSMIS || X == 0.0)	/* FIXME: how to specify user missing? */
-    {
-      return 1;
-    }
-  else
-    {
-      group = c->data[groups->fv].f;
-      X = w * X;
-
-      if (group == groups_values[0].f)
-	{
-	  z = fabs (X - v1_mean);
-	  v1_z_sum += z;
-	  v1_z_ss += pow (z, 2);
-	}
-      else if (group == groups_values[1].f)
-	{
-	  z = fabs (X - v2_mean);
-	  v2_z_ss += pow (z, 2);
-	  v2_z_sum += z;
-	}
-    }
-
-  return 1;
-}
-
-
-int
-pairs_calc (struct ccase * c)
-{
-  int i;
-  struct variable *v1, *v2;
-  double X, Y;
-
-  for (i = 0; i < n_pairs; i++)
-    {
-
-      v1 = pairs[i][0];
-      v2 = pairs[i][1];
-      X = c->data[v1->fv].f;
-      Y = c->data[v2->fv].f;
-
-      if (X == SYSMIS || Y == SYSMIS)
-	{
-	  printf ("Missing value\n");
-	}
-      else
-	{
-	  xy_sum += X * Y;
-	  xy_diff += (X - Y);
-	  xy_ss += pow ((X - Y), 2);
-	  v1_sum += X;
-	  v2_sum += Y;
-	  v1_n++;
-	  v2_n++;
-	  v1_ss += (X * X);
-	  v2_ss += (Y * Y);
-	}
-    }
-
-  return 1;
-}
-
-void
-postcalc (void)
-{
-  /* Calculate basic statistics */
-  v1_var = variance (v1_n, v1_ss, v1_sum);	/* variances */
-  v2_var = variance (v2_n, v2_ss, v2_sum);
-  v1_se = sqrt (v1_var / v1_n);	/* standard errors */
-  v2_se = sqrt (v2_var / v2_n);
-  diff = v1_mean - v2_mean;
-
-  if (n_pairs > 0)
-    {
-      t_pairs ();
-    }
-  else
-    {
-      t_groups ();
-    }
-
-  return;
-}
-
-void
-t_groups (void)
-{
-  double df_pooled, t_pooled, t_sep, p_pooled, p_sep;
-  double crt_t_p, crt_t_s, tmp, v1_z, v2_z, f_levene, p_levene;
-  double df_sep, se_diff_s, se_diff_p;
-  struct value_list *val_1, *val_2;
-
-  /* Levene's test */
-  val_1 = malloc (sizeof (struct value_list));
-  val_1->sum = v1_z_sum;
-  val_1->ss = v1_z_ss;
-  val_1->n = v1_n;
-  val_2 = malloc (sizeof (struct value_list));
-  val_2->sum = v2_z_sum;
-  val_2->ss = v2_z_ss;
-  val_2->n = v2_n;
-
-  val_1->next = val_2;
-  val_2->next = NULL;
-
-  f_levene = oneway (&f_levene, &p_levene, val_1);
-
-  /* T test results for pooled variances */
-  se_diff_p = sqrt (pooled_variance (v1_n, v1_var, v2_n, v2_var));
-  df_pooled = v1_n + v2_n - 2.0;
-  t_pooled = diff / se_diff_p;
-  p_pooled = t_sig (t_pooled, df_pooled);
-  crt_t_p = t_crt (df_pooled, 0.025);
-
-  if ((2.0 * p_pooled) >= 1.0)
-    p_pooled = 1.0 - p_pooled;
-
-  /* oh god, the separate variance calculations... */
-  t_sep = diff / sqrt ((v1_var / v1_n) + (v2_var / v2_n));
-
-  tmp = (v1_var / v1_n) + (v2_var / v2_n);
-  tmp = (v1_var / v1_n) / tmp;
-  tmp = pow (tmp, 2);
-  tmp = tmp / (v1_n - 1.0);
-  v1_z = tmp;
-
-  tmp = (v1_var / v1_n) + (v2_var / v2_n);
-  tmp = (v2_var / v2_n) / tmp;
-  tmp = pow (tmp, 2);
-  tmp = tmp / (v2_n - 1.0);
-  v2_z = tmp;
-
-  tmp = 1.0 / (v1_z + v2_z);
-
-  df_sep = tmp;
-  p_sep = t_sig (t_sep, df_sep);
-  if ((2.0 * p_sep) >= 1.0)
-    p_sep = 1.0 - p_sep;
-  crt_t_s = t_crt (df_sep, 0.025);
-  se_diff_s = sqrt ((v1_var / v1_n) + (v2_var / v2_n));
-
-  /* FIXME: convert to a proper PSPP output call */
-  print_t_groups (groups, &groups_values[0], &groups_values[1],
-		  v1_n, v2_n, v1_mean, v2_mean,
-		  sqrt (v1_var), sqrt (v2_var), v1_se, v2_se,
-		  diff, f_levene, p_levene,
-		  t_pooled, 2.0 * p_pooled, df_pooled, se_diff_p,
-		  diff - (crt_t_p * se_diff_p), diff + (crt_t_p * se_diff_p),
-		  t_sep, 2.0 * p_sep, df_sep, se_diff_s,
-		diff - (crt_t_s * se_diff_s), diff + (crt_t_s * se_diff_s));
-  return;
-}
-
-void
-t_pairs (void)
-{
-  double cov12, cov11, cov22, r, t, p, crt_t, sp, r_t, r_p;
-  struct variable *v1, *v2;
-
-  v1 = pairs[0][0];
-  v2 = pairs[0][1];
-  cov12 = covariance (v1_sum, v1_n, v2_sum, v2_n, xy_sum);
-  cov11 = covariance (v1_sum, v1_n, v1_sum, v1_n, v1_ss);
-  cov22 = covariance (v2_sum, v2_n, v2_sum, v2_n, v2_ss);
-  r = pearson_r (cov12, cov11, cov22);
-  /* this t and it's associated p is a significance test for the pearson's r */
-  r_t = r * sqrt ((v1_n - 2.0) / (1.0 - (r * r)));
-  r_p = t_sig (r_t, v1_n - 2.0);
-
-  /* now we move to the t test for the difference in means */
-  diff = xy_diff / v1_n;
-  sp = sqrt (variance (v1_n, xy_ss, xy_diff));
-  se_diff = sp / sqrt (v1_n);
-  t = diff / se_diff;
-  crt_t = t_crt (v1_n - 1.0, 0.025);
-  p = t_sig (t, v1_n - 1.0);
-
-
-  printf ("             Number of        2-tail\n");
-  printf (" Variable      pairs    Corr   Sig      Mean    SD   SE of Mean\n");
-  printf ("---------------------------------------------------------------\n");
-  printf ("%s                                  %8.4f %8.4f %8.4f\n",
-	  v1->name, v1_mean, sqrt (v1_var), v1_se);
-  printf ("           %8.4f  %0.4f  %0.4f\n", v1_n, r, r_p);
-  printf ("%s                                  %8.4f %8.4f %8.4f\n",
-	  v2->name, v2_mean, sqrt (v2_var), v2_se);
-  printf ("---------------------------------------------------------------\n");
-
-  printf ("\n\n\n");
-  printf ("      Paired Differences              |\n");
-  printf (" Mean          SD         SE of Mean  |  t-value   df   2-tail Sig\n");
-  printf ("--------------------------------------|---------------------------\n");
-
-  printf ("%8.4f    %8.4f    %8.4f      | %8.4f %8.4f %8.4f\n",
-	  diff, sp, se_diff, t, v1_n - 1.0, 2.0 * (1.0 - p));
-
-  printf ("95pc CI (%8.4f, %8.4f)          |\n\n",
-	  diff - (se_diff * crt_t), diff + (se_diff * crt_t));
-
-  return;
-}
-
-static int parse_value (union value *);
-
-/* Parses the GROUPS subcommand. */
-int
+static int
 tts_custom_groups (struct cmd_t_test *cmd unused)
 {
+  lex_match('=');
+
+  if (token != T_ALL && 
+      (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+     ) 
+  {
+    msg(SE,_("`%s' is not a variable name"),tokid);
+    return 0;
+  }
+
   groups = parse_variable ();
   if (!groups)
     {
-      lex_error (_("expecting variable name in GROUPS subcommand"));
+      lex_error ("expecting variable name in GROUPS subcommand");
       return 0;
     }
+
   if (groups->type == T_STRING && groups->width > MAX_SHORT_STRING)
     {
       msg (SE, _("Long string variable %s is not valid here."),
@@ -462,6 +224,7 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
 
   if (!lex_match ('('))
     {
+
       if (groups->type == NUMERIC)
 	{
 	  n_groups_values = 2;
@@ -476,8 +239,8 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
 	  return 0;
 	}
     }
-  
-  if (!parse_value (&groups_values[0]))
+
+  if (!parse_value (&groups_values[0],groups->type))
     return 0;
   n_groups_values = 1;
 
@@ -486,7 +249,7 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
   if (lex_match (')'))
     return 1;
 
-  if (!parse_value (&groups_values[1]))
+  if (!parse_value (&groups_values[1],groups->type))
     return 0;
   n_groups_values = 2;
 
@@ -496,12 +259,149 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
   return 1;
 }
 
-/* Parses the current token (numeric or string, depending on the
-   variable in `groups') into value V and returns success. */
 static int
-parse_value (union value * v)
+tts_custom_pairs (struct cmd_t_test *cmd unused)
 {
-  if (groups->type == NUMERIC)
+  struct variable **vars;
+  int n_vars;
+  int n_before_WITH ;
+  int n_after_WITH =-1;
+  int paired ; /* Was the PAIRED keyword given ? */
+
+  lex_match('=');
+
+  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+      && token != T_ALL)
+    {
+      msg(SE,_("`%s' is not a variable name"),tokid);
+      return 0;
+    }
+
+  n_vars=0;
+  if (!parse_variables (default_dict, &vars, &n_vars,
+			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
+    {
+      free (vars);
+      return 0;
+    }
+  
+  
+  assert (n_vars);
+
+  n_before_WITH=0;
+  if (lex_match (T_WITH))
+    {
+      n_before_WITH = n_vars;
+
+      if (!parse_variables (default_dict, &vars, &n_vars,
+			    PV_DUPLICATE | PV_APPEND
+			    | PV_NUMERIC | PV_NO_SCRATCH))
+	{
+	  free (vars);
+	  return 0;
+	}
+
+      n_after_WITH = n_vars - n_before_WITH;
+    }
+
+
+  paired = (lex_match ('(') && lex_match_id ("PAIRED") && lex_match (')'));
+
+  
+  /* Determine the number of pairs needed */
+
+  if (paired)
+    {
+      if (n_before_WITH != n_after_WITH)
+	{
+	  free (vars);
+	  msg (SE, _("PAIRED was specified but the number of variables "
+		     "preceding WITH (%d) did not match the number "
+		     "following (%d)."),
+	       n_before_WITH, n_after_WITH );
+	  return 0;
+	}
+
+      n_pairs=n_before_WITH;
+
+    }
+  else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
+    {
+      n_pairs=n_before_WITH * n_after_WITH ;
+    }
+  else /* Neither WITH nor PAIRED keyword given */
+    {
+      if (n_vars < 2)
+	{
+	  free (vars);
+	  msg (SE, _("At least two variables must be specified "
+		     "on PAIRS."));
+	  return 0;
+	}
+
+      /* how many ways can you pick 2 from n_vars ? */
+      n_pairs = n_vars * (n_vars -1 ) /2 ;
+    }
+
+  /* Allocate storage for the pairs */
+
+  pairs = xrealloc(pairs,sizeof(pair_t) *n_pairs);
+
+
+  /* Populate the pairs with the appropriate variables */
+  
+  if ( paired ) 
+    {
+      int i;
+
+      assert(n_pairs == n_vars/2);
+      for (i = 0; i < n_pairs ; ++i)
+	{
+	  pairs[i][0] = vars[i];
+	  pairs[i][1] = vars[i+n_pairs];
+	}
+    }
+  else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
+    {
+      int i,j;
+      int p=0;
+
+      for(i=0 ; i < n_before_WITH ; ++i ) 
+	{
+	  for(j=0 ; j < n_after_WITH ; ++j)
+	    {
+	      pairs[p][0] = vars[i];
+	      pairs[p][1] = vars[j+n_before_WITH];
+	      ++p;
+	    }
+	}
+    }
+  else /* Neither WITH nor PAIRED given */
+    {
+      int i,j;
+      int p=0;
+      
+      for(i=0 ; i < n_vars ; ++i ) 
+	{
+	  for(j=i+1 ; j < n_vars ; ++j)
+	    {
+	      pairs[p][0] = vars[i];
+	      pairs[p][1] = vars[j];
+	      ++p;
+	    }
+	}
+    }
+
+  return 1;
+}
+
+
+/* Parses the current token (numeric or string, depending on type)
+    value v and returns success. */
+static int
+parse_value (union value * v, int type )
+{
+  if (type == NUMERIC)
     {
       if (!lex_force_num ())
 	return 0;
@@ -519,553 +419,633 @@ parse_value (union value * v)
   return 1;
 }
 
-/* Parses the PAIRS subcommand. */
-static int
-tts_custom_pairs (struct cmd_t_test *cmd unused)
+
+/* *******************************************************************
+                              SSBOX Implementation
+
+   ***************************************************************** */
+
+
+
+void ssbox_base_init(struct ssbox *this, int cols,int rows);
+
+void ssbox_base_finalize(struct ssbox *ssb);
+
+void ssbox_one_sample_init(struct ssbox *this, 
+			   struct cmd_t_test *cmd );
+
+void ssbox_independent_samples_init(struct ssbox *this,
+				    struct cmd_t_test *cmd);
+
+void ssbox_paired_init(struct ssbox *this,
+			   struct cmd_t_test *cmd);
+
+/* Factory to create an ssbox */
+void 
+ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
 {
-  struct variable **vars;
-  int n_before_WITH;
-  int n_vars;
-  int paired;
-  int extra;
-#if DEBUGGING
-  int n_predicted;
-#endif
 
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
-      && token != T_ALL)
-    return 2;
-  if (!parse_variables (default_dict, &vars, &n_vars,
-			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
-    return 0;
+    switch (mode) 
+      {
+      case T_1_SAMPLE:
+	ssbox_one_sample_init(ssb,cmd);
+	break;
+      case T_IND_SAMPLES:
+	ssbox_independent_samples_init(ssb,cmd);
+	break;
+      case T_PAIRED:
+	ssbox_paired_init(ssb,cmd);
+	break;
+      default:
+	assert(0);
+      }
 
-  assert (n_vars);
-  if (lex_match (T_WITH))
-    {
-      n_before_WITH = n_vars;
-
-      if (!parse_variables (default_dict, &vars, &n_vars,
-			    PV_DUPLICATE | PV_APPEND
-			    | PV_NUMERIC | PV_NO_SCRATCH))
-	{
-	  free (vars);
-	  return 0;
-	}
-    }
-  else
-    n_before_WITH = 0;
-
-  paired = (lex_match ('(') && lex_match_id ("PAIRED") && lex_match (')'));
-
-  if (paired)
-    {
-      if (n_before_WITH * 2 != n_vars)
-	{
-	  free (vars);
-	  msg (SE, _("PAIRED was specified but the number of variables "
-		     "preceding WITH (%d) did not match the number "
-		     "following (%d)."),
-	       n_before_WITH, n_vars - n_before_WITH);
-	  return 0;
-	}
-
-      extra = n_before_WITH;
-    }
-  else if (n_before_WITH)
-    extra = n_before_WITH * (n_vars - n_before_WITH);
-  else
-    {
-      if (n_vars < 2)
-	{
-	  free (vars);
-	  msg (SE, _("At least two variables must be specified "
-		     "on PAIRS."));
-	  return 0;
-	}
-
-      extra = n_vars * (n_vars - 1) / 2;
-    }
-
-#if DEBUGGING
-  n_predicted = n_pairs + extra;
-#endif
-
-  pairs = xrealloc (pairs, sizeof (struct variable *[2]) * (n_pairs + extra));
-
-  if (paired)
-    {
-      int i;
-
-      for (i = 0; i < extra; i++)
-	{
-	  pairs[n_pairs][0] = vars[i];
-	  pairs[n_pairs++][1] = vars[i + extra];
-	}
-    }
-  else if (n_before_WITH)
-    {
-      int i;
-
-      for (i = 0; i < n_before_WITH; i++)
-	{
-	  int j;
-
-	  for (j = n_before_WITH; j < n_vars; j++)
-	    {
-	      pairs[n_pairs][0] = vars[i];
-	      pairs[n_pairs++][1] = vars[j];
-	    }
-	}
-    }
-  else
-    {
-      int i;
-
-      for (i = 0; i < n_vars; i++)
-	{
-	  int j;
-
-	  for (j = i + 1; j < n_vars; j++)
-	    {
-	      pairs[n_pairs][0] = vars[i];
-	      pairs[n_pairs++][1] = vars[j];
-	    }
-	}
-    }
-
-#if DEBUGGING
-  assert (n_pairs == n_predicted);
-#endif
-
-  free (vars);
-  return 1;
 }
 
-#if DEBUGGING
-static void
-debug_print (void)
+
+void
+ssbox_populate(struct ssbox *ssb,struct cmd_t_test *cmd)
 {
-  printf ("T-TEST\n");
-  if (groups)
-    {
-      printf ("  GROUPS=%s", groups->name);
-      if (n_groups_values)
-	{
-	  int i;
-
-	  printf (" (");
-	  for (i = 0; i < n_groups_values; i++)
-	    if (groups->type == NUMERIC)
-	      printf ("%g%s", groups_values[i].f, i ? " " : "");
-	    else
-	      printf ("%.*s%s", groups->width, groups_values[i].s,
-		      i ? " " : "");
-	  printf (")");
-	}
-      printf ("\n");
-    }
-  if (cmd.n_variables)
-    {
-      int i;
-
-      printf ("  VARIABLES=");
-      for (i = 0; i < cmd.n_variables; i++)
-	printf ("%s ", cmd.v_variables[i]->name);
-      printf ("\n");
-    }
-  if (cmd.sbc_pairs)
-    {
-      int i;
-
-      printf ("  PAIRS=");
-      for (i = 0; i < n_pairs; i++)
-	printf ("%s ", pairs[i][0]->name);
-      printf ("WITH");
-      for (i = 0; i < n_pairs; i++)
-	printf (" %s", pairs[i][1]->name);
-      printf (" (PAIRED)\n");
-    }
-  printf ("  MISSING=%s %s\n",
-	  cmd.miss == TTS_ANALYSIS ? "ANALYSIS" : "LISTWISE",
-	  cmd.miss == TTS_INCLUDE ? "INCLUDE" : "EXCLUDE");
-  printf ("  FORMAT=%s\n",
-	  cmd.fmt == TTS_LABELS ? "LABELS" : "NOLABELS");
-  if (cmd.criteria != NOT_LONG)
-    printf ("  CRITERIA=%f\n", cmd.criteria);
+  ssb->populate(ssb,cmd);
 }
 
-#endif /* DEBUGGING */
 
-/* Here are some general routines tha should probably be moved into
-   a separate library and documented as part of the PSPP "API"   */
-double
-variance (double n, double ss, double sum)
+void
+ssbox_finalize(struct ssbox *ssb)
 {
-  return ((ss - ((sum * sum) / n)) / (n - 1.0));
+  ssb->finalize(ssb);
 }
 
-double
-pooled_variance (double n_1, double var_1, double n_2, double var_2)
-{
-  double tmp;
 
-  tmp = n_1 + n_2 - 2.0;
-  tmp = (((n_1 - 1.0) * var_1) + ((n_2 - 1.0) * var_2)) / tmp;
-  tmp = tmp * ((n_1 + n_2) / (n_1 * n_2));
-  return tmp;
+
+void 
+ssbox_base_finalize(struct ssbox *ssb)
+{
+  tab_submit(ssb->t);
 }
 
-double
-oneway (double *f, double *p, struct value_list *levels)
+
+void 
+ssbox_base_init(struct ssbox *this, int cols,int rows)
 {
-  double k, SSTR, SSE, SSTO, N, MSTR, MSE, sum, dftr, dfe, print;
-  struct value_list *g;
+  this->finalize = ssbox_base_finalize;
+  this->t = tab_create (cols, rows, 0);
 
-  k = 0.0;
+  tab_columns (this->t, SOM_COL_DOWN, 1);
 
-  for (g = levels; g != NULL; g = g->next)
-    {
-      k++;
-      sum += g->sum;
-      N += g->n;
-      SSTR += g->ss - (pow (g->sum, 2) / g->n);
-      SSTO += g->ss;
-    }
+  tab_headers (this->t,0,0,1,0); 
 
-  SSTO = SSTO - (pow (sum, 2) / N);
-  SSE = SSTO - SSTR;
+  tab_box (this->t, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
 
-  dftr = N - k;
-  dfe = k - 1.0;
-  MSTR = SSTR / dftr;
-  MSE = SSE / dfe;
+  tab_hline(this->t, TAL_2,0,cols-1,1);
 
-  *f = (MSE / MSTR);
-  *p = f_sig (*f, dfe, dftr);
+  tab_dim (this->t, tab_natural_dimensions);
 
-  print = 1.0;
-  if (print == 1.0)
-    {
-      printf ("sum1 %f, sum2 %f, ss1 %f, ss2 %f\n",
-	      levels->sum, levels->next->sum, levels->ss, levels->next->ss);
-      printf ("                - - - - - - O N E W A Y - - - - - -\n\n");
-      printf ("   Variable %s %s\n",
-	      cmd.v_variables[0]->name, cmd.v_variables[0]->label);
-      printf ("By Variable %s %s\n", groups->name, groups->label);
-      printf ("\n             Analysis of Variance\n\n");
-      printf ("                    Sum of    Mean     F       F\n");
-      printf ("Source       D.F.  Squares  Squares  Ratio   Prob\n\n");
-      printf ("Between   %8.0f %8.4f %8.4f %8.4f %8.4f\n",
-	      dfe, SSE, MSE, *f, *p);
-      printf ("Within    %8.0f %8.4f %8.4f\n", dftr, SSTR, MSTR);
-      printf ("Total     %8.0f %8.4f\n\n\n", N - 1.0, SSTO);
-    }
-  return (*f);
 }
 
-double
-f_sig (double f, double dfn, double dfd)
+
+
+void  ssbox_one_sample_populate(struct ssbox *ssb,
+			      struct cmd_t_test *cmd);
+
+
+
+void 
+ssbox_one_sample_init(struct ssbox *this, 
+			   struct cmd_t_test *cmd )
 {
-  int which, status;
-  double p, q, bound;
+  const int hsize=5;
+  const int vsize=cmd->n_variables+1;
 
-  which = FIND_P;
-  status = 1;
-  p = q = bound = 0.0;
-  cdff (&which, &p, &q, &f, &dfn, &dfd, &status, &bound);
+  this->populate = ssbox_one_sample_populate;
 
-  switch (status)
+  ssbox_base_init(this, hsize,vsize);
+
+
+  tab_title (this->t, 0, _("One-Sample Statistics"));
+
+  tab_vline(this->t, TAL_2, 1,0,vsize);
+
+  tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, _("N"));
+  tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
+  tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
+  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+
+
+}
+
+
+void ssbox_independent_samples_populate(struct ssbox *ssb,
+					struct cmd_t_test *cmd);
+
+
+void 
+ssbox_independent_samples_init(struct ssbox *this, 
+	struct cmd_t_test *cmd)
+
+{
+  int hsize=6;
+  int vsize = cmd->n_variables*2 +1;
+
+  this->populate = ssbox_independent_samples_populate;
+
+  ssbox_base_init(this, hsize,vsize);
+
+  tab_title (this->t, 0, _("Group Statistics"));
+
+  tab_vline(this->t,0,1,0,vsize);
+
+  tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, groups->name);
+
+  tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
+  tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
+  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
+  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+
+
+}
+
+
+void 
+ssbox_independent_samples_populate(struct ssbox *ssb,
+			      struct cmd_t_test *cmd)
+{
+  int i;
+
+  char *val_lab1=0;
+  char *val_lab2=0;
+
+  if ( groups->type == NUMERIC ) 
     {
-    case -1:
-      {
-	printf ("Parameter 1 is out of range\n");
-	break;
-      }
-    case -2:
-      {
-	printf ("Parameter 2 is out of range\n");
-	break;
-      }
-    case -3:
-      {
-	printf ("Parameter 3 is out of range\n");
-	break;
-      }
-    case -4:
-      {
-	printf ("Parameter 4 is out of range\n");
-	break;
-      }
-    case -5:
-      {
-	printf ("Parameter 5 is out of range\n");
-	break;
-      }
-    case -6:
-      {
-	printf ("Parameter 6 is out of range\n");
-	break;
-      }
-    case -7:
-      {
-	printf ("Parameter 7 is out of range\n");
-	break;
-      }
-    case -8:
-      {
-	printf ("Parameter 8 is out of range\n");
-	break;
-      }
-    case 0:
-      {
-	/* printf( "Command completed successfully\n" ); */
-	break;
-      }
-    case 1:
-      {
-	printf ("Answer appears to be lower than the lowest search bound\n");
-	break;
-      }
-    case 2:
-      {
-	printf ("Answer appears to be higher than the greatest search bound\n");
-	break;
-      }
-    case 3:
-      {
-	printf ("P - Q NE 1\n");
-	break;
-      }
-    }
-
-  if (status)
-    {
-      return (double) ERROR_SIG;
+      val_lab1 = val_labs_find( groups->val_labs,groups_values[0]); 
+      val_lab2 = val_labs_find( groups->val_labs,groups_values[1]);
     }
   else
     {
-      return q;
+      val_lab1 = groups_values[0].s;
+      val_lab2 = groups_values[1].s;
     }
+
+
+  assert(ssb->t);
+
+  for (i=0; i < cmd->n_variables; ++i)
+    {
+      tab_text (ssb->t, 0, i*2+1, 
+		TAB_LEFT, cmd->v_variables[i]->name);
+
+      if (val_lab1)
+	tab_text (ssb->t, 1, i*2+1,
+		TAB_LEFT, val_lab1);
+      else
+	tab_float(ssb->t, 1 ,i*2+1,
+		  TAB_LEFT, groups_values[0].f, 2,0);
+
+
+      if (val_lab2)
+	tab_text (ssb->t, 1, i*2+1+1,
+		  TAB_LEFT, val_lab2);
+      else
+	tab_float(ssb->t, 1 ,i*2+1+1,
+		  TAB_LEFT, groups_values[1].f,2,0);
+
+
+    }
+
 }
 
-double
-t_crt (double df, double q)
+
+void ssbox_paired_populate(struct ssbox *ssb,
+			   struct cmd_t_test *cmd);
+
+
+void 
+ssbox_paired_init(struct ssbox *this, 
+			   struct cmd_t_test *cmd unused)
 {
-  int which, status;
-  double p, bound, t;
+  int hsize=6;
 
-  which = FIND_CRITICAL_VALUE;
-  bound = 0.0;
-  p = 1.0 - q;
-  t = 0.0;
+  int vsize = n_pairs*2+1;
 
-  cdft (&which, &p, &q, &t, &df, &status, &bound);
+  this->populate = ssbox_paired_populate;
 
-  switch (status)
-    {
-    case -1:
-      {
-	printf ("t_crt: Parameter 1 is out of range\n");
-	break;
-      }
-    case -2:
-      {
-	printf ("t_crt: value of p (%f) is out of range\n", p);
-	break;
-      }
-    case -3:
-      {
-	printf ("t_crt: value of q (%f) is out of range\n", q);
-	break;
-      }
-    case -4:
-      {
-	printf ("t_crt: value of df (%f) is out of range\n", df);
-	break;
-      }
-    case -5:
-      {
-	printf ("t_crt: Parameter 5 is out of range\n");
-	break;
-      }
-    case -6:
-      {
-	printf ("t_crt: Parameter 6 is out of range\n");
-	break;
-      }
-    case -7:
-      {
-	printf ("t_crt: Parameter 7 is out of range\n");
-	break;
-      }
-    case 0:
-      {
-	/* printf( "Command completed successfully\n" ); */
-	break;
-      }
-    case 1:
-      {
-	printf ("t_crt: Answer appears to be lower than the lowest search bound\n");
-	break;
-      }
-    case 2:
-      {
-	printf ("t_crt: Answer appears to be higher than the greatest search bound\n");
-	break;
-      }
-    case 3:
-      {
-	printf ("t_crt: P - Q NE 1\n");
-	break;
-      }
-    }
+  ssbox_base_init(this, hsize,vsize);
 
-  if (status)
-    {
-      return (double) ERROR_SIG;
-    }
-  else
-    {
-      return t;
-    }
+  tab_title (this->t, 0, _("Paired Sample Statistics"));
+
+  tab_vline(this->t,TAL_0,1,0,vsize-1);
+  tab_vline(this->t,TAL_2,2,0,vsize-1);
+
+  tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
+  tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("N"));
+  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
+  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+
+
 }
 
-double
-t_sig (double t, double df)
+
+void 
+ssbox_paired_populate(struct ssbox *ssb,
+			      struct cmd_t_test *cmd unused)
 {
-  int which, status;
-  double p, q, bound;
+  int i;
+  struct string ds;
 
-  which = FIND_P;
-  q = 0.0;
-  p = 0.0;
-  bound = 0.0;
+  assert(ssb->t);
 
-  cdft (&which, &p, &q, &t, &df, &status, &bound);
+  ds_init(t_test_pool,&ds,15);
 
-  switch (status)
+
+  for (i=0; i < n_pairs; ++i)
     {
-    case -1:
-      {
-	printf ("t-sig: Parameter 1 is out of range\n");
-	break;
-      }
-    case -2:
-      {
-	printf ("t-sig: Parameter 2 is out of range\n");
-	break;
-      }
-    case -3:
-      {
-	printf ("t-sig: Parameter 3 is out of range\n");
-	break;
-      }
-    case -4:
-      {
-	printf ("t-sig: Parameter 4 is out of range\n");
-	break;
-      }
-    case -5:
-      {
-	printf ("t-sig: Parameter 5 is out of range\n");
-	break;
-      }
-    case -6:
-      {
-	printf ("t-sig: Parameter 6 is out of range\n");
-	break;
-      }
-    case -7:
-      {
-	printf ("t-sig: Parameter 7 is out of range\n");
-	break;
-      }
-    case 0:
-      {
-	/* printf( "Command completed successfully\n" ); */
-	break;
-      }
-    case 1:
-      {
-	printf ("t-sig: Answer appears to be lower than the lowest search bound\n");
-	break;
-      }
-    case 2:
-      {
-	printf ("t-sig: Answer appears to be higher than the greatest search bound\n");
-	break;
-      }
-    case 3:
-      {
-	printf ("t-sig: P - Q NE 1\n");
-	break;
-      }
+
+      ds_clear(&ds);
+
+      ds_printf(&ds,_("Pair %d"),i);
+
+      tab_text (ssb->t, 0, i*2+1, TAB_LEFT, ds.string);
+
+      tab_text (ssb->t, 1, i*2+1, TAB_LEFT, pairs[i][0]->name);
+      tab_text (ssb->t, 1, i*2+2, TAB_LEFT, pairs[i][1]->name);
     }
 
-  if (status)
-    {
-      return (double) ERROR_SIG;
-    }
-  else
-    {
-      return q;
-    }
+  ds_destroy(&ds);
 }
 
-double
-covariance (double x_sum, double x_n, double y_sum, double y_n, double ss)
-{
-  double tmp;
 
-  tmp = x_sum * y_sum;
-  tmp = tmp / x_n;
-  tmp = ss - tmp;
-  tmp = (tmp / (x_n + y_n - 1.0));
-  return tmp;
+void 
+ssbox_one_sample_populate(struct ssbox *ssb,
+			      struct cmd_t_test *cmd)
+{
+  int i;
+
+  assert(ssb->t);
+
+  for (i=0; i < cmd->n_variables; ++i)
+    {
+      tab_text (ssb->t, 0, i+1, 
+		TAB_LEFT, cmd->v_variables[i]->name);
+    }
+  
 }
 
-double
-pearson_r (double c_xy, double c_xx, double c_yy)
+
+/* ****************************************************************
+
+      TEST RESULT BOX Implementation
+
+   *****************************************************************/   
+
+void trbox_base_init(struct trbox *self,int n_vars, int cols);
+void trbox_base_finalize(struct trbox *trb);
+
+void trbox_independent_samples_init(struct trbox *trb,
+				    struct cmd_t_test *cmd );
+
+void trbox_independent_samples_populate(struct trbox *trb,
+					struct cmd_t_test *cmd);
+
+void trbox_one_sample_init(struct trbox *self,
+		      struct cmd_t_test *cmd );
+
+void trbox_one_sample_populate(struct trbox *trb,
+			       struct cmd_t_test *cmd);
+
+void trbox_paired_init(struct trbox *self,
+		       struct cmd_t_test *cmd );
+
+void trbox_paired_populate(struct trbox *trb,
+		      struct cmd_t_test *cmd);
+
+
+
+/* Create a trbox */
+void 
+trbox_create(struct trbox *trb,   
+	     struct cmd_t_test *cmd, int mode)
 {
-  return (c_xy / (sqrt (c_xx * c_yy)));
+
+    switch (mode) 
+      {
+      case T_1_SAMPLE:
+	trbox_one_sample_init(trb,cmd);
+	break;
+
+
+      case T_IND_SAMPLES:
+	trbox_independent_samples_init(trb,cmd);
+	break;
+
+
+      case T_PAIRED:
+	trbox_paired_init(trb,cmd);
+	break;
+	
+      default:
+	assert(0);
+      }
+
+}
+
+/* Populate a trbox according to cmd */
+void 
+trbox_populate(struct trbox *trb, struct cmd_t_test *cmd)
+{
+  trb->populate(trb,cmd);
+}
+
+/* Submit and destroy a trbox */
+void 
+trbox_finalize(struct trbox *trb)
+{
+  trb->finalize(trb);
+}
+
+
+void 
+trbox_independent_samples_init(struct trbox *self,
+			   struct cmd_t_test *cmd unused)
+{
+  const int hsize=11;
+  const int vsize=cmd->n_variables*2+3;
+
+  struct string ds;
+
+  assert(self);
+
+  self->populate = trbox_independent_samples_populate;
+
+  trbox_base_init(self,cmd->n_variables*2,hsize);
+
+  tab_title(self->t,0,_("Independent Samples Test"));
+
+  tab_hline(self->t,TAL_1,2,hsize-1,1);
+  tab_vline(self->t,TAL_2,2,0,vsize-1);
+
+  tab_vline(self->t,TAL_1,4,0,vsize-1);
+
+  tab_box(self->t,-1,-1,-1,TAL_1,
+	  2,1,hsize-2,vsize-1);
+
+
+  tab_hline(self->t,TAL_1,
+	    hsize-2,hsize-1,2);
+
+  tab_box(self->t,-1,-1,-1,TAL_1,
+	  hsize-2,2,hsize-1,vsize-1);
+
+
+  tab_joint_text(self->t, 2,0,3,0,
+		 TAB_CENTER,_("Levine's Test for Equality of Variances"));
+
+  tab_joint_text(self->t, 4,0,hsize-1,0,
+		 TAB_CENTER,_("t-test for Equality of Means"));
+
+
+  tab_text(self->t,2,2, TAB_CENTER | TAT_TITLE,_("F"));
+  tab_text(self->t,3,2, TAB_CENTER | TAT_TITLE,_("Sig."));
+  tab_text(self->t,4,2, TAB_CENTER | TAT_TITLE,_("t"));
+  tab_text(self->t,5,2, TAB_CENTER | TAT_TITLE,_("df"));
+  tab_text(self->t,6,2, TAB_CENTER | TAT_TITLE,_("Sig. (2-tailed)"));
+  tab_text(self->t,7,2, TAB_CENTER | TAT_TITLE,_("Mean Difference"));
+  tab_text(self->t,8,2, TAB_CENTER | TAT_TITLE,_("Std. Error Difference"));
+  tab_text(self->t,9,2, TAB_CENTER | TAT_TITLE,_("Lower"));
+  tab_text(self->t,10,2, TAB_CENTER | TAT_TITLE,_("Upper"));
+
+
+  ds_init(t_test_pool,&ds,80);
+		
+  ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
+	    (int)round(cmd->criteria*100.0));
+
+  tab_joint_text(self->t,9,1,10,1,TAB_CENTER,
+		 ds.string);
+
+
+  ds_destroy(&ds);
+
+
+
 }
 
 void 
-print_t_groups (struct variable * grps, union value * g1, union value * g2,
-		double n1, double n2, double mean1, double mean2,
-		double sd1, double sd2, double se1, double se2,
-		double diff, double l_f, double l_p,
-		double p_t, double p_sig, double p_df, double p_sed,
-		double p_l, double p_h,
-		double s_t, double s_sig, double s_df, double s_sed,
-		double s_l, double s_h)
+trbox_independent_samples_populate(struct trbox *self,
+			   struct cmd_t_test *cmd )
 {
+  int i;
 
-  /* Display all this shit as SPSS 6.0 does (roughly) */
-  printf ("\n\n                 Number                                 \n");
-  printf ("   Variable     of Cases    Mean      SD      SE of Mean\n");
-  printf ("-----------------------------------------------------------\n");
-  printf ("   %s %s\n\n", cmd.v_variables[cur_var]->name, cmd.v_variables[cur_var]->label);
-  printf ("%s %8.4f %8.0f    %8.4f  %8.3f    %8.3f\n",
-	  val_labs_find (grps->val_labs, *g1), g1->f, n1, mean1, sd1, se1);
-  printf ("%s %8.4f %8.0f    %8.4f  %8.3f    %8.3f\n",
-	  val_labs_find (grps->val_labs, *g2), g2->f, n2, mean2, sd2, se2);
-  printf ("-----------------------------------------------------------\n");
-  printf ("\n   Mean Difference = %8.4f\n", diff);
-  printf ("\n   Levene's Test for Equality of Variances: F= %.3f  P= %.3f\n",
-	  l_f, l_p);
-  printf ("\n\n   t-test for Equality of Means                         95pc     \n");
-  printf ("Variances   t-value    df   2-Tail Sig SE of Diff    CI for Diff  \n");
-  printf ("-----------------------------------------------------------------\n");
-  printf ("Equal     %8.2f %8.0f %8.3f %8.3f (%8.3f, %8.3f)\n",
-	  p_t, p_df, p_sig, p_sed, p_l, p_h);
-  printf ("Unequal   %8.2f %8.2f %8.3f %8.3f (%8.3f, %8.3f)\n",
-	  s_t, s_df, s_sig, s_sed, s_l, s_h);
-  printf ("-----------------------------------------------------------------\n");
+  assert(self);
+
+  for (i=0; i < cmd->n_variables; ++i)
+    {
+      tab_text (self->t, 0, i*2+3, 
+		TAB_LEFT, cmd->v_variables[i]->name);
+
+      tab_text (self->t, 1, i*2+3, 
+		TAB_LEFT, _("Equal variances assumed"));
+
+      tab_text (self->t, 1, i*2+3+1, 
+		TAB_LEFT, _("Equal variances not assumed"));
+
+
+    }
+
 }
 
-/* 
-   Local Variables:
-   mode: c
-   End:
-*/
+
+void 
+trbox_paired_init(struct trbox *self,
+			   struct cmd_t_test *cmd unused)
+{
+
+  const int hsize=10;
+  const int vsize=n_pairs*2+3;
+
+  struct string ds;
+
+  self->populate = trbox_paired_populate;
+
+  trbox_base_init(self,n_pairs*2,hsize);
+
+
+  tab_title (self->t, 0, _("Paired Samples Test"));
+
+
+  tab_hline(self->t,TAL_1,2,6,1);
+  tab_vline(self->t,TAL_2,2,0,vsize);
+
+
+
+  tab_joint_text(self->t,2,0,6,0,TAB_CENTER,_("Paired Differences"));
+
+
+  tab_box(self->t,-1,-1,-1,TAL_1,
+	  2,1,6,vsize-1);
+
+
+  tab_box(self->t,-1,-1,-1,TAL_1,
+	  6,0,hsize-1,vsize-1);
+
+
+
+  tab_hline(self->t,TAL_1,5,6, 2);
+  tab_vline(self->t,TAL_0,6,0,1);
+
+
+  ds_init(t_test_pool,&ds,80);
+		
+  ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
+	    (int)round(cmd->criteria*100.0));
+
+  tab_joint_text(self->t,5,1,6,1,TAB_CENTER,
+		 ds.string);
+
+
+  ds_destroy(&ds);
+
+  tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("Mean"));
+  tab_text (self->t, 3, 2, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
+  tab_text (self->t, 4, 2, TAB_CENTER | TAT_TITLE, _("Std. Error Mean"));
+  tab_text (self->t, 5, 2, TAB_CENTER | TAT_TITLE, _("Lower"));
+  tab_text (self->t, 6, 2, TAB_CENTER | TAT_TITLE, _("Upper"));
+  tab_text (self->t, 7, 2, TAB_CENTER | TAT_TITLE, _("t"));
+  tab_text (self->t, 8, 2, TAB_CENTER | TAT_TITLE, _("df"));
+  tab_text (self->t, 9, 2, TAB_CENTER | TAT_TITLE, _("Sig. (2-tailed)"));
+
+
+
+
+  
+
+
+}
+
+
+void 
+trbox_paired_populate(struct trbox *trb,
+			      struct cmd_t_test *cmd unused)
+{
+  int i;
+  struct string ds;
+
+
+  ds_init(t_test_pool,&ds,15);  
+
+  for (i=0; i < n_pairs; ++i)
+    {
+
+      ds_clear(&ds);
+
+      ds_printf(&ds,_("Pair %d"),i);
+
+      tab_text (trb->t, 0, i*2+3, TAB_LEFT, ds.string);
+
+      tab_text (trb->t, 1, i*2+3, TAB_LEFT, pairs[i][0]->name);
+      tab_text (trb->t, 1, i*2+4, TAB_LEFT, pairs[i][1]->name);
+    }
+
+
+  ds_destroy(&ds);
+
+}
+
+
+void 
+trbox_one_sample_init(struct trbox *self,
+			   struct cmd_t_test *cmd )
+{
+  const int hsize=7;
+  const int vsize=cmd->n_variables+3;
+
+  struct string ds;
+  
+  self->populate = trbox_one_sample_populate;
+
+  trbox_base_init(self,cmd->n_variables,hsize);
+
+
+  tab_title (self->t, 0, _("One-Sample Test"));
+
+  tab_hline(self->t,TAL_1,1,hsize-1,1);
+  tab_vline(self->t,TAL_2,1,0,vsize);
+
+  ds_init(t_test_pool,&ds,80);
+
+  ds_printf(&ds,_("Test Value = %f"),cmd->n_testval);
+
+  tab_joint_text(self->t,1,0,hsize-1,0,TAB_CENTER,ds.string);
+  
+  tab_box(self->t,-1,-1,-1,TAL_1,
+	  1,1,hsize-1,vsize-1);
+
+
+  ds_clear(&ds);
+		
+  ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
+	    (int)round(cmd->criteria*100.0));
+
+  tab_joint_text(self->t,5,1,6,1,TAB_CENTER,
+		 ds.string);
+
+  ds_destroy(&ds);
+
+  tab_vline(self->t,TAL_0,6,1,1);
+  tab_hline(self->t,TAL_1,5,6,2);
+
+
+  tab_text (self->t, 1, 2, TAB_CENTER | TAT_TITLE, _("t"));
+  tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("df"));
+  tab_text (self->t, 3, 2, TAB_CENTER | TAT_TITLE, _("Sig. (2-tailed)"));
+  tab_text (self->t, 4, 2, TAB_CENTER | TAT_TITLE, _("Mean Difference"));
+  tab_text (self->t, 5, 2, TAB_CENTER | TAT_TITLE, _("Lower"));
+  tab_text (self->t, 6, 2, TAB_CENTER | TAT_TITLE, _("Upper"));
+
+
+}
+
+
+
+void 
+trbox_one_sample_populate(struct trbox *trb,
+			      struct cmd_t_test *cmd)
+{
+  int i;
+
+  assert(trb->t);
+
+  for (i=0; i < cmd->n_variables; ++i)
+    {
+      tab_text (trb->t, 0, i+3, 
+		TAB_LEFT, cmd->v_variables[i]->name);
+    }
+  
+}
+
+
+void 
+trbox_base_init(struct trbox *self, int data_rows,int cols)
+{
+  const int rows=3+data_rows;
+
+  self->finalize = trbox_base_finalize;
+  self->t = tab_create (cols, rows, 0);
+
+
+  tab_headers (self->t,0,0,3,0); 
+
+
+  tab_box (self->t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols -1, rows -1);
+
+  tab_hline(self->t, TAL_2,0,cols-1,3);
+
+  tab_dim (self->t, tab_natural_dimensions);
+
+}
+
+
+void 
+trbox_base_finalize(struct trbox *trb)
+{
+  tab_submit(trb->t);
+}

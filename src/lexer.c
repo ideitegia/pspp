@@ -34,7 +34,9 @@
 #include "settings.h"
 #include "str.h"
 
-/*#define DUMP_TOKENS 1*/
+/*
+#define DUMP_TOKENS 1
+*/
 
 
 /* Global variables. */
@@ -158,6 +160,7 @@ lex_get (void)
 	      return;
 	    }
 	}
+
 
       /* Actually parse the token. */
       cp = prog;
@@ -409,6 +412,23 @@ lex_integer (void)
   assert (lex_integer_p ());
   return tokval;
 }
+/* Returns nonzero if the current token is an floating point. */
+int
+lex_double_p (void)
+{
+  return ( token == T_NUM
+	   && tokval != NOT_DOUBLE );
+}
+
+/* Returns the value of the current token, which must be a
+   floating point number. */
+long
+lex_double (void)
+{
+  assert (lex_double_p ());
+  return tokval;
+}
+
   
 /* Token matching functions. */
 

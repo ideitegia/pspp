@@ -87,6 +87,8 @@ int lex_end_of_command (void);
 /* Token testing functions. */
 int lex_integer_p (void);
 long lex_integer (void);
+int lex_double_p (void);
+long lex_double (void);
 
 /* Token matching functions. */
 int lex_match (int);

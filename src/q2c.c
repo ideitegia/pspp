@@ -1097,6 +1097,10 @@ dump_declarations (void)
 	    dump (0, "long n_%s;", st_lower (sbc->name));
 	    break;
 
+	  case SBC_DBL:
+	    dump (0, "double n_%s;", st_lower (sbc->name));
+	    break;
+
 	  default:;
 	    /* nothing */
 	  }
@@ -1537,11 +1541,19 @@ dump_subcommand (const subcommand *sbc)
       if (sbc->restriction)
 	dump (-1, "}");
     }
+  else if (sbc->type == SBC_DBL)
+    {
+      dump (1, "if (!lex_force_num ())");
+      dump (0, "goto lossage;");
+      dump (-1, "p->n_%s = lex_double ();", st_lower (sbc->name));
+      dump (0, "lex_get();");
+    }
   else if (sbc->type == SBC_INT)
     {
       dump (1, "if (!lex_force_int ())");
       dump (0, "goto lossage;");
       dump (-1, "p->n_%s = lex_integer ();", st_lower (sbc->name));
+      dump (0, "lex_get();");
     }
   else if (sbc->type == SBC_PINT)
     {

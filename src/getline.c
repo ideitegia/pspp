@@ -230,7 +230,7 @@ static void
 welcome (void)
 {
   getl_welcomed = 1;
-  fputs ("PSPP is free software and you are welcome to distribute copies of"
+  fputs ("PSPP is free software and you are welcome to distribute copies of "
 	 "it\nunder certain conditions; type \"show copying.\" to see the "
 	 "conditions.\nThere is ABSOLUTELY NO WARRANTY for PSPP; type \"show "
 	 "warranty.\" for details.\n", stdout);

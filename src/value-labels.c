@@ -32,7 +32,7 @@ static hsh_free_func free_int_val_lab;
 struct atom;
 static struct atom *atom_create (const char *string);
 static void atom_destroy (struct atom *);
-static const char *atom_to_string (const struct atom *);
+static char *atom_to_string (const struct atom *);
 
 /* A set of value labels. */
 struct val_labs 
@@ -232,7 +232,7 @@ val_labs_remove (struct val_labs *vls, union value value)
    returns the label; otherwise, returns a null pointer.  If
    VLS's width is greater than MAX_SHORT_STRING, always returns a
    null pointer. */
-const char *
+char *
 val_labs_find (const struct val_labs *vls, union value value) 
 {
   assert (vls != NULL);
@@ -452,7 +452,7 @@ atom_destroy (struct atom *atom)
 }
 
 /* Returns the string associated with ATOM. */
-static const char *
+static  char *
 atom_to_string (const struct atom *atom) 
 {
   assert (atom != NULL);

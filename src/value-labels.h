@@ -41,7 +41,7 @@ size_t val_labs_count (struct val_labs *);
 int val_labs_add (struct val_labs *, union value, const char *);
 int val_labs_replace (struct val_labs *, union value, const char *);
 int val_labs_remove (struct val_labs *, union value);
-const char *val_labs_find (const struct val_labs *, union value);
+char *val_labs_find (const struct val_labs *, union value);
 
 struct val_labs_iterator;
 
