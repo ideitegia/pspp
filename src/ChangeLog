@@ -1,3 +1,9 @@
+Mon Jan 24 12:24:36 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* glob.c oneway.q q2c.c t-test.q vfm.c: Still *more* memory leaks 
+	fixed.
+
+
 Fri Jan 21 19:54:14 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* linked-list.[ch] Added

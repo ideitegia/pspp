@@ -267,6 +267,7 @@ cmd_t_test(void)
 	msg(SE, 
 	    _("TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive.")
 	    );
+        free_t_test(&cmd);
 	return CMD_FAILURE;
       }
   }
@@ -283,6 +284,7 @@ cmd_t_test(void)
       if (cmd.sbc_variables) 
 	{
 	  msg(SE, _("VARIABLES subcommand is not appropriate with PAIRS"));
+          free_t_test(&cmd);
 	  return CMD_FAILURE;
 	}
       else
@@ -320,6 +322,7 @@ cmd_t_test(void)
   else if ( !cmd.sbc_variables) 
     {
       msg(SE, _("One or more VARIABLES must be specified."));
+      free_t_test(&cmd);
       return CMD_FAILURE;
     }
 
@@ -349,6 +352,7 @@ cmd_t_test(void)
 	}
     }
     
+  free_t_test(&cmd);
   return CMD_SUCCESS;
 }
 

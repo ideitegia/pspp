@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 
 activity="generate stat program"
-cat > $TEMPDIR/sort.stat <<EOF
+cat > $TESTFILE <<EOF
 title 'Test SORT procedure'.
 
 data list file='$here/sort.data' notable /X000 to X126 1-127.
@@ -59,7 +59,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/sort.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # Now there should be some sorted data in $TEMPDIR/pspp.list

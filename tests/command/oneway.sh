@@ -47,7 +47,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/out.stat <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST LIST /quality * brand * .
 BEGIN DATA
 3 1
@@ -83,7 +83,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 diff $TEMPDIR/pspp.list - << EOF

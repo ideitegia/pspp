@@ -140,6 +140,7 @@ cmd_oneway(void)
 
   multipass_procedure_with_splits (run_oneway, &cmd);
 
+  free_oneway(&cmd);
 
   return CMD_SUCCESS;
 }

@@ -661,12 +661,9 @@ cancel_transformations (void)
       free (t_trns[i]);
     }
   n_trns = f_trns = 0;
-  if (m_trns > 32)
-    {
-      free (t_trns);
-      t_trns=NULL;
-      m_trns = 0;
-    }
+  free (t_trns);
+  t_trns=NULL;
+  m_trns = 0;
 }
 
 /* Creates a case source with class CLASS and auxiliary data AUX

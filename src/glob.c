@@ -184,9 +184,10 @@ init_glob (int argc UNUSED, char **argv)
 void
 done_glob(void)
 {
-  dict_destroy(default_dict);
-  free(logfn);
-  done_settings();
+  cancel_transformations ();
+  dict_destroy (default_dict);
+  free (logfn);
+  done_settings ();
   ds_destroy (&tokstr);
 
   fh_done();

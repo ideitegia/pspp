@@ -48,7 +48,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program 1"
-cat > $TEMPDIR/out.stat <<EOF
+cat > $TESTFILE <<EOF
 data list list /id * indep * dep1 * dep2.
 begin data.
 1 1.0 3.5 6
@@ -65,7 +65,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 1"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
@@ -73,7 +73,7 @@ cp $TEMPDIR/pspp.list $TEMPDIR/ref.list
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
-cat > $TEMPDIR/out.stat <<EOF
+cat > $TESTFILE <<EOF
 data list list /id * indep * dep1 * dep2 *.
 begin data.
 1 1.0 3.5 6
@@ -90,7 +90,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
