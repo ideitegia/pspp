@@ -64,7 +64,7 @@ void ptiles(struct hsh_table *pc_hash,
 	    enum pc_alg algorithm);
 
 
-/* Calculate Tukey's Hinges */
+/* Calculate Tukey's Hinges and the Whiskers for the box plot*/
 void tukey_hinges(const struct weighted_value **wv,
 		  int n_data, 
 		  double w,

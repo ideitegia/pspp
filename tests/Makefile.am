@@ -11,6 +11,7 @@ TESTS = \
 	command/erase.sh \
 	command/examine.sh \
 	command/examine-extremes.sh \
+	command/examine-percentiles.sh \
 	command/file-label.sh \
 	command/filter.sh \
 	command/flip.sh \

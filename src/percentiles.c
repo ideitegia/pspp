@@ -80,18 +80,22 @@ ptile_round(const struct weighted_value **wv,
 	    const struct ptile_params *par)
 {
   double x;
+  double a=0;
+
+  if ( par->k1 >= 0 ) 
+    a = wv[par->k1]->v.f;
 
   if ( wv[par->k1 + 1]->w >= 1 )
     {
       if ( par->g1_star < 0.5 ) 
-	x = wv[par->k1]->v.f;
+	x = a;
       else
 	x = wv[par->k1 + 1]->v.f;
     }
   else
     {
       if ( par->g1 < 0.5 ) 
-	x = wv[par->k1]->v.f;
+	x = a;
       else
 	x = wv[par->k1 + 1]->v.f;
 
@@ -105,6 +109,9 @@ double
 ptile_haverage(const struct weighted_value **wv, 
 	       const struct ptile_params *par)
 {
+
+  double a=0;
+
   if ( par->g2_star >= 1.0 ) 
       return wv[par->k2 + 1]->v.f ;
 
@@ -117,15 +124,17 @@ ptile_haverage(const struct weighted_value **wv,
       return wv[par->k2]->v.f;
     }
 
-  assert(par->k2 >= 0);
+  /* Ditto for k2 < 0 */
+  if ( par->k2 >= 0 ) 
+    {
+      a = wv[par->k2]->v.f;
+    }
 
   if ( wv[par->k2 + 1]->w >= 1.0 ) 
-    return ( (1 - par->g2_star) *  wv[par->k2]->v.f
-	     + 
+    return ( (1 - par->g2_star) *  a   + 
 	     par->g2_star * wv[par->k2 + 1]->v.f);
   else
-    return ( (1 - par->g2) *  wv[par->k2]->v.f
-	     + 
+    return ( (1 - par->g2) * a + 
 	     par->g2 * wv[par->k2 + 1]->v.f);
 
 }
@@ -137,16 +146,21 @@ double
 ptile_waverage(const struct weighted_value **wv, 
 	       const struct ptile_params *par)
 {
+  double a=0;
+
   if ( par->g1_star >= 1.0 ) 
       return wv[par->k1 + 1]->v.f ;
 
+  if ( par->k1 >= 0 ) 
+    {
+      a = wv[par->k1]->v.f;
+    }
+
   if ( wv[par->k1 + 1]->w >= 1.0 ) 
-    return ( (1 - par->g1_star) *  wv[par->k1]->v.f
-	     + 
+    return ( (1 - par->g1_star) * a + 
 	     par->g1_star * wv[par->k1 + 1]->v.f);
   else
-    return ( (1 - par->g1) *  wv[par->k1]->v.f
-	     + 
+    return ( (1 - par->g1) * a + 
 	     par->g1 * wv[par->k1 + 1]->v.f);
 }
 
@@ -305,7 +319,8 @@ void
 tukey_hinges(const struct weighted_value **wv,
 	     int n_data, 
 	     double w,
-	     double hinges[3])
+	     double hinge[3]
+	     )
 {
   int i;
   double c_star = DBL_MAX;
@@ -351,26 +366,27 @@ tukey_hinges(const struct weighted_value **wv,
 
       if ( a_star >= 1.0 ) 
 	{
-	  hinges[i] = wv[h[i] + 1]->v.f ;
+	  hinge[i] = wv[h[i] + 1]->v.f ;
 	  continue;
 	}
 
       if ( wv[h[i]+1]->w >= 1)
 	{
-	  hinges[i] = ( 1 - a_star)* wv[h[i]]->v.f
+	  hinge[i] = ( 1 - a_star)* wv[h[i]]->v.f
 	    + a_star * wv[h[i]+1]->v.f;
 
 	  continue;
 	}
 
-      hinges[i] = ( 1 - a)* wv[h[i]]->v.f + a * wv[h[i]+1]->v.f;
+      hinge[i] = ( 1 - a)* wv[h[i]]->v.f + a * wv[h[i]+1]->v.f;
       
     }
 
-  assert(hinges[0] <= hinges[1]);
-  assert(hinges[1] <= hinges[2]);
+  assert(hinge[0] <= hinge[1]);
+  assert(hinge[1] <= hinge[2]);
 
 }
+
 
 int
 ptile_compare(const struct percentile *p1, 

@@ -1,3 +1,10 @@
+Fri Dec 31 16:47:45 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q box-whisker.c chart.h Implemented boxplots in EXAMINE
+
+	* percentiles.c Fixed some bugs when calculating percentiles when
+	there's a small number of cases.
+
 Wed Dec 29 08:18:08 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* percentiles.[ch] Added. Calculates percentiles and Tukey hinges

@@ -80,11 +80,9 @@ struct metrics
   enum pc_alg ptile_alg;
 
   /* Tukey's Hinges */
-  double hinges[3];
+  double hinge[3];
 
 };
-
-
 
 
 void metrics_precalc(struct metrics *m);

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-12-29 08:18+0800\n"
+"POT-Creation-Date: 2004-12-31 08:53+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -957,7 +957,7 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:99 src/examine.q:1400 src/frequencies.q:112 src/oneway.q:396
+#: src/descript.c:99 src/examine.q:1420 src/frequencies.q:112 src/oneway.q:396
 #: src/t-test.q:690 src/t-test.q:713 src/t-test.q:836 src/t-test.q:1173
 msgid "Mean"
 msgstr ""
@@ -970,11 +970,11 @@ msgstr ""
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:102 src/examine.q:1478 src/frequencies.q:117
+#: src/descript.c:102 src/examine.q:1498 src/frequencies.q:117
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1585 src/frequencies.q:118
+#: src/descript.c:103 src/examine.q:1605 src/frequencies.q:118
 msgid "Kurtosis"
 msgstr ""
 
@@ -982,7 +982,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:105 src/examine.q:1565 src/frequencies.q:120
+#: src/descript.c:105 src/examine.q:1585 src/frequencies.q:120
 msgid "Skewness"
 msgstr ""
 
@@ -990,16 +990,16 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:107 src/examine.q:1526 src/frequencies.q:122
+#: src/descript.c:107 src/examine.q:1546 src/frequencies.q:122
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:108 src/examine.q:1503 src/frequencies.q:123
+#: src/descript.c:108 src/examine.q:1523 src/frequencies.q:123
 #: src/oneway.q:408
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:109 src/examine.q:1514 src/frequencies.q:124
+#: src/descript.c:109 src/examine.q:1534 src/frequencies.q:124
 #: src/oneway.q:409
 msgid "Maximum"
 msgstr ""
@@ -3723,7 +3723,7 @@ msgstr ""
 
 #: src/sysfile-info.c:531 src/vfm.c:875 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
-#: src/examine.q:1054 src/frequencies.q:1136 src/frequencies.q:1257
+#: src/examine.q:1074 src/frequencies.q:1136 src/frequencies.q:1257
 msgid "Value"
 msgstr ""
 
@@ -3944,32 +3944,32 @@ msgstr ""
 msgid "Summary."
 msgstr ""
 
-#: src/crosstabs.q:802 src/examine.q:838
+#: src/crosstabs.q:802 src/examine.q:858
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:803 src/examine.q:772 src/frequencies.q:1134
+#: src/crosstabs.q:803 src/examine.q:792 src/frequencies.q:1134
 #: src/frequencies.q:1507
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:804 src/examine.q:773 src/frequencies.q:1202
+#: src/crosstabs.q:804 src/examine.q:793 src/frequencies.q:1202
 #: src/frequencies.q:1508
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:805 src/crosstabs.q:1008 src/crosstabs.q:1722
-#: src/examine.q:774 src/frequencies.q:1211 src/oneway.q:307 src/oneway.q:486
+#: src/examine.q:794 src/frequencies.q:1211 src/oneway.q:307 src/oneway.q:486
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:815 src/examine.q:850 src/frequencies.q:1506
+#: src/crosstabs.q:815 src/examine.q:870 src/frequencies.q:1506
 #: src/oneway.q:395 src/t-test.q:689 src/t-test.q:712 src/t-test.q:837
 #: src/t-test.q:1372
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:816 src/examine.q:853 src/frequencies.q:1138
+#: src/crosstabs.q:816 src/examine.q:873 src/frequencies.q:1138
 #: src/frequencies.q:1139 src/frequencies.q:1140
 msgid "Percent"
 msgstr ""
@@ -4007,7 +4007,7 @@ msgid "adj. resid."
 msgstr ""
 
 #: src/crosstabs.q:1098 src/crosstabs.q:1125 src/crosstabs.q:1145
-#: src/crosstabs.q:1166 src/examine.q:1288
+#: src/crosstabs.q:1166 src/examine.q:1308
 msgid "Statistic"
 msgstr ""
 
@@ -4190,96 +4190,105 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/examine.q:418 src/examine.q:430
+#: src/examine.q:438 src/examine.q:450
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/examine.q:832
+#: src/examine.q:852
 msgid "Case Processing Summary"
 msgstr ""
 
-#: src/examine.q:1038
+#: src/examine.q:1058
 msgid "Extreme Values"
 msgstr ""
 
-#: src/examine.q:1055
+#: src/examine.q:1075
 msgid "Case Number"
 msgstr ""
 
-#: src/examine.q:1143
+#: src/examine.q:1163
 msgid "Highest"
 msgstr ""
 
-#: src/examine.q:1148
+#: src/examine.q:1168
 msgid "Lowest"
 msgstr ""
 
-#: src/examine.q:1289 src/oneway.q:398 src/oneway.q:705
+#: src/examine.q:1309 src/oneway.q:398 src/oneway.q:705
 msgid "Std. Error"
 msgstr ""
 
-#: src/examine.q:1291 src/oneway.q:412
+#: src/examine.q:1311 src/oneway.q:412
 msgid "Descriptives"
 msgstr ""
 
-#: src/examine.q:1418 src/oneway.q:403
+#: src/examine.q:1438 src/oneway.q:403
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/examine.q:1424 src/oneway.q:405
+#: src/examine.q:1444 src/oneway.q:405
 msgid "Lower Bound"
 msgstr ""
 
-#: src/examine.q:1435 src/oneway.q:406
+#: src/examine.q:1455 src/oneway.q:406
 msgid "Upper Bound"
 msgstr ""
 
-#: src/examine.q:1447
+#: src/examine.q:1467
 msgid "5% Trimmed Mean"
 msgstr ""
 
-#: src/examine.q:1458 src/frequencies.q:114
+#: src/examine.q:1478 src/frequencies.q:114
 msgid "Median"
 msgstr ""
 
-#: src/examine.q:1490 src/oneway.q:397 src/t-test.q:691 src/t-test.q:714
+#: src/examine.q:1510 src/oneway.q:397 src/t-test.q:691 src/t-test.q:714
 #: src/t-test.q:838 src/t-test.q:1174
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/examine.q:1538
+#: src/examine.q:1558
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/examine.q:1628
+#: src/examine.q:1708
+#, c-format
+msgid "Boxplot of %s"
+msgstr ""
+
+#: src/examine.q:1734
+msgid "Boxplot"
+msgstr ""
+
+#: src/examine.q:1773
 #, c-format
 msgid "Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1629 src/examine.q:1635
+#: src/examine.q:1774 src/examine.q:1780
 msgid "Observed Value"
 msgstr ""
 
-#: src/examine.q:1630
+#: src/examine.q:1775
 msgid "Expected Normal"
 msgstr ""
 
-#: src/examine.q:1633
+#: src/examine.q:1778
 #, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1636
+#: src/examine.q:1781
 msgid "Dev from Normal"
 msgstr ""
 
-#: src/examine.q:1757 src/examine.q:1779 src/frequencies.q:1518
+#: src/examine.q:1902 src/examine.q:1924 src/frequencies.q:1518
 msgid "Percentiles"
 msgstr ""
 
-#: src/examine.q:1904
+#: src/examine.q:2049
 msgid "Tukey's Hinges"
 msgstr ""
 

@@ -259,6 +259,15 @@ how many upper and lower extremes to show.  The default number is 5.
 
 The PLOT subcommand specifies which plots are to be produced if any.
 
+The COMPARE subcommand is only relevant if producing boxplots, and it is only 
+useful there is more than one dependent variable and at least one factor.   If 
+/COMPARE=GROUPS is specified, then one plot per dependent variable is produced,
+containing boxplots for all the factors.
+If /COMPARE=VARIABLES is specified, then one plot per factor is produced, each 
+each containing one boxplot per dependent variable.
+If the /COMPARE subcommand is ommitted, then PSPP uses the default value of 
+/COMPARE=GROUPS.
+
 The CINTERVAL subcommand specifies the confidence interval to use in
 calculation of the descriptives command.  The default it 95%.
 

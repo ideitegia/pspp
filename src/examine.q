@@ -57,6 +57,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    incl:include/!exclude;
    +compare=cmp:variables/!groups;
    +percentiles=custom;
+   +id=var;
    +plot[plt_]=stemleaf,boxplot,npplot,:spreadlevel(*d:n),histogram,all,none;
    +cinterval=double;
    +statistics[st_]=descriptives,:extreme(*d:n),all,none.
@@ -120,7 +121,20 @@ static void show_percentiles(struct variable **dependent_var,
 
 
 
+
 void np_plot(const struct metrics *m, const char *factorname);
+
+
+void box_plot_group(const struct factor *fctr, 
+		    const struct variable **vars, int n_vars,
+		    const struct variable *id
+		    ) ;
+
+
+void box_plot_variables(const struct factor *fctr, 
+			struct variable **vars, int n_vars, 
+			const struct variable *id
+			);
 
 
 
@@ -132,6 +146,22 @@ static void output_examine(void);
 
 void factor_calc(struct ccase *c, int case_no, 
 		 double weight, int case_missing);
+
+
+/* Represent a factor as a string, so it can be
+   printed in a human readable fashion */
+const char * factor_to_string(const struct factor *fctr, 
+			struct factor_statistics *fs,
+			const struct variable *var);
+
+
+/* Represent a factor as a string, so it can be
+   printed in a human readable fashion,
+   but sacrificing some readablility for the sake of brevity */
+const char *factor_to_string_concise(const struct factor *fctr, 
+				     struct factor_statistics *fs);
+
+
 
 
 /* Function to use for testing for missing values */
@@ -168,7 +198,6 @@ cmd_examine(void)
 
   if ( ! cmd.sbc_cinterval) 
     cmd.n_cinterval[0] = 95.0;
-
 
   /* If descriptives have been requested, make sure the 
      quartiles are calculated */
@@ -223,6 +252,18 @@ output_examine(void)
 		np_plot(&totals[v], var_to_string(dependent_vars[v]));
 	    }
 
+	  if ( cmd.a_plot[XMN_PLT_BOXPLOT] ) 
+	    {
+	      if ( cmd.cmp == XMN_GROUPS ) 
+		{
+		  box_plot_group(0, dependent_vars, n_dependent_vars, 
+				 cmd.v_id);
+		}
+	      else
+		box_plot_variables(0, dependent_vars, n_dependent_vars,
+				   cmd.v_id);
+	    }
+
 	  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 	    {
 	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
@@ -269,39 +310,26 @@ output_examine(void)
 
 	  struct factor_statistics **fs = fctr->fs ;
 
+	  if ( cmd.a_plot[XMN_PLT_BOXPLOT] )
+	    {
+	      if ( cmd.cmp == XMN_VARIABLES ) 
+		box_plot_variables(fctr, dependent_vars, n_dependent_vars, 
+				   cmd.v_id);
+	      else
+		box_plot_group(fctr, dependent_vars, n_dependent_vars, 
+			       cmd.v_id);
+	    }
+
 	  for ( v = 0 ; v < n_dependent_vars; ++v )
 	    {
 
 	      for ( fs = fctr->fs ; *fs ; ++fs ) 
 		{
-		  char buf1[100];
-		  char buf2[100];
-		  sprintf(buf1, "%s (",
-			  var_to_string(dependent_vars[v]));
-		      
-		  snprintf(buf2, 100, "%s = %s",
-			   var_to_string(fctr->indep_var[0]),
-			   value_to_string(&(*fs)->id[0],fctr->indep_var[0]));
-		      
-		  strcat(buf1, buf2);
-		      
-		  if ( fctr->indep_var[1] ) 
-		    {
-		      sprintf(buf2, "; %s = %s)",
-			      var_to_string(fctr->indep_var[1]),
-			      value_to_string(&(*fs)->id[1],
-					      fctr->indep_var[1]));
-		      strcat(buf1, buf2);
-		    }
-		  else
-		    {
-		      strcat(buf1, ")");
-		    }
+		  const char *s = factor_to_string(fctr, *fs, dependent_vars[v]);
 
 		  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
-		    np_plot(&(*fs)->m[v],buf1);
+		    np_plot(&(*fs)->m[v], s);
 
-		  
 		  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 		    {
 		      struct normal_curve normal;
@@ -311,7 +339,7 @@ output_examine(void)
 		      normal.stddev = (*fs)->m[v].stddev;
 		  
 		      histogram_plot((*fs)->m[v].histogram, 
-				     buf1,  &normal, 0);
+				     s,  &normal, 0);
 		    }
 		  
 		} /* for ( fs .... */
@@ -579,8 +607,9 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 
 	  if ( value_is_missing(val,var) || case_missing ) 
 	    val = 0;
-
-	  metrics_calc( &(*foo)->m[v], val, weight, case_no );
+	  
+	  metrics_calc( &(*foo)->m[v], val, weight, case_no);
+	  
 	}
 
       fctr = fctr->next;
@@ -652,7 +681,7 @@ run_examine(const struct casefile *cf, void *cmd_ )
 	  if ( value_is_missing(val,var) || case_missing ) 
 	    val = 0;
 
-	  metrics_calc(&totals[v], val, weight, case_no );
+	  metrics_calc(&totals[v], val, weight, case_no);
     
 	}
 
@@ -1037,7 +1066,6 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 
   tab_title (tbl, 0, _("Extreme Values"));
 
-
   tab_vline (tbl, TAL_2, n_cols - 2, 0, n_rows -1);
   tab_vline (tbl, TAL_1, n_cols - 1, 0, n_rows -1);
 
@@ -1053,9 +1081,6 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 
   tab_text (tbl, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _("Value"));
   tab_text (tbl, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _("Case Number"));
-
-
-
 
   for ( i = 0 ; i < n_dep_var ; ++i ) 
     {
@@ -1377,13 +1402,6 @@ show_descriptives(struct variable **dependent_var,
 
 
 
-
-
-
-
-
-
-
 /* Fill in the descriptives data */
 void
 populate_descriptives(struct tab_table *tbl, int col, int row, 
@@ -1598,6 +1616,133 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 	     calc_sekurt(m->n),
 	     8,3);
 
+
+}
+
+
+
+void
+box_plot_variables(const struct factor *fctr, 
+		   struct variable **vars, int n_vars, 
+		   const struct variable *id)
+{
+  int i;
+  struct factor_statistics **fs ;
+
+  if ( ! fctr ) 
+    {
+      box_plot_group(fctr, vars, n_vars, id);
+      return;
+    }
+
+  for ( fs = fctr->fs ; *fs ; ++fs ) 
+    {
+      double y_min = DBL_MAX;
+      double y_max = -DBL_MAX;
+      struct chart ch;
+
+      chart_initialise(&ch);
+
+      const char *s = factor_to_string(fctr, *fs, 0 );
+
+      chart_write_title(&ch, s);
+
+      for ( i = 0 ; i < n_vars ; ++i ) 
+	{
+	  y_max = max(y_max, (*fs)->m[i].max);
+	  y_min = min(y_min, (*fs)->m[i].min);
+	}
+      
+      boxplot_draw_yscale(&ch, y_max, y_min);
+	  
+      for ( i = 0 ; i < n_vars ; ++i ) 
+	{
+
+	  const double box_width = (ch.data_right - ch.data_left) 
+	    / (n_vars * 2.0 ) ;
+
+	  const double box_centre = ( i * 2 + 1) * box_width 
+	    + ch.data_left;
+	      
+	  boxplot_draw_boxplot(&ch,
+			       box_centre, box_width,
+			       &(*fs)->m[i],
+			       var_to_string(vars[i]));
+
+
+	}
+
+      chart_finalise(&ch);
+
+    }
+
+}
+
+
+
+/* Do a box plot, grouping all factors into one plot ;
+   each dependent variable has its own plot.
+*/
+void
+box_plot_group(const struct factor *fctr, 
+	       const struct variable **vars, 
+	       int n_vars,
+	       const struct variable *id)
+{
+  int i;
+
+  for ( i = 0 ; i < n_vars ; ++i ) 
+    {
+      struct factor_statistics **fs ;
+      struct chart ch;
+
+      chart_initialise(&ch);
+
+      boxplot_draw_yscale(&ch, totals[i].max, totals[i].min);
+
+      if ( fctr ) 
+	{
+	  int n_factors = 0;
+	  int f=0;
+	  for ( fs = fctr->fs ; *fs ; ++fs ) 
+	      ++n_factors;
+
+	  chart_write_title(&ch, _("Boxplot of %s vs. %s"), 
+			    var_to_string(vars[i]), var_to_string(fctr->indep_var[0]) );
+
+	  for ( fs = fctr->fs ; *fs ; ++fs ) 
+	    {
+	      
+	      const char *s = factor_to_string_concise(fctr, *fs);
+
+	      const double box_width = (ch.data_right - ch.data_left) 
+		/ (n_factors * 2.0 ) ;
+
+	      const double box_centre = ( f++ * 2 + 1) * box_width 
+		+ ch.data_left;
+	      
+	      boxplot_draw_boxplot(&ch,
+				   box_centre, box_width,
+				   &(*fs)->m[i],
+				   s);
+	    }
+	}
+      else
+	{
+	  const double box_width = (ch.data_right - ch.data_left) / 3.0;
+	  const double box_centre = (ch.data_right + ch.data_left) / 2.0;
+
+	  chart_write_title(&ch, _("Boxplot"));
+
+	  boxplot_draw_boxplot(&ch,
+			       box_centre,    box_width, 
+			       &totals[i],
+			       var_to_string(vars[i]) );
+	  
+	}
+
+      chart_finalise(&ch);
+    }
 
 }
 
@@ -1920,17 +2065,17 @@ populate_percentiles(struct tab_table *tbl, int col, int row,
       if ( (*p)->p == 25 ) 
 	tab_float(tbl, col + i + 1 , row + 1, 
 		  TAB_CENTER,
-		  m->hinges[0], 8, 2);
+		  m->hinge[0], 8, 2);
 
       if ( (*p)->p == 50 ) 
 	tab_float(tbl, col + i + 1 , row + 1, 
 		  TAB_CENTER,
-		  m->hinges[1], 8, 2);
+		  m->hinge[1], 8, 2);
 
       if ( (*p)->p == 75 ) 
 	tab_float(tbl, col + i + 1 , row + 1, 
 		  TAB_CENTER,
-		  m->hinges[2], 8, 2);
+		  m->hinge[2], 8, 2);
 
 
       i++;
@@ -1938,8 +2083,69 @@ populate_percentiles(struct tab_table *tbl, int col, int row,
       p++;
     }
 
-
-
-
 }
 
+
+
+const char *
+factor_to_string(const struct factor *fctr, 
+		 struct factor_statistics *fs,
+		 const struct variable *var)
+{
+
+  static char buf1[100];
+  char buf2[100];
+
+  strcpy(buf1,"");
+
+  if (var)
+    sprintf(buf1, "%s (",var_to_string(var) );
+
+		      
+  snprintf(buf2, 100, "%s = %s",
+	   var_to_string(fctr->indep_var[0]),
+	   value_to_string(&fs->id[0],fctr->indep_var[0]));
+		      
+  strcat(buf1, buf2);
+		      
+  if ( fctr->indep_var[1] ) 
+    {
+      sprintf(buf2, "; %s = %s)",
+	      var_to_string(fctr->indep_var[1]),
+	      value_to_string(&fs->id[1],
+			      fctr->indep_var[1]));
+      strcat(buf1, buf2);
+    }
+  else
+    {
+      if ( var ) 
+	strcat(buf1, ")");
+    }
+
+  return buf1;
+}
+
+
+
+const char *
+factor_to_string_concise(const struct factor *fctr, 
+		 struct factor_statistics *fs)
+
+{
+
+  static char buf[100];
+
+  char buf2[100];
+
+  snprintf(buf, 100, "%s",
+	   value_to_string(&fs->id[0], fctr->indep_var[0]));
+		      
+  if ( fctr->indep_var[1] ) 
+    {
+      sprintf(buf2, ",%s)", value_to_string(&fs->id[1], fctr->indep_var[1]) );
+      strcat(buf, buf2);
+    }
+
+
+  return buf;
+}

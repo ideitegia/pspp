@@ -61,7 +61,7 @@ struct chart {
 
   char fill_colour[10];
 
-  /* Stuff Particular to Cartesians */
+  /* Stuff Particular to Cartesians (and Boxplots ) */
   double ordinate_scale;
   double abscissa_scale;
   double x_min;
@@ -166,7 +166,17 @@ void chart_write_yscale(struct chart *ch,
 
 void chart_datum(struct chart *ch, int dataset, double x, double y);
 
+struct metrics;
 
+
+void  boxplot_draw_boxplot(struct chart *ch,
+			   double box_centre, 
+			   double box_width,
+			   struct metrics *m,
+			   const char *name);
+
+
+void boxplot_draw_yscale(struct chart *ch , double y_max, double y_min);
 
 
 enum CHART_DIM

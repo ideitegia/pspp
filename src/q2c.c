@@ -1611,7 +1611,7 @@ dump_subcommand (const subcommand *sbc)
     {
       dump (0, "p->%sv_%s = parse_variable ();",
 	    st_lower (sbc->prefix), st_lower (sbc->name));
-      dump (1, "if (p->%sv_%s)",
+      dump (1, "if (!p->%sv_%s)",
 	    st_lower (sbc->prefix), st_lower (sbc->name));
       dump (0, "goto lossage;");
       outdent ();

@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include <stdio.h>
 #include "str.h"
 #include "value-labels.h"
+#include "misc.h"
 
 
 /* Pie charts of course need to know Pi :) */
@@ -34,8 +35,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #define M_PI ( 22.0 / 7.0 ) 
 #endif
 
-
-#define min(A,B) ((A>B)?B:A)
 
 
 /* Draw a single slice of the pie */
