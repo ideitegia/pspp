@@ -1,0 +1,16 @@
+ABOUT-NLS
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+config.h
+config.h.in
+config.log
+config.rpath
+config.status
+configure
+intl
+m4
+mkinstalldirs
+pref.h
+stamp-h1
