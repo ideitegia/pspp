@@ -242,8 +242,7 @@ N_("PSPP, a program for statistical analysis of sample data.\n"
 "\n");
 
 /* Message that describes PSPP command-line syntax, continued. */
-static const char post_syntax_message[] = 
-N_("\nReport bugs to <bug-gnu-pspp@gnu.org>.\n");
+static const char post_syntax_message[] = N_("\nReport bugs to <%s>.\n");
 
 /* Writes a syntax description to stdout and terminates. */
 static void
@@ -251,7 +250,7 @@ usage (void)
 {
   printf (gettext (pre_syntax_message), pgmname);
   outp_list_classes ();
-  printf (gettext (post_syntax_message));
+  printf (gettext (post_syntax_message),PACKAGE_BUGREPORT);
 
   err_hcf (1);
 }
