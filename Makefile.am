@@ -24,7 +24,7 @@ private-uninstall:
 
 EXTRA_DIST = config.rpath  NEWS ONEWS TODO pref.h.orig reconfigure configure
 
-MAINTAINERCLEANFILES = Makefile.in configure aclocal.m4 config.h.in
+MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
 
 
 ACLOCAL_AMFLAGS = -I m4

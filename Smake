@@ -1,0 +1,28 @@
+Makefile: Makefile.in configure
+	./configure
+
+configure:  configure.ac
+	autoconf
+
+config.h.in:
+	autoheader
+
+aclocal.m4:
+	aclocal -I m4
+
+
+Makefile.in: Makefile.am aclocal.m4 config.h.in
+	automake --add-missing
+
+
+
+.PHONY: clean
+clean:
+	$(RM) config.sub config.guess
+	$(RM) -r autom4te.cache
+	$(RM) aclocal.m4
+	$(RM) missing mkinstalldirs
+	$(RM) install-sh
+	$(RM) configure
+	$(RM) depcomp
+

@@ -17,7 +17,8 @@ AM_GNU_GETTEXT_VERSION	dnl Prevents autoreconf complaint.
 dnl Checks for libraries.
 AC_CHECK_LIB(m, sin)
 AC_CHECK_LIB(gmp, mpf_get_str, [LIBS="-lgmp $LIBS"],
-	     [AC_CHECK_LIB(gmp, __gmpf_get_str, [LIBS="-lgmp $LIBS"])])
+	     [AC_CHECK_LIB(gmp, __gmpf_get_str, [LIBS="-lgmp $LIBS"])],
+	     AC_MSG_ERROR(`You must install libgmp'))
   
 AC_CHECK_LIB(ncurses, tgetent, LIBS="-lncurses $LIBS" termcap=yes,
   AC_CHECK_LIB(termcap, tgetent, LIBS="-ltermcap $LIBS" termcap=yes,
@@ -113,4 +114,4 @@ AC_CONFIG_COMMANDS([pref.h],[
 	  ])
 AC_OUTPUT
 
-dnl configure.in ends here
+dnl configure.ac ends here
