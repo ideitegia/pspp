@@ -901,8 +901,8 @@ trbox_independent_samples_init(struct trbox *self,
   tab_text(self->t,10,2, TAB_CENTER | TAT_TITLE,_("Upper"));
 
   tab_joint_text(self->t, 9, 1, 10, 1, TAB_CENTER | TAT_PRINTF, 
-		 _("%d%% Confidence Interval of the Difference"),
-		 (int)round(cmd->criteria*100.0));
+		 _("%g%% Confidence Interval of the Difference"),
+		 cmd->criteria*100.0);
 
 }
 
@@ -1053,8 +1053,8 @@ trbox_paired_init(struct trbox *self,
   tab_vline(self->t,TAL_0,6,0,1);
 
   tab_joint_text(self->t, 5, 1, 6, 1, TAB_CENTER | TAT_PRINTF, 
-		 _("%d%% Confidence Interval of the Difference"),
-		 (int)round(cmd->criteria*100.0));
+		 _("%g%% Confidence Interval of the Difference"),
+		 cmd->criteria*100.0);
 
   tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (self->t, 3, 2, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
@@ -1148,8 +1148,8 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
 
 
   tab_joint_text(self->t,5,1,6,1,TAB_CENTER  | TAT_PRINTF, 
-		 _("%d%% Confidence Interval of the Difference"),
-		 (int)round(cmd->criteria*100.0));
+		 _("%g%% Confidence Interval of the Difference"),
+		 cmd->criteria*100.0);
 
   tab_vline(self->t,TAL_0,6,1,1);
   tab_hline(self->t,TAL_1,5,6,2);

@@ -133,3 +133,8 @@
 /* Define to exclude the PostScript and Encapsulated PostScript
    driver. */
 /* #define NO_POSTSCRIPT 1 */
+
+/* Non ansi compilers may set this */
+#ifndef P_tmpdir
+#define P_tmpdir "/tmp"
+#endif
