@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This program tests ....
+# This program tests the WEIGHT command
 
 TEMPDIR=/tmp/pspp-tst-$$
 
@@ -147,8 +147,8 @@ diff -B -b $TEMPDIR/pspp.list - <<EOF
 
 Mean         31.515
 S.E. Mean      .405
-Median         .000
-Mode           .000
+Median            .
+Mode         21.000
 Std Dev      10.937
 Variance    119.608
 Kurtosis      2.411

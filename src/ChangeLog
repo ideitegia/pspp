@@ -1,3 +1,6 @@
+Thu Dec 18 12:27:03 WAST 2003 John Darrington <john@darrington.wattle.id.au>
+        * added a calculation of the mode to FREQUENCIES
+
 Wed Dec 17 12:53:01 WAST 2003 John Darrington <john@darrington.wattle.id.au>
 
 	* moved (un)defs of DEBUGGING to config.h

@@ -1057,13 +1057,31 @@ static void
 calc_stats (struct variable * v, double d[frq_n_stats])
 {
   double W = v->p.frq.tab.valid_cases;
-  double X_bar, M2, M3, M4;
+  double X_bar, X_mode, M2, M3, M4;
   struct freq *f;
+  int most_often;
 
-  /* Calculate the mean. */
+  /* Calculate the mean and  mode */
   X_bar = 0.0;
+  most_often = -1;
+  X_mode = SYSMIS;
   for (f = v->p.frq.tab.valid; f < v->p.frq.tab.missing; f++)
-    X_bar += f->v.f * f->c;
+    {
+      /* mean */
+      X_bar += f->v.f * f->c;
+
+      /* mode */
+      if (most_often < f->c ) 
+	{ 
+	  most_often=f->c;
+	  X_mode= f->v.f;
+	}
+      else if ( most_often == f->c ) 
+	{
+	  /* if there are 2 values , then mode is undefined */
+	  X_mode=SYSMIS;
+	}
+    }
   X_bar /= W;
 
   /* Calculate moments about the mean. */
@@ -1083,9 +1101,9 @@ calc_stats (struct variable * v, double d[frq_n_stats])
   /* Formulas below are taken from _SPSS Statistical Algorithms_. */
   d[frq_min] = v->p.frq.tab.valid[0].v.f;
   d[frq_max] = v->p.frq.tab.missing[-1].v.f;
-  d[frq_mode] = 0.0;
+  d[frq_mode] = X_mode;
   d[frq_range] = d[frq_max] - d[frq_min];
-  d[frq_median] = 0.0;
+  d[frq_median] = SYSMIS;
   d[frq_mean] = X_bar;
   d[frq_sum] = X_bar * W;
   d[frq_variance] = M2 / (W - 1);
