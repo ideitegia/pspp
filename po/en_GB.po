@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-11-23 13:37+0800\n"
+"POT-Creation-Date: 2004-11-25 19:01+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -974,7 +974,7 @@ msgstr ""
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1414 src/frequencies.q:116
+#: src/descript.c:103 src/examine.q:1429 src/frequencies.q:116
 msgid "Kurtosis"
 msgstr ""
 
@@ -4225,25 +4225,25 @@ msgstr ""
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/examine.q:1447
+#: src/examine.q:1478
 #, c-format
 msgid "Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1448 src/examine.q:1454
+#: src/examine.q:1479 src/examine.q:1485
 msgid "Observed Value"
 msgstr ""
 
-#: src/examine.q:1449
+#: src/examine.q:1480
 msgid "Expected Normal"
 msgstr ""
 
-#: src/examine.q:1452
+#: src/examine.q:1483
 #, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
 msgstr ""
 
-#: src/examine.q:1455
+#: src/examine.q:1486
 msgid "Dev from Normal"
 msgstr ""
 

@@ -1463,9 +1463,6 @@ np_plot(const struct metrics *m, const char *factorname)
   /* Detrended Normal Plot */
   struct chart dnp_chart;
 
-  const struct weighted_value *wv = *(m->wvp);
-
-
   /* The slope and intercept of the ideal normal probability line */
   const double slope = 1.0 / m->stddev;
   const double intercept = - m->mean / m->stddev;
@@ -1485,8 +1482,8 @@ np_plot(const struct metrics *m, const char *factorname)
   chart_write_xlabel(&dnp_chart, _("Observed Value"));
   chart_write_ylabel(&dnp_chart, _("Dev from Normal"));
 
-  yfirst = gsl_cdf_ugaussian_Pinv (wv[0].rank / ( m->n + 1));
-  ylast =  gsl_cdf_ugaussian_Pinv (wv[m->n_data-1].rank / ( m->n + 1));
+  yfirst = gsl_cdf_ugaussian_Pinv (m->wvp[0]->rank / ( m->n + 1));
+  ylast =  gsl_cdf_ugaussian_Pinv (m->wvp[m->n_data-1]->rank / ( m->n + 1));
 
   {
     /* Need to make sure that both the scatter plot and the ideal fit into the
@@ -1516,11 +1513,11 @@ np_plot(const struct metrics *m, const char *factorname)
   double d_min = DBL_MAX;
   for ( i = 0 ; i < m->n_data; ++i ) 
     {
-      const double ns = gsl_cdf_ugaussian_Pinv (wv[i].rank / ( m->n + 1));
+      const double ns = gsl_cdf_ugaussian_Pinv (m->wvp[i]->rank / ( m->n + 1));
 
-      chart_datum(&np_chart, 0, wv[i].v.f, ns);
+      chart_datum(&np_chart, 0, m->wvp[i]->v.f, ns);
 
-      d_data[i] = (wv[i].v.f - m->mean) / m->stddev  - ns;
+      d_data[i] = (m->wvp[i]->v.f - m->mean) / m->stddev  - ns;
    
       if ( d_data[i] < d_min ) d_min = d_data[i];
       if ( d_data[i] > d_max ) d_max = d_data[i];
@@ -1530,7 +1527,7 @@ np_plot(const struct metrics *m, const char *factorname)
 		     chart_rounded_tick((d_max - d_min) / 5.0));
 
   for ( i = 0 ; i < m->n_data; ++i ) 
-      chart_datum(&dnp_chart, 0, wv[i].v.f, d_data[i]);
+      chart_datum(&dnp_chart, 0, m->wvp[i]->v.f, d_data[i]);
 
   free(d_data);
   }
