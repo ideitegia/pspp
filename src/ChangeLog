@@ -1,3 +1,9 @@
+Sat Mar 19 14:48:19 2005  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.c: (dump_aggregate_info) Properly test whether the
+	destination variable is numeric, when making the result
+	system-missing for columnwise missing values.
+
 Mon Mar 14 21:52:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* misc.h: Remove GCC specializations.

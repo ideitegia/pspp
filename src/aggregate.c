@@ -996,7 +996,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU
 	    && (i->function & FUNC) != NMISS && (i->function & FUNC) != NUMISS)
 	  {
-	    if (i->function & FSTRING)
+	    if (i->dest->type == ALPHA)
 	      memset (v->s, ' ', i->dest->width);
 	    else
 	      v->f = SYSMIS;
