@@ -1,3 +1,35 @@
+Mon Mar 15 20:48:03 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static and global (!) vars in matrix-data.c.
+
+	* matrix-data.c: (static var nr_data) Removed.
+	(static var nr_factor_values) Removed.
+	(static var max_cell_index) Removed.
+	(static var split_values) Removed.
+	(struct nr_aux_data) New structure.
+	(read_matrices_without_rowtype) Use a local struct nr_aux_data in
+	place of static vars, pass to create_case_source() and procedure()
+	as aux data.
+	(nr_read_data_lines) Use struct nr_aux_data * parameter instead of
+	struct matrix_data_pgm *.
+	(nr_read_splits) Ditto.
+	(nr_read_factors) Ditto.
+	(nr_output_data) Ditto.
+	(static var wr_content) Removed.
+	(global var wr_data) Removed.
+	(global var wr_current) Removed.
+	(struct wr_aux_data) New structure.
+	(read_matrices_with_rowtype) Use a local struct wr_aux_data in
+	place of static vars, pass to create_case_source() and procedure()
+	as aux data.
+	(matrix_data_read_with_rowtype) Use struct wr_aux_data * parameter
+	instead of matrix_data_pgm *.
+	(wr_read_splits) Ditto.
+	(wr_output_data) Ditto.
+	(wr_read_rowtype) Ditto.
+	(wr_read_factors) Ditto.
+	(wr_read_indeps) Ditto.
+	
 Mon Mar 15 20:07:29 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static vars in autorecode.c.
