@@ -1,3 +1,8 @@
+Mon Jan  3 17:44:37 2005  Ben Pfaff  <blp@gnu.org>
+
+	* pfm-read.c: (read_variables) Remove direct manipulation of
+	v->aux, which is no longer needed.  Fixes Bug #11483.
+
 Sat Jan  1 19:01:16 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* data-list.c Fixed a bug in parsing delimiters.

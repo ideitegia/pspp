@@ -742,8 +742,6 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
 	lose ((r, "Bad width %d for variable %s.", width, name));
 
       v = dict_create_var (dict, name, width);
-      v->aux = xmalloc (sizeof (int));
-      *(int *) v->aux = v->fv;
       if (v == NULL)
 	lose ((r, _("Duplicate variable name %s."), name));
       if (!convert_format (r, &fmt[0], &v->print, v))
