@@ -35,6 +35,7 @@
 #include "str.h"
 #include "var.h"
 #include "version.h"
+#include "copyleft.h"
 
 void welcome (void);
 static void usage (void);
@@ -183,13 +184,7 @@ parse_command_line (int argc, char **argv)
 	  break;
 	case 'V':
 	  puts (version);
-	  puts (_("\nCopyright (C) 1997-9, 2000 Free Software Foundation, "
-		  "Inc.\n"
-		  "This is free software; see the source for copying "
-		  "conditions.  There is NO\n"
-		  "WARRANTY; not even for MERCHANTABILITY or FITNESS "
-		  "FOR A PARTICULAR PURPOSE.\n\n"
-		  "Written by Ben Pfaff <blp@gnu.org>."));
+	  puts (legal);
 	  err_hcf (1);
 	case '?':
 	  usage ();

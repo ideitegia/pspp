@@ -210,6 +210,7 @@ unwritable either by you or anyone else on the system.
 If you set the permission to WRITEABLE, then the file will become
 writeable by you; the permissions afforded to others will be
 unchanged.
+This command cannot be used if the SAFER setting is active.
 
 
 @node QUIT, SET, PERMISSIONS, Utilities
@@ -534,6 +535,8 @@ reasons.  Setting this option disables the following operations:
 The ERASE command.
 @item
 The HOST command.
+@item
+The PERMISSIONS command.
 @item
 Pipe filenames (filenames beginning or ending with @samp{|}).
 @end itemize

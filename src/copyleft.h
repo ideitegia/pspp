@@ -20,7 +20,8 @@
 #if !copyleft_h
 #define copyleft_h 1
 
-extern char lack_of_warranty[];
-extern char copyleft[];
+extern const char lack_of_warranty[];
+extern const char copyleft[];
+extern const char legal[];
 
 #endif

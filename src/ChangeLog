@@ -1,3 +1,13 @@
+Mon Jan 10 14:43:45 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* casefile.c: Added a signal handler to delete temp files on SIGINT and SIGQUIT
+
+	* permissions.c Inhibited the PERMISSIONS command when SAFER is on.
+
+	* command.def Added a lot more unimplemented commands.
+
+	* copyleft.[ch] cmdline.c Moved legal information to copyleft.c
+
 Sat Jan  8 23:58:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* sort.c: (compare_initial_runs) Needed additional level of

@@ -1,4 +1,13 @@
-char lack_of_warranty[]=""
+const char legal[]=""
+"Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.\n"
+"GNU PSPP comes with NO WARRANTY,\n"
+"to the extent permitted by law.\n"
+"You may redistribute copies of GNU PSPP\n"
+"under the terms of the GNU General Public License.\n"
+"For more information about these matters,\n"
+"see the file named COPYING.\n";
+
+const char lack_of_warranty[]=""
 "			    NO WARRANTY\n"
 "\n"
 "BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY "
@@ -21,7 +30,7 @@ char lack_of_warranty[]=""
 "EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY  "
 "OF SUCH DAMAGES.";
 
-char copyleft[]=""
+const char copyleft[]=""
 "		    GNU GENERAL PUBLIC LICENSE\n "
 "		       Version 2, June 1991\n "
 " \n"

@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "settings.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -94,6 +95,13 @@ change_permissions(const char *filename, enum PER per)
 {
   struct stat buf;
   mode_t mode;
+
+  if ( safer_mode() )
+    {
+      msg (SE, _("This command not allowed when the SAFER option is set."));
+      return CMD_FAILURE;
+    }
+
 
   if ( -1 == stat(filename, &buf) ) 
     {
