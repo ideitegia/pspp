@@ -1,4 +1,4 @@
-Time-stamp: <2004-03-26 00:07:35 blp>
+Time-stamp: <2004-03-26 01:12:33 blp>
 
 What Ben's working on now.
 --------------------------
@@ -16,6 +16,9 @@ CROSSTABS needs to be re-examined.
 
 TODO
 ----
+
+Expressions need to be able to abbreviate function names.  XDATE.QUARTER
+abbreviates to XDA.QUA, etc.
 
 The expression tests need tests for XDATE and a few others, see
 tests/xforms/expressions.sh comments for details.
