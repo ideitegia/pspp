@@ -1,7 +1,10 @@
-Time-stamp: <1999-12-30 22:58:42 blp>
+Time-stamp: <2003-12-15 22:51:49 blp>
 
 TODO
 ----
+
+Use AFM files instead of Groff font files, and include AFMs for our default
+fonts with the distribution.
 
 The way that data-in.c and data-out.c deal with strings is wrong.  Instead of
 the way it's done now, we should make it dynamically allocate a buffer and
