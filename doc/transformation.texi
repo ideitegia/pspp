@@ -179,8 +179,9 @@ character codes.  On most modern computers, this is a form of ASCII.
 
 The aggregation functions listed above exclude all user-missing values
 from calculations.  To include user-missing values, insert a period
-(@samp{.}) between the function name and left parenthesis
-(e.g.@: @samp{SUM.}).
+(@samp{.}) at the end of the function name.  (e.g.@: @samp{SUM.}).
+(Be aware that specifying such a function as the last token on a line
+will cause the period to be interpreted as the end of the command.)
 
 @cmd{AGGREGATE} both ignores and cancels the current @cmd{SPLIT FILE}
 settings (@pxref{SPLIT FILE}).
