@@ -421,35 +421,29 @@ system-missing or not missing at all.
 @cindex random numbers
 @cindex pseudo-random numbers (see random numbers)
 
-Pseudo-random number generation functions take numeric arguments and
+Pseudo-random number generation (PRNG) functions take numeric arguments and
 produce numeric results.
 
-PSPP uses the alleged RC4 cipher as a pseudo-random number generator
-(PRNG).  The bytes output by this PRNG are system-independent for a
-given random seed, but differences in endianness and floating-point
-formats will make PRNG results differ from system to system.  RC4
-should produce high-quality random numbers for simulation purposes.
-(If you're concerned about the quality of the random number generator,
-well, you're using a statistical processing package---analyze it!)
-
-PSPP's implementation of RC4 has not undergone any security auditing.
-Furthermore, various precautions that would be necessary for secure
-operation, such as secure seeding and discarding the first several
-bytes of output, have not been taken.  Therefore, PSPP's
-implementation of RC4 should not be used for security purposes.
+PSPP uses the ``Mersenne Twister'' PRNG as implemented in the GNU
+Scientific Library, specifically the @code{gsl_rng_mt19937} variant.
+This PRNG is a variant of the twisted generalized feedback
+shift-register algorithm The bytes output by this PRNG are
+system-independent for a given random seed, but differences in
+endianness and floating-point formats will make PRNG results differ
+from system to system.
 
 @cindex random numbers, normally-distributed
-@deftypefn {Function} {} NORMAL (@var{number})
+@deftypefn {Function} {} NORMAL (@var{stddev})
 Results in a random number.  Results from @code{NORMAL} are normally
-distributed with a mean of 0 and a standard deviation of @var{number}.
+distributed with a mean of 0 and a standard deviation of @var{stddev}.
 @end deftypefn
 
 @cindex random numbers, uniformly-distributed
-@deftypefn {Function} {} UNIFORM (@var{number})
-Results in a random number between 0 and @var{number}.  Results from
-@code{UNIFORM} are evenly distributed across its entire range.  There
-may be a maximum on the largest random number ever generated---this is
-often 
+@deftypefn {Function} {} UNIFORM (@var{max})
+Results in a random number in the half-open interval [0,@var{max}).
+Results from @code{UNIFORM} are evenly distributed across its entire
+range.  There may be a maximum on the largest random number ever
+generated---this is often
 @ifinfo 
 2**31-1 
 @end ifinfo
