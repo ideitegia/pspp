@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename pspp.info
 @settitle PSPP
-@set TIMESTAMP Time-stamp: <2003-12-16 09:46:29 blp>
+@set TIMESTAMP Time-stamp: <2003-12-17 10:07:31 blp>
 @set EDITION 0.2
 @set VERSION 0.2
 @c For double-sided printing, uncomment:
@@ -4630,14 +4630,14 @@ Portability: none feature.
 
 @cindex day of the year
 @cindex dates, day of the year
-@deftypefn {Function} {} XDATE.JDAY(@var{date})
+@deftypefn {Function} {} XDATE.JDAY (@var{date})
 Results in the day of the year (as an integer between 1 and 366)
 corresponding to @var{date}.
 @end deftypefn
 
 @cindex day of the month
 @cindex dates, day of the month
-@deftypefn {Function} {} XDATE.MDAY(@var{date})
+@deftypefn {Function} {} XDATE.MDAY (@var{date})
 Results in the day of the month (as an integer between 1 and 31)
 corresponding to @var{date}.
 @end deftypefn
@@ -4645,7 +4645,7 @@ corresponding to @var{date}.
 @cindex minutes
 @cindex dates, in minutes
 @cindex time, in minutes
-@deftypefn {Function} {} XDATE.MINUTE(@var{time-or-date})
+@deftypefn {Function} {} XDATE.MINUTE (@var{time-or-date})
 Results in the number of minutes (as an integer between 0 and 59) after
 the last hour in @var{time-or-date}.  (XDATE.MINUTE(@var{x}) is
 equivalent to MOD(TRUNC(@var{x}/60),60)) Applying this function to a
@@ -4654,14 +4654,14 @@ time is a Portability: none feature.
 
 @cindex months
 @cindex dates, in months
-@deftypefn {Function} {} XDATE.MONTH(@var{date})
+@deftypefn {Function} {} XDATE.MONTH (@var{date})
 Results in the month of the year (as an integer between 1 and 12)
 corresponding to @var{date}.
 @end deftypefn
 
 @cindex quarters
 @cindex dates, in quarters
-@deftypefn {Function} {} XDATE.QUARTER(@var{date})
+@deftypefn {Function} {} XDATE.QUARTER (@var{date})
 Results in the quarter of the year (as an integer between 1 and 4)
 corresponding to @var{date}.
 @end deftypefn
@@ -4669,7 +4669,7 @@ corresponding to @var{date}.
 @cindex seconds
 @cindex dates, in seconds
 @cindex time, in seconds
-@deftypefn {Function} {} XDATE.SECOND(@var{time-or-date})
+@deftypefn {Function} {} XDATE.SECOND (@var{time-or-date})
 Results in the number of whole seconds after the last whole minute (as
 an integer between 0 and 59) in @var{time-or-date}.
 (XDATE.SECOND(@var{x}) is equivalent to MOD(@var{x}, 60).)  Applying
@@ -4678,14 +4678,14 @@ this function to a time is a Portability: none feature.
 
 @cindex days
 @cindex times, in days
-@deftypefn {Function} {} XDATE.TDAY(@var{time})
+@deftypefn {Function} {} XDATE.TDAY (@var{time})
 Results in the number of whole days (as an integer) in @var{time}.
 (XDATE.TDAY(@var{x}) is equivalent to TRUNC(@var{x}/86400).)
 @end deftypefn
 
 @cindex time
 @cindex dates, time of day
-@deftypefn {Function} {} XDATE.TIME(@var{date})
+@deftypefn {Function} {} XDATE.TIME (@var{date})
 Results in the time of day at the instant corresponding to @var{date},
 in PSPP time format.  This is the number of seconds since
 midnight on the day corresponding to @var{date}.  (XDATE.TIME(@var{x}) is
@@ -4694,7 +4694,7 @@ equivalent to TRUNC(@var{x}/86400)*86400.)
 
 @cindex week
 @cindex dates, in weeks
-@deftypefn {Function} {} XDATE.WEEK(@var{date})
+@deftypefn {Function} {} XDATE.WEEK (@var{date})
 Results in the week of the year (as an integer between 1 and 53)
 corresponding to @var{date}.
 @end deftypefn
@@ -4703,7 +4703,7 @@ corresponding to @var{date}.
 @cindex weekday
 @cindex dates, day of the week
 @cindex dates, in weekdays
-@deftypefn {Function} {} XDATE.WKDAY(@var{date})
+@deftypefn {Function} {} XDATE.WKDAY (@var{date})
 Results in the day of week (as an integer between 1 and 7) corresponding
 to @var{date}.  The days of the week are:
 
