@@ -157,16 +157,16 @@ followed by a description of their location on the input line.  Sets of
 variables may specified using the @code{DATA LIST} TO convention
 (@pxref{Sets of
 Variables}).  There are two ways to specify the location of the variable
-on the line: PSPP style and FORTRAN style.
+on the line: columnar style and FORTRAN style.
 
-With PSPP style, the starting column and ending column for the field
+In columnar style, the starting column and ending column for the field
 are specified after the variable name, separated by a dash (@samp{-}).
 For instance, the third through fifth columns on a line would be
 specified @samp{3-5}.  By default, variables are considered to be in
 @samp{F} format (@pxref{Input/Output Formats}).  (This default can be
 changed; see @ref{SET} for more information.)
 
-When using PSPP style, to use a variable format other than the default,
+In columnar style, to use a variable format other than the default,
 specify the format type in parentheses after the column numbers.  For
 instance, for alphanumeric @samp{A} format, use @samp{(A)}.  
 
@@ -181,7 +181,7 @@ implied decimal places are not applied.
 Changing the variable format and adding implied decimal places can be
 done together; for instance, @samp{(N,5)}.
 
-When using PSPP style, the input and output width of each variable is
+When using columnar style, the input and output width of each variable is
 computed from the field width.  The field width must be evenly divisible
 into the number of variables specified.
 
@@ -190,6 +190,10 @@ locations.  With this approach, a list of variable input format
 specifications, separated by commas, are placed after the variable names
 inside parentheses.  Each format specifier advances as many characters
 into the input line as it uses.
+
+Implied decimal places also exist in FORTRAN style.  A format
+specification with @var{d} decimal places also has @var{d} implied
+decimal places.
 
 In addition to the standard format specifiers (@pxref{Input/Output
 Formats}), FORTRAN style defines some extensions:
@@ -216,10 +220,10 @@ Group the given specifiers together.  This is most useful when preceded
 by a repeat count.  Groups may be nested arbitrarily.
 @end table
 
-FORTRAN and PSPP styles may be freely intermixed.  PSPP style leaves the
-active column immediately after the ending column specified.  Record
-motion using @code{NEWREC} in FORTRAN style also applies to later
-FORTRAN and PSPP specifiers.
+FORTRAN and columnar styles may be freely intermixed.  Columnar style
+leaves the active column immediately after the ending column
+specified.  Record motion using @code{NEWREC} in FORTRAN style also
+applies to later FORTRAN and columnar specifiers.
  
 @menu
 * DATA LIST FIXED Examples::    Examples of DATA LIST FIXED.
