@@ -12,7 +12,7 @@ far.
 * FREQUENCIES::                 Frequency tables.
 * CROSSTABS::                   Crosstabulation tables.
 * T-TEST::                      Test hypotheses about means.
-* ONEWAY::                      One analysis of variance.
+* ONEWAY::                      One way analysis of variance.
 @end menu
 
 @node DESCRIPTIVES, FREQUENCIES, Statistics, Statistics

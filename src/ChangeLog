@@ -1,3 +1,11 @@
+Fri Nov 12 10:07:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* value-labs.c  Fixed the implmentation of value_to_string, so 
+	that it properly handles alpha values.
+
+	* oneway.q  Changed instances where labels were being probed manually, 
+	to use the canonical {var,value}_to_string functions
+
 Thu Nov 11 21:01:31 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q cartesian.c chart.[ch]   Added normal and detrended normal

@@ -498,6 +498,7 @@ free_atom (void *atom_, void *aux UNUSED)
 const char *
 value_to_string(const union value *val, const struct variable *var)
 {
+  static char buf[100];
   char *s;
   const struct val_labs *val_labs = var->val_labs;
   
@@ -507,12 +508,11 @@ value_to_string(const union value *val, const struct variable *var)
     return s;
 
   if ( 0 == var->width ) 
-    {
-      static char buf[100];
-      snprintf(buf,100,"%g",val->f);
-      return buf;
-    }
+    snprintf(buf,100,"%g",val->f);
   else
-    return val->s;
-  
+    {
+      strncpy(buf,val->s,MAX_SHORT_STRING);
+      strcat(buf,"\0");
+    }
+  return buf;
 }

@@ -1,22 +1,22 @@
 /* PSPP - One way ANOVA. -*-c-*-
 
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
-   Author: John Darrington 2004
+Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+Author: John Darrington 2004
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of the
+License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-   02111-1307, USA. */
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+02111-1307, USA. */
 
 #include <config.h>
 #include <gsl/gsl_cdf.h>
@@ -45,11 +45,11 @@
 
 /* (specification)
    "ONEWAY" (oneway_):
-     *variables=custom;
-     +missing=miss:!analysis/listwise,
-             incl:include/!exclude;
-     contrast= double list;
-     statistics[st_]=descriptives,homogeneity.
+   *variables=custom;
+   +missing=miss:!analysis/listwise,
+   incl:include/!exclude;
+   contrast= double list;
+   statistics[st_]=descriptives,homogeneity.
 */
 /* (declarations) */
 /* (functions) */
@@ -291,14 +291,13 @@ show_anova_table(void)
       for (gs =  hsh_first (group_hash,&g); 
 	   gs != 0; 
 	   gs = hsh_next(group_hash,&g))
-       {
-	 ssa += (gs->sum * gs->sum)/gs->n;
-       }
+	{
+	  ssa += (gs->sum * gs->sum)/gs->n;
+	}
       
       ssa -= ( totals->sum * totals->sum ) / totals->n ;
 
-      const char *s = (vars[i]->label) ? vars[i]->label : vars[i]->name;
-
+      const char *s = var_to_string(vars[i]);
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -422,7 +421,7 @@ show_descriptives(void)
       struct group_statistics *totals = &vars[v]->p.grp_data.ugs; 
 
       int count = 0 ;      
-      char *s = (vars[v]->label) ? vars[v]->label : vars[v]->name;
+      const char *s = var_to_string(vars[v]);
 
       struct hsh_table *group_hash = vars[v]->p.grp_data.group_hash;
 
@@ -480,7 +479,7 @@ show_descriptives(void)
 	}
 
       tab_text (t, 1, row + count, 
-		      TAB_LEFT | TAT_TITLE ,_("Total"));
+		TAB_LEFT | TAT_TITLE ,_("Total"));
 
       tab_float (t, 2, row + count, 0, totals->n, 8,0);
 
@@ -555,7 +554,7 @@ show_homogeneity(void)
     {
       double F;
       const struct variable *var = vars[v];
-      const char *s = (var->label) ? var->label : var->name;
+      const char *s = var_to_string(var);
       const struct group_statistics *totals = &var->p.grp_data.ugs;
 
       const double df1 = var->p.grp_data.n_groups - 1;
@@ -582,7 +581,6 @@ show_homogeneity(void)
 static void 
 show_contrast_coeffs(short *bad_contrast)
 {
-  char *s;
   int n_cols = 2 + ostensible_number_of_groups;
   int n_rows = 2 + cmd.sbc_contrast;
   struct hsh_iterator g;
@@ -629,26 +627,19 @@ show_contrast_coeffs(short *bad_contrast)
 
   tab_text (t,  0, 2, TAB_LEFT | TAT_TITLE, _("Contrast"));
 
-  s = (indep_var->label) ? indep_var->label : indep_var->name;
 
-  tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, s);
+
+  tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, 
+		  var_to_string(indep_var));
 
   for (group_value =  hsh_first (global_group_hash,&g); 
        group_value != 0; 
        group_value = hsh_next(global_group_hash,&g))
     {
       int i;
-      char *lab;
 
-
-      lab = val_labs_find(indep_var->val_labs,*group_value);
-  
-      if ( lab ) 
-	tab_text (t, count + 2, 1,
-		  TAB_CENTER | TAT_TITLE ,lab);
-      else
-	tab_text (t, count + 2, 1, 
-		  TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%g", group_value->f);
+      tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, 
+		value_to_string(group_value,indep_var));
 
       for (i = 0 ; i < cmd.sbc_contrast ; ++i ) 
 	{
@@ -718,9 +709,7 @@ show_contrast_tests(short *bad_contrast)
 
 
       tab_text (t,  0, (v * lines_per_variable) + 1, TAB_LEFT | TAT_TITLE,
-		vars[v]->label?vars[v]->label:vars[v]->name);
-
-
+		var_to_string(vars[v]));
 
       for ( i = 0 ; i < cmd.sbc_contrast ; ++i ) 
 	{
@@ -744,7 +733,7 @@ show_contrast_tests(short *bad_contrast)
 	     \frac{\left(\sum_{i=1}^k{c_i^2\frac{s_i^2}{n_i}}\right)^2}
 	     {
 	     \sum_{i=1}^k\left(
-                \frac{\left(c_i^2\frac{s_i^2}{n_i}\right)^2}  {n_i-1}
+	     \frac{\left(c_i^2\frac{s_i^2}{n_i}\right)^2}  {n_i-1}
 	     \right)
 	     }
 	  */
@@ -945,7 +934,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
 
       /* Deal with missing values */
       if ( value_is_missing(indep_val,indep_var) )
-	   continue;
+	continue;
 
       /* Skip the entire case if /MISSING=LISTWISE is set */
       if ( cmd->miss == ONEWAY_LISTWISE ) 
@@ -956,10 +945,10 @@ run_oneway(const struct casefile *cf, void *cmd_)
 	      const union value *val = case_data (&c, v->fv);
 
 	      if (value_is_missing(val,v) )
-		  break;
+		break;
 	    }
 	  if ( i != n_vars ) 
-	      continue;
+	    continue;
 
 	}
       
