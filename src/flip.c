@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
+#include <limits.h>
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
@@ -43,7 +44,7 @@ static struct variable *newnames;
 struct varname
   {
     struct varname *next;
-    char name[1];
+    char name[9];
   };
 
 /* New variable names. */
@@ -126,7 +127,8 @@ make_new_var (char name[])
       {
 	*cp = toupper ((unsigned char) *cp);
 	if (!isalpha (*cp) && *cp != '@' && *cp != '#'
-	    && (cp == name || (*cp != '.' && *cp != '$' && *cp != '_')))
+	    && (cp == name || (*cp != '.' && *cp != '$' && *cp != '_'
+                               && !isdigit (*cp))))
 	  {
 	    if (cp == name)
 	      *cp = 'V';	/* _ not valid in first position. */
@@ -307,20 +309,31 @@ flip_stream_write (void)
 
   if (newnames)
     {
-      struct varname *v;
-      char name[INT_DIGITS + 2];
+      struct varname *v = xmalloc (sizeof (struct varname));
+      if (newnames->type == NUMERIC) 
+        {
+          double f = temp_case->data[newnames->fv].f;
 
-      if (newnames->type == NUMERIC)
-	sprintf (name, "V%d", (int) temp_case->data[newnames->fv].f);
+          if (f == SYSMIS)
+            strcpy (v->name, "VSYSMIS");
+          else if (f < INT_MIN)
+            strcpy (v->name, "VNEGINF");
+          else if (f > INT_MAX)
+            strcpy (v->name, "VPOSINF");
+          else 
+            {
+              char name[INT_DIGITS + 2];
+              sprintf (name, "V%d", (int) f);
+              strncpy (v->name, name, 8);
+              name[8] = 0; 
+            }
+        }
       else
 	{
 	  int width = min (newnames->width, 8);
-	  memcpy (name, temp_case->data[newnames->fv].s, width);
-	  name[width] = 0;
+	  memcpy (v->name, temp_case->data[newnames->fv].s, width);
+	  v->name[width] = 0;
 	}
-
-      v = xmalloc (sizeof (struct varname) + strlen (name) - 1);
-      strcpy (v->name, name);
       
       if (new_names_tail == NULL)
 	new_names_head = v;

@@ -1,3 +1,15 @@
+Wed Feb 11 20:33:18 2004  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c: Fixed crash from FLIP when a numeric variable is
+	  specified on NEWNAMES and a large value is used, and a couple of
+	  other minor bugs besides.
+	  (struct varname) Make name a 9-character fixed-size array
+	  instead of a 1-character variable size array.
+	  (make_new_var) Allow digits in variable names.
+	  (flip_stream_write) Limit numeric values to 8 characters and
+	  format system missing and very large and small values more
+	  appropriately.
+
 Thu Feb  5 13:19:06 WAST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* fixed bug which caused a crash under certain invalid input.
