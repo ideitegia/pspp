@@ -1,3 +1,44 @@
+Thu Jan  1 23:16:41 2004  Ben Pfaff  <blp@gnu.org>
+
+	* html.c: (change_attributes) Dead code, removed.
+	(escape_string) Eliminate code to call change_attributes() that
+	never actually called it.
+	(output_tab_table) Get rid of dependence on tab_hit
+	and struct tab_joined_cell's hit member, which are abominations.
+
+	* tab.c: (tab_output_text) Don't call
+	d->class->text_set_font_by_name if it's a null pointer.
+	(macro UNROLL_LOOP) Eliminate.
+	(macro UNROLL_3_LOOPS) Eliminate
+	(tabi_render) Rewrite not to use the above macros.
+
+Thu Jan  1 23:09:07 2004  Ben Pfaff  <blp@gnu.org>
+
+	Start working on a new output driver system, one that doesn't suck
+	so much, by adding a "device-independent" output driver.  The idea
+	is to write out only a single output stream, then use separate
+	processes to translate them into whatever formats we want.  This
+	is similar to how "groff" works with its various output drivers
+	(grops, grotty, grodvi, ...).
+	
+	* Makefile.am: (pspp_SOURCES) Add devind.c, devind.h.
+
+	* list.q: (write_all_headers) Stub out devind class.
+	(clean_up) Ditto.
+	(determine_layout) Ditto.
+	(list_cases) Ditto.
+
+	* output.c: (outp_init) Add devind class.
+
+	* devind.c: New file.
+
+	* devind.h: New file.
+
+Thu Jan  1 23:08:14 2004  Ben Pfaff  <blp@gnu.org>
+
+	* frequencies.q: (hash_value_alpha) Fixed up the previous change
+	to use the proper string length.
+
 Wed Dec 31 16:27:33 WAST 2003 John Darrington <john@darrington.wattle.id.au>
 
 	* Fixed bug where FREQ would crash on alpha values

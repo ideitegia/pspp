@@ -409,26 +409,6 @@ html_submit (struct outp_driver *this, struct som_table *s)
     assert (0);
 }
 
-/* Emit HTML to FILE to change from *OLD_ATTR attributes to NEW_ATTR.
-   Sets *OLD_ATTR to NEW_ATTR when done. */
-static void
-change_attributes (FILE *f, int *old_attr, int new_attr)
-{
-  if (*old_attr == new_attr)
-    return;
-
-  if (*old_attr & OUTP_F_B)
-    fputs ("</B>", f);
-  if (*old_attr & OUTP_F_I)
-    fputs ("</I>", f);
-  if (new_attr & OUTP_F_I)
-    fputs ("<I>", f);
-  if (new_attr & OUTP_F_B)
-    fputs ("<B>", f);
-
-  *old_attr = new_attr;
-}
-
 /* Write string S of length LEN to file F, escaping characters as
    necessary for HTML. */
 static void
@@ -436,7 +416,6 @@ escape_string (FILE *f, char *s, int len)
 {
   char *ep = &s[len];
   char *bp, *cp;
-  int attr = 0;
 
   for (bp = cp = s; bp < ep; bp = cp)
     {
@@ -462,9 +441,6 @@ escape_string (FILE *f, char *s, int len)
 	    assert (0);
 	  }
     }
-
-  if (attr)
-    change_attributes (f, &attr, 0);
 }
   
 /* Write table T to THIS output driver. */
@@ -473,8 +449,6 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 {
   struct html_driver_ext *x = this->ext;
   
-  tab_hit++;
-
   if (t->nr == 1 && t->nc == 1)
     {
       fputs ("<P>", x->file.file);
@@ -497,7 +471,6 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   
   {
     int r;
-    struct len_string *cc = t->cc;
     unsigned char *ct = t->ct;
 
     for (r = 0; r < t->nr; r++)
@@ -505,15 +478,22 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	int c;
 	
 	fputs ("  <TR>\n", x->file.file);
-	for (c = 0; c < t->nc; c++, cc++, ct++)
+	for (c = 0; c < t->nc; c++, ct++)
 	  {
+            struct len_string *cc;
 	    int tag;
 	    char header[128];
 	    char *cp;
+            struct tab_joined_cell *j = NULL;
 
-	    if ((*ct & TAB_JOIN)
-		&& ((struct tab_joined_cell *) ls_value (cc))->hit == tab_hit)
-	      continue;
+            cc = t->cc + c + r * t->nc;
+	    if (*ct & TAB_JOIN) 
+              {
+                j = (struct tab_joined_cell *) ls_value (cc);
+                cc = &j->contents;
+                if (j->x1 != c || j->y1 != r)
+                  continue; 
+              }
 
 	    if (r < t->t || r >= t->nr - t->b
 		|| c < t->l || c >= t->nc - t->r)
@@ -539,14 +519,12 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 
 	    if (*ct & TAB_JOIN)
 	      {
-		struct tab_joined_cell *j =
-		  (struct tab_joined_cell *) ls_value (cc);
-		j->hit = tab_hit;
-		
 		if (j->x2 - j->x1 > 1)
 		  cp = spprintf (cp, " COLSPAN=%d", j->x2 - j->x1);
 		if (j->y2 - j->y1 > 1)
 		  cp = spprintf (cp, " ROWSPAN=%d", j->y2 - j->y1);
+
+                cc = &j->contents;
 	      }
 	    
 	    strcpy (cp, ">");

@@ -833,13 +833,12 @@ hash_value_numeric (const void *value_, void *foo unused)
 
 /* Hash of string values. */
 static unsigned
-hash_value_alpha (const void *value_, void *len_ unused)
+hash_value_alpha (const void *value_, void *v_)
 {
   const struct freq *value = value_;
+  struct variable *v = v_;
 
-  static int len = MAX_SHORT_STRING;
-
-  return hsh_hash_bytes (value->v.s, len);
+  return hsh_hash_bytes (value->v.s, v->width);
 }
 
 /* Ascending numeric compare of values. */

@@ -802,8 +802,13 @@ tab_output_text (int options, const char *buf, ...)
 	{
 	  if (!d->page_open)
 	    d->class->open_page (d);
-	  
-	  d->class->text_set_font_by_name (d, "FIXED");
+
+          if (d->class->text_set_font_by_name != NULL)
+            d->class->text_set_font_by_name (d, "FIXED");
+          else 
+            {
+              /* FIXME */
+            }
 	}
     }
 
@@ -820,7 +825,12 @@ tab_output_text (int options, const char *buf, ...)
       struct outp_driver *d;
 
       for (d = outp_drivers (NULL); d; d = outp_drivers (d))
-	d->class->text_set_font_by_name (d, "PROP");
+        if (d->class->text_set_font_by_name != NULL)
+          d->class->text_set_font_by_name (d, "PROP");
+        else 
+          {
+            /* FIXME */
+          }
     }
   
   if (options & TAT_PRINTF)
@@ -1147,50 +1157,47 @@ tabi_title (int x, int y)
 
 static int render_strip (int x, int y, int r, int c1, int c2, int r1, int r2);
 
-/* Execute BODY for each value of X from A to B exclusive. */
-#define UNROLL_LOOP(X, A, B, BODY)		\
-	do					\
-	  {					\
-	    for (X = A; X < B; X++)		\
-	      {					\
-		BODY				\
-	      }					\
-	  }					\
-	while (0)
-
-/* Execute PREP, then BODY for each specified value of X: A1...A2, B1...B2,
-   C1...C2, in each case not including the second value. */
-#define UNROLL_3_LOOPS(X, A1, A2, B1, B2, C1, C2, BODY)	\
-	do						\
-	  {						\
-	    UNROLL_LOOP (X, A1, A2, BODY);		\
-	    UNROLL_LOOP (X, B1, B2, BODY);		\
-	    UNROLL_LOOP (X, C1, C2, BODY);		\
-	  }						\
-	while (0)
-
 /* Draws the table region in rectangle (X1,Y1)-(X2,Y2), where column
    X2 and row Y2 are not included in the rectangle, at the current
    position on the current output device.  Draws headers as well. */
 static void
 tabi_render (int x1, int y1, int x2, int y2)
 {
-  int y, r;
+  int i, y;
+  int ranges[3][2];
   
   tab_hit++;
+
   y = d->cp_y;
   if (!(t->flags & SOMF_NO_TITLE))
     y += d->font_height;
-  UNROLL_3_LOOPS (r, 0, t->t * 2 + 1, y1 * 2 + 1, y2 * 2,
-		  (t->nr - t->b) * 2, t->nr * 2 + 1,
 
-		  int x = d->cp_x;
-		  x += render_strip (x, y, r, 0, t->l * 2 + 1, y1, y2);
-		  x += render_strip (x, y, r, x1 * 2 + 1, x2 * 2, y1, y2);
-		  x += render_strip (x, y, r, (t->nc - t->r) * 2,
-				     t->nc * 2 + 1, y1, y2);
-		  y += (r & 1) ? t->h[r / 2] : t->hrh[r / 2];
-		  );
+  /* Top headers. */
+  ranges[0][0] = 0;
+  ranges[0][1] = t->t * 2 + 1;
+
+  /* Requested rows. */
+  ranges[1][0] = y1 * 2 + 1;
+  ranges[1][1] = y2 * 2;
+
+  /* Bottom headers. */
+  ranges[2][0] = (t->nr - t->b) * 2;
+  ranges[2][1] = t->nr * 2 + 1;
+
+  for (i = 0; i < 3; i++) 
+    {
+      int r;
+
+      for (r = ranges[i][0]; r < ranges[i][1]; r++) 
+        {
+          int x = d->cp_x;
+          x += render_strip (x, y, r, 0, t->l * 2 + 1, y1, y2);
+          x += render_strip (x, y, r, x1 * 2 + 1, x2 * 2, y1, y2);
+          x += render_strip (x, y, r, (t->nc - t->r) * 2,
+                             t->nc * 2 + 1, y1, y2);
+          y += (r & 1) ? t->h[r / 2] : t->hrh[r / 2]; 
+        }
+    }
 }
 
 struct som_table_class tab_table_class =

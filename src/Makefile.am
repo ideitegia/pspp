@@ -36,22 +36,22 @@ pspp_SOURCES = aggregate.c algorithm.c algorithm.h alloc.c alloc.h	\
 apply-dict.c approx.h ascii.c autorecode.c bitvector.h cases.c cases.h	\
 cmdline.c cmdline.h command.c command.def command.h compute.c		\
 correlations.c count.c crosstabs.c data-in.c data-in.h data-list.c	\
-data-out.c debug-print.h descript.c dfm.c dfm.h dictionary.c do-if.c	\
-do-ifP.h error.c error.h expr-evl.c expr-opt.c expr-prs.c expr.h	\
-exprP.h file-handle.c file-handle.h file-type.c filename.c filename.h	\
-flip.c font.h format.c format.def format.h formats.c frequencies.c	\
-get.c getline.c getline.h glob.c glob.h groff-font.c hash.c hash.h	\
-heap.c heap.h html.c htmlP.h include.c inpt-pgm.c lexer.c lexer.h	\
-list.c log.h loop.c magic.c magic.h main.c main.h matrix-data.c		\
-matrix.c matrix.h means.c mis-val.c misc.c misc.h modify-vars.c		\
-numeric.c output.c output.h pfm-read.c pfm-write.c pfm.h pool.c pool.h	\
-postscript.c print.c random.c random.h recode.c rename-vars.c repeat.c	\
-repeat.h sample.c sel-if.c set.c settings.h sfm-read.c sfm-write.c	\
-sfm.h sfmP.h som.c som.h sort.c sort.h split-file.c stat.h stats.c	\
-stats.h str.c str.h sysfile-info.c tab.c tab.h temporary.c title.c	\
-t-test.c val-labs.c value-labels.c value-labels.h var-labs.c var.h	\
-vars-atr.c vars-prs.c vector.c version.c version.h vfm.c vfm.h vfmP.h	\
-weight.c
+data-out.c debug-print.h descript.c devind.c devind.h dfm.c dfm.h	\
+dictionary.c do-if.c do-ifP.h error.c error.h expr-evl.c expr-opt.c	\
+expr-prs.c expr.h exprP.h file-handle.c file-handle.h file-type.c	\
+filename.c filename.h flip.c font.h format.c format.def format.h	\
+formats.c frequencies.c get.c getline.c getline.h glob.c glob.h		\
+groff-font.c hash.c hash.h heap.c heap.h html.c htmlP.h include.c	\
+inpt-pgm.c lexer.c lexer.h list.c log.h loop.c magic.c magic.h main.c	\
+main.h matrix-data.c matrix.c matrix.h means.c mis-val.c misc.c misc.h	\
+modify-vars.c numeric.c output.c output.h pfm-read.c pfm-write.c pfm.h	\
+pool.c pool.h postscript.c print.c random.c random.h recode.c		\
+rename-vars.c repeat.c repeat.h sample.c sel-if.c set.c settings.h	\
+sfm-read.c sfm-write.c sfm.h sfmP.h som.c som.h sort.c sort.h		\
+split-file.c stat.h stats.c stats.h str.c str.h sysfile-info.c tab.c	\
+tab.h temporary.c title.c t-test.c val-labs.c value-labels.c		\
+value-labels.h var-labs.c var.h vars-atr.c vars-prs.c vector.c		\
+version.c version.h vfm.c vfm.h vfmP.h weight.c
 
 pspp_LDADD =	../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\
