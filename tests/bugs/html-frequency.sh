@@ -13,7 +13,7 @@ here=`pwd`
 # ensure that top_srcdir is absolute
 cd $top_srcdir ; top_srcdir=`pwd`
 
-STAT_CONFIG_PATH=$top_srcdir/config
+export STAT_CONFIG_PATH=$top_srcdir/config
 
 cleanup()
 {
@@ -48,7 +48,7 @@ mkdir -p $TEMPDIR
 
 
 activity="create data"
-cat << EOF > $TEMPDIR/ff.stat 
+cat << EOF > $TESTFILE
 
 data list free /v1 v2.
 begin data.
@@ -67,7 +67,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 cd $TEMPDIR
 
 activity="run data"
-$SUPERVISOR $here/../src/pspp -o html $TEMPDIR/ff.stat
+$SUPERVISOR $here/../src/pspp -o html $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 
