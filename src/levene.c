@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include "error.h"
+#include "casefile.h"
 #include "levene.h"
 #include "hash.h"
 #include "str.h"
@@ -28,6 +29,7 @@
 #include "vfm.h"
 #include "alloc.h"
 #include "misc.h"
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -54,23 +56,9 @@
 
 static struct group_statistics *get_group(int v, struct group_statistics *key);
 
-/* First pass */
-static void levene_precalc (void *);
-static int levene_calc (struct ccase *, void *);
-static void levene_postcalc (void *);
-
-
-/* Second pass */
-static void levene2_precalc (void *);
-static int levene2_calc (struct ccase *, void *);
-static void levene2_postcalc (void *);
-
 
 struct levene_info
 {
-
-  /* The number of groups */
-  int n_groups;
 
   /* Per group statistics */
   struct t_test_proc **group_stats;
@@ -92,26 +80,57 @@ struct levene_info
 
 };
 
+/* First pass */
+static void  levene_precalc (const struct levene_info *l);
+static int levene_calc (const struct ccase *, void *);
+static void levene_postcalc (void *);
+
+
+/* Second pass */
+static void levene2_precalc (void *);
+static int levene2_calc (const struct ccase *, void *);
+static void levene2_postcalc (void *);
 
 
 void  
-levene(struct variable *v_indep, int n_dep, struct variable **v_dep,
+levene(const struct casefile *cf,
+       struct variable *v_indep, int n_dep, struct variable **v_dep,
 	     enum lev_missing missing,   is_missing_func value_is_missing)
 {
+  struct casereader *r;
+  const struct ccase *c;
   struct levene_info l;
 
-  l.n_dep = n_dep;
-  l.v_indep = v_indep;
-  l.v_dep = v_dep;
-  l.missing = missing;
+  l.n_dep      = n_dep;
+  l.v_indep    = v_indep;
+  l.v_dep      = v_dep;
+  l.missing    = missing;
   l.is_missing = value_is_missing;
 
-  procedure_with_splits (levene_precalc, levene_calc, levene_postcalc, &l);
-  procedure_with_splits (levene2_precalc, levene2_calc, levene2_postcalc, &l);
-      
+
+
+  levene_precalc(&l);
+  for(r = casefile_get_reader (cf);
+      casereader_read (r, &c) ; ) 
+    {
+      levene_calc(c,&l);
+    }
+  casereader_destroy (r);
+  levene_postcalc(&l);
+
+  levene2_precalc(&l);
+  for(r = casefile_get_reader (cf);
+      casereader_read (r, &c) ; ) 
+    {
+      levene2_calc(c,&l);
+    }
+  casereader_destroy (r);
+  levene2_postcalc(&l);
+
 }
 
 static struct hsh_table **hash;
+
 
 /* Return -1 if the id of a is less than b; +1 if greater than and 
    0 if equal */
@@ -172,10 +191,9 @@ static int inequality_compare;
 
 
 static void 
-levene_precalc (void *_l)
+levene_precalc (const struct levene_info *l)
 {
   int i;
-  struct levene_info *l = (struct levene_info *) _l;
 
   lz  = xmalloc (sizeof (struct lz_stats ) * l->n_dep ) ;
 
@@ -211,11 +229,11 @@ levene_precalc (void *_l)
 }
 
 static int 
-levene_calc (struct ccase *c, void *_l)
+levene_calc (const struct ccase *c, void *_l)
 {
   int i;
   struct levene_info *l = (struct levene_info *) _l;
-  union value *gv = &c->data[l->v_indep->fv];
+  const union value *gv = &c->data[l->v_indep->fv];
   struct group_statistics key;
   double weight = dict_get_case_weight(default_dict,c); 
 
@@ -226,7 +244,7 @@ levene_calc (struct ccase *c, void *_l)
       for (i = 0; i < l->n_dep; ++i) 
 	{
 	  struct variable *v = l->v_dep[i];
-	  union value *val = &c->data[v->fv];
+	  const union value *val = &c->data[v->fv];
 
 	  if (l->is_missing(val,v) )
 	    {
@@ -243,7 +261,7 @@ levene_calc (struct ccase *c, void *_l)
     {
       struct variable *var = l->v_dep[i];
       double levene_z;
-      union value *v = &c->data[var->fv];
+      const union value *v = &c->data[var->fv];
       struct group_statistics *gs;
       gs = get_group(i,&key); 
       if ( 0 == gs ) 
@@ -306,7 +324,7 @@ levene2_precalc (void *_l)
 }
 
 static int 
-levene2_calc (struct ccase *c, void *_l)
+levene2_calc (const struct ccase *c, void *_l)
 {
   int i;
 
@@ -314,7 +332,7 @@ levene2_calc (struct ccase *c, void *_l)
 
   double weight = dict_get_case_weight(default_dict,c); 
 
-  union value *gv = &c->data[l->v_indep->fv];
+  const union value *gv = &c->data[l->v_indep->fv];
   struct group_statistics key;
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
@@ -323,7 +341,7 @@ levene2_calc (struct ccase *c, void *_l)
       for (i = 0; i < l->n_dep; ++i) 
 	{
 	  struct variable *v = l->v_dep[i];
-	  union value *val = &c->data[v->fv];
+	  const union value *val = &c->data[v->fv];
 
 	  if (l->is_missing(val,v) )
 	    {
@@ -339,7 +357,7 @@ levene2_calc (struct ccase *c, void *_l)
     {
       double levene_z;
       struct variable *var = l->v_dep[i] ;
-      union value *v = &c->data[var->fv];
+      const union value *v = &c->data[var->fv];
       struct group_statistics *gs;
       gs = get_group(i,&key); 
       if ( 0 == gs ) 

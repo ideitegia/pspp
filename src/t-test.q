@@ -39,6 +39,7 @@
 #include "vfm.h"
 #include "hash.h"
 #include "t-test.h"
+#include "casefile.h"
 #include "levene.h"
 
 /* (specification)
@@ -56,7 +57,7 @@
 /* (functions) */
 
 
-static struct cmd_t_test cmd;
+
 
 /* Function to use for testing for missing values */
 static is_missing_func value_is_missing;
@@ -181,35 +182,39 @@ enum {
 };
 
 
-static int common_calc (struct ccase *, void *);
-static void common_precalc (void *);
-static void common_postcalc (void *);
+static int common_calc (const struct ccase *, void *);
+static void common_precalc (struct cmd_t_test *);
+static void common_postcalc (struct cmd_t_test *);
 
-static int one_sample_calc (struct ccase *, void *);
-static void one_sample_precalc (void *);
-static void one_sample_postcalc (void *);
+static int one_sample_calc (const struct ccase *, void *);
+static void one_sample_precalc (struct cmd_t_test *);
+static void one_sample_postcalc (struct cmd_t_test *);
 
-static int  paired_calc (struct ccase *, void *);
-static void paired_precalc (void *);
-static void paired_postcalc (void *);
+static int  paired_calc (const struct ccase *, void *);
+static void paired_precalc (struct cmd_t_test *);
+static void paired_postcalc (struct cmd_t_test *);
 
-static void group_precalc (void *);
-static int  group_calc (struct ccase *, void *);
-static void group_postcalc (void *);
+static void group_precalc (struct cmd_t_test *);
+static int  group_calc (const struct ccase *, struct cmd_t_test *);
+static void group_postcalc (struct cmd_t_test *);
 
 
 static int compare_var_name (const void *a_, const void *b_, void *v_ UNUSED);
 static unsigned hash_var_name (const void *a_, void *v_ UNUSED);
+
+static void calculate(const struct casefile *cf, void *_mode);
+
+static  int mode;
+
+static struct cmd_t_test cmd;
 
 
 
 int
 cmd_t_test(void)
 {
-  int mode;
 
-  struct ssbox stat_summary_box;
-  struct trbox test_results_box;
+
 
   if ( !parse_t_test(&cmd) )
     return CMD_FAILURE;
@@ -291,36 +296,7 @@ cmd_t_test(void)
   else
     value_is_missing = is_missing;
 
-  procedure_with_splits (common_precalc, common_calc, common_postcalc, NULL);
-
-  switch(mode)
-    {
-    case T_1_SAMPLE:
-      procedure_with_splits (one_sample_precalc, one_sample_calc,
-                             one_sample_postcalc, NULL);
-      break;
-    case T_PAIRED:
-      procedure_with_splits (paired_precalc, paired_calc, paired_postcalc,
-                             NULL);
-      break;
-    case T_IND_SAMPLES:
-      procedure_with_splits(group_precalc,group_calc,group_postcalc, NULL);
-      levene(indep_var, cmd.n_variables, cmd.v_variables,
-	     (cmd.miss == TTS_LISTWISE)?LEV_LISTWISE:LEV_ANALYSIS ,
-	     value_is_missing);
-      break;
-    }
-
-  ssbox_create(&stat_summary_box,&cmd,mode);
-  ssbox_populate(&stat_summary_box,&cmd);
-  ssbox_finalize(&stat_summary_box);
-
-  if ( mode == T_PAIRED) 
-      pscbox();
-
-  trbox_create(&test_results_box,&cmd,mode);
-  trbox_populate(&test_results_box,&cmd);
-  trbox_finalize(&test_results_box);
+  multipass_procedure_with_splits (calculate, &cmd);
 
   n_pairs=0;
   free(pairs);
@@ -962,7 +938,6 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_float(self->t, 2, i*2+3, TAB_CENTER, 
 		cmd->v_variables[i]->p.t_t.levene, 8,3);
 
-
       /* Now work out the significance of the Levene test */
       df1 = 1; df2 = cmd->v_variables[i]->p.t_t.ugs.n - 2;
       q = gsl_cdf_fdist_Q(cmd->v_variables[i]->p.t_t.levene, df1, df2);
@@ -999,7 +974,6 @@ trbox_independent_samples_populate(struct trbox *self,
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
 
       t = gsl_cdf_tdist_Qinv(q,df);
-
       tab_float(self->t, 9, i*2+3, TAB_RIGHT, 
 		mean_diff - t * std_err_diff, 8, 3); 
 
@@ -1324,20 +1298,21 @@ pscbox(void)
 
 /* Per case calculations common to all variants of the T test */
 static int 
-common_calc (struct ccase *c, void *aux UNUSED)
+common_calc (const struct ccase *c, void *_cmd)
 {
   int i;
+  struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;  
 
   double weight = dict_get_case_weight(default_dict,c);
 
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
-  if ( cmd.miss == TTS_LISTWISE ) 
+  if ( cmd->miss == TTS_LISTWISE ) 
     {
-      for(i=0; i< cmd.n_variables ; ++i) 
+      for(i=0; i< cmd->n_variables ; ++i) 
 	{
-	  struct variable *v = cmd.v_variables[i];
-	  union value *val = &c->data[v->fv];
+	  struct variable *v = cmd->v_variables[i];
+	  const union value *val = &c->data[v->fv];
 
 	  if (value_is_missing(val,v) )
 	    {
@@ -1347,9 +1322,9 @@ common_calc (struct ccase *c, void *aux UNUSED)
     }
 
   /* Listwise has to be implicit if the independent variable is missing ?? */
-  if ( cmd.sbc_groups )
+  if ( cmd->sbc_groups )
     {
-      union value *gv = &c->data[indep_var->fv];
+      const union value *gv = &c->data[indep_var->fv];
       if ( value_is_missing(gv,indep_var) )
 	{
 	  return 0;
@@ -1357,13 +1332,13 @@ common_calc (struct ccase *c, void *aux UNUSED)
     }
 
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      struct variable *v = cmd.v_variables[i];
-      union value *val = &c->data[v->fv];
+      struct variable *v = cmd->v_variables[i];
+      const union value *val = &c->data[v->fv];
 
-      gs= &cmd.v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
 
       if (! value_is_missing(val,v) )
 	{
@@ -1377,14 +1352,14 @@ common_calc (struct ccase *c, void *aux UNUSED)
 
 /* Pre calculations common to all variants of the T test */
 static void 
-common_precalc (void *aux UNUSED)
+common_precalc ( struct cmd_t_test *cmd )
 {
   int i=0;
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd.v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
       
       gs->sum=0;
       gs->n=0;
@@ -1395,14 +1370,15 @@ common_precalc (void *aux UNUSED)
 
 /* Post calculations common to all variants of the T test */
 void 
-common_postcalc (void *aux UNUSED)
+common_postcalc (  struct cmd_t_test *cmd )
 {
   int i=0;
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd.v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
       
       gs->mean=gs->sum / gs->n;
       gs->s_std_dev= sqrt(
@@ -1421,19 +1397,21 @@ common_postcalc (void *aux UNUSED)
 
 /* Per case calculations for one sample t test  */
 static int 
-one_sample_calc (struct ccase *c, void *aux UNUSED)
+one_sample_calc (const struct ccase *c, void *cmd_)
 {
   int i;
+  struct cmd_t_test *cmd = (struct cmd_t_test *)cmd_;
+
 
   double weight = dict_get_case_weight(default_dict,c);
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
-  if ( cmd.miss == TTS_LISTWISE ) 
+  if ( cmd->miss == TTS_LISTWISE ) 
     {
-      for(i=0; i< cmd.n_variables ; ++i) 
+      for(i=0; i< cmd->n_variables ; ++i) 
 	{
-	  struct variable *v = cmd.v_variables[i];
-	  union value *val = &c->data[v->fv];
+	  struct variable *v = cmd->v_variables[i];
+	  const union value *val = &c->data[v->fv];
 
 	  if (value_is_missing(val,v) )
 	    {
@@ -1442,16 +1420,16 @@ one_sample_calc (struct ccase *c, void *aux UNUSED)
 	}
     }
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      struct variable *v = cmd.v_variables[i];
-      union value *val = &c->data[v->fv];
+      struct variable *v = cmd->v_variables[i];
+      const union value *val = &c->data[v->fv];
 
-      gs= &cmd.v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
       
       if ( ! value_is_missing(val,v))
-	gs->sum_diff += weight * (val->f - cmd.n_testval);
+	gs->sum_diff += weight * (val->f - cmd->n_testval);
     }
 
   return 0;
@@ -1459,14 +1437,14 @@ one_sample_calc (struct ccase *c, void *aux UNUSED)
 
 /* Pre calculations for one sample t test */
 static void 
-one_sample_precalc (void *aux UNUSED)
+one_sample_precalc ( struct cmd_t_test *cmd )
 {
-  int i=0;
-  
-  for(i=0; i< cmd.n_variables ; ++i) 
+  int i=0; 
+ 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd.v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
       
       gs->sum_diff=0;
     }
@@ -1474,16 +1452,15 @@ one_sample_precalc (void *aux UNUSED)
 
 /* Post calculations for one sample t test */
 static void 
-one_sample_postcalc (void *aux UNUSED)
+one_sample_postcalc (struct cmd_t_test *cmd)
 {
   int i=0;
   
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      gs= &cmd.v_variables[i]->p.t_t.ugs;
+      gs= &cmd->v_variables[i]->p.t_t.ugs;
 
-      
       gs->mean_diff = gs->sum_diff / gs->n ;
     }
 }
@@ -1510,7 +1487,7 @@ hash_var_name (const void *a_, void *v_ UNUSED)
 
 
 static void 
-paired_precalc (void *aux UNUSED)
+paired_precalc (struct cmd_t_test *cmd UNUSED)
 {
   int i;
 
@@ -1529,23 +1506,25 @@ paired_precalc (void *aux UNUSED)
 
 
 static int  
-paired_calc (struct ccase *c, void *aux UNUSED)
+paired_calc (const struct ccase *c, void *cmd_)
 {
   int i;
+
+  struct cmd_t_test *cmd  = (struct cmd_t_test *) cmd_;
 
   double weight = dict_get_case_weight(default_dict,c);
 
   /* Skip the entire case if /MISSING=LISTWISE is set , 
    AND one member of a pair is missing */
-  if ( cmd.miss == TTS_LISTWISE ) 
+  if ( cmd->miss == TTS_LISTWISE ) 
     {
       for(i=0; i < n_pairs ; ++i )
       	{
 	  struct variable *v0 = pairs[i].v[0];
 	  struct variable *v1 = pairs[i].v[1];
 
-	  union value *val0 = &c->data[v0->fv];
-	  union value *val1 = &c->data[v1->fv];
+	  const union value *val0 = &c->data[v0->fv];
+	  const union value *val1 = &c->data[v1->fv];
 	  
 	  if ( value_is_missing(val0,v0) ||
 	       value_is_missing(val1,v1) )
@@ -1560,8 +1539,8 @@ paired_calc (struct ccase *c, void *aux UNUSED)
       struct variable *v0 = pairs[i].v[0];
       struct variable *v1 = pairs[i].v[1];
 
-      union value *val0 = &c->data[v0->fv];
-      union value *val1 = &c->data[v1->fv];
+      const union value *val0 = &c->data[v0->fv];
+      const union value *val1 = &c->data[v1->fv];
 
       if ( ( !value_is_missing(val0,v0) && !value_is_missing(val1,v1) ) )
       {
@@ -1583,7 +1562,7 @@ paired_calc (struct ccase *c, void *aux UNUSED)
 }
 
 static void 
-paired_postcalc (void *aux UNUSED)
+paired_postcalc (struct cmd_t_test *cmd UNUSED)
 {
   int i;
 
@@ -1660,14 +1639,14 @@ get_group(const union value *val, struct variable *indep)
 
 
 static void 
-group_precalc (void *aux UNUSED)
+group_precalc (struct cmd_t_test *cmd )
 {
   int i;
   int j;
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
-      struct t_test_proc *ttpr = &cmd.v_variables[i]->p.t_t;
+      struct t_test_proc *ttpr = &cmd->v_variables[i]->p.t_t;
 
       /* There's always 2 groups for a T - TEST */
       ttpr->n_groups = 2;
@@ -1690,25 +1669,26 @@ group_precalc (void *aux UNUSED)
 }
 
 static int  
-group_calc (struct ccase *c, void *aux UNUSED)
+group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 {
   int i;
   int g;
-  union value *gv = &c->data[indep_var->fv];
 
-  double weight = dict_get_case_weight(default_dict,c);
+  const union value *gv = &c->data[indep_var->fv];
+
+  const double weight = dict_get_case_weight(default_dict,c);
 
   if ( value_is_missing(gv,indep_var) )
     {
       return 0;
     }
 
-  if ( cmd.miss == TTS_LISTWISE ) 
+  if ( cmd->miss == TTS_LISTWISE ) 
     {
-      for(i=0; i< cmd.n_variables ; ++i) 
+      for(i=0; i< cmd->n_variables ; ++i) 
 	{
-	  struct variable *v = cmd.v_variables[i];
-	  union value *val = &c->data[v->fv];
+	  struct variable *v = cmd->v_variables[i];
+	  const union value *val = &c->data[v->fv];
 
 	  if (value_is_missing(val,v) )
 	    {
@@ -1722,18 +1702,19 @@ group_calc (struct ccase *c, void *aux UNUSED)
 
   g = get_group(gv,indep_var);
 
+
   /* If the independent variable doesn't match either of the values 
      for this case then move on to the next case */
   if (g == -1 ) 
     return 0;
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
-      struct variable *var = cmd.v_variables[i];
+      struct variable *var = cmd->v_variables[i];
 
       struct group_statistics *gs = &var->p.t_t.gs[g];
 
-      union value *val=&c->data[var->fv];
+      const union value *val=&c->data[var->fv];
 
       if ( !value_is_missing(val,var) )
 	{
@@ -1748,17 +1729,17 @@ group_calc (struct ccase *c, void *aux UNUSED)
 
 
 static void 
-group_postcalc (void *aux UNUSED)
+group_postcalc ( struct cmd_t_test *cmd )
 {
   int i;
   int j;
 
-  for(i=0; i< cmd.n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i) 
     {
       for (j=0 ; j < 2 ; ++j)
 	{
 	  struct group_statistics *gs;
-	  gs=&cmd.v_variables[i]->p.t_t.gs[j];
+	  gs=&cmd->v_variables[i]->p.t_t.gs[j];
 
 	  gs->mean = gs->sum / gs->n;
 	  
@@ -1776,3 +1757,79 @@ group_postcalc (void *aux UNUSED)
     }
 }
 
+
+
+static void 
+calculate(const struct casefile *cf, void *cmd_)
+{
+  struct ssbox stat_summary_box;
+  struct trbox test_results_box;
+
+  struct casereader *r;
+  const struct ccase *c;
+
+  struct cmd_t_test *cmd = (struct cmd_t_test *) cmd_;
+
+  common_precalc(cmd);
+  for(r = casefile_get_reader (cf);
+      casereader_read (r, &c) ; ) 
+    {
+      common_calc(c,cmd);
+    }
+  casereader_destroy (r);
+  common_postcalc(cmd);
+
+  switch(mode)
+    {
+    case T_1_SAMPLE:
+      one_sample_precalc(cmd);
+      for(r = casefile_get_reader (cf);
+	  casereader_read (r, &c) ; ) 
+	{
+	  one_sample_calc(c,cmd);
+	}
+      casereader_destroy (r);
+      one_sample_postcalc(cmd);
+
+      break;
+    case T_PAIRED:
+      paired_precalc(cmd);
+      for(r = casefile_get_reader (cf);
+	  casereader_read (r, &c) ; ) 
+	{
+	  paired_calc(c,cmd);
+	}
+      casereader_destroy (r);
+      paired_postcalc(cmd);
+
+      break;
+    case T_IND_SAMPLES:
+
+      group_precalc(cmd);
+      for(r = casefile_get_reader (cf);
+	  casereader_read (r, &c) ; ) 
+	{
+	  group_calc(c,cmd);
+	}
+      casereader_destroy (r);
+      group_postcalc(cmd);
+
+
+      levene(cf, indep_var, cmd->n_variables, cmd->v_variables,
+	     (cmd->miss == TTS_LISTWISE)?LEV_LISTWISE:LEV_ANALYSIS ,
+	     value_is_missing);
+      break;
+    }
+
+  ssbox_create(&stat_summary_box,cmd,mode);
+  ssbox_populate(&stat_summary_box,cmd);
+  ssbox_finalize(&stat_summary_box);
+
+  if ( mode == T_PAIRED) 
+      pscbox();
+
+  trbox_create(&test_results_box,cmd,mode);
+  trbox_populate(&test_results_box,cmd);
+  trbox_finalize(&test_results_box);
+
+}

@@ -24,6 +24,7 @@
 
 
 #include "var.h"
+#include "casefile.h"
 
 /* What to do with missing values */
 enum lev_missing { LEV_ANALYSIS, LEV_LISTWISE };
@@ -39,7 +40,8 @@ The dependent variables :   v_dep;
 */
 
 
-void  levene(struct variable *v_indep, int n_dep, struct variable **v_dep,
+void  levene(const struct casefile *cf, 
+	     struct variable *v_indep, int n_dep, struct variable **v_dep,
 	     enum lev_missing,   is_missing_func);
 
 

@@ -40,6 +40,7 @@ TESTS = command/aggregate.sh \
 	bugs/multipass.sh \
 	bugs/random.sh \
 	bugs/t-test.sh \
+	bugs/t-test-with-temp.sh \
 	bugs/temporary.sh \
 	bugs/val-labs.sh \
 	xforms/casefile.sh \
