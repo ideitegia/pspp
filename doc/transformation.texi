@@ -400,7 +400,8 @@ the active file is subsequently transposed using @cmd{FLIP}, this
 variable can
 be used to recreate the original variable names.
 
-FLIP honors N OF CASES.  It ignores TEMPORARY, so that ``temporary''
+FLIP honors @cmd{N OF CASES} (@pxref{N OF CASES}).  It ignores
+@cmd{TEMPORARY} (@pxref{TEMPORARY}), so that ``temporary''
 transformations become permanent.
 
 @node IF, RECODE, FLIP, Data Manipulation
