@@ -1091,12 +1091,7 @@ dump_splits (struct ccase *c)
       assert (v->type == NUMERIC || v->type == ALPHA);
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
       
-      {
-	union value val = c->data[v->fv];
-	if (v->type == ALPHA)
-	  val.c = c->data[v->fv].s;
-	data_out (temp_buf, &v->print, &val);
-      }
+      data_out (temp_buf, &v->print, &c->data[v->fv]);
       
       temp_buf[v->print.w] = 0;
       tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);

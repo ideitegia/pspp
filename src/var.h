@@ -26,10 +26,12 @@
 
 /* Values. */
 
-/* Definition of the max length of a short string value, generally
-   eight characters.  */
+/* Max length of a short string value, generally 8 chars. */
 #define MAX_SHORT_STRING ((SIZEOF_DOUBLE)>=8 ? ((SIZEOF_DOUBLE)+1)/2*2 : 8)
 #define MIN_LONG_STRING (MAX_SHORT_STRING+1)
+
+/* Max string length. */
+#define MAX_STRING 255
 
 /* FYI: It is a bad situation if sizeof(flt64) < MAX_SHORT_STRING:
    then short string missing values can be truncated in system files
@@ -54,22 +56,20 @@ union value
     /* A short-string value. */
     unsigned char s[MAX_SHORT_STRING];
 
-    /* This member is used by data-in.c to return a string result,
-       since it may need to return a long string.  As currently
-       implemented, it's a pointer to a static internal buffer in
-       data-in.c.
-
-       Also used by evaluate_expression() to return a string result.
-       As currently implemented, it's a pointer to a dynamic buffer in
-       the appropriate expression.
+    /* Used by evaluate_expression() to return a string result.
+       As currently implemented, it's a pointer to a dynamic
+       buffer in the appropriate expression.
 
        Also used by the AGGREGATE procedure in handling string
        values. */
     unsigned char *c;
-
-    /* Sometimes we insert value's in a hash table. */
-    unsigned long hash[SIZEOF_DOUBLE / SIZEOF_LONG];
   };
+
+/* Maximum number of `union value's in a single number or string
+   value. */
+#define MAX_ELEMS_PER_VALUE (MAX_STRING / sizeof (union value) + 1)
+
+int compare_values (union value *a, union value *b, int width);
 
 /* Frequency tables. */
 

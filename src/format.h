@@ -77,6 +77,9 @@ extern const int translate_fmt[40];
 
 union value;
 
+/* Maximum length of formatted value, in character. */
+#define MAX_FORMATTED_LEN 256
+
 int parse_format_specifier (struct fmt_spec *input, int allow_xt);
 int parse_format_specifier_name (const char **cp, int allow_xt);
 int check_input_specifier (const struct fmt_spec *spec);
@@ -85,7 +88,7 @@ int check_string_specifier (const struct fmt_spec *spec, int min_len);
 void convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output);
 int parse_string_as_format (const char *s, int len, const struct fmt_spec *fp,
 			    int fc, union value *v);
-int data_out (char *s, const struct fmt_spec *fp, const union value *v);
+void data_out (char *s, const struct fmt_spec *fp, const union value *v);
 char *fmt_to_string (const struct fmt_spec *);
 void num_to_string (double v, char *s, int w, int d);
 

@@ -1,3 +1,75 @@
+Mon Feb 16 22:14:36 2004  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: (dump_header) Add an Emacs header line to output files
+	that makes generated .c files read-only by default, to make it
+	difficult to accidentally change generated files.
+
+Mon Feb 16 22:12:07 2004  Ben Pfaff  <blp@gnu.org>
+
+	* frequencies.q: (compare_freq_numeric_a) Compare by frequency,
+	not bogus a->v.c <=> b->v.c pointer compare.
+	(compare_freq_alpha_a) Ditto.
+	(compare_freq_numeric_d) Ditto.
+	(compare_freq_alpha_d) Ditto.
+	
+Mon Feb 16 22:00:53 2004  Ben Pfaff  <blp@gnu.org>
+
+	Changed data_out() to store string data directly into a `union
+	value''s s member, not indirectly into c.
+
+	* crosstabs.q: (output_pivot_table) Use format_short() instead of
+	data_out().
+	(table_value_missing) Ditto.
+	(float_M_suffix) Ditto.
+	(format_short) New function.
+
+	* data-in.h: (data_in_finite_line) Remove inline definition.
+
+	* data-list.c: (destroy_dls_var_spec) New function.
+	(destroy_dls) Rewrite in terms of destroy_dls_var_spec().
+	(data_list_source_destroy_source) Avoid cast.
+	(struct repeating_data_trns) New field `id_value'.  Update
+	comments.
+	(cmd_repeating_data) Initialize id_value.  Use new
+	repeating_data_trns_free() for freeing REPEATING DATA
+	transformations.
+	(rpd_parse_record) Rewrite support for record ID to be less bogus.
+	(repeating_data_trns_free) New function.
+
+	* data-out.c: (data_out) Change return type to `void' by replacing
+	error returns by writing a message into the output buffer.
+	(convert_A) Read from v->s instead of v->c.
+	(convert_AHEX) Ditto.
+
+	* expr-evl.c: Update comment.
+	(expr_evaluate) Add assertion in OP_STRING case.
+
+	* format.h: (macro MAX_FORMATTED_LEN) New macro.
+
+	* list.q: (list_cases) Update for new data_out() semantics.
+
+	* print.c: (print_trns_proc) Ditto.
+
+	* tab.c: (tab_value) Ditto.
+	(tab_float) Avoid stupid cast.
+
+	* var.h: Update comments.
+	(macro MAX_STRING) New macro.
+	(macro MAX_ELEMS_PER_VALUE) New macro.
+
+	* vars-atr.c: (compare_values) New function.
+
+	* vfm.c: (dump_splits) Update for new data_out() semantics.
+
+Mon Feb 16 21:45:47 2004  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.q: (struct table_entry) Rename v[] to values[].  All
+	references updated.
+	(struct crosstab) Rename v[] to vars[].  All references updated.
+	(hash_table_entry) Replace the hash algorithm and fix a bug at the
+	same time, which caused the hash value to depend only on a single
+	value, not all of the variables' values.
+	
 Mon Feb 16 12:49:53 2004  Ben Pfaff  <blp@gnu.org>
 
 	Clean up struct dictionary's value_cnt usage.

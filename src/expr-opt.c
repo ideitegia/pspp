@@ -835,6 +835,7 @@ evaluate_tree (struct nonterm_node * n)
 	f.d = (int) n->arg[3];
 	v.f = n0;
 
+        assert ((formats[f.type].cat & FCAT_STRING) == 0);
 	data_out (strbuf, &f, &v);
 	n = repl_str_con (n, strbuf, f.w);
       }

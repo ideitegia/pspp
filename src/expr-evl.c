@@ -50,14 +50,6 @@
 #include "vfm.h"
 #include "vfmP.h"
 
-/* FIXME: This could be even more efficient if we caught SYSMIS when
-   it first reared its ugly head, then threw it into an entirely new
-   switch that handled SYSMIS aggressively like all the code does now.
-   But I've spent a couple of weeks on the expression code, and that's
-   enough to make anyone sick.  For that matter, it could be more
-   efficient if I hand-coded it in assembly for a dozen processors,
-   but I'm not going to do that either. */
-
 double
 expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 {
@@ -1061,6 +1053,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    dest = pool_alloc (e->pool, f.w + 1);
 	    dest[0] = f.w;
 
+            assert ((formats[f.type].cat & FCAT_STRING) == 0);
 	    data_out (&dest[1], &f, sp);
 	    sp->c = dest;
 	  }
@@ -1292,12 +1285,6 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	  goto finished;
 
 	default:
-#if GLOBAL_DEBUGGING
-	  printf (_("evaluate_expression(): not implemented: %s\n"),
-		  ops[op[-1]].name);
-#else
-	  printf (_("evaluate_expression(): not implemented: %d\n"), op[-1]);
-#endif
 	  assert (0);
 	}
 

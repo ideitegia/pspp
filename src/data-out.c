@@ -54,13 +54,25 @@ static convert_func convert_RB, convert_RBHEX, convert_CCx, convert_date;
 static convert_func convert_time, convert_WKDAY, convert_MONTH;
 static convert_func try_F;
 
-/* Converts binary value V into printable form in string S according
-   to format specification FP.  The string as written has exactly
-   FP->W characters.  It is not null-terminated.  Returns 1 on
-   success, 0 on failure. */
-int
+/* Converts binary value V into printable form in the exactly
+   FP->W character in buffer S according to format specification
+   FP.  No null terminator is appended to the buffer.  */
+void
 data_out (char *s, const struct fmt_spec *fp, const union value *v)
 {
+  static convert_func *const handlers[FMT_NUMBER_OF_FORMATS] =
+    {
+      convert_F, convert_N, convert_E, convert_F_plus,
+      convert_F_plus, convert_F_plus, convert_F_plus,
+      convert_Z, convert_A, convert_AHEX, convert_IB, convert_P, convert_PIB,
+      convert_PIBHEX, convert_PK, convert_RB, convert_RBHEX,
+      convert_CCx, convert_CCx, convert_CCx, convert_CCx, convert_CCx,
+      convert_date, convert_date, convert_date, convert_date, convert_date,
+      convert_date, convert_date, convert_date, convert_date,
+      convert_time, convert_time,
+      convert_WKDAY, convert_MONTH,
+    };
+
   union value tmp_val;
   
   {
@@ -69,7 +81,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
       {
 	memset (s, ' ', fp->w);
 	s[fp->w - fp->d - 1] = '.';
-	return 1;
+	return;
       }
     if ((cat & FCAT_SHIFT_DECIMAL) && v->f != SYSMIS && fp->d)
       {
@@ -78,22 +90,8 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
       }
   }
   
-  {
-    static convert_func *const handlers[FMT_NUMBER_OF_FORMATS] =
-      {
-	convert_F, convert_N, convert_E, convert_F_plus,
-	convert_F_plus, convert_F_plus, convert_F_plus,
-	convert_Z, convert_A, convert_AHEX, convert_IB, convert_P, convert_PIB,
-	convert_PIBHEX, convert_PK, convert_RB, convert_RBHEX,
-	convert_CCx, convert_CCx, convert_CCx, convert_CCx, convert_CCx,
-	convert_date, convert_date, convert_date, convert_date, convert_date,
-	convert_date, convert_date, convert_date, convert_date,
-	convert_time, convert_time,
-	convert_WKDAY, convert_MONTH,
-      };
-
-    return handlers[fp->type] (s, fp, v);
-  }
+  if (!handlers[fp->type] (s, fp, v)) 
+    strncpy (s, "ERROR", fp->w);
 }
 
 /* Converts V into S in F format with width W and D decimal places,
@@ -397,7 +395,7 @@ convert_Z (char *dst, const struct fmt_spec *fp, const union value *v)
 static int
 convert_A (char *dst, const struct fmt_spec *fp, const union value *v)
 {
-  memcpy (dst, v->c, fp->w);
+  memcpy (dst, v->s, fp->w);
   return 1;
 }
 
@@ -408,8 +406,8 @@ convert_AHEX (char *dst, const struct fmt_spec *fp, const union value *v)
 
   for (i = 0; i < fp->w / 2; i++)
     {
-      ((unsigned char *) dst)[i * 2] = MAKE_HEXIT ((v->c[i]) >> 4);
-      ((unsigned char *) dst)[i * 2 + 1] = MAKE_HEXIT ((v->c[i]) & 0xf);
+      ((unsigned char *) dst)[i * 2] = MAKE_HEXIT ((v->s[i]) >> 4);
+      ((unsigned char *) dst)[i * 2 + 1] = MAKE_HEXIT ((v->s[i]) & 0xf);
     }
 
   return 1;

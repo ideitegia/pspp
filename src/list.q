@@ -669,19 +669,15 @@ list_cases (struct ccase *c, void *aux UNUSED)
 		memset(&line_buf[x], ' ', width - v->print.w);
 		x += width - v->print.w;
 	      }
-	  
-	    {
-	      union value value;
-	    
-	      if (formats[v->print.type].cat & FCAT_STRING)
-		value.c = c->data[v->fv].s;
-	      else if (v->fv == -1)
-		value.f = case_num;
-	      else
-		value.f = c->data[v->fv].f;
-		
-	      data_out (&line_buf[x], &v->print, &value);
-	    }
+
+            if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
+	      data_out (&line_buf[x], &v->print, &c->data[v->fv]);
+            else 
+              {
+                union value case_num_value;
+                case_num_value.f = case_num;
+                data_out (&line_buf[x], &v->print, &case_num_value); 
+              }
 	    x += v->print.w;
 	  
 	    line_buf[x++] = ' ';
@@ -706,17 +702,16 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
 	    struct variable *v = cmd.v_variables[column];
-	    union value value;
 	    char buf[41];
 	    
-	    if (formats[v->print.type].cat & FCAT_STRING)
-	      value.c = c->data[v->fv].s;
-	    else if (v->fv == -1)
-	      value.f = case_num;
-	    else
-	      value.f = c->data[v->fv].f;
-		
-	    data_out (buf, &v->print, &value);
+            if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
+	      data_out (buf, &v->print, &c->data[v->fv]);
+            else 
+              {
+                union value case_num_value;
+                case_num_value.f = case_num;
+                data_out (buf, &v->print, &case_num_value); 
+              }
 	    buf[v->print.w] = 0;
 
 	    fprintf (x->file.file, "    <TD ALIGN=RIGHT>%s</TD>\n",

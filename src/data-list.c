@@ -1186,20 +1186,26 @@ read_from_data_list_list (void)
   return -1;
 }
 
-/* Destroys DATA LIST transformation or input program PGM. */
+/* Destroys SPEC. */
+static void
+destroy_dls_var_spec (struct dls_var_spec *spec) 
+{
+  struct dls_var_spec *next;
+
+  while (spec != NULL)
+    {
+      next = spec->next;
+      free (spec);
+      spec = next;
+    }
+}
+
+/* Destroys DATA LIST transformation PGM. */
 static void
 destroy_dls (struct trns_header *pgm)
 {
   struct data_list_pgm *dls = (struct data_list_pgm *) pgm;
-  struct dls_var_spec *iter, *next;
-
-  iter = dls->spec;
-  while (iter)
-    {
-      next = iter->next;
-      free (iter);
-      iter = next;
-    }
+  destroy_dls_var_spec (dls->spec);
   fh_close_handle (dls->handle);
 }
 
@@ -1225,7 +1231,7 @@ data_list_source_read (write_case_func *write_case, write_case_data wc_data)
 static void
 data_list_source_destroy_source (void)
 {
-  destroy_dls ((struct trns_header *) & dls);
+  destroy_dls (&dls.h);
 }
 
 struct case_stream data_list_source = 
@@ -1254,7 +1260,6 @@ struct repeating_data_trns
     struct trns_header h;
     struct dls_var_spec *spec;	/* Variable parsing specifications. */
     struct file_handle *handle;	/* Input file, never NULL. */
-    /* Do not reorder preceding fields. */
 
     struct rpd_num_or_var starts_beg;	/* STARTS=, before the dash. */
     struct rpd_num_or_var starts_end;	/* STARTS=, after the dash. */
@@ -1262,9 +1267,13 @@ struct repeating_data_trns
     struct rpd_num_or_var length;	/* LENGTH= subcommand. */
     struct rpd_num_or_var cont_beg;	/* CONTINUED=, before the dash. */
     struct rpd_num_or_var cont_end;	/* CONTINUED=, after the dash. */
-    int id_beg, id_end;			/* ID subcommand, beginning & end columns. */
-    struct variable *id_var;		/* ID subcommand, DATA LIST variable. */
-    struct fmt_spec id_spec;		/* ID subcommand, input format spec. */
+
+    /* ID subcommand. */
+    int id_beg, id_end;			/* Beginning & end columns. */
+    struct variable *id_var;		/* DATA LIST variable. */
+    struct fmt_spec id_spec;		/* Input format spec. */
+    union value *id_value;              /* ID value. */
+
     write_case_func *write_case;
     write_case_data wc_data;
   };
@@ -1273,6 +1282,7 @@ struct repeating_data_trns
 static struct repeating_data_trns rpd;
 
 int repeating_data_trns_proc (struct trns_header *, struct ccase *);
+void repeating_data_trns_free (struct trns_header *);
 static int parse_num_or_var (struct rpd_num_or_var *, const char *);
 static int parse_repeating_data (void);
 static void find_variable_input_spec (struct variable *v,
@@ -1301,6 +1311,7 @@ cmd_repeating_data (void)
     = rpd.cont_end = rpd.starts_beg;
   rpd.id_beg = rpd.id_end = 0;
   rpd.id_var = NULL;
+  rpd.id_value = NULL;
   rpd.spec = NULL;
   first = &rpd.spec;
   next = NULL;
@@ -1469,6 +1480,7 @@ cmd_repeating_data (void)
 	    return CMD_FAILURE;
 
 	  find_variable_input_spec (rpd.id_var, &rpd.id_spec);
+          rpd.id_value = xmalloc (sizeof *rpd.id_value * rpd.id_var->nv);
 	}
       else if (lex_match_id ("TABLE"))
 	table = 1;
@@ -1533,7 +1545,7 @@ cmd_repeating_data (void)
     struct repeating_data_trns *new_trns;
 
     rpd.h.proc = repeating_data_trns_proc;
-    rpd.h.free = destroy_dls;
+    rpd.h.free = repeating_data_trns_free;
 
     new_trns = xmalloc (sizeof *new_trns);
     memcpy (new_trns, &rpd, sizeof *new_trns);
@@ -1709,14 +1721,14 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
   /* Handle record ID values. */
   if (t->id_beg != 0)
     {
-      static union value comparator;
-      union value v;
+      union value id_temp[MAX_ELEMS_PER_VALUE];
       
+      /* Parse record ID into V. */
       {
 	struct data_in di;
 
 	data_in_finite_line (&di, line, len, t->id_beg, t->id_end);
-	di.v = &v;
+	di.v = compare_id ? id_temp : t->id_value;
 	di.flags = 0;
 	di.f1 = t->id_beg;
 	di.format = t->id_spec;
@@ -1725,25 +1737,21 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 	  return 0;
       }
 
-      if (compare_id == 0)
-	comparator = v;
-      else if ((t->id_var->type == NUMERIC && comparator.f != v.f)
-	       || (t->id_var->type == ALPHA
-		   && strncmp (comparator.s, v.s, t->id_var->width)))
+      if (compare_id
+          && compare_values (id_temp, t->id_value, t->id_var->width) != 0)
 	{
-	  char comp_str [64];
-	  char v_str [64];
+	  char expected_str [MAX_FORMATTED_LEN + 1];
+	  char actual_str [MAX_FORMATTED_LEN + 1];
 
-	  if (!data_out (comp_str, &t->id_var->print, &comparator))
-	    comp_str[0] = 0;
-	  if (!data_out (v_str, &t->id_var->print, &v))
-	    v_str[0] = 0;
-	  
-	  comp_str[t->id_var->print.w] = v_str[t->id_var->print.w] = 0;
+	  data_out (expected_str, &t->id_var->print, t->id_value);
+          expected_str[t->id_var->print.w] = '\0';
+
+	  data_out (actual_str, &t->id_var->print, id_temp);
+          actual_str[t->id_var->print.w] = '\0';
 	    
 	  tmsg (SE, RPD_ERR, 
-		_("Mismatched case ID (%s).  Expected value was %s."),
-		v_str, comp_str);
+		_("Encountered mismatched record ID \"%s\" expecting \"%s\"."),
+		actual_str, expected_str);
 
 	  return 0;
 	}
@@ -1940,6 +1948,16 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c)
   /* FIXME: This is a kluge until we've implemented multiplexing of
      transformations. */
   return -3;
+}
+
+void
+repeating_data_trns_free (struct trns_header *rpd_) 
+{
+  struct repeating_data_trns *rpd = (struct repeating_data_trns *) rpd_;
+
+  destroy_dls_var_spec (rpd->spec);
+  fh_close_handle (rpd->handle);
+  free (rpd->id_value);
 }
 
 /* This is a kluge.  It is only here until I have more time

@@ -35,6 +35,17 @@
 
 #include "debug-print.h"
 
+/* Compares A and B, which both have the given WIDTH, and returns
+   a strcmp()-type result. */
+int
+compare_values (union value *a, union value *b, int width) 
+{
+  if (width == 0) 
+    return a->f < b->f ? -1 : a->f > b->f;
+  else
+    return memcmp (a->s, b->s, width);
+}
+
 /* Discards all the current state in preparation for a data-input
    command like DATA LIST or GET. */
 void

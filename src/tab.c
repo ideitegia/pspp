@@ -570,7 +570,6 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
 	   const union value *v, const struct fmt_spec *f)
 {
   char *contents;
-  union value temp_val;
 
   assert (table != NULL && v != NULL && f != NULL);
 #if GLOBAL_DEBUGGING
@@ -591,11 +590,6 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
   ls_init (&table->cc[c + r * table->cf], contents, f->w);
   table->ct[c + r * table->cf] = opt;
   
-  if (formats[f->type].cat & FCAT_STRING)
-    {
-      temp_val.c = (char *) v->s;
-      v = &temp_val;
-    }
   data_out (contents, f, v);
 }
 
@@ -609,6 +603,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
   char buf[40], *cp;
   
   struct fmt_spec f;
+  union value double_value;
 
   assert (table != NULL && w <= 40);
   
@@ -635,7 +630,9 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  data_out (buf, &f, (union value *) &val);
+  double_value.f = val;
+  data_out (buf, &f, &double_value);
+
   cp = buf;
   while (isspace ((unsigned char) *cp) && cp < &buf[w])
     cp++;

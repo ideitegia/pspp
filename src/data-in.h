@@ -47,14 +47,4 @@ int data_in (struct data_in *);
 void data_in_finite_line (struct data_in *di, const char *line, size_t len,
 			  int fc, int lc);
 
-#if __GNUC__ >= 2
-extern inline void
-data_in_finite_line (struct data_in *di, const char *line, size_t len,
-		     int fc, int lc)
-{
-  di->s = line + ((size_t) fc <= len ? fc - 1 : len);
-  di->e = line + ((size_t) lc <= len ? lc : len);
-}
-#endif /* GNU C */
-
 #endif /* data-in.h */

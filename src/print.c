@@ -958,14 +958,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c)
 	break;
 
       case PRT_VAR:
-	if (i->u.v.v->type == NUMERIC)
-	  data_out (&buf[i->fc], &i->u.v.f, &c->data[i->u.v.v->fv]);
-	else
-	  {
-	    union value t;
-	    t.c = c->data[i->u.v.v->fv].s;
-	    data_out (&buf[i->fc], &i->u.v.f, &t);
-	  }
+        data_out (&buf[i->fc], &i->u.v.f, &c->data[i->u.v.v->fv]);
 	len = i->fc + i->u.v.f.w;
 	break;
 

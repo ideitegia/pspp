@@ -889,9 +889,9 @@ compare_freq_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
   const struct freq *a = a_;
   const struct freq *b = b_;
 
-  if (a->v.c > b->v.c)
+  if (a->c > b->c)
     return 1;
-  else if (a->v.c < b->v.c)
+  else if (a->c < b->c)
     return -1;
 
   if (a->v.f > b->v.f)
@@ -911,9 +911,9 @@ compare_freq_alpha_a (const void *a_, const void *b_, void *v_)
   const struct freq *b = b_;
   const struct variable *v = v_;
 
-  if (a->v.c > b->v.c)
+  if (a->c > b->c)
     return 1;
-  else if (a->v.c < b->v.c)
+  else if (a->c < b->c)
     return -1;
   else
     return memcmp (a->v.s, b->v.s, v->width);
@@ -927,9 +927,9 @@ compare_freq_numeric_d (const void *a_, const void *b_, void *foo UNUSED)
   const struct freq *a = a_;
   const struct freq *b = b_;
 
-  if (a->v.c > b->v.c)
+  if (a->c > b->c)
     return -1;
-  else if (a->v.c < b->v.c)
+  else if (a->c < b->c)
     return 1;
 
   if (a->v.f > b->v.f)
@@ -949,9 +949,9 @@ compare_freq_alpha_d (const void *a_, const void *b_, void *v_)
   const struct freq *b = b_;
   const struct variable *v = v_;
 
-  if (a->v.c > b->v.c)
+  if (a->c > b->c)
     return -1;
-  else if (a->v.c < b->v.c)
+  else if (a->c < b->c)
     return 1;
   else
     return memcmp (a->v.s, b->v.s, v->width);
