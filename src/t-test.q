@@ -55,7 +55,11 @@
 /* (declarations) */
 /* (functions) */
 
+
 static struct cmd_t_test cmd;
+
+/* Function to use for testing for missing values */
+static is_missing_func value_is_missing;
 
 /* Variable for the GROUPS subcommand, if given. */
 static struct variable *indep_var;
@@ -68,18 +72,43 @@ static union value groups_values[2];
 static enum comparison criteria[2];
 
 
+
 /* PAIRS: Number of pairs to be compared ; each pair. */
 static int n_pairs = 0 ;
 struct pair 
 {
+#if 1
   /* The variables comprising the pair */
   struct variable *v[2];
+#endif
+
+  /* The number of valid variable pairs */
+  double n;
+
+  /* The sum of the members */
+  double sum[2];
+
+  /* sum of squares of the members */
+  double ssq[2];
+
+  /* Std deviation of the members */
+  double std_dev[2];
+
+
+  /* Sample Std deviation of the members */
+  double s_std_dev[2];
+
+  /* The means of the members */
+  double mean[2];
 
   /* The correlation coefficient between the variables */
   double correlation;
 
   /* The sum of the differences */
   double sum_of_diffs;
+
+  /* The sum of the products */
+  double sum_of_prod;
 
   /* The mean of the differences */
   double mean_diff;
@@ -258,6 +287,11 @@ cmd_t_test(void)
 	}
     }
 
+  /* If /MISSING=INCLUDE is set, then user missing values are ignored */
+  if (cmd.incl == TTS_INCLUDE ) 
+    value_is_missing = is_system_missing;
+  else
+    value_is_missing = is_missing;
 
   procedure(common_precalc,common_calc,common_postcalc, NULL);
 
@@ -271,7 +305,9 @@ cmd_t_test(void)
       break;
     case T_IND_SAMPLES:
       procedure(group_precalc,group_calc,group_postcalc, NULL);
-      levene(indep_var, cmd.n_variables, cmd.v_variables);
+      levene(indep_var, cmd.n_variables, cmd.v_variables,
+	     (cmd.miss == TTS_LISTWISE)?LEV_LISTWISE:LEV_ANALYSIS ,
+	     value_is_missing);
       break;
     }
 
@@ -289,7 +325,6 @@ cmd_t_test(void)
   n_pairs=0;
   free(pairs);
   pairs=0;
-
 
   if ( mode == T_IND_SAMPLES) 
     {
@@ -373,8 +408,6 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
   criteria[0] = criteria[1] = CMP_EQ;
   return 1;
 }
-
-
 
 
 static int
@@ -764,15 +797,13 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 	  tab_text (ssb->t, 1, i*2+j+1, TAB_LEFT, pairs[i].v[j]->name);
 
 	  /* Values */
-	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, gs->mean, 8, 2);
-	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, gs->n, 2, 0);
-	  tab_float (ssb->t,4, i*2+j+1, TAB_RIGHT, gs->std_dev, 8, 3);
-	  tab_float (ssb->t,5, i*2+j+1, TAB_RIGHT, gs->se_mean, 8, 3);
+	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, pairs[i].mean[j], 8, 2);
+	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, pairs[i].n, 2, 0);
+	  tab_float (ssb->t,4, i*2+j+1, TAB_RIGHT, pairs[i].std_dev[j], 8, 3);
+	  tab_float (ssb->t,5, i*2+j+1, TAB_RIGHT, pairs[i].std_dev[j]/sqrt(pairs[i].n), 8, 3);
 
 	}
-
     }
-
 }
 
 /* Populate the one sample ssbox */
@@ -1106,13 +1137,7 @@ trbox_paired_populate(struct trbox *trb,
       double bound;
       double se_mean;
 
-      struct variable *v0 = pairs[i].v[0];
-      struct variable *v1 = pairs[i].v[1];
-
-      struct group_statistics *gs0 = &v0->p.t_t.ugs;
-      struct group_statistics *gs1 = &v1->p.t_t.ugs;
-
-      double n = gs0->n;
+      double n = pairs[i].n;
       double t;
       double df = n - 1;
       
@@ -1146,12 +1171,13 @@ trbox_paired_populate(struct trbox *trb,
       tab_float(trb->t, 6, i+3, TAB_RIGHT, 
 		pairs[i].mean_diff + t * se_mean , 8, 4); 
 
-      t = ( gs0->mean - gs1->mean)
-	/ sqrt ( 
-		(  sqr(gs0->s_std_dev) + sqr(gs1->s_std_dev)  - 
-		   2 * pairs[i].correlation * gs0->s_std_dev * gs1->s_std_dev  		   )
-		/ (n-1) )
-	;
+      t = (pairs[i].mean[0] - pairs[i].mean[1])
+	/ sqrt (
+		( sqr (pairs[i].s_std_dev[0]) + sqr (pairs[i].s_std_dev[1]) -
+		  2 * pairs[i].correlation * 
+		  pairs[i].s_std_dev[0] * pairs[i].s_std_dev[1] )
+		/ (n - 1)
+		);
 
       tab_float(trb->t, 7, i+3, TAB_RIGHT, t , 8,3 );
 
@@ -1160,7 +1186,6 @@ trbox_paired_populate(struct trbox *trb,
 
       which=1;
       cdft(&which, &p, &q, &t, &df, &status, &bound);
-
       if ( 0 != status )
 	{
 	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
@@ -1327,7 +1352,7 @@ pscbox(void)
       int status;
       double bound;
 
-      double df = pairs[i].v[0]->p.t_t.ugs.n -2;
+      double df = pairs[i].n -2;
 
       double correlation_t = 
 	pairs[i].correlation * sqrt(df) /
@@ -1343,20 +1368,16 @@ pscbox(void)
 
 
       /* row data */
+      tab_float(table, 2, i+1, TAB_RIGHT, pairs[i].n, 4, 0);
       tab_float(table, 3, i+1, TAB_RIGHT, pairs[i].correlation, 8, 3);
-      tab_float(table, 2, i+1, TAB_RIGHT, pairs[i].v[0]->p.t_t.ugs.n , 4, 0);
-
 
       cdft(&which, &p, &q, &correlation_t, &df, &status, &bound);
-
       if ( 0 != status )
 	{
 	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
 	}
 
-
       tab_float(table, 4, i+1, TAB_RIGHT, 2.0*(correlation_t>0?q:p), 8, 3);
-      
     }
 
   tab_submit(table);
@@ -1374,6 +1395,33 @@ common_calc (struct ccase *c, void *aux UNUSED)
 
   double weight = dict_get_case_weight(default_dict,c);
 
+
+  /* Skip the entire case if /MISSING=LISTWISE is set */
+  if ( cmd.miss == TTS_LISTWISE ) 
+    {
+      for(i=0; i< cmd.n_variables ; ++i) 
+	{
+	  struct variable *v = cmd.v_variables[i];
+	  union value *val = &c->data[v->fv];
+
+	  if (value_is_missing(val,v) )
+	    {
+	      return 0;
+	    }
+	}
+    }
+
+  /* Listwise has to be implicit if the independent variable is missing ?? */
+  if ( cmd.sbc_groups )
+    {
+      union value *gv = &c->data[indep_var->fv];
+      if ( value_is_missing(gv,indep_var) )
+	{
+	  return 0;
+	}
+    }
+
+
   for(i=0; i< cmd.n_variables ; ++i) 
     {
       struct group_statistics *gs;
@@ -1382,7 +1430,7 @@ common_calc (struct ccase *c, void *aux UNUSED)
 
       gs= &cmd.v_variables[i]->p.t_t.ugs;
 
-      if (val->f != SYSMIS) 
+      if (! value_is_missing(val,v) )
 	{
 	  gs->n+=weight;
 	  gs->sum+=weight * val->f;
@@ -1444,6 +1492,21 @@ one_sample_calc (struct ccase *c, void *aux UNUSED)
 
   double weight = dict_get_case_weight(default_dict,c);
 
+  /* Skip the entire case if /MISSING=LISTWISE is set */
+  if ( cmd.miss == TTS_LISTWISE ) 
+    {
+      for(i=0; i< cmd.n_variables ; ++i) 
+	{
+	  struct variable *v = cmd.v_variables[i];
+	  union value *val = &c->data[v->fv];
+
+	  if (value_is_missing(val,v) )
+	    {
+	      return 0;
+	    }
+	}
+    }
+
   for(i=0; i< cmd.n_variables ; ++i) 
     {
       struct group_statistics *gs;
@@ -1452,7 +1515,7 @@ one_sample_calc (struct ccase *c, void *aux UNUSED)
 
       gs= &cmd.v_variables[i]->p.t_t.ugs;
       
-      if (val->f != SYSMIS) 
+      if ( ! value_is_missing(val,v))
 	gs->sum_diff += weight * (val->f - cmd.n_testval);
     }
 
@@ -1518,9 +1581,13 @@ paired_precalc (void *aux UNUSED)
 
   for(i=0; i < n_pairs ; ++i )
     {
-      pairs[i].correlation=0;
-      pairs[i].sum_of_diffs=0;
-      pairs[i].ssq_diffs=0;
+      pairs[i].n = 0;
+      pairs[i].sum[0] = 0;      pairs[i].sum[1] = 0;
+      pairs[i].ssq[0] = 0;      pairs[i].ssq[1] = 0;
+      pairs[i].sum_of_prod = 0;
+      pairs[i].correlation = 0;
+      pairs[i].sum_of_diffs = 0;
+      pairs[i].ssq_diffs = 0;
     }
 
 }
@@ -1531,6 +1598,28 @@ paired_calc (struct ccase *c, void *aux UNUSED)
 {
   int i;
 
+  double weight = dict_get_case_weight(default_dict,c);
+
+  /* Skip the entire case if /MISSING=LISTWISE is set , 
+   AND one member of a pair is missing */
+  if ( cmd.miss == TTS_LISTWISE ) 
+    {
+      for(i=0; i < n_pairs ; ++i )
+      	{
+	  struct variable *v0 = pairs[i].v[0];
+	  struct variable *v1 = pairs[i].v[1];
+
+	  union value *val0 = &c->data[v0->fv];
+	  union value *val1 = &c->data[v1->fv];
+	  
+	  if ( value_is_missing(val0,v0) ||
+	       value_is_missing(val1,v1) )
+	    {
+	      return 0;
+	    }
+	}
+    }
+
   for(i=0; i < n_pairs ; ++i )
     {
       struct variable *v0 = pairs[i].v[0];
@@ -1539,13 +1628,28 @@ paired_calc (struct ccase *c, void *aux UNUSED)
       union value *val0 = &c->data[v0->fv];
       union value *val1 = &c->data[v1->fv];
 
-      pairs[i].correlation += ( val0->f - pairs[i].v[0]->p.t_t.ugs.mean )
-	                      *
-	                      ( val1->f - pairs[i].v[1]->p.t_t.ugs.mean );
+      if ( ( !value_is_missing(val0,v0) && !value_is_missing(val1,v1) ) )
+      {
+	pairs[i].n += weight;
+	pairs[i].sum[0] += weight * val0->f;
+	pairs[i].sum[1] += weight * val1->f;
 
-      pairs[i].sum_of_diffs += val0->f - val1->f ;
-      pairs[i].ssq_diffs += sqr(val0->f - val1->f);
+	pairs[i].ssq[0] += weight * sqr(val0->f);
+	pairs[i].ssq[1] += weight * sqr(val1->f);
 
+#if 0
+	pairs[i].correlation += weight * 
+	  ( val0->f - pairs[i].v[0]->p.t_t.ugs.mean )
+	  *
+	  ( val1->f - pairs[i].v[1]->p.t_t.ugs.mean );
+#endif
+
+	pairs[i].sum_of_prod += weight * val0->f * val1->f ;
+
+
+	pairs[i].sum_of_diffs += weight * ( val0->f - val1->f ) ;
+	pairs[i].ssq_diffs += weight * sqr(val0->f - val1->f);
+      }
     }
 
   return 0;
@@ -1558,11 +1662,33 @@ paired_postcalc (void *aux UNUSED)
 
   for(i=0; i < n_pairs ; ++i )
     {
-      const double n = pairs[i].v[0]->p.t_t.ugs.n ;
+      int j;
+      const double n = pairs[i].n;
+
+      for (j=0; j < 2 ; ++j) 
+	{
+	  pairs[i].mean[j] = pairs[i].sum[j] / n ;
+	  pairs[i].s_std_dev[j] = sqrt((pairs[i].ssq[j] / n - 
+					      sqr(pairs[i].mean[j]))
+				     );
+
+	  pairs[i].std_dev[j] = sqrt(n/(n-1)*(pairs[i].ssq[j] / n - 
+					      sqr(pairs[i].mean[j]))
+				     );
+	}
       
+      pairs[i].correlation = pairs[i].sum_of_prod / pairs[i].n - 
+	pairs[i].mean[0] * pairs[i].mean[1] ;
+      /* correlation now actually contains the covariance */
+      
+      pairs[i].correlation /= pairs[i].std_dev[0] * pairs[i].std_dev[1];
+      pairs[i].correlation *= pairs[i].n / ( pairs[i].n - 1 );
+      
+#if 0
       pairs[i].correlation /= pairs[i].v[0]->p.t_t.ugs.std_dev * 
                               pairs[i].v[1]->p.t_t.ugs.std_dev ;
-      pairs[i].correlation /= pairs[i].v[0]->p.t_t.ugs.n -1; 
+      pairs[i].correlation /= n - 1; 
+#endif      
 
 
       pairs[i].mean_diff = pairs[i].sum_of_diffs / n ;
@@ -1653,6 +1779,26 @@ group_calc (struct ccase *c, void *aux UNUSED)
 
   double weight = dict_get_case_weight(default_dict,c);
 
+  if ( value_is_missing(gv,indep_var) )
+    {
+      return 0;
+    }
+
+  if ( cmd.miss == TTS_LISTWISE ) 
+    {
+      for(i=0; i< cmd.n_variables ; ++i) 
+	{
+	  struct variable *v = cmd.v_variables[i];
+	  union value *val = &c->data[v->fv];
+
+	  if (value_is_missing(val,v) )
+	    {
+	      return 0;
+	    }
+	}
+    }
+
+
   gv = &c->data[indep_var->fv];
 
   g = get_group(gv,indep_var);
@@ -1664,13 +1810,18 @@ group_calc (struct ccase *c, void *aux UNUSED)
 
   for(i=0; i< cmd.n_variables ; ++i) 
     {
-      struct group_statistics *gs = &cmd.v_variables[i]->p.t_t.gs[g];
+      struct variable *var = cmd.v_variables[i];
 
-      union value *val=&c->data[cmd.v_variables[i]->fv];
+      struct group_statistics *gs = &var->p.t_t.gs[g];
 
-      gs->n+=weight;
-      gs->sum+=weight * val->f;
-      gs->ssq+=weight * sqr(val->f);
+      union value *val=&c->data[var->fv];
+
+      if ( !value_is_missing(val,var) )
+	{
+	  gs->n+=weight;
+	  gs->sum+=weight * val->f;
+	  gs->ssq+=weight * sqr(val->f);
+	}
     }
 
   return 0;

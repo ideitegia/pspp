@@ -405,6 +405,7 @@ void cancel_temporary (void);
 /* Functions. */
 
 void dump_split_vars (const struct ccase *);
+typedef int (* is_missing_func )(const union value *, const struct variable *);
 
 int is_num_user_missing (double, const struct variable *);
 int is_str_user_missing (const unsigned char[], const struct variable *);

@@ -83,18 +83,27 @@ struct levene_info
   /* The dependent variables */
   struct variable  **v_dep;
 
+  /* How to treat missing values */
+  enum lev_missing missing;
+
+  /* Function to test for missing values */
+  is_missing_func is_missing;
+
 };
 
 
 
 void  
-levene(struct variable *v_indep, int n_dep, struct variable **v_dep)
+levene(struct variable *v_indep, int n_dep, struct variable **v_dep,
+	     enum lev_missing missing,   is_missing_func value_is_missing)
 {
   struct levene_info l;
 
-  l.n_dep=n_dep;
-  l.v_indep=v_indep;
-  l.v_dep=v_dep;
+  l.n_dep = n_dep;
+  l.v_indep = v_indep;
+  l.v_dep = v_dep;
+  l.missing = missing;
+  l.is_missing = value_is_missing;
 
   procedure(levene_precalc, levene_calc, levene_postcalc, &l);
   procedure(levene2_precalc,levene2_calc,levene2_postcalc,&l);
@@ -203,32 +212,50 @@ levene_precalc (void *_l)
 static int 
 levene_calc (struct ccase *c, void *_l)
 {
-  int var;
+  int i;
   struct levene_info *l = (struct levene_info *) _l;
   union value *gv = &c->data[l->v_indep->fv];
   struct group_statistics key;
   double weight = dict_get_case_weight(default_dict,c); 
+
+
+  /* Skip the entire case if /MISSING=LISTWISE is set */
+  if ( l->missing == LEV_LISTWISE ) 
+    {
+      for (i = 0; i < l->n_dep; ++i) 
+	{
+	  struct variable *v = l->v_dep[i];
+	  union value *val = &c->data[v->fv];
+
+	  if (l->is_missing(val,v) )
+	    {
+	      return 0;
+	    }
+	}
+    }
+
   
   key.id = *gv;
   key.criterion = CMP_EQ;
 
-  for (var = 0; var < l->n_dep; ++var) 
+  for (i = 0; i < l->n_dep; ++i) 
     {
+      struct variable *var = l->v_dep[i];
       double levene_z;
-      union value *v = &c->data[l->v_dep[var]->fv];
+      union value *v = &c->data[var->fv];
       struct group_statistics *gs;
-      gs = get_group(var,&key); 
+      gs = get_group(i,&key); 
       if ( 0 == gs ) 
 	continue ;
 
-      /* FIXME: handle SYSMIS properly */
+      if ( ! l->is_missing(v,var))
+	{
+	  levene_z= fabs(v->f - gs->mean);
+	  lz[i].grand_total += levene_z * weight;
+	  lz[i].total_n += weight; 
 
-      levene_z= fabs(v->f - gs->mean);
-      lz[var].grand_total += levene_z * weight;
-      lz[var].total_n += weight; 
-
-      gs->lz_total += levene_z * weight;
-
+	  gs->lz_total += levene_z * weight;
+	}
     }
   return 0;
 }
@@ -280,7 +307,7 @@ levene2_precalc (void *_l)
 static int 
 levene2_calc (struct ccase *c, void *_l)
 {
-  int var;
+  int i;
 
   struct levene_info *l = (struct levene_info *) _l;
 
@@ -289,23 +316,39 @@ levene2_calc (struct ccase *c, void *_l)
   union value *gv = &c->data[l->v_indep->fv];
   struct group_statistics key;
 
+  /* Skip the entire case if /MISSING=LISTWISE is set */
+  if ( l->missing == LEV_LISTWISE ) 
+    {
+      for (i = 0; i < l->n_dep; ++i) 
+	{
+	  struct variable *v = l->v_dep[i];
+	  union value *val = &c->data[v->fv];
+
+	  if (l->is_missing(val,v) )
+	    {
+	      return 0;
+	    }
+	}
+    }
+
   key.id = *gv;
   key.criterion = CMP_EQ;
 
-  for (var = 0; var < l->n_dep; ++var) 
+  for (i = 0; i < l->n_dep; ++i) 
     {
       double levene_z;
-      union value *v = &c->data[l->v_dep[var]->fv];
+      struct variable *var = l->v_dep[i] ;
+      union value *v = &c->data[var->fv];
       struct group_statistics *gs;
-      gs = get_group(var,&key); 
+      gs = get_group(i,&key); 
       if ( 0 == gs ) 
 	continue;
 
-      /* FIXME: handle SYSMIS properly */
-
-      levene_z = fabs(v->f - gs->mean); 
-
-      lz_denominator[var] += weight * sqr(levene_z - gs->lz_mean);
+      if ( ! l->is_missing(v,var) )
+	{
+	  levene_z = fabs(v->f - gs->mean); 
+	  lz_denominator[i] += weight * sqr(levene_z - gs->lz_mean);
+	}
     }
 
   return 0;

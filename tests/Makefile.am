@@ -25,6 +25,12 @@ TESTS = command/aggregate.sh \
 	command/t-test-pairs.sh \
 	command/t-test-groups.sh \
 	command/t-test-1-indep-val.sh \
+	command/t-test-1-sample-missing-list.sh \
+	command/t-test-paired-missing-list.sh \
+	command/t-test-paired-missing-anal.sh \
+	command/t-test-1-sample-missing-anal.sh \
+	command/t-test-indep-missing-list.sh \
+	command/t-test-indep-missing-anal.sh \
 	command/weight.sh \
 	bugs/alpha-freq.sh \
 	bugs/compute-fmt.sh \

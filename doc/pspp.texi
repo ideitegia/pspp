@@ -7907,14 +7907,16 @@ in the tests.  The default value is 0.95.
 The @cmd{MISSING} subcommand determines the handling of missing
 variables.  
 If INCLUDE is set, then user-missing values are included in the
-calculations.  
+calculations, but system-missing values are not.
 If EXCLUDE is set, which is the default, user-missing
-values are excluded.  
-If LISTWISE is set, then
-the entire case is excluded whenever any value in that case has a
-system-missing or, if INCLUDE is set, user-missing value.
-If ANALYSIS is set, then cases are excluded only where a value used in
-the analysis has a system-missing or, if INCLUDE is set, user-missing value.
+values are excluded as well as system-missing values. 
+This is the default.
+
+If LISTWISE is set, then the entire case is excluded from analysis
+whenever any variable  specified in the @cmd{/VARIABLES}, @cmd{/PAIRS} or 
+@cmd{/GROUPS} subcommands contains a missing value.   
+If ANALYSIS is set, then missing values are excluded only in the analysis for
+which they would be needed. This is the default.
 
 
 @menu
@@ -7951,13 +7953,17 @@ The variable given in the @cmd{GROUPS} subcommand is the independent
 variable which determines to which group the samples belong.
 The values in parentheses are the specific values of the independent
 variable for each group.
-If the parentheses are omitted, and no values are given, the default values 
+If the parentheses are omitted and no values are given, the default values 
 of 1.0 and 2.0 are assumed.
-If only one value is given, then cases where the independent variable is
+
+If the independent variable is numeric, 
+it is acceptable to specify only one value inside the parentheses.
+If you do this, cases where the independent variable is
 less than  or equal to this value belong to the first group, and cases
 greater than this value belong to the second group.
-If only one value is given, then the independent variable must be
-numeric.
+When using this form of the @cmd{GROUPS} subcommand, missing values in
+the independent variable are excluded on a listwise basis, regardless
+of whether @cmd{/MISSING=LISTWISE} was specified.
 
 
 @node Paired Samples Mode, , Independent Samples Mode, T-TEST

@@ -1,3 +1,8 @@
+Sat Mar 13 14:19:52 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q, levene.c: Fixed up the handling of MISSING values
+	int the T-TEST
+
 Fri Mar 12 16:23:35 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q, levene.c: Added support for T-TEST /GROUP where only 

@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-03-12 16:21+0800\n"
+"Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
+"POT-Creation-Date: 2004-03-13 14:14+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -4210,8 +4210,8 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:874 src/t-test.q:622 src/t-test.q:645 src/t-test.q:736
-#: src/t-test.q:1318
+#: src/crosstabs.q:874 src/t-test.q:655 src/t-test.q:678 src/t-test.q:769
+#: src/t-test.q:1343
 msgid "N"
 msgstr ""
 
@@ -4257,7 +4257,7 @@ msgstr ""
 msgid "Statistic"
 msgstr ""
 
-#: src/crosstabs.q:1159 src/t-test.q:889 src/t-test.q:1090 src/t-test.q:1202
+#: src/crosstabs.q:1159 src/t-test.q:920 src/t-test.q:1121 src/t-test.q:1227
 msgid "df"
 msgstr ""
 
@@ -4294,11 +4294,11 @@ msgstr ""
 msgid " 95%% Confidence Interval"
 msgstr ""
 
-#: src/crosstabs.q:1206 src/t-test.q:893 src/t-test.q:1087 src/t-test.q:1205
+#: src/crosstabs.q:1206 src/t-test.q:924 src/t-test.q:1118 src/t-test.q:1230
 msgid "Lower"
 msgstr ""
 
-#: src/crosstabs.q:1207 src/t-test.q:894 src/t-test.q:1088 src/t-test.q:1206
+#: src/crosstabs.q:1207 src/t-test.q:925 src/t-test.q:1119 src/t-test.q:1231
 msgid "Upper"
 msgstr ""
 
@@ -4435,8 +4435,8 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/descript.q:151 src/frequencies.q:94 src/t-test.q:623 src/t-test.q:646
-#: src/t-test.q:735 src/t-test.q:1084
+#: src/descript.q:151 src/frequencies.q:94 src/t-test.q:656 src/t-test.q:679
+#: src/t-test.q:768 src/t-test.q:1115
 msgid "Mean"
 msgstr ""
 
@@ -4978,157 +4978,157 @@ msgstr "Frame colour must be between 0 and 6."
 msgid "Drive letter expected in WORKDEV subcommand."
 msgstr ""
 
-#: src/t-test.q:208
+#: src/t-test.q:237
 msgid "TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive."
 msgstr ""
 
-#: src/t-test.q:225
+#: src/t-test.q:254
 msgid "VARIABLES subcommand is not appropriate with PAIRS"
 msgstr ""
 
-#: src/t-test.q:317 src/t-test.q:396
+#: src/t-test.q:352 src/t-test.q:429
 #, c-format
 msgid "`%s' is not a variable name"
 msgstr ""
 
-#: src/t-test.q:330
+#: src/t-test.q:365
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/t-test.q:347
+#: src/t-test.q:382
 msgid ""
 "When applying GROUPS to a string variable, at least one value must be "
 "specified."
 msgstr ""
 
-#: src/t-test.q:431
+#: src/t-test.q:464
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
 msgstr ""
 
-#: src/t-test.q:448
+#: src/t-test.q:481
 msgid "At least two variables must be specified on PAIRS."
 msgstr ""
 
-#: src/t-test.q:620
+#: src/t-test.q:653
 msgid "One-Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:624 src/t-test.q:647 src/t-test.q:737 src/t-test.q:1085
+#: src/t-test.q:657 src/t-test.q:680 src/t-test.q:770 src/t-test.q:1116
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/t-test.q:625 src/t-test.q:648 src/t-test.q:738
+#: src/t-test.q:658 src/t-test.q:681 src/t-test.q:771
 msgid "SE. Mean"
 msgstr ""
 
-#: src/t-test.q:642
+#: src/t-test.q:675
 msgid "Group Statistics"
 msgstr ""
 
-#: src/t-test.q:732
+#: src/t-test.q:765
 msgid "Paired Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:754 src/t-test.q:1119 src/t-test.q:1339
+#: src/t-test.q:787 src/t-test.q:1144 src/t-test.q:1364
 #, c-format
 msgid "Pair %d"
 msgstr ""
 
-#: src/t-test.q:874
+#: src/t-test.q:905
 msgid "Independent Samples Test"
 msgstr ""
 
-#: src/t-test.q:882
+#: src/t-test.q:913
 msgid "Levene's Test for Equality of Variances"
 msgstr ""
 
-#: src/t-test.q:884
+#: src/t-test.q:915
 msgid "t-test for Equality of Means"
 msgstr ""
 
-#: src/t-test.q:886
+#: src/t-test.q:917
 msgid "F"
 msgstr ""
 
-#: src/t-test.q:887 src/t-test.q:1320
+#: src/t-test.q:918 src/t-test.q:1345
 msgid "Sig."
 msgstr ""
 
-#: src/t-test.q:888 src/t-test.q:1089 src/t-test.q:1201
+#: src/t-test.q:919 src/t-test.q:1120 src/t-test.q:1226
 msgid "t"
 msgstr ""
 
-#: src/t-test.q:890 src/t-test.q:1091 src/t-test.q:1203
+#: src/t-test.q:921 src/t-test.q:1122 src/t-test.q:1228
 msgid "Sig. (2-tailed)"
 msgstr ""
 
-#: src/t-test.q:891 src/t-test.q:1204
+#: src/t-test.q:922 src/t-test.q:1229
 msgid "Mean Difference"
 msgstr ""
 
-#: src/t-test.q:892
+#: src/t-test.q:923
 msgid "Std. Error Difference"
 msgstr ""
 
-#: src/t-test.q:897 src/t-test.q:1081 src/t-test.q:1196
+#: src/t-test.q:928 src/t-test.q:1112 src/t-test.q:1221
 #, c-format
 msgid "%d%% Confidence Interval of the Difference"
 msgstr ""
 
-#: src/t-test.q:931
+#: src/t-test.q:962
 msgid "Equal variances assumed"
 msgstr ""
 
-#: src/t-test.q:946
+#: src/t-test.q:977
 #, c-format
 msgid "Error calculating F statistic (cdff returned %d)."
 msgstr ""
 
-#: src/t-test.q:969 src/t-test.q:989 src/t-test.q:1027 src/t-test.q:1039
-#: src/t-test.q:1140 src/t-test.q:1166 src/t-test.q:1246 src/t-test.q:1263
-#: src/t-test.q:1354
+#: src/t-test.q:1000 src/t-test.q:1020 src/t-test.q:1058 src/t-test.q:1070
+#: src/t-test.q:1165 src/t-test.q:1191 src/t-test.q:1271 src/t-test.q:1288
+#: src/t-test.q:1377
 #, c-format
 msgid "Error calculating T statistic (cdft returned %d)."
 msgstr ""
 
-#: src/t-test.q:1003
+#: src/t-test.q:1034
 msgid "Equal variances not assumed"
 msgstr ""
 
-#: src/t-test.q:1071
+#: src/t-test.q:1102
 msgid "Paired Samples Test"
 msgstr ""
 
-#: src/t-test.q:1074
+#: src/t-test.q:1105
 msgid "Paired Differences"
 msgstr ""
 
-#: src/t-test.q:1086
+#: src/t-test.q:1117
 msgid "Std. Error Mean"
 msgstr ""
 
-#: src/t-test.q:1185
+#: src/t-test.q:1210
 msgid "One-Sample Test"
 msgstr ""
 
-#: src/t-test.q:1190
+#: src/t-test.q:1215
 #, c-format
 msgid "Test Value = %f"
 msgstr ""
 
-#: src/t-test.q:1315
+#: src/t-test.q:1340
 msgid "Paired Samples Correlations"
 msgstr ""
 
-#: src/t-test.q:1319
+#: src/t-test.q:1344
 msgid "Correlation"
 msgstr ""
 
-#: src/t-test.q:1342
+#: src/t-test.q:1367
 #, c-format
 msgid "%s & %s"
 msgstr ""
