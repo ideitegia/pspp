@@ -1,4 +1,4 @@
-Time-stamp: <2004-03-29 15:22:28 blp>
+Time-stamp: <2004-03-29 16:56:25 blp>
 
 What Ben's working on now.
 --------------------------
@@ -13,7 +13,8 @@ Rewrite output subsystem, break into multiple processes.
 CROSSTABS needs to be re-examined.
 
 RANK, which is needed for the Wilcoxon signed-rank statistic, Mann-Whitney U,
-Kruskal-Wallis on NPAR TESTS and for Spearman (in another procedure).
+Kruskal-Wallis on NPAR TESTS and for Spearman and the Johnkheere trend test (in
+other procedures).
 
 TODO
 ----
