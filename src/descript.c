@@ -39,6 +39,15 @@
 
 /* DESCRIPTIVES private data. */
 
+struct dsc_proc;
+
+/* Handling of missing values. */
+enum dsc_missing_type
+  {
+    DSC_VARIABLE,       /* Handle missing values on a per-variable basis. */
+    DSC_LISTWISE        /* Discard entire case if any variable is missing. */
+  };
+
 /* Describes properties of a distribution for the purpose of
    calculating a Z-score. */
 struct dsc_z_score
@@ -47,6 +56,7 @@ struct dsc_z_score
     int dst_idx;                /* Destination index into case data. */
     double mean;		/* Distribution mean. */
     double std_dev;		/* Distribution standard deviation. */
+    struct variable *v;         /* Variable on which z-score is based. */
   };
 
 /* DESCRIPTIVES transformation (for calculating Z-scores). */
@@ -55,6 +65,10 @@ struct dsc_trns
     struct trns_header h;
     struct dsc_z_score *z_scores; /* Array of Z-scores. */
     int z_score_cnt;            /* Number of Z-scores. */
+    struct variable **vars;     /* Variables for listwise missing checks. */
+    size_t var_cnt;             /* Number of variables. */
+    enum dsc_missing_type missing_type; /* Treatment of missing values. */
+    int include_user_missing;   /* Nonzero to include user-missing values. */
   };
 
 /* Statistics.  Used as bit indexes, so must be 32 or fewer. */
@@ -109,13 +123,6 @@ struct dsc_var
     struct moments *moments;    /* Moments. */
     double min, max;            /* Maximum and mimimum values. */
     double stats[DSC_N_STATS];	/* All the stats' values. */
-  };
-
-/* Handling of missing values. */
-enum dsc_missing_type
-  {
-    DSC_VARIABLE,       /* Handle missing values on a per-variable basis. */
-    DSC_LISTWISE        /* Discard entire case if any variable is missing. */
   };
 
 /* Output format. */
@@ -254,7 +261,11 @@ cmd_descriptives (void)
               else if (lex_match_id ("DEFAULT"))
                 dsc->show_stats |= DEFAULT_STATS;
               else
-                dsc->show_stats |= 1ul << (match_statistic ());
+		{
+		  dsc->show_stats |= 1ul << (match_statistic ());
+		  if (dsc->show_stats == DSC_NONE)
+		    dsc->show_stats = DEFAULT_STATS;
+		}
               lex_match (',');
             }
           if (dsc->show_stats == 0)
@@ -265,8 +276,12 @@ cmd_descriptives (void)
           lex_match ('=');
           if (lex_match_id ("NAME"))
             dsc->sort_by_stat = DSC_NAME;
-          else
-            dsc->sort_by_stat = match_statistic ();
+          else 
+	    {
+	      dsc->sort_by_stat = match_statistic ();
+	      if (dsc->sort_by_stat == DSC_NONE )
+		dsc->sort_by_stat = DSC_MEAN;
+	    }
           if (lex_match ('(')) 
             {
               if (lex_match_id ("A"))
@@ -292,7 +307,7 @@ cmd_descriptives (void)
               
               if (!parse_variables (default_dict, &vars, &var_cnt,
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
-                break;
+		goto error;
 
               dsc->vars = xrealloc (dsc->vars, sizeof *dsc->vars * var_cnt);
               for (i = dsc->var_cnt; i < var_cnt; i++)
@@ -309,7 +324,7 @@ cmd_descriptives (void)
                   if (token != T_ID) 
                     {
                       lex_error (NULL);
-                      break;
+                      goto error;
                     }
                   if (try_name (dsc, tokid)) 
                     {
@@ -318,16 +333,17 @@ cmd_descriptives (void)
                     }
                   else
                     msg (SE, _("Z-score variable name %s would be"
-                               "a duplicate variable name."), tokid);
+                               " a duplicate variable name."), tokid);
                   lex_get ();
-                  lex_force_match (')');
+                  if (!lex_force_match (')'))
+		    goto error;
                 }
             }
         }
       else 
         {
           lex_error (NULL);
-          break; 
+          goto error; 
         }
 
       lex_match ('/');
@@ -402,9 +418,10 @@ cmd_descriptives (void)
   return CMD_FAILURE;
 }
 
-/* Returns the statistic named by the current token and skips
-   past the token.  Emits an error if the current token does not
-   name a statistic. */
+/* Returns the statistic named by the current token and skips past the token.
+   Returns DSC_NONE if no statistic is given (e.g., subcommand with no
+   specifiers). Emits an error if the current token ID does not name a
+   statistic. */
 static enum dsc_statistic
 match_statistic (void) 
 {
@@ -414,14 +431,13 @@ match_statistic (void)
 
       for (stat = 0; stat < DSC_N_STATS; stat++)
         if (lex_match_id (dsc_info[stat].identifier)) 
-          {
-            lex_get ();
-            return stat;
-          }
+	  return stat;
+
+      lex_get();
+      lex_error (_("expecting statistic name: reverting to default"));
     }
 
-  lex_error (_("expecting statistic name"));
-  return DSC_MEAN;
+  return DSC_NONE;
 }
 
 /* Frees DSC. */
@@ -545,19 +561,43 @@ dump_z_table (struct dsc_proc *dsc)
   tab_submit (t);
 }
 
-/* Transformation function to calculate Z-scores. */
+/* Transformation function to calculate Z-scores. Will return SYSMIS if any of
+   the following are true: 1) mean or standard deviation is SYSMIS 2) score is
+   SYSMIS 3) score is user missing and they were not included in the original
+   analyis. 4) any of the variables in the original analysis were missing
+   (either system or user-missing values that weren't included).
+*/
 static int
 descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
                         int case_num UNUSED)
 {
   struct dsc_trns *t = (struct dsc_trns *) trns;
   struct dsc_z_score *z;
+  struct variable **vars;
+  int all_sysmis = 0;
 
+  if (t->missing_type == DSC_LISTWISE)
+    {
+      assert(t->vars);
+      for (vars = t->vars; vars < t->vars + t->var_cnt; vars++)
+	{
+	  double score = c->data[(*vars)->fv].f;
+	  if ( score == SYSMIS || (!t->include_user_missing 
+				   && is_num_user_missing(score, *vars)) )
+	    {
+	      all_sysmis = 1;
+	      break;
+	    }
+	}
+    }
+      
   for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
     {
       double score = c->data[z->src_idx].f;
 
-      if (z->mean == SYSMIS || score == SYSMIS)
+      if (z->mean == SYSMIS || z->std_dev == SYSMIS 
+	  || all_sysmis || score == SYSMIS 
+	  || (!t->include_user_missing && is_num_user_missing(score, z->v)))
 	c->data[z->dst_idx].f = SYSMIS;
       else
 	c->data[z->dst_idx].f = (score - z->mean) / z->std_dev;
@@ -572,6 +612,8 @@ descriptives_trns_free (struct trns_header * trns)
   struct dsc_trns *t = (struct dsc_trns *) trns;
 
   free (t->z_scores);
+  assert((t->missing_type != DSC_LISTWISE) ^ (t->vars != NULL));
+  free (t->vars);
 }
 
 /* Sets up a transformation to calculate Z scores. */
@@ -590,6 +632,21 @@ setup_z_trns (struct dsc_proc *dsc)
   t->h.free = descriptives_trns_free;
   t->z_scores = xmalloc (cnt * sizeof *t->z_scores);
   t->z_score_cnt = cnt;
+  t->missing_type = dsc->missing_type;
+  t->include_user_missing = dsc->include_user_missing;
+  if ( t->missing_type == DSC_LISTWISE )
+    {
+      t->var_cnt = dsc->var_cnt;
+      t->vars = xmalloc(t->var_cnt * sizeof *t->vars);
+      for (i = 0; i < t->var_cnt; i++)
+	t->vars[i] = dsc->vars[i].v;
+    }
+  else
+    {
+      t->var_cnt = 0;
+      t->vars = NULL;
+    }
+  
 
   for (cnt = i = 0; i < dsc->var_cnt; i++)
     {
@@ -620,6 +677,7 @@ setup_z_trns (struct dsc_proc *dsc)
           z->dst_idx = dst_var->fv;
           z->mean = dv->stats[DSC_MEAN];
           z->std_dev = dv->stats[DSC_STDDEV];
+	  z->v = dv->v;
 	}
     }
 
