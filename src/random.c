@@ -159,10 +159,16 @@ rng_get_unsigned (struct rng *rng)
 double
 rng_get_double (struct rng *rng) 
 {
-  unsigned long value;
-
-  rng_get_bytes (rng, &value, sizeof value);
-  return value / (double) ULONG_MAX;
+  for (;;) 
+    {
+      unsigned long ulng;
+      double dbl;
+  
+      rng_get_bytes (rng, &ulng, sizeof ulng);
+      dbl = ulng / (ULONG_MAX + 1.0);
+      if (dbl >= 0 && dbl < 1)
+        return dbl;
+    }
 }
 
 /* Returns a random number from the distribution with mean 0 and

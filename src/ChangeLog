@@ -1,3 +1,9 @@
+Mon Jan 19 14:08:09 2004  Ben Pfaff  <blp@gnu.org> 
+
+	* random.c (rng_get_double): Fix always-returning-zero bug in my
+	preferred way, and at the same time make sure rounding doesn't
+	bite us.
+
 Thu Jan  1 23:16:41 2004  Ben Pfaff  <blp@gnu.org>
 
 	* html.c: (change_attributes) Dead code, removed.
