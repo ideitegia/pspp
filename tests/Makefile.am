@@ -7,6 +7,7 @@ TESTS = command/aggregate.sh \
 	command/bignum.sh \
 	command/count.sh \
 	command/descriptives.sh \
+	command/file-label.sh \
 	command/flip.sh \
 	command/lag.sh \
 	command/loop.sh \
@@ -27,8 +28,8 @@ sort.data: gengarbage$(EXTEXT)
 
 EXTRA_DIST = \
 compute.stat crosstabs.stat data-fmts.stat	\
-data-list.data data-list.stat do-if.stat do-repeat.stat	\
-expr.stat file-lab.stat filter.stat gengarbage.c		\
+data-list.data do-if.stat do-repeat.stat	\
+expr.stat filter.stat gengarbage.c		\
 inpt-pgm.stat list.data list.stat mtch-file.stat	\
 means.stat mdfy-vars.stat pcs-if.stat recode.stat		\
 repeating.stat reread.data reread.stat  \
