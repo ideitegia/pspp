@@ -1,3 +1,26 @@
+Mon Mar 15 20:07:29 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static vars in autorecode.c.
+
+	* autorecode.c: (struct autorecode_trns) Rename `arc' to `specs',
+	`n_arc' to `spec_cnt'.  All references updated.
+	(static var v_src) Removed.
+	(static var v_dest) Removed.
+	(static var h_trns) Removed.
+	(static var nv_src) Removed.
+	(static var descend) Removed.
+	(static var print) Removed.
+	(enum direction) New enum.
+	(struct autorecode_pgm) New structure.
+	(cmd_autorecode) Use struct autorecode_pgm instead of static vars.
+	Move n_dest local var into struct autorecode_pgm for ease of
+	clean-up.  Use arc_free().
+	(arc_free) New function.
+	(recode) Modify to take struct autorecode_pgm * parameter instead
+	of using statics.  Let the caller clean up.
+	(autorecode_proc_func) Use struct autorecode_pgm * auxiliary data
+	instead of statics.  Rearrange code a little.
+
 Mon Mar 15 00:25:02 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static, global vars in recode.c.  Remove debug code.

@@ -30,11 +30,6 @@
 #include "var.h"
 #include "vfm.h"
 
-#include "debug-print.h"
-
-/* FIXME: This module is less than ideally efficient, both in space
-   and time.  If anyone cares, it would be a good project. */
-
 /* FIXME: Implement PRINT subcommand. */
 
 /* Explains how to recode one value.  `from' must be first element.  */
@@ -57,181 +52,212 @@ struct autorecode_trns
   {
     struct trns_header h;
     struct pool *owner;		/* Contains AUTORECODE specs. */
-    struct arc_spec *arc;	/* AUTORECODE specifications. */
-    int n_arc;			/* Number of specifications. */
+    struct arc_spec *specs;	/* AUTORECODE specifications. */
+    int spec_cnt;		/* Number of specifications. */
   };
 
-/* Source and target variables, hash table translator. */
-static struct variable **v_src;
-static struct variable **v_dest;
-static struct hsh_table **h_trans;
-static int nv_src;
+/* Descending or ascending sort order. */
+enum direction 
+  {
+    ASCENDING,
+    DESCENDING
+  };
 
-/* Pool for allocation of hash table entries. */
-static struct pool *hash_pool;
-
-/* Options. */
-static int descend;
-static int print;
+/* AUTORECODE data. */
+struct autorecode_pgm 
+  {
+    struct variable **src_vars;    /* Source variables. */
+    char **dst_names;              /* Target variable names. */
+    struct variable **dst_vars;    /* Target variables. */
+    struct hsh_table **src_values; /* `union value's of source vars. */
+    int var_cnt;                   /* Number of variables. */
+    struct pool *src_values_pool;  /* Pool used by src_values. */
+    enum direction direction;      /* Sort order. */
+    int print;                     /* Print mapping table if nonzero. */
+  };
 
 static trns_proc_func autorecode_trns_proc;
 static trns_free_func autorecode_trns_free;
 static int autorecode_proc_func (struct ccase *, void *);
 static hsh_compare_func compare_alpha_value, compare_numeric_value;
 static hsh_hash_func hash_alpha_value, hash_numeric_value;
-static void recode (void);
+
+static void recode (const struct autorecode_pgm *);
+static void arc_free (struct autorecode_pgm *);
 
 /* Performs the AUTORECODE procedure. */
 int
 cmd_autorecode (void)
 {
-  /* Dest var names. */
-  char **n_dest = NULL;
-  int nv_dest = 0;
-
+  struct autorecode_pgm arc;
+  int dst_cnt;
   int i;
 
-  v_src = NULL;
-  descend = print = 0;
-  h_trans = NULL;
+  arc.src_vars = NULL;
+  arc.dst_names = NULL;
+  arc.dst_vars = NULL;
+  arc.src_values = NULL;
+  arc.var_cnt = 0;
+  arc.src_values_pool = NULL;
+  arc.direction = ASCENDING;
+  arc.print = 0;
+  dst_cnt = 0;
 
   lex_match_id ("AUTORECODE");
   lex_match_id ("VARIABLES");
   lex_match ('=');
-  if (!parse_variables (default_dict, &v_src, &nv_src, PV_NO_DUPLICATE))
-    return CMD_FAILURE;
-  if (!lex_force_match_id ("INTO"))
-    return CMD_FAILURE;
-  lex_match ('=');
-  if (!parse_DATA_LIST_vars (&n_dest, &nv_dest, PV_NONE))
+  if (!parse_variables (default_dict, &arc.src_vars, &arc.var_cnt,
+                        PV_NO_DUPLICATE))
     goto lossage;
-  if (nv_dest != nv_src)
+  if (!lex_force_match_id ("INTO"))
+    goto lossage;
+  lex_match ('=');
+  if (!parse_DATA_LIST_vars (&arc.dst_names, &dst_cnt, PV_NONE))
+    goto lossage;
+  if (dst_cnt != arc.var_cnt)
     {
-      msg (SE, _("Number of source variables (%d) does not match number "
-	   "of target variables (%d)."), nv_src, nv_dest);
+      int i;
+
+      msg (SE, _("Source variable count (%d) does not match "
+                 "target variable count (%d)."), arc.var_cnt, dst_cnt);
+
+      for (i = 0; i < dst_cnt; i++)
+        free (arc.dst_names[i]);
+      free (arc.dst_names);
+      arc.dst_names = NULL;
+
       goto lossage;
     }
   while (lex_match ('/'))
     if (lex_match_id ("DESCENDING"))
-      descend = 1;
+      arc.direction = DESCENDING;
     else if (lex_match_id ("PRINT"))
-      print = 1;
+      arc.print = 1;
   if (token != '.')
     {
       lex_error (_("expecting end of command"));
       goto lossage;
     }
 
-  for (i = 0; i < nv_dest; i++)
+  for (i = 0; i < arc.var_cnt; i++)
     {
       int j;
 
-      if (dict_lookup_var (default_dict, n_dest[i]) != NULL)
+      if (dict_lookup_var (default_dict, arc.dst_names[i]) != NULL)
 	{
 	  msg (SE, _("Target variable %s duplicates existing variable %s."),
-	       n_dest[i], n_dest[i]);
+	       arc.dst_names[i], arc.dst_names[i]);
 	  goto lossage;
 	}
       for (j = 0; j < i; j++)
-	if (!strcmp (n_dest[i], n_dest[j]))
+	if (!strcmp (arc.dst_names[i], arc.dst_names[j]))
 	  {
 	    msg (SE, _("Duplicate variable name %s among target variables."),
-		 n_dest[i]);
+		 arc.dst_names[i]);
 	    goto lossage;
 	  }
     }
 
-  hash_pool = pool_create ();
-
-  v_dest = xmalloc (sizeof *v_dest * nv_dest);
-  h_trans = xmalloc (sizeof *h_trans * nv_dest);
-  for (i = 0; i < nv_dest; i++)
-    if (v_src[i]->type == ALPHA)
-      h_trans[i] = hsh_create (10, compare_alpha_value,
-			       hash_alpha_value, NULL, v_src[i]);
+  arc.src_values_pool = pool_create ();
+  arc.dst_vars = xmalloc (sizeof *arc.dst_vars * arc.var_cnt);
+  arc.src_values = xmalloc (sizeof *arc.src_values * arc.var_cnt);
+  for (i = 0; i < dst_cnt; i++)
+    if (arc.src_vars[i]->type == ALPHA)
+      arc.src_values[i] = hsh_create (10, compare_alpha_value,
+                                      hash_alpha_value, NULL, arc.src_vars[i]);
     else
-      h_trans[i] = hsh_create (10, compare_numeric_value,
-			       hash_numeric_value, NULL, NULL);
+      arc.src_values[i] = hsh_create (10, compare_numeric_value,
+                                      hash_numeric_value, NULL, NULL);
 
-  procedure_with_splits (NULL, autorecode_proc_func, NULL, NULL);
+  procedure (autorecode_proc_func, &arc);
 
-  for (i = 0; i < nv_dest; i++)
+  for (i = 0; i < arc.var_cnt; i++)
     {
-      v_dest[i] = dict_create_var_assert (default_dict, n_dest[i], 0);
-      v_dest[i]->init = 0;
-      free (n_dest[i]);
+      arc.dst_vars[i] = dict_create_var_assert (default_dict,
+                                                arc.dst_names[i], 0);
+      arc.dst_vars[i]->init = 0;
     }
-  free (n_dest);
 
-  recode ();
-  
-  free (v_src);
-  free (v_dest);
-
+  recode (&arc);
+  arc_free (&arc);
   return CMD_SUCCESS;
 
 lossage:
-  if (h_trans != NULL)
-    for (i = 0; i < nv_src; i++)
-      hsh_destroy (h_trans[i]);
-  for (i = 0; i < nv_dest; i++)
-    free (n_dest[i]);
-  free (n_dest);
-  free (v_src);
+  arc_free (&arc);
   return CMD_FAILURE;
 }
+
+static void
+arc_free (struct autorecode_pgm *arc) 
+{
+  free (arc->src_vars);
+  if (arc->dst_names != NULL) 
+    {
+      int i;
+      
+      for (i = 0; i < arc->var_cnt; i++)
+        free (arc->dst_names[i]);
+      free (arc->dst_names);
+    }
+  free (arc->dst_vars);
+  if (arc->src_values != NULL) 
+    {
+      int i;
+
+      for (i = 0; i < arc->var_cnt; i++)
+        hsh_destroy (arc->src_values[i]); 
+    }
+  pool_destroy (arc->src_values_pool);
+}
+
 
 /* AUTORECODE transformation. */
 
 static void
-recode (void)
+recode (const struct autorecode_pgm *arc)
 {
   struct autorecode_trns *t;
-  struct pool *arc_pool;
+  struct pool *pool;
   int i;
 
-  arc_pool = pool_create ();
+  pool = pool_create ();
   t = xmalloc (sizeof *t);
   t->h.proc = autorecode_trns_proc;
   t->h.free = autorecode_trns_free;
-  t->owner = arc_pool;
-  t->arc = pool_alloc (arc_pool, sizeof *t->arc * nv_src);
-  t->n_arc = nv_src;
-  for (i = 0; i < nv_src; i++)
+  t->owner = pool;
+  t->specs = pool_alloc (t->owner, sizeof *t->specs * arc->var_cnt);
+  t->spec_cnt = arc->var_cnt;
+  for (i = 0; i < arc->var_cnt; i++)
     {
-      struct arc_spec *spec = &t->arc[i];
-      void **p = hsh_sort (h_trans[i]);
-      int count = hsh_count (h_trans[i]);
+      struct arc_spec *spec = &t->specs[i];
+      void **p = hsh_sort (arc->src_values[i]);
+      int count = hsh_count (arc->src_values[i]);
       int j;
 
-      spec->src = v_src[i];
-      spec->dest = v_dest[i];
+      spec->src = arc->src_vars[i];
+      spec->dest = arc->dst_vars[i];
 
-      if (v_src[i]->type == ALPHA)
+      if (arc->src_vars[i]->type == ALPHA)
 	spec->items = hsh_create (2 * count, compare_alpha_value,
-				  hash_alpha_value, NULL, v_src[i]);
+				  hash_alpha_value, NULL, arc->src_vars[i]);
       else
 	spec->items = hsh_create (2 * count, compare_numeric_value,
 				  hash_numeric_value, NULL, NULL);
 
       for (j = 0; *p; p++, j++)
 	{
-	  struct arc_item *item = pool_alloc (arc_pool, sizeof *item);
+	  struct arc_item *item = pool_alloc (t->owner, sizeof *item);
           union value *vp = *p;
           
-	  if (v_src[i]->type == NUMERIC)
+	  if (arc->src_vars[i]->type == NUMERIC)
             item->from.f = vp->f;
           else
-	    item->from.c = pool_strdup (arc_pool, vp->c);
-	  item->to = !descend ? j + 1 : count - j;
+	    item->from.c = pool_strdup (t->owner, vp->c);
+	  item->to = arc->direction == ASCENDING ? j + 1 : count - j;
 	  hsh_force_insert (spec->items, item);
 	}
-      
-      hsh_destroy (h_trans[i]);
     }
-  free (h_trans);
-  pool_destroy (hash_pool);
-  add_transformation ((struct trns_header *) t);
+  add_transformation (&t->h);
 }
 
 static int
@@ -241,9 +267,9 @@ autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
   struct autorecode_trns *t = (struct autorecode_trns *) trns;
   int i;
 
-  for (i = 0; i < t->n_arc; i++)
+  for (i = 0; i < t->spec_cnt; i++)
     {
-      struct arc_spec *spec = &t->arc[i];
+      struct arc_spec *spec = &t->specs[i];
       struct arc_item *item;
 
       if (spec->src->type == NUMERIC)
@@ -266,8 +292,8 @@ autorecode_trns_free (struct trns_header * trns)
   struct autorecode_trns *t = (struct autorecode_trns *) trns;
   int i;
 
-  for (i = 0; i < t->n_arc; i++)
-    hsh_destroy (t->arc[i].items);
+  for (i = 0; i < t->spec_cnt; i++)
+    hsh_destroy (t->specs[i].items);
   pool_destroy (t->owner);
 }
 
@@ -310,38 +336,31 @@ hash_numeric_value (const void *a_, void *foo UNUSED)
 }
 
 static int
-autorecode_proc_func (struct ccase *c, void *aux UNUSED)
+autorecode_proc_func (struct ccase *c, void *arc_)
 {
+  struct autorecode_pgm *arc = arc_;
   int i;
 
-  for (i = 0; i < nv_src; i++)
+  for (i = 0; i < arc->var_cnt; i++)
     {
-      union value v;
-      union value *vp;
-      union value **vpp;
+      union value v, *vp, **vpp;
 
-      if (v_src[i]->type == NUMERIC)
-	{
-	  v.f = c->data[v_src[i]->fv].f;
-	  vpp = (union value **) hsh_probe (h_trans[i], &v);
-	  if (*vpp == NULL)
-	    {
-	      vp = pool_alloc (hash_pool, sizeof (union value));
-	      vp->f = v.f;
-	      *vpp = vp;
-	    }
-	}
+      if (arc->src_vars[i]->type == NUMERIC)
+        v.f = c->data[arc->src_vars[i]->fv].f;
       else
-	{
-	  v.c = c->data[v_src[i]->fv].s;
-	  vpp = (union value **) hsh_probe (h_trans[i], &v);
-	  if (*vpp == NULL)
-	    {
-	      vp = pool_alloc (hash_pool, sizeof (union value));
-	      vp->c = pool_strndup (hash_pool, v.c, v_src[i]->width);
-	      *vpp = vp;
-	    }
-	}
+        v.c = c->data[arc->src_vars[i]->fv].s;
+
+      vpp = (union value **) hsh_probe (arc->src_values[i], &v);
+      if (*vpp == NULL)
+        {
+          vp = pool_alloc (arc->src_values_pool, sizeof (union value));
+          if (arc->src_vars[i]->type == NUMERIC)
+            vp->f = v.f;
+          else
+            vp->c = pool_strndup (arc->src_values_pool,
+                                  v.c, arc->src_vars[i]->width);
+          *vpp = vp;
+        }
     }
   return 1;
 }
