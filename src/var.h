@@ -273,12 +273,9 @@ enum
     MISSING_COUNT
   };
 
-/* A variable's dictionary entry.  Note: don't reorder name[] from the
-   first element; a pointer to `variable' should be a pointer to
-   member `name'.  FIXME: is this comment still accurate? */
+/* A variable's dictionary entry.  */
 struct variable
   {
-    /* Required by parse_variables() to be in this order.  */
     char name[9];		/* As a string. */
     int index;			/* Index into its dictionary's var[]. */
     int type;                   /* NUMERIC or ALPHA. */

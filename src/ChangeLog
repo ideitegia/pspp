@@ -1,3 +1,7 @@
+Mon Feb 16 00:01:53 2004  Ben Pfaff  <blp@gnu.org>
+
+	* var.h: (struct variable) Update comments.
+
 Sun Feb 15 23:14:59 2004  Ben Pfaff  <blp@gnu.org>
 
 	New functions dict_create_var_assert(), dict_lookup_var_assert().
