@@ -1,3 +1,8 @@
+Fri Dec 19 16:42:13 2003  Ben Pfaff  <blp@gnu.org>
+
+	* postscript.c: (int_2_compare) Rewrite.
+	(compare_line) Rewrite.
+
 Fri Dec 19 16:38:35 2003  Ben Pfaff  <blp@gnu.org>
 
 	* matrix-data.c (compare_factors) Use lexicographical_compare()

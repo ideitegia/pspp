@@ -1732,16 +1732,22 @@ ps_close_page (struct outp_driver *this)
 
 /* qsort() comparison function for int tuples. */
 static int
-int_2_compare (const void *a, const void *b)
+int_2_compare (const void *a_, const void *b_)
 {
-  return *((const int *) a) - *((const int *) b);
+  const int *a = a_;
+  const int *b = b_;
+
+  return *a < *b ? -1 : *a > *b;
 }
 
 /* Hash table comparison function for cached lines. */
 static int
-compare_line (const void *a, const void *b, void *foo unused)
+compare_line (const void *a_, const void *b_, void *foo unused)
 {
-  return ((struct line_form *) a)->ind - ((struct line_form *) b)->ind;
+  const struct line_form *a = a_;
+  const struct line_form *b = b_;
+
+  return a->ind < b->ind ? -1 : a->ind > b->ind;
 }
 
 /* Hash table hash function for cached lines. */
