@@ -11,6 +11,7 @@ TESTS = command/aggregate.sh \
 	command/count.sh \
 	command/descriptives.sh \
 	command/flip.sh \
+	command/lag.sh \
 	command/print.sh \
 	command/sort.sh \
 	command/split-file.sh \

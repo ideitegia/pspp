@@ -1,6 +1,5 @@
-title 'Test SAMPLE utility'.
 
-set seed=random.
+set seed=2
 data list /a 1-2.
 begin data.
 1
@@ -14,6 +13,6 @@ begin data.
 9
 10
 end data.
-sample .5.
-n 5.
+
+sample .5 .
 list.
