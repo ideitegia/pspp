@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "error.h"
 #include "file-handle.h"
@@ -66,10 +67,6 @@ static int save_write_case_func (struct ccase *, void *);
 static trns_proc_func save_trns_proc;
 static trns_free_func save_trns_free;
 
-#if DEBUGGING
-void dump_dict_variables (struct dictionary *);
-#endif
-
 /* Parses the GET command. */
 int
 cmd_get (void)
@@ -93,30 +90,13 @@ cmd_get (void)
   if (dict == NULL)
     return CMD_FAILURE;
 
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
   if (0 == trim_dictionary (dict, &options))
     {
       fh_close_handle (handle);
       return CMD_FAILURE;
     }
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
 
   dict_compact_values (dict);
-
-#if DEBUGGING
-  printf (_("GET translation table from file to memory:\n"));
-  for (i = 0; i < dict->nvar; i++)
-    {
-      struct variable *v = dict->var[i];
-
-      printf (_("  %8s from %3d,%3d to %3d,%3d\n"), v->name,
-	      v->get.fv, v->get.nv, v->fv, v->nv);
-    }
-#endif
 
   dict_destroy (default_dict);
   default_dict = dict;
@@ -158,9 +138,6 @@ cmd_save_internal (enum save_cmd save_cmd)
     return CMD_FAILURE;
 
   dict = dict_clone (default_dict);
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
   for (i = 0; i < dict_get_var_cnt (dict); i++) 
     dict_get_var (dict, i)->aux = dict_get_var (default_dict, i);
   if (0 == trim_dictionary (dict, &options))
@@ -168,10 +145,6 @@ cmd_save_internal (enum save_cmd save_cmd)
       fh_close_handle (handle);
       return CMD_FAILURE;
     }
-
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
 
   /* Write dictionary. */
   inf.h = handle;
@@ -236,7 +209,7 @@ do_write_case (struct save_trns *t, struct ccase *c)
       struct variable *v = t->var[i];
       if (v->type == NUMERIC)
 	{
-	  double src = c->data[v->fv].f;
+	  double src = case_num (c, v->fv);
 	  if (src == SYSMIS)
 	    *p++ = -FLT64_MAX;
 	  else
@@ -244,7 +217,7 @@ do_write_case (struct save_trns *t, struct ccase *c)
 	}
       else
 	{
-	  memcpy (p, c->data[v->fv].s, v->width);
+	  memcpy (p, case_str (c, v->fv), v->width);
 	  memset (&((char *) p)[v->width], ' ',
 		  REM_RND_UP (v->width, sizeof *p));
 	  p += DIV_RND_UP (v->width, sizeof *p);
@@ -470,19 +443,6 @@ done:
 
   return success;
 }
-
-#if DEBUGGING
-void
-dump_dict_variables (struct dictionary * dict)
-{
-  int i;
-
-  printf (_("\nVariables in dictionary:\n"));
-  for (i = 0; i < dict->nvar; i++)
-    printf ("%s, ", dict->var[i]->name);
-  printf ("\n");
-}
-#endif
 
 /* Clears internal state related to GET input procedure. */
 static void
@@ -505,7 +465,7 @@ get_source_read (struct case_source *source,
 {
   struct get_pgm *pgm = source->aux;
 
-  while (sfm_read_case (pgm->handle, c->data, default_dict)
+  while (sfm_read_case (pgm->handle, c, default_dict)
 	 && write_case (wc_data))
     ;
 }
@@ -543,7 +503,7 @@ struct mtf_file
     struct dictionary *dict;	/* Dictionary from system file. */
     char in[9];			/* Name of the variable from IN=. */
     char first[9], last[9];	/* Name of the variables from FIRST=, LAST=. */
-    union value *input;		/* Input record. */
+    struct ccase input;         /* Input record. */
   };
 
 /* MATCH FILES procedure. */
@@ -623,7 +583,7 @@ cmd_match_files (void)
 	  file->in[0] = file->first[0] = file->last[0] = '\0';
 	  file->dict = NULL;
 	  file->by = NULL;
-	  file->input = NULL;
+          case_nullify (&file->input);
 
 	  if (lex_match_id ("FILE"))
 	    file->type = MTF_FILE;
@@ -703,6 +663,7 @@ cmd_match_files (void)
 	      file->dict = sfm_read_dictionary (file->handle, NULL);
 	      if (!file->dict)
 		goto lossage;
+              case_create (&file->input, dict_get_next_value_idx (file->dict));
 	    }
 	  else
 	    file->dict = default_dict;
@@ -831,15 +792,6 @@ cmd_match_files (void)
 	}
     }
 
-#if DEBUGGING
-  {
-    /* From sfm-read.c. */
-    extern void dump_dictionary (struct dictionary *);
-
-    dump_dictionary (mtf.dict);
-  }
-#endif
-
   /* MATCH FILES performs an n-way merge on all its input files.
      Abstract algorithm:
 
@@ -956,7 +908,7 @@ mtf_free_file (struct mtf_file *file)
     dict_destroy (file->dict);
   free (file->by);
   if (file->handle)
-    free (file->input);
+    case_destroy (&file->input);
   free (file);
 }
 
@@ -1002,11 +954,12 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
     for (i = 0; i < dict_get_var_cnt (f->dict); i++)
       {
 	struct variable *v = dict_get_var (f->dict, i);
+        union value *out = case_data_rw (mtf->mtf_case, v->p.mtf.master->fv);
 	  
 	if (v->type == NUMERIC)
-	  mtf->mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
+          out->f = SYSMIS;
 	else
-	  memset (mtf->mtf_case->data[v->p.mtf.master->fv].s, ' ', v->width);
+	  memset (out->s, ' ', v->width);
       }
   }
 
@@ -1024,10 +977,7 @@ mtf_read_nonactive_records (void *mtf_ UNUSED)
     {
       if (iter->handle)
 	{
-	  assert (iter->input == NULL);
-	  iter->input = xmalloc (dict_get_case_size (iter->dict));
-	  
-	  if (!sfm_read_case (iter->handle, iter->input, iter->dict))
+	  if (!sfm_read_case (iter->handle, &iter->input, iter->dict))
 	    mtf_delete_file_in_place (mtf, &iter);
 	  else
 	    iter = iter->next;
@@ -1044,12 +994,12 @@ mtf_compare_BY_values (struct mtf_proc *mtf,
                        struct mtf_file *a, struct mtf_file *b,
                        struct ccase *c)
 {
-  union value *a_input, *b_input;
+  struct ccase *a_input, *b_input;
   int i;
 
   assert ((a == NULL) + (b == NULL) + (c == NULL) <= 1);
-  a_input = a->input != NULL ? a->input : c->data;
-  b_input = b->input != NULL ? b->input : c->data;
+  a_input = case_is_null (&a->input) ? c : &a->input;
+  b_input = case_is_null (&b->input) ? c : &b->input;
   for (i = 0; i < mtf->by_cnt; i++)
     {
       assert (a->by[i]->type == b->by[i]->type);
@@ -1057,8 +1007,8 @@ mtf_compare_BY_values (struct mtf_proc *mtf,
       
       if (a->by[i]->type == NUMERIC)
 	{
-	  double af = a_input[a->by[i]->fv].f;
-	  double bf = b_input[b->by[i]->fv].f;
+	  double af = case_num (a_input, a->by[i]->fv);
+	  double bf = case_num (b_input, b->by[i]->fv);
 
 	  if (af < bf)
 	    return -1;
@@ -1070,8 +1020,8 @@ mtf_compare_BY_values (struct mtf_proc *mtf,
 	  int result;
 	  
 	  assert (a->by[i]->type == ALPHA);
-	  result = memcmp (a_input[a->by[i]->fv].s,
-			   b_input[b->by[i]->fv].s,
+	  result = memcmp (case_str (a_input, a->by[i]->fv),
+			   case_str (b_input, b->by[i]->fv),
 			   a->by[i]->width);
 	  if (result < 0)
 	    return -1;
@@ -1171,7 +1121,7 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	    case 1:
 	      if (iter->handle == NULL)
 		return 1;
-	      if (sfm_read_case (iter->handle, iter->input, iter->dict))
+	      if (sfm_read_case (iter->handle, &iter->input, iter->dict))
 		goto again;
 	      mtf_delete_file_in_place (mtf, &iter);
 	      break;
@@ -1196,20 +1146,21 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
-              union value *record;
+              struct ccase *record;
+              union value *out;
 	  
 	      if (mtf->seq_nums[v->p.mtf.master->index] == mtf->seq_num)
 		continue;
               mtf->seq_nums[v->p.mtf.master->index] = mtf->seq_num;
 
-              record = iter->input != NULL ? iter->input : c->data;
+              record = case_is_null (&iter->input) ? c : &iter->input;
 
               assert (v->type == NUMERIC || v->type == ALPHA);
+              out = case_data_rw (mtf->mtf_case, v->p.mtf.master->fv);
 	      if (v->type == NUMERIC)
-		mtf->mtf_case->data[v->p.mtf.master->fv].f = record[v->fv].f;
+		out->f = case_num (record, v->fv);
 	      else
-                memcpy (mtf->mtf_case->data[v->p.mtf.master->fv].s,
-                        record[v->fv].s, v->width);
+                memcpy (out->s, case_str (record, v->fv), v->width);
 	    }
 	}
 
@@ -1223,22 +1174,17 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
+              union value *out;
 	  
 	      if (mtf->seq_nums[v->p.mtf.master->index] == mtf->seq_num)
 		continue;
               mtf->seq_nums[v->p.mtf.master->index] = mtf->seq_num;
 
-#if 0
-	      printf ("%s/%s: dest-fv=%d\n",
-		      fh_handle_name (iter->handle),
-		      v->name,
-		      v->p.mtf.master->fv);
-#endif
+              out = case_data_rw (mtf->mtf_case, v->p.mtf.master->fv);
 	      if (v->type == NUMERIC)
-		mtf->mtf_case->data[v->p.mtf.master->fv].f = SYSMIS;
+                out->f = SYSMIS;
 	      else
-                memset (mtf->mtf_case->data[v->p.mtf.master->fv].s, ' ',
-                        v->width);
+                memset (out->s, ' ', v->width);
 	    }
 
 	  if (iter->handle == NULL)
@@ -1258,9 +1204,7 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	  
 	  if (iter->handle)
 	    {
-	      assert (iter->input != NULL);
-
-	      if (!sfm_read_case (iter->handle, iter->input, iter->dict))
+	      if (!sfm_read_case (iter->handle, &iter->input, iter->dict))
 		mtf_delete_file_in_place (mtf, &iter);
 	    }
 
@@ -1401,30 +1345,13 @@ cmd_import (void)
   if (dict == NULL)
     return CMD_FAILURE;
 
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
   if (0 == trim_dictionary (dict, &options))
     {
       fh_close_handle (handle);
       return CMD_FAILURE;
     }
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
 
   dict_compact_values (dict);
-
-#if DEBUGGING
-  printf (_("IMPORT translation table from file to memory:\n"));
-  for (i = 0; i < dict->nvar; i++)
-    {
-      struct variable *v = dict->var[i];
-
-      printf (_("  %8s from %3d,%3d to %3d,%3d\n"), v->name,
-	      v->get.fv, v->get.nv, v->fv, v->nv);
-    }
-#endif
 
   dict_destroy (default_dict);
   default_dict = dict;
@@ -1446,7 +1373,7 @@ import_source_read (struct case_source *source,
 {
   struct get_pgm *pgm = source->aux;
   
-  while (pfm_read_case (pgm->handle, c->data, default_dict))
+  while (pfm_read_case (pgm->handle, c, default_dict))
     if (!write_case (wc_data))
       break;
 }
@@ -1483,9 +1410,6 @@ cmd_export (void)
     return CMD_FAILURE;
 
   dict = dict_clone (default_dict);
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     dict_get_var (dict, i)->aux = dict_get_var (default_dict, i);
   if (0 == trim_dictionary (dict, &options))
@@ -1493,10 +1417,6 @@ cmd_export (void)
       fh_close_handle (handle);
       return CMD_FAILURE;
     }
-
-#if DEBUGGING
-  dump_dict_variables (dict);
-#endif
 
   /* Write dictionary. */
   if (!pfm_write_dictionary (handle, dict))
@@ -1537,9 +1457,9 @@ export_write_case_func (struct ccase *c, void *aux)
       struct variable *v = t->var[i];
 
       if (v->type == NUMERIC)
-	*p++ = c->data[v->fv];
+	(*p++).f = case_num (c, v->fv);
       else
-	(*p++).c = c->data[v->fv].s;
+	(*p++).c = (char *) case_str (c, v->fv);
     }
 
   pfm_write_case (t->f, (union value *) t->case_buf);

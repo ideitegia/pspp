@@ -1,7 +1,9 @@
-Time-stamp: <2004-05-30 18:09:06 blp>
+Time-stamp: <2004-05-31 13:14:29 blp>
 
 What Ben's working on now.
 --------------------------
+
+Workspace exhaustion heuristics.
 
 Does SET work correctly?
 
@@ -17,6 +19,12 @@ other procedures).
 
 TODO
 ----
+
+Make valgrind --leak-check=yes --show-reachable=yes work.
+
+Add Boolean type.
+
+Add NOT_REACHED() macro.
 
 Add compression to casefiles.
 

@@ -23,6 +23,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -105,7 +106,7 @@ static int parse_dest_spec (struct rcd_var * rcd, union value *v,
 static int parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width);
 static trns_proc_func recode_trns_proc;
 static trns_free_func recode_trns_free;
-static double convert_to_double (char *, int);
+static double convert_to_double (const char *, int);
 
 /* Parser. */
 
@@ -687,7 +688,7 @@ recode_trns_free (struct trns_header * t)
 static inline struct coding *
 find_src_numeric (struct rcd_var * v, struct ccase * c)
 {
-  double cmp = c->data[v->src->fv].f;
+  double cmp = case_num (c, v->src->fv);
   struct coding *cp;
 
   if (cmp == SYSMIS)
@@ -695,9 +696,9 @@ find_src_numeric (struct rcd_var * v, struct ccase * c)
       if (v->sysmis.f != -SYSMIS)
 	{
 	  if ((v->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-	    c->data[v->dest->fv].f = v->sysmis.f;
+            case_data_rw (c, v->dest->fv)->f = v->sysmis.f;
 	  else
-	    memcpy (c->data[v->dest->fv].s, v->sysmis.s,
+	    memcpy (case_data_rw (c, v->dest->fv)->s, v->sysmis.s,
 		    v->dest->width);
 	}
       return NULL;
@@ -738,7 +739,7 @@ find_src_numeric (struct rcd_var * v, struct ccase * c)
 static inline struct coding *
 find_src_string (struct rcd_var * v, struct ccase * c)
 {
-  char *cmp = c->data[v->src->fv].s;
+  const char *cmp = case_str (c, v->src->fv);
   int w = v->src->width;
   struct coding *cp;
 
@@ -758,7 +759,7 @@ find_src_string (struct rcd_var * v, struct ccase * c)
 	  double f = convert_to_double (cmp, w);
 	  if (f != -SYSMIS)
 	    {
-	      c->data[v->dest->fv].f = f;
+              case_data_rw (c, v->dest->fv)->f = f;
 	      return NULL;
 	    }
 	  break;
@@ -770,7 +771,7 @@ find_src_string (struct rcd_var * v, struct ccase * c)
 
 static int
 recode_trns_proc (struct trns_header * t, struct ccase * c,
-                  int case_num UNUSED)
+                  int case_idx UNUSED)
 {
   struct rcd_var *v;
 
@@ -797,20 +798,24 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
       if ((v->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
 	{
 	  double val = cp->t.f;
+          double *out = &case_data_rw (c, v->dest->fv)->f;
 	  if (val == -SYSMIS)
-	    c->data[v->dest->fv].f = c->data[v->src->fv].f;
+	    *out = case_num (c, v->src->fv);
 	  else
-	    c->data[v->dest->fv].f = val;
+	    *out = val;
 	}
       else
 	{
 	  char *val = cp->t.c;
 	  if (val == NULL) 
-	    st_bare_pad_len_copy (c->data[v->dest->fv].s,
-				  c->data[v->src->fv].s,
-				  v->dest->width, v->src->width);
+            {
+              if (v->dest->fv != v->src->fv)
+                st_bare_pad_len_copy (case_data_rw (c, v->dest->fv)->s,
+                                      case_str (c, v->src->fv),
+                                      v->dest->width, v->src->width); 
+            }
 	  else
-	    memmove (c->data[v->dest->fv].s, cp->t.c, v->dest->width);
+	    memcpy (case_data_rw (c, v->dest->fv)->s, cp->t.c, v->dest->width);
 	}
     }
 
@@ -822,13 +827,13 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
    first character after the number into *ENDPTR.  From the GNU C
    library. */
 static long int
-string_to_long (char *nptr, int width, char **endptr)
+string_to_long (const char *nptr, int width, const char **endptr)
 {
   int negative;
   register unsigned long int cutoff;
   register unsigned int cutlim;
   register unsigned long int i;
-  register char *s;
+  register const char *s;
   register unsigned char c;
   const char *save;
 
@@ -898,7 +903,7 @@ string_to_long (char *nptr, int width, char **endptr)
    found, or -SYSMIS if there was no valid number in s.  WIDTH is the
    length of string S.  From the GNU C library. */
 static double
-convert_to_double (char *s, int width)
+convert_to_double (const char *s, int width)
 {
   register const char *end = &s[width];
 

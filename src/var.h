@@ -247,22 +247,6 @@ struct vector
     int cnt;			/* Number of variables. */
   };
 
-/* Cases. */
-
-/* A single case.  (This doesn't need to be a struct anymore, but it
-   remains so for hysterical raisins.) */
-struct ccase
-  {
-    union value data[1];
-  };
-
-/* Linked list of cases. */
-struct case_list 
-  {
-    struct case_list *next;
-    struct ccase c;
-  };
-
 /* Dictionary. */ 
 
 /* Complete dictionary state. */
@@ -300,6 +284,7 @@ int dict_rename_vars (struct dictionary *,
                       struct variable **, char **new_names,
                       size_t count, char **err_name);
 
+struct ccase;
 struct variable *dict_get_weight (const struct dictionary *);
 double dict_get_case_weight (const struct dictionary *, 
 			     const struct ccase *, int *);
@@ -414,12 +399,14 @@ void cancel_transformations (void);
 
 struct var_set;
 
-struct var_set *var_set_create_from_dict (struct dictionary *d);
-struct var_set *var_set_create_from_array (struct variable **var, size_t);
+struct var_set *var_set_create_from_dict (const struct dictionary *d);
+struct var_set *var_set_create_from_array (struct variable *const *var,
+                                           size_t);
 
-size_t var_set_get_cnt (struct var_set *vs);
-struct variable *var_set_get_var (struct var_set *vs, size_t idx);
-struct variable *var_set_lookup_var (struct var_set *vs, const char *name);
+size_t var_set_get_cnt (const struct var_set *vs);
+struct variable *var_set_get_var (const struct var_set *vs, size_t idx);
+struct variable *var_set_lookup_var (const struct var_set *vs,
+                                     const char *name);
 void var_set_destroy (struct var_set *vs);
 
 /* Variable parsers. */
@@ -438,10 +425,10 @@ enum
   };
 
 struct variable *parse_variable (void);
-struct variable *parse_dict_variable (struct dictionary *);
-int parse_variables (struct dictionary *, struct variable ***, int *,
+struct variable *parse_dict_variable (const struct dictionary *);
+int parse_variables (const struct dictionary *, struct variable ***, int *,
                      int opts);
-int parse_var_set_vars (struct var_set *, struct variable ***, int *,
+int parse_var_set_vars (const struct var_set *, struct variable ***, int *,
                         int opts);
 int parse_DATA_LIST_vars (char ***names, int *cnt, int opts);
 int parse_mixed_vars (char ***names, int *cnt, int opts);

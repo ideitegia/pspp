@@ -63,7 +63,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 1"
-$here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
@@ -91,7 +91,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-$here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

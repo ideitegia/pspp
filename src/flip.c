@@ -25,6 +25,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -303,7 +304,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       v->next = NULL;
       if (flip->new_names->type == NUMERIC) 
         {
-          double f = c->data[sink->idx_to_fv[flip->new_names->index]].f;
+          double f = case_num (c, sink->idx_to_fv[flip->new_names->index]);
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -322,7 +323,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       else
 	{
 	  int width = min (flip->new_names->width, 8);
-	  memcpy (v->name, c->data[sink->idx_to_fv[flip->new_names->index]].s,
+	  memcpy (v->name, case_str (c, sink->idx_to_fv[flip->new_names->index]),
                   width);
 	  v->name[width] = 0;
 	}
@@ -336,10 +337,15 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
 
   /* Write to external file. */
   for (i = 0; i < flip->var_cnt; i++)
-    if (flip->var[i]->type == NUMERIC)
-      info->output_buf[i].f = c->data[sink->idx_to_fv[flip->var[i]->index]].f;
-    else
-      info->output_buf[i].f = SYSMIS;
+    {
+      double out;
+      
+      if (flip->var[i]->type == NUMERIC)
+        out = case_num (c, sink->idx_to_fv[flip->var[i]->index]);
+      else
+        out = SYSMIS;
+      info->output_buf[i].f = out;
+    }
 	  
   if (fwrite (info->output_buf, sizeof *info->output_buf,
               flip->var_cnt, flip->file) != (size_t) flip->var_cnt)
@@ -407,9 +413,14 @@ flip_file (struct flip_pgm *flip)
 	  for (j = 0; j < read_cases; j++)
 	    output_buf[j] = input_buf[i + j * flip->var_cnt];
 
-	  if (fseek (output_file,
-                     sizeof *input_buf * (case_idx + i * flip->case_cnt),
-                     SEEK_SET) != 0)
+#ifndef HAVE_FSEEKO
+#define fseeko fseek
+#endif
+
+	  if (fseeko (output_file,
+                      sizeof *input_buf * (case_idx
+                                           + (off_t) i * flip->case_cnt),
+                      SEEK_SET) != 0)
 	    msg (FE, _("Error seeking FLIP source file: %s."),
 		       strerror (errno));
 
@@ -466,11 +477,15 @@ flip_source_read (struct case_source *source,
                   write_case_func *write_case, write_case_data wc_data)
 {
   struct flip_pgm *flip = source->aux;
+  union value *input_buf;
   int i;
 
+  input_buf = xmalloc (sizeof *input_buf * flip->case_cnt);
   for (i = 0; i < flip->var_cnt; i++)
     {
-      if (fread (c->data, sizeof *c->data, flip->case_cnt,
+      size_t j;
+      
+      if (fread (input_buf, sizeof *input_buf, flip->case_cnt,
                  flip->file) != flip->case_cnt) 
         {
           if (ferror (flip->file))
@@ -483,9 +498,12 @@ flip_source_read (struct case_source *source,
           break;
         }
 
+      for (j = 0; j < flip->case_cnt; j++)
+        case_data_rw (c, j)->f = input_buf[j].f;
       if (!write_case (wc_data))
         break;
     }
+  free (input_buf);
 }
 
 /* Destroy internal data in SOURCE. */

@@ -70,7 +70,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"

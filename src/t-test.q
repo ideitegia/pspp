@@ -27,6 +27,7 @@
 #include <math.h>
 #include "alloc.h"
 #include "str.h"
+#include "case.h"
 #include "command.h"
 #include "lexer.h"
 #include "error.h"
@@ -514,6 +515,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
 
   n_pairs+=n_pairs_local;
 
+  free (vars);
   return 1;
 }
 
@@ -629,7 +631,7 @@ ssbox_one_sample_init(struct ssbox *this,
 
   ssbox_base_init(this, hsize,vsize);
   tab_title (this->t, 0, _("One-Sample Statistics"));
-  tab_vline(this->t, TAL_2, 1,0,vsize);
+  tab_vline(this->t, TAL_2, 1,0,vsize - 1);
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
@@ -651,7 +653,7 @@ ssbox_independent_samples_init(struct ssbox *this,
 
   ssbox_base_init(this, hsize,vsize);
   tab_title (this->t, 0, _("Group Statistics"));
-  tab_vline(this->t,0,1,0,vsize);
+  tab_vline(this->t,0,1,0,vsize - 1);
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, indep_var->name);
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
@@ -1047,7 +1049,7 @@ trbox_paired_init(struct trbox *self,
   trbox_base_init(self,n_pairs,hsize);
   tab_title (self->t, 0, _("Paired Samples Test"));
   tab_hline(self->t,TAL_1,2,6,1);
-  tab_vline(self->t,TAL_2,2,0,vsize);
+  tab_vline(self->t,TAL_2,2,0,vsize - 1);
   tab_joint_text(self->t,2,0,6,0,TAB_CENTER,_("Paired Differences"));
   tab_box(self->t,-1,-1,-1,TAL_1, 2,1,6,vsize-1);
   tab_box(self->t,-1,-1,-1,TAL_1, 6,0,hsize-1,vsize-1);
@@ -1141,7 +1143,7 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
   trbox_base_init(self, cmd->n_variables,hsize);
   tab_title (self->t, 0, _("One-Sample Test"));
   tab_hline(self->t, TAL_1, 1, hsize - 1, 1);
-  tab_vline(self->t, TAL_2, 1, 0, vsize);
+  tab_vline(self->t, TAL_2, 1, 0, vsize - 1);
 
   tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER | TAT_PRINTF, 
 		 _("Test Value = %f"),cmd->n_testval);
@@ -1314,7 +1316,7 @@ common_calc (const struct ccase *c, void *_cmd)
       for(i=0; i< cmd->n_variables ; ++i) 
 	{
 	  struct variable *v = cmd->v_variables[i];
-	  const union value *val = &c->data[v->fv];
+	  const union value *val = case_data (c, v->fv);
 
 	  if (value_is_missing(val,v) )
 	    {
@@ -1326,7 +1328,7 @@ common_calc (const struct ccase *c, void *_cmd)
   /* Listwise has to be implicit if the independent variable is missing ?? */
   if ( cmd->sbc_groups )
     {
-      const union value *gv = &c->data[indep_var->fv];
+      const union value *gv = case_data (c, indep_var->fv);
       if ( value_is_missing(gv,indep_var) )
 	{
 	  return 0;
@@ -1338,7 +1340,7 @@ common_calc (const struct ccase *c, void *_cmd)
     {
       struct group_statistics *gs;
       struct variable *v = cmd->v_variables[i];
-      const union value *val = &c->data[v->fv];
+      const union value *val = case_data (c, v->fv);
 
       gs= &cmd->v_variables[i]->p.t_t.ugs;
 
@@ -1413,7 +1415,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
       for(i=0; i< cmd->n_variables ; ++i) 
 	{
 	  struct variable *v = cmd->v_variables[i];
-	  const union value *val = &c->data[v->fv];
+	  const union value *val = case_data (c, v->fv);
 
 	  if (value_is_missing(val,v) )
 	    {
@@ -1426,7 +1428,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
     {
       struct group_statistics *gs;
       struct variable *v = cmd->v_variables[i];
-      const union value *val = &c->data[v->fv];
+      const union value *val = case_data (c, v->fv);
 
       gs= &cmd->v_variables[i]->p.t_t.ugs;
       
@@ -1525,8 +1527,8 @@ paired_calc (const struct ccase *c, void *cmd_)
 	  struct variable *v0 = pairs[i].v[0];
 	  struct variable *v1 = pairs[i].v[1];
 
-	  const union value *val0 = &c->data[v0->fv];
-	  const union value *val1 = &c->data[v1->fv];
+	  const union value *val0 = case_data (c, v0->fv);
+	  const union value *val1 = case_data (c, v1->fv);
 	  
 	  if ( value_is_missing(val0,v0) ||
 	       value_is_missing(val1,v1) )
@@ -1541,8 +1543,8 @@ paired_calc (const struct ccase *c, void *cmd_)
       struct variable *v0 = pairs[i].v[0];
       struct variable *v1 = pairs[i].v[1];
 
-      const union value *val0 = &c->data[v0->fv];
-      const union value *val1 = &c->data[v1->fv];
+      const union value *val0 = case_data (c, v0->fv);
+      const union value *val1 = case_data (c, v1->fv);
 
       if ( ( !value_is_missing(val0,v0) && !value_is_missing(val1,v1) ) )
       {
@@ -1676,7 +1678,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
   int i;
   int g;
 
-  const union value *gv = &c->data[indep_var->fv];
+  const union value *gv = case_data (c, indep_var->fv);
 
   const double weight = dict_get_case_weight(default_dict,c,&bad_weight_warn);
 
@@ -1690,7 +1692,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
       for(i=0; i< cmd->n_variables ; ++i) 
 	{
 	  struct variable *v = cmd->v_variables[i];
-	  const union value *val = &c->data[v->fv];
+	  const union value *val = case_data (c, v->fv);
 
 	  if (value_is_missing(val,v) )
 	    {
@@ -1700,7 +1702,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
     }
 
 
-  gv = &c->data[indep_var->fv];
+  gv = case_data (c, indep_var->fv);
 
   g = get_group(gv,indep_var);
 
@@ -1716,7 +1718,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 
       struct group_statistics *gs = &var->p.t_t.gs[g];
 
-      const union value *val=&c->data[var->fv];
+      const union value *val = case_data (c, var->fv);
 
       if ( !value_is_missing(val,var) )
 	{
@@ -1768,15 +1770,16 @@ calculate(const struct casefile *cf, void *cmd_)
   struct trbox test_results_box;
 
   struct casereader *r;
-  const struct ccase *c;
+  struct ccase c;
 
   struct cmd_t_test *cmd = (struct cmd_t_test *) cmd_;
 
   common_precalc(cmd);
   for(r = casefile_get_reader (cf);
-      casereader_read (r, &c) ; ) 
+      casereader_read (r, &c) ;
+      case_destroy (&c)) 
     {
-      common_calc(c,cmd);
+      common_calc(&c,cmd);
     }
   casereader_destroy (r);
   common_postcalc(cmd);
@@ -1786,9 +1789,10 @@ calculate(const struct casefile *cf, void *cmd_)
     case T_1_SAMPLE:
       one_sample_precalc(cmd);
       for(r = casefile_get_reader (cf);
-	  casereader_read (r, &c) ; ) 
+	  casereader_read (r, &c) ;
+          case_destroy (&c)) 
 	{
-	  one_sample_calc(c,cmd);
+	  one_sample_calc(&c,cmd);
 	}
       casereader_destroy (r);
       one_sample_postcalc(cmd);
@@ -1797,9 +1801,10 @@ calculate(const struct casefile *cf, void *cmd_)
     case T_PAIRED:
       paired_precalc(cmd);
       for(r = casefile_get_reader (cf);
-	  casereader_read (r, &c) ; ) 
+	  casereader_read (r, &c) ;
+          case_destroy (&c)) 
 	{
-	  paired_calc(c,cmd);
+	  paired_calc(&c,cmd);
 	}
       casereader_destroy (r);
       paired_postcalc(cmd);
@@ -1809,9 +1814,10 @@ calculate(const struct casefile *cf, void *cmd_)
 
       group_precalc(cmd);
       for(r = casefile_get_reader (cf);
-	  casereader_read (r, &c) ; ) 
+	  casereader_read (r, &c) ;
+          case_destroy (&c)) 
 	{
-	  group_calc(c,cmd);
+	  group_calc(&c,cmd);
 	}
       casereader_destroy (r);
       group_postcalc(cmd);

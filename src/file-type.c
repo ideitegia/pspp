@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "data-in.h"
 #include "dfm.h"
@@ -643,7 +644,7 @@ file_type_source_read (struct case_source *source,
 	{
 	  struct data_in di;
 	  
-	  v.c = c->data[fty->record.v->fv].s;
+	  v.c = case_data_rw (c, fty->record.v->fv)->s;
 
 	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
 			       fty->record.fc, fty->record.fc + fty->record.nc);
@@ -676,7 +677,7 @@ file_type_source_read (struct case_source *source,
 	  di.format = format;
 	  data_in (&di);
 
-	  memcpy (&c->data[fty->record.v->fv].f, &v.f, sizeof v.f);
+          case_data_rw (c, fty->record.v->fv)->f = v.f;
 	  for (iter = fty->recs_head; iter; iter = iter->next)
 	    {
 	      if (iter->flags & RCT_OTHER)

@@ -20,8 +20,6 @@
 #if !exprP_h
 #define exprP_h 1
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 void debug_print_op (short int *);

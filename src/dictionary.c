@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
+#include "case.h"
 #include "hash.h"
 #include "misc.h"
 #include "str.h"
@@ -574,7 +575,7 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
     return 1.0;
   else 
     {
-      double w = c->data[d->weight->fv].f;
+      double w = case_num (c, d->weight->fv);
       if ( w < 0.0 || w == SYSMIS || is_num_user_missing(w, d->weight) )
         w = 0.0;
       if ( w == 0.0 && *warn_on_invalid ) {

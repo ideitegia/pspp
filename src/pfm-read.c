@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <math.h>
 #include "alloc.h"
+#include "case.h"
 #include "file-handle.h"
 #include "format.h"
 #include "getline.h"
@@ -274,9 +275,6 @@ pfm_read_dictionary (struct file_handle *h, struct pfm_read_info *inf)
 
   msg (VM (2), _("Read portable-file dictionary successfully."));
 
-#if DEBUGGING
-  dump_dictionary (ext->dict);
-#endif
   return ext->dict;
 
  lossage:
@@ -972,12 +970,13 @@ read_value_label (struct file_handle *h)
   return 0;
 }
 
-/* Reads one case from portable file H into the value array PERM
+/* Reads one case from portable file H into PERM
    according to the instuctions given in associated dictionary DICT,
    which must have the get.fv elements appropriately set.  Returns
    nonzero only if successful. */
 int
-pfm_read_case (struct file_handle *h, union value *perm, struct dictionary *dict)
+pfm_read_case (struct file_handle *h, struct ccase *perm,
+               struct dictionary *dict)
 {
   struct pfm_fhuser_ext *ext = h->ext;
 
@@ -1021,9 +1020,9 @@ pfm_read_case (struct file_handle *h, union value *perm, struct dictionary *dict
 	continue;
       
       if (v->type == NUMERIC)
-	perm[v->fv].f = temp[v->get.fv].f;
+        case_data_rw (perm, v->fv)->f = temp[v->get.fv].f;
       else
-	memcpy (&perm[v->fv].s, &temp[v->get.fv], v->width);
+	memcpy (case_data_rw (perm, v->fv)->s, &temp[v->get.fv], v->width);
     }
 
   local_free (temp);

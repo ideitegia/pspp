@@ -60,10 +60,6 @@ static int type_check (union any_node **n,
 
 static algo_compare_func compare_functions;
 static void init_func_tab (void);
-
-#if DEBUGGING
-static void debug_print_tree (union any_node *, int);
-#endif
 
 /* Public functions. */
 
@@ -1518,84 +1514,6 @@ init_func_tab (void)
 }
 
 /* Debug output. */
-
-#if DEBUGGING
-static void
-print_type (union any_node * n)
-{
-  const char *s;
-  size_t len;
-
-  s = ops[n->type].name;
-  len = strlen (s);
-  if (ops[n->type].flags & OP_MIN_ARGS)
-    printf ("%s.%d\n", s, (int) n->nonterm.arg[n->nonterm.n]);
-  else if (ops[n->type].flags & OP_FMT_SPEC)
-    {
-      struct fmt_spec f;
-
-      f.type = (int) n->nonterm.arg[n->nonterm.n + 0];
-      f.w = (int) n->nonterm.arg[n->nonterm.n + 1];
-      f.d = (int) n->nonterm.arg[n->nonterm.n + 2];
-      printf ("%s(%s)\n", s, fmt_to_string (&f));
-    }
-  else
-    printf ("%s\n", s);
-}
-
-static void
-debug_print_tree (union any_node * n, int level)
-{
-  int i;
-  for (i = 0; i < level; i++)
-    printf ("  ");
-  if (n->type < OP_TERMINAL)
-    {
-      print_type (n);
-      for (i = 0; i < n->nonterm.n; i++)
-	debug_print_tree (n->nonterm.arg[i], level + 1);
-    }
-  else
-    {
-      switch (n->type)
-	{
-	case OP_TERMINAL:
-	  printf (_("!!TERMINAL!!"));
-	  break;
-	case OP_NUM_CON:
-	  if (n->num_con.value == SYSMIS)
-	    printf ("SYSMIS");
-	  else
-	    printf ("%f", n->num_con.value);
-	  break;
-	case OP_STR_CON:
-	  printf ("\"%.*s\"", n->str_con.len, n->str_con.s);
-	  break;
-	case OP_NUM_VAR:
-	case OP_STR_VAR:
-	  printf ("%s", n->var.v->name);
-	  break;
-	case OP_NUM_LAG:
-	case OP_STR_LAG:
-	  printf ("LAG(%s,%d)", n->lag.v->name, n->lag.lag);
-	  break;
-	case OP_NUM_SYS:
-	  printf ("SYSMIS(%s)", n->var.v->name);
-	  break;
-	case OP_NUM_VAL:
-	  printf ("VALUE(%s)", n->var.v->name);
-	  break;
-	case OP_SENTINEL:
-	  printf (_("!!SENTINEL!!"));
-	  break;
-	default:
-	  printf (_("!!ERROR%d!!"), n->type);
-	  assert (0);
-	}
-      printf ("\n");
-    }
-}
-#endif /* DEBUGGING */
 
 void
 expr_debug_print_postfix (const struct expression *e)

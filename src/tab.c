@@ -38,19 +38,6 @@
 
 struct som_table_class tab_table_class;
 
-#if DEBUGGING
-#define DEFFIRST(NAME, LABEL) LABEL,
-#define DEFTAB(NAME, LABEL) LABEL,
-/*
-static const char *tab_names[] =
-  {
-#include "tab.def"
-  };
-*/
-#undef DEFFIRST
-#undef DEFTAB
-#endif
-
 /* Creates a table with NC columns and NR rows.  If REALLOCABLE is
    nonzero then the table's size can be increased later; otherwise,
    its size can only be reduced. */

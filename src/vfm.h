@@ -71,11 +71,15 @@ struct dictionary;
 struct case_source *create_case_source (const struct case_source_class *,
                                         const struct dictionary *,
                                         void *);
+void free_case_source (struct case_source *);
+
 int case_source_is_complex (const struct case_source *);
 int case_source_is_class (const struct case_source *,
                           const struct case_source_class *);
 
 struct casefile *storage_source_get_casefile (struct case_source *);
+struct case_source *storage_source_create (struct casefile *,
+                                           const struct dictionary *);
 
 /* The replacement active file, to which cases are written. */
 extern struct case_sink *vfm_sink;
@@ -107,9 +111,10 @@ struct case_sink_class
     /* Closes and destroys the sink. */
     void (*destroy) (struct case_sink *);
 
-    /* Closes and destroys the sink and returns a source that can
-       read back the cases that were written, perhaps transformed
-       in some way. */
+    /* Closes the sink and returns a source that can read back
+       the cases that were written, perhaps transformed in some
+       way.  The sink must still be separately destroyed by
+       calling destroy(). */
     struct case_source *(*make_source) (struct case_sink *);
   };
 

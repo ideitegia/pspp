@@ -1,3 +1,27 @@
+Mon May 31 21:49:19 2004  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/t-test-with-temp.sh: Use $SUPERVISOR.
+
+	* bugs/t-test-1-indep-val.sh: Ditto.
+
+	* bugs/t-test-1-sample-missing-anal.sh: Ditto.
+	
+	* bugs/t-test-1-sample-missing-list.sh: Ditto.
+
+	* bugs/t-test-1s.sh: Ditto.
+
+	* bugs/t-test-groups.sh: Ditto.
+
+	* bugs/t-test-indep-missing-anal.sh: Ditto.
+
+	* bugs/t-test-indep-missing-list.sh: Ditto.
+
+	* bugs/t-test-paired-missing-anal.sh: Ditto.
+
+	* bugs/t-test-paired-missing-list.sh: Ditto.
+
+	* bugs/t-test-pairs.sh: Ditto.
+
 Sun May 30 19:18:26 2004  Ben Pfaff  <blp@gnu.org>
 
 	* command/tabs.sh: Default tab width is now 4.

@@ -20,6 +20,7 @@
 #include <config.h>
 #include "error.h"
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "do-ifP.h"
 #include "error.h"
@@ -259,15 +260,6 @@ internal_cmd_loop (void)
   add_transformation ((struct trns_header *) one);
   add_transformation ((struct trns_header *) two);
 
-#if DEBUGGING
-  printf ("LOOP");
-  if (two->flags & LPC_INDEX)
-    printf ("(INDEX)");
-  if (two->flags & LPC_COND)
-    printf ("(IF)");
-  printf ("\n");
-#endif
-
   return 1;
 }
 
@@ -328,13 +320,6 @@ internal_cmd_end_loop (void)
   /* Pop off the top of stack. */
   ctl_stack = ctl_stack->down;
 
-#if DEBUGGING
-  printf ("END LOOP");
-  if (thr->cond)
-    printf ("(IF)");
-  printf ("\n");
-#endif
-
   return 1;
 }
 
@@ -360,7 +345,7 @@ loop_1_trns_proc (struct trns_header * trns, struct ccase * c,
 
       /* Even if the loop is never entered, force the index variable
          to assume the initial value. */
-      c->data[two->index->fv].f = t1.f;
+      case_data_rw (c, two->index->fv)->f = t1.f;
 
       /* Throw out various pathological cases. */
       if (!finite (t1.f) || !finite (t2.f) || !finite (t3.f) || t2.f == 0.0)
@@ -428,7 +413,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c,
 	return two->loop_term;
 
       /* Set the current value into the case. */
-      c->data[two->index->fv].f = two->curr;
+      case_data_rw (c, two->index->fv)->f = two->curr;
 
       /* Decrement the current value. */
       two->curr += two->incr;
@@ -441,7 +426,7 @@ loop_2_trns_proc (struct trns_header * trns, struct ccase * c,
 	return two->loop_term;
 
       /* Set the current value into the case. */
-      c->data[two->index->fv].f = two->curr;
+      case_data_rw (c, two->index->fv)->f = two->curr;
 
       /* Increment the current value. */
       two->curr += two->incr;

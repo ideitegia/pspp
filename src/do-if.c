@@ -31,10 +31,6 @@
 
 #include "debug-print.h"
 
-#if DEBUGGING
-#include <stdio.h>
-#endif
-
 /* *INDENT-OFF* */
 /* Description of DO IF transformations:
 

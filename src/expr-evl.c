@@ -37,6 +37,7 @@
 #include <math.h>
 #include <errno.h>
 #include <stdio.h>
+#include "case.h"
 #include "data-in.h"
 #include "error.h"
 #include "julcal/julcal.h"
@@ -51,7 +52,7 @@
 #include "vfmP.h"
 
 double
-expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
+expr_evaluate (const struct expression *e, const struct ccase *c, int case_idx,
                union value *v)
 {
   unsigned char *op = e->op;
@@ -1148,7 +1149,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 		break;
 	      }
             assert (c != NULL);
-	    sp->f = c->data[v->var[rindx - 1]->fv].f;
+	    sp->f = case_num (c, v->var[rindx - 1]->fv);
 	  }
 	  break;
 	case OP_VEC_ELEM_STR:
@@ -1177,7 +1178,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	    sp->c = pool_alloc (e->pool, v->width + 1);
 	    sp->c[0] = v->width;
             assert (c != NULL);
-	    memcpy (&sp->c[1], c->data[v->fv].s, v->width);
+	    memcpy (&sp->c[1], case_str (c, v->fv), v->width);
 	  }
 	  break;
 
@@ -1195,7 +1196,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	case OP_NUM_VAR:
 	  sp++;
           assert (c != NULL);
-	  sp->f = c->data[(*vars)->fv].f;
+	  sp->f = case_num (c, (*vars)->fv);
 	  if (is_num_user_missing (sp->f, *vars))
 	    sp->f = SYSMIS;
 	  vars++;
@@ -1208,7 +1209,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	    sp->c = pool_alloc (e->pool, width + 1);
 	    sp->c[0] = width;
             assert (c != NULL);
-	    memcpy (&sp->c[1], &c->data[(*vars)->fv], width);
+	    memcpy (&sp->c[1], case_str (c, (*vars)->fv), width);
 	    vars++;
 	  }
 	  break;
@@ -1221,7 +1222,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	      sp->f = SYSMIS;
 	    else
 	      {
-		sp->f = c->data[(*vars)->fv].f;
+		sp->f = case_num (c, (*vars)->fv);
 		if (is_num_user_missing (sp->f, *vars))
 		  sp->f = SYSMIS;
 	      }
@@ -1240,7 +1241,7 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	    if (c == NULL)
 	      memset (sp->c, ' ', width);
 	    else
-	      memcpy (&sp->c[1], &c->data[(*vars)->fv], width);
+	      memcpy (&sp->c[1], case_str (c, (*vars)->fv), width);
 	    
 	    vars++;
 	  }
@@ -1248,16 +1249,16 @@ expr_evaluate (const struct expression *e, const struct ccase *c, int case_num,
 	case OP_NUM_SYS:
 	  sp++;
           assert (c != NULL);
-	  sp->f = c->data[*op++].f == SYSMIS;
+	  sp->f = case_num (c, *op++) == SYSMIS;
 	  break;
 	case OP_NUM_VAL:
 	  sp++;
           assert (c != NULL);
-	  sp->f = c->data[*op++].f;
+	  sp->f = case_num (c, *op++);
 	  break;
 	case OP_CASENUM:
 	  sp++;
-	  sp->f = case_num;
+	  sp->f = case_idx;
 	  break;
 
 	case OP_SENTINEL:

@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
@@ -366,16 +367,14 @@ static inline int
 count_numeric (struct counting * cnt, struct ccase * c)
 {
   int counter = 0;
-
-  struct cnt_num *num;
-
-  double cmp;
   int i;
 
   for (i = 0; i < cnt->n; i++)
     {
+      struct cnt_num *num;
+
       /* Extract the variable value and eliminate missing values. */
-      cmp = c->data[cnt->v[i]->fv].f;
+      double cmp = case_num (c, cnt->v[i]->fv);
       if (cmp == SYSMIS)
 	{
 	  if (cnt->missing >= 1)
@@ -433,27 +432,21 @@ static inline int
 count_string (struct counting * cnt, struct ccase * c)
 {
   int counter = 0;
-
-  struct cnt_str *str;
-
-  char *cmp;
-  int len;
-
   int i;
 
   for (i = 0; i < cnt->n; i++)
     {
-      /* Extract the variable value, variable width. */
-      cmp = c->data[cnt->v[i]->fv].s;
-      len = cnt->v[i]->width;
+      struct cnt_str *str;
 
+      /* Extract the variable value, variable width. */
       for (str = cnt->crit.s;; str++)
 	switch (str->type)
 	  {
 	  case CNT_ERROR:
 	    assert (0);
 	  case CNT_SINGLE:
-	    if (memcmp (cmp, str->s, len))
+	    if (memcmp (case_str (c, cnt->v[i]->fv), str->s,
+                        cnt->v[i]->width))
 	      break;
 	    counter++;
 	    goto done;
@@ -484,7 +477,7 @@ count_trns_proc (struct trns_header * trns, struct ccase * c,
 	  counter += count_numeric (cnt, c);
 	else
 	  counter += count_string (cnt, c);
-      c->data[info->d->fv].f = counter;
+      case_data_rw (c, info->d->fv)->f = counter;
     }
   return -1;
 }

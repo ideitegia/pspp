@@ -21,6 +21,8 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
+#include "casefile.h"
 #include "command.h"
 #include "error.h"
 #include "file-handle.h"
@@ -117,13 +119,17 @@ struct agr_proc
     struct file_handle *out_file;       /* Output file, or null if none. */
     struct case_sink *sink;             /* Sink, or null if none. */
 
+    /* Break variables. */
+    struct sort_criteria *sort;         /* Sort criteria. */
+    struct variable **break_vars;       /* Break variables. */
+    size_t break_var_cnt;               /* Number of break variables. */
+    union value *prev_break;            /* Last values of break variables. */
+
     enum missing_treatment missing;     /* How to treat missing values. */
-    struct sort_cases_pgm *sort;        /* Sort program. */
-    struct agr_var *vars;               /* First aggregate variable. */
+    struct agr_var *agr_vars;           /* First aggregate variable. */
     struct dictionary *dict;            /* Aggregate dictionary. */
     int case_cnt;                       /* Counts aggregated cases. */
-    union value *prev_break;            /* Last values of break variables. */
-    struct ccase *agr_case;             /* Aggregate case for output. */
+    struct ccase agr_case;              /* Aggregate case for output. */
     flt64 *sfm_agr_case;                /* Aggregate case in SFM format. */
   };
 
@@ -144,7 +150,6 @@ static int agr_to_active_file (struct ccase *, void *aux);
 /* Aggregating to a system file. */
 static void write_case_to_sfm (struct agr_proc *agr);
 static int presorted_agr_to_sysfile (struct ccase *, void *aux);
-static int sort_agr_to_sysfile (const struct ccase *, void *aux);
 
 /* Parsing. */
 
@@ -161,7 +166,8 @@ cmd_aggregate (void)
   agr.sink = NULL;
   agr.missing = ITEMWISE;
   agr.sort = NULL;
-  agr.vars = NULL;
+  agr.break_vars = NULL;
+  agr.agr_vars = NULL;
   agr.dict = NULL;
   agr.case_cnt = 0;
   agr.prev_break = NULL;
@@ -210,6 +216,8 @@ cmd_aggregate (void)
 	seen |= 4;
       else if (lex_match_id ("BREAK"))
 	{
+          int i;
+
 	  if (seen & 8)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"BREAK");
@@ -218,22 +226,17 @@ cmd_aggregate (void)
 	  seen |= 8;
 
 	  lex_match ('=');
-          agr.sort = parse_sort ();
+          agr.sort = sort_parse_criteria (default_dict,
+                                          &agr.break_vars, &agr.break_var_cnt);
           if (agr.sort == NULL)
             goto lossage;
 	  
-	  {
-	    int i;
-	    
-	    for (i = 0; i < agr.sort->var_cnt; i++)
-	      {
-		struct variable *v;
-	      
-		v = dict_clone_var (agr.dict, agr.sort->vars[i],
-                                    agr.sort->vars[i]->name);
-		assert (v != NULL);
-	      }
-	  }
+          for (i = 0; i < agr.break_var_cnt; i++)
+            {
+              struct variable *v = dict_clone_var (agr.dict, agr.break_vars[i],
+                                                   agr.break_vars[i]->name);
+              assert (v != NULL);
+            }
 	}
       else break;
     }
@@ -255,7 +258,7 @@ cmd_aggregate (void)
   
   /* Initialize. */
   agr.case_cnt = 0;
-  agr.agr_case = xmalloc (dict_get_case_size (agr.dict));
+  case_create (&agr.agr_case, dict_get_next_value_idx (agr.dict));
   initialize_aggregate_info (&agr);
 
   /* Output to active file or external file? */
@@ -266,7 +269,7 @@ cmd_aggregate (void)
       cancel_temporary ();
 
       if (agr.sort != NULL && (seen & 4) == 0)
-	sort_cases (agr.sort, 0);
+        sort_active_file_in_place (agr.sort);
 
       agr.sink = create_case_sink (&storage_sink_class, agr.dict, NULL);
       if (agr.sink->class->open != NULL)
@@ -275,8 +278,8 @@ cmd_aggregate (void)
       procedure (agr_to_active_file, &agr);
       if (agr.case_cnt > 0) 
         {
-          dump_aggregate_info (&agr, agr.agr_case);
-          agr.sink->class->write (agr.sink, agr.agr_case);
+          dump_aggregate_info (&agr, &agr.agr_case);
+          agr.sink->class->write (agr.sink, &agr.agr_case);
         }
       dict_destroy (default_dict);
       default_dict = agr.dict;
@@ -292,8 +295,22 @@ cmd_aggregate (void)
       if (agr.sort != NULL && (seen & 4) == 0) 
         {
           /* Sorting is needed. */
-          sort_cases (agr.sort, 1);
-          read_sort_output (agr.sort, sort_agr_to_sysfile, NULL);
+          struct casefile *dst;
+          struct casereader *reader;
+          struct ccase c;
+          
+          dst = sort_active_file_to_casefile (agr.sort);
+          if (dst == NULL)
+            goto lossage;
+          reader = casefile_get_destructive_reader (dst);
+          while (casereader_read_xfer (reader, &c)) 
+            {
+              if (aggregate_single_case (&agr, &c, &agr.agr_case)) 
+                write_case_to_sfm (&agr);
+              case_destroy (&c);
+            }
+          casereader_destroy (reader);
+          casefile_destroy (dst);
         }
       else 
         {
@@ -303,7 +320,7 @@ cmd_aggregate (void)
       
       if (agr.case_cnt > 0) 
         {
-          dump_aggregate_info (&agr, agr.agr_case);
+          dump_aggregate_info (&agr, &agr.agr_case);
           write_case_to_sfm (&agr);
         }
       fh_close_handle (agr.out_file);
@@ -506,10 +523,10 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  struct agr_var *v = xmalloc (sizeof *v);
 
 	  /* Add variable to chain. */
-	  if (agr->vars != NULL)
+	  if (agr->agr_vars != NULL)
 	    tail->next = v;
 	  else
-	    agr->vars = v;
+	    agr->agr_vars = v;
           tail = v;
 	  tail->next = NULL;
           v->moments = NULL;
@@ -650,8 +667,9 @@ agr_destroy (struct agr_proc *agr)
   if (agr->dict != NULL)
     dict_destroy (agr->dict);
   if (agr->sort != NULL)
-    destroy_sort_cases_pgm (agr->sort);
-  for (iter = agr->vars; iter; iter = next)
+    sort_destroy_criteria (agr->sort);
+  free (agr->break_vars);
+  for (iter = agr->agr_vars; iter; iter = next)
     {
       next = iter->next;
 
@@ -670,7 +688,7 @@ agr_destroy (struct agr_proc *agr)
       free (iter);
     }
   free (agr->prev_break);
-  free (agr->agr_case);
+  case_destroy (&agr->agr_case);
 }
 
 /* Execution. */
@@ -695,8 +713,8 @@ aggregate_single_case (struct agr_proc *agr,
       {
 	int i;
 
-	for (i = 0; i < agr->sort->var_cnt; i++)
-	  n_elem += agr->sort->vars[i]->nv;
+	for (i = 0; i < agr->break_var_cnt; i++)
+	  n_elem += agr->break_vars[i]->nv;
       }
       
       agr->prev_break = xmalloc (sizeof *agr->prev_break * n_elem);
@@ -706,15 +724,15 @@ aggregate_single_case (struct agr_proc *agr,
 	union value *iter = agr->prev_break;
 	int i;
 
-	for (i = 0; i < agr->sort->var_cnt; i++)
+	for (i = 0; i < agr->break_var_cnt; i++)
 	  {
-	    struct variable *v = agr->sort->vars[i];
+	    struct variable *v = agr->break_vars[i];
 	    
 	    if (v->type == NUMERIC)
-	      (iter++)->f = input->data[v->fv].f;
+	      (iter++)->f = case_num (input, v->fv);
 	    else
 	      {
-		memcpy (iter->s, input->data[v->fv].s, v->width);
+		memcpy (iter->s, case_str (input, v->fv), v->width);
 		iter += v->nv;
 	      }
 	  }
@@ -731,19 +749,19 @@ aggregate_single_case (struct agr_proc *agr,
     union value *iter = agr->prev_break;
     int i;
     
-    for (i = 0; i < agr->sort->var_cnt; i++)
+    for (i = 0; i < agr->break_var_cnt; i++)
       {
-	struct variable *v = agr->sort->vars[i];
+	struct variable *v = agr->break_vars[i];
       
 	switch (v->type)
 	  {
 	  case NUMERIC:
-	    if (input->data[v->fv].f != iter->f)
+	    if (case_num (input, v->fv) != iter->f)
 	      goto not_equal;
 	    iter++;
 	    break;
 	  case ALPHA:
-	    if (memcmp (input->data[v->fv].s, iter->s, v->width))
+	    if (memcmp (case_str (input, v->fv), iter->s, v->width))
 	      goto not_equal;
 	    iter += v->nv;
 	    break;
@@ -770,15 +788,15 @@ not_equal:
     union value *iter = agr->prev_break;
     int i;
 
-    for (i = 0; i < agr->sort->var_cnt; i++)
+    for (i = 0; i < agr->break_var_cnt; i++)
       {
-	struct variable *v = agr->sort->vars[i];
+	struct variable *v = agr->break_vars[i];
 	    
 	if (v->type == NUMERIC)
-	  (iter++)->f = input->data[v->fv].f;
+	  (iter++)->f = case_num (input, v->fv);
 	else
 	  {
-	    memcpy (iter->s, input->data[v->fv].s, v->width);
+	    memcpy (iter->s, case_str (input, v->fv), v->width);
 	    iter += v->nv;
 	  }
       }
@@ -798,10 +816,10 @@ accumulate_aggregate_info (struct agr_proc *agr,
 
   weight = dict_get_case_weight (default_dict, input, &bad_warn);
 
-  for (iter = agr->vars; iter; iter = iter->next)
+  for (iter = agr->agr_vars; iter; iter = iter->next)
     if (iter->src)
       {
-	const union value *v = &input->data[iter->src->fv];
+	const union value *v = case_data (input, iter->src->fv);
 
 	if ((!iter->include_missing && is_missing (v, iter->src))
 	    || (iter->include_missing && iter->src->type == NUMERIC
@@ -954,23 +972,25 @@ static void
 dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 {
   {
-    int n_elem = 0;
-    
-    {
-      int i;
+    int value_idx = 0;
+    int i;
 
-      for (i = 0; i < agr->sort->var_cnt; i++)
-	n_elem += agr->sort->vars[i]->nv;
-    }
-    memcpy (output->data, agr->prev_break, sizeof (union value) * n_elem);
+    for (i = 0; i < agr->break_var_cnt; i++) 
+      {
+        int nv = agr->break_vars[i]->nv;
+        memcpy (case_data_rw (output, value_idx),
+                &agr->prev_break[value_idx],
+                sizeof (union value) * nv);
+        value_idx += nv; 
+      }
   }
   
   {
     struct agr_var *i;
   
-    for (i = agr->vars; i; i = i->next)
+    for (i = agr->agr_vars; i; i = i->next)
       {
-	union value *v = &output->data[i->dest->fv];
+	union value *v = case_data_rw (output, i->dest->fv);
 
 	if (agr->missing == COLUMNWISE && i->missing != 0
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU
@@ -1079,7 +1099,7 @@ initialize_aggregate_info (struct agr_proc *agr)
 {
   struct agr_var *iter;
 
-  for (iter = agr->vars; iter; iter = iter->next)
+  for (iter = agr->agr_vars; iter; iter = iter->next)
     {
       iter->missing = 0;
       switch (iter->function)
@@ -1117,8 +1137,8 @@ agr_to_active_file (struct ccase *c, void *agr_)
 {
   struct agr_proc *agr = agr_;
 
-  if (aggregate_single_case (agr, c, agr->agr_case)) 
-    agr->sink->class->write (agr->sink, agr->agr_case);
+  if (aggregate_single_case (agr, c, &agr->agr_case)) 
+    agr->sink->class->write (agr->sink, &agr->agr_case);
 
   return 1;
 }
@@ -1137,7 +1157,7 @@ write_case_to_sfm (struct agr_proc *agr)
       
       if (v->type == NUMERIC)
 	{
-	  double src = agr->agr_case->data[v->fv].f;
+	  double src = case_num (&agr->agr_case, v->fv);
 	  if (src == SYSMIS)
 	    *p++ = -FLT64_MAX;
 	  else
@@ -1145,7 +1165,7 @@ write_case_to_sfm (struct agr_proc *agr)
 	}
       else
 	{
-	  memcpy (p, agr->agr_case->data[v->fv].s, v->width);
+	  memcpy (p, case_str (&agr->agr_case, v->fv), v->width);
 	  memset (&((char *) p)[v->width], ' ',
 		  REM_RND_UP (v->width, sizeof (flt64)));
 	  p += DIV_RND_UP (v->width, sizeof (flt64));
@@ -1160,18 +1180,9 @@ write_case_to_sfm (struct agr_proc *agr)
 static int
 presorted_agr_to_sysfile (struct ccase *c, void *agr_) 
 {
-  sort_agr_to_sysfile (c, agr_);
-  return 1;
-}
-
-/* Aggregate the current case and output it if we passed a
-   breakpoint. */
-static int
-sort_agr_to_sysfile (const struct ccase *c, void *agr_) 
-{
   struct agr_proc *agr = agr_;
 
-  if (aggregate_single_case (agr, c, agr->agr_case)) 
+  if (aggregate_single_case (agr, c, &agr->agr_case)) 
     write_case_to_sfm (agr);
 
   return 1;

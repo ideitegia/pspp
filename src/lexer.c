@@ -1237,4 +1237,4 @@ dump_token (void)
       break;
     }
 }
-#endif /* DEBUGGING */
+#endif /* DUMP_TOKENS */

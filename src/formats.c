@@ -30,10 +30,6 @@
 
 #include "debug-print.h"
 
-#if DEBUGGING
-static void debug_print (void);
-#endif
-
 enum
   {
     FORMATS_PRINT = 001,
@@ -131,30 +127,9 @@ internal_cmd_formats (int which)
       free (v);
       v = NULL;
     }
-#if DEBUGGING
-  debug_print ();
-#endif
   return CMD_SUCCESS;
 
 fail:
   free (v);
   return CMD_PART_SUCCESS_MAYBE;
 }
-
-#if DEBUGGING
-static void
-debug_print (void)
-{
-  int i;
-
-  printf (_("Formats:\n"));
-  printf (_("  Name      Print         Write\n"));
-  printf ("  --------  ------------  ------------\n");
-  for (i = 0; i < default_dict.nvar; i++)
-    {
-      struct variable *v = default_dict.var[i];
-      printf ("  %-8s  %-12s", v->name, fmt_to_string (&v->print));
-      printf ("  %-12s\n", fmt_to_string (&v->write));
-    }
-}
-#endif /* DEBUGGING */

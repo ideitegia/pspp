@@ -96,13 +96,6 @@ cmd_sample (void)
     }
   lex_get ();
 
-#if DEBUGGING
-  if (type == TYPE_FRACTION)
-    printf ("SAMPLE %g.\n", frac / (double) UINT_MAX);
-  else
-    printf ("SAMPLE %d FROM %d.\n", a, b);
-#endif
-
   trns = xmalloc (sizeof *trns);
   trns->h.proc = sample_trns_proc;
   trns->h.free = NULL;

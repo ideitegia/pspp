@@ -50,6 +50,7 @@ frequencies.q list.q means.q set.q  t-test.q
 
 pspp_SOURCES = $(q_sources_c) aggregate.c algorithm.c algorithm.h	\
 alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
+case.c case.h \
 casefile.c casefile.h cmdline.c cmdline.h command.c command.def		\
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
@@ -69,7 +70,7 @@ split-file.c str.c str.h sysfile-info.c tab.c tab.h temporary.c		\
 stat.h \
 title.c t-test.h val.h val-labs.c value-labels.c value-labels.h		\
 var-labs.c var.h vars-atr.c vars-prs.c vector.c version.c version.h	\
-vfm.c vfm.h vfmP.h weight.c workspace.c workspace.h
+vfm.c vfm.h vfmP.h weight.c
 
 pspp_LDADD = ../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\

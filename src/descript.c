@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
+#include "case.h"
 #include "casefile.h"
 #include "command.h"
 #include "lexer.h"
@@ -569,7 +570,7 @@ dump_z_table (struct dsc_proc *dsc)
 */
 static int
 descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
-                        int case_num UNUSED)
+                        int case_idx UNUSED)
 {
   struct dsc_trns *t = (struct dsc_trns *) trns;
   struct dsc_z_score *z;
@@ -581,7 +582,7 @@ descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
       assert(t->vars);
       for (vars = t->vars; vars < t->vars + t->var_cnt; vars++)
 	{
-	  double score = c->data[(*vars)->fv].f;
+	  double score = case_num (c, (*vars)->fv);
 	  if ( score == SYSMIS || (!t->include_user_missing 
 				   && is_num_user_missing(score, *vars)) )
 	    {
@@ -593,14 +594,15 @@ descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
       
   for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
     {
-      double score = c->data[z->src_idx].f;
+      double input = case_num (c, z->src_idx);
+      double *output = &case_data_rw (c, z->dst_idx)->f;
 
       if (z->mean == SYSMIS || z->std_dev == SYSMIS 
-	  || all_sysmis || score == SYSMIS 
-	  || (!t->include_user_missing && is_num_user_missing(score, z->v)))
-	c->data[z->dst_idx].f = SYSMIS;
+	  || all_sysmis || input == SYSMIS 
+	  || (!t->include_user_missing && is_num_user_missing(input, z->v)))
+	*output = SYSMIS;
       else
-	c->data[z->dst_idx].f = (score - z->mean) / z->std_dev;
+	*output = (input - z->mean) / z->std_dev;
     }
   return -1;
 }
@@ -695,7 +697,7 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
 {
   struct dsc_proc *dsc = dsc_;
   struct casereader *reader;
-  const struct ccase *c;
+  struct ccase c;
   int i;
 
   for (i = 0; i < dsc->var_cnt; i++)
@@ -712,15 +714,16 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
   dsc->valid = 0.;
 
   /* First pass to handle most of the work. */
-  reader = casefile_get_reader (cf);
-  while (casereader_read (reader, &c)) 
+  for (reader = casefile_get_reader (cf);
+       casereader_read (reader, &c);
+       case_destroy (&c))
     {
-      double weight = dict_get_case_weight (default_dict, c, &dsc->bad_warn);
+      double weight = dict_get_case_weight (default_dict, &c, &dsc->bad_warn);
       if (weight <= 0.0) 
-          continue;
+        continue;
        
       /* Check for missing values. */
-      if (listwise_missing (dsc, c)) 
+      if (listwise_missing (dsc, &c)) 
         {
           dsc->missing_listwise += weight;
           if (dsc->missing_type == DSC_LISTWISE)
@@ -731,7 +734,7 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
       for (i = 0; i < dsc->var_cnt; i++) 
         {
           struct dsc_var *dv = &dsc->vars[i];
-          double x = c->data[dv->v->fv].f;
+          double x = case_num (&c, dv->v->fv);
           
           if (dsc->missing_type != DSC_LISTWISE
               && (x == SYSMIS
@@ -756,23 +759,24 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
   /* Second pass for higher-order moments. */
   if (dsc->max_moment > MOMENT_MEAN) 
     {
-      reader = casefile_get_reader (cf);
-      while (casereader_read (reader, &c)) 
+      for (reader = casefile_get_reader (cf);
+           casereader_read (reader, &c);
+           case_destroy (&c))
         {
-          double weight = dict_get_case_weight (default_dict, c, 
+          double weight = dict_get_case_weight (default_dict, &c, 
 						&dsc->bad_warn);
           if (weight <= 0.0)
             continue;
       
           /* Check for missing values. */
-          if (listwise_missing (dsc, c) 
+          if (listwise_missing (dsc, &c) 
               && dsc->missing_type == DSC_LISTWISE)
             continue; 
 
           for (i = 0; i < dsc->var_cnt; i++) 
             {
               struct dsc_var *dv = &dsc->vars[i];
-              double x = c->data[dv->v->fv].f;
+              double x = case_num (&c, dv->v->fv);
           
               if (dsc->missing_type != DSC_LISTWISE
                   && (x == SYSMIS
@@ -837,7 +841,7 @@ listwise_missing (struct dsc_proc *dsc, const struct ccase *c)
   for (i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dv = &dsc->vars[i];
-      double x = c->data[dv->v->fv].f;
+      double x = case_num (c, dv->v->fv);
 
       if (x == SYSMIS
           || (!dsc->include_user_missing && is_num_user_missing (x, dv->v)))

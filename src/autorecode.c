@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "error.h"
 #include "hash.h"
@@ -262,7 +263,7 @@ recode (const struct autorecode_pgm *arc)
 
 static int
 autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
-                      int case_num UNUSED)
+                      int case_idx UNUSED)
 {
   struct autorecode_trns *t = (struct autorecode_trns *) trns;
   int i;
@@ -271,17 +272,15 @@ autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
     {
       struct arc_spec *spec = &t->specs[i];
       struct arc_item *item;
+      union value v;
 
       if (spec->src->type == NUMERIC)
-	item = hsh_force_find (spec->items, &c->data[spec->src->fv].f);
+        v.f = case_num (c, spec->src->fv);
       else
-	{
-	  union value v;
-	  v.c = c->data[spec->src->fv].s;
-	  item = hsh_force_find (spec->items, &v);
-	}
+        v.c = (char *) case_str (c, spec->src->fv);
+      item = hsh_force_find (spec->items, &v);
 
-      c->data[spec->dest->fv].f = item->to;
+      case_data_rw (c, spec->dest->fv)->f = item->to;
     }
   return -1;
 }
@@ -346,9 +345,9 @@ autorecode_proc_func (struct ccase *c, void *arc_)
       union value v, *vp, **vpp;
 
       if (arc->src_vars[i]->type == NUMERIC)
-        v.f = c->data[arc->src_vars[i]->fv].f;
+        v.f = case_num (c, arc->src_vars[i]->fv);
       else
-        v.c = c->data[arc->src_vars[i]->fv].s;
+        v.c = (char *) case_str (c, arc->src_vars[i]->fv);
 
       vpp = (union value **) hsh_probe (arc->src_values[i], &v);
       if (*vpp == NULL)

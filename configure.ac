@@ -19,6 +19,8 @@ AM_GNU_GETTEXT
 AM_GNU_GETTEXT_VERSION	dnl Prevents autoreconf complaint.
 
 dnl Checks for libraries.
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
 AC_CHECK_LIB(m, sin)
 AC_CHECK_LIB(gmp, mpf_get_str,,
 	AC_CHECK_LIB(gmp, __gmpf_get_str,,
@@ -94,7 +96,7 @@ AC_REPLACE_FUNCS([memmove memset stpcpy strpbrk strerror strtol strtoul \
  		  memchr getline getdelim strcasecmp strncasecmp memmem \
 		  strtok_r])
 AC_CHECK_FUNCS([gethostname strstr strtod __setfpucw isinf isnan finite \
-		getpid feholdexcept mkdtemp posix_fadvise])
+		getpid feholdexcept mkdtemp])
 
 AC_PROG_LN_S
 

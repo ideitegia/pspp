@@ -29,10 +29,6 @@
 
 #include "debug-print.h"
 
-#if DEBUGGING
-static void debug_print ();
-#endif
-
 /* Variables on MIS VAL. */
 static struct variable **v;
 static int nv;
@@ -85,10 +81,6 @@ cmd_missing_values (void)
       lex_match ('/');
       free (v);
     }
-
-#if 0 && DEBUGGING
-  debug_print ();
-#endif
 
   return lex_end_of_command ();
 
@@ -351,51 +343,3 @@ copy_missing_values (struct variable *dest, const struct variable *src)
 	memcpy (dest->missing[i].s, src->missing[i].s, src->width);
   }
 }
-
-
-/* Debug output. */
-
-#if 0 && DEBUGGING
-static void
-debug_print (void)
-{
-  int i, j;
-
-  puts (_("Missing value:"));
-  for (i = 0; i < nvar; i++)
-    {
-      printf ("	 %8s: ", var[i]->name);
-      if (var[i]->type == ALPHA && var[i]->nv > 1)
-	puts (_("(long string variable)"));
-      else
-	switch (var[i]->miss_type)
-	  {
-	  case MISSING_NONE:
-	    printf (_("(no missing values)\n"));
-	    break;
-	  case MISSING_1:
-	  case MISSING_2:
-	  case MISSING_3:
-	    printf ("(MISSING_%d)", var[i]->miss_type);
-	    for (j = 0; j < var[i]->miss_type; j++)
-	      if (var[i]->type == ALPHA)
-		printf ("  \"%.*s\"", var[i]->width, var[i]->missing[j].s);
-	      else
-		printf ("  %.2g", var[i]->missing[j].f);
-	    printf ("\n");
-	    break;
-	  case MISSING_RANGE:
-	    printf ("(MISSING_RANGE)  %.2g THRU %.2g\n",
-		    var[i]->missing[0].f, var[i]->missing[1].f);
-	    break;
-	  case MISSING_RANGE_1:
-	    printf ("(MISSING_RANGE_1)	%.2g THRU %.2g, %.2g\n",
-		    var[i]->missing[0].f, var[i]->missing[1].f,
-		    var[i]->missing[2].f);
-	    break;
-	  default:
-	    printf (_("(!!!INTERNAL ERROR--%d!!!)\n"), var[i]->miss_type);
-	  }
-    }
-}
-#endif /* DEBUGGING */

@@ -60,11 +60,6 @@ static int parse_strings (struct repeat_entry *);
 static void clean_up (void);
 static int internal_cmd_do_repeat (void);
 
-#if DEBUGGING
-static void debug_print (void);
-static void debug_print_lines (void);
-#endif
-
 int
 cmd_do_repeat (void)
 {
@@ -208,10 +203,6 @@ internal_cmd_do_repeat (void)
     }
   while (token != '.');
 
-#if DEBUGGING
-  debug_print ();
-#endif
-
   /* Read all the lines inside the DO REPEAT ... END REPEAT. */
   {
     int nest = 1;
@@ -309,11 +300,6 @@ internal_cmd_do_repeat (void)
     }
   line_buf_tail->next = NULL;
 
-  /* Show the line list. */
-#if DEBUGGING
-  debug_print_lines ();
-#endif
-  
   /* Make new variables. */
   {
     struct repeat_entry *iter;
@@ -594,45 +580,3 @@ perform_DO_REPEAT_substitutions (void)
   ds_destroy (&getl_buf);
   getl_buf = output;
 }
-
-/* Debugging code. */
-
-#if DEBUGGING
-static void
-debug_print (void)
-{
-  struct repeat_entry *iter;
-  int j;
-
-  printf ("DO REPEAT\n");
-  for (iter = repeat_tab; iter; iter = iter->next)
-    {
-      printf ("   %s%s=", iter->id, iter->type ? "(ids)" : "");
-      for (j = 0; j < count; j++)
-	printf ("%s ", iter->replacement[j]);
-      putc (iter->next ? '/' : '.', stdout);
-      printf ("\n");
-    }
-}
-
-static void
-debug_print_lines (void)
-{
-  struct getl_line_list *iter;
-  const char *fn = "(none)";
-  int ln = 65536;
-
-  printf ("---begin DO REPEAT lines---\n");
-  for (iter = line_buf_head; iter; iter = iter->next)
-    {
-      if (iter->len < 0)
-	{
-	  ln = -iter->len;
-	  fn = iter->line;
-	} else {
-	  printf ("%s:%d: %s", fn, ln++, iter->line);
-	}
-    }
-  printf ("---end DO REPEAT lines---\n");
-}
-#endif /* DEBUGGING */

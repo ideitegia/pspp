@@ -28,6 +28,7 @@
 #include <unistd.h>	/* Required by SunOS4. */
 #endif
 #include "alloc.h"
+#include "case.h"
 #include "casefile.h"
 #include "do-ifP.h"
 #include "error.h"
@@ -57,8 +58,8 @@ struct write_case_data
     int (*proc_func) (struct ccase *, void *); /* Function. */
     void *aux;                                 /* Auxiliary data. */ 
 
-    struct ccase *trns_case;    /* Case used for transformations. */
-    struct ccase *sink_case;    /* Case written to sink, if
+    struct ccase trns_case;     /* Case used for transformations. */
+    struct ccase sink_case;     /* Case written to sink, if
                                    compaction is necessary. */
     size_t cases_written;       /* Cases output so far. */
     size_t cases_analyzed;      /* Cases passed to procedure so far. */
@@ -81,11 +82,11 @@ time_t last_vfm_invocation;
 int n_lag;			/* Number of cases to lag. */
 static int lag_count;		/* Number of cases in lag_queue so far. */
 static int lag_head;		/* Index where next case will be added. */
-static struct ccase **lag_queue; /* Array of n_lag ccase * elements. */
+static struct ccase *lag_queue; /* Array of n_lag ccase * elements. */
 
 static void internal_procedure (int (*proc_func) (struct ccase *, void *),
                                 void *aux);
-static struct ccase *create_trns_case (struct dictionary *);
+static void create_trns_case (struct ccase *, struct dictionary *);
 static void open_active_file (void);
 static int write_case (struct write_case_data *wc_data);
 static int execute_transformations (struct ccase *c,
@@ -125,6 +126,16 @@ static void close_active_file (void);
 void
 procedure (int (*proc_func) (struct ccase *, void *), void *aux)
 {
+  if (proc_func == NULL
+      && case_source_is_class (vfm_source, &storage_source_class)
+      && vfm_sink == NULL
+      && !temporary
+      && n_trns == 0)
+    {
+      /* Nothing to do. */
+      return;
+    }
+
   open_active_file ();
   internal_procedure (proc_func, aux);
   close_active_file ();
@@ -144,19 +155,19 @@ internal_procedure (int (*proc_func) (struct ccase *, void *), void *aux)
 
   wc_data.proc_func = proc_func;
   wc_data.aux = aux;
-  wc_data.trns_case = create_trns_case (default_dict);
-  wc_data.sink_case = xmalloc (dict_get_case_size (default_dict));
+  create_trns_case (&wc_data.trns_case, default_dict);
+  case_create (&wc_data.sink_case, dict_get_next_value_idx (default_dict));
   wc_data.cases_written = 0;
 
   last_vfm_invocation = time (NULL);
 
   if (vfm_source != NULL) 
     vfm_source->class->read (vfm_source,
-                             wc_data.trns_case,
+                             &wc_data.trns_case,
                              write_case, &wc_data);
 
-  free (wc_data.sink_case);
-  free (wc_data.trns_case);
+  case_destroy (&wc_data.sink_case);
+  case_destroy (&wc_data.trns_case);
 
   assert (--recursive_call == 0);
 }
@@ -164,28 +175,23 @@ internal_procedure (int (*proc_func) (struct ccase *, void *), void *aux)
 /* Creates and returns a case, initializing it from the vectors
    that say which `value's need to be initialized just once, and
    which ones need to be re-initialized before every case. */
-static struct ccase *
-create_trns_case (struct dictionary *dict)
+static void
+create_trns_case (struct ccase *trns_case, struct dictionary *dict)
 {
-  struct ccase *c = xmalloc (dict_get_case_size (dict));
   size_t var_cnt = dict_get_var_cnt (dict);
   size_t i;
 
+  case_create (trns_case, dict_get_next_value_idx (dict));
   for (i = 0; i < var_cnt; i++) 
     {
       struct variable *v = dict_get_var (dict, i);
+      union value *value = case_data_rw (trns_case, v->fv);
 
-      if (v->type == NUMERIC) 
-        {
-          if (v->reinit)
-            c->data[v->fv].f = 0.0;
-          else
-            c->data[v->fv].f = SYSMIS;
-        }
+      if (v->type == NUMERIC)
+        value->f = v->reinit ? 0.0 : SYSMIS;
       else
-        memset (c->data[v->fv].s, ' ', v->width);
+        memset (value->s, ' ', v->width);
     }
-  return c;
 }
 
 /* Makes all preparations for reading from the data source and writing
@@ -220,7 +226,7 @@ open_active_file (void)
       lag_head = 0;
       lag_queue = xmalloc (n_lag * sizeof *lag_queue);
       for (i = 0; i < n_lag; i++)
-        lag_queue[i] = xmalloc (dict_get_case_size (temp_dict));
+        case_nullify (&lag_queue[i]);
     }
 
   /* Close any unclosed DO IF or LOOP constructs. */
@@ -235,7 +241,7 @@ static int
 write_case (struct write_case_data *wc_data)
 {
   /* Execute permanent transformations.  */
-  if (!execute_transformations (wc_data->trns_case, t_trns, f_trns, temp_trns,
+  if (!execute_transformations (&wc_data->trns_case, t_trns, f_trns, temp_trns,
                                 wc_data->cases_written + 1))
     goto done;
 
@@ -247,27 +253,27 @@ write_case (struct write_case_data *wc_data)
 
   /* Write case to LAG queue. */
   if (n_lag)
-    lag_case (wc_data->trns_case);
+    lag_case (&wc_data->trns_case);
 
   /* Write case to replacement active file. */
   if (vfm_sink->class->write != NULL) 
     {
       if (compaction_necessary) 
         {
-          compact_case (wc_data->sink_case, wc_data->trns_case);
-          vfm_sink->class->write (vfm_sink, wc_data->sink_case);
+          compact_case (&wc_data->sink_case, &wc_data->trns_case);
+          vfm_sink->class->write (vfm_sink, &wc_data->sink_case);
         }
       else
-        vfm_sink->class->write (vfm_sink, wc_data->trns_case);
+        vfm_sink->class->write (vfm_sink, &wc_data->trns_case);
     }
   
   /* Execute temporary transformations. */
-  if (!execute_transformations (wc_data->trns_case, t_trns, temp_trns, n_trns,
+  if (!execute_transformations (&wc_data->trns_case, t_trns, temp_trns, n_trns,
                                 wc_data->cases_written))
     goto done;
   
   /* FILTER, PROCESS IF, post-TEMPORARY N OF CASES. */
-  if (filter_case (wc_data->trns_case, wc_data->cases_written)
+  if (filter_case (&wc_data->trns_case, wc_data->cases_written)
       || (dict_get_case_limit (temp_dict)
           && wc_data->cases_analyzed >= dict_get_case_limit (temp_dict)))
     goto done;
@@ -275,10 +281,10 @@ write_case (struct write_case_data *wc_data)
 
   /* Pass case to procedure. */
   if (wc_data->proc_func != NULL)
-    wc_data->proc_func (wc_data->trns_case, wc_data->aux);
+    wc_data->proc_func (&wc_data->trns_case, wc_data->aux);
 
  done:
-  clear_case (wc_data->trns_case);
+  clear_case (&wc_data->trns_case);
   return 1;
 }
 
@@ -320,20 +326,20 @@ execute_transformations (struct ccase *c,
    exclude as specified on FILTER or PROCESS IF, otherwise
    zero. */
 static int
-filter_case (const struct ccase *c, int case_num)
+filter_case (const struct ccase *c, int case_idx)
 {
   /* FILTER. */
   struct variable *filter_var = dict_get_filter (default_dict);
   if (filter_var != NULL) 
     {
-      double f = c->data[filter_var->fv].f;
+      double f = case_num (c, filter_var->fv);
       if (f == 0.0 || f == SYSMIS || is_num_user_missing (f, filter_var))
         return 1;
     }
 
   /* PROCESS IF. */
   if (process_if_expr != NULL
-      && expr_evaluate (process_if_expr, c, case_num, NULL) != 1.0)
+      && expr_evaluate (process_if_expr, c, case_idx, NULL) != 1.0)
     return 1;
 
   return 0;
@@ -345,7 +351,8 @@ lag_case (const struct ccase *c)
 {
   if (lag_count < n_lag)
     lag_count++;
-  memcpy (lag_queue[lag_head], c, dict_get_case_size (temp_dict));
+  case_destroy (&lag_queue[lag_head]);
+  case_clone (&lag_queue[lag_head], c);
   if (++lag_head >= n_lag)
     lag_head = 0;
 }
@@ -371,13 +378,17 @@ compact_case (struct ccase *dest, const struct ccase *src)
       if (dict_class_from_id (v->name) == DC_SCRATCH)
 	continue;
 
-      if (v->type == NUMERIC)
-	dest->data[nval++] = src->data[v->fv];
+      if (v->type == NUMERIC) 
+        {
+          case_data_rw (dest, nval)->f = case_num (src, v->fv);
+          nval++; 
+        }
       else
 	{
 	  int w = DIV_RND_UP (v->width, sizeof (union value));
 	  
-	  memcpy (&dest->data[nval], &src->data[v->fv], w * sizeof (union value));
+	  memcpy (case_data_rw (dest, nval), case_str (src, v->fv),
+                  w * sizeof (union value));
 	  nval += w;
 	}
     }
@@ -396,10 +407,10 @@ clear_case (struct ccase *c)
       struct variable *v = dict_get_var (default_dict, i);
       if (v->init && v->reinit) 
         {
-          if (v->type == NUMERIC) 
-            c->data[v->fv].f = SYSMIS;
+          if (v->type == NUMERIC)
+            case_data_rw (c, v->fv)->f = SYSMIS;
           else
-            memset (c->data[v->fv].s, ' ', v->width);
+            memset (case_data_rw (c, v->fv)->s, ' ', v->width);
         } 
     }
 }
@@ -414,7 +425,7 @@ close_active_file (void)
       int i;
       
       for (i = 0; i < n_lag; i++)
-	free (lag_queue[i]);
+	case_destroy (&lag_queue[i]);
       free (lag_queue);
       n_lag = 0;
     }
@@ -434,20 +445,13 @@ close_active_file (void)
   /* Free data source. */
   if (vfm_source != NULL) 
     {
-      if (vfm_source->class->destroy != NULL)
-        vfm_source->class->destroy (vfm_source);
-      free (vfm_source);
+      free_case_source (vfm_source);
+      vfm_source = NULL;
     }
 
   /* Old data sink becomes new data source. */
   if (vfm_sink->class->make_source != NULL)
     vfm_source = vfm_sink->class->make_source (vfm_sink);
-  else 
-    {
-      if (vfm_sink->class->destroy != NULL)
-        vfm_sink->class->destroy (vfm_sink);
-      vfm_source = NULL; 
-    }
   free_case_sink (vfm_sink);
   vfm_sink = NULL;
 
@@ -478,15 +482,18 @@ storage_sink_open (struct case_sink *sink)
   struct storage_stream_info *info;
 
   sink->aux = info = xmalloc (sizeof *info);
-  info->casefile = casefile_create (sink->value_cnt * sizeof (union value));
+  info->casefile = casefile_create (sink->value_cnt);
 }
 
 /* Destroys storage stream represented by INFO. */
 static void
 destroy_storage_stream_info (struct storage_stream_info *info) 
 {
-  casefile_destroy (info->casefile);
-  free (info); 
+  if (info != NULL) 
+    {
+      casefile_destroy (info->casefile);
+      free (info); 
+    }
 }
 
 /* Writes case C to the storage sink SINK. */
@@ -505,12 +512,15 @@ storage_sink_destroy (struct case_sink *sink)
   destroy_storage_stream_info (sink->aux);
 }
 
-/* Closes and destroys the sink and returns a storage source to
-   read back the written data. */
+/* Closes the sink and returns a storage source to read back the
+   written data. */
 static struct case_source *
 storage_sink_make_source (struct case_sink *sink) 
 {
-  return create_case_source (&storage_source_class, sink->dict, sink->aux);
+  struct case_source *source
+    = create_case_source (&storage_source_class, sink->dict, sink->aux);
+  sink->aux = NULL;
+  return source;
 }
 
 /* Storage sink. */
@@ -543,14 +553,16 @@ storage_source_read (struct case_source *source,
                      write_case_func *write_case, write_case_data wc_data)
 {
   struct storage_stream_info *info = source->aux;
-  const struct ccase *casefile_case;
+  struct ccase casefile_case;
   struct casereader *reader;
 
-  reader = casefile_get_reader (info->casefile);
-  while (casereader_read (reader, &casefile_case))
+  for (reader = casefile_get_reader (info->casefile);
+       casereader_read (reader, &casefile_case);
+       case_destroy (&casefile_case))
     {
-      memcpy (output_case, casefile_case,
-              casefile_get_case_size (info->casefile));
+      case_copy (output_case, 0,
+                 &casefile_case, 0,
+                 casefile_get_value_cnt (info->casefile));
       write_case (wc_data);
     }
   casereader_destroy (reader);
@@ -580,6 +592,17 @@ storage_source_get_casefile (struct case_source *source)
   assert (source->class == &storage_source_class);
   return info->casefile;
 }
+
+struct case_source *
+storage_source_create (struct casefile *cf, const struct dictionary *dict) 
+{
+  struct storage_stream_info *info;
+
+  info = xmalloc (sizeof *info);
+  info->casefile = cf;
+
+  return create_case_source (&storage_source_class, dict, info);
+}
 
 /* Null sink.  Used by a few procedures that keep track of output
    themselves and would throw away anything that the sink
@@ -600,15 +623,15 @@ struct ccase *
 lagged_case (int n_before)
 {
   assert (n_before <= n_lag);
-  if (n_before > lag_count)
+  if (n_before <= lag_count)
+    {
+      int index = lag_head - n_before;
+      if (index < 0)
+        index += n_lag;
+      return &lag_queue[index];
+    }
+  else
     return NULL;
-  
-  {
-    int index = lag_head - n_before;
-    if (index < 0)
-      index += n_lag;
-    return lag_queue[index];
-  }
 }
    
 /* Appends TRNS to t_trns[], the list of all transformations to be
@@ -660,6 +683,19 @@ create_case_source (const struct case_source_class *class,
   return source;
 }
 
+/* Destroys case source SOURCE.  It is the caller's responsible to
+   call the source's destroy function, if any. */
+void
+free_case_source (struct case_source *source) 
+{
+  if (source != NULL) 
+    {
+      if (source->class->destroy != NULL)
+        source->class->destroy (source);
+      free (source);
+    }
+}
+
 /* Returns nonzero if a case source is "complex". */
 int
 case_source_is_complex (const struct case_source *source) 
@@ -692,20 +728,24 @@ create_case_sink (const struct case_sink_class *class,
   return sink;
 }
 
-/* Destroys case sink SINK.  It is the caller's responsible to
-   call the sink's destroy function, if any. */
+/* Destroys case sink SINK.  */
 void
 free_case_sink (struct case_sink *sink) 
 {
-  free (sink->idx_to_fv);
-  free (sink);
+  if (sink != NULL) 
+    {
+      if (sink->class->destroy != NULL)
+        sink->class->destroy (sink);
+      free (sink->idx_to_fv);
+      free (sink); 
+    }
 }
 
 /* Represents auxiliary data for handling SPLIT FILE. */
 struct split_aux_data 
   {
     size_t case_count;          /* Number of cases so far. */
-    struct ccase *prev_case;    /* Data in previous case. */
+    struct ccase prev_case;     /* Data in previous case. */
 
     /* Functions to call... */
     void (*begin_func) (void *);               /* ...before data. */
@@ -740,7 +780,7 @@ procedure_with_splits (void (*begin_func) (void *aux),
   struct split_aux_data split_aux;
 
   split_aux.case_count = 0;
-  split_aux.prev_case = xmalloc (dict_get_case_size (default_dict));
+  case_nullify (&split_aux.prev_case);
   split_aux.begin_func = begin_func;
   split_aux.proc_func = proc_func;
   split_aux.end_func = end_func;
@@ -750,7 +790,7 @@ procedure_with_splits (void (*begin_func) (void *aux),
 
   if (split_aux.case_count > 0 && end_func != NULL)
     end_func (func_aux);
-  free (split_aux.prev_case);
+  case_destroy (&split_aux.prev_case);
 }
 
 /* procedure() callback used by procedure_with_splits(). */
@@ -761,13 +801,14 @@ procedure_with_splits_callback (struct ccase *c, void *split_aux_)
 
   /* Start a new series if needed. */
   if (split_aux->case_count == 0
-      || !equal_splits (c, split_aux->prev_case))
+      || !equal_splits (c, &split_aux->prev_case))
     {
       if (split_aux->case_count > 0 && split_aux->end_func != NULL)
         split_aux->end_func (split_aux->func_aux);
 
       dump_splits (c);
-      memcpy (split_aux->prev_case, c, dict_get_case_size (default_dict));
+      case_destroy (&split_aux->prev_case);
+      case_clone (&split_aux->prev_case, c);
 
       if (split_aux->begin_func != NULL)
 	split_aux->begin_func (split_aux->func_aux);
@@ -798,11 +839,11 @@ equal_splits (const struct ccase *a, const struct ccase *b)
       switch (v->type)
 	{
 	case NUMERIC:
-	  if (a->data[v->fv].f != b->data[v->fv].f)
+	  if (case_num (a, v->fv) != case_num (b, v->fv))
             return 0;
 	  break;
 	case ALPHA:
-	  if (memcmp (a->data[v->fv].s, b->data[v->fv].s, v->width))
+	  if (memcmp (case_str (a, v->fv), case_str (b, v->fv), v->width))
             return 0;
 	  break;
 	default:
@@ -843,12 +884,12 @@ dump_splits (struct ccase *c)
       assert (v->type == NUMERIC || v->type == ALPHA);
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
       
-      data_out (temp_buf, &v->print, &c->data[v->fv]);
+      data_out (temp_buf, &v->print, case_data (c, v->fv));
       
       temp_buf[v->print.w] = 0;
       tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);
 
-      val_lab = val_labs_find (v->val_labs, c->data[v->fv]);
+      val_lab = val_labs_find (v->val_labs, *case_data (c, v->fv));
       if (val_lab)
 	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);
     }
@@ -860,7 +901,7 @@ dump_splits (struct ccase *c)
    multipass procedure. */
 struct multipass_split_aux_data 
   {
-    struct ccase *prev_case;    /* Data in previous case. */
+    struct ccase prev_case;     /* Data in previous case. */
     struct casefile *casefile;  /* Accumulates data for a split. */
 
     /* Function to call with the accumulated data. */
@@ -882,7 +923,7 @@ multipass_procedure_with_splits (void (*split_func) (const struct casefile *,
 
   open_active_file ();
 
-  aux.prev_case = xmalloc (dict_get_case_size (default_dict));
+  case_nullify (&aux.prev_case);
   aux.casefile = NULL;
   aux.split_func = split_func;
   aux.func_aux = func_aux;
@@ -890,7 +931,7 @@ multipass_procedure_with_splits (void (*split_func) (const struct casefile *,
   internal_procedure (multipass_split_callback, &aux);
   if (aux.casefile != NULL)
     multipass_split_output (&aux);
-  free (aux.prev_case);
+  case_destroy (&aux.prev_case);
 
   close_active_file ();
 }
@@ -902,18 +943,19 @@ multipass_split_callback (struct ccase *c, void *aux_)
   struct multipass_split_aux_data *aux = aux_;
 
   /* Start a new series if needed. */
-  if (aux->casefile == NULL || !equal_splits (c, aux->prev_case))
+  if (aux->casefile == NULL || !equal_splits (c, &aux->prev_case))
     {
       /* Pass any cases to split_func. */
       if (aux->casefile != NULL)
         multipass_split_output (aux);
 
       /* Start a new casefile. */
-      aux->casefile = casefile_create (dict_get_case_size (default_dict));
+      aux->casefile = casefile_create (dict_get_next_value_idx (default_dict));
 
       /* Record split values. */
       dump_splits (c);
-      memcpy (aux->prev_case, c, dict_get_case_size (default_dict));
+      case_destroy (&aux->prev_case);
+      case_clone (&aux->prev_case, c);
     }
 
   casefile_append (aux->casefile, c);

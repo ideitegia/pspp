@@ -23,6 +23,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "dfm.h"
 #include "error.h"
@@ -950,7 +951,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
 	break;
 
       case PRT_VAR:
-        data_out (&buf[i->fc], &i->u.v.f, &c->data[i->u.v.v->fv]);
+        data_out (&buf[i->fc], &i->u.v.f, case_data (c, i->u.v.v->fv));
 	len = i->fc + i->u.v.f.w;
 	break;
 

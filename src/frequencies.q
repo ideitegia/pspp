@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "bitvector.h"
+#include "case.h"
 #include "hash.h"
 #include "pool.h"
 #include "command.h"
@@ -377,7 +378,7 @@ calc (struct ccase *c, void *aux UNUSED)
   for (i = 0; i < n_variables; i++)
     {
       struct variable *v = v_variables[i];
-      union value *val = &c->data[v->fv];
+      const union value *val = case_data (c, v->fv);
       struct freq_tab *ft = &v->p.frq.tab;
 
       switch (v->p.frq.tab.mode)
@@ -561,7 +562,7 @@ postprocess_freq_tab (struct variable *v)
   data = hsh_data (ft->data);
 
   /* Copy dereferenced data into freqs. */
-  freqs = xmalloc (count* sizeof *freqs);
+  freqs = xmalloc (count * sizeof *freqs);
   for (i = 0; i < count; i++) 
     {
       struct freq *f = data[i];

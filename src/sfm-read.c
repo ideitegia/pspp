@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <float.h>
 #include "alloc.h"
+#include "case.h"
 #include "error.h"
 #include "file-handle.h"
 #include "filename.h"
@@ -77,10 +78,6 @@ struct sfm_fhuser_ext
   };
 
 static struct fh_ext_class sfm_r_class;
-
-#if GLOBAL_DEBUGGING
-void dump_dictionary (struct dictionary * dict);
-#endif
 
 /* Utilities. */
 
@@ -396,9 +393,6 @@ break_out_of_loop:
   /* Come here on successful completion. */
   msg (VM (2), _("Read system-file dictionary successfully."));
     
-#if DEBUGGING
-  dump_dictionary (ext->dict);
-#endif
   free (var_by_index);
   return ext->dict;
 
@@ -1182,86 +1176,6 @@ read_documents (struct file_handle * h)
 lossage:
   return 0;
 }
-
-#if GLOBAL_DEBUGGING
-#include "debug-print.h"
-/* Displays dictionary DICT on stdout. */
-void
-dump_dictionary (struct dictionary * dict)
-{
-  int i;
-
-  debug_printf ((_("dictionary:\n")));
-  for (i = 0; i < dict->nvar; i++)
-    {
-      char print[32];
-      struct variable *v = dict->var[i];
-      int n, j;
-
-      debug_printf (("	 var %s", v->name));
-      debug_printf (("(type:%s,%d)", (v->type == NUMERIC ? _("num")
-				 : (v->type == ALPHA ? _("str") : "!!!")),
-		     v->width));
-      debug_printf (("(fv:%d,%d)", v->fv, v->nv));
-      debug_printf (("(left:%s)(miss:", v->left ? _("left") : _("right")));
-	      
-      switch (v->miss_type)
-	{
-	case MISSING_NONE:
-	  n = 0;
-	  debug_printf ((_("none")));
-	  break;
-	case MISSING_1:
-	  n = 1;
-	  debug_printf ((_("one")));
-	  break;
-	case MISSING_2:
-	  n = 2;
-	  debug_printf ((_("two")));
-	  break;
-	case MISSING_3:
-	  n = 3;
-	  debug_printf ((_("three")));
-	  break;
-	case MISSING_RANGE:
-	  n = 2;
-	  debug_printf ((_("range")));
-	  break;
-	case MISSING_LOW:
-	  n = 1;
-	  debug_printf ((_("low")));
-	  break;
-	case MISSING_HIGH:
-	  n = 1;
-	  debug_printf ((_("high")));
-	  break;
-	case MISSING_RANGE_1:
-	  n = 3;
-	  debug_printf ((_("range+1")));
-	  break;
-	case MISSING_LOW_1:
-	  n = 2;
-	  debug_printf ((_("low+1")));
-	  break;
-	case MISSING_HIGH_1:
-	  n = 2;
-	  debug_printf ((_("high+1")));
-	  break;
-	default:
-	  assert (0);
-	}
-      for (j = 0; j < n; j++)
-	if (v->type == NUMERIC)
-	  debug_printf ((",%g", v->missing[j].f));
-	else
-	  debug_printf ((",\"%.*s\"", v->width, v->missing[j].s));
-      strcpy (print, fmt_to_string (&v->print));
-      debug_printf ((")(fmt:%s,%s)(lbl:%s)\n",
-		     print, fmt_to_string (&v->write),
-		     v->label ? v->label : "nolabel"));
-    }
-}
-#endif
 
 /* Data reader. */
 
@@ -1394,12 +1308,12 @@ lossage:
   return 0;
 }
 
-/* Reads one case from system file H into the value array PERM
+/* Reads one case from system file H into PERM
    according to the instructions given in associated dictionary DICT,
    which must have the get.* elements appropriately set.  Returns
    nonzero only if successful.  */
 int
-sfm_read_case (struct file_handle * h, union value * perm, struct dictionary * dict)
+sfm_read_case (struct file_handle * h, struct ccase *perm, struct dictionary * dict)
 {
   struct sfm_fhuser_ext *ext = h->ext;
 
@@ -1446,10 +1360,10 @@ sfm_read_case (struct file_handle * h, union value * perm, struct dictionary * d
 	  flt64 src = temp[v->get.fv];
 	  if (ext->reverse_endian)
 	    bswap_flt64 (&src);
-	  perm[v->fv].f = src == ext->sysmis ? SYSMIS : src;
+          case_data_rw (perm, v->fv)->f = src == ext->sysmis ? SYSMIS : src;
 	}
       else
-	memcpy (&perm[v->fv].s, &temp[v->get.fv], v->width);
+	memcpy (case_data_rw (perm, v->fv)->s, &temp[v->get.fv], v->width);
     }
 
   local_free (temp);

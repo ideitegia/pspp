@@ -24,6 +24,7 @@
 #include <float.h>
 #include "algorithm.h"
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "data-in.h"
 #include "dfm.h"
@@ -140,10 +141,6 @@ static int compare_variables_by_mxd_vartype (const void *pa,
 static void read_matrices_without_rowtype (struct matrix_data_pgm *);
 static void read_matrices_with_rowtype (struct matrix_data_pgm *);
 static int string_to_content_type (char *, int *);
-
-#if DEBUGGING
-static void debug_print (void);
-#endif
 
 int
 cmd_matrix_data (void)
@@ -593,10 +590,6 @@ cmd_matrix_data (void)
       goto lossage;
     }
 
-#if DEBUGGING
-  debug_print ();
-#endif
-
   if (!dfm_open_for_reading (mx->data_file))
     goto lossage;
 
@@ -676,106 +669,6 @@ compare_variables_by_mxd_vartype (const void *a_, const void *b_)
   else
     return a->subtype < b->subtype ? -1 : a->subtype > b->subtype;
 }
-
-#if DEBUGGING
-/* Print out the command as input. */
-static void
-debug_print (void)
-{
-  printf ("MATRIX DATA\n\t/VARIABLES=");
-  
-  {
-    int i;
-    
-    for (i = 0; i < default_dict.nvar; i++)
-      printf ("%s ", default_dict.var[i]->name);
-  }
-  printf ("\n");
-
-  printf ("\t/FORMAT=");
-  if (fmt == LIST)
-    printf ("LIST");
-  else if (fmt == FREE)
-    printf ("FREE");
-  else
-    assert (0);
-  if (section == LOWER)
-    printf (" LOWER");
-  else if (section == UPPER)
-    printf (" UPPER");
-  else if (section == FULL)
-    printf (" FULL");
-  else
-    assert (0);
-  if (diag == DIAGONAL)
-    printf (" DIAGONAL\n");
-  else if (diag == NODIAGONAL)
-    printf (" NODIAGONAL\n");
-  else
-    assert (0);
-
-  if (dict_get_split_cnt (default_dict) != 0)
-    {
-      int i;
-
-      printf ("\t/SPLIT=");
-      for (i = 0; i < dict_get_split_cnt (default_dict); i++)
-	printf ("%s ", dict_get_split_vars (default_dict)[i]->name);
-      if (single_split)
-	printf ("\t/* single split");
-      printf ("\n");
-    }
-  
-  if (n_factors)
-    {
-      int i;
-
-      printf ("\t/FACTORS=");
-      for (i = 0; i < n_factors; i++)
-	printf ("%s ", factors[i]->name);
-      printf ("\n");
-    }
-
-  if (cells != -1)
-    printf ("\t/CELLS=%d\n", cells);
-
-  if (mx->pop_n != -1)
-    printf ("\t/N=%d\n", mx->pop_n);
-
-  if (mx->n_contents)
-    {
-      int i;
-      int space = 0;
-      
-      printf ("\t/CONTENTS=");
-      for (i = 0; i < mx->n_contents; i++)
-	{
-	  if (mx->contents[i] == LPAREN)
-	    {
-	      if (space)
-		printf (" ");
-	      printf ("(");
-	      space = 0;
-	    }
-	  else if (mx->contents[i] == RPAREN)
-	    {
-	      printf (")");
-	      space = 1;
-	    }
-	  else 
-	    {
-
-	      assert (mx->contents[i] >= 0 && mx->contents[i] <= PROX);
-	      if (space)
-		printf (" ");
-	      printf ("%s", content_names[mx->contents[i]]);
-	      space = 1;
-	    }
-	}
-      printf ("\n");
-    }
-}
-#endif /* DEBUGGING */
 
 /* Matrix tokenizer. */
 
@@ -1035,7 +928,7 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
   vfm_source = create_case_source (&matrix_data_without_rowtype_source_class,
                                    default_dict, &nr);
   
-  procedure (NULL, &nr);
+  procedure (NULL, NULL);
 
   free (nr.split_values);
   free (nr.factor_values);
@@ -1416,11 +1309,11 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
   int type = content_type[content];
 
   {
-    st_bare_pad_copy (c->data[mx->rowtype_->fv].s,
+    st_bare_pad_copy (case_data_rw (c, mx->rowtype_->fv)->s,
 		      content_names[content], 8);
     
     if (type != 1)
-      memset (&c->data[mx->varname_->fv].s, ' ', 8);
+      memset (case_data_rw (c, mx->varname_->fv)->s, ' ', 8);
   }
 
   {
@@ -1434,11 +1327,11 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
 	for (j = 0; j < mx->n_continuous; j++)
 	  {
             int fv = dict_get_var (default_dict, mx->first_continuous + j)->fv;
-	    c->data[fv].f = *cp;
+            case_data_rw (c, fv)->f = *cp;
 	    cp++;
 	  }
 	if (type == 1)
-	  st_bare_pad_copy (c->data[mx->varname_->fv].s,
+	  st_bare_pad_copy (case_data_rw (c, mx->varname_->fv)->s,
                             dict_get_var (default_dict,
                                           mx->first_continuous + i)->name,
 			    8);
@@ -1462,7 +1355,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
     split_cnt = dict_get_split_cnt (default_dict);
     split = dict_get_split_vars (default_dict);
     for (i = 0; i < split_cnt; i++)
-      c->data[split[i]->fv].f = nr->split_values[i];
+      case_data_rw (c, split[i]->fv)->f = nr->split_values[i];
   }
 
   if (mx->n_factors)
@@ -1476,7 +1369,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
 
 	    for (factor = 0; factor < mx->n_factors; factor++)
 	      {
-		c->data[mx->factors[factor]->fv].f
+		case_data_rw (c, mx->factors[factor]->fv)->f
 		  = nr->factor_values[factor + cell * mx->n_factors];
 		debug_printf (("f:%s ", mx->factors[factor]->name));
 	      }
@@ -1505,7 +1398,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
       int factor;
 
       for (factor = 0; factor < mx->n_factors; factor++)
-	c->data[mx->factors[factor]->fv].f = SYSMIS;
+	case_data_rw (c, mx->factors[factor]->fv)->f = SYSMIS;
     }
     
     for (content = 0; content <= PROX; content++)
@@ -1565,7 +1458,7 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
 
   vfm_source = create_case_source (&matrix_data_with_rowtype_source_class,
                                    default_dict, &wr);
-  procedure (NULL, &wr);
+  procedure (NULL, NULL);
 
   free (wr.split_values);
   fh_close_handle (mx->data_file);
@@ -1703,7 +1596,7 @@ wr_output_data (struct wr_aux_data *wr,
     split_cnt = dict_get_split_cnt (default_dict);
     split = dict_get_split_vars (default_dict);
     for (i = 0; i < split_cnt; i++)
-      c->data[split[i]->fv].f = wr->split_values[i];
+      case_data_rw (c, split[i]->fv)->f = wr->split_values[i];
   }
 
   /* Sort the wr->data list. */
@@ -1738,7 +1631,7 @@ wr_output_data (struct wr_aux_data *wr,
 
 	  for (factor = 0; factor < mx->n_factors; factor++)
 	    {
-	      c->data[mx->factors[factor]->fv].f
+	      case_data_rw (c, mx->factors[factor]->fv)->f
 		= iter->factors[factor];
 	      debug_printf (("f:%s ", factors[factor]->name));
 	    }

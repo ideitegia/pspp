@@ -48,10 +48,6 @@
 /* (declarations) */
 /* (functions) */
 
-#if DEBUGGING
-static void debug_print (struct cmd_means *cmd);
-#endif
-
 /* TABLES: Variable lists for each dimension. */
 int n_dim;		/* Number of dimensions. */
 int *nv_dim;		/* Number of variables in each dimension. */
@@ -106,10 +102,6 @@ cmd_means (void)
       goto free;
     }
 
-#if DEBUGGING
-  debug_print (&cmd);
-#endif
-  
   success = CMD_SUCCESS;
 
 free:
@@ -310,61 +302,6 @@ mns_custom_variables (struct cmd_means *cmd)
   
   return 1;
 }
-
-#if DEBUGGING
-static void
-debug_print (struct cmd_means *cmd)
-{
-  int i;
-  
-  printf ("MEANS");
-
-  if (cmd->sbc_variables)
-    {
-      int j = 0;
-      
-      printf (" VARIABLES=");
-      for (i = 0; i < default_dict.nvar; i++)
-	{
-	  struct variable *v = default_dict.var[i];
-	  
-	  if (v->p.mns.min == SYSMIS)
-	    continue;
-	  if (j++)
-	    printf (" ");
-	  printf ("%s(", v->name);
-	  if (v->p.mns.min == LOWEST)
-	    printf ("LO");
-	  else
-	    printf ("%g", v->p.mns.min);
-	  printf (",");
-	  if (v->p.mns.max == HIGHEST)
-	    printf ("HI");
-	  else
-	    printf ("%g", v->p.mns.max);
-	  printf (")");
-	}
-      printf ("\n");
-    }
-
-  printf (" TABLES=");
-  for (i = 0; i < n_dim; i++)
-    {
-      int j;
-
-      if (i)
-	printf (" BY");
-
-      for (j = 0; j < nv_dim[i]; j++)
-	{
-	  if (i || j)
-	    printf (" ");
-	  printf (v_dim[i][j]->name);
-	}
-    }
-  printf ("\n");
-}
-#endif /* DEBUGGING */
 
 /* 
    Local Variables:

@@ -41,11 +41,11 @@ struct sfm_read_info
 
 struct dictionary;
 struct file_handle;
-union value;
+struct ccase;
 
 struct dictionary *sfm_read_dictionary (struct file_handle *,
 					struct sfm_read_info *);
-int sfm_read_case (struct file_handle *, union value *, struct dictionary *);
+int sfm_read_case (struct file_handle *, struct ccase *, struct dictionary *);
 void sfm_maybe_close (struct file_handle *);
 
 /* Information needed by sfm_write_dictionary(). */

@@ -44,12 +44,12 @@ struct pfm_read_info
 
 struct dictionary;
 struct file_handle;
+struct ccase;
 union value;
 
 struct dictionary *pfm_read_dictionary (struct file_handle *,
 					struct pfm_read_info *);
-int pfm_read_case (struct file_handle *,
-                   union value *, struct dictionary *);
+int pfm_read_case (struct file_handle *, struct ccase *, struct dictionary *);
 
 int pfm_write_dictionary (struct file_handle *, struct dictionary *);
 int pfm_write_case (struct file_handle *, const union value *elem);

@@ -39,7 +39,7 @@ union value;
 struct expression *expr_parse (enum expr_type);
 enum expr_type expr_get_type (const struct expression *);
 double expr_evaluate (const struct expression *, const struct ccase *,
-                      int case_num, union value *);
+                      int case_idx, union value *);
 void expr_free (struct expression *);
 void expr_debug_print_postfix (const struct expression *);
 

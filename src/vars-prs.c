@@ -33,7 +33,7 @@
    if successful.  On failure emits an error message and returns
    a null pointer. */
 static struct variable *
-parse_vs_variable (struct var_set *vs)
+parse_vs_variable (const struct var_set *vs)
 {
   struct variable *vp;
 
@@ -55,7 +55,7 @@ parse_vs_variable (struct var_set *vs)
    variable if successful.  On failure emits an error message and
    returns a null pointer. */
 struct variable *
-parse_dict_variable (struct dictionary *d) 
+parse_dict_variable (const struct dictionary *d) 
 {
   struct var_set *vs = var_set_create_from_dict (d);
   struct variable *var = parse_vs_variable (vs);
@@ -113,8 +113,8 @@ dict_class_to_name (enum dict_class dict_class)
    number of variables into *CNT.  Returns nonzero only if
    successful. */
 int
-parse_variables (struct dictionary *d, struct variable ***var, int *cnt,
-                 int opts) 
+parse_variables (const struct dictionary *d, struct variable ***var,
+                 int *cnt, int opts) 
 {
   struct var_set *vs;
   int success;
@@ -133,7 +133,7 @@ parse_variables (struct dictionary *d, struct variable ***var, int *cnt,
    Conversely, if parse_variables() returns non-zero, then *nv is
    nonzero and *v is non-NULL. */
 int
-parse_var_set_vars (struct var_set *vs, 
+parse_var_set_vars (const struct var_set *vs, 
                     struct variable ***v, int *nv,
                     int pv_opts)
 {
@@ -524,16 +524,16 @@ fail:
 /* A set of variables. */
 struct var_set 
   {
-    size_t (*get_cnt) (struct var_set *);
-    struct variable *(*get_var) (struct var_set *, size_t idx);
-    struct variable *(*lookup_var) (struct var_set *, const char *);
+    size_t (*get_cnt) (const struct var_set *);
+    struct variable *(*get_var) (const struct var_set *, size_t idx);
+    struct variable *(*lookup_var) (const struct var_set *, const char *);
     void (*destroy) (struct var_set *);
     void *aux;
   };
 
 /* Returns the number of variables in VS. */
 size_t
-var_set_get_cnt (struct var_set *vs) 
+var_set_get_cnt (const struct var_set *vs) 
 {
   assert (vs != NULL);
 
@@ -543,7 +543,7 @@ var_set_get_cnt (struct var_set *vs)
 /* Return variable with index IDX in VS.
    IDX must be less than the number of variables in VS. */
 struct variable *
-var_set_get_var (struct var_set *vs, size_t idx) 
+var_set_get_var (const struct var_set *vs, size_t idx) 
 {
   assert (vs != NULL);
   assert (idx < var_set_get_cnt (vs));
@@ -554,7 +554,7 @@ var_set_get_var (struct var_set *vs, size_t idx)
 /* Returns the variable in VS named NAME, or a null pointer if VS
    contains no variable with that name. */
 struct variable *
-var_set_lookup_var (struct var_set *vs, const char *name) 
+var_set_lookup_var (const struct var_set *vs, const char *name) 
 {
   assert (vs != NULL);
   assert (name != NULL);
@@ -573,7 +573,7 @@ var_set_destroy (struct var_set *vs)
 
 /* Returns the number of variables in VS. */
 static size_t
-dict_var_set_get_cnt (struct var_set *vs) 
+dict_var_set_get_cnt (const struct var_set *vs) 
 {
   struct dictionary *d = vs->aux;
 
@@ -583,7 +583,7 @@ dict_var_set_get_cnt (struct var_set *vs)
 /* Return variable with index IDX in VS.
    IDX must be less than the number of variables in VS. */
 static struct variable *
-dict_var_set_get_var (struct var_set *vs, size_t idx) 
+dict_var_set_get_var (const struct var_set *vs, size_t idx) 
 {
   struct dictionary *d = vs->aux;
 
@@ -593,7 +593,7 @@ dict_var_set_get_var (struct var_set *vs, size_t idx)
 /* Returns the variable in VS named NAME, or a null pointer if VS
    contains no variable with that name. */
 static struct variable *
-dict_var_set_lookup_var (struct var_set *vs, const char *name) 
+dict_var_set_lookup_var (const struct var_set *vs, const char *name) 
 {
   struct dictionary *d = vs->aux;
 
@@ -609,28 +609,28 @@ dict_var_set_destroy (struct var_set *vs)
 
 /* Returns a variable set based on D. */
 struct var_set *
-var_set_create_from_dict (struct dictionary *d) 
+var_set_create_from_dict (const struct dictionary *d) 
 {
   struct var_set *vs = xmalloc (sizeof *vs);
   vs->get_cnt = dict_var_set_get_cnt;
   vs->get_var = dict_var_set_get_var;
   vs->lookup_var = dict_var_set_lookup_var;
   vs->destroy = dict_var_set_destroy;
-  vs->aux = d;
+  vs->aux = (void *) d;
   return vs;
 }
 
 /* A variable set based on an array. */
 struct array_var_set 
   {
-    struct variable **var;      /* Array of variables. */
+    struct variable *const *var;/* Array of variables. */
     size_t var_cnt;             /* Number of elements in var. */
     struct hsh_table *name_tab; /* Hash from variable names to variables. */
   };
 
 /* Returns the number of variables in VS. */
 static size_t
-array_var_set_get_cnt (struct var_set *vs) 
+array_var_set_get_cnt (const struct var_set *vs) 
 {
   struct array_var_set *avs = vs->aux;
 
@@ -640,17 +640,17 @@ array_var_set_get_cnt (struct var_set *vs)
 /* Return variable with index IDX in VS.
    IDX must be less than the number of variables in VS. */
 static struct variable *
-array_var_set_get_var (struct var_set *vs, size_t idx) 
+array_var_set_get_var (const struct var_set *vs, size_t idx) 
 {
   struct array_var_set *avs = vs->aux;
 
-  return avs->var[idx];
+  return (struct variable *) avs->var[idx];
 }
 
 /* Returns the variable in VS named NAME, or a null pointer if VS
    contains no variable with that name. */
 static struct variable *
-array_var_set_lookup_var (struct var_set *vs, const char *name) 
+array_var_set_lookup_var (const struct var_set *vs, const char *name) 
 {
   struct array_var_set *avs = vs->aux;
   struct variable v;
@@ -674,7 +674,7 @@ array_var_set_destroy (struct var_set *vs)
 /* Returns a variable set based on the VAR_CNT variables in
    VAR. */
 struct var_set *
-var_set_create_from_array (struct variable **var, size_t var_cnt) 
+var_set_create_from_array (struct variable *const *var, size_t var_cnt) 
 {
   struct var_set *vs;
   struct array_var_set *avs;
@@ -692,7 +692,7 @@ var_set_create_from_array (struct variable **var, size_t var_cnt)
                               compare_variables, hash_variable, NULL,
                               NULL);
   for (i = 0; i < var_cnt; i++)
-    if (hsh_insert (avs->name_tab, var[i]) != NULL) 
+    if (hsh_insert (avs->name_tab, (void *) var[i]) != NULL) 
       {
         var_set_destroy (vs);
         return NULL;

@@ -20,37 +20,19 @@
 #if !sort_h
 #define sort_h 1
 
-#include "vfm.h"
+#include <stddef.h>
 
-/* Sort direction. */
-enum sort_direction
-  {
-    SRT_ASCEND,			/* A, B, C, ..., X, Y, Z. */
-    SRT_DESCEND			/* Z, Y, X, ..., C, B, A. */
-  };
+struct casereader;
+struct dictionary;
+struct variable;
 
-/* SORT CASES input program. */
-struct sort_cases_pgm 
-  {
-    int ref_cnt;                        /* Reference count. */
-                        
-    struct variable **vars;             /* Variables to sort. */
-    enum sort_direction *dirs;          /* Sort directions. */
-    int var_cnt;                        /* Number of variables to sort. */
+struct sort_criteria *sort_parse_criteria (const struct dictionary *,
+                                           struct variable ***, int *);
+void sort_destroy_criteria (struct sort_criteria *);
 
-    struct internal_sort *isrt;         /* Internal sort output. */
-    struct external_sort *xsrt;         /* External sort output. */
-    size_t case_size;                   /* Number of bytes in case. */
-  };
-
-/* SORT CASES programmatic interface. */
-
-typedef int read_sort_output_func (const struct ccase *, void *aux);
-
-struct sort_cases_pgm *parse_sort (void);
-int sort_cases (struct sort_cases_pgm *, int separate);
-void read_sort_output (struct sort_cases_pgm *,
-                       read_sort_output_func, void *aux);
-void destroy_sort_cases_pgm (struct sort_cases_pgm *);
+struct casefile *sort_execute (struct casereader *,
+                               const struct sort_criteria *);
+int sort_active_file_in_place (const struct sort_criteria *);
+struct casefile *sort_active_file_to_casefile (const struct sort_criteria *);
 
 #endif /* !sort_h */

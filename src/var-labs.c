@@ -29,10 +29,6 @@
 
 #include "debug-print.h"
 
-#if DEBUGGING
-static void debug_print (void);
-#endif
-
 int
 cmd_variable_labels (void)
 {
@@ -70,27 +66,5 @@ cmd_variable_labels (void)
       free (v);
     }
   while (token != '.');
-#if 0 && DEBUGGING
-  debug_print ();
-#endif
   return CMD_SUCCESS;
 }
-
-#if 0 && DEBUGGING
-static void
-debug_print (void)
-{
-  int i;
-
-  printf (_("Variable labels:\n"));
-  for (i = 0; i < nvar; i++)
-    {
-      printf ("  %8s: ", var[i]->name);
-      if (var[i]->label)
-	printf ("`%s'", var[i]->label);
-      else
-	printf (_("(no variable label)"));
-      printf ("\n");
-    }
-}
-#endif /* DEBUGGING */

@@ -57,9 +57,7 @@ discard_variables (void)
   
   if (vfm_source != NULL)
     {
-      if (vfm_source->class->destroy != NULL)
-        vfm_source->class->destroy (vfm_source);
-      free (vfm_source);
+      free_case_source (vfm_source);
       vfm_source = NULL;
     }
 

@@ -26,23 +26,26 @@ struct ccase;
 struct casefile;
 struct casereader;
 
-struct casefile *casefile_create (size_t case_size);
+struct casefile *casefile_create (size_t value_cnt);
 void casefile_destroy (struct casefile *);
 
 int casefile_in_core (const struct casefile *);
-size_t casefile_get_case_size (const struct casefile *);
+void casefile_to_disk (const struct casefile *);
+void casefile_sleep (const struct casefile *);
+
+size_t casefile_get_value_cnt (const struct casefile *);
 unsigned long casefile_get_case_cnt (const struct casefile *);
 
 void casefile_append (struct casefile *, const struct ccase *);
-void casefile_to_disk (struct casefile *);
+void casefile_append_xfer (struct casefile *, struct ccase *);
 
-int casefile_sort (struct casefile *,
-                   int (*compare) (const struct ccase *,
-                                   const struct ccase *, void *aux),
-                   void *aux);
-
+void casefile_mode_reader (struct casefile *);
 struct casereader *casefile_get_reader (const struct casefile *);
-int casereader_read (struct casereader *, const struct ccase **);
+struct casereader *casefile_get_destructive_reader (struct casefile *);
+
+const struct casefile *casereader_get_casefile (const struct casereader *);
+int casereader_read (struct casereader *, struct ccase *);
+int casereader_read_xfer (struct casereader *, struct ccase *);
 void casereader_destroy (struct casereader *);
 
 #endif /* casefile.h */

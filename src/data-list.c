@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "data-in.h"
 #include "debug-print.h"
@@ -280,6 +281,7 @@ cmd_data_list (void)
 
  error:
   destroy_dls_var_spec (dls->first);
+  free (dls->delims);
   free (dls);
   return CMD_FAILURE;
 }
@@ -1119,7 +1121,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls,
 
 	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
                                var_spec->fc, var_spec->lc);
-	  di.v = &c->data[var_spec->fv];
+	  di.v = case_data_rw (c, var_spec->fv);
 	  di.flags = 0;
 	  di.f1 = var_spec->fc;
 	  di.format = var_spec->input;
@@ -1171,7 +1173,7 @@ read_from_data_list_free (const struct data_list_pgm *dls,
 
 	di.s = ls_c_str (&field);
 	di.e = ls_end (&field);
-	di.v = &c->data[var_spec->fv];
+	di.v = case_data_rw (c, var_spec->fv);
 	di.flags = 0;
 	di.f1 = column;
 	di.format = var_spec->input;
@@ -1212,9 +1214,9 @@ read_from_data_list_list (const struct data_list_pgm *dls,
             {
               int width = get_format_var_width (&var_spec->input);
               if (width == 0)
-                c->data[var_spec->fv].f = SYSMIS;
+                case_data_rw (c, var_spec->fv)->f = SYSMIS;
               else
-                memset (c->data[var_spec->fv].s, ' ', width); 
+                memset (case_data_rw (c, var_spec->fv)->s, ' ', width); 
             }
 	  break;
 	}
@@ -1224,7 +1226,7 @@ read_from_data_list_list (const struct data_list_pgm *dls,
 
 	di.s = ls_c_str (&field);
 	di.e = ls_end (&field);
-	di.v = &c->data[var_spec->fv];
+	di.v = case_data_rw (c, var_spec->fv);
 	di.flags = 0;
 	di.f1 = column;
 	di.format = var_spec->input;
@@ -1255,6 +1257,7 @@ static void
 data_list_trns_free (struct trns_header *pgm)
 {
   struct data_list_pgm *dls = (struct data_list_pgm *) pgm;
+  free (dls->delims);
   destroy_dls_var_spec (dls->first);
   fh_close_handle (dls->handle);
   free (pgm);
@@ -1298,11 +1301,11 @@ data_list_trns_proc (struct trns_header *t, struct ccase *c,
     {
       if (retval == -2)
         {
-          c->data[dls->end->fv].f = 1.0;
+          case_data_rw (c, dls->end->fv)->f = 1.0;
           retval = -1;
         }
       else
-        c->data[dls->end->fv].f = 0.0;
+        case_data_rw (c, dls->end->fv)->f = 0.0;
     }
   
   dfm_pop (dls->handle);
@@ -1784,7 +1787,7 @@ realize_value (struct rpd_num_or_var *n, struct ccase *c)
   assert (n->num == 0);
   if (n->var != NULL)
     {
-      double v = c->data[n->var->fv].f;
+      double v = case_num (c, n->var->fv);
 
       if (v == SYSMIS || v <= INT_MIN || v >= INT_MAX)
 	return -1;
@@ -1891,7 +1894,7 @@ rpd_parse_record (const struct rpd_parse_info *info)
 		struct data_in di;
 
 		data_in_finite_line (&di, info->line, info->len, fc, lc);
-		di.v = &info->c->data[var_spec->fv];
+		di.v = case_data_rw (info->c, var_spec->fv);
 		di.flags = 0;
 		di.f1 = fc + 1;
 		di.format = var_spec->input;

@@ -1,3 +1,289 @@
+Mon May 31 20:45:24 2004  Ben Pfaff  <blp@gnu.org>
+
+	Fix memory leaks.
+
+	* data-list.c: (cmd_data_list) Free dls->delims on lossage.
+	(data_list_trns_free) Free dls->delims.
+
+	* t-test.q: (tts_custom_pairs) Free vars.
+	(ssbox_one_sample_init) Fix tab_vline() argument.
+	(ssbox_independent_samples_init) Ditto.
+	(trbox_paired_init) Ditto.
+	(trbox_one_sample_init) Ditto.
+
+Mon May 31 17:19:27 2004  Ben Pfaff  <blp@gnu.org>
+
+	Generalize casefiles to the extent that we can use them for
+	sorting and other kinds of data transformations.  Change cases to
+	be copy-on-write to improve memory efficiency in common cases.
+	Every access to a member of a `struct ccase' was changed to be a
+	call to a case_*() function, especially case_data(), case_num(),
+	case_str(), or case_data_rw().  Many instances of a local variable
+	named "case_num" were changed to "case_idx" as a consequence.
+	Many `struct ccase *' were changed to actual `struct ccase'
+	because of copying semantics of cases.  In several places there
+	was a choice between updating debug code to work with the new ADTs
+	or just deleting it because it was useless; I chose to delete it.
+ 
+	* Makefile.am: (pspp_SOURCES) Add case.c, case.h.
+
+	* case.c: New file.
+
+	* case.h: New file.
+
+	* aggregate.c: (struct agr_proc) Change type of `sort' to
+	sort_criteria *.  Add `break_vars', `break_var_cnt' members.
+	Rename `vars' to `agr_vars', all references updated.  Change
+	`agr_case' to type `struct ccase'.
+	(cmd_aggregate) Deal with new members.  Use case_create(),
+	sort_active_file_in_place(), sort_active_file_to_casefile().
+	(agr_destroy) Deal with new members.
+	(aggregate_single_case) Ditto.
+	(dump_aggregate_info) Ditto.
+	(initialize_aggregate_info) Ditto.
+	(agr_to_active_file) Ditto.
+	(presorted_agr_to_sysfile) Ditto.
+	(sort_agr_to_sysfile) Removed.
+
+	* alloc.c: (out_of_memory) Make non-static.
+
+	* alloc.h: Prototype out_of_memory().
+
+	* casefile.c: Switched from a linked list in-memory representation
+	to a two-level array-style representation.  The linked list was
+	appropriate when we could stick a header onto cases, but that's no
+	longer the case.  Also, the two-level array will allow for random
+	in-memory access in case that's ever wanted.  Also added the
+	concept of a `destructive casereader', one that destroys cases in
+	the underlying casefile as they are read out.
+	(macro CASES_PER_BLOCK) New macro.
+	(struct casefile) New members `value_cnt', `case_list_size',
+	`case_acct_size', `being_destroyed', `cases'.  Removed `head',
+	`tail'.
+	(struct casereader) Removed `cur'.  Added `destructive', `c'.
+	(global var casefiles) Made static.
+	(static var case_bytes) New var.
+	(casefile_create) Takes a value count, not a case size in bytes,
+	to conform to the case interface.  All callers updated.  Deal with
+	new and removed members.
+	(casefile_destroy) Deal with new and removed members.
+	(casefile_sleep) New function.
+	(casefile_get_case_size) Removed.
+	(casefile_get_value_cnt) New function.
+	(casefile_append) Rewritten to deal with new and removed members.
+	(casefile_append_xfer) New function.
+	(write_case_to_disk) Use case_serialize().
+	(call_posix_fadvise) Removed because posix_fadvise64 segfaults.
+	Couldn't figure out why.
+	(casefile_to_disk) Don't call call_posix_fadvise.  Rewritten to
+	deal with new and removed members.
+	(merge) Removed.
+	(merge_sort) Removed.
+	(casefile_sort) Removed.
+	(casefile_get_reader) Deal with new and removed members.
+	(casefile_get_destructive_reader) New function.
+	(reader_open_file) Make code more readable.  Create case for
+	reader.
+	(casereader_get_casefile) New function.
+	(casereader_read) Deal with new and removed members.  Now returns
+	a copy of the case, so that the caller is responsible for
+	destroying the returned case.
+	(casereader_read_xfer) New function.
+	(casereader_destroy) Destroy reader's case.
+	(test_casefile) Second arg is now a value count, all callers
+	updated.  Now tests destructive readers too.
+	(get_random_case) Deal with new case ADT.
+	(write_random_case) Ditto.
+	(read_and_verify_random_case) Ditto.
+
+	* crosstabs.q: Remove debug code.
+
+	* descript.q: (calc_descriptives) Deal with new case, casefile
+	ADTs.
+
+	* dfm.c: (cmd_begin_data) There's no storage_source_class anymore.
+
+	* do-if.c: Remove unneeded header inclusion.
+
+	* expr-prs.c: Remove debug code.
+
+	* exprP.h: Remove debug code.
+
+	* flip.c: (flip_file) Use fseeko() if available.
+
+	* formats.c: Remove debug code.
+
+	* get.c: Remove debug code.
+	(struct mtf_file) Change `input' from `union value *' to `struct
+	ccase', all references updated.
+
+	* levene.c: (levene) Deal with new case, casefile ADTs.
+
+	* list.q: Remove debug code.
+
+	* loop.c: Remove debug code.
+	
+	* matrix-data.c: Remove debug code.
+
+	* means.q: Remove debug code.
+
+	* mis-val.c: Remove debug code.
+
+	* pfm-read.c: Remove debug code.
+	(pfm_read_code) Change second arg from `union value *' to `struct
+	ccase *', all references updated.
+
+	* recode.c: (string_to_long) Make first arg const.
+	(convert_to_double) Ditto.
+
+	* repeat.c: Remove debug code.
+
+	* sample.c: Remove debug code.
+
+	* sfm-read.c: Remove debug code.
+	(sfm_read_case) Change second arg from `union value *' to `struct
+	ccase *'.
+
+	* sort.c: Redone in terms of casefiles.
+	(enum sort_direction) Moved here from sort.h.
+	(struct sort_criterion) New structure.
+	(struct sort_criteria) New structure.
+	(cmd_sort_cases) Rewritten.
+	(prepare_to_sort_active_file) New function.
+	(sort_active_file_in_place) New function.
+	(sort_active_file_to_casefile) New function.
+	(parse_sort) Renamed sort_parse_criteria(), rewritten & interface
+	changed, all callers updated.
+	(destroy_sort_cases_pgm) Renamed sort_destroy_criteria(),
+	rewritten & interface changed, all callers updated.
+	(sort_cases) Renamed sort_execute(), rewritten & interface
+	changed, all callers updated.
+	(struct internal_sort) Removed.
+	(do_internal_sort) Rewritten, interface changed.
+	(destroy_internal_sort) Removed.
+	(compare_case_dblptrs) Use sort_criteria instead of sort_case_pgm.
+	(struct initial_run) Removed; an initial run is now just a
+	casefile.
+	(compare_initial_runs) Rewritten.
+	(struct external_sort) Changed almost completely.
+	(do_external_sort) Rewritten, interface changed.
+	(destroy_external_sort) Rewritten.
+	[HAVE_MKDTEMP] (make_temp_dir) Removed.
+	[!HAVE_MKDTEMP] (do_mkdir) Removed.
+	[!HAVE_MKDTEMP] (make_temp_dir) Removed.
+	(init_external_sort) Removed.
+	(simulate_error) Removed.
+	(rmdir_temp_dir) Removed.
+	(get_temp_file_name) Removed.
+	(open_temp_file) Removed.
+	(close_temp_file) Removed.
+	(remove_temp_file) Removed.
+	(write_temp_file) Removed.
+	(read_temp_file) Removed.
+	(struct record_run) Change `record' from `struct case_lit *' to
+	`struct ccase'.
+	(struct initial_run_state) Remove `idx_to_fv', `free_list',
+	`file_idx', `output_file'.  Add `run', casefile'.  Change
+	`last_output' from `struct case_list *' to `struct ccase'.
+	(write_initial_runs) Change interface, rewrite.
+	(sort_sink_write) Renamed process_case(), changed interfaced,
+	rewrote.
+	(destroy_initial_run_state) Rewritten.
+	(allocate_cases) Rewritten.
+	(compare_record) Interface changed, rewritten.
+	(start_run) Rewritten.
+	(end_run) Rewritten.
+	(output_record) Rewritten.
+	(grab_case) Removed.
+	(release_case) Removed.
+	(struct merge_case) Change `cases' from double pointer to single
+	pointer.
+	(merge) Deal with new case and casefile ADTs.
+	(struct run) Removed.
+	(merge_once) Rewritten, interface changed.
+	(fill_run_buffer) Removed.
+	(sort_sink_make_source) Removed.
+	(sort_sink_class) Removed.
+	(struct sort_source_aux) Removed.
+	(sort_source_read_helper) Removed.
+	(sort_source_read) Removed.
+	(read_sort_output) Removed.
+	(read_internal_sort_output) Removed.
+	(read_external_sort_output) Removed.
+	(sort_source_destroy) Removed.
+	(sort_source_class) Removed.
+
+	* sort.h: (struct sort_cases_pgm) Removed.
+	(enum sort_direction) Moved to sort.c.
+
+	* t-test.q: (calculate) Deal with new case, casefile ADTs.
+
+	* tab.c: Remove debug code.
+
+	* var-labs.c: Remove debug code.
+
+	* var.h: (struct ccase) Removed.
+	(struct case_list) Removed.
+
+	* vars-atr.c: (discard_variables) Use free_case_source().
+
+	* vars-prs.c: (parse_vs_variable) Make arg const.
+	(parse_dict_variable) Ditto.
+	(parse_variables) Make struct dictionary * arg const.
+	(parse_var_set_vars) Make struct var_set * arg const.
+	(struct var_set) Add const to some of the function pointers' args.
+	(var_set_get_cnt) Make arg const.
+	(var_set_get_var) Make first arg const.
+	(var_set_lookup_var) Make first arg const.
+	(dict_var_set_get_cnt) Make arg const.
+	(dict_var_set_get_var) Make first arg const.
+	(dict_var_set_lookup_var) Make first arg const.
+	(var_set_create_from_dict) Make arg const.  Add cast to aux
+	assignment.
+	(struct array_var_set) Add const to var member.
+	(array_var_set_get_cnt) Make arg const.
+	(array_var_set_get_var) Make first arg const.
+	(array_var_set_lookup_var) Make first arg const.
+	(var_set_create_from_array) Make first arg const.  Insert cast.
+
+	* vfm.c: (struct write_case_data) Change trns_case, sink_case
+	members from `struct ccase *' to `struct ccase'.
+	(static var lag_queue) Change from double to single pointer.
+	(procedure) Optimize trivial case.
+	(internal_procedure) Deal with changed case, case_source ADTs.
+	(create_trns_case) Changed interface, rewrote.
+	(open_active_interface) Initialize modified lag queue.
+	(write_case) Deal with changed case ADT.
+	(lag_case) Deal with modified lag queue.
+	(close_active_file) Destroy modified lag queue.
+	Deal with changed case_source, case_sink ADTs.
+	(destroy_storage_stream_info) Make null arg into no-op.
+	(storage_sink_make_source) Set aux in created source.
+	(storage_source_read) Deal with changed case, casefile ADTs.
+	(storage_source_create) New function.
+	(lagged_case) Rewrite.
+	(free_case_source) New function.
+	(free_case_sink) Rewrite.
+	(struct split_aux_data) Changed prev_case from `struct ccase *' to
+	`struct ccase'.
+	(procedure_with_splits) Deal with changed prev_case.
+	(procedure_with_splits_callback) Ditto.
+	(multipass_split_aux_data) Changed prev_case from `struct ccase *' to
+	`struct ccase'.
+	(multipass_procedure_with_splits) Deal with changed prev_case.
+	(multipass_split_callback) Ditto.
+	
+	
+Mon May 31 17:19:06 2004  Ben Pfaff  <blp@gnu.org>
+
+	The workspace idea didn't work out.
+
+	* Makefile.am: (pspp_SOURCES) Remove workspace.c, workspace.h.
+	
+	* workspace.c: Removed.
+
+	* workspace.h: Removed.
+
 Sun May 30 18:35:19 2004  Ben Pfaff  <blp@gnu.org>
 
 	Fully implement arbitrary delimiters on DATA LIST, extending the

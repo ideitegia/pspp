@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "error.h"
 #include "expr.h"
@@ -112,7 +113,8 @@ compute_num (struct trns_header *compute_, struct ccase *c,
   if (compute->test == NULL
       || expr_evaluate (compute->test, c, case_num, NULL) == 1.0) 
     {
-      expr_evaluate (compute->rvalue, c, case_num, &c->data[compute->fv]); 
+      expr_evaluate (compute->rvalue, c, case_num,
+                     case_data_rw (c, compute->fv)); 
     }
   
   return -1;
@@ -149,7 +151,7 @@ compute_num_vec (struct trns_header *compute_, struct ccase *c,
           return -1;
         }
       expr_evaluate (compute->rvalue, c, case_num,
-                     &c->data[compute->vector->var[rindx - 1]->fv]); 
+                     case_data_rw (c, compute->vector->var[rindx - 1]->fv));
     }
   
   return -1;
@@ -169,8 +171,8 @@ compute_str (struct trns_header *compute_, struct ccase *c,
       union value v;
 
       expr_evaluate (compute->rvalue, c, case_num, &v);
-      st_bare_pad_len_copy (c->data[compute->fv].s, &v.c[1], compute->width,
-                            v.c[0]); 
+      st_bare_pad_len_copy (case_data_rw (c, compute->fv)->s,
+                            &v.c[1], compute->width, v.c[0]); 
     }
   
   return -1;
@@ -216,7 +218,8 @@ compute_str_vec (struct trns_header *compute_, struct ccase *c,
 
       expr_evaluate (compute->rvalue, c, case_num, &v);
       vr = compute->vector->var[rindx - 1];
-      st_bare_pad_len_copy (c->data[vr->fv].s, &v.c[1], vr->width, v.c[0]); 
+      st_bare_pad_len_copy (case_data_rw (c, vr->fv)->s,
+                            &v.c[1], vr->width, v.c[0]); 
     }
   
   return -1;

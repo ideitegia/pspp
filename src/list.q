@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "devind.h"
 #include "lexer.h"
@@ -37,10 +38,6 @@
 #include "format.h"
 
 #include "debug-print.h"
-
-#if DEBUGGING
-static void debug_print (void);
-#endif
 
 /* (specification)
    list (lst_):
@@ -66,7 +63,7 @@ struct list_ext
 static struct cmd_list cmd;
 
 /* Current case number. */
-static int case_num;
+static int case_idx;
 
 /* Line buffer. */
 static char *line_buf;
@@ -218,14 +215,9 @@ cmd_list (void)
       cmd.v_variables[0] = &casenum_var;
     }
 
-#if DEBUGGING
-  /* Print out command. */
-  debug_print ();
-#endif
-
   determine_layout ();
 
-  case_num = 0;
+  case_idx = 0;
   procedure_with_splits (write_all_headers, list_cases, NULL, NULL);
   free (line_buf);
 
@@ -621,9 +613,9 @@ list_cases (struct ccase *c, void *aux UNUSED)
 {
   struct outp_driver *d;
   
-  case_num++;
-  if (case_num < cmd.first || case_num > cmd.last
-      || (cmd.step != 1 && (case_num - cmd.first) % cmd.step))
+  case_idx++;
+  if (case_idx < cmd.first || case_idx > cmd.last
+      || (cmd.step != 1 && (case_idx - cmd.first) % cmd.step))
     return 1;
 
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
@@ -670,12 +662,12 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	      }
 
             if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
-	      data_out (&line_buf[x], &v->print, &c->data[v->fv]);
+	      data_out (&line_buf[x], &v->print, case_data (c, v->fv));
             else 
               {
-                union value case_num_value;
-                case_num_value.f = case_num;
-                data_out (&line_buf[x], &v->print, &case_num_value); 
+                union value case_idx_value;
+                case_idx_value.f = case_idx;
+                data_out (&line_buf[x], &v->print, &case_idx_value); 
               }
 	    x += v->print.w;
 	  
@@ -704,12 +696,12 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	    char buf[41];
 	    
             if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
-	      data_out (buf, &v->print, &c->data[v->fv]);
+	      data_out (buf, &v->print, case_data (c, v->fv));
             else 
               {
-                union value case_num_value;
-                case_num_value.f = case_num;
-                data_out (buf, &v->print, &case_num_value); 
+                union value case_idx_value;
+                case_idx_value.f = case_idx;
+                data_out (buf, &v->print, &case_idx_value); 
               }
 	    buf[v->print.w] = 0;
 
@@ -728,45 +720,6 @@ list_cases (struct ccase *c, void *aux UNUSED)
 
   return 1;
 }
-
-/* Debugging output. */
-
-#if DEBUGGING
-/* Prints out the command as parsed by cmd_list(). */
-static void
-debug_print (void)
-{
-  int i;
-
-  puts ("LIST");
-  printf ("  VARIABLES=");
-  for (i = 0; i < cmd.n_variables; i++)
-    {
-      if (i)
-	putc (' ', stdout);
-      fputs (cmd.v_variables[i]->name, stdout);
-    }
-
-  printf ("\n  /CASES=FROM %ld TO %ld BY %ld\n", cmd.first, cmd.last, cmd.step);
-
-  fputs ("  /FORMAT=", stdout);
-  if (cmd.numbering == LST_NUMBERED)
-    fputs ("NUMBERED", stdout);
-  else
-    fputs ("UNNUMBERED", stdout);
-  putc (' ', stdout);
-  if (cmd.wrap == LST_WRAP)
-    fputs ("WRAP", stdout);
-  else
-    fputs ("SINGLE", stdout);
-  putc (' ', stdout);
-  if (cmd.weight == LST_WEIGHT)
-    fputs ("WEIGHT", stdout);
-  else
-    fputs ("NOWEIGHT", stdout);
-  puts (".");
-}
-#endif /* DEBUGGING */
 
 /* 
    Local Variables:

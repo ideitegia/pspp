@@ -23,8 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "str.h"
-
-static void out_of_memory (void);
 
 /* Public functions. */
 
@@ -106,11 +104,9 @@ xstrdup (const char *s)
   memcpy (t, s, size);
   return t;
 }
-
-/* Private functions. */
 
 /* Report an out-of-memory condition and abort execution. */
-static void
+void
 out_of_memory (void)
 {
   fprintf (stderr, "virtual memory exhausted\n");

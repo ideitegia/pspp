@@ -37,6 +37,7 @@
 #include <gsl/gsl_cdf.h>
 #include "algorithm.h"
 #include "alloc.h"
+#include "case.h"
 #include "hash.h"
 #include "pool.h"
 #include "command.h"
@@ -156,11 +157,6 @@ static void submit (struct tab_table *);
 static void format_short (char *s, const struct fmt_spec *fp,
                          const union value *v);
 
-#if DEBUGGING
-static void debug_print (void);
-static void print_table_entries (struct table_entry **tab);
-#endif
-
 /* Parse and execute CROSSTABS, then clean up. */
 int
 cmd_crosstabs (void)
@@ -189,11 +185,6 @@ internal_cmd_crosstabs (void)
 
   if (!parse_crosstabs (&cmd))
     return CMD_FAILURE;
-
-#if DEBUGGING
-  /* Needs variables. */
-  debug_print ();
-#endif
 
   mode = variables ? INTEGER : GENERAL;
 
@@ -453,58 +444,6 @@ crs_custom_variables (struct cmd_crosstabs *cmd UNUSED)
   variables = NULL;
   return 0;
 }
-
-#if DEBUGGING
-static void
-debug_print (void)
-{
-  printf ("CROSSTABS\n");
-
-  if (variables != NULL)
-    {
-      int i;
-
-      printf ("\t/VARIABLES=");
-      for (i = 0; i < variables_cnt; i++)
-	{
-	  struct variable *v = variables[i];
-
-	  printf ("%s ", v->name);
-	  if (i < variables_cnt - 1)
-	    {
-	      struct variable *nv = variables[i + 1];
-	      
-	      if (v->p.crs.min == nv->p.crs.min
-		  && v->p.crs.max == nv->p.crs.max)
-		continue;
-	    }
-	  printf ("(%d,%d) ", v->p.crs.min, v->p.crs.max - 1);
-	}
-      printf ("\n");
-    }
-  
-  {
-    int i;
-
-    printf ("\t/TABLES=");
-    for (i = 0; i < nxtab; i++)
-      {
-	struct crosstab *x = xtab[i];
-	int j;
-
-	if (i)
-	  printf("\t\t");
-	for (j = 0; j < x->nvar; j++)
-	  {
-	    if (j)
-	      printf (" BY ");
-	    printf ("%s", x->v[j]->name);
-	  }
-	printf ("\n");
-      }
-  }
-}
-#endif /* DEBUGGING */
 
 /* Data file processing. */
 
@@ -608,9 +547,9 @@ calc_general (struct ccase *c, void *aux UNUSED)
 	for (j = 0; j < x->nvar; j++)
 	  {
 	    if ((cmd.miss == CRS_TABLE
-		 && is_missing (&c->data[x->vars[j]->fv], x->vars[j]))
+		 && is_missing (case_data (c, x->vars[j]->fv), x->vars[j]))
 		|| (cmd.miss == CRS_INCLUDE
-		    && is_system_missing (&c->data[x->vars[j]->fv],
+		    && is_system_missing (case_data (c, x->vars[j]->fv),
                                           x->vars[j])))
 	      {
 		x->missing += weight;
@@ -618,10 +557,10 @@ calc_general (struct ccase *c, void *aux UNUSED)
 	      }
 	      
 	    if (x->vars[j]->type == NUMERIC)
-	      te->values[j].f = c->data[x->vars[j]->fv].f;
+	      te->values[j].f = case_num (c, x->vars[j]->fv);
 	    else
 	      {
-		memcpy (te->values[j].s, c->data[x->vars[j]->fv].s,
+		memcpy (te->values[j].s, case_str (c, x->vars[j]->fv),
                         x->vars[j]->width);
 	      
 		/* Necessary in order to simplify comparisons. */
@@ -676,7 +615,7 @@ calc_integer (struct ccase *c, void *aux UNUSED)
       for (i = 0; i < x->nvar; i++)
 	{
 	  struct variable *const v = x->vars[i];
-	  double value = c->data[v->fv].f;
+	  double value = case_num (c, v->fv);
 	  
 	  /* Note that the first test also rules out SYSMIS. */
 	  if ((value < v->p.crs.min || value >= v->p.crs.max)
@@ -694,8 +633,8 @@ calc_integer (struct ccase *c, void *aux UNUSED)
 	}
       
       {
-	const int row = c->data[x->vars[ROW_VAR]->fv].f - x->vars[ROW_VAR]->p.crs.min;
-	const int col = c->data[x->vars[COL_VAR]->fv].f - x->vars[COL_VAR]->p.crs.min;
+	const int row = case_num (c, x->vars[ROW_VAR]->fv) - x->vars[ROW_VAR]->p.crs.min;
+	const int col = case_num (c, x->vars[COL_VAR]->fv) - x->vars[COL_VAR]->p.crs.min;
 	const int col_dim = x->vars[COL_VAR]->p.crs.count;
 
 	sorted_tab[ofs]->u.data[col + row * col_dim] += weight;
@@ -706,36 +645,6 @@ calc_integer (struct ccase *c, void *aux UNUSED)
   
   return 1;
 }
-
-#if DEBUGGING
-/* Print out all table entries in NULL-terminated TAB for use by a
-   debugger (a person, not a program). */
-static void
-print_table_entries (struct table_entry **tab)
-{
-  printf ("raw crosstabulation data:\n");
-  for (; *tab; tab++)
-    {
-      const struct crosstab *x = xtab[(*tab)->table];
-      int i;
-
-      printf ("(%g) table:%d ", (*tab)->u.freq, (*tab)->table);
-      for (i = 0; i < x->nvar; i++)
-	{
-	  if (i)
-	    printf (", ");
-	  printf ("%s:", x->v[i]->name);
-	  
-	  if (x->v[i]->type == NUMERIC)
-	    printf ("%g", (*tab)->v[i].f);
-	  else
-	    printf ("%.*s", x->v[i]->width, (*tab)->v[i].s);
-	}
-      printf ("\n");
-    }
-  fflush (stdout);
-}
-#endif
 
 /* Compare the table_entry's at A and B and return a strcmp()-type
    result. */
@@ -812,9 +721,6 @@ postcalc (void *aux UNUSED)
     {
       n_sorted_tab = hsh_count (gen_tab);
       sorted_tab = (struct table_entry **) hsh_sort (gen_tab);
-#if DEBUGGING
-      print_table_entries (sorted_tab);
-#endif
     }
   
   make_summary_table ();
@@ -1398,35 +1304,6 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	W = cum;
       }
       
-#if DEBUGGING
-      /* Print the matrix. */
-      {
-	int i, r, c;
-
-	printf ("%s by %s for", x->v[0]->name, x->v[1]->name);
-	for (i = 2; i < nvar; i++)
-	  printf (" %s=%g", x->v[i]->name, tb[0]->v[i].f);
-	printf ("\n");
-	printf ("     ");
-	for (c = 0; c < n_cols; c++)
-	  printf ("%4g", cols[c].f);
-	printf ("\n");
-	for (r = 0; r < n_rows; r++)
-	  {
-	    printf ("%4g:", rows[r].f);
-	    for (c = 0; c < n_cols; c++)
-	      printf ("%4g", mat[c + r * n_cols]);
-	    printf ("%4g", row_tot[r]);
-	    printf ("\n");
-	  }
-	printf ("     ");
-	for (c = 0; c < n_cols; c++)
-	  printf ("%4g", col_tot[c]);
-	printf ("%4g", W);
-	printf ("\n\n");
-      }
-#endif
-
       /* Find the first variable that differs from the last subtable,
 	 then display the values of the dimensioning variables for
 	 each table that needs it. */

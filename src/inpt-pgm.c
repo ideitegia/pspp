@@ -22,6 +22,7 @@
 #include <float.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "case.h"
 #include "command.h"
 #include "data-list.h"
 #include "dfm.h"
@@ -130,14 +131,14 @@ init_case (const struct input_program_pgm *inp, struct ccase *c)
     switch (inp->init[i]) 
       {
       case INP_NUMERIC | INP_INIT_ONCE:
-        c->data[i].f = 0.0;
+        case_data_rw (c, i)->f = 0.0;
         break;
       case INP_NUMERIC | INP_REINIT:
-        c->data[i].f = SYSMIS;
+        case_data_rw (c, i)->f = SYSMIS;
         break;
       case INP_STRING | INP_INIT_ONCE:
       case INP_STRING | INP_REINIT:
-        memset (c->data[i].s, ' ', sizeof c->data[i].s);
+        memset (case_data_rw (c, i)->s, ' ', sizeof case_data_rw (c, i)->s);
         break;
       default:
         assert (0);
@@ -156,12 +157,12 @@ clear_case (const struct input_program_pgm *inp, struct ccase *c)
       case INP_NUMERIC | INP_INIT_ONCE:
         break;
       case INP_NUMERIC | INP_REINIT:
-        c->data[i].f = SYSMIS;
+        case_data_rw (c, i)->f = SYSMIS;
         break;
       case INP_STRING | INP_INIT_ONCE:
         break;
       case INP_STRING | INP_REINIT:
-        memset (c->data[i].s, ' ', sizeof c->data[i].s);
+        memset (case_data_rw (c, i)->s, ' ', sizeof case_data_rw (c, i)->s);
         break;
       default:
         assert (0);

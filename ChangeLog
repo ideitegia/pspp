@@ -1,6 +1,12 @@
+Mon May 31 17:21:25 2004  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Check for large file support.  Get rid of
+	posix_fadvise check--for some reason glibc 2.3.2 segfaults when I
+	call it and I just couldn't figure out what was going on.
+
 Sun May 30 18:19:03 2004  Ben Pfaff  <blp@gnu.org>
 
-	* config.ac: Check for valgrind/valgrind.h.
+	* configure.ac: Check for valgrind/valgrind.h.
 
 Mon Mar 29 15:22:48 2004  Ben Pfaff  <blp@gnu.org>
 
