@@ -131,10 +131,10 @@ case_copy (struct ccase *dst, size_t dst_idx,
 
 static inline void
 case_to_values (const struct ccase *c, union value *output,
-                size_t output_size UNUSED) 
+                size_t output_size ) 
 {
   memcpy (output, c->case_data->values,
-          c->case_data->value_cnt * sizeof *output);
+          output_size * sizeof *output);
 }
 
 static inline void

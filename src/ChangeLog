@@ -1,3 +1,7 @@
+Wed Jan  5 22:42:26 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* case.h Fixed bug # 11307
+	
 Wed Jan  5 08:30:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* val-labs.c Fixed bug which caused a crash if VALUE LABELS had

@@ -15,6 +15,7 @@ TESTS = \
 	command/file-label.sh \
 	command/filter.sh \
 	command/flip.sh \
+	command/import-export.sh \
 	command/lag.sh \
 	command/list.sh \
 	command/loop.sh \
@@ -41,6 +42,7 @@ TESTS = \
 	command/use.sh \
 	command/weight.sh \
 	bugs/alpha-freq.sh \
+	bugs/big-input.sh \
 	bugs/comment-at-eof.sh \
 	bugs/compute-fmt.sh \
 	bugs/crosstabs.sh \
