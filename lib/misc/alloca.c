@@ -33,7 +33,7 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "common.h"
+#include "alloc.h"
 
 typedef void *pointer;		/* generic pointer type */
 #define	NULL	0		/* null pointer constant */
