@@ -95,7 +95,7 @@ USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 l = @l@
 
-TESTS = syntax
+TESTS = syntax bugs/double-frequency.sh
 
 noinst_PROGRAMS = gengarbage
 

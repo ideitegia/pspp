@@ -1,18 +1,19 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Free Software Foundation, Inc.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2000-01-07 20:39-0500\n"
+"POT-Creation-Date: 2003-12-11 14:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: ENCODING\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: lib/misc/getopt.c:514
 #, c-format
@@ -109,8 +110,8 @@ msgstr ""
 #: src/aggregate.c:600 src/autorecode.c:114
 #, c-format
 msgid ""
-"Number of source variables (%d) does not match number of target variables "
-"(%d)."
+"Number of source variables (%d) does not match number of target variables (%"
+"d)."
 msgstr ""
 
 #: src/aggregate.c:671
@@ -281,17 +282,17 @@ msgid ""
 "Argument %d to %s was expected to be of %s type.  It was actually of type %s."
 msgstr ""
 
-#: src/apply-dict.c:72 src/apply-dict.c:73 src/expr-prs.c:1123
-#: src/expr-prs.c:1464 src/expr-prs.c:1483 src/formats.c:105
-#: src/pfm-read.c:654 src/print.c:719 src/sfm-read.c:1009 src/sfm-read.c:1137
-#: src/sfm-read.c:1138
+#: src/expr-prs.c:1123 src/expr-prs.c:1464 src/expr-prs.c:1483
+#: src/apply-dict.c:72 src/apply-dict.c:73 src/formats.c:105
+#: src/pfm-read.c:654 src/sfm-read.c:1009 src/sfm-read.c:1137
+#: src/sfm-read.c:1138 src/print.c:719
 msgid "numeric"
 msgstr ""
 
-#: src/apply-dict.c:72 src/apply-dict.c:73 src/expr-prs.c:1123
-#: src/expr-prs.c:1467 src/expr-prs.c:1485 src/formats.c:105
-#: src/pfm-read.c:654 src/print.c:719 src/sfm-read.c:1009 src/sfm-read.c:1137
-#: src/sfm-read.c:1138
+#: src/expr-prs.c:1123 src/expr-prs.c:1467 src/expr-prs.c:1485
+#: src/apply-dict.c:72 src/apply-dict.c:73 src/formats.c:105
+#: src/pfm-read.c:654 src/sfm-read.c:1009 src/sfm-read.c:1137
+#: src/sfm-read.c:1138 src/print.c:719
 msgid "string"
 msgstr ""
 
@@ -341,7 +342,7 @@ msgid "expecting `)' after %s function"
 msgstr ""
 
 #. FE
-#: src/error.c:281 src/error.c:288 src/error.c:291 src/expr-prs.c:1458
+#: src/expr-prs.c:1458 src/error.c:281 src/error.c:288 src/error.c:291
 msgid "error"
 msgstr ""
 
@@ -661,11 +662,11 @@ msgid ""
 "RECORDS subcommand."
 msgstr ""
 
-#: src/autorecode.c:125 src/command.c:714 src/compute.c:361
 #: src/data-list.c:390 src/data-list.c:840 src/data-list.c:1646
-#: src/do-if.c:267 src/file-handle.q:90 src/get.c:436 src/lexer.c:384
-#: src/loop.c:250 src/matrix-data.c:527 src/print.c:359 src/print.c:1100
-#: src/recode.c:411 src/sel-if.c:56 src/sel-if.c:136 src/vector.c:208
+#: src/file-handle.q:90 src/get.c:436 src/matrix-data.c:527 src/command.c:714
+#: src/lexer.c:384 src/do-if.c:267 src/autorecode.c:125 src/compute.c:361
+#: src/print.c:359 src/print.c:1100 src/recode.c:411 src/sel-if.c:56
+#: src/sel-if.c:136 src/loop.c:250 src/vector.c:208
 msgid "expecting end of command"
 msgstr ""
 
@@ -722,8 +723,8 @@ msgid ""
 "names given."
 msgstr ""
 
-#: src/data-list.c:733 src/data-list.c:867 src/descript.q:799 src/print.c:824
-#: src/sysfile-info.c:130 src/sysfile-info.c:369 src/vfm.c:1133
+#: src/data-list.c:733 src/data-list.c:867 src/sysfile-info.c:130
+#: src/sysfile-info.c:369 src/descript.q:799 src/vfm.c:1133 src/print.c:824
 msgid "Variable"
 msgstr ""
 
@@ -877,8 +878,8 @@ msgstr ""
 #: src/data-list.c:1769
 #, c-format
 msgid ""
-"Variable %s startging in column %d extends beyond physical record length of "
-"%d."
+"Variable %s startging in column %d extends beyond physical record length of %"
+"d."
 msgstr ""
 
 #: src/data-list.c:1837
@@ -1260,8 +1261,8 @@ msgstr ""
 #: src/format.c:161
 #, c-format
 msgid ""
-"Output format %s requires minimum width %d to allow %d decimal places.  Try "
-"%s%d.%d instead of %s."
+"Output format %s requires minimum width %d to allow %d decimal places.  Try %"
+"s%d.%d instead of %s."
 msgstr ""
 
 #: src/format.c:169
@@ -1631,7 +1632,7 @@ msgstr ""
 msgid "%s: Closing portable file: %s."
 msgstr ""
 
-#: src/lexer.c:948 src/pfm-read.c:150 src/repeat.c:227
+#: src/pfm-read.c:150 src/lexer.c:948 src/repeat.c:227
 msgid "Unexpected end of file."
 msgstr ""
 
@@ -1720,11 +1721,11 @@ msgstr ""
 msgid "%s variable %s has %s format specifier %s."
 msgstr ""
 
-#: src/pfm-read.c:652 src/print.c:631 src/sfm-read.c:1007
+#: src/pfm-read.c:652 src/sfm-read.c:1007 src/print.c:631
 msgid "String"
 msgstr ""
 
-#: src/pfm-read.c:652 src/print.c:631 src/sfm-read.c:1007
+#: src/pfm-read.c:652 src/sfm-read.c:1007 src/print.c:631
 msgid "Numeric"
 msgstr ""
 
@@ -1964,7 +1965,7 @@ msgstr ""
 msgid "DEC Kanji"
 msgstr ""
 
-#: src/data-out.c:145 src/sfm-read.c:516 src/sysfile-info.c:114
+#: src/sfm-read.c:516 src/sysfile-info.c:114 src/data-out.c:145
 msgid "Unknown"
 msgstr ""
 
@@ -1993,8 +1994,8 @@ msgstr ""
 #: src/sfm-read.c:637
 #, c-format
 msgid ""
-"%s: File layout code has unexpected value %d.  Value should be 2, in "
-"big-endian or little-endian format."
+"%s: File layout code has unexpected value %d.  Value should be 2, in big-"
+"endian or little-endian format."
 msgstr ""
 
 #: src/sfm-read.c:653
@@ -2226,7 +2227,7 @@ msgstr ""
 msgid "three"
 msgstr ""
 
-#: src/descript.q:166 src/sfm-read.c:1302
+#: src/sfm-read.c:1302 src/descript.q:166
 msgid "range"
 msgstr ""
 
@@ -2430,9 +2431,9 @@ msgstr ""
 msgid "Missing Values: "
 msgstr ""
 
-#: src/crosstabs.q:1233 src/crosstabs.q:1260 src/crosstabs.q:1280
-#: src/crosstabs.q:1302 src/frequencies.q:895 src/frequencies.q:1012
-#: src/sysfile-info.c:537 src/vfm.c:1134
+#: src/sysfile-info.c:537 src/crosstabs.q:1233 src/crosstabs.q:1260
+#: src/crosstabs.q:1280 src/crosstabs.q:1302 src/frequencies.q:898
+#: src/frequencies.q:1015 src/vfm.c:1134
 msgid "Value"
 msgstr ""
 
@@ -2790,79 +2791,79 @@ msgid ""
 "\t*********************\n"
 msgstr ""
 
-#: src/glob.c:183
+#: src/glob.c:184
 msgid ""
 "Your machine does not appear to be either big- or little-endian.  At the "
 "moment, PSPP only supports machines of these standard endiannesses.  If you "
 "want to hack in others, contact the author."
 msgstr ""
 
-#: src/glob.c:267
+#: src/glob.c:268
 msgid "data> "
 msgstr ""
 
-#: src/glob.c:328
+#: src/glob.c:329
 msgid "Specify a terminal type with `setenv TERM <yourtype>'."
 msgstr ""
 
-#: src/glob.c:339
+#: src/glob.c:340
 msgid "Could not access the termcap data base."
 msgstr ""
 
-#: src/glob.c:341
+#: src/glob.c:342
 #, c-format
 msgid "Terminal type `%s' is not defined."
 msgstr ""
 
-#: src/glob.c:342
+#: src/glob.c:343
 msgid "Assuming screen of size 79x25."
 msgstr ""
 
-#: src/glob.c:377
+#: src/glob.c:378
 msgid "Jan"
 msgstr ""
 
-#: src/glob.c:377
+#: src/glob.c:378
 msgid "Feb"
 msgstr ""
 
-#: src/glob.c:377
+#: src/glob.c:378
 msgid "Mar"
 msgstr ""
 
-#: src/glob.c:377
+#: src/glob.c:378
 msgid "Apr"
 msgstr ""
 
-#: src/glob.c:377
+#: src/glob.c:378
 msgid "May"
 msgstr ""
 
-#: src/glob.c:377
+#: src/glob.c:378
 msgid "Jun"
 msgstr ""
 
-#: src/glob.c:378
+#: src/glob.c:379
 msgid "Jul"
 msgstr ""
 
-#: src/glob.c:378
+#: src/glob.c:379
 msgid "Aug"
 msgstr ""
 
-#: src/glob.c:378
+#: src/glob.c:379
 msgid "Sep"
 msgstr ""
 
-#: src/glob.c:378
+#: src/glob.c:379
 msgid "Oct"
 msgstr ""
 
-#: src/glob.c:378
+#: src/glob.c:379
 msgid "Nov"
 msgstr ""
 
-#: src/glob.c:378
+#: src/glob.c:379
 msgid "Dec"
 msgstr ""
 
@@ -3009,8 +3010,8 @@ msgstr ""
 
 #: src/data-out.c:253
 msgid ""
-"The N output format cannot be used to output a negative number or the "
-"system-missing value."
+"The N output format cannot be used to output a negative number or the system-"
+"missing value."
 msgstr ""
 
 #: src/data-out.c:363
@@ -3239,6 +3240,10 @@ msgstr ""
 #: src/html.c:406 src/list.q:277
 #, c-format
 msgid "Cannot open first page on HTML device %s."
+msgstr ""
+
+#: src/output.c:85
+msgid "Attempt to iterate driver list reentrantly."
 msgstr ""
 
 #: src/output.c:162
@@ -3629,16 +3634,16 @@ msgstr ""
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:940 src/frequencies.q:893
+#: src/crosstabs.q:940 src/frequencies.q:896
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:941 src/frequencies.q:960
+#: src/crosstabs.q:941 src/frequencies.q:963
 msgid "Missing"
 msgstr ""
 
 #: src/crosstabs.q:942 src/crosstabs.q:1143 src/crosstabs.q:1886
-#: src/frequencies.q:969
+#: src/frequencies.q:972
 msgid "Total"
 msgstr ""
 
@@ -3646,8 +3651,8 @@ msgstr ""
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:953 src/frequencies.q:897 src/frequencies.q:898
-#: src/frequencies.q:899
+#: src/crosstabs.q:953 src/frequencies.q:900 src/frequencies.q:901
+#: src/frequencies.q:902
 msgid "Percent"
 msgstr ""
 
@@ -3656,17 +3661,14 @@ msgid "count"
 msgstr ""
 
 #: src/crosstabs.q:1193
-#, c-format
 msgid "row %"
 msgstr ""
 
 #: src/crosstabs.q:1194
-#, c-format
 msgid "column %"
 msgstr ""
 
 #: src/crosstabs.q:1195
-#, c-format
 msgid "total %"
 msgstr ""
 
@@ -3724,6 +3726,7 @@ msgid "Approx. Sig."
 msgstr ""
 
 #: src/crosstabs.q:1278
+#, c-format
 msgid " 95%% Confidence Interval"
 msgstr ""
 
@@ -4027,8 +4030,8 @@ msgstr ""
 
 #: src/descript.q:295
 msgid ""
-"At least one case in the data file had a weight value that was "
-"system-missing, zero, or negative.  These case(s) were ignored."
+"At least one case in the data file had a weight value that was system-"
+"missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
 #: src/descript.q:336
@@ -4100,89 +4103,89 @@ msgstr ""
 msgid "Mode"
 msgstr ""
 
-#: src/frequencies.q:271
+#: src/frequencies.q:274
 msgid ""
 "At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be "
 "assumed.  Argument values will be given precedence increasing along the "
 "order given."
 msgstr ""
 
-#: src/frequencies.q:352
+#: src/frequencies.q:355
 #, c-format
 msgid ""
 "MAX must be greater than or equal to MIN, if both are specified.  However, "
 "MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
 msgstr ""
 
-#: src/frequencies.q:602
+#: src/frequencies.q:605
 msgid ""
 "Upper limit of integer mode value range must be greater than lower limit."
 msgstr ""
 
-#: src/frequencies.q:614
+#: src/frequencies.q:617
 #, c-format
 msgid "Variable %s specified multiple times on VARIABLES subcommand."
 msgstr ""
 
-#: src/frequencies.q:627
+#: src/frequencies.q:630
 #, c-format
 msgid "Integer mode specified, but %s is not a numeric variable."
 msgstr ""
 
-#: src/frequencies.q:687
+#: src/frequencies.q:690
 msgid "`)' expected after GROUPED interval list."
-msgstr ""
-
-#: src/frequencies.q:697
-#, c-format
-msgid "Variables %s specified on GROUPED but not on VARIABLES."
 msgstr ""
 
 #: src/frequencies.q:700
 #, c-format
+msgid "Variables %s specified on GROUPED but not on VARIABLES."
+msgstr ""
+
+#: src/frequencies.q:703
+#, c-format
 msgid "Variables %s specified multiple times on GROUPED subcommand."
 msgstr ""
 
-#: src/frequencies.q:751
+#: src/frequencies.q:754
 msgid "Percentile list expected after PERCENTILES."
 msgstr ""
 
-#: src/frequencies.q:759
+#: src/frequencies.q:762
 msgid "Percentiles must be greater than 0 and less than 100."
 msgstr ""
 
-#: src/frequencies.q:894 src/frequencies.q:984 src/frequencies.q:985
-#: src/frequencies.q:1015
+#: src/frequencies.q:897 src/frequencies.q:987 src/frequencies.q:988
+#: src/frequencies.q:1018
 msgid "Cum"
 msgstr ""
 
-#: src/frequencies.q:896 src/frequencies.q:1420
+#: src/frequencies.q:899 src/frequencies.q:1423
 msgid "Frequency"
 msgstr ""
 
-#: src/frequencies.q:915
+#: src/frequencies.q:918
 msgid "Value Label"
 msgstr ""
 
-#: src/frequencies.q:1013
+#: src/frequencies.q:1016
 msgid "Freq"
 msgstr ""
 
-#: src/frequencies.q:1014 src/frequencies.q:1016
+#: src/frequencies.q:1017 src/frequencies.q:1019
 msgid "Pct"
 msgstr ""
 
-#: src/frequencies.q:1132
+#: src/frequencies.q:1135
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
 msgstr ""
 
-#: src/frequencies.q:1226
+#: src/frequencies.q:1229
 #, c-format
 msgid "only %g case%s for variable %s, statistics not computed"
 msgstr ""
 
-#: src/frequencies.q:1261
+#: src/frequencies.q:1264
 #, c-format
 msgid ""
 "The variable %s has %d modes.  The lowest of these is the one given in the "
@@ -4191,30 +4194,30 @@ msgstr ""
 
 #. Draw axis labels.
 #. 18-point text
-#: src/frequencies.q:1420
+#: src/frequencies.q:1423
 msgid "Percentage"
 msgstr ""
 
-#: src/frequencies.q:1443
+#: src/frequencies.q:1446
 msgid "low-res graphs not implemented"
 msgstr ""
 
-#: src/frequencies.q:1577
+#: src/frequencies.q:1580
 #, c-format
 msgid ""
 "Could not make histogram for %s for specified minimum %g and maximum %g; "
 "please discard graph."
 msgstr ""
 
-#: src/frequencies.q:1716
+#: src/frequencies.q:1719
 msgid "Percentile    Value     Percentile    Value     Percentile    Value"
 msgstr ""
 
-#: src/frequencies.q:1733
+#: src/frequencies.q:1736
 msgid "this form of percentiles not supported"
 msgstr ""
 
-#: src/frequencies.q:1797
+#: src/frequencies.q:1800
 #, c-format
 msgid "Difference between %g and %g is too small for grouping interval %g."
 msgstr ""
@@ -4491,8 +4494,8 @@ msgstr ""
 #: src/compute.c:140 src/compute.c:186 src/compute.c:292 src/compute.c:329
 #, c-format
 msgid ""
-"When executing COMPUTE: SYSMIS is not a valid value as an index into vector "
-"%s."
+"When executing COMPUTE: SYSMIS is not a valid value as an index into vector %"
+"s."
 msgstr ""
 
 #: src/compute.c:143 src/compute.c:189 src/compute.c:295 src/compute.c:332
@@ -4877,15 +4880,15 @@ msgstr ""
 #, c-format
 msgid ""
 "There must be the same number of substitutions for each dummy variable "
-"specified.  Since there were %d substitutions for %s, there must be %d for "
-"%s as well, but %d were specified."
+"specified.  Since there were %d substitutions for %s, there must be %d for %"
+"s as well, but %d were specified."
 msgstr ""
 
 #: src/repeat.c:312
 msgid "No commands in scope."
 msgstr ""
 
-#: src/mis-val.c:332 src/repeat.c:485
+#: src/repeat.c:485 src/mis-val.c:332
 msgid "String expected."
 msgstr ""
 
@@ -4981,8 +4984,8 @@ msgstr ""
 #: src/modify-vars.c:216 src/rename-vars.c:74
 #, c-format
 msgid ""
-"Differing number of variables in old name list (%d) and in new name list "
-"(%d)."
+"Differing number of variables in old name list (%d) and in new name list (%"
+"d)."
 msgstr ""
 
 #: src/modify-vars.c:227
@@ -5265,8 +5268,8 @@ msgstr ""
 #: src/val-labs.c:139
 #, c-format
 msgid ""
-"It is not possible to assign value labels to long string variables such as "
-"%s."
+"It is not possible to assign value labels to long string variables such as %"
+"s."
 msgstr ""
 
 #: src/val-labs.c:186
