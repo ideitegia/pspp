@@ -7696,17 +7696,23 @@ The TABLES subcommand is used to specify the tables to be reported.  Any
 number of dimensions is permitted, and any number of variables per
 dimension is allowed.  The TABLES subcommand may be repeated as many
 times as needed.  This is the only required subcommand in @dfn{general
-mode}.
+mode}.  
 
 Occasionally, one may want to invoke a special mode called @dfn{integer
-mode}.  Normally, in general mode, PSPP will automatically determine
+mode}.  Normally, in general mode, PSPP automatically determines
 what values occur in the data.  In integer mode, the user specifies the
 range of values that the data assumes.  To invoke this mode, specify the
 VARIABLES subcommand, giving a range of data values in parentheses for
 each variable to be used on the TABLES subcommand.  Data values inside
 the range are truncated to the nearest integer, then assigned to that
 value.  If values occur outside this range, they are discarded.  When it
-is present, the VARIABLES subcommand must precede the TABLES subcommand.
+is present, the VARIABLES subcommand must precede the TABLES
+subcommand.
+
+In general mode, numeric and string variables may be specified on
+TABLES.  Although long string variables are allowed, only their
+initial short-string parts are used.  In integer mode, only numeric
+variables are allowed.
 
 The MISSING subcommand determines the handling of user-missing values.
 When set to TABLE, the default, missing values are dropped on a table by
@@ -7716,7 +7722,7 @@ integer mode, user-missing values are included in tables but marked with
 an @samp{M} (for ``missing'') and excluded from statistical
 calculations.
 
-Currently the WRITE subcommand is not used.
+Currently the WRITE subcommand is ignored.
 
 The FORMAT subcommand controls the characteristics of the
 crosstabulation tables to be displayed.  It has a number of possible
