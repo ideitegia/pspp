@@ -284,7 +284,7 @@ internal_cmd_crosstabs (void)
 
 /* Parses the TABLES subcommand. */
 static int
-crs_custom_tables (struct cmd_crosstabs *cmd unused)
+crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
 {
   struct var_set *var_set;
   int n_by;
@@ -383,7 +383,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd unused)
 
 /* Parses the VARIABLES subcommand. */
 static int
-crs_custom_variables (struct cmd_crosstabs *cmd unused)
+crs_custom_variables (struct cmd_crosstabs *cmd UNUSED)
 {
   if (nxtab)
     {
@@ -736,7 +736,7 @@ print_table_entries (struct table_entry **tab)
 /* Compare the table_entry's at A and B and return a strcmp()-type
    result. */
 static int 
-compare_table_entry (const void *a_, const void *b_, void *foo unused)
+compare_table_entry (const void *a_, const void *b_, void *foo UNUSED)
 {
   const struct table_entry *a = a_;
   const struct table_entry *b = b_;
@@ -775,7 +775,7 @@ compare_table_entry (const void *a_, const void *b_, void *foo unused)
 
 /* Calculate a hash value from table_entry PA. */
 static unsigned
-hash_table_entry (const void *pa, void *foo unused)
+hash_table_entry (const void *pa, void *foo UNUSED)
 {
   const struct table_entry *a = pa;
   unsigned long hash = a->table;

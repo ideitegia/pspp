@@ -360,7 +360,7 @@ struct var_renaming
    var_renaming structures A and B. */
 static int
 compare_var_renaming_by_new_name (const void *a_, const void *b_,
-                                  void *foo unused) 
+                                  void *foo UNUSED) 
 {
   const struct var_renaming *a = a_;
   const struct var_renaming *b = b_;

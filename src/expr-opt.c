@@ -31,6 +31,7 @@
 #include "error.h"
 #include "julcal/julcal.h"
 #include "misc.h"
+#include "pool.h"
 #include "stats.h"
 #include "str.h"
 #include "var.h"
@@ -1027,12 +1028,7 @@ dump_expression (union any_node * n, struct expression * expr)
 
   e->stack = xmalloc (max_height * sizeof *e->stack);
 
-#if PAGED_STACK
-  e->str_stack = e->type == EX_STRING ? xmalloc (256) : NULL;
-#else
-  e->str_stack = xmalloc (256);
-  e->str_size = 256;
-#endif
+  e->pool = pool_create ();
 }
 
 static void

@@ -116,13 +116,13 @@ struct devind_driver_ext
   };
 
 static int
-devind_open_global (struct outp_class *this unused)
+devind_open_global (struct outp_class *this UNUSED)
 {
   return 1;
 }
 
 static int
-devind_close_global (struct outp_class *this unused)
+devind_close_global (struct outp_class *this UNUSED)
 {
   return 1;
 }

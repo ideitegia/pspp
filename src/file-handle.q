@@ -286,7 +286,7 @@ fh_close_handle (struct file_handle *h)
 
 /* Hashes the name of file handle H. */
 static unsigned
-hash_file_handle (const void *handle_, void *param unused)
+hash_file_handle (const void *handle_, void *param UNUSED)
 {
   const struct file_handle *handle = handle_;
 
@@ -295,7 +295,7 @@ hash_file_handle (const void *handle_, void *param unused)
 
 /* Compares names of file handles A and B. */
 static int
-cmp_file_handle (const void *a_, const void *b_, void *foo unused)
+cmp_file_handle (const void *a_, const void *b_, void *foo UNUSED)
 {
   const struct file_handle *a = a_;
   const struct file_handle *b = b_;

@@ -429,10 +429,10 @@ allocate_file_handles (void)
   if (dir == NULL)
     dir = P_tmpdir;
 #endif
-#if __unix__
+#ifdef unix
   if (dir == NULL)
     dir = "/tmp";
-#elif __MSDOS__
+#elif defined (__MSDOS__)
   if (dir == NULL)
     dir = getenv ("TEMP");
   if (dir == NULL)
@@ -446,7 +446,11 @@ allocate_file_handles (void)
   buf = xmalloc (strlen (dir) + 1 + 4 + 8 + 4 + 1 + INT_DIGITS + 1);
   cp = spprintf (buf, "%s%c%04lX%04lXpspp", dir, DIR_SEPARATOR,
 		 ((long) time (0)) & 0xffff, ((long) getpid ()) & 0xffff);
+#ifndef __MSDOS__
   if (-1 == mkdir (buf, S_IRWXU))
+#else
+  if (-1 == mkdir (buf))
+#endif
     {
       free (buf);
       msg (SE, _("%s: Cannot create temporary directory: %s."),

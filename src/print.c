@@ -80,9 +80,7 @@ struct print_trns
     int options;		/* PRT_* bitmapped field. */
     struct prt_out_spec *spec;	/* Output specifications. */
     int max_width;		/* Maximum line width including null. */
-#if !PAGED_STACK
     char *line;			/* Buffer for sticking lines in. */
-#endif
   };
 
 /* PRT_PRINT or PRT_WRITE. */
@@ -152,9 +150,7 @@ internal_cmd_print (int f)
   prt.handle = NULL;
   prt.options = f;
   prt.spec = NULL;
-#if !PAGED_STACK
   prt.line = NULL;
-#endif
   next = NULL;
   nrec = 0;
 
@@ -853,15 +849,14 @@ dump_table (void)
 }
 
 /* PORTME: The number of characters in a line terminator. */
-#if __MSDOS__ 
+#ifdef __MSDOS__ 
 #define LINE_END_WIDTH 2	/* \r\n */
 #else
 #define LINE_END_WIDTH 1	/* \n */
 #endif
 
 /* Calculates the maximum possible line width and allocates a buffer
-   big enough to contain it, if necessary (otherwise sets max_width).
-   (The action taken depends on compiler & OS as detected by pref.h.) */
+   big enough to contain it */
 static void
 alloc_line (void)
 {
@@ -898,9 +893,7 @@ alloc_line (void)
 	w = pot_w;
     }
   prt.max_width = w + LINE_END_WIDTH + 1;
-#if !PAGED_STACK
   prt.line = xmalloc (prt.max_width);
-#endif
 }
 
 /* Transformation. */
@@ -916,15 +909,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c)
   struct prt_out_spec *i;
 
   /* Line buffer. */
-#if PAGED_STACK
-#if __GNUC__ && !__STRICT_ANSI__
-  char buf[t->max_width];
-#else /* !__GNUC__ */
-  char *buf = alloca (t->max_width);
-#endif /* !__GNUC__ */
-#else /* !PAGED_STACK */
   char *buf = t->line;
-#endif /* !PAGED_STACK */
 
   /* Length of the line in buf. */
   int len = 0;
@@ -952,7 +937,7 @@ print_trns_proc (struct trns_header * trns, struct ccase * c)
 		|| t->handle->mode != FH_MD_BINARY)
 	      {
 		/* PORTME: Line ends. */
-#if __MSDOS__
+#ifdef __MSDOS__
 		buf[len++] = '\r';
 #endif
 		buf[len++] = '\n';
@@ -1022,9 +1007,7 @@ print_trns_free (struct trns_header * t)
       n = i->next;
       free (i);
     }
-#if !PAGED_STACK
   free (((struct print_trns *) t)->line);
-#endif
 }
 
 /* PRINT SPACE. */
@@ -1130,7 +1113,7 @@ print_space_trns_proc (struct trns_header * trns, struct ccase * c)
       char buf[LINE_END_WIDTH];
 
       /* PORTME: Line ends. */
-#if __MSDOS__
+#ifdef __MSDOS__
       buf[0] = '\r';
       buf[1] = '\n';
 #else

@@ -70,9 +70,9 @@ extern int err_verbosity;
 
 /* Functions. */
 void msg (int class, const char *format, ...)
-     __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 void tmsg (int class, const char *title, const char *format, ...)
-     __attribute__ ((format (printf, 3, 4)));
+     PRINTF_FORMAT (3, 4);
 void err_failure (void);
 void err_cond_fail (void);
 
@@ -84,7 +84,7 @@ void err_location (struct file_locator *);
 /* Obscure functions. */
 void err_break (void);
 void err_check_count (void);
-void err_hcf (int exit_code) __attribute__ ((noreturn));
+void err_hcf (int exit_code) NO_RETURN;
 void err_vmsg (const struct error *);
 
 #endif /* error.h */

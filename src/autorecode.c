@@ -292,7 +292,7 @@ hash_alpha_value (const void *a_, void *v_)
 }
 
 static int
-compare_numeric_value (const void *a_, const void *b_, void *foo unused)
+compare_numeric_value (const void *a_, const void *b_, void *foo UNUSED)
 {
   const union value *a = a_;
   const union value *b = b_;
@@ -301,7 +301,7 @@ compare_numeric_value (const void *a_, const void *b_, void *foo unused)
 }
 
 static unsigned
-hash_numeric_value (const void *a_, void *foo unused)
+hash_numeric_value (const void *a_, void *foo UNUSED)
 {
   const union value *a = a_;
 

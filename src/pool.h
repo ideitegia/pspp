@@ -36,6 +36,7 @@ struct pool_mark
 /* General routines. */
 struct pool *pool_create (void);
 void pool_destroy (struct pool *);
+void pool_clear (struct pool *);
 
 /* Suballocation routines. */
 void *pool_alloc (struct pool *, size_t);

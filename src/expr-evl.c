@@ -42,6 +42,7 @@
 #include "error.h"
 #include "julcal/julcal.h"
 #include "magic.h"
+#include "pool.h"
 #include "random.h"
 #include "stats.h"
 #include "str.h"
@@ -57,53 +58,19 @@
    efficient if I hand-coded it in assembly for a dozen processors,
    but I'm not going to do that either. */
 
-/* These macros are defined differently depending on the way that
-   the stack is managed.  (i.e., I have to adapt the code to inferior
-   environments.)
-
-   void CHECK_STRING_SPACE(int x): Assure that at least X+1 bytes of
-   space are available in the string evaluation stack.
-
-   unsigned char *ALLOC_STRING_SPACE(int x): Return a pointer to X+1
-   bytes of space.  CHECK_STRING_SPACE must have previously been
-   called with an argument of at least X. */
-
-#if PAGED_STACK
-#define CHECK_STRING_SPACE(X)	/* nothing to do! */
-#define ALLOC_STRING_SPACE(X)			\
-	alloca((X) + 1)
-#else /* !PAGED_STACK */
-#define CHECK_STRING_SPACE(X)						\
-	do								\
-          {								\
-	    if (str_stk + X >= str_end)					\
-	      {								\
-		e->str_size += 1024;					\
-		e->str_stk = xrealloc (e->str_stk, e->str_size);	\
-		str_end = e->str_stk + e->str_size - 1;			\
-	      }								\
-	  }								\
-	while (0)
-     
-#define ALLOC_STRING_SPACE(X)			\
-	(str_stk += X + 1, str_stk - X - 1)
-#endif /* !PAGED_STACK */
-
 double
 expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 {
   unsigned char *op = e->op;
   double *dbl = e->num;
   unsigned char *str = e->str;
-#if !PAGED_STACK
-  unsigned char *str_stk = e->str_stk;
-  unsigned char *str_end = e->str_stk + e->str_size - 1;
-#endif
   struct variable **vars = e->var;
   int i, j;
 
   /* Stack pointer. */
   union value *sp = e->stack;
+
+  pool_clear (e->pool);
 
   for (;;)
     {
@@ -813,8 +780,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    int n_args = *op++;
 	    unsigned char *dest;
 
-	    CHECK_STRING_SPACE (255);
-	    dest = ALLOC_STRING_SPACE (255);
+	    dest = pool_alloc (e->pool, 256);
 	    dest[0] = 0;
 
 	    sp -= n_args - 1;
@@ -936,8 +902,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      {
 		unsigned char *dest;
 
-		CHECK_STRING_SPACE (len);
-		dest = ALLOC_STRING_SPACE (len);
+		dest = pool_alloc (e->pool, len + 1);
 		dest[0] = len;
 		memset (&dest[1], ' ', len - sp->c[0]);
 		memcpy (&dest[len - sp->c[0] + 1], &sp->c[1], sp->c[0]);
@@ -956,8 +921,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      {
 		unsigned char *dest;
 
-		CHECK_STRING_SPACE (len);
-		dest = ALLOC_STRING_SPACE (len);
+		dest = pool_alloc (e->pool, len + 1);
 		dest[0] = len;
 		memset (&dest[1], sp[2].c[1], len - sp->c[0]);
 		memcpy (&dest[len - sp->c[0] + 1], &sp->c[1], sp->c[0]);
@@ -976,8 +940,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      {
 		unsigned char *dest;
 
-		CHECK_STRING_SPACE (len);
-		dest = ALLOC_STRING_SPACE (len);
+		dest = pool_alloc (e->pool, len + 1);
 		dest[0] = len;
 		memcpy (&dest[1], &sp->c[1], sp->c[0]);
 		memset (&dest[sp->c[0] + 1], ' ', len - sp->c[0]);
@@ -996,8 +959,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	      {
 		unsigned char *dest;
 
-		CHECK_STRING_SPACE (len);
-		dest = ALLOC_STRING_SPACE (len);
+		dest = pool_alloc (e->pool, len + 1);
 		dest[0] = len;
 		memcpy (&dest[1], &sp->c[1], sp->c[0]);
 		memset (&dest[sp->c[0] + 1], sp[2].c[1], len - sp->c[0]);
@@ -1096,8 +1058,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    f.w = *op++;
 	    f.d = *op++;
 
-	    CHECK_STRING_SPACE (f.w);
-	    dest = ALLOC_STRING_SPACE (f.w);
+	    dest = pool_alloc (e->pool, f.w + 1);
 	    dest[0] = f.w;
 
 	    data_out (&dest[1], &f, sp);
@@ -1235,15 +1196,13 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 		  msg (SE, _("%g is not a valid index value for vector %s.  "
 			     "The result will be set to the empty string."),
 		       sp[0].f, vect->name);
-		CHECK_STRING_SPACE (0);
-		sp->c = ALLOC_STRING_SPACE (0);
+		sp->c = pool_alloc (e->pool, 1);
 		sp->c[0] = 0;
 		break;
 	      }
 
 	    v = vect->var[rindx - 1];
-	    CHECK_STRING_SPACE (v->width);
-	    sp->c = ALLOC_STRING_SPACE (v->width);
+	    sp->c = pool_alloc (e->pool, v->width + 1);
 	    sp->c[0] = v->width;
 	    memcpy (&sp->c[1], c->data[v->fv].s, v->width);
 	  }
@@ -1256,8 +1215,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	  break;
 	case OP_STR_CON:
 	  sp++;
-	  CHECK_STRING_SPACE (*str);
-	  sp->c = ALLOC_STRING_SPACE (*str);
+	  sp->c = pool_alloc (e->pool, *str + 1);
 	  memcpy (sp->c, str, *str + 1);
 	  str += *str + 1;
 	  break;
@@ -1273,8 +1231,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    int width = (*vars)->width;
 
 	    sp++;
-	    CHECK_STRING_SPACE (width);
-	    sp->c = ALLOC_STRING_SPACE (width);
+	    sp->c = pool_alloc (e->pool, width + 1);
 	    sp->c[0] = width;
 	    memcpy (&sp->c[1], &c->data[(*vars)->fv], width);
 	    vars++;
@@ -1302,8 +1259,7 @@ expr_evaluate (struct expression *e, struct ccase *c, union value *v)
 	    int width = (*vars)->width;
 
 	    sp++;
-	    CHECK_STRING_SPACE (width);
-	    sp->c = ALLOC_STRING_SPACE (width);
+	    sp->c = pool_alloc (e->pool, width + 1);
 	    sp->c[0] = width;
 	    
 	    if (c == NULL)
@@ -1361,12 +1317,7 @@ finished:
     {
       assert (v);
 
-#if PAGED_STACK
-      memcpy (e->str_stack, sp->c, sp->c[0] + 1);
-      v->c = e->str_stack;
-#else
       v->c = sp->c;
-#endif
 
       return 0.0;
     }

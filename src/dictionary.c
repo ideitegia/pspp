@@ -331,7 +331,7 @@ dict_contains_var (const struct dictionary *d, const struct variable *v)
 }
 
 static int
-compare_variable_dblptrs (const void *a_, const void *b_, void *aux unused) 
+compare_variable_dblptrs (const void *a_, const void *b_, void *aux UNUSED) 
 {
   struct variable *const *a = a_;
   struct variable *const *b = b_;

@@ -169,10 +169,10 @@ void tab_float (struct tab_table *, int c, int r, unsigned char opt,
 		double v, int w, int d);
 void tab_text (struct tab_table *, int c, int r, unsigned opt,
 	       const char *, ...)
-     __attribute__ ((format (printf, 5, 6)));
+     PRINTF_FORMAT (5, 6);
 void tab_joint_text (struct tab_table *, int x1, int y1, int x2, int y2,
 		     unsigned opt, const char *, ...)
-     __attribute__ ((format (printf, 7, 8)));
+     PRINTF_FORMAT (7, 8);
 
 /* Cell low-level access. */
 #define tab_alloc(TABLE, AMT) pool_alloc ((TABLE)->container, (AMT))
@@ -189,7 +189,7 @@ void tab_next_row (struct tab_table *);
 
 /* Simple output. */
 void tab_output_text (int options, const char *string, ...)
-     __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 
 #endif /* tab_h */
 

@@ -33,7 +33,7 @@
 
 /* PORTME: Everything in this file is system dependent. */
 
-#if unix
+#ifdef unix
 #include <pwd.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -41,7 +41,7 @@
 #include "stat.h"
 #endif
 
-#if __WIN32__
+#ifdef __WIN32__
 #define NOGDI
 #define NOUSER
 #define NONLS
@@ -129,7 +129,7 @@ fn_interp_vars (const char *input, const char *(*getenv) (const char *))
       }
 }
 
-#if unix
+#ifdef unix
 /* Expands csh tilde notation from the path INPUT into a malloc()'d
    returned string. */
 char *
@@ -201,7 +201,7 @@ fn_tilde_expand (char *input)
    If PREPEND is non-NULL, then it is prepended to each filename;
    i.e., it looks like PREPEND/PATH_COMPONENT/NAME.  This is not done
    with absolute directories in the path. */
-#if unix || __MSDOS__ || __WIN32__
+#if defined (unix) || defined (__MSDOS__) || defined (__WIN32__)
 char *
 fn_search_path (const char *basename, const char *path, const char *prepend)
 {
@@ -317,7 +317,7 @@ fn_prepend_dir (const char *file, const char *dir)
    existing file.  Returns a malloc()'d copy of the canonical name.
    This function must always succeed; if it needs to bail out then it
    should return xstrdup(FN1).  */
-#if unix
+#ifdef unix
 char *
 fn_normalize (const char *filename)
 {
@@ -427,7 +427,7 @@ fn_normalize (const char *filename)
 	}
     }
 }
-#elif __WIN32__
+#elif defined (__WIN32__)
 char *
 fn_normalize (const char *fn1)
 {
@@ -551,13 +551,13 @@ fn_get_cwd (void)
 int
 fn_absolute_p (const char *name)
 {
-#if unix
+#ifdef unix
   if (name[0] == '/'
       || !strncmp (name, "./", 2)
       || !strncmp (name, "../", 3)
       || name[0] == '~')
     return 1;
-#elif __MSDOS__
+#elif defined (__MSDOS__)
   if (name[0] == '\\'
       || !strncmp (name, ".\\", 2)
       || !strncmp (name, "..\\", 3)
@@ -575,7 +575,7 @@ fn_special_p (const char *filename)
 {
   if (!strcmp (filename, "-") || !strcmp (filename, "stdin")
       || !strcmp (filename, "stdout") || !strcmp (filename, "stderr")
-#if unix
+#ifdef unix
       || filename[0] == '|'
       || (*filename && filename[strlen (filename) - 1] == '|')
 #endif
@@ -589,7 +589,7 @@ fn_special_p (const char *filename)
 int
 fn_exists_p (const char *name)
 {
-#if unix
+#ifdef unix
   struct stat temp;
 
   return stat (name, &temp) == 0;
@@ -602,7 +602,7 @@ fn_exists_p (const char *name)
 #endif
 }
 
-#if unix
+#ifdef unix
 /* Stolen from libc.info but heavily modified, this is a wrapper
    around readlink() that allows for arbitrary filename length. */
 char *
@@ -692,7 +692,7 @@ fn_open (const char *fn, const char *mode)
   else if (mode[0] == 'w' && !strcmp (fn, "stderr"))
     return stderr;
   
-#if unix
+#ifdef unix
   if (fn[0] == '|')
     {
       if (set_safer)
@@ -738,7 +738,7 @@ fn_close (const char *fn, FILE *f)
 {
   if (!strcmp (fn, "-"))
     return 0;
-#if unix
+#ifdef unix
   else if (fn[0] == '|' || (*fn && fn[strlen (fn) - 1] == '|'))
     {
       pclose (f);

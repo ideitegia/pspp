@@ -1195,7 +1195,7 @@ initialize_aggregate_info (void)
 /* Aggregate each case as it comes through.  Cases which aren't needed
    are dropped. */
 static int
-agr_00x_trns_proc (struct trns_header *h unused, struct ccase *c)
+agr_00x_trns_proc (struct trns_header *h UNUSED, struct ccase *c)
 {
   int code = aggregate_single_case (c, compaction_case);
   debug_printf (("%d ", code));
@@ -1252,7 +1252,7 @@ write_case_to_sfm (void)
 /* Aggregate the current case and output it if we passed a
    breakpoint. */
 static int
-agr_10x_trns_proc (struct trns_header *h unused, struct ccase *c)
+agr_10x_trns_proc (struct trns_header *h UNUSED, struct ccase *c)
 {
   int code = aggregate_single_case (c, buf_1xx);
 
@@ -1264,7 +1264,7 @@ agr_10x_trns_proc (struct trns_header *h unused, struct ccase *c)
 
 /* Close the system file now that we're done with it.  */
 static void
-agr_10x_trns_free (struct trns_header *h unused)
+agr_10x_trns_free (struct trns_header *h UNUSED)
 {
   fh_close_handle (outfile);
 }

@@ -384,7 +384,7 @@ hash_int_val_lab (const void *vl_, void *vls_)
 
 /* Free a value label. */
 void
-free_int_val_lab (void *vl_, void *vls_ unused) 
+free_int_val_lab (void *vl_, void *vls_ UNUSED) 
 {
   struct int_val_lab *vl = vl_;
 
@@ -462,7 +462,7 @@ atom_to_string (const struct atom *atom)
 
 /* A hsh_compare_func that compares A and B. */
 static int
-compare_atoms (const void *a_, const void *b_, void *aux unused) 
+compare_atoms (const void *a_, const void *b_, void *aux UNUSED) 
 {
   const struct atom *a = a_;
   const struct atom *b = b_;
@@ -472,7 +472,7 @@ compare_atoms (const void *a_, const void *b_, void *aux unused)
 
 /* A hsh_hash_func that hashes ATOM. */
 static unsigned
-hash_atom (const void *atom_, void *aux unused) 
+hash_atom (const void *atom_, void *aux UNUSED) 
 {
   const struct atom *atom = atom_;
 
@@ -481,7 +481,7 @@ hash_atom (const void *atom_, void *aux unused)
 
 /* A hsh_free_func that destroys ATOM. */
 static void
-free_atom (void *atom_, void *aux unused) 
+free_atom (void *atom_, void *aux UNUSED) 
 {
   struct atom *atom = atom_;
 

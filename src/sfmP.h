@@ -21,7 +21,7 @@
    structures. */
 
 /* This attribute might avoid some problems.  On the other hand... */
-#define P __attribute__((packed))
+#define P ATTRIBUTE ((packed))
 
 #if __BORLANDC__
 #pragma option -a-		/* Turn off alignment. */

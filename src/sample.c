@@ -119,7 +119,7 @@ cmd_sample (void)
 }
 
 int
-sample_trns_proc (struct trns_header * trns, struct ccase *c unused)
+sample_trns_proc (struct trns_header * trns, struct ccase *c UNUSED)
 {
   struct sample_trns *t = (struct sample_trns *) trns;
   double U;

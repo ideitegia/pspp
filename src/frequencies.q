@@ -585,7 +585,7 @@ cleanup_freq_tab (struct variable *v)
 /* Parses the VARIABLES subcommand, adding to
    {n_variables,v_variables}. */
 static int
-frq_custom_variables (struct cmd_frequencies *cmd unused)
+frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
 {
   int mode;
   int min, max;
@@ -671,7 +671,7 @@ frq_custom_variables (struct cmd_frequencies *cmd unused)
 /* Parses the GROUPED subcommand, setting the frq.{n_grouped,grouped}
    fields of specified variables. */
 static int
-frq_custom_grouped (struct cmd_frequencies *cmd unused)
+frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
 {
   lex_match ('=');
   if ((token == T_ID && dict_lookup_var (default_dict, tokid) != NULL)
@@ -779,7 +779,7 @@ add_percentile (double x)
 /* Parses the PERCENTILES subcommand, adding user-specified
    percentiles to the list. */
 static int
-frq_custom_percentiles (struct cmd_frequencies *cmd unused)
+frq_custom_percentiles (struct cmd_frequencies *cmd UNUSED)
 {
   lex_match ('=');
   if (token != T_NUM)
@@ -808,7 +808,7 @@ frq_custom_percentiles (struct cmd_frequencies *cmd unused)
 /* Parses the NTILES subcommand, adding the percentiles that
    correspond to the specified evenly-distributed ntiles. */
 static int
-frq_custom_ntiles (struct cmd_frequencies *cmd unused)
+frq_custom_ntiles (struct cmd_frequencies *cmd UNUSED)
 {
   int i;
 
@@ -825,7 +825,7 @@ frq_custom_ntiles (struct cmd_frequencies *cmd unused)
 
 /* Hash of numeric values. */
 static unsigned
-hash_value_numeric (const void *value_, void *foo unused)
+hash_value_numeric (const void *value_, void *foo UNUSED)
 {
   const struct freq *value = value_;
   return hsh_hash_double (value->v.f);
@@ -843,7 +843,7 @@ hash_value_alpha (const void *value_, void *v_)
 
 /* Ascending numeric compare of values. */
 static int
-compare_value_numeric_a (const void *a_, const void *b_, void *foo unused)
+compare_value_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -869,7 +869,7 @@ compare_value_alpha_a (const void *a_, const void *b_, void *v_)
 
 /* Descending numeric compare of values. */
 static int
-compare_value_numeric_d (const void *a, const void *b, void *foo unused)
+compare_value_numeric_d (const void *a, const void *b, void *foo UNUSED)
 {
   return -compare_value_numeric_a (a, b, foo);
 }
@@ -884,7 +884,7 @@ compare_value_alpha_d (const void *a, const void *b, void *v)
 /* Ascending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_a (const void *a_, const void *b_, void *foo unused)
+compare_freq_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -922,7 +922,7 @@ compare_freq_alpha_a (const void *a_, const void *b_, void *v_)
 /* Descending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_d (const void *a_, const void *b_, void *foo unused)
+compare_freq_numeric_d (const void *a_, const void *b_, void *foo UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;

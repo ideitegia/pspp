@@ -83,7 +83,7 @@ internal_cmd_correlations (void)
 }
 
 static int
-cor_custom_variables (struct cmd_correlations *cmd unused)
+cor_custom_variables (struct cmd_correlations *cmd UNUSED)
 {
   struct variable **v1, **v2;
   int nv1, nv2;
@@ -130,7 +130,7 @@ cor_custom_variables (struct cmd_correlations *cmd unused)
 }
 
 static int
-cor_custom_matrix (struct cmd_correlations *cmd unused)
+cor_custom_matrix (struct cmd_correlations *cmd UNUSED)
 {
   if (!lex_force_match ('('))
     return 0;

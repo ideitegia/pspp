@@ -167,8 +167,8 @@ static int  paired_calc (struct ccase *);
 static void paired_precalc (void);
 static void paired_postcalc (void);
 
-static int compare_var_name (const void *a_, const void *b_, void *v_ unused);
-static unsigned hash_var_name (const void *a_, void *v_ unused);
+static int compare_var_name (const void *a_, const void *b_, void *v_ UNUSED);
+static unsigned hash_var_name (const void *a_, void *v_ UNUSED);
 
 
 int
@@ -295,7 +295,7 @@ cmd_t_test(void)
 }
 
 static int
-tts_custom_groups (struct cmd_t_test *cmd unused)
+tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 {
   lex_match('=');
 
@@ -360,7 +360,7 @@ tts_custom_groups (struct cmd_t_test *cmd unused)
 
 
 static int
-tts_custom_pairs (struct cmd_t_test *cmd unused)
+tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
 {
   struct variable **vars;
   int n_vars;
@@ -676,7 +676,7 @@ void ssbox_paired_populate(struct ssbox *ssb,
 
 /* Initialize the paired values ssbox */
 void 
-ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd unused)
+ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd UNUSED)
 {
   int hsize=6;
 
@@ -697,7 +697,7 @@ ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd unused)
 
 /* Populate the ssbox for paired values */
 void 
-ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd unused)
+ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 {
   int i;
 
@@ -818,7 +818,7 @@ trbox_finalize(struct trbox *trb)
 /* Initialize the independent samples trbox */
 void 
 trbox_independent_samples_init(struct trbox *self,
-			   struct cmd_t_test *cmd unused)
+			   struct cmd_t_test *cmd UNUSED)
 {
   const int hsize=11;
   const int vsize=cmd->n_variables*2+3;
@@ -877,7 +877,7 @@ trbox_independent_samples_populate(struct trbox *self,
 /* Initialize the paired samples trbox */
 void 
 trbox_paired_init(struct trbox *self,
-			   struct cmd_t_test *cmd unused)
+			   struct cmd_t_test *cmd UNUSED)
 {
 
   const int hsize=10;
@@ -912,7 +912,7 @@ trbox_paired_init(struct trbox *self,
 /* Populate the paired samples trbox */
 void 
 trbox_paired_populate(struct trbox *trb,
-			      struct cmd_t_test *cmd unused)
+			      struct cmd_t_test *cmd UNUSED)
 {
   int i;
 
@@ -1316,7 +1316,7 @@ one_sample_postcalc (void)
 
 
 static int
-compare_var_name (const void *a_, const void *b_, void *v_ unused)
+compare_var_name (const void *a_, const void *b_, void *v_ UNUSED)
 {
   const struct variable *a = a_;
   const struct variable *b = b_;
@@ -1325,7 +1325,7 @@ compare_var_name (const void *a_, const void *b_, void *v_ unused)
 }
 
 static unsigned
-hash_var_name (const void *a_, void *v_ unused)
+hash_var_name (const void *a_, void *v_ UNUSED)
 {
   const struct variable *a = a_;
 

@@ -538,7 +538,7 @@ cmd_break (void)
 }
 
 static int
-break_trns_proc (struct trns_header * trns, struct ccase * c unused)
+break_trns_proc (struct trns_header * trns, struct ccase * c UNUSED)
 {
   return ((struct break_trns *) trns)->loop_term;
 }

@@ -601,7 +601,7 @@ cmd_erase (void)
   return CMD_SUCCESS;
 }
 
-#if unix
+#ifdef unix
 /* Spawn a shell process. */
 static int
 shell (void)
@@ -713,7 +713,7 @@ cmd_host (void)
   
   lex_match_id ("HOST");
 
-#if unix
+#ifdef unix
   /* Figure out whether to invoke an interactive shell or to execute a
      single shell command. */
   if (lex_look_ahead () == '.')

@@ -1,3 +1,14 @@
+Wed Feb 11 23:54:15 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: Don't meddle with __WIN32__, __MSDOS, __DJGPP__,
+	__CYGWIN32__, __unix__, or unix anymore, and deal with some of the
+	consequences.  Declare ATTRIBUTE instead of meddling withe
+	__attribute__.  Declare UNUSED instead of unused.  Add macros
+	NO_RETURN, PRINTF_FORMAT, SCANF_FORMAT.  Reformat gettext, N_, _
+	macros.  Move alloca()-related stuff to src/alloc.h and simplify.
+	Get rid of PAGED_STACK entirely.  Remove mkdir macro definition.
+	Get rid of obsolete "procedure-specific options".
+
 2004-01-23  gettextize  <bug-gnu-gettext@gnu.org>
 
 	* Makefile.am (SUBDIRS): Remove intl.

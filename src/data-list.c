@@ -1199,7 +1199,7 @@ destroy_dls (struct trns_header *pgm)
 /* Note that since this is exclusively an input program, C is
    guaranteed to be temp_case. */
 static int
-read_one_case (struct trns_header *t, struct ccase *c unused)
+read_one_case (struct trns_header *t, struct ccase *c UNUSED)
 {
   dlsp = (struct data_list_pgm *) t;
   return do_reading (1);

@@ -276,7 +276,7 @@ parse_do_if (void)
 
 /* Executes a goto transformation. */
 static int 
-goto_trns_proc (struct trns_header * t, struct ccase * c unused)
+goto_trns_proc (struct trns_header * t, struct ccase * c UNUSED)
 {
   return ((struct goto_trns *) t)->dest;
 }

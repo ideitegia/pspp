@@ -1628,7 +1628,7 @@ wr_read_splits (void)
 
 /* Compares doubles A and B, treating SYSMIS as greatest. */
 static int
-compare_doubles (const void *a_, const void *b_, void *aux unused)
+compare_doubles (const void *a_, const void *b_, void *aux UNUSED)
 {
   const double *a = a_;
   const double *b = b_;

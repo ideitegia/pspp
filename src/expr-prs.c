@@ -81,7 +81,7 @@ expr_free (struct expression *e)
   free (e->num);
   free (e->str);
   free (e->stack);
-  free (e->str_stack);
+  pool_destroy (e->pool);
   free (e);
 }
 
@@ -690,7 +690,7 @@ static int func_count;
 static int get_num_args (struct function *, int, union any_node **);
 
 static int
-unary_func (struct function * f, int x unused, union any_node ** n)
+unary_func (struct function * f, int x UNUSED, union any_node ** n)
 {
   double divisor;
   struct nonterm_node *c;
@@ -738,7 +738,7 @@ multiply:
 }
 
 static int
-binary_func (struct function * f, int x unused, union any_node ** n)
+binary_func (struct function * f, int x UNUSED, union any_node ** n)
 {
   if (!get_num_args (f, 2, n))
     return EX_ERROR;
@@ -746,7 +746,7 @@ binary_func (struct function * f, int x unused, union any_node ** n)
 }
 
 static int
-ternary_func (struct function * f, int x unused, union any_node ** n)
+ternary_func (struct function * f, int x UNUSED, union any_node ** n)
 {
   if (!get_num_args (f, 3, n))
     return EX_ERROR;
@@ -754,7 +754,7 @@ ternary_func (struct function * f, int x unused, union any_node ** n)
 }
 
 static int
-MISSING_func (struct function * f, int x unused, union any_node ** n)
+MISSING_func (struct function * f, int x UNUSED, union any_node ** n)
 {
   if (token == T_ID
       && dict_lookup_var (default_dict, tokid) != NULL
@@ -772,7 +772,7 @@ MISSING_func (struct function * f, int x unused, union any_node ** n)
 }
 
 static int
-SYSMIS_func (struct function * f unused, int x unused, union any_node ** n)
+SYSMIS_func (struct function * f UNUSED, int x UNUSED, union any_node ** n)
 {
   int t;
   
@@ -818,7 +818,7 @@ SYSMIS_func (struct function * f unused, int x unused, union any_node ** n)
 }
 
 static int
-VALUE_func (struct function *f unused, int x unused, union any_node **n)
+VALUE_func (struct function *f UNUSED, int x UNUSED, union any_node **n)
 {
   struct variable *v = parse_variable ();
 
@@ -839,7 +839,7 @@ VALUE_func (struct function *f unused, int x unused, union any_node **n)
 }
 
 static int
-LAG_func (struct function *f unused, int x unused, union any_node **n)
+LAG_func (struct function *f UNUSED, int x UNUSED, union any_node **n)
 {
   struct variable *v = parse_variable ();
   int nlag = 1;
@@ -1040,7 +1040,7 @@ fail:
 }
 
 static int
-CONCAT_func (struct function * f unused, int x unused, union any_node ** n)
+CONCAT_func (struct function * f UNUSED, int x UNUSED, union any_node ** n)
 {
   int m = 0;
 
@@ -1088,7 +1088,7 @@ fail:
    arg; and `f', format spec (this must be the last arg).  If the
    optional args are included, the type becomes f->t+1. */
 static int
-generic_str_func (struct function *f, int x unused, union any_node ** n)
+generic_str_func (struct function *f, int x UNUSED, union any_node ** n)
 {
   int max_args = 0;
   int type;
@@ -1626,7 +1626,7 @@ static struct function func_tab[] =
 /* An algo_compare_func that compares functions A and B based on
    their names. */
 static int
-compare_functions (const void *a_, const void *b_, void *aux unused)
+compare_functions (const void *a_, const void *b_, void *aux UNUSED)
 {
   const struct function *a = a_;
   const struct function *b = b_;

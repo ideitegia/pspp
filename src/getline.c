@@ -79,7 +79,7 @@ getl_initialize (void)
 void
 getl_uninitialize (void)
 {
-#if HAVE_LIBHISTORY && unix
+#if HAVE_LIBHISTORY && defined (unix)
   if (history_file)
     write_history (history_file);
 #endif
@@ -424,7 +424,7 @@ read_console (void)
 #if HAVE_LIBHISTORY
   if (!history_file)
     {
-#if unix
+#ifdef unix
       history_file = tilde_expand (HISTORY_FILE);
 #endif
       using_history ();

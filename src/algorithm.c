@@ -223,7 +223,7 @@ partition (void *array, size_t count, size_t size,
 
 /* A algo_random_func that uses random.h. */
 unsigned
-algo_default_random (unsigned max, void *aux unused) 
+algo_default_random (unsigned max, void *aux UNUSED) 
 {
   return rng_get_unsigned (pspp_rng ()) % max;
 }

@@ -276,7 +276,7 @@ cmd_end_case (void)
 }
 
 int
-end_case_trns_proc (struct trns_header *t unused, struct ccase * c unused)
+end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED)
 {
 #if DEBUGGING
   printf ("END CASE\n");
@@ -419,7 +419,7 @@ cmd_end_file (void)
 }
 
 static int
-end_file_trns_proc (struct trns_header * t unused, struct ccase * c unused)
+end_file_trns_proc (struct trns_header * t UNUSED, struct ccase * c UNUSED)
 {
 #if DEBUGGING
   printf ("END FILE\n");

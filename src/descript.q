@@ -312,7 +312,7 @@ cmd_descriptives (void)
 
 /* Parses the VARIABLES subcommand. */
 static int
-dsc_custom_variables (struct cmd_descriptives *cmd unused)
+dsc_custom_variables (struct cmd_descriptives *cmd UNUSED)
 {
   if (!lex_match_id ("VARIABLES")
       && (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)

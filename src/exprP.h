@@ -281,10 +281,7 @@ struct expression
     double *num;		/* Numeric operands. */
     unsigned char *str;		/* String operands. */
     union value *stack;		/* Evaluation stack. */
-    unsigned char *str_stack;	/* String evaluation stack. */
-#if !PAGED_STACK
-    size_t str_size;		/* Size of string eval stack. */
-#endif
+    struct pool *pool;          /* Pool for evaluation temporaries. */
   };
 
 struct nonterm_node *optimize_expression (struct nonterm_node *);

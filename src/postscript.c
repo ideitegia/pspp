@@ -287,7 +287,7 @@ static char *quote_ps_string (char *dest, const char *string);
 /* Driver initialization. */
 
 static int
-ps_open_global (struct outp_class *this unused)
+ps_open_global (struct outp_class *this UNUSED)
 {
   init_fonts ();
   groff_init ();
@@ -295,13 +295,13 @@ ps_open_global (struct outp_class *this unused)
 }
 
 static int
-ps_close_global (struct outp_class *this unused)
+ps_close_global (struct outp_class *this UNUSED)
 {
   return 1;
 }
 
 static int *
-ps_font_sizes (struct outp_class *this unused, int *n_valid_sizes)
+ps_font_sizes (struct outp_class *this UNUSED, int *n_valid_sizes)
 {
   /* Allow fonts up to 1" in height. */
   static int valid_sizes[] =
@@ -494,14 +494,14 @@ ps_close_driver (struct outp_driver *this)
 
 /* font_entry comparison function for hash tables. */
 static int
-compare_font_entry (const void *a, const void *b, void *foobar unused)
+compare_font_entry (const void *a, const void *b, void *foobar UNUSED)
 {
   return strcmp (((struct font_entry *) a)->dit, ((struct font_entry *) b)->dit);
 }
 
 /* font_entry hash function for hash tables. */
 static unsigned
-hash_font_entry (const void *fe_, void *foobar unused)
+hash_font_entry (const void *fe_, void *foobar UNUSED)
 {
   const struct font_entry *fe = fe_;
   return hsh_hash_string (fe->dit);
@@ -509,7 +509,7 @@ hash_font_entry (const void *fe_, void *foobar unused)
 
 /* font_entry destructor function for hash tables. */
 static void
-free_font_entry (void *pa, void *foo unused)
+free_font_entry (void *pa, void *foo UNUSED)
 {
   struct font_entry *a = pa;
   free (a->dit);
@@ -856,7 +856,7 @@ find_ps_file (struct outp_driver *this, const char *name)
 
 /* Hash table comparison function for ps_encoding's. */
 static int
-compare_ps_encoding (const void *pa, const void *pb, void *foo unused)
+compare_ps_encoding (const void *pa, const void *pb, void *foo UNUSED)
 {
   const struct ps_encoding *a = pa;
   const struct ps_encoding *b = pb;
@@ -866,7 +866,7 @@ compare_ps_encoding (const void *pa, const void *pb, void *foo unused)
 
 /* Hash table hash function for ps_encoding's. */
 static unsigned
-hash_ps_encoding (const void *pa, void *foo unused)
+hash_ps_encoding (const void *pa, void *foo UNUSED)
 {
   const struct ps_encoding *a = pa;
 
@@ -875,7 +875,7 @@ hash_ps_encoding (const void *pa, void *foo unused)
 
 /* Hash table free function for ps_encoding's. */
 static void
-free_ps_encoding (void *pa, void *foo unused)
+free_ps_encoding (void *pa, void *foo UNUSED)
 {
   struct ps_encoding *a = pa;
 
@@ -1726,7 +1726,7 @@ int_2_compare (const void *a_, const void *b_)
 
 /* Hash table comparison function for cached lines. */
 static int
-compare_line (const void *a_, const void *b_, void *foo unused)
+compare_line (const void *a_, const void *b_, void *foo UNUSED)
 {
   const struct line_form *a = a_;
   const struct line_form *b = b_;
@@ -1736,7 +1736,7 @@ compare_line (const void *a_, const void *b_, void *foo unused)
 
 /* Hash table hash function for cached lines. */
 static unsigned
-hash_line (const void *pa, void *foo unused)
+hash_line (const void *pa, void *foo UNUSED)
 {
   const struct line_form *a = pa;
 
@@ -1745,7 +1745,7 @@ hash_line (const void *pa, void *foo unused)
 
 /* Hash table free function for cached lines. */
 static void
-free_line (void *pa, void *foo unused)
+free_line (void *pa, void *foo UNUSED)
 {
   free (pa);
 }
@@ -1898,7 +1898,7 @@ line (struct outp_driver *this, int type, int ind, int dep1, int dep2)
 
 static void
 ps_line_horz (struct outp_driver *this, const struct rect *r,
-	      const struct color *c unused, int style)
+	      const struct color *c UNUSED, int style)
 {
   /* Must match output.h:OUTP_L_*. */
   static const int types[OUTP_L_COUNT] =
@@ -1915,7 +1915,7 @@ ps_line_horz (struct outp_driver *this, const struct rect *r,
 
 static void
 ps_line_vert (struct outp_driver *this, const struct rect *r,
-	      const struct color *c unused, int style)
+	      const struct color *c UNUSED, int style)
 {
   /* Must match output.h:OUTP_L_*. */
   static const int types[OUTP_L_COUNT] =
@@ -1937,7 +1937,7 @@ ps_line_vert (struct outp_driver *this, const struct rect *r,
 
 static void
 ps_line_intersection (struct outp_driver *this, const struct rect *r,
-		      const struct color *c unused,
+		      const struct color *c UNUSED,
 		      const struct outp_styles *style)
 {
   struct ps_driver_ext *ext = this->ext;
@@ -2018,25 +2018,25 @@ ps_line_intersection (struct outp_driver *this, const struct rect *r,
 }
 
 static void
-ps_box (struct outp_driver *this unused, const struct rect *r unused,
-	const struct color *bord unused, const struct color *fill unused)
+ps_box (struct outp_driver *this UNUSED, const struct rect *r UNUSED,
+	const struct color *bord UNUSED, const struct color *fill UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
 
 static void 
-ps_polyline_begin (struct outp_driver *this unused,
-		   const struct color *c unused)
+ps_polyline_begin (struct outp_driver *this UNUSED,
+		   const struct color *c UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
 static void 
-ps_polyline_point (struct outp_driver *this unused, int x unused, int y unused)
+ps_polyline_point (struct outp_driver *this UNUSED, int x UNUSED, int y UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
 static void 
-ps_polyline_end (struct outp_driver *this unused)
+ps_polyline_end (struct outp_driver *this UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
@@ -2270,7 +2270,7 @@ struct output_char
 
 /* Hash table comparison function for ps_combo structs. */
 static int
-compare_ps_combo (const void *pa, const void *pb, void *foo unused)
+compare_ps_combo (const void *pa, const void *pb, void *foo UNUSED)
 {
   const struct ps_font_combo *a = pa;
   const struct ps_font_combo *b = pb;
@@ -2280,7 +2280,7 @@ compare_ps_combo (const void *pa, const void *pb, void *foo unused)
 
 /* Hash table hash function for ps_combo structs. */
 static unsigned
-hash_ps_combo (const void *pa, void *foo unused)
+hash_ps_combo (const void *pa, void *foo UNUSED)
 {
   const struct ps_font_combo *a = pa;
   unsigned name_hash = hsh_hash_string (a->font->font->internal_name);
@@ -2289,7 +2289,7 @@ hash_ps_combo (const void *pa, void *foo unused)
 
 /* Hash table free function for ps_combo structs. */
 static void
-free_ps_combo (void *a, void *foo unused)
+free_ps_combo (void *a, void *foo UNUSED)
 {
   free (a);
 }
@@ -2388,7 +2388,7 @@ switch_font (struct outp_driver *this, const struct output_char *cp)
 static void
 write_text (struct outp_driver *this,
 	    const struct output_char *cp, const struct output_char *end,
-	    struct outp_text *t, int width unused, int width_left)
+	    struct outp_text *t, int width UNUSED, int width_left)
 {
   struct ps_driver_ext *ext = this->ext;
   int ofs;
@@ -2787,7 +2787,7 @@ static struct hsh_table *ps_fonts;
 
 /* Hash table comparison function for filename2font structs. */
 static int
-compare_filename2font (const void *a, const void *b, void *param unused)
+compare_filename2font (const void *a, const void *b, void *param UNUSED)
 {
   return strcmp (((struct filename2font *) a)->filename,
 		 ((struct filename2font *) b)->filename);
@@ -2795,7 +2795,7 @@ compare_filename2font (const void *a, const void *b, void *param unused)
 
 /* Hash table hash function for filename2font structs. */
 static unsigned
-hash_filename2font (const void *f2f_, void *param unused)
+hash_filename2font (const void *f2f_, void *param UNUSED)
 {
   const struct filename2font *f2f = f2f_;
   return hsh_hash_string (f2f->filename);

@@ -140,6 +140,7 @@ static long serial = 0;
 /* Prototypes. */
 static void add_gizmo (struct pool *, struct pool_gizmo *);
 static void free_gizmo (struct pool_gizmo *);
+static void free_all_gizmos (struct pool *pool);
 static void delete_gizmo (struct pool *, struct pool_gizmo *);
 
 #if !PSPP
@@ -180,20 +181,14 @@ pool_destroy (struct pool *pool)
   if (pool == NULL)
     return;
 
+  /* Remove this pool from its parent's list of gizmos. */
   if (pool->parent) 
-    delete_gizmo (pool,
+    delete_gizmo (pool->parent,
 		  (void *) (((char *) pool) + POOL_SIZE + POOL_BLOCK_SIZE));
 
-  {
-    struct pool_gizmo *cur, *next;
+  free_all_gizmos (pool);
 
-    for (cur = pool->gizmos; cur; cur = next)
-      {
-	next = cur->next;
-	free_gizmo (cur);
-      }
-  }
-  
+  /* Free all the memory. */
   {
     struct pool_block *cur, *next;
 
@@ -203,6 +198,30 @@ pool_destroy (struct pool *pool)
 	next = cur->next;
 	free (cur);
       }
+  }
+}
+
+/* Release all the memory and gizmos in POOL.
+   Blocks are not given back with free() but kept for later
+   allocations.  To give back memory, use a subpool instead. */ 
+void
+pool_clear (struct pool *pool) 
+{
+  free_all_gizmos (pool);
+
+  /* Zero out block sizes. */
+  {
+    struct pool_block *cur;
+    
+    cur = pool->blocks;
+    do
+      {
+        cur->ofs = POOL_BLOCK_SIZE;
+        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool)
+          cur->ofs += POOL_SIZE;
+        cur = cur->next;
+      }
+    while (cur != pool->blocks);
   }
 }
 
@@ -215,9 +234,10 @@ pool_alloc (struct pool *pool, size_t amt)
 {
   assert (pool != NULL);
   
-#if !DISCRETE_BLOCKS
+#ifndef DISCRETE_BLOCKS
   if (amt <= MAX_SUBALLOC)
     {
+      /* If there is space in this block, take it. */
       struct pool_block *b = pool->blocks;
       b->ofs = ROUND_UP (b->ofs, ALIGN_SIZE);
       if (b->ofs + amt <= BLOCK_SIZE)
@@ -227,18 +247,34 @@ pool_alloc (struct pool *pool, size_t amt)
 	  return p;
 	}
 
-      b = xmalloc (BLOCK_SIZE);
-      b->next = pool->blocks;
-      b->prev = pool->blocks->prev;
-      b->ofs = POOL_BLOCK_SIZE + amt;
+      /* No space in this block, so we must make other
+         arrangements. */
+      if (b->next->ofs == 0) 
+        {
+          /* The next block is empty.  Use it. */
+          b = b->next;
+          b->ofs = POOL_BLOCK_SIZE;
+          if ((char *) b + POOL_BLOCK_SIZE == (char *) pool)
+            b->ofs += POOL_SIZE;
+        }
+      else 
+        {
+          /* Create a new block at the start of the list. */
+          b = xmalloc (BLOCK_SIZE);
+          b->next = pool->blocks;
+          b->prev = pool->blocks->prev;
+          b->ofs = POOL_BLOCK_SIZE;
+          pool->blocks->prev->next = b;
+          pool->blocks->prev = b;
+        }
+      pool->blocks = b;
 
-      pool->blocks->prev->next = b;
-      pool->blocks = pool->blocks->prev = b;
-
-      return ((char *) b) + POOL_BLOCK_SIZE;
+      /* Allocate space from B. */
+      b->ofs += amt;
+      return ((char *) b) + b->ofs - amt;
     }
   else
-#endif /* !DISCRETE_BLOCKS */
+#endif
     return pool_malloc (pool, amt);
 }
 
@@ -257,19 +293,19 @@ pool_strndup (struct pool *pool, const char *string, size_t length)
   size = length + 1;
 
   /* Note that strings need not be aligned on any boundary. */
+#ifndef DISCRETE_BLOCKS
   {
-#if !DISCRETE_BLOCKS
     struct pool_block *const b = pool->blocks;
 
     if (b->ofs + size <= BLOCK_SIZE)
       {
-	copy = ((char *) b) + b->ofs;
-	b->ofs += size;
+        copy = ((char *) b) + b->ofs;
+        b->ofs += size;
       }
-    else
-#endif
-      copy = pool_alloc (pool, size);
   }
+#else
+  copy = pool_alloc (pool, size);
+#endif
 
   memcpy (copy, string, length);
   copy[length] = '\0';
@@ -495,7 +531,10 @@ pool_mark (struct pool *pool, struct pool_mark *mark)
   mark->serial = serial;
 }
 
-/* Restores to POOL the state recorded in MARK. */
+/* Restores to POOL the state recorded in MARK.
+   Emptied blocks are not given back with free() but kept for
+   later allocations.  To get that behavior, use a subpool
+   instead. */ 
 void
 pool_release (struct pool *pool, const struct pool_mark *mark)
 {
@@ -520,21 +559,16 @@ pool_release (struct pool *pool, const struct pool_mark *mark)
   }
   
   {
-    struct pool_block *cur, *next, *last;
+    struct pool_block *cur;
 
-    last = pool->blocks->prev;
-    for (cur = pool->blocks; cur != mark->block; cur = next)
+    for (cur = pool->blocks; cur != mark->block; cur = cur->next) 
       {
-	next = cur->next;
-	assert (next != cur);
-
-	free (cur);
+        cur->ofs = POOL_BLOCK_SIZE;
+        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool)
+          cur->ofs += POOL_SIZE; 
       }
-
-    cur->prev = last;
-    last->next = pool->blocks = cur;
-  
-    cur->ofs = mark->ofs;
+    pool->blocks = mark->block;
+    pool->blocks->ofs = mark->ofs;
   }
 }
 
@@ -593,6 +627,19 @@ free_gizmo (struct pool_gizmo *gizmo)
       break;
     default:
       assert (0);
+    }
+}
+
+/* Free all the gizmos in POOL. */
+static void
+free_all_gizmos (struct pool *pool) 
+{
+  struct pool_gizmo *cur, *next;
+
+  for (cur = pool->gizmos; cur; cur = next)
+    {
+      next = cur->next;
+      free_gizmo (cur);
     }
 }
 

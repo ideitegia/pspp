@@ -126,7 +126,7 @@ bswap_flt64 (flt64 *x)
 
 static void
 corrupt_msg (int class, const char *format,...)
-  __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 
 /* Displays a corrupt sysfile error. */
 static void

@@ -181,7 +181,7 @@ void ds_putchar (struct string *, int ch);
 void ds_concat (struct string *, const char *);
 void ds_concat_buffer (struct string *, const char *buf, size_t len);
 void ds_printf (struct string *, const char *, ...)
-     __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 
 #if __GNUC__ > 1
 extern inline void

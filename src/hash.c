@@ -229,7 +229,7 @@ hsh_rehash (struct hsh_table *h, size_t new_size)
 /* A "algo_predicate_func" that returns nonzero if DATA points
    to a non-null void. */
 static int
-not_null (const void *data_, void *aux unused) 
+not_null (const void *data_, void *aux UNUSED) 
 {
   void *const *data = data_;
 

@@ -1,3 +1,45 @@
+Wed Feb 11 23:56:51 2004  Ben Pfaff  <blp@gnu.org>
+
+	Miscellaneous cleanups.
+	
+	* Change unused to UNUSED in many source files to reflect modified
+	pref.h.  Change use of __WIN32__, __MSDOS, __DJGPP__,
+	__CYGWIN32__, __unix__, and unix not to	assume that they're
+	defined to a nonzero value.  Change use of __attribute__ to use
+	NO_RETURN or PRINTF_FORMAT instead.
+	
+	* alloc.h: Move definitions for local_alloc(), local_free() here
+	from ../pref.h.orig and simplify.
+
+	* expr-evl.c: Instead of working differently based on PAGED_STACK,
+	use a pool allocator unconditionally.
+	(CHECK_STRING_SPACE) Removed.
+	(ALLOC_STRING_SPACE) Removed.
+	(expr_evaluate) Use e->pool instead of CHECK_STRING_SPACE and
+	ALLOC_STRING_SPACE.
+
+	* expr-opt.c: (dump_expression) Allocate string pool.
+
+	* expr-prs.c: (expr_free) Free string pool.
+
+	* pool.c: (pool_destroy) This pool must be removed from its
+	parent's list of gizmos, not from its own.  Use free_all_gizmos().
+	(pool_clear) New function.
+	(free_all_gizmos) New function.
+	(pool_alloc) Use space in empty block after this one if any.
+	(pool_release) Only empty out blocks, don't actually free() them.
+
+	* print.c: Get rid of PAGED_STACK special case by always
+	dynamically allocating line buffers.
+	(struct print_trns) Always include the `line' member.
+	(internal_cmd_print) Always initialize the `line' member.
+	(alloc_line) Always allocate memory for `line'.
+	(print_trns_proc) Always initialize buf from `line' member.
+	(print_trns_free) Always free `line' memory.
+
+	* sort.c: (allocate_file_handles) Special-case MS-DOS for mkdir()
+	call.
+	
 Wed Feb 11 20:33:18 2004  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c: Fixed crash from FLIP when a numeric variable is

@@ -224,7 +224,7 @@ save_write_case_func (struct ccase * c)
 }
 
 static int
-save_trns_proc (struct trns_header * t unused, struct ccase * c)
+save_trns_proc (struct trns_header * t UNUSED, struct ccase * c)
 {
   flt64 *p = trns->case_buf;
   int i;
@@ -1046,7 +1046,7 @@ mtf_compare_BY_values (struct mtf_file *a, struct mtf_file *b)
 
 /* Perform one iteration of steps 3...7 above. */
 static int
-mtf_processing (struct ccase *c unused)
+mtf_processing (struct ccase *c UNUSED)
 {
   /* List of files with minimum BY values. */
   struct mtf_file *min_head, *min_tail;

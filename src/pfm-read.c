@@ -62,7 +62,7 @@ static struct fh_ext_class pfm_r_class;
 
 static int 
 corrupt_msg (struct file_handle *h, const char *format,...)
-  __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 
 /* Displays a corruption error. */
 static int

@@ -38,7 +38,7 @@ int font_number_to_index (int);
 int space_index;
 
 static int font_msg (int, const char *,...)
-     __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 static void scan_badchars (char *, int);
 static void dup_char_metric (struct font_desc * font, int dest, int src);
 static void add_char_metric (struct font_desc * font, struct char_metrics *metrics,
@@ -100,7 +100,7 @@ groff_read_font (const char *fn)
   /* Current location in file, used for error reporting. */
   struct file_locator where;
 
-#if unix
+#ifdef unix
   fn = fn_tilde_expand (fn);
 #endif
 
@@ -355,7 +355,7 @@ groff_read_font (const char *fn)
       goto file_lossage;
     }
   free (line);
-#if unix
+#ifdef unix
   free ((char *) fn);
 #endif
 
@@ -381,7 +381,7 @@ lose:
   if (f != NULL)
     fclose (f);
   pool_destroy (font_pool);
-#if unix
+#ifdef unix
   free ((char *) fn);
 #endif
   err_pop_file_locator (&where);

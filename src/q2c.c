@@ -99,9 +99,7 @@ finish_up (void)
     fprintf (stderr, "%s: %s: remove: %s\n", pgmname, ofn, strerror (errno));
 }
 
-#if __GNUC__ >= 2
-void hcf (void) __attribute__ ((noreturn));
-#endif
+void hcf (void) NO_RETURN;
 
 /* Terminate unsuccessfully. */
 void
@@ -111,10 +109,8 @@ hcf (void)
   exit (EXIT_FAILURE);
 }
 
-#if __GNUC__ >= 2
-int fail (const char *, ...) __attribute__ ((format (printf, 1, 2)));
-int error (const char *, ...) __attribute__ ((format (printf, 1, 2)));
-#endif
+int fail (const char *, ...) PRINTF_FORMAT (1, 2);
+int error (const char *, ...) PRINTF_FORMAT (1, 2);
 
 /* Output an error message and terminate unsuccessfully. */
 int
@@ -859,9 +855,7 @@ parse_subcommands (void)
 /* Size of the indent from the left margin. */
 int indent;
 
-#if __GNUC__ >= 2
-void dump (int, const char *, ...) __attribute__ ((format (printf, 2, 3)));
-#endif
+void dump (int, const char *, ...) PRINTF_FORMAT (2, 3);
 
 /* Write line FORMAT to the output file, formatted as with printf,
    indented `indent' characters from the left margin.  If INDENTION is
@@ -1734,7 +1728,7 @@ dump_free (void)
 
   dump (0, "static void");
   dump (0, "free_%s (struct cmd_%s *p%s)", make_identifier (cmdname),
-	make_identifier (cmdname), used ? "" : " unused");
+	make_identifier (cmdname), used ? "" : " UNUSED");
   dump (1, "{");
 
   for (sbc = subcommands; sbc; sbc = sbc->next)

@@ -22,10 +22,20 @@
 
 #include <stddef.h>
 
-/* Functions. */
+/* malloc() wrapper functions. */
 void *xmalloc (size_t size);
 void *xcalloc (size_t size);
 void *xrealloc (void *ptr, size_t size);
 char *xstrdup (const char *s);
+
+/* alloca() wrapper functions. */
+#if defined (HAVE_ALLOCA) || defined (C_ALLOCA)
+#include <alloca.h>
+#define local_alloc(X) alloca (X)
+#define local_free(P) ((void) 0)
+#else
+#define local_alloc(X) xmalloc (X)
+#define local_free(P) free (P)
+#endif
 
 #endif /* alloc.h */

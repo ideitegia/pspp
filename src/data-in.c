@@ -42,7 +42,7 @@
 /* Specialized error routine. */
 
 static void dls_error (const struct data_in *, const char *format, ...)
-     __attribute__ ((format (printf, 2, 3)));
+     PRINTF_FORMAT (2, 3);
 
 static void
 dls_error (const struct data_in *i, const char *format, ...)

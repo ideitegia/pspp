@@ -62,7 +62,7 @@ extern void stifle_history ();
 
 #if __DJGPP__
 #include <conio.h>
-#elif __WIN32__ && __BORLANDC__
+#elif defined (__WIN32__) && defined (__BORLANDC__)
 #undef gettext
 #include <conio.h>
 #define gettext(STRING)				\
@@ -130,7 +130,7 @@ static char term_buffer[16384];
 #endif
 
 void
-init_glob (int argc unused, char **argv)
+init_glob (int argc UNUSED, char **argv)
 {
   /* FIXME: Allow i18n of other locale items (besides LC_MESSAGES). */
 #if ENABLE_NLS

@@ -185,21 +185,21 @@ static int postopen (struct file_ext *);
 static int preclose (struct file_ext *);
 
 static int
-ascii_open_global (struct outp_class *this unused)
+ascii_open_global (struct outp_class *this UNUSED)
 {
   ascii_pool = pool_create ();
   return 1;
 }
 
 static int
-ascii_close_global (struct outp_class *this unused)
+ascii_close_global (struct outp_class *this UNUSED)
 {
   pool_destroy (ascii_pool);
   return 1;
 }
 
 static int *
-ascii_font_sizes (struct outp_class *this unused, int *n_valid_sizes)
+ascii_font_sizes (struct outp_class *this UNUSED, int *n_valid_sizes)
 {
   static int valid_sizes[] = {12, 12, 0, 0};
 
@@ -735,7 +735,7 @@ expand_line (struct ascii_driver_ext *x, int i, int l)
 
 static void
 ascii_line_horz (struct outp_driver *this, const struct rect *r,
-		 const struct color *c unused, int style)
+		 const struct color *c UNUSED, int style)
 {
   struct ascii_driver_ext *ext = this->ext;
   int x1 = r->x1 / this->horiz;
@@ -769,7 +769,7 @@ ascii_line_horz (struct outp_driver *this, const struct rect *r,
 
 static void
 ascii_line_vert (struct outp_driver *this, const struct rect *r,
-		 const struct color *c unused, int style)
+		 const struct color *c UNUSED, int style)
 {
   struct ascii_driver_ext *ext = this->ext;
   int x1 = r->x1 / this->horiz;
@@ -804,7 +804,7 @@ ascii_line_vert (struct outp_driver *this, const struct rect *r,
 
 static void
 ascii_line_intersection (struct outp_driver *this, const struct rect *r,
-			 const struct color *c unused,
+			 const struct color *c UNUSED,
 			 const struct outp_styles *style)
 {
   struct ascii_driver_ext *ext = this->ext;
@@ -835,25 +835,25 @@ ascii_line_intersection (struct outp_driver *this, const struct rect *r,
 /* FIXME: Later we could set this up so that for certain devices it
    performs shading? */
 static void
-ascii_box (struct outp_driver *this unused, const struct rect *r unused,
-	   const struct color *bord unused, const struct color *fill unused)
+ascii_box (struct outp_driver *this UNUSED, const struct rect *r UNUSED,
+	   const struct color *bord UNUSED, const struct color *fill UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
 
 /* Polylines not supported. */
 static void
-ascii_polyline_begin (struct outp_driver *this unused, const struct color *c unused)
+ascii_polyline_begin (struct outp_driver *this UNUSED, const struct color *c UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
 static void
-ascii_polyline_point (struct outp_driver *this unused, int x unused, int y unused)
+ascii_polyline_point (struct outp_driver *this UNUSED, int x UNUSED, int y UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
 static void
-ascii_polyline_end (struct outp_driver *this unused)
+ascii_polyline_end (struct outp_driver *this UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
@@ -888,7 +888,7 @@ ascii_text_set_font_by_position (struct outp_driver *this, int pos)
 }
 
 static void
-ascii_text_set_font_by_family (struct outp_driver *this unused, const char *s unused)
+ascii_text_set_font_by_family (struct outp_driver *this UNUSED, const char *s UNUSED)
 {
   assert (this->driver_open && this->page_open);
 }
@@ -916,7 +916,7 @@ ascii_text_get_font_name (struct outp_driver *this)
 }
 
 static const char *
-ascii_text_get_font_family (struct outp_driver *this unused)
+ascii_text_get_font_family (struct outp_driver *this UNUSED)
 {
   assert (this->driver_open && this->page_open);
   return "";

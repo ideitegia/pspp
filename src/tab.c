@@ -1263,7 +1263,7 @@ struct som_table_class tab_table_class =
 
    FIXME: Doesn't use r1?  Huh?  */
 static int
-render_strip (int x, int y, int r, int c1, int c2, int r1 unused, int r2)
+render_strip (int x, int y, int r, int c1, int c2, int r1 UNUSED, int r2)
 {
   int x_origin = x;
 

@@ -25,37 +25,6 @@
 
 /* Compilers. */
 
-/* Fix Windows lossage. */
-#ifdef __WIN32__
-#undef __WIN32__
-#define __WIN32__ 1
-#undef __MSDOS__
-#define __MSDOS__ 1
-#endif
-
-/* Fix DJGPP lossage. */
-#if __DJGPP__
-#undef unix
-#undef __unix__
-#endif
-
-/* Fix Cygnus Windows lossage. */
-#if defined (__CYGWIN32__)
-#define unix 1
-#endif
-
-/* Ensure that unix and __unix__ are equivalent. */
-#if defined (unix) || defined (__unix__) || defined (__unix)
-#undef unix
-#define unix 1
-
-#undef __unix__
-#define __unix__ 1
-
-#undef __unix
-#define __unix 1
-#endif
-
 /* Make sure to use the proper keywords. */
 #if __GNUC__ > 1 && !defined (inline)
 #define inline __inline__
@@ -65,18 +34,15 @@
    printf-like arguments, never return, etc.  Conditionalize these
    declarations on whether gcc is in use. */
 #if __GNUC__ > 1
-#define __attribute__(X) __attribute__ (X)
+#define ATTRIBUTE(X) __attribute__ (X)
 #else
-#define __attribute__(X)
+#define ATTRIBUTE(X)
 #endif
 
-/* GNU C allows unused variables and parameters to be declared as
-   such. */
-#if __GNUC__ >= 2
-#define unused __attribute__ ((__unused__))
-#else
-#define unused
-#endif
+#define UNUSED ATTRIBUTE ((unused))
+#define NO_RETURN ATTRIBUTE ((noreturn))
+#define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (printf, FMT, FIRST)))
+#define SCANF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (scanf, FMT, FIRST)))
 
 /* CPUs. */
 
@@ -123,76 +89,26 @@
    which causes gcc not to do its checking on printf() format
    types. */
 #undef gettext
-#define gettext(STRING) 			\
-	STRING
+#define gettext(STRING) STRING
 #endif
 
-#define _(STRING) 				\
-	gettext(STRING)
-     
-#define N_(STRING) 				\
-	STRING
-
-/* Even C emulation of alloca counts as an alloca implementation. */
-#if C_ALLOCA
-#define HAVE_ALLOCA 1
-#endif
-
-/* Define PAGED_STACK if alloca() is supported and the stack can
-   expand arbitrarily.  (Under some broken OSes like DOS and
-   Windows the stack is small and fixed in size.)  This will prevent
-   big alloca() requests (like 1MB). */
-#if HAVE_ALLOCA && unix
-#define PAGED_STACK 1
-#endif
-
-/* Saves on #if's. */
-#if HAVE_ALLOCA && !__CHECKER__
-#define local_alloc(X)				\
-	alloca(X)
-
-#define local_free(P)				\
-	do					\
-	  {					\
-	  }					\
-	while (0)
-#elif !__CHECKER__
-#define local_alloc(X)				\
-	xmalloc (X)
-     
-#define local_free(P) 				\
-	free (P)
-#else /* __CHECKER__ */
-/* Why define these this way?  Because if you do it this way then if
-   you try to free a block returned by local_alloc() with the free()
-   function, you get an error message. */
-#define local_alloc(X)					\
-	((void *) (((char *) (xmalloc (X+16))) + 16))
-
-#define local_free(P)				\
-	free (((char *) P) - 16)
-#endif /* __CHECKER__ */
+#define _(STRING) gettext(STRING)
+#define N_(STRING) STRING
 
 /* Filesystems. */
 
 /* Directory separator character for this OS, if applicable. */
-#if !__MSDOS__
+#ifndef __MSDOS__
 #define DIR_SEPARATOR '/'
 #elif
 #define DIR_SEPARATOR '\\'
 #endif
 
 /* Path delimiter character. */
-#if !__MSDOS__
+#ifndef __MSDOS__
 #define PATH_DELIMITER ':'
 #else
 #define PATH_DELIMITER ';'
-#endif
-
-/* MSDOS mkdir() takes only one argument. */
-#if __MSDOS__ && !__DJGPP__
-#define mkdir(path, mode) 			\
-	mkdir (path)
 #endif
 
 /* Options. */
@@ -217,22 +133,3 @@
 /* Define to exclude the PostScript and Encapsulated PostScript
    driver. */
 /* #define NO_POSTSCRIPT 1 */
-
-/* Procedure-specific options. */
-
-/* CROSSTABS: Maximum number of tables to process in one pass. */
-#define MAX_CROSSTAB_TABLES 32
-
-/* FREQUENCIES: Define to allow bars greater than 1/2" wide. */
-/* #define ALLOW_HUGE_BARS 1 */
-
-/* FREQUENCIES: Minimum, maximum number of bars in a histogram.  The
-   number is based on the number of unique values of the variable,
-   unless overridden.  */
-#define MIN_HIST_BARS 3
-#define MAX_HIST_BARS 20
-
-/* FREQUENCIES: Density of polyline used to approximate the normal
-   curve.  The value is the number of samples taken per chart.  Higher
-   values give smoother curves.  */
-#define POLYLINE_DENSITY (MAX_HIST_BARS*4)

@@ -174,7 +174,7 @@ is_user_missing (const union value *val, const struct variable *v)
 /* A hsh_compare_func that orders variables A and B by their
    names. */
 int
-compare_variables (const void *a_, const void *b_, void *foo unused) 
+compare_variables (const void *a_, const void *b_, void *foo UNUSED) 
 {
   const struct variable *a = a_;
   const struct variable *b = b_;
@@ -184,7 +184,7 @@ compare_variables (const void *a_, const void *b_, void *foo unused)
 
 /* A hsh_hash_func that hashes variable V based on its name. */
 unsigned
-hash_variable (const void *v_, void *foo unused) 
+hash_variable (const void *v_, void *foo UNUSED) 
 {
   const struct variable *v = v_;
 

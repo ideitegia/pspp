@@ -46,13 +46,13 @@ static int postopen (struct file_ext *);
 static int preclose (struct file_ext *);
 
 static int
-html_open_global (struct outp_class *this unused)
+html_open_global (struct outp_class *this UNUSED)
 {
   return 1;
 }
 
 static int
-html_close_global (struct outp_class *this unused)
+html_close_global (struct outp_class *this UNUSED)
 {
   return 1;
 }

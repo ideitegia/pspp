@@ -486,7 +486,7 @@ set_routing (int q, int *setting)
 }
 
 static int
-stc_custom_pager (struct cmd_set *cmd unused)
+stc_custom_pager (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
 #if !USE_INTERNAL_PAGER
@@ -519,7 +519,7 @@ stc_custom_pager (struct cmd_set *cmd unused)
    SYSMIS or a numeric value; PC+: Syntax is '.', which is equivalent
    to SYSMIS, or a numeric value. */
 static int
-stc_custom_blanks (struct cmd_set *cmd unused)
+stc_custom_blanks (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if ((token == T_ID && lex_id_match ("SYSMIS", tokid))
@@ -539,7 +539,7 @@ stc_custom_blanks (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_length (struct cmd_set *cmd unused)
+stc_custom_length (struct cmd_set *cmd UNUSED)
 {
   int page_length;
 
@@ -564,7 +564,7 @@ stc_custom_length (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_results (struct cmd_set *cmd unused)
+stc_custom_results (struct cmd_set *cmd UNUSED)
 {
   struct tuple
     {	
@@ -605,7 +605,7 @@ stc_custom_results (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_seed (struct cmd_set *cmd unused)
+stc_custom_seed (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("RANDOM"))
@@ -622,7 +622,7 @@ stc_custom_seed (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_width (struct cmd_set *cmd unused)
+stc_custom_width (struct cmd_set *cmd UNUSED)
 {
   int page_width;
 
@@ -651,7 +651,7 @@ stc_custom_width (struct cmd_set *cmd unused)
 /* Parses FORMAT subcommand, which consists of a numeric format
    specifier. */
 static int
-stc_custom_format (struct cmd_set *cmd unused)
+stc_custom_format (struct cmd_set *cmd UNUSED)
 {
   struct fmt_spec fmt;
 
@@ -671,7 +671,7 @@ stc_custom_format (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_journal (struct cmd_set *cmd unused)
+stc_custom_journal (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("ON"))
@@ -689,7 +689,7 @@ stc_custom_journal (struct cmd_set *cmd unused)
 /* Parses COLOR subcommand.  PC+: either ON or OFF or two or three
    comma-delimited numbers inside parentheses. */
 static int
-stc_custom_color (struct cmd_set *cmd unused)
+stc_custom_color (struct cmd_set *cmd UNUSED)
 {
   msg (MW, _("%s is obsolete."),"COLOR");
 
@@ -740,7 +740,7 @@ stc_custom_color (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_listing (struct cmd_set *cmd unused)
+stc_custom_listing (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("ON") || lex_match_id ("YES"))
@@ -756,21 +756,21 @@ stc_custom_listing (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_disk (struct cmd_set *cmd unused)
+stc_custom_disk (struct cmd_set *cmd UNUSED)
 {
   stc_custom_listing (cmd);
   return 0;
 }
 
 static int
-stc_custom_log (struct cmd_set *cmd unused)
+stc_custom_log (struct cmd_set *cmd UNUSED)
 { 
   stc_custom_journal (cmd);
   return 0;
 }
 
 static int
-stc_custom_rcolor (struct cmd_set *cmd unused)
+stc_custom_rcolor (struct cmd_set *cmd UNUSED)
 {
   msg (SW, _("%s is obsolete."),"RCOLOR");
 
@@ -819,7 +819,7 @@ stc_custom_rcolor (struct cmd_set *cmd unused)
 }
 
 static int
-stc_custom_viewlength (struct cmd_set *cmd unused)
+stc_custom_viewlength (struct cmd_set *cmd UNUSED)
 {
   if (lex_match_id ("MINIMUM"))
     set_viewlength = 25;
@@ -831,7 +831,7 @@ stc_custom_viewlength (struct cmd_set *cmd unused)
     {
       if (!lex_force_int ())
 	return 0;
-#if __MSDOS__
+#ifdef __MSDOS__
       if (lex_integer () >= (43 + 25) / 2)
 	set_viewlength = 43;
       else
@@ -842,14 +842,14 @@ stc_custom_viewlength (struct cmd_set *cmd unused)
       lex_get ();
     }
 
-#if __MSDOS__
+#ifdef __MSDOS__
   msg (SW, _("%s is not yet implemented."),"VIEWLENGTH");
 #endif /* dos */
   return 1;
 }
 
 static int
-stc_custom_workdev (struct cmd_set *cmd unused)
+stc_custom_workdev (struct cmd_set *cmd UNUSED)
 {
   char c[2];
 

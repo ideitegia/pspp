@@ -33,7 +33,7 @@
 
 #include "debug-print.h"
 
-static void parse_script (void) __attribute__ ((noreturn));
+static void parse_script (void) NO_RETURN;
 static void handle_error (int code);
 static int execute_command (void);
 

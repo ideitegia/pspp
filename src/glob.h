@@ -20,6 +20,6 @@
 #if !INCLUDED_GLOB_H
 #define INCLUDED_GLOB_H 1
 
-void init_glob (int argc unused, char **argv);
+void init_glob (int argc UNUSED, char **argv);
 
 #endif /* glob.h */
