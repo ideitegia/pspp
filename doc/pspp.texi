@@ -6853,6 +6853,9 @@ FLIP /VARIABLES=var_list /NEWNAMES=var_name.
 @cmd{FLIP} transposes rows and columns in the active file.  It
 causes cases to be swapped with variables, and vice versa.
 
+All variables in the transposed active file are numeric.  String
+variables take on the system-missing value in the transposed file.
+
 No subcommands are required.  The VARIABLES subcommand specifies
 variables that will be transformed into cases.  Variables not specified
 are discarded.  By default, all variables are selected for
