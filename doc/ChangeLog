@@ -1,3 +1,5 @@
+	* statistics.texi Added documentation about the EXAMINE cmd
+
 Tue Nov 16 13:18:53 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* utilities.texi Added documentation for the PERMISSIONS command.
@@ -11,7 +13,7 @@ Tue Nov  9 09:38:43 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 Fri Nov  5 17:46:46 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
-	* Added a note to the about SPLIT requiring adjecent cases.
+	* Added a note to the about SPLIT requiring adjacent cases.
 
 Sat Oct 30 17:32:53 WST 2004 John Darrington <john@darrington.wattle.id.au>
 

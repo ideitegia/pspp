@@ -9,6 +9,7 @@ TESTS = \
 	command/count.sh \
 	command/data-list.sh \
 	command/erase.sh \
+	command/examine.sh \
 	command/file-label.sh \
 	command/filter.sh \
 	command/flip.sh \

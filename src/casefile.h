@@ -48,4 +48,6 @@ int casereader_read (struct casereader *, struct ccase *);
 int casereader_read_xfer (struct casereader *, struct ccase *);
 void casereader_destroy (struct casereader *);
 
+unsigned long casereader_cnum(const struct casereader *);
+
 #endif /* casefile.h */

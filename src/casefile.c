@@ -90,6 +90,13 @@ struct casereader
     struct ccase c;                     /* Current case. */
   };
 
+/* Return the case number of the current case */
+unsigned long
+casereader_cnum(const struct casereader *r)
+{
+  return r->case_idx;
+}
+
 /* Doubly linked list of all casefiles. */
 static struct casefile *casefiles;
 

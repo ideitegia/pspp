@@ -28,25 +28,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "hash.h"
 #include "val.h"
 
-struct weighted_value 
-{
-  union value v;
-
-  /* The weight */
-  double w;
-
-  /* The cumulative weight */
-  double cc; 
-
-  /* The rank */
-  double rank;
-};
-
-
-
 struct metrics
 {
   double n;
+
+  double n_missing;
   
   double ssq;
   
@@ -66,45 +52,88 @@ struct metrics
 
   double trimmed_mean;
 
-  /* An ordered arary of data for this factor */
+  /* A hash of data for this factor */
   struct hsh_table *ordered_data;
 
-  /* An SORTED array of weighted values */
+  /* A SORTED array of weighted values */
   struct weighted_value *wv;
 };
 
 
 
+
+void metrics_precalc(struct metrics *m);
+
+void metrics_calc(struct metrics *m, const union value *f, double weight, 
+		  int case_no);
+
+void metrics_postcalc(struct metrics *m);
+
+
+/* Linked list of case nos */
+struct case_node
+{
+  int num;
+  struct case_node *next;
+};
+
+struct weighted_value 
+{
+  union value v;
+
+  /* The weight */
+  double w;
+
+  /* The cumulative weight */
+  double cc; 
+
+  /* The rank */
+  double rank;
+
+  /* Linked list of cases nos which have this value */
+  struct case_node *case_nos;
+  
+};
+
+
+struct weighted_value *weighted_value_create(void);
+
+void weighted_value_free(struct weighted_value *wv);
+
+
+
 struct factor_statistics {
 
-  /* The value of the independent variable for this factor */
-  const union value *id;
+  /* The value of the independent variable */
+  union value id[2];
 
-  /* An array of metrics indexed by dependent variable */
-  struct metrics *stats;
+  /* The an array stats for this factor, one for each dependent var */
+  struct metrics *m;
 
 };
 
 
-
-void metrics_precalc(struct metrics *fs);
-
-void metrics_calc(struct metrics *fs, const union value *f, double weight);
-
-void metrics_postcalc(struct metrics *fs);
+/* Create a factor statistics object with for N dependent vars
+   and ID as the value of the independent variable */
+struct factor_statistics * 
+create_factor_statistics (int n, union value *id0, union value *id1);
 
 
+void factor_statistics_free(struct factor_statistics *f);
 
 
-/* These functions are necessary for creating hashes */
+int 
+factor_statistics_compare(const struct factor_statistics *f0,
+	                  const struct factor_statistics *f1, void *aux);
 
-int compare_indep_values(const struct factor_statistics *f1, 
-		     const struct factor_statistics *f2, 
-		     int width);
+			      
 
-unsigned hash_indep_value(const struct factor_statistics *f, int width) ;
+unsigned int 
+factor_statistics_hash(const struct factor_statistics *f, void *aux);
 
-void  free_factor_stats(struct factor_statistics *f, int width );
+
+
+
 
 
 #endif

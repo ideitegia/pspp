@@ -175,6 +175,8 @@ hsh_clear (struct hsh_table *h)
 
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
+
+  h->used = 0;
 }
 
 /* Destroys table H and all its contents. */
@@ -258,6 +260,9 @@ comparison_helper (const void *a_, const void *b_, void *h_)
   void *const *a = a_;
   void *const *b = b_;
   struct hsh_table *h = h_;
+
+  assert(a);
+  assert(b);
 
   return h->compare (*a, *b, h->aux);
 }

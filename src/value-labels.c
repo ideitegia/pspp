@@ -500,7 +500,13 @@ value_to_string(const union value *val, const struct variable *var)
 {
   static char buf[100];
   char *s;
-  const struct val_labs *val_labs = var->val_labs;
+  const struct val_labs *val_labs ;
+  
+  if ( !val || ! var ) 
+    return 0;
+
+  val_labs = var->val_labs;
+
   
   s = val_labs_find (val_labs, *val);
 

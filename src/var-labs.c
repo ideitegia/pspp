@@ -74,5 +74,8 @@ cmd_variable_labels (void)
 const char *
 var_to_string(const struct variable *var)
 {
+  if ( !var ) 
+    return 0;
+
   return ( var->label ? var->label : var->name);
 }

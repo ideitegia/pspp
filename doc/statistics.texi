@@ -10,6 +10,7 @@ far.
 @menu
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.
+* EXAMINE::                     Testing data for normality.
 * CROSSTABS::                   Crosstabulation tables.
 * T-TEST::                      Test hypotheses about means.
 * ONEWAY::                      One way analysis of variance.
@@ -105,7 +106,7 @@ in the order that they are specified on the VARIABLES subcommand.  The A
 and D settings request an ascending or descending sort order,
 respectively.
 
-@node FREQUENCIES, CROSSTABS, DESCRIPTIVES, Statistics
+@node FREQUENCIES, EXAMINE, DESCRIPTIVES, Statistics
 @section FREQUENCIES
 
 @vindex FREQUENCIES
@@ -212,7 +213,32 @@ boundaries of the data set divided into the specified number of ranges.
 For instance, @code{/NTILES=4} would cause quartiles to be reported.
 
 
-@node CROSSTABS, T-TEST, FREQUENCIES, Statistics
+@node EXAMINE, CROSSTABS, FREQUENCIES, Statistics
+@comment  node-name,  next,  previous,  up
+@section EXAMINE
+@vindex EXAMINE
+
+@cindex Normality, testing for
+
+@display
+EXAMINE
+        VARIABLES=var_list [[BY var_list] [BY var_list]]
+        /STATISTICS=@{DESCRIPTIVES, EXTREME[(n)], ALL, NONE@}
+        /PLOT=@{STEMLEAF, BOXPLOT, NPPLOT, SPREADLEVEL(n), HISTOGRAM, 
+	       ALL, NONE@}
+        /CINTERVAL n
+        /COMPARE=@{GROUPS,VARIABLES@}
+        /ID=@{case_number, var_name@}
+        /@{TOTAL,NOTOTAL@}
+        /MISSING=@{LISTWISE, PAIRWISE@} [@{EXCLUDE, INCLUDE@}] 
+		[@{NOREPORT,REPORT@}]
+@end display
+
+The @cmd{EXAMINE} command is used to test how closely a distribution is to a 
+normal distribution.  It also shows you outliers and extreme values.
+
+
+@node CROSSTABS, T-TEST, EXAMINE, Statistics
 @section CROSSTABS
 
 @vindex CROSSTABS

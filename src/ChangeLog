@@ -1,3 +1,18 @@
+	* var-labs.c (var_to_string) Now returns null if the variable is null
+
+	* value-labels.c (value_to_string) Made it return null if either the 
+	value or the variable is null.
+
+	* hash.c (hsh_clear) Fixed a buglet.
+
+	* examine.q  factor_stats.[ch] Largely  rewrote, because I'd started 
+	with  the wrong model.
+
+	* casefile.[ch] Added a function to return the casereader.case_idx 
+	member
+
+	* examine.q  Implemented the extreme values results.
+
 John Darrington <john@darrington.wattle.id.au>
 
 	* settings.h set.c glob.[ch] frequencies.q q2c.c error.c lexer.[ch] 
@@ -47,6 +62,7 @@ Tue Nov 16 13:19:18 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* permissions.c command.def Added the PERMISSIONS command
 
+>>>>>>> 1.110
 Mon Nov 15 01:33:32 2004  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: (dump_header) Don't try to emit #includes at very top of
@@ -273,6 +289,7 @@ Mon Nov 15 00:30:33 2004  Ben Pfaff  <blp@gnu.org>
 	(var_dtor_free) New function.
 	(discard_variables) Use NULL instead of inline_file.
 
+>>>>>>> 1.106
 Fri Nov 12 10:07:11 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* value-labs.c  Fixed the implmentation of value_to_string, so 
