@@ -37,6 +37,9 @@ cmd_split_file (void)
       struct variable **v;
       int n;
 
+      /* For now, ignore SEPARATE and LAYERED. */
+      lex_match_id ("SEPARATE") || lex_match_id ("LAYERED");
+      
       lex_match (T_BY);
       if (!parse_variables (default_dict, &v, &n, PV_NO_DUPLICATE))
 	return CMD_FAILURE;

@@ -1,3 +1,8 @@
+Sat Mar 12 13:29:21 2005  Ben Pfaff  <blp@gnu.org>
+
+	* split-file.c: (cmd_split_file) Ignore LAYERED and SEPARATE
+	keywords (PR 11628).
+
 Sat Mar 12 13:17:12 2005  Ben Pfaff  <blp@gnu.org>
 
 	* vfm.c: (procedure_with_splits) Fix PR 11492: end_func() must be

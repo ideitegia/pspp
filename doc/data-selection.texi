@@ -212,9 +212,8 @@ When @cmd{SELECT IF} is specified following @cmd{TEMPORARY}
 @vindex SPLIT FILE
 
 @display
-Two possible syntaxes:
-        SPLIT FILE BY var_list.
-        SPLIT FILE OFF.
+SPLIT FILE [{LAYERED, SEPARATE}] BY var_list.
+SPLIT FILE OFF.
 @end display
 
 @cmd{SPLIT FILE} allows multiple sets of data present in one data
@@ -226,6 +225,10 @@ data separately.  Groups of adjacent cases having the same values for these
 variables are analyzed by statistical procedure commands as one group.
 An independent analysis is carried out for each group of cases, and the
 variable values for the group are printed along with the analysis.
+
+When a list of variable names is specified, one of the keywords
+LAYERED or SEPARATE may also be specified.  If provided, either
+keyword are ignored.
 
 Groups are formed only by @emph{adjacent} cases.  To create a split 
 using a variable where like values are not adjacent in the working file,
