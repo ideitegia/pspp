@@ -1,0 +1,14 @@
+1.1 DATA LIST.  Reading free-form data from the command file.
++--------+------+
+|Variable|Format|
+#========#======#
+|A       |A1    |
+|B       |A1    |
++--------+------+
+
+A B
+- -
+3 2 
+2 3 
+1 4 
+
