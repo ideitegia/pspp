@@ -1,3 +1,7 @@
+Sun Mar 13 14:54:27 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q: Fixed erroneous logic in compare_group_binary.
+
 Sat Mar 12 13:29:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	* split-file.c: (cmd_split_file) Ignore LAYERED and SEPARATE

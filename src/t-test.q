@@ -1917,6 +1917,8 @@ calculate(const struct casefile *cf, void *cmd_)
 
 }
 
+short which_group(const struct group_statistics *g,
+		  const struct group_properties *p);
 
 /* Return -1 if the id of a is less than b; +1 if greater than and 
    0 if equal */
@@ -1925,26 +1927,28 @@ compare_group_binary(const struct group_statistics *a,
 		     const struct group_statistics *b, 
 		     const struct group_properties *p)
 {
-  
   short flag_a;
   short flag_b;
-
+  
   if ( p->criterion == CMP_LE ) 
     {
+      /* less-than-or-equal comparision is not meaningfull for
+	 alpha variables, so we shouldn't ever arrive here */
       assert(p->indep_width == 0 ) ;
+      
       flag_a = ( a->id.f < p->v.critical_value ) ;
       flag_b = ( b->id.f < p->v.critical_value ) ;
     }
   else
     {
-      flag_a = ( a->id.f == p->v.critical_value ) ;
-      flag_b = ( b->id.f == p->v.critical_value ) ;
+      flag_a = which_group(a, p);
+      flag_b = which_group(b, p);
     }
 
-  if ( flag_a == flag_b) 
-    return 0 ;
-  
-  return ( flag_a < flag_b);
+  if (flag_a < flag_b ) 
+    return -1;
+
+  return (flag_a > flag_b);
 }
 
 /* This is a degenerate case of a hash, since it can only return three possible
@@ -1964,15 +1968,28 @@ hash_group_binary(const struct group_statistics *g,
     }
   else if ( p->criterion == CMP_EQ) 
     {
-      if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_width ))
-	flag = 0 ;
-      else if ( 0 == compare_values (&g->id, &p->v.g_value[1], p->indep_width ))
-	flag = 1 ;
-      else
-	flag = 2 ;
+      flag = which_group(g,p);
     }
   else
     assert(0);
 
   return flag;
 }
+
+/* return 0 if G belongs to group 0, 
+          1 if it belongs to group 1,
+	  2 if it belongs to neither group */
+short
+which_group(const struct group_statistics *g,
+	    const struct group_properties *p)
+{
+ 
+  if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_width))
+    return 0;
+
+  if ( 0 == compare_values (&g->id, &p->v.g_value[1], p->indep_width))
+    return 1;
+
+  return 2;
+}
+	    
