@@ -4757,6 +4757,7 @@ results.
 @cindex cross-case function
 @cindex function, cross-case
 @deftypefn {Function} {} LAG (@var{variable})
+@anchor{LAG}
 @var{variable} must be a numeric or string variable name.  @code{LAG}
 results in the value of that variable for the case before the current
 one.  In case-selection procedures, @code{LAG} results in the value of
@@ -6021,7 +6022,7 @@ including the active file.  Records with the same values for BY
 variables are combined into a single record.  Records with different
 values are output in order.  Thus, multiple sorted system files are
 combined into a single sorted system file based on the value of the BY
-variables.
+variables.  The results of the merge become the new active file.
 
 The BY subcommand specifies a list of variables that are used to match
 records from each of the system files.  Variables specified must exist
@@ -6053,6 +6054,9 @@ are set to the system-missing value for numeric variables or spaces for
 string variables.
 
 IN, FIRST, LAST, and MAP are currently not used.
+
+@cmd{MATCH FILES} may not be specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}) if the active file is used as an input source.
 
 @node SAVE, SYSFILE INFO, MATCH FILES, System and Portable Files
 @section SAVE
@@ -6382,6 +6386,9 @@ MAP is currently ignored.
 If either DROP or KEEP is specified, the data is read; otherwise it is
 not.
 
+@cmd{MODIFY VARS} may not be specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}).
+
 @node NUMERIC, PRINT FORMATS, MODIFY VARS, Variable Attributes
 @section NUMERIC
 @vindex NUMERIC
@@ -6432,6 +6439,9 @@ name.  Multiple parenthesized groups of variables may be specified.
 
 @cmd{RENAME VARIABLES} takes effect immediately.  It does not cause the data
 to be read.
+
+@cmd{RENAME VARIABLES} may not be specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}).
 
 @node VALUE LABELS, STRING, RENAME VARIABLES, Variable Attributes
 @section VALUE LABELS
@@ -6740,8 +6750,12 @@ Using @cmd{COMPUTE} to assign to a variable specified on @cmd{LEAVE}
 (@pxref{LEAVE}) resets the variable's left state.  Therefore,
 @code{LEAVE} should be specified following @cmd{COMPUTE}, not before.
 
-COMPUTE is a transformation.  It does not cause the active file to be
+@cmd{COMPUTE} is a transformation.  It does not cause the active file to be
 read.
+
+When @cmd{COMPUTE} is specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
+(@pxref{LAG}).
 
 @node COUNT, FLIP, COMPUTE, Data Manipulation
 @section COUNT
@@ -6887,6 +6901,9 @@ the active file is subsequently transposed using @cmd{FLIP}, this
 variable can
 be used to recreate the original variable names.
 
+FLIP honors N OF CASES.  It ignores TEMPORARY, so that ``temporary''
+transformations become permanent.
+
 @node IF, RECODE, FLIP, Data Manipulation
 @section IF
 @vindex IF
@@ -6920,6 +6937,10 @@ to the nearest integer, is a valid index for the named vector.
 Using @cmd{IF} to assign to a variable specified on @cmd{LEAVE}
 (@pxref{LEAVE}) resets the variable's left state.  Therefore,
 @code{LEAVE} should be specified following @cmd{IF}, not before.
+
+When @cmd{IF} is specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
+(@pxref{LAG}).
 
 @node RECODE, SORT CASES, IF, Data Manipulation
 @section RECODE
@@ -7010,13 +7031,9 @@ preceding them.
 
 @cmd{SORT CASES} attempts to sort the entire active file in main memory.
 If main memory is exhausted, it falls back to a merge sort algorithm that
-involves writing and reading numerous temporary files.  Environment
-variables determine the temporary files' location.  The first of
-SPSSTMPDIR, SPSSXTMPDIR, or TMPDIR that is set determines the location.
-Otherwise, if the compiler environment defined P_tmpdir, that is used.
-Otherwise, under Unix-like OSes /tmp is used; under MS-DOS, the first of
-TEMP, TMP, or root on the current drive is used; under other OSes, the
-current directory.
+involves writing and reading numerous temporary files.
+
+@cmd{SORT CASES} may not be specified following TEMPORARY.  
 
 @node Data Selection, Conditionals and Looping, Data Manipulation, Top
 @chapter Selecting data for analysis
@@ -7051,14 +7068,18 @@ To set up filtering, specify BY and a variable name.  Keyword
 BY is optional but recommended.  Cases which have a zero or system- or
 user-missing value are excluded from analysis, but not deleted from the
 data stream.  Cases with other values are analyzed.
+To filter based on a different condition, use
+transformations such as @cmd{COMPUTE} or @cmd{RECODE} to compute a
+filter variable of the required form, then specify that variable on
+@cmd{FILTER}.
 
 @code{FILTER OFF} turns off case filtering.
 
 Filtering takes place immediately before cases pass to a procedure for
 analysis.  Only one filter variable may be active at a time.  Normally,
 case filtering continues until it is explicitly turned off with @code{FILTER
-OFF}.  However, if @cmd{FILTER} is placed after TEMPORARY, filtering stops
-after execution of the next procedure or procedure-like command.
+OFF}.  However, if @cmd{FILTER} is placed after TEMPORARY, it filters only
+the next procedure or procedure-like command.
 
 @node N OF CASES, PROCESS IF, FILTER, Data Selection
 @section N OF CASES
@@ -7111,6 +7132,9 @@ read in data.  @code{ESTIMATED} never limits the number of cases
 processed by procedures.  PSPP currently does not make use of
 case count estimates.
 
+When @cmd{N} is specified after @cmd{TEMPORARY}, it affects only
+the next procedure (@pxref{TEMPORARY}).
+
 @node PROCESS IF, SAMPLE, N OF CASES, Data Selection
 @section PROCESS IF
 @vindex PROCESS IF
@@ -7136,6 +7160,11 @@ The effects of @cmd{PROCESS IF} are similar, but not identical, to the
 effects of executing @cmd{TEMPORARY}, then @cmd{SELECT IF}
 (@pxref{SELECT IF}).
 
+The filtering performed by @cmd{PROCESS IF} takes place immediately
+before cases pass to a procedure for analysis.  Because @cmd{PROCESS
+IF} affects only a single procedure, its placement relative to
+@cmd{TEMPORARY} is unimportant.
+
 @cmd{PROCESS IF} is deprecated.  It is included for compatibility with
 old command files.  New syntax files should use @cmd{SELECT IF} or
 @cmd{FILTER} instead.
@@ -7148,10 +7177,9 @@ old command files.  New syntax files should use @cmd{SELECT IF} or
 SAMPLE num1 [FROM num2].
 @end display
 
-@cmd{SAMPLE} is used to randomly sample a proportion of the cases in
-the active file.  @cmd{SAMPLE} is temporary, affecting only the next
-procedure, unless that is a data transformation, such as @cmd{SELECT IF}
-or @cmd{RECODE}.
+@cmd{SAMPLE} randomly samples a proportion of the cases in the active
+file.  Unless it follows @cmd{TEMPORARY}, it operates as a
+transformation, permanently removing cases from the active file.
 
 The proportion to sample can be expressed as a single number between 0
 and 1.  If @code{k} is the number specified, and @code{N} is the number
@@ -7177,13 +7205,11 @@ active, exactly @var{m} cases will be selected @emph{from the first
 @var{N} cases in the active file.}
 @end enumerate
 
-@cmd{SAMPLE}, @cmd{SELECT IF}, and @code{PROCESS IF} are performed in
+@cmd{SAMPLE} and @cmd{SELECT IF} are performed in
 the order specified by the syntax file.
 
-@cmd{SAMPLE} is ignored before @code{SORT CASES}.
-
 @cmd{SAMPLE} is always performed before @code{N OF CASES}, regardless
-of ordering in the syntax file.  @xref{N OF CASES}.
+of ordering in the syntax file (@pxref{N OF CASES}).
 
 The same values for @cmd{SAMPLE} may result in different samples.  To
 obtain the same sample, use the @code{SET} command to set the random
@@ -7214,6 +7240,10 @@ Place @cmd{SELECT IF} as early in the command file as
 possible.  Cases that are deleted early can be processed more
 efficiently in time and space.
 
+When @cmd{SELECT IF} is specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
+(@pxref{LAG}).
+
 @node SPLIT FILE, TEMPORARY, SELECT IF, Data Selection
 @section SPLIT FILE
 @vindex SPLIT FILE
@@ -7237,6 +7267,9 @@ variable values for the group are printed along with the analysis.
 Specify OFF to disable @cmd{SPLIT FILE} and resume analysis of the
 entire active file as a single group of data.
 
+When @cmd{SPLIT FILE} is specified after @cmd{TEMPORARY}, it affects only
+the next procedure (@pxref{TEMPORARY}).
+
 @node TEMPORARY, WEIGHT, SPLIT FILE, Data Selection
 @section TEMPORARY
 @vindex TEMPORARY
@@ -7250,11 +7283,13 @@ following its execution temporary.  These transformations will
 affect only the execution of the next procedure or procedure-like
 command.  Their effects will not be saved to the active file.
 
-The only specification is the command name.
+The only specification on @cmd{TEMPORARY} is the command name.
 
 @cmd{TEMPORARY} may not appear within a @cmd{DO IF} or @cmd{LOOP}
-construct.  It may
-appear only once between procedures and procedure-like commands.
+construct.  It may appear only once between procedures and
+procedure-like commands.
+
+Scratch variables cannot be used following @cmd{TEMPORARY}.
 
 An example may help to clarify:
 
@@ -7308,6 +7343,9 @@ case did not exist in the input.  Weighting values need not be
 integers, but negative and system-missing values for the weighting
 variable are interpreted as weighting factors of 0.  User-missing
 values are not treated specially.
+
+When @cmd{WEIGHT} is specified after @cmd{TEMPORARY}, it affects only
+the next procedure (@pxref{TEMPORARY}).
 
 @cmd{WEIGHT} does not cause cases in the active file to be replicated in
 memory.
@@ -7368,6 +7406,10 @@ none of the code blocks is executed.  If it is false, then
 the boolean expression on the first @cmd{ELSE IF}, if present, is tested in
 turn, with the same rules applied.  If all expressions evaluate to
 false, then the @cmd{ELSE} code block is executed, if it is present.
+
+When @cmd{DO IF} or @cmd{ELSE IF} is specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
+(@pxref{LAG}).
 
 @node DO REPEAT, LOOP, DO IF, Conditionals and Looping
 @section DO REPEAT
@@ -7467,6 +7509,10 @@ If the index clause and both condition clauses are not present, then the
 loop is executed MXLOOPS (@pxref{SET}) times.
 
 @cmd{BREAK} also terminates @cmd{LOOP} execution (@pxref{BREAK}).
+
+When @cmd{LOOP} or @cmd{END LOOP} is specified following @cmd{TEMPORARY}
+(@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
+(@pxref{LAG}).
 
 @node Statistics, Utilities, Conditionals and Looping, Top
 @chapter Statistics

@@ -1,3 +1,7 @@
+Sun Mar 14 21:50:56 2004  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texi: Added details on how various features interact.
+
 Fri Mar 12 16:33:12 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* Added indeces for the commands in the STATISTICS section
