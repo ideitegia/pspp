@@ -1,3 +1,9 @@
+Sun Nov  7 17:25:04 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q Added some of the parametric calculations
+
+	* factor_stats.[ch]  Created
+	
 Sat Nov  6 21:24:31 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q  Changed the definition of factors to be a composite, and

@@ -1,6 +1,6 @@
 /* PSPP - EXAMINE data for normality . -*-c-*-
 
-Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+Copyright (C) 2004 Free Software Foundation, Inc.
 Author: John Darrington 2004
 
 This program is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA. */
 
 #include <config.h>
+#include <gsl/gsl_cdf.h>
 #include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "vfm.h"
 #include "hash.h"
 #include "casefile.h"
+#include "factor_stats.h"
 
 /* (specification)
    "EXAMINE" (xmn_):
@@ -48,6 +50,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    rep:report/!noreport,
    incl:include/!exclude;
    +compare=cmp:variables/!groups;
+   +plot[plt_]=stemleaf,boxplot,npplot,:spreadlevel(*d:n),histogram,all,none;
    +cinterval=double;
    +statistics[st_]=descriptives,:extreme(*d:n),all,none.
 */
@@ -55,6 +58,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 /* (declarations) */
 
 /* (functions) */
+
 
 
 static struct cmd_examine cmd;
@@ -66,18 +70,22 @@ static int n_dependent_vars;
 static struct hsh_table *hash_table_factors;
 
 
+
+
 struct factor 
 {
   /* The independent variable for this factor */
   struct variable *indep_var;
 
-  /* The list of values of the independent variable */
+  /* The  factor statistics for each value of the independent variable */
   struct hsh_table *hash_table_val;
 
   /* The subfactor (if any) */
   struct factor *subfactor;
 
 };
+
+
 
 
 /* Parse the clause specifying the factors */
@@ -117,10 +125,13 @@ static void run_examine(const struct casefile *cf, void *cmd_);
 static void output_examine(void);
 
 
+static struct factor_statistics *totals = 0;
+
+
+
 int
 cmd_examine(void)
 {
-
 
   if ( !parse_examine(&cmd) )
     return CMD_FAILURE;
@@ -132,12 +143,17 @@ cmd_examine(void)
     cmd.n_cinterval[0] = 95.0;
 
 
+  totals = xmalloc ( sizeof (struct factor_statistics *) );
+
+  totals->stats = xmalloc(sizeof ( struct metrics ) * n_dependent_vars);
 
   multipass_procedure_with_splits (run_examine, &cmd);
 
 
   hsh_destroy(hash_table_factors);
 
+  free(totals->stats);
+  free(totals);
 
   return CMD_SUCCESS;
 };
@@ -230,7 +246,7 @@ compare_factors (const struct factor *f1,
     return indep_var_cmp;
 
   /* If the names are identical, and there are no subfactors then
-   the factors are identical */
+     the factors are identical */
   if ( ! f1->subfactor &&  ! f2->subfactor ) 
     return 0;
     
@@ -325,9 +341,10 @@ examine_parse_independent_vars(struct cmd_examine *cmd,
   f->indep_var = parse_variable();
   
   if ( ! f->hash_table_val ) 
-    f->hash_table_val = hsh_create(4,(hsh_compare_func *)compare_values,
-				  (hsh_hash_func *)hash_value,
-				  0,(void *) f->indep_var->width);
+    f->hash_table_val = hsh_create(4,(hsh_compare_func *) compare_indep_values,
+				   (hsh_hash_func *) hash_indep_value,
+				   (hsh_free_func *) free_factor_stats,
+				   (void *) f->indep_var->width);
 
   if ( token == T_BY ) 
     {
@@ -345,9 +362,9 @@ examine_parse_independent_vars(struct cmd_examine *cmd,
 
       f->subfactor->hash_table_val = 
 	hsh_create(4,
-		   (hsh_compare_func *) compare_values,
-		   (hsh_hash_func *) hash_value,
-		   0, 
+		   (hsh_compare_func *) compare_indep_values,
+		   (hsh_hash_func *) hash_indep_value,
+		   (hsh_free_func *) free_factor_stats,
 		   (void *) f->subfactor->indep_var->width);
     }
 
@@ -362,7 +379,8 @@ examine_parse_independent_vars(struct cmd_examine *cmd,
 }
 
 
-void populate_descriptives(struct tab_table *t, int col, int row);
+void populate_descriptives(struct tab_table *t, int col, int row, 
+			   const struct metrics *fs);
 
 
 void populate_extremities(struct tab_table *t, int col, int row, int n);
@@ -450,30 +468,25 @@ show_descriptives(struct variable **dependent_var,
       if ( i > 0 )
 	tab_hline(t, TAL_1, 0, n_cols - 1, row );
 
-
-
       if ( factor  )
 	{
 	  struct hsh_iterator hi;
-	  union value *v;
+	  const struct factor_statistics *fs;
 	  int count = 0;
 
-      tab_text (t, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		var_to_string(factor->indep_var));
+	  tab_text (t, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
+		    var_to_string(factor->indep_var));
 
 
 
-	  for ( v  = hsh_first(factor->hash_table_val, &hi);
-		v != 0;
-		v  = hsh_next(factor->hash_table_val,  &hi))
+	  for (fs  = hsh_first(factor->hash_table_val, &hi);
+	       fs != 0;
+	       fs  = hsh_next(factor->hash_table_val,  &hi))
 	    {
-	      struct hsh_iterator h2;
-	      union value *vv;
-		
 	      tab_text (t, 1, 
 			row  + count * n_subfactors * n_stat_rows,
 			TAB_RIGHT | TAT_TITLE, 
-			value_to_string(v, factor->indep_var)
+			value_to_string(fs->id, factor->indep_var)
 			);
 
 	      if ( count > 0 ) 
@@ -483,13 +496,17 @@ show_descriptives(struct variable **dependent_var,
 	      if ( factor->subfactor ) 
 		{
 		  int count2=0;
-
+		  struct hsh_iterator h2;
+		  const struct factor_statistics *sub_fs;
+	      
 		  tab_text (t, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
 			    var_to_string(factor->subfactor->indep_var));
 
-		  for ( vv = hsh_first(factor->subfactor->hash_table_val, &h2);
-			vv != 0;
-			vv = hsh_next(factor->subfactor->hash_table_val, &h2))
+		  for ( sub_fs = hsh_first(factor->subfactor->hash_table_val, 
+					   &h2);
+			sub_fs != 0;
+			sub_fs = hsh_next(factor->subfactor->hash_table_val, 
+					  &h2))
 		    {
 			
 		      tab_text(t, 2, 
@@ -497,7 +514,7 @@ show_descriptives(struct variable **dependent_var,
 			       + count * n_subfactors * n_stat_rows 
 			       + count2 * n_stat_rows,
 			       TAB_RIGHT | TAT_TITLE ,
-			       value_to_string(vv, factor->subfactor->indep_var)
+			       value_to_string(sub_fs->id, factor->subfactor->indep_var)
 			       );
 
 		      if ( count2 > 0 ) 
@@ -509,8 +526,9 @@ show_descriptives(struct variable **dependent_var,
 		      populate_descriptives(t, heading_columns,
 					    row
 					    + count * n_subfactors 
-					      * n_stat_rows 
-					    + count2 * n_stat_rows);
+					    * n_stat_rows 
+					    + count2 * n_stat_rows,
+					    &sub_fs->stats[i]);
 					    
 			
 		      count2++;
@@ -518,9 +536,11 @@ show_descriptives(struct variable **dependent_var,
 		}
 	      else
 		{
+		  
 		  populate_descriptives(t, heading_columns, 
 					row  
-					+ count * n_subfactors * n_stat_rows);
+					+ count * n_subfactors * n_stat_rows, 
+					&fs->stats[i]);
 		}
 
 	      count ++;
@@ -529,7 +549,7 @@ show_descriptives(struct variable **dependent_var,
       else
 	{
 	  populate_descriptives(t, heading_columns, 
-				row);
+				row, &totals->stats[i]);
 	}
 
       tab_text (t, 
@@ -543,83 +563,149 @@ show_descriptives(struct variable **dependent_var,
   tab_title (t, 0, _("Descriptives"));
 
   tab_submit(t);
+
 }
 
 
 
 /* Fill in the descriptives data */
 void
-populate_descriptives(struct tab_table *t, int col, int row)
+populate_descriptives(struct tab_table *tbl, int col, int row, 
+		      const struct metrics *m)
 {
 
-  tab_text (t, col, 
+  const double t = gsl_cdf_tdist_Qinv(1 - cmd.n_cinterval[0]/100.0/2.0, \
+				       m->n -1);
+
+
+  tab_text (tbl, col, 
 	    row,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Mean"));
 
+  tab_float (tbl, col + 2,
+	     row,
+	     TAB_CENTER,
+	     m->mean,
+	     8,2);
+  
+  tab_float (tbl, col + 3,
+	     row,
+	     TAB_CENTER,
+	     m->stderr,
+	     8,3);
+  
 
-  tab_text (t, col, 
+  tab_text (tbl, col, 
 	    row + 1,
 	    TAB_LEFT | TAT_TITLE | TAT_PRINTF,
 	    _("%g%% Confidence Interval for Mean"), cmd.n_cinterval[0]);
 
-  tab_text (t, col + 1,  
-	    row + 1,
-	    TAB_LEFT | TAT_TITLE,
-	    _("Upper Bound"));
 
-  tab_text (t, col + 1, 
-	    row  + 2,
+  tab_text (tbl, col + 1, 
+	    row  + 1,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Lower Bound"));
 
+  tab_float (tbl, col + 2,
+	     row + 1,
+	     TAB_CENTER,
+	     m->mean - t * m->stderr, 
+	     8,3);
 
-  tab_text (t, col, 
+  tab_text (tbl, col + 1,  
+	    row + 2,
+	    TAB_LEFT | TAT_TITLE,
+	    _("Upper Bound"));
+
+
+  tab_float (tbl, col + 2,
+	     row + 2,
+	     TAB_CENTER,
+	     m->mean + t * m->stderr, 
+	     8,3);
+
+  tab_text (tbl, col, 
 	    row + 3,
 	    TAB_LEFT | TAT_TITLE,
 	    _("5% Trimmed Mean"));
 
-  tab_text (t, col, 
+  tab_text (tbl, col, 
 	    row + 4,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Median"));
 
-  tab_text (t, col, 
+  tab_text (tbl, col, 
 	    row + 5,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Variance"));
 
-  tab_text (t, col, 
+  tab_float (tbl, col + 2,
+	     row + 5,
+	     TAB_CENTER,
+	     m->var,
+	     8,3);
+
+
+  tab_text (tbl, col, 
 	    row + 6,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Std. Deviation"));
 
-  tab_text (t, col, 
+
+  tab_float (tbl, col + 2,
+	     row + 6,
+	     TAB_CENTER,
+	     m->stddev,
+	     8,3);
+
+  
+  tab_text (tbl, col, 
 	    row + 7,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Minimum"));
 
-  tab_text (t, col, 
+  tab_float (tbl, col + 2,
+	     row + 7,
+	     TAB_CENTER,
+	     m->min,
+	     8,3);
+
+  tab_text (tbl, col, 
 	    row + 8,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Maximum"));
 
-  tab_text (t, col, 
+  tab_float (tbl, col + 2,
+	     row + 8,
+	     TAB_CENTER,
+	     m->max,
+	     8,3);
+
+
+  tab_text (tbl, col, 
 	    row + 9,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Range"));
 
-  tab_text (t, col, 
+
+  tab_float (tbl, col + 2,
+	     row + 9,
+	     TAB_CENTER,
+	     m->max - m->min,
+	     8,3);
+
+  tab_text (tbl, col, 
 	    row + 10,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Interquartile Range"));
 
-  tab_text (t, col, 
+  tab_text (tbl, col, 
 	    row + 11,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Skewness"));
 
-  tab_text (t, col, 
+  tab_text (tbl, col, 
 	    row + 12,
 	    TAB_LEFT | TAT_TITLE,
 	    _("Kurtosis"));
@@ -642,7 +728,7 @@ show_summary(struct variable **dependent_var,
   int heading_columns ;
   int n_cols;
   const int heading_rows = 3;
-  struct tab_table *t;
+  struct tab_table *tbl;
 
   int n_rows = heading_rows;
 
@@ -670,35 +756,35 @@ show_summary(struct variable **dependent_var,
 
   n_cols = heading_columns + 6;
 
-  t = tab_create (n_cols,n_rows,0);
-  tab_headers (t, heading_columns, 0, heading_rows, 0);
+  tbl = tab_create (n_cols,n_rows,0);
+  tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (tbl, tab_natural_dimensions);
   
   /* Outline the box and have vertical internal lines*/
-  tab_box (t, 
+  tab_box (tbl, 
 	   TAL_2, TAL_2,
 	   -1, TAL_1,
 	   0, 0,
 	   n_cols - 1, n_rows - 1);
 
-  tab_hline (t, TAL_2, 0, n_cols - 1, heading_rows );
-  tab_hline (t, TAL_1, heading_columns, n_cols - 1, 1 );
-  tab_hline (t, TAL_1, 0, n_cols - 1, heading_rows -1 );
+  tab_hline (tbl, TAL_2, 0, n_cols - 1, heading_rows );
+  tab_hline (tbl, TAL_1, heading_columns, n_cols - 1, 1 );
+  tab_hline (tbl, TAL_1, 0, n_cols - 1, heading_rows -1 );
 
-  tab_vline (t, TAL_2, heading_columns, 0, n_rows - 1);
+  tab_vline (tbl, TAL_2, heading_columns, 0, n_rows - 1);
 
 
-  tab_title (t, 0, _("Case Processing Summary"));
+  tab_title (tbl, 0, _("Case Processing Summary"));
   
 
-  tab_joint_text(t, heading_columns, 0, 
+  tab_joint_text(tbl, heading_columns, 0, 
 		 n_cols -1, 0,
 		 TAB_CENTER | TAT_TITLE,
 		 _("Cases"));
 
   /* Remove lines ... */
-  tab_box (t, 
+  tab_box (tbl, 
 	   -1, -1,
 	   TAL_0, TAL_0,
 	   heading_columns, 0,
@@ -706,26 +792,26 @@ show_summary(struct variable **dependent_var,
 
   if ( factor ) 
     {
-      tab_text (t, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
+      tab_text (tbl, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
 		var_to_string(factor->indep_var));
 
       if ( factor->subfactor ) 
-	tab_text (t, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
+	tab_text (tbl, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
 		  var_to_string(factor->subfactor->indep_var));
     }
 
   for ( i = 0 ; i < 3 ; ++i ) 
     {
-      tab_text (t, heading_columns + i*2 , 2, TAB_CENTER | TAT_TITLE, _("N"));
-      tab_text (t, heading_columns + i*2 + 1, 2, TAB_CENTER | TAT_TITLE, 
+      tab_text (tbl, heading_columns + i*2 , 2, TAB_CENTER | TAT_TITLE, _("N"));
+      tab_text (tbl, heading_columns + i*2 + 1, 2, TAB_CENTER | TAT_TITLE, 
 		_("Percent"));
 
-      tab_joint_text(t, heading_columns + i*2 , 1,
+      tab_joint_text(tbl, heading_columns + i*2 , 1,
 		     heading_columns + i*2 + 1, 1,
 		     TAB_CENTER | TAT_TITLE,
 		     subtitle[i]);
 
-      tab_box (t, -1, -1,
+      tab_box (tbl, -1, -1,
 	       TAL_0, TAL_0,
 	       heading_columns + i*2, 1,
 	       heading_columns + i*2 + 1, 1);
@@ -745,7 +831,7 @@ show_summary(struct variable **dependent_var,
 	    n_subfactors = hsh_count(factor->subfactor->hash_table_val);
 	}
 
-      tab_text (t, 
+      tab_text (tbl, 
 		0, i * n_factors * n_subfactors + heading_rows,
 		TAB_LEFT | TAT_TITLE, 
 		var_to_string(dependent_var[i])
@@ -754,36 +840,38 @@ show_summary(struct variable **dependent_var,
       if ( factor  )
 	{
 	  struct hsh_iterator hi;
-	  union value *v;
+	  const struct factor_statistics *fs;
 	  int count = 0;
 
-	  for ( v  = hsh_first(factor->hash_table_val, &hi);
-		v != 0;
-		v  = hsh_next(factor->hash_table_val,  &hi))
+	  for (fs  = hsh_first(factor->hash_table_val, &hi);
+	       fs != 0;
+	       fs  = hsh_next(factor->hash_table_val,  &hi))
 	    {
-	      struct hsh_iterator h2;
-	      union value *vv;
-		
-	      tab_text (t, 1, 
+	      tab_text (tbl, 1, 
 			i * n_factors * n_subfactors + heading_rows
 			+ count * n_subfactors,
 			TAB_RIGHT | TAT_TITLE, 
-			value_to_string(v, factor->indep_var)
+			value_to_string(fs->id, factor->indep_var)
 			);
 
 	      if ( factor->subfactor ) 
 		{
 		  int count2=0;
-		  for ( vv = hsh_first(factor->subfactor->hash_table_val, &h2);
-			vv != 0;
-			vv = hsh_next(factor->subfactor->hash_table_val, &h2))
+		  struct hsh_iterator h2;
+		  const struct factor_statistics *sub_fs;
+		
+		  for ( sub_fs = hsh_first(factor->subfactor->hash_table_val, 
+					   &h2);
+			sub_fs != 0;
+			sub_fs = hsh_next(factor->subfactor->hash_table_val, 
+					  &h2))
 		    {
 			
-		      tab_text(t, 2, 
+		      tab_text(tbl, 2, 
 			       i * n_factors * n_subfactors + heading_rows
 			       + count * n_subfactors + count2,
 			       TAB_RIGHT | TAT_TITLE ,
-			       value_to_string(vv, factor->subfactor->indep_var)
+			       value_to_string(sub_fs->id, factor->subfactor->indep_var)
 			       );
 			
 		      count2++;
@@ -795,13 +883,12 @@ show_summary(struct variable **dependent_var,
     }
 
 
-  tab_submit (t);
+  tab_submit (tbl);
   
 }
 
-
-
 static int bad_weight_warn = 1;
+
 
 static void 
 run_examine(const struct casefile *cf, void *cmd_)
@@ -811,6 +898,7 @@ run_examine(const struct casefile *cf, void *cmd_)
 
   struct casereader *r;
   struct ccase c;
+  int v;
 
   const struct cmd_examine *cmd = (struct cmd_examine *) cmd_;
 
@@ -829,15 +917,23 @@ run_examine(const struct casefile *cf, void *cmd_)
 	}
     }
 
+  for ( v = 0 ; v < n_dependent_vars ; ++v ) 
+    metrics_precalc(&totals->stats[v]);
 
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
-      int i;
-
       const double weight = 
 	dict_get_case_weight(default_dict, &c, &bad_weight_warn);
+
+      for ( v = 0 ; v < n_dependent_vars ; ++v ) 
+	{
+	  const struct variable *var = dependent_vars[v];
+	  const union value *val = case_data (&c, var->fv);
+
+	  metrics_calc(&totals->stats[v], val->f, weight);
+	}
 
       if ( hash_table_factors ) 
 	{
@@ -845,28 +941,114 @@ run_examine(const struct casefile *cf, void *cmd_)
 		fctr != 0;
 		fctr = hsh_next (hash_table_factors, &hi) )
 	    {
-	      const union value *val = case_data (&c, fctr->indep_var->fv);
-	      hsh_insert(fctr->hash_table_val, (void *) val);
+	      const union value *indep_val = 
+		case_data(&c, fctr->indep_var->fv);
+
+	      struct factor_statistics **foo = ( struct factor_statistics ** ) 
+		hsh_probe(fctr->hash_table_val, (void *) &indep_val);
+
+	      if ( !*foo ) 
+		{
+		  *foo = xmalloc ( sizeof ( struct factor_statistics));
+		  (*foo)->id = indep_val;
+		  (*foo)->stats = xmalloc ( sizeof ( struct metrics ) 
+					    * n_dependent_vars);
+
+		  for ( v =  0 ; v  < n_dependent_vars ; ++v ) 
+		    metrics_precalc( &(*foo)->stats[v] );
+
+		  hsh_insert(fctr->hash_table_val, (void *) *foo);
+		}
+
+	      for ( v =  0 ; v  < n_dependent_vars ; ++v ) 
+		{
+		  const struct variable *var = dependent_vars[v];
+		  const union value *val = case_data (&c, var->fv);
+
+		  metrics_calc( &(*foo)->stats[v], val->f, weight );
+		}
 
 	      if ( fctr->subfactor  ) 
 		{
-		  val = case_data (&c, fctr->subfactor->indep_var->fv);
-		  hsh_insert(fctr->subfactor->hash_table_val, (void *) val);
+		  struct factor *sfctr  = fctr->subfactor;
+
+		  const union value *ii_val = 
+		    case_data (&c, sfctr->indep_var->fv);
+
+		  struct factor_statistics **bar = 
+		    (struct factor_statistics **)
+		    hsh_probe(sfctr->hash_table_val, (void *) &ii_val);
+
+		  if ( !*bar ) 
+		    {
+		      *bar = xmalloc ( sizeof ( struct factor_statistics));
+		      (*bar)->id = ii_val;
+		      (*bar)->stats = xmalloc ( sizeof ( struct metrics ) 
+						* n_dependent_vars);
+		  
+		      for ( v =  0 ; v  < n_dependent_vars ; ++v ) 
+			metrics_precalc( &(*bar)->stats[v] );
+
+		      hsh_insert(sfctr->hash_table_val, 
+				 (void *) *bar);
+		    }
+
+		  for ( v =  0 ; v  < n_dependent_vars ; ++v ) 
+		    {
+		      const struct variable *var = dependent_vars[v];
+		      const union value *val = case_data (&c, var->fv);
+
+		      metrics_calc( &(*bar)->stats[v], val->f, weight );
+		    }
 		}
 	    }
 	}
 
     }
 
+  for ( v = 0 ; v < n_dependent_vars ; ++v)
+    {
+      for ( fctr = hsh_first(hash_table_factors, &hi);
+	    fctr != 0;
+	    fctr = hsh_next (hash_table_factors, &hi) )
+	{
+	  struct hsh_iterator h2;
+	  struct factor_statistics *fs;
+
+	  for ( fs = hsh_first(fctr->hash_table_val,&h2);
+		fs != 0;
+		fs = hsh_next(fctr->hash_table_val,&h2))
+	      {
+		metrics_postcalc( &fs->stats[v] );
+	      }
+
+	  if ( fctr->subfactor) 
+	    {
+	      struct hsh_iterator hsf;
+	      struct factor_statistics *fss;
+
+	      for ( fss = hsh_first(fctr->subfactor->hash_table_val,&hsf);
+		    fss != 0;
+		    fss = hsh_next(fctr->subfactor->hash_table_val,&hsf))
+		{
+		  metrics_postcalc( &fss->stats[v] );
+		}
+	    }
+	}
+
+      metrics_postcalc(&totals->stats[v]);
+    }
+
   output_examine();
+
 }
 
 
 static void 
 show_extremes(struct variable **dependent_var, 
-			  int n_dep_var, 
-			  struct factor *factor,
-			  int n_extremities)
+	      int n_dep_var, 
+	      struct factor *factor,
+	      int n_extremities)
 {
   int i;
   int heading_columns ;
@@ -969,26 +1151,23 @@ show_extremes(struct variable **dependent_var,
 		   TAL_1, 0, n_cols - 1,  
 		   heading_rows + 2 * n_extremities * 
 		   (i * n_factors * n_subfactors )
-		    );
+		   );
 
       if ( factor  )
 	{
 	  struct hsh_iterator hi;
-	  union value *v;
+	  const struct factor_statistics *fs;
 	  int count = 0;
 
-	  for ( v  = hsh_first(factor->hash_table_val, &hi);
-		v != 0;
-		v  = hsh_next(factor->hash_table_val,  &hi))
+	  for ( fs  = hsh_first(factor->hash_table_val, &hi);
+	        fs != 0;
+		fs  = hsh_next(factor->hash_table_val,  &hi))
 	    {
-	      struct hsh_iterator h2;
-	      union value *vv;
-		
 	      tab_text (t, 1, heading_rows + 2 * n_extremities * 
 			(i * n_factors * n_subfactors 
 			 + count * n_subfactors),
 			TAB_RIGHT | TAT_TITLE, 
-			value_to_string(v, factor->indep_var)
+			value_to_string(fs->id, factor->indep_var)
 			);
 
 	      if ( count > 0 ) 
@@ -1000,17 +1179,23 @@ show_extremes(struct variable **dependent_var,
 
 	      if ( factor->subfactor ) 
 		{
+		  struct hsh_iterator h2;
+		  const struct factor_statistics *sub_fs;
 		  int count2=0;
-		  for ( vv = hsh_first(factor->subfactor->hash_table_val, &h2);
-			vv != 0;
-			vv = hsh_next(factor->subfactor->hash_table_val, &h2))
+
+		  for ( sub_fs = hsh_first(factor->subfactor->hash_table_val, 
+					   &h2);
+			sub_fs != 0;
+			sub_fs = hsh_next(factor->subfactor->hash_table_val, 
+					  &h2))
 		    {
 			
 		      tab_text(t, 2, heading_rows + 2 * n_extremities *
 			       (i * n_factors * n_subfactors 
 				+ count * n_subfactors + count2 ),
 			       TAB_RIGHT | TAT_TITLE ,
-			       value_to_string(vv, factor->subfactor->indep_var)
+			       value_to_string(sub_fs->id, 
+					       factor->subfactor->indep_var)
 			       );
 
 
@@ -1035,7 +1220,7 @@ show_extremes(struct variable **dependent_var,
 				       heading_rows + 2 * n_extremities *
 				       (i * n_factors * n_subfactors 
 					+ count * n_subfactors),
-					n_extremities);
+				       n_extremities);
 		}
 
 	      count ++;
@@ -1051,9 +1236,7 @@ show_extremes(struct variable **dependent_var,
 	}
     }
 
-
   tab_submit (t);
-
 }
 
 
@@ -1069,21 +1252,21 @@ populate_extremities(struct tab_table *t, int col, int row, int n)
 	   _("Highest")
 	   );
 
-
   tab_text(t, col, row + n ,
 	   TAB_RIGHT | TAT_TITLE ,
 	   _("Lowest")
 	   );
 
-
   for (i = 0; i < n ; ++i ) 
     {
       tab_float(t, col + 1, row + i,
-		TAB_RIGHT | TAT_TITLE,
+		TAB_RIGHT,
 		i + 1, 8, 0);
 
       tab_float(t, col + 1, row + i + n,
-		TAB_RIGHT | TAT_TITLE,
+		TAB_RIGHT,
 		i + 1, 8, 0);
     }
 }
+
+

@@ -56,7 +56,7 @@ command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
 devind.c devind.h dfm.c dfm.h dictionary.c do-if.c do-ifP.h error.c	\
 error.h expr-evl.c expr-opt.c expr-prs.c expr.h exprP.h expr.def        \
-file-handle.h	\
+factor_stats.c factor_stats.h file-handle.h	\
 file-type.c filename.c filename.h flip.c font.h format.c format.def	\
 format.h formats.c get.c getline.c getline.h glob.c glob.h		\
 groff-font.c group.c group.h group_proc.h \
