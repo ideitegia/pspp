@@ -112,7 +112,7 @@ static int exclude_this_case (void);
 
 /* Reads all the cases from the active file, transforms them by
    the active set of transformations, calls PROCFUNC with CURCASE
-   set to the case , and writes them to a new active file.
+   set to the case, and writes them to a new active file.
 
    Divides the active file into zero or more series of one or more
    cases each.  BEGINFUNC is called before each series.  ENDFUNC is
