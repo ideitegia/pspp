@@ -40,7 +40,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 #include "casefile.h"
 
 /* (specification)
-   "EXAMINE" (examine_):
+   "EXAMINE" (xmn_):
    *variables=custom;
    +total=custom;
    +nototal=custom;
@@ -117,8 +117,13 @@ cmd_examine(void)
   int i;
   short total=1;
 
+
+
   if ( !parse_examine(&cmd) )
     return CMD_FAILURE;
+  
+  if ( cmd.st_n == SYSMIS ) 
+    cmd.st_n = 5;
 
   if ( ! cmd.sbc_cinterval) 
     cmd.n_cinterval[0] = 95.0;
@@ -136,10 +141,10 @@ cmd_examine(void)
 
       if ( cmd.sbc_statistics ) 
 	{
-	  if ( cmd.a_statistics[EXAMINE_ST_DESCRIPTIVES]) 
+	  if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES]) 
 	    show_descriptives(dependent_vars, n_dependent_vars, 0);
 	  
-	  if ( cmd.st_n != SYSMIS )
+	  if ( cmd.a_statistics[XMN_ST_EXTREME]) 
 	    show_extremes(dependent_vars, n_dependent_vars, 0, cmd.st_n);
 	}
     }
@@ -158,10 +163,10 @@ cmd_examine(void)
 
 	  if ( cmd.sbc_statistics )
 	    {
-	      if ( cmd.a_statistics[EXAMINE_ST_DESCRIPTIVES])
+	      if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES])
 		show_descriptives(dependent_vars, n_dependent_vars,f);
 	      
-	      if ( cmd.st_n != SYSMIS )
+	      if ( cmd.a_statistics[XMN_ST_EXTREME])
 		show_extremes(dependent_vars, n_dependent_vars,f,cmd.st_n);
 	    }
 	}
@@ -175,7 +180,7 @@ cmd_examine(void)
 
 /* TOTAL and NOTOTAL are simple, mutually exclusive flags */
 static int
-examine_custom_total(struct cmd_examine *p)
+xmn_custom_total(struct cmd_examine *p)
 {
   if ( p->sbc_nototal ) 
     {
@@ -187,7 +192,7 @@ examine_custom_total(struct cmd_examine *p)
 }
 
 static int
-examine_custom_nototal(struct cmd_examine *p)
+xmn_custom_nototal(struct cmd_examine *p)
 {
   if ( p->sbc_total ) 
     {
@@ -253,7 +258,7 @@ free_factor(struct factor *f, void *aux UNUSED)
 
 /* Parser for the variables sub command */
 static int
-examine_custom_variables(struct cmd_examine *cmd )
+xmn_custom_variables(struct cmd_examine *cmd )
 {
 
   lex_match('=');

@@ -705,6 +705,15 @@ parse_specifier (specifier *spec, subcommand *sbc)
     }
   skip_token (':');
   
+  if ( sbc->type == SBC_ARRAY && token == T_ID ) 
+    {
+	spec->varname = xstrdup (st_lower (tokstr));
+	spec->index = sbc->narray;
+	sbc->narray++;
+    }
+    
+  
+  
   /* Parse all the settings. */
   {
     setting **s = &spec->s;
@@ -779,6 +788,7 @@ parse_subcommand (subcommand *sbc)
       
       sbc->type = SBC_ARRAY;
       parse_specifiers (sbc);
+
     }
   else
     {
@@ -1062,7 +1072,6 @@ dump_declarations (void)
 	    specifier *spec;
 
 	    for (spec = sbc->spec; spec; spec = spec->next)
-	      if (!spec->s)
 		dump (0, "%s%s%s = %d,",
 		      st_upper (prefix), st_upper (sbc->prefix),
 		      st_upper (spec->varname), spec->index);
@@ -1108,8 +1117,12 @@ dump_declarations (void)
 			      spec->varname);
 		      else if (f == 0)
 			{
-			  dump (0, "int a_%s[%d];", 
-				st_lower (sbc->name), sbc->narray);
+			  dump (0, "int a_%s[%s%scount];", 
+				st_lower (sbc->name), 
+				st_upper (prefix),
+				st_upper (sbc->prefix)
+				);
+
 			  f = 1;
 			}
 		    }
@@ -1390,6 +1403,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	dump (1, "%sif (%s)", first ? "" : "else ",
 	      make_match (s->specname));
 
+
       /* Handle values. */
       if (s->value == VAL_NONE)
 	dump (0, "p->%s%s = %s%s;", sbc->prefix, spec->varname,
@@ -1400,9 +1414,18 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	    dump (1, "{");
 	  
 	  if (spec->varname)
-	    dump (0, "p->%s%s = %s%s;", sbc->prefix, spec->varname,
-		  st_upper (prefix), find_symbol (s->con)->name);
-	  
+	    {
+	      dump (0, "p->%s%s = %s%s;", sbc->prefix, spec->varname,
+		    st_upper (prefix), find_symbol (s->con)->name);
+
+	      if ( sbc->type == SBC_ARRAY ) 
+		dump (0, "p->a_%s[%s%s%s] = 1;",
+		      st_lower (sbc->name),
+		      st_upper (prefix), st_upper (sbc->prefix),
+		      st_upper (spec->varname));
+	    }
+
+
 	  if (s->valtype == VT_PAREN)
 	    {
 	      if (s->optvalue)

@@ -433,4 +433,13 @@ int parse_var_set_vars (const struct var_set *, struct variable ***, int *,
 int parse_DATA_LIST_vars (char ***names, int *cnt, int opts);
 int parse_mixed_vars (char ***names, int *cnt, int opts);
 
+
+
+/* Return a string representing this variable, in the form most 
+   appropriate from a human factors perspective.
+   (IE: the label if it has one, otherwise the name )
+*/
+const char * var_to_string(const struct variable *var);
+
+
 #endif /* !var_h */

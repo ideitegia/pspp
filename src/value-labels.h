@@ -53,4 +53,10 @@ struct val_lab *val_labs_next (const struct val_labs *,
                                struct val_labs_iterator **);
 void val_labs_done (struct val_labs_iterator **);
 
+/* Return a string representing this value, in the form most 
+   appropriate from a human factors perspective.
+   (IE: the label if it has one, otherwise the alpha/numeric )
+*/
+const char *value_to_string(const union value *, const struct variable *);
+
 #endif /* value-labels.h */

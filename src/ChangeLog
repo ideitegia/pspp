@@ -1,3 +1,14 @@
+Thu Nov  4 11:09:01 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+	* q2c.c examine.q  Fixed a bug (feature?) whereby arrays in the
+	command which had settings didn't get the appropriate code
+	generated.
+
+	* val.h value-labels.[ch] var-labs.c Added v*to_string functions
+	to convert variables/values to strings.
+
+	* examine.q  Added framework for the EXAMINE command.
+
 Mon Nov  1 12:46:17 WST 2004 John Darrington <john@darrington.wattle.id.au>
 
 	* q2c.c frequencies.q set.q t-test.q  Fixed the q2c parsing of DBL 
