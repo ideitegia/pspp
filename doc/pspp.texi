@@ -6571,39 +6571,38 @@ Cases are divided into groups that have the same values for one or more
 variables called @dfn{break variables}.  Several functions are available
 for summarizing case contents.
 
-BREAK is the only required subcommand (in addition, at least one
-aggregation variable must be specified).  Specify a list of variable
-names.  The values of these variables are used to divide the active file
-into groups to be summarized.
+At least one break variable must be specified on BREAK, the only
+required subcommand.  The values of these variables are used to divide
+the active file into groups to be summarized.  In addition, at least
+one @var{dest_var} must be specified.
 
 By default, the active file is sorted based on the break variables
-before aggregation takes place.  If the active file is already sorted,
-specify PRESORTED to save time.
+before aggregation takes place.  If the active file is already sorted
+or otherwise grouped in terms of the break variables, specify
+PRESORTED to save time.
 
 The OUTFILE subcommand specifies a system file by file name string or
-file handle (@pxref{FILE HANDLE}).  The aggregated cases are sent to
+file handle (@pxref{FILE HANDLE}).  The aggregated cases are written to
 this file.  If OUTFILE is not specified, or if @samp{*} is specified,
 then the aggregated cases replace the active file.
 
-Normally the aggregate file does not receive the documents from the
-active file, even if the aggregate file replaces the active file.
-Specify DOCUMENT to have the documents from the active file copied to
-the aggregate file.
+Specify DOCUMENT to copy the documents from the active file into the
+aggregate file (@pxref{DOCUMENT}).  Otherwise, the aggregate file will
+not contain any documents, even if the aggregate file replaces the
+active file.
 
-At least one aggregation variable must be specified.  Specify a list of
-aggregation variables, an equals sign (@samp{=}), an aggregation
-function name (see the list below), and a list of source variables in
-parentheses.  In addition, some aggregation functions expect additional
-arguments in the parentheses following the source variable names.
+One or more sets of aggregation variables must be specified.  Each set
+comprises a list of aggregation variables, an equals sign (@samp{=}),
+the name of an aggregation function (see the list below), and a list
+of source variables in parentheses.  Some aggregation functions expect
+additional arguments following the source variable names.
 
-There must be exactly as many source variables as aggregation variables.
-Each aggregation variable receives the results of applying the specified
-aggregation function to the corresponding source variable.  Most
-aggregation functions may be applied to numeric and short and long
-string variables.  Others are restricted to numeric values; these are
-marked as such in this list below.
-
-Any number of sets of aggregation variables may be specified.
+Each set must have exactly as many source variables as aggregation
+variables.  Each aggregation variable receives the results of applying
+the specified aggregation function to the corresponding source
+variable.  Most aggregation functions may be applied to numeric and
+short and long string variables.  Others, marked below, are restricted
+to numeric values.
 
 The available aggregation functions are as follows:
 
@@ -6656,26 +6655,22 @@ First value in this group.
 Last value in this group.
 @end table
 
-When string values are compared by aggregation functions, they are done
-in terms of internal character codes.  On most modern computers, this is
-a form of ASCII.
+Aggregation functions compare string values in terms of internal
+character codes.  On most modern computers, this is a form of ASCII.
 
-In addition, there is a parallel set of aggregation functions having the
-same names as those above, but with a dot after the last character (for
-instance, @samp{SUM.}).  These functions are the same as the above,
-except that they cause user-missing values, which are normally excluded
-from calculations, to be included.
+The aggregation functions listed above exclude all user-missing values
+from calculations.  To include user-missing values, insert a period
+(@samp{.}) between the function name and left parenthesis
+(e.g.~@samp{SUM.}).
 
 Normally, only a single case (for SD and SD., two cases) need be
-non-missing in
-each group in order for the aggregate variable to be non-missing.  If
-/MISSING=COLUMNWISE is specified, the behavior reverses: that is, a
-single missing value is enough to make the aggregate variable become a
-missing value.
+non-missing in each group for the aggregate variable to be
+non-missing.  Specifying /MISSING=COLUMNWISE inverts this behavior, so
+that the aggregate variable becomes missing if any aggregated value is
+missing.
 
-@cmd{AGGREGATE} ignores the current @cmd{SPLIT FILE} settings and causes
-them to be
-canceled (@pxref{SPLIT FILE}).  
+@cmd{AGGREGATE} both ignores and cancels the current @cmd{SPLIT FILE}
+settings (@pxref{SPLIT FILE}).
 
 @node AUTORECODE, COMPUTE, AGGREGATE, Data Manipulation
 @section AUTORECODE
