@@ -48,8 +48,6 @@
 #include <sys/stat.h>
 #endif
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* Variables to sort. */

@@ -31,8 +31,6 @@
 #include "str.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* Definitions. */
@@ -112,7 +110,7 @@ static void recode_trns_free (struct trns_header *);
 static double convert_to_double (char *, int);
 
 #if DEBUGGING
-static void debug_print (rcd_var * head);
+static void debug_print (struct rcd_var * head);
 #endif
 
 /* Parser. */

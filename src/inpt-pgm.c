@@ -34,8 +34,6 @@
 #include "var.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* A bit-vector of two-bit entries.  The array tells INPUT PROGRAM how

@@ -26,8 +26,6 @@
 #include "var.h"
 /* (headers) */
 
-#undef DEBUGGING
-#define DEBUGGING 1
 #include "debug-print.h"
 
 struct cor_set

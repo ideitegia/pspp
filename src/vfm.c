@@ -65,8 +65,6 @@ char *alloca ();
    (the data sink).  The data source is then deleted and the data sink
    becomes the data source for the next procedure. */
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* This is used to read from the active file. */
@@ -370,7 +368,7 @@ index_to_varname (int ccase_index)
 
   for (i = 0; i < default_dict.nvar; i++)
     {
-      variable *v = default_dict.var[i];
+      struct variable *v = default_dict.var[i];
       
       if (ccase_index >= v->fv && ccase_index < v->fv + v->nv)
 	return default_dict.var[i]->name;
@@ -944,7 +942,6 @@ struct case_stream vfm_memory_stream =
     "memory",
   };
 
-#undef DEBUGGING
 #include "debug-print.h"
 
 /* Add temp_case to the lag queue. */

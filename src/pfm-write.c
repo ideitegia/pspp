@@ -37,8 +37,6 @@
 #include "var.h"
 #include "version.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* pfm writer file_handle extension. */

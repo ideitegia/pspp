@@ -1,3 +1,7 @@
+Wed Dec 17 12:19:40 WAST 2003 John Darrington <john@darrington.wattle.id.au>
+
+	* Added an --enable-debug flag to configure
+
 2003-12-13  gettextize  <bug-gnu-gettext@gnu.org>
 
 	* Makefile.am (EXTRA_DIST): Add mkinstalldirs.

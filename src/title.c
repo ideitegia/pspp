@@ -30,8 +30,6 @@
 #include "version.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 static int get_title (const char *cmd, char **title);

@@ -57,8 +57,6 @@ char *alloca ();
 #include "var.h"
 #include "version.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* PORTME: This file may require substantial revision for those

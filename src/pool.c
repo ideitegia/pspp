@@ -113,9 +113,7 @@ union align
 /*#define DISCRETE_BLOCKS 1*/
 
 /* Enable debug code if appropriate. */
-#undef DEBUGGING
 #if SELF_TEST
-#define DEBUGGING 1
 #endif
 
 /* Size of each block allocated in the pool, in bytes.

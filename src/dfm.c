@@ -50,8 +50,6 @@ char *alloca ();
 #include "str.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* file_handle extension structure. */

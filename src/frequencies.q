@@ -45,8 +45,6 @@
 #include "var.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* (specification)

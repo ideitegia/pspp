@@ -52,8 +52,6 @@ char *alloca ();
 #include "var.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* FIXME: /N subcommand not implemented.  It should be pretty simple,

@@ -43,8 +43,6 @@
 #include "misc/strerror.c"
 #endif
      
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* Max length of an input line. */

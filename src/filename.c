@@ -46,8 +46,6 @@ char *alloca ();
 #include "str.h"
 #include "version.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* PORTME: Everything in this file is system dependent. */

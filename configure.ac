@@ -102,6 +102,11 @@ AH_BOTTOM([#include <pref.h>])
 dnl This is needed otherwise --with-included-gettext fails
 AH_BOTTOM([#include <locale.h>])
 
+AC_ARG_ENABLE(debug, [  --enable-debug          Turn on diagnostic features in the program])
+if test x"$enable_debug" = x"yes"  ; then
+  AC_DEFINE(DEBUGGING, 1, [Define to 1 if debugging is enabled.])
+fi
+
 AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile intl/Makefile 
 		 lib/Makefile lib/julcal/Makefile lib/misc/Makefile 
 		 lib/dcdflib/Makefile doc/Makefile src/Makefile 

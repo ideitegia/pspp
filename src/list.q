@@ -51,8 +51,6 @@ char *alloca ();
 #include "vfm.h"
 #include "format.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 #if DEBUGGING
@@ -753,20 +751,20 @@ debug_print (void)
       fputs (cmd.v_variables[i]->name, stdout);
     }
 
-  printf ("\n  /CASES=FROM %ld TO %ld BY %ld\n", first, last, step);
+  printf ("\n  /CASES=FROM %ld TO %ld BY %ld\n", cmd.first, cmd.last, cmd.step);
 
   fputs ("  /FORMAT=", stdout);
-  if (numbering == NUMBERED)
+  if (cmd.numbering == LST_NUMBERED)
     fputs ("NUMBERED", stdout);
   else
     fputs ("UNNUMBERED", stdout);
   putc (' ', stdout);
-  if (wrap == WRAP)
+  if (cmd.wrap == LST_WRAP)
     fputs ("WRAP", stdout);
   else
     fputs ("SINGLE", stdout);
   putc (' ', stdout);
-  if (weight == WEIGHT)
+  if (cmd.weight == LST_WEIGHT)
     fputs ("WEIGHT", stdout);
   else
     fputs ("NOWEIGHT", stdout);

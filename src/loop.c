@@ -30,8 +30,6 @@
 #include "str.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* *INDENT-OFF* */

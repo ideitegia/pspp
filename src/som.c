@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include "output.h"
 #include "som.h"
-/*#undef DEBUGGING*/
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* Table. */

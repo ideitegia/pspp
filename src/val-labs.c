@@ -30,8 +30,6 @@
 
 /* Declarations. */
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* Variable list. */
@@ -116,7 +114,7 @@ do_value_labels (int erase)
       return CMD_TRAILING_GARBAGE;
     }
 
-#if DEBUGGING
+#if 0 && DEBUGGING
   debug_print ();
 #endif
   return CMD_SUCCESS;
@@ -230,7 +228,7 @@ get_label (void)
   return 1;
 }
 
-#if DEBUGGING
+#if 0 && DEBUGGING
 static void
 debug_print ()
 {

@@ -51,8 +51,6 @@ char *alloca ();
 #include "tab.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 extern struct som_table_class tab_table_class;
@@ -60,10 +58,12 @@ extern struct som_table_class tab_table_class;
 #if DEBUGGING
 #define DEFFIRST(NAME, LABEL) LABEL,
 #define DEFTAB(NAME, LABEL) LABEL,
+/*
 static const char *tab_names[] =
   {
 #include "tab.def"
   };
+*/
 #undef DEFFIRST
 #undef DEFTAB
 #endif

@@ -30,8 +30,6 @@
 #include "var.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1 */
 #include "debug-print.h"
 
 /* FIXME: This module is less than ideally efficient, both in space

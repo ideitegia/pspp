@@ -35,8 +35,6 @@
 #include "vfm.h"
 #include "vfmP.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* XSAVE transformation (and related SAVE, EXPORT procedures). */
@@ -583,8 +581,6 @@ struct case_stream get_source =
 
 /* MATCH FILES. */
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* File types. */

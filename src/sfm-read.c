@@ -54,8 +54,6 @@ char *alloca ();
 #include "str.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* PORTME: This file may require substantial revision for those
@@ -1250,7 +1248,6 @@ lossage:
 }
 
 #if GLOBAL_DEBUGGING
-#define DEBUGGING 1
 #include "debug-print.h"
 /* Displays dictionary DICT on stdout. */
 void

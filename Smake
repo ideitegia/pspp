@@ -1,17 +1,17 @@
-Makefile: Makefile.in configure
+Makefile config.h: Makefile.in configure config.h.in install-sh
 	./configure
 
-configure:  configure.ac
+configure:  configure.ac aclocal.m4
 	autoconf
 
-config.h.in:
+config.h.in: configure.ac
 	autoheader
 
 aclocal.m4:
 	aclocal -I m4
 
 
-Makefile.in: Makefile.am aclocal.m4 config.h.in
+install-sh Makefile.in: Makefile.am aclocal.m4 config.h.in
 	automake --add-missing
 
 

@@ -1,3 +1,7 @@
+Wed Dec 17 12:53:01 WAST 2003 John Darrington <john@darrington.wattle.id.au>
+
+	* moved (un)defs of DEBUGGING to config.h
+
 Mon Dec 15 21:35:59 2003  Ben Pfaff  <blp@gnu.org>
 
 	* groff-font.c: (add_kern) Fix indentation.

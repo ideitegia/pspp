@@ -45,8 +45,6 @@
 /* (declarations) */
 /* (functions) */
 
-#undef DEBUGGING
-#define DEBUGGING 1
 #include "debug-print.h"
 
 /* Command parsing information. */

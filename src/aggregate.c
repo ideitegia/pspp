@@ -36,8 +36,6 @@
 #include "vfm.h"
 #include "vfmP.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* Specifies how to make an aggregate variable. */

@@ -28,8 +28,6 @@
 
 #include <stdlib.h>
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 static void parse_script (void) __attribute__ ((noreturn));

@@ -49,8 +49,6 @@ char *alloca ();
 #include "tab.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* Describes what to do when an output field is encountered. */
@@ -228,7 +226,7 @@ internal_cmd_print (int f)
   memcpy (trns, &prt, sizeof *trns);
   add_transformation ((struct trns_header *) trns);
 
-#if DEBUGGING
+#if 0 && DEBUGGING
   debug_print ();
 #endif
 
@@ -1170,7 +1168,7 @@ print_space_trns_free (struct trns_header * trns)
 
 /* Debugging code. */
 
-#if DEBUGGING
+#if 0 && DEBUGGING
 void
 debug_print (void)
 {

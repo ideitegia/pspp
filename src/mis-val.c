@@ -27,8 +27,6 @@
 #include "str.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 #if DEBUGGING
@@ -90,7 +88,7 @@ cmd_missing_values (void)
       free (v);
     }
 
-#if DEBUGGING
+#if 0 && DEBUGGING
   debug_print ();
 #endif
 
@@ -359,7 +357,7 @@ copy_missing_values (struct variable *dest, const struct variable *src)
 
 /* Debug output. */
 
-#if DEBUGGING
+#if 0 && DEBUGGING
 static void
 debug_print (void)
 {

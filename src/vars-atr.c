@@ -34,8 +34,6 @@
 #include "vector.h"
 #include "vfm.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 #if DEBUGGING
@@ -43,7 +41,7 @@
 void
 dump_one_var_node (void * pnode, void *param, int level)
 {
-  variable *node = pnode;
+  struct variable *node = pnode;
   int i;
 
   for (i = 0; i < level - 1; i++)
@@ -59,7 +57,9 @@ void
 dump_var_tree (void)
 {
   printf (_("Vartree:\n"));
+/*
   avl_walk_inorder (default_dict.var_by_name, dump_one_var_node, NULL);
+*/
 }
 #endif
 

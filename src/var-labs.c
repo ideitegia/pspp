@@ -27,8 +27,6 @@
 #include "str.h"
 #include "var.h"
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 #if DEBUGGING
@@ -74,13 +72,13 @@ cmd_variable_labels (void)
       free (v);
     }
   while (token != '.');
-#if DEBUGGING
+#if 0 && DEBUGGING
   debug_print ();
 #endif
   return CMD_SUCCESS;
 }
 
-#if DEBUGGING
+#if 0 && DEBUGGING
 static void
 debug_print (void)
 {

@@ -32,8 +32,6 @@
 
 /* I can't think of any really good reason to disable debugging for
    this module. */
-/*#undef DEBUGGING */
-#define DEBUGGING 1
 #include "debug-print.h"
 
 /* COMPUTE and IF transformation. */

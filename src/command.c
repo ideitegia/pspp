@@ -61,8 +61,6 @@ char *alloca ();
 #include <sys/wait.h>
 #endif
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* Global variables. */
