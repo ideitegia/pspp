@@ -1,11 +1,9 @@
-Time-stamp: <2004-11-30 22:59:24 blp>
+Time-stamp: <2005-03-02 16:08:59 blp>
 
 What Ben's working on now.
 --------------------------
 
 Workspace exhaustion heuristics.
-
-Does SET work correctly?
 
 Update q2c input format description.
 
@@ -22,19 +20,9 @@ TODO
 
 Make valgrind --leak-check=yes --show-reachable=yes work.
 
-Add Boolean type.
-
 Add NOT_REACHED() macro.
 
 Add compression to casefiles.
-
-Expressions need to be able to abbreviate function names.  XDATE.QUARTER
-abbreviates to XDA.QUA, etc.
-
-The expression tests need tests for XDATE and a few others, see
-tests/xforms/expressions.sh comments for details.
-
-Expressions need random distribution functions.
 
 There needs to be another layer onto the lexer, which should probably be
 entirely rewritten anyway.  The lexer needs to read entire *commands* at a
@@ -168,118 +156,8 @@ server independently.  The statistical procedures would run on (the/a) server
 and results would be reported through HTML tables viewed with the user's choice
 of web browsers.  Help could be implemented through the browser as well.
 
-Design a plotting API, with scatterplots, line plots, pie charts, barcharts,
-Pareto plots, etc., as subclasses of the plot superclass.
-
 HOWTOs
 ------
-
-1. How to add an operator for use in PSPP expressions:
-
-a. Add the operator to the enumerated type at the top of expr.h.  If the
-operator has arguments (i.e., it's not a terminal) then add it *before*
-OP_TERMINAL; otherwise, add it *after* OP_TERMINAL.  All these begin with OP_.
-
-b. If the operator's a terminal then you'll want to design a structure to hold
-its content.  Add the structure to the union any_node.  (You can also reuse one
-of the prefab structures, of course.)
-
-c. Now switch to expr-prs.c--the module for expression parsing.  Insert the
-operator somewhere in the precedence hierarchy.
-
-(1) If you're adding a operator that is a function (like ACOS, ABS, etc.) then
-add the function to functab in `void init_functab(void)'.  Order is not
-important here.  The first element is the function name, like "ACOS".  The
-second is the operator enumerator you added in expr.h, like OP_ARCOS.  The
-third element is the C function to parse the PSPP function.  The predefined
-functions will probably suit your needs, but if not, you can write your own.
-The fourth element is an argument to the parsing function; it's only used
-currently by generic_str_func(), which handles a rather general syntax for
-functions that return strings; see the comment at the beginning of its code for
-details.
-
-(2) If you're adding an actual operator you'll have to put a function in
-between two of the operators there already in functions `exprtype
-parse_*(any_node **n)'.  Each of these stores the tree for its result into *n,
-and returns the result type, or EX_ERROR on error.  Be sure to delete all the
-allocated memory on error before returning.
-
-d. Add the operator to the table `op_desc ops[OP_SENTINEL+1]' in expr-prs.c,
-which has an entry for every operator.  These entries *must* be in the same
-order as they are in expr.h.  The entries have the form `op(A,B,C,D)'.  A is
-the name of the operator as it should be printed in a postfix output format.
-For example, the addition operator is printed as `plus'.  B is a bitmapped set
-of flags:
-
-* Set the 001 bit (OP_VAR_ARGS) if the operator takes a variable number of
-arguments.  If a function can take, say, two args or three args, but no other
-numbers of args, this is a poor way to do it--instead implement the operator as
-two separate operators, one with two args, the other with three.  (The main
-effect of this bit is to cause the number of arguments to be output to the
-postfix form so that the expression evaluator can know how many args the
-operator takes.  It also causes the expression optimizer to calculate the
-needed stack height differently, without referencing C.)
-
-* Set the 002 bit (OP_MIN_ARGS) if the operator can take an optional `dotted
-argument' that specified the minimum number of non-SYSMIS arguments in order to
-have a non-SYSMIS result.  For instance, MIN.3(e1,e2,e3,e4,e5) returns a
-non-SYSMIS result only if at least 3 out of 5 of the expressions e1 to e5 are
-not missing.
-
-Minargs are passed in the nonterm_node structure in `arg[]''s elements past
-`n'--search expr-prs.c for the words `terrible crock' for an example of this.
-
-Minargs are output to the postfix form.  A default value is output if none was
-specified by the user.
-
-You can use minargs for anything you want--they're not limited to actually
-describing a minimum number of valid arguments; that's just what they're most
-*commonly* used for.
-
-* Set the 004 bit (OP_FMT_SPEC) if the operator has an argument that is a
-format specifier.  (This causes the format specifier to be output to the
-postfix representation.)
-
-Format specs are passed in the nonterm_node structure in the same way as
-minargs, except that there are three args, in this order: type, width, # of
-decimals--search expr-prs.c for the words `is a crock' for an example of this.
-
-* Set the 010 bit (OP_ABSORB_MISS) if the operator can *ever* have a result of
-other than SYSMIS when given one or more arguments of SYSMIS.  Operators
-lacking this bit and known to have a SYSMIS argument are short-circuited to
-SYSMIS by the expression optimizer.
-
-* If your operator doesn't fit easily into the existing categories,
-congratulations, you get to write lots of code to adjust everything to cope
-with this new operator.  Are you really sure you want to do that?
-
-C is the effect the operator has on stack height.  Set this to `varies' if the
-operator has a variable number of arguments.  Otherwise this 1, minus the
-number of arguments the operator has.  (Since terminals have no arguments, they
-have a value of +1 for this; other operators have a value of 0 or less.)
-
-D is the number of items output to the postfix form after the operator proper.
-This is 0, plus 1 if the operator has varargs, plus 1 if the operator has
-minargs, plus 3 if the operator has a format spec.  Note that minargs/varargs
-can't coexist with a format spec on the same operator as currently coded.  Some
-terminals also have a nonzero value for this but don't fit into the above
-categories.
-
-e. Switch to expr-opt.c.  Add code to evaluate_tree() to evaluate the
-expression when all arguments are known to be constants.  Pseudo-random
-functions can't be evaluated even if their arguments are constants.  If the
-function can be optimized even if its arguments aren't all known constants, add
-code to optimize_tree() to do it.
-
-f. Switch to expr-evl.c.  Add code to evaluate_expression() to evaluate the
-expression.  You must be absolutely certain that the code in evaluate_tree(),
-optimize_tree(), and evaluate_expression() will always return the same results,
-otherwise users will get inconsistent results, a Bad Thing.  You must be
-certain that even on boundary conditions users will get identical results, for
-instance for the values 0, 1, -1, SYSMIS, or, for string functions, the null
-string, 1-char strings, and 255-char strings.
-
-g. Test the code.  Write some test syntax files.  Examine the output carefully.
 
 MORE NOTES/IDEAS/BUGS
 ---------------------

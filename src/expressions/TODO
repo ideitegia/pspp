@@ -9,13 +9,13 @@ Needed:
 
     - Test generic optimizations for correctness.
 
-    - Update top-level TODO.
-
     - Finish polishing code.  Many functions need comments.
 
     - Test the remaining statistical distributions.
 
     - Implement unimplemented functions.
+
+    - Check treatment of 0 bytes in expressions is correct.
 
 Extension ideas:
 
