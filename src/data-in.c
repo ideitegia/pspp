@@ -381,9 +381,10 @@ parse_Z (struct data_in *i)
 
     if (!warned)
       {
-	msg (MW, _("Quality of zoned decimal (Z) input format code is "
-		   "suspect.  Check your results three times, report bugs "
-		   "to author."));
+	msg (MW, 
+	     _("Quality of zoned decimal (Z) input format code is "
+	       "suspect.  Check your results three times. Report bugs "
+		"to %s."),PACKAGE_BUGREPORT);
 	warned = 1;
       }
   }

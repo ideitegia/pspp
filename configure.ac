@@ -104,7 +104,7 @@ if test x"$enable_debug" = x"yes"  ; then
   AC_DEFINE(DEBUGGING, 1, [Define to 1 if debugging is enabled.])
 fi
 
-AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile intl/Makefile 
+AC_CONFIG_FILES([Makefile po/Makefile.in m4/Makefile 
 		 lib/Makefile lib/julcal/Makefile lib/misc/Makefile 
 		 lib/dcdflib/Makefile doc/Makefile src/Makefile 
 		 config/Makefile tests/Makefile])
@@ -121,6 +121,6 @@ AC_CONFIG_COMMANDS([pref.h],[
 	   fi
 	   if test -f pref.h; then touch pref.h; fi
 	  ])
-AC_OUTPUT
+AC_OUTPUT(intl/Makefile)
 
 dnl configure.ac ends here

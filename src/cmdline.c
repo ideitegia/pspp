@@ -109,7 +109,8 @@ parse_command_line (int argc, char **argv)
 	  config_path = optarg;
 	  break;
 	case 'f':
-	  printf (_("-f not yet implemented\n"));
+	  printf(_("%s is not yet implemented."), "-f");
+          putchar('\n');
 	  break;
 	case 'h':
 	  usage ();
@@ -127,7 +128,8 @@ parse_command_line (int argc, char **argv)
 	  outp_list_classes ();
 	  err_hcf (1);
 	case 'n':
-	  printf (_("-n not yet implemented\n"));
+	  printf (_("%s is not yet implemented."),"-n");
+          putchar('\n');
 	  break;
 	case 'o':
 	  if (!cleared_device_defaults)
@@ -138,7 +140,8 @@ parse_command_line (int argc, char **argv)
 	  outp_configure_add (optarg);
 	  break;
 	case 'p':
-	  printf (_("-p not yet implemented\n"));
+	  printf (_("%s is not yet implemented."),"-p");
+          putchar('\n');
 	  break;
 	case 'r':
 	  no_statrc = 1;

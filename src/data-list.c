@@ -1765,7 +1765,7 @@ rpd_parse_record (int beg, int end, int ofs, struct ccase *c,
 		  warned = 1;
 
 		  tmsg (SW, RPD_ERR,
-			_("Variable %s startging in column %d extends "
+			_("Variable %s starting in column %d extends "
 			  "beyond physical record length of %d."),
 			var_spec->v->name, fc, len);
 		}

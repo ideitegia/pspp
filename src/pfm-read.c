@@ -619,7 +619,7 @@ convert_format (struct file_handle *h, int fmt[3], struct fmt_spec *v,
 {
   if (fmt[0] < 0
       || (size_t) fmt[0] >= sizeof translate_fmt / sizeof *translate_fmt)
-    lose ((h, _("%s: Bad format specifier byte %d."), vv->name, fmt[0]));
+    lose ((h, _("%s: Bad format specifier byte (%d)."), vv->name, fmt[0]));
 
   v->type = translate_fmt[fmt[0]];
   v->w = fmt[1];

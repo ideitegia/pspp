@@ -358,8 +358,9 @@ convert_Z (char *dst, const struct fmt_spec *fp, const union value *v)
 
   if (!warned)
     {
-      msg (MW, _("Quality of zoned decimal (Z) output format code is "
-		 "suspect.  Check your results, report bugs to author."));
+      msg (MW, 
+	_("Quality of zoned decimal (Z) output format code is suspect.  Check your results. Report bugs to %s."),
+	PACKAGE_BUGREPORT);
       warned = 1;
     }
 

@@ -122,8 +122,9 @@ cmd_file_handle (void)
       fp->recform = FH_RF_VARIABLE;
       break;
     case FH_SPANNED:
-      msg (SE, _("/RECFORM SPANNED is not implemented, as the author doesn't "
-	   "know what it is supposed to do.  Send the author a note."));
+      msg (SE, 
+	   _("%s is not implemented, as the author doesn't know what it is supposed to do.  Send a note to %s.") ,
+	   "/RECFORM SPANNED",PACKAGE_BUGREPORT);
       break;
     default:
       assert (0);
@@ -135,18 +136,18 @@ cmd_file_handle (void)
       fp->mode = FH_MD_CHARACTER;
       break;
     case FH_IMAGE:
-      msg (SE, _("/MODE IMAGE is not implemented, as the author doesn't know "
-	   "what it is supposed to do.  Send the author a note."));
+      msg (SE, 
+	   _("%s is not implemented, as the author doesn't know what it is supposed to do.  Send a note to %s.") ,
+	   "/MODE IMAGE",PACKAGE_BUGREPORT);
       break;
     case FH_BINARY:
       fp->mode = FH_MD_BINARY;
       break;
     case FH_MULTIPUNCH:
-      msg (SE, _("/MODE MULTIPUNCH is not implemented.  If you care, "
-		 "complain."));
+      msg (SE, _("%s is not implemented.  If you care, complain."),"/MODE MULTIPUNCH");
       break;
     case FH__360:
-      msg (SE, _("/MODE 360 is not implemented.  If you care, complain."));
+      msg (SE, _("%s is not implemented.  If you care, complain."),"/MODE 360");
       break;
     default:
       assert (0);

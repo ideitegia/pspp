@@ -213,10 +213,10 @@ cmd_set (void)
     return CMD_FAILURE;
 
   if (cmd.sbc_block)
-    msg (SW, _("BLOCK is obsolete."));
+    msg (SW, _("%s is obsolete."),"BLOCK");
 
   if (cmd.sbc_boxstring)
-    msg (SW, _("BOXSTRING is obsolete."));
+    msg (SW, _("%s is obsolete."),"BOXSTRING");
 
   if (cmd.compress != -1)
     {
@@ -234,7 +234,7 @@ cmd_set (void)
 	set_cpi = cmd.n_cpi;
     }
   if (cmd.sbc_histogram)
-    msg (MW, _("HISTOGRAM is obsolete."));
+    msg (MW, _("%s is obsolete."),"HISTOGRAM");
   if (cmd.n_lpi != NOT_LONG)
     {
       if (cmd.n_lpi <= 0)
@@ -303,13 +303,13 @@ cmd_set (void)
 	set_mxloops = cmd.n_mxloops;
     }
   if (cmd.n_mxmemory != NOT_LONG)
-    msg (SE, _("MXMEMORY is obsolete."));
+    msg (SE, _("%s is obsolete."),"MXMEMORY");
   if (cmd.n_mxwarns != NOT_LONG)
     set_mxwarns = cmd.n_mxwarns;
   if (cmd.prtbck != -1)
     set_printback = cmd.prtbck == STC_OFF ? 0 : 1;
   if (cmd.s_scripttab)
-    msg (SE, _("SCRIPTTAB is obsolete."));
+    msg (SE, _("%s is obsolete."),"SCRIPTTAB");
   if (cmd.s_tbfonts)
     msg (SW, _("TBFONTS not implemented."));
   if (cmd.s_tb1)
@@ -317,16 +317,16 @@ cmd_set (void)
   if (cmd.undef != -1)
     set_undefined = cmd.undef == STC_NOWARN ? 0 : 1;
   if (cmd.n_workspace != NOT_LONG)
-    msg (SE, _("WORKSPACE is obsolete."));
+    msg (SE, _("%s is obsolete."),"WORKSPACE");
 
   /* PC+ compatible syntax. */
   if (cmd.scrn != -1)
     outp_enable_device (cmd.scrn == STC_OFF ? 0 : 1, OUTP_DEV_SCREEN);
 
   if (cmd.automenu != -1)
-    msg (SW, _("AUTOMENU is obsolete."));
+    msg (SW, _("%s is obsolete."),"AUTOMENU");
   if (cmd.beep != -1)
-    msg (SW, _("BEEP is obsolete."));
+    msg (SW, _("%s is obsolete."),"BEEP");
 
   if (cmd.s_cprompt)
     {
@@ -345,15 +345,15 @@ cmd_set (void)
   if (cmd.s_endcmd)
     set_endcmd = cmd.s_endcmd[0];
   if (cmd.eject != -1)
-    msg (SW, _("EJECT is obsolete."));
+    msg (SW, _("%s is obsolete."),"EJECT");
   if (cmd.errbrk != -1)
     set_errorbreak = cmd.errbrk == STC_OFF ? 0 : 1;
   if (cmd.helpwin != -1)
-    msg (SW, _("HELPWINDOWS is obsolete."));
+    msg (SW, _("%s is obsolete."),"HELPWINDOWS");
   if (cmd.inc != -1)
     set_include = cmd.inc == STC_OFF ? 0 : 1;
   if (cmd.menus != -1)
-    msg (MW, _("MENUS is obsolete."));
+    msg (MW, _("%s is obsolete."),"MENUS");
   if (cmd.null != -1)
     set_nullline = cmd.null == STC_OFF ? 0 : 1;
   if (cmd.more != -1)
@@ -367,13 +367,13 @@ cmd_set (void)
       cmd.s_prompt = NULL;
     }
   if (cmd.ptrans != -1)
-    msg (SW, _("PTRANSLATE is obsolete."));
+    msg (SW, _("%s is obsolete."),"PTRANSLATE");
   if (cmd.runrev != -1)
-    msg (SW, "RUNREVIEW is obsolete.");
+    msg (SW, _("%s is obsolete."),"RUNREVIEW");
   if (cmd.safe == STC_ON)
     set_safer = 1;
   if (cmd.xsort != -1)
-    msg (SW, _("XSORT is obsolete."));
+    msg (SW, _("%s is obsolete."),"XSORT");
 
   free_set (&cmd);
 
@@ -690,7 +690,7 @@ stc_custom_journal (struct cmd_set *cmd unused)
 static int
 stc_custom_color (struct cmd_set *cmd unused)
 {
-  msg (MW, "COLOR is obsolete.");
+  msg (MW, _("%s is obsolete."),"COLOR");
 
   lex_match ('=');
   if (!lex_match_id ("ON") && !lex_match_id ("YES") && !lex_match_id ("OFF") && !lex_match_id ("NO"))
@@ -771,7 +771,7 @@ stc_custom_log (struct cmd_set *cmd unused)
 static int
 stc_custom_rcolor (struct cmd_set *cmd unused)
 {
-  msg (SW, _("RCOLOR is obsolete."));
+  msg (SW, _("%s is obsolete."),"RCOLOR");
 
   lex_match ('=');
   if (!lex_force_match ('('))
@@ -852,7 +852,7 @@ stc_custom_workdev (struct cmd_set *cmd unused)
 {
   char c[2];
 
-  msg (SW, _("WORKDEV is obsolete."));
+  msg (SW, _("%s is obsolete."),"WORKDEV");
 
   c[1] = 0;
   for (*c = 'A'; *c <= 'Z'; (*c)++)

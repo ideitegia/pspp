@@ -1,3 +1,8 @@
+2004-01-23  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* Makefile.am (SUBDIRS): Remove intl.
+	* configure.ac (AC_CONFIG_FILES): Remove intl/Makefile.
+
 Tue Dec 30 22:23:40 WST 2003 John Darrington <john@darrington.wattle.id.au> 
 	
 	* Fixed floating point rounding bug in percentiles calculation

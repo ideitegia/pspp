@@ -1,4 +1,4 @@
-Makefile config.h: Makefile.in configure config.h.in install-sh
+Makefile po/Makefile.in: Makefile.in configure install-sh config.h.in po/Makefile.in.in
 	./configure
 
 configure:  configure.ac aclocal.m4
@@ -11,8 +11,21 @@ aclocal.m4:
 	aclocal -I m4
 
 
-install-sh Makefile.in: Makefile.am aclocal.m4 config.h.in
+install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in
 	automake --add-missing
+
+po/Makefile.in.in intl ABOUT-NLS:
+	touch -f Makefile.am Makefile.am-stamp
+	touch -f configure.ac configure.ac-stamp
+	cp -a configure.ac configure.ac-bak
+	cp -a Makefile.am Makefile.am-bak
+	gettextize -f -c --no-changelog --intl
+	cp -a Makefile.am-bak Makefile.am
+	touch -f Makefile.am-stamp Makefile.am
+	cp -a configure.ac-bak configure.ac
+	touch -f configure.ac-stamp configure.ac
+	$(RM) configure.ac-bak configure.ac-stamp
+	$(RM) Makefile.am-bak Makefile.am-stamp
 
 
 
@@ -23,6 +36,21 @@ clean:
 	$(RM) aclocal.m4
 	$(RM) missing mkinstalldirs
 	$(RM) install-sh
-	$(RM) configure
+	$(RM) configure Makefile Makefile.in
 	$(RM) depcomp
-
+	$(RM) -r m4 intl
+	$(RM) po/ChangeLog \
+	po/Makefile \
+	po/Makefile.in \
+	po/Makefile.in.in \
+	po/POTFILES \
+	po/Rules-quot \
+	po/boldquot.sed \
+	po/cat-id-tbl.c \
+	po/en@boldquot.header \
+	po/en@quot.header \
+	po/insert-header.sin \
+	po/quot.sed \
+	po/remove-potcdate.sin \
+	po/stamp-po \
+	po/Makevars.template

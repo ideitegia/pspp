@@ -312,44 +312,20 @@ init_glob (int argc unused, char **argv)
 }
 
 static void
-get_date ()
+get_date (void)
 {
-  static const char *months[12] =
-    {
-      N_("Jan"), N_("Feb"), N_("Mar"), N_("Apr"), N_("May"), N_("Jun"),
-      N_("Jul"), N_("Aug"), N_("Sep"), N_("Oct"), N_("Nov"), N_("Dec"),
-    };
 
   time_t t;
-  int mn, dy, yr;
   struct tm *tmp;
 
   if ((time_t) -1 == time (&t))
     {
-      strcpy (curdate, "1 Jan 1970");
+      strcpy (curdate, "?? ??? 2???");
       return;
     }
   tmp = localtime (&t);
 
-  mn = tmp->tm_mon;
-  if (mn < 0)
-    mn = 0;
-  if (mn > 11)
-    mn = 11;
-
-  dy = tmp->tm_mday;
-  if (dy < 0)
-    dy = 0;
-  if (dy > 99)
-    dy = 99;
-
-  yr = tmp->tm_year + 1900;
-  if (yr < 0)
-    yr = 0;
-  if (yr > 9999)
-    yr = 9999;
-
-  sprintf (curdate, "%2d %s %04d", dy, gettext (months[mn]), yr);
+  strftime (curdate, 12, "%d %b %Y",tmp);
 }
 
 #if __BORLANDC__
