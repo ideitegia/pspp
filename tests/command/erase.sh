@@ -3,6 +3,7 @@
 # This program tests the ERASE command.
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -56,7 +57,7 @@ if [ ! -f $TEMPDIR/foobar ] ; then no_result ; fi
 
 
 activity="create program 1"
-cat > $TEMPDIR/foo.sps <<EOF
+cat > $TESTFILE <<EOF
 set safer on
 
 erase FILE='foobar'.
@@ -70,12 +71,12 @@ if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi
 
 # This command must fail
 activity="run prog 1"
-$SUPERVISOR $here/../src/pspp $TEMPDIR/foo.sps > /dev/null
+$SUPERVISOR $here/../src/pspp $TESTFILE > /dev/null
 if [ $? -eq 0 ] ; then fail ; fi
 
 
 activity="create program 2"
-cat > $TEMPDIR/foo.sps <<EOF
+cat > $TESTFILE <<EOF
 
 erase FILE='foobar'.
 
@@ -84,19 +85,11 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run prog 1"
-$SUPERVISOR $here/../src/pspp $TEMPDIR/foo.sps
+$SUPERVISOR $here/../src/pspp $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 # foobar should now be gone
 if [ -f $TEMPDIR/foobar ] ; then fail ; fi 
-
-
-
-
-
-
-if [ $? -ne 0 ] ; then fail ; fi
-
 
 
 pass;

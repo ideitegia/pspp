@@ -3,6 +3,7 @@
 # This program tests the DATA LIST input program.
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -47,7 +48,7 @@ cd $TEMPDIR
 
 # Create command file.
 activity="create program"
-cat > $TEMPDIR/data-list.stat << EOF
+cat > $TESTFILE << EOF
 data list list ('|','X') /A B C D.
 begin data.
 1|23X45|2.03
@@ -99,7 +100,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii --testing-mode $TEMPDIR/data-list.stat # > $TEMPDIR/errs
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"

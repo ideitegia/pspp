@@ -3,6 +3,7 @@
 # This program tests that the T-TEST /GROUPS command works
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

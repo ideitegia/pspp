@@ -3,6 +3,7 @@
 # This program tests the count transformation
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -45,7 +46,7 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-cat > $TEMPDIR/count.stat <<EOF
+cat > $TESTFILE <<EOF
 title 'Test COUNT transformation'.
 
 * we're going to count the 2s 4s and 1s in the data
@@ -65,7 +66,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/count.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

@@ -3,6 +3,8 @@
 # This program tests the autorecode command
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
+
 
 here=`pwd`;
 
@@ -46,7 +48,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/prog.sps <<EOF
+cat > $TESTFILE <<EOF
 /* Tries AUTORECODE on some random but similar strings of characters.
 data list /x 1-5(a) y 7.
 begin data.
@@ -73,7 +75,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp    -o raw-ascii $TEMPDIR/prog.sps  
+$SUPERVISOR $here/../src/pspp    -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="test output"

@@ -124,7 +124,6 @@ metrics_postcalc(struct metrics *m)
   int i;
   int j = 1;  
 
-
   moments1_calculate (m->moments, &m->n, &m->mean, &m->var, 
 		      &m->skewness, &m->kurtosis);
 
@@ -207,6 +206,7 @@ metrics_postcalc(struct metrics *m)
   m->trimmed_mean += (m->wvp[k1 + 1]->cc - tc) * m->wvp[k1 + 1]->v.f ;
   m->trimmed_mean /= 0.9 * m->n ;
 
+
 }
 
 
@@ -225,7 +225,12 @@ weighted_value_create(void)
 void 
 weighted_value_free(struct weighted_value *wv)
 {
-  struct case_node *cn = wv->case_nos;
+  struct case_node *cn ;
+
+  if ( !wv ) 
+    return ;
+
+  cn = wv->case_nos;
 
   while(cn)
     {
@@ -255,16 +260,28 @@ create_factor_statistics (int n, union value *id0, union value *id1)
   f->id[0] = *id0;
   f->id[1] = *id1;
   f->m = xmalloc( sizeof ( struct metrics ) * n ) ;
+  memset (f->m, 0, sizeof(struct metrics) * n);
+  f->n_var = n;
 
   return f;
 }
 
 
+void 
+metrics_destroy(struct metrics *m)
+{
+  hsh_destroy(m->ordered_data);
+  hsh_destroy(m->ptile_hash);
+  gsl_histogram_free(m->histogram);
+}
+
 void
 factor_statistics_free(struct factor_statistics *f)
 {
-  hsh_destroy(f->m->ordered_data);
-  gsl_histogram_free(f->m->histogram);
+
+  int i; 
+  for ( i = 0 ; i < f->n_var; ++i ) 
+       metrics_destroy(&f->m[i]);
   free(f->m) ; 
   free(f);
 }

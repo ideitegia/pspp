@@ -3,6 +3,7 @@
 # This program tests the use of big numbers
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -114,7 +115,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="create program"
-cat > $TEMPDIR/prog.stat <<foobar
+cat > $TESTFILE <<foobar
 title 'Test use of big numbers'.
 
 *** Do the portable output.
@@ -127,7 +128,7 @@ foobar
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii prog.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # Like the above comments say ...

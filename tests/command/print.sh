@@ -3,6 +3,7 @@
 # This program tests the PRINT transformation
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

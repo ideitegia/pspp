@@ -3,6 +3,7 @@
 # This program tests the BEGIN DATA / END DATA commands
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -46,7 +47,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/prog.sps << EOF_foobar
+cat > $TESTFILE << EOF_foobar
 title 'Test BEGIN DATA ... END DATA'.
 
 data list /A B 1-2.
@@ -73,7 +74,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare data"

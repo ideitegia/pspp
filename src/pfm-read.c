@@ -114,6 +114,7 @@ pfm_close_reader (struct pfm_reader *r)
     msg (ME, _("%s: Closing portable file: %s."),
          handle_get_filename (r->fh), strerror (errno));
   free (r->trans);
+  free (r->widths);
   free (r);
 }
 

@@ -3,6 +3,8 @@
 # This program tests the aggregate procedure
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
+
 
 here=`pwd`;
 
@@ -46,7 +48,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="program create"
-cat > $TEMPDIR/test.sps << EOF
+cat > $TESTFILE << EOF
 
 data list notable /x y 1-2.
 begin data.
@@ -69,7 +71,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp    -o raw-ascii $TEMPDIR/test.sps  
+$SUPERVISOR $here/../src/pspp    -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="test result"

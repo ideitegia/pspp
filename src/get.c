@@ -242,6 +242,7 @@ cmd_save (void)
     {
       procedure (save_write_case_func, t);
       save_trns_free (&t->h);
+      free(t);
       return CMD_SUCCESS;
     }
   else
@@ -549,12 +550,14 @@ cmd_export (void)
 
   procedure (export_write_case_func, proc);
   export_proc_free (proc);
+  free (proc);
 
   return CMD_SUCCESS;
 
  error:
   dict_destroy (dict);
   export_proc_free (proc);
+  free (proc);
   return CMD_FAILURE;
 }
 
@@ -1623,20 +1626,21 @@ finish_case_map (struct dictionary *d)
   for (i = 0; i < var_cnt; i++) 
     {
       struct variable *v = dict_get_var (d, i);
-      int src_fv = *(int *) var_detach_aux (v);
+      int *src_fv = (int *) var_detach_aux (v);
       size_t idx;
 
-      if (v->fv != src_fv)
+      if (v->fv != *src_fv)
         identity_map = 0;
       
       for (idx = 0; idx < v->nv; idx++)
         {
-          int src_idx = src_fv + idx;
+          int src_idx = *src_fv + idx;
           int dst_idx = v->fv + idx;
           
           assert (map->map[dst_idx] == -1);
           map->map[dst_idx] = src_idx;
         }
+      free (src_fv);
     }
 
   if (identity_map) 

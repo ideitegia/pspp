@@ -3,6 +3,7 @@
 # This program tests that tab characters can be used in string input
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

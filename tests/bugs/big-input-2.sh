@@ -5,6 +5,7 @@
 
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -65,7 +66,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 printf "\n";
 
 activity="create program"
-cat > $TEMPDIR/large.sps <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST FILE='$TEMPDIR/large.dat' /S 1-2 (A) X 3 .
 
 
@@ -77,7 +78,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/large.sps > /dev/null
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="appending to data"
@@ -89,7 +90,7 @@ done )  | head -50000 >> $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/large.sps > /dev/null
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

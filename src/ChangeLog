@@ -1,3 +1,8 @@
+Tue Jan 18 19:26:59 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q  factor_stats.[ch] get.c pfm-read.c: Plugged numerous
+	memory leaks.
+
 Mon Jan 10 14:43:45 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* ascii.c cartesian.c casefile.c chart.h devind.c 

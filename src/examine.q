@@ -132,7 +132,7 @@ void box_plot_group(const struct factor *fctr,
 
 
 void box_plot_variables(const struct factor *fctr, 
-			struct variable **vars, int n_vars, 
+			const struct variable **vars, int n_vars, 
 			const struct variable *id
 			);
 
@@ -211,7 +211,10 @@ cmd_examine(void)
   multipass_procedure_with_splits (run_examine, &cmd);
 
   if ( totals ) 
-    free(totals);
+    free( totals );
+  
+  if ( dependent_vars ) 
+    free (dependent_vars);
 
   subc_list_double_destroy(&percentile_list);
 
@@ -485,6 +488,7 @@ xmn_custom_variables(struct cmd_examine *cmd )
   assert(n_dependent_vars);
 
   totals = xmalloc( sizeof(struct metrics) * n_dependent_vars);
+  memset ( totals, 0, sizeof(struct metrics) * n_dependent_vars);
 
   if ( lex_match(T_BY))
     {
@@ -786,8 +790,13 @@ run_examine(const struct casefile *cf, void *cmd_ )
 
   output_examine();
 
-  for ( v = 0 ; v < n_dependent_vars ; ++v ) 
-    hsh_destroy(totals[v].ordered_data);
+
+  if ( totals ) 
+    {
+      int i;
+      for ( i = 0 ; i < n_dependent_vars ; ++i ) 
+	metrics_destroy(&totals[i]);
+    }
 
 }
 
@@ -1623,7 +1632,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 
 void
 box_plot_variables(const struct factor *fctr, 
-		   struct variable **vars, int n_vars, 
+		   const struct variable **vars, int n_vars, 
 		   const struct variable *id)
 {
 
@@ -1687,7 +1696,7 @@ void
 box_plot_group(const struct factor *fctr, 
 	       const struct variable **vars, 
 	       int n_vars,
-	       const struct variable *id)
+	       const struct variable *id UNUSED)
 {
 
   int i;

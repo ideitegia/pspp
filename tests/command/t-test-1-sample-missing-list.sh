@@ -4,6 +4,7 @@
 # when there are listwise missing values involved.
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

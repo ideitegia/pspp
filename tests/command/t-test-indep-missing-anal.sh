@@ -4,6 +4,7 @@
 # when ANALYSIS missing values are involved
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

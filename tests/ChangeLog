@@ -1,3 +1,8 @@
+Tue Jan 18 19:25:24 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* Canonicalised (some of) the tests' temp file names to make it
+	easier to recognise valgrind ouput.
+
 Sun Jan  9 16:39:08 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* bugs/big-input-2.sh Made the test a bit faster

@@ -3,6 +3,7 @@
 # This program tests USE, just to make sure that USE ALL is accepted silently.
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 

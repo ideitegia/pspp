@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 
 #include "hash.h"
 #include "val.h"
+#include <string.h>
 #include <gsl/gsl_histogram.h>
 #include "subclist.h"
 #include "percentiles.h"
@@ -85,12 +86,17 @@ struct metrics
 };
 
 
+struct metrics * metrics_create(void);
+
 void metrics_precalc(struct metrics *m);
 
 void metrics_calc(struct metrics *m, const union value *f, double weight, 
 		  int case_no);
 
 void metrics_postcalc(struct metrics *m);
+
+void  metrics_destroy(struct metrics *m);
+
 
 
 /* Linked list of case nos */
@@ -133,6 +139,8 @@ struct factor_statistics {
   /* The an array stats for this factor, one for each dependent var */
   struct metrics *m;
 
+  /* The number of dependent variables */
+  int n_var;
 };
 
 

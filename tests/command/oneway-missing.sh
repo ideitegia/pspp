@@ -3,6 +3,7 @@
 # This program tests that the ONEWAY anova command works OK when there is missing data
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -46,7 +47,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/out.stat <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST LIST /v1 * v2 * dep * vn *.
 BEGIN DATA
 . .  1  4
@@ -77,7 +78,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="copy output"
@@ -85,7 +86,7 @@ cp $TEMPDIR/pspp.list $TEMPDIR/pspp.list1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program 2"
-cat > $TEMPDIR/out.stat <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST LIST /v1 * v2 * dep * vn * .
 BEGIN DATA
 4 .  1  2 
@@ -115,7 +116,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 2"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare outputs"
@@ -125,7 +126,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 # Now try a missing dependent variable
 # Everything depends upon it, so it should behave as if LISTWISE were set
 activity="create program 3"
-cat > $TEMPDIR/out.stat <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST LIST /v1 * v2 * dep * vn * .
 BEGIN DATA
 4 2  .  2 
@@ -155,7 +156,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 3"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/out.stat
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare outputs"
