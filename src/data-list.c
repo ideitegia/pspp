@@ -88,6 +88,7 @@ struct data_list_pgm
     int eof;			/* End of file encountered. */
     int nrec;			/* Number of records. */
     size_t case_size;           /* Case size in bytes. */
+    int delim;                  /* Specified delimeter */
   };
 
 static int parse_fixed (struct data_list_pgm *);
@@ -120,6 +121,7 @@ cmd_data_list (void)
   dls->end = NULL;
   dls->eof = 0;
   dls->nrec = 0;
+  dls->delim=0;
   dls->first = dls->last = NULL;
 
   while (token != '/')
@@ -198,6 +200,13 @@ cmd_data_list (void)
 	  else
 	    table = index - 3;
 	}
+      else if (token=='(') {
+        lex_get();
+        if (lex_match_id ("TAB")) {
+          dls->delim='\t';
+        }
+        lex_get();
+      }
       else
 	{
 	  lex_error (NULL);
@@ -947,10 +956,16 @@ cut_field (const struct data_list_pgm *dls, char **ret_cp, int *ret_len)
     return 0;
 
   ep = cp + len;
+  if (dls->delim != 0) {
+    if (*cp==dls->delim) {
+      cp++;
+    }
+  } else {
 
-  /* Skip leading whitespace and commas. */
-  while ((isspace ((unsigned char) *cp) || *cp == ',') && cp < ep)
-    cp++;
+    /* Skip leading whitespace and commas. */
+    while ((isspace ((unsigned char) *cp) || *cp == ',') && cp < ep)
+      cp++;
+  }
   if (cp >= ep)
     return 0;
 
@@ -962,17 +977,29 @@ cut_field (const struct data_list_pgm *dls, char **ret_cp, int *ret_len)
       *ret_cp = ++cp;
       while (cp < ep && *cp != quote)
 	cp++;
+      if (dls->delim!=0) {
+        while(cp<ep && *cp!=dls->delim) {
+          cp++;
+        }
+      } 
       *ret_len = cp - *ret_cp;
       if (cp < ep)
 	cp++;
       else
-	msg (SW, _("Scope of string exceeds line."));
+	msg (SW, _("Scope of string exceeds line."));      
     }
   else
     {
       *ret_cp = cp;
-      while (cp < ep && !isspace ((unsigned char) *cp) && *cp != ',')
-	cp++;
+      if (dls->delim!=0) {
+	while(cp<ep && *cp!=dls->delim) {
+          cp++;
+        }
+      } else {
+
+	while (cp < ep && !isspace ((unsigned char) *cp) && *cp != ',')
+	  cp++;
+      }
       *ret_len = cp - *ret_cp;
     }
 

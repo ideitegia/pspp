@@ -463,12 +463,11 @@ read_record (struct file_handle *h)
     {
       while (ext->len && isspace ((unsigned char) ext->line[ext->len - 1]))
 	ext->len--;
-
+      
       /* Convert tabs to spaces. */
-      tabs_to_spaces (h);
-		
-      ext->ptr = ext->line;
-    }
+  		
+        ext->ptr = ext->line;
+      }
   return;
 
 eof:
