@@ -868,7 +868,6 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 		   (void *) indep_var->width );
 
 
-      totals->criterion = CMP_EQ;
       totals->sum=0;
       totals->n=0;
       totals->ssq=0;
@@ -929,7 +928,6 @@ calculate(const struct casefile *cf, void *cmd_)
 	      gs = (struct group_statistics *) 
 		xmalloc (sizeof(struct group_statistics));
 
-	      gs->criterion = CMP_EQ;
 	      gs->id = *indep_val;
 	      gs->sum=0;
 	      gs->n=0;

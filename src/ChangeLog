@@ -1,3 +1,15 @@
+Fri Oct 29 17:39:03 WST 2004 John Darrington <john@darrington.wattle.id.au>
+
+        * group.c group.h group_proc.h levene.c oneway.q t-test.q
+
+	Made the t-test more consistent
+	with the way it handles groups.  That is, it now uses a hash instead
+	of an array of 2.  Also, made the levene.c file independent of the 
+	implementation of the t-test.  So now levene should be fine for both
+	t-test and anova.
+
+	* Added an oneway.q file for one way anova
+
 Wed Jun  2 22:08:02 2004  Ben Pfaff  <blp@gnu.org>
 
 	* descript.c: (cmd_descriptives) Remove harmless but bogus test in

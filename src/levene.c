@@ -55,8 +55,6 @@
 
  */
 
-static struct group_statistics *get_group(int v, struct group_statistics *key);
-
 
 struct levene_info
 {
@@ -132,8 +130,6 @@ levene(const struct casefile *cf,
 
 }
 
-static struct hsh_table **hash;
-
 /* Internal variables used in calculating the Levene statistic */
 
 /* Per variable statistics */
@@ -155,9 +151,6 @@ struct lz_stats
 /* An array of lz_stats for each variable */
 static struct lz_stats *lz;
 
-/* Set to 1 if the groups require inequality comparisions */ 
-static int inequality_compare;
-
 
 static void 
 levene_precalc (const struct levene_info *l)
@@ -166,33 +159,13 @@ levene_precalc (const struct levene_info *l)
 
   lz  = xmalloc (sizeof (struct lz_stats ) * l->n_dep ) ;
 
-  hash = xmalloc (sizeof ( struct hsh_table *) * l->n_dep );
-
   for(i=0; i < l->n_dep ; ++i ) 
     {
       struct variable *v = l->v_dep[i];
-      int g;
-      int number_of_groups = v->p.grp_data.n_groups ; 
-
-      hash[i] = hsh_create (l->n_dep * number_of_groups,
-			    (hsh_compare_func *) compare_group, 
-			    (hsh_hash_func *) hash_group,
-			    0,(void *) l->v_indep->width);
 
       lz[i].grand_total = 0;
       lz[i].total_n = 0;
-      lz[i].n_groups = number_of_groups;
-
-      for (g = 0 ; g < v->p.grp_data.n_groups ; ++g ) 
-	{
-	  struct group_statistics *gs = &v->p.grp_data.gs[g];
-	  gs->lz_total = 0;
-	  hsh_insert(hash[i], gs);
-	  if ( gs->criterion != CMP_EQ ) 
-	    {
-	      inequality_compare = 1;
-	    }
-	}
+      lz[i].n_groups = v->p.grp_data.n_groups ; 
     }
 
 }
@@ -206,7 +179,6 @@ levene_calc (const struct ccase *c, void *_l)
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;
   double weight = dict_get_case_weight(default_dict,c,&warn); 
-
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
   if ( l->missing == LEV_LISTWISE ) 
@@ -225,7 +197,6 @@ levene_calc (const struct ccase *c, void *_l)
 
   
   key.id = *gv;
-  key.criterion = CMP_EQ;
 
   for (i = 0; i < l->n_dep; ++i) 
     {
@@ -233,7 +204,9 @@ levene_calc (const struct ccase *c, void *_l)
       double levene_z;
       const union value *v = case_data (c, var->fv);
       struct group_statistics *gs;
-      gs = get_group(i,&key); 
+
+      gs = hsh_find(var->p.grp_data.group_hash,(void *) &key );
+
       if ( 0 == gs ) 
 	continue ;
 
@@ -283,9 +256,14 @@ levene2_precalc (void *_l)
     {
       struct hsh_iterator hi;
       struct group_statistics *g;
-      for(g = (struct group_statistics *) hsh_first(hash[v],&hi);
+
+      struct variable *var = l->v_dep[v] ;
+      struct hsh_table *hash = var->p.grp_data.group_hash;
+
+
+      for(g = (struct group_statistics *) hsh_first(hash,&hi);
 	  g != 0 ;
-	  g = (struct group_statistics *) hsh_next(hash[v],&hi) )
+	  g = (struct group_statistics *) hsh_next(hash,&hi) )
 	{
 	  g->lz_mean = g->lz_total/g->n ;
 	}
@@ -322,7 +300,6 @@ levene2_calc (const struct ccase *c, void *_l)
     }
 
   key.id = *gv;
-  key.criterion = CMP_EQ;
 
   for (i = 0; i < l->n_dep; ++i) 
     {
@@ -330,7 +307,9 @@ levene2_calc (const struct ccase *c, void *_l)
       struct variable *var = l->v_dep[i] ;
       const union value *v = case_data (c, var->fv);
       struct group_statistics *gs;
-      gs = get_group(i,&key); 
+
+      gs = hsh_find(var->p.grp_data.group_hash,(void *) &key );
+
       if ( 0 == gs ) 
 	continue;
 
@@ -357,9 +336,13 @@ levene2_postcalc (void *_l)
       double lz_numerator = 0;
       struct hsh_iterator hi;
       struct group_statistics *g;
-      for(g = (struct group_statistics *) hsh_first(hash[v],&hi);
+
+      struct variable *var = l->v_dep[v] ;
+      struct hsh_table *hash = var->p.grp_data.group_hash;
+
+      for(g = (struct group_statistics *) hsh_first(hash,&hi);
 	  g != 0 ;
-	  g = (struct group_statistics *) hsh_next(hash[v],&hi) )
+	  g = (struct group_statistics *) hsh_next(hash,&hi) )
 	{
 
 	  lz_numerator += g->n * pow2(g->lz_mean - lz[v].grand_mean );
@@ -376,55 +359,6 @@ levene2_postcalc (void *_l)
 
   /* Now clear up after ourselves */
   free(lz_denominator);
-  for (v = 0; v < l->n_dep; ++v) 
-    {
-      hsh_destroy(hash[v]);
-    }
-
-  free(hash);
   free(lz);
 }
 
-
-/* Return the group belonging to the v_th dependent variable
-   which matches the key */
-static struct group_statistics *
-get_group(int v, struct group_statistics *key)
-{
-  struct group_statistics *gs;
-  gs = hsh_find(hash[v],key);
-
-
-  if ( ( !gs )  && inequality_compare) 
-    {
-      /* Here we degrade to a linear search.
-	 This would seem inefficient.  However, it should only ever happen 
-	 with the T-TEST, for which there are exactly two groups */
-
-      struct hsh_iterator hi;
-
-      assert( hsh_count(hash[v]) == 2 ) ;
-      for(gs = (struct group_statistics *) hsh_first(hash[v],&hi);
-	  gs != 0 ;
-	  gs = (struct group_statistics *) hsh_next(hash[v],&hi) )
-	{
-	  int cmp;
-
-	  cmp = compare_values(&gs->id, &key->id, 0);
-
-	  assert( cmp != 0 ); /* or else the hash would have found something */
-
-	  if ( cmp == -1 && 
-	       ( gs->criterion == CMP_GT || gs->criterion == CMP_GE ) 
-	     ) 
-	    break;
-
-	  if ( cmp == 1 && 
-	       ( gs->criterion == CMP_LT || gs->criterion == CMP_LE ) 
-	     ) 
-	    break;
-	}
-    }
-
-  return gs;
-}

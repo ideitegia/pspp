@@ -29,16 +29,7 @@ compare_group(const struct group_statistics *a,
 		 const struct group_statistics *b, 
 		 int width)
 {
-  int id_cmp = compare_values(&a->id, &b->id, width);
-
-  if (id_cmp == 0 ) 
-    {
-      int c;
-      c= memcmp(&a->criterion,&b->criterion,sizeof(enum comparison));
-      return c;
-    }
-  else
-    return id_cmp;
+  return compare_values(&a->id, &b->id, width);
 }
 
 

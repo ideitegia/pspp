@@ -69,9 +69,29 @@ static struct variable *indep_var;
 /* GROUPS: Number of values specified by the user; the values
    specified if any. */
 
-static int n_group_values;
-static union value groups_values[2];
-static enum comparison criteria[2];
+
+struct group_properties
+{
+  /* The comparison criterion */
+  enum comparison criterion;
+
+  /* The width of the independent variable */
+  int indep_width ;  
+
+  union {
+    /* The value of the independent variable at which groups are determined to 
+       belong to one group or the other */
+    double critical_value;
+    
+
+    /* The values of the independent variable for each group */
+    union value g_value[2];
+  } v ;
+
+};
+
+
+static struct group_properties gp ;
 
 
 
@@ -211,6 +231,17 @@ static struct cmd_t_test cmd;
 
 static int bad_weight_warn;
 
+
+static int compare_group_binary(const struct group_statistics *a, 
+				const struct group_statistics *b, 
+				struct group_properties *p);
+
+
+static unsigned  hash_group_binary(const struct group_statistics *g, 
+				   struct group_properties *p);
+
+
+
 int
 cmd_t_test(void)
 {
@@ -305,11 +336,12 @@ cmd_t_test(void)
 
   if ( mode == T_IND_SAMPLES) 
     {
-      int i;
+      int v;
       /* Destroy any group statistics we created */
-      for (i= 0 ; i < cmd.n_variables ; ++i ) 
+      for (v = 0 ; v < cmd.n_variables ; ++v ) 
 	{
-	  free(cmd.v_variables[i]->p.grp_data.gs);
+	  struct group_proc *grpp = &cmd.v_variables[v]->p.grp_data;
+	  free(grpp->group_hash);
 	}
     }
     
@@ -319,6 +351,7 @@ cmd_t_test(void)
 static int
 tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 {
+  int n_group_values=0;
 
   lex_match('=');
 
@@ -348,10 +381,13 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
     {
       if (indep_var->type == NUMERIC)
 	{
-	  groups_values[0].f = 1;
-	  groups_values[1].f = 2;
-	  criteria[0] = criteria[1] = CMP_EQ;
+	  gp.v.g_value[0].f = 1;
+	  gp.v.g_value[1].f = 2;
+
+	  gp.criterion = CMP_EQ;
+	  
 	  n_group_values = 2;
+
 	  return 1;
 	}
       else
@@ -362,27 +398,32 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 	}
     }
 
-  if (!parse_value (&groups_values[0],indep_var->type))
+  if (!parse_value (&gp.v.g_value[0],indep_var->type))
       return 0;
 
   lex_match (',');
   if (lex_match (')'))
     {
-      criteria[0] =  CMP_LE;
-      criteria[1] =  CMP_GT;
-      groups_values[1] = groups_values[0];
+      gp.criterion = CMP_LE;
+      gp.v.critical_value = gp.v.g_value[0].f;
+
       n_group_values = 1;
       return 1;
     }
 
-  if (!parse_value (&groups_values[1],indep_var->type))
+  if (!parse_value (&gp.v.g_value[1],indep_var->type))
     return 0;
-  
+
   n_group_values = 2;
   if (!lex_force_match (')'))
     return 0;
 
-  criteria[0] = criteria[1] = CMP_EQ;
+  if ( n_group_values == 2 ) 
+    gp.criterion = CMP_EQ ;
+  else
+    gp.criterion = CMP_LE ;
+
+
   return 1;
 }
 
@@ -556,6 +597,7 @@ void ssbox_independent_samples_init(struct ssbox *this,
 void ssbox_paired_init(struct ssbox *this,
 			   struct cmd_t_test *cmd);
 
+
 /* Factory to create an ssbox */
 void 
 ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
@@ -575,6 +617,7 @@ ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
 	assert(0);
       }
 }
+
 
 
 /* Despatcher for the populate method */
@@ -599,6 +642,8 @@ ssbox_base_finalize(struct ssbox *ssb)
 {
   tab_submit(ssb->t);
 }
+
+
 
 /* Initialize a ssbox struct */
 void 
@@ -669,31 +714,41 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
   char *val_lab0=0;
   char *val_lab1=0;
+  double indep_value[2];
 
   char prefix[2][3]={"",""};
 
   if ( indep_var->type == NUMERIC ) 
     {
-      val_lab0 = val_labs_find( indep_var->val_labs,groups_values[0]); 
-      val_lab1 = val_labs_find( indep_var->val_labs,groups_values[1]);
+      val_lab0 = val_labs_find( indep_var->val_labs,gp.v.g_value[0]); 
+      val_lab1 = val_labs_find( indep_var->val_labs,gp.v.g_value[1]);
     }
   else
     {
-      val_lab0 = groups_values[0].s;
-      val_lab1 = groups_values[1].s;
+      val_lab0 = gp.v.g_value[0].s;
+      val_lab1 = gp.v.g_value[1].s;
     }
 
-  if (n_group_values == 1) 
+  if (gp.criterion == CMP_LE ) 
     {
       strcpy(prefix[0],"< ");
       strcpy(prefix[1],">=");
+      indep_value[0] = gp.v.critical_value;
+      indep_value[1] = gp.v.critical_value;
+    }
+  else
+    {
+      indep_value[0] = gp.v.g_value[0].f;
+      indep_value[1] = gp.v.g_value[1].f;
     }
 
   assert(ssb->t);
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      int g;
+      struct variable *var = cmd->v_variables[i];
+      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      int count=0;
 
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT, cmd->v_variables[i]->name);
 
@@ -701,26 +756,50 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
 		  "%s%s", prefix[0], val_lab0);
       else
-	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
-		  "%s%g", prefix[0], groups_values[0].f); 
+	  tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
+		    "%s%g", prefix[0], indep_value[0]);
 
 
       if (val_lab1)
 	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
 		  "%s%s", prefix[1], val_lab1);
       else
-	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
-		  "%s%g", prefix[1], groups_values[1].f); 
+	  tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
+		    "%s%g", prefix[1], indep_value[1]);
+
 
       /* Fill in the group statistics */
-      for ( g=0; g < 2 ; ++g ) 
+      for ( count = 0 ; count < 2 ; ++count ) 
 	{
-	  struct group_statistics *gs = &cmd->v_variables[i]->p.grp_data.gs[g];
+	  union value search_val;
 
-	  tab_float(ssb->t, 2 ,i*2+g+1, TAB_RIGHT, gs->n, 2, 0);
-	  tab_float(ssb->t, 3 ,i*2+g+1, TAB_RIGHT, gs->mean, 8, 2);
-	  tab_float(ssb->t, 4 ,i*2+g+1, TAB_RIGHT, gs->std_dev, 8, 3);
-	  tab_float(ssb->t, 5 ,i*2+g+1, TAB_RIGHT, gs->se_mean, 8, 3);
+	  struct group_statistics *gs;
+
+	  if ( gp.criterion == CMP_LE ) 
+	    {
+	      if ( count == 0 ) 
+		{
+		  /*  less than ( < )  case */
+		  search_val.f = gp.v.critical_value - 1.0;
+		}
+	      else
+		{
+		  /* >= case  */
+		  search_val.f = gp.v.critical_value + 1.0;
+		}
+	    }
+	  else
+	    {
+	      search_val = gp.v.g_value[count];
+	    }
+
+	  gs = hsh_find(grp_hash, (void *) &search_val);
+	  assert(gs);
+
+	  tab_float(ssb->t, 2 ,i*2+count+1, TAB_RIGHT, gs->n, 2, 0);
+	  tab_float(ssb->t, 3 ,i*2+count+1, TAB_RIGHT, gs->mean, 8, 2);
+	  tab_float(ssb->t, 4 ,i*2+count+1, TAB_RIGHT, gs->std_dev, 8, 3);
+	  tab_float(ssb->t, 5 ,i*2+count+1, TAB_RIGHT, gs->se_mean, 8, 3);
 	}
     }
 }
@@ -929,8 +1008,31 @@ trbox_independent_samples_populate(struct trbox *self,
       double std_err_diff;
       double mean_diff;
 
-      struct group_statistics *gs0 = &cmd->v_variables[i]->p.grp_data.gs[0];
-      struct group_statistics *gs1 = &cmd->v_variables[i]->p.grp_data.gs[1];
+      struct variable *var = cmd->v_variables[i];
+
+      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+
+      struct group_statistics *gs0 ;
+      struct group_statistics *gs1 ;
+	  
+      union value search_val;
+	  
+      if ( gp.criterion == CMP_LE ) 
+	search_val.f = gp.v.critical_value - 1.0;
+      else
+	search_val = gp.v.g_value[0];
+
+      gs0 = hsh_find(grp_hash, (void *) &search_val);
+      assert(gs0);
+
+      if ( gp.criterion == CMP_LE ) 
+	search_val.f = gp.v.critical_value + 1.0;
+      else
+	search_val = gp.v.g_value[1];
+
+      gs1 = hsh_find(grp_hash, (void *) &search_val);
+      assert(gs1);
+
 	  
       tab_text (self->t, 0, i*2+3, TAB_LEFT, cmd->v_variables[i]->name);
 
@@ -1296,6 +1398,7 @@ pscbox(void)
 
 
 
+
 /* Calculation Implementation */
 
 /* Per case calculations common to all variants of the T test */
@@ -1602,44 +1705,6 @@ paired_postcalc (struct cmd_t_test *cmd UNUSED)
     }
 }
 
-/* Return the group # corresponding to the 
-   independent variable with the value val 
-*/
-static int
-get_group(const union value *val, struct variable *indep)
-{
-  int i; 
-
-  for (i = 0; i < 2  ; ++i )
-    {
-      const int cmp = compare_values(val,&groups_values[i],indep->width) ;
-      switch ( criteria[i])
-	{
-	case CMP_EQ: 
-	  if ( 0 == cmp )   return i;
-	  break;	   
-	case CMP_LT:	   
-	  if ( 0 >  cmp )  return i;
-	  break;	   
-	case CMP_LE:	   
-	  if ( cmp <= 0 )   return i;
-	  break;
-	case CMP_GT:
-	  if ( cmp > 0 ) return i;
-	  break;
-	case CMP_GE:
-	  if ( cmp >= 0 ) return i;
-	  break;
-	default:
-	  assert(0);
-	};
-    }
-
-  /* No groups matched */
-  return -1;
-}
-
-
 static void 
 group_precalc (struct cmd_t_test *cmd )
 {
@@ -1652,19 +1717,39 @@ group_precalc (struct cmd_t_test *cmd )
 
       /* There's always 2 groups for a T - TEST */
       ttpr->n_groups = 2;
-      ttpr->gs = xmalloc(sizeof(struct group_statistics) * 2) ;
+
+      gp.indep_width = indep_var->width;
+      
+      ttpr->group_hash = hsh_create(2, 
+				    (hsh_compare_func *) compare_group_binary,
+				    (hsh_hash_func *) hash_group_binary,
+				    (hsh_free_func *) free_group,
+				    (void *) &gp );
 
       for (j=0 ; j < 2 ; ++j)
 	{
-	  ttpr->gs[j].sum = 0;
-	  ttpr->gs[j].n = 0;
-	  ttpr->gs[j].ssq = 0;
+
+	  struct group_statistics *gs = (struct group_statistics *) 
+	    xmalloc (sizeof(struct group_statistics));
+
+	  gs->sum = 0;
+	  gs->n = 0;
+	  gs->ssq = 0;
 	
-	  if ( n_group_values == 2 ) 
-	    ttpr->gs[j].id = groups_values[j];
+	  if ( gp.criterion == CMP_EQ ) 
+	    {
+	      gs->id = gp.v.g_value[j];
+	    }
 	  else
-	    ttpr->gs[j].id = groups_values[0];
-	  ttpr->gs[j].criterion = criteria[j];
+	    {
+	      if ( j == 0 ) 
+		gs->id.f = gp.v.critical_value - 1.0 ;
+	      else
+		gs->id.f = gp.v.critical_value + 1.0 ;
+	    }
+	  
+	  hsh_insert ( ttpr->group_hash, (void *) gs );
+
 	}
     }
 
@@ -1674,7 +1759,6 @@ static int
 group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 {
   int i;
-  int g;
 
   const union value *gv = case_data (c, indep_var->fv);
 
@@ -1699,24 +1783,21 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 	}
     }
 
-
   gv = case_data (c, indep_var->fv);
-
-  g = get_group(gv,indep_var);
-
-
-  /* If the independent variable doesn't match either of the values 
-     for this case then move on to the next case */
-  if (g == -1 ) 
-    return 0;
 
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct variable *var = cmd->v_variables[i];
-
-      struct group_statistics *gs = &var->p.grp_data.gs[g];
-
       const union value *val = case_data (c, var->fv);
+      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      struct group_statistics *gs;
+
+      gs = hsh_find(grp_hash, (void *) gv);
+
+      /* If the independent variable doesn't match either of the values 
+         for this case then move on to the next case */
+      if ( ! gs ) 
+      	return 0;
 
       if ( !value_is_missing(val,var) )
 	{
@@ -1734,28 +1815,34 @@ static void
 group_postcalc ( struct cmd_t_test *cmd )
 {
   int i;
-  int j;
 
   for(i=0; i< cmd->n_variables ; ++i) 
     {
-      for (j=0 ; j < 2 ; ++j)
-	{
-	  struct group_statistics *gs;
-	  gs=&cmd->v_variables[i]->p.grp_data.gs[j];
+      struct variable *var = cmd->v_variables[i];
+      struct hsh_table *grp_hash = var->p.grp_data.group_hash;
+      struct hsh_iterator g;
+      struct group_statistics *gs;
+      int count=0;
 
+      for (gs =  hsh_first (grp_hash,&g); 
+	   gs != 0; 
+	   gs = hsh_next(grp_hash,&g))
+	{
 	  gs->mean = gs->sum / gs->n;
 	  
 	  gs->s_std_dev= sqrt(
-			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
-			 ) ;
+			      ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			      ) ;
 
 	  gs->std_dev= sqrt(
-			 gs->n/(gs->n-1) *
-			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
-			 ) ;
+			    gs->n/(gs->n-1) *
+			    ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			    ) ;
 	  
 	  gs->se_mean = gs->std_dev / sqrt(gs->n);
+	  count ++;
 	}
+      assert(count == 2);
     }
 }
 
@@ -1820,7 +1907,6 @@ calculate(const struct casefile *cf, void *cmd_)
       casereader_destroy (r);
       group_postcalc(cmd);
 
-
       levene(cf, indep_var, cmd->n_variables, cmd->v_variables,
 	     (cmd->miss == TTS_LISTWISE)?LEV_LISTWISE:LEV_ANALYSIS ,
 	     value_is_missing);
@@ -1838,4 +1924,63 @@ calculate(const struct casefile *cf, void *cmd_)
   trbox_populate(&test_results_box,cmd);
   trbox_finalize(&test_results_box);
 
+}
+
+
+/* Return -1 if the id of a is less than b; +1 if greater than and 
+   0 if equal */
+static int 
+compare_group_binary(const struct group_statistics *a, 
+		     const struct group_statistics *b, 
+		     struct group_properties *p)
+{
+  
+  short flag_a;
+  short flag_b;
+
+  assert(p->indep_width == 0 ) ;
+
+  if ( p->criterion == CMP_LE ) 
+    {
+      flag_a = ( a->id.f < p->v.critical_value ) ;
+      flag_b = ( b->id.f < p->v.critical_value ) ;
+    }
+  else
+    {
+      flag_a = ( a->id.f == p->v.critical_value ) ;
+      flag_b = ( b->id.f == p->v.critical_value ) ;
+    }
+     
+
+  if ( flag_a == flag_b) 
+    return 0 ;
+  
+  return ( flag_a < flag_b);
+}
+
+static unsigned 
+hash_group_binary(const struct group_statistics *g, struct group_properties *p)
+{
+  short flag = -1;
+
+  assert(p->indep_width == 0 ) ;
+
+      /* FIXME: should compare union values */    
+  if ( p->criterion == CMP_LE ) 
+    {
+      flag = ( g->id.f < p->v.critical_value ) ; 
+    }
+  else if ( p->criterion == CMP_EQ) 
+    {
+      if ( g->id.f ==  p->v.g_value[0].f ) 
+	flag = 0 ;
+      else if ( g->id.f == p->v.g_value[1].f ) 
+	flag = 1;
+      else
+	flag = 2;
+    }
+  else
+    assert(0);
+
+  return flag;
 }

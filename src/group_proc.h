@@ -36,9 +36,6 @@ struct group_proc
   /* The levene statistic */
   double levene ;
 
-  /* Stats for individual groups */
-  struct group_statistics *gs;
-
   /* A hash of group statistics keyed by the value of the 
      independent variable */
   struct hsh_table *group_hash;

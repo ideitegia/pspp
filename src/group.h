@@ -29,10 +29,7 @@
 enum comparison
   {
     CMP_LE = -2,
-    CMP_LT = -1,
     CMP_EQ = 0,
-    CMP_GT = 1,
-    CMP_GE = 2
   };
 
 
@@ -41,11 +38,6 @@ struct group_statistics
   {
     /* The value of the independent variable for this group */
     union value id;
-
-    /* The criterium matching for comparing with id 
-       (applicable only to T-TEST) FIXME: therefore it shouldn't be here
-     */
-    enum comparison criterion;
 
     /* The arithmetic mean */
     double mean;
