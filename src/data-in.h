@@ -21,6 +21,7 @@
 #define data_in_h 1
 
 #include <stddef.h>
+#include "bool.h"
 #include "format.h"
 
 /* Flags. */
@@ -43,7 +44,7 @@ struct data_in
     struct fmt_spec format;	/* Format specification to use. */
   };
 
-int data_in (struct data_in *);
+bool data_in (struct data_in *);
 
 void data_in_finite_line (struct data_in *di, const char *line, size_t len,
 			  int fc, int lc);

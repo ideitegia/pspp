@@ -98,7 +98,7 @@ trim_whitespace (struct data_in *i)
 
 /* Returns nonzero if we're not at the end of the string being
    parsed. */
-static inline int
+static inline bool
 have_char (struct data_in *i)
 {
   return i->s < i->e;
@@ -115,17 +115,17 @@ apply_implied_decimals (struct data_in *i)
 
 /* Format parsers. */ 
 
-static int parse_int (struct data_in *i, long *result);
+static bool parse_int (struct data_in *i, long *result);
 
 /* This function is based on strtod() from the GNU C library. */
-static int
+static bool
 parse_numeric (struct data_in *i)
 {
   int sign;                     /* +1 or -1. */
   double num;			/* The number so far.  */
 
-  int got_dot;			/* Found a decimal point.  */
-  int got_digit;		/* Count of digits.  */
+  bool got_dot;			/* Found a decimal point.  */
+  size_t digit_cnt;		/* Count of digits.  */
 
   int decimal;			/* Decimal point character. */
   int grouping;			/* Grouping character. */
@@ -165,14 +165,14 @@ parse_numeric (struct data_in *i)
 
   i->v->f = SYSMIS;
   num = 0.0;
-  got_dot = 0;
-  got_digit = 0;
+  got_dot = false;
+  digit_cnt = 0;
   exponent = 0;
   for (; have_char (i); i->s++)
     {
       if (isdigit (*i->s))
 	{
-	  got_digit++;
+	  digit_cnt++;
 
 	  /* Make sure that multiplication by 10 will not overflow.  */
 	  if (num > DBL_MAX * 0.1)
@@ -194,22 +194,22 @@ parse_numeric (struct data_in *i)
 	}
       else if (!got_dot && *i->s == decimal)
 	/* Record that we have found the decimal point.  */
-	got_dot = 1;
+	got_dot = true;
       else if ((type != FMT_COMMA && type != FMT_DOT) || *i->s != grouping)
 	/* Any other character terminates the number.  */
 	break;
     }
 
-  if (!got_digit)
+  if (!digit_cnt)
     {
       if (got_dot)
 	{
 	  i->v->f = SYSMIS;
-	  return 1;
+	  return true;
 	}
       dls_error (i, _("Field does not form a valid floating-point constant."));
       i->v->f = SYSMIS;
-      return 0;
+      return false;
     }
   
   if (have_char (i)
@@ -224,7 +224,7 @@ parse_numeric (struct data_in *i)
       if (!parse_int (i, &exp))
         {
           i->v->f = SYSMIS;
-          return 0;
+          return false;
         }
 
       exponent += exp;
@@ -238,25 +238,25 @@ parse_numeric (struct data_in *i)
     {
       dls_error (i, _("Field contents followed by garbage."));
       i->v->f = SYSMIS;
-      return 0;
+      return false;
     }
 
   if (num == 0.0)
     {
       i->v->f = 0.0;
-      return 1;
+      return true;
     }
 
   /* Multiply NUM by 10 to the EXPONENT power, checking for overflow
      and underflow.  */
   if (exponent < 0)
     {
-      if (-exponent + got_digit > -(DBL_MIN_10_EXP) + 5
+      if (-exponent + digit_cnt > -(DBL_MIN_10_EXP) + 5
 	  || num < DBL_MIN * pow (10.0, (double) -exponent)) 
         {
           dls_error (i, _("Underflow in floating-point constant."));
           i->v->f = 0.0;
-          return 0;
+          return false;
         }
 
       num *= pow (10.0, (double) exponent);
@@ -267,14 +267,14 @@ parse_numeric (struct data_in *i)
         {
           dls_error (i, _("Overflow in floating-point constant."));
           i->v->f = SYSMIS;
-          return 0;
+          return false;
         }
       
       num *= pow (10.0, (double) exponent);
     }
 
   i->v->f = sign > 0 ? num : -num;
-  return 1;
+  return true;
 }
 
 /* Returns the integer value of hex digit C. */
@@ -288,7 +288,7 @@ hexit_value (int c)
   return cp - s;
 }
 
-static inline int
+static inline bool
 parse_N (struct data_in *i)
 {
   const unsigned char *cp;
@@ -299,17 +299,17 @@ parse_N (struct data_in *i)
       if (!isdigit (*cp))
 	{
 	  dls_error (i, _("All characters in field must be digits."));
-	  return 0;
+	  return false;
 	}
 
       i->v->f = i->v->f * 10.0 + *cp - '0';
     }
 
   apply_implied_decimals (i);
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_PIBHEX (struct data_in *i)
 {
   double n;
@@ -323,17 +323,17 @@ parse_PIBHEX (struct data_in *i)
       if (!isxdigit (*cp))
 	{
 	  dls_error (i, _("Unrecognized character in field."));
-	  return 0;
+	  return false;
 	}
 
       n = n * 16.0 + hexit_value (*cp);
     }
   
   i->v->f = n;
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_RBHEX (struct data_in *i)
 {
   /* Validate input. */
@@ -341,7 +341,7 @@ parse_RBHEX (struct data_in *i)
   if ((i->e - i->s) % 2)
     {
       dls_error (i, _("Field must have even length."));
-      return 0;
+      return false;
     }
   
   {
@@ -351,7 +351,7 @@ parse_RBHEX (struct data_in *i)
       if (!isxdigit (*cp))
 	{
 	  dls_error (i, _("Field must contain only hex digits."));
-	  return 0;
+	  return false;
 	}
   }
   
@@ -373,10 +373,10 @@ parse_RBHEX (struct data_in *i)
     i->v->f = u.d;
   }
   
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_Z (struct data_in *i)
 {
   char buf[64];
@@ -384,7 +384,7 @@ parse_Z (struct data_in *i)
 
   /* Warn user that we suck. */
   {
-    static int warned;
+    static bool warned;
 
     if (!warned)
       {
@@ -392,7 +392,7 @@ parse_Z (struct data_in *i)
 	     _("Quality of zoned decimal (Z) input format code is "
 	       "suspect.  Check your results three times. Report bugs "
 		"to %s."),PACKAGE_BUGREPORT);
-	warned = 1;
+	warned = true;
       }
   }
 
@@ -403,14 +403,14 @@ parse_Z (struct data_in *i)
     {
       dls_error (i, _("Zoned decimal field contains fewer than 2 "
 		      "characters."));
-      return 0;
+      return false;
     }
 
   /* Copy sign into buf[0]. */
   if ((i->e[-1] & 0xc0) != 0xc0)
     {
       dls_error (i, _("Bad sign byte in zoned decimal number."));
-      return 0;
+      return false;
     }
   buf[0] = (i->e[-1] ^ (i->e[-1] >> 1)) & 0x10 ? '-' : '+';
 
@@ -430,7 +430,7 @@ parse_Z (struct data_in *i)
       else
 	{
 	  dls_error (i, _("Format error in zoned decimal number."));
-	  return 0;
+	  return false;
 	}
 
     *dp = '\0';
@@ -444,17 +444,17 @@ parse_Z (struct data_in *i)
     if ((unsigned char *) tail != i->e)
       {
 	dls_error (i, _("Error in syntax of zoned decimal number."));
-	return 0;
+	return false;
       }
   }
 
   if (!got_dot)
     apply_implied_decimals (i);
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_IB (struct data_in *i)
 {
   char buf[64];
@@ -494,10 +494,10 @@ parse_IB (struct data_in *i)
 
   apply_implied_decimals (i);
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_PIB (struct data_in *i)
 {
   int j;
@@ -513,10 +513,10 @@ parse_PIB (struct data_in *i)
 
   apply_implied_decimals (i);
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_P (struct data_in *i)
 {
   const unsigned char *cp;
@@ -533,10 +533,10 @@ parse_P (struct data_in *i)
 
   apply_implied_decimals (i);
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_PK (struct data_in *i)
 {
   const unsigned char *cp;
@@ -550,10 +550,10 @@ parse_PK (struct data_in *i)
 
   apply_implied_decimals (i);
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_RB (struct data_in *i)
 {
   union
@@ -567,10 +567,10 @@ parse_RB (struct data_in *i)
   memcpy (u.c, i->s, min ((int) sizeof (u.c), i->e - i->s));
   i->v->f = u.d;
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_A (struct data_in *i)
 {
   ptrdiff_t len = i->e - i->s;
@@ -583,10 +583,10 @@ parse_A (struct data_in *i)
       memset (i->v->s + len, ' ', i->format.w - len);
     }
 
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 parse_AHEX (struct data_in *i)
 {
   /* Validate input. */
@@ -594,7 +594,7 @@ parse_AHEX (struct data_in *i)
   if ((i->e - i->s) % 2)
     {
       dls_error (i, _("Field must have even length."));
-      return 0;
+      return false;
     }
 
   {
@@ -604,7 +604,7 @@ parse_AHEX (struct data_in *i)
       if (!isxdigit (*cp))
 	{
 	  dls_error (i, _("Field must contain only hex digits."));
-	  return 0;
+	  return false;
 	}
   }
   
@@ -617,7 +617,7 @@ parse_AHEX (struct data_in *i)
     memset (i->v->s + (i->e - i->s) / 2, ' ', (i->format.w - (i->e - i->s)) / 2);
   }
   
-  return 1;
+  return true;
 }
 
 /* Date & time format components. */
@@ -630,30 +630,30 @@ skip_whitespace (struct data_in *i)
     i->s++;
 }
 
-static inline int
+static inline bool
 parse_leader (struct data_in *i)
 {
   skip_whitespace (i);
-  return 1;
+  return true;
 }
 
-static inline int
+static inline bool
 force_have_char (struct data_in *i)
 {
   if (have_char (i))
-    return 1;
+    return true;
 
   dls_error (i, _("Unexpected end of field."));
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_int (struct data_in *i, long *result)
 {
-  int negative = 0;
+  bool negative = false;
   
   if (!force_have_char (i))
-    return 0;
+    return false;
 
   if (*i->s == '+')
     {
@@ -662,7 +662,7 @@ parse_int (struct data_in *i, long *result)
     }
   else if (*i->s == '-')
     {
-      negative = 1;
+      negative = true;
       i->s++;
       force_have_char (i);
     }
@@ -670,7 +670,7 @@ parse_int (struct data_in *i, long *result)
   if (!isdigit (*i->s))
     {
       dls_error (i, _("Digit expected in field."));
-      return 0;
+      return false;
     }
 
   *result = 0;
@@ -683,44 +683,44 @@ parse_int (struct data_in *i, long *result)
 
   if (negative)
     *result = -*result;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_day (struct data_in *i, long *day)
 {
   if (!parse_int (i, day))
-    return 0;
+    return false;
   if (*day >= 1 && *day <= 31)
-    return 1;
+    return true;
 
   dls_error (i, _("Day (%ld) must be between 1 and 31."), *day);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_day_count (struct data_in *i, long *day_count)
 {
   return parse_int (i, day_count);
 }
 
-static int
+static bool
 parse_date_delimiter (struct data_in *i)
 {
-  int delim = 0;
+  bool delim = false;
 
   while (have_char (i)
 	 && (*i->s == '-' || *i->s == '/' || isspace (*i->s)
 	     || *i->s == '.' || *i->s == ','))
     {
-      delim = 1;
+      delim = true;
       i->s++;
     }
   if (delim)
-    return 1;
+    return true;
 
   dls_error (i, _("Delimiter expected between fields in date."));
-  return 0;
+  return false;
 }
 
 /* Association between a name and a value. */
@@ -753,7 +753,7 @@ parse_enum (struct data_in *i, const char *what,
   if (length == 0) 
     {
       dls_error (i, _("Parse error at `%c' expecting %s."), *i->s, what);
-      return 0;
+      return false;
     }
 
   for (ep = enum_names; ep->name != NULL; ep++)
@@ -763,14 +763,14 @@ parse_enum (struct data_in *i, const char *what,
             && !memcmp (name, ep->name, length)))
       {
         *output = ep->value;
-        return 1;
+        return true;
       }
 
   dls_error (i, _("Unknown %s `%.*s'."), what, (int) length, name);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_month (struct data_in *i, long *month)
 {
   static const struct enum_name month_names[] = 
@@ -807,53 +807,53 @@ parse_month (struct data_in *i, long *month)
     };
 
   if (!force_have_char (i))
-    return 0;
+    return false;
   
   if (isdigit (*i->s))
     {
       if (!parse_int (i, month))
-	return 0;
+	return false;
       if (*month >= 1 && *month <= 12)
-	return 1;
+	return true;
       
       dls_error (i, _("Month (%ld) must be between 1 and 12."), *month);
-      return 0;
+      return false;
     }
   else 
     return parse_enum (i, _("month"), month_names, month);
 }
 
-static int
+static bool
 parse_year (struct data_in *i, long *year)
 {
   if (!parse_int (i, year))
-    return 0;
+    return false;
   
   if (*year >= 0 && *year <= 199)
     *year += 1900;
   if (*year >= 1582 || *year <= 19999)
-    return 1;
+    return true;
 
   dls_error (i, _("Year (%ld) must be between 1582 and 19999."), *year);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_trailer (struct data_in *i)
 {
   skip_whitespace (i);
   if (!have_char (i))
-    return 1;
+    return true;
   
   dls_error (i, _("Trailing garbage \"%s\" following date."), i->s);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_julian (struct data_in *i, long *julian)
 {
   if (!parse_int (i, julian))
-    return 0;
+    return false;
    
   {
     int day = *julian % 1000;
@@ -861,7 +861,7 @@ parse_julian (struct data_in *i, long *julian)
     if (day < 1 || day > 366)
       {
 	dls_error (i, _("Julian day (%d) must be between 1 and 366."), day);
-	return 0;
+	return false;
       }
   }
   
@@ -873,52 +873,52 @@ parse_julian (struct data_in *i, long *julian)
     else if (year < 1582 || year > 19999)
       {
 	dls_error (i, _("Year (%d) must be between 1582 and 19999."), year);
-	return 0;
+	return false;
       }
   }
 
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_quarter (struct data_in *i, long *quarter)
 {
   if (!parse_int (i, quarter))
-    return 0;
+    return false;
   if (*quarter >= 1 && *quarter <= 4)
-    return 1;
+    return true;
 
   dls_error (i, _("Quarter (%ld) must be between 1 and 4."), *quarter);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_q_delimiter (struct data_in *i)
 {
   skip_whitespace (i);
   if (!have_char (i) || tolower (*i->s) != 'q')
     {
       dls_error (i, _("`Q' expected between quarter and year."));
-      return 0;
+      return false;
     }
   i->s++;
   skip_whitespace (i);
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_week (struct data_in *i, long *week)
 {
   if (!parse_int (i, week))
-    return 0;
+    return false;
   if (*week >= 1 && *week <= 53)
-    return 1;
+    return true;
 
   dls_error (i, _("Week (%ld) must be between 1 and 53."), *week);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_wk_delimiter (struct data_in *i)
 {
   skip_whitespace (i);
@@ -926,60 +926,59 @@ parse_wk_delimiter (struct data_in *i)
       || tolower (i->s[0]) != 'w' || tolower (i->s[1]) != 'k')
     {
       dls_error (i, _("`WK' expected between week and year."));
-      return 0;
+      return false;
     }
   i->s += 2;
   skip_whitespace (i);
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_time_delimiter (struct data_in *i)
 {
-  int delim = 0;
+  bool delim = false;
 
-  while (have_char (i)
-	 && (*i->s == ':' || *i->s == '.' || isspace (*i->s)))
+  while (have_char (i) && (*i->s == ':' || *i->s == '.' || isspace (*i->s)))
     {
-      delim = 1;
+      delim = true;
       i->s++;
     }
 
   if (delim)
-    return 1;
+    return true;
   
   dls_error (i, _("Delimiter expected between fields in time."));
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_hour (struct data_in *i, long *hour)
 {
   if (!parse_int (i, hour))
-    return 0;
+    return false;
   if (*hour >= 0)
-    return 1;
+    return true;
   
   dls_error (i, _("Hour (%ld) must be positive."), *hour);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_minute (struct data_in *i, long *minute)
 {
   if (!parse_int (i, minute))
-    return 0;
+    return false;
   if (*minute >= 0 && *minute <= 59)
-    return 1;
+    return true;
   
   dls_error (i, _("Minute (%ld) must be between 0 and 59."), *minute);
-  return 0;
+  return false;
 }
 
-static int
+static bool
 parse_opt_second (struct data_in *i, double *second)
 {
-  int delim = 0;
+  bool delim = false;
 
   char buf[64];
   char *cp;
@@ -987,14 +986,14 @@ parse_opt_second (struct data_in *i, double *second)
   while (have_char (i)
 	 && (*i->s == ':' || *i->s == '.' || isspace (*i->s)))
     {
-      delim = 1;
+      delim = true;
       i->s++;
     }
   
   if (!delim || !isdigit (*i->s))
     {
       *second = 0.0;
-      return 1;
+      return true;
     }
 
   cp = buf;
@@ -1008,23 +1007,23 @@ parse_opt_second (struct data_in *i, double *second)
   
   *second = strtod (buf, NULL);
 
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_hour24 (struct data_in *i, long *hour24)
 {
   if (!parse_int (i, hour24))
-    return 0;
+    return false;
   if (*hour24 >= 0 && *hour24 <= 23)
-    return 1;
+    return true;
   
   dls_error (i, _("Hour (%ld) must be between 0 and 23."), *hour24);
-  return 0;
+  return false;
 }
 
      
-static int
+static bool
 parse_weekday (struct data_in *i, long *weekday)
 {
   static const struct enum_name weekday_names[] = 
@@ -1050,18 +1049,18 @@ parse_weekday (struct data_in *i, long *weekday)
   return parse_enum (i, _("weekday"), weekday_names, weekday);
 }
 
-static int
+static bool
 parse_spaces (struct data_in *i)
 {
   skip_whitespace (i);
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_sign (struct data_in *i, int *sign)
 {
   if (!force_have_char (i))
-    return 0;
+    return false;
 
   switch (*i->s)
     {
@@ -1079,7 +1078,7 @@ parse_sign (struct data_in *i, int *sign)
       break;
     }
 
-  return 1;
+  return true;
 }
 
 /* Date & time formats. */
@@ -1114,7 +1113,7 @@ ymd_to_date (struct data_in *i, int year, int month, int day, double *date)
     return false;
 }
 
-static int
+static bool
 parse_DATE (struct data_in *i)
 {
   long day, month, year;
@@ -1129,7 +1128,7 @@ parse_DATE (struct data_in *i)
           && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
-static int
+static bool
 parse_ADATE (struct data_in *i)
 {
   long month, day, year;
@@ -1144,7 +1143,7 @@ parse_ADATE (struct data_in *i)
           && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
-static int
+static bool
 parse_EDATE (struct data_in *i)
 {
   long month, day, year;
@@ -1159,7 +1158,7 @@ parse_EDATE (struct data_in *i)
           && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
-static int
+static bool
 parse_SDATE (struct data_in *i)
 {
   long month, day, year;
@@ -1174,7 +1173,7 @@ parse_SDATE (struct data_in *i)
           && ymd_to_date (i, year, month, day, &i->v->f));
 }
 
-static int
+static bool
 parse_JDATE (struct data_in *i)
 {
   long julian;
@@ -1184,13 +1183,13 @@ parse_JDATE (struct data_in *i)
       || !parse_julian (i, &julian)
       || !parse_trailer (i)
       || !ymd_to_ofs (i, julian / 1000, 1, 1, &ofs))
-    return 0;
+    return false;
 
   i->v->f = (ofs + julian % 1000 - 1) * 60. * 60. * 24.;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_QYR (struct data_in *i)
 {
   long quarter, year;
@@ -1203,7 +1202,7 @@ parse_QYR (struct data_in *i)
           && ymd_to_date (i, year, (quarter - 1) * 3 + 1, 1, &i->v->f));
 }
 
-static int
+static bool
 parse_MOYR (struct data_in *i)
 {
   long month, year;
@@ -1216,7 +1215,7 @@ parse_MOYR (struct data_in *i)
           && ymd_to_date (i, year, month, 1, &i->v->f));
 }
 
-static int
+static bool
 parse_WKYR (struct data_in *i)
 {
   long week, year;
@@ -1227,25 +1226,25 @@ parse_WKYR (struct data_in *i)
       || !parse_wk_delimiter (i)
       || !parse_year (i, &year)
       || !parse_trailer (i))
-    return 0;
+    return false;
 
   if (year != 1582) 
     {
       if (!ymd_to_ofs (i, year, 1, 1, &ofs))
-        return 0;
+        return false;
     }
   else 
     {
       if (ymd_to_ofs (i, 1583, 1, 1, &ofs))
-        return 0;
+        return false;
       ofs -= 365;
     }
 
   i->v->f = (ofs + (week - 1) * 7) * 60. * 60. * 24.;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_TIME (struct data_in *i)
 {
   int sign;
@@ -1259,13 +1258,13 @@ parse_TIME (struct data_in *i)
       || !parse_time_delimiter (i)
       || !parse_minute (i, &minute)
       || !parse_opt_second (i, &second))
-    return 0;
+    return false;
 
   i->v->f = (hour * 60. * 60. + minute * 60. + second) * sign;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_DTIME (struct data_in *i)
 {
   int sign;
@@ -1282,16 +1281,16 @@ parse_DTIME (struct data_in *i)
       || !parse_time_delimiter (i)
       || !parse_minute (i, &minute)
       || !parse_opt_second (i, &second))
-    return 0;
+    return false;
 
   i->v->f = (day_count * 60. * 60. * 24.
 	     + hour * 60. * 60.
 	     + minute * 60.
 	     + second) * sign;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_DATETIME (struct data_in *i)
 {
   long day, month, year;
@@ -1311,13 +1310,13 @@ parse_DATETIME (struct data_in *i)
       || !parse_minute (i, &minute)
       || !parse_opt_second (i, &second)
       || !ymd_to_date (i, year, month, day, &i->v->f))
-    return 0;
+    return false;
 
   i->v->f += hour24 * 60. * 60. + minute * 60. + second;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_WKDAY (struct data_in *i)
 {
   long weekday;
@@ -1325,13 +1324,13 @@ parse_WKDAY (struct data_in *i)
   if (!parse_leader (i)
       || !parse_weekday (i, &weekday)
       || !parse_trailer (i))
-    return 0;
+    return false;
 
   i->v->f = weekday;
-  return 1;
+  return true;
 }
 
-static int
+static bool
 parse_MONTH (struct data_in *i)
 {
   long month;
@@ -1339,10 +1338,10 @@ parse_MONTH (struct data_in *i)
   if (!parse_leader (i)
       || !parse_month (i, &month)
       || !parse_trailer (i))
-    return 0;
+    return false;
 
   i->v->f = month;
-  return 1;
+  return true;
 }
 
 /* Main dispatcher. */
@@ -1359,7 +1358,7 @@ default_result (struct data_in *i)
     i->v->f = get_blanks();
 }
 
-int
+bool
 data_in (struct data_in *i)
 {
   const struct fmt_desc *const fmt = &formats[i->format.type];
@@ -1368,7 +1367,7 @@ data_in (struct data_in *i)
   if (i->e == i->s || i->format.w <= 0)
     {
       default_result (i);
-      return 1;
+      return true;
     }
 
   i->f2 = i->f1 + (i->e - i->s) - 1;
@@ -1395,13 +1394,13 @@ data_in (struct data_in *i)
 	  if (++cp == i->e)
 	    {
 	      i->v->f = get_blanks();
-	      return 1;
+	      return true;
 	    }
 	}
     }
   
   {
-    static int (*const handlers[FMT_NUMBER_OF_FORMATS])(struct data_in *) = 
+    static bool (*const handlers[FMT_NUMBER_OF_FORMATS])(struct data_in *) = 
       {
 	parse_numeric, parse_N, parse_numeric, parse_numeric,
 	parse_numeric, parse_numeric, parse_numeric,
@@ -1414,8 +1413,8 @@ data_in (struct data_in *i)
 	parse_WKDAY, parse_MONTH,
       };
 
-    int (*handler)(struct data_in *);
-    int success;
+    bool (*handler)(struct data_in *);
+    bool success;
 
     handler = handlers[i->format.type];
     assert (handler != NULL);
