@@ -488,3 +488,31 @@ free_atom (void *atom_, void *aux UNUSED)
   free (atom->string);
   free (atom);
 }
+
+
+/* Get a string representing the value.
+   That is, if it has a label, then return that label,
+   otherwise, if the value is alpha, then return the string for it,
+   else format it and return the formatted string
+*/
+const char *
+value_to_string(const union value *val, const struct variable *var)
+{
+  char *s;
+  const struct val_labs *val_labs = var->val_labs;
+  
+  s = val_labs_find (val_labs, *val);
+
+  if ( s ) 
+    return s;
+
+  if ( 0 == var->width ) 
+    {
+      static char buf[100];
+      snprintf(buf,100,"%g",val->f);
+      return buf;
+    }
+  else
+    return val->s;
+  
+}

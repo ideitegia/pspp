@@ -68,3 +68,11 @@ cmd_variable_labels (void)
   while (token != '.');
   return CMD_SUCCESS;
 }
+
+
+
+const char *
+var_to_string(const struct variable *var)
+{
+  return ( var->label ? var->label : var->name);
+}

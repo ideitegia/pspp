@@ -42,10 +42,10 @@ $(q_sources_c): q2c$(EXEEXT)
 .q.c:
 	./q2c $< $@
 
-q_sources_c = correlations.c crosstabs.c file-handle.c	\
-frequencies.c list.c means.c oneway.c set.c  t-test.c
+q_sources_c = correlations.c crosstabs.c examine.c file-handle.c	\
+frequencies.c list.c means.c oneway.c set.c  t-test.c 
 
-q_sources_q = correlations.q crosstabs.q file-handle.q	\
+q_sources_q = correlations.q crosstabs.q examine.q file-handle.q	\
 frequencies.q list.q means.q oneway.q set.q  t-test.q
 
 pspp_SOURCES = $(q_sources_c) aggregate.c algorithm.c algorithm.h	\

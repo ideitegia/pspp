@@ -73,4 +73,5 @@ int compare_values (const union value *a, const union value *b, int width);
 unsigned  hash_value(const union value  *v, int width);
 
 
+
 #endif /* !val_h */
