@@ -71,10 +71,18 @@ split-file.c str.c str.h subclist.c subclist.h \
 sysfile-info.c tab.c tab.h temporary.c stat.h \
 title.c  val.h val-labs.c value-labels.c value-labels.h		\
 var-labs.c var.h vars-atr.c vars-prs.c vector.c version.c version.h	\
-vfm.c vfm.h vfmP.h weight.c
+vfm.c vfm.h vfmP.h weight.c \
+barchart.c \
+box-whisker.c \
+cartesian.c \
+chart.c \
+chart.h \
+histogram.c \
+piechart.c 
 
 pspp_LDADD = ../lib/julcal/libjulcal.a		\
 	../lib/misc/libmisc.a			\
+	-lplot \
 	@LIBINTL@
 
 version.c:

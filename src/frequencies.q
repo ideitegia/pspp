@@ -47,6 +47,7 @@
 #include "var.h"
 #include "vfm.h"
 #include "settings.h"
+#include "chart.h"
 
 #include "debug-print.h"
 
@@ -63,6 +64,9 @@
      barchart(ba_)=:minimum(d:min),
 	    :maximum(d:max),
 	    scale:freq(*n:freq,"%s>0")/percent(*n:pcnt,"%s>0");
+     piechart(pie_)=:minimum(d:min),
+	    :maximum(d:max),
+	    missing:missing/!nomissing;
      histogram(hi_)=:minimum(d:min),
 	    :maximum(d:max),
 	    scale:freq(*n:freq,"%s>0")/percent(*n:pcnt,"%s>0"),
@@ -148,6 +152,7 @@ enum
     GFT_NONE,			/* Don't draw graphs. */
     GFT_BAR,			/* Draw bar charts. */
     GFT_HIST,			/* Draw histograms. */
+    GFT_PIE,                    /* Draw piechart */
     GFT_HBAR			/* Draw bar charts or histograms at our discretion. */
   };
 
@@ -155,7 +160,8 @@ enum
 static struct cmd_frequencies cmd;
 
 /* Summary of the barchart, histogram, and hbar subcommands. */
-static int chart;		/* NONE/BAR/HIST/HBAR. */
+/* FIXME: These should not be mututally exclusive */
+static int chart;		/* NONE/BAR/HIST/HBAR/PIE. */
 static double min, max;		/* Minimum, maximum on y axis. */
 static int format;		/* FREQ/PERCENT: Scaling of y axis. */
 static double scale, incr;	/* FIXME */
@@ -173,6 +179,8 @@ static struct pool *gen_pool;	/* General mode. */
 #define stat cmd.a_statistics
 
 static void determine_charts (void);
+
+static void calc_stats (struct variable * v, double d[frq_n_stats]);
 
 static void precalc (void *);
 static int calc (struct ccase *, void *);
@@ -267,7 +275,8 @@ internal_cmd_frequencies (void)
 static void
 determine_charts (void)
 {
-  int count = (!!cmd.sbc_histogram) + (!!cmd.sbc_barchart) + (!!cmd.sbc_hbar);
+  int count = (!!cmd.sbc_histogram) + (!!cmd.sbc_barchart) + 
+    (!!cmd.sbc_hbar) + (!!cmd.sbc_piechart);
 
   if (!count)
     {
@@ -285,6 +294,8 @@ determine_charts (void)
     chart = GFT_HIST;
   else if (cmd.sbc_barchart)
     chart = GFT_BAR;
+  else if (cmd.sbc_piechart)
+    chart = GFT_PIE;
   else
     chart = GFT_HBAR;
 
@@ -328,7 +339,7 @@ determine_charts (void)
 	  format = FRQ_PERCENT;
 	  scale = cmd.ba_pcnt;
 	}
-      if (cmd.hi_norm)
+      if (cmd.hi_norm != FRQ_NONORMAL )
 	normal = 1;
       if (cmd.hi_incr == FRQ_INCREMENT)
 	incr = cmd.hi_inc;
@@ -385,9 +396,10 @@ calc (struct ccase *c, void *aux UNUSED)
 	{
 	  case FRQM_GENERAL:
 	    {
+
 	      /* General mode. */
 	      struct freq **fpp = (struct freq **) hsh_probe (ft->data, val);
-	  
+
 	      if (*fpp != NULL)
 		(*fpp)->c += weight;
 	      else
@@ -504,7 +516,40 @@ postcalc (void *aux UNUSED)
       if (n_stats)
 	dump_statistics (v, !dumped_freq_tab);
 
+
+      if ( chart == GFT_HIST) 
+	{
+	  struct chart ch;
+	  double d[frq_n_stats];
+	  struct frequencies_proc *frq = &v->p.frq;
+	  
+	  struct normal_curve norm;
+	  norm.N = frq->tab.total_cases ;
+
+	  calc_stats(v,d);
+	  norm.mean = d[frq_mean];
+	  norm.stddev = d[frq_stddev];
+
+	  chart_initialise(&ch);
+	  draw_histogram(&ch, v_variables[i], "HISTOGRAM",&norm,normal);
+	  chart_finalise(&ch);
+	}
+
+
+      if ( chart == GFT_PIE) 
+	{
+	  struct chart ch;
+
+	  chart_initialise(&ch);
+	  
+	  draw_piechart(&ch, v_variables[i]);
+
+	  chart_finalise(&ch);
+	}
+
+
       cleanup_freq_tab (v);
+
     }
 }
 
@@ -1102,6 +1147,7 @@ dump_full (struct variable * v)
 
   tab_title (t, 1, "%s: %s", v->name, v->label ? v->label : "");
   tab_submit (t);
+
 }
 
 /* Sets the widths of all the columns and heights of all the rows in

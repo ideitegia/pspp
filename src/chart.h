@@ -1,0 +1,179 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 2004 Free Software Foundation, Inc.
+   Written by John Darrington <john@darrington.wattle.id.au>
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+   02111-1307, USA. */
+
+
+#ifndef CHART_H
+#define CHART_H
+
+#include <stdio.h>
+#include <plot.h>
+#include "var.h"
+
+
+/* Array of standard colour names */
+extern const char *data_colour[];
+
+
+struct chart {
+
+  plPlotter *lp ;
+  plPlotterParams *pl_params;
+
+  /* The geometry of the chart 
+     See diagram at the foot of this file.
+   */
+  
+  int data_top   ;
+  int data_right ;
+  int data_bottom;
+  int data_left  ;
+
+  int abscissa_top;
+
+  int ordinate_right ;
+
+  int title_bottom ;
+
+  int legend_left ;
+  int legend_right ;
+
+  
+  /* Default font size for the plot (if zero, then use plotter default) */
+  int font_size; 
+
+  char fill_colour[10];
+
+};
+
+
+int  chart_initialise(struct chart *ch);
+
+void chart_finalise(struct chart *ch);
+
+
+
+void chart_write_title(struct chart *ch, 
+		      const char *title);
+
+enum tick_orientation {
+  TICK_ABSCISSA=0,
+  TICK_ORDINATE
+};
+
+void draw_tick(struct chart *ch, enum tick_orientation orientation, 
+	       double position, const char *label, ...);
+
+
+
+enum  bar_opts {
+  BAR_GROUPED =  0,
+  BAR_STACKED,
+  BAR_RANGE
+};
+
+
+void draw_barchart(struct chart *ch, const char *title, 
+		   const char *xlabel, const char *ylabel, enum bar_opts opt);
+
+void draw_box_whisker_chart(struct chart *ch, const char *title);
+
+
+
+struct normal_curve
+{
+  double N ;
+  double mean ;
+  double stddev ;
+};
+
+
+void draw_histogram(struct chart *ch, 
+		    const struct variable *v,
+		    const char *title, 
+		    struct normal_curve *norm,
+		    int show_normal);
+
+
+
+void draw_piechart(struct chart *ch, const struct variable *v);
+
+void draw_scatterplot(struct chart *ch, const char *title, 
+		      const char *xlabel, const char *ylabel);
+
+
+void draw_lineplot(struct chart *ch, const char *title, 
+		      const char *xlabel, const char *ylabel);
+
+
+
+#endif
+
+#if 0
+The anatomy of a chart is as follows.
+
++-------------------------------------------------------------+
+|	     +----------------------------------+	      |
+|	     |				        |	      |
+|	     |		Title		        |	      |
+|	     |				        |	      |
+|      	     +----------------------------------+	      |
+|+----------++----------------------------------++-----------+|
+||	    ||				        ||	     ||
+||	    ||				        ||	     ||
+||	    ||				        ||	     ||
+||	    ||				        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+|| Ordinate ||		  Data 		        ||  Legend   ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||
+||	    ||		      		        ||	     ||	      
+|+----------++----------------------------------++-----------+|	  --  
+|	     +----------------------------------+	      | -  ^  data_bottom
+|	     |		Abscissa	        |	      | ^  |  		 
+|	     |		      		        |	      | | abscissa_top
+|	     +----------------------------------+	      | v  v  
++-------------------------------------------------------------+ ----  
+			      			
+ordinate_right		      			||	     |
+|           |                                   ||	     |
+|<--------->|                                   ||	     |
+|            |                                  ||	     |
+| data_left  |                                  ||	     |
+|<---------->|                                  ||	     |
+|                                               ||	     |
+|               data_right                      ||	     |
+|<--------------------------------------------->||	     |
+|		   legend_left 	 		 |	     |
+|<---------------------------------------------->|	     |
+|		     legend_right		 	     |
+|<---------------------------------------------------------->|
+							     
+#endif
