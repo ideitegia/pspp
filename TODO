@@ -1,4 +1,4 @@
-Time-stamp: <2004-05-31 13:14:29 blp>
+Time-stamp: <2004-11-30 22:59:24 blp>
 
 What Ben's working on now.
 --------------------------
@@ -55,11 +55,6 @@ In debug mode hash table code should verify that collisions are reasonably low.
 Use AFM files instead of Groff font files, and include AFMs for our default
 fonts with the distribution.
 
-Add libplot output driver.  Suggested by Robert S. Maier
-<rsm@math.arizona.edu>: "it produces output in idraw-editable PS format, PCL5
-format, xfig-editable format, Illustrator format,..., and can draw vector
-graphics on X11 displays also".
-
 Storage of value labels on disk is inefficient.  Invent new data structure.
 
 Add an output flag which would cause a page break if a table segment could fit
@@ -95,25 +90,12 @@ directory (for data files).  (Yuck!)
 Fix line-too-long problems in PostScript code, instead of covering them up.
 setlinecap is *not* a proper solution.
 
-Need a better way than MAX_WORKSPACE to detect low-memory conditions.
-
-When malloc() returns 0, page to disk and free() unnecessary data.
-
-Remove ccase * argument from procfunc argument to procedure().
-
-See if process_active_file() has wider applicability.
-
-Eliminate private data in struct variable through use of pointers.
-
 Fix som_columns().
 
 Has glob.c been pared down enough?
 
 Improve interactivity of output by allowing a `commit' function for a page.
 This will also allow for infinite-length pages.
-
-All the tests need to be looked over.  Some of the SET calls don't make sense
-any more.
 
 Implement thin single lines, should be pretty easy now.
 
@@ -129,20 +111,9 @@ it is used (in dfm.c:cmd_begin_data), not after-the-fact detection.
 Figure out a stylesheet for messages displayed by PSPP: i.e., what quotation
 marks around filenames, etc.
 
-Data input and data output are currently arranged in reciprocal pairs: input is
-done directly, with write_record() or whatever; output is done on a callback
-event-driven basis.  It would definitely be easier if both could be done on a
-direct basis, with read_record() and write_record() routines, with a coroutine
-implementation (see Knuth).  But I'm not sure that coroutines can be
-implemented in ANSI C.  This will require some thought.  Perhaps 0.4.0 can do
-this.
-
 New SET subcommand: OUTPUT.  i.e., SET OUTPUT="filename" to send output to that
 file; SET OUTPUT="filename"(APPEND) to append to that file; SET OUTPUT=DEFAULT
 to reset everything.  There might be a better approach, though--think about it.
-
-HDF export capabilities (http://hdf.ncsa.uiuc.edu).  Suggested by Marcus
-G. Daniels <mgd@santafe.edu>.
 
 From Zvi Grauer <z.grauer@csuohio.edu> and <zvi@mail.ohio.net>:
 
@@ -310,35 +281,8 @@ string, 1-char strings, and 255-char strings.
 
 g. Test the code.  Write some test syntax files.  Examine the output carefully.
 
-NOTES ON SEARCH ALGORITHMS
---------------------------
-
-1. Trees are nicer when you want a sorted table.  However, you can always
-sort a hash table after you're done adding values.
-
-2. Brent's variation of Algorithm D is best when the table is fixed: it's
-memory-efficient, having small, fixed overhead.  It's easier to use
-when you know in advance how many entries the table will contain.
-
-3. Algorithm L is rather slow for a hash algorithm, however it's easy.
-
-4. Chaining is best in terms of speed; ordered/self-ordering is even
-better.
-
-5. Rehashing is slow.
-
-6. Might want to decide on an algorithm empirically since there are no
-clear mathematical winners in some cases.
-
-7. gprof?  Hey, it works!
-
 MORE NOTES/IDEAS/BUGS
 ---------------------
-
-The behavior of converting a floating point to an integer when the value of the
-float is out of range of the integer type is UNDEFINED!  See ANSI 6.2.1.3.
-
-What should we do for *negative* times in expressions?
 
 Sometimes very wide (or very tall) columns can occur in tables.  What is a good
 way to truncate them?  It doesn't seem to cause problems for the ascii or
