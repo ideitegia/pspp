@@ -171,7 +171,7 @@ parse_command_line (int argc, char **argv)
   if (set_testing_mode)
     {
       /* FIXME: Later this option should do some other things, too. */
-      set_viewwidth = 79;
+      set_viewwidth = 9999;
     }
 
   for (i = optind; i < argc; i++)
