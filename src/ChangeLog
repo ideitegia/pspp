@@ -1,3 +1,7 @@
+Tue Mar 30 22:01:57 2004  Ben Pfaff  <blp@gnu.org>
+
+	* descript.c: (cmd_descriptives) Free `vars' to avoid memory leak.
+
 Mon Mar 29 16:26:40 2004  Ben Pfaff  <blp@gnu.org>
 
 	* debug.c: Removed.  Moved cmd_debug_evaluate() into expr-evl.c.

@@ -396,10 +396,12 @@ cmd_descriptives (void)
     setup_z_trns (dsc);
 
   /* Done. */
+  free (vars);
   free_dsc_proc (dsc);
   return CMD_SUCCESS;
 
  error:
+  free (vars);
   free_dsc_proc (dsc);
   return CMD_FAILURE;
 }
