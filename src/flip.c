@@ -416,6 +416,10 @@ flip_file (struct flip_pgm *flip)
 
 #ifndef HAVE_FSEEKO
 #define fseeko fseek
+
+#ifndef off_t
+#define off_t long int
+#endif
 #endif
 
 	  if (fseeko (output_file,
