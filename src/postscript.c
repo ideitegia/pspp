@@ -955,8 +955,11 @@ output_encodings (struct outp_driver *this)
 
 	  while (ds_get_config_line (f, &buf, &where))
 	    {
-	      char *sp;
-	      
+	      char *sp;	
+
+	      if (buf.length == 0 ) 
+		continue;
+
 	      pschar = strtok_r (ds_value (&buf), " \t\r\n", &sp);
 	      code = strtok_r (NULL, " \t\r\n", &sp);
 	      if (*pschar == 0 || *code == 0)
