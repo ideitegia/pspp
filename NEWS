@@ -1,11 +1,11 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2005-03-06 23:05:46 blp>
+Time-stamp: <2005-03-07 21:16:47 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Version 0.3.1 changes since 0.3.0:
+Changes since 0.3.0:
 
   New build dependencies:
 
