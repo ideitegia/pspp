@@ -1,3 +1,8 @@
+Sun Apr 11 14:21:16 2004  Ben Pfaff  <blp@gnu.org>
+
+	* stats/moments.sh: Now that our one-pass moments algorithm is
+	better we don't have to omit any of the test cases for it.
+
 Fri Apr  9 20:03:33 2004  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: (TESTS) Add stats/descript-mean-bug.sh.

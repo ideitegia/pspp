@@ -58,14 +58,15 @@ sed -ne 's/#.*//;/^[ 	]*$/!p' > $TEMPDIR/moments-list-1p <<'EOF'
 1*3 => W=3.000 M1=1.000 M2=0.000 M3=sysmis M4=sysmis
 1*2 3 => W=3.000 M1=1.667 M2=1.333 M3=1.732 M4=sysmis
 1 1.00000001 => W=2.000 M1=1.000 M2=0.000 M3=sysmis M4=sysmis
+1000001 1000002 1000003 1000004 => W=4.000 M1=1000002.500 M2=1.667 M3=0.000 M4=-1.200
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 cp $TEMPDIR/moments-list-1p $TEMPDIR/moments-list-2p
 sed -ne 's/#.*//;/^[ 	]*$/!p' >> $TEMPDIR/moments-list-2p <<'EOF'
-# Only the two-pass algorithm can be expected to produce
-# proper third and fourth moments here.
-1000001 1000002 1000003 1000004 => W=4.000 M1=1000002.500 M2=1.667 M3=0.000 M4=-1.200
+# We used to have an example for which only the two-pass algorithm
+# produced reasonable results, but the provisional means algorithm
+# does better, so there aren't any extra tests here.
 EOF
 
 activity="create two-pass input file"
@@ -73,11 +74,11 @@ sed < $TEMPDIR/moments-list-2p >> $TEMPDIR/moments-2p.stat \
 	-e 's#^\(.*\) => \(.*\)$#DEBUG MOMENTS/\1.#'
 if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="run program"
+activity="run two-pass program"
 $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
 	 $TEMPDIR/moments-2p.stat >$TEMPDIR/moments-2p.err 2> $TEMPDIR/moments-2p.out
 
-activity="compare output"
+activity="compare two-pass output"
 diff -B -b $TEMPDIR/moments-list-2p $TEMPDIR/moments-2p.out
 if [ $? -ne 0 ] ; then fail ; fi
 
@@ -86,11 +87,11 @@ sed < $TEMPDIR/moments-list-1p >> $TEMPDIR/moments-1p.stat \
 	-e 's#^\(.*\) => \(.*\)$#DEBUG MOMENTS ONEPASS/\1.#'
 if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="run program"
+activity="run one-pass program"
 $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
 	 $TEMPDIR/moments-1p.stat >$TEMPDIR/moments-1p.err 2> $TEMPDIR/moments-1p.out
 
-activity="compare output"
+activity="compare one-pass output"
 diff -B -b $TEMPDIR/moments-list-1p $TEMPDIR/moments-1p.out
 if [ $? -ne 0 ] ; then fail ; fi
 

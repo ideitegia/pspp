@@ -52,7 +52,7 @@ pspp_SOURCES = $(q_sources_c) aggregate.c algorithm.c algorithm.h	\
 alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
 casefile.c casefile.h cmdline.c cmdline.h command.c command.def		\
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
-data-list.c data-list.h data-out.c date.c debug.c debug-print.h descript.c	\
+data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
 devind.c devind.h dfm.c dfm.h dictionary.c do-if.c do-ifP.h error.c	\
 error.h expr-evl.c expr-opt.c expr-prs.c expr.h exprP.h expr.def        \
 file-handle.h	\

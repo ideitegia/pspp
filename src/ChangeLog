@@ -1,3 +1,40 @@
+Sun Apr 11 14:22:12 2004  Ben Pfaff  <blp@gnu.org>
+
+	Rework moments routines for improved numerical stability based on
+	Michael Kiefte's advice.  Any bugs or remaining numerical problems
+	are still mine though.
+
+	There is now a struct moments1 for use with one-pass moments.  It
+	uses a provisional means algorithm as an attempt to improve
+	accuracy of higher moments.  The older struct moments now only
+	handles two-pass moments.
+	
+	* aggregate.c: Use moments1 instead moments.
+
+	* descript.c: Revert previous change, which is no longer needed
+	due to the moments revision.
+
+	* moments.c: (calc_moments) New function for calculating variance,
+	skewness, kurtosis.
+	(moments_pass_one) Only accumulate weights bigger than zero.
+	(moments_calculate) Allow calculating the mean on pass one, others
+	require pass two.  Implement in terms of calc_moments().
+	(struct moments1) New structure.
+	(init_moments1) New function.
+	(moments1_clear) Ditto.
+	(moments1_create) Ditto.
+	(moments1_add) Ditto.
+	(moments1_calculate) Ditto.
+	(moments1_destroy) Ditto.
+	(cmd_debug_moments) Deal with `struct moments' or `struct
+	moments1' as requested by user.
+
+Sun Apr 11 14:21:55 2004  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am (pspp_SOURCES): Remove debug.c.
+
+	* debug.c: Removed.  It was empty anyway.
+
 Fri Apr  9 20:04:49 2004  Ben Pfaff  <blp@gnu.org>
 
 	* descript.c (calc_descriptives): Fix assert failure when only

@@ -53,7 +53,7 @@ struct agr_var
     int int1, int2;
     char *string;
     int missing;
-    struct moments *moments;
+    struct moments1 *moments;
   };
 
 /* Aggregation functions. */
@@ -666,7 +666,7 @@ agr_destroy (struct agr_proc *agr)
 	  free (iter->string);
 	}
       else if (iter->function == SD)
-        moments_destroy (iter->moments);
+        moments1_destroy (iter->moments);
       free (iter);
     }
   free (agr->prev_break);
@@ -831,7 +831,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
             iter->dbl[1] += weight;
             break;
 	  case SD:
-            moments_pass_two (iter->moments, v->f, weight);
+            moments1_add (iter->moments, v->f, weight);
             break;
 	  case MAX:
 	    iter->dbl[0] = max (iter->dbl[0], v->f);
@@ -996,7 +996,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
               double variance;
 
               /* FIXME: we should use two passes. */
-              moments_calculate (i->moments, NULL, NULL, &variance,
+              moments1_calculate (i->moments, NULL, NULL, &variance,
                                  NULL, NULL);
               if (variance != SYSMIS)
                 v->f = sqrt (variance);
@@ -1098,9 +1098,9 @@ initialize_aggregate_info (struct agr_proc *agr)
 	  break;
         case SD:
           if (iter->moments == NULL)
-            iter->moments = moments_create (MOMENT_VARIANCE);
+            iter->moments = moments1_create (MOMENT_VARIANCE);
           else
-            moments_clear (iter->moments);
+            moments1_clear (iter->moments);
           break;
 	default:
 	  iter->dbl[0] = iter->dbl[1] = iter->dbl[2] = 0.0;
