@@ -54,17 +54,26 @@ char curdate[12];
 /* If a segfault happens, issue a message to that effect and halt */
 void bug_handler(int sig);
 
+/* Handle quit/term/int signals */
+void interrupt_handler(int sig);
+
 /* Whether we're dropping down to interactive mode immediately because
    we hit end-of-file unexpectedly (or whatever). */
 int start_interactive;
+
+
+
+
 
 
 /* Program entry point. */
 int
 main (int argc, char **argv)
 {
+
   signal (SIGSEGV, bug_handler);
-  signal (SIGFPE, bug_handler);
+  signal (SIGFPE,  bug_handler);
+  signal (SIGINT,  interrupt_handler);
 
   gsl_set_error_handler_off();
 
@@ -198,4 +207,11 @@ bug_handler(int sig UNUSED)
       request_bug_report_and_abort("");
       break;
     }
+}
+
+
+void 
+interrupt_handler(int sig UNUSED)
+{
+  err_hcf(0);
 }

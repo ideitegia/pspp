@@ -32,7 +32,6 @@
 #include "misc.h"
 #include "settings.h"
 #include "var.h"
-#include "signal.h"
 
 #ifdef HAVE_VALGRIND_VALGRIND_H
 #include <valgrind/valgrind.h>
@@ -727,6 +726,7 @@ full_write (int fd, const void *buffer_, size_t size)
   return bytes_written;
 }
 
+
 /* Registers our exit handler with atexit() if it has not already
    been registered. */
 static void
@@ -736,11 +736,11 @@ register_atexit (void)
   if (!registered) 
     {
       registered = 1;
-      signal (SIGQUIT, (sighandler_t) exit_handler);
-      signal (SIGINT,  (sighandler_t) exit_handler);
       atexit (exit_handler);
     }
 }
+
+
 
 /* atexit() handler that closes and deletes our temporary
    files. */
