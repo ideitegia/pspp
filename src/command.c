@@ -249,7 +249,7 @@ cmd_parse (void)
     
     /* Perform the state transition if the command completed
        successfully (at least in part). */
-    if (result != 0)
+    if (result != CMD_FAILURE)
       {
 	pgm_state = cp->transition[pgm_state];
 
