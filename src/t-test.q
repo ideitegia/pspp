@@ -345,7 +345,7 @@ cmd_t_test(void)
       for (v = 0 ; v < cmd.n_variables ; ++v ) 
 	{
 	  struct group_proc *grpp = group_proc_get (cmd.v_variables[v]);
-	  free(grpp->group_hash);
+	  hsh_destroy (grpp->group_hash);
 	}
     }
     

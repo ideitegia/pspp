@@ -116,8 +116,8 @@ static void show_descriptives(struct variable **dependent_var,
 			      struct factor *factor);
 
 static void show_percentiles(struct variable **dependent_var, 
-			      int n_dep_var, 
-			      struct factor *factor);
+			     int n_dep_var, 
+			     struct factor *factor);
 
 
 
@@ -151,8 +151,8 @@ void factor_calc(struct ccase *c, int case_no,
 /* Represent a factor as a string, so it can be
    printed in a human readable fashion */
 const char * factor_to_string(const struct factor *fctr, 
-			struct factor_statistics *fs,
-			const struct variable *var);
+			      struct factor_statistics *fs,
+			      const struct variable *var);
 
 
 /* Represent a factor as a string, so it can be
@@ -211,7 +211,9 @@ cmd_examine(void)
   multipass_procedure_with_splits (run_examine, &cmd);
 
   if ( totals ) 
-    free( totals );
+    {
+      free( totals );
+    }
   
   if ( dependent_vars ) 
     free (dependent_vars);
@@ -467,16 +469,18 @@ xmn_custom_nototal(struct cmd_examine *p)
 
 
 
-/* Parser for the variables sub command */
+/* Parser for the variables sub command  
+   Returns 1 on success */
 static int
 xmn_custom_variables(struct cmd_examine *cmd )
 {
-
   lex_match('=');
 
   if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
-    return 2;
+    {
+      return 2;
+    }
   
   if (!parse_variables (default_dict, &dependent_vars, &n_dependent_vars,
 			PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
@@ -488,11 +492,16 @@ xmn_custom_variables(struct cmd_examine *cmd )
   assert(n_dependent_vars);
 
   totals = xmalloc( sizeof(struct metrics) * n_dependent_vars);
-  memset ( totals, 0, sizeof(struct metrics) * n_dependent_vars);
 
   if ( lex_match(T_BY))
     {
-      return examine_parse_independent_vars(cmd);
+      int success ; 
+      success =  examine_parse_independent_vars(cmd);
+      if ( success != 1 ) {
+        free (dependent_vars);
+      	free (totals) ; 
+      }
+      return success;
     }
 
   return 1;
@@ -504,12 +513,15 @@ xmn_custom_variables(struct cmd_examine *cmd )
 static int
 examine_parse_independent_vars(struct cmd_examine *cmd)
 {
-
+  int success;
   struct factor *sf = xmalloc(sizeof(struct factor));
 
   if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
-    return 2;
+    {
+      free ( sf ) ;
+      return 2;
+    }
 
 
   sf->indep_var[0] = parse_variable();
@@ -522,7 +534,10 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
 
       if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
 	  && token != T_ALL)
-	return 2;
+	{
+	  free ( sf ) ;
+	  return 2;
+	}
 
       sf->indep_var[1] = parse_variable();
 
@@ -543,7 +558,12 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
   if ( token == '.' || token == '/' ) 
     return 1;
 
-  return examine_parse_independent_vars(cmd);
+  success =  examine_parse_independent_vars(cmd);
+  
+  if ( success != 1 ) 
+    free ( sf ) ; 
+
+  return success;
 }
 
 
@@ -795,7 +815,9 @@ run_examine(const struct casefile *cf, void *cmd_ )
     {
       int i;
       for ( i = 0 ; i < n_dependent_vars ; ++i ) 
-	metrics_destroy(&totals[i]);
+	{
+	  metrics_destroy(&totals[i]);
+	}
     }
 
 }
@@ -828,7 +850,7 @@ show_summary(struct variable **dependent_var, int n_dep_var,
       n_rows = n_dep_var * n_factors ;
 
       if ( fctr->indep_var[1] )
-	  heading_columns = 3;
+	heading_columns = 3;
     }
   else
     {
@@ -953,17 +975,17 @@ show_summary(struct variable **dependent_var, int n_dep_var,
 	      if ( 0 != compare_values(&prev, &(*fs)->id[0], 
 				       fctr->indep_var[0]->width))
 		{
-		   tab_text (tbl, 
-			     1,
-			     (i * n_factors ) + count + 
-			     heading_rows,
-			     TAB_LEFT | TAT_TITLE, 
-			     value_to_string(&(*fs)->id[0], fctr->indep_var[0])
-			     );
+		  tab_text (tbl, 
+			    1,
+			    (i * n_factors ) + count + 
+			    heading_rows,
+			    TAB_LEFT | TAT_TITLE, 
+			    value_to_string(&(*fs)->id[0], fctr->indep_var[0])
+			    );
 
-		   if (fctr->indep_var[1] && count > 0 ) 
-		     tab_hline(tbl, TAL_1, 1, n_cols - 1, 
-			       (i * n_factors ) + count + heading_rows);
+		  if (fctr->indep_var[1] && count > 0 ) 
+		    tab_hline(tbl, TAL_1, 1, n_cols - 1, 
+			      (i * n_factors ) + count + heading_rows);
 
 		}
 	      
@@ -1046,7 +1068,7 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
       n_rows = n_dep_var * 2 * n_extremities * n_factors;
 
       if ( fctr->indep_var[1] )
-	  heading_columns = 3;
+	heading_columns = 3;
     }
   else
     {
@@ -1223,7 +1245,7 @@ populate_extremes(struct tab_table *t,
 		    cn->num, 8, 0);
 
 	  if ( cn->next ) 
-	      cn = cn->next;
+	    cn = cn->next;
 
 	}
 
@@ -1252,7 +1274,7 @@ populate_extremes(struct tab_table *t,
 		    cn->num, 8, 0);
 
 	  if ( cn->next ) 
-	      cn = cn->next;
+	    cn = cn->next;
 
 	}
 
@@ -1287,7 +1309,7 @@ show_descriptives(struct variable **dependent_var,
       n_rows = n_dep_var * n_stat_rows * n_factors;
 
       if ( fctr->indep_var[1] )
-	  heading_columns = 5;
+	heading_columns = 5;
     }
   else
     {
@@ -1387,7 +1409,7 @@ show_descriptives(struct variable **dependent_var,
 			  );
 
 	      populate_descriptives(tbl, heading_columns - 2, 
-				row, &(*fs)->m[i]);
+				    row, &(*fs)->m[i]);
 
 	      count++ ; 
 	      fs++;
@@ -1715,7 +1737,7 @@ box_plot_group(const struct factor *fctr,
 	  int n_factors = 0;
 	  int f=0;
 	  for ( fs = fctr->fs ; *fs ; ++fs ) 
-	      ++n_factors;
+	    ++n_factors;
 
 	  chart_write_title(ch, _("Boxplot of %s vs. %s"), 
 			    var_to_string(vars[i]), var_to_string(fctr->indep_var[0]) );
@@ -1852,8 +1874,8 @@ np_plot(const struct metrics *m, const char *factorname)
 /* Show the percentiles */
 void
 show_percentiles(struct variable **dependent_var, 
-		  int n_dep_var, 
-		  struct factor *fctr)
+		 int n_dep_var, 
+		 struct factor *fctr)
 {
   struct tab_table *tbl;
   int i;
@@ -1878,7 +1900,7 @@ show_percentiles(struct variable **dependent_var,
       ptiles = (*fs)->m[0].ptile_hash;
 
       if ( fctr->indep_var[1] )
-	  n_heading_columns = 4;
+	n_heading_columns = 4;
     }
   else
     {
@@ -2020,7 +2042,7 @@ show_percentiles(struct variable **dependent_var,
 
 
 	      populate_percentiles(tbl, n_heading_columns - 1, 
-				row, &(*fs)->m[i]);
+				   row, &(*fs)->m[i]);
 
 
 	      count++ ; 
@@ -2032,8 +2054,8 @@ show_percentiles(struct variable **dependent_var,
       else 
 	{
 	  populate_percentiles(tbl, n_heading_columns - 1, 
-				i * n_stat_rows * n_factors  + n_heading_rows,
-				&totals[i]);
+			       i * n_stat_rows * n_factors  + n_heading_rows,
+			       &totals[i]);
 	}
 
 
@@ -2142,7 +2164,7 @@ factor_to_string(const struct factor *fctr,
 
 const char *
 factor_to_string_concise(const struct factor *fctr, 
-		 struct factor_statistics *fs)
+			 struct factor_statistics *fs)
 
 {
 

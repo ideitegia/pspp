@@ -126,6 +126,8 @@ parse_variables (const struct dictionary *d, struct variable ***var,
 
   vs = var_set_create_from_dict (d);
   success = parse_var_set_vars (vs, var, cnt, opts);
+  if ( success == 0 )
+     free ( *var ) ;
   var_set_destroy (vs);
   return success;
 }

@@ -1,3 +1,7 @@
+Tue Jan 18 23:12:40 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q examine.q : More memory leaks fixed.
+
 Tue Jan 18 19:26:59 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q  factor_stats.[ch] get.c pfm-read.c: Plugged numerous
