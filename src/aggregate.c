@@ -421,7 +421,9 @@ parse_aggregate_functions (struct agr_proc *agr)
 	      lex_error (_("expecting `('"));
 	      goto error;
 	    }
-	} else {
+	}
+      else
+        {
 	  /* Parse list of source variables. */
 	  {
 	    int pv_opts = PV_NO_SCRATCH;
@@ -514,8 +516,6 @@ parse_aggregate_functions (struct agr_proc *agr)
 
 	    if (src)
 	      {
-		int output_width;
-
 		v->src = src[i];
 		
 		if (src[i]->type == ALPHA)
@@ -523,28 +523,29 @@ parse_aggregate_functions (struct agr_proc *agr)
 		    v->function |= FSTRING;
 		    v->string = xmalloc (src[i]->width);
 		  }
-		
-		if (v->src->type == NUMERIC || function->alpha_type == NUMERIC)
-		  output_width = 0;
-		else
-		  output_width = v->src->width;
 
 		if (function->alpha_type == ALPHA)
 		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
-		else
-		  {
-		    destvar = dict_create_var (agr->dict, dest[i], output_width);
-		    if (output_width == 0)
-		      destvar->print = destvar->write = function->format;
-		    if (output_width == 0 && dict_get_weight (default_dict) != NULL
-			&& (func_index == N || func_index == N_NO_VARS
-			    || func_index == NU || func_index == NU_NO_VARS))
-		      {
-			struct fmt_spec f = {FMT_F, 8, 2};
-		      
-			destvar->print = destvar->write = f;
-		      }
-		  }
+		else if (v->src->type == NUMERIC
+                         || function->alpha_type == NUMERIC)
+                  {
+                    destvar = dict_create_var (agr->dict, dest[i], 0);
+                        
+                    if ((func_index == N
+                            || func_index == N_NO_VARS
+                            || func_index == NMISS)
+                        && dict_get_weight (default_dict) != NULL)
+                      {
+                        static const struct fmt_spec f8_2 = {FMT_F, 8, 2};
+                            
+                        destvar->print = destvar->write = f8_2; 
+                      }
+                    else
+                      destvar->print = destvar->write = function->format;
+                  }
+                else 
+                  destvar = dict_create_var (agr->dict, dest[i],
+                                             v->src->width);
 	      } else {
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
@@ -568,8 +569,6 @@ parse_aggregate_functions (struct agr_proc *agr)
 		destvar->label = dest_label[i];
 		dest_label[i] = NULL;
 	      }
-	    else if (function->alpha_type == ALPHA)
-	      destvar->print = destvar->write = function->format;
 
 	    v->dest = destvar;
 	  }

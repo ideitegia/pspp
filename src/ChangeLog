@@ -1,3 +1,11 @@
+Sun Feb 13 16:11:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix Bug #11955.
+
+	* aggregate.c: (parse_aggregate_functions) Code cleanup.
+	Important part: get rid of spurious copying of function->format to
+	destvar->print and destvar->write.
+
 Fri Feb 11 00:08:36 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix Bug #11916, which was confusing a variable's `index' member
