@@ -180,17 +180,17 @@ sfm_maybe_close (struct file_handle *h)
 
 /* Dictionary reader. */
 
-static void *bufread (struct file_handle * handle, void *buf, size_t nbytes,
+static void *bufread (struct file_handle *handle, void *buf, size_t nbytes,
 		      size_t minalloc);
 
-static int read_header (struct file_handle * h, struct sfm_read_info * inf);
-static int parse_format_spec (struct file_handle * h, int32 s,
-			      struct fmt_spec * v, struct variable *vv);
-static int read_value_labels (struct file_handle * h, struct variable ** var_by_index);
-static int read_variables (struct file_handle * h, struct variable *** var_by_index);
-static int read_machine_int32_info (struct file_handle * h, int size, int count);
-static int read_machine_flt64_info (struct file_handle * h, int size, int count);
-static int read_documents (struct file_handle * h);
+static int read_header (struct file_handle *h, struct sfm_read_info *inf);
+static int parse_format_spec (struct file_handle *h, int32 s,
+			      struct fmt_spec *v, struct variable *vv);
+static int read_value_labels (struct file_handle *h, struct variable **var_by_index);
+static int read_variables (struct file_handle *h, struct variable ***var_by_index);
+static int read_machine_int32_info (struct file_handle *h, int size, int count);
+static int read_machine_flt64_info (struct file_handle *h, int size, int count);
+static int read_documents (struct file_handle *h);
 
 /* Displays the message X with corrupt_msg, then jumps to the lossage
    label. */
@@ -216,7 +216,7 @@ static int read_documents (struct file_handle * h);
    dictionary structure.  This dictionary may be modified in order to
    rename, reorder, and delete variables, etc.	*/
 struct dictionary *
-sfm_read_dictionary (struct file_handle * h, struct sfm_read_info * inf)
+sfm_read_dictionary (struct file_handle *h, struct sfm_read_info *inf)
 {
   /* The file handle extension record. */
   struct sfm_fhuser_ext *ext;
@@ -412,7 +412,7 @@ lossage:
 
 /* Read record type 7, subtype 3. */
 static int
-read_machine_int32_info (struct file_handle * h, int size, int count)
+read_machine_int32_info (struct file_handle *h, int size, int count)
 {
   struct sfm_fhuser_ext *ext = h->ext;
 
@@ -473,7 +473,7 @@ lossage:
 
 /* Read record type 7, subtype 4. */
 static int
-read_machine_flt64_info (struct file_handle * h, int size, int count)
+read_machine_flt64_info (struct file_handle *h, int size, int count)
 {
   struct sfm_fhuser_ext *ext = h->ext;
 
@@ -513,7 +513,7 @@ lossage:
 }
 
 static int
-read_header (struct file_handle * h, struct sfm_read_info * inf)
+read_header (struct file_handle *h, struct sfm_read_info *inf)
 {
   struct sfm_fhuser_ext *ext = h->ext;	/* File extension strcut. */
   struct sysfile_header hdr;		/* Disk buffer. */
@@ -666,7 +666,7 @@ lossage:
    created dictionary are set to appropriate values to allow the
    file to be read.  */
 static int
-read_variables (struct file_handle * h, struct variable *** var_by_index)
+read_variables (struct file_handle *h, struct variable ***var_by_index)
 {
   int i;
 
@@ -935,7 +935,7 @@ lossage:
 /* Reads value labels from sysfile H and inserts them into the
    associated dictionary. */
 int
-read_value_labels (struct file_handle * h, struct variable ** var_by_index)
+read_value_labels (struct file_handle *h, struct variable **var_by_index)
 {
   struct sfm_fhuser_ext *ext = h->ext;	/* File extension record. */
 
@@ -1123,7 +1123,7 @@ lossage:
    MINALLOC bytes.  Returns a pointer to the buffer on success, NULL
    on failure. */
 static void *
-bufread (struct file_handle * h, void *buf, size_t nbytes, size_t minalloc)
+bufread (struct file_handle *h, void *buf, size_t nbytes, size_t minalloc)
 {
   struct sfm_fhuser_ext *ext = h->ext;
 
@@ -1146,7 +1146,7 @@ bufread (struct file_handle * h, void *buf, size_t nbytes, size_t minalloc)
    the documents and n_documents fields in the associated
    dictionary. */
 static int
-read_documents (struct file_handle * h)
+read_documents (struct file_handle *h)
 {
   struct sfm_fhuser_ext *ext = h->ext;
   struct dictionary *dict = ext->dict;
@@ -1183,7 +1183,7 @@ lossage:
    appropriately.  Returns nonzero only if both no errors occur and
    data was read. */
 static int
-buffer_input (struct file_handle * h)
+buffer_input (struct file_handle *h)
 {
   struct sfm_fhuser_ext *ext = h->ext;
   size_t amt;
@@ -1211,7 +1211,7 @@ buffer_input (struct file_handle * h)
    byte gives a value for that byte or indicates that the value can be
    found following the instructions. */
 static int
-read_compressed_data (struct file_handle * h, flt64 * temp)
+read_compressed_data (struct file_handle *h, flt64 *temp)
 {
   struct sfm_fhuser_ext *ext = h->ext;
 
@@ -1313,7 +1313,7 @@ lossage:
    which must have the get.* elements appropriately set.  Returns
    nonzero only if successful.  */
 int
-sfm_read_case (struct file_handle * h, struct ccase *perm, struct dictionary * dict)
+sfm_read_case (struct file_handle *h, struct ccase *perm, struct dictionary *dict)
 {
   struct sfm_fhuser_ext *ext = h->ext;
 
