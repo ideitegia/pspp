@@ -159,13 +159,24 @@ levene_precalc (const struct levene_info *l)
 
   lz  = xmalloc (sizeof (struct lz_stats ) * l->n_dep ) ;
 
-  for(i=0; i < l->n_dep ; ++i ) 
+  for(i = 0; i < l->n_dep ; ++i ) 
     {
-      struct variable *v = l->v_dep[i];
+      struct variable *var = l->v_dep[i];
+      struct group_statistics *gs;
+      struct hsh_iterator hi;
 
       lz[i].grand_total = 0;
       lz[i].total_n = 0;
-      lz[i].n_groups = v->p.grp_data.n_groups ; 
+      lz[i].n_groups = var->p.grp_data.n_groups ; 
+
+      
+      for ( gs = hsh_first(var->p.grp_data.group_hash, &hi);
+	    gs != 0;
+	    gs = hsh_next(var->p.grp_data.group_hash, &hi))
+	{
+	  gs->lz_total = 0;
+	}
+	    
     }
 
 }
@@ -218,6 +229,7 @@ levene_calc (const struct ccase *c, void *_l)
 
 	  gs->lz_total += levene_z * weight;
 	}
+
     }
   return 0;
 }
@@ -236,6 +248,7 @@ levene_postcalc (void *_l)
       lz[v].grand_mean = lz[v].grand_total / lz[v].total_n ;
     }
 
+  
 }
 
 
@@ -265,7 +278,7 @@ levene2_precalc (void *_l)
 	  g != 0 ;
 	  g = (struct group_statistics *) hsh_next(hash,&hi) )
 	{
-	  g->lz_mean = g->lz_total/g->n ;
+	  g->lz_mean = g->lz_total / g->n ;
 	}
       lz_denominator[v] = 0;
   }
@@ -350,8 +363,8 @@ levene2_postcalc (void *_l)
 			l->v_dep[v]->p.grp_data.n_groups );
 
       lz_denominator[v] *= (l->v_dep[v]->p.grp_data.n_groups - 1);
-      
-      l->v_dep[v]->p.grp_data.levene = lz_numerator/lz_denominator[v] ;
+
+      l->v_dep[v]->p.grp_data.levene = lz_numerator / lz_denominator[v] ;
 
     }
 
