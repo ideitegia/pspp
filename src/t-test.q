@@ -908,7 +908,11 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
       cdft(&which, &p, &q, &t, &df, &status, &bound);
 
-      assert(status == 0 ); /* FIXME: use proper error message */
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
 
       /* Multiply by 2 to get 2-tailed significance */
       tab_float (trb->t, 3, i+3, TAB_RIGHT, q*2.0, 8,3);
@@ -920,7 +924,10 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
       p = 1 - q ;
       which=2; /* Calc T from p,q and df */
       cdft(&which, &p, &q, &t, &df, &status, &bound);
-      assert(status == 0 ); /* FIXME: proper error message */
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
 
       tab_float (trb->t, 5, i+3, TAB_RIGHT,
 		 ttp->mean_diff - t * ttp->se_mean, 8,4);
