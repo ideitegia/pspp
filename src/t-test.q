@@ -37,6 +37,8 @@
 #include "var.h"
 #include "vfm.h"
 #include "pool.h"
+#include "hash.h"
+#include "stats.h"
 
 /* (specification)
    "T-TEST" (tts_):
@@ -68,8 +70,12 @@ static union value groups_values[2];
 
 /* PAIRS: Number of pairs to be compared ; each pair. */
 static int n_pairs ;
-typedef struct variable *pair_t[2] ;
-static pair_t *pairs;
+struct pair 
+{
+  struct variable *v[2];
+  double correlation;
+};
+static struct pair *pairs;
 
 
 static int parse_value (union value * v, int type) ;
@@ -142,6 +148,13 @@ static int one_sample_calc (struct ccase *);
 static void one_sample_precalc (void);
 static void one_sample_postcalc (void);
 
+static int  paired_calc (struct ccase *);
+static void paired_precalc (void);
+static void paired_postcalc (void);
+
+static int compare_var_name (const void *a_, const void *b_, void *v_ unused);
+static unsigned hash_var_name (const void *a_, void *v_ unused);
+
 
 int
 cmd_t_test(void)
@@ -178,16 +191,59 @@ cmd_t_test(void)
   else
     mode=T_PAIRED;
 
-  if ( mode == T_PAIRED && cmd.sbc_variables) 
+  if ( mode == T_PAIRED) 
     {
-      msg(SE, _("VARIABLES subcommand is not appropriate with PAIRS"));
-      return CMD_FAILURE;
+      if (cmd.sbc_variables) 
+	{
+	  msg(SE, _("VARIABLES subcommand is not appropriate with PAIRS"));
+	  return CMD_FAILURE;
+	}
+      else
+	{
+	  /* Iterate through the pairs and put each variable that is a 
+	     member of a pair into cmd.v_variables */
+
+	  int i;
+	  struct hsh_iterator hi;
+	  struct hsh_table *hash;
+	  struct variable *v;
+
+	  hash=hsh_create(n_pairs,compare_var_name,hash_var_name,0,0);
+
+	  for (i=0; i < n_pairs; ++i)
+	    {
+	      hsh_insert(hash,pairs[i].v[0]);
+	      hsh_insert(hash,pairs[i].v[1]);
+	    }
+
+	  assert(cmd.n_variables == 0);
+	  cmd.n_variables = hsh_count(hash);
+
+	  cmd.v_variables = xrealloc(cmd.v_variables,
+				     sizeof(struct variable) * cmd.n_variables);
+	  /* Iterate through the hash */
+	  for (i=0,v = (struct variable *) hsh_first(hash,&hi);
+	       v != 0;
+	       v=hsh_next(hash,&hi) ) 
+	    cmd.v_variables[i++]=v;
+
+	  hsh_destroy(hash);
+	}
     }
+
 
   procedure(common_precalc,common_calc,common_postcalc);
 
-  if (mode == T_1_SAMPLE)
-    procedure(one_sample_precalc,one_sample_calc,one_sample_postcalc);
+  switch(mode)
+    {
+    case T_1_SAMPLE:
+      procedure(one_sample_precalc,one_sample_calc,one_sample_postcalc);
+      break;
+    case T_PAIRED:
+      procedure(paired_precalc,paired_calc,paired_postcalc);
+      break;
+    }
+  
 
   t_test_pool = pool_create ();
 
@@ -353,7 +409,7 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
     }
 
   /* Allocate storage for the pairs */
-  pairs = xrealloc(pairs,sizeof(pair_t) *n_pairs);
+  pairs = xrealloc(pairs,sizeof(struct pair) *n_pairs);
 
   /* Populate the pairs with the appropriate variables */
   if ( paired ) 
@@ -363,8 +419,8 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
       assert(n_pairs == n_vars/2);
       for (i = 0; i < n_pairs ; ++i)
 	{
-	  pairs[i][0] = vars[i];
-	  pairs[i][1] = vars[i+n_pairs];
+	  pairs[i].v[0] = vars[i];
+	  pairs[i].v[1] = vars[i+n_pairs];
 	}
     }
   else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
@@ -376,8 +432,8 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	{
 	  for(j=0 ; j < n_after_WITH ; ++j)
 	    {
-	      pairs[p][0] = vars[i];
-	      pairs[p][1] = vars[j+n_before_WITH];
+	      pairs[p].v[0] = vars[i];
+	      pairs[p].v[1] = vars[j+n_before_WITH];
 	      ++p;
 	    }
 	}
@@ -391,8 +447,8 @@ tts_custom_pairs (struct cmd_t_test *cmd unused)
 	{
 	  for(j=i+1 ; j < n_vars ; ++j)
 	    {
-	      pairs[p][0] = vars[i];
-	      pairs[p][1] = vars[j];
+	      pairs[p].v[0] = vars[i];
+	      pairs[p].v[1] = vars[j];
 	      ++p;
 	    }
 	}
@@ -613,23 +669,35 @@ void
 ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd unused)
 {
   int i;
-  struct string ds;
 
   assert(ssb->t);
-  ds_init(t_test_pool,&ds,15);
 
   for (i=0; i < n_pairs; ++i)
     {
-      ds_clear(&ds);
+      int j;
 
-      ds_printf(&ds,_("Pair %d"),i);
+      tab_text (ssb->t, 0, i*2+1, TAB_LEFT | TAT_PRINTF , _("Pair %d"),i);
 
-      tab_text (ssb->t, 0, i*2+1, TAB_LEFT, ds.string);
-      tab_text (ssb->t, 1, i*2+1, TAB_LEFT, pairs[i][0]->name);
-      tab_text (ssb->t, 1, i*2+2, TAB_LEFT, pairs[i][1]->name);
+      for (j=0 ; j < 2 ; ++j) 
+	{
+	  struct t_test_proc *ttp;
+
+	  ttp=&pairs[i].v[j]->p.t_t;
+
+	  /* Titles */
+
+	  tab_text (ssb->t, 1, i*2+j+1, TAB_LEFT, pairs[i].v[j]->name);
+
+	  /* Values */
+	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, ttp->mean, 8, 2);
+	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, ttp->n, 2, 0);
+	  tab_float (ssb->t,4, i*2+j+1, TAB_RIGHT, ttp->std_dev, 8, 3);
+	  tab_float (ssb->t,5, i*2+j+1, TAB_RIGHT, ttp->se_mean, 8, 3);
+
+	}
+
     }
 
-  ds_destroy(&ds);
 }
 
 /* Populate the one sample ssbox */
@@ -724,8 +792,6 @@ trbox_independent_samples_init(struct trbox *self,
   const int hsize=11;
   const int vsize=cmd->n_variables*2+3;
 
-  struct string ds;
-
   assert(self);
   self->populate = trbox_independent_samples_populate;
 
@@ -752,14 +818,10 @@ trbox_independent_samples_init(struct trbox *self,
   tab_text(self->t,9,2, TAB_CENTER | TAT_TITLE,_("Lower"));
   tab_text(self->t,10,2, TAB_CENTER | TAT_TITLE,_("Upper"));
 
-  ds_init(t_test_pool,&ds,80);
-		
-  ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
-	    (int)round(cmd->criteria*100.0));
+  tab_joint_text(self->t, 9, 1, 10, 1, TAB_CENTER | TAT_PRINTF, 
+		 _("%d%% Confidence Interval of the Difference"),
+		 (int)round(cmd->criteria*100.0));
 
-  tab_joint_text(self->t,9,1,10,1,TAB_CENTER, ds.string);
-
-  ds_destroy(&ds);
 }
 
 /* Populate the independent samples trbox */
@@ -790,8 +852,6 @@ trbox_paired_init(struct trbox *self,
   const int hsize=10;
   const int vsize=n_pairs*2+3;
 
-  struct string ds;
-
   self->populate = trbox_paired_populate;
 
   trbox_base_init(self,n_pairs*2,hsize);
@@ -804,14 +864,9 @@ trbox_paired_init(struct trbox *self,
   tab_hline(self->t,TAL_1,5,6, 2);
   tab_vline(self->t,TAL_0,6,0,1);
 
-  ds_init(t_test_pool,&ds,80);
-		
-  ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
-	    (int)round(cmd->criteria*100.0));
-
-  tab_joint_text(self->t,5,1,6,1,TAB_CENTER, ds.string);
-
-  ds_destroy(&ds);
+  tab_joint_text(self->t, 5, 1, 6, 1, TAB_CENTER | TAT_PRINTF, 
+		 _("%d%% Confidence Interval of the Difference"),
+		 (int)round(cmd->criteria*100.0));
 
   tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (self->t, 3, 2, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
@@ -829,20 +884,14 @@ trbox_paired_populate(struct trbox *trb,
 			      struct cmd_t_test *cmd unused)
 {
   int i;
-  struct string ds;
-
-  ds_init(t_test_pool,&ds,15);  
 
   for (i=0; i < n_pairs; ++i)
     {
-      ds_clear(&ds);
-      ds_printf(&ds,_("Pair %d"),i);
-
-      tab_text (trb->t, 0, i*2+3, TAB_LEFT, ds.string);
-      tab_text (trb->t, 1, i*2+3, TAB_LEFT, pairs[i][0]->name);
-      tab_text (trb->t, 1, i*2+4, TAB_LEFT, pairs[i][1]->name);
+      tab_text (trb->t, 0, i*2+3, TAB_LEFT | TAT_PRINTF, _("Pair %d"),i); 
+      tab_text (trb->t, 1, i*2+3, TAB_LEFT, pairs[i].v[0]->name);
+      tab_text (trb->t, 1, i*2+4, TAB_LEFT, pairs[i].v[1]->name);
     }
-  ds_destroy(&ds);
+
 }
 
 /* Initialize the one sample trbox */
@@ -852,24 +901,23 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
   const int hsize=7;
   const int vsize=cmd->n_variables+3;
 
-  struct string ds;
-  
   self->populate = trbox_one_sample_populate;
 
   trbox_base_init(self, cmd->n_variables,hsize);
   tab_title (self->t, 0, _("One-Sample Test"));
   tab_hline(self->t, TAL_1, 1, hsize - 1, 1);
   tab_vline(self->t, TAL_2, 1, 0, vsize);
-  ds_init(t_test_pool, &ds, 80);
-  ds_printf(&ds,_("Test Value = %f"),cmd->n_testval);
-  tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER,ds.string);
+
+  tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER | TAT_PRINTF, 
+		 _("Test Value = %f"),cmd->n_testval);
+
   tab_box(self->t, -1, -1, -1, TAL_1, 1,1,hsize-1,vsize-1);
 
-  ds_clear(&ds);
-  ds_printf(&ds,_("%d%% Confidence Interval of the Difference"),
-	    (int)round(cmd->criteria*100.0));
-  tab_joint_text(self->t,5,1,6,1,TAB_CENTER, ds.string);
-  ds_destroy(&ds);
+
+  tab_joint_text(self->t,5,1,6,1,TAB_CENTER  | TAT_PRINTF, 
+		 _("%d%% Confidence Interval of the Difference"),
+		 (int)round(cmd->criteria*100.0));
+
   tab_vline(self->t,TAL_0,6,1,1);
   tab_hline(self->t,TAL_1,5,6,2);
   tab_text (self->t, 1, 2, TAB_CENTER | TAT_TITLE, _("t"));
@@ -992,26 +1040,48 @@ pscbox(struct cmd_t_test *cmd)
   tab_text(table, 3,0, TAB_CENTER | TAT_TITLE, _("Correlation"));
   tab_text(table, 4,0, TAB_CENTER | TAT_TITLE, _("Sig."));
 
-  /* row headings */
-  {
-  struct string ds;
-
-  ds_init(t_test_pool,&ds,15);
 
   for (i=0; i < n_pairs; ++i)
     {
-      ds_clear(&ds);
-      ds_printf(&ds,_("Pair %d"),i);
-      tab_text(table, 0,i+1, TAB_LEFT | TAT_TITLE, ds.string);
+      int which =1;
+      double p,q;
 
-      ds_clear(&ds);
-      ds_printf(&ds,_("%s & %s"),pairs[i][0]->name,pairs[i][1]->name);
-      tab_text(table, 1,i+1, TAB_LEFT | TAT_TITLE, ds.string);
+      int status;
+      double bound;
+
+      const double df = pairs[i].v[0]->p.t_t.n -2;
+
+      double correlation_t = 
+	pairs[i].correlation * sqrt(df) /
+	sqrt(1 - sqr(pairs[i].correlation));
+	
+
+      /* row headings */
+      tab_text(table, 0,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF, 
+	       _("Pair %d"), i);
+      
+      tab_text(table, 1,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF, 
+	       _("%s & %s"), pairs[i].v[0]->name, pairs[i].v[1]->name);
+
+
+      /* row data */
+      tab_float(table, 3, i+1, TAB_RIGHT, pairs[i].correlation, 8, 3);
+      tab_float(table, 2, i+1, TAB_RIGHT, pairs[i].v[0]->p.t_t.n , 4, 0);
+
+
+      cdft(&which, &p, &q, &correlation_t, &df, &status, &bound);
+
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+
+      tab_float(table, 4, i+1, TAB_RIGHT, q*2.0, 8, 3);
+
+
+      
     }
-
-  ds_destroy(&ds);
-  }
-
 
   tab_submit(table);
 }
@@ -1051,7 +1121,7 @@ static void
 common_precalc (void)
 {
   int i=0;
-  
+
   for(i=0; i< cmd.n_variables ; ++i) 
     {
       struct t_test_proc *ttp;
@@ -1082,7 +1152,6 @@ common_postcalc (void)
 			 ) ;
 
       ttp->se_mean = ttp->std_dev / sqrt(ttp->n);
-
       ttp->mean_diff= ttp->sum_diff / ttp->n;
     }
 }
@@ -1138,5 +1207,70 @@ one_sample_postcalc (void)
 
       
       ttp->mean_diff = ttp->sum_diff / ttp->n ;
+    }
+}
+
+
+
+static int
+compare_var_name (const void *a_, const void *b_, void *v_ unused)
+{
+  const struct variable *a = a_;
+  const struct variable *b = b_;
+
+  return strcmp(a->name,b->name);
+}
+
+static unsigned
+hash_var_name (const void *a_, void *v_ unused)
+{
+  const struct variable *a = a_;
+
+  return hsh_hash_bytes (a->name, strlen(a->name));
+}
+
+
+static void 
+paired_precalc (void)
+{
+  int i;
+  for(i=0; i < n_pairs ; ++i )
+    pairs[i].correlation=0;
+}
+
+static int  
+paired_calc (struct ccase *c)
+{
+  int i;
+
+  for(i=0; i < n_pairs ; ++i )
+    {
+      struct variable *v0 = pairs[i].v[0];
+      struct variable *v1 = pairs[i].v[1];
+
+      union value *val0 = &c->data[v0->fv];
+      union value *val1 = &c->data[v1->fv];
+
+      pairs[i].correlation += ( val0->f - pairs[i].v[0]->p.t_t.mean )
+	                      *
+	                      ( val1->f - pairs[i].v[1]->p.t_t.mean );
+    }
+
+
+  return 0;
+}
+
+static void 
+paired_postcalc (void)
+{
+  int i;
+
+  for(i=0; i < n_pairs ; ++i )
+    {
+      
+      pairs[i].correlation /= pairs[i].v[0]->p.t_t.std_dev * 
+                              pairs[i].v[1]->p.t_t.std_dev ;
+
+      pairs[i].correlation /= pairs[i].v[0]->p.t_t.n -1; 
     }
 }

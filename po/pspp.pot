@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-02-05 14:00+0800\n"
+"POT-Creation-Date: 2004-02-07 14:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,7 +60,8 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:879 src/t-test.q:510 src/t-test.q:533 src/t-test.q:598
+#: src/crosstabs.q:879 src/t-test.q:517 src/t-test.q:540 src/t-test.q:605
+#: src/t-test.q:991
 msgid "N"
 msgstr ""
 
@@ -112,7 +113,7 @@ msgstr ""
 msgid "Value"
 msgstr ""
 
-#: src/crosstabs.q:1161 src/t-test.q:741 src/t-test.q:815 src/t-test.q:869
+#: src/crosstabs.q:1161 src/t-test.q:748 src/t-test.q:822 src/t-test.q:876
 msgid "df"
 msgstr ""
 
@@ -149,11 +150,11 @@ msgstr ""
 msgid " 95%% Confidence Interval"
 msgstr ""
 
-#: src/crosstabs.q:1208 src/t-test.q:745 src/t-test.q:812 src/t-test.q:872
+#: src/crosstabs.q:1208 src/t-test.q:752 src/t-test.q:819 src/t-test.q:879
 msgid "Lower"
 msgstr ""
 
-#: src/crosstabs.q:1209 src/t-test.q:746 src/t-test.q:813 src/t-test.q:873
+#: src/crosstabs.q:1209 src/t-test.q:753 src/t-test.q:820 src/t-test.q:880
 msgid "Upper"
 msgstr ""
 
@@ -290,8 +291,8 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/descript.q:152 src/frequencies.q:94 src/t-test.q:511 src/t-test.q:534
-#: src/t-test.q:597 src/t-test.q:809
+#: src/descript.q:152 src/frequencies.q:94 src/t-test.q:518 src/t-test.q:541
+#: src/t-test.q:604 src/t-test.q:816
 msgid "Mean"
 msgstr ""
 
@@ -857,139 +858,152 @@ msgstr ""
 msgid "Drive letter expected in WORKDEV subcommand."
 msgstr ""
 
-#: src/t-test.q:166
+#: src/t-test.q:169
 msgid "Exactly one of TESTVAL, GROUPS or PAIRS subcommands is required"
 msgstr ""
 
-#: src/t-test.q:180
+#: src/t-test.q:183
 msgid "VARIABLES subcommand is not appropriate with PAIRS"
 msgstr ""
 
-#: src/t-test.q:216 src/t-test.q:287
+#: src/t-test.q:223 src/t-test.q:294
 #, c-format
 msgid "`%s' is not a variable name"
 msgstr ""
 
-#: src/t-test.q:229
+#: src/t-test.q:236
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/t-test.q:245
+#: src/t-test.q:252
 msgid ""
 "When applying GROUPS to a string variable, at least one value must be "
 "specified."
 msgstr ""
 
-#: src/t-test.q:322
+#: src/t-test.q:329
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
 msgstr ""
 
-#: src/t-test.q:339
+#: src/t-test.q:346
 msgid "At least two variables must be specified on PAIRS."
 msgstr ""
 
-#: src/t-test.q:508
+#: src/t-test.q:515
 msgid "One-Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:512 src/t-test.q:535 src/t-test.q:599 src/t-test.q:810
+#: src/t-test.q:519 src/t-test.q:542 src/t-test.q:606 src/t-test.q:817
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/t-test.q:513 src/t-test.q:536 src/t-test.q:600
+#: src/t-test.q:520 src/t-test.q:543 src/t-test.q:607
 msgid "SE. Mean"
 msgstr ""
 
-#: src/t-test.q:530
+#: src/t-test.q:537
 msgid "Group Statistics"
 msgstr ""
 
-#: src/t-test.q:594
+#: src/t-test.q:601
 msgid "Paired Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:618 src/t-test.q:832
+#: src/t-test.q:625 src/t-test.q:839 src/t-test.q:1004
 #, c-format
 msgid "Pair %d"
 msgstr ""
 
-#: src/t-test.q:726
+#: src/t-test.q:733
 msgid "Independent Samples Test"
 msgstr ""
 
-#: src/t-test.q:734
+#: src/t-test.q:741
 msgid "Levine's Test for Equality of Variances"
 msgstr ""
 
-#: src/t-test.q:736
+#: src/t-test.q:743
 msgid "t-test for Equality of Means"
 msgstr ""
 
-#: src/t-test.q:738
+#: src/t-test.q:745
 msgid "F"
 msgstr ""
 
-#: src/t-test.q:739
+#: src/t-test.q:746 src/t-test.q:993
 msgid "Sig."
 msgstr ""
 
-#: src/t-test.q:740 src/t-test.q:814 src/t-test.q:868
+#: src/t-test.q:747 src/t-test.q:821 src/t-test.q:875
 msgid "t"
 msgstr ""
 
-#: src/t-test.q:742 src/t-test.q:816 src/t-test.q:870
+#: src/t-test.q:749 src/t-test.q:823 src/t-test.q:877
 msgid "Sig. (2-tailed)"
 msgstr ""
 
-#: src/t-test.q:743 src/t-test.q:871
+#: src/t-test.q:750 src/t-test.q:878
 msgid "Mean Difference"
 msgstr ""
 
-#: src/t-test.q:744
+#: src/t-test.q:751
 msgid "Std. Error Difference"
 msgstr ""
 
-#: src/t-test.q:750 src/t-test.q:802 src/t-test.q:862
+#: src/t-test.q:757 src/t-test.q:809 src/t-test.q:869
 #, c-format
 msgid "%d%% Confidence Interval of the Difference"
 msgstr ""
 
-#: src/t-test.q:770
+#: src/t-test.q:777
 msgid "Equal variances assumed"
 msgstr ""
 
-#: src/t-test.q:773
+#: src/t-test.q:780
 msgid "Equal variances not assumed"
 msgstr ""
 
-#: src/t-test.q:791
+#: src/t-test.q:798
 msgid "Paired Samples Test"
 msgstr ""
 
-#: src/t-test.q:794
+#: src/t-test.q:801
 msgid "Paired Differences"
 msgstr ""
 
-#: src/t-test.q:811
+#: src/t-test.q:818
 msgid "Std. Error Mean"
 msgstr ""
 
-#: src/t-test.q:853
+#: src/t-test.q:860
 msgid "One-Sample Test"
 msgstr ""
 
-#: src/t-test.q:857
+#: src/t-test.q:864
 #, c-format
 msgid "Test Value = %f"
 msgstr ""
 
-#: src/t-test.q:913 src/t-test.q:929
+#: src/t-test.q:920 src/t-test.q:936
 #, c-format
 msgid "Error calculating T statistic (cdft returned %d)."
+msgstr ""
+
+#: src/t-test.q:988
+msgid "Paired Samples Correlations"
+msgstr ""
+
+#: src/t-test.q:992
+msgid "Correlation"
+msgstr ""
+
+#: src/t-test.q:1008
+#, c-format
+msgid "%s & %s"
 msgstr ""
 
 #: src/aggregate.c:188 src/aggregate.c:229 src/data-list.c:1321
@@ -2306,10 +2320,12 @@ msgid "Boolean"
 msgstr ""
 
 #: src/expr-prs.c:1695
+#, c-format
 msgid "!!TERMINAL!!"
 msgstr ""
 
 #: src/expr-prs.c:1721
+#, c-format
 msgid "!!SENTINEL!!"
 msgstr ""
 
@@ -2627,14 +2643,17 @@ msgid "`)' expected after output format."
 msgstr ""
 
 #: src/formats.c:153
+#, c-format
 msgid "Formats:\n"
 msgstr ""
 
 #: src/formats.c:154
+#, c-format
 msgid "  Name      Print         Write\n"
 msgstr ""
 
 #: src/get.c:110
+#, c-format
 msgid "GET translation table from file to memory:\n"
 msgstr ""
 
@@ -2672,6 +2691,7 @@ msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
 #: src/get.c:461
+#, c-format
 msgid ""
 "\n"
 "Variables in dictionary:\n"
@@ -2731,6 +2751,7 @@ msgid "expecting COMM or TAPE"
 msgstr ""
 
 #: src/get.c:1393
+#, c-format
 msgid "IMPORT translation table from file to memory:\n"
 msgstr ""
 
@@ -2924,6 +2945,7 @@ msgid "<<fallback>>"
 msgstr ""
 
 #: src/hash.c:492
+#, c-format
 msgid "hash table:"
 msgstr ""
 
@@ -2933,6 +2955,7 @@ msgid "bad ordering of keys %d and %d\n"
 msgstr ""
 
 #: src/heap.c:177
+#, c-format
 msgid "Heap contents:\n"
 msgstr ""
 
@@ -3073,6 +3096,7 @@ msgid "The rest of this command has been discarded."
 msgstr ""
 
 #: src/lexer.c:842 src/print.c:1174
+#, c-format
 msgid "<ERROR>"
 msgstr ""
 
@@ -3390,6 +3414,7 @@ msgid "(long string variable)"
 msgstr ""
 
 #: src/mis-val.c:376
+#, c-format
 msgid "(no missing values)\n"
 msgstr ""
 
@@ -3534,6 +3559,7 @@ msgid "Error reading device definition file."
 msgstr ""
 
 #: src/output.c:462
+#, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
@@ -4130,10 +4156,12 @@ msgid ""
 msgstr ""
 
 #: src/recode.c:869
+#, c-format
 msgid "!!END!!"
 msgstr ""
 
 #: src/recode.c:890 src/recode.c:906
+#, c-format
 msgid "!!ERROR!!"
 msgstr ""
 
@@ -4967,6 +4995,7 @@ msgid "Value labels:"
 msgstr ""
 
 #: src/val-labs.c:237
+#, c-format
 msgid "    (no value labels)\n"
 msgstr ""
 
@@ -4979,10 +5008,12 @@ msgid "Truncating variable label to 120 characters."
 msgstr ""
 
 #: src/var-labs.c:87
+#, c-format
 msgid "Variable labels:\n"
 msgstr ""
 
 #: src/var-labs.c:94
+#, c-format
 msgid "(no variable label)"
 msgstr ""
 
