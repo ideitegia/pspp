@@ -557,9 +557,14 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
 }
 
 static int
-compare_vectors_by_name (const void *a, const void *b)
+compare_vectors_by_name (const void *a_, const void *b_)
 {
-  return strcmp ((*((struct vector **) a))->name, (*((struct vector **) b))->name);
+  struct vector *const *pa = a_;
+  struct vector *const *pb = b_;
+  struct vector *a = *pa;
+  struct vector *b = *pb;
+  
+  return strcmp (a->name, b->name);
 }
 
 /* Display a list of vectors.  If SORTED is nonzero then they are
