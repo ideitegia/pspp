@@ -1,3 +1,25 @@
+Mon Mar 15 00:14:49 2004  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of static vars in expr-opt.c.
+
+	* expr-opt.c: (static var e) Removed.
+	(static var nop) Removed.
+	(static var mop) Removed.
+	(static var ndbl) Removed.
+	(static var mdbl) Removed.
+	(static var nstr) Removed.
+	(static var mstr) Removed.
+	(static var nvars) Removed.
+	(static var mvars) Removed.
+	(struct expr_dump_state) New structure.
+	(dump_expression) Use new struct expr_dump_state instead of static
+	vars and pass to functions we call.
+	(dump_node) Use struct expr_dump_state * parameter.
+	(emit) Ditto.
+	(emit_num_con) Ditto.
+	(emit_str_con) Ditto.
+	(emit_var) Ditto.
+	
 Mon Mar 15 00:03:51 2004  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of static var in COUNT.

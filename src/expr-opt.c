@@ -976,41 +976,43 @@ yrmoda (double year, double month, double day)
 
 /* Expression dumper. */
 
-static struct expression *e;
-static int nop, mop;
-static int ndbl, mdbl;
-static int nstr, mstr;
-static int nvars, mvars;
+struct expr_dump_state 
+  {
+    struct expression *expr;    /* Output expression. */
+    int op_cnt, op_cap;         /* Number of ops, allocated space. */
+    int dbl_cnt, dbl_cap;       /* Number of doubles, allocated space. */
+    int str_cnt, str_cap;       /* Number of strings, allocated space. */
+    int var_cnt, var_cap;       /* Number of variables, allocated space. */
+  };
 
-static void dump_node (union any_node * n);
-static void emit (int);
-static void emit_num_con (double);
-static void emit_str_con (char *, int);
-static void emit_var (struct variable *);
+static void dump_node (struct expr_dump_state *, union any_node * n);
+static void emit (struct expr_dump_state *, int);
+static void emit_num_con (struct expr_dump_state *, double);
+static void emit_str_con (struct expr_dump_state *, char *, int);
+static void emit_var (struct expr_dump_state *, struct variable *);
 
 void
 dump_expression (union any_node * n, struct expression * expr)
 {
+  struct expr_dump_state eds;
   unsigned char *o;
-
   int height = 0;
-
   int max_height = 0;
 
-  e = expr;
-  e->op = NULL;
-  e->num = NULL;
-  e->str = NULL;
-  e->var = NULL;
-  nop = mop = 0;
-  ndbl = mdbl = 0;
-  nstr = mstr = 0;
-  nvars = mvars = 0;
-  dump_node (n);
-  emit (OP_SENTINEL);
+  expr->op = NULL;
+  expr->num = NULL;
+  expr->str = NULL;
+  expr->var = NULL;
+  eds.expr = expr;
+  eds.op_cnt = eds.op_cap = 0;
+  eds.dbl_cnt = eds.dbl_cap = 0;
+  eds.str_cnt = eds.str_cap = 0;
+  eds.var_cnt = eds.var_cap = 0;
+  dump_node (&eds, n);
+  emit (&eds, OP_SENTINEL);
 
   /* Now compute the stack height needed to evaluate the expression. */
-  for (o = e->op; *o != OP_SENTINEL; o++)
+  for (o = expr->op; *o != OP_SENTINEL; o++)
     {
       if (ops[*o].flags & OP_VAR_ARGS)
 	height += 1 - o[1];
@@ -1025,23 +1027,23 @@ dump_expression (union any_node * n, struct expression * expr)
      guaranteed to be able to point to a spot before a block. */
   max_height++;
 
-  e->stack = xmalloc (max_height * sizeof *e->stack);
+  expr->stack = xmalloc (max_height * sizeof *expr->stack);
 
-  e->pool = pool_create ();
+  expr->pool = pool_create ();
 }
 
 static void
-dump_node (union any_node * n)
+dump_node (struct expr_dump_state *eds, union any_node * n)
 {
   if (n->type == OP_AND || n->type == OP_OR)
     {
       int i;
 
-      dump_node (n->nonterm.arg[0]);
+      dump_node (eds, n->nonterm.arg[0]);
       for (i = 1; i < n->nonterm.n; i++)
 	{
-	  dump_node (n->nonterm.arg[i]);
-	  emit (n->type);
+	  dump_node (eds, n->nonterm.arg[i]);
+	  emit (eds, n->type);
 	}
       return;
     }
@@ -1049,82 +1051,85 @@ dump_node (union any_node * n)
     {
       int i;
       for (i = 0; i < n->nonterm.n; i++)
-	dump_node (n->nonterm.arg[i]);
-      emit (n->type);
+	dump_node (eds, n->nonterm.arg[i]);
+      emit (eds, n->type);
       if (ops[n->type].flags & OP_VAR_ARGS)
-	emit (n->nonterm.n);
+	emit (eds, n->nonterm.n);
       if (ops[n->type].flags & OP_MIN_ARGS)
-	emit ((int) n->nonterm.arg[n->nonterm.n]);
+	emit (eds, (int) n->nonterm.arg[n->nonterm.n]);
       if (ops[n->type].flags & OP_FMT_SPEC)
 	{
-	  emit ((int) n->nonterm.arg[n->nonterm.n]);
-	  emit ((int) n->nonterm.arg[n->nonterm.n + 1]);
-	  emit ((int) n->nonterm.arg[n->nonterm.n + 2]);
+	  emit (eds, (int) n->nonterm.arg[n->nonterm.n]);
+	  emit (eds, (int) n->nonterm.arg[n->nonterm.n + 1]);
+	  emit (eds, (int) n->nonterm.arg[n->nonterm.n + 2]);
 	}
       return;
     }
 
-  emit (n->type);
+  emit (eds, n->type);
   if (n->type == OP_NUM_CON)
-    emit_num_con (n->num_con.value);
+    emit_num_con (eds, n->num_con.value);
   else if (n->type == OP_STR_CON)
-    emit_str_con (n->str_con.s, n->str_con.len);
+    emit_str_con (eds, n->str_con.s, n->str_con.len);
   else if (n->type == OP_NUM_VAR || n->type == OP_STR_VAR
 	   || n->type == OP_STR_MIS)
-    emit_var (n->var.v);
+    emit_var (eds, n->var.v);
   else if (n->type == OP_NUM_LAG || n->type == OP_STR_LAG)
     {
-      emit_var (n->lag.v);
-      emit (n->lag.lag);
+      emit_var (eds, n->lag.v);
+      emit (eds, n->lag.lag);
     }
   else if (n->type == OP_NUM_SYS || n->type == OP_NUM_VAL)
-    emit (n->var.v->fv);
+    emit (eds, n->var.v->fv);
   else
     assert (n->type == OP_CASENUM);
 }
 
 static void
-emit (int op)
+emit (struct expr_dump_state *eds, int op)
 {
-  if (nop >= mop)
+  if (eds->op_cnt >= eds->op_cap)
     {
-      mop += 16;
-      e->op = xrealloc (e->op, mop * sizeof *e->op);
+      eds->op_cap += 16;
+      eds->expr->op = xrealloc (eds->expr->op,
+                                eds->op_cap * sizeof *eds->expr->op);
     }
-  e->op[nop++] = op;
+  eds->expr->op[eds->op_cnt++] = op;
 }
 
 static void
-emit_num_con (double dbl)
+emit_num_con (struct expr_dump_state *eds, double dbl)
 {
-  if (ndbl >= mdbl)
+  if (eds->dbl_cnt >= eds->dbl_cap)
     {
-      mdbl += 16;
-      e->num = xrealloc (e->num, mdbl * sizeof *e->num);
+      eds->dbl_cap += 16;
+      eds->expr->num = xrealloc (eds->expr->num,
+                                 eds->dbl_cap * sizeof *eds->expr->num);
     }
-  e->num[ndbl++] = dbl;
+  eds->expr->num[eds->dbl_cnt++] = dbl;
 }
 
 static void
-emit_str_con (char *str, int len)
+emit_str_con (struct expr_dump_state *eds, char *str, int len)
 {
-  if (nstr + len + 1 > mstr)
+  if (eds->str_cnt + len + 1 > eds->str_cap)
     {
-      mstr += 256;
-      e->str = xrealloc (e->str, mstr);
+      eds->str_cap += 256;
+      eds->expr->str = xrealloc (eds->expr->str, eds->str_cap);
     }
-  e->str[nstr++] = len;
-  memcpy (&e->str[nstr], str, len);
-  nstr += len;
+  eds->expr->str[eds->str_cnt++] = len;
+  memcpy (&eds->expr->str[eds->str_cnt], str, len);
+  eds->str_cnt += len;
 }
 
 static void
-emit_var (struct variable * v)
+emit_var (struct expr_dump_state *eds, struct variable * v)
 {
-  if (nvars >= mvars)
+  if (eds->var_cnt >= eds->var_cap)
     {
-      mvars += 16;
-      e->var = xrealloc (e->var, mvars * sizeof *e->var);
+      eds->var_cap += 16;
+      eds->expr->var = xrealloc (eds->expr->var,
+                                 eds->var_cap * sizeof *eds->expr->var);
     }
-  e->var[nvars++] = v;
+  eds->expr->var[eds->var_cnt++] = v;
 }
