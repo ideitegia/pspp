@@ -1,7 +1,8 @@
 #!/bin/sh
 
-# This program tests for a bug which caused a crash when 
-# a large number of cases where presented.
+# This  tests checks that when a fatal error occurs,
+# and appropriate notice is printed and the program exits with a 
+# non zero status
 
 
 TEMPDIR=/tmp/pspp-tst-$$
@@ -47,24 +48,28 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
+
+activity="delete file"
+rm -f $TEMPDIR/bar.dat
+if [ $? -ne 0 ] ; then no_result ; fi
+
 activity="create program"
 cat > $TEMPDIR/foo.sps <<EOF
-INPUT PROGRAM.
-	LOOP #I=1 TO 50000.
-		COMPUTE X=NORMAL(10).
-		END CASE.
-	END LOOP.
-	END FILE.
-END INPUT PROGRAM.
+DATA LIST FILE='$TEMPDIR/bar.dat' /S 1-2 (A) X 3 .
 
-
-EXAMINE /x
-	/STATISTICS=DESCRIPTIVES.
+EXECUTE.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/foo.sps > /dev/null
+# This must exit with non zero status
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/foo.sps > /dev/null 2> $TEMPDIR/stderr
+if [ $? -eq 0 ] ; then fail ; fi
+
+activity="compare stderr"
+diff $TEMPDIR/stderr - << EOF
+pspp: Terminating NOW due to a fatal error!
+EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

@@ -1,3 +1,9 @@
+Thu Jan  6 18:48:58 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* main.c Added a signal handler for SIGFPE
+
+	* sort.c Somewhat more robust fix to the previous entry.
+
 Wed Jan  5 21:23:31 2005  Ben Pfaff  <blp@gnu.org>
 
 	* sort.c: (merge) Fix assertion for proper Huffman merge pattern:

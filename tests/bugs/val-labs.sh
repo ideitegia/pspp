@@ -64,6 +64,8 @@ VALUE LABELS /var=a 'label for a'.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
+#Invalid syntax --- return value is non zero.
+activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/rnd.sps > /dev/null
 if [ $? -ne 1 ] ; then fail ; fi
 

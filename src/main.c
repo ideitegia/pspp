@@ -64,6 +64,7 @@ int
 main (int argc, char **argv)
 {
   signal (SIGSEGV, bug_handler);
+  signal (SIGFPE, bug_handler);
 
   gsl_set_error_handler_off();
 
@@ -185,5 +186,16 @@ handle_error (int code)
 void 
 bug_handler(int sig UNUSED)
 {
-  request_bug_report_and_abort("Segmentation Violation");
+  switch (sig) 
+    {
+    case SIGFPE:
+      request_bug_report_and_abort("Floating Point Exception");
+      break;
+    case SIGSEGV:
+      request_bug_report_and_abort("Segmentation Violation");
+      break;
+    default:
+      request_bug_report_and_abort("");
+      break;
+    }
 }

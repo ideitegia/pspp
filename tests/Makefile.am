@@ -43,6 +43,7 @@ TESTS = \
 	command/weight.sh \
 	bugs/alpha-freq.sh \
 	bugs/big-input.sh \
+	bugs/big-input-2.sh \
 	bugs/comment-at-eof.sh \
 	bugs/compute-fmt.sh \
 	bugs/crosstabs.sh \
@@ -57,6 +58,7 @@ TESTS = \
 	bugs/t-test.sh \
 	bugs/t-test-alpha.sh \
 	bugs/t-test-alpha2.sh \
+	bugs/terminate.sh \
 	bugs/temporary.sh \
 	bugs/val-labs.sh \
 	bugs/val-labs-trailing-slash.sh \

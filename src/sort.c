@@ -752,7 +752,9 @@ merge (struct external_sort *xsrt)
   make_heap (xsrt->initial_runs, xsrt->run_cnt, sizeof *xsrt->initial_runs,
              compare_initial_runs, NULL);
   dummy_run_cnt = mod (1 - (int) xsrt->run_cnt, max_order - 1);
-  assert (max_order == 2
+
+  assert( max_order > 0 );
+  assert (max_order <= 2
           || (xsrt->run_cnt + dummy_run_cnt) % (max_order - 1) == 1);
   while (xsrt->run_cnt > 1)
     {

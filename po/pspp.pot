@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-01-05 08:20+0800\n"
+"POT-Creation-Date: 2005-01-05 22:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2712,6 +2712,26 @@ msgstr ""
 #: src/output.c:1315
 #, c-format
 msgid "Error opening page on %s device of %s class."
+msgstr ""
+
+#: src/percentiles.c:38
+msgid "HAverage"
+msgstr ""
+
+#: src/percentiles.c:39
+msgid "Weighted Average"
+msgstr ""
+
+#: src/percentiles.c:40
+msgid "Rounded"
+msgstr ""
+
+#: src/percentiles.c:41
+msgid "Empirical"
+msgstr ""
+
+#: src/percentiles.c:42
+msgid "Empirical with averaging"
 msgstr ""
 
 #: src/permissions.c:75
