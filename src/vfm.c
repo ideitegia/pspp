@@ -71,17 +71,6 @@ struct stream_info vfm_source_info;
 /* Information about the data sink. */
 struct stream_info vfm_sink_info;
 
-/* Filter variable and  `value' index. */
-static struct variable *filter_var;
-static int filter_index;
-
-#define FILTERED							\
-	(filter_index != -1						\
-	 && (temp_case->data[filter_index].f == 0.0			\
-	     || temp_case->data[filter_index].f == SYSMIS		\
-	     || is_num_user_missing (temp_case->data[filter_index].f,	\
-				     filter_var)))
-
 /* Nonzero if the case needs to have values deleted before being
    stored, zero otherwise. */
 int compaction_necessary;
@@ -117,6 +106,7 @@ static void finish_compaction (void);
 static void lag_case (void);
 static int procedure_write_case (struct write_case_data *);
 static void clear_temp_case (void);
+static int exclude_this_case (void);
 
 /* Public functions. */
 
@@ -242,10 +232,7 @@ process_active_file_write_case (struct write_case_data *data)
     lag_case ();
 	  
   /* Call the procedure if FILTER and PROCESS IF don't prohibit it. */
-  if (not_canceled
-      && !FILTERED
-      && (process_if_expr == NULL ||
-	  expr_evaluate (process_if_expr, temp_case, NULL) == 1.0))
+  if (not_canceled && !exclude_this_case ())
     not_canceled = data->procfunc (temp_case, data->aux);
   
   case_count++;
@@ -399,21 +386,6 @@ vector_initialization (void)
     }
 }
 
-/* Sets filter_index to an appropriate value. */
-static void
-setup_filter (void)
-{
-  filter_var = dict_get_filter (default_dict);
-  
-  if (filter_var != NULL)
-    {
-      assert (filter_var->type == NUMERIC);
-      filter_index = filter_var->index;
-    } else {
-      filter_index = -1;
-    }
-}
-
 /* Sets all the lag-related variables based on value of n_lag. */
 static void
 setup_lag (void)
@@ -489,7 +461,6 @@ open_active_file (void)
   make_temp_case ();
   vector_initialization ();
   discard_ctl_stack ();
-  setup_filter ();
   setup_lag ();
 
   /* Debug output. */
@@ -564,7 +535,7 @@ close_active_file (struct write_case_data *data)
   process_if_expr = NULL;
 
   /* Cancel FILTER if temporary. */
-  if (filter_var != NULL && !FILTER_before_TEMPORARY)
+  if (dict_get_filter (default_dict) != NULL && !FILTER_before_TEMPORARY)
     dict_set_filter (default_dict, NULL);
 
   /* Cancel transformations. */
@@ -1000,10 +971,7 @@ procedure_write_case (write_case_data wc_data)
 
   /* Call the procedure if there is one and FILTER and PROCESS IF
      don't prohibit it. */
-  if (wc_data->procfunc != NULL
-      && !FILTERED
-      && (process_if_expr == NULL ||
-	  expr_evaluate (process_if_expr, temp_case, NULL) == 1.0))
+  if (wc_data->procfunc != NULL && !exclude_this_case ())
     wc_data->procfunc (temp_case, wc_data->aux);
 
   case_count++;
@@ -1038,6 +1006,28 @@ clear_temp_case (void)
             memset (temp_case->data[v->fv].s, ' ', v->width);
         } 
     }
+}
+
+/* Returns nonzero if this case should be exclude as specified on
+   FILTER or PROCESS IF, otherwise zero. */
+static int
+exclude_this_case (void)
+{
+  /* FILTER. */
+  struct variable *filter_var = dict_get_filter (default_dict);
+  if (filter_var != NULL) 
+    {
+      double f = temp_case->data[filter_var->fv].f;
+      if (f == 0.0 || f == SYSMIS || is_num_user_missing (f, filter_var))
+        return 1;
+    }
+
+  /* PROCESS IF. */
+  if (process_if_expr != NULL
+      && expr_evaluate (process_if_expr, temp_case, NULL) != 1.0)
+    return 1;
+
+  return 0;
 }
 
 /* Appends TRNS to t_trns[], the list of all transformations to be

@@ -1,3 +1,19 @@
+Mon Feb 16 00:17:55 2004  Ben Pfaff  <blp@gnu.org>
+
+	Make vfm.c slightly less grotesque.
+
+	* vfm.c: (filter_var) Removed.
+	(filter_index) Removed.
+	(FILTERED macro) Removed.
+	(exclude_this_case) New function.
+	(process_active_file_write_case) Use exclude_this_case() instead
+	of FILTERED and inline tests.
+	(procedure_write_case) Ditto.
+	(setup_filter) Removed.
+	(open_active_file) Don't call setup_filter().
+	(close_active_file) Call dict_get_filter() instead of checking
+	filter_var.
+
 Mon Feb 16 00:01:53 2004  Ben Pfaff  <blp@gnu.org>
 
 	* var.h: (struct variable) Update comments.
