@@ -977,9 +977,10 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
 static void
 print_trns_free (struct trns_header * t)
 {
+  struct print_trns *prt = (struct print_trns *) t;
   struct prt_out_spec *i, *n;
 
-  for (i = ((struct print_trns *) t)->spec; i; i = n)
+  for (i = prt->spec; i; i = n)
     {
       switch (i->type)
 	{
@@ -998,7 +999,9 @@ print_trns_free (struct trns_header * t)
       n = i->next;
       free (i);
     }
-  free (((struct print_trns *) t)->line);
+  if (prt->writer != NULL)
+    dfm_close_writer (prt->writer);
+  free (prt->line);
 }
 
 /* PRINT SPACE. */
