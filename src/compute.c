@@ -440,6 +440,9 @@ lvalue_finalize (struct lvalue *lvalue,
 static void 
 lvalue_destroy (struct lvalue *lvalue) 
 {
+  if ( ! lvalue ) 
+     return ;
+
   expr_free (lvalue->element);
   free (lvalue);
 }

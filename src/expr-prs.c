@@ -83,7 +83,7 @@ struct expression *
 expr_parse (enum expr_type expected_type)
 {
   struct expression *e;
-  union any_node *n;
+  union any_node *n=0;
   enum expr_type actual_type;
   int optimize = (expected_type & EXPR_NO_OPTIMIZE) == 0;
 

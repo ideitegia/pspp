@@ -1104,10 +1104,10 @@ init_settings(void)
 
 #if !USE_INTERNAL_PAGER
   {
-    char *pager;
+    const char *pager = getenv ("STAT_PAGER");
 
-    pager = getenv ("STAT_PAGER");
-    if (!pager)  set_pager = getenv ("PAGER");
+    if (!pager)  
+    	set_pager = xstrdup (getenv ("PAGER") );
 
     if (pager)  
       set_pager = xstrdup (pager);

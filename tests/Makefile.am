@@ -53,6 +53,7 @@ TESTS = \
 	bugs/get.sh \
 	bugs/examine-1sample.sh \
 	bugs/html-frequency.sh \
+	bugs/if_crash.sh \
 	bugs/multipass.sh \
 	bugs/random.sh \
 	bugs/t-test-with-temp.sh \

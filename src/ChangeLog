@@ -1,3 +1,11 @@
+Wed Jan 26 09:25:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* set.q: Copied the string produced by getenv("PAGER") thus avoiding
+	"invalid free" errors.  Hopefully fixes bug #11722
+
+	* compute.c expr-prs.c: Check that lvalues are populated before 
+	attempting to destroy them.  Closes bug #11676
+
 Tue Jan 25 21:01:43 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* aggregate.c: Initialised the complete agr_proc structure.
