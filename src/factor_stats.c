@@ -123,11 +123,6 @@ metrics_postcalc(struct metrics *m)
   int i;
   int j = 1;  
 
-  struct weighted_value **data;
-
-
-  int n_data;
-  
   m->mean = m->sum / m->n;
 
   sample_var = ( m->ssq / m->n  - m->mean * m->mean );
@@ -140,25 +135,16 @@ metrics_postcalc(struct metrics *m)
      Shouldn't we use the sample variance ??? */
   m->stderr = sqrt (m->var / m->n) ;
 
-  data = (struct weighted_value **) hsh_data(m->ordered_data);
-  n_data = hsh_count(m->ordered_data);
+  m->wvp = (struct weighted_value **) hsh_sort(m->ordered_data);
+  m->n_data = hsh_count(m->ordered_data);
 
-  if ( n_data == 0 ) 
+  if ( m->n_data == 0 ) 
     {
       m->trimmed_mean = m->mean;
       return;
     }
 
 
-  m->wv = xmalloc(sizeof(struct weighted_value ) * n_data);
-
-  for ( i = 0 ; i < n_data ; ++i )
-      m->wv[i] = *(data[i]);
-
-  sort (m->wv, n_data, sizeof (struct weighted_value) , 
-	(algo_compare_func *) compare_values, 0);
-
-  
   /* Trimmed mean calculation */
 
   tc = m->n * 0.05 ;
@@ -166,24 +152,24 @@ metrics_postcalc(struct metrics *m)
   k2 = -1;
 
 
-  for ( i = 0 ; i < n_data ; ++i ) 
+  for ( i = 0 ; i < m->n_data ; ++i ) 
     {
-      cc += m->wv[i].w;
-      m->wv[i].cc = cc;
+      cc += m->wvp[i]->w;
+      m->wvp[i]->cc = cc;
 
-      m->wv[i].rank = j + (m->wv[i].w - 1) / 2.0 ;
+      m->wvp[i]->rank = j + (m->wvp[i]->w - 1) / 2.0 ;
       
-      j += m->wv[i].w;
+      j += m->wvp[i]->w;
       
       if ( cc < tc ) 
 	k1 = i;
 
     }
 
-  k2 = n_data;
-  for ( i = n_data -1  ; i >= 0; --i ) 
+  k2 = m->n_data;
+  for ( i = m->n_data -1  ; i >= 0; --i ) 
     {
-      if ( tc > m->n - m->wv[i].cc) 
+      if ( tc > m->n - m->wvp[i]->cc) 
 	k2 = i;
     }
 
@@ -191,12 +177,12 @@ metrics_postcalc(struct metrics *m)
   m->trimmed_mean = 0;
   for ( i = k1 + 2 ; i <= k2 - 1 ; ++i ) 
     {
-      m->trimmed_mean += m->wv[i].v.f * m->wv[i].w;
+      m->trimmed_mean += m->wvp[i]->v.f * m->wvp[i]->w;
     }
 
 
-  m->trimmed_mean += (m->n - m->wv[k2 - 1].cc - tc) * m->wv[k2].v.f ;
-  m->trimmed_mean += (m->wv[k1 + 1].cc - tc) * m->wv[k1 + 1].v.f ;
+  m->trimmed_mean += (m->n - m->wvp[k2 - 1]->cc - tc) * m->wvp[k2]->v.f ;
+  m->trimmed_mean += (m->wvp[k1 + 1]->cc - tc) * m->wvp[k1 + 1]->v.f ;
   m->trimmed_mean /= 0.9 * m->n ;
 
 }
@@ -255,12 +241,10 @@ create_factor_statistics (int n, union value *id0, union value *id1)
 void
 factor_statistics_free(struct factor_statistics *f)
 {
+  hsh_destroy(f->m->ordered_data);
   free(f->m) ; 
-
   free(f);
 }
-
-
 
 
 

@@ -81,6 +81,7 @@ getl_initialize (void)
 void
 getl_uninitialize (void)
 {
+  getl_close_all();
 #if HAVE_LIBHISTORY && defined (unix)
   if (history_file)
     write_history (history_file);

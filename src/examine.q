@@ -80,7 +80,7 @@ struct factor
   /* Hash table of factor stats indexed by 2 values */
   struct hsh_table *fstats;
 
-  /* The hash table after it's been crunched */
+  /* The hash table after it has been crunched */
   struct factor_statistics **fs;
 
   struct factor *next;
@@ -192,6 +192,9 @@ cmd_examine(void)
     cmd.n_cinterval[0] = 95.0;
 
   multipass_procedure_with_splits (run_examine, &cmd);
+
+  if ( totals ) 
+    free(totals);
 
   return CMD_SUCCESS;
 };
@@ -638,11 +641,10 @@ run_examine(const struct casefile *cf, void *cmd_ )
       fctr = fctr->next;
     }
 
-  /* 
-  print_factors();
-  */
-
   output_examine();
+
+  for ( v = 0 ; v < n_dependent_vars ; ++v ) 
+    hsh_destroy(totals[v].ordered_data);
 
 }
 
@@ -1021,7 +1023,6 @@ populate_extremes(struct tab_table *t,
   int extremity;
   int idx=0;
 
-  const int n_data = hsh_count(m->ordered_data);
 
   tab_text(t, col, row,
 	   TAB_RIGHT | TAT_TITLE ,
@@ -1053,10 +1054,10 @@ populate_extremes(struct tab_table *t,
 
 
   /* Lowest */
-  for (idx = 0, extremity = 0; extremity < n && idx < n_data ; ++idx ) 
+  for (idx = 0, extremity = 0; extremity < n && idx < m->n_data ; ++idx ) 
     {
       int j;
-      const struct weighted_value *wv = &m->wv[idx];
+      const struct weighted_value *wv = m->wvp[idx];
       struct case_node *cn = wv->case_nos;
 
       
@@ -1083,10 +1084,10 @@ populate_extremes(struct tab_table *t,
 
 
   /* Highest */
-  for (idx = n_data - 1, extremity = 0; extremity < n && idx >= 0; --idx ) 
+  for (idx = m->n_data - 1, extremity = 0; extremity < n && idx >= 0; --idx ) 
     {
       int j;
-      const struct weighted_value *wv = &m->wv[idx];
+      const struct weighted_value *wv = m->wvp[idx];
       struct case_node *cn = wv->case_nos;
 
       for (j = 0 ; j < wv->w ; ++j  )
@@ -1431,15 +1432,15 @@ np_plot(const struct metrics *m, const char *factorname)
   /* Detrended Normal Plot */
   struct chart dnp_chart;
 
-  const struct weighted_value *wv = m->wv;
-  const int n_data = hsh_count(m->ordered_data) ; 
+  const struct weighted_value *wv = *(m->wvp);
+
 
   /* The slope and intercept of the ideal normal probability line */
   const double slope = 1.0 / m->stddev;
   const double intercept = - m->mean / m->stddev;
 
   /* Cowardly refuse to plot an empty data set */
-  if ( n_data == 0 ) 
+  if ( m->n_data == 0 ) 
     return ; 
 
   chart_initialise(&np_chart);
@@ -1454,7 +1455,7 @@ np_plot(const struct metrics *m, const char *factorname)
   chart_write_ylabel(&dnp_chart, _("Dev from Normal"));
 
   yfirst = gsl_cdf_ugaussian_Pinv (wv[0].rank / ( m->n + 1));
-  ylast =  gsl_cdf_ugaussian_Pinv (wv[n_data-1].rank / ( m->n + 1));
+  ylast =  gsl_cdf_ugaussian_Pinv (wv[m->n_data-1].rank / ( m->n + 1));
 
   {
     /* Need to make sure that both the scatter plot and the ideal fit into the
@@ -1479,10 +1480,10 @@ np_plot(const struct metrics *m, const char *factorname)
   /* We have to cache the detrended data, beacause we need to 
      find its limits before we can plot it */
   double *d_data;
-  d_data = xmalloc (n_data * sizeof(double));
+  d_data = xmalloc (m->n_data * sizeof(double));
   double d_max = -DBL_MAX;
   double d_min = DBL_MAX;
-  for ( i = 0 ; i < n_data; ++i ) 
+  for ( i = 0 ; i < m->n_data; ++i ) 
     {
       const double ns = gsl_cdf_ugaussian_Pinv (wv[i].rank / ( m->n + 1));
 
@@ -1497,7 +1498,7 @@ np_plot(const struct metrics *m, const char *factorname)
   chart_write_yscale(&dnp_chart, d_min, d_max, 
 		     chart_rounded_tick((d_max - d_min) / 5.0));
 
-  for ( i = 0 ; i < n_data; ++i ) 
+  for ( i = 0 ; i < m->n_data; ++i ) 
       chart_datum(&dnp_chart, 0, wv[i].v.f, d_data[i]);
 
   free(d_data);

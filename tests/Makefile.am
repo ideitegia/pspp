@@ -10,6 +10,7 @@ TESTS = \
 	command/data-list.sh \
 	command/erase.sh \
 	command/examine.sh \
+	command/examine-extremes.sh \
 	command/file-label.sh \
 	command/filter.sh \
 	command/flip.sh \

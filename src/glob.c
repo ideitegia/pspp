@@ -185,7 +185,7 @@ done_glob(void)
 {
   dict_destroy(default_dict);
   free(logfn);
-  /* done_settings(); */
+  done_settings();
   ds_destroy (&tokstr);
 }
 

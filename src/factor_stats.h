@@ -52,11 +52,18 @@ struct metrics
 
   double trimmed_mean;
 
-  /* A hash of data for this factor */
+  /* A hash of data for this factor.
+   */
   struct hsh_table *ordered_data;
 
-  /* A SORTED array of weighted values */
-  struct weighted_value *wv;
+  /* A Pointer to this hash table AFTER it has been SORTED and crunched */
+  struct weighted_value **wvp;
+
+
+  /* The number of values in the above array
+     (if all the weights are 1, then this will
+     be the same as n) */
+  int n_data;
 };
 
 

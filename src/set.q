@@ -1052,6 +1052,20 @@ set_viewport(int sig_num UNUSED)
 /* Public functions */
 
 void
+done_settings(void)
+{
+  free(set_pager);
+  free(set_journal);
+
+  free(cmd.s_endcmd);
+  free(cmd.s_prompt);
+  free(cmd.s_cprompt);
+  free(cmd.s_dprompt);
+}
+
+
+
+void
 init_settings(void)
 {
   cmd.s_dprompt = xstrdup (_("data> "));
