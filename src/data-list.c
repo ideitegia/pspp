@@ -1318,7 +1318,7 @@ cmd_repeating_data (void)
 	  lex_match ('=');
 	  if (seen & 1)
 	    {
-	      msg (SE, _("STARTS subcommand given multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"STARTS");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 1;
@@ -1353,7 +1353,7 @@ cmd_repeating_data (void)
 	  lex_match ('=');
 	  if (seen & 2)
 	    {
-	      msg (SE, _("OCCURS subcommand given multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"OCCURS");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 2;
@@ -1366,7 +1366,7 @@ cmd_repeating_data (void)
 	  lex_match ('=');
 	  if (seen & 4)
 	    {
-	      msg (SE, _("LENGTH subcommand given multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"LENGTH");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 4;
@@ -1379,7 +1379,7 @@ cmd_repeating_data (void)
 	  lex_match ('=');
 	  if (seen & 8)
 	    {
-	      msg (SE, _("CONTINUED subcommand given multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"CONTINUED");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 8;
@@ -1412,7 +1412,7 @@ cmd_repeating_data (void)
 	  lex_match ('=');
 	  if (seen & 16)
 	    {
-	      msg (SE, _("ID subcommand given multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"ID");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 16;

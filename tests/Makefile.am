@@ -26,6 +26,7 @@ TESTS = command/aggregate.sh \
 	bugs/double-frequency.sh \
 	bugs/html-frequency.sh \
 	bugs/crosstabs.sh \
+	bugs/data-crash.sh \
 	bugs/random.sh
 
 noinst_PROGRAMS = gengarbage

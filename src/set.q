@@ -311,9 +311,9 @@ cmd_set (void)
   if (cmd.s_scripttab)
     msg (SE, _("%s is obsolete."),"SCRIPTTAB");
   if (cmd.s_tbfonts)
-    msg (SW, _("TBFONTS not implemented."));
+    msg (SW, _("%s is not yet implemented."),"TBFONTS");
   if (cmd.s_tb1)
-    msg (SW, _("TB1 not implemented."));
+    msg (SW, _("%s is not yet implemented."),"TB1");
   if (cmd.undef != -1)
     set_undefined = cmd.undef == STC_NOWARN ? 0 : 1;
   if (cmd.n_workspace != NOT_LONG)
@@ -843,7 +843,7 @@ stc_custom_viewlength (struct cmd_set *cmd unused)
     }
 
 #if __MSDOS__
-  msg (SW, _("VIEWLENGTH not implemented."));
+  msg (SW, _("%s is not yet implemented."),"VIEWLENGTH");
 #endif /* dos */
   return 1;
 }

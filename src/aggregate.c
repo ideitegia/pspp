@@ -185,7 +185,7 @@ cmd_aggregate (void)
 	    {
 	      free (v_sort);
 	      dict_destroy (agr_dict);
-	      msg (SE, _("OUTFILE specified multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"OUTFILE");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 1;
@@ -226,7 +226,7 @@ cmd_aggregate (void)
 	    {
 	      free (v_sort);
 	      dict_destroy (agr_dict);
-	      msg (SE, _("BREAK specified multiple times."));
+	      msg (SE, _("%s subcommand given multiple times."),"BREAK");
 	      return CMD_FAILURE;
 	    }
 	  seen |= 8;

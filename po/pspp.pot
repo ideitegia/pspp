@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2004-02-03 19:04+0800\n"
+"POT-Creation-Date: 2004-02-05 14:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,281 +17,281 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: src/crosstabs.q:255
+#: src/crosstabs.q:254
 msgid ""
 "Missing mode REPORT not allowed in general mode.  Assuming MISSING=TABLE."
 msgstr ""
 
-#: src/crosstabs.q:265
+#: src/crosstabs.q:264
 msgid "Write mode ALL not allowed in general mode.  Assuming WRITE=CELLS."
 msgstr ""
 
-#: src/crosstabs.q:324
+#: src/crosstabs.q:323
 msgid "expecting BY"
 msgstr ""
 
-#: src/crosstabs.q:391
+#: src/crosstabs.q:390
 msgid "VARIABLES must be specified before TABLES."
 msgstr ""
 
-#: src/crosstabs.q:428
+#: src/crosstabs.q:427
 #, c-format
 msgid "Maximum value (%ld) less than minimum value (%ld)."
 msgstr ""
 
-#: src/crosstabs.q:865
+#: src/crosstabs.q:864
 msgid "Summary."
 msgstr ""
 
-#: src/crosstabs.q:867
+#: src/crosstabs.q:866
 msgid "Cases"
 msgstr ""
 
-#: src/crosstabs.q:868 src/frequencies.q:999
+#: src/crosstabs.q:867 src/frequencies.q:999
 msgid "Valid"
 msgstr ""
 
-#: src/crosstabs.q:869 src/frequencies.q:1066
+#: src/crosstabs.q:868 src/frequencies.q:1066
 msgid "Missing"
 msgstr ""
 
-#: src/crosstabs.q:870 src/crosstabs.q:1071 src/crosstabs.q:1800
+#: src/crosstabs.q:869 src/crosstabs.q:1070 src/crosstabs.q:1799
 #: src/frequencies.q:1075
 msgid "Total"
 msgstr ""
 
-#: src/crosstabs.q:880 src/t-test.q:529 src/t-test.q:560 src/t-test.q:640
+#: src/crosstabs.q:879 src/t-test.q:510 src/t-test.q:533 src/t-test.q:598
 msgid "N"
 msgstr ""
 
-#: src/crosstabs.q:881 src/frequencies.q:1003 src/frequencies.q:1004
+#: src/crosstabs.q:880 src/frequencies.q:1003 src/frequencies.q:1004
 #: src/frequencies.q:1005
 msgid "Percent"
 msgstr ""
 
-#: src/crosstabs.q:1120
+#: src/crosstabs.q:1119
 msgid "count"
 msgstr ""
 
-#: src/crosstabs.q:1121
+#: src/crosstabs.q:1120
 msgid "row %"
 msgstr ""
 
-#: src/crosstabs.q:1122
+#: src/crosstabs.q:1121
 msgid "column %"
 msgstr ""
 
-#: src/crosstabs.q:1123
+#: src/crosstabs.q:1122
 msgid "total %"
 msgstr ""
 
-#: src/crosstabs.q:1124
+#: src/crosstabs.q:1123
 msgid "expected"
 msgstr ""
 
-#: src/crosstabs.q:1125
+#: src/crosstabs.q:1124
 msgid "residual"
 msgstr ""
 
-#: src/crosstabs.q:1126
+#: src/crosstabs.q:1125
 msgid "std. resid."
 msgstr ""
 
-#: src/crosstabs.q:1127
+#: src/crosstabs.q:1126
 msgid "adj. resid."
 msgstr ""
 
-#: src/crosstabs.q:1160 src/crosstabs.q:1187 src/crosstabs.q:1207
-#: src/crosstabs.q:1228
+#: src/crosstabs.q:1159 src/crosstabs.q:1186 src/crosstabs.q:1206
+#: src/crosstabs.q:1227
 msgid "Statistic"
 msgstr ""
 
-#: src/crosstabs.q:1161 src/crosstabs.q:1188 src/crosstabs.q:1208
-#: src/crosstabs.q:1230 src/frequencies.q:1001 src/frequencies.q:1118
+#: src/crosstabs.q:1160 src/crosstabs.q:1187 src/crosstabs.q:1207
+#: src/crosstabs.q:1229 src/frequencies.q:1001 src/frequencies.q:1118
 #: src/sysfile-info.c:536 src/vfm.c:1094
 msgid "Value"
 msgstr ""
 
-#: src/crosstabs.q:1162 src/t-test.q:809 src/t-test.q:913 src/t-test.q:998
+#: src/crosstabs.q:1161 src/t-test.q:741 src/t-test.q:815 src/t-test.q:869
 msgid "df"
 msgstr ""
 
-#: src/crosstabs.q:1164
+#: src/crosstabs.q:1163
 msgid "Asymp. Sig. (2-sided)"
 msgstr ""
 
-#: src/crosstabs.q:1166
+#: src/crosstabs.q:1165
 msgid "Exact. Sig. (2-sided)"
 msgstr ""
 
-#: src/crosstabs.q:1168
+#: src/crosstabs.q:1167
 msgid "Exact. Sig. (1-sided)"
 msgstr ""
 
-#: src/crosstabs.q:1186 src/crosstabs.q:1227
+#: src/crosstabs.q:1185 src/crosstabs.q:1226
 msgid "Category"
 msgstr ""
 
-#: src/crosstabs.q:1189 src/crosstabs.q:1231
+#: src/crosstabs.q:1188 src/crosstabs.q:1230
 msgid "Asymp. Std. Error"
 msgstr ""
 
-#: src/crosstabs.q:1190 src/crosstabs.q:1232
+#: src/crosstabs.q:1189 src/crosstabs.q:1231
 msgid "Approx. T"
 msgstr ""
 
-#: src/crosstabs.q:1191 src/crosstabs.q:1233
+#: src/crosstabs.q:1190 src/crosstabs.q:1232
 msgid "Approx. Sig."
 msgstr ""
 
-#: src/crosstabs.q:1206
+#: src/crosstabs.q:1205
 #, c-format
 msgid " 95%% Confidence Interval"
 msgstr ""
 
-#: src/crosstabs.q:1209 src/t-test.q:813 src/t-test.q:910 src/t-test.q:1001
+#: src/crosstabs.q:1208 src/t-test.q:745 src/t-test.q:812 src/t-test.q:872
 msgid "Lower"
 msgstr ""
 
-#: src/crosstabs.q:1210 src/t-test.q:814 src/t-test.q:911 src/t-test.q:1002
+#: src/crosstabs.q:1209 src/t-test.q:746 src/t-test.q:813 src/t-test.q:873
 msgid "Upper"
 msgstr ""
 
-#: src/crosstabs.q:1229
+#: src/crosstabs.q:1228
 msgid "Type"
 msgstr ""
 
-#: src/crosstabs.q:1977
+#: src/crosstabs.q:1976
 msgid "Pearson Chi-Square"
 msgstr ""
 
-#: src/crosstabs.q:1978
+#: src/crosstabs.q:1977
 msgid "Likelihood Ratio"
 msgstr ""
 
-#: src/crosstabs.q:1979
+#: src/crosstabs.q:1978
 msgid "Fisher's Exact Test"
 msgstr ""
 
-#: src/crosstabs.q:1980
+#: src/crosstabs.q:1979
 msgid "Continuity Correction"
 msgstr ""
 
-#: src/crosstabs.q:1981
+#: src/crosstabs.q:1980
 msgid "Linear-by-Linear Association"
 msgstr ""
 
-#: src/crosstabs.q:2018 src/crosstabs.q:2088 src/crosstabs.q:2147
+#: src/crosstabs.q:2017 src/crosstabs.q:2087 src/crosstabs.q:2146
 msgid "N of Valid Cases"
 msgstr ""
 
-#: src/crosstabs.q:2034 src/crosstabs.q:2163
+#: src/crosstabs.q:2033 src/crosstabs.q:2162
 msgid "Nominal by Nominal"
 msgstr ""
 
-#: src/crosstabs.q:2035 src/crosstabs.q:2164
+#: src/crosstabs.q:2034 src/crosstabs.q:2163
 msgid "Ordinal by Ordinal"
 msgstr ""
 
-#: src/crosstabs.q:2036
+#: src/crosstabs.q:2035
 msgid "Interval by Interval"
 msgstr ""
 
-#: src/crosstabs.q:2037
+#: src/crosstabs.q:2036
 msgid "Measure of Agreement"
 msgstr ""
 
-#: src/crosstabs.q:2042
+#: src/crosstabs.q:2041
 msgid "Phi"
 msgstr ""
 
-#: src/crosstabs.q:2043
+#: src/crosstabs.q:2042
 msgid "Cramer's V"
 msgstr ""
 
-#: src/crosstabs.q:2044
+#: src/crosstabs.q:2043
 msgid "Contingency Coefficient"
 msgstr ""
 
-#: src/crosstabs.q:2045
+#: src/crosstabs.q:2044
 msgid "Kendall's tau-b"
 msgstr ""
 
-#: src/crosstabs.q:2046
+#: src/crosstabs.q:2045
 msgid "Kendall's tau-c"
 msgstr ""
 
-#: src/crosstabs.q:2047
+#: src/crosstabs.q:2046
 msgid "Gamma"
 msgstr ""
 
-#: src/crosstabs.q:2048
+#: src/crosstabs.q:2047
 msgid "Spearman Correlation"
 msgstr ""
 
-#: src/crosstabs.q:2049
+#: src/crosstabs.q:2048
 msgid "Pearson's R"
 msgstr ""
 
-#: src/crosstabs.q:2050
+#: src/crosstabs.q:2049
 msgid "Kappa"
 msgstr ""
 
-#: src/crosstabs.q:2120
+#: src/crosstabs.q:2119
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
 msgstr ""
 
-#: src/crosstabs.q:2123
+#: src/crosstabs.q:2122
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
 msgstr ""
 
-#: src/crosstabs.q:2131
+#: src/crosstabs.q:2130
 #, c-format
 msgid "For cohort %s = %g"
 msgstr ""
 
-#: src/crosstabs.q:2134
+#: src/crosstabs.q:2133
 #, c-format
 msgid "For cohort %s = %.*s"
 msgstr ""
 
-#: src/crosstabs.q:2165
+#: src/crosstabs.q:2164
 msgid "Nominal by Interval"
 msgstr ""
 
-#: src/crosstabs.q:2170
+#: src/crosstabs.q:2169
 msgid "Lambda"
 msgstr ""
 
-#: src/crosstabs.q:2171
+#: src/crosstabs.q:2170
 msgid "Goodman and Kruskal tau"
 msgstr ""
 
-#: src/crosstabs.q:2172
+#: src/crosstabs.q:2171
 msgid "Uncertainty Coefficient"
 msgstr ""
 
-#: src/crosstabs.q:2173
+#: src/crosstabs.q:2172
 msgid "Somers' d"
 msgstr ""
 
-#: src/crosstabs.q:2174
+#: src/crosstabs.q:2173
 msgid "Eta"
 msgstr ""
 
-#: src/crosstabs.q:2179
+#: src/crosstabs.q:2178
 msgid "Symmetric"
 msgstr ""
 
-#: src/crosstabs.q:2180 src/crosstabs.q:2181
+#: src/crosstabs.q:2179 src/crosstabs.q:2180
 #, c-format
 msgid "%s Dependent"
 msgstr ""
 
-#: src/descript.q:152 src/frequencies.q:94 src/t-test.q:530 src/t-test.q:561
-#: src/t-test.q:639 src/t-test.q:907
+#: src/descript.q:152 src/frequencies.q:94 src/t-test.q:511 src/t-test.q:534
+#: src/t-test.q:597 src/t-test.q:809
 msgid "Mean"
 msgstr ""
 
@@ -786,12 +786,10 @@ msgstr ""
 msgid "MXLOOPS must be at least 1."
 msgstr ""
 
-#: src/set.q:314
-msgid "TBFONTS not implemented."
-msgstr ""
-
-#: src/set.q:316
-msgid "TB1 not implemented."
+#: src/set.q:314 src/set.q:316 src/set.q:846 src/cmdline.c:112
+#: src/cmdline.c:131 src/cmdline.c:143 src/command.c:196
+#, c-format
+msgid "%s is not yet implemented."
 msgstr ""
 
 #: src/set.q:390
@@ -855,154 +853,154 @@ msgstr ""
 msgid "Frame color must be between 0 and 6."
 msgstr ""
 
-#: src/set.q:846
-msgid "VIEWLENGTH not implemented."
-msgstr ""
-
 #: src/set.q:865
 msgid "Drive letter expected in WORKDEV subcommand."
 msgstr ""
 
-#: src/t-test.q:158
+#: src/t-test.q:166
 msgid "Exactly one of TESTVAL, GROUPS or PAIRS subcommands is required"
 msgstr ""
 
-#: src/t-test.q:172
+#: src/t-test.q:180
 msgid "VARIABLES subcommand is not appropriate with PAIRS"
 msgstr ""
 
-#: src/t-test.q:207 src/t-test.q:276
+#: src/t-test.q:216 src/t-test.q:287
 #, c-format
 msgid "`%s' is not a variable name"
 msgstr ""
 
-#: src/t-test.q:220
+#: src/t-test.q:229
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/t-test.q:237
+#: src/t-test.q:245
 msgid ""
 "When applying GROUPS to a string variable, at least one value must be "
 "specified."
 msgstr ""
 
-#: src/t-test.q:318
+#: src/t-test.q:322
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
 msgstr ""
 
-#: src/t-test.q:337
+#: src/t-test.q:339
 msgid "At least two variables must be specified on PAIRS."
 msgstr ""
 
-#: src/t-test.q:525
+#: src/t-test.q:508
 msgid "One-Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:531 src/t-test.q:562 src/t-test.q:641 src/t-test.q:908
+#: src/t-test.q:512 src/t-test.q:535 src/t-test.q:599 src/t-test.q:810
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/t-test.q:532 src/t-test.q:563 src/t-test.q:642
+#: src/t-test.q:513 src/t-test.q:536 src/t-test.q:600
 msgid "SE. Mean"
 msgstr ""
 
-#: src/t-test.q:554
+#: src/t-test.q:530
 msgid "Group Statistics"
 msgstr ""
 
-#: src/t-test.q:634
+#: src/t-test.q:594
 msgid "Paired Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:665 src/t-test.q:940
+#: src/t-test.q:618 src/t-test.q:832
 #, c-format
 msgid "Pair %d"
 msgstr ""
 
-#: src/t-test.q:781
+#: src/t-test.q:726
 msgid "Independent Samples Test"
 msgstr ""
 
-#: src/t-test.q:800
+#: src/t-test.q:734
 msgid "Levine's Test for Equality of Variances"
 msgstr ""
 
-#: src/t-test.q:803
+#: src/t-test.q:736
 msgid "t-test for Equality of Means"
 msgstr ""
 
-#: src/t-test.q:806
+#: src/t-test.q:738
 msgid "F"
 msgstr ""
 
-#: src/t-test.q:807
+#: src/t-test.q:739
 msgid "Sig."
 msgstr ""
 
-#: src/t-test.q:808 src/t-test.q:912 src/t-test.q:997
+#: src/t-test.q:740 src/t-test.q:814 src/t-test.q:868
 msgid "t"
 msgstr ""
 
-#: src/t-test.q:810 src/t-test.q:914 src/t-test.q:999
+#: src/t-test.q:742 src/t-test.q:816 src/t-test.q:870
 msgid "Sig. (2-tailed)"
 msgstr ""
 
-#: src/t-test.q:811 src/t-test.q:1000
+#: src/t-test.q:743 src/t-test.q:871
 msgid "Mean Difference"
 msgstr ""
 
-#: src/t-test.q:812
+#: src/t-test.q:744
 msgid "Std. Error Difference"
 msgstr ""
 
-#: src/t-test.q:819 src/t-test.q:898 src/t-test.q:985
+#: src/t-test.q:750 src/t-test.q:802 src/t-test.q:862
 #, c-format
 msgid "%d%% Confidence Interval of the Difference"
 msgstr ""
 
-#: src/t-test.q:846
+#: src/t-test.q:770
 msgid "Equal variances assumed"
 msgstr ""
 
-#: src/t-test.q:849
+#: src/t-test.q:773
 msgid "Equal variances not assumed"
 msgstr ""
 
-#: src/t-test.q:872
+#: src/t-test.q:791
 msgid "Paired Samples Test"
 msgstr ""
 
-#: src/t-test.q:880
+#: src/t-test.q:794
 msgid "Paired Differences"
 msgstr ""
 
-#: src/t-test.q:909
+#: src/t-test.q:811
 msgid "Std. Error Mean"
 msgstr ""
 
-#: src/t-test.q:968
+#: src/t-test.q:853
 msgid "One-Sample Test"
 msgstr ""
 
-#: src/t-test.q:975
+#: src/t-test.q:857
 #, c-format
 msgid "Test Value = %f"
 msgstr ""
 
-#: src/aggregate.c:188
-msgid "OUTFILE specified multiple times."
+#: src/t-test.q:913 src/t-test.q:929
+#, c-format
+msgid "Error calculating T statistic (cdft returned %d)."
+msgstr ""
+
+#: src/aggregate.c:188 src/aggregate.c:229 src/data-list.c:1321
+#: src/data-list.c:1356 src/data-list.c:1369 src/data-list.c:1382
+#: src/data-list.c:1415
+#, c-format
+msgid "%s subcommand given multiple times."
 msgstr ""
 
 #: src/aggregate.c:214
 msgid "while expecting COLUMNWISE"
-msgstr ""
-
-#: src/aggregate.c:229
-msgid "BREAK specified multiple times."
 msgstr ""
 
 #: src/aggregate.c:258
@@ -1207,11 +1205,6 @@ msgstr ""
 #: src/autorecode.c:138
 #, c-format
 msgid "Duplicate variable name %s among target variables."
-msgstr ""
-
-#: src/cmdline.c:112 src/cmdline.c:131 src/cmdline.c:143 src/command.c:196
-#, c-format
-msgid "%s is not yet implemented."
 msgstr ""
 
 #: src/cmdline.c:157
@@ -1747,34 +1740,14 @@ msgid ""
 "TYPE."
 msgstr ""
 
-#: src/data-list.c:1321
-msgid "STARTS subcommand given multiple times."
-msgstr ""
-
 #: src/data-list.c:1345
 #, c-format
 msgid "STARTS beginning column (%d) exceeds STARTS ending column (%d)."
 msgstr ""
 
-#: src/data-list.c:1356
-msgid "OCCURS subcommand given multiple times."
-msgstr ""
-
-#: src/data-list.c:1369
-msgid "LENGTH subcommand given multiple times."
-msgstr ""
-
-#: src/data-list.c:1382
-msgid "CONTINUED subcommand given multiple times."
-msgstr ""
-
 #: src/data-list.c:1401
 #, c-format
 msgid "CONTINUED beginning column (%d) exceeds CONTINUED ending column (%d)."
-msgstr ""
-
-#: src/data-list.c:1415
-msgid "ID subcommand given multiple times."
 msgstr ""
 
 #: src/data-list.c:1424
@@ -2333,12 +2306,10 @@ msgid "Boolean"
 msgstr ""
 
 #: src/expr-prs.c:1695
-#, c-format
 msgid "!!TERMINAL!!"
 msgstr ""
 
 #: src/expr-prs.c:1721
-#, c-format
 msgid "!!SENTINEL!!"
 msgstr ""
 
@@ -2656,17 +2627,14 @@ msgid "`)' expected after output format."
 msgstr ""
 
 #: src/formats.c:153
-#, c-format
 msgid "Formats:\n"
 msgstr ""
 
 #: src/formats.c:154
-#, c-format
 msgid "  Name      Print         Write\n"
 msgstr ""
 
 #: src/get.c:110
-#, c-format
 msgid "GET translation table from file to memory:\n"
 msgstr ""
 
@@ -2704,7 +2672,6 @@ msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
 #: src/get.c:461
-#, c-format
 msgid ""
 "\n"
 "Variables in dictionary:\n"
@@ -2764,7 +2731,6 @@ msgid "expecting COMM or TAPE"
 msgstr ""
 
 #: src/get.c:1393
-#, c-format
 msgid "IMPORT translation table from file to memory:\n"
 msgstr ""
 
@@ -2958,7 +2924,6 @@ msgid "<<fallback>>"
 msgstr ""
 
 #: src/hash.c:492
-#, c-format
 msgid "hash table:"
 msgstr ""
 
@@ -2968,7 +2933,6 @@ msgid "bad ordering of keys %d and %d\n"
 msgstr ""
 
 #: src/heap.c:177
-#, c-format
 msgid "Heap contents:\n"
 msgstr ""
 
@@ -3109,7 +3073,6 @@ msgid "The rest of this command has been discarded."
 msgstr ""
 
 #: src/lexer.c:842 src/print.c:1174
-#, c-format
 msgid "<ERROR>"
 msgstr ""
 
@@ -3427,7 +3390,6 @@ msgid "(long string variable)"
 msgstr ""
 
 #: src/mis-val.c:376
-#, c-format
 msgid "(no missing values)\n"
 msgstr ""
 
@@ -3572,7 +3534,6 @@ msgid "Error reading device definition file."
 msgstr ""
 
 #: src/output.c:462
-#, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
@@ -4169,12 +4130,10 @@ msgid ""
 msgstr ""
 
 #: src/recode.c:869
-#, c-format
 msgid "!!END!!"
 msgstr ""
 
 #: src/recode.c:890 src/recode.c:906
-#, c-format
 msgid "!!ERROR!!"
 msgstr ""
 
@@ -5008,7 +4967,6 @@ msgid "Value labels:"
 msgstr ""
 
 #: src/val-labs.c:237
-#, c-format
 msgid "    (no value labels)\n"
 msgstr ""
 
@@ -5021,12 +4979,10 @@ msgid "Truncating variable label to 120 characters."
 msgstr ""
 
 #: src/var-labs.c:87
-#, c-format
 msgid "Variable labels:\n"
 msgstr ""
 
 #: src/var-labs.c:94
-#, c-format
 msgid "(no variable label)"
 msgstr ""
 
