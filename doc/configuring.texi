@@ -1643,6 +1643,7 @@ No default path.
 
 @item STAT_PAGER
 @itemx PAGER
+@cindex pager
 
 When PSPP invokes an external pager, it uses the first of these that
 is defined.  There is a default pager only if the person who compiled

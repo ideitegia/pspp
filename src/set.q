@@ -1106,8 +1106,16 @@ init_settings(void)
   {
     const char *pager = getenv ("STAT_PAGER");
 
-    if (!pager)  
-    	set_pager = xstrdup (getenv ("PAGER") );
+    if (!pager) 
+      {
+	const char *p = getenv ("PAGER");
+	
+	if ( p != NULL ) 
+	  set_pager = xstrdup (p);
+	else
+	  set_pager = 0;
+      }
+    
 
     if (pager)  
       set_pager = xstrdup (pager);

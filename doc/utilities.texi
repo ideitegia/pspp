@@ -498,8 +498,15 @@ subcommands are
 @itemx MORE
 @itemx PAGER 
 @itemx WIDTH
-Currently not used.
 @end table
+
+@cindex headers
+@cindex length
+@cindex listing
+@cindex more
+@cindex pager 
+@cindex width
+
 
 Logging subcommands affect logging of commands executed to external
 files.  These subcommands are

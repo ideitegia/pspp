@@ -1,3 +1,8 @@
+Wed Jan 26 11:44:11 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* set.q: Affixed a fix to the previous fix such that we'll be OK now
+	whether or not PAGER is set.
+
 Wed Jan 26 09:25:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* set.q: Copied the string produced by getenv("PAGER") thus avoiding
