@@ -56,8 +56,6 @@
    Perhaps simultaneity could be implemented as an option.  On the
    other hand, what good are the above commands?  */
 
-#undef DEBUGGING
-/*#define DEBUGGING 1*/
 #include "debug-print.h"
 
 /* Definitions. */

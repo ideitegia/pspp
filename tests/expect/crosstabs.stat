@@ -1,7 +1,8 @@
-crosstabs.stat:1: CLEAR TRANSFORMATIONS is not allowed (1) before a command to
-        specify the input program, such as DATA LIST, (2) between FILE TYPE and
-        END FILE TYPE, (3) between INPUT PROGRAM and END INPUT PROGRAM.
+crosstabs.stat:1: error: CLEAR TRANSFORMATIONS is not allowed (1) before a
+        command to specify the input program, such as DATA LIST, (2) between
+        FILE TYPE and END FILE TYPE, (3) between INPUT PROGRAM and END INPUT
+        PROGRAM.
 crosstabs.stat:1: warning: This command not executed.
-crosstabs.stat:17: CROSSTABS: Syntax error expecting end of command at
+crosstabs.stat:18: error: CROSSTABS: Syntax error expecting end of command at
         `PIVOT'.
-crosstabs.stat:17: warning: This command not executed.
+crosstabs.stat:18: warning: This command not executed.

@@ -1,8 +1,14 @@
-#! /bin/sh
+#!/bin/sh
+
+
+# This script tests that incorrect syntax on various commands produces the 
+# appropriate error messages
+
 set -e
 RESULT=pass
 
 srcdir=${srcdir:-.}
+
 for x in `cd $srcdir; echo *.stat *.data`; do 
     if [ ! -e $x ]; then
 	ln -s $srcdir/$x .

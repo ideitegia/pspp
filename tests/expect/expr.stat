@@ -1,144 +1,144 @@
-expr.stat:10: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:10: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:10: warning: This command not executed.
-expr.stat:11: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:11: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:11: warning: This command not executed.
-expr.stat:12: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:12: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:12: warning: This command not executed.
-expr.stat:15: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:15: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:15: warning: This command not executed.
-expr.stat:16: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:16: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:16: warning: This command not executed.
-expr.stat:17: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:17: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:17: warning: This command not executed.
-expr.stat:18: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:18: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:18: warning: This command not executed.
-expr.stat:20: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:20: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:20: warning: This command not executed.
-expr.stat:21: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:21: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:21: warning: This command not executed.
-expr.stat:22: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:22: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:22: warning: This command not executed.
-expr.stat:23: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:23: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:23: warning: This command not executed.
-expr.stat:25: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:25: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:25: warning: This command not executed.
-expr.stat:26: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:26: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:26: warning: This command not executed.
-expr.stat:28: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:28: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:28: warning: This command not executed.
-expr.stat:29: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:29: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:29: warning: This command not executed.
-expr.stat:30: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:30: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:30: warning: This command not executed.
-expr.stat:32: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:32: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:32: warning: This command not executed.
-expr.stat:33: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:33: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:33: warning: This command not executed.
-expr.stat:34: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:34: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:34: warning: This command not executed.
-expr.stat:35: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:35: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:35: warning: This command not executed.
-expr.stat:36: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:36: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:36: warning: This command not executed.
-expr.stat:37: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:37: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:37: warning: This command not executed.
-expr.stat:38: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:38: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:38: warning: This command not executed.
-expr.stat:39: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:39: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:39: warning: This command not executed.
-expr.stat:40: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:40: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:40: warning: This command not executed.
-expr.stat:41: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:41: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:41: warning: This command not executed.
-expr.stat:42: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:42: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:42: warning: This command not executed.
-expr.stat:43: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:43: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:43: warning: This command not executed.
-expr.stat:44: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:44: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:44: warning: This command not executed.
-expr.stat:45: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:45: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:45: warning: This command not executed.
-expr.stat:46: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:46: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:46: warning: This command not executed.
-expr.stat:47: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:47: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:47: warning: This command not executed.
-expr.stat:48: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:48: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:48: warning: This command not executed.
-expr.stat:49: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:49: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:49: warning: This command not executed.
-expr.stat:50: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:50: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:50: warning: This command not executed.
-expr.stat:51: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:51: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:51: warning: This command not executed.
-expr.stat:52: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:52: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:52: warning: This command not executed.
-expr.stat:53: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:53: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:53: warning: This command not executed.
-expr.stat:54: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:54: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:54: warning: This command not executed.
-expr.stat:55: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:55: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:55: warning: This command not executed.
-expr.stat:56: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:56: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:56: warning: This command not executed.
-expr.stat:57: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:57: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:57: warning: This command not executed.
-expr.stat:58: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:58: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:58: warning: This command not executed.
-expr.stat:59: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:59: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:59: warning: This command not executed.
-expr.stat:60: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:60: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:60: warning: This command not executed.
-expr.stat:61: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:61: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:61: warning: This command not executed.
-expr.stat:63: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:63: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:63: warning: This command not executed.
-expr.stat:64: The identifier(s) specified do not form a valid command name:
-        EVAL.
+expr.stat:64: error: The identifier(s) specified do not form a valid command
+        name: EVAL.
 expr.stat:64: warning: This command not executed.

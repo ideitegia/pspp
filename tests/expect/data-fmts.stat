@@ -1,21 +1,18 @@
-data-fmts.stat:24: data-file error: (columns 33-40, field type F8.0) Field
-        does not form a valid floating-point constant: "  abcd  ".
-data-fmts.stat:24: data-file error: (columns 41-48, field type PIBHEX8.0)
-        Trailing characters in field: "  ghjk  ".
-data-fmts.stat:24: data-file error: (columns 49-56, field type N8.0) All
-        characters in field must be digits.  Field actually contained:
-        "-1234567".
-data-fmts.stat:25: data-file error: (columns 17-24, field type COMMA8.0)
-        Trailing characters in field: "1234+56 ".
-data-fmts.stat:25: data-file error: (columns 25-32, field type DOLLAR8.0)
-        Trailing characters in field: "$1234+56".
-data-fmts.stat:25: data-file error: (columns 33-40, field type F8.0) Trailing
-        characters in field: "   0 1  ".
-data-fmts.stat:25: data-file error: (columns 49-56, field type N8.0) All
-        characters in field must be digits.  Field actually contained:
-        "12345e67".
-data-fmts.stat:26: data-file error: (columns 33-40, field type F8.0) Trailing
-        characters in field: " 1.2 3  ".
-data-fmts.stat:26: data-file error: (columns 49-56, field type N8.0) All
-        characters in field must be digits.  Field actually contained:
-        "1234e67 ".
+data-fmts.stat:25: error: (columns 33-40, field type F8.0) Field does not form
+        a valid floating-point constant.
+data-fmts.stat:25: error: (columns 41-48, field type PIBHEX8.0) Unrecognized
+        character in field.
+data-fmts.stat:25: error: (columns 49-56, field type N8.0) All characters in
+        field must be digits.
+data-fmts.stat:26: error: (columns 17-24, field type COMMA8.0) Field contents
+        followed by garbage.
+data-fmts.stat:26: error: (columns 25-32, field type DOLLAR8.0) Field contents
+        followed by garbage.
+data-fmts.stat:26: error: (columns 33-40, field type F8.0) Field contents
+        followed by garbage.
+data-fmts.stat:26: error: (columns 49-56, field type N8.0) All characters in
+        field must be digits.
+data-fmts.stat:27: error: (columns 33-40, field type F8.0) Field contents
+        followed by garbage.
+data-fmts.stat:27: error: (columns 49-56, field type N8.0) All characters in
+        field must be digits.
