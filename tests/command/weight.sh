@@ -61,10 +61,9 @@ activity="run program"
 $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/weight.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
-
 activity="compare results"
 diff -B -b $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from file "/tmp/pspp/tests/weighting.data".
+1.1 DATA LIST.  Reading 1 record from file "$here/weighting.data".
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#
@@ -72,19 +71,12 @@ diff -B -b $TEMPDIR/pspp.list - <<EOF
 |BVAR    |     1|  6- 10|F5.0  |
 +--------+------+-------+------+
 
-2.1(1) DESCRIPTIVES.  Valid cases = 730; cases with missing value(s) = 0.
-+--------#-------+---------+------+--------+-------+--------+--------+--------+
-|Variable#Valid N|Missing N| Mean |S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|
-#========#=======#=========#======#========#=======#========#========#========#
-|AVAR    #    730|        0|31.515|    .405| 10.937| 119.608|2548.162|    .181|
-+--------#-------+---------+------+--------+-------+--------+--------+--------+
-
-2.1(2) DESCRIPTIVES.  Valid cases = 730; cases with missing value(s) = 0.
-+--------#--------+--------+------+-------+-------+---------+
-|Variable#Skewness|S E Skew| Range|Minimum|Maximum|   Sum   |
-#========#========#========#======#=======#=======#=========#
-|AVAR    #   1.345|    .090|76.000| 18.000| 94.000|23006.000|
-+--------#--------+--------+------+-------+-------+---------+
+2.1 DESCRIPTIVES.  Valid cases = 730; cases with missing value(s) = 0.
++--------#-------+---------+------+--------+-------+--------+--------+--------+--------+--------+------+-------+-------+---------+
+|Variable#Valid N|Missing N| Mean |S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew| Range|Minimum|Maximum|   Sum   |
+#========#=======#=========#======#========#=======#========#========#========#========#========#======#=======#=======#=========#
+|AVAR    #    730|        0|31.515|    .405| 10.937| 119.608|2548.162|    .181|   1.345|    .090|76.000| 18.000| 94.000|23006.000|
++--------#-------+---------+------+--------+-------+--------+--------+--------+--------+--------+------+-------+-------+---------+
 
 3.1 FREQUENCIES.  AVAR: 
 +--------+--------+---+---+
@@ -147,7 +139,7 @@ diff -B -b $TEMPDIR/pspp.list - <<EOF
 
 Mean         31.515
 S.E. Mean      .405
-Median            .
+Median         .   
 Mode         21.000
 Std Dev      10.937
 Variance    119.608
@@ -159,7 +151,6 @@ Range        76.000
 Minimum      18.000
 Maximum      94.000
 Sum       23006.000
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

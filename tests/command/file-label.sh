@@ -112,6 +112,7 @@ activity="date filter"
 grep -v 'Document entered' $TEMPDIR/pspp.list > $TEMPDIR/pspp.filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
+
 activity="compare results"
 diff -b -B $TEMPDIR/pspp.filtered - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
@@ -125,7 +126,7 @@ diff -b -B $TEMPDIR/pspp.filtered - <<EOF
 Documents in the active file:
 
    First line of a document
-   This is the second very long line of a document in an attempt to overflow 
+   This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
 
 File label:
@@ -134,7 +135,7 @@ This is a test file label
 Documents in the active file:
 
    First line of a document
-   This is the second very long line of a document in an attempt to overflow 
+   This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
 
 File label:
@@ -143,7 +144,7 @@ This is a test file label
 Documents in the active file:
 
    First line of a document
-   This is the second very long line of a document in an attempt to overflow 
+   This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
  
    There should be another document now.
@@ -151,7 +152,7 @@ Documents in the active file:
 Documents in the active file:
 
    First line of a document
-   This is the second very long line of a document in an attempt to overflow 
+   This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
  
    There should be another document now.

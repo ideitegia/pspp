@@ -70,6 +70,7 @@ activity="run program"
 $here/../src/pspp -o raw-ascii $TEMPDIR/tabs.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
+
 diff -B -b $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
@@ -77,7 +78,7 @@ diff -B -b $TEMPDIR/pspp.list - << EOF
 #========#======#=======#======#
 |X       |     1|  1- 80|A80   |
 +--------+------+-------+------+
-               1       12      123     1234    12345   123456          1234567 
+        1       12      123     1234    12345   123456          1234567 12345678 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

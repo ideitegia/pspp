@@ -72,8 +72,6 @@ activity="run program"
 $here/../src/pspp    -o raw-ascii $TEMPDIR/test.sps  
 if [ $? -ne 0 ] ; then no_result ; fi
 
-cat pspp.list > /tmp/foo
-
 activity="test result"
 diff  -b -w -B $TEMPDIR/pspp.list - << EOF
 X        Z      FOO

@@ -59,7 +59,6 @@ display $JDATE.
 finish.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
-cp $TEMPDIR/pspp.list /tmp/bar
 
 activity="run program 1"
 $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/save.stat
