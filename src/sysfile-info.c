@@ -260,7 +260,7 @@ cmd_display (void)
 	}
 
       if (sorted)
-	sort (vl, n, sizeof *vl, compare_variables, NULL);
+	sort (vl, n, sizeof *vl, compare_var_names, NULL);
 
       display_variables (vl, n, as);
 

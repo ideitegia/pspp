@@ -224,9 +224,6 @@ static int  group_calc (const struct ccase *, struct cmd_t_test *);
 static void group_postcalc (struct cmd_t_test *);
 
 
-static int compare_var_name (const void *a_, const void *b_, void *v_ UNUSED);
-static unsigned hash_var_name (const void *a_, void *v_ UNUSED);
-
 static void calculate(const struct casefile *cf, void *_mode);
 
 static  int mode;
@@ -297,7 +294,7 @@ cmd_t_test(void)
 	  struct hsh_table *hash;
 	  struct variable *v;
 
-	  hash=hsh_create(n_pairs,compare_var_name,hash_var_name,0,0);
+	  hash = hsh_create (n_pairs, compare_var_names, hash_var_name, 0, 0);
 
 	  for (i=0; i < n_pairs; ++i)
 	    {
@@ -1581,25 +1578,6 @@ one_sample_postcalc (struct cmd_t_test *cmd)
 
       gs->mean_diff = gs->sum_diff / gs->n ;
     }
-}
-
-
-
-static int
-compare_var_name (const void *a_, const void *b_, void *v_ UNUSED)
-{
-  const struct variable *a = a_;
-  const struct variable *b = b_;
-
-  return strcmp(a->name,b->name);
-}
-
-static unsigned
-hash_var_name (const void *a_, void *v_ UNUSED)
-{
-  const struct variable *a = a_;
-
-  return hsh_hash_bytes (a->name, strlen(a->name));
 }
 
 

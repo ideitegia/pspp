@@ -1,3 +1,48 @@
+Fri Feb 11 00:08:36 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix Bug #11916, which was confusing a variable's `index' member
+	with the variable's position in a var_set.  Although these are
+	usually the same, they are not for array `var_set's.
+	
+	Took advantage of this bug as an opportunity to clean up and
+	rewrite parse_var_set_vars().
+
+	* vars-prs.c: (parse_vs_variable_idx) New function.
+	(parse_vs_variable) Reimplement in terms of
+	parse_vs_variable_idx().
+	(parse_var_idx_class) New function.
+	(add_variable) New function.
+	(add_variables) New function.
+	(parse_var_set_vars) Rewritten.
+	(struct var_set) Change `lookup_var' member that returns a
+	variable into `lookup_var_idx' member that returns an int.
+	Updated the var set implementations in obvious corresponding ways.
+	Used compare_var_ptr_names(), hash_var_ptr_name() just added.
+	
+Fri Feb 11 00:06:03 2005  Ben Pfaff  <blp@gnu.org>
+
+	Use our global variable compare & hash functions and give them
+	better names.  Add similar functions for dealing with double
+	pointers to variables.
+	
+	* vars-atr.c: (compare_variables) Renamed compare_var_names().
+	(hash_variable) Renamed hash_var_name().
+	(compare_var_ptr_names) New function.
+	(hash_var_ptr_name) New function.
+	
+	* t-test.q: (cmd_t_test) Use global compare_var_names(),
+	hash_var_name().
+	(compare_var_name) Removed.
+	(hash_var_name) Removed.
+
+Fri Feb 11 00:04:39 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix dictionary bug.
+	
+	* dictionary.c: (compare_variable_dblptrs) Rename
+	compare_var_ptrs() and fix it to properly dereference the double
+	pointers.
+
 Mon Feb  7 09:58:15 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	crosstabs.q examine.q oneway.q q2c.c:  Added a q2c feature to 

@@ -233,7 +233,7 @@ is_user_missing (const union value *val, const struct variable *v)
 /* A hsh_compare_func that orders variables A and B by their
    names. */
 int
-compare_variables (const void *a_, const void *b_, void *foo UNUSED) 
+compare_var_names (const void *a_, const void *b_, void *foo UNUSED) 
 {
   const struct variable *a = a_;
   const struct variable *b = b_;
@@ -243,9 +243,30 @@ compare_variables (const void *a_, const void *b_, void *foo UNUSED)
 
 /* A hsh_hash_func that hashes variable V based on its name. */
 unsigned
-hash_variable (const void *v_, void *foo UNUSED) 
+hash_var_name (const void *v_, void *foo UNUSED) 
 {
   const struct variable *v = v_;
 
   return hsh_hash_string (v->name);
+}
+
+/* A hsh_compare_func that orders pointers to variables A and B
+   by their names. */
+int
+compare_var_ptr_names (const void *a_, const void *b_, void *foo UNUSED) 
+{
+  struct variable *const *a = a_;
+  struct variable *const *b = b_;
+
+  return strcmp ((*a)->name, (*b)->name);
+}
+
+/* A hsh_hash_func that hashes pointer to variable V based on its
+   name. */
+unsigned
+hash_var_ptr_name (const void *v_, void *foo UNUSED) 
+{
+  struct variable *const *v = v_;
+
+  return hsh_hash_string ((*v)->name);
 }

@@ -56,7 +56,7 @@ dict_create (void)
   
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
-  d->name_tab = hsh_create (8, compare_variables, hash_variable, NULL, NULL);
+  d->name_tab = hsh_create (8, compare_var_names, hash_var_name, NULL, NULL);
   d->next_value_idx = 0;
   d->split = NULL;
   d->split_cnt = 0;
@@ -392,17 +392,12 @@ dict_contains_var (const struct dictionary *d, const struct variable *v)
 /* Compares two double pointers to variables, which should point
    to elements of a struct dictionary's `var' member array. */
 static int
-compare_variable_dblptrs (const void *a_, const void *b_, void *aux UNUSED) 
+compare_var_ptrs (const void *a_, const void *b_, void *aux UNUSED) 
 {
   struct variable *const *a = a_;
   struct variable *const *b = b_;
 
-  if (a > b)
-    return 1;
-  else if (a < b)
-    return -1;
-  else
-    return 0;
+  return *a < *b ? -1 : *a > *b;
 }
 
 /* Deletes variable V from dictionary D and frees V.
@@ -432,8 +427,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
 
   /* Remove V from splits, weight, filter variables. */
   d->split_cnt = remove_equal (d->split, d->split_cnt, sizeof *d->split,
-                               &v,
-                               compare_variable_dblptrs, NULL);
+                               &v, compare_var_ptrs, NULL);
   if (d->weight == v)
     d->weight = NULL;
   if (d->filter == v)

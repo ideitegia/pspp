@@ -30,26 +30,36 @@
 #include "misc.h"
 #include "str.h"
 
+/* Parses a name as a variable within VS and returns the
+   variable's index if successful.  On failure emits an error
+   message and returns a null pointer. */
+static int
+parse_vs_variable_idx (const struct var_set *vs)
+{
+  int idx;
+
+  if (token != T_ID)
+    {
+      lex_error (_("expecting variable name"));
+      return -1;
+    }
+
+  idx = var_set_lookup_var_idx (vs, tokid);
+  if (idx < 0)
+    msg (SE, _("%s is not a variable name."), tokid);
+  lex_get ();
+
+  return idx;
+}
+
 /* Parses a name as a variable within VS and returns the variable
    if successful.  On failure emits an error message and returns
    a null pointer. */
 static struct variable *
 parse_vs_variable (const struct var_set *vs)
 {
-  struct variable *vp;
-
-  if (token != T_ID)
-    {
-      lex_error ("expecting variable name");
-      return NULL;
-    }
-
-  vp = var_set_lookup_var (vs, tokid);
-  if (vp == NULL)
-    msg (SE, _("%s is not a variable name."), tokid);
-  lex_get ();
-
-  return vp;
+  int idx = parse_vs_variable_idx (vs);
+  return idx >= 0 ? var_set_get_var (vs, idx) : NULL;
 }
 
 /* Parses a variable name in dictionary D and returns the
@@ -132,6 +142,86 @@ parse_variables (const struct dictionary *d, struct variable ***var,
   return success;
 }
 
+/* Parses a variable name from VS.  If successful, sets *IDX to
+   the variable's index in VS, *CLASS to the variable's
+   dictionary class, and returns nonzero.  Returns zero on
+   failure. */
+static int
+parse_var_idx_class (const struct var_set *vs, int *idx,
+                     enum dict_class *class)
+{
+  *idx = parse_vs_variable_idx (vs);
+  if (*idx < 0)
+    return 0;
+
+  *class = dict_class_from_id (var_set_get_var (vs, *idx)->name);
+  return 1;
+}
+
+/* Add the variable from VS with index IDX to the list of
+   variables V that has *NV elements and room for *MV.
+   Uses and updates INCLUDED to avoid duplicates if indicated by
+   PV_OPTS, which also affects what variables are allowed in
+   appropriate ways. */
+static void
+add_variable (struct variable ***v, int *nv, int *mv,
+              char *included, int pv_opts,
+              const struct var_set *vs, int idx)
+{
+  struct variable *add = var_set_get_var (vs, idx);
+
+  if ((pv_opts & PV_NUMERIC) && add->type != NUMERIC) 
+    msg (SW, _("%s is not a numeric variable.  It will not be "
+               "included in the variable list."), add->name);
+  else if ((pv_opts & PV_STRING) && add->type != ALPHA) 
+    msg (SE, _("%s is not a string variable.  It will not be "
+               "included in the variable list."), add->name);
+  else if ((pv_opts & PV_NO_SCRATCH)
+           && dict_class_from_id (add->name) == DC_SCRATCH)
+    msg (SE, _("Scratch variables (such as %s) are not allowed "
+               "here."), add->name);
+  else if ((pv_opts & PV_SAME_TYPE) && *nv && add->type != (*v)[0]->type) 
+    msg (SE, _("%s and %s are not the same type.  All variables in "
+               "this variable list must be of the same type.  %s "
+               "will be omitted from list."),
+         (*v)[0]->name, add->name, add->name);
+  else if ((pv_opts & PV_NO_DUPLICATE) && included[idx]) 
+    msg (SE, _("Variable %s appears twice in variable list."), add->name);
+  else 
+    {
+      if (*nv >= *mv)
+        {
+          *mv = 2 * (*nv + 1);
+          *v = xrealloc (*v, *mv * sizeof **v);
+        }
+
+      if ((pv_opts & PV_DUPLICATE) || !included[idx])
+        {
+          (*v)[(*nv)++] = add;
+          if (!(pv_opts & PV_DUPLICATE))
+            included[idx] = 1;
+        }
+    }
+}
+
+/* Adds the variables in VS with indexes FIRST_IDX through
+   LAST_IDX, inclusive, to the list of variables V that has *NV
+   elements and room for *MV.  Uses and updates INCLUDED to avoid
+   duplicates if indicated by PV_OPTS, which also affects what
+   variables are allowed in appropriate ways. */
+static void
+add_variables (struct variable ***v, int *nv, int *mv, char *included,
+               int pv_opts,
+               const struct var_set *vs, int first_idx, int last_idx,
+               enum dict_class class) 
+{
+  int i;
+  
+  for (i = first_idx; i <= last_idx; i++)
+    if (dict_class_from_id (var_set_get_var (vs, i)->name) == class)
+      add_variable (v, nv, mv, included, pv_opts, vs, i);
+}
+
 /* Note that if parse_variables() returns 0, *v is free()'d.
    Conversely, if parse_variables() returns non-zero, then *nv is
    nonzero and *v is non-NULL. */
@@ -140,13 +230,8 @@ parse_var_set_vars (const struct var_set *vs,
                     struct variable ***v, int *nv,
                     int pv_opts)
 {
-  size_t vs_var_cnt;
-  int i;
-  char *included = NULL;
-
-  struct variable *v1, *v2;
-  int count, mv;
-  enum dict_class dict_class;
+  int mv;
+  char *included;
 
   assert (vs != NULL);
   assert (v != NULL);
@@ -161,8 +246,6 @@ parse_var_set_vars (const struct var_set *vs,
   /* PV_DUPLICATE and PV_NO_DUPLICATE are incompatible. */
   assert (!(pv_opts & PV_DUPLICATE) || !(pv_opts & PV_NO_DUPLICATE));
 
-  vs_var_cnt = var_set_get_cnt (vs);
-
   if (!(pv_opts & PV_APPEND))
     {
       *v = NULL;
@@ -174,144 +257,85 @@ parse_var_set_vars (const struct var_set *vs,
 
   if (!(pv_opts & PV_DUPLICATE))
     {
-      included = xmalloc (vs_var_cnt);
-      memset (included, 0, vs_var_cnt);
+      int i;
+      
+      included = xcalloc (var_set_get_cnt (vs));
       for (i = 0; i < *nv; i++)
         included[(*v)[i]->index] = 1;
     }
+  else
+    included = NULL;
 
-  do
+  if (lex_match (T_ALL))
+    add_variables (v, nv, &mv, included, pv_opts,
+                   vs, 0, var_set_get_cnt (vs) - 1, DC_ORDINARY);
+  else 
     {
-      if (lex_match (T_ALL))
-	{
-	  v1 = var_set_get_var (vs, 0);
-	  v2 = var_set_get_var (vs, vs_var_cnt - 1);
-	  count = vs_var_cnt;
-	  dict_class = DC_ORDINARY;
-	}
-      else
-	{
-	  v1 = parse_vs_variable (vs);
-	  if (!v1)
-	    goto fail;
+      do
+        {
+          enum dict_class class;
+          int first_idx;
+          
+          if (!parse_var_idx_class (vs, &first_idx, &class))
+            goto fail;
 
-	  if (lex_match (T_TO))
-	    {
-              enum dict_class dict_class_2;
+          if (!lex_match (T_TO))
+            add_variable (v, nv, &mv, included, pv_opts,
+                          vs, first_idx);
+          else 
+            {
+              int last_idx;
+              enum dict_class last_class;
+              struct variable *first_var, *last_var;
 
-	      v2 = parse_vs_variable (vs);
-	      if (!v2)
-		{
-		  lex_error ("expecting variable name");
-		  goto fail;
-		}
+              if (!parse_var_idx_class (vs, &last_idx, &last_class))
+                goto fail;
 
-	      count = v2->index - v1->index + 1;
-	      if (count < 1)
-		{
-		  msg (SE, _("%s TO %s is not valid syntax since %s "
-		       "precedes %s in the dictionary."),
-		       v1->name, v2->name, v2->name, v1->name);
-		  goto fail;
-		}
+              first_var = var_set_get_var (vs, first_idx);
+              last_var = var_set_get_var (vs, last_idx);
 
-              dict_class = dict_class_from_id (v1->name);
-              dict_class_2 = dict_class_from_id (v2->name);
-	      if (dict_class != dict_class_2)
-		{
-		  msg (SE, _("When using the TO keyword to specify several "
+              if (last_idx < first_idx)
+                {
+                  msg (SE, _("%s TO %s is not valid syntax since %s "
+                             "precedes %s in the dictionary."),
+                       first_var->name, last_var->name,
+                       first_var->name, last_var->name);
+                  goto fail;
+                }
+
+              if (class != last_class)
+                {
+                  msg (SE, _("When using the TO keyword to specify several "
                              "variables, both variables must be from "
                              "the same variable dictionaries, of either "
                              "ordinary, scratch, or system variables.  "
                              "%s is a %s variable, whereas %s is %s."),
-		       v1->name, dict_class_to_name (dict_class),
-                       v2->name, dict_class_to_name (dict_class_2));
-		  goto fail;
-		}
-	    }
-	  else
-	    {
-	      v2 = v1;
-	      count = 1;
-	      dict_class = dict_class_from_id (v1->name);
-	    }
-	  if (dict_class == DC_SCRATCH && (pv_opts & PV_NO_SCRATCH))
-	    {
-	      msg (SE, _("Scratch variables (such as %s) are not allowed "
-			 "here."), v1->name);
-	      goto fail;
-	    }
-	}
+                       first_var->name, dict_class_to_name (class),
+                       last_var->name, dict_class_to_name (last_class));
+                  goto fail;
+                }
 
-      if (*nv + count > mv)
-	{
-	  mv += ROUND_UP (count, 16);
-	  *v = xrealloc (*v, mv * sizeof **v);
-	}
-
-      /* Add v1...v2 to the list. */
-      for (i = v1->index; i <= v2->index; i++)
-	{
-	  struct variable *add = var_set_get_var (vs, i);
-
-	  /* Skip over other dictionaries. */
-	  if (dict_class != dict_class_from_id (add->name))
-	    continue;
-
-          /* Different kinds of errors. */
-	  if ((pv_opts & PV_NUMERIC) && add->type != NUMERIC)
-            msg (SW, _("%s is not a numeric variable.  It will not be "
-                       "included in the variable list."), add->name);
-	  else if ((pv_opts & PV_STRING) && add->type != ALPHA)
-            msg (SE, _("%s is not a string variable.  It will not be "
-                       "included in the variable list."), add->name);
-	  else if ((pv_opts & PV_SAME_TYPE) && *nv
-                   && add->type != (*v)[0]->type)
-            msg (SE, _("%s and %s are not the same type.  All variables in "
-                       "this variable list must be of the same type.  %s "
-                       "will be omitted from list."),
-                 (*v)[0]->name, add->name, add->name);
-	  else if ((pv_opts & PV_NO_DUPLICATE) && included[add->index])
-            msg (SE, _("Variable %s appears twice in variable list."),
-                 add->name);
-	  else {
-            /* Success--add the variable to the list. */
-            if ((pv_opts & PV_DUPLICATE) || !included[add->index])
-              {
-                (*v)[(*nv)++] = var_set_get_var (vs, i);
-                if (!(pv_opts & PV_DUPLICATE))
-                  included[add->index] = 1;
-              }
-
-            /* Next. */
-            continue;
-          }
-
-          /* Arrive here only on failure. */
+              add_variables (v, nv, &mv, included, pv_opts,
+                             vs, first_idx, last_idx, class);
+            }
           if (pv_opts & PV_SINGLE)
-            goto fail;
-	}
-
-      /* We finished adding v1...v2 to the list. */
-      if (pv_opts & PV_SINGLE)
-        return 1;
-      lex_match (',');
+            break;
+          lex_match (',');
+        }
+      while (token == T_ID && var_set_lookup_var (vs, tokid) != NULL);
     }
-  while ((token == T_ID && var_set_lookup_var (vs, tokid) != NULL)
-         || token == T_ALL);
-
-  if (!(pv_opts & PV_DUPLICATE))
-    free (included);
-  if (!*nv)
+  
+  if (*nv == 0)
     goto fail;
+
+  free (included);
   return 1;
 
 fail:
+  free (included);
   free (*v);
   *v = NULL;
   *nv = 0;
-  if (!(pv_opts & PV_DUPLICATE))
-    free (included);
   return 0;
 }
 
@@ -529,7 +553,7 @@ struct var_set
   {
     size_t (*get_cnt) (const struct var_set *);
     struct variable *(*get_var) (const struct var_set *, size_t idx);
-    struct variable *(*lookup_var) (const struct var_set *, const char *);
+    int (*lookup_var_idx) (const struct var_set *, const char *);
     void (*destroy) (struct var_set *);
     void *aux;
   };
@@ -559,11 +583,20 @@ var_set_get_var (const struct var_set *vs, size_t idx)
 struct variable *
 var_set_lookup_var (const struct var_set *vs, const char *name) 
 {
+  int idx = var_set_lookup_var_idx (vs, name);
+  return idx >= 0 ? var_set_get_var (vs, idx) : NULL;
+}
+
+/* Returns the index in VS of the variable named NAME, or -1 if
+   VS contains no variable with that name. */
+int
+var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
+{
   assert (vs != NULL);
   assert (name != NULL);
   assert (strlen (name) < 9);
 
-  return vs->lookup_var (vs, name);
+  return vs->lookup_var_idx (vs, name);
 }
 
 /* Destroys VS. */
@@ -593,14 +626,14 @@ dict_var_set_get_var (const struct var_set *vs, size_t idx)
   return dict_get_var (d, idx);
 }
 
-/* Returns the variable in VS named NAME, or a null pointer if VS
-   contains no variable with that name. */
-static struct variable *
-dict_var_set_lookup_var (const struct var_set *vs, const char *name) 
+/* Returns the index of the variable in VS named NAME, or -1 if
+   VS contains no variable with that name. */
+static int
+dict_var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
 {
   struct dictionary *d = vs->aux;
-
-  return dict_lookup_var (d, name);
+  struct variable *v = dict_lookup_var (d, name);
+  return v != NULL ? v->index : -1;
 }
 
 /* Destroys VS. */
@@ -617,7 +650,7 @@ var_set_create_from_dict (const struct dictionary *d)
   struct var_set *vs = xmalloc (sizeof *vs);
   vs->get_cnt = dict_var_set_get_cnt;
   vs->get_var = dict_var_set_get_var;
-  vs->lookup_var = dict_var_set_lookup_var;
+  vs->lookup_var_idx = dict_var_set_lookup_var_idx;
   vs->destroy = dict_var_set_destroy;
   vs->aux = (void *) d;
   return vs;
@@ -650,17 +683,18 @@ array_var_set_get_var (const struct var_set *vs, size_t idx)
   return (struct variable *) avs->var[idx];
 }
 
-/* Returns the variable in VS named NAME, or a null pointer if VS
-   contains no variable with that name. */
-static struct variable *
-array_var_set_lookup_var (const struct var_set *vs, const char *name) 
+/* Returns the index of the variable in VS named NAME, or -1 if
+   VS contains no variable with that name. */
+static int
+array_var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
 {
   struct array_var_set *avs = vs->aux;
-  struct variable v;
+  struct variable v, *vp, *const *vpp;
 
   strcpy (v.name, name);
-
-  return hsh_find (avs->name_tab, &v);
+  vp = &v;
+  vpp = hsh_find (avs->name_tab, &vp);
+  return vpp != NULL ? vpp - avs->var : -1;
 }
 
 /* Destroys VS. */
@@ -686,16 +720,16 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
   vs = xmalloc (sizeof *vs);
   vs->get_cnt = array_var_set_get_cnt;
   vs->get_var = array_var_set_get_var;
-  vs->lookup_var = array_var_set_lookup_var;
+  vs->lookup_var_idx = array_var_set_lookup_var_idx;
   vs->destroy = array_var_set_destroy;
   vs->aux = avs = xmalloc (sizeof *avs);
   avs->var = var;
   avs->var_cnt = var_cnt;
   avs->name_tab = hsh_create (2 * var_cnt,
-                              compare_variables, hash_variable, NULL,
+                              compare_var_ptr_names, hash_var_ptr_name, NULL,
                               NULL);
   for (i = 0; i < var_cnt; i++)
-    if (hsh_insert (avs->name_tab, (void *) var[i]) != NULL) 
+    if (hsh_insert (avs->name_tab, (void *) &var[i]) != NULL) 
       {
         var_set_destroy (vs);
         return NULL;

@@ -82,8 +82,10 @@ struct variable
     void (*aux_dtor) (struct variable *);
   };
 
-int compare_variables (const void *, const void *, void *);
-unsigned hash_variable (const void *, void *);
+int compare_var_names (const void *, const void *, void *);
+unsigned hash_var_name (const void *, void *);
+int compare_var_ptr_names (const void *, const void *, void *);
+unsigned hash_var_ptr_name (const void *, void *);
 
 void *var_attach_aux (struct variable *,
                       void *aux, void (*aux_dtor) (struct variable *));
@@ -196,6 +198,7 @@ size_t var_set_get_cnt (const struct var_set *vs);
 struct variable *var_set_get_var (const struct var_set *vs, size_t idx);
 struct variable *var_set_lookup_var (const struct var_set *vs,
                                      const char *name);
+int var_set_lookup_var_idx (const struct var_set *vs, const char *name);
 void var_set_destroy (struct var_set *vs);
 
 /* Variable parsers. */
