@@ -134,7 +134,11 @@ struct t_test_proc
   {
     double mean;
 
+    /* Population std. deviation */
     double std_dev;
+
+    /* Sample std. deviation */
+    double s_std_dev;
     
     /* count */
     double n;

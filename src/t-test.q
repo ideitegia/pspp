@@ -72,8 +72,23 @@ static union value groups_values[2];
 static int n_pairs ;
 struct pair 
 {
+  /* The variables comprising the pair */
   struct variable *v[2];
+
+  /* The correlation coefficient between the variables */
   double correlation;
+
+  /* The sum of the differences */
+  double sum_of_diffs;
+
+  /* The mean of the differences */
+  double mean_diff;
+
+  /* The sum of the squares of the differences */
+  double ssq_diffs;
+
+  /* The std deviation of the differences */
+  double std_dev_diff;
 };
 static struct pair *pairs;
 
@@ -850,11 +865,11 @@ trbox_paired_init(struct trbox *self,
 {
 
   const int hsize=10;
-  const int vsize=n_pairs*2+3;
+  const int vsize=n_pairs+3;
 
   self->populate = trbox_paired_populate;
 
-  trbox_base_init(self,n_pairs*2,hsize);
+  trbox_base_init(self,n_pairs,hsize);
   tab_title (self->t, 0, _("Paired Samples Test"));
   tab_hline(self->t,TAL_1,2,6,1);
   tab_vline(self->t,TAL_2,2,0,vsize);
@@ -887,9 +902,76 @@ trbox_paired_populate(struct trbox *trb,
 
   for (i=0; i < n_pairs; ++i)
     {
-      tab_text (trb->t, 0, i*2+3, TAB_LEFT | TAT_PRINTF, _("Pair %d"),i); 
-      tab_text (trb->t, 1, i*2+3, TAB_LEFT, pairs[i].v[0]->name);
-      tab_text (trb->t, 1, i*2+4, TAB_LEFT, pairs[i].v[1]->name);
+      int which =1;
+      double p,q;
+      int status;
+      double bound;
+      double se_mean;
+
+      struct variable *v0 = pairs[i].v[0];
+      struct variable *v1 = pairs[i].v[1];
+
+      struct t_test_proc *ttp0 = &v0->p.t_t;
+      struct t_test_proc *ttp1 = &v1->p.t_t;
+
+      double n = ttp0->n;
+      double t;
+      double df = n - 1;
+      
+      tab_text (trb->t, 0, i+3, TAB_LEFT | TAT_PRINTF, _("Pair %d"),i); 
+
+      tab_text (trb->t, 1, i+3, TAB_LEFT | TAT_PRINTF, "%s - %s",
+		pairs[i].v[0]->name, pairs[i].v[1]->name);
+
+      tab_float(trb->t, 2, i+3, TAB_RIGHT, pairs[i].mean_diff, 8, 4);
+
+      tab_float(trb->t, 3, i+3, TAB_RIGHT, pairs[i].std_dev_diff, 8, 5);
+
+      /* SE Mean */
+      se_mean = pairs[i].std_dev_diff / sqrt(n) ;
+      tab_float(trb->t, 4, i+3, TAB_RIGHT, se_mean, 8,5 );
+
+      /* Now work out the confidence interval */
+      q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
+      p = 1 - q ;
+      which=2; /* Calc T from p,q and df */
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+      tab_float(trb->t, 5, i+3, TAB_RIGHT, 
+		pairs[i].mean_diff - t * se_mean , 8, 4); 
+
+      tab_float(trb->t, 6, i+3, TAB_RIGHT, 
+		pairs[i].mean_diff + t * se_mean , 8, 4); 
+
+      t = ( ttp0->mean - ttp1->mean)
+	/ sqrt ( 
+		(  sqr(ttp0->s_std_dev) + sqr(ttp1->s_std_dev)  - 
+		   2 * pairs[i].correlation * ttp0->s_std_dev * ttp1->s_std_dev  		   )
+		/ (n-1) )
+	;
+
+      tab_float(trb->t, 7, i+3, TAB_RIGHT, t , 8,3 );
+
+      /* Degrees of freedom */
+      tab_float(trb->t, 8, i+3, TAB_RIGHT, df , 2, 0 );
+
+      which=1;
+      cdft(&which, &p, &q, &t, &df, &status, &bound);
+
+      if ( 0 != status )
+	{
+	  msg( SE, _("Error calculating T statistic (cdft returned %d)."),status);
+	}
+
+
+      tab_float(trb->t, 9, i+3, TAB_RIGHT, p*2.0 , 8, 3);
+
+
     }
 
 }
@@ -1049,12 +1131,12 @@ pscbox(struct cmd_t_test *cmd)
       int status;
       double bound;
 
-      const double df = pairs[i].v[0]->p.t_t.n -2;
+      double df = pairs[i].v[0]->p.t_t.n -2;
 
       double correlation_t = 
 	pairs[i].correlation * sqrt(df) /
 	sqrt(1 - sqr(pairs[i].correlation));
-	
+
 
       /* row headings */
       tab_text(table, 0,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF, 
@@ -1078,6 +1160,7 @@ pscbox(struct cmd_t_test *cmd)
 
 
       tab_float(table, 4, i+1, TAB_RIGHT, q*2.0, 8, 3);
+
 
 
       
@@ -1146,6 +1229,10 @@ common_postcalc (void)
       ttp= &cmd.v_variables[i]->p.t_t;
       
       ttp->mean=ttp->sum / ttp->n;
+      ttp->s_std_dev= sqrt(
+			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
+			 ) ;
+
       ttp->std_dev= sqrt(
 			 ttp->n/(ttp->n-1) *
 			 ( (ttp->ssq / ttp->n ) - ttp->mean * ttp->mean )
@@ -1234,8 +1321,14 @@ static void
 paired_precalc (void)
 {
   int i;
+
   for(i=0; i < n_pairs ; ++i )
-    pairs[i].correlation=0;
+    {
+      pairs[i].correlation=0;
+      pairs[i].sum_of_diffs=0;
+      pairs[i].ssq_diffs=0;
+    }
+
 }
 
 static int  
@@ -1254,6 +1347,10 @@ paired_calc (struct ccase *c)
       pairs[i].correlation += ( val0->f - pairs[i].v[0]->p.t_t.mean )
 	                      *
 	                      ( val1->f - pairs[i].v[1]->p.t_t.mean );
+
+      pairs[i].sum_of_diffs += val0->f - val1->f ;
+      pairs[i].ssq_diffs += sqr(val0->f - val1->f);
+
     }
 
 
@@ -1267,10 +1364,21 @@ paired_postcalc (void)
 
   for(i=0; i < n_pairs ; ++i )
     {
+      const double n = pairs[i].v[0]->p.t_t.n ;
       
       pairs[i].correlation /= pairs[i].v[0]->p.t_t.std_dev * 
                               pairs[i].v[1]->p.t_t.std_dev ;
-
       pairs[i].correlation /= pairs[i].v[0]->p.t_t.n -1; 
+
+
+      pairs[i].mean_diff = pairs[i].sum_of_diffs / n ;
+
+
+      pairs[i].std_dev_diff = sqrt (  n / (n - 1) * (
+				    ( pairs[i].ssq_diffs / n )
+				    - 
+				    sqr(pairs[i].mean_diff )
+				    ) );
+
     }
 }
