@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-02-05 20:35+0800\n"
+"POT-Creation-Date: 2005-02-13 14:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -948,7 +948,7 @@ msgid "Only USE ALL is currently implemented."
 msgstr ""
 
 #: src/descript.c:99 src/examine.q:1465 src/frequencies.q:112 src/oneway.q:398
-#: src/t-test.q:694 src/t-test.q:717 src/t-test.q:840 src/t-test.q:1177
+#: src/t-test.q:691 src/t-test.q:714 src/t-test.q:837 src/t-test.q:1174
 msgid "Mean"
 msgstr ""
 
@@ -1117,7 +1117,7 @@ msgstr ""
 msgid "Error writing file %s: %s."
 msgstr ""
 
-#: src/dictionary.c:603
+#: src/dictionary.c:597
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
@@ -1303,7 +1303,7 @@ msgstr ""
 msgid "Unknown system variable %s."
 msgstr ""
 
-#: src/expr-prs.c:592
+#: src/expr-prs.c:592 src/vars-prs.c:43
 msgid "expecting variable name"
 msgstr ""
 
@@ -3808,24 +3808,53 @@ msgstr ""
 msgid "%s is not a variable name."
 msgstr ""
 
-#: src/vars-prs.c:101
+#: src/vars-prs.c:111
 msgid "ordinary"
 msgstr ""
 
-#: src/vars-prs.c:103
+#: src/vars-prs.c:113
 msgid "system"
 msgstr ""
 
-#: src/vars-prs.c:105
+#: src/vars-prs.c:115
 msgid "scratch"
 msgstr ""
 
-#: src/vars-prs.c:212
+#: src/vars-prs.c:174
+#, c-format
+msgid ""
+"%s is not a numeric variable.  It will not be included in the variable list."
+msgstr ""
+
+#: src/vars-prs.c:177
+#, c-format
+msgid ""
+"%s is not a string variable.  It will not be included in the variable list."
+msgstr ""
+
+#: src/vars-prs.c:181
+#, c-format
+msgid "Scratch variables (such as %s) are not allowed here."
+msgstr ""
+
+#: src/vars-prs.c:184
+#, c-format
+msgid ""
+"%s and %s are not the same type.  All variables in this variable list must "
+"be of the same type.  %s will be omitted from list."
+msgstr ""
+
+#: src/vars-prs.c:189
+#, c-format
+msgid "Variable %s appears twice in variable list."
+msgstr ""
+
+#: src/vars-prs.c:299
 #, c-format
 msgid "%s TO %s is not valid syntax since %s precedes %s in the dictionary."
 msgstr ""
 
-#: src/vars-prs.c:222
+#: src/vars-prs.c:308
 #, c-format
 msgid ""
 "When using the TO keyword to specify several variables, both variables must "
@@ -3833,48 +3862,19 @@ msgid ""
 "system variables.  %s is a %s variable, whereas %s is %s."
 msgstr ""
 
-#: src/vars-prs.c:240
-#, c-format
-msgid "Scratch variables (such as %s) are not allowed here."
-msgstr ""
-
-#: src/vars-prs.c:263
-#, c-format
-msgid ""
-"%s is not a numeric variable.  It will not be included in the variable list."
-msgstr ""
-
-#: src/vars-prs.c:266
-#, c-format
-msgid ""
-"%s is not a string variable.  It will not be included in the variable list."
-msgstr ""
-
-#: src/vars-prs.c:270
-#, c-format
-msgid ""
-"%s and %s are not the same type.  All variables in this variable list must "
-"be of the same type.  %s will be omitted from list."
-msgstr ""
-
-#: src/vars-prs.c:275
-#, c-format
-msgid "Variable %s appears twice in variable list."
-msgstr ""
-
-#: src/vars-prs.c:355
+#: src/vars-prs.c:379
 msgid "incorrect use of TO convention"
 msgstr ""
 
-#: src/vars-prs.c:402
+#: src/vars-prs.c:426
 msgid "Scratch variables not allowed here."
 msgstr ""
 
-#: src/vars-prs.c:424
+#: src/vars-prs.c:448
 msgid "Prefixes don't match in use of TO convention."
 msgstr ""
 
-#: src/vars-prs.c:429
+#: src/vars-prs.c:453
 msgid "Bad bounds in use of TO convention."
 msgstr ""
 
@@ -3963,8 +3963,8 @@ msgid "Total"
 msgstr ""
 
 #: src/crosstabs.q:815 src/examine.q:926 src/frequencies.q:1508
-#: src/oneway.q:397 src/t-test.q:693 src/t-test.q:716 src/t-test.q:841
-#: src/t-test.q:1376
+#: src/oneway.q:397 src/t-test.q:690 src/t-test.q:713 src/t-test.q:838
+#: src/t-test.q:1373
 msgid "N"
 msgstr ""
 
@@ -4010,8 +4010,8 @@ msgstr ""
 msgid "Statistic"
 msgstr ""
 
-#: src/crosstabs.q:1100 src/oneway.q:280 src/oneway.q:699 src/t-test.q:991
-#: src/t-test.q:1183 src/t-test.q:1275
+#: src/crosstabs.q:1100 src/oneway.q:280 src/oneway.q:699 src/t-test.q:988
+#: src/t-test.q:1180 src/t-test.q:1272
 msgid "df"
 msgstr ""
 
@@ -4048,11 +4048,11 @@ msgstr ""
 msgid " 95%% Confidence Interval"
 msgstr ""
 
-#: src/crosstabs.q:1147 src/t-test.q:995 src/t-test.q:1180 src/t-test.q:1278
+#: src/crosstabs.q:1147 src/t-test.q:992 src/t-test.q:1177 src/t-test.q:1275
 msgid "Lower"
 msgstr ""
 
-#: src/crosstabs.q:1148 src/t-test.q:996 src/t-test.q:1181 src/t-test.q:1279
+#: src/crosstabs.q:1148 src/t-test.q:993 src/t-test.q:1178 src/t-test.q:1276
 msgid "Upper"
 msgstr ""
 
@@ -4243,8 +4243,8 @@ msgstr ""
 msgid "Median"
 msgstr ""
 
-#: src/examine.q:1557 src/oneway.q:399 src/t-test.q:695 src/t-test.q:718
-#: src/t-test.q:842 src/t-test.q:1178
+#: src/examine.q:1557 src/oneway.q:399 src/t-test.q:692 src/t-test.q:715
+#: src/t-test.q:839 src/t-test.q:1175
 msgid "Std. Deviation"
 msgstr ""
 
@@ -4464,7 +4464,7 @@ msgstr ""
 msgid "Coefficients for contrast %d do not total zero"
 msgstr ""
 
-#: src/oneway.q:244 src/t-test.q:370 src/t-test.q:462
+#: src/oneway.q:244 src/t-test.q:367 src/t-test.q:459
 #, c-format
 msgid "`%s' is not a variable name"
 msgstr ""
@@ -4477,7 +4477,7 @@ msgstr ""
 msgid "Mean Square"
 msgstr ""
 
-#: src/oneway.q:282 src/t-test.q:988
+#: src/oneway.q:282 src/t-test.q:985
 msgid "F"
 msgstr ""
 
@@ -4529,11 +4529,11 @@ msgstr ""
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/oneway.q:698 src/t-test.q:990 src/t-test.q:1182 src/t-test.q:1274
+#: src/oneway.q:698 src/t-test.q:987 src/t-test.q:1179 src/t-test.q:1271
 msgid "t"
 msgstr ""
 
-#: src/oneway.q:700 src/t-test.q:992 src/t-test.q:1184 src/t-test.q:1276
+#: src/oneway.q:700 src/t-test.q:989 src/t-test.q:1181 src/t-test.q:1273
 msgid "Sig. (2-tailed)"
 msgstr ""
 
@@ -4677,127 +4677,127 @@ msgstr ""
 msgid "data> "
 msgstr ""
 
-#: src/t-test.q:268
+#: src/t-test.q:265
 msgid "TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive."
 msgstr ""
 
-#: src/t-test.q:286
+#: src/t-test.q:283
 msgid "VARIABLES subcommand is not appropriate with PAIRS"
 msgstr ""
 
-#: src/t-test.q:324
+#: src/t-test.q:321
 msgid "One or more VARIABLES must be specified."
 msgstr ""
 
-#: src/t-test.q:383
+#: src/t-test.q:380
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/t-test.q:403 src/t-test.q:418
+#: src/t-test.q:400 src/t-test.q:415
 msgid ""
 "When applying GROUPS to a string variable, two values must be specified."
 msgstr ""
 
-#: src/t-test.q:497
+#: src/t-test.q:494
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
 msgstr ""
 
-#: src/t-test.q:514
+#: src/t-test.q:511
 msgid "At least two variables must be specified on PAIRS."
 msgstr ""
 
-#: src/t-test.q:691
+#: src/t-test.q:688
 msgid "One-Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:696 src/t-test.q:719 src/t-test.q:843
+#: src/t-test.q:693 src/t-test.q:716 src/t-test.q:840
 msgid "SE. Mean"
 msgstr ""
 
-#: src/t-test.q:713
+#: src/t-test.q:710
 msgid "Group Statistics"
 msgstr ""
 
-#: src/t-test.q:837
+#: src/t-test.q:834
 msgid "Paired Sample Statistics"
 msgstr ""
 
-#: src/t-test.q:859 src/t-test.q:1203 src/t-test.q:1393
+#: src/t-test.q:856 src/t-test.q:1200 src/t-test.q:1390
 #, c-format
 msgid "Pair %d"
 msgstr ""
 
-#: src/t-test.q:976
+#: src/t-test.q:973
 msgid "Independent Samples Test"
 msgstr ""
 
-#: src/t-test.q:984
+#: src/t-test.q:981
 msgid "Levene's Test for Equality of Variances"
 msgstr ""
 
-#: src/t-test.q:986
+#: src/t-test.q:983
 msgid "t-test for Equality of Means"
 msgstr ""
 
-#: src/t-test.q:989 src/t-test.q:1378
+#: src/t-test.q:986 src/t-test.q:1375
 msgid "Sig."
 msgstr ""
 
-#: src/t-test.q:993 src/t-test.q:1277
+#: src/t-test.q:990 src/t-test.q:1274
 msgid "Mean Difference"
 msgstr ""
 
-#: src/t-test.q:994
+#: src/t-test.q:991
 msgid "Std. Error Difference"
 msgstr ""
 
-#: src/t-test.q:999 src/t-test.q:1174 src/t-test.q:1269
+#: src/t-test.q:996 src/t-test.q:1171 src/t-test.q:1266
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
 msgstr ""
 
-#: src/t-test.q:1054
+#: src/t-test.q:1051
 msgid "Equal variances assumed"
 msgstr ""
 
-#: src/t-test.q:1106
+#: src/t-test.q:1103
 msgid "Equal variances not assumed"
 msgstr ""
 
-#: src/t-test.q:1164
+#: src/t-test.q:1161
 msgid "Paired Samples Test"
 msgstr ""
 
-#: src/t-test.q:1167
+#: src/t-test.q:1164
 msgid "Paired Differences"
 msgstr ""
 
-#: src/t-test.q:1179
+#: src/t-test.q:1176
 msgid "Std. Error Mean"
 msgstr ""
 
-#: src/t-test.q:1258
+#: src/t-test.q:1255
 msgid "One-Sample Test"
 msgstr ""
 
-#: src/t-test.q:1263
+#: src/t-test.q:1260
 #, c-format
 msgid "Test Value = %f"
 msgstr ""
 
-#: src/t-test.q:1373
+#: src/t-test.q:1370
 msgid "Paired Samples Correlations"
 msgstr ""
 
-#: src/t-test.q:1377
+#: src/t-test.q:1374
 msgid "Correlation"
 msgstr ""
 
-#: src/t-test.q:1396
+#: src/t-test.q:1393
 #, c-format
 msgid "%s & %s"
 msgstr ""
