@@ -87,6 +87,14 @@ static int write_variable (struct sfm_writer *, struct variable *);
 static int write_value_labels (struct sfm_writer *,
                                struct variable *, int idx);
 static int write_rec_7_34 (struct sfm_writer *);
+
+static int write_longvar_table (struct sfm_writer *w, 
+				const struct dictionary *dict);
+
+static int write_variable_display_parameters (struct sfm_writer *w, 
+					      const struct dictionary *dict);
+
+
 static int write_documents (struct sfm_writer *, const struct dictionary *);
 static int does_dict_need_translation (const struct dictionary *);
 
@@ -98,13 +106,15 @@ var_flt64_cnt (const struct variable *v)
 
 /* Opens the system file designated by file handle FH for writing
    cases from dictionary D.  If COMPRESS is nonzero, the
-   system file will be compressed.
+   system file will be compressed. If  OMIT_LONGNAMES is nonzero, the
+   long name table will be omitted.
 
    No reference to D is retained, so it may be modified or
    destroyed at will after this function returns. */
 struct sfm_writer *
 sfm_open_writer (struct file_handle *fh,
-                 const struct dictionary *d, int compress)
+                 const struct dictionary *d, int compress, 
+		 short omit_longnames)
 {
   struct sfm_writer *w = NULL;
   int idx;
@@ -167,8 +177,21 @@ sfm_open_writer (struct file_handle *fh,
 
   if (dict_get_documents (d) != NULL && !write_documents (w, d))
     goto error;
+
   if (!write_rec_7_34 (w))
     goto error;
+
+
+  /* Write  variable display info. */
+  if ( !write_variable_display_parameters(w, d))
+    goto error;
+
+  
+  if ( ! omit_longnames ) 
+    {
+      if (!write_longvar_table (w, d))
+	goto error;
+    }
 
   /* Write record 999. */
   {
@@ -397,7 +420,7 @@ write_variable (struct sfm_writer *w, struct variable *v)
   write_format_spec (&v->print, &sv.print);
   write_format_spec (&v->write, &sv.write);
   memcpy (sv.name, v->name, strlen (v->name));
-  memset (&sv.name[strlen (v->name)], ' ', 8 - strlen (v->name));
+  memset (&sv.name[strlen (v->name)], ' ', SHORT_NAME_LEN - strlen (v->name));
   if (!buf_write (w, &sv, sizeof sv))
     return 0;
 
@@ -541,6 +564,93 @@ write_documents (struct sfm_writer *w, const struct dictionary *d)
     return 0;
 
   return 1;
+}
+
+/* Write the alignment, width and scale values */
+static int
+write_variable_display_parameters (struct sfm_writer *w, 
+				   const struct dictionary *dict)
+{
+  int i;
+
+  struct
+  {
+    int32 rec_type P;
+    int32 subtype P;
+    int32 elem_size P;
+    int32 n_elem P;
+  } vdp_hdr;
+
+  vdp_hdr.rec_type = 7;
+  vdp_hdr.subtype = 11;
+  vdp_hdr.elem_size = 4;
+  vdp_hdr.n_elem = w->var_cnt * 3;
+
+  if (!buf_write (w, &vdp_hdr, sizeof vdp_hdr))
+    return 0;
+
+  for ( i = 0 ; i < w->var_cnt ; ++i ) 
+    {
+      struct variable *v;
+      struct
+      {
+	int32 measure P;
+	int32 width P;
+	int32 align P;
+      }
+      params;
+
+      v = dict_get_var(dict, i);
+
+      params.measure = v->measure;
+      params.width = v->display_width;
+      params.align = v->alignment;
+      
+      if (!buf_write (w, &params, sizeof(params)))
+	return 0;
+    }
+  
+  return 1;
+}
+
+/* Writes the long variable name table */
+static int
+write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
+{
+  char *buf = 0; 
+  int bufsize = 0;
+
+  struct
+  {
+    int32 rec_type P;
+    int32 subtype P;
+    int32 elem_size P;
+    int32 n_elem P;
+  } lv_hdr;
+
+  lv_hdr.rec_type = 7;
+  lv_hdr.subtype = 13;
+  lv_hdr.elem_size = 1;
+
+
+  dict_get_varname_block(dict, &buf, &bufsize);
+
+  if ( bufsize == 0 ) 
+    return 1;
+
+  lv_hdr.n_elem = bufsize ;
+
+  if (!buf_write (w, &lv_hdr, sizeof(lv_hdr) ))
+    goto error;
+
+  if (!buf_write (w, buf, bufsize))
+    goto error;
+
+  return 1;
+
+ error:
+  free ( buf ) ;
+  return 0;
 }
 
 /* Writes record type 7, subtypes 3 and 4. */

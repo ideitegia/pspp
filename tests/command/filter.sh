@@ -47,7 +47,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/filter.stat << EOF
+cat > $TESTFILE << EOF
 data list notable /x 1-2.
 begin data.
 1
@@ -76,7 +76,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/filter.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

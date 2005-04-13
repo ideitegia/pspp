@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This program tests for a bug which caused
-# the second procedure after GET FILE to corrupt it's output
+# the second procedure after GET FILE to corrupt its output
 
 
 TEMPDIR=/tmp/pspp-tst-$$
@@ -49,7 +49,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/prog.sps <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST LIST NOTABLE /location * editor * shell * freq * .
 BEGIN DATA.
     1.00     1.00    1.0     2.00
@@ -75,9 +75,12 @@ LIST.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
+
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
+$SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
+
+
 
 
 activity="compare output"

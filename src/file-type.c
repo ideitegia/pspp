@@ -44,7 +44,7 @@ enum
 /* Limited variable column specifications. */
 struct col_spec
   {
-   char name[9];		/* Variable name. */
+   char name[SHORT_NAME_LEN + 1];	/* Variable name. */
     int fc, nc;			/* First column (1-based), # of columns. */
     int fmt;			/* Format type. */
     struct variable *v;		/* Variable. */

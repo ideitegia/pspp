@@ -2,7 +2,6 @@
 @c %**start of header
 @setfilename pspp.info
 @settitle PSPP
-@set TIMESTAMP Time-stamp:  Sat Oct 30 17:30:39 WST 2004
 @c For double-sided printing, uncomment:
 @c @setchapternewpage odd
 @c %**end of header
@@ -91,7 +90,7 @@ approved by the Foundation.
 
 This file documents the PSPP package for statistical analysis of sampled
 data.  This is edition @value{EDITION}, for PSPP version
-@value{VERSION}, last modified at @value{TIMESTAMP}.
+@value{VERSION}, last modified on @value{UPDATED}.
 
 @end ifinfo
 

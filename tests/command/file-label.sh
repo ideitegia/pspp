@@ -47,8 +47,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/file-lab.stat << EOF
-
+cat > $TESTFILE << EOF
 
 /* Set up a dummy active file in memory.
 data list /x 1 y 2.
@@ -75,8 +74,8 @@ display documents.
 display file label.	/* undocumented feature of PSPP
 
 /* Save the active file then get it and display the documents again.
-save 'foo.save'.
-get 'foo.save'.
+save /OUTFILE='foo.save'.
+get /FILE='foo.save'.
 display documents.
 display file label.	/* undocumented feature of PSPP
 
@@ -94,8 +93,8 @@ document There should be another document now.
 display documents.
 
 /* Save and get.
-save 'foo.save'.
-get 'foo.save'.
+save /OUTFILE='foo.save'.
+get /FILE='foo.save'.
 display documents.
 display file label.	/* undocumented feature of PSPP
 
@@ -105,7 +104,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/file-lab.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # We need to filter out the dates/times

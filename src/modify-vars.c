@@ -358,7 +358,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
 struct var_renaming
   {
     struct variable *var;
-    char new_name[9];
+    char new_name[SHORT_NAME_LEN + 1];
   };
 
 /* A algo_compare_func that compares new_name members in struct

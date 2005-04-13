@@ -213,7 +213,9 @@ cmd_aggregate (void)
           for (i = 0; i < agr.break_var_cnt; i++)
             {
               struct variable *v = dict_clone_var (agr.dict, agr.break_vars[i],
-                                                   agr.break_vars[i]->name);
+                                                   agr.break_vars[i]->name, 
+						   agr.break_vars[i]->longname 
+						   );
               assert (v != NULL);
             }
 
@@ -276,7 +278,7 @@ cmd_aggregate (void)
     }
   else
     {
-      agr.writer = sfm_open_writer (out_file, agr.dict, get_scompression ());
+      agr.writer = sfm_open_writer (out_file, agr.dict, get_scompression (), 0);
       if (agr.writer == NULL)
         goto error;
       
@@ -396,7 +398,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	}
       
       for (function = agr_func_tab; function->name; function++)
-	if (!strcmp (function->name, tokid))
+	if (!strcasecmp (function->name, tokid))
 	  break;
       if (NULL == function->name)
 	{
@@ -540,7 +542,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 		  }
 
 		if (function->alpha_type == ALPHA)
-		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
+		  destvar = dict_clone_var (agr->dict, v->src, 0, dest[i] );
 		else if (v->src->type == NUMERIC
                          || function->alpha_type == NUMERIC)
                   {

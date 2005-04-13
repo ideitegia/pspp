@@ -310,7 +310,7 @@ compute_trns_free (struct trns_header *compute_)
 /* COMPUTE or IF target variable or vector element. */
 struct lvalue
   {
-    char var_name[9];            /* Destination variable name, or "". */
+    char var_name[LONG_NAME_LEN + 1];   /* Destination variable name, or "". */
     const struct vector *vector; /* Destination vector, if any, or NULL. */
     struct expression *element;  /* Destination vector element, or NULL. */
   };
@@ -353,8 +353,8 @@ lvalue_parse (void)
   else
     {
       /* Variable name. */
-      strncpy (lvalue->var_name, tokid, 8);
-      lvalue->var_name[8] = '\0';
+      strncpy (lvalue->var_name, tokid, LONG_NAME_LEN);
+      lvalue->var_name[LONG_NAME_LEN] = '\0';
       lex_get ();
     }
   return lvalue;

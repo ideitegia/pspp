@@ -20,6 +20,7 @@
 #if !lexer_h
 #define lexer_h 1
 
+#include "var.h"
 #include <ctype.h>
 #include "bool.h"
 
@@ -72,10 +73,9 @@ enum
     T_N_KEYWORDS = T_LAST_KEYWORD - T_FIRST_KEYWORD + 1
   };
 
-
 extern int token;
 extern double tokval;
-extern char tokid[9];
+extern char tokid[LONG_NAME_LEN + 1];
 extern struct string tokstr;
 
 #include <stddef.h>

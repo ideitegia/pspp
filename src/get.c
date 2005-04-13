@@ -191,10 +191,13 @@ static trns_free_func save_trns_free;
 static struct save_trns *
 cmd_save_internal (void)
 {
-  struct file_handle *fh;
+  struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
   struct save_trns *t = NULL;
   int compress = get_scompression ();
+  const int default_version = 3;
+  int version = default_version;
+  short no_name_table = 0;
 
   t = xmalloc (sizeof *t);
   t->h.proc = save_trns_proc;
@@ -203,12 +206,59 @@ cmd_save_internal (void)
   t->map = NULL;
   case_nullify (&t->bounce);
   
-  lex_match ('/');
-  if (lex_match_id ("OUTFILE"))
-    lex_match ('=');
-  fh = fh_parse ();
-  if (fh == NULL)
-    goto error;
+
+  /* Read most of the subcommands. */
+  for (;;)
+    {
+      if (lex_match_id ("VERSION"))
+	{
+	  lex_match ('=');
+	  if ( lex_force_num() ) 
+	    {
+	      lex_get();
+	      version = tokval;
+	      
+	      if ( 0 == strncasecmp (tokid,"x", 1) ) 
+		{
+		  lex_get();
+		  no_name_table = 1;
+		}
+
+	    }
+	}
+      else if (lex_match_id ("OUTFILE"))
+	{
+	  lex_match ('=');
+      
+	  fh = fh_parse ();
+	  if (fh == NULL)
+	    goto error;
+
+	}
+      if ( ! lex_match('/')  ) 
+	break;
+
+    }
+
+  if (token != '.')
+    {
+      lex_error (_("expecting end of command"));
+      goto error;
+    }
+
+  if ( fh == NULL ) 
+    {
+      msg ( ME, _("The required %s subcommand was not present"), "OUTFILE");
+      goto error;
+    }
+
+  if ( version != default_version )
+    {
+      msg (MW, _("Unsupported sysfile version: %d. Using version %d instead."),
+	   version, default_version);
+
+      version = default_version;
+    }
 
   dict = dict_clone (default_dict);
   start_case_map (dict);
@@ -218,7 +268,7 @@ cmd_save_internal (void)
   if (t->map != NULL)
     case_create (&t->bounce, dict_get_next_value_idx (dict));
 
-  t->writer = sfm_open_writer (fh, dict, compress);
+  t->writer = sfm_open_writer (fh, dict, compress, no_name_table);
   if (t->writer == NULL)
     goto error;
 
@@ -439,7 +489,7 @@ rename_variables (struct dictionary *dict)
       if (!lex_force_match ('=')
 	  || !lex_force_id ())
 	return 0;
-      if (!strncmp (tokid, v->name, 8))
+      if (!strncmp (tokid, v->name, SHORT_NAME_LEN))
 	return 1;
       if (dict_lookup_var (dict, tokid) != NULL)
 	{
@@ -610,8 +660,9 @@ struct mtf_file
     struct file_handle *handle; /* File handle. */
     struct sfm_reader *reader;  /* System file reader. */
     struct dictionary *dict;	/* Dictionary from system file. */
-    char in[9];			/* Name of the variable from IN=. */
-    char first[9], last[9];	/* Name of the variables from FIRST=, LAST=. */
+    char in[SHORT_NAME_LEN + 1];    /* Name of the variable from IN=. */
+    char first[SHORT_NAME_LEN + 1];
+    char last[SHORT_NAME_LEN + 1];	/* Name of the variables from FIRST=, LAST=. */
     struct ccase input;         /* Input record. */
   };
 
@@ -1385,7 +1436,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 	  mv->label = xstrdup (dv->label);
 	if (!mv) 
           {
-            mv = dict_clone_var (m, dv, dv->name);
+            mv = dict_clone_var (m, dv, dv->name, dv->longname);
             assert (mv != NULL);
           }
 	else if (mv->width != dv->width)

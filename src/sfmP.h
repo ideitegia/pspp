@@ -88,7 +88,7 @@ struct sysfile_variable
     int32 n_missing_values P;	/* Missing value code of -3,-2,0,1,2, or 3. */
     int32 print P;	/* Print format. */
     int32 write P;	/* Write format. */
-    char name[8] P;		/* Variable name. */
+    char name[SHORT_NAME_LEN] P; /* Variable name. */
     /* The rest of the structure varies. */
   };
 

@@ -108,7 +108,7 @@ struct cnt_var_info
     struct cnt_var_info *next;
 
     struct variable *d;		/* Destination variable. */
-    char n[9];			/* Name of dest var. */
+    char n[SHORT_NAME_LEN + 1];	/* Name of dest var. */
 
     struct counting *c;		/* The counting specifications. */
   };

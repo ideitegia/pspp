@@ -69,6 +69,7 @@ sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
 sort.c sort.h split-file.c str.c str.h subclist.c subclist.h \
 sysfile-info.c tab.c tab.h temporary.c stat.h mkfile.c mkfile.h \
 title.c  val.h val-labs.c value-labels.c value-labels.h		\
+var-display.c \
 var-labs.c var.h vars-atr.c vars-prs.c vector.c version.h	\
 vfm.c vfm.h vfmP.h weight.c 
 

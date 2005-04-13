@@ -20,10 +20,14 @@
 #if !var_h
 #define var_h 1
 
+
 #include <stddef.h>
+#include "config.h"
 #include "bool.h"
 #include "format.h"
 #include "val.h"
+
+
 
 /* Script variables. */
 
@@ -54,12 +58,12 @@ enum
     MISSING_COUNT
   };
 
-#define MAX_VAR_NAME_LEN 8
 
 /* A variable's dictionary entry.  */
 struct variable
   {
-    char name[MAX_VAR_NAME_LEN + 1]; /* As a string. */
+    char name[SHORT_NAME_LEN + 1];		/* As a string. */
+    char *longname;             /* Pointer to entry in dictionary's table  */
     int index;			/* Index into its dictionary's var[]. */
     int type;                   /* NUMERIC or ALPHA. */
 
@@ -80,14 +84,34 @@ struct variable
     struct val_labs *val_labs;  /* Value labels. */
     char *label;		/* Variable label. */
 
+
+    /* GUI display parameters */
+    enum measure measure;       /* Nominal ordinal or continuous */
+    int display_width;          /* Width of data editor column */
+    enum alignment alignment;   /* Alignment of data in gui */
+
     /* Per-command info. */
     void *aux;
     void (*aux_dtor) (struct variable *);
   };
 
+
+/* A tuple containing short names and longnames */
+struct name_table_entry
+{
+  char *longname;
+  char *name;
+};
+
 bool var_is_valid_name (const char *, bool issue_error);
 int compare_var_names (const void *, const void *, void *);
 unsigned hash_var_name (const void *, void *);
+
+
+unsigned hash_long_name (const void *e_, void *aux UNUSED) ;
+int compare_long_names(const void *a_, const void *b_, void *aux);
+
+
 int compare_var_ptr_names (const void *, const void *, void *);
 unsigned hash_var_ptr_name (const void *, void *);
 
@@ -112,7 +136,7 @@ const char *dict_class_to_name (enum dict_class dict_class);
 struct vector
   {
     int idx;                    /* Index for dict_get_vector(). */
-    char name[9];		/* Name. */
+    char name[SHORT_NAME_LEN + 1];	/* Name. */
     struct variable **var;	/* Vector of variables. */
     int cnt;			/* Number of variables. */
   };

@@ -1671,7 +1671,8 @@ file.  @xref{File locations}.  Default: the standard configuration path.
 
 @item TMPDIR
 
-The @code{sort} procedure stores its temporary files in this directory.
+The directory in which PSPP stores its temporary files (used when sorting 
+cases or concatenating large numbers of cases).
 Default: (UNIX) @file{/tmp}, (MS-DOS) @file{\}, (other OSes) empty string.
 
 @item TEMP

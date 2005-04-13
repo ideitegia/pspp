@@ -71,6 +71,24 @@ struct fmt_spec
     int d;			/* Number of implied decimal places. */
   };
 
+
+enum alignment 
+  {
+    ALIGN_LEFT = 0,
+    ALIGN_RIGHT = 1,
+    ALIGN_CENTRE = 2
+  };
+
+
+enum measure
+  {
+    MEASURE_NOMINAL=1,
+    MEASURE_ORDINAL=2,
+    MEASURE_SCALE=3
+  };
+
+
+
 /* Descriptions of all the display formats above. */
 extern struct fmt_desc formats[];
 

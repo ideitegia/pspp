@@ -43,6 +43,8 @@ described below:
 * Document Record::             
 * Machine int32 Info Record::   
 * Machine flt64 Info Record::   
+* Auxilliary Variable Parameter Record::
+* Long Variable Names Record::
 * Miscellaneous Informational Records::  
 * Dictionary Termination Record::  
 * Data Record::                 
@@ -467,7 +469,7 @@ Character code.  1 indicates EBCDIC, 2 indicates 7-bit ASCII, 3
 indicates 8-bit ASCII, 4 indicates DEC Kanji.
 @end table
 
-@node Machine flt64 Info Record, Miscellaneous Informational Records, Machine int32 Info Record, Data File Format
+@node Machine flt64 Info Record, Auxilliary Variable Parameter Record, Machine int32 Info Record, Data File Format
 @section Machine @code{flt64} Info Record
 
 There must be no more than one machine @code{flt64} info record per
@@ -513,7 +515,136 @@ The value used for HIGHEST in missing values.
 The value used for LOWEST in missing values.
 @end table
 
-@node Miscellaneous Informational Records, Dictionary Termination Record, Machine flt64 Info Record, Data File Format
+@node Auxilliary Variable Parameter Record, Long Variable Names Record, Machine flt64 Info Record, Data File Format
+@section Auxilliary Variable Parameter Record
+
+There must be no more than one auxilliary variable parameter record per
+system file.  This  record must follow the variable
+records and precede the dictionary termination record.
+
+@example
+struct sysfile_aux_var_parameter
+  @{
+    /* Header. */
+    int32               rec_type;
+    int32               subtype;
+    int32               size;
+    int32               count;
+
+    /* Data. */
+    struct aux_params   aux_params[/* variable length */];
+  @};
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 11.
+
+@item int32 size;
+The size  @code{int32}. Always set to 4.
+
+@item int32 count;
+The total number of bytes in @code{aux_params} divided by 3.
+
+@item struct aux_params aux_params[];
+An array of @code{struct aux_params}.   The order of the elements corresponds 
+to the order of the variables in the Variable Records.  The @code{struct aux_params} type is defined as follows:
+
+@example
+struct aux_params
+  @{
+    int32 measure;
+    int32 width;
+    int32 alignment;
+  @};
+@end example
+
+@table @code
+@item int32 measure
+The measurement type of the variable:  
+@table @asis
+@item 0
+Nominal Scale
+@item 1
+Ordinal Scale
+@item 2
+Continuous Scale
+@end table
+
+@item int32 width
+The width of the display column for the variable in characters.
+
+@item int32 alignment 
+The alignment of the variable for display purposes:
+
+@table @asis
+@item 0
+Left aligned
+@item 1
+Right aligned
+@item 2
+Centre aligned
+@end table
+
+@end table
+
+
+
+@end table
+
+
+
+@node Long Variable Names Record, Miscellaneous Informational Records, Auxilliary Variable Parameter Record,  Data File Format
+@section Long Variable Names Record
+
+There must be no more than one long variable names record per
+system file.  This  record must follow the variable
+records and precede the dictionary termination record.
+
+@example
+struct sysfile_long_variable_names
+  @{
+    /* Header. */
+    int32               rec_type;
+    int32               subtype;
+    int32               size;
+    int32               count;
+
+    /* Data. */
+    char                var_name_pairs[/* variable length */];
+  @};
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 13.
+
+@item int32 size;
+The size of each element in the @code{var_name_pairs} member. Always set to 1.
+
+@item int32 count;
+The total number of bytes in @code{var_name_pairs}.
+
+@item char var_name_pairs[/* variable length];
+A list of @var{key}--@var{value} tuples, where @var{key} is the name
+of a variable, and @var{value} is its long variable name. 
+The @var{key} field is at most 8 bytes long and must match the
+name of a variable which appears in the variable record @xref{Variable Record}.
+The @var{value} field is at most 64 bytes long.
+The @var{key} and @var{value} fields are separated by a @samp{=} byte.
+Each tuple is separated by a byte whose value is 09.  There is no
+trailing separator following the last tuple.
+The total length is @code{count} bytes.
+@end table
+
+
+@node Miscellaneous Informational Records, Dictionary Termination Record, Long Variable Names Record, Data File Format
 @section Miscellaneous Informational Records
 
 Miscellaneous informational records must follow the variable records and

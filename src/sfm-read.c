@@ -320,9 +320,68 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		break;
 
 	      case 5:
-	      case 6:
-	      case 11: /* ?? Used by SPSS 8.0. */
+	      case 6:  /* ?? Used by SPSS 8.0. */
 		skip = 1;
+		break;
+		
+	      case 11: /* Variable display parameters */
+		{
+		  const int  n_vars = data.count / 3 ;
+		  int i;
+		  if ( data.count % 3 ) 
+		    {
+		      msg (MW, _("%s: Invalid subrecord length. "
+				 "Record: 7; Subrecord: 11"), 
+			   handle_get_filename (r->fh));
+		      skip = 1;
+		    }
+
+		  for ( i = 0 ; i < n_vars ; ++i ) 
+		    {
+		      struct
+		      {
+			int32 measure P;
+			int32 width P;
+			int32 align P;
+		      }
+		      params;
+
+		      struct variable *v;
+
+		      assertive_buf_read (r, &params, sizeof(params), 0);
+
+		      v = dict_get_var(*dict, i);
+
+		      v->measure = params.measure;
+		      v->display_width = params.width;
+		      v->alignment = params.align;
+		    }
+		}
+		break;
+
+	      case 13: /* SPSS 12.0 Long variable name map */
+		{
+
+		  char *s;
+		  char *buf = xmalloc(data.size * data.count + 1);
+		  char *tbuf ;
+		  assertive_buf_read (r, buf, data.size * data.count, 0);
+		  buf[data.size * data.count]='\0';
+
+		  s = strtok_r(buf, "\t", &tbuf);
+		  while ( s ) 
+		    {
+		      char *shortname, *longname;
+		      shortname = strsep(&s,"=");
+		      longname = strsep(&s,"=");
+		      
+		      dict_add_longvar_entry(*dict, shortname, longname);
+
+		      s = strtok_r(0,"\t", &tbuf);
+		    }
+		  
+		  free (buf);
+		}
 		break;
 
 	      default:
@@ -628,6 +687,8 @@ read_variables (struct sfm_reader *r,
   int next_value = 0;		/* Index to next `value' structure. */
   size_t var_cap = 0;
 
+  assert(r);
+
   /* Allocate variables. */
   *var_by_idx = xmalloc (sizeof **var_by_idx * r->value_cnt);
 
@@ -706,7 +767,7 @@ read_variables (struct sfm_reader *r,
       name[0] = toupper ((unsigned char) (sv.name[0]));
 
       /* Copy remaining characters of variable name. */
-      for (j = 1; j < 8; j++)
+      for (j = 1; j < SHORT_NAME_LEN; j++)
 	{
 	  int c = (unsigned char) sv.name[j];
 
@@ -730,7 +791,7 @@ read_variables (struct sfm_reader *r,
       name[j] = 0;
 
       /* Create variable. */
-      vv = (*var_by_idx)[i] = dict_create_var (dict, name, sv.type);
+      vv = (*var_by_idx)[i] = dict_create_var_from_short (dict, name, sv.type);
       if (vv == NULL) 
         lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
                handle_get_filename (r->fh), name));
@@ -757,11 +818,14 @@ read_variables (struct sfm_reader *r,
                          "length %d."),
                    handle_get_filename (r->fh), vv->name, len));
 
-	  /* Read label into variable structure. */
-	  vv->label = buf_read (r, NULL, ROUND_UP (len, sizeof (int32)), len + 1);
-	  if (vv->label == NULL)
-	    goto error;
-	  vv->label[len] = '\0';
+	  if ( len != 0 ) 
+	    {
+	      /* Read label into variable structure. */
+	      vv->label = buf_read (r, NULL, ROUND_UP (len, sizeof (int32)), len + 1);
+	      if (vv->label == NULL)
+		goto error;
+	      vv->label[len] = '\0';
+	    }
 	}
 
       /* Set missing values. */
@@ -1079,8 +1143,15 @@ error:
 static void *
 buf_read (struct sfm_reader *r, void *buf, size_t byte_cnt, size_t min_alloc)
 {
-  if (buf == NULL)
+  assert (r);
+
+  if (buf == NULL && byte_cnt > 0 )
     buf = xmalloc (max (byte_cnt, min_alloc));
+
+  if ( byte_cnt == 0 )
+    return buf;
+
+  
   if (1 != fread (buf, byte_cnt, 1, r->file))
     {
       if (ferror (r->file))

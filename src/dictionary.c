@@ -20,6 +20,7 @@
 #include <config.h>
 #include "dictionary.h"
 #include <stdlib.h>
+#include <ctype.h>
 #include "algorithm.h"
 #include "alloc.h"
 #include "case.h"
@@ -36,6 +37,7 @@ struct dictionary
     struct variable **var;	/* Variables. */
     size_t var_cnt, var_cap;    /* Number of variables, capacity. */
     struct hsh_table *name_tab;	/* Variable index by name. */
+    struct hsh_table *long_name_tab; /* Variable indexed by long name */
     int next_value_idx;         /* Index of next `union value' to allocate. */
     struct variable **split;    /* SPLIT FILE vars. */
     size_t split_cnt;           /* SPLIT FILE count. */
@@ -48,6 +50,43 @@ struct dictionary
     size_t vector_cnt;          /* Number of vectors. */
   };
 
+
+
+
+
+int
+compare_long_names(const void *a_, const void *b_, void *aux UNUSED)
+{
+  const struct name_table_entry *a = a_;
+  const struct name_table_entry *b = b_;
+
+  return strcasecmp(a->longname, b->longname);
+}
+
+
+/* Long names use case insensitive comparison */
+unsigned int
+hash_long_name (const void *e_, void *aux UNUSED) 
+{
+  const struct name_table_entry *e = e_;
+  unsigned int hash;
+  int i;
+
+  char *s = strdup(e->longname);
+
+  for ( i = 0 ; i < strlen(s) ; ++i ) 
+    s[i] = toupper(s[i]);
+
+  hash = hsh_hash_string (s);
+  
+  free (s);
+
+  return hash;
+}
+
+static char *make_short_name(struct dictionary *dict, const char *longname) ;
+
+
 /* Creates and returns a new dictionary. */
 struct dictionary *
 dict_create (void) 
@@ -57,6 +96,7 @@ dict_create (void)
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
   d->name_tab = hsh_create (8, compare_var_names, hash_var_name, NULL, NULL);
+  d->long_name_tab = hsh_create (8, compare_long_names, hash_long_name, NULL, NULL);
   d->next_value_idx = 0;
   d->split = NULL;
   d->split_cnt = 0;
@@ -78,12 +118,14 @@ dict_clone (const struct dictionary *s)
 {
   struct dictionary *d;
   size_t i;
-  
+
   assert (s != NULL);
-  
+
   d = dict_create ();
+
   for (i = 0; i < s->var_cnt; i++)
-    dict_clone_var (d, s->var[i], s->var[i]->name);
+    dict_clone_var (d, s->var[i], s->var[i]->name, s->var[i]->longname);
+
   d->next_value_idx = s->next_value_idx;
 
   d->split_cnt = s->split_cnt;
@@ -134,6 +176,8 @@ dict_clear (struct dictionary *d)
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
   hsh_clear (d->name_tab);
+  if ( d->long_name_tab) 
+    hsh_clear (d->long_name_tab);
   d->next_value_idx = 0;
   free (d->split);
   d->split = NULL;
@@ -146,6 +190,78 @@ dict_clear (struct dictionary *d)
   free (d->documents);
   d->documents = NULL;
   dict_clear_vectors (d);
+}
+
+/* Allocate the pointer TEXT and fill it with text representing the
+   long variable name buffer.  SIZE will contain the size of TEXT.
+   TEXT must be freed by the caller when no longer required.
+*/
+void
+dict_get_varname_block(const struct dictionary *dict, char **text, int *size)
+{
+  char *buf = 0;
+  int bufsize = 0;
+  struct hsh_iterator hi;
+  struct name_table_entry *nte;
+  short first = 1;
+
+  for ( nte = hsh_first(dict->long_name_tab, &hi);
+	nte; 
+	nte = hsh_next(dict->long_name_tab, &hi))
+    {
+      bufsize += strlen(nte->name) + strlen(nte->longname) + 2;
+      buf = xrealloc(buf, bufsize + 1);
+      if ( first ) 
+	strcpy(buf, "");
+      first = 0;
+
+      strcat(buf, nte->name);
+      strcat(buf, "=");
+      strcat(buf, nte->longname);
+      strcat(buf, "\t");
+    }
+
+  if ( bufsize > 0 ) 
+    {
+      /* Loose the final delimiting TAB */
+      buf[bufsize]='\0';
+      bufsize--;
+    }
+  
+  *text = buf;
+  *size = bufsize;
+}
+
+
+/* Add a new entry into the dictionary's long name table, and update the 
+   corresponding varible with the relevant long name.
+*/
+void
+dict_add_longvar_entry(struct dictionary *d, 
+		       const char *name, 
+		       const char *longname)
+{
+  struct variable *v;
+  assert ( name ) ;
+  assert ( longname );
+  struct name_table_entry *nte = xmalloc (sizeof (struct name_table_entry));
+  nte->longname = strdup(longname);
+  nte->name = strdup(name);
+
+
+  /* Look up the name in name_tab */
+  v = hsh_find ( d->name_tab, name);
+  if ( !v ) 
+    {
+      msg (FE, _("The entry \"%s\" in the variable name map, has no corresponding variable"), name);
+      return ;
+    }
+  assert ( 0 == strcmp(v->name, name) );
+  v->longname = nte->longname;
+
+  hsh_insert(d->long_name_tab, nte);
+  
+
 }
 
 /* Destroys the aux data for every variable in D, by calling
@@ -169,6 +285,7 @@ dict_destroy (struct dictionary *d)
     {
       dict_clear (d);
       hsh_destroy (d->name_tab);
+      hsh_destroy (d->long_name_tab);
       free (d);
     }
 }
@@ -225,18 +342,59 @@ dict_get_vars (const struct dictionary *d, struct variable ***vars,
   assert (*cnt == count);
 }
 
-/* Creates and returns a new variable in D with the given NAME
-   and WIDTH.  Returns a null pointer if the given NAME would
-   duplicate that of an existing variable in the dictionary. */
+
+static struct variable * dict_create_var_x (struct dictionary *d, 
+					    const char *name, int width, 
+					    short name_is_short) ;
+
+/* Creates and returns a new variable in D with the given LONGNAME
+   and WIDTH.  Returns a null pointer if the given LONGNAME would
+   duplicate that of an existing variable in the dictionary.
+*/
 struct variable *
-dict_create_var (struct dictionary *d, const char *name, int width) 
+dict_create_var (struct dictionary *d, const char *longname, int width)
+{
+  return dict_create_var_x(d, longname, width, 0);
+}
+
+
+/* Creates and returns a new variable in D with the given SHORTNAME and 
+   WIDTH.  The long name table is not updated */
+struct variable *
+dict_create_var_from_short (struct dictionary *d, const char *shortname, 
+			    int width)
+{
+  return dict_create_var_x(d, shortname, width, 1);
+}
+
+
+
+/* Creates and returns a new variable in D with the given NAME
+   and WIDTH.  
+   If NAME_IS_SHORT, assume NAME is the short name.  Otherwise assumes
+   NAME is the long name, and creates the corresponding entry in the 
+   Dictionary's lookup name table .
+   Returns a null pointer if the given NAME would
+   duplicate that of an existing variable in the dictionary. 
+   
+*/
+static struct variable *
+dict_create_var_x (struct dictionary *d, const char *name, int width, 
+		 short name_is_short) 
 {
   struct variable *v;
 
   assert (d != NULL);
   assert (name != NULL);
-  assert (strlen (name) >= 1 && strlen (name) <= 8);
+
+  assert (strlen (name) >= 1);
+
   assert (width >= 0 && width < 256);
+    
+  if ( name_is_short ) 
+    assert(strlen (name) <= SHORT_NAME_LEN);
+  else
+    assert(strlen (name) <= LONG_NAME_LEN);
 
   /* Make sure there's not already a variable by that name. */
   if (dict_lookup_var (d, name) != NULL)
@@ -244,27 +402,43 @@ dict_create_var (struct dictionary *d, const char *name, int width)
 
   /* Allocate and initialize variable. */
   v = xmalloc (sizeof *v);
-  strncpy (v->name, name, sizeof v->name);
-  v->name[8] = '\0';
+
+  if ( name_is_short )
+    {
+      strncpy (v->name, name, sizeof v->name);
+      v->name[SHORT_NAME_LEN] = '\0';
+    }
+  else
+    strcpy(v->name,make_short_name(d, name));
+  
+
   v->index = d->var_cnt;
   v->type = width == 0 ? NUMERIC : ALPHA;
   v->width = width;
   v->fv = d->next_value_idx;
   v->nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
   v->init = 1;
-  v->reinit = dict_class_from_id (name) != DC_SCRATCH;
+  v->reinit = dict_class_from_id (v->name) != DC_SCRATCH;
   v->miss_type = MISSING_NONE;
   if (v->type == NUMERIC)
     {
       v->print.type = FMT_F;
       v->print.w = 8;
       v->print.d = 2;
+
+      v->alignment = ALIGN_RIGHT;
+      v->display_width = 8;
+      v->measure = MEASURE_SCALE;
     }
   else
     {
       v->print.type = FMT_A;
       v->print.w = v->width;
       v->print.d = 0;
+
+      v->alignment = ALIGN_LEFT;
+      v->display_width = 8;
+      v->measure = MEASURE_NOMINAL;
     }
   v->write = v->print;
   v->val_labs = val_labs_create (v->width);
@@ -281,6 +455,10 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   d->var[v->index] = v;
   d->var_cnt++;
   hsh_force_insert (d->name_tab, v);
+
+  if ( ! name_is_short) 
+    dict_add_longvar_entry(d, v->name, name);
+
   d->next_value_idx += v->nv;
 
   return v;
@@ -290,29 +468,48 @@ dict_create_var (struct dictionary *d, const char *name, int width)
    and WIDTH.  Assert-fails if the given NAME would duplicate
    that of an existing variable in the dictionary. */
 struct variable *
-dict_create_var_assert (struct dictionary *d, const char *name, int width) 
+dict_create_var_assert (struct dictionary *d, const char *longname, int width)
 {
-  struct variable *v = dict_create_var (d, name, width);
+  struct variable *v = dict_create_var (d, longname, width);
   assert (v != NULL);
   return v;
 }
 
-/* Creates a new variable in D named NAME, as a copy of existing
-   variable OV, which need not be in D or in any dictionary. */
+/* Creates a new variable in D with longname LONGNAME, as a copy of
+   existing  variable OV, which need not be in D or in any
+   dictionary. 
+   If SHORTNAME is non null, it will be used as the short name
+   otherwise a new short name will be generated.
+*/
 struct variable *
 dict_clone_var (struct dictionary *d, const struct variable *ov,
-                const char *name)
+                const char *name, const char *longname)
 {
   struct variable *nv;
 
   assert (d != NULL);
   assert (ov != NULL);
-  assert (name != NULL);
-  assert (strlen (name) >= 1 && strlen (name) <= 8);
+  assert (strlen (longname) <= LONG_NAME_LEN);
 
-  nv = dict_create_var (d, name, ov->width);
+  struct name_table_entry *nte = xmalloc (sizeof (struct name_table_entry));
+
+  nte->longname = strdup(longname);
+  if ( name ) 
+    {
+      assert (strlen (name) >= 1);
+      assert (strlen (name) <= SHORT_NAME_LEN);
+      nte->name = strdup(name);
+    }
+  else 
+    nte->name = make_short_name(d, longname);
+
+
+  nv = dict_create_var_from_short (d, nte->name, ov->width);
   if (nv == NULL)
     return NULL;
+
+  hsh_insert(d->long_name_tab, nte);
+  nv->longname = nte->longname;
 
   nv->init = 1;
   nv->reinit = ov->reinit;
@@ -324,6 +521,10 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
   nv->val_labs = val_labs_copy (ov->val_labs);
   if (ov->label != NULL)
     nv->label = xstrdup (ov->label);
+
+  nv->alignment = ov->alignment;
+  nv->measure = ov->measure;
+  nv->display_width = ov->display_width;
 
   return nv;
 }
@@ -338,7 +539,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   assert (d != NULL);
   assert (v != NULL);
   assert (new_name != NULL);
-  assert (strlen (new_name) >= 1 && strlen (new_name) <= 8);
+  assert (strlen (new_name) >= 1 && strlen (new_name) <= SHORT_NAME_LEN);
   assert (dict_contains_var (d, v));
 
   if (!strcmp (v->name, new_name))
@@ -348,7 +549,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
 
   hsh_force_delete (d->name_tab, v);
   strncpy (v->name, new_name, sizeof v->name);
-  v->name[8] = '\0';
+  v->name[SHORT_NAME_LEN] = '\0';
   hsh_force_insert (d->name_tab, v);
 }
 
@@ -358,16 +559,34 @@ struct variable *
 dict_lookup_var (const struct dictionary *d, const char *name)
 {
   struct variable v;
+  struct variable *vr;
   
+  char *short_name;
+  struct name_table_entry key;
+  struct name_table_entry *nte;
+
   assert (d != NULL);
   assert (name != NULL);
-  assert (strlen (name) >= 1 && strlen (name) <= 8);
+  assert (strlen (name) >= 1 && strlen (name) <= LONG_NAME_LEN);
 
-  strncpy (v.name, name, sizeof v.name);
-  v.name[8] = '\0';
+  key.longname = name;
+  nte = hsh_find (d->long_name_tab, &key);
+  
+  if ( ! nte ) 
+  {
+    return 0;
+  }
 
-  return hsh_find (d->name_tab, &v);
+  short_name = nte->name ;
+
+  strncpy (v.name, short_name, sizeof v.name);
+  v.name[SHORT_NAME_LEN] = '\0';
+
+  vr = hsh_find (d->name_tab, &v);
+
+  return vr; 
 }
+
 
 /* Returns the variable named NAME in D.  Assert-fails if no
    variable has that name. */
@@ -516,9 +735,11 @@ dict_rename_vars (struct dictionary *d,
   size_t i;
   int success = 1;
 
+
   assert (d != NULL);
   assert (count == 0 || vars != NULL);
   assert (count == 0 || new_names != NULL);
+
 
   old_names = xmalloc (count * sizeof *old_names);
   for (i = 0; i < count; i++) 
@@ -530,11 +751,22 @@ dict_rename_vars (struct dictionary *d,
   
   for (i = 0; i < count; i++)
     {
+      struct name_table_entry key;
+      struct name_table_entry *nte;
       assert (new_names[i] != NULL);
       assert (*new_names[i] != '\0');
-      assert (strlen (new_names[i]) < 9);
-      strcpy (vars[i]->name, new_names[i]);
-      if (hsh_insert (d->name_tab, vars[i]) != NULL) 
+      assert (strlen (new_names[i]) <= LONG_NAME_LEN );
+      strcpy (vars[i]->name, make_short_name(d, new_names[i]));
+
+
+      key.longname = vars[i]->longname;
+      nte = hsh_find (d->long_name_tab, &key);
+      
+      free( nte->longname ) ;
+      nte->longname = strdup ( new_names[i]);
+      vars[i]->longname = nte->longname;
+
+      if (hsh_insert (d->name_tab, vars[i]) != NULL )
         {
           size_t fail_idx = i;
           if (err_name != NULL) 
@@ -547,6 +779,14 @@ dict_rename_vars (struct dictionary *d,
             {
               strcpy (vars[i]->name, old_names[i]);
               hsh_force_insert (d->name_tab, vars[i]);
+ 
+      key.longname = vars[i]->longname;
+      nte = hsh_find (d->long_name_tab, &key);
+      
+      free( nte->longname ) ;
+      nte->longname = strdup ( old_names[i]);
+      vars[i]->longname = nte->longname;
+
             }
 
           success = 0;
@@ -867,7 +1107,7 @@ dict_create_vector (struct dictionary *d,
 
   assert (d != NULL);
   assert (name != NULL);
-  assert (strlen (name) > 0 && strlen (name) < 9);
+  assert (strlen (name) > 0 && strlen (name) <= SHORT_NAME_LEN );
   assert (var != NULL);
   assert (cnt > 0);
   
@@ -877,8 +1117,8 @@ dict_create_vector (struct dictionary *d,
   d->vector = xrealloc (d->vector, (d->vector_cnt + 1) * sizeof *d->vector);
   vector = d->vector[d->vector_cnt] = xmalloc (sizeof *vector);
   vector->idx = d->vector_cnt++;
-  strncpy (vector->name, name, 8);
-  vector->name[8] = '\0';
+  strncpy (vector->name, name, SHORT_NAME_LEN);
+  vector->name[SHORT_NAME_LEN] = '\0';
   vector->var = xmalloc (cnt * sizeof *var);
   memcpy (vector->var, var, cnt * sizeof *var);
   vector->cnt = cnt;
@@ -939,3 +1179,82 @@ dict_clear_vectors (struct dictionary *d)
   d->vector = NULL;
   d->vector_cnt = 0;
 }
+
+
+static const char * quasi_base27(int i);
+
+
+/* Convert I to quasi base 27 
+   The result is a staticly allocated string.
+*/
+static const char *
+quasi_base27(int i)
+{
+  static char result[SHORT_NAME_LEN + 1];
+  static char reverse[SHORT_NAME_LEN + 1];
+
+  /* FIXME: check the result cant overflow these arrays */
+
+  char *s = result ;
+  const int radix = 27;
+  int units;
+
+  /* and here's the quasi-ness of this routine */
+  i = i + ( i / radix );
+
+  strcpy(result,"");
+  do {
+    units = i % radix;
+    *s++ = (units > 0 ) ? units + 'A' - 1 : 'A';
+    i = i / radix; 
+  } while (i > 0 ) ;
+  *s = '\0';
+
+  /* Reverse the result */
+  i = strlen(result);
+  s = reverse;
+  while(i >= 0)
+	*s++ = result[--i];
+  *s = '\0';
+	
+  return reverse;
+}
+
+
+/* Generate a short name, given a long name.
+   The return value of this function must be freed by the caller. 
+*/
+static char *
+make_short_name(struct dictionary *dict, const char *longname)
+{
+  int i = 0;
+  char *p;
+ 
+
+  char *d = xmalloc ( SHORT_NAME_LEN + 1);
+
+  /* Truncate the name */
+  strncpy(d, longname, SHORT_NAME_LEN);
+  d[SHORT_NAME_LEN] = '\0';
+
+  /* Convert to upper case */
+  for ( p = d; *p ; ++p )
+	*p = toupper(*p);
+
+  /* If a variable with that name already exists, then munge it
+     until there's no conflict */
+  while (0 != hsh_find (dict->name_tab, d))
+  {
+	const char *suffix = quasi_base27(i++);
+
+        d[SHORT_NAME_LEN -  strlen(suffix) - 1 ] = '_';
+        d[SHORT_NAME_LEN -  strlen(suffix)  ] = '\0';
+	strcat(d, suffix);
+  }
+
+  return d;
+}
+
+
+
+

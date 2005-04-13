@@ -166,7 +166,8 @@ chart_write_title(struct chart *chart, const char *title, ...)
   va_list ap;
   char buf[100];
 
-  assert(chart);
+  if ( ! chart ) 
+	  return ;
 
   pl_savestate_r(chart->lp);
   pl_ffontsize_r(chart->lp,chart->font_size * 1.5);
@@ -250,8 +251,8 @@ chart_write_yscale(struct chart *ch, double smin, double smax, int ticks)
     chart_rounded_tick( (smax - smin) / (double) ticks);
 
 
-  assert (ch) ;
-
+  if ( !ch ) 
+	  return;
 
   ch->y_max = ceil  ( smax / tick_interval ) * tick_interval ; 
   ch->y_min = floor ( smin / tick_interval ) * tick_interval ;

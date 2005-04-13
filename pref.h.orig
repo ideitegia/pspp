@@ -96,3 +96,6 @@
 #ifndef P_tmpdir
 #define P_tmpdir "/tmp"
 #endif
+
+#define SHORT_NAME_LEN 8
+#define LONG_NAME_LEN 64

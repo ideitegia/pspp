@@ -70,8 +70,8 @@ one of the following special characters:
 @item
 @cindex variable names
 @cindex names, variable
-Variable names may be any length, but only the first 8 characters are
-significant.
+Variable names may be up any length up to 64 bytes long.
+
 
 @item
 @cindex case-sensitivity

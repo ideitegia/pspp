@@ -7,7 +7,7 @@ SPSS's transformation language.  Its statistical procedure support is
 currently limited, but growing.
 
 Source code for the latest development release of PSPP is available at
-ftp://alpha.gnu.org/gnu/pspp and ftp://pspp.stat.wisc.edu/pub/PSPP.
+ftp://alpha.gnu.org/gnu/pspp
    
 For information on differences from previous versions, please see file
 NEWS.  Full documentation on PSPP's language and information on known

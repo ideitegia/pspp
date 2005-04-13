@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 
 activity="create program"
-cat > $TEMPDIR/list.stat << foobar
+cat > $TESTFILE << EOF
 *** Single lines.
 data list file='$top_srcdir/tests/weighting.data'/AVAR 1-5 BVAR 6-10.
 weight by BVAR.
@@ -57,16 +57,16 @@ list.
 list /format numbered weight.
 
 *** Multiple lines.
-data list file='$top_srcdir/tests/list.data' notable /X000 to X126 1-127.
+data list file='$top_srcdir/tests/list.data' notable /x000 to x126 1-127.
 *list /cases=from 1 to 25 by 5 /format numbered.
 list x000 to x030.
 list /cases=from 1 to 25.
 
-foobar
+EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/list.stat
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

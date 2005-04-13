@@ -226,6 +226,7 @@ SAVE
         /@{COMPRESSED,UNCOMPRESSED@}
         /DROP=var_list
         /KEEP=var_list
+        /VERSION=version
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
@@ -263,6 +264,12 @@ DROP, KEEP, and RENAME are performed in left-to-right order.  They
 each may be present any number of times.  @cmd{SAVE} never modifies
 the active file.  DROP, KEEP, and RENAME only affect the system file
 written to disk.
+
+The VERSION subcommand specifies the version of the file format. Valid
+versions are '3' and '3x'.  Version 3x system files are identical to
+version 3 files, except that variable names greater than 8 bytes will
+be truncated.  The default version is 3.  The VERSION subcommand is
+optional.  There is no need ever to use it.
 
 @cmd{SAVE} causes the data to be read.  It is a procedure.
 

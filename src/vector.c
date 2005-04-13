@@ -113,7 +113,7 @@ cmd_vector (void)
 	  int ndig;
 
 	  /* Name of an individual variable to be created. */
-	  char name[9];
+	  char name[SHORT_NAME_LEN + 1];
 
           /* Vector variables. */
           struct variable **v;
@@ -131,13 +131,13 @@ cmd_vector (void)
 	  if (!lex_force_match (')'))
 	    goto fail;
 
-	  /* First check that all the generated variable names are 8
+	  /* First check that all the generated variable names are SHORT_NAME_LEN
 	     characters or shorter. */
 	  ndig = intlog10 (nv);
 	  for (cp = vecnames; *cp;)
 	    {
 	      int len = strlen (cp);
-	      if (len + ndig > 8)
+	      if (len + ndig > SHORT_NAME_LEN)
 		{
 		  msg (SE, _("%s%d is too long for a variable name."), cp, nv);
 		  goto fail;

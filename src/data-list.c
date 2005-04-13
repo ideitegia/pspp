@@ -65,7 +65,7 @@ struct dls_var_spec
     int fc, lc;			/* Column numbers in record. */
 
     /* Free format only. */
-    char name[9];		/* Name of variable. */
+    char name[SHORT_NAME_LEN + 1];		/* Name of variable. */
   };
 
 /* Constants for DATA LIST type. */
@@ -841,6 +841,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 
       if (!parse_DATA_LIST_vars (&name, &name_cnt, PV_NONE))
 	return 0;
+
       if (lex_match ('('))
 	{
 	  if (!parse_format_specifier (&input, 0)
@@ -873,6 +874,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 	  struct variable *v;
 
 	  v = dict_create_var (default_dict, name[i], width);
+	  
 	  if (!v)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
@@ -887,7 +889,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
           spec->input = input;
           spec->v = v;
 	  spec->fv = v->fv;
-	  strcpy (spec->name, name[i]);
+	  strcpy (spec->name, v->name);
 	  append_var_spec (first, last, spec);
 	}
       for (i = 0; i < name_cnt; i++)

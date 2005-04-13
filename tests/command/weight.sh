@@ -15,6 +15,7 @@ export STAT_CONFIG_PATH=$top_srcdir/config
 
 cleanup()
 {
+     if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then return ; fi
      rm -rf $TEMPDIR
 }
 
@@ -52,7 +53,7 @@ data list file='$top_srcdir/tests/weighting.data'/AVAR 1-5 BVAR 6-10.
 weight by BVAR.
 
 descriptives AVAR /statistics all /format serial.
-frequencies AVAR /statistics all /format condensed.
+frequencies AVAR /statistics all /format condense.
 
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

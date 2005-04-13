@@ -36,8 +36,8 @@
    then short string missing values can be truncated in system files
    because there's only room for as many characters as can fit in a
    flt64. */
-#if MAX_SHORT_STRING > 8
-#error MAX_SHORT_STRING must be less than 8.
+#if MAX_SHORT_STRING > SHORT_NAME_LEN
+#error MAX_SHORT_STRING must be less than or equal to SHORT_NAME_LEN.
 #endif
 
 /* Special values. */

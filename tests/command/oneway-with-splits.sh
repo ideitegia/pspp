@@ -78,8 +78,8 @@ SPLIT FILE by s.
 ONEWAY
 	quality BY brand
 	/STATISTICS descriptives homogeneity
-	/CONTRASTS =  -2 2
-	/CONTRASTS = -1 1
+	/CONTRAST =  -2 2
+	/CONTRAST = -1 1
 	.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

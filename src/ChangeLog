@@ -1,3 +1,19 @@
+	* var-display.c: New file.
+
+	* format.h var.h sfm-read.c sfm-write.c dictionary.c :  Added 
+	  display_width, measure and alignment parameters to variables.
+
+	* aggregate.c command.def compute.c count.c data-list.c descript.c
+	  dictionary.c dictionary.h expr-prs.c file-type.c flip.c get.c lexer.c
+	  lexer.h loop.c modify-vars.c pfm-read.c recode.c repeat.c sfm-read.c
+	  sfm-write.c sfm-write.h sfmP.h val-labs.c val.h var.h vars-prs.c
+	  vector.c :  
+	    - Replaced literal constants representing maximum variable name 
+	      length with macro definitions. 
+	    - Added support for long variable names.
+	    - Changed lexer such that it no longer makes tokens upper case, but
+	      relies upon case insensitive behaviour of commands.
+
 Mon Apr  4 22:27:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* aggregate.c: (parse_aggregate_functions) If dict_create_var()
@@ -71,6 +87,7 @@ Mon Mar 14 21:05:13 2005  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c: (cmd_flip) Ditto.
 
+>>>>>>> 1.161
 Sun Mar 13 22:52:05 2005  Ben Pfaff  <blp@gnu.org>
 
 	* file-handle.q: (struct file_handle) `open_mode' should not be
@@ -121,6 +138,7 @@ Sun Mar 13 22:35:55 2005  Ben Pfaff  <blp@gnu.org>
 	(initialize_aggregate_info) Fix initialization for MIN, MAX for
 	strings.
 
+>>>>>>> 1.160
 Sat Mar 12 23:26:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	Start work on testing and debugging AGGREGATE.

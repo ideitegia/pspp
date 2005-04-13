@@ -601,7 +601,7 @@ of variable preceding @code{WITH} against variable following
 
 @node ONEWAY, , T-TEST, Statistics
 @comment  node-name,  next,  previous,  up
-@section Oneway
+@section ONEWAY
 
 @vindex ONEWAY
 @cindex analysis of variance

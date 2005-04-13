@@ -166,7 +166,7 @@ static int
 internal_cmd_loop (void)
 {
   /* Name of indexing variable if applicable. */
-  char name[9];
+  char name[SHORT_NAME_LEN + 1];
 
   /* Create and initialize transformations to facilitate
      error-handling. */

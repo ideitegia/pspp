@@ -48,10 +48,10 @@ int token;
 double tokval;
 
 /* T_ID: the identifier. */
-char tokid[9];
+char tokid[LONG_NAME_LEN + 1];
 
 /* T_ID, T_STRING: token string value.
-   For T_ID, this is not truncated to 8 characters as is tokid. */
+   For T_ID, this is not truncated to SHORT_NAME_LEN characters as is tokid. */
 struct string tokstr;
 
 /* Static variables. */
@@ -116,8 +116,8 @@ restore_token (void)
   assert (put_token != 0);
   token = put_token;
   ds_replace (&tokstr, ds_c_str (&put_tokstr));
-  strncpy (tokid, ds_c_str (&put_tokstr), 8);
-  tokid[8] = 0;
+  strncpy (tokid, ds_c_str (&put_tokstr), SHORT_NAME_LEN);
+  tokid[SHORT_NAME_LEN] = 0;
   tokval = put_tokval;
   put_token = 0;
 }
@@ -137,6 +137,8 @@ save_token (void)
 void
 lex_get (void)
 {
+  int i;
+
   /* If a token was pushed ahead, return it. */
   if (put_token)
     {
@@ -354,13 +356,17 @@ lex_get (void)
 	    }
 
 	  /* Copy id to tokstr. */
-	  ds_putc (&tokstr, toupper ((unsigned char) *prog++));
+	  ds_putc (&tokstr, *prog++);
 	  while (CHAR_IS_IDN (*prog))
-	    ds_putc (&tokstr, toupper ((unsigned char) *prog++));
+	    ds_putc (&tokstr, *prog++);
 
-	  /* Copy tokstr to tokid, truncating it to 8 characters. */
-	  strncpy (tokid, ds_c_str (&tokstr), 8);
-	  tokid[8] = 0;
+	  /* Copy tokstr to tokid, truncating it to LONG_NAME_LEN characters.*/
+	  strncpy (tokid, ds_c_str (&tokstr), LONG_NAME_LEN);
+	  tokid[LONG_NAME_LEN] = 0;
+
+	  /* Convert to upper case */
+	  for ( i = 0 ; i < ds_length(&tokstr) ; ++i ) 
+		  tokstr.string[i] = toupper(tokstr.string[i]);
 
 	  token = lex_id_to_token (ds_c_str (&tokstr), ds_length (&tokstr));
 	  break;
@@ -714,8 +720,8 @@ lex_put_back_id (const char *id)
   save_token ();
   token = T_ID;
   ds_replace (&tokstr, id);
-  strncpy (tokid, ds_c_str (&tokstr), 8);
-  tokid[8] = 0;
+  strncpy (tokid, ds_c_str (&tokstr), SHORT_NAME_LEN);
+  tokid[SHORT_NAME_LEN] = 0;
 }
 
 /* Weird line processing functions. */

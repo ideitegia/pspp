@@ -20,13 +20,17 @@ TESTS = \
 	command/lag.sh \
 	command/list.sh \
 	command/loop.sh \
+	command/longvars.sh \
 	command/oneway.sh \
 	command/oneway-missing.sh \
 	command/oneway-with-splits.sh \
 	command/permissions.sh \
 	command/print.sh \
+	command/rename.sh \
 	command/sample.sh \
 	command/sort.sh \
+	command/sysfiles.sh \
+	command/sysfiles-old.sh \
 	command/split-file.sh \
 	command/t-test-1-indep-val.sh \
 	command/t-test-1-sample-missing-anal.sh \
@@ -71,6 +75,7 @@ TESTS = \
 	bugs/val-labs-trailing-slash.sh \
 	bugs/recode-copy-bug.sh \
 	bugs/computebug.sh \
+	bugs/compute-lv.sh \
 	bugs/temp-freq.sh \
 	xforms/casefile.sh \
 	stats/descript-basic.sh \

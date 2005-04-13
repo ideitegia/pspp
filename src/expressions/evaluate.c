@@ -127,7 +127,7 @@ cmd_debug_evaluate (void)
         dump_postfix = 1;
       else if (lex_match ('('))
         {
-          char name[MAX_VAR_NAME_LEN + 1];
+          char name[LONG_NAME_LEN + 1];
           struct variable *v;
           size_t old_value_cnt;
           int width;

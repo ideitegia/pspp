@@ -249,11 +249,11 @@ var_is_valid_name (const char *name, bool issue_error)
         msg (SE, _("Variable names must be at least 1 character long."));
       return false;
     }
-  else if (length > MAX_VAR_NAME_LEN) 
+  else if (length > SHORT_NAME_LEN) 
     {
       if (issue_error)
         msg (SE, _("Variable name %s exceeds %d-character limit."),
-             (int) MAX_VAR_NAME_LEN);
+             (int) SHORT_NAME_LEN);
       return false;
     }
 

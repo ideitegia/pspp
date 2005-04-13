@@ -17,7 +17,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
    02111-1307, USA. */
 
-#include <config.h>
+#include "config.h"
 #include "error.h"
 #include <ctype.h>
 #include <errno.h>
@@ -34,14 +34,16 @@
 #include "misc.h"
 #include "settings.h"
 #include "str.h"
+#include "val.h"
 #include "var.h"
 #include "vfm.h"
+
 
 /* List of variable names. */
 struct varname
   {
     struct varname *next;
-    char name[9];
+    char name[SHORT_NAME_LEN + 1];
   };
 
 /* Represents a FLIP input program. */
@@ -204,8 +206,8 @@ make_new_var (char name[])
 
   /* Add numeric extensions until acceptable. */
   {
-    int len = (int) strlen (name);
-    char n[9];
+    const int len = (int) strlen (name);
+    char n[SHORT_NAME_LEN + 1];
     int i;
 
     for (i = 1; i < 10000000; i++)
@@ -242,7 +244,7 @@ build_dictionary (struct flip_pgm *flip)
       for (i = 0; i < flip->case_cnt; i++)
 	{
           struct variable *v;
-	  char s[9];
+	  char s[SHORT_NAME_LEN + 1];
 
 	  sprintf (s, "VAR%03d", i);
 	  v = dict_create_var_assert (default_dict, s, 0);
@@ -283,7 +285,7 @@ flip_sink_create (struct flip_pgm *flip)
 
   /* Write variable names as first case. */
   for (i = 0; i < flip->var_cnt; i++) 
-    st_bare_pad_copy (info->output_buf[i].s, flip->var[i]->name, 8);
+    st_bare_pad_copy (info->output_buf[i].s, flip->var[i]->name, MAX_SHORT_STRING);
   if (fwrite (info->output_buf, sizeof *info->output_buf,
               flip->var_cnt, flip->file) != (size_t) flip->var_cnt)
     msg (FE, _("Error writing FLIP file: %s."), strerror (errno));
@@ -321,13 +323,13 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
             {
               char name[INT_DIGITS + 2];
               sprintf (name, "V%d", (int) f);
-              strncpy (v->name, name, 8);
-              name[8] = 0; 
+              strncpy (v->name, name, SHORT_NAME_LEN);
+              name[SHORT_NAME_LEN] = 0; 
             }
         }
       else
 	{
-	  int width = min (flip->new_names->width, 8);
+	  int width = min (flip->new_names->width, MAX_SHORT_STRING);
 	  memcpy (v->name, case_str (c, flip->idx_to_fv[flip->new_names->index]),
                   width);
 	  v->name[width] = 0;

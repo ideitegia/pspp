@@ -18,6 +18,9 @@ several utility functions for examining and adjusting them.
 * VALUE LABELS::                Set value labels for variables.
 * STRING::                      Create new string variables.
 * VARIABLE LABELS::             Set variable labels for variables.
+* VARIABLE ALIGNMENT::          Set the alignment for display.
+* VARIABLE WIDTH::              Set the display width.
+* VARIABLE LEVEL::              Set the measurement level.
 * VECTOR::                      Declare an array of variables.
 * WRITE FORMATS::               Set variable write formats.
 @end menu
@@ -335,24 +338,91 @@ implicitly derived from the specified output formats.
 
 Created variables are initialized to spaces.
 
-@node VARIABLE LABELS, VECTOR, STRING, Variable Attributes
+
+@node VARIABLE LABELS, VARIABLE ALIGNMENT, STRING, Variable Attributes
 @section VARIABLE LABELS
 @vindex VARIABLE LABELS
 
 @display
 VARIABLE LABELS
-        /var_list 'var_label'.
+        var_list 'var_label' 
+        [ /var_list 'var_label']
+        .
+        .
+        .
+        [ /var_list 'var_label']
 @end display
 
 @cmd{VARIABLE LABELS} associates explanatory names
 with variables.  This name, called a @dfn{variable label}, is displayed by
 statistical procedures.
 
-To assign a variable label to a group of variables, specify a slash
-(@samp{/}), followed by the list of variable names and the variable
-label as a string.
+To assign a variable label to a group of variables, specify a 
+list of variable names and the variable label as a string.
+To assign different labels to different variables in the same command, 
+preceed the subsequent variable list with a slash (@samp{/}).
 
-@node VECTOR, WRITE FORMATS, VARIABLE LABELS, Variable Attributes
+
+@node VARIABLE ALIGNMENT, VARIABLE WIDTH, VARIABLE LABELS, Variable Attributes
+@comment  node-name,  next,  previous,  u
+@section VARIABLE ALIGNMENT
+@vindex VARIABLE ALIGNMENT
+
+@display
+VARIABLE ALIGNMENT
+        var_list ( LEFT | RIGHT | CENTER )
+        [ /var_list ( LEFT | RIGHT | CENTER ) ]
+        .
+        .
+        .
+        [ /var_list ( LEFT | RIGHT | CENTER ) ]
+@end display
+
+@cmd{VARIABLE ALIGNMENT} sets the alignment of variables for display editing 
+purposes.   This only has effect for third party software.  It does not affect 
+the display of variables in the PSPP output.
+
+
+
+
+@node VARIABLE WIDTH, VARIABLE LEVEL, VARIABLE ALIGNMENT, Variable Attributes
+@comment  node-name,  next,  previous,  up
+@section VARIABLE WIDTH
+@vindex VARIABLE WIDTH
+@display
+VARIABLE WIDTH
+        var_list (width)
+        [ /var_list (width) ] 
+        .
+        .
+        .
+        [ /var_list (width) ] 
+@end display
+
+@cmd{VARIABLE WIDTH} sets the column width of variables for display editing
+purposes.   This only affects third party software.  It does not affect 
+the display of variables in the PSPP output.
+
+
+@node VARIABLE LEVEL, VECTOR, VARIABLE WIDTH, Variable Attributes
+@comment  node-name,  next,  previous,  up
+@section VARIABLE LEVEL
+@vindex VARIABLE LEVEL
+@display
+VARIABLE LEVEL
+        var_list ( SCALE | NOMINAL | ORDINAL )
+        [ /var_list ( SCALE | NOMINAL | ORDINAL ) ]
+        .
+        .
+        .
+        [ /var_list ( SCALE | NOMINAL | ORDINAL ) ]
+@end display
+
+@cmd{VARIABLE LEVEL} sets the measurement level of  variables.
+Currently, this has no effect except for certain third party software.
+
+
+@node VECTOR, WRITE FORMATS, VARIABLE LEVEL, Variable Attributes
 @section VECTOR
 @vindex VECTOR
 
@@ -373,7 +443,7 @@ To make a vector and create variables at the same time, specify one or
 more vector names followed by a count in parentheses.  This will cause
 variables named @code{@var{vec}1} through @code{@var{vec}@var{count}}
 to be created as numeric variables with print and write format F8.2.
-Variable names including numeric suffixes may not exceed 8 characters
+Variable names including numeric suffixes may not exceed 64 characters
 in length, and none of the variables may exist prior to @cmd{VECTOR}.
 
 All the variables in a vector must be the same type.
@@ -385,6 +455,9 @@ Variables}).
 
 Variables within a vector may be referenced in expressions using
 @code{vector(index)} syntax.
+
+
+
 
 @node WRITE FORMATS,  , VECTOR, Variable Attributes
 @section WRITE FORMATS

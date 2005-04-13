@@ -39,6 +39,9 @@ void
 histogram_write_legend(struct chart *ch, const struct normal_curve *norm)
 {
   char buf[100];
+  if ( !ch )
+	  return ;
+
   pl_savestate_r(ch->lp);
 
   sprintf(buf,"N = %.2f",norm->N);
@@ -66,6 +69,8 @@ hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
   double lower;
   double height;
 
+  if ( !ch ) 
+	  return ;
   const size_t bins = gsl_histogram_bins(hist);
   const double x_pos = (ch->data_right - ch->data_left) * bar / (double) bins ;
   const double width = (ch->data_right - ch->data_left) / (double) bins ;

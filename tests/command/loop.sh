@@ -48,15 +48,15 @@ cd $TEMPDIR
 
 activity="create prog"
 cat > $TEMPDIR/loop.stat <<EOF
-data list /x 1 y 2 z 3.
+data list /x 1 y 2 zoological 3.
 begin data.
 125
 256
 397
 401
 end data.
-loop i=y to z by abs(z-y)/(z-y).
-print /x i.
+loop iterative_Variable=y to zoological by abs(zoological-y)/(zoological-y).
+print /x iterative_Variable.
 break.		/* Generates warning.
 end loop.
 execute.
@@ -81,7 +81,7 @@ diff -B -b $TEMPDIR/pspp.list  - <<EOF
 #========#======#=======#======#
 |X       |     1|  1-  1|F1.0  |
 |Y       |     1|  2-  2|F1.0  |
-|Z       |     1|  3-  3|F1.0  |
+|ZOOLOGIC|     1|  3-  3|F1.0  |
 +--------+------+-------+------+
 1     2.00 
 2     5.00 

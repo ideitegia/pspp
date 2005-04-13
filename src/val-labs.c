@@ -113,7 +113,7 @@ verify_val_labs (struct variable **vars, int var_cnt)
     {
       struct variable *vp = vars[i];
 
-      if (vp->type == ALPHA && vp->width > 8)
+      if (vp->type == ALPHA && vp->width > MAX_SHORT_STRING)
 	{
 	  msg (SE, _("It is not possible to assign value labels to long "
 		     "string variables such as %s."), vp->name);

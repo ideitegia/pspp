@@ -75,8 +75,8 @@ VALUE LABELS /brand 1 'Aspeger' 2 'Bloggs' 3 'Charlies'.
 ONEWAY
 	quality BY brand
 	/STATISTICS descriptives homogeneity
-	/CONTRASTS =  -2 1 1 
-	/CONTRASTS = 0 -1 1
+	/CONTRAST =  -2 1 1 
+	/CONTRAST = 0 -1 1
 	.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

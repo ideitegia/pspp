@@ -421,10 +421,11 @@ fh_init(void)
 void 
 fh_done(void)
 {
-  assert(handle_list);
-  
-  ll_destroy(handle_list);
-  handle_list = 0;
+  if ( handle_list )  
+  {
+    ll_destroy(handle_list);
+    handle_list = 0;
+  }
 }
 
 

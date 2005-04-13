@@ -40,7 +40,7 @@
 struct repeat_entry
   {
     int type;			/* 1=variable names, 0=any other. */
-    char id[9];			/* Macro identifier. */
+    char id[SHORT_NAME_LEN + 1];	/* Macro identifier. */
     char **replacement;		/* Macro replacement. */
     struct repeat_entry *next;
   };
@@ -125,7 +125,7 @@ static int
 internal_cmd_do_repeat (void)
 {
   /* Name of first DO REPEAT macro. */
-  char first_name[9];
+  char first_name[SHORT_NAME_LEN + 1];
 
   /* Current filename. */
   const char *current_filename = NULL;
@@ -553,12 +553,12 @@ perform_DO_REPEAT_substitutions (void)
 
       /* Collect an identifier. */
       {
-	char name[9];
+	char name[SHORT_NAME_LEN + 1];
 	char *start = cp;
 	char *np = name;
 	char *substitution;
 
-	while (CHAR_IS_IDN (*cp) && np < &name[8])
+	while (CHAR_IS_IDN (*cp) && np < &name[SHORT_NAME_LEN])
 	  *np++ = *cp++;
 	while (CHAR_IS_IDN (*cp))
 	  cp++;

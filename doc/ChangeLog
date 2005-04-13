@@ -1,3 +1,8 @@
+	* variables.texi: Corrected the entry for VARIABLE LABELS
+
+	* data-file-format.texi: Added documentation about the Long Variable 
+	  Names record.
+	
 Thu Mar  3 22:06:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* expressions.texi:  corrected some mismatched parentheses.

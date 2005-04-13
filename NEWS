@@ -5,6 +5,13 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
+Preliminary list of changes from 0.3.1  to 0.3.2:
+
+  PSPP now reads and writes system files compatible with spssV12.
+
+  New commands:   VARIABLE WIDTH, VARIABLE ALIGNMENT, VARIABLE LEVEL.
+
+
 Preliminary list of changes from 0.3.0 to 0.3.1:
 
   New build dependencies:
@@ -15,6 +22,7 @@ Preliminary list of changes from 0.3.0 to 0.3.1:
 
     * libplot from GNU plotutils is optional; without it, the new
       graphing features will not work.
+
 
   Newly implemented commands and statistical features:
 
@@ -28,7 +36,9 @@ Preliminary list of changes from 0.3.0 to 0.3.1:
 
     * PERMISSIONS.
 
-    * T-TEST.
+    * SHOW.
+
+    * T-TEST (re-written).
 
     * USE (as a stub, to enhance compatibility).
 
@@ -50,6 +60,8 @@ Preliminary list of changes from 0.3.0 to 0.3.1:
 
   Much of the code has been rewritten and refactored.  It is now much
   cleaner.
+
+  lib/julcal has been removed.
 
   For developers, the build system now requires Autoconf 2.58 and
   Automake 1.7.  The included gettext has been updated to version

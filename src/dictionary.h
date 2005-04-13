@@ -39,10 +39,15 @@ void dict_get_vars (const struct dictionary *,
 
 struct variable *dict_create_var (struct dictionary *, const char *,
                                   int width);
+
+struct variable *dict_create_var_from_short (struct dictionary *d, 
+					     const char *shortname, 
+					     int width);
+
 struct variable *dict_create_var_assert (struct dictionary *, const char *,
                                   int width);
 struct variable *dict_clone_var (struct dictionary *, const struct variable *,
-                                 const char *);
+                                 const char *shortname, const char *longname);
 void dict_rename_var (struct dictionary *, struct variable *, const char *);
 
 struct variable *dict_lookup_var (const struct dictionary *, const char *);
@@ -99,5 +104,13 @@ size_t dict_get_vector_cnt (const struct dictionary *);
 const struct vector *dict_lookup_vector (const struct dictionary *,
                                          const char *name);
 void dict_clear_vectors (struct dictionary *);
+
+void dict_get_varname_block(const struct dictionary *dict, char **buf, int *size);
+
+void dict_add_longvar_entry(struct dictionary *d, const char *name, 
+			    const char *longname);
+
+
+
 
 #endif /* dictionary.h */
