@@ -32,6 +32,7 @@
  * Cornish-Fisher type," Annals of Mathematical Statistics, volume 39, number 8,
  * August 1968, pages 1264-1273.
  */
+
 #include <config.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
@@ -41,7 +42,7 @@
 #include <gsl/gsl_randist.h>
 #include "gsl-extras.h"
 
-#define BETAINV_INIT_ERR .01
+#define BETAINV_INIT_ERR .001
 #define BETADISTINV_N_TERMS 3
 #define BETADISTINV_MAXITER 20
 
@@ -390,7 +391,7 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
   err = beta_result - p;
   abserr = fabs(err);
   relerr = abserr / p;
-  while ( relerr > BETAINV_INIT_ERR && n_iter < 100)
+  while ( relerr > BETAINV_INIT_ERR)
     {
       tmp = new_guess_P ( state, lower, upper, 
 			  p, a, b);
@@ -430,6 +431,19 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
 	{
 	  result = state;
 	  min_err = relerr;
+	}
+      else
+	{
+	  /*
+	   * Lagrange polynomial failed to reduce the error.
+	   * This will happen with a very skewed beta density. 
+	   * Undo previous steps.
+	   */
+	  state = result;
+	  beta_result = gsl_cdf_beta_P(state,a,b);
+	  err = p - beta_result;
+	  abserr = fabs(err);
+	  relerr = abserr / p;
 	}
     }
 
@@ -581,7 +595,7 @@ gslextras_cdf_beta_Qinv (double q, double a, double b)
   err = beta_result - q;
   abserr = fabs(err);
   relerr = abserr / q;
-  while ( relerr > BETAINV_INIT_ERR && n_iter < 100)
+  while ( relerr > BETAINV_INIT_ERR)
     {
       n_iter++;
       tmp = new_guess_Q ( state, lower, upper, 
@@ -621,6 +635,19 @@ gslextras_cdf_beta_Qinv (double q, double a, double b)
 	{
 	  result = state;
 	  min_err = relerr;
+	}
+      else
+	{
+	  /*
+	   * Lagrange polynomial failed to reduce the error.
+	   * This will happen with a very skewed beta density. 
+	   * Undo previous steps.
+	   */
+	  state = result;
+	  beta_result = gsl_cdf_beta_P(state,a,b);
+	  err = q - beta_result;
+	  abserr = fabs(err);
+	  relerr = abserr / q;
 	}
     }
 
