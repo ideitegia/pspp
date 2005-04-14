@@ -1,18 +1,20 @@
-	* var-display.c: New file.
+Thu Apr 14 2005 John Darrington
+
+        * var-display.c: New file.
 
 	* format.h var.h sfm-read.c sfm-write.c dictionary.c :  Added 
 	  display_width, measure and alignment parameters to variables.
 
 	* aggregate.c command.def compute.c count.c data-list.c descript.c
-	  dictionary.c dictionary.h expr-prs.c file-type.c flip.c get.c lexer.c
-	  lexer.h loop.c modify-vars.c pfm-read.c recode.c repeat.c sfm-read.c
-	  sfm-write.c sfm-write.h sfmP.h val-labs.c val.h var.h vars-prs.c
-	  vector.c :  
-	    - Replaced literal constants representing maximum variable name 
-	      length with macro definitions. 
-	    - Added support for long variable names.
-	    - Changed lexer such that it no longer makes tokens upper case, but
-	      relies upon case insensitive behaviour of commands.
+	  dictionary.c dictionary.h expr-prs.c file-type.c flip.c get.c 
+	  lexer.c lexer.h loop.c modify-vars.c pfm-read.c recode.c repeat.c 
+	  sfm-read.c sfm-write.c sfm-write.h sfmP.h val-labs.c val.h var.h 
+	  vars-prs.c vector.c :  
+	      - Replaced literal constants representing maximum variable name 
+	        length with macro definitions. 
+	      - Added support for long variable names.
+	      - Changed lexer such that it no longer makes tokens upper
+	      	case, but relies upon case insensitive behaviour of commands.
 
 Mon Apr  4 22:27:34 2005  Ben Pfaff  <blp@gnu.org>
 

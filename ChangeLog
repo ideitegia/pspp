@@ -1,3 +1,5 @@
+Thu Apr 14 2005 John Darrington
+
 	* AUTHORS:  Added note about the long variable names extension.
 
 	* pref.h.orig: Added definitions for variable names lengths.
