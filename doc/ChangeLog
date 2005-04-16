@@ -1,3 +1,8 @@
+Fri Apr 15 18:35:42 2005  Ben Pfaff  <blp@gnu.org>
+
+	* pspp.texinfo: Change manual license to GNU FDL, pursuant to
+	advice in maintainers' guide.
+
 Thur Apr 14 2005 John Darrington
 
 	* variables.texi: Corrected the entry for VARIABLE LABELS
