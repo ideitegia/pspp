@@ -1,3 +1,15 @@
+Sun Apr 17 16:38:00 2005  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.stat, data-fmts.stat, do-if.stat, do-repeat.stat,
+	gengarbage.c, inpt-pgm.stat, mdfy-vars.stat, means.stat,
+	mtch-file.stat, pcs-if.stat, recode.stat, repeating.stat,
+	reread.data, reread.stat, sys-info.stat, t-test.stat,
+	temporary.stat, time-date.stat, vector.stat: Removed because they
+	were unused.
+
+	* Makefile.am: Removed sort.data references.  Fixed up
+	DISTCLEANFILES.
+
 Sun Mar 20 14:16:31 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/aggregate.sh: Rewrite.

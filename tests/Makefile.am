@@ -91,12 +91,6 @@ TESTS = \
 	expressions/variables.sh \
 	expressions/vectors.sh
 
-noinst_PROGRAMS = gengarbage
-
-noinst_DATA = sort.data
-sort.data: gengarbage$(EXTEXT)
-	./gengarbage | head -1000 > $@
-
 EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data \
 	bugs/computebug.stat bugs/computebug.out \
 	bugs/recode-copy-bug-1.stat bugs/recode-copy-bug-2.stat \
@@ -118,7 +112,6 @@ EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data \
 	expressions/randist/uniform.out \
 	expressions/randist/weibull.out
 
-DISTCLEANFILES = *.save sort.data pspp.* foo* msgs *.actual
+DISTCLEANFILES = *.save pspp.* foo*
 
 MAINTAINERCLEANFILES = Makefile.in
-
