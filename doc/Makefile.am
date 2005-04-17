@@ -25,7 +25,8 @@ pspp_TEXINFOS = version.texi \
 	statistics.texi \
 	transformation.texi \
 	utilities.texi \
-	variables.texi
+	variables.texi \
+	fdl.texi
 
 EXTRA_DIST = pspp.man \
 	$(pspp_TEXINFOS)
