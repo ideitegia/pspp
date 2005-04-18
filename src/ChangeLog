@@ -1,3 +1,26 @@
+Sun Apr 17 23:08:15 2005  Ben Pfaff  <blp@gnu.org>
+
+	Start work on fixing MATCH FILES.
+
+	* get.c: (enum operation) Remove OP_MATCH.
+	(trim_dictionary) Change return value to bool.  Don't support
+	OP_MATCH.
+	(struct mtf_file) Remove `first', `last' members.
+	(struct mtf_proc) Add `first', `last' members.  Change mtf_case
+	from `struct ccase *' to `struct ccase'.  Remove `by' member.
+	(cmd_match_files) Essentially rewrite.
+	(mtf_free) Don't free `by' member.  Destroy `mtf_case' member.
+	(mtf_read_nonactive_records) mtf_ parameter is not unused.
+	(mtf_processing) Ditto.  Also rephrase some code.
+	(mtf_merge_dictionary) Rewrite for easy comprehension.	
+
+Sun Apr 17 23:06:00 2005  Ben Pfaff  <blp@gnu.org>
+
+	* matrix-data.c: (wr_output_data) [DEBUGGING] Fix compilation
+	error.
+
+	* q2c.c: (dump_token) [DEBUGGING] Fix compilation error.
+	
 Thu Apr 14 2005 John Darrington
 
         * var-display.c: New file.

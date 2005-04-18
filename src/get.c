@@ -54,12 +54,11 @@ enum operation
   {
     OP_READ,    /* GET or IMPORT. */
     OP_SAVE,    /* SAVE or XSAVE. */
-    OP_EXPORT,  /* EXPORT. */
-    OP_MATCH    /* MATCH FILES. */
+    OP_EXPORT   /* EXPORT. */
   };
 
-static int trim_dictionary (struct dictionary *,
-                            enum operation, int *compress);
+static bool trim_dictionary (struct dictionary *,
+                             enum operation, int *compress);
 
 /* GET input program. */
 struct get_pgm 
@@ -368,9 +367,8 @@ static int rename_variables (struct dictionary *dict);
    write a system file, *COMPRESS is set to 1 if the system file
    should be compressed, 0 otherwise.
    
-   Returns nonzero on success, zero on failure. */
-/* FIXME: IN, FIRST, LAST, MAP. */
-static int
+   Returns true on success, false on failure. */
+static bool
 trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
 {
   assert ((compress != NULL) == (op == OP_SAVE));
@@ -393,7 +391,7 @@ trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
       free (v);
     }
   
-  while (op == OP_MATCH || lex_match ('/'))
+  while (lex_match ('/'))
     {
       if (op == OP_SAVE && lex_match_id ("COMPRESSED"))
 	*compress = 1;
@@ -406,7 +404,7 @@ trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
 
 	  lex_match ('=');
 	  if (!parse_variables (dict, &v, &nv, PV_NONE))
-	    return 0;
+	    return false;
           dict_delete_vars (dict, v, nv);
           free (v);
 	}
@@ -418,7 +416,7 @@ trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
 
 	  lex_match ('=');
 	  if (!parse_variables (dict, &v, &nv, PV_NONE))
-	    return 0;
+	    return false;
 
           /* Move the specified variables to the beginning. */
           dict_reorder_vars (dict, v, nv);
@@ -433,34 +431,26 @@ trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
       else if (lex_match_id ("RENAME"))
 	{
 	  if (!rename_variables (dict))
-	    return 0;
+	    return false;
 	}
       else
 	{
 	  lex_error (_("while expecting a valid subcommand"));
-	  return 0;
+	  return false;
 	}
 
       if (dict_get_var_cnt (dict) == 0)
 	{
 	  msg (SE, _("All variables deleted from system file dictionary."));
-	  return 0;
+	  return false;
 	}
-
-      if (op == OP_MATCH)
-        goto success;
     }
 
-  if (token != '.')
-    {
-      lex_error (_("expecting end of command"));
-      return 0;
-    }
+  if (!lex_end_of_command ())
+    return false;
 
- success:
-  if (op != OP_MATCH)
-    dict_compact_values (dict);
-  return 1;
+  dict_compact_values (dict);
+  return true;
 }
 
 /* Parses and performs the RENAME subcommand of GET and SAVE. */
@@ -660,9 +650,8 @@ struct mtf_file
     struct file_handle *handle; /* File handle. */
     struct sfm_reader *reader;  /* System file reader. */
     struct dictionary *dict;	/* Dictionary from system file. */
-    char in[SHORT_NAME_LEN + 1];    /* Name of the variable from IN=. */
-    char first[SHORT_NAME_LEN + 1];
-    char last[SHORT_NAME_LEN + 1];	/* Name of the variables from FIRST=, LAST=. */
+    char in[SHORT_NAME_LEN + 1]; /* Name of the variable from IN=. */
+
     struct ccase input;         /* Input record. */
   };
 
@@ -672,12 +661,14 @@ struct mtf_proc
     struct mtf_file *head;      /* First file mentioned on FILE or TABLE. */
     struct mtf_file *tail;      /* Last file mentioned on FILE or TABLE. */
     
-    struct variable **by;       /* Variables on the BY subcommand. */
     size_t by_cnt;              /* Number of variables on BY subcommand. */
 
+    /* Names of FIRST, LAST variables. */
+    char first[SHORT_NAME_LEN + 1], last[SHORT_NAME_LEN + 1];
+    
     struct dictionary *dict;    /* Dictionary of output file. */
     struct case_sink *sink;     /* Sink to receive output. */
-    struct ccase *mtf_case;     /* Case used for output. */
+    struct ccase mtf_case;      /* Case used for output. */
 
     unsigned seq_num;           /* Have we initialized this variable? */
     unsigned *seq_nums;         /* Sequence numbers for each var in dict. */
@@ -703,212 +694,209 @@ cmd_match_files (void)
 {
   struct mtf_proc mtf;
   struct mtf_file *first_table = NULL;
-  struct mtf_file *iter;
   
-  int seen = 0;
+  bool used_active_file = false;
+  bool saw_table = false;
   
   mtf.head = mtf.tail = NULL;
-  mtf.by = NULL;
   mtf.by_cnt = 0;
+  mtf.first[0] = '\0';
+  mtf.last[0] = '\0';
   mtf.dict = dict_create ();
   mtf.sink = NULL;
-  mtf.mtf_case = NULL;
+  case_nullify (&mtf.mtf_case);
   mtf.seq_num = 0;
   mtf.seq_nums = NULL;
   dict_set_case_limit (mtf.dict, dict_get_case_limit (default_dict));
-  
-  do
+
+  lex_match ('/');
+  while (lex_id_match ("FILE", tokid) || lex_id_match ("TABLE", tokid)) 
     {
-      lex_match ('/');
+      struct mtf_file *file = xmalloc (sizeof *file);
 
-      if (lex_match (T_BY))
-	{
-	  if (seen & 1)
-	    {
-	      msg (SE, _("The BY subcommand may be given once at most."));
-	      goto error;
-	    }
-	  seen |= 1;
-	      
-	  lex_match ('=');
-	  if (!parse_variables (mtf.dict, &mtf.by, &mtf.by_cnt,
-				PV_NO_DUPLICATE | PV_NO_SCRATCH))
-	    goto error;
-	}
-      else if (token != T_ID)
-	{
-	  lex_error (NULL);
-	  goto error;
-	}
-      else if (lex_id_match ("FILE", tokid) || lex_id_match ("TABLE", tokid))
-	{
-	  struct mtf_file *file = xmalloc (sizeof *file);
+      if (lex_match_id ("FILE"))
+        file->type = MTF_FILE;
+      else if (lex_match_id ("TABLE"))
+        {
+          file->type = MTF_TABLE;
+          saw_table = true;
+        }
+      else
+        assert (0);
 
-	  if (lex_match_id ("FILE"))
-	    file->type = MTF_FILE;
-	  else if (lex_match_id ("TABLE"))
-	    {
-	      file->type = MTF_TABLE;
-	      seen |= 4;
-	    }
-	  else
-	    assert (0);
+      file->by = NULL;
+      file->handle = NULL;
+      file->reader = NULL;
+      file->dict = NULL;
+      file->in[0] = '\0';
+      case_nullify (&file->input);
 
-	  file->by = NULL;
+      /* FILEs go first, then TABLEs. */
+      if (file->type == MTF_TABLE || first_table == NULL)
+        {
+          file->next = NULL;
+          file->prev = mtf.tail;
+          if (mtf.tail)
+            mtf.tail->next = file;
+          mtf.tail = file;
+          if (mtf.head == NULL)
+            mtf.head = file;
+          if (file->type == MTF_TABLE && first_table == NULL)
+            first_table = file;
+        }
+      else 
+        {
+          assert (file->type == MTF_FILE);
+          file->next = first_table;
+          file->prev = first_table->prev;
+          if (first_table->prev)
+            first_table->prev->next = file;
+          else
+            mtf.head = file;
+          first_table->prev = file;
+        }
+	  
+      lex_match ('=');
+	  
+      if (lex_match ('*'))
+        {
           file->handle = NULL;
           file->reader = NULL;
-	  file->dict = NULL;
-	  file->in[0] = '\0';
-          file->first[0] = '\0';
-          file->last[0] = '\0';
-          case_nullify (&file->input);
-
-	  /* FILEs go first, then TABLEs. */
-	  if (file->type == MTF_TABLE || first_table == NULL)
-	    {
-	      file->next = NULL;
-	      file->prev = mtf.tail;
-	      if (mtf.tail)
-		mtf.tail->next = file;
-	      mtf.tail = file;
-	      if (mtf.head == NULL)
-		mtf.head = file;
-	      if (file->type == MTF_TABLE && first_table == NULL)
-		first_table = file;
-	    }
-	  else 
-	    {
-	      assert (file->type == MTF_FILE);
-	      file->next = first_table;
-	      file->prev = first_table->prev;
-	      if (first_table->prev)
-		first_table->prev->next = file;
-	      else
-		mtf.head = file;
-	      first_table->prev = file;
-	    }
-	  
-	  lex_match ('=');
-	  
-	  if (lex_match ('*'))
-	    {
-              file->handle = NULL;
-	      file->reader = NULL;
               
-	      if (seen & 2)
-		{
-		  msg (SE, _("The active file may not be specified more "
-			     "than once."));
-		  goto error;
-		}
-	      seen |= 2;
-
-	      assert (pgm_state != STATE_INPUT);
-	      if (pgm_state == STATE_INIT)
-		{
-		  msg (SE, _("Cannot specify the active file since no active "
-			     "file has been defined."));
-		  goto error;
-		}
-
-              if (temporary != 0)
-                {
-                  msg (SE,
-                       _("MATCH FILES may not be used after TEMPORARY when "
-                         "the active file is an input source.  "
-                         "Temporary transformations will be made permanent."));
-                  cancel_temporary (); 
-                }
-
-              file->dict = default_dict;
-	    }
-	  else
-	    {
-              file->handle = fh_parse ();
-	      if (file->handle == NULL)
-		goto error;
-
-              file->reader = sfm_open_reader (file->handle, &file->dict, NULL);
-              if (file->reader == NULL)
-                goto error;
-
-              case_create (&file->input, dict_get_next_value_idx (file->dict));
-	    }
-	}
-      else if (lex_id_match ("IN", tokid)
-	       || lex_id_match ("FIRST", tokid)
-	       || lex_id_match ("LAST", tokid))
-	{
-	  const char *sbc;
-	  char *name;
-	  
-	  if (mtf.tail == NULL)
-	    {
-	      msg (SE, _("IN, FIRST, and LAST subcommands may not occur "
-			 "before the first FILE or TABLE."));
-	      goto error;
-	    }
-
-	  if (lex_match_id ("IN"))
-	    {
-	      name = mtf.tail->in;
-	      sbc = "IN";
-	    }
-	  else if (lex_match_id ("FIRST"))
-	    {
-	      name = mtf.tail->first;
-	      sbc = "FIRST";
-	    }
-	  else if (lex_match_id ("LAST"))
-	    {
-	      name = mtf.tail->last;
-	      sbc = "LAST";
-	    }
-	  else 
+          if (used_active_file)
             {
-              assert (0);
-              abort ();
+              msg (SE, _("The active file may not be specified more "
+                         "than once."));
+              goto error;
+            }
+          used_active_file = true;
+
+          assert (pgm_state != STATE_INPUT);
+          if (pgm_state == STATE_INIT)
+            {
+              msg (SE, _("Cannot specify the active file since no active "
+                         "file has been defined."));
+              goto error;
             }
 
-	  lex_match ('=');
-	  if (token != T_ID)
-	    {
-	      lex_error (NULL);
-	      goto error;
-	    }
+          if (temporary != 0)
+            {
+              msg (SE,
+                   _("MATCH FILES may not be used after TEMPORARY when "
+                     "the active file is an input source.  "
+                     "Temporary transformations will be made permanent."));
+              cancel_temporary (); 
+            }
 
-	  if (*name)
-	    {
-	      msg (SE, _("Multiple %s subcommands for a single FILE or "
-			 "TABLE."),
-		   sbc);
-	      goto error;
-	    }
-	  strcpy (name, tokid);
-	  lex_get ();
+          file->dict = default_dict;
+        }
+      else
+        {
+          file->handle = fh_parse ();
+          if (file->handle == NULL)
+            goto error;
 
-	  if (!dict_create_var (mtf.dict, name, 0))
-	    {
-	      msg (SE, _("Duplicate variable name %s while creating %s "
-			 "variable."),
-		   name, sbc);
-	      goto error;
-	    }
-	}
-      else if (lex_id_match ("RENAME", tokid)
-	       || lex_id_match ("KEEP", tokid)
-	       || lex_id_match ("DROP", tokid))
+          file->reader = sfm_open_reader (file->handle, &file->dict, NULL);
+          if (file->reader == NULL)
+            goto error;
+
+          case_create (&file->input, dict_get_next_value_idx (file->dict));
+        }
+
+      while (lex_match ('/'))
+        if (lex_match_id ("RENAME")) 
+          {
+            if (!rename_variables (file->dict))
+              goto error; 
+          }
+        else if (lex_match_id ("IN"))
+          {
+            lex_match ('=');
+            if (token != T_ID)
+              {
+                lex_error (NULL);
+                goto error;
+              }
+
+            if (file->in[0])
+              {
+                msg (SE, _("Multiple IN subcommands for a single FILE or "
+                           "TABLE."));
+                goto error;
+              }
+            strcpy (file->in, tokid);
+            lex_get ();
+          }
+
+      mtf_merge_dictionary (mtf.dict, file);
+    }
+      
+  while (token != '.')
+    {
+      if (lex_match (T_BY))
 	{
-	  if (mtf.tail == NULL)
+          struct variable **by;
+          struct mtf_file *iter;
+          
+	  if (mtf.by_cnt)
 	    {
-	      msg (SE, _("RENAME, KEEP, and DROP subcommands may not occur "
-			 "before the first FILE or TABLE."));
+	      msg (SE, _("BY may appear at most once."));
 	      goto error;
 	    }
-
-	  if (!trim_dictionary (mtf.tail->dict, OP_MATCH, NULL))
+	      
+	  lex_match ('=');
+	  if (!parse_variables (mtf.dict, &by, &mtf.by_cnt,
+				PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	    goto error;
+
+          for (iter = mtf.head; iter != NULL; iter = iter->next)
+            {
+              int i;
+	  
+              iter->by = xmalloc (sizeof *iter->by * mtf.by_cnt);
+
+              for (i = 0; i < mtf.by_cnt; i++)
+                {
+                  iter->by[i] = dict_lookup_var (iter->dict, by[i]->name);
+                  if (iter->by[i] == NULL)
+                    {
+                      msg (SE, _("File %s lacks BY variable %s."),
+                           iter->handle ? handle_get_name (iter->handle) : "*",
+                           by[i]->name);
+                      free (by);
+                      goto error;
+                    }
+                }
+            }
 	}
+      else if (lex_match_id ("FIRST")) 
+        {
+          if (mtf.first[0] != '\0')
+            {
+              msg (SE, _("FIRST may appear at most once."));
+              goto error;
+            }
+	      
+	  lex_match ('=');
+          if (!lex_force_id ())
+            goto error;
+          strcpy (mtf.first, tokid);
+          lex_get ();
+        }
+      else if (lex_match_id ("LAST")) 
+        {
+          if (mtf.last[0] != '\0')
+            {
+              msg (SE, _("LAST may appear at most once."));
+              goto error;
+            }
+	      
+	  lex_match ('=');
+          if (!lex_force_id ())
+            goto error;
+          strcpy (mtf.last, tokid);
+          lex_get ();
+        }
       else if (lex_match_id ("MAP"))
 	{
 	  /* FIXME. */
@@ -918,42 +906,18 @@ cmd_match_files (void)
 	  lex_error (NULL);
 	  goto error;
 	}
-    }
-  while (token != '.');
 
-  for (iter = mtf.head; iter != NULL; iter = iter->next) 
-    mtf_merge_dictionary (mtf.dict, iter);
-
-  if (seen & 4)
-    {
-      if (!(seen & 1))
-	{
-	  msg (SE, _("The BY subcommand is required when a TABLE subcommand "
-		     "is given."));
-	  goto error;
-	}
+      if (!lex_match ('/') && token != '.') 
+        {
+          lex_end_of_command ();
+          goto error;
+        }
     }
 
-  if (seen & 1)
+  if (mtf.by_cnt == 0 && saw_table)
     {
-      for (iter = mtf.head; iter != NULL; iter = iter->next)
-	{
-	  int i;
-	  
-	  iter->by = xmalloc (sizeof *iter->by * mtf.by_cnt);
-
-	  for (i = 0; i < mtf.by_cnt; i++)
-	    {
-	      iter->by[i] = dict_lookup_var (iter->dict, mtf.by[i]->name);
-	      if (iter->by[i] == NULL)
-		{
-		  msg (SE, _("File %s lacks BY variable %s."),
-		       iter->handle ? handle_get_name (iter->handle) : "*",
-		       mtf.by[i]->name);
-		  goto error;
-		}
-	    }
-	}
+      msg (SE, _("BY is required when TABLE is specified."));
+      goto error;
     }
 
   /* MATCH FILES performs an n-way merge on all its input files.
@@ -991,21 +955,22 @@ cmd_match_files (void)
      better algorithm would use a heap for finding minimum
      values. */
 
-  if (!(seen & 2))
+  if (!used_active_file)
     discard_variables ();
 
   mtf.sink = create_case_sink (&storage_sink_class, mtf.dict, NULL);
+  if (mtf.sink->class->open != NULL)
+    mtf.sink->class->open (mtf.sink);
 
-  mtf.seq_nums = xmalloc (dict_get_var_cnt (mtf.dict)
-                          * sizeof *mtf.seq_nums);
+  mtf.seq_nums = xmalloc (dict_get_var_cnt (mtf.dict) * sizeof *mtf.seq_nums);
   memset (mtf.seq_nums, 0,
           dict_get_var_cnt (mtf.dict) * sizeof *mtf.seq_nums);
-  mtf.mtf_case = xmalloc (dict_get_case_size (mtf.dict));
+  case_create (&mtf.mtf_case, dict_get_next_value_idx (mtf.dict));
 
-  mtf_read_nonactive_records (NULL);
-  if (seen & 2)
-    procedure (mtf_processing, NULL);
-  mtf_processing_finish (NULL);
+  mtf_read_nonactive_records (&mtf);
+  if (used_active_file)
+    procedure (mtf_processing, &mtf);
+  mtf_processing_finish (&mtf);
 
   dict_destroy (default_dict);
   default_dict = mtf.dict;
@@ -1088,9 +1053,9 @@ mtf_free (struct mtf_proc *mtf)
       mtf_free_file (iter);
     }
   
-  free (mtf->by);
   if (mtf->dict)
     dict_destroy (mtf->dict);
+  case_destroy (&mtf->mtf_case);
   free (mtf->seq_nums);
 }
 
@@ -1117,7 +1082,7 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
     for (i = 0; i < dict_get_var_cnt (f->dict); i++)
       {
 	struct variable *v = dict_get_var (f->dict, i);
-        union value *out = case_data_rw (mtf->mtf_case, get_master (v)->fv);
+        union value *out = case_data_rw (&mtf->mtf_case, get_master (v)->fv);
 	  
 	if (v->type == NUMERIC)
           out->f = SYSMIS;
@@ -1131,7 +1096,7 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
 
 /* Read a record from every input file except the active file. */
 static void
-mtf_read_nonactive_records (void *mtf_ UNUSED)
+mtf_read_nonactive_records (void *mtf_)
 {
   struct mtf_proc *mtf = mtf_;
   struct mtf_file *iter;
@@ -1197,7 +1162,7 @@ mtf_compare_BY_values (struct mtf_proc *mtf,
 
 /* Perform one iteration of steps 3...7 above. */
 static int
-mtf_processing (struct ccase *c, void *mtf_ UNUSED)
+mtf_processing (struct ccase *c, void *mtf_)
 {
   struct mtf_proc *mtf = mtf_;
   struct mtf_file *min_head, *min_tail; /* Files with minimum BY values. */
@@ -1208,7 +1173,7 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
     {
       /* If the active file doesn't have the minimum BY values, don't
 	 return because that would cause a record to be skipped. */
-      int advance = 1;
+      bool advance = true;
 
       if (mtf->head->type == MTF_TABLE)
 	return 0;
@@ -1265,7 +1230,7 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	  assert (iter->type == MTF_TABLE);
       
 	  if (iter->handle == NULL)
-	    advance = 0;
+	    advance = false;
 
 	again:
 	  switch (mtf_compare_BY_values (mtf, min_head, iter, c))
@@ -1309,22 +1274,21 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
-              struct ccase *record;
-              union value *out;
+              struct variable *mv = get_master (v);
 	  
-	      if (mtf->seq_nums[get_master (v)->index] == mtf->seq_num)
-		continue;
-              mtf->seq_nums[get_master (v)->index] = mtf->seq_num;
+	      if (mtf->seq_nums[mv->index] != mtf->seq_num) 
+                {
+                  struct ccase *record
+                    = case_is_null (&iter->input) ? c : &iter->input;
+                  union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
 
-              record = case_is_null (&iter->input) ? c : &iter->input;
-
-              assert (v->type == NUMERIC || v->type == ALPHA);
-              out = case_data_rw (mtf->mtf_case, get_master (v)->fv);
-	      if (v->type == NUMERIC)
-		out->f = case_num (record, v->fv);
-	      else
-                memcpy (out->s, case_str (record, v->fv), v->width);
-	    }
+                  mtf->seq_nums[mv->index] = mtf->seq_num;
+                  if (v->type == NUMERIC)
+                    out->f = case_num (record, v->fv);
+                  else
+                    memcpy (out->s, case_str (record, v->fv), v->width);
+                } 
+            }
 	}
 
       /* Store missing values to all the records we're not using. */
@@ -1337,25 +1301,26 @@ mtf_processing (struct ccase *c, void *mtf_ UNUSED)
 	  for (i = 0; i < dict_get_var_cnt (iter->dict); i++)
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
-              union value *out;
+              struct variable *mv = get_master (v);
 	  
-	      if (mtf->seq_nums[get_master (v)->index] == mtf->seq_num)
-		continue;
-              mtf->seq_nums[get_master (v)->index] = mtf->seq_num;
+	      if (mtf->seq_nums[mv->index] != mtf->seq_num) 
+                {
+                  union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
+                  mtf->seq_nums[mv->index] = mtf->seq_num;
 
-              out = case_data_rw (mtf->mtf_case, get_master (v)->fv);
-	      if (v->type == NUMERIC)
-                out->f = SYSMIS;
-	      else
-                memset (out->s, ' ', v->width);
-	    }
+                  if (v->type == NUMERIC)
+                    out->f = SYSMIS;
+                  else
+                    memset (out->s, ' ', v->width);
+                }
+            }
 
 	  if (iter->handle == NULL)
-	    advance = 0;
+	    advance = false;
 	}
 
       /* 6. Write the output record. */
-      mtf->sink->class->write (mtf->sink, mtf->mtf_case);
+      mtf->sink->class->write (mtf->sink, &mtf->mtf_case);
 
       /* 7. Read another record from each input file FILE and TABLE
 	 that we stored values from above.  If we come to the end of
@@ -1387,6 +1352,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 {
   struct dictionary *d = f->dict;
   const char *d_docs, *m_docs;
+  int i;
 
   if (dict_get_label (m) == NULL)
     dict_set_label (m, dict_get_label (d));
@@ -1413,44 +1379,44 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
   
   dict_compact_values (d);
 
-  {
-    int i;
+  for (i = 0; i < dict_get_var_cnt (d); i++)
+    {
+      struct variable *dv = dict_get_var (d, i);
+      struct variable *mv = dict_lookup_var (m, dv->name);
 
-    for (i = 0; i < dict_get_var_cnt (d); i++)
-      {
-	struct variable *dv = dict_get_var (d, i);
-	struct variable *mv = dict_lookup_var (m, dv->name);
+      if (mv != NULL)
+        {
+          if (mv->width != dv->width) 
+            {
+              msg (SE, _("Variable %s in file %s (%s) has different "
+                         "type or width from the same variable in "
+                         "earlier file (%s)."),
+                   dv->name, handle_get_name (f->handle),
+                   var_type_description (dv), var_type_description (mv));
+              return 0;
+            }
+        
+          if (dv->width == mv->width)
+            {
+              if (val_labs_count (dv->val_labs)
+                  && !val_labs_count (mv->val_labs))
+                mv->val_labs = val_labs_copy (dv->val_labs);
+              if (dv->miss_type != MISSING_NONE
+                  && mv->miss_type == MISSING_NONE)
+                copy_missing_values (mv, dv);
+            }
 
-	assert (dv->type == ALPHA || dv->width == 0);
-	assert (!mv || mv->type == ALPHA || mv->width == 0);
-	if (mv && dv->width == mv->width)
-	  {
-	    if (val_labs_count (dv->val_labs)
-                && !val_labs_count (mv->val_labs))
-	      mv->val_labs = val_labs_copy (dv->val_labs);
-	    if (dv->miss_type != MISSING_NONE
-                && mv->miss_type == MISSING_NONE)
-	      copy_missing_values (mv, dv);
-	  }
-	if (mv && dv->label && !mv->label)
-	  mv->label = xstrdup (dv->label);
-	if (!mv) 
-          {
-            mv = dict_clone_var (m, dv, dv->name, dv->longname);
-            assert (mv != NULL);
-          }
-	else if (mv->width != dv->width)
-	  {
-	    msg (SE, _("Variable %s in file %s (%s) has different "
-		       "type or width from the same variable in "
-		       "earlier file (%s)."),
-		 dv->name, handle_get_name (f->handle),
-		 var_type_description (dv), var_type_description (mv));
-	    return 0;
-	  }
-        set_master (dv, mv);
-      }
-  }
+          if (dv->label && !mv->label)
+            mv->label = xstrdup (dv->label);
+        }
+      else
+        {
+          mv = dict_clone_var (m, dv, dv->name, dv->longname);
+          assert (mv != NULL);
+        }
+        
+      set_master (dv, mv);
+    }
 
   return 1;
 }

@@ -342,14 +342,11 @@ find_symbol (int x)
 #if DEBUGGING 
 /* Writes a printable representation of the current token to
    stdout. */
-void
+static void
 dump_token (void)
 {
   switch (token)
     {
-    case T_TSTRING:
-      printf ("TR_STRING\t\"%s\"\n", tokstr);
-      break;
     case T_STRING:
       printf ("STRING\t\"%s\"\n", tokstr);
       break;

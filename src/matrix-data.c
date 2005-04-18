@@ -1666,11 +1666,8 @@ wr_output_data (struct wr_aux_data *wr,
 	  int factor;
 
 	  for (factor = 0; factor < mx->n_factors; factor++)
-	    {
-	      case_data_rw (c, mx->factors[factor]->fv)->f
-		= iter->factors[factor];
-	      debug_printf (("f:%s ", factors[factor]->name));
-	    }
+            case_data_rw (c, mx->factors[factor]->fv)->f
+              = iter->factors[factor];
 	}
 	
 	{
