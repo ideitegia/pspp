@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-04-13 06:39+0800\n"
+"POT-Creation-Date: 2005-04-21 11:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -235,7 +235,7 @@ msgstr ""
 
 #: src/autorecode.c:139 src/command.c:791 src/compute.c:277
 #: src/data-list.c:409 src/data-list.c:901 src/data-list.c:1752
-#: src/do-if.c:253 src/get.c:245 src/get.c:456 src/lexer.c:426 src/loop.c:241
+#: src/do-if.c:253 src/get.c:244 src/lexer.c:426 src/loop.c:241
 #: src/matrix-data.c:527 src/print.c:335 src/print.c:1045 src/recode.c:405
 #: src/sel-if.c:54 src/sel-if.c:131 src/vector.c:193 src/file-handle.q:140
 msgid "expecting end of command"
@@ -1296,7 +1296,7 @@ msgstr ""
 msgid "YES or NO expected after ORDERED."
 msgstr ""
 
-#: src/file-type.c:248 src/file-type.c:543 src/get.c:440
+#: src/file-type.c:248 src/file-type.c:543 src/get.c:438
 msgid "while expecting a valid subcommand"
 msgstr ""
 
@@ -1534,21 +1534,21 @@ msgstr ""
 msgid "`)' expected after output format."
 msgstr ""
 
-#: src/get.c:251
+#: src/get.c:250
 #, c-format
 msgid "The required %s subcommand was not present"
 msgstr ""
 
-#: src/get.c:257
+#: src/get.c:256
 #, c-format
 msgid "Unsupported sysfile version: %d. Using version %d instead."
 msgstr ""
 
-#: src/get.c:446
+#: src/get.c:444
 msgid "All variables deleted from system file dictionary."
 msgstr ""
 
-#: src/get.c:496
+#: src/get.c:486
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1556,78 +1556,69 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/get.c:521
+#: src/get.c:511
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/get.c:528
+#: src/get.c:518
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%d) does not match number of "
 "variables on right side (%d), in parenthesized group %d of RENAME subcommand."
 msgstr ""
 
-#: src/get.c:541
+#: src/get.c:531
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/get.c:728
-msgid "The BY subcommand may be given once at most."
-msgstr ""
-
-#: src/get.c:800
+#: src/get.c:768
 msgid "The active file may not be specified more than once."
 msgstr ""
 
-#: src/get.c:809
+#: src/get.c:777
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/get.c:817
+#: src/get.c:785
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/get.c:847
-msgid ""
-"IN, FIRST, and LAST subcommands may not occur before the first FILE or TABLE."
+#: src/get.c:823
+msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/get.c:882
-#, c-format
-msgid "Multiple %s subcommands for a single FILE or TABLE."
+#: src/get.c:843
+msgid "BY may appear at most once."
 msgstr ""
 
-#: src/get.c:892
-#, c-format
-msgid "Duplicate variable name %s while creating %s variable."
-msgstr ""
-
-#: src/get.c:904
-msgid ""
-"RENAME, KEEP, and DROP subcommands may not occur before the first FILE or "
-"TABLE."
-msgstr ""
-
-#: src/get.c:931
-msgid "The BY subcommand is required when a TABLE subcommand is given."
-msgstr ""
-
-#: src/get.c:950
+#: src/get.c:863
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/get.c:1444
+#: src/get.c:876
+msgid "FIRST may appear at most once."
+msgstr ""
+
+#: src/get.c:890
+msgid "LAST may appear at most once."
+msgstr ""
+
+#: src/get.c:919
+msgid "BY is required when TABLE is specified."
+msgstr ""
+
+#: src/get.c:1391
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
 msgstr ""
 
-#: src/get.c:1522
+#: src/get.c:1488
 msgid "expecting COMM or TAPE"
 msgstr ""
 
@@ -2160,7 +2151,7 @@ msgstr ""
 msgid "Expecting value %g for %s."
 msgstr ""
 
-#: src/matrix-data.c:1319 src/matrix-data.c:1786
+#: src/matrix-data.c:1319 src/matrix-data.c:1783
 #, c-format
 msgid "Syntax error expecting factor value %s."
 msgstr ""
@@ -2175,39 +2166,39 @@ msgstr ""
 msgid "Syntax error %s expecting SPLIT FILE value."
 msgstr ""
 
-#: src/matrix-data.c:1693
+#: src/matrix-data.c:1690
 #, c-format
 msgid ""
 "Expected %d lines of data for %s content; actually saw %d lines.  No data "
 "will be output for this content."
 msgstr ""
 
-#: src/matrix-data.c:1728
+#: src/matrix-data.c:1725
 #, c-format
 msgid "Multiply specified ROWTYPE_ %s."
 msgstr ""
 
-#: src/matrix-data.c:1733
+#: src/matrix-data.c:1730
 #, c-format
 msgid "Syntax error %s expecting ROWTYPE_ string."
 msgstr ""
 
-#: src/matrix-data.c:1753
+#: src/matrix-data.c:1750
 #, c-format
 msgid "Syntax error %s."
 msgstr ""
 
-#: src/matrix-data.c:1903
+#: src/matrix-data.c:1900
 #, c-format
 msgid "Duplicate specification for %s."
 msgstr ""
 
-#: src/matrix-data.c:1915
+#: src/matrix-data.c:1912
 #, c-format
 msgid "Too many rows of matrix data for %s."
 msgstr ""
 
-#: src/matrix-data.c:1963
+#: src/matrix-data.c:1960
 #, c-format
 msgid "Syntax error expecting value for %s %s."
 msgstr ""

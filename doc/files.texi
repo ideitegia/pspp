@@ -234,7 +234,7 @@ The @cmd{SAVE} procedure causes the dictionary and data in the active
 file to
 be written to a system file.
 
-FILE is the only required subcommand.  Specify the system
+OUTFILE is the only required subcommand.  Specify the system
 file to be written as a string file name or a file handle (@pxref{FILE
 HANDLE}).
 
@@ -295,7 +295,7 @@ a system file and displays information on its dictionary.
 
 @display
 XSAVE
-        /FILE='filename'
+        /OUTFILE='filename'
         /@{COMPRESSED,UNCOMPRESSED@}
         /DROP=var_list
         /KEEP=var_list
