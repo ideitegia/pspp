@@ -84,6 +84,9 @@ hash_long_name (const void *e_, void *aux UNUSED)
   return hash;
 }
 
+
+
+
 static char *make_short_name(struct dictionary *dict, const char *longname) ;
 
 
@@ -96,7 +99,8 @@ dict_create (void)
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
   d->name_tab = hsh_create (8, compare_var_names, hash_var_name, NULL, NULL);
-  d->long_name_tab = hsh_create (8, compare_long_names, hash_long_name, NULL, NULL);
+  d->long_name_tab = hsh_create (8, compare_long_names, hash_long_name, 
+				 (hsh_free_func *) free_nte, NULL);
   d->next_value_idx = 0;
   d->split = NULL;
   d->split_cnt = 0;
@@ -232,9 +236,8 @@ dict_get_varname_block(const struct dictionary *dict, char **text, int *size)
   *size = bufsize;
 }
 
-
 /* Add a new entry into the dictionary's long name table, and update the 
-   corresponding varible with the relevant long name.
+   corresponding variable with the relevant long name.
 */
 void
 dict_add_longvar_entry(struct dictionary *d, 
@@ -248,7 +251,6 @@ dict_add_longvar_entry(struct dictionary *d,
   nte->longname = strdup(longname);
   nte->name = strdup(name);
 
-
   /* Look up the name in name_tab */
   v = hsh_find ( d->name_tab, name);
   if ( !v ) 
@@ -260,9 +262,18 @@ dict_add_longvar_entry(struct dictionary *d,
   v->longname = nte->longname;
 
   hsh_insert(d->long_name_tab, nte);
-  
-
 }
+
+/* Destroy and free up an nte */
+void
+free_nte(struct name_table_entry *nte)
+{
+  assert(nte);
+  free(nte->longname);
+  free(nte->name);
+  free(nte);
+}
+
 
 /* Destroys the aux data for every variable in D, by calling
    var_clear_aux() for each variable. */
@@ -409,7 +420,11 @@ dict_create_var_x (struct dictionary *d, const char *name, int width,
       v->name[SHORT_NAME_LEN] = '\0';
     }
   else
-    strcpy(v->name,make_short_name(d, name));
+    {
+      const char *sn = make_short_name(d, name);
+      strncpy(v->name, sn, SHORT_NAME_LEN);
+      free(sn);
+    }
   
 
   v->index = d->var_cnt;
@@ -751,12 +766,17 @@ dict_rename_vars (struct dictionary *d,
   
   for (i = 0; i < count; i++)
     {
+      char *sn;
       struct name_table_entry key;
       struct name_table_entry *nte;
       assert (new_names[i] != NULL);
       assert (*new_names[i] != '\0');
       assert (strlen (new_names[i]) <= LONG_NAME_LEN );
-      strcpy (vars[i]->name, make_short_name(d, new_names[i]));
+      
+      sn = make_short_name(d, new_names[i]);
+      strncpy(vars[i]->name, sn, SHORT_NAME_LEN);
+      free(sn);
+      
 
 
       key.longname = vars[i]->longname;

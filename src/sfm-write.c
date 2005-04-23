@@ -646,6 +646,7 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   if (!buf_write (w, buf, bufsize))
     goto error;
 
+  free (buf);
   return 1;
 
  error:

@@ -749,7 +749,8 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
 
   avs->longname_tab = hsh_create (2 * var_cnt, 
 				   compare_long_names, hash_long_name, 
-				   NULL, NULL);
+				   (hsh_free_func *) free_nte,
+				   NULL);
   
   for (i = 0; i < var_cnt; i++)
     {

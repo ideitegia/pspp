@@ -107,6 +107,9 @@ bool var_is_valid_name (const char *, bool issue_error);
 int compare_var_names (const void *, const void *, void *);
 unsigned hash_var_name (const void *, void *);
 
+/* Destroy and free up an nte */
+void free_nte(struct name_table_entry *nte);
+
 
 unsigned hash_long_name (const void *e_, void *aux UNUSED) ;
 int compare_long_names(const void *a_, const void *b_, void *aux);
