@@ -422,7 +422,7 @@ dict_create_var_x (struct dictionary *d, const char *name, int width,
   else
     {
       const char *sn = make_short_name(d, name);
-      strncpy(v->name, sn, SHORT_NAME_LEN);
+      strncpy(v->name, sn, SHORT_NAME_LEN + 1);
       free(sn);
     }
   
@@ -774,7 +774,7 @@ dict_rename_vars (struct dictionary *d,
       assert (strlen (new_names[i]) <= LONG_NAME_LEN );
       
       sn = make_short_name(d, new_names[i]);
-      strncpy(vars[i]->name, sn, SHORT_NAME_LEN);
+      strncpy(vars[i]->name, sn, SHORT_NAME_LEN + 1);
       free(sn);
       
 
@@ -1271,6 +1271,7 @@ make_short_name(struct dictionary *dict, const char *longname)
         d[SHORT_NAME_LEN -  strlen(suffix)  ] = '\0';
 	strcat(d, suffix);
   }
+
 
   return d;
 }
