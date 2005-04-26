@@ -782,32 +782,9 @@ procedure_with_splits_callback (struct ccase *c, void *split_aux_)
 static int
 equal_splits (const struct ccase *a, const struct ccase *b) 
 {
-  struct variable *const *split;
-  size_t split_cnt;
-  size_t i;
-    
-  split = dict_get_split_vars (default_dict);
-  split_cnt = dict_get_split_cnt (default_dict);
-  for (i = 0; i < split_cnt; i++)
-    {
-      struct variable *v = split[i];
-      
-      switch (v->type)
-	{
-	case NUMERIC:
-	  if (case_num (a, v->fv) != case_num (b, v->fv))
-            return 0;
-	  break;
-	case ALPHA:
-	  if (memcmp (case_str (a, v->fv), case_str (b, v->fv), v->width))
-            return 0;
-	  break;
-	default:
-	  assert (0);
-	}
-    }
-
-  return 1;
+  return case_compare (a, b,
+                       dict_get_split_vars (default_dict),
+                       dict_get_split_cnt (default_dict)) == 0;
 }
 
 /* Dumps out the values of all the split variables for the case C. */

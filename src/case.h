@@ -21,6 +21,7 @@
 #define HEADER_CASE
 
 #include <stddef.h>
+#include "bool.h"
 #include "val.h"
 
 /* Opaque structure that represents a case.  Use accessor
@@ -75,6 +76,13 @@ CASE_INLINE double case_num (const struct ccase *, size_t idx);
 CASE_INLINE const char *case_str (const struct ccase *, size_t idx);
 
 CASE_INLINE union value *case_data_rw (struct ccase *, size_t idx);
+
+struct variable;
+int case_compare (const struct ccase *, const struct ccase *,
+                  struct variable *const *, size_t var_cnt);
+int case_compare_2dict (const struct ccase *, const struct ccase *,
+                        struct variable *const *, struct variable *const *,
+                        size_t var_cnt);
 
 const union value *case_data_all (const struct ccase *);
 union value *case_data_all_rw (struct ccase *);

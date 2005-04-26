@@ -164,12 +164,13 @@ data is read later, when a procedure is executed.
 
 @display
 MATCH FILES
-        /BY var_list
         /@{FILE,TABLE@}=@{*,'filename'@}
         /DROP=var_list
         /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
         /IN=var_name
+
+        /BY var_list
         /FIRST=var_name
         /LAST=var_name
         /MAP
@@ -185,7 +186,7 @@ variables.  The results of the merge become the new active file.
 The BY subcommand specifies a list of variables that are used to match
 records from each of the system files.  Variables specified must exist
 in all the files specified on FILE and TABLE.  BY should usually be
-specified.  If TABLE is used then BY is required.
+specified.  If TABLE or IN is used then BY is required.
 
 Specify FILE with a system file as a file name string or file handle
 (@pxref{FILE HANDLE}), or with an asterisk (@samp{*}) to
@@ -203,15 +204,22 @@ It is incorrect to have records with duplicate BY values in table lookup
 files.
 
 Any number of FILE and TABLE subcommands may be specified.  Each
-instance of FILE or TABLE can be followed by DROP, KEEP, and/or RENAME
-subcommands.  These take the same form as the corresponding subcommands
-of @cmd{GET} (@pxref{GET}), and perform the same functions.
+instance of FILE or TABLE can be followed by any sequence of DROP,
+KEEP, or RENAME subcommands.  These have the same form and meaning as
+the corresponding subcommands of @cmd{GET} (@pxref{GET}), but apply
+only to variables in the given file.
+
+Each FILE or TABLE may optionally be followed by an IN subcommand,
+which creates a numeric variable with the specified name and format
+F1.0.  The IN variable takes value 1 in a case if the given file
+contributed a row to the merged file, 0 otherwise.  The DROP, KEEP,
+and RENAME subcommands do not affect IN variables.
 
 Variables belonging to files that are not present for the current case
 are set to the system-missing value for numeric variables or spaces for
 string variables.
 
-IN, FIRST, LAST, and MAP are currently not used.
+FIRST, LAST, and MAP are currently ignored.
 
 @cmd{MATCH FILES} may not be specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}) if the active file is used as an input source.

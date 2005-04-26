@@ -1,3 +1,9 @@
+Mon Apr 25 23:30:17 2005  Ben Pfaff  <blp@gnu.org>
+
+	* commands/match-files.sh: New test.
+
+	* Makefile.am: (TESTS) Add commands/match-files.sh.
+
 Sun Apr 17 16:38:00 2005  Ben Pfaff  <blp@gnu.org>
 
 	* crosstabs.stat, data-fmts.stat, do-if.stat, do-repeat.stat,

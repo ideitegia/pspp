@@ -566,6 +566,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   strncpy (v->name, new_name, sizeof v->name);
   v->name[SHORT_NAME_LEN] = '\0';
   hsh_force_insert (d->name_tab, v);
+  dict_add_longvar_entry (d, new_name, new_name);
 }
 
 /* Returns the variable named NAME in D, or a null pointer if no

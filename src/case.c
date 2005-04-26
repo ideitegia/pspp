@@ -24,6 +24,7 @@
 #include "val.h"
 #include "alloc.h"
 #include "str.h"
+#include "var.h"
 
 #ifdef GLOBAL_DEBUGGING
 #undef NDEBUG
@@ -348,6 +349,75 @@ case_data_rw (struct ccase *c, size_t idx)
   return &c->case_data->values[idx];
 }
 #endif /* GLOBAL_DEBUGGING */
+
+/* Compares the values of the VAR_CNT variables in VP
+   in cases A and B and returns a strcmp()-type result. */
+int
+case_compare (const struct ccase *a, const struct ccase *b,
+              struct variable *const *vp, size_t var_cnt)
+{
+  for (; var_cnt-- > 0; vp++) 
+    {
+      struct variable *v = *vp;
+
+      if (v->width == 0) 
+        {
+          double af = case_num (a, v->fv);
+          double bf = case_num (b, v->fv);
+
+          if (af != bf) 
+            return af > bf ? 1 : -1;
+        }
+      else 
+        {
+          const char *as = case_str (a, v->fv);
+          const char *bs = case_str (b, v->fv);
+          int cmp = memcmp (as, bs, v->width);
+
+          if (cmp != 0)
+            return cmp;
+        }
+    }
+  return 0;
+}
+
+
+/* Compares the values of the VAR_CNT variables in VAP in case CA
+   to the values of the VAR_CNT variables in VBP in CB
+   and returns a strcmp()-type result. */
+int
+case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
+                    struct variable *const *vap, struct variable *const *vbp,
+                    size_t var_cnt) 
+{
+  for (; var_cnt-- > 0; vap++, vbp++) 
+    {
+      const struct variable *va = *vap;
+      const struct variable *vb = *vbp;
+
+      assert (va->type == vb->type);
+      assert (va->width == vb->width);
+      
+      if (va->width == 0) 
+        {
+          double af = case_num (ca, va->fv);
+          double bf = case_num (cb, vb->fv);
+
+          if (af != bf) 
+            return af > bf ? 1 : -1;
+        }
+      else 
+        {
+          const char *as = case_str (ca, va->fv);
+          const char *bs = case_str (cb, vb->fv);
+          int cmp = memcmp (as, bs, va->width);
+
+          if (cmp != 0)
+            return cmp;
+        }
+    }
+  return 0;
+}
 
 /* Returns a pointer to the array of `union value's used for C.
    The caller must *not* modify the returned data.

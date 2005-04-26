@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-04-23 15:57+0800\n"
+"POT-Creation-Date: 2005-04-25 22:30-0700\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -16,62 +16,62 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
-#: src/aggregate.c:193
+#: src/aggregate.c:195
 msgid "while expecting COLUMNWISE"
 msgstr ""
 
-#: src/aggregate.c:227
+#: src/aggregate.c:229
 msgid "expecting BREAK"
 msgstr ""
 
-#: src/aggregate.c:232
+#: src/aggregate.c:234
 msgid ""
 "When PRESORTED is specified, specifying sorting directions with (A) or (D) "
 "has no effect.  Output data will be sorted the same way as the input data."
 msgstr ""
 
-#: src/aggregate.c:389
+#: src/aggregate.c:390
 msgid "expecting aggregation function"
 msgstr ""
 
-#: src/aggregate.c:405
+#: src/aggregate.c:406
 #, c-format
 msgid "Unknown aggregation function %s."
 msgstr ""
 
-#: src/aggregate.c:420
+#: src/aggregate.c:421
 msgid "expecting `('"
 msgstr ""
 
-#: src/aggregate.c:457
+#: src/aggregate.c:458
 #, c-format
 msgid "Missing argument %d to %s."
 msgstr ""
 
-#: src/aggregate.c:465
+#: src/aggregate.c:466
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
 msgstr ""
 
-#: src/aggregate.c:475
+#: src/aggregate.c:476
 msgid "expecting `)'"
 msgstr ""
 
-#: src/aggregate.c:487
+#: src/aggregate.c:488
 #, c-format
 msgid ""
 "Number of source variables (%d) does not match number of target variables (%"
 "d)."
 msgstr ""
 
-#: src/aggregate.c:504
+#: src/aggregate.c:505
 #, c-format
 msgid ""
 "The value arguments passed to the %s function are out-of-order.  They will "
 "be treated as if they had been specified in the correct order."
 msgstr ""
 
-#: src/aggregate.c:571
+#: src/aggregate.c:572
 #, c-format
 msgid ""
 "Variable name %s is not unique within the aggregate file dictionary, which "
@@ -733,7 +733,7 @@ msgid ""
 msgstr ""
 
 #: src/data-list.c:795 src/data-list.c:923 src/descript.c:880 src/print.c:796
-#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:830
+#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:807
 msgid "Variable"
 msgstr ""
 
@@ -1142,7 +1142,7 @@ msgid ""
 "The entry \"%s\" in the variable name map, has no corresponding variable"
 msgstr ""
 
-#: src/dictionary.c:856
+#: src/dictionary.c:857
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
@@ -1227,25 +1227,6 @@ msgstr ""
 msgid "installation error"
 msgstr ""
 
-#: src/filename.c:221
-#, c-format
-msgid "Searching for `%s'..."
-msgstr ""
-
-#: src/filename.c:229 src/filename.c:261
-msgid "Search unsuccessful!"
-msgstr ""
-
-#: src/filename.c:254
-#, c-format
-msgid "Found `%s'."
-msgstr ""
-
-#: src/filename.c:686
-#, c-format
-msgid "Not opening pipe file `%s' because SAFER option set."
-msgstr ""
-
 #: src/file-type.c:129
 msgid "MIXED, GROUPED, or NESTED expected."
 msgstr ""
@@ -1295,7 +1276,7 @@ msgstr ""
 msgid "YES or NO expected after ORDERED."
 msgstr ""
 
-#: src/file-type.c:248 src/file-type.c:543 src/get.c:438
+#: src/file-type.c:248 src/file-type.c:543
 msgid "while expecting a valid subcommand"
 msgstr ""
 
@@ -1382,6 +1363,25 @@ msgstr ""
 #: src/file-type.c:693
 #, c-format
 msgid "Unknown record type %g."
+msgstr ""
+
+#: src/filename.c:221
+#, c-format
+msgid "Searching for `%s'..."
+msgstr ""
+
+#: src/filename.c:229 src/filename.c:261
+msgid "Search unsuccessful!"
+msgstr ""
+
+#: src/filename.c:254
+#, c-format
+msgid "Found `%s'."
+msgstr ""
+
+#: src/filename.c:686
+#, c-format
+msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
 
 #: src/flip.c:82
@@ -1543,11 +1543,11 @@ msgstr ""
 msgid "Unsupported sysfile version: %d. Using version %d instead."
 msgstr ""
 
-#: src/get.c:444
-msgid "All variables deleted from system file dictionary."
+#: src/get.c:412 src/print.c:179
+msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/get.c:486
+#: src/get.c:457
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1555,69 +1555,82 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/get.c:511
+#: src/get.c:482
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/get.c:518
+#: src/get.c:489
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%d) does not match number of "
 "variables on right side (%d), in parenthesized group %d of RENAME subcommand."
 msgstr ""
 
-#: src/get.c:531
+#: src/get.c:502
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/get.c:768
+#: src/get.c:532
+msgid "Cannot DROP all variables from dictionary."
+msgstr ""
+
+#: src/get.c:793
 msgid "The active file may not be specified more than once."
 msgstr ""
 
-#: src/get.c:777
+#: src/get.c:802
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/get.c:785
+#: src/get.c:810
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/get.c:823
+#: src/get.c:848
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/get.c:843
+#: src/get.c:868
 msgid "BY may appear at most once."
 msgstr ""
 
-#: src/get.c:863
+#: src/get.c:888
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/get.c:876
+#: src/get.c:901
 msgid "FIRST may appear at most once."
 msgstr ""
 
-#: src/get.c:890
+#: src/get.c:915
 msgid "LAST may appear at most once."
 msgstr ""
 
-#: src/get.c:919
+#: src/get.c:956
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/get.c:1391
+#: src/get.c:961
+msgid "BY is required when IN is specified."
+msgstr ""
+
+#: src/get.c:988
+#, c-format
+msgid "IN variable name %s duplicates an existing variable name."
+msgstr ""
+
+#: src/get.c:1418
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
 msgstr ""
 
-#: src/get.c:1488
+#: src/get.c:1512
 msgid "expecting COMM or TAPE"
 msgstr ""
 
@@ -2851,10 +2864,6 @@ msgstr ""
 msgid "Charts are currently unsupported with postscript drivers."
 msgstr ""
 
-#: src/print.c:179
-msgid "expecting a valid subcommand"
-msgstr ""
-
 #: src/print.c:365 src/print.c:382
 #, c-format
 msgid "%g is not a valid column location."
@@ -3497,7 +3506,7 @@ msgstr ""
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:832
+#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:809
 msgid "Label"
 msgstr ""
 
@@ -3520,7 +3529,7 @@ msgstr ""
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:531 src/vfm.c:831 src/crosstabs.q:1099
+#: src/sysfile-info.c:531 src/vfm.c:808 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
 #: src/examine.q:1129 src/frequencies.q:1138 src/frequencies.q:1259
 msgid "Value"

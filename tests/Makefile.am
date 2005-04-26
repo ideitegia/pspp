@@ -21,6 +21,7 @@ TESTS = \
 	command/list.sh \
 	command/loop.sh \
 	command/longvars.sh \
+	command/match-files.sh \
 	command/oneway.sh \
 	command/oneway-missing.sh \
 	command/oneway-with-splits.sh \

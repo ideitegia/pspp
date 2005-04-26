@@ -124,7 +124,7 @@ struct agr_proc
     struct sort_criteria *sort;         /* Sort criteria. */
     struct variable **break_vars;       /* Break variables. */
     size_t break_var_cnt;               /* Number of break variables. */
-    union value *prev_break;            /* Last values of break variables. */
+    struct ccase break_case;            /* Last values of break variables. */
 
     enum missing_treatment missing;     /* How to treat missing values. */
     struct agr_var *agr_vars;           /* First aggregate variable. */
@@ -133,7 +133,8 @@ struct agr_proc
     struct ccase agr_case;              /* Aggregate case for output. */
   };
 
-static void initialize_aggregate_info (struct agr_proc *);
+static void initialize_aggregate_info (struct agr_proc *,
+                                       const struct ccase *);
 
 /* Prototypes. */
 static int parse_aggregate_functions (struct agr_proc *);
@@ -164,6 +165,7 @@ cmd_aggregate (void)
 
   memset(&agr, 0 , sizeof (agr));
   agr.missing = ITEMWISE;
+  case_nullify (&agr.break_case);
   
   agr.dict = dict_create ();
   dict_set_label (agr.dict, dict_get_label (default_dict));
@@ -248,7 +250,6 @@ cmd_aggregate (void)
   /* Initialize. */
   agr.case_cnt = 0;
   case_create (&agr.agr_case, dict_get_next_value_idx (agr.dict));
-  initialize_aggregate_info (&agr);
 
   /* Output to active file or external file? */
   if (out_file == NULL) 
@@ -655,7 +656,7 @@ agr_destroy (struct agr_proc *agr)
   if (agr->sort != NULL)
     sort_destroy_criteria (agr->sort);
   free (agr->break_vars);
-  free (agr->prev_break);
+  case_destroy (&agr->break_case);
   for (iter = agr->agr_vars; iter; iter = next)
     {
       next = iter->next;
@@ -693,105 +694,21 @@ static int
 aggregate_single_case (struct agr_proc *agr,
                        const struct ccase *input, struct ccase *output)
 {
-  /* The first case always begins a new break group.  We also need to
-     preserve the values of the case for later comparison. */
+  bool finished_group = false;
+  
   if (agr->case_cnt++ == 0)
+    initialize_aggregate_info (agr, input);
+  else if (case_compare (&agr->break_case, input,
+                         agr->break_vars, agr->break_var_cnt))
     {
-      int n_elem = 0;
-      
-      {
-	int i;
+      dump_aggregate_info (agr, output);
+      finished_group = true;
 
-	for (i = 0; i < agr->break_var_cnt; i++)
-	  n_elem += agr->break_vars[i]->nv;
-      }
-      
-      agr->prev_break = xmalloc (sizeof *agr->prev_break * n_elem);
-
-      /* Copy INPUT into prev_break. */
-      {
-	union value *iter = agr->prev_break;
-	int i;
-
-	for (i = 0; i < agr->break_var_cnt; i++)
-	  {
-	    struct variable *v = agr->break_vars[i];
-	    
-	    if (v->type == NUMERIC)
-	      (iter++)->f = case_num (input, v->fv);
-	    else
-	      {
-		memcpy (iter->s, case_str (input, v->fv), v->width);
-		iter += v->nv;
-	      }
-	  }
-      }
-	    
-      accumulate_aggregate_info (agr, input);
-	
-      return 0;
+      initialize_aggregate_info (agr, input);
     }
-      
-  /* Compare the value of each break variable to the values on the
-     previous case. */
-  {
-    union value *iter = agr->prev_break;
-    int i;
-    
-    for (i = 0; i < agr->break_var_cnt; i++)
-      {
-	struct variable *v = agr->break_vars[i];
-      
-	switch (v->type)
-	  {
-	  case NUMERIC:
-	    if (case_num (input, v->fv) != iter->f)
-	      goto not_equal;
-	    iter++;
-	    break;
-	  case ALPHA:
-	    if (memcmp (case_str (input, v->fv), iter->s, v->width))
-	      goto not_equal;
-	    iter += v->nv;
-	    break;
-	  default:
-	    assert (0);
-	  }
-      }
-  }
 
   accumulate_aggregate_info (agr, input);
-
-  return 0;
-  
-not_equal:
-  /* The values of the break variable are different from the values on
-     the previous case.  That means that it's time to dump aggregate
-     info. */
-  dump_aggregate_info (agr, output);
-  initialize_aggregate_info (agr);
-  accumulate_aggregate_info (agr, input);
-
-  /* Copy INPUT into prev_break. */
-  {
-    union value *iter = agr->prev_break;
-    int i;
-
-    for (i = 0; i < agr->break_var_cnt; i++)
-      {
-	struct variable *v = agr->break_vars[i];
-	    
-	if (v->type == NUMERIC)
-	  (iter++)->f = case_num (input, v->fv);
-	else
-	  {
-	    memcpy (iter->s, case_str (input, v->fv), v->width);
-	    iter += v->nv;
-	  }
-      }
-  }
-  
-  return 1;
+  return finished_group;
 }
 
 /* Accumulates aggregation data from the case INPUT. */
@@ -978,11 +895,11 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 
     for (i = 0; i < agr->break_var_cnt; i++) 
       {
-        int nv = agr->break_vars[i]->nv;
+        struct variable *v = agr->break_vars[i];
         memcpy (case_data_rw (output, value_idx),
-                &agr->prev_break[value_idx],
-                sizeof (union value) * nv);
-        value_idx += nv; 
+                case_data (&agr->break_case, v->fv),
+                sizeof (union value) * v->nv);
+        value_idx += v->nv; 
       }
   }
   
@@ -1098,9 +1015,12 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 
 /* Resets the state for all the aggregate functions. */
 static void
-initialize_aggregate_info (struct agr_proc *agr)
+initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 {
   struct agr_var *iter;
+
+  case_destroy (&agr->break_case);
+  case_clone (&agr->break_case, input);
 
   for (iter = agr->agr_vars; iter; iter = iter->next)
     {

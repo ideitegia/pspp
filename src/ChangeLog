@@ -1,3 +1,52 @@
+Mon Apr 25 22:55:59 2005  Ben Pfaff  <blp@gnu.org>
+
+	Finish fixing MATCH FILES (PR 11677).
+
+	* get.c: (trim_dictionary) Rewrite in terms of drop_variables(),
+	keep_variables(), rename_variables().
+	(drop_variables) New function.
+	(keep_variables) New function.
+	(struct mtf_file) Rename `in' to `in_name'.  Add `in_var'.
+	(cmd_match_files) Deal with in_var.  Use drop_variables(),
+	keep_variables().  When IN is specified, require BY.  Set master
+	variables after master dictionary is complete.  Add IN variables
+	after master dictionary is complete.
+	(mtf_free_file) Free `in_name'.
+	(mtf_delete_file_in_place) Set in_var value to 0.
+	(mtf_read_nonactive_records)  Rephrase.
+	(mtf_processing) Support IN.  Rephrase.  Fix bugs.
+	(mtf_merge_dictionary) Don't set master variables; we do that
+	later now.
+	(get_master) Don't insist that there's a master variable.
+	
+Mon Apr 25 22:55:22 2005  Ben Pfaff  <blp@gnu.org>
+
+	Kluge to make some variable renaming sort of work.
+	Needs real fix.
+
+	* dictionary.c: (dict_rename_var) Call dict_add_longvar_entry().
+
+Mon Apr 25 22:52:28 2005  Ben Pfaff  <blp@gnu.org>
+
+	Add functions for comparing sets of variables between cases.
+	Use the functions.
+
+	* case.c: (case_compare) New function.
+	(case_compare_2dict) New function.
+	
+	* aggregate.c: (struct agr_proc) Remove `prev_break' member.  Add
+	`break_case'.
+	(cmd_aggregate) Nullify break_case.  Don't call
+	initialize_aggregate_info().
+	(agr_destroy) Destroy break_case.
+	(aggregate_single_case) Rewrite.  Use case_compare().
+	(dump_aggregate_info) Copy from break_case into output.
+	(initialize_aggregate_info) Copy break_case from input.
+
+	* get.c: (mtf_compare_BY_values) Use case_compare_2dict().
+
+	* vfm.c: (equal_splits) Use case_compare().
+
 Sat Apr 23 17:01:04 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* dictionary.c vars-prs.c sfm-write.c: Fixed some memory leaks
