@@ -1,3 +1,7 @@
+Wed Apr 27 07:43:50 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* command.def echo.c:  Added the ECHO command.
+
 Mon Apr 25 22:55:59 2005  Ben Pfaff  <blp@gnu.org>
 
 	Finish fixing MATCH FILES (PR 11677).

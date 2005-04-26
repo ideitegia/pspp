@@ -50,7 +50,7 @@ chart.h cmdline.c cmdline.h command.c command.def \
 command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
 devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h	\
-dictionary.c dictionary.h do-if.c do-ifP.h error.c \
+dictionary.c dictionary.h do-if.c do-ifP.h echo.c error.c \
 error.h factor_stats.c factor_stats.h file-handle.h	\
 file-type.c filename.c filename.h flip.c font.h format.c format.def	\
 format.h formats.c get.c getline.c getline.h glob.c glob.h		\

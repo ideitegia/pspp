@@ -1,3 +1,7 @@
+Wed Apr 27 07:44:57 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* utilities.texi: Added the ECHO command.
+
 Fri Apr 15 18:35:42 2005  Ben Pfaff  <blp@gnu.org>
 
 	* pspp.texinfo: Change manual license to GNU FDL, pursuant to

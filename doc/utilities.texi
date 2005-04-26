@@ -14,6 +14,7 @@ encountered in the input.
 * DISPLAY DOCUMENTS::           Display active file documents.
 * DISPLAY FILE LABEL::          Display the active file label.
 * DROP DOCUMENTS::              Remove documents from the active file.
+* ECHO::                        Write a string to the output stream.
 * ERASE::                       Erase a file.
 * EXECUTE::                     Execute pending transformations.
 * FILE LABEL::                  Set the active file's label.
@@ -88,7 +89,7 @@ DISPLAY FILE LABEL.
 active file,
 if any.  @xref{FILE LABEL}.
 
-@node DROP DOCUMENTS, ERASE, DISPLAY FILE LABEL, Utilities
+@node DROP DOCUMENTS, ECHO, DISPLAY FILE LABEL, Utilities
 @section DROP DOCUMENTS
 @vindex DROP DOCUMENTS
 
@@ -102,8 +103,17 @@ New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
 @cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
 system files stored on disk.
 
+@node ECHO, ERASE, DROP DOCUMENTS, Utilities
+@section ECHO
+@vindex ECHO
 
-@node ERASE, EXECUTE, DROP DOCUMENTS, Utilities
+@display 
+ECHO 'arbitrary text' .
+@end display
+
+Use @cmd{ECHO} to write arbitrary text to the output stream. The text should be enclosed in quotation marks following the normal rules for string tokens (@pxref{Tokens}).
+
+@node ERASE, EXECUTE, ECHO, Utilities
 @comment  node-name,  next,  previous,  up
 @section ERASE
 @vindex ERASE
