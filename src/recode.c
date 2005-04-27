@@ -66,7 +66,7 @@ struct rcd_var
 
     struct variable *src;	/* Source variable. */
     struct variable *dest;	/* Destination variable. */
-    char dest_name[SHORT_NAME_LEN + 1];		/* Name of dest variable if we're creating it. */
+    char dest_name[LONG_NAME_LEN + 1];		/* Name of dest variable if we're creating it. */
 
     int has_sysmis;		/* Do we recode for SYSMIS? */
     union value sysmis;		/* Coding for SYSMIS (if src is numeric). */

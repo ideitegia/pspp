@@ -1,3 +1,8 @@
+Wed Apr 27 12:42:34 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* loop.c recode.c repeat.c: Fixed a couple of instances of SHORT_NAME_LEN 
+	which should be LONG_NAME_LEN
+
 Wed Apr 27 07:43:50 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* command.def echo.c:  Added the ECHO command.
