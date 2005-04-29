@@ -14,8 +14,8 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-   02111-1307, USA. */
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA. */
 
 /* Copyright (C) 2001 Free Software Foundation, Inc.
   
@@ -32,7 +32,7 @@
 
    You should have received a copy of the GNU General Public License along
    with this library; see the file COPYING.  If not, write to the Free
-   Software Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
    USA.
 
    As a special exception, you may use this file as part of a free software
@@ -86,8 +86,8 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301 USA.  */
 
 #include <config.h>
 #include "algorithm.h"

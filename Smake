@@ -46,7 +46,7 @@ po/Makefile.in.in intl ABOUT-NLS:
 
 .PHONY: clean
 clean:
-	$(RM) config.sub config.guess
+	$(RM) config.sub config.guess config.rpath
 	$(RM) ABOUT-NLS
 	$(RM) -r autom4te.cache
 	$(RM) aclocal.m4
