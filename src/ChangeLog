@@ -1,3 +1,7 @@
+Thu Apr 28 18:52:06 2005  Ben Pfaff  <blp@gnu.org>
+
+	* expressions/parse.c: Improve previous fix for PR 12858 (LAG).
+
 Fri Apr 29 09:28:00 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* expressions/parse.c: Added handler for OP_LAG_Vn and OP_LAG_Vs.  

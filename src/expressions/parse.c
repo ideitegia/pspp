@@ -1204,15 +1204,18 @@ parse_function (struct expression *e)
   n = expr_allocate_composite (e, f - operations, args, arg_cnt);
   n->composite.min_valid = min_valid != -1 ? min_valid : f->array_min_elems; 
 
-  if (n->type == OP_LAG_Vn || n->type == OP_LAG_Vs)
-      n_lag = 1;
+  if (n->type == OP_LAG_Vn || n->type == OP_LAG_Vs) 
+    {
+      if (n_lag < 1)
+        n_lag = 1; 
+    }
   else if (n->type == OP_LAG_Vnn || n->type == OP_LAG_Vsn)
     {
       int n_before;
       assert (n->composite.arg_cnt == 2);
       assert (n->composite.args[1]->type == OP_pos_int);
       n_before = n->composite.args[1]->integer.i;
-      if (n_before > n_lag)
+      if (n_lag < n_before)
         n_lag = n_before;
     }
   
