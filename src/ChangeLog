@@ -1,3 +1,8 @@
+Fri Apr 29 09:28:00 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* expressions/parse.c: Added handler for OP_LAG_Vn and OP_LAG_Vs.  
+	Fixed bug [#12858] .
+
 Wed Apr 27 12:42:34 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* loop.c recode.c repeat.c: Fixed a couple of instances of SHORT_NAME_LEN 

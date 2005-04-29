@@ -584,7 +584,9 @@ const struct case_sink_class null_sink_class =
 struct ccase *
 lagged_case (int n_before)
 {
-  assert (n_before >= 1 && n_before <= n_lag);
+  assert (n_before >= 1 );
+  assert (n_before <= n_lag);
+
   if (n_before <= lag_count)
     {
       int index = lag_head - n_before;
