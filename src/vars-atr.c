@@ -36,6 +36,9 @@
 
 #include "debug-print.h"
 
+/* Assign auxiliary data AUX to variable V, which must not
+   already have auxiliary data.  Before V's auxiliary data is
+   cleared, AUX_DTOR(V) will be called. */
 void *
 var_attach_aux (struct variable *v,
                 void *aux, void (*aux_dtor) (struct variable *)) 
@@ -47,6 +50,8 @@ var_attach_aux (struct variable *v,
   return aux;
 }
 
+/* Remove auxiliary data, if any, from V, and returns it, without
+   calling any associated destructor. */
 void *
 var_detach_aux (struct variable *v) 
 {
@@ -56,6 +61,8 @@ var_detach_aux (struct variable *v)
   return aux;
 }
 
+/* Clears auxiliary data, if any, from V, and calls any
+   associated destructor. */
 void
 var_clear_aux (struct variable *v) 
 {
@@ -68,6 +75,9 @@ var_clear_aux (struct variable *v)
     }
 }
 
+/* This function is appropriate for use an auxiliary data
+   destructor (passed as AUX_DTOR to var_attach_aux()) for the
+   case where the auxiliary data should be passed to free(). */
 void
 var_dtor_free (struct variable *v) 
 {
