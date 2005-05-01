@@ -510,7 +510,9 @@ request_bug_report_and_abort(const char *msg )
 	  "default_config_path: %s\n"
 	  "include_path:        %s\n"
 	  "groff_font_path:     %s\n"
-	  "locale_dir:          %s\n",
+	  "locale_dir:          %s\n"
+	  "compiler version:    %s\n"
+	  ,
 
 	  bare_version,         
 	  version,
@@ -520,7 +522,13 @@ request_bug_report_and_abort(const char *msg )
 	  default_config_path,
 	  include_path, 
 	  groff_font_path,
-	  locale_dir);     
+	  locale_dir,
+#ifdef __VERSION__
+	  __VERSION__
+#else
+	  "Unknown"
+#endif
+	  );     
 
   if ( msg )
     fprintf(stderr,"Diagnosis: %s\n",msg);

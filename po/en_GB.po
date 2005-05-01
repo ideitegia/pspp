@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-04-27 07:45+0800\n"
+"POT-Creation-Date: 2005-05-01 15:18+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -733,7 +733,7 @@ msgid ""
 msgstr ""
 
 #: src/data-list.c:795 src/data-list.c:923 src/descript.c:880 src/print.c:796
-#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:807
+#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:809
 msgid "Variable"
 msgstr ""
 
@@ -3506,7 +3506,7 @@ msgstr ""
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:809
+#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:811
 msgid "Label"
 msgstr ""
 
@@ -3529,7 +3529,7 @@ msgstr ""
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:531 src/vfm.c:808 src/crosstabs.q:1099
+#: src/sysfile-info.c:531 src/vfm.c:810 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
 #: src/examine.q:1129 src/frequencies.q:1138 src/frequencies.q:1259
 msgid "Value"
@@ -3564,26 +3564,26 @@ msgid ""
 "commands."
 msgstr ""
 
-#: src/title.c:57
+#: src/title.c:56
 #, c-format
 msgid "%s before: %s\n"
 msgstr ""
 
-#: src/title.c:57
+#: src/title.c:56
 msgid "<none>"
 msgstr ""
 
-#: src/title.c:69
+#: src/title.c:68
 #, c-format
 msgid "%s: `.' expected after string."
 msgstr ""
 
-#: src/title.c:85
+#: src/title.c:84
 #, c-format
 msgid "%s after: %s\n"
 msgstr ""
 
-#: src/title.c:141
+#: src/title.c:140
 #, c-format
 msgid "Document entered %s %02d:%02d:%02d by %s (%s):"
 msgstr ""
@@ -3612,28 +3612,28 @@ msgstr ""
 msgid "Truncating variable label to 255 characters."
 msgstr ""
 
-#: src/vars-atr.c:249
+#: src/vars-atr.c:259
 msgid "Variable names must be at least 1 character long."
 msgstr ""
 
-#: src/vars-atr.c:255
+#: src/vars-atr.c:265
 #, c-format
 msgid "Variable name %s exceeds %d-character limit."
 msgstr ""
 
-#: src/vars-atr.c:264
+#: src/vars-atr.c:274
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
 msgstr ""
 
-#: src/vars-atr.c:273
+#: src/vars-atr.c:283
 #, c-format
 msgid ""
 "Character `%c' (in %s), may not appear as the first character in a variable "
 "name."
 msgstr ""
 
-#: src/vars-atr.c:281
+#: src/vars-atr.c:291
 #, c-format
 msgid "%s may not be used as a variable name because it is a reserved word."
 msgstr ""

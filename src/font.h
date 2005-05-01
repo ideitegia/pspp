@@ -122,7 +122,7 @@ int font_get_kern_adjust (const struct font_desc *font, int ch1, int ch2);
 /* groff fonts. */
 struct groff_device_info
   {
-    /* See groff_font(5). */
+    /* See groff_font man page. */
     int res, horiz, vert;
     int size_scale, unit_width;
     int (*sizes)[2], n_sizes;

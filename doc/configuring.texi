@@ -879,7 +879,7 @@ Default: @code{ps-prologue}.
 
 Sets the name of the Groff-format device description file.  The
 PostScript driver reads this to know about the scaling of fonts
-and so on.  The format of such files is described in groff_font(5),
+and so on.  The format of such files is described in the groff_font man page,
 included with Groff.  Default: @code{DESC}.
 
 @item encoding-file=@var{encoding-file-name}

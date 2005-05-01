@@ -1,3 +1,11 @@
+Sun May  1 15:05:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* error.c: Added a string for the compiler version to the
+	request_bug_report_and_abort function.
+
+	* groff_font.c, font.c: Removed manpage(1) style references from 
+	comments, because RMS frowns upon them.
+
 Thu Apr 28 18:52:06 2005  Ben Pfaff  <blp@gnu.org>
 
 	* expressions/parse.c: Improve previous fix for PR 12858 (LAG).

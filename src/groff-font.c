@@ -48,7 +48,7 @@ static void add_kern (struct font_desc * font, int ch1, int ch2, int adjust);
 /* Typical whitespace characters for tokenizing. */
 static const char whitespace[] = " \t\n\r\v";
 
-/* Some notes on the groff_font(8) manpage:
+/* Some notes on the groff_font manpage:
 
    DESC file format: A typical PostScript `res' would be 72000, with
    `hor' and `vert' set to 1 to indicate that all those positions are
@@ -62,7 +62,7 @@ static const char whitespace[] = " \t\n\r\v";
 
 /* Reads a Groff font description file and converts it to a usable
    binary format in memory.  Installs the binary format in the global
-   font table.  See groff_font(8) for a description of the font
+   font table.  See groff_font for a description of the font
    description format supported.  Returns nonzero on success. */
 struct font_desc *
 groff_read_font (const char *fn)
