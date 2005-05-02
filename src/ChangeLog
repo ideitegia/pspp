@@ -392,7 +392,6 @@ Mon Mar 14 21:05:13 2005  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c: (cmd_flip) Ditto.
 
->>>>>>> 1.161
 Sun Mar 13 22:52:05 2005  Ben Pfaff  <blp@gnu.org>
 
 	* file-handle.q: (struct file_handle) `open_mode' should not be
@@ -443,7 +442,6 @@ Sun Mar 13 22:35:55 2005  Ben Pfaff  <blp@gnu.org>
 	(initialize_aggregate_info) Fix initialization for MIN, MAX for
 	strings.
 
->>>>>>> 1.160
 Sat Mar 12 23:26:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	Start work on testing and debugging AGGREGATE.
