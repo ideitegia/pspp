@@ -49,7 +49,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE <<EOF
-DATA LIST LIST /x (F8.2) y (a25).
+DATA LIST LIST /X (F8.2) Y (a25).
 
 BEGIN DATA.
 87.50 foo
@@ -59,7 +59,7 @@ END DATA.
 
 
 
-AGGREGATE OUTFILE=* /BREAK=y /x=MAX(x).
+AGGREGATE OUTFILE=* /BREAK=y /X=MAX(x).
 LIST /x y.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

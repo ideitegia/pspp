@@ -57,7 +57,7 @@ list.
 list /format numbered weight.
 
 *** Multiple lines.
-data list file='$top_srcdir/tests/list.data' notable /x000 to x126 1-127.
+data list file='$top_srcdir/tests/list.data' notable /X000 to X126 1-127.
 *list /cases=from 1 to 25 by 5 /format numbered.
 list x000 to x030.
 list /cases=from 1 to 25.

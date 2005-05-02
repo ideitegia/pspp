@@ -71,17 +71,17 @@ if [ $? -ne 0 ] ; then fail ; fi
 activity="compare output"
 diff -B -b pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
-+--------+------+
-|Variable|Format|
-#========#======#
-|LONGVARI|F8.0  |
-|X       |F8.0  |
-+--------+------+
++----------------+------+
+|    Variable    |Format|
+#================#======#
+|longVariablename|F8.0  |
+|x               |F8.0  |
++----------------+------+
 
-LONGVARI        X 
--------- -------- 
-   99.00     2.00
-   97.00     4.00
+longVariablename        x
+---------------- -------- 
+           99.00     2.00
+           97.00     4.00
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

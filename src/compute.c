@@ -315,7 +315,7 @@ struct lvalue
     struct expression *element;  /* Destination vector element, or NULL. */
   };
 
-/* Parses the target variable or vector elector into a new
+/* Parses the target variable or vector element into a new
    `struct lvalue', which is returned. */
 static struct lvalue *
 lvalue_parse (void) 
@@ -353,8 +353,7 @@ lvalue_parse (void)
   else
     {
       /* Variable name. */
-      strncpy (lvalue->var_name, tokid, LONG_NAME_LEN);
-      lvalue->var_name[LONG_NAME_LEN] = '\0';
+      st_trim_copy (lvalue->var_name, tokid, sizeof lvalue->var_name);
       lex_get ();
     }
   return lvalue;
@@ -371,8 +370,7 @@ lvalue_get_type (const struct lvalue *lvalue)
 {
   if (lvalue->vector == NULL) 
     {
-      struct variable *var
-        = dict_lookup_var (default_dict, lvalue->var_name);
+      struct variable *var = dict_lookup_var (default_dict, lvalue->var_name);
       if (var == NULL)
         return NUMERIC;
       else

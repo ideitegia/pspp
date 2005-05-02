@@ -64,13 +64,14 @@ struct pfm_var
 static int buf_write (struct pfm_writer *, const void *, size_t);
 static int write_header (struct pfm_writer *);
 static int write_version_data (struct pfm_writer *);
-static int write_variables (struct pfm_writer *, const struct dictionary *);
+static int write_variables (struct pfm_writer *, struct dictionary *);
 static int write_value_labels (struct pfm_writer *, const struct dictionary *);
 
 /* Writes the dictionary DICT to portable file HANDLE.  Returns
-   nonzero only if successful. */
+   nonzero only if successful.  DICT will not be modified, except
+   to assign short names. */
 struct pfm_writer *
-pfm_open_writer (struct file_handle *fh, const struct dictionary *dict)
+pfm_open_writer (struct file_handle *fh, struct dictionary *dict)
 {
   struct pfm_writer *w = NULL;
   size_t i;
@@ -368,9 +369,11 @@ write_value (struct pfm_writer *w, union value *v, struct variable *vv)
 
 /* Write variable records, and return success. */
 static int
-write_variables (struct pfm_writer *w, const struct dictionary *dict)
+write_variables (struct pfm_writer *w, struct dictionary *dict)
 {
   int i;
+
+  dict_assign_short_names (dict);
   
   if (!buf_write (w, "4", 1) || !write_int (w, dict_get_var_cnt (dict))
       || !write_int (w, 161))
@@ -389,7 +392,7 @@ write_variables (struct pfm_writer *w, const struct dictionary *dict)
       struct variable *v = dict_get_var (dict, i);
       
       if (!buf_write (w, "7", 1) || !write_int (w, v->width)
-	  || !write_string (w, v->name)
+	  || !write_string (w, v->short_name)
 	  || !write_format (w, &v->print) || !write_format (w, &v->write))
 	return 0;
 
@@ -422,7 +425,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 
       if (!buf_write (w, "D", 1)
 	  || !write_int (w, 1)
-	  || !write_string (w, v->name)
+	  || !write_string (w, v->short_name)
 	  || !write_int (w, val_labs_count (v->val_labs)))
 	return 0;
 

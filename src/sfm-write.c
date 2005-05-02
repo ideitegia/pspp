@@ -106,15 +106,16 @@ var_flt64_cnt (const struct variable *v)
 
 /* Opens the system file designated by file handle FH for writing
    cases from dictionary D.  If COMPRESS is nonzero, the
-   system file will be compressed. If  OMIT_LONGNAMES is nonzero, the
+   system file will be compressed.  If OMIT_LONG_NAMES is nonzero, the
    long name table will be omitted.
 
    No reference to D is retained, so it may be modified or
-   destroyed at will after this function returns. */
+   destroyed at will after this function returns.  D is not
+   modified by this function, except to assign short names. */
 struct sfm_writer *
 sfm_open_writer (struct file_handle *fh,
-                 const struct dictionary *d, int compress, 
-		 short omit_longnames)
+                 struct dictionary *d, int compress, 
+		 short omit_long_names)
 {
   struct sfm_writer *w = NULL;
   int idx;
@@ -162,6 +163,7 @@ sfm_open_writer (struct file_handle *fh,
     goto error;
 
   /* Write basic variable info. */
+  dict_assign_short_names (d);
   for (i = 0; i < dict_get_var_cnt (d); i++)
     write_variable (w, dict_get_var (d, i));
 
@@ -181,19 +183,16 @@ sfm_open_writer (struct file_handle *fh,
   if (!write_rec_7_34 (w))
     goto error;
 
-
-  /* Write  variable display info. */
-  if ( !write_variable_display_parameters(w, d))
+  if (!write_variable_display_parameters (w, d))
     goto error;
 
-  
-  if ( ! omit_longnames ) 
+  if (!omit_long_names) 
     {
       if (!write_longvar_table (w, d))
 	goto error;
     }
 
-  /* Write record 999. */
+  /* Write end-of-headers record. */
   {
     struct
       {
@@ -419,8 +418,7 @@ write_variable (struct sfm_writer *w, struct variable *v)
   sv.n_missing_values = nm;
   write_format_spec (&v->print, &sv.print);
   write_format_spec (&v->write, &sv.write);
-  memcpy (sv.name, v->name, strlen (v->name));
-  memset (&sv.name[strlen (v->name)], ' ', SHORT_NAME_LEN - strlen (v->name));
+  st_bare_pad_copy (sv.name, v->short_name, sizeof sv.name);
   if (!buf_write (w, &sv, sizeof sv))
     return 0;
 
@@ -617,40 +615,42 @@ write_variable_display_parameters (struct sfm_writer *w,
 static int
 write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
 {
-  char *buf = 0; 
-  int bufsize = 0;
-
   struct
-  {
-    int32 rec_type P;
-    int32 subtype P;
-    int32 elem_size P;
-    int32 n_elem P;
-  } lv_hdr;
+    {
+      int32 rec_type P;
+      int32 subtype P;
+      int32 elem_size P;
+      int32 n_elem P;
+    }
+  lv_hdr;
+
+  struct string long_name_map;
+  size_t i;
+
+  ds_init (&long_name_map, 10 * dict_get_var_cnt (dict));
+  for (i = 0; i < dict_get_var_cnt (dict); i++)
+    {
+      struct variable *v = dict_get_var (dict, i);
+      
+      if (i)
+        ds_putc (&long_name_map, '\t');
+      ds_printf (&long_name_map, "%s=%s", v->short_name, v->name);
+    }
 
   lv_hdr.rec_type = 7;
   lv_hdr.subtype = 13;
   lv_hdr.elem_size = 1;
+  lv_hdr.n_elem = ds_length (&long_name_map);
 
-
-  dict_get_varname_block(dict, &buf, &bufsize);
-
-  if ( bufsize == 0 ) 
-    return 1;
-
-  lv_hdr.n_elem = bufsize ;
-
-  if (!buf_write (w, &lv_hdr, sizeof(lv_hdr) ))
+  if (!buf_write (w, &lv_hdr, sizeof lv_hdr)
+      || !buf_write (w, ds_data (&long_name_map), ds_length (&long_name_map)))
     goto error;
 
-  if (!buf_write (w, buf, bufsize))
-    goto error;
-
-  free (buf);
+  ds_destroy (&long_name_map);
   return 1;
 
  error:
-  free ( buf ) ;
+  ds_destroy (&long_name_map);
   return 0;
 }
 

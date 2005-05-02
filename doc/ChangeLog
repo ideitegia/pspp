@@ -1,3 +1,8 @@
+Sun May  1 23:20:42 2005  Ben Pfaff  <blp@gnu.org>
+
+	* language.texi: Revised lots of text to catch up with changes
+	that have been in for a long time, and for style.
+
 Sun May  1 15:17:42 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* configuration.texi: Removed manpage(x) style references, because 

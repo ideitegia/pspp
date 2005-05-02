@@ -51,7 +51,7 @@ double tokval;
 char tokid[LONG_NAME_LEN + 1];
 
 /* T_ID, T_STRING: token string value.
-   For T_ID, this is not truncated to SHORT_NAME_LEN characters as is tokid. */
+   For T_ID, this is not truncated as is tokid. */
 struct string tokstr;
 
 /* Static variables. */
@@ -116,8 +116,7 @@ restore_token (void)
   assert (put_token != 0);
   token = put_token;
   ds_replace (&tokstr, ds_c_str (&put_tokstr));
-  strncpy (tokid, ds_c_str (&put_tokstr), SHORT_NAME_LEN);
-  tokid[SHORT_NAME_LEN] = 0;
+  st_trim_copy (tokid, ds_c_str (&tokstr), sizeof tokid);
   tokval = put_tokval;
   put_token = 0;
 }
@@ -137,8 +136,6 @@ save_token (void)
 void
 lex_get (void)
 {
-  int i;
-
   /* If a token was pushed ahead, return it. */
   if (put_token)
     {
@@ -360,14 +357,10 @@ lex_get (void)
 	  while (CHAR_IS_IDN (*prog))
 	    ds_putc (&tokstr, *prog++);
 
-	  /* Copy tokstr to tokid, truncating it to LONG_NAME_LEN characters.*/
-	  strncpy (tokid, ds_c_str (&tokstr), LONG_NAME_LEN);
-	  tokid[LONG_NAME_LEN] = 0;
+	  /* Copy tokstr to tokid, possibly truncating it.*/
+	  st_trim_copy (tokid, ds_c_str (&tokstr), sizeof tokid);
 
-	  /* Convert to upper case */
-	  for ( i = 0 ; i < ds_length(&tokstr) ; ++i ) 
-		  tokstr.string[i] = toupper(tokstr.string[i]);
-
+          /* Determine token type. */
 	  token = lex_id_to_token (ds_c_str (&tokstr), ds_length (&tokstr));
 	  break;
 
@@ -485,7 +478,8 @@ lex_match (int t)
 }
 
 /* If the current token is the identifier S, skips it and returns
-   nonzero.
+   nonzero.  The identifier may be abbreviated to its first three
+   letters.
    Otherwise, returns zero. */
 int
 lex_match_id (const char *s)
@@ -609,7 +603,7 @@ lex_force_id (void)
 /* Comparing identifiers. */
 
 /* Keywords match if one of the following is true: KW and TOK are
-   identical (barring differences in case), or TOK is at least 3
+   identical (except for differences in case), or TOK is at least 3
    characters long and those characters are identical to KW.  KW_LEN
    is the length of KW, TOK_LEN is the length of TOK. */
 int
@@ -717,11 +711,11 @@ lex_put_back (int t)
 void
 lex_put_back_id (const char *id)
 {
+  assert (lex_id_to_token (id, strlen (id)) == T_ID);
   save_token ();
   token = T_ID;
   ds_replace (&tokstr, id);
-  strncpy (tokid, ds_c_str (&tokstr), SHORT_NAME_LEN);
-  tokid[SHORT_NAME_LEN] = 0;
+  st_trim_copy (tokid, ds_c_str (&tokstr), sizeof tokid);
 }
 
 /* Weird line processing functions. */
@@ -792,7 +786,7 @@ lex_preprocess_line (void)
     int quote;
 
     /* Remove C-style comments begun by slash-star and terminated by
-     star-slash or newline. */
+       star-slash or newline. */
     quote = comment = 0;
     for (cp = ds_c_str (&getl_buf); *cp; )
       {

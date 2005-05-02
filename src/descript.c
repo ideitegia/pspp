@@ -120,7 +120,7 @@ static const struct dsc_statistic_info dsc_info[DSC_N_STATS] =
 struct dsc_var
   {
     struct variable *v;         /* Variable to calculate on. */
-    char z_name[SHORT_NAME_LEN + 1];/* Name for z-score variable. */
+    char z_name[LONG_NAME_LEN + 1]; /* Name for z-score variable. */
     double valid, missing;	/* Valid, missing counts. */
     struct moments *moments;    /* Moments. */
     double min, max;            /* Maximum and mimimum values. */
@@ -465,7 +465,7 @@ try_name (struct dsc_proc *dsc, char *name)
   if (dict_lookup_var (default_dict, name) != NULL)
     return 0;
   for (i = 0; i < dsc->var_cnt; i++)
-    if (!strcmp (dsc->vars[i].z_name, name))
+    if (!strcasecmp (dsc->vars[i].z_name, name))
       return 0;
   return 1;
 }
@@ -478,12 +478,11 @@ static int
 generate_z_varname (struct dsc_proc *dsc, char *z_name,
                     const char *var_name, int *z_cnt)
 {
-  char name[10];
+  char name[LONG_NAME_LEN + 1];
 
   /* Try a name based on the original variable name. */
   name[0] = 'Z';
-  strcpy (name + 1, var_name);
-  name[SHORT_NAME_LEN] = '\0';
+  st_trim_copy (name + 1, var_name, sizeof name - 1);
   if (try_name (dsc, name))
     {
       strcpy (z_name, name);
@@ -925,7 +924,7 @@ descriptives_compare_dsc_vars (const void *a_, const void *b_, void *dsc_)
   int result;
 
   if (dsc->sort_by_stat == DSC_NAME)
-    result = strcmp (a->v->name, b->v->name);
+    result = strcasecmp (a->v->name, b->v->name);
   else 
     {
       double as = a->stats[dsc->sort_by_stat];

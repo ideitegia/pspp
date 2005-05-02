@@ -104,7 +104,7 @@ backslash within a string.
 
 @item Special character
 
-Other characters, other than whitespace, constitute tokens in
+Other characters, other than white space, constitute tokens in
 themselves.
 
 @end table

@@ -183,7 +183,7 @@ cannot be broken up, unless they are spliced together with a trailing
 backslash, as described below.
 
 @item
-Before anything else is done, trailing whitespace is removed.
+Before anything else is done, trailing white space is removed.
 
 @item
 When a line ends in a backslash (@samp{\}), the backslash is removed,
@@ -191,7 +191,7 @@ and the next line is read and appended to the current line.
 
 @itemize @minus
 @item
-Whitespace preceding the backslash is retained.
+White space preceding the backslash is retained.
 
 @item
 This rule continues to be applied until the line read does not end in a
@@ -222,7 +222,7 @@ Line splicing takes place before comment removal.
 @end itemize
 
 @item
-Blank lines, and lines that contain only whitespace, are ignored.
+Blank lines, and lines that contain only white space, are ignored.
 @end itemize
 
 @node Environment variables, Output devices, Configuration files, Configuration
@@ -646,11 +646,11 @@ The lines in @file{devices} are distinguished in the following manner:
 
 @enumerate
 @item
-Leading whitespace is removed.
+Leading white space is removed.
 
 @item
 If the resulting line begins with the exact string @code{define},
-followed by one or more whitespace characters, the line is processed as
+followed by one or more white space characters, the line is processed as
 a macro definition.
 
 @item
@@ -681,7 +681,7 @@ delimiters between tokens and tokens in themselves.
 The second type is an identifier or string token.  Identifiers and
 strings are equivalent after tokenization, though they are written
 differently.  An identifier is any string of characters other than
-whitespace or equals sign.
+white space or equals sign.
 
 A string is introduced by a single- or double-quote character (@samp{'}
 or @samp{"}) and, in general, continues until the next occurrence of
@@ -733,7 +733,7 @@ hexadecimal value specified.  Any number of hex digits is read and
 interpreted; only the lower 8 bits are used.
 @end table
 
-Tokens, outside of quoted strings, are delimited by whitespace or equals
+Tokens, outside of quoted strings, are delimited by white space or equals
 signs.
 
 @node PostScript driver class, ASCII driver class, Output devices, Configuration
@@ -1000,13 +1000,13 @@ used, or @var{double}, in which case double lines are used.  Default:
 
 @item line-gutter=@var{dimension}
 
-Sets the line gutter, which is the amount of whitespace on either side
+Sets the line gutter, which is the amount of white space on either side
 of lines that border text or graphics objects.  @xref{Dimensions}.
 Default: @code{0.5pt}.
 
 @item line-spacing=@var{dimension}
 
-Sets the line spacing, which is the amount of whitespace that separates
+Sets the line spacing, which is the amount of white space that separates
 lines that are side by side, as in a double line.  Default:
 @code{0.5pt}.
 

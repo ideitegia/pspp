@@ -95,12 +95,32 @@ mm_reverse (void *p, size_t nbytes)
    HAYSTACK_LEN.  Returns a pointer to the needle found. */
 char *
 mm_find_reverse (const char *haystack, size_t haystack_len,
-	 const char *needle, size_t needle_len)
+                 const char *needle, size_t needle_len)
 {
   int i;
   for (i = haystack_len - needle_len; i >= 0; i--)
     if (!memcmp (needle, &haystack[i], needle_len))
       return (char *) &haystack[i];
+  return 0;
+}
+
+/* Compares the SIZE bytes in A to those in B, disregarding case,
+   and returns a strcmp()-type result. */
+int
+mm_case_compare (const void *a_, const void *b_, size_t size)
+{
+  const unsigned char *a = a_;
+  const unsigned char *b = b_;
+
+  while (size-- > 0) 
+    {
+      unsigned char ac = toupper (*a++);
+      unsigned char bc = toupper (*b++);
+
+      if (ac != bc) 
+        return ac > bc ? 1 : -1;
+    }
+
   return 0;
 }
 

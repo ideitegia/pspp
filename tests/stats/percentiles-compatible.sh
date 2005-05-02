@@ -52,7 +52,7 @@ i=1;
 
 activity="create program $i"
 cat > $TEMPDIR/prog.sps <<EOF
-DATA LIST LIST notable /x * .
+DATA LIST LIST notable /X * .
 BEGIN DATA.
 1 
 2 

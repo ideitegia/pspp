@@ -35,7 +35,8 @@
 enum
   {
     NUMERIC,			/* A numeric variable. */
-    ALPHA			/* A string variable.  (STRING is pre-empted by lexer.h) */
+    ALPHA			/* A string variable.
+                                   (STRING is pre-empted by lexer.h.) */
   };
 
 /* Types of missing values.  Order is significant, see
@@ -62,15 +63,16 @@ enum
 /* A variable's dictionary entry.  */
 struct variable
   {
-    char name[SHORT_NAME_LEN + 1];		/* As a string. */
-    char *longname;             /* Pointer to entry in dictionary's table  */
-    int index;			/* Index into its dictionary's var[]. */
+    /* Basic information. */
+    char name[LONG_NAME_LEN + 1]; /* Variable name.  Mixed case. */
     int type;                   /* NUMERIC or ALPHA. */
-
     int width;			/* Size of string variables in chars. */
     int fv, nv;			/* Index into `value's, number of values. */
     unsigned init : 1;          /* 1=VFM must init and possibly reinit. */
     unsigned reinit : 1;        /* Cases are: 1=reinitialized; 0=left. */
+
+    /* Data for use by containing dictionary. */
+    int index;			/* Dictionary index. */
 
     /* Missing values. */
     int miss_type;		/* One of the MISSING_* constants. */
@@ -84,40 +86,38 @@ struct variable
     struct val_labs *val_labs;  /* Value labels. */
     char *label;		/* Variable label. */
 
-
-    /* GUI display parameters */
+    /* GUI display parameters. */
     enum measure measure;       /* Nominal ordinal or continuous */
     int display_width;          /* Width of data editor column */
     enum alignment alignment;   /* Alignment of data in gui */
+
+    /* Short name, used only for system and portable file input
+       and output.  Upper case only.  There is no index for short
+       names.  Short names are not necessarily unique.  Any
+       variable may have no short name, indicated by an empty
+       string. */
+    char short_name[SHORT_NAME_LEN + 1];
 
     /* Per-command info. */
     void *aux;
     void (*aux_dtor) (struct variable *);
   };
 
-
-/* A tuple containing short names and longnames */
-struct name_table_entry
-{
-  char *longname;
-  char *name;
-};
-
+/* Variable names. */
 bool var_is_valid_name (const char *, bool issue_error);
 int compare_var_names (const void *, const void *, void *);
 unsigned hash_var_name (const void *, void *);
 
-/* Destroy and free up an nte */
-void free_nte(struct name_table_entry *nte);
+/* Short names. */
+void var_set_short_name (struct variable *, const char *);
+void var_set_short_name_suffix (struct variable *, const char *, int suffix);
+void var_clear_short_name (struct variable *);
 
-
-unsigned hash_long_name (const void *e_, void *aux UNUSED) ;
-int compare_long_names(const void *a_, const void *b_, void *aux);
-
-
+/* Pointers to `struct variable', by name. */
 int compare_var_ptr_names (const void *, const void *, void *);
 unsigned hash_var_ptr_name (const void *, void *);
 
+/* Variable auxiliary data. */
 void *var_attach_aux (struct variable *,
                       void *aux, void (*aux_dtor) (struct variable *));
 void var_clear_aux (struct variable *);
@@ -139,11 +139,10 @@ const char *dict_class_to_name (enum dict_class dict_class);
 struct vector
   {
     int idx;                    /* Index for dict_get_vector(). */
-    char name[SHORT_NAME_LEN + 1];	/* Name. */
+    char name[LONG_NAME_LEN + 1]; /* Name. */
     struct variable **var;	/* Vector of variables. */
     int cnt;			/* Number of variables. */
   };
-
 
 void discard_variables (void);
 

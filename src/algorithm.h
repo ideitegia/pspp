@@ -107,6 +107,13 @@ void remove_range (void *array, size_t count, size_t size,
 void remove_element (void *array, size_t count, size_t size,
                      size_t idx);
 
+/* Moves an element in ARRAY, which consists of COUNT elements of
+   SIZE bytes each, from OLD_IDX to NEW_IDX, shifting around
+   other elements as needed.  Runs in O(abs(OLD_IDX - NEW_IDX))
+   time. */
+void move_element (void *array, size_t count, size_t size,
+                   size_t old_idx, size_t new_idx);
+
 /* Removes elements equal to ELEMENT from ARRAY, which consists
    of COUNT elements of SIZE bytes each.  Returns the number of
    remaining elements.  AUX is passed to COMPARE as auxiliary

@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE <<EOF
-data list free /v1 w
+data list free /V1 W
 begin data.
 1  1
 2  1

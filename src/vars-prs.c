@@ -134,7 +134,6 @@ parse_variables (const struct dictionary *d, struct variable ***var,
   assert (var != NULL);
   assert (cnt != NULL);
 
- 
   vs = var_set_create_from_dict (d);
   success = parse_var_set_vars (vs, var, cnt, opts);
   if ( success == 0 )
@@ -267,7 +266,7 @@ parse_var_set_vars (const struct var_set *vs,
   else
     included = NULL;
 
-if (lex_match (T_ALL))
+  if (lex_match (T_ALL))
     add_variables (v, nv, &mv, included, pv_opts,
                    vs, 0, var_set_get_cnt (vs) - 1, DC_ORDINARY);
   else 
@@ -303,6 +302,7 @@ if (lex_match (T_ALL))
                        first_var->name, last_var->name);
                   goto fail;
                 }
+
               if (class != last_class)
                 {
                   msg (SE, _("When using the TO keyword to specify several "
@@ -391,8 +391,8 @@ parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
   int d1, d2;
   int n;
   int nvar, mvar;
-  char *name1, *name2;
-  char *root1, *root2;
+  char name1[LONG_NAME_LEN + 1], name2[LONG_NAME_LEN + 1];
+  char root1[LONG_NAME_LEN + 1], root2[LONG_NAME_LEN + 1];
   int success = 0;
 
   assert (names != NULL);
@@ -409,10 +409,6 @@ parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
       *names = NULL;
     }
 
-  name1 = xmalloc (4 * (SHORT_NAME_LEN + 1));
-  name2 = &name1[1 * SHORT_NAME_LEN + 1];
-  root1 = &name1[2 * SHORT_NAME_LEN + 1];
-  root2 = &name1[3 * SHORT_NAME_LEN + 1];
   do
     {
       if (token != T_ID)
@@ -443,7 +439,7 @@ parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
 	      || !extract_num (name2, root2, &n2, &d2))
 	    goto fail;
 
-	  if (strcmp (root1, root2))
+	  if (strcasecmp (root1, root2))
 	    {
 	      msg (SE, _("Prefixes don't match in use of TO convention."));
 	      goto fail;
@@ -464,8 +460,9 @@ parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
 
 	  for (n = n1; n <= n2; n++)
 	    {
-	      (*names)[nvar] = xmalloc (SHORT_NAME_LEN + 1);
-	      sprintf ((*names)[nvar], "%s%0*d", root1, d1, n);
+              char name[LONG_NAME_LEN + 1];
+	      sprintf (name, "%s%0*d", root1, d1, n);
+	      (*names)[nvar] = xstrdup (name);
 	      nvar++;
 	    }
 	}
@@ -489,7 +486,6 @@ parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
 
 fail:
   *nnames = nvar;
-  free (name1);
   if (!success)
     {
       int i;
@@ -662,7 +658,6 @@ struct array_var_set
     struct variable *const *var;/* Array of variables. */
     size_t var_cnt;             /* Number of elements in var. */
     struct hsh_table *name_tab; /* Hash from variable names to variables. */
-    struct hsh_table *longname_tab; /* Hash of short names indexed by long names */
   };
 
 /* Returns the number of variables in VS. */
@@ -689,26 +684,10 @@ array_var_set_get_var (const struct var_set *vs, size_t idx)
 static int
 array_var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
 {
-  char *short_name ;
   struct array_var_set *avs = vs->aux;
   struct variable v, *vp, *const *vpp;
 
-  struct name_table_entry key;
-  key.longname = name;
-
-  struct name_table_entry *nte;
-
-  assert (avs->longname_tab);
-
-
-  nte = hsh_find (avs->longname_tab, &key);
-
-  if (!nte)
-    return -1;
-
-  short_name = nte->name;
-
-  strcpy (v.name, short_name);
+  strcpy (v.name, name);
   vp = &v;
   vpp = hsh_find (avs->name_tab, &vp);
   return vpp != NULL ? vpp - avs->var : -1;
@@ -721,7 +700,6 @@ array_var_set_destroy (struct var_set *vs)
   struct array_var_set *avs = vs->aux;
 
   hsh_destroy (avs->name_tab);
-  hsh_destroy (avs->longname_tab);
   free (avs);
   free (vs);
 }
@@ -744,36 +722,14 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
   avs->var = var;
   avs->var_cnt = var_cnt;
   avs->name_tab = hsh_create (2 * var_cnt,
-                              compare_var_ptr_names, hash_var_ptr_name, 
-			      NULL, NULL);
-
-  avs->longname_tab = hsh_create (2 * var_cnt, 
-				   compare_long_names, hash_long_name, 
-				   (hsh_free_func *) free_nte,
-				   NULL);
-  
+                              compare_var_ptr_names, hash_var_ptr_name, NULL,
+                              NULL);
   for (i = 0; i < var_cnt; i++)
-    {
-      struct name_table_entry *nte ;
-
-      if (hsh_insert (avs->name_tab, &var[i]) != NULL) 
-	{
-	  var_set_destroy (vs);
-	  return NULL;
-	}
-
-      nte = xmalloc (sizeof (*nte));
-      nte->name = strdup(var[i]->name);
-      nte->longname = strdup(var[i]->longname);
-
-      if (hsh_insert (avs->longname_tab, nte) != NULL) 
-	{
-	  var_set_destroy (vs);
-	  free (nte);
-	  return NULL;
-	}
-
-    }
-
+    if (hsh_insert (avs->name_tab, (void *) &var[i]) != NULL) 
+      {
+        var_set_destroy (vs);
+        return NULL;
+      }
+  
   return vs;
 }

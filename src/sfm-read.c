@@ -296,6 +296,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		int32 count P;
 	      }
 	    data;
+            unsigned long bytes;
 
 	    int skip = 0;
 
@@ -306,6 +307,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		bswap_int32 (&data.size);
 		bswap_int32 (&data.count);
 	      }
+            bytes = data.size * data.count;
+            if (bytes < data.size || bytes < data.count)
+              lose ((ME, "%s: Record type %d subtype %d too large.",
+                     handle_get_filename (r->fh), rec_type, data.subtype));
 
 	    switch (data.subtype)
 	      {
@@ -361,25 +366,69 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
 	      case 13: /* SPSS 12.0 Long variable name map */
 		{
+		  char *buf, *short_name, *save_ptr;
+                  int idx;
 
-		  char *s;
-		  char *buf = xmalloc(data.size * data.count + 1);
-		  char *tbuf ;
-		  assertive_buf_read (r, buf, data.size * data.count, 0);
-		  buf[data.size * data.count]='\0';
+                  /* Read data. */
+                  buf = xmalloc (bytes + 1);
+		  if (!buf_read (r, buf, bytes, 0)) 
+                    {
+                      free (buf);
+                      goto error;
+                    }
+		  buf[bytes] = '\0';
 
-		  s = strtok_r(buf, "\t", &tbuf);
-		  while ( s ) 
+                  /* Parse data. */
+		  for (short_name = strtok_r (buf, "=", &save_ptr), idx = 0;
+                       short_name != NULL;
+                       short_name = strtok_r (NULL, "=", &save_ptr), idx++)
 		    {
-		      char *shortname, *longname;
-		      shortname = strsep(&s,"=");
-		      longname = strsep(&s,"=");
-		      
-		      dict_add_longvar_entry(*dict, shortname, longname);
+                      char *long_name = strtok_r (NULL, "\t", &save_ptr);
+                      struct variable *v;
 
-		      s = strtok_r(0,"\t", &tbuf);
+                      /* Validate long name. */
+                      if (long_name == NULL)
+                        {
+                          msg (MW, _("%s: Trailing garbage in long variable "
+                                     "name map."),
+                               handle_get_filename (r->fh));
+                          break;
+                        }
+                      if (!var_is_valid_name (long_name, false))
+                        {
+                          msg (MW, _("%s: Long variable mapping to invalid "
+                                     "variable name `%s'."),
+                               handle_get_filename (r->fh), long_name);
+                          break;
+                        }
+                      
+                      /* Find variable using short name. */
+                      v = dict_lookup_var (*dict, short_name);
+                      if (v == NULL)
+                        {
+                          msg (MW, _("%s: Long variable mapping for "
+                                     "nonexistent variable %s."),
+                               handle_get_filename (r->fh), short_name);
+                          break;
+                        }
+
+                      /* Set long name.
+                         Renaming a variable may clear the short
+                         name, but we want to retain it, so
+                         re-set it explicitly. */
+                      dict_rename_var (*dict, v, long_name);
+                      var_set_short_name (v, short_name);
+
+                      /* For compatability, make sure dictionary
+                         is in long variable name map order.  In
+                         the common case, this has no effect,
+                         because the dictionary and the long
+                         variable name map are already in the
+                         same order. */
+                      dict_reorder_var (*dict, v, idx);
 		    }
-		  
+
+		  /* Free data. */
 		  free (buf);
 		}
 		break;
@@ -791,10 +840,11 @@ read_variables (struct sfm_reader *r,
       name[j] = 0;
 
       /* Create variable. */
-      vv = (*var_by_idx)[i] = dict_create_var_from_short (dict, name, sv.type);
+      vv = (*var_by_idx)[i] = dict_create_var (dict, name, sv.type);
       if (vv == NULL) 
         lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
                handle_get_filename (r->fh), name));
+      var_set_short_name (vv, vv->name);
 
       /* Case reading data. */
       nv = sv.type == 0 ? 1 : DIV_RND_UP (sv.type, sizeof (flt64));

@@ -52,7 +52,7 @@ cat > $TESTFILE <<EOF
 set seed=10.
 input program.
 + loop #i = 1 to 20.
-+    do repeat response=r1.
++    do repeat response=R1.
 +       compute response = uniform(10).
 +    end repeat.
 +    end case.

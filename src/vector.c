@@ -62,7 +62,7 @@ cmd_vector (void)
 	    }
 
 	  for (cp2 = cp; cp2 < cp; cp2 += strlen (cp))
-	    if (!strcmp (cp2, tokid))
+	    if (!strcasecmp (cp2, tokid))
 	      {
 		msg (SE, _("Vector name %s is given twice."), tokid);
 		goto fail;
@@ -92,8 +92,8 @@ cmd_vector (void)
 	    {
 	      /* There's more than one vector name. */
 	      msg (SE, _("A slash must be used to separate each vector "
-		   "specification when using the long form.  Commands "
-		   "such as VECTOR A,B=Q1 TO Q20 are not supported."));
+                         "specification when using the long form.  Commands "
+                         "such as VECTOR A,B=Q1 TO Q20 are not supported."));
 	      goto fail;
 	    }
 
@@ -131,13 +131,13 @@ cmd_vector (void)
 	  if (!lex_force_match (')'))
 	    goto fail;
 
-	  /* First check that all the generated variable names are SHORT_NAME_LEN
-	     characters or shorter. */
+	  /* First check that all the generated variable names
+	     are LONG_NAME_LEN characters or shorter. */
 	  ndig = intlog10 (nv);
 	  for (cp = vecnames; *cp;)
 	    {
 	      int len = strlen (cp);
-	      if (len + ndig > SHORT_NAME_LEN)
+	      if (len + ndig > LONG_NAME_LEN)
 		{
 		  msg (SE, _("%s%d is too long for a variable name."), cp, nv);
 		  goto fail;
@@ -153,7 +153,8 @@ cmd_vector (void)
 		  sprintf (name, "%s%d", cp, i + 1);
 		  if (dict_lookup_var (default_dict, name))
 		    {
-		      msg (SE, _("There is already a variable named %s."), name);
+		      msg (SE, _("There is already a variable named %s."),
+                           name);
 		      goto fail;
 		    }
 		}

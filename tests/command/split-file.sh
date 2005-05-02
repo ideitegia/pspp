@@ -50,7 +50,7 @@ activity="create program"
 cat > $TEMPDIR/split.stat <<EOF
 title 'Test SPLIT FILE utility'.
 
-data list notable /x 1 y 2.
+data list notable /X 1 Y 2.
 begin data.
 12
 16

@@ -224,7 +224,7 @@ internal_cmd_loop (void)
 	}
     }
   else
-    name[0] = 0;
+    name[0] = '\0';
 
   /* Parse IF clause. */
   if (lex_match_id ("IF"))
@@ -243,7 +243,7 @@ internal_cmd_loop (void)
     }
 
   /* Find variable; create if necessary. */
-  if (name[0])
+  if (name[0] != '\0')
     {
       two->index = dict_lookup_var (default_dict, name);
       if (!two->index)

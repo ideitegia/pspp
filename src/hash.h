@@ -35,6 +35,7 @@ struct hsh_iterator
 /* Hash functions. */
 unsigned hsh_hash_bytes (const void *, size_t);
 unsigned hsh_hash_string (const char *);
+unsigned hsh_hash_case_string (const char *);
 unsigned hsh_hash_int (int);
 unsigned hsh_hash_double (double);
 

@@ -520,30 +520,8 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       read_string (r, name);
       for (j = 0; j < 6; j++)
         fmt[j] = read_int (r);
-#if 0 
-	 /* Weirdly enough, there is no # character in the SPSS portable
-	 character set, so we can't check for it. */
-      if (strlen (name) > SHORT_NAME_LEN)
-	lose ((r, _("position %d: Variable name has %u characters."),
-	       i, strlen (name)));
-      if ((name[0] < 74 /* A */ || name[0] > 125 /* Z */)
-	  && name[0] != 152 /* @ */)
-	lose ((r, _("position %d: Variable name begins with invalid "
-		    "character."), i));
-      if (name[0] >= 100 /* a */ && name[0] <= 125 /* z */)
-	{
-	  corrupt_msg (r, _("position %d: Variable name begins with "
-			    "lowercase letter %c."),
-		       i, name[0] - 100 + 'a');
-	  name[0] -= 26 /* a - A */;
-	}
 
-      /* Verify remaining characters of variable name. */
-      for (j = 1; j < (int) strlen (name); j++)
-	{
-	  int c = name[j];
-#endif
-      if (!var_is_valid_name (name, false) || *name == '#') 
+      if (!var_is_valid_name (name, false) || *name == '#' || *name == '$')
         error (r, _("position %d: Invalid variable name `%s'."), name);
       st_uppercase (name);
 

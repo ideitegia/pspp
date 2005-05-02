@@ -218,7 +218,7 @@ cmd_matrix_data (void)
 	    int i;
 
 	    for (i = 0; i < nv; i++)
-	      if (!strcmp (v[i], "VARNAME_"))
+	      if (!strcasecmp (v[i], "VARNAME_"))
 		{
 		  msg (SE, _("VARNAME_ cannot be explicitly specified on "
 			     "VARIABLES."));
@@ -236,7 +236,7 @@ cmd_matrix_data (void)
 	      {
 		struct variable *new_var;
 		
-		if (strcmp (v[i], "ROWTYPE_"))
+		if (strcasecmp (v[i], "ROWTYPE_"))
 		  {
 		    new_var = dict_create_var_assert (default_dict, v[i], 0);
                     attach_mxd_aux (new_var, MXD_CONTINUOUS, i);
@@ -306,7 +306,8 @@ cmd_matrix_data (void)
 	  if (dict_lookup_var (default_dict, tokid) == NULL
 	      && (lex_look_ahead () == '.' || lex_look_ahead () == '/'))
 	    {
-	      if (!strcmp (tokid, "ROWTYPE_") || !strcmp (tokid, "VARNAME_"))
+	      if (!strcasecmp (tokid, "ROWTYPE_")
+                  || !strcasecmp (tokid, "VARNAME_"))
 		{
 		  msg (SE, _("Split variable may not be named ROWTYPE_ "
 			     "or VARNAME_."));
@@ -668,7 +669,7 @@ string_to_content_type (char *s, int *collide)
     };
 
   for (tp = tab; tp->value != -1; tp++)
-    if (!strcmp (s, tp->string))
+    if (!strcasecmp (s, tp->string))
       {
 	if (collide)
 	  *collide = tp->collide;

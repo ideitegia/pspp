@@ -183,7 +183,7 @@ cmd_parse (void)
     return CMD_SUCCESS;
 
   /* Parse comments. */
-  if ((token == T_ID && !strcmp (tokid, "COMMENT"))
+  if ((token == T_ID && !strcasecmp (tokid, "COMMENT"))
       || token == T_EXP || token == '*' || token == '[')
     {
       lex_skip_comment ();
@@ -281,7 +281,7 @@ match_strings (const char *a, size_t a_len,
   while (a_len > 0 && b_len > 0) 
     {
       /* Mismatch always returns zero. */
-      if (*a++ != *b++)
+      if (toupper ((unsigned char) *a++) != toupper ((unsigned char) *b++))
         return 0;
 
       /* Advance. */
@@ -341,14 +341,14 @@ conflicting_3char_prefixes (const char *a, const char *b)
   assert (aw != NULL && bw != NULL);
 
   /* Words that are the same don't conflict. */
-  if (aw_len == bw_len && !memcmp (aw, bw, aw_len))
+  if (aw_len == bw_len && !mm_case_compare (aw, bw, aw_len))
     return 0;
   
   /* Words that are otherwise the same in the first three letters
      do conflict. */
   return ((aw_len > 3 && bw_len > 3)
           || (aw_len == 3 && bw_len > 3)
-          || (bw_len == 3 && aw_len > 3)) && !memcmp (aw, bw, 3);
+          || (bw_len == 3 && aw_len > 3)) && !mm_case_compare (aw, bw, 3);
 }
 
 /* Returns nonzero if CMD can be confused with another command
@@ -390,7 +390,7 @@ cmd_match_words (const struct command *cmd,
        word != NULL && word_idx < word_cnt;
        word = find_word (word + word_len, &word_len), word_idx++)
     if (word_len != strlen (words[word_idx])
-        || memcmp (word, words[word_idx], word_len))
+        || mm_case_compare (word, words[word_idx], word_len))
       {
         size_t match_chars = match_strings (word, word_len,
                                             words[word_idx],

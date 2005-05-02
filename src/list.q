@@ -517,8 +517,9 @@ determine_layout (void)
     {
       int column;	/* Current column. */
       int width;	/* Accumulated width. */
+      int height;       /* Height of vertical names. */
       int max_width;	/* Page width. */
-      
+
       struct list_ext *prc;
 
       if (d->class == &html_class)
@@ -557,14 +558,19 @@ determine_layout (void)
 	}
 
       /* Try layout #2. */
-      for (width = cmd.n_variables - 1, column = 0;
+      for (width = cmd.n_variables - 1, height = 0, column = 0;
 	   column < cmd.n_variables && width <= max_width;
-	   column++)
-	  width += cmd.v_variables[column]->print.w;
+	   column++) 
+        {
+          struct variable *v = cmd.v_variables[column];
+          width += v->print.w;
+          if (strlen (v->name) > height)
+            height = strlen (v->name);
+        }
       
       /* If it fit then we need to determine how many labels can be
          written horizontally. */
-      if (width <= max_width)
+      if (width <= max_width && height <= SHORT_NAME_LEN)
 	{
 #ifndef NDEBUG
 	  prc->n_vertical = -1;

@@ -44,7 +44,7 @@ enum
 /* Limited variable column specifications. */
 struct col_spec
   {
-   char name[SHORT_NAME_LEN + 1];	/* Variable name. */
+    char name[LONG_NAME_LEN + 1]; /* Variable name. */
     int fc, nc;			/* First column (1-based), # of columns. */
     int fmt;			/* Format type. */
     struct variable *v;		/* Variable. */
@@ -264,7 +264,7 @@ cmd_file_type (void)
 	  goto error;
 	}
       
-      if (!strcmp (fty->case_sbc.name, fty->record.name))
+      if (!strcasecmp (fty->case_sbc.name, fty->record.name))
 	{
 	  msg (SE, _("CASE and RECORD must specify different variable "
 		     "names."));

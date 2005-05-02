@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TEMPDIR/descript.stat <<EOF
-data list notable / x 1.
+data list notable / X 1.
 begin data.
 0
 1

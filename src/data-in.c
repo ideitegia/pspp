@@ -760,7 +760,7 @@ parse_enum (struct data_in *i, const char *what,
     if ((ep->can_abbreviate
          && lex_id_match_len (ep->name, strlen (ep->name), name, length))
         || (!ep->can_abbreviate && length == strlen (ep->name)
-            && !memcmp (name, ep->name, length)))
+            && !mm_case_compare (name, ep->name, length)))
       {
         *output = ep->value;
         return true;

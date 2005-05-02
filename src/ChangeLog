@@ -1,3 +1,204 @@
+Sun May  1 23:00:19 2005  Ben Pfaff  <blp@gnu.org>
+
+	* var-display.c: (cmd_variable_alignment) Fix memory leak.
+	(cmd_variable_level) Ditto.
+
+Sun May  1 22:49:04 2005  Ben Pfaff  <blp@gnu.org>
+
+	Hash table had buggy deletion function.  The fix required changing
+	other functions to do probing in the required order.
+
+	* hash.c: (locate_matching_entry) Rewrite and change interface.
+	(hsh_rehash) Rewrite to use locate_matching_entry().
+	(hsh_probe) Ditto.
+	(hsh_find) Ditto.
+	(hsh_delete) Ditto.  Also, fix stupid bugs.
+
+Sun May  1 22:24:58 2005  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c: (dict_clone) Properly copy vectors.
+
+Sun May  1 22:07:58 2005  Ben Pfaff  <blp@gnu.org>
+
+	New implementation of long variable names.  Each variable has a
+	"normal" name, which may be up to 64 bytes long and which is used
+	for all normal operations.  Variables may have a "short" name,
+	which is limited to 8 bytes and used only for system and portable
+	file input and output.
+	
+	Make tokid case-preserving.  Update most uses of tokid to treat it
+	case-insensitively.
+
+	Update many commands to deal with long variable names.
+
+	* autorecode.c: (cmd_autorecode) Use strcasecmp() instead of strcmp().
+
+	* command.c: (cmd_parse) Ditto.
+	(match_strings) Use toupper() before comparing characters.
+	(conflicting_3char_prefixes) Use mm_case_compare() instead of
+	memcmp().
+	(cmd_match_words) Ditto.
+
+	* compute.c: (lvalue_parse) Use st_trim_copy() instead of
+	strncpy().
+
+	* count.c: (struct cnt_var_info) Change n[] to fit long var name.
+	Use st_trim_copy() instead of strcpy().
+
+	* data-in.c: (parse_enum) Use mm_case_compare() instead of
+	memcmp().
+
+	* data-list.c: (struct dls_var_spec) Change name[] to fit long var
+	name.
+	(parse_free) Use st_trim_copy() instead of strcpy().
+
+	* descript.c: (struct dsc_var) Change z_name[] to fit long var
+	name.
+	(try_name) Use strcasecmp() instead of strcmp().
+	(generate_z_varname) Use st_trim_copy() instead of strcpy().
+	(descriptives_compare_dsc_vars) Use strcasecmp() instead of
+	strcmp().
+
+	* dictionary.c: (struct dictionary) Removed `long_name_tab'
+	member.
+	(compare_long_names) Removed.
+	(hash_long_name) Removed.
+	(dict_create) Don't initialize `long_name_tab' member.
+	(dict_clone) Copy short names into new dictionary. 
+	(dict_clear) Don't clear `long_name_tab' member.
+	(dict_get_varname_block) Removed.
+	(dict_add_longvar_entry) Removed.
+	(free_nte) Removed.
+	(dict_destroy) Don't destroy `long_name_tab' member.
+	(dict_create_var_from_short) Removed.
+	(dict_create_var_x) Removed.
+	(dict_create_var) Get rid of longname handling.
+	Clear short name.
+	(dict_clone_var) Get rid of longname parameter and longname
+	handling.
+	(dict_lookup_var) Get rid of longname handling.
+	(dict_reorder_var) New function.
+	(dict_rename_var) Clear short name.
+	(dict_rename_vars) Get rid of longname handling.  Clear short
+	names.
+	(dict_create_vector) Support long vector names.
+	(dict_lookup_vector) Use strcasecmp() instead of strcmp().
+	(quasi_base27) Removed.
+	(make_short_name) Removed.
+	(compare_strings) New function.
+	(hash_string) New function.
+	(dict_assign_short_names) New function.
+
+	* file-handle.q: (get_handle_with_name) Use strcasecmp() instead
+	of strcmp().
+	(get_handle_for_filename) Support long handle names.
+
+	* file-type.c: (struct col_spec) Make `name' fit long var names.
+	(cmd_file_type) Use strcasecmp() instead of strcmp().
+
+	* flip.c: (make_new_var) Rewrite.
+	(flip_sink_write) Use st_trim_copy() instead of strncpy().
+
+	* format.c: (parse_format_specifier_name) Use mm_case_compare()
+	instead of memcmp().
+
+	* get.c: (cmd_save_internal) Rephrase.
+	(rename_variables) Drop test for identical variable name.
+	(struct mtf_proc) Change `first', `last' to fit long var name.
+
+	* hash.c: (hsh_hash_case_string) New function for case-insensitive
+	string hashing.
+
+	* lexer.c: (restore_token) Use st_trim_copy() instead of
+	strncpy().
+	(lex_get) Don't uppercase string when copying into tokid.
+	(lex_put_back_id) Use st_trim_copy() instead of
+	strncpy().
+
+	* list.q: (determine_layout) Consider length of variable names in
+	choosing vertical layout.
+
+	* matrix-data.c: (cmd_matrix_data) Use strcasecmp() instead of
+	strcmp().
+	(string_to_content_type) Ditto.
+
+	* modify-vars.c: (compare_variables_given_ordering) Ditto.
+	(struct var_renaming) Change `new_name' to fit long var name.
+	(compare_var_renaming_by_new_name) Use strcasecmp() instead of
+	strcmp().
+
+	* pfm-read.c: (read_variables) Disallow system variables in system
+	files.
+	(write_variables) Call dict_assign_short_names() and use
+	short_name[] members.
+
+	* repeat.c: (internal_cmd_do_repeat) Use strcasecmp() instead of
+	strcmp().
+
+	* sfm-read.c: (sfm_open_reader) Rewrite code for long variable
+	map.  Reorder variables into same order as long variable map.
+	(read_variables) Set short name.
+
+	* sfm-write.c: (sfm_open_writer) Call dict_assign_short_names().
+	(write_variable) Use st_bare_pad_copy().
+	(write_longvar_table) Rewrite.
+
+	* str.c: (mm_case_compare) New function.
+
+	* sysfile-info.c: (compare_vectors_by_name) Use strcasecmp()
+	instead of strcmp().
+
+	* t-test.q: (tts_custom_groups) Remove redundant test.
+	(tts_custom_pairs) Ditto.
+
+	* var.h: (struct variable) Change `name' to fit long var names.
+	Remove `longname'.  Add `short_name' member.  Reorder some
+	variables.
+	(struct name_table_entry) Removed.
+	(struct vector) Change `name' to fit long vector names.
+
+	* vars-atr.c: (var_is_valid_name) Allow long var names.
+	(compare_var_names) Use strcasecmp() instead of strcmp().
+	(compare_var_ptr_names) Ditto.
+	(hash_var_name) Use hsh_hash_case_string().
+	(hash_var_ptr_name) Ditto.
+	(var_set_short_name) New function.
+	(var_clear_short_name) New function.
+	(var_set_short_name_suffix) New function.
+
+	* vars-prs.c: (parse_DATA_LIST_vars) Support long names.
+	Use strcasecmp() instead of strcmp().
+	(struct array_var_set) Removed `longname_tab'.
+	(array_var_set_lookup_var_idx) Drop longname_tab support.
+	(array_var_set_destroy) Don't destroy `longname_tab'.
+	(var_set_create_from_array) Don't create `longname_tab'.
+
+	* vector.c: (cmd_vector) Use strcasecmp() instead of strcmp().
+	Support long names.
+
+	* expressions/parse.c: (word_matches) Use mm_case_compare()
+	instead of memcmp().
+	(compare_strings) New function.
+	(lookup_function) Use compare_strings() instead of strcmp().
+	
+Sun May  1 22:07:43 2005  Ben Pfaff  <blp@gnu.org>
+
+	* algorithm.c: (move_element) New function.
+
+Sun May  1 22:05:35 2005  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.c: (parse_aggregate_functions) Always initialize
+	destvar.
+
+Sun May  1 22:03:47 2005  Ben Pfaff  <blp@gnu.org>
+
+	* aggregate.c: (cmd_aggregate) Use dict_clone_var_assert().
+
+	* dictionary.c: (dict_clone) Ditto.
+	(dict_clone_var_assert) New function.
+
+	* get.c: (mtf_merge_dictionary) Use dict_clone_var_assert().
+
 Sun May  1 15:05:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* error.c: Added a string for the compiler version to the

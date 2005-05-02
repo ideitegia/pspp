@@ -181,25 +181,27 @@ destroy_flip_pgm (struct flip_pgm *flip)
 static int
 make_new_var (char name[])
 {
+  char *cp;
+
+  /* Trim trailing spaces. */
+  cp = strchr (name, '\0');
+  while (cp > name && isspace ((unsigned char) cp[-1]))
+    *--cp = '\0';
+
   /* Fix invalid characters. */
-  {
-    char *cp;
-  
-    for (cp = name; *cp && !isspace (*cp); cp++)
+  for (cp = name; *cp && cp < name + SHORT_NAME_LEN; cp++)
+    if (cp == name) 
       {
-	*cp = toupper ((unsigned char) *cp);
-	if (!isalpha (*cp) && *cp != '@' && *cp != '#'
-	    && (cp == name || (*cp != '.' && *cp != '$' && *cp != '_'
-                               && !isdigit (*cp))))
-	  {
-	    if (cp == name)
-	      *cp = 'V';	/* _ not valid in first position. */
-	    else
-	      *cp = '_';
-	  }
+        if (!CHAR_IS_ID1 (*cp) || *cp == '$')
+          *cp = 'V';
       }
-    *cp = 0;
-  }
+    else
+      {
+        if (!CHAR_IS_IDN (*cp))
+          *cp = '_'; 
+      }
+  *cp = '\0';
+  st_uppercase (name);
   
   if (dict_create_var (default_dict, name, 0))
     return 1;
@@ -323,8 +325,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
             {
               char name[INT_DIGITS + 2];
               sprintf (name, "V%d", (int) f);
-              strncpy (v->name, name, SHORT_NAME_LEN);
-              name[SHORT_NAME_LEN] = 0; 
+              st_trim_copy (v->name, name, sizeof v->name);
             }
         }
       else

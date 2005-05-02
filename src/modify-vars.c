@@ -348,7 +348,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
   if (ordering->positional)
     result = a->index < b->index ? -1 : a->index > b->index;
   else
-    result = strcmp (a->name, b->name);
+    result = strcasecmp (a->name, b->name);
   if (!ordering->forward)
     result = -result;
   return result;
@@ -358,7 +358,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
 struct var_renaming
   {
     struct variable *var;
-    char new_name[SHORT_NAME_LEN + 1];
+    char new_name[LONG_NAME_LEN + 1];
   };
 
 /* A algo_compare_func that compares new_name members in struct
@@ -370,7 +370,7 @@ compare_var_renaming_by_new_name (const void *a_, const void *b_,
   const struct var_renaming *a = a_;
   const struct var_renaming *b = b_;
 
-  return strcmp (a->new_name, b->new_name);
+  return strcasecmp (a->new_name, b->new_name);
 }
 
 /* Returns true if performing VM on dictionary D would not cause

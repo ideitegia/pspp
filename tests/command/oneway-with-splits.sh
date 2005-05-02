@@ -49,7 +49,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE <<EOF
-DATA LIST LIST /quality * brand * s *.
+DATA LIST LIST /QUALITY * BRAND * S *.
 BEGIN DATA
 3 1 1
 2 1 1

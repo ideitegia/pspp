@@ -50,7 +50,7 @@ cd $TEMPDIR
 activity="create program"
 cat > $TESTFILE <<EOF
 /* Tries AUTORECODE on some random but similar strings of characters.
-data list /x 1-5(a) y 7.
+data list /X 1-5(a) Y 7.
 begin data.
 lasdj 1 1                                                           3
 asdfk 0 3 <---- These are the numbers that should be produced for a 4
@@ -63,13 +63,13 @@ asdfk 0 3 These are the numbers that should be produced for b ----> 4
 asdfk 1 3                                                           3
 end data.
 
-autorecode x y into a b/descend.
+autorecode x y into A B/descend.
 
 list.
 /* Just to make sure it works on second & subsequent executions,
 /* try it again.
-compute z=trunc(y/2).
-autorecode z into w.
+compute Z=trunc(y/2).
+autorecode z into W.
 list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

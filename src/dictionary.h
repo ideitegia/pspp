@@ -40,15 +40,12 @@ void dict_get_vars (const struct dictionary *,
 struct variable *dict_create_var (struct dictionary *, const char *,
                                   int width);
 
-struct variable *dict_create_var_from_short (struct dictionary *d, 
-					     const char *shortname, 
-					     int width);
-
 struct variable *dict_create_var_assert (struct dictionary *, const char *,
                                   int width);
 struct variable *dict_clone_var (struct dictionary *, const struct variable *,
-                                 const char *shortname, const char *longname);
-void dict_rename_var (struct dictionary *, struct variable *, const char *);
+                                 const char *);
+struct variable *dict_clone_var_assert (struct dictionary *,
+                                        const struct variable *, const char *);
 
 struct variable *dict_lookup_var (const struct dictionary *, const char *);
 struct variable *dict_lookup_var_assert (const struct dictionary *,
@@ -57,8 +54,11 @@ int dict_contains_var (const struct dictionary *, const struct variable *);
 void dict_delete_var (struct dictionary *, struct variable *);
 void dict_delete_vars (struct dictionary *,
                        struct variable *const *, size_t count);
+void dict_reorder_var (struct dictionary *d, struct variable *v,
+                       size_t new_index);
 void dict_reorder_vars (struct dictionary *,
                         struct variable *const *, size_t count);
+void dict_rename_var (struct dictionary *, struct variable *, const char *);
 int dict_rename_vars (struct dictionary *,
                       struct variable **, char **new_names,
                       size_t count, char **err_name);
@@ -105,12 +105,6 @@ const struct vector *dict_lookup_vector (const struct dictionary *,
                                          const char *name);
 void dict_clear_vectors (struct dictionary *);
 
-void dict_get_varname_block(const struct dictionary *dict, char **buf, int *size);
-
-void dict_add_longvar_entry(struct dictionary *d, const char *name, 
-			    const char *longname);
-
-
-
+void dict_assign_short_names (struct dictionary *);
 
 #endif /* dictionary.h */

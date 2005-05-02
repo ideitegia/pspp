@@ -25,8 +25,7 @@
 struct file_handle;
 struct dictionary;
 struct ccase;
-struct sfm_writer *sfm_open_writer (struct file_handle *,
-                                    const struct dictionary *, 
+struct sfm_writer *sfm_open_writer (struct file_handle *, struct dictionary *, 
 				    int compress, short omit_longnames);
 
 int sfm_write_case (struct sfm_writer *, struct ccase *);

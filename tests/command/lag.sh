@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TEMPDIR/lag.stat <<EOF
-data list /w 1.
+data list /W 1.
 begin data.
 1
 2
@@ -57,9 +57,9 @@ begin data.
 5
 end data.
 
-compute x=lag(w,1).
-compute y=lag(x).
-compute z=lag(w,2).
+compute X=lag(w,1).
+compute Y=lag(x).
+compute Z=lag(w,2).
 list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

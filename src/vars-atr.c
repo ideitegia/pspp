@@ -256,14 +256,14 @@ var_is_valid_name (const char *name, bool issue_error)
   if (length < 1) 
     {
       if (issue_error)
-        msg (SE, _("Variable names must be at least 1 character long."));
+        msg (SE, _("Variable name cannot be empty string."));
       return false;
     }
-  else if (length > SHORT_NAME_LEN) 
+  else if (length > LONG_NAME_LEN) 
     {
       if (issue_error)
         msg (SE, _("Variable name %s exceeds %d-character limit."),
-             (int) SHORT_NAME_LEN);
+             (int) LONG_NAME_LEN);
       return false;
     }
 
@@ -304,7 +304,7 @@ compare_var_names (const void *a_, const void *b_, void *foo UNUSED)
   const struct variable *a = a_;
   const struct variable *b = b_;
 
-  return strcmp (a->name, b->name);
+  return strcasecmp (a->name, b->name);
 }
 
 /* A hsh_hash_func that hashes variable V based on its name. */
@@ -313,7 +313,7 @@ hash_var_name (const void *v_, void *foo UNUSED)
 {
   const struct variable *v = v_;
 
-  return hsh_hash_string (v->name);
+  return hsh_hash_case_string (v->name);
 }
 
 /* A hsh_compare_func that orders pointers to variables A and B
@@ -324,7 +324,7 @@ compare_var_ptr_names (const void *a_, const void *b_, void *foo UNUSED)
   struct variable *const *a = a_;
   struct variable *const *b = b_;
 
-  return strcmp ((*a)->name, (*b)->name);
+  return strcasecmp ((*a)->name, (*b)->name);
 }
 
 /* A hsh_hash_func that hashes pointer to variable V based on its
@@ -334,5 +334,66 @@ hash_var_ptr_name (const void *v_, void *foo UNUSED)
 {
   struct variable *const *v = v_;
 
-  return hsh_hash_string ((*v)->name);
+  return hsh_hash_case_string ((*v)->name);
+}
+
+/* Sets V's short_name to SHORT_NAME, truncating it to
+   SHORT_NAME_LEN characters and converting it to uppercase in
+   the process. */
+void
+var_set_short_name (struct variable *v, const char *short_name) 
+{
+  assert (v != NULL);
+  assert (short_name[0] == '\0' || var_is_valid_name (short_name, false));
+  
+  st_trim_copy (v->short_name, short_name, sizeof v->short_name);
+  st_uppercase (v->short_name);
+}
+
+/* Clears V's short name. */
+void
+var_clear_short_name (struct variable *v) 
+{
+  assert (v != NULL);
+
+  v->short_name[0] = '\0';
+}
+
+/* Sets V's short name to BASE, followed by a suffix of the form
+   _A, _B, _C, ..., _AA, _AB, etc. according to the value of
+   SUFFIX.  Truncates BASE as necessary to fit. */
+void
+var_set_short_name_suffix (struct variable *v, const char *base, int suffix)
+{
+  char string[SHORT_NAME_LEN + 1];
+  char *start, *end;
+  int len, ofs;
+
+  assert (v != NULL);
+  assert (suffix >= 0);
+  assert (strlen (v->short_name) > 0);
+
+  /* Set base name. */
+  var_set_short_name (v, base);
+
+  /* Compose suffix_string. */
+  start = end = string + sizeof string - 1;
+  *end = '\0';
+  do 
+    {
+      *--start = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[suffix % 26];
+      if (start <= string + 1)
+        msg (SE, _("Variable suffix too large."));
+      suffix /= 26;
+    }
+  while (suffix > 0);
+  *--start = '_';
+
+  /* Append suffix_string to V's short name. */
+  len = end - start;
+  if (len + strlen (v->short_name) > SHORT_NAME_LEN)
+    ofs = SHORT_NAME_LEN - len;
+  else
+    ofs = strlen (v->short_name);
+  strcpy (v->short_name + ofs, start);
 }

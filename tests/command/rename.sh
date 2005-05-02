@@ -78,26 +78,26 @@ if [ $? -eq 0 ] ; then fail ; fi
 activity="compare output"
 diff -B -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
-+--------+------+
-|Variable|Format|
-#========#======#
-|BRAKEFLU|F8.0  |
-|Y       |F8.0  |
-+--------+------+
++----------+------+
+| Variable |Format|
+#==========#======#
+|brakeFluid|F8.0  |
+|y         |F8.0  |
++----------+------+
 
-BRAKEFLU        Y
--------- --------
-    1.00     3.00 
-    2.00     3.00 
-    3.00     3.00 
-    4.00     3.00 
+brakeFluid        y
+---------- --------
+      1.00     3.00 
+      2.00     3.00 
+      3.00     3.00 
+      4.00     3.00 
 
-APPLECAR        Y
--------- --------
-    1.00     3.00 
-    2.00     3.00 
-    3.00     3.00 
-    4.00     3.00 
+applecarts        y
+---------- --------
+      1.00     3.00 
+      2.00     3.00 
+      3.00     3.00 
+      4.00     3.00 
 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

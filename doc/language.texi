@@ -29,228 +29,133 @@ Later chapters will describe individual commands in detail.
 @cindex language, tokens
 @cindex tokens
 @cindex lexical analysis
-@cindex lexemes
 
 PSPP divides most syntax file lines into series of short chunks
-called @dfn{tokens}, @dfn{lexical elements}, or @dfn{lexemes}.  These
-tokens are then grouped to form commands, each of which tells
+called @dfn{tokens}.
+Tokens are then grouped to form commands, each of which tells
 PSPP to take some action---read in data, write out data, perform
-a statistical procedure, etc.  The process of dividing input into tokens
-is @dfn{tokenization}, or @dfn{lexical analysis}.  Each type of token is
+a statistical procedure, etc.  Each type of token is
 described below.
-
-@cindex delimiters
-@cindex whitespace
-Tokens must be separated from each other by @dfn{delimiters}.
-Delimiters include whitespace (spaces, tabs, carriage returns, line
-feeds, vertical tabs), punctuation (commas, forward slashes, etc.), and
-operators (plus, minus, times, divide, etc.)  Note that while whitespace
-only separates tokens, other delimiters are tokens in themselves.
 
 @table @strong
 @cindex identifiers
 @item Identifiers
-Identifiers are names that specify variable names, commands, or command
-details.
-
-@itemize @bullet
-@item
-The first character in an identifier must be a letter, @samp{#}, or
-@samp{@@}.  Some system identifiers begin with @samp{$}, but
-user-defined variables' names may not begin with @samp{$}.
-
-@item
-The remaining characters in the identifier must be letters, digits, or
-one of the following special characters: 
+Identifiers are names that typically specify variables, commands, or
+subcommands.  The first character in an identifier must be a letter,
+@samp{#}, or @samp{@@}.  The remaining characters in the identifier
+must be letters, digits, or one of the following special characters:
 
 @example
-.  _  $  #  @@
+@center @.  _  $  #  @@
 @end example
 
-@item
-@cindex variable names
-@cindex names, variable
-Variable names may be up any length up to 64 bytes long.
-
-
-@item
 @cindex case-sensitivity
-Identifiers are not case-sensitive: @code{foobar}, @code{Foobar},
-@code{FooBar}, @code{FOOBAR}, and @code{FoObaR} are different
-representations of the same identifier.
+Identifiers may be up any length, but only the first 64 bytes are
+significant.  Identifiers are not case-sensitive: @code{foobar},
+@code{Foobar}, @code{FooBar}, @code{FOOBAR}, and @code{FoObaR} are
+different representations of the same identifier.
 
-@item
-@cindex keywords
-Identifiers other than variable names may be abbreviated to their first
-3 characters if this abbreviation is unambiguous.  These identifiers are
-often called @dfn{keywords}.  (Unique abbreviations of 3 or more
+@cindex identifiers, reserved
+@cindex reserved identifiers
+Some identifiers are reserved.  Reserved identifiers may not be used
+in any context besides those explicitly described in this manual.  The
+reserved identifiers are:
+
+@example
+@center ALL  AND  BY  EQ  GE  GT  LE  LT  NE  NOT  OR  TO  WITH
+@end example
+
+@item Keywords
+Keywords are a subclass of identifiers that form a fixed part of
+command syntax.  For example, command and subcommand names are
+keywords.  Keywords may be abbreviated to their first 3 characters if
+this abbreviation is unambiguous.  (Unique abbreviations of 3 or more
 characters are also accepted: @samp{FRE}, @samp{FREQ}, and
 @samp{FREQUENCIES} are equivalent when the last is a keyword.)
 
-@item
-Whether an identifier is a keyword depends on the context.
-
-@item
-@cindex keywords, reserved
-@cindex reserved keywords
-Some keywords are reserved.  These keywords may not be used in any
-context besides those explicitly described in this manual.  The reserved
-keywords are:
-
-@example
-ALL  AND  BY  EQ  GE  GT  LE  LT  NE  NOT  OR  TO  WITH
-@end example
-
-@item 
-Since keywords are identifiers, all the rules for identifiers apply.
-Specifically, they must be delimited as are other identifiers:
-@code{WITH} is a reserved keyword, but @code{WITHOUT} is a valid
-variable name.
-@end itemize
-
-@cindex @samp{.}
-@cindex period
-@cindex variable names, ending with period
-@strong{Caution:} It is legal to end a variable name with a period, but
-@emph{don't do it!}  The variable name will be misinterpreted when it is
-the final token on a line: @code{FOO.} will be divided into two separate
-tokens, @samp{FOO} and @samp{.}, the @dfn{terminal dot}.
-@xref{Commands, , Forming commands of tokens}.
+Reserved identifiers are always used as keywords.  Other identifiers
+may be used both as keywords and as user-defined identifiers, such as
+variable names.
 
 @item Numbers
 @cindex numbers
 @cindex integers
 @cindex reals
-Numbers may be specified as integers or reals.  Integers are internally
-converted into reals.  Scientific notation is not supported.  Here are
-some examples of valid numbers:
+Numbers are expressed in decimal.  A decimal point is optional.
+Numbers may be expressed in scientific notation by adding @samp{e} and
+a base-10 exponent, so that @samp{1.234e3} has the value 1234.  Here
+are some more examples of valid numbers:
 
 @example
-1234  3.14159265359  .707106781185  8945.
+-5  3.14159265359  1e100  -.707  8945.
 @end example
 
-@strong{Caution:} The last example will be interpreted as two tokens,
-@samp{8945} and @samp{.}, if it is the last token on a line.
+Negative numbers are expressed with a @samp{-} prefix.  However, in
+situations where a literal @samp{-} token is expected, what appears to
+be a negative number is treated as @samp{-} followed by a positive
+number.
+
+No white space is allowed within a number token, except for horizontal
+white space between @samp{-} and the rest of the number.
+
+The last example above, @samp{8945.} will be interpreted as two
+tokens, @samp{8945} and @samp{.}, if it is the last token on a line.
+@xref{Commands, , Forming commands of tokens}.
 
 @item Strings
 @cindex strings
 @cindex @samp{'}
 @cindex @samp{"}
 @cindex case-sensitivity
-Strings are literal sequences of characters enclosed in pairs of single
-quotes (@samp{'}) or double quotes (@samp{"}).
+Strings are literal sequences of characters enclosed in pairs of
+single quotes (@samp{'}) or double quotes (@samp{"}).  To include the
+character used for quoting in the string, double it, e.g.@:
+@samp{'it''s an apostrophe'}.  White space and case of letters are
+significant inside strings.
 
-@itemize @bullet
-@item
-Whitespace and case of letters @emph{are} significant inside strings.
-@item
-Whitespace characters inside a string are not delimiters.
-@item
-To include single-quote characters in a string, enclose the string in
-double quotes.
-@item
-To include double-quote characters in a string, enclose the string in
-single quotes.
-@item
-It is not possible to put both single- and double-quote characters
-inside one string.
-@end itemize
+Strings can be concatenated using @samp{+}, so that @samp{"a" + 'b' +
+'c'} is equivalent to @samp{'abc'}.  Concatenation is useful for
+splitting a single string across multiple source lines. The maximum
+length of a string, after concatenation, is 255 characters.
 
-@item Hexstrings
-@cindex hexstrings
-Hexstrings are string variants that use hex digits to specify
-characters.
+Strings may also be expressed as hexadecimal, octal, or binary
+character values by prefixing the initial quote character by @samp{X},
+@samp{O}, or @samp{B} or their lowercase equivalents.  Each pair,
+triplet, or octet of characters, according to the radix, is
+transformed into a single character with the given value.  If there is
+an incomplete group of characters, the missing final digits are
+assumed to be @samp{0}.  These forms of strings are nonportable
+because numeric values are associated with different characters by
+different operating systems.  Therefore, their use should be confined
+to syntax files that will not be widely distributed.
 
-@itemize @bullet
-@item
-A hexstring may be used anywhere that an ordinary string is allowed.
-
-@item
-@cindex @samp{X'}
-@cindex @samp{'}
-A hexstring begins with @samp{X'} or @samp{x'}, and ends with @samp{'}.
-
-@cindex whitespace
-@item
-No whitespace is allowed between the initial @samp{X} and @samp{'}.
-
-@item
-Double quotes @samp{"} may be used in place of single quotes @samp{'} if
-done in both places.
-
-@item
-Each pair of hex digits is internally changed into a single character
-with the given value.
-
-@item
-If there is an odd number of hex digits, the missing last digit is
-assumed to be @samp{0}.
-
-@item
-@cindex portability
-@strong{Please note:} Use of hexstrings is nonportable because the same
-numeric values are associated with different glyphs by different
-operating systems.  Therefore, their use should be confined to syntax
-files that will not be widely distributed.
-
-@item
 @cindex characters, reserved
 @cindex 0
-@cindex whitespace
-@strong{Please note also:} The character with value 00 is reserved for
+@cindex white space
+The character with value 00 is reserved for
 internal use by PSPP.  Its use in strings causes an error and
-replacement with a blank space (in ASCII, hex 20, decimal 32).
-@end itemize
+replacement by a space character.
 
-@item Punctuation
-@cindex punctuation
-Punctuation separates tokens; punctuators are delimiters.  These are the
-punctuation characters:
-
-@example
-,  /  =  (  )
-@end example
-
-@item Operators
+@item Punctuators and Operators
+@cindex punctuators
 @cindex operators
-Operators describe mathematical operations.  Some operators are delimiters:
+These tokens are the punctuators and operators:
 
 @example
-(  )  +  -  *  /  **
+@center ,  /  =  (  )  +  -  *  /  **  <  <=  <>  >  >=  ~=  &  |  .
 @end example
 
-Many of the above operators are also punctuators.  Punctuators are
-distinguished from operators by context. 
+Most of these appear within the syntax of commands, but the period
+(@samp{.}) punctuator is used only at the end of a command.  It is a
+punctuator only as the last character on a line (except white space).
+When it is the last non-space character on a line, a period is not
+treated as part of another token, even if it would otherwise be part
+of e.g.@: an identifier or a floating-point number.
 
-The other operators are all reserved keywords.  None of these are
-delimiters:
-
-@example
-AND  EQ  GE  GT  LE  LT  NE  OR
-@end example
-
-@item Terminal Dot
-@cindex terminal dot
-@cindex dot, terminal
-@cindex period
-@cindex @samp{.}
-A period (@samp{.}) at the end of a line (except for whitespace) is one
-type of a @dfn{terminal dot}, although not every terminal dot is a
-period at the end of a line.  @xref{Commands, , Forming commands of
-tokens}.  A period is a terminal dot @emph{only}
-when it is at the end of a line; otherwise it is part of a
-floating-point number.  (A period outside a number in the middle of a
-line is an error.)
-
-@quotation
-@cindex terminal dot, changing
-@cindex dot, terminal, changing
-@strong{Please note:} The character used for the @dfn{terminal dot}
-can be changed with @cmd{SET}'s ENDCMD subcommand (@pxref{SET}).  This
-is strongly discouraged, and throughout all the remainder of this
-manual it will be assumed that the default setting is in effect.
-@end quotation
-
+Actually, the character that ends a command can be changed with
+@cmd{SET}'s ENDCMD subcommand (@pxref{SET}), but we do not recommend
+doing so.  Throughout the remainder of this manual we will assume that
+the default setting is in effect.
 @end table
 
 @node Commands, Types of Commands, Tokens, Language
@@ -260,92 +165,41 @@ manual it will be assumed that the default setting is in effect.
 @cindex language, command structure
 @cindex commands, structure
 
-Most PSPP commands share a common structure, diagrammed below:
+Most PSPP commands share a common structure.  A command begins with a
+command name, such as @cmd{FREQUENCIES}, @cmd{DATA LIST}, or @cmd{N OF
+CASES}.  The command name may be abbreviated to its first word, and
+each word in the command name may be abbreviated to its first three
+or more characters, where these abbreviations are unambiguous.
 
-@example
-@var{cmd}@dots{} [@var{sbc}[=][@var{spec} [[,]@var{spec}]@dots{}]] [[/[=][@var{spec} [[,]@var{spec}]@dots{}]]@dots{}].
-@end example
+The command name may be followed by one or more @dfn{subcommands}.
+Each subcommand begins with a subcommand name, which may be
+abbreviated to its first three letters.  Some subcommands accept a
+series of one or more specifications, which follow the subcommand name
+and, optionally separated from it by an equals sign (@samp{=}), and
+optionally separated from each other by commas.  Each subcommand must
+be separated from the next (if any) by a forward slash (@samp{/}).
 
-@cindex @samp{[  ]}
-In the above, rather daunting, expression, pairs of square brackets
-(@samp{[ ]}) indicate optional elements, and names such as @var{cmd}
-indicate parts of the syntax that vary from command to command.
-Ellipses (@samp{...}) indicate that the preceding part may be repeated
-an arbitrary number of times.  Let's pick apart what it says above:
+There are multiple ways to mark the end of a command.  The most common
+way is to end the last line of the command with a period (@samp{.}) as
+described in the previous section (@pxref{Tokens}).  A blank line, or
+one that consists only of white space or comments, also ends a command
+by default, although you can use the NULLINE subcommand of @cmd{SET}
+to disable this feature (@pxref{SET}).
 
-@itemize @bullet
-@cindex commands, names
-@item
-A command begins with a command name of one or more keywords, such as
-@cmd{FREQUENCIES}, @cmd{DATA LIST}, or @cmd{N OF CASES}.  @var{cmd}
-may be abbreviated to its first word if that is unambiguous; each word
-in @var{cmd} may be abbreviated to a unique prefix of three or more
-characters as described above.
-
-@cindex subcommands
-@item
-The command name may be followed by one or more @dfn{subcommands}:
-
-@itemize @minus
-@item
-Each subcommand begins with a unique keyword, indicated by @var{sbc}
-above.  This is analogous to the command name.
-
-@item
-The subcommand name is optionally followed by an equals sign (@samp{=}).
-
-@item
-Some subcommands accept a series of one or more specifications
-(@var{spec}), optionally separated by commas.
-
-@item
-Each subcommand must be separated from the next (if any) by a forward
-slash (@samp{/}).
-@end itemize
-
-@cindex dot, terminal
-@cindex terminal dot
-@item
-Each command must be terminated with a @dfn{terminal dot}.  
-The terminal dot may be given one of three ways:
-
-@itemize @minus
-@item
-(most commonly) A period character at the very end of a line, as
-described above.
-
-@item
-(only if NULLINE is on: @xref{SET, , Setting user preferences}, for more
-details.)  A completely blank line.
-
-@item
-(in batch mode only) Any line that is not indented from the left side of
-the page causes a terminal dot to be inserted before that line.
-Therefore, each command begins with a line that is flush left, followed
-by zero or more lines that are indented one or more characters from the
-left margin.
-
-In batch mode, PSPP will ignore a plus sign, minus sign, or period
-(@samp{+}, @samp{@minus{}}, or @samp{.}) as the first character in a
-line.  Any of these characters as the first character on a line will
-begin a new command.  This allows for visual indentation of a command
-without that command being considered part of the previous command.
-
-PSPP is in batch mode when it is reading input from a file, rather
-than from an interactive user.  Note that the other forms of the
-terminal dot may also be used in batch mode.
+In batch mode only, that is, when reading commands from a file instead
+of an interactive user, any line that contains a non-space character
+in the leftmost column begins a new command.  Thus, each command
+consists of a flush-left line followed by any number of lines indented
+from the left margin.  In this mode, a plus sign, minus sign, or
+period (@samp{+}, @samp{@minus{}}, or @samp{.}) as the first character
+in a line is ignored and causes that line to begin a new command,
+which allows for visual indentation of a command without that command
+being considered part of the previous command.
 
 Sometimes, one encounters syntax files that are intended to be
-interpreted in interactive mode rather than batch mode (for instance,
-this can happen if a session log file is used directly as a syntax
-file).  When this occurs, use the @samp{-i} command line option to force
-interpretation in interactive mode (@pxref{Language control options}).
-@end itemize
-@end itemize
-
-PSPP ignores empty commands when they are generated by the above
-rules.  Note that, as a consequence of these rules, each command must
-begin on a new line.
+interpreted in interactive mode rather than batch mode.  When this
+occurs, use the @samp{-i} command line option to force interpretation
+in interactive mode (@pxref{Language control options}).
 
 @node Types of Commands, Order of Commands, Commands, Language
 @section Types of Commands
@@ -379,8 +233,8 @@ are not carried out until a procedure is executed.
 
 @item Restricted transformations
 @cindex restricted transformations
-Same as transformations for most purposes.  @xref{Order of Commands}, for a
-detailed description of the differences.
+Transformations that cannot appear in certain contexts.  @xref{Order
+of Commands}, for details.
 
 @item Procedures
 @cindex procedures
@@ -395,11 +249,11 @@ active file (the data) to be read.
 @cindex commands, ordering
 @cindex order of commands
 
-PSPP does not place many restrictions on ordering of commands.
-The main restriction is that variables must be defined with one of the
-file-definition commands before they are otherwise referred to.
+PSPP does not place many restrictions on ordering of commands.  The
+main restriction is that variables must be defined they are otherwise
+referenced.  This section describes the details of command ordering,
+but most users will have no need to refer to them.
 
-Of course, there are specific rules, for those who are interested.
 PSPP possesses five internal states, called initial, INPUT PROGRAM,
 FILE TYPE, transformation, and procedure states.  (Please note the
 distinction between the @cmd{INPUT PROGRAM} and @cmd{FILE TYPE}
@@ -413,7 +267,7 @@ own rules for state transitions:
 @item Utility commands
 @itemize @bullet
 @item
-Legal in all states.
+Valid in any state.
 @item
 Do not cause state transitions.  Exception: when @cmd{N OF CASES}
 is executed in the procedure state, it causes a transition to the
@@ -423,7 +277,7 @@ transformation state.
 @item @cmd{DATA LIST}
 @itemize @bullet
 @item
-Legal in all states.
+Valid in any state.
 @item
 When executed in the initial or procedure state, causes a transition to
 the transformation state.  
@@ -496,10 +350,11 @@ Cause a transition to the procedure state.
 PSPP includes special support for unknown numeric data values.
 Missing observations are assigned a special value, called the
 @dfn{system-missing value}.  This ``value'' actually indicates the
-absence of value; it means that the actual value is unknown.  Procedures
+absence of a value; it means that the actual value is unknown.  Procedures
 automatically exclude from analyses those observations or cases that
-have missing values.  Whether single observations or entire cases are
-excluded depends on the procedure.
+have missing values.  Details of missing value exclusion depend on the
+procedure and can often be controlled by the user; refer to
+descriptions of individual procedures for details.
 
 The system-missing value exists only for numeric variables.  String
 variables always have a defined value, even if it is only a string of
@@ -543,8 +398,28 @@ Each variable has a number of attributes, including:
 
 @table @strong
 @item Name
-This is an identifier.  Each variable must have a different name.
+An identifier, up to 64 bytes long.  Each variable must have a different name.
 @xref{Tokens}.
+
+Some system variable names begin with @samp{$}, but user-defined
+variables' names may not begin with @samp{$}.
+
+@cindex @samp{.}
+@cindex period
+@cindex variable names, ending with period
+The final character in a variable name should not be @samp{.}, because
+such an identifier will be misinterpreted when it is the final token
+on a line: @code{FOO.} will be divided into two separate tokens,
+@samp{FOO} and @samp{.}, indicating end-of-command.  @xref{Tokens}.
+
+@cindex @samp{_}
+The final character in a variable name should not be @samp{_}, because
+some such identifiers are used for special purposes by PSPP
+procedures.
+
+As with all PSPP identifiers, variable names are not case-sensitive.
+PSPP capitalizes variable names on output the same way they were
+capitalized at their point of definition in the input.
 
 @cindex variables, type
 @cindex type of variables
@@ -559,11 +434,9 @@ fewer are called @dfn{short string variables}.  Short string variables
 can be used in many procedures where @dfn{long string variables} (those
 with widths greater than 8) are not allowed.
 
-@quotation
-@strong{Please note:} Certain systems may consider strings longer than 8
+Certain systems may consider strings longer than 8
 characters to be short strings.  Eight characters represents a minimum
 figure for the maximum length of a short string.
-@end quotation
 
 @item Position
 Variables in the dictionary are arranged in a specific order.
@@ -657,80 +530,29 @@ Page width, in characters, in format F3.
 @cindex TO convention
 @cindex convention, TO
 
-There are several ways to specify a set of variables:
-
-@enumerate
-@item
-(Most commonly.)  List the variable names one after another, optionally
-separating them by commas.
-
-@cindex @code{TO}
-@item
-(This method cannot be used on commands that define the dictionary, such
-as @cmd{DATA LIST}.)  The syntax is the names of two existing variables,
-separated by the reserved keyword @code{TO}.  The meaning is to include
-every variable in the dictionary between and including the variables
-specified.  For instance, if the dictionary contains six variables with
-the names @code{ID}, @code{X1}, @code{X2}, @code{GOAL}, @code{MET}, and
+To refer to a set of variables, list their names one after another.
+Optionally, their names may be separated by commas.  To include a
+range of variables from the dictionary in the list, write the name of
+the first and last variable in the range, separated by @code{TO}.  For
+instance, if the dictionary contains six variables with the names
+@code{ID}, @code{X1}, @code{X2}, @code{GOAL}, @code{MET}, and
 @code{NEXTGOAL}, in that order, then @code{X2 TO MET} would include
 variables @code{X2}, @code{GOAL}, and @code{MET}.
 
-@item
-(This method can be used only on commands that define the dictionary,
-such as @cmd{DATA LIST}.)  It is used to define sequences of variables
-that end in consecutive integers.  The syntax is two identifiers that
-end in numbers.  This method is best illustrated with examples:
+Commands that define variables, such as @cmd{DATA LIST}, give
+@code{TO} an alternate meaning.  With these commands, @code{TO} define
+sequences of variables whose names end in consecutive integers.  The
+syntax is two identifiers that begin with the same root and end with
+numbers, separated by @code{TO}.  The syntax @code{X1 TO X5} defines 5
+variables, named @code{X1}, @code{X2}, @code{X3}, @code{X4}, and
+@code{X5}.  The syntax @code{ITEM0008 TO ITEM0013} defines 6
+variables, named @code{ITEM0008}, @code{ITEM0009}, @code{ITEM0010},
+@code{ITEM0011}, @code{ITEM0012}, and @code{ITEM00013}.  The syntaxes
+@code{QUES001 TO QUES9} and @code{QUES6 TO QUES3} are invalid.
 
-@itemize @bullet
-@item
-The syntax @code{X1 TO X5} defines 5 variables:
-
-@itemize @minus
-@item
-X1
-@item
-X2
-@item
-X3
-@item
-X4
-@item
-X5
-@end itemize
-
-@item
-The syntax @code{ITEM0008 TO ITEM0013} defines 6 variables:
-
-@itemize @minus
-@item
-ITEM0008
-@item
-ITEM0009
-@item
-ITEM0010
-@item
-ITEM0011
-@item
-ITEM0012
-@item
-ITEM0013
-@end itemize
-
-@item
-Each of the syntaxes @code{QUES001 TO QUES9} and @code{QUES6 TO QUES3}
-are invalid, although for different reasons, which should be evident.
-@end itemize
-
-Note that after a set of variables has been defined with @cmd{DATA LIST}
-or another command with this method, the same set can be referenced on
+After a set of variables has been defined with @cmd{DATA LIST} or
+another command with this method, the same set can be referenced on
 later commands using the same syntax.
-
-@item
-The above methods can be combined, either one after another or delimited
-by commas.  For instance, the combined syntax @code{A Q5 TO Q8 X TO Z}
-is legal as long as each part @code{A}, @code{Q5 TO Q8}, @code{X TO Z}
-is individually legal.
-@end enumerate
 
 @node Input/Output Formats, Scratch Variables, Sets of Variables, Variables
 @subsection Input and Output Formats
@@ -889,7 +711,7 @@ definitions of the elements that make up their formats will be helpful:
 
 @table @dfn
 @item leader
-All formats accept an optional whitespace leader.
+All formats accept an optional white space leader.
 
 @item day
 An integer between 1 and 31 representing the day of month.
@@ -898,7 +720,7 @@ An integer between 1 and 31 representing the day of month.
 An integer representing a number of days.
 
 @item date-delimiter
-One or more characters of whitespace or the following characters:
+One or more characters of white space or the following characters:
 @code{- / . ,}
 
 @item month
@@ -934,7 +756,7 @@ An integer between 1 and 53 representing a week within a year.
 The letters @samp{wk} in any case.
 
 @item time-delimiter
-At least one characters of whitespace or @samp{:} or @samp{.}.
+At least one characters of white space or @samp{:} or @samp{.}.
 
 @item hour
 An integer greater than 0 representing an hour.
@@ -953,13 +775,13 @@ An integer between 0 and 23 representing an hour within a day.
 At least the first two characters of an English day word.
 
 @item spaces
-Any amount or no amount of whitespace.
+Any amount or no amount of white space.
 
 @item sign
 An optional positive or negative sign.
 
 @item trailer
-All formats accept an optional whitespace trailer.
+All formats accept an optional white space trailer.
 @end table
 
 The date input formats are strung together from the above pieces.  On
@@ -1162,11 +984,9 @@ A single variable name.
 Operators and punctuators.
 
 @cindex @code{.}
-@cindex terminal dot
-@cindex dot, terminal
 @item @code{.}
-The terminal dot.  This is not necessarily an actual dot in the syntax
-file: @xref{Commands}, for more details.
+The end of the command.  This is not necessarily an actual dot in the
+syntax file: @xref{Commands}, for more details.
 @end table
 
 @item

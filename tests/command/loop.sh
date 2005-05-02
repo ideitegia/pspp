@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create prog"
 cat > $TEMPDIR/loop.stat <<EOF
-data list /x 1 y 2 zoological 3.
+data list /X 1 Y 2 ZOOLOGICAL 3.
 begin data.
 125
 256
@@ -76,13 +76,13 @@ if [ $? -ne 0 ] ; then fail ; fi
 activity="compare results"
 diff -B -b $TEMPDIR/pspp.list  - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|X       |     1|  1-  1|F1.0  |
-|Y       |     1|  2-  2|F1.0  |
-|ZOOLOGIC|     1|  3-  3|F1.0  |
-+--------+------+-------+------+
++----------+------+-------+------+
+| Variable |Record|Columns|Format|
+#==========#======#=======#======#
+|X         |     1|  1-  1|F1.0  |
+|Y         |     1|  2-  2|F1.0  |
+|ZOOLOGICAL|     1|  3-  3|F1.0  |
++----------+------+-------+------+
 1     2.00 
 2     5.00 
 3     9.00 

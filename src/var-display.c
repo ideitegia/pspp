@@ -56,11 +56,19 @@ cmd_variable_alignment (void)
 	    align = ALIGN_RIGHT;
 	  else if ( lex_match_id("CENTER"))
 	    align = ALIGN_CENTRE;
-	  else
-	    return CMD_FAILURE;
+	  else 
+            {
+              free (v);
+              return CMD_FAILURE; 
+            }
 
 	  lex_force_match(')');
 	}
+      else 
+        {
+          free (v);
+          return CMD_FAILURE; 
+        }
 
       for( i = 0 ; i < nv ; ++i ) 
 	v[i]->alignment = align;
@@ -134,12 +142,20 @@ cmd_variable_level (void)
 	    level = MEASURE_ORDINAL;
 	  else if ( lex_match_id("NOMINAL"))
 	    level = MEASURE_NOMINAL;
-	  else
-	    return CMD_FAILURE;
+	  else 
+            {
+              free (v);
+              return CMD_FAILURE; 
+            }
 
 	  lex_force_match(')');
 	}
-
+      else
+        {
+          free (v);
+          return CMD_FAILURE; 
+        }
+      
       for( i = 0 ; i < nv ; ++i ) 
 	v[i]->measure = level ;
 

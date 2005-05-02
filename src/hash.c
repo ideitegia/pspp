@@ -20,25 +20,13 @@
 #include <config.h>
 #include "hash.h"
 #include "error.h"
+#include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
 #include "misc.h"
 #include "str.h"
-
-/* Hash table. */
-struct hsh_table
-  {
-    size_t used;                /* Number of filled entries. */
-    size_t size;                /* Number of entries (a power of 2). */
-    void **entries;		/* Hash table proper. */
-
-    void *aux;                  /* Auxiliary data for comparison functions. */
-    hsh_compare_func *compare;
-    hsh_hash_func *hash;
-    hsh_free_func *free;
-  };
 
 /* Note for constructing hash functions:
 
@@ -112,6 +100,22 @@ hsh_hash_string (const char *s_)
   return hash;
 }
 
+/* Fowler-Noll-Vo 32-bit hash, for case-insensitive strings. */
+unsigned
+hsh_hash_case_string (const char *s_) 
+{
+  const unsigned char *s = s_;
+  unsigned hash;
+
+  assert (s != NULL);
+
+  hash = FNV_32_BASIS;
+  while (*s != '\0')
+    hash = (hash * FNV_32_PRIME) ^ toupper (*s++);
+
+  return hash;
+}
+
 /* Hash for ints. */
 unsigned
 hsh_hash_int (int i) 
@@ -130,6 +134,19 @@ hsh_hash_double (double d)
 }
 
 /* Hash tables. */
+
+/* Hash table. */
+struct hsh_table
+  {
+    size_t used;                /* Number of filled entries. */
+    size_t size;                /* Number of entries (a power of 2). */
+    void **entries;		/* Hash table proper. */
+
+    void *aux;                  /* Auxiliary data for comparison functions. */
+    hsh_compare_func *compare;
+    hsh_hash_func *hash;
+    hsh_free_func *free;
+  };
 
 /* Creates a hash table with at least M entries.  COMPARE is a
    function that compares two entries and returns 0 if they are
@@ -198,6 +215,24 @@ hsh_destroy (struct hsh_table *h)
     }
 }
 
+/* Locates an entry matching TARGET.  Returns a pointer to the
+   entry, or a null pointer on failure. */
+static inline unsigned
+locate_matching_entry (struct hsh_table *h, const void *target) 
+{
+  unsigned i = h->hash (target, h->aux);
+
+  for (;;)
+    {
+      void *entry;
+      i &= h->size - 1;
+      entry = h->entries[i];
+      if (entry == NULL || !h->compare (entry, target, h->aux))
+	return i;
+      i--;
+    }
+}
+
 /* Changes the capacity of H to NEW_SIZE. */
 static void
 hsh_rehash (struct hsh_table *h, size_t new_size)
@@ -215,15 +250,12 @@ hsh_rehash (struct hsh_table *h, size_t new_size)
   h->entries = xmalloc (sizeof *h->entries * h->size);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
-  for (table_p = begin; table_p < end; table_p++)
-    if (*table_p != NULL)
-      {
-        void **entry = &h->entries[h->hash (*table_p, h->aux) & (h->size - 1)];
-        while (*entry != NULL)
-          if (++entry >= h->entries + h->size)
-            entry = h->entries;
-        *entry = *table_p;
-      }
+  for (table_p = begin; table_p < end; table_p++) 
+    {
+      void *entry = *table_p;
+      if (entry != NULL)
+        h->entries[locate_matching_entry (h, entry)] = entry;
+    }
   free (begin);
 }
 
@@ -327,25 +359,17 @@ hsh_sort_copy (struct hsh_table *h)
 inline void **
 hsh_probe (struct hsh_table *h, const void *target)
 {
-  void **entry;
-
+  unsigned i;
+  
   assert (h != NULL);
   assert (target != NULL);
 
-  /* Order of these statements is important! */
   if (h->used > h->size / 2)
     hsh_rehash (h, h->size * 2);
-  entry = &h->entries[h->hash (target, h->aux) & (h->size - 1)];
-
-  while (*entry)
-    {
-      if (!h->compare (*entry, target, h->aux))
-	return entry;
-      if (++entry >= h->entries + h->size)
-	entry = h->entries;
-    }
-  h->used++;
-  return entry;
+  i = locate_matching_entry (h, target);
+  if (h->entries[i] == NULL)
+    h->used++;
+  return &h->entries[i];
 }
 
 /* Searches hash table H for TARGET.  If not found, inserts
@@ -381,30 +405,12 @@ hsh_replace (struct hsh_table *h, void *target)
   return old;
 }
 
-/* Locates an entry matching TARGET.  Returns a pointer to the
-   entry, or a null pointer on failure. */
-static inline void **
-locate_matching_entry (struct hsh_table *h, const void *target) 
-{
-  void **entry = &h->entries[h->hash (target, h->aux) & (h->size - 1)];
-
-  while (*entry)
-    {
-      if (!h->compare (*entry, target, h->aux))
-	return entry;
-      if (++entry >= h->entries + h->size)
-	entry = h->entries;
-    }
-  return NULL;
-}
-
 /* Returns the entry in hash table H that matches TARGET, or NULL
    if there is none. */
 void *
 hsh_find (struct hsh_table *h, const void *target)
 {
-  void **entry = locate_matching_entry (h, target);
-  return entry != NULL ? *entry : NULL;
+  return h->entries[locate_matching_entry (h, target)];
 }
 
 /* Deletes the entry in hash table H that matches TARGET.
@@ -413,39 +419,34 @@ hsh_find (struct hsh_table *h, const void *target)
    Uses Knuth's Algorithm 6.4R (Deletion with linear probing).
    Because our load factor is at most 1/2, the average number of
    moves that this algorithm makes should be at most 2 - ln 2 ~=
-   1.65.
-
-   Not well tested. */
+   1.65. */
 int
 hsh_delete (struct hsh_table *h, const void *target) 
 {
-  void **entry = locate_matching_entry (h, target);
-  if (entry != NULL) 
+  unsigned i = locate_matching_entry (h, target);
+  if (h->entries[i] != NULL) 
     {
-      ptrdiff_t i;
-      
       h->used--;
       if (h->free != NULL)
-        h->free (*entry, h->aux);
-      *entry = 0;
+        h->free (h->entries[i], h->aux);
 
-      i = entry - h->entries;
       for (;;) 
         {
           unsigned r;
-          ptrdiff_t j = i;
+          ptrdiff_t j;
 
+          h->entries[i] = NULL;
+          j = i;
           do 
             {
-              if (--i < 0)
-                i = h->size - 1;
+              i = (i - 1) & (h->size - 1);
               if (h->entries[i] == NULL)
                 return 1;
               
               r = h->hash (h->entries[i], h->aux) & (h->size - 1);
             }
           while ((i <= r && r < j) || (r < j && j < i) || (j < i && i <= r));
-          h->entries[i] = h->entries[j]; 
+          h->entries[j] = h->entries[i]; 
         }
     }
   else

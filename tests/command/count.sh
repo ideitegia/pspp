@@ -50,7 +50,7 @@ cat > $TESTFILE <<EOF
 title 'Test COUNT transformation'.
 
 * we're going to count the 2s 4s and 1s in the data
-data list /v1 to v2 1-4(a).
+data list /V1 to V2 1-4(a).
 begin data.
 1234
 321      <----
@@ -60,7 +60,7 @@ begin data.
 03 4     <----
 0193
 end data.
-count c=v1 to v2('2',' 4','1').
+count C=v1 to v2('2',' 4','1').
 list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

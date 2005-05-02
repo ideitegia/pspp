@@ -881,14 +881,14 @@ word_matches (const char **test, const char **name)
   size_t name_len = strcspn (*name, ".");
   if (test_len == name_len) 
     {
-      if (memcmp (*test, *name, test_len))
+      if (mm_case_compare (*test, *name, test_len))
         return false;
     }
   else if (test_len < 3 || test_len > name_len)
     return false;
   else 
     {
-      if (memcmp (*test, *name, test_len))
+      if (mm_case_compare (*test, *name, test_len))
         return false;
     }
 
@@ -915,6 +915,12 @@ compare_names (const char *test, const char *name)
       if (*name == '\0' && *test == '\0')
         return false;
     }
+}
+
+static int
+compare_strings (const char *test, const char *name) 
+{
+  return strcasecmp (test, name);
 }
 
 static bool
@@ -947,7 +953,7 @@ lookup_function (const char *name,
                  const struct operation **last) 
 {
   *first = *last = NULL;
-  return (lookup_function_helper (name, strcmp, first, last)
+  return (lookup_function_helper (name, compare_strings, first, last)
           || lookup_function_helper (name, compare_names, first, last));
 }
 
@@ -1273,7 +1279,7 @@ expr_allocate_nullary (struct expression *e, operation_type op)
 
 union any_node *
 expr_allocate_unary (struct expression *e, operation_type op,
-union any_node *arg0)
+                     union any_node *arg0)
 {
   return expr_allocate_composite (e, op, &arg0, 1);
 }

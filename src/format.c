@@ -59,7 +59,7 @@ parse_format_specifier_name (const char **cp, enum fmt_parse_flags flags)
       /* Find format. */
       for (idx = 0; idx < FMT_NUMBER_OF_FORMATS; idx++)
         if (strlen (formats[idx].name) == ep - sp
-            && !memcmp (formats[idx].name, sp, ep - sp))
+            && !mm_case_compare (formats[idx].name, sp, ep - sp))
           break;
 
       /* Check format. */

@@ -212,17 +212,13 @@ cmd_save_internal (void)
       if (lex_match_id ("VERSION"))
 	{
 	  lex_match ('=');
-	  if ( lex_force_num() ) 
+	  if (lex_force_int ()) 
 	    {
-	      lex_get();
-	      version = tokval;
+	      version = lex_integer ();
+              lex_get ();
 	      
-	      if ( 0 == strncasecmp (tokid,"x", 1) ) 
-		{
-		  lex_get();
-		  no_name_table = 1;
-		}
-
+	      if (lex_match_id ("X")) 
+                no_name_table = 1;
 	    }
 	}
       else if (lex_match_id ("OUTFILE"))
@@ -450,8 +446,6 @@ rename_variables (struct dictionary *dict)
       if (!lex_force_match ('=')
 	  || !lex_force_id ())
 	return 0;
-      if (!strncmp (tokid, v->name, SHORT_NAME_LEN))
-	return 1;
       if (dict_lookup_var (dict, tokid) != NULL)
 	{
 	  msg (SE, _("Cannot rename %s as %s because there already exists "
@@ -686,7 +680,7 @@ struct mtf_proc
     size_t by_cnt;              /* Number of variables on BY subcommand. */
 
     /* Names of FIRST, LAST variables. */
-    char first[SHORT_NAME_LEN + 1], last[SHORT_NAME_LEN + 1];
+    char first[LONG_NAME_LEN + 1], last[LONG_NAME_LEN + 1];
     
     struct dictionary *dict;    /* Dictionary of output file. */
     struct case_sink *sink;     /* Sink to receive output. */
@@ -1437,10 +1431,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
             mv->label = xstrdup (dv->label);
         }
       else
-        {
-          mv = dict_clone_var (m, dv, dv->name, dv->longname);
-          assert (mv != NULL);
-        }
+        mv = dict_clone_var_assert (m, dv, dv->name);
     }
 
   return 1;

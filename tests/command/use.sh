@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TEMPDIR/filter.stat << EOF
-data list notable /x 1-2.
+data list notable /X 1-2.
 begin data.
 1
 2

@@ -360,14 +360,6 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 
   lex_match('=');
 
-  if (token != T_ALL && 
-      (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
-     ) 
-  {
-    msg(SE,_("`%s' is not a variable name"),tokid);
-    return 0;
-  }
-
   indep_var = parse_variable ();
   if (!indep_var)
     {
@@ -452,13 +444,6 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
   int paired ; /* Was the PAIRED keyword given ? */
 
   lex_match('=');
-
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
-      && token != T_ALL)
-    {
-      msg(SE,_("`%s' is not a variable name"),tokid);
-      return 0;
-    }
 
   n_vars=0;
   if (!parse_variables (default_dict, &vars, &n_vars,

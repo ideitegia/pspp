@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create flip.stat"
 cat > $TEMPDIR/flip.stat <<EOF
-data list /n 1 (a) a b c d 2-9.
+data list /N 1 (a) A B C D 2-9.
 list.
 begin data.
 v 1 2 3 4 5

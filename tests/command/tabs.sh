@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create program 1"
 cat > $TEMPDIR/tabs.stat <<EOF
-data list /x 1-80 (a).
+data list /X 1-80 (a).
 begin data.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

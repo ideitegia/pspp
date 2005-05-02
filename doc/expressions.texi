@@ -583,9 +583,9 @@ if @var{padding} does not contain exactly one character.
 @end deftypefn
 
 @cindex strings, trimming
-@cindex whitespace, trimming
+@cindex white space, trimming
 @deftypefn {Function} {} LTRIM (@var{string})
-Returns @var{string}, after removing leading spaces.  Other whitespace,
+Returns @var{string}, after removing leading spaces.  Other white space,
 such as tabs, carriage returns, line feeds, and vertical tabs, is not
 removed.
 @end deftypefn
@@ -644,10 +644,10 @@ or if @var{padding} does not contain exactly one character.
 @end deftypefn
 
 @cindex strings, trimming
-@cindex whitespace, trimming
+@cindex white space, trimming
 @deftypefn {Function} {} RTRIM (@var{string})
 Returns @var{string}, after removing trailing spaces.  Other types of
-whitespace are not removed.
+white space are not removed.
 @end deftypefn
 
 @deftypefn {Function} {} RTRIM (@var{string}, @var{padding})

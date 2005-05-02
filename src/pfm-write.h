@@ -25,8 +25,7 @@
 struct file_handle;
 struct dictionary;
 struct ccase;
-struct pfm_writer *pfm_open_writer (struct file_handle *,
-                                    const struct dictionary *);
+struct pfm_writer *pfm_open_writer (struct file_handle *, struct dictionary *);
 int pfm_write_case (struct pfm_writer *, struct ccase *);
 void pfm_close_writer (struct pfm_writer *);
 

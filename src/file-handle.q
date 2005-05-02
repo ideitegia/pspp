@@ -73,7 +73,7 @@ get_handle_with_name (const char *handle_name)
   struct file_handle *iter;
 
   for (iter = file_handles; iter != NULL; iter = iter->next)
-    if (!strcmp (handle_name, iter->name))
+    if (!strcasecmp (handle_name, iter->name))
       return iter;
   return NULL;
 }
@@ -109,22 +109,21 @@ get_handle_for_filename (const char *filename)
 int
 cmd_file_handle (void)
 {
-  char handle_name[9];
+  char handle_name[LONG_NAME_LEN + 1];
 
   struct cmd_file_handle cmd;
   struct file_handle *handle;
 
   if (!lex_force_id ())
     return CMD_FAILURE;
-  strcpy (handle_name, tokid);
+  st_trim_copy (handle_name, tokid, sizeof handle_name);
 
   handle = get_handle_with_name (handle_name);
   if (handle != NULL)
     {
-      msg (SE, _("File handle %s already refers to "
-		 "file %s.  File handle cannot be redefined within a "
-                 "session."),
-	   tokid, handle->filename);
+      msg (SE, _("File handle %s already refers to file %s.  "
+                 "File handles cannot be redefined within a session."),
+	   handle_name, handle->filename);
       return CMD_FAILURE;
     }
 

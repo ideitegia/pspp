@@ -146,7 +146,7 @@ internal_cmd_do_repeat (void)
       if (!lex_force_id ())
 	return 0;
       for (iter = repeat_tab; iter; iter = iter->next)
-	if (!strcmp (iter->id, tokid))
+	if (!strcasecmp (iter->id, tokid))
 	  {
 	    msg (SE, _("Identifier %s is given twice."), tokid);
 	    return 0;

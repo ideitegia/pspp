@@ -151,7 +151,7 @@ cmd_autorecode (void)
 	  goto lossage;
 	}
       for (j = 0; j < i; j++)
-	if (!strcmp (arc.dst_names[i], arc.dst_names[j]))
+	if (!strcasecmp (arc.dst_names[i], arc.dst_names[j]))
 	  {
 	    msg (SE, _("Duplicate variable name %s among target variables."),
 		 arc.dst_names[i]);

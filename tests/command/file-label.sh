@@ -50,7 +50,7 @@ activity="create program"
 cat > $TESTFILE << EOF
 
 /* Set up a dummy active file in memory.
-data list /x 1 y 2.
+data list /X 1 Y 2.
 begin data.
 16
 27

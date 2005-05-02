@@ -569,7 +569,7 @@ compare_vectors_by_name (const void *a_, const void *b_)
   struct vector *a = *pa;
   struct vector *b = *pb;
   
-  return strcmp (a->name, b->name);
+  return strcasecmp (a->name, b->name);
 }
 
 /* Display a list of vectors.  If SORTED is nonzero then they are

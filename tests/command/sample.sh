@@ -51,7 +51,7 @@ activity="create program"
 cat > $TEMPDIR/sample.stat <<EOF
 set seed=3
 
-data list notable /a 1-2.
+data list notable /A 1-2.
 begin data.
 1
 2

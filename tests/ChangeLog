@@ -1,3 +1,8 @@
+Sun May  1 23:18:37 2005  Ben Pfaff  <blp@gnu.org>
+
+	Most tests: changed capitalization of variable names in
+	definitions or in output, because now we preserve it.
+
 Mon Apr 25 23:30:17 2005  Ben Pfaff  <blp@gnu.org>
 
 	* commands/match-files.sh: New test.

@@ -50,7 +50,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE <<EOF
-DATA LIST LIST NOTABLE /location * editor * shell * freq * .
+DATA LIST LIST NOTABLE /LOCATION * EDITOR * SHELL * FREQ * .
 BEGIN DATA.
     1.00     1.00    1.0     2.00
     1.00     1.00    2.0    30.00

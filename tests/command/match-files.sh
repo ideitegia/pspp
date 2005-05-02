@@ -113,9 +113,9 @@ A B C D INA INB
 EOF
 
 # Test nonparallel match and table lookup.
-dla="data list notable file='a.data' /a b c 1-3 (a)."
+dla="data list notable file='a.data' /A B C 1-3 (a)."
 sa="save outfile='a.sys'."
-dlb="data list notable file='b.data' /a b c 1-3 (a)."
+dlb="data list notable file='b.data' /A B C 1-3 (a)."
 sb="save outfile='b.sys'."
 for types in ff ft; do
     type1=file
@@ -134,21 +134,21 @@ $dla
 $sa
 $dlb
 $sb
-match files $type1='a.sys' /in=ina /$type2='b.sys' /in=inb /rename c=D /by a.
+match files $type1='a.sys' /in=INA /$type2='b.sys' /in=INB /rename c=D /by a.
 EOF
 	    elif [ $sources = sa ]; then
 		cat <<EOF
 $dla
 $sa
 $dlb
-match files $type1='a.sys' /in=ina /$type2=* /in=inb /rename c=D /by a.
+match files $type1='a.sys' /in=INA /$type2=* /in=INB /rename c=D /by a.
 EOF
 	    elif [ $sources = as ]; then
 		cat <<EOF
 $dlb
 $sb
 $dla
-match files $type1=* /in=ina /$type2='b.sys' /in=inb /rename c=D /by a.
+match files $type1=* /in=INA /$type2='b.sys' /in=INB /rename c=D /by a.
 EOF
 	    else
 		activity="internal error"
@@ -176,7 +176,7 @@ $dla
 $sa
 $dlb
 $sb
-match files file='a.sys' /file='b.sys' /rename (a b c=d e f).
+match files file='a.sys' /file='b.sys' /rename (a b c=D E F).
 list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi

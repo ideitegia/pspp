@@ -49,7 +49,7 @@ activity="create program"
 cat > $TEMPDIR/descript.stat <<EOF
 title 'Test DESCRIPTIVES procedure'.
 
-data list / v1 to v3 1-3.
+data list / V1 TO V3 1-3.
 mis val v1 to v3 (1).
 begin data.
 111

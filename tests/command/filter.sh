@@ -48,7 +48,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE << EOF
-data list notable /x 1-2.
+data list notable /X 1-2.
 begin data.
 1
 2
@@ -61,7 +61,7 @@ begin data.
 9
 10
 end data.
-compute filter_$ = mod(x,2).
+compute FILTER_$ = mod(x,2).
 
 filter by filter_$.
 list.

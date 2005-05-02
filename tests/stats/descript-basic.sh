@@ -49,7 +49,7 @@ activity="create program"
 cat > $TEMPDIR/descript.stat <<EOF
 title 'Test DESCRIPTIVES procedure'.
 
-data list / v0 to v16 1-17.
+data list / V0 to V16 1-17.
 begin data.
 12128989012389023
 34128080123890128

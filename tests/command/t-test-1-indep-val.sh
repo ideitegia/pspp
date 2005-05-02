@@ -49,7 +49,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE <<EOF
-data list list /indep * dep *.
+data list list /INDEP * DEP *.
 begin data.
        1        6
        1        6

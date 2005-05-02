@@ -393,6 +393,36 @@ remove_element (void *array, size_t count, size_t size,
   remove_range (array, count, size, idx, 1);
 }
 
+/* Moves an element in ARRAY, which consists of COUNT elements of
+   SIZE bytes each, from OLD_IDX to NEW_IDX, shifting around
+   other elements as needed.  Runs in O(abs(OLD_IDX - NEW_IDX))
+   time. */
+void
+move_element (void *array_, size_t count, size_t size,
+              size_t old_idx, size_t new_idx) 
+{
+  assert (array_ != NULL || count == 0);
+  assert (old_idx < count);
+  assert (new_idx < count);
+  
+  if (old_idx != new_idx) 
+    {
+      char *array = array_;
+      char *element = xmalloc (size);
+      char *new = array + new_idx * size;
+      char *old = array + old_idx * size;
+
+      memcpy (element, old, size);
+      if (new < old)
+        memmove (new + size, new, (old_idx - new_idx) * size);
+      else
+        memmove (old, old + size, (new_idx - old_idx) * size);
+      memcpy (new, element, size);
+
+      free (element);
+    }
+}
+
 /* A predicate and its auxiliary data. */
 struct pred_aux 
   {

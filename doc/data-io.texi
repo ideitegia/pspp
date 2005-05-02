@@ -58,8 +58,8 @@ data in a PSPP syntax file.  @cmd{DATA LIST} or another input
 procedure must be used before @cmd{BEGIN DATA} (@pxref{DATA LIST}).
 @cmd{BEGIN DATA} and @cmd{END DATA} must be used together.  @cmd{END
 DATA} must appear by itself on a single line, with no leading
-whitespace and exactly one space between the words @code{END} and
-@code{DATA}, followed immediately by the terminal dot, like this:
+white space and exactly one space between the words @code{END} and
+@code{DATA}, like this:
 
 @example
 END DATA.

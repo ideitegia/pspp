@@ -412,7 +412,7 @@ cmd_recode (void)
 	rcd->dest = dict_create_var (default_dict, rcd->dest_name, 0);
 	if (!rcd->dest)
 	  {
-	    /* FIXME: This can occur if a destname is duplicated.
+	    /* FIXME: This can fail if a destname is duplicated.
 	       We could give an error at parse time but I don't
 	       care enough. */
 	    rcd->dest = dict_lookup_var_assert (default_dict, rcd->dest_name);

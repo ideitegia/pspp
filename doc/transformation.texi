@@ -386,7 +386,8 @@ specified are discarded.  If the VARIABLES subcommand is omitted, all
 variables are selected for transposition.
 
 The variables specified by NEWNAMES, which must be a string variable, is
-used to give names to the variables created by @cmd{FLIP}.  If
+used to give names to the variables created by @cmd{FLIP}.  Only the
+first 8 characters of the variable are used.  If
 NEWNAMES is not
 specified then the default is a variable named CASE_LBL, if it exists.
 If it does not then the variables created by FLIP are named VAR000
@@ -400,11 +401,12 @@ extensions are added, starting with 1, until a unique name is found or
 there are no remaining possibilities.  If the latter occurs then the
 FLIP operation aborts.
 
-The resultant dictionary contains a CASE_LBL variable, which stores the
-names of the variables in the dictionary before the transposition.  If
-the active file is subsequently transposed using @cmd{FLIP}, this
-variable can
-be used to recreate the original variable names.
+The resultant dictionary contains a CASE_LBL variable, a string
+variable of width 8, which stores the names of the variables in the
+dictionary before the transposition.  Variables names longer than 8
+characters are truncated.  If the active file is subsequently
+transposed using @cmd{FLIP}, this variable can be used to recreate the
+original variable names.
 
 FLIP honors @cmd{N OF CASES} (@pxref{N OF CASES}).  It ignores
 @cmd{TEMPORARY} (@pxref{TEMPORARY}), so that ``temporary''

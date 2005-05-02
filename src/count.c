@@ -108,7 +108,7 @@ struct cnt_var_info
     struct cnt_var_info *next;
 
     struct variable *d;		/* Destination variable. */
-    char n[SHORT_NAME_LEN + 1];	/* Name of dest var. */
+    char n[LONG_NAME_LEN + 1];	/* Name of dest var. */
 
     struct counting *c;		/* The counting specifications. */
   };
@@ -145,7 +145,7 @@ cmd_count (void)
       cnt->d = NULL;
       cnt->c = NULL;
 
-      /* Get destination struct variable, or at least its name. */
+      /* Get destination variable, or at least its name. */
       if (!lex_force_id ())
 	goto fail;
       cnt->d = dict_lookup_var (default_dict, tokid);
@@ -158,7 +158,7 @@ cmd_count (void)
 	    }
 	}
       else
-	strcpy (cnt->n, tokid);
+	st_trim_copy (cnt->n, tokid, sizeof cnt->n);
 
       lex_get ();
       if (!lex_force_match ('='))

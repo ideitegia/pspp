@@ -65,7 +65,7 @@ struct dls_var_spec
     int fc, lc;			/* Column numbers in record. */
 
     /* Free format only. */
-    char name[SHORT_NAME_LEN + 1];		/* Name of variable. */
+    char name[LONG_NAME_LEN + 1]; /* Name of variable. */
   };
 
 /* Constants for DATA LIST type. */
@@ -383,7 +383,7 @@ parse_fixed (struct data_list_pgm *dls)
       else
 	{
 	  msg (SE, _("SPSS-like or FORTRAN-like format "
-	       "specification expected after variable names."));
+                     "specification expected after variable names."));
 	  goto fail;
 	}
 
@@ -889,7 +889,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
           spec->input = input;
           spec->v = v;
 	  spec->fv = v->fv;
-	  strcpy (spec->name, v->name);
+	  st_trim_copy (spec->name, v->name, sizeof spec->name);
 	  append_var_spec (first, last, spec);
 	}
       for (i = 0; i < name_cnt; i++)

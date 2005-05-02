@@ -120,6 +120,7 @@ long getdelim (char **lineptr, size_t * n, int delimiter, FILE * stream);
 
 void mm_reverse (void *, size_t);
 char *mm_find_reverse (const char *, size_t, const char *, size_t);
+int mm_case_compare (const void *, const void *, size_t);
 
 int st_compare_pad (const char *, size_t, const char *, size_t);
 char *st_spaces (int);

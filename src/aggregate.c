@@ -213,13 +213,8 @@ cmd_aggregate (void)
             goto error;
 	  
           for (i = 0; i < agr.break_var_cnt; i++)
-            {
-              struct variable *v = dict_clone_var (agr.dict, agr.break_vars[i],
-                                                   agr.break_vars[i]->name, 
-						   agr.break_vars[i]->longname 
-						   );
-              assert (v != NULL);
-            }
+            dict_clone_var_assert (agr.dict, agr.break_vars[i],
+                                   agr.break_vars[i]->name);
 
           /* BREAK must follow the options. */
           break;
@@ -455,7 +450,8 @@ parse_aggregate_functions (struct agr_proc *agr)
 		    arg[i].f = tokval;
 		    type = NUMERIC;
 		  } else {
-		    msg (SE, _("Missing argument %d to %s."), i + 1, function->name);
+		    msg (SE, _("Missing argument %d to %s."), i + 1,
+                         function->name);
 		    goto error;
 		  }
 	    
@@ -543,10 +539,11 @@ parse_aggregate_functions (struct agr_proc *agr)
 		  }
 
 		if (function->alpha_type == ALPHA)
-		  destvar = dict_clone_var (agr->dict, v->src, 0, dest[i] );
-		else if (v->src->type == NUMERIC
-                         || function->alpha_type == NUMERIC)
+		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
+		else
                   {
+                    assert (v->src->type == NUMERIC
+                            || function->alpha_type == NUMERIC);
                     destvar = dict_create_var (agr->dict, dest[i], 0);
                     if (destvar != NULL) 
                       {
