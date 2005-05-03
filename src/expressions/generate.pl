@@ -378,9 +378,9 @@ sub get_token {
     our ($line);
     lookahead ();
     return if defined ($toktype) && $toktype eq 'eof';
-    $toktype = 'id', return
-	if ($token) = $line =~ /\G([a-zA-Z_][a-zA-Z_.0-9]*)/gc;
-    $toktype = 'int', return if ($token) = $line =~ /\G[0-9]+/gc;
+    $toktype = 'id', $token = $1, return
+	if $line =~ /\G([a-zA-Z_][a-zA-Z_.0-9]*)/gc;
+    $toktype = 'int', $token = $1, return if $line =~ /\G([0-9]+)/gc;
     $toktype = 'punct', $token = $1, return if $line =~ /\G([][(),*;.])/gc;
     if ($line =~ /\G=/gc) {
 	$toktype = "expression";

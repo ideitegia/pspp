@@ -1,3 +1,8 @@
+Mon May  2 22:02:52 2005  Ben Pfaff  <blp@gnu.org>
+
+	* expressions/generate.pl: (get_token) Make use of /g
+	backward-compatible with Perl 5.6.1.
+
 Sun May  1 23:00:19 2005  Ben Pfaff  <blp@gnu.org>
 
 	* var-display.c: (cmd_variable_alignment) Fix memory leak.
