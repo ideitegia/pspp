@@ -1,4 +1,4 @@
-Time-stamp: <2005-03-02 16:08:59 blp>
+Time-stamp: <2005-05-02 23:31:38 blp>
 
 What Ben's working on now.
 --------------------------
@@ -17,6 +17,8 @@ other procedures).
 
 TODO
 ----
+
+lex_token_representation() should take a buffer to fill.
 
 Make valgrind --leak-check=yes --show-reachable=yes work.
 

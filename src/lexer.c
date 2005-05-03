@@ -386,11 +386,18 @@ void
 lex_error (const char *message, ...)
 {
   char *token_rep;
+  char where[128];
 
   token_rep = lex_token_representation ();
-  if (token_rep[0] == 0)
-    msg (SE, _("Syntax error at end of file."));
-  else if (message)
+  if (token == T_STOP)
+    strcpy (where, "end of file");
+  else if (token == '.')
+    strcpy (where, "end of command");
+  else
+    snprintf (where, sizeof where, "`%s'", token_rep);
+  free (token_rep);
+
+  if (message)
     {
       char buf[1024];
       va_list args;
@@ -399,12 +406,10 @@ lex_error (const char *message, ...)
       vsnprintf (buf, 1024, message, args);
       va_end (args);
 
-      msg (SE, _("Syntax error %s at `%s'."), buf, token_rep);
+      msg (SE, _("Syntax error %s at %s."), buf, where);
     }
   else
-    msg (SE, _("Syntax error at `%s'."), token_rep);
-  
-  free (token_rep);
+    msg (SE, _("Syntax error at %s."), where);
 }
 
 /* Checks that we're at end of command.
@@ -539,7 +544,7 @@ lex_force_match (int t)
     }
   else
     {
-      lex_error (_("expecting %s"), lex_token_name (t));
+      lex_error (_("expecting `%s'"), lex_token_name (t));
       return 0;
     }
 }
