@@ -1,3 +1,13 @@
+PSPP has the following library dependencies;
+
+    * The GNU Scientific Library (libgsl), version 1.6 or later.
+
+    * The GNU multiprecision arithmetic library (libgmp).
+
+    * libplot from GNU plotutils is optional.  Without it, the new
+      graphing features will not work.  If you do not have it
+      installed, you must run `configure' with --without-libplot.
+
 Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
 

@@ -10,9 +10,10 @@ Source code for the latest development release of PSPP is available at
 ftp://alpha.gnu.org/gnu/pspp
    
 For information on differences from previous versions, please see file
-NEWS.  Full documentation on PSPP's language and information on known
-bugs can in the doc/ directory.
+NEWS.  Full documentation on PSPP's language can be found in the doc/
+directory.
           
-Questions and comments regarding PSPP can be sent to Ben Pfaff
-<blp@gnu.org>.  PSPP bug reports should be sent to
-bug-gnu-pspp@gnu.org.
+Questions and comments regarding PSPP can be sent to pspp-dev@gnu.org.
+PSPP bug reports may be sent to bug-gnu-pspp@gnu.org or filed in the
+bug-tracking system at http://savannah.gnu.org/bugs/?group=pspp
+according to your preference.
