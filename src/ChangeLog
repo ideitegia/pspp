@@ -1,3 +1,7 @@
+Mon May  2 22:16:51 2005  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c: [HAVE_SYS_TYPES_H] Include <sys/types.h>.
+
 Mon May  2 22:02:52 2005  Ben Pfaff  <blp@gnu.org>
 
 	* expressions/generate.pl: (get_token) Make use of /g

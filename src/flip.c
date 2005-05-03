@@ -38,6 +38,9 @@
 #include "var.h"
 #include "vfm.h"
 
+#ifndef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 
 /* List of variable names. */
 struct varname
