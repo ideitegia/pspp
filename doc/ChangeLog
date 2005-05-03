@@ -1,3 +1,10 @@
+Tue May  3 16:22:29 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* get-commands.pl: New file to generate ni.texi
+
+	* not-implemented.texi Makefile.am: List of not implemented commands 
+	now generated from src/command.def
+
 Sun May  1 23:20:42 2005  Ben Pfaff  <blp@gnu.org>
 
 	* language.texi: Revised lots of text to catch up with changes

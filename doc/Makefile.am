@@ -26,7 +26,8 @@ pspp_TEXINFOS = version.texi \
 	transformation.texi \
 	utilities.texi \
 	variables.texi \
-	fdl.texi
+	fdl.texi \
+	ni.texi
 
 EXTRA_DIST = pspp.man \
 	$(pspp_TEXINFOS)
@@ -34,4 +35,7 @@ EXTRA_DIST = pspp.man \
 
 CLEANFILES = pspp.info pspp.info-*
 MAINTAINERCLEANFILES=Makefile.in 
+
+ni.texi: @top_srcdir@/src/command.def @srcdir@/get-commands.pl
+	@PERL@ @srcdir@/get-commands.pl $< > $@
 

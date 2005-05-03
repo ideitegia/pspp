@@ -74,7 +74,7 @@ struct command
 	{NAME, {T1, T2, T3, T4}, FUNC, 1, 1},
 #define SPCCMD(NAME, T1, T2, T3, T4, FUNC)		\
 	{NAME, {T1, T2, T3, T4}, FUNC, 0, 0},
-#define UNIMPL(NAME, T1, T2, T3, T4)			\
+#define UNIMPL(NAME, T1, T2, T3, T4, DESC)		\
 	{NAME, {T1, T2, T3, T4}, NULL, 1, 0},
 static const struct command commands[] = 
   {

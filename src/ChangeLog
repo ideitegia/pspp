@@ -1,3 +1,10 @@
+Tue May  3 16:20:31 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* command.c command.def: Added description string for unimplemented commands.
+
+	* oneway.q: Sorted the hash tables before shipping out the results. Closes 
+	bug [#12931].
+
 Mon May  2 23:45:01 2005  Ben Pfaff  <blp@gnu.org>
 
 	Code improvements.

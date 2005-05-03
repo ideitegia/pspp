@@ -373,8 +373,6 @@ show_descriptives(void)
   
   int n_rows = 2 ; 
 
-
-
   for ( v = 0 ; v < n_vars ; ++v ) 
     n_rows += group_proc_get (vars[v])->n_groups + 1;
 
@@ -422,25 +420,22 @@ show_descriptives(void)
       
       struct group_proc *gp = group_proc_get (vars[v]);
 
-      struct hsh_iterator g;
       struct group_statistics *gs;
       struct group_statistics *totals = &gp->ugs; 
 
-      int count = 0 ;      
       const char *s = var_to_string(vars[v]);
 
-      struct hsh_table *group_hash = gp->group_hash;
-
+      struct group_statistics **gs_array = hsh_sort(gp->group_hash);
+      int count = 0;
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);
       if ( v > 0) 
 	tab_hline(t, TAL_1, 0, n_cols - 1 , row);
 
-
-      for (gs =  hsh_first (group_hash,&g); 
-	   gs != 0; 
-	   gs = hsh_next(group_hash,&g))
+      for (count = 0 ; count < hsh_count(gp->group_hash) ; ++count)
 	{
+	  gs = gs_array[count];
+
 	  tab_text (t, 1, row + count, 
 		    TAB_LEFT | TAT_TITLE ,value_to_string(&gs->id,indep_var));
 
@@ -471,7 +466,6 @@ show_descriptives(void)
 	  tab_float(t, 8, row + count, 0,  gs->minimum, 8, 2); 
 	  tab_float(t, 9, row + count, 0,  gs->maximum, 8, 2); 
 
-	  count++ ; 
 	}
 
       tab_text (t, 1, row + count, 
@@ -580,13 +574,11 @@ show_contrast_coeffs(short *bad_contrast)
 {
   int n_cols = 2 + ostensible_number_of_groups;
   int n_rows = 2 + cmd.sbc_contrast;
-  struct hsh_iterator g;
   union value *group_value;
   int count = 0 ;      
-
+  void **group_values ;
 
   struct tab_table *t;
-
 
   t = tab_create (n_cols,n_rows,0);
   tab_headers (t, 2, 0, 2, 0);
@@ -598,7 +590,6 @@ show_contrast_coeffs(short *bad_contrast)
 	   -1, TAL_1,
 	   0, 0,
 	   n_cols - 1, n_rows - 1);
-
 
   tab_box (t, 
 	   -1,-1,
@@ -612,50 +603,44 @@ show_contrast_coeffs(short *bad_contrast)
 	   0,0,
 	   1,1);
 
-
   tab_hline(t, TAL_1, 2, n_cols - 1, 1);
-
-
   tab_hline(t, TAL_2, 0, n_cols - 1, 2);
-  tab_vline(t, TAL_2, 2, 0, n_rows - 1);
 
+  tab_vline(t, TAL_2, 2, 0, n_rows - 1);
 
   tab_title (t, 0, _("Contrast Coefficients"));
 
   tab_text (t,  0, 2, TAB_LEFT | TAT_TITLE, _("Contrast"));
 
 
-
   tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, 
 		  var_to_string(indep_var));
 
-  for (group_value =  hsh_first (global_group_hash,&g); 
-       group_value != 0; 
-       group_value = hsh_next(global_group_hash,&g))
+  group_values = hsh_sort(global_group_hash);
+  for (count = 0 ; 
+       count < hsh_count(global_group_hash) ; 
+       ++count)
     {
       int i;
+      group_value = group_values[count];
 
       tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, 
-		value_to_string(group_value,indep_var));
+		value_to_string(group_value, indep_var));
 
       for (i = 0 ; i < cmd.sbc_contrast ; ++i ) 
 	{
-
 	  tab_text(t, 1, i + 2, TAB_CENTER | TAT_PRINTF, "%d", i + 1);
 
 	  if ( bad_contrast[i] ) 
 	    tab_text(t, count + 2, i + 2, TAB_RIGHT, "?" );
 	  else
 	    tab_text(t, count + 2, i + 2, TAB_RIGHT | TAT_PRINTF, "%g", 
-		     subc_list_double_at(&cmd.dl_contrast[i],count)
+		     subc_list_double_at(&cmd.dl_contrast[i], count)
 		     );
 	}
-	  
-      count++ ; 
     }
-
+  
   tab_submit (t);
-
 }
 
 
@@ -715,8 +700,8 @@ show_contrast_tests(short *bad_contrast)
 	  double coef_msq = 0.0;
 	  struct group_proc *grp_data = group_proc_get (vars[v]);
 	  struct hsh_table *group_hash = grp_data->group_hash;
-	  struct hsh_iterator g;
 	  struct group_statistics *gs;
+	  void **group_stat_array;
 
 	  double T;
 	  double std_error_contrast ;
@@ -724,8 +709,8 @@ show_contrast_tests(short *bad_contrast)
 	  double sec_vneq=0.0;
 
 
-	  /* Note: The calculation of the degrees of freedom in the variances 
-	     not  equal case is painfull!!
+	  /* Note: The calculation of the degrees of freedom in the 
+	     "variances not equal" case is painfull!!
 	     The following formula may help to understand it:
 	     \frac{\left(\sum_{i=1}^k{c_i^2\frac{s_i^2}{n_i}}\right)^2}
 	     {
@@ -737,8 +722,6 @@ show_contrast_tests(short *bad_contrast)
 
 	  double df_denominator = 0.0;
 	  double df_numerator = 0.0;
-
-	  
 	  if ( i == 0 ) 
 	    {
 	      tab_text (t,  1, (v * lines_per_variable) + i + 1, 
@@ -761,14 +744,12 @@ show_contrast_tests(short *bad_contrast)
 	  if ( bad_contrast[i]) 
 	    continue;
 
-	  /* FIXME: Potential danger here.
-	     We're ASSUMING THE array is in the order corresponding to the 
-	     hash order. */
-	  for (ci = 0, gs = hsh_first (group_hash,&g); 	
-	       gs != 0;
-	       ++ci, gs = hsh_next(group_hash,&g))
+	  group_stat_array = hsh_sort(group_hash);
+	  
+	  for (ci = 0 ; ci < hsh_count(group_hash) ;  ++ci)
 	    {
-
+	      gs = group_stat_array[ci];
+	      
 	      const double coef = subc_list_double_at(&cmd.dl_contrast[i],ci);
 	      const double winv = (gs->std_dev * gs->std_dev) / gs->n;
 
@@ -780,7 +761,6 @@ show_contrast_tests(short *bad_contrast)
 
 	      df_numerator += (coef * coef) * winv;
 	      df_denominator += pow2((coef * coef) * winv) / (gs->n - 1);
-
 	    }
 	  sec_vneq = sqrt(sec_vneq);
 

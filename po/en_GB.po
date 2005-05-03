@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-05-01 15:18+0800\n"
+"POT-Creation-Date: 2005-05-02 07:37+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -265,32 +265,32 @@ msgstr ""
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
 msgstr ""
 
-#: src/casefile.c:190
+#: src/casefile.c:192
 #, c-format
 msgid "%s: Removing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:337
+#: src/casefile.c:339
 #, c-format
 msgid "Error writing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:479
+#: src/casefile.c:481
 #, c-format
 msgid "%s: Opening temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:505
+#: src/casefile.c:507
 #, c-format
 msgid "%s: Seeking temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:521
+#: src/casefile.c:523
 #, c-format
 msgid "%s: Reading temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:524
+#: src/casefile.c:526
 #, c-format
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
