@@ -268,14 +268,9 @@ cmd_data_list (void)
 
   if (vfm_source != NULL)
     {
-      struct data_list_pgm *new_pgm;
-
       dls->h.proc = data_list_trns_proc;
       dls->h.free = data_list_trns_free;
-
-      new_pgm = xmalloc (sizeof *new_pgm);
-      memcpy (new_pgm, &dls, sizeof *new_pgm);
-      add_transformation (&new_pgm->h);
+      add_transformation (&dls->h);
     }
   else 
     vfm_source = create_case_source (&data_list_source_class, dls);
@@ -404,12 +399,7 @@ parse_fixed (struct data_list_pgm *dls)
     }
   else if (!dls->rec_cnt)
     dls->rec_cnt = dls->last->rec;
-  if (token != '.')
-    {
-      lex_error (_("expecting end of command"));
-      return 0;
-    }
-  return 1;
+  return lex_end_of_command () == CMD_SUCCESS;
 
 fail:
   for (i = 0; i < fx.name_cnt; i++)
@@ -897,9 +887,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
       free (name);
     }
 
-  if (token != '.')
-    lex_error (_("expecting end of command"));
-  return 1;
+  return lex_end_of_command () == CMD_SUCCESS;
 }
 
 /* Displays a table giving information on free-format variable parsing
@@ -1602,7 +1590,7 @@ cmd_repeating_data (void)
   /* Calculate starts_end, cont_end if necessary. */
   if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL)
     rpd->starts_end.num = handle_get_record_width (fh);
-  if (rpd->cont_end.num == 0 && rpd->starts_end.var == NULL)
+  if (rpd->cont_end.num == 0 && rpd->cont_end.var == NULL)
     rpd->cont_end.num = handle_get_record_width (fh);
       
   /* Calculate length if possible. */
@@ -1739,18 +1727,13 @@ parse_repeating_data (struct dls_var_spec **first, struct dls_var_spec **last)
       else
 	{
 	  msg (SE, _("SPSS-like or FORTRAN-like format "
-	       "specification expected after variable names."));
+                     "specification expected after variable names."));
 	  goto fail;
 	}
 
       for (i = 0; i < fx.name_cnt; i++)
 	free (fx.name[i]);
       free (fx.name);
-    }
-  if (token != '.')
-    {
-      lex_error (_("expecting end of command"));
-      return 0;
     }
   
   return 1;

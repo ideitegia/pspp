@@ -1,3 +1,19 @@
+Mon May  2 23:45:01 2005  Ben Pfaff  <blp@gnu.org>
+
+	Code improvements.
+	
+	* data-list.c: 	(parse_fixed) Use lex_end_of_command().
+	(parse_free) Ditto.
+	(cmd_repeating_data) Set cont_end.num in right situations.
+	(parse_repeating_data) Remove redundant test.
+
+Mon May  2 23:37:19 2005  Ben Pfaff  <blp@gnu.org>
+
+	Partial fix for PR 12859.
+	
+	* data-list.c: (cmd_data_list) Add transformation properly in
+	vfm_source == NULL case.
+
 Mon May  2 23:27:28 2005  Ben Pfaff  <blp@gnu.org>
 
 	* lexer.c: (lex_error) Improve error messages.
