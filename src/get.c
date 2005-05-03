@@ -728,7 +728,8 @@ cmd_match_files (void)
   dict_set_case_limit (mtf.dict, dict_get_case_limit (default_dict));
 
   lex_match ('/');
-  while (lex_id_match ("FILE", tokid) || lex_id_match ("TABLE", tokid)) 
+  while (token == T_ID
+         && (lex_id_match ("FILE", tokid) || lex_id_match ("TABLE", tokid)))
     {
       struct mtf_file *file = xmalloc (sizeof *file);
 
@@ -741,6 +742,7 @@ cmd_match_files (void)
         }
       else
         assert (0);
+      lex_match ('=');
 
       file->by = NULL;
       file->handle = NULL;
@@ -774,9 +776,7 @@ cmd_match_files (void)
             mtf.head = file;
           first_table->prev = file;
         }
-	  
-      lex_match ('=');
-	  
+
       if (lex_match ('*'))
         {
           file->handle = NULL;

@@ -1,6 +1,12 @@
+Mon May  2 22:28:17 2005  Ben Pfaff  <blp@gnu.org>
+
+	* get.c: (cmd_match_files) Check token type before trying to match
+	tokid.  Fixes PR 12923.
+
 Mon May  2 22:16:51 2005  Ben Pfaff  <blp@gnu.org>
 
-	* flip.c: [HAVE_SYS_TYPES_H] Include <sys/types.h>.
+	* flip.c: [HAVE_SYS_TYPES_H] Include <sys/types.h>.  Fixes PR
+	12789.
 
 Mon May  2 22:02:52 2005  Ben Pfaff  <blp@gnu.org>
 
