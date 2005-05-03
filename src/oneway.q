@@ -290,7 +290,7 @@ show_anova_table(void)
       struct hsh_iterator g;
       struct group_statistics *gs;
       double ssa=0;
-
+      const char *s = var_to_string(vars[i]);
 
       for (gs =  hsh_first (group_hash,&g); 
 	   gs != 0; 
@@ -300,8 +300,6 @@ show_anova_table(void)
 	}
       
       ssa -= ( totals->sum * totals->sum ) / totals->n ;
-
-      const char *s = var_to_string(vars[i]);
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -700,7 +698,7 @@ show_contrast_tests(short *bad_contrast)
 	  double coef_msq = 0.0;
 	  struct group_proc *grp_data = group_proc_get (vars[v]);
 	  struct hsh_table *group_hash = grp_data->group_hash;
-	  struct group_statistics *gs;
+
 	  void **group_stat_array;
 
 	  double T;
@@ -748,9 +746,9 @@ show_contrast_tests(short *bad_contrast)
 	  
 	  for (ci = 0 ; ci < hsh_count(group_hash) ;  ++ci)
 	    {
-	      gs = group_stat_array[ci];
-	      
-	      const double coef = subc_list_double_at(&cmd.dl_contrast[i],ci);
+	      const double coef = subc_list_double_at(&cmd.dl_contrast[i], ci);
+	      struct group_statistics *gs = group_stat_array[ci];
+
 	      const double winv = (gs->std_dev * gs->std_dev) / gs->n;
 
 	      contrast_value += coef * gs->mean;

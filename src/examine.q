@@ -612,6 +612,7 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 
   while ( fctr) 
     {
+      struct factor_statistics **foo ;
       union value indep_vals[2] ;
 
       indep_vals[0] = * case_data(c, fctr->indep_var[0]->fv);
@@ -623,7 +624,7 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 
       assert(fctr->fstats);
 
-      struct factor_statistics **foo = ( struct factor_statistics ** ) 
+      foo = ( struct factor_statistics ** ) 
 	hsh_probe(fctr->fstats, (void *) &indep_vals);
 
       if ( !*foo ) 
@@ -1508,8 +1509,8 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 
   tab_text (tbl, col, 
 	    row + 3,
-	    TAB_LEFT | TAT_TITLE,
-	    _("5% Trimmed Mean"));
+	    TAB_LEFT | TAT_TITLE | TAT_PRINTF,
+	    _("5%% Trimmed Mean"));
 
   tab_float (tbl, col + 2, 
 	     row + 3,
@@ -1689,10 +1690,7 @@ box_plot_variables(const struct factor *fctr,
     {
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
-      struct chart *ch;
-
-      ch = chart_create();
-
+      struct chart *ch = chart_create();
       const char *s = factor_to_string(fctr, *fs, 0 );
 
       chart_write_title(ch, s);
@@ -1856,8 +1854,7 @@ np_plot(const struct metrics *m, const char *factorname)
   {
     /* We have to cache the detrended data, beacause we need to 
        find its limits before we can plot it */
-    double *d_data;
-    d_data = xmalloc (m->n_data * sizeof(double));
+    double *d_data = xmalloc (m->n_data * sizeof(double));
     double d_max = -DBL_MAX;
     double d_min = DBL_MAX;
     for ( i = 0 ; i < m->n_data; ++i ) 

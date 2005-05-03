@@ -78,7 +78,6 @@ pspp_LDADD = \
 	../lib/misc/libmisc.a			\
 	expressions/libexpressions.a		\
 	../lib/gsl-extras/libgsl-extras.a	\
-	-lplot \
 	@LIBINTL@
 
 nodist_pspp_SOURCES = version.c

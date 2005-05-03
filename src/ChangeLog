@@ -1,3 +1,11 @@
+Tue May  3 19:14:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* copyleft.c: Updated copyright date.
+
+	* Makefile.am: Removed erroneous explicit "-lplot"
+
+	* examine.q oneway.q: Made these files conform to ISO/IEC 9899:1990
+
 Tue May  3 16:20:31 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* command.c command.def: Added description string for unimplemented commands.

@@ -48,7 +48,7 @@ AC_CHECK_LIB(gmp, mpf_get_str,,
 
 AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas]))
 AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,
-	AC_MSG_ERROR([You must install libgsl version 1.4 or later]))
+  AC_MSG_ERROR([You must install libgsl version 1.4 or later]))
 
 AC_CHECK_LIB(gnugetopt,getopt_long)
 AC_CHECK_FUNC(getopt_long,,

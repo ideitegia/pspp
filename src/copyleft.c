@@ -1,5 +1,5 @@
 const char legal[]=""
-"Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.\n"
+"Copyright (C) 1997-9, 2000, 2005 Free Software Foundation, Inc.\n"
 "GNU PSPP comes with NO WARRANTY,\n"
 "to the extent permitted by law.\n"
 "You may redistribute copies of GNU PSPP\n"
