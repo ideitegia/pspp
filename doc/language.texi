@@ -1008,7 +1008,6 @@ An expression.  @xref{Expressions}, for details.
 @end table
 
 @item
-@cindex @code{::=}
 @cindex ``is defined as''
 @cindex productions
 @samp{::=} means ``is defined as''.  The left side of @samp{::=} gives
