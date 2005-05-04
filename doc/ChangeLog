@@ -1,3 +1,8 @@
+Wed May  4 08:30:24 2005  Ben Pfaff  <blp@gnu.org>
+
+	* language.texi: Proofreading from Jason Stover
+	<jstover@sdf.lonestar.org>.
+
 Tue May  3 16:22:29 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* get-commands.pl: New file to generate ni.texi

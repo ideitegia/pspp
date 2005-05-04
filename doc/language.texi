@@ -5,7 +5,7 @@
 
 @quotation
 @strong{Please note:} PSPP is not even close to completion.
-Only a few actual statistical procedures are implemented.  PSPP
+Only a few statistical procedures are implemented.  PSPP
 is a work in progress.
 @end quotation
 
@@ -50,7 +50,7 @@ must be letters, digits, or one of the following special characters:
 @end example
 
 @cindex case-sensitivity
-Identifiers may be up any length, but only the first 64 bytes are
+Identifiers may be any length, but only the first 64 bytes are
 significant.  Identifiers are not case-sensitive: @code{foobar},
 @code{Foobar}, @code{FooBar}, @code{FOOBAR}, and @code{FoObaR} are
 different representations of the same identifier.
@@ -150,7 +150,7 @@ Most of these appear within the syntax of commands, but the period
 punctuator only as the last character on a line (except white space).
 When it is the last non-space character on a line, a period is not
 treated as part of another token, even if it would otherwise be part
-of e.g.@: an identifier or a floating-point number.
+of, e.g.@:, an identifier or a floating-point number.
 
 Actually, the character that ends a command can be changed with
 @cmd{SET}'s ENDCMD subcommand (@pxref{SET}), but we do not recommend
@@ -174,10 +174,11 @@ or more characters, where these abbreviations are unambiguous.
 The command name may be followed by one or more @dfn{subcommands}.
 Each subcommand begins with a subcommand name, which may be
 abbreviated to its first three letters.  Some subcommands accept a
-series of one or more specifications, which follow the subcommand name
-and, optionally separated from it by an equals sign (@samp{=}), and
-optionally separated from each other by commas.  Each subcommand must
-be separated from the next (if any) by a forward slash (@samp{/}).
+series of one or more specifications, which follow the subcommand
+name, optionally separated from it by an equals sign
+(@samp{=}). Specifications may be separated from each other
+by commas or spaces.  Each subcommand must be separated from the next (if any)
+by a forward slash (@samp{/}).
 
 There are multiple ways to mark the end of a command.  The most common
 way is to end the last line of the command with a period (@samp{.}) as
@@ -216,14 +217,14 @@ commands}.
 @item File definition commands
 @cindex file definition commands
 Give instructions for reading data from text files or from special
-binary ``system files''.  Most of these commands discard any previous
-data or variables to replace it with the new data and
-variables.  At least one must appear before the first command in any of
+binary ``system files''.  Most of these commands replace any previous
+data or variables with new data or
+variables.  At least one file definition command must appear before the first command in any of
 the categories below.  @xref{Data Input and Output}.
 
 @item Input program commands
 @cindex input program commands
-Though rarely used, these provide powerful tools for reading data files
+Though rarely used, these provide tools for reading data files
 in arbitrary textual or binary formats.  @xref{INPUT PROGRAM}.
 
 @item Transformations
@@ -250,7 +251,7 @@ active file (the data) to be read.
 @cindex order of commands
 
 PSPP does not place many restrictions on ordering of commands.  The
-main restriction is that variables must be defined they are otherwise
+main restriction is that variables must be defined before they are otherwise
 referenced.  This section describes the details of command ordering,
 but most users will have no need to refer to them.
 
@@ -259,7 +260,7 @@ FILE TYPE, transformation, and procedure states.  (Please note the
 distinction between the @cmd{INPUT PROGRAM} and @cmd{FILE TYPE}
 @emph{commands} and the INPUT PROGRAM and FILE TYPE @emph{states}.)
 
-PSPP starts up in the initial state.  Each successful completion
+PSPP starts in the initial state.  Each successful completion
 of a command may cause a state transition.  Each type of command has its
 own rules for state transitions:
 
@@ -487,7 +488,7 @@ designed to write to binary files.  @xref{WRITE FORMATS}.
 @cindex variables, system
 
 There are seven system variables.  These are not like ordinary
-variables, as they are not stored in each case.  They can only be used
+variables because system variables are not always stored.  They can be used only
 in expressions.  These system variables, whose values and output formats
 cannot be modified, are described below.
 
@@ -565,12 +566,11 @@ desired number of decimal places, if appropriate.  If @var{d} is not
 included then it is assumed to be 0.  Some formats do not allow @var{d}
 to be specified.
 
-When an input format is specified on @cmd{DATA LIST} or another
-command, then
-it is converted to an output format for the purposes of @cmd{PRINT}
-and other
-data output commands.  For most purposes, input and output formats are
-the same; the salient differences are described below.
+When @cmd{DATA LIST} or another command specifies an input format,
+that format is converted to an output format for the purposes of
+@cmd{PRINT} and other data output commands.  For most purposes, input
+and output formats are the same; the salient differences are described
+below.
 
 Below are listed the input and output formats supported by PSPP.  If an
 input format is mapped to a different output format by default, then
@@ -654,7 +654,7 @@ with output @var{w} as 9 + input @var{d} and output @var{d} as input
 @item PIB @result{} F: 1 <= iw,ow <= 8
 Positive integer binary format.  The field is interpreted as a
 fixed-point positive binary number.  The location of the decimal point
-is implied.  Endianness is teh same as the host machine.
+is implied.  Endianness is the same as the host machine.
 
 The default output format follows the rules for IB format.
 
@@ -831,7 +831,7 @@ YYYY} otherwise.
 
 @item DATETIMEw.d: 17 <= iw,ow <= 40
 Date and time format.  Input format: leader + day + date-delimiter +
-month + date-delimiter + yaer + time-delimiter + hour24 + time-delimiter
+month + date-delimiter + year + time-delimiter + hour24 + time-delimiter
 + minute + opt-second.  Output format: @samp{DD-MMM-YYYY HH:MM}.  If
 @var{w} > 19 then seconds @samp{:SS} is added.  If @var{w} > 22 and
 @var{d} > 0 then fractional seconds @samp{.SS} are added.
@@ -890,13 +890,13 @@ use a @dfn{scratch variable}.  Scratch variables are variables whose
 names begin with an octothorpe (@samp{#}).  
 
 Scratch variables have the same properties as variables left with
-@cmd{LEAVE}:
-they retain their values between cases, and for the first case they are
-initialized to 0 or blanks.  They have the additional property that they
-are deleted before the execution of any procedure.  For this reason,
-scratch variables can't be used for analysis.  To obtain the same
-effect, use @cmd{COMPUTE} (@pxref{COMPUTE}) to copy the scratch variable's
-value into an ordinary variable, then analysis that variable.
+@cmd{LEAVE}: they retain their values between cases, and for the first
+case they are initialized to 0 or blanks.  They have the additional
+property that they are deleted before the execution of any procedure.
+For this reason, scratch variables can't be used for analysis.  To use
+a scratch variable in an analysis, use @cmd{COMPUTE} (@pxref{COMPUTE})
+to copy its value into an ordinary variable, then use that ordinary
+variable in the analysis.
 
 @node Files, BNF, Variables, Language
 @section Files Used by PSPP
@@ -912,8 +912,8 @@ most important of these files:
 @cindex syntax file
 @item command file
 @itemx syntax file
-These names (synonyms) refer to the file that contains instructions to
-PSPP that tell it what to do.  The syntax file's name is specified on
+These names (synonyms) refer to the file that contains instructions
+that tell PSPP what to do.  The syntax file's name is specified on
 the PSPP command line.  Syntax files can also be pulled in with
 @cmd{INCLUDE} (@pxref{INCLUDE}).
 
@@ -959,7 +959,7 @@ following table describes BNF:
 @item
 Words in all-uppercase are PSPP keyword tokens.  In BNF, these are
 often called @dfn{terminals}.  There are some special terminals, which
-are actually written in lowercase for clarity:
+are written in lowercase for clarity:
 
 @table @asis
 @cindex @code{number}
