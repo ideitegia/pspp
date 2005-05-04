@@ -232,7 +232,7 @@ recode (const struct autorecode_pgm *arc)
   for (i = 0; i < arc->var_cnt; i++)
     {
       struct arc_spec *spec = &t->specs[i];
-      void **p = hsh_sort (arc->src_values[i]);
+      void *const *p = hsh_sort (arc->src_values[i]);
       int count = hsh_count (arc->src_values[i]);
       int j;
 

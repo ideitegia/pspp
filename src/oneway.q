@@ -423,7 +423,7 @@ show_descriptives(void)
 
       const char *s = var_to_string(vars[v]);
 
-      struct group_statistics **gs_array = hsh_sort(gp->group_hash);
+      struct group_statistics *const *gs_array = hsh_sort(gp->group_hash);
       int count = 0;
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);
@@ -574,7 +574,7 @@ show_contrast_coeffs(short *bad_contrast)
   int n_rows = 2 + cmd.sbc_contrast;
   union value *group_value;
   int count = 0 ;      
-  void **group_values ;
+  void *const *group_values ;
 
   struct tab_table *t;
 
@@ -699,7 +699,7 @@ show_contrast_tests(short *bad_contrast)
 	  struct group_proc *grp_data = group_proc_get (vars[v]);
 	  struct hsh_table *group_hash = grp_data->group_hash;
 
-	  void **group_stat_array;
+	  void *const *group_stat_array;
 
 	  double T;
 	  double std_error_contrast ;

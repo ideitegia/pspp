@@ -45,8 +45,8 @@ struct hsh_table *hsh_create (int m, hsh_compare_func *,
 			      void *aux);
 void hsh_clear (struct hsh_table *);
 void hsh_destroy (struct hsh_table *);
-void **hsh_sort (struct hsh_table *);
-void **hsh_data (struct hsh_table *);
+void *const *hsh_sort (struct hsh_table *);
+void *const *hsh_data (struct hsh_table *);
 void **hsh_sort_copy (struct hsh_table *);
 void **hsh_data_copy (struct hsh_table *);
 

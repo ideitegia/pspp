@@ -702,7 +702,7 @@ postprocess_freq_tab (struct variable *v)
   hsh_compare_func *compare;
   struct freq_tab *ft;
   size_t count;
-  void **data;
+  void *const *data;
   struct freq *freqs, *f;
   size_t i;
 

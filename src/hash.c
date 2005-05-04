@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
+#include "bool.h"
 #include "misc.h"
 #include "str.h"
 
@@ -146,6 +147,12 @@ struct hsh_table
     hsh_compare_func *compare;
     hsh_hash_func *hash;
     hsh_free_func *free;
+    
+#ifndef NDEBUG
+    /* Set to false if hsh_data() or hsh_sort() has been called,
+       so that most hsh_*() functions may no longer be called. */
+    bool hash_ordered;
+#endif
   };
 
 /* Creates a hash table with at least M entries.  COMPARE is a
@@ -158,9 +165,6 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
 {
   struct hsh_table *h;
   int i;
-
-  if ( size ==  0 ) 
-    return NULL;
 
   assert (compare != NULL);
   assert (hash != NULL);
@@ -177,6 +181,9 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
   h->compare = compare;
   h->hash = hash;
   h->free = free;
+#ifndef NDEBUG
+  h->hash_ordered = true;
+#endif
   return h;
 }
 
@@ -196,6 +203,10 @@ hsh_clear (struct hsh_table *h)
     h->entries[i] = NULL;
 
   h->used = 0;
+
+#ifndef NDEBUG
+  h->hash_ordered = true;
+#endif
 }
 
 /* Destroys table H and all its contents. */
@@ -222,6 +233,7 @@ locate_matching_entry (struct hsh_table *h, const void *target)
 {
   unsigned i = h->hash (target, h->aux);
 
+  assert (h->hash_ordered);
   for (;;)
     {
       void *entry;
@@ -233,15 +245,20 @@ locate_matching_entry (struct hsh_table *h, const void *target)
     }
 }
 
-/* Changes the capacity of H to NEW_SIZE. */
+/* Changes the capacity of H to NEW_SIZE, which must be a
+   positive power of 2 at least as large as the number of
+   elements in H. */
 static void
-hsh_rehash (struct hsh_table *h, size_t new_size)
+rehash (struct hsh_table *h, size_t new_size)
 {
   void **begin, **end, **table_p;
   int i;
 
   assert (h != NULL);
   assert (new_size >= h->used);
+
+  /* Verify that NEW_SIZE is a positive power of 2. */
+  assert (new_size > 0 && (new_size & (new_size - 1)) == 0);
 
   begin = h->entries;
   end = begin + h->size;
@@ -257,6 +274,10 @@ hsh_rehash (struct hsh_table *h, size_t new_size)
         h->entries[locate_matching_entry (h, entry)] = entry;
     }
   free (begin);
+
+#ifndef NDEBUG
+  h->hash_ordered = true;
+#endif
 }
 
 /* A "algo_predicate_func" that returns nonzero if DATA points
@@ -271,18 +292,33 @@ not_null (const void *data_, void *aux UNUSED)
 
 /* Compacts hash table H and returns a pointer to its data.  The
    returned data consists of hsh_count(H) non-null pointers, in
-   no particular order, followed by a null pointer.  After
-   calling this function, only hsh_destroy() and hsh_count() may
-   be applied to H. */
-void **
+   no particular order, followed by a null pointer.
+
+   After calling this function, only hsh_destroy() and
+   hsh_count() should be applied to H.  hsh_first() and
+   hsh_next() could also be used, but you're better off just
+   iterating through the returned array.
+
+   This function is intended for use in situations where data
+   processing occurs in two phases.  In the first phase, data is
+   added, removed, and searched for within a hash table.  In the
+   second phase, the contents of the hash table are output and
+   the hash property itself is no longer of interest.
+
+   Use hsh_sort() instead, if the second phase wants data in
+   sorted order.  Use hsh_data_copy() or hsh_sort_copy() instead,
+   if the second phase still needs to search the hash table. */
+void *const *
 hsh_data (struct hsh_table *h) 
 {
   size_t n;
 
   assert (h != NULL);
-  n = partition (h->entries, h->size, sizeof *h->entries,
-                 not_null, NULL);
+  n = partition (h->entries, h->size, sizeof *h->entries, not_null, NULL);
   assert (n == h->used);
+#ifndef NDEBUG
+  h->hash_ordered = false;
+#endif
   return h->entries;
 }
 
@@ -304,9 +340,24 @@ comparison_helper (const void *a_, const void *b_, void *h_)
 /* Sorts hash table H based on hash comparison function.  The
    returned data consists of hsh_count(H) non-null pointers,
    sorted in order of the hash comparison function, followed by a
-   null pointer.  After calling this function, only hsh_destroy()
-   and hsh_count() may be applied to H. */
-void **
+   null pointer.
+
+   After calling this function, only hsh_destroy() and
+   hsh_count() should be applied to H.  hsh_first() and
+   hsh_next() could also be used, but you're better off just
+   iterating through the returned array.
+
+   This function is intended for use in situations where data
+   processing occurs in two phases.  In the first phase, data is
+   added, removed, and searched for within a hash table.  In the
+   second phase, the contents of the hash table are output and
+   the hash property itself is no longer of interest.
+
+   Use hsh_data() instead, if the second phase doesn't need the
+   data in any particular order.  Use hsh_data_copy() or
+   hsh_sort_copy() instead, if the second phase still needs to
+   search the hash table. */
+void *const *
 hsh_sort (struct hsh_table *h)
 {
   assert (h != NULL);
@@ -320,7 +371,10 @@ hsh_sort (struct hsh_table *h)
    The returned data consists of hsh_count(H) non-null pointers,
    in no particular order, followed by a null pointer.  The hash
    table is not modified.  The caller is responsible for freeing
-   the allocated data. */
+   the allocated data.
+
+   If you don't need to search or modify the hash table, then
+   hsh_data() is a more efficient choice. */
 void **
 hsh_data_copy (struct hsh_table *h) 
 {
@@ -328,8 +382,7 @@ hsh_data_copy (struct hsh_table *h)
 
   assert (h != NULL);
   copy = xmalloc ((h->used + 1) * sizeof *copy);
-  copy_if (h->entries, h->size, sizeof *h->entries, copy,
-           not_null, NULL);
+  copy_if (h->entries, h->size, sizeof *h->entries, copy, not_null, NULL);
   copy[h->used] = NULL;
   return copy;
 }
@@ -338,7 +391,10 @@ hsh_data_copy (struct hsh_table *h)
    The returned data consists of hsh_count(H) non-null pointers,
    sorted in order of the hash comparison function, followed by a
    null pointer.  The hash table is not modified.  The caller is
-   responsible for freeing the allocated data. */
+   responsible for freeing the allocated data.
+
+   If you don't need to search or modify the hash table, then
+   hsh_sort() is a more efficient choice. */
 void **
 hsh_sort_copy (struct hsh_table *h) 
 {
@@ -363,9 +419,10 @@ hsh_probe (struct hsh_table *h, const void *target)
   
   assert (h != NULL);
   assert (target != NULL);
+  assert (h->hash_ordered);
 
   if (h->used > h->size / 2)
-    hsh_rehash (h, h->size * 2);
+    rehash (h, h->size * 2);
   i = locate_matching_entry (h, target);
   if (h->entries[i] == NULL)
     h->used++;

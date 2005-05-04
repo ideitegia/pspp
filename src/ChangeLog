@@ -1,3 +1,17 @@
+Tue May  3 22:25:17 2005  Ben Pfaff  <blp@gnu.org>
+
+	Improve hash.c comments, error-checking.
+	
+	* hash.c: (struct hsh_table) [NDEBUG] Add hash_ordered member.
+	(hsh_create) size == 0 should *not* return NULL!  Set
+	hash_ordered.
+	(hsh_clear) Set hash_ordered.
+	(locate_matching_entry) Check hash_ordered.
+	(hsh_rehash) Rename rehash().  Add assertion.  Set hash_ordered.
+	(hsh_data) Set hash_ordered.  Add const-ness to return value and
+	update all callers.
+	(hsh_sort) Ditto.	
+
 Wed May  4 08:50:11 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* casefile.c: Removed unnecessary #include <valgrind/valgrind.h>
