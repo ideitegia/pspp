@@ -1,3 +1,8 @@
+Wed May  4 08:49:13 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* README.CVS Smake: Added a CONFIGUREFLAGS variable.
+	* INSTALL: Mentioned build dependencies.
+
 Mon May  2 22:37:39 2005  Ben Pfaff  <blp@gnu.org>
 
 	* INSTALL: Mention dependencies.  Thanks to Jaap-Andre de Hoop

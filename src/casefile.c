@@ -34,10 +34,6 @@
 #include "settings.h"
 #include "var.h"
 
-#ifdef HAVE_VALGRIND_VALGRIND_H
-#include <valgrind/valgrind.h>
-#endif
-
 #define IO_BUF_SIZE (8192 / sizeof (union value))
 
 /* A casefile is a sequentially accessible array of immutable

@@ -1,5 +1,5 @@
 Makefile po/Makefile.in: Makefile.in configure install-sh config.h.in po/Makefile.in.in po/POTFILES.in
-	./configure
+	./configure $(CONFIGUREFLAGS)
 
 configure:  configure.ac aclocal.m4
 	autoconf

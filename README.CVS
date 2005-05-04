@@ -2,8 +2,16 @@ To build this project from the sources direct from the
 cvs archive use:
 
 make -f Smake
+# If you need to pass arguments to configure, use 
+# make -f Smake CONFIGUREFLAGS="--with-this --without-that"
 make
 
- and to test it:
+
+
+ To test it:
+
+make check
+
+ For a very thorough test: 
 
 make distcheck

@@ -1,3 +1,7 @@
+Wed May  4 08:50:11 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* casefile.c: Removed unnecessary #include <valgrind/valgrind.h>
+
 Tue May  3 19:14:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* copyleft.c: Updated copyright date.

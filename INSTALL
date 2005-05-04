@@ -8,6 +8,13 @@ PSPP has the following library dependencies;
       graphing features will not work.  If you do not have it
       installed, you must run `configure' with --without-libplot.
 
+    * ncurses and GNU readline are optional.  They make for a more pleasant
+      command line interface.
+
+PSPP also has the following build dependencies:
+
+    * perl 5.6 or later.
+
 Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
 
