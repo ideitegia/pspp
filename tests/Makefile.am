@@ -65,6 +65,7 @@ TESTS = \
 	bugs/html-frequency.sh \
 	bugs/if_crash.sh \
 	bugs/lag_crash.sh \
+	bugs/match-files-scratch.sh \
 	bugs/multipass.sh \
 	bugs/random.sh \
 	bugs/t-test-with-temp.sh \

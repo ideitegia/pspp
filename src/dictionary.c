@@ -450,7 +450,6 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   assert (d != NULL);
   assert (v != NULL);
   assert (dict_contains_var (d, v));
-  assert (d->var[v->index] == v);
 
   /* Delete aux data. */
   var_clear_aux (v);
@@ -789,7 +788,7 @@ dict_compact_values (struct dictionary *d)
           i++;
         }
       else
-        dict_delete_var (default_dict, v);
+        dict_delete_var (d, v);
     }
 }
 

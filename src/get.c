@@ -957,6 +957,8 @@ cmd_match_files (void)
         }
     }
 
+  /* Set up mapping from each file's variables to master
+     variables. */
   for (iter = mtf.head; iter != NULL; iter = iter->next)
     {
       struct dictionary *d = iter->dict;
@@ -971,6 +973,7 @@ cmd_match_files (void)
         }
     }
 
+  /* Add IN variables to master dictionary. */
   for (iter = mtf.head; iter != NULL; iter = iter->next) 
     if (iter->in_name != NULL)
       {
@@ -1398,12 +1401,13 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
         }
     }
   
-  dict_compact_values (d);
-
   for (i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *dv = dict_get_var (d, i);
       struct variable *mv = dict_lookup_var (m, dv->name);
+
+      if (dict_class_from_id (dv->name) == DC_SCRATCH)
+        continue;
 
       if (mv != NULL)
         {

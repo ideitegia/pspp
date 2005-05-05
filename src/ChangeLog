@@ -1,3 +1,17 @@
+Wed May  4 23:54:02 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix PR 12948.  See also new test in
+	tests/bugs/match-file-scratch.sh.
+	
+	* get.c: (mtf_merge_dictionary) Don't compact dictionary because
+	that deletes scratch variables that someone else might be using,
+	and because we can't reassign our sources' value indexes.
+	Instead, simply don't copy scratch variables into the master
+	dictionary.
+
+	* dictionary.c: (dict_compact_values) Delete variables from the
+	dictionary passed in, not from default_dict (!).
+
 Tue May  3 22:25:17 2005  Ben Pfaff  <blp@gnu.org>
 
 	Improve hash.c comments, error-checking.
