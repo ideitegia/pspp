@@ -1,4 +1,4 @@
-@node q2c Input Format, , Data File Format, Top
+@node q2c Input Format, GNU Free Documentation License, Data File Format, Top
 @appendix @code{q2c} Input Format
 
 PSPP statistical procedures have a bizarre and somewhat irregular
