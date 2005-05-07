@@ -689,10 +689,8 @@
   (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
   (set (make-local-variable 'font-lock-defaults) '(pspp-font-lock-keywords))
 
-  ;; Register our indentation function
-
   (set (make-local-variable 'indent-line-function) 'pspp-indent-line)  
-
+  (set (make-local-variable 'comment-start ) "* ")
   (set (make-local-variable 'compile-command)
        (concat "pspp "
 	       buffer-file-name

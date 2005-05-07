@@ -26,14 +26,18 @@ pspp_TEXINFOS = version.texi \
 	transformation.texi \
 	utilities.texi \
 	variables.texi \
-	fdl.texi \
-	ni.texi
+	fdl.texi 
+
+nodist_pspp_TEXINFOS= ni.texi
+
+pspp.info: ni.texi
 
 EXTRA_DIST = pspp.man \
+	get-commands.pl \
 	$(pspp_TEXINFOS)
 
 
-CLEANFILES = pspp.info pspp.info-*
+CLEANFILES = pspp.info pspp.info-* ni.texi
 MAINTAINERCLEANFILES=Makefile.in 
 
 ni.texi: @top_srcdir@/src/command.def @srcdir@/get-commands.pl

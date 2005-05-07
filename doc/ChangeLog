@@ -1,3 +1,7 @@
+Sat May  7 17:26:39 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* Makefile.am: Made ni.texi a nodist file
+
 Wed May  4 08:30:24 2005  Ben Pfaff  <blp@gnu.org>
 
 	* language.texi: Proofreading from Jason Stover

@@ -7,7 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2005-05-03 18:47+0800\n"
+"Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
+"POT-Creation-Date: 2005-05-07 16:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -264,32 +265,32 @@ msgstr ""
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
 msgstr ""
 
-#: src/casefile.c:190
+#: src/casefile.c:186
 #, c-format
 msgid "%s: Removing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:337
+#: src/casefile.c:333
 #, c-format
 msgid "Error writing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:479
+#: src/casefile.c:475
 #, c-format
 msgid "%s: Opening temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:505
+#: src/casefile.c:501
 #, c-format
 msgid "%s: Seeking temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:521
+#: src/casefile.c:517
 #, c-format
 msgid "%s: Reading temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:524
+#: src/casefile.c:520
 #, c-format
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
@@ -1135,7 +1136,7 @@ msgstr ""
 msgid "Error writing file %s: %s."
 msgstr ""
 
-#: src/dictionary.c:689
+#: src/dictionary.c:688
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
@@ -1611,19 +1612,19 @@ msgstr ""
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/get.c:982
+#: src/get.c:985
 #, c-format
 msgid "IN variable name %s duplicates an existing variable name."
 msgstr ""
 
-#: src/get.c:1412
+#: src/get.c:1416
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
 msgstr ""
 
-#: src/get.c:1503
+#: src/get.c:1507
 msgid "expecting COMM or TAPE"
 msgstr ""
 
@@ -1795,7 +1796,8 @@ msgstr ""
 msgid "<<fallback>>"
 msgstr ""
 
-#: src/hash.c:520
+#: src/hash.c:577
+#, c-format
 msgid "hash table:"
 msgstr ""
 
@@ -2396,6 +2398,7 @@ msgid "Error reading device definition file."
 msgstr ""
 
 #: src/output.c:471
+#, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
