@@ -80,9 +80,6 @@ boxplot_draw_boxplot(struct chart *ch,
   double whisker[2];
   int i;
 
-  assert(m);
-
-
   const double *hinge = m->hinge;
   struct weighted_value **wvp = m->wvp;
   const int n_data = m->n_data;
@@ -102,6 +99,8 @@ boxplot_draw_boxplot(struct chart *ch,
   const double box_top = 
     ch->data_bottom + ( hinge[2] - ch->y_min ) * ch->ordinate_scale;
 
+  assert(m);
+
   /* Can't really draw a boxplot if there's no data */
   if ( n_data == 0 ) 
 	  return ;
@@ -119,7 +118,7 @@ boxplot_draw_boxplot(struct chart *ch,
     
     }
     
-  
+  {
   const double bottom_whisker = 
     ch->data_bottom + ( whisker[0] - ch->y_min ) * ch->ordinate_scale;
 
@@ -181,6 +180,7 @@ boxplot_draw_boxplot(struct chart *ch,
   pl_fline_r(ch->lp, 
 	     box_centre, top_whisker,
 	     box_centre, box_top);
+  }
 
   /* Draw outliers */
   for ( i = 0 ; i < n_data ; ++i ) 

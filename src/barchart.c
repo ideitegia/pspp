@@ -114,7 +114,6 @@ void
 draw_barchart(struct chart *ch, const char *title, 
 	      const char *xlabel, const char *ylabel, enum bar_opts opt)
 {
-
   double d;
   int i;
 
@@ -122,10 +121,11 @@ draw_barchart(struct chart *ch, const char *title,
   
   double bar_width = interval_size / 1.1 ;
 
+  double ordinate_scale = fabs(ch->data_top -  ch->data_bottom) /
+    fabs(y_max - y_min) ; 
+
   if ( opt != BAR_STACKED ) 
       bar_width /= SUB_CATAGORIES;
-
-  double ordinate_scale = fabs(ch->data_top -  ch->data_bottom) / fabs(y_max - y_min) ;
 
   /* Move to data bottom-left */
   pl_move_r(ch->lp, ch->data_left, ch->data_bottom);

@@ -133,24 +133,22 @@ write_legend(struct chart *chart, const char *heading,
 void
 chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
 {
-
   if ( ! ch ) 
     return ;
 
+  {
+    const double x_pos = 
+      (x - ch->x_min) * ch->abscissa_scale + ch->data_left ; 
 
+    const double y_pos = 
+      (y - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
 
-  const double x_pos = 
-    (x - ch->x_min) * ch->abscissa_scale + ch->data_left ; 
-
-  const double y_pos = 
-    (y - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
-
-  pl_savestate_r(ch->lp);    
+    pl_savestate_r(ch->lp);    
   
-  pl_fmarker_r(ch->lp, x_pos, y_pos, 6, 15);
+    pl_fmarker_r(ch->lp, x_pos, y_pos, 6, 15);
 
-  pl_restorestate_r(ch->lp);    
-
+    pl_restorestate_r(ch->lp);    
+  }
 }
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.

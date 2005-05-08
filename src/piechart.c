@@ -54,9 +54,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
   int i;
   double total_magnetude=0;
 
-  struct chart *ch;
-
-  ch = chart_create();
+  struct chart *ch = chart_create();
 
   const double left_label = ch->data_left + 
     (ch->data_right - ch->data_left)/10.0;

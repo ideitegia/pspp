@@ -65,43 +65,46 @@ static void hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar);
 static void
 hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
 {
-  double upper;
-  double lower;
-  double height;
-
   if ( !ch ) 
-	  return ;
-  const size_t bins = gsl_histogram_bins(hist);
-  const double x_pos = (ch->data_right - ch->data_left) * bar / (double) bins ;
-  const double width = (ch->data_right - ch->data_left) / (double) bins ;
+    return ;
 
-
-  assert ( 0 == gsl_histogram_get_range(hist, bar, &lower, &upper));
-
-  assert( upper >= lower);
-
-  height = gsl_histogram_get(hist, bar) * 
-    (ch->data_top - ch->data_bottom) / gsl_histogram_max_val(hist);
-
-  pl_savestate_r(ch->lp);
-  pl_move_r(ch->lp,ch->data_left, ch->data_bottom);
-  pl_fillcolorname_r(ch->lp, ch->fill_colour); 
-  pl_filltype_r(ch->lp,1);
-
-
-  pl_fboxrel_r(ch->lp,
-	       x_pos, 0,
-	       x_pos + width, height);
-
-  pl_restorestate_r(ch->lp);
 
   {
-  char buf[5];
-  snprintf(buf,5,"%g",(upper + lower) / 2.0);
-  draw_tick(ch, TICK_ABSCISSA,
-	    x_pos + width / 2.0, buf);
-  }
+    double upper;
+    double lower;
+    double height;
 
+    const size_t bins = gsl_histogram_bins(hist);
+    const double x_pos = (ch->data_right - ch->data_left) * bar / (double) bins ;
+    const double width = (ch->data_right - ch->data_left) / (double) bins ;
+
+
+    assert ( 0 == gsl_histogram_get_range(hist, bar, &lower, &upper));
+
+    assert( upper >= lower);
+
+    height = gsl_histogram_get(hist, bar) * 
+      (ch->data_top - ch->data_bottom) / gsl_histogram_max_val(hist);
+
+    pl_savestate_r(ch->lp);
+    pl_move_r(ch->lp,ch->data_left, ch->data_bottom);
+    pl_fillcolorname_r(ch->lp, ch->fill_colour); 
+    pl_filltype_r(ch->lp,1);
+
+
+    pl_fboxrel_r(ch->lp,
+		 x_pos, 0,
+		 x_pos + width, height);
+
+    pl_restorestate_r(ch->lp);
+
+    {
+      char buf[5];
+      snprintf(buf,5,"%g",(upper + lower) / 2.0);
+      draw_tick(ch, TICK_ABSCISSA,
+		x_pos + width / 2.0, buf);
+    }
+  }
 }
 
 

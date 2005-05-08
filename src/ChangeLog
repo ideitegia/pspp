@@ -1,3 +1,8 @@
+Sun May  8 08:08:07 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* barchart.c box-whisker.c cartesian.c piechart.c plot-hist.c: Fixed 
+        more ISO/IEC 9899:1990 conformance issues.
+
 Wed May  4 23:54:02 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix PR 12948.  See also new test in
