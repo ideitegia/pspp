@@ -1,3 +1,7 @@
+Mon May  9 07:14:29 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* sysfile-info.c: Fixed bug [# 13024 ]
+
 Sun May  8 13:52:12 2005  Ben Pfaff  <blp@gnu.org>
 
 	"Fix" PR 13021 by disabling FILE TYPE.  Eventually, we should

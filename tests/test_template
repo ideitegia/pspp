@@ -3,6 +3,7 @@
 # This program tests ....
 
 TEMPDIR=/tmp/pspp-tst-$$
+TESTFILE=$TEMPDIR/`basename $0`.sps
 
 here=`pwd`;
 
@@ -14,6 +15,10 @@ export STAT_CONFIG_PATH=$top_srcdir/config
 
 cleanup()
 {
+     if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
+	echo "NOT cleaning $TEMPDIR"
+     	return ; 
+     fi
      rm -rf $TEMPDIR
 }
 
@@ -46,8 +51,13 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 put test set up here ...
-
 if [ $? -ne 0 ] ; then no_result ; fi
+
+
+activity="run program"
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
 
 
 put test here

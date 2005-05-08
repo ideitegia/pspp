@@ -32,6 +32,7 @@ TESTS = \
 	command/sort.sh \
 	command/sysfiles.sh \
 	command/sysfiles-old.sh \
+	command/sysfile-info.sh \
 	command/split-file.sh \
 	command/t-test-1-indep-val.sh \
 	command/t-test-1-sample-missing-anal.sh \

@@ -49,7 +49,7 @@ enum
     AS_VECTOR
   };
 
-int describe_variable (struct variable *v, struct tab_table *t, int r, int as);
+static int describe_variable (struct variable *v, struct tab_table *t, int r, int as);
      
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
@@ -128,6 +128,7 @@ cmd_sysfile_info (void)
   tab_submit (t);
 
   nr = 1 + 2 * dict_get_var_cnt (d);
+
   t = tab_create (4, nr, 1);
   tab_dim (t, sysfile_info_dim);
   tab_headers (t, 0, 0, 1, 0);
@@ -138,7 +139,7 @@ cmd_sysfile_info (void)
   for (r = 1, i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *v = dict_get_var (d, i);
-      int nvl = val_labs_count (v->val_labs);
+      const int nvl = val_labs_count (v->val_labs);
       
       if (r + 10 + nvl > nr)
 	{
@@ -149,10 +150,11 @@ cmd_sysfile_info (void)
 
       r = describe_variable (v, t, r, AS_DICTIONARY);
     }
+
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, r);
-  tab_vline (t, TAL_1, 0, 0, r);
   tab_vline (t, TAL_1, 1, 0, r);
   tab_vline (t, TAL_1, 3, 0, r);
+
   tab_resize (t, -1, r);
   tab_flags (t, SOMF_NO_TITLE);
   tab_submit (t);
@@ -425,7 +427,7 @@ display_variables (struct variable **vl, int n, int as)
 /* Puts a description of variable V into table T starting at row R.
    The variable will be described in the format AS.  Returns the next
    row available for use in the table. */
-int 
+static int 
 describe_variable (struct variable *v, struct tab_table *t, int r, int as)
 {
   /* Put the name, var label, and position into the first row. */
@@ -608,3 +610,14 @@ display_vectors (int sorted)
 
   free (vl);
 }
+
+
+
+
+
+
+
+
+
+
+
