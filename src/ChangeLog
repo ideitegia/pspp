@@ -1,3 +1,14 @@
+Sun May  8 13:52:12 2005  Ben Pfaff  <blp@gnu.org>
+
+	"Fix" PR 13021 by disabling FILE TYPE.  Eventually, we should
+	actually implement it.
+
+	* command.c: (FILE_TYPE_okay) Always return 1.
+
+	* command.def: Change FILE TYPE, END FILE TYPE into UNIMPL.
+
+	* file-type.c: Add prototypes to get rid of warnings.
+
 Sun May  8 08:08:07 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* barchart.c box-whisker.c cartesian.c piechart.c plot-hist.c: Fixed 

@@ -134,7 +134,8 @@ static const struct command *parse_command_name (void);
 /* Determines whether command C is appropriate to call in this
    part of a FILE TYPE structure. */
 static int
-FILE_TYPE_okay (const struct command *c)
+FILE_TYPE_okay (const struct command *c UNUSED)
+#if 0
 {
   int okay = 0;
   
@@ -143,7 +144,6 @@ FILE_TYPE_okay (const struct command *c)
       && c->func != cmd_repeating_data
       && c->func != cmd_end_file_type)
     msg (SE, _("%s not allowed inside FILE TYPE/END FILE TYPE."), c->name);
-#if 0
   /* FIXME */
   else if (c->func == cmd_repeating_data && fty.type == FTY_GROUPED)
     msg (SE, _("%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."),
@@ -151,17 +151,19 @@ FILE_TYPE_okay (const struct command *c)
   else if (!fty.had_rec_type && c->func != cmd_record_type)
     msg (SE, _("RECORD TYPE must be the first command inside a "
 		      "FILE TYPE structure."));
-#endif
   else
     okay = 1;
 
-#if 0
   if (c->func == cmd_record_type)
     fty.had_rec_type = 1;
-#endif
 
   return okay;
 }
+#else
+{
+  return 1;
+}
+#endif
 
 /* Parses an entire PSPP command.  This includes everything from the
    command name to the terminating dot.  Does most of its work by

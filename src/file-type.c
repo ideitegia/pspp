@@ -94,6 +94,8 @@ struct file_type_pgm
 static int parse_col_spec (struct col_spec *, const char *);
 static void create_col_var (struct col_spec *c);
 
+int cmd_file_type (void);
+
 /* Parses FILE TYPE command. */
 int
 cmd_file_type (void)
@@ -569,6 +571,7 @@ cmd_record_type (void)
 
 /* END FILE TYPE. */
 
+int cmd_end_file_type (void);
 int
 cmd_end_file_type (void)
 {
