@@ -6,14 +6,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
-"POT-Creation-Date: 2005-05-07 16:45+0800\n"
+"Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
+"POT-Creation-Date: 2005-05-10 12:06+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
 #: src/aggregate.c:195
@@ -232,7 +232,7 @@ msgstr ""
 msgid "Source variable count (%d) does not match target variable count (%d)."
 msgstr ""
 
-#: src/autorecode.c:139 src/command.c:791 src/compute.c:277 src/do-if.c:253
+#: src/autorecode.c:139 src/command.c:793 src/compute.c:277 src/do-if.c:253
 #: src/get.c:240 src/lexer.c:424 src/loop.c:241 src/matrix-data.c:528
 #: src/print.c:335 src/print.c:1045 src/recode.c:405 src/sel-if.c:54
 #: src/sel-if.c:131 src/vector.c:194 src/file-handle.q:139
@@ -294,7 +294,7 @@ msgstr ""
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
 
-#: src/cmdline.c:141 src/cmdline.c:160 src/cmdline.c:172 src/command.c:207
+#: src/cmdline.c:141 src/cmdline.c:160 src/cmdline.c:172 src/command.c:209
 #: src/set.q:425 src/set.q:427 src/set.q:994
 #, c-format
 msgid "%s is not yet implemented."
@@ -357,7 +357,7 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/command.c:145
+#: src/command.c:146
 #, c-format
 msgid "%s not allowed inside FILE TYPE/END FILE TYPE."
 msgstr ""
@@ -371,11 +371,11 @@ msgstr ""
 msgid "RECORD TYPE must be the first command inside a FILE TYPE structure."
 msgstr ""
 
-#: src/command.c:197
+#: src/command.c:199
 msgid "expecting command name"
 msgstr ""
 
-#: src/command.c:226
+#: src/command.c:228
 #, c-format
 msgid ""
 "%s is not allowed (1) before a command to specify the input program, such as "
@@ -383,57 +383,57 @@ msgid ""
 "PROGRAM and END INPUT PROGRAM."
 msgstr ""
 
-#: src/command.c:230
+#: src/command.c:232
 #, c-format
 msgid "%s is not allowed within an input program."
 msgstr ""
 
-#: src/command.c:231 src/command.c:232
+#: src/command.c:233 src/command.c:234
 #, c-format
 msgid "%s is only allowed within an input program."
 msgstr ""
 
-#: src/command.c:511
+#: src/command.c:513
 #, c-format
 msgid "Unknown command %s."
 msgstr ""
 
-#: src/command.c:617
+#: src/command.c:619
 msgid ""
 "This command is not accepted in a syntax file.  Instead, use FINISH to "
 "terminate a syntax file."
 msgstr ""
 
-#: src/command.c:635
+#: src/command.c:637
 msgid ""
 "This command is not executed in interactive mode.  Instead, PSPP drops down "
 "to the command prompt.  Use EXIT if you really want to quit."
 msgstr ""
 
-#: src/command.c:678 src/command.c:809 src/permissions.c:101
+#: src/command.c:680 src/command.c:811 src/permissions.c:101
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
-#: src/command.c:690
+#: src/command.c:692
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr ""
 
-#: src/command.c:740
+#: src/command.c:742
 #, c-format
 msgid "Couldn't fork: %s."
 msgstr ""
 
-#: src/command.c:782
+#: src/command.c:784
 #, c-format
 msgid "Error executing command: %s."
 msgstr ""
 
-#: src/command.c:830
+#: src/command.c:832
 msgid "No operating system support for this command."
 msgstr ""
 
-#: src/command.c:853
+#: src/command.c:855
 msgid "This command is not valid in a syntax file."
 msgstr ""
 
@@ -732,7 +732,7 @@ msgid ""
 msgstr ""
 
 #: src/data-list.c:785 src/data-list.c:911 src/descript.c:879 src/print.c:796
-#: src/sysfile-info.c:134 src/sysfile-info.c:367 src/vfm.c:809
+#: src/sysfile-info.c:135 src/sysfile-info.c:369 src/vfm.c:809
 msgid "Variable"
 msgstr ""
 
@@ -1239,140 +1239,140 @@ msgstr ""
 msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
 
-#: src/file-type.c:129
+#: src/file-type.c:131
 msgid "MIXED, GROUPED, or NESTED expected."
 msgstr ""
 
-#: src/file-type.c:152
+#: src/file-type.c:154
 msgid "The CASE subcommand is not valid on FILE TYPE MIXED."
 msgstr ""
 
-#: src/file-type.c:170
+#: src/file-type.c:172
 msgid "WARN or NOWARN expected after WILD."
 msgstr ""
 
-#: src/file-type.c:178
+#: src/file-type.c:180
 msgid "The DUPLICATE subcommand is not valid on FILE TYPE MIXED."
 msgstr ""
 
-#: src/file-type.c:192
+#: src/file-type.c:194
 msgid "DUPLICATE=CASE is only valid on FILE TYPE NESTED."
 msgstr ""
 
-#: src/file-type.c:201
+#: src/file-type.c:203
 #, c-format
 msgid "WARN%s expected after DUPLICATE."
 msgstr ""
 
-#: src/file-type.c:202
+#: src/file-type.c:204
 msgid ", NOWARN, or CASE"
 msgstr ""
 
-#: src/file-type.c:203
+#: src/file-type.c:205
 msgid " or NOWARN"
 msgstr ""
 
-#: src/file-type.c:211
+#: src/file-type.c:213
 msgid "The MISSING subcommand is not valid on FILE TYPE MIXED."
 msgstr ""
 
-#: src/file-type.c:223
+#: src/file-type.c:225
 msgid "WARN or NOWARN after MISSING."
 msgstr ""
 
-#: src/file-type.c:231
+#: src/file-type.c:233
 msgid "ORDERED is only valid on FILE TYPE GROUPED."
 msgstr ""
 
-#: src/file-type.c:242
+#: src/file-type.c:244
 msgid "YES or NO expected after ORDERED."
 msgstr ""
 
-#: src/file-type.c:248 src/file-type.c:543
+#: src/file-type.c:250 src/file-type.c:545
 msgid "while expecting a valid subcommand"
 msgstr ""
 
-#: src/file-type.c:255
+#: src/file-type.c:257
 msgid "The required RECORD subcommand was not present."
 msgstr ""
 
-#: src/file-type.c:263
+#: src/file-type.c:265
 msgid "The required CASE subcommand was not present."
 msgstr ""
 
-#: src/file-type.c:269
+#: src/file-type.c:271
 msgid "CASE and RECORD must specify different variable names."
 msgstr ""
 
-#: src/file-type.c:327
+#: src/file-type.c:329
 msgid "Column value must be positive."
 msgstr ""
 
-#: src/file-type.c:343
+#: src/file-type.c:345
 msgid "Ending column precedes beginning column."
 msgstr ""
 
-#: src/file-type.c:363
+#: src/file-type.c:365
 msgid "Bad format specifier name."
 msgstr ""
 
-#: src/file-type.c:392 src/file-type.c:580
+#: src/file-type.c:394 src/file-type.c:583
 msgid ""
 "This command may only appear within a FILE TYPE/END FILE TYPE structure."
 msgstr ""
 
-#: src/file-type.c:415
+#: src/file-type.c:417
 msgid "OTHER may appear only on the last RECORD TYPE command."
 msgstr ""
 
-#: src/file-type.c:425
+#: src/file-type.c:427
 msgid "No input commands (DATA LIST, REPEATING DATA) for above RECORD TYPE."
 msgstr ""
 
-#: src/file-type.c:476
+#: src/file-type.c:478
 msgid ""
 "The CASE subcommand is not allowed on the RECORD TYPE command for FILE TYPE "
 "MIXED."
 msgstr ""
 
-#: src/file-type.c:486
+#: src/file-type.c:488
 msgid ""
 "No variable name may be specified for the CASE subcommand on RECORD TYPE."
 msgstr ""
 
-#: src/file-type.c:494
+#: src/file-type.c:496
 msgid ""
 "The CASE column specification on RECORD TYPE must give a format specifier "
 "that is the same type as that of the CASE column specification given on FILE "
 "TYPE."
 msgstr ""
 
-#: src/file-type.c:510
+#: src/file-type.c:512
 msgid "WARN or NOWARN expected on DUPLICATE subcommand."
 msgstr ""
 
-#: src/file-type.c:524
+#: src/file-type.c:526
 msgid "WARN or NOWARN expected on MISSING subcommand."
 msgstr ""
 
-#: src/file-type.c:537
+#: src/file-type.c:539
 msgid "YES or NO expected on SPREAD subcommand."
 msgstr ""
 
-#: src/file-type.c:593
+#: src/file-type.c:596
 msgid "No input commands (DATA LIST, REPEATING DATA) on above RECORD TYPE."
 msgstr ""
 
-#: src/file-type.c:600
+#: src/file-type.c:603
 msgid "No commands between FILE TYPE and END FILE TYPE."
 msgstr ""
 
-#: src/file-type.c:669
+#: src/file-type.c:672
 #, c-format
 msgid "Unknown record type \"%.*s\"."
 msgstr ""
 
-#: src/file-type.c:693
+#: src/file-type.c:696
 #, c-format
 msgid "Unknown record type %g."
 msgstr ""
@@ -2690,11 +2690,11 @@ msgstr ""
 msgid "%s: Closing portable file: %s."
 msgstr ""
 
-#: src/plot-hist.c:123
+#: src/plot-hist.c:126
 msgid "HISTOGRAM"
 msgstr ""
 
-#: src/plot-hist.c:125 src/frequencies.q:1139
+#: src/plot-hist.c:128 src/frequencies.q:1139
 msgid "Frequency"
 msgstr ""
 
@@ -3458,72 +3458,72 @@ msgstr ""
 msgid "off"
 msgstr ""
 
-#: src/sysfile-info.c:135 src/sysfile-info.c:372
+#: src/sysfile-info.c:136 src/sysfile-info.c:374
 msgid "Description"
 msgstr ""
 
-#: src/sysfile-info.c:136 src/sysfile-info.c:370
+#: src/sysfile-info.c:137 src/sysfile-info.c:372
 msgid "Position"
 msgstr ""
 
-#: src/sysfile-info.c:193
+#: src/sysfile-info.c:195
 msgid "The active file does not have a file label."
 msgstr ""
 
-#: src/sysfile-info.c:196
+#: src/sysfile-info.c:198
 msgid "File label:"
 msgstr ""
 
-#: src/sysfile-info.c:258
+#: src/sysfile-info.c:260
 msgid "No variables to display."
 msgstr ""
 
-#: src/sysfile-info.c:277
+#: src/sysfile-info.c:279
 msgid "Macros not supported."
 msgstr ""
 
-#: src/sysfile-info.c:287
+#: src/sysfile-info.c:289
 msgid "The active file dictionary does not contain any documents."
 msgstr ""
 
-#: src/sysfile-info.c:296
+#: src/sysfile-info.c:298
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:374 src/sysfile-info.c:532 src/vfm.c:811
+#: src/sysfile-info.c:376 src/sysfile-info.c:534 src/vfm.c:811
 msgid "Label"
 msgstr ""
 
-#: src/sysfile-info.c:446
+#: src/sysfile-info.c:448
 #, c-format
 msgid "Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:453
+#: src/sysfile-info.c:455
 #, c-format
 msgid "Print Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:456
+#: src/sysfile-info.c:458
 #, c-format
 msgid "Write Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:464
+#: src/sysfile-info.c:466
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:531 src/vfm.c:810 src/crosstabs.q:1099
+#: src/sysfile-info.c:533 src/vfm.c:810 src/crosstabs.q:1099
 #: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
 #: src/examine.q:1130 src/frequencies.q:1138 src/frequencies.q:1259
 msgid "Value"
 msgstr ""
 
-#: src/sysfile-info.c:588
+#: src/sysfile-info.c:590
 msgid "No vectors defined."
 msgstr ""
 
-#: src/sysfile-info.c:603
+#: src/sysfile-info.c:605
 msgid "Vector"
 msgstr ""
 
