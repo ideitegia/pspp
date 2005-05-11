@@ -1,3 +1,7 @@
+Tue May 10 19:59:10 2005  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/agg-crash-2.sh: Fix output given PR 13054.
+
 Wed May  4 23:50:02 2005  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/match-files-scratch.sh: New test for PR 12948.

@@ -1,3 +1,15 @@
+Tue May 10 19:56:35 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix PR 13054.
+
+	* format.c: (check_input_specifier) Improve error message.
+	(check_input_specifier) Check F, COMMA, and DOLLAR formats for
+	valid decimal places.
+	(check_output_specifier) Ditto (but different criteria).
+	(convert_fmt_ItoO) Assert valid input and output specifiers.
+	Also, if input specifier has *any* decimal places, make the output
+	specifier 1 place wider.
+
 Mon May  9 07:14:29 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* sysfile-info.c: Fixed bug [# 13024 ]

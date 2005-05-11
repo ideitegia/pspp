@@ -157,7 +157,7 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
   if (f->cat & FCAT_OUTPUT_ONLY)
     {
       if (emit_error)
-        msg (SE, _("Format %s may not be used as an input format."), f->name);
+        msg (SE, _("Format %s may not be used for input."), f->name);
       return 0;
     }
   if (spec->w < f->Imin_w || spec->w > f->Imax_w)
@@ -166,6 +166,15 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
         msg (SE, _("Input format %s specifies a bad width %d.  "
                    "Format %s requires a width between %d and %d."),
              str, spec->w, f->name, f->Imin_w, f->Imax_w);
+      return 0;
+    }
+  if ((spec->type == FMT_F || spec->type == FMT_COMMA
+	  || spec->type == FMT_DOLLAR)
+      && spec->d > spec->w)
+    {
+      if (emit_error)
+        msg (SE, _("Input format %s is invalid because it specifies more "
+                   "decimal places than the field width."), str);
       return 0;
     }
   return 1;
@@ -192,16 +201,16 @@ check_output_specifier (const struct fmt_spec *spec, int emit_error)
              str, spec->w, f->name, f->Omin_w, f->Omax_w);
       return 0;
     }
-  if (spec->d > 1
-      && (spec->type == FMT_F || spec->type == FMT_COMMA
+  if ((spec->type == FMT_F || spec->type == FMT_COMMA
 	  || spec->type == FMT_DOLLAR)
-      && spec->w < f->Omin_w + 1 + spec->d)
+      && spec->d >= spec->w)
     {
       if (emit_error)
-        msg (SE, _("Output format %s requires minimum width %d to allow "
-                   "%d decimal places.  Try %s%d.%d instead of %s."),
-             f->name, f->Omin_w + 1 + spec->d, spec->d, f->name,
-             f->Omin_w + 1 + spec->d, spec->d, str);
+        msg (SE, _("Output format %s is invalid because it specifies as "
+                   "many decimal places as the field width, which "
+                   "fails to allow space for a decimal point.  "
+                   "Try %s%d.%d instead."),
+             str, f->name, f->name, spec->d + 1, spec->d);
       return 0;
     }
   return 1;
@@ -253,6 +262,8 @@ check_specifier_width (const struct fmt_spec *format,
 void
 convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output)
 {
+  assert (check_input_specifier (input, 0));
+
   output->type = formats[input->type].output;
   output->w = input->w;
   if (output->w > formats[output->type].Omax_w)
@@ -263,8 +274,8 @@ convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output)
     {
     case FMT_F:
     case FMT_N:
-      if (output->d > 1 && output->w < 2 + output->d)
-	output->w = 2 + output->d;
+      if (output->d > 0)
+	output->w++;
       break;
     case FMT_E:
       output->w = max (max (input->w, input->d+7), 10);
@@ -340,6 +351,8 @@ convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output)
     default:
       assert (0);
     }
+
+  assert (check_output_specifier (output, 0));
 }
 
 /* Parses a format specifier from the token stream and returns
