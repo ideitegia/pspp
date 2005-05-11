@@ -62,6 +62,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
   int cat = formats[fp->type].cat;
   int ok;
 
+  assert (check_output_specifier (fp, 0));
   if (!(cat & FCAT_STRING)) 
     {
       /* Numeric formatting. */

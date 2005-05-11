@@ -1363,6 +1363,8 @@ data_in (struct data_in *i)
 {
   const struct fmt_desc *const fmt = &formats[i->format.type];
 
+  assert (check_input_specifier (&i->format, 0));
+
   /* Check that we've got a string to work with. */
   if (i->e == i->s || i->format.w <= 0)
     {
