@@ -65,6 +65,7 @@ TESTS = \
 	bugs/get-no-file.sh \
 	bugs/html-frequency.sh \
 	bugs/if_crash.sh \
+	bugs/input-crash.sh \
 	bugs/lag_crash.sh \
 	bugs/match-files-scratch.sh \
 	bugs/multipass.sh \
