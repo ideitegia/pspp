@@ -881,14 +881,14 @@ word_matches (const char **test, const char **name)
   size_t name_len = strcspn (*name, ".");
   if (test_len == name_len) 
     {
-      if (mm_case_compare (*test, *name, test_len))
+      if (buf_compare_case (*test, *name, test_len))
         return false;
     }
   else if (test_len < 3 || test_len > name_len)
     return false;
   else 
     {
-      if (mm_case_compare (*test, *name, test_len))
+      if (buf_compare_case (*test, *name, test_len))
         return false;
     }
 

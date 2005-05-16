@@ -1,3 +1,39 @@
+Sun May 15 23:38:10 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix rest of PR 13054.
+	
+	* format.def: FMT_A should allow 255-character output.  FMT_AHEX
+	should allow 510-character input and output.
+
+	* data-out.c: (num_to_string) Get rid of NEW_STYLE option.
+	(convert_E) Handle non-finite values.
+	(try_F) Rewrite.
+	(format_and_round) New function.
+	(convert_infinite) New function used by try_F() and convert_E().
+
+Sun May 15 23:36:55 2005  Ben Pfaff  <blp@gnu.org>
+
+	Regularize string and buffer function names so that they make some
+	kind of sense.
+
+	* str.c: (mm_reverse) Rename buf_reverse().  Update all
+	references.
+	(mm_find_reverse) Rename buf_find_reverse().  Update all
+	references.
+	(mm_case_compare) Rename buf_compare_case().  Update all
+	references.
+	(st_compare_pad) Rename buf_compare_rpad().  Update all
+	references.
+	(str_compare_rpad) New function.
+	(st_bare_pad_copy) Rename buf_copy_str_rpad().  Update all
+	references.
+	(buf_copy_str_lpad) New function.
+	(st_bare_pad_len_copy) Rename buf_copy_rpad().  Update all
+	references.
+	(st_pad_copy) Rename str_copy_rpad().  Update all references.
+	(st_trim_copy) Rename str_copy_trunc().  Update all references.
+	(st_uppercase) Renamed str_uppercase().  Update all references.
+	
 Sat May 14 08:22:26 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* dfm-read.c: Fixed polarity of test in dfm-close-reader.  Closes 
@@ -11,7 +47,7 @@ Tue May 10 20:08:18 2005  Ben Pfaff  <blp@gnu.org>
 
 Tue May 10 19:56:35 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 13054.
+	Start to fix PR 13054.
 
 	* format.c: (check_input_specifier) Improve error message.
 	(check_input_specifier) Check F, COMMA, and DOLLAR formats for

@@ -333,7 +333,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
     if (label == NULL)
       label = "";
 
-    st_bare_pad_copy (hdr.file_label, label, sizeof hdr.file_label); 
+    buf_copy_str_rpad (hdr.file_label, sizeof hdr.file_label, label); 
   }
   
   memset (hdr.padding, 0, sizeof hdr.padding);
@@ -418,7 +418,7 @@ write_variable (struct sfm_writer *w, struct variable *v)
   sv.n_missing_values = nm;
   write_format_spec (&v->print, &sv.print);
   write_format_spec (&v->write, &sv.write);
-  st_bare_pad_copy (sv.name, v->short_name, sizeof sv.name);
+  buf_copy_str_rpad (sv.name, sizeof sv.name, v->short_name);
   if (!buf_write (w, &sv, sizeof sv))
     return 0;
 

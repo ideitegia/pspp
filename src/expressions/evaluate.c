@@ -102,7 +102,7 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
   assert (e->type == OP_string);
   assert ((dst == NULL) == (dst_size == 0));
   expr_evaluate (e, c, case_idx, &s);
-  st_bare_pad_len_copy (dst, s.string, dst_size, s.length);
+  buf_copy_rpad (dst, dst_size, s.string, s.length);
 }
 
 #include "lexer.h"

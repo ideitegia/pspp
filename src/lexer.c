@@ -116,7 +116,7 @@ restore_token (void)
   assert (put_token != 0);
   token = put_token;
   ds_replace (&tokstr, ds_c_str (&put_tokstr));
-  st_trim_copy (tokid, ds_c_str (&tokstr), sizeof tokid);
+  str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
   tokval = put_tokval;
   put_token = 0;
 }
@@ -358,7 +358,7 @@ lex_get (void)
 	    ds_putc (&tokstr, *prog++);
 
 	  /* Copy tokstr to tokid, possibly truncating it.*/
-	  st_trim_copy (tokid, ds_c_str (&tokstr), sizeof tokid);
+	  str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
 
           /* Determine token type. */
 	  token = lex_id_to_token (ds_c_str (&tokstr), ds_length (&tokstr));
@@ -720,7 +720,7 @@ lex_put_back_id (const char *id)
   save_token ();
   token = T_ID;
   ds_replace (&tokstr, id);
-  st_trim_copy (tokid, ds_c_str (&tokstr), sizeof tokid);
+  str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
 }
 
 /* Weird line processing functions. */

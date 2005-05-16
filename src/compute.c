@@ -353,7 +353,7 @@ lvalue_parse (void)
   else
     {
       /* Variable name. */
-      st_trim_copy (lvalue->var_name, tokid, sizeof lvalue->var_name);
+      str_copy_trunc (lvalue->var_name, sizeof lvalue->var_name, tokid);
       lex_get ();
     }
   return lvalue;

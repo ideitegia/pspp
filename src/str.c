@@ -77,7 +77,7 @@ nvsprintf (char *buf, const char *format, va_list args)
 /* Reverses the order of NBYTES bytes at address P, thus converting
    between little- and big-endian byte orders.  */
 void
-mm_reverse (void *p, size_t nbytes)
+buf_reverse (char *p, size_t nbytes)
 {
   unsigned char *h = p, *t = &h[nbytes - 1];
   unsigned char temp;
@@ -94,7 +94,7 @@ mm_reverse (void *p, size_t nbytes)
 /* Finds the last NEEDLE of length NEEDLE_LEN in a HAYSTACK of length
    HAYSTACK_LEN.  Returns a pointer to the needle found. */
 char *
-mm_find_reverse (const char *haystack, size_t haystack_len,
+buf_find_reverse (const char *haystack, size_t haystack_len,
                  const char *needle, size_t needle_len)
 {
   int i;
@@ -107,10 +107,10 @@ mm_find_reverse (const char *haystack, size_t haystack_len,
 /* Compares the SIZE bytes in A to those in B, disregarding case,
    and returns a strcmp()-type result. */
 int
-mm_case_compare (const void *a_, const void *b_, size_t size)
+buf_compare_case (const char *a_, const char *b_, size_t size)
 {
-  const unsigned char *a = a_;
-  const unsigned char *b = b_;
+  const unsigned char *a = (unsigned char *) a_;
+  const unsigned char *b = (unsigned char *) b_;
 
   while (size-- > 0) 
     {
@@ -128,7 +128,7 @@ mm_case_compare (const void *a_, const void *b_, size_t size)
    string is considered to be padded with spaces to the length of
    the longer. */
 int
-st_compare_pad (const char *a, size_t a_len, const char *b, size_t b_len)
+buf_compare_rpad (const char *a, size_t a_len, const char *b, size_t b_len)
 {
   size_t min_len;
   int result;
@@ -157,84 +157,101 @@ st_compare_pad (const char *a, size_t a_len, const char *b, size_t b_len)
     }
 }
 
-/* Copies SRC to DEST, truncating to N characters or right-padding
-   with spaces to N characters as necessary.  Does not append a null
-   character.  SRC must be null-terminated. */
-void
-st_bare_pad_copy (char *dest, const char *src, size_t n)
+/* Compares strin A to string B.  The shorter string is
+   considered to be padded with spaces to the length of the
+   longer. */
+int
+str_compare_rpad (const char *a, const char *b)
 {
-  size_t len;
+  return buf_compare_rpad (a, strlen (a), b, strlen (b));
+}
 
-  len = strlen (src);
-  if (len >= n)
-    memcpy (dest, src, n);
+/* Copies string SRC to buffer DST, of size DST_SIZE bytes.
+   DST is truncated to DST_SIZE bytes or padded on the right with
+   spaces as needed. */
+void
+buf_copy_str_rpad (char *dst, size_t dst_size, const char *src)
+{
+  size_t src_len = strlen (src);
+  if (src_len >= dst_size)
+    memcpy (dst, src, dst_size);
   else
     {
-      memcpy (dest, src, len);
-      memset (&dest[len], ' ', n - len);
+      memcpy (dst, src, src_len);
+      memset (&dst[src_len], ' ', dst_size - src_len);
     }
 }
 
-/* Copies SRC to DEST, truncating SRC to N characters or right-padding
-   with spaces to N characters if necessary.  Does not append a null
-   character.  SRC must be LEN characters long but does not need to be
-   null-terminated. */
+/* Copies string SRC to buffer DST, of size DST_SIZE bytes.
+   DST is truncated to DST_SIZE bytes or padded on the left with
+   spaces as needed. */
 void
-st_bare_pad_len_copy (char *dest, const char *src, size_t n, size_t len)
+buf_copy_str_lpad (char *dst, size_t dst_size, const char *src)
 {
-  if (len >= n)
-    memmove (dest, src, n);
+  size_t src_len = strlen (src);
+  if (src_len >= dst_size)
+    memcpy (dst, src, dst_size);
   else
     {
-      memmove (dest, src, len);
-      memset (&dest[len], ' ', n - len);
+      size_t pad_cnt = dst_size - src_len;
+      memset (&dst[0], ' ', pad_cnt);
+      memcpy (dst + pad_cnt, src, src_len);
     }
 }
 
-/* Copies SRC to DEST, truncating SRC to N-1 characters or
-   right-padding with spaces to N-1 characters if necessary.  Always
-   appends a null character. */
+/* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
+   DST is truncated to DST_SIZE bytes or padded on the right with
+   spaces as needed. */
 void
-st_pad_copy (char *dest, const char *src, size_t n)
+buf_copy_rpad (char *dst, size_t dst_size,
+               const char *src, size_t src_size)
 {
-  size_t len;
-
-  len = strlen (src);
-  if (len == n - 1)
-    strcpy (dest, src);
-  else if (len < n - 1)
-    {
-      memcpy (dest, src, len);
-      memset (&dest[len], ' ', n - 1 - len);
-      dest[n - 1] = 0;
-    }
+  if (src_size >= dst_size)
+    memmove (dst, src, dst_size);
   else
     {
-      memcpy (dest, src, n - 1);
-      dest[n - 1] = 0;
+      memmove (dst, src, src_size);
+      memset (&dst[src_size], ' ', dst_size - src_size);
     }
 }
 
-/* Copies SRC to DST, truncating DST to N-1 characters if
-   necessary.  Always appends a null character. */
+/* Copies string SRC to string DST, which is in a buffer DST_SIZE
+   bytes long.
+   Truncates DST to DST_SIZE - 1 characters or right-pads with
+   spaces to DST_SIZE - 1 characters if necessary. */
 void
-st_trim_copy (char *dst, const char *src, size_t n) 
+str_copy_rpad (char *dst, size_t dst_size, const char *src)
 {
-  size_t len = strlen (src);
-  assert (n > 0);
-  if (len + 1 < n)
-    memcpy (dst, src, len + 1);
+  size_t src_len = strlen (src);
+  if (src_len < dst_size - 1)
+    {
+      memcpy (dst, src, src_len);
+      memset (&dst[src_len], ' ', dst_size - 1 - src_len);
+    }
+  else
+    memcpy (dst, src, dst_size - 1);
+  dst[dst_size - 1] = 0;
+}
+
+/* Copies SRC to DST, which is in a buffer DST_SIZE bytes long.
+   Truncates DST to DST_SIZE - 1 characters, if necessary. */
+void
+str_copy_trunc (char *dst, size_t dst_size, const char *src) 
+{
+  size_t src_len = strlen (src);
+  assert (dst_size > 0);
+  if (src_len + 1 < dst_size)
+    memcpy (dst, src, src_len + 1);
   else 
     {
-      memcpy (dst, src, n - 1);
-      dst[n - 1] = '\0';
+      memcpy (dst, src, dst_size - 1);
+      dst[dst_size - 1] = '\0';
     }
 }
-
 
 /* Converts each character in S to uppercase. */
 void
-st_uppercase (char *s) 
+str_uppercase (char *s) 
 {
   for (; *s != '\0'; s++)
     *s = toupper ((unsigned char) *s);

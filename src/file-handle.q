@@ -116,7 +116,7 @@ cmd_file_handle (void)
 
   if (!lex_force_id ())
     return CMD_FAILURE;
-  st_trim_copy (handle_name, tokid, sizeof handle_name);
+  str_copy_trunc (handle_name, sizeof handle_name, tokid);
 
   handle = get_handle_with_name (handle_name);
   if (handle != NULL)

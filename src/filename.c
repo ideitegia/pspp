@@ -502,7 +502,7 @@ fn_dirname (const char *filename)
   if (len == 1 && filename[0] == '/')
     p = filename + 1;
   else if (len && filename[len - 1] == DIR_SEPARATOR)
-    p = mm_find_reverse (filename, len - 1, filename + len - 1, 1);
+    p = buf_find_reverse (filename, len - 1, filename + len - 1, 1);
   else
     p = strrchr (filename, DIR_SEPARATOR);
   if (p == NULL)

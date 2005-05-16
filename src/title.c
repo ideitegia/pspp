@@ -117,7 +117,7 @@ add_document_line (const char *line, int indent)
 
   memcpy (new_documents, old_documents, old_len);
   memset (new_documents + old_len, ' ', indent);
-  st_bare_pad_copy (new_documents + old_len + indent, line, 80 - indent);
+  buf_copy_str_rpad (new_documents + old_len + indent, 80 - indent, line);
   new_documents[old_len + 80] = '\0';
 
   dict_set_documents (default_dict, new_documents);

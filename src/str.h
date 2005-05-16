@@ -118,17 +118,18 @@ long getdelim (char **lineptr, size_t * n, int delimiter, FILE * stream);
 
 /* Miscellaneous. */
 
-void mm_reverse (void *, size_t);
-char *mm_find_reverse (const char *, size_t, const char *, size_t);
-int mm_case_compare (const void *, const void *, size_t);
+void buf_reverse (char *, size_t);
+char *buf_find_reverse (const char *, size_t, const char *, size_t);
+int buf_compare_case (const char *, const char *, size_t);
+int buf_compare_rpad (const char *, size_t, const char *, size_t);
+void buf_copy_rpad (char *, size_t, const char *, size_t);
+void buf_copy_str_lpad (char *, size_t, const char *);
+void buf_copy_str_rpad (char *, size_t, const char *);
 
-int st_compare_pad (const char *, size_t, const char *, size_t);
-char *st_spaces (int);
-void st_bare_pad_copy (char *dest, const char *src, size_t n);
-void st_bare_pad_len_copy (char *dest, const char *src, size_t n, size_t len);
-void st_pad_copy (char *dest, const char *src, size_t n);
-void st_trim_copy (char *dest, const char *src, size_t n);
-void st_uppercase (char *);
+int str_compare_rpad (const char *, const char *);
+void str_copy_rpad (char *, size_t, const char *);
+void str_copy_trunc (char *, size_t, const char *);
+void str_uppercase (char *);
 
 /* Fixed-length strings. */
 struct fixed_string 

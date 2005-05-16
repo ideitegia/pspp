@@ -450,8 +450,8 @@ cmd_record_type (void)
 	      if (!lex_force_string ())
 		goto error;
 	      rct->v[rct->nv].c = xmalloc (fty->record.nc + 1);
-	      st_bare_pad_copy (rct->v[rct->nv].c, ds_c_str (&tokstr),
-				fty->record.nc + 1);
+	      buf_copy_str_rpad (rct->v[rct->nv].c, fty->record.nc + 1,
+                                 ds_c_str (&tokstr));
 	    }
 	  else
 	    {

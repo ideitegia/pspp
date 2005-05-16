@@ -378,7 +378,7 @@ cmd_recode (void)
 		    /* The NULL is only really necessary for the
 		       debugging code. */
 		    char *repl = xmalloc (max_dst_width + 1);
-		    st_pad_copy (repl, cp->t.c, max_dst_width + 1);
+		    str_copy_rpad (repl, max_dst_width + 1, cp->t.c);
 		    free (cp->t.c);
 		    cp->t.c = repl;
 		  }
@@ -463,7 +463,7 @@ parse_dest_spec (struct rcd_var * rcd, union value * v, size_t *max_dst_width)
       if (toklen > max)
 	max = toklen;
       v->c = xmalloc (max + 1);
-      st_pad_copy (v->c, ds_c_str (&tokstr), max + 1);
+      str_copy_rpad (v->c, max + 1, ds_c_str (&tokstr));
       flags = RCD_DEST_STRING;
       *max_dst_width = max;
       lex_get ();
@@ -626,7 +626,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 	      if (!lex_force_string ())
 		return 0;
 	      c->f1.c = xmalloc (max_src_width + 1);
-	      st_pad_copy (c->f1.c, ds_c_str (&tokstr), max_src_width + 1);
+	      str_copy_rpad (c->f1.c, max_src_width + 1, ds_c_str (&tokstr));
 	      lex_get ();
 	    }
 	}
@@ -811,9 +811,9 @@ recode_trns_proc (struct trns_header * t, struct ccase * c,
 	  if (val == NULL) 
             {
               if (v->dest->fv != v->src->fv)
-                st_bare_pad_len_copy (case_data_rw (c, v->dest->fv)->s,
-                                      case_str (c, v->src->fv),
-                                      v->dest->width, v->src->width); 
+                buf_copy_rpad (case_data_rw (c, v->dest->fv)->s,
+                               v->dest->width,
+                               case_str (c, v->src->fv), v->src->width); 
             }
 	  else
 	    memcpy (case_data_rw (c, v->dest->fv)->s, cp->t.c, v->dest->width);

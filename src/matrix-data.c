@@ -1347,8 +1347,8 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
   int type = content_type[content];
 
   {
-    st_bare_pad_copy (case_data_rw (c, mx->rowtype_->fv)->s,
-		      content_names[content], 8);
+    buf_copy_str_rpad (case_data_rw (c, mx->rowtype_->fv)->s, 8,
+                       content_names[content]);
     
     if (type != 1)
       memset (case_data_rw (c, mx->varname_->fv)->s, ' ', 8);
@@ -1369,10 +1369,9 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
 	    cp++;
 	  }
 	if (type == 1)
-	  st_bare_pad_copy (case_data_rw (c, mx->varname_->fv)->s,
-                            dict_get_var (default_dict,
-                                          mx->first_continuous + i)->name,
-			    8);
+	  buf_copy_str_rpad (case_data_rw (c, mx->varname_->fv)->s, 8,
+                             dict_get_var (default_dict,
+                                           mx->first_continuous + i)->name);
 	write_case (wc_data);
       }
   }

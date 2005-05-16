@@ -468,7 +468,7 @@ parse_IB (struct data_in *i)
   p = i->s;
 #else
   memcpy (buf, i->s, i->e - i->s);
-  mm_reverse (buf, i->e - i->s);
+  buf_reverse (buf, i->e - i->s);
   p = buf;
 #endif
 
@@ -760,7 +760,7 @@ parse_enum (struct data_in *i, const char *what,
     if ((ep->can_abbreviate
          && lex_id_match_len (ep->name, strlen (ep->name), name, length))
         || (!ep->can_abbreviate && length == strlen (ep->name)
-            && !mm_case_compare (name, ep->name, length)))
+            && !buf_compare_case (name, ep->name, length)))
       {
         *output = ep->value;
         return true;

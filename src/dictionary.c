@@ -268,7 +268,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
 
   /* Allocate and initialize variable. */
   v = xmalloc (sizeof *v);
-  st_trim_copy (v->name, name, sizeof v->name);
+  str_copy_trunc (v->name, sizeof v->name, name);
   v->type = width == 0 ? NUMERIC : ALPHA;
   v->width = width;
   v->fv = d->next_value_idx;
@@ -395,7 +395,7 @@ dict_lookup_var (const struct dictionary *d, const char *name)
   assert (d != NULL);
   assert (name != NULL);
 
-  st_trim_copy (v.name, name, sizeof v.name);
+  str_copy_trunc (v.name, sizeof v.name, name);
   return hsh_find (d->name_tab, &v);
 }
 
@@ -569,7 +569,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
           || dict_lookup_var (d, new_name) == NULL);
 
   hsh_force_delete (d->name_tab, v);
-  st_trim_copy (v->name, new_name, sizeof v->name);
+  str_copy_trunc (v->name, sizeof v->name, new_name);
   hsh_force_insert (d->name_tab, v);
 
   if (get_algorithm () == ENHANCED)
@@ -970,7 +970,7 @@ dict_create_vector (struct dictionary *d,
   d->vector = xrealloc (d->vector, (d->vector_cnt + 1) * sizeof *d->vector);
   vector = d->vector[d->vector_cnt] = xmalloc (sizeof *vector);
   vector->idx = d->vector_cnt++;
-  st_trim_copy (vector->name, name, sizeof vector->name);
+  str_copy_trunc (vector->name, sizeof vector->name, name);
   vector->var = xmalloc (cnt * sizeof *var);
   for (i = 0; i < cnt; i++)
     {

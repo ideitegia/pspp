@@ -482,7 +482,7 @@ generate_z_varname (struct dsc_proc *dsc, char *z_name,
 
   /* Try a name based on the original variable name. */
   name[0] = 'Z';
-  st_trim_copy (name + 1, var_name, sizeof name - 1);
+  str_copy_trunc (name + 1, sizeof name - 1, var_name);
   if (try_name (dsc, name))
     {
       strcpy (z_name, name);

@@ -204,7 +204,7 @@ make_new_var (char name[])
           *cp = '_'; 
       }
   *cp = '\0';
-  st_uppercase (name);
+  str_uppercase (name);
   
   if (dict_create_var (default_dict, name, 0))
     return 1;
@@ -290,7 +290,8 @@ flip_sink_create (struct flip_pgm *flip)
 
   /* Write variable names as first case. */
   for (i = 0; i < flip->var_cnt; i++) 
-    st_bare_pad_copy (info->output_buf[i].s, flip->var[i]->name, MAX_SHORT_STRING);
+    buf_copy_str_rpad (info->output_buf[i].s, MAX_SHORT_STRING,
+                       flip->var[i]->name);
   if (fwrite (info->output_buf, sizeof *info->output_buf,
               flip->var_cnt, flip->file) != (size_t) flip->var_cnt)
     msg (FE, _("Error writing FLIP file: %s."), strerror (errno));
@@ -328,7 +329,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
             {
               char name[INT_DIGITS + 2];
               sprintf (name, "V%d", (int) f);
-              st_trim_copy (v->name, name, sizeof v->name);
+              str_copy_trunc (v->name, sizeof v->name, name);
             }
         }
       else

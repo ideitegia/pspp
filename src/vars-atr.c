@@ -346,8 +346,8 @@ var_set_short_name (struct variable *v, const char *short_name)
   assert (v != NULL);
   assert (short_name[0] == '\0' || var_is_valid_name (short_name, false));
   
-  st_trim_copy (v->short_name, short_name, sizeof v->short_name);
-  st_uppercase (v->short_name);
+  str_copy_trunc (v->short_name, sizeof v->short_name, short_name);
+  str_uppercase (v->short_name);
 }
 
 /* Clears V's short name. */

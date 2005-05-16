@@ -491,8 +491,7 @@ parse_aggregate_functions (struct agr_proc *agr)
               || func_index == FIN || func_index == FOUT) 
               && ((src[0]->type == NUMERIC && arg[0].f > arg[1].f)
                   || (src[0]->type == ALPHA
-                      && st_compare_pad (arg[0].c, strlen (arg[0].c),
-                                         arg[1].c, strlen (arg[1].c)) > 0)))
+                      && str_compare_rpad (arg[0].c, arg[1].c) > 0)))
             {
               union value t = arg[0];
               arg[0] = arg[1];

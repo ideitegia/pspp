@@ -879,7 +879,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
           spec->input = input;
           spec->v = v;
 	  spec->fv = v->fv;
-	  st_trim_copy (spec->name, v->name, sizeof spec->name);
+	  str_copy_trunc (spec->name, sizeof spec->name, v->name);
 	  append_var_spec (first, last, spec);
 	}
       for (i = 0; i < name_cnt; i++)

@@ -448,8 +448,8 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
       info->creation_time[8] = 0;
 
       /* Product. */
-      st_trim_copy (info->product, product, sizeof info->product);
-      st_trim_copy (info->subproduct, subproduct, sizeof info->subproduct);
+      str_copy_trunc (info->product, sizeof info->product, product);
+      str_copy_trunc (info->subproduct, sizeof info->subproduct, subproduct);
     }
 }
 
@@ -523,7 +523,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
 
       if (!var_is_valid_name (name, false) || *name == '#' || *name == '$')
         error (r, _("position %d: Invalid variable name `%s'."), name);
-      st_uppercase (name);
+      str_uppercase (name);
 
       if (width < 0 || width > 255)
 	error (r, "Bad width %d for variable %s.", width, name);
@@ -605,7 +605,7 @@ parse_value (struct pfm_reader *r, struct variable *vv)
     {
       char string[256];
       read_string (r, string);
-      st_bare_pad_copy (v.s, string, 8); 
+      buf_copy_str_rpad (v.s, 8, string); 
     }
   else
     v.f = read_float (r);
@@ -699,7 +699,7 @@ pfm_read_case (struct pfm_reader *r, struct ccase *c)
         {
           char string[256];
           read_string (r, string);
-          st_bare_pad_copy (case_data_rw (c, idx)->s, string, width);
+          buf_copy_str_rpad (case_data_rw (c, idx)->s, width, string);
           idx += DIV_RND_UP (width, MAX_SHORT_STRING);
         }
     }

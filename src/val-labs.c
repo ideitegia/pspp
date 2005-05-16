@@ -154,7 +154,7 @@ get_label (struct variable **vars, int var_cnt)
               lex_error (_("expecting string"));
 	      return 0;
 	    }
-	  st_bare_pad_copy (value.s, ds_c_str (&tokstr), MAX_SHORT_STRING);
+	  buf_copy_str_rpad (value.s, MAX_SHORT_STRING, ds_c_str (&tokstr));
 	}
       else
 	{

@@ -35,11 +35,6 @@
 #include "var.h"
 
 #include "debug-print.h"
-
-/* In older versions, numbers got their trailing zeros stripped.
-   Newer versions leave them on when there's room.  Comment this next
-   line out for retro styling. */
-#define NEW_STYLE 1
 
 /* Public functions. */
 
@@ -48,7 +43,9 @@ static numeric_converter convert_F, convert_N, convert_E, convert_F_plus;
 static numeric_converter convert_Z, convert_IB, convert_P, convert_PIB;
 static numeric_converter convert_PIBHEX, convert_PK, convert_RB;
 static numeric_converter convert_RBHEX, convert_CCx, convert_date;
-static numeric_converter convert_time, convert_WKDAY, convert_MONTH, try_F;
+static numeric_converter convert_time, convert_WKDAY, convert_MONTH;
+
+static numeric_converter try_F, convert_infinite;
 
 typedef int string_converter (char *, const struct fmt_spec *, const char *);
 static string_converter convert_A, convert_AHEX;
@@ -196,92 +193,11 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
 void
 num_to_string (double v, char *s, int w, int d)
 {
-  /* Dummy to pass to convert_F. */
   struct fmt_spec f;
-
-#if !NEW_STYLE
-  /* Pointer to `.' in S. */
-  char *decp;
-
-  /* Pointer to `E' in S. */
-  char *expp;
-
-  /* Number of characters to delete. */
-  int n = 0;
-#endif
-
+  f.type = FMT_F;
   f.w = w;
   f.d = d;
-
-  /* Cut out the jokers. */
-  if (!finite (v))
-    {
-      char temp[9];
-      int len;
-
-      if (isnan (v))
-	{
-	  memcpy (temp, "NaN", 3);
-	  len = 3;
-	}
-      else if (isinf (v))
-	{
-	  memcpy (temp, "+Infinity", 9);
-	  if (v < 0)
-	    temp[0] = '-';
-	  len = 9;
-	}
-      else
-	{
-	  memcpy (temp, _("Unknown"), 7);
-	  len = 7;
-	}
-      if (w > len)
-	{
-	  int pad = w - len;
-	  memset (s, ' ', pad);
-	  s += pad;
-	  w -= pad;
-	}
-      memcpy (s, temp, w);
-      return;
-    }
-
-  try_F (s, &f, v);
-
-#if !NEW_STYLE
-  decp = memchr (s, set_decimal, w);
-  if (!decp)
-    return;
-
-  /* If there's an `E' we can only delete 0s before the E. */
-  expp = memchr (s, 'E', w);
-  if (expp)
-    {
-      while (expp[-n - 1] == '0')
-	n++;
-      if (expp[-n - 1] == set_decimal)
-	n++;
-      memmove (&s[n], s, expp - s - n);
-      memset (s, ' ', n);
-      return;
-    }
-
-  /* Otherwise delete all trailing 0s. */
-  n++;
-  while (s[w - n] == '0')
-    n++;
-  if (s[w - n] != set_decimal)
-    {
-      /* Avoid stripping `.0' to `'. */
-      if (w == n || !isdigit ((unsigned char) s[w - n - 1]))
-	n -= 2;
-    }
-  else
-    n--;
-  memmove (&s[n], s, w - n);
-  memset (s, ' ', n);
-#endif
+  convert_F (s, &f, v);
 }
 
 /* Main conversion functions. */
@@ -294,21 +210,6 @@ static int try_CCx (char *s, const struct fmt_spec *fp, double v);
 #if FLT_RADIX!=2
 #error Write your own floating-point output routines.
 #endif
-
-/* PORTME:
-
-   Some of the routines in this file are likely very specific to
-   base-2 representation of floating-point numbers, most notably the
-   routines that use frexp() or ldexp().  These attempt to extract
-   individual digits by setting the base-2 exponent and
-   multiplying/dividing by powers of 2.  In base-2 numeration systems,
-   this just nudges the exponent up or down, but in base-10 floating
-   point, such multiplications/division can cause catastrophic loss of
-   precision.
-
-   The author has never personally used a machine that didn't use
-   binary floating point formats, so he is unwilling, and perhaps
-   unable, to code around this "problem".  */
 
 /* Converts a number between 0 and 15 inclusive to a `hexit'
    [0-9A-F]. */
@@ -369,7 +270,10 @@ convert_E (char *dst, const struct fmt_spec *fp, double number)
   /* Ranged number of decimal places. */
   int d;
 
-  /* Check that the format is width enough.
+  if (!finite (number))
+    return convert_infinite (dst, fp, number);
+
+  /* Check that the format is wide enough.
      Although PSPP generally checks this, convert_E() can be called as
      a fallback from other formats which do not check. */
   if (fp->w < 6)
@@ -561,7 +465,7 @@ convert_IB (char *dst, const struct fmt_spec *fp, double number)
     }
   memcpy (dst, temp, fp->w);
 #ifndef WORDS_BIGENDIAN
-  mm_reverse (dst, fp->w);
+  buf_reverse (dst, fp->w);
 #endif
 
   return 1;
@@ -625,7 +529,7 @@ convert_PIB (char *dst, const struct fmt_spec *fp, double number)
       ((unsigned char *) dst)[i] = floor (frac);
     }
 #ifndef WORDS_BIGENDIAN
-  mm_reverse (dst, fp->w);
+  buf_reverse (dst, fp->w);
 #endif
 
   return 1;
@@ -852,7 +756,7 @@ convert_date (char *dst, const struct fmt_spec *fp, double number)
 
   if (buf[0] == 0)
     return 0;
-  st_bare_pad_copy (dst, buf, fp->w);
+  buf_copy_str_rpad (dst, fp->w, buf);
   return 1;
 }
 
@@ -902,7 +806,7 @@ convert_time (char *dst, const struct fmt_spec *fp, double number)
 
       cp = spprintf (cp, ":%0*.*f", w, d, fmod (time, 60.));
     }
-  st_bare_pad_copy (dst, temp_buf, fp->w);
+  buf_copy_str_rpad (dst, fp->w, temp_buf);
 
   return 1;
 }
@@ -922,7 +826,7 @@ convert_WKDAY (char *dst, const struct fmt_spec *fp, double wkday)
            (double) wkday);
       return 0;
     }
-  st_bare_pad_copy (dst, weekdays[(int) wkday - 1], fp->w);
+  buf_copy_str_rpad (dst, fp->w, weekdays[(int) wkday - 1]);
 
   return 1;
 }
@@ -943,7 +847,7 @@ convert_MONTH (char *dst, const struct fmt_spec *fp, double month)
       return 0;
     }
   
-  st_bare_pad_copy (dst, months[(int) month - 1], fp->w);
+  buf_copy_str_rpad (dst, fp->w, months[(int) month - 1]);
 
   return 1;
 }
@@ -1121,201 +1025,225 @@ try_CCx (char *dst, const struct fmt_spec *fp, double number)
   return 1;
 }
 
-/* This routine relies on the underlying implementation of sprintf:
+static int
+format_and_round (char *dst, double number, const struct fmt_spec *fp,
+                  int decimals);
 
-   If the number has a magnitude 1e40 or greater, then we needn't
-   bother with it, since it's guaranteed to need processing in
-   scientific notation.
-
-   Otherwise, do a binary search for the base-10 magnitude of the
-   thing.  log10() is not accurate enough, and the alternatives are
-   frightful.  Besides, we never need as many as 6 (pairs of)
-   comparisons.  The algorithm used for searching is Knuth's Algorithm
-   6.2.1C (Uniform binary search).
-
-   DON'T CHANGE ANYTHING HERE UNLESS YOU'VE THOUGHT ABOUT IT FOR A
-   LONG TIME!  The rest of the program is heavily dependent on
-   specific properties of this routine's output.  LOG ALL CHANGES! */
+/* Tries to format NUMBER into DST as the F format specified in
+   *FP.  Return true if successful, false on failure. */
 static int
 try_F (char *dst, const struct fmt_spec *fp, double number)
 {
-  /* This is the DELTA array from Knuth.
-     DELTA[j] = floor((40+2**(j-1))/(2**j)). */
-  static const int delta[8] =
-  {
-    0, (40 + 1) / 2, (40 + 2) / 4, (40 + 4) / 8, (40 + 8) / 16,
-    (40 + 16) / 32, (40 + 32) / 64, (40 + 64) / 128,
-  };
-
-  /* The number of digits in floor(number), including sign.  This
-     is `i' from Knuth. */
-  int n_int = (40 + 1) / 2;
-
-  /* Used to step through delta[].  This is `j' from Knuth. */
-  int j = 2;
-
-  /* Magnitude of number.  This is `K' from Knuth. */
-  double mag;
-
-  /* Number of characters for the fractional part, including the
-     decimal point. */
-  int n_dec;
-
-  /* Pointer into buf used for formatting. */
-  char *cp;
-
-  /* Used to count characters formatted by nsprintf(). */
-  int n;
-
-  /* Temporary buffer. */
-  char buf[128];
-
-  /* First check for infinities and NaNs.  12/13/96. */
-  if (!finite (number))
+  assert (fp->w <= 40);
+  if (finite (number)) 
     {
-      n = nsprintf (buf, "%f", number);
-      if (n > fp->w)
-	memset (buf, '*', fp->w);
-      else if (n < fp->w)
-	{
-	  memmove (&buf[fp->w - n], buf, n);
-	  memset (buf, ' ', fp->w - n);
-	}
+      if (fabs (number) < power10[fp->w])
+        {
+          /* The value may fit in the field. */
+          if (fp->d == 0) 
+            {
+              /* There are no decimal places, so there's no way
+                 that the value can be shortened.  Either it fits
+                 or it doesn't. */
+              char buf[40];
+              sprintf (buf, "%*.0f", fp->w, number);
+              if (strlen (buf) <= fp->w) 
+                {
+                  buf_copy_str_lpad (dst, fp->w, buf);
+                  return true; 
+                }
+              else 
+                return false;
+            }
+          else 
+            {
+              /* First try to format it with 2 extra decimal
+                 places.  This gives us a good chance of not
+                 needing even more decimal places, but it also
+                 avoids wasting too much time formatting more
+                 decimal places on the first try. */
+              int result = format_and_round (dst, number, fp, fp->d + 2);
+              if (result >= 0)
+                return result;
+
+              /* 2 extra decimal places weren't enough to
+                 correctly round.  Try again with the maximum
+                 number of places. */
+              return format_and_round (dst, number, fp, LDBL_DIG + 1);
+            }
+        }
+      else 
+        {
+          /* The value is too big to fit in the field. */
+          return false;
+        }
+    }
+  else
+    return convert_infinite (dst, fp, number);
+}
+
+/* Tries to compose NUMBER into DST in format FP by first
+   formatting it with DECIMALS decimal places, then rounding off
+   to as many decimal places will fit or the number specified in
+   FP, whichever is fewer.
+
+   Returns 1 if conversion succeeds, 0 if this try at conversion
+   failed and so will any other tries (because the integer part
+   of the number is too long), or -1 if this try failed but
+   another with higher DECIMALS might succeed (because we'd be
+   able to properly round). */
+static int
+format_and_round (char *dst, double number, const struct fmt_spec *fp,
+                  int decimals)
+{
+  /* Number of characters before the decimal point,
+     which includes digits and possibly a minus sign. */
+  int predot_chars;
+
+  /* Number of digits in the output fraction,
+     which may be smaller than fp->d if there's not enough room. */
+  int fraction_digits;
+
+  /* Points to last digit that will remain in the fraction after
+     rounding. */
+  char *final_frac_dig;
+
+  /* Round up? */
+  bool round_up;
+  
+  char buf[128];
+  
+  assert (decimals > fp->d);
+  if (decimals > LDBL_DIG)
+    decimals = LDBL_DIG + 1;
+
+  sprintf (buf, "%.*f", decimals, number);
+
+  if (!memcmp (buf, "0.", 2))
+    memmove (buf, buf + 1, strlen (buf));
+  else if (!memcmp (buf, "-0.", 3))
+    memmove (buf + 1, buf + 2, strlen (buf + 1));
+
+  predot_chars = strcspn (buf, ".");
+  if (predot_chars > fp->w) 
+    {
+      /* Can't possibly fit. */
+      return 0; 
+    }
+  else if (predot_chars == fp->w)
+    {
+      /* Exact fit for integer part and sign. */
       memcpy (dst, buf, fp->w);
       return 1;
     }
-
-  /* Then check for radically out-of-range values. */
-  mag = fabs (number);
-  if (mag >= power10[fp->w])
-    return 0;
-
-  if (mag < 1.0)
+  else if (predot_chars + 1 == fp->w) 
     {
-      n_int = 0;
+      /* There's room for the decimal point, but not for any
+         digits of the fraction.
+         Right-justify the integer part and sign. */
+      dst[0] = ' ';
+      memcpy (dst + 1, buf, fp->w);
+      return 1;
+    }
 
-      /* Avoid printing `-.000'. 7/6/96. */
-      if (mag < EPSILON)
-	number = 0.0;
+  /* It looks like we have room for at least one digit of the
+     fraction.  Figure out how many. */
+  fraction_digits = fp->w - predot_chars - 1;
+  if (fraction_digits > fp->d)
+    fraction_digits = fp->d;
+  final_frac_dig = buf + predot_chars + fraction_digits;
+
+  /* Decide rounding direction and truncate string. */
+  if (final_frac_dig[1] == '5'
+      && strspn (final_frac_dig + 2, "0") == strlen (final_frac_dig + 2)) 
+    {
+      /* Exactly 1/2. */
+      if (decimals <= LDBL_DIG)
+        {
+          /* Don't have enough fractional digits to know which way to
+             round.  We can format with more decimal places, so go
+             around again. */
+          return -1;
+        }
+      else 
+        {
+          /* We used up all our fractional digits and still don't
+             know.  Round to even. */
+          round_up = (final_frac_dig[0] - '0') % 2 != 0;
+        }
     }
   else
-    /* Now perform a `uniform binary search' based on the tables
-       power10[] and delta[].  After this step, nint is the number of
-       digits in floor(number), including any sign.  */
-    for (;;)
-      {
-	if (mag >= power10[n_int])
-	  {
-	    assert (delta[j]);
-	    n_int += delta[j++];
-	  }
-	else if (mag < power10[n_int - 1])
-	  {
-	    assert (delta[j]);
-	    n_int -= delta[j++];
-	  }
-	else
-	  break;
-      }
+    round_up = final_frac_dig[1] >= '5';
+  final_frac_dig[1] = '\0';
 
-  /* If we have any decimal places, then there is a decimal point,
-     too. */
-  n_dec = fp->d;
-  if (n_dec)
-    n_dec++;
-
-  /* 1/10/96: If there aren't any digits at all, add one.  This occurs
-     only when fabs(number) < 1.0. */
-  if (n_int + n_dec == 0)
-    n_int++;
-
-  /* Give space for a minus sign.  Moved 1/10/96. */
-  if (number < 0)
-    n_int++;
-
-  /* Normally we only go through the loop once; occasionally twice.
-     Three times or more indicates a very serious bug somewhere. */
-  for (;;)
+  /* Do rounding. */
+  if (round_up) 
     {
-      /* Check out the total length of the string. */
-      cp = buf;
-      if (n_int + n_dec > fp->w)
-	{
-	  /* The string is too long.  Let's see what can be done. */
-	  if (n_int <= fp->w)
-	    /* If we can, just reduce the number of decimal places. */
-	    n_dec = fp->w - n_int;
-	  else
-	    return 0;
-	}
-      else if (n_int + n_dec < fp->w)
-	{
-	  /* The string is too short.  Left-pad with spaces. */
-	  int n_spaces = fp->w - n_int - n_dec;
-	  memset (cp, ' ', n_spaces);
-	  cp += n_spaces;
-	}
+      char *cp = final_frac_dig;
+      for (;;) 
+        {
+          if (*cp >= '0' && *cp <= '8')
+            {
+              (*cp)++;
+              break; 
+            }
+          else if (*cp == '9') 
+            *cp = '0';
+          else
+            assert (*cp == '.');
 
-      /* Finally, format the number. */
-      if (n_dec)
-	n = nsprintf (cp, "%.*f", n_dec - 1, number);
-      else
-	n = nsprintf (cp, "%.0f", number);
+          if (cp == buf || *--cp == '-')
+            {
+              size_t length;
+              
+              /* Tried to go past the leftmost digit.  Insert a 1. */
+              memmove (cp + 1, cp, strlen (cp) + 1);
+              *cp = '1';
 
-      /* If number is positive and its magnitude is less than
-         1...  */
-      if (n_int == 0)
-	{
-	  if (*cp == '0')
-	    {
-	      /* The value rounds to `.###'. */
-	      memmove (cp, &cp[1], n - 1);
-	      n--;
-	    }
-	  else
-	    {
-	      /* The value rounds to `1.###'. */
-	      n_int = 1;
-	      continue;
-	    }
-	}
-      /* Else if number is negative and its magnitude is less
-         than 1...  */
-      else if (number < 0 && n_int == 1)
-	{
-	  if (cp[1] == '0')
-	    {
-	      /* The value rounds to `-.###'. */
-	      memmove (&cp[1], &cp[2], n - 2);
-	      n--;
-	    }
-	  else
-	    {
-	      /* The value rounds to `-1.###'. */
-	      n_int = 2;
-	      continue;
-	    }
-	}
+              length = strlen (buf);
+              if (length > fp->w) 
+                {
+                  /* Inserting the `1' overflowed our space.
+                     Drop a decimal place. */
+                  buf[--length] = '\0';
 
-      /* Check for a correct number of digits & decimal places & stuff.
-         This is just a desperation check.  Hopefully it won't fail too
-         often, because then we have to run through the whole loop again:
-         sprintf() is not a fast operation with floating-points! */
-      if (n == n_int + n_dec)
-	{
-	  /* Convert periods `.' to commas `,' for our foreign friends. */
-	  if ((get_decimal() == ',' && fp->type != FMT_DOT)
-	      || (get_decimal() == '.' && fp->type == FMT_DOT))
-	    {
-	      cp = strchr (cp, '.');
-	      if (cp)
-		*cp = ',';
-	    }
-
-	  memcpy (dst, buf, fp->w);
-	  return 1;
-	}
-
-      n_int = n - n_dec; /* FIXME?  Need an idiot check on resulting n_int? */
+                  /* If that was the last decimal place, drop the
+                     decimal point too. */
+                  if (buf[length - 1] == '.')
+                    buf[length - 1] = '\0';
+                }
+              
+              break;
+            }
+        }
     }
+
+  buf_copy_str_lpad (dst, fp->w, buf);
+  return 1;
+}
+
+/* Formats non-finite NUMBER into DST according to the width
+   given in FP. */
+static int
+convert_infinite (char *dst, const struct fmt_spec *fp, double number)
+{
+  assert (!finite (number));
+  
+  if (fp->w >= 3)
+    {
+      const char *s;
+
+      if (isnan (number))
+        s = "NaN";
+      else if (isinf (number))
+        s = number > 0 ? "+Infinity" : "-Infinity";
+      else
+        s = "Unknown";
+
+      buf_copy_str_lpad (dst, fp->w, s);
+    }
+  else 
+    memset (dst, '*', fp->w);
+
+  return true;
 }
