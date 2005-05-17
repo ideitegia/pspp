@@ -204,9 +204,9 @@ cmd_list (void)
       strcpy (casenum_var.name, "Case#");
       casenum_var.type = NUMERIC;
       casenum_var.fv = -1;
-      casenum_var.print.type = FMT_F;
-      casenum_var.print.w = (cmd.last == LONG_MAX ? 5 : intlog10 (cmd.last));
-      casenum_var.print.d = 0;
+      casenum_var.print = make_output_format (FMT_F,
+                                              (cmd.last == LONG_MAX
+                                               ? 5 : intlog10 (cmd.last)), 0);
 
       /* Add the weight variable at the beginning of the variable list. */
       cmd.n_variables++;

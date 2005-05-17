@@ -193,10 +193,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
 void
 num_to_string (double v, char *s, int w, int d)
 {
-  struct fmt_spec f;
-  f.type = FMT_F;
-  f.w = w;
-  f.d = d;
+  struct fmt_spec f = make_output_format (FMT_F, w, d);
   convert_F (s, &f, v);
 }
 

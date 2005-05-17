@@ -974,27 +974,32 @@ error:
 /* Translates the format spec from sysfile format to internal
    format. */
 static int
-parse_format_spec (struct sfm_reader *r, int32 s, struct fmt_spec *v, struct variable *vv)
+parse_format_spec (struct sfm_reader *r, int32 s,
+                   struct fmt_spec *f, struct variable *v)
 {
-  v->type = translate_fmt ((s >> 16) & 0xff);
-  if (v->type == -1)
+  f->type = translate_fmt ((s >> 16) & 0xff);
+  if (f->type == -1)
     lose ((ME, _("%s: Bad format specifier byte (%d)."),
 	   handle_get_filename (r->fh), (s >> 16) & 0xff));
-  v->w = (s >> 8) & 0xff;
-  v->d = s & 0xff;
+  f->w = (s >> 8) & 0xff;
+  f->d = s & 0xff;
 
-  /* FIXME?  Should verify the resulting specifier more thoroughly. */
-
-  if (v->type == -1)
-    lose ((ME, _("%s: Bad format specifier byte (%d)."),
-	   handle_get_filename (r->fh), (s >> 16) & 0xff));
-  if ((vv->type == ALPHA) ^ ((formats[v->type].cat & FCAT_STRING) != 0))
+  if ((v->type == ALPHA) ^ ((formats[f->type].cat & FCAT_STRING) != 0))
     lose ((ME, _("%s: %s variable %s has %s format specifier %s."),
 	   handle_get_filename (r->fh),
-           vv->type == ALPHA ? _("String") : _("Numeric"),
-	   vv->name,
-	   formats[v->type].cat & FCAT_STRING ? _("string") : _("numeric"),
-	   formats[v->type].name));
+           v->type == ALPHA ? _("String") : _("Numeric"),
+	   v->name,
+	   formats[f->type].cat & FCAT_STRING ? _("string") : _("numeric"),
+	   formats[f->type].name));
+
+  if (!check_output_specifier (f, false)
+      || !check_specifier_width (f, v->width, false)) 
+    {
+      msg (ME, _("%s variable %s has invalid format specifier %s."),
+           v->type == NUMERIC ? _("Numeric") : _("String"),
+           v->name, fmt_to_string (f));
+      *f = v->type == NUMERIC ? f8_2 : make_output_format (FMT_A, v->width, 0);
+    }
   return 1;
 
 error:

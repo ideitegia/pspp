@@ -37,6 +37,9 @@ struct fmt_desc formats[FMT_NUMBER_OF_FORMATS + 1] =
   {"",         -1, -1,  -1, -1,   -1, 0000, -1, -1},
 };
 
+/* Common formats. */
+const struct fmt_spec f8_2 = {FMT_F, 8, 2};
+
 /* Parses the alphabetic prefix of the current token as a format
    specifier name.  Returns the corresponding format specifier
    type if successful, or -1 on failure.  If ALLOW_XT is zero,
@@ -441,4 +444,30 @@ translate_fmt (int spss)
     if (formats[type].spss == spss)
       return type;
   return -1;
+}
+
+/* Returns an input format specification with type TYPE, width W,
+   and D decimals. */
+struct fmt_spec
+make_input_format (int type, int w, int d) 
+{
+  struct fmt_spec f;
+  f.type = type;
+  f.w = w;
+  f.d = d;
+  assert (check_input_specifier (&f, 0));
+  return f;
+}
+
+/* Returns an output format specification with type TYPE, width
+   W, and D decimals. */
+struct fmt_spec
+make_output_format (int type, int w, int d)
+{
+  struct fmt_spec f;
+  f.type = type;
+  f.w = w;
+  f.d = d;
+  assert (check_output_specifier (&f, 0));
+  return f;
 }

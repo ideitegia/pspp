@@ -1,6 +1,36 @@
-Sun May 15 23:38:10 2005  Ben Pfaff  <blp@gnu.org>
+Mon May 16 22:34:06 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix rest of PR 13054.
+
+	* format.def: Fix EDATE, SDATE, ADATE, JDATE, QYR, MOYR, WKYR,
+	DATETIME, TIME system/portable file values.
+
+Mon May 16 22:31:15 2005  Ben Pfaff  <blp@gnu.org>
+
+	* data-list.c: (parse_free) Use make_input_format().
+	
+	* data-out.c: (num_to_string) Use make_output_format().
+
+	* dictionary.c: (dict_create_var) Ditto.
+
+	* format.c: (global var f8_2) New var.
+	(make_input_format) New function.
+	(make_output_format) New function.
+
+	* get.c: (cmd_match_files) Use make_output_format().
+
+	* list.q: (cmd_list) Ditto.
+
+	* matrix-data.c: Ditto.
+
+	* sfm-read.c: (parse_format_spec) Check output specifier
+	thoroughly.
+
+	* tab.c: (tab_float) Use make_output_format().
+
+Sun May 15 23:38:10 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix more of PR 13054.
 	
 	* format.def: FMT_A should allow 255-character output.  FMT_AHEX
 	should allow 510-character input and output.

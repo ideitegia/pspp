@@ -279,20 +279,14 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->miss_type = MISSING_NONE;
   if (v->type == NUMERIC)
     {
-      v->print.type = FMT_F;
-      v->print.w = 8;
-      v->print.d = 2;
-
+      v->print = f8_2;
       v->alignment = ALIGN_RIGHT;
       v->display_width = 8;
       v->measure = MEASURE_SCALE;
     }
   else
     {
-      v->print.type = FMT_A;
-      v->print.w = v->width;
-      v->print.d = 0;
-
+      v->print = make_output_format (FMT_A, v->width, 0);
       v->alignment = ALIGN_LEFT;
       v->display_width = 8;
       v->measure = MEASURE_NOMINAL;

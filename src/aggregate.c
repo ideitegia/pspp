@@ -522,7 +522,6 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  /* Create the target variable in the aggregate
              dictionary. */
 	  {
-            static const struct fmt_spec f8_2 = {FMT_F, 8, 2};
 	    struct variable *destvar;
 	    
 	    v->function = func_index;

@@ -977,8 +977,6 @@ cmd_match_files (void)
   for (iter = mtf.head; iter != NULL; iter = iter->next) 
     if (iter->in_name != NULL)
       {
-        static const struct fmt_spec f1_0 = {FMT_F, 1, 0};
-        
         iter->in_var = dict_create_var (mtf.dict, iter->in_name, 0);
         if (iter->in_var == NULL)
           {
@@ -987,7 +985,8 @@ cmd_match_files (void)
                  iter->in_var);
             goto error;
           }
-        iter->in_var->print = iter->in_var->write = f1_0;
+        iter->in_var->print = iter->in_var->write
+          = make_output_format (FMT_F, 1, 0);
       }
     
   /* MATCH FILES performs an n-way merge on all its input files.

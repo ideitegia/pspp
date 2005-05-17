@@ -104,6 +104,9 @@ enum fmt_parse_flags
     FMTP_SUPPRESS_ERRORS = 002          /* 1=Do not emit error messages. */
   };
 
+/* Common formats. */
+extern const struct fmt_spec f8_2;      /* F8.2. */
+
 int parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags);
 int parse_format_specifier_name (const char **cp, enum fmt_parse_flags);
 int check_input_specifier (const struct fmt_spec *spec, int emit_error);
@@ -119,5 +122,7 @@ int translate_fmt (int spss);
 void data_out (char *s, const struct fmt_spec *fp, const union value *v);
 char *fmt_to_string (const struct fmt_spec *);
 void num_to_string (double v, char *s, int w, int d);
+struct fmt_spec make_input_format (int type, int w, int d);
+struct fmt_spec make_output_format (int type, int w, int d);
 
 #endif /* !format_h */

@@ -848,10 +848,8 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
       else
 	{
 	  lex_match ('*');
-	  input.type = FMT_F;
-	  input.w = 8;
-	  input.d = 0;
-	  output = get_format();
+          input = make_input_format (FMT_F, 8, 0);
+	  output = get_format ();
 	}
 
       if (input.type == FMT_A || input.type == FMT_AHEX)

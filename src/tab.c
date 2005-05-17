@@ -607,9 +607,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
   assert (r >= 0);
   assert (r < table->nr);
 
-  f.type = FMT_F;
-  f.w = w;
-  f.d = d;
+  f = make_output_format (FMT_F, w, d);
   
 #if GLOBAL_DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0

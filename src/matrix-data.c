@@ -884,9 +884,7 @@ static int
 	  di.e = token->string + token->length;
 	  di.v = (union value *) &token->number;
 	  di.f1 = first_column;
-	  di.format.type = FMT_F;
-	  di.format.w = token->length;
-	  di.format.d = 0;
+	  di.format = make_output_format (FMT_F, token->length, 0);
 
 	  if (!data_in (&di))
 	    return 0;
