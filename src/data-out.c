@@ -1042,7 +1042,7 @@ try_F (char *dst, const struct fmt_spec *fp, double number)
               /* There are no decimal places, so there's no way
                  that the value can be shortened.  Either it fits
                  or it doesn't. */
-              char buf[40];
+              char buf[41];
               sprintf (buf, "%*.0f", fp->w, number);
               if (strlen (buf) <= fp->w) 
                 {
