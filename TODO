@@ -1,22 +1,13 @@
-Time-stamp: <2005-05-02 23:31:38 blp>
+Time-stamp: <2005-05-16 22:22:15 blp>
 
-What Ben's working on now.
---------------------------
-
-Workspace exhaustion heuristics.
-
-Update q2c input format description.
-
-Rewrite output subsystem, break into multiple processes.
+Format specifier and missing values code needs to be rewritten for lowered
+crappiness.
 
 CROSSTABS needs to be re-examined.
 
 RANK, which is needed for the Wilcoxon signed-rank statistic, Mann-Whitney U,
 Kruskal-Wallis on NPAR TESTS and for Spearman and the Johnkheere trend test (in
 other procedures).
-
-TODO
-----
 
 lex_token_representation() should take a buffer to fill.
 
