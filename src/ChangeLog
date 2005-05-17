@@ -1,3 +1,19 @@
+Tue May 17 00:06:43 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix PR 11119.
+
+	* som.c: (output_encodings) If some cell in the table won't fit
+	with the horizontal or vertical headers, cancel those headers.
+
+	* som.h: (struct som_table_class) Add fits_width, fits_length,
+	set_headers members.
+
+	* tab.c: (tabi_fits_width) New function.
+	(tabi_fits_length) New function.
+	(tabi_set_headers) New function.
+	(global var tab_table_class) Add the new functions as appropriate
+	members.
+	
 Mon May 16 22:34:06 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix rest of PR 13054.

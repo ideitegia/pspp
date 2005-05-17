@@ -36,6 +36,8 @@
    desired, and in fact almost every operation performed by som may be
    overridden in a table class.  */
 
+#include "bool.h"
+
 enum som_type
   {
     SOM_TABLE,
@@ -91,10 +93,13 @@ struct som_table_class
     void (*join) (int *(column[2]), int *(row[2]));	/* ? */
     void (*cumulate) (int cumtype, int start, int *end, int max, int *actual);
     void (*flags) (unsigned *);
+    bool (*fits_width) (int width);
+    bool (*fits_length) (int length);
 
     /* Set columns and rows. */
     void (*set_width) (int column, int width);		/* ? */
     void (*set_height) (int row, int height);		/* ? */
+    void (*set_headers) (int l, int r, int t, int b);
 
     /* Rendering. */
     void (*title) (int x, int y);

@@ -1135,6 +1135,45 @@ tabi_flags (unsigned *flags)
   *flags = t->flags;
 }
 
+/* Returns true if the table will fit in the given page WIDTH,
+   false otherwise. */
+static bool
+tabi_fits_width (int width) 
+{
+  int i;
+
+  for (i = t->l; i < t->nc - t->r; i++)
+    if (t->wl + t->wr + t->w[i] > width)
+      return false;
+
+  return true;
+}
+
+/* Returns true if the table will fit in the given page LENGTH,
+   false otherwise. */
+static bool
+tabi_fits_length (int length) 
+{
+  int i;
+
+  for (i = t->t; i < t->nr - t->b; i++)
+    if (t->ht + t->hb + t->h[i] > length)
+      return false;
+
+  return true;
+}
+
+/* Sets the number of header rows/columns on the left, right, top,
+   and bottom sides to HL, HR, HT, and HB, respectively. */
+static void
+tabi_set_headers (int hl, int hr, int ht, int hb)
+{
+  t->l = hl;
+  t->r = hr;
+  t->t = ht;
+  t->b = hb;
+}
+
 /* Render title for current table, with major index X and minor index
    Y.  Y may be zero, or X and Y may be zero, but X should be nonzero
    if Y is nonzero. */
@@ -1235,9 +1274,12 @@ struct som_table_class tab_table_class =
     NULL,
     tabi_cumulate,
     tabi_flags,
+    tabi_fits_width,
+    tabi_fits_length,
     
     NULL,
     NULL,
+    tabi_set_headers,
 
     tabi_title,
     tabi_render,

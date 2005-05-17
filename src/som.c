@@ -144,6 +144,7 @@ som_submit (struct som_entity *t)
 static void
 output_entity (struct outp_driver *driver, struct som_entity *entity)
 {
+  bool fits_width, fits_length;
   d = driver;
 
   assert (d->driver_open);
@@ -163,6 +164,19 @@ output_entity (struct outp_driver *driver, struct som_entity *entity)
   
   t->class->driver (d);
   t->class->area (&tw, &th);
+  fits_width = t->class->fits_width (d->width);
+  fits_length = t->class->fits_length (d->length);
+  if (!fits_width || !fits_length) 
+    {
+      int tl, tr, tt, tb;
+      tl = fits_width ? hl : 0;
+      tr = fits_width ? hr : 0;
+      tt = fits_length ? ht : 0;
+      tb = fits_length ? hb : 0;
+      t->class->set_headers (tl, tr, tt, tb);
+      t->class->driver (d);
+      t->class->area (&tw, &th);
+    }
   
   if (!(flags & SOMF_NO_SPACING) && d->cp_y != 0)
     d->cp_y += d->font_height;
@@ -175,6 +189,8 @@ output_entity (struct outp_driver *driver, struct som_entity *entity)
     render_simple ();
   else 
     render_segments ();
+
+  t->class->set_headers (hl, hr, ht, hb);
 }
 
 /* Render the table into multiple columns. */
