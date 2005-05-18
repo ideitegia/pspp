@@ -1,3 +1,8 @@
+Tue May 17 18:29:35 2005  Ben Pfaff  <blp@gnu.org>
+
+	* data-out.c: (format_and_round) Don't output leading `-' if value
+	rounds to zero.
+
 Tue May 17 00:06:43 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix PR 11119.

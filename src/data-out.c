@@ -1116,6 +1116,7 @@ format_and_round (char *dst, double number, const struct fmt_spec *fp,
 
   sprintf (buf, "%.*f", decimals, number);
 
+  /* Omit integer part if it's 0. */
   if (!memcmp (buf, "0.", 2))
     memmove (buf, buf + 1, strlen (buf));
   else if (!memcmp (buf, "-0.", 3))
@@ -1214,6 +1215,10 @@ format_and_round (char *dst, double number, const struct fmt_spec *fp,
             }
         }
     }
+
+  /* Omit `-' if value output is zero. */
+  if (buf[0] == '-' && buf[strspn (buf, "-.0")] == '\0')
+    memmove (buf, buf + 1, strlen (buf));
 
   buf_copy_str_lpad (dst, fp->w, buf);
   return 1;
