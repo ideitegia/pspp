@@ -1238,7 +1238,6 @@ data_list_trns_free (struct trns_header *pgm)
   free (dls->delims);
   destroy_dls_var_spec (dls->first);
   dfm_close_reader (dls->reader);
-  free (pgm);
 }
 
 /* Handle DATA LIST transformation T, parsing data into C. */
@@ -1313,6 +1312,7 @@ static void
 data_list_source_destroy (struct case_source *source)
 {
   data_list_trns_free (source->aux);
+  free (source->aux);
 }
 
 const struct case_source_class data_list_source_class = 

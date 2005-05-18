@@ -1,3 +1,10 @@
+Tue May 17 21:00:57 2005  Ben Pfaff  <blp@gnu.org>
+
+	* data-list.c: (data_list_trns_free) Don't free the argument
+	because cancel_transformations() will do that itself.
+	(data_list_source_destroy) Destroy the argument to
+	data_list_trns_free(), because it no longer does so itself.
+
 Tue May 17 18:29:35 2005  Ben Pfaff  <blp@gnu.org>
 
 	* data-out.c: (format_and_round) Don't output leading `-' if value
