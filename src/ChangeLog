@@ -1,3 +1,9 @@
+Sat May 21 12:48:34 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* sfm-read.c, sfmP.h:  Allow reading of system files when the 
+	case_size value in the header is -1.  Also changed some Errors to 
+	Warnings when reading system files.
+
 Tue May 17 21:00:57 2005  Ben Pfaff  <blp@gnu.org>
 
 	* data-list.c: (data_list_trns_free) Don't free the argument

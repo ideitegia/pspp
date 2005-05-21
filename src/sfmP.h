@@ -67,7 +67,8 @@ struct sysfile_header
     char rec_type[4] P;		/* 00: Record-type code, "$FL2". */
     char prod_name[60] P;	/* 04: Product identification. */
     int32 layout_code P;	/* 40: 2. */
-    int32 case_size P;		/* 44: Number of `value's per case. */
+    int32 case_size P;		/* 44: Number of `value's per case. 
+				   Note: some systems set this to -1 */
     int32 compress P;		/* 48: 1=compressed, 0=not compressed. */
     int32 weight_idx P;         /* 4c: 1-based index of weighting var, or 0. */
     int32 case_cnt P;		/* 50: Number of cases, -1 if unknown. */

@@ -94,6 +94,9 @@ file's endianness.
 Number of data elements per case.  This is the number of variables,
 except that long string variables add extra data elements (one for every
 8 characters after the first 8).
+When reading system files, PSPP will use this value unless it is set
+to -1, in which case it will determine the number of data elements by
+context.  When writing system files PSPP always uses this value.
 
 @item int32 compressed;
 Set to 1 if the data in the file is compressed, 0 otherwise.

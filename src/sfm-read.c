@@ -157,6 +157,8 @@ sfm_close_reader (struct sfm_reader *r)
 
 /* Dictionary reader. */
 
+static void buf_unread(struct sfm_reader *r, size_t byte_cnt);
+
 static void *buf_read (struct sfm_reader *, void *buf, size_t byte_cnt,
                        size_t min_alloc);
 
@@ -245,7 +247,15 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   /* Handle weighting. */
   if (r->weight_idx != -1)
     {
-      struct variable *weight_var = var_by_idx[r->weight_idx];
+      struct variable *weight_var;
+
+      if (r->weight_idx < 0 || r->weight_idx >= r->value_cnt)
+	lose ((ME, _("%s: Index of weighting variable (%d) is not between 0 "
+		     "and number of elements per case (%d)."),
+	       handle_get_filename (r->fh), r->weight_idx, r->value_cnt));
+
+
+      weight_var = var_by_idx[r->weight_idx];
 
       if (weight_var == NULL)
 	lose ((ME,
@@ -459,8 +469,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	  }
 
 	default:
-	  lose ((ME, _("%s: Unrecognized record type %d."),
-                 handle_get_filename (r->fh), rec_type));
+	  corrupt_msg(MW, _("%s: Unrecognized record type %d."),
+                 handle_get_filename (r->fh), rec_type);
 	}
     }
 
@@ -643,22 +653,18 @@ read_header (struct sfm_reader *r,
       bswap_flt64 (&hdr.bias);
     }
 
+
   /* Copy basic info and verify correctness. */
   r->value_cnt = hdr.case_size;
-  if (r->value_cnt <= 0
-      || r->value_cnt > (INT_MAX / (int) sizeof (union value) / 2))
-    lose ((ME, _("%s: Number of elements per case (%d) is not between 1 "
-                 "and %d."),
-           handle_get_filename (r->fh), r->value_cnt,
-           INT_MAX / sizeof (union value) / 2));
+
+  /* If value count is rediculous, then force it to -1 (a sentinel value) */
+  if ( r->value_cnt < 0 || 
+       r->value_cnt > (INT_MAX / (int) sizeof (union value) / 2))
+    r->value_cnt = -1;
 
   r->compressed = hdr.compress;
 
   r->weight_idx = hdr.weight_idx - 1;
-  if (hdr.weight_idx < 0 || hdr.weight_idx > r->value_cnt)
-    lose ((ME, _("%s: Index of weighting variable (%d) is not between 0 "
-                 "and number of elements per case (%d)."),
-	   handle_get_filename (r->fh), hdr.weight_idx, r->value_cnt));
 
   r->case_cnt = hdr.case_cnt;
   if (r->case_cnt < -1 || r->case_cnt > INT_MAX / 2)
@@ -738,17 +744,24 @@ read_variables (struct sfm_reader *r,
 
   assert(r);
 
-  /* Allocate variables. */
-  *var_by_idx = xmalloc (sizeof **var_by_idx * r->value_cnt);
+  *var_by_idx = 0;
+
+  /* Pre-allocate variables. */
+  if ( r->value_cnt != -1 ) 
+    *var_by_idx = xmalloc(r->value_cnt * sizeof (**var_by_idx));
+
 
   /* Read in the entry for each variable and use the info to
      initialize the dictionary. */
-  for (i = 0; i < r->value_cnt; i++)
+  for (i = 0; ; ++i)
     {
       struct variable *vv;
       char name[9];
       int nv;
       int j;
+
+      if ( r->value_cnt != -1  && i >= r->value_cnt ) 
+	break;
 
       assertive_buf_read (r, &sv, sizeof sv, 0);
 
@@ -762,10 +775,15 @@ read_variables (struct sfm_reader *r,
 	  bswap_int32 (&sv.write);
 	}
 
+      /* We've come to the end of the variable entries */
       if (sv.rec_type != 2)
-	lose ((ME, _("%s: position %d: Bad record type (%d); "
-                     "the expected value was 2."),
-               handle_get_filename (r->fh), i, sv.rec_type));
+	{
+	  buf_unread(r, sizeof sv);
+	  break;
+	}
+
+      if ( -1 == r->value_cnt ) 
+	*var_by_idx = xrealloc (*var_by_idx, sizeof **var_by_idx * (i+1) );
 
       /* If there was a long string previously, make sure that the
 	 continuations are present; otherwise make sure there aren't
@@ -960,10 +978,11 @@ read_variables (struct sfm_reader *r,
     lose ((ME, _("%s: Long string continuation records omitted at end of "
                  "dictionary."),
            handle_get_filename (r->fh)));
+
   if (next_value != r->value_cnt)
-    lose ((ME, _("%s: System file header indicates %d variable positions but "
+    corrupt_msg(MW, _("%s: System file header indicates %d variable positions but "
                  "%d were read from file."),
-           handle_get_filename (r->fh), r->value_cnt, next_value));
+           handle_get_filename (r->fh), r->value_cnt, next_value);
 
   return 1;
 
@@ -1218,6 +1237,19 @@ buf_read (struct sfm_reader *r, void *buf, size_t byte_cnt, size_t min_alloc)
       return NULL;
     }
   return buf;
+}
+
+/* Winds the reader BYTE_CNT bytes back in the reader stream.   */
+void
+buf_unread(struct sfm_reader *r, size_t byte_cnt)
+{
+  assert(byte_cnt > 0);
+
+  if ( 0 != fseek(r->file, -byte_cnt, SEEK_CUR))
+    {
+      msg (ME, _("%s: Seeking system file: %s."),
+	   handle_get_filename (r->fh), strerror (errno));
+    }
 }
 
 /* Reads a document record, type 6, from system file R, and sets up
