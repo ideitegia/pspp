@@ -59,7 +59,6 @@ struct sfm_reader
 
     /* Variables. */
     struct sfm_var *vars;       /* Variables. */
-    size_t var_cnt;             /* Number of variables. */
 
     /* File's special constants. */
     flt64 sysmis;
@@ -221,7 +220,6 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->weight_idx = -1;
 
   r->vars = NULL;
-  r->var_cnt = 0;
 
   r->sysmis = -FLT64_MAX;
   r->highest = FLT64_MAX;
@@ -243,6 +241,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   /* Read header and variables. */
   if (!read_header (r, *dict, info) || !read_variables (r, *dict, &var_by_idx))
     goto error;
+
 
   /* Handle weighting. */
   if (r->weight_idx != -1)
@@ -740,7 +739,6 @@ read_variables (struct sfm_reader *r,
   int long_string_count = 0;	/* # of long string continuation
 				   records still expected. */
   int next_value = 0;		/* Index to next `value' structure. */
-  size_t var_cap = 0;
 
   assert(r);
 
@@ -748,7 +746,10 @@ read_variables (struct sfm_reader *r,
 
   /* Pre-allocate variables. */
   if ( r->value_cnt != -1 ) 
-    *var_by_idx = xmalloc(r->value_cnt * sizeof (**var_by_idx));
+    {
+      *var_by_idx = xmalloc(r->value_cnt * sizeof (**var_by_idx));
+      r->vars = xmalloc( r->value_cnt * sizeof (*r->vars) );
+    }
 
 
   /* Read in the entry for each variable and use the info to
@@ -756,7 +757,7 @@ read_variables (struct sfm_reader *r,
   for (i = 0; ; ++i)
     {
       struct variable *vv;
-      char name[9];
+      char name[SHORT_NAME_LEN + 1];
       int nv;
       int j;
 
@@ -779,11 +780,15 @@ read_variables (struct sfm_reader *r,
       if (sv.rec_type != 2)
 	{
 	  buf_unread(r, sizeof sv);
+	  r->value_cnt = i;
 	  break;
 	}
 
       if ( -1 == r->value_cnt ) 
-	*var_by_idx = xrealloc (*var_by_idx, sizeof **var_by_idx * (i+1) );
+	{
+	  *var_by_idx = xrealloc (*var_by_idx, sizeof **var_by_idx * (i + 1));
+	  r->vars = xrealloc(r->vars,  (i + 1) * sizeof (*r->vars) );
+	}
 
       /* If there was a long string previously, make sure that the
 	 continuations are present; otherwise make sure there aren't
@@ -795,6 +800,8 @@ read_variables (struct sfm_reader *r,
 			 "proper number of continuation records."),
                    handle_get_filename (r->fh), i));
 
+
+	  r->vars[i].width = -1;
 	  (*var_by_idx)[i] = NULL;
 	  long_string_count--;
 	  continue;
@@ -962,15 +969,9 @@ read_variables (struct sfm_reader *r,
 	  || !parse_format_spec (r, sv.write, &vv->write, vv))
 	goto error;
 
-      /* Add variable to list. */
-      if (var_cap >= r->var_cnt) 
-        {
-          var_cap = 2 + r->var_cnt * 2;
-          r->vars = xrealloc (r->vars, var_cap * sizeof *r->vars);
-        }
-      r->vars[r->var_cnt].width = vv->width;
-      r->vars[r->var_cnt].fv = vv->fv;
-      r->var_cnt++;
+      r->vars[i].width = vv->width;
+      r->vars[i].fv = vv->fv;
+
     }
 
   /* Some consistency checks. */
@@ -983,6 +984,7 @@ read_variables (struct sfm_reader *r,
     corrupt_msg(MW, _("%s: System file header indicates %d variable positions but "
                  "%d were read from file."),
            handle_get_filename (r->fh), r->value_cnt, next_value);
+
 
   return 1;
 
@@ -1328,7 +1330,7 @@ read_compressed_data (struct sfm_reader *r, flt64 *buf)
 
   for (;;)
     {
-      for (; p < p_end; p++)
+      for (; p < p_end; p++){
 	switch (*p)
 	  {
 	  case 0:
@@ -1382,7 +1384,7 @@ read_compressed_data (struct sfm_reader *r, flt64 *buf)
 	      goto success;
 	    break;
 	  }
-
+      }
       /* We have reached the end of this instruction octet.  Read
 	 another. */
       if (r->ptr == NULL || r->ptr >= r->end)
@@ -1433,7 +1435,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
         {
           int i;
           
-          for (i = 0; i < r->var_cnt; i++) 
+          for (i = 0; i < r->value_cnt; i++) 
             if (r->vars[i].width == 0)
               bswap_flt64 (&case_data_rw (c, r->vars[i].fv)->f);
         }
@@ -1445,7 +1447,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
         {
           int i;
           
-          for (i = 0; i < r->var_cnt; i++) 
+          for (i = 0; i < r->value_cnt; i++) 
             if (r->vars[i].width == 0 && case_num (c, i) == r->sysmis)
               case_data_rw (c, r->vars[i].fv)->f = SYSMIS;
         }
@@ -1473,7 +1475,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
           return 0;
         }
 
-      for (i = 0; i < r->var_cnt; i++)
+      for (i = 0; i < r->value_cnt; i++)
         {
           struct sfm_var *v = &r->vars[i];
 
@@ -1482,9 +1484,9 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
               flt64 f = *bounce_cur++;
               if (r->reverse_endian)
                 bswap_flt64 (&f);
-              case_data_rw (c, i)->f = f == r->sysmis ? SYSMIS : f;
+              case_data_rw (c, v->fv)->f = f == r->sysmis ? SYSMIS : f;
             }
-          else 
+          else if (v->width != -1)
             {
               memcpy (case_data_rw (c, v->fv)->s, bounce_cur, v->width);
               bounce_cur += DIV_RND_UP (v->width, sizeof (flt64));

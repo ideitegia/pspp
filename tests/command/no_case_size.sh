@@ -52,6 +52,7 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
+activity="create program"
 cat <<EOF > $TESTFILE
 GET FILE='$top_srcdir/tests/no_case_size.sav'.
 DISPLAY DICTIONARY.
@@ -61,7 +62,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
@@ -85,42 +86,13 @@ diff -b -B -w pspp.list - <<EOF
 
                             CONT     SIZE      POP    COUNT
 -------------------------------- -------- -------- --------
-Asia    
-        
-        
-        
-
-Africa  
-        
-        
-        
-
-North Am
-erica   
-        
-        
-
-South Am
-erica   
-        
-        
-
-Antarcti
-ca      
-        
-        
-
-Europe  
-        
-        
-        
-
-Australi
-a/Oceani
-a       
-        
-
-
+Asia                             44579000 3.67E+09    44.00 
+Africa                           30065000 7.78E+08    53.00 
+North America                    24256000 4.83E+08    23.00 
+South America                    17819000 3.42E+08    12.00 
+Antarctica                       13209000      .00      .00 
+Europe                            9938000 7.32E+08    46.00 
+Australia/Oceania                 7687000 31000000    14.00 
 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

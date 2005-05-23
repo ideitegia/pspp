@@ -1,3 +1,8 @@
+Mon May 23 11:57:31 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	*sfm-read.c: Fixed some bugs regarding long string continuation
+	records, which the previous fix uncovered.
+
 Sat May 21 12:48:34 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* sfm-read.c, sfmP.h:  Allow reading of system files when the 
