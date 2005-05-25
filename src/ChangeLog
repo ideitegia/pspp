@@ -1,3 +1,8 @@
+Tue May 24 21:52:55 2005  Ben Pfaff  <blp@gnu.org>
+
+	* get.c: (mtf_processing) Handle case of a lookup table as the
+	active file.  Thanks to John Darrington for reporting this bug.
+
 Wed May 25 10:27:02 WST 2005 John Darrington <john@darrington.wattle.id.au>
 	
 	* alloc.c alloc.h: (xcalloc) changed signature to imitate the

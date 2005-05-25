@@ -1201,7 +1201,9 @@ mtf_processing (struct ccase *c, void *mtf_)
   bool read_active_file;
 
   assert (mtf->head != NULL);
-  assert (mtf->head->type == MTF_FILE);
+  if (mtf->head->type == MTF_TABLE)
+    return 1;
+  
   do
     {
       struct mtf_file *min_head, *min_tail; /* Files with minimum BY values. */

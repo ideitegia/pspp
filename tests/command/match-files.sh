@@ -205,4 +205,43 @@ A B C D E F
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
+# Test bug handling TABLE from active file found by John Darrington.
+name="active-table"
+activity="create $name.pspp"
+cat > $name.pspp <<EOF
+DATA LIST LIST NOTABLE /x * y *.
+BEGIN DATA
+3 30
+2 21
+1 22
+END DATA.
+
+SAVE OUTFILE='bar.sav'.
+
+DATA LIST LIST NOTABLE /x * z *.
+BEGIN DATA
+3 8
+2 9
+END DATA.
+
+MATCH FILES TABLE=* /FILE='bar.sav' /BY=x.
+LIST.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="run $name.pspp"
+$SUPERVISOR $here/../src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="check $name output"
+diff -b -w -B - pspp.list <<EOF
+        x        z        y
+ -------- -------- --------
+     3.00     8.00    30.00 
+     2.00      .      21.00 
+     1.00      .      22.00 
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
+
+
 pass;
