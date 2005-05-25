@@ -43,17 +43,30 @@ xmalloc (size_t size)
   return vp;
 }
 
-/* Allocates a block of SIZE bytes, fill it with all-bits-0, and
-   returns it.
-   If SIZE is 0, returns a null pointer.
-   Aborts if unsuccessful. */
+
+/* Allocates a continous block of N_MEMB by SIZE elements, with all
+   bits set to 0.
+   Aborts if unsuccessful.
+*/
 void *
-xcalloc (size_t size)
+xcalloc (size_t n_memb, size_t size)
 {
-  void *vp = xmalloc (size);
-  memset (vp, 0, size);
+  const size_t prod = size * n_memb; 
+  void *vp = 0;
+
+  if (prod == 0)
+    return NULL;
+
+  /* Trap overflow errors */
+  assert ( prod >= size );
+  assert ( prod >= n_memb ) ;
+
+  vp = xmalloc ( prod );
+  memset (vp, 0, prod);
   return vp;
 }
+
+
 
 /* If SIZE is 0, then block PTR is freed and a null pointer is
    returned.

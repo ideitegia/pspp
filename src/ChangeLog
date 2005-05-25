@@ -1,3 +1,14 @@
+Wed May 25 10:27:02 WST 2005 John Darrington <john@darrington.wattle.id.au>
+	
+	* alloc.c alloc.h: (xcalloc) changed signature to imitate the
+	POSIX  calloc function.
+	
+	* crosstabs.q get.c vars-prs.c: Updated calls to xcalloc to
+	reflect new signature.
+
+	* sfm-read.c: Now much more robust in the face of badly formed
+	system files.
+
 Mon May 23 11:57:31 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	*sfm-read.c: Fixed some bugs regarding long string continuation

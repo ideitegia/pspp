@@ -342,7 +342,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		{
 		  const int  n_vars = data.count / 3 ;
 		  int i;
-		  if ( data.count % 3 ) 
+		  if ( data.count % 3 || n_vars > dict_get_var_cnt(*dict) ) 
 		    {
 		      msg (MW, _("%s: Invalid subrecord length. "
 				 "Record: 7; Subrecord: 11"), 
@@ -350,7 +350,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		      skip = 1;
 		    }
 
-		  for ( i = 0 ; i < n_vars ; ++i ) 
+		  for ( i = 0 ; i < min(n_vars, dict_get_var_cnt(*dict)) ; ++i ) 
 		    {
 		      struct
 		      {
@@ -418,6 +418,16 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                           msg (MW, _("%s: Long variable mapping for "
                                      "nonexistent variable %s."),
                                handle_get_filename (r->fh), short_name);
+                          break;
+                        }
+
+                      /* Identify any duplicates. */
+		      if ( compare_var_names(short_name, long_name, 0) &&
+			  NULL != dict_lookup_var (*dict, long_name))
+                        {
+			  lose ((ME, _("%s: Duplicate long variable name `%s' "
+				       "within system file."),
+				 handle_get_filename (r->fh), long_name));
                           break;
                         }
 
@@ -864,11 +874,17 @@ read_variables (struct sfm_reader *r,
 	}
       name[j] = 0;
 
+      if ( ! var_is_valid_name(name, false) ) 
+        lose ((ME, _("%s: Invalid variable name `%s' within system file."),
+               handle_get_filename (r->fh), name));
+
       /* Create variable. */
+
       vv = (*var_by_idx)[i] = dict_create_var (dict, name, sv.type);
       if (vv == NULL) 
         lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
                handle_get_filename (r->fh), name));
+
       var_set_short_name (vv, vv->name);
 
       /* Case reading data. */
@@ -1057,8 +1073,15 @@ read_value_labels (struct sfm_reader *r,
   if (r->reverse_endian)
     bswap_int32 (&n_labels);
 
+  if ( n_labels >= ((int32) ~0) / sizeof *labels)
+    {    
+      corrupt_msg(MW, _("%s: Invalid number of labels: %d.  Ignoring labels."),
+		  handle_get_filename (r->fh), n_labels);
+      n_labels = 0;
+    }
+
   /* Allocate memory. */
-  labels = xmalloc (n_labels * sizeof *labels);
+  labels = xcalloc (n_labels ,  sizeof *labels);
   for (i = 0; i < n_labels; i++)
     labels[i].label = NULL;
 

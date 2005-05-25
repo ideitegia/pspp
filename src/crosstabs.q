@@ -338,7 +338,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
     }
   
   {
-    int *by_iter = xcalloc (sizeof *by_iter * n_by);
+    int *by_iter = xcalloc (n_by, sizeof *by_iter);
     int i;
 
     xtab = xrealloc (xtab, sizeof *xtab * (nxtab + nx));

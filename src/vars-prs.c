@@ -259,7 +259,7 @@ parse_var_set_vars (const struct var_set *vs,
     {
       int i;
       
-      included = xcalloc (var_set_get_cnt (vs));
+      included = xcalloc (var_set_get_cnt (vs), sizeof *included);
       for (i = 0; i < *nv; i++)
         included[(*v)[i]->index] = 1;
     }

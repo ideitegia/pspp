@@ -1030,7 +1030,7 @@ cmd_match_files (void)
   if (mtf.sink->class->open != NULL)
     mtf.sink->class->open (mtf.sink);
 
-  mtf.seq_nums = xcalloc (dict_get_var_cnt (mtf.dict) * sizeof *mtf.seq_nums);
+  mtf.seq_nums = xcalloc (dict_get_var_cnt (mtf.dict), sizeof *mtf.seq_nums);
   case_create (&mtf.mtf_case, dict_get_next_value_idx (mtf.dict));
 
   mtf_read_nonactive_records (&mtf);
