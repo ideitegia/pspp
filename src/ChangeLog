@@ -1,3 +1,11 @@
+Thu May 26 12:29:21 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix PR 13192.
+
+	* sort.c: (sort_parse_criteria) Only set *saw_direction if
+	saw_direction is non-null.  Thanks to John Darrington for
+	reporting this bug.
+
 Tue May 24 21:52:55 2005  Ben Pfaff  <blp@gnu.org>
 
 	* get.c: (mtf_processing) Handle case of a lookup table as the

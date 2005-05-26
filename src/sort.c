@@ -226,7 +226,8 @@ sort_parse_criteria (const struct dictionary *dict,
 	      msg (SE, _("`)' expected."));
               goto error;
 	    }
-          *saw_direction = true;
+          if (saw_direction != NULL)
+            *saw_direction = true;
 	}
       else
         direction = SRT_ASCEND;
