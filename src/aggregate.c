@@ -33,6 +33,7 @@
 #include "pool.h"
 #include "settings.h"
 #include "sfm-write.h"
+#include "sort-prs.h"
 #include "sort.h"
 #include "str.h"
 #include "var.h"
@@ -208,7 +209,7 @@ cmd_aggregate (void)
 	  lex_match ('=');
           agr.sort = sort_parse_criteria (default_dict,
                                           &agr.break_vars, &agr.break_var_cnt,
-                                          &saw_direction);
+                                          &saw_direction, NULL);
           if (agr.sort == NULL)
             goto error;
 	  

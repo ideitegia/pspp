@@ -36,34 +36,13 @@
 #include "lexer.h"
 #include "misc.h"
 #include "settings.h"
+#include "sort-prs.h"
 #include "str.h"
 #include "var.h"
 #include "vfm.h"
 #include "vfmP.h"
 
 #include "debug-print.h"
-
-/* Sort direction. */
-enum sort_direction
-  {
-    SRT_ASCEND,			/* A, B, C, ..., X, Y, Z. */
-    SRT_DESCEND			/* Z, Y, X, ..., C, B, A. */
-  };
-
-/* A sort criterion. */
-struct sort_criterion
-  {
-    int fv;                     /* Variable data index. */
-    int width;                  /* 0=numeric, otherwise string widthe. */
-    enum sort_direction dir;    /* Sort direction. */
-  };
-
-/* A set of sort criteria. */
-struct sort_criteria 
-  {
-    struct sort_criterion *crits;
-    size_t crit_cnt;
-  };
 
 /* These should only be changed for testing purposes. */
 static int min_buffers = 64;
@@ -86,7 +65,7 @@ cmd_sort_cases (void)
 
   lex_match (T_BY);
 
-  criteria = sort_parse_criteria (default_dict, NULL, NULL, NULL);
+  criteria = sort_parse_criteria (default_dict, NULL, NULL, NULL, NULL);
   if (criteria == NULL)
     return CMD_FAILURE;
 
@@ -169,101 +148,6 @@ sort_active_file_to_casefile (const struct sort_criteria *criteria)
   return sort_execute (casefile_get_reader (src), criteria);
 }
 
-/* Parses a list of sort keys and returns a struct sort_criteria
-   based on it.  Returns a null pointer on error.
-   If SAW_DIRECTION is nonnull, sets *SAW_DIRECTION to true if at
-   least one parenthesized sort direction was specified, false
-   otherwise. */
-struct sort_criteria *
-sort_parse_criteria (const struct dictionary *dict,
-                     struct variable ***vars, int *var_cnt,
-                     bool *saw_direction)
-{
-  struct sort_criteria *criteria;
-  struct variable **local_vars = NULL;
-  size_t local_var_cnt;
-
-  assert ((vars == NULL) == (var_cnt == NULL));
-  if (vars == NULL) 
-    {
-      vars = &local_vars;
-      var_cnt = &local_var_cnt;
-    }
-
-  criteria = xmalloc (sizeof *criteria);
-  criteria->crits = NULL;
-  criteria->crit_cnt = 0;
-
-  *vars = NULL;
-  *var_cnt = 0;
-  if (saw_direction != NULL)
-    *saw_direction = false;
-
-  do
-    {
-      int prev_var_cnt = *var_cnt;
-      enum sort_direction direction;
-
-      /* Variables. */
-      if (!parse_variables (dict, vars, var_cnt,
-			    PV_NO_DUPLICATE | PV_APPEND | PV_NO_SCRATCH))
-        goto error;
-
-      /* Sort direction. */
-      if (lex_match ('('))
-	{
-	  if (lex_match_id ("D") || lex_match_id ("DOWN"))
-	    direction = SRT_DESCEND;
-	  else if (lex_match_id ("A") || lex_match_id ("UP"))
-            direction = SRT_ASCEND;
-          else
-	    {
-	      msg (SE, _("`A' or `D' expected inside parentheses."));
-              goto error;
-	    }
-	  if (!lex_match (')'))
-	    {
-	      msg (SE, _("`)' expected."));
-              goto error;
-	    }
-          if (saw_direction != NULL)
-            *saw_direction = true;
-	}
-      else
-        direction = SRT_ASCEND;
-
-      criteria->crits = xrealloc (criteria->crits,
-                                  sizeof *criteria->crits * *var_cnt);
-      criteria->crit_cnt = *var_cnt;
-      for (; prev_var_cnt < criteria->crit_cnt; prev_var_cnt++) 
-        {
-          struct sort_criterion *c = &criteria->crits[prev_var_cnt];
-          c->fv = (*vars)[prev_var_cnt]->fv;
-          c->width = (*vars)[prev_var_cnt]->width;
-          c->dir = direction;
-        }
-    }
-  while (token != '.' && token != '/');
-
-  free (local_vars);
-  return criteria;
-
- error:
-  free (local_vars);
-  sort_destroy_criteria (criteria);
-  return NULL;
-}
-
-/* Destroys a SORT CASES program. */
-void
-sort_destroy_criteria (struct sort_criteria *criteria) 
-{
-  if (criteria != NULL) 
-    {
-      free (criteria->crits);
-      free (criteria);
-    }
-}
 
 /* Reads all the cases from READER, which is destroyed.  Sorts
    the cases according to CRITERIA.  Returns the sorted cases in

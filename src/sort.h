@@ -27,14 +27,37 @@ struct casereader;
 struct dictionary;
 struct variable;
 
-struct sort_criteria *sort_parse_criteria (const struct dictionary *,
-                                           struct variable ***, int *,
-                                           bool *saw_direction);
+
+/* Sort direction. */
+enum sort_direction
+  {
+    SRT_ASCEND,			/* A, B, C, ..., X, Y, Z. */
+    SRT_DESCEND			/* Z, Y, X, ..., C, B, A. */
+  };
+
+/* A sort criterion. */
+struct sort_criterion
+  {
+    int fv;                     /* Variable data index. */
+    int width;                  /* 0=numeric, otherwise string width. */
+    enum sort_direction dir;    /* Sort direction. */
+  };
+
+/* A set of sort criteria. */
+struct sort_criteria 
+  {
+    struct sort_criterion *crits;
+    size_t crit_cnt;
+  };
+
+
 void sort_destroy_criteria (struct sort_criteria *);
 
 struct casefile *sort_execute (struct casereader *,
                                const struct sort_criteria *);
+
 int sort_active_file_in_place (const struct sort_criteria *);
+
 struct casefile *sort_active_file_to_casefile (const struct sort_criteria *);
 
 #endif /* !sort_h */

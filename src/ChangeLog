@@ -1,3 +1,10 @@
+Fri May 27 12:34:43 WST 2005 John Darrington <john@darrington.wattle.id.au>
+	
+	* sort-prs.[ch] (newfiles), aggregate.c, sort.[ch]: Separated the guts 
+	of the sort algorithm from the parser for the SORT command.
+	
+	* rank.q: Added the parser for the RANK command.
+	
 Thu May 26 12:29:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix PR 13192.

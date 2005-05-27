@@ -22,13 +22,13 @@ $(q_sources_c): q2c$(EXEEXT)
 	./q2c $< $@
 
 q_sources_c = correlations.c crosstabs.c examine.c file-handle.c	\
-frequencies.c list.c means.c oneway.c set.c  t-test.c 
+frequencies.c list.c means.c oneway.c rank.c set.c  t-test.c 
 
 CLEANFILES=$(q_sources_c)
 DISTCLEANFILES=version.c
 
 q_sources_q = correlations.q crosstabs.q examine.q file-handle.q	\
-frequencies.q list.q means.q oneway.q set.q  t-test.q
+frequencies.q list.q means.q oneway.q rank.q set.q  t-test.q
 
 if WITHCHARTS
 chart_sources = barchart.c \
@@ -66,7 +66,8 @@ pfm-write.c pfm-write.h \
 pool.c pool.h postscript.c print.c recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
 sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
-sort.c sort.h split-file.c str.c str.h subclist.c subclist.h \
+sort.c sort.h sort-prs.c sort-prs.h \
+split-file.c str.c str.h subclist.c subclist.h \
 sysfile-info.c tab.c tab.h temporary.c stat.h mkfile.c mkfile.h \
 title.c  val.h val-labs.c value-labels.c value-labels.h		\
 var-display.c \
