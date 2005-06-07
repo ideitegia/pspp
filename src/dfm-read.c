@@ -78,11 +78,12 @@ dfm_close_reader (struct dfm_reader *r)
       assert (inline_open_cnt > 0);
       still_open = --inline_open_cnt;
 
-      if (still_open) 
+      if (!still_open) 
         {
           /* Skip any remaining data on the inline file. */
-          while ((r->flags & DFM_EOF) == 0)
-            read_record (r);
+          if (r->flags & DFM_SAW_BEGIN_DATA)
+            while ((r->flags & DFM_EOF) == 0)
+              read_record (r);
           inline_file = NULL;
         }
     }

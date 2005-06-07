@@ -203,6 +203,8 @@ err_hcf (int success)
   getl_uninitialize ();
 
   free(file_loc);
+  file_loc = NULL;
+  
   outp_done ();
   done_glob();
 

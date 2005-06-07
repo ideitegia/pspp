@@ -626,7 +626,7 @@ cancel_transformations (void)
     }
   n_trns = f_trns = 0;
   free (t_trns);
-  t_trns=NULL;
+  t_trns = NULL;
   m_trns = 0;
 }
 

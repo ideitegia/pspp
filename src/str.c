@@ -306,6 +306,7 @@ void
 ds_destroy (struct string *st)
 {
   free (st->string);
+  st->string = NULL;x
 }
 
 /* Truncates ST to zero length. */

@@ -1,6 +1,32 @@
+Tue Jun  7 00:14:09 2005  Ben Pfaff  <blp@gnu.org>
+
+	Make some code tolerant of reentry.  Should not be needed if other
+	code is correct but it is good to be generally tolerant.
+	
+	* error.c: (err_hcf) Set file_loc to null after free().
+
+	* output.c: (outp_done) Similar changes.
+
+	* str.c: (ds_destroy) Ditto.
+	
+Tue Jun  7 00:10:20 2005  Ben Pfaff  <blp@gnu.org>
+
+	Continue work on bug 12859, plus some code cleanup.
+	
+	* data-list.c: (cmd_repeating_data) Replace `seen' bitmap by
+	boolean variables.  Don't try to compute starts_end, cont_end for
+	inline file.  Calculate length only after parsing variable
+	specifications.  Add proper transformation to list.
+	(realize_value) If the rpd_num_or_var has no value, return new
+	DEFAULT_MEMBER argument (for use with inline file).
+	(repeating_data_trns_proc) Pass default values.
+
+	* dfm-read.c: (dfm_close_reader) Only skip data if *not* still
+	open, and only if we actually started reading data.
+
 Sun Jun  5 18:39:36 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 11894.
+	Fix bug 11894.
 	
 	* output.c: (outp_read_devices) Fix message.
 
@@ -13,7 +39,7 @@ Fri May 27 12:34:43 WST 2005 John Darrington <john@darrington.wattle.id.au>
 	
 Thu May 26 12:29:21 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 13192.
+	Fix bug 13192.
 
 	* sort.c: (sort_parse_criteria) Only set *saw_direction if
 	saw_direction is non-null.  Thanks to John Darrington for
@@ -60,7 +86,7 @@ Tue May 17 18:29:35 2005  Ben Pfaff  <blp@gnu.org>
 
 Tue May 17 00:06:43 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 11119.
+	Fix bug 11119.
 
 	* som.c: (output_encodings) If some cell in the table won't fit
 	with the horizontal or vertical headers, cancel those headers.
@@ -76,7 +102,7 @@ Tue May 17 00:06:43 2005  Ben Pfaff  <blp@gnu.org>
 	
 Mon May 16 22:34:06 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix rest of PR 13054.
+	Fix rest of bug 13054.
 
 	* format.def: Fix EDATE, SDATE, ADATE, JDATE, QYR, MOYR, WKYR,
 	DATETIME, TIME system/portable file values.
@@ -106,7 +132,7 @@ Mon May 16 22:31:15 2005  Ben Pfaff  <blp@gnu.org>
 
 Sun May 15 23:38:10 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix more of PR 13054.
+	Fix more of bug 13054.
 	
 	* format.def: FMT_A should allow 255-character output.  FMT_AHEX
 	should allow 510-character input and output.
@@ -153,7 +179,7 @@ Tue May 10 20:08:18 2005  Ben Pfaff  <blp@gnu.org>
 
 Tue May 10 19:56:35 2005  Ben Pfaff  <blp@gnu.org>
 
-	Start to fix PR 13054.
+	Start to fix bug 13054.
 
 	* format.c: (check_input_specifier) Improve error message.
 	(check_input_specifier) Check F, COMMA, and DOLLAR formats for
@@ -169,7 +195,7 @@ Mon May  9 07:14:29 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Sun May  8 13:52:12 2005  Ben Pfaff  <blp@gnu.org>
 
-	"Fix" PR 13021 by disabling FILE TYPE.  Eventually, we should
+	"Fix" bug 13021 by disabling FILE TYPE.  Eventually, we should
 	actually implement it.
 
 	* command.c: (FILE_TYPE_okay) Always return 1.
@@ -185,7 +211,7 @@ Sun May  8 08:08:07 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Wed May  4 23:54:02 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 12948.  See also new test in
+	Fix bug 12948.  See also new test in
 	tests/bugs/match-file-scratch.sh.
 	
 	* get.c: (mtf_merge_dictionary) Don't compact dictionary because
@@ -241,7 +267,7 @@ Mon May  2 23:45:01 2005  Ben Pfaff  <blp@gnu.org>
 
 Mon May  2 23:37:19 2005  Ben Pfaff  <blp@gnu.org>
 
-	Partial fix for PR 12859.
+	Partial fix for bug 12859.
 	
 	* data-list.c: (cmd_data_list) Add transformation properly in
 	vfm_source == NULL case.
@@ -253,11 +279,11 @@ Mon May  2 23:27:28 2005  Ben Pfaff  <blp@gnu.org>
 Mon May  2 22:28:17 2005  Ben Pfaff  <blp@gnu.org>
 
 	* get.c: (cmd_match_files) Check token type before trying to match
-	tokid.  Fixes PR 12923.
+	tokid.  Fixes bug 12923.
 
 Mon May  2 22:16:51 2005  Ben Pfaff  <blp@gnu.org>
 
-	* flip.c: [HAVE_SYS_TYPES_H] Include <sys/types.h>.  Fixes PR
+	* flip.c: [HAVE_SYS_TYPES_H] Include <sys/types.h>.  Fixes bug
 	12789.
 
 Mon May  2 22:02:52 2005  Ben Pfaff  <blp@gnu.org>
@@ -476,7 +502,7 @@ Sun May  1 15:05:54 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Thu Apr 28 18:52:06 2005  Ben Pfaff  <blp@gnu.org>
 
-	* expressions/parse.c: Improve previous fix for PR 12858 (LAG).
+	* expressions/parse.c: Improve previous fix for bug 12858 (LAG).
 
 Fri Apr 29 09:28:00 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
@@ -494,7 +520,7 @@ Wed Apr 27 07:43:50 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Mon Apr 25 22:55:59 2005  Ben Pfaff  <blp@gnu.org>
 
-	Finish fixing MATCH FILES (PR 11677).
+	Finish fixing MATCH FILES (bug 11677).
 
 	* get.c: (trim_dictionary) Rewrite in terms of drop_variables(),
 	keep_variables(), rename_variables().
@@ -589,7 +615,7 @@ Thu Apr 14 2005 John Darrington
 Mon Apr  4 22:27:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* aggregate.c: (parse_aggregate_functions) If dict_create_var()
-	fails, don't dereference the resulting null pointer (PR 12427).
+	fails, don't dereference the resulting null pointer (bug 12427).
 	Also, fix double free error.
 
 Sat Mar 19 23:06:02 2005  Ben Pfaff  <blp@gnu.org>
@@ -611,7 +637,7 @@ Mon Mar 14 21:52:34 2005  Ben Pfaff  <blp@gnu.org>
 
 Mon Mar 14 21:07:23 2005  Ben Pfaff  <blp@gnu.org>
 
-	Make sort stable (PR 12313).
+	Make sort stable (bug 12313).
 	
 	* sort.c: Don't need to include some headers anymore.
 	(static var min_buffers) New variable.
@@ -666,7 +692,7 @@ Sun Mar 13 22:52:05 2005  Ben Pfaff  <blp@gnu.org>
 	
 Sun Mar 13 22:40:54 2005  Ben Pfaff  <blp@gnu.org>
 
-	First phase of making SORT CASES stable (PR 12313).
+	First phase of making SORT CASES stable (bug 12313).
 
 	* sort.c: (struct indexed_case) New structure.
 	(do_internal_sort) Rewrite to make internal sorting stable.
@@ -734,11 +760,11 @@ Sun Mar 13 14:54:27 WST 2005 John Darrington <john@darrington.wattle.id.au>
 Sat Mar 12 13:29:21 2005  Ben Pfaff  <blp@gnu.org>
 
 	* split-file.c: (cmd_split_file) Ignore LAYERED and SEPARATE
-	keywords (PR 11628).
+	keywords (bug 11628).
 
 Sat Mar 12 13:17:12 2005  Ben Pfaff  <blp@gnu.org>
 
-	* vfm.c: (procedure_with_splits) Fix PR 11492: end_func() must be
+	* vfm.c: (procedure_with_splits) Fix bug 11492: end_func() must be
 	called *before* close_active_file().
 
 Sat Mar 12 12:20:57 2005  Ben Pfaff  <blp@gnu.org>
@@ -822,7 +848,7 @@ Sun Mar  6 23:25:40 2005  Ben Pfaff  <blp@gnu.org>
 Sun Mar  6 19:52:22 2005  Ben Pfaff  <blp@gnu.org>
 
 	DATA LIST with free-field formats should not have implied decimal
-	places (PR 12035).  Also clean up data-in.c a bit.
+	places (bug 12035).  Also clean up data-in.c a bit.
 
 	* data-in.h: (enum) Add DI_IMPLIED_DECIMALS.
 
@@ -1027,7 +1053,7 @@ Fri Feb 25 21:11:35 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 Sun Feb 13 16:11:13 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 11955.
+	Fix bug 11955.
 
 	* aggregate.c: (parse_aggregate_functions) Code cleanup.
 	Important part: get rid of spurious copying of function->format to
@@ -1035,7 +1061,7 @@ Sun Feb 13 16:11:13 2005  Ben Pfaff  <blp@gnu.org>
 
 Fri Feb 11 00:08:36 2005  Ben Pfaff  <blp@gnu.org>
 
-	Fix PR 11916, which was confusing a variable's `index' member
+	Fix bug 11916, which was confusing a variable's `index' member
 	with the variable's position in a var_set.  Although these are
 	usually the same, they are not for array `var_set's.
 	
@@ -1228,7 +1254,7 @@ Wed Jan  5 08:30:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
 Mon Jan  3 17:44:37 2005  Ben Pfaff  <blp@gnu.org>
 
 	* pfm-read.c: (read_variables) Remove direct manipulation of
-	v->aux, which is no longer needed.  Fixes PR 11483.
+	v->aux, which is no longer needed.  Fixes bug 11483.
 
 Sat Jan  1 19:01:16 WST 2005 John Darrington <john@darrington.wattle.id.au>
 

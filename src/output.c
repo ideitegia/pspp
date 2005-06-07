@@ -455,8 +455,13 @@ outp_done (void)
       free(n);
       n = next;
     }
+  outp_class_list = NULL;
+
   free (outp_title);
+  outp_title = NULL;
+  
   free (outp_subtitle);
+  outp_subtitle = NULL;
 
   return 1;
 }
