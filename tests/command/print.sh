@@ -57,7 +57,7 @@ cat > $TEMPDIR/print.stat << foobar
 title 'Test PRINT transformation'.
 
 data list free table file='$TEMPDIR/data-list.data'/A B C D.
-print outfile="foo" table/A(f8.2) '/' B(e8.2) '/' C(n10) '/' D(rbhex16) '/'.
+print outfile="foo" table/A(f8.2) '/' B(e8.2) '/' C(n10) '/'.
 print space a.
 print outfile="foo" /a b c d.
 list.
@@ -108,18 +108,16 @@ diff -b -B $TEMPDIR/pspp.list - << EOF
 +--------+------+
 
 2.1 PRINT.  Writing 1 record(s) to file foo.
-+--------+------+-------+-------+
-|Variable|Record|Columns| Format|
-#========#======#=======#=======#
-|A       |     1|  1-  8|F8.2   |
-|"/"     |     1|  9-  9|A1     |
-|B       |     1| 10- 17|E8.2   |
-|"/"     |     1| 18- 18|A1     |
-|C       |     1| 19- 28|N10.0  |
-|"/"     |     1| 29- 29|A1     |
-|D       |     1| 30- 45|RBHEX16|
-|"/"     |     1| 46- 46|A1     |
-+--------+------+-------+-------+
++--------+------+-------+------+
+|Variable|Record|Columns|Format|
+#========#======#=======#======#
+|A       |     1|  1-  8|F8.2  |
+|"/"     |     1|  9-  9|A1    |
+|B       |     1| 10- 17|E8.2  |
+|"/"     |     1| 18- 18|A1    |
+|C       |     1| 19- 28|N10.0 |
+|"/"     |     1| 29- 29|A1    |
++--------+------+-------+------+
 
 
        A        B        C        D
@@ -171,11 +169,11 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare print out"
 diff $TEMPDIR/foo - << EOF
-     .  /2.00E+00/0000000003/0000000000001040/
+     .  /2.00E+00/0000000003/
      .       2.00     3.00     4.00 
-     .  /6.00E+00/0000000007/0000000000002040/
+     .  /6.00E+00/0000000007/
      .       6.00     7.00     8.00 
-     .  /1.00E+01/0000000011/0000000000002840/
+     .  /1.00E+01/0000000011/
      .      10.00    11.00    12.00 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
