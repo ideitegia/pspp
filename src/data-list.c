@@ -1426,11 +1426,10 @@ cmd_repeating_data (void)
 	      if (!parse_num_or_var (&rpd->starts_end, "STARTS ending column"))
 		goto error;
 	    } else {
-	      /* Otherwise, rpd->starts_end is left uninitialized.
-		 This is okay.  We will initialize it later from the
-		 record length of the file.  We can't do this now
-		 because we can't be sure that the user has specified
-		 the file handle yet. */
+	      /* Otherwise, rpd->starts_end is uninitialized.  We
+		 will initialize it later from the record length
+		 of the file.  We can't do so now because the
+		 file handle may not be specified yet. */
 	    }
 
 	  if (rpd->starts_beg.num != 0 && rpd->starts_end.num != 0
@@ -1480,7 +1479,8 @@ cmd_repeating_data (void)
 
 	  if (!lex_match ('/'))
 	    {
-	      if (!parse_num_or_var (&rpd->cont_beg, "CONTINUED beginning column"))
+	      if (!parse_num_or_var (&rpd->cont_beg,
+                                     "CONTINUED beginning column"))
 		goto error;
 
 	      lex_negative_to_dash ();
@@ -1589,13 +1589,32 @@ cmd_repeating_data (void)
       goto error;
     }
 
-  /* Calculate starts_end, cont_end if necessary and possible. */
-  if (fh != NULL) 
+  /* Calculate and check starts_end, cont_end if necessary. */
+  if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL) 
     {
-      if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL)
-        rpd->starts_end.num = handle_get_record_width (fh);
-      if (rpd->cont_end.num == 0 && rpd->cont_end.var == NULL)
-        rpd->cont_end.num = handle_get_record_width (fh);
+      rpd->starts_end.num = fh != NULL ? handle_get_record_width (fh) : 80;
+      if (rpd->starts_beg.num != 0 
+          && rpd->starts_beg.num > rpd->starts_end.num)
+        {
+          msg (SE, _("STARTS beginning column (%d) exceeds "
+                     "default STARTS ending column taken from file's "
+                     "record width (%d)."),
+               rpd->starts_beg.num, rpd->starts_end.num);
+          goto error;
+        } 
+    }
+  if (rpd->cont_end.num == 0 && rpd->cont_end.var == NULL) 
+    {
+      rpd->cont_end.num = fh != NULL ? handle_get_record_width (fh) : 80;
+      if (rpd->cont_beg.num != 0
+          && rpd->cont_beg.num > rpd->cont_end.num)
+        {
+          msg (SE, _("CONTINUED beginning column (%d) exceeds "
+                     "default CONTINUED ending column taken from file's "
+                     "record width (%d)."),
+               rpd->cont_beg.num, rpd->cont_end.num);
+          goto error;
+        } 
     }
   
   lex_match ('=');
@@ -1744,23 +1763,17 @@ parse_repeating_data (struct dls_var_spec **first, struct dls_var_spec **last)
 /* Obtains the real value for rpd_num_or_var N in case C and returns
    it.  The valid range is nonnegative numbers, but numbers outside
    this range can be returned and should be handled by the caller as
-   invalid.  If N does not have a value, returns DEFAULT_VALUE,
-   which must be nonzero if this is possible. */
+   invalid. */
 static int
-realize_value (struct rpd_num_or_var *n, struct ccase *c, int default_value)
+realize_value (struct rpd_num_or_var *n, struct ccase *c)
 {
-  if (n->num != 0)
-    return n->num;
-  else if (n->var != NULL)
+  if (n->var != NULL)
     {
       double v = case_num (c, n->var->fv);
       return v != SYSMIS && v >= INT_MIN && v <= INT_MAX ? v : -1;
     }
-  else 
-    {
-      assert (default_value != 0);
-      return default_value;
-    }
+  else
+    return n->num;
 }
 
 /* Parameter record passed to rpd_parse_record(). */
@@ -1915,13 +1928,13 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
   dfm_forward_record (t->reader);
 
   /* Calculate occurs, length. */
-  occurs_left = occurs = realize_value (&t->occurs, c, 0);
+  occurs_left = occurs = realize_value (&t->occurs, c);
   if (occurs <= 0)
     {
       tmsg (SE, RPD_ERR, _("Invalid value %d for OCCURS."), occurs);
       return -3;
     }
-  starts_beg = realize_value (&t->starts_beg, c, 0);
+  starts_beg = realize_value (&t->starts_beg, c);
   if (starts_beg <= 0)
     {
       tmsg (SE, RPD_ERR, _("Beginning column for STARTS (%d) must be "
@@ -1929,7 +1942,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
             starts_beg);
       return -3;
     }
-  starts_end = realize_value (&t->starts_end, c, line.length + 1);
+  starts_end = realize_value (&t->starts_end, c);
   if (starts_end < starts_beg)
     {
       tmsg (SE, RPD_ERR, _("Ending column for STARTS (%d) is less than "
@@ -1937,14 +1950,14 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
             starts_end, starts_beg);
       skip_first_record = 1;
     }
-  length = realize_value (&t->length, c, 0);
+  length = realize_value (&t->length, c);
   if (length < 0)
     {
       tmsg (SE, RPD_ERR, _("Invalid value %d for LENGTH."), length);
       length = 1;
       occurs = occurs_left = 1;
     }
-  cont_beg = realize_value (&t->cont_beg, c, 0);
+  cont_beg = realize_value (&t->cont_beg, c);
   if (cont_beg < 0)
     {
       tmsg (SE, RPD_ERR, _("Beginning column for CONTINUED (%d) must be "
@@ -1952,7 +1965,7 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
             cont_beg);
       return -2;
     }
-  cont_end = realize_value (&t->cont_end, c, line.length + 1);
+  cont_end = realize_value (&t->cont_end, c);
   if (cont_end < cont_beg)
     {
       tmsg (SE, RPD_ERR, _("Ending column for CONTINUED (%d) is less than "

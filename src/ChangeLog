@@ -1,3 +1,22 @@
+Sun Jun 12 14:54:40 2005  Ben Pfaff  <blp@gnu.org>
+
+	Did some more work on bug 12859 and then realized that a *good*
+	solution would require some fundamental restructuring.  For now,
+	I'm marking REPEATING DATA unimplemented, and then we can revisit
+	it post-0.4.0.
+	
+	* command.def: Make REPEATING DATA unimplemented.
+
+	* data-list.c: (cmd_repeating_data) Assume inline file is 80
+	characters wide.
+	(realize_value) Revert previous changes; no longer needed.
+	Updated all callers.
+
+	* error.c: (err_hcf) Set nfile_loc, mfile_loc to 0 after freeing
+	file_loc, to avoid bad references later.
+
+	* str.c: Fix typo.
+
 Tue Jun  7 00:14:09 2005  Ben Pfaff  <blp@gnu.org>
 
 	Make some code tolerant of reentry.  Should not be needed if other

@@ -204,10 +204,10 @@ err_hcf (int success)
 
   free(file_loc);
   file_loc = NULL;
+  nfile_loc = mfile_loc = 0;
   
   outp_done ();
   done_glob();
-
 
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }

@@ -259,7 +259,8 @@ write_case (struct write_case_data *wc_data)
     {
       if (compaction_necessary) 
         {
-          dict_compact_case (temp_dict, &wc_data->sink_case, &wc_data->trns_case);
+          dict_compact_case (temp_dict, &wc_data->sink_case,
+                             &wc_data->trns_case);
           vfm_sink->class->write (vfm_sink, &wc_data->sink_case);
         }
       else

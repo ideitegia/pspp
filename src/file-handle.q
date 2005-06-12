@@ -235,7 +235,7 @@ mode_name (const char *mode)
 }
 
 
-/* Tries to open FILE with the given TYPE and MODE.
+/* Tries to open handle H with the given TYPE and MODE.
 
    TYPE is the sort of file, e.g. "system file".  Only one given
    type of access is allowed on a given file handle at once.
@@ -391,8 +391,7 @@ handle_get_mode (const struct file_handle *handle)
   return handle->mode;
 }
 
-/* Returns the width of a logical record on HANDLE.  Applicable
-   only to MODE_BINARY files.  */
+/* Returns the width of a logical record on HANDLE. */
 size_t
 handle_get_record_width (const struct file_handle *handle)
 {
