@@ -1,3 +1,29 @@
+Sun Jun 12 23:44:38 2005  Ben Pfaff  <blp@gnu.org>
+
+	Implement embedding for PostScript driver.  Fixes bug 12970.
+
+	* ascii.c: Fix compiler warnings.
+
+	* html.c: Ditto.
+
+	* chart.h: Add `file' member.
+
+	* output.h: (struct outp_class) initialise_chart, finalise_chart
+	should take outp_driver *, not outp_class *.  Update all
+	references.
+
+	* plot-chart.c: (chart_create) Fix segfault when there are no
+	output drivers at all.
+	(chart_submit) Call d->class->finalise_chart.
+
+	* postscript.c: (ps_open_page) Set cp_y to 0.
+	(ps_submit) New function.
+	(ps_chart_initialise) Implement.
+	(ps_chart_finalise) Implement.
+	(static var postscript_class) Add ps_submit.
+	(static var epsf_class) Add ps_submit.
+	
+
 Sun Jun 12 14:54:40 2005  Ben Pfaff  <blp@gnu.org>
 
 	Did some more work on bug 12859 and then realized that a *good*

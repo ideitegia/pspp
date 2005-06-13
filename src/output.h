@@ -170,8 +170,8 @@ struct outp_class
     void (*text_metrics) (struct outp_driver *, struct outp_text *);
     void (*text_draw) (struct outp_driver *, struct outp_text *);
 
-    void (*initialise_chart)(struct outp_class *, struct chart *);
-    void (*finialise_chart)(struct outp_class *, struct chart *);
+    void (*initialise_chart)(struct outp_driver *, struct chart *);
+    void (*finalise_chart)(struct outp_driver *, struct chart *);
 
   };
 

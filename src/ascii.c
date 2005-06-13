@@ -1633,22 +1633,15 @@ ascii_close_page (struct outp_driver *this)
 
 
 
-void ascii_chart_initialise(struct outp_class *c UNUSED, 
-			    struct chart *ch UNUSED);
-
-void ascii_chart_finalise(struct outp_class *c UNUSED, 
-			  struct chart *ch UNUSED);
-
-
-void
-ascii_chart_initialise(struct outp_class *c UNUSED, struct chart *ch )
+static void
+ascii_chart_initialise(struct outp_driver *d UNUSED, struct chart *ch )
 {
   msg(MW, _("Charts are unsupported with ascii drivers."));
   ch->lp = 0;
 }
 
-void 
-ascii_chart_finalise(struct outp_class *c UNUSED, struct chart *ch UNUSED)
+static void 
+ascii_chart_finalise(struct outp_driver *d UNUSED, struct chart *ch UNUSED)
 {
   
 }

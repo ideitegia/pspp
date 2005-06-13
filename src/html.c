@@ -582,13 +582,8 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   fputs ("</TABLE>\n\n", x->file.file);
 }
 
-
-void html_initialise_chart(struct outp_class *c, struct chart *ch);
-void html_finalise_chart(struct outp_class *c, struct chart *ch);
-
-
-void
-html_initialise_chart(struct outp_class *c UNUSED, struct chart *ch)
+static void
+html_initialise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 {
 
   FILE  *fp;
@@ -604,8 +599,8 @@ html_initialise_chart(struct outp_class *c UNUSED, struct chart *ch)
 
 }
 
-void 
-html_finalise_chart(struct outp_class *c UNUSED, struct chart *ch)
+static void 
+html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 {
   free(ch->filename);
 }

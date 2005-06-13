@@ -52,32 +52,29 @@ struct chart *
 chart_create(void)
 {
   struct chart *chart;
-
   struct outp_driver *d;
 
+  d = outp_drivers (NULL);
+  if (d == NULL)
+    return NULL;
+  
   chart = xmalloc(sizeof(struct chart) );
-
-  for (d = outp_drivers (NULL); d; d = outp_drivers (d))
+  d->class->initialise_chart(d, chart);
+  if (!chart->lp) 
     {
-      assert(d->class->initialise_chart);
-      d->class->initialise_chart(d, chart);
-      break; /* KLUDGE!! */
+      free (chart);
+      return NULL; 
     }
 
-  if ( ! chart->lp ) 
-    return 0;
-
   if (pl_openpl_r (chart->lp) < 0)      /* open Plotter */
-      return 0;
-
+    return NULL;
+  
   pl_fspace_r (chart->lp, 0.0, 0.0, 1000.0, 1000.0); /* set coordinate system */
   pl_flinewidth_r (chart->lp, 0.25);    /* set line thickness */
   pl_pencolorname_r (chart->lp, "black"); 
 
   pl_erase_r (chart->lp);               /* erase graphics display */
   pl_filltype_r(chart->lp,0);
-
-
 
   pl_savestate_r(chart->lp);
 
@@ -94,7 +91,6 @@ chart_create(void)
   chart->font_size = 0;
   strcpy(chart->fill_colour,"red");
 
-
   /* Get default font size */
   if ( !chart->font_size) 
     chart->font_size = pl_fontsize_r(chart->lp, -1);
@@ -105,10 +101,7 @@ chart_create(void)
 	   chart->data_right, chart->data_top);
 
   return chart;
-
 }
-
-
 
 /* Draw a tick mark at position
    If label is non zero, then print it at the tick mark
@@ -188,6 +181,7 @@ void
 chart_submit(struct chart *chart)
 {
   struct som_entity s;
+  struct outp_driver *d;
 
   if ( ! chart ) 
      return ;
@@ -208,8 +202,9 @@ chart_submit(struct chart *chart)
 
   pl_deleteplparams(chart->pl_params);
 
+  d = outp_drivers (NULL);
+  d->class->finalise_chart(d, chart);
   free(chart);
-
 }
 
 

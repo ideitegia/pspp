@@ -44,6 +44,7 @@ struct chart {
   void *lp;
 #endif
   char *filename;
+  FILE *file;
 
   /* The geometry of the chart 
      See diagram at the foot of this file.

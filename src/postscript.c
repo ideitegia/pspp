@@ -54,6 +54,7 @@
 #include "misc.h"
 #include "misc.h"
 #include "output.h"
+#include "som.h"
 #include "version.h"
 
 /* FIXMEs:
@@ -1693,6 +1694,8 @@ ps_open_page (struct outp_driver *this)
 	draw_headers (this);
     }
 
+  this->cp_y = 0;
+
   return !ferror (x->file.file);
 }
 
@@ -1713,6 +1716,19 @@ ps_close_page (struct outp_driver *this)
 
   this->page_open = 0;
   return !ferror (x->file.file);
+}
+
+static void
+ps_submit (struct outp_driver *this UNUSED, struct som_entity *s)
+{
+  switch (s->type) 
+    {
+    case SOM_CHART:
+      break;
+    default:
+      assert(0);
+      break;
+    }
 }
 
 /* Lines. */
@@ -2871,27 +2887,85 @@ load_font (struct outp_driver *this, const char *dit)
   return fe;
 }
 
-
-void ps_chart_initialise(struct outp_class *c UNUSED, 
-			    struct chart *ch UNUSED);
-
-void ps_chart_finalise(struct outp_class *c UNUSED, 
-			  struct chart *ch UNUSED);
-
-
-void
-ps_chart_initialise(struct outp_class *c UNUSED, struct chart *ch )
+static void
+ps_chart_initialise (struct outp_driver *this UNUSED, struct chart *ch)
 {
-  msg(MW, _("Charts are currently unsupported with postscript drivers."));
-  ch->lp = 0;
-}
+#ifdef NO_CHARTS
+  ch->lp = NULL;
+#else
+  struct ps_driver_ext *x = this->ext;
+  char page_size[128];
+  int size;
+  int x_origin, y_origin;
 
-void 
-ps_chart_finalise(struct outp_class *c UNUSED, struct chart *ch UNUSED)
-{
+  ch->file = tmpfile ();
+  if (ch->file == NULL) 
+    {
+      ch->lp = NULL;
+      return;
+    }
   
+  size = this->width < this->length ? this->width : this->length;
+  x_origin = x->left_margin + (size - this->width) / 2;
+  y_origin = x->bottom_margin + (size - this->length) / 2;
+
+  snprintf (page_size, sizeof page_size,
+            "a,xsize=%.3f,ysize=%.3f,xorigin=%.3f,yorigin=%.3f",
+            (double) size / PSUS, (double) size / PSUS,
+            (double) x_origin / PSUS, (double) y_origin / PSUS);
+
+  ch->pl_params = pl_newplparams ();
+  pl_setplparam (ch->pl_params, "PAGESIZE", page_size);
+  ch->lp = pl_newpl_r ("ps", NULL, ch->file, stderr, ch->pl_params);
+#endif
 }
 
+static void 
+ps_chart_finalise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
+{
+#ifndef NO_CHARTS
+  struct ps_driver_ext *x = this->ext;
+  char buf[BUFSIZ];
+  static int doc_num = 0;
+
+  if (this->page_open) 
+    {
+      this->class->close_page (this);
+      this->page_open = 0; 
+    }
+  this->class->open_page (this);
+  fprintf (x->file.file,
+           "/sp save def%s"
+           "%d %d translate 1000 dup scale%s"
+           "userdict begin%s"
+           "/showpage { } def%s"
+           "0 setgray 0 setlinecap 1 setlinewidth%s"
+           "0 setlinejoin 10 setmiterlimit [ ] 0 setdash newpath clear%s"
+           "%%%%BeginDocument: %d%s",
+           x->eol,
+           -x->left_margin, -x->bottom_margin, x->eol,
+           x->eol,
+           x->eol,
+           x->eol,
+           x->eol,
+           doc_num++, x->eol);
+
+  rewind (ch->file);
+  while (fwrite (buf, 1, fread (buf, 1, sizeof buf, ch->file), x->file.file))
+    continue;
+  fclose (ch->file);
+
+  fprintf (x->file.file,
+           "%%%%EndDocument%s"
+           "end%s"
+           "sp restore%s",
+           x->eol,
+           x->eol,
+           x->eol);
+  this->class->close_page (this);
+  this->page_open = 0;
+#endif
+}
 
 /* PostScript driver class. */
 struct outp_class postscript_class =
@@ -2912,7 +2986,7 @@ struct outp_class postscript_class =
   ps_open_page,
   ps_close_page,
 
-  NULL,
+  ps_submit,
 
   ps_line_horz,
   ps_line_vert,
@@ -2956,7 +3030,7 @@ struct outp_class epsf_class =
   ps_open_page,
   ps_close_page,
 
-  NULL,
+  ps_submit,
 
   ps_line_horz,
   ps_line_vert,
