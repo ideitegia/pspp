@@ -36,12 +36,80 @@
 
 #define IO_BUF_SIZE (8192 / sizeof (union value))
 
-/* A casefile is a sequentially accessible array of immutable
-   cases.  It may be stored in memory or on disk as workspace
-   allows.  Cases may be appended to the end of the file.  Cases
-   may be read sequentially starting from the beginning of the
-   file.  Once any cases have been read, no more cases may be
-   appended.  The entire file is discarded at once. */
+/* A casefile represents a sequentially accessible stream of
+   immutable cases.
+
+   If workspace allows, a casefile is maintained in memory.  If
+   workspace overflows, then the casefile is pushed to disk.  In
+   either case the interface presented to callers is kept the
+   same.
+
+   The life cycle of a casefile consists of up to three phases:
+
+       1. Writing.  The casefile initially contains no cases.  In
+          this phase, any number of cases may be appended to the
+          end of a casefile.  (Cases are never inserted in the
+          middle or before the beginning of a casefile.)
+
+          Use casefile_append() or casefile_append_xfer() to
+          append a case to a casefile.
+
+       2. Reading.  The casefile may be read sequentially,
+          starting from the beginning, by "casereaders".  Any
+          number of casereaders may be created, at any time,
+          during the reading phase.  Each casereader has an
+          independent position in the casefile.
+
+          Casereaders may only move forward.  They cannot move
+          backward to arbitrary records or seek randomly.  (In the
+          future, the concept of a "casemark" will be introduced
+          to allow a limited form of backward seek, but this has
+          not yet been implemented.)
+
+          Cloning casereaders is possible, but no one has had a
+          need for it yet, so it is not implemented.
+
+          Use casefile_get_reader() to create a casereader for
+          use in phase 2.  This also transitions from phase 2 to
+          phase 3.  Calling casefile_mode_reader() makes the same
+          transition, without creating a casereader.
+
+          Use casereader_read(), casereader_read_xfer(), or
+          casereader_read_xfer_assert() to read a case from a
+          casereader.  Use casereader_destroy() to discard a
+          casereader when it is no longer needed.
+
+       3. Destruction.  This phase is optional.  The casefile is
+          also read with casereaders in this phase, but the
+          ability to create new casereaders is curtailed.
+
+          In this phase, casereaders could still be cloned, and
+          casemarks could still be used to seek backward (given
+          that we eventually implement these functionalities).
+
+          To transition from phase 1 or 2 to phase 3 and create a
+          casereader, call casefile_get_destructive_reader().
+          The same functions apply to the casereader obtained
+          this way as apply to casereaders obtained in phase 2.
+          
+          After casefile_get_destructive_reader() is called, no
+          more casereaders may be created with
+          casefile_get_reader() or
+          casefile_get_destructive_reader().  (If cloning of
+          casereaders or casemarks were implemented, they would
+          still be possible.)
+
+          The purpose of the limitations applied to casereaders
+          in phase 3 is to allow in-memory casefiles to fully
+          transfer ownership of cases to the casereaders,
+          avoiding the need for extra copies of case data.  For
+          relatively static data sets with many variables, I
+          suspect (without evidence) that this may be a big
+          performance boost.
+
+   When a casefile is no longer needed, it may be destroyed with
+   casefile_destroy().  This function will also destroy any
+   remaining casereaders. */
 
 /* In-memory cases are arranged in an array of arrays.  The top
    level is variable size and the size of each bottom level array
