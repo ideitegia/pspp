@@ -887,6 +887,7 @@ cmd_match_files (void)
                     }
                 }
             }
+          free (by);
 	}
       else if (lex_match_id ("FIRST")) 
         {
@@ -1037,6 +1038,9 @@ cmd_match_files (void)
   if (used_active_file)
     procedure (mtf_processing, &mtf);
   mtf_processing_finish (&mtf);
+
+  free_case_source (vfm_source);
+  vfm_source = NULL;
 
   dict_destroy (default_dict);
   default_dict = mtf.dict;
