@@ -61,17 +61,13 @@
           independent position in the casefile.
 
           Casereaders may only move forward.  They cannot move
-          backward to arbitrary records or seek randomly.  (In the
-          future, the concept of a "casemark" will be introduced
-          to allow a limited form of backward seek, but this has
-          not yet been implemented.)
-
-          Cloning casereaders is possible, but no one has had a
-          need for it yet, so it is not implemented.
+          backward to arbitrary records or seek randomly.
+          Cloning casereaders is possible, but it is not yet
+          implemented.
 
           Use casefile_get_reader() to create a casereader for
-          use in phase 2.  This also transitions from phase 2 to
-          phase 3.  Calling casefile_mode_reader() makes the same
+          use in phase 2.  This also transitions from phase 1 to
+          phase 2.  Calling casefile_mode_reader() makes the same
           transition, without creating a casereader.
 
           Use casereader_read(), casereader_read_xfer(), or
@@ -83,9 +79,8 @@
           also read with casereaders in this phase, but the
           ability to create new casereaders is curtailed.
 
-          In this phase, casereaders could still be cloned, and
-          casemarks could still be used to seek backward (given
-          that we eventually implement these functionalities).
+          In this phase, casereaders could still be cloned (once
+          we eventually implement cloning).
 
           To transition from phase 1 or 2 to phase 3 and create a
           casereader, call casefile_get_destructive_reader().
@@ -96,8 +91,8 @@
           more casereaders may be created with
           casefile_get_reader() or
           casefile_get_destructive_reader().  (If cloning of
-          casereaders or casemarks were implemented, they would
-          still be possible.)
+          casereaders were implemented, it would still be
+          possible.)
 
           The purpose of the limitations applied to casereaders
           in phase 3 is to allow in-memory casefiles to fully
