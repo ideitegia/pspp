@@ -39,7 +39,7 @@ ll_first (const struct linked_list *ll, struct ll_iterator *li)
 
 /* Return the next element in LL iterated by LI */
 void *
-ll_next (const struct linked_list *ll, struct ll_iterator *li)
+ll_next (const struct linked_list *ll UNUSED, struct ll_iterator *li)
 {
   assert( ll ) ;
 
