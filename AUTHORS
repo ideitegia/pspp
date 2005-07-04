@@ -3,8 +3,12 @@
      * Ben Pfaff wrote most of the program and the manual.
 
      * John Williams originally wrote the T-TEST procedure, which was 
-       subsequently re-written by John Darrington
+       subsequently re-written by John Darrington.
 
-     * John Darrington wrote the T-TEST ONEWAY and EXAMINE procedures, 
-       implemented support for long variable names and made numerous 
-       revisions to other modules.
+     * John Darrington wrote the T-TEST, ONEWAY, and EXAMINE
+       procedures, implemented support for long variable names and
+       made numerous revisions to other modules.
+
+     * Jason Stover contributed statistical and numerical
+       functionality, including lib/gslextras.  (Jason is also an
+       important contributor to libgsl used by PSPP.)
