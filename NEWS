@@ -1,17 +1,11 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2005-05-02 22:40:58 blp>
+Time-stamp: <2005-07-03 21:25:56 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Preliminary list of changes from 0.3.1  to 0.3.2:
-
-  PSPP now reads and writes system files compatible with spssV12.
-
-  New commands:   VARIABLE WIDTH, VARIABLE ALIGNMENT, VARIABLE LEVEL.
-
-Preliminary list of changes from 0.3.0 to 0.3.1:
+Changes from 0.3.0 to 0.4.0:
 
   New build dependencies:
 
@@ -25,9 +19,7 @@ Preliminary list of changes from 0.3.0 to 0.3.1:
 
   Newly implemented commands and statistical features:
 
-    * DATE (as a stub, to enhance compatibility).
-
-    * EXAMINE.
+    * EXAMINE, including its graphing features.
 
     * FREQUENCIES now supports percentiles.
 
@@ -37,9 +29,31 @@ Preliminary list of changes from 0.3.0 to 0.3.1:
 
     * SHOW.
 
+    * SORT CASES now sorts stably, that is, two cases with equal sort
+      criteria will be in the same relative order before and after the
+      sort.
+
     * T-TEST (re-written).
 
-    * USE (as a stub, to enhance compatibility).
+    * DATE and USE.  These commands are parsed but otherwise ignored,
+      to enhance compatibility with certain command files that invoke
+      them unnecessarily.
+
+    * VARIABLE WIDTH, VARIABLE ALIGNMENT, and VARIABLE LEVEL.  These
+      currently have no effect on PSPP output, but their values are
+      written to and read from system files and thus may affect
+      third-party software.
+
+    * SET EPOCH implemented.
+
+    * DATA LIST FREE and DATA LIST LIST now support arbitrary field
+      delimiters.
+
+    * FILE HANDLE now supports custom tab widths.
+
+  Long variable names (and other identifiers) are now supported.  Up
+  to the first 64 bytes of each identifier is significant.  PSPP now
+  reads and writes system files compatible with SPSS version 12.
 
   New --algorithm and --syntax command line options allow
   SPSS-compatible or enhanced modes to be selected.
@@ -48,19 +62,30 @@ Preliminary list of changes from 0.3.0 to 0.3.1:
   significantly improved.  Refer to the manual for details.
 
   Calculation of moments (mean, standard deviation, kurtosis,
-  skewness) has been rewritten and should now be more accurate.
+  skewness) has been rewritten and should now be more accurate.  In
+  --algorithm=enhanced mode moments may be more accurate than SPSS in
+  some cases.
 
   Numerous bugs have been fixed, too many to mention here.  Many new
   tests have been added, leading to the discovery and fixing of many
   of these bugs.
 
-  ASCII driver can now squeeze multiple blank lines into single blank
-  lines.
+  The ASCII output driver can now squeeze multiple blank lines into
+  single blank lines.
 
   Much of the code has been rewritten and refactored.  It is now much
   cleaner.
 
-  lib/julcal has been removed.
+  The FILE TYPE and REPEATING DATA commands have been disabled for
+  this release because their implementations were deemed too buggy to
+  be useful.  They will be fixed and replaced in a future release.
+
+  New pspp-mode for Emacs (in pspp-mode.el).
+
+  Added rudimentary command-line completion for interactive input.
+
+  lib/julcal and lib/dcdflib are no longer used, so they have been
+  removed.
 
   For developers, the build system now requires Autoconf 2.58 and
   Automake 1.7.  The included gettext has been updated to version
