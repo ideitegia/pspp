@@ -406,11 +406,8 @@ close_active_file (void)
     dict_compact_values (default_dict);
     
   /* Free data source. */
-  if (vfm_source != NULL) 
-    {
-      free_case_source (vfm_source);
-      vfm_source = NULL;
-    }
+  free_case_source (vfm_source);
+  vfm_source = NULL;
 
   /* Old data sink becomes new data source. */
   if (vfm_sink->class->make_source != NULL)
