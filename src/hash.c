@@ -20,6 +20,7 @@
 #include <config.h>
 #include "hash.h"
 #include "error.h"
+#include <assert.h>
 #include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
