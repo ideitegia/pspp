@@ -1,3 +1,12 @@
+Sun Jul  3 21:45:32 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix NDEBUG compile errors.
+
+	* hash.h: Needed explicit #include <assert.h>.
+
+	* linked-list.c: (ll_next) First arg is UNUSED when NDEBUG is
+	defined.
+
 Sun Jun 12 23:44:38 2005  Ben Pfaff  <blp@gnu.org>
 
 	Implement embedding for PostScript driver.  Fixes bug 12970.
