@@ -478,6 +478,8 @@ read_console (void)
   ds_clear (&getl_buf);
   ds_puts (&getl_buf, line);
 
+  free (line);
+
   return 1;
 }
 #else /* no -lreadline */
