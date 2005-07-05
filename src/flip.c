@@ -38,7 +38,7 @@
 #include "var.h"
 #include "vfm.h"
 
-#ifndef HAVE_SYS_TYPES_H
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
 
