@@ -70,7 +70,7 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="filter output"
-grep -v '^Created: ' $TEMPDIR/pspp.list > $TEMPDIR/out-filtered
+egrep -v '^(Created|Endian): ' $TEMPDIR/pspp.list > $TEMPDIR/out-filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
@@ -86,7 +86,6 @@ diff $TEMPDIR/out-filtered - << EOF
 2.1 SYSFILE INFO.  
 File:      pro.sav
 Label:     No label.
-Endian:    Little.
 Variables: 2
 Cases:     3
 Type:      System File.
