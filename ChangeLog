@@ -1,3 +1,7 @@
+Mon Jul  4 17:59:54 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Add pspp-mode.el to EXTRA_DIST.
+
 Wed May  4 08:49:13 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* README.CVS Smake: Added a CONFIGUREFLAGS variable.

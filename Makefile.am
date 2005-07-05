@@ -22,7 +22,8 @@ private-install:
 private-uninstall:
 	$(MAKE) private-uninstall -C config
 
-EXTRA_DIST = mkinstalldirs  config.rpath  NEWS ONEWS TODO pref.h.orig configure
+EXTRA_DIST = mkinstalldirs config.rpath NEWS ONEWS TODO pref.h.orig	\
+configure pspp-mode.el
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
 
