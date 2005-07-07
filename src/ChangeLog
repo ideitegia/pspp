@@ -1,3 +1,10 @@
+Wed Jul  6 20:44:27 2005  Ben Pfaff  <blp@gnu.org>
+
+	* get.c: (mtf_processing) Don't assume that
+	mtf_compare_BY_values() always returns -1, 0, or 1.  Actually, it
+	returns a negative, zero, or positive result.  Fixes MATCH FILES
+	bug on Mac OS X reported by "Marshall DeBerry" <mdb@radix.net>.
+
 Mon Jul  4 18:01:15 2005  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c: [HAVE_SYS_TYPES_H] Really include <sys/types.h>.  The

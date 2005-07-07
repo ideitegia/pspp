@@ -1222,38 +1222,34 @@ mtf_processing (struct ccase *c, void *mtf_)
       min_head = min_tail = mtf->head;
       max_head = max_tail = NULL;
       for (iter = mtf->head->next; iter && iter->type == MTF_FILE;
-	   iter = iter->next)
-	switch (mtf_compare_BY_values (mtf, min_head, iter, c))
-	  {
-	  case -1:
-	    if (max_head)
-	      max_tail = max_tail->next_min = iter;
-	    else
-	      max_head = max_tail = iter;
-	    break;
-
-	  case 0:
+	   iter = iter->next) 
+        {
+          int cmp = mtf_compare_BY_values (mtf, min_head, iter, c);
+          if (cmp < 0) 
+            {
+              if (max_head)
+                max_tail = max_tail->next_min = iter;
+              else
+                max_head = max_tail = iter;
+            }
+          else if (cmp == 0) 
 	    min_tail = min_tail->next_min = iter;
-	    break;
-
-	  case 1:
-	    if (max_head)
-	      {
-		max_tail->next_min = min_head;
-		max_tail = min_tail;
-	      }
-	    else
-	      {
-		max_head = min_head;
-		max_tail = min_tail;
-	      }
-	    min_head = min_tail = iter;
-	    break;
-
-	  default:
-	    assert (0);
-	  }
-
+          else /* cmp > 0 */
+            {
+              if (max_head)
+                {
+                  max_tail->next_min = min_head;
+                  max_tail = min_tail;
+                }
+              else
+                {
+                  max_head = min_head;
+                  max_tail = min_tail;
+                }
+              min_head = min_tail = iter;
+            }
+        }
+      
       /* 4. For every TABLE, read another record as long as the BY
 	 values on the TABLE's input record are less than the FILEs'
 	 BY values.  If an exact match is found, store all the values
@@ -1263,32 +1259,28 @@ mtf_processing (struct ccase *c, void *mtf_)
 	  assert (iter->type == MTF_TABLE);
       
 	  next = iter->next;
-
-	again:
-	  switch (mtf_compare_BY_values (mtf, min_head, iter, c))
-	    {
-	    case -1:
-	      if (max_head)
-		max_tail = max_tail->next_min = iter;
-	      else
-		max_head = max_tail = iter;
-	      break;
-
-	    case 0:
-	      min_tail = min_tail->next_min = iter;
-	      break;
-
-	    case 1:
-	      if (iter->handle == NULL)
-		return 1;
-	      if (sfm_read_case (iter->reader, &iter->input))
-		goto again;
-	      mtf_delete_file_in_place (mtf, &iter);
-	      break;
-
-	    default:
-	      assert (0);
-	    }
+          for (;;) 
+            {
+              int cmp = mtf_compare_BY_values (mtf, min_head, iter, c);
+              if (cmp < 0) 
+                {
+                  if (max_head)
+                    max_tail = max_tail->next_min = iter;
+                  else
+                    max_head = max_tail = iter;
+                }
+              else if (cmp == 0)
+                min_tail = min_tail->next_min = iter;
+              else /* cmp > 0 */
+                {
+                  if (iter->handle == NULL)
+                    return 1;
+                  if (sfm_read_case (iter->reader, &iter->input))
+                    continue;
+                  mtf_delete_file_in_place (mtf, &iter);
+                }
+              break;
+            }
 	}
 
       /* Next sequence number. */
