@@ -74,7 +74,7 @@ egrep -v '^(Created|Endian): ' $TEMPDIR/pspp.list > $TEMPDIR/out-filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff $TEMPDIR/out-filtered - << EOF
+diff -b -B -w $TEMPDIR/out-filtered - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
