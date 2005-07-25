@@ -62,6 +62,9 @@ Version and date info.
 Product identification.
 
 @item
+Author identification (optional).
+
+@item
 Subproduct identification (optional).
 
 @item
@@ -327,9 +330,13 @@ The product identification record has tag code @samp{1}.  It consists of
 a single string field giving the name of the product that wrote the
 portable file.
 
-The subproduct identification record has tag code @samp{3}.  It
-consists of a single string field giving additional information on the
-product that wrote the portable file.
+The author identification record has tag code @samp{2}.  It is
+optional.  If present, it consists of a single string field giving the
+name of the person who caused the portable file to be written.
+
+The subproduct identification record has tag code @samp{3}.  It is
+optional.  If present, it consists of a single string field giving
+additional information on the product that wrote the portable file.
 
 @node Variable Count Record, Case Weight Variable Record, Identification Records, Portable File Format
 @section Variable Count Record

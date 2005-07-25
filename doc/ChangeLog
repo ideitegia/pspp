@@ -1,3 +1,7 @@
+Sun Jul 24 18:47:02 2005  Ben Pfaff  <blp@gnu.org>
+
+	* portable-file-format.texi: Describe author field.
+
 Sat May  7 17:26:39 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* Makefile.am: Made ni.texi a nodist file
