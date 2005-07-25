@@ -212,9 +212,7 @@ parse_numeric (struct data_in *i)
       return false;
     }
   
-  if (have_char (i)
-      && (tolower (*i->s) == 'e' || tolower (*i->s) == 'd'
-	  || (type == FMT_E && (*i->s == '+' || *i->s == '-'))))
+  if (have_char (i) && strchr ("eEdD-+", *i->s))
     {
       /* Get the exponent specified after the `e' or `E'.  */
       long exp;

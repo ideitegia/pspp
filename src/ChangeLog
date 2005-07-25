@@ -1,3 +1,8 @@
+Sun Jul 24 18:49:20 2005  Ben Pfaff  <blp@gnu.org>
+
+	* data-in.c: (parse_numeric) Allow "1+23" even for F format, for
+	compatibility.
+
 Sun Jul 24 18:47:37 2005  Ben Pfaff  <blp@gnu.org>
 
 	* pfm-read.c: (read_version_data) Read and ignore author field.
