@@ -1,3 +1,10 @@
+Sun Jul 24 20:31:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Don't detect libgmp anymore, because we eliminated
+	the dependency.
+
+	* NEWS: Update.
+
 Mon Jul  4 17:59:54 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Add pspp-mode.el to EXTRA_DIST.
