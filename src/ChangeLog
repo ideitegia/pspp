@@ -1,3 +1,20 @@
+Sun Jul 24 20:26:59 2005  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of dependency on libgmp by writing our own routine for
+	floating-point base conversion.
+
+	* pfm-write.c: (write_float) Rewrote.
+	(write_int) Rewrote.
+	(pow30_nonnegative) New function.
+	(pow30) New function.
+	(trig_to_char) New function.
+	(format_trig_digits) New function.
+	(recurse_format_trig_int) New function.
+	(format_trig_int) New function.
+	(should_round_up) New function.
+	(try_round_up) New function.
+	(format_trig_double) New function.
+
 Sun Jul 24 18:49:20 2005  Ben Pfaff  <blp@gnu.org>
 
 	* data-in.c: (parse_numeric) Allow "1+23" even for F format, for

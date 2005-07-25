@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2005-07-18 11:08:18 blp>
+Time-stamp: <2005-07-24 20:23:41 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -7,15 +7,16 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes from 0.3.0 to 0.4.0:
 
-  New build dependencies:
+  Changes in build dependencies:
 
-    * The GNU Scientific Library (libgsl), version 1.6 or later.
-
-    * The GNU multiprecision arithmetic library (libgmp).
+    * The GNU Scientific Library (libgsl), version 1.6 or later, is
+      now required.
 
     * libplot from GNU plotutils is optional.  Without it, the new
       graphing features will not work.  If you do not have it
       installed, you must run `configure' with --without-libplot.
+
+    * libgmp2 is no longer a dependency.
 
   Newly implemented commands and statistical features:
 

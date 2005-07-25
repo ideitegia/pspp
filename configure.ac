@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AX_PREREQ(2.57)
-AC_INIT(pspp, 0.3.2,bug-gnu-pspp@gnu.org)
+AC_INIT(pspp, 0.4.0,bug-gnu-pspp@gnu.org)
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
@@ -39,12 +39,6 @@ if test x"$with_libplot" != x"no" ; then
 fi
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 
-
-AC_CHECK_LIB(gmp, mpf_get_str,,
-	AC_CHECK_LIB(gmp, __gmpf_get_str,,
-          AC_MSG_ERROR([You must install libgmp])
-        )
-)
 
 AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas]))
 AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,

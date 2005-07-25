@@ -32,9 +32,9 @@
 #include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
-#include "gmp.h"
 #include "hash.h"
 #include "magic.h"
+#include "misc.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -66,6 +66,9 @@ static int write_header (struct pfm_writer *);
 static int write_version_data (struct pfm_writer *);
 static int write_variables (struct pfm_writer *, struct dictionary *);
 static int write_value_labels (struct pfm_writer *, const struct dictionary *);
+
+static void format_trig_double (long double, int base_10_precision, char[]);
+static char *format_trig_int (int, bool force_sign, char[]);
 
 /* Writes the dictionary DICT to portable file HANDLE.  Returns
    nonzero only if successful.  DICT will not be modified, except
@@ -162,107 +165,18 @@ buf_write (struct pfm_writer *w, const void *buf_, size_t nbytes)
 static int
 write_float (struct pfm_writer *w, double d)
 {
-  int neg = 0;
-  char *mantissa;
-  int mantissa_len;
-  mp_exp_t exponent;
-  char *buf, *cp;
-  int success;
-
-  if (d < 0.)
-    {
-      d = -d;
-      neg = 1;
-    }
-  
-  if (d == fabs (SYSMIS) || d == HUGE_VAL)
-    return buf_write (w, "*.", 2);
-  
-  /* Use GNU libgmp2 to convert D into base-30. */
-  {
-    mpf_t f;
-    
-    mpf_init_set_d (f, d);
-    mantissa = mpf_get_str (NULL, &exponent, 30, 0, f);
-    mpf_clear (f);
-
-    for (cp = mantissa; *cp; cp++)
-      *cp = toupper (*cp);
-  }
-  
-  /* Choose standard or scientific notation. */
-  mantissa_len = (int) strlen (mantissa);
-  cp = buf = local_alloc (mantissa_len + 32);
-  if (neg)
-    *cp++ = '-';
-  if (mantissa_len == 0)
-    *cp++ = '0';
-  else if (exponent < -4 || exponent > (mp_exp_t) mantissa_len)
-    {
-      /* Scientific notation. */
-      *cp++ = mantissa[0];
-      *cp++ = '.';
-      cp = stpcpy (cp, &mantissa[1]);
-      cp = spprintf (cp, "%+ld", (long) (exponent - 1));
-    }
-  else if (exponent <= 0)
-    {
-      /* Standard notation, D <= 1. */
-      *cp++ = '.';
-      memset (cp, '0', -exponent);
-      cp += -exponent;
-      cp = stpcpy (cp, mantissa);
-    }
-  else 
-    {
-      /* Standard notation, D > 1. */
-      memcpy (cp, mantissa, exponent);
-      cp += exponent;
-      *cp++ = '.';
-      cp = stpcpy (cp, &mantissa[exponent]);
-    }
-  *cp++ = '/';
-  
-  success = buf_write (w, buf, cp - buf);
-  local_free (buf);
-  free (mantissa);
-  return success;
+  char buffer[64];
+  format_trig_double (d, DBL_DIG, buffer);
+  return buf_write (w, buffer, strlen (buffer)) && buf_write (w, "/", 1);
 }
 
 /* Write N to the portable file as an integer field, and return success. */
 static int
 write_int (struct pfm_writer *w, int n)
 {
-  char buf[64];
-  char *bp = &buf[64];
-  int neg = 0;
-
-  *--bp = '/';
-  
-  if (n < 0)
-    {
-      n = -n;
-      neg = 1;
-    }
-  
-  do
-    {
-      int r = n % 30;
-
-      /* PORTME: character codes. */
-      if (r < 10)
-	*--bp = r + '0';
-      else
-	*--bp = r - 10 + 'A';
-
-      n /= 30;
-    }
-  while (n > 0);
-
-  if (neg)
-    *--bp = '-';
-
-  return buf_write (w, bp, &buf[64] - bp);
+  char buffer[64];
+  format_trig_int (n, false, buffer);
+  return buf_write (w, buffer, strlen (buffer)) && buf_write (w, "/", 1);
 }
 
 /* Write S to the portable file as a string field. */
@@ -496,4 +410,372 @@ pfm_close_writer (struct pfm_writer *w)
 
   free (w->vars);
   free (w);
+}
+
+/* Base-30 conversion. */
+
+/* Conversion base. */
+#define BASE 30                         /* As an integer. */
+#define LDBASE ((long double) BASE)     /* As a long double. */
+
+/* This is floor(log30(2**31)), the minimum number of trigesimal
+   digits that a `long int' can hold. */
+#define CHUNK_SIZE 6                    
+
+/* Yields the square of X. */
+#define Q(X) ((X) * (X))
+
+/* Returns 30**EXPONENT, for 0 <= EXPONENT <= log30(DBL_MAX). */
+static long double
+pow30_nonnegative (int exponent)
+{
+  /* pow_tab[i] = pow (30, pow (2, i)) */
+  static const long double pow_tab[] =
+    {
+      LDBASE,
+      Q (LDBASE),
+      Q (Q (LDBASE)),
+      Q (Q (Q (LDBASE))),
+      Q (Q (Q (Q (LDBASE)))),
+      Q (Q (Q (Q (Q (LDBASE))))),
+      Q (Q (Q (Q (Q (Q (LDBASE)))))),
+      Q (Q (Q (Q (Q (Q (Q (LDBASE))))))),
+      Q (Q (Q (Q (Q (Q (Q (Q (LDBASE)))))))),
+      Q (Q (Q (Q (Q (Q (Q (Q (Q (LDBASE))))))))),
+      Q (Q (Q (Q (Q (Q (Q (Q (Q (Q (LDBASE)))))))))),
+      Q (Q (Q (Q (Q (Q (Q (Q (Q (Q (Q (LDBASE))))))))))),
+    };
+
+  long double power;
+  int i;
+
+  assert (exponent >= 0);
+  assert (exponent < 1L << (sizeof pow_tab / sizeof *pow_tab));
+
+  power = 1.L;
+  for (i = 0; exponent > 0; exponent >>= 1, i++)
+    if (exponent & 1)
+      power *= pow_tab[i];
+
+  return power;
+}
+
+/* Returns 30**EXPONENT, for log30(DBL_MIN) <= EXPONENT <=
+   log30(DBL_MAX). */
+static long double
+pow30 (int exponent)
+{
+  if (exponent >= 0)
+    return pow30_nonnegative (exponent);
+  else
+    return 1.L / pow30_nonnegative (-exponent);
+}
+
+/* Returns the character corresponding to TRIG. */
+static int
+trig_to_char (int trig)
+{
+  assert (trig >= 0 && trig < 30);
+  return "0123456789ABCDEFGHIJKLMNOPQRST"[trig];
+}
+
+/* Formats the TRIG_CNT trigs in TRIGS[], writing them as
+   null-terminated STRING.  The trigesimal point is inserted
+   after TRIG_PLACES characters have been printed, if necessary
+   adding extra zeros at either end for correctness.  Returns the
+   character after the formatted number. */
+static char *
+format_trig_digits (char *string,
+                    const char trigs[], int trig_cnt, int trig_places)
+{
+  if (trig_places < 0)
+    {
+      *string++ = '.';
+      while (trig_places++ < 0)
+        *string++ = '0';
+      trig_places = -1;
+    }
+  while (trig_cnt-- > 0)
+    {
+      if (trig_places-- == 0)
+        *string++ = '.';
+      *string++ = trig_to_char (*trigs++);
+    }
+  while (trig_places-- > 0)
+    *string++ = '0';
+  *string = '\0';
+  return string;
+}
+
+/* Helper function for format_trig_int() that formats VALUE as a
+   trigesimal integer at CP.  VALUE must be nonnegative.
+   Returns the character following the formatted integer. */
+static char *
+recurse_format_trig_int (char *cp, int value)
+{
+  int trig = value % BASE;
+  value /= BASE;
+  if (value > 0)
+    cp = recurse_format_trig_int (cp, value);
+  *cp++ = trig_to_char (trig);
+  return cp;
+}
+
+/* Formats VALUE as a trigesimal integer in null-terminated
+   STRING[].  VALUE must be in the range -DBL_MAX...DBL_MAX.  If
+   FORCE_SIGN is true, a sign is always inserted; otherwise, a
+   sign is only inserted if VALUE is negative. */
+static char *
+format_trig_int (int value, bool force_sign, char string[])
+{
+  /* Insert sign. */
+  if (value < 0)
+    {
+      *string++ = '-';
+      value = -value;
+    }
+  else if (force_sign)
+    *string++ = '+';
+
+  /* Format integer. */
+  string = recurse_format_trig_int (string, value);
+  *string = '\0';
+  return string;
+}
+
+/* Determines whether the TRIG_CNT trigesimals in TRIGS[] warrant
+   rounding up or down.  Returns true if TRIGS[] represents a
+   value greater than half, false if less than half.  If TRIGS[]
+   is exactly half, examines TRIGS[-1] and returns true if odd,
+   false if even ("round to even"). */
+static bool
+should_round_up (const char trigs[], int trig_cnt)
+{
+  assert (trig_cnt > 0);
+
+  if (*trigs < BASE / 2)
+    {
+      /* Less than half: round down. */
+      return false;
+    }
+  else if (*trigs > BASE / 2)
+    {
+      /* Greater than half: round up. */
+      return true;
+    }
+  else
+    {
+      /* Approximately half: look more closely. */
+      int i;
+      for (i = 1; i < trig_cnt; i++)
+        if (trigs[i] > 0)
+          {
+            /* Slightly greater than half: round up. */
+            return true;
+          }
+
+      /* Exactly half: round to even. */
+      return trigs[-1] % 2;
+    }
+}
+
+/* Rounds up the rightmost trig in the TRIG_CNT trigs in TRIGS[],
+   carrying to the left as necessary.  Returns true if
+   successful, false on failure (due to a carry out of the
+   leftmost position). */
+static bool
+try_round_up (char *trigs, int trig_cnt)
+{
+  while (trig_cnt > 0)
+    {
+      char *round_trig = trigs + --trig_cnt;
+      if (*round_trig != BASE - 1)
+        {
+          /* Round this trig up to the next value. */
+          ++*round_trig;
+          return true;
+        }
+
+      /* Carry over to the next trig to the left. */
+      *round_trig = 0;
+    }
+
+  /* Ran out of trigs to carry. */
+  return false;
+}
+
+/* Converts VALUE to trigesimal format in string OUTPUT[] with the
+   equivalent of at least BASE_10_PRECISION decimal digits of
+   precision.  The output format may use conventional or
+   scientific notation.  Missing, infinite, and extreme values
+   are represented with "*.". */
+static void
+format_trig_double (long double value, int base_10_precision, char output[])
+{
+  /* Original VALUE was negative? */
+  bool negative;
+
+  /* Number of significant trigesimals. */
+  int base_30_precision;
+
+  /* Base-2 significand and exponent for original VALUE. */
+  double base_2_sig;
+  int base_2_exp;
+
+  /* VALUE as a set of trigesimals. */
+  char buffer[DBL_DIG + 16];
+  char *trigs;
+  int trig_cnt;
+
+  /* Number of trigesimal places for trigs.
+     trigs[0] has coefficient 30**(trig_places - 1),
+     trigs[1] has coefficient 30**(trig_places - 2),
+     and so on.
+     In other words, the trigesimal point is just before trigs[0].
+   */
+  int trig_places;
+
+  /* Number of trigesimal places left to write into BUFFER. */
+  int trigs_to_output;
+
+  /* Handle special cases. */
+  if (value == SYSMIS)
+    goto missing_value;
+  if (value == 0.)
+    goto zero;
+
+  /* Make VALUE positive. */
+  if (value < 0)
+    {
+      value = -value;
+      negative = true;
+    }
+  else
+    negative = false;
+
+  /* Adjust VALUE to roughly 30**3, by shifting the trigesimal
+     point left or right as necessary.  We approximate the
+     base-30 exponent by obtaining the base-2 exponent, then
+     multiplying by log30(2).  This approximation is sufficient
+     to ensure that the adjusted VALUE is always in the range
+     0...30**6, an invariant of the loop below. */
+  errno = 0;
+  base_2_sig = frexp (value, &base_2_exp);
+  if (errno != 0 || !finite (base_2_sig))
+    goto missing_value;
+  if (base_2_exp == 0 && base_2_sig == 0.)
+    goto zero;
+  if (base_2_exp <= INT_MIN / 20379L || base_2_exp >= INT_MAX / 20379L)
+    goto missing_value;
+  trig_places = (base_2_exp * 20379L / 100000L) + CHUNK_SIZE / 2;
+  value *= pow30 (CHUNK_SIZE - trig_places);
+
+  /* Dump all the trigs to buffer[], CHUNK_SIZE at a time. */
+  trigs = buffer;
+  trig_cnt = 0;
+  for (trigs_to_output = DIV_RND_UP (DBL_DIG * 2, 3) + 1 + (CHUNK_SIZE / 2);
+       trigs_to_output > 0;
+       trigs_to_output -= CHUNK_SIZE)
+    {
+      long chunk;
+      int trigs_left;
+
+      /* The current chunk is just the integer part of VALUE,
+         truncated to the nearest integer.  The chunk fits in a
+         long. */
+      chunk = value;
+      assert (pow30 (CHUNK_SIZE) <= LONG_MAX);
+      assert (chunk >= 0 && chunk < pow30 (CHUNK_SIZE));
+
+      value -= chunk;
+
+      /* Append the chunk, in base 30, to trigs[]. */
+      for (trigs_left = CHUNK_SIZE; chunk > 0 && trigs_left > 0; )
+        {
+          trigs[trig_cnt + --trigs_left] = chunk % 30;
+          chunk /= 30;
+        }
+      while (trigs_left > 0)
+        trigs[trig_cnt + --trigs_left] = 0;
+      trig_cnt += CHUNK_SIZE;
+
+      /* Proceed to the next chunk. */
+      if (value == 0.)
+        break;
+      value *= pow (LDBASE, CHUNK_SIZE);
+    }
+
+  /* Strip leading zeros. */
+  while (trig_cnt > 1 && *trigs == 0)
+    {
+      trigs++;
+      trig_cnt--;
+      trig_places--;
+    }
+
+  /* Round to requested precision, conservatively estimating the
+     required base-30 precision as 2/3 of the base-10 precision
+     (log30(10) = .68). */
+  assert (base_10_precision > 0);
+  base_30_precision = DIV_RND_UP (base_10_precision * 2, 3);
+  if (trig_cnt > base_30_precision)
+    {
+      if (should_round_up (trigs + base_30_precision,
+                           trig_cnt - base_30_precision))
+        {
+          /* Try to round up. */
+          if (try_round_up (trigs, base_30_precision))
+            {
+              /* Rounding up worked. */
+              trig_cnt = base_30_precision;
+            }
+          else
+            {
+              /* Couldn't round up because we ran out of trigs to
+                 carry into.  Do the carry here instead. */
+              *trigs = 1;
+              trig_cnt = 1;
+              trig_places++;
+            }
+        }
+      else
+        {
+          /* Round down. */
+          trig_cnt = base_30_precision;
+        }
+    }
+  else
+    {
+      /* No rounding required: fewer digits available than
+         requested. */
+    }
+
+  /* Strip trailing zeros. */
+  while (trig_cnt > 1 && trigs[trig_cnt - 1] == 0)
+    trig_cnt--;
+
+  /* Write output. */
+  if (negative)
+    *output++ = '-';
+  if (trig_places >= -1 && trig_places < trig_cnt + 3)
+    {
+      /* Use conventional notation. */
+      format_trig_digits (output, trigs, trig_cnt, trig_places);
+    }
+  else
+    {
+      /* Use scientific notation. */
+      char *op;
+      op = format_trig_digits (output, trigs, trig_cnt, trig_cnt);
+      op = format_trig_int (trig_places - trig_cnt, true, op);
+    }
+  return;
+
+ zero:
+  strcpy (output, "0");
+  return;
+
+ missing_value:
+  strcpy (output, "*.");
+  return;
 }
