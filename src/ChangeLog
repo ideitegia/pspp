@@ -1,3 +1,7 @@
+Sun Jul 24 18:47:37 2005  Ben Pfaff  <blp@gnu.org>
+
+	* pfm-read.c: (read_version_data) Read and ignore author field.
+
 Wed Jul  6 20:44:27 2005  Ben Pfaff  <blp@gnu.org>
 
 	* get.c: (mtf_processing) Don't assume that

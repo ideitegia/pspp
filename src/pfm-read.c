@@ -408,7 +408,7 @@ read_header (struct pfm_reader *r)
 static void
 read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 {
-  char *date, *time, *product, *subproduct;
+  char *date, *time, *product, *author, *subproduct;
   int i;
 
   /* Read file. */
@@ -417,6 +417,7 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
   date = read_pool_string (r);
   time = read_pool_string (r);
   product = match (r, '1') ? read_pool_string (r) : (unsigned char *) "";
+  author = match (r, '2') ? read_pool_string (r) : (unsigned char *) "";
   subproduct
     = match (r, '3') ? read_pool_string (r) : (unsigned char *) "";
 
