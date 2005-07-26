@@ -12,7 +12,8 @@ here=`pwd`;
 cd $top_srcdir; top_srcdir=`pwd`
 
 
-export STAT_CONFIG_PATH=$top_srcdir/config
+STAT_CONFIG_PATH=$top_srcdir/config
+export STAT_CONFIG_PATH
 
 cleanup()
 {

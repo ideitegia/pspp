@@ -6,18 +6,21 @@
 # To use it: 
 # 
 # make distclean
-# export CFLAGS="-O0 -g -fprofile-arcs -ftest-coverage"
+# CFLAGS="-O0 -g -fprofile-arcs -ftest-coverage"
+# export CFLAGS
 # ./configure
 # make check
 # tests/coverage.sh
 
-export TEMPDIR=/tmp/pspp-cov-$$
+TEMPDIR=/tmp/pspp-cov-$$
+export TEMPDIR
 
 mkdir -p $TEMPDIR
 
 files=`find src -name '*.c'`
 
-export summary_file="$TEMPDIR/coverage.txt"
+summary_file="$TEMPDIR/coverage.txt"
+export summary_file
 
 rm -f $summary_file
 
