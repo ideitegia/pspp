@@ -13,7 +13,4 @@ Thanks to...
 
      * Jim Van Zandt for Debian packaging and suggestions.
 
-     * Torbj"orn Granlund and TMG Datakonsult for GNU gmp2 used in the 
-       portable file routines.
-
      * The authors of libplot and libgsl for providing those libraries.
