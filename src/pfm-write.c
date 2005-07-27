@@ -412,7 +412,15 @@ pfm_close_writer (struct pfm_writer *w)
   free (w);
 }
 
-/* Base-30 conversion. */
+/* Base-30 conversion.
+
+   Portable files represent numbers in base-30 format, so we need
+   to be able to convert real and integer number to that base.
+   Older versions of PSPP used libgmp to do so, but this added a
+   big library dependency to do just one thing.  Now we do it
+   ourselves internally.
+
+   Important fact: base 30 is called "trigesimal". */
 
 /* Conversion base. */
 #define BASE 30                         /* As an integer. */
@@ -422,30 +430,36 @@ pfm_close_writer (struct pfm_writer *w)
    digits that a `long int' can hold. */
 #define CHUNK_SIZE 6                    
 
-/* Yields the square of X. */
-#define Q(X) ((X) * (X))
+/* pow_tab[i] = pow (30, pow (2, i)) */
+static long double pow_tab[16];
+
+/* Initializes pow_tab[]. */
+static void
+init_pow_tab (void) 
+{
+  static bool did_init = false;
+  long double power;
+  size_t i;
+
+  /* Only initialize once. */
+  if (did_init)
+    return;
+  did_init = true;
+
+  /* Set each element of pow_tab[] until we run out of numerical
+     range. */
+  i = 0;
+  for (power = 30.0L; power < DBL_MAX; power *= power)
+    {
+      assert (i < sizeof pow_tab / sizeof *pow_tab);
+      pow_tab[i++] = power;
+    }
+}
 
 /* Returns 30**EXPONENT, for 0 <= EXPONENT <= log30(DBL_MAX). */
 static long double
 pow30_nonnegative (int exponent)
 {
-  /* pow_tab[i] = pow (30, pow (2, i)) */
-  static const long double pow_tab[] =
-    {
-      LDBASE,
-      Q (LDBASE),
-      Q (Q (LDBASE)),
-      Q (Q (Q (LDBASE))),
-      Q (Q (Q (Q (LDBASE)))),
-      Q (Q (Q (Q (Q (LDBASE))))),
-      Q (Q (Q (Q (Q (Q (LDBASE)))))),
-      Q (Q (Q (Q (Q (Q (Q (LDBASE))))))),
-      Q (Q (Q (Q (Q (Q (Q (Q (LDBASE)))))))),
-      Q (Q (Q (Q (Q (Q (Q (Q (Q (LDBASE))))))))),
-      Q (Q (Q (Q (Q (Q (Q (Q (Q (Q (LDBASE)))))))))),
-      Q (Q (Q (Q (Q (Q (Q (Q (Q (Q (Q (LDBASE))))))))))),
-    };
-
   long double power;
   int i;
 
@@ -637,6 +651,8 @@ format_trig_double (long double value, int base_10_precision, char output[])
 
   /* Number of trigesimal places left to write into BUFFER. */
   int trigs_to_output;
+
+  init_pow_tab ();
 
   /* Handle special cases. */
   if (value == SYSMIS)
