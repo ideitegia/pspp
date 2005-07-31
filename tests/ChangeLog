@@ -1,3 +1,7 @@
+Sat Jul 30 21:48:37 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Add coverage.sh, temp_template to EXTRA_DIST.
+
 Sun Jul 24 20:35:04 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/sysfile-info.sh: Add "-b -B -w" to diff command line.

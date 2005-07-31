@@ -99,6 +99,7 @@ TESTS = \
 
 EXTRA_DIST = $(TESTS) weighting.data data-list.data list.data \
 	no_case_size.sav \
+	coverage.sh test_template \
 	bugs/computebug.stat bugs/computebug.out \
 	bugs/recode-copy-bug-1.stat bugs/recode-copy-bug-2.stat \
 	bugs/recode-copy-bug-1.out bugs/recode-copy-bug-2.out \
