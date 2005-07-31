@@ -1,3 +1,8 @@
+Sat Jul 30 22:43:57 2005  Ben Pfaff  <blp@gnu.org>
+
+	* file-handle.q: (cmd_file_handle) Fix msg() bug found by
+	-Wformat.
+
 Sat Jul 30 22:41:44 2005  Ben Pfaff  <blp@gnu.org>
 
 	* data-in.c: (parse_Z) [WORDS_BIGENDIAN] Don't declare buf[], to

@@ -169,7 +169,7 @@ cmd_file_handle (void)
       else if (cmd.n_lrecl[0] < 1)
 	{
 	  msg (SE, _("Record length (%ld) must be at least one byte.  "
-		     "1-character records will be assumed."), cmd.n_lrecl);
+		     "1-character records will be assumed."), cmd.n_lrecl[0]);
           handle->length = 1;
 	}
       else
