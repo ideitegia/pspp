@@ -1,3 +1,8 @@
+Sat Jul 30 22:36:29 2005  Ben Pfaff  <blp@gnu.org>
+
+	* case.c: (case_compare) Implement as delegating to
+	case_compare_2dict().
+
 Sat Jul 30 22:34:18 2005  Ben Pfaff  <blp@gnu.org>
 
 	* algorithm.c: Inclusion of <alloca.h> is unneeded.

@@ -356,31 +356,8 @@ int
 case_compare (const struct ccase *a, const struct ccase *b,
               struct variable *const *vp, size_t var_cnt)
 {
-  for (; var_cnt-- > 0; vp++) 
-    {
-      struct variable *v = *vp;
-
-      if (v->width == 0) 
-        {
-          double af = case_num (a, v->fv);
-          double bf = case_num (b, v->fv);
-
-          if (af != bf) 
-            return af > bf ? 1 : -1;
-        }
-      else 
-        {
-          const char *as = case_str (a, v->fv);
-          const char *bs = case_str (b, v->fv);
-          int cmp = memcmp (as, bs, v->width);
-
-          if (cmp != 0)
-            return cmp;
-        }
-    }
-  return 0;
+  return case_compare_2dict (a, b, vp, vp, var_cnt);
 }
-
 
 /* Compares the values of the VAR_CNT variables in VAP in case CA
    to the values of the VAR_CNT variables in VBP in CB
