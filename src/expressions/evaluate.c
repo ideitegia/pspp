@@ -289,7 +289,8 @@ expr_debug_print_postfix (const struct expression *e)
           break;
         case OP_string:
           fprintf (stderr, "s<%.*s>",
-                   (int) op->string.length, op->string.string);
+                   (int) op->string.length,
+                   op->string.string != NULL : op->string.string : "");
           break;
         case OP_format:
           fprintf (stderr, "f<%s%d.%d>",
