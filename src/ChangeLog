@@ -1,3 +1,8 @@
+Sat Jul 30 22:38:46 2005  Ben Pfaff  <blp@gnu.org>
+
+	* command.c: (find_word) Cast `char' to `unsigned char' before
+	passing to isspace().
+
 Sat Jul 30 22:36:29 2005  Ben Pfaff  <blp@gnu.org>
 
 	* case.c: (case_compare) Implement as delegating to

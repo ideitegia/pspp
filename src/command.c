@@ -305,7 +305,7 @@ static const char *
 find_word (const char *string, size_t *word_len) 
 {
   /* Skip whitespace and asterisks. */
-  while (isspace (*string))
+  while (isspace ((unsigned char) *string))
     string++;
 
   /* End of string? */
