@@ -15,8 +15,8 @@ export STAT_CONFIG_PATH
 
 cleanup()
 {
+     cd /
      rm -rf $TEMPDIR
-     :
 }
 
 
@@ -1298,7 +1298,6 @@ set mxerr 1000.' > $TEMPDIR/expr-opt.stat
 sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-opt.stat \
 	-e 's#^\(\(.*\); \)*\(.*\) => .*$#DEBUG EVALUATE\2/\3.#'
 if [ $? -ne 0 ] ; then no_result ; fi
-cp $TEMPDIR/expr-opt.stat ~/foo
 
 activity="run optimizing program"
 $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \

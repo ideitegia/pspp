@@ -19,6 +19,7 @@ cleanup()
         echo NOT removing directory $TEMPDIR
      	return ; 
      fi
+     cd /
      rm -rf $TEMPDIR
 }
 

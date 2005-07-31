@@ -15,6 +15,7 @@ export STAT_CONFIG_PATH
 
 cleanup()
 {
+     cd /
      rm -rf $TEMPDIR
 }
 

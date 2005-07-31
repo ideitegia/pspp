@@ -1,3 +1,23 @@
+Sat Jul 30 21:54:23 2005  Ben Pfaff  <blp@gnu.org>
+
+	* command/sys-info.sh: Removed.  (This was not actually in TESTS
+	in Makefile.am, so it was never called.
+	tests/command/sysfile-info.sh does what it was trying to do, but
+	better.)
+	
+Sat Jul 30 21:50:33 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fixes for Solaris.
+
+	* Most tests: Add `cd /' before `rm -rf $TEMPDIR' because some
+	OSes do not allow the current working directory to be removed.
+
+	* bugs/big-input-2.sh: Use perl instead of a shell loop, because
+	the shell loop was very slow on Solaris.
+
+	* command/sort.sh: Use `printf' instead of `echo -n' for
+	portability. 
+	
 Sat Jul 30 21:48:37 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Add coverage.sh, temp_template to EXTRA_DIST.

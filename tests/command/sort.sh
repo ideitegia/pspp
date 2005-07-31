@@ -16,6 +16,7 @@ export STAT_CONFIG_PATH
 
 cleanup()
 {
+     cd /
      rm -rf $TEMPDIR
 }
 
@@ -92,7 +93,7 @@ for count_repeat_buffers in \
   repeat=$2
   buffers=$3
 
-  echo -n .
+  printf .
 
   activity="generate data for $count_repeat_buffers run"
   $PERL gen-data.pl $count $repeat > sort.data

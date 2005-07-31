@@ -17,6 +17,7 @@ export STAT_CONFIG_PATH
 cleanup()
 {
      if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then return ; fi
+     cd /
      rm -rf $TEMPDIR
 }
 

@@ -19,6 +19,7 @@ export STAT_CONFIG_PATH
 
 cleanup()
 {
+     cd /
      rm -rf $TEMPDIR
 }
 
@@ -56,16 +57,10 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 printf "Creating input data.  Please wait"
 activity="create data"
-( while true ; do 
-	echo AB12;
-done )  | head -100000 >> $TEMPDIR/large.dat
+$PERL -e 'print "AB12\n" foreach 1...100000;
+          print "AB04\n" foreach 1...100000;' > $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
-printf '.'
-( while true ; do 
-	echo AB04;
-done )  | head -100000 >> $TEMPDIR/large.dat
-if [ $? -ne 0 ] ; then no_result ; fi
-printf "\n";
+printf ".\n";
 
 activity="create program"
 cat > $TESTFILE <<EOF
@@ -85,10 +80,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 activity="appending to data"
 # Put another 100,000 cases into large.dat
-( while true ; do 
-	echo AB04 
-	echo AB12 
-done )  | head -50000 >> $TEMPDIR/large.dat
+$PERL -e 'print "AB04\nAB12\n" foreach 1...25000' >> $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
