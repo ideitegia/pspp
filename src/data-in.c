@@ -455,7 +455,9 @@ parse_Z (struct data_in *i)
 static inline bool
 parse_IB (struct data_in *i)
 {
+#ifndef WORDS_BIGENDIAN
   char buf[64];
+#endif
   const char *p;
 
   unsigned char xor;

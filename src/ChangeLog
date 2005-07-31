@@ -1,3 +1,8 @@
+Sat Jul 30 22:41:44 2005  Ben Pfaff  <blp@gnu.org>
+
+	* data-in.c: (parse_Z) [WORDS_BIGENDIAN] Don't declare buf[], to
+	avoid "unused variable" warning.
+
 Sat Jul 30 22:38:46 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command.c: (find_word) Cast `char' to `unsigned char' before
