@@ -1,6 +1,11 @@
+Sat Jul 30 23:13:17 2005  Ben Pfaff  <blp@gnu.org>
+
+	* expressions/parse.c: (validate_function_args) Fix two msg() bugs
+	found by -Wformat.
+
 Sat Jul 30 23:10:01 2005  Ben Pfaff  <blp@gnu.org>
 
-	* epxressions/evaluate.c: (expr_debug_print_postfix) Don't pass
+	* expressions/evaluate.c: (expr_debug_print_postfix) Don't pass
 	null pointer to printf for %.*s.
 
 Sat Jul 30 23:05:33 2005  Ben Pfaff  <blp@gnu.org>

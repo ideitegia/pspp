@@ -1033,7 +1033,7 @@ validate_function_args (const struct operation *f, int arg_cnt, int min_valid)
         {
           assert ((f->flags & OPF_MIN_VALID) == 0);
           msg (SE, _("%s function does not accept a minimum valid "
-                     "argument count."));
+                     "argument count."), f->prototype);
           return false;
         }
       else 
@@ -1042,7 +1042,7 @@ validate_function_args (const struct operation *f, int arg_cnt, int min_valid)
           if (array_arg_cnt < f->array_min_elems)
             {
               msg (SE, _("%s requires at least %d valid arguments in list."),
-                   f->prototype);
+                   f->prototype, f->array_min_elems);
               return false;
             }
           else if (min_valid > array_arg_cnt) 
