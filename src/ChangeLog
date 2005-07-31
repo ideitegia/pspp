@@ -1,3 +1,7 @@
+Sat Jul 30 22:58:33 2005  Ben Pfaff  <blp@gnu.org>
+
+	* rank.q: (parse_rank_function) Fix msg() bug found by -Wformat.
+
 Sat Jul 30 22:56:12 2005  Ben Pfaff  <blp@gnu.org>
 
 	* postscript.c: (postopen) Cast `char' to `unsigned char' before

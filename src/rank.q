@@ -241,7 +241,7 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 	    }
 	  if ( var_count > sc->crit_cnt ) 
 	    {
-	      msg(ME, _("Too many variables in INTO clause."), tokid);
+	      msg(ME, _("Too many variables in INTO clause."));
 	      return 0;
 	    }
 
