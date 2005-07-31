@@ -7,8 +7,7 @@ AM_CFLAGS=
 
 if cc_is_gcc
 AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
--Wpointer-arith -Wno-sign-compare -Wmissing-prototypes \
--ansi 
+-Wpointer-arith -Wno-sign-compare -Wmissing-prototypes
 endif
 
 if unix
