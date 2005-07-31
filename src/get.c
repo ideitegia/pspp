@@ -983,7 +983,7 @@ cmd_match_files (void)
           {
             msg (SE, _("IN variable name %s duplicates an "
                        "existing variable name."),
-                 iter->in_var);
+                 iter->in_var->name);
             goto error;
           }
         iter->in_var->print = iter->in_var->write
