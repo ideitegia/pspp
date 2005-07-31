@@ -29,6 +29,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* The code for this function is very similar to the code for the
    RENAME subcommand of MODIFY VARS. */
 int

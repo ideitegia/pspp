@@ -22,7 +22,7 @@
 
 /* Display format types. */
 
-#include "bool.h"
+#include <stdbool.h>
 
 /* See the definitions of these functions and variables when modifying
    this list:

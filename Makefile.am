@@ -2,11 +2,7 @@
 
 AUTOMAKE_OPTIONS = gnits 1.7
 
-SUBDIRS = m4 intl doc lib src po config tests 
-
-pkgdocdir = $(prefix)/doc/@PACKAGE@
-pkgdoc_DATA = NEWS README TODO
-noinst_DATA = AUTHORS THANKS
+SUBDIRS = m4 intl doc lib gl src po config tests 
 
 DISTCLEANFILES = pref.h
 
@@ -22,10 +18,9 @@ private-install:
 private-uninstall:
 	$(MAKE) private-uninstall -C config
 
-EXTRA_DIST = mkinstalldirs config.rpath NEWS ONEWS TODO pref.h.orig	\
-configure pspp-mode.el
+EXTRA_DIST = AUTHORS NEWS ONEWS README TODO THANKS config.rpath	\
+mkinstalldirs config.rpath pref.h.orig configure pspp-mode.el
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
 
-
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I m4 -I gl/m4

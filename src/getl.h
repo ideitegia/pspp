@@ -17,8 +17,8 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !getline_h
-#define getline_h 1
+#if !getl_h
+#define getl_h 1
 
 #include <stdio.h>
 
@@ -91,7 +91,7 @@ extern int getl_prompt;
 #define getl_reading_script (getl_head != NULL)
 
 /* Current line.  This line may be modified by modules other than
-   getline.c, and by lexer.c in particular. */
+   getl.c, and by lexer.c in particular. */
 extern struct string getl_buf;
 
 /* Name of the command history file. */
@@ -114,4 +114,4 @@ void getl_add_DO_REPEAT_file (struct getl_script *);
 void getl_add_virtual_file (struct getl_script *);
 void getl_location (const char **, int *);
 
-#endif /* getline_h */
+#endif /* getl_h */

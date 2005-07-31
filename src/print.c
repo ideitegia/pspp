@@ -35,6 +35,9 @@
 #include "tab.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Describes what to do when an output field is encountered. */
 enum
   {

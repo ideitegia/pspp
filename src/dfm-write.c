@@ -28,6 +28,9 @@
 #include "filename.h"
 #include "str.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Data file writer. */
 struct dfm_writer
   {

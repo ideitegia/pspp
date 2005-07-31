@@ -23,9 +23,12 @@
 #include "alloc.h"
 #include "command.h"
 #include "error.h"
-#include "getline.h"
+#include "getl.h"
 #include "lexer.h"
 #include "str.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 int
 cmd_include (void)

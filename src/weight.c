@@ -27,6 +27,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* WEIGHT transformation. */
 struct weight_trns
   {

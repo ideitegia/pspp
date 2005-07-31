@@ -22,7 +22,7 @@
 
 /* Portable file reading. */
 
-#include "bool.h"
+#include <stdbool.h>
 
 /* Portable file types. */
 enum pfm_type

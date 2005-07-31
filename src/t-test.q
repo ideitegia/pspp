@@ -43,6 +43,10 @@
 #include "group_proc.h"
 #include "casefile.h"
 #include "levene.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* (headers) */
 
 /* (specification)

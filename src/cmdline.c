@@ -28,7 +28,7 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
-#include "getline.h"
+#include "getl.h"
 #include "main.h"
 #include "output.h"
 #include "settings.h"
@@ -37,6 +37,10 @@
 #include "version.h"
 #include "copyleft.h"
 #include "glob.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
 void welcome (void);
 static void usage (void);
@@ -138,7 +142,7 @@ parse_command_line (int argc, char **argv)
 	  config_path = optarg;
 	  break;
 	case 'f':
-	  printf(_("%s is not yet implemented."), "-f");
+	  printf (_("%s is not yet implemented."), "-f");
           putchar('\n');
 	  break;
 	case 'h':

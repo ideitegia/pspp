@@ -24,37 +24,22 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
-#if STDC_HEADERS
-  #include <string.h>
-#else
-  #ifndef HAVE_STRCHR 
-    #define strchr index
-    #define strrchr rindex
-  #endif
+#include "memmem.h"
+#include "snprintf.h"
+#include "stpcpy.h"
+#include "strcase.h"
+#include "strftime.h"
+#include "strstr.h"
+#include "strtok_r.h"
+#include "vsnprintf.h"
 
-  char *strchr (), *strrchr ();
+#ifndef HAVE_STRCHR
+#define strchr index
 #endif
-
-#if !HAVE_STRTOK_R
-  char *strtok_r (char *, const char *, char **);
-#endif
-
-#if !HAVE_STPCPY
-  char *stpcpy (char *dest, const char *src);
-#endif
-
-#if !HAVE_STRCASECMP
-  int strcasecmp (const char *s1, const char *s2);
-#endif
-
-#if !HAVE_STRNCASECMP
-  int strncasecmp (const char *s1, const char *s2, size_t n);
-#endif
-
-#if !HAVE_MEMMEM
-  void *memmem (const void *haystack, size_t haystack_len,
-	        const void *needle, size_t needle_len);
+#ifndef HAVE_STRRCHR
+#define strrchr rindex
 #endif
 
 /* sprintf() wrapper functions for convenience. */
@@ -107,14 +92,6 @@
     int nvsprintf (char *buf, const char *format, va_list args);
   #endif /* Not good sprintf(). */
 #endif /* Not GNU C. */
-
-#if !HAVE_GETLINE
-long getline (char **lineptr, size_t *n, FILE *stream);
-#endif
-
-#if !HAVE_GETDELIM
-long getdelim (char **lineptr, size_t * n, int delimiter, FILE * stream);
-#endif
 
 /* Miscellaneous. */
 

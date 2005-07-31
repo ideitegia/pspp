@@ -28,6 +28,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #define DEFFMT(LABEL, NAME, N_ARGS, IMIN_W, IMAX_W, OMIN_W, OMAX_W, CAT, \
 	       OUTPUT, SPSS_FMT) \
 	{NAME, N_ARGS, IMIN_W, IMAX_W, OMIN_W, OMAX_W, CAT, OUTPUT, SPSS_FMT},

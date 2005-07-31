@@ -21,7 +21,7 @@
 #define HEADER_CASEFILE
 
 #include <stddef.h>
-#include "bool.h"
+#include <stdbool.h>
 
 struct ccase;
 struct casefile;

@@ -40,6 +40,9 @@
 #include "vfm.h"
 #include "vfmP.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 /* Rearranging and reducing a dictionary. */

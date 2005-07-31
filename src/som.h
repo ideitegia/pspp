@@ -36,7 +36,7 @@
    desired, and in fact almost every operation performed by som may be
    overridden in a table class.  */
 
-#include "bool.h"
+#include <stdbool.h>
 
 enum som_type
   {

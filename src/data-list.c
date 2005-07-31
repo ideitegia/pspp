@@ -41,6 +41,9 @@
 #include "tab.h"
 #include "var.h"
 #include "vfm.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Utility function. */
 

@@ -42,6 +42,9 @@
 #include <sys/types.h>
 #endif
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* List of variable names. */
 struct varname
   {

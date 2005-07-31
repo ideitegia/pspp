@@ -26,9 +26,12 @@
 #include <stdlib.h>
 #include "algorithm.h"
 #include "alloc.h"
-#include "bool.h"
+#include <stdbool.h>
 #include "misc.h"
 #include "str.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Note for constructing hash functions:
 

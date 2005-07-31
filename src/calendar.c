@@ -1,9 +1,12 @@
 #include <config.h>
 #include "calendar.h"
 #include <assert.h>
-#include "bool.h"
+#include <stdbool.h>
 #include "settings.h"
 #include "val.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* 14 Oct 1582. */
 #define EPOCH (-577734)

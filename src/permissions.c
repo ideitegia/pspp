@@ -24,15 +24,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include "settings.h"
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
 #include "misc.h"
+#include "stat-macros.h"
 #include "str.h"
 
-
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 enum PER {PER_RO, PER_RW};
 

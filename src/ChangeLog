@@ -1,3 +1,64 @@
+Sun Jul 31 14:09:57 2005  Ben Pfaff  <blp@gnu.org>
+
+	Adopt use of gnulib for portability.
+
+	* Make.build: Add $(top_srcdir)/gl and $(top_builddir)/gl to
+	include path.
+
+	* Makefile.am: Remove bool.h, stat.h and change getline.[ch] to
+	getl.[ch] in pspp_SOURCES.  Remove libmisc, add libgl in
+	pspp_LDADD.
+
+	* In many source files, added an explicit inclusion of gettext.h
+	and definition of _ macro.  These are no longer in pref.h because
+	it interfered with definitions in a few gnulib source files.
+
+	* In many source files, changed #include "bool.h" to #include
+	<stdbool.h>, which is provided by gnulib.
+
+	* alloc.c: Removed functions defined in gnulib:
+	(xmalloc) Removed.
+	(xcalloc) Removed.
+	(xrealloc) Removed.
+	(xstrdup) Removed.
+	(out_of_memory) Redefined as wrapper for xalloc_die().
+
+	* alloc.h: Replace prototypes by #include "xalloc.h".
+
+	* casefile.c: Use full_read() and full_write() from gnulib instead
+	of our home-grown versions.
+	(full_read) Removed.
+	(full_write) Removed.
+
+	* getline.c: Renamed getl.c.
+
+	* getline.h: Renamed getl.h, updated all references.
+
+	* filename.c: (fn_readlink) Change to wrapper around xreadlink()
+	from gnulib.
+
+	* glob.c: Just #include <time.h> instead of the crazy rigmarole
+	here before.
+	(init_glob) Call set_program_name() to initial gnulib progname
+	module.
+
+	* html.c: (postopen) Use getlogin_r(), gethostname() from gnulib.
+
+	* permissions.c: Use "stat-macros.h" from gnulib.
+
+	* postscript.c: Just #include <time.h> instead of the crazy
+	rigmarole here before.
+
+	* q2c.c: (main) Make generated code #include "gettext.h".
+
+	* str.h: Get rid of most explicit declarations of standard
+	functions, in favor of including gnulib header files.
+
+	* expressions/evaluate.c: Ditto.
+
+	* expressions/operations.h.pl: Make generated code #include
+	<stdbool.h>, not "bool.h".
+
 Sat Jul 30 23:13:17 2005  Ben Pfaff  <blp@gnu.org>
 
 	* expressions/parse.c: (validate_function_args) Fix two msg() bugs

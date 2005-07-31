@@ -21,7 +21,7 @@
 #define data_in_h 1
 
 #include <stddef.h>
-#include "bool.h"
+#include <stdbool.h>
 #include "format.h"
 
 /* Flags. */

@@ -38,6 +38,9 @@
 #include "var.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 /* FIXME: /N subcommand not implemented.  It should be pretty simple,

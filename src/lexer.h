@@ -22,7 +22,7 @@
 
 #include "var.h"
 #include <ctype.h>
-#include "bool.h"
+#include <stdbool.h>
 
 /* Returns nonzero if character CH may be the first character in an
    identifier. */

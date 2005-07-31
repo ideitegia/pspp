@@ -27,6 +27,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* SELECT IF transformation. */
 struct select_if_trns
   {

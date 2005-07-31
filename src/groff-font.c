@@ -28,10 +28,14 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
+#include "getline.h"
 #include "hash.h"
 #include "pool.h"
 #include "str.h"
 #include "version.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 int font_number_to_index (int);
 

@@ -28,10 +28,13 @@
 #include "error.h"
 #include "file-handle.h"
 #include "filename.h"
-#include "getline.h"
+#include "getl.h"
 #include "lexer.h"
 #include "str.h"
 #include "vfm.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
 

@@ -34,6 +34,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 /* Public functions. */

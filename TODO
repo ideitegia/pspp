@@ -1,4 +1,8 @@
-Time-stamp: <2005-05-16 22:22:15 blp>
+Time-stamp: <2005-07-28 21:45:15 blp>
+
+Get rid of need for file name canonicalization.
+
+Use getsubopt()?
 
 Format specifier and missing values code needs to be rewritten for lowered
 crappiness.

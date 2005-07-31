@@ -29,6 +29,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Implementation details:
 
    The S?SS manuals do not specify the order that COUNT subcommands are

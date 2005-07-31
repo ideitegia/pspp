@@ -21,7 +21,7 @@
 #define sort_h 1
 
 #include <stddef.h>
-#include "bool.h"
+#include <stdbool.h>
 
 struct casereader;
 struct dictionary;

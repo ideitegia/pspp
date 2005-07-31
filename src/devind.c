@@ -101,11 +101,14 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
-#include "getline.h"
+#include "getl.h"
 #include "output.h"
 #include "som.h"
 #include "tab.h"
 #include "version.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Device-independent output driver extension record. */
 struct devind_driver_ext

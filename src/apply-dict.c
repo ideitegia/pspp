@@ -30,6 +30,9 @@
 #include "value-labels.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 /* Parses and executes APPLY DICTIONARY. */

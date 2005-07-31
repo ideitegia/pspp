@@ -34,6 +34,9 @@
 #include "settings.h"
 #include "str.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* FIXME? Should the output configuration format be changed to
    drivername:classname:devicetype:options, where devicetype is zero
    or more of screen, printer, listing? */

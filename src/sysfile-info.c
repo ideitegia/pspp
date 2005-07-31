@@ -37,6 +37,9 @@
 #include "value-labels.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Constants for DISPLAY utility. */
 enum
   {

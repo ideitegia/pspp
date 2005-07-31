@@ -30,6 +30,9 @@
 #include "misc.h"
 #include "str.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Parses a name as a variable within VS and returns the
    variable's index if successful.  On failure emits an error
    message and returns a null pointer. */

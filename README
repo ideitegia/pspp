@@ -6,13 +6,15 @@ PSPP development is ongoing. It already supports a large subset of
 SPSS's transformation language.  Its statistical procedure support is
 currently limited, but growing.
 
-Source code for the latest development release of PSPP is available at
-ftp://alpha.gnu.org/gnu/pspp
-   
 For information on differences from previous versions, please see file
 NEWS.  Full documentation on PSPP's language can be found in the doc/
 directory.
           
+Source code for the latest release of PSPP is available at
+ftp://ftp.gnu.org/pub/gnu/pspp/.  Older versions may be obtained from
+ftp://alpha.gnu.org/gnu/pspp/.  Development sources are available from
+CVS at http://savannah.gnu.org/projects/pspp
+   
 Questions and comments regarding PSPP can be sent to pspp-dev@gnu.org.
 PSPP bug reports may be sent to bug-gnu-pspp@gnu.org or filed in the
 bug-tracking system at http://savannah.gnu.org/bugs/?group=pspp

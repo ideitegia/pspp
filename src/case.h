@@ -21,7 +21,7 @@
 #define HEADER_CASE
 
 #include <stddef.h>
-#include "bool.h"
+#include <stdbool.h>
 #include "val.h"
 
 /* Opaque structure that represents a case.  Use accessor

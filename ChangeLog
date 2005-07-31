@@ -1,3 +1,27 @@
+Sun Jul 31 10:49:47 2005  Ben Pfaff  <blp@gnu.org>
+
+	Adopt use of gnulib for portability.
+
+	* Makefile.am: Add gl to SUBDIRS.  Add gl/m4 to aclocal include
+	path.  Get rid of pkgdocdir data.  Move noinst_DATA to EXTRA_DIST.
+
+	* README.CVS: Add instructions for fetching gnulib.
+
+	* Smake: Rewrite to run gnulib-tool.  Avoid use of gettextize in
+	normal case (it was unmaintainable).  Just use autoreconf
+	--install to do most of the work.  Rewrite rule for POTFILES.in
+	for non-GNU make compatibility.
+
+	* configure.ac: Add gnulib commands.  Specify gettext version
+	0.14.5 to placate autopoint.  Check that off_t is an integer type,
+	because Solaris can sometimes declare it as a struct.  Drop
+	explicit checks for gnulib-supported functionality.  Fix typo in
+	msdos check.
+
+	* pref.h.orig: Define __attribute__ to avoid wart in gnulib.
+	Don't #include <libintl> and define gettext, _, N_, because gnulib
+	wants to do the same thing.
+
 Sun Jul 24 20:31:13 2005  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Don't detect libgmp anymore, because we eliminated

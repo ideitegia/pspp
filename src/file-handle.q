@@ -26,11 +26,14 @@
 #include "filename.h"
 #include "command.h"
 #include "lexer.h"
-#include "getline.h"
+#include "getl.h"
 #include "error.h"
 #include "magic.h"
 #include "var.h"
 #include "linked-list.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* (headers) */
 

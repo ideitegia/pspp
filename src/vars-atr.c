@@ -34,6 +34,9 @@
 #include "value-labels.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 /* Assign auxiliary data AUX to variable V, which must not

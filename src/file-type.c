@@ -33,6 +33,9 @@
 #include "var.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Defines the three types of complex files read by FILE TYPE. */
 enum
   {

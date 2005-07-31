@@ -29,6 +29,10 @@
 #include "error.h"
 #include "magic.h"
 #include "var.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* (headers) */
 
 #include "debug-print.h"

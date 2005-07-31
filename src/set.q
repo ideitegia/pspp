@@ -87,6 +87,9 @@ int tgetnum (const char *);
 #endif /* !HAVE_TERMCAP_H */
 #endif /* !HAVE_LIBTERMCAP */
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 static int set_errors;
 static int set_messages;
 static int set_results;

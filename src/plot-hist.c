@@ -28,11 +28,12 @@
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_randist.h>
 #include <assert.h>
-
 #include "hash.h"
-
 #include "var.h"
 #include "chart.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Write the legend of the chart */
 void

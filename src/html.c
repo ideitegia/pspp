@@ -35,12 +35,17 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
+#include "getl.h"
 #include "getline.h"
+#include "getlogin_r.h"
 #include "output.h"
 #include "som.h"
 #include "tab.h"
 #include "version.h"
 #include "mkfile.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Prototypes. */
 static int postopen (struct file_ext *);
@@ -234,9 +239,7 @@ postopen (struct file_ext *f)
       {"source-file", 0},
       {0, 0},
     };
-#if HAVE_UNISTD_H
-  char host[128];
-#endif
+  char login[128], host[128];
   time_t curtime;
   struct tm *loctime;
 
@@ -277,14 +280,13 @@ postopen (struct file_ext *f)
       *cp = 0;
   }
 
-  /* PORTME: Determine username, net address. */
-#if HAVE_UNISTD_H
-  dict[2].value = getenv ("LOGNAME");
-  if (!dict[2].value)
-    dict[2].value = getlogin ();
-  if (!dict[2].value)
-    dict[2].value = _("nobody");
+  if (getenv ("LOGNAME") != NULL)
+    str_copy_rpad (login, sizeof login, getenv ("LOGNAME"));
+  else if (getlogin_r (login, sizeof login))
+    strcpy (login, _("nobody"));
+  dict[2].value = login;
 
+#ifdef HAVE_UNISTD_H
   if (gethostname (host, 128) == -1)
     {
       if (errno == ENAMETOOLONG)
@@ -292,11 +294,10 @@ postopen (struct file_ext *f)
       else
 	strcpy (host, _("nowhere"));
     }
+#else
+  strcpy (host, _("nowhere"));
+#endif
   dict[3].value = host;
-#else /* !HAVE_UNISTD_H */
-  dict[2].value = _("nobody");
-  dict[3].value = _("nowhere");
-#endif /* !HAVE_UNISTD_H */
 
   dict[4].value = outp_title ? outp_title : "";
   dict[5].value = outp_subtitle ? outp_subtitle : "";

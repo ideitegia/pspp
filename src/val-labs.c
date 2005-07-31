@@ -28,6 +28,9 @@
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Declarations. */
 

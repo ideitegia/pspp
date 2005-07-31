@@ -36,6 +36,9 @@
 #include "var.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 /* Indicates how a `union value' should be initialized. */

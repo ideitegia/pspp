@@ -42,6 +42,9 @@
 #include "var.h"
 #include "value-labels.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /*
    Virtual File Manager (vfm):
 

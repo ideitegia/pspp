@@ -22,6 +22,9 @@
 #include "error.h"
 #include "lexer.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Stub for USE command. */
 int
 cmd_use (void) 

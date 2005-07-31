@@ -20,6 +20,7 @@
 #include <config.h>
 #include "error.h"
 #include "filename.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
@@ -28,6 +29,10 @@
 #include "settings.h"
 #include "str.h"
 #include "version.h"
+#include "xreadlink.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
 
@@ -38,7 +43,8 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include "stat.h"
+#include <sys/stat.h>
+#include "stat-macros.h"
 #endif
 
 #ifdef __WIN32__
@@ -619,40 +625,13 @@ fn_exists_p (const char *name)
 #endif
 }
 
-#ifdef unix
-/* Stolen from libc.info but heavily modified, this is a wrapper
-   around readlink() that allows for arbitrary filename length. */
+/* Returns the symbolic link value for FILENAME as a dynamically
+   allocated buffer, or a null pointer on failure. */
 char *
 fn_readlink (const char *filename)
 {
-  int size = 128;
-
-  for (;;)
-    {
-      char *buffer = xmalloc (size);
-      int nchars  = readlink (filename, buffer, size);
-      if (nchars == -1)
-	{
-	  free (buffer);
-	  return NULL;
-	}
-
-      if (nchars < size - 1)
-	{
-	  buffer[nchars] = 0;
-	  return buffer;
-	}
-      free (buffer);
-      size *= 2;
-    }
+  return xreadlink (filename, 32);
 }
-#else /* Not UNIX. */
-char *
-fn_readlink (const char *filename)
-{
-  return NULL;
-}
-#endif /* Not UNIX. */
 
 /* Environment variables. */
 

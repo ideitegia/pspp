@@ -26,7 +26,7 @@
 #include <errno.h>
 #include "algorithm.h"
 #include "alloc.h"
-#include "bool.h"
+#include <stdbool.h>
 #include "case.h"
 #include "casefile.h"
 #include "command.h"
@@ -41,6 +41,9 @@
 #include "var.h"
 #include "vfm.h"
 #include "vfmP.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
 

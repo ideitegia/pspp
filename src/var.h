@@ -23,7 +23,7 @@
 
 #include <stddef.h>
 #include "config.h"
-#include "bool.h"
+#include <stdbool.h>
 #include "format.h"
 #include "val.h"
 

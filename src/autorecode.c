@@ -32,6 +32,9 @@
 #include "var.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* FIXME: Implement PRINT subcommand. */
 
 /* Explains how to recode one value.  `from' must be first element.  */

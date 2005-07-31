@@ -26,9 +26,9 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bool.h"
+#include <stdbool.h>
 #include "error.h"
-#include "getline.h"
+#include "getl.h"
 #include "calendar.h"
 #include "lexer.h"
 #include "magic.h"
@@ -36,9 +36,11 @@
 #include "settings.h"
 #include "str.h"
 #include "var.h"
-
-#include "debug-print.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
+#include "debug-print.h"
 
 /* Specialized error routine. */
 

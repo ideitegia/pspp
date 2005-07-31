@@ -40,6 +40,9 @@
 #include "vfm.h"
 #include "vfmP.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Specifies how to make an aggregate variable. */
 struct agr_var
   {

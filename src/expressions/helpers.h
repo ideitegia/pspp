@@ -8,7 +8,7 @@
 #include <gsl/gsl_sf.h>
 #include <limits.h>
 #include <math.h>
-#include "bool.h"
+#include <stdbool.h>
 #include "case.h"
 #include "data-in.h"
 #include "dictionary.h"
@@ -22,6 +22,9 @@
 #include "val.h"
 #include "var.h"
 #include "vfm.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 static inline double check_errno (double x) 
 {

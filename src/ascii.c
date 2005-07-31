@@ -32,6 +32,9 @@
 #include "pool.h"
 #include "version.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* ASCII driver options: (defaults listed first)
 
    output-file="pspp.list"

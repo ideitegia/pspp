@@ -28,7 +28,7 @@
 #include "dictionary.h"
 #include "error.h"
 #include "glob.h"
-#include "getline.h"
+#include "getl.h"
 #include "lexer.h"
 #include "main.h"
 #include "settings.h"
@@ -45,6 +45,10 @@
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
 /* Global variables. */
 

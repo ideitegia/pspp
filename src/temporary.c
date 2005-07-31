@@ -32,6 +32,9 @@
 #include "value-labels.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 int temporary;
 struct dictionary *temp_dict;
 int temp_trns;

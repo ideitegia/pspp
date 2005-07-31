@@ -21,7 +21,7 @@
 #define SORT_PRS_H
 
 #include <config.h>
-#include "bool.h"
+#include <stdbool.h>
 
 struct variable;
 struct dictionary;

@@ -29,10 +29,14 @@
 #include "alloc.h"
 #include "command.h"
 #include "error.h"
-#include "getline.h"
+#include "getl.h"
 #include "magic.h"
 #include "settings.h"
 #include "str.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
 /*
 #define DUMP_TOKENS 1

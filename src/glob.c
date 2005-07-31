@@ -20,19 +20,10 @@
 #include <config.h>
 #include "glob.h"
 #include "error.h"
+#include "progname.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-#if TIME_WITH_SYS_TIME
-#include <sys/time.h>
 #include <time.h>
-#else
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
 
 #if HAVE_LIBHISTORY
 #if HAVE_READLINE_HISTORY_H
@@ -76,7 +67,7 @@ extern void stifle_history ();
 #include "error.h"
 #include "file-handle.h"
 #include "filename.h"
-#include "getline.h"
+#include "getl.h"
 #include "hash.h"
 #include "lexer.h"
 #include "magic.h"
@@ -86,6 +77,8 @@ extern void stifle_history ();
 #include "var.h"
 #include "version.h"
 #include "vfm.h"
+
+#include "gettext.h"
 
 /* var.h */
 struct dictionary *default_dict;
@@ -117,6 +110,8 @@ static void get_date (void);
 void
 init_glob (int argc UNUSED, char **argv)
 {
+  set_program_name (argv[0]);
+
   /* FIXME: Allow i18n of other locale items (besides LC_MESSAGES). */
 #if ENABLE_NLS
 #if HAVE_LC_MESSAGES

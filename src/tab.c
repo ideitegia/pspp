@@ -34,6 +34,9 @@
 #include "som.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 struct som_table_class tab_table_class;

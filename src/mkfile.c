@@ -23,10 +23,12 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
-
 #include "mkfile.h"
 #include "error.h"
 #include "alloc.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Creates a temporary file and stores its name in *FILENAME and
    a file descriptor for it in *FD.  Returns success.  Caller is

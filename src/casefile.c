@@ -29,10 +29,15 @@
 #include "alloc.h"
 #include "case.h"
 #include "error.h"
+#include "full-read.h"
+#include "full-write.h"
 #include "misc.h"
 #include "mkfile.h"
 #include "settings.h"
 #include "var.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #define IO_BUF_SIZE (8192 / sizeof (union value))
 
@@ -173,8 +178,6 @@ static void fill_buffer (struct casereader *reader);
 
 static int safe_open (const char *filename, int flags);
 static int safe_close (int fd);
-static int full_read (int fd, void *buffer, size_t size);
-static int full_write (int fd, const void *buffer, size_t size);
 
 /* Creates and returns a casefile to store cases of VALUE_CNT
    `union value's each. */
@@ -726,49 +729,6 @@ static int safe_close (int fd)
 
   return retval;
 }
-
-/* Calls read(), passing FD, BUFFER, and SIZE, repeating as
-   necessary to deal with interrupted calls. */
-static int
-full_read (int fd, void *buffer_, size_t size) 
-{
-  char *buffer = buffer_;
-  size_t bytes_read = 0;
-  
-  while (bytes_read < size)
-    {
-      int retval = read (fd, buffer + bytes_read, size - bytes_read);
-      if (retval > 0) 
-        bytes_read += retval; 
-      else if (retval == 0) 
-        return bytes_read;
-      else if (errno != EINTR)
-        return -1;
-    }
-
-  return bytes_read;
-}
-
-/* Calls write(), passing FD, BUFFER, and SIZE, repeating as
-   necessary to deal with interrupted calls. */
-static int
-full_write (int fd, const void *buffer_, size_t size) 
-{
-  const char *buffer = buffer_;
-  size_t bytes_written = 0;
-  
-  while (bytes_written < size)
-    {
-      int retval = write (fd, buffer + bytes_written, size - bytes_written);
-      if (retval >= 0) 
-        bytes_written += retval; 
-      else if (errno != EINTR)
-        return -1;
-    }
-
-  return bytes_written;
-}
-
 
 /* Registers our exit handler with atexit() if it has not already
    been registered. */

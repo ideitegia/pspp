@@ -25,13 +25,16 @@
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
-#include "getline.h"
+#include "getl.h"
 #include "glob.h"
 #include "lexer.h"
 #include "output.h"
 #include "settings.h"
 #include "var.h"
 #include <signal.h>
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include <stdlib.h>
 

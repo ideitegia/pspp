@@ -1,17 +1,33 @@
 To build this project from the sources direct from the 
-cvs archive use:
+cvs archive, you must install:
 
-make -f Smake
-# If you need to pass arguments to configure, use 
-# make -f Smake CONFIGUREFLAGS="--with-this --without-that"
-make
+	* Autoconf 2.58 (or later).
 
+	* Automake 1.7 (or later).
 
+	* Gettext 0.14.5 (or later).
 
- To test it:
+	* Gnulib, from CVS (see http://savannah.gnu.org/cvs/?group=gnulib).
+	  Consider applying the patch at the end of this file, unless
+	  the bug it fixes has already been fixed.  Note that Gnulib
+	  does not require any form of installation: simply checking it
+	  out into a directory is sufficient.  
 
-make check
+Once you have these installed, execute
+	make -f Smake
+If you checked Gnulib out in a directory named `gnulib' at the same
+level as PSPP, then this is sufficient.  Otherwise, provide the
+location of GNULIB on the `make' command line:
+	make -f Smake GNULIB=/gnulib/base/directory/name
 
- For a very thorough test: 
+After executing Smake, you may configure the source tree in the usual
+way with ./configure, e.g.
+	./configure
+For a list of options:
+	./configure --help
 
-make distcheck
+To test:
+	make check
+
+For a very thorough test: 
+	make distcheck

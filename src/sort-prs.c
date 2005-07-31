@@ -21,7 +21,6 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <stdlib.h>
-
 #include "alloc.h"
 #include "error.h"
 #include "lexer.h"
@@ -29,7 +28,8 @@
 #include "sort.h"
 #include "var.h"
 
-
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 static bool  is_terminator(int tok, const int *terminators);
 

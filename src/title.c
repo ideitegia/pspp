@@ -31,6 +31,9 @@
 #include "version.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 #include "debug-print.h"
 
 static int get_title (const char *cmd, char **title);

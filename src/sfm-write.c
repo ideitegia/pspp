@@ -33,7 +33,7 @@
 #include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
-#include "getline.h"
+#include "getl.h"
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
@@ -41,6 +41,9 @@
 #include "value-labels.h"
 #include "var.h"
 #include "version.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
 

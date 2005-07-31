@@ -51,6 +51,11 @@
 #include "vfm.h"
 #include "settings.h"
 #include "chart.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 /* (headers) */
 
 #include "debug-print.h"

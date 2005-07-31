@@ -2,7 +2,7 @@ do 'generate.pl';
 
 sub generate_output {
     print "#include <stdlib.h>\n";
-    print "#include \"bool.h\"\n\n";
+    print "#include <stdbool.h>\n\n";
 
     print "typedef enum";
     print "  {\n";

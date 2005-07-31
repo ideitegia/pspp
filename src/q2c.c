@@ -2206,7 +2206,10 @@ main (int argc, char *argv[])
 	  dump (0, "#include \"str.h\"");
           dump (0, "#include \"subclist.h\"");
 	  dump (0, "#include \"var.h\"");
+	  dump (0, nullstr);
 
+          dump (0, "#include \"gettext.h\"");
+          dump (0, "#define _(msgid) gettext (msgid)");
 	  dump (0, nullstr);
 	}
       else if (!strcmp (directive, "declarations"))

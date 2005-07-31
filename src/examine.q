@@ -44,6 +44,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "moments.h"
 #include "percentiles.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 /* (headers) */
 #include "chart.h"
 

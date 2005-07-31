@@ -30,12 +30,12 @@
 #include <math.h>
 #include <setjmp.h>
 #include "alloc.h"
-#include "bool.h"
+#include <stdbool.h>
 #include "case.h"
 #include "dictionary.h"
 #include "file-handle.h"
 #include "format.h"
-#include "getline.h"
+#include "getl.h"
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
@@ -43,6 +43,9 @@
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
 

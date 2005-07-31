@@ -43,6 +43,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "group_proc.h"
 #include "group.h"
 #include "levene.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* (headers) */
 
 /* (specification)

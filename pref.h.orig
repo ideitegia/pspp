@@ -38,6 +38,9 @@
    declarations on whether gcc is in use. */
 #if __GNUC__ > 1
 #define ATTRIBUTE(X) __attribute__ (X)
+
+/* Only necessary because of a wart in gnulib's xalloc.h. */
+#define __attribute__(X) __attribute__ (X)
 #else
 #define ATTRIBUTE(X)
 #endif
@@ -53,19 +56,6 @@
 #else
 #define MALLOC_LIKE
 #endif
-
-/* Internationalization. */
-#include <libintl.h>
-
-#if !ENABLE_NLS
-/* If we don't do this then gettext() still monkeys with the
-   string, keeping gcc from checking printf() format types. */
-#undef gettext
-#define gettext(STRING) STRING
-#endif
-
-#define _(STRING) gettext(STRING)
-#define N_(STRING) STRING
 
 /* Filesystems. */
 

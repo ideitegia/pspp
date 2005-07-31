@@ -18,7 +18,7 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "getline.h"
+#include "getl.h"
 #include "error.h"
 #include <stdio.h>
 #include <errno.h>
@@ -34,6 +34,9 @@
 #include "tab.h"
 #include "var.h"
 #include "version.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* Global variables. */
 struct string getl_buf;
@@ -74,7 +77,7 @@ static int DO_REPEAT_level;
 
 static int read_console (void);
 
-/* Initialize getline. */
+/* Initialize getl. */
 void
 getl_initialize (void)
 {
@@ -86,7 +89,7 @@ getl_initialize (void)
 #endif
 }
 
-/* Close getline. */
+/* Close getl. */
 void
 getl_uninitialize (void)
 {

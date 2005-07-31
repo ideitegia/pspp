@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
-#include "getline.h"
+#include "getl.h"
 #include "glob.h"
 #include "lexer.h"
 #include "main.h"
@@ -34,6 +34,10 @@
 #include "str.h"
 #include "var.h"
 #include "version.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
 int err_error_count;
 int err_warning_count;

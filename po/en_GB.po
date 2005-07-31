@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-05-27 12:24+0800\n"
+"POT-Creation-Date: 2005-07-30 23:26-0700\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -16,104 +16,104 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
-#: src/aggregate.c:196
+#: src/aggregate.c:199
 msgid "while expecting COLUMNWISE"
 msgstr ""
 
-#: src/aggregate.c:225
+#: src/aggregate.c:228
 msgid "expecting BREAK"
 msgstr ""
 
-#: src/aggregate.c:230
+#: src/aggregate.c:233
 msgid ""
 "When PRESORTED is specified, specifying sorting directions with (A) or (D) "
 "has no effect.  Output data will be sorted the same way as the input data."
 msgstr ""
 
-#: src/aggregate.c:386
+#: src/aggregate.c:389
 msgid "expecting aggregation function"
 msgstr ""
 
-#: src/aggregate.c:402
+#: src/aggregate.c:405
 #, c-format
 msgid "Unknown aggregation function %s."
 msgstr ""
 
-#: src/aggregate.c:417
+#: src/aggregate.c:420
 msgid "expecting `('"
 msgstr ""
 
-#: src/aggregate.c:454
+#: src/aggregate.c:457
 #, c-format
 msgid "Missing argument %d to %s."
 msgstr ""
 
-#: src/aggregate.c:463
+#: src/aggregate.c:466
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
 msgstr ""
 
-#: src/aggregate.c:473
+#: src/aggregate.c:476 src/expressions/parse.c:830
 msgid "expecting `)'"
 msgstr ""
 
-#: src/aggregate.c:485
+#: src/aggregate.c:488
 #, c-format
 msgid ""
 "Number of source variables (%d) does not match number of target variables (%"
 "d)."
 msgstr ""
 
-#: src/aggregate.c:501
+#: src/aggregate.c:504
 #, c-format
 msgid ""
 "The value arguments passed to the %s function are out-of-order.  They will "
 "be treated as if they had been specified in the correct order."
 msgstr ""
 
-#: src/aggregate.c:568
+#: src/aggregate.c:571
 #, c-format
 msgid ""
 "Variable name %s is not unique within the aggregate file dictionary, which "
 "contains the aggregate variables and the break variables."
 msgstr ""
 
-#: src/apply-dict.c:68
+#: src/apply-dict.c:71
 #, c-format
 msgid "Variable %s is %s in target file, but %s in source file."
 msgstr ""
 
-#: src/apply-dict.c:71 src/apply-dict.c:72 src/format.c:236
-#: src/sfm-read.c:1029 src/sfm-read.c:1174 src/sfm-read.c:1175
+#: src/apply-dict.c:74 src/apply-dict.c:75 src/format.c:239
+#: src/sfm-read.c:1032 src/sfm-read.c:1177 src/sfm-read.c:1178
 msgid "string"
 msgstr ""
 
-#: src/apply-dict.c:71 src/apply-dict.c:72 src/format.c:236
-#: src/sfm-read.c:1029 src/sfm-read.c:1174 src/sfm-read.c:1175
+#: src/apply-dict.c:74 src/apply-dict.c:75 src/format.c:239
+#: src/sfm-read.c:1032 src/sfm-read.c:1177 src/sfm-read.c:1178
 msgid "numeric"
 msgstr ""
 
-#: src/apply-dict.c:84
+#: src/apply-dict.c:87
 #, c-format
 msgid "Cannot add value labels from source file to long string variable %s."
 msgstr ""
 
-#: src/apply-dict.c:130
+#: src/apply-dict.c:133
 #, c-format
 msgid ""
 "Cannot apply missing values from source file to long string variable %s."
 msgstr ""
 
-#: src/apply-dict.c:163
+#: src/apply-dict.c:166
 msgid "No matching variables found between the source and target files."
 msgstr ""
 
-#: src/ascii.c:230
+#: src/ascii.c:233
 #, c-format
 msgid "ASCII driver initializing as `%s'..."
 msgstr ""
 
-#: src/ascii.c:285
+#: src/ascii.c:288
 #, c-format
 msgid ""
 "ascii driver: Area of page excluding margins and headers must be at least 59 "
@@ -121,186 +121,186 @@ msgid ""
 "by %d lines."
 msgstr ""
 
-#: src/ascii.c:390 src/devind.c:167 src/html.c:103 src/postscript.c:461
+#: src/ascii.c:393 src/devind.c:170 src/html.c:108 src/postscript.c:456
 #, c-format
 msgid "%s: Initialization complete."
 msgstr ""
 
-#: src/ascii.c:402 src/devind.c:179 src/html.c:115 src/postscript.c:474
+#: src/ascii.c:405 src/devind.c:182 src/html.c:120 src/postscript.c:469
 #, c-format
 msgid "%s: Beginning closing..."
 msgstr ""
 
-#: src/ascii.c:424 src/devind.c:184 src/html.c:120 src/postscript.c:493
+#: src/ascii.c:427 src/devind.c:187 src/html.c:125 src/postscript.c:488
 #, c-format
 msgid "%s: Finished closing."
 msgstr ""
 
-#: src/ascii.c:485
+#: src/ascii.c:488
 #, c-format
 msgid ""
 "Bad index value for `box' key: syntax is box[INDEX], 0 <= INDEX < %d "
 "decimal, with INDEX expressed in base 4."
 msgstr ""
 
-#: src/ascii.c:491
+#: src/ascii.c:494
 #, c-format
 msgid "Duplicate value for key `%s'."
 msgstr ""
 
-#: src/ascii.c:500
+#: src/ascii.c:503
 #, c-format
 msgid "Unknown configuration parameter `%s' for ascii device driver."
 msgstr ""
 
-#: src/ascii.c:513
+#: src/ascii.c:516
 #, c-format
 msgid ""
 "Unknown character set `%s'.  Valid character sets are `ascii' and `latin1'."
 msgstr ""
 
-#: src/ascii.c:522
+#: src/ascii.c:525
 #, c-format
 msgid ""
 "Unknown overstrike style `%s'.  Valid overstrike styles are `single' and "
 "`line'."
 msgstr ""
 
-#: src/ascii.c:531
+#: src/ascii.c:534
 #, c-format
 msgid ""
 "Unknown carriage return style `%s'.  Valid carriage return styles are `cr' "
 "and `bs'."
 msgstr ""
 
-#: src/ascii.c:543 src/postscript.c:684
+#: src/ascii.c:546 src/postscript.c:679
 #, c-format
 msgid "Positive integer required as value for `%s'."
 msgstr ""
 
-#: src/ascii.c:574
+#: src/ascii.c:577
 #, c-format
 msgid "Zero or positive integer required as value for `%s'."
 msgstr ""
 
-#: src/ascii.c:645 src/postscript.c:642
+#: src/ascii.c:648 src/postscript.c:637
 #, c-format
 msgid "Boolean value expected for %s."
 msgstr ""
 
-#: src/ascii.c:677 src/ascii.c:692 src/ascii.c:709
+#: src/ascii.c:680 src/ascii.c:695 src/ascii.c:712
 #, c-format
 msgid "ASCII output driver: %s: %s"
 msgstr ""
 
-#: src/ascii.c:785
+#: src/ascii.c:788
 #, c-format
 msgid "ascii_line_horz: bad hline (%d,%d),%d out of (%d,%d)\n"
 msgstr ""
 
-#: src/ascii.c:819
+#: src/ascii.c:822
 #, c-format
 msgid "ascii_line_vert: bad vline %d,(%d,%d) out of (%d,%d)\n"
 msgstr ""
 
-#: src/ascii.c:849
+#: src/ascii.c:852
 #, c-format
 msgid "ascii_line_intersection: bad intsct (%d,%d) out of (%d,%d)\n"
 msgstr ""
 
-#: src/ascii.c:997
+#: src/ascii.c:1000
 #, c-format
 msgid "%s: horiz=%d, vert=%d\n"
 msgstr ""
 
-#: src/ascii.c:1169
+#: src/ascii.c:1172
 #, c-format
 msgid "Writing `%s': %s"
 msgstr ""
 
-#: src/ascii.c:1579 src/postscript.c:2098
+#: src/ascii.c:1582 src/postscript.c:2108
 #, c-format
 msgid "%s - Page %d"
 msgstr ""
 
-#: src/ascii.c:1646
+#: src/ascii.c:1642
 msgid "Charts are unsupported with ascii drivers."
 msgstr ""
 
-#: src/autorecode.c:122
+#: src/autorecode.c:125
 #, c-format
 msgid "Source variable count (%d) does not match target variable count (%d)."
 msgstr ""
 
-#: src/autorecode.c:139 src/command.c:793 src/compute.c:277 src/do-if.c:253
-#: src/get.c:240 src/lexer.c:424 src/loop.c:241 src/matrix-data.c:528
-#: src/print.c:335 src/print.c:1045 src/recode.c:405 src/sel-if.c:54
-#: src/sel-if.c:131 src/vector.c:194 src/file-handle.q:139
+#: src/autorecode.c:142 src/command.c:797 src/compute.c:280 src/do-if.c:256
+#: src/file-handle.q:142 src/get.c:243 src/lexer.c:428 src/loop.c:244
+#: src/matrix-data.c:531 src/print.c:338 src/print.c:1048 src/recode.c:408
+#: src/sel-if.c:57 src/sel-if.c:134 src/vector.c:197
 msgid "expecting end of command"
 msgstr ""
 
-#: src/autorecode.c:149
+#: src/autorecode.c:152
 #, c-format
 msgid "Target variable %s duplicates existing variable %s."
 msgstr ""
 
-#: src/autorecode.c:156
+#: src/autorecode.c:159
 #, c-format
 msgid "Duplicate variable name %s among target variables."
 msgstr ""
 
-#: src/calendar.c:78
+#: src/calendar.c:81
 #, c-format
 msgid "Month %d is not in acceptable range of 0 to 13."
 msgstr ""
 
-#: src/calendar.c:86
+#: src/calendar.c:89
 #, c-format
 msgid "Day %d is not in acceptable range of 0 to 31."
 msgstr ""
 
-#: src/calendar.c:93
+#: src/calendar.c:96
 #, c-format
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
 msgstr ""
 
-#: src/casefile.c:186
+#: src/casefile.c:252
 #, c-format
 msgid "%s: Removing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:333
+#: src/casefile.c:399
 #, c-format
 msgid "Error writing temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:475
+#: src/casefile.c:541
 #, c-format
 msgid "%s: Opening temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:501
+#: src/casefile.c:567
 #, c-format
 msgid "%s: Seeking temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:517
+#: src/casefile.c:583
 #, c-format
 msgid "%s: Reading temporary file: %s."
 msgstr ""
 
-#: src/casefile.c:520
+#: src/casefile.c:586
 #, c-format
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
 
-#: src/cmdline.c:141 src/cmdline.c:160 src/cmdline.c:172 src/command.c:209
-#: src/set.q:425 src/set.q:427 src/set.q:994
+#: src/cmdline.c:145 src/cmdline.c:164 src/cmdline.c:176 src/command.c:213
+#: src/expressions/parse.c:1206 src/set.q:428 src/set.q:430 src/set.q:997
 #, c-format
 msgid "%s is not yet implemented."
 msgstr ""
 
-#: src/cmdline.c:243
+#: src/cmdline.c:247
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -350,32 +350,32 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/cmdline.c:281
+#: src/cmdline.c:285
 #, c-format
 msgid ""
 "\n"
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/command.c:146
+#: src/command.c:150
 #, c-format
 msgid "%s not allowed inside FILE TYPE/END FILE TYPE."
 msgstr ""
 
-#: src/command.c:149
+#: src/command.c:153
 #, c-format
 msgid "%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."
 msgstr ""
 
-#: src/command.c:152
+#: src/command.c:156
 msgid "RECORD TYPE must be the first command inside a FILE TYPE structure."
 msgstr ""
 
-#: src/command.c:199
+#: src/command.c:203
 msgid "expecting command name"
 msgstr ""
 
-#: src/command.c:228
+#: src/command.c:232
 #, c-format
 msgid ""
 "%s is not allowed (1) before a command to specify the input program, such as "
@@ -383,109 +383,387 @@ msgid ""
 "PROGRAM and END INPUT PROGRAM."
 msgstr ""
 
-#: src/command.c:232
+#: src/command.c:236
 #, c-format
 msgid "%s is not allowed within an input program."
 msgstr ""
 
-#: src/command.c:233 src/command.c:234
+#: src/command.c:237 src/command.c:238
 #, c-format
 msgid "%s is only allowed within an input program."
 msgstr ""
 
-#: src/command.c:513
+#: src/command.c:517
 #, c-format
 msgid "Unknown command %s."
 msgstr ""
 
-#: src/command.c:619
+#: src/command.c:623
 msgid ""
 "This command is not accepted in a syntax file.  Instead, use FINISH to "
 "terminate a syntax file."
 msgstr ""
 
-#: src/command.c:637
+#: src/command.c:641
 msgid ""
 "This command is not executed in interactive mode.  Instead, PSPP drops down "
 "to the command prompt.  Use EXIT if you really want to quit."
 msgstr ""
 
-#: src/command.c:680 src/command.c:811 src/permissions.c:101
+#: src/command.c:684 src/command.c:815 src/permissions.c:102
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
-#: src/command.c:692
+#: src/command.c:696
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr ""
 
-#: src/command.c:742
+#: src/command.c:746
 #, c-format
 msgid "Couldn't fork: %s."
 msgstr ""
 
-#: src/command.c:784
+#: src/command.c:788
 #, c-format
 msgid "Error executing command: %s."
 msgstr ""
 
-#: src/command.c:832
+#: src/command.c:836
 msgid "No operating system support for this command."
 msgstr ""
 
-#: src/command.c:855
+#: src/command.c:859
 msgid "This command is not valid in a syntax file."
 msgstr ""
 
-#: src/compute.c:141 src/compute.c:190
+#: src/compute.c:144 src/compute.c:193
 #, c-format
 msgid ""
 "When executing COMPUTE: SYSMIS is not a valid value as an index into vector %"
 "s."
 msgstr ""
 
-#: src/compute.c:144 src/compute.c:197
+#: src/compute.c:147 src/compute.c:200
 #, c-format
 msgid ""
 "When executing COMPUTE: %g is not a valid value as an index into vector %s."
 msgstr ""
 
-#: src/compute.c:339
+#: src/compute.c:342
 #, c-format
 msgid "There is no vector named %s."
 msgstr ""
 
-#: src/count.c:156
+#: src/count.c:159
 msgid "Destination cannot be a string variable."
 msgstr ""
 
-#: src/count.c:263
+#: src/count.c:266
 #, c-format
 msgid ""
 "%g THRU %g is not a valid range.  The number following THRU must be at least "
 "as big as the number preceding THRU."
 msgstr ""
 
-#: src/data-in.c:59
-msgid "data-file error: "
+#: src/crosstabs.q:265
+msgid ""
+"Missing mode REPORT not allowed in general mode.  Assuming MISSING=TABLE."
+msgstr ""
+
+#: src/crosstabs.q:275
+msgid "Write mode ALL not allowed in general mode.  Assuming WRITE=CELLS."
+msgstr ""
+
+#: src/crosstabs.q:336
+msgid "expecting BY"
+msgstr ""
+
+#: src/crosstabs.q:403
+msgid "VARIABLES must be specified before TABLES."
+msgstr ""
+
+#: src/crosstabs.q:440
+#, c-format
+msgid "Maximum value (%ld) less than minimum value (%ld)."
+msgstr ""
+
+#: src/crosstabs.q:804
+msgid "Summary."
+msgstr ""
+
+#: src/crosstabs.q:806 src/examine.q:919
+msgid "Cases"
+msgstr ""
+
+#: src/crosstabs.q:807 src/examine.q:853 src/frequencies.q:1141
+#: src/frequencies.q:1514
+msgid "Valid"
+msgstr ""
+
+#: src/crosstabs.q:808 src/examine.q:854 src/frequencies.q:1209
+#: src/frequencies.q:1515
+msgid "Missing"
+msgstr ""
+
+#: src/crosstabs.q:809 src/crosstabs.q:1012 src/crosstabs.q:1726
+#: src/examine.q:855 src/frequencies.q:1218 src/oneway.q:311 src/oneway.q:474
+msgid "Total"
+msgstr ""
+
+#: src/crosstabs.q:819 src/examine.q:931 src/frequencies.q:1513
+#: src/oneway.q:397 src/t-test.q:679 src/t-test.q:702 src/t-test.q:827
+#: src/t-test.q:1362
+msgid "N"
+msgstr ""
+
+#: src/crosstabs.q:820 src/examine.q:934 src/frequencies.q:1145
+#: src/frequencies.q:1146 src/frequencies.q:1147
+msgid "Percent"
+msgstr ""
+
+#: src/crosstabs.q:1062
+msgid "count"
+msgstr ""
+
+#: src/crosstabs.q:1063
+msgid "row %"
+msgstr ""
+
+#: src/crosstabs.q:1064
+msgid "column %"
+msgstr ""
+
+#: src/crosstabs.q:1065
+msgid "total %"
+msgstr ""
+
+#: src/crosstabs.q:1066
+msgid "expected"
+msgstr ""
+
+#: src/crosstabs.q:1067
+msgid "residual"
+msgstr ""
+
+#: src/crosstabs.q:1068
+msgid "std. resid."
+msgstr ""
+
+#: src/crosstabs.q:1069
+msgid "adj. resid."
+msgstr ""
+
+#: src/crosstabs.q:1102 src/crosstabs.q:1129 src/crosstabs.q:1149
+#: src/crosstabs.q:1170 src/examine.q:1365
+msgid "Statistic"
+msgstr ""
+
+#: src/crosstabs.q:1103 src/crosstabs.q:1130 src/crosstabs.q:1150
+#: src/crosstabs.q:1172 src/examine.q:1134 src/frequencies.q:1143
+#: src/frequencies.q:1264 src/sysfile-info.c:536 src/vfm.c:811
+msgid "Value"
+msgstr ""
+
+#: src/crosstabs.q:1104 src/oneway.q:284 src/oneway.q:686 src/t-test.q:977
+#: src/t-test.q:1169 src/t-test.q:1261
+msgid "df"
+msgstr ""
+
+#: src/crosstabs.q:1106
+msgid "Asymp. Sig. (2-sided)"
+msgstr ""
+
+#: src/crosstabs.q:1108
+msgid "Exact. Sig. (2-sided)"
+msgstr ""
+
+#: src/crosstabs.q:1110
+msgid "Exact. Sig. (1-sided)"
+msgstr ""
+
+#: src/crosstabs.q:1128 src/crosstabs.q:1169
+msgid "Category"
+msgstr ""
+
+#: src/crosstabs.q:1131 src/crosstabs.q:1173
+msgid "Asymp. Std. Error"
+msgstr ""
+
+#: src/crosstabs.q:1132 src/crosstabs.q:1174
+msgid "Approx. T"
+msgstr ""
+
+#: src/crosstabs.q:1133 src/crosstabs.q:1175
+msgid "Approx. Sig."
+msgstr ""
+
+#: src/crosstabs.q:1148
+#, c-format
+msgid " 95%% Confidence Interval"
+msgstr ""
+
+#: src/crosstabs.q:1151 src/t-test.q:981 src/t-test.q:1166 src/t-test.q:1264
+msgid "Lower"
+msgstr ""
+
+#: src/crosstabs.q:1152 src/t-test.q:982 src/t-test.q:1167 src/t-test.q:1265
+msgid "Upper"
+msgstr ""
+
+#: src/crosstabs.q:1171
+msgid "Type"
+msgstr ""
+
+#: src/crosstabs.q:1920
+msgid "Pearson Chi-Square"
+msgstr ""
+
+#: src/crosstabs.q:1921
+msgid "Likelihood Ratio"
+msgstr ""
+
+#: src/crosstabs.q:1922
+msgid "Fisher's Exact Test"
+msgstr ""
+
+#: src/crosstabs.q:1923
+msgid "Continuity Correction"
+msgstr ""
+
+#: src/crosstabs.q:1924
+msgid "Linear-by-Linear Association"
+msgstr ""
+
+#: src/crosstabs.q:1961 src/crosstabs.q:2031 src/crosstabs.q:2090
+msgid "N of Valid Cases"
+msgstr ""
+
+#: src/crosstabs.q:1977 src/crosstabs.q:2106
+msgid "Nominal by Nominal"
+msgstr ""
+
+#: src/crosstabs.q:1978 src/crosstabs.q:2107
+msgid "Ordinal by Ordinal"
+msgstr ""
+
+#: src/crosstabs.q:1979
+msgid "Interval by Interval"
+msgstr ""
+
+#: src/crosstabs.q:1980
+msgid "Measure of Agreement"
+msgstr ""
+
+#: src/crosstabs.q:1985
+msgid "Phi"
+msgstr ""
+
+#: src/crosstabs.q:1986
+msgid "Cramer's V"
+msgstr ""
+
+#: src/crosstabs.q:1987
+msgid "Contingency Coefficient"
+msgstr ""
+
+#: src/crosstabs.q:1988
+msgid "Kendall's tau-b"
+msgstr ""
+
+#: src/crosstabs.q:1989
+msgid "Kendall's tau-c"
+msgstr ""
+
+#: src/crosstabs.q:1990
+msgid "Gamma"
+msgstr ""
+
+#: src/crosstabs.q:1991
+msgid "Spearman Correlation"
+msgstr ""
+
+#: src/crosstabs.q:1992
+msgid "Pearson's R"
+msgstr ""
+
+#: src/crosstabs.q:1993
+msgid "Kappa"
+msgstr ""
+
+#: src/crosstabs.q:2063
+#, c-format
+msgid "Odds Ratio for %s (%g / %g)"
+msgstr ""
+
+#: src/crosstabs.q:2066
+#, c-format
+msgid "Odds Ratio for %s (%.*s / %.*s)"
+msgstr ""
+
+#: src/crosstabs.q:2074
+#, c-format
+msgid "For cohort %s = %g"
+msgstr ""
+
+#: src/crosstabs.q:2077
+#, c-format
+msgid "For cohort %s = %.*s"
+msgstr ""
+
+#: src/crosstabs.q:2108
+msgid "Nominal by Interval"
+msgstr ""
+
+#: src/crosstabs.q:2113
+msgid "Lambda"
+msgstr ""
+
+#: src/crosstabs.q:2114
+msgid "Goodman and Kruskal tau"
+msgstr ""
+
+#: src/crosstabs.q:2115
+msgid "Uncertainty Coefficient"
+msgstr ""
+
+#: src/crosstabs.q:2116
+msgid "Somers' d"
+msgstr ""
+
+#: src/crosstabs.q:2117
+msgid "Eta"
+msgstr ""
+
+#: src/crosstabs.q:2122
+msgid "Symmetric"
+msgstr ""
+
+#: src/crosstabs.q:2123 src/crosstabs.q:2124
+#, c-format
+msgid "%s Dependent"
 msgstr ""
 
 #: src/data-in.c:61
-#, c-format
-msgid "(column %d"
+msgid "data-file error: "
 msgstr ""
 
 #: src/data-in.c:63
 #, c-format
+msgid "(column %d"
+msgstr ""
+
+#: src/data-in.c:65
+#, c-format
 msgid "(columns %d-%d"
 msgstr ""
 
-#: src/data-in.c:64
+#: src/data-in.c:66
 #, c-format
 msgid ", field type %s) "
 msgstr ""
 
-#: src/data-in.c:210
+#: src/data-in.c:212
 msgid "Field does not form a valid floating-point constant."
 msgstr ""
 
@@ -509,11 +787,11 @@ msgstr ""
 msgid "Unrecognized character in field."
 msgstr ""
 
-#: src/data-in.c:343 src/data-in.c:596
+#: src/data-in.c:343 src/data-in.c:598
 msgid "Field must have even length."
 msgstr ""
 
-#: src/data-in.c:353 src/data-in.c:606
+#: src/data-in.c:353 src/data-in.c:608
 msgid "Field must contain only hex digits."
 msgstr ""
 
@@ -540,949 +818,1260 @@ msgstr ""
 msgid "Error in syntax of zoned decimal number."
 msgstr ""
 
-#: src/data-in.c:646
+#: src/data-in.c:648
 msgid "Unexpected end of field."
 msgstr ""
 
-#: src/data-in.c:672
+#: src/data-in.c:674
 msgid "Digit expected in field."
 msgstr ""
 
-#: src/data-in.c:697
+#: src/data-in.c:699
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
 msgstr ""
 
-#: src/data-in.c:722
+#: src/data-in.c:724
 msgid "Delimiter expected between fields in date."
 msgstr ""
 
-#: src/data-in.c:755
+#: src/data-in.c:757
 #, c-format
 msgid "Parse error at `%c' expecting %s."
 msgstr ""
 
-#: src/data-in.c:769
+#: src/data-in.c:771
 #, c-format
 msgid "Unknown %s `%.*s'."
 msgstr ""
 
-#: src/data-in.c:819
+#: src/data-in.c:821
 #, c-format
 msgid "Month (%ld) must be between 1 and 12."
 msgstr ""
 
-#: src/data-in.c:823
+#: src/data-in.c:825
 msgid "month"
 msgstr ""
 
-#: src/data-in.c:837
+#: src/data-in.c:839
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
 msgstr ""
 
-#: src/data-in.c:848
+#: src/data-in.c:850
 #, c-format
 msgid "Trailing garbage \"%s\" following date."
 msgstr ""
 
-#: src/data-in.c:863
+#: src/data-in.c:865
 #, c-format
 msgid "Julian day (%d) must be between 1 and 366."
 msgstr ""
 
-#: src/data-in.c:875
+#: src/data-in.c:877
 #, c-format
 msgid "Year (%d) must be between 1582 and 19999."
 msgstr ""
 
-#: src/data-in.c:891
+#: src/data-in.c:893
 #, c-format
 msgid "Quarter (%ld) must be between 1 and 4."
 msgstr ""
 
-#: src/data-in.c:901
+#: src/data-in.c:903
 msgid "`Q' expected between quarter and year."
 msgstr ""
 
-#: src/data-in.c:917
+#: src/data-in.c:919
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
 msgstr ""
 
-#: src/data-in.c:928
+#: src/data-in.c:930
 msgid "`WK' expected between week and year."
 msgstr ""
 
-#: src/data-in.c:950
+#: src/data-in.c:952
 msgid "Delimiter expected between fields in time."
 msgstr ""
 
-#: src/data-in.c:962
+#: src/data-in.c:964
 #, c-format
 msgid "Hour (%ld) must be positive."
 msgstr ""
 
-#: src/data-in.c:974
+#: src/data-in.c:976
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
 msgstr ""
 
-#: src/data-in.c:1021
+#: src/data-in.c:1023
 #, c-format
 msgid "Hour (%ld) must be between 0 and 23."
 msgstr ""
 
-#: src/data-in.c:1049
+#: src/data-in.c:1051
 msgid "weekday"
 msgstr ""
 
-#: src/data-in.c:1380
+#: src/data-in.c:1382
 #, c-format
 msgid "Field too long (%d characters).  Truncated after character %d."
 msgstr ""
 
-#: src/data-list.c:141
+#: src/data-list.c:144
 msgid ""
 "DATA LIST may not use a different file from that specified on its "
 "surrounding FILE TYPE."
 msgstr ""
 
-#: src/data-list.c:160
+#: src/data-list.c:163
 msgid "The END subcommand may only be specified once."
 msgstr ""
 
-#: src/data-list.c:195
+#: src/data-list.c:198
 msgid "Only one of FIXED, FREE, or LIST may be specified."
 msgstr ""
 
-#: src/data-list.c:351 src/print.c:296
+#: src/data-list.c:354 src/print.c:299
 #, c-format
 msgid ""
 "The record number specified, %ld, is before the previous record, %d.  Data "
 "fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/data-list.c:380 src/data-list.c:1727
+#: src/data-list.c:383 src/data-list.c:1747
 msgid ""
 "SPSS-like or FORTRAN-like format specification expected after variable names."
 msgstr ""
 
-#: src/data-list.c:391
+#: src/data-list.c:394
 msgid "At least one variable must be specified."
 msgstr ""
 
-#: src/data-list.c:396 src/print.c:328
+#: src/data-list.c:399 src/print.c:331
 msgid ""
 "Variables are specified on records that should not exist according to "
 "RECORDS subcommand."
 msgstr ""
 
-#: src/data-list.c:429 src/data-list.c:443 src/print.c:520 src/print.c:533
+#: src/data-list.c:432 src/data-list.c:446 src/print.c:523 src/print.c:536
 msgid "Column positions for fields must be positive."
 msgstr ""
 
-#: src/data-list.c:448
+#: src/data-list.c:451
 msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
-#: src/data-list.c:462 src/print.c:610
+#: src/data-list.c:465 src/print.c:613
 #, c-format
 msgid "The %d columns %d-%d can't be evenly divided into %d fields."
 msgstr ""
 
-#: src/data-list.c:482 src/print.c:561
+#: src/data-list.c:485 src/print.c:564
 msgid "A format specifier on this line has extra characters on the end."
 msgstr ""
 
-#: src/data-list.c:497 src/print.c:577
+#: src/data-list.c:500 src/print.c:580
 msgid "The value for number of decimal places must be at least 1."
 msgstr ""
 
-#: src/data-list.c:511 src/print.c:590
+#: src/data-list.c:514 src/print.c:593
 #, c-format
 msgid "Input format %s doesn't accept decimal places."
 msgstr ""
 
-#: src/data-list.c:558 src/data-list.c:654 src/data-list.c:868
+#: src/data-list.c:561 src/data-list.c:657 src/data-list.c:871
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr ""
 
-#: src/data-list.c:563
+#: src/data-list.c:566
 #, c-format
 msgid "There is already a variable %s of a different type."
 msgstr ""
 
-#: src/data-list.c:570
+#: src/data-list.c:573
 #, c-format
 msgid "There is already a string variable %s of a different width."
 msgstr ""
 
-#: src/data-list.c:645
+#: src/data-list.c:648
 msgid ""
 "The number of format specifications exceeds the given number of variable "
 "names."
 msgstr ""
 
-#: src/data-list.c:758 src/print.c:765
+#: src/data-list.c:761 src/print.c:768
 msgid ""
 "There aren't enough format specifications to match the number of variable "
 "names given."
 msgstr ""
 
-#: src/data-list.c:785 src/data-list.c:909 src/descript.c:879 src/print.c:796
-#: src/sysfile-info.c:135 src/sysfile-info.c:369 src/vfm.c:809
+#: src/data-list.c:788 src/data-list.c:912 src/descript.c:883 src/print.c:799
+#: src/sysfile-info.c:138 src/sysfile-info.c:372 src/vfm.c:810
 msgid "Variable"
 msgstr ""
 
-#: src/data-list.c:786 src/print.c:797
+#: src/data-list.c:789 src/print.c:800
 msgid "Record"
 msgstr ""
 
-#: src/data-list.c:787 src/print.c:798
+#: src/data-list.c:790 src/print.c:801
 msgid "Columns"
 msgstr ""
 
-#: src/data-list.c:788 src/data-list.c:910 src/print.c:799
+#: src/data-list.c:791 src/data-list.c:913 src/print.c:802
 msgid "Format"
 msgstr ""
 
-#: src/data-list.c:804
+#: src/data-list.c:807
 #, c-format
 msgid "Reading %d record from file %s."
 msgid_plural "Reading %d records from file %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data-list.c:808
+#: src/data-list.c:811
 #, c-format
 msgid "Reading %d record from the command file."
 msgid_plural "Reading %d records from the command file."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data-list.c:926
+#: src/data-list.c:929
 #, c-format
 msgid "Reading free-form data from file %s."
 msgstr ""
 
-#: src/data-list.c:929
+#: src/data-list.c:932
 msgid "Reading free-form data from the command file."
 msgstr ""
 
-#: src/data-list.c:980
+#: src/data-list.c:983
 #, c-format
 msgid "Quoted string missing terminating `%c'."
 msgstr ""
 
-#: src/data-list.c:1089
+#: src/data-list.c:1092
 #, c-format
 msgid "Partial case of %d of %d records discarded."
 msgstr ""
 
-#: src/data-list.c:1143
+#: src/data-list.c:1146
 #, c-format
 msgid "Partial case discarded.  The first variable missing was %s."
 msgstr ""
 
-#: src/data-list.c:1187
+#: src/data-list.c:1190
 #, c-format
 msgid ""
 "Missing value(s) for all variables from %s onward.  These will be filled "
 "with the system-missing value or blanks, as appropriate."
 msgstr ""
 
-#: src/data-list.c:1264
+#: src/data-list.c:1267
 msgid "Attempt to read past end of file."
 msgstr ""
 
-#: src/data-list.c:1401
+#: src/data-list.c:1408
 msgid ""
 "REPEATING DATA must use the same file as its corresponding DATA LIST or FILE "
 "TYPE."
 msgstr ""
 
-#: src/data-list.c:1411 src/data-list.c:1446 src/data-list.c:1459
-#: src/data-list.c:1472 src/data-list.c:1505
+#: src/data-list.c:1418 src/data-list.c:1452 src/data-list.c:1465
+#: src/data-list.c:1478 src/data-list.c:1512
 #, c-format
 msgid "%s subcommand given multiple times."
 msgstr ""
 
-#: src/data-list.c:1435
+#: src/data-list.c:1441
 #, c-format
 msgid "STARTS beginning column (%d) exceeds STARTS ending column (%d)."
 msgstr ""
 
-#: src/data-list.c:1491
+#: src/data-list.c:1498
 #, c-format
 msgid "CONTINUED beginning column (%d) exceeds CONTINUED ending column (%d)."
 msgstr ""
 
-#: src/data-list.c:1514
+#: src/data-list.c:1521
 #, c-format
 msgid "ID beginning column (%ld) must be positive."
 msgstr ""
 
-#: src/data-list.c:1529
+#: src/data-list.c:1536
 #, c-format
 msgid "ID ending column (%ld) must be positive."
 msgstr ""
 
-#: src/data-list.c:1535
+#: src/data-list.c:1542
 #, c-format
 msgid "ID ending column (%ld) cannot be less than ID beginning column (%d)."
 msgstr ""
 
-#: src/data-list.c:1575
+#: src/data-list.c:1582
 msgid "Missing required specification STARTS."
 msgstr ""
 
-#: src/data-list.c:1577
+#: src/data-list.c:1584
 msgid "Missing required specification OCCURS."
 msgstr ""
 
-#: src/data-list.c:1584
+#: src/data-list.c:1591
 msgid "ID specified without CONTINUED."
 msgstr ""
 
-#: src/data-list.c:1676
+#: src/data-list.c:1602
+#, c-format
+msgid ""
+"STARTS beginning column (%d) exceeds default STARTS ending column taken from "
+"file's record width (%d)."
+msgstr ""
+
+#: src/data-list.c:1615
+#, c-format
+msgid ""
+"CONTINUED beginning column (%d) exceeds default CONTINUED ending column "
+"taken from file's record width (%d)."
+msgstr ""
+
+#: src/data-list.c:1696
 msgid "String variable not allowed here."
 msgstr ""
 
-#: src/data-list.c:1686
+#: src/data-list.c:1706
 #, c-format
 msgid "%s (%d) must be at least 1."
 msgstr ""
 
-#: src/data-list.c:1692
+#: src/data-list.c:1712
 #, c-format
 msgid "Variable or integer expected for %s."
 msgstr ""
 
-#: src/data-list.c:1825
+#: src/data-list.c:1837
 #, c-format
 msgid "Encountered mismatched record ID \"%s\" expecting \"%s\"."
 msgstr ""
 
-#: src/data-list.c:1857
+#: src/data-list.c:1869
 #, c-format
 msgid ""
 "Variable %s starting in column %d extends beyond physical record length of %"
 "d."
 msgstr ""
 
-#: src/data-list.c:1925
+#: src/data-list.c:1937
 #, c-format
 msgid "Invalid value %d for OCCURS."
 msgstr ""
 
-#: src/data-list.c:1931
+#: src/data-list.c:1943
 #, c-format
 msgid "Beginning column for STARTS (%d) must be at least 1."
 msgstr ""
 
-#: src/data-list.c:1939
+#: src/data-list.c:1951
 #, c-format
 msgid "Ending column for STARTS (%d) is less than beginning column (%d)."
 msgstr ""
 
-#: src/data-list.c:1947
+#: src/data-list.c:1959
 #, c-format
 msgid "Invalid value %d for LENGTH."
 msgstr ""
 
-#: src/data-list.c:1954
+#: src/data-list.c:1966
 #, c-format
 msgid "Beginning column for CONTINUED (%d) must be at least 1."
 msgstr ""
 
-#: src/data-list.c:1962
+#: src/data-list.c:1974
 #, c-format
 msgid "Ending column for CONTINUED (%d) is less than beginning column (%d)."
 msgstr ""
 
-#: src/data-list.c:1994
+#: src/data-list.c:2006
 #, c-format
 msgid ""
 "Number of repetitions specified on OCCURS (%d) exceed number of repetitions "
 "available in space on STARTS (%d), and CONTINUED not specified."
 msgstr ""
 
-#: src/data-list.c:2012
+#: src/data-list.c:2024
 #, c-format
 msgid "Unexpected end of file with %d repetitions remaining out of %d."
 msgstr ""
 
-#: src/data-out.c:242
+#: src/data-out.c:245
 msgid ""
 "The N output format cannot be used to output a negative number or the system-"
 "missing value."
 msgstr ""
 
-#: src/data-out.c:356
+#: src/data-out.c:359
 #, c-format
 msgid ""
 "Quality of zoned decimal (Z) output format code is suspect.  Check your "
 "results. Report bugs to %s."
 msgstr ""
 
-#: src/data-out.c:364
+#: src/data-out.c:367
 msgid "The system-missing value cannot be output as a zoned decimal number."
 msgstr ""
 
-#: src/data-out.c:377
+#: src/data-out.c:380
 #, c-format
 msgid "Number %g too big to fit in field with format Z%d.%d."
 msgstr ""
 
-#: src/data-out.c:771
+#: src/data-out.c:774
 #, c-format
 msgid "Time value %g too large in magnitude to convert to alphanumeric time."
 msgstr ""
 
-#: src/data-out.c:822
+#: src/data-out.c:825
 #, c-format
 msgid "Weekday index %f does not lie between 1 and 7."
 msgstr ""
 
-#: src/data-out.c:842
+#: src/data-out.c:845
 #, c-format
 msgid "Month index %f does not lie between 1 and 12."
 msgstr ""
 
-#: src/data-out.c:955
+#: src/data-out.c:958
 #, c-format
 msgid ""
 "Year %d cannot be represented in four digits for output formatting purposes."
 msgstr ""
 
-#: src/date.c:32
+#: src/date.c:35
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/descript.c:99 src/examine.q:1466 src/frequencies.q:112 src/oneway.q:394
-#: src/t-test.q:676 src/t-test.q:699 src/t-test.q:822 src/t-test.q:1159
+#: src/descript.c:103 src/examine.q:1470 src/frequencies.q:117
+#: src/oneway.q:398 src/t-test.q:680 src/t-test.q:703 src/t-test.q:826
+#: src/t-test.q:1163
 msgid "Mean"
 msgstr ""
 
-#: src/descript.c:100
+#: src/descript.c:104
 msgid "S E Mean"
 msgstr ""
 
-#: src/descript.c:101 src/frequencies.q:116
+#: src/descript.c:105 src/frequencies.q:121
 msgid "Std Dev"
 msgstr ""
 
-#: src/descript.c:102 src/examine.q:1546 src/frequencies.q:117
+#: src/descript.c:106 src/examine.q:1550 src/frequencies.q:122
 msgid "Variance"
 msgstr ""
 
-#: src/descript.c:103 src/examine.q:1653 src/frequencies.q:118
+#: src/descript.c:107 src/examine.q:1657 src/frequencies.q:123
 msgid "Kurtosis"
 msgstr ""
 
-#: src/descript.c:104
+#: src/descript.c:108
 msgid "S E Kurt"
 msgstr ""
 
-#: src/descript.c:105 src/examine.q:1633 src/frequencies.q:120
+#: src/descript.c:109 src/examine.q:1637 src/frequencies.q:125
 msgid "Skewness"
 msgstr ""
 
-#: src/descript.c:106
+#: src/descript.c:110
 msgid "S E Skew"
 msgstr ""
 
-#: src/descript.c:107 src/examine.q:1594 src/frequencies.q:122
+#: src/descript.c:111 src/examine.q:1598 src/frequencies.q:127
 msgid "Range"
 msgstr ""
 
-#: src/descript.c:108 src/examine.q:1571 src/frequencies.q:123
-#: src/oneway.q:406
+#: src/descript.c:112 src/examine.q:1575 src/frequencies.q:128
+#: src/oneway.q:410
 msgid "Minimum"
 msgstr ""
 
-#: src/descript.c:109 src/examine.q:1582 src/frequencies.q:124
-#: src/oneway.q:407
+#: src/descript.c:113 src/examine.q:1586 src/frequencies.q:129
+#: src/oneway.q:411
 msgid "Maximum"
 msgstr ""
 
-#: src/descript.c:110 src/frequencies.q:125
+#: src/descript.c:114 src/frequencies.q:130
 msgid "Sum"
 msgstr ""
 
-#: src/descript.c:333
+#: src/descript.c:337
 #, c-format
 msgid "Z-score variable name %s would be a duplicate variable name."
 msgstr ""
 
-#: src/descript.c:351 src/list.q:142
+#: src/descript.c:355 src/list.q:146
 msgid "No variables specified."
 msgstr ""
 
-#: src/descript.c:435
+#: src/descript.c:439
 msgid "expecting statistic name: reverting to default"
 msgstr ""
 
-#: src/descript.c:507
+#: src/descript.c:511
 msgid ""
 "Ran out of generic names for Z-score variables.  There are only 126 generic "
 "names: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
 msgstr ""
 
-#: src/descript.c:538
+#: src/descript.c:542
 msgid "Mapping of variables to corresponding Z-scores."
 msgstr ""
 
-#: src/descript.c:543
+#: src/descript.c:547
 msgid "Source"
 msgstr ""
 
-#: src/descript.c:544
+#: src/descript.c:548
 msgid "Target"
 msgstr ""
 
-#: src/descript.c:663 src/descript.c:669
+#: src/descript.c:667 src/descript.c:673
 msgid "Z-score of "
 msgstr ""
 
-#: src/descript.c:882
+#: src/descript.c:886
 msgid "Valid N"
 msgstr ""
 
-#: src/descript.c:883
+#: src/descript.c:887
 msgid "Missing N"
 msgstr ""
 
-#: src/descript.c:909
+#: src/descript.c:913
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
 msgstr ""
 
-#: src/devind.c:136
+#: src/devind.c:139
 #, c-format
 msgid "DEVIND driver initializing as `%s'..."
 msgstr ""
 
-#: src/devind.c:218
+#: src/devind.c:221
 #, c-format
 msgid "Unknown configuration parameter `%s' for DEVIND device driver."
 msgstr ""
 
-#: src/devind.c:240
+#: src/devind.c:243
 #, c-format
 msgid "DEVIND output driver: %s: %s"
 msgstr ""
 
-#: src/devind.c:271
+#: src/devind.c:274
 #, c-format
 msgid "Cannot open first page on DEVIND device %s."
 msgstr ""
 
-#: src/dfm-read.c:153
+#: src/dfm-read.c:157
 #, c-format
 msgid "Could not open \"%s\" for reading as a data file: %s."
 msgstr ""
 
-#: src/dfm-read.c:186 src/dfm-read.c:204
+#: src/dfm-read.c:190 src/dfm-read.c:208
 msgid "BEGIN DATA expected."
 msgstr ""
 
-#: src/dfm-read.c:213
+#: src/dfm-read.c:217
 msgid ""
 "Unexpected end-of-file while reading data in BEGIN DATA.  This probably "
 "indicates a missing or misformatted END DATA command.  END DATA must appear "
 "by itself on a single line with exactly one space between words."
 msgstr ""
 
-#: src/dfm-read.c:246 src/dfm-read.c:266
+#: src/dfm-read.c:250 src/dfm-read.c:270
 #, c-format
 msgid "Error reading file %s: %s."
 msgstr ""
 
-#: src/dfm-read.c:269
+#: src/dfm-read.c:273
 #, c-format
 msgid "%s: Partial record at end of file."
 msgstr ""
 
-#: src/dfm-read.c:312
+#: src/dfm-read.c:316
 #, c-format
 msgid "Attempt to read beyond end-of-file on file %s."
 msgstr ""
 
-#: src/dfm-read.c:315
+#: src/dfm-read.c:319
 msgid "Attempt to read beyond END DATA."
 msgstr ""
 
-#: src/dfm-read.c:462
+#: src/dfm-read.c:466
 msgid ""
 "This command is not valid here since the current input program does not "
 "access the inline file."
 msgstr ""
 
-#: src/dfm-write.c:67
+#: src/dfm-write.c:70
 #, c-format
 msgid "An error occurred while opening \"%s\" for writing as a data file: %s."
 msgstr ""
 
-#: src/dfm-write.c:103
+#: src/dfm-write.c:106
 #, c-format
 msgid "Error writing file %s: %s."
 msgstr ""
 
-#: src/dictionary.c:682
+#: src/dictionary.c:685
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
-#: src/do-if.c:113
+#: src/do-if.c:116
 msgid "There is no DO IF to match with this ELSE IF."
 msgstr ""
 
-#: src/do-if.c:118
+#: src/do-if.c:121
 msgid "The ELSE command must follow all ELSE IF commands in a DO IF structure."
 msgstr ""
 
-#: src/do-if.c:141
+#: src/do-if.c:144
 msgid "End of command expected."
 msgstr ""
 
-#: src/do-if.c:157
+#: src/do-if.c:160
 msgid "There is no DO IF to match with this ELSE."
 msgstr ""
 
-#: src/do-if.c:163
+#: src/do-if.c:166
 msgid ""
 "There may be at most one ELSE clause in each DO IF structure.  It must be "
 "the last clause."
 msgstr ""
 
-#: src/do-if.c:198
+#: src/do-if.c:201
 msgid "There is no DO IF to match with this END IF."
 msgstr ""
 
-#: src/do-if.c:284
+#: src/do-if.c:287
 #, c-format
 msgid "DO IF %d: true\n"
 msgstr ""
 
-#: src/do-if.c:289
+#: src/do-if.c:292
 #, c-format
 msgid "DO IF %d: false\n"
 msgstr ""
 
-#: src/do-if.c:294
+#: src/do-if.c:297
 #, c-format
 msgid "DO IF %d: missing\n"
 msgstr ""
 
-#: src/error.c:93
+#: src/error.c:97
 msgid "Terminating NOW due to a fatal error!"
 msgstr ""
 
-#: src/error.c:170
+#: src/error.c:174
 msgid "Terminating execution of syntax file due to error."
 msgstr ""
 
-#: src/error.c:172
+#: src/error.c:176
 #, c-format
 msgid "Errors (%d) exceeds limit (%d)."
 msgstr ""
 
-#: src/error.c:175
+#: src/error.c:179
 #, c-format
 msgid "Warnings (%d) exceed limit (%d)."
 msgstr ""
 
-#: src/error.c:237
+#: src/error.c:243
 msgid "fatal"
 msgstr ""
 
-#: src/error.c:239 src/error.c:246 src/error.c:249
+#: src/error.c:245 src/error.c:252 src/error.c:255
 msgid "error"
 msgstr ""
 
-#: src/error.c:240 src/error.c:247 src/error.c:250
+#: src/error.c:246 src/error.c:253 src/error.c:256
 msgid "warning"
 msgstr ""
 
-#: src/error.c:241 src/error.c:251
+#: src/error.c:247 src/error.c:257
 msgid "note"
 msgstr ""
 
-#: src/error.c:243 src/error.c:244
+#: src/error.c:249 src/error.c:250
 msgid "installation error"
 msgstr ""
 
-#: src/filename.c:221
+#: src/examine.q:471 src/examine.q:483
 #, c-format
-msgid "Searching for `%s'..."
+msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/filename.c:229 src/filename.c:261
-msgid "Search unsuccessful!"
+#: src/examine.q:913
+msgid "Case Processing Summary"
 msgstr ""
 
-#: src/filename.c:254
+#: src/examine.q:1119
+msgid "Extreme Values"
+msgstr ""
+
+#: src/examine.q:1135
+msgid "Case Number"
+msgstr ""
+
+#: src/examine.q:1220
+msgid "Highest"
+msgstr ""
+
+#: src/examine.q:1225
+msgid "Lowest"
+msgstr ""
+
+#: src/examine.q:1366 src/oneway.q:400 src/oneway.q:684
+msgid "Std. Error"
+msgstr ""
+
+#: src/examine.q:1368 src/oneway.q:414
+msgid "Descriptives"
+msgstr ""
+
+#: src/examine.q:1488 src/oneway.q:405
 #, c-format
-msgid "Found `%s'."
+msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/filename.c:686
+#: src/examine.q:1494 src/oneway.q:407
+msgid "Lower Bound"
+msgstr ""
+
+#: src/examine.q:1505 src/oneway.q:408
+msgid "Upper Bound"
+msgstr ""
+
+#: src/examine.q:1517
 #, c-format
-msgid "Not opening pipe file `%s' because SAFER option set."
+msgid "5%% Trimmed Mean"
 msgstr ""
 
-#: src/file-type.c:131
+#: src/examine.q:1528 src/frequencies.q:119
+msgid "Median"
+msgstr ""
+
+#: src/examine.q:1562 src/oneway.q:399 src/t-test.q:681 src/t-test.q:704
+#: src/t-test.q:828 src/t-test.q:1164
+msgid "Std. Deviation"
+msgstr ""
+
+#: src/examine.q:1610
+msgid "Interquartile Range"
+msgstr ""
+
+#: src/examine.q:1762
+#, c-format
+msgid "Boxplot of %s vs. %s"
+msgstr ""
+
+#: src/examine.q:1787
+msgid "Boxplot"
+msgstr ""
+
+#: src/examine.q:1829
+#, c-format
+msgid "Normal Q-Q Plot of %s"
+msgstr ""
+
+#: src/examine.q:1830 src/examine.q:1836
+msgid "Observed Value"
+msgstr ""
+
+#: src/examine.q:1831
+msgid "Expected Normal"
+msgstr ""
+
+#: src/examine.q:1834
+#, c-format
+msgid "Detrended Normal Q-Q Plot of %s"
+msgstr ""
+
+#: src/examine.q:1837
+msgid "Dev from Normal"
+msgstr ""
+
+#: src/examine.q:1956 src/examine.q:1978 src/frequencies.q:1525
+msgid "Percentiles"
+msgstr ""
+
+#: src/examine.q:2103
+msgid "Tukey's Hinges"
+msgstr ""
+
+#: src/expressions/evaluate.c:144
+msgid "expecting number or string"
+msgstr ""
+
+#: src/expressions/evaluate.c:155 src/pfm-read.c:537
+#, c-format
+msgid "Duplicate variable name %s."
+msgstr ""
+
+#: src/expressions/helpers.c:36
+msgid ""
+"One of the arguments to a DATE function is not an integer.  The result will "
+"be system-missing."
+msgstr ""
+
+#: src/expressions/helpers.c:58
+msgid ""
+"The week argument to DATE.WKYR is not an integer.  The result will be system-"
+"missing."
+msgstr ""
+
+#: src/expressions/helpers.c:64
+msgid ""
+"The week argument to DATE.WKYR is outside the acceptable range of 1 to 53.  "
+"The result will be system-missing."
+msgstr ""
+
+#: src/expressions/helpers.c:86
+msgid ""
+"The day argument to DATE.YRDAY is not an integer.  The result will be system-"
+"missing."
+msgstr ""
+
+#: src/expressions/helpers.c:92
+msgid ""
+"The day argument to DATE.YRDAY is outside the acceptable range of 1 to 366.  "
+"The result will be system-missing."
+msgstr ""
+
+#: src/expressions/helpers.c:114
+msgid ""
+"The year argument to YRMODA is greater than 47516.  The result will be "
+"system-missing."
+msgstr ""
+
+#: src/expressions/parse.c:241
+#, c-format
+msgid ""
+"Type mismatch: expression has %s type, but a numeric value is required here."
+msgstr ""
+
+#: src/expressions/parse.c:253
+#, c-format
+msgid ""
+"Type mismatch: expression has %s type, but a string value is required here."
+msgstr ""
+
+#: src/expressions/parse.c:394
+#, c-format
+msgid "Type mismatch while applying %s operator: cannot convert %s to %s."
+msgstr ""
+
+#: src/expressions/parse.c:599
+msgid ""
+"Chaining relational operators (e.g. \"a < b < c\") will not produce the "
+"mathematically expected result.  Use the AND logical operator to fix the "
+"problem (e.g. \"a < b AND b < c\").  If chaining is really intended, "
+"parentheses will disable this warning (e.g. \"(a < b) < c\".)"
+msgstr ""
+
+#: src/expressions/parse.c:698
+msgid ""
+"The exponentiation operator (\"**\") is left-associative, even though right-"
+"associative semantics are more useful.  That is, \"a**b**c\" equals \"(a**b)"
+"**c\", not as \"a**(b**c)\".  To disable this warning, insert parentheses."
+msgstr ""
+
+#: src/expressions/parse.c:760
+#, c-format
+msgid "Unknown system variable %s."
+msgstr ""
+
+#: src/expressions/parse.c:802
+#, c-format
+msgid "Unknown identifier %s."
+msgstr ""
+
+#: src/expressions/parse.c:837
+msgid "in expression"
+msgstr ""
+
+#: src/expressions/parse.c:1013
+#, c-format
+msgid "%s must have at least %d arguments in list."
+msgstr ""
+
+#: src/expressions/parse.c:1022
+#, c-format
+msgid "%s must have even number of arguments in list."
+msgstr ""
+
+#: src/expressions/parse.c:1025
+#, c-format
+msgid "%s must have multiple of %d arguments in list."
+msgstr ""
+
+#: src/expressions/parse.c:1035
+#, c-format
+msgid "%s function does not accept a minimum valid argument count."
+msgstr ""
+
+#: src/expressions/parse.c:1044
+#, c-format
+msgid "%s requires at least %d valid arguments in list."
+msgstr ""
+
+#: src/expressions/parse.c:1050
+#, c-format
+msgid ""
+"With %s, using minimum valid argument count of %d does not make sense when "
+"passing only %d arguments in list."
+msgstr ""
+
+#: src/expressions/parse.c:1104
+#, c-format
+msgid "Type mismatch invoking %s as "
+msgstr ""
+
+#: src/expressions/parse.c:1109
+msgid "Function invocation "
+msgstr ""
+
+#: src/expressions/parse.c:1111
+msgid " does not match any known function.  Candidates are:"
+msgstr ""
+
+#: src/expressions/parse.c:1141
+#, c-format
+msgid "No function or vector named %s."
+msgstr ""
+
+#: src/expressions/parse.c:1183
+#, c-format
+msgid "expecting `,' or `)' invoking %s function"
+msgstr ""
+
+#: src/expressions/parse.c:1203
+#, c-format
+msgid "%s is a PSPP extension."
+msgstr ""
+
+#: src/file-handle.q:127
+#, c-format
+msgid ""
+"File handle %s already refers to file %s.  File handles cannot be redefined "
+"within a session."
+msgstr ""
+
+#: src/file-handle.q:148
+msgid "The FILE HANDLE required subcommand NAME is not present."
+msgstr ""
+
+#: src/file-handle.q:167
+msgid ""
+"Fixed-length records were specified on /RECFORM, but record length was not "
+"specified on /LRECL.  Assuming 1024-character records."
+msgstr ""
+
+#: src/file-handle.q:174
+#, c-format
+msgid ""
+"Record length (%ld) must be at least one byte.  1-character records will be "
+"assumed."
+msgstr ""
+
+#: src/file-handle.q:274
+#, c-format
+msgid "Can't open %s as a %s because it is already open as a %s"
+msgstr ""
+
+#: src/file-handle.q:281
+#, c-format
+msgid "Can't open %s as a %s for %s because it is already open for %s"
+msgstr ""
+
+#: src/file-handle.q:289
+#, c-format
+msgid "Can't re-open %s as a %s for %s"
+msgstr ""
+
+#: src/file-handle.q:342
+msgid "expecting a file name or handle name"
+msgstr ""
+
+#: src/file-type.c:134
 msgid "MIXED, GROUPED, or NESTED expected."
 msgstr ""
 
-#: src/file-type.c:154
+#: src/file-type.c:157
 msgid "The CASE subcommand is not valid on FILE TYPE MIXED."
 msgstr ""
 
-#: src/file-type.c:172
+#: src/file-type.c:175
 msgid "WARN or NOWARN expected after WILD."
 msgstr ""
 
-#: src/file-type.c:180
+#: src/file-type.c:183
 msgid "The DUPLICATE subcommand is not valid on FILE TYPE MIXED."
 msgstr ""
 
-#: src/file-type.c:194
+#: src/file-type.c:197
 msgid "DUPLICATE=CASE is only valid on FILE TYPE NESTED."
 msgstr ""
 
-#: src/file-type.c:203
+#: src/file-type.c:206
 #, c-format
 msgid "WARN%s expected after DUPLICATE."
 msgstr ""
 
-#: src/file-type.c:204
+#: src/file-type.c:207
 msgid ", NOWARN, or CASE"
 msgstr ""
 
-#: src/file-type.c:205
+#: src/file-type.c:208
 msgid " or NOWARN"
 msgstr ""
 
-#: src/file-type.c:213
+#: src/file-type.c:216
 msgid "The MISSING subcommand is not valid on FILE TYPE MIXED."
 msgstr ""
 
-#: src/file-type.c:225
+#: src/file-type.c:228
 msgid "WARN or NOWARN after MISSING."
 msgstr ""
 
-#: src/file-type.c:233
+#: src/file-type.c:236
 msgid "ORDERED is only valid on FILE TYPE GROUPED."
 msgstr ""
 
-#: src/file-type.c:244
+#: src/file-type.c:247
 msgid "YES or NO expected after ORDERED."
 msgstr ""
 
-#: src/file-type.c:250 src/file-type.c:545
+#: src/file-type.c:253 src/file-type.c:548
 msgid "while expecting a valid subcommand"
 msgstr ""
 
-#: src/file-type.c:257
+#: src/file-type.c:260
 msgid "The required RECORD subcommand was not present."
 msgstr ""
 
-#: src/file-type.c:265
+#: src/file-type.c:268
 msgid "The required CASE subcommand was not present."
 msgstr ""
 
-#: src/file-type.c:271
+#: src/file-type.c:274
 msgid "CASE and RECORD must specify different variable names."
 msgstr ""
 
-#: src/file-type.c:329
+#: src/file-type.c:332
 msgid "Column value must be positive."
 msgstr ""
 
-#: src/file-type.c:345
+#: src/file-type.c:348
 msgid "Ending column precedes beginning column."
 msgstr ""
 
-#: src/file-type.c:365
+#: src/file-type.c:368
 msgid "Bad format specifier name."
 msgstr ""
 
-#: src/file-type.c:394 src/file-type.c:583
+#: src/file-type.c:397 src/file-type.c:586
 msgid ""
 "This command may only appear within a FILE TYPE/END FILE TYPE structure."
 msgstr ""
 
-#: src/file-type.c:417
+#: src/file-type.c:420
 msgid "OTHER may appear only on the last RECORD TYPE command."
 msgstr ""
 
-#: src/file-type.c:427
+#: src/file-type.c:430
 msgid "No input commands (DATA LIST, REPEATING DATA) for above RECORD TYPE."
 msgstr ""
 
-#: src/file-type.c:478
+#: src/file-type.c:481
 msgid ""
 "The CASE subcommand is not allowed on the RECORD TYPE command for FILE TYPE "
 "MIXED."
 msgstr ""
 
-#: src/file-type.c:488
+#: src/file-type.c:491
 msgid ""
 "No variable name may be specified for the CASE subcommand on RECORD TYPE."
 msgstr ""
 
-#: src/file-type.c:496
+#: src/file-type.c:499
 msgid ""
 "The CASE column specification on RECORD TYPE must give a format specifier "
 "that is the same type as that of the CASE column specification given on FILE "
 "TYPE."
 msgstr ""
 
-#: src/file-type.c:512
+#: src/file-type.c:515
 msgid "WARN or NOWARN expected on DUPLICATE subcommand."
 msgstr ""
 
-#: src/file-type.c:526
+#: src/file-type.c:529
 msgid "WARN or NOWARN expected on MISSING subcommand."
 msgstr ""
 
-#: src/file-type.c:539
+#: src/file-type.c:542
 msgid "YES or NO expected on SPREAD subcommand."
 msgstr ""
 
-#: src/file-type.c:596
+#: src/file-type.c:599
 msgid "No input commands (DATA LIST, REPEATING DATA) on above RECORD TYPE."
 msgstr ""
 
-#: src/file-type.c:603
+#: src/file-type.c:606
 msgid "No commands between FILE TYPE and END FILE TYPE."
 msgstr ""
 
-#: src/file-type.c:672
+#: src/file-type.c:675
 #, c-format
 msgid "Unknown record type \"%.*s\"."
 msgstr ""
 
-#: src/file-type.c:696
+#: src/file-type.c:699
 #, c-format
 msgid "Unknown record type %g."
 msgstr ""
 
-#: src/flip.c:85
+#: src/filename.c:227
+#, c-format
+msgid "Searching for `%s'..."
+msgstr ""
+
+#: src/filename.c:235 src/filename.c:267
+msgid "Search unsuccessful!"
+msgstr ""
+
+#: src/filename.c:260
+#, c-format
+msgid "Found `%s'."
+msgstr ""
+
+#: src/filename.c:665
+#, c-format
+msgid "Not opening pipe file `%s' because SAFER option set."
+msgstr ""
+
+#: src/flip.c:88
 msgid ""
 "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/flip.c:229
+#: src/flip.c:232
 #, c-format
 msgid "Could not create acceptable variant for variable %s."
 msgstr ""
 
-#: src/flip.c:245
+#: src/flip.c:248
 msgid "Cannot create more than 99999 variable names."
 msgstr ""
 
-#: src/flip.c:289
+#: src/flip.c:292
 msgid "Could not create temporary file for FLIP."
 msgstr ""
 
-#: src/flip.c:297 src/flip.c:364
+#: src/flip.c:300 src/flip.c:367
 #, c-format
 msgid "Error writing FLIP file: %s."
 msgstr ""
 
-#: src/flip.c:406
+#: src/flip.c:409
 #, c-format
 msgid "Error rewinding FLIP file: %s."
 msgstr ""
 
-#: src/flip.c:410
+#: src/flip.c:413
 msgid "Error creating FLIP source file."
 msgstr ""
 
-#: src/flip.c:419
+#: src/flip.c:422
 #, c-format
 msgid "Error reading FLIP file: %s."
 msgstr ""
 
-#: src/flip.c:440
+#: src/flip.c:443
 #, c-format
 msgid "Error seeking FLIP source file: %s."
 msgstr ""
 
-#: src/flip.c:445
+#: src/flip.c:448
 #, c-format
 msgid "Error writing FLIP source file: %s."
 msgstr ""
 
-#: src/flip.c:456
+#: src/flip.c:459
 #, c-format
 msgid "Error rewind FLIP source file: %s."
 msgstr ""
 
-#: src/flip.c:508
+#: src/flip.c:511
 #, c-format
 msgid "Error reading FLIP temporary file: %s."
 msgstr ""
 
-#: src/flip.c:511
+#: src/flip.c:514
 msgid "Unexpected end of file reading FLIP temporary file."
 msgstr ""
 
-#: src/format.c:74
+#: src/format.c:77
 msgid "X and T format specifiers not allowed here."
 msgstr ""
 
-#: src/format.c:82
+#: src/format.c:85
 #, c-format
 msgid "%.*s is not a valid data format."
 msgstr ""
 
-#: src/format.c:131
+#: src/format.c:134
 #, c-format
-msgid ""
-"Format %s specifies an odd width %d, but format %s requires an even width."
+msgid "Format %s specifies an odd width %d, but an even width is required."
 msgstr ""
 
-#: src/format.c:139
+#: src/format.c:142
 #, c-format
 msgid ""
 "Format %s specifies a bad number of implied decimal places %d.  Input format "
 "%s allows up to 16 implied decimal places."
 msgstr ""
 
-#: src/format.c:163
+#: src/format.c:166
 #, c-format
 msgid "Format %s may not be used for input."
 msgstr ""
 
-#: src/format.c:169
+#: src/format.c:172
 #, c-format
 msgid ""
 "Input format %s specifies a bad width %d.  Format %s requires a width "
 "between %d and %d."
 msgstr ""
 
-#: src/format.c:179
+#: src/format.c:182
 #, c-format
 msgid ""
 "Input format %s is invalid because it specifies more decimal places than the "
 "field width."
 msgstr ""
 
-#: src/format.c:202
+#: src/format.c:205
 #, c-format
 msgid ""
 "Output format %s specifies a bad width %d.  Format %s requires a width "
 "between %d and %d."
 msgstr ""
 
-#: src/format.c:212
+#: src/format.c:215
 #, c-format
 msgid ""
 "Output format %s is invalid because it specifies as many decimal places as "
@@ -1490,61 +2079,146 @@ msgid ""
 "d instead."
 msgstr ""
 
-#: src/format.c:234
+#: src/format.c:237
 #, c-format
 msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/format.c:235 src/pfm-read.c:473 src/sfm-read.c:1027 src/sfm-read.c:1036
+#: src/format.c:238 src/pfm-read.c:477 src/sfm-read.c:1030 src/sfm-read.c:1039
 msgid "String"
 msgstr ""
 
-#: src/format.c:235 src/pfm-read.c:473 src/sfm-read.c:1027 src/sfm-read.c:1036
+#: src/format.c:238 src/pfm-read.c:477 src/sfm-read.c:1030 src/sfm-read.c:1039
 msgid "Numeric"
 msgstr ""
 
-#: src/format.c:255
+#: src/format.c:258
 #, c-format
 msgid "String variable with width %d not compatible with format %s."
 msgstr ""
 
-#: src/format.c:379
+#: src/format.c:382
 msgid "Format specifier expected."
 msgstr ""
 
-#: src/format.c:391
+#: src/format.c:394
 #, c-format
 msgid "Data format %s does not specify a width."
 msgstr ""
 
-#: src/format.c:409
+#: src/format.c:412
 #, c-format
 msgid "Data format %s is not valid."
 msgstr ""
 
-#: src/formats.c:86
+#: src/formats.c:89
 msgid "`(' expected after variable list"
 msgstr ""
 
-#: src/formats.c:96 src/numeric.c:65 src/numeric.c:136
+#: src/formats.c:99 src/numeric.c:68 src/numeric.c:139
 msgid "`)' expected after output format."
 msgstr ""
 
-#: src/get.c:246
+#: src/frequencies.q:118
+msgid "S.E. Mean"
+msgstr ""
+
+#: src/frequencies.q:120
+msgid "Mode"
+msgstr ""
+
+#: src/frequencies.q:124
+msgid "S.E. Kurt"
+msgstr ""
+
+#: src/frequencies.q:126
+msgid "S.E. Skew"
+msgstr ""
+
+#: src/frequencies.q:401
+msgid ""
+"At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be "
+"assumed.  Argument values will be given precedence increasing along the "
+"order given."
+msgstr ""
+
+#: src/frequencies.q:484
+#, c-format
+msgid ""
+"MAX must be greater than or equal to MIN, if both are specified.  However, "
+"MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
+msgstr ""
+
+#: src/frequencies.q:807
+msgid ""
+"Upper limit of integer mode value range must be greater than lower limit."
+msgstr ""
+
+#: src/frequencies.q:820
+#, c-format
+msgid "Variable %s specified multiple times on VARIABLES subcommand."
+msgstr ""
+
+#: src/frequencies.q:826
+#, c-format
+msgid "Integer mode specified, but %s is not a numeric variable."
+msgstr ""
+
+#: src/frequencies.q:892
+msgid "`)' expected after GROUPED interval list."
+msgstr ""
+
+#: src/frequencies.q:904
+#, c-format
+msgid "Variables %s specified on GROUPED but not on VARIABLES."
+msgstr ""
+
+#: src/frequencies.q:911
+#, c-format
+msgid "Variables %s specified multiple times on GROUPED subcommand."
+msgstr ""
+
+#: src/frequencies.q:1142 src/frequencies.q:1234 src/frequencies.q:1235
+#: src/frequencies.q:1267
+msgid "Cum"
+msgstr ""
+
+#: src/frequencies.q:1144 src/plot-hist.c:129
+msgid "Frequency"
+msgstr ""
+
+#: src/frequencies.q:1164
+msgid "Value Label"
+msgstr ""
+
+#: src/frequencies.q:1265
+msgid "Freq"
+msgstr ""
+
+#: src/frequencies.q:1266 src/frequencies.q:1268
+msgid "Pct"
+msgstr ""
+
+#: src/frequencies.q:1487
+#, c-format
+msgid "No valid data for variable %s; statistics not displayed."
+msgstr ""
+
+#: src/get.c:249
 #, c-format
 msgid "The required %s subcommand was not present"
 msgstr ""
 
-#: src/get.c:252
+#: src/get.c:255
 #, c-format
 msgid "Unsupported sysfile version: %d. Using version %d instead."
 msgstr ""
 
-#: src/get.c:408 src/print.c:179
+#: src/get.c:411 src/print.c:182
 msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/get.c:451
+#: src/get.c:454
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1552,1162 +2226,1284 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/get.c:476
+#: src/get.c:479
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/get.c:483
+#: src/get.c:486
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%d) does not match number of "
 "variables on right side (%d), in parenthesized group %d of RENAME subcommand."
 msgstr ""
 
-#: src/get.c:496
+#: src/get.c:499
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/get.c:526
+#: src/get.c:529
 msgid "Cannot DROP all variables from dictionary."
 msgstr ""
 
-#: src/get.c:787
+#: src/get.c:790
 msgid "The active file may not be specified more than once."
 msgstr ""
 
-#: src/get.c:796
+#: src/get.c:799
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/get.c:804
+#: src/get.c:807
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/get.c:842
+#: src/get.c:845
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/get.c:862
+#: src/get.c:865
 msgid "BY may appear at most once."
 msgstr ""
 
-#: src/get.c:882
+#: src/get.c:885
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/get.c:895
+#: src/get.c:899
 msgid "FIRST may appear at most once."
 msgstr ""
 
-#: src/get.c:909
+#: src/get.c:913
 msgid "LAST may appear at most once."
 msgstr ""
 
-#: src/get.c:950
+#: src/get.c:954
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/get.c:955
+#: src/get.c:959
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/get.c:983
+#: src/get.c:987
 #, c-format
 msgid "IN variable name %s duplicates an existing variable name."
 msgstr ""
 
-#: src/get.c:1417
+#: src/get.c:1416
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
 msgstr ""
 
-#: src/get.c:1508
+#: src/get.c:1507
 msgid "expecting COMM or TAPE"
 msgstr ""
 
-#: src/getline.c:175
+#: src/getl.c:178
 #, c-format
 msgid "Can't find `%s' in include file search path."
 msgstr ""
 
-#: src/getline.c:330
+#: src/getl.c:333
 #, c-format
 msgid "%s: Opening as syntax file."
 msgstr ""
 
-#: src/getline.c:335
+#: src/getl.c:338
 #, c-format
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/getline.c:344 src/html.c:348 src/postscript.c:1466
+#: src/getl.c:347 src/html.c:349 src/postscript.c:1461
 #, c-format
 msgid "Reading `%s': %s."
 msgstr ""
 
-#: src/getline.c:402
+#: src/getl.c:405
 #, c-format
 msgid "Closing `%s': %s."
 msgstr ""
 
-#: src/groff-font.c:101
+#: src/groff-font.c:105
 #, c-format
 msgid "%s: Opening Groff font file..."
 msgstr ""
 
-#: src/groff-font.c:155
+#: src/groff-font.c:159
 msgid "Missing font name."
 msgstr ""
 
-#: src/groff-font.c:165
+#: src/groff-font.c:169
 msgid "Missing encoding filename."
 msgstr ""
 
-#: src/groff-font.c:178
+#: src/groff-font.c:182
 msgid "Bad spacewidth value."
 msgstr ""
 
-#: src/groff-font.c:190
+#: src/groff-font.c:194
 msgid "Bad slant value."
 msgstr ""
 
-#: src/groff-font.c:215
+#: src/groff-font.c:219
 #, c-format
 msgid "Unknown ligature `%s'."
 msgstr ""
 
-#: src/groff-font.c:250
+#: src/groff-font.c:254
 msgid "Unexpected end of line reading character set."
 msgstr ""
 
-#: src/groff-font.c:258
+#: src/groff-font.c:262
 msgid "Can't use ditto mark for first character."
 msgstr ""
 
-#: src/groff-font.c:263
+#: src/groff-font.c:267
 msgid "Can't ditto into an unnamed character."
 msgstr ""
 
-#: src/groff-font.c:280
+#: src/groff-font.c:284
 #, c-format
 msgid "Missing metrics for character `%s'."
 msgstr ""
 
-#: src/groff-font.c:289
+#: src/groff-font.c:293
 #, c-format
 msgid "Missing type for character `%s'."
 msgstr ""
 
-#: src/groff-font.c:298
+#: src/groff-font.c:302
 #, c-format
 msgid "Missing code for character `%s'."
 msgstr ""
 
-#: src/groff-font.c:317
+#: src/groff-font.c:321
 msgid "Malformed kernpair."
 msgstr ""
 
-#: src/groff-font.c:324
+#: src/groff-font.c:328
 msgid "Unexpected end of line reading kernpairs."
 msgstr ""
 
-#: src/groff-font.c:330
+#: src/groff-font.c:334
 msgid "Bad kern value."
 msgstr ""
 
-#: src/groff-font.c:362
+#: src/groff-font.c:366
 #, c-format
 msgid "Font read successfully with internal name %s."
 msgstr ""
 
-#: src/groff-font.c:383
+#: src/groff-font.c:387
 msgid "Error reading font."
 msgstr ""
 
-#: src/groff-font.c:394
+#: src/groff-font.c:398
 msgid "installation error: Groff font error: "
 msgstr ""
 
-#: src/groff-font.c:419
+#: src/groff-font.c:423
 #, c-format
 msgid "Bad character \\%3o."
 msgstr ""
 
-#: src/groff-font.c:673
+#: src/groff-font.c:677
 #, c-format
 msgid "Groff font error: Cannot find \"%s\"."
 msgstr ""
 
-#: src/groff-font.c:738
+#: src/groff-font.c:742
 #, c-format
 msgid "%s: Opening Groff description file..."
 msgstr ""
 
-#: src/groff-font.c:754
+#: src/groff-font.c:758
 msgid "Multiple `sizes' declarations."
 msgstr ""
 
-#: src/groff-font.c:771
+#: src/groff-font.c:775
 msgid "Unexpected end of file.  Missing 0 terminator to `sizes' command?"
 msgstr ""
 
-#: src/groff-font.c:783 src/groff-font.c:790 src/groff-font.c:803
+#: src/groff-font.c:787 src/groff-font.c:794 src/groff-font.c:807
 msgid "Bad argument to `sizes'."
 msgstr ""
 
-#: src/groff-font.c:795
+#: src/groff-font.c:799
 msgid "Bad range in argument to `sizes'."
 msgstr ""
 
-#: src/groff-font.c:824
+#: src/groff-font.c:828
 msgid "Family name expected."
 msgstr ""
 
-#: src/groff-font.c:829
+#: src/groff-font.c:833
 msgid "This command already specified."
 msgstr ""
 
-#: src/groff-font.c:849
+#: src/groff-font.c:853
 #, c-format
 msgid "%s: Device characteristic already defined."
 msgstr ""
 
-#: src/groff-font.c:855
+#: src/groff-font.c:859
 #, c-format
 msgid "%s: Invalid numeric format."
 msgstr ""
 
-#: src/groff-font.c:885
+#: src/groff-font.c:889
 msgid "Missing `res', `unitwidth', and/or `sizes' line(s)."
 msgstr ""
 
-#: src/groff-font.c:911
+#: src/groff-font.c:915
 msgid "Description file read successfully."
 msgstr ""
 
-#: src/groff-font.c:943
+#: src/groff-font.c:947
 msgid "Error reading description file."
 msgstr ""
 
-#: src/groff-font.c:1000
+#: src/groff-font.c:1004
 msgid "<<fallback>>"
 msgstr ""
 
-#: src/hash.c:577
+#: src/hash.c:581
 #, c-format
 msgid "hash table:"
 msgstr ""
 
-#: src/html.c:67
+#: src/html.c:72
 #, c-format
 msgid "HTML driver initializing as `%s'..."
 msgstr ""
 
-#: src/html.c:171
+#: src/html.c:176
 #, c-format
 msgid "Unknown configuration parameter `%s' for HTML device driver."
 msgstr ""
 
-#: src/html.c:254
+#: src/html.c:257
 msgid ""
 "Cannot find HTML prologue.  The use of `-vv' on the command line is "
 "suggested as a debugging aid."
 msgstr ""
 
-#: src/html.c:259
+#: src/html.c:262
 #, c-format
 msgid "%s: %s: Opening HTML prologue..."
 msgstr ""
 
-#: src/html.c:286 src/html.c:297 src/postscript.c:1358 src/postscript.c:1369
+#: src/html.c:286 src/postscript.c:1353 src/postscript.c:1364
 msgid "nobody"
 msgstr ""
 
-#: src/html.c:293 src/html.c:298 src/postscript.c:1365 src/postscript.c:1370
+#: src/html.c:295 src/html.c:298 src/postscript.c:1360 src/postscript.c:1365
 msgid "nowhere"
 msgstr ""
 
-#: src/html.c:357
+#: src/html.c:358
 #, c-format
 msgid "%s: HTML prologue read successfully."
 msgstr ""
 
-#: src/html.c:361
+#: src/html.c:362
 #, c-format
 msgid "%s: Error reading HTML prologue."
 msgstr ""
 
-#: src/html.c:389
+#: src/html.c:390
 #, c-format
 msgid "HTML output driver: %s: %s"
 msgstr ""
 
-#: src/html.c:420 src/list.q:252
+#: src/html.c:421 src/list.q:256
 #, c-format
 msgid "Cannot open first page on HTML device %s."
 msgstr ""
 
-#: src/include.c:40
+#: src/include.c:43
 msgid "expecting filename"
 msgstr ""
 
-#: src/inpt-pgm.c:81
+#: src/inpt-pgm.c:84
 msgid "No matching INPUT PROGRAM command."
 msgstr ""
 
-#: src/inpt-pgm.c:86
+#: src/inpt-pgm.c:89
 msgid ""
 "No data-input or transformation commands specified between INPUT PROGRAM and "
 "END INPUT PROGRAM."
 msgstr ""
 
-#: src/inpt-pgm.c:284 src/inpt-pgm.c:412
+#: src/inpt-pgm.c:287 src/inpt-pgm.c:415
 msgid ""
 "This command may only be executed between INPUT PROGRAM and END INPUT "
 "PROGRAM."
 msgstr ""
 
-#: src/inpt-pgm.c:334
+#: src/inpt-pgm.c:337
 msgid "COLUMN subcommand multiply specified."
 msgstr ""
 
-#: src/inpt-pgm.c:385
+#: src/inpt-pgm.c:388
 msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
 
-#: src/lexer.c:252
+#: src/lexer.c:256
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/lexer.c:369
+#: src/lexer.c:373
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/lexer.c:371
+#: src/lexer.c:375
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/lexer.c:409
+#: src/lexer.c:413
 #, c-format
 msgid "Syntax error %s at %s."
 msgstr ""
 
-#: src/lexer.c:412
+#: src/lexer.c:416
 #, c-format
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/lexer.c:530 src/lexer.c:547
+#: src/lexer.c:534 src/lexer.c:551
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/lexer.c:561 src/val-labs.c:154
+#: src/lexer.c:565 src/val-labs.c:157
 msgid "expecting string"
 msgstr ""
 
-#: src/lexer.c:575 src/val-labs.c:163
+#: src/lexer.c:579 src/val-labs.c:166
 msgid "expecting integer"
 msgstr ""
 
-#: src/lexer.c:589
+#: src/lexer.c:593
 msgid "expecting number"
 msgstr ""
 
-#: src/lexer.c:603
+#: src/lexer.c:607
 msgid "expecting identifier"
 msgstr ""
 
-#: src/lexer.c:889
+#: src/lexer.c:893
 msgid "<ERROR>"
 msgstr ""
 
-#: src/lexer.c:1023 src/repeat.c:214
+#: src/lexer.c:1027 src/repeat.c:217
 msgid "Unexpected end of file."
 msgstr ""
 
-#: src/lexer.c:1032
+#: src/lexer.c:1036
 msgid "binary"
 msgstr ""
 
-#: src/lexer.c:1032
+#: src/lexer.c:1036
 msgid "octal"
 msgstr ""
 
-#: src/lexer.c:1032
+#: src/lexer.c:1036
 msgid "hex"
 msgstr ""
 
-#: src/lexer.c:1046
+#: src/lexer.c:1050
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/lexer.c:1075
+#: src/lexer.c:1079
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/lexer.c:1106
+#: src/lexer.c:1110
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/lexer.c:1178
+#: src/lexer.c:1182
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/lexer.c:1193
+#: src/lexer.c:1197
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."
 msgstr ""
 
-#: src/loop.c:194
+#: src/list.q:154
+#, c-format
+msgid ""
+"The first case (%ld) specified precedes the last case (%ld) specified.  The "
+"values will be swapped."
+msgstr ""
+
+#: src/list.q:162
+#, c-format
+msgid ""
+"The first case (%ld) to list is less than 1.  The value is being reset to 1."
+msgstr ""
+
+#: src/list.q:168
+#, c-format
+msgid ""
+"The last case (%ld) to list is less than 1.  The value is being reset to 1."
+msgstr ""
+
+#: src/list.q:174
+#, c-format
+msgid "The step value %ld is less than 1.  The value is being reset to 1."
+msgstr ""
+
+#: src/list.q:201
+msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
+msgstr ""
+
+#: src/list.q:442
+msgid "Line"
+msgstr ""
+
+#: src/loop.c:197
 msgid "The index variable may not be a string variable."
 msgstr ""
 
-#: src/loop.c:300
+#: src/loop.c:303
 msgid "There is no LOOP command that corresponds to this END LOOP."
 msgstr ""
 
-#: src/loop.c:494
+#: src/loop.c:497
 msgid ""
 "This command may only appear enclosed in a LOOP/END LOOP control structure."
 msgstr ""
 
-#: src/loop.c:500
+#: src/loop.c:503
 msgid "BREAK not enclosed in DO IF structure."
 msgstr ""
 
-#: src/loop.c:578
+#: src/loop.c:581
 #, c-format
 msgid "%s without %s."
 msgstr ""
 
-#: src/main.c:86
+#: src/main.c:89
 msgid "Error initializing output drivers."
 msgstr ""
 
-#: src/main.c:156
+#: src/main.c:159
 msgid "This command not executed."
 msgstr ""
 
-#: src/main.c:160
+#: src/main.c:163
 msgid ""
 "Skipping the rest of this command.  Part of this command may have been "
 "executed."
 msgstr ""
 
-#: src/main.c:165
+#: src/main.c:168
 msgid ""
 "Skipping the rest of this command.  This command was fully executed up to "
 "this point."
 msgstr ""
 
-#: src/main.c:170
+#: src/main.c:173
 msgid ""
 "Trailing garbage was encountered following this command.  The command was "
 "fully executed to this point."
 msgstr ""
 
-#: src/main.c:187
+#: src/main.c:190
 msgid "The rest of this command has been discarded."
 msgstr ""
 
-#: src/matrix-data.c:208
+#: src/matrix-data.c:211
 msgid "VARIABLES subcommand multiply specified."
 msgstr ""
 
-#: src/matrix-data.c:223
+#: src/matrix-data.c:226
 msgid "VARNAME_ cannot be explicitly specified on VARIABLES."
 msgstr ""
 
-#: src/matrix-data.c:284
+#: src/matrix-data.c:287
 msgid "in FORMAT subcommand"
 msgstr ""
 
-#: src/matrix-data.c:295
+#: src/matrix-data.c:298
 msgid "SPLIT subcommand multiply specified."
 msgstr ""
 
-#: src/matrix-data.c:302
+#: src/matrix-data.c:305
 msgid "in SPLIT subcommand"
 msgstr ""
 
-#: src/matrix-data.c:312
+#: src/matrix-data.c:315
 msgid "Split variable may not be named ROWTYPE_ or VARNAME_."
 msgstr ""
 
-#: src/matrix-data.c:346
+#: src/matrix-data.c:349
 #, c-format
 msgid "Split variable %s is already another type."
 msgstr ""
 
-#: src/matrix-data.c:361
+#: src/matrix-data.c:364
 msgid "FACTORS subcommand multiply specified."
 msgstr ""
 
-#: src/matrix-data.c:379
+#: src/matrix-data.c:382
 #, c-format
 msgid "Factor variable %s is already another type."
 msgstr ""
 
-#: src/matrix-data.c:394
+#: src/matrix-data.c:397
 msgid "CELLS subcommand multiply specified."
 msgstr ""
 
-#: src/matrix-data.c:400 src/matrix-data.c:419
+#: src/matrix-data.c:403 src/matrix-data.c:422
 msgid "expecting positive integer"
 msgstr ""
 
-#: src/matrix-data.c:413
+#: src/matrix-data.c:416
 msgid "N subcommand multiply specified."
 msgstr ""
 
-#: src/matrix-data.c:434
+#: src/matrix-data.c:437
 msgid "CONTENTS subcommand multiply specified."
 msgstr ""
 
-#: src/matrix-data.c:454
+#: src/matrix-data.c:457
 msgid "Nested parentheses not allowed."
 msgstr ""
 
-#: src/matrix-data.c:464
+#: src/matrix-data.c:467
 msgid "Mismatched right parenthesis (`(')."
 msgstr ""
 
-#: src/matrix-data.c:469
+#: src/matrix-data.c:472
 msgid "Empty parentheses not allowed."
 msgstr ""
 
-#: src/matrix-data.c:482 src/matrix-data.c:490
+#: src/matrix-data.c:485 src/matrix-data.c:493
 msgid "in CONTENTS subcommand"
 msgstr ""
 
-#: src/matrix-data.c:497
+#: src/matrix-data.c:500
 #, c-format
 msgid "Content multiply specified for %s."
 msgstr ""
 
-#: src/matrix-data.c:514
+#: src/matrix-data.c:517
 msgid "Missing right parenthesis."
 msgstr ""
 
-#: src/matrix-data.c:534
+#: src/matrix-data.c:537
 msgid "Missing VARIABLES subcommand."
 msgstr ""
 
-#: src/matrix-data.c:540
+#: src/matrix-data.c:543
 msgid ""
 "CONTENTS subcommand not specified: assuming file contains only CORR matrix."
 msgstr ""
 
-#: src/matrix-data.c:550
+#: src/matrix-data.c:553
 msgid ""
 "Missing CELLS subcommand.  CELLS is required when ROWTYPE_ is not given in "
 "the data and factors are present."
 msgstr ""
 
-#: src/matrix-data.c:558
+#: src/matrix-data.c:561
 msgid "Split file values must be present in the data when ROWTYPE_ is present."
 msgstr ""
 
-#: src/matrix-data.c:611
+#: src/matrix-data.c:614
 msgid "No continuous variables specified."
 msgstr ""
 
-#: src/matrix-data.c:854
+#: src/matrix-data.c:857
 msgid "Scope of string exceeds line."
 msgstr ""
 
-#: src/matrix-data.c:919
+#: src/matrix-data.c:922
 #, c-format
 msgid "End of line expected %s while reading %s."
 msgstr ""
 
-#: src/matrix-data.c:1104
+#: src/matrix-data.c:1107
 #, c-format
 msgid "expecting value for %s %s"
 msgstr ""
 
-#: src/matrix-data.c:1268
+#: src/matrix-data.c:1271
 #, c-format
 msgid "Syntax error expecting SPLIT FILE value %s."
 msgstr ""
 
-#: src/matrix-data.c:1277
+#: src/matrix-data.c:1280
 #, c-format
 msgid "Expecting value %g for %s."
 msgstr ""
 
-#: src/matrix-data.c:1318 src/matrix-data.c:1781
+#: src/matrix-data.c:1321 src/matrix-data.c:1784
 #, c-format
 msgid "Syntax error expecting factor value %s."
 msgstr ""
 
-#: src/matrix-data.c:1327
+#: src/matrix-data.c:1330
 #, c-format
 msgid "Syntax error expecting value %g for %s %s."
 msgstr ""
 
-#: src/matrix-data.c:1561
+#: src/matrix-data.c:1564
 #, c-format
 msgid "Syntax error %s expecting SPLIT FILE value."
 msgstr ""
 
-#: src/matrix-data.c:1688
+#: src/matrix-data.c:1691
 #, c-format
 msgid ""
 "Expected %d lines of data for %s content; actually saw %d lines.  No data "
 "will be output for this content."
 msgstr ""
 
-#: src/matrix-data.c:1723
+#: src/matrix-data.c:1726
 #, c-format
 msgid "Multiply specified ROWTYPE_ %s."
 msgstr ""
 
-#: src/matrix-data.c:1728
+#: src/matrix-data.c:1731
 #, c-format
 msgid "Syntax error %s expecting ROWTYPE_ string."
 msgstr ""
 
-#: src/matrix-data.c:1748
+#: src/matrix-data.c:1751
 #, c-format
 msgid "Syntax error %s."
 msgstr ""
 
-#: src/matrix-data.c:1898
+#: src/matrix-data.c:1901
 #, c-format
 msgid "Duplicate specification for %s."
 msgstr ""
 
-#: src/matrix-data.c:1910
+#: src/matrix-data.c:1913
 #, c-format
 msgid "Too many rows of matrix data for %s."
 msgstr ""
 
-#: src/matrix-data.c:1958
+#: src/matrix-data.c:1961
 #, c-format
 msgid "Syntax error expecting value for %s %s."
 msgstr ""
 
-#: src/mis-val.c:71
+#: src/means.q:104
+msgid "Missing required subcommand TABLES."
+msgstr ""
+
+#: src/means.q:138
+msgid "TABLES subcommand may not appear more than once."
+msgstr ""
+
+#: src/mis-val.c:74
 msgid "`)' expected after value specification."
 msgstr ""
 
-#: src/mis-val.c:101
+#: src/mis-val.c:104
 #, c-format
 msgid "`(' expected after variable name%s."
 msgstr ""
 
-#: src/mis-val.c:113
+#: src/mis-val.c:116
 msgid "Long string value specified."
 msgstr ""
 
-#: src/mis-val.c:118
+#: src/mis-val.c:121
 msgid "Short strings must be of equal width."
 msgstr ""
 
-#: src/mis-val.c:175
+#: src/mis-val.c:178
 #, c-format
 msgid "Range %g THRU %g is not valid because %g is greater than %g."
 msgstr ""
 
-#: src/mis-val.c:206
+#: src/mis-val.c:209
 msgid "Number or range expected."
 msgstr ""
 
-#: src/mis-val.c:239
+#: src/mis-val.c:242
 msgid "At most one range can exist in the missing values for any one variable."
 msgstr ""
 
-#: src/mis-val.c:245
+#: src/mis-val.c:248
 msgid "At most one individual value can be missing along with one range."
 msgstr ""
 
-#: src/mis-val.c:307
+#: src/mis-val.c:310
 msgid "String is not of proper length."
 msgstr ""
 
-#: src/mis-val.c:316 src/repeat.c:460
+#: src/mis-val.c:319 src/repeat.c:463
 msgid "String expected."
 msgstr ""
 
-#: src/mkfile.c:52
+#: src/mkfile.c:54
 #, c-format
 msgid "%s: Creating temporary file: %s."
 msgstr ""
 
-#: src/mkfile.c:94
+#: src/mkfile.c:96
 #, c-format
 msgid "%s: Creating file: %s."
 msgstr ""
 
-#: src/modify-vars.c:89
+#: src/modify-vars.c:92
 msgid ""
 "MODIFY VARS may not be used after TEMPORARY.  Temporary transformations will "
 "be made permanent."
 msgstr ""
 
-#: src/modify-vars.c:113
+#: src/modify-vars.c:116
 msgid "REORDER subcommand may be given at most once."
 msgstr ""
 
-#: src/modify-vars.c:136
+#: src/modify-vars.c:139
 msgid "Cannot specify ALL after specifying a set of variables."
 msgstr ""
 
-#: src/modify-vars.c:146
+#: src/modify-vars.c:149
 msgid "`(' expected on REORDER subcommand."
 msgstr ""
 
-#: src/modify-vars.c:158
+#: src/modify-vars.c:161
 msgid "`)' expected following variable names on REORDER subcommand."
 msgstr ""
 
-#: src/modify-vars.c:176
+#: src/modify-vars.c:179
 msgid "RENAME subcommand may be given at most once."
 msgstr ""
 
-#: src/modify-vars.c:189
+#: src/modify-vars.c:192
 msgid "`(' expected on RENAME subcommand."
 msgstr ""
 
-#: src/modify-vars.c:197
+#: src/modify-vars.c:200
 msgid ""
 "`=' expected between lists of new and old variable names on RENAME "
 "subcommand."
 msgstr ""
 
-#: src/modify-vars.c:205 src/rename-vars.c:75
+#: src/modify-vars.c:208 src/rename-vars.c:78
 #, c-format
 msgid ""
 "Differing number of variables in old name list (%d) and in new name list (%"
 "d)."
 msgstr ""
 
-#: src/modify-vars.c:216
+#: src/modify-vars.c:219
 msgid "`)' expected after variable lists on RENAME subcommand."
 msgstr ""
 
-#: src/modify-vars.c:230
+#: src/modify-vars.c:233
 msgid ""
 "KEEP subcommand may be given at most once.  It may notbe given in "
 "conjunction with the DROP subcommand."
 msgstr ""
 
-#: src/modify-vars.c:272
+#: src/modify-vars.c:275
 msgid ""
 "DROP subcommand may be given at most once.  It may not be given in "
 "conjunction with the KEEP subcommand."
 msgstr ""
 
-#: src/modify-vars.c:298
+#: src/modify-vars.c:301
 #, c-format
 msgid "Unrecognized subcommand name `%s'."
 msgstr ""
 
-#: src/modify-vars.c:300
+#: src/modify-vars.c:303
 msgid "Subcommand name expected."
 msgstr ""
 
-#: src/modify-vars.c:308
+#: src/modify-vars.c:311
 msgid "`/' or `.' expected."
 msgstr ""
 
-#: src/moments.c:513
+#: src/moments.c:516
 msgid "expecting weight value"
 msgstr ""
 
-#: src/numeric.c:58
+#: src/numeric.c:61
 #, c-format
 msgid "Format type %s may not be used with a numeric variable."
 msgstr ""
 
-#: src/numeric.c:77 src/numeric.c:159 src/vector.c:156
+#: src/numeric.c:80 src/numeric.c:162 src/vector.c:159
 #, c-format
 msgid "There is already a variable named %s."
 msgstr ""
 
-#: src/numeric.c:129
+#: src/numeric.c:132
 #, c-format
 msgid "Format type %s may not be used with a string variable."
 msgstr ""
 
-#: src/output.c:86
+#: src/oneway.q:174
+msgid "Number of contrast coefficients must equal the number of groups"
+msgstr ""
+
+#: src/oneway.q:183
+#, c-format
+msgid "Coefficients for contrast %d do not total zero"
+msgstr ""
+
+#: src/oneway.q:248
+#, c-format
+msgid "`%s' is not a variable name"
+msgstr ""
+
+#: src/oneway.q:283
+msgid "Sum of Squares"
+msgstr ""
+
+#: src/oneway.q:285
+msgid "Mean Square"
+msgstr ""
+
+#: src/oneway.q:286 src/t-test.q:974
+msgid "F"
+msgstr ""
+
+#: src/oneway.q:287 src/oneway.q:540
+msgid "Significance"
+msgstr ""
+
+#: src/oneway.q:309
+msgid "Between Groups"
+msgstr ""
+
+#: src/oneway.q:310
+msgid "Within Groups"
+msgstr ""
+
+#: src/oneway.q:357
+msgid "ANOVA"
+msgstr ""
+
+#: src/oneway.q:537
+msgid "Levene Statistic"
+msgstr ""
+
+#: src/oneway.q:538
+msgid "df1"
+msgstr ""
+
+#: src/oneway.q:539
+msgid "df2"
+msgstr ""
+
+#: src/oneway.q:543
+msgid "Test of Homogeneity of Variances"
+msgstr ""
+
+#: src/oneway.q:613
+msgid "Contrast Coefficients"
+msgstr ""
+
+#: src/oneway.q:615 src/oneway.q:682
+msgid "Contrast"
+msgstr ""
+
+#: src/oneway.q:680
+msgid "Contrast Tests"
+msgstr ""
+
+#: src/oneway.q:683
+msgid "Value of Contrast"
+msgstr ""
+
+#: src/oneway.q:685 src/t-test.q:976 src/t-test.q:1168 src/t-test.q:1260
+msgid "t"
+msgstr ""
+
+#: src/oneway.q:687 src/t-test.q:978 src/t-test.q:1170 src/t-test.q:1262
+msgid "Sig. (2-tailed)"
+msgstr ""
+
+#: src/oneway.q:731
+msgid "Assume equal variances"
+msgstr ""
+
+#: src/oneway.q:735
+msgid "Does not assume equal"
+msgstr ""
+
+#: src/output.c:89
 msgid "Attempt to iterate driver list reentrantly."
 msgstr ""
 
-#: src/output.c:163
+#: src/output.c:166
 #, c-format
 msgid "Unknown output driver `%s'."
 msgstr ""
 
-#: src/output.c:165
+#: src/output.c:168
 #, c-format
 msgid "Output driver `%s' referenced but never defined."
 msgstr ""
 
-#: src/output.c:295
-msgid "Cannot find output initialization file.  Use `-vv' to view search path."
+#: src/output.c:298
+msgid ""
+"Cannot find output initialization file.  Use `-vvvv' to view search path."
 msgstr ""
 
-#: src/output.c:300
+#: src/output.c:303
 #, c-format
 msgid "%s: Opening device description file..."
 msgstr ""
 
-#: src/output.c:304 src/output.c:1175 src/postscript.c:1102
+#: src/output.c:307 src/output.c:1183 src/postscript.c:1097
 #, c-format
 msgid "Opening %s: %s."
 msgstr ""
 
-#: src/output.c:315 src/output.c:1186 src/postscript.c:1117
+#: src/output.c:318 src/output.c:1194 src/postscript.c:1112
 #, c-format
 msgid "Reading %s: %s."
 msgstr ""
 
-#: src/output.c:337 src/output.c:499
+#: src/output.c:340 src/output.c:507
 msgid "Syntax error."
 msgstr ""
 
-#: src/output.c:347 src/postscript.c:1128
+#: src/output.c:350 src/postscript.c:1123
 #, c-format
 msgid "Closing %s: %s."
 msgstr ""
 
-#: src/output.c:352
+#: src/output.c:355
 msgid "No output drivers are active."
 msgstr ""
 
-#: src/output.c:355
+#: src/output.c:358
 msgid "Device definition file read successfully."
 msgstr ""
 
-#: src/output.c:357
+#: src/output.c:360
 msgid "Error reading device definition file."
 msgstr ""
 
-#: src/output.c:471
+#: src/output.c:479
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output.c:600
+#: src/output.c:608
 msgid "Syntax error in string constant."
 msgstr ""
 
-#: src/output.c:632
+#: src/output.c:640
 msgid "Syntax error in options."
 msgstr ""
 
-#: src/output.c:642
+#: src/output.c:650
 msgid "Syntax error in options (`=' expected)."
 msgstr ""
 
-#: src/output.c:649
+#: src/output.c:657
 msgid "Syntax error in options (value expected after `=')."
 msgstr ""
 
-#: src/output.c:721
+#: src/output.c:729
 msgid "Driver name expected."
 msgstr ""
 
-#: src/output.c:742
+#: src/output.c:750
 msgid "Class name expected."
 msgstr ""
 
-#: src/output.c:751
+#: src/output.c:759
 #, c-format
 msgid "Unknown output driver class `%s'."
 msgstr ""
 
-#: src/output.c:758
+#: src/output.c:766
 #, c-format
 msgid "Can't initialize output driver class `%s'."
 msgstr ""
 
-#: src/output.c:765
+#: src/output.c:773
 #, c-format
 msgid "Can't initialize output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output.c:787
+#: src/output.c:795
 #, c-format
 msgid "Unknown device type `%s'."
 msgstr ""
 
-#: src/output.c:799
+#: src/output.c:807
 #, c-format
 msgid "Can't complete initialization of output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output.c:846
+#: src/output.c:854
 #, c-format
 msgid "Can't deinitialize output driver class `%s'."
 msgstr ""
 
-#: src/output.c:919
+#: src/output.c:927
 #, c-format
 msgid "Trying to find keyword `%s'...\n"
 msgstr ""
 
-#: src/output.c:1036
+#: src/output.c:1044
 #, c-format
 msgid "Unit \"%s\" is unknown in dimension \"%s\"."
 msgstr ""
 
-#: src/output.c:1051
+#: src/output.c:1059
 #, c-format
 msgid "Bad dimension \"%s\"."
 msgstr ""
 
-#: src/output.c:1077
+#: src/output.c:1085
 #, c-format
 msgid "`x' expected in paper size `%s'."
 msgstr ""
 
-#: src/output.c:1087
+#: src/output.c:1095
 #, c-format
 msgid "Trailing garbage `%s' on paper size `%s'."
 msgstr ""
 
-#: src/output.c:1136
+#: src/output.c:1144
 msgid "Paper size name must not be empty."
 msgstr ""
 
-#: src/output.c:1167
+#: src/output.c:1175
 msgid "Cannot find `papersize' configuration file."
 msgstr ""
 
-#: src/output.c:1171
+#: src/output.c:1179
 #, c-format
 msgid "%s: Opening paper size definition file..."
 msgstr ""
 
-#: src/output.c:1213
+#: src/output.c:1221
 msgid "Syntax error in paper size definition."
 msgstr ""
 
-#: src/output.c:1242
+#: src/output.c:1250
 msgid "Paper size definition file read successfully."
 msgstr ""
 
-#: src/output.c:1244
+#: src/output.c:1252
 msgid "Error reading paper size definition file."
 msgstr ""
 
-#: src/output.c:1313
+#: src/output.c:1321
 #, c-format
 msgid "Error closing page on %s device of %s class."
 msgstr ""
 
-#: src/output.c:1317
+#: src/output.c:1325
 #, c-format
 msgid "Error opening page on %s device of %s class."
 msgstr ""
 
-#: src/percentiles.c:38
+#: src/percentiles.c:42
 msgid "HAverage"
 msgstr ""
 
-#: src/percentiles.c:39
+#: src/percentiles.c:43
 msgid "Weighted Average"
 msgstr ""
 
-#: src/percentiles.c:40
+#: src/percentiles.c:44
 msgid "Rounded"
 msgstr ""
 
-#: src/percentiles.c:41
+#: src/percentiles.c:45
 msgid "Empirical"
 msgstr ""
 
-#: src/percentiles.c:42
+#: src/percentiles.c:46
 msgid "Empirical with averaging"
 msgstr ""
 
-#: src/permissions.c:76
+#: src/permissions.c:77
 #, c-format
 msgid "Expecting %s or %s."
 msgstr ""
 
-#: src/permissions.c:109
+#: src/permissions.c:110
 #, c-format
 msgid "Cannot stat %s: %s"
 msgstr ""
 
-#: src/permissions.c:122
+#: src/permissions.c:123
 #, c-format
 msgid "Cannot change mode of %s: %s"
 msgstr ""
 
-#: src/pfm-read.c:85
+#: src/pfm-read.c:88
 #, c-format
 msgid "portable file %s corrupt at offset %ld: "
 msgstr ""
 
-#: src/pfm-read.c:112
+#: src/pfm-read.c:115
 msgid "unexpected end of file"
 msgstr ""
 
-#: src/pfm-read.c:170
+#: src/pfm-read.c:173
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a portable file: %s."
 msgstr ""
 
-#: src/pfm-read.c:188
+#: src/pfm-read.c:191
 msgid "Data record expected."
 msgstr ""
 
-#: src/pfm-read.c:296
+#: src/pfm-read.c:299
 msgid "Missing numeric terminator."
 msgstr ""
 
-#: src/pfm-read.c:319
+#: src/pfm-read.c:322
 msgid "Invalid integer."
 msgstr ""
 
-#: src/pfm-read.c:330
+#: src/pfm-read.c:333
 #, c-format
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/pfm-read.c:401
+#: src/pfm-read.c:404
 #, c-format
 msgid "%s: Not a portable file."
 msgstr ""
 
-#: src/pfm-read.c:425
+#: src/pfm-read.c:429
 #, c-format
 msgid "Bad date string length %d."
 msgstr ""
 
-#: src/pfm-read.c:427
+#: src/pfm-read.c:431
 #, c-format
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/pfm-read.c:465 src/sfm-read.c:1019
+#: src/pfm-read.c:469 src/sfm-read.c:1022
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/pfm-read.c:472 src/sfm-read.c:1035
+#: src/pfm-read.c:476 src/sfm-read.c:1038
 #, c-format
 msgid "%s variable %s has invalid format specifier %s."
 msgstr ""
 
-#: src/pfm-read.c:487
+#: src/pfm-read.c:491
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/pfm-read.c:491
+#: src/pfm-read.c:495
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/pfm-read.c:501
+#: src/pfm-read.c:505
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/pfm-read.c:513
+#: src/pfm-read.c:517
 msgid "Expected variable record."
 msgstr ""
 
-#: src/pfm-read.c:517
+#: src/pfm-read.c:521
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/pfm-read.c:525
+#: src/pfm-read.c:529
 #, c-format
 msgid "position %d: Invalid variable name `%s'."
 msgstr ""
 
-#: src/pfm-read.c:533
-#, c-format
-msgid "Duplicate variable name %s."
-msgstr ""
-
-#: src/pfm-read.c:573
+#: src/pfm-read.c:577
 #, c-format
 msgid "Bad missing values for %s."
 msgstr ""
 
-#: src/pfm-read.c:591
+#: src/pfm-read.c:595
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/pfm-read.c:638
+#: src/pfm-read.c:642
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/pfm-read.c:641
+#: src/pfm-read.c:645
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types "
 "or widths."
 msgstr ""
 
-#: src/pfm-read.c:665
+#: src/pfm-read.c:669
 #, c-format
 msgid "Duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/pfm-read.c:668
+#: src/pfm-read.c:672
 #, c-format
 msgid "Duplicate label for value `%.*s' for variable %s."
 msgstr ""
 
-#: src/pfm-write.c:93
+#: src/pfm-write.c:99
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for writing as a portable file: %s."
 msgstr ""
 
-#: src/pfm-write.c:155
+#: src/pfm-write.c:161
 #, c-format
 msgid "%s: Writing portable file: %s."
 msgstr ""
 
-#: src/pfm-write.c:493
+#: src/pfm-write.c:410
 #, c-format
 msgid "%s: Closing portable file: %s."
 msgstr ""
 
-#: src/plot-hist.c:126
+#: src/plot-hist.c:127
 msgid "HISTOGRAM"
 msgstr ""
 
-#: src/plot-hist.c:128 src/frequencies.q:1139
-msgid "Frequency"
-msgstr ""
-
-#: src/postscript.c:326
+#: src/postscript.c:321
 #, c-format
 msgid "PostScript driver initializing as `%s'..."
 msgstr ""
 
-#: src/postscript.c:450
+#: src/postscript.c:445
 #, c-format
 msgid ""
 "PostScript driver: The defined page is not long enough to hold margins and "
@@ -2715,195 +3511,200 @@ msgid ""
 "room for %d lines of each font at the default size of %d.%03d points."
 msgstr ""
 
-#: src/postscript.c:580
+#: src/postscript.c:575
 #, c-format
 msgid "Unknown configuration parameter `%s' for PostScript device driver."
 msgstr ""
 
-#: src/postscript.c:596
+#: src/postscript.c:591
 #, c-format
 msgid ""
 "Unknown orientation `%s'.  Valid orientations are `portrait' and `landscape'."
 msgstr ""
 
-#: src/postscript.c:608
+#: src/postscript.c:603
 msgid ""
 "Unknown value for `data'.  Valid values are `clean7bit', `clean8bit', and "
 "`binary'."
 msgstr ""
 
-#: src/postscript.c:617
+#: src/postscript.c:612
 msgid "Unknown value for `line-ends'.  Valid values are `lf' and `crlf'."
 msgstr ""
 
-#: src/postscript.c:626
+#: src/postscript.c:621
 msgid "Unknown value for `line-style'.  Valid values are `thick' and `double'."
 msgstr ""
 
-#: src/postscript.c:689
+#: src/postscript.c:684
 #, c-format
 msgid ""
 "Default font size must be at least 1 point (value of 1000 for key `%s')."
 msgstr ""
 
-#: src/postscript.c:721
+#: src/postscript.c:716
 #, c-format
 msgid "Value for `%s' must be a dimension of positive length (i.e., `1in')."
 msgstr ""
 
-#: src/postscript.c:785
+#: src/postscript.c:780
 #, c-format
 msgid "Nonnegative integer required as value for `%s'."
 msgstr ""
 
-#: src/postscript.c:911
+#: src/postscript.c:906
 #, c-format
 msgid "%s: %s: Opening PostScript font encoding..."
 msgstr ""
 
-#: src/postscript.c:917
+#: src/postscript.c:912
 #, c-format
 msgid ""
 "PostScript driver: Cannot open encoding file `%s': %s.  Substituting "
 "ISOLatin1Encoding for missing encoding."
 msgstr ""
 
-#: src/postscript.c:959
+#: src/postscript.c:954
 msgid "PostScript driver: Invalid numeric format."
 msgstr ""
 
-#: src/postscript.c:964
+#: src/postscript.c:959
 #, c-format
 msgid ""
 "PostScript driver: Codes must be between 0 and 255.  (%d is not allowed.)"
 msgstr ""
 
-#: src/postscript.c:1000
+#: src/postscript.c:995
 #, c-format
 msgid "PostScript driver: Error closing encoding file `%s'."
 msgstr ""
 
-#: src/postscript.c:1003
+#: src/postscript.c:998
 #, c-format
 msgid "%s: PostScript font encoding read successfully."
 msgstr ""
 
-#: src/postscript.c:1097
+#: src/postscript.c:1092
 #, c-format
 msgid "%s: %s: Opening PostScript encoding list file."
 msgstr ""
 
-#: src/postscript.c:1130
+#: src/postscript.c:1125
 #, c-format
 msgid "%s: PostScript encoding list file read successfully."
 msgstr ""
 
-#: src/postscript.c:1144
+#: src/postscript.c:1139
 msgid "<<default encoding>>"
 msgstr ""
 
-#: src/postscript.c:1302
+#: src/postscript.c:1297
 msgid ""
 "Cannot find PostScript prologue.  The use of `-vv' on the command line is "
 "suggested as a debugging aid."
 msgstr ""
 
-#: src/postscript.c:1307
+#: src/postscript.c:1302
 #, c-format
 msgid "%s: %s: Opening PostScript prologue..."
 msgstr ""
 
-#: src/postscript.c:1479
+#: src/postscript.c:1474
 #, c-format
 msgid "%s: PostScript prologue read successfully."
 msgstr ""
 
-#: src/postscript.c:1483
+#: src/postscript.c:1478
 #, c-format
 msgid "%s: Error reading PostScript prologue."
 msgstr ""
 
-#: src/postscript.c:1653
+#: src/postscript.c:1648
 #, c-format
 msgid "PostScript output driver: %s: %s"
 msgstr ""
 
-#: src/postscript.c:2337
+#: src/postscript.c:2347
 #, c-format
 msgid "PostScript driver: Cannot find encoding `%s' for PostScript font `%s'."
 msgstr ""
 
-#: src/postscript.c:2885
-msgid "Charts are currently unsupported with postscript drivers."
-msgstr ""
-
-#: src/print.c:365 src/print.c:382
+#: src/print.c:368 src/print.c:385
 #, c-format
 msgid "%g is not a valid column location."
 msgstr ""
 
-#: src/print.c:376
+#: src/print.c:379
 #, c-format
 msgid "Column location expected following `%d-'."
 msgstr ""
 
-#: src/print.c:387
+#: src/print.c:390
 #, c-format
 msgid ""
 "%d-%ld is not a valid column range.  The second column must be greater than "
 "or equal to the first."
 msgstr ""
 
-#: src/print.c:488
+#: src/print.c:491
 #, c-format
 msgid "Variable %s has width %d so it cannot be output as format %s."
 msgstr ""
 
-#: src/print.c:508
+#: src/print.c:511
 #, c-format
 msgid ""
 "%s is not of the same type as %s.  To specify variables of different types "
 "in the same variable list, use a FORTRAN-like format specifier."
 msgstr ""
 
-#: src/print.c:538
+#: src/print.c:541
 msgid ""
 "The ending column for a field must not be less than the starting column."
 msgstr ""
 
-#: src/print.c:686
+#: src/print.c:689
 msgid ""
 "The number of format specifications exceeds the number of variable names "
 "given."
 msgstr ""
 
-#: src/print.c:838
+#: src/print.c:841
 #, c-format
 msgid "Writing %d record(s) to file %s."
 msgstr ""
 
-#: src/print.c:841
+#: src/print.c:844
 #, c-format
 msgid "Writing %d record(s) to the listing file."
 msgstr ""
 
-#: src/print.c:1088
+#: src/print.c:1091
 msgid "The expression on PRINT SPACE evaluated to the system-missing value."
 msgstr ""
 
-#: src/print.c:1091
+#: src/print.c:1094
 #, c-format
 msgid "The expression on PRINT SPACE evaluated to %g."
 msgstr ""
 
-#: src/recode.c:283
+#: src/rank.q:242
+#, c-format
+msgid "Variable %s already exists."
+msgstr ""
+
+#: src/rank.q:247
+msgid "Too many variables in INTO clause."
+msgstr ""
+
+#: src/recode.c:286
 #, c-format
 msgid ""
 "%d variable(s) cannot be recoded into %d variable(s).  Specify the same "
 "number of variables as input and output variables."
 msgstr ""
 
-#: src/recode.c:297
+#: src/recode.c:300
 #, c-format
 msgid ""
 "There is no string variable named %s.  (All string variables specified on "
@@ -2911,83 +3712,83 @@ msgid ""
 "variable.)"
 msgstr ""
 
-#: src/recode.c:306
+#: src/recode.c:309
 #, c-format
 msgid ""
 "Type mismatch between input and output variables.  Output variable %s is not "
 "a string variable, but all the input variables are string variables."
 msgstr ""
 
-#: src/recode.c:325
+#: src/recode.c:328
 #, c-format
 msgid "Type mismatch after INTO: %s is not a numeric variable."
 msgstr ""
 
-#: src/recode.c:355
+#: src/recode.c:358
 msgid ""
 "INTO must be used when the input values are numeric and output values are "
 "string."
 msgstr ""
 
-#: src/recode.c:363
+#: src/recode.c:366
 msgid ""
 "INTO must be used when the input values are string and output values are "
 "numeric."
 msgstr ""
 
-#: src/recode.c:486
+#: src/recode.c:489
 msgid "expecting output value"
 msgstr ""
 
-#: src/recode.c:500
+#: src/recode.c:503
 msgid ""
 "Inconsistent output types.  The output values must be all numeric or all "
 "string."
 msgstr ""
 
-#: src/recode.c:551
+#: src/recode.c:554
 msgid "following LO THRU"
 msgstr ""
 
-#: src/recode.c:567 src/recode.c:596
+#: src/recode.c:570 src/recode.c:599
 msgid "in source value"
 msgstr ""
 
-#: src/recode.c:609
+#: src/recode.c:612
 msgid ""
 "Keyword CONVERT may only be used with string input values and numeric output "
 "values."
 msgstr ""
 
-#: src/rename-vars.c:48
+#: src/rename-vars.c:51
 msgid ""
 "RENAME VARS may not be used after TEMPORARY.  Temporary transformations will "
 "be made permanent."
 msgstr ""
 
-#: src/rename-vars.c:60
+#: src/rename-vars.c:63
 msgid "`(' expected."
 msgstr ""
 
-#: src/rename-vars.c:68
+#: src/rename-vars.c:71
 msgid "`=' expected between lists of new and old variable names."
 msgstr ""
 
-#: src/rename-vars.c:86
+#: src/rename-vars.c:89
 msgid "`)' expected after variable names."
 msgstr ""
 
-#: src/rename-vars.c:96
+#: src/rename-vars.c:99
 #, c-format
 msgid "Renaming would duplicate variable name %s."
 msgstr ""
 
-#: src/repeat.c:151
+#: src/repeat.c:154
 #, c-format
 msgid "Identifier %s is given twice."
 msgstr ""
 
-#: src/repeat.c:194
+#: src/repeat.c:197
 #, c-format
 msgid ""
 "There must be the same number of substitutions for each dummy variable "
@@ -2995,164 +3796,309 @@ msgid ""
 "s as well, but %d were specified."
 msgstr ""
 
-#: src/repeat.c:299
+#: src/repeat.c:302
 msgid "No commands in scope."
 msgstr ""
 
-#: src/repeat.c:487
+#: src/repeat.c:490
 msgid "No matching DO REPEAT."
 msgstr ""
 
-#: src/sample.c:73
+#: src/sample.c:76
 msgid "The sampling factor must be between 0 and 1 exclusive."
 msgstr ""
 
-#: src/sample.c:93
+#: src/sample.c:96
 #, c-format
 msgid "Cannot sample %d observations from a population of %d."
 msgstr ""
 
-#: src/sel-if.c:100
+#: src/sel-if.c:103
 msgid "The filter variable must be numeric."
 msgstr ""
 
-#: src/sel-if.c:106
+#: src/sel-if.c:109
 msgid "The filter variable may not be scratch."
 msgstr ""
 
-#: src/sel-if.c:137
+#: src/sel-if.c:140
 msgid "Only last instance of this command is in effect."
 msgstr ""
 
-#: src/sfm-read.c:129
+#: src/set.q:224 src/set.q:303 src/set.q:346 src/set.q:401 src/set.q:403
+#: src/set.q:405 src/set.q:407 src/set.q:409 src/set.q:411 src/set.q:413
+#: src/set.q:415 src/set.q:417 src/set.q:419 src/set.q:421 src/set.q:423
+#: src/set.q:425 src/set.q:831 src/set.q:912 src/set.q:1007
+#, c-format
+msgid "%s is obsolete."
+msgstr ""
+
+#: src/set.q:232
+msgid "LISTING is ON"
+msgstr ""
+
+#: src/set.q:234
+msgid "LISTING is OFF"
+msgstr ""
+
+#: src/set.q:248
+#, c-format
+msgid "EPOCH is %d"
+msgstr ""
+
+#: src/set.q:267
+msgid "Journalling is off"
+msgstr ""
+
+#: src/set.q:434
+msgid ""
+"CASE is not implemented and probably won't be.  If you care, complain about "
+"it."
+msgstr ""
+
+#: src/set.q:439
+msgid "Active file compression is not yet implemented (and probably won't be)."
+msgstr ""
+
+#: src/set.q:453
+#, c-format
+msgid ""
+"CC%c: Length of custom currency string `%s' (%d) exceeds maximum length of "
+"16."
+msgstr ""
+
+#: src/set.q:475
+#, c-format
+msgid ""
+"CC%c: Custom currency string `%s' does not contain exactly three periods or "
+"commas (not both)."
+msgstr ""
+
+#: src/set.q:528
+msgid "None"
+msgstr ""
+
+#: src/set.q:534
+msgid "Disabled"
+msgstr ""
+
+#: src/set.q:539
+msgid "Screen"
+msgstr ""
+
+#: src/set.q:546
+msgid "Listing"
+msgstr ""
+
+#: src/set.q:553
+msgid "Other"
+msgstr ""
+
+#: src/set.q:662
+msgid "EPOCH must be 1500 or later."
+msgstr ""
+
+#: src/set.q:669
+msgid "expecting AUTOMATIC or year"
+msgstr ""
+
+#: src/set.q:690
+msgid "LENGTH must be at least 1."
+msgstr ""
+
+#: src/set.q:729
+msgid "Missing identifier in RESULTS subcommand."
+msgstr ""
+
+#: src/set.q:740
+msgid "Unrecognized identifier in RESULTS subcommand."
+msgstr ""
+
+#: src/set.q:777
+msgid "WIDTH must be at least 1."
+msgstr ""
+
+#: src/set.q:800
+#, c-format
+msgid ""
+"FORMAT requires numeric output format as an argument.  Specified format %s "
+"is of type string."
+msgstr ""
+
+#: src/set.q:844
+msgid "Text color must be in range 0-15."
+msgstr "Text colour must be in range 0-15."
+
+#: src/set.q:857
+msgid "Background color must be in range 0-7."
+msgstr "Background colour must be in range 0-7."
+
+#: src/set.q:868
+msgid "Border color must be in range 0-7."
+msgstr "Border colour must be in range 0-7."
+
+#: src/set.q:924
+msgid "Lower window color must be between 0 and 6."
+msgstr "Lower window colour must be between 0 and 6."
+
+#: src/set.q:938
+msgid "Upper window color must be between 0 and 6."
+msgstr "Upper window colour must be between 0 and 6."
+
+#: src/set.q:950
+msgid "Frame color must be between 0 and 6."
+msgstr "Frame colour must be between 0 and 6."
+
+#: src/set.q:1016
+msgid "Drive letter expected in WORKDEV subcommand."
+msgstr ""
+
+#: src/set.q:1048
+msgid "Specify a terminal type with the TERM environment variable."
+msgstr ""
+
+#: src/set.q:1054
+msgid "Could not access the termcap data base."
+msgstr ""
+
+#: src/set.q:1056
+#, c-format
+msgid "Terminal type `%s' is not defined."
+msgstr ""
+
+#: src/set.q:1114
+msgid "data> "
+msgstr ""
+
+#: src/sfm-read.c:132
 msgid "corrupt system file: "
 msgstr ""
 
-#: src/sfm-read.c:148 src/sfm-write.c:919
+#: src/sfm-read.c:151 src/sfm-write.c:922
 #, c-format
 msgid "%s: Closing system file: %s."
 msgstr ""
 
-#: src/sfm-read.c:234
+#: src/sfm-read.c:237
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a system file: %s."
 msgstr ""
 
-#: src/sfm-read.c:252
+#: src/sfm-read.c:255
 #, c-format
 msgid ""
 "%s: Index of weighting variable (%d) is not between 0 and number of elements "
 "per case (%d)."
 msgstr ""
 
-#: src/sfm-read.c:261
+#: src/sfm-read.c:264
 #, c-format
 msgid ""
 "%s: Weighting variable may not be a continuation of a long string variable."
 msgstr ""
 
-#: src/sfm-read.c:264
+#: src/sfm-read.c:267
 #, c-format
 msgid "%s: Weighting variable may not be a string variable."
 msgstr ""
 
-#: src/sfm-read.c:289
+#: src/sfm-read.c:292
 #, c-format
 msgid ""
 "%s: Orphaned variable index record (type 4).  Type 4 records must always "
 "immediately follow type 3 records."
 msgstr ""
 
-#: src/sfm-read.c:347
+#: src/sfm-read.c:350
 #, c-format
 msgid "%s: Invalid subrecord length. Record: 7; Subrecord: 11"
 msgstr ""
 
-#: src/sfm-read.c:401
+#: src/sfm-read.c:404
 #, c-format
 msgid "%s: Trailing garbage in long variable name map."
 msgstr ""
 
-#: src/sfm-read.c:408
+#: src/sfm-read.c:411
 #, c-format
 msgid "%s: Long variable mapping to invalid variable name `%s'."
 msgstr ""
 
-#: src/sfm-read.c:418
+#: src/sfm-read.c:421
 #, c-format
 msgid "%s: Long variable mapping for nonexistent variable %s."
 msgstr ""
 
-#: src/sfm-read.c:428
+#: src/sfm-read.c:431
 #, c-format
 msgid "%s: Duplicate long variable name `%s' within system file."
 msgstr ""
 
-#: src/sfm-read.c:456
+#: src/sfm-read.c:459
 #, c-format
 msgid "%s: Unrecognized record type 7, subtype %d encountered in system file."
 msgstr ""
 
-#: src/sfm-read.c:481
+#: src/sfm-read.c:484
 #, c-format
 msgid "%s: Unrecognized record type %d."
 msgstr ""
 
-#: src/sfm-read.c:513
+#: src/sfm-read.c:516
 #, c-format
 msgid ""
 "%s: Bad size (%d) or count (%d) field on record type 7, subtype 3.\tExpected "
 "size %d, count 8."
 msgstr ""
 
-#: src/sfm-read.c:524
+#: src/sfm-read.c:527
 #, c-format
 msgid ""
 "%s: Floating-point representation in system file is not IEEE-754.  PSPP "
 "cannot convert between floating-point formats."
 msgstr ""
 
-#: src/sfm-read.c:540
+#: src/sfm-read.c:543
 #, c-format
 msgid ""
 "%s: File-indicated endianness (%s) does not match endianness intuited from "
 "file header (%s)."
 msgstr ""
 
-#: src/sfm-read.c:543 src/sfm-read.c:544
+#: src/sfm-read.c:546 src/sfm-read.c:547
 msgid "big-endian"
 msgstr ""
 
-#: src/sfm-read.c:543 src/sfm-read.c:544
+#: src/sfm-read.c:546 src/sfm-read.c:547
 msgid "little-endian"
 msgstr ""
 
-#: src/sfm-read.c:545
+#: src/sfm-read.c:548
 msgid "unknown"
 msgstr ""
 
-#: src/sfm-read.c:549
+#: src/sfm-read.c:552
 #, c-format
 msgid "%s: File-indicated character representation code (%s) is not ASCII."
 msgstr ""
 
-#: src/sfm-read.c:553
+#: src/sfm-read.c:556
 msgid "DEC Kanji"
 msgstr ""
 
-#: src/sfm-read.c:553 src/sysfile-info.c:115
+#: src/sfm-read.c:556 src/sysfile-info.c:118
 msgid "Unknown"
 msgstr ""
 
-#: src/sfm-read.c:569
+#: src/sfm-read.c:572
 #, c-format
 msgid ""
 "%s: Bad size (%d) or count (%d) field on record type 7, subtype 4.\tExpected "
 "size %d, count 8."
 msgstr ""
 
-#: src/sfm-read.c:584
+#: src/sfm-read.c:587
 #, c-format
 msgid ""
 "%s: File-indicated value is different from internal value for at least one "
@@ -3160,538 +4106,665 @@ msgid ""
 "%g; LOWEST: %g, %g."
 msgstr ""
 
-#: src/sfm-read.c:611
+#: src/sfm-read.c:614
 #, c-format
 msgid ""
 "%s: Bad magic.  Proper system files begin with the four characters `$FL2'. "
 "This file will not be read."
 msgstr ""
 
-#: src/sfm-read.c:653
+#: src/sfm-read.c:656
 #, c-format
 msgid ""
 "%s: File layout code has unexpected value %d.  Value should be 2, in big-"
 "endian or little-endian format."
 msgstr ""
 
-#: src/sfm-read.c:681
+#: src/sfm-read.c:684
 #, c-format
 msgid "%s: Number of cases in file (%ld) is not between -1 and %d."
 msgstr ""
 
-#: src/sfm-read.c:686
+#: src/sfm-read.c:689
 #, c-format
 msgid "%s: Compression bias (%g) is not the usual value of 100."
 msgstr ""
 
-#: src/sfm-read.c:809
+#: src/sfm-read.c:812
 #, c-format
 msgid ""
 "%s: position %d: String variable does not have proper number of continuation "
 "records."
 msgstr ""
 
-#: src/sfm-read.c:820
+#: src/sfm-read.c:823
 #, c-format
 msgid "%s: position %d: Superfluous long string continuation record."
 msgstr ""
 
-#: src/sfm-read.c:826
+#: src/sfm-read.c:829
 #, c-format
 msgid "%s: position %d: Bad variable type code %d."
 msgstr ""
 
-#: src/sfm-read.c:829
+#: src/sfm-read.c:832
 #, c-format
 msgid "%s: position %d: Variable label indicator field is not 0 or 1."
 msgstr ""
 
-#: src/sfm-read.c:833
+#: src/sfm-read.c:836
 #, c-format
 msgid ""
 "%s: position %d: Missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 msgstr ""
 
-#: src/sfm-read.c:839
+#: src/sfm-read.c:842
 #, c-format
 msgid "%s: position %d: Variable name begins with invalid character."
 msgstr ""
 
-#: src/sfm-read.c:843
+#: src/sfm-read.c:846
 #, c-format
 msgid "%s: position %d: Variable name begins with lowercase letter %c."
 msgstr ""
 
-#: src/sfm-read.c:847
+#: src/sfm-read.c:850
 #, c-format
 msgid ""
 "%s: position %d: Variable name begins with octothorpe (`#').  Scratch "
 "variables should not appear in system files."
 msgstr ""
 
-#: src/sfm-read.c:862
+#: src/sfm-read.c:865
 #, c-format
 msgid "%s: position %d: Variable name character %d is lowercase letter %c."
 msgstr ""
 
-#: src/sfm-read.c:871
+#: src/sfm-read.c:874
 #, c-format
 msgid ""
 "%s: position %d: character `\\%03o' (%c) is not valid in a variable name."
 msgstr ""
 
-#: src/sfm-read.c:878
+#: src/sfm-read.c:881
 #, c-format
 msgid "%s: Invalid variable name `%s' within system file."
 msgstr ""
 
-#: src/sfm-read.c:885
+#: src/sfm-read.c:888
 #, c-format
 msgid "%s: Duplicate variable name `%s' within system file."
 msgstr ""
 
-#: src/sfm-read.c:908
+#: src/sfm-read.c:911
 #, c-format
 msgid "%s: Variable %s indicates variable label of invalid length %d."
 msgstr ""
 
-#: src/sfm-read.c:928
+#: src/sfm-read.c:931
 #, c-format
 msgid "%s: Long string variable %s may not have missing values."
 msgstr ""
 
-#: src/sfm-read.c:953
+#: src/sfm-read.c:956
 #, c-format
 msgid ""
 "%s: String variable %s may not have missing values specified as a range."
 msgstr ""
 
-#: src/sfm-read.c:995
+#: src/sfm-read.c:998
 #, c-format
 msgid "%s: Long string continuation records omitted at end of dictionary."
 msgstr ""
 
-#: src/sfm-read.c:1000
+#: src/sfm-read.c:1003
 #, c-format
 msgid ""
 "%s: System file header indicates %d variable positions but %d were read from "
 "file."
 msgstr ""
 
-#: src/sfm-read.c:1025
+#: src/sfm-read.c:1028
 #, c-format
 msgid "%s: %s variable %s has %s format specifier %s."
 msgstr ""
 
-#: src/sfm-read.c:1078
+#: src/sfm-read.c:1081
 #, c-format
 msgid "%s: Invalid number of labels: %d.  Ignoring labels."
 msgstr ""
 
-#: src/sfm-read.c:1120
+#: src/sfm-read.c:1123
 #, c-format
 msgid ""
 "%s: Variable index record (type 4) does not immediately follow value label "
 "record (type 3) as it should."
 msgstr ""
 
-#: src/sfm-read.c:1131
+#: src/sfm-read.c:1134
 #, c-format
 msgid ""
 "%s: Number of variables associated with a value label (%d) is not between 1 "
 "and the number of variables (%d)."
 msgstr ""
 
-#: src/sfm-read.c:1147
+#: src/sfm-read.c:1150
 #, c-format
 msgid ""
 "%s: Variable index associated with value label (%d) is not between 1 and the "
 "number of values (%d)."
 msgstr ""
 
-#: src/sfm-read.c:1154
+#: src/sfm-read.c:1157
 #, c-format
 msgid ""
 "%s: Variable index associated with value label (%d) refers to a continuation "
 "of a string variable, not to an actual variable."
 msgstr ""
 
-#: src/sfm-read.c:1159
+#: src/sfm-read.c:1162
 #, c-format
 msgid "%s: Value labels are not allowed on long string variables (%s)."
 msgstr ""
 
-#: src/sfm-read.c:1170
+#: src/sfm-read.c:1173
 #, c-format
 msgid ""
 "%s: Variables associated with value label are not all of identical type.  "
 "Variable %s has %s type, but variable %s has %s type."
 msgstr ""
 
-#: src/sfm-read.c:1211
+#: src/sfm-read.c:1214
 #, c-format
 msgid "%s: File contains duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/sfm-read.c:1215
+#: src/sfm-read.c:1218
 #, c-format
 msgid "%s: File contains duplicate label for value `%.*s' for variable %s."
 msgstr ""
 
-#: src/sfm-read.c:1257 src/sfm-read.c:1534
+#: src/sfm-read.c:1260 src/sfm-read.c:1537
 #, c-format
 msgid "%s: Reading system file: %s."
 msgstr ""
 
-#: src/sfm-read.c:1260 src/sfm-read.c:1375 src/sfm-read.c:1417
+#: src/sfm-read.c:1263 src/sfm-read.c:1378 src/sfm-read.c:1420
 #, c-format
 msgid "%s: Unexpected end of file."
 msgstr ""
 
-#: src/sfm-read.c:1275
+#: src/sfm-read.c:1278
 #, c-format
 msgid "%s: Seeking system file: %s."
 msgstr ""
 
-#: src/sfm-read.c:1290
+#: src/sfm-read.c:1293
 #, c-format
 msgid "%s: System file contains multiple type 6 (document) records."
 msgstr ""
 
-#: src/sfm-read.c:1296
+#: src/sfm-read.c:1299
 #, c-format
 msgid "%s: Number of document lines (%ld) must be greater than 0."
 msgstr ""
 
-#: src/sfm-read.c:1328
+#: src/sfm-read.c:1331
 #, c-format
 msgid "%s: Error reading file: %s."
 msgstr ""
 
-#: src/sfm-read.c:1365
+#: src/sfm-read.c:1368
 #, c-format
 msgid "%s: Compressed data is corrupted.  Data ends in partial case."
 msgstr ""
 
-#: src/sfm-read.c:1537
+#: src/sfm-read.c:1540
 #, c-format
 msgid "%s: Partial record at end of system file."
 msgstr ""
 
-#: src/sfm-write.c:154
+#: src/sfm-write.c:157
 #, c-format
 msgid "Error opening \"%s\" for writing as a system file: %s."
 msgstr ""
 
-#: src/sfm-write.c:739
+#: src/sfm-write.c:742
 #, c-format
 msgid "%s: Writing system file: %s."
 msgstr ""
 
-#: src/sort.c:82
+#: src/sort-prs.c:94
+msgid "`A' or `D' expected inside parentheses."
+msgstr ""
+
+#: src/sort-prs.c:99
+msgid "`)' expected."
+msgstr ""
+
+#: src/sort.c:85
 msgid "Buffer limit must be at least 2."
 msgstr ""
 
-#: src/sort.c:458
+#: src/sort.c:461
 #, c-format
 msgid ""
 "Out of memory.  Could not allocate room for minimum of %d cases of %d bytes "
 "each.  (PSPP workspace is currently restricted to a maximum of %d KB.)"
 msgstr ""
 
-#: src/sysfile-info.c:96
+#: src/sysfile-info.c:99
 msgid "File:"
 msgstr ""
 
-#: src/sysfile-info.c:98
+#: src/sysfile-info.c:101
 msgid "Label:"
 msgstr ""
 
-#: src/sysfile-info.c:102
+#: src/sysfile-info.c:105
 msgid "No label."
 msgstr ""
 
-#: src/sysfile-info.c:105
+#: src/sysfile-info.c:108
 msgid "Created:"
 msgstr ""
 
-#: src/sysfile-info.c:108
+#: src/sysfile-info.c:111
 msgid "Endian:"
 msgstr ""
 
-#: src/sysfile-info.c:109
+#: src/sysfile-info.c:112
 msgid "Big."
 msgstr ""
 
-#: src/sysfile-info.c:109
+#: src/sysfile-info.c:112
 msgid "Little."
 msgstr ""
 
-#: src/sysfile-info.c:110
+#: src/sysfile-info.c:113
 msgid "Variables:"
 msgstr ""
 
-#: src/sysfile-info.c:113
+#: src/sysfile-info.c:116
 msgid "Cases:"
 msgstr ""
 
-#: src/sysfile-info.c:116
+#: src/sysfile-info.c:119
 msgid "Type:"
 msgstr ""
 
-#: src/sysfile-info.c:117
+#: src/sysfile-info.c:120
 msgid "System File."
 msgstr ""
 
-#: src/sysfile-info.c:118
+#: src/sysfile-info.c:121
 msgid "Weight:"
 msgstr ""
 
-#: src/sysfile-info.c:122
+#: src/sysfile-info.c:125
 msgid "Not weighted."
 msgstr ""
 
-#: src/sysfile-info.c:124
+#: src/sysfile-info.c:127
 msgid "Mode:"
 msgstr ""
 
-#: src/sysfile-info.c:126
+#: src/sysfile-info.c:129
 #, c-format
 msgid "Compression %s."
 msgstr ""
 
-#: src/sysfile-info.c:126
+#: src/sysfile-info.c:129
 msgid "on"
 msgstr ""
 
-#: src/sysfile-info.c:126
+#: src/sysfile-info.c:129
 msgid "off"
 msgstr ""
 
-#: src/sysfile-info.c:136 src/sysfile-info.c:374
+#: src/sysfile-info.c:139 src/sysfile-info.c:377
 msgid "Description"
 msgstr ""
 
-#: src/sysfile-info.c:137 src/sysfile-info.c:372
+#: src/sysfile-info.c:140 src/sysfile-info.c:375
 msgid "Position"
 msgstr ""
 
-#: src/sysfile-info.c:195
+#: src/sysfile-info.c:198
 msgid "The active file does not have a file label."
 msgstr ""
 
-#: src/sysfile-info.c:198
+#: src/sysfile-info.c:201
 msgid "File label:"
 msgstr ""
 
-#: src/sysfile-info.c:260
+#: src/sysfile-info.c:263
 msgid "No variables to display."
 msgstr ""
 
-#: src/sysfile-info.c:279
+#: src/sysfile-info.c:282
 msgid "Macros not supported."
 msgstr ""
 
-#: src/sysfile-info.c:289
+#: src/sysfile-info.c:292
 msgid "The active file dictionary does not contain any documents."
 msgstr ""
 
-#: src/sysfile-info.c:298
+#: src/sysfile-info.c:301
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:376 src/sysfile-info.c:534 src/vfm.c:811
+#: src/sysfile-info.c:379 src/sysfile-info.c:537 src/vfm.c:812
 msgid "Label"
 msgstr ""
 
-#: src/sysfile-info.c:448
+#: src/sysfile-info.c:451
 #, c-format
 msgid "Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:455
+#: src/sysfile-info.c:458
 #, c-format
 msgid "Print Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:458
+#: src/sysfile-info.c:461
 #, c-format
 msgid "Write Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:466
+#: src/sysfile-info.c:469
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:533 src/vfm.c:810 src/crosstabs.q:1099
-#: src/crosstabs.q:1126 src/crosstabs.q:1146 src/crosstabs.q:1168
-#: src/examine.q:1130 src/frequencies.q:1138 src/frequencies.q:1259
-msgid "Value"
-msgstr ""
-
-#: src/sysfile-info.c:590
+#: src/sysfile-info.c:593
 msgid "No vectors defined."
 msgstr ""
 
-#: src/sysfile-info.c:605
+#: src/sysfile-info.c:608
 msgid "Vector"
 msgstr ""
 
-#: src/tab.c:254
+#: src/t-test.q:269
+msgid "TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive."
+msgstr ""
+
+#: src/t-test.q:287
+msgid "VARIABLES subcommand is not appropriate with PAIRS"
+msgstr ""
+
+#: src/t-test.q:325
+msgid "One or more VARIABLES must be specified."
+msgstr ""
+
+#: src/t-test.q:376
+#, c-format
+msgid "Long string variable %s is not valid here."
+msgstr ""
+
+#: src/t-test.q:396 src/t-test.q:411
+msgid ""
+"When applying GROUPS to a string variable, two values must be specified."
+msgstr ""
+
+#: src/t-test.q:483
+#, c-format
+msgid ""
+"PAIRED was specified but the number of variables preceding WITH (%d) did not "
+"match the number following (%d)."
+msgstr ""
+
+#: src/t-test.q:500
+msgid "At least two variables must be specified on PAIRS."
+msgstr ""
+
+#: src/t-test.q:677
+msgid "One-Sample Statistics"
+msgstr ""
+
+#: src/t-test.q:682 src/t-test.q:705 src/t-test.q:829
+msgid "SE. Mean"
+msgstr ""
+
+#: src/t-test.q:699
+msgid "Group Statistics"
+msgstr ""
+
+#: src/t-test.q:823
+msgid "Paired Sample Statistics"
+msgstr ""
+
+#: src/t-test.q:845 src/t-test.q:1189 src/t-test.q:1379
+#, c-format
+msgid "Pair %d"
+msgstr ""
+
+#: src/t-test.q:962
+msgid "Independent Samples Test"
+msgstr ""
+
+#: src/t-test.q:970
+msgid "Levene's Test for Equality of Variances"
+msgstr ""
+
+#: src/t-test.q:972
+msgid "t-test for Equality of Means"
+msgstr ""
+
+#: src/t-test.q:975 src/t-test.q:1364
+msgid "Sig."
+msgstr ""
+
+#: src/t-test.q:979 src/t-test.q:1263
+msgid "Mean Difference"
+msgstr ""
+
+#: src/t-test.q:980
+msgid "Std. Error Difference"
+msgstr ""
+
+#: src/t-test.q:985 src/t-test.q:1160 src/t-test.q:1255
+#, c-format
+msgid "%g%% Confidence Interval of the Difference"
+msgstr ""
+
+#: src/t-test.q:1040
+msgid "Equal variances assumed"
+msgstr ""
+
+#: src/t-test.q:1092
+msgid "Equal variances not assumed"
+msgstr ""
+
+#: src/t-test.q:1150
+msgid "Paired Samples Test"
+msgstr ""
+
+#: src/t-test.q:1153
+msgid "Paired Differences"
+msgstr ""
+
+#: src/t-test.q:1165
+msgid "Std. Error Mean"
+msgstr ""
+
+#: src/t-test.q:1244
+msgid "One-Sample Test"
+msgstr ""
+
+#: src/t-test.q:1249
+#, c-format
+msgid "Test Value = %f"
+msgstr ""
+
+#: src/t-test.q:1359
+msgid "Paired Samples Correlations"
+msgstr ""
+
+#: src/t-test.q:1363
+msgid "Correlation"
+msgstr ""
+
+#: src/t-test.q:1382
+#, c-format
+msgid "%s & %s"
+msgstr ""
+
+#: src/tab.c:257
 #, c-format
 msgid "bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr ""
 
-#: src/tab.c:329
+#: src/tab.c:332
 #, c-format
 msgid ""
 "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr ""
 
-#: src/temporary.c:46
+#: src/temporary.c:49
 msgid "This command is not valid inside DO IF or LOOP."
 msgstr ""
 
-#: src/temporary.c:53
+#: src/temporary.c:56
 msgid ""
 "This command may only appear once between procedures and procedure-like "
 "commands."
 msgstr ""
 
-#: src/title.c:56
+#: src/title.c:59
 #, c-format
 msgid "%s before: %s\n"
 msgstr ""
 
-#: src/title.c:56
+#: src/title.c:59
 msgid "<none>"
 msgstr ""
 
-#: src/title.c:68
+#: src/title.c:71
 #, c-format
 msgid "%s: `.' expected after string."
 msgstr ""
 
-#: src/title.c:84
+#: src/title.c:87
 #, c-format
 msgid "%s after: %s\n"
 msgstr ""
 
-#: src/title.c:140
+#: src/title.c:143
 #, c-format
 msgid "Document entered %s %02d:%02d:%02d by %s (%s):"
 msgstr ""
 
-#: src/val-labs.c:118
+#: src/val-labs.c:121
 #, c-format
 msgid ""
 "It is not possible to assign value labels to long string variables such as %"
 "s."
 msgstr ""
 
-#: src/val-labs.c:167
+#: src/val-labs.c:170
 #, c-format
 msgid "Value label `%g' is not integer."
 msgstr ""
 
-#: src/val-labs.c:177
+#: src/val-labs.c:180
 msgid "Truncating value label to 60 characters."
 msgstr ""
 
-#: src/var-labs.c:47
+#: src/var-labs.c:50
 msgid "String expected for variable label."
 msgstr ""
 
-#: src/var-labs.c:53
+#: src/var-labs.c:56
 msgid "Truncating variable label to 255 characters."
 msgstr ""
 
-#: src/vars-atr.c:259
+#: src/vars-atr.c:262
 msgid "Variable name cannot be empty string."
 msgstr ""
 
-#: src/vars-atr.c:265
+#: src/vars-atr.c:268
 #, c-format
 msgid "Variable name %s exceeds %d-character limit."
 msgstr ""
 
-#: src/vars-atr.c:274
+#: src/vars-atr.c:277
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
 msgstr ""
 
-#: src/vars-atr.c:283
+#: src/vars-atr.c:286
 #, c-format
 msgid ""
 "Character `%c' (in %s), may not appear as the first character in a variable "
 "name."
 msgstr ""
 
-#: src/vars-atr.c:291
+#: src/vars-atr.c:295
 #, c-format
 msgid "%s may not be used as a variable name because it is a reserved word."
 msgstr ""
 
-#: src/vars-atr.c:386
+#: src/vars-atr.c:390
 msgid "Variable suffix too large."
 msgstr ""
 
-#: src/vars-prs.c:43
+#: src/vars-prs.c:46
 msgid "expecting variable name"
 msgstr ""
 
-#: src/vars-prs.c:49
+#: src/vars-prs.c:52
 #, c-format
 msgid "%s is not a variable name."
 msgstr ""
 
-#: src/vars-prs.c:111
+#: src/vars-prs.c:114
 msgid "ordinary"
 msgstr ""
 
-#: src/vars-prs.c:113
+#: src/vars-prs.c:116
 msgid "system"
 msgstr ""
 
-#: src/vars-prs.c:115
+#: src/vars-prs.c:118
 msgid "scratch"
-msgstr ""
-
-#: src/vars-prs.c:174
-#, c-format
-msgid ""
-"%s is not a numeric variable.  It will not be included in the variable list."
 msgstr ""
 
 #: src/vars-prs.c:177
 #, c-format
 msgid ""
+"%s is not a numeric variable.  It will not be included in the variable list."
+msgstr ""
+
+#: src/vars-prs.c:180
+#, c-format
+msgid ""
 "%s is not a string variable.  It will not be included in the variable list."
 msgstr ""
 
-#: src/vars-prs.c:181
+#: src/vars-prs.c:184
 #, c-format
 msgid "Scratch variables (such as %s) are not allowed here."
 msgstr ""
 
-#: src/vars-prs.c:184
+#: src/vars-prs.c:187
 #, c-format
 msgid ""
 "%s and %s are not the same type.  All variables in this variable list must "
 "be of the same type.  %s will be omitted from list."
 msgstr ""
 
-#: src/vars-prs.c:189
+#: src/vars-prs.c:192
 #, c-format
 msgid "Variable %s appears twice in variable list."
 msgstr ""
 
-#: src/vars-prs.c:299
+#: src/vars-prs.c:302
 #, c-format
 msgid "%s TO %s is not valid syntax since %s precedes %s in the dictionary."
 msgstr ""
 
-#: src/vars-prs.c:308
+#: src/vars-prs.c:311
 #, c-format
 msgid ""
 "When using the TO keyword to specify several variables, both variables must "
@@ -3699,958 +4772,59 @@ msgid ""
 "system variables.  %s is a %s variable, whereas %s is %s."
 msgstr ""
 
-#: src/vars-prs.c:379
+#: src/vars-prs.c:382
 msgid "incorrect use of TO convention"
 msgstr ""
 
-#: src/vars-prs.c:422
+#: src/vars-prs.c:425
 msgid "Scratch variables not allowed here."
 msgstr ""
 
-#: src/vars-prs.c:444
+#: src/vars-prs.c:447
 msgid "Prefixes don't match in use of TO convention."
 msgstr ""
 
-#: src/vars-prs.c:449
+#: src/vars-prs.c:452
 msgid "Bad bounds in use of TO convention."
 msgstr ""
 
-#: src/vector.c:67
+#: src/vector.c:70
 #, c-format
 msgid "Vector name %s is given twice."
 msgstr ""
 
-#: src/vector.c:73
+#: src/vector.c:76
 #, c-format
 msgid "There is already a vector with name %s."
 msgstr ""
 
-#: src/vector.c:94
+#: src/vector.c:97
 msgid ""
 "A slash must be used to separate each vector specification when using the "
 "long form.  Commands such as VECTOR A,B=Q1 TO Q20 are not supported."
 msgstr ""
 
-#: src/vector.c:128
+#: src/vector.c:131
 msgid "Vectors must have at least one element."
 msgstr ""
 
-#: src/vector.c:142
+#: src/vector.c:145
 #, c-format
 msgid "%s%d is too long for a variable name."
 msgstr ""
 
-#: src/vector.c:181
+#: src/vector.c:184
 msgid ""
 "The syntax for this command does not match the expected syntax for either "
 "the long form or the short form of VECTOR."
 msgstr ""
 
-#: src/weight.c:53
+#: src/weight.c:56
 msgid "The weighting variable must be numeric."
 msgstr ""
 
-#: src/weight.c:58
+#: src/weight.c:61
 msgid "The weighting variable may not be scratch."
-msgstr ""
-
-#: src/crosstabs.q:261
-msgid ""
-"Missing mode REPORT not allowed in general mode.  Assuming MISSING=TABLE."
-msgstr ""
-
-#: src/crosstabs.q:271
-msgid "Write mode ALL not allowed in general mode.  Assuming WRITE=CELLS."
-msgstr ""
-
-#: src/crosstabs.q:332
-msgid "expecting BY"
-msgstr ""
-
-#: src/crosstabs.q:399
-msgid "VARIABLES must be specified before TABLES."
-msgstr ""
-
-#: src/crosstabs.q:436
-#, c-format
-msgid "Maximum value (%ld) less than minimum value (%ld)."
-msgstr ""
-
-#: src/crosstabs.q:800
-msgid "Summary."
-msgstr ""
-
-#: src/crosstabs.q:802 src/examine.q:915
-msgid "Cases"
-msgstr ""
-
-#: src/crosstabs.q:803 src/examine.q:849 src/frequencies.q:1136
-#: src/frequencies.q:1509
-msgid "Valid"
-msgstr ""
-
-#: src/crosstabs.q:804 src/examine.q:850 src/frequencies.q:1204
-#: src/frequencies.q:1510
-msgid "Missing"
-msgstr ""
-
-#: src/crosstabs.q:805 src/crosstabs.q:1008 src/crosstabs.q:1722
-#: src/examine.q:851 src/frequencies.q:1213 src/oneway.q:307 src/oneway.q:470
-msgid "Total"
-msgstr ""
-
-#: src/crosstabs.q:815 src/examine.q:927 src/frequencies.q:1508
-#: src/oneway.q:393 src/t-test.q:675 src/t-test.q:698 src/t-test.q:823
-#: src/t-test.q:1358
-msgid "N"
-msgstr ""
-
-#: src/crosstabs.q:816 src/examine.q:930 src/frequencies.q:1140
-#: src/frequencies.q:1141 src/frequencies.q:1142
-msgid "Percent"
-msgstr ""
-
-#: src/crosstabs.q:1058
-msgid "count"
-msgstr ""
-
-#: src/crosstabs.q:1059
-msgid "row %"
-msgstr ""
-
-#: src/crosstabs.q:1060
-msgid "column %"
-msgstr ""
-
-#: src/crosstabs.q:1061
-msgid "total %"
-msgstr ""
-
-#: src/crosstabs.q:1062
-msgid "expected"
-msgstr ""
-
-#: src/crosstabs.q:1063
-msgid "residual"
-msgstr ""
-
-#: src/crosstabs.q:1064
-msgid "std. resid."
-msgstr ""
-
-#: src/crosstabs.q:1065
-msgid "adj. resid."
-msgstr ""
-
-#: src/crosstabs.q:1098 src/crosstabs.q:1125 src/crosstabs.q:1145
-#: src/crosstabs.q:1166 src/examine.q:1361
-msgid "Statistic"
-msgstr ""
-
-#: src/crosstabs.q:1100 src/oneway.q:280 src/oneway.q:682 src/t-test.q:973
-#: src/t-test.q:1165 src/t-test.q:1257
-msgid "df"
-msgstr ""
-
-#: src/crosstabs.q:1102
-msgid "Asymp. Sig. (2-sided)"
-msgstr ""
-
-#: src/crosstabs.q:1104
-msgid "Exact. Sig. (2-sided)"
-msgstr ""
-
-#: src/crosstabs.q:1106
-msgid "Exact. Sig. (1-sided)"
-msgstr ""
-
-#: src/crosstabs.q:1124 src/crosstabs.q:1165
-msgid "Category"
-msgstr ""
-
-#: src/crosstabs.q:1127 src/crosstabs.q:1169
-msgid "Asymp. Std. Error"
-msgstr ""
-
-#: src/crosstabs.q:1128 src/crosstabs.q:1170
-msgid "Approx. T"
-msgstr ""
-
-#: src/crosstabs.q:1129 src/crosstabs.q:1171
-msgid "Approx. Sig."
-msgstr ""
-
-#: src/crosstabs.q:1144
-#, c-format
-msgid " 95%% Confidence Interval"
-msgstr ""
-
-#: src/crosstabs.q:1147 src/t-test.q:977 src/t-test.q:1162 src/t-test.q:1260
-msgid "Lower"
-msgstr ""
-
-#: src/crosstabs.q:1148 src/t-test.q:978 src/t-test.q:1163 src/t-test.q:1261
-msgid "Upper"
-msgstr ""
-
-#: src/crosstabs.q:1167
-msgid "Type"
-msgstr ""
-
-#: src/crosstabs.q:1916
-msgid "Pearson Chi-Square"
-msgstr ""
-
-#: src/crosstabs.q:1917
-msgid "Likelihood Ratio"
-msgstr ""
-
-#: src/crosstabs.q:1918
-msgid "Fisher's Exact Test"
-msgstr ""
-
-#: src/crosstabs.q:1919
-msgid "Continuity Correction"
-msgstr ""
-
-#: src/crosstabs.q:1920
-msgid "Linear-by-Linear Association"
-msgstr ""
-
-#: src/crosstabs.q:1957 src/crosstabs.q:2027 src/crosstabs.q:2086
-msgid "N of Valid Cases"
-msgstr ""
-
-#: src/crosstabs.q:1973 src/crosstabs.q:2102
-msgid "Nominal by Nominal"
-msgstr ""
-
-#: src/crosstabs.q:1974 src/crosstabs.q:2103
-msgid "Ordinal by Ordinal"
-msgstr ""
-
-#: src/crosstabs.q:1975
-msgid "Interval by Interval"
-msgstr ""
-
-#: src/crosstabs.q:1976
-msgid "Measure of Agreement"
-msgstr ""
-
-#: src/crosstabs.q:1981
-msgid "Phi"
-msgstr ""
-
-#: src/crosstabs.q:1982
-msgid "Cramer's V"
-msgstr ""
-
-#: src/crosstabs.q:1983
-msgid "Contingency Coefficient"
-msgstr ""
-
-#: src/crosstabs.q:1984
-msgid "Kendall's tau-b"
-msgstr ""
-
-#: src/crosstabs.q:1985
-msgid "Kendall's tau-c"
-msgstr ""
-
-#: src/crosstabs.q:1986
-msgid "Gamma"
-msgstr ""
-
-#: src/crosstabs.q:1987
-msgid "Spearman Correlation"
-msgstr ""
-
-#: src/crosstabs.q:1988
-msgid "Pearson's R"
-msgstr ""
-
-#: src/crosstabs.q:1989
-msgid "Kappa"
-msgstr ""
-
-#: src/crosstabs.q:2059
-#, c-format
-msgid "Odds Ratio for %s (%g / %g)"
-msgstr ""
-
-#: src/crosstabs.q:2062
-#, c-format
-msgid "Odds Ratio for %s (%.*s / %.*s)"
-msgstr ""
-
-#: src/crosstabs.q:2070
-#, c-format
-msgid "For cohort %s = %g"
-msgstr ""
-
-#: src/crosstabs.q:2073
-#, c-format
-msgid "For cohort %s = %.*s"
-msgstr ""
-
-#: src/crosstabs.q:2104
-msgid "Nominal by Interval"
-msgstr ""
-
-#: src/crosstabs.q:2109
-msgid "Lambda"
-msgstr ""
-
-#: src/crosstabs.q:2110
-msgid "Goodman and Kruskal tau"
-msgstr ""
-
-#: src/crosstabs.q:2111
-msgid "Uncertainty Coefficient"
-msgstr ""
-
-#: src/crosstabs.q:2112
-msgid "Somers' d"
-msgstr ""
-
-#: src/crosstabs.q:2113
-msgid "Eta"
-msgstr ""
-
-#: src/crosstabs.q:2118
-msgid "Symmetric"
-msgstr ""
-
-#: src/crosstabs.q:2119 src/crosstabs.q:2120
-#, c-format
-msgid "%s Dependent"
-msgstr ""
-
-#: src/examine.q:467 src/examine.q:479
-#, c-format
-msgid "%s and %s are mutually exclusive"
-msgstr ""
-
-#: src/examine.q:909
-msgid "Case Processing Summary"
-msgstr ""
-
-#: src/examine.q:1115
-msgid "Extreme Values"
-msgstr ""
-
-#: src/examine.q:1131
-msgid "Case Number"
-msgstr ""
-
-#: src/examine.q:1216
-msgid "Highest"
-msgstr ""
-
-#: src/examine.q:1221
-msgid "Lowest"
-msgstr ""
-
-#: src/examine.q:1362 src/oneway.q:396 src/oneway.q:680
-msgid "Std. Error"
-msgstr ""
-
-#: src/examine.q:1364 src/oneway.q:410
-msgid "Descriptives"
-msgstr ""
-
-#: src/examine.q:1484 src/oneway.q:401
-#, c-format
-msgid "%g%% Confidence Interval for Mean"
-msgstr ""
-
-#: src/examine.q:1490 src/oneway.q:403
-msgid "Lower Bound"
-msgstr ""
-
-#: src/examine.q:1501 src/oneway.q:404
-msgid "Upper Bound"
-msgstr ""
-
-#: src/examine.q:1513
-#, c-format
-msgid "5%% Trimmed Mean"
-msgstr ""
-
-#: src/examine.q:1524 src/frequencies.q:114
-msgid "Median"
-msgstr ""
-
-#: src/examine.q:1558 src/oneway.q:395 src/t-test.q:677 src/t-test.q:700
-#: src/t-test.q:824 src/t-test.q:1160
-msgid "Std. Deviation"
-msgstr ""
-
-#: src/examine.q:1606
-msgid "Interquartile Range"
-msgstr ""
-
-#: src/examine.q:1758
-#, c-format
-msgid "Boxplot of %s vs. %s"
-msgstr ""
-
-#: src/examine.q:1783
-msgid "Boxplot"
-msgstr ""
-
-#: src/examine.q:1825
-#, c-format
-msgid "Normal Q-Q Plot of %s"
-msgstr ""
-
-#: src/examine.q:1826 src/examine.q:1832
-msgid "Observed Value"
-msgstr ""
-
-#: src/examine.q:1827
-msgid "Expected Normal"
-msgstr ""
-
-#: src/examine.q:1830
-#, c-format
-msgid "Detrended Normal Q-Q Plot of %s"
-msgstr ""
-
-#: src/examine.q:1833
-msgid "Dev from Normal"
-msgstr ""
-
-#: src/examine.q:1952 src/examine.q:1974 src/frequencies.q:1520
-msgid "Percentiles"
-msgstr ""
-
-#: src/examine.q:2099
-msgid "Tukey's Hinges"
-msgstr ""
-
-#: src/file-handle.q:124
-#, c-format
-msgid ""
-"File handle %s already refers to file %s.  File handles cannot be redefined "
-"within a session."
-msgstr ""
-
-#: src/file-handle.q:145
-msgid "The FILE HANDLE required subcommand NAME is not present."
-msgstr ""
-
-#: src/file-handle.q:164
-msgid ""
-"Fixed-length records were specified on /RECFORM, but record length was not "
-"specified on /LRECL.  Assuming 1024-character records."
-msgstr ""
-
-#: src/file-handle.q:171
-#, c-format
-msgid ""
-"Record length (%ld) must be at least one byte.  1-character records will be "
-"assumed."
-msgstr ""
-
-#: src/file-handle.q:271
-#, c-format
-msgid "Can't open %s as a %s because it is already open as a %s"
-msgstr ""
-
-#: src/file-handle.q:278
-#, c-format
-msgid "Can't open %s as a %s for %s because it is already open for %s"
-msgstr ""
-
-#: src/file-handle.q:286
-#, c-format
-msgid "Can't re-open %s as a %s for %s"
-msgstr ""
-
-#: src/file-handle.q:339
-msgid "expecting a file name or handle name"
-msgstr ""
-
-#: src/frequencies.q:113
-msgid "S.E. Mean"
-msgstr ""
-
-#: src/frequencies.q:115
-msgid "Mode"
-msgstr ""
-
-#: src/frequencies.q:119
-msgid "S.E. Kurt"
-msgstr ""
-
-#: src/frequencies.q:121
-msgid "S.E. Skew"
-msgstr ""
-
-#: src/frequencies.q:396
-msgid ""
-"At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be "
-"assumed.  Argument values will be given precedence increasing along the "
-"order given."
-msgstr ""
-
-#: src/frequencies.q:479
-#, c-format
-msgid ""
-"MAX must be greater than or equal to MIN, if both are specified.  However, "
-"MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
-msgstr ""
-
-#: src/frequencies.q:802
-msgid ""
-"Upper limit of integer mode value range must be greater than lower limit."
-msgstr ""
-
-#: src/frequencies.q:815
-#, c-format
-msgid "Variable %s specified multiple times on VARIABLES subcommand."
-msgstr ""
-
-#: src/frequencies.q:821
-#, c-format
-msgid "Integer mode specified, but %s is not a numeric variable."
-msgstr ""
-
-#: src/frequencies.q:887
-msgid "`)' expected after GROUPED interval list."
-msgstr ""
-
-#: src/frequencies.q:899
-#, c-format
-msgid "Variables %s specified on GROUPED but not on VARIABLES."
-msgstr ""
-
-#: src/frequencies.q:906
-#, c-format
-msgid "Variables %s specified multiple times on GROUPED subcommand."
-msgstr ""
-
-#: src/frequencies.q:1137 src/frequencies.q:1229 src/frequencies.q:1230
-#: src/frequencies.q:1262
-msgid "Cum"
-msgstr ""
-
-#: src/frequencies.q:1159
-msgid "Value Label"
-msgstr ""
-
-#: src/frequencies.q:1260
-msgid "Freq"
-msgstr ""
-
-#: src/frequencies.q:1261 src/frequencies.q:1263
-msgid "Pct"
-msgstr ""
-
-#: src/frequencies.q:1482
-#, c-format
-msgid "No valid data for variable %s; statistics not displayed."
-msgstr ""
-
-#: src/list.q:150
-#, c-format
-msgid ""
-"The first case (%ld) specified precedes the last case (%ld) specified.  The "
-"values will be swapped."
-msgstr ""
-
-#: src/list.q:158
-#, c-format
-msgid ""
-"The first case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
-
-#: src/list.q:164
-#, c-format
-msgid ""
-"The last case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
-
-#: src/list.q:170
-#, c-format
-msgid "The step value %ld is less than 1.  The value is being reset to 1."
-msgstr ""
-
-#: src/list.q:197
-msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
-msgstr ""
-
-#: src/list.q:438
-msgid "Line"
-msgstr ""
-
-#: src/means.q:100
-msgid "Missing required subcommand TABLES."
-msgstr ""
-
-#: src/means.q:134
-msgid "TABLES subcommand may not appear more than once."
-msgstr ""
-
-#: src/oneway.q:170
-msgid "Number of contrast coefficients must equal the number of groups"
-msgstr ""
-
-#: src/oneway.q:179
-#, c-format
-msgid "Coefficients for contrast %d do not total zero"
-msgstr ""
-
-#: src/oneway.q:244
-#, c-format
-msgid "`%s' is not a variable name"
-msgstr ""
-
-#: src/oneway.q:279
-msgid "Sum of Squares"
-msgstr ""
-
-#: src/oneway.q:281
-msgid "Mean Square"
-msgstr ""
-
-#: src/oneway.q:282 src/t-test.q:970
-msgid "F"
-msgstr ""
-
-#: src/oneway.q:283 src/oneway.q:536
-msgid "Significance"
-msgstr ""
-
-#: src/oneway.q:305
-msgid "Between Groups"
-msgstr ""
-
-#: src/oneway.q:306
-msgid "Within Groups"
-msgstr ""
-
-#: src/oneway.q:353
-msgid "ANOVA"
-msgstr ""
-
-#: src/oneway.q:533
-msgid "Levene Statistic"
-msgstr ""
-
-#: src/oneway.q:534
-msgid "df1"
-msgstr ""
-
-#: src/oneway.q:535
-msgid "df2"
-msgstr ""
-
-#: src/oneway.q:539
-msgid "Test of Homogeneity of Variances"
-msgstr ""
-
-#: src/oneway.q:609
-msgid "Contrast Coefficients"
-msgstr ""
-
-#: src/oneway.q:611 src/oneway.q:678
-msgid "Contrast"
-msgstr ""
-
-#: src/oneway.q:676
-msgid "Contrast Tests"
-msgstr ""
-
-#: src/oneway.q:679
-msgid "Value of Contrast"
-msgstr ""
-
-#: src/oneway.q:681 src/t-test.q:972 src/t-test.q:1164 src/t-test.q:1256
-msgid "t"
-msgstr ""
-
-#: src/oneway.q:683 src/t-test.q:974 src/t-test.q:1166 src/t-test.q:1258
-msgid "Sig. (2-tailed)"
-msgstr ""
-
-#: src/oneway.q:727
-msgid "Assume equal variances"
-msgstr ""
-
-#: src/oneway.q:731
-msgid "Does not assume equal"
-msgstr ""
-
-#: src/set.q:221 src/set.q:300 src/set.q:343 src/set.q:398 src/set.q:400
-#: src/set.q:402 src/set.q:404 src/set.q:406 src/set.q:408 src/set.q:410
-#: src/set.q:412 src/set.q:414 src/set.q:416 src/set.q:418 src/set.q:420
-#: src/set.q:422 src/set.q:828 src/set.q:909 src/set.q:1004
-#, c-format
-msgid "%s is obsolete."
-msgstr ""
-
-#: src/set.q:229
-msgid "LISTING is ON"
-msgstr ""
-
-#: src/set.q:231
-msgid "LISTING is OFF"
-msgstr ""
-
-#: src/set.q:245
-#, c-format
-msgid "EPOCH is %d"
-msgstr ""
-
-#: src/set.q:264
-msgid "Journalling is off"
-msgstr ""
-
-#: src/set.q:431
-msgid ""
-"CASE is not implemented and probably won't be.  If you care, complain about "
-"it."
-msgstr ""
-
-#: src/set.q:436
-msgid "Active file compression is not yet implemented (and probably won't be)."
-msgstr ""
-
-#: src/set.q:450
-#, c-format
-msgid ""
-"CC%c: Length of custom currency string `%s' (%d) exceeds maximum length of "
-"16."
-msgstr ""
-
-#: src/set.q:472
-#, c-format
-msgid ""
-"CC%c: Custom currency string `%s' does not contain exactly three periods or "
-"commas (not both)."
-msgstr ""
-
-#: src/set.q:525
-msgid "None"
-msgstr ""
-
-#: src/set.q:531
-msgid "Disabled"
-msgstr ""
-
-#: src/set.q:536
-msgid "Screen"
-msgstr ""
-
-#: src/set.q:543
-msgid "Listing"
-msgstr ""
-
-#: src/set.q:550
-msgid "Other"
-msgstr ""
-
-#: src/set.q:659
-msgid "EPOCH must be 1500 or later."
-msgstr ""
-
-#: src/set.q:666
-msgid "expecting AUTOMATIC or year"
-msgstr ""
-
-#: src/set.q:687
-msgid "LENGTH must be at least 1."
-msgstr ""
-
-#: src/set.q:726
-msgid "Missing identifier in RESULTS subcommand."
-msgstr ""
-
-#: src/set.q:737
-msgid "Unrecognized identifier in RESULTS subcommand."
-msgstr ""
-
-#: src/set.q:774
-msgid "WIDTH must be at least 1."
-msgstr ""
-
-#: src/set.q:797
-#, c-format
-msgid ""
-"FORMAT requires numeric output format as an argument.  Specified format %s "
-"is of type string."
-msgstr ""
-
-#: src/set.q:841
-msgid "Text color must be in range 0-15."
-msgstr "Text colour must be in range 0-15."
-
-#: src/set.q:854
-msgid "Background color must be in range 0-7."
-msgstr "Background colour must be in range 0-7."
-
-#: src/set.q:865
-msgid "Border color must be in range 0-7."
-msgstr "Border colour must be in range 0-7."
-
-#: src/set.q:921
-msgid "Lower window color must be between 0 and 6."
-msgstr "Lower window colour must be between 0 and 6."
-
-#: src/set.q:935
-msgid "Upper window color must be between 0 and 6."
-msgstr "Upper window colour must be between 0 and 6."
-
-#: src/set.q:947
-msgid "Frame color must be between 0 and 6."
-msgstr "Frame colour must be between 0 and 6."
-
-#: src/set.q:1013
-msgid "Drive letter expected in WORKDEV subcommand."
-msgstr ""
-
-#: src/set.q:1045
-msgid "Specify a terminal type with the TERM environment variable."
-msgstr ""
-
-#: src/set.q:1051
-msgid "Could not access the termcap data base."
-msgstr ""
-
-#: src/set.q:1053
-#, c-format
-msgid "Terminal type `%s' is not defined."
-msgstr ""
-
-#: src/set.q:1111
-msgid "data> "
-msgstr ""
-
-#: src/t-test.q:265
-msgid "TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive."
-msgstr ""
-
-#: src/t-test.q:283
-msgid "VARIABLES subcommand is not appropriate with PAIRS"
-msgstr ""
-
-#: src/t-test.q:321
-msgid "One or more VARIABLES must be specified."
-msgstr ""
-
-#: src/t-test.q:372
-#, c-format
-msgid "Long string variable %s is not valid here."
-msgstr ""
-
-#: src/t-test.q:392 src/t-test.q:407
-msgid ""
-"When applying GROUPS to a string variable, two values must be specified."
-msgstr ""
-
-#: src/t-test.q:479
-#, c-format
-msgid ""
-"PAIRED was specified but the number of variables preceding WITH (%d) did not "
-"match the number following (%d)."
-msgstr ""
-
-#: src/t-test.q:496
-msgid "At least two variables must be specified on PAIRS."
-msgstr ""
-
-#: src/t-test.q:673
-msgid "One-Sample Statistics"
-msgstr ""
-
-#: src/t-test.q:678 src/t-test.q:701 src/t-test.q:825
-msgid "SE. Mean"
-msgstr ""
-
-#: src/t-test.q:695
-msgid "Group Statistics"
-msgstr ""
-
-#: src/t-test.q:819
-msgid "Paired Sample Statistics"
-msgstr ""
-
-#: src/t-test.q:841 src/t-test.q:1185 src/t-test.q:1375
-#, c-format
-msgid "Pair %d"
-msgstr ""
-
-#: src/t-test.q:958
-msgid "Independent Samples Test"
-msgstr ""
-
-#: src/t-test.q:966
-msgid "Levene's Test for Equality of Variances"
-msgstr ""
-
-#: src/t-test.q:968
-msgid "t-test for Equality of Means"
-msgstr ""
-
-#: src/t-test.q:971 src/t-test.q:1360
-msgid "Sig."
-msgstr ""
-
-#: src/t-test.q:975 src/t-test.q:1259
-msgid "Mean Difference"
-msgstr ""
-
-#: src/t-test.q:976
-msgid "Std. Error Difference"
-msgstr ""
-
-#: src/t-test.q:981 src/t-test.q:1156 src/t-test.q:1251
-#, c-format
-msgid "%g%% Confidence Interval of the Difference"
-msgstr ""
-
-#: src/t-test.q:1036
-msgid "Equal variances assumed"
-msgstr ""
-
-#: src/t-test.q:1088
-msgid "Equal variances not assumed"
-msgstr ""
-
-#: src/t-test.q:1146
-msgid "Paired Samples Test"
-msgstr ""
-
-#: src/t-test.q:1149
-msgid "Paired Differences"
-msgstr ""
-
-#: src/t-test.q:1161
-msgid "Std. Error Mean"
-msgstr ""
-
-#: src/t-test.q:1240
-msgid "One-Sample Test"
-msgstr ""
-
-#: src/t-test.q:1245
-#, c-format
-msgid "Test Value = %f"
-msgstr ""
-
-#: src/t-test.q:1355
-msgid "Paired Samples Correlations"
-msgstr ""
-
-#: src/t-test.q:1359
-msgid "Correlation"
-msgstr ""
-
-#: src/t-test.q:1378
-#, c-format
-msgid "%s & %s"
 msgstr ""
 
 #, fuzzy

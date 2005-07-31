@@ -33,13 +33,16 @@
 #include "file-handle.h"
 #include "filename.h"
 #include "format.h"
-#include "getline.h"
+#include "getl.h"
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
 #include "value-labels.h"
 #include "str.h"
 #include "var.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
 
@@ -93,7 +96,7 @@ bswap (unsigned char *a, unsigned char *b)
   *b = t;
 }
 
-/* bswap_int32(): Reverse the byte order of 32-bit integer *X. */
+/* Reverse the byte order of 32-bit integer *X. */
 static inline void
 bswap_int32 (int32 *x_)
 {

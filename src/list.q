@@ -37,6 +37,10 @@
 #include "var.h"
 #include "vfm.h"
 #include "format.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* (headers) */
 
 #include "debug-print.h"

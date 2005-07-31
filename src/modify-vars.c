@@ -33,6 +33,9 @@
 #include "var.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* FIXME: should change weighting variable, etc. */
 /* These control the ordering produced by
    compare_variables_given_ordering(). */

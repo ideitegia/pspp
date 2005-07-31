@@ -1,73 +1,41 @@
-Makefile po/Makefile.in: Makefile.in configure install-sh config.h.in po/Makefile.in.in po/POTFILES.in
-	./configure $(CONFIGUREFLAGS)
+# -*- makefile -*-
 
-configure:  configure.ac aclocal.m4
-	autoconf
+GNULIB = ../gnulib
+GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
-config.h.in: configure.ac
-	autoheader
+all: po/POTFILES.in
+	$(GNULIB_TOOL) --import
+	autoreconf --install
 
-aclocal.m4:
-	aclocal -I m4
+gettextize:
+	touch m4/Makefile.am
+	gettextize -f -c --intl --no-changelog
 
-# We want all src/*.c files which do not have corresponding src/*.q
+po/POTFILES.in:
+	for f in `find src -name \*.[qc] -print | sed 's/\.[qc]$$//'`; do \
+		if test $$f = src/version.c; then break; fi;		  \
+		if test -e $$f.q; then echo $$f.q; else echo $$f.c; fi	  \
+	done | sort | uniq > $@.tmp
+	if test ! -e $@ || ! cmp -s $@.tmp $@; then mv $@.tmp $@; fi
+	rm -f $@.tmp
 
-src_q_files=$(wildcard src/*.q)
-src_c_files=$(wildcard src/*.c)
-src_cq_files=$(patsubst %.q, %.c, $(src_q_files))
-src_files=$(filter-out $(src_cq_files), $(src_c_files)) $(src_q_files)
+PO_FILES = po/ChangeLog po/Makefile po/Makefile.in po/Makefile.in.in	\
+po/POTFILES po/POTFILES.in po/Rules-quot po/boldquot.sed		\
+po/cat-id-tbl.c po/en@boldquot.header po/en@quot.header			\
+po/insert-header.sin po/quot.sed po/remove-potcdate.sin po/stamp-po	\
+po/Makevars.template
 
-
-.PHONY: po/POTFILES.in
-po/POTFILES.in: 
-	@$(RM) po/potfile-temp
-	for f in $(src_files) ; do \
-	if [ $$f = "src/version.c" ] ; then continue ; fi ; \
-	echo $$f >> po/potfile-temp ; done
-	@if ( ! test -e $@ ) || ( ! diff  -q po/potfile-temp $@ ) ; then  mv po/potfile-temp $@ ; else $(RM) po/potfile-temp ; fi
-
-install-sh Makefile.in: intl Makefile.am aclocal.m4 config.h.in ABOUT-NLS
-	automake --add-missing
-
-po/Makefile.in.in intl ABOUT-NLS:
-	touch -f Makefile.am Makefile.am-stamp
-	touch -f configure.ac configure.ac-stamp
-	cp -pR configure.ac configure.ac-bak
-	cp -pR Makefile.am Makefile.am-bak
-	gettextize -f -c --no-changelog --intl
-	cp -pR Makefile.am-bak Makefile.am
-	touch -f Makefile.am-stamp Makefile.am
-	cp -pR configure.ac-bak configure.ac
-	touch -f configure.ac-stamp configure.ac
-	$(RM) configure.ac-bak configure.ac-stamp
-	$(RM) Makefile.am-bak Makefile.am-stamp
-
-
-
-.PHONY: clean
 clean:
-	$(RM) config.sub config.guess config.rpath
-	$(RM) ABOUT-NLS
-	$(RM) -r autom4te.cache
-	$(RM) aclocal.m4
-	$(RM) missing mkinstalldirs
-	$(RM) install-sh
-	$(RM) configure Makefile Makefile.in
-	$(RM) depcomp
-	$(RM) -r m4 intl
-	$(RM) po/ChangeLog \
-	po/Makefile \
-	po/Makefile.in \
-	po/Makefile.in.in \
-	po/POTFILES \
-	po/POTFILES.in \
-	po/Rules-quot \
-	po/boldquot.sed \
-	po/cat-id-tbl.c \
-	po/en@boldquot.header \
-	po/en@quot.header \
-	po/insert-header.sin \
-	po/quot.sed \
-	po/remove-potcdate.sin \
-	po/stamp-po \
-	po/Makevars.template
+	rm -f config.sub config.guess config.rpath
+	rm -f ABOUT-NLS
+	rm -fr autom4te.cache
+	rm -f aclocal.m4
+	rm -f missing mkinstalldirs
+	rm -f install-sh
+	rm -f configure Makefile Makefile.in
+	rm -f depcomp
+	rm -fr intl gl
+	rm -f m4/*.m4
+	rm -f $(PO_FILES)
+
+.PHONY: all gettextize potfiles clean

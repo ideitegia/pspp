@@ -31,6 +31,9 @@
 #include "str.h"
 #include "var.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 struct compute_trns;
 struct lvalue;
 

@@ -23,10 +23,7 @@
 #include <stddef.h>
 
 /* malloc() wrapper functions. */
-void *xmalloc (size_t size);
-void *xcalloc (size_t n_memb, size_t size);
-void *xrealloc (void *ptr, size_t size);
-char *xstrdup (const char *s);
+#include "xalloc.h"
 void out_of_memory (void) NO_RETURN;
 
 /* alloca() wrapper functions. */

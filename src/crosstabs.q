@@ -53,6 +53,10 @@
 #include "var.h"
 #include "vfm.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 /* (headers) */
 
 #include "debug-print.h"
