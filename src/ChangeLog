@@ -1,3 +1,9 @@
+Sat Jul 30 22:46:10 2005  Ben Pfaff  <blp@gnu.org>
+
+	* format.c: (check_common_specifier) Fix msg() bug found by
+	-Wformat.
+	(check_output_specifier) Ditto.
+
 Sat Jul 30 22:43:57 2005  Ben Pfaff  <blp@gnu.org>
 
 	* file-handle.q: (cmd_file_handle) Fix msg() bug found by

@@ -129,8 +129,8 @@ check_common_specifier (const struct fmt_spec *spec, bool emit_error)
     {
       if (emit_error)
         msg (SE, _("Format %s specifies an odd width %d, but "
-                   "format %s requires an even width."),
-             str, spec->w, f->name, f->Imin_w, f->Imax_w);
+                   "an even width is required."),
+             str, spec->w);
       return false;
     }
   if (f->n_args > 1 && (spec->d < 0 || spec->d > 16))
@@ -213,7 +213,7 @@ check_output_specifier (const struct fmt_spec *spec, int emit_error)
                    "many decimal places as the field width, which "
                    "fails to allow space for a decimal point.  "
                    "Try %s%d.%d instead."),
-             str, f->name, f->name, spec->d + 1, spec->d);
+             str, f->name, spec->d + 1, spec->d);
       return 0;
     }
   return 1;
