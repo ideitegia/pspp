@@ -1,3 +1,7 @@
+Sat Jul 30 22:52:09 2005  Ben Pfaff  <blp@gnu.org>
+
+	* pfm-read.c: (read_variables) Fix msg() bug found by -Wformat.
+
 Sat Jul 30 22:50:57 2005  Ben Pfaff  <blp@gnu.org>
 
 	* histogram.c: Include <config.h>.

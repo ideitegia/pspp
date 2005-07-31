@@ -523,7 +523,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         fmt[j] = read_int (r);
 
       if (!var_is_valid_name (name, false) || *name == '#' || *name == '$')
-        error (r, _("position %d: Invalid variable name `%s'."), name);
+        error (r, _("position %d: Invalid variable name `%s'."), i, name);
       str_uppercase (name);
 
       if (width < 0 || width > 255)
