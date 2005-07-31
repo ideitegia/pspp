@@ -1452,7 +1452,7 @@ postopen (struct file_ext *f)
 	  char *beg;
 	  beg = buf2 = fn_interp_vars (buf, ps_get_var);
 	  len = strlen (buf2);
-	  while (isspace (*beg))
+	  while (isspace ((unsigned char) *beg))
 	    beg++, len--;
 	  if (beg[len - 1] == '\n')
 	    len--;
