@@ -1,3 +1,8 @@
+Sat Jul 30 23:05:33 2005  Ben Pfaff  <blp@gnu.org>
+
+	* vars-atr.c: (var_is_valid_name) Fix three msg() bugs found by
+	-Wformat.
+
 Sat Jul 30 22:58:33 2005  Ben Pfaff  <blp@gnu.org>
 
 	* rank.q: (parse_rank_function) Fix msg() bug found by -Wformat.

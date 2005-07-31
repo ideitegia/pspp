@@ -263,7 +263,7 @@ var_is_valid_name (const char *name, bool issue_error)
     {
       if (issue_error)
         msg (SE, _("Variable name %s exceeds %d-character limit."),
-             (int) LONG_NAME_LEN);
+             name, (int) LONG_NAME_LEN);
       return false;
     }
 
@@ -273,7 +273,7 @@ var_is_valid_name (const char *name, bool issue_error)
         if (issue_error)
           msg (SE, _("Character `%c' (in %s) may not appear in "
                      "a variable name."),
-               name);
+               name[i], name);
         return false;
       }
         
@@ -281,7 +281,8 @@ var_is_valid_name (const char *name, bool issue_error)
     {
       if (issue_error)
         msg (SE, _("Character `%c' (in %s), may not appear "
-                   "as the first character in a variable name."), name);
+                   "as the first character in a variable name."),
+             name[0], name);
       return false;
     }
 
