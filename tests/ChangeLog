@@ -1,3 +1,8 @@
+Mon Aug  1 21:48:54 2005  Ben Pfaff  <blp@gnu.org>
+
+	* xforms/expression.sh: Break this monolithic test up into 36
+	subtests to give a better idea of what's failing in some cases.
+
 Sat Jul 30 21:54:23 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/sys-info.sh: Removed.  (This was not actually in TESTS

@@ -15,8 +15,8 @@ export STAT_CONFIG_PATH
 
 cleanup()
 {
+     cd /
      rm -rf $TEMPDIR
-     :
 }
 
 
@@ -47,14 +47,15 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 activity="create expressions list"
-sed -ne 's/#.*//;/^[ 	]*$/!p' > $TEMPDIR/expr-list <<'EOF'
-
-# Number syntax.
+cat > 00-num-syn.expr <<'EOF'
+# Test numeric syntax.
 1e2 => 100.00
 1e+2 => 100.00
 1e-2 => 0.01
 1e-99 => 0.00
+EOF
 
+cat > 01-conv-to-num.expr <<'EOF'
 # Test using numeric/string values as Booleans and vice-versa
 0 AND 1 => false
 $true AND 1 => true
@@ -66,7 +67,9 @@ $true AND 1 => true
 0 AND $sysmis => false
 (1>2) + 1 => 1.00
 $true + $false => 1.00
+EOF
 
+cat > 02-add-sub.expr <<'EOF'
 # Addition and subtraction.
 1 + 2 => 3.00
 1 + $true => 2.00
@@ -82,7 +85,9 @@ $true - 4/3 => -0.33
 9.5 - '' => error
 1 - 2 => -1.00
 52 -23 => 29.00 
+EOF
 
+cat > 03-mul-div.expr <<'EOF'
 # Multiplication and division
 5 * 10 => 50.00
 10 * $true => 10.00
@@ -94,12 +99,16 @@ $sysmis * 15 => sysmis
 1 / 2 => 0.50
 2 / 5 => 0.40
 12 / 3 / 2 => 2.00
+EOF
 
+cat > 04-exp.expr <<'EOF'
 # Exponentiation.
 2**8 => 256.00
 (2**3)**4 => 4096.00	# Irritating, but compatible.
 2**3**4 => 4096.00
+EOF
 
+cat > 05-negation.expr <<'EOF'
 # Unary minus.
 2+-3 => -1.00
 2*-3 => -6.00
@@ -109,7 +118,9 @@ $sysmis * 15 => sysmis
 0**0 => sysmis
 0**-1 => sysmis
 (-3)**1.5 => sysmis
+EOF
 
+cat > 06-logical-and.expr <<'EOF'
 # AND truth table.
 $false AND $false => false
 $false AND $true => false
@@ -129,7 +140,9 @@ $true & $sysmis => sysmis
 $sysmis & $false => false
 $sysmis & $true => sysmis
 $sysmis & $sysmis => sysmis
+EOF
 
+cat > 07-logical-or.expr <<'EOF'
 # OR truth table.
 $false OR $false => false
 $false OR $true => true
@@ -149,7 +162,9 @@ $true | $sysmis => true
 $sysmis | $false => sysmis
 $sysmis | $true => true
 $sysmis | $sysmis => sysmis
+EOF
 
+cat > 08-logical-not.expr <<'EOF'
 # NOT truth table.
 not $false => true
 not 0 => true
@@ -163,7 +178,9 @@ not $sysmis => sysmis
 ~ $true => false
 ~ 1 => false
 ~ $sysmis => sysmis
+EOF
 
+cat > 09-eq.expr <<'EOF'
 # Relational operators.
 1 eq 1 => true
 1 = 1 => true
@@ -182,7 +199,9 @@ not $sysmis => sysmis
 1 >= 2 = 2 ge 3 => false	# Check precedence.
 3 ne 2 ~= 1 => false		# Mathematically true.
 3 > 2 > 1 => false		# Mathematically true.
+EOF
 
+cat > 10-le.expr <<'EOF'
 1 <= 2 => true
 2.5 <= 1.5 => false
 1 le 2 => true
@@ -198,7 +217,9 @@ not $sysmis => sysmis
 '0124' le '0123' => false
 '0123  ' <= '0123' => true
 '0123' le '0123  ' => true
+EOF
 
+cat > 11-lt.expr <<'EOF'
 1 < 2 => true
 2.5 < 1.5 => false
 3.5 lt 4 => true
@@ -212,7 +233,9 @@ not $sysmis => sysmis
 '0124' lt '0123' => false
 '0123  ' < '0123' => false
 '0123' lt '0123  ' => false
+EOF
 
+cat > 12-ge.expr <<'EOF'
 1 >= 2 => false
 2.5 >= 1.5 => true
 1 ge 2 => false
@@ -228,7 +251,9 @@ not $sysmis => sysmis
 '0124' >= '0123' => true
 '0123  ' ge '0123' => true
 '0123' >= '0123  ' => true
+EOF
 
+cat > 13-gt.expr <<'EOF'
 1 > 2 => false
 2.5 > 1.5 => true
 3.5 gt 4 => false
@@ -242,7 +267,9 @@ not $sysmis => sysmis
 '0124' gt '0123' => true
 '0123  ' > '0123' => false
 '0123' gt '0123  ' => false
+EOF
 
+cat > 14-ne.expr <<'EOF'
 1 ne 1 => false
 1 ~= 1 => false
 1 <> 2 => true
@@ -258,7 +285,9 @@ not $sysmis => sysmis
 'asdfj   ' ne 'asdf' => true
 1 < > 1 => error	# <> token can't be split
 1 ~ = 1 => error	# ~= token can't be split
+EOF
 
+cat > 15-exp-log.expr <<'EOF'
 exp(10) => 22026.47
 exp('x') => error
 
@@ -267,7 +296,9 @@ lg10('x') => error
 
 ln(10) => 2.30
 ln('x') => error
+EOF
 
+cat > 16-sqrt-abs-mod.expr <<'EOF'
 sqrt(500) => 22.36
 sqrt('x') => error
 
@@ -287,7 +318,9 @@ mod('a', 'b') => error
 mod10(55.5) => 5.50
 mod10(-55.5) => -5.50
 mod10('x') => error
+EOF
 
+cat > 17-rnd-trunc.expr <<'EOF'
 rnd(5.4) => 5.00
 rnd(5.6) => 6.00
 rnd(-5.4) => -5.00
@@ -299,7 +332,9 @@ trunc(1.9) => 1.00
 trunc(-1.2) => -1.00
 trunc(-1.9) => -1.00
 trunc('x') => error
+EOF
 
+cat > 18-arc.expr <<'EOF'
 acos(.5) / 3.14159 * 180 => 60.00
 arcos(.75) / 3.14159 * 180 => 41.41
 arcos(-.5) / 3.14159 * 180 => 120.00
@@ -323,7 +358,9 @@ atan(10) / 3.14159 * 180 => 84.29
 artan(-1) / 3.14159 * 180 => -45.00
 atan(-10) / 3.14159 * 180 => -84.29
 artan('x') => error
+EOF
 
+cat > 19-cos-sin-tan.expr <<'EOF'
 cos(60 / 180 * 3.14159) => 0.50
 cos(45 / 180 * 3.14159) => 0.71
 cos(30 / 180 * 3.14159) => 0.87
@@ -359,7 +396,9 @@ tan(-15 / 180 * 3.14159) => -0.27
 tan(123 / 180 * 3.14159) => -1.54
 tan(321 / 180 * 3.14159) => -0.81
 tan('x') => error
+EOF
 
+cat > 20-missing.expr <<'EOF'
 # FIXME: a variable name as the argument to SYSMIS is a special case
 # that we don't yet test.  We also can't test VALUE this way.
 missing(10) => false
@@ -382,7 +421,9 @@ sysmis($sysmis) => true
 sysmis(asin(1.01)) => true
 sysmis(asin(.5)) => false
 sysmis('    ') => error
+EOF
 
+cat > 21-any.expr <<'EOF'
 any($sysmis, 1, $sysmis, 3) => sysmis
 any(1, 1, 2, 3) => true
 any(2, 1, 2, 3) => true
@@ -414,7 +455,9 @@ any(a, 'b', 'c', 'd') => error
 any('a', b, 'c', 'd') => error
 any('a', 'b', c, 'd') => error
 any('a', 'b', 'c', d) => error
+EOF
 
+cat > 22-range.expr <<'EOF'
 range(5, 1, 10) => true
 range(1, 1, 10) => true
 range(10, 1, 10) => true
@@ -471,18 +514,9 @@ range('1', '2', '3', '4', '5', '6') => error
 range(1, '2', '3') => error
 range('1', 2, '3') => error
 range('1', '2', 3) => error
+EOF
 
-cfvar(1, 2, 3, 4, 5) => 0.53
-cfvar(1, $sysmis, 2, 3, $sysmis, 4, 5) => 0.53
-cfvar(1, 2) => 0.47
-cfvar(1) => error
-cfvar(1, $sysmis) => sysmis
-cfvar(1, 2, 3, $sysmis) => 0.50
-cfvar.4(1, 2, 3, $sysmis) => sysmis
-cfvar.4(1, 2, 3) => error
-cfvar('x') => error
-cfvar('x', 1, 2, 3) => error
-
+cat > 23-max-min.expr <<'EOF'
 max(1, 2, 3, 4, 5) => 5.00
 max(1, $sysmis, 2, 3, $sysmis, 4, 5) => 5.00
 max(1, 2) => 2.00
@@ -497,16 +531,6 @@ max("2", "3", "5", "1", "4") => "5"
 max("1", "2") => "2"
 max("1") => "1"
 
-mean(1, 2, 3, 4, 5) => 3.00
-mean(1, $sysmis, 2, 3, $sysmis, 4, 5) => 3.00
-mean(1, 2) => 1.50
-mean() => error
-mean(1) => 1.00
-mean(1, $sysmis) => 1.00
-mean(1, 2, 3, $sysmis) => 2.00
-mean.4(1, 2, 3, $sysmis) => sysmis
-mean.4(1, 2, 3) => error
-
 min(1, 2, 3, 4, 5) => 1.00
 min(1, $sysmis, 2, 3, $sysmis, 4, 5) => 1.00
 min(1, 2) => 1.00
@@ -520,6 +544,29 @@ min.4(1, 2, 3) => error
 min("2", "3", "5", "1", "4") => "1"
 min("1", "2") => "1"
 min("1") => "1"
+EOF
+
+cat > 24-moments.expr <<'EOF'
+cfvar(1, 2, 3, 4, 5) => 0.53
+cfvar(1, $sysmis, 2, 3, $sysmis, 4, 5) => 0.53
+cfvar(1, 2) => 0.47
+cfvar(1) => error
+cfvar(1, $sysmis) => sysmis
+cfvar(1, 2, 3, $sysmis) => 0.50
+cfvar.4(1, 2, 3, $sysmis) => sysmis
+cfvar.4(1, 2, 3) => error
+cfvar('x') => error
+cfvar('x', 1, 2, 3) => error
+
+mean(1, 2, 3, 4, 5) => 3.00
+mean(1, $sysmis, 2, 3, $sysmis, 4, 5) => 3.00
+mean(1, 2) => 1.50
+mean() => error
+mean(1) => 1.00
+mean(1, $sysmis) => 1.00
+mean(1, 2, 3, $sysmis) => 2.00
+mean.4(1, 2, 3, $sysmis) => sysmis
+mean.4(1, 2, 3) => error
 
 sd(1, 2, 3, 4, 5) => 1.58
 sd(1, $sysmis, 2, 3, $sysmis, 4, 5) => 1.58
@@ -552,14 +599,18 @@ variance.4(1, 2, 3, $sysmis) => sysmis
 variance.4(1, 2, 3) => error
 variance('x') => error
 variance('x', 1, 2, 3) => error
+EOF
 
+cat > 25-concat.expr <<'EOF'
 concat('') => ""
 concat('a', 'b') => "ab"
 concat('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h') => "abcdefgh"
 concat('abcdefgh', 'ijklmnopq') => "abcdefghijklmnopq"
 concat('a', 1) => error
 concat(1, 2) => error
+EOF
 
+cat > 26-index.expr <<'EOF'
 index('abcbcde', 'bc') => 2.00
 index('abcbcde', 'bcd') => 4.00
 index('abcbcde', 'bcbc') => 2.00
@@ -588,7 +639,9 @@ index('abcbcde', 'abc', 1) => 1.00
 index('abcbcde', 'bccb', 2) => 2.00
 index('abcbcde', 'bcbc', 2) => 2.00
 index('abcbcde', 'bcbc', $sysmis) => sysmis
+EOF
 
+cat > 27-rindex.expr <<'EOF'
 rindex('abcbcde', 'bc') => 4.00
 rindex('abcbcde', 'bcd') => 4.00
 rindex('abcbcde', 'bcbc') => 2.00
@@ -624,7 +677,9 @@ rindex(1, 'bcdfkjl', 2) => error
 rindex('aksj', 2, 2) => error
 rindex(1, 2, 3) => error
 rindex(1, 2, '3') => error
+EOF
 
+cat > 28-length.expr <<'EOF'
 length('') => 0.00
 length('a') => 1.00
 length('xy') => 2.00
@@ -632,11 +687,9 @@ length('adsf    ') => 8.00
 length('abcdefghijkl') => 12.00
 length(0) => error
 length($sysmis) => error
+EOF
 
-lower('ABCDEFGHIJKLMNOPQRSTUVWXYZ!@%&*(089') => "abcdefghijklmnopqrstuvwxyz!@%&*(089"
-lower('') => ""
-lower(1) => error
-
+cat > 29-pad.expr <<'EOF'
 lpad('abc', -1) => ""
 lpad('abc', 0) => "abc"
 lpad('abc', 2) => "abc"
@@ -660,26 +713,6 @@ lpad('abc', 'def', ' ') => error
 lpad('x', 5, 0) => error
 lpad('x', 5, 2) => error
 
-number("123", f3.0) => 123.00
-number(" 123", f3.0) => 12.00
-number("123", f3.1) => 12.30
-number("   ", f3.1) => sysmis
-
-ltrim('   abc') => "abc"
-rtrim('   abc   ') => "   abc"
-ltrim('abc') => "abc"
-ltrim('	abc') => "	abc"
-ltrim('    ') => ""
-ltrim('') => ""
-ltrim(8) => error
-ltrim('***abc', '*') => "abc"
-ltrim('abc', '*') => "abc"
-ltrim('*abc', '*') => "abc"
-ltrim('', '*') => ""
-ltrim(8, '*') => error
-ltrim(' x', 8) => error
-ltrim(8, 9) => error
-
 rpad('abc', -1) => ""
 rpad('abc', 0) => "abc"
 rpad('abc', 2) => "abc"
@@ -702,6 +735,34 @@ rpad(0, 10, ' ') => error
 rpad('abc', 'def', ' ') => error
 rpad('x', 5, 0) => error
 rpad('x', 5, 2) => error
+EOF
+
+cat > 30-num-str.expr <<'EOF'
+number("123", f3.0) => 123.00
+number(" 123", f3.0) => 12.00
+number("123", f3.1) => 12.30
+number("   ", f3.1) => sysmis
+
+string(123.56, f5.1) => "123.6"
+string($sysmis, f5.1) => "   . "
+string("abc", A5) => error
+EOF
+
+cat > 31-trim.expr <<'EOF'
+ltrim('   abc') => "abc"
+rtrim('   abc   ') => "   abc"
+ltrim('abc') => "abc"
+ltrim('	abc') => "	abc"
+ltrim('    ') => ""
+ltrim('') => ""
+ltrim(8) => error
+ltrim('***abc', '*') => "abc"
+ltrim('abc', '*') => "abc"
+ltrim('*abc', '*') => "abc"
+ltrim('', '*') => ""
+ltrim(8, '*') => error
+ltrim(' x', 8) => error
+ltrim(8, 9) => error
 
 rtrim('abc   ') => "abc"
 rtrim('   abc   ') => "   abc"
@@ -717,11 +778,9 @@ rtrim('', '*') => ""
 rtrim(8, '*') => error
 rtrim(' x', 8) => error
 rtrim(8, 9) => error
+EOF
 
-string(123.56, f5.1) => "123.6"
-string($sysmis, f5.1) => "   . "
-string("abc", A5) => error
-
+cat > 32-substr.expr <<'EOF'
 substr('abcdefgh', -5) => ""
 substr('abcdefgh', 0) => ""
 substr('abcdefgh', 1) => "abcdefgh"
@@ -766,11 +825,19 @@ substr('abcd', 'abc', 0) => error
 substr('abcd', 'abc', 'j') => error
 substr(0, 'abc', 4) => error
 substr(0, 'abc', 'k') => error
+EOF
+
+cat > 33-case.expr <<'EOF'
+lower('ABCDEFGHIJKLMNOPQRSTUVWXYZ!@%&*(089') => "abcdefghijklmnopqrstuvwxyz!@%&*(089"
+lower('') => ""
+lower(1) => error
 
 upcase('abcdefghijklmnopqrstuvwxyz!@%&*(089') => "ABCDEFGHIJKLMNOPQRSTUVWXYZ!@%&*(089"
 upcase('') => ""
 upcase(1) => error
+EOF
 
+cat > 34-time.expr <<'EOF'
 time.days(1) => 86400.00
 time.days(-1) => -86400.00
 time.days(0.5) => 43200.00
@@ -790,7 +857,9 @@ time.hms($sysmis, $sysmis, 7) => sysmis
 time.hms(5, $sysmis, $sysmis) => sysmis
 time.hms($sysmis, $sysmis, 7) => sysmis
 time.hms($sysmis, $sysmis, $sysmis) => sysmis
+EOF
 
+cat > 35-ctime.expr <<'EOF'
 ctime.days(106272) => 1.23
 ctime.hours(106272) => 29.52
 ctime.minutes(106272) => 1771.20
@@ -897,49 +966,53 @@ date.wkyr('a','b') => error
 ctime.days(date.yrday(2000,1)) => 152385.00
 ctime.days(date.yrday(2000,100)) => 152484.00
 ctime.days(date.yrday(2000,253)) => 152637.00
-ctime.days(date.yrday(2000,500)) => 152884.00
-ctime.days(date.yrday(2000,-100)) => 152284.00
+ctime.days(date.yrday(2000,500)) => sysmis
+ctime.days(date.yrday(2000,-100)) => sysmis
 ctime.days(date.yrday(1999,$sysmis)) => sysmis
 ctime.days(date.yrday($sysmis,1)) => sysmis
 ctime.days(date.yrday($sysmis,$sysmis)) => sysmis
 date.yrday(1999,'a') => error
 date.yrday('a',5) => error
 date.yrday('a','b') => error
+EOF
 
 # FIXME: XDATE.* functions
 # FIXME: LAG
 # FIXME: YRMODA
-EOF
-if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="create optimizing input"
-echo 'set mxwarn 1000.
-set mxerr 1000.' > $TEMPDIR/expr-opt.stat
-sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-opt.stat \
-	-e 's#^\(.*\) => \(.*\)$#DEBUG EVALUATE/\1.#'
-if [ $? -ne 0 ] ; then no_result ; fi
+printf "expressions..."
+for d in *.expr; do
+    base=`echo $d | sed 's/\.expr$//'`
 
-activity="run optimizing program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
-	 $TEMPDIR/expr-opt.stat >$TEMPDIR/expr-opt.err 2> $TEMPDIR/expr-opt.out
+    # Remove comments.
+    sed -ne 's/#.*//;/^[ 	]*$/!p' < $base.expr > $base.clean
+    if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="compare optimizing output"
-diff -B -b $TEMPDIR/expr-list $TEMPDIR/expr-opt.out
-if [ $? -ne 0 ] ; then fail ; fi
+    for optimize in opt noopt; do
+	if test optimize = opt; then
+	    opt_kw=''
+	else
+	    opt_kw=' NOOPTIMIZE'
+	fi
+	
+        # Translate to DEBUG EVALUATE commands.
+	activity="$base, $optimize: create input"
+	sed 's#^\(.*\) => \(.*\)$#DEBUG EVALUATE'"$opt_kw"'/\1.#' \
+	    < $base.clean > $base.$optimize.stat
+	if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="create non-optimizing input"
-echo 'set mxwarn 1000.
-set mxerr 1000.' > $TEMPDIR/expr-noopt.stat
-sed < $TEMPDIR/expr-list >> $TEMPDIR/expr-noopt.stat \
-	-e 's#^\(.*\) => \(.*\)$#DEBUG EVALUATE NOOPTIMIZE/\1.#'
-if [ $? -ne 0 ] ; then no_result ; fi
+	# Run.
+	activity="$base, $optimize: run program"
+	$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
+	    $base.$optimize.stat > $base.$optimize.err 2> $base.$optimize.out
 
-activity="run non-optimizing program"
-$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
-	$TEMPDIR/expr-noopt.stat >$TEMPDIR/expr-noopt.err 2> $TEMPDIR/expr-noopt.out
-
-activity="compare non-optimizing output"
-diff -B -b $TEMPDIR/expr-list $TEMPDIR/expr-noopt.out
-if [ $? -ne 0 ] ; then fail ; fi
-
+	# Compare.
+	activity="$base, $optimize: compare output"
+	diff -B -b $base.clean $base.$optimize.out
+	if [ $? -ne 0 ] ; then fail ; fi
+    done
+    num=`echo $d | sed 's/-.*//'`
+    printf " $num"
+done
+printf ' ...done\n'
 pass
