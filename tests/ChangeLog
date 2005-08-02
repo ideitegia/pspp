@@ -1,3 +1,8 @@
+Mon Aug  1 21:51:46 2005  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/big-input-2.sh: Don't use 1...100000 (etc.) with Perl
+	because that may allocate a large amount of memory.
+
 Mon Aug  1 21:48:54 2005  Ben Pfaff  <blp@gnu.org>
 
 	* xforms/expression.sh: Break this monolithic test up into 36

@@ -57,8 +57,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 printf "Creating input data.  Please wait"
 activity="create data"
-$PERL -e 'print "AB12\n" foreach 1...100000;
-          print "AB04\n" foreach 1...100000;' > $TEMPDIR/large.dat
+$PERL -e 'for ($i=0; $i<100000; $i++) { print "AB12\n" };
+          for ($i=0; $i<100000; $i++) { print "AB04\n" };' > $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 printf ".\n";
 
@@ -79,8 +79,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="appending to data"
-# Put another 100,000 cases into large.dat
-$PERL -e 'print "AB04\nAB12\n" foreach 1...25000' >> $TEMPDIR/large.dat
+# Put another 50,000 cases into large.dat
+$PERL -e 'for ($i=0; $i<25000; $i++) { print "AB04\nAB12\n" };' >> $TEMPDIR/large.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
