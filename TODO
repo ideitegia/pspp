@@ -1,4 +1,6 @@
-Time-stamp: <2005-07-28 21:45:15 blp>
+Time-stamp: <2005-08-02 10:24:25 blp>
+
+Get rid of need for GNU diff in `make check'.
 
 Get rid of need for file name canonicalization.
 
