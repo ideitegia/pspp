@@ -1,3 +1,6 @@
+Release Notes
+=============
+
 PSPP has the following library dependencies;
 
     * The GNU Scientific Library (libgsl), version 1.6 or later.
@@ -13,7 +16,19 @@ PSPP also has the following build dependencies:
 
     * perl 5.6 or later.
 
-    * GNU diff, for `make check' to complete properly.
+    * GNU diff, for `make check' to complete properly.  (We intend to
+      eliminate this dependency in a later release.)
+
+A few system-specific issues have been noted.  These may be PSPP bugs
+or system bugs; we have not yet been able to track them down precisely:
+
+    * On Solaris, one or more tests may fail `make check'.  We have
+      only seen this reported on Solaris 9 with GCC 3.4.2.  Our
+      reporter says that turning off optimization (with -O0) at least
+      masked the symptoms.
+
+    * On Mac OS X, GCC 4.0.0 build 4061 has been observed to cause
+      some tests to fail.  Later builds should work fine.
 
 Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
