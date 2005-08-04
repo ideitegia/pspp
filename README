@@ -1,6 +1,6 @@
 PSPP is a program for statistical analysis of sampled data. It
 interprets commands in the SPSS language and produces tabular output
-in ASCII or PostScript format.
+in ASCII, PostScript, or HTML format.
 
 PSPP development is ongoing. It already supports a large subset of
 SPSS's transformation language.  Its statistical procedure support is
@@ -19,3 +19,59 @@ Questions and comments regarding PSPP can be sent to pspp-dev@gnu.org.
 PSPP bug reports may be sent to bug-gnu-pspp@gnu.org or filed in the
 bug-tracking system at http://savannah.gnu.org/bugs/?group=pspp
 according to your preference.
+
+The long term goals for PSPP are ambitious.  We wish to provide the
+following support to users:
+
+	* All of the SPSS transformation language.  PSPP already
+          supports a large subset of it.
+
+	* All the statistical procedures that someone is willing to
+          implement, whether they exist in SPSS or not.  Currently,
+          statistical support is limited, but growing.
+
+	* Compatibility with SPSS syntax, including compatibility with
+          known bugs and warts, where it makes sense.  We also provide
+          an "enhanced" mode in certain cases where PSPP can output
+          better results that may surprise SPSS users.
+
+	* Friendly textual and graphical interfaces.  PSPP does not do
+          a good job of this yet.
+
+	* Attractive output, including graphs, in a variety of human-
+          and machine-readable formats.  PSPP currently produces
+          output in ASCII, PostScript, and HTML formats.  We will
+          enhance PSPP's output formatting in the future.
+
+	* Good documentation.  Currently the PSPP manual describes its
+          language completely, but we would like to add information on
+          how to select statistical procedures and interpret their
+          results.
+
+	* Efficient support for very large data sets.  For procedures
+          where it is practical, we wish to efficiently support data
+          sets many times larger than physical memory.  The framework
+          for this feature is already in place, but it has not been
+          tuned or extensively tested.
+
+Over the long term, we also wish to provide support to developers who
+wish to extend PSPP with new statistical procedures, by supplying the
+following:
+
+	* Easy-to-use support for parsing language syntax.  Currently,
+          parsing is done by writing "recursive descent" code by hand,
+          with some support for automated parsing of the most common
+          constructs.  We wish to improve the situation by supplying a
+          more complete and flexible parser generator.
+
+	* Easy-to-use support for producing attractive output.
+          Currently, output is done by writing code to explicitly fill
+          in table cells with data.  We should be able to supply a
+          more convenient interface that also allows for providing
+          machine-readable output.
+
+	* Eventually, a plug-in interface for procedures.  Over the
+          short term, the interface between the PSPP core and
+          statistical procedures is evolving quickly enough that a
+          plug-in model does not make sense.  Over the long term, it
+          may make sense to introduce plug-ins.
