@@ -30,6 +30,24 @@ or system bugs; we have not yet been able to track them down precisely:
     * On Mac OS X, GCC 4.0.0 build 4061 has been observed to cause
       some tests to fail.  Later builds should work fine.
 
+Finally, a few extra notes:
+
+    * The Sun WorkShop compiler will not work out of the box in this
+      release.  Use GCC instead.  We will fix this for the next
+      release.
+
+    * GCC 4.x reports an inordinate number of warnings for this
+      release.  You may ignore these for now.  We will fix these for
+      the next release.
+
+
+
+
+
+
+
+
+
 Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
 
