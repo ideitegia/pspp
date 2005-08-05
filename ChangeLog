@@ -1,3 +1,7 @@
+Fri Aug  3 07:22:28 2005  Ben Pfaff  <blp@gnu.org>
+
+	* PSPP 0.4.0 released.
+
 Sun Jul 31 10:49:47 2005  Ben Pfaff  <blp@gnu.org>
 
 	Adopt use of gnulib for portability.
