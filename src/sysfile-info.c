@@ -463,63 +463,44 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
     }
 
   /* Missing values if any. */
-  if (v->miss_type != MISSING_NONE)
+  if (!mv_is_empty (&v->miss))
     {
-      char buf[80];
-      char *cp = stpcpy (buf, _("Missing Values: "));
-
-      if (v->type == NUMERIC)
-	switch (v->miss_type)
-	  {
-	  case MISSING_1:
-	    sprintf (cp, "%g", v->missing[0].f);
-	    break;
-	  case MISSING_2:
-	    sprintf (cp, "%g; %g", v->missing[0].f, v->missing[1].f);
-	    break;
-	  case MISSING_3:
-	    sprintf (cp, "%g; %g; %g", v->missing[0].f,
-		     v->missing[1].f, v->missing[2].f);
-	    break;
-	  case MISSING_RANGE:
-	    sprintf (cp, "%g THRU %g", v->missing[0].f, v->missing[1].f);
-	    break;
-	  case MISSING_LOW:
-	    sprintf (cp, "LOWEST THRU %g", v->missing[0].f);
-	    break;
-	  case MISSING_HIGH:
-	    sprintf (cp, "%g THRU HIGHEST", v->missing[0].f);
-	    break;
-	  case MISSING_RANGE_1:
-	    sprintf (cp, "%g THRU %g; %g",
-		     v->missing[0].f, v->missing[1].f, v->missing[2].f);
-	    break;
-	  case MISSING_LOW_1:
-	    sprintf (cp, "LOWEST THRU %g; %g",
-		     v->missing[0].f, v->missing[1].f);
-	    break;
-	  case MISSING_HIGH_1:
-	    sprintf (cp, "%g THRU HIGHEST; %g",
-		     v->missing[0].f, v->missing[1].f);
-	    break;
-	  default:
-	    assert (0);
-	  }
-      else
-	{
-	  int i;
-
-	  for (i = 0; i < v->miss_type; i++)
-	    {
-	      if (i != 0)
-		cp = stpcpy (cp, "; ");
-	      *cp++ = '"';
-	      memcpy (cp, v->missing[i].s, v->width);
+      char buf[128];
+      char *cp;
+      struct missing_values mv;
+      int cnt = 0;
+      
+      cp = stpcpy (buf, _("Missing Values: "));
+      mv_copy (&mv, &v->miss);
+      if (mv_has_range (&mv)) 
+        {
+          double x, y;
+          mv_pop_range (&mv, &x, &y);
+          if (x == LOWEST)
+            cp += nsprintf (cp, "LOWEST THRU %g", y);
+          else if (y == HIGHEST)
+            cp += nsprintf (cp, "%g THRU HIGHEST", x);
+          else
+            cp += nsprintf (cp, "%g THRU %g", x, y);
+          cnt++;
+        }
+      while (mv_has_value (&mv)) 
+        {
+          union value value;
+          mv_pop_value (&mv, &value);
+          if (cnt++ > 0)
+            cp += nsprintf (cp, "; ");
+          if (v->type == NUMERIC)
+            cp += nsprintf (cp, "%g", value.f);
+          else 
+            {
+              *cp++ = '"';
+	      memcpy (cp, value.s, v->width);
 	      cp += v->width;
 	      *cp++ = '"';
-	    }
-	  *cp = 0;
-	}
+              *cp = '\0';
+            }
+        }
 
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT, buf);
       r++;

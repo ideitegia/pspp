@@ -540,45 +540,23 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       convert_format (r, &fmt[3], &v->write, v);
 
       /* Range missing values. */
-      if (match (r, 'B'))
-	{
-	  v->miss_type = MISSING_RANGE;
-          v->missing[0] = parse_value (r, v);
-          v->missing[1] = parse_value (r, v);
-	}
+      if (match (r, 'B')) 
+        {
+          double x = read_float (r);
+          double y = read_float (r);
+          mv_add_num_range (&v->miss, x, y);
+        }
       else if (match (r, 'A'))
-	{
-	  v->miss_type = MISSING_HIGH;
-          v->missing[0] = parse_value (r, v);
-	}
+        mv_add_num_range (&v->miss, read_float (r), HIGHEST);
       else if (match (r, '9'))
-	{
-	  v->miss_type = MISSING_LOW;
-          v->missing[0] = parse_value (r, v);
-	}
+        mv_add_num_range (&v->miss, LOWEST, read_float (r));
 
       /* Single missing values. */
-      while (match (r, '8'))
-	{
-	  static const int map_next[MISSING_COUNT] =
-	    {
-	      MISSING_1, MISSING_2, MISSING_3, -1,
-	      MISSING_RANGE_1, MISSING_LOW_1, MISSING_HIGH_1,
-	      -1, -1, -1,
-	    };
-
-	  static const int map_ofs[MISSING_COUNT] = 
-	    {
-	      -1, 0, 1, 2, -1, -1, -1, 2, 1, 1,
-	    };
-
-	  v->miss_type = map_next[v->miss_type];
-	  if (v->miss_type == -1)
-	    error (r, _("Bad missing values for %s."), v->name);
-	  
-	  assert (map_ofs[v->miss_type] != -1);
-          v->missing[map_ofs[v->miss_type]] = parse_value (r, v);
-	}
+      while (match (r, '8')) 
+        {
+          union value value = parse_value (r, v);
+          mv_add_value (&v->miss, &value); 
+        }
 
       if (match (r, 'C')) 
         {

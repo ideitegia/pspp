@@ -926,63 +926,45 @@ read_variables (struct sfm_reader *r,
       if (sv.n_missing_values != 0)
 	{
 	  flt64 mv[3];
+          int mv_cnt = abs (sv.n_missing_values);
 
 	  if (vv->width > MAX_SHORT_STRING)
 	    lose ((ME, _("%s: Long string variable %s may not have missing "
                          "values."),
                    handle_get_filename (r->fh), vv->name));
 
-	  assertive_buf_read (r, mv, sizeof *mv * abs (sv.n_missing_values), 0);
+	  assertive_buf_read (r, mv, sizeof *mv * mv_cnt, 0);
 
 	  if (r->reverse_endian && vv->type == NUMERIC)
-	    for (j = 0; j < abs (sv.n_missing_values); j++)
+	    for (j = 0; j < mv_cnt; j++)
 	      bswap_flt64 (&mv[j]);
 
 	  if (sv.n_missing_values > 0)
 	    {
-	      vv->miss_type = sv.n_missing_values;
-	      if (vv->type == NUMERIC)
-		for (j = 0; j < sv.n_missing_values; j++)
-		  vv->missing[j].f = mv[j];
-	      else
-		for (j = 0; j < sv.n_missing_values; j++)
-		  memcpy (vv->missing[j].s, &mv[j], vv->width);
+              for (j = 0; j < sv.n_missing_values; j++)
+                if (vv->type == NUMERIC)
+                  mv_add_num (&vv->miss, mv[j]);
+                else
+                  mv_add_str (&vv->miss, (unsigned char *) &mv[j]);
 	    }
 	  else
 	    {
-	      int x = 0;
-
 	      if (vv->type == ALPHA)
 		lose ((ME, _("%s: String variable %s may not have missing "
                              "values specified as a range."),
                        handle_get_filename (r->fh), vv->name));
 
 	      if (mv[0] == r->lowest)
-		{
-		  vv->miss_type = MISSING_LOW;
-		  vv->missing[x++].f = mv[1];
-		}
+                mv_add_num_range (&vv->miss, LOWEST, mv[1]);
 	      else if (mv[1] == r->highest)
-		{
-		  vv->miss_type = MISSING_HIGH;
-		  vv->missing[x++].f = mv[0];
-		}
+                mv_add_num_range (&vv->miss, mv[0], HIGHEST);
 	      else
-		{
-		  vv->miss_type = MISSING_RANGE;
-		  vv->missing[x++].f = mv[0];
-		  vv->missing[x++].f = mv[1];
-		}
+                mv_add_num_range (&vv->miss, mv[0], mv[1]);
 
 	      if (sv.n_missing_values == -3)
-		{
-		  vv->miss_type += 3;
-		  vv->missing[x++].f = mv[2];
-		}
+                mv_add_num (&vv->miss, mv[2]);
 	    }
 	}
-      else
-	vv->miss_type = MISSING_NONE;
 
       if (!parse_format_spec (r, sv.print, &vv->print, vv)
 	  || !parse_format_spec (r, sv.write, &vv->write, vv))

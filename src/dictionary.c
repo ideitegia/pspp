@@ -279,7 +279,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->init = 1;
   v->reinit = dict_class_from_id (v->name) != DC_SCRATCH;
   v->index = d->var_cnt;
-  v->miss_type = MISSING_NONE;
+  mv_init (&v->miss, width);
   if (v->type == NUMERIC)
     {
       v->print = f8_2;
@@ -354,8 +354,7 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
      the same short name. */
   nv->init = 1;
   nv->reinit = ov->reinit;
-  nv->miss_type = ov->miss_type;
-  memcpy (nv->missing, ov->missing, sizeof nv->missing);
+  mv_copy (&nv->miss, &ov->miss);
   nv->print = ov->print;
   nv->write = ov->write;
   val_labs_destroy (nv->val_labs);
@@ -678,7 +677,7 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
   else 
     {
       double w = case_num (c, d->weight->fv);
-      if ( w < 0.0 || w == SYSMIS || is_num_user_missing(w, d->weight) )
+      if (w < 0.0 || mv_is_num_missing (&d->weight->miss, w))
         w = 0.0;
       if ( w == 0.0 && *warn_on_invalid ) {
 	  *warn_on_invalid = 0;

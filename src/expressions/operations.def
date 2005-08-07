@@ -896,7 +896,7 @@ no_opt operator VEC_ELEM_NUM (idx)
     {
       const struct variable *var = v->var[(int) idx - 1];
       double value = case_num (c, var->fv);
-      return !is_num_user_missing (value, var) ? value : SYSMIS; 
+      return !mv_is_num_user_missing (&var->miss, value) ? value : SYSMIS; 
     }
   else
     {
@@ -943,7 +943,7 @@ no_opt operator NUM_VAR ()
      num_var v;
 {
   double d = case_num (c, v->fv);
-  return !is_num_user_missing (d, v) ? d : SYSMIS;
+  return !mv_is_num_user_missing (&v->miss, d) ? d : SYSMIS;
 }
 
 no_opt string operator STR_VAR ()
@@ -962,7 +962,7 @@ no_opt function LAG (num_var v, pos_int n_before)
   if (c != NULL)
     {
       double x = case_num (c, v->fv);
-      return !is_num_user_missing (x, v) ? x : SYSMIS;
+      return !mv_is_num_user_missing (&v->miss, x) ? x : SYSMIS;
     }
   else
     return SYSMIS;
@@ -974,7 +974,7 @@ no_opt function LAG (num_var v)
   if (c != NULL)
     {
       double x = case_num (c, v->fv);
-      return !is_num_user_missing (x, v) ? x : SYSMIS;
+      return !mv_is_num_user_missing (&v->miss, x) ? x : SYSMIS;
     }
   else
     return SYSMIS;

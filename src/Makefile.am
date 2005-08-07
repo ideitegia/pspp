@@ -41,37 +41,31 @@ else
 chart_sources = dummy-chart.c
 endif
 
-pspp_SOURCES = $(q_sources_c) $(chart_sources) \
-aggregate.c algorithm.c algorithm.h	\
-alloc.c alloc.h apply-dict.c ascii.c autorecode.c bitvector.h		\
-calendar.c calendar.h case.c case.h casefile.c casefile.h chart.c	\
-chart.h cmdline.c cmdline.h command.c command.def \
-command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
+pspp_SOURCES = $(q_sources_c) $(chart_sources) aggregate.c algorithm.c	\
+algorithm.h alloc.c alloc.h apply-dict.c ascii.c autorecode.c		\
+bitvector.h calendar.c calendar.h case.c case.h casefile.c casefile.h	\
+chart.c chart.h cmdline.c cmdline.h command.c command.def command.h	\
+compute.c copyleft.c copyleft.h count.c data-in.c data-in.h		\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
-devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h	\
-dictionary.c dictionary.h do-if.c do-ifP.h echo.c error.c \
-error.h factor_stats.c factor_stats.h file-handle.h	\
-file-type.c filename.c filename.h flip.c font.h format.c format.def	\
-format.h formats.c get.c getl.c getl.h glob.c glob.h		\
-groff-font.c group.c group.h group_proc.h \
-hash.c hash.h histogram.c histogram.h \
-html.c htmlP.h include.c inpt-pgm.c lexer.c lexer.h levene.c levene.h \
-linked-list.c linked-list.h log.h loop.c magic.c magic.h main.c main.h	\
-matrix-data.c mis-val.c misc.c misc.h modify-vars.c			\
-moments.c moments.h numeric.c output.c output.h \
-percentiles.c percentiles.h permissions.c \
-pfm-read.c pfm-read.h	\
-pfm-write.c pfm-write.h \
-pool.c pool.h postscript.c print.c recode.c	\
+devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h		\
+dictionary.c dictionary.h do-if.c do-ifP.h echo.c error.c error.h	\
+factor_stats.c factor_stats.h file-handle.h file-type.c filename.c	\
+filename.h flip.c font.h format.c format.def format.h formats.c get.c	\
+getl.c getl.h glob.c glob.h groff-font.c group.c group.h group_proc.h	\
+hash.c hash.h histogram.c histogram.h html.c htmlP.h include.c		\
+inpt-pgm.c lexer.c lexer.h levene.c levene.h linked-list.c		\
+linked-list.h log.h loop.c magic.c magic.h main.c main.h matrix-data.c	\
+mis-val.c misc.c misc.h missing-values.c missing-values.h		\
+modify-vars.c moments.c moments.h numeric.c output.c output.h		\
+percentiles.c percentiles.h permissions.c pfm-read.c pfm-read.h		\
+pfm-write.c pfm-write.h pool.c pool.h postscript.c print.c recode.c	\
 rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
 sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
-sort.c sort.h sort-prs.c sort-prs.h \
-split-file.c str.c str.h subclist.c subclist.h \
-sysfile-info.c tab.c tab.h temporary.c mkfile.c mkfile.h \
-title.c  val.h val-labs.c value-labels.c value-labels.h		\
-var-display.c \
-var-labs.c var.h vars-atr.c vars-prs.c vector.c version.h	\
-vfm.c vfm.h vfmP.h weight.c 
+sort.c sort.h sort-prs.c sort-prs.h split-file.c str.c str.h		\
+subclist.c subclist.h sysfile-info.c tab.c tab.h temporary.c mkfile.c	\
+mkfile.h title.c val.h val-labs.c value-labels.c value-labels.h		\
+var-display.c var-labs.c var.h vars-atr.c vars-prs.c vector.c		\
+version.h vfm.c vfm.h vfmP.h weight.c
 
 
 pspp_LDADD =					\

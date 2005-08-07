@@ -129,31 +129,18 @@ cmd_apply_dictionary (void)
             }
 	}
 
-      if (s->miss_type != MISSING_NONE && t->width > MAX_SHORT_STRING)
+      if (!mv_is_empty (&s->miss) && t->width > MAX_SHORT_STRING)
 	msg (SW, _("Cannot apply missing values from source file to "
 		   "long string variable %s."),
 	     s->name);
-      else if (s->miss_type != MISSING_NONE)
+      else if (!mv_is_empty (&s->miss))
 	{
-	  if (t->width < s->width)
-	    {
-	      static const int miss_count[MISSING_COUNT] = 
-		{
-		  0, 1, 2, 3, 2, 1, 1, 3, 2, 2,
-		};
-
-	      int j, k;
-	      
-	      for (j = 0; j < miss_count[s->miss_type]; j++)
-		for (k = t->width; k < s->width; k++)
-		  if (s->missing[j].s[k] != ' ')
-		    goto skip_missing_values;
-	    }
-
-	  t->miss_type = s->miss_type;
-	  memcpy (t->missing, s->missing, sizeof s->missing);
+          if (mv_is_resizable (&s->miss, t->width)) 
+            {
+              mv_copy (&t->miss, &s->miss);
+              mv_resize (&t->miss, t->width); 
+            }
 	}
-    skip_missing_values: ;
 
       if (s->type == NUMERIC)
 	{

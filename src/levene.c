@@ -77,8 +77,7 @@ struct levene_info
   enum lev_missing missing;
 
   /* Function to test for missing values */
-  is_missing_func is_missing;
-
+  is_missing_func *is_missing;
 };
 
 /* First pass */
@@ -202,7 +201,7 @@ levene_calc (const struct ccase *c, void *_l)
 	  struct variable *v = l->v_dep[i];
 	  const union value *val = case_data (c, v->fv);
 
-	  if (l->is_missing(val,v) )
+	  if (l->is_missing (&v->miss, val) )
 	    {
 	      return 0;
 	    }
@@ -225,7 +224,7 @@ levene_calc (const struct ccase *c, void *_l)
       if ( 0 == gs ) 
 	continue ;
 
-      if ( ! l->is_missing(v,var))
+      if ( ! l->is_missing(&var->miss, v))
 	{
 	  levene_z= fabs(v->f - gs->mean);
 	  lz[i].grand_total += levene_z * weight;
@@ -309,7 +308,7 @@ levene2_calc (const struct ccase *c, void *_l)
 	  struct variable *v = l->v_dep[i];
 	  const union value *val = case_data (c, v->fv);
 
-	  if (l->is_missing(val,v) )
+	  if (l->is_missing(&v->miss, val) )
 	    {
 	      return 0;
 	    }
@@ -330,7 +329,7 @@ levene2_calc (const struct ccase *c, void *_l)
       if ( 0 == gs ) 
 	continue;
 
-      if ( ! l->is_missing(v,var) )
+      if ( ! l->is_missing (&var->miss, v) )
 	{
 	  levene_z = fabs(v->f - gs->mean); 
 	  lz_denominator[i] += weight * pow2(levene_z - gs->lz_mean);

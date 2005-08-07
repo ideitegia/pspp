@@ -21,7 +21,7 @@
 #define val_h 1
 
 #include <float.h>
-#include "config.h"
+#include "magic.h"
 
 /* Values. */
 

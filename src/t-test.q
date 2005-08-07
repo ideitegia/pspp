@@ -67,7 +67,7 @@
 
 
 /* Function to use for testing for missing values */
-static is_missing_func value_is_missing;
+static is_missing_func *value_is_missing;
 
 /* Variable for the GROUPS subcommand, if given. */
 static struct variable *indep_var;
@@ -330,9 +330,9 @@ cmd_t_test(void)
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   if (cmd.incl == TTS_INCLUDE ) 
-    value_is_missing = is_system_missing;
+    value_is_missing = mv_is_value_system_missing;
   else
-    value_is_missing = is_missing;
+    value_is_missing = mv_is_value_missing;
 
   bad_weight_warn = 1;
 
@@ -1418,7 +1418,7 @@ common_calc (const struct ccase *c, void *_cmd)
 	  struct variable *v = cmd->v_variables[i];
 	  const union value *val = case_data (c, v->fv);
 
-	  if (value_is_missing(val,v) )
+	  if (value_is_missing(&v->miss, val) )
 	    {
 	      return 0;
 	    }
@@ -1429,7 +1429,7 @@ common_calc (const struct ccase *c, void *_cmd)
   if ( cmd->sbc_groups )
     {
       const union value *gv = case_data (c, indep_var->fv);
-      if ( value_is_missing(gv,indep_var) )
+      if ( value_is_missing(&indep_var->miss, gv) )
 	{
 	  return 0;
 	}
@@ -1444,7 +1444,7 @@ common_calc (const struct ccase *c, void *_cmd)
 
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
 
-      if (! value_is_missing(val,v) )
+      if (! value_is_missing(&v->miss, val) )
 	{
 	  gs->n+=weight;
 	  gs->sum+=weight * val->f;
@@ -1517,7 +1517,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
 	  struct variable *v = cmd->v_variables[i];
 	  const union value *val = case_data (c, v->fv);
 
-	  if (value_is_missing(val,v) )
+	  if (value_is_missing(&v->miss, val) )
 	    {
 	      return 0;
 	    }
@@ -1532,7 +1532,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
 
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
       
-      if ( ! value_is_missing(val,v))
+      if ( ! value_is_missing(&v->miss, val))
 	gs->sum_diff += weight * (val->f - cmd->n_testval[0]);
     }
 
@@ -1611,8 +1611,8 @@ paired_calc (const struct ccase *c, void *cmd_)
 	  const union value *val0 = case_data (c, v0->fv);
 	  const union value *val1 = case_data (c, v1->fv);
 	  
-	  if ( value_is_missing(val0,v0) ||
-	       value_is_missing(val1,v1) )
+	  if ( value_is_missing(&v0->miss, val0) ||
+	       value_is_missing(&v1->miss, val1) )
 	    {
 	      return 0;
 	    }
@@ -1627,7 +1627,8 @@ paired_calc (const struct ccase *c, void *cmd_)
       const union value *val0 = case_data (c, v0->fv);
       const union value *val1 = case_data (c, v1->fv);
 
-      if ( ( !value_is_missing(val0,v0) && !value_is_missing(val1,v1) ) )
+      if ( ( !value_is_missing(&v0->miss, val0)
+             && !value_is_missing(&v1->miss, val1) ) )
       {
 	pairs[i].n += weight;
 	pairs[i].sum[0] += weight * val0->f;
@@ -1744,7 +1745,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 
   const double weight = dict_get_case_weight(default_dict,c,&bad_weight_warn);
 
-  if ( value_is_missing(gv,indep_var) )
+  if ( value_is_missing(&indep_var->miss, gv) )
     {
       return 0;
     }
@@ -1756,7 +1757,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
 	  struct variable *v = cmd->v_variables[i];
 	  const union value *val = case_data (c, v->fv);
 
-	  if (value_is_missing(val,v) )
+	  if (value_is_missing(&v->miss, val) )
 	    {
 	      return 0;
 	    }
@@ -1779,7 +1780,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
       if ( ! gs ) 
       	return 0;
 
-      if ( !value_is_missing(val,var) )
+      if ( !value_is_missing(&var->miss, val) )
 	{
 	  gs->n+=weight;
 	  gs->sum+=weight * val->f;

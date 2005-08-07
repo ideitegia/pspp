@@ -726,7 +726,8 @@ accumulate_aggregate_info (struct agr_proc *agr,
       {
 	const union value *v = case_data (input, iter->src->fv);
 
-	if ((!iter->include_missing && is_missing (v, iter->src))
+	if ((!iter->include_missing
+             && mv_is_value_missing (&iter->src->miss, v))
 	    || (iter->include_missing && iter->src->type == NUMERIC
 		&& v->f == SYSMIS))
 	  {

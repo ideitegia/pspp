@@ -18,8 +18,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
+#include <config.h>
 #include "factor_stats.h"
-#include "config.h"
 #include "val.h"
 #include "hash.h"
 #include "algorithm.h"

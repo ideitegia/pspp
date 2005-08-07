@@ -385,7 +385,7 @@ count_numeric (struct counting * cnt, struct ccase * c)
 	    counter++;
 	  continue;
 	}
-      if (cnt->missing >= 2 && is_num_user_missing (cmp, cnt->v[i]))
+      if (cnt->missing >= 2 && mv_is_num_user_missing (&cnt->v[i]->miss, cmp))
 	{
 	  counter++;
 	  continue;

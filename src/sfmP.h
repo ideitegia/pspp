@@ -55,6 +55,7 @@
 #endif
 
 /* Figure out SYSMIS value for flt64. */
+#include "magic.h"
 #if SIZEOF_DOUBLE == 8
 #define second_lowest_flt64 second_lowest_value
 #else

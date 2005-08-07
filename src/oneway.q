@@ -87,7 +87,7 @@ static int ostensible_number_of_groups=-1;
 
 
 /* Function to use for testing for missing values */
-static is_missing_func value_is_missing;
+static is_missing_func *value_is_missing;
 
 
 static void run_oneway(const struct casefile *cf, void *_mode);
@@ -119,9 +119,9 @@ cmd_oneway(void)
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   if (cmd.incl == ONEWAY_INCLUDE ) 
-    value_is_missing = is_system_missing;
+    value_is_missing = mv_is_value_system_missing;
   else
-    value_is_missing = is_missing;
+    value_is_missing = mv_is_value_missing;
 
   /* What statistics were requested */
   if ( cmd.sbc_statistics ) 
@@ -913,7 +913,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
       const union value *indep_val = case_data (&c, indep_var->fv);
 
       /* Deal with missing values */
-      if ( value_is_missing(indep_val,indep_var) )
+      if ( value_is_missing(&indep_var->miss, indep_val) )
 	continue;
 
       /* Skip the entire case if /MISSING=LISTWISE is set */
@@ -924,7 +924,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
 	      const struct variable *v = vars[i];
 	      const union value *val = case_data (&c, v->fv);
 
-	      if (value_is_missing(val,v) )
+	      if (value_is_missing(&v->miss, val) )
 		break;
 	    }
 	  if ( i != n_vars ) 
@@ -964,7 +964,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
 	      hsh_insert ( group_hash, (void *) gs );
 	    }
 	  
-	  if (! value_is_missing(val,v) )
+	  if (! value_is_missing(&v->miss, val) )
 	    {
 	      struct group_statistics *totals = &gp->ugs;
 

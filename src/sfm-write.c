@@ -362,6 +362,7 @@ write_variable (struct sfm_writer *w, struct variable *v)
   struct sysfile_variable sv;
 
   /* Missing values. */
+  struct missing_values mv;
   flt64 m[3];           /* Missing value values. */
   int nm;               /* Number of missing values, possibly negative. */
 
@@ -369,54 +370,27 @@ write_variable (struct sfm_writer *w, struct variable *v)
   sv.type = v->width;
   sv.has_var_label = (v->label != NULL);
 
-  switch (v->miss_type)
+  mv_copy (&mv, &v->miss);
+  nm = 0;
+  if (mv_has_range (&mv)) 
     {
-    case MISSING_NONE:
-      nm = 0;
-      break;
-    case MISSING_1:
-    case MISSING_2:
-    case MISSING_3:
-      for (nm = 0; nm < v->miss_type; nm++)
-	m[nm] = v->missing[nm].f;
-      break;
-    case MISSING_RANGE:
-      m[0] = v->missing[0].f;
-      m[1] = v->missing[1].f;
-      nm = -2;
-      break;
-    case MISSING_LOW:
-      m[0] = second_lowest_flt64;
-      m[1] = v->missing[0].f;
-      nm = -2;
-      break;
-    case MISSING_HIGH:
-      m[0] = v->missing[0].f;
-      m[1] = FLT64_MAX;
-      nm = -2;
-      break;
-    case MISSING_RANGE_1:
-      m[0] = v->missing[0].f;
-      m[1] = v->missing[1].f;
-      m[2] = v->missing[2].f;
-      nm = -3;
-      break;
-    case MISSING_LOW_1:
-      m[0] = second_lowest_flt64;
-      m[1] = v->missing[0].f;
-      m[2] = v->missing[1].f;
-      nm = -3;
-      break;
-    case MISSING_HIGH_1:
-      m[0] = v->missing[0].f;
-      m[1] = second_lowest_flt64;
-      m[2] = v->missing[1].f;
-      nm = -3;
-      break;
-    default:
-      assert (0);
-      abort ();
+      double x, y;
+      mv_pop_range (&mv, &x, &y);
+      m[nm++] = x == LOWEST ? second_lowest_flt64 : x;
+      m[nm++] = y == HIGHEST ? FLT64_MAX : y;
     }
+  while (mv_has_value (&mv))
+    {
+      union value value;
+      mv_pop_value (&mv, &value);
+      if (v->type == NUMERIC)
+        m[nm] = value.f;
+      else
+        buf_copy_rpad ((char *) &m[nm], sizeof m[nm], value.s, v->width);
+      nm++;
+    }
+  if (mv_has_range (&v->miss))
+    nm = -nm;
 
   sv.n_missing_values = nm;
   write_format_spec (&v->print, &sv.print);
@@ -445,7 +419,7 @@ write_variable (struct sfm_writer *w, struct variable *v)
         return 0;
     }
 
-  if (nm && !buf_write (w, m, sizeof *m * nm))
+  if (nm && !buf_write (w, m, sizeof *m * abs (nm)))
     return 0;
 
   if (v->type == ALPHA && v->width > (int) sizeof (flt64))

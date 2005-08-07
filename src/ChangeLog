@@ -1,3 +1,60 @@
+Sat Aug  6 21:29:15 2005  Ben Pfaff  <blp@gnu.org>
+
+	* factor_stats.c: Needed <config.h> included earlier.
+
+	* percentiles.c: Needed to include <config.h>.
+
+	* val.h: Don't include "config.h".
+
+Sat Aug  6 21:26:27 2005  Ben Pfaff  <blp@gnu.org>
+
+	Clean up treatment of missing values by moving all the code into
+	one place.  All references to the missing value function were
+	updated, but only major changes are detailed below.
+
+	* Makefile.am: Add missing-values.c, missing-values.h to sources.
+
+	* apply-dict.c: (cmd_apply_dictionary) Use mv_resize().
+
+	* dictionary.c: (dict_create_var) Initialize `miss' member with
+	mv_init().
+	(dict_clone_var) Copy `miss' member with mv_copy().
+	
+	* get.c: (mtf_merge_dictionary) Use mv_copy().
+
+	* missing-values.c: New file.
+	
+	* missing-values.h: New file.
+
+	* mis-val.c: Rewrite.  New version implements updated semantics.
+
+	* pfm-read.c: (read_variables) Rewrite missing value handling.
+
+	* pfm-write.c: (write_variables) Rewrite missing value handling.
+
+	* sfm-read.c: (read_variables) Rewrite missing value handling.
+
+	* sfm-write.c: (write_variable) Rewrite missing value handling.
+
+	* sfmP.h: Include "magic.h" to get definition of
+	second_lowest_value.
+
+	* sysfile-info.c: (describe_variable) Rewrite missing value
+	handling.
+
+	* val.h: Include "magic.h" to get definition of
+	second_lowest_value.
+
+	* var.h: Include "missing-values.h".  Drop MISSING_* enums.
+	(struct variable) Remove `miss_type', `missing'.  Add `miss'.
+
+	* vars-atr.c: (is_num_user_missing) Removed--use
+	mv_is_num_user_missing().
+	(is_str_user_missing) Removed--use mv_is_str_user_missing().
+	(is_system_missing) Removed--use mv_is_value_system_missing().
+	(is_missing) Removed--use mv_is_value_missing().
+	(is_user_missing) Removed--use mv_is_value_user_missing().
+	
 Sun Jul 31 14:09:57 2005  Ben Pfaff  <blp@gnu.org>
 
 	Adopt use of gnulib for portability.

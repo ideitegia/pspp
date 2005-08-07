@@ -1,3 +1,9 @@
+Sat Aug  6 17:32:39 2005  Ben Pfaff  <blp@gnu.org>
+
+	* command/missing-values.sh: New test.
+
+	* Makefile.am: Add new test.
+
 Mon Aug  1 21:51:46 2005  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/big-input-2.sh: Don't use 1...100000 (etc.) with Perl

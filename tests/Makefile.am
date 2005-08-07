@@ -22,6 +22,7 @@ TESTS = \
 	command/loop.sh \
 	command/longvars.sh \
 	command/match-files.sh \
+	command/missing-values.sh \
 	command/no_case_size.sh \
 	command/oneway.sh \
 	command/oneway-missing.sh \

@@ -169,7 +169,7 @@ const char *factor_to_string_concise(const struct factor *fctr,
 
 
 /* Function to use for testing for missing values */
-static is_missing_func value_is_missing;
+static is_missing_func *value_is_missing;
 
 
 /* PERCENTILES */
@@ -193,9 +193,9 @@ cmd_examine(void)
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   if (cmd.incl == XMN_INCLUDE ) 
-    value_is_missing = is_system_missing;
+    value_is_missing = mv_is_value_system_missing;
   else
-    value_is_missing = is_missing;
+    value_is_missing = mv_is_value_missing;
 
   if ( cmd.st_n == SYSMIS ) 
     cmd.st_n = 5;
@@ -650,7 +650,7 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 	  const struct variable *var = dependent_vars[v];
 	  const union value *val = case_data (c, var->fv);
 
-	  if ( value_is_missing(val,var) || case_missing ) 
+	  if ( value_is_missing (&var->miss, val) || case_missing ) 
 	    val = 0;
 	  
 	  metrics_calc( &(*foo)->m[v], val, weight, case_no);
@@ -712,7 +712,7 @@ run_examine(const struct casefile *cf, void *cmd_ )
 	      const struct variable *var = dependent_vars[v];
 	      const union value *val = case_data (&c, var->fv);
 
-	      if ( value_is_missing(val,var))
+	      if ( value_is_missing(&var->miss, val))
 		case_missing = 1;
 		   
 	    }
@@ -723,7 +723,7 @@ run_examine(const struct casefile *cf, void *cmd_ )
 	  const struct variable *var = dependent_vars[v];
 	  const union value *val = case_data (&c, var->fv);
 
-	  if ( value_is_missing(val,var) || case_missing ) 
+	  if ( value_is_missing(&var->miss, val) || case_missing ) 
 	    val = 0;
 
 	  metrics_calc(&totals[v], val, weight, case_no);

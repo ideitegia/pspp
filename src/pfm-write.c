@@ -298,25 +298,43 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
 
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
-      static const char *miss_types[MISSING_COUNT] =
-	{
-	  "", "8", "88", "888", "B ", "9", "A", "B 8", "98", "A8",
-	};
-
-      const char *m;
-      int j;
-
       struct variable *v = dict_get_var (dict, i);
+      struct missing_values mv;
       
       if (!buf_write (w, "7", 1) || !write_int (w, v->width)
 	  || !write_string (w, v->short_name)
 	  || !write_format (w, &v->print) || !write_format (w, &v->write))
 	return 0;
 
-      for (m = miss_types[v->miss_type], j = 0; j < (int) strlen (m); j++)
-	if ((m[j] != ' ' && !buf_write (w, &m[j], 1))
-	    || !write_value (w, &v->missing[j], v))
-	  return 0;
+      /* Write missing values. */
+      mv_copy (&mv, &v->miss);
+      while (mv_has_range (&mv))
+        {
+          double x, y;
+          mv_pop_range (&mv, &x, &y);
+          if (x == LOWEST)
+            {
+              if (!buf_write (w, "9", 1) || !write_float (w, y))
+                return 0;
+            }
+          else if (y == HIGHEST)
+            {
+              if (!buf_write (w, "A", 1) || !write_float (w, y))
+                return 0;
+            }
+          else {
+            if (!buf_write (w, "B", 1) || !write_float (w, x)
+                || !write_float (w, y))
+              return 0; 
+          }
+        }
+      while (mv_has_value (&mv)) 
+        {
+          union value value;
+          mv_pop_value (&mv, &value);
+          if (!buf_write (w, "8", 1) || !write_value (w, &value, v))
+            return 0; 
+        }
 
       if (v->label && (!buf_write (w, "C", 1) || !write_string (w, v->label)))
 	return 0;

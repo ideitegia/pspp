@@ -336,7 +336,7 @@ filter_case (const struct ccase *c, int case_idx)
   if (filter_var != NULL) 
     {
       double f = case_num (c, filter_var->fv);
-      if (f == 0.0 || f == SYSMIS || is_num_user_missing (f, filter_var))
+      if (f == 0.0 || mv_is_num_missing (&filter_var->miss, f))
         return 1;
     }
 

@@ -714,7 +714,7 @@ find_src_numeric (struct rcd_var * v, struct ccase * c)
       case RCD_END:
 	return NULL;
       case RCD_USER:
-	if (is_num_user_missing (cmp, v->src))
+	if (mv_is_num_user_missing (&v->src->miss, cmp))
 	  return cp;
 	break;
       case RCD_SINGLE:

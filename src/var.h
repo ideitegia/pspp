@@ -25,9 +25,8 @@
 #include "config.h"
 #include <stdbool.h>
 #include "format.h"
+#include "missing-values.h"
 #include "val.h"
-
-
 
 /* Script variables. */
 
@@ -38,27 +37,6 @@ enum
     ALPHA			/* A string variable.
                                    (STRING is pre-empted by lexer.h.) */
   };
-
-/* Types of missing values.  Order is significant, see
-   mis-val.c:parse_numeric(), sfm-read.c, sfm-write.c,
-   sysfile-info.c:cmd_sysfile_info(), mis-val.c:copy_missing_values(),
-   pfm-read.c:read_variables(), pfm-write.c:write_variables(),
-   apply-dict.c:cmd_apply_dictionary(), and more (?). */
-enum
-  {
-    MISSING_NONE,		/* No user-missing values. */
-    MISSING_1,			/* One user-missing value. */
-    MISSING_2,			/* Two user-missing values. */
-    MISSING_3,			/* Three user-missing values. */
-    MISSING_RANGE,		/* [a,b]. */
-    MISSING_LOW,		/* (-inf,a]. */
-    MISSING_HIGH,		/* (a,+inf]. */
-    MISSING_RANGE_1,		/* [a,b], c. */
-    MISSING_LOW_1,		/* (-inf,a], b. */
-    MISSING_HIGH_1,		/* (a,+inf), b. */
-    MISSING_COUNT
-  };
-
 
 /* A variable's dictionary entry.  */
 struct variable
@@ -75,8 +53,7 @@ struct variable
     int index;			/* Dictionary index. */
 
     /* Missing values. */
-    int miss_type;		/* One of the MISSING_* constants. */
-    union value missing[3];	/* User-missing value. */
+    struct missing_values miss; /* Missing values. */
 
     /* Display formats. */
     struct fmt_spec print;	/* Default format for PRINT. */
@@ -178,18 +155,8 @@ extern int FILTER_before_TEMPORARY;
 
 void cancel_temporary (void);
 
-/* Functions. */
-
 struct ccase;
 void dump_split_vars (const struct ccase *);
-typedef int (* is_missing_func )(const union value *, const struct variable *);
-
-int is_num_user_missing (double, const struct variable *);
-int is_str_user_missing (const unsigned char[], const struct variable *);
-int is_missing (const union value *, const struct variable *);
-int is_system_missing (const union value *, const struct variable *);
-int is_user_missing (const union value *, const struct variable *);
-void copy_missing_values (struct variable *dest, const struct variable *src);
 
 /* Transformations. */
 

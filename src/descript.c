@@ -583,8 +583,9 @@ descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
       for (vars = t->vars; vars < t->vars + t->var_cnt; vars++)
 	{
 	  double score = case_num (c, (*vars)->fv);
-	  if ( score == SYSMIS || (!t->include_user_missing 
-				   && is_num_user_missing(score, *vars)) )
+	  if ( score == SYSMIS
+               || (!t->include_user_missing 
+                   && mv_is_num_user_missing (&(*vars)->miss, score)))
 	    {
 	      all_sysmis = 1;
 	      break;
@@ -599,7 +600,8 @@ descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
 
       if (z->mean == SYSMIS || z->std_dev == SYSMIS 
 	  || all_sysmis || input == SYSMIS 
-	  || (!t->include_user_missing && is_num_user_missing(input, z->v)))
+	  || (!t->include_user_missing
+              && mv_is_num_user_missing (&z->v->miss, input)))
 	*output = SYSMIS;
       else
 	*output = (input - z->mean) / z->std_dev;
@@ -739,7 +741,7 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
           if (dsc->missing_type != DSC_LISTWISE
               && (x == SYSMIS
                   || (!dsc->include_user_missing
-                      && is_num_user_missing (x, dv->v))))
+                      && mv_is_num_user_missing (&dv->v->miss, x))))
             {
               dv->missing += weight;
               continue;
@@ -781,7 +783,7 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
               if (dsc->missing_type != DSC_LISTWISE
                   && (x == SYSMIS
                       || (!dsc->include_user_missing
-                          && is_num_user_missing (x, dv->v))))
+                          && mv_is_num_user_missing (&dv->v->miss, x))))
                 continue;
 
               if (dv->moments != NULL)
@@ -844,7 +846,8 @@ listwise_missing (struct dsc_proc *dsc, const struct ccase *c)
       double x = case_num (c, dv->v->fv);
 
       if (x == SYSMIS
-          || (!dsc->include_user_missing && is_num_user_missing (x, dv->v)))
+          || (!dsc->include_user_missing
+              && mv_is_num_user_missing (&dv->v->miss, x)))
         return 1;
     }
   return 0;
