@@ -4,10 +4,13 @@ GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
 all: po/POTFILES.in
+	test -d m4 || mkdir m4
+	touch m4/Makefile.am
 	$(GNULIB_TOOL) --import
 	autoreconf --install
 
 gettextize:
+	test -d m4 || mkdir m4
 	touch m4/Makefile.am
 	gettextize -f -c --intl --no-changelog
 
