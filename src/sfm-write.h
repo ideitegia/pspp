@@ -20,13 +20,24 @@
 #ifndef SFM_WRITE_H
 #define SFM_WRITE_H 1
 
+#include <stdbool.h>
+
 /* Writing system files. */
+
+/* Options for creating a system file. */
+struct sfm_write_options 
+  {
+    bool create_writeable;      /* File perms: writeable or read/only? */
+    bool compress;              /* Compress file? */
+    int version;                /* System file version (currently 2 or 3). */
+  };
 
 struct file_handle;
 struct dictionary;
 struct ccase;
-struct sfm_writer *sfm_open_writer (struct file_handle *, struct dictionary *, 
-				    int compress, short omit_longnames);
+struct sfm_writer *sfm_open_writer (struct file_handle *, struct dictionary *,
+                                    struct sfm_write_options);
+struct sfm_write_options sfm_writer_default_options (void);
 
 int sfm_write_case (struct sfm_writer *, struct ccase *);
 void sfm_close_writer (struct sfm_writer *);

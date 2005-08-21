@@ -1,3 +1,74 @@
+Sun Aug 21 00:12:24 2005  Ben Pfaff  <blp@gnu.org>
+
+	* lexer.c: (lex_sbc_only_once) New function.
+	(lex_sbc_missing) New function.
+
+Sun Aug 21 00:00:47 2005  Ben Pfaff  <blp@gnu.org>
+
+	* case.h: (case_str) Make it return `unsigned char'.
+
+Sat Aug 20 23:56:14 2005  Ben Pfaff  <blp@gnu.org>
+
+	Revamp SAVE, XSAVE, EXPORT.  Add (or at least parse) all the
+	subcommands that we didn't support.  Fix bug 13911.  Fix bug
+	reported by Adam Pierson (COMPRESSED and other subcommands didn't
+	work on SAVE).  Refactor all related code.
+	
+	* command.def: Add XEXPORT command.
+
+	* dictionary.c: (dict_delete_scratch_vars) New function.
+
+	* get.c: (cmd_get) Fix parsing.
+	(struct save_trns) Removed.
+	(cmd_save_internal) Removed.
+	(cmd_save) Removed.
+	(do_write_case) Removed.
+	(save_write_case_func) Removed.
+	(save_trns_proc) Removed.
+	(save_trns_free) Removed.
+	(trim_dictionary) Removed.
+	(struct export_proc) Removed.
+	(cmd_export) Rewrote.
+	(export_write_case_func) Removed.
+	(export_proc_free) Removed.
+	(enum writer_type) New enum.
+	(enum command_type) New enum.
+	(struct any_writer) New struct.
+	(any_writer_destroy) New function.
+	(parse_write_command) New function.
+	(any_writer_write_case) New function.
+	(parse_output_proc) New function.
+	(output_proc) New function.
+	(cmd_save) Rewrote.
+	(cmd_xsave) Rewrote.
+	(struct output_trns) New struct.
+	(parse_output_trns) New function.
+	(output_trns_proc) New function.
+	(output_trns_free) New function.
+	(cmd_xsave) Rewrote.
+	(cmd_xexport) New function.
+	(parse_dict_trim) New function.
+	(struct mtf_proc) Change `by_cnt' member type to `int'.
+	(cmd_import) Rewrote.
+
+	* pfm-write.c: (struct pfm_writer) Add `digits' member.
+	(pfm_writer_default_options) New function.
+	(pfm_open_writer) Add `opts' argument and handle options.
+	(write_float) Write only as many digits as `digits' member says.
+	(format_trig_double) Limit base-10 precision to LDBL_DIG.
+
+	* pfm-write.h: (enum pfm_type) Moved here from pfm-read.h.
+	(struct pfm_write_options) New struct.
+
+	* sfm-write.c: (sfm_writer_default_options) New function.
+	(sfm_open_writer) Remove `compress', `omit_long_names' args.  Add
+	`opts' argument.  Implement options.
+
+	* sfm-write.h: (struct sfm_write_options) New struct.
+
+	* expressions/helpers.c: (copy_string) Make `old' arg `unsigned
+	char *' instead of `char *'.
+	
 Sat Aug  6 21:29:15 2005  Ben Pfaff  <blp@gnu.org>
 
 	* factor_stats.c: Needed <config.h> included earlier.

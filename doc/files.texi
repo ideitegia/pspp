@@ -12,10 +12,11 @@ portable files.
 * MATCH FILES::                 Merge system files.
 * SAVE::                        Write to a system file.
 * SYSFILE INFO::                Display system file dictionary.
-* XSAVE::                       Write to a system file, as a transform.
+* XEXPORT::                     Write to a portable file, as a transformation.
+* XSAVE::                       Write to a system file, as a transformation.
 @end menu
 
-@node APPLY DICTIONARY, EXPORT, System and Portable Files, System and Portable Files
+@node APPLY DICTIONARY
 @section APPLY DICTIONARY
 @vindex APPLY DICTIONARY
 
@@ -61,20 +62,37 @@ the active file weighting variable.
 active
 file.  The system file is not modified.
 
-@node EXPORT, GET, APPLY DICTIONARY, System and Portable Files
+@node EXPORT
 @section EXPORT
 @vindex EXPORT
 
 @display
 EXPORT
         /OUTFILE='filename'
+        /UNSELECTED=@{RETAIN,DELETE@}
+        /DIGITS=n
         /DROP=var_list
         /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
+        /TYPE=@{COMM,TAPE@}
+        /MAP
 @end display
 
 The @cmd{EXPORT} procedure writes the active file dictionary and data to a
 specified portable file.
+
+By default, cases excluded with FILTER are written to the portable
+file.  These can be excluded by specifying DELETE on the UNSELECTED
+subcommand.  Specifying RETAIN makes the default explicit.
+
+Portable files express real numbers in base 30.  Integers are always
+expressed to the maximum precision needed to make them exact.
+Non-integers are, by default, expressed to the machine's maximum
+natural precision (approximately 15 decimal digits on many machines).
+If many numbers require this many digits, the portable file may
+significantly increase in size.  As an alternative, the DIGITS
+subcommand may be used to specify the number of decimal digits of
+precision to write.  DIGITS applies only to non-integers.
 
 The OUTFILE subcommand, which is the only required subcommand, specifies
 the portable file to be written as a file name string or a file handle
@@ -83,9 +101,14 @@ the portable file to be written as a file name string or a file handle
 DROP, KEEP, and RENAME follow the same format as the SAVE procedure
 (@pxref{SAVE}).
 
+The TYPE subcommand specifies the character set for use in the
+portable file.  Its value is currently not used.
+
+The MAP subcommand is currently ignored.
+
 @cmd{EXPORT} is a procedure.  It causes the active file to be read.
 
-@node GET, IMPORT, EXPORT, System and Portable Files
+@node GET
 @section GET
 @vindex GET
 
@@ -130,7 +153,7 @@ is affected by these subcommands.
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.
 
-@node IMPORT, MATCH FILES, GET, System and Portable Files
+@node IMPORT
 @section IMPORT
 @vindex IMPORT
 
@@ -158,7 +181,7 @@ DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
 @cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
 data is read later, when a procedure is executed.
 
-@node MATCH FILES, SAVE, IMPORT, System and Portable Files
+@node MATCH FILES
 @section MATCH FILES
 @vindex MATCH FILES
 
@@ -224,18 +247,22 @@ FIRST, LAST, and MAP are currently ignored.
 @cmd{MATCH FILES} may not be specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}) if the active file is used as an input source.
 
-@node SAVE, SYSFILE INFO, MATCH FILES, System and Portable Files
+@node SAVE
 @section SAVE
 @vindex SAVE
 
 @display
 SAVE
         /OUTFILE='filename'
+        /UNSELECTED=@{RETAIN,DELETE@}
         /@{COMPRESSED,UNCOMPRESSED@}
+        /PERMISSIONS=@{WRITEABLE,READONLY@}
         /DROP=var_list
         /KEEP=var_list
         /VERSION=version
         /RENAME=(src_names=target_names)@dots{}
+        /NAMES
+        /MAP
 @end display
 
 The @cmd{SAVE} procedure causes the dictionary and data in the active
@@ -246,9 +273,17 @@ OUTFILE is the only required subcommand.  Specify the system
 file to be written as a string file name or a file handle (@pxref{FILE
 HANDLE}).
 
+By default, cases excluded with FILTER are written to the system file.
+These can be excluded by specifying DELETE on the UNSELECTED
+subcommand.  Specifying RETAIN makes the default explicit.
+
 The COMPRESS and UNCOMPRESS subcommand determine whether the saved
 system file is compressed.  By default, system files are compressed.
 This default can be changed with the SET command (@pxref{SET}).
+
+The PERMISSIONS subcommand specifies permissions for the new system
+file.  WRITEABLE, the default, creates the file with read and write
+permission.  READONLY creates the file for read-only access.
 
 By default, all the variables in the active file dictionary are written
 to the system file.  The DROP subcommand can be used to specify a list
@@ -274,14 +309,15 @@ the active file.  DROP, KEEP, and RENAME only affect the system file
 written to disk.
 
 The VERSION subcommand specifies the version of the file format. Valid
-versions are '3' and '3x'.  Version 3x system files are identical to
-version 3 files, except that variable names greater than 8 bytes will
-be truncated.  The default version is 3.  The VERSION subcommand is
-optional.  There is no need ever to use it.
+versions are 2 and 3.  The default version is 3.  In version 2 system
+files, variable names longer than 8 bytes will be truncated.  The two
+versions are otherwise identical.
+
+The NAMES and MAP subcommands are currently ignored.
 
 @cmd{SAVE} causes the data to be read.  It is a procedure.
 
-@node SYSFILE INFO, XSAVE, SAVE, System and Portable Files
+@node SYSFILE INFO
 @section SYSFILE INFO
 @vindex SYSFILE INFO
 
@@ -297,7 +333,40 @@ a system file and displays information on its dictionary.
 
 @cmd{SYSFILE INFO} does not affect the current active file.
 
-@node XSAVE,  , SYSFILE INFO, System and Portable Files
+@node XEXPORT
+@section XEXPORT
+@vindex XEXPORT
+
+@display
+EXPORT
+        /OUTFILE='filename'
+        /DIGITS=n
+        /DROP=var_list
+        /KEEP=var_list
+        /RENAME=(src_names=target_names)@dots{}
+        /TYPE=@{COMM,TAPE@}
+        /MAP
+@end display
+
+The @cmd{EXPORT} transformation writes the active file dictionary and
+data to a specified portable file.
+
+This transformation is a PSPP extension.
+
+It is similar to the @cmd{EXPORT} procedure, with two differences:
+
+@itemize
+@item
+@cmd{XEXPORT} is a transformation, not a procedure.  It is executed when
+the data is read by a procedure or procedure-like command.
+
+@item
+@cmd{XEXPORT} does not support the UNSELECTED subcommand.
+@end itemize
+
+@xref{EXPORT}, for more information.
+
+@node XSAVE,  , XEXPORT, System and Portable Files
 @section XSAVE
 @vindex XSAVE
 
@@ -305,17 +374,27 @@ a system file and displays information on its dictionary.
 XSAVE
         /OUTFILE='filename'
         /@{COMPRESSED,UNCOMPRESSED@}
+        /PERMISSIONS=@{WRITEABLE,READONLY@}
         /DROP=var_list
         /KEEP=var_list
+        /VERSION=version
         /RENAME=(src_names=target_names)@dots{}
+        /NAMES
+        /MAP
 @end display
 
 The @cmd{XSAVE} transformation writes the active file dictionary and
-data to a
-system file stored on disk.
+data to a system file stored on disk.  It is similar to the @cmd{SAVE}
+procedure, with two differences:
 
-@cmd{XSAVE} is a transformation, not a procedure.  It is executed when the
-data is read by a procedure or procedure-like command.  In all other
-respects, @cmd{XSAVE} is identical to @cmd{SAVE}.  @xref{SAVE}, for
-more information on syntax and usage.
+@itemize
+@item
+@cmd{XSAVE} is a transformation, not a procedure.  It is executed when
+the data is read by a procedure or procedure-like command.
+
+@item
+@cmd{XSAVE} does not support the UNSELECTED subcommand.
+@end itemize
+
+@xref{SAVE}, for more information.
 @setfilename ignored

@@ -1,3 +1,9 @@
+Sun Aug 21 00:20:02 2005  Ben Pfaff  <blp@gnu.org>
+
+	* command/import-export.sh: Simplify.
+
+	* command/sysfiles-old.sh: Use version 2, not 3x.
+
 Sat Aug  6 17:32:39 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/missing-values.sh: New test.

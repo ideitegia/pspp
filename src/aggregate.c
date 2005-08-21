@@ -278,7 +278,8 @@ cmd_aggregate (void)
     }
   else
     {
-      agr.writer = sfm_open_writer (out_file, agr.dict, get_scompression (), 0);
+      agr.writer = sfm_open_writer (out_file, agr.dict,
+                                    sfm_writer_default_options ());
       if (agr.writer == NULL)
         goto error;
       

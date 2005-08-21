@@ -54,6 +54,7 @@ int dict_contains_var (const struct dictionary *, const struct variable *);
 void dict_delete_var (struct dictionary *, struct variable *);
 void dict_delete_vars (struct dictionary *,
                        struct variable *const *, size_t count);
+void dict_delete_scratch_vars (struct dictionary *);
 void dict_reorder_var (struct dictionary *d, struct variable *v,
                        size_t new_index);
 void dict_reorder_vars (struct dictionary *,

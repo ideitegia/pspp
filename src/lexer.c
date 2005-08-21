@@ -384,6 +384,22 @@ lex_get (void)
 #endif
 }
 
+/* Reports an error to the effect that subcommand SBC may only be
+   specified once. */
+void
+lex_sbc_only_once (const char *sbc) 
+{
+  msg (SE, _("Subcommand %s may only be specified once."), sbc);
+}
+
+/* Reports an error to the effect that subcommand SBC is
+   missing. */
+void
+lex_sbc_missing (const char *sbc) 
+{
+  lex_error (_("missing required subcommand %s"), sbc);
+}
+
 /* Prints a syntax error message containing the current token and
    given message MESSAGE (if non-null). */
 void

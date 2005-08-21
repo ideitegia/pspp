@@ -87,6 +87,8 @@ void lex_done (void);
 /* Common functions. */
 void lex_get (void);
 void lex_error (const char *, ...);
+void lex_sbc_only_once (const char *);
+void lex_sbc_missing (const char *);
 int lex_end_of_command (void);
 
 /* Token testing functions. */

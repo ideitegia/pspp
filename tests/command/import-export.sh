@@ -50,7 +50,7 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TESTFILE <<EOF
-DATA LIST LIST /X * Y *.
+DATA LIST LIST NOTABLE /X Y.
 BEGIN DATA.
 1 2
 3 4
@@ -58,9 +58,6 @@ BEGIN DATA.
 END DATA.
 
 EXPORT /OUTFILE='wiz.por'.
-
-LIST.
-
 IMPORT /FILE='wiz.por'.
 
 LIST.
@@ -74,26 +71,11 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
 diff -b -B $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from the command file.
-+--------+------+
-|Variable|Format|
-#========#======#
-|X       |F8.0  |
-|Y       |F8.0  |
-+--------+------+
-
        X        Y
 -------- --------
     1.00     2.00 
     3.00     4.00 
     5.00     6.00 
-
-       X        Y
--------- --------
-    1.00     2.00 
-    3.00     4.00 
-    5.00     6.00 
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

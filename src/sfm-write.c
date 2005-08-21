@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <time.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>	/* Required by SunOS4. */
@@ -37,6 +39,8 @@
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
+#include "settings.h"
+#include "stat-macros.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -107,33 +111,61 @@ var_flt64_cnt (const struct variable *v)
   return v->type == NUMERIC ? 1 : DIV_RND_UP (v->width, sizeof (flt64));
 }
 
+/* Returns default options for writing a system file. */
+struct sfm_write_options
+sfm_writer_default_options (void) 
+{
+  struct sfm_write_options opts;
+  opts.create_writeable = true;
+  opts.compress = get_scompression ();
+  opts.version = 3;
+  return opts;
+}
+
 /* Opens the system file designated by file handle FH for writing
-   cases from dictionary D.  If COMPRESS is nonzero, the
-   system file will be compressed.  If OMIT_LONG_NAMES is nonzero, the
-   long name table will be omitted.
+   cases from dictionary D according to the given OPTS.  If
+   COMPRESS is nonzero, the system file will be compressed.
 
    No reference to D is retained, so it may be modified or
    destroyed at will after this function returns.  D is not
    modified by this function, except to assign short names. */
 struct sfm_writer *
-sfm_open_writer (struct file_handle *fh,
-                 struct dictionary *d, int compress, 
-		 short omit_long_names)
+sfm_open_writer (struct file_handle *fh, struct dictionary *d,
+                 struct sfm_write_options opts)
 {
   struct sfm_writer *w = NULL;
+  mode_t mode;
+  int fd;
   int idx;
   int i;
 
+  /* Check version. */
+  if (opts.version != 2 && opts.version != 3) 
+    {
+      msg (ME, _("Unknown system file version %d. Treating as version %d."),
+           opts.version, 3);
+      opts.version = 3;
+    }
+
+  /* Create file. */
+  mode = S_IRUSR | S_IRGRP | S_IROTH;
+  if (opts.create_writeable)
+    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+  fd = open (handle_get_filename (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
+  if (fd < 0) 
+    goto open_error;
+
+  /* Open file handle. */
   if (!fh_open (fh, "system file", "we"))
     goto error;
 
   /* Create and initialize writer. */
   w = xmalloc (sizeof *w);
   w->fh = fh;
-  w->file = fopen (handle_get_filename (fh), "wb");
+  w->file = fdopen (fd, "w");
 
   w->needs_translation = does_dict_need_translation (d);
-  w->compress = compress;
+  w->compress = opts.compress;
   w->case_cnt = 0;
   w->flt64_cnt = 0;
 
@@ -152,13 +184,10 @@ sfm_open_writer (struct file_handle *fh,
     }
 
   /* Check that file create succeeded. */
-  if (w->file == NULL)
+  if (w->file == NULL) 
     {
-      msg (ME, _("Error opening \"%s\" for writing "
-                 "as a system file: %s."),
-           handle_get_filename (w->fh), strerror (errno));
-      err_cond_fail ();
-      goto error;
+      close (fd);
+      goto open_error;
     }
 
   /* Write the file header. */
@@ -189,7 +218,7 @@ sfm_open_writer (struct file_handle *fh,
   if (!write_variable_display_parameters (w, d))
     goto error;
 
-  if (!omit_long_names) 
+  if (opts.version >= 3) 
     {
       if (!write_longvar_table (w, d))
 	goto error;
@@ -225,6 +254,12 @@ sfm_open_writer (struct file_handle *fh,
  error:
   sfm_close_writer (w);
   return NULL;
+
+ open_error:
+  msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
+       handle_get_filename (w->fh), strerror (errno));
+  err_cond_fail ();
+  goto error;
 }
 
 static int

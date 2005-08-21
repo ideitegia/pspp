@@ -24,13 +24,6 @@
 
 #include <stdbool.h>
 
-/* Portable file types. */
-enum pfm_type
-  {
-    PFM_COMM,   /* Formatted for communication. */
-    PFM_TAPE    /* Formatted for tape. */
-  };
-
 /* Information produced by pfm_read_dictionary() that doesn't fit into
    a dictionary struct. */
 struct pfm_read_info

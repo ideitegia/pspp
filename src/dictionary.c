@@ -491,6 +491,23 @@ dict_delete_vars (struct dictionary *d,
     dict_delete_var (d, *vars++);
 }
 
+/* Deletes scratch variables from dictionary D. */
+void
+dict_delete_scratch_vars (struct dictionary *d)
+{
+  int i;
+
+  /* FIXME: this can be done in O(count) time, but this algorithm
+     is O(count**2). */
+  assert (d != NULL);
+
+  for (i = 0; i < d->var_cnt; )
+    if (dict_class_from_id (d->var[i]->name) == DC_SCRATCH)
+      dict_delete_var (d, d->var[i]);
+    else
+      i++;
+}
+
 /* Moves V to 0-based position IDX in D.  Other variables in D,
    if any, retain their relative positions.  Runs in time linear
    in the distance moved. */

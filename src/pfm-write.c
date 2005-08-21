@@ -22,11 +22,14 @@
 #include "error.h"
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 #include "alloc.h"
 #include "case.h"
 #include "dictionary.h"
@@ -35,6 +38,7 @@
 #include "hash.h"
 #include "magic.h"
 #include "misc.h"
+#include "stat-macros.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -55,6 +59,8 @@ struct pfm_writer
 
     size_t var_cnt;             /* Number of variables. */
     struct pfm_var *vars;       /* Variables. */
+
+    int digits;                 /* Digits of precision. */
   };
 
 /* A variable to write to the portable file. */
@@ -73,35 +79,54 @@ static int write_value_labels (struct pfm_writer *, const struct dictionary *);
 static void format_trig_double (long double, int base_10_precision, char[]);
 static char *format_trig_int (int, bool force_sign, char[]);
 
-/* Writes the dictionary DICT to portable file HANDLE.  Returns
-   nonzero only if successful.  DICT will not be modified, except
-   to assign short names. */
+/* Returns default options for writing a portable file. */
+struct pfm_write_options
+pfm_writer_default_options (void) 
+{
+  struct pfm_write_options opts;
+  opts.create_writeable = true;
+  opts.type = PFM_COMM;
+  opts.digits = DBL_DIG;
+  return opts;
+}
+
+/* Writes the dictionary DICT to portable file HANDLE according
+   to the given OPTS.  Returns nonzero only if successful.  DICT
+   will not be modified, except to assign short names. */
 struct pfm_writer *
-pfm_open_writer (struct file_handle *fh, struct dictionary *dict)
+pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
+                 struct pfm_write_options opts)
 {
   struct pfm_writer *w = NULL;
+  mode_t mode;
+  int fd;
   size_t i;
 
+  /* Create file. */
+  mode = S_IRUSR | S_IRGRP | S_IROTH;
+  if (opts.create_writeable)
+    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+  fd = open (handle_get_filename (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
+  if (fd < 0) 
+    goto open_error;
+
+  /* Open file handle. */
   if (!fh_open (fh, "portable file", "we"))
     goto error;
-  
-  /* Open the physical disk file. */
+
+  /* Initialize data structures. */
   w = xmalloc (sizeof *w);
   w->fh = fh;
-  w->file = fopen (handle_get_filename (fh), "wb");
+  w->file = fdopen (fd, "w");
+  if (w->file == NULL) 
+    {
+      close (fd);
+      goto open_error;
+    }
+  
   w->lc = 0;
   w->var_cnt = 0;
   w->vars = NULL;
-  
-  /* Check that file create succeeded. */
-  if (w->file == NULL)
-    {
-      msg (ME, _("An error occurred while opening \"%s\" for writing "
-	   "as a portable file: %s."),
-           handle_get_filename (fh), strerror (errno));
-      err_cond_fail ();
-      goto error;
-    }
   
   w->var_cnt = dict_get_var_cnt (dict);
   w->vars = xmalloc (sizeof *w->vars * w->var_cnt);
@@ -111,6 +136,14 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict)
       struct pfm_var *pv = &w->vars[i];
       pv->width = dv->width;
       pv->fv = dv->fv;
+    }
+
+  w->digits = opts.digits;
+  if (w->digits < 1) 
+    {
+      msg (ME, _("Invalid decimal digits count %d.  Treating as %d."),
+           w->digits, DBL_DIG);
+      w->digits = DBL_DIG;
     }
 
   /* Write file header. */
@@ -123,9 +156,16 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict)
 
   return w;
 
-error:
+ error:
   pfm_close_writer (w);
   return NULL;
+
+ open_error:
+  msg (ME, _("An error occurred while opening \"%s\" for writing "
+             "as a portable file: %s."),
+       handle_get_filename (fh), strerror (errno));
+  err_cond_fail ();
+  goto error;
 }
   
 /* Write NBYTES starting at BUF to the portable file represented by
@@ -169,7 +209,7 @@ static int
 write_float (struct pfm_writer *w, double d)
 {
   char buffer[64];
-  format_trig_double (d, DBL_DIG, buffer);
+  format_trig_double (d, floor (d) == d ? DBL_DIG : w->digits, buffer);
   return buf_write (w, buffer, strlen (buffer)) && buf_write (w, "/", 1);
 }
 
@@ -754,6 +794,8 @@ format_trig_double (long double value, int base_10_precision, char output[])
      required base-30 precision as 2/3 of the base-10 precision
      (log30(10) = .68). */
   assert (base_10_precision > 0);
+  if (base_10_precision > LDBL_DIG)
+    base_10_precision = LDBL_DIG;
   base_30_precision = DIV_RND_UP (base_10_precision * 2, 3);
   if (trig_cnt > base_30_precision)
     {

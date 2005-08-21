@@ -60,8 +60,7 @@ enum operation
     OP_EXPORT   /* EXPORT. */
   };
 
-static bool trim_dictionary (struct dictionary *,
-                             enum operation, int *compress);
+static bool parse_dict_trim (struct dictionary *);
 
 /* GET input program. */
 struct get_pgm 
@@ -101,8 +100,14 @@ cmd_get (void)
   case_create (&pgm->bounce, dict_get_next_value_idx (dict));
 
   start_case_map (dict);
-  if (!trim_dictionary (dict, OP_READ, NULL))
-    goto error;
+  while (lex_match ('/'))
+    if (!parse_dict_trim (dict))
+      goto error;
+
+  if (!lex_end_of_command ())
+    return false;
+
+  dict_compact_values (dict);
   pgm->map = finish_case_map (dict);
 
   dict_destroy (default_dict);
@@ -114,7 +119,7 @@ cmd_get (void)
 
  error:
   get_pgm_free (pgm);
-  if (dict != NULL)
+  if (dict != NULL) 
     dict_destroy (dict);
   return CMD_FAILURE;
 }
@@ -175,186 +180,352 @@ const struct case_source_class get_source_class =
     get_source_destroy,
   };
 
-/* XSAVE transformation and SAVE procedure. */
-struct save_trns
+/* Type of output file. */
+enum writer_type
   {
-    struct trns_header h;
-    struct sfm_writer *writer;  /* System file writer. */
-    struct case_map *map;       /* Map from active file to system file dict. */
-    struct ccase bounce;        /* Bounce buffer. */
+    SYSFILE_WRITER,     /* System file. */
+    PORFILE_WRITER      /* Portable file. */
   };
 
-static int save_write_case_func (struct ccase *, void *);
-static trns_proc_func save_trns_proc;
-static trns_free_func save_trns_free;
+/* Type of a command. */
+enum command_type 
+  {
+    XFORM_CMD,          /* Transformation. */
+    PROC_CMD            /* Procedure. */
+  };
 
-/* Parses the SAVE or XSAVE command
-   and returns the parsed transformation. */
-static struct save_trns *
-cmd_save_internal (void)
+/* Portable or system file writer plus a case map. */
+struct any_writer
+  {
+    enum writer_type writer_type;
+    void *writer;
+    struct case_map *map;       /* Map to output file dictionary
+                                   (null pointer for identity mapping). */
+    struct ccase bounce;        /* Bounce buffer for mapping (if needed). */
+  };
+
+/* Destroys AW. */
+static void
+any_writer_destroy (struct any_writer *aw)
 {
-  struct file_handle *fh = NULL;
-  struct dictionary *dict = NULL;
-  struct save_trns *t = NULL;
-  int compress = get_scompression ();
-  const int default_version = 3;
-  int version = default_version;
-  short no_name_table = 0;
+  if (aw != NULL) 
+    {
+      switch (aw->writer_type) 
+        {
+        case PORFILE_WRITER:
+          pfm_close_writer (aw->writer);
+          break;
+        case SYSFILE_WRITER:
+          sfm_close_writer (aw->writer);
+          break;
+        }
+      destroy_case_map (aw->map);
+      case_destroy (&aw->bounce);
+      free (aw);
+    }
+}
 
-  t = xmalloc (sizeof *t);
-  t->h.proc = save_trns_proc;
-  t->h.free = save_trns_free;
-  t->writer = NULL;
-  t->map = NULL;
-  case_nullify (&t->bounce);
-  
+/* Parses SAVE or XSAVE or EXPORT or XEXPORT command.
+   WRITER_TYPE identifies the type of file to write,
+   and COMMAND_TYPE identifies the type of command.
 
-  /* Read most of the subcommands. */
+   On success, returns a writer.
+   For procedures only, sets *RETAIN_UNSELECTED to true if cases
+   that would otherwise be excluded by FILTER or USE should be
+   included.
+
+   On failure, returns a null pointer. */
+static struct any_writer *
+parse_write_command (enum writer_type writer_type,
+                     enum command_type command_type,
+                     bool *retain_unselected)
+{
+  /* Common data. */
+  struct file_handle *handle; /* Output file. */
+  struct dictionary *dict;    /* Dictionary for output file. */
+  struct any_writer *aw;      /* Writer. */  
+
+  /* Common options. */
+  bool print_map;             /* Print map?  TODO. */
+  bool print_short_names;     /* Print long-to-short name map.  TODO. */
+  struct sfm_write_options sysfile_opts;
+  struct pfm_write_options porfile_opts;
+
+  assert (writer_type == SYSFILE_WRITER || writer_type == PORFILE_WRITER);
+  assert (command_type == XFORM_CMD || command_type == PROC_CMD);
+  assert ((retain_unselected != NULL) == (command_type == PROC_CMD));
+
+  if (command_type == PROC_CMD)
+    *retain_unselected = true;
+
+  handle = NULL;
+  dict = dict_clone (default_dict);
+  aw = xmalloc (sizeof *aw);
+  aw->writer_type = writer_type;
+  aw->writer = NULL;
+  aw->map = NULL;
+  case_nullify (&aw->bounce);
+  print_map = false;
+  print_short_names = false;
+  sysfile_opts = sfm_writer_default_options ();
+  porfile_opts = pfm_writer_default_options ();
+
+  start_case_map (dict);
+  dict_delete_scratch_vars (dict);
+
+  lex_match ('/');
   for (;;)
     {
-      if (lex_match_id ("VERSION"))
+      if (lex_match_id ("OUTFILE"))
 	{
-	  lex_match ('=');
-	  if (lex_force_int ()) 
-	    {
-	      version = lex_integer ();
-              lex_get ();
-	      
-	      if (lex_match_id ("X")) 
-                no_name_table = 1;
-	    }
-	}
-      else if (lex_match_id ("OUTFILE"))
-	{
+          if (handle != NULL) 
+            {
+              lex_sbc_only_once ("OUTFILE");
+              goto error; 
+            }
+          
 	  lex_match ('=');
       
-	  fh = fh_parse ();
-	  if (fh == NULL)
+	  handle = fh_parse ();
+	  if (handle == NULL)
 	    goto error;
-
 	}
-      if ( ! lex_match('/')  ) 
+      else if (lex_match_id ("NAMES"))
+        print_short_names = true;
+      else if (lex_match_id ("PERMISSIONS")) 
+        {
+          bool cw;
+          
+          lex_match ('=');
+          if (lex_match_id ("READONLY"))
+            cw = false;
+          else if (lex_match_id ("WRITEABLE"))
+            cw = true;
+          else
+            {
+              lex_error (_("expecting %s or %s"), "READONLY", "WRITEABLE");
+              goto error;
+            }
+          sysfile_opts.create_writeable = porfile_opts.create_writeable = cw;
+        }
+      else if (command_type == PROC_CMD && lex_match_id ("UNSELECTED")) 
+        {
+          lex_match ('=');
+          if (lex_match_id ("RETAIN"))
+            *retain_unselected = true;
+          else if (lex_match_id ("DELETE"))
+            *retain_unselected = false;
+          else
+            {
+              lex_error (_("expecting %s or %s"), "RETAIN", "DELETE");
+              goto error;
+            }
+        }
+      else if (writer_type == SYSFILE_WRITER && lex_match_id ("COMPRESSED"))
+	sysfile_opts.compress = true;
+      else if (writer_type == SYSFILE_WRITER && lex_match_id ("UNCOMPRESSED"))
+	sysfile_opts.compress = false;
+      else if (writer_type == SYSFILE_WRITER && lex_match_id ("VERSION"))
+	{
+	  lex_match ('=');
+	  if (!lex_force_int ())
+            goto error;
+          sysfile_opts.version = lex_integer ();
+          lex_get ();
+	}
+      else if (writer_type == PORFILE_WRITER && lex_match_id ("TYPE")) 
+        {
+          lex_match ('=');
+          if (lex_match_id ("COMMUNICATIONS"))
+            porfile_opts.type = PFM_COMM;
+          else if (lex_match_id ("TAPE"))
+            porfile_opts.type = PFM_TAPE;
+          else
+            {
+              lex_error (_("expecting %s or %s"), "COMM", "TAPE");
+              goto error;
+            }
+        }
+      else if (writer_type == PORFILE_WRITER && lex_match_id ("DIGITS")) 
+        {
+          lex_match ('=');
+          if (!lex_force_int ())
+            goto error;
+          porfile_opts.digits = lex_integer ();
+          lex_get ();
+        }
+      else if (!parse_dict_trim (dict))
+        goto error;
+      
+      if (!lex_match ('/'))
 	break;
-
     }
+  if (lex_end_of_command () != CMD_SUCCESS)
+    goto error;
 
-  if (token != '.')
+  if (handle == NULL) 
     {
-      lex_error (_("expecting end of command"));
+      lex_sbc_missing ("OUTFILE");
       goto error;
     }
 
-  if ( fh == NULL ) 
+  dict_compact_values (dict);
+  aw->map = finish_case_map (dict);
+  if (aw->map != NULL)
+    case_create (&aw->bounce, dict_get_next_value_idx (dict));
+
+  switch (writer_type) 
     {
-      msg ( ME, _("The required %s subcommand was not present"), "OUTFILE");
-      goto error;
+    case SYSFILE_WRITER:
+      aw->writer = sfm_open_writer (handle, dict, sysfile_opts);
+      break;
+    case PORFILE_WRITER:
+      aw->writer = pfm_open_writer (handle, dict, porfile_opts);
+      break;
     }
-
-  if ( version != default_version )
-    {
-      msg (MW, _("Unsupported sysfile version: %d. Using version %d instead."),
-	   version, default_version);
-
-      version = default_version;
-    }
-
-  dict = dict_clone (default_dict);
-  start_case_map (dict);
-  if (!trim_dictionary (dict, OP_SAVE, &compress))
-    goto error;
-  t->map = finish_case_map (dict);
-  if (t->map != NULL)
-    case_create (&t->bounce, dict_get_next_value_idx (dict));
-
-  t->writer = sfm_open_writer (fh, dict, compress, no_name_table);
-  if (t->writer == NULL)
-    goto error;
-
-  dict_destroy (dict);
-
-  return t;
+  
+  return aw;
 
  error:
-  assert (t != NULL);
+  any_writer_destroy (aw);
   dict_destroy (dict);
-  save_trns_free (&t->h);
   return NULL;
 }
 
-/* Parses and performs the SAVE procedure. */
-int
-cmd_save (void)
-{
-  struct save_trns *t = cmd_save_internal ();
-  if (t != NULL) 
-    {
-      procedure (save_write_case_func, t);
-      save_trns_free (&t->h);
-      free(t);
-      return CMD_SUCCESS;
-    }
-  else
-    return CMD_FAILURE;
-}
-
-/* Parses the XSAVE transformation command. */
-int
-cmd_xsave (void)
-{
-  struct save_trns *t = cmd_save_internal ();
-  if (t != NULL) 
-    {
-      add_transformation (&t->h);
-      return CMD_SUCCESS; 
-    }
-  else
-    return CMD_FAILURE;
-}
-
-/* Writes the given C to the file specified by T. */
+/* Writes case C to writer AW. */
 static void
-do_write_case (struct save_trns *t, struct ccase *c) 
+any_writer_write_case (struct any_writer *aw, struct ccase *c) 
 {
-  if (t->map == NULL)
-    sfm_write_case (t->writer, c);
-  else 
+  if (aw->map != NULL) 
     {
-      map_case (t->map, c, &t->bounce);
-      sfm_write_case (t->writer, &t->bounce);
+      map_case (aw->map, c, &aw->bounce);
+      c = &aw->bounce; 
+    }
+  
+  switch (aw->writer_type) 
+    {
+    case SYSFILE_WRITER:
+      sfm_write_case (aw->writer, c);
+      break;
+    case PORFILE_WRITER:
+      pfm_write_case (aw->writer, c);
+      break;
     }
 }
+
+/* SAVE and EXPORT. */
 
-/* Writes case C to the system file specified on SAVE. */
+static int output_proc (struct ccase *, void *);
+
+/* Parses and performs the SAVE or EXPORT procedure. */
 static int
-save_write_case_func (struct ccase *c, void *aux UNUSED)
+parse_output_proc (enum writer_type writer_type)
 {
-  do_write_case (aux, c);
-  return 1;
+  bool retain_unselected;
+  struct variable *saved_filter_variable;
+  struct any_writer *aw;
+
+  aw = parse_write_command (writer_type, PROC_CMD, &retain_unselected);
+  if (aw == NULL) 
+    return CMD_FAILURE;
+
+  saved_filter_variable = dict_get_filter (default_dict);
+  if (retain_unselected) 
+    dict_set_filter (default_dict, NULL);
+  procedure (output_proc, aw);
+  dict_set_filter (default_dict, saved_filter_variable);
+
+  any_writer_destroy (aw);
+  return CMD_SUCCESS;
 }
 
-/* Writes case C to the system file specified on XSAVE. */
+/* Writes case C to file. */
 static int
-save_trns_proc (struct trns_header *h, struct ccase *c, int case_num UNUSED)
+output_proc (struct ccase *c, void *aw_) 
 {
-  struct save_trns *t = (struct save_trns *) h;
-  do_write_case (t, c);
+  struct any_writer *aw = aw_;
+  any_writer_write_case (aw, c);
+  return 0;
+}
+
+int
+cmd_save (void) 
+{
+  return parse_output_proc (SYSFILE_WRITER);
+}
+
+int
+cmd_export (void) 
+{
+  return parse_output_proc (PORFILE_WRITER);
+}
+
+/* XSAVE and XEXPORT. */
+
+/* Transformation. */
+struct output_trns 
+  {
+    struct trns_header h;       /* Header. */
+    struct any_writer *aw;      /* Writer. */
+  };
+
+static trns_proc_func output_trns_proc;
+static trns_free_func output_trns_free;
+
+/* Parses the XSAVE or XEXPORT transformation command. */
+static int
+parse_output_trns (enum writer_type writer_type) 
+{
+  struct output_trns *t = xmalloc (sizeof *t);
+  t->h.proc = output_trns_proc;
+  t->h.free = output_trns_free;
+  t->aw = parse_write_command (writer_type, XFORM_CMD, NULL);
+  if (t->aw == NULL) 
+    {
+      free (t);
+      return CMD_FAILURE;
+    }
+
+  add_transformation (&t->h);
+  return CMD_SUCCESS;
+}
+
+/* Writes case C to the system file specified on XSAVE or XEXPORT. */
+static int
+output_trns_proc (struct trns_header *h, struct ccase *c, int case_num UNUSED)
+{
+  struct output_trns *t = (struct output_trns *) h;
+  any_writer_write_case (t->aw, c);
   return -1;
 }
 
-/* Frees a SAVE transformation. */
+/* Frees an XSAVE or XEXPORT transformation. */
 static void
-save_trns_free (struct trns_header *t_)
+output_trns_free (struct trns_header *h)
 {
-  struct save_trns *t = (struct save_trns *) t_;
+  struct output_trns *t = (struct output_trns *) h;
 
-  if (t != NULL) 
+  if (t != NULL)
     {
-      sfm_close_writer (t->writer);
-      destroy_case_map (t->map);
-      case_destroy (&t->bounce);
+      any_writer_destroy (t->aw);
+      free (t);
     }
 }
 
+/* XSAVE command. */
+int
+cmd_xsave (void) 
+{
+  return parse_output_trns (SYSFILE_WRITER);
+}
+
+/* XEXPORT command. */
+int
+cmd_xexport (void) 
+{
+  return parse_output_trns (PORFILE_WRITER);
+}
+
 static bool rename_variables (struct dictionary *dict);
 static bool drop_variables (struct dictionary *dict);
 static bool keep_variables (struct dictionary *dict);
@@ -362,65 +533,26 @@ static bool keep_variables (struct dictionary *dict);
 /* Commands that read and write system files share a great deal
    of common syntactic structure for rearranging and dropping
    variables.  This function parses this syntax and modifies DICT
-   appropriately.
-
-   OP is the operation being performed.  For operations that
-   write a system file, *COMPRESS is set to 1 if the system file
-   should be compressed, 0 otherwise.
-   
-   Returns true on success, false on failure. */
+   appropriately.  Returns true on success, false on failure. */
 static bool
-trim_dictionary (struct dictionary *dict, enum operation op, int *compress)
+parse_dict_trim (struct dictionary *dict)
 {
-  assert ((compress != NULL) == (op == OP_SAVE));
-  if (get_scompression())
-    *compress = 1;
-
-  if (op == OP_SAVE || op == OP_EXPORT)
+  if (lex_match_id ("MAP")) 
     {
-      /* Delete all the scratch variables. */
-      struct variable **v;
-      size_t nv;
-      size_t i;
-
-      v = xmalloc (sizeof *v * dict_get_var_cnt (dict));
-      nv = 0;
-      for (i = 0; i < dict_get_var_cnt (dict); i++) 
-        if (dict_class_from_id (dict_get_var (dict, i)->name) == DC_SCRATCH)
-          v[nv++] = dict_get_var (dict, i);
-      dict_delete_vars (dict, v, nv);
-      free (v);
+      /* FIXME. */
+      return true;
     }
-  
-  while (lex_match ('/'))
+  else if (lex_match_id ("DROP"))
+    return drop_variables (dict);
+  else if (lex_match_id ("KEEP"))
+    return keep_variables (dict);
+  else if (lex_match_id ("RENAME"))
+    return rename_variables (dict);
+  else
     {
-      bool ok = true;
-      
-      if (op == OP_SAVE && lex_match_id ("COMPRESSED"))
-	*compress = 1;
-      else if (op == OP_SAVE && lex_match_id ("UNCOMPRESSED"))
-	*compress = 0;
-      else if (lex_match_id ("DROP"))
-        ok = drop_variables (dict);
-      else if (lex_match_id ("KEEP"))
-	ok = keep_variables (dict);
-      else if (lex_match_id ("RENAME"))
-        ok = rename_variables (dict);
-      else
-	{
-	  lex_error (_("expecting a valid subcommand"));
-	  ok = false;
-	}
-
-      if (!ok)
-        return false;
+      lex_error (_("expecting a valid subcommand"));
+      return false;
     }
-
-  if (!lex_end_of_command ())
-    return false;
-
-  dict_compact_values (dict);
-  return true;
 }
 
 /* Parses and performs the RENAME subcommand of GET and SAVE. */
@@ -484,8 +616,8 @@ rename_variables (struct dictionary *dict)
       if (nn != nv)
 	{
 	  msg (SE, _("Number of variables on left side of `=' (%d) does not "
-	       "match number of variables on right side (%d), in "
-	       "parenthesized group %d of RENAME subcommand."),
+                     "match number of variables on right side (%d), in "
+                     "parenthesized group %d of RENAME subcommand."),
 	       nv - old_nv, nn - old_nv, group);
 	  goto done;
 	}
@@ -501,7 +633,7 @@ rename_variables (struct dictionary *dict)
     }
   success = 1;
 
-done:
+ done:
   for (i = 0; i < nn; i++)
     free (new_names[i]);
   free (new_names);
@@ -558,91 +690,6 @@ keep_variables (struct dictionary *dict)
   return true;
 }
 
-/* EXPORT procedure. */
-struct export_proc 
-  {
-    struct pfm_writer *writer;  /* System file writer. */
-    struct case_map *map;       /* Map from active file to system file dict. */
-    struct ccase bounce;        /* Bounce buffer. */
-  };
-
-static int export_write_case_func (struct ccase *, void *);
-static void export_proc_free (struct export_proc *);
-     
-/* Parses the EXPORT command.  */
-/* FIXME: same as cmd_save_internal(). */
-int
-cmd_export (void)
-{
-  struct file_handle *fh;
-  struct dictionary *dict;
-  struct export_proc *proc;
-
-  proc = xmalloc (sizeof *proc);
-  proc->writer = NULL;
-  proc->map = NULL;
-  case_nullify (&proc->bounce);
-
-  lex_match ('/');
-  if (lex_match_id ("OUTFILE"))
-    lex_match ('=');
-  fh = fh_parse ();
-  if (fh == NULL)
-    return CMD_FAILURE;
-
-  dict = dict_clone (default_dict);
-  start_case_map (dict);
-  if (!trim_dictionary (dict, OP_EXPORT, NULL))
-    goto error;
-  proc->map = finish_case_map (dict);
-  if (proc->map != NULL)
-    case_create (&proc->bounce, dict_get_next_value_idx (dict));
-
-  proc->writer = pfm_open_writer (fh, dict);
-  if (proc->writer == NULL)
-    goto error;
-  
-  dict_destroy (dict);
-
-  procedure (export_write_case_func, proc);
-  export_proc_free (proc);
-  free (proc);
-
-  return CMD_SUCCESS;
-
- error:
-  dict_destroy (dict);
-  export_proc_free (proc);
-  free (proc);
-  return CMD_FAILURE;
-}
-
-/* Writes case C to the EXPORT file. */
-static int
-export_write_case_func (struct ccase *c, void *aux) 
-{
-  struct export_proc *proc = aux;
-  if (proc->map == NULL)
-    pfm_write_case (proc->writer, c);
-  else 
-    {
-      map_case (proc->map, c, &proc->bounce);
-      pfm_write_case (proc->writer, &proc->bounce);
-    }
-  return 1;
-}
-
-static void
-export_proc_free (struct export_proc *proc) 
-{
-  if (proc != NULL) 
-    {
-      pfm_close_writer (proc->writer);
-      destroy_case_map (proc->map);
-      case_destroy (&proc->bounce);
-    }
-}
-
 /* MATCH FILES. */
 
 #include "debug-print.h"
@@ -657,8 +704,7 @@ enum
 /* One of the files on MATCH FILES. */
 struct mtf_file
   {
-    struct mtf_file *next, *prev;
-				/* Next, previous in the list of files. */
+    struct mtf_file *next, *prev; /* Next, previous in the list of files. */
     struct mtf_file *next_min;	/* Next in the chain of minimums. */
     
     int type;			/* One of MTF_*. */
@@ -680,7 +726,7 @@ struct mtf_proc
     struct mtf_file *head;      /* First file mentioned on FILE or TABLE. */
     struct mtf_file *tail;      /* Last file mentioned on FILE or TABLE. */
     
-    size_t by_cnt;              /* Number of variables on BY subcommand. */
+    int by_cnt;                 /* Number of variables on BY subcommand. */
 
     /* Names of FIRST, LAST variables. */
     char first[LONG_NAME_LEN + 1], last[LONG_NAME_LEN + 1];
@@ -1054,7 +1100,7 @@ cmd_match_files (void)
   mtf_free (&mtf);
   return CMD_SUCCESS;
   
-error:
+ error:
   mtf_free (&mtf);
   return CMD_FAILURE;
 }
@@ -1474,26 +1520,20 @@ cmd_import (void)
   struct import_pgm *pgm = NULL;
   struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
-  int type;
+  enum pfm_type type;
 
-  pgm = xmalloc (sizeof *pgm);
-  pgm->reader = NULL;
-  pgm->map = NULL;
-  case_nullify (&pgm->bounce);
-
+  lex_match ('/');
   for (;;)
     {
-      lex_match ('/');
-      
-      if (lex_match_id ("FILE") || token == T_STRING)
+      if (pgm == NULL && (lex_match_id ("FILE") || token == T_STRING))
 	{
 	  lex_match ('=');
 
 	  fh = fh_parse ();
 	  if (fh == NULL)
-	    return CMD_FAILURE;
+            goto error;
 	}
-      else if (lex_match_id ("TYPE"))
+      else if (pgm == NULL && lex_match_id ("TYPE"))
 	{
 	  lex_match ('=');
 
@@ -1504,27 +1544,48 @@ cmd_import (void)
 	  else
 	    {
 	      lex_error (_("expecting COMM or TAPE"));
-	      return CMD_FAILURE;
+              goto error;
 	    }
 	}
-      else break;
+      else 
+        {
+          if (pgm == NULL) 
+            {
+              if (fh == NULL) 
+                {
+                  lex_sbc_missing ("FILE");
+                  goto error;
+                }
+              
+              discard_variables ();
+
+              pgm = xmalloc (sizeof *pgm);
+              pgm->reader = pfm_open_reader (fh, &dict, NULL);
+              pgm->map = NULL;
+              case_nullify (&pgm->bounce);
+              if (pgm->reader == NULL)
+                goto error;
+
+              case_create (&pgm->bounce, dict_get_next_value_idx (dict));
+  
+              start_case_map (dict);
+            }
+
+          if (token == '.')
+            break;
+          
+          if (!parse_dict_trim (dict))
+            goto error;
+        }
+
+      lex_match ('/');
     }
-  if (!lex_match ('/') && token != '.')
+  if (pgm == NULL) 
     {
       lex_error (NULL);
-      return CMD_FAILURE;
+      goto error;
     }
 
-  discard_variables ();
-
-  pgm->reader = pfm_open_reader (fh, &dict, NULL);
-  if (pgm->reader == NULL)
-    return CMD_FAILURE;
-  case_create (&pgm->bounce, dict_get_next_value_idx (dict));
-  
-  start_case_map (dict);
-  if (!trim_dictionary (dict, OP_READ, NULL))
-    goto error;
   pgm->map = finish_case_map (dict);
   
   dict_destroy (default_dict);
@@ -1619,7 +1680,7 @@ struct case_map
    at will before using finish_case_map() to produce the case
    map.
 
-   Uses D's aux members, which may not otherwise be in use. */
+   Uses D's aux members, which must otherwise not be in use. */
 static void
 start_case_map (struct dictionary *d) 
 {

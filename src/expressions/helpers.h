@@ -52,7 +52,7 @@ double expr_yrmoda (double year, double month, double day);
 
 struct fixed_string alloc_string (struct expression *, size_t length);
 struct fixed_string copy_string (struct expression *,
-                                 const char *, size_t length);
+                                 const unsigned char *, size_t length);
 
 static inline bool
 is_valid (double d) 

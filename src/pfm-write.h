@@ -20,12 +20,32 @@
 #ifndef PFM_WRITE_H
 #define PFM_WRITE_H
 
+#include <stdbool.h>
+
 /* Portable file writing. */
+
+/* Portable file types. */
+enum pfm_type
+  {
+    PFM_COMM,   /* Formatted for communication. */
+    PFM_TAPE    /* Formatted for tape. */
+  };
+
+/* Portable file writing options. */
+struct pfm_write_options 
+  {
+    bool create_writeable;      /* File perms: writeable or read/only? */
+    enum pfm_type type;         /* Type of portable file (TODO). */
+    int digits;                 /* Digits of precision. */
+  };
 
 struct file_handle;
 struct dictionary;
 struct ccase;
-struct pfm_writer *pfm_open_writer (struct file_handle *, struct dictionary *);
+struct pfm_writer *pfm_open_writer (struct file_handle *, struct dictionary *,
+                                    struct pfm_write_options);
+struct pfm_write_options pfm_writer_default_options (void);
+
 int pfm_write_case (struct pfm_writer *, struct ccase *);
 void pfm_close_writer (struct pfm_writer *);
 

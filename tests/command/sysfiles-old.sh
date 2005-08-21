@@ -65,7 +65,7 @@ BEGIN DATA.
 END DATA.
 
 SAVE /OUTFILE='$TEMPDIR/foo.sav'
-     /VERSION=3x
+     /VERSION=2
      .
 
 GET /FILE='$TEMPDIR/foo.sav'.
