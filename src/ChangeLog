@@ -1,3 +1,10 @@
+Mon Sep 12 19:26:06 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* dictionary.[ch]  Changed cnt from size_t* to int* since that's
+	what it's called as, and on  x86_64 machines they're different sizes.
+	
+	* str.c: (ds_vprintf) Copied va_list args so they can be re-used
+	
 Sun Aug 21 00:12:24 2005  Ben Pfaff  <blp@gnu.org>
 
 	* lexer.c: (lex_sbc_only_once) New function.

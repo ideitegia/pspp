@@ -34,7 +34,7 @@ void dict_destroy (struct dictionary *);
 size_t dict_get_var_cnt (const struct dictionary *);
 struct variable *dict_get_var (const struct dictionary *, size_t idx);
 void dict_get_vars (const struct dictionary *,
-                    struct variable ***vars, size_t *cnt,
+                    struct variable ***vars, int *cnt,
                     unsigned exclude_classes);
 
 struct variable *dict_create_var (struct dictionary *, const char *,

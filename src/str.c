@@ -453,7 +453,9 @@ ds_vprintf (struct string *st, const char *format, va_list args)
      been written. */
 
   int avail, needed;
+  va_list a1;
 
+  va_copy(a1, args);
   avail = st->capacity - st->length + 1;
   needed = vsnprintf (st->string + st->length, avail, format, args);
 
@@ -462,17 +464,22 @@ ds_vprintf (struct string *st, const char *format, va_list args)
     {
       ds_extend (st, st->length + needed);
       
-      vsprintf (st->string + st->length, format, args);
+      vsprintf (st->string + st->length, format, a1);
     }
   else
     while (needed == -1)
       {
+	va_list a2;
+	va_copy(a2, a1);
+
 	ds_extend (st, (st->capacity + 1) * 2);
 	avail = st->capacity - st->length + 1;
 
-	needed = vsnprintf (st->string + st->length, avail, format, args);
+	needed = vsnprintf (st->string + st->length, avail, format, a2);
+	va_end(a2);
 
       }
+  va_end(a1);
 
   st->length += needed;
 }
