@@ -97,10 +97,6 @@ AC_CHECK_HEADERS([limits.h memory.h sys/stat.h sys/time.h sys/types.h \
                   fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h] )
 
 # For gnulib.
-gl_LIB(libgl)
-gl_SOURCE_BASE(gl)
-gl_M4_BASE(gl/m4)
-gl_MODULES(alloca alloca-opt assert full-read full-write gethostname getline getlogin_r getopt gettext memchr memcmp memmem memmove memset progname readlink restrict snprintf stat-macros stdbool stpcpy strcase strcspn strerror strftime strstr strtod strtok_r strtol strtoul vsnprintf xalloc xalloc-die xreadlink)
 gl_INIT
 
 AC_C_CONST

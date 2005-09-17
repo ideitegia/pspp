@@ -1,3 +1,12 @@
+Sat Sep 17 11:01:44 2005  Ben Pfaff  <blp@gnu.org>
+
+	Adapt to newer versions of gnulib.
+
+	* Smake: Put gnulib options directly on its command line, instead
+	of embedding them in configure.ac.
+
+	* configure.ac: Remove gnulib option commands.
+
 Fri Aug  3 07:22:28 2005  Ben Pfaff  <blp@gnu.org>
 
 	* PSPP 0.4.0 released.
