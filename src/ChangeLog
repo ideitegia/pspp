@@ -1,3 +1,11 @@
+Sat Sep 17 11:13:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	* matrix-data.c: (cmd_matrix_data) Change type of variable whose
+	address is passed to dict_get_vars() from size_t to int to match
+	John's change below.
+
+	* modify-vars.c: (validate_var_modification) Ditto.
+
 Mon Sep 12 19:26:06 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* dictionary.[ch]  Changed cnt from size_t* to int* since that's

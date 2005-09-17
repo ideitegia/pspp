@@ -571,7 +571,7 @@ cmd_matrix_data (void)
      system file output. */
   {
     struct variable **v;
-    size_t nv;
+    int nv;
 
     dict_get_vars (default_dict, &v, &nv, 0);
     qsort (v, nv, sizeof *v, compare_variables_by_mxd_var_type);

@@ -390,7 +390,8 @@ validate_var_modification (const struct dictionary *d,
   struct variable **all_vars;
   struct variable **keep_vars;
   struct variable **drop_vars;
-  size_t all_cnt, keep_cnt, drop_cnt;
+  size_t keep_cnt, drop_cnt;
+  int all_cnt;
 
   struct var_renaming *var_renaming;
   int valid;
