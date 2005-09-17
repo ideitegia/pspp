@@ -1,4 +1,4 @@
-/* lib/linreg/linreg.c
+/* lib/linreg/pspp_linreg.h
 
    Copyright (C) 2005 Free Software Foundation, Inc.
    Written by Jason H Stover.
