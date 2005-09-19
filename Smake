@@ -13,7 +13,8 @@ all: po/POTFILES.in
 	test -d m4 || mkdir m4
 	touch m4/Makefile.am
 	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
-		--source-base=gl --lib=libgl --import $(GNULIB_MODULES)
+		--source-base=gl --lib=libgl --tests-base=tests \
+		--import $(GNULIB_MODULES)
 	autoreconf --install
 
 gettextize:
@@ -28,6 +29,13 @@ po/POTFILES.in:
 	done | sort | uniq > $@.tmp
 	if test ! -e $@ || ! cmp -s $@.tmp $@; then mv $@.tmp $@; fi
 	rm -f $@.tmp
+
+check: all
+	rm -rf _check
+	mkdir _check
+	cd _check && ../configure $(CONFIGUREFLAGS)
+	cd _check && make distcheck
+	rm -rf _check
 
 PO_FILES = po/ChangeLog po/Makefile po/Makefile.in po/Makefile.in.in	\
 po/POTFILES po/POTFILES.in po/Rules-quot po/boldquot.sed		\

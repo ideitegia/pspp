@@ -1,3 +1,9 @@
+Mon Sep 19 10:24:10 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Add `check' target for convenience.  Add
+	--tests-base=tests to gnulib-tool invocation to compensate for
+	bug.
+
 Sat Sep 17 11:01:44 2005  Ben Pfaff  <blp@gnu.org>
 
 	Adapt to newer versions of gnulib.
