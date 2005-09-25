@@ -43,5 +43,5 @@ ni.texi: @top_srcdir@/src/command.def @srcdir@/get-commands.pl
 
 
 $(INFO_DEPS): ni.texi
-
+$(HTML_DEPS): ni.texi
 

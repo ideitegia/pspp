@@ -1,3 +1,10 @@
+Sun Sep 25 16:11:09 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Handles `examples' as a subdirectory instead of a
+	dist-hook.  The dist-hook copied examples/CVS into the
+	distribution.  Thanks to James R. Van Zandt <jrvz@comcast.net> for
+	reporting the problem.
+
 Mon Sep 19 10:24:10 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Smake: Add `check' target for convenience.  Add

@@ -2,12 +2,9 @@
 
 AUTOMAKE_OPTIONS = gnits 1.7
 
-SUBDIRS = m4 intl doc lib gl src po config tests 
+SUBDIRS = m4 intl doc lib gl src po config tests examples
 
 DISTCLEANFILES = pref.h
-
-dist-hook:
-	cp -rp $(top_srcdir)/examples $(distdir)
 
 # A `private installation' in my terms is just having the appropriate
 # configuration files in ~/.pspp instead of a global configuration

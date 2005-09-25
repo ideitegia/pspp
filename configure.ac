@@ -147,7 +147,8 @@ AC_CONFIG_FILES([Makefile m4/Makefile gl/Makefile intl/Makefile po/Makefile.in
 		 doc/Makefile 
 		 src/Makefile src/expressions/Makefile
 		 config/Makefile
-		 tests/Makefile])
+		 tests/Makefile
+		 examples/Makefile])
 AC_CONFIG_COMMANDS([pref.h],[
 	   # Copy pref.h from pref.h.orig if prudent
 	   if test ! -f pref.h; then

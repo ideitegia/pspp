@@ -1,3 +1,8 @@
+Sun Sep 25 16:10:36 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Make ni.texi a prereq for HTML output.  Thanks to
+	James R. Van Zandt <jrvz@comcast.net> for reporting the problem.
+
 Sun Jul 24 18:47:02 2005  Ben Pfaff  <blp@gnu.org>
 
 	* portable-file-format.texi: Describe author field.
