@@ -13,5 +13,3 @@ AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 endif
 
 liblinreg_a_SOURCES = sweep.c linreg.c pspp_linreg.h
-
-EXTRA_DIST = README
