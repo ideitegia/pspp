@@ -45,7 +45,7 @@
   Springer. 1998. ISBN 0-387-98542-5.
  */
 #ifndef PSPP_LINREG_H
-#define PSPP_LINREG_H
+#define PSPP_LINREG_H 1
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_math.h>
