@@ -39,7 +39,7 @@ CLEANFILES = pspp.info pspp.info-* ni.texi
 MAINTAINERCLEANFILES=Makefile.in 
 
 ni.texi: @top_srcdir@/src/command.def @srcdir@/get-commands.pl
-	@PERL@ @srcdir@/get-commands.pl $< > $@
+	@PERL@ @srcdir@/get-commands.pl @top_srcdir@/src/command.def > $@
 
 
 $(INFO_DEPS): ni.texi
