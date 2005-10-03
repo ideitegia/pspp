@@ -17,16 +17,16 @@ PERL = @PERL@
 helpers = $(srcdir)/generate.pl $(srcdir)/operations.def
 
 evaluate.inc: $(srcdir)/evaluate.inc.pl $(helpers)
-	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
+	$(PERL) -I $(srcdir) $(srcdir)/evaluate.inc.pl -o $@ -i $(srcdir)/operations.def
 
 evaluate.h: $(srcdir)/evaluate.h.pl $(helpers)
-	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
+	$(PERL) -I $(srcdir) $(srcdir)/evaluate.h.pl -o $@ -i $(srcdir)/operations.def
 
 operations.h: $(srcdir)/operations.h.pl $(helpers)
-	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
+	$(PERL) -I $(srcdir) $(srcdir)/operations.h.pl -o $@ -i $(srcdir)/operations.def
 
 optimize.inc: $(srcdir)/optimize.inc.pl $(helpers)
-	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
+	$(PERL) -I $(srcdir) $(srcdir)/optimize.inc.pl -o $@ -i $(srcdir)/operations.def
 
 parse.inc: $(srcdir)/parse.inc.pl $(helpers)
-	$(PERL) -I $(srcdir) $< -o $@ -i $(srcdir)/operations.def
+	$(PERL) -I $(srcdir) $(srcdir)/parse.inc.pl -o $@ -i $(srcdir)/operations.def
