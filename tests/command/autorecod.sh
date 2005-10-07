@@ -81,7 +81,7 @@ $SUPERVISOR $here/../src/pspp    -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="test output"
-diff -b -B $TEMPDIR/pspp.list - <<EOF
+diff -b $TEMPDIR/pspp.list - <<EOF | sed -e 's/^[\t ]*$//'
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
