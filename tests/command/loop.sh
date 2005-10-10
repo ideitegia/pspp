@@ -70,7 +70,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TEMPDIR/loop.stat > $
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare stdout"
-diff -B -b $TEMPDIR/stdout  - <<EOF
+perl -pi -e 's/^\s*$//g' $TEMPDIR/stdout
+diff -b $TEMPDIR/stdout  - <<EOF |perl -e 's/^\s*$//g'
 $TEMPDIR/loop.stat:10: warning: BREAK: BREAK not enclosed in DO IF structure.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

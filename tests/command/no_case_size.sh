@@ -68,7 +68,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff -b -B -w pspp.list - <<EOF
+perl -pi -e 's/^\s*$//g' pspp.list
+diff -b -w pspp.list - <<EOF |perl -e 's/^\s*$//g'
 1.1 DISPLAY.  
 +--------+-------------------------------------------+--------+
 |Variable|Description                                |Position|
