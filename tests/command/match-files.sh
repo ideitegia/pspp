@@ -165,7 +165,9 @@ EOF
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="check $name output"
-	diff -b -w -B pspp.list $types.out
+	perl -pi -e 's/^\s*$//g' pspp.list
+	perl -pi -e 's/^\s*$//g' $types.out
+	diff -b -w pspp.list $types.out
 	if [ $? -ne 0 ] ; then fail ; fi
     done
 done
@@ -188,7 +190,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
-diff -b -w -B - pspp.list <<EOF
+perl -pi -e 's/^\s*$//g' pspp.list
+diff -b -w - pspp.list <<EOF |perl -e 's/^\s*$//g'
 A B C D E F
 - - - - - -
 0 a A 1 b N
@@ -236,7 +239,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
-diff -b -w -B - pspp.list <<EOF
+perl -pi -e 's/^\s*$//g' pspp.list
+diff -b -w - pspp.list <<EOF | perl -e 's/^\s*$//g'
         x        z        y
  -------- -------- --------
      3.00     8.00    30.00 
