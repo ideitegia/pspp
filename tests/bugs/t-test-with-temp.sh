@@ -95,7 +95,8 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff -B -b $TEMPDIR/pspp.list $TEMPDIR/first.list
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $TEMPDIR/first.list
+diff -b $TEMPDIR/pspp.list $TEMPDIR/first.list
 if [ $? -ne 0 ] ; then fail ; fi
 
 

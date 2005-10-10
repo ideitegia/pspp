@@ -65,7 +65,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-diff -b -B -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
+diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 
@@ -75,7 +76,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-diff -b -B -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
+diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

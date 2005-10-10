@@ -138,7 +138,8 @@ activity="run program"
 $SUPERVISOR $here/../src/pspp --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
 
 activity="compare results"
-diff -b -B $TEMPDIR/epoch.out - <<EOF
+perl -pi -e 's/^\s*$//g' $TEMPDIR/epoch.out
+diff -b $TEMPDIR/epoch.out - <<EOF |perl -e 's/^\s*$//g'
 YRMODA(0,1,1) = YRMODA(1900,1,1) => true
 YRMODA(1,1,1) = YRMODA(1901,1,1) => true
 YRMODA(12,1,1) = YRMODA(1912,1,1) => true

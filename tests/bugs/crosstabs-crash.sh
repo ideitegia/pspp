@@ -64,7 +64,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-diff -b -B -w $TEMPDIR/pspp.list - << EOF
+perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|

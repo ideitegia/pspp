@@ -58,7 +58,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode $TEMPDIR/casefile.stat > $TEMPDIR/c
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-diff -b -B $TEMPDIR/casefile.out - <<EOF
+perl -pi -e 's/^\s*$//g' $TEMPDIR/casefile.out
+diff -b $TEMPDIR/casefile.out - <<EOF |perl -e 's/^\s*$//g'
 Casefile tests succeeded.
 EOF
 

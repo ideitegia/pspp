@@ -81,7 +81,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
 	 $TEMPDIR/moments-2p.stat >$TEMPDIR/moments-2p.err 2> $TEMPDIR/moments-2p.out
 
 activity="compare two-pass output"
-diff -B -b $TEMPDIR/moments-list-2p $TEMPDIR/moments-2p.out
+perl -pi -e 's/^\s*$//g' $TEMPDIR/moments-list-2p $TEMPDIR/moments-2p.out
+diff -b $TEMPDIR/moments-list-2p $TEMPDIR/moments-2p.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="create input file"
@@ -94,7 +95,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
 	 $TEMPDIR/moments-1p.stat >$TEMPDIR/moments-1p.err 2> $TEMPDIR/moments-1p.out
 
 activity="compare one-pass output"
-diff -B -b $TEMPDIR/moments-list-1p $TEMPDIR/moments-1p.out
+perl -pi -e 's/^\s*$//g' $TEMPDIR/moments-list-1p $TEMPDIR/moments-1p.out
+diff -b $TEMPDIR/moments-list-1p $TEMPDIR/moments-1p.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass

@@ -1008,7 +1008,8 @@ for d in *.expr; do
 
 	# Compare.
 	activity="$base, $optimize: compare output"
-	diff -B -b $base.clean $base.$optimize.out
+	perl -pi -e 's/^\s*$//g' $base.clean $base.$optimize.out
+	diff -b $base.clean $base.$optimize.out
 	if [ $? -ne 0 ] ; then fail ; fi
     done
     num=`echo $d | sed 's/-.*//'`

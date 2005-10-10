@@ -114,8 +114,9 @@ for count_repeat_buffers in \
   activity="run program"
   $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii sort.pspp
   if [ $? -ne 0 ] ; then no_result ; fi
- 
-  diff -B -w sort.exp sort.out
+  
+  perl -pi -e 's/^\s*$//g' sort.exp sort.out
+  diff -w sort.exp sort.out
   if [ $? -ne 0 ] ; then fail ; fi
 done
 echo

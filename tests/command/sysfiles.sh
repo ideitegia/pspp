@@ -79,7 +79,7 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+perl -pi -e 's/^\s*\$//g' $TEMPDIR/pspp.list
 diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 variable001 variable002 variable003 variable004
 ----------- ----------- ----------- -----------

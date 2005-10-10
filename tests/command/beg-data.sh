@@ -80,7 +80,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare data"
-diff -b -B $TEMPDIR/pspp.list - << foobar
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b $TEMPDIR/pspp.list - << foobar |perl -e 's/^\s*$//g'
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|

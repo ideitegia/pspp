@@ -1304,7 +1304,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
 	 $TEMPDIR/expr-opt.stat >$TEMPDIR/expr-opt.err 2> $TEMPDIR/expr-opt.out
 
 activity="compare optimizing output"
-diff -B -b $TEMPDIR/expr-list $TEMPDIR/expr-opt.out
+perl -pi -e 's/^\s*$//g' $TEMPDIR/expr-list $TEMPDIR/expr-opt.out
+diff -b $TEMPDIR/expr-list $TEMPDIR/expr-opt.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="create non-optimizing input"
@@ -1319,7 +1320,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
 	$TEMPDIR/expr-noopt.stat >$TEMPDIR/expr-noopt.err 2> $TEMPDIR/expr-noopt.out
 
 activity="compare non-optimizing output"
-diff -B -b $TEMPDIR/expr-list $TEMPDIR/expr-noopt.out
+perl -pi -e 's/^\s*$//g' $TEMPDIR/expr-list $TEMPDIR/expr-noopt.out
+diff -b $TEMPDIR/expr-list $TEMPDIR/expr-noopt.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="create optimizing postfix input"

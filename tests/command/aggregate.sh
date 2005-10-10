@@ -204,7 +204,8 @@ for outfile in active external; do
 	    if [ $? -ne 0 ] ; then no_result ; fi
 
 	    activity="check $name output"
-	    diff -b -w -B pspp.list agg-$missing.out
+	    perl -pi -e 's/^\s*$//g' pspp.list agg-$missing.out
+	    diff -b -w pspp.list agg-$missing.out
 	    if [ $? -ne 0 ] ; then fail ; fi
 	done
     done
