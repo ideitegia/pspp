@@ -66,7 +66,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-diff -B -b $TEMPDIR/pspp.list - <<EOF
+perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 1.1 DATA LIST.  Reading 1 record from file $top_srcdir/tests/weighting.data.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|

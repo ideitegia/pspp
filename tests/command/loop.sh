@@ -76,7 +76,8 @@ EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"
-diff -B -b $TEMPDIR/pspp.list  - <<EOF
+perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list  - <<EOF | perl -e 's/^\s*$//g'
 1.1 DATA LIST.  Reading 1 record from the command file.
 +----------+------+-------+------+
 | Variable |Record|Columns|Format|

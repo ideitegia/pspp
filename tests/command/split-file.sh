@@ -78,7 +78,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/split.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-diff -B -b $TEMPDIR/pspp.list - <<EOF
+perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 Variable Value Label
 X            1
 

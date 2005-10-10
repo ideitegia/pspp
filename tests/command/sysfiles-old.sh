@@ -89,7 +89,8 @@ grep  'X=X' $TEMPDIR/foo.sav
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="compare output"
-diff -b -B -w $TEMPDIR/pspp.list - << EOF
+perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
        X VARIABLE VARIAB_A VARIAB_B
 -------- -------- -------- --------
     1.00     1.00     1.00     2.00 

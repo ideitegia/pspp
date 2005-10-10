@@ -70,7 +70,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff -b -B $TEMPDIR/pspp.list - << EOF
+perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
        X        Y
 -------- --------
     1.00     2.00 
