@@ -16,6 +16,9 @@ PSPP also has the following build dependencies:
 
     * perl 5.6 or later.
 
+    * GNU diff, for `make check' to complete properly.  (We intend to
+      eliminate this dependency in a later release.)
+
 A few system-specific issues have been noted.  These may be PSPP bugs
 or system bugs; we have not yet been able to track them down precisely:
 
