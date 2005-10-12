@@ -53,6 +53,9 @@
 #define CR_VALUE_NOT_FOUND -2
 #define CR_INDEX_NOT_FOUND -3
 
+static gsl_vector_const_view cr_value_to_vector (const union value *,
+						 struct recoded_categorical *);
+
 struct recoded_categorical *
 cr_recoded_categorical_create (const struct variable *v)
 {
@@ -218,7 +221,7 @@ cr_subscript_to_value (const size_t s, struct recoded_categorical *cr)
   Return the row of the matrix corresponding
   to the value v.
  */
-gsl_vector_const_view
+static gsl_vector_const_view
 cr_value_to_vector (const union value * v, struct recoded_categorical * cr)
 {
   size_t row;

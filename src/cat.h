@@ -71,8 +71,8 @@ struct recoded_categorical
 
 /*
   There are usually multiple categorical variables to recode.  Get rid
-  of this immediately once the variable structure has been modified to
-  contain the binary encoding.
+  of this structure immediately when the variable structure has been
+  modified to contain the binary encoding.
  */
 struct recoded_categorical_array
 {
@@ -117,9 +117,6 @@ struct design_matrix
 };
 const union value *cr_vector_to_value (const gsl_vector *,
 				       struct recoded_categorical *);
-
-gsl_vector_const_view cr_value_to_vector (const union value *,
-					  struct recoded_categorical *);
 
 void cr_value_update (struct recoded_categorical *, const union value *);
 
