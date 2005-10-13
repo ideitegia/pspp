@@ -65,8 +65,7 @@ cr_recoded_categorical_create (const struct variable *v)
   rc->v = v;
   rc->n_categories = 0;
   rc->n_allocated_categories = N_INITIAL_CATEGORIES;
-  rc->vals = xmalloc (N_INITIAL_CATEGORIES *
-		      sizeof (*rc->vals));
+  rc->vals = xmalloc (N_INITIAL_CATEGORIES * sizeof (*rc->vals));
 
   return rc;
 }
@@ -146,8 +145,8 @@ cr_value_update (struct recoded_categorical *rc, const union value *v)
       if (rc->n_categories >= rc->n_allocated_categories)
 	{
 	  rc->n_allocated_categories *= 2;
-	  rc->vals =  xrealloc (rc->vals, rc->n_allocated_categories
-				* sizeof (*(rc->vals)));
+	  rc->vals = xrealloc (rc->vals, rc->n_allocated_categories
+			       * sizeof (*(rc->vals)));
 	}
       rc->vals[rc->n_categories] = *v;
       rc->n_categories++;
@@ -221,7 +220,7 @@ cr_subscript_to_value (const size_t s, struct recoded_categorical *cr)
   to the value v.
  */
 static gsl_vector_view
-cr_value_to_vector (const union value * v, struct recoded_categorical * cr)
+cr_value_to_vector (const union value *v, struct recoded_categorical *cr)
 {
   size_t row;
   row = cr_value_to_subscript (v, cr);
@@ -415,7 +414,7 @@ design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
       dmv = dm->vars[i];
       if ((dmv.v)->index == index)
 	{
-	  return dmv.v;
+	  return (struct variable *) dmv.v;
 	}
     }
   return NULL;
