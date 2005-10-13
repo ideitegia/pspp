@@ -53,8 +53,8 @@
 #define CR_VALUE_NOT_FOUND -2
 #define CR_INDEX_NOT_FOUND -3
 
-static gsl_vector_const_view cr_value_to_vector (const union value *,
-						 struct recoded_categorical *);
+static gsl_vector_view cr_value_to_vector (const union value *,
+					   struct recoded_categorical *);
 
 struct recoded_categorical *
 cr_recoded_categorical_create (const struct variable *v)
@@ -65,8 +65,8 @@ cr_recoded_categorical_create (const struct variable *v)
   rc->v = v;
   rc->n_categories = 0;
   rc->n_allocated_categories = N_INITIAL_CATEGORIES;
-  rc->vals = (union value **) xmalloc (N_INITIAL_CATEGORIES *
-				       sizeof (*rc->vals));
+  rc->vals = xmalloc (N_INITIAL_CATEGORIES *
+		      sizeof (*rc->vals));
 
   return rc;
 }
@@ -126,7 +126,7 @@ cr_value_find (struct recoded_categorical *rc, const union value *v)
 
   for (i = 0; i < rc->n_categories; i++)
     {
-      val = *(rc->vals + i);
+      val = rc->vals + i;
       if (!compare_values (val, v, rc->v->width))
 	{
 	  return i;
@@ -146,11 +146,10 @@ cr_value_update (struct recoded_categorical *rc, const union value *v)
       if (rc->n_categories >= rc->n_allocated_categories)
 	{
 	  rc->n_allocated_categories *= 2;
-	  rc->vals = (union value **)
-	    xrealloc (rc->vals, rc->n_allocated_categories
-		      * sizeof (*(rc->vals)));
+	  rc->vals =  xrealloc (rc->vals, rc->n_allocated_categories
+				* sizeof (*(rc->vals)));
 	}
-      *(rc->vals + rc->n_categories) = v;
+      rc->vals[rc->n_categories] = *v;
       rc->n_categories++;
     }
 }
@@ -193,7 +192,7 @@ cr_value_to_subscript (const union value *val, struct recoded_categorical *cr)
   subscript = cr->n_categories - 1;
   while (subscript > 0)
     {
-      v = *(cr->vals + subscript);
+      v = cr->vals + subscript;
       different = compare_values (val, v, cr->v->width);
       if (!different)
 	{
@@ -204,12 +203,12 @@ cr_value_to_subscript (const union value *val, struct recoded_categorical *cr)
   return subscript;
 }
 
-static const union value *
+static union value *
 cr_subscript_to_value (const size_t s, struct recoded_categorical *cr)
 {
   if (s < cr->n_categories)
     {
-      return cr->vals[s];
+      return (cr->vals + s);
     }
   else
     {
@@ -221,12 +220,12 @@ cr_subscript_to_value (const size_t s, struct recoded_categorical *cr)
   Return the row of the matrix corresponding
   to the value v.
  */
-static gsl_vector_const_view
+static gsl_vector_view
 cr_value_to_vector (const union value * v, struct recoded_categorical * cr)
 {
   size_t row;
   row = cr_value_to_subscript (v, cr);
-  return gsl_matrix_const_row (cr->m, row);
+  return gsl_matrix_row (cr->m, row);
 }
 
 /*
@@ -268,7 +267,7 @@ cr_is_zero_vector (const gsl_vector * vec)
   when i is between 1 and cr->n_categories - 1 and
   i is 0 otherwise.
  */
-const union value *
+union value *
 cr_vector_to_value (const gsl_vector * vec, struct recoded_categorical *cr)
 {
   size_t i;
@@ -384,7 +383,7 @@ design_matrix_destroy (struct design_matrix *dm)
   Return the index of the variable for the
   given column.
  */
-static const size_t
+static size_t
 design_matrix_col_to_var_index (const struct design_matrix *dm, size_t col)
 {
   size_t i;
@@ -403,22 +402,20 @@ design_matrix_col_to_var_index (const struct design_matrix *dm, size_t col)
   Return a pointer to the variable whose values
   are stored in column col.
  */
-const struct variable *
+struct variable *
 design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
 {
   size_t index;
   size_t i;
   struct design_matrix_var dmv;
-  const struct variable *v;
 
   index = design_matrix_col_to_var_index (dm, col);
   for (i = 0; i < dm->n_vars; i++)
     {
       dmv = dm->vars[i];
-      v = (dmv.v)->index;
-      if (v->index == index)
+      if ((dmv.v)->index == index)
 	{
-	  return v;
+	  return dmv.v;
 	}
     }
   return NULL;
@@ -469,7 +466,7 @@ design_matrix_set_categorical (struct design_matrix *dm, size_t row,
   double x;
 
   assert (var->type == ALPHA);
-  gsl_vector_const_view vec = cr_value_to_vector (val, rc);
+  const gsl_vector_view vec = cr_value_to_vector (val, rc);
 
   /*
      Copying values here is not the 'most efficient' way,

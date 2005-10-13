@@ -47,10 +47,11 @@
 struct recoded_categorical
 {
   const struct variable *v;	/* Original variable. */
-  union value **vals;
-  gsl_matrix *m;		/* Vector-encoded values of the original
-				   variable. The ith row of the matrix corresponds
-				   to the ith value of a categorical variable.
+  union value *vals;
+  gsl_matrix *m;		/* Vector-encoded values of the
+				   original variable. The ith row of
+				   the matrix corresponds to the ith
+				   value of a categorical variable.
 				 */
   size_t n_categories;
   size_t first_column;		/* First column of the gsl_matrix which
@@ -58,15 +59,17 @@ struct recoded_categorical
 				   variable.
 				 */
   size_t last_column;		/* Last column containing the recoded
-				   categories.  The practice of keeping only the
-				   first and last columns of the matrix implies
-				   those columns corresponding to v must be
+				   categories.  The practice of
+				   keeping only the first and last
+				   columns of the matrix implies those
+				   columns corresponding to v must be
 				   contiguous.
 				 */
-  size_t n_allocated_categories;	/* This is used only during initialization
-					   to keep track of the number of values
-					   stored. 
-					 */
+  size_t n_allocated_categories; /* This is used only during
+				    initialization to keep
+				    track of the number of
+				    values stored.
+				 */
 };
 
 /*
@@ -96,7 +99,7 @@ struct design_matrix_var
 				   in the variable's struct recoded_categorical.
 				 */
   int last_column;
-  struct variable *v;
+  const struct variable *v;
 };
 struct design_matrix
 {
@@ -115,8 +118,8 @@ struct design_matrix
 					 */
   size_t n_vars;
 };
-const union value *cr_vector_to_value (const gsl_vector *,
-				       struct recoded_categorical *);
+union value *cr_vector_to_value (const gsl_vector *,
+				 struct recoded_categorical *);
 
 void cr_value_update (struct recoded_categorical *, const union value *);
 
@@ -155,8 +158,8 @@ void design_matrix_set_numeric (struct design_matrix *, size_t,
 size_t design_matrix_var_to_column (const struct design_matrix *,
 				    const struct variable *);
 
-const struct variable *design_matrix_col_to_var (const struct design_matrix *,
-						 size_t);
+struct variable *design_matrix_col_to_var (const struct design_matrix *,
+					   size_t);
 
 void
 design_matrix_set (struct design_matrix *, size_t,
