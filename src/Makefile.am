@@ -22,13 +22,13 @@ $(q_sources_c): q2c$(EXEEXT)
 	./q2c $< $@
 
 q_sources_c = correlations.c crosstabs.c examine.c file-handle.c	\
-frequencies.c list.c means.c oneway.c rank.c set.c  t-test.c 
+frequencies.c list.c means.c oneway.c rank.c regression.c set.c  t-test.c 
 
 CLEANFILES=$(q_sources_c)
 DISTCLEANFILES=version.c
 
 q_sources_q = correlations.q crosstabs.q examine.q file-handle.q	\
-frequencies.q list.q means.q oneway.q rank.q set.q  t-test.q
+frequencies.q list.q means.q oneway.q rank.q regression.q set.q  t-test.q
 
 if WITHCHARTS
 chart_sources = barchart.c \
@@ -44,8 +44,8 @@ endif
 pspp_SOURCES = $(q_sources_c) $(chart_sources) aggregate.c algorithm.c	\
 algorithm.h alloc.c alloc.h apply-dict.c ascii.c autorecode.c		\
 bitvector.h calendar.c calendar.h case.c case.h casefile.c casefile.h	\
-chart.c chart.h cmdline.c cmdline.h command.c command.def command.h	\
-compute.c copyleft.c copyleft.h count.c data-in.c data-in.h		\
+cat.c cat.h chart.c chart.h cmdline.c cmdline.h command.c command.def	\
+command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
 devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h		\
 dictionary.c dictionary.h do-if.c do-ifP.h echo.c error.c error.h	\
@@ -71,6 +71,7 @@ version.h vfm.c vfm.h vfmP.h weight.c
 pspp_LDADD =					\
 	expressions/libexpressions.a		\
 	../lib/gsl-extras/libgsl-extras.a	\
+	../lib/linreg/liblinreg.a		\
 	../gl/libgl.a				\
 	@LIBINTL@
 
