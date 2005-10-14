@@ -294,7 +294,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   else
     {
       /*
-         Use QR decomposition via GSL. This section has not been tested.
+         Use QR decomposition via GSL.
        */
       design = gsl_matrix_alloc (X->size1, 1 + X->size2);
 
