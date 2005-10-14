@@ -495,18 +495,8 @@ run_regression (const struct casefile *cf, void *cmd_)
 	   */
 	  if (is_depvar (i))
 	    {
-	      if (v->type == NUMERIC)
-		{
-		  gsl_vector_set (Y, row, val->f);
-		}
-	      else
-		{
-		  errno = EINVAL;
-		  fprintf (stderr,
-			   "%s:%d: Dependent variable should be numeric: %s\n",
-			   __FILE__, __LINE__, strerror (errno));
-		  err_cond_fail ();
-		}
+	      assert(v->type == NUMERIC);
+	      gsl_vector_set (Y, row, val->f);
 	    }
 	  else
 	    {
