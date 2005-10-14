@@ -465,7 +465,6 @@ run_regression (const struct casefile *cf, void *cmd_)
 	  val = case_data (&c, v->fv);
 	  cr_value_update (*(ca->a + i), val);
 	}
-      n_data++;
     }
   cr_create_value_matrices (ca);
   X =
