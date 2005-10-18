@@ -94,7 +94,34 @@ static void statistics_keyword_output (void (*)(pspp_linreg_cache *),
 static void
 reg_stats_r (pspp_linreg_cache * c)
 {
+  struct table *t;
+  int n_rows = 2;
+  int n_cols = 5;
+  double rsq;
+  double adjrsq;
+  double stderr;
+  
   assert (c != NULL);
+  rsq = c->ssm / c->sst;
+  adjrsq = 1.0 - (1.0 - rsq) * (c->n_obs - 1.0) / (c->n_obs - c->n_indeps);
+  stderr = sqrt (2 * (c->n_indeps - 1.0) / (c->n_obs - 1.0));
+  t = tab_create (n_cols, n_rows, 0);
+  tab_dim (t, tab_natural_dimensions);
+  tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
+  tab_hline (t, TAL_2, 0, n_cols - 1, 1);
+  tab_vline (t, TAL_2, 2, 0, n_rows - 1);
+  tab_vline (t, TAL_0, 1, 0, 0);
+  
+  tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("R"));
+  tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("R Square"));  
+  tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Adjusted R Square"));  
+  tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Error of the Estimate"));    
+  tab_float (t, 1, 1, TAB_RIGHT, sqrt(rsq), 10, 2);
+  tab_float (t, 2, 1, TAB_RIGHT, rsq, 10, 2);
+  tab_float (t, 3, 1, TAB_RIGHT, adjrsq, 10, 2);
+  tab_float (t, 4, 1, TAB_RIGHT, stderr, 10, 2);
+  tab_title (t, 0, _("Model Summary"));
+  tab_submit (t);
 }
 
 /*
