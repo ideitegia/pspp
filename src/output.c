@@ -296,7 +296,7 @@ outp_read_devices (void)
   if (init_fn == NULL)
     {
       msg (IE, _("Cannot find output initialization file.  "
-                 "Use `-vvvv' to view search path."));
+                 "Use `-vvvvv' to view search path."));
       goto exit;
     }
 

@@ -1,3 +1,7 @@
+Thu Oct 20 18:18:40 2005  Ben Pfaff  <blp@gnu.org>
+
+	* output.c: (outp_read_devices) Fix message.
+
 Sat Sep 17 11:13:13 2005  Ben Pfaff  <blp@gnu.org>
 
 	* matrix-data.c: (cmd_matrix_data) Change type of variable whose
