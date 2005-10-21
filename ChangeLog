@@ -3,6 +3,10 @@ Thu Oct 20 18:19:58 2005  Ben Pfaff  <blp@gnu.org>
 	* configure.ac: Improve error messages.  Thanks to Jaap-Andre de
 	Hoop <j.dehoop@data-assist.nl>.
 
+Wed Oct 12 20:33:07 2005 Jason Stover <jstover@sdf.lonestar.org>
+
+	* regression.q: Initial version of the REGRESSION procedure.
+	
 Sun Sep 25 16:11:09 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Handles `examples' as a subdirectory instead of a
