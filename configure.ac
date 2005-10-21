@@ -36,7 +36,7 @@ AC_ARG_WITH(libplot, [  --without-libplot         don't compile in support of ch
 
 if test x"$with_libplot" != x"no" ; then 
 	AC_CHECK_LIB(plot, pl_newpl_r,,
-	  AC_MSG_ERROR([You must install libplot (or use --without-libplot)])
+	  AC_MSG_ERROR([You must install libplot development libraries (or use --without-libplot)])
 	)
 fi
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
@@ -56,9 +56,9 @@ int main (void)
 using Solaris.  You can probably fix the problem with
 `--disable-largefile' or `CFLAGS=-ansi'.])])
 
-AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas]))
+AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas development libraries]))
 AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,
-  AC_MSG_ERROR([You must install libgsl version 1.4 or later]))
+  AC_MSG_ERROR([You must install development libraries for libgsl version 1.4 or later]))
 
 AC_ARG_WITH(ncurses,
 [  --without-ncurses         don't compile in ncurses command line editing])
