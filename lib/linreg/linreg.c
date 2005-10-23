@@ -145,7 +145,6 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   double m;
   double s;
   double ss;
-  double mse;
 
   if (cache == NULL)
     {

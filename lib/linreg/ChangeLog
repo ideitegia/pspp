@@ -1,0 +1,9 @@
+Sun Oct 23 13:46:56 2005  Ben Pfaff  <blp@gnu.org>
+
+	* linreg.c: (pspp_linreg) Removed unused variable `mse'.
+
+----------------------------------------------------------------------
+Local Variables:
+mode: change-log
+version-control: never
+End:
