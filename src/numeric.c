@@ -36,11 +36,11 @@
 int
 cmd_numeric (void)
 {
-  int i;
+  size_t i;
 
   /* Names of variables to create. */
   char **v;
-  int nv;
+  size_t nv;
 
   /* Format spec for variables to create.  f.type==-1 if default is to
      be used. */
@@ -107,11 +107,11 @@ fail:
 int
 cmd_string (void)
 {
-  int i;
+  size_t i;
 
   /* Names of variables to create. */
   char **v;
-  int nv;
+  size_t nv;
 
   /* Format spec for variables to create. */
   struct fmt_spec f;
@@ -187,9 +187,9 @@ int
 cmd_leave (void)
 {
   struct variable **v;
-  int nv;
+  size_t nv;
 
-  int i;
+  size_t i;
 
   if (!parse_variables (default_dict, &v, &nv, PV_NONE))
     return CMD_FAILURE;

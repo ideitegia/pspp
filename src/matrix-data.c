@@ -132,7 +132,7 @@ struct matrix_data_pgm
     struct variable *single_split; /* Single SPLIT FILE variable. */
 
     /* Factor variables.  */
-    int n_factors;              /* Number of factor variables. */
+    size_t n_factors;           /* Number of factor variables. */
     struct variable **factors;  /* Factor variables. */
     int is_per_factor[PROX + 1]; /* Is there per-factor data? */
 
@@ -204,7 +204,7 @@ cmd_matrix_data (void)
       if (lex_match_id ("VARIABLES"))
 	{
 	  char **v;
-	  int nv;
+	  size_t nv;
 
 	  if (seen & 1)
 	    {
@@ -218,7 +218,7 @@ cmd_matrix_data (void)
 	    goto lossage;
 	  
 	  {
-	    int i;
+	    size_t i;
 
 	    for (i = 0; i < nv; i++)
 	      if (!strcasecmp (v[i], "VARNAME_"))
@@ -233,7 +233,7 @@ cmd_matrix_data (void)
 	  }
 	  
 	  {
-	    int i;
+	    size_t i;
 
 	    for (i = 0; i < nv; i++)
 	      {
@@ -327,7 +327,7 @@ cmd_matrix_data (void)
 	  else
 	    {
 	      struct variable **split;
-	      int n;
+	      size_t n;
 
 	      if (!parse_variables (default_dict, &split, &n, PV_NO_DUPLICATE))
 		goto lossage;
@@ -366,11 +366,12 @@ cmd_matrix_data (void)
 	    }
 	  seen |= 4;
 
-	  if (!parse_variables (default_dict, &mx->factors, &mx->n_factors, PV_NONE))
+	  if (!parse_variables (default_dict, &mx->factors, &mx->n_factors,
+                                PV_NONE))
 	    goto lossage;
 	  
 	  {
-	    int i;
+	    size_t i;
 	    
 	    for (i = 0; i < mx->n_factors; i++)
 	      {
@@ -571,7 +572,7 @@ cmd_matrix_data (void)
      system file output. */
   {
     struct variable **v;
-    int nv;
+    size_t nv;
 
     dict_get_vars (default_dict, &v, &nv, 0);
     qsort (v, nv, sizeof *v, compare_variables_by_mxd_var_type);
@@ -960,7 +961,8 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
 
   nr.mx = mx;
   nr.data = NULL;
-  nr.factor_values = xmalloc (sizeof *nr.factor_values * mx->n_factors * mx->cells);
+  nr.factor_values = xmalloc (sizeof *nr.factor_values
+                              * mx->n_factors * mx->cells);
   nr.max_cell_idx = 0;
   nr.split_values = xmalloc (sizeof *nr.split_values
                              * dict_get_split_cnt (default_dict));
@@ -1309,7 +1311,7 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
     }
       
   {
-    int i;
+    size_t i;
     
     for (i = 0; i < mx->n_factors; i++)
       {
@@ -1403,7 +1405,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
       for (cell = 0; cell < mx->cells; cell++)
 	{
 	  {
-	    int factor;
+	    size_t factor;
 
 	    for (factor = 0; factor < mx->n_factors; factor++)
 	      {
@@ -1433,7 +1435,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
     int content;
     
     {
-      int factor;
+      size_t factor;
 
       for (factor = 0; factor < mx->n_factors; factor++)
 	case_data_rw (c, mx->factors[factor]->fv)->f = SYSMIS;
@@ -1664,7 +1666,7 @@ wr_output_data (struct wr_aux_data *wr,
     for (iter = wr->data; iter; iter = iter->next)
       {
 	{
-	  int factor;
+	  size_t factor;
 
 	  for (factor = 0; factor < mx->n_factors; factor++)
             case_data_rw (c, mx->factors[factor]->fv)->f
@@ -1765,7 +1767,7 @@ wr_read_factors (struct wr_aux_data *wr)
 
   wr->content = -1;
   {
-    int i;
+    size_t i;
   
     for (i = 0; i < mx->n_factors; i++)
       {
@@ -1802,7 +1804,7 @@ wr_read_factors (struct wr_aux_data *wr)
      mechanism. */
   if (wr->current)
     {
-      int i;
+      size_t i;
       
       for (i = 0; i < mx->n_factors; i++)
 	if (factor_values[i] != wr->current->factors[i])
@@ -1817,7 +1819,7 @@ cache_miss:
 
     for (iter = wr->data; iter; iter = iter->next)
       {
-	int i;
+	size_t i;
 
 	for (i = 0; i < mx->n_factors; i++)
 	  if (factor_values[i] != iter->factors[i])
@@ -1834,10 +1836,11 @@ cache_miss:
   {
     struct factor_data *new = pool_alloc (mx->container, sizeof *new);
 
-    new->factors = pool_alloc (mx->container, sizeof *new->factors * mx->n_factors);
+    new->factors = pool_alloc (mx->container,
+                               sizeof *new->factors * mx->n_factors);
     
     {
-      int i;
+      size_t i;
 
       for (i = 0; i < mx->n_factors; i++)
 	new->factors[i] = factor_values[i];

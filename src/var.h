@@ -195,7 +195,8 @@ size_t var_set_get_cnt (const struct var_set *vs);
 struct variable *var_set_get_var (const struct var_set *vs, size_t idx);
 struct variable *var_set_lookup_var (const struct var_set *vs,
                                      const char *name);
-int var_set_lookup_var_idx (const struct var_set *vs, const char *name);
+bool var_set_lookup_var_idx (const struct var_set *vs, const char *name,
+                             size_t *idx);
 void var_set_destroy (struct var_set *vs);
 
 /* Variable parsers. */
@@ -215,12 +216,12 @@ enum
 
 struct variable *parse_variable (void);
 struct variable *parse_dict_variable (const struct dictionary *);
-int parse_variables (const struct dictionary *, struct variable ***, int *,
+int parse_variables (const struct dictionary *, struct variable ***, size_t *,
                      int opts);
-int parse_var_set_vars (const struct var_set *, struct variable ***, int *,
+int parse_var_set_vars (const struct var_set *, struct variable ***, size_t *,
                         int opts);
-int parse_DATA_LIST_vars (char ***names, int *cnt, int opts);
-int parse_mixed_vars (char ***names, int *cnt, int opts);
+int parse_DATA_LIST_vars (char ***names, size_t *cnt, int opts);
+int parse_mixed_vars (char ***names, size_t *cnt, int opts);
 
 
 

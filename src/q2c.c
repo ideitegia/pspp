@@ -1143,7 +1143,7 @@ dump_declarations (void)
 	    break;
 
 	  case SBC_VARLIST:
-	    dump (0, "int %sn_%s;", st_lower (sbc->prefix),
+	    dump (0, "size_t %sn_%s;", st_lower (sbc->prefix),
 		  st_lower (sbc->name));
 	    dump (0, "struct variable **%sv_%s;", st_lower (sbc->prefix),
 		  st_lower (sbc->name));

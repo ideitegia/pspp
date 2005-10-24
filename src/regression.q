@@ -94,7 +94,7 @@ static void statistics_keyword_output (void (*)(pspp_linreg_cache *),
 static void
 reg_stats_r (pspp_linreg_cache * c)
 {
-  struct table *t;
+  struct tab_table *t;
   int n_rows = 2;
   int n_cols = 5;
   double rsq;
@@ -447,7 +447,7 @@ is_depvar (size_t k)
 }
 
 static void
-run_regression (const struct casefile *cf, void *cmd_)
+run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 {
   size_t i;
   size_t k;

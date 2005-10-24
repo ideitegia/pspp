@@ -39,9 +39,9 @@ cmd_variable_alignment (void)
   do
     {
       struct variable **v;
-      int nv;
+      size_t nv;
 
-      int i;
+      size_t i;
       enum alignment align;
 
 
@@ -93,8 +93,8 @@ cmd_variable_width (void)
   do
     {
       struct variable **v;
-      int nv;
-      int i;
+      size_t nv;
+      size_t i;
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
         return CMD_PART_SUCCESS_MAYBE;
@@ -127,9 +127,9 @@ cmd_variable_level (void)
   do
     {
       struct variable **v;
-      int nv;
+      size_t nv;
       enum measure level;
-      int i;
+      size_t i;
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
         return CMD_PART_SUCCESS_MAYBE;

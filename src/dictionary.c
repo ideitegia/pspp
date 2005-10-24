@@ -223,7 +223,7 @@ dict_get_var (const struct dictionary *d, size_t idx)
    exclude ordinary, system, and/or scratch variables. */
 void
 dict_get_vars (const struct dictionary *d, struct variable ***vars,
-               int *cnt, unsigned exclude_classes)
+               size_t *cnt, unsigned exclude_classes)
 {
   size_t count;
   size_t i;

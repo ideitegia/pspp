@@ -58,7 +58,7 @@ struct autorecode_trns
     struct trns_header h;
     struct pool *owner;		/* Contains AUTORECODE specs. */
     struct arc_spec *specs;	/* AUTORECODE specifications. */
-    int spec_cnt;		/* Number of specifications. */
+    size_t spec_cnt;		/* Number of specifications. */
   };
 
 /* Descending or ascending sort order. */
@@ -75,7 +75,7 @@ struct autorecode_pgm
     char **dst_names;              /* Target variable names. */
     struct variable **dst_vars;    /* Target variables. */
     struct hsh_table **src_values; /* `union value's of source vars. */
-    int var_cnt;                   /* Number of variables. */
+    size_t var_cnt;                /* Number of variables. */
     struct pool *src_values_pool;  /* Pool used by src_values. */
     enum direction direction;      /* Sort order. */
     int print;                     /* Print mapping table if nonzero. */
@@ -95,8 +95,8 @@ int
 cmd_autorecode (void)
 {
   struct autorecode_pgm arc;
-  int dst_cnt;
-  int i;
+  size_t dst_cnt;
+  size_t i;
 
   arc.src_vars = NULL;
   arc.dst_names = NULL;
@@ -120,10 +120,11 @@ cmd_autorecode (void)
     goto lossage;
   if (dst_cnt != arc.var_cnt)
     {
-      int i;
+      size_t i;
 
-      msg (SE, _("Source variable count (%d) does not match "
-                 "target variable count (%d)."), arc.var_cnt, dst_cnt);
+      msg (SE, _("Source variable count (%u) does not match "
+                 "target variable count (%u)."),
+           (unsigned) arc.var_cnt, (unsigned) dst_cnt);
 
       for (i = 0; i < dst_cnt; i++)
         free (arc.dst_names[i]);
@@ -197,7 +198,7 @@ arc_free (struct autorecode_pgm *arc)
   free (arc->src_vars);
   if (arc->dst_names != NULL) 
     {
-      int i;
+      size_t i;
       
       for (i = 0; i < arc->var_cnt; i++)
         free (arc->dst_names[i]);
@@ -206,7 +207,7 @@ arc_free (struct autorecode_pgm *arc)
   free (arc->dst_vars);
   if (arc->src_values != NULL) 
     {
-      int i;
+      size_t i;
 
       for (i = 0; i < arc->var_cnt; i++)
         hsh_destroy (arc->src_values[i]);
@@ -223,7 +224,7 @@ recode (const struct autorecode_pgm *arc)
 {
   struct autorecode_trns *t;
   struct pool *pool;
-  int i;
+  size_t i;
 
   pool = pool_create ();
   t = xmalloc (sizeof *t);
@@ -270,7 +271,7 @@ autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
                       int case_idx UNUSED)
 {
   struct autorecode_trns *t = (struct autorecode_trns *) trns;
-  int i;
+  size_t i;
 
   for (i = 0; i < t->spec_cnt; i++)
     {
@@ -293,7 +294,7 @@ static void
 autorecode_trns_free (struct trns_header * trns)
 {
   struct autorecode_trns *t = (struct autorecode_trns *) trns;
-  int i;
+  size_t i;
 
   for (i = 0; i < t->spec_cnt; i++)
     hsh_destroy (t->specs[i].items);
@@ -342,7 +343,7 @@ static int
 autorecode_proc_func (struct ccase *c, void *arc_)
 {
   struct autorecode_pgm *arc = arc_;
-  int i;
+  size_t i;
 
   for (i = 0; i < arc->var_cnt; i++)
     {

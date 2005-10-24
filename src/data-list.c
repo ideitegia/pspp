@@ -317,7 +317,7 @@ struct fmt_list
 struct fixed_parsing_state
   {
     char **name;		/* Variable names. */
-    int name_cnt;		/* Number of names. */
+    size_t name_cnt;		/* Number of names. */
 
     int recno;			/* Index of current record. */
     int sc;			/* 1-based column number of starting column for
@@ -337,7 +337,7 @@ static int
 parse_fixed (struct data_list_pgm *dls)
 {
   struct fixed_parsing_state fx;
-  int i;
+  size_t i;
 
   fx.recno = 0;
   fx.sc = 1;
@@ -828,9 +828,9 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
     {
       struct fmt_spec input, output;
       char **name;
-      int name_cnt;
+      size_t name_cnt;
       int width;
-      int i;
+      size_t i;
 
       if (!parse_DATA_LIST_vars (&name, &name_cnt, PV_NONE))
 	return 0;
@@ -1722,7 +1722,7 @@ static int
 parse_repeating_data (struct dls_var_spec **first, struct dls_var_spec **last)
 {
   struct fixed_parsing_state fx;
-  int i;
+  size_t i;
 
   fx.recno = 0;
   fx.sc = 1;

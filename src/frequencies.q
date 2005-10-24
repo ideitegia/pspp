@@ -188,7 +188,7 @@ static double scale, incr;	/* FIXME */
 static int normal;		/* FIXME */
 
 /* Variables for which to calculate statistics. */
-static int n_variables;
+static size_t n_variables;
 static struct variable **v_variables;
 
 /* Arenas used to store semi-permanent storage. */
@@ -493,7 +493,7 @@ static int
 calc (struct ccase *c, void *aux UNUSED)
 {
   double weight;
-  int i;
+  size_t i;
   int bad_warn = 1;
 
   weight = dict_get_case_weight (default_dict, c, &bad_warn);
@@ -547,7 +547,7 @@ calc (struct ccase *c, void *aux UNUSED)
 static void
 precalc (void *aux UNUSED)
 {
-  int i;
+  size_t i;
 
   pool_destroy (gen_pool);
   gen_pool = pool_create ();
@@ -591,7 +591,7 @@ precalc (void *aux UNUSED)
 static void
 postcalc (void *aux UNUSED)
 {
-  int i;
+  size_t i;
 
   for (i = 0; i < n_variables; i++)
     {
@@ -773,8 +773,8 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
   int mode;
   int min = 0, max = 0;
 
-  int old_n_variables = n_variables;
-  int i;
+  size_t old_n_variables = n_variables;
+  size_t i;
 
   lex_match ('=');
   if (token != T_ALL && (token != T_ID
@@ -856,14 +856,14 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
       || token == T_ID)
     for (;;)
       {
-	int i;
+	size_t i;
 
 	/* Max, current size of list; list itself. */
 	int nl, ml;
 	double *dl;
 
 	/* Variable list. */
-	int n;
+	size_t n;
 	struct variable **v;
 
 	if (!parse_variables (default_dict, &v, &n,

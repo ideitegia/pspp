@@ -27,7 +27,7 @@ struct variable;
 struct dictionary;
 
 struct sort_criteria *sort_parse_criteria (const struct dictionary *,
-                                           struct variable ***, int *,
+                                           struct variable ***, size_t *,
                                            bool *saw_direction,
 					   const int *terminators
 					   );

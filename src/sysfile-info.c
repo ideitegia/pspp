@@ -171,7 +171,7 @@ cmd_sysfile_info (void)
 
 static void display_macros (void);
 static void display_documents (void);
-static void display_variables (struct variable **, int, int);
+static void display_variables (struct variable **, size_t, int);
 static void display_vectors (int sorted);
 
 int
@@ -181,7 +181,7 @@ cmd_display (void)
   int sorted;
 
   /* Variables to display. */
-  int n;
+  size_t n;
   struct variable **vl;
 
   if (lex_match_id ("MACROS"))
@@ -247,7 +247,7 @@ cmd_display (void)
 
       if (as == AS_SCRATCH)
 	{
-	  int i, m;
+	  size_t i, m;
 	  for (i = 0, m = n; i < n; i++)
 	    if (dict_class_from_id (vl[i]->name) != DC_SCRATCH)
 	      {
@@ -341,7 +341,7 @@ variables_dim (struct tab_table *t, struct outp_driver *d)
 }
   
 static void
-display_variables (struct variable **vl, int n, int as)
+display_variables (struct variable **vl, size_t n, int as)
 {
   struct variable **vp = vl;		/* Variable pointer. */
   struct tab_table *t;
@@ -349,7 +349,7 @@ display_variables (struct variable **vl, int n, int as)
   int nr;			/* Number of rows. */
   int pc;			/* `Position column' */
   int r;			/* Current row. */
-  int i;
+  size_t i;
 
   _as = as;
   switch (as)

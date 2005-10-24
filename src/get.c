@@ -559,13 +559,13 @@ parse_dict_trim (struct dictionary *dict)
 static bool
 rename_variables (struct dictionary *dict)
 {
-  int i;
+  size_t i;
 
   int success = 0;
 
   struct variable **v;
   char **new_names;
-  int nv, nn;
+  size_t nv, nn;
   char *err_name;
 
   int group;
@@ -602,7 +602,7 @@ rename_variables (struct dictionary *dict)
   group = 1;
   while (lex_match ('('))
     {
-      int old_nv = nv;
+      size_t old_nv = nv;
 
       if (!parse_variables (dict, &v, &nv, PV_NO_DUPLICATE | PV_APPEND))
 	goto done;
@@ -618,7 +618,7 @@ rename_variables (struct dictionary *dict)
 	  msg (SE, _("Number of variables on left side of `=' (%d) does not "
                      "match number of variables on right side (%d), in "
                      "parenthesized group %d of RENAME subcommand."),
-	       nv - old_nv, nn - old_nv, group);
+	       (unsigned) (nv - old_nv), (unsigned) (nn - old_nv), group);
 	  goto done;
 	}
       if (!lex_force_match (')'))
@@ -648,7 +648,7 @@ static bool
 drop_variables (struct dictionary *dict)
 {
   struct variable **v;
-  int nv;
+  size_t nv;
 
   lex_match ('=');
   if (!parse_variables (dict, &v, &nv, PV_NONE))
@@ -670,8 +670,8 @@ static bool
 keep_variables (struct dictionary *dict)
 {
   struct variable **v;
-  int nv;
-  int i;
+  size_t nv;
+  size_t i;
 
   lex_match ('=');
   if (!parse_variables (dict, &v, &nv, PV_NONE))
@@ -726,7 +726,7 @@ struct mtf_proc
     struct mtf_file *head;      /* First file mentioned on FILE or TABLE. */
     struct mtf_file *tail;      /* Last file mentioned on FILE or TABLE. */
     
-    int by_cnt;                 /* Number of variables on BY subcommand. */
+    size_t by_cnt;              /* Number of variables on BY subcommand. */
 
     /* Names of FIRST, LAST variables. */
     char first[LONG_NAME_LEN + 1], last[LONG_NAME_LEN + 1];
@@ -919,7 +919,7 @@ cmd_match_files (void)
 
           for (iter = mtf.head; iter != NULL; iter = iter->next)
             {
-              int i;
+              size_t i;
 	  
               iter->by = xmalloc (sizeof *iter->by * mtf.by_cnt);
 

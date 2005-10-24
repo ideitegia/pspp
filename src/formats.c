@@ -64,7 +64,7 @@ internal_cmd_formats (int which)
 {
   /* Variables. */
   struct variable **v;
-  int cv;
+  size_t cv;
 
   /* Format to set the variables to. */
   struct fmt_spec f;
@@ -73,7 +73,7 @@ internal_cmd_formats (int which)
   int type;
 
   /* Counter. */
-  int i;
+  size_t i;
 
   for (;;)
     {

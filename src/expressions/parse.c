@@ -1158,8 +1158,8 @@ parse_function (struct expression *e)
         if (token == T_ID && lex_look_ahead () == 'T')
           {
             struct variable **vars;
-            int var_cnt;
-            int i;
+            size_t var_cnt;
+            size_t i;
 
             if (!parse_variables (default_dict, &vars, &var_cnt, PV_SINGLE))
               goto fail;

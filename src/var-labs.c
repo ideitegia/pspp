@@ -35,13 +35,13 @@
 int
 cmd_variable_labels (void)
 {
-  struct variable **v;
-  int nv;
-
-  int i;
-
   do
     {
+      struct variable **v;
+      size_t nv;
+
+      size_t i;
+
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
         return CMD_PART_SUCCESS_MAYBE;
 

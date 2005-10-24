@@ -77,7 +77,7 @@ static struct cmd_examine cmd;
 
 static struct variable **dependent_vars;
 
-static int n_dependent_vars;
+static size_t n_dependent_vars;
 
 
 struct factor 
@@ -328,7 +328,7 @@ output_examine(void)
 
       if ( cmd.sbc_plot) 
 	{
-	  int v;
+	  size_t v;
 
 	  struct factor_statistics **fs = fctr->fs ;
 
@@ -611,7 +611,7 @@ static int bad_weight_warn = 1;
 void
 factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 {
-  int v;
+  size_t v;
   struct factor *fctr = factors;
 
   while ( fctr) 
@@ -812,7 +812,7 @@ run_examine(const struct casefile *cf, void *cmd_ )
 		hsh_probe(fctr->fstats, (void *) &key );
 
 	      if ( !*ffs ) {
-		int i;
+		size_t i;
 		(*ffs) = create_factor_statistics (n_dependent_vars,
 						   &key[0], &key[1]);
 		for ( i = 0 ; i < n_dependent_vars ; ++i ) 
@@ -834,7 +834,7 @@ run_examine(const struct casefile *cf, void *cmd_ )
 
   if ( totals ) 
     {
-      int i;
+      size_t i;
       for ( i = 0 ; i < n_dependent_vars ; ++i ) 
 	{
 	  metrics_destroy(&totals[i]);

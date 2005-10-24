@@ -71,7 +71,7 @@ static struct cmd_oneway cmd;
 static struct variable *indep_var;
 
 /* Number of dependent variables */
-static int n_vars;
+static size_t n_vars;
 
 /* The dependent variables */
 static struct variable **vars;
@@ -154,8 +154,7 @@ cmd_oneway(void)
 void
 output_oneway(void)
 {
-
-  int i;
+  size_t i;
   short *bad_contrast ; 
 
   bad_contrast = xmalloc ( sizeof (short) * cmd.sbc_contrast );
@@ -258,9 +257,9 @@ oneway_custom_variables(struct cmd_oneway *cmd UNUSED)
 static void  
 show_anova_table(void)
 {
-  int i;
+  size_t i;
   int n_cols =7;
-  int n_rows = n_vars * 3 + 1;
+  size_t n_rows = n_vars * 3 + 1;
 
   struct tab_table *t;
 
@@ -364,7 +363,7 @@ show_anova_table(void)
 static void  
 show_descriptives(void)
 {
-  int v;
+  size_t v;
   int n_cols =10;
   struct tab_table *t;
   int row;
@@ -511,9 +510,9 @@ show_descriptives(void)
 static void 
 show_homogeneity(void)
 {
-  int v;
+  size_t v;
   int n_cols = 5;
-  int n_rows = n_vars + 1;
+  size_t n_rows = n_vars + 1;
 
   struct tab_table *t;
 
@@ -650,9 +649,9 @@ show_contrast_coeffs(short *bad_contrast)
 static void 
 show_contrast_tests(short *bad_contrast)
 {
-  int v;
+  size_t v;
   int n_cols = 8;
-  int n_rows = 1 + n_vars * 2 * cmd.sbc_contrast;
+  size_t n_rows = 1 + n_vars * 2 * cmd.sbc_contrast;
 
   struct tab_table *t;
 
@@ -857,7 +856,7 @@ static void  precalc ( struct cmd_oneway *cmd UNUSED );
 static void 
 precalc ( struct cmd_oneway *cmd UNUSED )
 {
-  int i=0;
+  size_t i=0;
 
   for(i=0; i< n_vars ; ++i) 
     {
@@ -905,7 +904,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
-      int i;
+      size_t i;
 
       const double weight = 
 	dict_get_case_weight(default_dict,&c,&bad_weight_warn);
@@ -1016,7 +1015,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
 void 
 postcalc (  struct cmd_oneway *cmd UNUSED )
 {
-  int i=0;
+  size_t i=0;
 
 
   for(i = 0; i < n_vars ; ++i) 

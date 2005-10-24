@@ -39,12 +39,10 @@ cmd_rename_variables (void)
 {
   struct variable **rename_vars = NULL;
   char **rename_new_names = NULL;
-  int rename_cnt = 0;
+  size_t rename_cnt = 0;
   char *err_name;
 
   int status = CMD_FAILURE;
-
-  int i;
 
   if (temporary != 0)
     {
@@ -55,8 +53,8 @@ cmd_rename_variables (void)
 
   do
     {
-      int prev_nv_1 = rename_cnt;
-      int prev_nv_2 = rename_cnt;
+      size_t prev_nv_1 = rename_cnt;
+      size_t prev_nv_2 = rename_cnt;
 
       if (!lex_match ('('))
 	{
@@ -75,9 +73,12 @@ cmd_rename_variables (void)
 	goto lossage;
       if (prev_nv_1 != rename_cnt)
 	{
+          size_t i;
+
 	  msg (SE, _("Differing number of variables in old name list "
-	       "(%d) and in new name list (%d)."),
-	       rename_cnt - prev_nv_2, prev_nv_1 - prev_nv_2);
+                     "(%u) and in new name list (%u)."),
+	       (unsigned) rename_cnt - prev_nv_2,
+               (unsigned) prev_nv_1 - prev_nv_2);
 	  for (i = 0; i < prev_nv_1; i++)
 	    free (rename_new_names[i]);
 	  free (rename_new_names);
@@ -106,6 +107,7 @@ cmd_rename_variables (void)
   free (rename_vars);
   if (rename_new_names != NULL) 
     {
+      size_t i;
       for (i = 0; i < rename_cnt; i++)
         free (rename_new_names[i]);
       free (rename_new_names); 

@@ -20,6 +20,7 @@
 #include <config.h>
 #include "var.h"
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "alloc.h"
 #include "bitvector.h"
@@ -28,31 +29,35 @@
 #include "hash.h"
 #include "lexer.h"
 #include "misc.h"
+#include "size_max.h"
 #include "str.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Parses a name as a variable within VS and returns the
-   variable's index if successful.  On failure emits an error
-   message and returns a null pointer. */
-static int
-parse_vs_variable_idx (const struct var_set *vs)
+/* Parses a name as a variable within VS.  Sets *IDX to the
+   variable's index and returns true if successful.  On failure
+   emits an error message and returns false. */
+static bool
+parse_vs_variable_idx (const struct var_set *vs, size_t *idx)
 {
-  int idx;
-
+  assert (idx != NULL);
+  
   if (token != T_ID)
     {
       lex_error (_("expecting variable name"));
-      return -1;
+      return false;
     }
-
-  idx = var_set_lookup_var_idx (vs, tokid);
-  if (idx < 0)
-    msg (SE, _("%s is not a variable name."), tokid);
-  lex_get ();
-
-  return idx;
+  else if (var_set_lookup_var_idx (vs, tokid, idx)) 
+    {
+      lex_get ();
+      return true;
+    }
+  else 
+    {
+      msg (SE, _("%s is not a variable name."), tokid);
+      return false;
+    }
 }
 
 /* Parses a name as a variable within VS and returns the variable
@@ -61,8 +66,8 @@ parse_vs_variable_idx (const struct var_set *vs)
 static struct variable *
 parse_vs_variable (const struct var_set *vs)
 {
-  int idx = parse_vs_variable_idx (vs);
-  return idx >= 0 ? var_set_get_var (vs, idx) : NULL;
+  size_t idx;
+  return parse_vs_variable_idx (vs, &idx) ? var_set_get_var (vs, idx) : NULL;
 }
 
 /* Parses a variable name in dictionary D and returns the
@@ -128,7 +133,7 @@ dict_class_to_name (enum dict_class dict_class)
    successful. */
 int
 parse_variables (const struct dictionary *d, struct variable ***var,
-                 int *cnt, int opts) 
+                 size_t *cnt, int opts) 
 {
   struct var_set *vs;
   int success;
@@ -150,11 +155,10 @@ parse_variables (const struct dictionary *d, struct variable ***var,
    dictionary class, and returns nonzero.  Returns zero on
    failure. */
 static int
-parse_var_idx_class (const struct var_set *vs, int *idx,
+parse_var_idx_class (const struct var_set *vs, size_t *idx,
                      enum dict_class *class)
 {
-  *idx = parse_vs_variable_idx (vs);
-  if (*idx < 0)
+  if (!parse_vs_variable_idx (vs, idx))
     return 0;
 
   *class = dict_class_from_id (var_set_get_var (vs, *idx)->name);
@@ -167,9 +171,9 @@ parse_var_idx_class (const struct var_set *vs, int *idx,
    PV_OPTS, which also affects what variables are allowed in
    appropriate ways. */
 static void
-add_variable (struct variable ***v, int *nv, int *mv,
+add_variable (struct variable ***v, size_t *nv, size_t *mv,
               char *included, int pv_opts,
-              const struct var_set *vs, int idx)
+              const struct var_set *vs, size_t idx)
 {
   struct variable *add = var_set_get_var (vs, idx);
 
@@ -213,12 +217,12 @@ add_variable (struct variable ***v, int *nv, int *mv,
    duplicates if indicated by PV_OPTS, which also affects what
    variables are allowed in appropriate ways. */
 static void
-add_variables (struct variable ***v, int *nv, int *mv, char *included,
+add_variables (struct variable ***v, size_t *nv, size_t *mv, char *included,
                int pv_opts,
                const struct var_set *vs, int first_idx, int last_idx,
                enum dict_class class) 
 {
-  int i;
+  size_t i;
   
   for (i = first_idx; i <= last_idx; i++)
     if (dict_class_from_id (var_set_get_var (vs, i)->name) == class)
@@ -230,10 +234,10 @@ add_variables (struct variable ***v, int *nv, int *mv, char *included,
    nonzero and *v is non-NULL. */
 int
 parse_var_set_vars (const struct var_set *vs, 
-                    struct variable ***v, int *nv,
+                    struct variable ***v, size_t *nv,
                     int pv_opts)
 {
-  int mv;
+  size_t mv;
   char *included;
 
   assert (vs != NULL);
@@ -260,7 +264,7 @@ parse_var_set_vars (const struct var_set *vs,
 
   if (!(pv_opts & PV_DUPLICATE))
     {
-      int i;
+      size_t i;
       
       included = xcalloc (var_set_get_cnt (vs), sizeof *included);
       for (i = 0; i < *nv; i++)
@@ -277,17 +281,16 @@ parse_var_set_vars (const struct var_set *vs,
       do
         {
           enum dict_class class;
-          int first_idx;
+          size_t first_idx;
           
           if (!parse_var_idx_class (vs, &first_idx, &class))
             goto fail;
 
           if (!lex_match (T_TO))
-            add_variable (v, nv, &mv, included, pv_opts,
-                          vs, first_idx);
+            add_variable (v, nv, &mv, included, pv_opts, vs, first_idx);
           else 
             {
-              int last_idx;
+              size_t last_idx;
               enum dict_class last_class;
               struct variable *first_var, *last_var;
 
@@ -388,12 +391,12 @@ extract_num (char *s, char *r, int *n, int *d)
 /* Parses a list of variable names according to the DATA LIST version
    of the TO convention.  */
 int
-parse_DATA_LIST_vars (char ***names, int *nnames, int pv_opts)
+parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
 {
   int n1, n2;
   int d1, d2;
   int n;
-  int nvar, mvar;
+  size_t nvar, mvar;
   char name1[LONG_NAME_LEN + 1], name2[LONG_NAME_LEN + 1];
   char root1[LONG_NAME_LEN + 1], root2[LONG_NAME_LEN + 1];
   int success = 0;
@@ -505,9 +508,9 @@ fail:
    existing and the rest are to be created.  Same args as
    parse_DATA_LIST_vars(). */
 int
-parse_mixed_vars (char ***names, int *nnames, int pv_opts)
+parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
 {
-  int i;
+  size_t i;
 
   assert (names != NULL);
   assert (nnames != NULL);
@@ -523,7 +526,7 @@ parse_mixed_vars (char ***names, int *nnames, int pv_opts)
       if (token == T_ALL || dict_lookup_var (default_dict, tokid) != NULL)
 	{
 	  struct variable **v;
-	  int nv;
+	  size_t nv;
 
 	  if (!parse_variables (default_dict, &v, &nv, PV_NONE))
 	    goto fail;
@@ -552,7 +555,7 @@ struct var_set
   {
     size_t (*get_cnt) (const struct var_set *);
     struct variable *(*get_var) (const struct var_set *, size_t idx);
-    int (*lookup_var_idx) (const struct var_set *, const char *);
+    bool (*lookup_var_idx) (const struct var_set *, const char *, size_t *);
     void (*destroy) (struct var_set *);
     void *aux;
   };
@@ -582,20 +585,23 @@ var_set_get_var (const struct var_set *vs, size_t idx)
 struct variable *
 var_set_lookup_var (const struct var_set *vs, const char *name) 
 {
-  int idx = var_set_lookup_var_idx (vs, name);
-  return idx >= 0 ? var_set_get_var (vs, idx) : NULL;
+  size_t idx;
+  return (var_set_lookup_var_idx (vs, name, &idx)
+          ? var_set_get_var (vs, idx)
+          : NULL);
 }
 
-/* Returns the index in VS of the variable named NAME, or -1 if
-   VS contains no variable with that name. */
-int
-var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
+/* If VS contains a variable named NAME, sets *IDX to its index
+   and returns true.  Otherwise, returns false. */
+bool
+var_set_lookup_var_idx (const struct var_set *vs, const char *name,
+                        size_t *idx)
 {
   assert (vs != NULL);
   assert (name != NULL);
-  assert (strlen (name) <= LONG_NAME_LEN );
+  assert (strlen (name) <= LONG_NAME_LEN);
 
-  return vs->lookup_var_idx (vs, name);
+  return vs->lookup_var_idx (vs, name, idx);
 }
 
 /* Destroys VS. */
@@ -625,14 +631,21 @@ dict_var_set_get_var (const struct var_set *vs, size_t idx)
   return dict_get_var (d, idx);
 }
 
-/* Returns the index of the variable in VS named NAME, or -1 if
-   VS contains no variable with that name. */
-static int
-dict_var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
+/* If VS contains a variable named NAME, sets *IDX to its index
+   and returns true.  Otherwise, returns false. */
+static bool
+dict_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
+                             size_t *idx) 
 {
   struct dictionary *d = vs->aux;
   struct variable *v = dict_lookup_var (d, name);
-  return v != NULL ? v->index : -1;
+  if (v != NULL) 
+    {
+      *idx = v->index;
+      return true;
+    }
+  else
+    return false;
 }
 
 /* Destroys VS. */
@@ -682,10 +695,11 @@ array_var_set_get_var (const struct var_set *vs, size_t idx)
   return (struct variable *) avs->var[idx];
 }
 
-/* Returns the index of the variable in VS named NAME, or -1 if
-   VS contains no variable with that name. */
-static int
-array_var_set_lookup_var_idx (const struct var_set *vs, const char *name) 
+/* If VS contains a variable named NAME, sets *IDX to its index
+   and returns true.  Otherwise, returns false. */
+static bool
+array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
+                              size_t *idx) 
 {
   struct array_var_set *avs = vs->aux;
   struct variable v, *vp, *const *vpp;
@@ -693,7 +707,13 @@ array_var_set_lookup_var_idx (const struct var_set *vs, const char *name)
   strcpy (v.name, name);
   vp = &v;
   vpp = hsh_find (avs->name_tab, &vp);
-  return vpp != NULL ? vpp - avs->var : -1;
+  if (vpp != NULL) 
+    {
+      *idx = vpp - avs->var;
+      return true;
+    }
+  else
+    return false;
 }
 
 /* Destroys VS. */

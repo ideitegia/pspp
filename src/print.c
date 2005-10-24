@@ -249,8 +249,8 @@ struct fmt_list
 static struct
   {
     struct variable **v;		/* variable list */
-    int nv;			/* number of variables in list */
-    int cv;			/* number of variables from list used up so far
+    size_t nv;			/* number of variables in list */
+    size_t cv;			/* number of variables from list used up so far
 				   by the FORTRAN-like format specifiers */
 
     int recno;			/* current 1-based record number */
@@ -452,7 +452,7 @@ parse_variable_argument (void)
   else
     {
       /* User wants dictionary format specifiers. */
-      int i;
+      size_t i;
 
       lex_match ('*');
       for (i = 0; i < fx.nv; i++)
@@ -500,9 +500,9 @@ check_string_width (const struct fmt_spec *format, const struct variable *v)
 static int
 fixed_parse_compatible (void)
 {
-  int dividend;
+  int individual_var_width;
   int type;
-  int i;
+  size_t i;
 
   type = fx.v[0]->type;
   for (i = 1; i < fx.nv; i++)
@@ -610,13 +610,14 @@ fixed_parse_compatible (void)
 
   if ((fx.lc - fx.fc + 1) % fx.nv)
     {
-      msg (SE, _("The %d columns %d-%d can't be evenly divided into %d "
-		 "fields."), fx.lc - fx.fc + 1, fx.fc + 1, fx.lc + 1, fx.nv);
+      msg (SE, _("The %d columns %d-%d can't be evenly divided into %u "
+		 "fields."),
+           fx.lc - fx.fc + 1, fx.fc + 1, fx.lc + 1, (unsigned) fx.nv);
       return 0;
     }
 
-  dividend = (fx.lc - fx.fc + 1) / fx.nv;
-  fx.spec.u.v.f.w = dividend;
+  individual_var_width = (fx.lc - fx.fc + 1) / fx.nv;
+  fx.spec.u.v.f.w = individual_var_width;
   if (!check_output_specifier (&fx.spec.u.v.f, true)
       || !check_specifier_type (&fx.spec.u.v.f, type, true))
     return 0;
@@ -630,7 +631,7 @@ fixed_parse_compatible (void)
   fx.spec.type = PRT_VAR;
   for (i = 0; i < fx.nv; i++)
     {
-      fx.spec.fc = fx.fc + dividend * i;
+      fx.spec.fc = fx.fc + individual_var_width * i;
       fx.spec.u.v.v = fx.v[i];
       append_var_spec (&fx.spec);
     }

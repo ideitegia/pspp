@@ -33,7 +33,7 @@ struct cor_set
   {
     struct cor_set *next;
     struct variable **v1, **v2;
-    int nv1, nv2;
+    size_t nv1, nv2;
   };
 
 struct cor_set *cor_list, *cor_last;
@@ -84,7 +84,7 @@ static int
 cor_custom_variables (struct cmd_correlations *cmd UNUSED)
 {
   struct variable **v1, **v2;
-  int nv1, nv2;
+  size_t nv1, nv2;
   struct cor_set *cor;
 
   /* Ensure that this is a VARIABLES subcommand. */

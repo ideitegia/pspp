@@ -1,3 +1,19 @@
+Sun Oct 23 19:28:08 2005  Ben Pfaff  <blp@gnu.org>
+
+	Work to get rid of GCC 4.0 warnings, part 1.
+	
+	In many files, change count parameters to parse_variables(),
+	etc. from `int' to `size_t'.  Also change related variables and
+	struct members.  Also change messages as needed (e.g. %d to %u
+	with cast to unsigned).  Also change arithmetic as necessary
+	(e.g. n >= m - 1 to n + 1 >= m). 
+
+	* crosstabs.q: (crs_custom_tables) Check for size_t overflow in
+	multiplication.
+
+	* q2c.c: (dump_declarations) Generate code for size_t instead of
+	int.
+	
 Thu Oct 20 18:18:40 2005  Ben Pfaff  <blp@gnu.org>
 
 	* output.c: (outp_read_devices) Fix message.

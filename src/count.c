@@ -91,7 +91,7 @@ struct counting
 
     /* variables to count */
     struct variable **v;
-    int n;
+    size_t n;
 
     /* values to count */
     int missing;		/* (numeric only)
@@ -232,15 +232,15 @@ fail:
 static int
 parse_numeric_criteria (struct counting * c)
 {
-  int n = 0;
-  int m = 0;
+  size_t n = 0;
+  size_t m = 0;
 
   c->crit.n = 0;
   c->missing = 0;
   for (;;)
     {
       struct cnt_num *cur;
-      if (n >= m - 1)
+      if (n + 1 >= m)
 	{
 	  m += 16;
 	  c->crit.n = xrealloc (c->crit.n, m * sizeof (struct cnt_num));
@@ -328,10 +328,10 @@ parse_string_criteria (struct counting * c)
 {
   int len = 0;
 
-  int n = 0;
-  int m = 0;
+  size_t n = 0;
+  size_t m = 0;
 
-  int i;
+  size_t i;
 
   for (i = 0; i < c->n; i++)
     if (c->v[i]->width > len)
@@ -341,7 +341,7 @@ parse_string_criteria (struct counting * c)
   for (;;)
     {
       struct cnt_str *cur;
-      if (n >= m - 1)
+      if (n + 1 >= m)
 	{
 	  m += 16;
 	  c->crit.n = xrealloc (c->crit.n, m * sizeof (struct cnt_str));
@@ -371,7 +371,7 @@ static inline int
 count_numeric (struct counting * cnt, struct ccase * c)
 {
   int counter = 0;
-  int i;
+  size_t i;
 
   for (i = 0; i < cnt->n; i++)
     {
@@ -436,7 +436,7 @@ static inline int
 count_string (struct counting * cnt, struct ccase * c)
 {
   int counter = 0;
-  int i;
+  size_t i;
 
   for (i = 0; i < cnt->n; i++)
     {

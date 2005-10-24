@@ -170,7 +170,7 @@ static void free_dsc_proc (struct dsc_proc *);
 /* Z-score functions. */
 static int try_name (struct dsc_proc *dsc, char *name);
 static int generate_z_varname (struct dsc_proc *dsc, char *z_name,
-                               const char *name, int *z_cnt);
+                               const char *name, size_t *z_cnt);
 static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *);
 
@@ -186,10 +186,10 @@ cmd_descriptives (void)
 {
   struct dsc_proc *dsc;
   struct variable **vars = NULL;
-  int var_cnt = 0;
+  size_t var_cnt = 0;
   int save_z_scores = 0;
-  int z_cnt = 0;
-  int i;
+  size_t z_cnt = 0;
+  size_t i;
 
   /* Create and initialize dsc. */
   dsc = xmalloc (sizeof *dsc);
@@ -361,7 +361,7 @@ cmd_descriptives (void)
     {
       if (save_z_scores) 
         {
-          int gen_cnt = 0;
+          size_t gen_cnt = 0;
 
           for (i = 0; i < dsc->var_cnt; i++)
             if (dsc->vars[i].z_name[0] == 0) 
@@ -464,7 +464,7 @@ free_dsc_proc (struct dsc_proc *dsc)
 static int
 try_name (struct dsc_proc *dsc, char *name)
 {
-  int i;
+  size_t i;
 
   if (dict_lookup_var (default_dict, name) != NULL)
     return 0;
@@ -480,7 +480,7 @@ try_name (struct dsc_proc *dsc, char *name)
    copies the new name into Z_NAME.  On failure, returns zero. */
 static int
 generate_z_varname (struct dsc_proc *dsc, char *z_name,
-                    const char *var_name, int *z_cnt)
+                    const char *var_name, size_t *z_cnt)
 {
   char name[LONG_NAME_LEN + 1];
 
@@ -527,11 +527,11 @@ generate_z_varname (struct dsc_proc *dsc, char *z_name,
 static void
 dump_z_table (struct dsc_proc *dsc)
 {
-  int cnt = 0;
+  size_t cnt = 0;
   struct tab_table *t;
   
   {
-    int i;
+    size_t i;
     
     for (i = 0; i < dsc->var_cnt; i++)
       if (dsc->vars[i].z_name[0] != '\0')
@@ -549,7 +549,7 @@ dump_z_table (struct dsc_proc *dsc)
   tab_dim (t, tab_natural_dimensions);
 
   {
-    int i, y;
+    size_t i, y;
     
     for (i = 0, y = 1; i < dsc->var_cnt; i++)
       if (dsc->vars[i].z_name[0] != '\0')
@@ -625,7 +625,7 @@ static void
 setup_z_trns (struct dsc_proc *dsc)
 {
   struct dsc_trns *t;
-  int cnt, i;
+  size_t cnt, i;
 
   for (cnt = i = 0; i < dsc->var_cnt; i++)
     if (dsc->vars[i].z_name[0] != '\0')
@@ -700,7 +700,7 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
   struct dsc_proc *dsc = dsc_;
   struct casereader *reader;
   struct ccase c;
-  int i;
+  size_t i;
 
   for (i = 0; i < dsc->var_cnt; i++)
     {
@@ -838,7 +838,7 @@ calc_descriptives (const struct casefile *cf, void *dsc_)
 static int
 listwise_missing (struct dsc_proc *dsc, const struct ccase *c) 
 {
-  int i;
+  size_t i;
 
   for (i = 0; i < dsc->var_cnt; i++)
     {
@@ -861,7 +861,7 @@ static algo_compare_func descriptives_compare_dsc_vars;
 static void
 display (struct dsc_proc *dsc)
 {
-  int i, j;
+  size_t i;
   int nc;
   struct tab_table *t;
 
@@ -902,6 +902,7 @@ display (struct dsc_proc *dsc)
   for (i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dv = &dsc->vars[i];
+      size_t j;
 
       nc = 0;
       tab_text (t, nc++, i + 1, TAB_LEFT, dv->v->name);

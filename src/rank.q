@@ -71,12 +71,12 @@ struct rank_spec
 
 
 static struct rank_spec *rank_specs;
-static int n_rank_specs;
+static size_t n_rank_specs;
 
 static struct sort_criteria *sc;
 
 static struct variable **group_vars;
-static int n_group_vars;
+static size_t n_group_vars;
 
 static struct cmd_rank cmd;
 
@@ -87,7 +87,7 @@ int cmd_rank(void);
 int
 cmd_rank(void)
 {
-  int i;
+  size_t i;
   n_rank_specs = 0;
 
   if ( !parse_rank(&cmd) )

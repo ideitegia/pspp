@@ -77,7 +77,7 @@ enum
 struct agr_func
   {
     const char *name;		/* Aggregation function name. */
-    int n_args;			/* Number of arguments. */
+    size_t n_args;              /* Number of arguments. */
     int alpha_type;		/* When given ALPHA arguments, output type. */
     struct fmt_spec format;	/* Format spec if alpha_type != ALPHA. */
   };
@@ -336,7 +336,7 @@ parse_aggregate_functions (struct agr_proc *agr)
     {
       char **dest;
       char **dest_label;
-      int n_dest;
+      size_t n_dest;
 
       int include_missing;
       const struct agr_func *function;
@@ -345,9 +345,9 @@ parse_aggregate_functions (struct agr_proc *agr)
       union value arg[2];
 
       struct variable **src;
-      int n_src;
+      size_t n_src;
 
-      int i;
+      size_t i;
 
       dest = NULL;
       dest_label = NULL;
@@ -361,7 +361,7 @@ parse_aggregate_functions (struct agr_proc *agr)
       /* Parse the list of target variables. */
       while (!lex_match ('='))
 	{
-	  int n_dest_prev = n_dest;
+	  size_t n_dest_prev = n_dest;
 	  
 	  if (!parse_DATA_LIST_vars (&dest, &n_dest,
                                      PV_APPEND | PV_SINGLE | PV_NO_SCRATCH))
@@ -486,9 +486,9 @@ parse_aggregate_functions (struct agr_proc *agr)
 	     like `unknown variable t'. */
 	  if (n_src != n_dest)
 	    {
-	      msg (SE, _("Number of source variables (%d) does not match "
-			 "number of target variables (%d)."),
-		   n_src, n_dest);
+	      msg (SE, _("Number of source variables (%u) does not match "
+			 "number of target variables (%u)."),
+		   (unsigned) n_src, (unsigned) n_dest);
 	      goto error;
 	    }
 
@@ -663,8 +663,8 @@ agr_destroy (struct agr_proc *agr)
 
       if (iter->function & FSTRING)
 	{
-	  int n_args;
-	  int i;
+	  size_t n_args;
+	  size_t i;
 
 	  n_args = agr_func_tab[iter->function & FUNC].n_args;
 	  for (i = 0; i < n_args; i++)

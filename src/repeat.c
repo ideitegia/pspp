@@ -341,8 +341,8 @@ internal_cmd_do_repeat (void)
 static int
 parse_ids (struct repeat_entry * e)
 {
-  int i;
-  int n = 0;
+  size_t i;
+  size_t n = 0;
 
   e->type = 1;
   e->replacement = NULL;
@@ -350,7 +350,7 @@ parse_ids (struct repeat_entry * e)
   do
     {
       char **names;
-      int nnames;
+      size_t nnames;
 
       if (!parse_mixed_vars (&names, &nnames, PV_NONE))
 	return 0;

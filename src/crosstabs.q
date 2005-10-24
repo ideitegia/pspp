@@ -302,8 +302,8 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
   struct var_set *var_set;
   int n_by;
   struct variable ***by = NULL;
-  int *by_nvar = NULL;
-  int nx = 1;
+  size_t *by_nvar = NULL;
+  size_t nx = 1;
   int success = 0;
 
   /* Ensure that this is a TABLES subcommand. */
@@ -326,12 +326,17 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
       if (!parse_var_set_vars (var_set, &by[n_by], &by_nvar[n_by],
                                PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	goto done;
+      if (xalloc_oversized (nx, by_nvar[n_by])) 
+        {
+          msg (SE, _("Too many crosstabulation variables or dimensions."));
+          goto done;
+        }
       nx *= by_nvar[n_by];
       n_by++;
 
       if (!lex_match (T_BY))
 	{
-	  if (n_by < 1)
+	  if (n_by < 2)
 	    {
 	      lex_error (_("expecting BY"));
 	      goto done;
@@ -345,7 +350,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
     int *by_iter = xcalloc (n_by, sizeof *by_iter);
     int i;
 
-    xtab = xrealloc (xtab, sizeof *xtab * (nxtab + nx));
+    xtab = xnrealloc (xtab, sizeof *xtab, nxtab + nx);
     for (i = 0; i < nx; i++)
       {
 	struct crosstab *x;
@@ -408,8 +413,8 @@ crs_custom_variables (struct cmd_crosstabs *cmd UNUSED)
   
   for (;;)
     {
-      int orig_nv = variables_cnt;
-      int i;
+      size_t orig_nv = variables_cnt;
+      size_t i;
 
       long min, max;
       

@@ -53,7 +53,7 @@
 
 /* TABLES: Variable lists for each dimension. */
 int n_dim;		/* Number of dimensions. */
-int *nv_dim;		/* Number of variables in each dimension. */
+size_t *nv_dim;		/* Number of variables in each dimension. */
 struct variable ***v_dim;	/* Variables in each dimension.  */
 
 /* VARIABLES: List of variables. */
@@ -145,7 +145,7 @@ mns_custom_tables (struct cmd_means *cmd)
 
   do
     {
-      int nvl;
+      size_t nvl;
       struct variable **vl;
 
       if (!parse_var_set_vars (var_set, &vl, &nvl,

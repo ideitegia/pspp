@@ -158,7 +158,7 @@ alloc_string (struct expression *e, size_t length)
 }
 
 struct fixed_string
-copy_string (struct expression *e, const unsigned char *old, size_t length) 
+copy_string (struct expression *e, const char *old, size_t length) 
 {
   struct fixed_string s = alloc_string (e, length);
   memcpy (s.string, old, length);

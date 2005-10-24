@@ -39,15 +39,14 @@ int
 cmd_missing_values (void)
 {
   struct variable **v;
-  int nv;
+  size_t nv;
 
   int retval = CMD_PART_SUCCESS_MAYBE;
   bool deferred_errors = false;
 
   while (token != '.')
     {
-      int i;
-      
+      size_t i;
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE)) 
         goto done;

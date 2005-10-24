@@ -109,7 +109,7 @@ cmd_modify_vars (void)
       if (lex_match_id ("REORDER"))
 	{
 	  struct variable **v = NULL;
-	  int nv = 0;
+	  size_t nv = 0;
 
 	  if (already_encountered & 1)
 	    {
@@ -122,7 +122,7 @@ cmd_modify_vars (void)
 	  do
 	    {
               struct ordering ordering;
-	      int prev_nv = nv;
+	      size_t prev_nv = nv;
 
 	      ordering.forward = ordering.positional = 1;
 	      if (lex_match_id ("FORWARD"));
@@ -184,8 +184,8 @@ cmd_modify_vars (void)
 	  lex_match ('=');
 	  do
 	    {
-	      int prev_nv_1 = vm.rename_cnt;
-	      int prev_nv_2 = vm.rename_cnt;
+	      size_t prev_nv_1 = vm.rename_cnt;
+	      size_t prev_nv_2 = vm.rename_cnt;
 
 	      if (!lex_match ('('))
 		{
@@ -226,7 +226,7 @@ cmd_modify_vars (void)
       else if (lex_match_id ("KEEP"))
 	{
 	  struct variable **keep_vars, **all_vars, **drop_vars;
-	  int keep_cnt, all_cnt, drop_cnt;
+	  size_t keep_cnt, all_cnt, drop_cnt;
 
 	  if (already_encountered & 4)
 	    {
@@ -247,6 +247,7 @@ cmd_modify_vars (void)
                 compare_variables_given_ordering, &forward_positional_ordering);
 
           dict_get_vars (default_dict, &all_vars, &all_cnt, 0);
+          assert (all_cnt >= keep_cnt);
 
           drop_cnt = all_cnt - keep_cnt;
           drop_vars = xmalloc (drop_cnt * sizeof *keep_vars);
@@ -268,7 +269,7 @@ cmd_modify_vars (void)
       else if (lex_match_id ("DROP"))
 	{
 	  struct variable **drop_vars;
-	  int drop_cnt;
+	  size_t drop_cnt;
 
 	  if (already_encountered & 4)
 	    {
@@ -391,7 +392,7 @@ validate_var_modification (const struct dictionary *d,
   struct variable **keep_vars;
   struct variable **drop_vars;
   size_t keep_cnt, drop_cnt;
-  int all_cnt;
+  size_t all_cnt;
 
   struct var_renaming *var_renaming;
   int valid;
@@ -408,6 +409,7 @@ validate_var_modification (const struct dictionary *d,
         compare_variables_given_ordering, &forward_positional_ordering);
 
   /* Keep variables, in index order. */
+  assert (all_cnt >= drop_cnt);
   keep_cnt = all_cnt - drop_cnt;
   keep_vars = xmalloc (keep_cnt * sizeof *keep_vars);
   if (set_difference (all_vars, all_cnt,

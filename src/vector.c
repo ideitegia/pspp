@@ -89,7 +89,7 @@ cmd_vector (void)
 	{
 	  /* Long form. */
           struct variable **v;
-          int nv;
+          size_t nv;
 
 	  if (strchr (vecnames, '\0')[1])
 	    {

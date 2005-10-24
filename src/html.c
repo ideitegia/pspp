@@ -250,7 +250,7 @@ postopen (struct file_ext *f)
   FILE *prologue_file;
 
   char *buf = NULL;
-  int buf_size = 0;
+  size_t buf_size = 0;
 
   if (prologue_fn == NULL)
     {

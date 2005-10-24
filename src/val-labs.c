@@ -35,9 +35,9 @@
 /* Declarations. */
 
 static int do_value_labels (int);
-static int verify_val_labs (struct variable **vars, int var_cnt);
-static void erase_labels (struct variable **vars, int var_cnt);
-static int get_label (struct variable **vars, int var_cnt);
+static int verify_val_labs (struct variable **vars, size_t var_cnt);
+static void erase_labels (struct variable **vars, size_t var_cnt);
+static int get_label (struct variable **vars, size_t var_cnt);
 
 /* Stubs. */
 
@@ -59,7 +59,7 @@ static int
 do_value_labels (int erase)
 {
   struct variable **vars; /* Variable list. */
-  int var_cnt;            /* Number of variables. */
+  size_t var_cnt;         /* Number of variables. */
   int parse_err=0;        /* true if error parsing variables */
 
   lex_match ('/');
@@ -108,9 +108,9 @@ do_value_labels (int erase)
 /* Verifies that none of the VAR_CNT variables in VARS are long
    string variables. */
 static int
-verify_val_labs (struct variable **vars, int var_cnt)
+verify_val_labs (struct variable **vars, size_t var_cnt)
 {
-  int i;
+  size_t i;
 
   for (i = 0; i < var_cnt; i++)
     {
@@ -128,9 +128,9 @@ verify_val_labs (struct variable **vars, int var_cnt)
 
 /* Erases all the labels for the VAR_CNT variables in VARS. */
 static void
-erase_labels (struct variable **vars, int var_cnt) 
+erase_labels (struct variable **vars, size_t var_cnt) 
 {
-  int i;
+  size_t i;
 
   /* Erase old value labels if desired. */
   for (i = 0; i < var_cnt; i++)
@@ -140,14 +140,14 @@ erase_labels (struct variable **vars, int var_cnt)
 /* Parse all the labels for the VAR_CNT variables in VARS and add
    the specified labels to those variables.  */
 static int
-get_label (struct variable **vars, int var_cnt)
+get_label (struct variable **vars, size_t var_cnt)
 {
   /* Parse all the labels and add them to the variables. */
   do
     {
       union value value;
       char *label;
-      int i;
+      size_t i;
 
       /* Set value. */
       if (vars[0]->type == ALPHA)

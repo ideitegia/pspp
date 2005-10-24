@@ -75,7 +75,7 @@ struct rcd_var
     union value sysmis;		/* Coding for SYSMIS (if src is numeric). */
 
     struct coding *map;		/* Coding for other values. */
-    int nmap, mmap;		/* Length of map, max capacity of map. */
+    size_t nmap, mmap;		/* Length of map, max capacity of map. */
   };
 
 /* RECODE transformation. */
@@ -118,7 +118,7 @@ static double convert_to_double (const char *, int);
 int
 cmd_recode (void)
 {
-  int i;
+  size_t i;
 
   /* Transformation that we're constructing. */
   struct rcd_var *rcd;
@@ -145,7 +145,7 @@ cmd_recode (void)
 
   /* Variables in the current part of the recoding. */
   struct variable **v;
-  int nv;
+  size_t nv;
 
   /* Parses each specification between slashes. */
   head = rcd = xmalloc (sizeof *rcd);
@@ -190,7 +190,7 @@ cmd_recode (void)
       for (;;) 
 	{
 	  /* Get the input value (before the `='). */
-	  int mark = rcd->nmap;
+	  size_t mark = rcd->nmap;
 	  int code = parse_src_spec (rcd, type, max_src_width);
 	  if (!code)
 	    goto lossage;
@@ -271,7 +271,7 @@ cmd_recode (void)
       if (lex_match_id ("INTO"))
 	{
 	  char **names;
-	  int nnames;
+	  size_t nnames;
 
 	  int success = 0;
 
@@ -283,10 +283,10 @@ cmd_recode (void)
 	      for (i = 0; i < nnames; i++)
 		free (names[i]);
 	      free (names);
-	      msg (SE, _("%d variable(s) cannot be recoded into "
-			 "%d variable(s).  Specify the same number "
+	      msg (SE, _("%u variable(s) cannot be recoded into "
+			 "%u variable(s).  Specify the same number "
 			 "of variables as input and output variables."),
-		   nv, nnames);
+		   (unsigned) nv, (unsigned) nnames);
 	      goto lossage;
 	    }
 
@@ -298,18 +298,20 @@ cmd_recode (void)
 		if (!v)
 		  {
 		    msg (SE, _("There is no string variable named "
-			 "%s.  (All string variables specified "
-			 "on INTO must already exist.  Use the "
-			 "STRING command to create a string "
-			 "variable.)"), names[i]);
+                               "%s.  (All string variables specified "
+                               "on INTO must already exist.  Use the "
+                               "STRING command to create a string "
+                               "variable.)"),
+                         names[i]);
 		    goto INTO_fail;
 		  }
 		if (v->type != ALPHA)
 		  {
 		    msg (SE, _("Type mismatch between input and output "
-			 "variables.  Output variable %s is not "
-			 "a string variable, but all the input "
-			 "variables are string variables."), v->name);
+                               "variables.  Output variable %s is not "
+                               "a string variable, but all the input "
+                               "variables are string variables."),
+                         v->name);
 		    goto INTO_fail;
 		  }
 		if (v->width > (int) max_dst_width)
@@ -519,7 +521,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 
   for (;;)
     {
-      if (rcd->nmap >= rcd->mmap - 1)
+      if (rcd->nmap + 1 >= rcd->mmap)
 	{
 	  rcd->mmap += 16;
 	  rcd->map = xrealloc (rcd->map, rcd->mmap * sizeof *rcd->map);
@@ -649,7 +651,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 static void
 recode_trns_free (struct trns_header * t)
 {
-  int i;
+  size_t i;
   struct rcd_var *head, *next;
 
   head = ((struct recode_trns *) t)->codings;
@@ -834,11 +836,11 @@ static long int
 string_to_long (const char *nptr, int width, const char **endptr)
 {
   int negative;
-  register unsigned long int cutoff;
-  register unsigned int cutlim;
-  register unsigned long int i;
-  register const char *s;
-  register unsigned char c;
+  unsigned long int cutoff;
+  unsigned int cutlim;
+  unsigned long int i;
+  const char *s;
+  unsigned char c;
   const char *save;
 
   s = nptr;
@@ -909,7 +911,7 @@ string_to_long (const char *nptr, int width, const char **endptr)
 static double
 convert_to_double (const char *s, int width)
 {
-  register const char *end = &s[width];
+  const char *end = &s[width];
 
   short int sign;
 

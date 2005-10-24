@@ -47,7 +47,7 @@ static bool  is_terminator(int tok, const int *terminators);
 */
 struct sort_criteria *
 sort_parse_criteria (const struct dictionary *dict,
-                     struct variable ***vars, int *var_cnt,
+                     struct variable ***vars, size_t *var_cnt,
                      bool *saw_direction,
 		     const int *terminators
 		     )
@@ -74,7 +74,7 @@ sort_parse_criteria (const struct dictionary *dict,
 
   do
     {
-      int prev_var_cnt = *var_cnt;
+      size_t prev_var_cnt = *var_cnt;
       enum sort_direction direction;
 
       /* Variables. */

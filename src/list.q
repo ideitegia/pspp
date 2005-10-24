@@ -32,6 +32,7 @@
 #include "misc.h"
 #include "htmlP.h"
 #include "output.h"
+#include "size_max.h"
 #include "som.h"
 #include "tab.h"
 #include "var.h"
@@ -60,8 +61,8 @@
 struct list_ext
   {
     int type;		/* 0=Values and labels fit across the page. */
-    int n_vertical;	/* Number of labels to list vertically. */
-    int header_rows;	/* Number of header rows. */
+    size_t n_vertical;	/* Number of labels to list vertically. */
+    size_t header_rows;	/* Number of header rows. */
     char **header;	/* The header itself. */
   };
 
@@ -75,8 +76,8 @@ static int case_idx;
 static char *line_buf;
 
 /* TTY-style output functions. */
-static int n_lines_remaining (struct outp_driver *d);
-static int n_chars_width (struct outp_driver *d);
+static unsigned n_lines_remaining (struct outp_driver *d);
+static unsigned n_chars_width (struct outp_driver *d);
 static void write_line (struct outp_driver *d, char *s);
 
 /* Other functions. */
@@ -88,7 +89,7 @@ static void write_all_headers (void *);
 
 /* Returns the number of text lines that can fit on the remainder of
    the page. */
-static inline int
+static inline unsigned
 n_lines_remaining (struct outp_driver *d)
 {
   int diff;
@@ -99,7 +100,7 @@ n_lines_remaining (struct outp_driver *d)
 
 /* Returns the number of fixed-width character that can fit across the
    page. */
-static inline int
+static inline unsigned
 n_chars_width (struct outp_driver *d)
 {
   return d->width / d->fixed_width;
@@ -181,7 +182,7 @@ cmd_list (void)
     {
       if (dict_get_weight (default_dict) != NULL)
 	{
-	  int i;
+	  size_t i;
 
 	  for (i = 0; i < cmd.n_variables; i++)
 	    if (cmd.v_variables[i] == dict_get_weight (default_dict))
@@ -261,7 +262,7 @@ write_all_headers (void *aux UNUSED)
 	  fputs ("<TABLE BORDER=1>\n  <TR>\n", x->file.file);
 	  
 	  {
-	    int i;
+	    size_t i;
 
 	    for (i = 0; i < cmd.n_variables; i++)
 	      fprintf (x->file.file, "    <TH><I><B>%s</B></I></TH>\n",
@@ -298,8 +299,9 @@ write_header (struct outp_driver *d)
   /* Design the header. */
   if (!prc->header)
     {
-      int i, x;
-
+      size_t i;
+      size_t x;
+      
       /* Allocate, initialize header. */
       prc->header = xmalloc (sizeof (char *) * prc->header_rows);
       {
@@ -315,11 +317,11 @@ write_header (struct outp_driver *d)
       for (i = x = 0; i < prc->n_vertical; i++)
 	{
 	  struct variable *v = cmd.v_variables[i];
-	  int j;
+	  size_t j;
 
 	  memset (&prc->header[prc->header_rows - 1][x], '-', v->print.w);
 	  x += v->print.w - 1;
-	  for (j = 0; j < (int) strlen (v->name); j++)
+	  for (j = 0; j < strlen (v->name); j++)
 	    prc->header[strlen (v->name) - j - 1][x] = v->name[j];
 	  x += 2;
 	}
@@ -351,13 +353,14 @@ write_header (struct outp_driver *d)
     }
 
   /* Write out the header, in back-to-front order except for the last line. */
-  {
-    int i;
-    
-    for (i = prc->header_rows - 2; i >= 0; i--)
-      write_line (d, prc->header[i]);
-    write_line (d, prc->header[prc->header_rows - 1]);
-  }
+  if (prc->header_rows >= 2) 
+    {
+      size_t i;
+        
+      for (i = prc->header_rows - 1; i-- != 0; )
+        write_line (d, prc->header[i]); 
+    }
+  write_line (d, prc->header[prc->header_rows - 1]);
 }
       
   
@@ -371,7 +374,7 @@ clean_up (void)
     if (d->class->special == 0)
       {
 	struct list_ext *prc = d->prc;
-	int i;
+	size_t i;
 
 	if (prc->header)
 	  {
@@ -519,7 +522,7 @@ determine_layout (void)
   
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     {
-      int column;	/* Current column. */
+      size_t column;	/* Current column. */
       int width;	/* Accumulated width. */
       int height;       /* Height of vertical names. */
       int max_width;	/* Page width. */
@@ -577,9 +580,9 @@ determine_layout (void)
       if (width <= max_width && height <= SHORT_NAME_LEN)
 	{
 #ifndef NDEBUG
-	  prc->n_vertical = -1;
+	  prc->n_vertical = SIZE_MAX;
 #endif
-	  for (column = cmd.n_variables - 1; column >= 0; column--)
+	  for (column = cmd.n_variables; column-- != 0; )
 	    {
 	      struct variable *v = cmd.v_variables[column];
 	      int trial_width = (width - v->print.w
@@ -592,7 +595,7 @@ determine_layout (void)
 		}
 	      width = trial_width;
 	    }
-	  assert(prc->n_vertical != -1);
+	  assert (prc->n_vertical != SIZE_MAX);
 
 	  prc->n_vertical = cmd.n_variables;
 	  /* Finally determine the length of the headers. */
@@ -600,7 +603,7 @@ determine_layout (void)
 	       column < prc->n_vertical;
 	       column++)
 	    prc->header_rows = max (prc->header_rows,
-				    (int) strlen (cmd.v_variables[column]->name));
+				    strlen (cmd.v_variables[column]->name));
 	  prc->header_rows++;
 
 	  d->class->text_set_font_by_name (d, "FIXED");

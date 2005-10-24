@@ -26,23 +26,24 @@
 #include <stdlib.h>
 #include <math.h>
 #include "alloc.h"
-#include "str.h"
 #include "case.h"
+#include "casefile.h"
 #include "command.h"
 #include "dictionary.h"
-#include "lexer.h"
 #include "error.h"
+#include "group_proc.h"
+#include "hash.h"
+#include "levene.h"
+#include "lexer.h"
 #include "magic.h"
 #include "misc.h"
-#include "tab.h"
+#include "size_max.h"
 #include "som.h"
+#include "str.h"
+#include "tab.h"
 #include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
-#include "hash.h"
-#include "group_proc.h"
-#include "casefile.h"
-#include "levene.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -440,11 +441,11 @@ static int
 tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
 {
   struct variable **vars;
-  int n_vars;
-  int n_pairs_local;
+  size_t n_vars;
+  size_t n_pairs_local;
 
-  int n_before_WITH ;
-  int n_after_WITH = -1;
+  size_t n_before_WITH;
+  size_t n_after_WITH = SIZE_MAX;
   int paired ; /* Was the PAIRED keyword given ? */
 
   lex_match('=');
@@ -458,7 +459,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
     }
   assert (n_vars);
 
-  n_before_WITH=0;
+  n_before_WITH = 0;
   if (lex_match (T_WITH))
     {
       n_before_WITH = n_vars;
@@ -486,11 +487,11 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
 	       n_before_WITH, n_after_WITH );
 	  return 0;
 	}
-      n_pairs_local=n_before_WITH;
+      n_pairs_local = n_before_WITH;
     }
   else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
     {
-      n_pairs_local=n_before_WITH * n_after_WITH ;
+      n_pairs_local = n_before_WITH * n_after_WITH ;
     }
   else /* Neither WITH nor PAIRED keyword given */
     {
@@ -503,7 +504,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
 	}
 
       /* how many ways can you pick 2 from n_vars ? */
-      n_pairs_local = n_vars * (n_vars -1 ) /2 ;
+      n_pairs_local = n_vars * (n_vars - 1) / 2;
     }
 
 
@@ -515,17 +516,17 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
     {
       int i;
 
-      assert(n_pairs_local == n_vars/2);
-      for (i = 0; i < n_pairs_local ; ++i)
+      assert(n_pairs_local == n_vars / 2);
+      for (i = 0; i < n_pairs_local; ++i)
 	{
-	  pairs[i].v[n_pairs+0] = vars[i];
-	  pairs[i].v[n_pairs+1] = vars[i+n_pairs_local];
+	  pairs[i].v[n_pairs] = vars[i];
+	  pairs[i].v[n_pairs + 1] = vars[i + n_pairs_local];
 	}
     }
   else if (n_before_WITH > 0) /* WITH keyword given, but not PAIRED keyword */
     {
       int i,j;
-      int p=n_pairs;
+      size_t p = n_pairs;
 
       for(i=0 ; i < n_before_WITH ; ++i ) 
 	{
@@ -539,8 +540,8 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
     }
   else /* Neither WITH nor PAIRED given */
     {
-      int i,j;
-      int p=n_pairs;
+      size_t i,j;
+      size_t p=n_pairs;
       
       for(i=0 ; i < n_vars ; ++i ) 
 	{
@@ -889,7 +890,7 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
 
 /* Implementation of the Test Results box struct */
 
-void trbox_base_init(struct trbox *self,int n_vars, int cols);
+void trbox_base_init(struct trbox *self,size_t n_vars, int cols);
 void trbox_base_finalize(struct trbox *trb);
 
 void trbox_independent_samples_init(struct trbox *trb,
@@ -1317,9 +1318,9 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 
 /* Base initializer for the generalized trbox */
 void 
-trbox_base_init(struct trbox *self, int data_rows, int cols)
+trbox_base_init(struct trbox *self, size_t data_rows, int cols)
 {
-  const int rows = 3 + data_rows;
+  const size_t rows = 3 + data_rows;
 
   self->finalize = trbox_base_finalize;
   self->t = tab_create (cols, rows, 0);

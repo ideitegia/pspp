@@ -57,7 +57,7 @@ struct flip_pgm
   {
     struct variable **var;      /* Variables to transpose. */
     int *idx_to_fv;             /* var[]->index to compacted sink case fv. */
-    int var_cnt;                /* Number of elements in `var'. */
+    size_t var_cnt;             /* Number of elements in `var'. */
     int case_cnt;               /* Pre-flip case count. */
     size_t case_size;           /* Post-flip bytes per case. */
 
@@ -124,7 +124,7 @@ cmd_flip (void)
 
   if (flip->new_names)
     {
-      int i;
+      size_t i;
       
       for (i = 0; i < flip->var_cnt; i++)
 	if (flip->var[i] == flip->new_names)
@@ -282,7 +282,7 @@ static struct case_sink *
 flip_sink_create (struct flip_pgm *flip) 
 {
   struct flip_sink_info *info = xmalloc (sizeof *info);
-  int i;
+  size_t i;
 
   info->flip = flip;
   info->output_buf = xmalloc (sizeof *info->output_buf * flip->var_cnt);
@@ -310,7 +310,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
 {
   struct flip_sink_info *info = sink->aux;
   struct flip_pgm *flip = info->flip;
-  int i;
+  size_t i;
   
   flip->case_cnt++;
 
@@ -416,7 +416,7 @@ flip_file (struct flip_pgm *flip)
     {
       unsigned long read_cases = min (flip->case_cnt - case_idx,
                                       case_capacity);
-      int i;
+      size_t i;
 
       if (read_cases != fread (input_buf, case_bytes, read_cases, input_file))
 	msg (FE, _("Error reading FLIP file: %s."), strerror (errno));
@@ -497,7 +497,7 @@ flip_source_read (struct case_source *source,
 {
   struct flip_pgm *flip = source->aux;
   union value *input_buf;
-  int i;
+  size_t i;
 
   input_buf = xmalloc (sizeof *input_buf * flip->case_cnt);
   for (i = 0; i < flip->var_cnt; i++)

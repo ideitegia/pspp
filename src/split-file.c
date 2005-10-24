@@ -35,7 +35,7 @@ cmd_split_file (void)
   else
     {
       struct variable **v;
-      int n;
+      size_t n;
 
       /* For now, ignore SEPARATE and LAYERED. */
       lex_match_id ("SEPARATE") || lex_match_id ("LAYERED");

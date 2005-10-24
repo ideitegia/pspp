@@ -68,7 +68,7 @@ struct levene_info
   struct variable *v_indep; 
 
   /* Number of dependent variables */
-  int n_dep;
+  size_t n_dep;
 
   /* The dependent variables */
   struct variable  **v_dep;
@@ -94,7 +94,7 @@ static void levene2_postcalc (void *);
 
 void  
 levene(const struct casefile *cf,
-       struct variable *v_indep, int n_dep, struct variable **v_dep,
+       struct variable *v_indep, size_t n_dep, struct variable **v_dep,
 	     enum lev_missing missing,   is_missing_func value_is_missing)
 {
   struct casereader *r;
@@ -156,7 +156,7 @@ static struct lz_stats *lz;
 static void 
 levene_precalc (const struct levene_info *l)
 {
-  int i;
+  size_t i;
 
   lz  = xmalloc (sizeof (struct lz_stats ) * l->n_dep ) ;
 
@@ -186,7 +186,7 @@ levene_precalc (const struct levene_info *l)
 static int 
 levene_calc (const struct ccase *c, void *_l)
 {
-  int i;
+  size_t i;
   int warn = 0;
   struct levene_info *l = (struct levene_info *) _l;
   const union value *gv = case_data (c, l->v_indep->fv);
@@ -241,7 +241,7 @@ levene_calc (const struct ccase *c, void *_l)
 static void 
 levene_postcalc (void *_l)
 {
-  int v;
+  size_t v;
 
   struct levene_info *l = (struct levene_info *) _l;
 
@@ -261,7 +261,7 @@ static double *lz_denominator;
 static void 
 levene2_precalc (void *_l)
 {
-  int v;
+  size_t v;
 
   struct levene_info *l = (struct levene_info *) _l;
 
@@ -290,7 +290,7 @@ levene2_precalc (void *_l)
 static int 
 levene2_calc (const struct ccase *c, void *_l)
 {
-  int i;
+  size_t i;
   int warn = 0;
 
   struct levene_info *l = (struct levene_info *) _l;
@@ -343,7 +343,7 @@ levene2_calc (const struct ccase *c, void *_l)
 static void 
 levene2_postcalc (void *_l)
 {
-  int v;
+  size_t v;
 
   struct levene_info *l = (struct levene_info *) _l;
 
