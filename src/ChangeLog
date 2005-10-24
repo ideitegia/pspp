@@ -1,3 +1,13 @@
+Mon Oct 24 13:42:32 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	Moved some definitions to make it easier to abstract a dictionary 
+	from the rest of PSPP.
+
+	* format-prs.c lex-def.[ch]:  New files.
+
+	* Makefile.am lexer.[ch] dictionary.c vars-atr.c vfm.c algorithm.c 
+	  format.c:  Moved some functions between modules.
+	
 Sun Oct 23 19:28:08 2005  Ben Pfaff  <blp@gnu.org>
 
 	Work to get rid of GCC 4.0 warnings, part 1.
