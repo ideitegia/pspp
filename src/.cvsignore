@@ -10,6 +10,8 @@ means.c
 oneway.c
 pspp
 q2c
+rank.c
+regression.c
 set.c
 t-test.c
 version.c
