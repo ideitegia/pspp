@@ -41,7 +41,7 @@ histogram_write_legend(struct chart *ch, const struct normal_curve *norm)
 {
   char buf[100];
   if ( !ch )
-	  return ;
+    return ;
 
   pl_savestate_r(ch->lp);
 
@@ -121,13 +121,21 @@ histogram_plot(const gsl_histogram *hist,
   
   struct chart *ch;
 
-  bins = gsl_histogram_bins(hist);
-
   ch = chart_create();
   chart_write_title(ch, _("HISTOGRAM"));
 
   chart_write_ylabel(ch, _("Frequency"));
   chart_write_xlabel(ch, factorname);
+
+  if ( ! hist ) /* If this happens, probably all values are SYSMIS */
+    {
+      chart_submit(ch);
+      return ;
+    }
+  else
+    {
+      bins = gsl_histogram_bins(hist);
+    }
 
   chart_write_yscale(ch, 0, gsl_histogram_max_val(hist), 5);
 
