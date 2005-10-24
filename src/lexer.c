@@ -45,6 +45,9 @@
 
 /* Global variables. */
 
+extern const char *keywords[T_N_KEYWORDS + 1];
+
+
 /* Current token. */
 int token;
 
@@ -59,15 +62,6 @@ char tokid[LONG_NAME_LEN + 1];
 struct string tokstr;
 
 /* Static variables. */
-
-/* Table of keywords. */
-static const char *keywords[T_N_KEYWORDS + 1] = 
-  {
-    "AND", "OR", "NOT",
-    "EQ", "GE", "GT", "LE", "LT", "NE",
-    "ALL", "BY", "TO", "WITH",
-    NULL,
-  };
 
 /* Pointer to next token in getl_buf. */
 static char *prog;
@@ -624,60 +618,6 @@ lex_force_id (void)
       return 0;
     }
 }
-
-/* Comparing identifiers. */
-
-/* Keywords match if one of the following is true: KW and TOK are
-   identical (except for differences in case), or TOK is at least 3
-   characters long and those characters are identical to KW.  KW_LEN
-   is the length of KW, TOK_LEN is the length of TOK. */
-int
-lex_id_match_len (const char *kw, size_t kw_len,
-		  const char *tok, size_t tok_len)
-{
-  size_t i = 0;
-
-  assert (kw && tok);
-  for (;;)
-    {
-      if (i == kw_len && i == tok_len)
-	return 1;
-      else if (i == tok_len)
-	return i >= 3;
-      else if (i == kw_len)
-	return 0;
-      else if (toupper ((unsigned char) kw[i])
-	       != toupper ((unsigned char) tok[i]))
-	return 0;
-
-      i++;
-    }
-}
-
-/* Same as lex_id_match_len() minus the need to pass in the lengths. */
-int
-lex_id_match (const char *kw, const char *tok)
-{
-  return lex_id_match_len (kw, strlen (kw), tok, strlen (tok));
-}
-
-/* Returns the proper token type, either T_ID or a reserved keyword
-   enum, for ID[], which must contain LEN characters. */
-int
-lex_id_to_token (const char *id, size_t len)
-{
-  const char **kwp;
-
-  if (len < 2 || len > 4)
-    return T_ID;
-  
-  for (kwp = keywords; *kwp; kwp++)
-    if (!strcasecmp (*kwp, id))
-      return T_FIRST_KEYWORD + (kwp - keywords);
-
-  return T_ID;
-}
-
 /* Weird token functions. */
 
 /* Returns the first character of the next token, except that if the

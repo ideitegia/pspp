@@ -30,6 +30,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "casefile.h"
+#include "command.h"
 #include "dictionary.h"
 #include "do-ifP.h"
 #include "error.h"
@@ -906,4 +907,33 @@ multipass_split_output (struct multipass_split_aux_data *aux)
   aux->split_func (aux->casefile, aux->func_aux);
   casefile_destroy (aux->casefile);
   aux->casefile = NULL;
+}
+
+
+/* Discards all the current state in preparation for a data-input
+   command like DATA LIST or GET. */
+void
+discard_variables (void)
+{
+  dict_clear (default_dict);
+  default_handle = NULL;
+
+  n_lag = 0;
+  
+  if (vfm_source != NULL)
+    {
+      free_case_source (vfm_source);
+      vfm_source = NULL;
+    }
+
+  cancel_transformations ();
+
+  ctl_stack = NULL;
+
+  expr_free (process_if_expr);
+  process_if_expr = NULL;
+
+  cancel_temporary ();
+
+  pgm_state = STATE_INIT;
 }

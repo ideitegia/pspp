@@ -260,10 +260,9 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   assert (d != NULL);
   assert (name != NULL);
 
-  assert (strlen (name) >= 1);
-  assert (strlen (name) <= LONG_NAME_LEN);
-
   assert (width >= 0 && width < 256);
+
+  assert (var_is_valid_name(name,0));
     
   /* Make sure there's not already a variable by that name. */
   if (dict_lookup_var (d, name) != NULL)

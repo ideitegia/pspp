@@ -307,32 +307,6 @@ is_partitioned (const void *array, size_t count, size_t size,
   return 1;
 }
 
-/* A algo_random_func that uses random.h. */
-unsigned
-algo_default_random (unsigned max, void *aux UNUSED) 
-{
-  unsigned long r_min = gsl_rng_min (get_rng ());
-  return (gsl_rng_get (get_rng ()) - r_min) % max;
-}
-
-/* Randomly reorders ARRAY, which contains COUNT elements of SIZE
-   bytes each.  Uses RANDOM as a source of random data, passing
-   AUX as the auxiliary data.  RANDOM may be null to use a
-   default random source. */
-void
-random_shuffle (void *array_, size_t count, size_t size,
-                algo_random_func *random, void *aux)
-{
-  unsigned char *array = array_;
-  int i;
-
-  if (random == NULL)
-    random = algo_default_random;
-
-  for (i = 1; i < count; i++)
-    SWAP (array + i * size, array + random (i + 1, aux) * size, size);
-}
-
 /* Copies the COUNT elements of SIZE bytes each from ARRAY to
    RESULT, except that elements for which PREDICATE is false are
    not copied.  Returns the number of elements copied.  AUX is

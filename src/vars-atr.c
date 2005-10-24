@@ -114,33 +114,6 @@ hash_value(const union value  *v, int width)
 
 
 
-/* Discards all the current state in preparation for a data-input
-   command like DATA LIST or GET. */
-void
-discard_variables (void)
-{
-  dict_clear (default_dict);
-  default_handle = NULL;
-
-  n_lag = 0;
-  
-  if (vfm_source != NULL)
-    {
-      free_case_source (vfm_source);
-      vfm_source = NULL;
-    }
-
-  cancel_transformations ();
-
-  ctl_stack = NULL;
-
-  expr_free (process_if_expr);
-  process_if_expr = NULL;
-
-  cancel_temporary ();
-
-  pgm_state = STATE_INIT;
-}
 
 /* Returns true if NAME is an acceptable name for a variable,
    false otherwise.  If ISSUE_ERROR is true, issues an
@@ -297,4 +270,41 @@ var_set_short_name_suffix (struct variable *v, const char *base, int suffix)
   else
     ofs = strlen (v->short_name);
   strcpy (v->short_name + ofs, start);
+}
+
+
+/* Returns the dictionary class corresponding to a variable named
+   NAME. */
+enum dict_class
+dict_class_from_id (const char *name) 
+{
+  assert (name != NULL);
+
+  switch (name[0]) 
+    {
+    default:
+      return DC_ORDINARY;
+    case '$':
+      return DC_SYSTEM;
+    case '#':
+      return DC_SCRATCH;
+    }
+}
+
+/* Returns the name of dictionary class DICT_CLASS. */
+const char *
+dict_class_to_name (enum dict_class dict_class) 
+{
+  switch (dict_class) 
+    {
+    case DC_ORDINARY:
+      return _("ordinary");
+    case DC_SYSTEM:
+      return _("system");
+    case DC_SCRATCH:
+      return _("scratch");
+    default:
+      assert (0);
+      abort ();
+    }
 }

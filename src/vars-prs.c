@@ -91,41 +91,6 @@ parse_variable (void)
   return parse_dict_variable (default_dict);
 }
 
-/* Returns the dictionary class corresponding to a variable named
-   NAME. */
-enum dict_class
-dict_class_from_id (const char *name) 
-{
-  assert (name != NULL);
-
-  switch (name[0]) 
-    {
-    default:
-      return DC_ORDINARY;
-    case '$':
-      return DC_SYSTEM;
-    case '#':
-      return DC_SCRATCH;
-    }
-}
-
-/* Returns the name of dictionary class DICT_CLASS. */
-const char *
-dict_class_to_name (enum dict_class dict_class) 
-{
-  switch (dict_class) 
-    {
-    case DC_ORDINARY:
-      return _("ordinary");
-    case DC_SYSTEM:
-      return _("system");
-    case DC_SCRATCH:
-      return _("scratch");
-    default:
-      assert (0);
-      abort ();
-    }
-}
 
 /* Parses a set of variables from dictionary D given options
    OPTS.  Resulting list of variables stored in *VAR and the
