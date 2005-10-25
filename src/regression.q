@@ -299,7 +299,45 @@ reg_stats_f (pspp_linreg_cache * c)
 static void
 reg_stats_bcov (pspp_linreg_cache * c)
 {
+  int n_cols;
+  int n_rows;
+  int i;
+  int j;
+  int k;
+  int row;
+  int col;
+  const char *label;
+  struct tab_table *t;
+
   assert (c != NULL);
+  n_cols = c->n_indeps + 1 + 2;
+  n_rows = 2 * (c->n_indeps + 1);
+  t = tab_create (n_cols, n_rows, 0);
+  tab_headers (t, 2, 0, 1, 0);
+  tab_dim (t, tab_natural_dimensions);
+  tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
+  tab_hline (t, TAL_2, 0, n_cols - 1, 1);
+  tab_vline (t, TAL_2, 2, 0, n_rows - 1);
+  tab_vline (t, TAL_0, 1, 0, 0);
+  tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Model"));
+  tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Covariances"));
+  for (i = 1; i < c->n_indeps + 1; i++)
+    {
+      j = indep_vars[(i - 1)];
+      struct variable *v = cmd.v_variables[j];
+      label = var_to_string (v);
+      tab_text (t, 2, i, TAB_CENTER, label);
+      tab_text (t, i + 2, 0, TAB_CENTER, label);
+      for (k = 1; k < c->n_indeps + 1; k++)
+	{
+	  col = (i <= k) ? k : i;
+	  row = (i <= k) ? i : k;
+	  tab_float (t, k + 2, i, TAB_CENTER,
+		     gsl_matrix_get (c->cov, row, col), 8, 3);
+	}
+    }
+  tab_title (t, 0, _("Coefficient Correlations"));
+  tab_submit (t);
 }
 static void
 reg_stats_ses (pspp_linreg_cache * c)
@@ -373,7 +411,7 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
        */
       for (i = 0; i < f; i++)
 	{
-	  *(keywords + i) = 1;
+	  keywords[i] = 1;
 	}
     }
   else
@@ -392,10 +430,10 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
        */
       if (keywords[defaults] | d)
 	{
-	  *(keywords + anova) = 1;
-	  *(keywords + outs) = 1;
-	  *(keywords + coeff) = 1;
-	  *(keywords + r) = 1;
+	  keywords[anova] = 1;
+	  keywords[outs] = 1;
+	  keywords[coeff] = 1;
+	  keywords[r] = 1;
 	}
     }
   statistics_keyword_output (reg_stats_r, keywords[r], c);
