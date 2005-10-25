@@ -1,3 +1,9 @@
+Mon Oct 24 21:35:08 2005  Ben Pfaff  <blp@gnu.org>
+
+	* groff-font.c (font_msg): Use err_vmsg() instead of incorrectly
+	trying to pass a va_list to tmsg().  Thanks to Jason Stover for
+	reporting this bug.
+
 Mon Oct 24 21:24:15 2005  Ben Pfaff  <blp@gnu.org>
 
 	Work to get rid of GCC 4.0 warnings, part 2.

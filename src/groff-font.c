@@ -392,10 +392,15 @@ lose:
 static int
 font_msg (int class, const char *format,...)
 {
+  struct error error;
   va_list args;
 
+  error.class = class;
+  err_location (&error.where);
+  error.title = _("installation error: Groff font error: ");
+
   va_start (args, format);
-  tmsg (class, format, args, _("installation error: Groff font error: "));
+  err_vmsg (&error, format, args);
   va_end (args);
 
   return 0;
