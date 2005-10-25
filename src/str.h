@@ -106,6 +106,7 @@ void buf_copy_str_rpad (char *, size_t, const char *);
 int str_compare_rpad (const char *, const char *);
 void str_copy_rpad (char *, size_t, const char *);
 void str_copy_trunc (char *, size_t, const char *);
+void str_copy_buf_trunc (char *, size_t, const char *, size_t);
 void str_uppercase (char *);
 
 /* Fixed-length strings. */

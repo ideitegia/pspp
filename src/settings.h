@@ -207,7 +207,7 @@ int get_mxloops(void);
 int get_nullline(void);
 
 /* The character used to terminate commands. */
-unsigned char get_endcmd(void);
+char get_endcmd(void);
 
 /* Approximate maximum amount of memory to use for cases, in
    bytes. */

@@ -1488,7 +1488,7 @@ quote_ps_name (char *dest, const char *string)
   const char *sp;
 
   for (sp = string; *sp; sp++)
-    switch (*(unsigned char *) sp)
+    switch (*sp)
       {
       case 'a':
       case 'f':
@@ -1563,7 +1563,7 @@ quote_ps_name (char *dest, const char *string)
 	  *dp++ = '<';
 	  for (sp = string; *sp && dp < &dest[256]; sp++)
 	    {
-	      sprintf (dp, "%02x", *(unsigned char *) sp);
+	      sprintf (dp, "%02x", (unsigned char) *sp);
 	      dp += 2;
 	    }
 	  return stpcpy (dp, ">cvn");
@@ -1588,7 +1588,7 @@ quote_ps_string (char *dest, const char *string)
       dp = stpcpy (dp, "\\(");
     else if (*sp == ')')
       dp = stpcpy (dp, "\\)");
-    else if (*sp < 32 || *((unsigned char *) sp) > 127)
+    else if (*sp < 32 || (unsigned char) *sp > 127)
       dp = spprintf (dp, "\\%3o", *sp);
     else
       *dp++ = *sp;
@@ -2466,7 +2466,7 @@ write_text (struct outp_driver *this,
 	  if (TEST_BIT (literal_chars[ext->data], cp->ch))
 	    *lp++ = cp->ch;
 	  else
-	    switch (cp->ch)
+	    switch ((char) cp->ch)
 	      {
 	      case '(':
 		lp = stpcpy (lp, "\\(");

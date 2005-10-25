@@ -77,7 +77,7 @@ next_power_of_2 (size_t x)
 unsigned
 hsh_hash_bytes (const void *buf_, size_t size)
 {
-  const unsigned char *buf = buf_;
+  const unsigned char *buf = (const unsigned char *) buf_;
   unsigned hash;
 
   assert (buf != NULL);
@@ -93,7 +93,7 @@ hsh_hash_bytes (const void *buf_, size_t size)
 unsigned
 hsh_hash_string (const char *s_) 
 {
-  const unsigned char *s = s_;
+  const unsigned char *s = (const unsigned char *) s_;
   unsigned hash;
 
   assert (s != NULL);
@@ -109,7 +109,7 @@ hsh_hash_string (const char *s_)
 unsigned
 hsh_hash_case_string (const char *s_) 
 {
-  const unsigned char *s = s_;
+  const unsigned char *s = (const unsigned char *) s_;
   unsigned hash;
 
   assert (s != NULL);

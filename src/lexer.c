@@ -801,7 +801,7 @@ lex_preprocess_line (void)
       len--;
 
     /* Check for and remove terminal dot. */
-    if (len > 0 && s[len - 1] == get_endcmd() )
+    if (len > 0 && s[len - 1] == get_endcmd ())
       {
 	dot = 1;
 	len--;

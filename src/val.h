@@ -53,7 +53,7 @@ union value
     double f;
 
     /* A short-string value. */
-    unsigned char s[MAX_SHORT_STRING];
+    char s[MAX_SHORT_STRING];
 
     /* Used by evaluate_expression() to return a string result.
        As currently implemented, it's a pointer to a dynamic
@@ -61,7 +61,7 @@ union value
 
        Also used by the AGGREGATE procedure in handling string
        values. */
-    unsigned char *c;
+    char *c;
   };
 
 /* Maximum number of `union value's in a single number or string

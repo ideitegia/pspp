@@ -237,7 +237,7 @@ cmd_recode (void)
 	      else
 		{
 		  for (i = mark; i < rcd->nmap; i++)
-		    rcd->map[i].t.c = (output.c?xstrdup (output.c):NULL);
+		    rcd->map[i].t.c = output.c ? xstrdup (output.c) : NULL;
 		  free (output.c);
 		}
 	    }

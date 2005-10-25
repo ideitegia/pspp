@@ -50,7 +50,7 @@ bool mv_is_empty (const struct missing_values *);
 int mv_get_width (const struct missing_values *);
 
 bool mv_add_value (struct missing_values *, const union value *);
-bool mv_add_str (struct missing_values *, const unsigned char[]);
+bool mv_add_str (struct missing_values *, const char[]);
 bool mv_add_num (struct missing_values *, double);
 bool mv_add_num_range (struct missing_values *, double low, double high);
 
@@ -68,17 +68,16 @@ typedef bool is_missing_func (const struct missing_values *,
 /* Is a value system or user missing? */
 bool mv_is_value_missing (const struct missing_values *, const union value *);
 bool mv_is_num_missing (const struct missing_values *, double);
-bool mv_is_str_missing (const struct missing_values *, const unsigned char[]);
+bool mv_is_str_missing (const struct missing_values *, const char[]);
 
 /* Is a value user missing? */
 bool mv_is_value_user_missing (const struct missing_values *,
                                const union value *);
 bool mv_is_num_user_missing (const struct missing_values *, double);
-bool mv_is_str_user_missing (const struct missing_values *,
-                             const unsigned char[]);
+bool mv_is_str_user_missing (const struct missing_values *, const char[]);
 
 /* Is a value system missing? */
 bool mv_is_value_system_missing (const struct missing_values *,
-                               const union value *);
+                                 const union value *);
 
 #endif /* missing-values.h */

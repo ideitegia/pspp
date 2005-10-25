@@ -79,8 +79,8 @@ nvsprintf (char *buf, const char *format, va_list args)
 void
 buf_reverse (char *p, size_t nbytes)
 {
-  unsigned char *h = p, *t = &h[nbytes - 1];
-  unsigned char temp;
+  char *h = p, *t = &h[nbytes - 1];
+  char temp;
 
   nbytes /= 2;
   while (nbytes--)
@@ -247,6 +247,21 @@ str_copy_trunc (char *dst, size_t dst_size, const char *src)
       memcpy (dst, src, dst_size - 1);
       dst[dst_size - 1] = '\0';
     }
+}
+
+/* Copies buffer SRC, of SRC_LEN bytes,
+   to DST, which is in a buffer DST_SIZE bytes long.
+   Truncates DST to DST_SIZE - 1 characters, if necessary. */
+void
+str_copy_buf_trunc (char *dst, size_t dst_size,
+                    const char *src, size_t src_size) 
+{
+  size_t dst_len;
+  assert (dst_size > 0);
+
+  dst_len = src_size < dst_size ? src_size : dst_size - 1;
+  memcpy (dst, src, dst_len);
+  dst[dst_len] = '\0';
 }
 
 /* Converts each character in S to uppercase. */

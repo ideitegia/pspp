@@ -406,7 +406,7 @@ font_msg (int class, const char *format,...)
 static void
 scan_badchars (char *line, int len)
 {
-  unsigned char *cp = line;
+  char *cp = line;
 
   /* Same bad characters as Groff. */
   static unsigned char badchars[32] =
@@ -417,12 +417,15 @@ scan_badchars (char *line, int len)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   };
 
-  for (; len--; cp++)
-    if (badchars[*cp >> 3] & (1 << (*cp & 7)))
-      {
-	font_msg (SE, _("Bad character \\%3o."), *cp);
-	*cp = ' ';
-      }
+  for (; len--; cp++) 
+    {
+      int c = (unsigned char) *cp;
+      if (badchars[c >> 3] & (1 << (c & 7)))
+        {
+          font_msg (SE, _("Bad character \\%3o."), *cp);
+          *cp = ' ';
+        } 
+    }
 }
 
 /* Character name hashing. */

@@ -496,29 +496,23 @@ free_atom (void *atom_, void *aux UNUSED)
    else format it and return the formatted string
 */
 const char *
-value_to_string(const union value *val, const struct variable *var)
+value_to_string (const union value *val, const struct variable *var)
 {
-  static char buf[100];
   char *s;
-  const struct val_labs *val_labs ;
   
-  if ( !val || ! var ) 
-    return 0;
+  assert (val != NULL);
+  assert (var != NULL);
 
-  val_labs = var->val_labs;
-
-  
-  s = val_labs_find (val_labs, *val);
-
-  if ( s ) 
-    return s;
-
-  if ( 0 == var->width ) 
-    snprintf(buf,100,"%g",val->f);
-  else
+  s = val_labs_find (var->val_labs, *val);
+  if (s == NULL) 
     {
-      strncpy(buf,val->s,MAX_SHORT_STRING);
-      strcat(buf,"\0");
+      static char buf[256];
+      if (var->width != 0) 
+        str_copy_buf_trunc (buf, sizeof buf, val->s, var->width);
+      else
+        snprintf(buf, 100, "%g", val->f);
+      s = buf;
     }
-  return buf;
+  
+  return s;
 }

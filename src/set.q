@@ -1330,7 +1330,7 @@ get_include(void)
  return (cmd.inc != STC_OFF );
 }
 
-unsigned char
+char
 get_endcmd(void)
 {
   return cmd.s_endcmd[0];

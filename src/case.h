@@ -73,7 +73,7 @@ CASE_INLINE void case_from_values (struct ccase *,
 
 CASE_INLINE const union value *case_data (const struct ccase *, size_t idx);
 CASE_INLINE double case_num (const struct ccase *, size_t idx);
-CASE_INLINE const unsigned char *case_str (const struct ccase *, size_t idx);
+CASE_INLINE const char *case_str (const struct ccase *, size_t idx);
 
 CASE_INLINE union value *case_data_rw (struct ccase *, size_t idx);
 
@@ -170,7 +170,7 @@ case_num (const struct ccase *c, size_t idx)
   return c->case_data->values[idx].f;
 }
 
-static inline const unsigned char *
+static inline const char *
 case_str (const struct ccase *c, size_t idx)
 {
   return c->case_data->values[idx].s;

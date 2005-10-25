@@ -579,7 +579,7 @@ perform_DO_REPEAT_substitutions (void)
       }
     }
   if (dot)
-    ds_putc (&output, get_endcmd() );
+    ds_putc (&output, get_endcmd ());
 
   ds_destroy (&getl_buf);
   getl_buf = output;

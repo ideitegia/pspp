@@ -117,7 +117,7 @@ find (const void *array, size_t count, size_t size,
       const void *target,
       algo_compare_func *compare, void *aux) 
 {
-  const unsigned char *element = array;
+  const char *element = array;
 
   while (count-- > 0) 
     {
@@ -139,7 +139,7 @@ count_equal (const void *array, size_t count, size_t size,
              const void *element,
              algo_compare_func *compare, void *aux)
 {
-  const unsigned char *first = array;
+  const char *first = array;
   size_t equal_cnt = 0;
 
   while (count-- > 0) 
@@ -161,7 +161,7 @@ size_t
 count_if (const void *array, size_t count, size_t size,
           algo_predicate_func *predicate, void *aux) 
 {
-  const unsigned char *first = array;
+  const char *first = array;
   size_t nonzero_cnt = 0;
 
   while (count-- > 0) 
@@ -294,7 +294,7 @@ is_partitioned (const void *array, size_t count, size_t size,
                 size_t nonzero_cnt,
                 algo_predicate_func *predicate, void *aux) 
 {
-  const unsigned char *first = array;
+  const char *first = array;
   size_t idx;
 
   assert (nonzero_cnt <= count);
@@ -316,9 +316,9 @@ copy_if (const void *array, size_t count, size_t size,
          void *result,
          algo_predicate_func *predicate, void *aux) 
 {
-  const unsigned char *input = array;
-  const unsigned char *last = input + size * count;
-  unsigned char *output = result;
+  const char *input = array;
+  const char *last = input + size * count;
+  char *output = result;
   size_t nonzero_cnt = 0;
   
   while (input < last)
@@ -421,9 +421,9 @@ remove_equal (void *array, size_t count, size_t size,
               void *element,
               algo_compare_func *compare, void *aux) 
 {
-  unsigned char *first = array;
-  unsigned char *last = first + count * size;
-  unsigned char *result;
+  char *first = array;
+  char *last = first + count * size;
+  char *result;
 
   for (;;)
     {
@@ -489,14 +489,14 @@ binary_search (const void *array, size_t count, size_t size,
 
   if (count != 0) 
     {
-      const unsigned char *first = array;
+      const char *first = array;
       int low = 0;
       int high = count - 1;
 
       while (low <= high) 
         {
           int middle = (low + high) / 2;
-          const unsigned char *element = first + middle * size;
+          const char *element = first + middle * size;
           int cmp = compare (value, element, aux);
 
           if (cmp > 0) 
@@ -523,8 +523,8 @@ lexicographical_compare_3way (const void *array1, size_t count1,
                               size_t size,
                               algo_compare_func *compare, void *aux) 
 {
-  const unsigned char *first1 = array1;
-  const unsigned char *first2 = array2;
+  const char *first1 = array1;
+  const char *first2 = array2;
   size_t min_count = count1 < count2 ? count1 : count2;
 
   while (min_count > 0)
@@ -764,7 +764,7 @@ int
 is_sorted (const void *array, size_t count, size_t size,
            algo_compare_func *compare, void *aux) 
 {
-  const unsigned char *first = array;
+  const char *first = array;
   size_t idx;
       
   for (idx = 0; idx + 1 < count; idx++)
@@ -788,11 +788,11 @@ size_t set_difference (const void *array1, size_t count1,
                        void *result_,
                        algo_compare_func *compare, void *aux) 
 {
-  const unsigned char *first1 = array1;
-  const unsigned char *last1 = first1 + count1 * size;
-  const unsigned char *first2 = array2;
-  const unsigned char *last2 = first2 + count2 * size;
-  unsigned char *result = result_;
+  const char *first1 = array1;
+  const char *last1 = first1 + count1 * size;
+  const char *first2 = array2;
+  const char *last2 = first2 + count2 * size;
+  char *result = result_;
   size_t result_count = 0;
   
   while (first1 != last1 && first2 != last2) 
@@ -835,8 +835,8 @@ void *
 adjacent_find_equal (const void *array, size_t count, size_t size,
                      algo_compare_func *compare, void *aux) 
 {
-  const unsigned char *first = array;
-  const unsigned char *last = first + count * size;
+  const char *first = array;
+  const char *last = first + count * size;
 
   while (first < last && first + size < last) 
     {
@@ -858,15 +858,15 @@ void
 push_heap (void *array, size_t count, size_t size,
            algo_compare_func *compare, void *aux) 
 {
-  unsigned char *first = array;
+  char *first = array;
   size_t i;
   
   expensive_assert (count < 1 || is_heap (array, count - 1,
                                           size, compare, aux));
   for (i = count; i > 1; i /= 2) 
     {
-      unsigned char *parent = first + (i / 2 - 1) * size;
-      unsigned char *element = first + (i - 1) * size;
+      char *parent = first + (i / 2 - 1) * size;
+      char *element = first + (i - 1) * size;
       if (compare (parent, element, aux) < 0)
         SWAP (parent, element, size);
       else
@@ -885,7 +885,7 @@ heapify (void *array, size_t count, size_t size,
          size_t idx,
          algo_compare_func *compare, void *aux) 
 {
-  unsigned char *first = array;
+  char *first = array;
   
   for (;;) 
     {
@@ -921,7 +921,7 @@ void
 pop_heap (void *array, size_t count, size_t size,
           algo_compare_func *compare, void *aux) 
 {
-  unsigned char *first = array;
+  char *first = array;
 
   expensive_assert (is_heap (array, count, size, compare, aux));
   SWAP (first, first + (count - 1) * size, size);
@@ -952,7 +952,7 @@ void
 sort_heap (void *array, size_t count, size_t size,
            algo_compare_func *compare, void *aux) 
 {
-  unsigned char *first = array;
+  char *first = array;
   size_t idx;
 
   expensive_assert (is_heap (array, count, size, compare, aux));
@@ -972,7 +972,7 @@ int
 is_heap (const void *array, size_t count, size_t size,
          algo_compare_func *compare, void *aux) 
 {
-  const unsigned char *first = array;
+  const char *first = array;
   size_t child;
   
   for (child = 2; child <= count; child++)

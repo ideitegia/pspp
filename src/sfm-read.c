@@ -89,9 +89,9 @@ struct sfm_var
 
 /* Swap bytes *A and *B. */
 static inline void
-bswap (unsigned char *a, unsigned char *b) 
+bswap (char *a, char *b) 
 {
-  unsigned char t = *a;
+  char t = *a;
   *a = *b;
   *b = t;
 }
@@ -100,7 +100,7 @@ bswap (unsigned char *a, unsigned char *b)
 static inline void
 bswap_int32 (int32 *x_)
 {
-  unsigned char *x = (unsigned char *) x_;
+  char *x = (char *) x_;
   bswap (x + 0, x + 3);
   bswap (x + 1, x + 2);
 }
@@ -109,7 +109,7 @@ bswap_int32 (int32 *x_)
 static inline void
 bswap_flt64 (flt64 *x_)
 {
-  unsigned char *x = (unsigned char *) x_;
+  char *x = (char *) x_;
   bswap (x + 0, x + 7);
   bswap (x + 1, x + 6);
   bswap (x + 2, x + 5);
@@ -945,7 +945,7 @@ read_variables (struct sfm_reader *r,
                 if (vv->type == NUMERIC)
                   mv_add_num (&vv->miss, mv[j]);
                 else
-                  mv_add_str (&vv->miss, (unsigned char *) &mv[j]);
+                  mv_add_str (&vv->miss, (char *) &mv[j]);
 	    }
 	  else
 	    {
@@ -1036,7 +1036,7 @@ read_value_labels (struct sfm_reader *r,
 {
   struct label 
     {
-      unsigned char raw_value[8]; /* Value as uninterpreted bytes. */
+      char raw_value[8];        /* Value as uninterpreted bytes. */
       union value value;        /* Value. */
       char *label;              /* Null-terminated label string. */
     };
@@ -1166,8 +1166,8 @@ read_value_labels (struct sfm_reader *r,
       
       if (var[0]->type == ALPHA)
         {
-          const int copy_len = min (sizeof (label->raw_value),
-                                    sizeof (label->label));
+          const int copy_len = min (sizeof label->raw_value,
+                                    sizeof label->label);
           memcpy (label->value.s, label->raw_value, copy_len);
         } else {
           flt64 f;

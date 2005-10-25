@@ -202,7 +202,7 @@ ascii_open_global (struct outp_class *this UNUSED)
 }
 
 
-static unsigned char *s=0;
+static char *s;
 static int
 ascii_close_global (struct outp_class *this UNUSED)
 {
@@ -1158,8 +1158,8 @@ text_draw (struct outp_driver *this, struct outp_text *t)
 /* ascii_close_page () and support routines. */
 
 #define LINE_BUF_SIZE 1024
-static unsigned char *line_buf;
-static unsigned char *line_p;
+static char *line_buf;
+static char *line_p;
 
 static inline int
 commit_line_buf (struct outp_driver *this)
@@ -1312,7 +1312,7 @@ output_shorts (struct outp_driver *this,
 /* Writes CH into line_buf N times, or to THIS->output if line_buf
    overflows. */
 static inline void
-output_char (struct outp_driver *this, int n, int ch)
+output_char (struct outp_driver *this, int n, char ch)
 {
   if (LINE_BUF_SIZE - (line_p - line_buf) >= n)
     {
@@ -1474,7 +1474,7 @@ output_lines (struct outp_driver *this, int first, int count)
 	}
       if (n_passes > 1)
 	{
-	  unsigned char ch;
+	  char ch;
 
 	  return_carriage (this, n_chars);
 	  n_chars = 0;
@@ -1538,7 +1538,7 @@ ascii_close_page (struct outp_driver *this)
 
   struct ascii_driver_ext *x = this->ext;
   int nl_len, ff_len, total_len;
-  unsigned char *cp;
+  char *cp;
   int i;
 
   assert (this->driver_open && this->page_open);
@@ -1624,11 +1624,7 @@ ascii_close_page (struct outp_driver *this)
 	  output_string (this, s, &s[total_len]);
 
   if (line_p != line_buf && !commit_line_buf (this))
-    {
-    free(s);
-    s=0;
     return 0;
-    }
 
   this->page_open = 0;
   return 1;

@@ -246,7 +246,7 @@ write_header (struct pfm_writer *w)
   {
     /* PORTME: Translation table from SPSS character code to this
        computer's native character code (which is probably ASCII). */
-    static const unsigned char spss2ascii[256] =
+    static const char spss2ascii[256] =
       {
 	"0000000000000000000000000000000000000000000000000000000000000000"
 	"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ."

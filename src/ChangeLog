@@ -1,3 +1,17 @@
+Mon Oct 24 21:24:15 2005  Ben Pfaff  <blp@gnu.org>
+
+	Work to get rid of GCC 4.0 warnings, part 2.
+
+	In many files, change `unsigned char' to `char'.  This often
+	requires adding casts to <ctype.h> functions.
+
+	* data-in.c: (parse_A) Use buf_copy_rpad().
+
+	* str.c: (str_copy_buf_trunc) New function.
+
+	* value-labels.c: (value_to_string) Fix mistaken use of strncpy(),
+	by rewriting.
+
 Mon Oct 24 13:42:32 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	Moved some definitions to make it easier to abstract a dictionary 

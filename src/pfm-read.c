@@ -59,8 +59,7 @@ struct pfm_reader
     struct file_handle *fh;     /* File handle. */
     FILE *file;			/* File stream. */
     char cc;			/* Current character. */
-    unsigned char *trans;	/* 256-byte character set translation table. */
-
+    char *trans;                /* 256-byte character set translation table. */
     int var_cnt;                /* Number of variables. */
     int weight_index;		/* 0-based index of weight variable, or -1. */
     int *widths;                /* Variable widths, 0 for numeric. */
@@ -342,7 +341,7 @@ read_string (struct pfm_reader *r, char *buf)
 
 /* Reads a string and returns a copy of it allocated from R's
    pool. */
-static unsigned char *
+static char *
 read_pool_string (struct pfm_reader *r) 
 {
   char string[256];
@@ -356,7 +355,7 @@ read_header (struct pfm_reader *r)
 {
   /* portable_to_local[PORTABLE] translates the given portable
      character into the local character set. */
-  static const unsigned char portable_to_local[256] =
+  static const char portable_to_local[256] =
     {
       "                                                                "
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ."
@@ -364,7 +363,7 @@ read_header (struct pfm_reader *r)
       "                                                                "
     };
 
-  unsigned char *trans;
+  char *trans;
   int i;
 
   /* Read and ignore vanity splash strings. */
@@ -411,6 +410,7 @@ read_header (struct pfm_reader *r)
 static void
 read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 {
+  static char empty_string[] = "";
   char *date, *time, *product, *author, *subproduct;
   int i;
 
@@ -419,10 +419,9 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
     error (r, "Unrecognized version code `%c'.", r->cc);
   date = read_pool_string (r);
   time = read_pool_string (r);
-  product = match (r, '1') ? read_pool_string (r) : (unsigned char *) "";
-  author = match (r, '2') ? read_pool_string (r) : (unsigned char *) "";
-  subproduct
-    = match (r, '3') ? read_pool_string (r) : (unsigned char *) "";
+  product = match (r, '1') ? read_pool_string (r) : empty_string;
+  author = match (r, '2') ? read_pool_string (r) : empty_string;
+  subproduct = match (r, '3') ? read_pool_string (r) : empty_string;
 
   /* Validate file. */
   if (strlen (date) != 8)

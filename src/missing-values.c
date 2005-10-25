@@ -89,7 +89,7 @@ mv_add_value (struct missing_values *mv, const union value *v)
    missing values.  (Long string variables never accept missing
    values.) */
 bool
-mv_add_str (struct missing_values *mv, const unsigned char s[]) 
+mv_add_str (struct missing_values *mv, const char s[]) 
 {
   assert (mv->width > 0);
   return mv_add_value (mv, (union value *) s);
@@ -223,7 +223,7 @@ using_element (unsigned type, int idx)
    NEW_WIDTH (inclusive) and OLD_WIDTH (exclusive),
    false otherwise. */
 static bool
-can_resize_string (const unsigned char *s, int old_width, int new_width) 
+can_resize_string (const char *s, int old_width, int new_width) 
 {
   int i;
 
@@ -302,8 +302,7 @@ mv_is_num_missing (const struct missing_values *mv, double d)
    MV must be a set of string missing values. 
    S[] must contain exactly as many characters as MV's width. */
 bool
-mv_is_str_missing (const struct missing_values *mv,
-                   const unsigned char s[])
+mv_is_str_missing (const struct missing_values *mv, const char s[])
 {
   return mv_is_str_user_missing (mv, s);
 }
@@ -348,7 +347,7 @@ mv_is_num_user_missing (const struct missing_values *mv, double d)
    S[] must contain exactly as many characters as MV's width. */
 bool
 mv_is_str_user_missing (const struct missing_values *mv,
-                        const unsigned char s[])
+                        const char s[])
 {
   const union value *v = mv->values;
   assert (mv->width > 0);

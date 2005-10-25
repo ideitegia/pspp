@@ -34,8 +34,8 @@ enum
 /* Information about parsing one data field. */
 struct data_in
   {
-    const unsigned char *s;	/* Source start. */
-    const unsigned char *e;	/* Source end. */
+    const char *s;              /* Source start. */
+    const char *e;              /* Source end. */
 
     union value *v;		/* Destination. */
 

@@ -91,10 +91,10 @@ dls_error (const struct data_in *i, const char *format, ...)
 static void
 trim_whitespace (struct data_in *i)
 {
-  while (i->s < i->e && isspace (i->s[0])) 
+  while (i->s < i->e && isspace ((unsigned char) i->s[0])) 
     i->s++;
 
-  while (i->s < i->e && isspace (i->e[-1]))
+  while (i->s < i->e && isspace ((unsigned char) i->e[-1]))
     i->e--;
 }
 
@@ -172,7 +172,7 @@ parse_numeric (struct data_in *i)
   exponent = 0;
   for (; have_char (i); i->s++)
     {
-      if (isdigit (*i->s))
+      if (isdigit ((unsigned char) *i->s))
 	{
 	  digit_cnt++;
 
@@ -219,7 +219,7 @@ parse_numeric (struct data_in *i)
       /* Get the exponent specified after the `e' or `E'.  */
       long exp;
 
-      if (isalpha (*i->s))
+      if (isalpha ((unsigned char) *i->s))
 	i->s++;
       if (!parse_int (i, &exp))
         {
@@ -291,18 +291,18 @@ hexit_value (int c)
 static inline bool
 parse_N (struct data_in *i)
 {
-  const unsigned char *cp;
+  const char *cp;
 
   i->v->f = 0;
   for (cp = i->s; cp < i->e; cp++)
     {
-      if (!isdigit (*cp))
+      if (!isdigit ((unsigned char) *cp))
 	{
 	  dls_error (i, _("All characters in field must be digits."));
 	  return false;
 	}
 
-      i->v->f = i->v->f * 10.0 + *cp - '0';
+      i->v->f = i->v->f * 10.0 + (*cp - '0');
     }
 
   apply_implied_decimals (i);
@@ -313,14 +313,14 @@ static inline bool
 parse_PIBHEX (struct data_in *i)
 {
   double n;
-  const unsigned char *cp;
+  const char *cp;
 
   trim_whitespace (i);
 
   n = 0.0;
   for (cp = i->s; cp < i->e; cp++)
     {
-      if (!isxdigit (*cp))
+      if (!isxdigit ((unsigned char) *cp))
 	{
 	  dls_error (i, _("Unrecognized character in field."));
 	  return false;
@@ -345,10 +345,10 @@ parse_RBHEX (struct data_in *i)
     }
   
   {
-    const unsigned char *cp;
+    const char *cp;
     
     for (cp = i->s; cp < i->e; cp++)
-      if (!isxdigit (*cp))
+      if (!isxdigit ((unsigned char) *cp))
 	{
 	  dls_error (i, _("Field must contain only hex digits."));
 	  return false;
@@ -416,7 +416,7 @@ parse_Z (struct data_in *i)
 
   /* Copy digits into buf[1 ... len - 1] and terminate string. */
   {
-    const unsigned char *sp;
+    const char *sp;
     char *dp;
 
     for (sp = i->s, dp = buf + 1; sp < i->e - 1; sp++, dp++)
@@ -440,8 +440,8 @@ parse_Z (struct data_in *i)
   {
     char *tail;
     
-    i->v->f = strtod ((char *) buf, (char **) &tail);
-    if ((unsigned char *) tail != i->e)
+    i->v->f = strtod (buf, &tail);
+    if (tail != i->e)
       {
 	dls_error (i, _("Error in syntax of zoned decimal number."));
 	return false;
@@ -460,18 +460,18 @@ parse_IB (struct data_in *i)
 #ifndef WORDS_BIGENDIAN
   char buf[64];
 #endif
-  const char *p;
+  const unsigned char *p;
 
   unsigned char xor;
 
   /* We want the data to be in big-endian format.  If this is a
      little-endian machine, reverse the byte order. */
 #ifdef WORDS_BIGENDIAN
-  p = i->s;
+  p = (const unsigned char *) i->s;
 #else
   memcpy (buf, i->s, i->e - i->s);
   buf_reverse (buf, i->e - i->s);
-  p = buf;
+  p = (const unsigned char *) buf;
 #endif
 
   /* If the value is negative, we need to logical-NOT each value
@@ -507,10 +507,10 @@ parse_PIB (struct data_in *i)
   i->v->f = 0.0;
 #if WORDS_BIGENDIAN
   for (j = 0; j < i->e - i->s; j++)
-    i->v->f = i->v->f * 256.0 + i->s[j];
+    i->v->f = i->v->f * 256.0 + (unsigned char) i->s[j];
 #else
   for (j = i->e - i->s - 1; j >= 0; j--)
-    i->v->f = i->v->f * 256.0 + i->s[j];
+    i->v->f = i->v->f * 256.0 + (unsigned char) i->s[j];
 #endif
 
   apply_implied_decimals (i);
@@ -521,15 +521,15 @@ parse_PIB (struct data_in *i)
 static inline bool
 parse_P (struct data_in *i)
 {
-  const unsigned char *cp;
+  const char *cp;
 
   i->v->f = 0.0;
   for (cp = i->s; cp < i->e - 1; cp++)
     {
-      i->v->f = i->v->f * 10 + (*cp >> 4);
+      i->v->f = i->v->f * 10 + ((*cp >> 4) & 15);
       i->v->f = i->v->f * 10 + (*cp & 15);
     }
-  i->v->f = i->v->f * 10 + (*cp >> 4);
+  i->v->f = i->v->f * 10 + ((*cp >> 4) & 15);
   if ((*cp ^ (*cp >> 1)) & 0x10)
       i->v->f = -i->v->f;
 
@@ -541,12 +541,12 @@ parse_P (struct data_in *i)
 static inline bool
 parse_PK (struct data_in *i)
 {
-  const unsigned char *cp;
+  const char *cp;
 
   i->v->f = 0.0;
   for (cp = i->s; cp < i->e; cp++)
     {
-      i->v->f = i->v->f * 10 + (*cp >> 4);
+      i->v->f = i->v->f * 10 + ((*cp >> 4) & 15);
       i->v->f = i->v->f * 10 + (*cp & 15);
     }
 
@@ -566,7 +566,7 @@ parse_RB (struct data_in *i)
   u;
 
   memset (u.c, 0, sizeof u.c);
-  memcpy (u.c, i->s, min ((int) sizeof (u.c), i->e - i->s));
+  memcpy (u.c, i->s, min (sizeof u.c, (size_t) (i->e - i->s)));
   i->v->f = u.d;
 
   return true;
@@ -575,16 +575,7 @@ parse_RB (struct data_in *i)
 static inline bool
 parse_A (struct data_in *i)
 {
-  ptrdiff_t len = i->e - i->s;
-  
-  if (len >= i->format.w)
-    memcpy (i->v->s, i->s, i->format.w);
-  else
-    {
-      memcpy (i->v->s, i->s, len);
-      memset (i->v->s + len, ' ', i->format.w - len);
-    }
-
+  buf_copy_rpad (i->v->s, i->format.w, i->s, i->e - i->s);
   return true;
 }
 
@@ -600,10 +591,10 @@ parse_AHEX (struct data_in *i)
     }
 
   {
-    const unsigned char *cp;
+    const char *cp;
     
     for (cp = i->s; cp < i->e; cp++)
-      if (!isxdigit (*cp))
+      if (!isxdigit ((unsigned char) *cp))
 	{
 	  dls_error (i, _("Field must contain only hex digits."));
 	  return false;
@@ -669,7 +660,7 @@ parse_int (struct data_in *i, long *result)
       force_have_char (i);
     }
   
-  if (!isdigit (*i->s))
+  if (!isdigit ((unsigned char) *i->s))
     {
       dls_error (i, _("Digit expected in field."));
       return false;
@@ -678,8 +669,8 @@ parse_int (struct data_in *i, long *result)
   *result = 0;
   for (;;)
     {
-      *result = *result * 10 + *i->s++ - '0';
-      if (!have_char (i) || !isdigit (*i->s))
+      *result = *result * 10 + (*i->s++ - '0');
+      if (!have_char (i) || !isdigit ((unsigned char) *i->s))
 	break;
     }
 
@@ -712,7 +703,7 @@ parse_date_delimiter (struct data_in *i)
   bool delim = false;
 
   while (have_char (i)
-	 && (*i->s == '-' || *i->s == '/' || isspace (*i->s)
+	 && (*i->s == '-' || *i->s == '/' || isspace ((unsigned char) *i->s)
 	     || *i->s == '.' || *i->s == ','))
     {
       delim = true;
@@ -747,7 +738,7 @@ parse_enum (struct data_in *i, const char *what,
   /* Consume alphabetic characters. */
   name = i->s;
   length = 0;
-  while (have_char (i) && isalpha (*i->s)) 
+  while (have_char (i) && isalpha ((unsigned char) *i->s)) 
     {
       length++;
       i->s++; 
@@ -811,7 +802,7 @@ parse_month (struct data_in *i, long *month)
   if (!force_have_char (i))
     return false;
   
-  if (isdigit (*i->s))
+  if (isdigit ((unsigned char) *i->s))
     {
       if (!parse_int (i, month))
 	return false;
@@ -898,7 +889,7 @@ static bool
 parse_q_delimiter (struct data_in *i)
 {
   skip_whitespace (i);
-  if (!have_char (i) || tolower (*i->s) != 'q')
+  if (!have_char (i) || tolower ((unsigned char) *i->s) != 'q')
     {
       dls_error (i, _("`Q' expected between quarter and year."));
       return false;
@@ -925,7 +916,8 @@ parse_wk_delimiter (struct data_in *i)
 {
   skip_whitespace (i);
   if (i->s + 1 >= i->e
-      || tolower (i->s[0]) != 'w' || tolower (i->s[1]) != 'k')
+      || tolower ((unsigned char) i->s[0]) != 'w'
+      || tolower ((unsigned char) i->s[1]) != 'k')
     {
       dls_error (i, _("`WK' expected between week and year."));
       return false;
@@ -940,7 +932,8 @@ parse_time_delimiter (struct data_in *i)
 {
   bool delim = false;
 
-  while (have_char (i) && (*i->s == ':' || *i->s == '.' || isspace (*i->s)))
+  while (have_char (i) && (*i->s == ':' || *i->s == '.'
+                           || isspace ((unsigned char) *i->s)))
     {
       delim = true;
       i->s++;
@@ -986,24 +979,24 @@ parse_opt_second (struct data_in *i, double *second)
   char *cp;
 
   while (have_char (i)
-	 && (*i->s == ':' || *i->s == '.' || isspace (*i->s)))
+	 && (*i->s == ':' || *i->s == '.' || isspace ((unsigned char) *i->s)))
     {
       delim = true;
       i->s++;
     }
   
-  if (!delim || !isdigit (*i->s))
+  if (!delim || !isdigit ((unsigned char) *i->s))
     {
       *second = 0.0;
       return true;
     }
 
   cp = buf;
-  while (have_char (i) && isdigit (*i->s))
+  while (have_char (i) && isdigit ((unsigned char) *i->s))
     *cp++ = *i->s++;
   if (have_char (i) && *i->s == '.')
     *cp++ = *i->s++;
-  while (have_char (i) && isdigit (*i->s))
+  while (have_char (i) && isdigit ((unsigned char) *i->s))
     *cp++ = *i->s++;
   *cp = '\0';
   
@@ -1387,12 +1380,12 @@ data_in (struct data_in *i)
 
   if (fmt->cat & FCAT_BLANKS_SYSMIS)
     {
-      const unsigned char *cp;
+      const char *cp;
 
       cp = i->s;
       for (;;)
 	{
-	  if (!isspace (*cp))
+	  if (!isspace ((unsigned char) *cp))
 	    break;
 
 	  if (++cp == i->e)

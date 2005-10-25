@@ -527,8 +527,8 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 
       *loc++ = vl->value.f;
       *(unsigned char *) loc = len;
-      memcpy (&((unsigned char *) loc)[1], vl->label, len);
-      memset (&((unsigned char *) loc)[1 + len], ' ',
+      memcpy (&((char *) loc)[1], vl->label, len);
+      memset (&((char *) loc)[1 + len], ' ',
 	      REM_RND_UP (len + 1, sizeof (flt64)));
       loc += DIV_RND_UP (len + 1, sizeof (flt64));
     }
