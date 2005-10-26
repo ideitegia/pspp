@@ -22,6 +22,8 @@
 
 #include <float.h>
 
+#include <config.h>
+
 /* Values. */
 
 /* Max length of a short string value, generally 8 chars. */
