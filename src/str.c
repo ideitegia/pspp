@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "error.h"
-#include "pool.h"
 
 /* sprintf() wrapper functions for convenience. */
 

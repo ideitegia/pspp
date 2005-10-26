@@ -22,22 +22,16 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
-#include "command.h"
 #include "dictionary.h"
-#include "do-ifP.h"
-#include "expressions/public.h"
-#include "file-handle.h"
 #include "hash.h"
-#include "lexer.h"
+#include "lex-def.h"
 #include "misc.h"
 #include "str.h"
 #include "value-labels.h"
-#include "vfm.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
 
 /* Assign auxiliary data AUX to variable V, which must not
    already have auxiliary data.  Before V's auxiliary data is

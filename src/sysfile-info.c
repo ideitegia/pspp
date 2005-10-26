@@ -29,6 +29,7 @@
 #include "file-handle.h"
 #include "hash.h"
 #include "lexer.h"
+#include "magic.h"
 #include "misc.h"
 #include "output.h"
 #include "sfm-read.h"

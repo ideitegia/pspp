@@ -24,9 +24,9 @@
 #include <stddef.h>
 #include "config.h"
 #include <stdbool.h>
+
 #include "format.h"
 #include "missing-values.h"
-#include "val.h"
 
 /* Script variables. */
 

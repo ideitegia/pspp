@@ -96,7 +96,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
-#include "settings.h"
 
 /* Some of the assertions in this file are very expensive.  We
    don't use them by default. */

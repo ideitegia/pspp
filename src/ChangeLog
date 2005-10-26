@@ -1,3 +1,10 @@
+Wed Oct 26 08:43:51 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	Dictionary abstraction part #2
+
+	* algorithm.c format.c str.c sysfile-info.c val.h var.h vars-atr.c:
+	  Removed unnecessary #include directives
+
 Mon Oct 24 21:35:08 2005  Ben Pfaff  <blp@gnu.org>
 
 	* groff-font.c (font_msg): Use err_vmsg() instead of incorrectly

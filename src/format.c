@@ -23,7 +23,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "error.h"
-#include "lexer.h"
+#include "lex-def.h"
 #include "misc.h"
 #include "str.h"
 #include "var.h"
