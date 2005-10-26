@@ -2,7 +2,7 @@
 
 noinst_LIBRARIES = liblinreg.a
 
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src
 
 AM_CFLAGS=
 
