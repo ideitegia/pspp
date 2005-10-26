@@ -157,7 +157,7 @@ output_oneway(void)
   size_t i;
   short *bad_contrast ; 
 
-  bad_contrast = xmalloc ( sizeof (short) * cmd.sbc_contrast );
+  bad_contrast = xnmalloc (cmd.sbc_contrast, sizeof *bad_contrast);
 
   /* Check the sanity of the given contrast values */
   for (i = 0 ; i < cmd.sbc_contrast ; ++i ) 
@@ -949,9 +949,7 @@ run_oneway(const struct casefile *cf, void *cmd_)
 
 	  if ( ! gs ) 
 	    {
-	      gs = (struct group_statistics *) 
-		xmalloc (sizeof(struct group_statistics));
-
+	      gs = xmalloc (sizeof *gs);
 	      gs->id = *indep_val;
 	      gs->sum=0;
 	      gs->n=0;

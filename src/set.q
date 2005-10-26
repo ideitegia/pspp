@@ -1406,7 +1406,7 @@ set_rng (unsigned long seed)
 {
   rng = gsl_rng_alloc (gsl_rng_mt19937);
   if (rng == NULL)
-    out_of_memory ();
+    xalloc_die ();
   gsl_rng_set (rng, seed);
 }
 

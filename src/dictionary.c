@@ -100,7 +100,7 @@ dict_clone (const struct dictionary *s)
   d->split_cnt = s->split_cnt;
   if (d->split_cnt > 0) 
     {
-      d->split = xmalloc (d->split_cnt * sizeof *d->split);
+      d->split = xnmalloc (d->split_cnt, sizeof *d->split);
       for (i = 0; i < d->split_cnt; i++) 
         d->split[i] = dict_lookup_var_assert (d, s->split[i]->name);
     }
@@ -116,7 +116,7 @@ dict_clone (const struct dictionary *s)
   dict_set_documents (d, dict_get_documents (s));
 
   d->vector_cnt = s->vector_cnt;
-  d->vector = xmalloc (d->vector_cnt * sizeof *d->vector);
+  d->vector = xnmalloc (d->vector_cnt, sizeof *d->vector);
   for (i = 0; i < s->vector_cnt; i++) 
     {
       struct vector *sv = s->vector[i];
@@ -126,7 +126,7 @@ dict_clone (const struct dictionary *s)
       dv->idx = i;
       strcpy (dv->name, sv->name);
       dv->cnt = sv->cnt;
-      dv->var = xmalloc (dv->cnt * sizeof *dv->var);
+      dv->var = xnmalloc (dv->cnt, sizeof *dv->var);
       for (j = 0; j < dv->cnt; j++)
         dv->var[j] = d->var[sv->var[j]->index];
     }
@@ -240,7 +240,7 @@ dict_get_vars (const struct dictionary *d, struct variable ***vars,
     if (!(exclude_classes & (1u << dict_class_from_id (d->var[i]->name))))
       count++;
 
-  *vars = xmalloc (count * sizeof **vars);
+  *vars = xnmalloc (count, sizeof **vars);
   *cnt = 0;
   for (i = 0; i < d->var_cnt; i++)
     if (!(exclude_classes & (1u << dict_class_from_id (d->var[i]->name))))
@@ -304,7 +304,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   if (d->var_cnt >= d->var_cap) 
     {
       d->var_cap = 8 + 2 * d->var_cap; 
-      d->var = xrealloc (d->var, d->var_cap * sizeof *d->var);
+      d->var = xnrealloc (d->var, d->var_cap, sizeof *d->var);
     }
   d->var[v->index] = v;
   d->var_cnt++;
@@ -545,7 +545,7 @@ dict_reorder_vars (struct dictionary *d,
   assert (count == 0 || order != NULL);
   assert (count <= d->var_cnt);
 
-  new_var = xmalloc (d->var_cnt * sizeof *new_var);
+  new_var = xnmalloc (d->var_cnt, sizeof *new_var);
   memcpy (new_var, order, count * sizeof *new_var);
   for (i = 0; i < count; i++) 
     {
@@ -609,7 +609,7 @@ dict_rename_vars (struct dictionary *d,
 
   /* Remove the variables to be renamed from the name hash,
      save their names, and rename them. */
-  old_names = xmalloc (count * sizeof *old_names);
+  old_names = xnmalloc (count, sizeof *old_names);
   for (i = 0; i < count; i++) 
     {
       assert (d->var[vars[i]->index] == vars[i]);
@@ -854,7 +854,7 @@ dict_get_compacted_idx_to_fv (const struct dictionary *d)
   size_t next_value_idx;
   int *idx_to_fv;
   
-  idx_to_fv = xmalloc (d->var_cnt * sizeof *idx_to_fv);
+  idx_to_fv = xnmalloc (d->var_cnt, sizeof *idx_to_fv);
   next_value_idx = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
@@ -901,7 +901,7 @@ dict_set_split_vars (struct dictionary *d,
   assert (cnt == 0 || split != NULL);
 
   d->split_cnt = cnt;
-  d->split = xrealloc (d->split, cnt * sizeof *d->split);
+  d->split = xnrealloc (d->split, cnt, sizeof *d->split);
   memcpy (d->split, split, cnt * sizeof *d->split);
 }
 
@@ -979,11 +979,11 @@ dict_create_vector (struct dictionary *d,
   if (dict_lookup_vector (d, name) != NULL)
     return 0;
 
-  d->vector = xrealloc (d->vector, (d->vector_cnt + 1) * sizeof *d->vector);
+  d->vector = xnrealloc (d->vector, d->vector_cnt + 1, sizeof *d->vector);
   vector = d->vector[d->vector_cnt] = xmalloc (sizeof *vector);
   vector->idx = d->vector_cnt++;
   str_copy_trunc (vector->name, sizeof vector->name, name);
-  vector->var = xmalloc (cnt * sizeof *var);
+  vector->var = xnmalloc (cnt, sizeof *var);
   for (i = 0; i < cnt; i++)
     {
       assert (dict_contains_var (d, var[i]));

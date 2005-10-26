@@ -310,8 +310,8 @@ cmd_t_test(void)
 	  assert(cmd.n_variables == 0);
 	  cmd.n_variables = hsh_count(hash);
 
-	  cmd.v_variables = xrealloc(cmd.v_variables,
-				     sizeof(struct variable) * cmd.n_variables);
+	  cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
+                                       sizeof *cmd.v_variables);
 	  /* Iterate through the hash */
 	  for (i=0,v = (struct variable *) hsh_first(hash,&hi);
 	       v != 0;
@@ -509,7 +509,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
 
 
   /* Allocate storage for the pairs */
-  pairs = xrealloc(pairs, sizeof(struct pair) * (n_pairs + n_pairs_local) );
+  pairs = xnrealloc (pairs, n_pairs + n_pairs_local, sizeof *pairs);
 
   /* Populate the pairs with the appropriate variables */
   if ( paired ) 
@@ -1711,8 +1711,7 @@ group_precalc (struct cmd_t_test *cmd )
       for (j=0 ; j < 2 ; ++j)
 	{
 
-	  struct group_statistics *gs = (struct group_statistics *) 
-	    xmalloc (sizeof(struct group_statistics));
+	  struct group_statistics *gs = xmalloc (sizeof *gs);
 
 	  gs->sum = 0;
 	  gs->n = 0;

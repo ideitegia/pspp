@@ -284,7 +284,7 @@ add_symbol (const char *name, int unique, int value)
   symbol *iter, *sym;
   int x;
 
-  sym = xmalloc (sizeof (symbol));
+  sym = xmalloc (sizeof *sym);
   sym->name = xstrdup (name);
   sym->unique = unique;
   sym->value = value;
@@ -724,7 +724,7 @@ parse_specifier (specifier *spec, subcommand *sbc)
     
     for (;;)
       {
-	*s = xmalloc (sizeof (setting));
+	*s = xmalloc (sizeof **s);
 	parse_setting (*s, spec);
 	if (token == ',' || token == ';' || token == '.')
 	  break;
@@ -749,7 +749,7 @@ parse_specifiers (subcommand *sbc)
   
   for (;;)
     {
-      *spec = xmalloc (sizeof (specifier));
+      *spec = xmalloc (sizeof **spec);
       parse_specifier (*spec, sbc);
       if (token == ';' || token == '.')
 	break;
@@ -893,7 +893,7 @@ parse_subcommands (void)
   
   for (;;)
     {
-      *sbc = xmalloc (sizeof (subcommand));
+      *sbc = xmalloc (sizeof **sbc);
       (*sbc)->next = NULL;
 
       parse_subcommand (*sbc);
@@ -2251,7 +2251,7 @@ aux_parse (void)
 
   for (;;)
     {
-	sbc = xmalloc(sizeof(aux_subcommand));
+	sbc = xmalloc (sizeof *sbc);
 	sbc->next = prevsbc;
         sbc->name = xstrdup (tokstr);
 	lex_get();

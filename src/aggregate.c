@@ -371,7 +371,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  {
 	    int j;
 
-	    dest_label = xrealloc (dest_label, sizeof *dest_label * n_dest);
+	    dest_label = xnrealloc (dest_label, n_dest, sizeof *dest_label);
 	    for (j = n_dest_prev; j < n_dest; j++)
 	      dest_label[j] = NULL;
 	  }

@@ -681,7 +681,7 @@ keep_variables (struct dictionary *dict)
   dict_reorder_vars (dict, v, nv);
           
   /* Delete the remaining variables. */
-  v = xrealloc (v, (dict_get_var_cnt (dict) - nv) * sizeof *v);
+  v = xnrealloc (v, dict_get_var_cnt (dict) - nv, sizeof *v);
   for (i = nv; i < dict_get_var_cnt (dict); i++)
     v[i - nv] = dict_get_var (dict, i);
   dict_delete_vars (dict, v, dict_get_var_cnt (dict) - nv);
@@ -921,7 +921,7 @@ cmd_match_files (void)
             {
               size_t i;
 	  
-              iter->by = xmalloc (sizeof *iter->by * mtf.by_cnt);
+              iter->by = xnmalloc (mtf.by_cnt, sizeof *iter->by);
 
               for (i = 0; i < mtf.by_cnt; i++)
                 {
@@ -1714,7 +1714,7 @@ finish_case_map (struct dictionary *d)
 
   map = xmalloc (sizeof *map);
   map->value_cnt = dict_get_next_value_idx (d);
-  map->map = xmalloc (sizeof *map->map * map->value_cnt);
+  map->map = xnmalloc (map->value_cnt, sizeof *map->map);
   for (i = 0; i < map->value_cnt; i++)
     map->map[i] = -1;
 

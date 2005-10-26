@@ -96,7 +96,7 @@ cmd_end_input_program (void)
   /* Figure out how to initialize each input case. */
   inp = xmalloc (sizeof *inp);
   inp->init_cnt = dict_get_next_value_idx (default_dict);
-  inp->init = xmalloc (inp->init_cnt * sizeof *inp->init);
+  inp->init = xnmalloc (inp->init_cnt, sizeof *inp->init);
   for (i = 0; i < inp->init_cnt; i++)
     inp->init[i] = -1;
   for (i = 0; i < dict_get_var_cnt (default_dict); i++)

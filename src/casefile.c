@@ -344,12 +344,12 @@ casefile_append (struct casefile *cf, const struct ccase *c)
               if ((block_idx & (block_idx - 1)) == 0) 
                 {
                   size_t block_cap = block_idx == 0 ? 1 : block_idx * 2;
-                  cf->cases = xrealloc (cf->cases,
-                                        sizeof *cf->cases * block_cap);
+                  cf->cases = xnrealloc (cf->cases,
+                                         block_cap, sizeof *cf->cases);
                 }
 
-              cf->cases[block_idx] = xmalloc (sizeof **cf->cases
-                                              * CASES_PER_BLOCK);
+              cf->cases[block_idx] = xnmalloc (CASES_PER_BLOCK,
+                                               sizeof **cf->cases);
             }
 
           case_move (&cf->cases[block_idx][case_idx], &new_case);
@@ -424,7 +424,7 @@ casefile_to_disk (const struct casefile *cf_)
       cf->storage = DISK;
       if (!make_temp_file (&cf->fd, &cf->filename))
         err_failure ();
-      cf->buffer = xmalloc (cf->buffer_size * sizeof *cf->buffer);
+      cf->buffer = xnmalloc (cf->buffer_size, sizeof *cf->buffer);
       memset (cf->buffer, 0, cf->buffer_size * sizeof *cf->buffer);
 
       case_bytes -= cf->case_cnt * cf->case_acct_size;
@@ -549,7 +549,7 @@ reader_open_file (struct casereader *reader)
     }
   else 
     {
-      reader->buffer = xmalloc (cf->buffer_size * sizeof *cf->buffer);
+      reader->buffer = xnmalloc (cf->buffer_size, sizeof *cf->buffer);
       memset (reader->buffer, 0, cf->buffer_size * sizeof *cf->buffer); 
     }
 

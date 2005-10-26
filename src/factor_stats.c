@@ -93,7 +93,7 @@ metrics_calc(struct metrics *fs, const union value *val,
       assert( (*wv)->v.f == val->f );
       (*wv)->w += weight;      
 
-      cn = xmalloc( sizeof (struct case_node) ) ;
+      cn = xmalloc ( sizeof *cn);
       cn->next = (*wv)->case_nos ;
       cn->num = case_no;
 
@@ -107,7 +107,7 @@ metrics_calc(struct metrics *fs, const union value *val,
       (*wv)->v = *val;
       (*wv)->w = weight;
       
-      cn = xmalloc( sizeof (struct case_node) ) ;
+      cn = xmalloc (sizeof *cn);
       cn->next=0;
       cn->num = case_no;
       (*wv)->case_nos  = cn;
@@ -215,7 +215,7 @@ struct weighted_value *
 weighted_value_create(void)
 {
   struct weighted_value *wv;
-  wv = xmalloc (sizeof (struct weighted_value ));
+  wv = xmalloc (sizeof *wv);
 
   wv->cc = 0;
   wv->case_nos = 0;
@@ -256,11 +256,11 @@ create_factor_statistics (int n, union value *id0, union value *id1)
 {
   struct factor_statistics *f;
 
-  f =  xmalloc( sizeof  ( struct factor_statistics ));
+  f = xmalloc (sizeof *f);
 
   f->id[0] = *id0;
   f->id[1] = *id1;
-  f->m = xmalloc( sizeof ( struct metrics ) * n ) ;
+  f->m = xnmalloc (n, sizeof *f->m);
   memset (f->m, 0, sizeof(struct metrics) * n);
   f->n_var = n;
 

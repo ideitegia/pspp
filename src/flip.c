@@ -285,7 +285,7 @@ flip_sink_create (struct flip_pgm *flip)
   size_t i;
 
   info->flip = flip;
-  info->output_buf = xmalloc (sizeof *info->output_buf * flip->var_cnt);
+  info->output_buf = xnmalloc (flip->var_cnt, sizeof *info->output_buf);
 
   flip->file = tmpfile ();
   if (!flip->file)
@@ -316,7 +316,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
 
   if (flip->new_names != NULL)
     {
-      struct varname *v = xmalloc (sizeof (struct varname));
+      struct varname *v = xmalloc (sizeof *v);
       v->next = NULL;
       if (flip->new_names->type == NUMERIC) 
         {
@@ -499,7 +499,7 @@ flip_source_read (struct case_source *source,
   union value *input_buf;
   size_t i;
 
-  input_buf = xmalloc (sizeof *input_buf * flip->case_cnt);
+  input_buf = xnmalloc (flip->case_cnt, sizeof *input_buf);
   for (i = 0; i < flip->var_cnt; i++)
     {
       size_t j;

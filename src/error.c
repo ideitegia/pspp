@@ -126,7 +126,7 @@ err_push_file_locator (const struct file_locator *f)
       else
 	mfile_loc *= 2;
 
-      file_loc = xrealloc (file_loc, mfile_loc * sizeof *file_loc);
+      file_loc = xnrealloc (file_loc, mfile_loc, sizeof *file_loc);
     }
 
   file_loc[nfile_loc++] = f;

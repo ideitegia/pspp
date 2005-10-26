@@ -195,7 +195,7 @@ static struct outp_option_info *option_info;
 static int
 ascii_open_global (struct outp_class *this UNUSED)
 {
-  option_info = xmalloc ( sizeof (struct outp_option_info ) ) ;
+  option_info = xmalloc (sizeof *option_info);
   option_info->initial = 0;
   option_info->options = 0;
   return 1;
@@ -231,7 +231,7 @@ ascii_preopen_driver (struct outp_driver *this)
   
   assert (this->driver_open == 0);
   msg (VM (1), _("ASCII driver initializing as `%s'..."), this->name);
-  this->ext = x = xmalloc (sizeof (struct ascii_driver_ext));
+  this->ext = x = xmalloc (sizeof *x);
   x->char_set = CHS_ASCII;
   x->headers = 1;
   x->page_length = 66;
@@ -716,7 +716,7 @@ ascii_open_page (struct outp_driver *this)
 
   if (x->l > x->lines_cap)
     {
-      x->lines = xrealloc (x->lines, sizeof *x->lines * x->l);
+      x->lines = xnrealloc (x->lines, x->l, sizeof *x->lines);
       for (i = x->lines_cap; i < x->l; i++) 
         {
           struct line *line = &x->lines[i];
@@ -746,8 +746,8 @@ expand_line (struct ascii_driver_ext *x, int i, int l)
   if (l > line->char_cap) 
     {
       line->char_cap = l * 2;
-      line->chars = xrealloc (line->chars,
-                              line->char_cap * sizeof *line->chars); 
+      line->chars = xnrealloc (line->chars,
+                               line->char_cap, sizeof *line->chars); 
     }
   for (j = line->char_cnt; j < l; j++)
     line->chars[j] = ' ';

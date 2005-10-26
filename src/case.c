@@ -92,7 +92,7 @@ void
 case_create (struct ccase *c, size_t value_cnt) 
 {
   if (!case_try_create (c, value_cnt))
-    out_of_memory ();
+    xalloc_die ();
 }
 
 #ifdef GLOBAL_DEBUGGING

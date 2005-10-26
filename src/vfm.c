@@ -227,7 +227,7 @@ open_active_file (void)
   
       lag_count = 0;
       lag_head = 0;
-      lag_queue = xmalloc (n_lag * sizeof *lag_queue);
+      lag_queue = xnmalloc (n_lag, sizeof *lag_queue);
       for (i = 0; i < n_lag; i++)
         case_nullify (&lag_queue[i]);
     }
@@ -608,7 +608,7 @@ add_transformation (struct trns_header * trns)
   if (n_trns >= m_trns)
     {
       m_trns += 16;
-      t_trns = xrealloc (t_trns, sizeof *t_trns * m_trns);
+      t_trns = xnrealloc (t_trns, m_trns, sizeof *t_trns);
     }
   t_trns[n_trns] = trns;
   trns->index = n_trns++;

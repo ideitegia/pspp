@@ -911,7 +911,7 @@ outp_match_keyword (const char *s, struct outp_option *tab,
       *++cp = 0;
 
       info->initial = xstrdup (s);
-      info->options = xmalloc (sizeof *info->options * (cp - s));
+      info->options = xnmalloc (cp - s, sizeof *info->options);
       memcpy (info->options, ptr, sizeof *info->options * (cp - s));
     }
 

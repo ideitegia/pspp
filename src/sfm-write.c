@@ -173,7 +173,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->x = w->y = NULL;
 
   w->var_cnt = dict_get_var_cnt (d);
-  w->vars = xmalloc (sizeof *w->vars * w->var_cnt);
+  w->vars = xnmalloc (w->var_cnt, sizeof *w->vars);
   for (i = 0; i < w->var_cnt; i++) 
     {
       const struct variable *dv = dict_get_var (d, i);
@@ -242,7 +242,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
   if (w->compress) 
     {
-      w->buf = xmalloc (sizeof *w->buf * 128);
+      w->buf = xnmalloc (128, sizeof *w->buf);
       w->ptr = w->buf;
       w->end = &w->buf[128];
       w->x = (unsigned char *) w->ptr++;

@@ -961,11 +961,11 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
 
   nr.mx = mx;
   nr.data = NULL;
-  nr.factor_values = xmalloc (sizeof *nr.factor_values
-                              * mx->n_factors * mx->cells);
+  nr.factor_values = xnmalloc (mx->n_factors * mx->cells,
+                               sizeof *nr.factor_values);
   nr.max_cell_idx = 0;
-  nr.split_values = xmalloc (sizeof *nr.split_values
-                             * dict_get_split_cnt (default_dict));
+  nr.split_values = xnmalloc (dict_get_split_cnt (default_dict),
+                              sizeof *nr.split_values);
 
   vfm_source = create_case_source (&matrix_data_without_rowtype_source_class, &nr);
   
@@ -1549,7 +1549,7 @@ wr_read_splits (struct wr_aux_data *wr,
   else
     {
       compare = 0;
-      wr->split_values = xmalloc (split_cnt * sizeof *wr->split_values);
+      wr->split_values = xnmalloc (split_cnt, sizeof *wr->split_values);
     }
   
   {
@@ -1644,7 +1644,7 @@ wr_output_data (struct wr_aux_data *wr,
     struct factor_data *iter;
     int i;
 
-    factors = xmalloc (sizeof *factors * mx->cells);
+    factors = xnmalloc (mx->cells, sizeof *factors);
 
     for (i = 0, iter = wr->data; iter; iter = iter->next, i++)
       factors[i] = iter;

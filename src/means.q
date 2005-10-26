@@ -153,8 +153,8 @@ mns_custom_tables (struct cmd_means *cmd)
         goto lossage;
       
       n_dim++;
-      nv_dim = xrealloc (nv_dim, n_dim * sizeof (int));
-      v_dim = xrealloc (v_dim, n_dim * sizeof (struct variable **));
+      nv_dim = xnrealloc (nv_dim, n_dim, sizeof *nv_dim);
+      v_dim = xnrealloc (v_dim, n_dim, sizeof *v_dim);
 
       nv_dim[n_dim - 1] = nvl;
       v_dim[n_dim - 1] = vl;

@@ -250,7 +250,7 @@ cmd_modify_vars (void)
           assert (all_cnt >= keep_cnt);
 
           drop_cnt = all_cnt - keep_cnt;
-          drop_vars = xmalloc (drop_cnt * sizeof *keep_vars);
+          drop_vars = xnmalloc (drop_cnt, sizeof *keep_vars);
           if (set_difference (all_vars, all_cnt,
                               keep_vars, keep_cnt,
                               sizeof *all_vars,
@@ -403,7 +403,7 @@ validate_var_modification (const struct dictionary *d,
 
   /* Drop variables, in index order. */
   drop_cnt = vm->drop_cnt;
-  drop_vars = xmalloc (drop_cnt * sizeof *drop_vars);
+  drop_vars = xnmalloc (drop_cnt, sizeof *drop_vars);
   memcpy (drop_vars, vm->drop_vars, drop_cnt * sizeof *drop_vars);
   sort (drop_vars, drop_cnt, sizeof *drop_vars,
         compare_variables_given_ordering, &forward_positional_ordering);
@@ -411,7 +411,7 @@ validate_var_modification (const struct dictionary *d,
   /* Keep variables, in index order. */
   assert (all_cnt >= drop_cnt);
   keep_cnt = all_cnt - drop_cnt;
-  keep_vars = xmalloc (keep_cnt * sizeof *keep_vars);
+  keep_vars = xnmalloc (keep_cnt, sizeof *keep_vars);
   if (set_difference (all_vars, all_cnt,
                       drop_vars, drop_cnt,
                       sizeof *all_vars,
@@ -421,7 +421,7 @@ validate_var_modification (const struct dictionary *d,
     assert (0);
 
   /* Copy variables into var_renaming array. */
-  var_renaming = xmalloc (keep_cnt * sizeof *var_renaming);
+  var_renaming = xnmalloc (keep_cnt, sizeof *var_renaming);
   for (i = 0; i < keep_cnt; i++) 
     {
       var_renaming[i].var = keep_vars[i];
@@ -486,7 +486,7 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
   /* Record the old names of variables to rename.  After
      variables are deleted, we can't depend on the variables to
      still exist, but we can still look them up by name. */
-  rename_old_names = xmalloc (vm->rename_cnt * sizeof *rename_old_names);
+  rename_old_names = xnmalloc (vm->rename_cnt, sizeof *rename_old_names);
   for (i = 0; i < vm->rename_cnt; i++)
     rename_old_names[i] = xstrdup (vm->rename_vars[i]->name);
 
@@ -495,8 +495,8 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
   dict_delete_vars (d, vm->drop_vars, vm->drop_cnt);
 
   /* Compose lists of variables to rename and their new names. */
-  rename_vars = xmalloc (vm->rename_cnt * sizeof *rename_vars);
-  rename_new_names = xmalloc (vm->rename_cnt * sizeof *rename_new_names);
+  rename_vars = xnmalloc (vm->rename_cnt, sizeof *rename_vars);
+  rename_new_names = xnmalloc (vm->rename_cnt, sizeof *rename_new_names);
   rename_cnt = 0;
   for (i = 0; i < vm->rename_cnt; i++)
     {

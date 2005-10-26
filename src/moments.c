@@ -523,8 +523,8 @@ read_values (double **values, double **weights, size_t *cnt)
       if (*cnt >= cap) 
         {
           cap = 2 * (cap + 8);
-          *values = xrealloc (*values, sizeof **values * cap);
-          *weights = xrealloc (*weights, sizeof **weights * cap);
+          *values = xnrealloc (*values, cap, sizeof **values);
+          *weights = xnrealloc (*weights, cap, sizeof **weights);
         }
 
       (*values)[*cnt] = value;

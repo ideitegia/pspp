@@ -321,8 +321,8 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
   
   for (n_by = 0; ;)
     {
-      by = xrealloc (by, sizeof *by * (n_by + 1));
-      by_nvar = xrealloc (by_nvar, sizeof *by_nvar * (n_by + 1));
+      by = xnrealloc (by, n_by + 1, sizeof *by);
+      by_nvar = xnrealloc (by_nvar, n_by + 1, sizeof *by_nvar);
       if (!parse_var_set_vars (var_set, &by[n_by], &by_nvar[n_by],
                                PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	goto done;
@@ -350,7 +350,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
     int *by_iter = xcalloc (n_by, sizeof *by_iter);
     int i;
 
-    xtab = xnrealloc (xtab, sizeof *xtab, nxtab + nx);
+    xtab = xnrealloc (xtab, nxtab + nx, sizeof *xtab);
     for (i = 0; i < nx; i++)
       {
 	struct crosstab *x;
@@ -509,8 +509,8 @@ precalc (void *aux UNUSED)
 	  for (j = 2; j < x->nvar; j++) 
             count *= get_var_range (x->vars[j - 2])->count;
           
-	  sorted_tab = xrealloc (sorted_tab,
-				 sizeof *sorted_tab * (n_sorted_tab + count));
+	  sorted_tab = xnrealloc (sorted_tab,
+                                  n_sorted_tab + count, sizeof *sorted_tab);
 	  v = local_alloc (sizeof *v * x->nvar);
 	  for (j = 2; j < x->nvar; j++) 
             v[j] = get_var_range (x->vars[j])->min; 
@@ -529,7 +529,7 @@ precalc (void *aux UNUSED)
 		const int mat_size = row_cnt * col_cnt;
 		int m;
 		
-		te->u.data = xmalloc (sizeof *te->u.data * mat_size);
+		te->u.data = xnmalloc (mat_size, sizeof *te->u.data);
 		for (m = 0; m < mat_size; m++)
 		  te->u.data[m] = 0.;
 	      }
@@ -548,8 +548,8 @@ precalc (void *aux UNUSED)
 	  local_free (v);
 	}
 
-      sorted_tab = xrealloc (sorted_tab,
-			     sizeof *sorted_tab * (n_sorted_tab + 1));
+      sorted_tab = xnrealloc (sorted_tab,
+                              n_sorted_tab + 1, sizeof *sorted_tab);
       sorted_tab[n_sorted_tab] = NULL;
     }
 }
@@ -1197,13 +1197,13 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
       /* Allocate memory space for the column and row totals. */
       if (n_rows > *maxrows)
 	{
-	  *row_totp = xrealloc (*row_totp, sizeof **row_totp * n_rows);
+	  *row_totp = xnrealloc (*row_totp, n_rows, sizeof **row_totp);
 	  row_tot = *row_totp;
 	  *maxrows = n_rows;
 	}
       if (n_cols > *maxcols)
 	{
-	  *col_totp = xrealloc (*col_totp, sizeof **col_totp * n_cols);
+	  *col_totp = xnrealloc (*col_totp, n_cols, sizeof **col_totp);
 	  col_tot = *col_totp;
 	  *maxcols = n_cols;
 	}
@@ -1219,7 +1219,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	  /* Allocate memory space for the matrix. */
 	  if (n_cols * n_rows > *maxcells)
 	    {
-	      *matp = xrealloc (*matp, sizeof **matp * n_cols * n_rows);
+	      *matp = xnrealloc (*matp, n_cols * n_rows, sizeof **matp);
 	      *maxcells = n_cols * n_rows;
 	    }
 	  
@@ -1625,7 +1625,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
       int width = v->width;
       int i;
 
-      *values = xmalloc (sizeof **values * entry_cnt);
+      *values = xnmalloc (entry_cnt, sizeof **values);
       for (i = 0; i < entry_cnt; i++)
         (*values)[i] = entries[i]->values[var_idx];
       *value_cnt = sort_unique (*values, entry_cnt, sizeof **values,
@@ -1637,7 +1637,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
       int i;
       
       assert (mode == INTEGER);
-      *values = xmalloc (sizeof **values * vr->count);
+      *values = xnmalloc (vr->count, sizeof **values);
       for (i = 0; i < vr->count; i++)
 	(*values)[i].f = i + vr->min;
       *value_cnt = vr->count;
@@ -2520,7 +2520,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
       {
 	int r, c;
 
-	cum = xmalloc (sizeof *cum * n_cols * n_rows);
+	cum = xnmalloc (n_cols * n_rows, sizeof *cum);
 	for (c = 0; c < n_cols; c++)
 	  {
 	    double ct = 0.;
@@ -2863,10 +2863,10 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
   /* Lambda. */
   if (cmd.a_statistics[CRS_ST_LAMBDA])
     {
-      double *fim = xmalloc (sizeof *fim * n_rows);
-      int *fim_index = xmalloc (sizeof *fim_index * n_rows);
-      double *fmj = xmalloc (sizeof *fmj * n_cols);
-      int *fmj_index = xmalloc (sizeof *fmj_index * n_cols);
+      double *fim = xnmalloc (n_rows, sizeof *fim);
+      int *fim_index = xnmalloc (n_rows, sizeof *fim_index);
+      double *fmj = xnmalloc (n_cols, sizeof *fmj);
+      int *fmj_index = xnmalloc (n_cols, sizeof *fmj_index);
       double sum_fim, sum_fmj;
       double rm, cm;
       int rm_index, cm_index;

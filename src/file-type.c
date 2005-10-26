@@ -445,7 +445,7 @@ cmd_record_type (void)
 	  if (rct->nv >= mv)
 	    {
 	      mv += 16;
-	      rct->v = xrealloc (rct->v, mv * sizeof *rct->v);
+	      rct->v = xnrealloc (rct->v, mv, sizeof *rct->v);
 	    }
 
 	  if (formats[fty->record.fmt].cat & FCAT_STRING)

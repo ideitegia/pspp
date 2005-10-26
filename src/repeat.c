@@ -355,8 +355,8 @@ parse_ids (struct repeat_entry * e)
       if (!parse_mixed_vars (&names, &nnames, PV_NONE))
 	return 0;
 
-      e->replacement = xrealloc (e->replacement,
-				 (nnames + n) * sizeof *e->replacement);
+      e->replacement = xnrealloc (e->replacement,
+                                  nnames + n, sizeof *e->replacement);
       for (i = 0; i < nnames; i++)
 	{
 	  e->replacement[n + i] = xstrdup (names[i]);
@@ -418,8 +418,8 @@ parse_numbers (struct repeat_entry *e)
       if (n + (abs (b - a) + 1) > m)
 	{
 	  m = n + (abs (b - a) + 1) + 16;
-	  e->replacement = array = xrealloc (array,
-					     m * sizeof *e->replacement);
+	  e->replacement = array = xnrealloc (array,
+                                              m, sizeof *e->replacement);
 	}
 
       if (a == b)
@@ -470,8 +470,8 @@ parse_strings (struct repeat_entry * e)
       if (n + 1 > m)
 	{
 	  m += 16;
-	  e->replacement = string = xrealloc (string,
-					      m * sizeof *e->replacement);
+	  e->replacement = string = xnrealloc (string,
+                                               m, sizeof *e->replacement);
 	}
       string[n++] = lex_token_representation ();
       lex_get ();
@@ -479,7 +479,7 @@ parse_strings (struct repeat_entry * e)
       lex_match (',');
     }
   while (token != '/' && token != '.');
-  e->replacement = xrealloc (string, n * sizeof *e->replacement);
+  e->replacement = xnrealloc (string, n, sizeof *e->replacement);
 
   return n;
 }

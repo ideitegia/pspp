@@ -576,7 +576,7 @@ display_vectors (int sorted)
       return;
     }
 
-  vl = xmalloc (sizeof *vl * nvec);
+  vl = xnmalloc (nvec, sizeof *vl);
   for (i = 0; i < nvec; i++)
     vl[i] = dict_get_vector (default_dict, i);
   if (sorted)

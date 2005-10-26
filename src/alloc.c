@@ -19,14 +19,14 @@
 
 #include <config.h>
 #include "alloc.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include "error.h"
-#include "str.h"
 
-/* Report an out-of-memory condition and abort execution. */
-void
-out_of_memory (void)
+/* Allocates and returns N elements of S bytes each.
+   N must be nonnegative, S must be positive.
+   Returns a null pointer if the memory cannot be obtained,
+   including the case where N * S overflows the range of size_t. */
+void *
+nmalloc (size_t n, size_t s) 
 {
-  xalloc_die ();
+  return !xalloc_oversized (n, s) ? malloc (n * s) : NULL;
 }

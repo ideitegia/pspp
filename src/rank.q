@@ -224,11 +224,11 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
   int var_count = 0;
   
   n_rank_specs++;
-  rank_specs = xrealloc(rank_specs, n_rank_specs * sizeof *rank_specs);
+  rank_specs = xnrealloc(rank_specs, n_rank_specs, sizeof *rank_specs);
   rank_specs[n_rank_specs - 1].rfunc = f;
 
   rank_specs[n_rank_specs - 1].destvars = 
-	    xcalloc(sc->crit_cnt ,sizeof (struct variable *));
+	    xcalloc (sc->crit_cnt, sizeof (struct variable *));
 	  
   if (lex_match_id("INTO"))
     {

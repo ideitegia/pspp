@@ -191,9 +191,8 @@ cmd_list (void)
 	    {
 	      /* Add the weight variable to the end of the variable list. */
 	      cmd.n_variables++;
-	      cmd.v_variables = xrealloc (cmd.v_variables,
-					  (cmd.n_variables
-					   * sizeof *cmd.v_variables));
+	      cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
+                                           sizeof *cmd.v_variables);
 	      cmd.v_variables[cmd.n_variables - 1]
                 = dict_get_weight (default_dict);
 	    }
@@ -215,8 +214,8 @@ cmd_list (void)
 
       /* Add the weight variable at the beginning of the variable list. */
       cmd.n_variables++;
-      cmd.v_variables = xrealloc (cmd.v_variables,
-				  cmd.n_variables * sizeof *cmd.v_variables);
+      cmd.v_variables = xnrealloc (cmd.v_variables,
+                                   cmd.n_variables, sizeof *cmd.v_variables);
       memmove (&cmd.v_variables[1], &cmd.v_variables[0],
 	       (cmd.n_variables - 1) * sizeof *cmd.v_variables);
       cmd.v_variables[0] = &casenum_var;
@@ -303,7 +302,7 @@ write_header (struct outp_driver *d)
       size_t x;
       
       /* Allocate, initialize header. */
-      prc->header = xmalloc (sizeof (char *) * prc->header_rows);
+      prc->header = xnmalloc (prc->header_rows, sizeof *prc->header);
       {
 	int w = n_chars_width (d);
 	for (i = 0; i < prc->header_rows; i++)

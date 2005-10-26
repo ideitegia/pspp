@@ -158,7 +158,7 @@ levene_precalc (const struct levene_info *l)
 {
   size_t i;
 
-  lz  = xmalloc (sizeof (struct lz_stats ) * l->n_dep ) ;
+  lz = xnmalloc (l->n_dep, sizeof *lz);
 
   for(i = 0; i < l->n_dep ; ++i ) 
     {
@@ -265,7 +265,7 @@ levene2_precalc (void *_l)
 
   struct levene_info *l = (struct levene_info *) _l;
 
-  lz_denominator = (double *) xmalloc(sizeof(double) * l->n_dep);
+  lz_denominator = xnmalloc (l->n_dep, sizeof *lz_denominator);
 
   /* This stuff could go in the first post calc . . . */
   for (v = 0; v < l->n_dep; ++v) 

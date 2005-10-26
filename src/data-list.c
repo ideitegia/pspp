@@ -1557,7 +1557,7 @@ cmd_repeating_data (void)
 	    goto error;
 
 	  find_variable_input_spec (rpd->id_var, &rpd->id_spec);
-          rpd->id_value = xmalloc (sizeof *rpd->id_value * rpd->id_var->nv);
+          rpd->id_value = xnmalloc (rpd->id_var->nv, sizeof *rpd->id_value);
 	}
       else if (lex_match_id ("TABLE"))
 	table = 1;

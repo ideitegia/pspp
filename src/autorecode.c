@@ -164,8 +164,8 @@ cmd_autorecode (void)
     }
 
   arc.src_values_pool = pool_create ();
-  arc.dst_vars = xmalloc (sizeof *arc.dst_vars * arc.var_cnt);
-  arc.src_values = xmalloc (sizeof *arc.src_values * arc.var_cnt);
+  arc.dst_vars = xnmalloc (arc.var_cnt, sizeof *arc.dst_vars);
+  arc.src_values = xnmalloc (arc.var_cnt, sizeof *arc.src_values);
   for (i = 0; i < dst_cnt; i++)
     if (arc.src_vars[i]->type == ALPHA)
       arc.src_values[i] = hsh_create (10, compare_alpha_value,

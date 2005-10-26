@@ -394,7 +394,7 @@ list_to_ptile_hash(const subc_list_double *l)
 
   for ( i = 0 ; i < subc_list_double_count(l) ; ++i )
     {
-      struct percentile *p = xmalloc (sizeof (struct percentile));
+      struct percentile *p = xmalloc (sizeof *p);
       
       p->p = subc_list_double_at(l,i);
       p->v = SYSMIS;
@@ -511,7 +511,7 @@ xmn_custom_variables(struct cmd_examine *cmd )
 
   assert(n_dependent_vars);
 
-  totals = xmalloc( sizeof(struct metrics) * n_dependent_vars);
+  totals = xnmalloc (n_dependent_vars, sizeof *totals);
 
   if ( lex_match(T_BY))
     {
@@ -534,7 +534,7 @@ static int
 examine_parse_independent_vars(struct cmd_examine *cmd)
 {
   int success;
-  struct factor *sf = xmalloc(sizeof(struct factor));
+  struct factor *sf = xmalloc (sizeof *sf);
 
   if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
@@ -1858,7 +1858,7 @@ np_plot(const struct metrics *m, const char *factorname)
   {
     /* We have to cache the detrended data, beacause we need to 
        find its limits before we can plot it */
-    double *d_data = xmalloc (m->n_data * sizeof(double));
+    double *d_data = xnmalloc (m->n_data, sizeof *d_data);
     double d_max = -DBL_MAX;
     double d_min = DBL_MAX;
     for ( i = 0 ; i < m->n_data; ++i ) 

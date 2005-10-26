@@ -129,7 +129,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   w->vars = NULL;
   
   w->var_cnt = dict_get_var_cnt (dict);
-  w->vars = xmalloc (sizeof *w->vars * w->var_cnt);
+  w->vars = xnmalloc (w->var_cnt, sizeof *w->vars);
   for (i = 0; i < w->var_cnt; i++) 
     {
       const struct variable *dv = dict_get_var (dict, i);

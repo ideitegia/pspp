@@ -758,10 +758,10 @@ read_variables (struct sfm_reader *r,
   *var_by_idx = 0;
 
   /* Pre-allocate variables. */
-  if ( r->value_cnt != -1 ) 
+  if (r->value_cnt != -1) 
     {
-      *var_by_idx = xmalloc(r->value_cnt * sizeof (**var_by_idx));
-      r->vars = xmalloc( r->value_cnt * sizeof (*r->vars) );
+      *var_by_idx = xnmalloc (r->value_cnt, sizeof **var_by_idx);
+      r->vars = xnmalloc (r->value_cnt, sizeof *r->vars);
     }
 
 
@@ -799,8 +799,8 @@ read_variables (struct sfm_reader *r,
 
       if ( -1 == r->value_cnt ) 
 	{
-	  *var_by_idx = xrealloc (*var_by_idx, sizeof **var_by_idx * (i + 1));
-	  r->vars = xrealloc(r->vars,  (i + 1) * sizeof (*r->vars) );
+	  *var_by_idx = xnrealloc (*var_by_idx, i + 1, sizeof **var_by_idx);
+	  r->vars = xnrealloc (r->vars, i + 1, sizeof *r->vars);
 	}
 
       /* If there was a long string previously, make sure that the
@@ -1066,7 +1066,7 @@ read_value_labels (struct sfm_reader *r,
     }
 
   /* Allocate memory. */
-  labels = xcalloc (n_labels ,  sizeof *labels);
+  labels = xcalloc (n_labels, sizeof *labels);
   for (i = 0; i < n_labels; i++)
     labels[i].label = NULL;
 
@@ -1118,7 +1118,7 @@ read_value_labels (struct sfm_reader *r,
 	   handle_get_filename (r->fh), n_vars, dict_get_var_cnt (dict)));
 
   /* Read the list of variables. */
-  var = xmalloc (n_vars * sizeof *var);
+  var = xnmalloc (n_vars, sizeof *var);
   for (i = 0; i < n_vars; i++)
     {
       int32 var_idx;
@@ -1306,7 +1306,7 @@ buffer_input (struct sfm_reader *r)
   size_t amt;
 
   if (r->buf == NULL)
-    r->buf = xmalloc (sizeof *r->buf * 128);
+    r->buf = xnmalloc (128, sizeof *r->buf);
   amt = fread (r->buf, sizeof *r->buf, 128, r->file);
   if (ferror (r->file))
     {

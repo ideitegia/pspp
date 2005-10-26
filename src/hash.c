@@ -178,7 +178,7 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
   if (size < 4)
     size = 4;
   h->size = next_power_of_2 (size);
-  h->entries = xmalloc (sizeof *h->entries * h->size);
+  h->entries = xnmalloc (h->size, sizeof *h->entries);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
   h->aux = aux;
@@ -268,7 +268,7 @@ rehash (struct hsh_table *h, size_t new_size)
   end = begin + h->size;
 
   h->size = new_size;
-  h->entries = xmalloc (sizeof *h->entries * h->size);
+  h->entries = xnmalloc (h->size, sizeof *h->entries);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
   for (table_p = begin; table_p < end; table_p++) 
@@ -385,7 +385,7 @@ hsh_data_copy (struct hsh_table *h)
   void **copy;
 
   assert (h != NULL);
-  copy = xmalloc ((h->used + 1) * sizeof *copy);
+  copy = xnmalloc ((h->used + 1), sizeof *copy);
   copy_if (h->entries, h->size, sizeof *h->entries, copy, not_null, NULL);
   copy[h->used] = NULL;
   return copy;

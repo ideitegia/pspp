@@ -506,11 +506,11 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 
   n_data = casefile_get_case_cnt (cf);
   n_indep = cmd.n_variables - cmd.n_dependent;
-  indep_vars = (size_t *) malloc (n_indep * sizeof (*indep_vars));
+  indep_vars = xnmalloc (n_indep, sizeof *indep_vars);
 
   Y = gsl_vector_alloc (n_data);
   lopts.get_depvar_mean_std = 1;
-  lopts.get_indep_mean_std = (int *) malloc (n_indep * sizeof (int));
+  lopts.get_indep_mean_std = xnmalloc (n_indep, sizeof (int));
 
   lcache = pspp_linreg_cache_alloc (n_data, n_indep);
   lcache->indep_means = gsl_vector_alloc (n_indep);

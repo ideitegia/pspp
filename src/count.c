@@ -230,7 +230,7 @@ fail:
 
 /* Parses a set of numeric criterion values. */
 static int
-parse_numeric_criteria (struct counting * c)
+parse_numeric_criteria (struct counting *c)
 {
   size_t n = 0;
   size_t m = 0;
@@ -243,7 +243,7 @@ parse_numeric_criteria (struct counting * c)
       if (n + 1 >= m)
 	{
 	  m += 16;
-	  c->crit.n = xrealloc (c->crit.n, m * sizeof (struct cnt_num));
+	  c->crit.n = xnrealloc (c->crit.n, m, sizeof *c->crit.n);
 	}
 
       cur = &c->crit.n[n++];
@@ -324,7 +324,7 @@ parse_numeric_criteria (struct counting * c)
 /* Parses a set of string criteria values.  The skeleton is the same
    as parse_numeric_criteria(). */
 static int
-parse_string_criteria (struct counting * c)
+parse_string_criteria (struct counting *c)
 {
   int len = 0;
 
@@ -344,7 +344,7 @@ parse_string_criteria (struct counting * c)
       if (n + 1 >= m)
 	{
 	  m += 16;
-	  c->crit.n = xrealloc (c->crit.n, m * sizeof (struct cnt_str));
+	  c->crit.s = xnrealloc (c->crit.s, m, sizeof *c->crit.s);
 	}
 
       if (!lex_force_string ())
@@ -368,7 +368,7 @@ parse_string_criteria (struct counting * c)
 
 /* Counts the number of values in case C matching counting CNT. */
 static inline int
-count_numeric (struct counting * cnt, struct ccase * c)
+count_numeric (struct counting *cnt, struct ccase *c)
 {
   int counter = 0;
   size_t i;
@@ -433,7 +433,7 @@ count_numeric (struct counting * cnt, struct ccase * c)
 
 /* Counts the number of values in case C matching counting CNT. */
 static inline int
-count_string (struct counting * cnt, struct ccase * c)
+count_string (struct counting *cnt, struct ccase *c)
 {
   int counter = 0;
   size_t i;
@@ -466,7 +466,7 @@ count_string (struct counting * cnt, struct ccase * c)
 
 /* Performs the COUNT transformation T on case C. */
 static int
-count_trns_proc (struct trns_header * trns, struct ccase * c,
+count_trns_proc (struct trns_header *trns, struct ccase *c,
                  int case_num UNUSED)
 {
   struct cnt_var_info *info;
@@ -488,7 +488,7 @@ count_trns_proc (struct trns_header * trns, struct ccase * c,
 
 /* Destroys all dynamic data structures associated with T. */
 static void
-count_trns_free (struct trns_header * t)
+count_trns_free (struct trns_header *t)
 {
   struct cnt_var_info *iter, *next;
 

@@ -524,7 +524,7 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
       if (rcd->nmap + 1 >= rcd->mmap)
 	{
 	  rcd->mmap += 16;
-	  rcd->map = xrealloc (rcd->map, rcd->mmap * sizeof *rcd->map);
+	  rcd->map = xnrealloc (rcd->map, rcd->mmap, sizeof *rcd->map);
 	}
 
       c = &rcd->map[rcd->nmap];

@@ -320,7 +320,7 @@ ps_preopen_driver (struct outp_driver *this)
   assert (this->driver_open == 0);
   msg (VM (1), _("PostScript driver initializing as `%s'..."), this->name);
 	
-  this->ext = x = xmalloc (sizeof (struct ps_driver_ext));
+  this->ext = x = xmalloc (sizeof *x);
   this->res = PSUS;
   this->horiz = this->vert = 1;
   this->width = this->length = 0;
@@ -1902,7 +1902,7 @@ line (struct outp_driver *this, int type, int ind, int dep1, int dep2)
   if ((*f)->ndep >= (*f)->mdep)
     {
       (*f)->mdep += 16;
-      *f = xrealloc (*f, (sizeof **f + sizeof (int[2]) * ((*f)->mdep - 1)));
+      *f = xrealloc (*f, sizeof **f + sizeof (int[2]) * ((*f)->mdep - 1));
     }
   (*f)->dep[(*f)->ndep][0] = dep1;
   (*f)->dep[(*f)->ndep][1] = dep2;
@@ -2735,7 +2735,7 @@ text (struct outp_driver *this, struct outp_text *t, int draw)
 		}
 	      else
 		{
-		  buf = xrealloc (buf, sizeof *buf * buf_len * 2);
+		  buf = xnrealloc (buf, buf_len * 2, sizeof *buf);
 		  buf_loc = buf + buf_len;
 		  buf_end = buf + buf_len * 2;
 		}

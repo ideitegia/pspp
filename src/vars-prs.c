@@ -164,7 +164,7 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
       if (*nv >= *mv)
         {
           *mv = 2 * (*nv + 1);
-          *v = xrealloc (*v, *mv * sizeof **v);
+          *v = xnrealloc (*v, *mv, sizeof **v);
         }
 
       if ((pv_opts & PV_DUPLICATE) || !included[idx])
@@ -426,7 +426,7 @@ parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
 	  if (mvar < nvar + (n2 - n1 + 1))
 	    {
 	      mvar += ROUND_UP (n2 - n1 + 1, 16);
-	      *names = xrealloc (*names, mvar * sizeof **names);
+	      *names = xnrealloc (*names, mvar, sizeof **names);
 	    }
 
 	  for (n = n1; n <= n2; n++)
@@ -442,7 +442,7 @@ parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
 	  if (nvar >= mvar)
 	    {
 	      mvar += 16;
-	      *names = xrealloc (*names, mvar * sizeof **names);
+	      *names = xnrealloc (*names, mvar, sizeof **names);
 	    }
 	  (*names)[nvar++] = xstrdup (name1);
 	}
@@ -495,7 +495,7 @@ parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
 
 	  if (!parse_variables (default_dict, &v, &nv, PV_NONE))
 	    goto fail;
-	  *names = xrealloc (*names, (*nnames + nv) * sizeof **names);
+	  *names = xnrealloc (*names, *nnames + nv, sizeof **names);
 	  for (i = 0; i < nv; i++)
 	    (*names)[*nnames + i] = xstrdup (v[i]->name);
 	  free (v);

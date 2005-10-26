@@ -58,7 +58,7 @@ chart_create(void)
   if (d == NULL)
     return NULL;
   
-  chart = xmalloc(sizeof(struct chart) );
+  chart = xmalloc (sizeof *chart);
   d->class->initialise_chart(d, chart);
   if (!chart->lp) 
     {

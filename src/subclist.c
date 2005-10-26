@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "subclist.h"
 #include <stdlib.h>
+#include "xalloc.h"
 
 /* I call these objects `lists' but they are in fact simple dynamic arrays */
 
@@ -32,7 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 void
 subc_list_double_create(subc_list_double *l)
 {
-  l->data = (double *) malloc(CHUNKSIZE * sizeof (double));
+  l->data = xnmalloc (CHUNKSIZE, sizeof *l->data);
   l->sz = CHUNKSIZE;
   l->n_data = 0;
 }
@@ -46,7 +47,7 @@ subc_list_double_push(subc_list_double *l, double d)
   if (l->n_data >= l->sz ) 
     {
       l->sz += CHUNKSIZE;
-      l->data = realloc(l->data, l->sz * sizeof(double));
+      l->data = xnrealloc (l->data, l->sz, sizeof *l->data);
     }
 
 }

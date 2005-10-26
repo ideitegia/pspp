@@ -311,7 +311,7 @@ cmd_descriptives (void)
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
 		goto error;
 
-              dsc->vars = xrealloc (dsc->vars, sizeof *dsc->vars * var_cnt);
+              dsc->vars = xnrealloc (dsc->vars, var_cnt, sizeof *dsc->vars);
               for (i = dsc->var_cnt; i < var_cnt; i++)
                 {
                   struct dsc_var *dv = &dsc->vars[i];
@@ -634,14 +634,14 @@ setup_z_trns (struct dsc_proc *dsc)
   t = xmalloc (sizeof *t);
   t->h.proc = descriptives_trns_proc;
   t->h.free = descriptives_trns_free;
-  t->z_scores = xmalloc (cnt * sizeof *t->z_scores);
+  t->z_scores = xnmalloc (cnt, sizeof *t->z_scores);
   t->z_score_cnt = cnt;
   t->missing_type = dsc->missing_type;
   t->include_user_missing = dsc->include_user_missing;
   if ( t->missing_type == DSC_LISTWISE )
     {
       t->var_cnt = dsc->var_cnt;
-      t->vars = xmalloc(t->var_cnt * sizeof *t->vars);
+      t->vars = xnmalloc (t->var_cnt, sizeof *t->vars);
       for (i = 0; i < t->var_cnt; i++)
 	t->vars[i] = dsc->vars[i].v;
     }

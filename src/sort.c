@@ -195,7 +195,7 @@ do_internal_sort (struct casereader *reader,
   dst = casefile_create (casefile_get_value_cnt (src));
   if (case_cnt != 0) 
     {
-      struct indexed_case *cases = malloc (sizeof *cases * case_cnt);
+      struct indexed_case *cases = nmalloc (sizeof *cases, case_cnt);
       if (cases != NULL) 
         {
           unsigned long i;
@@ -278,7 +278,7 @@ do_external_sort (struct casereader *reader,
   xsrt->value_cnt = casefile_get_value_cnt (casereader_get_casefile (reader));
   xsrt->run_cap = 512;
   xsrt->run_cnt = 0;
-  xsrt->runs = xmalloc (sizeof *xsrt->runs * xsrt->run_cap);
+  xsrt->runs = xnmalloc (xsrt->run_cap, sizeof *xsrt->runs);
   if (write_runs (xsrt, reader))
     {
       struct casefile *output = merge (xsrt);
@@ -446,13 +446,14 @@ allocate_cases (struct initial_run_state *irs)
   max_cases = get_max_workspace() / approx_case_cost;
   if (max_cases > max_buffers)
     max_cases = max_buffers;
-  irs->records = malloc (sizeof *irs->records * max_cases);
-  for (i = 0; i < max_cases; i++)
-    if (!case_try_create (&irs->records[i].record, irs->xsrt->value_cnt))
-      {
-        max_cases = i;
-        break;
-      }
+  irs->records = nmalloc (sizeof *irs->records, max_cases);
+  if (irs->records != NULL)
+    for (i = 0; i < max_cases; i++)
+      if (!case_try_create (&irs->records[i].record, irs->xsrt->value_cnt))
+        {
+          max_cases = i;
+          break;
+        }
   irs->record_cap = max_cases;
 
   /* Fail if we didn't allocate an acceptable number of cases. */
@@ -548,8 +549,8 @@ end_run (struct initial_run_state *irs)
       if (xsrt->run_cnt >= xsrt->run_cap) 
         {
           xsrt->run_cap *= 2;
-          xsrt->runs = xrealloc (xsrt->runs,
-                                 sizeof *xsrt->runs * xsrt->run_cap);
+          xsrt->runs = xnrealloc (xsrt->runs,
+                                  xsrt->run_cap, sizeof *xsrt->runs);
         }
       xsrt->runs[xsrt->run_cnt++] = irs->casefile;
       irs->casefile = NULL; 
@@ -674,7 +675,7 @@ merge_once (struct external_sort *xsrt,
   int i;
 
   /* Open input files. */
-  runs = xmalloc (sizeof *runs * run_cnt);
+  runs = xnmalloc (run_cnt, sizeof *runs);
   for (i = 0; i < run_cnt; i++) 
     {
       struct run *r = &runs[i];

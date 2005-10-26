@@ -492,7 +492,7 @@ font_char_name_to_index (const char *name)
       hash.size = 128;
       hash.used = 0;
       hash.next_index = 256;
-      hash.tab = xmalloc (sizeof *hash.tab * hash.size);
+      hash.tab = xnmalloc (hash.size, sizeof *hash.tab);
       hash.ar = pool_create ();
       for (i = 0; i < hash.size; i++)
 	hash.tab[i].name = NULL;
@@ -514,7 +514,7 @@ font_char_name_to_index (const char *name)
       int i, j;
 
       hash.size *= 2;
-      hash.tab = xmalloc (sizeof *hash.tab * hash.size);
+      hash.tab = xnmalloc (hash.size, sizeof *hash.tab);
       for (i = 0; i < hash.size; i++)
 	hash.tab[i].name = NULL;
       for (i = 0; i < old_size; i++)
@@ -819,8 +819,8 @@ groff_read_DESC (const char *dev_name, struct groff_device_info * dev)
 	      if (dev->n_sizes + 2 >= m_sizes)
 		{
 		  m_sizes += 1;
-		  dev->sizes = xrealloc (dev->sizes,
-					 m_sizes * sizeof *dev->sizes);
+		  dev->sizes = xnrealloc (dev->sizes,
+                                          m_sizes, sizeof *dev->sizes);
 		}
 	      dev->sizes[dev->n_sizes++][0] = lower;
 	      dev->sizes[dev->n_sizes][1] = upper;

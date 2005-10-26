@@ -1,3 +1,21 @@
+Tue Oct 25 21:56:23 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix up potential overflows in size calculations by replacing
+	instances of xmalloc(x * sizeof *y) by xnmalloc(x, sizeof *y)
+	everywhere I could find them.  Similarly by xrealloc(), malloc().
+	(Order is important: xnmalloc(sizeof *y, x) will divide by 0 if x
+	is 0.)
+
+	* alloc.c: (nmalloc) New function.
+	(out_of_memory) Removed.  Replaced references by xalloc_die().
+
+	* sort.c: (allocate_cases) Fix segfault if memory allocation
+	fails.
+
+	* subclist.c: (subc_list_double_create) Use xnmalloc() instead of
+	malloc().
+	(subc_list_double_push) Use xnrealloc() instead of realloc().
+
 Wed Oct 26 08:43:51 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	Dictionary abstraction part #2

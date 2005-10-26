@@ -720,7 +720,7 @@ postprocess_freq_tab (struct variable *v)
   data = hsh_data (ft->data);
 
   /* Copy dereferenced data into freqs. */
-  freqs = xmalloc (count * sizeof *freqs);
+  freqs = xnmalloc (count, sizeof *freqs);
   for (i = 0; i < count; i++) 
     {
       struct freq *f = data[i];
@@ -1603,7 +1603,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 
   *n_slices = frq_tab->n_valid;
   
-  slices = xmalloc ( *n_slices * sizeof (struct slice ) );
+  slices = xnmalloc (*n_slices, sizeof *slices);
 
   for (i = 0 ; i < *n_slices ; ++i ) 
     {

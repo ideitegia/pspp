@@ -105,8 +105,8 @@ sort_parse_criteria (const struct dictionary *dict,
       else
         direction = SRT_ASCEND;
 
-      criteria->crits = xrealloc (criteria->crits,
-                                  sizeof *criteria->crits * *var_cnt);
+      criteria->crits = xnrealloc (criteria->crits,
+                                   *var_cnt, sizeof *criteria->crits);
       criteria->crit_cnt = *var_cnt;
       for (; prev_var_cnt < criteria->crit_cnt; prev_var_cnt++) 
         {

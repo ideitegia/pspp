@@ -65,7 +65,7 @@ cr_recoded_categorical_create (const struct variable *v)
   rc->v = v;
   rc->n_categories = 0;
   rc->n_allocated_categories = N_INITIAL_CATEGORIES;
-  rc->vals = xmalloc (N_INITIAL_CATEGORIES * sizeof (*rc->vals));
+  rc->vals = xnmalloc (N_INITIAL_CATEGORIES, sizeof *rc->vals);
 
   return rc;
 }
@@ -85,7 +85,7 @@ cr_recoded_cat_ar_create (int n_variables, struct variable *v_variables[])
   struct recoded_categorical_array *ca;
   struct variable *v;
 
-  ca = (struct recoded_categorical_array *) xmalloc (sizeof (*ca));
+  ca = xmalloc (sizeof *ca);
   for (i = 0; i < n_variables; i++)
     {
       v = v_variables[i];
@@ -95,7 +95,7 @@ cr_recoded_cat_ar_create (int n_variables, struct variable *v_variables[])
 	}
     }
   ca->n_vars = n_categoricals;
-  ca->a = xmalloc (n_categoricals * sizeof (*(ca->a)));
+  ca->a = xnmalloc (n_categoricals, sizeof *ca->a);
   for (i = 0; i < n_categoricals; i++)
     {
       *(ca->a + i) = cr_recoded_categorical_create (v_variables[i]);
@@ -145,8 +145,8 @@ cr_value_update (struct recoded_categorical *rc, const union value *v)
       if (rc->n_categories >= rc->n_allocated_categories)
 	{
 	  rc->n_allocated_categories *= 2;
-	  rc->vals = xrealloc (rc->vals, rc->n_allocated_categories
-			       * sizeof (*(rc->vals)));
+	  rc->vals = xnrealloc (rc->vals,
+                                rc->n_allocated_categories, sizeof *rc->vals);
 	}
       rc->vals[rc->n_categories] = *v;
       rc->n_categories++;
@@ -319,8 +319,8 @@ design_matrix_create (int n_variables,
   size_t n_cols = 0;
   size_t col;
 
-  dm = xmalloc (sizeof (*dm));
-  dm->vars = xmalloc (n_variables * sizeof (struct variable *));
+  dm = xmalloc (sizeof *dm);
+  dm->vars = xnmalloc (n_variables, sizeof *dm->vars);
   dm->n_vars = n_variables;
 
   for (i = 0; i < n_variables; i++)
@@ -341,7 +341,7 @@ design_matrix_create (int n_variables,
 	}
     }
   dm->m = gsl_matrix_calloc (n_data, n_cols);
-  dm->vars = xmalloc (dm->n_vars * sizeof (*(dm->vars)));
+  dm->vars = xnmalloc (dm->n_vars, sizeof *dm->vars);
   assert (dm->vars != NULL);
   col = 0;
 
