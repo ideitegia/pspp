@@ -54,6 +54,7 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cblas.h>
+#include <src/var.h>
 enum
 {
   PSPP_LINREG_SWEEP,
@@ -70,8 +71,14 @@ struct pspp_linreg_cache_struct
 {
   int n_obs;			/* Number of observations. */
   int n_indeps;			/* Number of independent variables. */
-  gsl_vector *depvar;
-  gsl_matrix *indepvar;
+
+  /* 
+     The var structs are ignored during estimation.
+     They are here so the calling procedures can
+     find the variables used in the model.
+  */
+  struct var *depvar;
+  struct var **indepvar;   
   gsl_vector *residuals;
   gsl_vector *param_estimates;
   int method;			/* Method to use to estimate parameters. */
@@ -81,8 +88,8 @@ struct pspp_linreg_cache_struct
      called, pspp_linreg() will compute their values.
 
      Entry i of indep_means is the mean of independent
-     variable i, whose observations are stored in column i
-     of indepvar.
+     variable i, whose observations are stored in the ith
+     column of the design matrix.
    */
   double depvar_mean;
   double depvar_std;
