@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2005-10-25 17:56+0800\n"
+"POT-Creation-Date: 2005-10-27 10:56+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -233,7 +233,7 @@ msgid "Source variable count (%u) does not match target variable count (%u)."
 msgstr ""
 
 #: src/autorecode.c:143 src/command.c:797 src/compute.c:280 src/do-if.c:256
-#: src/file-handle.q:142 src/lexer.c:438 src/loop.c:244 src/matrix-data.c:532
+#: src/file-handle.q:83 src/lexer.c:438 src/loop.c:244 src/matrix-data.c:532
 #: src/print.c:338 src/print.c:1049 src/recode.c:410 src/sel-if.c:57
 #: src/sel-if.c:134 src/vector.c:197
 msgid "expecting end of command"
@@ -566,7 +566,7 @@ msgstr ""
 
 #: src/crosstabs.q:1109 src/crosstabs.q:1136 src/crosstabs.q:1156
 #: src/crosstabs.q:1178 src/examine.q:1134 src/frequencies.q:1143
-#: src/frequencies.q:1264 src/sysfile-info.c:517 src/vfm.c:812
+#: src/frequencies.q:1264 src/sysfile-info.c:518 src/vfm.c:812
 msgid "Value"
 msgstr ""
 
@@ -1015,7 +1015,7 @@ msgid ""
 msgstr ""
 
 #: src/data-list.c:788 src/data-list.c:912 src/descript.c:886 src/print.c:800
-#: src/sysfile-info.c:138 src/sysfile-info.c:372 src/vfm.c:811
+#: src/sysfile-info.c:139 src/sysfile-info.c:373 src/vfm.c:811
 msgid "Variable"
 msgstr ""
 
@@ -1768,46 +1768,31 @@ msgstr ""
 msgid "%s is a PSPP extension."
 msgstr ""
 
-#: src/file-handle.q:127
+#: src/file-handle.q:68
 #, c-format
 msgid ""
 "File handle %s already refers to file %s.  File handles cannot be redefined "
 "within a session."
 msgstr ""
 
-#: src/file-handle.q:148
+#: src/file-handle.q:89
 msgid "The FILE HANDLE required subcommand NAME is not present."
 msgstr ""
 
-#: src/file-handle.q:167
+#: src/file-handle.q:113
 msgid ""
 "Fixed-length records were specified on /RECFORM, but record length was not "
 "specified on /LRECL.  Assuming 1024-character records."
 msgstr ""
 
-#: src/file-handle.q:174
+#: src/file-handle.q:120
 #, c-format
 msgid ""
 "Record length (%ld) must be at least one byte.  1-character records will be "
 "assumed."
 msgstr ""
 
-#: src/file-handle.q:274
-#, c-format
-msgid "Can't open %s as a %s because it is already open as a %s"
-msgstr ""
-
-#: src/file-handle.q:281
-#, c-format
-msgid "Can't open %s as a %s for %s because it is already open for %s"
-msgstr ""
-
-#: src/file-handle.q:289
-#, c-format
-msgid "Can't re-open %s as a %s for %s"
-msgstr ""
-
-#: src/file-handle.q:342
+#: src/file-handle.q:157
 msgid "expecting a file name or handle name"
 msgstr ""
 
@@ -2522,7 +2507,7 @@ msgstr ""
 msgid "HTML output driver: %s: %s"
 msgstr ""
 
-#: src/html.c:421 src/list.q:257
+#: src/html.c:421 src/list.q:256
 #, c-format
 msgid "Cannot open first page on HTML device %s."
 msgstr ""
@@ -2681,11 +2666,11 @@ msgstr ""
 msgid "The step value %ld is less than 1.  The value is being reset to 1."
 msgstr ""
 
-#: src/list.q:202
+#: src/list.q:201
 msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
 msgstr ""
 
-#: src/list.q:445
+#: src/list.q:444
 msgid "Line"
 msgstr ""
 
@@ -3807,6 +3792,18 @@ msgstr ""
 msgid "Residual"
 msgstr ""
 
+#: src/regression.q:322
+msgid "Model"
+msgstr ""
+
+#: src/regression.q:323
+msgid "Covariances"
+msgstr ""
+
+#: src/regression.q:339
+msgid "Coefficient Correlations"
+msgstr ""
+
 #: src/rename-vars.c:49
 msgid ""
 "RENAME VARS may not be used after TEMPORARY.  Temporary transformations will "
@@ -4145,7 +4142,7 @@ msgstr ""
 msgid "DEC Kanji"
 msgstr ""
 
-#: src/sfm-read.c:556 src/sysfile-info.c:118
+#: src/sfm-read.c:556 src/sysfile-info.c:119
 msgid "Unknown"
 msgstr ""
 
@@ -4401,7 +4398,7 @@ msgstr ""
 msgid "Buffer limit must be at least 2."
 msgstr ""
 
-#: src/sort.c:461
+#: src/sort.c:462
 #, c-format
 msgid ""
 "Out of memory.  Could not allocate room for minimum of %d cases of %d bytes "
@@ -4416,135 +4413,135 @@ msgstr ""
 msgid "`)' expected."
 msgstr ""
 
-#: src/sysfile-info.c:99
+#: src/sysfile-info.c:100
 msgid "File:"
 msgstr ""
 
-#: src/sysfile-info.c:101
+#: src/sysfile-info.c:102
 msgid "Label:"
 msgstr ""
 
-#: src/sysfile-info.c:105
+#: src/sysfile-info.c:106
 msgid "No label."
 msgstr ""
 
-#: src/sysfile-info.c:108
+#: src/sysfile-info.c:109
 msgid "Created:"
 msgstr ""
 
-#: src/sysfile-info.c:111
+#: src/sysfile-info.c:112
 msgid "Endian:"
 msgstr ""
 
-#: src/sysfile-info.c:112
+#: src/sysfile-info.c:113
 msgid "Big."
 msgstr ""
 
-#: src/sysfile-info.c:112
+#: src/sysfile-info.c:113
 msgid "Little."
 msgstr ""
 
-#: src/sysfile-info.c:113
+#: src/sysfile-info.c:114
 msgid "Variables:"
 msgstr ""
 
-#: src/sysfile-info.c:116
+#: src/sysfile-info.c:117
 msgid "Cases:"
 msgstr ""
 
-#: src/sysfile-info.c:119
+#: src/sysfile-info.c:120
 msgid "Type:"
 msgstr ""
 
-#: src/sysfile-info.c:120
+#: src/sysfile-info.c:121
 msgid "System File."
 msgstr ""
 
-#: src/sysfile-info.c:121
+#: src/sysfile-info.c:122
 msgid "Weight:"
 msgstr ""
 
-#: src/sysfile-info.c:125
+#: src/sysfile-info.c:126
 msgid "Not weighted."
 msgstr ""
 
-#: src/sysfile-info.c:127
+#: src/sysfile-info.c:128
 msgid "Mode:"
 msgstr ""
 
-#: src/sysfile-info.c:129
+#: src/sysfile-info.c:130
 #, c-format
 msgid "Compression %s."
 msgstr ""
 
-#: src/sysfile-info.c:129
+#: src/sysfile-info.c:130
 msgid "on"
 msgstr ""
 
-#: src/sysfile-info.c:129
+#: src/sysfile-info.c:130
 msgid "off"
 msgstr ""
 
-#: src/sysfile-info.c:139 src/sysfile-info.c:377
+#: src/sysfile-info.c:140 src/sysfile-info.c:378
 msgid "Description"
 msgstr ""
 
-#: src/sysfile-info.c:140 src/sysfile-info.c:375
+#: src/sysfile-info.c:141 src/sysfile-info.c:376
 msgid "Position"
 msgstr ""
 
-#: src/sysfile-info.c:198
+#: src/sysfile-info.c:199
 msgid "The active file does not have a file label."
 msgstr ""
 
-#: src/sysfile-info.c:201
+#: src/sysfile-info.c:202
 msgid "File label:"
 msgstr ""
 
-#: src/sysfile-info.c:263
+#: src/sysfile-info.c:264
 msgid "No variables to display."
 msgstr ""
 
-#: src/sysfile-info.c:282
+#: src/sysfile-info.c:283
 msgid "Macros not supported."
 msgstr ""
 
-#: src/sysfile-info.c:292
+#: src/sysfile-info.c:293
 msgid "The active file dictionary does not contain any documents."
 msgstr ""
 
-#: src/sysfile-info.c:301
+#: src/sysfile-info.c:302
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/sysfile-info.c:379 src/sysfile-info.c:518 src/vfm.c:813
+#: src/sysfile-info.c:380 src/sysfile-info.c:519 src/vfm.c:813
 msgid "Label"
 msgstr ""
 
-#: src/sysfile-info.c:451
+#: src/sysfile-info.c:452
 #, c-format
 msgid "Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:458
+#: src/sysfile-info.c:459
 #, c-format
 msgid "Print Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:461
+#: src/sysfile-info.c:462
 #, c-format
 msgid "Write Format: %s"
 msgstr ""
 
-#: src/sysfile-info.c:473
+#: src/sysfile-info.c:474
 msgid "Missing Values: "
 msgstr ""
 
-#: src/sysfile-info.c:574
+#: src/sysfile-info.c:575
 msgid "No vectors defined."
 msgstr ""
 
-#: src/sysfile-info.c:589
+#: src/sysfile-info.c:590
 msgid "Vector"
 msgstr ""
 
@@ -4742,45 +4739,45 @@ msgstr ""
 msgid "Truncating variable label to 255 characters."
 msgstr ""
 
-#: src/vars-atr.c:132
+#: src/vars-atr.c:126
 msgid "Variable name cannot be empty string."
 msgstr ""
 
-#: src/vars-atr.c:138
+#: src/vars-atr.c:132
 #, c-format
 msgid "Variable name %s exceeds %d-character limit."
 msgstr ""
 
-#: src/vars-atr.c:147
+#: src/vars-atr.c:141
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
 msgstr ""
 
-#: src/vars-atr.c:156
+#: src/vars-atr.c:150
 #, c-format
 msgid ""
 "Character `%c' (in %s), may not appear as the first character in a variable "
 "name."
 msgstr ""
 
-#: src/vars-atr.c:165
+#: src/vars-atr.c:159
 #, c-format
 msgid "%s may not be used as a variable name because it is a reserved word."
 msgstr ""
 
-#: src/vars-atr.c:260
+#: src/vars-atr.c:254
 msgid "Variable suffix too large."
 msgstr ""
 
-#: src/vars-atr.c:301
+#: src/vars-atr.c:295
 msgid "ordinary"
 msgstr ""
 
-#: src/vars-atr.c:303
+#: src/vars-atr.c:297
 msgid "system"
 msgstr ""
 
-#: src/vars-atr.c:305
+#: src/vars-atr.c:299
 msgid "scratch"
 msgstr ""
 

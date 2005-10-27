@@ -23,18 +23,13 @@
 /* File handles. */
 
 #include <stddef.h>
-
-/* File modes. */
-enum file_handle_mode
-  {
-    MODE_TEXT,                  /* New-line delimited lines. */
-    MODE_BINARY                 /* Fixed-length records. */
-  };
+#include "file-handle-def.h"
 
 
 
 void fh_init(void);
 void fh_done(void);
+
 
 /* Parsing handles. */
 struct file_handle *fh_parse (void);
@@ -44,11 +39,5 @@ struct file_handle *fh_parse (void);
 void **fh_open (struct file_handle *, const char *type, const char *mode);
 int fh_close (struct file_handle *, const char *type, const char *mode);
 
-/* Handle info. */
-const char *handle_get_name (const struct file_handle *);
-const char *handle_get_filename (const struct file_handle *);
-enum file_handle_mode handle_get_mode (const struct file_handle *);
-size_t handle_get_record_width (const struct file_handle *);
-size_t handle_get_tab_width (const struct file_handle *);
 
 #endif /* !file_handle.h */

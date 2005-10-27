@@ -14,6 +14,7 @@ TESTS = \
 	command/examine-extremes.sh \
 	command/examine-percentiles.sh \
 	command/file-label.sh \
+	command/file-handle.sh \
 	command/filter.sh \
 	command/flip.sh \
 	command/import-export.sh \

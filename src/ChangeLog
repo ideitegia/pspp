@@ -1,3 +1,12 @@
+Thu Oct 27 11:16:53 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	Separated the definition of a file handle object from the stuff 
+	pertaining to the FILE HANDLE command.
+
+	* file-handle-def.[ch]: New files.
+
+	* dfm-read.c file-handle.h file-handle.q
+	
 Tue Oct 25 21:56:23 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix up potential overflows in size calculations by replacing
