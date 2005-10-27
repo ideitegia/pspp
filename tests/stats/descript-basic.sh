@@ -76,8 +76,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/descript.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -100,7 +100,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |V15     |     1| 16- 16|F1.0  |
 |V16     |     1| 17- 17|F1.0  |
 +--------+------+-------+------+
-
 2.1 DESCRIPTIVES.  Valid cases = 10; cases with missing value(s) = 0.
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+------+
 |Variable#Valid N|Missing N| Mean|S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew|Range|Minimum|Maximum|  Sum |
