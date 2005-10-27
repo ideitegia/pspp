@@ -64,8 +64,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  -w $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -75,7 +75,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |X       |F8.0  |
 |Y       |F8.0  |
 +--------+------+
-
 2.1 CROSSTABS.  Summary.
 #===============#=====================================================#
 #               #                        Cases                        #
@@ -86,7 +85,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #---------------#--------+--------+--------+--------+--------+--------#
 #X * Y          #       1|  100.0%|       0|    0.0%|       1|  100.0%#
 #===============#========#========#========#========#========#========#
-
 2.2 CROSSTABS.  X by Y [count].
 #===============#==============================================================#========#
 #               #                               Y                              |        #
@@ -102,7 +100,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #           7.00#      .0|      .0|      .0|      .0|      .0|      .0|      .0|      .0#
 #Total          #     .0%|     .0%|     .0%|     .0%|    1.0%|     .0%|     .0%|    1.0%#
 #===============#========#========#========#========#========#========#========#========#
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

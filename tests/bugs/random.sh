@@ -72,8 +72,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  -w $TEMPDIR/pspp.list - << EOF
       R1
 --------
      7.71 
@@ -96,7 +96,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
      2.64 
       .88 
      1.50 
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

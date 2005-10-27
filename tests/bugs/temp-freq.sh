@@ -75,8 +75,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  -w $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -84,7 +84,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |SEX     |A1    |
 |X       |F8.0  |
 +--------+------+
-
 2.1 FREQUENCIES.  X: 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
@@ -97,7 +96,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #===========#========#=========#========#========#========#
 |               Total|        4|   100.0|   100.0|        |
 +--------------------+---------+--------+--------+--------+
-
 +---------------+------+
 |N       Valid  |     4|
 |        Missing|     0|
@@ -106,7 +104,6 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |Minimum        |12.000|
 |Maximum        |31.000|
 +---------------+------+
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

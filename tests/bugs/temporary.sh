@@ -76,15 +76,14 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  -w $TEMPDIR/pspp.list - << EOF
        X
 --------
     6.00 
     7.00 
     8.00 
     9.00 
-
        X
 --------
     1.00 

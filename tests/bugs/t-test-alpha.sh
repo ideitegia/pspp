@@ -78,8 +78,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -89,7 +89,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |DEP1    |F8.0  |
 |DEP2    |F8.0  |
 +--------+------+
-
 2.1 T-TEST.  Group Statistics
 #==========#=#====#==============#========#
 #     INDEP|N|Mean|Std. Deviation|SE. Mean#
@@ -99,7 +98,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #DEP2 a    |5|4.00|          .707|    .316#
 #     b    |5|2.00|          .707|    .316#
 #==========#=#====#==============#========#
-
 2.2 T-TEST.  Independent Samples Test
 #===============================#==========#===============================================================================#
 #                               # Levene's |                          t-test for Equality of Means                         #

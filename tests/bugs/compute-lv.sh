@@ -72,7 +72,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
 perl -pi -e 's/^\s*$//g' pspp.list
-diff -b pspp.list - << EOF |perl -e 's/^\s*$//g'
+diff -b pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +----------------+------+
 |    Variable    |Format|
@@ -80,7 +80,6 @@ diff -b pspp.list - << EOF |perl -e 's/^\s*$//g'
 |longVariablename|F8.0  |
 |x               |F8.0  |
 +----------------+------+
-
 longVariablename        x
 ---------------- -------- 
            99.00     2.00

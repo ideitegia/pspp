@@ -59,7 +59,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/casefile.out
-diff -b $TEMPDIR/casefile.out - <<EOF |perl -e 's/^\s*$//g'
+diff -b $TEMPDIR/casefile.out - <<EOF
 Casefile tests succeeded.
 EOF
 
