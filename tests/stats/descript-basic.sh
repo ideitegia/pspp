@@ -16,7 +16,7 @@ export STAT_CONFIG_PATH
 cleanup()
 {
      cd /
-     rm -rf $TEMPDIR
+#     rm -rf $TEMPDIR
 }
 
 
@@ -77,7 +77,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF
+diff -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
