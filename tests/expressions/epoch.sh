@@ -139,7 +139,7 @@ $SUPERVISOR $here/../src/pspp --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoc
 
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/epoch.out
-diff -b $TEMPDIR/epoch.out - <<EOF |perl -e 's/^\s*$//g'
+diff -b $TEMPDIR/epoch.out - <<EOF
 YRMODA(0,1,1) = YRMODA(1900,1,1) => true
 YRMODA(1,1,1) = YRMODA(1901,1,1) => true
 YRMODA(12,1,1) = YRMODA(1912,1,1) => true
@@ -154,7 +154,6 @@ DATE.DMY(1,1,70) = DATE.DMY(1,1,1970) => true
 DATE.DMY(1,1,87) = DATE.DMY(1,1,1987) => true
 DATE.DMY(1,1,99) = DATE.DMY(1,1,1999) => true
 DATE.DMY(1,1,100) => sysmis
-
 YRMODA(0,1,1) = YRMODA(1900,1,1) => true
 YRMODA(1,1,1) = YRMODA(1901,1,1) => true
 YRMODA(12,1,1) = YRMODA(1912,1,1) => true
@@ -169,7 +168,6 @@ DATE.DMY(1,1,70) = DATE.DMY(1,1,1970) => true
 DATE.DMY(1,1,87) = DATE.DMY(1,1,1987) => true
 DATE.DMY(1,1,99) = DATE.DMY(1,1,1999) => true
 DATE.DMY(1,1,100) => sysmis
-
 YRMODA(0,1,1) = YRMODA(1900,1,1) => true
 YRMODA(1,1,1) = YRMODA(1901,1,1) => true
 YRMODA(12,1,1) = YRMODA(1912,1,1) => true
@@ -184,7 +182,6 @@ DATE.DMY(1,1,70) = DATE.DMY(1,1,1970) => true
 DATE.DMY(1,1,87) = DATE.DMY(1,1,1987) => true
 DATE.DMY(1,1,99) = DATE.DMY(1,1,1999) => true
 DATE.DMY(1,1,100) => sysmis
-
 YRMODA(0,1,1) = YRMODA(1900,1,1) => true
 YRMODA(1,1,1) = YRMODA(1901,1,1) => true
 YRMODA(12,1,1) = YRMODA(1912,1,1) => true
@@ -199,7 +196,6 @@ DATE.DMY(1,1,70) = DATE.DMY(1,1,1970) => true
 DATE.DMY(1,1,87) = DATE.DMY(1,1,1987) => true
 DATE.DMY(1,1,99) = DATE.DMY(1,1,1999) => true
 DATE.DMY(1,1,100) => sysmis
-
 YRMODA(0,1,1) = YRMODA(1900,1,1) => true
 YRMODA(1,1,1) = YRMODA(1901,1,1) => true
 YRMODA(12,1,1) = YRMODA(1912,1,1) => true

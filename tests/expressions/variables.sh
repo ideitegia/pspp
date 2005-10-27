@@ -97,8 +97,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/variables.stat > $TEMPDIR/va
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -109,7 +109,6 @@ diff -b  $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |N4      |     1|  4-  4|F1.0  |
 |N5      |     1|  5-  5|F1.0  |
 +--------+------+-------+------+
-
 N1 N2 N3 N4 N5 P1 P2 P3 P4 P5 MC VC S1 S2 S3 S4 S5 M1 M2 M3 M4 M5 V1 V2 V3 V4 V5
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
  1  2  3  4  5  .  2  .  .  .  4  1  0  0  0  0  0  1  0  1  1  1  1  2  3  4  5 
