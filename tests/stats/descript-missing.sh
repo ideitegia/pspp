@@ -16,7 +16,7 @@ export STAT_CONFIG_PATH
 cleanup()
 {
      cd /
-     rm -rf $TEMPDIR
+#     rm -rf $TEMPDIR
 }
 
 
@@ -77,8 +77,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/descript.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -87,7 +87,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |V2      |     1|  2-  2|F1.0  |
 |V3      |     1|  3-  3|F1.0  |
 +--------+------+-------+------+
-
 2.1 DESCRIPTIVES.  Valid cases = 7; cases with missing value(s) = 6.
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+-----+
 |Variable#Valid N|Missing N| Mean|S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew|Range|Minimum|Maximum| Sum |
@@ -96,7 +95,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |V2      #      2|        5|2.500|    .500|   .707|    .500|    .   |    .   |    .   |    .   |1.000|  2.000|  3.000|5.000|
 |V3      #      3|        4|3.000|    .577|  1.000|   1.000|    .   |    .   |    .000|   1.225|2.000|  2.000|  4.000|9.000|
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+-----+
-
 3.1 DESCRIPTIVES.  Valid cases = 7; cases with missing value(s) = 3.
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+------+
 |Variable#Valid N|Missing N| Mean|S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew|Range|Minimum|Maximum|  Sum |
@@ -105,7 +103,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |V2      #      5|        2|1.600|    .400|   .894|    .800|    .312|   2.000|   1.258|    .913|2.000|  1.000|  3.000| 8.000|
 |V3      #      5|        2|2.200|    .583|  1.304|   1.700|  -1.488|   2.000|    .541|    .913|3.000|  1.000|  4.000|11.000|
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+------+
-
 4.1 DESCRIPTIVES.  Valid cases = 1; cases with missing value(s) = 6.
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+-----+
 |Variable#Valid N|Missing N| Mean|S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew|Range|Minimum|Maximum| Sum |
@@ -114,7 +111,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |V2      #      1|        0|3.000|    .   |   .   |    .   |    .   |    .   |    .   |    .   | .000|  3.000|  3.000|3.000|
 |V3      #      1|        0|4.000|    .   |   .   |    .   |    .   |    .   |    .   |    .   | .000|  4.000|  4.000|4.000|
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+-----+
-
 5.1 DESCRIPTIVES.  Valid cases = 4; cases with missing value(s) = 3.
 +--------#-------+---------+-----+--------+-------+--------+--------+--------+--------+--------+-----+-------+-------+------+
 |Variable#Valid N|Missing N| Mean|S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew|Range|Minimum|Maximum|  Sum |
