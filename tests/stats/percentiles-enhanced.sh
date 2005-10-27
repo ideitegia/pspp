@@ -75,8 +75,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output $i"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 FREQUENCIES.  X: 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
@@ -90,7 +90,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #===========#========#=========#========#========#========#
 |               Total|        5|   100.0|   100.0|        |
 +--------------------+---------+--------+--------+--------+
-
 +-------------------+-----+
 |N           Valid  |    5|
 |            Missing|    0|
@@ -139,8 +138,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output $i"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 FREQUENCIES.  X: 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
@@ -154,7 +153,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #===========#========#=========#========#========#========#
 |               Total|       10|   100.0|   100.0|        |
 +--------------------+---------+--------+--------+--------+
-
 +-------------------+-----+
 |N           Valid  |   10|
 |            Missing|    0|
@@ -201,8 +199,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output $i"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 FREQUENCIES.  X: 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
@@ -215,7 +213,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #===========#========#=========#========#========#========#
 |               Total|        6|   100.0|   100.0|        |
 +--------------------+---------+--------+--------+--------+
-
 +-------------------+-----+
 |N           Valid  |    6|
 |            Missing|    0|
@@ -262,8 +259,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output $i"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b $TEMPDIR/pspp.list - <<EOF
 1.1 FREQUENCIES.  X: 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
@@ -277,7 +274,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #===========#========#=========#========#========#========#
 |               Total|       10|   100.0|   100.0|        |
 +--------------------+---------+--------+--------+--------+
-
 +-------------------+-----+
 |N           Valid  |    6|
 |            Missing|    4|
