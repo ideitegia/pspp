@@ -92,8 +92,8 @@ activity="run program"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -101,7 +101,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |QUALITY |F8.0  |
 |BRAND   |F8.0  |
 +--------+------+
-
 2.1 ONEWAY.  Descriptives
 #===============#========#==#====#==============#==========#=======================#=======#=======#
 #               |        #  |    |              |          |    95% Confidence     |       |       #
@@ -113,14 +112,12 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #               |Charlies# 5|5.00|          1.58|       .71|       3.04|       6.96|   3.00|   7.00#
 #               |Total   #15|3.47|          1.77|       .46|       2.49|       4.45|   1.00|   7.00#
 #===============#========#==#====#==============#==========#===========#===========#=======#=======#
-
 2.2 ONEWAY.  Test of Homogeneity of Variances
 #===============#================#===#===#============#
 #               #Levene Statistic|df1|df2|Significance#
 #===============#================#===#===#============#
 #Breaking Strain#            .092|  2| 12|        .913#
 #===============#================#===#===#============#
-
 2.3 ONEWAY.  ANOVA
 #==============================#==============#==#===========#=====#============#
 #                              #Sum of Squares|df|Mean Square|  F  |Significance#
@@ -129,7 +126,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #               |Within Groups #         23.60|12|      1.967|     |            #
 #               |Total         #         43.73|14|           |     |            #
 #===============#==============#==============#==#===========#=====#============#
-
 2.4 ONEWAY.  Contrast Coefficients
 #==========#=======================#
 #          #      Manufacturer     #
@@ -139,7 +135,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #Contrast|1#     -2|     1|       1#
 #        |2#      0|    -1|       1#
 #========#=#=======#======#========#
-
 2.5 ONEWAY.  Contrast Tests
 #===============================================#=================#==========#=====#=====#===============#
 #                                       Contrast#Value of Contrast|Std. Error|  t  |  df |Sig. (2-tailed)#
@@ -149,7 +144,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #               |Does not assume equal |    1   #             3.80|     1.483|2.562|8.740|           .031#
 #               |                      |    2   #             1.80|      .917|1.964|7.720|           .086#
 #===============#======================#========#=================#==========#=====#=====#===============#
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

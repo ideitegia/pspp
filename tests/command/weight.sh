@@ -66,8 +66,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from file $top_srcdir/tests/weighting.data.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -75,14 +75,12 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |AVAR    |     1|  1-  5|F5.0  |
 |BVAR    |     1|  6- 10|F5.0  |
 +--------+------+-------+------+
-
 2.1 DESCRIPTIVES.  Valid cases = 730; cases with missing value(s) = 0.
 +--------#-------+---------+------+--------+-------+--------+--------+--------+--------+--------+------+-------+-------+---------+
 |Variable#Valid N|Missing N| Mean |S E Mean|Std Dev|Variance|Kurtosis|S E Kurt|Skewness|S E Skew| Range|Minimum|Maximum|   Sum   |
 #========#=======#=========#======#========#=======#========#========#========#========#========#======#=======#=======#=========#
 |AVAR    #    730|        0|31.515|    .405| 10.937| 119.608|   2.411|    .181|   1.345|    .090|76.000| 18.000| 94.000|23006.000|
 +--------#-------+---------+------+--------+-------+--------+--------+--------+--------+--------+------+-------+-------+---------+
-
 3.1 FREQUENCIES.  AVAR: 
 +--------+--------+---+---+
 |        |        |   |Cum|
@@ -141,7 +139,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |      80|       1|  0|100|
 |      94|       1|  0|100|
 +--------+--------+---+---+
-
 +-----------------+---------+
 |N         Valid  |      730|
 |          Missing|        0|

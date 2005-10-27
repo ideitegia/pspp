@@ -71,14 +71,14 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare stdout"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/stdout
-diff -b $TEMPDIR/stdout  - <<EOF |perl -e 's/^\s*$//g'
+diff -b $TEMPDIR/stdout  - <<EOF
 $TEMPDIR/loop.stat:10: warning: BREAK: BREAK not enclosed in DO IF structure.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list  - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list  - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +----------+------+-------+------+
 | Variable |Record|Columns|Format|

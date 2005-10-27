@@ -69,7 +69,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
 perl -pi -e 's/^\s*$//g' pspp.list
-diff -b -w pspp.list - <<EOF |perl -e 's/^\s*$//g'
+diff -b -w pspp.list - <<EOF
 1.1 DISPLAY.  
 +--------+-------------------------------------------+--------+
 |Variable|Description                                |Position|
@@ -86,7 +86,6 @@ diff -b -w pspp.list - <<EOF |perl -e 's/^\s*$//g'
 |COUNT   |number of countries                        |       4|
 |        |Format: F8.2                               |        |
 +--------+-------------------------------------------+--------+
-
                             CONT     SIZE      POP    COUNT
 -------------------------------- -------- -------- --------
 Asia                             44579000 3.67E+09    44.00 
@@ -96,7 +95,6 @@ South America                    17819000 3.42E+08    12.00
 Antarctica                       13209000      .00      .00 
 Europe                            9938000 7.32E+08    46.00 
 Australia/Oceania                 7687000 31000000    14.00 
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

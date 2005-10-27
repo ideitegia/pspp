@@ -191,7 +191,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
 perl -pi -e 's/^\s*$//g' pspp.list
-diff -b -w - pspp.list <<EOF |perl -e 's/^\s*$//g'
+diff -b -w - pspp.list <<EOF
 A B C D E F
 - - - - - -
 0 a A 1 b N

@@ -77,7 +77,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/out-filtered
-diff -b -w $TEMPDIR/out-filtered - << EOF |perl -e 's/^\s*$//g'
+diff -b -w $TEMPDIR/out-filtered - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -85,7 +85,6 @@ diff -b -w $TEMPDIR/out-filtered - << EOF |perl -e 's/^\s*$//g'
 |x       |F8.0  |
 |name    |A10   |
 +--------+------+
-
 2.1 SYSFILE INFO.  
 File:      pro.sav
 Label:     No label.
@@ -94,7 +93,6 @@ Cases:     3
 Type:      System File.
 Weight:    Not weighted.
 Mode:      Compression off.
-
 +--------+-------------+---+
 |Variable|Description  |Pos|
 |        |             |iti|
@@ -104,7 +102,6 @@ Mode:      Compression off.
 +--------+-------------+---+
 |name    |Format: A10  |  2|
 +--------+-------------+---+
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

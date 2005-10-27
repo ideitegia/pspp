@@ -72,8 +72,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/flip.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b  $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -84,7 +84,6 @@ diff  -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |C       |     1|  6-  7|F2.0  |
 |D       |     1|  8-  9|F2.0  |
 +--------+------+-------+------+
-
 N  A  B  C  D
 - -- -- -- --
 v  1  2  3  4 
@@ -92,14 +91,12 @@ w  6  7  8  9
 x 11 12 13 14 
 y 16 17 18 19 
 z 21 22 23 24 
-
 CASE_LBL        V        W        X        Y        Z
 -------- -------- -------- -------- -------- --------
 A            1.00     6.00    11.00    16.00    21.00 
 B            2.00     7.00    12.00    17.00    22.00 
 C            3.00     8.00    13.00    18.00    23.00 
 D            4.00     9.00    14.00    19.00    24.00 
-
 CASE_LBL        A        B        C        D
 -------- -------- -------- -------- --------
 V            1.00     2.00     3.00     4.00 

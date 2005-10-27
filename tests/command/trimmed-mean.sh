@@ -75,8 +75,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -84,7 +84,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |X       |F8.0  |
 |C       |F8.0  |
 +--------+------+
-
 2.1 EXAMINE.  Case Processing Summary
 #=#===============================#
 # #             Cases             #
@@ -95,7 +94,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #=#==#=======#=#=======#==#=======#
 #X#52|   100%|0|     0%|52|   100%#
 #=#==#=======#=#=======#==#=======#
-
 2.2 EXAMINE.  Descriptives
 #============================================#=========#==========#
 #                                            #Statistic|Std. Error#
@@ -114,7 +112,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 # Skewness                                   #  1.194  |   .330   #
 # Kurtosis                                   #  15.732 |   .650   #
 #============================================#=========#==========#
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -87,7 +87,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare head"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/head
-diff -b $TEMPDIR/head - << EOF |perl -e 's/^\s*$//g'
+diff -b $TEMPDIR/head - << EOF
  A
 --
 EOF

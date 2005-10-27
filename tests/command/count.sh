@@ -73,8 +73,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -82,7 +82,6 @@ diff -b  $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |V1      |     1|  1-  2|A2    |
 |V2      |     1|  3-  4|A2    |
 +--------+------+-------+------+
-
 V1 V2        C
 -- -- --------
 12 34      .00 

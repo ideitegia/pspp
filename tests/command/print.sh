@@ -98,8 +98,8 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
 +--------+------+
 |Variable|Format|
@@ -109,7 +109,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |C       |F8.0  |
 |D       |F8.0  |
 +--------+------+
-
 2.1 PRINT.  Writing 1 record(s) to file foo.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -121,16 +120,11 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |C       |     1| 19- 28|N10.0 |
 |"/"     |     1| 29- 29|A1    |
 +--------+------+-------+------+
-
-
        A        B        C        D
 -------- -------- -------- --------
      .       2.00     3.00     4.00 
-
      .       6.00     7.00     8.00 
-
      .      10.00    11.00    12.00 
-
 3.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
 +--------+------+
 |Variable|Format|
@@ -140,7 +134,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |C       |F8.0  |
 |D       |F8.0  |
 +--------+------+
-
 4.1 PRINT.  Writing 1 record(s) to the listing file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -151,7 +144,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |D       |     1| 28- 35|F8.2  |
 +--------+------+-------+------+
      .       2.00     3.00     4.00 
-
        A        B        C        D
 -------- -------- -------- --------
      .       2.00     3.00     4.00 
@@ -165,7 +157,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
    10.00    11.00      .        .   
    12.00      .        .        .   
    12.00      .        .        .   
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

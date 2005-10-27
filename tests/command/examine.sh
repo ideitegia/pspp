@@ -94,8 +94,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 # NOTE:  In the following data: Only the extreme values have been checked
 # The descriptives have been blindly pasted.
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -104,7 +104,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |W       |F8.0  |
 |BRAND   |F8.0  |
 +--------+------+
-
 Case#  QUALITY        W    BRAND
 ----- -------- -------- --------
     1     3.00     1.00     1.00 
@@ -123,7 +122,6 @@ Case#  QUALITY        W    BRAND
    14     5.00     3.00     3.00 
    15     3.00     1.00     3.00 
    16     6.00     1.00     3.00 
-
 2.1 EXAMINE.  Case Processing Summary
 #===============#===============================#
 #               #             Cases             #
@@ -134,7 +132,6 @@ Case#  QUALITY        W    BRAND
 #===============#==#=======#=#=======#==#=======#
 #Breaking Strain#24|   100%|0|     0%|24|   100%#
 #===============#==#=======#=#=======#==#=======#
-
 2.2 EXAMINE.  Extreme Values
 #=======================#===========#=====#
 #                       #Case Number|Value#
@@ -147,7 +144,6 @@ Case#  QUALITY        W    BRAND
 #                      2#          3| 1.00#
 #                      3#          3| 1.00#
 #=======================#===========#=====#
-
 2.3 EXAMINE.  Descriptives
 #==========================================================#=========#==========#
 #                                                          #Statistic|Std. Error#
@@ -166,7 +162,6 @@ Case#  QUALITY        W    BRAND
 #               Skewness                                   #   .059  |   .472   #
 #               Kurtosis                                   #  -.358  |   .918   #
 #==========================================================#=========#==========#
-
 2.4 EXAMINE.  Case Processing Summary
 #===========================#=============================#
 #                           #            Cases            #
@@ -179,7 +174,6 @@ Case#  QUALITY        W    BRAND
 #               Bloggs      #8|   100%|0|     0%|8|   100%#
 #               Charlies    #8|   100%|0|     0%|8|   100%#
 #===========================#=#=======#=#=======#=#=======#
-
 2.5 EXAMINE.  Extreme Values
 #===================================#===========#=====#
 #               Manufacturer        #Case Number|Value#
@@ -208,7 +202,6 @@ Case#  QUALITY        W    BRAND
 #                                  2#         13| 4.00#
 #                                  3#         13| 4.00#
 #===================================#===========#=====#
-
 2.6 EXAMINE.  Descriptives
 #======================================================================#=========#==========#
 #               Manufacturer                                           #Statistic|Std. Error#
@@ -255,7 +248,6 @@ Case#  QUALITY        W    BRAND
 #                           Skewness                                   #   .304  |   .752   #
 #                           Kurtosis                                   #   .146  |   1.481  #
 #======================================================================#=========#==========#
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

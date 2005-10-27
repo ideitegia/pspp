@@ -89,8 +89,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 EXAMINE.  Case Processing Summary
 #==#===============================#
 #  #             Cases             #
@@ -101,7 +101,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #==#==#=======#=#=======#==#=======#
 #V1#23|   100%|0|     0%|23|   100%#
 #==#==#=======#=#=======#==#=======#
-
 1.2 EXAMINE.  Extreme Values
 #==========#===========#=====#
 #          #Case Number|Value#
@@ -120,7 +119,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 #         5#          3| 3.00#
 #         6#          5| 4.00#
 #==========#===========#=====#
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

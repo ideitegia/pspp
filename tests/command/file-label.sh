@@ -116,8 +116,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.filtered - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.filtered
+diff -b  $TEMPDIR/pspp.filtered - <<EOF
 1.1 DATA LIST.  Reading 1 record from the command file.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
@@ -125,41 +125,28 @@ diff -b  $TEMPDIR/pspp.filtered - <<EOF | perl -e 's/^\s*$//g'
 |X       |     1|  1-  1|F1.0  |
 |Y       |     1|  2-  2|F1.0  |
 +--------+------+-------+------+
-
 Documents in the active file:
-
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
-
 File label:
 This is a test file label
-
 Documents in the active file:
-
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
-
 File label:
 This is a test file label
-
 Documents in the active file:
-
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
- 
    There should be another document now.
-
 Documents in the active file:
-
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
- 
    There should be another document now.
-
 File label:
 This is a test file label
 EOF

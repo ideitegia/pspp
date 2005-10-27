@@ -70,8 +70,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -79,14 +79,12 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |ID      |F8.0  |
 |ABC     |F8.0  |
 +--------+------+
-
 2.1 T-TEST.  One-Sample Statistics
 #===#=#====#==============#========#
 #   #N|Mean|Std. Deviation|SE. Mean#
 #===#=#====#==============#========#
 #ABC#6|3.00|           .84|    .342#
 #===#=#====#==============#========#
-
 2.2 T-TEST.  One-Sample Test
 #===#=====================================================#
 #   #                Test Value = 2.000000                #

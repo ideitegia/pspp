@@ -69,8 +69,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -79,7 +79,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |A       |F8.0  |
 |B       |F8.0  |
 +--------+------+
-
 2.1 T-TEST.  Paired Sample Statistics
 #========#====#=#==============#========#
 #        #Mean|N|Std. Deviation|SE. Mean#
@@ -87,14 +86,12 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #Pair 0 A#2.00|5|          .707|    .316#
 #       B#4.00|5|         1.541|    .689#
 #========#====#=#==============#========#
-
 2.2 T-TEST.  Paired Samples Correlations
 #======#=====#=#===========#====#
 #      |     #N|Correlation|Sig.#
 #======#=====#=#===========#====#
 #Pair 0|A & B#5|       .918|.028#
 #======#=====#=#===========#====#
-
 2.3 T-TEST.  Paired Samples Test
 #===========#=====================================================#======#==#===============#
 #           #                  Paired Differences                 |      |  |               #

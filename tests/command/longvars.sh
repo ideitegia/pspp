@@ -71,8 +71,8 @@ $SUPERVISOR $here/../src/pspp -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------------+------+
 |   Variable   |Format|
@@ -82,11 +82,9 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |X             |F8.0  |
 |Yabbadabbadoo |F8.0  |
 +--------------+------+
-
 AlphaBetaGamma        B        X Yabbadabbadoo
 -------------- -------- -------- -------------
           2.00     3.00     4.00          5.00 
-
 2.1 CROSSTABS.  Summary.
 #===============#=====================================================#
 #               #                        Cases                        #
@@ -98,7 +96,6 @@ AlphaBetaGamma        B        X Yabbadabbadoo
 #X *            #       1|  100.0%|       0|    0.0%|       1|  100.0%#
 #Yabbadabbadoo  #        |        |        |        |        |        #
 #===============#========#========#========#========#========#========#
-
 2.2 CROSSTABS.  X by Yabbadabbadoo [count].
 #===============#==============================================================#========#
 #               #                         Yabbadabbadoo                        |        #
@@ -114,7 +111,6 @@ AlphaBetaGamma        B        X Yabbadabbadoo
 #           7.00#      .0|      .0|      .0|      .0|      .0|      .0|      .0|      .0#
 #Total          #     .0%|     .0%|     .0%|     .0%|    1.0%|     .0%|     .0%|    1.0%#
 #===============#========#========#========#========#========#========#========#========#
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

@@ -76,8 +76,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="check results"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - << EOF
  X
 --
  1

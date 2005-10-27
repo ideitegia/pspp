@@ -87,8 +87,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -96,7 +96,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |INDEP   |F8.0  |
 |DEP     |F8.0  |
 +--------+------+
-
 2.1 T-TEST.  Group Statistics
 #===========#==#====#==============#========#
 #     INDEP | N|Mean|Std. Deviation|SE. Mean#
@@ -104,7 +103,6 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 #DEP < 1.514|11|8.00|         2.864|    .863#
 #    >=1.514|11|9.00|         3.821|   1.152#
 #===========#==#====#==============#========#
-
 2.2 T-TEST.  Independent Samples Test
 #==============================#=========#===============================================================================#
 #                              #Levene's |                          t-test for Equality of Means                         #

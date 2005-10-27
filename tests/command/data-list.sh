@@ -106,8 +106,8 @@ $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii --testing-mode $TESTFI
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +--------+------+
 |Variable|Format|
@@ -117,13 +117,11 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
 |C       |F8.0  |
 |D       |F8.0  |
 +--------+------+
-
        A        B        C        D
 -------- -------- -------- --------
     1.00    23.00    45.00     2.03 
     2.00    22.00    34.00    23.00 
     3.00    34.00    34.00    34.00 
-
        A        B        C        D
 -------- -------- -------- --------
      .       1.00     2.00     3.00 
@@ -132,7 +130,6 @@ diff -b  $TEMPDIR/pspp.list - << EOF | perl -e 's/^\s*$//g'
      .00     1.00      .        .   
      .        .        .        .   
     2.00     3.00     4.00     5.00 
-
        A        B        C        D
 -------- -------- -------- --------
     1.00     2.00     3.00     4.00 

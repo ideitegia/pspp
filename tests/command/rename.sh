@@ -78,8 +78,8 @@ grep -i Brake $TEMPDIR/rename.sav
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="compare output"
-perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
-diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff  -b $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading free-form data from the command file.
 +----------+------+
 | Variable |Format|
@@ -87,21 +87,18 @@ diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
 |brakeFluid|F8.0  |
 |y         |F8.0  |
 +----------+------+
-
 brakeFluid        y
 ---------- --------
       1.00     3.00 
       2.00     3.00 
       3.00     3.00 
       4.00     3.00 
-
 applecarts        y
 ---------- --------
       1.00     3.00 
       2.00     3.00 
       3.00     3.00 
       4.00     3.00 
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
