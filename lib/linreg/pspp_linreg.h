@@ -63,23 +63,36 @@ enum
 
 /*
   Cache for the relevant data from the model. There are several
-  members which the caller may not use, and which could use a lot of
+  members which the caller might not use, and which could use a lot of
   storage. Therefore non-essential members of the struct will be
   allocated only when requested.
  */
+struct pspp_linreg_coeff
+{
+  double estimate; /* Estimated coefficient. */
+  const struct variable *v; /* The variable associated with this coefficient. 
+			       The calling function should supply the variable
+			       when it creates the design matrix. The estimation
+			       procedure ignores the struct variable *. It is here so
+			       the caller can match parameters with relevant 
+			       variables.
+			    */
+};
 struct pspp_linreg_cache_struct
 {
   int n_obs;			/* Number of observations. */
   int n_indeps;			/* Number of independent variables. */
+  int n_coeffs;
 
   /* 
-     The var structs are ignored during estimation.
-     They are here so the calling procedures can
-     find the variables used in the model.
+     The variable struct is ignored during estimation.
+     It is here so the calling procedure can
+     find the variable used in the model.
   */
-  struct var *depvar;
-  struct var **indepvar;   
+  const struct variable *depvar;
+
   gsl_vector *residuals;
+  struct pspp_linreg_coeff *coeff;
   gsl_vector *param_estimates;
   int method;			/* Method to use to estimate parameters. */
   /*

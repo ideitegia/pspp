@@ -87,38 +87,39 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
 pspp_linreg_cache *
 pspp_linreg_cache_alloc (size_t n, size_t p)
 {
-  pspp_linreg_cache *cache;
+  pspp_linreg_cache *c;
 
-  cache = (pspp_linreg_cache *) malloc (sizeof (pspp_linreg_cache));
-  cache->param_estimates = gsl_vector_alloc (p + 1);
-  cache->indep_means = gsl_vector_alloc (p);
-  cache->indep_std = gsl_vector_alloc (p);
-  cache->ssx = gsl_vector_alloc (p);	/* Sums of squares for the independent
+  c = (pspp_linreg_cache *) malloc (sizeof (pspp_linreg_cache));
+  c->param_estimates = gsl_vector_alloc (p + 1);
+  c->indep_means = gsl_vector_alloc (p);
+  c->indep_std = gsl_vector_alloc (p);
+  c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the independent
 					   variables.
 					 */
-  cache->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the model 
-						   parameters. 
-						 */
-  cache->cov = gsl_matrix_alloc (p + 1, p + 1);	/* Covariance matrix. */
-  cache->n_obs = n;
-  cache->n_indeps = p;
+  c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the model 
+					   parameters. 
+					 */
+  c->cov = gsl_matrix_alloc (p + 1, p + 1);	/* Covariance matrix. */
+  c->n_obs = n;
+  c->n_indeps = p;
   /*
      Default settings.
    */
-  cache->method = PSPP_LINREG_SWEEP;
+  c->method = PSPP_LINREG_SWEEP;
 
-  return cache;
+  return c;
 }
 
 void
-pspp_linreg_cache_free (pspp_linreg_cache * cache)
+pspp_linreg_cache_free (pspp_linreg_cache * c)
 {
-  gsl_vector_free (cache->param_estimates);
-  gsl_vector_free (cache->indep_means);
-  gsl_vector_free (cache->indep_std);
-  gsl_vector_free (cache->ss_indeps);
-  gsl_matrix_free (cache->cov);
-  free (cache);
+  gsl_vector_free (c->param_estimates);
+  gsl_vector_free (c->indep_means);
+  gsl_vector_free (c->indep_std);
+  gsl_vector_free (c->ss_indeps);
+  gsl_matrix_free (c->cov);
+  free (c->coeff);
+  free (c);
 }
 
 /*
@@ -180,9 +181,9 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
          standard deviations of the independent variables here since doing
          so would cause a miscalculation of the residual sums of
          squares. Dividing by the standard deviation is done GSL's linear
-         regression functions, so if the design matrix has a very poor
+         regression functions, so if the design matrix has a poor
          condition, use QR decomposition.
-         *
+
          The design matrix here does not include a column for the intercept
          (i.e., a column of 1's). If using PSPP_LINREG_QR, we need that column,
          so design is allocated here when sweeping, or below if using QR.
@@ -244,6 +245,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
       for (i = 0; i < cache->n_indeps; i++)
 	{
 	  tmp = gsl_matrix_get (sw, i, cache->n_indeps);
+	  cache->coeff[i + 1].estimate = tmp;
 	  gsl_vector_set (cache->param_estimates, i + 1, tmp);
 	  m -= tmp * gsl_vector_get (cache->indep_means, i);
 	}
