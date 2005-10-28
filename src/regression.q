@@ -24,16 +24,19 @@
 #include <gsl/gsl_matrix.h>
 #include "alloc.h"
 #include "case.h"
-#include "dictionary.h"
-#include "file-handle.h"
+#include "casefile.h"
+#include "cat.h"
 #include "command.h"
+#include "dictionary.h"
+#include "error.h"
+#include "file-handle.h"
+#include "gettext.h"
 #include "lexer.h"
+#include <linreg/pspp_linreg.h>
 #include "tab.h"
 #include "var.h"
 #include "vfm.h"
-#include "casefile.h"
-#include <linreg/pspp_linreg.h>
-#include "cat.h"
+
 /* (headers) */
 
 
@@ -68,6 +71,11 @@ static struct cmd_regression cmd;
   Array holding the subscripts of the independent variables.
  */
 size_t *indep_vars;
+
+/*
+  Return value for the procedure.
+ */
+int pspp_reg_rc = CMD_SUCCESS;
 
 static void run_regression (const struct casefile *, void *);
 /* 
@@ -143,7 +151,8 @@ reg_stats_coeff (pspp_linreg_cache * c)
   struct tab_table *t;
 
   assert (c != NULL);
-  n_rows = 2 + c->param_estimates->size;
+  n_rows = 2;
+
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions);
@@ -462,7 +471,7 @@ cmd_regression (void)
     }
   multipass_procedure_with_splits (run_regression, &cmd);
 
-  return CMD_SUCCESS;
+  return pspp_reg_rc;
 }
 
 /*
@@ -492,6 +501,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   size_t n_data = 0;
   size_t row;
   int n_indep;
+  int j = 0;
   const union value *val;
   struct casereader *r;
   struct casereader *r2;
@@ -560,7 +570,13 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	   */
 	  if (is_depvar (i))
 	    {
-	      assert (v->type == NUMERIC);
+	      if (v->type != NUMERIC)
+		{
+		  msg (SE, gettext ("Dependent variable must be numeric."));
+		  pspp_reg_rc = CMD_FAILURE;
+		  return;
+		}
+	      lcache->depvar = (const struct var *) v;
 	      gsl_vector_set (Y, row, val->f);
 	    }
 	  else
@@ -581,6 +597,18 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	    }
 	}
     }
+  /*
+     Now that we know the number of coefficients, allocate space
+     and store pointers to the variables that correspond to the
+     coefficients.
+   */
+  lcache->coeff = xnmalloc (X->m->size2 + 1, sizeof (*lcache->coeff));
+  for (i = 0; i < X->m->size2; i++)
+    {
+      j = i + 1;		/* The first coeff is the intercept. */
+      lcache->coeff[j].v =
+	(const struct variable *) design_matrix_col_to_var (X, i);
+    }
   /* 
      Find the least-squares estimates and other statistics.
    */
@@ -592,6 +620,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   free (lopts.get_indep_mean_std);
   free (indep_vars);
   casereader_destroy (r);
+  return;
 }
 
 /*
