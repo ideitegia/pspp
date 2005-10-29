@@ -21,3 +21,5 @@ mkinstalldirs
 potfiles.tmp
 pref.h
 stamp-h1
+_build
+_check
