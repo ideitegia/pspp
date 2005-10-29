@@ -231,7 +231,7 @@ recode (const struct autorecode_pgm *arc)
   t->h.proc = autorecode_trns_proc;
   t->h.free = autorecode_trns_free;
   t->owner = pool;
-  t->specs = pool_alloc (t->owner, sizeof *t->specs * arc->var_cnt);
+  t->specs = pool_nalloc (t->owner, arc->var_cnt, sizeof *t->specs);
   t->spec_cnt = arc->var_cnt;
   for (i = 0; i < arc->var_cnt; i++)
     {
@@ -357,7 +357,7 @@ autorecode_proc_func (struct ccase *c, void *arc_)
       vpp = (union value **) hsh_probe (arc->src_values[i], &v);
       if (*vpp == NULL)
         {
-          vp = pool_alloc (arc->src_values_pool, sizeof (union value));
+          vp = pool_alloc (arc->src_values_pool, sizeof *vp);
           if (arc->src_vars[i]->type == NUMERIC)
             vp->f = v.f;
           else

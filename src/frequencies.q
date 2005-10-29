@@ -835,8 +835,8 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
 	{
 	  vf->tab.min = min;
 	  vf->tab.max = max;
-	  vf->tab.vector = pool_alloc (int_pool,
-                                       sizeof (struct freq) * (max - min + 1));
+	  vf->tab.vector = pool_nalloc (int_pool,
+                                        max - min + 1, sizeof *vf->tab.vector);
 	}
       else
 	vf->tab.vector = NULL;
@@ -878,7 +878,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
 		if (nl >= ml)
 		  {
 		    ml += 16;
-		    dl = pool_realloc (int_pool, dl, ml * sizeof (double));
+		    dl = pool_nrealloc (int_pool, dl, ml, sizeof *dl);
 		  }
 		dl[nl++] = tokval;
 		lex_get ();
@@ -949,9 +949,8 @@ add_percentile (double x)
 
   if (i >= n_percentiles || tokval != percentiles[i].p)
     {
-      percentiles
-        = pool_realloc (int_pool, percentiles,
-                        (n_percentiles + 1) * sizeof (struct percentile ));
+      percentiles = pool_nrealloc (int_pool, percentiles,
+                                   n_percentiles + 1, sizeof *percentiles);
 
       if (i < n_percentiles)
           memmove (&percentiles[i + 1], &percentiles[i],

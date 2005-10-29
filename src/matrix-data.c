@@ -1143,7 +1143,7 @@ matrix_data_read_without_rowtype (struct case_source *source,
   {
     int *cp;
 
-    nr->data = pool_alloc (mx->container, (PROX + 1) * sizeof *nr->data);
+    nr->data = pool_nalloc (mx->container, PROX + 1, sizeof *nr->data);
     
     {
       int i;
@@ -1166,12 +1166,12 @@ matrix_data_read_without_rowtype (struct case_source *source,
 	    int n_vectors = per_factor ? mx->cells : 1;
 	    int i;
 	    
-	    nr->data[*cp] = pool_alloc (mx->container,
-				       n_vectors * sizeof **nr->data);
+	    nr->data[*cp] = pool_nalloc (mx->container,
+                                         n_vectors, sizeof **nr->data);
 	    
 	    for (i = 0; i < n_vectors; i++)
-	      nr->data[*cp][i] = pool_alloc (mx->container,
-					    n_entries * sizeof ***nr->data);
+	      nr->data[*cp][i] = pool_nalloc (mx->container,
+                                              n_entries, sizeof ***nr->data);
 	  }
 	}
   }
@@ -1836,8 +1836,8 @@ cache_miss:
   {
     struct factor_data *new = pool_alloc (mx->container, sizeof *new);
 
-    new->factors = pool_alloc (mx->container,
-                               sizeof *new->factors * mx->n_factors);
+    new->factors = pool_nalloc (mx->container,
+                                mx->n_factors, sizeof *new->factors);
     
     {
       size_t i;
@@ -1888,8 +1888,8 @@ wr_read_indeps (struct wr_aux_data *wr)
       if (type == 1)
 	n_items *= mx->n_continuous;
       
-      c->data[wr->content] = pool_alloc (mx->container,
-					sizeof **c->data * n_items);
+      c->data[wr->content] = pool_nalloc (mx->container,
+                                          n_items, sizeof **c->data);
     }
 
   cp = &c->data[wr->content][n_rows * mx->n_continuous];

@@ -1,3 +1,16 @@
+Fri Oct 28 22:47:48 2005  Ben Pfaff  <blp@gnu.org>
+
+	Fix up potential overflows in size calculations by replacing
+	instances of pool_alloc(p, x * sizeof *y) by pool_malloc(p, x,
+	sizeof *y) everywhere I could find them.  Similarly by
+	pool_malloc(), pool_realloc().
+	(Order is important: pool_alloc(p, sizeof *y, x) will divide by 0
+	if x is 0.)
+
+	* pool.c: (pool_nalloc) New function.
+	(pool_nmalloc) New function.
+	(pool_nrealloc) New function.
+
 Thu Oct 27 11:16:53 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	Separated the definition of a file handle object from the stuff 

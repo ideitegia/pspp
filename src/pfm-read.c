@@ -492,7 +492,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
   r->var_cnt = read_int (r);
   if (r->var_cnt <= 0 || r->var_cnt == NOT_INT)
     error (r, _("Invalid number of variables %d."), r->var_cnt);
-  r->widths = pool_alloc (r->pool, sizeof *r->widths * r->var_cnt);
+  r->widths = pool_nalloc (r->pool, r->var_cnt, sizeof *r->widths);
 
   /* Purpose of this value is unknown.  It is typically 161. */
   read_int (r);
@@ -608,7 +608,7 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
   int i;
 
   nv = read_int (r);
-  v = pool_alloc (r->pool, sizeof *v * nv);
+  v = pool_nalloc (r->pool, nv, sizeof *v);
   for (i = 0; i < nv; i++)
     {
       char name[256];

@@ -273,6 +273,19 @@ pool_alloc (struct pool *pool, size_t amt)
     return pool_malloc (pool, amt);
 }
 
+/* Allocates a memory region N * S bytes in size from POOL and
+   returns a pointer to the region's start.
+   N must be nonnegative, S must be positive.
+   Terminates the program if the memory cannot be obtained,
+   including the case where N * S overflows the range of size_t. */
+void *
+pool_nalloc (struct pool *pool, size_t n, size_t s) 
+{
+  if (xalloc_oversized (n, s))
+    xalloc_die ();
+  return pool_alloc (pool, n * s);
+}
+
 /* Allocates SIZE bytes in POOL, copies BUFFER into it, and
    returns the new copy. */
 void *
@@ -355,6 +368,21 @@ pool_malloc (struct pool *pool, size_t amt)
     return xmalloc (amt);
 }
 
+/* Allocates and returns N elements of S bytes each, to be
+   managed by POOL.
+   If POOL is a null pointer, then allocates a normal memory block
+   with malloc().
+   N must be nonnegative, S must be positive.
+   Terminates the program if the memory cannot be obtained,
+   including the case where N * S overflows the range of size_t. */
+void *
+pool_nmalloc (struct pool *pool, size_t n, size_t s) 
+{
+  if (xalloc_oversized (n, s))
+    xalloc_die ();
+  return pool_malloc (pool, n * s);
+}
+
 /* Changes the allocation size of the specified memory block P managed
    by POOL to AMT bytes and returns a pointer to the beginning of the
    block.
@@ -394,6 +422,22 @@ pool_realloc (struct pool *pool, void *p, size_t amt)
     }
   else
     return xrealloc (p, amt);
+}
+
+/* Changes the allocation size of the specified memory block P
+   managed by POOL to N * S bytes and returns a pointer to the
+   beginning of the block.
+   N must be nonnegative, S must be positive.
+   If POOL is a null pointer, then the block is reallocated in
+   the usual way with xrealloc().
+   Terminates the program if the memory cannot be obtained,
+   including the case where N * S overflows the range of size_t. */
+void *
+pool_nrealloc (struct pool *pool, void *p, size_t n, size_t s)
+{
+  if (xalloc_oversized (n, s))
+    xalloc_die ();
+  return pool_realloc (pool, p, n * s);
 }
 
 /* Frees block P managed by POOL.

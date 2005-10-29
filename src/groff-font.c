@@ -562,8 +562,8 @@ check_deref_space (struct font_desc *font, int min_size)
       font->deref_size = min_size + 16;
       if (font->deref_size < 256)
 	font->deref_size = 256;
-      font->deref = pool_realloc (font->owner, font->deref,
-				  sizeof *font->deref * font->deref_size);
+      font->deref = pool_nrealloc (font->owner, font->deref,
+                                   font->deref_size, sizeof *font->deref);
       for (; i < font->deref_size; i++)
 	font->deref[i] = -1;
     }
@@ -577,8 +577,8 @@ add_char_metric (struct font_desc *font, struct char_metrics *metrics, int code)
   if (font->metric_used >= font->metric_size)
     {
       font->metric_size += 64;
-      font->metric = pool_realloc (font->owner, font->metric,
-				   sizeof *font->metric * font->metric_size);
+      font->metric = pool_nrealloc (font->owner, font->metric,
+                                    font->metric_size, sizeof *font->metric);
     }
   font->metric[font->metric_used] = metrics;
   font->deref[code] = font->metric_used++;
@@ -615,8 +615,8 @@ add_kern (struct font_desc *font, int ch1, int ch2, int adjust)
 
       font->kern_size *= 2;
       font->kern_max_used = font->kern_size / 2;
-      font->kern = pool_malloc (font->owner,
-				sizeof *font->kern * font->kern_size);
+      font->kern = pool_nmalloc (font->owner,
+                                 font->kern_size, sizeof *font->kern);
       for (i = 0; i < font->kern_size; i++)
 	font->kern[i].ch1 = -1;
 

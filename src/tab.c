@@ -47,7 +47,8 @@ struct som_table_class tab_table_class;
 struct tab_table *
 tab_create (int nc, int nr, int reallocable)
 {
-  void *(*alloc_func) (struct pool *, size_t);
+  void *(*alloc_func) (struct pool *, size_t n);
+  void *(*nalloc_func) (struct pool *, size_t n, size_t s);
 
   struct tab_table *t;
   
@@ -65,28 +66,29 @@ tab_create (int nc, int nr, int reallocable)
   t->nc = t->cf = nc;
   t->l = t->r = t->t = t->b = 0;
 
+  nalloc_func = reallocable ? pool_nmalloc : pool_nalloc;
   alloc_func = reallocable ? pool_malloc : pool_alloc;
 #if GLOBAL_DEBUGGING
   t->reallocable = reallocable;
 #endif
 
-  t->cc = alloc_func (t->container, nr * nc * sizeof *t->cc);
+  t->cc = nalloc_func (t->container, nr * nc, sizeof *t->cc);
   t->ct = alloc_func (t->container, nr * nc);
   memset (t->ct, TAB_EMPTY, nc * nr);
 
-  t->rh = alloc_func (t->container, nc * (nr + 1));
+  t->rh = nalloc_func (t->container, nc, nr + 1);
   memset (t->rh, 0, nc * (nr + 1));
 
-  t->hrh = alloc_func (t->container, sizeof *t->hrh * (nr + 1));
+  t->hrh = nalloc_func (t->container, nr + 1, sizeof *t->hrh);
   memset (t->hrh, 0, sizeof *t->hrh * (nr + 1));
 
   t->trh = alloc_func (t->container, nr + 1);
   memset (t->trh, 0, nr + 1);
 
-  t->rv = alloc_func (t->container, (nc + 1) * nr);
+  t->rv = nalloc_func (t->container, nr, nc + 1);
   memset (t->rv, 0, (nc + 1) * nr);
 
-  t->wrv = alloc_func (t->container, sizeof *t->wrv * (nc + 1));
+  t->wrv = nalloc_func (t->container, nc + 1, sizeof *t->wrv);
   memset (t->wrv, 0, sizeof *t->wrv * (nc + 1));
 
   t->trv = alloc_func (t->container, nc + 1);
@@ -163,7 +165,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
       unsigned char *new_ct;
       int r;
 
-      new_cc = pool_malloc (t->container, nr * nc * sizeof *new_cc);
+      new_cc = pool_nmalloc (t->container, nr * nc, sizeof *new_cc);
       new_ct = pool_malloc (t->container, nr * nc);
       for (r = 0; r < mr1; r++)
 	{
@@ -179,14 +181,13 @@ tab_realloc (struct tab_table *t, int nc, int nr)
     }
   else if (nr != t->nr)
     {
-      t->cc = pool_realloc (t->container, t->cc, nr * nc * sizeof *t->cc);
+      t->cc = pool_nrealloc (t->container, t->cc, nr * nc, sizeof *t->cc);
       t->ct = pool_realloc (t->container, t->ct, nr * nc);
 
-      t->rh = pool_realloc (t->container, t->rh, nc * (nr + 1));
-      t->rv = pool_realloc (t->container, t->rv, (nc + 1) * nr);
+      t->rh = pool_nrealloc (t->container, t->rh, nc, nr + 1);
+      t->rv = pool_nrealloc (t->container, t->rv, nr, nc + 1);
       t->trh = pool_realloc (t->container, t->trh, nr + 1);
-      t->hrh = pool_realloc (t->container, t->hrh,
-			     sizeof *t->hrh * (nr + 1));
+      t->hrh = pool_nrealloc (t->container, t->hrh, nr + 1, sizeof *t->hrh);
       
       if (nr > t->nr)
 	{
@@ -938,8 +939,8 @@ tabi_table (struct som_entity *table)
   tab_offset (t, 0, 0);
   
   assert (t->w == NULL && t->h == NULL);
-  t->w = pool_alloc (t->container, sizeof *t->w * t->nc);
-  t->h = pool_alloc (t->container, sizeof *t->h * t->nr);
+  t->w = pool_nalloc (t->container, t->nc, sizeof *t->w);
+  t->h = pool_nalloc (t->container, t->nr, sizeof *t->h);
 }
 
 /* Set the current output device to DRIVER. */
