@@ -26,100 +26,63 @@
 #include "dictionary.h"
 #include "error.h"
 #include "lexer.h"
+#include "pool.h"
+#include "range-prs.h"
 #include "str.h"
 #include "var.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Implementation details:
-
-   The S?SS manuals do not specify the order that COUNT subcommands are
-   performed in.  Experiments, however, have shown that they are performed
-   in the order that they are specified in, rather than simultaneously.
-   So, with the two variables A and B, and the two cases,
-
-   A B
-   1 2
-   2 1
-
-   the command COUNT A=A B (1) / B=A B (2) will produce the following
-   results,
-
-   A B
-   1 1
-   1 0
-
-   rather than the results that would be produced if subcommands were
-   simultaneous:
-
-   A B
-   1 1
-   1 1
-
-   Perhaps simultaneity could be implemented as an option.  On the
-   other hand, what good are the above commands?  */
-
-/* Definitions. */
-
-enum
+/* Value or range? */
+enum value_type
   {
-    CNT_ERROR,			/* Invalid value. */
     CNT_SINGLE,			/* Single value. */
-    CNT_HIGH,			/* x >= a. */
-    CNT_LOW,			/* x <= a. */
-    CNT_RANGE,			/* a <= x <= b. */
-    CNT_ANY,			/* Count any. */
-    CNT_SENTINEL		/* List terminator. */
+    CNT_RANGE			/* a <= x <= b. */
   };
 
-struct cnt_num
+/* Numeric count criteria. */
+struct num_value
   {
-    int type;
-    double a, b;
+    enum value_type type;       /* How to interpret a, b. */
+    double a, b;                /* Values to count. */
   };
 
-struct cnt_str
+struct criteria
   {
-    int type;
-    char *s;
-  };
+    struct criteria *next;
 
-struct counting
-  {
-    struct counting *next;
+    /* Variables to count. */
+    struct variable **vars;
+    size_t var_cnt;
 
-    /* variables to count */
-    struct variable **v;
-    size_t n;
+    /* Count special values?. */
+    bool count_system_missing;  /* Count system missing? */
+    bool count_user_missing;    /* Count user missing? */
 
-    /* values to count */
-    int missing;		/* (numeric only)
-				   0=don't count missing,
-				   1=count SYSMIS,
-				   2=count system- and user-missing */
-    union			/* Criterion values. */
+    /* Criterion values. */    
+    size_t value_cnt;
+    union
       {
-	struct cnt_num *n;
-	struct cnt_str *s;
+	struct num_value *num;
+	char **str;
       }
-    crit;
+    values;
   };
 
-struct cnt_var_info
+struct dst_var
   {
-    struct cnt_var_info *next;
-
-    struct variable *d;		/* Destination variable. */
-    char n[LONG_NAME_LEN + 1];	/* Name of dest var. */
-
-    struct counting *c;		/* The counting specifications. */
+    struct dst_var *next;
+    struct variable *var;       /* Destination variable. */
+    char *name;                 /* Name of dest var. */
+    struct criteria *crit;      /* The criteria specifications. */
   };
 
 struct count_trns
   {
     struct trns_header h;
-    struct cnt_var_info *specs;
+    struct dst_var *dst_vars;
+    struct pool *pool;
   };
 
 /* Parser. */
@@ -127,68 +90,76 @@ struct count_trns
 static trns_proc_func count_trns_proc;
 static trns_free_func count_trns_free;
 
-static int parse_numeric_criteria (struct counting *);
-static int parse_string_criteria (struct counting *);
+static bool parse_numeric_criteria (struct pool *, struct criteria *);
+static bool parse_string_criteria (struct pool *, struct criteria *);
 
 int
 cmd_count (void)
 {
-  struct cnt_var_info *cnt;     /* Specification currently being parsed. */
-  struct counting *c;           /* Counting currently being parsed. */
-  int ret;                      /* Return value from parsing function. */
+  struct dst_var *dv;           /* Destination var being parsed. */
   struct count_trns *trns;      /* Transformation. */
-  struct cnt_var_info *head;    /* First counting in chain. */
 
   /* Parses each slash-delimited specification. */
-  head = cnt = xmalloc (sizeof *cnt);
+  trns = xmalloc (sizeof *trns);
+  trns->h.proc = count_trns_proc;
+  trns->h.free = count_trns_free;
+  trns->pool = pool_create ();
+  trns->dst_vars = dv = pool_alloc (trns->pool, sizeof *dv);
   for (;;)
     {
-      /* Initialize this struct cnt_var_info to ensure proper cleanup. */
-      cnt->next = NULL;
-      cnt->d = NULL;
-      cnt->c = NULL;
+      struct criteria *crit;
+
+      /* Initialize this struct dst_var to ensure proper cleanup. */
+      dv->next = NULL;
+      dv->var = NULL;
+      dv->crit = NULL;
 
       /* Get destination variable, or at least its name. */
       if (!lex_force_id ())
 	goto fail;
-      cnt->d = dict_lookup_var (default_dict, tokid);
-      if (cnt->d)
-	{
-	  if (cnt->d->type == ALPHA)
-	    {
-	      msg (SE, _("Destination cannot be a string variable."));
-	      goto fail;
-	    }
-	}
+      dv->var = dict_lookup_var (default_dict, tokid);
+      if (dv->var != NULL)
+        {
+          if (dv->var->type == ALPHA)
+            {
+              msg (SE, _("Destination cannot be a string variable."));
+              goto fail;
+            }
+        }
       else
-	str_copy_trunc (cnt->n, sizeof cnt->n, tokid);
+        dv->name = pool_strdup (trns->pool, tokid);
 
       lex_get ();
       if (!lex_force_match ('='))
 	goto fail;
 
-      c = cnt->c = xmalloc (sizeof *c);
+      crit = dv->crit = pool_alloc (trns->pool, sizeof *crit);
       for (;;)
 	{
-	  c->next = NULL;
-	  c->v = NULL;
-	  if (!parse_variables (default_dict, &c->v, &c->n,
+          bool ok;
+          
+	  crit->next = NULL;
+	  crit->vars = NULL;
+	  if (!parse_variables (default_dict, &crit->vars, &crit->var_cnt,
                                 PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
+          pool_register (trns->pool, free, crit->vars);
 
 	  if (!lex_force_match ('('))
 	    goto fail;
 
-	  ret = (c->v[0]->type == NUMERIC
-		 ? parse_numeric_criteria
-		 : parse_string_criteria) (c);
-	  if (!ret)
+          crit->value_cnt = 0;
+          if (crit->vars[0]->type == NUMERIC)
+            ok = parse_numeric_criteria (trns->pool, crit);
+          else
+            ok = parse_string_criteria (trns->pool, crit);
+	  if (!ok)
 	    goto fail;
 
 	  if (token == '/' || token == '.')
 	    break;
 
-	  c = c->next = xmalloc (sizeof *c);
+	  crit = crit->next = pool_alloc (trns->pool, sizeof *crit);
 	}
 
       if (token == '.')
@@ -196,163 +167,95 @@ cmd_count (void)
 
       if (!lex_force_match ('/'))
 	goto fail;
-      cnt = cnt->next = xmalloc (sizeof *cnt);
+      dv = dv->next = pool_alloc (trns->pool, sizeof *dv);
     }
 
   /* Create all the nonexistent destination variables. */
-  for (cnt = head; cnt; cnt = cnt->next)
-    if (!cnt->d)
+  for (dv = trns->dst_vars; dv; dv = dv->next)
+    if (dv->var == NULL)
       {
 	/* It's valid, though motivationally questionable, to count to
 	   the same dest var more than once. */
-	cnt->d = dict_lookup_var (default_dict, cnt->n);
+	dv->var = dict_lookup_var (default_dict, dv->name);
 
-	if (cnt->d == NULL) 
-          cnt->d = dict_create_var_assert (default_dict, cnt->n, 0);
+	if (dv->var == NULL) 
+          dv->var = dict_create_var_assert (default_dict, dv->name, 0);
       }
 
-  trns = xmalloc (sizeof *trns);
-  trns->h.proc = count_trns_proc;
-  trns->h.free = count_trns_free;
-  trns->specs = head;
-  add_transformation ((struct trns_header *) trns);
-
+  add_transformation (&trns->h);
   return CMD_SUCCESS;
 
 fail:
-  {
-    struct count_trns t;
-    t.specs = head;
-    count_trns_free ((struct trns_header *) & t);
-    return CMD_FAILURE;
-  }
+  count_trns_free (&trns->h);
+  return CMD_FAILURE;
 }
 
-/* Parses a set of numeric criterion values. */
-static int
-parse_numeric_criteria (struct counting *c)
+/* Parses a set of numeric criterion values.  Returns success. */
+static bool
+parse_numeric_criteria (struct pool *pool, struct criteria *crit)
 {
-  size_t n = 0;
-  size_t m = 0;
+  size_t allocated = 0;
 
-  c->crit.n = 0;
-  c->missing = 0;
+  crit->values.num = NULL;
+  crit->count_system_missing = false;
+  crit->count_user_missing = false;
   for (;;)
     {
-      struct cnt_num *cur;
-      if (n + 1 >= m)
-	{
-	  m += 16;
-	  c->crit.n = xnrealloc (c->crit.n, m, sizeof *c->crit.n);
-	}
-
-      cur = &c->crit.n[n++];
-      if (lex_is_number ())
-	{
-	  cur->a = tokval;
-	  lex_get ();
-	  if (lex_match_id ("THRU"))
-	    {
-	      if (lex_is_number ())
-		{
-		  if (!lex_force_num ())
-		    return 0;
-		  cur->b = tokval;
-		  cur->type = CNT_RANGE;
-		  lex_get ();
-
-		  if (cur->a > cur->b)
-		    {
-		      msg (SE, _("%g THRU %g is not a valid range.  The "
-				 "number following THRU must be at least "
-				 "as big as the number preceding THRU."),
-			   cur->a, cur->b);
-		      return 0;
-		    }
-		}
-	      else if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
-		cur->type = CNT_HIGH;
-	      else
-		{
-		  lex_error (NULL);
-		  return 0;
-		}
-	    }
-	  else
-	    cur->type = CNT_SINGLE;
-	}
-      else if (lex_match_id ("LO") || lex_match_id ("LOWEST"))
-	{
-	  if (!lex_force_match_id ("THRU"))
-	    return 0;
-	  if (lex_is_number ())
-	    {
-	      cur->type = CNT_LOW;
-	      cur->a = tokval;
-	      lex_get ();
-	    }
-	  else if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
-	    cur->type = CNT_ANY;
-	  else
-	    {
-	      lex_error (NULL);
-	      return 0;
-	    }
-	}
-      else if (lex_match_id ("SYSMIS"))
-	{
-	  if (c->missing < 1)
-	    c->missing = 1;
-	}
+      double low, high;
+      
+      if (lex_match_id ("SYSMIS"))
+        crit->count_system_missing = true;
       else if (lex_match_id ("MISSING"))
-	c->missing = 2;
+	crit->count_user_missing = true;
+      else if (parse_num_range (&low, &high, NULL)) 
+        {
+          struct num_value *cur;
+
+          if (crit->value_cnt >= allocated)
+            crit->values.num = pool_2nrealloc (pool, crit->values.num,
+                                               &allocated,
+                                               sizeof *crit->values.num);
+          cur = &crit->values.num[crit->value_cnt++];
+          cur->type = low == high ? CNT_SINGLE : CNT_RANGE;
+          cur->a = low;
+          cur->b = high;
+        }
       else
-	{
-	  lex_error (NULL);
-	  return 0;
-	}
+        return false;
 
       lex_match (',');
       if (lex_match (')'))
 	break;
     }
-
-  c->crit.n[n].type = CNT_SENTINEL;
-  return 1;
+  return true;
 }
 
-/* Parses a set of string criteria values.  The skeleton is the same
-   as parse_numeric_criteria(). */
-static int
-parse_string_criteria (struct counting *c)
+/* Parses a set of string criteria values.  Returns success. */
+static bool
+parse_string_criteria (struct pool *pool, struct criteria *crit)
 {
   int len = 0;
-
-  size_t n = 0;
-  size_t m = 0;
-
+  size_t allocated = 0;
   size_t i;
 
-  for (i = 0; i < c->n; i++)
-    if (c->v[i]->width > len)
-      len = c->v[i]->width;
+  for (i = 0; i < crit->var_cnt; i++)
+    if (crit->vars[i]->width > len)
+      len = crit->vars[i]->width;
 
-  c->crit.n = 0;
+  crit->values.str = NULL;
   for (;;)
     {
-      struct cnt_str *cur;
-      if (n + 1 >= m)
-	{
-	  m += 16;
-	  c->crit.s = xnrealloc (c->crit.s, m, sizeof *c->crit.s);
-	}
+      char **cur;
+      if (crit->value_cnt >= allocated)
+        crit->values.str = pool_2nrealloc (pool, crit->values.str,
+                                           &allocated,
+                                           sizeof *crit->values.str);
 
       if (!lex_force_string ())
-	return 0;
-      cur = &c->crit.s[n++];
-      cur->type = CNT_SINGLE;
-      cur->s = malloc (len + 1);
-      str_copy_rpad (cur->s, len + 1, ds_c_str (&tokstr));
+	return false;
+      cur = &crit->values.str[crit->value_cnt++];
+      *cur = pool_alloc (pool, len + 1);
+      str_copy_rpad (*cur, len + 1, ds_c_str (&tokstr));
       lex_get ();
 
       lex_match (',');
@@ -360,164 +263,93 @@ parse_string_criteria (struct counting *c)
 	break;
     }
 
-  c->crit.s[n].type = CNT_SENTINEL;
-  return 1;
+  return true;
 }
 
 /* Transformation. */
 
-/* Counts the number of values in case C matching counting CNT. */
+/* Counts the number of values in case C matching CRIT. */
 static inline int
-count_numeric (struct counting *cnt, struct ccase *c)
+count_numeric (struct criteria *crit, struct ccase *c)
 {
   int counter = 0;
   size_t i;
 
-  for (i = 0; i < cnt->n; i++)
+  for (i = 0; i < crit->var_cnt; i++)
     {
-      struct cnt_num *num;
-
-      /* Extract the variable value and eliminate missing values. */
-      double cmp = case_num (c, cnt->v[i]->fv);
-      if (cmp == SYSMIS)
-	{
-	  if (cnt->missing >= 1)
-	    counter++;
-	  continue;
-	}
-      if (cnt->missing >= 2 && mv_is_num_user_missing (&cnt->v[i]->miss, cmp))
-	{
-	  counter++;
-	  continue;
-	}
-
-      /* Try to find the value in the list. */
-      for (num = cnt->crit.n;; num++)
-	switch (num->type)
-	  {
-	  case CNT_ERROR:
-	    assert (0);
-	    break;
-	  case CNT_SINGLE:
-	    if (cmp != num->a)
-	      break;
-	    counter++;
-	    goto done;
-	  case CNT_HIGH:
-	    if (cmp < num->a)
-	      break;
-	    counter++;
-	    goto done;
-	  case CNT_LOW:
-	    if (cmp > num->a)
-	      break;
-	    counter++;
-	    goto done;
-	  case CNT_RANGE:
-	    if (cmp < num->a || cmp > num->b)
-	      break;
-	    counter++;
-	    goto done;
-	  case CNT_ANY:
-	    counter++;
-	    goto done;
-	  case CNT_SENTINEL:
-	    goto done;
-	  default:
-	    assert (0);
-	  }
-    done: ;
+      double x = case_num (c, crit->vars[i]->fv);
+      if (x == SYSMIS)
+        counter += crit->count_system_missing;
+      else if (crit->count_user_missing
+               && mv_is_num_user_missing (&crit->vars[i]->miss, x))
+        counter++;
+      else 
+        {
+          struct num_value *v;
+          
+          for (v = crit->values.num; v < crit->values.num + crit->value_cnt;
+               v++) 
+            if (v->type == CNT_SINGLE ? x == v->a : x >= v->a && x <= v->b) 
+              {
+                counter++;
+                break;
+              } 
+        }
     }
+  
   return counter;
 }
 
-/* Counts the number of values in case C matching counting CNT. */
+/* Counts the number of values in case C matching CRIT. */
 static inline int
-count_string (struct counting *cnt, struct ccase *c)
+count_string (struct criteria *crit, struct ccase *c)
 {
   int counter = 0;
   size_t i;
 
-  for (i = 0; i < cnt->n; i++)
+  for (i = 0; i < crit->var_cnt; i++)
     {
-      struct cnt_str *str;
-
-      /* Extract the variable value, variable width. */
-      for (str = cnt->crit.s;; str++)
-	switch (str->type)
-	  {
-	  case CNT_ERROR:
-	    assert (0);
-	  case CNT_SINGLE:
-	    if (memcmp (case_str (c, cnt->v[i]->fv), str->s,
-                        cnt->v[i]->width))
-	      break;
+      char **v;
+      for (v = crit->values.str; v < crit->values.str + crit->value_cnt; v++)
+        if (!memcmp (case_str (c, crit->vars[i]->fv), *v,
+                     crit->vars[i]->width))
+          {
 	    counter++;
-	    goto done;
-	  case CNT_SENTINEL:
-	    goto done;
-	  default:
-	    assert (0);
-	  }
-    done: ;
+            break;
+          }
     }
+
   return counter;
 }
 
 /* Performs the COUNT transformation T on case C. */
 static int
-count_trns_proc (struct trns_header *trns, struct ccase *c,
+count_trns_proc (struct trns_header *trns_, struct ccase *c,
                  int case_num UNUSED)
 {
-  struct cnt_var_info *info;
-  struct counting *cnt;
-  int counter;
+  struct count_trns *trns = (struct count_trns *) trns_;
+  struct dst_var *dv;
 
-  for (info = ((struct count_trns *) trns)->specs; info; info = info->next)
+  for (dv = trns->dst_vars; dv; dv = dv->next)
     {
+      struct criteria *crit;
+      int counter;
+
       counter = 0;
-      for (cnt = info->c; cnt; cnt = cnt->next)
-	if (cnt->v[0]->type == NUMERIC)
-	  counter += count_numeric (cnt, c);
+      for (crit = dv->crit; crit; crit = crit->next)
+	if (crit->vars[0]->type == NUMERIC)
+	  counter += count_numeric (crit, c);
 	else
-	  counter += count_string (cnt, c);
-      case_data_rw (c, info->d->fv)->f = counter;
+	  counter += count_string (crit, c);
+      case_data_rw (c, dv->var->fv)->f = counter;
     }
   return -1;
 }
 
-/* Destroys all dynamic data structures associated with T. */
+/* Destroys all dynamic data structures associated with TRNS. */
 static void
-count_trns_free (struct trns_header *t)
+count_trns_free (struct trns_header *trns_)
 {
-  struct cnt_var_info *iter, *next;
-
-  for (iter = ((struct count_trns *) t)->specs; iter; iter = next)
-    {
-      struct counting *i, *n;
-
-      for (i = iter->c; i; i = n)
-	{
-	  if (i->n && i->v)
-	    {
-	      if (i->v[0]->type == NUMERIC)
-		free (i->crit.n);
-	      else
-		{
-		  struct cnt_str *s;
-
-		  for (s = i->crit.s; s->type != CNT_SENTINEL; s++)
-		    free (s->s);
-		  free (i->crit.s);
-		}
-	    }
-	  free (i->v);
-
-	  n = i->next;
-	  free (i);
-	}
-
-      next = iter->next;
-      free (iter);
-    }
+  struct count_trns *trns = (struct count_trns *) trns_;
+  pool_destroy (trns->pool);
 }

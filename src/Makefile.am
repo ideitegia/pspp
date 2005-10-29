@@ -49,18 +49,18 @@ command.h compute.c copyleft.c copyleft.h count.c data-in.c data-in.h	\
 data-list.c data-list.h data-out.c date.c debug-print.h descript.c	\
 devind.c devind.h dfm-read.c dfm-read.h dfm-write.c dfm-write.h		\
 dictionary.c dictionary.h do-if.c do-ifP.h echo.c error.c error.h	\
-factor_stats.c factor_stats.h file-handle-def.c file-handle-def.h       \
-file-handle.h file-type.c filename.c filename.h flip.c font.h format.c  \
-format-prs.c format.def format.h formats.c get.c	\
-getl.c getl.h glob.c glob.h groff-font.c group.c group.h group_proc.h	\
-hash.c hash.h histogram.c histogram.h html.c htmlP.h include.c		\
-inpt-pgm.c lexer.c lexer.h lex-def.h lex-def.c levene.c levene.h linked-list.c \
+factor_stats.c factor_stats.h file-handle-def.c file-handle-def.h	\
+file-handle.h file-type.c filename.c filename.h flip.c font.h format.c	\
+format-prs.c format.def format.h formats.c get.c getl.c getl.h glob.c	\
+glob.h groff-font.c group.c group.h group_proc.h hash.c hash.h		\
+histogram.c histogram.h html.c htmlP.h include.c inpt-pgm.c lexer.c	\
+lexer.h lex-def.h lex-def.c levene.c levene.h linked-list.c		\
 linked-list.h log.h loop.c magic.c magic.h main.c main.h matrix-data.c	\
 mis-val.c misc.c misc.h missing-values.c missing-values.h		\
 modify-vars.c moments.c moments.h numeric.c output.c output.h		\
 percentiles.c percentiles.h permissions.c pfm-read.c pfm-read.h		\
-pfm-write.c pfm-write.h pool.c pool.h postscript.c print.c recode.c	\
-rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h		\
+pfm-write.c pfm-write.h pool.c pool.h postscript.c print.c range-prs.c	\
+recode.c rename-vars.c repeat.c repeat.h sample.c sel-if.c settings.h	\
 sfm-read.c sfm-read.h sfm-write.c sfm-write.h sfmP.h som.c som.h	\
 sort.c sort.h sort-prs.c sort-prs.h split-file.c str.c str.h		\
 subclist.c subclist.h sysfile-info.c tab.c tab.h temporary.c mkfile.c	\

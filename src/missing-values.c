@@ -107,11 +107,13 @@ mv_add_num (struct missing_values *mv, double d)
 
 /* Attempts to add range [LOW, HIGH] to the set of numeric
    missing values MV.  Returns true if successful, false if MV
-   has no room for a range. */
+   has no room for a range, or if LOW > HIGH. */
 bool
 mv_add_num_range (struct missing_values *mv, double low, double high) 
 {
   assert (mv->width == 0);
+  if (low > high)
+    return false;
   switch (mv->type) 
     {
     case MV_NONE:

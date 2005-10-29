@@ -19,10 +19,11 @@
 
 #include <config.h>
 #include "pool.h"
-#include "command.h"
-#include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "command.h"
+#include "error.h"
+#include "size_max.h"
 #include "str.h"
 
 /* Fast, low-overhead memory block suballocator. */
@@ -347,7 +348,7 @@ pool_strdup (struct pool *pool, const char *string)
 /* Allocates AMT bytes using malloc(), to be managed by POOL, and
    returns a pointer to the beginning of the block.
    If POOL is a null pointer, then allocates a normal memory block
-   with malloc().  */
+   with xmalloc().  */
 void *
 pool_malloc (struct pool *pool, size_t amt)
 {
@@ -437,6 +438,100 @@ pool_nrealloc (struct pool *pool, void *p, size_t n, size_t s)
 {
   if (xalloc_oversized (n, s))
     xalloc_die ();
+  return pool_realloc (pool, p, n * s);
+}
+
+/* If P is null, allocate a block of at least *PN such objects;
+   otherwise, reallocate P so that it contains more than *PN
+   objects each of S bytes.  *PN must be nonzero unless P is
+   null, and S must be nonzero.  Set *PN to the new number of
+   objects, and return the pointer to the new block.  *PN is
+   never set to zero, and the returned pointer is never null.
+
+   The block returned is managed by POOL.  If POOL is a null
+   pointer, then the block is reallocated in the usual way with
+   x2nrealloc().
+
+   Terminates the program if the memory cannot be obtained,
+   including the case where the memory required overflows the
+   range of size_t.
+
+   Repeated reallocations are guaranteed to make progress, either by
+   allocating an initial block with a nonzero size, or by allocating a
+   larger block.
+
+   In the following implementation, nonzero sizes are doubled so that
+   repeated reallocations have O(N log N) overall cost rather than
+   O(N**2) cost, but the specification for this function does not
+   guarantee that sizes are doubled.
+
+   Here is an example of use:
+
+     int *p = NULL;
+     struct pool *pool;
+     size_t used = 0;
+     size_t allocated = 0;
+
+     void
+     append_int (int value)
+       {
+	 if (used == allocated)
+	   p = pool_2nrealloc (pool, p, &allocated, sizeof *p);
+	 p[used++] = value;
+       }
+
+   This causes x2nrealloc to allocate a block of some nonzero size the
+   first time it is called.
+
+   To have finer-grained control over the initial size, set *PN to a
+   nonzero value before calling this function with P == NULL.  For
+   example:
+
+     int *p = NULL;
+     struct pool *pool;
+     size_t used = 0;
+     size_t allocated = 0;
+     size_t allocated1 = 1000;
+
+     void
+     append_int (int value)
+       {
+	 if (used == allocated)
+	   {
+	     p = pool_2nrealloc (pool, p, &allocated1, sizeof *p);
+	     allocated = allocated1;
+	   }
+	 p[used++] = value;
+       }
+
+   This function implementation is from gnulib. */
+void *
+pool_2nrealloc (struct pool *pool, void *p, size_t *pn, size_t s)
+{
+  size_t n = *pn;
+
+  if (p == NULL)
+    {
+      if (n == 0)
+	{
+	  /* The approximate size to use for initial small allocation
+	     requests, when the invoking code specifies an old size of
+	     zero.  64 bytes is the largest "small" request for the
+	     GNU C library malloc.  */
+	  enum { DEFAULT_MXFAST = 64 };
+
+	  n = DEFAULT_MXFAST / s;
+	  n += !n;
+	}
+    }
+  else
+    {
+      if (SIZE_MAX / 2 / s < n)
+	xalloc_die ();
+      n *= 2;
+    }
+
+  *pn = n;
   return pool_realloc (pool, p, n * s);
 }
 

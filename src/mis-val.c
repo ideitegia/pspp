@@ -25,6 +25,7 @@
 #include "error.h"
 #include "lexer.h"
 #include "magic.h"
+#include "range-prs.h"
 #include "str.h"
 #include "var.h"
 
@@ -32,8 +33,6 @@
 #define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
-
-static bool parse_number (double *, const struct fmt_spec *);
 
 int
 cmd_missing_values (void)
@@ -80,40 +79,17 @@ cmd_missing_values (void)
               mv_init (&mv, 0);
               while (!lex_match (')'))
                 {
-                  double x;
+                  double x, y;
+                  bool ok;
 
-                  if (lex_match_id ("LO") || lex_match_id ("LOWEST"))
-                    x = LOWEST;
-                  else if (!parse_number (&x, &v[0]->print))
+                  if (!parse_num_range (&x, &y, &v[0]->print))
                     goto done;
-
-                  if (lex_match_id ("THRU")) 
-                    {
-                      double y;
-                      
-                      if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
-                        y = HIGHEST;
-                      else if (!parse_number (&y, &v[0]->print))
-                        goto done;
-
-                      if (x == LOWEST && y == HIGHEST)
-                        {
-                          msg (SE, _("LO THRU HI is an invalid range."));
-                          deferred_errors = true;
-                        }
-                      else if (!mv_add_num_range (&mv, x, y))
-                        deferred_errors = true;
-                    }
-                  else
-                    {
-                      if (x == LOWEST) 
-                        {
-                          msg (SE, _("LO or LOWEST must be part of a range."));
-                          deferred_errors = true;
-                        }
-                      else if (!mv_add_num (&mv, x))
-                        deferred_errors = true;
-                    }
+                  
+                  ok = (x == y
+                        ? mv_add_num (&mv, x)
+                        : mv_add_num_range (&mv, x, y));
+                  if (!ok)
+                    deferred_errors = true;
 
                   lex_match (',');
                 }
@@ -175,37 +151,5 @@ cmd_missing_values (void)
   if (deferred_errors)
     retval = CMD_PART_SUCCESS_MAYBE;
   return retval;
-}
-
-static bool
-parse_number (double *x, const struct fmt_spec *f)
-{
-  if (lex_is_number ()) 
-    {
-      *x = lex_number ();
-      lex_get ();
-      return true;
-    }
-  else if (token == T_STRING) 
-    {
-      struct data_in di;
-      union value v;
-      di.s = ds_data (&tokstr);
-      di.e = ds_end (&tokstr);
-      di.v = &v;
-      di.flags = 0;
-      di.f1 = 1;
-      di.f2 = ds_length (&tokstr);
-      di.format = *f;
-      data_in (&di);
-      lex_get ();
-      *x = v.f;
-      return true;
-    }
-  else 
-    {
-      lex_error (_("expecting number or data string"));
-      return false; 
-    }
 }
 

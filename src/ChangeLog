@@ -1,3 +1,21 @@
+Sat Oct 29 16:25:36 2005  Ben Pfaff  <blp@gnu.org>
+
+	* count.c: Major cleanups.  Rename practically everything.
+	Rewrite much of the code.  Use pools for memory management.  Use
+	the new parse_num_range().
+
+	* mis-val.c: (cmd_missing_values) Use the new parse_num_range().
+	(parse_number) Removed.
+
+	* missing-values.c: (mv_add_num_range) Don't add out-of-order
+	ranges, e.g. where low > high.
+
+	* pool.c: (pool_2nrealloc) New function.
+
+	* range-prs.c: New file.
+	(parse_num_range) New function.
+	(parse_number) New function.
+	
 Fri Oct 28 22:47:48 2005  Ben Pfaff  <blp@gnu.org>
 
 	Fix up potential overflows in size calculations by replacing
