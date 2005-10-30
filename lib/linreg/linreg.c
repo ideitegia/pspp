@@ -172,6 +172,9 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   cache->dft = cache->n_obs - 1;
   cache->dfm = cache->n_indeps;
   cache->dfe = cache->dft - cache->dfm;
+  cache->n_coeffs = X->size2 + 1; /* Adjust this later to allow for regression
+				     through the origin.
+				  */
   if (cache->method == PSPP_LINREG_SWEEP)
     {
       gsl_matrix *sw;
