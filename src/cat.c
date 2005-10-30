@@ -354,6 +354,7 @@ design_matrix_create (int n_variables,
 	  tmp = &(dm->vars[col]);
 	  tmp->v = v;
 	  tmp->first_column = col;
+	  tmp->last_column = col;
 	  col++;
 	}
       else if (v->type == ALPHA)
@@ -399,7 +400,7 @@ design_matrix_col_to_var_index (const struct design_matrix *dm, size_t col)
 
 /*
   Return a pointer to the variable whose values
-  are stored in column col.
+  are stored in column col. BUG IN HERE
  */
 struct variable *
 design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
