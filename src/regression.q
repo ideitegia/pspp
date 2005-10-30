@@ -151,7 +151,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   struct tab_table *t;
 
   assert (c != NULL);
-  n_rows = 2;
+  n_rows = c->n_coeffs + 2;
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 1, 0);
@@ -167,7 +167,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
-  coeff = gsl_vector_get (c->param_estimates, 0);
+  coeff = c->coeff[0].estimate;
   tab_float (t, 2, 1, 0, coeff, 10, 2);
   std_err = sqrt (gsl_matrix_get (c->cov, 0, 0));
   tab_float (t, 3, 1, 0, std_err, 10, 2);
@@ -177,40 +177,39 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 5, 1, 0, t_stat, 10, 2);
   pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
   tab_float (t, 6, 1, 0, pval, 10, 2);
-  for (j = 0; j < c->n_indeps; j++)
+  for (j = 1; j <= c->n_indeps; j++)
     {
       i = indep_vars[j];
-      struct variable *v = cmd.v_variables[i];
-      label = var_to_string (v);
-      tab_text (t, 1, j + 2, TAB_CENTER, label);
+      label = var_to_string (c->coeff[j].v);
+      tab_text (t, 1, j + 1, TAB_CENTER, label);
       /*
          Regression coefficients.
        */
-      coeff = gsl_vector_get (c->param_estimates, j + 1);
-      tab_float (t, 2, j + 2, 0, coeff, 10, 2);
+      coeff = c->coeff[j].estimate;
+      tab_float (t, 2, j + 1, 0, coeff, 10, 2);
       /*
          Standard error of the coefficients.
        */
-      std_err = sqrt (gsl_matrix_get (c->cov, j + 1, j + 1));
-      tab_float (t, 3, j + 2, 0, std_err, 10, 2);
+      std_err = sqrt (gsl_matrix_get (c->cov, j, j));
+      tab_float (t, 3, j + 1, 0, std_err, 10, 2);
       /*
          'Standardized' coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
-      beta = gsl_vector_get (c->indep_std, j + 1);
+      beta = gsl_vector_get (c->indep_std, j);
       beta *= coeff / c->depvar_std;
-      tab_float (t, 4, j + 2, 0, beta, 10, 2);
+      tab_float (t, 4, j + 1, 0, beta, 10, 2);
 
       /*
          Test statistic for H0: coefficient is 0.
        */
       t_stat = coeff / std_err;
-      tab_float (t, 5, j + 2, 0, t_stat, 10, 2);
+      tab_float (t, 5, j + 1, 0, t_stat, 10, 2);
       /*
          P values for the test statistic above.
        */
       pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
-      tab_float (t, 6, j + 2, 0, pval, 10, 2);
+      tab_float (t, 6, j + 1, 0, pval, 10, 2);
     }
   tab_title (t, 0, _("Coefficients"));
   tab_submit (t);
@@ -608,6 +607,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
       j = i + 1;		/* The first coeff is the intercept. */
       lcache->coeff[j].v =
 	(const struct variable *) design_matrix_col_to_var (X, i);
+      assert (lcache->coeff[j].v != NULL);
     }
   /* 
      Find the least-squares estimates and other statistics.
