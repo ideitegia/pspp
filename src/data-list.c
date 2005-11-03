@@ -83,8 +83,6 @@ enum
 /* DATA LIST private data structure. */
 struct data_list_pgm
   {
-    struct trns_header h;
-
     struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
     struct dfm_reader *reader;  /* Data file reader. */
 
@@ -270,20 +268,14 @@ cmd_data_list (void)
     goto error;
 
   if (vfm_source != NULL)
-    {
-      dls->h.proc = data_list_trns_proc;
-      dls->h.free = data_list_trns_free;
-      add_transformation (&dls->h);
-    }
+    add_transformation (data_list_trns_proc, data_list_trns_free, dls);
   else 
     vfm_source = create_case_source (&data_list_source_class, dls);
 
   return CMD_SUCCESS;
 
  error:
-  destroy_dls_var_spec (dls->first);
-  free (dls->delims);
-  free (dls);
+  data_list_trns_free (dls);
   return CMD_FAILURE;
 }
 
@@ -1233,22 +1225,22 @@ destroy_dls_var_spec (struct dls_var_spec *spec)
     }
 }
 
-/* Destroys DATA LIST transformation PGM. */
+/* Destroys DATA LIST transformation DLS. */
 static void
-data_list_trns_free (struct trns_header *pgm)
+data_list_trns_free (void *dls_)
 {
-  struct data_list_pgm *dls = (struct data_list_pgm *) pgm;
+  struct data_list_pgm *dls = dls_;
   free (dls->delims);
   destroy_dls_var_spec (dls->first);
   dfm_close_reader (dls->reader);
+  free (dls);
 }
 
-/* Handle DATA LIST transformation T, parsing data into C. */
+/* Handle DATA LIST transformation DLS, parsing data into C. */
 static int
-data_list_trns_proc (struct trns_header *t, struct ccase *c,
-                     int case_num UNUSED)
+data_list_trns_proc (void *dls_, struct ccase *c, int case_num UNUSED)
 {
-  struct data_list_pgm *dls = (struct data_list_pgm *) t;
+  struct data_list_pgm *dls = dls_;
   data_list_read_func *read_func;
   int retval;
 
@@ -1315,7 +1307,6 @@ static void
 data_list_source_destroy (struct case_source *source)
 {
   data_list_trns_free (source->aux);
-  free (source->aux);
 }
 
 const struct case_source_class data_list_source_class = 
@@ -1338,7 +1329,6 @@ struct rpd_num_or_var
 /* REPEATING DATA private data structure. */
 struct repeating_data_trns
   {
-    struct trns_header h;
     struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
     struct dfm_reader *reader;  	/* Input file, never NULL. */
 
@@ -1452,7 +1442,7 @@ cmd_repeating_data (void)
 	      msg (SE, _("%s subcommand given multiple times."),"OCCURS");
 	      goto error;
 	    }
-	  saw_occurs |= 2;
+	  saw_occurs = true;
 
 	  if (!parse_num_or_var (&rpd->occurs, "OCCURS"))
 	    goto error;
@@ -1460,12 +1450,12 @@ cmd_repeating_data (void)
       else if (lex_match_id ("LENGTH"))
 	{
 	  lex_match ('=');
-	  if (saw_length & 4)
+	  if (saw_length)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"LENGTH");
 	      goto error;
 	    }
-	  saw_length |= 4;
+	  saw_length = true;
 
 	  if (!parse_num_or_var (&rpd->length, "LENGTH"))
 	    goto error;
@@ -1473,12 +1463,12 @@ cmd_repeating_data (void)
       else if (lex_match_id ("CONTINUED"))
 	{
 	  lex_match ('=');
-	  if (saw_continued & 8)
+	  if (saw_continued)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"CONTINUED");
 	      goto error;
 	    }
-	  saw_continued |= 8;
+	  saw_continued = true;
 
 	  if (!lex_match ('/'))
 	    {
@@ -1507,12 +1497,12 @@ cmd_repeating_data (void)
       else if (lex_match_id ("ID"))
 	{
 	  lex_match ('=');
-	  if (saw_id & 16)
+	  if (saw_id)
 	    {
 	      msg (SE, _("%s subcommand given multiple times."),"ID");
 	      goto error;
 	    }
-	  saw_id |= 16;
+	  saw_id = true;
 	  
 	  if (!lex_force_int ())
 	    goto error;
@@ -1638,15 +1628,12 @@ cmd_repeating_data (void)
   if (table)
     dump_fixed_table (rpd->first, fh, rpd->last->rec);
 
-  rpd->h.proc = repeating_data_trns_proc;
-  rpd->h.free = repeating_data_trns_free;
-  add_transformation (&rpd->h);
+  add_transformation (repeating_data_trns_proc, repeating_data_trns_free, rpd);
 
   return lex_end_of_command ();
 
  error:
-  destroy_dls_var_spec (rpd->first);
-  free (rpd->id_value);
+  repeating_data_trns_free (rpd);
   return CMD_FAILURE;
 }
 
@@ -1656,14 +1643,15 @@ cmd_repeating_data (void)
 static void 
 find_variable_input_spec (struct variable *v, struct fmt_spec *spec)
 {
-  int i;
+  size_t i;
   
   for (i = 0; i < n_trns; i++)
     {
-      struct data_list_pgm *pgm = (struct data_list_pgm *) t_trns[i];
+      struct transformation *trns = &t_trns[i];
       
-      if (pgm->h.proc == data_list_trns_proc)
+      if (trns->proc == data_list_trns_proc)
 	{
+          struct data_list_pgm *pgm = trns->private;
 	  struct dls_var_spec *iter;
 
 	  for (iter = pgm->first; iter; iter = iter->next)
@@ -1900,10 +1888,9 @@ rpd_parse_record (const struct rpd_parse_info *info)
    DATA structure.  Returns -1 on success, -2 on end of file or
    on failure. */
 int
-repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
-                          int case_num UNUSED)
+repeating_data_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 {
-  struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
+  struct repeating_data_trns *t = trns_;
     
   struct fixed_string line;       /* Current record. */
 
@@ -2055,25 +2042,26 @@ repeating_data_trns_proc (struct trns_header *trns, struct ccase *c,
 
 /* Frees a REPEATING DATA transformation. */
 void
-repeating_data_trns_free (struct trns_header *rpd_) 
+repeating_data_trns_free (void *rpd_) 
 {
-  struct repeating_data_trns *rpd = (struct repeating_data_trns *) rpd_;
+  struct repeating_data_trns *rpd = rpd_;
 
   destroy_dls_var_spec (rpd->first);
   dfm_close_reader (rpd->reader);
   free (rpd->id_value);
+  free (rpd);
 }
 
 /* Lets repeating_data_trns_proc() know how to write the cases
    that it composes.  Not elegant. */
 void
-repeating_data_set_write_case (struct trns_header *trns,
+repeating_data_set_write_case (struct transformation *trns_,
                                write_case_func *write_case,
                                write_case_data wc_data) 
 {
-  struct repeating_data_trns *t = (struct repeating_data_trns *) trns;
+  struct repeating_data_trns *t = trns_->private;
 
-  assert (trns->proc == repeating_data_trns_proc);
+  assert (trns_->proc == repeating_data_trns_proc);
   t->write_case = write_case;
   t->wc_data = wc_data;
 }

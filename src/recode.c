@@ -81,7 +81,6 @@ struct rcd_var
 /* RECODE transformation. */
 struct recode_trns
   {
-    struct trns_header h;
     struct rcd_var *codings;
   };
 
@@ -105,9 +104,9 @@ struct recode_trns
 #define RCD_MISC_MISSING	0100u	/* Encountered MISSING or SYSMIS in
 					   this input spec. */
 
-static int parse_dest_spec (struct rcd_var * rcd, union value *v,
+static int parse_dest_spec (struct rcd_var *rcd, union value *v,
 			    size_t *max_dst_width);
-static int parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width);
+static int parse_src_spec (struct rcd_var *rcd, int type, size_t max_src_width);
 static trns_proc_func recode_trns_proc;
 static trns_free_func recode_trns_free;
 static double convert_to_double (const char *, int);
@@ -425,10 +424,8 @@ cmd_recode (void)
       }
 
   trns = xmalloc (sizeof *trns);
-  trns->h.proc = recode_trns_proc;
-  trns->h.free = recode_trns_free;
   trns->codings = head;
-  add_transformation ((struct trns_header *) trns);
+  add_transformation (recode_trns_proc, recode_trns_free, trns);
 
   return CMD_SUCCESS;
 
@@ -438,13 +435,13 @@ cmd_recode (void)
     struct recode_trns t;
 
     t.codings = head;
-    recode_trns_free ((struct trns_header *) &t);
+    recode_trns_free (&t);
     return CMD_FAILURE;
   }
 }
 
 static int
-parse_dest_spec (struct rcd_var * rcd, union value * v, size_t *max_dst_width)
+parse_dest_spec (struct rcd_var *rcd, union value *v, size_t *max_dst_width)
 {
   int flags;
 
@@ -515,7 +512,7 @@ parse_dest_spec (struct rcd_var * rcd, union value * v, size_t *max_dst_width)
    but with CONVERT as the keyword; 3 for success but with ELSE as the
    keyword. */
 static int
-parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
+parse_src_spec (struct rcd_var *rcd, int type, size_t max_src_width)
 {
   struct coding *c;
 
@@ -649,12 +646,13 @@ parse_src_spec (struct rcd_var * rcd, int type, size_t max_src_width)
 /* Data transformation. */
 
 static void
-recode_trns_free (struct trns_header * t)
+recode_trns_free (void *t_)
 {
+  struct recode_trns *t = t_;
   size_t i;
   struct rcd_var *head, *next;
 
-  head = ((struct recode_trns *) t)->codings;
+  head = t->codings;
   while (head)
     {
       if (head->map && !(head->flags & RCD_MISC_DUPLICATE))
@@ -689,10 +687,11 @@ recode_trns_free (struct trns_header * t)
       free (head);
       head = next;
     }
+  free (t);
 }
 
 static inline struct coding *
-find_src_numeric (struct rcd_var * v, struct ccase * c)
+find_src_numeric (struct rcd_var *v, struct ccase *c)
 {
   double cmp = case_num (c, v->src->fv);
   struct coding *cp;
@@ -743,7 +742,7 @@ find_src_numeric (struct rcd_var * v, struct ccase * c)
 }
 
 static inline struct coding *
-find_src_string (struct rcd_var * v, struct ccase * c)
+find_src_string (struct rcd_var *v, struct ccase *c)
 {
   const char *cmp = case_str (c, v->src->fv);
   int w = v->src->width;
@@ -776,12 +775,13 @@ find_src_string (struct rcd_var * v, struct ccase * c)
 }
 
 static int
-recode_trns_proc (struct trns_header * t, struct ccase * c,
+recode_trns_proc (void *t_, struct ccase *c,
                   int case_idx UNUSED)
 {
+  struct recode_trns *t = t_;
   struct rcd_var *v;
 
-  for (v = ((struct recode_trns *) t)->codings; v; v = v->next)
+  for (v = t->codings; v; v = v->next)
     {
       struct coding *cp;
 

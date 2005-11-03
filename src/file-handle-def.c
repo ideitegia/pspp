@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include "file-handle.h"
+#include "file-handle-def.h"
 #include "error.h"
 #include <errno.h>
 #include <stdlib.h>

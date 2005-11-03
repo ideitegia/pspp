@@ -167,6 +167,27 @@ pool_create (void)
   return pool;
 }
 
+/* Creates a pool, allocates a block STRUCT_SIZE bytes in
+   length from it, stores the pool's address at offset
+   POOL_MEMBER_OFFSET within the block, and returns the allocated
+   block.
+
+   Meant for use indirectly via pool_create_container(). */
+void *
+pool_create_at_offset (size_t struct_size, size_t pool_member_offset) 
+{
+  struct pool *pool;
+  char *struct_;
+
+  assert (struct_size >= sizeof pool);
+  assert (pool_member_offset <= struct_size - sizeof pool);
+
+  pool = pool_create ();
+  struct_ = pool_alloc (pool, struct_size);
+  *(struct pool **) (struct_ + pool_member_offset) = pool;
+  return struct_;
+}
+
 /* Destroy the specified pool, including all subpools. */
 void
 pool_destroy (struct pool *pool)
@@ -576,6 +597,27 @@ pool_create_subpool (struct pool *pool)
   add_gizmo (pool, g);
 
   return subpool;
+}
+
+/* Makes SUBPOOL a subpool of POOL.
+   SUBPOOL must not already have a parent pool.
+   The subpool will be destroyed automatically when POOL is destroyed.
+   It may also be destroyed explicitly in advance. */
+void
+pool_add_subpool (struct pool *pool, struct pool *subpool) 
+{
+  struct pool_gizmo *g;
+
+  assert (pool != NULL);
+  assert (subpool != NULL);
+  assert (subpool->parent == NULL);
+  
+  g = pool_alloc (subpool, sizeof *g);
+  g->type = POOL_GIZMO_SUBPOOL;
+  g->p.subpool = subpool;
+  add_gizmo (pool, g);
+
+  subpool->parent = pool;
 }
 
 /* Opens file FILENAME with mode MODE and returns a handle to it

@@ -80,7 +80,6 @@ enum
 /* PRINT, PRINT EJECT, WRITE private data structure. */
 struct print_trns
   {
-    struct trns_header h;
     struct dfm_writer *writer;	/* Output file, NULL=listing file. */
     int options;		/* PRT_* bitmapped field. */
     struct prt_out_spec *spec;	/* Output specifications. */
@@ -141,8 +140,6 @@ internal_cmd_print (int f)
   struct file_handle *fh = NULL;
 
   /* Fill in prt to facilitate error-handling. */
-  prt.h.proc = print_trns_proc;
-  prt.h.free = print_trns_free;
   prt.writer = NULL;
   prt.options = f;
   prt.spec = NULL;
@@ -209,12 +206,12 @@ internal_cmd_print (int f)
   /* Put the transformation in the queue. */
   trns = xmalloc (sizeof *trns);
   memcpy (trns, &prt, sizeof *trns);
-  add_transformation ((struct trns_header *) trns);
+  add_transformation (print_trns_proc, print_trns_free, trns);
 
   return CMD_SUCCESS;
 
  error:
-  print_trns_free ((struct trns_header *) & prt);
+  print_trns_free (&prt);
   return CMD_FAILURE;
 }
 
@@ -640,7 +637,7 @@ fixed_parse_compatible (void)
 
 /* Destroy a format list and, optionally, all its sublists. */
 static void
-destroy_fmt_list (struct fmt_list * f, int recurse)
+destroy_fmt_list (struct fmt_list *f, int recurse)
 {
   struct fmt_list *next;
 
@@ -657,7 +654,7 @@ destroy_fmt_list (struct fmt_list * f, int recurse)
    FORTRAN-like format specifications, like 4(F10,2X)) into the
    structure prt. */
 static int
-dump_fmt_list (struct fmt_list * f)
+dump_fmt_list (struct fmt_list *f)
 {
   int i;
 
@@ -899,11 +896,10 @@ alloc_line (void)
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
-print_trns_proc (struct trns_header * trns, struct ccase * c,
-                 int case_num UNUSED)
+print_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 {
   /* Transformation. */
-  struct print_trns *t = (struct print_trns *) trns;
+  struct print_trns *t = trns_;
 
   /* Iterator. */
   struct prt_out_spec *i;
@@ -976,9 +972,9 @@ print_trns_proc (struct trns_header * trns, struct ccase * c,
 
 /* Frees all the data inside print_trns T.  Does not free T. */
 static void
-print_trns_free (struct trns_header * t)
+print_trns_free (void *prt_)
 {
-  struct print_trns *prt = (struct print_trns *) t;
+  struct print_trns *prt = prt_;
   struct prt_out_spec *i, *n;
 
   for (i = prt->spec; i; i = n)
@@ -1003,6 +999,7 @@ print_trns_free (struct trns_header * t)
   if (prt->writer != NULL)
     dfm_close_writer (prt->writer);
   free (prt->line);
+  free (prt);
 }
 
 /* PRINT SPACE. */
@@ -1010,8 +1007,6 @@ print_trns_free (struct trns_header * t)
 /* PRINT SPACE transformation. */
 struct print_space_trns
 {
-  struct trns_header h;
-
   struct dfm_writer *writer;    /* Output data file. */
   struct expression *e;		/* Number of lines; NULL=1. */
 }
@@ -1066,23 +1061,18 @@ cmd_print_space (void)
     writer = NULL;
   
   t = xmalloc (sizeof *t);
-  t->h.proc = print_space_trns_proc;
-  if (e)
-    t->h.free = print_space_trns_free;
-  else
-    t->h.free = NULL;
   t->writer = writer;
   t->e = e;
 
-  add_transformation ((struct trns_header *) t);
+  add_transformation (print_space_trns_proc, print_space_trns_free, t);
   return CMD_SUCCESS;
 }
 
 static int
-print_space_trns_proc (struct trns_header * trns, struct ccase * c,
+print_space_trns_proc (void *t_, struct ccase *c,
                        int case_num UNUSED)
 {
-  struct print_space_trns *t = (struct print_space_trns *) trns;
+  struct print_space_trns *t = t_;
   double n = 1.;
 
   if (t->e)
@@ -1118,7 +1108,9 @@ print_space_trns_proc (struct trns_header * trns, struct ccase * c,
 }
 
 static void
-print_space_trns_free (struct trns_header * trns)
+print_space_trns_free (void *trns_)
 {
-  expr_free (((struct print_space_trns *) trns)->e);
+  struct print_space_trns *trns = trns_;
+  expr_free (trns->e);
+  free (trns);
 }

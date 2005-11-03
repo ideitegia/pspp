@@ -383,6 +383,8 @@ parse_write_command (enum writer_type writer_type,
       aw->writer = pfm_open_writer (handle, dict, porfile_opts);
       break;
     }
+
+  dict_destroy (dict);
   
   return aw;
 
@@ -465,7 +467,6 @@ cmd_export (void)
 /* Transformation. */
 struct output_trns 
   {
-    struct trns_header h;       /* Header. */
     struct any_writer *aw;      /* Writer. */
   };
 
@@ -477,8 +478,6 @@ static int
 parse_output_trns (enum writer_type writer_type) 
 {
   struct output_trns *t = xmalloc (sizeof *t);
-  t->h.proc = output_trns_proc;
-  t->h.free = output_trns_free;
   t->aw = parse_write_command (writer_type, XFORM_CMD, NULL);
   if (t->aw == NULL) 
     {
@@ -486,24 +485,24 @@ parse_output_trns (enum writer_type writer_type)
       return CMD_FAILURE;
     }
 
-  add_transformation (&t->h);
+  add_transformation (output_trns_proc, output_trns_free, t);
   return CMD_SUCCESS;
 }
 
 /* Writes case C to the system file specified on XSAVE or XEXPORT. */
 static int
-output_trns_proc (struct trns_header *h, struct ccase *c, int case_num UNUSED)
+output_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 {
-  struct output_trns *t = (struct output_trns *) h;
+  struct output_trns *t = trns_;
   any_writer_write_case (t->aw, c);
   return -1;
 }
 
 /* Frees an XSAVE or XEXPORT transformation. */
 static void
-output_trns_free (struct trns_header *h)
+output_trns_free (void *trns_)
 {
-  struct output_trns *t = (struct output_trns *) h;
+  struct output_trns *t = trns_;
 
   if (t != NULL)
     {

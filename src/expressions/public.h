@@ -33,9 +33,12 @@ enum expr_type
 struct dictionary;
 struct expression;
 struct ccase;
+struct pool;
 union value;
 
 struct expression *expr_parse (struct dictionary *, enum expr_type);
+struct expression *expr_parse_pool (struct pool *,
+                                    struct dictionary *, enum expr_type);
 void expr_free (struct expression *);
 
 double expr_evaluate_num (struct expression *, const struct ccase *,

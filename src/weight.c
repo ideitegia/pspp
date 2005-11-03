@@ -30,14 +30,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* WEIGHT transformation. */
-struct weight_trns
-  {
-    struct trns_header h;
-    int src;			/* `value' index of weighting variable. */
-    int dest;			/* `value' index of $WEIGHT. */
-  };
-
 int
 cmd_weight (void)
 {

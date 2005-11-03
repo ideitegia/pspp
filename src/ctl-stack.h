@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,17 +17,23 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef INCLUDED_DATA_LIST_H
-#define INCLUDED_DATA_LIST_H
+#ifndef CTL_STACK_H
+#define CTL_STACK_H 1
 
-/* FIXME: This header is a kluge and should go away when we come
-   up with a less-klugy solution. */
+#include <stdbool.h>
 
-#include "var.h"
-#include "vfm.h"
+struct ctl_class 
+  {
+    const char *start_name;     /* e.g. LOOP. */
+    const char *end_name;       /* e.g. END LOOP. */
+    void (*close) (void *);     /* Closes the control structure. */
+  };
 
-trns_proc_func repeating_data_trns_proc;
-void repeating_data_set_write_case (struct transformation *,
-                                    write_case_func *, write_case_data);
+void ctl_stack_clear (void);
+void ctl_stack_push (struct ctl_class *, void *private);
+void *ctl_stack_top (struct ctl_class *);
+void *ctl_stack_search (struct ctl_class *);
+void ctl_stack_pop (void *);
+bool ctl_stack_is_empty (void);
 
-#endif /* data-list.h */
+#endif /* ctl_stack.h */

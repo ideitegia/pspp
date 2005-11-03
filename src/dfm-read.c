@@ -26,6 +26,7 @@
 #include "alloc.h"
 #include "command.h"
 #include "error.h"
+#include "file-handle.h"
 #include "file-handle-def.h"
 #include "filename.h"
 #include "getl.h"

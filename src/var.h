@@ -147,7 +147,7 @@ extern struct dictionary *temp_dict;
    gives the point at which data should be written out.  -1 means that
    the data shouldn't be changed since all transformations are
    temporary. */
-extern int temp_trns;
+extern size_t temp_trns;
 
 /* If FILTER is active, whether it was executed before or after
    TEMPORARY. */
@@ -160,29 +160,30 @@ void dump_split_vars (const struct ccase *);
 
 /* Transformations. */
 
-struct trns_header;
-typedef int trns_proc_func (struct trns_header *, struct ccase *, int);
-typedef void trns_free_func (struct trns_header *);
+struct transformation;
+typedef int trns_proc_func (void *, struct ccase *, int);
+typedef void trns_free_func (void *);
 
-/* Header for all transformations. */
-struct trns_header
+/* A transformation. */
+struct transformation
   {
-    int index;                  /* Index into t_trns[]. */
     trns_proc_func *proc;       /* Transformation proc. */
     trns_free_func *free;       /* Garbage collector proc. */
+    void *private;              /* Private data. */
   };
 
 /* Array of transformations */
-extern struct trns_header **t_trns;
+extern struct transformation *t_trns;
 
 /* Number of transformations, maximum number in array currently. */
-extern int n_trns, m_trns;
+extern size_t n_trns, m_trns;
 
 /* Index of first transformation that is really a transformation.  Any
    transformations before this belong to INPUT PROGRAM. */
-extern int f_trns;
+extern size_t f_trns;
 
-void add_transformation (struct trns_header *trns);
+void add_transformation (trns_proc_func *, trns_free_func *, void *);
+size_t next_transformation (void);
 void cancel_transformations (void);
 
 struct var_set;

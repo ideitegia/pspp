@@ -86,6 +86,19 @@ expr_parse (struct dictionary *dict, enum expr_type type)
     }
 }
 
+/* Parses and returns an expression of the given TYPE, as
+   expr_parse(), and sets up so that destroying POOL will free
+   the expression as well. */
+struct expression *
+expr_parse_pool (struct pool *pool,
+                 struct dictionary *dict, enum expr_type type) 
+{
+  struct expression *e = expr_parse (dict, type);
+  if (e != NULL)
+    pool_add_subpool (pool, e->expr_pool);
+  return e;
+}
+
 /* Free expression E. */
 void
 expr_free (struct expression *e)

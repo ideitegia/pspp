@@ -63,7 +63,6 @@ extern void stifle_history ();
 #include "calendar.h"
 #include "command.h"
 #include "dictionary.h"
-#include "do-ifP.h"
 #include "error.h"
 #include "file-handle.h"
 #include "filename.h"
@@ -84,18 +83,14 @@ extern void stifle_history ();
 struct dictionary *default_dict;
 struct expression *process_if_expr;
 
-struct trns_header **t_trns;
-int n_trns;
-int m_trns;
-int f_trns;
+struct transformation *t_trns;
+size_t n_trns, m_trns, f_trns;
 
 short test_mode=0;
 
 int FILTER_before_TEMPORARY;
 
 struct file_handle *default_handle;
-
-struct ctl_stmt *ctl_stack;
 
 /* log.h */
 char *logfn;

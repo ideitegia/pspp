@@ -54,6 +54,9 @@ int
 cmd_file_handle (void)
 {
   char handle_name[LONG_NAME_LEN + 1];
+  enum file_handle_mode mode = MODE_TEXT;
+  size_t length = 1024;
+  size_t tab_width = 4;
 
   struct cmd_file_handle cmd;
   struct file_handle *handle;
@@ -91,12 +94,6 @@ cmd_file_handle (void)
       goto lossage;
     }
 
-
-  enum file_handle_mode mode = MODE_TEXT;
-  size_t length = 1024;
-  size_t tab_width = 4;
-
-
   switch (cmd.mode)
     {
     case FH_CHARACTER:
@@ -131,7 +128,7 @@ cmd_file_handle (void)
   handle = create_file_handle (handle_name, cmd.s_name, 
 			       mode, length, tab_width);
 
-
+  free_file_handle (&cmd);
   return CMD_SUCCESS;
 
  lossage:

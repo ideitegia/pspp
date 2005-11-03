@@ -74,8 +74,7 @@ struct record_type
     int ft, lt;			/* First, last transformation index. */
   };				/* record_type */
 
-/* Represents a FILE TYPE input program.  Does not contain a
-   trns_header because it's never submitted as a transformation. */
+/* Represents a FILE TYPE input program. */
 struct file_type_pgm
   {
     int type;			/* One of the FTY_* constants. */

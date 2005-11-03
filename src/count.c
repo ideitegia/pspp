@@ -80,19 +80,16 @@ struct dst_var
 
 struct count_trns
   {
-    struct trns_header h;
     struct dst_var *dst_vars;
     struct pool *pool;
   };
-
-/* Parser. */
 
 static trns_proc_func count_trns_proc;
 static trns_free_func count_trns_free;
 
 static bool parse_numeric_criteria (struct pool *, struct criteria *);
 static bool parse_string_criteria (struct pool *, struct criteria *);
-
+
 int
 cmd_count (void)
 {
@@ -100,10 +97,7 @@ cmd_count (void)
   struct count_trns *trns;      /* Transformation. */
 
   /* Parses each slash-delimited specification. */
-  trns = xmalloc (sizeof *trns);
-  trns->h.proc = count_trns_proc;
-  trns->h.free = count_trns_free;
-  trns->pool = pool_create ();
+  trns = pool_create_container (struct count_trns, pool);
   trns->dst_vars = dv = pool_alloc (trns->pool, sizeof *dv);
   for (;;)
     {
@@ -182,11 +176,11 @@ cmd_count (void)
           dv->var = dict_create_var_assert (default_dict, dv->name, 0);
       }
 
-  add_transformation (&trns->h);
+  add_transformation (count_trns_proc, count_trns_free, trns);
   return CMD_SUCCESS;
 
 fail:
-  count_trns_free (&trns->h);
+  count_trns_free (trns);
   return CMD_FAILURE;
 }
 
@@ -324,10 +318,10 @@ count_string (struct criteria *crit, struct ccase *c)
 
 /* Performs the COUNT transformation T on case C. */
 static int
-count_trns_proc (struct trns_header *trns_, struct ccase *c,
+count_trns_proc (void *trns_, struct ccase *c,
                  int case_num UNUSED)
 {
-  struct count_trns *trns = (struct count_trns *) trns_;
+  struct count_trns *trns = trns_;
   struct dst_var *dv;
 
   for (dv = trns->dst_vars; dv; dv = dv->next)
@@ -348,7 +342,7 @@ count_trns_proc (struct trns_header *trns_, struct ccase *c,
 
 /* Destroys all dynamic data structures associated with TRNS. */
 static void
-count_trns_free (struct trns_header *trns_)
+count_trns_free (void *trns_)
 {
   struct count_trns *trns = (struct count_trns *) trns_;
   pool_destroy (trns->pool);

@@ -55,8 +55,7 @@ struct arc_spec
 /* AUTORECODE transformation. */
 struct autorecode_trns
   {
-    struct trns_header h;
-    struct pool *owner;		/* Contains AUTORECODE specs. */
+    struct pool *pool;		/* Contains AUTORECODE specs. */
     struct arc_spec *specs;	/* AUTORECODE specifications. */
     size_t spec_cnt;		/* Number of specifications. */
   };
@@ -222,20 +221,15 @@ arc_free (struct autorecode_pgm *arc)
 static void
 recode (const struct autorecode_pgm *arc)
 {
-  struct autorecode_trns *t;
-  struct pool *pool;
+  struct autorecode_trns *trns;
   size_t i;
 
-  pool = pool_create ();
-  t = xmalloc (sizeof *t);
-  t->h.proc = autorecode_trns_proc;
-  t->h.free = autorecode_trns_free;
-  t->owner = pool;
-  t->specs = pool_nalloc (t->owner, arc->var_cnt, sizeof *t->specs);
-  t->spec_cnt = arc->var_cnt;
+  trns = pool_create_container (struct autorecode_trns, pool);
+  trns->specs = pool_nalloc (trns->pool, arc->var_cnt, sizeof *trns->specs);
+  trns->spec_cnt = arc->var_cnt;
   for (i = 0; i < arc->var_cnt; i++)
     {
-      struct arc_spec *spec = &t->specs[i];
+      struct arc_spec *spec = &trns->specs[i];
       void *const *p = hsh_sort (arc->src_values[i]);
       int count = hsh_count (arc->src_values[i]);
       int j;
@@ -252,30 +246,29 @@ recode (const struct autorecode_pgm *arc)
 
       for (j = 0; *p; p++, j++)
 	{
-	  struct arc_item *item = pool_alloc (t->owner, sizeof *item);
+	  struct arc_item *item = pool_alloc (trns->pool, sizeof *item);
           union value *vp = *p;
           
 	  if (arc->src_vars[i]->type == NUMERIC)
             item->from.f = vp->f;
           else
-	    item->from.c = pool_strdup (t->owner, vp->c);
+	    item->from.c = pool_strdup (trns->pool, vp->c);
 	  item->to = arc->direction == ASCENDING ? j + 1 : count - j;
 	  hsh_force_insert (spec->items, item);
 	}
     }
-  add_transformation (&t->h);
+  add_transformation (autorecode_trns_proc, autorecode_trns_free, trns);
 }
 
 static int
-autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
-                      int case_idx UNUSED)
+autorecode_trns_proc (void *trns_, struct ccase *c, int case_idx UNUSED)
 {
-  struct autorecode_trns *t = (struct autorecode_trns *) trns;
+  struct autorecode_trns *trns = trns_;
   size_t i;
 
-  for (i = 0; i < t->spec_cnt; i++)
+  for (i = 0; i < trns->spec_cnt; i++)
     {
-      struct arc_spec *spec = &t->specs[i];
+      struct arc_spec *spec = &trns->specs[i];
       struct arc_item *item;
       union value v;
 
@@ -291,14 +284,14 @@ autorecode_trns_proc (struct trns_header * trns, struct ccase * c,
 }
 
 static void
-autorecode_trns_free (struct trns_header * trns)
+autorecode_trns_free (void *trns_)
 {
-  struct autorecode_trns *t = (struct autorecode_trns *) trns;
+  struct autorecode_trns *trns = trns_;
   size_t i;
 
-  for (i = 0; i < t->spec_cnt; i++)
-    hsh_destroy (t->specs[i].items);
-  pool_destroy (t->owner);
+  for (i = 0; i < trns->spec_cnt; i++)
+    hsh_destroy (trns->specs[i].items);
+  pool_destroy (trns->pool);
 }
 
 /* AUTORECODE procedure. */

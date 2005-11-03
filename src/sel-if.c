@@ -18,6 +18,7 @@
    02110-1301, USA. */
 
 #include <config.h>
+#include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
 #include "dictionary.h"
@@ -33,7 +34,6 @@
 /* SELECT IF transformation. */
 struct select_if_trns
   {
-    struct trns_header h;
     struct expression *e;	/* Test expression. */
   };
 
@@ -59,28 +59,28 @@ cmd_select_if (void)
     }
 
   t = xmalloc (sizeof *t);
-  t->h.proc = select_if_proc;
-  t->h.free = select_if_free;
   t->e = e;
-  add_transformation ((struct trns_header *) t);
+  add_transformation (select_if_proc, select_if_free, t);
 
   return CMD_SUCCESS;
 }
 
 /* Performs the SELECT IF transformation T on case C. */
 static int
-select_if_proc (struct trns_header *t_, struct ccase *c,
+select_if_proc (void *t_, struct ccase *c,
                 int case_num)
 {
-  struct select_if_trns *t = (struct select_if_trns *) t_;
+  struct select_if_trns *t = t_;
   return expr_evaluate_num (t->e, c, case_num) == 1.0 ? -1 : -2;
 }
 
 /* Frees SELECT IF transformation T. */
 static void
-select_if_free (struct trns_header * t)
+select_if_free (void *t_)
 {
-  expr_free (((struct select_if_trns *) t)->e);
+  struct select_if_trns *t = t_;
+  expr_free (t->e);
+  free (t);
 }
 
 /* Parses the FILTER command. */

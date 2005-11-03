@@ -24,7 +24,7 @@
 #include "alloc.h"
 #include "command.h"
 #include "dictionary.h"
-#include "do-ifP.h"
+#include "ctl-stack.h"
 #include "error.h"
 #include "hash.h"
 #include "lexer.h"
@@ -37,14 +37,14 @@
 
 int temporary;
 struct dictionary *temp_dict;
-int temp_trns;
+size_t temp_trns;
 
 /* Parses the TEMPORARY command. */
 int
 cmd_temporary (void)
 {
   /* TEMPORARY is not allowed inside DO IF or LOOP. */
-  if (ctl_stack)
+  if (!ctl_stack_is_empty ())
     {
       msg (SE, _("This command is not valid inside DO IF or LOOP."));
       return CMD_FAILURE;

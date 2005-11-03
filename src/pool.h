@@ -38,6 +38,14 @@ struct pool *pool_create (void);
 void pool_destroy (struct pool *);
 void pool_clear (struct pool *);
 
+/* Creates a pool, allocates an instance of the given STRUCT
+   within it, sets the struct's MEMBER to the pool's address, and
+   returns the allocated structure. */
+#define pool_create_container(STRUCT, MEMBER)                           \
+        ((STRUCT *) pool_create_at_offset (sizeof (STRUCT),             \
+                                           offsetof (STRUCT, MEMBER)))
+void *pool_create_at_offset (size_t struct_size, size_t pool_member_offset);
+
 /* Suballocation routines. */
 void *pool_alloc (struct pool *, size_t) MALLOC_LIKE;
 void *pool_nalloc (struct pool *, size_t n, size_t s) MALLOC_LIKE;
@@ -56,6 +64,7 @@ void pool_free (struct pool *, void *);
 
 /* Gizmo allocations. */
 struct pool *pool_create_subpool (struct pool *);
+void pool_add_subpool (struct pool *, struct pool *subpool);
 FILE *pool_fopen (struct pool *, const char *, const char *);
 int pool_fclose (struct pool *, FILE *);
 

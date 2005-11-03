@@ -68,7 +68,6 @@ struct dsc_z_score
 /* DESCRIPTIVES transformation (for calculating Z-scores). */
 struct dsc_trns
   {
-    struct trns_header h;
     struct dsc_z_score *z_scores; /* Array of Z-scores. */
     int z_score_cnt;            /* Number of Z-scores. */
     struct variable **vars;     /* Variables for listwise missing checks. */
@@ -569,10 +568,10 @@ dump_z_table (struct dsc_proc *dsc)
    (either system or user-missing values that weren't included).
 */
 static int
-descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
+descriptives_trns_proc (void *trns_, struct ccase * c,
                         int case_idx UNUSED)
 {
-  struct dsc_trns *t = (struct dsc_trns *) trns;
+  struct dsc_trns *t = trns_;
   struct dsc_z_score *z;
   struct variable **vars;
   int all_sysmis = 0;
@@ -611,9 +610,9 @@ descriptives_trns_proc (struct trns_header *trns, struct ccase * c,
 
 /* Frees a descriptives_trns struct. */
 static void
-descriptives_trns_free (struct trns_header * trns)
+descriptives_trns_free (void *trns_)
 {
-  struct dsc_trns *t = (struct dsc_trns *) trns;
+  struct dsc_trns *t = trns_;
 
   free (t->z_scores);
   assert((t->missing_type != DSC_LISTWISE) ^ (t->vars != NULL));
@@ -632,8 +631,6 @@ setup_z_trns (struct dsc_proc *dsc)
       cnt++;
 
   t = xmalloc (sizeof *t);
-  t->h.proc = descriptives_trns_proc;
-  t->h.free = descriptives_trns_free;
   t->z_scores = xnmalloc (cnt, sizeof *t->z_scores);
   t->z_score_cnt = cnt;
   t->missing_type = dsc->missing_type;
@@ -650,7 +647,6 @@ setup_z_trns (struct dsc_proc *dsc)
       t->var_cnt = 0;
       t->vars = NULL;
     }
-  
 
   for (cnt = i = 0; i < dsc->var_cnt; i++)
     {
@@ -685,7 +681,7 @@ setup_z_trns (struct dsc_proc *dsc)
 	}
     }
 
-  add_transformation ((struct trns_header *) t);
+  add_transformation (descriptives_trns_proc, descriptives_trns_free, t);
 }
 
 /* Statistical calculation. */

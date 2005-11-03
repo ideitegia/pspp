@@ -180,7 +180,7 @@ input_program_source_read (struct case_source *source,
                            write_case_data wc_data)
 {
   struct input_program_pgm *inp = source->aux;
-  int i;
+  size_t i;
 
   /* Nonzero if there were any END CASE commands in the set of
      transformations.  If so, we don't automatically write out
@@ -197,13 +197,13 @@ input_program_source_read (struct case_source *source,
 
   /* Figure end_case. */
   for (i = 0; i < f_trns; i++)
-    if (t_trns[i]->proc == end_case_trns_proc)
+    if (t_trns[i].proc == end_case_trns_proc)
       end_case = 1;
 
   /* FIXME: This is an ugly kluge. */
   for (i = 0; i < f_trns; i++)
-    if (t_trns[i]->proc == repeating_data_trns_proc)
-      repeating_data_set_write_case (t_trns[i], write_case, wc_data);
+    if (t_trns[i].proc == repeating_data_trns_proc)
+      repeating_data_set_write_case (t_trns[i].private, write_case, wc_data);
 
   init_case (inp, c);
   for (;;)
@@ -213,7 +213,7 @@ input_program_source_read (struct case_source *source,
 	{
           int code;     /* Return value of last-called transformation. */
 
-          if (t_trns[i]->proc == end_case_trns_proc) 
+          if (t_trns[i].proc == end_case_trns_proc) 
             {
               cases_written++;
               if (!write_case (wc_data))
@@ -223,7 +223,7 @@ input_program_source_read (struct case_source *source,
               continue;
             }
 
-	  code = t_trns[i]->proc (t_trns[i], c, cases_written + 1);
+	  code = t_trns[i].proc (t_trns[i].private, c, cases_written + 1);
 	  switch (code)
 	    {
 	    case -1:
@@ -280,8 +280,6 @@ const struct case_source_class input_program_source_class =
 int
 cmd_end_case (void)
 {
-  struct trns_header *t;
-
   if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
       msg (SE, _("This command may only be executed between INPUT PROGRAM "
@@ -289,10 +287,7 @@ cmd_end_case (void)
       return CMD_FAILURE;
     }
 
-  t = xmalloc (sizeof *t);
-  t->proc = end_case_trns_proc;
-  t->free = NULL;
-  add_transformation ((struct trns_header *) t);
+  add_transformation (end_case_trns_proc, NULL, NULL);
 
   return lex_end_of_command ();
 }
@@ -300,7 +295,7 @@ cmd_end_case (void)
 /* Should never be called, because this is handled in
    input_program_source_read(). */
 int
-end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED,
+end_case_trns_proc (void *trns_ UNUSED, struct ccase *c UNUSED,
                     int case_num UNUSED)
 {
   assert (0);
@@ -310,8 +305,6 @@ end_case_trns_proc (struct trns_header *t UNUSED, struct ccase * c UNUSED,
 /* REREAD transformation. */
 struct reread_trns
   {
-    struct trns_header h;
-
     struct dfm_reader *reader;	/* File to move file pointer back on. */
     struct expression *column;	/* Column to reset file pointer to. */
   };
@@ -362,21 +355,18 @@ cmd_reread (void)
     }
 
   t = xmalloc (sizeof *t);
-  t->h.proc = reread_trns_proc;
-  t->h.free = reread_trns_free;
   t->reader = dfm_open_reader (fh);
   t->column = e;
-  add_transformation ((struct trns_header *) t);
+  add_transformation (reread_trns_proc, reread_trns_free, t);
 
   return CMD_SUCCESS;
 }
 
 /* Executes a REREAD transformation. */
 static int
-reread_trns_proc (struct trns_header * pt, struct ccase * c,
-                  int case_num)
+reread_trns_proc (void *t_, struct ccase *c, int case_num)
 {
-  struct reread_trns *t = (struct reread_trns *) pt;
+  struct reread_trns *t = t_;
 
   if (t->column == NULL)
     dfm_reread_record (t->reader, 1);
@@ -397,9 +387,9 @@ reread_trns_proc (struct trns_header * pt, struct ccase * c,
 
 /* Frees a REREAD transformation. */
 static void
-reread_trns_free (struct trns_header *t_)
+reread_trns_free (void *t_)
 {
-  struct reread_trns *t = (struct reread_trns *) t_;
+  struct reread_trns *t = t_;
   expr_free (t->column);
   dfm_close_reader (t->reader);
 }
@@ -408,8 +398,6 @@ reread_trns_free (struct trns_header *t_)
 int
 cmd_end_file (void)
 {
-  struct trns_header *t;
-
   if (!case_source_is_class (vfm_source, &input_program_source_class))
     {
       msg (SE, _("This command may only be executed between INPUT PROGRAM "
@@ -417,17 +405,14 @@ cmd_end_file (void)
       return CMD_FAILURE;
     }
 
-  t = xmalloc (sizeof *t);
-  t->proc = end_file_trns_proc;
-  t->free = NULL;
-  add_transformation ((struct trns_header *) t);
+  add_transformation (end_file_trns_proc, NULL, NULL);
 
   return lex_end_of_command ();
 }
 
 /* Executes an END FILE transformation. */
 static int
-end_file_trns_proc (struct trns_header * t UNUSED, struct ccase * c UNUSED,
+end_file_trns_proc (void *trns_ UNUSED, struct ccase *c UNUSED,
                     int case_num UNUSED)
 {
   return -2;

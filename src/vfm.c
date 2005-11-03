@@ -32,7 +32,7 @@
 #include "casefile.h"
 #include "command.h"
 #include "dictionary.h"
-#include "do-ifP.h"
+#include "ctl-stack.h"
 #include "error.h"
 #include "expressions/public.h"
 #include "misc.h"
@@ -94,7 +94,7 @@ static void create_trns_case (struct ccase *, struct dictionary *);
 static void open_active_file (void);
 static int write_case (struct write_case_data *wc_data);
 static int execute_transformations (struct ccase *c,
-                                    struct trns_header **trns,
+                                    struct transformation *trns,
                                     int first_idx, int last_idx,
                                     int case_num);
 static int filter_case (const struct ccase *c, int case_num);
@@ -233,7 +233,7 @@ open_active_file (void)
     }
 
   /* Close any unclosed DO IF or LOOP constructs. */
-  discard_ctl_stack ();
+  ctl_stack_clear ();
 }
 
 /* Transforms trns_case and writes it to the replacement active
@@ -299,7 +299,7 @@ write_case (struct write_case_data *wc_data)
    transformations, nonzero otherwise. */
 static int
 execute_transformations (struct ccase *c,
-                         struct trns_header **trns,
+                         struct transformation *trns,
                          int first_idx, int last_idx,
                          int case_num) 
 {
@@ -307,7 +307,8 @@ execute_transformations (struct ccase *c,
 
   for (idx = first_idx; idx != last_idx; )
     {
-      int retval = trns[idx]->proc (trns[idx], c, case_num);
+      struct transformation *t = &trns[idx];
+      int retval = t->proc (t->private, c, case_num);
       switch (retval)
         {
         case -1:
@@ -603,15 +604,24 @@ lagged_case (int n_before)
 /* Appends TRNS to t_trns[], the list of all transformations to be
    performed on data as it is read from the active file. */
 void
-add_transformation (struct trns_header * trns)
+add_transformation (trns_proc_func *proc, trns_free_func *free, void *private)
 {
+  struct transformation *trns;
   if (n_trns >= m_trns)
-    {
-      m_trns += 16;
-      t_trns = xnrealloc (t_trns, m_trns, sizeof *t_trns);
-    }
-  t_trns[n_trns] = trns;
-  trns->index = n_trns++;
+    t_trns = x2nrealloc (t_trns, &m_trns, sizeof *t_trns);
+  trns = &t_trns[n_trns++];
+  trns->proc = proc;
+  trns->free = free;
+  trns->private = private;
+}
+
+/* Returns the index number that the next transformation added by
+   add_transformation() will receive.  A trns_proc_func that
+   returns this index causes control flow to jump to it. */
+size_t
+next_transformation (void) 
+{
+  return n_trns;
 }
 
 /* Cancels all active transformations, including any transformations
@@ -619,12 +629,12 @@ add_transformation (struct trns_header * trns)
 void
 cancel_transformations (void)
 {
-  int i;
+  size_t i;
   for (i = 0; i < n_trns; i++)
     {
-      if (t_trns[i]->free)
-	t_trns[i]->free (t_trns[i]);
-      free (t_trns[i]);
+      struct transformation *t = &t_trns[i];
+      if (t->free != NULL)
+	t->free (t->private);
     }
   n_trns = f_trns = 0;
   free (t_trns);
@@ -928,7 +938,7 @@ discard_variables (void)
 
   cancel_transformations ();
 
-  ctl_stack = NULL;
+  ctl_stack_clear ();
 
   expr_free (process_if_expr);
   process_if_expr = NULL;

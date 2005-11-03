@@ -1,3 +1,89 @@
+Wed Nov  2 21:24:48 2005  Ben Pfaff  <blp@gnu.org>
+
+	* file-handle-def.c: Needed another #include, to avoid missing
+	prototype warning.
+
+	* file-handle.q: (cmd_file_handle) Declarations must precede
+	statements.  Free parse data on success as well as on failure, to
+	avoid memory leak.
+
+	* get.c: (parse_write_command) Destroy dict on success, to avoid
+	memory leak.
+	
+	* data-list.c: (cmd_repeating_data) Fix usage of saw_occurs,
+	saw_length, saw_continued, saw_id, which were boolean but
+	incorrectly treated as bitmaps as result of a previous
+	half-finished cleanup.
+
+	* weight.c: (struct weight_trns) Unused, so removed.
+
+	* Makefile.am: Add range-prs.h to sources.
+
+Wed Nov  2 21:24:15 2005  Ben Pfaff  <blp@gnu.org>
+
+	DO IF, LOOP cleanup.
+
+	* Makefile.am: Add ctl-stack.c, ctl-stack.h to source files.
+	Reformat source file list to list one file per file, so that
+	patches for future changes will be easier to read.
+
+	* ctl-stack.c, ctl-stack.h: New files.
+
+	* do-if.c: Rewrote whole file.
+
+	* do-ifP.h: Removed.
+
+	* loop.c: Rewrote whole file.
+
+	* glob.c: (global var ctl_stack) Move into ctl-stack.c.
+
+	* temporary.c: (cmd_temporary) Use ctl_stack_is_empty().
+
+	* vfm.c: (open_active_file) Use ctl_stack_clear().
+
+Wed Nov  2 21:18:13 2005  Ben Pfaff  <blp@gnu.org>
+
+	New pool functions.
+	
+	* pool.c: (pool_create_at_offset) New function.
+	(pool_add_subpool) New function.
+
+	* pool.h: (pool_create_container) New macro.
+	
+	* expressions/parse.c: (expr_parse_pool) New function.
+	
+	* autorecode.c: (recode) Use pool_create_container().
+
+	* count.c: (cmd_count) Ditto.
+
+Wed Nov  2 19:59:32 2005  Ben Pfaff  <blp@gnu.org>
+
+	Clean up transformations, by getting rid of `struct trns_header',
+	replacing it by `struct transformation' that has a void *
+	`private' member.  Updated all uses of transformations to match,
+	which was a lot of code.  Only major related changes listed below.
+
+	* compute.c: (cmd_if) Use get_proc_func().
+	(cmd_compute) Use get_proc_func().
+	(get_proc_func) New function.
+
+	* glob.c: (global var m_trns) Change type to size_t.
+	(global var n_trns) Ditto.
+	(global var f_trns) Ditto.
+	(global var t_trns) Change type to struct transformation *.
+
+	* var.h: (struct trns_header) Removed.
+	(struct transformation) New.
+	(typedef trns_proc_func) Takes a void * instead of a struct
+	trns_header *.
+	(typedef trns_free_func) Ditto.
+
+	* vfm.c: (execute_transformations) Takes an array of
+	transformations instead of trns_headers.
+	(add_transformation) Change prototype from (trns_header *) to
+	(trns_proc_func *, trns_free_func *, void *).
+	(next_transformation) New function.
+
 Sat Oct 29 16:25:36 2005  Ben Pfaff  <blp@gnu.org>
 
 	* count.c: Major cleanups.  Rename practically everything.
