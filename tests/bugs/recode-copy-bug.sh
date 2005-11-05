@@ -59,23 +59,23 @@ cd $TEMPDIR
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="run program"
+activity="run program 1"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-1.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="compare output"
+activity="compare output 1"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
 diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-1.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 
-activity="run program"
+activity="run program 2"
 $SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-2.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="compare output"
+activity="compare output 2"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
 diff -b -w $TEMPDIR/pspp.list $top_srcdir/tests/bugs/recode-copy-bug-2.out
 if [ $? -ne 0 ] ; then fail ; fi

@@ -1,3 +1,7 @@
+Fri Nov  4 19:30:34 2005  Ben Pfaff  <blp@gnu.org>
+
+	* command/recode-bug.sh: Improve failure reports.
+
 Wed Nov  2 21:54:11 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/loop.sh: Update expected error messages.
