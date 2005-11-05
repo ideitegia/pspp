@@ -25,10 +25,13 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "data-in.h"
 #include "dictionary.h"
 #include "error.h"
 #include "lexer.h"
 #include "magic.h"
+#include "pool.h"
+#include "range-prs.h"
 #include "str.h"
 #include "var.h"
 
@@ -38,78 +41,83 @@
 /* Definitions. */
 
 /* Type of source value for RECODE. */
-enum
+enum map_in_type
   {
-    RCD_END,			/* sentinel value */
-    RCD_USER,			/* user-missing => one */
-    RCD_SINGLE,			/* one => one */
-    RCD_HIGH,			/* x > a => one */
-    RCD_LOW,			/* x < b => one */
-    RCD_RANGE,			/* b < x < a => one */
-    RCD_ELSE,			/* any but SYSMIS => one */
-    RCD_CONVERT			/* "123" => 123 */
+    MAP_SINGLE,			/* Specific value. */
+    MAP_RANGE,			/* Range of values. */
+    MAP_SYSMIS,                 /* System missing value. */
+    MAP_MISSING,                /* Any missing value. */
+    MAP_ELSE,			/* Any value. */
+    MAP_CONVERT			/* "123" => 123. */
+  };
+
+/* Describes input values to be mapped. */
+struct map_in
+  {
+    enum map_in_type type;      /* One of MAP_*. */
+    union value x, y;           /* Source values. */
+  };
+
+/* Describes the value used as output from a mapping. */
+struct map_out 
+  {
+    bool copy_input;            /* If true, copy input to output. */
+    union value value;          /* If copy_input false, recoded value. */
+    int width;                  /* If copy_input false, output value width. */ 
   };
 
 /* Describes how to recode a single value or range of values into a
    single value.  */
-struct coding
+struct mapping 
   {
-    int type;			/* RCD_* */
-    union value f1, f2;		/* Describe value or range as src.  Long
-				   strings are stored in `c'. */
-    union value t;		/* Describes value as dest. Long strings in `c'. */
-  };
-
-/* Describes how to recode a single variable. */
-struct rcd_var
-  {
-    struct rcd_var *next;
-
-    unsigned flags;		/* RCD_SRC_* | RCD_DEST_* | RCD_MISC_* */
-
-    struct variable *src;	/* Source variable. */
-    struct variable *dest;	/* Destination variable. */
-    char dest_name[LONG_NAME_LEN + 1];		/* Name of dest variable if we're creating it. */
-
-    int has_sysmis;		/* Do we recode for SYSMIS? */
-    union value sysmis;		/* Coding for SYSMIS (if src is numeric). */
-
-    struct coding *map;		/* Coding for other values. */
-    size_t nmap, mmap;		/* Length of map, max capacity of map. */
+    struct map_in in;           /* Input values. */
+    struct map_out out;         /* Output value. */
   };
 
 /* RECODE transformation. */
 struct recode_trns
   {
-    struct rcd_var *codings;
+    struct pool *pool;
+
+    /* Variable types, for convenience. */
+    enum var_type src_type;     /* src_vars[*]->type. */
+    enum var_type dst_type;     /* dst_vars[*]->type. */
+
+    /* Variables. */
+    struct variable **src_vars;	/* Source variables. */
+    struct variable **dst_vars;	/* Destination variables. */
+    char **dst_names;		/* Name of dest variables, if they're new. */
+    size_t var_cnt;             /* Number of variables. */
+
+    /* Mappings. */
+    struct mapping *mappings;   /* Value mappings. */
+    size_t map_cnt;             /* Number of mappings. */
   };
 
-/* What we're recoding from (`src'==`source'). */
-#define RCD_SRC_ERROR		0000u	/* Bad value for src. */
-#define RCD_SRC_NUMERIC		0001u	/* Src is numeric. */
-#define RCD_SRC_STRING		0002u	/* Src is short string. */
-#define RCD_SRC_MASK		0003u	/* AND mask to isolate src bits. */
+static bool parse_src_vars (struct recode_trns *);
+static bool parse_mappings (struct recode_trns *);
+static bool parse_dst_vars (struct recode_trns *);
 
-/* What we're recoding to (`dest'==`destination'). */
-#define RCD_DEST_ERROR		0000u	/* Bad value for dest. */
-#define RCD_DEST_NUMERIC	0004u	/* Dest is numeric. */
-#define RCD_DEST_STRING		0010u	/* Dest is short string. */
-#define RCD_DEST_MASK		0014u	/* AND mask to isolate dest bits. */
+static void add_mapping (struct recode_trns *,
+                         size_t *map_allocated, const struct map_in *);
 
-/* Miscellaneous bits. */
-#define RCD_MISC_CREATE		0020u	/* We create dest var (numeric only) */
-#define RCD_MISC_DUPLICATE	0040u	/* This var_info has the same MAP
-					   value as the previous var_info.
-					   Prevents redundant free()ing. */
-#define RCD_MISC_MISSING	0100u	/* Encountered MISSING or SYSMIS in
-					   this input spec. */
+static bool parse_map_in (struct map_in *, struct pool *,
+                          enum var_type src_type, size_t max_src_width);
+static void set_map_in_generic (struct map_in *, enum map_in_type);
+static void set_map_in_num (struct map_in *, enum map_in_type, double, double);
+static void set_map_in_str (struct map_in *, struct pool *,
+                            const struct string *, size_t width);
 
-static int parse_dest_spec (struct rcd_var *rcd, union value *v,
-			    size_t *max_dst_width);
-static int parse_src_spec (struct rcd_var *rcd, int type, size_t max_src_width);
+static bool parse_map_out (struct pool *, struct map_out *);
+static void set_map_out_num (struct map_out *, double);
+static void set_map_out_str (struct map_out *, struct pool *,
+                             const struct string *);
+
+static void enlarge_dst_widths (struct recode_trns *);
+static void create_dst_vars (struct recode_trns *);
+
 static trns_proc_func recode_trns_proc;
 static trns_free_func recode_trns_free;
-static double convert_to_double (const char *, int);
 
 /* Parser. */
 
@@ -117,906 +125,536 @@ static double convert_to_double (const char *, int);
 int
 cmd_recode (void)
 {
-  size_t i;
-
-  /* Transformation that we're constructing. */
-  struct rcd_var *rcd;
-
-  /* Type of the src variables. */
-  int type;
-
-  /* Length of longest src string. */
-  size_t max_src_width;
-
-  /* Length of longest dest string. */
-  size_t max_dst_width;
-
-  /* For stepping through, constructing the linked list of
-     recodings. */
-  struct rcd_var *iter;
-
-  /* The real transformation, just a wrapper for a list of
-     rcd_var's. */
-  struct recode_trns *trns;
-
-  /* First transformation in the list.  rcd is in this list. */
-  struct rcd_var *head;
-
-  /* Variables in the current part of the recoding. */
-  struct variable **v;
-  size_t nv;
-
-  /* Parses each specification between slashes. */
-  head = rcd = xmalloc (sizeof *rcd);
-  v = NULL;
-  for (;;)
+  do
     {
-      /* Whether we've already encountered a specification for SYSMIS. */
-      int had_sysmis = 0;
+      struct recode_trns *trns
+        = pool_create_container (struct recode_trns, pool);
 
-      /* Initialize this rcd_var to ensure proper cleanup. */
-      rcd->next = NULL;
-      rcd->map = NULL;
-      rcd->nmap = rcd->mmap = 0;
-      rcd->has_sysmis = 0;
-      rcd->sysmis.f = 0;
+      /* Parse source variable names,
+         then input to output mappings,
+         then destintation variable names. */
+      if (!parse_src_vars (trns)
+          || !parse_mappings (trns)
+          || !parse_dst_vars (trns))
+        {
+          recode_trns_free (trns);
+          return CMD_PART_SUCCESS;
+        }
 
-      /* Parse variable names. */
-      if (!parse_variables (default_dict, &v, &nv, PV_SAME_TYPE))
-	goto lossage;
+      /* Ensure that all the output strings are at least as wide
+         as the widest destination variable. */
+      if (trns->dst_type == ALPHA)
+        enlarge_dst_widths (trns);
 
-      /* Ensure all variables are same type; find length of longest
-         source variable. */
-      type = v[0]->type;
-      max_src_width = v[0]->width;
+      /* Create destination variables, if needed.
+         This must be the final step; otherwise we'd have to
+         delete destination variables on failure. */
+      if (trns->src_vars != trns->dst_vars)
+        create_dst_vars (trns);
 
-      if (type == ALPHA)
-	for (i = 0; i < nv; i++)
-	  if (v[i]->width > (int) max_src_width)
-	    max_src_width = v[i]->width;
-
-      /* Set up flags. */
-      rcd->flags = 0;
-      if (type == NUMERIC)
-	rcd->flags |= RCD_SRC_NUMERIC;
-      else
-	rcd->flags |= RCD_SRC_STRING;
-
-      /* Parse each coding in parentheses. */
-      max_dst_width = 0;
-      if (!lex_force_match ('('))
-	goto lossage;
-      for (;;) 
-	{
-	  /* Get the input value (before the `='). */
-	  size_t mark = rcd->nmap;
-	  int code = parse_src_spec (rcd, type, max_src_width);
-	  if (!code)
-	    goto lossage;
-
-	  /* ELSE is the same as any other input spec except that it
-	     precludes later sysmis specifications. */
-	  if (code == 3)
-	    {
-	      had_sysmis = 1;
-	      code = 1;
-	    }
-
-	  /* If keyword CONVERT was specified, there is no output
-	     specification.  */
-	  if (code == 1)
-	    {
-	      union value output;
-
-	      /* Get the output value (after the `='). */
-	      lex_get ();	/* Skip `='. */
-	      if (!parse_dest_spec (rcd, &output, &max_dst_width))
-		goto lossage;
-
-	      /* Set the value for SYSMIS if requested and if we don't
-	         already have one. */
-	      if ((rcd->flags & RCD_MISC_MISSING) && !had_sysmis)
-		{
-		  rcd->has_sysmis = 1;
-		  if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-		    rcd->sysmis.f = output.f;
-		  else
-		    rcd->sysmis.c = xstrdup (output.c);
-		  had_sysmis = 1;
-
-		  rcd->flags &= ~RCD_MISC_MISSING;
-		}
-
-	      /* Since there may be multiple input values for a single
-	         output, the output value need to propagated among all
-	         of them. */
-	      if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-		for (i = mark; i < rcd->nmap; i++)
-		  rcd->map[i].t.f = output.f;
-	      else
-		{
-		  for (i = mark; i < rcd->nmap; i++)
-		    rcd->map[i].t.c = output.c ? xstrdup (output.c) : NULL;
-		  free (output.c);
-		}
-	    }
-	  lex_get ();		/* Skip `)'. */
-	  if (!lex_match ('('))
-	    break;
-	}
-
-      /* Append sentinel value. */
-      rcd->map[rcd->nmap++].type = RCD_END;
-
-      /* Since multiple variables may use the same recodings, it is
-         necessary to propogate the codings to all of them. */
-      rcd->src = v[0];
-      rcd->dest = v[0];
-      rcd->dest_name[0] = 0;
-      iter = rcd;
-      for (i = 1; i < nv; i++)
-	{
-	  iter = iter->next = xmalloc (sizeof *iter);
-	  iter->next = NULL;
-	  iter->flags = rcd->flags | RCD_MISC_DUPLICATE;
-	  iter->src = v[i];
-	  iter->dest = v[i];
-	  iter->dest_name[0] = 0;
-	  iter->has_sysmis = rcd->has_sysmis;
-	  iter->sysmis = rcd->sysmis;
-	  iter->map = rcd->map;
-	}
-
-      if (lex_match_id ("INTO"))
-	{
-	  char **names;
-	  size_t nnames;
-
-	  int success = 0;
-
-	  if (!parse_mixed_vars (&names, &nnames, PV_NONE))
-	    goto lossage;
-
-	  if (nnames != nv)
-	    {
-	      for (i = 0; i < nnames; i++)
-		free (names[i]);
-	      free (names);
-	      msg (SE, _("%u variable(s) cannot be recoded into "
-			 "%u variable(s).  Specify the same number "
-			 "of variables as input and output variables."),
-		   (unsigned) nv, (unsigned) nnames);
-	      goto lossage;
-	    }
-
-	  if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_STRING)
-	    for (i = 0, iter = rcd; i < nv; i++, iter = iter->next)
-	      {
-		struct variable *v = dict_lookup_var (default_dict, names[i]);
-
-		if (!v)
-		  {
-		    msg (SE, _("There is no string variable named "
-                               "%s.  (All string variables specified "
-                               "on INTO must already exist.  Use the "
-                               "STRING command to create a string "
-                               "variable.)"),
-                         names[i]);
-		    goto INTO_fail;
-		  }
-		if (v->type != ALPHA)
-		  {
-		    msg (SE, _("Type mismatch between input and output "
-                               "variables.  Output variable %s is not "
-                               "a string variable, but all the input "
-                               "variables are string variables."),
-                         v->name);
-		    goto INTO_fail;
-		  }
-		if (v->width > (int) max_dst_width)
-		  max_dst_width = v->width;
-		iter->dest = v;
-	      }
-	  else
-	    for (i = 0, iter = rcd; i < nv; i++, iter = iter->next)
-	      {
-		struct variable *v = dict_lookup_var (default_dict, names[i]);
-
-		if (v)
-		  {
-		    if (v->type != NUMERIC)
-		      {
-			msg (SE, _("Type mismatch after INTO: %s "
-				   "is not a numeric variable."), v->name);
-			goto INTO_fail;
-		      }
-		    else
-		      iter->dest = v;
-		  }
-		else
-		  strcpy (iter->dest_name, names[i]);
-	      }
-	  success = 1;
-
-	  /* Note that regardless of whether we succeed or fail,
-	     flow-of-control comes here.  `success' is the important
-	     factor.  Ah, if C had garbage collection...  */
-	INTO_fail:
-	  for (i = 0; i < nnames; i++)
-	    free (names[i]);
-	  free (names);
-	  if (!success)
-	    goto lossage;
-	}
-      else
-	{
-	  if (max_src_width > max_dst_width)
-	    max_dst_width = max_src_width;
-
-	  if ((rcd->flags & RCD_SRC_MASK) == RCD_SRC_NUMERIC
-	      && (rcd->flags & RCD_DEST_MASK) != RCD_DEST_NUMERIC)
-	    {
-	      msg (SE, _("INTO must be used when the input values are "
-			 "numeric and output values are string."));
-	      goto lossage;
-	    }
-	  
-	  if ((rcd->flags & RCD_SRC_MASK) != RCD_SRC_NUMERIC
-	      && (rcd->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-	    {
-	      msg (SE, _("INTO must be used when the input values are "
-			 "string and output values are numeric."));
-	      goto lossage;
-	    }
-	}
-
-      if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_STRING)
-	{
-	  struct coding *cp;
-
-	  for (cp = rcd->map; cp->type != RCD_END; cp++)
-	    if (cp->t.c)
-	      {
-		if (strlen (cp->t.c) < max_dst_width)
-		  {
-		    /* The NULL is only really necessary for the
-		       debugging code. */
-		    char *repl = xmalloc (max_dst_width + 1);
-		    str_copy_rpad (repl, max_dst_width + 1, cp->t.c);
-		    free (cp->t.c);
-		    cp->t.c = repl;
-		  }
-		else
-		  /* The strings are guaranteed to be in order of
-		     nondecreasing length. */
-		  break;
-	      }
-	  
-	}
-
-      free (v);
-      v = NULL;
-
-      if (!lex_match ('/'))
-	break;
-      while (rcd->next)
-	rcd = rcd->next;
-      rcd = rcd->next = xmalloc (sizeof *rcd);
+      /* Done. */
+      add_transformation (recode_trns_proc, recode_trns_free, trns);
     }
-
-  if (token != '.')
-    {
-      lex_error (_("expecting end of command"));
-      goto lossage;
-    }
-
-  for (rcd = head; rcd; rcd = rcd->next)
-    if (rcd->dest_name[0])
-      {
-	rcd->dest = dict_create_var (default_dict, rcd->dest_name, 0);
-	if (!rcd->dest)
-	  {
-	    /* FIXME: This can fail if a destname is duplicated.
-	       We could give an error at parse time but I don't
-	       care enough. */
-	    rcd->dest = dict_lookup_var_assert (default_dict, rcd->dest_name);
-	  }
-      }
-
-  trns = xmalloc (sizeof *trns);
-  trns->codings = head;
-  add_transformation (recode_trns_proc, recode_trns_free, trns);
-
-  return CMD_SUCCESS;
-
- lossage:
-  free (v);
-  {
-    struct recode_trns t;
-
-    t.codings = head;
-    recode_trns_free (&t);
-    return CMD_FAILURE;
-  }
+  while (lex_match ('/'));
+  
+  return lex_end_of_command ();
 }
 
-static int
-parse_dest_spec (struct rcd_var *rcd, union value *v, size_t *max_dst_width)
+/* Parses a set of variables to recode into TRNS->src_vars and
+   TRNS->var_cnt.  Sets TRNS->src_type.  Returns true if
+   successful, false on parse error. */
+static bool
+parse_src_vars (struct recode_trns *trns) 
 {
-  int flags;
+  if (!parse_variables (default_dict, &trns->src_vars, &trns->var_cnt,
+                        PV_SAME_TYPE))
+    return false;
+  pool_register (trns->pool, free, trns->src_vars);
+  trns->src_type = trns->src_vars[0]->type;
+  return true;
+}
 
-  v->c = NULL;
+/* Parses a set of mappings, which take the form (input=output),
+   into TRNS->mappings and TRNS->map_cnt.  Sets TRNS->dst_type.
+   Returns true if successful, false on parse error. */
+static bool
+parse_mappings (struct recode_trns *trns) 
+{
+  size_t max_src_width;
+  size_t map_allocated;
+  bool have_dst_type;
+  size_t i;
+  
+  /* Find length of longest source variable. */
+  max_src_width = trns->src_vars[0]->width;
+  for (i = 1; i < trns->var_cnt; i++) 
+    {
+      size_t var_width = trns->src_vars[i]->width;
+      if (var_width > max_src_width)
+        max_src_width = var_width;
+    }
+      
+  /* Parse the mappings in parentheses. */
+  trns->mappings = NULL;
+  trns->map_cnt = 0;
+  map_allocated = 0;
+  have_dst_type = false;
+  if (!lex_force_match ('('))
+    return false;
+  do
+    {
+      enum var_type dst_type;
 
+      if (!lex_match_id ("CONVERT")) 
+        {
+          struct map_out out;
+          size_t first_map_idx;
+          size_t i;
+
+          first_map_idx = trns->map_cnt;
+
+          /* Parse source specifications. */
+          do
+            {
+              struct map_in in;
+              if (!parse_map_in (&in, trns->pool,
+                                 trns->src_type, max_src_width))
+                return false;
+              add_mapping (trns, &map_allocated, &in);
+              lex_match (',');
+            }
+          while (!lex_match ('='));
+
+          if (!parse_map_out (trns->pool, &out))
+            return false;
+          dst_type = out.width == 0 ? NUMERIC : ALPHA;
+          if (have_dst_type && dst_type != trns->dst_type)
+            {
+              msg (SE, _("Inconsistent target variable types.  "
+                         "Target variables "
+                         "must be all numeric or all string."));
+              return false;
+            }
+              
+          for (i = first_map_idx; i < trns->map_cnt; i++)
+            trns->mappings[i].out = out;
+        }
+      else 
+        {
+          /* Parse CONVERT as a special case. */
+          struct map_in in;
+          set_map_in_generic (&in, MAP_CONVERT);
+          add_mapping (trns, &map_allocated, &in);
+              
+          dst_type = NUMERIC;
+          if (trns->src_type != ALPHA
+              || (have_dst_type && trns->dst_type != NUMERIC)) 
+            {
+              msg (SE, _("CONVERT requires string input values and "
+                         "numeric output values."));
+              return false;
+            }
+        }
+      trns->dst_type = dst_type;
+      have_dst_type = true;
+
+      if (!lex_force_match (')'))
+        return false; 
+    }
+  while (lex_match ('('));
+
+  return true;
+}
+
+/* Parses a mapping input value into IN, allocating memory from
+   POOL.  The source value type must be provided as SRC_TYPE and,
+   if string, the maximum width of a string source variable must
+   be provided in MAX_SRC_WIDTH.  Returns true if successful,
+   false on parse error. */
+static bool
+parse_map_in (struct map_in *in, struct pool *pool,
+              enum var_type src_type, size_t max_src_width)
+{
+  if (lex_match_id ("ELSE"))
+    set_map_in_generic (in, MAP_ELSE);
+  else if (src_type == NUMERIC)
+    {
+      if (lex_match_id ("MISSING"))
+        set_map_in_generic (in, MAP_MISSING);
+      else if (lex_match_id ("SYSMIS"))
+        set_map_in_generic (in, MAP_SYSMIS);
+      else 
+        {
+          double x, y;
+          if (!parse_num_range (&x, &y, NULL))
+            return false;
+          set_map_in_num (in, x == y ? MAP_SINGLE : MAP_RANGE, x, y);
+        }
+    }
+  else
+    {
+      if (!lex_force_string ())
+        return false;
+      set_map_in_str (in, pool, &tokstr, max_src_width);
+      lex_get ();
+    }
+
+  return true;
+}
+
+/* Adds IN to the list of mappings in TRNS.
+   MAP_ALLOCATED is the current number of allocated mappings,
+   which is updated as needed. */
+static void
+add_mapping (struct recode_trns *trns,
+             size_t *map_allocated, const struct map_in *in)
+{
+  struct mapping *m;
+  if (trns->map_cnt >= *map_allocated)
+    trns->mappings = pool_2nrealloc (trns->pool, trns->mappings,
+                                     map_allocated,
+                                     sizeof *trns->mappings);
+  m = &trns->mappings[trns->map_cnt++];
+  m->in = *in;
+}
+
+/* Sets IN as a mapping of the given TYPE. */
+static void
+set_map_in_generic (struct map_in *in, enum map_in_type type) 
+{
+  in->type = type;
+}
+
+/* Sets IN as a numeric mapping of the given TYPE,
+   with X and Y as the two numeric values. */
+static void
+set_map_in_num (struct map_in *in, enum map_in_type type, double x, double y) 
+{
+  in->type = type;
+  in->x.f = x;
+  in->y.f = y;
+}
+
+/* Sets IN as a string mapping, with STRING as the string,
+   allocated from POOL.  The string is padded with spaces on the
+   right to WIDTH characters long. */
+static void
+set_map_in_str (struct map_in *in, struct pool *pool,
+                const struct string *string, size_t width) 
+{
+  in->type = MAP_SINGLE;
+  in->x.c = pool_alloc_unaligned (pool, width);
+  buf_copy_rpad (in->x.c, width, ds_data (string), ds_length (string));
+}
+
+/* Parses a mapping output value into OUT, allocating memory from
+   POOL.  Returns true if successful, false on parse error. */
+static bool
+parse_map_out (struct pool *pool, struct map_out *out)
+{
   if (lex_is_number ())
     {
-      v->f = tokval;
+      set_map_out_num (out, lex_number ());
       lex_get ();
-      flags = RCD_DEST_NUMERIC;
     }
   else if (lex_match_id ("SYSMIS"))
-    {
-      v->f = SYSMIS;
-      flags = RCD_DEST_NUMERIC;
-    }
+    set_map_out_num (out, SYSMIS);
   else if (token == T_STRING)
     {
-      size_t max = *max_dst_width;
-      size_t toklen = ds_length (&tokstr);
-      if (toklen > max)
-	max = toklen;
-      v->c = xmalloc (max + 1);
-      str_copy_rpad (v->c, max + 1, ds_c_str (&tokstr));
-      flags = RCD_DEST_STRING;
-      *max_dst_width = max;
+      set_map_out_str (out, pool, &tokstr);
       lex_get ();
     }
   else if (lex_match_id ("COPY"))
-    {
-      if ((rcd->flags & RCD_SRC_MASK) == RCD_SRC_NUMERIC)
-	{
-	  flags = RCD_DEST_NUMERIC;
-	  v->f = -SYSMIS;
-	}
-      else
-	{
-	  flags = RCD_DEST_STRING;
-	  v->c = NULL;
-	}
-    }
+    out->copy_input = true;
   else 
     {
       lex_error (_("expecting output value"));
-      return 0;
+      return false;
     }
-
-  if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_ERROR)
-    rcd->flags |= flags;
-#if 0
-  else if (((rcd->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC
-	    && flags != RCD_DEST_NUMERIC)
-	   || ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_STRING
-	       && flags != RCD_DEST_STRING))
-#endif
-    else if ((rcd->flags & RCD_DEST_MASK) ^ flags)
-      {
-	msg (SE, _("Inconsistent output types.  The output values "
-		   "must be all numeric or all string."));
-	return 0;
-      }
-
-  return 1;
+  return true; 
 }
 
-/* Reads a set of source specifications and returns one of the
-   following values: 0 on failure; 1 for normal success; 2 for success
-   but with CONVERT as the keyword; 3 for success but with ELSE as the
-   keyword. */
-static int
-parse_src_spec (struct rcd_var *rcd, int type, size_t max_src_width)
+/* Sets OUT as a numeric mapping output with the given VALUE. */
+static void
+set_map_out_num (struct map_out *out, double value) 
 {
-  struct coding *c;
+  out->copy_input = false;
+  out->value.f = value;
+  out->width = 0;
+}
 
-  for (;;)
+/* Sets OUT as a string mapping output with the given VALUE. */
+static void
+set_map_out_str (struct map_out *out, struct pool *pool,
+                 const struct string *value)
+{
+  const char *string = ds_data (value);
+  size_t length = ds_length (value);
+
+  out->copy_input = false;
+  out->value.c = pool_alloc_unaligned (pool, length);
+  memcpy (out->value.c, string, length);
+  out->width = length;
+}
+
+/* Parses a set of target variables into TRNS->dst_vars and
+   TRNS->dst_names. */
+static bool
+parse_dst_vars (struct recode_trns *trns) 
+{
+  size_t i;
+  
+  if (lex_match_id ("INTO"))
     {
-      if (rcd->nmap + 1 >= rcd->mmap)
-	{
-	  rcd->mmap += 16;
-	  rcd->map = xnrealloc (rcd->map, rcd->mmap, sizeof *rcd->map);
-	}
+      size_t name_cnt;
+      size_t i;
 
-      c = &rcd->map[rcd->nmap];
-      c->f1.c = c->f2.c = NULL;
-      if (lex_match_id ("ELSE"))
-	{
-	  c->type = RCD_ELSE;
-	  rcd->nmap++;
-	  return 3;
-	}
-      else if (type == NUMERIC)
-	{
-	  if (token == T_ID)
-	    {
-	      if (lex_match_id ("LO") || lex_match_id ("LOWEST"))
-		{
-		  if (!lex_force_match_id ("THRU"))
-		    return 0;
-		  if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
-		    c->type = RCD_ELSE;
-		  else if (lex_is_number ())
-		    {
-		      c->type = RCD_LOW;
-		      c->f1.f = tokval;
-		      lex_get ();
-		    }
-		  else
-		    {
-		      lex_error (_("following LO THRU"));
-		      return 0;
-		    }
-		}
-	      else if (lex_match_id ("MISSING"))
-		{
-		  c->type = RCD_USER;
-		  rcd->flags |= RCD_MISC_MISSING;
-		}
-	      else if (lex_match_id ("SYSMIS"))
-		{
-		  c->type = RCD_END;
-		  rcd->flags |= RCD_MISC_MISSING;
-		}
-	      else
-		{
-		  lex_error (_("in source value"));
-		  return 0;
-		}
-	    }
-	  else if (lex_is_number ())
-	    {
-	      c->f1.f = tokval;
-	      lex_get ();
-	      if (lex_match_id ("THRU"))
-		{
-		  if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
-		    c->type = RCD_HIGH;
-		  else if (lex_is_number ())
-		    {
-		      c->type = RCD_RANGE;
-		      c->f2.f = tokval;
-		      lex_get ();
-		    }
-		  else
-		    {
-		      lex_error (NULL);
-		      return 0;
-		    }
-		}
-	      else
-		c->type = RCD_SINGLE;
-	    }
-	  else
-	    {
-	      lex_error (_("in source value"));
-	      return 0;
-	    }
-	}
-      else
-	{
-	  assert (type == ALPHA);
-	  if (lex_match_id ("CONVERT"))
-	    {
-	      if ((rcd->flags & RCD_DEST_MASK) == RCD_DEST_ERROR)
-		rcd->flags |= RCD_DEST_NUMERIC;
-	      else if ((rcd->flags & RCD_DEST_MASK) != RCD_DEST_NUMERIC)
-		{
-		  msg (SE, _("Keyword CONVERT may only be used with "
-			     "string input values and numeric output "
-			     "values."));
-		  return 0;
-		}
+      if (!parse_mixed_vars_pool (trns->pool, &trns->dst_names, &name_cnt,
+                                  PV_NONE))
+        return false;
 
-	      c->type = RCD_CONVERT;
-	      rcd->nmap++;
-	      return 2;
-	    }
-	  else
-	    {
-	      /* Only the debugging code needs the NULLs at the ends
-	         of the strings.  However, changing code behavior more
-	         than necessary based on the DEBUGGING `#define' is just
-	         *inviting* bugs. */
-	      c->type = RCD_SINGLE;
-	      if (!lex_force_string ())
-		return 0;
-	      c->f1.c = xmalloc (max_src_width + 1);
-	      str_copy_rpad (c->f1.c, max_src_width + 1, ds_c_str (&tokstr));
-	      lex_get ();
-	    }
-	}
+      if (name_cnt != trns->var_cnt)
+        {
+          msg (SE, _("%u variable(s) cannot be recoded into "
+                     "%u variable(s).  Specify the same number "
+                     "of variables as source and target variables."),
+               (unsigned) trns->var_cnt, (unsigned) name_cnt);
+          return false;
+        }
 
-      if (c->type != RCD_END)
-	rcd->nmap++;
-
-      lex_match (',');
-      if (token == '=')
-	break;
+      trns->dst_vars = pool_nalloc (trns->pool,
+                                    trns->var_cnt, sizeof *trns->dst_vars);
+      for (i = 0; i < trns->var_cnt; i++)
+        {
+          struct variable *v;
+          v = trns->dst_vars[i] = dict_lookup_var (default_dict,
+                                                  trns->dst_names[i]);
+          if (v == NULL && trns->dst_type == ALPHA) 
+            {
+              msg (SE, _("There is no variable named "
+                         "%s.  (All string variables specified "
+                         "on INTO must already exist.  Use the "
+                         "STRING command to create a string "
+                         "variable.)"),
+                   trns->dst_names[i]);
+              return false;
+            }
+        }
     }
-  return 1;
+  else 
+    {
+      trns->dst_vars = trns->src_vars;
+      if (trns->src_type != trns->dst_type)
+        {
+          msg (SE, _("INTO is required with %s input values "
+                     "and %s output values."),
+               var_type_adj (trns->src_type),
+               var_type_adj (trns->dst_type));
+          return false;
+        }
+    }
+
+  for (i = 0; i < trns->var_cnt; i++)
+    {
+      struct variable *v = trns->dst_vars[i];
+      if (v != NULL && v->type != trns->dst_type)
+        {
+          msg (SE, _("Type mismatch.  Cannot store %s data in "
+                     "%s variable %s."),
+               trns->dst_type == ALPHA ? _("string") : _("numeric"),
+               v->type == ALPHA ? _("string") : _("numeric"),
+               v->name);
+          return false;
+        }
+    }
+
+  return true;
+}
+
+/* Ensures that all the output values in TRNS are as wide as the
+   widest destination variable. */
+static void
+enlarge_dst_widths (struct recode_trns *trns) 
+{
+  size_t max_dst_width;
+  size_t i;
+
+  max_dst_width = 0;
+  for (i = 0; i < trns->var_cnt; i++)
+    {
+      struct variable *v = trns->dst_vars[i];
+      if (v->width > max_dst_width)
+        max_dst_width = v->width;
+    }
+
+  for (i = 0; i < trns->map_cnt; i++)
+    {
+      struct map_out *out = &trns->mappings[i].out;
+      if (!out->copy_input && out->width < max_dst_width) 
+        {
+          char *s = pool_alloc_unaligned (trns->pool, max_dst_width + 1);
+          str_copy_rpad (s, max_dst_width + 1, out->value.c);
+          out->value.c = s;
+        }
+    }
+}
+
+/* Creates destination variables that don't already exist. */
+static void
+create_dst_vars (struct recode_trns *trns)
+{
+  size_t i;
+
+  for (i = 0; i < trns->var_cnt; i++) 
+    {
+      struct variable **var = &trns->dst_vars[i];
+      const char *name = trns->dst_names[i];
+          
+      *var = dict_lookup_var (default_dict, name);
+      if (*var == NULL)
+        *var = dict_create_var_assert (default_dict, name, 0);
+      assert ((*var)->type == trns->dst_type);
+    }
 }
 
 /* Data transformation. */
 
-static void
-recode_trns_free (void *t_)
+/* Returns the output mapping in TRNS for an input of VALUE on
+   variable V, or a null pointer if there is no mapping. */
+static const struct map_out *
+find_src_numeric (struct recode_trns *trns, double value, struct variable *v)
 {
-  struct recode_trns *t = t_;
-  size_t i;
-  struct rcd_var *head, *next;
+  struct mapping *m;
 
-  head = t->codings;
-  while (head)
+  for (m = trns->mappings; m < trns->mappings + trns->map_cnt; m++)
     {
-      if (head->map && !(head->flags & RCD_MISC_DUPLICATE))
-	{
-	  if (head->flags & RCD_SRC_STRING)
-	    for (i = 0; i < head->nmap; i++)
-	      switch (head->map[i].type)
-		{
-		case RCD_RANGE:
-		  free (head->map[i].f2.c);
-		  /* fall through */
-		case RCD_USER:
-		case RCD_SINGLE:
-		case RCD_HIGH:
-		case RCD_LOW:
-		  free (head->map[i].f1.c);
-		  break;
-		case RCD_END:
-		case RCD_ELSE:
-		case RCD_CONVERT:
-		  break;
-		default:
-		  assert (0);
-		}
-	  if (head->flags & RCD_DEST_STRING)
-	    for (i = 0; i < head->nmap; i++)
-	      if (head->map[i].type != RCD_CONVERT && head->map[i].type != RCD_END)
-		free (head->map[i].t.c);
-	  free (head->map);
-	}
-      next = head->next;
-      free (head);
-      head = next;
-    }
-  free (t);
-}
-
-static inline struct coding *
-find_src_numeric (struct rcd_var *v, struct ccase *c)
-{
-  double cmp = case_num (c, v->src->fv);
-  struct coding *cp;
-
-  if (cmp == SYSMIS)
-    {
-      if (v->sysmis.f != -SYSMIS)
-	{
-	  if ((v->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-            case_data_rw (c, v->dest->fv)->f = v->sysmis.f;
-	  else
-	    memcpy (case_data_rw (c, v->dest->fv)->s, v->sysmis.s,
-		    v->dest->width);
-	}
-      return NULL;
-    }
-
-  for (cp = v->map;; cp++)
-    switch (cp->type)
-      {
-      case RCD_END:
-	return NULL;
-      case RCD_USER:
-	if (mv_is_num_user_missing (&v->src->miss, cmp))
-	  return cp;
-	break;
-      case RCD_SINGLE:
-	if (cmp == cp->f1.f)
-	  return cp;
-	break;
-      case RCD_HIGH:
-	if (cmp >= cp->f1.f)
-	  return cp;
-	break;
-      case RCD_LOW:
-	if (cmp <= cp->f1.f)
-	  return cp;
-	break;
-      case RCD_RANGE:
-	if (cmp >= cp->f1.f && cmp <= cp->f2.f)
-	  return cp;
-	break;
-      case RCD_ELSE:
-	return cp;
-      default:
-	assert (0);
-      }
-}
-
-static inline struct coding *
-find_src_string (struct rcd_var *v, struct ccase *c)
-{
-  const char *cmp = case_str (c, v->src->fv);
-  int w = v->src->width;
-  struct coding *cp;
-
-  for (cp = v->map;; cp++)
-    switch (cp->type)
-      {
-      case RCD_END:
-	return NULL;
-      case RCD_SINGLE:
-	if (!memcmp (cp->f1.c, cmp, w))
-	  return cp;
-	break;
-      case RCD_ELSE:
-	return cp;
-      case RCD_CONVERT:
-	{
-	  double f = convert_to_double (cmp, w);
-	  if (f != -SYSMIS)
-	    {
-              case_data_rw (c, v->dest->fv)->f = f;
-	      return NULL;
-	    }
-	  break;
-	}
-      default:
-	assert (0);
-      }
-}
-
-static int
-recode_trns_proc (void *t_, struct ccase *c,
-                  int case_idx UNUSED)
-{
-  struct recode_trns *t = t_;
-  struct rcd_var *v;
-
-  for (v = t->codings; v; v = v->next)
-    {
-      struct coding *cp;
-
-      switch (v->flags & RCD_SRC_MASK)
-	{
-	case RCD_SRC_NUMERIC:
-	  cp = find_src_numeric (v, c);
-	  break;
-	case RCD_SRC_STRING:
-	  cp = find_src_string (v, c);
-	  break;
+      const struct map_in *in = &m->in;
+      const struct map_out *out = &m->out;
+      bool match;
+      
+      switch (in->type)
+        {
+        case MAP_SINGLE:
+          match = value == in->x.f;
+          break;
+        case MAP_MISSING:
+          match = mv_is_num_user_missing (&v->miss, value);
+          break;
+        case MAP_RANGE:
+          match = value >= in->x.f && value <= in->y.f;
+          break;
+        case MAP_ELSE:
+          match = true;
+          break;
         default:
-          assert (0);
           abort ();
-	}
-      if (!cp)
-	continue;
+        }
 
-      /* A matching input value was found. */
-      if ((v->flags & RCD_DEST_MASK) == RCD_DEST_NUMERIC)
-	{
-	  double val = cp->t.f;
-          double *out = &case_data_rw (c, v->dest->fv)->f;
-	  if (val == -SYSMIS)
-	    *out = case_num (c, v->src->fv);
-	  else
-	    *out = val;
-	}
+      if (match)
+        return out;
+    }
+
+  return NULL;
+}
+
+/* Returns the output mapping in TRNS for an input of VALUE with
+   the given WIDTH, or a null pointer if there is no mapping. */
+static const struct map_out *
+find_src_string (struct recode_trns *trns, const char *value, int width)
+{
+  struct mapping *m;
+
+  for (m = trns->mappings; m < trns->mappings + trns->map_cnt; m++)
+    {
+      const struct map_in *in = &m->in;
+      struct map_out *out = &m->out;
+      bool match;
+      
+      switch (in->type)
+        {
+        case MAP_SINGLE:
+          match = !memcmp (value, in->x.c, width);
+          break;
+        case MAP_ELSE:
+          match = true;
+          break;
+        case MAP_CONVERT:
+          {
+            struct data_in di;
+
+            di.s = value;
+            di.e = value + width;
+            di.v = &out->value;
+            di.flags = DI_IGNORE_ERROR;
+            di.f1 = di.f2 = 0;
+            di.format.type = FMT_F;
+            di.format.w = width;
+            di.format.d = 0;
+            match = data_in (&di);
+            break;
+          }
+        default:
+          abort ();
+        }
+
+      if (match)
+        return out;
+    }
+
+  return NULL;
+}
+
+/* Performs RECODE transformation. */
+static int
+recode_trns_proc (void *trns_, struct ccase *c, int case_idx UNUSED)
+{
+  struct recode_trns *trns = trns_;
+  size_t i;
+
+  for (i = 0; i < trns->var_cnt; i++) 
+    {
+      struct variable *src_var = trns->src_vars[i];
+      struct variable *dst_var = trns->dst_vars[i];
+
+      const union value *src_data = case_data (c, src_var->fv);
+      union value *dst_data = case_data_rw (c, dst_var->fv);
+
+      const struct map_out *out;
+
+      if (trns->src_type == NUMERIC) 
+          out = find_src_numeric (trns, src_data->f, src_var);
       else
-	{
-	  char *val = cp->t.c;
-	  if (val == NULL) 
+          out = find_src_string (trns, src_data->s, src_var->width);
+
+      if (trns->dst_type == NUMERIC) 
+        {
+          if (out != NULL)
+            dst_data->f = !out->copy_input ? out->value.f : src_data->f; 
+          else if (trns->src_vars != trns->dst_vars)
+            dst_data->f = SYSMIS;
+        }
+      else 
+        {
+          if (out != NULL)
             {
-              if (v->dest->fv != v->src->fv)
-                buf_copy_rpad (case_data_rw (c, v->dest->fv)->s,
-                               v->dest->width,
-                               case_str (c, v->src->fv), v->src->width); 
+              if (!out->copy_input) 
+                memcpy (dst_data->s, out->value.c, dst_var->width); 
+              else if (trns->src_vars != trns->dst_vars)
+                buf_copy_rpad (dst_data->s, dst_var->width,
+                               src_data->s, src_var->width); 
             }
-	  else
-	    memcpy (case_data_rw (c, v->dest->fv)->s, cp->t.c, v->dest->width);
-	}
+          else if (trns->src_vars != trns->dst_vars)
+            memset (dst_data->s, ' ', dst_var->width);
+        }
     }
 
   return -1;
 }
 
-/* Convert NPTR to a `long int' in base 10.  Returns the long int on
-   success, NOT_LONG on failure.  On success stores a pointer to the
-   first character after the number into *ENDPTR.  From the GNU C
-   library. */
-static long int
-string_to_long (const char *nptr, int width, const char **endptr)
+/* Frees a RECODE transformation. */
+static void
+recode_trns_free (void *trns_)
 {
-  int negative;
-  unsigned long int cutoff;
-  unsigned int cutlim;
-  unsigned long int i;
-  const char *s;
-  unsigned char c;
-  const char *save;
-
-  s = nptr;
-
-  /* Check for a sign.  */
-  if (*s == '-')
-    {
-      negative = 1;
-      ++s;
-    }
-  else if (*s == '+')
-    {
-      negative = 0;
-      ++s;
-    }
-  else
-    negative = 0;
-  if (s >= nptr + width)
-    return NOT_LONG;
-
-  /* Save the pointer so we can check later if anything happened.  */
-  save = s;
-
-  cutoff = ULONG_MAX / 10ul;
-  cutlim = ULONG_MAX % 10ul;
-
-  i = 0;
-  for (c = *s;;)
-    {
-      if (isdigit ((unsigned char) c))
-	c -= '0';
-      else
-	break;
-      /* Check for overflow.  */
-      if (i > cutoff || (i == cutoff && c > cutlim))
-	return NOT_LONG;
-      else
-	i = i * 10ul + c;
-
-      s++;
-      if (s >= nptr + width)
-	break;
-      c = *s;
-    }
-
-  /* Check if anything actually happened.  */
-  if (s == save)
-    return NOT_LONG;
-
-  /* Check for a value that is within the range of `unsigned long
-     int', but outside the range of `long int'.  We limit LONG_MIN and
-     LONG_MAX by one point because we know that NOT_LONG is out there
-     somewhere. */
-  if (i > (negative
-	   ? -((unsigned long int) LONG_MIN) - 1
-	   : ((unsigned long int) LONG_MAX) - 1))
-    return NOT_LONG;
-
-  *endptr = s;
-
-  /* Return the result of the appropriate sign.  */
-  return (negative ? -i : i);
-}
-
-/* Converts S to a double according to format Fx.0.  Returns the value
-   found, or -SYSMIS if there was no valid number in s.  WIDTH is the
-   length of string S.  From the GNU C library. */
-static double
-convert_to_double (const char *s, int width)
-{
-  const char *end = &s[width];
-
-  short int sign;
-
-  /* The number so far.  */
-  double num;
-
-  int got_dot;			/* Found a decimal point.  */
-  int got_digit;		/* Count of digits.  */
-
-  /* The exponent of the number.  */
-  long int exponent;
-
-  /* Eat whitespace.  */
-  while (s < end && isspace ((unsigned char) *s))
-    ++s;
-  if (s >= end)
-    return SYSMIS;
-
-  /* Get the sign.  */
-  sign = *s == '-' ? -1 : 1;
-  if (*s == '-' || *s == '+')
-    {
-      ++s;
-      if (s >= end)
-	return -SYSMIS;
-    }
-
-  num = 0.0;
-  got_dot = 0;
-  got_digit = 0;
-  exponent = 0;
-  for (; s < end; ++s)
-    {
-      if (isdigit ((unsigned char) *s))
-	{
-	  got_digit++;
-
-	  /* Make sure that multiplication by 10 will not overflow.  */
-	  if (num > DBL_MAX * 0.1)
-	    /* The value of the digit doesn't matter, since we have already
-	       gotten as many digits as can be represented in a `double'.
-	       This doesn't necessarily mean the result will overflow.
-	       The exponent may reduce it to within range.
-
-	       We just need to record that there was another
-	       digit so that we can multiply by 10 later.  */
-	    ++exponent;
-	  else
-	    num = (num * 10.0) + (*s - '0');
-
-	  /* Keep track of the number of digits after the decimal point.
-	     If we just divided by 10 here, we would lose precision.  */
-	  if (got_dot)
-	    --exponent;
-	}
-      else if (!got_dot && *s == '.')
-	/* Record that we have found the decimal point.  */
-	got_dot = 1;
-      else
-	break;
-    }
-
-  if (!got_digit)
-    return -SYSMIS;
-
-  if (s < end && (tolower ((unsigned char) (*s)) == 'e'
-		  || tolower ((unsigned char) (*s)) == 'd'))
-    {
-      /* Get the exponent specified after the `e' or `E'.  */
-      long int exp;
-
-      s++;
-      if (s >= end)
-	return -SYSMIS;
-
-      exp = string_to_long (s, end - s, &s);
-      if (exp == NOT_LONG || end == s)
-	return -SYSMIS;
-      exponent += exp;
-    }
-
-  while (s < end && isspace ((unsigned char) *s))
-    s++;
-  if (s < end)
-    return -SYSMIS;
-
-  if (num == 0.0)
-    return 0.0;
-
-  /* Multiply NUM by 10 to the EXPONENT power,
-     checking for overflow and underflow.  */
-
-  if (exponent < 0)
-    {
-      if (-exponent + got_digit > -(DBL_MIN_10_EXP) + 5
-	  || num < DBL_MIN * pow (10.0, (double) -exponent))
-	return -SYSMIS;
-      num *= pow (10.0, (double) exponent);
-    }
-  else if (exponent > 0)
-    {
-      if (num > DBL_MAX * pow (10.0, (double) -exponent))
-	return -SYSMIS;
-      num *= pow (10.0, (double) exponent);
-    }
-
-  return sign > 0 ? num : -num;
+  struct recode_trns *trns = trns_;
+  pool_destroy (trns->pool);
 }

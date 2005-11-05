@@ -50,8 +50,10 @@ void *pool_create_at_offset (size_t struct_size, size_t pool_member_offset);
 void *pool_alloc (struct pool *, size_t) MALLOC_LIKE;
 void *pool_nalloc (struct pool *, size_t n, size_t s) MALLOC_LIKE;
 void *pool_clone (struct pool *, const void *, size_t) MALLOC_LIKE;
+
+void *pool_alloc_unaligned (struct pool *, size_t) MALLOC_LIKE;
+void *pool_clone_unaligned (struct pool *, const void *, size_t) MALLOC_LIKE;
 char *pool_strdup (struct pool *, const char *) MALLOC_LIKE;
-char *pool_strndup (struct pool *, const char *, size_t) MALLOC_LIKE;
 char *pool_strcat (struct pool *, const char *, ...) MALLOC_LIKE;
 
 /* Standard allocation routines. */

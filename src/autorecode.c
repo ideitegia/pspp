@@ -354,8 +354,8 @@ autorecode_proc_func (struct ccase *c, void *arc_)
           if (arc->src_vars[i]->type == NUMERIC)
             vp->f = v.f;
           else
-            vp->c = pool_strndup (arc->src_values_pool,
-                                  v.c, arc->src_vars[i]->width);
+            vp->c = pool_clone (arc->src_values_pool,
+                                v.c, arc->src_vars[i]->width);
           *vpp = vp;
         }
     }

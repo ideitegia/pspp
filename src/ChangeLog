@@ -1,3 +1,25 @@
+Fri Nov  4 19:43:01 2005  Ben Pfaff  <blp@gnu.org>
+
+	* recode.c: Rewrote whole file, as clean-up.
+
+Fri Nov  4 19:37:50 2005  Ben Pfaff  <blp@gnu.org>
+
+	* pool.c: Don't make alignment exception for x86.
+	(pool_alloc) Return null for 0-size blocks.
+	(pool_alloc_unaligned) New function.
+	(pool_strndup) Removed.  Changed callers to use pool_clone_unaligned().
+	(pool_clone_unaligned) New function.
+	(pool_strdup) Use pool_clone_unaligned().
+
+	* var.h: (enum var_type) Give the NUMERIC, ALPHA enum this name.
+	(struct variable) Use `enum var_type' for `type'.
+
+	* vars-atr.c: (var_type_adj) New function.
+	(var_type_noun) New function.
+
+	* vars-prs: (parse_mixed_vars) Fix freeing code.
+	(parse_mixed_vars_pool) New function.
+
 Wed Nov  2 21:24:48 2005  Ben Pfaff  <blp@gnu.org>
 
 	* file-handle-def.c: Needed another #include, to avoid missing

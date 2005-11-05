@@ -29,6 +29,7 @@
 #include "hash.h"
 #include "lexer.h"
 #include "misc.h"
+#include "pool.h"
 #include "size_max.h"
 #include "str.h"
 
@@ -508,12 +509,33 @@ parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
 
 fail:
   for (i = 0; i < *nnames; i++)
-    free ((*names)[*nnames]);
-  free (names);
+    free ((*names)[i]);
+  free (*names);
   *names = NULL;
   *nnames = 0;
   return 0;
 }
+
+/* Parses a list of variables where some of the variables may be
+   existing and the rest are to be created.  Same args as
+   parse_DATA_LIST_vars(), except that all allocations are taken
+   from the given POOL. */
+int
+parse_mixed_vars_pool (struct pool *pool,
+                       char ***names, size_t *nnames, int pv_opts)
+{
+  int retval = parse_mixed_vars (names, nnames, pv_opts);
+  if (retval)
+    {
+      size_t i;
+
+      for (i = 0; i < *nnames; i++)
+        pool_register (pool, free, (*names)[i]);
+      pool_register (pool, free, *names);
+    }
+  return retval;
+}
+
 
 /* A set of variables. */
 struct var_set 

@@ -63,7 +63,6 @@ int lex_force_int (void);
 int lex_force_num (void);
 int lex_force_id (void);
 int lex_force_string (void);
-
 	
 /* Weird token functions. */
 int lex_look_ahead (void);

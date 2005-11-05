@@ -97,11 +97,7 @@ union align
 
 /* This should be the alignment size used by malloc().  The size of
    the union above is correct, if not optimal, in all known cases. */
-#if defined (i386) || defined (__i386__)
-#define ALIGN_SIZE 4		/* Save some extra memory. */
-#else
 #define ALIGN_SIZE sizeof (union align)
-#endif
 
 /* DISCRETE_BLOCKS may be declared as nonzero to prevent
    suballocation of blocks.  This is useful under memory
@@ -245,11 +241,15 @@ pool_clear (struct pool *pool)
 /* Suballocation routines. */
 
 /* Allocates a memory region AMT bytes in size from POOL and returns a
-   pointer to the region's start. */
+   pointer to the region's start.
+   The region is properly aligned for storing any object. */
 void *
 pool_alloc (struct pool *pool, size_t amt)
 {
   assert (pool != NULL);
+
+  if (amt == 0)
+    return NULL;
   
 #ifndef DISCRETE_BLOCKS
   if (amt <= MAX_SUBALLOC)
@@ -295,6 +295,40 @@ pool_alloc (struct pool *pool, size_t amt)
     return pool_malloc (pool, amt);
 }
 
+/* Allocates a memory region AMT bytes in size from POOL and
+   returns a pointer to the region's start.  The region is not
+   necessarily aligned, so it is most suitable for storing
+   strings. */
+void *
+pool_alloc_unaligned (struct pool *pool, size_t amt)
+{
+  assert (pool != NULL);
+
+#ifndef DISCRETE_BLOCKS
+  /* Strings need not be aligned on any boundary, but some
+     operations may be more efficient when they are.  However,
+     that's only going to help with reasonably long strings. */
+  if (amt < ALIGN_SIZE) 
+    {
+      if (amt == 0)
+        return NULL;
+      else
+        {
+          struct pool_block *const b = pool->blocks;
+
+          if (b->ofs + amt <= BLOCK_SIZE)
+            {
+              void *p = ((char *) b) + b->ofs;
+              b->ofs += amt;
+              return p;
+            }
+        }
+    }
+#endif
+
+  return pool_alloc (pool, amt);
+}
+
 /* Allocates a memory region N * S bytes in size from POOL and
    returns a pointer to the region's start.
    N must be nonnegative, S must be positive.
@@ -318,40 +352,14 @@ pool_clone (struct pool *pool, const void *buffer, size_t size)
   return block;
 }
 
-/* Duplicates STRING, which has LENGTH characters, within POOL,
-   and returns a pointer to the duplicate.  LENGTH should not
-   include the null terminator, which is always added to the
-   duplicate.  For use only with strings, because the returned
-   pointere may not be aligned properly for other types. */
-char *
-pool_strndup (struct pool *pool, const char *string, size_t length)
+/* Allocates SIZE bytes of unaligned data in POOL, copies BUFFER
+   into it, and returns the new copy. */
+void *
+pool_clone_unaligned (struct pool *pool, const void *buffer, size_t size)
 {
-  size_t size;
-  char *copy;
-
-  assert (pool && string);
-  size = length + 1;
-
-  /* Note that strings need not be aligned on any boundary. */
-#ifndef DISCRETE_BLOCKS
-  {
-    struct pool_block *const b = pool->blocks;
-
-    if (b->ofs + size <= BLOCK_SIZE)
-      {
-        copy = ((char *) b) + b->ofs;
-        b->ofs += size;
-      }
-    else
-      copy = pool_alloc (pool, size);
-  }
-#else
-  copy = pool_alloc (pool, size);
-#endif
-
-  memcpy (copy, string, length);
-  copy[length] = '\0';
-  return copy;
+  void *block = pool_alloc_unaligned (pool, size);
+  memcpy (block, buffer, size);
+  return block;
 }
 
 /* Duplicates null-terminated STRING, within POOL, and returns a
@@ -361,7 +369,7 @@ pool_strndup (struct pool *pool, const char *string, size_t length)
 char *
 pool_strdup (struct pool *pool, const char *string) 
 {
-  return pool_strndup (pool, string, strlen (string));
+  return pool_clone_unaligned (pool, string, strlen (string) + 1);
 }
 
 /* Standard allocation routines. */

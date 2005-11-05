@@ -32,6 +32,21 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* Returns an adjective describing the given variable TYPE,
+   suitable for use in phrases like "numeric variable". */
+const char *
+var_type_adj (enum var_type type) 
+{
+  return type == NUMERIC ? _("numeric") : _("string");
+}
+
+/* Returns a noun describing a value of the given variable TYPE,
+   suitable for use in phrases like "a number". */
+const char *
+var_type_noun (enum var_type type) 
+{
+  return type == NUMERIC ? _("number") : _("string");
+}
 
 /* Assign auxiliary data AUX to variable V, which must not
    already have auxiliary data.  Before V's auxiliary data is

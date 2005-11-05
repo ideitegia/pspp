@@ -31,19 +31,21 @@
 /* Script variables. */
 
 /* Variable type. */
-enum
+enum var_type
   {
     NUMERIC,			/* A numeric variable. */
-    ALPHA			/* A string variable.
-                                   (STRING is pre-empted by lexer.h.) */
+    ALPHA			/* A string variable. */
   };
+
+const char *var_type_adj (enum var_type);
+const char *var_type_noun (enum var_type);
 
 /* A variable's dictionary entry.  */
 struct variable
   {
     /* Basic information. */
     char name[LONG_NAME_LEN + 1]; /* Variable name.  Mixed case. */
-    int type;                   /* NUMERIC or ALPHA. */
+    enum var_type type;         /* NUMERIC or ALPHA. */
     int width;			/* Size of string variables in chars. */
     int fv, nv;			/* Index into `value's, number of values. */
     unsigned init : 1;          /* 1=VFM must init and possibly reinit. */
@@ -215,6 +217,7 @@ enum
     PV_NO_SCRATCH = 00200 	/* Disallow scratch variables. */
   };
 
+struct pool;
 struct variable *parse_variable (void);
 struct variable *parse_dict_variable (const struct dictionary *);
 int parse_variables (const struct dictionary *, struct variable ***, size_t *,
@@ -223,7 +226,8 @@ int parse_var_set_vars (const struct var_set *, struct variable ***, size_t *,
                         int opts);
 int parse_DATA_LIST_vars (char ***names, size_t *cnt, int opts);
 int parse_mixed_vars (char ***names, size_t *cnt, int opts);
-
+int parse_mixed_vars_pool (struct pool *,
+                           char ***names, size_t *cnt, int opts);
 
 
 /* Return a string representing this variable, in the form most 
