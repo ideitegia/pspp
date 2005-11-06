@@ -43,32 +43,26 @@ const char *var_type_noun (enum var_type);
 /* A variable's dictionary entry.  */
 struct variable
   {
-    /* Basic information. */
+    /* Dictionary information. */
     char name[LONG_NAME_LEN + 1]; /* Variable name.  Mixed case. */
     enum var_type type;         /* NUMERIC or ALPHA. */
     int width;			/* Size of string variables in chars. */
+    struct missing_values miss; /* Missing values. */
+    struct fmt_spec print;	/* Default format for PRINT. */
+    struct fmt_spec write;	/* Default format for WRITE. */
+    struct val_labs *val_labs;  /* Value labels. */
+    char *label;		/* Variable label. */
+    enum measure measure;       /* Nominal, ordinal, or continuous. */
+    int display_width;          /* Width of data editor column. */
+    enum alignment alignment;   /* Alignment of data in GUI. */
+
+    /* Case information. */
     int fv, nv;			/* Index into `value's, number of values. */
-    unsigned init : 1;          /* 1=VFM must init and possibly reinit. */
-    unsigned reinit : 1;        /* Cases are: 1=reinitialized; 0=left. */
+    bool init;                  /* True if needs init and possibly reinit. */
+    bool reinit;                /* True: reinitialize; false: leave. */
 
     /* Data for use by containing dictionary. */
     int index;			/* Dictionary index. */
-
-    /* Missing values. */
-    struct missing_values miss; /* Missing values. */
-
-    /* Display formats. */
-    struct fmt_spec print;	/* Default format for PRINT. */
-    struct fmt_spec write;	/* Default format for WRITE. */
-
-    /* Labels. */
-    struct val_labs *val_labs;  /* Value labels. */
-    char *label;		/* Variable label. */
-
-    /* GUI display parameters. */
-    enum measure measure;       /* Nominal ordinal or continuous */
-    int display_width;          /* Width of data editor column */
-    enum alignment alignment;   /* Alignment of data in gui */
 
     /* Short name, used only for system and portable file input
        and output.  Upper case only.  There is no index for short
@@ -77,7 +71,7 @@ struct variable
        string. */
     char short_name[SHORT_NAME_LEN + 1];
 
-    /* Per-command info. */
+    /* Each command may use these fields as needed. */
     void *aux;
     void (*aux_dtor) (struct variable *);
   };

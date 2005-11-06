@@ -1,3 +1,8 @@
+Sat Nov  5 18:21:00 2005  Ben Pfaff  <blp@gnu.org>
+
+	* var.h: (struct variable) Make `init', `reinit' bool values.
+	Rearrange fields.
+
 Fri Nov  4 19:43:01 2005  Ben Pfaff  <blp@gnu.org>
 
 	* recode.c: Rewrote whole file, as clean-up.
