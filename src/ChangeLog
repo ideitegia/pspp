@@ -1,3 +1,16 @@
+Sat Nov  5 18:37:26 2005  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Remove devind.c, devind.h from list of source
+	files.
+
+	* devind.c: Removed.
+
+	* devind.h: Removed.
+
+	* list.q: Removed "support" for devind.
+
+	* output.c: Don't add devind class.
+
 Sat Nov  5 18:21:00 2005  Ben Pfaff  <blp@gnu.org>
 
 	* var.h: (struct variable) Make `init', `reinit' bool values.

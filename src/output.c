@@ -25,7 +25,6 @@
 #include <errno.h>
 #include <ctype.h>
 #include "alloc.h"
-#include "devind.h"
 #include "error.h"
 #include "filename.h"
 #include "htmlP.h"
@@ -231,7 +230,6 @@ outp_init (void)
   extern struct outp_class epsf_class;
 #endif
   extern struct outp_class html_class;
-  extern struct outp_class devind_class;
 
   char def[] = "default";
 
@@ -242,7 +240,6 @@ outp_init (void)
   add_class (&epsf_class);
   add_class (&postscript_class);
 #endif
-  add_class (&devind_class);
   add_class (&ascii_class);
 
   add_name (def, &def[strlen (def)], OUTP_S_INIT_FILE);

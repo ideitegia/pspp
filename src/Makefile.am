@@ -105,8 +105,6 @@ pspp_SOURCES =					\
 	date.c					\
 	debug-print.h				\
 	descript.c				\
-	devind.c				\
-	devind.h				\
 	dfm-read.c				\
 	dfm-read.h				\
 	dfm-write.c				\

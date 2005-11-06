@@ -24,7 +24,6 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
-#include "devind.h"
 #include "dictionary.h"
 #include "lexer.h"
 #include "error.h"
@@ -270,10 +269,6 @@ write_all_headers (void *aux UNUSED)
 
 	  fputs ("  <TR>\n", x->file.file);
 	}
-      else if (d->class == &devind_class) 
-        {
-          /* FIXME */
-        }
       else
 	assert (0);
     }
@@ -393,10 +388,6 @@ clean_up (void)
 
 	    fputs ("</TABLE>\n", x->file.file);
 	  }
-      }
-    else if (d->class == &devind_class) 
-      {
-        /* FIXME */
       }
     else
       assert (0);
@@ -530,12 +521,6 @@ determine_layout (void)
 
       if (d->class == &html_class)
 	continue;
-      else if (d->class == &devind_class) 
-        {
-          /* FIXME */
-          tab_output_text (TAT_NONE, "(devind not supported on LIST yet)");
-          continue;
-        }
       
       assert (d->class->special == 0);
 
@@ -724,10 +709,6 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	  }
 	  
 	fputs ("  </TR>\n", x->file.file);
-      }
-    else if (d->class == &devind_class) 
-      {
-        /* FIXME */
       }
     else
       assert (0);
