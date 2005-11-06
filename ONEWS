@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.  
-Time-stamp: <1998-08-14 10:45:12 blp>
+Time-stamp: <2005-11-05 18:34:17 blp>
 Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -509,8 +509,9 @@ space.
 
 * Changes for patchlevel 110:
 
-** `stat' has now been renamed `PSPP', for `PSPP Implements Accurate
-Statistical COmputations'!  Let's all celebrate the clever acronym!
+** `stat' has now been renamed `Fiasco', for `Fiasco Implements
+Accurate Statistical COmputations'!  Let's all celebrate the clever
+acronym!
 
 ** Bugfixes.
 
