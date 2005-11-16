@@ -33,6 +33,7 @@
 #include "gettext.h"
 #include "lexer.h"
 #include <linreg/pspp_linreg.h>
+#include "missing-values.h"
 #include "tab.h"
 #include "var.h"
 #include "vfm.h"
@@ -499,8 +500,13 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   size_t k;
   size_t n_data = 0;
   size_t row;
+  size_t case_num;
   int n_indep;
   int j = 0;
+  /*
+    Keep track of the missing cases.
+  */
+  int *is_missing_case;
   const union value *val;
   struct casereader *r;
   struct casereader *r2;
@@ -514,92 +520,113 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   pspp_linreg_opts lopts;
 
   n_data = casefile_get_case_cnt (cf);
+
+  is_missing_case = xnmalloc (n_data, sizeof (*is_missing_case));
+  for (i = 0; i < n_data; i++)
+    is_missing_case[i] = 0;
+
   n_indep = cmd.n_variables - cmd.n_dependent;
   indep_vars = xnmalloc (n_indep, sizeof *indep_vars);
 
-  Y = gsl_vector_alloc (n_data);
   lopts.get_depvar_mean_std = 1;
   lopts.get_indep_mean_std = xnmalloc (n_indep, sizeof (int));
 
-  lcache = pspp_linreg_cache_alloc (n_data, n_indep);
-  lcache->indep_means = gsl_vector_alloc (n_indep);
-  lcache->indep_std = gsl_vector_alloc (n_indep);
 
   /*
      Read from the active file. The first pass encodes categorical
-     variables.
+     variables and drops cases with missing values.
    */
   ca = cr_recoded_cat_ar_create (cmd.n_variables, cmd.v_variables);
   for (r = casefile_get_reader (cf);
        casereader_read (r, &c); case_destroy (&c))
     {
+      row = casereader_cnum (r) - 1;
       for (i = 0; i < ca->n_vars; i++)
 	{
 	  v = (*(ca->a + i))->v;
 	  val = case_data (&c, v->fv);
 	  cr_value_update (*(ca->a + i), val);
 	}
+      for (i = 0; i < cmd.n_variables; i++)
+	{
+	  v = cmd.v_variables[i];
+	  val = case_data (&c, v->fv);
+	  if (mv_is_value_missing (&v->miss, val))
+	    {
+	      n_data--;
+	      is_missing_case[row] = 1;
+	    }
+	}
     }
+  Y = gsl_vector_alloc (n_data);
   cr_create_value_matrices (ca);
   X =
     design_matrix_create (n_indep, (const struct variable **) cmd.v_variables,
 			  ca, n_data);
+  lcache = pspp_linreg_cache_alloc (n_data, n_indep);
+  lcache->indep_means = gsl_vector_alloc (n_indep);
+  lcache->indep_std = gsl_vector_alloc (n_indep);
 
   /*
      The second pass creates the design matrix.
    */
+  row = 0;
   for (r2 = casefile_get_reader (cf); casereader_read (r2, &c);
        case_destroy (&c))
     /* Iterate over the cases. */
     {
       k = 0;
-      row = casereader_cnum (r2) - 1;
-      for (i = 0; i < cmd.n_variables; ++i)	/* Iterate over the variables
-						   for the current case. 
-						 */
+      case_num = casereader_cnum (r2) - 1;
+      if (!is_missing_case[case_num])
 	{
-	  v = cmd.v_variables[i];
-	  val = case_data (&c, v->fv);
-	  /*
-	     Independent/dependent variable separation. The
-	     'variables' subcommand specifies a varlist which contains
-	     both dependent and independent variables. The dependent
-	     variables are specified with the 'dependent'
-	     subcommand. We need to separate the two.
-	   */
-	  if (is_depvar (i))
+	  for (i = 0; i < cmd.n_variables; ++i)	/* Iterate over the variables
+						   for the current case. 
+						*/
 	    {
-	      if (v->type != NUMERIC)
+	      v = cmd.v_variables[i];
+	      val = case_data (&c, v->fv);
+	      /*
+		Independent/dependent variable separation. The
+		'variables' subcommand specifies a varlist which contains
+		both dependent and independent variables. The dependent
+		variables are specified with the 'dependent'
+		subcommand. We need to separate the two.
+	      */
+	      if (is_depvar (i))
 		{
-		  msg (SE, gettext ("Dependent variable must be numeric."));
-		  pspp_reg_rc = CMD_FAILURE;
-		  return;
+		  if (v->type != NUMERIC)
+		    {
+		      msg (SE, gettext ("Dependent variable must be numeric."));
+		      pspp_reg_rc = CMD_FAILURE;
+		      return;
+		    }
+		  lcache->depvar = (const struct var *) v;
+		  gsl_vector_set (Y, row, val->f);
 		}
-	      lcache->depvar = (const struct var *) v;
-	      gsl_vector_set (Y, row, val->f);
+	      else
+		{
+		  if (v->type == ALPHA)
+		    {
+		      rc = cr_var_to_recoded_categorical (v, ca);
+		      design_matrix_set_categorical (X, row, v, val, rc);
+		    }
+		  else if (v->type == NUMERIC)
+		    {
+		      design_matrix_set_numeric (X, row, v, val);
+		    }
+		  
+		  indep_vars[k] = i;
+		  k++;
+		  lopts.get_indep_mean_std[i] = 1;
+		}
 	    }
-	  else
-	    {
-	      if (v->type == ALPHA)
-		{
-		  rc = cr_var_to_recoded_categorical (v, ca);
-		  design_matrix_set_categorical (X, row, v, val, rc);
-		}
-	      else if (v->type == NUMERIC)
-		{
-		  design_matrix_set_numeric (X, row, v, val);
-		}
-
-	      indep_vars[k] = i;
-	      k++;
-	      lopts.get_indep_mean_std[i] = 1;
-	    }
+	  row++;
 	}
     }
   /*
-     Now that we know the number of coefficients, allocate space
-     and store pointers to the variables that correspond to the
-     coefficients.
+    Now that we know the number of coefficients, allocate space
+    and store pointers to the variables that correspond to the
+    coefficients.
    */
   lcache->coeff = xnmalloc (X->m->size2 + 1, sizeof (*lcache->coeff));
   for (i = 0; i < X->m->size2; i++)
@@ -619,6 +646,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   pspp_linreg_cache_free (lcache);
   free (lopts.get_indep_mean_std);
   free (indep_vars);
+  free (is_missing_case);
   casereader_destroy (r);
   return;
 }
