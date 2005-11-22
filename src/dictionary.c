@@ -24,6 +24,7 @@
 #include "algorithm.h"
 #include "alloc.h"
 #include "case.h"
+#include "cat.h"
 #include "error.h"
 #include "hash.h"
 #include "misc.h"
@@ -299,6 +300,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   var_clear_short_name (v);
   v->aux = NULL;
   v->aux_dtor = NULL;
+  v->obs_vals = NULL;
 
   /* Update dictionary. */
   if (d->var_cnt >= d->var_cap) 
@@ -471,6 +473,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
 
   /* Free memory. */
   val_labs_destroy (v->val_labs);
+  cat_stored_values_destroy (v);
   free (v->label);
   free (v);
 }

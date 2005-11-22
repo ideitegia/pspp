@@ -24,7 +24,7 @@
 #include <stddef.h>
 #include "config.h"
 #include <stdbool.h>
-
+#include "cat.h"
 #include "format.h"
 #include "missing-values.h"
 
@@ -74,6 +74,11 @@ struct variable
     /* Each command may use these fields as needed. */
     void *aux;
     void (*aux_dtor) (struct variable *);
+
+    /* Values of a categorical variable which.  Procedures need
+       vectors with binary entries, so any variable of type ALPHA will
+       have its values stored here. */
+    struct cat_vals *obs_vals;
   };
 
 /* Variable names. */
