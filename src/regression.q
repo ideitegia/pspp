@@ -504,16 +504,14 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   int n_indep;
   int j = 0;
   /*
-    Keep track of the missing cases.
-  */
+     Keep track of the missing cases.
+   */
   int *is_missing_case;
   const union value *val;
   struct casereader *r;
   struct casereader *r2;
   struct ccase c;
-  const struct variable *v;
-  struct recoded_categorical_array *ca;
-  struct recoded_categorical *rc;
+  struct variable *v;
   struct design_matrix *X;
   gsl_vector *Y;
   pspp_linreg_cache *lcache;
@@ -536,36 +534,41 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
      Read from the active file. The first pass encodes categorical
      variables and drops cases with missing values.
    */
-  ca = cr_recoded_cat_ar_create (cmd.n_variables, cmd.v_variables);
-  for (r = casefile_get_reader (cf);
-       casereader_read (r, &c); case_destroy (&c))
+  for (i = 0; i < cmd.n_variables; i++)
     {
-      row = casereader_cnum (r) - 1;
-      for (i = 0; i < ca->n_vars; i++)
+      v = cmd.v_variables[i];
+      if (v->type == ALPHA)
 	{
-	  v = (*(ca->a + i))->v;
-	  val = case_data (&c, v->fv);
-	  cr_value_update (*(ca->a + i), val);
+	  /* Make a place to hold the binary vectors 
+	     corresponding to this variable's values. */
+	  cat_stored_values_create (v);
 	}
-      for (i = 0; i < cmd.n_variables; i++)
+      for (r = casefile_get_reader (cf);
+	   casereader_read (r, &c); case_destroy (&c))
 	{
-	  v = cmd.v_variables[i];
+	  row = casereader_cnum (r) - 1;
+
 	  val = case_data (&c, v->fv);
+	  cat_value_update (v, val);
 	  if (mv_is_value_missing (&v->miss, val))
 	    {
-	      n_data--;
-	      is_missing_case[row] = 1;
+	      if (!is_missing_case[row])
+		{
+		  /* Now it is missing. */
+		  n_data--;
+		  is_missing_case[row] = 1;
+		}
 	    }
 	}
     }
+
   Y = gsl_vector_alloc (n_data);
-  cr_create_value_matrices (ca);
   X =
     design_matrix_create (n_indep, (const struct variable **) cmd.v_variables,
-			  ca, n_data);
-  lcache = pspp_linreg_cache_alloc (n_data, n_indep);
-  lcache->indep_means = gsl_vector_alloc (n_indep);
-  lcache->indep_std = gsl_vector_alloc (n_indep);
+			  n_data);
+  lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
+  lcache->indep_means = gsl_vector_alloc (X->m->size2);
+  lcache->indep_std = gsl_vector_alloc (X->m->size2);
 
   /*
      The second pass creates the design matrix.
@@ -581,22 +584,23 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	{
 	  for (i = 0; i < cmd.n_variables; ++i)	/* Iterate over the variables
 						   for the current case. 
-						*/
+						 */
 	    {
 	      v = cmd.v_variables[i];
 	      val = case_data (&c, v->fv);
 	      /*
-		Independent/dependent variable separation. The
-		'variables' subcommand specifies a varlist which contains
-		both dependent and independent variables. The dependent
-		variables are specified with the 'dependent'
-		subcommand. We need to separate the two.
-	      */
+	         Independent/dependent variable separation. The
+	         'variables' subcommand specifies a varlist which contains
+	         both dependent and independent variables. The dependent
+	         variables are specified with the 'dependent'
+	         subcommand. We need to separate the two.
+	       */
 	      if (is_depvar (i))
 		{
 		  if (v->type != NUMERIC)
 		    {
-		      msg (SE, gettext ("Dependent variable must be numeric."));
+		      msg (SE,
+			   gettext ("Dependent variable must be numeric."));
 		      pspp_reg_rc = CMD_FAILURE;
 		      return;
 		    }
@@ -607,14 +611,13 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 		{
 		  if (v->type == ALPHA)
 		    {
-		      rc = cr_var_to_recoded_categorical (v, ca);
-		      design_matrix_set_categorical (X, row, v, val, rc);
+		      design_matrix_set_categorical (X, row, v, val);
 		    }
 		  else if (v->type == NUMERIC)
 		    {
 		      design_matrix_set_numeric (X, row, v, val);
 		    }
-		  
+
 		  indep_vars[k] = i;
 		  k++;
 		  lopts.get_indep_mean_std[i] = 1;
@@ -624,9 +627,9 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	}
     }
   /*
-    Now that we know the number of coefficients, allocate space
-    and store pointers to the variables that correspond to the
-    coefficients.
+     Now that we know the number of coefficients, allocate space
+     and store pointers to the variables that correspond to the
+     coefficients.
    */
   lcache->coeff = xnmalloc (X->m->size2 + 1, sizeof (*lcache->coeff));
   for (i = 0; i < X->m->size2; i++)

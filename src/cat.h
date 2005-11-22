@@ -40,36 +40,20 @@
 #define CAT_H 1
 
 #include <gsl/gsl_matrix.h>
+#include <stdbool.h>
 /*
-  This structure contains the binary encoding of a 
+  This structure contains the observed values of a 
   categorical variable.
  */
-struct recoded_categorical
+struct cat_vals
 {
-  const struct variable *v;	/* Original variable. */
   union value *vals;
-  gsl_matrix *m;		/* Vector-encoded values of the
-				   original variable. The ith row of
-				   the matrix corresponds to the ith
-				   value of a categorical variable.
-				 */
   size_t n_categories;
-  size_t first_column;		/* First column of the gsl_matrix which
-				   contains recoded values of the categorical
-				   variable.
-				 */
-  size_t last_column;		/* Last column containing the recoded
-				   categories.  The practice of
-				   keeping only the first and last
-				   columns of the matrix implies those
-				   columns corresponding to v must be
-				   contiguous.
-				 */
-  size_t n_allocated_categories; /* This is used only during
-				    initialization to keep
-				    track of the number of
-				    values stored.
-				 */
+  size_t n_allocated_categories;	/* This is used only during
+					   initialization to keep
+					   track of the number of
+					   values stored.
+					 */
 };
 
 /*
@@ -92,11 +76,13 @@ struct recoded_categorical_array
 
 struct design_matrix_var
 {
-  int first_column;		/* First column for this variable in the
-				   design_matix. If this variable is categorical,
-				   its values are stored in multiple, contiguous
-				   columns, as dictated by its vector encoding
-				   in the variable's struct recoded_categorical.
+  int first_column;		/* First column for this variable in
+				   the design_matix. If this variable
+				   is categorical, its values are
+				   stored in multiple, contiguous
+				   columns, as dictated by its vector
+				   encoding in the variable's struct
+				   recoded_categorical.
 				 */
   int last_column;
   const struct variable *v;
@@ -104,53 +90,54 @@ struct design_matrix_var
 struct design_matrix
 {
   gsl_matrix *m;
-  struct design_matrix_var *vars;	/* Element i is the the variable whose
-					   values are stored in column i of m. If that
-					   variable is categorical with more than two
-					   categories, its values are stored in multiple,
-					   contiguous columns. In this case, element i is
-					   the first column for that variable. The
-					   variable's values are then stored in the
-					   columns first_column through
-					   last_column. first_column and last_column for
-					   a categorical variable are stored in the
-					   variable's recoded_categorical structure.
+  struct design_matrix_var *vars;	/* Element i corresponds to
+					   the variable whose values
+					   are stored in at least one
+					   column of m. If that
+					   variable is categorical
+					   with more than two
+					   categories, its values are
+					   stored in multiple,
+					   contiguous columns. The
+					   variable's values are then
+					   stored in the columns
+					   first_column through
+					   last_column of the
+					   design_matrix_var
+					   structure.
 					 */
   size_t n_vars;
 };
-union value *cr_vector_to_value (const gsl_vector *,
-				 struct recoded_categorical *);
+union value *cr_vector_to_value (const gsl_vector *, struct variable *);
 
-void cr_value_update (struct recoded_categorical *, const union value *);
+void cat_stored_values_create (struct variable *);
 
-int cr_free_recoded_array (struct recoded_categorical_array *);
+void cat_value_update (struct variable *, const union value *);
+
+int cat_free_recoded_array (struct recoded_categorical_array *);
 
 struct recoded_categorical_array *cr_recoded_cat_ar_create (int,
 							    struct variable
 							    *[]);
 
-struct recoded_categorical *cr_recoded_categorical_create (const struct
-							   variable *);
+void cat_recoded_categorical_create (struct variable *);
 
-void cr_create_value_matrices (struct recoded_categorical_array *);
+void cat_create_value_matrix (struct variable *);
 
-struct recoded_categorical *cr_var_to_recoded_categorical (const struct
-							   variable *,
-							   struct
-							   recoded_categorical_array
-							   *);
+struct recoded_categorical *cat_var_to_recoded_categorical (const struct
+							    variable *,
+							    struct
+							    recoded_categorical_array
+							    *);
 
 struct design_matrix *design_matrix_create (int, const struct variable *[],
-					    struct
-					    recoded_categorical_array *,
 					    const size_t);
 
 void design_matrix_destroy (struct design_matrix *);
 
 void design_matrix_set_categorical (struct design_matrix *, size_t,
 				    const struct variable *,
-				    const union value *,
-				    struct recoded_categorical *);
+				    const union value *);
 
 void design_matrix_set_numeric (struct design_matrix *, size_t,
 				const struct variable *, const union value *);
@@ -166,6 +153,6 @@ design_matrix_set (struct design_matrix *, size_t,
 		   const struct variable *, const union value *,
 		   struct recoded_categorical *);
 
-void cr_recoded_categorical_destroy (struct recoded_categorical *);
+void cat_stored_values_destroy (struct variable *);
 
 #endif
