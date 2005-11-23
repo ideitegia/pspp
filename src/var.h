@@ -75,7 +75,7 @@ struct variable
     void *aux;
     void (*aux_dtor) (struct variable *);
 
-    /* Values of a categorical variable which.  Procedures need
+    /* Values of a categorical variable.  Procedures need
        vectors with binary entries, so any variable of type ALPHA will
        have its values stored here. */
     struct cat_vals *obs_vals;
