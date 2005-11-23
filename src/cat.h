@@ -108,7 +108,7 @@ struct design_matrix
 					 */
   size_t n_vars;
 };
-union value *cr_vector_to_value (const gsl_vector *, struct variable *);
+union value *cat_vector_to_value (const gsl_vector *, struct variable *);
 
 void cat_stored_values_create (struct variable *);
 

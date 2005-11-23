@@ -18,22 +18,18 @@
    02110-1301, USA. */
 
 /*
-  Functions and data structures to recode categorical variables into
-  vectors and sub-rows of matrices.
+  Functions and data structures to store values of a categorical
+  variable, and to recode those values into binary vectors.
 
   For some statistical models, it is necessary to change each value
   of a categorical variable to a vector with binary entries. These
   vectors are then stored as sub-rows within a matrix during
-  model-fitting. E.g., we need functions and data strucutres to map a
+  model-fitting. For example, we need functions and data strucutres to map a
   value, say 'a', of a variable named 'cat_var', to a vector, say (0
   1 0 0 0), and vice versa.  We also need to be able to map the
   vector back to the value 'a', and if the vector is a sub-row of a
   matrix, we need to know which sub-row corresponds to the variable
   'cat_var'.
-
-  The data structures defined here will be placed in the variable 
-  structure in the future. When that happens, the useful code
-  in this file will be that which refers to design matrices.
 */
 #include <config.h>
 #include <stdlib.h>
@@ -76,47 +72,6 @@ cat_stored_values_destroy (struct variable *v)
     }
 }
 
-#if 0
-struct recoded_categorical_array *
-cr_recoded_cat_ar_create (int n_variables, struct variable *v_variables[])
-{
-  size_t n_categoricals = 0;
-  size_t i;
-  struct recoded_categorical_array *ca;
-  struct variable *v;
-
-  ca = xmalloc (sizeof *ca);
-  for (i = 0; i < n_variables; i++)
-    {
-      v = v_variables[i];
-      if (v->type == ALPHA)
-	{
-	  n_categoricals++;
-	}
-    }
-  ca->n_vars = n_categoricals;
-  ca->a = xnmalloc (n_categoricals, sizeof *ca->a);
-  for (i = 0; i < n_categoricals; i++)
-    {
-      *(ca->a + i) = cr_recoded_categorical_create (v_variables[i]);
-    }
-
-  return ca;
-}
-
-int
-cr_free_recoded_array (struct recoded_categorical_array *r)
-{
-  int rc = 0;
-  size_t i;
-
-  for (i = 0; i < r->n_vars; i++)
-    {
-      cr_recoded_categorical_destroy (*(r->a + i));
-    }
-  return rc;
-}
-#endif
 static size_t
 cat_value_find (const struct variable *v, const union value *val)
 {
@@ -167,37 +122,6 @@ cat_value_update (struct variable *v, const union value *val)
 }
 
 /*
-   Create a gsl_matrix, whose rows correspond to values of a
-   categorical variable. Since n categories have n-1 degrees of
-   freedom, the gsl_matrix is n-by-(n-1), with the first category
-   encoded as the zero vector.
- */
-#if  0
-void
-cat_create_value_matrix (struct variable *v)
-{
-  size_t i;
-  size_t row;
-  size_t col;
-  size_t n_rows;
-  size_t n_cols;
-
-  assert (v != NULL);
-  if (v->type == ALPHA)
-    {
-      assert (v->rc != NULL);
-      n_rows = v->rc->n_categories;
-      n_cols = v->rc->n_categories - 1;
-      v->rc->m = gsl_matrix_calloc (n_rows, n_cols);
-      for (row = 1; row < n_rows; row++)
-	{
-	  col = row - 1;
-	  gsl_matrix_set (v->rc->m, row, col, 1.0);
-	}
-    }
-}
-#endif
-/*
   Return the subscript of the binary vector corresponding
   to this value.
  */
@@ -240,19 +164,6 @@ cat_subscript_to_value (const size_t s, struct variable *v)
     }
 }
 
-#if 0
-/*
-  Return the row of the matrix corresponding
-  to the value v.
- */
-static gsl_vector_view
-cr_value_to_vector (const union value *v, struct recoded_categorical *cr)
-{
-  size_t row;
-  row = cr_value_to_subscript (v, cr);
-  return gsl_matrix_row (cr->m, row);
-}
-#endif
 /*
   Which element of a vector is equal to the value x?
  */
@@ -286,14 +197,10 @@ cat_is_zero_vector (const gsl_vector * vec)
 }
 
 /*
-  Return the value corresponding to the vector.
-  To avoid searching the matrix, this routine takes
-  advantage of the fact that element (i,i+1) is 1
-  when i is between 1 and cr->n_categories - 1 and
-  i is 0 otherwise.
+  Return the value of v corresponding to the vector vec.
  */
 union value *
-cr_vector_to_value (const gsl_vector * vec, struct variable *v)
+cat_vector_to_value (const gsl_vector * vec, struct variable *v)
 {
   size_t i;
 
@@ -309,29 +216,6 @@ cr_vector_to_value (const gsl_vector * vec, struct variable *v)
   return NULL;
 }
 
-#if 0
-/*
-  Given a variable, return a pointer to its recoded
-  structure. BUSTED IN HERE.
- */
-struct recoded_categorical *
-cr_var_to_recoded_categorical (const struct variable *v,
-			       struct recoded_categorical_array *ca)
-{
-  struct recoded_categorical *rc;
-  size_t i;
-
-  for (i = 0; i < ca->n_vars; i++)
-    {
-      rc = *(ca->a + i);
-      if (rc->v->index == v->index)
-	{
-	  return rc;
-	}
-    }
-  return NULL;
-}
-#endif
 struct design_matrix *
 design_matrix_create (int n_variables,
 		      const struct variable *v_variables[],
