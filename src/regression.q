@@ -604,7 +604,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 		      pspp_reg_rc = CMD_FAILURE;
 		      return;
 		    }
-		  lcache->depvar = (const struct var *) v;
+		  lcache->depvar = (const struct variable *) v;
 		  gsl_vector_set (Y, row, val->f);
 		}
 	      else
