@@ -1,3 +1,9 @@
+Sun Nov 27 06:43:46 WST 2005 John Darrington <john@darington.wattle.id.au>
+
+	* data-out.c format.h: Added return value to data_out function.
+
+	* value-labels.c: Fixed bug in val_labs_remove.
+
 Sat Nov  5 18:37:26 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Remove devind.c, devind.h from list of source

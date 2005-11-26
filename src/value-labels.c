@@ -220,7 +220,7 @@ val_labs_remove (struct val_labs *vls, union value value)
   if (vls->labels != NULL) 
     {
       struct int_val_lab *ivl = create_int_val_lab (vls, value, "");
-      int deleted = hsh_delete (vls->labels, &ivl);
+      int deleted = hsh_delete (vls->labels, ivl);
       free (ivl);
       return deleted;
     }

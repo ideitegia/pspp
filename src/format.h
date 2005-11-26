@@ -119,7 +119,7 @@ int get_format_var_width (const struct fmt_spec *);
 int parse_string_as_format (const char *s, int len, const struct fmt_spec *fp,
 			    int fc, union value *v);
 int translate_fmt (int spss);
-void data_out (char *s, const struct fmt_spec *fp, const union value *v);
+bool data_out (char *s, const struct fmt_spec *fp, const union value *v);
 char *fmt_to_string (const struct fmt_spec *);
 void num_to_string (double v, char *s, int w, int d);
 struct fmt_spec make_input_format (int type, int w, int d);

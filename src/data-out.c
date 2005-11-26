@@ -56,7 +56,7 @@ static string_converter convert_A, convert_AHEX;
 /* Converts binary value V into printable form in the exactly
    FP->W character in buffer S according to format specification
    FP.  No null terminator is appended to the buffer.  */
-void
+bool
 data_out (char *s, const struct fmt_spec *fp, const union value *v)
 {
   int cat = formats[fp->type].cat;
@@ -73,7 +73,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
         {
           memset (s, ' ', fp->w);
           s[fp->w - fp->d - 1] = '.';
-          return;
+          return true;
         }
 
       /* Handle decimal shift. */
@@ -189,6 +189,8 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
   /* Error handling. */
   if (!ok)
     strncpy (s, "ERROR", fp->w);
+  
+  return ok;
 }
 
 /* Converts V into S in F format with width W and D decimal places,
