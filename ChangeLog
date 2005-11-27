@@ -1,3 +1,8 @@
+Sat Nov 27 20:29:19 2005 Jason Stover <jason@sakla.net>
+
+	* Binary encoding for categorical variables.
+	* Routines for design matrices.
+	
 Thu Oct 20 18:19:58 2005  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Improve error messages.  Thanks to Jaap-Andre de
