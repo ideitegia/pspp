@@ -33,24 +33,21 @@
 
  */
 
-#ifndef CAT_H
-#define CAT_H
+#ifndef CAT_ROUTINES_H
+#define CAT_ROUTINES_H
 #define CAT_VALUE_NOT_FOUND -2
 #include <stdbool.h>
-#include "val.h"
-#include "var.h"
-/*
-  This structure contains the observed values of a 
-  categorical variable.
- */
-struct cat_vals
-{
-  union value *vals;
-  size_t n_categories;
-  size_t n_allocated_categories;	/* This is used only during
-					   initialization to keep
-					   track of the number of
-					   values stored.
-					 */
-};
+#include "cat.h"
+
+size_t cat_value_find (const struct variable *, const union value *);
+
+union value *cat_subscript_to_value (const size_t, struct variable *);
+
+void cat_stored_values_create (struct variable *);
+
+void cat_value_update (struct variable *, const union value *);
+
+void cat_create_value_matrix (struct variable *);
+
+void cat_stored_values_destroy (struct variable *);
 #endif

@@ -84,6 +84,7 @@ pspp_SOURCES =					\
 	casefile.h				\
 	cat.c					\
 	cat.h					\
+	cat-routines.h				\
 	chart.c					\
 	chart.h					\
 	ctl-stack.c				\
@@ -105,6 +106,8 @@ pspp_SOURCES =					\
 	date.c					\
 	debug-print.h				\
 	descript.c				\
+	design-matrix.h				\
+	design-matrix.c				\
 	dfm-read.c				\
 	dfm-read.h				\
 	dfm-write.c				\
