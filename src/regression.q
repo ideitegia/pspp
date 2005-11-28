@@ -499,7 +499,6 @@ static void
 run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 {
   size_t i;
-  size_t k;
   size_t n_data = 0;
   size_t row;
   size_t case_num;
@@ -514,6 +513,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   struct casereader *r2;
   struct ccase c;
   struct variable *v;
+  struct variable **indep_vars;
   struct design_matrix *X;
   gsl_vector *Y;
   pspp_linreg_cache *lcache;
@@ -536,29 +536,35 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
      Read from the active file. The first pass encodes categorical
      variables and drops cases with missing values.
    */
+  j = 0;
   for (i = 0; i < cmd.n_variables; i++)
     {
-      v = cmd.v_variables[i];
-      if (v->type == ALPHA)
+      if (!is_depvar (i))
 	{
-	  /* Make a place to hold the binary vectors 
-	     corresponding to this variable's values. */
-	  cat_stored_values_create (v);
-	}
-      for (r = casefile_get_reader (cf);
-	   casereader_read (r, &c); case_destroy (&c))
-	{
-	  row = casereader_cnum (r) - 1;
-
-	  val = case_data (&c, v->fv);
-	  cat_value_update (v, val);
-	  if (mv_is_value_missing (&v->miss, val))
+	  v = cmd.v_variables[i];
+	  indep_vars[j] = v;
+	  j++;
+	  if (v->type == ALPHA)
 	    {
-	      if (!is_missing_case[row])
+	      /* Make a place to hold the binary vectors 
+		 corresponding to this variable's values. */
+	      cat_stored_values_create (v);
+	    }
+	  for (r = casefile_get_reader (cf);
+	       casereader_read (r, &c); case_destroy (&c))
+	    {
+	      row = casereader_cnum (r) - 1;
+	      
+	      val = case_data (&c, v->fv);
+	      cat_value_update (v, val);
+	      if (mv_is_value_missing (&v->miss, val))
 		{
-		  /* Now it is missing. */
-		  n_data--;
-		  is_missing_case[row] = 1;
+		  if (!is_missing_case[row])
+		    {
+		      /* Now it is missing. */
+		      n_data--;
+		      is_missing_case[row] = 1;
+		    }
 		}
 	    }
 	}
@@ -566,7 +572,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 
   Y = gsl_vector_alloc (n_data);
   X =
-    design_matrix_create (n_indep, (const struct variable **) cmd.v_variables,
+    design_matrix_create (n_indep, (const struct variable **) indep_vars,
 			  n_data);
   lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
   lcache->indep_means = gsl_vector_alloc (X->m->size2);
@@ -580,7 +586,6 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
        case_destroy (&c))
     /* Iterate over the cases. */
     {
-      k = 0;
       case_num = casereader_cnum (r2) - 1;
       if (!is_missing_case[case_num])
 	{
@@ -620,8 +625,6 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 		      design_matrix_set_numeric (X, row, v, val);
 		    }
 
-		  indep_vars[k] = i;
-		  k++;
 		  lopts.get_indep_mean_std[i] = 1;
 		}
 	    }
