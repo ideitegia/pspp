@@ -113,8 +113,8 @@ design_matrix_create (int n_variables,
       (dm->vars + i)->first_column = n_cols;
       if (v->type == NUMERIC)
 	{
-	  n_cols++;
 	  (dm->vars + i)->last_column = n_cols;
+	  n_cols++;
 	}
       else if (v->type == ALPHA)
 	{
