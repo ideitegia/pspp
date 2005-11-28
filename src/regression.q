@@ -40,6 +40,8 @@
 #include "var.h"
 #include "vfm.h"
 
+#define REG_LARGE_DATA 1000
+
 /* (headers) */
 
 
@@ -644,10 +646,17 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	(const struct variable *) design_matrix_col_to_var (X, i);
       assert (lcache->coeff[j].v != NULL);
     }
+  /*
+    For large data sets, use QR decomposition.
+   */
+  if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
+    {
+      lcache->method = PSPP_LINREG_SVD;
+    }
   /* 
      Find the least-squares estimates and other statistics.
    */
-  pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
+    pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
   subcommand_statistics (cmd.a_statistics, lcache);
   gsl_vector_free (Y);
   design_matrix_destroy (X);
