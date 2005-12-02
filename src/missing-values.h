@@ -44,7 +44,10 @@ struct missing_values
     union value values[3];      /* Missing values.  [y,z] are the range. */
   };
 
+
 void mv_init (struct missing_values *, int width);
+void mv_set_type(struct missing_values *mv, enum mv_type type);
+
 void mv_copy (struct missing_values *, const struct missing_values *);
 bool mv_is_empty (const struct missing_values *);
 int mv_get_width (const struct missing_values *);
@@ -54,10 +57,17 @@ bool mv_add_str (struct missing_values *, const char[]);
 bool mv_add_num (struct missing_values *, double);
 bool mv_add_num_range (struct missing_values *, double low, double high);
 
-bool mv_has_value (struct missing_values *);
+bool mv_has_value (const struct missing_values *);
 void mv_pop_value (struct missing_values *, union value *);
-bool mv_has_range (struct missing_values *);
+void mv_peek_value (const struct missing_values *mv, union value *v, int idx);
+void mv_replace_value (struct missing_values *mv, const union value *v, int idx);
+
+int  mv_n_values (const struct missing_values *mv);
+
+
+bool mv_has_range (const struct missing_values *);
 void mv_pop_range (struct missing_values *, double *low, double *high);
+void mv_peek_range (const struct missing_values *, double *low, double *high);
 
 bool mv_is_resizable (struct missing_values *, int width);
 void mv_resize (struct missing_values *, int width);

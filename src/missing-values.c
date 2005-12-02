@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "str.h"
 
+
 /* Initializes MV as a set of missing values for a variable of
    the given WIDTH.  Although only numeric variables and short
    string variables may have missing values, WIDTH may be any
@@ -35,10 +36,19 @@ mv_init (struct missing_values *mv, int width)
   mv->width = width;
 }
 
+void 
+mv_set_type(struct missing_values *mv, enum mv_type type)
+{
+  mv->type = type;
+}
+
+
 /* Copies SRC to MV. */
 void
 mv_copy (struct missing_values *mv, const struct missing_values *src) 
 {
+  assert(src);
+
   *mv = *src;
 }
 
@@ -135,7 +145,7 @@ mv_add_num_range (struct missing_values *mv, double low, double high)
 /* Returns true if MV contains an individual value,
    false if MV is empty (or contains only a range). */
 bool
-mv_has_value (struct missing_values *mv)
+mv_has_value (const struct missing_values *mv)
 {
   switch (mv->type) 
     {
@@ -163,10 +173,44 @@ mv_pop_value (struct missing_values *mv, union value *v)
   *v = mv->values[mv->type & 3];
 }
 
+/* Stores  a value  in *V.
+   MV must contain an individual value (as determined by
+   mv_has_value()). 
+   IDX is the zero based index of the value to get
+*/
+void
+mv_peek_value (const struct missing_values *mv, union value *v, int idx) 
+{
+  assert (idx >= 0 ) ;
+  assert (idx < 3);
+
+  assert (mv_has_value (mv));
+  *v = mv->values[idx];
+}
+
+void 
+mv_replace_value (struct missing_values *mv, const union value *v, int idx)
+{
+  assert (idx >= 0) ;
+  assert (idx < mv_n_values(mv));
+
+  mv->values[idx] = *v;
+}
+
+
+
+int  
+mv_n_values (const struct missing_values *mv)
+{
+  assert(mv_has_value(mv));
+  return mv->type & 3;
+}
+
+
 /* Returns true if MV contains a numeric range,
    false if MV is empty (or contains only individual values). */
 bool
-mv_has_range (struct missing_values *mv) 
+mv_has_range (const struct missing_values *mv) 
 {
   switch (mv->type) 
     {
@@ -194,6 +238,19 @@ mv_pop_range (struct missing_values *mv, double *low, double *high)
   *high = mv->values[2].f;
   mv->type &= 3;
 }
+
+
+/* Returns the numeric range from MV  into *LOW and
+   *HIGH.  MV must contain a individual range (as determined by
+   mv_has_range()). */
+void
+mv_peek_range (const struct missing_values *mv, double *low, double *high) 
+{
+  assert (mv_has_range (mv));
+  *low = mv->values[1].f;
+  *high = mv->values[2].f;
+}
+
 
 /* Returns true if values[IDX] is in use when the `type' member
    is set to TYPE (in struct missing_values),
