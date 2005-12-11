@@ -20,6 +20,7 @@
 #include <config.h>
 #include "settings.h"
 #include <assert.h>
+#include <stdlib.h>
 #include <time.h>
 #include "format.h"
 #include "val.h"
@@ -77,8 +78,6 @@ static struct custom_currency cc[CC_CNT] =
     CC_INITIALIZER,
   };
 
-static gsl_rng *rng;
-
 static bool testing_mode = false;
 
 static int global_algorithm = ENHANCED;
@@ -92,9 +91,6 @@ static void init_viewport (void);
 void
 done_settings (void)
 {
-  if (rng != NULL) 
-    gsl_rng_free (rng);
-
   free (prompt);
   free (cprompt);
   free (dprompt);
@@ -494,7 +490,7 @@ set_endcmd (char endcmd_)
 /* Approximate maximum amount of memory to use for cases, in
    bytes. */
 size_t
-get_workspace(void)
+get_workspace (void)
 {
   return workspace;
 }
@@ -538,26 +534,6 @@ set_cc (int idx, const struct custom_currency *cc_)
 {
   assert (idx >= 0 && idx < CC_CNT);
   cc[idx] = *cc_;
-}
-
-/* Returns the current random number generator. */
-gsl_rng *
-get_rng (void)
-{
-  if (rng == NULL)
-    set_rng (time (0));
-  return rng;
-}
-
-/* Initializes or reinitializes the random number generator with
-   the given SEED. */
-void
-set_rng (unsigned long seed) 
-{
-  rng = gsl_rng_alloc (gsl_rng_mt19937);
-  if (rng == NULL)
-    xalloc_die ();
-  gsl_rng_set (rng, seed);
 }
 
 /* Are we in testing mode?  (e.g. --testing-mode command line

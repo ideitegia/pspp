@@ -26,7 +26,7 @@
 #include "command.h"
 #include "error.h"
 #include "lexer.h"
-#include "settings.h"
+#include "random.h"
 #include "str.h"
 #include "var.h"
 

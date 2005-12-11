@@ -32,6 +32,7 @@
 #include "magic.h"
 #include "log.h"
 #include "output.h"
+#include "random.h"
 #include "var.h"
 #include "format.h"
 #include "copyleft.h"

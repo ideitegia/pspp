@@ -187,6 +187,8 @@ pspp_SOURCES =					\
 	pool.h					\
 	postscript.c				\
 	print.c					\
+	random.c				\
+	random.h				\
 	range-prs.c				\
 	range-prs.h				\
 	recode.c				\

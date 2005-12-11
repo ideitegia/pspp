@@ -1,3 +1,22 @@
+Sat Dec 10 23:30:19 2005  Ben Pfaff  <blp@gnu.org>
+
+	Separate random numbers from other settings because of GSL
+	dependency.
+
+	* Makefile.am: Add random.c, random.h to sources.
+
+	* glob.c: (init_glob) Call random_init().
+	(done_glob) Call random_done().
+
+	* settings.c: (static var rng) Move to random.c.
+	(done_settings) Move freeing of RNG to random_done().
+	(get_rng) Move to random.c
+	(set_rng) Ditto.
+
+	* random.c: New file.
+
+	* random.h: New file.
+
 Sat Dec 10 18:13:36 2005  Ben Pfaff  <blp@gnu.org>
 
 	Separate settings and the SET command, for modularity.

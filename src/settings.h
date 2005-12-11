@@ -116,11 +116,6 @@ struct custom_currency
 const struct custom_currency *get_cc (int idx);
 void set_cc (int idx, const struct custom_currency *);
 
-#include <gsl/gsl_rng.h>
-
-gsl_rng *get_rng (void);
-void set_rng (unsigned long seed);
-
 bool get_testing_mode (void);
 void set_testing_mode (bool);
 

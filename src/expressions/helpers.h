@@ -17,6 +17,7 @@
 #include "gsl-extras/gsl-extras.h"
 #include "misc.h"
 #include "moments.h"
+#include "random.h"
 #include "settings.h"
 #include "str.h"
 #include "val.h"

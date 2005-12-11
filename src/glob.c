@@ -71,6 +71,7 @@ extern void stifle_history ();
 #include "lexer.h"
 #include "magic.h"
 #include "main.h"
+#include "random.h"
 #include "settings.h"
 #include "str.h"
 #include "var.h"
@@ -160,7 +161,8 @@ init_glob (int argc UNUSED, char **argv)
   }
 
 
-  init_settings();
+  init_settings ();
+  random_init ();
 
   /* log.h */
   logging = 1;
@@ -176,6 +178,7 @@ done_glob(void)
   cancel_transformations ();
   dict_destroy (default_dict);
   free (logfn);
+  random_done ();
   done_settings ();
   ds_destroy (&tokstr);
 
