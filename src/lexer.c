@@ -806,7 +806,7 @@ lex_preprocess_line (void)
 	dot = 1;
 	len--;
       }
-    else if (len == 0 && get_nullline() )
+    else if (len == 0 && get_nulline ())
       dot = 1;
     else
       dot = 0;

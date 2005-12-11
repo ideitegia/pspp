@@ -262,8 +262,6 @@ SET
         /MXERRS=max_errs
         /MXWARNS=max_warnings
         /PROMPT='prompt'
-        /VIEWLENGTH=@{MINIMUM,MEDIAN,MAXIMUM,n_lines@}
-        /VIEWWIDTH=n_characters
 
 (program execution)
         /MEXPAND=@{ON,OFF@}
@@ -287,22 +285,15 @@ SET
         /PRINTBACK=@{ON,OFF@}
         /RESULTS=@{ON,OFF,TERMINAL,LISTING,BOTH,NONE@}
 
-(output activation)
-        /LISTING=@{ON,OFF@}
-        /PRINTER=@{ON,OFF@}
-        /SCREEN=@{ON,OFF@}
-
 (output driver options)
         /HEADERS=@{NO,YES,BLANK@}
         /LENGTH=@{NONE,length_in_lines@}
-        /LISTING=filename
+        /LISTING=@{ON,OFF,filename@}
         /MORE=@{ON,OFF@}
-        /PAGER=@{OFF,"pager_name"@}
         /WIDTH=@{NARROW,WIDTH,n_characters@}
 
 (logging)
         /JOURNAL=@{ON,OFF@} [filename]
-        /LOG=@{ON,OFF@} [filename]
 
 (system files)
         /COMPRESSION=@{ON,OFF@}
@@ -312,29 +303,19 @@ SET
         /SAFER=ON
 
 (obsolete settings accepted for compatibility, but ignored)
-        /AUTOMENU=@{ON,OFF@}
-        /BEEP=@{ON,OFF@}
-        /BLOCK='c'
         /BOXSTRING=@{'xxx','xxxxxxxxxxx'@}
         /CASE=@{UPPER,UPLOW@}
-        /COLOR=@dots{}
         /CPI=cpi_value
         /DISK=@{ON,OFF@}
-        /EJECT=@{ON,OFF@}
-        /HELPWINDOWS=@{ON,OFF@}
         /HIGHRES=@{ON,OFF@}
         /HISTOGRAM='c'
         /LOWRES=@{AUTO,ON,OFF@}
         /LPI=lpi_value
         /MENUS=@{STANDARD,EXTENDED@}
         /MXMEMORY=max_memory
-        /PTRANSLATE=@{ON,OFF@}
-        /RCOLORS=@dots{}
-        /RUNREVIEW=@{AUTO,MANUAL@}
         /SCRIPTTAB='c'
         /TB1=@{'xxx','xxxxxxxxxxx'@}
         /TBFONTS='string'
-        /WORKDEV=drive_letter
         /WORKSPACE=workspace_size
         /XSORT=@{YES,NO@}
 @end display
@@ -413,15 +394,6 @@ current command file.  The default is 100.
 
 @item PROMPT
 The command prompt.  The default is @samp{PSPP> }.
-
-@item VIEWLENGTH
-The length of the screen in lines.  MINIMUM means 25 lines, MEDIAN and
-MAXIMUM mean 43 lines.  Otherwise specify the number of lines.  Normally
-PSPP should auto-detect your screen size so this shouldn't have to be
-used.
-
-@item VIEWWIDTH
-The width of the screen in characters.  Normally 80 or 132.
 @end table
 
 Program execution subcommands control the way that PSPP commands
@@ -492,20 +464,6 @@ from command files.  The default is OFF.
 @item PRINTBACK
 @item RESULTS
 Currently not used.
-@end table
-
-Output activation subcommands affect whether output devices of
-particular types are enabled.  These subcommands are
-
-@table @asis
-@item LISTING
-Enable or disable listing devices.
-
-@item PRINTER
-Enable or disable printer devices.
-
-@item SCREEN
-Enable or disable screen devices.
 @end table
 
 Output driver option subcommands affect output drivers' settings.  These
@@ -580,24 +538,47 @@ obvious security reasons.
 
 @display
 SHOW
-        /@var{subcommand}
-        
+        [ALL]
+        [BLANKS]
+        [CC]
+        [CCA]
+        [CCB]
+        [CCC]
+        [CCD]
+        [CCE]
+        [COPYING]
+        [DECIMALS]
+        [ENDCMD]
+        [FORMAT]
+        [LENGTH]
+        [MXERRS]
+        [MXLOOPS]
+        [MXWARNS]
+        [SCOMPRESSION]
+        [UNDEFINED]
+        [WARRANTY]
+        [WEIGHT]
+        [WIDTH]
 @end display
 
-@cmd{SHOW} can be used to display the current state of PSPP's
-execution parameters.  All of the parameters which can be changed 
-using  @code{SET} @xref{SET}, can be examined using @cmd{SHOW}, by
-using a subcommand with the same name.
-In addition, @code{SHOW} supports the following subcommands:
+@cmd{SHOW} can be used to display the current state of PSPP's execution
+parameters.  Parameters that can be changed using @cmd{SET}
+(@pxref{SET}), can be examined using @cmd{SHOW} using the subcommand
+with the same name.  @code{SHOW} supports the following additional
+subcommands:
 
 @table @code
+@item ALL
+Show all settings.
+@item CC
+Show all custom currency settings (CCA through CCE).
 @item WARRANTY
 Show details of the lack of warranty for PSPP.
 @item COPYING
-Display the terms of PSPP's copyright licence @ref{License}.
+Display the terms of PSPP's copyright licence (@pxref{License}).
 @end table
 
-
+Specifying @cmd{SHOW} without any subcommands is equivalent to SHOW ALL.
 
 @node SUBTITLE, TITLE, SHOW, Utilities
 @section SUBTITLE

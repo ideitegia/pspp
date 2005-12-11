@@ -965,7 +965,7 @@ year4 (int year)
 static int
 try_CCx (char *dst, const struct fmt_spec *fp, double number)
 {
-  const struct set_cust_currency *cc = get_cc(fp->type - FMT_CCA);
+  const struct custom_currency *cc = get_cc(fp->type - FMT_CCA);
 
   struct fmt_spec f;
 
@@ -975,7 +975,7 @@ try_CCx (char *dst, const struct fmt_spec *fp, double number)
 
   /* Determine length available, decimal character for number
      proper. */
-  f.type = cc->decimal == get_decimal() ? FMT_COMMA : FMT_DOT;
+  f.type = cc->decimal == get_decimal () ? FMT_COMMA : FMT_DOT;
   f.w = fp->w - strlen (cc->prefix) - strlen (cc->suffix);
   if (number < 0)
     f.w -= strlen (cc->neg_prefix) + strlen (cc->neg_suffix) - 1;

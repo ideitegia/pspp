@@ -1,3 +1,25 @@
+Sat Dec 10 18:13:36 2005  Ben Pfaff  <blp@gnu.org>
+
+	Separate settings and the SET command, for modularity.
+	
+	* Makefile.am: Add settings.c to sources.
+
+	* glob.c: (global variable test_mode) Removed.
+
+	* set.q: Remove all the set_* variables.  Remove a lot of obsolete
+	SPSS/PC+ settings.  Remove the aux_*() routines.  Moved the
+	get_*() functions into settings.c.  Rewrite the settings code and
+	functions to call the new set_*() functions.  Rewrite custom
+	currency parsing.  Write new by-hand cmd_show().
+
+	* esttings.c: New file.  Moved the get_*() functions here from
+	set.q.  Created new set_*() functions to correspond with them.
+	Regularized the names and types of some functions and updated
+	their callers.  Added static, file-scope variables to support the
+	settings.
+
+	* q2c.c: Remove "aux" support, which was only needed by set.q.
+	
 Sun Nov 27 06:43:46 WST 2005 John Darrington <john@darington.wattle.id.au>
 
 	* data-out.c format.h: Added return value to data_out function.

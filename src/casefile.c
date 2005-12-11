@@ -331,7 +331,7 @@ casefile_append (struct casefile *cf, const struct ccase *c)
   /* Try memory first. */
   if (cf->storage == MEMORY) 
     {
-      if (case_bytes < get_max_workspace ())
+      if (case_bytes < get_workspace ())
         {
           size_t block_idx = cf->case_cnt / CASES_PER_BLOCK;
           size_t case_idx = cf->case_cnt % CASES_PER_BLOCK;

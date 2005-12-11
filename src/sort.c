@@ -72,7 +72,7 @@ cmd_sort_cases (void)
   if (criteria == NULL)
     return CMD_FAILURE;
 
-  if (test_mode && lex_match ('/')) 
+  if (get_testing_mode () && lex_match ('/')) 
     {
       if (!lex_force_match_id ("BUFFERS") || !lex_match ('=')
           || !lex_force_int ())
@@ -443,7 +443,7 @@ allocate_cases (struct initial_run_state *irs)
   approx_case_cost = (sizeof *irs->records
                       + irs->xsrt->value_cnt * sizeof (union value)
                       + 4 * sizeof (void *));
-  max_cases = get_max_workspace() / approx_case_cost;
+  max_cases = get_workspace() / approx_case_cost;
   if (max_cases > max_buffers)
     max_cases = max_buffers;
   irs->records = nmalloc (sizeof *irs->records, max_cases);
@@ -462,7 +462,7 @@ allocate_cases (struct initial_run_state *irs)
       msg (SE, _("Out of memory.  Could not allocate room for minimum of %d "
 		 "cases of %d bytes each.  (PSPP workspace is currently "
 		 "restricted to a maximum of %d KB.)"),
-	   min_buffers, approx_case_cost, get_max_workspace() / 1024);
+	   min_buffers, approx_case_cost, get_workspace() / 1024);
       return 0;
     }
   return 1;

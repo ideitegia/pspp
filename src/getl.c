@@ -433,7 +433,7 @@ static int
 read_console (void)
 {
   char *line;
-  char *prompt;
+  const char *prompt;
 
   err_error_count = err_warning_count = 0;
   err_already_flagged = 0;
@@ -453,15 +453,15 @@ read_console (void)
   switch (getl_prompt)
     {
     case GETL_PRPT_STANDARD:
-      prompt = get_prompt();
+      prompt = get_prompt ();
       break;
 
     case GETL_PRPT_CONTINUATION:
-      prompt = get_cprompt();
+      prompt = get_cprompt ();
       break;
 
     case GETL_PRPT_DATA:
-      prompt = get_dprompt();
+      prompt = get_dprompt ();
       break;
 
     default:

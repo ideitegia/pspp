@@ -86,8 +86,6 @@ struct expression *process_if_expr;
 struct transformation *t_trns;
 size_t n_trns, m_trns, f_trns;
 
-short test_mode=0;
-
 int FILTER_before_TEMPORARY;
 
 struct file_handle *default_handle;

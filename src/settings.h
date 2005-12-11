@@ -20,102 +20,8 @@
 #if !settings_h
 #define settings_h 1
 
-/* Table of mode settings (x=X, w=Windows, p=PC+, f=has relevance for
-   PSPP):
-
-   AUTOMENU: p
-   BEEP: p
-   BLANKS: xwpf
-   BLKSIZE: x (only on SHOW, not on SET)
-   BLOCK: xwp
-   BOX/BOXSTRING: xwp
-   BUFNO: x (only on SHOW, not on SET)
-   CASE: xw
-   CCA...CCE: xwf
-   COLOR: p
-   COMP/COMPRESSION: xwpf (meaning varies between p and xw)
-   CPI: xwp
-   CPROMPT: pf
-   DECIMAL: wf
-   DPROMPT: f
-   ECHO: pf
-   EJECT: p
-   EMULATION: f
-   ENDCMD: xpf
-   ERRORBREAK: pf
-   ERRORS: wf
-   FORMAT: xwf
-   HEADERS: xwf
-   HELPWINDOWS: p
-   HIGHRES: w
-   HISTOGRAM: xp
-   INCLUDE: pf
-   JOURNAL: wf (equivalent to LOG)
-   LENGTH: xwp
-   LISTING: xpf
-   LOG: pf (equivalent to JOURNAL)
-   LOWRES: w
-   LPI: xwp
-   MENUS: p
-   MESSAGES: wf
-   MEXPAND: xwf
-   MITERATE: xwf
-   MNEST: xwf
-   MORE: pf
-   MPRINT: xwf
-   MXERRS: xf
-   MXLOOPS: xwf
-   MXMEMORY: w
-   MXWARNS: xwf
-   N: xw (only on SHOW, not on SET)
-   NULLINE: xpf
-   NUMBERED: x (only on SHOW, not on SET)
-   PAGER: f
-   PRINTBACK: xwf
-   PRINTER: pf
-   PROMPT: pf
-   PTRANSLATE: p
-   RCOLOR: p
-   RESULTS: wpf (semantics differ)
-   RUNREVIEW: p
-   SCOMP/SCOMPRESSION: xwf
-   SCREEN: pf
-   SCRIPTTAB: xw
-   SEED: xwpf (semantics differ)
-   SYSMIS: xwf (only on SHOW, not on SET)
-   TBFONTS: xw
-   TB1: xw
-   TB2: x
-   UNDEFINED: xwf
-   VIEWLENGTH: pf
-   VIEWWIDTH: f
-   WEIGHT: xwf (only on SHOW, not on SET)
-   WIDTH: xwp
-   WORKDEV: p
-   WORKSPACE: w
-   XSORT: x
-   $VARS: wf (only on SHOW, not on SET)
-
- */
-
+#include <stdbool.h>
 #include <stddef.h>
-#include <float.h>
-
-
-/* Describes one custom currency specification. */
-struct set_cust_currency
-  {
-    char buf[32];		/* Buffer for strings. */
-    char *neg_prefix;		/* Negative prefix. */
-    char *prefix;		/* Prefix. */
-    char *suffix;		/* Suffix. */
-    char *neg_suffix;		/* Negative suffix. */
-    int decimal;		/* Decimal point. */
-    int grouping;		/* Grouping character. */
-  };
-
-
-
 
 /* Types of routing. */
 enum
@@ -126,135 +32,108 @@ enum
     SET_ROUTE_DISABLE = 010	/* Disable output--overrides all other bits. */
   };
 
+void init_settings (void);
+void done_settings (void);
 
-/* Set view width to a very long value, and prevent it from 
-   ever changing */
-void force_long_view(void);
+void force_long_view (void);
+int get_viewlength (void);
+void set_viewlength (int);
 
+int get_viewwidth (void);
+void set_viewwidth (int);
 
-/* Requested "view length" in lines. */
-int get_viewlength(void);
+bool get_safer_mode (void);
+void set_safer_mode (void);
 
-/* Screen width. */
-int get_viewwidth(void);
+char get_decimal (void);
+void set_decimal (char);
+char get_grouping (void);
+void set_grouping (char);
 
-void init_settings(void) ;
-void done_settings(void) ;
+const char *get_prompt (void);
+void set_prompt (const char *);
+const char *get_cprompt (void);
+void set_cprompt (const char *);
+const char *get_dprompt (void);
+void set_dprompt (const char *);
 
-/* Whether pspp can erase and overwrite files */
-int safer_mode(void);
+bool get_echo (void);
+void set_echo (bool);
+bool get_include (void);
+void set_include (bool);
 
-/* Put into safer mode */
-void make_safe(void);
-
-/* The character used for a decimal point: ',' or '.'.  Only respected
-   for data input and output. */
-char get_decimal(void);
-
-/* The character used for grouping in numbers: '.' or ','; the
-   opposite of set_decimal.  Only used in COMMA data input and
-   output. */
-
-char get_grouping(void);
-
-char *get_prompt(void);
-
-/* Prompt used for lines between BEGIN DATA and END DATA. */
-char *get_dprompt(void);
-
-/* Continuation prompt. */
-char *get_cprompt(void);
-
-
-/* Whether we echo commands to the listing file/printer;*/
-int get_echo(void);
-
-/* What year to use as the start of the epoch. */
 int get_epoch (void);
+void set_epoch (int);
 
-/* If echo is on, whether commands from include files are echoed */
-int get_include(void);
+bool get_errorbreak (void);
+void set_errorbreak (bool);
 
-/* Whether an error stops execution; */
-int  get_errorbreak(void);
+bool get_scompression (void);
+void set_scompression (bool);
 
-/* Whether save files should be compressed by default. */
-int get_scompression(void);
+bool get_undefined (void);
+void set_undefined (bool);
+double get_blanks (void);
+void set_blanks (double);
 
-/* Whether to warn on undefined values in numeric data. */
-int get_undefined(void);
+int get_mxwarns (void);
+void set_mxwarns (int);
+int get_mxerrs (void);
+void set_mxerrs (int);
 
-/* Maximum number of warnings + errors. */
-int get_mxwarns(void);
+bool get_printback (void);
+void set_printback (bool);
+bool get_mprint (void);
+void set_mprint (bool);
 
-/* Maximum number of errors. */
-int get_mxerrs(void);
+int get_mxloops (void);
+void set_mxloops (int);
 
-/* 0=macro expansion is disabled, 1=macro expansion is enabled. */
-int get_mexpand(void);
+bool get_nulline (void);
+void set_nulline (bool);
 
-/* Whether commands are written to the display */
-int get_printback(void);
+char get_endcmd (void);
+void set_endcmd (char);
 
-/* Independent of get_printback, controls whether the commands
-   generated by macro invocations are displayed. */
-int get_mprint(void);
+size_t get_workspace (void);
+void set_workspace (size_t);
 
-/* Implied limit of unbounded loop. */
-int get_mxloops(void);
+const struct fmt_spec *get_format (void);
+void set_format (const struct fmt_spec *);
 
-/* Whether a blank line is a command terminator */
-int get_nullline(void);
+/* One custom currency specification. */
+#define CC_WIDTH 16
+struct custom_currency
+  {
+    char neg_prefix[CC_WIDTH];	/* Negative prefix. */
+    char prefix[CC_WIDTH];	/* Prefix. */
+    char suffix[CC_WIDTH];	/* Suffix. */
+    char neg_suffix[CC_WIDTH];	/* Negative suffix. */
+    char decimal;		/* Decimal point. */
+    char grouping;		/* Grouping character. */
+  };
 
-/* The character used to terminate commands. */
-char get_endcmd(void);
-
-/* Approximate maximum amount of memory to use for cases, in
-   bytes. */
-size_t get_max_workspace(void);
-
-/* The value that blank numeric fields are set to when read in;
-   normally SYSMIS. */
-double get_blanks(void);
-
-
-/* Default format for variables created by transformations and by DATA
-   LIST {FREE,LIST}. */
-struct fmt_spec get_format(void);
-
-/* CCA through CCE. */
-const struct set_cust_currency *get_cc(int i);
-
-#if !USE_INTERNAL_PAGER
-/* Name of the pager program. */
-const char *get_pager(void);
-#endif /* !USE_INTERNAL_PAGER */
-
+const struct custom_currency *get_cc (int idx);
+void set_cc (int idx, const struct custom_currency *);
 
 #include <gsl/gsl_rng.h>
+
 gsl_rng *get_rng (void);
+void set_rng (unsigned long seed);
 
+bool get_testing_mode (void);
+void set_testing_mode (bool);
 
-enum {ENHANCED,COMPATIBLE};
+enum behavior_mode {
+  ENHANCED,             /* Use improved PSPP behavior. */
+  COMPATIBLE            /* Be as compatible as possible. */
+};
 
-
-/* Set the algorithm option globally */
-void set_algorithm(int x);
-
-/* Set the algorithm option for this command only */
-void set_cmd_algorithm(int x);
-
-/* Unset the algorithm option for this command */
-void unset_cmd_algorithm(void);
-
-/* Return the current algorithm setting */
-int get_algorithm(void);
-
-/* Set the syntax option */
-void set_syntax(int x);
-
-/* Get the current syntax setting */
-int get_syntax(void);
-
+enum behavior_mode get_algorithm (void);
+void set_algorithm (enum behavior_mode);
+enum behavior_mode get_syntax (void);
+void set_syntax(enum behavior_mode);
+void set_cmd_algorithm (enum behavior_mode);
+void unset_cmd_algorithm (void);
 
 #endif /* !settings_h */

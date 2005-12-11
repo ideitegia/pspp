@@ -208,12 +208,12 @@ find_defn_value (const char *key)
       return d->value;
   if (!strcmp (key, "viewwidth"))
     {
-      sprintf (buf, "%d", get_viewwidth());
+      sprintf (buf, "%d", get_viewwidth ());
       return buf;
     }
   else if (!strcmp (key, "viewlength"))
     {
-      sprintf (buf, "%d", get_viewlength());
+      sprintf (buf, "%d", get_viewlength ());
       return buf;
     }
   else

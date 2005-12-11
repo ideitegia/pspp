@@ -166,10 +166,7 @@ Configuration file contents.  @xref{Configuration files}.
 Fallback defaults.
 @end enumerate
 
-Some of the above may not apply to a particular setting.  For instance,
-the current pager (such as @samp{more}, @samp{most}, or @samp{less})
-cannot be determined by configuration file contents because there is no
-appropriate configuration file.
+Some of the above may not apply to a particular setting.
 
 @node Configuration files, Environment variables, Configuration techniques, Configuration
 @section Configuration files
@@ -1640,14 +1637,6 @@ across operating systems:
 @item Other OSes
 No default path.
 @end table
-
-@item STAT_PAGER
-@itemx PAGER
-@cindex pager
-
-When PSPP invokes an external pager, it uses the first of these that
-is defined.  There is a default pager only if the person who compiled
-PSPP defined one.
 
 @item TERM
 

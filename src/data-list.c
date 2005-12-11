@@ -844,7 +844,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 	{
 	  lex_match ('*');
           input = make_input_format (FMT_F, 8, 0);
-	  output = get_format ();
+	  output = *get_format ();
 	}
 
       if (input.type == FMT_A || input.type == FMT_AHEX)

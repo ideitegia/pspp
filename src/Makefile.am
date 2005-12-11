@@ -195,6 +195,7 @@ pspp_SOURCES =					\
 	repeat.h				\
 	sample.c				\
 	sel-if.c				\
+	settings.c				\
 	settings.h				\
 	sfm-read.c				\
 	sfm-read.h				\

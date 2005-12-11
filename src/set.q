@@ -17,47 +17,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-/*
-   Categories of SET subcommands:
-
-   data input: BLANKS, DECIMAL, FORMAT, EPOCH.
-   
-   program input: ENDCMD, NULLINE.
-   
-   interaction: CPROMPT, DPROMPT, ERRORBREAK, MXERRS, MXWARNS, PROMPT.
-   
-   program execution: MEXPAND, MITERATE, MNEST, MPRINT,
-   MXLOOPS, SEED, UNDEFINED.
-
-   data output: CCA...CCE, DECIMAL, FORMAT, RESULTS-p.
-
-   output routing: ECHO, ERRORS, INCLUDE, MESSAGES, PRINTBACK, ERRORS,
-   RESULTS-rw.
-
-   output activation: LISTING (on/off), SCREEN, PRINTER.
-
-   output driver options: HEADERS, MORE, PAGER, VIEWLENGTH, VIEWWIDTH,
-   LISTING (filename).
-
-   logging: LOG, JOURNAL.
-
-   system files: COMP/COMPRESSION, SCOMP/SCOMPRESSION.
-
-   security: SAFER.
-*/
-
-/*
-   FIXME
-
-   These subcommands remain to be implemented:
-     ECHO, PRINTBACK, INCLUDE
-     MORE, PAGER, VIEWLENGTH, VIEWWIDTH, HEADERS
-
-   These subcommands are not complete:
-     MESSAGES, ERRORS, RESULTS
-     LISTING/DISK, LOG/JOURNAL
-*/     
-   
 #include <config.h>
 #include "settings.h"
 #include "error.h"
@@ -67,6 +26,7 @@
 #include <time.h>
 #include "alloc.h"
 #include "command.h"
+#include "dictionary.h"
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
@@ -75,8 +35,8 @@
 #include "var.h"
 #include "format.h"
 #include "copyleft.h"
+#include "var.h"
 
-#include "signal.h"
 
 #if HAVE_LIBTERMCAP
 #if HAVE_TERMCAP_H
@@ -90,49 +50,8 @@ int tgetnum (const char *);
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int set_errors;
-static int set_messages;
-static int set_results;
-
-static double set_blanks=SYSMIS;
-
-static int set_epoch = -1;
-
-static struct fmt_spec set_format={FMT_F,8,2};
-
-static struct set_cust_currency set_cc[5];
-  
-static char *set_journal;
-static int set_journaling;
-
-static int set_listing=1;
-
-#if !USE_INTERNAL_PAGER
-static char *set_pager=0;
-#endif /* !USE_INTERNAL_PAGER */
-
-static gsl_rng *rng;
-
-static int long_view=0;
-int set_testing_mode=0;
-static int set_viewlength;
-static int set_viewwidth;
-
-void aux_show_warranty(void);
-void aux_show_copying(void);
-
-static const char *route_to_string(int routing);
-static void set_routing (int q, int *setting);
-
-static int set_ccx (const char *cc_string, struct set_cust_currency * cc,
-		    int cc_name);
-static void set_rng (unsigned long);
-static unsigned long random_seed (void);
-
 /* (specification)
    "SET" (stc_):
-     automenu=automenu:on/off;
-     beep=beep:on/off;
      blanks=custom;
      block=string "x==1" "one character long";
      boxstring=string "x==3 || x==11" "3 or 11 characters long";
@@ -142,7 +61,6 @@ static unsigned long random_seed (void);
      ccc=string;
      ccd=string;
      cce=string;
-     color=custom;
      compression=compress:on/off;
      cpi=integer "x>0" "%s must be greater than 0";
      cprompt=string;
@@ -150,21 +68,18 @@ static unsigned long random_seed (void);
      disk=custom;
      dprompt=string;
      echo=echo:on/off;
-     eject=eject:on/off;
      endcmd=string "x==1" "one character long";
      epoch=custom;
      errorbreak=errbrk:on/off;
      errors=errors:on/off/terminal/listing/both/none;
      format=custom;
      headers=headers:no/yes/blank;
-     helpwindows=helpwin:on/off;
      highres=hires:on/off;
      histogram=string "x==1" "one character long";
      include=inc:on/off;
      journal=custom;
      length=custom;
      listing=custom;
-     log=custom;
      lowres=lores:auto/on/off;
      lpi=integer "x>0" "%s must be greater than 0";
      menus=menus:standard/extended;
@@ -172,33 +87,23 @@ static unsigned long random_seed (void);
      mexpand=mexp:on/off;
      miterate=integer "x>0" "%s must be greater than 0";
      mnest=integer "x>0" "%s must be greater than 0";
-     more=more:on/off;
      mprint=mprint:on/off;
      mxerrs=integer "x >= 1" "%s must be at least 1";
      mxloops=integer "x >=1" "%s must be at least 1";
      mxmemory=integer;
      mxwarns=integer;
      nulline=null:on/off;
-     pager=custom;
      printback=prtbck:on/off;
-     printer=prtr:on/off;
      prompt=string;
-     ptranslate=ptrans:on/off;
-     rcolor=custom;
-     results=custom;
-     runreview=runrev:auto/manual;
+     results=res:on/off/terminal/listing/both/none;
      safer=safe:on;
      scompression=scompress:on/off;
-     screen=scrn:on/off;
      scripttab=string "x==1" "one character long";
      seed=custom;
      tb1=string "x==3 || x==11" "3 or 11 characters long";
      tbfonts=string;
      undefined=undef:warn/nowarn;
-     viewlength=custom;
-     viewwidth=custom;
      width=custom;
-     workdev=custom;
      workspace=integer "x>=1024" "%s must be at least 1 MB";
      xsort=xsort:yes/no.
 */
@@ -207,439 +112,191 @@ static unsigned long random_seed (void);
 
 /* (_functions) */
 
-static int
-aux_stc_custom_blanks(struct cmd_set *cmd UNUSED)
-{
-  if ( set_blanks == SYSMIS ) 
-    msg(MM, "SYSMIS");
-  else
-    msg(MM, "%g", set_blanks);
-  return 0;
-}
-
-
-static int
-aux_stc_custom_color(struct cmd_set *cmd UNUSED)
-{
-  msg (MW, _("%s is obsolete."),"COLOR");
-  return 0;
-}
-
-static int
-aux_stc_custom_listing(struct cmd_set *cmd UNUSED)
-{
-  if ( set_listing ) 
-    msg(MM, _("LISTING is ON"));
-  else
-    msg(MM, _("LISTING is OFF"));
-
-  return 0;
-}
-
-static int
-aux_stc_custom_disk(struct cmd_set *cmd UNUSED)
-{
-  return aux_stc_custom_listing(cmd);
-}
-
-static int
-aux_stc_custom_epoch(struct cmd_set *cmd UNUSED) 
-{
-  msg (MM, _("EPOCH is %d"), get_epoch ());
-  return 0;
-}
-
-static int
-aux_stc_custom_format(struct cmd_set *cmd UNUSED)
-{
-  msg(MM, fmt_to_string(&set_format));
-  return 0;
-}
-
-
-
-static int
-aux_stc_custom_journal(struct cmd_set *cmd UNUSED)
-{
-  if (set_journaling) 
-    msg(MM, set_journal);
-  else
-    msg(MM, _("Journalling is off") );
-	
-  return 0;
-}
-
-static int
-aux_stc_custom_length(struct cmd_set *cmd UNUSED)
-{
-  msg(MM, "%d", set_viewlength);
-  return 0;
-}
-
-static int
-aux_stc_custom_log(struct cmd_set *cmd )
-{
-  return aux_stc_custom_journal (cmd);
-}
-
-static int
-aux_stc_custom_pager(struct cmd_set *cmd UNUSED)
-{
-#if !USE_INTERNAL_PAGER 
-  if ( set_pager ) 
-    msg(MM, set_pager);
-  else
-    msg(MM, "No pager");
-#else /* USE_INTERNAL_PAGER */
-  msg (MM, "Internal pager.");
-#endif /* USE_INTERNAL_PAGER */
-
-  return 0;
-}
-
-static int
-aux_stc_custom_rcolor(struct cmd_set *cmd UNUSED)
-{
-  msg (SW, _("%s is obsolete."),"RCOLOR");
-  return 0;
-}
-
-static int
-aux_stc_custom_results(struct cmd_set *cmd UNUSED)
-{
-  
-  msg(MM, route_to_string(set_results) );
-
-  return 0;
-}
-
-static int
-aux_stc_custom_seed(struct cmd_set *cmd UNUSED)
-{
-  return 0;
-}
-
-static int
-aux_stc_custom_viewlength(struct cmd_set *cmd UNUSED)
-{
-  msg(MM, "%d", set_viewlength);
-  return 0;
-}
-
-static int
-aux_stc_custom_viewwidth(struct cmd_set *cmd UNUSED)
-{
-  msg(MM, "%d", set_viewwidth);
-  return 0;
-}
-
-static int
-aux_stc_custom_width(struct cmd_set *cmd UNUSED)
-{
-  msg(MM, "%d", set_viewwidth);
-  return 0;
-}
-
-static int
-aux_stc_custom_workdev(struct cmd_set *cmd UNUSED)
-{
-  msg (SW, _("%s is obsolete."),"WORKDEV");
-  return 0;
-}
-
-
-
-/* (aux_functions) 
-     warranty=show_warranty;
-     copying=show_copying.
-*/
-
-
-static struct cmd_set cmd;
-
-int
-cmd_show (void)
-{
-  lex_match_id ("SHOW");
-
-  if (!aux_parse_set (&cmd))
-    return CMD_FAILURE;
-
-  return CMD_SUCCESS;
-}
+static bool do_cc (const char *cc_string, int idx);
 
 int
 cmd_set (void)
 {
+  struct cmd_set cmd;
+  bool ok = true;
 
   if (!parse_set (&cmd))
     return CMD_FAILURE;
 
   if (cmd.sbc_cca)
-    set_ccx (cmd.s_cca, &set_cc[0], 'A');
+    ok = ok && do_cc (cmd.s_cca, 0);
   if (cmd.sbc_ccb)
-    set_ccx (cmd.s_ccb, &set_cc[1], 'B');
+    ok = ok && do_cc (cmd.s_ccb, 1);
   if (cmd.sbc_ccc)
-    set_ccx (cmd.s_ccc, &set_cc[2], 'C');
+    ok = ok && do_cc (cmd.s_ccc, 2);
   if (cmd.sbc_ccd)
-    set_ccx (cmd.s_ccd, &set_cc[3], 'D');
+    ok = ok && do_cc (cmd.s_ccd, 3);
   if (cmd.sbc_cce)
-    set_ccx (cmd.s_cce, &set_cc[4], 'E');
+    ok = ok && do_cc (cmd.s_cce, 4);
 
-  if (cmd.sbc_errors)
-    set_routing (cmd.errors, &set_errors);
-  if (cmd.sbc_messages)
-    set_routing (cmd.messages, &set_messages);
+  if (cmd.sbc_prompt)
+    set_prompt (cmd.s_prompt);
+  if (cmd.sbc_cprompt)
+    set_prompt (cmd.s_cprompt);
+  if (cmd.sbc_dprompt)
+    set_prompt (cmd.s_dprompt);
 
-  /* PC+ compatible syntax. */
-  if (cmd.sbc_screen)
-    outp_enable_device (cmd.scrn == STC_OFF ? 0 : 1, OUTP_DEV_SCREEN);
-  if (cmd.sbc_printer)
-    outp_enable_device (cmd.prtr == STC_OFF ? 0 : 1, OUTP_DEV_PRINTER);
+  if (cmd.sbc_decimal)
+    set_decimal (cmd.dec == STC_DOT ? '.' : ',');
+  if (cmd.sbc_echo)
+    set_echo (cmd.echo == STC_ON);
+  if (cmd.sbc_endcmd)
+    set_endcmd (cmd.s_endcmd[0]);
+  if (cmd.sbc_errorbreak)
+    set_errorbreak (cmd.errbrk == STC_ON);
+  if (cmd.sbc_include)
+    set_include (cmd.inc == STC_ON);
+  if (cmd.sbc_mxerrs)
+    set_mxerrs (cmd.n_mxerrs[0]);
+  if (cmd.sbc_mxwarns)
+    set_mxwarns (cmd.n_mxwarns[0]);
+  if (cmd.sbc_nulline)
+    set_nulline (cmd.null == STC_ON);
+  if (cmd.sbc_safer)
+    set_safer_mode ();
+  if (cmd.sbc_scompression)
+    set_scompression (cmd.scompress == STC_ON);
+  if (cmd.sbc_undefined)
+    set_undefined (cmd.undef == STC_WARN);
+  if (cmd.sbc_workspace)
+    set_workspace (cmd.n_workspace[0] * 1024L);
 
-  if (cmd.sbc_automenu )
-    msg (SW, _("%s is obsolete."),"AUTOMENU");
-  if (cmd.sbc_beep )
-    msg (SW, _("%s is obsolete."),"BEEP");
   if (cmd.sbc_block)
     msg (SW, _("%s is obsolete."),"BLOCK");
   if (cmd.sbc_boxstring)
     msg (SW, _("%s is obsolete."),"BOXSTRING");
-  if (cmd.sbc_eject )
-    msg (SW, _("%s is obsolete."),"EJECT");
-  if (cmd.sbc_helpwindows )
-    msg (SW, _("%s is obsolete."),"HELPWINDOWS");
   if (cmd.sbc_histogram)
     msg (MW, _("%s is obsolete."),"HISTOGRAM");
   if (cmd.sbc_menus )
     msg (MW, _("%s is obsolete."),"MENUS");
-  if (cmd.sbc_ptranslate )
-    msg (SW, _("%s is obsolete."),"PTRANSLATE");
-  if (cmd.sbc_runreview )
-    msg (SW, _("%s is obsolete."),"RUNREVIEW");
   if (cmd.sbc_xsort )
     msg (SW, _("%s is obsolete."),"XSORT");
   if (cmd.sbc_mxmemory )
     msg (SE, _("%s is obsolete."),"MXMEMORY");
   if (cmd.sbc_scripttab)
     msg (SE, _("%s is obsolete."),"SCRIPTTAB");
-
   if (cmd.sbc_tbfonts)
-    msg (SW, _("%s is not yet implemented."),"TBFONTS");
+    msg (SW, _("%s is obsolete."),"TBFONTS");
   if (cmd.sbc_tb1 && cmd.s_tb1)
-    msg (SW, _("%s is not yet implemented."),"TB1");
+    msg (SW, _("%s is obsolete."),"TB1");
 
-  /* Windows compatible syntax. */
   if (cmd.sbc_case)
-    msg (SW, _("CASE is not implemented and probably won't be.  "
-	"If you care, complain about it."));
+    msg (SW, _("%s is not implemented."), "CASE");
 
   if (cmd.sbc_compression)
-    {
-      msg (MW, _("Active file compression is not yet implemented "
-		 "(and probably won't be)."));
-    }
+    msg (MW, _("Active file compression is not implemented."));
 
   return CMD_SUCCESS;
 }
 
-/* Sets custom currency specifier CC having name CC_NAME ('A' through
-   'E') to correspond to the settings in CC_STRING. */
-static int
-set_ccx (const char *cc_string, struct set_cust_currency * cc, int cc_name)
+/* Find the grouping characters in CC_STRING and set CC's
+   grouping and decimal members appropriately.  Returns true if
+   successful, false otherwise. */
+static bool
+find_cc_separators (const char *cc_string, struct custom_currency *cc)
 {
-  if (strlen (cc_string) > 16)
-    {
-      msg (SE, _("CC%c: Length of custom currency string `%s' (%d) "
-		 "exceeds maximum length of 16."),
-	   cc_name, cc_string, strlen (cc_string));
-      return 0;
-    }
-
-  /* Determine separators. */
-  {
-    const char *sp;
-    int n_commas, n_periods;
+  const char *sp;
+  int comma_cnt, dot_cnt;
   
-    /* Count the number of commas and periods.  There must be exactly
-       three of one or the other. */
-    n_commas = n_periods = 0;
-    for (sp = cc_string; *sp; sp++)
-      if (*sp == ',')
-	n_commas++;
-      else if (*sp == '.')
-	n_periods++;
+  /* Count commas and periods.  There must be exactly three of
+     one or the other, except that an apostrophe acts escapes a
+     following comma or period. */
+  comma_cnt = dot_cnt = 0;
+  for (sp = cc_string; *sp; sp++)
+    if (*sp == ',')
+      comma_cnt++;
+    else if (*sp == '.')
+      dot_cnt++;
+    else if (*sp == '\'' && (sp[1] == '.' || sp[1] == ',' || sp[1] == '\''))
+      sp++;
   
-    if (!((n_commas == 3) ^ (n_periods == 3)))
-      {
-	msg (SE, _("CC%c: Custom currency string `%s' does not contain "
-		   "exactly three periods or commas (not both)."),
-	     cc_name, cc_string);
-	return 0;
-      }
-    else if (n_commas == 3)
-      {
-	cc->decimal = '.';
-	cc->grouping = ',';
-      }
-    else
-      {
-	cc->decimal = ',';
-	cc->grouping = '.';
-      }
-  }
-  
-  /* Copy cc_string to cc, changing separators to nulls. */
-  {
-    char *cp;
-    
-    strcpy (cc->buf, cc_string);
-    cp = cc->neg_prefix = cc->buf;
+  if ((comma_cnt == 3) == (dot_cnt == 3))
+    return false;
 
-    while (*cp++ != cc->grouping)
-      ;
-    cp[-1] = '\0';
-    cc->prefix = cp;
-
-    while (*cp++ != cc->grouping)
-      ;
-    cp[-1] = '\0';
-    cc->suffix = cp;
-
-    while (*cp++ != cc->grouping)
-      ;
-    cp[-1] = '\0';
-    cc->neg_suffix = cp;
-  }
-  
-  return 1;
-}
-
-
-const char *
-route_to_string(int routing)
-{
-  static char s[255];
-  
-  s[0]='\0';
-
-  if ( routing == 0 )
+  if (comma_cnt == 3)
     {
-      strcpy(s, _("None"));
-      return s;
-    }
-
-  if (routing & SET_ROUTE_DISABLE ) 
-    {
-    strcpy(s, _("Disabled") );
-    return s;
-    }
-
-  if (routing & SET_ROUTE_SCREEN)
-    strcat(s, _("Screen") );
-  
-  if (routing & SET_ROUTE_LISTING)
-    {
-      if(s[0] != '\0') 
-	strcat(s,", ");
-	
-      strcat(s, _("Listing") );
-    }
-
-  if (routing & SET_ROUTE_OTHER)
-    {
-      if(s[0] != '\0') 
-	strcat(s,", ");
-      strcat(s, _("Other") );
-    }
- 
-    
-  return s;
-  
-    
-}
-
-/* Sets *SETTING, which is a combination of SET_ROUTE_* bits that
-   indicates what to do with some sort of output, to the value
-   indicated by Q, which is a value provided by the input parser. */
-static void
-set_routing (int q, int *setting)
-{
-  switch (q)
-    {
-    case STC_OFF:
-      *setting |= SET_ROUTE_DISABLE;
-      break;
-    case STC_ON:
-      *setting &= ~SET_ROUTE_DISABLE;
-      break;
-    case STC_TERMINAL:
-      *setting &= ~(SET_ROUTE_LISTING | SET_ROUTE_OTHER);
-      *setting |= SET_ROUTE_SCREEN;
-      break;
-    case STC_LISTING:
-      *setting &= ~SET_ROUTE_SCREEN;
-      *setting |= SET_ROUTE_LISTING | SET_ROUTE_OTHER;
-      break;
-    case STC_BOTH:
-      *setting |= SET_ROUTE_SCREEN | SET_ROUTE_LISTING | SET_ROUTE_OTHER;
-      break;
-    case STC_NONE:
-      *setting &= ~(SET_ROUTE_SCREEN | SET_ROUTE_LISTING | SET_ROUTE_OTHER);
-      break;
-    default:
-      assert (0);
-    }
-}
-
-static int
-stc_custom_pager (struct cmd_set *cmd UNUSED)
-{
-  lex_match ('=');
-#if !USE_INTERNAL_PAGER
-  if (lex_match_id ("OFF"))
-    {
-      if (set_pager)
-	free (set_pager);
-      set_pager = NULL;
+      cc->decimal = '.';
+      cc->grouping = ',';
     }
   else
     {
-      if (!lex_force_string ())
-	return 0;
-      if (set_pager)
-	free (set_pager);
-      set_pager = xstrdup (ds_c_str (&tokstr));
-      lex_get ();
+      cc->decimal = ',';
+      cc->grouping = '.';
     }
-  return 1;
-#else /* USE_INTERNAL_PAGER */
-  if (lex_match_id ("OFF"))
-    return 1;
-  msg (SW, "External pagers not supported.");
-  return 0;
-#endif /* USE_INTERNAL_PAGER */
+  return true;
+}
+
+/* Extracts a token from IN into TOKEn.  Tokens are delimited by
+   GROUPING.  The token is truncated to at most CC_WIDTH
+   characters (including null terminator).  Returns the first
+   character following the token. */
+static const char *
+extract_cc_token (const char *in, int grouping, char token[CC_WIDTH]) 
+{
+  char *out = token;
+  
+  for (; *in != '\0' && *in != grouping; in++) 
+    {
+      if (*in == '\'' && in[1] == grouping)
+        in++;
+      if (out < &token[CC_WIDTH - 1])
+        *out++ = *in;
+    }
+  *out = '\0';
+
+  if (*in == grouping)
+    in++;
+  return in;
+}
+
+/* Sets custom currency specifier CC having name CC_NAME ('A' through
+   'E') to correspond to the settings in CC_STRING. */
+static bool
+do_cc (const char *cc_string, int idx)
+{
+  struct custom_currency cc;
+  
+  /* Determine separators. */
+  if (!find_cc_separators (cc_string, &cc)) 
+    {
+      msg (SE, _("CC%c: Custom currency string `%s' does not contain "
+                 "exactly three periods or commas (not both)."),
+           "ABCDE"[idx], cc_string);
+      return false;
+    }
+  
+  cc_string = extract_cc_token (cc_string, cc.grouping, cc.neg_prefix);
+  cc_string = extract_cc_token (cc_string, cc.grouping, cc.prefix);
+  cc_string = extract_cc_token (cc_string, cc.grouping, cc.suffix);
+  cc_string = extract_cc_token (cc_string, cc.grouping, cc.neg_suffix);
+
+  set_cc (idx, &cc);
+  
+  return true;
 }
 
 /* Parses the BLANKS subcommand, which controls the value that
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
-   SYSMIS or a numeric value; PC+: Syntax is '.', which is equivalent
-   to SYSMIS, or a numeric value. */
+   SYSMIS or a numeric value. */
 static int
 stc_custom_blanks (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
-  if ((token == T_ID && lex_id_match ("SYSMIS", tokid))
-      || (token == T_STRING && !strcmp (tokid, ".")))
+  if ((token == T_ID && lex_id_match ("SYSMIS", tokid)))
     {
       lex_get ();
-      set_blanks = SYSMIS;
+      set_blanks (SYSMIS);
     }
   else
     {
       if (!lex_force_num ())
 	return 0;
-      set_blanks = tokval;
+      set_blanks (lex_number ());
       lex_get ();
     }
   return 1;
@@ -652,7 +309,7 @@ stc_custom_epoch (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("AUTOMATIC"))
-    set_epoch = -1;
+    set_epoch (-1);
   else if (lex_is_integer ()) 
     {
       int new_epoch = lex_integer ();
@@ -662,7 +319,7 @@ stc_custom_epoch (struct cmd_set *cmd UNUSED)
           msg (SE, _("EPOCH must be 1500 or later."));
           return 0;
         }
-      set_epoch = new_epoch;
+      set_epoch (new_epoch);
     }
   else 
     {
@@ -694,51 +351,10 @@ stc_custom_length (struct cmd_set *cmd UNUSED)
       lex_get ();
     }
 
-  if ( page_length != -1 ) 
-    set_viewlength = page_length;
+  if (page_length != -1) 
+    set_viewlength (page_length);
 
   return 1;
-}
-
-static int
-stc_custom_results (struct cmd_set *cmd UNUSED)
-{
-  struct tuple
-    {	
-      const char *s;	
-      int v;
-    };
-
-  static struct tuple tab[] =
-    {
-      {"ON", STC_ON},
-      {"OFF", STC_OFF},
-      {"TERMINAL", STC_TERMINAL},
-      {"LISTING", STC_LISTING},
-      {"BOTH", STC_BOTH},
-      {"NONE", STC_NONE},
-      {NULL, 0},
-    };
-
-  struct tuple *t;
-
-  lex_match ('=');
-
-  if (token != T_ID)
-    {
-      msg (SE, _("Missing identifier in RESULTS subcommand."));
-      return 0;
-    }
-  
-  for (t = tab; t->s; t++)
-    if (lex_id_match (t->s, tokid))
-      {
-	lex_get ();
-	set_routing (t->v, &set_results);
-	return 1;
-      }
-  msg (SE, _("Unrecognized identifier in RESULTS subcommand."));
-  return 0;
 }
 
 static int
@@ -746,12 +362,12 @@ stc_custom_seed (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("RANDOM"))
-    set_rng (random_seed ());
+    set_rng (time (0));
   else
     {
       if (!lex_force_num ())
 	return 0;
-      set_rng (tokval);
+      set_rng (lex_number ());
       lex_get ();
     }
 
@@ -761,27 +377,24 @@ stc_custom_seed (struct cmd_set *cmd UNUSED)
 static int
 stc_custom_width (struct cmd_set *cmd UNUSED)
 {
-  int page_width;
-
   lex_match ('=');
   if (lex_match_id ("NARROW"))
-    page_width = 79;
+    set_viewwidth (79);
   else if (lex_match_id ("WIDE"))
-    page_width = 131;
+    set_viewwidth (131);
   else
     {
       if (!lex_force_int ())
 	return 0;
-      if (lex_integer () < 1)
+      if (lex_integer () < 40)
 	{
-	  msg (SE, _("WIDTH must be at least 1."));
+	  msg (SE, _("WIDTH must be at least 40."));
 	  return 0;
 	}
-      page_width = lex_integer ();
+      set_viewwidth (lex_integer ());
       lex_get ();
     }
 
-  set_viewwidth = page_width;
   return 1;
 }
 
@@ -803,7 +416,7 @@ stc_custom_format (struct cmd_set *cmd UNUSED)
       return 0;
     }
 
-  set_format = fmt;
+  set_format (&fmt);
   return 1;
 }
 
@@ -811,67 +424,15 @@ static int
 stc_custom_journal (struct cmd_set *cmd UNUSED)
 {
   lex_match ('=');
-  if (lex_match_id ("ON"))
-    set_journaling = 1;
-  else if (lex_match_id ("OFF"))
-    set_journaling = 0;
-  if (token == T_STRING)
+  if (!lex_match_id ("ON") && !lex_match_id ("OFF")) 
     {
-      set_journal = xstrdup (ds_c_str (&tokstr));
-      lex_get ();
-    }
-  return 1;
-}
-
-/* Parses COLOR subcommand.  PC+: either ON or OFF or two or three
-   comma-delimited numbers inside parentheses. */
-static int
-stc_custom_color (struct cmd_set *cmd UNUSED)
-{
-  msg (MW, _("%s is obsolete."),"COLOR");
-
-  lex_match ('=');
-  if (!lex_match_id ("ON") && !lex_match_id ("YES") && !lex_match_id ("OFF") && !lex_match_id ("NO"))
-    {
-      if (!lex_force_match ('('))
-	return 0;
-      if (!lex_match ('*'))
-	{
-	  if (!lex_force_int ())
-	    return 0;
-	  if (lex_integer () < 0 || lex_integer () > 15)
-	    {
-	      msg (SE, _("Text color must be in range 0-15."));
-	      return 0;
-	    }
-	  lex_get ();
-	}
-      if (!lex_force_match (','))
-	return 0;
-      if (!lex_match ('*'))
-	{
-	  if (!lex_force_int ())
-	    return 0;
-	  if (lex_integer () < 0 || lex_integer () > 7)
-	    {
-	      msg (SE, _("Background color must be in range 0-7."));
-	      return 0;
-	    }
-	  lex_get ();
-	}
-      if (lex_match (',') && !lex_match ('*'))
-	{
-	  if (!lex_force_int ())
-	    return 0;
-	  if (lex_integer () < 0 || lex_integer () > 7)
-	    {
-	      msg (SE, _("Border color must be in range 0-7."));
-	      return 0;
-	    }
-	  lex_get ();
-	}
-      if (!lex_force_match (')'))
-	return 0;
+      if (token == T_STRING)
+        lex_get ();
+      else
+        {
+          lex_error (NULL);
+          return 0;
+        }
     }
   return 1;
 }
@@ -879,17 +440,19 @@ stc_custom_color (struct cmd_set *cmd UNUSED)
 static int
 stc_custom_listing (struct cmd_set *cmd UNUSED)
 {
+  bool listing;
+
   lex_match ('=');
   if (lex_match_id ("ON") || lex_match_id ("YES"))
-    set_listing = 1;
+    listing = true;
   else if (lex_match_id ("OFF") || lex_match_id ("NO"))
-    set_listing = 0;
+    listing = false;
   else
     {
       /* FIXME */
       return 0;
     }
-  outp_enable_device (set_listing, OUTP_DEV_LISTING);
+  outp_enable_device (listing, OUTP_DEV_LISTING);
 
   return 1;
 }
@@ -899,572 +462,258 @@ stc_custom_disk (struct cmd_set *cmd UNUSED)
 {
   return stc_custom_listing (cmd);
 }
-
-static int
-stc_custom_log (struct cmd_set *cmd UNUSED)
-{ 
-  return stc_custom_journal (cmd);
-}
-
-static int
-stc_custom_rcolor (struct cmd_set *cmd UNUSED)
+
+static void
+show_blanks (void) 
 {
-  msg (SW, _("%s is obsolete."),"RCOLOR");
-
-  lex_match ('=');
-  if (!lex_force_match ('('))
-    return 0;
-
-  if (!lex_match ('*'))
-    {
-      if (!lex_force_int ())
-	return 0;
-      if (lex_integer () < 0 || lex_integer () > 6)
-	{
-	  msg (SE, _("Lower window color must be between 0 and 6."));
-	  return 0;
-	}
-      lex_get ();
-    }
-  if (!lex_force_match (','))
-    return 0;
-
-  if (!lex_match ('*'))
-    {
-      if (!lex_force_int ())
-	return 0;
-      if (lex_integer () < 0 || lex_integer () > 6)
-	{
-	  msg (SE, _("Upper window color must be between 0 and 6."));
-	  return 0;
-	}
-      lex_get ();
-    }
-
-  if (lex_match (',') && !lex_match ('*'))
-    {
-      if (!lex_force_int ())
-	return 0;
-      if (lex_integer () < 0 || lex_integer () > 6)
-	{
-	  msg (SE, _("Frame color must be between 0 and 6."));
-	  return 0;
-	}
-      lex_get ();
-    }
-  return 1;
-}
-
-static int
-stc_custom_viewwidth (struct cmd_set *cmd UNUSED)
-{
-  lex_match ('=');
-
-  if ( !lex_force_int() ) 
-    return 0;
-
-  set_viewwidth = lex_integer();
-  lex_get();
-  
-  return 1;
-}
-
-static int
-stc_custom_viewlength (struct cmd_set *cmd UNUSED)
-{
-  if (lex_match_id ("MINIMUM"))
-    set_viewlength = 25;
-  else if (lex_match_id ("MEDIAN"))
-    set_viewlength = 43;	/* This is not correct for VGA displays. */
-  else if (lex_match_id ("MAXIMUM"))
-    set_viewlength = 43;
+  if (get_blanks () == SYSMIS)
+    msg (MM, _("BLANKS is SYSMIS."));
   else
+    msg (MM, _("BLANKS is %g."), get_blanks ());
+
+}
+
+static char *
+format_cc (const char *in, char grouping, char *out) 
+{
+  while (*in != '\0') 
     {
-      if (!lex_force_int ())
-	return 0;
-#ifdef __MSDOS__
-      if (lex_integer () >= (43 + 25) / 2)
-	set_viewlength = 43;
-      else
-	set_viewlength = 25;
-#else /* not dos */
-      set_viewlength = lex_integer ();
-#endif /* not dos */
-      lex_get ();
+      if (*in == grouping || *in == '\'')
+        *out++ = '\'';
+      *out++ = *in++;
     }
-
-#ifdef __MSDOS__
-  msg (SW, _("%s is not yet implemented."),"VIEWLENGTH");
-#endif /* dos */
-  return 1;
-}
-
-static int
-stc_custom_workdev (struct cmd_set *cmd UNUSED)
-{
-  char c[2];
-
-  msg (SW, _("%s is obsolete."),"WORKDEV");
-
-  c[1] = 0;
-  for (*c = 'A'; *c <= 'Z'; (*c)++)
-    if (token == T_ID && lex_id_match (c, tokid))
-      {
-	lex_get ();
-	return 1;
-      }
-  msg (SE, _("Drive letter expected in WORKDEV subcommand."));
-  return 0;
-}
-
-
-
-static void 
-set_viewport(int sig_num UNUSED)
-{
-#if HAVE_LIBTERMCAP
-  static char term_buffer[16384];
-#endif
-
-  set_viewwidth = -1;
-  set_viewlength = -1;
-
-#if __DJGPP__ || __BORLANDC__
-  {
-    struct text_info ti;
-
-    gettextinfo (&ti);
-    set_viewlength = max (ti.screenheight, 25);
-    set_viewwidth = max (ti.screenwidth, 79);
-  }
-#elif HAVE_LIBTERMCAP
-  {
-    char *termtype;
-    int success;
-
-    /* This code stolen from termcap.info, though modified. */
-    termtype = getenv ("TERM");
-    if (!termtype)
-      msg (FE, _("Specify a terminal type with the TERM environment variable."));
-
-    success = tgetent (term_buffer, termtype);
-    if (success <= 0)
-      {
-	if (success < 0)
-	  msg (IE, _("Could not access the termcap data base."));
-	else
-	  msg (IE, _("Terminal type `%s' is not defined."), termtype);
-      }
-    else
-      {
-	/* NOTE: Do not rely upon tgetnum returning -1 if the value is 
-	   not available. It's supposed to do it, but not all platforms 
-	   do (eg Cygwin) .
-	*/
-        if ( -1 != tgetnum("li")) 
-	  set_viewlength = tgetnum ("li");
-
-        if ( -1 != tgetnum("co")) 
-	  set_viewwidth = tgetnum ("co") - 1;
-      }
-  }
-#endif /* HAVE_LIBTERMCAP */
-
-  /* Try the environment variables */
-  if ( -1 ==  set_viewwidth ) 
-    { 
-      char *s = getenv("COLUMNS");
-      if ( s )  set_viewwidth = atoi(s);
-    }
-
-  if ( -1 ==  set_viewwidth ) 
-    {
-      char *s = getenv("LINES");
-      if ( s )  set_viewlength = atoi(s);
-    }
-
-
-  /* Last resort.  Use hard coded values */
-  if ( 0  >  set_viewwidth ) set_viewwidth = 79;
-  if ( 0  >  set_viewlength ) set_viewlength = 24;
-
-}
-
-/* Public functions */
-
-void
-done_settings(void)
-{
-  if ( rng ) 
-    gsl_rng_free (rng);
-  free (set_pager);
-  free (set_journal);
-
-  free (cmd.s_endcmd);
-  free (cmd.s_prompt);
-  free (cmd.s_cprompt);
-  free (cmd.s_dprompt);
-}
-
-
-
-void
-init_settings(void)
-{
-  cmd.s_dprompt = xstrdup (_("data> "));
-  cmd.s_cprompt = xstrdup ("    > ");  
-  cmd.s_prompt = xstrdup ("PSPP> ");
-  cmd.s_endcmd = xstrdup (".");
-
-  assert(cmd.safe == 0 );
-  cmd.safe = STC_OFF;
-
-  cmd.dec = STC_DOT;
-  cmd.n_cpi[0] = 6;
-  cmd.n_lpi[0] = 10;
-  cmd.echo = STC_OFF;
-  cmd.more = STC_ON;
-  cmd.headers = STC_YES;
-  cmd.errbrk = STC_OFF;
-
-  cmd.scompress = STC_OFF;
-  cmd.undef = STC_WARN;
-  cmd.mprint = STC_ON ;
-  cmd.prtbck = STC_ON ;
-  cmd.null = STC_ON ;
-  cmd.inc = STC_ON ;
-
-  set_journal = xstrdup ("pspp.jnl");
-  set_journaling = 1;
-
-  cmd.n_mxwarns[0] = 100;
-  cmd.n_mxerrs[0] = 100;
-  cmd.n_mxloops[0] = 1;
-  cmd.n_workspace[0] = 4L * 1024 * 1024;
-
-
-#if !USE_INTERNAL_PAGER
-  {
-    const char *pager = getenv ("STAT_PAGER");
-
-    if (!pager) 
-      {
-	const char *p = getenv ("PAGER");
-	
-	if ( p != NULL ) 
-	  set_pager = xstrdup (p);
-	else
-	  set_pager = 0;
-      }
-    
-
-    if (pager)  
-      set_pager = xstrdup (pager);
-#if DEFAULT_PAGER
-    else
-      set_pager = xstrdup (DEFAULT_PAGER);
-#endif /* DEFAULT_PAGER */
-  }
-#endif /* !USE_INTERNAL_PAGER */
-
-
-  {
-    int i;
-    
-    for (i = 0; i < 5; i++)
-      {
-	struct set_cust_currency *cc = &set_cc[i];
-	strcpy (cc->buf, "-");
-	cc->neg_prefix = cc->buf;
-	cc->prefix = &cc->buf[1];
-	cc->suffix = &cc->buf[1];
-	cc->neg_suffix = &cc->buf[1];
-	cc->decimal = '.';
-	cc->grouping = ',';
-      }
-  }
-
-  if ( ! long_view )
-    {
-      set_viewport (0);
-      signal (SIGWINCH, set_viewport);
-    }
-
-}
-
-void
-force_long_view(void)
-{
-  long_view = 1;
-  set_viewwidth=9999;
-}
-
-int 
-safer_mode(void)
-{
-  return !(cmd.safe != STC_ON) ;
-}
-
-
-/* Set safer mode */
-void
-make_safe(void)
-{
-  cmd.safe = STC_ON;
-}
-
-
-char 
-get_decimal(void)
-{
-  return (cmd.dec == STC_DOT ? '.' : ',');
-}
-
-int
-get_epoch (void) 
-{
-  if (set_epoch < 0) 
-    {
-      time_t t = time (0);
-      struct tm *tm = localtime (&t);
-      if (tm != NULL) 
-        set_epoch = (tm->tm_year + 1900) - 69;
-      else
-        set_epoch = 2000 - 69;
-    }
-
-  return set_epoch;
-}
-
-char
-get_grouping(void)
-{
-  return (cmd.dec == STC_DOT ? ',' : '.');
-}
- 
-
-char * 
-get_prompt(void)
-{
-  return cmd.s_prompt;
-}
-
-char * 
-get_dprompt(void)
-{
-  return cmd.s_dprompt;
-}
-
-char * 
-get_cprompt(void)
-{
-  return cmd.s_cprompt;
-}
-
-
-int
-get_echo(void)
-{
-    return (cmd.echo != STC_OFF );
-}
-
-
-int 
-get_errorbreak(void)
-{
-  return (cmd.errbrk != STC_OFF);
-}
-
-
-int 
-get_scompression(void)
-{
-  return (cmd.scompress != STC_OFF );
-}
-
-int
-get_undefined(void)
-{
-  return (cmd.undef != STC_NOWARN);
-}
-
-int
-get_mxwarns(void)
-{  
-  return cmd.n_mxwarns[0];
-}
-
-int
-get_mxerrs(void)
-{
-  return cmd.n_mxerrs[0];
-}
-
-int
-get_mprint(void)
-{
-  return ( cmd.mprint != STC_OFF );
-}
-
-int
-get_printback(void)
-{
-  return (cmd.prtbck != STC_OFF );
-}
-
-int
-get_mxloops(void)
-{
-  return cmd.n_mxloops[0];
-}
-
-int
-get_nullline(void)
-{
-  return (cmd.null != STC_OFF );
-}
-
-int
-get_include(void)
-{
- return (cmd.inc != STC_OFF );
-}
-
-char
-get_endcmd(void)
-{
-  return cmd.s_endcmd[0];
-}
-
-
-size_t
-get_max_workspace(void)
-{
-  return cmd.n_workspace[0];
-}
-
-double
-get_blanks(void)
-{
-  return set_blanks;
-}
-
-struct fmt_spec 
-get_format(void)
-{ 
-  return set_format;
-}
-
-/* CCA through CCE. */
-const struct set_cust_currency *
-get_cc(int i)
-{
-  return &set_cc[i];
-}
-
-void
-aux_show_warranty(void)
-{
-  msg(MM,lack_of_warranty);
-}
-
-void
-aux_show_copying(void)
-{
-  msg(MM,copyleft);
-}
-
-
-int
-get_viewlength(void)
-{
-  return set_viewlength;
-}
-
-int
-get_viewwidth(void)
-{
-  return set_viewwidth;
-}
-
-const char *
-get_pager(void)
-{
-  return set_pager;
-}
-
-gsl_rng *
-get_rng (void)
-{
-  if (rng == NULL)
-    set_rng (random_seed ());
-  return rng;
+  return out;
 }
 
 static void
-set_rng (unsigned long seed) 
+show_cc (int idx) 
 {
-  rng = gsl_rng_alloc (gsl_rng_mt19937);
-  if (rng == NULL)
-    xalloc_die ();
-  gsl_rng_set (rng, seed);
+  const struct custom_currency *cc = get_cc (idx);
+  char cc_string[CC_WIDTH * 4 * 2 + 3 + 1];
+  char *out;
+
+  out = format_cc (cc->neg_prefix, cc->grouping, cc_string);
+  *out++ = cc->grouping;
+  out = format_cc (cc->prefix, cc->grouping, out);
+  *out++ = cc->grouping;
+  out = format_cc (cc->suffix, cc->grouping, out);
+  *out++ = cc->grouping;
+  out = format_cc (cc->neg_suffix, cc->grouping, out);
+  *out = '\0';
+  
+  msg (MM, _("CC%c is \"%s\"."), "ABCDE"[idx], cc_string);
 }
 
-static unsigned long
-random_seed (void) 
+
+static void
+show_cca (void) 
 {
-  return time (0);
+  show_cc (0);
 }
 
-static int global_algorithm = ENHANCED;
-static int cmd_algorithm = ENHANCED;
-static int *algorithm = &global_algorithm;
-
-static int syntax = ENHANCED;
-
-/* Set the algorithm option globally */
-void 
-set_algorithm(int x)
+static void
+show_ccb (void) 
 {
-  global_algorithm = x;
+  show_cc (1);
 }
 
-/* Set the algorithm option for this command only */
-void 
-set_cmd_algorithm(int x)
+static void
+show_ccc (void) 
 {
-  cmd_algorithm = x; 
-  algorithm = &cmd_algorithm;
+  show_cc (2);
 }
 
-/* Unset the algorithm option for this command */
-void
-unset_cmd_algorithm(void)
+static void
+show_ccd (void) 
 {
-  algorithm = &global_algorithm;
+  show_cc (3);
 }
 
-/* Return the current algorithm setting */
+static void
+show_cce (void) 
+{
+  show_cc (4);
+}
+
+static void
+show_decimals (void) 
+{
+  msg (MM, _("DECIMAL is \"%c\"."), get_decimal ());
+}
+
+static void
+show_endcmd (void) 
+{
+  msg (MM, _("ENDCMD is \"%c\"."), get_endcmd ());
+}
+
+static void
+show_format (void) 
+{
+  msg (MM, _("FORMAT is %s."), fmt_to_string (get_format ()));
+}
+
+static void
+show_length (void) 
+{
+  msg (MM, _("LENGTH is %d."), get_viewlength ());
+}
+
+static void
+show_mxerrs (void) 
+{
+  msg (MM, _("MXERRS is %d."), get_mxerrs ());
+}
+
+static void
+show_mxloops (void) 
+{
+  msg (MM, _("MXLOOPS is %d."), get_mxloops ());
+}
+
+static void
+show_mxwarns (void) 
+{
+  msg (MM, _("MXWARNS is %d."), get_mxwarns ());
+}
+
+static void
+show_scompression (void) 
+{
+  if (get_scompression ())
+    msg (MM, _("SCOMPRESSION is ON."));
+  else
+    msg (MM, _("SCOMPRESSION is OFF."));
+}
+
+static void
+show_undefined (void) 
+{
+  if (get_undefined ())
+    msg (MM, _("UNDEFINED is WARN."));
+  else
+    msg (MM, _("UNDEFINED is NOWARN."));
+}
+
+static void
+show_weight (void) 
+{
+  struct variable *var = dict_get_weight (default_dict);
+  if (var == NULL)
+    msg (MM, _("WEIGHT is off."));
+  else
+    msg (MM, _("WEIGHT is variable %s."), var->name);
+}
+
+static void
+show_width (void) 
+{
+  msg (MM, _("WIDTH is %d."), get_viewwidth ());
+}
+
+struct show_sbc 
+  {
+    const char *name;
+    void (*function) (void);
+  };
+
+struct show_sbc show_table[] = 
+  {
+    {"BLANKS", show_blanks},
+    {"CCA", show_cca},
+    {"CCB", show_ccb},
+    {"CCC", show_ccc},
+    {"CCD", show_ccd},
+    {"CCE", show_cce},
+    {"DECIMALS", show_decimals},
+    {"ENDCMD", show_endcmd},
+    {"FORMAT", show_format},
+    {"LENGTH", show_length},
+    {"MXERRS", show_mxerrs},
+    {"MXLOOPS", show_mxloops},
+    {"MXWARNS", show_mxwarns},
+    {"SCOMPRESSION", show_scompression},
+    {"UNDEFINED", show_undefined},
+    {"WEIGHT", show_weight},
+    {"WIDTH", show_width},
+  };
+
+static void
+show_all (void) 
+{
+  size_t i;
+  
+  for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
+    show_table[i].function ();
+}
+
+static void
+show_all_cc (void) 
+{
+  int i;
+
+  for (i = 0; i < 5; i++)
+    show_cc (i);
+}
+
+static void
+show_warranty (void) 
+{
+  msg (MM, lack_of_warranty);
+}
+
+static void
+show_copying (void) 
+{
+  msg (MM, copyleft);
+}
+
 int
-get_algorithm(void)
+cmd_show (void) 
 {
-  return *algorithm;
-}
+  if (token == '.') 
+    {
+      show_all ();
+      return CMD_SUCCESS;
+    }
 
-/* Set the syntax option */
-void 
-set_syntax(int x)
-{
-  syntax = x;
-}
+  do 
+    {
+      if (lex_match (T_ALL))
+        show_all ();
+      else if (lex_match_id ("CC")) 
+        show_all_cc ();
+      else if (lex_match_id ("WARRANTY"))
+        show_warranty ();
+      else if (lex_match_id ("COPYING"))
+        show_copying ();
+      else if (token == T_ID)
+        {
+          int i;
 
-/* Get the current syntax setting */
-int
-get_syntax(void)
-{
-  return syntax;
-}
+          for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
+            if (lex_match_id (show_table[i].name)) 
+              {
+                show_table[i].function ();
+                goto found;
+              }
+          lex_error (NULL);
+          return CMD_PART_SUCCESS_MAYBE;
 
+        found: ;
+        }
+      else 
+        {
+          lex_error (NULL);
+          return CMD_PART_SUCCESS_MAYBE;
+        }
+
+      lex_match ('/');
+    }
+  while (token != '.');
+
+  return CMD_SUCCESS;
+}
 
 /*
    Local Variables:

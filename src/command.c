@@ -108,7 +108,7 @@ pspp_completion_function (const char *text,   int state)
 
       cmd = &commands[state + skip];
   
-      if ( cmd->transition[pgm_state] == STATE_ERROR || ( cmd->debug  &&  ! test_mode ) ) 
+      if ( cmd->transition[pgm_state] == STATE_ERROR || ( cmd->debug  &&  ! get_testing_mode () ) ) 
 	{
 	  skip++; 
 	  continue;
@@ -554,7 +554,7 @@ parse_command_name (void)
             {
               if (command->skip_entire_name)
                 lex_get ();
-	      if ( command->debug & !test_mode ) 
+	      if ( command->debug & !get_testing_mode () ) 
 		goto error;
               free_words (words, word_cnt);
               return command;
@@ -599,7 +599,7 @@ parse_command_name (void)
           free (words[word_cnt]);
         }
 
-      if ( command->debug && !test_mode ) 
+      if ( command->debug && !get_testing_mode () ) 
 	goto error;
 
       free_words (words, word_cnt);
@@ -679,7 +679,7 @@ cmd_execute (void)
 int
 cmd_erase (void)
 {
-  if ( safer_mode() ) 
+  if (get_safer_mode ()) 
     { 
       msg (SE, _("This command not allowed when the SAFER option is set.")); 
       return CMD_FAILURE; 
@@ -810,7 +810,7 @@ cmd_host (void)
 {
   int code;
 
-  if ( safer_mode() ) 
+  if (get_safer_mode ()) 
     { 
       msg (SE, _("This command not allowed when the SAFER option is set.")); 
       return CMD_FAILURE; 

@@ -557,16 +557,6 @@ struct subcommand
     int translatable;           /* Error message is translatable */
   };
 
-typedef struct aux_subcommand aux_subcommand;
-struct aux_subcommand
-  {
-    aux_subcommand *next;	/* Next in the chain. */
-    char *name;			/* Subcommand name. */
-    char *value;                /* Subcommand value */
-  };
-
-static aux_subcommand *aux_subcommands ;
-
 /* Name of the command; i.e., DESCRIPTIVES. */
 char *cmdname;
 
@@ -1894,152 +1884,6 @@ dump_parser (int persistent)
 }
 
 
-/* Write out the code to parse aux subcommand SBC. */
-static void
-dump_aux_subcommand (const subcommand *sbc)
-{
-  if (sbc->type == SBC_PLAIN )
-    {
-      specifier *spec;
-	
-      for (spec = sbc->spec; spec; spec = spec->next)
-	{
-	  char buf[80];
-	  sprintf(buf,"p->%s%s",st_lower(sbc->prefix),spec->varname);
-
-	  dump (0, "msg(MM,\"%s is %%s\",",sbc->name);
-	  dump (0, "(%s < 1000)?\"not set\":settings[%s - 1000]", buf, buf);
-      
-	  dump (0, ");");
-	}
-    }
-  else if (sbc->type == SBC_STRING)
-    {
-      dump (0, "msg(MM,\"%s is \\\"%%s\\\"\",p->s_%s);", sbc->name,st_lower(sbc->name) );
-    }
-  else if (sbc->type == SBC_INT)
-    {
-      dump (1, "{");
-      dump (0, "int i;");
-      dump (1, "for (i = 0; i < MAXLISTS; ++i)");
-      dump (0, "msg(MM,\"%s is %%ld\",p->n_%s[i]);", sbc->name,st_lower(sbc->name) ); 
-      outdent();
-      dump (-1, "}");
-    }
-  else if (sbc->type == SBC_CUSTOM)
-    {
-      dump (0, "aux_%scustom_%s(p);",st_lower(prefix),make_identifier(sbc->name));
-    }
-  else
-    assert(0);
-}
-
-
-
-/* Write out auxilliary parser. */
-static void
-dump_aux_parser (void)
-{
-  int f=0;
-  subcommand *sbc;
-  aux_subcommand *asbc;
-
-  /* Write out English strings for all the identifiers in the symbol table. */
-  {
-    int f, k;
-    symbol *sym;
-    char *buf = NULL;
-
-    /* Note the squirmings necessary to make sure that the last string
-       is not followed by a comma (is it necessary to do that ?? ) */
-    for (sym = symtab, f = k = 0; sym; sym = sym->next)
-      if (!sym->unique && !is_keyword (sym->name))
-	{
-	  if (!f)
-	    {
-	      dump (0, "/* Strings for subcommand specifiers. */");
-	      dump (1, "static const char *settings[]=");
-	      dump (1, "{");
-	      f = 1;
-	    }
-
-	  if (buf == NULL)
-	    buf = xmalloc (1024);
-	  else
-	    dump (0, buf);
-
-	  sprintf (buf, "\"%s\",",sym->name);
-	}
-    if (buf)
-      {
-	buf[strlen (buf) - 1] = 0;
-	dump (0, buf);
-	free (buf);
-      }
-    if (f)
-      {
-	dump (-1, "};");
-	dump (-1, nullstr);
-      }
-  }
-
-  
-  indent = 0;
-
-  dump (0, "static int");
-  dump (0, "aux_parse_%s (struct cmd_%s *p)", make_identifier (cmdname),
-	make_identifier (cmdname));
-  dump (1, "{");
-
-  dump (1, "for (;;)");
-  dump (1, "{");
-
-
-  for (sbc = subcommands; sbc; sbc = sbc->next)
-    {
-      dump (1, "%sif (%s)", f ? "else " : "", make_match (sbc->name));
-      f = 1;
-      dump (1, "{");
-
-      dump_aux_subcommand (sbc);
-
-      dump (-1, "}");
-      outdent ();
-    }
-
-  for (asbc = aux_subcommands ; asbc ; asbc = asbc->next)
-    {
-      dump (1, "%sif (%s)", f ? "else " : "", make_match (asbc->name));
-      f = 1;
-      dump (1, "{");
-      dump(0,"aux_%s();",make_identifier(asbc->value));
-      dump (-1, "}");
-      outdent ();
-    }
-  
-  dump (1, "if (!lex_match ('/'))");
-  dump (0, "break;");
-  dump (-2, "}");
-  outdent ();
-  dump (0, nullstr);
-  dump (1, "if (token != '.')");
-  dump (1, "{");
-  dump (0, "lex_error (_(\"expecting end of command\"));");
-  dump (0, "goto lossage;");
-  dump (-1, "}");
-  dump (0, nullstr);
-  dump (-1, "return 1;");
-  dump (0, nullstr);
-  dump (-1, "lossage:");
-  indent ();
-  dump (0, "free_%s (p);", make_identifier (cmdname));
-  dump (0, "return 0;");
-  dump (-1, "} /* aux_parse_%s (struct cmd_%s *p) */", 
-	make_identifier (cmdname), make_identifier (cmdname));
-  dump (0, nullstr);
-}
-
-
 /* Write the output file header. */
 static void
 dump_header (void)
@@ -2145,8 +1989,6 @@ recognize_directive (void)
   return directive;
 }
   
-static void aux_parse (void);
-
 int
 main (int argc, char *argv[])
 {
@@ -2224,11 +2066,6 @@ main (int argc, char *argv[])
 	  dump_parser (1);
 	  dump_free (1); 
 	}
-      else if (!strcmp (directive, "aux_functions"))
-	{
-	  aux_parse();
-	  dump_aux_parser ();
-	}
       else
 	error ("unknown directive `%s'", directive);
       indent = 0;
@@ -2239,34 +2076,3 @@ main (int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-/* Parse an entire auxilliary specification. */
-static void
-aux_parse (void)
-{
-  aux_subcommand *sbc;
-  aux_subcommand *prevsbc = 0 ;
-  get_line();
-  lex_get();
-
-  for (;;)
-    {
-	sbc = xmalloc (sizeof *sbc);
-	sbc->next = prevsbc;
-        sbc->name = xstrdup (tokstr);
-	lex_get();
-	skip_token('=');
-	sbc->value = xstrdup (tokstr);
-	lex_get();
-      if (token == '.')
-	break;
-	skip_token(';');
-	prevsbc = sbc;
-
-    }
-  /* Skip trailing star-slash line. */
-  get_line ();
-  aux_subcommands = sbc;
-}
-
-

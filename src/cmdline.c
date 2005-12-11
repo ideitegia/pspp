@@ -52,7 +52,6 @@ char *subst_vars (char *);
 void
 parse_command_line (int argc, char **argv)
 {
-  static int testing_mode = 0;
   static struct option long_options[] =
   {
     {"algorithm", required_argument, NULL, 'a'},
@@ -73,7 +72,7 @@ parse_command_line (int argc, char **argv)
     {"recon", no_argument, NULL, 'n'},
     {"safer", no_argument, NULL, 's'},
     {"syntax", required_argument, NULL, 'x'},
-    {"testing-mode", no_argument, &testing_mode, 1},
+    {"testing-mode", no_argument, NULL, 'T'},
     {"verbose", no_argument, NULL, 'v'},
     {"version", no_argument, NULL, 'V'},
     {0, 0, 0, 0},
@@ -81,8 +80,8 @@ parse_command_line (int argc, char **argv)
 
   int c, i;
 
-  int cleared_device_defaults = 0;
-  int no_statrc = 0;
+  bool cleared_device_defaults = false;
+  bool no_statrc = false;
 
   for (;;)
     {
@@ -168,7 +167,7 @@ parse_command_line (int argc, char **argv)
 	  if (!cleared_device_defaults)
 	    {
 	      outp_configure_clear ();
-	      cleared_device_defaults = 1;
+	      cleared_device_defaults = true;
 	    }
 	  outp_configure_add (optarg);
 	  break;
@@ -177,10 +176,10 @@ parse_command_line (int argc, char **argv)
           putchar('\n');
 	  break;
 	case 'r':
-	  no_statrc = 1;
+	  no_statrc = true;
 	  break;
 	case 's':
-	  make_safe();
+	  set_safer_mode ();
 	  break;
 	case 'v':
 	  err_verbosity++;
@@ -189,6 +188,10 @@ parse_command_line (int argc, char **argv)
 	  puts (version);
 	  puts (legal);
 	  err_hcf (1);
+        case 'T':
+          force_long_view ();
+          set_testing_mode (true);
+          break;
 	case '?':
 	  usage ();
 	  assert (0);
@@ -198,15 +201,6 @@ parse_command_line (int argc, char **argv)
 	  assert (0);
 	}
     }
-
-
-  if (testing_mode)
-    {
-      /* FIXME: Later this option should do some other things, too. */
-      force_long_view();
-      test_mode = 1;
-    }
-    
 
   for (i = optind; i < argc; i++)
     {

@@ -23,6 +23,4 @@
 void init_glob (int argc UNUSED, char **argv);
 void done_glob (void);
 
-extern short test_mode;
-
 #endif /* glob.h */
