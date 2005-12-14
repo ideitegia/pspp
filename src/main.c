@@ -18,20 +18,37 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <stdio.h>
-#include <gsl/gsl_errno.h>
 #include "main.h"
+#include <gsl/gsl_errno.h>
+#include <signal.h>
+#include <stdio.h>
 #include "cmdline.h"
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
+#include "file-handle.h"
+#include "filename.h"
 #include "getl.h"
 #include "glob.h"
 #include "lexer.h"
 #include "output.h"
+#include "progname.h"
+#include "random.h"
 #include "settings.h"
 #include "var.h"
-#include <signal.h>
+#include "version.h"
+
+#if HAVE_FPU_CONTROL_H
+#include <fpu_control.h>
+#endif
+
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
+#if HAVE_FENV_H
+#include <fenv.h>
+#endif
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -40,19 +57,13 @@
 
 #include "debug-print.h"
 
-static void parse_script (void) NO_RETURN;
+static void i18n_init (void);
+static void fpu_init (void);
 static void handle_error (int code);
 static int execute_command (void);
 
-/* argv[0] with stripped leading directories. */
-char *pgmname;
-
 /* Whether FINISH. has been executed. */
 int finished;
-
-/* The current date in the form DD MMM YYYY. */
-char curdate[12];
-
 
 /* If a segfault happens, issue a message to that effect and halt */
 void bug_handler(int sig);
@@ -64,50 +75,66 @@ void interrupt_handler(int sig);
    we hit end-of-file unexpectedly (or whatever). */
 int start_interactive;
 
-
-
-
-
-
 /* Program entry point. */
 int
 main (int argc, char **argv)
 {
-
   signal (SIGSEGV, bug_handler);
-  signal (SIGFPE,  bug_handler);
-  signal (SIGINT,  interrupt_handler);
+  signal (SIGFPE, bug_handler);
+  signal (SIGINT, interrupt_handler);
 
-  gsl_set_error_handler_off();
+  set_program_name ("pspp");
+  i18n_init ();
+  fpu_init ();
+  gsl_set_error_handler_off ();
 
-  /* Initialization. */
-  if (!outp_init ())
-    err_hcf (0);
-  init_glob (argc, argv);
+  outp_init ();
+  fn_init ();
+  fh_init ();
+  getl_initialize ();
+  settings_init ();
+  random_init ();
+
+  default_dict = dict_create ();
+
   parse_command_line (argc, argv);
-  if (!outp_read_devices ())
-    msg (FE, _("Error initializing output drivers."));
+  outp_read_devices ();
 
   lex_init ();
 
-  /* Execution. */
-  parse_script ();
-
-  /* Should never be reached */
-  return (-1);
-}
-
-/* Parses the entire script. */
-static void
-parse_script (void)
-{
   while (!finished)
     {
       err_check_count ();
       handle_error (execute_command ());
     }
 
-  err_hcf (err_error_count==0);
+  terminate (err_error_count == 0);
+  abort ();
+}
+
+/* Terminate PSPP.  SUCCESS should be true to exit successfully,
+   false to exit as a failure.  */
+void
+terminate (bool success)
+{
+  static bool terminating = false;
+  if (terminating)
+    return;
+  terminating = true;
+
+  err_done ();
+  outp_done ();
+
+  cancel_transformations ();
+  dict_destroy (default_dict);
+
+  random_done ();
+  settings_done ();
+  fh_done ();
+  lex_done ();
+  getl_uninitialize ();
+
+  exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 /* Parse and execute a command, returning its return code. */
@@ -129,7 +156,7 @@ execute_command (void)
 	break;
 
       if (!getl_perform_delayed_reset ())
-	err_hcf (err_error_count==0);
+	terminate (err_error_count == 0);
     }
 
   /* Parse the command. */
@@ -191,12 +218,34 @@ handle_error (int code)
       lex_discard_line (); 
     }
 }
+
+static void
+i18n_init (void) 
+{
+#if ENABLE_NLS
+#if HAVE_LC_MESSAGES
+  setlocale (LC_MESSAGES, "");
+#endif
+  setlocale (LC_MONETARY, "");
+  bindtextdomain (PACKAGE, locale_dir);
+  textdomain (PACKAGE);
+#endif /* ENABLE_NLS */
+}
 
-
+static void
+fpu_init (void) 
+{
+#if HAVE_FEHOLDEXCEPT
+  fenv_t foo;
+  feholdexcept (&foo);
+#elif HAVE___SETFPUCW && defined(_FPU_IEEE)
+  __setfpucw (_FPU_IEEE);
+#endif
+}
 
 /* If a segfault happens, issue a message to that effect and halt */
 void 
-bug_handler(int sig UNUSED)
+bug_handler(int sig)
 {
   switch (sig) 
     {
@@ -216,5 +265,5 @@ bug_handler(int sig UNUSED)
 void 
 interrupt_handler(int sig UNUSED)
 {
-  err_hcf(0);
+  terminate (false);
 }

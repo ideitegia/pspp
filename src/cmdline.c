@@ -26,17 +26,18 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "copyleft.h"
 #include "error.h"
 #include "filename.h"
 #include "getl.h"
+#include "glob.h"
 #include "main.h"
 #include "output.h"
+#include "progname.h"
 #include "settings.h"
 #include "str.h"
 #include "var.h"
 #include "version.h"
-#include "copyleft.h"
-#include "glob.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -158,7 +159,7 @@ parse_command_line (int argc, char **argv)
 	  break;
 	case 'l':
 	  outp_list_classes ();
-	  err_hcf (1);
+	  terminate (true);
 	case 'n':
 	  printf (_("%s is not yet implemented."),"-n");
           putchar('\n');
@@ -187,7 +188,7 @@ parse_command_line (int argc, char **argv)
 	case 'V':
 	  puts (version);
 	  puts (legal);
-	  err_hcf (1);
+	  terminate (true);
         case 'T':
           force_long_view ();
           set_testing_mode (true);
@@ -282,9 +283,9 @@ static const char post_syntax_message[] = N_("\nReport bugs to <%s>.\n");
 static void
 usage (void)
 {
-  printf (gettext (pre_syntax_message), pgmname);
+  printf (gettext (pre_syntax_message), program_name);
   outp_list_classes ();
-  printf (gettext (post_syntax_message),PACKAGE_BUGREPORT);
+  printf (gettext (post_syntax_message), PACKAGE_BUGREPORT);
 
-  err_hcf (1);
+  terminate (true);
 }

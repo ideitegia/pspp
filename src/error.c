@@ -30,6 +30,7 @@
 #include "lexer.h"
 #include "main.h"
 #include "output.h"
+#include "progname.h"
 #include "settings.h"
 #include "str.h"
 #include "var.h"
@@ -93,10 +94,10 @@ err_failure (void)
   fflush (stdout);
   fflush (stderr);
 
-  fprintf (stderr, "%s: %s\n", pgmname,
+  fprintf (stderr, "%s: %s\n", program_name,
 	   _("Terminating NOW due to a fatal error!"));
 
-  err_hcf (0);
+  terminate (false);
 }
 
 /* Terminate unless we're interactive or will go interactive when the
@@ -193,32 +194,17 @@ err_check_count (void)
 #define EXIT_FAILURE 1
 #endif
 
-static int terminating;
-
-/* Halt-catch-fire.  SUCCESS should be nonzero if exiting successfully
-   or zero if not.  Despite the name, this is the usual way to finish,
-   successfully or not. */
-void
-err_hcf (int success)
-{
-  terminating = 1;
-
-  lex_done();
-  getl_uninitialize ();
-
-  free(file_loc);
-  file_loc = NULL;
-  nfile_loc = mfile_loc = 0;
-  
-  outp_done ();
-  done_glob();
-
-  exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
-}
-
 static void puts_stdout (const char *s);
 static void dump_message (char *errbuf, unsigned indent,
 			  void (*func) (const char *), unsigned width);
+
+void
+err_done (void) 
+{
+  free (file_loc);
+  file_loc = NULL;
+  nfile_loc = mfile_loc = 0;
+}
 
 void
 err_vmsg (const struct error *e, const char *format, va_list args)
@@ -304,8 +290,8 @@ err_vmsg (const struct error *e, const char *format, va_list args)
 
   ds_destroy (&msg);
 
-  if (e->class == FE && !terminating)
-    err_hcf (0);
+  if (e->class == FE)
+    terminate (0);
 }
 
 /* Private functions. */

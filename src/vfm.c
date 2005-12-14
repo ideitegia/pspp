@@ -80,7 +80,7 @@ struct case_sink *vfm_sink;
 static int compaction_necessary;
 
 /* Time at which vfm was last invoked. */
-time_t last_vfm_invocation;
+static time_t last_vfm_invocation;
 
 /* Lag queue. */
 int n_lag;			/* Number of cases to lag. */
@@ -90,6 +90,7 @@ static struct ccase *lag_queue; /* Array of n_lag ccase * elements. */
 
 static void internal_procedure (int (*proc_func) (struct ccase *, void *),
                                 void *aux);
+static void update_last_vfm_invocation (void);
 static void create_trns_case (struct ccase *, struct dictionary *);
 static void open_active_file (void);
 static int write_case (struct write_case_data *wc_data);
@@ -103,6 +104,15 @@ static void clear_case (struct ccase *c);
 static void close_active_file (void);
 
 /* Public functions. */
+
+/* Returns the last time the data was read. */
+time_t
+vfm_last_invocation (void) 
+{
+  if (last_vfm_invocation == 0)
+    update_last_vfm_invocation ();
+  return last_vfm_invocation;
+}
 
 /* Reads the data from the input program and writes it to a new
    active file.  For each case we read from the input program, we
@@ -136,6 +146,7 @@ procedure (int (*proc_func) (struct ccase *, void *), void *aux)
       && n_trns == 0)
     {
       /* Nothing to do. */
+      update_last_vfm_invocation ();
       return;
     }
 
@@ -162,7 +173,7 @@ internal_procedure (int (*proc_func) (struct ccase *, void *), void *aux)
   case_create (&wc_data.sink_case, dict_get_next_value_idx (default_dict));
   wc_data.cases_written = 0;
 
-  last_vfm_invocation = time (NULL);
+  update_last_vfm_invocation ();
 
   if (vfm_source != NULL) 
     vfm_source->class->read (vfm_source,
@@ -173,6 +184,13 @@ internal_procedure (int (*proc_func) (struct ccase *, void *), void *aux)
   case_destroy (&wc_data.trns_case);
 
   assert (--recursive_call == 0);
+}
+
+/* Updates last_vfm_invocation. */
+static void
+update_last_vfm_invocation (void) 
+{
+  last_vfm_invocation = time (NULL);
 }
 
 /* Creates and returns a case, initializing it from the vectors

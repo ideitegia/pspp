@@ -40,9 +40,9 @@
 #include "font.h"
 #include "getl.h"
 #include "getline.h"
+#include "glob.h"
 #include "hash.h"
 #include "main.h"
-#include "misc.h"
 #include "misc.h"
 #include "output.h"
 #include "som.h"
@@ -2105,7 +2105,7 @@ draw_headers (struct outp_driver *this)
     int rh_width;
     char buf[128];
 
-    sprintf (buf, _("%s - Page %d"), curdate, ext->page_number);
+    sprintf (buf, _("%s - Page %d"), get_start_date (), ext->page_number);
     rh_width = text_width (this, buf);
 
     out_text_plain (this, buf, this->width - this->prop_em_width - rh_width,

@@ -89,17 +89,17 @@ static int syntax = ENHANCED;
 static void init_viewport (void);
 
 void
-done_settings (void)
+settings_init (void)
+{
+  init_viewport ();
+}
+
+void
+settings_done (void)
 {
   free (prompt);
   free (cprompt);
   free (dprompt);
-}
-
-void
-init_settings (void)
-{
-  init_viewport ();
 }
 
 /* Screen length in lines. */

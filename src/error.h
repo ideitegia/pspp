@@ -81,9 +81,9 @@ void err_pop_file_locator (const struct file_locator *);
 void err_location (struct file_locator *);
 
 /* Obscure functions. */
+void err_done (void);
 void err_break (void);
 void err_check_count (void);
-void err_hcf (int exit_code) NO_RETURN;
 void err_vmsg (const struct error *, const char *, va_list);
 
 /* Used in panic situations only */

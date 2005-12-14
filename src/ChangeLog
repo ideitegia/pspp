@@ -1,3 +1,65 @@
+Tue Dec 13 22:34:42 2005  Ben Pfaff  <blp@gnu.org>
+
+	Move global initialization and cleanup code into main.c.
+	Remove vestigial log infrastructure.
+	Minor related cleanups.
+	
+	* command.c: (shell) When execl() fails, use _exit(), not
+	err_hcf().
+
+	* error.c: (err_hcf) Move into main.c, rename terminate().  All
+	callers updated.
+	(err_done) New function with just the error.c-specific code for
+	err_hcf().  Called by terminate().
+
+	* glob.c: Removed all Borland C, DJGPP cruft.
+	(init_glob) Merged into main().
+	(done_glob) Merged into terminate().
+	(get_date) Removed.
+	(get_start_date) New function.  All users of curdate updated to call
+	this function instead.
+
+	* lexer.c: (lex_init) Moved initialization of tokstr here, from
+	init_glob().
+	(lex_done) Moved destruction of tokstr here, from done_glob().
+
+	* main.c: (global var pgmname) Removed.  Changed all references to
+	program_name, which is defined by gnulib.
+	(global var curdate) Removed.
+	(main) Moved init_glob() code here.  Merged parse_script() in
+	here.
+	(parse_script) Removed.
+	(terminate) Moved err_hcf() here from error.c and renamed
+	terminate().  Merged done_glob() code in here.  Call err_done().
+	All callers updated.
+	(i18n_init) New function.
+	(fpu_init) New function.
+
+	* output.c: (outp_init) Make void.
+	(init_default_drivers) New function.
+	(outp_read_devices) If no drivers are initialized successfully,
+	call init_default_drivers() to initialize a default driver.
+	(outp_done) Make void.
+	(static var prog) Make const.
+	(parse_options) Make parameter const.
+	(colon_tokenize) Make return value const.
+	(configure_driver) Change prototype to take a broken-down driver
+	configuration instead of a line of text.
+	(configure_driver_line) New function that does what
+	configure_driver() did before.
+
+	* q2c.c: (global var pgmname) Rename program_name.
+
+	* settings.c: (settings_init) Renamed from init_settings().
+	(settings_done) Renamed from done_settings().
+
+	* vfm.c: (global var last_vfm_invocation) Make static.
+	(vfm_last_invocation) New function.  All references to
+	last_vfm_invocation update to call this.
+	(procedure) Call update_last_vfm_invocation().
+	(internal_procedure) Ditto.
+	(update_last_vfm_invocation) New function.
+	
 Sat Dec 10 23:30:19 2005  Ben Pfaff  <blp@gnu.org>
 
 	Separate random numbers from other settings because of GSL

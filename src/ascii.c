@@ -26,6 +26,7 @@
 #include "alloc.h"
 #include "error.h"
 #include "filename.h"
+#include "glob.h"
 #include "main.h"
 #include "misc.h"
 #include "output.h"
@@ -1579,7 +1580,8 @@ ascii_close_page (struct outp_driver *this)
       {
 	char temp[40];
 
-	snprintf (temp, 80, _("%s - Page %d"), curdate, x->page_number);
+	snprintf (temp, 80, _("%s - Page %d"), get_start_date (),
+                  x->page_number);
 	memcpy (&s[x->w - strlen (temp)], temp, strlen (temp));
       }
 

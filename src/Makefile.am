@@ -158,7 +158,6 @@ pspp_SOURCES =					\
 	levene.h				\
 	linked-list.c				\
 	linked-list.h				\
-	log.h					\
 	loop.c					\
 	magic.c					\
 	magic.h					\

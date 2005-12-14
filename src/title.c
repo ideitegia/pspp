@@ -24,6 +24,7 @@
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
+#include "glob.h"
 #include "lexer.h"
 #include "main.h"
 #include "output.h"
@@ -135,14 +136,11 @@ cmd_document (void)
   /* Add a few header lines for reference. */
   {
     char buf[256];
-    struct tm *tmp = localtime (&last_vfm_invocation);
 
     if (dict_get_documents (default_dict) != NULL)
       add_document_line ("", 0);
 
-    sprintf (buf, _("Document entered %s %02d:%02d:%02d by %s (%s):"),
-	     curdate, tmp->tm_hour, tmp->tm_min, tmp->tm_sec, version,
-	     host_system);
+    sprintf (buf, _("Document entered %s by %s:"), get_start_date (), version);
     add_document_line (buf, 1);
   }
 

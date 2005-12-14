@@ -92,6 +92,7 @@ static void dump_token (void);
 void
 lex_init (void)
 {
+  ds_init (&tokstr, 64);
   ds_init (&put_tokstr, 64);
   if (!lex_get_line ())
     unexpected_eof ();
@@ -100,7 +101,8 @@ lex_init (void)
 void
 lex_done (void)
 {
-  ds_destroy(&put_tokstr);
+  ds_destroy (&put_tokstr);
+  ds_destroy (&tokstr);
 }
 
 

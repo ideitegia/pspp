@@ -19,66 +19,9 @@
 
 #include <config.h>
 #include "glob.h"
-#include "error.h"
-#include "progname.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include <time.h>
-
-#if HAVE_LIBHISTORY
-#if HAVE_READLINE_HISTORY_H
-#include <readline/history.h>
-#else /* no readline/history.h */
-extern void using_history ();
-extern int read_history ();
-extern void stifle_history ();
-#endif /* no readline/history.h */
-#endif /* -lhistory */
-
-#if HAVE_FPU_CONTROL_H
-#include <fpu_control.h>
-#elif __BORLANDC__
-#include <float.h>
-#include <math.h>
-#endif
-
-#if __DJGPP__
-#include <conio.h>
-#elif defined (__WIN32__) && defined (__BORLANDC__)
-#undef gettext
-#include <conio.h>
-#define gettext(STRING)				\
-	STRING
-#endif
-
-#if HAVE_LOCALE_H
-#include <locale.h>
-#endif
-
-#if HAVE_FENV_H
-#include <fenv.h>
-#endif
-
-#include "alloc.h"
-#include "calendar.h"
-#include "command.h"
-#include "dictionary.h"
-#include "error.h"
-#include "file-handle.h"
-#include "filename.h"
-#include "getl.h"
-#include "hash.h"
-#include "lexer.h"
-#include "magic.h"
-#include "main.h"
-#include "random.h"
-#include "settings.h"
 #include "str.h"
-#include "var.h"
-#include "version.h"
-#include "vfm.h"
-
-#include "gettext.h"
+#include "strftime.h"
 
 /* var.h */
 struct dictionary *default_dict;
@@ -90,128 +33,32 @@ size_t n_trns, m_trns, f_trns;
 int FILTER_before_TEMPORARY;
 
 struct file_handle *default_handle;
-
-/* log.h */
-char *logfn;
-FILE *logfile;
-int logging;
 
 /* Functions. */
 
-static void get_date (void);
-
-
-void
-init_glob (int argc UNUSED, char **argv)
-{
-  set_program_name (argv[0]);
-
-  /* FIXME: Allow i18n of other locale items (besides LC_MESSAGES). */
-#if ENABLE_NLS
-#if HAVE_LC_MESSAGES
-  setlocale (LC_MESSAGES, "");
-#endif
-  setlocale (LC_MONETARY, "");
-  bindtextdomain (PACKAGE, locale_dir);
-  textdomain (PACKAGE);
-#endif /* ENABLE_NLS */
-
-  fn_init ();
-  fh_init ();
-  getl_initialize ();
-
-  /* PORTME: If your system/OS has the nasty tendency to halt with a
-     SIGFPE whenever there's a floating-point overflow (or other
-     exception), be sure to mask off those bits in the FPU here.
-     PSPP wants a guarantee that, no matter what boneheaded
-     floating-point operation it performs, the process will not halt.  */
-#if HAVE_FEHOLDEXCEPT
-  {
-    fenv_t foo;
-
-    feholdexcept (&foo);
-  }
-#elif HAVE___SETFPUCW && defined(_FPU_IEEE)
-  __setfpucw (_FPU_IEEE);
-#elif __BORLANDC__
-  _control87 (0xffff, 0x137f);
-#endif
-
-  /* var.h */
-  default_dict = dict_create ();
-
-  last_vfm_invocation = time (NULL);
-
-  /* lexer.h */
-  ds_init (&tokstr, 64);
-
-  /* common.h */
-  {
-    char *cp;
-    
-    pgmname = argv[0];
-    for (;;)
-      {
-	cp = strchr (pgmname, DIR_SEPARATOR);
-	if (!cp)
-	  break;
-	pgmname = &cp[1];
-      }
-    cur_proc = NULL;
-  }
-
-
-  init_settings ();
-  random_init ();
-
-  /* log.h */
-  logging = 1;
-  logfn = xstrdup ("pspp.log");
-  logfile = NULL;
-
-  get_date ();
-}
-
-void
-done_glob(void)
-{
-  cancel_transformations ();
-  dict_destroy (default_dict);
-  free (logfn);
-  random_done ();
-  done_settings ();
-  ds_destroy (&tokstr);
-
-  fh_done();
-}
-
 static void
-get_date (void)
+get_cur_date (char cur_date[12])
 {
+  time_t now = time (NULL);
 
-  time_t t;
-  struct tm *tmp;
-
-  if ((time_t) -1 == time (&t))
+  if (now != (time_t) -1) 
     {
-      strcpy (curdate, "?? ??? 2???");
-      return;
+      struct tm *tm = localtime (&now);
+      if (tm != NULL) 
+        {
+          strftime (cur_date, 12, "%d %b %Y", tm);
+          return;
+        }
     }
-  tmp = localtime (&t);
-
-  strftime (curdate, 12, "%d %b %Y",tmp);
+  strcpy (cur_date, "?? ??? 2???");
 }
 
-#if __BORLANDC__
-int
-_RTLENTRY _EXPFUNC _matherr (struct exception _FAR *__e)
+const char *
+get_start_date (void)
 {
-  return 1;
-}
+  static char start_date[12];
 
-int
-_RTLENTRY _EXPFUNC _matherrl (struct _exceptionl _FAR *__e)
-{
-  return 1;
+  if (start_date[0] == '\0')
+    get_cur_date (start_date);
+  return start_date; 
 }
-#endif

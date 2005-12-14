@@ -79,7 +79,9 @@ char *outp_subtitle;
 static int disabled_devices;
 
 static void destroy_driver (struct outp_driver *);
-static void configure_driver (char *);
+static void configure_driver_line (char *);
+static void configure_driver (const char *, const char *,
+                              const char *, const char *);
 
 #if GLOBAL_DEBUGGING
 /* This mechanism attempts to catch reentrant use of outp_driver_list. */
@@ -221,7 +223,7 @@ find_defn_value (const char *key)
 }
 
 /* Initializes global variables. */
-int
+void
 outp_init (void)
 {
   extern struct outp_class ascii_class;
@@ -229,7 +231,9 @@ outp_init (void)
   extern struct outp_class postscript_class;
   extern struct outp_class epsf_class;
 #endif
+#if !NO_HTML
   extern struct outp_class html_class;
+#endif
 
   char def[] = "default";
 
@@ -243,8 +247,6 @@ outp_init (void)
   add_class (&ascii_class);
 
   add_name (def, &def[strlen (def)], OUTP_S_INIT_FILE);
-
-  return 1;
 }
 
 /* Deletes all the output macros. */
@@ -262,8 +264,19 @@ delete_macros (void)
     }
 }
 
-/* Reads the initialization file; initializes outp_driver_list. */
-int
+static void
+init_default_drivers (void) 
+{
+  msg (MM, _("Using default output driver configuration."));
+  configure_driver ("list-ascii", "ascii", "listing",
+                    "length=66 width=79 char-set=ascii "
+                    "output-file=\"pspp.list\" "
+                    "bold-on=\"\" italic-on=\"\" bold-italic-on=\"\"");
+}
+
+/* Reads the initialization file; initializes
+   outp_driver_list. */
+void
 outp_read_devices (void)
 {
   int result = 0;
@@ -329,7 +342,7 @@ outp_read_devices (void)
 	      struct outp_names *n = search_names (cp, ep);
 	      if (n)
 		{
-		  configure_driver (cp);
+		  configure_driver_line (cp);
 		  delete_name (n);
 		}
 	    }
@@ -348,14 +361,18 @@ exit:
   free (init_fn);
   ds_destroy (&line);
   delete_macros ();
-  if (outp_driver_list == NULL)
-    msg (MW, _("No output drivers are active."));
 
-  if (result)
-    msg (VM (2), _("Device definition file read successfully."));
+  if (result) 
+    {
+      msg (VM (2), _("Device definition file read successfully."));
+      if (outp_driver_list == NULL) 
+        msg (MW, _("No output drivers are active.")); 
+    }
   else
     msg (VM (1), _("Error reading device definition file."));
-  return result;
+
+  if (!result || outp_driver_list == NULL)
+    init_default_drivers ();
 }
 
 /* Clear the list of drivers to configure. */
@@ -439,7 +456,7 @@ destroy_list (struct outp_driver ** dl)
 }
 
 /* Closes all the output drivers. */
-int
+void
 outp_done (void)
 {
   struct outp_driver_class_list *n = outp_class_list ; 
@@ -462,8 +479,6 @@ outp_done (void)
   
   free (outp_subtitle);
   outp_subtitle = NULL;
-
-  return 1;
 }
 
 /* Display on stdout a list of all registered driver classes. */
@@ -491,7 +506,7 @@ outp_list_classes (void)
 
 static int op_token;		/* `=', 'a', 0. */
 static struct string op_tokstr;
-static char *prog;
+static const char *prog;
 
 /* Parses a token from prog into op_token, op_tokstr.  Sets op_token
    to '=' on an equals sign, to 'a' on a string or identifier token,
@@ -622,7 +637,7 @@ tokener (void)
 /* Applies the user-specified options in string S to output driver D
    (at configuration time). */
 static void
-parse_options (char *s, struct outp_driver * d)
+parse_options (const char *s, struct outp_driver * d)
 {
   prog = s;
   op_token = -1;
@@ -683,7 +698,7 @@ find_driver (char *name)
    after all fields have been used up.
 
    FIXME: Should ignore colons inside double quotes. */
-static char *
+static const char *
 colon_tokenize (char *s, char **cp)
 {
   char *token;
@@ -711,49 +726,27 @@ colon_tokenize (char *s, char **cp)
    Adds a driver to outp_driver_list pursuant to the specification
    provided.  */
 static void
-configure_driver (char *s)
+configure_driver (const char *driver_name, const char *class_name,
+                  const char *device_type, const char *options)
 {
-  char *token, *cp;
   struct outp_driver *d = NULL, *iter;
   struct outp_driver_class_list *c = NULL;
 
-  s = fn_interp_vars (s, find_defn_value);
-
-  /* Driver name. */
-  token = colon_tokenize (s, &cp);
-  if (!token)
-    {
-      msg (IS, _("Driver name expected."));
-      goto error;
-    }
-
   d = xmalloc (sizeof *d);
-
   d->class = NULL;
-  d->name = xstrdup (token);
+  d->name = xstrdup (driver_name);
   d->driver_open = 0;
   d->page_open = 0;
-
   d->next = d->prev = NULL;
-
   d->device = OUTP_DEV_NONE;
-  
   d->ext = NULL;
 
-  /* Class name. */
-  token = colon_tokenize (NULL, &cp);
-  if (!token)
-    {
-      msg (IS, _("Class name expected."));
-      goto error;
-    }
-
   for (c = outp_class_list; c; c = c->next)
-    if (!strcmp (c->class->name, token))
+    if (!strcmp (c->class->name, class_name))
       break;
   if (!c)
     {
-      msg (IS, _("Unknown output driver class `%s'."), token);
+      msg (IS, _("Unknown output driver class `%s'."), class_name);
       goto error;
     }
   
@@ -773,12 +766,12 @@ configure_driver (char *s)
     }
 
   /* Device types. */
-  token = colon_tokenize (NULL, &cp);
-  if (token)
+  if (device_type != NULL)
     {
+      char *copy = xstrdup (device_type);
       char *sp, *type;
 
-      for (type = strtok_r (token, " \t\r\v", &sp); type;
+      for (type = strtok_r (copy, " \t\r\v", &sp); type;
 	   type = strtok_r (NULL, " \t\r\v", &sp))
 	{
 	  if (!strcmp (type, "listing"))
@@ -790,15 +783,16 @@ configure_driver (char *s)
 	  else
 	    {
 	      msg (IS, _("Unknown device type `%s'."), type);
+              free (copy);
 	      goto error;
 	    }
 	}
+      free (copy);
     }
   
   /* Options. */
-  token = colon_tokenize (NULL, &cp);
-  if (token)
-    parse_options (token, d);
+  if (options != NULL)
+    parse_options (options, d);
   if (!d->class->postopen_driver (d))
     {
       msg (IS, _("Can't complete initialization of output driver `%s' of "
@@ -817,13 +811,39 @@ configure_driver (char *s)
   if (outp_driver_list)
     outp_driver_list->prev = d;
   outp_driver_list = d;
-  goto exit;
+  return;
 
 error:
   if (d)
     destroy_driver (d);
-exit:
-  free (s);
+  return;
+}
+
+/* String S is in format:
+   DRIVERNAME:CLASSNAME:DEVICETYPE:OPTIONS
+   Adds a driver to outp_driver_list pursuant to the specification
+   provided.  */
+static void
+configure_driver_line (char *s)
+{
+  char *cp;
+  const char *driver_name, *class_name, *device_type, *options;
+
+  s = fn_interp_vars (s, find_defn_value);
+
+  /* Driver name. */
+  driver_name = colon_tokenize (s, &cp);
+  class_name = colon_tokenize (NULL, &cp);
+  device_type = colon_tokenize (NULL, &cp);
+  options = colon_tokenize (NULL, &cp);
+  if (driver_name == NULL || class_name == NULL)
+    {
+      msg (IS, _("Driver definition line contains fewer fields "
+                 "than expected"));
+      return;
+    }
+
+  configure_driver (driver_name, class_name, device_type, options);
 }
 
 /* Destroys output driver D. */

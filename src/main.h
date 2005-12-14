@@ -17,12 +17,14 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !main_h
-#define main_h 1
+#if !MAIN_H
+#define MAIN_H 1
 
-extern char *pgmname;
-extern char curdate[];
+#include <stdbool.h>
+
 extern int start_interactive;
 extern int finished;
+
+void terminate (bool success);
 
 #endif /* main.h */

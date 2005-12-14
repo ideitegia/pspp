@@ -739,7 +739,7 @@ shell (void)
 	
 	execl (shell_fn, shell_process, NULL);
 
-	err_hcf (1);
+	_exit (1);
       }
 
     case -1:

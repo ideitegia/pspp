@@ -242,9 +242,9 @@ extern struct outp_driver *outp_driver_list;
 extern char *outp_title;
 extern char *outp_subtitle;
 
-int outp_init (void);
-int outp_read_devices (void);
-int outp_done (void);
+void outp_init (void);
+void outp_read_devices (void);
+void outp_done (void);
 
 void outp_configure_clear (void);
 void outp_configure_add (char *);

@@ -731,6 +731,7 @@ parse_sysvar (struct expression *e)
           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
         };
 
+      time_t last_vfm_invocation = vfm_last_invocation ();
       struct tm *time;
       char temp_buf[10];
 
@@ -748,21 +749,23 @@ parse_sysvar (struct expression *e)
     return expr_allocate_number (e, SYSMIS);
   else if (lex_match_id ("$JDATE"))
     {
-      struct tm *time = localtime (&last_vfm_invocation);
-      return expr_allocate_number (e, expr_ymd_to_ofs (time->tm_year + 1900,
-                                                       time->tm_mon + 1,
-                                                       time->tm_mday));
+      time_t time = vfm_last_invocation ();
+      struct tm *tm = localtime (&time);
+      return expr_allocate_number (e, expr_ymd_to_ofs (tm->tm_year + 1900,
+                                                       tm->tm_mon + 1,
+                                                       tm->tm_mday));
     }
   else if (lex_match_id ("$TIME"))
     {
-      struct tm *time = localtime (&last_vfm_invocation);
+      time_t time = vfm_last_invocation ();
+      struct tm *tm = localtime (&time);
       return expr_allocate_number (e,
-                                   expr_ymd_to_date (time->tm_year + 1900,
-                                                     time->tm_mon + 1,
-                                                     time->tm_mday)
-                                   + time->tm_hour * 60 * 60.
-                                   + time->tm_min * 60.
-                                   + time->tm_sec);
+                                   expr_ymd_to_date (tm->tm_year + 1900,
+                                                     tm->tm_mon + 1,
+                                                     tm->tm_mday)
+                                   + tm->tm_hour * 60 * 60.
+                                   + tm->tm_min * 60.
+                                   + tm->tm_sec);
     }
   else if (lex_match_id ("$LENGTH"))
     return expr_allocate_number (e, get_viewlength ());

@@ -22,9 +22,6 @@
 
 #include <time.h>
 
-/* This is the time at which vfm was last invoked. */
-extern time_t last_vfm_invocation;
-
 struct ccase;
 typedef struct write_case_data *write_case_data;
 typedef int write_case_func (write_case_data);
@@ -134,5 +131,7 @@ struct ccase *lagged_case (int n_before);
 void multipass_procedure_with_splits (void (*) (const struct casefile *,
                                                 void *),
                                       void *aux);
+
+time_t vfm_last_invocation (void);
 
 #endif /* !vfm_h */

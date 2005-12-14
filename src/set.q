@@ -30,7 +30,6 @@
 #include "lexer.h"
 #include "error.h"
 #include "magic.h"
-#include "log.h"
 #include "output.h"
 #include "random.h"
 #include "var.h"

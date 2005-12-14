@@ -53,7 +53,7 @@
 #define MAX_TOK_LEN 1024
 
 /* argv[0]. */
-char *pgmname;
+char *program_name;
 
 /* Have the input and output files been opened yet? */
 int is_open;
@@ -97,7 +97,7 @@ finish_up (void)
   fclose (in);
   fclose (out);
   if (remove (ofn) == -1)
-    fprintf (stderr, "%s: %s: remove: %s\n", pgmname, ofn, strerror (errno));
+    fprintf (stderr, "%s: %s: remove: %s\n", program_name, ofn, strerror (errno));
 }
 
 void hcf (void) NO_RETURN;
@@ -120,7 +120,7 @@ fail (const char *format, ...)
   va_list args;
 
   va_start (args, format);
-  fprintf (stderr, "%s: ", pgmname);
+  fprintf (stderr, "%s: ", program_name);
   vfprintf (stderr, format, args);
   fprintf (stderr, "\n");
   va_end (args);
@@ -1992,7 +1992,7 @@ recognize_directive (void)
 int
 main (int argc, char *argv[])
 {
-  pgmname = argv[0];
+  program_name = argv[0];
   if (argc != 3)
     fail ("Syntax: q2c input.q output.c");
 

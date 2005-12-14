@@ -32,8 +32,8 @@ enum
     SET_ROUTE_DISABLE = 010	/* Disable output--overrides all other bits. */
   };
 
-void init_settings (void);
-void done_settings (void);
+void settings_init (void);
+void settings_done (void);
 
 void force_long_view (void);
 int get_viewlength (void);

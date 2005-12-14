@@ -17,10 +17,9 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !INCLUDED_GLOB_H
-#define INCLUDED_GLOB_H 1
+#if !GLOB_H
+#define GLOB_H 1
 
-void init_glob (int argc UNUSED, char **argv);
-void done_glob (void);
+const char *get_start_date (void);
 
 #endif /* glob.h */
