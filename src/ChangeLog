@@ -1,3 +1,7 @@
+Fri Dec 16 09:11:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q: Fixed buglet when cleaning up at end of procedure.
+
 Tue Dec 13 22:34:42 2005  Ben Pfaff  <blp@gnu.org>
 
 	Move global initialization and cleanup code into main.c.

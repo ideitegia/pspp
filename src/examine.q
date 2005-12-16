@@ -233,6 +233,7 @@ cmd_examine(void)
 	hsh_destroy ( ff->fstats ) ;
 	free ( ff ) ;
       }
+    factors = 0;
   }
 
   subc_list_double_destroy(&percentile_list);
@@ -663,9 +664,6 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 
 }
 
-
-
-
 static void 
 run_examine(const struct casefile *cf, void *cmd_ )
 {
@@ -677,7 +675,6 @@ run_examine(const struct casefile *cf, void *cmd_ )
 
   /* Make sure we haven't got rubbish left over from a 
      previous split */
-
   struct factor *fctr = factors;
   while (fctr) 
     {
