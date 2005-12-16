@@ -485,14 +485,14 @@ subcommand_export (int export, pspp_linreg_cache *c)
       assert (fp != NULL);
       fp = fopen (handle_get_filename (model_file), "w");
       fprintf (fp, "#include <string.h>\n\n");
-      fprintf (fp, "double\npspp_reg_estimate (const double *var_vals, const char *[] var_names)\n{\n\tchar *model_depvars[%d] = {", c->n_indeps);
+      fprintf (fp, "double\npspp_reg_estimate (const double *var_vals, const char *var_names[])\n{\n\tchar *model_depvars[%d] = {", c->n_indeps);
       for (i = 1; i < c->n_indeps; i++)
 	{
 	  coeff = c->coeff[i];
-	  fprintf (fp, "%s,\n\t\t", coeff.v->name);
+	  fprintf (fp, "\"%s\",\n\t\t", coeff.v->name);
 	}
       coeff = c->coeff[i];
-      fprintf (fp, "%s};\n\t", coeff.v->name);
+      fprintf (fp, "\"%s\"};\n\t", coeff.v->name);
       fprintf (fp, "double model_coeffs[%d] = {", c->n_indeps);
       for (i = 1; i < c->n_indeps; i++)
 	{
@@ -502,11 +502,11 @@ subcommand_export (int export, pspp_linreg_cache *c)
       coeff = c->coeff[i];
       fprintf (fp, "%.15e};\n\t", coeff.estimate);
       coeff = c->coeff[0];
-      fprintf (fp, "double estimate = %.15e\n\t", coeff.estimate);
+      fprintf (fp, "double estimate = %.15e;\n\t", coeff.estimate);
       fprintf (fp, "int i;\n\tint j;\n\n\t");
       fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
       fprintf (fp, "{\n\t\tfor (j = 0; j < %d; j++)\n\t\t", c->n_indeps);
-      fprintf (fp, "{\n\t\t\tif (strcmp (var_names[i], model_names[j]) == 0)\n");
+      fprintf (fp, "{\n\t\t\tif (strcmp (var_names[i], model_depvars[j]) == 0)\n");
       fprintf (fp, "\t\t\t{\n\t\t\t\testimate += var_vals[i] * model_coeffs[j];\n");
       fprintf (fp, "\t\t\t}\n\t\t}\n\t}\n\treturn estimate;\n}\n");
       fclose (fp);
