@@ -154,7 +154,7 @@ of variable specifications may be present.
 
 Each variable specification consists of a list of variable names
 followed by a description of their location on the input line.  Sets of
-variables may specified using the @code{DATA LIST} TO convention
+variables may be specified using the @code{DATA LIST} TO convention
 (@pxref{Sets of
 Variables}).  There are two ways to specify the location of the variable
 on the line: columnar style and FORTRAN style.
