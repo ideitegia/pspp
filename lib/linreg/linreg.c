@@ -287,6 +287,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	  gsl_matrix_set (cache->cov, 0, 0, tmp);
 
 	  gsl_vector_set (cache->param_estimates, 0, m);
+	  cache->coeff[0].estimate = m;
 	}
       else
 	{
