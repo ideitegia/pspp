@@ -450,8 +450,8 @@ exception).  By default, each tab is 4 characters wide, but an
 alternate width may be specified on TABWIDTH.  A tab width of 0
 suppresses tab expansion entirely.
 
-By contrast, in BINARY mode, the data file is opened in ANSI C binary
-mode and records are a fixed length.  In BINARY mode, LRECL specifies
+By contrast, in IMAGE mode, the data file is opened in ANSI C binary
+mode and records are a fixed length.  In IMAGE mode, LRECL specifies
 the record length in bytes, with a default of 1024.  Tab characters
 are never expanded to spaces in binary mode.
 
