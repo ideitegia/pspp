@@ -485,6 +485,14 @@ subcommand_export (int export, pspp_linreg_cache *c)
       assert (fp != NULL);
       fp = fopen (handle_get_filename (model_file), "w");
       fprintf (fp, "#include <string.h>\n\n");
+      fprintf (fp, "/*\n   Estimate the mean of Y, the dependent variable for\n");
+      fprintf (fp, "   the linear model of the form \n\n");
+      fprintf (fp, "      Y = b0 + b1 * X1 + b2 * X2 + ... + bk * X2 + error\n\n");
+      fprintf (fp, "   where X1, ..., Xk are the independent variables\n");
+      fprintf (fp, "   whose values are stored in var_vals and whose names, \n");
+      fprintf (fp, "   as known by PSPP, are stored in var_names. The estimated \n");
+      fprintf (fp, "   regression coefficients (i.e., the estimates of b0,...,bk) \n");
+      fprintf (fp, "   are stored in model_coeffs.\n*/\n");
       fprintf (fp, "double\npspp_reg_estimate (const double *var_vals, const char *var_names[])\n{\n\tchar *model_depvars[%d] = {", c->n_indeps);
       for (i = 1; i < c->n_indeps; i++)
 	{
