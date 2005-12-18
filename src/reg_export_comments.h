@@ -19,6 +19,9 @@
 
 #ifndef REG_EXPORT_COMMENTS_H
 #define REG_EXPORT_COMMENTS_H
+const char reg_preamble[] =  "/*\n   This program contains functions which return estimates\n"
+"   and confidence intervals for a linear model. The EXPORT subcommand\n"
+"   of the REGRESSION procedure of GNU PSPP generated this program.\n*/\n\n";
 const char reg_mean_cmt[] =  "/*\n   Estimate the mean of Y, the dependent variable for\n"
 "   the linear model of the form \n\n"
 "      Y = b0 + b1 * X1 + b2 * X2 + ... + bk * Xk + error\n\n"

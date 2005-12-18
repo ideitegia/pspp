@@ -485,6 +485,7 @@ subcommand_export (int export, pspp_linreg_cache *c)
       assert (model_file != NULL);
       assert (fp != NULL);
       fp = fopen (handle_get_filename (model_file), "w");
+      fprintf (fp, "%s", reg_preamble);
       fprintf (fp, "#include <string.h>\n\n");
       fprintf (fp, "%s", reg_mean_cmt);
       fprintf (fp, "double\npspp_reg_estimate (const double *var_vals, const char *var_names[])\n{\n\tchar *model_depvars[%d] = {", c->n_indeps);
