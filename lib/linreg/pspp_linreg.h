@@ -93,7 +93,6 @@ struct pspp_linreg_cache_struct
 
   gsl_vector *residuals;
   struct pspp_linreg_coeff *coeff;
-  gsl_vector *param_estimates;
   int method;			/* Method to use to estimate parameters. */
   /*
      Means and standard deviations of the variables.

@@ -90,7 +90,6 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   pspp_linreg_cache *c;
 
   c = (pspp_linreg_cache *) malloc (sizeof (pspp_linreg_cache));
-  c->param_estimates = gsl_vector_alloc (p + 1);
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
   c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the independent
@@ -113,7 +112,6 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
 void
 pspp_linreg_cache_free (pspp_linreg_cache * c)
 {
-  gsl_vector_free (c->param_estimates);
   gsl_vector_free (c->indep_means);
   gsl_vector_free (c->indep_std);
   gsl_vector_free (c->ss_indeps);
@@ -250,7 +248,6 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	{
 	  tmp = gsl_matrix_get (sw, i, cache->n_indeps);
 	  cache->coeff[i + 1].estimate = tmp;
-	  gsl_vector_set (cache->param_estimates, i + 1, tmp);
 	  m -= tmp * gsl_vector_get (cache->indep_means, i);
 	}
       /*
@@ -286,7 +283,6 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	    }
 	  gsl_matrix_set (cache->cov, 0, 0, tmp);
 
-	  gsl_vector_set (cache->param_estimates, 0, m);
 	  cache->coeff[0].estimate = m;
 	}
       else
