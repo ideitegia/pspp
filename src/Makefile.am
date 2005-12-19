@@ -190,6 +190,8 @@ pspp_SOURCES =					\
 	random.h				\
 	range-prs.c				\
 	range-prs.h				\
+	readln.c				\
+	readln.h				\
 	recode.c				\
 	rename-vars.c				\
 	repeat.c				\

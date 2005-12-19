@@ -201,7 +201,11 @@ static void dump_message (char *errbuf, unsigned indent,
 void
 err_done (void) 
 {
-  free (file_loc);
+  lex_done();
+  getl_uninitialize ();
+  readln_uninitialize();
+
+  free(file_loc);
   file_loc = NULL;
   nfile_loc = mfile_loc = 0;
 }

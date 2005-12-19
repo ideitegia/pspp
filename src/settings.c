@@ -67,7 +67,6 @@ static size_t workspace = 4L * 1024 * 1024;
 
 static struct fmt_spec default_format = {FMT_F, 8, 2};
 
-#define CC_CNT 5
 #define CC_INITIALIZER {"-", "", "", "", '.', ','}
 static struct custom_currency cc[CC_CNT] = 
   {

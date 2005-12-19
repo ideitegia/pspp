@@ -1,3 +1,9 @@
+Mon Dec 19 14:01:56 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* format.c: Additional error checking.
+	* getl.[ch]: Separated into getl.c and readln.c
+	* settings.[ch]: Made CC_CNT public
+
 Fri Dec 16 09:11:48 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q: Fixed buglet when cleaning up at end of procedure.

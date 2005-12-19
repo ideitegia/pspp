@@ -34,6 +34,7 @@
 #include "output.h"
 #include "progname.h"
 #include "random.h"
+#include "readln.h"
 #include "settings.h"
 #include "var.h"
 #include "version.h"
@@ -92,6 +93,7 @@ main (int argc, char **argv)
   fn_init ();
   fh_init ();
   getl_initialize ();
+  readln_initialize ();
   settings_init ();
   random_init ();
 
@@ -155,7 +157,16 @@ execute_command (void)
       if (token != T_STOP)
 	break;
 
-      if (!getl_perform_delayed_reset ())
+      /* Sets the options flag of the current script to 0, thus allowing it
+	 to be read in.  Returns nonzero if this action was taken, zero
+	 otherwise. */
+      if (getl_head && getl_head->separate)
+	{
+	  getl_head->separate = 0;
+	  discard_variables ();
+	  lex_reset_eof ();
+	}
+      else
 	terminate (err_error_count == 0);
     }
 

@@ -101,6 +101,9 @@ void set_workspace (size_t);
 const struct fmt_spec *get_format (void);
 void set_format (const struct fmt_spec *);
 
+/* Maximum number of custom currency specifications */
+#define CC_CNT 5
+
 /* One custom currency specification. */
 #define CC_WIDTH 16
 struct custom_currency

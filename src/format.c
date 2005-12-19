@@ -64,8 +64,19 @@ fmt_to_string (const struct fmt_spec *f)
 static bool
 check_common_specifier (const struct fmt_spec *spec, bool emit_error)
 {
-  struct fmt_desc *f = &formats[spec->type];
-  char *str = fmt_to_string (spec);
+  struct fmt_desc *f ; 
+  char *str;
+
+  if ( spec->type > FMT_NUMBER_OF_FORMATS ) 
+    {
+      if (emit_error)
+        msg (SE, _("Format specifies a bad type (%d)"), spec->type);
+      
+      return false;
+    }
+
+  f = &formats[spec->type];
+  str = fmt_to_string (spec);
 
   if ((f->cat & FCAT_EVEN_WIDTH) && spec->w % 2)
     {
@@ -92,11 +103,16 @@ check_common_specifier (const struct fmt_spec *spec, bool emit_error)
 int
 check_input_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f = &formats[spec->type];
-  char *str = fmt_to_string (spec);
+  struct fmt_desc *f ;
+  char *str ;
 
   if (!check_common_specifier (spec, emit_error))
     return false;
+
+  f = &formats[spec->type];
+  str = fmt_to_string (spec);
+
+
   if (spec->type == FMT_X)
     return 1;
   if (f->cat & FCAT_OUTPUT_ONLY)
@@ -131,11 +147,15 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
 int
 check_output_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f = &formats[spec->type];
-  char *str = fmt_to_string (spec);
+  struct fmt_desc *f;
+  char *str ; 
 
   if (!check_common_specifier (spec, emit_error))
     return false;
+
+  f = &formats[spec->type];
+  str = fmt_to_string (spec);
+
   if (spec->type == FMT_X)
     return 1;
   if (spec->w < f->Omin_w || spec->w > f->Omax_w)

@@ -38,36 +38,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Global variables. */
-struct string getl_buf;
-struct getl_script *getl_head;
-struct getl_script *getl_tail;
-int getl_interactive;
-int getl_welcomed;
-int getl_mode;
-int getl_prompt;
-
-#if HAVE_LIBREADLINE
-#include <readline/readline.h>
-#endif
-
-#if HAVE_LIBHISTORY
-static char *history_file;
-
-#if HAVE_READLINE_HISTORY_H
-#include <readline/history.h>
-#else /* no readline/history.h */
-extern void add_history (char *);
-extern void using_history (void);
-extern int read_history (char *);
-extern void stifle_history (int);
-extern int write_history (char *);
-#endif /* no readline/history.h */
-#endif /* -lhistory */
-
-
-extern struct cmd_set cmd;
-
 static struct string getl_include_path;
 
 /* Number of levels of DO REPEAT structures we're nested inside.  If
@@ -75,7 +45,8 @@ static struct string getl_include_path;
    performed. */
 static int DO_REPEAT_level;
 
-static int read_console (void);
+struct string getl_buf;
+
 
 /* Initialize getl. */
 void
@@ -84,9 +55,6 @@ getl_initialize (void)
   ds_create (&getl_include_path,
 	     fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
   ds_init (&getl_buf, 256);
-#if HAVE_LIBREADLINE 
-  rl_completion_entry_function = pspp_completion_function;
-#endif
 }
 
 /* Close getl. */
@@ -94,13 +62,14 @@ void
 getl_uninitialize (void)
 {
   getl_close_all();
-#if HAVE_LIBHISTORY && defined (unix)
-  if (history_file)
-    write_history (history_file);
-#endif
   ds_destroy (&getl_buf);
   ds_destroy (&getl_include_path);
 }
+
+
+struct getl_script *getl_head;
+struct getl_script *getl_tail;
+
 
 /* Returns a string that represents the directory that the syntax file
    currently being read resides in.  If there is no syntax file then
@@ -227,7 +196,6 @@ getl_add_virtual_file (struct getl_script *file)
 void
 getl_add_DO_REPEAT_file (struct getl_script *file)
 {
-  /* getl_head == NULL can't happen. */
   assert (getl_head);
 
   DO_REPEAT_level++;
@@ -242,28 +210,11 @@ getl_add_DO_REPEAT_file (struct getl_script *file)
   file->f = NULL;
 }
 
-/* Display a welcoming message. */
-static void
-welcome (void)
-{
-  getl_welcomed = 1;
-  fputs ("PSPP is free software and you are welcome to distribute copies of "
-	 "it\nunder certain conditions; type \"show copying.\" to see the "
-	 "conditions.\nThere is ABSOLUTELY NO WARRANTY for PSPP; type \"show "
-	 "warranty.\" for details.\n", stdout);
-  puts (stat_version);
-}
-
-/* Reads a single line from the user's terminal. */
-
-/* From repeat.c. */
-extern void perform_DO_REPEAT_substitutions (void);
-  
 /* Reads a single line from the line buffer associated with getl_head.
    Returns 1 if a line was successfully read or 0 if no more lines are
    available. */
-static int
-handle_line_buffer (void)
+int
+getl_handle_line_buffer (void)
 {
   struct getl_script *s = getl_head;
 
@@ -295,84 +246,6 @@ handle_line_buffer (void)
   s->ln++;
 
   return 1;
-}
-
-/* Reads a single line into getl_buf from the list of files.  Will not
-   read from the eof of one file to the beginning of another unless
-   the options field on the new file's getl_script is nonzero.  Return
-   zero on eof. */
-int
-getl_read_line (void)
-{
-  getl_mode = GETL_MODE_BATCH;
-  
-  while (getl_head)
-    {
-      struct getl_script *s = getl_head;
-
-      ds_clear (&getl_buf);
-      if (s->separate)
-	return 0;
-
-      if (s->first_line)
-	{
-	  if (!handle_line_buffer ())
-	    {
-	      getl_close_file ();
-	      continue;
-	    }
-	  perform_DO_REPEAT_substitutions ();
-	  if (getl_head->print)
-	    tab_output_text (TAB_LEFT | TAT_FIX | TAT_PRINTF, "+%s",
-			     ds_c_str (&getl_buf));
-	  return 1;
-	}
-      
-      if (s->f == NULL)
-	{
-	  msg (VM (1), _("%s: Opening as syntax file."), s->fn);
-	  s->f = fn_open (s->fn, "r");
-
-	  if (s->f == NULL)
-	    {
-	      msg (ME, _("Opening `%s': %s."), s->fn, strerror (errno));
-	      getl_close_file ();
-	      continue;
-	    }
-	}
-
-      if (!ds_gets (&getl_buf, s->f))
-	{
-	  if (ferror (s->f))
-	    msg (ME, _("Reading `%s': %s."), s->fn, strerror (errno));
-	  getl_close_file ();
-	  continue;
-	}
-      if (ds_length (&getl_buf) > 0 && ds_end (&getl_buf)[-1] == '\n')
-	ds_truncate (&getl_buf, ds_length (&getl_buf) - 1);
-
-      if (get_echo())
-	tab_output_text (TAB_LEFT | TAT_FIX, ds_c_str (&getl_buf));
-
-      getl_head->ln++;
-
-      /* Allows shebang invocation: `#! /usr/local/bin/pspp'. */
-      if (ds_c_str (&getl_buf)[0] == '#'
-	  && ds_c_str (&getl_buf)[1] == '!')
-	continue;
-
-      return 1;
-    }
-
-  if (getl_interactive == 0)
-    return 0;
-
-  getl_mode = GETL_MODE_INTERACTIVE;
-  
-  if (getl_welcomed == 0)
-    welcome ();
-
-  return read_console ();
 }
 
 /* Closes the current file, whether it be a main file or included
@@ -420,90 +293,6 @@ getl_close_file (void)
   free (s);
 }
 
-/* PORTME: Adapt to your local system's idea of the terminal. */
-#if HAVE_LIBREADLINE
-
-#if HAVE_READLINE_READLINE_H
-#include <readline/readline.h>
-#else /* no readline/readline.h */
-extern char *readline (char *);
-#endif /* no readline/readline.h */
-
-static int
-read_console (void)
-{
-  char *line;
-  const char *prompt;
-
-  err_error_count = err_warning_count = 0;
-  err_already_flagged = 0;
-
-#if HAVE_LIBHISTORY
-  if (!history_file)
-    {
-#ifdef unix
-      history_file = tilde_expand (HISTORY_FILE);
-#endif
-      using_history ();
-      read_history (history_file);
-      stifle_history (MAX_HISTORY);
-    }
-#endif /* -lhistory */
-
-  switch (getl_prompt)
-    {
-    case GETL_PRPT_STANDARD:
-      prompt = get_prompt ();
-      break;
-
-    case GETL_PRPT_CONTINUATION:
-      prompt = get_cprompt ();
-      break;
-
-    case GETL_PRPT_DATA:
-      prompt = get_dprompt ();
-      break;
-
-    default:
-      assert (0);
-      abort ();
-    }
-
-  line = readline (prompt);
-  if (!line)
-    return 0;
-
-#if HAVE_LIBHISTORY
-  if (*line)
-    add_history (line);
-#endif
-
-  ds_clear (&getl_buf);
-  ds_puts (&getl_buf, line);
-
-  free (line);
-
-  return 1;
-}
-#else /* no -lreadline */
-static int
-read_console (void)
-{
-  err_error_count = err_warning_count = 0;
-  err_already_flagged = 0;
-
-  fputs (getl_prompt ? get_cprompt() : get_prompt(), stdout);
-  ds_clear (&getl_buf);
-  if (ds_gets (&getl_buf, stdin))
-    return 1;
-
-  if (ferror (stdin))
-    msg (FE, "stdin: fgets(): %s.", strerror (errno));
-
-  return 0;
-}
-#endif /* no -lreadline */
-
 /* Closes all files. */
 void
 getl_close_all (void)
@@ -512,21 +301,20 @@ getl_close_all (void)
     getl_close_file ();
 }
 
-/* Sets the options flag of the current script to 0, thus allowing it
-   to be read in.  Returns nonzero if this action was taken, zero
-   otherwise. */
-int
-getl_perform_delayed_reset (void)
+bool
+getl_is_separate(void)
 {
-  if (getl_head && getl_head->separate)
-    {
-      getl_head->separate = 0;
-      discard_variables ();
-      lex_reset_eof ();
-      return 1;
-    }
-  return 0;
+  return (getl_head && getl_head->separate);
 }
+
+void
+getl_set_separate(bool sep)
+{
+  assert (getl_head);
+
+  getl_head->separate = sep ;
+}
+
 
 /* Puts the current file and line number in *FN and *LN, respectively,
    or NULL and -1 if none. */
@@ -538,3 +326,10 @@ getl_location (const char **fn, int *ln)
   if (ln != NULL)
     *ln = getl_head ? getl_head->ln : -1;
 }
+
+bool 
+getl_reading_script (void)
+{
+  return (getl_head != NULL);
+}
+

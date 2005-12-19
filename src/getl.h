@@ -20,6 +20,7 @@
 #if !getl_h
 #define getl_h 1
 
+#include <stdbool.h>
 #include <stdio.h>
 
 /* Defines a list of lines used by DO REPEAT. */
@@ -88,7 +89,8 @@ extern int getl_prompt;
 
 /* Are we reading a script? Are we interactive? */
 #define getl_am_interactive (getl_head == NULL)
-#define getl_reading_script (getl_head != NULL)
+
+bool getl_reading_script (void);
 
 /* Current line.  This line may be modified by modules other than
    getl.c, and by lexer.c in particular. */
@@ -113,5 +115,11 @@ int getl_perform_delayed_reset (void);
 void getl_add_DO_REPEAT_file (struct getl_script *);
 void getl_add_virtual_file (struct getl_script *);
 void getl_location (const char **, int *);
+int getl_handle_line_buffer (void);
+
+bool getl_is_separate(void);
+
+void getl_set_separate(bool sep);
+
 
 #endif /* getl_h */
