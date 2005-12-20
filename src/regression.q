@@ -473,6 +473,31 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
 static void
+reg_print_depvars (FILE *fp, pspp_linreg_cache *c)
+{
+  int i;
+  struct pspp_linreg_coeff coeff;
+
+  fprintf (fp, "char *model_depvars[%d] = {", c->n_indeps);
+  for (i = 1; i < c->n_indeps; i++)
+    {
+      coeff = c->coeff[i];
+      fprintf (fp, "\"%s\",\n\t\t", coeff.v->name);
+    }
+  coeff = c->coeff[i];
+  fprintf (fp, "\"%s\"};\n\t", coeff.v->name);
+}
+static void
+reg_print_getvar (FILE *fp, pspp_linreg_cache *c)
+{
+  fprintf (fp, "static int\npspp_reg_getvar (char *v_name)\n{\n\t");
+  fprintf (fp, "int i;\n\tint n_vars = %d;\n\t",c->n_indeps);
+  reg_print_depvars (fp, c);
+  fprintf (fp, "for (i = 0; i < n_vars; i++)\n\t{\n\t\t");
+  fprintf (fp, "if (strcmp (v_name, model_depvars[i]) == 0)\n\t\t{\n\t\t\t");
+  fprintf (fp, "return i;\n\t\t}\n\t}\n}\n");
+}
+static void
 subcommand_export (int export, pspp_linreg_cache *c)
 {
   FILE *fp;
@@ -487,15 +512,10 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fp = fopen (handle_get_filename (model_file), "w");
       fprintf (fp, "%s", reg_preamble);
       fprintf (fp, "#include <string.h>\n\n");
+      reg_print_getvar (fp, c);
       fprintf (fp, "%s", reg_mean_cmt);
-      fprintf (fp, "double\npspp_reg_estimate (const double *var_vals, const char *var_names[])\n{\n\tchar *model_depvars[%d] = {", c->n_indeps);
-      for (i = 1; i < c->n_indeps; i++)
-	{
-	  coeff = c->coeff[i];
-	  fprintf (fp, "\"%s\",\n\t\t", coeff.v->name);
-	}
-      coeff = c->coeff[i];
-      fprintf (fp, "\"%s\"};\n\t", coeff.v->name);
+      fprintf (fp, "double\npspp_reg_estimate (const double *var_vals,");
+      fprintf (fp, "const char *var_names[])\n{\n\t");
       fprintf (fp, "double model_coeffs[%d] = {", c->n_indeps);
       for (i = 1; i < c->n_indeps; i++)
 	{
@@ -508,10 +528,11 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "double estimate = %.15e;\n\t", coeff.estimate);
       fprintf (fp, "int i;\n\tint j;\n\n\t");
       fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
-      fprintf (fp, "{\n\t\tfor (j = 0; j < %d; j++)\n\t\t", c->n_indeps);
-      fprintf (fp, "{\n\t\t\tif (strcmp (var_names[i], model_depvars[j]) == 0)\n");
-      fprintf (fp, "\t\t\t{\n\t\t\t\testimate += var_vals[i] * model_coeffs[j];\n");
-      fprintf (fp, "\t\t\t}\n\t\t}\n\t}\n\treturn estimate;\n}\n");
+      fprintf (fp, "{\n\t\tj = pspp_reg_getvar (var_names[i]);\n");
+      fprintf (fp, "\t\testimate += var_vals[j] * model_coeffs[j];\n");
+      fprintf (fp, "\t}\n\t\n\treturn estimate;\n}\n\n");
+      fprintf (fp, "double\npspp_reg_standard_error (const double *var_vals,");
+      fprintf (fp, "const char *var_names[])\n{\n\t");
       fclose (fp);
     }
 }
