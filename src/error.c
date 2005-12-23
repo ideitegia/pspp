@@ -47,9 +47,6 @@ int err_already_flagged;
 
 int err_verbosity;
 
-/* File locator stack. */
-static const struct file_locator **file_loc;
-static int nfile_loc, mfile_loc;
 
 /* Fairly common public functions. */
 
@@ -114,46 +111,6 @@ err_cond_fail (void)
     }
 }
 
-/* File locator stack functions. */
-
-/* Pushes F onto the stack of file locations. */
-void
-err_push_file_locator (const struct file_locator *f)
-{
-  if (nfile_loc >= mfile_loc)
-    {
-      if (mfile_loc == 0)
-	mfile_loc = 8;
-      else
-	mfile_loc *= 2;
-
-      file_loc = xnrealloc (file_loc, mfile_loc, sizeof *file_loc);
-    }
-
-  file_loc[nfile_loc++] = f;
-}
-
-/* Pops F off the stack of file locations.
-   Argument F is only used for verification that that is actually the
-   item on top of the stack. */
-void
-err_pop_file_locator (const struct file_locator *f)
-{
-  assert (nfile_loc >= 0 && file_loc[nfile_loc - 1] == f);
-  nfile_loc--;
-}
-
-/* Puts the current file and line number in F, or NULL and -1 if
-   none. */
-void
-err_location (struct file_locator *f)
-{
-  if (nfile_loc)
-    *f = *file_loc[nfile_loc - 1];
-  else
-    getl_location (&f->filename, &f->line_number);
-}
-
 /* Obscure public functions. */
 
 /* Writes a blank line to the error device(s).
@@ -204,10 +161,6 @@ err_done (void)
   lex_done();
   getl_uninitialize ();
   readln_uninitialize();
-
-  free(file_loc);
-  file_loc = NULL;
-  nfile_loc = mfile_loc = 0;
 }
 
 void

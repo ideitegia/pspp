@@ -1,3 +1,7 @@
+Fri Dec 23 20:59:01 WST 2005 John Darrington <john@darrington.wattle.id.au>
+
+	* getl.c error.c: Separated file_loc functionality from error.c
+
 Mon Dec 19 14:01:56 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* format.c: Additional error checking.

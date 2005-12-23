@@ -57,14 +57,6 @@ getl_initialize (void)
   ds_init (&getl_buf, 256);
 }
 
-/* Close getl. */
-void
-getl_uninitialize (void)
-{
-  getl_close_all();
-  ds_destroy (&getl_buf);
-  ds_destroy (&getl_include_path);
-}
 
 
 struct getl_script *getl_head;
@@ -332,4 +324,62 @@ getl_reading_script (void)
 {
   return (getl_head != NULL);
 }
+
+/* File locator stack. */
+static const struct file_locator **file_loc;
+static int nfile_loc, mfile_loc;
+
+/* Close getl. */
+void
+getl_uninitialize (void)
+{
+  getl_close_all();
+  ds_destroy (&getl_buf);
+  ds_destroy (&getl_include_path);
+  free(file_loc);
+  file_loc = NULL;
+  nfile_loc = mfile_loc = 0;
+}
+
+
+/* File locator stack functions. */
+
+/* Pushes F onto the stack of file locations. */
+void
+err_push_file_locator (const struct file_locator *f)
+{
+  if (nfile_loc >= mfile_loc)
+    {
+      if (mfile_loc == 0)
+	mfile_loc = 8;
+      else
+	mfile_loc *= 2;
+
+      file_loc = xnrealloc (file_loc, mfile_loc, sizeof *file_loc);
+    }
+
+  file_loc[nfile_loc++] = f;
+}
+
+/* Pops F off the stack of file locations.
+   Argument F is only used for verification that that is actually the
+   item on top of the stack. */
+void
+err_pop_file_locator (const struct file_locator *f)
+{
+  assert (nfile_loc >= 0 && file_loc[nfile_loc - 1] == f);
+  nfile_loc--;
+}
+
+/* Puts the current file and line number in F, or NULL and -1 if
+   none. */
+void
+err_location (struct file_locator *f)
+{
+  if (nfile_loc)
+    *f = *file_loc[nfile_loc - 1];
+  else
+    getl_location (&f->filename, &f->line_number);
+}
+
 
