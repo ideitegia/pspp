@@ -357,7 +357,7 @@ before the current date.
 @end table
 
 Program input subcommands affect the way that programs are parsed when
-they are typed interactively or run from a script.  They are
+they are typed interactively or run from a command file.  They are
 
 @table @asis
 @item ENDCMD
