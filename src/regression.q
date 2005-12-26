@@ -502,6 +502,10 @@ subcommand_export (int export, pspp_linreg_cache *c)
 {
   FILE *fp;
   size_t i;
+  size_t j;
+  int n_quantiles = 100;
+  double increment;
+  double tmp;
   struct pspp_linreg_coeff coeff;
 
   if (export)
@@ -513,6 +517,15 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "%s", reg_preamble);
       fprintf (fp, "#include <string.h>\n\n");
       reg_print_getvar (fp, c);
+      fprintf (fp, "%s", reg_export_t_quantiles_1);
+      increment = 0.5 / (double) increment;
+      for (i = 0; i < n_quantiles - 1; i++)
+	{
+	  tmp = 0.5 + 0.005 * (double) i;
+	  fprintf (fp, "%.15e,\n\t\t", gsl_cdf_tdist_Pinv (tmp, c->n_obs - c->n_indeps));
+	}
+      fprintf (fp, "%.15e};\n\t", gsl_cdf_tdist_Pinv (.9995, c->n_obs - c->n_indeps));
+      fprintf (fp, "%s", reg_export_t_quantiles_2);
       fprintf (fp, "%s", reg_mean_cmt);
       fprintf (fp, "double\npspp_reg_estimate (const double *var_vals,");
       fprintf (fp, "const char *var_names[])\n{\n\t");
@@ -528,11 +541,28 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "double estimate = %.15e;\n\t", coeff.estimate);
       fprintf (fp, "int i;\n\tint j;\n\n\t");
       fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
-      fprintf (fp, "{\n\t\tj = pspp_reg_getvar (var_names[i]);\n");
-      fprintf (fp, "\t\testimate += var_vals[j] * model_coeffs[j];\n");
-      fprintf (fp, "\t}\n\t\n\treturn estimate;\n}\n\n");
-      fprintf (fp, "double\npspp_reg_standard_error (const double *var_vals,");
-      fprintf (fp, "const char *var_names[])\n{\n\t");
+      fprintf (fp, "%s", reg_getvar);
+      fprintf (fp, "const double cov[%d][%d] = {\n\t",c->n_indeps, c->n_indeps);	  
+      for (i = 0; i < c->cov->size1 - 1; i++)
+	{
+	  fprintf (fp, "{");
+	  for (j = 0; j < c->cov->size2 - 1; j++)
+	    {
+	      fprintf (fp, "%.15e, ", gsl_matrix_get (c->cov, i, j));
+	    }
+	  fprintf (fp, "%.15e},\n\t", gsl_matrix_get (c->cov, i, j));
+	}
+      fprintf (fp, "{");
+      for (j = 0; j < c->cov->size2 - 1; j++)
+	{
+	  fprintf (fp, "%.15e, ", gsl_matrix_get (c->cov, c->cov->size1 - 1, j));
+	}
+      fprintf (fp, "%.15e}\n\t", gsl_matrix_get (c->cov, c->cov->size1 - 1, c->cov->size2 - 1));
+      fprintf (fp, "};\n\tint n_vars = %d;\n\tint i;\n\tint j;\n\t", c->n_indeps);
+      fprintf (fp, "double unshuffled_vals[%d];\n\t",c->n_indeps);
+      fprintf (fp, "%s", reg_variance);
+      fprintf (fp, "%s", reg_export_confidence_interval);
+      fprintf (fp, "%s", reg_export_prediction_interval);
       fclose (fp);
     }
 }
