@@ -36,7 +36,7 @@
 #include "lexer.h"
 #include <linreg/pspp_linreg.h>
 #include "missing-values.h"
-#include "reg_export_comments.h"
+#include "regression_export.h"
 #include "tab.h"
 #include "var.h"
 #include "vfm.h"
@@ -515,7 +515,7 @@ subcommand_export (int export, pspp_linreg_cache *c)
       assert (fp != NULL);
       fp = fopen (handle_get_filename (model_file), "w");
       fprintf (fp, "%s", reg_preamble);
-      fprintf (fp, "#include <string.h>\n\n");
+      fprintf (fp, "#include <string.h>\n#include <math.h>\n\n");
       reg_print_getvar (fp, c);
       fprintf (fp, "%s", reg_export_t_quantiles_1);
       increment = 0.5 / (double) increment;
@@ -542,7 +542,7 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "int i;\n\tint j;\n\n\t");
       fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
       fprintf (fp, "%s", reg_getvar);
-      fprintf (fp, "const double cov[%d][%d] = {\n\t",c->n_indeps, c->n_indeps);	  
+      fprintf (fp, "const double cov[%d][%d] = {\n\t", c->n_coeffs, c->n_coeffs);	  
       for (i = 0; i < c->cov->size1 - 1; i++)
 	{
 	  fprintf (fp, "{");
@@ -562,7 +562,13 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "double unshuffled_vals[%d];\n\t",c->n_indeps);
       fprintf (fp, "%s", reg_variance);
       fprintf (fp, "%s", reg_export_confidence_interval);
-      fprintf (fp, "%s", reg_export_prediction_interval);
+      tmp = c->mse * c->mse;
+      fprintf (fp, "%s %.15e", reg_export_prediction_interval_1, tmp);
+      fprintf (fp, "%s %.15e", reg_export_prediction_interval_2, tmp);
+      fprintf (fp, "%s", reg_export_prediction_interval_3);
+      fclose (fp);
+      fp = fopen ("pspp_model_reg.h", "w");
+      fprintf (fp, "%s", reg_header);
       fclose (fp);
     }
 }
