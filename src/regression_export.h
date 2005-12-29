@@ -24,6 +24,19 @@
  */
 #ifndef REG_EXPORT_COMMENTS_H
 #define REG_EXPORT_COMMENTS_H
+const char reg_header[] = "#ifndef REG_EXPORT_COMMENTS_H\n#define REG_EXPORT_COMMENTS_H\n"
+"double pspp_reg_estimate (const double *, const char *[]);\n\n"
+"double pspp_reg_variance (const double *var_vals, const char *[]);\n\n"
+"double pspp_reg_confidence_interval_U "
+"(const double *var_vals, const char *var_names[], double p);\n\n"
+"double pspp_reg_confidence_interval_L "
+"(const double *var_vals, const char *var_names[], double p);\n\n"
+"double pspp_reg_prediction_interval_U "
+"(const double *var_vals, const char *var_names[], double p);\n\n"
+"double pspp_reg_prediction_interval_L "
+"(const double *var_vals, const char *var_names[], double p);\n"
+"#endif\n";
+
 const char reg_preamble[] =  "/*\n   This program contains functions which return estimates\n"
 "   and confidence intervals for a linear model. The EXPORT subcommand\n"
 "   of the REGRESSION procedure of GNU PSPP generated this program.\n*/\n\n";
@@ -67,36 +80,39 @@ const char reg_export_confidence_interval[] = "/*\n    Upper confidence limit fo
 "double pspp_reg_confidence_interval_U "
 "(const double *var_vals, const char *var_names[], double p)\n{\n\t"
 "double result;\n\t"
-"result = sqrt (pspp_reg_variance (var_vals, var_names);\n\treturn result;\n\t"
+"result = sqrt (pspp_reg_variance (var_vals, var_names));\n\t"
 "result *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
-"result += pspp_reg_estimate (var_vals, var_names);\n}\n"
+"result += pspp_reg_estimate (var_vals, var_names);\n\treturn result;\n}\n"
 "/*\n    Lower confidence limit for an "
 "estimated mean b0 + b1 * X1 + ... + bk * Xk.\n    The confidence interval is a "
 "100 * p percent confidence interval.\n*/\n"
 "double pspp_reg_confidence_interval_L "
 "(const double *var_vals, const char *var_names[], double p)\n{\n\t"
 "double result;\n\t"
-"result = -sqrt (pspp_reg_variance (var_vals, var_names);\n\treturn result;\n\t"
+"result = -sqrt (pspp_reg_variance (var_vals, var_names));\n\t"
 "result *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
-"result += pspp_reg_estimate (var_vals, var_names);\n}\n";
+"result += pspp_reg_estimate (var_vals, var_names);\n\treturn result;\n}\n";
 
-const char reg_export_prediction_interval[] = "/*\n    Upper prediction limit for a "
+const char reg_export_prediction_interval_1[] = "/*\n    Upper prediction limit for a "
 "predicted value b0 + b1 * X1 + ... + bk * Xk.\n    The prediction interval is a "
 "100 * p percent prediction interval.\n*/\n"
 "double pspp_reg_prediction_interval_U "
 "(const double *var_vals, const char *var_names[], double p)\n{\n\t"
-"double result;\n\t"
-"result = 1 + sqrt (pspp_reg_variance (var_vals, var_names);\n\treturn result;\n\t"
-"result *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
-"result += pspp_reg_estimate (var_vals, var_names);\n}\n"
+"double result;\n\tresult = sqrt (";
+
+const char reg_export_prediction_interval_2[] = " + pspp_reg_variance (var_vals, var_names));\n"
+"\tresult *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
+"result += pspp_reg_estimate (var_vals, var_names);\n\treturn result;\n}\n"
 "/*\n    Lower prediction limit for a "
 "predicted value b0 + b1 * X1 + ... + bk * Xk.\n    The prediction interval is a "
 "100 * p percent prediction interval.\n*/\n"
 "double pspp_reg_prediction_interval_L "
 "(const double *var_vals, const char *var_names[], double p)\n{\n\t"
 "double result;\n\t"
-"result = -1.0 - sqrt (pspp_reg_variance (var_vals, var_names);\n\treturn result;\n\t"
-"result *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
-"result += pspp_reg_estimate (var_vals, var_names);\n}\n";
+"result = -sqrt (";
+
+const char reg_export_prediction_interval_3[] = " + pspp_reg_variance (var_vals, var_names));"
+"\n\tresult *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
+"result += pspp_reg_estimate (var_vals, var_names);\n\treturn result;\n}\n";
 
 #endif
