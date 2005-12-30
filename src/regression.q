@@ -472,6 +472,44 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
+
+static void
+reg_print_categorical_encoding (FILE *fp, pspp_linreg_cache *c)
+{
+  int i;
+  size_t j;
+  struct pspp_linreg_coeff coeff;
+  union value *val;
+  
+  fprintf (fp, "%s", reg_export_categorical_encode_1);
+
+  for (i = 1; i < c->n_indeps; i++)   /* c->coeff[0] is the intercept. */
+    {
+      coeff = c->coeff[i];
+      if (coeff.v->type == ALPHA)
+	{
+	  fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t", coeff.v->name);
+	}
+    }
+  for (i = 1; i < c->n_indeps; i++)
+    {
+      coeff = c->coeff[i];
+      if (coeff.v->type == ALPHA)
+	{
+	  fprintf (fp, "%s.name = \"%s\";\n\t", coeff.v->name, coeff.v->name);
+	  fprintf (fp, "%s.n_vals = %d;\n\t", coeff.v->name, coeff.v->obs_vals->n_categories);
+	  fprintf (fp, "%s.values = {", coeff.v->name);
+	  for (j = 0; j < coeff.v->obs_vals->n_categories - 1; j++)
+	    {
+	      val = cat_subscript_to_value ( (const size_t) j, coeff.v);
+	      fprintf (fp, "\"%s\",\n\t\t", val->s);
+	    }
+	  val = cat_subscript_to_value ( (const size_t) j, coeff.v);
+	  fprintf (fp, "\"%s\"};\n\n\t", val->s);
+	}
+    }
+}
+
 static void
 reg_print_depvars (FILE *fp, pspp_linreg_cache *c)
 {
@@ -517,6 +555,7 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "%s", reg_preamble);
       fprintf (fp, "#include <string.h>\n#include <math.h>\n\n");
       reg_print_getvar (fp, c);
+      reg_print_categorical_encoding (fp, c);
       fprintf (fp, "%s", reg_export_t_quantiles_1);
       increment = 0.5 / (double) increment;
       for (i = 0; i < n_quantiles - 1; i++)

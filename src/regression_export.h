@@ -115,4 +115,22 @@ const char reg_export_prediction_interval_3[] = " + pspp_reg_variance (var_vals,
 "\n\tresult *= pspp_reg_t_quantile ((1.0 + p) / 2.0);\n\t"
 "result += pspp_reg_estimate (var_vals, var_names);\n\treturn result;\n}\n";
 
+/*
+  Change categorical values to binary vectors. The routine will use
+  an encoding in which a categorical variable with n values is mapped
+  to a vector with n-1 entries. Value 0 is mapped to the zero vector,
+  value 1 is mapped to a vector whose first entry is 1 and all others are
+  0, etc. For example, if a variable can have 'a', 'b' or 'c' as values,
+  then the value 'a' will be encoded as (0,0), 'b' as (1,0) and 'c' as
+  (0,1). If the design matrix used to create the model used a different
+  encoding, then the function pspp_reg_categorical_encode () will return
+  a vector which does not match its categorical value in the model.
+ */
+const char reg_export_categorical_encode_1[] = "struct pspp_reg_categorical_variable\n"
+"{\n\tchar * name;\n\tsize_t n_vals;\n\tchar *[] values;\n};\n\n"
+"static\ndouble * get_value_vector (char *v)\n{\n\tdouble *result;\n\t";
+
+const char reg_export_categorical_encode_2[] = "; i++)\n\t{\n\t\tif (strcmp (v, values[i]) == 0)"
+"\n\t\t{\n\t\t\tresult[i] = 1.0;\n\t\t}\n\t}\n\treturn result;\n}\n";
+
 #endif
