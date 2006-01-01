@@ -558,7 +558,7 @@ reg_print_getvar (FILE *fp, pspp_linreg_cache *c)
   fprintf (fp, "int i;\n\tint n_vars = %d;\n\t",c->n_indeps);
   reg_print_depvars (fp, c);
   fprintf (fp, "for (i = 0; i < n_vars; i++)\n\t{\n\t\t");
-  fprintf (fp, "if (strcmp (v_name, model_depvars[i]) == 0)\n\t\t{\n\t\t\t");
+  fprintf (fp, "if (strncmp (v_name, model_depvars[i], PSPP_REG_MAXLEN) == 0)\n\t\t{\n\t\t\t");
   fprintf (fp, "return i;\n\t\t}\n\t}\n}\n");
 }
 static void
@@ -579,7 +579,6 @@ subcommand_export (int export, pspp_linreg_cache *c)
       assert (fp != NULL);
       fp = fopen (handle_get_filename (model_file), "w");
       fprintf (fp, "%s", reg_preamble);
-      fprintf (fp, "#include <string.h>\n#include <math.h>\n\n");
       reg_print_getvar (fp, c);
       reg_print_categorical_encoding (fp, c);
       fprintf (fp, "%s", reg_export_t_quantiles_1);

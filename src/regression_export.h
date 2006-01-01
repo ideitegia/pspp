@@ -39,7 +39,8 @@ const char reg_header[] = "#ifndef REG_EXPORT_COMMENTS_H\n#define REG_EXPORT_COM
 
 const char reg_preamble[] =  "/*\n   This program contains functions which return estimates\n"
 "   and confidence intervals for a linear model. The EXPORT subcommand\n"
-"   of the REGRESSION procedure of GNU PSPP generated this program.\n*/\n\n";
+"   of the REGRESSION procedure of GNU PSPP generated this program.\n*/\n\n"
+"#include <string.h>\n#include <math.h>\n#define PSPP_REG_MAXLEN 1024\n\n";
 
 const char reg_mean_cmt[] =  "/*\n   Estimate the mean of Y, the dependent variable for\n"
 "   the linear model of the form \n\n"
@@ -138,10 +139,10 @@ const char reg_export_categorical_encode_1[] = "struct pspp_reg_categorical_vari
 "int i;\n\t";
 
 const char reg_export_categorical_encode_2[] = "int v_index = 0;\n\t"
-"while (v_index < n_vars && strcmp (var, varlist[i]->name) != 0)\n\t{\n\t\t"
+"while (v_index < n_vars && strncmp (var, varlist[i]->name, PSPP_REG_MAXLEN) != 0)\n\t{\n\t\t"
 "v_index++;\n\t}\n\tresult = (double *) malloc (varlist[v_index]->n_vals * sizeof (*result));\n\t"
 "for (i = 0; i < varlist[v_index]->n_vals; i++)\n\t{\n\t\t"
-"if (strcmp ( (varlist[v_index]->values)[i], value) == 0)\n\t\t{\n\t\t\t"
+"if (strncmp ( (varlist[v_index]->values)[i], value, PSPP_REG_MAXLEN) == 0)\n\t\t{\n\t\t\t"
 "result[i] = 1.0;\n\t\t}\n\t\telse result[i] = 0.0;\n\t}\n\n\t"
 "return result;\n}\n\n";
 #endif
