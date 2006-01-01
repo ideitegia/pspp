@@ -38,6 +38,7 @@
 #include "missing-values.h"
 #include "regression_export.h"
 #include "tab.h"
+#include "value-labels.h"
 #include "var.h"
 #include "vfm.h"
 
@@ -472,42 +473,67 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
+static
+int reg_inserted (struct variable *v, struct variable **varlist, int n_vars)
+{
+  int i;
 
+  for (i = 0; i < n_vars; i++)
+    {
+      if (v->index == varlist[i]->index)
+	{
+	  return 1;
+	}
+    }
+  return 0;
+}
 static void
 reg_print_categorical_encoding (FILE *fp, pspp_linreg_cache *c)
 {
   int i;
   size_t j;
+  int n_vars = 0;
+  struct variable **varlist;
   struct pspp_linreg_coeff coeff;
   union value *val;
   
   fprintf (fp, "%s", reg_export_categorical_encode_1);
 
+  varlist = xnmalloc (c->n_indeps, sizeof (*varlist));
   for (i = 1; i < c->n_indeps; i++)   /* c->coeff[0] is the intercept. */
     {
       coeff = c->coeff[i];
       if (coeff.v->type == ALPHA)
 	{
-	  fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t", coeff.v->name);
+	  if (!reg_inserted (coeff.v, varlist, n_vars))
+	  {
+	    fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t", coeff.v->name);
+	    varlist[n_vars] = coeff.v;
+	    n_vars++;
+	  }
 	}
     }
-  for (i = 1; i < c->n_indeps; i++)
+  fprintf (fp, "int n_vars = %d;\n\t", n_vars);
+  fprintf (fp, "struct pspp_reg_categorical_variable *varlist[%d] = {", n_vars);
+  for (i = 0; i < n_vars - 1; i++)
+    {
+      fprintf (fp, "&%s,\n\t\t", varlist[i]->name);
+    }
+  fprintf (fp, "&%s};\n\t", varlist[i]->name);
+
+  for (i = 0; i < n_vars; i++)
     {
       coeff = c->coeff[i];
-      if (coeff.v->type == ALPHA)
+      fprintf (fp, "%s.name = \"%s\";\n\t", varlist[i]->name, varlist[i]->name);
+      fprintf (fp, "%s.n_vals = %d;\n\t", varlist[i]->name, varlist[i]->obs_vals->n_categories);
+
+      for (j = 0; j < varlist[i]->obs_vals->n_categories; j++)
 	{
-	  fprintf (fp, "%s.name = \"%s\";\n\t", coeff.v->name, coeff.v->name);
-	  fprintf (fp, "%s.n_vals = %d;\n\t", coeff.v->name, coeff.v->obs_vals->n_categories);
-	  fprintf (fp, "%s.values = {", coeff.v->name);
-	  for (j = 0; j < coeff.v->obs_vals->n_categories - 1; j++)
-	    {
-	      val = cat_subscript_to_value ( (const size_t) j, coeff.v);
-	      fprintf (fp, "\"%s\",\n\t\t", val->s);
-	    }
-	  val = cat_subscript_to_value ( (const size_t) j, coeff.v);
-	  fprintf (fp, "\"%s\"};\n\n\t", val->s);
+	  val = cat_subscript_to_value ( (const size_t) j, varlist[i]);
+	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t", varlist[i]->name, j, value_to_string (val, varlist[i]));
 	}
     }
+  fprintf (fp, "%s", reg_export_categorical_encode_2);
 }
 
 static void

@@ -127,10 +127,21 @@ const char reg_export_prediction_interval_3[] = " + pspp_reg_variance (var_vals,
   a vector which does not match its categorical value in the model.
  */
 const char reg_export_categorical_encode_1[] = "struct pspp_reg_categorical_variable\n"
-"{\n\tchar * name;\n\tsize_t n_vals;\n\tchar *[] values;\n};\n\n"
-"static\ndouble * get_value_vector (char *v)\n{\n\tdouble *result;\n\t";
+"{\n\tchar * name;\n\tsize_t n_vals;\n\tchar *values[1024];\n};\n\n"
+"/*\n   This function returns the binary vector which corresponds to the value\n"
+"   of the categorical variable stored in 'value'. The name of the variable is\n"
+"   stored in the 'var' argument. Notice the values stored in the\n"
+"   pspp_categorical_variable structures all end with a space character.\n"
+"   That means the values of the categorical variables you pass to any function\n"
+"   in this program should also end with a space character.\n*/\n"
+"static\ndouble * pspp_reg_get_value_vector (char *var, char *value)\n{\n\tdouble *result;\n\t"
+"int i;\n\t";
 
-const char reg_export_categorical_encode_2[] = "; i++)\n\t{\n\t\tif (strcmp (v, values[i]) == 0)"
-"\n\t\t{\n\t\t\tresult[i] = 1.0;\n\t\t}\n\t}\n\treturn result;\n}\n";
-
+const char reg_export_categorical_encode_2[] = "int v_index = 0;\n\t"
+"while (v_index < n_vars && strcmp (var, varlist[i]->name) != 0)\n\t{\n\t\t"
+"v_index++;\n\t}\n\tresult = (double *) malloc (varlist[v_index]->n_vals * sizeof (*result));\n\t"
+"for (i = 0; i < varlist[v_index]->n_vals; i++)\n\t{\n\t\t"
+"if (strcmp ( (varlist[v_index]->values)[i], value) == 0)\n\t\t{\n\t\t\t"
+"result[i] = 1.0;\n\t\t}\n\t\telse result[i] = 0.0;\n\t}\n\n\t"
+"return result;\n}\n\n";
 #endif
