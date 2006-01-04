@@ -822,18 +822,22 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
       X =
 	design_matrix_create (n_indep, (const struct variable **) indep_vars,
 			      n_data);
+      for (i = 0; i < X->m->size2; i++)
+	{
+	  lopts.get_indep_mean_std[i] = 1;
+	}
       lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
       lcache->indep_means = gsl_vector_alloc (X->m->size2);
       lcache->indep_std = gsl_vector_alloc (X->m->size2);
       lcache->depvar = (const struct variable *) depvar;
       /*
-         For large data sets, use QR decomposition.
-       */
+	For large data sets, use QR decomposition.
+      */
       if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	{
 	  lcache->method = PSPP_LINREG_SVD;
 	}
-
+      
       /*
          The second pass creates the design matrix.
        */
@@ -869,7 +873,6 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 			{
 			  design_matrix_set_numeric (X, row, v, val);
 			}
-		      lopts.get_indep_mean_std[i] = 1;
 		    }
 		}
 	      val = case_data (&c, depvar->fv);
