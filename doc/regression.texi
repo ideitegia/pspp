@@ -1,0 +1,126 @@
+@node REGRESSION, , ONEWAY, Statistics
+@section REGRESSION
+
+The REGRESSION procedure fits linear models to data via least-squares
+estimation. The procedure is appropriate for data which satisfy those
+assumptions typical in linear regression:
+
+@itemize @bullet
+@item The data set contains n observations of a dependent variable, say
+Y_1,...,Y_n, and n observations of one or more explanatory
+variables. Let X_11, X_12, ..., X_1n denote the n observations of the
+first explanatory variable; X_21,...,X_2n denote the n observations of the
+second explanatory variable; X_k1,...,X_kn denote the n observations of the kth
+explanatory variable.
+
+@item The dependent variable Y has the following relationship to the 
+explanatory variables:
+@math{Y_i = b_0 + b_1 X_1i + ... + b_k X_ki + Z_i} 
+where @math{b_0, b_1, ..., b_k} are unknown
+coefficients, and @math{Z_1,...,Z_n} are independent, normally
+distributed ``noise'' terms with common variance. The noise, or
+``error'' terms are unobserved. This relationship is called the
+``linear model.''
+@end itemize
+
+The REGRESSION procedure estimates the coefficients
+@math{b_0,...,b_k} and produces output relevant to inferences for the
+linear model. 
+
+@c If you add any new commands, then don't forget to remove the entry in 
+@c not-implemented.texi
+
+@menu
+* Syntax::                      Syntax definition.
+* Examples::                    Using the REGRESSION procedure.
+@end menu
+
+@node Syntax, Examples, , REGRESSION
+@subsection Syntax
+
+@vindex REGRESSION
+@display
+REGRESSION
+        /VARIABLES=var_list
+        /DEPENDENT=var_list
+        /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
+        /EXPORT (filename)
+@end display
+
+The @cmd{REGRESSION} procedure reads the active file and outputs
+statistics relevant to the linear model specified by the user.
+
+The VARIABLES subcommand, which is required, specifies the list of
+variables to be analyzed.  Keyword VARIABLES is required. The
+DEPENDENT subcommand specifies the dependent variable of the linear
+model. The DEPENDENT subcommond is required. All variables listed in
+the VARIABLES subcommand, but not listed in the DEPENDENT subcommand,
+are treated as explanatory variables in the linear model.
+
+All other subcommands are optional:
+
+The STATISTICS subcommand specifies the statistics to be displayed:
+
+@table @code
+@item ALL
+All of the statistics below.
+@item R
+The ratio of the sums of squares due to the model to the total sums of
+squares for the dependent variable.
+@item COEFF
+A table containing the estimated model coefficients and their standard errors.
+@item ANOVA
+Analysis of variance table for the model.
+@item BCOV
+The covariance matrix for the estimated model coefficients.
+@end table
+
+The EXPORT subcommand causes PSPP to write a C program containing
+functions related to the model. One such function accepts values of
+explanatory variables as arguments, and returns an estimate of the
+corresponding new
+value of the dependent variable. The generated program will also contain
+functions that return prediction and confidence intervals related to
+those new estimates. PSPP will write the program to the
+'filename' given by the user, and write declarations of functions
+to a file called pspp_model_reg.h. The user can then compile the C
+program and use it as part of another program. This subcommand is a
+PSPP extension.
+
+@node Examples, , Syntax, REGRESSION
+@subsection Examples
+The following PSPP code will generate the default output, and save the
+linear model in a program called ``model.c.''
+
+@example
+title 'Demonstrate REGRESSION procedure'.
+data list / v0 1-2 (A) v1 v2 3-22 (10).
+begin data.
+b  7.735648 -23.97588
+b  6.142625 -19.63854
+a  7.651430 -25.26557
+c  6.125125 -16.57090
+a  8.245789 -25.80001
+c  6.031540 -17.56743
+a  9.832291 -28.35977
+c  5.343832 -16.79548
+a  8.838262 -29.25689
+b  6.200189 -18.58219
+end data.
+list.
+regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /export (model.c) /method=enter.
+@end example
+
+The file pspp_model_reg.h contains these declarations:
+
+@example
+double pspp_reg_estimate (const double *, const char *[]);
+double pspp_reg_variance (const double *var_vals, const char *[]);
+double pspp_reg_confidence_interval_U (const double *var_vals, const char *var_names[], double p);
+double pspp_reg_confidence_interval_L (const double *var_vals, const char *var_names[], double p);
+double pspp_reg_prediction_interval_U (const double *var_vals, const char *var_names[], double p);
+double pspp_reg_prediction_interval_L (const double *var_vals, const char *var_names[], double p);
+@end example
+
+The file model.c contains the definitions of the functions. 
+@setfilename ignored
