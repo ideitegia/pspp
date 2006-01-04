@@ -68,7 +68,7 @@
    all;
    export=custom;
    ^dependent=varlist;
-   ^method=enter.
+   method=enter.
 */
 /* (declarations) */
 /* (functions) */
@@ -473,8 +473,8 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
-static
-int reg_inserted (struct variable *v, struct variable **varlist, int n_vars)
+static int
+reg_inserted (struct variable *v, struct variable **varlist, int n_vars)
 {
   int i;
 
@@ -488,7 +488,7 @@ int reg_inserted (struct variable *v, struct variable **varlist, int n_vars)
   return 0;
 }
 static void
-reg_print_categorical_encoding (FILE *fp, pspp_linreg_cache *c)
+reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 {
   int i;
   size_t j;
@@ -496,25 +496,27 @@ reg_print_categorical_encoding (FILE *fp, pspp_linreg_cache *c)
   struct variable **varlist;
   struct pspp_linreg_coeff coeff;
   union value *val;
-  
+
   fprintf (fp, "%s", reg_export_categorical_encode_1);
 
   varlist = xnmalloc (c->n_indeps, sizeof (*varlist));
-  for (i = 1; i < c->n_indeps; i++)   /* c->coeff[0] is the intercept. */
+  for (i = 1; i < c->n_indeps; i++)	/* c->coeff[0] is the intercept. */
     {
       coeff = c->coeff[i];
       if (coeff.v->type == ALPHA)
 	{
 	  if (!reg_inserted (coeff.v, varlist, n_vars))
-	  {
-	    fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t", coeff.v->name);
-	    varlist[n_vars] = coeff.v;
-	    n_vars++;
-	  }
+	    {
+	      fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t",
+		       coeff.v->name);
+	      varlist[n_vars] = coeff.v;
+	      n_vars++;
+	    }
 	}
     }
   fprintf (fp, "int n_vars = %d;\n\t", n_vars);
-  fprintf (fp, "struct pspp_reg_categorical_variable *varlist[%d] = {", n_vars);
+  fprintf (fp, "struct pspp_reg_categorical_variable *varlist[%d] = {",
+	   n_vars);
   for (i = 0; i < n_vars - 1; i++)
     {
       fprintf (fp, "&%s,\n\t\t", varlist[i]->name);
@@ -524,20 +526,23 @@ reg_print_categorical_encoding (FILE *fp, pspp_linreg_cache *c)
   for (i = 0; i < n_vars; i++)
     {
       coeff = c->coeff[i];
-      fprintf (fp, "%s.name = \"%s\";\n\t", varlist[i]->name, varlist[i]->name);
-      fprintf (fp, "%s.n_vals = %d;\n\t", varlist[i]->name, varlist[i]->obs_vals->n_categories);
+      fprintf (fp, "%s.name = \"%s\";\n\t", varlist[i]->name,
+	       varlist[i]->name);
+      fprintf (fp, "%s.n_vals = %d;\n\t", varlist[i]->name,
+	       varlist[i]->obs_vals->n_categories);
 
       for (j = 0; j < varlist[i]->obs_vals->n_categories; j++)
 	{
-	  val = cat_subscript_to_value ( (const size_t) j, varlist[i]);
-	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t", varlist[i]->name, j, value_to_string (val, varlist[i]));
+	  val = cat_subscript_to_value ((const size_t) j, varlist[i]);
+	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t", varlist[i]->name, j,
+		   value_to_string (val, varlist[i]));
 	}
     }
   fprintf (fp, "%s", reg_export_categorical_encode_2);
 }
 
 static void
-reg_print_depvars (FILE *fp, pspp_linreg_cache *c)
+reg_print_depvars (FILE * fp, pspp_linreg_cache * c)
 {
   int i;
   struct pspp_linreg_coeff coeff;
@@ -552,17 +557,18 @@ reg_print_depvars (FILE *fp, pspp_linreg_cache *c)
   fprintf (fp, "\"%s\"};\n\t", coeff.v->name);
 }
 static void
-reg_print_getvar (FILE *fp, pspp_linreg_cache *c)
+reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
 {
   fprintf (fp, "static int\npspp_reg_getvar (char *v_name)\n{\n\t");
-  fprintf (fp, "int i;\n\tint n_vars = %d;\n\t",c->n_indeps);
+  fprintf (fp, "int i;\n\tint n_vars = %d;\n\t", c->n_indeps);
   reg_print_depvars (fp, c);
   fprintf (fp, "for (i = 0; i < n_vars; i++)\n\t{\n\t\t");
-  fprintf (fp, "if (strncmp (v_name, model_depvars[i], PSPP_REG_MAXLEN) == 0)\n\t\t{\n\t\t\t");
+  fprintf (fp,
+	   "if (strncmp (v_name, model_depvars[i], PSPP_REG_MAXLEN) == 0)\n\t\t{\n\t\t\t");
   fprintf (fp, "return i;\n\t\t}\n\t}\n}\n");
 }
 static void
-subcommand_export (int export, pspp_linreg_cache *c)
+subcommand_export (int export, pspp_linreg_cache * c)
 {
   FILE *fp;
   size_t i;
@@ -586,9 +592,11 @@ subcommand_export (int export, pspp_linreg_cache *c)
       for (i = 0; i < n_quantiles - 1; i++)
 	{
 	  tmp = 0.5 + 0.005 * (double) i;
-	  fprintf (fp, "%.15e,\n\t\t", gsl_cdf_tdist_Pinv (tmp, c->n_obs - c->n_indeps));
+	  fprintf (fp, "%.15e,\n\t\t",
+		   gsl_cdf_tdist_Pinv (tmp, c->n_obs - c->n_indeps));
 	}
-      fprintf (fp, "%.15e};\n\t", gsl_cdf_tdist_Pinv (.9995, c->n_obs - c->n_indeps));
+      fprintf (fp, "%.15e};\n\t",
+	       gsl_cdf_tdist_Pinv (.9995, c->n_obs - c->n_indeps));
       fprintf (fp, "%s", reg_export_t_quantiles_2);
       fprintf (fp, "%s", reg_mean_cmt);
       fprintf (fp, "double\npspp_reg_estimate (const double *var_vals,");
@@ -606,7 +614,8 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "int i;\n\tint j;\n\n\t");
       fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
       fprintf (fp, "%s", reg_getvar);
-      fprintf (fp, "const double cov[%d][%d] = {\n\t", c->n_coeffs, c->n_coeffs);	  
+      fprintf (fp, "const double cov[%d][%d] = {\n\t", c->n_coeffs,
+	       c->n_coeffs);
       for (i = 0; i < c->cov->size1 - 1; i++)
 	{
 	  fprintf (fp, "{");
@@ -619,11 +628,14 @@ subcommand_export (int export, pspp_linreg_cache *c)
       fprintf (fp, "{");
       for (j = 0; j < c->cov->size2 - 1; j++)
 	{
-	  fprintf (fp, "%.15e, ", gsl_matrix_get (c->cov, c->cov->size1 - 1, j));
+	  fprintf (fp, "%.15e, ",
+		   gsl_matrix_get (c->cov, c->cov->size1 - 1, j));
 	}
-      fprintf (fp, "%.15e}\n\t", gsl_matrix_get (c->cov, c->cov->size1 - 1, c->cov->size2 - 1));
-      fprintf (fp, "};\n\tint n_vars = %d;\n\tint i;\n\tint j;\n\t", c->n_indeps);
-      fprintf (fp, "double unshuffled_vals[%d];\n\t",c->n_indeps);
+      fprintf (fp, "%.15e}\n\t",
+	       gsl_matrix_get (c->cov, c->cov->size1 - 1, c->cov->size2 - 1));
+      fprintf (fp, "};\n\tint n_vars = %d;\n\tint i;\n\tint j;\n\t",
+	       c->n_indeps);
+      fprintf (fp, "double unshuffled_vals[%d];\n\t", c->n_indeps);
       fprintf (fp, "%s", reg_variance);
       fprintf (fp, "%s", reg_export_confidence_interval);
       tmp = c->mse * c->mse;
@@ -642,16 +654,16 @@ regression_custom_export (struct cmd_regression *cmd)
   /* 0 on failure, 1 on success, 2 on failure that should result in syntax error */
   if (!lex_force_match ('('))
     return 0;
-  
+
   if (lex_match ('*'))
     model_file = NULL;
-  else 
+  else
     {
       model_file = fh_parse ();
       if (model_file == NULL)
-        return 0; 
+	return 0;
     }
-  
+
   if (!lex_force_match (')'))
     return 0;
 
@@ -689,6 +701,39 @@ is_depvar (size_t k)
   return 0;
 }
 
+/*
+  Mark missing cases. Return the number of non-missing cases.
+ */
+static size_t
+mark_missing_cases (const struct casefile *cf, struct variable *v,
+		    double *is_missing_case, double n_data)
+{
+  struct casereader *r;
+  struct ccase c;
+  size_t row;
+  union value *val;
+
+  for (r = casefile_get_reader (cf);
+       casereader_read (r, &c); case_destroy (&c))
+    {
+      row = casereader_cnum (r) - 1;
+
+      val = case_data (&c, v->fv);
+      cat_value_update (v, val);
+      if (mv_is_value_missing (&v->miss, val))
+	{
+	  if (!is_missing_case[row])
+	    {
+	      /* Now it is missing. */
+	      n_data--;
+	      is_missing_case[row] = 1;
+	    }
+	}
+    }
+  casereader_destroy (r);
+
+  return n_data;
+}
 static void
 run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 {
@@ -698,15 +743,16 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   size_t case_num;
   int n_indep;
   int j = 0;
+  int k;
   /*
      Keep track of the missing cases.
    */
   int *is_missing_case;
   const union value *val;
   struct casereader *r;
-  struct casereader *r2;
   struct ccase c;
   struct variable *v;
+  struct variable *depvar;
   struct variable **indep_vars;
   struct design_matrix *X;
   gsl_vector *Y;
@@ -714,6 +760,16 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   pspp_linreg_opts lopts;
 
   n_data = casefile_get_case_cnt (cf);
+
+  for (i = 0; i < cmd.n_dependent; i++)
+    {
+      if (cmd.v_dependent[i]->type != NUMERIC)
+	{
+	  msg (SE, gettext ("Dependent variable must be numeric."));
+	  pspp_reg_rc = CMD_FAILURE;
+	  return;
+	}
+    }
 
   is_missing_case = xnmalloc (n_data, sizeof (*is_missing_case));
   for (i = 0; i < n_data; i++)
@@ -724,7 +780,6 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 
   lopts.get_depvar_mean_std = 1;
   lopts.get_indep_mean_std = xnmalloc (n_indep, sizeof (int));
-
 
   /*
      Read from the active file. The first pass encodes categorical
@@ -741,123 +796,116 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	  if (v->type == ALPHA)
 	    {
 	      /* Make a place to hold the binary vectors 
-		 corresponding to this variable's values. */
+	         corresponding to this variable's values. */
 	      cat_stored_values_create (v);
 	    }
-	  for (r = casefile_get_reader (cf);
-	       casereader_read (r, &c); case_destroy (&c))
-	    {
-	      row = casereader_cnum (r) - 1;
-	      
-	      val = case_data (&c, v->fv);
-	      cat_value_update (v, val);
-	      if (mv_is_value_missing (&v->miss, val))
-		{
-		  if (!is_missing_case[row])
-		    {
-		      /* Now it is missing. */
-		      n_data--;
-		      is_missing_case[row] = 1;
-		    }
-		}
-	    }
+	  n_data = mark_missing_cases (cf, v, is_missing_case, n_data);
 	}
     }
 
-  Y = gsl_vector_alloc (n_data);
-  X =
-    design_matrix_create (n_indep, (const struct variable **) indep_vars,
-			  n_data);
-  lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
-  lcache->indep_means = gsl_vector_alloc (X->m->size2);
-  lcache->indep_std = gsl_vector_alloc (X->m->size2);
-
   /*
-     The second pass creates the design matrix.
+     Drop cases with missing values for any dependent variable.
    */
-  row = 0;
-  for (r2 = casefile_get_reader (cf); casereader_read (r2, &c);
-       case_destroy (&c))
-    /* Iterate over the cases. */
+  j = 0;
+  for (i = 0; i < cmd.n_dependent; i++)
     {
-      case_num = casereader_cnum (r2) - 1;
-      if (!is_missing_case[case_num])
+      v = cmd.v_dependent[i];
+      j++;
+      n_data = mark_missing_cases (cf, v, is_missing_case, n_data);
+    }
+
+  for (k = 0; k < cmd.n_dependent; k++)
+    {
+      depvar = cmd.v_dependent[k];
+      Y = gsl_vector_alloc (n_data);
+
+      X =
+	design_matrix_create (n_indep, (const struct variable **) indep_vars,
+			      n_data);
+      lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
+      lcache->indep_means = gsl_vector_alloc (X->m->size2);
+      lcache->indep_std = gsl_vector_alloc (X->m->size2);
+      lcache->depvar = (const struct variable *) depvar;
+      /*
+         For large data sets, use QR decomposition.
+       */
+      if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	{
-	  for (i = 0; i < cmd.n_variables; ++i)	/* Iterate over the variables
-						   for the current case. 
-						 */
-	    {
-	      v = cmd.v_variables[i];
-	      val = case_data (&c, v->fv);
-	      /*
-	         Independent/dependent variable separation. The
-	         'variables' subcommand specifies a varlist which contains
-	         both dependent and independent variables. The dependent
-	         variables are specified with the 'dependent'
-	         subcommand. We need to separate the two.
-	       */
-	      if (is_depvar (i))
-		{
-		  if (v->type != NUMERIC)
-		    {
-		      msg (SE,
-			   gettext ("Dependent variable must be numeric."));
-		      pspp_reg_rc = CMD_FAILURE;
-		      return;
-		    }
-		  lcache->depvar = (const struct variable *) v;
-		  gsl_vector_set (Y, row, val->f);
-		}
-	      else
-		{
-		  if (v->type == ALPHA)
-		    {
-		      design_matrix_set_categorical (X, row, v, val);
-		    }
-		  else if (v->type == NUMERIC)
-		    {
-		      design_matrix_set_numeric (X, row, v, val);
-		    }
-
-		  lopts.get_indep_mean_std[i] = 1;
-		}
-	    }
-	  row++;
+	  lcache->method = PSPP_LINREG_SVD;
 	}
+
+      /*
+         The second pass creates the design matrix.
+       */
+      row = 0;
+      for (r = casefile_get_reader (cf); casereader_read (r, &c);
+	   case_destroy (&c))
+	/* Iterate over the cases. */
+	{
+	  case_num = casereader_cnum (r) - 1;
+	  if (!is_missing_case[case_num])
+	    {
+	      for (i = 0; i < cmd.n_variables; ++i)	/* Iterate over the variables
+							   for the current case. 
+							 */
+		{
+		  v = cmd.v_variables[i];
+		  val = case_data (&c, v->fv);
+		  /*
+		     Independent/dependent variable separation. The
+		     'variables' subcommand specifies a varlist which contains
+		     both dependent and independent variables. The dependent
+		     variables are specified with the 'dependent'
+		     subcommand, and maybe also in the 'variables' subcommand. 
+		     We need to separate the two.
+		   */
+		  if (!is_depvar (i))
+		    {
+		      if (v->type == ALPHA)
+			{
+			  design_matrix_set_categorical (X, row, v, val);
+			}
+		      else if (v->type == NUMERIC)
+			{
+			  design_matrix_set_numeric (X, row, v, val);
+			}
+		      lopts.get_indep_mean_std[i] = 1;
+		    }
+		}
+	      val = case_data (&c, depvar->fv);
+	      gsl_vector_set (Y, row, val->f);
+	      row++;
+	    }
+	}
+      /*
+         Now that we know the number of coefficients, allocate space
+         and store pointers to the variables that correspond to the
+         coefficients.
+       */
+      lcache->coeff = xnmalloc (X->m->size2 + 1, sizeof (*lcache->coeff));
+      for (i = 0; i < X->m->size2; i++)
+	{
+	  j = i + 1;		/* The first coeff is the intercept. */
+	  lcache->coeff[j].v =
+	    (const struct variable *) design_matrix_col_to_var (X, i);
+	  assert (lcache->coeff[j].v != NULL);
+	}
+
+      /* 
+         Find the least-squares estimates and other statistics.
+       */
+      pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
+      subcommand_statistics (cmd.a_statistics, lcache);
+      subcommand_export (cmd.sbc_export, lcache);
+      gsl_vector_free (Y);
+      design_matrix_destroy (X);
+      pspp_linreg_cache_free (lcache);
+      free (lopts.get_indep_mean_std);
+      casereader_destroy (r);
     }
-  /*
-     Now that we know the number of coefficients, allocate space
-     and store pointers to the variables that correspond to the
-     coefficients.
-   */
-  lcache->coeff = xnmalloc (X->m->size2 + 1, sizeof (*lcache->coeff));
-  for (i = 0; i < X->m->size2; i++)
-    {
-      j = i + 1;		/* The first coeff is the intercept. */
-      lcache->coeff[j].v =
-	(const struct variable *) design_matrix_col_to_var (X, i);
-      assert (lcache->coeff[j].v != NULL);
-    }
-  /*
-    For large data sets, use QR decomposition.
-   */
-  if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
-    {
-      lcache->method = PSPP_LINREG_SVD;
-    }
-  /* 
-     Find the least-squares estimates and other statistics.
-   */
-  pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
-  subcommand_statistics (cmd.a_statistics, lcache);
-  subcommand_export (cmd.sbc_export, lcache);
-  gsl_vector_free (Y);
-  design_matrix_destroy (X);
-  pspp_linreg_cache_free (lcache);
-  free (lopts.get_indep_mean_std);
   free (indep_vars);
   free (is_missing_case);
-  casereader_destroy (r);
+
   return;
 }
 
