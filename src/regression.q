@@ -91,6 +91,57 @@ struct file_handle *model_file;
 int pspp_reg_rc = CMD_SUCCESS;
 
 static void run_regression (const struct casefile *, void *);
+static union value *pspp_reg_coefficient_to_value (const pspp_linreg_cache *,
+						   const struct
+						   pspp_linreg_coeff *,
+						   size_t);
+
+/*
+  Which value of a categorical variable corresponds to the 
+  coefficient? This routine provides the answer IF the
+  categorical variable is encoded in the usual way: The
+  first value maps to the zero vector, the second value to
+  the vector (0, 1, 0, ...), the third value (0, 0, 1, 0, ...),
+  etc.
+ */
+static union value *
+pspp_reg_coefficient_to_value (const pspp_linreg_cache * cache,
+			       const struct pspp_linreg_coeff *coeff,
+			       size_t j)
+{
+  size_t which = 0;
+  int k = 1;			/* First coefficient is the intercept. */
+  int found = 0;
+  const union value *result;
+  struct pspp_linreg_coeff c;
+
+  assert (cache != NULL);
+  assert (coeff != NULL);
+  assert (coeff->v->type == ALPHA);
+  while (!found && k < cache->n_coeffs)
+    {
+      c = cache->coeff[k];
+      /*
+         compare_var_names returns 0 if the variable
+         names match.
+       */
+      if (!compare_var_names (coeff->v, c.v, NULL))
+	{
+	  if (j == k)
+	    {
+	      found = 1;
+	    }
+	  else
+	    {
+	      which++;
+	    }
+	}
+      k++;
+    }
+  result = cat_subscript_to_value ((const size_t) which, coeff->v);
+  return result;
+}
+
 /* 
    STATISTICS subcommand output functions.
  */
@@ -161,9 +212,13 @@ reg_stats_coeff (pspp_linreg_cache * c)
   double std_err;
   double beta;
   const char *label;
+  char *tmp;
+  const union value *val;
+  const char *val_s;
   struct tab_table *t;
 
   assert (c != NULL);
+  tmp = xnmalloc (MAX_STRING, sizeof (*tmp));
   n_rows = c->n_coeffs + 2;
 
   t = tab_create (n_cols, n_rows, 0);
@@ -194,7 +249,21 @@ reg_stats_coeff (pspp_linreg_cache * c)
     {
       i = indep_vars[j];
       label = var_to_string (c->coeff[j].v);
-      tab_text (t, 1, j + 1, TAB_CENTER, label);
+      /* Do not overwrite the variable's name. */
+      strncpy (tmp, label, MAX_STRING);
+      if (c->coeff[j].v->type == ALPHA)
+	{
+	  /*
+	     Append the value associated with this coefficient.
+	     This makes sense only if we us the usual binary encoding
+	     for that value.
+	   */
+	  val = pspp_reg_coefficient_to_value (c, &(c->coeff[j]), j);
+	  val_s = value_to_string (val, c->coeff[j].v);
+	  strncat (tmp, val_s, MAX_STRING);
+	}
+
+      tab_text (t, 1, j + 1, TAB_CENTER, tmp);
       /*
          Regression coefficients.
        */
@@ -226,6 +295,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
     }
   tab_title (t, 0, _("Coefficients"));
   tab_submit (t);
+  free (tmp);
 }
 
 /*
@@ -831,13 +901,13 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
       lcache->indep_std = gsl_vector_alloc (X->m->size2);
       lcache->depvar = (const struct variable *) depvar;
       /*
-	For large data sets, use QR decomposition.
-      */
+         For large data sets, use QR decomposition.
+       */
       if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	{
 	  lcache->method = PSPP_LINREG_SVD;
 	}
-      
+
       /*
          The second pass creates the design matrix.
        */
