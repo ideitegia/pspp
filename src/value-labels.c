@@ -111,7 +111,7 @@ val_labs_clear (struct val_labs *vls)
 
 /* Returns the number of value labels in VLS. */
 size_t
-val_labs_count (struct val_labs *vls) 
+val_labs_count (const struct val_labs *vls) 
 {
   assert (vls != NULL);
 

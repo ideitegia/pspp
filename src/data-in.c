@@ -57,7 +57,7 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
     return;
 
   ds_init (&title, 64);
-  if (!getl_reading_script)
+  if (!getl_reading_script())
     ds_puts (&title, _("data-file error: "));
   if (i->f1 == i->f2)
     ds_printf (&title, _("(column %d"), i->f1);

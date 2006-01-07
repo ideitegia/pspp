@@ -618,7 +618,7 @@ error:
 int
 cmd_exit (void)
 {
-  if (getl_reading_script)
+  if (getl_reading_script())
     {
       msg (SE, _("This command is not accepted in a syntax file.  "
 	   "Instead, use FINISH to terminate a syntax file."));

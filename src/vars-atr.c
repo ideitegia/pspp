@@ -171,7 +171,7 @@ var_is_valid_name (const char *name, bool issue_error)
   if (lex_id_to_token (name, strlen (name)) != T_ID) 
     {
       if (issue_error)
-        msg (SE, _("%s may not be used as a variable name because it "
+        msg (SE, _("`%s' may not be used as a variable name because it "
                    "is a reserved word."), name);
       return false;
     }

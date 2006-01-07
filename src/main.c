@@ -217,7 +217,7 @@ handle_error (int code)
       assert (0);
     }
 
-  if (getl_reading_script)
+  if (getl_reading_script())
     {
       err_break ();
       while (token != T_STOP && token != '.')

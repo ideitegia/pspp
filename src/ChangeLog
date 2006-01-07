@@ -1,3 +1,10 @@
+Sat Jan  7 13:30:54 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+        * command.c data-in.c main.c: Fixed bug which crept in when 
+          separating getl from readline.
+
+        * vars-atr.c value-labels.h: Fixed constness of  val_labs_count.
+
 Fri Dec 23 20:59:01 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* getl.c error.c: Separated file_loc functionality from error.c
