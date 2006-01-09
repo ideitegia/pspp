@@ -1,3 +1,8 @@
+Sun Jan 9 01:09  Jason Stover  <jason@sakla.net>
+
+	* regression.q: (run_regression) Moved coefficient initialization
+	to the linreg library. Altered other functions accordingly.
+
 Sat Jan  7 13:30:54 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
         * command.c data-in.c main.c: Fixed bug which crept in when 
