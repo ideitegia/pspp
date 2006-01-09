@@ -30,7 +30,7 @@
 #include "cat-routines.h"
 struct design_matrix_var
 {
-  int first_column;		/* First column for this variable in
+  size_t first_column;		/* First column for this variable in
 				   the design_matix. If this variable
 				   is categorical, its values are
 				   stored in multiple, contiguous
@@ -38,7 +38,7 @@ struct design_matrix_var
 				   encoding in the variable's struct
 				   cat_vals.
 				 */
-  int last_column;
+  size_t last_column;
   const struct variable *v;
 };
 struct design_matrix
