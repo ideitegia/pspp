@@ -54,7 +54,9 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_cblas.h>
+#include <src/design-matrix.h>
 #include <src/var.h>
+#define PSPP_LINREG_VAL_NOT_FOUND -1
 enum
 {
   PSPP_LINREG_SWEEP,
@@ -70,13 +72,24 @@ enum
 struct pspp_linreg_coeff
 {
   double estimate; /* Estimated coefficient. */
-  const struct variable *v; /* The variable associated with this coefficient. 
-			       The calling function should supply the variable
-			       when it creates the design matrix. The estimation
-			       procedure ignores the struct variable *. It is here so
-			       the caller can match parameters with relevant 
-			       variables.
-			    */
+  double std_err; /* Standard error of the estimate. */
+  struct varinfo *v_info;  /* Information pertaining to the
+			      variable(s) associated with this
+			      coefficient.  The calling function
+			      should initialize this value with the
+			      functions in coefficient.c.  The
+			      estimation procedure ignores this
+			      member. It is here so the caller can
+			      match parameters with relevant variables
+			      and values. If the coefficient is
+			      associated with an interaction, then
+			      v_info contains information for multiple
+			      variables.
+			   */
+  int n_vars; /* Number of variables associated with this coefficient.
+	         Coefficients corresponding to interaction terms will
+		 have more than one variable.
+	      */
 };
 struct pspp_linreg_cache_struct
 {
@@ -177,4 +190,17 @@ void pspp_linreg_cache_free (pspp_linreg_cache * cache);
 
 int pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 		 const pspp_linreg_opts * opts, pspp_linreg_cache * cache);
+void pspp_linreg_coeff_init (pspp_linreg_cache *, struct design_matrix *);
+
+void pspp_linreg_coeff_free (struct pspp_linreg_coeff *);
+
+void pspp_linreg_coeff_set_estimate (struct pspp_linreg_coeff *, double);
+
+void pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *, double);
+
+int pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *);
+
+const struct variable *pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *, int);
+
+const union value *pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *, const struct variable *);
 #endif

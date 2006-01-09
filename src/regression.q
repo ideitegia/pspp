@@ -91,56 +91,6 @@ struct file_handle *model_file;
 int pspp_reg_rc = CMD_SUCCESS;
 
 static void run_regression (const struct casefile *, void *);
-static union value *pspp_reg_coefficient_to_value (const pspp_linreg_cache *,
-						   const struct
-						   pspp_linreg_coeff *,
-						   size_t);
-
-/*
-  Which value of a categorical variable corresponds to the 
-  coefficient? This routine provides the answer IF the
-  categorical variable is encoded in the usual way: The
-  first value maps to the zero vector, the second value to
-  the vector (0, 1, 0, ...), the third value (0, 0, 1, 0, ...),
-  etc.
- */
-static union value *
-pspp_reg_coefficient_to_value (const pspp_linreg_cache * cache,
-			       const struct pspp_linreg_coeff *coeff,
-			       size_t j)
-{
-  size_t which = 0;
-  int k = 1;			/* First coefficient is the intercept. */
-  int found = 0;
-  const union value *result;
-  struct pspp_linreg_coeff c;
-
-  assert (cache != NULL);
-  assert (coeff != NULL);
-  assert (coeff->v->type == ALPHA);
-  while (!found && k < cache->n_coeffs)
-    {
-      c = cache->coeff[k];
-      /*
-         compare_var_names returns 0 if the variable
-         names match.
-       */
-      if (!compare_var_names (coeff->v, c.v, NULL))
-	{
-	  if (j == k)
-	    {
-	      found = 1;
-	    }
-	  else
-	    {
-	      which++;
-	    }
-	}
-      k++;
-    }
-  result = cat_subscript_to_value ((const size_t) which, coeff->v);
-  return result;
-}
 
 /* 
    STATISTICS subcommand output functions.
@@ -213,6 +163,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   double beta;
   const char *label;
   char *tmp;
+  const struct variable *v;
   const union value *val;
   const char *val_s;
   struct tab_table *t;
@@ -248,18 +199,20 @@ reg_stats_coeff (pspp_linreg_cache * c)
   for (j = 1; j <= c->n_indeps; j++)
     {
       i = indep_vars[j];
-      label = var_to_string (c->coeff[j].v);
+      v = pspp_linreg_coeff_get_var (c->coeff + j, 0);
+      label = var_to_string (v);
       /* Do not overwrite the variable's name. */
       strncpy (tmp, label, MAX_STRING);
-      if (c->coeff[j].v->type == ALPHA)
+      if (v->type == ALPHA)
 	{
 	  /*
 	     Append the value associated with this coefficient.
 	     This makes sense only if we us the usual binary encoding
 	     for that value.
 	   */
-	  val = pspp_reg_coefficient_to_value (c, &(c->coeff[j]), j);
-	  val_s = value_to_string (val, c->coeff[j].v);
+
+	  val = pspp_linreg_coeff_get_value (c->coeff + j, v);
+	  val_s = value_to_string (val, v);
 	  strncat (tmp, val_s, MAX_STRING);
 	}
 
@@ -544,7 +497,7 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
 static int
-reg_inserted (struct variable *v, struct variable **varlist, int n_vars)
+reg_inserted (const struct variable *v, struct variable **varlist, int n_vars)
 {
   int i;
 
@@ -564,7 +517,8 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
   size_t j;
   int n_vars = 0;
   struct variable **varlist;
-  struct pspp_linreg_coeff coeff;
+  struct pspp_linreg_coeff *coeff;
+  const struct variable *v;
   union value *val;
 
   fprintf (fp, "%s", reg_export_categorical_encode_1);
@@ -572,14 +526,15 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
   varlist = xnmalloc (c->n_indeps, sizeof (*varlist));
   for (i = 1; i < c->n_indeps; i++)	/* c->coeff[0] is the intercept. */
     {
-      coeff = c->coeff[i];
-      if (coeff.v->type == ALPHA)
+      coeff = c->coeff + i;
+      v = pspp_linreg_coeff_get_var (coeff, 0);
+      if (v->type == ALPHA)
 	{
-	  if (!reg_inserted (coeff.v, varlist, n_vars))
+	  if (!reg_inserted (v, varlist, n_vars))
 	    {
 	      fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t",
-		       coeff.v->name);
-	      varlist[n_vars] = coeff.v;
+		       v->name);
+	      varlist[n_vars] = (struct variable *) v;
 	      n_vars++;
 	    }
 	}
@@ -595,7 +550,7 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 
   for (i = 0; i < n_vars; i++)
     {
-      coeff = c->coeff[i];
+      coeff = c->coeff + i;
       fprintf (fp, "%s.name = \"%s\";\n\t", varlist[i]->name,
 	       varlist[i]->name);
       fprintf (fp, "%s.n_vals = %d;\n\t", varlist[i]->name,
@@ -615,16 +570,19 @@ static void
 reg_print_depvars (FILE * fp, pspp_linreg_cache * c)
 {
   int i;
-  struct pspp_linreg_coeff coeff;
+  struct pspp_linreg_coeff *coeff;
+  const struct variable *v;
 
   fprintf (fp, "char *model_depvars[%d] = {", c->n_indeps);
   for (i = 1; i < c->n_indeps; i++)
     {
-      coeff = c->coeff[i];
-      fprintf (fp, "\"%s\",\n\t\t", coeff.v->name);
+      coeff = c->coeff + i;
+      v = pspp_linreg_coeff_get_var (coeff, 0);
+      fprintf (fp, "\"%s\",\n\t\t", v->name);
     }
-  coeff = c->coeff[i];
-  fprintf (fp, "\"%s\"};\n\t", coeff.v->name);
+  coeff = c->coeff + i;
+  v = pspp_linreg_coeff_get_var (coeff, 0);
+  fprintf (fp, "\"%s\"};\n\t", v->name);
 }
 static void
 reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
@@ -640,7 +598,6 @@ reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
 static void
 subcommand_export (int export, pspp_linreg_cache * c)
 {
-  FILE *fp;
   size_t i;
   size_t j;
   int n_quantiles = 100;
@@ -650,6 +607,7 @@ subcommand_export (int export, pspp_linreg_cache * c)
 
   if (export)
     {
+      FILE *fp;
       assert (c != NULL);
       assert (model_file != NULL);
       assert (fp != NULL);
@@ -776,12 +734,12 @@ is_depvar (size_t k)
  */
 static size_t
 mark_missing_cases (const struct casefile *cf, struct variable *v,
-		    double *is_missing_case, double n_data)
+		    int *is_missing_case, double n_data)
 {
   struct casereader *r;
   struct ccase c;
   size_t row;
-  union value *val;
+  const union value *val;
 
   for (r = casefile_get_reader (cf);
        casereader_read (r, &c); case_destroy (&c))
@@ -804,6 +762,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
   return n_data;
 }
+
 static void
 run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 {
@@ -955,14 +914,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
          and store pointers to the variables that correspond to the
          coefficients.
        */
-      lcache->coeff = xnmalloc (X->m->size2 + 1, sizeof (*lcache->coeff));
-      for (i = 0; i < X->m->size2; i++)
-	{
-	  j = i + 1;		/* The first coeff is the intercept. */
-	  lcache->coeff[j].v =
-	    (const struct variable *) design_matrix_col_to_var (X, i);
-	  assert (lcache->coeff[j].v != NULL);
-	}
+      pspp_linreg_coeff_init (lcache, X);
 
       /* 
          Find the least-squares estimates and other statistics.

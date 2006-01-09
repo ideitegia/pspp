@@ -12,4 +12,4 @@ AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 -ansi 
 endif
 
-liblinreg_a_SOURCES = sweep.c linreg.c pspp_linreg.h
+liblinreg_a_SOURCES = coefficient.c sweep.c linreg.c pspp_linreg.h
