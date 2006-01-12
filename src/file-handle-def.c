@@ -179,6 +179,8 @@ mode_name (const char *mode)
 
    TYPE is the sort of file, e.g. "system file".  Only one given
    type of access is allowed on a given file handle at once.
+   If successful, a reference to TYPE is retained, so it should
+   probably be a string literal.
 
    MODE combines the read or write mode with the sharing mode.
    The first character is 'r' for read, 'w' for write.  The
@@ -190,10 +192,7 @@ mode_name (const char *mode)
    pointer on failure.  For exclusive access modes the void *
    will always be a null pointer at return.  In shared access
    modes the void * will necessarily be null only if no other
-   sharers are active.
-
-   If successful, a reference to type is retained, so it should
-   probably be a string literal. */
+   sharers are active. */
 void **
 fh_open (struct file_handle *h, const char *type, const char *mode) 
 {
