@@ -191,7 +191,7 @@ internal_cmd_print (int f)
       if (prt.writer == NULL)
         goto error;
 
-      if (handle_get_mode (fh) == MODE_BINARY)
+      if (fh_get_mode (fh) == MODE_BINARY)
         prt.options |= PRT_BINARY;
     }
 
@@ -837,7 +837,7 @@ dump_table (const struct file_handle *fh)
 
   if (fh != NULL)
     tab_title (t, 1, _("Writing %d record(s) to file %s."),
-               recno, handle_get_filename (fh));
+               recno, fh_get_filename (fh));
   else
     tab_title (t, 1, _("Writing %d record(s) to the listing file."), recno);
   tab_submit (t);

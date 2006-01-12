@@ -151,7 +151,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   mode = S_IRUSR | S_IRGRP | S_IROTH;
   if (opts.create_writeable)
     mode |= S_IWUSR | S_IWGRP | S_IWOTH;
-  fd = open (handle_get_filename (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
+  fd = open (fh_get_filename (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
   if (fd < 0) 
     goto open_error;
 
@@ -257,7 +257,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
  open_error:
   msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
-       handle_get_filename (w->fh), strerror (errno));
+       fh_get_filename (w->fh), strerror (errno));
   err_cond_fail ();
   goto error;
 }
@@ -749,7 +749,7 @@ buf_write (struct sfm_writer *w, const void *buf, size_t nbytes)
   if (fwrite (buf, nbytes, 1, w->file) != 1)
     {
       msg (ME, _("%s: Writing system file: %s."),
-           handle_get_filename (w->fh), strerror (errno));
+           fh_get_filename (w->fh), strerror (errno));
       return 0;
     }
   return 1;
@@ -929,7 +929,7 @@ sfm_close_writer (struct sfm_writer *w)
 
       if (fclose (w->file) == EOF)
         msg (ME, _("%s: Closing system file: %s."),
-             handle_get_filename (w->fh), strerror (errno));
+             fh_get_filename (w->fh), strerror (errno));
     }
 
   free (w->buf);

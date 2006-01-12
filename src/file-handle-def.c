@@ -47,8 +47,8 @@ struct file_handle
     char *filename;		/* Filename as provided by user. */
     struct file_identity *identity; /* For checking file identity. */
     struct file_locator where;	/* Used for reporting error messages. */
-    enum file_handle_mode mode;	/* File mode. */
-    size_t length;		/* Length of fixed-format records. */
+    enum fh_mode mode;  	/* File mode. */
+    size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
 
     int open_cnt;               /* 0=not open, otherwise # of openers. */
@@ -57,12 +57,36 @@ struct file_handle
     void *aux;                  /* Aux data pointer for owner if any. */
   };
 
-
 static struct file_handle *file_handles;
 
+/* File handle initialization routine. */
+void 
+fh_init (void)
+{
+  /* Currently nothing to do. */
+}
 
+/* Frees all the file handles. */
+void 
+fh_done (void)
+{
+  struct file_handle *fh, *next;
+  
+  for (fh = file_handles; fh != NULL; fh = next)
+    {
+      next = fh->next;
+      free (fh->name);
+      free (fh->filename);
+      fn_free_identity (fh->identity);
+      free (fh);
+    }
+  file_handles = NULL;
+}
+
+/* Returns the handle named HANDLE_NAME, or a null pointer if
+   there is none. */
 struct file_handle *
-get_handle_with_name (const char *handle_name) 
+fh_from_name (const char *handle_name) 
 {
   struct file_handle *iter;
 
@@ -72,8 +96,12 @@ get_handle_with_name (const char *handle_name)
   return NULL;
 }
 
+/* Returns the handle for the file named FILENAME,
+   or a null pointer if none exists.
+   Different names for the same file (e.g. "x" and "./x") are
+   considered equivalent. */
 struct file_handle *
-get_handle_for_filename (const char *filename)
+fh_from_filename (const char *filename)
 {
   struct file_identity *identity;
   struct file_handle *iter;
@@ -100,27 +128,12 @@ get_handle_for_filename (const char *filename)
   return NULL;
 }
 
-
-/* File handle functions. */
-
-struct file_handle *
-create_file_handle_with_defaults (const char *handle_name, 
-				  const char *filename)
-{
-  return create_file_handle (handle_name, filename, 
-			     MODE_TEXT,1024, 4);
-}
-
-
 /* Creates and returns a new file handle with the given values
    and defaults for other values.  Adds the created file handle
    to the global list. */
 struct file_handle *
-create_file_handle (const char *handle_name, const char *filename,
-		    enum file_handle_mode mode,
-		    size_t length,
-		    size_t tab_width
-		    )
+fh_create (const char *handle_name, const char *filename,
+           const struct fh_properties *properties)
 {
   struct file_handle *handle;
 
@@ -132,9 +145,9 @@ create_file_handle (const char *handle_name, const char *filename,
   handle->identity = fn_get_identity (filename);
   handle->where.filename = handle->filename;
   handle->where.line_number = 0;
-  handle->mode = mode;
-  handle->length = length;
-  handle->tab_width = tab_width;
+  handle->mode = properties->mode;
+  handle->record_width = properties->record_width;
+  handle->tab_width = properties->tab_width;
   handle->open_cnt = 0;
   handle->type = NULL;
   handle->aux = NULL;
@@ -143,16 +156,16 @@ create_file_handle (const char *handle_name, const char *filename,
   return handle;
 }
 
-void
-destroy_file_handle(void *fh_, void *aux UNUSED)
+/* Returns a set of default properties for a file handle. */
+const struct fh_properties *
+fh_default_properties (void)
 {
-  struct file_handle *fh = fh_;
-  free (fh->name);
-  free (fh->filename);
-  fn_free_identity (fh->identity);
-  free (fh);
+  static const struct fh_properties default_properties = {MODE_TEXT, 1024, 4};
+  return &default_properties;
 }
 
+/* Returns an English description of MODE,
+   which is in the format of the MODE argument to fh_open(). */
 static const char *
 mode_name (const char *mode) 
 {
@@ -161,7 +174,6 @@ mode_name (const char *mode)
 
   return mode[0] == 'r' ? "reading" : "writing";
 }
-
 
 /* Tries to open handle H with the given TYPE and MODE.
 
@@ -198,21 +210,21 @@ fh_open (struct file_handle *h, const char *type, const char *mode)
         {
           msg (SE, _("Can't open %s as a %s because it is "
                      "already open as a %s"),
-               handle_get_name (h), type, h->type);
+               fh_get_name (h), type, h->type);
           return NULL; 
         }
       else if (strcmp (h->open_mode, mode)) 
         {
           msg (SE, _("Can't open %s as a %s for %s because it is "
                      "already open for %s"),
-               handle_get_name (h), type,
-               mode_name (mode), mode_name (h->open_mode));
+               fh_get_name (h), type, mode_name (mode),
+               mode_name (h->open_mode));
           return NULL;
         }
       else if (h->open_mode[1] == 'e')
         {
           msg (SE, _("Can't re-open %s as a %s for %s"),
-               handle_get_name (h), type, mode_name (mode));
+               fh_get_name (h), type, mode_name (mode));
           return NULL;
         }
     }
@@ -250,9 +262,6 @@ fh_close (struct file_handle *h, const char *type, const char *mode)
   return h->open_cnt;
 }
 
-
-
-
 /* Returns the identifier of file HANDLE.  If HANDLE was created
    by referring to a filename instead of a handle name, returns
    the filename, enclosed in double quotes.  Return value is
@@ -260,7 +269,7 @@ fh_close (struct file_handle *h, const char *type, const char *mode)
 
    Useful for printing error messages about use of file handles.  */
 const char *
-handle_get_name (const struct file_handle *handle)
+fh_get_name (const struct file_handle *handle)
 {
   assert (handle != NULL);
   return handle->name;
@@ -268,15 +277,15 @@ handle_get_name (const struct file_handle *handle)
 
 /* Returns the name of the file associated with HANDLE. */
 const char *
-handle_get_filename (const struct file_handle *handle) 
+fh_get_filename (const struct file_handle *handle) 
 {
   assert (handle != NULL);
   return handle->filename;
 }
 
 /* Returns the mode of HANDLE. */
-enum file_handle_mode
-handle_get_mode (const struct file_handle *handle) 
+enum fh_mode
+fh_get_mode (const struct file_handle *handle) 
 {
   assert (handle != NULL);
   return handle->mode;
@@ -284,19 +293,18 @@ handle_get_mode (const struct file_handle *handle)
 
 /* Returns the width of a logical record on HANDLE. */
 size_t
-handle_get_record_width (const struct file_handle *handle)
+fh_get_record_width (const struct file_handle *handle)
 {
   assert (handle != NULL);
-  return handle->length;
+  return handle->record_width;
 }
 
 /* Returns the number of characters per tab stop for HANDLE, or
    zero if tabs are not to be expanded.  Applicable only to
    MODE_TEXT files. */
 size_t
-handle_get_tab_width (const struct file_handle *handle) 
+fh_get_tab_width (const struct file_handle *handle) 
 {
   assert (handle != NULL);
   return handle->tab_width;
 }
-

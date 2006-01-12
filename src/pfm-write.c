@@ -106,7 +106,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   mode = S_IRUSR | S_IRGRP | S_IROTH;
   if (opts.create_writeable)
     mode |= S_IWUSR | S_IWGRP | S_IWOTH;
-  fd = open (handle_get_filename (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
+  fd = open (fh_get_filename (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
   if (fd < 0) 
     goto open_error;
 
@@ -163,7 +163,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
  open_error:
   msg (ME, _("An error occurred while opening \"%s\" for writing "
              "as a portable file: %s."),
-       handle_get_filename (fh), strerror (errno));
+       fh_get_filename (fh), strerror (errno));
   err_cond_fail ();
   goto error;
 }
@@ -199,7 +199,7 @@ buf_write (struct pfm_writer *w, const void *buf_, size_t nbytes)
 
  error:
   msg (ME, _("%s: Writing portable file: %s."),
-       handle_get_filename (w->fh), strerror (errno));
+       fh_get_filename (w->fh), strerror (errno));
   return 0;
 }
 
@@ -466,7 +466,7 @@ pfm_close_writer (struct pfm_writer *w)
 
       if (fclose (w->file) == EOF)
         msg (ME, _("%s: Closing portable file: %s."),
-             handle_get_filename (w->fh), strerror (errno));
+             fh_get_filename (w->fh), strerror (errno));
     }
 
   free (w->vars);

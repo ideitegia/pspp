@@ -49,14 +49,11 @@
 /* (declarations) */
 /* (functions) */
 
-
 int
 cmd_file_handle (void)
 {
   char handle_name[LONG_NAME_LEN + 1];
-  enum file_handle_mode mode = MODE_TEXT;
-  size_t length = 1024;
-  size_t tab_width = 4;
+  struct fh_properties properties = *fh_default_properties ();
 
   struct cmd_file_handle cmd;
   struct file_handle *handle;
@@ -65,12 +62,12 @@ cmd_file_handle (void)
     return CMD_FAILURE;
   str_copy_trunc (handle_name, sizeof handle_name, tokid);
 
-  handle = get_handle_with_name (handle_name);
+  handle = fh_from_name (handle_name);
   if (handle != NULL)
     {
       msg (SE, _("File handle %s already refers to file %s.  "
                  "File handles cannot be redefined within a session."),
-	   handle_name, handle_get_filename(handle));
+	   handle_name, fh_get_filename(handle));
       return CMD_FAILURE;
     }
 
@@ -97,36 +94,29 @@ cmd_file_handle (void)
   switch (cmd.mode)
     {
     case FH_CHARACTER:
-      mode = MODE_TEXT;
+      properties.mode = MODE_TEXT;
       if (cmd.sbc_tabwidth)
-        tab_width = cmd.n_tabwidth[0];
-      else
-        tab_width = 4;
+        properties.tab_width = cmd.n_tabwidth[0];
       break;
     case FH_IMAGE:
-      mode = MODE_BINARY;
+      properties.mode = MODE_BINARY;
       if (cmd.n_lrecl[0] == NOT_LONG)
-	{
-	  msg (SE, _("Fixed-length records were specified on /RECFORM, but "
-                     "record length was not specified on /LRECL.  "
-                     "Assuming 1024-character records."));
-          length = 1024;
-	}
+        msg (SE, _("Fixed-length records were specified on /RECFORM, but "
+                   "record length was not specified on /LRECL.  "
+                   "Assuming %d-character records."),
+             properties.record_width);
       else if (cmd.n_lrecl[0] < 1)
-	{
-	  msg (SE, _("Record length (%ld) must be at least one byte.  "
-		     "1-character records will be assumed."), cmd.n_lrecl[0]);
-          length = 1;
-	}
+        msg (SE, _("Record length (%ld) must be at least one byte.  "
+                   "Assuming %d-character records."),
+             cmd.n_lrecl[0], properties.record_width);
       else
-        length = cmd.n_lrecl[0];
+        properties.record_width = cmd.n_lrecl[0];
       break;
     default:
       assert (0);
     }
 
-  handle = create_file_handle (handle_name, cmd.s_name, 
-			       mode, length, tab_width);
+  handle = fh_create (handle_name, cmd.s_name, &properties);
 
   free_file_handle (&cmd);
   return CMD_SUCCESS;
@@ -135,11 +125,6 @@ cmd_file_handle (void)
   free_file_handle (&cmd);
   return CMD_FAILURE;
 }
-
-
-
-static struct linked_list *handle_list;
-
 
 /* Parses a file handle name, which may be a filename as a string or
    a file handle name as an identifier.  Returns the file handle or
@@ -158,43 +143,22 @@ fh_parse (void)
   /* Check for named handles first, then go by filename. */
   handle = NULL;
   if (token == T_ID) 
-    handle = get_handle_with_name (tokid);
+    handle = fh_from_name (tokid);
   if (handle == NULL)
-    handle = get_handle_for_filename (ds_c_str (&tokstr));
+    handle = fh_from_filename (ds_c_str (&tokstr));
   if (handle == NULL) 
     {
       char *filename = ds_c_str (&tokstr);
       char *handle_name = xmalloc (strlen (filename) + 3);
       sprintf (handle_name, "\"%s\"", filename);
-      handle = create_file_handle_with_defaults (handle_name, filename);
-      ll_push_front(handle_list, handle);
+      handle = fh_create (handle_name, filename, fh_default_properties ());
       free (handle_name);
     }
 
   lex_get ();
 
-
   return handle;
 }
-
-
-
-void 
-fh_init(void)
-{
-  handle_list = ll_create(destroy_file_handle,0);
-}
-
-void 
-fh_done(void)
-{
-  if ( handle_list )  
-  {
-    ll_destroy(handle_list);
-    handle_list = 0;
-  }
-}
-
 
 /*
    Local variables:

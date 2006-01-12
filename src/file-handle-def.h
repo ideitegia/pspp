@@ -23,75 +23,42 @@
 #include <config.h>
 
 /* File modes. */
-enum file_handle_mode
+enum fh_mode
   {
     MODE_TEXT,                  /* New-line delimited lines. */
     MODE_BINARY                 /* Fixed-length records. */
   };
 
-struct file_handle *create_file_handle_with_defaults (const char *handle_name, 
-						      const char *filename);
+/* Properties of a file handle. */
+struct fh_properties 
+  {
+    enum fh_mode mode;          /* File mode. */
+    size_t record_width;        /* Length of fixed-format records. */
+    size_t tab_width;           /* Tab width, 0=do not expand tabs. */
+  };
 
-struct file_handle *create_file_handle (const char *handle_name, 
-					const char *filename,
-					enum file_handle_mode mode,
-					size_t length,
-					size_t tab_width
-					);
+void fh_init (void);
+void fh_done (void);
 
+/* Creating file handles. */
+struct file_handle *fh_create (const char *handle_name, 
+                               const char *filename,
+                               const struct fh_properties *);
+const struct fh_properties *fh_default_properties (void);
 
+/* Finding file handles, based on handle name or filename. */
+struct file_handle *fh_from_name (const char *handle_name);
+struct file_handle *fh_from_filename (const char *filename);
 
-struct file_handle *
-get_handle_with_name (const char *handle_name) ;
+/* Querying properties of file handles. */
+const char *fh_get_name (const struct file_handle *);
+const char *fh_get_filename (const struct file_handle *);
+enum fh_mode fh_get_mode (const struct file_handle *) ;
+size_t fh_get_record_width (const struct file_handle *);
+size_t fh_get_tab_width (const struct file_handle *);
 
-struct file_handle *
-get_handle_for_filename (const char *filename);
-
-const char *handle_get_name (const struct file_handle *handle);
-
-/* Returns the name of the file associated with HANDLE. */
-const char *handle_get_filename (const struct file_handle *handle) ;
-
-
-
-/* Returns the mode of HANDLE. */
-enum file_handle_mode handle_get_mode (const struct file_handle *handle) ;
-
-/* Returns the width of a logical record on HANDLE. */
-size_t handle_get_record_width (const struct file_handle *handle);
-
-
-/* Returns the number of characters per tab stop for HANDLE, or
-   zero if tabs are not to be expanded.  Applicable only to
-   MODE_TEXT files. */
-size_t handle_get_tab_width (const struct file_handle *handle);
-
-
-
-void destroy_file_handle(void *fh_, void *aux UNUSED);
-
-
-/* Tries to open handle H with the given TYPE and MODE.
-
-   TYPE is the sort of file, e.g. "system file".  Only one given
-   type of access is allowed on a given file handle at once.
-
-   MODE combines the read or write mode with the sharing mode.
-   The first character is 'r' for read, 'w' for write.  The
-   second character is 's' to permit sharing, 'e' to require
-   exclusive access.
-
-   Returns the address of a void * that the caller can use for
-   data specific to the file handle if successful, or a null
-   pointer on failure.  For exclusive access modes the void *
-   will always be a null pointer at return.  In shared access
-   modes the void * will necessarily be null only if no other
-   sharers are active.
-
-   If successful, a reference to type is retained, so it should
-   probably be a string literal. */
-
-void ** fh_open (struct file_handle *h, const char *type, const char *mode) ;
-
+/* Opening and closing file handles. */
+void **fh_open (struct file_handle *, const char *type, const char *mode);
+int fh_close (struct file_handle *, const char *type, const char *mode);
 
 #endif

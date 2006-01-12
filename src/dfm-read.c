@@ -136,7 +136,7 @@ dfm_open_reader (struct file_handle *fh)
   r->fh = fh;
   if (fh != NULL) 
     {
-      r->where.filename = handle_get_filename (fh);
+      r->where.filename = fh_get_filename (fh);
       r->where.line_number = 0; 
     }
   r->file.file = NULL;
@@ -146,7 +146,7 @@ dfm_open_reader (struct file_handle *fh)
 
   if (fh != NULL)
     {
-      r->file.filename = xstrdup (handle_get_filename (r->fh));
+      r->file.filename = xstrdup (fh_get_filename (r->fh));
       r->file.mode = "rb";
       r->file.file = NULL;
       r->file.sequence_no = NULL;
@@ -157,7 +157,7 @@ dfm_open_reader (struct file_handle *fh)
 	{
 	  msg (ME, _("Could not open \"%s\" for reading "
                      "as a data file: %s."),
-               handle_get_filename (r->fh), strerror (errno));
+               fh_get_filename (r->fh), strerror (errno));
           err_cond_fail ();
           fh_close (fh,"data file", "rs");
           free (r);
@@ -241,7 +241,7 @@ static int
 read_file_record (struct dfm_reader *r)
 {
   assert (r->fh != NULL);
-  if (handle_get_mode (r->fh) == MODE_TEXT)
+  if (fh_get_mode (r->fh) == MODE_TEXT)
     {
       ds_clear (&r->line);
       if (!ds_gets (&r->line, r->file.file)) 
@@ -249,15 +249,15 @@ read_file_record (struct dfm_reader *r)
           if (ferror (r->file.file))
             {
               msg (ME, _("Error reading file %s: %s."),
-                   handle_get_name (r->fh), strerror (errno));
+                   fh_get_name (r->fh), strerror (errno));
               err_cond_fail ();
             }
           return 0;
         }
     }
-  else if (handle_get_mode (r->fh) == MODE_BINARY)
+  else if (fh_get_mode (r->fh) == MODE_BINARY)
     {
-      size_t record_width = handle_get_record_width (r->fh);
+      size_t record_width = fh_get_record_width (r->fh);
       size_t amt;
 
       if (ds_length (&r->line) < record_width) 
@@ -269,10 +269,10 @@ read_file_record (struct dfm_reader *r)
         {
           if (ferror (r->file.file))
             msg (ME, _("Error reading file %s: %s."),
-                 handle_get_name (r->fh), strerror (errno));
+                 fh_get_name (r->fh), strerror (errno));
           else if (amt != 0)
             msg (ME, _("%s: Partial record at end of file."),
-                 handle_get_name (r->fh));
+                 fh_get_name (r->fh));
           else
             return 0;
 
@@ -315,7 +315,7 @@ dfm_eof (struct dfm_reader *r)
         {
           if (r->fh != NULL)
             msg (SE, _("Attempt to read beyond end-of-file on file %s."),
-                 handle_get_name (r->fh));
+                 fh_get_name (r->fh));
           else
             msg (SE, _("Attempt to read beyond END DATA."));
           err_cond_fail ();
@@ -360,14 +360,14 @@ dfm_expand_tabs (struct dfm_reader *r)
   r->flags |= DFM_TABS_EXPANDED;
 
   if (r->fh != NULL
-      && (handle_get_mode (r->fh) == MODE_BINARY
-          || handle_get_tab_width (r->fh) == 0
+      && (fh_get_mode (r->fh) == MODE_BINARY
+          || fh_get_tab_width (r->fh) == 0
           || memchr (ds_c_str (&r->line), '\t', ds_length (&r->line)) == NULL))
     return;
 
   /* Expand tabs from r->line into r->scratch, and figure out
      new value for r->pos. */
-  tab_width = r->fh != NULL ? handle_get_tab_width (r->fh) : 8;
+  tab_width = r->fh != NULL ? fh_get_tab_width (r->fh) : 8;
   ds_clear (&r->scratch);
   new_pos = 0;
   for (ofs = 0; ofs < ds_length (&r->line); ofs++)

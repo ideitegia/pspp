@@ -1,3 +1,42 @@
+Wed Jan 11 19:28:39 2006  Ben Pfaff  <blp@gnu.org>
+
+	Clean up file handle code in preparation to add temporary file
+	handles.
+	
+	* file-handle-def.c: Lots of formatting cleanup.  Added function
+	comments.
+	(struct file_handle) Renamed `length' member
+	to `record_width'.  All references updated.
+	(fh_init) New function.  Moved here from file-handle.q.
+	(fh_done) New function.  Moved here from file-handle.q and
+	rewrote.
+	(get_handle_with_name) Renamed fh_from_name().
+	(get_handle_for_filename) Renamed fh_from_filename().
+	(create_file_handle) Renamed fh_create().  Changed to take a
+	`struct fh_properties' instead of discrete values.  Updated all
+	references.
+	(create_file_handle_with_defaults) Removed.  Updated all
+	references to use fh_create() with fh_default_properties().
+	(fh_default_properties) New function.
+	(destroy_file_handle) Removed.  The code is now in fh_done().
+	(handle_get_name) Renamed fh_get_name().
+	(handle_get_filename) Renamed fh_get_filename().
+	(handle_get_record_width) Renamed fh_get_record_width().
+	(handle_get_tab_width) Renamed fh_get_tab_width().
+
+	* file-handle-def.h: Formatting, comment fixes.
+	(enum file_handle_mode) Renamed struct fh_mode.
+	(struct fh_properties) New structure.
+	(fh_init) Move prototype here from file-handle.h.
+	(fh_done) Ditto.
+	(fh_close) Ditto.
+
+	* file-handle.q: (static var handle_list) Removed.
+	(fh_parse) Don't add handle to handle_list, because
+	file-handle-def.c has its own list.
+	(fh_init) Moved to file-handle-def.c.
+	(fh_done) Ditto.
+
 Sun Jan 9 01:09  Jason Stover  <jason@sakla.net>
 
 	* regression.q: (run_regression) Moved coefficient initialization

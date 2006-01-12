@@ -82,7 +82,7 @@ error (struct pfm_reader *r, const char *msg, ...)
 
   e.class = ME;
   getl_location (&e.where.filename, &e.where.line_number);
-  filename = handle_get_filename (r->fh);
+  filename = fh_get_filename (r->fh);
   e.title = title = pool_alloc (r->pool, strlen (filename) + 80);
   sprintf (title, _("portable file %s corrupt at offset %ld: "),
            filename, ftell (r->file));
@@ -159,7 +159,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   if (setjmp (r->bail_out))
     goto error;
   r->fh = fh;
-  r->file = pool_fopen (r->pool, handle_get_filename (r->fh), "rb");
+  r->file = pool_fopen (r->pool, fh_get_filename (r->fh), "rb");
   r->weight_index = -1;
   r->trans = NULL;
   r->var_cnt = 0;
@@ -171,7 +171,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
     {
       msg (ME, _("An error occurred while opening \"%s\" for reading "
                  "as a portable file: %s."),
-           handle_get_filename (r->fh), strerror (errno));
+           fh_get_filename (r->fh), strerror (errno));
       err_cond_fail ();
       goto error;
     }
@@ -400,7 +400,7 @@ read_header (struct pfm_reader *r)
   for (i = 0; i < 8; i++) 
     if (!match (r, "SPSSPORT"[i])) 
       {
-        msg (SE, _("%s: Not a portable file."), handle_get_filename (r->fh));
+        msg (SE, _("%s: Not a portable file."), fh_get_filename (r->fh));
         longjmp (r->bail_out, 1);
       }
 }

@@ -25,19 +25,6 @@
 #include <stddef.h>
 #include "file-handle-def.h"
 
-
-
-void fh_init(void);
-void fh_done(void);
-
-
-/* Parsing handles. */
 struct file_handle *fh_parse (void);
-
-
-/* Opening and closing handles. */
-void **fh_open (struct file_handle *, const char *type, const char *mode);
-int fh_close (struct file_handle *, const char *type, const char *mode);
-
 
 #endif /* !file_handle.h */

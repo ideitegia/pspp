@@ -57,7 +57,7 @@ dfm_open_writer (struct file_handle *fh)
   w->file.file = NULL;
   w->bounce = NULL;
 
-  w->file.filename = xstrdup (handle_get_filename (w->fh));
+  w->file.filename = xstrdup (fh_get_filename (w->fh));
   w->file.mode = "wb";
   w->file.file = NULL;
   w->file.sequence_no = NULL;
@@ -69,7 +69,7 @@ dfm_open_writer (struct file_handle *fh)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
                  "as a data file: %s."),
-           handle_get_filename (w->fh), strerror (errno));
+           fh_get_filename (w->fh), strerror (errno));
       goto error;
     }
 
@@ -89,10 +89,10 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 {
   assert (w != NULL);
 
-  if (handle_get_mode (w->fh) == MODE_BINARY
-      && len < handle_get_record_width (w->fh))
+  if (fh_get_mode (w->fh) == MODE_BINARY
+      && len < fh_get_record_width (w->fh))
     {
-      size_t rec_width = handle_get_record_width (w->fh);
+      size_t rec_width = fh_get_record_width (w->fh);
       if (w->bounce == NULL)
         w->bounce = xmalloc (rec_width);
       memcpy (w->bounce, rec, len);
@@ -104,7 +104,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
   if (fwrite (rec, len, 1, w->file.file) != 1)
     {
       msg (ME, _("Error writing file %s: %s."),
-           handle_get_name (w->fh), strerror (errno));
+           fh_get_name (w->fh), strerror (errno));
       err_cond_fail ();
       return 0;
     }

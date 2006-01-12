@@ -928,7 +928,7 @@ cmd_match_files (void)
                   if (iter->by[i] == NULL)
                     {
                       msg (SE, _("File %s lacks BY variable %s."),
-                           iter->handle ? handle_get_name (iter->handle) : "*",
+                           iter->handle ? fh_get_name (iter->handle) : "*",
                            by[i]->name);
                       free (by);
                       goto error;
@@ -1461,7 +1461,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
               msg (SE, _("Variable %s in file %s (%s) has different "
                          "type or width from the same variable in "
                          "earlier file (%s)."),
-                   dv->name, handle_get_name (f->handle),
+                   dv->name, fh_get_name (f->handle),
                    var_type_description (dv), var_type_description (mv));
               return 0;
             }

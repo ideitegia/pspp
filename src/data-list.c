@@ -798,7 +798,7 @@ dump_fixed_table (const struct dls_var_spec *specs,
   if (fh != NULL)
     tab_title (t, 1, ngettext ("Reading %d record from file %s.",
                                "Reading %d records from file %s.", rec_cnt),
-               rec_cnt, handle_get_filename (fh));
+               rec_cnt, fh_get_filename (fh));
   else
     tab_title (t, 1, ngettext ("Reading %d record from the command file.",
                                "Reading %d records from the command file.",
@@ -919,7 +919,7 @@ dump_free_table (const struct data_list_pgm *dls,
 
   if (fh != NULL)
     tab_title (t, 1, _("Reading free-form data from file %s."),
-               handle_get_filename (fh));
+               fh_get_filename (fh));
   else
     tab_title (t, 1, _("Reading free-form data from the command file."));
   
@@ -1585,7 +1585,7 @@ cmd_repeating_data (void)
   /* Calculate and check starts_end, cont_end if necessary. */
   if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL) 
     {
-      rpd->starts_end.num = fh != NULL ? handle_get_record_width (fh) : 80;
+      rpd->starts_end.num = fh != NULL ? fh_get_record_width (fh) : 80;
       if (rpd->starts_beg.num != 0 
           && rpd->starts_beg.num > rpd->starts_end.num)
         {
@@ -1598,7 +1598,7 @@ cmd_repeating_data (void)
     }
   if (rpd->cont_end.num == 0 && rpd->cont_end.var == NULL) 
     {
-      rpd->cont_end.num = fh != NULL ? handle_get_record_width (fh) : 80;
+      rpd->cont_end.num = fh != NULL ? fh_get_record_width (fh) : 80;
       if (rpd->cont_beg.num != 0
           && rpd->cont_beg.num > rpd->cont_end.num)
         {

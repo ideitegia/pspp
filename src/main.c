@@ -26,7 +26,7 @@
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
-#include "file-handle.h"
+#include "file-handle-def.h"
 #include "filename.h"
 #include "getl.h"
 #include "glob.h"

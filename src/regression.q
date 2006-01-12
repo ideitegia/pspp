@@ -611,7 +611,7 @@ subcommand_export (int export, pspp_linreg_cache * c)
       assert (c != NULL);
       assert (model_file != NULL);
       assert (fp != NULL);
-      fp = fopen (handle_get_filename (model_file), "w");
+      fp = fopen (fh_get_filename (model_file), "w");
       fprintf (fp, "%s", reg_preamble);
       reg_print_getvar (fp, c);
       reg_print_categorical_encoding (fp, c);
