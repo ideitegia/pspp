@@ -194,6 +194,7 @@ pspp_SOURCES =					\
 	readln.h				\
 	recode.c				\
 	rename-vars.c				\
+	regression_export.h			\
 	repeat.c				\
 	repeat.h				\
 	sample.c				\
