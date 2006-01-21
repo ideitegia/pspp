@@ -118,12 +118,7 @@ pspp_linreg_cache_free (pspp_linreg_cache * c)
   gsl_vector_free (c->indep_std);
   gsl_vector_free (c->ss_indeps);
   gsl_matrix_free (c->cov);
-#if 0  
-  for (i = 1; i < c->n_coeffs; i++)
-    {
-      pspp_linreg_coeff_free (c->coeff + i);
-    }
-#endif
+  pspp_linreg_coeff_free (c->coeff);
   free (c);
 }
 

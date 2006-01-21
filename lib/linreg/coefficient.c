@@ -43,7 +43,6 @@ struct varinfo
 
 void pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
 {
-  free (c->v_info);
   free (c);
 }
 
