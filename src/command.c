@@ -854,7 +854,7 @@ cmd_new_file (void)
 int
 cmd_clear_transformations (void)
 {
-  if (getl_reading_script)
+  if (getl_reading_script ())
     {
       msg (SW, _("This command is not valid in a syntax file."));
       return CMD_FAILURE;
