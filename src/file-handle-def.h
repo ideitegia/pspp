@@ -44,6 +44,9 @@ void fh_done (void);
 struct file_handle *fh_create (const char *handle_name, 
                                const char *filename,
                                const struct fh_properties *);
+/* Destroy file handle */
+void fh_free(struct file_handle *);
+
 const struct fh_properties *fh_default_properties (void);
 
 /* Finding file handles, based on handle name or filename. */

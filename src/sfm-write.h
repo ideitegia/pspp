@@ -39,7 +39,7 @@ struct sfm_writer *sfm_open_writer (struct file_handle *, struct dictionary *,
                                     struct sfm_write_options);
 struct sfm_write_options sfm_writer_default_options (void);
 
-int sfm_write_case (struct sfm_writer *, struct ccase *);
+int sfm_write_case (struct sfm_writer *, const struct ccase *);
 void sfm_close_writer (struct sfm_writer *);
 
 #endif /* sfm-write.h */

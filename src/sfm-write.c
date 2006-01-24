@@ -257,7 +257,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
  open_error:
   msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
-       fh_get_filename (w->fh), strerror (errno));
+       fh_get_filename (fh), strerror (errno));
   err_cond_fail ();
   goto error;
 }
@@ -788,7 +788,7 @@ static void write_compressed_data (struct sfm_writer *w, const flt64 *elem);
 /* Writes case C to system file W.
    Returns nonzero if successful. */
 int
-sfm_write_case (struct sfm_writer *w, struct ccase *c)
+sfm_write_case (struct sfm_writer *w, const struct ccase *c)
 {
   w->case_cnt++;
 

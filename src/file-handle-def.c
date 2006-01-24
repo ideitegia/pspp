@@ -66,6 +66,25 @@ fh_init (void)
   /* Currently nothing to do. */
 }
 
+
+/* Destroy file handle.
+   Normally needed only if a file_handle needs to be re-assigned.
+   Otherwise, just let fh_done clean destroy the handle.
+ */
+void 
+fh_free(struct file_handle *fh)
+{
+  if ( !fh->name ) 
+    return ;
+
+  free (fh->name);
+  fh->name = 0;
+  free (fh->filename);
+  fn_free_identity (fh->identity);
+  free (fh);
+}
+
+
 /* Frees all the file handles. */
 void 
 fh_done (void)
@@ -75,10 +94,7 @@ fh_done (void)
   for (fh = file_handles; fh != NULL; fh = next)
     {
       next = fh->next;
-      free (fh->name);
-      free (fh->filename);
-      fn_free_identity (fh->identity);
-      free (fh);
+      fh_free(fh);
     }
   file_handles = NULL;
 }
@@ -136,6 +152,9 @@ fh_create (const char *handle_name, const char *filename,
            const struct fh_properties *properties)
 {
   struct file_handle *handle;
+
+  assert(filename);
+  assert(handle_name);
 
   /* Create and initialize file handle. */
   handle = xmalloc (sizeof *handle);
