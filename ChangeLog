@@ -1,3 +1,7 @@
+Wed Jan 25 21:48:20 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: (po/POTFILE.in) Exclude dotfiles.
+
 Sat Nov 27 20:29:19 2005 Jason Stover <jason@sakla.net>
 
 	* Binary encoding for categorical variables.

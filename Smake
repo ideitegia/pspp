@@ -23,7 +23,8 @@ gettextize:
 	gettextize -f -c --intl --no-changelog
 
 po/POTFILES.in:
-	for f in `find src -name \*.[qc] -print | sed 's/\.[qc]$$//'`; do \
+	for f in `find src -name \*.[qc] ! -name .\* -print \
+		  | sed 's/\.[qc]$$//'`; do \
 		if test $$f = src/version.c; then break; fi;		  \
 		if test -e $$f.q; then echo $$f.q; else echo $$f.c; fi	  \
 	done | sort | uniq > $@.tmp
