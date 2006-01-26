@@ -102,7 +102,7 @@ err_failure (void)
 void
 err_cond_fail (void)
 {
-  if (getl_reading_script)
+  if (getl_reading_script ())
     {
       if (getl_interactive)
 	getl_close_all ();
