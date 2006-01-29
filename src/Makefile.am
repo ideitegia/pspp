@@ -86,6 +86,7 @@ pspp_SOURCES =					\
 	case.h					\
 	casefile.c				\
 	casefile.h				\
+	casefile-test.c                         \
 	cat.c					\
 	cat.h					\
 	cat-routines.h				\
