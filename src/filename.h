@@ -35,6 +35,7 @@ char *fn_prepend_dir (const char *filename, const char *directory);
 char *fn_normalize (const char *fn);
 char *fn_dirname (const char *fn);
 char *fn_basename (const char *fn);
+char *fn_extension (const char *fn);
 
 char *fn_get_cwd (void);
 

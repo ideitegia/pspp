@@ -46,7 +46,7 @@ dfm_open_writer (struct file_handle *fh)
   struct dfm_writer *w;
   void **aux;
   
-  aux = fh_open (fh, "data file", "ws");
+  aux = fh_open (fh, FH_REF_FILE, "data file", "ws");
   if (aux == NULL)
     return NULL;
   if (*aux != NULL)
@@ -89,7 +89,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 {
   assert (w != NULL);
 
-  if (fh_get_mode (w->fh) == MODE_BINARY
+  if (fh_get_mode (w->fh) == FH_MODE_BINARY
       && len < fh_get_record_width (w->fh))
     {
       size_t rec_width = fh_get_record_width (w->fh);

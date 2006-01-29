@@ -137,7 +137,7 @@ cor_custom_matrix (struct cmd_correlations *cmd UNUSED)
     matrix_file = NULL;
   else 
     {
-      matrix_file = fh_parse ();
+      matrix_file = fh_parse (FH_REF_FILE);
       if (matrix_file == NULL)
         return 0; 
     }

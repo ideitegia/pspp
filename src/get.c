@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -21,6 +21,8 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "any-reader.h"
+#include "any-writer.h"
 #include "case.h"
 #include "command.h"
 #include "dictionary.h"
@@ -29,10 +31,8 @@
 #include "hash.h"
 #include "lexer.h"
 #include "misc.h"
-#include "pfm-read.h"
 #include "pfm-write.h"
 #include "settings.h"
-#include "sfm-read.h"
 #include "sfm-write.h"
 #include "str.h"
 #include "value-labels.h"
@@ -52,116 +52,147 @@ static void map_case (const struct case_map *,
                       const struct ccase *, struct ccase *);
 static void destroy_case_map (struct case_map *);
 
-/* Operation type. */
-enum operation 
-  {
-    OP_READ,    /* GET or IMPORT. */
-    OP_SAVE,    /* SAVE or XSAVE. */
-    OP_EXPORT   /* EXPORT. */
-  };
-
 static bool parse_dict_trim (struct dictionary *);
 
-/* GET input program. */
-struct get_pgm 
+/* Reading system and portable files. */
+
+/* Type of command. */
+enum reader_command 
   {
-    struct sfm_reader *reader;  /* System file reader. */
-    struct case_map *map;       /* Map from system file to active file dict. */
+    GET_CMD,
+    IMPORT_CMD
+  };
+
+/* Case reader input program. */
+struct case_reader_pgm 
+  {
+    struct any_reader *reader;  /* File reader. */
+    struct case_map *map;       /* Map from file dict to active file dict. */
     struct ccase bounce;        /* Bounce buffer. */
   };
 
-static void get_pgm_free (struct get_pgm *);
+static const struct case_source_class case_reader_source_class;
 
-/* Parses the GET command. */
-int
-cmd_get (void)
+static void case_reader_pgm_free (struct case_reader_pgm *);
+
+/* Parses a GET or IMPORT command. */
+static int
+parse_read_command (enum reader_command type)
 {
-  struct get_pgm *pgm = NULL;
-  struct file_handle *fh;
+  struct case_reader_pgm *pgm = NULL;
+  struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
 
-  pgm = xmalloc (sizeof *pgm);
-  pgm->reader = NULL;
-  pgm->map = NULL;
-  case_nullify (&pgm->bounce);
+  for (;;)
+    {
+      lex_match ('/');
 
+      if (lex_match_id ("FILE") || token == T_STRING)
+	{
+	  lex_match ('=');
+
+	  fh = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
+	  if (fh == NULL)
+            goto error;
+	}
+      else if (type == IMPORT_CMD && lex_match_id ("TYPE"))
+	{
+	  lex_match ('=');
+
+	  if (lex_match_id ("COMM"))
+	    type = PFM_COMM;
+	  else if (lex_match_id ("TAPE"))
+	    type = PFM_TAPE;
+	  else
+	    {
+	      lex_error (_("expecting COMM or TAPE"));
+              goto error;
+	    }
+	}
+      else
+        break; 
+    }
+  
+  if (fh == NULL) 
+    {
+      lex_sbc_missing ("FILE");
+      goto error;
+    }
+              
   discard_variables ();
 
-  lex_match ('/');
-  if (lex_match_id ("FILE"))
-    lex_match ('=');
-  fh = fh_parse ();
-  if (fh == NULL)
-    goto error;
-
-  pgm->reader = sfm_open_reader (fh, &dict, NULL);
+  pgm = xmalloc (sizeof *pgm);
+  pgm->reader = any_reader_open (fh, &dict);
+  pgm->map = NULL;
+  case_nullify (&pgm->bounce);
   if (pgm->reader == NULL)
     goto error;
+
   case_create (&pgm->bounce, dict_get_next_value_idx (dict));
-
+  
   start_case_map (dict);
-  while (lex_match ('/'))
-    if (!parse_dict_trim (dict))
-      goto error;
 
-  if (!lex_end_of_command ())
-    return false;
+  while (token != '.')
+    {
+      lex_match ('/');
+      if (!parse_dict_trim (dict))
+        goto error;
+    }
 
-  dict_compact_values (dict);
   pgm->map = finish_case_map (dict);
-
+  
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = create_case_source (&get_source_class, pgm);
+  vfm_source = create_case_source (&case_reader_source_class, pgm);
 
   return CMD_SUCCESS;
 
  error:
-  get_pgm_free (pgm);
-  if (dict != NULL) 
+  case_reader_pgm_free (pgm);
+  if (dict != NULL)
     dict_destroy (dict);
   return CMD_FAILURE;
 }
 
-/* Frees a struct get_pgm. */
+/* Frees a struct case_reader_pgm. */
 static void
-get_pgm_free (struct get_pgm *pgm) 
+case_reader_pgm_free (struct case_reader_pgm *pgm) 
 {
   if (pgm != NULL) 
     {
-      sfm_close_reader (pgm->reader);
+      any_reader_close (pgm->reader);
       destroy_case_map (pgm->map);
       case_destroy (&pgm->bounce);
       free (pgm);
     }
 }
 
-/* Clears internal state related to GET input procedure. */
+/* Clears internal state related to case reader input procedure. */
 static void
-get_source_destroy (struct case_source *source)
+case_reader_source_destroy (struct case_source *source)
 {
-  struct get_pgm *pgm = source->aux;
-  get_pgm_free (pgm);
+  struct case_reader_pgm *pgm = source->aux;
+  case_reader_pgm_free (pgm);
 }
 
 /* Reads all the cases from the data file into C and passes them
    to WRITE_CASE one by one, passing WC_DATA. */
 static void
-get_source_read (struct case_source *source,
-                 struct ccase *c,
-                 write_case_func *write_case, write_case_data wc_data)
+case_reader_source_read (struct case_source *source,
+                    struct ccase *c,
+                    write_case_func *write_case, write_case_data wc_data)
 {
-  struct get_pgm *pgm = source->aux;
+  struct case_reader_pgm *pgm = source->aux;
   int ok;
 
   do
     {
       if (pgm->map == NULL)
-        ok = sfm_read_case (pgm->reader, c);
+        ok = any_reader_read (pgm->reader, c);
       else
         {
-          ok = sfm_read_case (pgm->reader, &pgm->bounce);
+          ok = any_reader_read (pgm->reader, &pgm->bounce);
           if (ok)
             map_case (pgm->map, &pgm->bounce, c);
         }
@@ -172,14 +203,30 @@ get_source_read (struct case_source *source,
   while (ok);
 }
 
-const struct case_source_class get_source_class =
+static const struct case_source_class case_reader_source_class =
   {
-    "GET",
+    "case reader",
     NULL,
-    get_source_read,
-    get_source_destroy,
+    case_reader_source_read,
+    case_reader_source_destroy,
   };
 
+/* GET. */
+int
+cmd_get (void) 
+{
+  return parse_read_command (GET_CMD);
+}
+
+/* IMPORT. */
+int
+cmd_import (void) 
+{
+  return parse_read_command (IMPORT_CMD);
+}
+
+/* Writing system and portable files. */ 
+
 /* Type of output file. */
 enum writer_type
   {
@@ -194,11 +241,10 @@ enum command_type
     PROC_CMD            /* Procedure. */
   };
 
-/* Portable or system file writer plus a case map. */
-struct any_writer
+/* File writer plus a case map. */
+struct case_writer
   {
-    enum writer_type writer_type;
-    void *writer;
+    struct any_writer *writer;  /* File writer. */
     struct case_map *map;       /* Map to output file dictionary
                                    (null pointer for identity mapping). */
     struct ccase bounce;        /* Bounce buffer for mapping (if needed). */
@@ -206,19 +252,11 @@ struct any_writer
 
 /* Destroys AW. */
 static void
-any_writer_destroy (struct any_writer *aw)
+case_writer_destroy (struct case_writer *aw)
 {
   if (aw != NULL) 
     {
-      switch (aw->writer_type) 
-        {
-        case PORFILE_WRITER:
-          pfm_close_writer (aw->writer);
-          break;
-        case SYSFILE_WRITER:
-          sfm_close_writer (aw->writer);
-          break;
-        }
+      any_writer_close (aw->writer);
       destroy_case_map (aw->map);
       case_destroy (&aw->bounce);
       free (aw);
@@ -235,7 +273,7 @@ any_writer_destroy (struct any_writer *aw)
    included.
 
    On failure, returns a null pointer. */
-static struct any_writer *
+static struct case_writer *
 parse_write_command (enum writer_type writer_type,
                      enum command_type command_type,
                      bool *retain_unselected)
@@ -243,7 +281,7 @@ parse_write_command (enum writer_type writer_type,
   /* Common data. */
   struct file_handle *handle; /* Output file. */
   struct dictionary *dict;    /* Dictionary for output file. */
-  struct any_writer *aw;      /* Writer. */  
+  struct case_writer *aw;      /* Writer. */  
 
   /* Common options. */
   bool print_map;             /* Print map?  TODO. */
@@ -261,7 +299,6 @@ parse_write_command (enum writer_type writer_type,
   handle = NULL;
   dict = dict_clone (default_dict);
   aw = xmalloc (sizeof *aw);
-  aw->writer_type = writer_type;
   aw->writer = NULL;
   aw->map = NULL;
   case_nullify (&aw->bounce);
@@ -286,7 +323,7 @@ parse_write_command (enum writer_type writer_type,
           
 	  lex_match ('=');
       
-	  handle = fh_parse ();
+	  handle = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
 	  if (handle == NULL)
 	    goto error;
 	}
@@ -374,45 +411,42 @@ parse_write_command (enum writer_type writer_type,
   if (aw->map != NULL)
     case_create (&aw->bounce, dict_get_next_value_idx (dict));
 
-  switch (writer_type) 
+  if (fh_get_referent (handle) == FH_REF_FILE) 
     {
-    case SYSFILE_WRITER:
-      aw->writer = sfm_open_writer (handle, dict, sysfile_opts);
-      break;
-    case PORFILE_WRITER:
-      aw->writer = pfm_open_writer (handle, dict, porfile_opts);
-      break;
+      switch (writer_type) 
+        {
+        case SYSFILE_WRITER:
+          aw->writer = any_writer_from_sfm_writer (
+            sfm_open_writer (handle, dict, sysfile_opts));
+          break;
+        case PORFILE_WRITER:
+          aw->writer = any_writer_from_pfm_writer (
+            pfm_open_writer (handle, dict, porfile_opts));
+          break;
+        }
     }
-
+  else
+    aw->writer = any_writer_open (handle, dict);
   dict_destroy (dict);
   
   return aw;
 
  error:
-  any_writer_destroy (aw);
+  case_writer_destroy (aw);
   dict_destroy (dict);
   return NULL;
 }
 
 /* Writes case C to writer AW. */
 static void
-any_writer_write_case (struct any_writer *aw, struct ccase *c) 
+case_writer_write_case (struct case_writer *aw, struct ccase *c) 
 {
   if (aw->map != NULL) 
     {
       map_case (aw->map, c, &aw->bounce);
       c = &aw->bounce; 
     }
-  
-  switch (aw->writer_type) 
-    {
-    case SYSFILE_WRITER:
-      sfm_write_case (aw->writer, c);
-      break;
-    case PORFILE_WRITER:
-      pfm_write_case (aw->writer, c);
-      break;
-    }
+  any_writer_write (aw->writer, c);
 }
 
 /* SAVE and EXPORT. */
@@ -425,7 +459,7 @@ parse_output_proc (enum writer_type writer_type)
 {
   bool retain_unselected;
   struct variable *saved_filter_variable;
-  struct any_writer *aw;
+  struct case_writer *aw;
 
   aw = parse_write_command (writer_type, PROC_CMD, &retain_unselected);
   if (aw == NULL) 
@@ -437,7 +471,7 @@ parse_output_proc (enum writer_type writer_type)
   procedure (output_proc, aw);
   dict_set_filter (default_dict, saved_filter_variable);
 
-  any_writer_destroy (aw);
+  case_writer_destroy (aw);
   return CMD_SUCCESS;
 }
 
@@ -445,8 +479,8 @@ parse_output_proc (enum writer_type writer_type)
 static int
 output_proc (struct ccase *c, void *aw_) 
 {
-  struct any_writer *aw = aw_;
-  any_writer_write_case (aw, c);
+  struct case_writer *aw = aw_;
+  case_writer_write_case (aw, c);
   return 0;
 }
 
@@ -467,7 +501,7 @@ cmd_export (void)
 /* Transformation. */
 struct output_trns 
   {
-    struct any_writer *aw;      /* Writer. */
+    struct case_writer *aw;      /* Writer. */
   };
 
 static trns_proc_func output_trns_proc;
@@ -494,7 +528,7 @@ static int
 output_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 {
   struct output_trns *t = trns_;
-  any_writer_write_case (t->aw, c);
+  case_writer_write_case (t->aw, c);
   return -1;
 }
 
@@ -506,7 +540,7 @@ output_trns_free (void *trns_)
 
   if (t != NULL)
     {
-      any_writer_destroy (t->aw);
+      case_writer_destroy (t->aw);
       free (t);
     }
 }
@@ -709,7 +743,7 @@ struct mtf_file
     int type;			/* One of MTF_*. */
     struct variable **by;	/* List of BY variables for this file. */
     struct file_handle *handle; /* File handle. */
-    struct sfm_reader *reader;  /* System file reader. */
+    struct any_reader *reader;  /* File reader. */
     struct dictionary *dict;	/* Dictionary from system file. */
 
     /* IN subcommand. */
@@ -859,11 +893,11 @@ cmd_match_files (void)
         }
       else
         {
-          file->handle = fh_parse ();
+          file->handle = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
           if (file->handle == NULL)
             goto error;
 
-          file->reader = sfm_open_reader (file->handle, &file->dict, NULL);
+          file->reader = any_reader_open (file->handle, &file->dict);
           if (file->reader == NULL)
             goto error;
 
@@ -1151,7 +1185,7 @@ static void
 mtf_free_file (struct mtf_file *file)
 {
   free (file->by);
-  sfm_close_reader (file->reader);
+  any_reader_close (file->reader);
   if (file->dict != default_dict)
     dict_destroy (file->dict);
   case_destroy (&file->input);
@@ -1225,7 +1259,7 @@ mtf_read_nonactive_records (void *mtf_)
   for (iter = mtf->head; iter != NULL; iter = next)
     {
       next = iter->next;
-      if (iter->handle && !sfm_read_case (iter->reader, &iter->input))
+      if (iter->handle && !any_reader_read (iter->reader, &iter->input))
         mtf_delete_file_in_place (mtf, &iter);
     }
 }
@@ -1323,7 +1357,7 @@ mtf_processing (struct ccase *c, void *mtf_)
                 {
                   if (iter->handle == NULL)
                     return 1;
-                  if (sfm_read_case (iter->reader, &iter->input))
+                  if (any_reader_read (iter->reader, &iter->input))
                     continue;
                   mtf_delete_file_in_place (mtf, &iter);
                 }
@@ -1405,7 +1439,7 @@ mtf_processing (struct ccase *c, void *mtf_)
 	{
 	  next = iter->next_min;
 	  if (iter->reader != NULL
-              && !sfm_read_case (iter->reader, &iter->input))
+              && !any_reader_read (iter->reader, &iter->input))
             mtf_delete_file_in_place (mtf, &iter);
 	}
     }
@@ -1500,162 +1534,6 @@ get_master (struct variable *v)
   return v->aux;
 }
 
-/* IMPORT command. */
-
-/* IMPORT input program. */
-struct import_pgm 
-  {
-    struct pfm_reader *reader;  /* Portable file reader. */
-    struct case_map *map;       /* Map from system file to active file dict. */
-    struct ccase bounce;        /* Bounce buffer. */
-  };
-
-static void import_pgm_free (struct import_pgm *);
-
-/* Parses the IMPORT command. */
-int
-cmd_import (void)
-{
-  struct import_pgm *pgm = NULL;
-  struct file_handle *fh = NULL;
-  struct dictionary *dict = NULL;
-  enum pfm_type type;
-
-  lex_match ('/');
-  for (;;)
-    {
-      if (pgm == NULL && (lex_match_id ("FILE") || token == T_STRING))
-	{
-	  lex_match ('=');
-
-	  fh = fh_parse ();
-	  if (fh == NULL)
-            goto error;
-	}
-      else if (pgm == NULL && lex_match_id ("TYPE"))
-	{
-	  lex_match ('=');
-
-	  if (lex_match_id ("COMM"))
-	    type = PFM_COMM;
-	  else if (lex_match_id ("TAPE"))
-	    type = PFM_TAPE;
-	  else
-	    {
-	      lex_error (_("expecting COMM or TAPE"));
-              goto error;
-	    }
-	}
-      else 
-        {
-          if (pgm == NULL) 
-            {
-              if (fh == NULL) 
-                {
-                  lex_sbc_missing ("FILE");
-                  goto error;
-                }
-              
-              discard_variables ();
-
-              pgm = xmalloc (sizeof *pgm);
-              pgm->reader = pfm_open_reader (fh, &dict, NULL);
-              pgm->map = NULL;
-              case_nullify (&pgm->bounce);
-              if (pgm->reader == NULL)
-                goto error;
-
-              case_create (&pgm->bounce, dict_get_next_value_idx (dict));
-  
-              start_case_map (dict);
-            }
-
-          if (token == '.')
-            break;
-          
-          if (!parse_dict_trim (dict))
-            goto error;
-        }
-
-      lex_match ('/');
-    }
-  if (pgm == NULL) 
-    {
-      lex_error (NULL);
-      goto error;
-    }
-
-  pgm->map = finish_case_map (dict);
-  
-  dict_destroy (default_dict);
-  default_dict = dict;
-
-  vfm_source = create_case_source (&import_source_class, pgm);
-
-  return CMD_SUCCESS;
-
- error:
-  import_pgm_free (pgm);
-  if (dict != NULL)
-    dict_destroy (dict);
-  return CMD_FAILURE;
-}
-
-/* Frees a struct import_pgm. */
-static void
-import_pgm_free (struct import_pgm *pgm) 
-{
-  if (pgm != NULL) 
-    {
-      pfm_close_reader (pgm->reader);
-      destroy_case_map (pgm->map);
-      case_destroy (&pgm->bounce);
-      free (pgm);
-    }
-}
-
-/* Clears internal state related to IMPORT input procedure. */
-static void
-import_source_destroy (struct case_source *source)
-{
-  struct import_pgm *pgm = source->aux;
-  import_pgm_free (pgm);
-}
-
-/* Reads all the cases from the data file into C and passes them
-   to WRITE_CASE one by one, passing WC_DATA. */
-static void
-import_source_read (struct case_source *source,
-                 struct ccase *c,
-                 write_case_func *write_case, write_case_data wc_data)
-{
-  struct import_pgm *pgm = source->aux;
-  int ok;
-
-  do
-    {
-      if (pgm->map == NULL)
-        ok = pfm_read_case (pgm->reader, c);
-      else
-        {
-          ok = pfm_read_case (pgm->reader, &pgm->bounce);
-          if (ok)
-            map_case (pgm->map, &pgm->bounce, c);
-        }
-
-      if (ok)
-        ok = write_case (wc_data);
-    }
-  while (ok);
-}
-
-const struct case_source_class import_source_class =
-  {
-    "IMPORT",
-    NULL,
-    import_source_read,
-    import_source_destroy,
-  };
 
 
 /* Case map.

@@ -687,7 +687,7 @@ regression_custom_export (struct cmd_regression *cmd)
     model_file = NULL;
   else
     {
-      model_file = fh_parse ();
+      model_file = fh_parse (FH_REF_FILE);
       if (model_file == NULL)
 	return 0;
     }

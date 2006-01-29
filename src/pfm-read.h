@@ -23,6 +23,7 @@
 /* Portable file reading. */
 
 #include <stdbool.h>
+#include <stdio.h>
 
 /* Information produced by pfm_read_dictionary() that doesn't fit into
    a dictionary struct. */
@@ -42,5 +43,6 @@ struct pfm_reader *pfm_open_reader (struct file_handle *,
                                     struct pfm_read_info *);
 bool pfm_read_case (struct pfm_reader *, struct ccase *);
 void pfm_close_reader (struct pfm_reader *);
+bool pfm_detect (FILE *);
 
 #endif /* pfm-read.h */

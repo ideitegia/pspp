@@ -34,6 +34,7 @@
 #include "strstr.h"
 #include "strtok_r.h"
 #include "vsnprintf.h"
+#include "xvasprintf.h"
 
 #ifndef HAVE_STRCHR
 #define strchr index
@@ -108,6 +109,7 @@ void str_copy_rpad (char *, size_t, const char *);
 void str_copy_trunc (char *, size_t, const char *);
 void str_copy_buf_trunc (char *, size_t, const char *, size_t);
 void str_uppercase (char *);
+void str_lowercase (char *);
 
 /* Fixed-length strings. */
 struct fixed_string 

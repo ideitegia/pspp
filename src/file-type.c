@@ -103,7 +103,7 @@ int
 cmd_file_type (void)
 {
   static struct file_type_pgm *fty;     /* FIXME: static? WTF? */
-  struct file_handle *fh = NULL;
+  struct file_handle *fh = fh_inline_file ();
 
   /* Initialize. */
   discard_variables ();
@@ -139,7 +139,7 @@ cmd_file_type (void)
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  fh = fh_parse ();
+	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
 	}
@@ -279,7 +279,7 @@ cmd_file_type (void)
   fty->reader = dfm_open_reader (fh);
   if (fty->reader == NULL)
     goto error;
-  default_handle = fh;
+  fh_set_default_handle (fh);
 
   create_col_var (&fty->record);
   if (fty->case_sbc.name[0])

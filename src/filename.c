@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -530,6 +530,18 @@ fn_basename (const char *filename)
   abort ();
 }
 #endif
+
+/* Returns the extension part of FILENAME as a malloc()'d string.
+   If FILENAME does not have an extension, returns an empty
+   string. */
+char *
+fn_extension (const char *filename) 
+{
+  const char *extension = strrchr (filename, '.');
+  if (extension == NULL)
+    extension = "";
+  return xstrdup (extension);
+}
 
 #if unix
 /* Returns the current working directory, as a malloc()'d string.

@@ -82,7 +82,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare data"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b $TEMPDIR/pspp.list - << foobar
-1.1 DATA LIST.  Reading 1 record from the command file.
+1.1 DATA LIST.  Reading 1 record from INLINE.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#
@@ -96,7 +96,7 @@ A B
 5 6 
 7 8 
 9 0 
-2.1 DATA LIST.  Reading 1 record from the command file.
+2.1 DATA LIST.  Reading 1 record from INLINE.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#

@@ -74,7 +74,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
 diff  -b  $TEMPDIR/pspp.list - << EOF 
-1.1 DATA LIST.  Reading free-form data from file $TEMPDIR/wiggle.txt.
+1.1 DATA LIST.  Reading free-form data from myhandle.
 +--------+------+
 |Variable|Format|
 #========#======#

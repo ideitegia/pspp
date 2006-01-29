@@ -76,7 +76,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from the command file.
+1.1 DATA LIST.  Reading free-form data from INLINE.
 +--------+------+
 |Variable|Format|
 #========#======#

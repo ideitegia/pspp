@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #include "getl.h"
 #include "error.h"
 #include "magic.h"
+#include "str.h"
 #include "var.h"
 #include "linked-list.h"
 #include "file-handle-def.h"
@@ -44,7 +45,7 @@
      name=string;
      lrecl=integer;
      tabwidth=integer "x>=0" "%s must be nonnegative";
-     mode=mode:!character/image.
+     mode=mode:!character/image/scratch.
 */
 /* (declarations) */
 /* (functions) */
@@ -65,9 +66,9 @@ cmd_file_handle (void)
   handle = fh_from_name (handle_name);
   if (handle != NULL)
     {
-      msg (SE, _("File handle %s already refers to file %s.  "
-                 "File handles cannot be redefined within a session."),
-	   handle_name, fh_get_filename(handle));
+      msg (SE, _("File handle %s is already defined.  "
+                 "Use CLOSE FILE HANDLE before redefining a file handle."),
+	   handle_name);
       return CMD_FAILURE;
     }
 
@@ -78,28 +79,24 @@ cmd_file_handle (void)
   if (!parse_file_handle (&cmd))
     return CMD_FAILURE;
 
-  if (token != '.')
-    {
-      lex_error (_("expecting end of command"));
-      goto lossage;
-    }
+  if (lex_end_of_command () != CMD_SUCCESS)
+    goto lossage;
 
-  if (cmd.s_name == NULL)
+  if (cmd.s_name == NULL && cmd.mode != FH_SCRATCH)
     {
-      msg (SE, _("The FILE HANDLE required subcommand NAME "
-		 "is not present."));
+      lex_sbc_missing ("NAME");
       goto lossage;
     }
 
   switch (cmd.mode)
     {
     case FH_CHARACTER:
-      properties.mode = MODE_TEXT;
+      properties.mode = FH_MODE_TEXT;
       if (cmd.sbc_tabwidth)
         properties.tab_width = cmd.n_tabwidth[0];
       break;
     case FH_IMAGE:
-      properties.mode = MODE_BINARY;
+      properties.mode = FH_MODE_BINARY;
       if (cmd.n_lrecl[0] == NOT_LONG)
         msg (SE, _("Fixed-length records were specified on /RECFORM, but "
                    "record length was not specified on /LRECL.  "
@@ -116,7 +113,10 @@ cmd_file_handle (void)
       assert (0);
     }
 
-  handle = fh_create (handle_name, cmd.s_name, &properties);
+  if (cmd.mode != FH_SCRATCH)
+    fh_create_file (handle_name, cmd.s_name, &properties);
+  else
+    fh_create_scratch (handle_name);
 
   free_file_handle (&cmd);
   return CMD_SUCCESS;
@@ -126,36 +126,85 @@ cmd_file_handle (void)
   return CMD_FAILURE;
 }
 
-/* Parses a file handle name, which may be a filename as a string or
-   a file handle name as an identifier.  Returns the file handle or
-   NULL on failure. */
-struct file_handle *
-fh_parse (void)
+int
+cmd_close_file_handle (void) 
 {
   struct file_handle *handle;
 
-  if (token != T_ID && token != T_STRING)
+  if (!lex_force_id ())
+    return CMD_FAILURE;
+  handle = fh_from_name (tokid);
+  if (handle == NULL)
+    return CMD_FAILURE;
+
+  fh_free (handle);
+
+  return CMD_SUCCESS;
+}
+
+/* Returns the name for REFERENT. */
+static const char *
+referent_name (enum fh_referent referent) 
+{
+  switch (referent) 
     {
-      lex_error (_("expecting a file name or handle name"));
+    case FH_REF_FILE:
+      return _("file");
+    case FH_REF_INLINE:
+      return _("inline file");
+    case FH_REF_SCRATCH:
+      return _("scratch file");
+    default:
+      abort ();
+    }
+}
+
+/* Parses a file handle name, which may be a filename as a string
+   or a file handle name as an identifier.  The allowed types of
+   file handle are restricted to those in REFERENT_MASK.  Returns
+   the file handle when successful, a null pointer on failure. */
+struct file_handle *
+fh_parse (enum fh_referent referent_mask)
+{
+  struct file_handle *handle;
+
+  if (lex_match_id ("INLINE")) 
+    handle = fh_inline_file ();
+  else 
+    {
+      if (token != T_ID && token != T_STRING)
+        {
+          lex_error (_("expecting a file name or handle name"));
+          return NULL;
+        }
+
+      handle = NULL;
+      if (token == T_ID) 
+        handle = fh_from_name (tokid);
+      if (handle == NULL) 
+        handle = fh_from_filename (ds_c_str (&tokstr)); 
+      if (handle == NULL)
+        {
+          if (token != T_ID || tokid[0] != '#' || get_syntax () != ENHANCED) 
+            {
+              char *filename = ds_c_str (&tokstr);
+              char *handle_name = xasprintf ("\"%s\"", filename);
+              handle = fh_create_file (handle_name, filename,
+                                       fh_default_properties ());
+              free (handle_name);
+            }
+          else
+            handle = fh_create_scratch (tokid);
+        }
+      lex_get ();
+    }
+
+  if (!(fh_get_referent (handle) & referent_mask)) 
+    {
+      msg (SE, _("Handle for %s not allowed here."),
+           referent_name (fh_get_referent (handle)));
       return NULL;
     }
-
-  /* Check for named handles first, then go by filename. */
-  handle = NULL;
-  if (token == T_ID) 
-    handle = fh_from_name (tokid);
-  if (handle == NULL)
-    handle = fh_from_filename (ds_c_str (&tokstr));
-  if (handle == NULL) 
-    {
-      char *filename = ds_c_str (&tokstr);
-      char *handle_name = xmalloc (strlen (filename) + 3);
-      sprintf (handle_name, "\"%s\"", filename);
-      handle = fh_create (handle_name, filename, fh_default_properties ());
-      free (handle_name);
-    }
-
-  lex_get ();
 
   return handle;
 }

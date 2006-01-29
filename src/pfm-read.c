@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
    Code for parsing floating-point numbers adapted from GNU C
    library.
@@ -48,6 +48,16 @@
 #define _(msgid) gettext (msgid)
 
 #include "debug-print.h"
+
+/* portable_to_local[PORTABLE] translates the given portable
+   character into the local character set. */
+static const char portable_to_local[256] =
+  {
+    "                                                                "
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ."
+    "<(+|&[]!$*);^-/|,%_>?`:$@'=\"      ~-   0123456789   -() {}\\     "
+    "                                                                "
+  };
 
 /* Portable file reader. */
 struct pfm_reader
@@ -149,7 +159,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct pfm_reader *volatile r = NULL;
 
   *dict = dict_create ();
-  if (!fh_open (fh, "portable file", "rs"))
+  if (!fh_open (fh, FH_REF_FILE, "portable file", "rs"))
     goto error;
 
   /* Create and initialize reader. */
@@ -353,16 +363,6 @@ read_pool_string (struct pfm_reader *r)
 static void
 read_header (struct pfm_reader *r)
 {
-  /* portable_to_local[PORTABLE] translates the given portable
-     character into the local character set. */
-  static const char portable_to_local[256] =
-    {
-      "                                                                "
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ."
-      "<(+|&[]!$*);^-/|,%_>?`:$@'=\"      ~-   0123456789   -() {}\\     "
-      "                                                                "
-    };
-
   char *trans;
   int i;
 
@@ -685,5 +685,40 @@ pfm_read_case (struct pfm_reader *r, struct ccase *c)
         }
     }
   
+  return true;
+}
+
+/* Returns true if FILE is an SPSS portable file,
+   false otherwise. */
+bool
+pfm_detect (FILE *file) 
+{
+  unsigned char header[464];
+  char trans[256];
+  int cooked_cnt, raw_cnt;
+  int i;
+
+  cooked_cnt = raw_cnt = 0;
+  while (cooked_cnt < sizeof header)
+    {
+      int c = getc (file);
+      if (c == EOF || raw_cnt++ > 512)
+        return false;
+      else if (c != '\n' && c != '\r') 
+        header[cooked_cnt++] = c;
+    }
+
+  memset (trans, 0, 256);
+  for (i = 64; i < 256; i++) 
+    {
+      unsigned char c = header[i + 200];
+      if (trans[c] == 0)
+        trans[c] = portable_to_local[i];
+    }
+
+  for (i = 0; i < 8; i++) 
+    if (trans[header[i + 456]] != "SPSSPORT"[i]) 
+      return false; 
+
   return true;
 }

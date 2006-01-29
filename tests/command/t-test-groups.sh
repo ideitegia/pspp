@@ -79,7 +79,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output"
 perl -pi -e s/^\s*\$//g $TEMPDIR/pspp.list
 diff  -b $TEMPDIR/pspp.list - <<EOF | perl -e 's/^\s*$//g'
-1.1 DATA LIST.  Reading free-form data from the command file.
+1.1 DATA LIST.  Reading free-form data from INLINE.
 +--------+------+
 |Variable|Format|
 #========#======#

@@ -53,4 +53,5 @@ struct cat_vals
 					   values stored.
 					 */
 };
+
 #endif

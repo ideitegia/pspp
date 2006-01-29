@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -143,15 +143,17 @@ sfm_close_reader (struct sfm_reader *r)
   if (r == NULL)
     return;
 
+  if (r->file)
+    {
+      if (fn_close (fh_get_filename (r->fh), r->file) == EOF)
+        msg (ME, _("%s: Closing system file: %s."),
+             fh_get_filename (r->fh), strerror (errno));
+      r->file = NULL;
+    }
+
   if (r->fh != NULL)
     fh_close (r->fh, "system file", "rs");
   
-  if ( r->file ) {
-    if (fn_close (fh_get_filename (r->fh), r->file) == EOF)
-      msg (ME, _("%s: Closing system file: %s."),
-	   fh_get_filename (r->fh), strerror (errno));
-    r->file = NULL;
-  }
   free (r->vars);
   free (r->buf);
   free (r);
@@ -206,7 +208,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct variable **var_by_idx = NULL;
 
   *dict = dict_create ();
-  if (!fh_open (fh, "system file", "rs"))
+  if (!fh_open (fh, FH_REF_FILE, "system file", "rs"))
     goto error;
 
   /* Create and initialize reader. */
@@ -1523,4 +1525,18 @@ fread_ok (struct sfm_reader *r, void *buffer, size_t byte_cnt)
              fh_get_filename (r->fh));
       return 0;
     }
+}
+
+/* Returns true if FILE is an SPSS system file,
+   false otherwise. */
+bool
+sfm_detect (FILE *file) 
+{
+  struct sysfile_header hdr;
+
+  if (fread (&hdr, sizeof hdr, 1, file) != 1)
+    return false;
+  if (strncmp ("$FL2", hdr.rec_type, 4))
+    return false;
+  return true; 
 }

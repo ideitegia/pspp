@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@
 #include "ctl-stack.h"
 #include "error.h"
 #include "expressions/public.h"
+#include "file-handle-def.h"
 #include "misc.h"
 #include "settings.h"
 #include "som.h"
@@ -75,9 +76,9 @@ struct case_source *vfm_source;
 /* The replacement active file, to which cases are written. */
 struct case_sink *vfm_sink;
 
-/* Nonzero if the case needs to have values deleted before being
-   stored, zero otherwise. */
-static int compaction_necessary;
+/* The compactor used to compact a compact, if necessary;
+   otherwise a null pointer. */
+static struct dict_compactor *compactor;
 
 /* Time at which vfm was last invoked. */
 static time_t last_vfm_invocation;
@@ -229,8 +230,9 @@ open_active_file (void)
     }
 
   /* Figure out compaction. */
-  compaction_necessary = (dict_get_next_value_idx (temp_dict)
-                          != dict_get_compacted_value_cnt (temp_dict));
+  compactor = (dict_needs_compaction (temp_dict)
+               ? dict_make_compactor (temp_dict)
+               : NULL);
 
   /* Prepare sink. */
   if (vfm_sink == NULL)
@@ -279,10 +281,10 @@ write_case (struct write_case_data *wc_data)
   /* Write case to replacement active file. */
   if (vfm_sink->class->write != NULL) 
     {
-      if (compaction_necessary) 
+      if (compactor != NULL) 
         {
-          dict_compact_case (temp_dict, &wc_data->sink_case,
-                             &wc_data->trns_case);
+          dict_compactor_compact (compactor, &wc_data->sink_case,
+                                  &wc_data->trns_case);
           vfm_sink->class->write (vfm_sink, &wc_data->sink_case);
         }
       else
@@ -425,8 +427,11 @@ close_active_file (void)
     }
 
   /* Finish compaction. */
-  if (compaction_necessary)
-    dict_compact_values (default_dict);
+  if (compactor != NULL) 
+    {
+      dict_compactor_destroy (compactor);
+      dict_compact_values (default_dict); 
+    }
     
   /* Free data source. */
   free_case_source (vfm_source);
@@ -944,7 +949,7 @@ void
 discard_variables (void)
 {
   dict_clear (default_dict);
-  default_handle = NULL;
+  fh_set_default_handle (NULL);
 
   n_lag = 0;
   

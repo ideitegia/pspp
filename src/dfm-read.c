@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-2004 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -53,16 +53,13 @@ enum dfm_reader_flags
 struct dfm_reader
   {
     struct file_handle *fh;     /* File handle. */
-    struct file_ext file;	/* Associated file. */
     struct file_locator where;  /* Current location in data file. */
     struct string line;         /* Current line. */
-    size_t pos;                 /* Offset in line of current character. */
     struct string scratch;      /* Extra line buffer. */
     enum dfm_reader_flags flags; /* Zero or more of DFM_*. */
+    struct file_ext file;	/* Associated file. */
+    size_t pos;                 /* Offset in line of current character. */
   };
-
-static int inline_open_cnt;
-static struct dfm_reader *inline_file;
 
 static void read_record (struct dfm_reader *r);
 
@@ -71,81 +68,62 @@ void
 dfm_close_reader (struct dfm_reader *r)
 {
   int still_open;
+  bool is_inline;
 
   if (r == NULL)
     return;
 
-  if (r->fh != NULL) 
-    still_open = fh_close (r->fh, "data file", "rs");
-  else
-    {
-      assert (inline_open_cnt > 0);
-      still_open = --inline_open_cnt;
-
-      if (!still_open) 
-        {
-          /* Skip any remaining data on the inline file. */
-          if (r->flags & DFM_SAW_BEGIN_DATA)
-            while ((r->flags & DFM_EOF) == 0)
-              read_record (r);
-          inline_file = NULL;
-        }
-    }
+  is_inline = r->fh == fh_inline_file ();
+  still_open = fh_close (r->fh, "data file", "rs");
   if (still_open)
     return;
 
-  if (r->fh != NULL && r->file.file)
+  if (!is_inline)
     {
       fn_close_ext (&r->file);
       free (r->file.filename);
       r->file.filename = NULL;
     }
+  else
+    {
+      /* Skip any remaining data on the inline file. */
+      if (r->flags & DFM_SAW_BEGIN_DATA)
+        while ((r->flags & DFM_EOF) == 0)
+          read_record (r);
+    }
+
   ds_destroy (&r->line);
   ds_destroy (&r->scratch);
   free (r);
 }
 
 /* Opens the file designated by file handle FH for reading as a
-   data file.  Providing a null pointer for FH designates the
+   data file.  Providing fh_inline_file() for FH designates the
    "inline file", that is, data included inline in the command
-   file between BEGIN FILE and END FILE.  Returns nonzero only if
-   successful. */
+   file between BEGIN FILE and END FILE.  Returns a reader if
+   successful, or a null pointer otherwise. */
 struct dfm_reader *
 dfm_open_reader (struct file_handle *fh)
 {
   struct dfm_reader *r;
   void **rp;
 
-  if (fh != NULL) 
-    {
-      rp = fh_open (fh, "data file", "rs");
-      if (rp == NULL)
-        return NULL;
-      if (*rp != NULL)
-        return *rp; 
-    }
-  else 
-    {
-      assert (inline_open_cnt >= 0);
-      if (inline_open_cnt++ > 0)
-        return inline_file;
-      rp = NULL;
-    }
+  rp = fh_open (fh, FH_REF_FILE | FH_REF_INLINE, "data file", "rs");
+  if (rp == NULL)
+    return NULL;
+  if (*rp != NULL)
+    return *rp; 
   
   r = xmalloc (sizeof *r);
   r->fh = fh;
-  if (fh != NULL) 
-    {
-      r->where.filename = fh_get_filename (fh);
-      r->where.line_number = 0; 
-    }
-  r->file.file = NULL;
   ds_init (&r->line, 64);
   ds_init (&r->scratch, 0);
   r->flags = DFM_ADVANCE;
-
-  if (fh != NULL)
+  if (fh != fh_inline_file ()) 
     {
+      r->where.filename = fh_get_filename (fh);
+      r->where.line_number = 0; 
+      r->file.file = NULL;
       r->file.filename = xstrdup (fh_get_filename (r->fh));
       r->file.mode = "rb";
       r->file.file = NULL;
@@ -154,24 +132,23 @@ dfm_open_reader (struct file_handle *fh)
       r->file.postopen = NULL;
       r->file.preclose = NULL;
       if (!fn_open_ext (&r->file))
-	{
-	  msg (ME, _("Could not open \"%s\" for reading "
-                     "as a data file: %s."),
+        {
+          msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
                fh_get_filename (r->fh), strerror (errno));
           err_cond_fail ();
           fh_close (fh,"data file", "rs");
           free (r);
           return NULL;
-	}
-      *rp = r;
+        }
     }
-  else
-    inline_file = r;
+  *rp = r;
 
   return r;
 }
 
-static int
+/* Reads a record from the inline file into R.
+   Returns true if successful, false on failure. */
+static bool
 read_inline_record (struct dfm_reader *r)
 {
   if ((r->flags & DFM_SAW_BEGIN_DATA) == 0)
@@ -208,7 +185,7 @@ read_inline_record (struct dfm_reader *r)
         {
           msg (SE, _("BEGIN DATA expected."));
           lex_preprocess_line ();
-          return 0;
+          return false;
         }
       getl_prompt = GETL_PRPT_DATA;
     }
@@ -223,25 +200,24 @@ read_inline_record (struct dfm_reader *r)
       err_failure ();
     }
 
-  if (r->fh != NULL)
-    r->where.line_number++;
-
   if (ds_length (&getl_buf) >= 8
       && !strncasecmp (ds_c_str (&getl_buf), "end data", 8))
     {
       lex_set_prog (ds_c_str (&getl_buf) + ds_length (&getl_buf));
-      return 0;
+      return false;
     }
 
   ds_replace (&r->line, ds_c_str (&getl_buf));
-  return 1;
+  return true;
 }
 
-static int
+/* Reads a record from a disk file into R.
+   Returns true if successful, false on failure. */
+static bool
 read_file_record (struct dfm_reader *r)
 {
-  assert (r->fh != NULL);
-  if (fh_get_mode (r->fh) == MODE_TEXT)
+  assert (r->fh != fh_inline_file ());
+  if (fh_get_mode (r->fh) == FH_MODE_TEXT)
     {
       ds_clear (&r->line);
       if (!ds_gets (&r->line, r->file.file)) 
@@ -252,10 +228,10 @@ read_file_record (struct dfm_reader *r)
                    fh_get_name (r->fh), strerror (errno));
               err_cond_fail ();
             }
-          return 0;
+          return false;
         }
     }
-  else if (fh_get_mode (r->fh) == MODE_BINARY)
+  else if (fh_get_mode (r->fh) == FH_MODE_BINARY)
     {
       size_t record_width = fh_get_record_width (r->fh);
       size_t amt;
@@ -274,10 +250,10 @@ read_file_record (struct dfm_reader *r)
             msg (ME, _("%s: Partial record at end of file."),
                  fh_get_name (r->fh));
           else
-            return 0;
+            return false;
 
           err_cond_fail ();
-          return 0;
+          return false;
         }
     }
   else
@@ -285,7 +261,7 @@ read_file_record (struct dfm_reader *r)
 
   r->where.line_number++;
 
-  return 1;
+  return true;
 }
 
 /* Reads a record from R, setting the current position to the
@@ -294,7 +270,13 @@ read_file_record (struct dfm_reader *r)
 static void
 read_record (struct dfm_reader *r)
 {
-  int success = r->fh != NULL ? read_file_record (r) : read_inline_record (r);
+  bool success;
+
+  if (fh_get_referent (r->fh) == FH_REF_FILE)
+    success = read_file_record (r);
+  else
+    success = read_inline_record (r);
+  
   if (success)
     r->pos = 0;
   else
@@ -313,7 +295,7 @@ dfm_eof (struct dfm_reader *r)
         read_record (r);
       else
         {
-          if (r->fh != NULL)
+          if (r->fh != fh_inline_file ())
             msg (SE, _("Attempt to read beyond end-of-file on file %s."),
                  fh_get_name (r->fh));
           else
@@ -359,15 +341,15 @@ dfm_expand_tabs (struct dfm_reader *r)
     return;
   r->flags |= DFM_TABS_EXPANDED;
 
-  if (r->fh != NULL
-      && (fh_get_mode (r->fh) == MODE_BINARY
+  if (r->fh != fh_inline_file ()
+      && (fh_get_mode (r->fh) == FH_MODE_BINARY
           || fh_get_tab_width (r->fh) == 0
           || memchr (ds_c_str (&r->line), '\t', ds_length (&r->line)) == NULL))
     return;
 
   /* Expand tabs from r->line into r->scratch, and figure out
      new value for r->pos. */
-  tab_width = r->fh != NULL ? fh_get_tab_width (r->fh) : 8;
+  tab_width = fh_get_tab_width (r->fh);
   ds_clear (&r->scratch);
   new_pos = 0;
   for (ofs = 0; ofs < ds_length (&r->line); ofs++)
@@ -439,7 +421,7 @@ dfm_column_start (struct dfm_reader *r)
 void
 dfm_push (struct dfm_reader *r)
 {
-  if (r->fh != NULL)
+  if (r->fh != fh_inline_file ())
     err_push_file_locator (&r->where);
 }
 
@@ -447,7 +429,7 @@ dfm_push (struct dfm_reader *r)
 void
 dfm_pop (struct dfm_reader *r)
 {
-  if (r->fh != NULL)
+  if (r->fh != fh_inline_file ())
     err_pop_file_locator (&r->where);
 }
 
@@ -459,10 +441,7 @@ cmd_begin_data (void)
 {
   struct dfm_reader *r;
 
-  /* FIXME: figure out the *exact* conditions, not these really
-     lenient conditions. */
-  if (vfm_source == NULL
-      || case_source_is_class (vfm_source, &storage_source_class))
+  if (!fh_is_open (fh_inline_file ()))
     {
       msg (SE, _("This command is not valid here since the current "
                  "input program does not access the inline file."));
@@ -471,7 +450,7 @@ cmd_begin_data (void)
     }
 
   /* Open inline file. */
-  r = dfm_open_reader (NULL);
+  r = dfm_open_reader (fh_inline_file ());
   r->flags |= DFM_SAW_BEGIN_DATA;
 
   /* Input procedure reads from inline file. */

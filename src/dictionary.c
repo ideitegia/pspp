@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "cat.h"
+#include "cat-routines.h"
 #include "error.h"
 #include "hash.h"
 #include "misc.h"
@@ -406,8 +407,9 @@ dict_lookup_var_assert (const struct dictionary *d, const char *name)
   return v;
 }
 
-/* Returns nonzero if variable V is in dictionary D. */
-int
+/* Returns true if variable V is in dictionary D,
+   false otherwise. */
+bool
 dict_contains_var (const struct dictionary *d, const struct variable *v)
 {
   assert (d != NULL);
@@ -593,18 +595,18 @@ dict_rename_var (struct dictionary *d, struct variable *v,
 
 /* Renames COUNT variables specified in VARS to the names given
    in NEW_NAMES within dictionary D.  If the renaming would
-   result in a duplicate variable name, returns zero and stores a
+   result in a duplicate variable name, returns false and stores a
    name that would be duplicated into *ERR_NAME (if ERR_NAME is
-   non-null).  Otherwise, the renaming is successful, and nonzero
+   non-null).  Otherwise, the renaming is successful, and true
    is returned. */
-int
+bool
 dict_rename_vars (struct dictionary *d,
                   struct variable **vars, char **new_names,
                   size_t count, char **err_name) 
 {
   char **old_names;
   size_t i;
-  int success = 1;
+  bool success = true;
 
   assert (d != NULL);
   assert (count == 0 || vars != NULL);
@@ -649,7 +651,7 @@ dict_rename_vars (struct dictionary *d,
               hsh_force_insert (d->name_tab, vars[i]);
             }
 
-          success = 0;
+          success = false;
           goto done;
         }
     }
@@ -807,30 +809,6 @@ dict_compact_values (struct dictionary *d)
     }
 }
 
-/* Copies values from SRC, which represents a case arranged
-   according to dictionary D, to DST, which represents a case
-   arranged according to the dictionary that will be produced by
-   dict_compact_values(D). */
-void
-dict_compact_case (const struct dictionary *d,
-                   struct ccase *dst, const struct ccase *src)
-{
-  size_t i;
-  size_t value_idx;
-
-  value_idx = 0;
-  for (i = 0; i < d->var_cnt; i++) 
-    {
-      struct variable *v = d->var[i];
-
-      if (dict_class_from_id (v->name) != DC_SCRATCH)
-        {
-          case_copy (dst, value_idx, src, v->fv, v->nv);
-          value_idx += v->nv;
-        }
-    }
-}
-
 /* Returns the number of values that would be used by a case if
    dict_compact_values() were called. */
 size_t
@@ -872,6 +850,112 @@ dict_get_compacted_idx_to_fv (const struct dictionary *d)
         idx_to_fv[i] = -1;
     }
   return idx_to_fv;
+}
+
+/* Returns true if a case for dictionary D would be smaller after
+   compaction, false otherwise.  Compacting a case eliminates
+   "holes" between values and after the last value.  Holes are
+   created by deleting variables (or by scratch variables).
+
+   The return value may differ from whether compacting a case
+   from dictionary D would *change* the case: compaction could
+   rearrange values even if it didn't reduce space
+   requirements. */
+bool
+dict_needs_compaction (const struct dictionary *d) 
+{
+  return dict_get_compacted_value_cnt (d) < dict_get_next_value_idx (d);
+}
+
+/* How to copy a contiguous range of values between cases. */
+struct copy_map
+  {
+    size_t src_idx;             /* Starting value index in source case. */
+    size_t dst_idx;             /* Starting value index in target case. */
+    size_t cnt;                 /* Number of values. */
+  };
+
+/* How to compact a case. */
+struct dict_compactor 
+  {
+    struct copy_map *maps;      /* Array of mappings. */
+    size_t map_cnt;             /* Number of mappings. */
+  };
+
+/* Creates and returns a dict_compactor that can be used to
+   compact cases for dictionary D.
+
+   Compacting a case eliminates "holes" between values and after
+   the last value.  Holes are created by deleting variables (or
+   by scratch variables). */
+struct dict_compactor *
+dict_make_compactor (const struct dictionary *d)
+{
+  struct dict_compactor *compactor;
+  struct copy_map *map;
+  size_t map_allocated;
+  size_t value_idx;
+  size_t i;
+
+  compactor = xmalloc (sizeof *compactor);
+  compactor->maps = NULL;
+  compactor->map_cnt = 0;
+  map_allocated = 0;
+
+  value_idx = 0;
+  map = NULL;
+  for (i = 0; i < d->var_cnt; i++) 
+    {
+      struct variable *v = d->var[i];
+
+      if (dict_class_from_id (v->name) == DC_SCRATCH)
+        continue;
+      if (map != NULL && map->src_idx + map->cnt == v->fv) 
+        map->cnt += v->nv;
+      else 
+        {
+          if (compactor->map_cnt == map_allocated)
+            compactor->maps = x2nrealloc (compactor->maps, &map_allocated,
+                                          sizeof *compactor->maps);
+          map = &compactor->maps[compactor->map_cnt++];
+          map->src_idx = v->fv;
+          map->dst_idx = value_idx;
+          map->cnt = v->nv;
+        }
+      value_idx += v->nv;
+    }
+
+  return compactor;
+}
+
+/* Compacts SRC by copying it to DST according to the scheme in
+   COMPACTOR.
+
+   Compacting a case eliminates "holes" between values and after
+   the last value.  Holes are created by deleting variables (or
+   by scratch variables). */
+void
+dict_compactor_compact (const struct dict_compactor *compactor,
+                        struct ccase *dst, const struct ccase *src) 
+{
+  size_t i;
+
+  for (i = 0; i < compactor->map_cnt; i++) 
+    {
+      const struct copy_map *map = &compactor->maps[i];
+      case_copy (dst, map->dst_idx, src, map->src_idx, map->cnt);
+    }
+}
+
+/* Destroys COMPACTOR. */
+void
+dict_compactor_destroy (struct dict_compactor *compactor) 
+{
+  if (compactor != NULL) 
+    {
+      free (compactor->maps);
+      free (compactor);
+    }
 }
 
 /* Returns the SPLIT FILE vars (see cmd_split_file()).  Call
@@ -963,9 +1047,9 @@ dict_set_documents (struct dictionary *d, const char *documents)
 }
 
 /* Creates in D a vector named NAME that contains CNT variables
-   VAR (see cmd_vector()).  Returns nonzero if successful, or
-   zero if a vector named NAME already exists in D. */
-int
+   VAR (see cmd_vector()).  Returns true if successful, or
+   false if a vector named NAME already exists in D. */
+bool
 dict_create_vector (struct dictionary *d,
                     const char *name,
                     struct variable **var, size_t cnt) 
@@ -980,7 +1064,7 @@ dict_create_vector (struct dictionary *d,
   assert (cnt > 0);
   
   if (dict_lookup_vector (d, name) != NULL)
-    return 0;
+    return false;
 
   d->vector = xnrealloc (d->vector, d->vector_cnt + 1, sizeof *d->vector);
   vector = d->vector[d->vector_cnt] = xmalloc (sizeof *vector);
@@ -994,7 +1078,7 @@ dict_create_vector (struct dictionary *d,
     }
   vector->cnt = cnt;
   
-  return 1;
+  return true;
 }
 
 /* Returns the vector in D with index IDX, which must be less

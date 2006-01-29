@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,15 +17,17 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !file_handle_h
-#define file_handle_h 1
-
-/* File handles. */
+#ifndef SCRATCH_READER_H
+#define SCRATCH_READER_H 1
 
 #include <stdbool.h>
-#include <stddef.h>
-#include "file-handle-def.h"
 
-struct file_handle *fh_parse (enum fh_referent);
+struct dictionary;
+struct file_handle;
+struct ccase;
+struct scratch_reader *scratch_reader_open (struct file_handle *,
+                                            struct dictionary **);
+bool scratch_reader_read_case (struct scratch_reader *, struct ccase *);
+void scratch_reader_close (struct scratch_reader *);
 
-#endif /* !file_handle.h */
+#endif /* scratch-reader.h */

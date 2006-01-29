@@ -46,7 +46,7 @@ struct pfm_writer *pfm_open_writer (struct file_handle *, struct dictionary *,
                                     struct pfm_write_options);
 struct pfm_write_options pfm_writer_default_options (void);
 
-int pfm_write_case (struct pfm_writer *, struct ccase *);
+int pfm_write_case (struct pfm_writer *, const struct ccase *);
 void pfm_close_writer (struct pfm_writer *);
 
 #endif /* pfm-write.h */

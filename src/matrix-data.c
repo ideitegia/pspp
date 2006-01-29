@@ -172,7 +172,7 @@ cmd_matrix_data (void)
 {
   struct pool *pool;
   struct matrix_data_pgm *mx;
-  struct file_handle *fh = NULL;
+  struct file_handle *fh = fh_inline_file ();
     
   unsigned seen = 0;
   
@@ -258,7 +258,7 @@ cmd_matrix_data (void)
       else if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  fh = fh_parse ();
+	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto lossage;
 	}

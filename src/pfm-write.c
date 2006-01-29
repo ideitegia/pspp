@@ -111,7 +111,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     goto open_error;
 
   /* Open file handle. */
-  if (!fh_open (fh, "portable file", "we"))
+  if (!fh_open (fh, FH_REF_FILE, "portable file", "we"))
     goto error;
 
   /* Initialize data structures. */
@@ -420,7 +420,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 /* Writes case ELEM to the portable file represented by H.  Returns
    success. */
 int 
-pfm_write_case (struct pfm_writer *w, struct ccase *c)
+pfm_write_case (struct pfm_writer *w, const struct ccase *c)
 {
   int i;
   
@@ -451,8 +451,6 @@ pfm_close_writer (struct pfm_writer *w)
   if (w == NULL)
     return;
 
-  fh_close (w->fh, "portable file", "we");
-  
   if (w->file != NULL)
     {
       char buf[80];
@@ -469,6 +467,8 @@ pfm_close_writer (struct pfm_writer *w)
              fh_get_filename (w->fh), strerror (errno));
     }
 
+  fh_close (w->fh, "portable file", "we");
+  
   free (w->vars);
   free (w);
 }

@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -269,6 +269,14 @@ str_uppercase (char *s)
 {
   for (; *s != '\0'; s++)
     *s = toupper ((unsigned char) *s);
+}
+
+/* Converts each character in S to lowercase. */
+void
+str_lowercase (char *s) 
+{
+  for (; *s != '\0'; s++)
+    *s = tolower ((unsigned char) *s);
 }
 
 /* Initializes ST with initial contents S. */

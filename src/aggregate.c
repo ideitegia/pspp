@@ -21,6 +21,7 @@
 #include "error.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "any-writer.h"
 #include "case.h"
 #include "casefile.h"
 #include "command.h"
@@ -121,7 +122,7 @@ enum missing_treatment
 struct agr_proc 
   {
     /* We have either an output file or a sink. */
-    struct sfm_writer *writer;          /* Output file, or null if none. */
+    struct any_writer *writer;          /* Output file, or null if none. */
     struct case_sink *sink;             /* Sink, or null if none. */
 
     /* Break variables. */
@@ -181,7 +182,7 @@ cmd_aggregate (void)
   lex_match ('=');
   if (!lex_match ('*'))
     {
-      out_file = fh_parse ();
+      out_file = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
       if (out_file == NULL)
         goto error;
     }
@@ -278,8 +279,7 @@ cmd_aggregate (void)
     }
   else
     {
-      agr.writer = sfm_open_writer (out_file, agr.dict,
-                                    sfm_writer_default_options ());
+      agr.writer = any_writer_open (out_file, agr.dict);
       if (agr.writer == NULL)
         goto error;
       
@@ -297,7 +297,7 @@ cmd_aggregate (void)
           while (casereader_read_xfer (reader, &c)) 
             {
               if (aggregate_single_case (&agr, &c, &agr.agr_case)) 
-                sfm_write_case (agr.writer, &agr.agr_case);
+                any_writer_write (agr.writer, &agr.agr_case);
               case_destroy (&c);
             }
           casereader_destroy (reader);
@@ -312,7 +312,7 @@ cmd_aggregate (void)
       if (agr.case_cnt > 0) 
         {
           dump_aggregate_info (&agr, &agr.agr_case);
-          sfm_write_case (agr.writer, &agr.agr_case);
+          any_writer_write (agr.writer, &agr.agr_case);
         }
     }
   
@@ -652,7 +652,7 @@ agr_destroy (struct agr_proc *agr)
 {
   struct agr_var *iter, *next;
 
-  sfm_close_writer (agr->writer);
+  any_writer_close (agr->writer);
   if (agr->sort != NULL)
     sort_destroy_criteria (agr->sort);
   free (agr->break_vars);
@@ -1075,7 +1075,7 @@ presorted_agr_to_sysfile (struct ccase *c, void *agr_)
   struct agr_proc *agr = agr_;
 
   if (aggregate_single_case (agr, c, &agr->agr_case)) 
-    sfm_write_case (agr->writer, &agr->agr_case);
+    any_writer_write (agr->writer, &agr->agr_case);
 
   return 1;
 }

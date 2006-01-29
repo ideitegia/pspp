@@ -156,7 +156,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     goto open_error;
 
   /* Open file handle. */
-  if (!fh_open (fh, "system file", "we"))
+  if (!fh_open (fh, FH_REF_FILE, "system file", "we"))
     goto error;
 
   /* Create and initialize writer. */
@@ -904,8 +904,6 @@ sfm_close_writer (struct sfm_writer *w)
   if (w == NULL)
     return;
 
-  fh_close (w->fh, "system file", "we");
-  
   if (w->file != NULL) 
     {
       /* Flush buffer. */
@@ -932,6 +930,8 @@ sfm_close_writer (struct sfm_writer *w)
              fh_get_filename (w->fh), strerror (errno));
     }
 
+  fh_close (w->fh, "system file", "we");
+  
   free (w->buf);
   free (w->vars);
   free (w);

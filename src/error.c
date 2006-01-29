@@ -31,6 +31,7 @@
 #include "main.h"
 #include "output.h"
 #include "progname.h"
+#include "readln.h"
 #include "settings.h"
 #include "str.h"
 #include "var.h"

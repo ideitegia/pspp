@@ -8,26 +8,26 @@
 
 Data are the focus of the PSPP language.  
 Each datum  belongs to a @dfn{case} (also called an @dfn{observation}).
-Each case represents an individual or `experimental unit'.
+Each case represents an individual or ``experimental unit''.
 For example, in the results of a survey, the names of the respondents,
-their sex, age @i{etc}. and their responses are all data and the data
+their sex, age, etc.@: and their responses are all data and the data
 pertaining to single respondent is a case.
 This chapter examines
 the PSPP commands for defining variables and reading and writing data.
 
-@quotation
-@strong{Please note:} Data is not actually read until a procedure is
-executed.  These commands tell PSPP how to read data, but they
-do not @emph{cause} PSPP to read data.
+@quotation Note
+These commands tell PSPP how to read data, but the data will not
+actually be read until a procedure is executed.
 @end quotation
 
 @menu
 * BEGIN DATA::                  Embed data within a syntax file.
 * CLEAR TRANSFORMATIONS::       Clear pending transformations.
+* CLOSE FILE HANDLE::           Close a file handle.
 * DATA LIST::                   Fundamental data reading command.
 * END CASE::                    Output the current case.
 * END FILE::                    Terminate the current input program.
-* FILE HANDLE::                 Support for fixed-length records.
+* FILE HANDLE::                 Support for special file formats.
 * INPUT PROGRAM::               Support for complex input programs.
 * LIST::                        List cases in the active file.
 * MATRIX DATA::                 Read matrices in text format.
@@ -40,7 +40,7 @@ do not @emph{cause} PSPP to read data.
 * WRITE::                       Display values in write formats.
 @end menu
 
-@node BEGIN DATA, CLEAR TRANSFORMATIONS, Data Input and Output, Data Input and Output
+@node BEGIN DATA
 @section BEGIN DATA
 @vindex BEGIN DATA
 @vindex END DATA
@@ -65,7 +65,7 @@ white space and exactly one space between the words @code{END} and
 END DATA.
 @end example
 
-@node CLEAR TRANSFORMATIONS, DATA LIST, BEGIN DATA, Data Input and Output
+@node CLEAR TRANSFORMATIONS
 @section CLEAR TRANSFORMATIONS
 @vindex CLEAR TRANSFORMATIONS
 
@@ -77,7 +77,31 @@ CLEAR TRANSFORMATIONS.
 transformations.  It does not cancel the current input program.  It is
 valid only when PSPP is interactive, not in syntax files.
 
-@node DATA LIST, END CASE, CLEAR TRANSFORMATIONS, Data Input and Output
+@node CLOSE FILE HANDLE
+@section CLOSE FILE HANDLE
+
+@display
+CLOSE FILE HANDLE handle_name.
+@end display
+
+@cmd{CLOSE FILE HANDLE} disassociates the name of a file handle with a
+given file.  The only specification is the name of the handle to close.
+Afterward
+@cmd{FILE HANDLE}.
+
+If the file handle name refers to a scratch file, then the storage
+associated with the scratch file in memory or on disk will be freed.
+If the scratch file is in use, e.g.@: it has been specified on a
+@cmd{GET} command whose execution has not completed, then freeing is
+delayed until it is no longer in use.
+
+The file named INLINE, which represents data entered between @cmd{BEGIN
+DATA} and @cmd{END DATA}, cannot be closed.  Attempts to close it with
+@cmd{CLOSE FILE HANDLE} have no effect.
+
+@cmd{CLOSE FILE HANDLE} is a PSPP extension.
+
+@node DATA LIST
 @section DATA LIST
 @vindex DATA LIST
 @cindex reading data from a file
@@ -104,7 +128,7 @@ Each form of @cmd{DATA LIST} is described in detail below.
 * DATA LIST LIST::              Each case must be on a single line.
 @end menu
 
-@node DATA LIST FIXED, DATA LIST FREE, DATA LIST, DATA LIST
+@node DATA LIST FIXED
 @subsection DATA LIST FIXED
 @vindex DATA LIST FIXED
 @cindex reading fixed-format data
@@ -131,7 +155,7 @@ keyword FIXED is optional.
 
 The FILE subcommand must be used if input is to be taken from an
 external file.  It may be used to specify a filename as a string or a
-file handle (@pxref{FILE HANDLE}).  If the FILE subcommand is not used,
+file handle (@pxref{File Handles}).  If the FILE subcommand is not used,
 then input is assumed to be specified within the command file using
 @cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
 
@@ -229,7 +253,7 @@ applies to later FORTRAN and columnar specifiers.
 * DATA LIST FIXED Examples::    Examples of DATA LIST FIXED.
 @end menu
 
-@node DATA LIST FIXED Examples,  , DATA LIST FIXED, DATA LIST FIXED
+@node DATA LIST FIXED Examples
 @unnumberedsubsubsec Examples
 
 @enumerate
@@ -315,7 +339,7 @@ This example shows keywords abbreviated to their first 3 letters.
 
 @end enumerate
 
-@node DATA LIST FREE, DATA LIST LIST, DATA LIST FIXED, DATA LIST
+@node DATA LIST FREE
 @subsection DATA LIST FREE
 @vindex DATA LIST FREE
 
@@ -367,7 +391,7 @@ preceding it are to have input/output format @samp{F8.0}.
 Specified field widths are ignored on input, although all normal limits
 on field width apply, but they are honored on output.
 
-@node DATA LIST LIST,  , DATA LIST FREE, DATA LIST
+@node DATA LIST LIST
 @subsection DATA LIST LIST
 @vindex DATA LIST LIST
 
@@ -390,7 +414,7 @@ that each input line is expected to correspond to exactly one input
 record.  If more or fewer fields are found on an input line than
 expected, an appropriate diagnostic is issued.
 
-@node END CASE, END FILE, DATA LIST, Data Input and Output
+@node END CASE
 @section END CASE
 @vindex END CASE
 
@@ -401,7 +425,7 @@ END CASE.
 @cmd{END CASE} is used only within @cmd{INPUT PROGRAM} to output the
 current case.  @xref{INPUT PROGRAM}, for details.
 
-@node END FILE, FILE HANDLE, END CASE, Data Input and Output
+@node END FILE
 @section END FILE
 @vindex END FILE
 
@@ -412,50 +436,67 @@ END FILE.
 @cmd{END FILE} is used only within @cmd{INPUT PROGRAM} to terminate
 the current input program.  @xref{INPUT PROGRAM}.
 
-@node FILE HANDLE, INPUT PROGRAM, END FILE, Data Input and Output
+@node FILE HANDLE
 @section FILE HANDLE
 @vindex FILE HANDLE
 
 @display
-FILE HANDLE handle_name
-        /NAME='filename'
-        /MODE=@{CHARACTER,IMAGE@}
-        /LRECL=rec_len
-        /TABWIDTH=tab_width
+For text files:
+        FILE HANDLE handle_name
+                /NAME='filename'
+                [/MODE=CHARACTER]
+                /TABWIDTH=tab_width
+
+For binary files with fixed-length records:
+        FILE HANDLE handle_name
+                /NAME='filename'
+                /MODE=IMAGE
+                [/LRECL=rec_len]
+
+To explicitly declare a scratch handle:
+        FILE HANDLE handle_name
+                /MODE=SCRATCH
 @end display
 
 Use @cmd{FILE HANDLE} to associate a file handle name with a file and
 its attributes, so that later commands can refer to the file by its
-handle name.  Because names of text files can be specified directly on
-commands that access files, @cmd{FILE HANDLE} is only needed when a
+handle name.  Names of text files can be specified directly on
+commands that access files, so that @cmd{FILE HANDLE} is only needed when a
 file is not an ordinary file containing lines of text.  However,
 @cmd{FILE HANDLE} may be used even for text files, and it may be
 easier to specify a file's name once and later refer to it by an
 abstract handle.
 
-Specify the file handle name as an identifier.  Any given identifier may
-only appear once in a PSPP run.  File handles may not be reassigned to a
-different file.  The file handle name must immediately follow the @cmd{FILE
-HANDLE} command name.
-
-The NAME subcommand specifies the name of the file associated with the
-handle.  It is the only required subcommand.
+Specify the file handle name as the identifier immediately following the
+@cmd{FILE HANDLE} command name.  The identifier INLINE is reserved for
+representing data embedded in the syntax file (@pxref{BEGIN DATA}) The
+file handle name must not already have been used in a previous
+invocation of @cmd{FILE HANDLE}, unless it has been closed by an
+intervening command (@pxref{CLOSE FILE HANDLE}).
 
 MODE specifies a file mode.  In CHARACTER mode, the default, the data
-file is opened in ANSI C text mode, so that local end of line
-conventions are followed, and each text line is read as one record.
+file is read as a text file, according to the local system's 
+conventions, and each text line is read as one record.
 In CHARACTER mode, most input programs will expand tabs to spaces
 (@cmd{DATA LIST FREE} with explicitly specified delimiters is an
 exception).  By default, each tab is 4 characters wide, but an
 alternate width may be specified on TABWIDTH.  A tab width of 0
 suppresses tab expansion entirely.
 
-By contrast, in IMAGE mode, the data file is opened in ANSI C binary
-mode and records are a fixed length.  In IMAGE mode, LRECL specifies
-the record length in bytes, with a default of 1024.  Tab characters
-are never expanded to spaces in binary mode.
+In IMAGE mode, the data file is opened in ANSI C binary mode and records
+are fixed in length.  In IMAGE mode, LRECL specifies the record length in
+bytes, with a default of 1024.  Tab characters are never expanded to
+spaces in binary mode.
 
-@node INPUT PROGRAM, LIST, FILE HANDLE, Data Input and Output
+The NAME subcommand specifies the name of the file associated with the
+handle.  It is required in CHARACTER and IMAGE modes.
+
+The SCRATCH mode designates the file handle as a scratch file handle.
+Its use is usually unnecessary because file handle names that begin with
+@samp{#} are assumed to refer to scratch files.  @pxref{File Handles},
+for more information.
+
+@node INPUT PROGRAM
 @section INPUT PROGRAM
 @vindex INPUT PROGRAM
 
@@ -606,7 +647,7 @@ LIST/FORMAT=NUMBERED.
 The above example causes an active file to be created consisting of 50
 random variates between 0 and 10.
 
-@node LIST, MATRIX DATA, INPUT PROGRAM, Data Input and Output
+@node LIST
 @section LIST
 @vindex LIST
 
@@ -647,7 +688,7 @@ cannot fit on a single line, then a multi-line format will be used.
 
 @cmd{LIST} is a procedure.  It causes the data to be read.
 
-@node MATRIX DATA, NEW FILE, LIST, Data Input and Output
+@node MATRIX DATA
 @section MATRIX DATA
 @vindex MATRIX DATA
 
@@ -674,7 +715,7 @@ the matrices.  You may not specify a variable named @code{VARNAME_}.  You
 should specify VARIABLES first.
 
 Specify the file to read on FILE, either as a file name string or a file
-handle (@pxref{FILE HANDLE}).  If FILE is not specified then matrix data
+handle (@pxref{File Handles}).  If FILE is not specified then matrix data
 must immediately follow @cmd{MATRIX DATA} with a @cmd{BEGIN
 DATA}@dots{}@cmd{END DATA}
 construct (@pxref{BEGIN DATA}).
@@ -749,7 +790,7 @@ Right now @cmd{MATRIX DATA} isn't too useful due to a lack of procedures
 accepting or producing related data, so these semantics aren't
 documented.  Later, they'll be described here in detail.
 
-@node NEW FILE, PRINT, MATRIX DATA, Data Input and Output
+@node NEW FILE
 @section NEW FILE
 @vindex NEW FILE
 
@@ -759,7 +800,7 @@ NEW FILE.
 
 @cmd{NEW FILE} command clears the current active file.
 
-@node PRINT, PRINT EJECT, NEW FILE, Data Input and Output
+@node PRINT
 @section PRINT
 @vindex PRINT
 
@@ -785,8 +826,8 @@ invoking a procedure (@pxref{EXECUTE}).
 All @cmd{PRINT} subcommands are optional.
 
 The OUTFILE subcommand specifies the file to receive the output.  The
-file may be a file name as a string or a file handle (@pxref{FILE
-HANDLE}).  If OUTFILE is not present then output will be sent to PSPP's
+file may be a file name as a string or a file handle (@pxref{File
+Handles}).  If OUTFILE is not present then output will be sent to PSPP's
 output listing file.
 
 The RECORDS subcommand specifies the number of lines to be output.  The
@@ -822,7 +863,7 @@ line, then text is written at that point on the line, the line will be
 truncated to that length, although additional text being added will
 again extend the line to that length.
 
-@node PRINT EJECT, PRINT SPACE, PRINT, Data Input and Output
+@node PRINT EJECT
 @section PRINT EJECT
 @vindex PRINT EJECT
 
@@ -845,7 +886,7 @@ written, the current page in the listing file is ejected.
 
 @xref{PRINT}, for more information on syntax and usage.
 
-@node PRINT SPACE, REREAD, PRINT EJECT, Data Input and Output
+@node PRINT SPACE
 @section PRINT SPACE
 @vindex PRINT SPACE
 
@@ -856,15 +897,15 @@ PRINT SPACE OUTFILE='filename' n_lines.
 @cmd{PRINT SPACE} prints one or more blank lines to an output file.
 
 The OUTFILE subcommand is optional.  It may be used to direct output to
-a file specified by file name as a string or file handle (@pxref{FILE
-HANDLE}).  If OUTFILE is not specified then output will be directed to
+a file specified by file name as a string or file handle (@pxref{File
+Handles}).  If OUTFILE is not specified then output will be directed to
 the listing file.
 
 n_lines is also optional.  If present, it is an expression
 (@pxref{Expressions}) specifying the number of blank lines to be
 printed.  The expression must evaluate to a nonnegative value.
 
-@node REREAD, REPEATING DATA, PRINT SPACE, Data Input and Output
+@node REREAD
 @section REREAD
 @vindex REREAD
 
@@ -878,8 +919,8 @@ already processed by @cmd{DATA LIST} or another input command to be re-read
 for further processing.
 
 The FILE subcommand, which is optional, is used to specify the file to
-have its line re-read.  The file must be specified in the form of a file
-handle (@pxref{FILE HANDLE}).  If FILE is not specified then the last
+have its line re-read.  The file must be specified as the name of a file
+handle (@pxref{File Handles}).  If FILE is not specified then the last
 file specified on @cmd{DATA LIST} will be assumed (last file specified
 lexically, not in terms of flow-of-control).
 
@@ -892,7 +933,7 @@ are numbered from 1 at the left margin.
 Issuing @code{REREAD} multiple times will not back up in the data
 file.  Instead, it will re-read the same line multiple times.
 
-@node REPEATING DATA, WRITE, REREAD, Data Input and Output
+@node REPEATING DATA
 @section REPEATING DATA
 @vindex REPEATING DATA
 
@@ -941,7 +982,7 @@ FIXED} (@pxref{DATA LIST FIXED}).
 All other subcommands are optional.
 
 FILE specifies the file to read, either a file name as a string or a
-file handle (@pxref{FILE HANDLE}).  If FILE is not present then the
+file handle (@pxref{File Handles}).  If FILE is not present then the
 default is the last file handle used on @cmd{DATA LIST} (lexically, not in
 terms of flow of control).
 
@@ -974,7 +1015,7 @@ have been declared with @cmd{NUMERIC} or another command.
 structure (@pxref{LOOP}).  Use @cmd{DATA LIST} before, not after,
 @cmd{REPEATING DATA}.
 
-@node WRITE,  , REPEATING DATA, Data Input and Output
+@node WRITE
 @section WRITE
 @vindex WRITE
 

@@ -129,10 +129,6 @@ extern struct dictionary *default_dict;
 
 /* Transformation state. */
 
-/* Default file handle for DATA LIST, REREAD, REPEATING DATA
-   commands. */
-extern struct file_handle *default_handle;
-
 /* PROCESS IF expression. */
 extern struct expression *process_if_expr;
 

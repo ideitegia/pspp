@@ -19,13 +19,13 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include "any-reader.h"
 #include "command.h"
 #include "dictionary.h"
 #include "error.h"
 #include "file-handle.h"
 #include "hash.h"
 #include "lexer.h"
-#include "sfm-read.h"
 #include "str.h"
 #include "value-labels.h"
 #include "var.h"
@@ -40,7 +40,7 @@ int
 cmd_apply_dictionary (void)
 {
   struct file_handle *handle;
-  struct sfm_reader *reader;
+  struct any_reader *reader;
   struct dictionary *dict;
 
   int n_matched = 0;
@@ -49,14 +49,14 @@ cmd_apply_dictionary (void)
   
   lex_match_id ("FROM");
   lex_match ('=');
-  handle = fh_parse ();
+  handle = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
   if (!handle)
     return CMD_FAILURE;
 
-  reader = sfm_open_reader (handle, &dict, NULL);
+  reader = any_reader_open (handle, &dict);
   if (dict == NULL)
     return CMD_FAILURE;
-  sfm_close_reader (reader);
+  any_reader_close (reader);
 
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
@@ -163,7 +163,7 @@ cmd_apply_dictionary (void)
         dict_set_weight (default_dict, new_weight);
     }
   
-  sfm_close_reader (reader);
+  any_reader_close (reader);
 
   return lex_end_of_command ();
 }

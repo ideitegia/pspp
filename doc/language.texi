@@ -20,6 +20,7 @@ Later chapters will describe individual commands in detail.
 * Missing Observations::        Handling missing observations.
 * Variables::                   The unit of data storage.
 * Files::                       Files used by PSPP.
+* File Handles::                How files are named.
 * BNF::                         How command syntax is described.
 @end menu
 
@@ -898,7 +899,7 @@ a scratch variable in an analysis, use @cmd{COMPUTE} (@pxref{COMPUTE})
 to copy its value into an ordinary variable, then use that ordinary
 variable in the analysis.
 
-@node Files, BNF, Variables, Language
+@node Files
 @section Files Used by PSPP
 
 PSPP makes use of many files each time it runs.  Some of these it
@@ -914,16 +915,14 @@ most important of these files:
 @itemx syntax file
 These names (synonyms) refer to the file that contains instructions
 that tell PSPP what to do.  The syntax file's name is specified on
-the PSPP command line.  Syntax files can also be pulled in with
+the PSPP command line.  Syntax files can also be read with
 @cmd{INCLUDE} (@pxref{INCLUDE}).
 
 @cindex file, data
 @cindex data file
 @item data file
-Data files contain raw data in ASCII format suitable for being read in
-by @cmd{DATA LIST}.  Data can be embedded in the syntax
-file with @cmd{BEGIN DATA} and @cmd{END DATA}: this makes the
-syntax file a data file too.
+Data files contain raw data in text or binary format.  Data can also
+be embedded in a syntax file with @cmd{BEGIN DATA} and @cmd{END DATA}.
 
 @cindex file, output
 @cindex output file
@@ -936,13 +935,82 @@ depending on how PSPP is configured.
 @cindex active file
 @cindex file, active
 @item active file
-The active file is the ``file'' on which all PSPP procedures
-are performed.  The active file contains variable definitions and
-cases.  The active file is not necessarily a disk file: it is stored
-in memory if there is room.
+The active file is the ``file'' on which all PSPP procedures are
+performed.  The active file consists of a dictionary and a set of cases.
+The active file is not necessarily a disk file: it is stored in memory
+if there is room.
+
+@cindex system file
+@cindex file, system
+@item system file
+System files are binary files that store a dictionary and a set of
+cases.  @cmd{GET} and @cmd{SAVE} read and write system files.
+
+@cindex portable file
+@cindex file, portable
+@item portable file
+Portable files are files in a text-based format that store a dictionary
+and a set of cases.  @cmd{IMPORT} and @cmd{EXPORT} read and write
+portable files.
+
+@cindex scratch file
+@cindex file, scratch
+@item scratch file
+Scratch files consist of a dictionary and cases and may be stored in
+memory or on disk.  Most procedures that act on a system file or
+portable file can use a scratch file instead.  The contents of scratch
+files persist within a single PSPP session only.  @cmd{GET} and
+@cmd{SAVE} can be used to read and write scratch files.  Scratch files
+are a PSPP extension.
 @end table
 
-@node BNF,  , Files, Language
+@node File Handles
+@section File Handles
+@cindex file handles
+
+A @dfn{file handle} is a reference to a data file, system file, portable
+file, or scratch file.  Most often, a file handle is specified as the
+name of a file as a string, that is, enclosed within @samp{'} or
+@samp{"}.
+
+PSPP also supports declaring named file handles with the @cmd{FILE
+HANDLE} command.  This command associates an identifier of your choice
+(the file handle's name) with a file.  Later, the file handle name can
+be substituted for the name of the file.  When PSPP syntax accesses a
+file multiple times, declaring a named file handle simplifies updating
+the syntax later to use a different file.  Use of @cmd{FILE HANDLE} is
+also required to read data files in binary formats.  @xref{FILE HANDLE},
+for more information.
+
+PSPP assumes that a file handle name that begins with @samp{#} refers to
+a scratch file, unless the name has already been declared on @cmd{FILE
+HANDLE} to refer to another kind of file.  A scratch file is similar to
+a system file, except that it persists only for the duration of a given
+PSPP session.  Most commands that read or write a system or portable
+file, such as @cmd{GET} and @cmd{SAVE}, also accept scratch file
+handles.  Scratch file handles may also be declared explicitly with
+@cmd{FILE HANDLE}.  Scratch files are a PSPP extension.
+
+In some circumstances, PSPP must distinguish whether a file handle
+refers to a system file or a portable file.  When this is necessary to
+read a file, e.g.@: as an input file for @cmd{GET} or @cmd{MATCH FILES},
+PSPP uses the file's contents to decide.  In the context of writing a
+file, e.g.@: as an output file for @cmd{SAVE} or @cmd{AGGREGATE}, PSPP
+decides based on the file's name: if it ends in @samp{.por} (with any
+capitalization), then PSPP writes a portable file; otherwise, PSPP
+writes a system file.
+
+INLINE is reserved as a file handle name.  It refers to the ``data
+file'' embedded into the syntax file between @cmd{BEGIN DATA} and
+@cmd{END DATA}.  @xref{BEGIN DATA}, for more information.
+
+The file to which a file handle refers may be reassigned on a later
+@cmd{FILE HANDLE} command if it is first closed using @cmd{CLOSE FILE
+HANDLE}.  The @cmd{CLOSE FILE HANDLE} command is also useful to free the
+storage associated with a scratch file.  @xref{CLOSE FILE HANDLE}, for
+more information.
+
+@node BNF
 @section Backus-Naur Form
 @cindex BNF
 @cindex Backus-Naur Form

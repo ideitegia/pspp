@@ -21,18 +21,18 @@ portable files.
 @vindex APPLY DICTIONARY
 
 @display
-APPLY DICTIONARY FROM='filename'.
+APPLY DICTIONARY FROM=@{'filename',file_handle@}.
 @end display
 
 @cmd{APPLY DICTIONARY} applies the variable labels, value labels,
-and missing values from variables in a system file to corresponding
+and missing values taken from a file to corresponding
 variables in the active file.  In some cases it also updates the
 weighting variable.
 
-Specify a system file with a file name string or as a file handle
-(@pxref{FILE HANDLE}).  The dictionary in the system file will be read,
-but it will not replace the active file dictionary.  The system file's
-data will not be read.
+Specify a system file, portable file, or scratch file with a file name
+string or as a file handle (@pxref{File Handles}).  The dictionary in the
+file will be read, but it will not replace the active file dictionary.
+The file's data will not be read.
 
 Only variables with names that exist in both the active file and the
 system file are considered.  Variables with the same name but different
@@ -79,9 +79,9 @@ EXPORT
 @end display
 
 The @cmd{EXPORT} procedure writes the active file dictionary and data to a
-specified portable file.
+specified portable file or scratch file.
 
-By default, cases excluded with FILTER are written to the portable
+By default, cases excluded with FILTER are written to the
 file.  These can be excluded by specifying DELETE on the UNSELECTED
 subcommand.  Specifying RETAIN makes the default explicit.
 
@@ -95,8 +95,8 @@ subcommand may be used to specify the number of decimal digits of
 precision to write.  DIGITS applies only to non-integers.
 
 The OUTFILE subcommand, which is the only required subcommand, specifies
-the portable file to be written as a file name string or a file handle
-(@pxref{FILE HANDLE}).
+the portable file or scratch file to be written as a file name string or
+a file handle (@pxref{File Handles}).
 
 DROP, KEEP, and RENAME follow the same format as the SAVE procedure
 (@pxref{SAVE}).
@@ -114,25 +114,25 @@ The MAP subcommand is currently ignored.
 
 @display
 GET
-        /FILE='filename'
+        /FILE=@{'filename',file_handle@}
         /DROP=var_list
         /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
 @end display
 
 @cmd{GET} clears the current dictionary and active file and
-replaces them with the dictionary and data from a specified system file.
+replaces them with the dictionary and data from a specified file.
 
 The FILE subcommand is the only required subcommand.  Specify the system
-file to be read as a string file name or a file handle (@pxref{FILE
-HANDLE}).
+file, portable file, or scratch file to be read as a string file name or
+a file handle (@pxref{File Handles}).
 
-By default, all the variables in a system file are read.  The DROP
+By default, all the variables in a file are read.  The DROP
 subcommand can be used to specify a list of variables that are not to be
 read.  By contrast, the KEEP subcommand can be used to specify variable
 that are to be read, with all other variables not read.
 
-Normally variables in a system file retain the names that they were
+Normally variables in a file retain the names that they were
 saved under.  Use the RENAME subcommand to change these names.  Specify,
 within parentheses, a list of variable names followed by an equals sign
 (@samp{=}) and the names that they should be renamed to.  Multiple
@@ -145,13 +145,16 @@ eliminated.  When this is done, only a single variable may be renamed at
 once.  For instance, @samp{/RENAME=A=B}.  This alternate syntax is
 deprecated.
 
-DROP, KEEP, and RENAME are performed in left-to-right order.  They
-each may be present any number of times.  @cmd{GET} never modifies a
-system file on disk.  Only the active file read from the system file
+DROP, KEEP, and RENAME are executed in left-to-right order.  
+Each may be present any number of times.  @cmd{GET} never modifies a
+file on disk.  Only the active file read from the file
 is affected by these subcommands.
 
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.
+
+Use of @cmd{GET} to read a portable file or scratch file is a PSPP
+extension.
 
 @node IMPORT
 @section IMPORT
@@ -168,11 +171,12 @@ IMPORT
 
 The @cmd{IMPORT} transformation clears the active file dictionary and
 data and
-replaces them with a dictionary and data from a portable file on disk.
+replaces them with a dictionary and data from a system, portable file,
+or scratch file.
 
 The FILE subcommand, which is the only required subcommand, specifies
 the portable file to be read as a file name string or a file handle
-(@pxref{FILE HANDLE}).
+(@pxref{File Handles}).
 
 The TYPE subcommand is currently not used.
 
@@ -180,6 +184,9 @@ DROP, KEEP, and RENAME follow the syntax used by @cmd{GET} (@pxref{GET}).
 
 @cmd{IMPORT} does not cause the data to be read, only the dictionary.  The
 data is read later, when a procedure is executed.
+
+Use of @cmd{IMPORT} to read a system file or scratch file is a PSPP
+extension.
 
 @node MATCH FILES
 @section MATCH FILES
@@ -199,26 +206,28 @@ MATCH FILES
         /MAP
 @end display
 
-@cmd{MATCH FILES} merges one or more system files, optionally
+@cmd{MATCH FILES} merges one or more system, portable, or scratch files,
+optionally
 including the active file.  Records with the same values for BY
 variables are combined into a single record.  Records with different
-values are output in order.  Thus, multiple sorted system files are
-combined into a single sorted system file based on the value of the BY
+values are output in order.  Thus, multiple sorted files are
+combined into a single sorted file based on the value of the BY
 variables.  The results of the merge become the new active file.
 
 The BY subcommand specifies a list of variables that are used to match
-records from each of the system files.  Variables specified must exist
+records from each of the files.  Variables specified must exist
 in all the files specified on FILE and TABLE.  BY should usually be
 specified.  If TABLE or IN is used then BY is required.
 
-Specify FILE with a system file as a file name string or file handle
-(@pxref{FILE HANDLE}), or with an asterisk (@samp{*}) to
+Specify FILE with a system, portable, or scratch file as a file name
+string or file handle
+(@pxref{File Handles}), or with an asterisk (@samp{*}) to
 indicate the current active file.  The files specified on FILE are
 merged together based on the BY variables, or combined case-by-case if
 BY is not specified.  Normally at least two FILE subcommands should be
 specified.
 
-Specify TABLE with a system file to use it as a @dfn{table
+Specify TABLE with a file to use it as a @dfn{table
 lookup file}.  Records in table lookup files are not used up after
 they've been used once.  This means that data in table lookup files can
 correspond to any number of records in FILE files.  Table lookup files
@@ -247,13 +256,16 @@ FIRST, LAST, and MAP are currently ignored.
 @cmd{MATCH FILES} may not be specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}) if the active file is used as an input source.
 
+Use of portable or scratch files on @cmd{MATCH FILES} is a PSPP
+extension.
+
 @node SAVE
 @section SAVE
 @vindex SAVE
 
 @display
 SAVE
-        /OUTFILE='filename'
+        /OUTFILE=@{'filename',file_handle@}
         /UNSELECTED=@{RETAIN,DELETE@}
         /@{COMPRESSED,UNCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
@@ -267,11 +279,11 @@ SAVE
 
 The @cmd{SAVE} procedure causes the dictionary and data in the active
 file to
-be written to a system file.
+be written to a system file or scratch file.
 
-OUTFILE is the only required subcommand.  Specify the system
-file to be written as a string file name or a file handle (@pxref{FILE
-HANDLE}).
+OUTFILE is the only required subcommand.  Specify the system file or
+scratch file to be written as a string file name or a file handle
+(@pxref{File Handles}).
 
 By default, cases excluded with FILTER are written to the system file.
 These can be excluded by specifying DELETE on the UNSELECTED
@@ -384,7 +396,7 @@ XSAVE
 @end display
 
 The @cmd{XSAVE} transformation writes the active file dictionary and
-data to a system file stored on disk.  It is similar to the @cmd{SAVE}
+data to a system file or scratch file.  It is similar to the @cmd{SAVE}
 procedure, with two differences:
 
 @itemize

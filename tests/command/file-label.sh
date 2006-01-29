@@ -118,7 +118,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.filtered
 diff -b  $TEMPDIR/pspp.filtered - <<EOF
-1.1 DATA LIST.  Reading 1 record from the command file.
+1.1 DATA LIST.  Reading 1 record from INLINE.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#

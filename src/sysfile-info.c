@@ -86,7 +86,7 @@ cmd_sysfile_info (void)
   lex_match_id ("FILE");
   lex_match ('=');
 
-  h = fh_parse ();
+  h = fh_parse (FH_REF_FILE);
   if (!h)
     return CMD_FAILURE;
 

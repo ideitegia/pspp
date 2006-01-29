@@ -72,6 +72,10 @@ pspp_SOURCES =					\
 	algorithm.h				\
 	alloc.c					\
 	alloc.h					\
+	any-reader.c				\
+	any-reader.h				\
+	any-writer.c				\
+	any-writer.h				\
 	apply-dict.c				\
 	ascii.c					\
 	autorecode.c				\
@@ -221,6 +225,12 @@ pspp_SOURCES =					\
 	tab.c					\
 	tab.h					\
 	temporary.c				\
+	scratch-handle.c			\
+	scratch-handle.h			\
+	scratch-reader.c			\
+	scratch-reader.h			\
+	scratch-writer.c			\
+	scratch-writer.h			\
 	mkfile.c				\
 	mkfile.h				\
 	title.c					\

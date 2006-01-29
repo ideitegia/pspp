@@ -75,7 +75,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - <<EOF
-1.1 DATA LIST.  Reading 1 record from file $top_srcdir/tests/weighting.data.
+1.1 DATA LIST.  Reading 1 record from "$top_srcdir/tests/weighting.data".
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#

@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -18,45 +18,19 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "glob.h"
-#include <time.h>
-#include "str.h"
-#include "strftime.h"
+#include <stdlib.h>
+#include "scratch-handle.h"
+#include "casefile.h"
+#include "dictionary.h"
 
-/* var.h */
-struct dictionary *default_dict;
-struct expression *process_if_expr;
-
-struct transformation *t_trns;
-size_t n_trns, m_trns, f_trns;
-
-int FILTER_before_TEMPORARY;
-
-/* Functions. */
-
-static void
-get_cur_date (char cur_date[12])
+/* Destroys HANDLE. */
+void
+scratch_handle_destroy (struct scratch_handle *handle) 
 {
-  time_t now = time (NULL);
-
-  if (now != (time_t) -1) 
+  if (handle != NULL) 
     {
-      struct tm *tm = localtime (&now);
-      if (tm != NULL) 
-        {
-          strftime (cur_date, 12, "%d %b %Y", tm);
-          return;
-        }
+      dict_destroy (handle->dictionary);
+      casefile_destroy (handle->casefile);
+      free (handle);
     }
-  strcpy (cur_date, "?? ??? 2???");
-}
-
-const char *
-get_start_date (void)
-{
-  static char start_date[12];
-
-  if (start_date[0] == '\0')
-    get_cur_date (start_date);
-  return start_date; 
 }

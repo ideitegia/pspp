@@ -56,12 +56,8 @@ struct case_source_class
   };
 
 extern const struct case_source_class storage_source_class;
-extern const struct case_source_class data_list_source_class;
 extern const struct case_source_class file_type_source_class;
 extern const struct case_source_class input_program_source_class;
-extern const struct case_source_class get_source_class;
-extern const struct case_source_class import_source_class;
-extern const struct case_source_class sort_source_class;
 
 struct dictionary;
 struct case_source *create_case_source (const struct case_source_class *,

@@ -156,7 +156,7 @@ internal_cmd_print (int f)
 	{
 	  lex_match ('=');
 
-	  fh = fh_parse ();
+	  fh = fh_parse (FH_REF_FILE);
 	  if (fh == NULL)
 	    goto error;
 	}
@@ -191,7 +191,7 @@ internal_cmd_print (int f)
       if (prt.writer == NULL)
         goto error;
 
-      if (fh_get_mode (fh) == MODE_BINARY)
+      if (fh_get_mode (fh) == FH_MODE_BINARY)
         prt.options |= PRT_BINARY;
     }
 
@@ -836,10 +836,12 @@ dump_table (const struct file_handle *fh)
       }
 
   if (fh != NULL)
-    tab_title (t, 1, _("Writing %d record(s) to file %s."),
-               recno, fh_get_filename (fh));
+    tab_title (t, 1, ngettext ("Writing %d record to %s.",
+                               "Writing %d records to %s.", recno),
+               recno, fh_get_name (fh));
   else
-    tab_title (t, 1, _("Writing %d record(s) to the listing file."), recno);
+    tab_title (t, 1, ngettext ("Writing %d record.",
+                               "Writing %d records.", recno), recno);
   tab_submit (t);
 }
 
@@ -1027,7 +1029,7 @@ cmd_print_space (void)
     {
       lex_match ('=');
 
-      fh = fh_parse ();
+      fh = fh_parse (FH_REF_FILE);
       if (fh == NULL)
 	return CMD_FAILURE;
       lex_get ();

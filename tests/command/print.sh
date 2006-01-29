@@ -100,7 +100,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 activity="compare output"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
+1.1 DATA LIST.  Reading free-form data from "$TEMPDIR/data-list.data".
 +--------+------+
 |Variable|Format|
 #========#======#
@@ -109,7 +109,7 @@ diff -b  $TEMPDIR/pspp.list - << EOF
 |C       |F8.0  |
 |D       |F8.0  |
 +--------+------+
-2.1 PRINT.  Writing 1 record(s) to file foo.
+2.1 PRINT.  Writing 1 record to "foo".
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#
@@ -125,7 +125,7 @@ diff -b  $TEMPDIR/pspp.list - << EOF
      .       2.00     3.00     4.00 
      .       6.00     7.00     8.00 
      .      10.00    11.00    12.00 
-3.1 DATA LIST.  Reading free-form data from file $TEMPDIR/data-list.data.
+3.1 DATA LIST.  Reading free-form data from "$TEMPDIR/data-list.data".
 +--------+------+
 |Variable|Format|
 #========#======#
@@ -134,7 +134,7 @@ diff -b  $TEMPDIR/pspp.list - << EOF
 |C       |F8.0  |
 |D       |F8.0  |
 +--------+------+
-4.1 PRINT.  Writing 1 record(s) to the listing file.
+4.1 PRINT.  Writing 1 record.
 +--------+------+-------+------+
 |Variable|Record|Columns|Format|
 #========#======#=======#======#

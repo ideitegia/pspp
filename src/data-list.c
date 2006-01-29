@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -95,6 +95,8 @@ struct data_list_pgm
     size_t delim_cnt;           /* Number of delimiter, or 0 for spaces. */
   };
 
+static const struct case_source_class data_list_source_class;
+
 static int parse_fixed (struct data_list_pgm *);
 static int parse_free (struct dls_var_spec **, struct dls_var_spec **);
 static void dump_fixed_table (const struct dls_var_spec *,
@@ -111,9 +113,9 @@ static trns_proc_func data_list_trns_proc;
 int
 cmd_data_list (void)
 {
-  struct data_list_pgm *dls;     /* DATA LIST program under construction. */
+  struct data_list_pgm *dls;
   int table = -1;                /* Print table if nonzero, -1=undecided. */
-  struct file_handle *fh = NULL; /* File handle of source, NULL=inline file. */
+  struct file_handle *fh = fh_inline_file ();
 
   if (!case_source_is_complex (vfm_source))
     discard_variables ();
@@ -133,14 +135,14 @@ cmd_data_list (void)
       if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-	  fh = fh_parse ();
+	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
 	  if (case_source_is_class (vfm_source, &file_type_source_class)
-              && fh != default_handle)
+              && fh != fh_get_default_handle ())
 	    {
-	      msg (SE, _("DATA LIST may not use a different file from "
-			 "that specified on its surrounding FILE TYPE."));
+	      msg (SE, _("DATA LIST must use the same file "
+			 "as the enclosing FILE TYPE."));
 	      goto error;
 	    }
 	}
@@ -235,7 +237,7 @@ cmd_data_list (void)
     }
 
   dls->case_size = dict_get_case_size (default_dict);
-  default_handle = fh;
+  fh_set_default_handle (fh);
 
   if (dls->type == -1)
     dls->type = DLS_FIXED;
@@ -795,15 +797,9 @@ dump_fixed_table (const struct dls_var_spec *specs,
 		    fmt_to_string (&spec->input));
     }
 
-  if (fh != NULL)
-    tab_title (t, 1, ngettext ("Reading %d record from file %s.",
-                               "Reading %d records from file %s.", rec_cnt),
-               rec_cnt, fh_get_filename (fh));
-  else
-    tab_title (t, 1, ngettext ("Reading %d record from the command file.",
-                               "Reading %d records from the command file.",
-                               rec_cnt),
-               rec_cnt);
+  tab_title (t, 1, ngettext ("Reading %d record from %s.",
+                             "Reading %d records from %s.", rec_cnt),
+             rec_cnt, fh_get_name (fh));
   tab_submit (t);
 }
 
@@ -917,11 +913,7 @@ dump_free_table (const struct data_list_pgm *dls,
       }
   }
 
-  if (fh != NULL)
-    tab_title (t, 1, _("Reading free-form data from file %s."),
-               fh_get_filename (fh));
-  else
-    tab_title (t, 1, _("Reading free-form data from the command file."));
+  tab_title (t, 1, _("Reading free-form data from %s."), fh_get_name (fh));
   
   tab_submit (t);
 }
@@ -1309,7 +1301,7 @@ data_list_source_destroy (struct case_source *source)
   data_list_trns_free (source->aux);
 }
 
-const struct case_source_class data_list_source_class = 
+static const struct case_source_class data_list_source_class = 
   {
     "DATA LIST",
     NULL,
@@ -1367,12 +1359,12 @@ cmd_repeating_data (void)
   bool saw_length = false;      /* Saw LENGTH subcommand? */
   bool saw_continued = false;   /* Saw CONTINUED subcommand? */
   bool saw_id = false;          /* Saw ID subcommand? */
-  struct file_handle *const fh = default_handle;
+  struct file_handle *const fh = fh_get_default_handle ();
   
   assert (case_source_is_complex (vfm_source));
 
   rpd = xmalloc (sizeof *rpd);
-  rpd->reader = dfm_open_reader (default_handle);
+  rpd->reader = dfm_open_reader (fh);
   rpd->first = rpd->last = NULL;
   rpd->starts_beg.num = 0;
   rpd->starts_beg.var = NULL;
@@ -1390,7 +1382,7 @@ cmd_repeating_data (void)
 	{
           struct file_handle *file;
 	  lex_match ('=');
-	  file = fh_parse ();
+	  file = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (file == NULL)
 	    goto error;
 	  if (file != fh)
@@ -1585,7 +1577,7 @@ cmd_repeating_data (void)
   /* Calculate and check starts_end, cont_end if necessary. */
   if (rpd->starts_end.num == 0 && rpd->starts_end.var == NULL) 
     {
-      rpd->starts_end.num = fh != NULL ? fh_get_record_width (fh) : 80;
+      rpd->starts_end.num = fh_get_record_width (fh);
       if (rpd->starts_beg.num != 0 
           && rpd->starts_beg.num > rpd->starts_end.num)
         {
@@ -1598,7 +1590,7 @@ cmd_repeating_data (void)
     }
   if (rpd->cont_end.num == 0 && rpd->cont_end.var == NULL) 
     {
-      rpd->cont_end.num = fh != NULL ? fh_get_record_width (fh) : 80;
+      rpd->cont_end.num = fh_get_record_width (fh);
       if (rpd->cont_beg.num != 0
           && rpd->cont_beg.num > rpd->cont_end.num)
         {

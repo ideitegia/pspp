@@ -317,7 +317,7 @@ cmd_reread (void)
   struct expression *e;         /* Expression for column to set. */
   struct reread_trns *t;        /* Created transformation. */
 
-  fh = default_handle;
+  fh = fh_get_default_handle ();
   e = NULL;
   while (token != '.')
     {
@@ -339,7 +339,7 @@ cmd_reread (void)
       else if (lex_match_id ("FILE"))
 	{
 	  lex_match ('=');
-          fh = fh_parse ();
+          fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    {
 	      expr_free (e);

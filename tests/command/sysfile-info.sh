@@ -78,7 +78,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/out-filtered
 diff -b -w $TEMPDIR/out-filtered - << EOF
-1.1 DATA LIST.  Reading free-form data from the command file.
+1.1 DATA LIST.  Reading free-form data from INLINE.
 +--------+------+
 |Variable|Format|
 #========#======#

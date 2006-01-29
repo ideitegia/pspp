@@ -1,6 +1,207 @@
+Sat Jan 28 17:45:36 2006  Ben Pfaff  <blp@gnu.org>
+
+	Cleaner (faster?) way to compact cases.
+
+	* dictionary.c: (dict_compact_case) Removed.
+	(dict_needs_compaction) New function.
+	(struct copy_map) New structure.
+	(struct dict_compactor) New structure.
+	(dict_make_compactor) New function.
+	(dict_compactor_compact) New function.
+	(dict_compactor_destroy) New function.
+	
+Sat Jan 28 17:24:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	Cleanups.
+
+	* data-list.c: Make data_list_source_class static.
+	(dump_fixed_table) Use fh_get_name() to describe source of data.
+	(dump_free_table) Ditto.
+	(cmd_repeating_data) Eliminate special cases for inline file.
+
+	* dictionary.c: (dict_contains_var) Change return value from int to
+	bool.
+	(dict_rename_vars) Ditto.
+	(dict_create_vector) Ditto.
+
+Sat Jan 28 17:20:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	Add scratch file handles.
+
+	Now a file handle can refer to a disk file, to an in-memory
+	structure, or to the "inline" file, instead of just to a disk
+	file.  The introduction of new categories means that special cases
+	for the inline file in a few places could be eliminated, but it
+	also means that code that assumed that a handle refers to a file
+	has to check for that.
+
+	Also, now file handles can be freed, so code now must be sure not
+	to access a handle after closing it (with fh_close()).
+
+	* Makefile.am: Add any-reader.c, any-reader.h, any-writer.c,
+	any-writer.h, scratch-handle.c, scratch-handle.h,
+	scratch-reader.c, scratch-reader.h, scratch-writer.c,
+	scratch-writer.h to pspp_SOURCES.
+
+	* any-reader.c: New file.
+	
+	* any-reader.h: New file.
+	
+	* any-writer.c: New file.
+	
+	* any-writer.h: New file.
+
+	* scratch-handle.c: New file.
+	
+	* scratch-handle.h: New file.
+
+	* scratch-reader.c: New file.
+	
+	* scratch-reader.h: New file.
+
+	* scratch-writer.c: New file.
+	
+	* scratch-writer.h: New file.
+
+	* aggregate.c: Use an any_writer instead of an sfm_writer, to add
+	flexibility.
+
+	* apply-dict.c: Use an any_reader instead of an sfm_reader, to add
+	flexibility.
+
+	* command.def: Add CLOSE FILE HANDLE command.
+
+	* dfm-reader.c: Now fewer special cases for inline file.
+	(static var inline_open_cnt) Removed.
+	(static var inline_file) Removed.
+	(dfm_close_reader) Eliminate a special case for inline file.
+	Reorganize to avoid access-after-free.
+	(dfm_open_reader) Eliminate a special case for inline file.
+	(read_inline_record) Use bool instead of int.  No need to
+	increment line number.
+	(read_file_record) Use bool instead of int.
+	(read_record) Check whether file handle is inline file, instead of
+	for null pointer.
+	(dfm_eof) Ditto.
+	(dfm_expand_tabs) Ditto.
+	(dfm_push) Ditto.
+	(dfm_pop) Ditto.
+	(cmd_begin_data) Fix inaccurate check for whether the inline file
+	is in use--now we can tell by checking whether the inline file's
+	open count is positive.
+	
+	* file-handle-def.c: (struct file_handle) Reorder members.  Add
+	`deleted' member.  Add `referent' member.  Add `sh' member.
+	(static var default_handle) New variable.
+	(static var inline_file) New variable.
+	(fh_init) Initialize inline file.
+	(free_handle) New function.
+	(fh_done) Rewrite.
+	(fh_from_name) Don't return deleted handles.
+	(fh_from_filename) Ditto.
+	(fh_create) Removed.
+	(create_handle) New function.
+	(fh_create_file) New function.
+	(fh_create_scratch) New function.
+	(fh_inline_file) New function.
+	(fh_free) Rewrite.
+	(fh_open) Now requires a referent type mask and verifies it.  All
+	references updated.
+	(fh_close) If open_cnt goes to 0 on a deleted handle, free it.
+	(fh_is_open) New function.
+	(fh_get_referent) New function.
+	(fh_get_filename) Limit to handles that refer to files.
+	(fh_get_mode) Ditto.
+	(fh_get_record_width) Limit to handles that refer to files or the
+	inline file.
+	(fh_get_tab_width) Ditto.
+	(fh_get_scratch_handle) New function.
+	(fh_set_scratch_handle) New function.
+	(fh_get_default_handle) New function.
+	(fh_set_default_handle) New function.
+
+	* file-handle.h: (enum fh_referent) New type.
+	(enum fh_mode) Rename MODE_TEXT to FH_MODE_TEXT, MODE_BINARY to
+	FH_MODE_BINARY, and update all usages.
+
+	* file-handle.q: Add "scratch" as a possible mode.
+	(cmd_file_handle) Mention CLOSE FILE HANDLE in error message.
+	Use lex_end_of_command(), lex_sbc_missing().  Support creating
+	scratch handles.
+	(cmd_close_file_handle) New function.
+	(referent_name) New function.
+	(fh_parse) Now takes a referent type mask to specify handles that
+	can be accepted.  Updated all references.
+	
+	* filename.c: (fn_extension) New function.
+
+	* get.c: Use any_reader and any_writer and thereby merge code that
+	has been duplicated for each kind of file.  Also, we had something
+	here called `any_writer' before, so its name had to be changed to
+	`case_writer'.
+	(enum operation) Removed, because unused.
+	(struct get_pgm) Removed.
+	(get_pgm_free) Removed.
+	(get_source_destroy) Removed.
+	(get_source_read) Removed.
+	(global var get_source_class) Removed.
+	(static var case_reader_source_class) Removed.
+	(enum reader_command) New enum.
+	(struct case_reader_pgm) New struct.
+	(parse_read_command) New function.
+	(case_reader_pgm_free) New function.
+	(case_reader_source_destroy) New function.
+	(case_Reader_source_Read) New function.
+	(cmd_get) Rewrote as a call to parse_read_command().
+	(cmd_import) Ditto.
+	(struct any_writer) Rename to case_writer.  Drop `writer_type',
+	`writer' members in favor of an `any_writer' member named
+	`writer'.
+	(any_writer_destroy) Rename case_writer_destroy.  Use
+	any_writer_close().
+	(parse_write_command) Allow scratch files.  Use any_writer.
+	(any_writer_write_case) Rename case_writer_write_case().  Use
+	any_writer_write().
+`	(struct mtf_file) Use any_reader.
+	(cmd_match_files) Allow scratch files.  Use any_reader.
+	(mtf_free_file) Use any_reader_close().
+	(mtf_read_nonactive_records) Use any_reader_read().
+	(mtf_processing) Use any_reader_read().
+	(struct import_pgm) Removed.
+	(import_pgm_free) Removed.
+	(import_source_destroy) Removed.
+	(import_source_read) Removed.
+	(global var import_source_class) Removed.
+
+	* glob.c: (global var default_handle) Removed.  Replaced all
+	references by fh_get_default_handle() or fh_set_default_handle().
+
+	* pfm-read.c: (static var portable_to_local) Moved from inside
+	read_header() to top level.
+	(pfm_detect) New function.
+
+	* pfm-write.c: (pfm_write_case) Make case argument const.
+	Reorganize to avoid access-after-free.
+
+	* print.c: (dump_table) Use fh_get_name() to describe source of
+	data.
+
+	* sfm-read.c: (sfm_close_reader) Reorganize to avoid
+	access-after-free.
+	(sfm_detect) New function.
+
+	* str.c: (str_lowercase) New function.
+
+	* vfm.c: Use new compaction interface.
+	(static var compaction_necessary) Removed.
+	(static var compactor) New variable.
+	(open_active_file) Initialize compactor.
+	(write_case) Use compactor.
+	(close_active_file) Free compactor.
+	
 Wed Jan 11 19:28:39 2006  Ben Pfaff  <blp@gnu.org>
 
-	Clean up file handle code in preparation to add temporary file
+	Clean up file handle code in preparation to add scratch file
 	handles.
 	
 	* file-handle-def.c: Lots of formatting cleanup.  Added function

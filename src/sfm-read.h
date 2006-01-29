@@ -20,6 +20,9 @@
 #ifndef SFM_READ_H
 #define SFM_READ_H 1
 
+#include <stdbool.h>
+#include <stdio.h>
+
 /* Reading system files. */
 
 /* System file info that doesn't fit in struct dictionary. */
@@ -41,5 +44,6 @@ struct sfm_reader *sfm_open_reader (struct file_handle *,
                                     struct sfm_read_info *);
 int sfm_read_case (struct sfm_reader *, struct ccase *);
 void sfm_close_reader (struct sfm_reader *);
+bool sfm_detect (FILE *);
 
 #endif /* sfm-read.h */
