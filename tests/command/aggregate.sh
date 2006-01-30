@@ -166,7 +166,7 @@ G        N       NI      NU     NUI NFGT2 NFGT2I SFGT2 SFGT2I NFIN23 NFIN23I SFI
 4     1.00     1.00       1       1  .      .     .     1.000   .       .      .       .000  .      .     .      .000      .       .              4    .        .       .       1.000     .      .            4    .     .          4      .        .      .     .          4      .00      .00      .00     1.00     1.00     1.00     1.00      .00       0       0       0       1       1        1       1        0    .      .     .   100.0     .       .      .       .0    .      .     .      .0      .        .       .     100.0      .        .        .        .   
 EOF
 
-for outfile in temporary active external; do
+for outfile in scratch active external; do
     for sort in presorted unsorted; do
 	for missing in itemwise columnwise; do
 	    name=$outfile-$sort-$missing
@@ -196,7 +196,7 @@ for outfile in temporary active external; do
 		cat agg-skel.pspp
 		if [ "$outfile" = "external" ]; then
 		    echo "get file='aggregate.sys'."
-		elif [ "$outfile" = "temporary" ]; then
+		elif [ "$outfile" = "scratch" ]; then
 		    echo "get file=#AGGREGATE."
 		fi
 		echo "list."
