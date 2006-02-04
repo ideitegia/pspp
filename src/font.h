@@ -103,13 +103,6 @@ struct font_desc
 /* Index into deref[] of character with name "space". */
 extern int space_index;
 
-/* A set of fonts. */
-struct font_set
-  {
-    struct font_set *next, *prev;	/* Next, previous in chain. */
-    struct font_desc *font;		/* Current font. */
-  };
-
 /* Functions to work with any font. */
 #define destroy_font(FONT) 			\
 	pool_destroy (FONT->owner)
