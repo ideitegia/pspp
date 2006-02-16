@@ -569,11 +569,11 @@ struct aux_params
 @item int32 measure
 The measurement type of the variable:  
 @table @asis
-@item 0
-Nominal Scale
 @item 1
-Ordinal Scale
+Nominal Scale
 @item 2
+Ordinal Scale
+@item 3
 Continuous Scale
 @end table
 
