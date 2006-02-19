@@ -15,10 +15,10 @@ ftp://ftp.gnu.org/pub/gnu/pspp/.  Older versions may be obtained from
 ftp://alpha.gnu.org/gnu/pspp/.  Development sources are available from
 CVS at http://savannah.gnu.org/projects/pspp
    
-Questions and comments regarding PSPP can be sent to pspp-dev@gnu.org.
-PSPP bug reports may be sent to bug-gnu-pspp@gnu.org or filed in the
-bug-tracking system at http://savannah.gnu.org/bugs/?group=pspp
-according to your preference.
+Questions and comments about using PSPP may be sent to pspp-users@gnu.org.
+Bug reports may be filed at http://savannah.gnu.org/bugs/?group=pspp
+or emailed to bug-gnu-pspp@gnu.org.  (We prefer the web-based system
+because it makes it more difficult for us to lose track of bugs.)
 
 The long term goals for PSPP are ambitious.  We wish to provide the
 following support to users:
