@@ -30,6 +30,7 @@
 #include "filename.h"
 #include "getline.h"
 #include "hash.h"
+#include "intprops.h"
 #include "pool.h"
 #include "str.h"
 #include "version.h"
@@ -539,7 +540,7 @@ font_char_name_to_index (const char *name)
 int
 font_number_to_index (int x)
 {
-  char name[INT_DIGITS + 2];
+  char name[INT_STRLEN_BOUND (x) + 2];
 
   /* Note that space is the only character that can't appear in a
      character name.  That makes it an excellent choice for a name

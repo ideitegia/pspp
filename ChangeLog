@@ -1,3 +1,12 @@
+Sat Mar  4 12:27:06 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Require "intprops" gnulib module.
+
+	* acinclude.m4: Remove BLP_INT_DIGITS.  Now we use the intprops.h
+	header file instead.
+
+	* configure.ac: Don't call BLP_INT_DIGITS.
+
 Sat Mar  4 11:53:36 2006  Ben Pfaff  <blp@gnu.org>
 
 	* acinclude.m4: Remove BLP_RANDOM.  Its results were unused.

@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "alloc.h"
+#include "intprops.h"
 #include "message.h"
 #include "str.h"
 #include "settings.h"
@@ -770,7 +771,8 @@ fn_open_ext (struct file_ext *f)
   p = strstr (f->filename, "%d");
   if (p)
     {
-      char *s = local_alloc (strlen (f->filename) + INT_DIGITS - 1);
+      char *s = local_alloc (strlen (f->filename)
+                             + INT_STRLEN_BOUND (int) - 1);
       char *cp;
 
       memcpy (s, f->filename, p - f->filename);

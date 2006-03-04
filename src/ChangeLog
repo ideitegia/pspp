@@ -1,3 +1,8 @@
+Sat Mar  4 12:28:09 2006  Ben Pfaff  <blp@gnu.org>
+
+	* In many source files, replace INT_DIGITS by
+	INT_STRLEN_BOUND(int) and include intprops.h.
+
 John Darrington:
 	
 	* Replaced '_' with '-' in most filenames.

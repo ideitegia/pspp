@@ -25,6 +25,7 @@
 #include "case.h"
 #include "command.h"
 #include "dictionary.h"
+#include "intprops.h"
 #include "lexer.h"
 #include "message.h"
 #include "magic.h"
@@ -434,7 +435,8 @@ write_fallback_headers (struct outp_driver *d)
   int line_number = 0;
 
   const char *Line = _("Line");
-  char *leader = local_alloc (strlen (Line) + INT_DIGITS + 1 + 1);
+  char *leader = local_alloc (strlen (Line)
+                              + INT_STRLEN_BOUND (line_number) + 1 + 1);
       
   while (index < cmd.n_variables)
     {

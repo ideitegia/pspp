@@ -103,8 +103,6 @@ AC_DEFINE(FPREP_IEEE754, 1,
 
 AC_C_BIGENDIAN
 
-BLP_INT_DIGITS
-
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([strchr strrchr __setfpucw isinf isnan finite getpid feholdexcept])
 

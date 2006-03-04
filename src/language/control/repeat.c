@@ -26,6 +26,7 @@
 #include "alloc.h"
 #include "command.h"
 #include "dictionary.h"
+#include "intprops.h"
 #include "message.h"
 #include "line-buffer.h"
 #include "lexer.h"
@@ -363,7 +364,7 @@ parse_ids (struct repeat_entry *e)
 static inline void
 store_numeric (char **repl, long value)
 {
-  *repl = xmalloc (INT_DIGITS + 1);
+  *repl = xmalloc (INT_STRLEN_BOUND (value) + 1);
   sprintf (*repl, "%ld", value);
 }
 

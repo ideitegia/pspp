@@ -30,6 +30,7 @@
 #include "command.h"
 #include "dictionary.h"
 #include "message.h"
+#include "intprops.h"
 #include "lexer.h"
 #include "misc.h"
 #include "pool.h"
@@ -332,7 +333,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
             strcpy (v->name, "VPOSINF");
           else 
             {
-              char name[INT_DIGITS + 2];
+              char name[INT_STRLEN_BOUND (int) + 2];
               sprintf (name, "V%d", (int) f);
               str_copy_trunc (v->name, sizeof v->name, name);
             }

@@ -41,6 +41,7 @@
 #include "font.h"
 #include "getline.h"
 #include "hash.h"
+#include "intprops.h"
 #include "misc.h"
 #include "output.h"
 #include "manager.h"
@@ -1190,20 +1191,20 @@ postopen (struct file_ext *f)
     {"title", 0},
     {0, 0},
   };
-  char boundbox[INT_DIGITS * 4 + 4];
+  char boundbox[INT_STRLEN_BOUND (int) * 4 + 4];
 #if HAVE_UNISTD_H
   char host[128];
 #endif
-  char scaling[INT_DIGITS + 5];
+  char scaling[INT_STRLEN_BOUND (int) + 5];
   time_t curtime;
   struct tm *loctime;
   char *p, *cp;
-  char paper_width[INT_DIGITS + 1];
-  char paper_length[INT_DIGITS + 1];
-  char left_margin[INT_DIGITS + 1];
-  char top_margin[INT_DIGITS + 1];
-  char line_width[INT_DIGITS + 1];
-  char line_width_thick[INT_DIGITS + 1];
+  char paper_width[INT_STRLEN_BOUND (int) + 1];
+  char paper_length[INT_STRLEN_BOUND (int) + 1];
+  char left_margin[INT_STRLEN_BOUND (int) + 1];
+  char top_margin[INT_STRLEN_BOUND (int) + 1];
+  char line_width[INT_STRLEN_BOUND (int) + 1];
+  char line_width_thick[INT_STRLEN_BOUND (int) + 1];
 
   struct outp_driver *this = f->param;
   struct ps_driver_ext *x = this->ext;
@@ -2402,7 +2403,7 @@ write_text (struct outp_driver *this,
 
   int last_y;
 
-  char number[INT_DIGITS + 1];
+  char number[INT_STRLEN_BOUND (int) + 1];
   char line[80];
   char *lp;
 

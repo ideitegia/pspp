@@ -28,6 +28,7 @@
 #include "message.h"
 #include "filename.h"
 #include "htmlP.h"
+#include "intprops.h"
 #include "misc.h"
 #include "settings.h"
 #include "str.h"
@@ -194,7 +195,7 @@ expand_name (char *bp, char *ep)
 static const char *
 find_defn_value (const char *key)
 {
-  static char buf[INT_DIGITS + 1];
+  static char buf[INT_STRLEN_BOUND (int) + 1];
   struct outp_defn *d;
 
   for (d = outp_macros; d; d = d->next)
