@@ -1,7 +1,0 @@
-Makefile
-Makefile.in
-evaluate.h
-evaluate.inc
-operations.h
-optimize.inc
-parse.inc
