@@ -43,7 +43,7 @@ described below:
 * Document Record::             
 * Machine int32 Info Record::   
 * Machine flt64 Info Record::   
-* Auxilliary Variable Parameter Record::
+* Auxiliary Variable Parameter Record::
 * Long Variable Names Record::
 * Miscellaneous Informational Records::  
 * Dictionary Termination Record::  
@@ -472,7 +472,7 @@ Character code.  1 indicates EBCDIC, 2 indicates 7-bit ASCII, 3
 indicates 8-bit ASCII, 4 indicates DEC Kanji.
 @end table
 
-@node Machine flt64 Info Record, Auxilliary Variable Parameter Record, Machine int32 Info Record, Data File Format
+@node Machine flt64 Info Record, Auxiliary Variable Parameter Record, Machine int32 Info Record, Data File Format
 @section Machine @code{flt64} Info Record
 
 There must be no more than one machine @code{flt64} info record per
@@ -518,10 +518,10 @@ The value used for HIGHEST in missing values.
 The value used for LOWEST in missing values.
 @end table
 
-@node Auxilliary Variable Parameter Record, Long Variable Names Record, Machine flt64 Info Record, Data File Format
-@section Auxilliary Variable Parameter Record
+@node Auxiliary Variable Parameter Record, Long Variable Names Record, Machine flt64 Info Record, Data File Format
+@section Auxiliary Variable Parameter Record
 
-There must be no more than one auxilliary variable parameter record per
+There must be no more than one auxiliary variable parameter record per
 system file.  This  record must follow the variable
 records and precede the dictionary termination record.
 
@@ -550,7 +550,7 @@ Record subtype.  Always set to 11.
 The size  @code{int32}. Always set to 4.
 
 @item int32 count;
-The total number of bytes in @code{aux_params} divided by 3.
+The total number of records in @code{aux_params}, multiplied by 3.
 
 @item struct aux_params aux_params[];
 An array of @code{struct aux_params}.   The order of the elements corresponds 
@@ -569,11 +569,11 @@ struct aux_params
 @item int32 measure
 The measurement type of the variable:  
 @table @asis
-@item 0
-Nominal Scale
 @item 1
-Ordinal Scale
+Nominal Scale
 @item 2
+Ordinal Scale
+@item 3
 Continuous Scale
 @end table
 
@@ -600,7 +600,7 @@ Centre aligned
 
 
 
-@node Long Variable Names Record, Miscellaneous Informational Records, Auxilliary Variable Parameter Record,  Data File Format
+@node Long Variable Names Record, Miscellaneous Informational Records, Auxiliary Variable Parameter Record,  Data File Format
 @section Long Variable Names Record
 
 There must be no more than one long variable names record per

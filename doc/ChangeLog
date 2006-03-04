@@ -1,3 +1,15 @@
+Wed Feb 15 21:53:12 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-file-format.texi: Fix values for "measure" in Auxiliary
+	Variable Parameter Record.  Thanks to Oliver Bock <oliver@g7.org>
+	for reporting this bug.  Fixes bug #15763.
+
+Tue Feb 14 21:34:06 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-file-format.texi: Fix description of "count" in Auxiliary
+	Variable Parameter Record.  Thanks to Oliver Bock <oliver@g7.org>
+	for reporting this bug.  Fixes bug #15756. 
+
 Sun Sep 25 16:10:36 2005  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Make ni.texi a prereq for HTML output.  Thanks to

@@ -1,13 +1,10 @@
-Time-stamp: <2005-08-02 10:24:25 blp>
+Time-stamp: <2006-02-17 22:06:31 blp>
 
 Get rid of need for GNU diff in `make check'.
 
 Get rid of need for file name canonicalization.
 
-Use getsubopt()?
-
-Format specifier and missing values code needs to be rewritten for lowered
-crappiness.
+Format specifier code needs to be rewritten for lowered crappiness.
 
 CROSSTABS needs to be re-examined.
 
@@ -23,16 +20,7 @@ Add NOT_REACHED() macro.
 
 Add compression to casefiles.
 
-There needs to be another layer onto the lexer, which should probably be
-entirely rewritten anyway.  The lexer needs to read entire *commands* at a
-time, not just a *line* at a time.  It also needs to support arbitrary putback,
-probably by just backing up the "current position" in the command buffer.
-
 Scratch variables should not be available for use following TEMPORARY.
-
-Details of N OF CASES, SAMPLE, FILTER, PROCESS IF, TEMPORARY, etc., need to be
-checked against the documentation.  See notes on these at end of file for a
-start.
 
 Check our results against the NIST StRD benchmark results at
 strd.itl.nist.gov/div898/strd
@@ -54,8 +42,6 @@ Cell footnotes.
 PostScript driver should emit thin lines, then thick lines, to optimize time
 and space.
 
-New functions?  var_name_or_label(), tab_value_or_label()
-
 Should be able to bottom-justify cells.  It'll be expensive, though, by
 requiring an extra metrics call.
 
@@ -69,8 +55,6 @@ bottom borders on middle pages.)
 
 Support multi-line titles on tables. (For the first page only, presumably.)
 
-Rewrite the convert_F() function in data-out.c to be nicer code.
-
 In addition to searching the source directory, we should search the current
 directory (for data files).  (Yuck!)
 
@@ -78,8 +62,6 @@ Fix line-too-long problems in PostScript code, instead of covering them up.
 setlinecap is *not* a proper solution.
 
 Fix som_columns().
-
-Has glob.c been pared down enough?
 
 Improve interactivity of output by allowing a `commit' function for a page.
 This will also allow for infinite-length pages.
@@ -92,15 +74,8 @@ created or modified by a previous transformation.
 
 The manual: add text, add index entries, add examples.
 
-The inline file should be improved: There should be *real* detection of whether
-it is used (in dfm.c:cmd_begin_data), not after-the-fact detection.
-
 Figure out a stylesheet for messages displayed by PSPP: i.e., what quotation
 marks around filenames, etc.
-
-New SET subcommand: OUTPUT.  i.e., SET OUTPUT="filename" to send output to that
-file; SET OUTPUT="filename"(APPEND) to append to that file; SET OUTPUT=DEFAULT
-to reset everything.  There might be a better approach, though--think about it.
 
 From Zvi Grauer <z.grauer@csuohio.edu> and <zvi@mail.ohio.net>:
 
@@ -119,44 +94,6 @@ From Zvi Grauer <z.grauer@csuohio.edu> and <zvi@mail.ohio.net>:
    5. Conjoint analysis
 
    6. Categorical data analsys ?
-
-IDEAS
------
-
-In addition to an "infinite journal", we should keep a number of
-individual-session journals, pspp.jnl-1 through pspp.jnl-X, renaming and
-deleting as needed.  All of the journals should have date/time comments.
-
-Qualifiers for variables giving type--categorical, ordinal, ...
-
-Analysis Wizard
-
-Consider consequences of xmalloc(), fail(), hcf() in interactive
-use:
-a. Can we safely just use setjmp()/longjmp()?
-b. Will that leak memory?
-i. I don't think so: all procedure-created memory is either
-garbage-collected or globally-accessible.
-ii. But you never know... esp. w/o Checker.
-c. Is this too early to worry? too late?
-
-Need to implement a shared buffer for funny functions that require relatively
-large permanent transient buffers (1024 bytes or so), that is, buffers that are
-permanent in the sense that they probably shouldn't be deallocated but are only
-used from time to time, buffers that can't be allocated on the stack because
-they are of variable and unpredictable but usually relatively small (usually
-line buffers).  There are too many of these lurking around; can save a sizeable
-amount of space at very little overhead and with very little effort by merging
-them.
-
-Clever multiplatform GUI idea (due partly to John Williams): write a GUI in
-Java where each statistical procedure dialog box could be downloaded from the
-server independently.  The statistical procedures would run on (the/a) server
-and results would be reported through HTML tables viewed with the user's choice
-of web browsers.  Help could be implemented through the browser as well.
-
-HOWTOs
-------
 
 MORE NOTES/IDEAS/BUGS
 ---------------------
