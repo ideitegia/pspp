@@ -1,3 +1,13 @@
+Sat Mar  4 11:53:36 2006  Ben Pfaff  <blp@gnu.org>
+
+	* acinclude.m4: Remove BLP_RANDOM.  Its results were unused.
+	Remove BLP_IS_SPRINTF_GOOD.  We now assume that the system's
+	sprintf() returns the correct value.
+
+	* configure.ac: Don't call those macros.
+
+John Darrington:
+
 	* Deleted Make.build (inserted its contents into Makefile.am).
 	
 	* Moved the version number to 0.4.1

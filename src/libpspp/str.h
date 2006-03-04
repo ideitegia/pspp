@@ -43,57 +43,6 @@
 #define strrchr rindex
 #endif
 
-/* sprintf() wrapper functions for convenience. */
-
-/* spprintf() calls sprintf() and returns the address of the null
-   terminator in the resulting string.  It should be portable the way
-   it's been implemented. */
-#if __GNUC__
-  #if HAVE_GOOD_SPRINTF
-    #define spprintf(BUF, FORMAT, ARGS...)			\
-	    ((BUF) + sprintf ((BUF), (FORMAT) , ## ARGS))
-  #else
-    #define spprintf(BUF, FORMAT, ARGS...)		\
-	    ({ sprintf ((BUF), (FORMAT) , ## ARGS); 	\
-               strchr ((BUF), 0); })
-  #endif
-#else /* Not GNU C. */
-  char *spprintf (char *buf, const char *format, ...);
-#endif /* Not GNU C. */
-
-/* nsprintf() calls sprintf() and returns the strlen() of the
-   resulting string.  It should be portable the way it's been
-   implemented. */
-#if __GNUC__
-  #if HAVE_GOOD_SPRINTF
-    #define nsprintf(BUF, FORMAT, ARGS...)		\
-	    (sprintf ((BUF), (FORMAT) , ## ARGS))
-    #define nvsprintf(BUF, FORMAT, ARGS)		\
-	    (vsprintf ((BUF), (FORMAT), (ARGS)))
-  #else /* Not good sprintf(). */
-    #define nsprintf(BUF, FORMAT, ARGS...)		\
-	    ({						\
-	      char *pbuf = BUF;				\
-	      sprintf ((pbuf), (FORMAT) , ## ARGS);	\
-	      strlen (pbuf);				\
-	    })
-    #define nvsprintf(BUF, FORMAT, ARGS)		\
-	    ({						\
-	      char *pbuf = BUF;				\
-	      vsprintf ((pbuf), (FORMAT), (ARGS));	\
-	      strlen (pbuf);				\
-	    })
-  #endif /* Not good sprintf(). */
-#else /* Not GNU C. */
-  #if HAVE_GOOD_SPRINTF
-    #define nsprintf sprintf
-    #define nvsprintf vsprintf
-  #else /* Not good sprintf(). */
-    int nsprintf (char *buf, const char *format, ...);
-    int nvsprintf (char *buf, const char *format, va_list args);
-  #endif /* Not good sprintf(). */
-#endif /* Not GNU C. */
-
 /* Miscellaneous. */
 
 void buf_reverse (char *, size_t);
@@ -237,5 +186,23 @@ ds_end (const struct string *st)
   return st->string + st->length;
 }
 #endif
+
+#define nsprintf sprintf
+#define nvsprintf vsprintf
+
+/* Formats FORMAT into DST, as with sprintf(), and returns the
+   address of the terminating null written to DST. */
+static inline char *
+spprintf (char *dst, const char *format, ...) 
+{
+  va_list args;
+  int count;
+
+  va_start (args, format);
+  count = nvsprintf (dst, format, args);
+  va_end (args);
+
+  return dst + count;
+}
 
 #endif /* str_h */

@@ -38,51 +38,6 @@ AC_DEFINE_UNQUOTED([INT_DIGITS], $blp_int_digits,
          `long's.])
 AC_MSG_RESULT($blp_int_digits) ])dnl
 
-dnl Check quality of this machine's sprintf implementation.
-
-AC_DEFUN([BLP_IS_SPRINTF_GOOD],
-[
-AC_MSG_CHECKING(if sprintf returns a char count)
-AC_CACHE_VAL(blp_is_sprintf_good,
-             [AC_TRY_RUN([#include <stdio.h>
-                          int 
-                          main()
-                          {
-                            char s[8];
-                            exit((int)sprintf(s, "abcdefg")!=7);
-                          }
-                         ], 
-                         eval "blp_is_sprintf_good=yes",
-			 eval "blp_is_sprintf_good=no",
-			 eval "blp_is_sprintf_good=no")
-             ])
-if test "$blp_is_sprintf_good" = yes; then
-  AC_DEFINE([HAVE_GOOD_SPRINTF], 1, 
-	[Define if sprintf() returns the number of characters written
-         to the destination string, excluding the null terminator.])
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_RESULT(no)
-fi
-])dnl
-
-dnl Check for proper random number generator.
-
-AC_DEFUN([BLP_RANDOM],
-[
-AC_MSG_CHECKING(random number generator)
-AC_CACHE_VAL(blp_random_good, 
-  AC_TRY_COMPILE([#include <stdlib.h>], [int x=RAND_MAX;], 
-    blp_random_good=yes, blp_random_good=no))
-if test "$blp_random_good" = yes; then
-  AC_DEFINE([HAVE_GOOD_RANDOM], 1, 
-	[Define if rand() and company work according to ANSI.])
-  AC_MSG_RESULT(good)
-else
-  AC_MSG_RESULT(bad)
-fi
-])dnl
-
 dnl Check for readline and history libraries.
 
 dnl Modified for PSPP by Ben Pfaff, based on readline.m4 serial 3 from

@@ -26,53 +26,6 @@
 #include "alloc.h"
 #include "message.h"
 
-/* sprintf() wrapper functions for convenience. */
-
-#if !__GNUC__
-char *
-spprintf (char *buf, const char *format,...)
-{
-#if HAVE_GOOD_SPRINTF
-  int count;
-#endif
-  va_list args;
-
-  va_start (args, format);
-#if HAVE_GOOD_SPRINTF
-  count =
-#endif
-    vsprintf (buf, format, args);
-  va_end (args);
-
-#if HAVE_GOOD_SPRINTF
-  return &buf[count];
-#else
-  return strchr (buf, 0);
-#endif
-}
-#endif /* !__GNUC__ */
-
-#if !__GNUC__ && !HAVE_GOOD_SPRINTF
-int
-nsprintf (char *buf, const char *format,...)
-{
-  va_list args;
-
-  va_start (args, format);
-  vsprintf (buf, format, args);
-  va_end (args);
-
-  return strlen (buf);
-}
-
-int
-nvsprintf (char *buf, const char *format, va_list args)
-{
-  vsprintf (buf, format, args);
-  return strlen (buf);
-}
-#endif /* Not GNU C and not good sprintf(). */
-
 /* Reverses the order of NBYTES bytes at address P, thus converting
    between little- and big-endian byte orders.  */
 void
