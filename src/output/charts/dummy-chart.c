@@ -26,6 +26,7 @@
 #include "plot-chart.h"
 #include "cartesian.h"
 #include <gsl/gsl_histogram.h>
+#include "compiler.h"
 
 
 #ifndef NO_CHARTS

@@ -1,8 +1,5 @@
 /* -*- C -*- */
 
-/* Used by separable libraries to enable PSPP-specific features. */
-#define PSPP 1
-
 /*
  *
  * Debugging
@@ -18,43 +15,6 @@
 
 #if !HAVE_LIBPLOT
 #define NO_CHARTS 1
-#endif
-
-/* Define these if DEBUGGING is off and you want to make certain
-   additional optimizations. */
-#if !DEBUGGING
-/* #define NDEBUG 1 */			/* disable assert() sanity checks */
-#endif
-
-/* Compilers. */
-
-/* Use proper keywords. */
-#if __GNUC__ > 1 && !defined (inline)
-#define inline __inline__
-#endif
-
-/* GNU C allows the programmer to declare that certain functions take
-   printf-like arguments, never return, etc.  Conditionalize these
-   declarations on whether gcc is in use. */
-#if __GNUC__ > 1
-#define ATTRIBUTE(X) __attribute__ (X)
-
-/* Only necessary because of a wart in gnulib's xalloc.h. */
-#define __attribute__(X) __attribute__ (X)
-#else
-#define ATTRIBUTE(X)
-#endif
-
-#define UNUSED ATTRIBUTE ((unused))
-#define NO_RETURN ATTRIBUTE ((noreturn))
-#define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (printf, FMT, FIRST)))
-#define SCANF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (scanf, FMT, FIRST)))
-
-/* This attribute was added late in the GCC 2.x cycle. */
-#if __GNUC__ > 2
-#define MALLOC_LIKE ATTRIBUTE ((malloc))
-#else
-#define MALLOC_LIKE
 #endif
 
 /* Filesystems. */

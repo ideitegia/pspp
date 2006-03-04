@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "command.h"
+#include "compiler.h"
 #include "message.h"
 #include "expressions/public.h"
 #include "lexer.h"

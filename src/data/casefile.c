@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include "alloc.h"
 #include "case.h"
+#include "compiler.h"
 #include "message.h"
 #include "full-read.h"
 #include "full-write.h"

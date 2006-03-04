@@ -22,6 +22,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "compiler.h"
 #include "data-in.h"
 #include "data-reader.h"
 #include "dictionary.h"

@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include "alloc.h"
+#include "compiler.h"
 #include "message.h"
 #include "filename.h"
 #include "getline.h"

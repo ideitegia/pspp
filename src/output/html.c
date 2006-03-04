@@ -34,6 +34,7 @@
 #endif
 
 #include "alloc.h"
+#include "compiler.h"
 #include "message.h"
 #include "filename.h"
 #include "getline.h"

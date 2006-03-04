@@ -28,6 +28,7 @@
 #include <setjmp.h>
 #include "alloc.h"
 #include "case.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "message.h"
 #include "file-handle-def.h"

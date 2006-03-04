@@ -23,10 +23,11 @@
 #include <assert.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "array.h"
 #include "alloc.h"
-#include <stdbool.h>
+#include "compiler.h"
 #include "misc.h"
 #include "str.h"
 

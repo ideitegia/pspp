@@ -25,6 +25,7 @@
 #include "any-writer.h"
 #include "case.h"
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "message.h"
 #include "file-handle.h"

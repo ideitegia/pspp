@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include "message.h"
 #include "calendar.h"
+#include "compiler.h"
 #include "identifier.h"
 #include "magic.h"
 #include "misc.h"

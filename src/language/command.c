@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "alloc.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "message.h"
 #include "lexer.h"

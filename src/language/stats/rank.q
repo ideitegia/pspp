@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <config.h>
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "sort.h"
 #include "variable.h"

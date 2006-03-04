@@ -24,6 +24,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "intprops.h"
 #include "lexer.h"

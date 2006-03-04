@@ -26,6 +26,7 @@
 #include <time.h>
 #include "alloc.h"
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "line-buffer.h"
 #include "lexer.h"

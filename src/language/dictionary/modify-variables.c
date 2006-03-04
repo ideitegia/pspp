@@ -24,6 +24,7 @@
 #include "alloc.h"
 #include "bit-vector.h"
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "message.h"
 #include "hash.h"

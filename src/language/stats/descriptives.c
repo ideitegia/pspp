@@ -29,6 +29,7 @@
 #include "case.h"
 #include "casefile.h"
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "lexer.h"
 #include "message.h"

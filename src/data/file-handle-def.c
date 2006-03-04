@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
+#include "compiler.h"
 #include "filename.h"
 #include "message.h"
 #include "magic.h"

@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "case.h"
 #include "dictionary.h"
 #include "command.h"
+#include "compiler.h"
 #include "lexer.h"
 #include "message.h"
 #include "magic.h"

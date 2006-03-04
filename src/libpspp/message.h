@@ -22,6 +22,7 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include "compiler.h"
 
 /* Message classes. */
 enum

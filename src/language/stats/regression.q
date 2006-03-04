@@ -29,6 +29,7 @@
 #include "category.h"
 #include "cat-routines.h"
 #include "command.h"
+#include "compiler.h"
 #include "design-matrix.h"
 #include "dictionary.h"
 #include "message.h"

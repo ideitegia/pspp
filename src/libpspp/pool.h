@@ -21,6 +21,7 @@
 #define pool_h 1
 
 #include <stdio.h>
+#include "compiler.h"
 
 /* Maximum size of a suballocated block.  Larger blocks are allocated
    directly with malloc() to avoid memory wastage at the end of a

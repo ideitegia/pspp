@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include "case.h"
+#include "compiler.h"
 #include "data-in.h"
 #include "dictionary.h"
 #include "message.h"

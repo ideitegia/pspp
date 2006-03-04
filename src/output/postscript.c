@@ -36,6 +36,7 @@
 
 #include "alloc.h"
 #include "bit-vector.h"
+#include "compiler.h"
 #include "message.h"
 #include "filename.h"
 #include "font.h"

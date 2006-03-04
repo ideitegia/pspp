@@ -20,6 +20,8 @@
 /* PORTME: There might easily be alignment problems with some of these
    structures. */
 
+#include "compiler.h"
+
 /* This attribute might avoid some problems.  On the other hand... */
 #define P ATTRIBUTE ((packed))
 

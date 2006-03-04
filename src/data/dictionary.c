@@ -26,6 +26,7 @@
 #include "case.h"
 #include "category.h"
 #include "cat-routines.h"
+#include "compiler.h"
 #include "message.h"
 #include "hash.h"
 #include "misc.h"

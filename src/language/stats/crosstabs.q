@@ -42,6 +42,7 @@
 #include "hash.h"
 #include "pool.h"
 #include "command.h"
+#include "compiler.h"
 #include "lexer.h"
 #include "message.h"
 #include "magic.h"

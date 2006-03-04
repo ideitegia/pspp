@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "compiler.h"
 #include "memcasecmp.h"
 #include "memmem.h"
 #include "snprintf.h"

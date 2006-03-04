@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include "message.h"
 #include "alloc.h"
+#include "compiler.h"
 #include "format.h"
 #include "magic.h"
 #include "misc.h"

@@ -32,6 +32,7 @@
 #include "alloc.h"
 #include "bit-vector.h"
 #include "case.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "hash.h"
 #include "pool.h"

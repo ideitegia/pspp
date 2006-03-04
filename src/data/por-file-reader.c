@@ -32,6 +32,7 @@
 #include "alloc.h"
 #include <stdbool.h>
 #include "case.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "format.h"

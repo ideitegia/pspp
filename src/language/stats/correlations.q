@@ -20,6 +20,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "command.h"

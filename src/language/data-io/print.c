@@ -25,6 +25,7 @@
 #include "alloc.h"
 #include "case.h"
 #include "command.h"
+#include "compiler.h"
 #include "data-writer.h"
 #include "message.h"
 #include "expressions/public.h"

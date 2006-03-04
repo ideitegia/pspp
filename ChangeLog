@@ -1,3 +1,8 @@
+Sat Mar  4 12:58:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	* pref.h.orig: Move GCC attribute declarations to
+	new file src/libpspp/compiler.h.
+
 Sat Mar  4 12:27:06 2006  Ben Pfaff  <blp@gnu.org>
 
 	* Smake: Require "intprops" gnulib module.

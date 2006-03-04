@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include "message.h"
 #include <stdlib.h>
+#include "compiler.h"
 #include "misc.h"
 #include "identifier.h"
 #include "str.h"

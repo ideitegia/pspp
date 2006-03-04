@@ -28,6 +28,7 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#include "compiler.h"
 #include "str.h"
 
 

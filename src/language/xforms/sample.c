@@ -24,6 +24,7 @@
 #include <math.h>
 #include "alloc.h"
 #include "command.h"
+#include "compiler.h"
 #include "message.h"
 #include "lexer.h"
 #include "random.h"

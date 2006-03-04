@@ -2,6 +2,7 @@
 #include "control-stack.h"
 #include <assert.h>
 #include <stdlib.h>
+#include "compiler.h"
 #include "message.h"
 #include "xalloc.h"
 

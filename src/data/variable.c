@@ -22,6 +22,7 @@
 #include "message.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "hash.h"
 #include "identifier.h"

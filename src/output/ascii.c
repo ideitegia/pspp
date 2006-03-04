@@ -26,6 +26,7 @@
 #include "alloc.h"
 #include "message.h"
 #include "chart.h"
+#include "compiler.h"
 #include "filename.h"
 #include "misc.h"
 #include "output.h"

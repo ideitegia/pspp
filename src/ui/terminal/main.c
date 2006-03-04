@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include "command-line.h"
 #include "command.h"
+#include "compiler.h"
 #include "dictionary.h"
 #include "message.h"
 #include "file-handle-def.h"

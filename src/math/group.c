@@ -20,6 +20,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include "alloc.h"
+#include "compiler.h"
 #include "hash.h"
 #include "group.h"
 #include "group-proc.h"

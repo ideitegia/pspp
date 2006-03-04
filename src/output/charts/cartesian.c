@@ -23,6 +23,7 @@
 #include <assert.h>
 #include "plot-chart.h"
 #include "cartesian.h"
+#include "compiler.h"
 
 
 
