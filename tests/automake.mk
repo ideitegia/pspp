@@ -1,0 +1,127 @@
+## Process this file with automake to produce Makefile.in  -*- makefile -*-
+
+TESTS_ENVIRONMENT = top_srcdir=${top_srcdir} top_builddir=${top_builddir}
+TESTS_ENVIRONMENT += PERL='@PERL@'
+TESTS = \
+	tests/command/aggregate.sh \
+	tests/command/autorecod.sh \
+	tests/command/beg-data.sh \
+	tests/command/bignum.sh \
+	tests/command/count.sh \
+	tests/command/data-list.sh \
+	tests/command/do-repeat.sh \
+	tests/command/erase.sh \
+	tests/command/examine.sh \
+	tests/command/examine-extremes.sh \
+	tests/command/examine-percentiles.sh \
+	tests/command/file-label.sh \
+	tests/command/file-handle.sh \
+	tests/command/filter.sh \
+	tests/command/flip.sh \
+	tests/command/import-export.sh \
+	tests/command/lag.sh \
+	tests/command/list.sh \
+	tests/command/loop.sh \
+	tests/command/longvars.sh \
+	tests/command/match-files.sh \
+	tests/command/missing-values.sh \
+	tests/command/no_case_size.sh \
+	tests/command/oneway.sh \
+	tests/command/oneway-missing.sh \
+	tests/command/oneway-with-splits.sh \
+	tests/command/permissions.sh \
+	tests/command/print.sh \
+	tests/command/rename.sh \
+	tests/command/sample.sh \
+	tests/command/sort.sh \
+	tests/command/sysfiles.sh \
+	tests/command/sysfiles-old.sh \
+	tests/command/sysfile-info.sh \
+	tests/command/split-file.sh \
+	tests/command/t-test-1-indep-val.sh \
+	tests/command/t-test-1-sample-missing-anal.sh \
+	tests/command/t-test-1-sample-missing-list.sh \
+	tests/command/t-test-1s.sh \
+	tests/command/t-test-groups.sh \
+	tests/command/t-test-indep-missing-anal.sh \
+	tests/command/t-test-indep-missing-list.sh \
+	tests/command/t-test-paired-missing-anal.sh \
+	tests/command/t-test-paired-missing-list.sh \
+	tests/command/t-test-pairs.sh \
+	tests/command/trimmed-mean.sh \
+	tests/command/tabs.sh \
+	tests/command/use.sh \
+	tests/command/weight.sh \
+	tests/bugs/agg_crash.sh \
+	tests/bugs/agg-crash-2.sh \
+	tests/bugs/alpha-freq.sh \
+	tests/bugs/big-input.sh \
+	tests/bugs/big-input-2.sh \
+	tests/bugs/comment-at-eof.sh \
+	tests/bugs/compute-fmt.sh \
+	tests/bugs/crosstabs.sh \
+	tests/bugs/crosstabs-crash.sh \
+	tests/bugs/curtailed.sh \
+	tests/bugs/data-crash.sh \
+	tests/bugs/double-frequency.sh \
+	tests/bugs/get.sh \
+	tests/bugs/examine-1sample.sh \
+	tests/bugs/examine-missing.sh \
+	tests/bugs/get-no-file.sh \
+	tests/bugs/html-frequency.sh \
+	tests/bugs/if_crash.sh \
+	tests/bugs/input-crash.sh \
+	tests/bugs/lag_crash.sh \
+	tests/bugs/match-files-scratch.sh \
+	tests/bugs/multipass.sh \
+	tests/bugs/random.sh \
+	tests/bugs/t-test-with-temp.sh \
+	tests/bugs/t-test.sh \
+	tests/bugs/t-test-alpha.sh \
+	tests/bugs/t-test-alpha2.sh \
+	tests/bugs/temporary.sh \
+	tests/bugs/val-labs.sh \
+	tests/bugs/val-labs-trailing-slash.sh \
+	tests/bugs/recode-copy-bug.sh \
+	tests/bugs/computebug.sh \
+	tests/bugs/compute-lv.sh \
+	tests/bugs/temp-freq.sh \
+	tests/xforms/casefile.sh \
+	tests/stats/descript-basic.sh \
+	tests/stats/descript-missing.sh \
+	tests/stats/descript-mean-bug.sh \
+	tests/stats/moments.sh \
+	tests/stats/percentiles-compatible.sh \
+	tests/stats/ntiles.sh \
+	tests/stats/percentiles-enhanced.sh \
+	tests/expressions/expressions.sh \
+	tests/expressions/epoch.sh \
+	tests/expressions/randist.sh \
+	tests/expressions/variables.sh \
+	tests/expressions/vectors.sh
+
+EXTRA_DIST += $(TESTS) tests/weighting.data tests/data-list.data tests/list.data \
+	tests/no_case_size.sav \
+	tests/coverage.sh tests/test_template \
+	tests/bugs/computebug.stat tests/bugs/computebug.out \
+	tests/bugs/recode-copy-bug-1.stat tests/bugs/recode-copy-bug-2.stat \
+	tests/bugs/recode-copy-bug-1.out tests/bugs/recode-copy-bug-2.out \
+	tests/expressions/randist/beta.out \
+	tests/expressions/randist/cauchy.out \
+	tests/expressions/randist/chisq.out \
+	tests/expressions/randist/exp.out \
+	tests/expressions/randist/f.out \
+	tests/expressions/randist/gamma.out \
+	tests/expressions/randist/laplace.out \
+	tests/expressions/randist/lnormal.out \
+	tests/expressions/randist/logistic.out \
+	tests/expressions/randist/normal.out \
+	tests/expressions/randist/pareto.out \
+	tests/expressions/randist/randist.pl \
+	tests/expressions/randist/randist.txt \
+	tests/expressions/randist/t.out \
+	tests/expressions/randist/uniform.out \
+	tests/expressions/randist/weibull.out
+
+CLEANFILES += *.save pspp.* foo*
+
