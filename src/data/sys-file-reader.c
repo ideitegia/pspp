@@ -1399,9 +1399,13 @@ read_compressed_data (struct sfm_reader *r, flt64 *buf)
       if (r->ptr == NULL || r->ptr >= r->end) 
         {
           if (!buffer_input (r))
-            if (buf_beg != buf)
-              lose ((ME, _("%s: Unexpected end of file."),
-                     fh_get_filename (r->fh))); 
+	    {
+	      if (buf_beg != buf)
+		lose ((ME, _("%s: Unexpected end of file."),
+		       fh_get_filename (r->fh))); 
+	      else
+		return 0;
+	    }
         }
       memcpy (r->x, r->ptr++, sizeof *buf);
       p = r->x;

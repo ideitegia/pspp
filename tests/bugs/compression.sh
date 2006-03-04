@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This program tests ....
+# This program tests that compressed system files can be read and written
 
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
@@ -51,18 +51,39 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-put test set up here ...
+cat > $TESTFILE <<EOF
+DATA LIST LIST /x * y (a200).
+BEGIN DATA.
+1.2 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+.   yyyyyyyyyyyyyyy
+0   ddddddddddddddddddddddddddddddd
+101 z
+END DATA.
+
+SAVE OUTFILE='$TEMPDIR/com.sav' /COMPRESS .
+
+GET FILE='$TEMPDIR/com.sav'.
+
+LIST.
+
+EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
 $SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then fail ; fi
+
+# Make sure the file really was compressed
+activity="inspect system file"
+dd if=$TEMPDIR/com.sav bs=1 skip=72 count=1 2> /dev/null | od > $TEMPDIR/file 
 if [ $? -ne 0 ] ; then no_result ; fi
 
-
-
-put test here
-
+activity="check compression byte"
+diff $TEMPDIR/file - <<EOF
+0000000 000001
+0000001
+EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 

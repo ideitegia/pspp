@@ -1,3 +1,7 @@
+Sat Mar  4 12:50:48 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* sys-file-reader.c: Fixed bug reading compressed files.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* Numerous renames.  See src/ChangeLog for details.

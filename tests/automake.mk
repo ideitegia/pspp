@@ -59,6 +59,7 @@ TESTS = \
 	tests/bugs/big-input-2.sh \
 	tests/bugs/comment-at-eof.sh \
 	tests/bugs/compute-fmt.sh \
+	tests/bugs/compression.sh \
 	tests/bugs/crosstabs.sh \
 	tests/bugs/crosstabs-crash.sh \
 	tests/bugs/curtailed.sh \
