@@ -1,0 +1,3 @@
+    * Separated the data out of the GtkSheet.  The gtksheet should now be
+    regarded as a way of looking into the data.  The data is represented by a
+    GSheetModel and the rows and columns by  GSheetRow and GSheetColumn.

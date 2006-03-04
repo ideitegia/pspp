@@ -1,0 +1,20 @@
+Needed:
+
+    - Warnings on domain errors (see "Domain Errors" in SPSS manual)
+      and documentation of such.
+
+    - Finish polishing code.  Many functions need comments.
+
+    - Test the remaining statistical distributions.
+
+    - Implement unimplemented functions.
+
+    - Check treatment of 0 bytes in expressions is correct.
+
+Extension ideas:
+
+    - Short-circuit evaluation of logical ops
+
+    - Conditional operator with ? :
+
+    - User-defined functions.

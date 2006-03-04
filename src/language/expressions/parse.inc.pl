@@ -1,0 +1,73 @@
+do 'generate.pl';
+
+sub generate_output {
+    my (@members) = ("\"\"", "\"\"", 0, 0, 0, "{}", 0, 0);
+    print "{", join (', ', @members), "},\n";
+
+    for my $type (@types) {
+	next if $type->{ROLE} eq 'fixed';
+
+	my (@members) = ("\"$type->{NAME}\"", "\"$type->{HUMAN_NAME}\"",
+			 0, "OP_$type->{NAME}", 0, "{}", 0, 0);
+	print "{", join (', ', @members), "},\n";
+    }
+
+    for my $opname (@order) {
+	my ($op) = $ops{$opname};
+
+	my (@members);
+
+	push (@members, "\"$op->{NAME}\"");
+
+	if ($op->{CATEGORY} eq 'function') {
+	    my (@args, @opt_args);
+	    for my $arg (@{$op->{ARGS}}) {
+		push (@args, $arg->{TYPE}{HUMAN_NAME}) if !defined $arg->{IDX};
+	    }
+
+	    if (my ($array) = array_arg ($op)) {
+		if (!defined $op->{MIN_VALID}) {
+		    my (@array_args);
+		    for (my $i = 0; $i < $array->{TIMES}; $i++) {
+			push (@array_args, $array->{TYPE}{HUMAN_NAME});
+		    }
+		    push (@args, @array_args);
+		    @opt_args = @array_args;
+		} else {
+		    for (my $i = 0; $i < $op->{MIN_VALID}; $i++) {
+			push (@args, $array->{TYPE}{HUMAN_NAME});
+		    }
+		    push (@opt_args, $array->{TYPE}{HUMAN_NAME});
+		}
+	    }
+	    my ($human) = "$op->{NAME}(" . join (', ', @args);
+	    $human .= '[, ' . join (', ', @opt_args) . ']...' if @opt_args;
+	    $human .= ')';
+	    push (@members, "\"$human\"");
+	} else {
+	    push (@members, "NULL");
+	}
+
+	my (@flags);
+	push (@flags, "OPF_ABSORB_MISS") if defined $op->{ABSORB_MISS};
+	push (@flags, "OPF_ARRAY_OPERAND") if array_arg ($op);
+	push (@flags, "OPF_MIN_VALID") if defined $op->{MIN_VALID};
+	push (@flags, "OPF_NONOPTIMIZABLE") if !$op->{OPTIMIZABLE};
+	push (@flags, "OPF_EXTENSION") if $op->{EXTENSION};
+	push (@flags, "OPF_UNIMPLEMENTED") if $op->{UNIMPLEMENTED};
+	push (@members, @flags ? join (' | ', @flags) : 0);
+
+	push (@members, "OP_$op->{RETURNS}{NAME}");
+
+	push (@members, scalar (@{$op->{ARGS}}));
+
+	my (@arg_types) = map ("OP_$_->{TYPE}{NAME}", @{$op->{ARGS}});
+	push (@members, "{" . join (', ', @arg_types) . "}");
+
+	push (@members, $op->{MIN_VALID} || 0);
+
+	push (@members, array_arg ($op) ? ${array_arg ($op)}{TIMES} : 0);
+
+	print "{", join (', ', @members), "},\n";
+    }
+}
