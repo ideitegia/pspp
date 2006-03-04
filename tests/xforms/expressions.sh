@@ -4,10 +4,13 @@
 
 TEMPDIR=/tmp/pspp-tst-$$
 
-here=`pwd`;
+# ensure that top_builddir  are absolute
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+top_builddir=`cd $top_builddir; pwd`
 
 # ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
+top_srcdir=`cd $top_srcdir; pwd`
 
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
@@ -1003,7 +1006,7 @@ for d in *.expr; do
 
 	# Run.
 	activity="$base, $optimize: run program"
-	$SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii \
+	$SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii \
 	    $base.$optimize.stat > $base.$optimize.err 2> $base.$optimize.out
 
 	# Compare.

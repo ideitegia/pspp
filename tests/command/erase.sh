@@ -5,10 +5,13 @@
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
 
-here=`pwd`;
+# ensure that top_builddir  are absolute
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+top_builddir=`cd $top_builddir; pwd`
 
 # ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
+top_srcdir=`cd $top_srcdir; pwd`
 
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
@@ -73,7 +76,7 @@ if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi
 
 # This command must fail
 activity="run prog 1"
-$SUPERVISOR $here/../src/pspp $TESTFILE > /dev/null
+$SUPERVISOR $top_builddir/src/pspp $TESTFILE > /dev/null
 if [ $? -eq 0 ] ; then fail ; fi
 
 
@@ -87,7 +90,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run prog 1"
-$SUPERVISOR $here/../src/pspp $TESTFILE
+$SUPERVISOR $top_builddir/src/pspp $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 # foobar should now be gone

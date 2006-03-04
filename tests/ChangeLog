@@ -1,3 +1,11 @@
+	* Made all the tests work as stand-alone scripts.
+
+Sun Feb 12 19:07:24 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command/do-repeat.sh: New test.
+
+	* bugs/terminate.sh: Removed (no longer applicable).
+
 Fri Nov  4 19:30:34 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/recode-bug.sh: Improve failure reports.

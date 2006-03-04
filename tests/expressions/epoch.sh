@@ -4,10 +4,12 @@
 
 TEMPDIR=/tmp/pspp-tst-$$
 
-here=`pwd`;
+# ensure that top_srcdir and top_builddir  are absolute
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+top_srcdir=`cd $top_srcdir; pwd`
+top_builddir=`cd $top_builddir; pwd`
 
-# ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
 
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
@@ -135,7 +137,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
+$SUPERVISOR $top_builddir/src/pspp --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
 
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/epoch.out
@@ -211,12 +213,7 @@ DATE.DMY(1,1,87) = DATE.DMY(1,1,2087) => true
 DATE.DMY(1,1,99) = DATE.DMY(1,1,2099) => true
 DATE.DMY(1,1,100) => sysmis
 EOF
-
 if [ $? -ne 0 ] ; then no_result ; fi
-
-
-if [ $? -ne 0 ] ; then fail ; fi
-
 
 
 pass;

@@ -1,18 +1,20 @@
-dnl Process this file with autoconf to produce a configure script.
+0dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AX_PREREQ(2.57)
-AC_INIT(pspp, 0.4.0,bug-gnu-pspp@gnu.org)
+AC_INIT(pspp, 0.4.1,bug-gnu-pspp@gnu.org)
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
 AC_GNU_SOURCE
 AC_PROG_CC
-gl_EARLY
+AM_PROG_CC_C_O
 AC_PROG_RANLIB
+gl_EARLY
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
+
 
 dnl Check that Perl is available.
 AC_PATH_PROG([PERL], perl, no)
@@ -41,6 +43,16 @@ if test x"$with_libplot" != x"no" ; then
 fi
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 
+
+AC_ARG_WITH(gui, [  --without-gui         don't build the PSPPIRE gui])
+
+if test x"$with_gui" != x"no" ; then 
+	PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.6.0)
+	PKG_CHECK_MODULES(GLADE, libglade-2.0)
+fi
+AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
+
+
 dnl Check that off_t is defined as an integer type.
 dnl Solaris sometimes declares it as a struct, if it
 dnl thinks that the compiler does not support `long long'.
@@ -60,39 +72,12 @@ AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas developme
 AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,
   AC_MSG_ERROR([You must install development libraries for libgsl version 1.4 or later]))
 
-AC_ARG_WITH(ncurses,
-[  --without-ncurses         don't compile in ncurses command line editing])
+AC_CHECK_LIB(ncurses, tgetent)
+AC_CHECK_HEADERS(termcap.h)
 
-if test "x$with_ncurses" = x"yes"; then 
-AC_CHECK_LIB(ncurses, tgetent, LIBS="-lncurses $LIBS" termcap=yes,
-  AC_CHECK_LIB(termcap, tgetent, LIBS="-ltermcap $LIBS" termcap=yes,
-               termcap=no))
-fi
-
-if test "$termcap" = yes; then
-  AC_CHECK_HEADERS(termcap.h)
-  AC_DEFINE(HAVE_LIBTERMCAP, 1, 
-	[Define if you have the termcap library (-ltermcap).])
-fi
-
-AC_CHECK_LIB(readline, readline)
-if test "$ac_cv_lib_readline_readline" = yes; then
-  AC_CHECK_HEADERS(readline/readline.h)
-  AC_CHECK_LIB(readline, add_history, history=yes,
-    AC_CHECK_LIB(history, add_history, LIBS="-lhistory" history=yes,
-                 history=no))
-  if test "$history" = yes; then
-    AC_CHECK_HEADERS(readline/history.h)
-    AC_DEFINE(HAVE_LIBHISTORY, 1,
-	[Define if you have the history library (-lhistory).])
-  fi
-fi
+PSPP_READLINE
 
 dnl Checks for header files.
-AC_ARG_WITH(valgrind, [  --without-valgrind        don't compile in valgrind])
-if test "x$with_valgrind" != x"no"; then 
- AC_CHECK_HEADERS([valgrind/valgrind.h])
-fi
 AC_CHECK_HEADERS([limits.h memory.h sys/stat.h sys/time.h sys/types.h \
                   fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h] )
 
@@ -118,6 +103,9 @@ AC_DEFINE(FPREP_IEEE754, 1,
 
 AC_C_BIGENDIAN
 
+
+
+
 BLP_IS_SPRINTF_GOOD
 BLP_INT_DIGITS
 BLP_RANDOM
@@ -142,21 +130,16 @@ if test x"$enable_debug" = x"yes"  ; then
   AC_DEFINE(DEBUGGING, 1, [Define to 1 if debugging is enabled.])
 fi
 
-AC_CONFIG_FILES([Makefile m4/Makefile gl/Makefile intl/Makefile po/Makefile.in
-		 lib/Makefile lib/gsl-extras/Makefile lib/linreg/Makefile
-		 doc/Makefile 
-		 src/Makefile src/expressions/Makefile
-		 config/Makefile
-		 tests/Makefile
-		 examples/Makefile])
+AC_CONFIG_FILES([Makefile gl/Makefile intl/Makefile po/Makefile.in])
+
 AC_CONFIG_COMMANDS([pref.h],[
 	   # Copy pref.h from pref.h.orig if prudent
 	   if test ! -f pref.h; then
 	     echo "creating pref.h"
-	     cp $ac_given_srcdir/pref.h.orig pref.h
+	     cp $ac_top_srcdir/pref.h.orig pref.h
 	   elif test "`ls -t pref.h.orig pref.h 2>/dev/null | sed 1q`" = pref.h.orig; then
 	     echo "replacing pref.h with newer pref.h.orig"
-	     cp $ac_given_srcdir/pref.h.orig pref.h
+	     cp $ac_top_srcdir/pref.h.orig pref.h
 	   else
 	     echo "pref.h exists"
 	   fi

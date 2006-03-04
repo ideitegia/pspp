@@ -4,10 +4,11 @@ GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
 GNULIB_MODULES = alloca alloca-opt assert full-read full-write		\
-gethostname getline getlogin_r getopt gettext memchr memcmp memmem	\
-memmove memset progname readlink restrict snprintf stat-macros stdbool	\
-stpcpy strcase strcspn strerror strftime strstr strtod strtok_r strtol	\
-strtoul vsnprintf xalloc xalloc-die xreadlink xvasprintf
+gethostname getline getlogin_r getopt gettext memcasecmp memchr memcmp	\
+memmem memmove memset progname readlink restrict snprintf stat-macros	\
+stdbool stpcpy strcase strcspn strerror strftime strstr strtod		\
+strtok_r strtol strtoul vsnprintf xalloc xalloc-die xreadlink		\
+xvasprintf
 
 all: po/POTFILES.in
 	test -d m4 || mkdir m4
@@ -25,7 +26,7 @@ gettextize:
 po/POTFILES.in:
 	for f in `find src -name \*.[qc] ! -name .\* -print \
 		  | sed 's/\.[qc]$$//'`; do \
-		if test $$f = src/version.c; then break; fi;		  \
+		if test $$f = src/libpspp/version.c; then break; fi;		  \
 		if test -e $$f.q; then echo $$f.q; else echo $$f.c; fi	  \
 	done | sort | uniq > $@.tmp
 	if test ! -e $@ || ! cmp -s $@.tmp $@; then mv $@.tmp $@; fi
@@ -55,10 +56,15 @@ clean:
 	rm -f aclocal.m4
 	rm -f missing mkinstalldirs
 	rm -f install-sh
-	rm -f configure Makefile Makefile.in
+	rm -f configure Makefile 
 	rm -f depcomp
-	rm -fr intl gl
+	rm -rf intl gl
 	rm -f m4/*.m4
 	rm -f $(PO_FILES)
+	rm -f mdate-sh texinfo.tex
+	rm -f doc/stamp-vti
+	rm -f config.h.in~
+	find . -name Makefile.in -exec rm -f {} \; 
+	rm -f compile
 
 .PHONY: all gettextize potfiles clean

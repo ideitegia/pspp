@@ -6,8 +6,7 @@
 !!! be freely distributed.
 !!!
 <!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<!-- Generated ${date} by ${generator}
-     from ${source-file} -->
+<!-- Generated ${date} by ${generator} -->
 <HTML>
 <HEAD>
 <TITLE>${title}</TITLE>		!title

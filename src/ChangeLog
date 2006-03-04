@@ -1,6 +1,603 @@
-Fri Feb  3 20:34:52 2006  Ben Pfaff  <blp@gnu.org>
+	* Replaced '_' with '-' in most filenames.
 
-	* font.h: (struct font_set) Removed, because unused.
+	* Renamed files as follows:
+		vfm.[ch] to procedure.[ch]
+		error.[ch] to message.[ch]
+		getl.[ch] to line-buffer.[ch]
+		mkfile.[ch] to make-file.[ch]
+		pfm-write.h to por-file-writer.h
+		pfm-write.c to por-file-writer.c
+		sfmP.h to sfm-private.h
+		lex-def.c to identifier.c
+		lex-def.h to identifier.h
+		sfm-read.c to sys-file-reader.c
+		sfm-read.h to sys-file-reader.h
+		sfm-write.h to sys-file-writer.h
+		sfm-write.c to sys-file-writer.c
+		chart.[ch] to chart-geometry.[ch]
+		val.h to value.h
+		var.h to variable.h
+		vars-atr.c to variable.c
+		ctl-stack.c to control-stack.c
+		ctl-stack.h to control-stack.h
+		dfm-read.c to data-reader.c
+		dfm-write.c to data-writer.c
+		dfm-write.h to data-writer.h
+		dfm-read.h to data-reader.h
+		apply-dict.c to apply-dictionary.c
+		mis-val.c to missing-values.c
+		sysfile-info.c to sys-file-info.c
+		modify-vars.c to modifiy-variables.c
+		rename-vars.c to rename-variables.c
+		val-labs.c to value-labels.c
+		var-display.c to variable-display.c
+		var-labs.c to variable-label.c
+		format-prs.c to format-parser.c
+		range-prs.c to range-parser.c
+		range-prs.h to range-parser.h
+		subclist.c to subcommand-list.c
+		subclist.h to subcommand-list.h
+		vars-prs.c to variable-parser.c
+		descript.c to descriptives.c
+		sort-prs.c to sort-criteria.c/sort-cases.c
+		sort-prs.h to sort-criteria.h
+		sel-if.c to select-if.c
+		algorithm.c to array.c
+		algorithm.h to array.h
+		bitvector.h to bit-vector.h
+		som.c to manager.c
+		som.h to manager.h
+		tab.h to table.h
+		tab.c to table.c
+		readln.c to read-line.c
+		readln.h to read-line.h
+		cmdline.c to command-line.c
+		cmdline.h to command-line.h
+
+
+Sat Feb 11 22:35:20 2006  Ben Pfaff  <blp@gnu.org>
+
+	General clean-ups and minor bug fixes.
+
+	* filename.h: Move DIR_SEPARATOR, PATH_SEPARATOR here from
+	pref.h.orig.
+
+	* lex-def.h: (macro CHAR_IS_ID1) Removed.  All references changed
+	to lex_is_id1().
+	(macro CHAR_IS_IDN) Removed.  All references changed to
+	lex_is_idn().
+	
+	* lex-def.c: (lex_is_id1) New function.
+	(lex_is_idn) New function.
+	(lex_skip_identifier) New function.
+	(lex_id_match_len) Return bool instead of int.
+	(lex_id_match) Ditto.
+
+	* command.c: (parse_command_name) Convert parsed words to
+	uppercase to make error messages easier to read.
+	(cmd_host) Fix return value.
+
+	* dfm-read.c: (read_inline_record) Use tokens to check for BEGIN
+	DATA, not specialized lexical analysis.
+
+	* print.c: (print_space_trns_proc) Count of lines should be `int',
+	otherwise we might never finish.
+	(print_space_trns_free) Close writer.
+
+	* lexer.c: (enum string_type) New enum.
+	(lex_get) Remove essentially unused local variable `cp'.
+	Use enum string_type values.  Use parse_id().
+	(parse_id) New function.
+	(lex_look_ahead) Recognize octal strings too.
+	(strip_comments) New function.
+	(lex_get_line) Rewrite.
+	(lex_preprocess_line) Removed.
+	(convert_numeric_string_to_char_string) Use enum string_type.
+	(parse_string) Ditto.
+
+	* autorecode.c: (recode) Clone correct number of bytes based on
+	source string width.
+
+Sat Feb 11 22:34:38 2006  Ben Pfaff  <blp@gnu.org>
+
+	Reduce dependencies on getl, and of getl.
+
+	* data-in.c: (vdls_error) Don't output different message depending
+	on whether we're interactive.
+
+	* getl.h: (struct getl_line_list) Removed.
+	(struct getl_script) Removed.
+	(GETL_PRPT_*) Removed.
+	(GETL_MODE_*) Removed.
+	(GETL_PROMPT_FIRST, GETL_PROMPT_LATER, GETL_PROMPT_DATA,
+	GETL_PROMPT_CNT) New enums.
+
+	* settings.c: (static var prompt) Removed.
+	(static var cprompt) Removed.
+	(static var dprompt) Removed.
+	(settings_done) Don't initialize prompt, cprompt, dprompt.
+	(get_prompt) Removed.
+	(set_prompt) Removed.
+	(get_dprompt) Removed.
+	(set_dprompt) Removed.
+	(get_cprompt) Removed.
+	(set_cprompt) Removed.
+
+	* pfm-read.c: (corrupt_msg) Don't show filename and line number,
+	to get rid of getl_location().
+
+	* sfm-read.c: (corrupt_msg) Ditto.
+
+	* getl.c: (struct getl_source) New.
+	(static var cur_source) New.
+	(static var last_source) New.
+	(static var DO_REPEAT_level) Removed.
+	(global var getl_head) Removed.
+	(global var getl_tail) Removed.
+	(getl_initialize) Call init_prompts().
+	(getl_add_file) Removed.
+	(getl_include) Removed.
+	(getl_add_DO_REPEAT_file) Removed.
+	(getl_handle_line_buffer) Removed.
+	(getl_close_file) Removed.
+	(getl_close_all) Removed.
+	(getl_is_separate) Removed.
+	(getl_set_separate) Removed.
+	(getl_reading_script) Removed.
+	(append_source) New function.
+	(include_source) New function.
+	(create_source) New function.
+	(create_syntax_file_source) New function.
+	(create_filter_source) New function.
+	(create_function_source) New function.
+	(create_interactive_source) New function.
+	(getl_append_syntax_file) New function.
+	(getl_include_syntax_file) New function.
+	(getl_include_filter) New function.
+	(getl_include_function) New function.
+	(getl_append_interactive) New function.
+	(getl_abort_noninteractive) New function.
+	(getl_is_interactive) New function.
+	(close_source) New function.
+	(getl_location) Use new `cur_source' var.
+	(getl_uninitialize) Use close_source().  Call uninit_prompts().
+	(read_syntax_file) New function.
+	(read_line_from_source) New function.
+	(do_read_line) New function.
+	(getl_read_line) Rewrite.
+	(static var prompts) New.
+	(static var current_style) New.
+	(init_prompts) New function.
+	(uninit_prompts) New function.
+	(getl_get_prompt) New function.
+	(getl_set_prompt) New function.
+	(getl_set_prompt_style) New function.
+	(get_prompt) New function.
+
+	* command.c: Merge the EXIT (aka Q, aka QUIT) and FINISH commands,
+	and make EXIT undocumented.  EXIT was a PSPP extension that never
+	really entirely made sense.
+	(cmd_exit) Removed.
+	(cmd_finish) Return CMD_EOF unconditionally.
+	(cmd_clear_transformations) Drop requirement of interactivity.
+
+	* command.def: Merge the EXIT (aka Q, aka QUIT) and FINISH
+	commands.
+
+	* repeat.c: Major changes to match getl revision.
+	(struct line_list) New struct.
+	(enum repeat_entry_type) New.
+	(struct repeat_entry) Made `type' an enum repeat_entry_type.
+	(struct repeat_block) New.
+	(static var repeat_tab) Removed.
+	(static var count) Removed.
+	(static var line_buf_head) Removed.
+	(static var line_buf_tail) Removed.
+	(cmd_do_repeat) Rewritten.
+	(clean_up) Removed.
+	(append_record) Removed.
+	(recognize_keyword) New function.
+	(internal_cmd_do_repeat) Removed.
+	(parse_specification) New function.
+	(skip_indentor) New function.
+	(recognize_do_repeat) New function.
+	(recognize_end_repeat) New function.
+	(parse_lines) New function.
+	(create_vars) New function.
+	(parse_ids) Use enum repeat_entry_type.
+	(parse_strings) Ditto.
+	(find_DO_REPEAT_substitution) Renamed find_substitution(),
+	rewrote.
+	(perform_DO_REPEAT_substitutions) Renamed do_repeat_filter(),
+	rewrote.
+	(do_repeat_read) New function.
+	(do_repeat_close) New function.
+
+	* data-list.c: Don't need to keep track of eof from getl anymore,
+	because getl can tell us now.
+	(struct data_list_pgm) Removed `eof' member.
+	(cmd_data_list) Don't assign to `eof'.
+	(get_data_list_read_func) Renamed read_from_data_list(), changed
+	interface.
+	(read_from_data_list_fixed) Changed interface.
+	(read_from_data_list_free) Changed interface.
+	(read_from_data_list_list) Changed interface.
+	(data_list_trns_proc) Rewrote based on dfm_eof() and
+	dfm_reader_error().
+	(data_list_source_read) Check for dfm reader errors.
+
+	* dfm-read.c: (enum dfm_reader_flags) Removed DFM_EOF in favor of
+	new `eof_cnt' member in struct dfm_reader.
+	(struct dfm_reader) New `eof_cnt' member.
+	(dfm_close_reader) Check `eof_cnt', not DFM_EOF.
+	(dfm_open_reader) Initialize `eof_cnt'.
+	(read_inline_record) Set prompt style with
+	getl_set_prompt_style().  
+	(read_record) Rewrite.
+	(cmd_begin_data) Set prompt style with getl_set_prompt_style().
+
+	* include.c: (cmd_include) Use getl_include_syntax_file().
+
+	* set.q: (cmd_set) Use getl_set_prompt().
+
+	* html.c: (postopen) Remove "source-file" expansion variable, to
+	avoid use of getl_location().
+
+	* postscript.c: (postopen) Remove "source-file" expansion
+	variable, to avoid use of getl_location().
+
+	* cmdline.c: (parse_command_line) Drop -c command line option,
+	because it wasn't very useful.  -i command line option now calls
+	getl_append_interactive().  Use new getl function interfaces.
+	Drop support for clearing dictionary between syntax files and thus
+	the "+" command line syntax.
+	(static var pre_syntax_message) Remove description of now-gone -c
+	option.  Remove "+" command line syntax.
+
+	* main.c: (main) Only call handle_error() if the return value is
+	an error.
+	(execute_command) Use getl_set_prompt_style().  Drop support for
+	clearing dictionary between syntax files.
+	(handle_error) Handle CMD_CASCADING_FAILURE.  Don't call err_break().
+
+	* readln.c: Drop lots of #ifdefs.  Now that the Autoconf tests are
+	pickier, we can just use HAVE_READLINE.
+	(static var welcomed) Move into welcome().
+	(welcome) Make `welcomed' a local static var.  Check for and read
+	history file here.
+	(global var getl_mode) Removed.
+	(global var getl_interactive) Removed.
+	(global var getl_prompt) Removed.
+	(getl_read_line) removed.
+	(readln_read) New function.
+	(read_console) Removed.
+	
+
+Sat Feb 11 22:16:21 2006  Ben Pfaff  <blp@gnu.org>
+
+	Try to reduce some of the nastier dependencies on the error
+	module, and at the same time make PSPP nicer to deal with, by
+	getting rid of fatal errors.  All the existing calls to msg (FE,
+	...) or err_cond_fail() or err_failure() have been replaced by
+	propagating an error upward to the command-dispatch layer.
+	Unfortunately this propagation took a fair bit of extra mechanism,
+	because now a lot of functions can fail that couldn't before.
+
+	New command return value CMD_CASCADING_FAILURE which indicates to
+	the command processor that syntax file processing should be
+	abandoned.  Many commands were modified to return
+	CMD_CASCADING_FAILURE.  When this modification was trivial it
+	isn't mentioned in detail below.
+
+	Transformation procedures (trns_proc_func) and free functions
+	(trns_free_func) now have a `bool' return type, which is normally
+	true, but false when an I/O or other serious error occurs.  All
+	transformation functions were modified to have this return type.
+	When this modification was trivial it isn't mentioned in detail
+	below.
+
+	* pspp-error.h: (FE) Removed this error class.
+
+	* error.c: (err_failure) Removed.
+	(err_cond_fail) Removed.
+	(err_break) Removed (it was unused).
+	(err_check_count) Don't cause a fatal error--instead, stop reading
+	the syntax file.
+	(err_vmsg) Don't have FE anymore, so no need to call terminate().
+
+	* any-reader.c: (any_reader_error) New function.
+
+	* any-writer.c: (any_writer_write) Propagate
+	scratch_writer_write_case()'s new return value.
+	(any_writer_error) New function.
+	(any_writer_close) Propagate underlying function's new return
+	value.
+
+	* casefile.c: Add an "error state" to a casefile.  A casefile that
+	encounters an I/O error enters the error state, and afterward
+	reading and writing cases fails.
+	(struct casefile) Add `ok' member.
+	(casefile_create) Set `ok' to true.
+	(casefile_destroy) Use io_error().
+	(casefile_error) New function.
+	(casefile_sleep) Now returns bool to indicate success.
+	(casefile_append) Ditto.
+	(casefile_append_xfer) Ditto.
+	(casefile_to_disk) Ditto.
+	(write_case_to_disk) Don't do anything in error state.
+	(flush_buffer) Don't do anything in error state.  Use io_error().
+	(reader_open_file) Ditto.
+	(fill_buffer) Ditto.
+	(casereader_read) Don't do anything in error state.  Handle
+	errors.
+	(casereader_read_xfer_assert) Removed, because now an I/O error
+	can occur even if the caller knows a case exists.
+	(io_error) New function.
+
+	* mkfile.c: (make_temp_file) Make failure non-fatal.
+	(make_unique_file_stream) Ditto.
+
+	* pfm-read.c: Add an error state.
+	(struct pfm_reader) Add `ok' member to indicate error state.
+	(error) Set `ok' to false.
+	(pfm_open_reader) Set `ok' to true.  Make failure non-fatal.
+	(pfm_read_case) Don't do anything in error state.
+	(pfm_read_error) New function.
+
+	* pfm-write.c: Postpone most error checking in favor of checking
+	ferror() afterward.
+	(pfm_open_writer) Make failure non-fatal.  Check for write error
+	after writing header.
+	(buf_write) Don't do anything if error has occurred.  Postpone
+	error checking.  Change return type to void.
+	(write_float) Postpone error checking.  Change return type to
+	void.
+	(write_int) Ditto.
+	(write_string) Ditto.
+	(write_header) Ditto.
+	(write_version_data) Ditto.
+	(write_format) Ditto.
+	(write_value) Ditto.
+	(write_variables) Ditto.
+	(write_value_labels) Ditto.
+	(pfm_write_case) Don't do anything if error has occurred.
+	(pfm_write_error) New function.
+	(pfm_close_writer) Change return type to bool.  Return false if an
+	I/O error occurred.
+
+	* scratch-reader.c: (scratch_reader_error) New function.
+
+	* scratch-writer.c: (scratch_writer_write_case) Change return type
+	to bool.  Propagate casefile error return.
+	(scratch_writer_error) New function.
+	(scratch_writer_close) Change return type to bool.  Propagate
+	casefile error return.
+
+	* sfm-read.c: Add an error state.
+	(struct sfm_reader) Add `ok' member.
+	(sfm_open_reader) Initialize `ok'.  Make errors non-fatal.
+	(buf_read) Set `ok' to false on error.
+	(buffer_input) Do nothing in error state.  Set `ok' to false on
+	error.
+	(read_compressed_data) Set `ok' false on error.
+	(sfm_read_case) Return false in error state.
+	(fread_ok) Set `ok' false on error.
+	(sfm_read_error) New function.
+
+	* sfm-write.c: Postpone most error checking in favor of checking
+	ferror() afterward.
+	(sfm_open_writer) Make failure non-fatal.  Check for write error
+	after writing header.
+	(write_header) Postpone error checking.  Change return type to
+	void.
+	(write_variable) Ditto.
+	(write_value_labels) Ditto.
+	(write_documents) Ditto.
+	(write_variable_display_parameters) Ditto.
+	(write_longvar_table) Ditto.
+	(write_rec_7_34) Ditto.
+	(buf_write) Ditto.
+	(ensure_buf_space) Ditto.
+	(sfm_write_case) Do nothing if write error has occurred.
+	(sfm_write_error) New function.
+	(pfm_close_writer) Change return type to bool.  Return false if an
+	I/O error occurred.
+
+	* var.h: Introduced a new return value for trns_proc_func that
+	means "a serious error has occurred, so abort the procedure
+	entirely".  Because the hard-coded values of -1, -2, etc. were
+	becoming even a worse idea now, also introduced some macros for
+	them: TRNS_CONTINUE, TRNS_DROP_CASE, TRNS_ERROR, TRNS_NEXT_CASE,
+	TRNS_END_FILE.  Also replaced all references to the hard-coded
+	values by uses of the macros.
+	
+	* command.h: New command return value CMD_CASCADING_FAILURE which
+	indicates to the command processor that syntax file processing
+	should be abandoned.
+
+	* dfm-read.c: (dfm_open_reader) Make failure non-fatal.
+	(dfm_reader_error) New function.
+	(read_inline_record) Make unexpected end of file nonfatal.
+	(read_file_record) Make read error nonfatal.
+	(dfm_eof) Make second unexpected end of file nonfatal.
+	(cmd_begin_data) Make errors nonfatal.  
+	
+	* dfm-write.c: (dfm_open_writer) Make failure non-fatal.
+	(dfm_write_error) New function.
+	(dfm_put_record) Do nothing in error state.  Now return error
+	state.
+	(dfm_close_reader) Now return `bool' indicating error state.
+
+	* file-type.c: (file_type_source_read) Now return `bool'
+	indicating error state.
+
+	* get.c: (case_reader_source_read) Now return `bool' indicating
+	write error.
+	(case_writer_destroy) Ditto.
+	(case_writer_write_case) Ditto.
+	(struct mtf_proc) New member `ok' indicating error state.
+	(cmd_match_files) Initialize and deal with `ok'.
+	(mtf_processing_finish) Now return `bool' indicating I/O error.
+	(mtf_free_file) Renamed mtf_close_file().  Now return `bool'
+	indicating I/O error.
+	(mtf_free) Now return `bool' indicating I/O error.
+	(mtf_delete_file_in_place) Ditto.
+	(mtf_read_nonactive_records) Ditto.
+	(mtf_processing) Ditto.
+
+	* inpt-pgm.c: (input_program_source_read) Now return `bool'
+	indicating I/O error.  Handle new TRNS_ERROR transformation return
+	value.
+
+	* matrix-data.c: Introduce error state.
+	(cmd_matrix_data) Check error return values.
+	(read_matrices_without_rowtype) Now return `bool' indicating I/O
+	error.
+	(matrix_data_read_without_rowtype) Ditto.
+	(dump_cell_content) Ditto.
+	(nr_output_data) Ditto.
+	(read_matrices_with_rowtype) Ditto.
+	(matrix_data_read_with_rowtype) Ditto.
+	(wr_output_data) Ditto.
+
+	* lexer.c: (lex_init) Make unexpected eof non-fatal.
+	(lex_get) Ditto.
+	(lex_look_ahead) Ditto.
+	(unexpected_eof) Removed.
+	(convert_numeric_string_to_char_string) Make unexpected eof
+	non-fatal.
+	(parse_string) Ditto.
+
+	* flip.c: Make I/O errors non-fatal.
+	(struct flip_pgm) Add `pool', `output_buf' members.
+	(cmd_flip) Create and use pool.  Propagate errors.
+	(destroy_flip_pgm) Rewrite, using pool.
+	(struct flip_sink_info) Removed.
+	(flip_sink_create) Use pool.  Make errors non-fatal.
+	(flip_sink_write) Make errors non-fatal.
+	(flip_file) Make errors non-fatal.  Make `bool' return type to
+	indicate failure.
+	(flip_sink_destroy) Remove.
+	(static var flip_sink_class) Use NULL as destroy func, not
+	flip_sink_destroy().
+
+	* sort.c: Make I/O errors non-fatal.  Propagate errors.
+	(sort_active_file_in_place) Propagate errors.
+	(sort_active_file_to_casefile) Ditto.
+	(do_internal_sort) Ditto.
+	(do_external_sort) Ditto.
+	(write_runs) Ditto.
+	(destroy_initial_run_state) Propagate errors via new `bool' return
+	type.
+	(merge) Propagate errors.
+	(merge_once) Ditto.
+
+	* output.c: [GLOBAL_DEBUGGING] Remove reentrancy detection,
+	because it used msg (FE, ...) and wasn't very useful.
+
+	* main.c: (handle_error) Handle CMD_CASCADING_FAILURE.
+
+	* vfm.c: (struct write_case_data) Change `proc_func' return type
+	to bool.
+	(procedure) Add `bool' return type to indicate I/O error.
+	Propagate errors.
+	(internal_procedure) Ditto.
+	(write_case) Ditto.
+	(execute_transformations) If a transformation returns TRNS_ERROR,
+	propagate the error.
+	(close_active_file) Add `bool' return type to indicate I/O error.
+	Propagate errors.
+	(cancel_transformations) Add `bool' return type to indicate I/O
+	error.  Propagate errors.
+	(struct split_aux_data) Change `proc_func' return type to bool.
+	(procedure_with_splits) Change `proc_func' return type to bool.
+	Add `bool' return type to indicate I/O error.
+	(multipass_procedure_with_splits) Change `split_func' return type
+	to bool.  Add `bool' return type to indicate I/O error.
+	(multipass_split_callback) Add `bool' return type to indicate I/O
+	error.  Propagate errors.
+
+	* vfm.h: (struct case_source_class) Change `read' return type from
+	void to bool to allow reporting I/O errors.  Updated all
+	implementations to do so.
+	(struct case_sink_class) Change `write' return type from void to
+	bool to allow reporting I/O errors.  Updated all implementations
+	to do so.
+
+Sun Feb 12 18:12:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	* pool.c: Useful new functions.
+	(pool_tmpfile) New function.
+	(pool_attach_file) New function.
+	(pool_detach_file) New function.
+	(pool_fopen) Reimplement in terms of pool_attach_file().
+	(pool_fclose) Reimplement in terms of pool_detach_file().  Fix
+	double-free.
+
+	* str.c: Useful new functions.
+	(ds_swap) New function.
+	(ds_rtrim_spaces) New function.
+	(ds_chomp) New function.
+	(ds_is_empty) New function.
+	(ds_first) New function.
+	(ds_last) New function.
+
+Sat Feb 11 21:51:21 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of finished, start_interactive globals.
+
+	* command.c: (cmd_exit) Instead of setting `finished', return
+	CMD_EOF.
+	(cmd_finish) Ditto.
+
+	* command.h: New enum CMD_EOF.
+
+	* main.c: (global var finished) Removed.
+	(global var start_interactive) Removed.
+	(main) Execute commands until CMD_EOF is the return value.
+	If parse_command_line() returns false, don't execute any commands
+	at all.
+
+	* cmdline.c: (parse_command_line) If the command line indicates we
+	shouldn't execute syntax files, return false instead of
+	terminating.
+	(usage) Don't terminate.
+
+Sat Feb 11 21:48:31 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of cur_proc global.  Replace by functions in err and tab
+	modules, which were the users.
+
+	* error.c: (static var command_name) New static var.
+	(err_vmsg) Use command_name.
+	(err_set_command_name) New function.
+
+	* tab.c: (static var command_name) New static var.
+	(tabi_title) Use command_name.
+	(tab_set_command_name) New function.
+
+	* command.c: (global var cur_proc) Removed.
+	(cmd_parse) Call err_set_command_name(), tab_set_command_name()
+	around executing command to set and clear command name.
+
+Sat Feb 11 21:44:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of glob.c, glob.h.
+
+	* Makefile.am: (pspp_SOURCES) Remove glob.c, glob.h.
+	
+	* dictionary.c: Move default_dict definition here.
+
+	* glob.c: Removed.
+	(global var FILTER_before_TEMPORARY) Variable removed.  All
+	references deleted.  The info in this var was redundant with
+	temp_dict, so they were changed to use temp_dict where needed.
+
+	* glob.h: Removed.
+
+	* start-date.c: New file. Moved get_start_date() here.
+
+	* start-date.h: New file.
 
 Sat Jan 28 17:45:36 2006  Ben Pfaff  <blp@gnu.org>
 

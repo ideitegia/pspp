@@ -59,28 +59,12 @@
 
 /* Filesystems. */
 
-/* Directory separator and path delimiter for this OS. */
-#ifndef __MSDOS__
-#define DIR_SEPARATOR '/'
-#define PATH_DELIMITER ':'
-#else
-#define DIR_SEPARATOR '\\'
-#define PATH_DELIMITER ';'
-#endif
-
 /* Options. */
 
 /* Approximate amount of memory, in bytes, to allocate before paging
    to disk.  */
 #define MAX_WORKSPACE (4*1024*1024)	/* 4 MBytes */
 
-/* (libhistory) The location for the history file that records
-   commands entered interactively.  Tilde expansion is performed. */
-#define HISTORY_FILE "~/.pspp_history"
-
-/* (libhistory) Maximum number of commands to record in history
-   file. */
-#define MAX_HISTORY 500
 
 /* Non ansi compilers may set this */
 #ifndef P_tmpdir

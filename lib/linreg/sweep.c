@@ -45,7 +45,7 @@
   Springer. 1998. ISBN 0-387-98542-5.
  */
 
-#include "pspp_linreg.h"
+#include "sweep.h"
 
 /*
   The matrix A will be overwritten. In ordinary uses of the sweep
@@ -58,7 +58,7 @@
    --        --
 
    X refers to the design matrix and Y to the vector of dependent
-   observations. pspp_reg_sweep sweeps on the diagonal elements of 
+   observations. reg_sweep sweeps on the diagonal elements of 
    X'X.
 
    The matrix A is assumed to be symmetric, so the sweep operation is
@@ -66,7 +66,7 @@
  */
 
 int
-pspp_reg_sweep (gsl_matrix * A)
+reg_sweep (gsl_matrix * A)
 {
   double sweep_element;
   double tmp;

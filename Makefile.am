@@ -1,23 +1,51 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-AUTOMAKE_OPTIONS = gnits 1.7
+AUTOMAKE_OPTIONS = gnits 1.7 subdir-objects
 
-SUBDIRS = m4 intl doc lib gl src po config tests examples
-
+SUBDIRS = intl gl po
 DISTCLEANFILES = pref.h
 
-# A `private installation' in my terms is just having the appropriate
-# configuration files in ~/.pspp instead of a global configuration
-# location.  So I let those files be installed automatically.
 
-private-install:
-	$(MAKE) private-install -C config
-private-uninstall:
-	$(MAKE) private-uninstall -C config
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
+-I$(top_srcdir)/intl -I$(top_srcdir)/gl -I$(top_builddir)/gl
+
+AM_CFLAGS=
+
+if cc_is_gcc
+AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
+-Wpointer-arith -Wno-sign-compare -Wmissing-prototypes
+endif
+
+if unix
+AM_CFLAGS+=-Dunix
+endif
+
+if msdos
+AM_CFLAGS+=-D__MSDOS__
+endif
+
+
+%.c: %.q $(top_builddir)/src/language/lexer/q2c$(EXEEXT)
+	@mkdir -p `dirname $@`
+	$(top_builddir)/src/language/lexer/q2c $< $@
+
+
+pkgsysconfdir = $(sysconfdir)/@PACKAGE@
+
 
 EXTRA_DIST = AUTHORS NEWS ONEWS README TODO THANKS config.rpath	\
 mkinstalldirs config.rpath pref.h.orig configure pspp-mode.el
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
-
+CLEANFILES = 
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
+noinst_LIBRARIES=
+bin_PROGRAMS=
+
+include $(top_srcdir)/lib/automake.mk
+include $(top_srcdir)/doc/automake.mk
+include $(top_srcdir)/config/automake.mk
+include $(top_srcdir)/examples/automake.mk
+include $(top_srcdir)/src/automake.mk
+
+include $(top_srcdir)/tests/automake.mk

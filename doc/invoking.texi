@@ -35,20 +35,10 @@ PSPP's command line:
 @item @var{file}
 
 A file by itself on the command line will be executed as a syntax file.
-PSPP terminates after the syntax file runs, unless the @code{-i} or
+If multiple files may be specified, they are executed in order, as if
+their contents had been given in a single file.
+PSPP terminates after the syntax files run, unless the @code{-i} or
 @code{--interactive} option is given (@pxref{Language control options}).
-
-@item @var{file1} @var{file2}
-
-When two or more filenames are given on the command line, the first
-syntax file is executed, then PSPP's dictionary is cleared, then the second
-syntax file is executed.
-
-@item @var{file1} + @var{file2}
-
-If syntax files' names are delimited by a plus sign (@samp{+}), then the
-dictionary is not cleared between their executions, as if they were
-concatenated together into a single file.
 
 @item @var{key}=@var{value}
 

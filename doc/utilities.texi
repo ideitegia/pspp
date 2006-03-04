@@ -22,7 +22,6 @@ encountered in the input.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
 * PERMISSIONS::                 Change permissions on a file.
-* QUIT::                        Terminate the PSPP session.
 * SET::                         Adjust PSPP runtime parameters.
 * SHOW::                        Display runtime parameters.
 * SUBTITLE::                    Provide a document subtitle.
@@ -164,8 +163,6 @@ FINISH.
 @cmd{FINISH} terminates the current PSPP session and returns
 control to the operating system.
 
-This command is not valid in interactive mode.
-
 @node HOST, INCLUDE, FINISH, Utilities
 @comment  node-name,  next,  previous,  up
 @section HOST
@@ -198,7 +195,7 @@ command file.
 Include files may be nested to any depth, up to the limit of available
 memory.
 
-@node PERMISSIONS, QUIT, INCLUDE, Utilities
+@node PERMISSIONS, SET, INCLUDE, Utilities
 @comment  node-name,  next,  previous,  up
 @section PERMISSIONS
 @vindex PERMISSIONS
@@ -223,22 +220,7 @@ unchanged.
 This command cannot be used if the SAFER setting is active.
 
 
-@node QUIT, SET, PERMISSIONS, Utilities
-@section QUIT
-@vindex QUIT
-
-@display
-Two possible syntaxes:
-        QUIT.
-        EXIT.
-@end display
-
-@cmd{QUIT} terminates the current PSPP session and returns control
-to the operating system.  
-
-This command is not valid within a command file.
-
-@node SET, SHOW, QUIT, Utilities
+@node SET, SHOW, PERMISSIONS, Utilities
 @section SET
 @vindex SET
 

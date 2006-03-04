@@ -6,10 +6,13 @@ TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/match-files.pspp
 
 
-here=`pwd`;
+# ensure that top_builddir  are absolute
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+top_builddir=`cd $top_builddir; pwd`
 
 # ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
+top_srcdir=`cd $top_srcdir; pwd`
 
 
 STAT_CONFIG_PATH=$top_srcdir/config
@@ -161,7 +164,7 @@ EOF
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="run $name.pspp"
-	$SUPERVISOR $here/../src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
+	$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
 	if [ $? -ne 0 ] ; then no_result ; fi
 
 	activity="check $name output"
@@ -186,7 +189,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run $name.pspp"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
+$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"
@@ -235,7 +238,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run $name.pspp"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
+$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $name.pspp >/dev/null 2>&1
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check $name output"

@@ -1,3 +1,8 @@
+Sat Feb 11 21:58:29 2006  Ben Pfaff  <blp@gnu.org>
+
+	* html-prologue: Don't use ${source-file}, which is no longer
+	supported.
+
 Tue Dec 30 22:37:04 2003  Ben Pfaff  <blp@gnu.org>
 
 	* devices: Add "squeeze=on top-margin=0 bottom-margin=0" to

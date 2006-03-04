@@ -4,10 +4,11 @@
 
 TEMPDIR=/tmp/pspp-tst-$$
 
-here=`pwd`;
-
-# ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
+# ensure that top_srcdir and top_builddir  are absolute
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+top_srcdir=`cd $top_srcdir; pwd`
+top_builddir=`cd $top_builddir; pwd`
 
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
@@ -93,7 +94,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $here/../src/pspp -o raw-ascii $TEMPDIR/variables.stat > $TEMPDIR/variables.err 2> $TEMPDIR/variables.out
+$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $TEMPDIR/variables.stat > $TEMPDIR/variables.err 2> $TEMPDIR/variables.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"

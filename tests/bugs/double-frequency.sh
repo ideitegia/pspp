@@ -6,10 +6,13 @@
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
 
-here=`pwd`;
+# ensure that top_builddir  are absolute
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+top_builddir=`cd $top_builddir; pwd`
 
 # ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
+top_srcdir=`cd $top_srcdir; pwd`
 
 
 STAT_CONFIG_PATH=$top_srcdir/config
@@ -69,7 +72,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 cd $TEMPDIR
 
 activity="run data"
-$SUPERVISOR $here/../src/pspp  $TEMPDIR/ff.stat
+$SUPERVISOR $top_builddir/src/pspp  $TEMPDIR/ff.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

@@ -5,10 +5,13 @@
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
 
-here=`pwd`;
+# ensure that top_builddir  are absolute
+if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
+if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
+top_builddir=`cd $top_builddir; pwd`
 
 # ensure that top_srcdir is absolute
-cd $top_srcdir; top_srcdir=`pwd`
+top_srcdir=`cd $top_srcdir; pwd`
 
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
@@ -112,7 +115,7 @@ for count_repeat_buffers in \
   } > sort.pspp || no_result
   
   activity="run program"
-  $SUPERVISOR $here/../src/pspp --testing-mode -o raw-ascii sort.pspp
+  $SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii sort.pspp
   if [ $? -ne 0 ] ; then no_result ; fi
   
   perl -pi -e 's/^\s*$//g' sort.exp sort.out

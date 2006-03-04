@@ -192,16 +192,11 @@ In batch mode only, that is, when reading commands from a file instead
 of an interactive user, any line that contains a non-space character
 in the leftmost column begins a new command.  Thus, each command
 consists of a flush-left line followed by any number of lines indented
-from the left margin.  In this mode, a plus sign, minus sign, or
-period (@samp{+}, @samp{@minus{}}, or @samp{.}) as the first character
+from the left margin.  In this mode, a plus or minus sign
+(@samp{+}, @samp{@minus{}}) as the first character
 in a line is ignored and causes that line to begin a new command,
 which allows for visual indentation of a command without that command
 being considered part of the previous command.
-
-Sometimes, one encounters syntax files that are intended to be
-interpreted in interactive mode rather than batch mode.  When this
-occurs, use the @samp{-i} command line option to force interpretation
-in interactive mode (@pxref{Language control options}).
 
 @node Types of Commands, Order of Commands, Commands, Language
 @section Types of Commands

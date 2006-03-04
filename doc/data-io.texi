@@ -74,8 +74,7 @@ CLEAR TRANSFORMATIONS.
 @end display
 
 @cmd{CLEAR TRANSFORMATIONS} clears out all pending
-transformations.  It does not cancel the current input program.  It is
-valid only when PSPP is interactive, not in syntax files.
+transformations.  It does not cancel the current input program.
 
 @node CLOSE FILE HANDLE
 @section CLOSE FILE HANDLE
