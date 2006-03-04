@@ -19,9 +19,6 @@
 
 #include <config.h>
 
-/*this #if encloses the remainder of the file. */
-#if !NO_POSTSCRIPT
-
 #include <ctype.h>
 #include "chart.h"
 #include "message.h"
@@ -3045,5 +3042,3 @@ struct outp_class epsf_class =
   ps_chart_finalise
 
 };
-
-#endif /* NO_POSTSCRIPT */

@@ -220,23 +220,15 @@ void
 outp_init (void)
 {
   extern struct outp_class ascii_class;
-#if !NO_POSTSCRIPT
   extern struct outp_class postscript_class;
   extern struct outp_class epsf_class;
-#endif
-#if !NO_HTML
   extern struct outp_class html_class;
-#endif
 
   char def[] = "default";
 
-#if !NO_HTML
   add_class (&html_class);
-#endif
-#if !NO_POSTSCRIPT
   add_class (&epsf_class);
   add_class (&postscript_class);
-#endif
   add_class (&ascii_class);
 
   add_name (def, &def[strlen (def)], OUTP_S_INIT_FILE);

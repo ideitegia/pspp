@@ -17,9 +17,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-/* This #if encloses the rest of the file. */
-#if !NO_HTML
-
 #include <config.h>
 #include "chart.h"
 #include "htmlP.h"
@@ -648,6 +645,3 @@ struct outp_class html_class =
   html_finalise_chart
 
 };
-
-#endif /* !NO_HTML */
-
