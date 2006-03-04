@@ -102,7 +102,7 @@ struct tab_table
 
     /* Editing info. */
     int col_ofs, row_ofs;	/* X and Y offsets. */
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
     int reallocable;		/* Can table be reallocated? */
 #endif
   };

@@ -40,6 +40,10 @@ enum var_type
 const char *var_type_adj (enum var_type);
 const char *var_type_noun (enum var_type);
 
+/* Maximum variable name lengths. */
+#define SHORT_NAME_LEN 8        /* Short name length. */
+#define LONG_NAME_LEN 64        /* Long name length. */
+
 /* A variable's dictionary entry.  */
 struct variable
   {

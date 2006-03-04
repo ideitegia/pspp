@@ -30,7 +30,7 @@
 struct ccase 
   {
     struct case_data *case_data;        /* Actual data. */
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
     struct ccase *this;                 /* Detects unauthorized move/copy. */
 #endif
   };
@@ -43,7 +43,7 @@ struct case_data
     union value values[1];              /* Values. */
   };
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 #define CASE_INLINE
 #else
 #define CASE_INLINE static
@@ -89,7 +89,7 @@ union value *case_data_all_rw (struct ccase *);
 
 void case_unshare (struct ccase *);
 
-#ifndef GLOBAL_DEBUGGING
+#ifndef DEBUGGING
 #include <stdlib.h>
 #include "str.h"
 
@@ -183,6 +183,6 @@ case_data_rw (struct ccase *c, size_t idx)
     case_unshare (c);
   return &c->case_data->values[idx];
 }
-#endif /* !GLOBAL_DEBUGGING */
+#endif /* !DEBUGGING */
 
 #endif /* case.h */

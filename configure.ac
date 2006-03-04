@@ -109,9 +109,6 @@ AC_CHECK_FUNCS([strchr strrchr __setfpucw isinf isnan finite getpid feholdexcept
 AC_PROG_LN_S
 
 
-AH_BOTTOM([#include <pref.h>])
-
-
 AM_CONDITIONAL(unix, test x"$host_os" != x"msdos" )
 AM_CONDITIONAL(msdos, test x"$host_os" = x"msdos" )
 
@@ -125,19 +122,6 @@ fi
 
 AC_CONFIG_FILES([Makefile gl/Makefile intl/Makefile po/Makefile.in])
 
-AC_CONFIG_COMMANDS([pref.h],[
-	   # Copy pref.h from pref.h.orig if prudent
-	   if test ! -f pref.h; then
-	     echo "creating pref.h"
-	     cp $ac_top_srcdir/pref.h.orig pref.h
-	   elif test "`ls -t pref.h.orig pref.h 2>/dev/null | sed 1q`" = pref.h.orig; then
-	     echo "replacing pref.h with newer pref.h.orig"
-	     cp $ac_top_srcdir/pref.h.orig pref.h
-	   else
-	     echo "pref.h exists"
-	   fi
-	   if test -f pref.h; then touch pref.h; fi
-	  ])
 AC_OUTPUT
 
 dnl configure.ac ends here

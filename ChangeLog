@@ -1,3 +1,13 @@
+Sat Mar  4 13:20:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Get rid of pref.h.orig.
+
+	* pref.h.orig: Removed.  Moved SHORT_NAME_LEN, LONG_NAME_LEN to
+	src/data/variable.h.  Removed GLOBAL_DEBUGGING entirely, changing
+	all references to DEBUGGING.  Moved P_tmpdir to
+	src/data/make-file.c.  Moved NO_CHARTS to
+	src/output/charts/automake.mk.
+
 Sat Mar  4 12:58:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* pref.h.orig: Move GCC attribute declarations to

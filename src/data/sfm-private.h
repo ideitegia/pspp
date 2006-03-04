@@ -21,6 +21,7 @@
    structures. */
 
 #include "compiler.h"
+#include "variable.h"
 
 /* This attribute might avoid some problems.  On the other hand... */
 #define P ATTRIBUTE ((packed))

@@ -184,7 +184,7 @@ struct ascii_driver_ext
     int lines_cap;              /* Number of lines allocated. */
     int w, l;			/* Actual width & length w/o margins, etc. */
     int cur_font;		/* Current font by OUTP_F_*. */
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
     int debug;			/* Set by som_text_draw(). */
 #endif
   };
@@ -266,7 +266,7 @@ ascii_preopen_driver (struct outp_driver *this)
   x->lines = NULL;
   x->lines_cap = 0;
   x->cur_font = OUTP_F_R;
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   x->debug = 0;
 #endif
   return 1;
@@ -780,7 +780,7 @@ ascii_line_horz (struct outp_driver *this, const struct rect *r,
   assert (this->driver_open && this->page_open);
   if (x1 == x2)
     return;
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (x1 > x2
       || x1 < 0 || x1 >= ext->w
       || x2 <= 0 || x2 > ext->w
@@ -814,7 +814,7 @@ ascii_line_vert (struct outp_driver *this, const struct rect *r,
   assert (this->driver_open && this->page_open);
   if (y1 == y2)
     return;
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (y1 > y2
       || x1 < 0 || x1 >= ext->w
       || y1 < 0 || y1 >= ext->l
@@ -847,7 +847,7 @@ ascii_line_intersection (struct outp_driver *this, const struct rect *r,
   int l;
 
   assert (this->driver_open && this->page_open);
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (x < 0 || x >= ext->w || y < 0 || y >= ext->l)
     {
 #if !SUPPRESS_WARNINGS
@@ -995,7 +995,7 @@ delineate (struct outp_driver *this, struct outp_text *t, int draw)
   /* Temporary struct outp_text to pass to low-level function. */
   struct outp_text temp;
 
-#if GLOBAL_DEBUGGING && 0
+#if DEBUGGING && 0
   if (!ext->debug)
     {
       ext->debug = 1;

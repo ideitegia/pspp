@@ -1,3 +1,13 @@
+Sat Mar  4 13:22:51 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sfm-private.h: Include variable.h, to get SHORT_NAME_LEN.
+
+	* value.h: Remove check on MAX_SHORT_STRING, which I don't think
+	really applies.
+
+	* variable.h: Move definition of SHORT_NAME_LEN, LONG_NAME_LEN
+	here from pref.h.orig.
+
 Sat Mar  4 12:50:48 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* sys-file-reader.c: Fixed bug reading compressed files.

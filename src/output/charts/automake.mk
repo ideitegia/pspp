@@ -36,4 +36,6 @@ src_output_charts_libcharts_a_SOURCES =  \
 
 EXTRA_DIST += $(chart_sources)
 
+AM_CPPFLAGS += -DNO_CHARTS
+
 endif

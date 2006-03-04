@@ -26,7 +26,7 @@
 #include "str.h"
 #include "variable.h"
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 #undef NDEBUG
 #else
 #ifndef NDEBUG
@@ -66,7 +66,7 @@ case_size (size_t value_cnt)
           + value_cnt * sizeof (union value));
 }
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Initializes C as a null case. */
 void
 case_nullify (struct ccase *c) 
@@ -74,16 +74,16 @@ case_nullify (struct ccase *c)
   c->case_data = NULL;
   c->this = c;
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Returns true iff C is a null case. */
 int
 case_is_null (const struct ccase *c) 
 {
   return c->case_data == NULL;
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
 /* Initializes C as a new case that can store VALUE_CNT values.
    The values have indeterminate contents until explicitly
@@ -95,7 +95,7 @@ case_create (struct ccase *c, size_t value_cnt)
     xalloc_die ();
 }
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Initializes CLONE as a copy of ORIG. */
 void
 case_clone (struct ccase *clone, const struct ccase *orig)
@@ -113,9 +113,9 @@ case_clone (struct ccase *clone, const struct ccase *orig)
     }
   orig->case_data->ref_cnt++;
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Replaces DST by SRC and nullifies SRC.
    DST and SRC must be initialized cases at entry. */
 void
@@ -131,9 +131,9 @@ case_move (struct ccase *dst, struct ccase *src)
   dst->this = dst;
   case_nullify (src);
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Destroys case C. */
 void
 case_destroy (struct ccase *c) 
@@ -151,7 +151,7 @@ case_destroy (struct ccase *c)
       free (cd); 
     }
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
 /* Resizes case C from OLD_CNT to NEW_CNT values. */
 void
@@ -183,7 +183,7 @@ case_try_create (struct ccase *c, size_t value_cnt)
   c->case_data = malloc (case_size (value_cnt));
   if (c->case_data != NULL) 
     {
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
       c->this = c;
 #endif
       c->case_data->value_cnt = value_cnt;
@@ -192,7 +192,7 @@ case_try_create (struct ccase *c, size_t value_cnt)
     }
   else 
     {
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
       c->this = c;
 #endif
       return 0;
@@ -209,7 +209,7 @@ case_try_clone (struct ccase *clone, const struct ccase *orig)
   return 1;
 }
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Copies VALUE_CNT values from SRC (starting at SRC_IDX) to DST
    (starting at DST_IDX). */
 void
@@ -236,9 +236,9 @@ case_copy (struct ccase *dst, size_t dst_idx,
              src->case_data->values + src_idx,
              sizeof *dst->case_data->values * value_cnt); 
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Copies case C to OUTPUT.
    OUTPUT_SIZE is the number of `union values' in OUTPUT,
    which must match the number of `union values' in C. */
@@ -256,9 +256,9 @@ case_to_values (const struct ccase *c, union value *output,
   memcpy (output, c->case_data->values,
           c->case_data->value_cnt * sizeof *output);
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Copies INPUT into case C.
    INPUT_SIZE is the number of `union values' in INPUT,
    which must match the number of `union values' in C. */
@@ -278,9 +278,9 @@ case_from_values (struct ccase *c, const union value *input,
   memcpy (c->case_data->values, input,
           c->case_data->value_cnt * sizeof *input);
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Returns a pointer to the `union value' used for the
    element of C numbered IDX.
    The caller must not modify the returned data. */
@@ -295,9 +295,9 @@ case_data (const struct ccase *c, size_t idx)
 
   return &c->case_data->values[idx];
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Returns the numeric value of the `union value' in C numbered
    IDX. */
 double
@@ -311,9 +311,9 @@ case_num (const struct ccase *c, size_t idx)
 
   return c->case_data->values[idx].f;
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Returns the string value of the `union value' in C numbered
    IDX.
    (Note that the value is not null-terminated.)
@@ -329,9 +329,9 @@ case_str (const struct ccase *c, size_t idx)
 
   return c->case_data->values[idx].s;
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
-#ifdef GLOBAL_DEBUGGING
+#ifdef DEBUGGING
 /* Returns a pointer to the `union value' used for the
    element of C numbered IDX.
    The caller is allowed to modify the returned data. */
@@ -348,7 +348,7 @@ case_data_rw (struct ccase *c, size_t idx)
     case_unshare (c);
   return &c->case_data->values[idx];
 }
-#endif /* GLOBAL_DEBUGGING */
+#endif /* DEBUGGING */
 
 /* Compares the values of the VAR_CNT variables in VP
    in cases A and B and returns a strcmp()-type result. */

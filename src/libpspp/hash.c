@@ -567,7 +567,7 @@ hsh_count (struct hsh_table *h)
 
 /* Debug helpers. */
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
 #undef NDEBUG
 #include "message.h"
 #include <stdio.h>

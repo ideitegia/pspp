@@ -69,7 +69,7 @@ tab_create (int nc, int nr, int reallocable)
 
   nalloc_func = reallocable ? pool_nmalloc : pool_nalloc;
   alloc_func = reallocable ? pool_malloc : pool_alloc;
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   t->reallocable = reallocable;
 #endif
 
@@ -142,7 +142,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
   int ro, co;
   
   assert (t != NULL);
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   assert (t->reallocable);
 #endif
   ro = t->row_ofs;
@@ -251,7 +251,7 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
 
   assert (t != NULL);
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (x + t->col_ofs < 0 || x + t->col_ofs > t->nc
       || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= t->nr
       || y2 + t->row_ofs < 0 || y2 + t->row_ofs >= t->nr)
@@ -325,7 +325,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
 {
   assert (t != NULL);
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= t->nc 
       || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= t->nc
       || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= t->nr 
@@ -493,7 +493,7 @@ tab_natural_width (struct tab_table *t, struct outp_driver *d, int c)
   if (width == 0)
     {
       width = d->prop_em_width * 8;
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
       printf ("warning: table column %d contains no data.\n", c);
 #endif
     }
@@ -572,7 +572,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
   char *contents;
 
   assert (table != NULL && v != NULL && f != NULL);
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= table->nc
       || r + table->row_ofs >= table->nr)
@@ -614,7 +614,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
 
   f = make_output_format (FMT_F, w, d);
   
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= table->nc
       || r + table->row_ofs >= table->nr)
@@ -657,7 +657,7 @@ tab_text (struct tab_table *table, int c, int r, unsigned opt, const char *text,
   assert (r < table->nr);
   
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= table->nc
       || r + table->row_ofs >= table->nr)
@@ -694,7 +694,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
   assert (y2 + table->row_ofs < table->nr);
   assert (x2 + table->col_ofs < table->nc);
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (x1 + table->col_ofs < 0 || x1 + table->col_ofs >= table->nc
       || y1 + table->row_ofs < 0 || y1 + table->row_ofs >= table->nr
       || x2 < x1 || x2 + table->col_ofs >= table->nc
@@ -758,7 +758,7 @@ tab_raw (struct tab_table *table, int c, int r, unsigned opt,
 {
   assert (table != NULL && string != NULL);
   
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= table->nc
       || r + table->row_ofs >= table->nr)
@@ -891,7 +891,7 @@ tab_offset (struct tab_table *t, int col, int row)
   int diff = 0;
 
   assert (t != NULL);
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   if (row < -1 || row >= t->nr)
     {
       printf ("tab_offset(): row=%d in %d-row table\n", row, t->nr);
@@ -959,7 +959,7 @@ tabi_driver (struct outp_driver *driver)
   for (t->vr_tot = i = 0; i <= t->nc; i++)
     t->vr_tot += t->wrv[i] = d->vert_line_spacing[t->trv[i]];
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   for (i = 0; i < t->nr; i++)
     t->h[i] = -1;
   for (i = 0; i < t->nc; i++)
@@ -969,7 +969,7 @@ tabi_driver (struct outp_driver *driver)
   assert (t->dim != NULL);
   t->dim (t, d);
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   {
     int error = 0;
 

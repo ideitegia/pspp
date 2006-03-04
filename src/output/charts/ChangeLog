@@ -1,3 +1,7 @@
+Sat Mar  4 13:24:39 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Move definition of NO_CHARTS here from pref.h.orig.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

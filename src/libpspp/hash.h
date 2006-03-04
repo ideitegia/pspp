@@ -62,7 +62,7 @@ void *hsh_first (struct hsh_table *, struct hsh_iterator *);
 void *hsh_next (struct hsh_table *, struct hsh_iterator *);
 
 /* Search and insertion with assertion. */
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
 void hsh_force_insert (struct hsh_table *, void *);
 void *hsh_force_find (struct hsh_table *, const void *);
 void hsh_force_delete (struct hsh_table *, const void *);
@@ -76,7 +76,7 @@ void hsh_force_delete (struct hsh_table *, const void *);
 size_t hsh_count (struct hsh_table *);
 
 /* Debugging. */
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
 void hsh_dump (struct hsh_table *);
 #endif
 

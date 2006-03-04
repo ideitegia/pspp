@@ -93,7 +93,7 @@ static void output_entity (struct outp_driver *, struct som_entity *);
 void
 som_submit (struct som_entity *t)
 {
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   static int entry;
   
   assert (entry++ == 0);
@@ -107,7 +107,7 @@ som_submit (struct som_entity *t)
       t->class->headers (&hl, &hr, &ht, &hb);
 
 
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
       if (hl + hr > nc || ht + hb > nr)
 	{
 	  printf ("headers: (l,r)=(%d,%d), (t,b)=(%d,%d) in table size (%d,%d)\n",
@@ -135,7 +135,7 @@ som_submit (struct som_entity *t)
 
   }
   
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   assert (--entry == 0);
 #endif
 }

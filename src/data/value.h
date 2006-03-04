@@ -33,14 +33,6 @@
 /* Max string length. */
 #define MAX_STRING 255
 
-/* FYI: It is a bad situation if sizeof(flt64) < MAX_SHORT_STRING:
-   then short string missing values can be truncated in system files
-   because there's only room for as many characters as can fit in a
-   flt64. */
-#if MAX_SHORT_STRING > SHORT_NAME_LEN
-#error MAX_SHORT_STRING must be less than or equal to SHORT_NAME_LEN.
-#endif
-
 /* Special values. */
 #define SYSMIS (-DBL_MAX)
 #define LOWEST second_lowest_value

@@ -1258,7 +1258,7 @@ exit:
 struct outp_driver *
 outp_drivers (struct outp_driver *d)
 {
-#if GLOBAL_DEBUGGING
+#if DEBUGGING
   struct outp_driver *orig_d = d;
 #endif
 

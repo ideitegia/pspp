@@ -31,6 +31,11 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* Non ansi compilers may set this */
+#ifndef P_tmpdir
+#define P_tmpdir "/tmp"
+#endif
+
 /* Creates a temporary file and stores its name in *FILENAME and
    a file descriptor for it in *FD.  Returns success.  Caller is
    responsible for freeing *FILENAME. */
