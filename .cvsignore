@@ -3,6 +3,7 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+compile
 config.guess
 config.h
 config.h.in
@@ -16,10 +17,12 @@ gl
 install-sh
 intl
 m4
+mdate-sh
 missing
 mkinstalldirs
 potfiles.tmp
 pref.h
 stamp-h1
+texinfo.tex
 _build
 _check
