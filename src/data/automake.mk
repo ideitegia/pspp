@@ -1,0 +1,60 @@
+## Process this file with automake to produce Makefile.in  -*- makefile -*-
+
+src/data/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp
+
+noinst_LIBRARIES += src/data/libdata.a
+
+src_data_libdata_a_SOURCES = \
+	src/data/any-reader.c \
+	src/data/any-reader.h \
+	src/data/any-writer.c \
+	src/data/any-writer.h \
+	src/data/calendar.c \
+	src/data/calendar.h \
+	src/data/case.c \
+	src/data/casefile.c \
+	src/data/casefile.h \
+	src/data/case.h \
+	src/data/category.c \
+	src/data/category.h \
+	src/data/cat-routines.h \
+	src/data/data-in.c \
+	src/data/data-in.h \
+	src/data/data-out.c \
+	src/data/dictionary.c \
+	src/data/dictionary.h \
+	src/data/file-handle-def.c \
+	src/data/file-handle-def.h \
+	src/data/filename.c \
+	src/data/filename.h \
+	src/data/format.c \
+	src/data/format.h \
+	src/data/format.def \
+	src/data/identifier.c \
+	src/data/identifier.h \
+	src/data/missing-values.c \
+	src/data/missing-values.h \
+	src/data/make-file.c \
+	src/data/make-file.h \
+	src/data/por-file-reader.c \
+	src/data/por-file-reader.h \
+	src/data/por-file-writer.c \
+	src/data/por-file-writer.h \
+	src/data/scratch-handle.c \
+	src/data/scratch-handle.h \
+	src/data/scratch-reader.c \
+	src/data/scratch-reader.h \
+	src/data/scratch-writer.c \
+	src/data/scratch-writer.h \
+	src/data/settings.c \
+	src/data/settings.h \
+	src/data/sfm-private.h \
+	src/data/sys-file-reader.c \
+	src/data/sys-file-reader.h \
+	src/data/sys-file-writer.c \
+	src/data/sys-file-writer.h \
+	src/data/value.h \
+	src/data/value-labels.c \
+	src/data/value-labels.h \
+	src/data/variable.h \
+	src/data/variable.c 

@@ -1,0 +1,55 @@
+## Process this file with automake to produce Makefile.in  -*- makefile -*-
+
+
+noinst_LIBRARIES += src/libpspp/libpspp.a
+
+src_libpspp_libpspp_a_SOURCES = \
+	src/libpspp/array.c \
+	src/libpspp/array.h \
+	src/libpspp/alloc.c \
+	src/libpspp/alloc.h \
+	src/libpspp/bit-vector.h \
+	src/libpspp/copyleft.c \
+	src/libpspp/copyleft.h \
+	src/libpspp/debug-print.h \
+	src/libpspp/hash.c \
+	src/libpspp/hash.h \
+	src/libpspp/magic.c \
+	src/libpspp/magic.h \
+	src/libpspp/misc.c \
+	src/libpspp/misc.h \
+	src/libpspp/pool.c \
+	src/libpspp/pool.h \
+	src/libpspp/message.h \
+	src/libpspp/start-date.c \
+	src/libpspp/start-date.h \
+	src/libpspp/str.c \
+	src/libpspp/str.h \
+	src/libpspp/version.h 
+
+DISTCLEANFILES+=src/libpspp/version.c
+
+nodist_src_libpspp_libpspp_a_SOURCES = src/libpspp/version.c
+
+src/libpspp/version.c:
+	@mkdir -p src/libpspp
+	echo "#include <config.h>" > $@
+	echo "#include \"version.h\"" > $@
+	echo "const char bare_version[] = \"@VERSION@\";" >> $@
+	echo "const char version[] = \"GNU @PACKAGE@ @VERSION@\";" >> $@
+	echo "const char stat_version[] = \"GNU @PACKAGE@ @VERSION@ \
+(`date`).\";" >> $@
+	echo "const char host_system[] = \"$(host_triplet)\";" >> $@
+	echo "const char build_system[] = \"$(build_triplet)\";" >> $@
+	echo "const char default_config_path[] =\
+\"~/.pspp:$(pkgsysconfdir)\";" >> $@
+	echo "const char include_path[] =\
+\"./:~/.pspp/include:$(pkgdatadir)\";" >> $@
+	echo "const char groff_font_path[] = \"~/.pspp/font:\" \\" >> $@
+	echo "	\"$(pkgdatadir)/font:\" \\" >> $@
+	echo "	\"/usr/local/lib/groff/font:\" \\" >> $@
+	echo "	\"/usr/lib/groff/font:\" \\" >> $@
+	echo "	\"/usr/local/share/groff/font:\" \\" >> $@
+	echo "	\"/usr/share/groff/font\";" >> $@
+	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> $@
+
