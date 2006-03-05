@@ -1393,8 +1393,8 @@ postopen (struct file_ext *f)
   
   if (!outp_title)
     {
-      dict[16].value = cp = local_alloc (strlen (dict[17].value) + 30);
-      sprintf (cp, "PSPP (%s)", dict[17].value);
+      dict[16].value = cp = local_alloc (16);
+      strcpy (cp, "PSPP");
     }
   else
     {
