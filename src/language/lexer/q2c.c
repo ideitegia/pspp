@@ -1942,7 +1942,7 @@ dump_free (int persistent)
 	  switch (sbc->type) 
 	    {
             case SBC_VARLIST:
-	      dump (0, "free (p->v_variables);");
+	      dump (0, "free (p->v_%s);", st_lower (sbc->name));
               break;
 	    case SBC_STRING:
 	      dump (0, "free (p->s_%s);", st_lower (sbc->name));

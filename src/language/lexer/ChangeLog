@@ -1,3 +1,9 @@
+Fri Mar 10 08:29:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: (dump_free) Free proper member for var list, instead of
+	hard-coding to v_variables.  Thanks to Jason Stover for reporting
+	this bug.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory
