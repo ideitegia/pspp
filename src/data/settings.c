@@ -42,7 +42,7 @@ static int epoch = -1;
 
 static bool errorbreak = false;
 
-static bool scompress = false;
+static bool scompress = true;
 
 static bool undefined = true;
 static double blanks = SYSMIS;

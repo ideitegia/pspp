@@ -9,6 +9,7 @@ if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 top_srcdir=`cd $top_srcdir; pwd`
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 
 STAT_CONFIG_PATH=$top_srcdir/config
@@ -137,7 +138,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $top_builddir/src/pspp --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/epoch.stat > $TEMPDIR/epoch.err 2> $TEMPDIR/epoch.out
 
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/epoch.out

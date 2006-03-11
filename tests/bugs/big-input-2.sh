@@ -12,6 +12,7 @@ TESTFILE=$TEMPDIR/`basename $0`.sps
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 # ensure that top_srcdir is absolute
 top_srcdir=`cd $top_srcdir; pwd`
@@ -78,7 +79,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="appending to data"
@@ -87,7 +88,7 @@ $PERL -e 'for ($i=0; $i<25000; $i++) { print "AB04\nAB12\n" };' >> $TEMPDIR/larg
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o raw-ascii $TESTFILE > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

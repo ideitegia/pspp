@@ -8,6 +8,7 @@ TEMPDIR=/tmp/pspp-tst-$$
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 # ensure that top_srcdir is absolute
 top_srcdir=`cd $top_srcdir; pwd`
@@ -80,7 +81,7 @@ sed < $TEMPDIR/moments-list-2p >> $TEMPDIR/moments-2p.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run two-pass program"
-$SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii \
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii \
 	 $TEMPDIR/moments-2p.stat >$TEMPDIR/moments-2p.err 2> $TEMPDIR/moments-2p.out
 
 activity="compare two-pass output"
@@ -94,7 +95,7 @@ sed < $TEMPDIR/moments-list-1p >> $TEMPDIR/moments-1p.stat \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run one-pass program"
-$SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii \
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii \
 	 $TEMPDIR/moments-1p.stat >$TEMPDIR/moments-1p.err 2> $TEMPDIR/moments-1p.out
 
 activity="compare one-pass output"

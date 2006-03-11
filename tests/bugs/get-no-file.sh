@@ -10,6 +10,7 @@ TESTFILE=$TEMPDIR/`basename $0`.sps
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 # ensure that top_srcdir is absolute
 top_srcdir=`cd $top_srcdir; pwd`
@@ -63,7 +64,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 # We use the stdinput here, because the bug seems to manifest itself only in 
 # interactive mode.
 activity="run program"
-cat $TESTFILE | $SUPERVISOR $top_builddir/src/pspp -o raw-ascii  > /dev/null
+cat $TESTFILE | $SUPERVISOR $PSPP -o raw-ascii  > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass

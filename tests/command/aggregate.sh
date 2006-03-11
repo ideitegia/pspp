@@ -11,6 +11,7 @@ if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 top_srcdir=`cd $top_srcdir; pwd`
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 
 STAT_CONFIG_PATH=$top_srcdir/config
@@ -205,7 +206,7 @@ for outfile in scratch active external; do
 	    if [ $? -ne 0 ] ; then no_result ; fi
 	    
 	    activity="run $name.pspp"
-	    $SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii $name.pspp >/dev/null 2>&1
+	    $SUPERVISOR $PSPP --testing-mode -o raw-ascii $name.pspp >/dev/null 2>&1
 	    if [ $? -ne 0 ] ; then no_result ; fi
 
 	    activity="check $name output"

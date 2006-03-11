@@ -9,6 +9,7 @@ TESTFILE=$TEMPDIR/`basename $0`.sps
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 # ensure that top_srcdir is absolute
 top_srcdir=`cd $top_srcdir; pwd`
@@ -76,7 +77,7 @@ if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi
 
 # This command must fail
 activity="run prog 1"
-$SUPERVISOR $top_builddir/src/pspp $TESTFILE > /dev/null
+$SUPERVISOR $PSPP $TESTFILE > /dev/null
 if [ $? -eq 0 ] ; then fail ; fi
 
 
@@ -90,7 +91,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run prog 1"
-$SUPERVISOR $top_builddir/src/pspp $TESTFILE
+$SUPERVISOR $PSPP $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 # foobar should now be gone

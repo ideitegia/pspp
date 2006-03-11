@@ -1,3 +1,6 @@
+Sat Mar 11 14:16:01 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* Updated the tests to use the new location of the pspp binary.
 	* Made all the tests work as stand-alone scripts.
 
 Sun Feb 12 19:07:24 2006  Ben Pfaff  <blp@gnu.org>

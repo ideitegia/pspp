@@ -9,6 +9,7 @@ if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 top_srcdir=`cd $top_srcdir; pwd`
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 
 STAT_CONFIG_PATH=$top_srcdir/config
@@ -59,7 +60,7 @@ perl $top_srcdir/tests/expressions/randist/randist.pl \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run command file"
-$SUPERVISOR $top_builddir/src/pspp --testing-mode -o raw-ascii \
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii \
     $TEMPDIR/randist.pspp >$TEMPDIR/randist.err 2> $TEMPDIR/randist.out
 if [ $? -ne 0 ] ; then fail ; fi
 

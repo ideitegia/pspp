@@ -9,6 +9,7 @@ TESTFILE=$TEMPDIR/`basename $0`.sps
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 top_builddir=`cd $top_builddir; pwd`
+PSPP=$top_builddir/src/ui/terminal/pspp
 
 # ensure that top_srcdir is absolute
 top_srcdir=`cd $top_srcdir; pwd`
@@ -63,7 +64,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 1"
-$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-1.stat
+$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/recode-copy-bug-1.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -74,7 +75,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="run program 2"
-$SUPERVISOR $top_builddir/src/pspp -o raw-ascii $TEMPDIR/recode-copy-bug-2.stat
+$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/recode-copy-bug-2.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

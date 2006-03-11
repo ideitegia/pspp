@@ -1,9 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-
-
 noinst_LIBRARIES += src/output/charts/libcharts.a
-
 
 src/output/charts/%: AM_CPPFLAGS +=  \
 	-I$(top_srcdir)/src/libpspp \

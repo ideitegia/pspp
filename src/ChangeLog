@@ -1,3 +1,10 @@
+Sat Mar 11 14:17:47 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* automake.mk: Changed the pattern specific AM_CPPFLAGS to two target 
+	  specific ones. Eventually there will be none at all.
+
+	* automake.mk: Moved the pspp binary to ui/terminal
+
 Sat Mar  4 12:59:08 2006  Ben Pfaff  <blp@gnu.org>
 
 	* In many source files, #include "compiler.h" to get GCC attribute
