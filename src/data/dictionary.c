@@ -224,9 +224,10 @@ dict_get_var (const struct dictionary *d, size_t idx)
 }
 
 /* Sets *VARS to an array of pointers to variables in D and *CNT
-   to the number of variables in *D.  By default all variables
-   are returned, but bits may be set in EXCLUDE_CLASSES to
-   exclude ordinary, system, and/or scratch variables. */
+   to the number of variables in *D.  All variables are returned
+   if EXCLUDE_CLASSES is 0, or it may contain one or more of (1u
+   << DC_ORDINARY), (1u << DC_SYSTEM), or (1u << DC_SCRATCH) to
+   exclude the corresponding type of variable. */
 void
 dict_get_vars (const struct dictionary *d, struct variable ***vars,
                size_t *cnt, unsigned exclude_classes)
