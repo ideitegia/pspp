@@ -1,3 +1,7 @@
+Mon Mar 13 16:42:44 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * psppire.c: Supported (sort of) the --help and --version options.
+
     * Rename error-dialog.[ch] -> message-dialog.[ch]
 
     * Moved code from the psppire module.

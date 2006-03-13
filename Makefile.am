@@ -3,10 +3,10 @@
 AUTOMAKE_OPTIONS = gnits 1.7 subdir-objects
 
 SUBDIRS = intl gl po
-DISTCLEANFILES = pref.h
+DISTCLEANFILES = 
 
 
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
+AM_CPPFLAGS=-I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
 -I$(top_srcdir)/intl -I$(top_srcdir)/gl -I$(top_builddir)/gl
 
 AM_CFLAGS=
@@ -34,7 +34,7 @@ pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 
 EXTRA_DIST = AUTHORS NEWS ONEWS README TODO THANKS config.rpath	\
-mkinstalldirs config.rpath pref.h.orig configure pspp-mode.el
+mkinstalldirs config.rpath configure pspp-mode.el
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
 CLEANFILES = 

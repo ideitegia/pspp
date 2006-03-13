@@ -11,6 +11,7 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/bit-vector.h \
 	src/libpspp/copyleft.c \
 	src/libpspp/copyleft.h \
+	src/libpspp/compiler.h \
 	src/libpspp/debug-print.h \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
@@ -34,7 +35,7 @@ nodist_src_libpspp_libpspp_a_SOURCES = src/libpspp/version.c
 src/libpspp/version.c:
 	@mkdir -p src/libpspp
 	echo "#include <config.h>" > $@
-	echo "#include \"version.h\"" > $@
+	echo "#include <libpspp/version.h>" > $@
 	echo "const char bare_version[] = \"@VERSION@\";" >> $@
 	echo "const char version[] = \"GNU @PACKAGE@ @VERSION@\";" >> $@
 	echo "const char stat_version[] = \"GNU @PACKAGE@ @VERSION@ \

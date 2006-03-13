@@ -23,7 +23,10 @@
  * Glade will not overwrite this file.
  */
 
-
+#include <assert.h>
+#include <libpspp/version.h>
+#include <libpspp/copyleft.h>
+#include <getopt.h>
 #include <gtk/gtk.h>
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -47,9 +50,14 @@ PsppireCaseArray *the_cases = 0;
 PsppireDataStore *data_store = 0;
 
 
+static bool parse_command_line (int *argc, char ***argv);
+
+
 int 
 main(int argc, char *argv[]) 
 {
+  if ( ! parse_command_line(&argc, &argv) ) 
+    return 0;
 
   gtk_init(&argc, &argv);
 
@@ -96,3 +104,41 @@ main(int argc, char *argv[])
   return 0;
 }
 
+
+/* Parses the command line specified by ARGC and ARGV as received by
+   main().  Returns true if normal execution should proceed,
+   false if the command-line indicates that PSPP should exit. */
+static bool
+parse_command_line (int *argc, char ***argv)
+{
+  static struct option long_options[] =
+  {
+    {"help", no_argument, NULL, 'h'},
+    {"version", no_argument, NULL, 'V'},
+    {0, 0, 0, 0},
+  };
+
+  int c;
+
+  for (;;)
+    {
+      c = getopt_long (*argc, *argv, "hV", long_options, NULL);
+      if (c == -1)
+	break;
+
+      switch (c)
+	{
+	case 'h':
+	  puts("Usage: ./psppire\nMust be run from the directory containing psppire.glade");
+          return false;
+	case 'V':
+	  puts (version);
+	  puts (legal);
+	  return false;
+	default:
+	  assert (0);
+	}
+    }
+
+  return true;
+}
