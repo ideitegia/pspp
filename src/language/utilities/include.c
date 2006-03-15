@@ -20,12 +20,12 @@
 #include <config.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "line-buffer.h"
-#include "lexer.h"
-#include "str.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/line-buffer.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -21,11 +21,11 @@
 #include "private.h"
 
 #include <ctype.h>
-#include "alloc.h"
-#include "message.h"
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
 #include "helpers.h"
 #include "evaluate.h"
-#include "pool.h"
+#include <libpspp/pool.h>
 
 static void
 expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
@@ -94,8 +94,8 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
   buf_copy_rpad (dst, dst_size, s.string, s.length);
 }
 
-#include "lexer.h"
-#include "command.h"
+#include <language/lexer/lexer.h>
+#include <language/command.h>
 
 int
 cmd_debug_evaluate (void)

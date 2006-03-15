@@ -53,10 +53,10 @@
   Springer. 1998. ISBN 0-387-98542-5.
 */
 
-#include "linreg.h"
-#include "coefficient.h"
-#include "sweep.h"
+#include <math/linreg/linreg.h>
+#include <math/linreg/coefficient.h>
 #include <gsl/gsl_errno.h>
+#include <linreg/sweep.h>
 /*
   Get the mean and standard deviation of a vector
   of doubles via a form of the Kalman filter as

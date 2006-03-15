@@ -18,15 +18,18 @@
    02110-1301, USA. */
 
 
-#include "chart.h"
-#include "chart-geometry.h"
 #include <math.h>
 #include <assert.h>
-#include "misc.h"
+#include <libpspp/misc.h>
 
-#include "factor-stats.h"
-#include "box-whisker.h"
-#include "plot-chart.h"
+#include <output/charts/box-whisker.h>
+#include <output/charts/plot-chart.h>
+
+#include <output/chart.h>
+#include <math/chart-geometry.h>
+#include <math/factor-stats.h>
+
+
 
 
 /* Draw a box-and-whiskers plot

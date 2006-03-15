@@ -22,8 +22,8 @@
 #ifndef __MISC_H__
 #define __MISC_H__
 
-#include "value.h"
-#include "format.h"
+#include <data/value.h>
+#include <data/format.h>
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>

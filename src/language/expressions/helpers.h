@@ -9,21 +9,21 @@
 #include <limits.h>
 #include <math.h>
 #include <stdbool.h>
-#include "case.h"
-#include "compiler.h"
-#include "data-in.h"
-#include "dictionary.h"
-#include "message.h"
-#include "calendar.h"
-#include "gsl-extras/gsl-extras.h"
-#include "misc.h"
-#include "moments.h"
-#include "random.h"
-#include "settings.h"
-#include "str.h"
-#include "value.h"
-#include "variable.h"
-#include "procedure.h"
+#include <data/case.h>
+#include <libpspp/compiler.h>
+#include <data/data-in.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <data/calendar.h>
+#include <gsl-extras/gsl-extras.h>
+#include <libpspp/misc.h>
+#include <math/moments.h>
+#include <math/random.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
+#include <data/value.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

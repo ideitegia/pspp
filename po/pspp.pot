@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-03-13 15:48+0800\n"
+"POT-Creation-Date: 2006-03-14 15:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1087,7 +1087,7 @@ msgstr ""
 msgid "This command cannot appear outside %s...%s."
 msgstr ""
 
-#: src/language/control/do-if.c:169
+#: src/language/control/do-if.c:171
 msgid "This command may not follow ELSE in DO IF...END IF."
 msgstr ""
 
@@ -3502,7 +3502,7 @@ msgstr ""
 msgid "Cum"
 msgstr ""
 
-#: src/language/stats/frequencies.q:1147 src/output/charts/plot-hist.c:127
+#: src/language/stats/frequencies.q:1147 src/output/charts/plot-hist.c:129
 msgid "Frequency"
 msgstr ""
 
@@ -4275,7 +4275,7 @@ msgstr ""
 msgid "Charts are unsupported with ascii drivers."
 msgstr ""
 
-#: src/output/charts/plot-hist.c:125
+#: src/output/charts/plot-hist.c:127
 msgid "HISTOGRAM"
 msgstr ""
 
@@ -4785,35 +4785,35 @@ msgid ""
 "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:57
+#: src/ui/gui/menu-actions.c:58
 msgid "Untitled"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:59
+#: src/ui/gui/menu-actions.c:60
 msgid "PSPP Data Editor"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:104
+#: src/ui/gui/menu-actions.c:105
 msgid "Open"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:113
+#: src/ui/gui/menu-actions.c:114
 msgid "System Files (*.sav)"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:119
+#: src/ui/gui/menu-actions.c:120
 msgid "Portable Files (*.por) "
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:125
+#: src/ui/gui/menu-actions.c:126
 msgid "All Files"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:222
+#: src/ui/gui/menu-actions.c:223
 msgid "Save Data As"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:458
+#: src/ui/gui/menu-actions.c:459
 msgid "Font Selection"
 msgstr ""
 

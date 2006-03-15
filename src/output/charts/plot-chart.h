@@ -27,12 +27,13 @@
 #include <math.h>
 
 
-#include "chart-geometry.h"
-#include "chart.h"
-#include "str.h"
-#include "alloc.h"
-#include "manager.h"
-#include "output.h"
+#include <math/chart-geometry.h>
+#include <output/chart.h>
+
+#include <libpspp/str.h>
+#include <libpspp/alloc.h>
+#include <output/manager.h>
+#include <output/output.h>
 
 
 #ifndef PLOT_CHART_H

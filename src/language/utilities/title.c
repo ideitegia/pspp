@@ -20,21 +20,21 @@
 #include <config.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "dictionary.h"
-#include "message.h"
-#include "lexer.h"
-#include "output.h"
-#include "start-date.h"
-#include "variable.h"
-#include "version.h"
-#include "procedure.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <output/output.h>
+#include <libpspp/start-date.h>
+#include <data/variable.h>
+#include <libpspp/version.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 static int get_title (const char *cmd, char **title);
 

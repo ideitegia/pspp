@@ -22,19 +22,19 @@
 #include <limits.h>
 #include <stdio.h>
 #include <math.h>
-#include "alloc.h"
-#include "command.h"
-#include "compiler.h"
-#include "message.h"
-#include "lexer.h"
-#include "random.h"
-#include "str.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <math/random.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* The two different types of samples. */
 enum

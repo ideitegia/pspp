@@ -25,19 +25,19 @@
 
 #include <gobject/gvaluecollector.h>
 
-#include "gsheetmodel.h"
+#include <gtksheet/gsheetmodel.h>
 
 #include "psppire-variable.h"
 #include "psppire-var-store.h"
 #include "var-sheet.h"
 
-#include "dictionary.h"
-#include "variable.h"
-#include "missing-values.h"
+#include <data/dictionary.h>
+#include <data/variable.h>
+#include <data/missing-values.h>
 
 #include "val-labs-dialog.h"
 #include "missing-val-dialog.h"
-#include "value-labels.h"
+#include <data/value-labels.h>
 
 #define _(A) A
 #define N_(A) A

@@ -28,7 +28,7 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
-#include "missing-values.h"
+#include <data/missing-values.h>
 
 struct missing_val_dialog
 {

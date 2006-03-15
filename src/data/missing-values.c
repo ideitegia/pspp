@@ -21,7 +21,7 @@
 #include "missing-values.h"
 #include <assert.h>
 #include <stdlib.h>
-#include "str.h"
+#include <libpspp/str.h>
 
 
 /* Initializes MV as a set of missing values for a variable of

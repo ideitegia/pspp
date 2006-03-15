@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <config.h>
 #include "factor-stats.h"
-#include "value.h"
-#include "hash.h"
-#include "array.h"
-#include "alloc.h"
+#include <data/value.h>
+#include <libpspp/hash.h>
+#include <libpspp/array.h>
+#include <libpspp/alloc.h>
 #include "moments.h"
 #include "percentiles.h"
 

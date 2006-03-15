@@ -2,12 +2,6 @@
 
 include $(top_srcdir)/src/math/linreg/automake.mk
 
-src/math/%: AM_CPPFLAGS += \
-	-I$(top_srcdir)/src/math \
-	-I$(top_srcdir)/src/libpspp \
-	-I$(top_srcdir)/src/data 
-
-
 noinst_LIBRARIES += src/math/libpspp_math.a
 
 src_math_libpspp_math_a_SOURCES = \

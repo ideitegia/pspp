@@ -22,8 +22,8 @@
 
 #include <assert.h>
 #include <stddef.h>
-#include "format.h"
-#include "str.h"
+#include <data/format.h>
+#include <libpspp/str.h>
 
 #include "public.h"
 #include "operations.h"

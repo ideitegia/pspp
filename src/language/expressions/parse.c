@@ -23,19 +23,19 @@
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h>
-#include "array.h"
-#include "alloc.h"
-#include "case.h"
-#include "dictionary.h"
-#include "message.h"
+#include <libpspp/array.h>
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
 #include "helpers.h"
-#include "lexer.h"
-#include "misc.h"
-#include "pool.h"
-#include "settings.h"
-#include "str.h"
-#include "variable.h"
-#include "procedure.h"
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 /* Declarations. */
 

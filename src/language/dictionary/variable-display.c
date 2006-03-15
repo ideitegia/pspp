@@ -20,14 +20,14 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "lexer.h"
-#include "str.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Set variables' alignment
    This is the alignment for GUI display only.

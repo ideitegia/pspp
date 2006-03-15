@@ -22,7 +22,7 @@
 /* This module creates the Variable Sheet used for inputing the
    variables in the  dictonary */
 
-#include <value-labels.h>
+#include <data/value-labels.h>
 
 #include <glade/glade.h>
 #include <gtk/gtk.h>
@@ -32,11 +32,11 @@
 
 #define min(A,B) ((A < B)?A:B)
 
-#include "gtksheet.h"
-#include "gsheet-hetero-column.h"
-#include "gsheet-uniform-row.h"
-#include "psppire-var-store.h"
+#include <gtksheet/gtksheet.h>
+#include <gtksheet/gsheet-hetero-column.h>
+#include <gtksheet/gsheet-uniform-row.h>
 
+#include "psppire-var-store.h"
 #include "helper.h"
 #include "menu-actions.h"
 #include "psppire-dict.h"

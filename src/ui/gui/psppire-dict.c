@@ -22,14 +22,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "gtkextra-marshal.c"
+#include <gtksheet/gtkextra-marshal.c>
 
 #include "psppire-object.h"
 #include "psppire-dict.h"
-#include "format.h"
-#include "dictionary.h"
-#include "missing-values.h"
-#include "value-labels.h"
+#include <data/format.h>
+#include <data/dictionary.h>
+#include <data/missing-values.h>
+#include <data/value-labels.h>
 
 
 #include "message-dialog.h"

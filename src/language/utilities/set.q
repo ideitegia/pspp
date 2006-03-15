@@ -18,26 +18,26 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "settings.h"
-#include "message.h"
+#include <data/settings.h>
+#include <libpspp/message.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <time.h>
-#include "alloc.h"
-#include "command.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "line-buffer.h"
-#include "lexer.h"
-#include "message.h"
-#include "magic.h"
-#include "output.h"
-#include "random.h"
-#include "variable.h"
-#include "format.h"
-#include "copyleft.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <language/line-buffer.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/message.h>
+#include <libpspp/magic.h>
+#include <output/output.h>
+#include <math/random.h>
+#include <data/variable.h>
+#include <data/format.h>
+#include <libpspp/copyleft.h>
+#include <data/variable.h>
 
 
 #if HAVE_LIBTERMCAP

@@ -1,14 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-src/language/utilities/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp \
- -I$(top_srcdir)/src/data \
- -I$(top_srcdir)/src/math \
- -I$(top_srcdir)/src/output \
- -I$(top_srcdir)/src/output/charts \
- -I$(top_srcdir)/src/language/lexer \
- -I$(top_srcdir)/src/language
-
 src_language_utilities_q_sources_q =  \
 	src/language/utilities/set.q
 

@@ -20,7 +20,7 @@
 #ifndef BARCHART_H
 #define BARCHART_H
 
-#include "chart.h"
+#include <output/chart.h>
 
 enum  bar_opts {
   BAR_GROUPED =  0,

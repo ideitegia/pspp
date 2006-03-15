@@ -24,18 +24,18 @@
 
 #include <ctype.h>
 
-#include "gtksheet.h"
+#include <gtksheet/gtksheet.h>
 
-#include "gsheet-uniform-row.h"
+#include <gtksheet/gsheet-uniform-row.h>
 
 #include "psppire-dict.h"
 #include "psppire-variable.h"
 #include "psppire-data-store.h"
 #include "helper.h"
 
-#include "value-labels.h"
-#include "case.h"
-#include "data-in.h"
+#include <data/value-labels.h>
+#include <data/case.h>
+#include <data/data-in.h>
 
 #include "menu-actions.h"
 #include "data-sheet.h"

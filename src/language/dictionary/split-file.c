@@ -19,13 +19,13 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "dictionary.h"
-#include "message.h"
-#include "lexer.h"
-#include "str.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 int
 cmd_split_file (void)

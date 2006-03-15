@@ -20,25 +20,25 @@
 /* FIXME: Many possible optimizations. */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
-#include "array.h"
-#include "alloc.h"
-#include "case.h"
-#include "casefile.h"
-#include "command.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "lexer.h"
-#include "message.h"
-#include "magic.h"
-#include "moments.h"
-#include "manager.h"
-#include "table.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/array.h>
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <data/casefile.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/message.h>
+#include <libpspp/magic.h>
+#include <math/moments.h>
+#include <output/manager.h>
+#include <output/table.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

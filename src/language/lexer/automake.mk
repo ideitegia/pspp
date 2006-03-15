@@ -1,12 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-src/language/lexer/%: AM_CPPFLAGS += \
- -I$(top_srcdir)/src/libpspp \
- -I$(top_srcdir)/src/data \
- -I$(top_srcdir)/src/language
-	
-
 noinst_LIBRARIES += src/language/lexer/liblexer.a
 
 src_language_lexer_liblexer_a_SOURCES = \

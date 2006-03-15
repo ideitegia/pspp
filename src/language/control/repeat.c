@@ -19,27 +19,27 @@
 
 #include <config.h>
 #include "repeat.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "dictionary.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <data/dictionary.h>
 #include "intprops.h"
-#include "message.h"
-#include "line-buffer.h"
-#include "lexer.h"
-#include "misc.h"
-#include "pool.h"
-#include "settings.h"
-#include "str.h"
-#include "variable.h"
+#include <libpspp/message.h>
+#include <language/line-buffer.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Defines a list of lines used by DO REPEAT. */
 struct line_list

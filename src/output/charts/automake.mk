@@ -2,12 +2,6 @@
 
 noinst_LIBRARIES += src/output/charts/libcharts.a
 
-src/output/charts/%: AM_CPPFLAGS +=  \
-	-I$(top_srcdir)/src/libpspp \
-	-I$(top_srcdir)/src/output \
-	-I$(top_srcdir)/src/data \
-	-I$(top_srcdir)/src/math
-
 chart_sources = \
 	src/output/charts/barchart.c \
 	src/output/charts/barchart.h \

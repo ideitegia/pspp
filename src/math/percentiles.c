@@ -19,10 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 #include <config.h>
-#include "compiler.h"
+#include <libpspp/compiler.h>
 #include "factor-stats.h"
 #include "percentiles.h"
-#include "misc.h"
+#include <libpspp/misc.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

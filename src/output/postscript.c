@@ -21,7 +21,7 @@
 
 #include <ctype.h>
 #include "chart.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -31,20 +31,20 @@
 #include <unistd.h>
 #endif
 
-#include "alloc.h"
-#include "bit-vector.h"
-#include "compiler.h"
-#include "message.h"
-#include "filename.h"
+#include <libpspp/alloc.h>
+#include <libpspp/bit-vector.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <data/filename.h>
 #include "font.h"
 #include "getline.h"
-#include "hash.h"
+#include <libpspp/hash.h>
 #include "intprops.h"
-#include "misc.h"
+#include <libpspp/misc.h>
 #include "output.h"
 #include "manager.h"
-#include "start-date.h"
-#include "version.h"
+#include <libpspp/start-date.h>
+#include <libpspp/version.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

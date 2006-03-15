@@ -24,7 +24,7 @@
 #include <stdarg.h>
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include "message-dialog.h"
 
 

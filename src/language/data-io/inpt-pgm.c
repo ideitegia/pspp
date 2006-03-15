@@ -18,29 +18,29 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <float.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "case.h"
-#include "command.h"
-#include "compiler.h"
-#include "data-list.h"
-#include "data-reader.h"
-#include "dictionary.h"
-#include "message.h"
-#include "expressions/public.h"
-#include "file-handle.h"
-#include "lexer.h"
-#include "misc.h"
-#include "str.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <language/data-io/data-list.h>
+#include <language/data-io/data-reader.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <language/expressions/public.h>
+#include <language/data-io/file-handle.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Indicates how a `union value' should be initialized. */
 enum value_init_type

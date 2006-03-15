@@ -22,7 +22,7 @@
 #ifndef VAR_SHEET_H
 #define VAR_SHEET_H
 
-#include "gtksheet.h"
+#include <gtksheet/gtksheet.h>
 
 #include "psppire-dict.h"
 

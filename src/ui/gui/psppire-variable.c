@@ -21,9 +21,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "missing-values.h"
-#include "value-labels.h"
-#include "format.h"
+#include <data/missing-values.h>
+#include <data/value-labels.h>
+#include <data/format.h>
 
 #include "psppire-variable.h"
 #include "psppire-dict.h"

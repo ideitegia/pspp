@@ -30,29 +30,29 @@
 */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <gsl/gsl_cdf.h>
-#include "array.h"
-#include "alloc.h"
-#include "case.h"
-#include "dictionary.h"
-#include "hash.h"
-#include "pool.h"
-#include "command.h"
-#include "compiler.h"
-#include "lexer.h"
-#include "message.h"
-#include "magic.h"
-#include "misc.h"
-#include "output.h"
-#include "str.h"
-#include "table.h"
-#include "value-labels.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/array.h>
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <data/dictionary.h>
+#include <libpspp/hash.h>
+#include <libpspp/pool.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/message.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
+#include <output/output.h>
+#include <libpspp/str.h>
+#include <output/table.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -60,7 +60,7 @@
 
 /* (headers) */
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* (specification)
    crosstabs (crs_):

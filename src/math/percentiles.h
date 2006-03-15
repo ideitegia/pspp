@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define PERCENTILES_H
 
 
-#include "hash.h"
+#include <libpspp/hash.h>
 
 struct weighted_value ;
 

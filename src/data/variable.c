@@ -19,15 +19,15 @@
 
 #include <config.h>
 #include "variable.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "compiler.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
 #include "dictionary.h"
-#include "hash.h"
+#include <libpspp/hash.h>
 #include "identifier.h"
-#include "misc.h"
-#include "str.h"
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include "value-labels.h"
 
 #include "gettext.h"

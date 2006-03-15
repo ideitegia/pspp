@@ -19,11 +19,13 @@
 
 
 #include <math.h>
-#include "chart.h"
 #include <assert.h>
-#include "plot-chart.h"
-#include "cartesian.h"
-#include "compiler.h"
+
+#include <output/chart.h>
+
+#include <output/charts/plot-chart.h>
+#include <output/charts/cartesian.h>
+#include <libpspp/compiler.h>
 
 
 

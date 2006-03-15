@@ -20,7 +20,7 @@
 #include <config.h>
 #include "chart.h"
 #include "htmlP.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -30,17 +30,17 @@
 #include <unistd.h>
 #endif
 
-#include "alloc.h"
-#include "compiler.h"
-#include "message.h"
-#include "filename.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <data/filename.h>
 #include "getline.h"
 #include "getlogin_r.h"
 #include "output.h"
 #include "manager.h"
 #include "table.h"
-#include "version.h"
-#include "make-file.h"
+#include <libpspp/version.h>
+#include <data/make-file.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

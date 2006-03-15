@@ -21,17 +21,17 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "command.h"
-#include "message.h"
-#include "lexer.h"
-#include "misc.h"
-#include "str.h"
-#include "variable.h"
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 enum
   {

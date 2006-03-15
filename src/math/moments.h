@@ -21,7 +21,7 @@
 #define HEADER_MOMENTS
 
 #include <stddef.h>
-#include "value.h"
+#include <data/value.h>
 
 /* Moments of the mean.
    Higher-order moments have higher values. */

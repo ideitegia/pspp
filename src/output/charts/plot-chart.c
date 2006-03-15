@@ -18,6 +18,7 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <stdio.h>
 #include <plot.h>
 #include <stdarg.h>
@@ -27,13 +28,18 @@
 #include <assert.h>
 #include <math.h>
 
-#include "chart-geometry.h"
-#include "plot-chart.h"
-#include "str.h"
-#include "alloc.h"
-#include "manager.h"
-#include "output.h"
-#include "plot-chart.h"
+#include <output/charts/plot-chart.h>
+#include <output/charts/plot-chart.h>
+
+#include <math/chart-geometry.h>
+
+
+
+#include <libpspp/str.h>
+#include <libpspp/alloc.h>
+#include <output/manager.h>
+#include <output/output.h>
+
 
 const char *data_colour[] = {
   "brown",

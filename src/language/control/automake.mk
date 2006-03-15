@@ -1,11 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-src/language/control/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp \
- -I$(top_srcdir)/src/data \
- -I$(top_srcdir)/src/language \
- -I$(top_srcdir)/src/language/lexer
-
 noinst_LIBRARIES += src/language/control/libcontrol.a
 
 src_language_control_libcontrol_a_SOURCES = \

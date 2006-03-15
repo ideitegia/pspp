@@ -22,11 +22,10 @@
 */
 #include <config.h>
 #include <stdlib.h>
-#include <message.h>
-#include "alloc.h"
-#include "message.h"
-#include "variable.h"
-#include "category.h"
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
+#include <data/variable.h>
+#include <data/category.h>
 #include "design-matrix.h"
 #include <string.h>
 #include <math.h>

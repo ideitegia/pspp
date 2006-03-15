@@ -19,19 +19,19 @@
 
 #include <config.h>
 #include "output.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
-#include "alloc.h"
-#include "message.h"
-#include "filename.h"
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
+#include <data/filename.h>
 #include "htmlP.h"
 #include "intprops.h"
-#include "misc.h"
-#include "settings.h"
-#include "str.h"
+#include <libpspp/misc.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -24,12 +24,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include "file-handle-def.h"
 #include "filename.h"
 #include "por-file-reader.h"
 #include "sys-file-reader.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "scratch-reader.h"
 #include "xalloc.h"
 

@@ -26,9 +26,9 @@
 #include <assert.h>
 #include <math.h>
 
-#include "chart-geometry.h"
-#include "str.h"
-#include "alloc.h"
+#include <math/chart-geometry.h>
+#include <libpspp/str.h>
+#include <libpspp/alloc.h>
 #include "manager.h"
 #include "output.h"
 

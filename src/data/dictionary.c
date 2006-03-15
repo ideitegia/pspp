@@ -21,17 +21,17 @@
 #include "dictionary.h"
 #include <stdlib.h>
 #include <ctype.h>
-#include "array.h"
-#include "alloc.h"
+#include <libpspp/array.h>
+#include <libpspp/alloc.h>
 #include "case.h"
 #include "category.h"
 #include "cat-routines.h"
-#include "compiler.h"
-#include "message.h"
-#include "hash.h"
-#include "misc.h"
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <libpspp/hash.h>
+#include <libpspp/misc.h>
 #include "settings.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "value-labels.h"
 #include "variable.h"
 

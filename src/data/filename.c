@@ -18,24 +18,24 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include "filename.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-#include "alloc.h"
+#include <libpspp/alloc.h>
 #include "intprops.h"
-#include "message.h"
-#include "str.h"
+#include <libpspp/message.h>
+#include <libpspp/str.h>
 #include "settings.h"
-#include "version.h"
+#include <libpspp/version.h>
 #include "xreadlink.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* PORTME: Everything in this file is system dependent. */
 

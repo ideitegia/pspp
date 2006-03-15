@@ -1,14 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-src/language/data-io/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp  \
-    -I$(top_srcdir)/src/data \
-    -I$(top_srcdir)/src/language \
-    -I$(top_srcdir)/src/language/lexer \
-    -I$(top_srcdir)/src/language/data-io \
-    -I$(top_srcdir)/src/output/charts \
-    -I$(top_srcdir)/src/output 
-
 noinst_LIBRARIES += src/language/data-io/libdata_io.a
 
 src_language_data_io_q_sources_q =  src/language/data-io/file-handle.q src/language/data-io/list.q

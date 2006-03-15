@@ -19,28 +19,28 @@
 
 #include <config.h>
 #include "sort.h"
-#include "message.h"
-#include "alloc.h"
+#include <libpspp/message.h>
+#include <libpspp/alloc.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "array.h"
+#include <libpspp/array.h>
 #include <stdbool.h>
-#include "case.h"
-#include "casefile.h"
-#include "message.h"
+#include <data/case.h>
+#include <data/casefile.h>
+#include <libpspp/message.h>
 
-#include "misc.h"
-#include "settings.h"
-#include "str.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/misc.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* These should only be changed for testing purposes. */
 int min_buffers = 64;

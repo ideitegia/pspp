@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "por-file-writer.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -30,24 +30,24 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include "alloc.h"
+#include <libpspp/alloc.h>
 #include "case.h"
 #include "dictionary.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include "file-handle-def.h"
-#include "hash.h"
-#include "magic.h"
-#include "misc.h"
+#include <libpspp/hash.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
 #include "stat-macros.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "value-labels.h"
 #include "variable.h"
-#include "version.h"
+#include <libpspp/version.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Portable file writer. */
 struct pfm_writer

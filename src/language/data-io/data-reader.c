@@ -18,26 +18,26 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "data-reader.h"
+#include <language/data-io/data-reader.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "file-handle.h"
-#include "file-handle-def.h"
-#include "filename.h"
-#include "line-buffer.h"
-#include "lexer.h"
-#include "str.h"
-#include "procedure.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/data-io/file-handle.h>
+#include <data/file-handle-def.h>
+#include <data/filename.h>
+#include <language/line-buffer.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/str.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Flags for DFM readers. */
 enum dfm_reader_flags

@@ -20,22 +20,22 @@
 #include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "dictionary.h"
-#include "message.h"
-#include "alloc.h"
-#include "command.h"
-#include "hash.h"
-#include "lexer.h"
-#include "message.h"
-#include "magic.h"
-#include "variable.h"
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/hash.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/message.h>
+#include <libpspp/magic.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
 /* (headers) */
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* (specification)
    means (mns_):

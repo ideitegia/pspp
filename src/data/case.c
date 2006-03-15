@@ -22,8 +22,8 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "value.h"
-#include "alloc.h"
-#include "str.h"
+#include <libpspp/alloc.h>
+#include <libpspp/str.h>
 #include "variable.h"
 
 #ifdef DEBUGGING

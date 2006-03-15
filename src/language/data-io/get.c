@@ -18,32 +18,32 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "any-reader.h"
-#include "any-writer.h"
-#include "case.h"
-#include "command.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "message.h"
-#include "file-handle.h"
-#include "hash.h"
-#include "lexer.h"
-#include "misc.h"
-#include "por-file-writer.h"
-#include "settings.h"
-#include "sys-file-writer.h"
-#include "str.h"
-#include "value-labels.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/alloc.h>
+#include <data/any-reader.h>
+#include <data/any-writer.h>
+#include <data/case.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <language/data-io/file-handle.h>
+#include <libpspp/hash.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <data/por-file-writer.h>
+#include <data/settings.h>
+#include <data/sys-file-writer.h>
+#include <libpspp/str.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Rearranging and reducing a dictionary. */
 static void start_case_map (struct dictionary *);
@@ -735,7 +735,7 @@ keep_variables (struct dictionary *dict)
 
 /* MATCH FILES. */
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* File types. */
 enum

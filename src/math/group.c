@@ -19,14 +19,14 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "compiler.h"
-#include "hash.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
 #include "group.h"
 #include "group-proc.h"
-#include "str.h"
-#include "variable.h"
-#include "misc.h"
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <libpspp/misc.h>
 
 
 /* Return -1 if the id of a is less than b; +1 if greater than and 

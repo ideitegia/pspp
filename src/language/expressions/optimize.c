@@ -23,17 +23,17 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "calendar.h"
-#include "data-in.h"
-#include "message.h"
+#include <libpspp/alloc.h>
+#include <data/calendar.h>
+#include <data/data-in.h>
+#include <libpspp/message.h>
 #include "evaluate.h"
 #include "helpers.h"
-#include "misc.h"
-#include "pool.h"
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
 #include "public.h"
-#include "str.h"
-#include "variable.h"
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 static union any_node *evaluate_tree (struct composite_node *,
                                       struct expression *);

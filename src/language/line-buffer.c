@@ -18,21 +18,21 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "line-buffer.h"
-#include "message.h"
+#include <language/line-buffer.h>
+#include <libpspp/message.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "filename.h"
-#include "lexer.h"
-#include "settings.h"
-#include "str.h"
-#include "table.h"
-#include "variable.h"
-#include "version.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <data/filename.h>
+#include <language/lexer/lexer.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
+#include <output/table.h>
+#include <data/variable.h>
+#include <libpspp/version.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

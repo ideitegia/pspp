@@ -21,16 +21,18 @@
 #include <config.h>
 
 #include <stdio.h>
-#include "plot-hist.h"
-#include "plot-chart.h"
 #include <plot.h>
 #include <math.h>
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_randist.h>
 #include <assert.h>
-#include "hash.h"
-#include "variable.h"
-#include "chart.h"
+
+#include <output/charts/plot-hist.h>
+#include <output/charts/plot-chart.h>
+
+#include <data/variable.h>
+#include <libpspp/hash.h>
+#include <output/chart.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

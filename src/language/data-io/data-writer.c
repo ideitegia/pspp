@@ -18,15 +18,15 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "data-writer.h"
+#include <language/data-io/data-writer.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "message.h"
-#include "file-handle.h"
-#include "filename.h"
-#include "str.h"
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
+#include <language/data-io/file-handle.h>
+#include <data/filename.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

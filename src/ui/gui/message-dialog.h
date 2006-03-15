@@ -22,7 +22,7 @@
 #ifndef ERROR_DIALOG_H
 #define ERROR_DIALOG_H
 
-#include "message.h"
+#include <libpspp/message.h>
 
 void vmsg(int klass, const char *fmt, va_list args);
 void  msg(int klass, const char *fmt, ...);

@@ -19,11 +19,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 #include <config.h>
-#include "command.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "sort.h"
-#include "variable.h"
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <math/sort.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

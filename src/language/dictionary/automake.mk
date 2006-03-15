@@ -1,12 +1,5 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-src/language/dictionary/%: AM_CPPFLAGS+=-I$(top_srcdir)/src/libpspp \
-	-I$(top_srcdir)/src/data \
-	-I$(top_srcdir)/src/output \
-	-I$(top_srcdir)/src/output/charts \
-	-I$(top_srcdir)/src/language/lexer \
-	-I$(top_srcdir)/src/language 
-
 noinst_LIBRARIES += src/language/dictionary/libcmddict.a
 
 src_language_dictionary_libcmddict_a_SOURCES = \

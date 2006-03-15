@@ -23,8 +23,8 @@
   Accessor functions for matching coefficients and variables.
  */
 #include <assert.h>
-#include "coefficient.h"
-#include "linreg.h"
+#include <math/linreg/coefficient.h>
+#include <math/linreg/linreg.h>
 #include "src/math/design-matrix.h"
 #include "src/data/variable.h"
 #include "src/data/value.h"

@@ -21,7 +21,7 @@
 
 #include <config.h>
 #include "por-file-reader.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,25 +29,25 @@
 #include <errno.h>
 #include <math.h>
 #include <setjmp.h>
-#include "alloc.h"
+#include <libpspp/alloc.h>
 #include <stdbool.h>
 #include "case.h"
-#include "compiler.h"
+#include <libpspp/compiler.h>
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "format.h"
-#include "hash.h"
-#include "magic.h"
-#include "misc.h"
-#include "pool.h"
-#include "str.h"
+#include <libpspp/hash.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
+#include <libpspp/str.h>
 #include "value-labels.h"
 #include "variable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* portable_to_local[PORTABLE] translates the given portable
    character into the local character set. */

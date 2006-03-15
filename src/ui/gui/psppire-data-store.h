@@ -22,7 +22,7 @@
 #ifndef __PSPPIRE_DATA_STORE_H__
 #define __PSPPIRE_DATA_STORE_H__
 
-#include "gsheetmodel.h"
+#include <gtksheet/gsheetmodel.h>
 #include "psppire-dict.h"
 #include "psppire-case-array.h"
 

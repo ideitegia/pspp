@@ -24,7 +24,7 @@
 #define COEFFICIENT_H
 
 
-#include "linreg.h"
+#include <math/linreg/linreg.h>
 
 struct design_matrix;
 

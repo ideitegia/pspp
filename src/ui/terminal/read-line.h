@@ -20,7 +20,7 @@
 #ifndef READLN_H
 #define READLN_H
 
-#include "str.h"
+#include <libpspp/str.h>
 
 void readln_initialize (void);
 void readln_uninitialize (void);

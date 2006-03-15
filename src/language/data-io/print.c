@@ -20,21 +20,21 @@
 /* FIXME: seems like a lot of code duplication with data-list.c. */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "case.h"
-#include "command.h"
-#include "compiler.h"
-#include "data-writer.h"
-#include "message.h"
-#include "expressions/public.h"
-#include "file-handle.h"
-#include "lexer.h"
-#include "misc.h"
-#include "manager.h"
-#include "table.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <language/data-io/data-writer.h>
+#include <libpspp/message.h>
+#include <language/expressions/public.h>
+#include <language/data-io/file-handle.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <output/manager.h>
+#include <output/table.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

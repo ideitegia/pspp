@@ -24,36 +24,36 @@
 */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <math.h>
 #include <stdlib.h>
 #include <gsl/gsl_histogram.h>
 
-#include "alloc.h"
-#include "bit-vector.h"
-#include "case.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "hash.h"
-#include "pool.h"
-#include "command.h"
-#include "lexer.h"
-#include "moments.h"
-#include "message.h"
-#include "array.h"
-#include "magic.h"
-#include "misc.h"
-#include "output.h"
-#include "manager.h"
-#include "str.h"
-#include "table.h"
-#include "value-labels.h"
-#include "variable.h"
-#include "procedure.h"
-#include "settings.h"
-#include "piechart.h"
-#include "chart.h"
-#include "plot-hist.h"
+#include <libpspp/alloc.h>
+#include <libpspp/bit-vector.h>
+#include <data/case.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <libpspp/hash.h>
+#include <libpspp/pool.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <math/moments.h>
+#include <libpspp/message.h>
+#include <libpspp/array.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
+#include <output/output.h>
+#include <output/manager.h>
+#include <libpspp/str.h>
+#include <output/table.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <procedure.h>
+#include <data/settings.h>
+#include <output/charts/piechart.h>
+#include <output/chart.h>
+#include <output/charts/plot-hist.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -61,7 +61,7 @@
 
 /* (headers) */
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* (specification)
    FREQUENCIES (frq_):

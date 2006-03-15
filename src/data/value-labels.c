@@ -19,12 +19,12 @@
 
 #include <config.h>
 #include "value-labels.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "compiler.h"
-#include "hash.h"
-#include "str.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/str.h>
 
 static hsh_compare_func compare_int_val_lab;
 static hsh_hash_func hash_int_val_lab;

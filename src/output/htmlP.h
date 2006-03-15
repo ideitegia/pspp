@@ -20,7 +20,7 @@
 #if !htmlP_h
 #define htmlP_h 1
 
-#include "filename.h"
+#include <data/filename.h>
 
 /* HTML output driver extension record. */
 struct html_driver_ext

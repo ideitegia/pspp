@@ -19,11 +19,11 @@
 
 #include <config.h>
 #include "manager.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "output.h"
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Table. */
 int table_num = 1;

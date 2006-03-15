@@ -24,9 +24,10 @@
 
 #include "psppire-object.h"
 #include "psppire-case-array.h"
-#include "gtkextra-marshal.h"
 
-#include "case.h"
+#include <gtksheet/gtkextra-marshal.h>
+
+#include <data/case.h>
 
 /* --- prototypes --- */
 static void psppire_case_array_class_init	(PsppireCaseArrayClass	*class);

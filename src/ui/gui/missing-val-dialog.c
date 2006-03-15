@@ -23,9 +23,9 @@
 
 #include "helper.h"
 #include "missing-val-dialog.h"
-#include "missing-values.h"
-#include "variable.h"
-#include "data-in.h"
+#include <data/missing-values.h>
+#include <data/variable.h>
+#include <data/data-in.h>
 #include "psppire-variable.h"
 
 #include <gtk/gtk.h>

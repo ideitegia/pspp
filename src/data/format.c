@@ -20,12 +20,12 @@
 #include <config.h>
 #include "format.h"
 #include <ctype.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
-#include "compiler.h"
-#include "misc.h"
+#include <libpspp/compiler.h>
+#include <libpspp/misc.h>
 #include "identifier.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "variable.h"
 
 #include "gettext.h"

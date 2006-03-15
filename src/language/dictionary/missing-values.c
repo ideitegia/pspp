@@ -18,21 +18,21 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
-#include "command.h"
-#include "data-in.h"
-#include "message.h"
-#include "lexer.h"
-#include "magic.h"
-#include "range-parser.h"
-#include "str.h"
-#include "variable.h"
+#include <language/command.h>
+#include <data/data-in.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/magic.h>
+#include <language/lexer/range-parser.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 int
 cmd_missing_values (void)

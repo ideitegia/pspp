@@ -21,7 +21,7 @@
 #define GETL_H 1
 
 #include <stdbool.h>
-#include "str.h"
+#include <libpspp/str.h>
 
 /* Current line.  This line may be modified by modules other than
    getl.c, and by lexer.c in particular.  (Ugh.) */

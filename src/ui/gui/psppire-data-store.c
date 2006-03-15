@@ -23,20 +23,20 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "gtksheet.h"
-#include "gsheetmodel.h"
-#include "gsheet-column-iface.h"
+#include <gtksheet/gtksheet.h>
+#include <gtksheet/gsheetmodel.h>
+#include <gtksheet/gsheet-column-iface.h>
 
 #include "psppire-variable.h"
 #include "psppire-data-store.h"
 
-#include "dictionary.h"
-#include "missing-values.h"
-#include "value-labels.h"
-#include "data-in.h"
+#include <data/dictionary.h>
+#include <data/missing-values.h>
+#include <data/value-labels.h>
+#include <data/data-in.h>
 
-#include "file-handle-def.h"
-#include "sys-file-writer.h"
+#include <data/file-handle-def.h>
+#include <data/sys-file-writer.h>
 
 #define _(A) A
 #define N_(A) A

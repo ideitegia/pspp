@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "data-in.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <math.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -27,20 +27,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include "calendar.h"
-#include "compiler.h"
+#include <libpspp/compiler.h>
 #include "identifier.h"
-#include "magic.h"
-#include "misc.h"
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
 #include "settings.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "variable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Specialized error routine. */
 

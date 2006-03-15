@@ -20,17 +20,17 @@
 #include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "lexer.h"
-#include "str.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 int
 cmd_variable_labels (void)

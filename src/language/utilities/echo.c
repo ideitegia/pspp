@@ -19,13 +19,13 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "message.h"
-#include "alloc.h"
-#include "str.h"
-#include "lexer.h"
-#include "command.h"
-#include "table.h"
-#include "manager.h"
+#include <libpspp/message.h>
+#include <libpspp/alloc.h>
+#include <libpspp/str.h>
+#include <language/lexer/lexer.h>
+#include <language/command.h>
+#include <output/table.h>
+#include <output/manager.h>
 
 /* Echos a string to the output stream */
 int

@@ -23,6 +23,8 @@
 #include <config.h>
 
 struct chart ;
+struct weighted_value;
+struct metrics;
 
 /* Draw an outlier on the plot CH
  * at CENTRELINE

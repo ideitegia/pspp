@@ -25,7 +25,7 @@
 #include <glib-object.h>
 #include <glib.h>
 
-#include <variable.h>
+#include <data/variable.h>
 #include "psppire-dict.h"
 
 /* Don't use any of these members.

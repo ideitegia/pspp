@@ -91,7 +91,7 @@ void case_unshare (struct ccase *);
 
 #ifndef DEBUGGING
 #include <stdlib.h>
-#include "str.h"
+#include <libpspp/str.h>
 
 static inline void
 case_nullify (struct ccase *c) 

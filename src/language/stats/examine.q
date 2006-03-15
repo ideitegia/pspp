@@ -20,41 +20,41 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <config.h>
 #include <gsl/gsl_cdf.h>
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "alloc.h"
-#include "str.h"
-#include "case.h"
-#include "dictionary.h"
-#include "command.h"
-#include "compiler.h"
-#include "lexer.h"
-#include "message.h"
-#include "magic.h"
-#include "misc.h"
-#include "table.h"
-#include "manager.h"
-#include "value-labels.h"
-#include "variable.h"
-#include "procedure.h"
-#include "hash.h"
-#include "casefile.h"
-#include "factor-stats.h"
-#include "moments.h"
-#include "percentiles.h"
-#include "box-whisker.h"
-#include "cartesian.h"
+#include <libpspp/alloc.h>
+#include <libpspp/str.h>
+#include <data/case.h>
+#include <data/dictionary.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/message.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
+#include <output/table.h>
+#include <output/manager.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <procedure.h>
+#include <libpspp/hash.h>
+#include <data/casefile.h>
+#include <math/factor-stats.h>
+#include <math/moments.h>
+#include <math/percentiles.h>
+#include <output/charts/box-whisker.h>
+#include <output/charts/cartesian.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 /* (headers) */
-#include "chart.h"
-#include "plot-hist.h"
-#include "plot-chart.h"
+#include <output/chart.h>
+#include <output/charts/plot-hist.h>
+#include <output/charts/plot-chart.h>
 
 /* (specification)
    "EXAMINE" (xmn_):

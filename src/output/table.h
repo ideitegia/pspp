@@ -21,7 +21,7 @@
 #define tab_h 1
 
 #include <limits.h>
-#include "str.h"
+#include <libpspp/str.h>
 
 /* Cell options. */
 enum

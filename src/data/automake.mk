@@ -1,7 +1,5 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-src/data/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp
-
 noinst_LIBRARIES += src/data/libdata.a
 
 src_data_libdata_a_SOURCES = \

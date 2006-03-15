@@ -19,20 +19,20 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "message.h"
-#include "array.h"
-#include "alloc.h"
-#include "bit-vector.h"
-#include "command.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "message.h"
-#include "hash.h"
-#include "lexer.h"
-#include "misc.h"
-#include "str.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/message.h>
+#include <libpspp/array.h>
+#include <libpspp/alloc.h>
+#include <libpspp/bit-vector.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <libpspp/hash.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

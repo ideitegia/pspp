@@ -2,15 +2,6 @@
 
 bin_PROGRAMS += src/ui/gui/psppire
 
-src/ui/gui/%: AM_CPPFLAGS += \
-	-export-dynamic \
-	-I$(top_srcdir)/gl \
-	-I$(top_srcdir)/lib/gtksheet \
-	-I$(top_srcdir)/src/libpspp \
-	-I$(top_srcdir)/src/data \
-	-I$(top_srcdir)/src/ui/gui 
-
-
 src/ui/gui/%: AM_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall
 
 src_ui_gui_psppire_LDFLAGS = \

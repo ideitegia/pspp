@@ -20,9 +20,9 @@
 #include <config.h>
 #include <stdio.h>
 #include "gettext.h"
-#include "command.h"
-#include "lexer.h"
-#include "moments.h"
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <math/moments.h>
 
 #define _(msgid) gettext (msgid)
 

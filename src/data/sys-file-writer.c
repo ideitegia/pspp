@@ -20,7 +20,7 @@
 #include <config.h>
 #include "sys-file-writer.h"
 #include "sfm-private.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
@@ -30,25 +30,25 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>	/* Required by SunOS4. */
 #endif
-#include "alloc.h"
+#include <libpspp/alloc.h>
 #include "case.h"
 #include "dictionary.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include "file-handle-def.h"
-#include "hash.h"
-#include "magic.h"
-#include "misc.h"
+#include <libpspp/hash.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
 #include "settings.h"
 #include "stat-macros.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "value-labels.h"
 #include "variable.h"
-#include "version.h"
+#include <libpspp/version.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Compression bias used by PSPP.  Values between (1 -
    COMPRESSION_BIAS) and (251 - COMPRESSION_BIAS) inclusive can be

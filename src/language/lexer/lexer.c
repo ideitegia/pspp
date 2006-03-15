@@ -19,20 +19,20 @@
 
 #include <config.h>
 #include "lexer.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "line-buffer.h"
-#include "magic.h"
-#include "settings.h"
-#include "str.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/line-buffer.h>
+#include <libpspp/magic.h>
+#include <data/settings.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

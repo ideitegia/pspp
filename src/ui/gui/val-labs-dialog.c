@@ -26,7 +26,7 @@
 
 #include "helper.h"
 #include "val-labs-dialog.h"
-#include "value-labels.h"
+#include <data/value-labels.h>
 #include "psppire-variable.h"
 
 /* This callback occurs when the text in the label entry box 

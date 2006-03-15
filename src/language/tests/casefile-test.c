@@ -18,13 +18,13 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "casefile.h"
-#include "case.h"
+#include <data/casefile.h>
+#include <data/case.h>
 
 #include <gsl/gsl_rng.h>
 #include <stdarg.h>
-#include "command.h"
-#include "lexer.h"
+#include <language/command.h>
+#include <language/lexer/lexer.h>
 
 static void test_casefile (int pattern, size_t value_cnt, size_t case_cnt);
 static void get_random_case (struct ccase *, size_t value_cnt,

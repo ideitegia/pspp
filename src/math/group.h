@@ -22,7 +22,7 @@
 #define GROUP_H
 
 
-#include "value.h"
+#include <data/value.h>
 
 
 /* Statistics for grouped data */

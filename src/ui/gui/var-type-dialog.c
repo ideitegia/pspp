@@ -32,8 +32,8 @@
 
 #include "psppire-variable.h"
 
-#include "variable.h"
-#include "settings.h"
+#include <data/variable.h>
+#include <data/settings.h>
 
 
 struct tgs

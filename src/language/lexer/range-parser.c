@@ -1,12 +1,12 @@
 #include <config.h>
 #include "range-parser.h"
 #include <stdbool.h>
-#include "data-in.h"
-#include "message.h"
+#include <data/data-in.h>
+#include <libpspp/message.h>
 #include "lexer.h"
-#include "magic.h"
-#include "str.h"
-#include "value.h"
+#include <libpspp/magic.h>
+#include <libpspp/str.h>
+#include <data/value.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

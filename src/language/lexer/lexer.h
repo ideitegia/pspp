@@ -20,11 +20,11 @@
 #if !lexer_h
 #define lexer_h 1
 
-#include "variable.h"
+#include <data/variable.h>
 #include <ctype.h>
 #include <stdbool.h>
 
-#include "identifier.h"
+#include <data/identifier.h>
 
 
 extern int token;

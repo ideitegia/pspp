@@ -2,9 +2,6 @@
 
 noinst_LIBRARIES += lib/gtksheet/libgtksheet.a
 
-lib/gtksheet/%: AM_CPPFLAGS = \
-	-I$(top_builddir)/lib/gtksheet 
-
 lib/gtksheet/%: AM_CFLAGS = $(GTK_CFLAGS) -Wall
 
 

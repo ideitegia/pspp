@@ -1,7 +1,7 @@
 
 #include "helper.h"
-#include "data-in.h"
-#include "message.h"
+#include <data/data-in.h>
+#include <libpspp/message.h>
 
 #include <ctype.h>
 #include <string.h>

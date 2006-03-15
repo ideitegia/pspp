@@ -28,8 +28,8 @@
 #include <math.h>
 
 #include "chart.h"
-#include "str.h"
-#include "alloc.h"
+#include <libpspp/str.h>
+#include <libpspp/alloc.h>
 #include "manager.h"
 #include "output.h"
 

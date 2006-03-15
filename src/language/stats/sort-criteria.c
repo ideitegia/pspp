@@ -22,14 +22,14 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "alloc.h"
-#include "command.h"
-#include "message.h"
-#include "lexer.h"
-#include "settings.h"
-#include "variable.h"
+#include <libpspp/alloc.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <data/settings.h>
+#include <data/variable.h>
 #include "sort-criteria.h"
-#include "sort.h"
+#include <math/sort.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

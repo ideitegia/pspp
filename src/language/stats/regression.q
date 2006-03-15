@@ -23,27 +23,27 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <math.h>
-#include "alloc.h"
-#include "case.h"
-#include "casefile.h"
-#include "category.h"
-#include "cat-routines.h"
-#include "command.h"
-#include "compiler.h"
-#include "design-matrix.h"
-#include "dictionary.h"
-#include "message.h"
-#include "file-handle-def.h"
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <data/casefile.h>
+#include <data/category.h>
+#include <data/cat-routines.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <math/design-matrix.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <data/file-handle-def.h>
 #include "gettext.h"
-#include "lexer.h"
-#include "linreg.h"
-#include "coefficient.h"
-#include "missing-values.h"
-#include "regression-export.h"
-#include "table.h"
-#include "value-labels.h"
-#include "variable.h"
-#include "procedure.h"
+#include <language/lexer/lexer.h>
+#include <math/linreg/linreg.h>
+#include <math/linreg/coefficient.h>
+#include <data/missing-values.h>
+#include <language/stats/regression-export.h>
+#include <output/table.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #define REG_LARGE_DATA 1000
 

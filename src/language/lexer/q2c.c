@@ -18,6 +18,7 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -28,8 +29,8 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include "compiler.h"
-#include "str.h"
+#include <libpspp/compiler.h>
+#include <libpspp/str.h>
 
 
 /* Brokenness. */
@@ -41,13 +42,8 @@
 #define EXIT_FAILURE 1
 #endif
 
-/* 
-#if !HAVE_STRERROR
-#include "misc/strerror.c"
-#endif
-*/
      
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* Max length of an input line. */
 #define MAX_LINE_LEN 1024
@@ -2044,13 +2040,13 @@ main (int argc, char *argv[])
 	  indent = 0;
 
 	  dump (0, "#include <stdlib.h>");
-	  dump (0, "#include \"alloc.h\"");
-	  dump (0, "#include \"message.h\"");
-	  dump (0, "#include \"lexer.h\"");
-          dump (0, "#include \"settings.h\"");
-	  dump (0, "#include \"str.h\"");
-          dump (0, "#include \"subcommand-list.h\"");
-	  dump (0, "#include \"variable.h\"");
+	  dump (0, "#include <libpspp/alloc.h>");
+	  dump (0, "#include <libpspp/message.h>");
+	  dump (0, "#include <language/lexer/lexer.h>");
+          dump (0, "#include <data/settings.h>");
+	  dump (0, "#include <libpspp/str.h>");
+          dump (0, "#include <language/lexer/subcommand-list.h>");
+	  dump (0, "#include <data/variable.h>");
 	  dump (0, nullstr);
 
           dump (0, "#include \"gettext.h\"");

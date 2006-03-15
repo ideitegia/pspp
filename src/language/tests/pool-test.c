@@ -18,8 +18,8 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "pool.h"
-#include "command.h"
+#include <libpspp/pool.h>
+#include <language/command.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

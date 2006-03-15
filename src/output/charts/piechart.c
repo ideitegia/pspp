@@ -19,17 +19,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 
-#include "config.h"
-#include "piechart.h"
-#include "chart.h"
+#include <config.h>
+
 #include <float.h>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
-#include "str.h"
-#include "value-labels.h"
-#include "misc.h"
-#include "plot-chart.h"
+
+
+#include <output/charts/piechart.h>
+#include <output/charts/plot-chart.h>
+
+#include <output/chart.h>
+#include <libpspp/str.h>
+#include <data/value-labels.h>
+#include <libpspp/misc.h>
+
 
 /* Pie charts of course need to know Pi :) */
 #ifndef M_PI

@@ -26,7 +26,7 @@
 /*  This module describes the behaviour of the Variable Type dialog box,
     used for input of the variable type parameter in the var sheet */
 
-#include "format.h"
+#include <data/format.h>
 
 enum 
   {

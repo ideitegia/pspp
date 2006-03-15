@@ -21,17 +21,17 @@
 
 #include <config.h>
 #include "levene.h"
-#include "message.h"
-#include "case.h"
-#include "casefile.h"
-#include "dictionary.h"
+#include <libpspp/message.h>
+#include <data/case.h>
+#include <data/casefile.h>
+#include <data/dictionary.h>
 #include "group-proc.h"
-#include "hash.h"
-#include "str.h"
-#include "variable.h"
-#include "procedure.h"
-#include "alloc.h"
-#include "misc.h"
+#include <libpspp/hash.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <procedure.h>
+#include <libpspp/alloc.h>
+#include <libpspp/misc.h>
 #include "group.h"
 
 #include <math.h>

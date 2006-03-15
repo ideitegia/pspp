@@ -22,21 +22,21 @@
 #include <signal.h>
 #include <stdio.h>
 #include "command-line.h"
-#include "command.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "message.h"
-#include "file-handle-def.h"
-#include "filename.h"
-#include "line-buffer.h"
-#include "lexer.h"
-#include "output.h"
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <data/file-handle-def.h>
+#include <data/filename.h>
+#include <language/line-buffer.h>
+#include <language/lexer/lexer.h>
+#include <output/output.h>
 #include "progname.h"
-#include "random.h"
+#include <math/random.h>
 #include "read-line.h"
-#include "settings.h"
-#include "variable.h"
-#include "version.h"
+#include <data/settings.h>
+#include <data/variable.h>
+#include <libpspp/version.h>
 
 #if HAVE_FPU_CONTROL_H
 #include <fpu_control.h>
@@ -55,7 +55,7 @@
 
 #include <stdlib.h>
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 static void i18n_init (void);
 static void fpu_init (void);

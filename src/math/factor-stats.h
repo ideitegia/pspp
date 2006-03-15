@@ -25,8 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* FIXME: These things should probably be amalgamated with the 
    group_statistics struct */
 
-#include "hash.h"
-#include "value.h"
+#include <libpspp/hash.h>
+#include <data/value.h>
 #include <string.h>
 #include <gsl/gsl_histogram.h>
 #include "percentiles.h"

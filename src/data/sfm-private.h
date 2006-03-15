@@ -20,7 +20,7 @@
 /* PORTME: There might easily be alignment problems with some of these
    structures. */
 
-#include "compiler.h"
+#include <libpspp/compiler.h>
 #include "variable.h"
 
 /* This attribute might avoid some problems.  On the other hand... */
@@ -58,7 +58,7 @@
 #endif
 
 /* Figure out SYSMIS value for flt64. */
-#include "magic.h"
+#include <libpspp/magic.h>
 #if SIZEOF_DOUBLE == 8
 #define second_lowest_flt64 second_lowest_value
 #else

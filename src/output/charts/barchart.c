@@ -22,9 +22,9 @@
 #include <plot.h>
 #include <stdarg.h>
 #include <math.h>
-#include "barchart.h"
-#include "chart.h"
-#include "plot-chart.h"
+#include <output/charts/barchart.h>
+#include <output/chart.h>
+#include <output/charts/plot-chart.h>
 
 #define CATAGORIES 6
 #define SUB_CATAGORIES 3

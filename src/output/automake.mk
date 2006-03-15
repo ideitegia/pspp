@@ -3,16 +3,7 @@
 
 include $(top_srcdir)/src/output/charts/automake.mk
 
-
-src/output/%: AM_CPPFLAGS += \
-	-I$(top_srcdir)/src/math \
-	-I$(top_srcdir)/src/libpspp \
-	-I$(top_srcdir)/src/data 
-
 noinst_LIBRARIES += src/output/liboutput.a 
-
-
-
 
 output_sources = \
 	src/output/ascii.c \
@@ -31,10 +22,12 @@ output_sources = \
 
 if WITHCHARTS
 src_output_liboutput_a_SOURCES = $(output_sources) src/output/chart.c
-	EXTRA_DIST += src/output/dummy-chart.c
+
+EXTRA_DIST += src/output/dummy-chart.c
 else
 src_output_liboutput_a_SOURCES = $(output_sources) src/output/dummy-chart.c
-	EXTRA_DIST += src/output/chart.c
+
+EXTRA_DIST += src/output/chart.c
 endif
 
 

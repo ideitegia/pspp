@@ -26,13 +26,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "alloc.h"
+#include <libpspp/alloc.h>
 #include "case.h"
-#include "compiler.h"
-#include "message.h"
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
 #include "full-read.h"
 #include "full-write.h"
-#include "misc.h"
+#include <libpspp/misc.h>
 #include "make-file.h"
 #include "settings.h"
 #include "variable.h"

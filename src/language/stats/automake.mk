@@ -1,16 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-src/language/stats/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp \
- -I$(top_srcdir)/src/data \
- -I$(top_srcdir)/src/math \
- -I$(top_srcdir)/src/math/linreg \
- -I$(top_srcdir)/src/output \
- -I$(top_srcdir)/src/output/charts \
- -I$(top_srcdir)/src/language/lexer \
- -I$(top_srcdir)/src/language/stats \
- -I$(top_srcdir)/src/language
-
 noinst_LIBRARIES += src/language/stats/libstats.a
 
 src_language_stats_q_sources_q =  \

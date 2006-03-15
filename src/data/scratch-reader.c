@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include "casefile.h"
 #include "dictionary.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include "file-handle-def.h"
 #include "scratch-handle.h"
 #include "xalloc.h"

@@ -22,9 +22,9 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "misc.h"
-#include "value.h"
+#include <libpspp/alloc.h>
+#include <libpspp/misc.h>
+#include <data/value.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

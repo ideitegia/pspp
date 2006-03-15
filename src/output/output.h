@@ -20,8 +20,10 @@
 #if !output_h
 #define output_h 1
 
-#include "str.h"
-#include "config.h"
+#include <config.h>
+
+#include <libpspp/str.h>
+
 
 /* A rectangle. */
 struct rect

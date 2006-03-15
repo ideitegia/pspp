@@ -22,11 +22,11 @@
    This module is linked only when charts are not supported */
 
 #include "config.h"
-#include "chart.h"
-#include "plot-chart.h"
-#include "cartesian.h"
+#include <output/chart.h>
+#include <output/charts/plot-chart.h>
+#include <output/charts/cartesian.h>
 #include <gsl/gsl_histogram.h>
-#include "compiler.h"
+#include <libpspp/compiler.h>
 
 
 #ifndef NO_CHARTS

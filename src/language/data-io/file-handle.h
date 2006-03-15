@@ -24,7 +24,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "file-handle-def.h"
+#include <data/file-handle-def.h>
 
 struct file_handle *fh_parse (enum fh_referent);
 

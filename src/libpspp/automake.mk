@@ -30,12 +30,14 @@ src_libpspp_libpspp_a_SOURCES = \
 
 DISTCLEANFILES+=src/libpspp/version.c
 
+src_libpspp_libpspp_a_CPPFLAGS = -I $(top_srcdir)/src/libpspp $(AM_CPPFLAGS)
+
 nodist_src_libpspp_libpspp_a_SOURCES = src/libpspp/version.c
 
 src/libpspp/version.c:
 	@mkdir -p src/libpspp
 	echo "#include <config.h>" > $@
-	echo "#include <libpspp/version.h>" > $@
+	echo "#include \"version.h\"" > $@
 	echo "const char bare_version[] = \"@VERSION@\";" >> $@
 	echo "const char version[] = \"GNU @PACKAGE@ @VERSION@\";" >> $@
 	echo "const char stat_version[] = \"GNU @PACKAGE@ @VERSION@ \
@@ -53,4 +55,5 @@ src/libpspp/version.c:
 	echo "	\"/usr/local/share/groff/font:\" \\" >> $@
 	echo "	\"/usr/share/groff/font\";" >> $@
 	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> $@
+
 

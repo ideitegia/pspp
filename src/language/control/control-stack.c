@@ -2,8 +2,8 @@
 #include "control-stack.h"
 #include <assert.h>
 #include <stdlib.h>
-#include "compiler.h"
-#include "message.h"
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
 #include "xalloc.h"
 
 #include "gettext.h"

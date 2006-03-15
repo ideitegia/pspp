@@ -20,14 +20,15 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include <file-handle-def.h>
-#include <sys-file-reader.h>
-#include <case.h>
+
+#include <data/file-handle-def.h>
+#include <data/sys-file-reader.h>
+#include <data/case.h>
 
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 
-#include <gtksheet.h>
+#include <gtksheet/gtksheet.h>
 #include "helper.h"
 #include "menu-actions.h"
 #include "psppire-variable.h"

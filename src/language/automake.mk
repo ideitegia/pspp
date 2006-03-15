@@ -20,8 +20,3 @@ src_language_liblanguage_a_SOURCES = \
 	src/language/command.def 
 
 	
-src/language/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp \
- -I$(top_srcdir)/src/language/lexer \
- -I$(top_srcdir)/src/output \
- -I$(top_srcdir)/src/data
-

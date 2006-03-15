@@ -26,8 +26,8 @@
 
 #include <gsl/gsl_matrix.h>
 #include <stdbool.h>
-#include "category.h"
-#include "cat-routines.h"
+#include <data/category.h>
+#include <data/cat-routines.h>
 struct design_matrix_var
 {
   size_t first_column;		/* First column for this variable in

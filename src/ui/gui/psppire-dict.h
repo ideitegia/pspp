@@ -26,8 +26,8 @@
 #include <glib-object.h>
 #include <glib.h>
 
-#include <dictionary.h>
-#include <variable.h>
+#include <data/dictionary.h>
+#include <data/variable.h>
 
 
 G_BEGIN_DECLS

@@ -2,7 +2,7 @@
 #include "helpers.h"
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_sf.h>
-#include "pool.h"
+#include <libpspp/pool.h>
 #include "private.h"
 
 const struct fixed_string empty_string = {NULL, 0};

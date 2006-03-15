@@ -18,9 +18,9 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "command.h"
-#include "message.h"
-#include "lexer.h"
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

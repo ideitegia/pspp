@@ -19,15 +19,15 @@
 
 #include <config.h>
 #include "file-handle-def.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "alloc.h"
-#include "compiler.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
 #include "filename.h"
-#include "message.h"
-#include "magic.h"
+#include <libpspp/message.h>
+#include <libpspp/magic.h>
 #include "variable.h"
 #include "scratch-handle.h"
 

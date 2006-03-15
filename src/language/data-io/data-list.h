@@ -23,8 +23,8 @@
 /* FIXME: This header is a kluge and should go away when we come
    up with a less-klugy solution. */
 
-#include "variable.h"
-#include "procedure.h"
+#include <data/variable.h>
+#include <procedure.h>
 
 trns_proc_func repeating_data_trns_proc;
 void repeating_data_set_write_case (struct transformation *,

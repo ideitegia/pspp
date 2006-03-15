@@ -23,21 +23,21 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <stdlib.h>
-#include "message.h"
-#include "alloc.h"
-#include "compiler.h"
-#include "format.h"
-#include "magic.h"
-#include "misc.h"
+#include <libpspp/message.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <data/format.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
 #include "output.h"
-#include "pool.h"
+#include <libpspp/pool.h>
 #include "manager.h"
-#include "variable.h"
+#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 struct som_table_class tab_table_class;
 static char *command_name;

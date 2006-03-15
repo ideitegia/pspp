@@ -18,23 +18,23 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "message.h"
-#include "command.h"
+#include <libpspp/message.h>
+#include <language/command.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-#include "alloc.h"
-#include "compiler.h"
-#include "dictionary.h"
-#include "message.h"
-#include "lexer.h"
-#include "settings.h"
-#include "manager.h"
-#include "str.h"
-#include "table.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <language/lexer/lexer.h>
+#include <data/settings.h>
+#include <output/manager.h>
+#include <libpspp/str.h>
+#include <output/table.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #if HAVE_UNISTD_H
 #include <unistd.h>

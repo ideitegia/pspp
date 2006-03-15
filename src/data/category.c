@@ -33,9 +33,8 @@
 */
 #include <config.h>
 #include <stdlib.h>
-#include <message.h>
-#include "alloc.h"
-#include "message.h"
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
 #include "category.h"
 #include "cat-routines.h"
 #include <string.h>

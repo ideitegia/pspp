@@ -1,20 +1,18 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-src/language/expressions/%: AM_CPPFLAGS += -I$(top_srcdir)/src/libpspp \
-  -I$(top_srcdir)/src/data \
-  -I$(top_srcdir)/src/math \
-  -I$(top_srcdir)/src/language/lexer \
-  -I$(top_srcdir)/src/language/expressions \
-  -I$(top_builddir)/src/language/expressions \
-  -I$(top_srcdir)/src/language
-
 noinst_LIBRARIES += src/language/expressions/libexpressions.a
 
-src/language/expressions/evaluate.o: src/language/expressions/evaluate.h src/language/expressions/operations.h src/language/expressions/evaluate.inc
+$(top_builddir)/src/language/expressions/src_language_expressions_libexpressions_a-evaluate.o: \
+	$(top_builddir)/src/language/expressions/evaluate.h \
+	$(top_builddir)/src/language/expressions/operations.h \
+	$(top_builddir)/src/language/expressions/evaluate.inc
 
-src/language/expressions/optimize.o: src/language/expressions/optimize.inc
+$(top_builddir)/src/language/expressions/src_language_expressions_libexpressions_a-optimize.o: \
+	$(top_builddir)/src/language/expressions/optimize.inc
 
-src/language/expressions/parse.o: src/language/expressions/parse.inc
+$(top_builddir)/src/language/expressions/src_language_expressions_libexpressions_a-parse.o: \
+	$(top_builddir)/src/language/expressions/parse.inc
+
 
 CLEANFILES += $(expressions_built_sources)
 
@@ -41,6 +39,9 @@ expressions_built_sources= \
 	src/language/expressions/optimize.inc \
 	src/language/expressions/parse.inc
 
+src_language_expressions_libexpressions_a_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I $(top_builddir)/src/language/expressions \
+	-I $(top_srcdir)/src/language/expressions
 
 nodist_src_language_expressions_libexpressions_a_SOURCES = $(expressions_built_sources)
 

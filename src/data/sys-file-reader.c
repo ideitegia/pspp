@@ -20,30 +20,30 @@
 #include <config.h>
 #include "sys-file-reader.h"
 #include "sfm-private.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
 #include <setjmp.h>
-#include "alloc.h"
+#include <libpspp/alloc.h>
 #include "case.h"
-#include "compiler.h"
+#include <libpspp/compiler.h>
 #include "dictionary.h"
-#include "message.h"
+#include <libpspp/message.h>
 #include "file-handle-def.h"
 #include "filename.h"
 #include "format.h"
-#include "magic.h"
-#include "misc.h"
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
 #include "value-labels.h"
-#include "str.h"
+#include <libpspp/str.h>
 #include "variable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include "debug-print.h"
+#include <libpspp/debug-print.h>
 
 /* System file reader. */
 struct sfm_reader

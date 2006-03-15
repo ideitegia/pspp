@@ -18,30 +18,30 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "procedure.h"
-#include "message.h"
+#include <procedure.h>
+#include <libpspp/message.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>	/* Required by SunOS4. */
 #endif
-#include "alloc.h"
-#include "case.h"
-#include "casefile.h"
-#include "command.h"
-#include "dictionary.h"
-#include "control-stack.h"
-#include "message.h"
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <data/casefile.h>
+#include <language/command.h>
+#include <data/dictionary.h>
+#include <language/control/control-stack.h>
+#include <libpspp/message.h>
 #include "expressions/public.h"
-#include "file-handle-def.h"
-#include "misc.h"
-#include "settings.h"
-#include "manager.h"
-#include "table.h"
-#include "str.h"
-#include "variable.h"
-#include "value-labels.h"
+#include <data/file-handle-def.h>
+#include <libpspp/misc.h>
+#include <data/settings.h>
+#include <output/manager.h>
+#include <output/table.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <data/value-labels.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

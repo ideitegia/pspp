@@ -25,14 +25,14 @@
 #include <errno.h>
 
 #include "read-line.h"
-#include "command.h"
-#include "filename.h"
-#include "version.h"
-#include "str.h"
-#include "table.h"
-#include "message.h"
-#include "filename.h"
-#include "settings.h"
+#include <language/command.h>
+#include <data/filename.h>
+#include <libpspp/version.h>
+#include <libpspp/str.h>
+#include <output/table.h>
+#include <libpspp/message.h>
+#include <data/filename.h>
+#include <data/settings.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

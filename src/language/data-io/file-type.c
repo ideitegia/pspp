@@ -19,20 +19,20 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "case.h"
-#include "command.h"
-#include "compiler.h"
-#include "data-in.h"
-#include "data-reader.h"
-#include "dictionary.h"
-#include "message.h"
-#include "file-handle.h"
-#include "format.h"
-#include "lexer.h"
-#include "str.h"
-#include "variable.h"
-#include "procedure.h"
+#include <libpspp/alloc.h>
+#include <data/case.h>
+#include <language/command.h>
+#include <libpspp/compiler.h>
+#include <data/data-in.h>
+#include <language/data-io/data-reader.h>
+#include <data/dictionary.h>
+#include <libpspp/message.h>
+#include <language/data-io/file-handle.h>
+#include <data/format.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/str.h>
+#include <data/variable.h>
+#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
