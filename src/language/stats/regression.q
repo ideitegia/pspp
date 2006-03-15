@@ -23,27 +23,27 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <math.h>
-#include <libpspp/alloc.h>
-#include <data/case.h>
-#include <data/casefile.h>
-#include <data/category.h>
-#include <data/cat-routines.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
-#include <math/design-matrix.h>
-#include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <data/file-handle-def.h>
+#include "libpspp/alloc.h"
+#include "data/case.h"
+#include "data/casefile.h"
+#include "data/category.h"
+#include "data/cat-routines.h"
+#include "language/command.h"
+#include "libpspp/compiler.h"
+#include "math/design-matrix.h"
+#include "data/dictionary.h"
+#include "libpspp/message.h"
+#include "language/data-io/file-handle.h"
 #include "gettext.h"
-#include <language/lexer/lexer.h>
-#include <math/linreg/linreg.h>
-#include <math/linreg/coefficient.h>
-#include <data/missing-values.h>
-#include <language/stats/regression-export.h>
-#include <output/table.h>
-#include <data/value-labels.h>
-#include <data/variable.h>
-#include <procedure.h>
+#include "language/lexer/lexer.h"
+#include "math/linreg/linreg.h"
+#include "math/linreg/coefficient.h"
+#include "data/missing-values.h"
+#include "regression-export.h"
+#include "output/table.h"
+#include "data/value-labels.h"
+#include "data/variable.h"
+#include "procedure.h"
 
 #define REG_LARGE_DATA 1000
 
@@ -51,7 +51,7 @@
 
 /* (specification)
    "REGRESSION" (regression_):
-   *variables=varlist;
+   *variables=custom;
    statistics[st_]=r,
    coeff,
    anova,
@@ -78,9 +78,14 @@
 static struct cmd_regression cmd;
 
 /*
-  Array holding the subscripts of the independent variables.
+  Variables used (both explanatory and response).
  */
-size_t *indep_vars;
+static struct variable **v_variables;
+
+/*
+  Number of variables.
+ */
+static size_t n_variables;
 
 /*
   File where the model will be saved if the EXPORT subcommand
@@ -155,7 +160,6 @@ reg_stats_r (pspp_linreg_cache * c)
 static void
 reg_stats_coeff (pspp_linreg_cache * c)
 {
-  size_t i;
   size_t j;
   int n_cols = 7;
   int n_rows;
@@ -201,7 +205,6 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 6, 1, 0, pval, 10, 2);
   for (j = 1; j <= c->n_indeps; j++)
     {
-      i = indep_vars[j];
       v = pspp_linreg_coeff_get_var (c->coeff + j, 0);
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
@@ -349,7 +352,6 @@ reg_stats_bcov (pspp_linreg_cache * c)
   int n_cols;
   int n_rows;
   int i;
-  int j;
   int k;
   int row;
   int col;
@@ -368,14 +370,13 @@ reg_stats_bcov (pspp_linreg_cache * c)
   tab_vline (t, TAL_0, 1, 0, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Model"));
   tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Covariances"));
-  for (i = 1; i < c->n_indeps + 1; i++)
+  for (i = 1; i < c->n_coeffs; i++)
     {
-      j = indep_vars[(i - 1)];
-      struct variable *v = cmd.v_variables[j];
+      const struct variable *v = pspp_linreg_coeff_get_var (c->coeff + i, 0);
       label = var_to_string (v);
       tab_text (t, 2, i, TAB_CENTER, label);
       tab_text (t, i + 2, 0, TAB_CENTER, label);
-      for (k = 1; k < c->n_indeps + 1; k++)
+      for (k = 1; k < c->n_coeffs; k++)
 	{
 	  col = (i <= k) ? k : i;
 	  row = (i <= k) ? i : k;
@@ -601,6 +602,7 @@ reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
 static void
 subcommand_export (int export, pspp_linreg_cache * c)
 {
+  FILE *fp;
   size_t i;
   size_t j;
   int n_quantiles = 100;
@@ -610,11 +612,10 @@ subcommand_export (int export, pspp_linreg_cache * c)
 
   if (export)
     {
-      FILE *fp;
       assert (c != NULL);
       assert (model_file != NULL);
-      assert (fp != NULL);
       fp = fopen (fh_get_filename (model_file), "w");
+      assert (fp != NULL);
       fprintf (fp, "%s", reg_preamble);
       reg_print_getvar (fp, c);
       reg_print_categorical_encoding (fp, c);
@@ -680,7 +681,7 @@ subcommand_export (int export, pspp_linreg_cache * c)
     }
 }
 static int
-regression_custom_export (struct cmd_regression *cmd)
+regression_custom_export (struct cmd_regression *cmd UNUSED)
 {
   /* 0 on failure, 1 on success, 2 on failure that should result in syntax error */
   if (!lex_force_match ('('))
@@ -709,25 +710,24 @@ cmd_regression (void)
   if (!multipass_procedure_with_splits (run_regression, &cmd))
     return CMD_CASCADING_FAILURE;
 
+  free (v_variables);
+
   return pspp_reg_rc;
 }
 
 /*
-  Is variable k one of the dependent variables?
+  Is variable k the dependent variable?
  */
 static int
-is_depvar (size_t k)
+is_depvar (size_t k, const struct variable *v)
 {
-  size_t j = 0;
-  for (j = 0; j < cmd.n_dependent; j++)
-    {
-      /*
-         compare_var_names returns 0 if the variable
-         names match.
-       */
-      if (!compare_var_names (cmd.v_dependent[j], cmd.v_variables[k], NULL))
-	return 1;
-    }
+  /*
+    compare_var_names returns 0 if the variable
+    names match.
+  */
+  if (!compare_var_names (v, v_variables[k], NULL))
+    return 1;
+
   return 0;
 }
 
@@ -765,15 +765,97 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
   return n_data;
 }
 
+/* Parser for the variables sub command */
+static int
+regression_custom_variables(struct cmd_regression *cmd UNUSED)
+{
+
+  lex_match('=');
+
+  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+      && token != T_ALL)
+    return 2;
+  
+
+  if (!parse_variables (default_dict, &v_variables, &n_variables,
+			PV_NONE ))
+    {
+      free (v_variables);
+      return 0;
+    }
+  assert(n_variables);
+
+  return 1;
+}
+/*
+  Count the explanatory variables. The user may or may
+  not have specified a response variable in the syntax.
+ */
+static
+int get_n_indep (const struct variable *v)
+{
+  int result;
+  int i = 0;
+
+  result = n_variables;
+  while (i < n_variables)
+    {
+      if (is_depvar (i, v))
+	{
+	  result--;
+	  i = n_variables;
+	}
+      i++;
+    }
+  return result;
+}
+/*
+  Read from the active file. Identify the explanatory variables in
+  v_variables. Encode categorical variables. Drop cases with missing
+  values.
+*/
+static 
+int prepare_data (int n_data, int is_missing_case[], 
+		  struct variable **indep_vars, 
+		  struct variable *depvar,
+		  const struct casefile *cf)
+{
+  int i;
+  int j;
+
+  assert (indep_vars != NULL);
+  j = 0;
+  for (i = 0; i < n_variables; i++)
+    {	  
+      if (!is_depvar (i, depvar))
+	{
+	  indep_vars[j] = v_variables[i];
+	  j++;
+	  if (v_variables[i]->type == ALPHA)
+	    {
+	      /* Make a place to hold the binary vectors 
+		 corresponding to this variable's values. */
+	      cat_stored_values_create (v_variables[i]);
+	    }
+	  n_data = mark_missing_cases (cf, v_variables[i], is_missing_case, n_data);
+	}
+    }
+  /*
+    Mark missing cases for the dependent variable.
+   */
+  n_data = mark_missing_cases (cf, depvar, is_missing_case, n_data);
+
+  return n_data;
+}
 static bool
 run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 {
   size_t i;
-  size_t n_data = 0;
+  size_t n_data = 0; /* Number of valide cases. */
+  size_t n_cases; /* Number of cases. */
   size_t row;
   size_t case_num;
-  int n_indep;
-  int j = 0;
+  int n_indep = 0;
   int k;
   /*
      Keep track of the missing cases.
@@ -782,15 +864,19 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   const union value *val;
   struct casereader *r;
   struct ccase c;
-  struct variable *v;
-  struct variable *depvar;
   struct variable **indep_vars;
   struct design_matrix *X;
   gsl_vector *Y;
   pspp_linreg_cache *lcache;
   pspp_linreg_opts lopts;
 
-  n_data = casefile_get_case_cnt (cf);
+  if (!v_variables)
+    {
+      dict_get_vars (default_dict, &v_variables, &n_variables,
+		     1u << DC_SYSTEM);
+    }
+
+  n_cases = casefile_get_case_cnt (cf);
 
   for (i = 0; i < cmd.n_dependent; i++)
     {
@@ -802,52 +888,25 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	}
     }
 
-  is_missing_case = xnmalloc (n_data, sizeof (*is_missing_case));
-  for (i = 0; i < n_data; i++)
-    is_missing_case[i] = 0;
-
-  n_indep = cmd.n_variables - cmd.n_dependent;
-  indep_vars = xnmalloc (n_indep, sizeof *indep_vars);
+  is_missing_case = xnmalloc (n_cases, sizeof (*is_missing_case));
 
   lopts.get_depvar_mean_std = 1;
-  lopts.get_indep_mean_std = xnmalloc (n_indep, sizeof (int));
 
-  /*
-     Read from the active file. The first pass encodes categorical
-     variables and drops cases with missing values.
-   */
-  j = 0;
-  for (i = 0; i < cmd.n_variables; i++)
-    {
-      if (!is_depvar (i))
-	{
-	  v = cmd.v_variables[i];
-	  indep_vars[j] = v;
-	  j++;
-	  if (v->type == ALPHA)
-	    {
-	      /* Make a place to hold the binary vectors 
-	         corresponding to this variable's values. */
-	      cat_stored_values_create (v);
-	    }
-	  n_data = mark_missing_cases (cf, v, is_missing_case, n_data);
-	}
-    }
-
-  /*
-     Drop cases with missing values for any dependent variable.
-   */
-  j = 0;
-  for (i = 0; i < cmd.n_dependent; i++)
-    {
-      v = cmd.v_dependent[i];
-      j++;
-      n_data = mark_missing_cases (cf, v, is_missing_case, n_data);
-    }
 
   for (k = 0; k < cmd.n_dependent; k++)
     {
-      depvar = cmd.v_dependent[k];
+      n_indep = get_n_indep ((const struct variable *) cmd.v_dependent[k]);
+      lopts.get_indep_mean_std = xnmalloc (n_indep, sizeof (int));
+      indep_vars = xnmalloc (n_indep, sizeof *indep_vars);  
+      assert (indep_vars != NULL);
+
+      for (i = 0; i < n_cases; i++)
+	{
+	  is_missing_case[i] = 0;
+	}
+      n_data = prepare_data (n_cases, is_missing_case, indep_vars, 
+			     cmd.v_dependent[k], 
+			     (const struct casefile *) cf);
       Y = gsl_vector_alloc (n_data);
 
       X =
@@ -860,7 +919,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
       lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
       lcache->indep_means = gsl_vector_alloc (X->m->size2);
       lcache->indep_std = gsl_vector_alloc (X->m->size2);
-      lcache->depvar = (const struct variable *) depvar;
+      lcache->depvar = (const struct variable *) cmd.v_dependent[k];
       /*
          For large data sets, use QR decomposition.
        */
@@ -880,12 +939,12 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	  case_num = casereader_cnum (r) - 1;
 	  if (!is_missing_case[case_num])
 	    {
-	      for (i = 0; i < cmd.n_variables; ++i)	/* Iterate over the variables
-							   for the current case. 
-							 */
+	      for (i = 0; i < n_variables; ++i)	/* Iterate over the
+						   variables for the
+						   current case.
+						*/
 		{
-		  v = cmd.v_variables[i];
-		  val = case_data (&c, v->fv);
+		  val = case_data (&c, v_variables[i]->fv);
 		  /*
 		     Independent/dependent variable separation. The
 		     'variables' subcommand specifies a varlist which contains
@@ -894,19 +953,19 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 		     subcommand, and maybe also in the 'variables' subcommand. 
 		     We need to separate the two.
 		   */
-		  if (!is_depvar (i))
+		  if (!is_depvar (i, cmd.v_dependent[k]))
 		    {
-		      if (v->type == ALPHA)
+		      if (v_variables[i]->type == ALPHA)
 			{
-			  design_matrix_set_categorical (X, row, v, val);
+			  design_matrix_set_categorical (X, row, v_variables[i], val);
 			}
-		      else if (v->type == NUMERIC)
+		      else if (v_variables[i]->type == NUMERIC)
 			{
-			  design_matrix_set_numeric (X, row, v, val);
+			  design_matrix_set_numeric (X, row, v_variables[i], val);
 			}
 		    }
 		}
-	      val = case_data (&c, depvar->fv);
+	      val = case_data (&c, cmd.v_dependent[k]->fv);
 	      gsl_vector_set (Y, row, val->f);
 	      row++;
 	    }
@@ -926,11 +985,12 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
       subcommand_export (cmd.sbc_export, lcache);
       gsl_vector_free (Y);
       design_matrix_destroy (X);
+      free (indep_vars);
       pspp_linreg_cache_free (lcache);
       free (lopts.get_indep_mean_std);
       casereader_destroy (r);
     }
-  free (indep_vars);
+
   free (is_missing_case);
 
   return true;
