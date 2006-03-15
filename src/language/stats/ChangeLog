@@ -1,3 +1,10 @@
+2006-03-15  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q: Added custom syntax parser for VARIABLES subcommand
+
+	* regression.q: Moved most instructions for run_regression ()
+	inside the loop over dependent variables.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory
