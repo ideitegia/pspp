@@ -135,6 +135,56 @@ var_is_valid_name (const char *name, bool issue_error)
   
   assert (name != NULL);
 
+  /* Note that strlen returns number of BYTES, not the number of 
+     CHARACTERS */
+  length = strlen (name);
+
+  bool plausible = var_is_plausible_name(name, issue_error);
+
+  if ( ! plausible ) 
+    return false;
+
+
+  if (!lex_is_id1 (name[0]))
+    {
+      if (issue_error)
+        msg (SE, _("Character `%c' (in %s), may not appear "
+                   "as the first character in a variable name."),
+             name[0], name);
+      return false;
+    }
+
+
+  for (i = 0; i < length; i++)
+    {
+    if (!lex_is_idn (name[i])) 
+      {
+        if (issue_error)
+          msg (SE, _("Character `%c' (in %s) may not appear in "
+                     "a variable name."),
+               name[i], name);
+        return false;
+      }
+    }
+
+  return true;
+}
+
+/* 
+   Returns true if NAME is an plausible name for a variable,
+   false otherwise.  If ISSUE_ERROR is true, issues an
+   explanatory error message on failure. 
+   This function makes no use of LC_CTYPE.
+*/
+bool
+var_is_plausible_name (const char *name, bool issue_error) 
+{
+  size_t length;
+  
+  assert (name != NULL);
+
+  /* Note that strlen returns number of BYTES, not the number of 
+     CHARACTERS */
   length = strlen (name);
   if (length < 1) 
     {
@@ -147,25 +197,6 @@ var_is_valid_name (const char *name, bool issue_error)
       if (issue_error)
         msg (SE, _("Variable name %s exceeds %d-character limit."),
              name, (int) LONG_NAME_LEN);
-      return false;
-    }
-
-  for (i = 0; i < length; i++)
-    if (!lex_is_idn (name[i])) 
-      {
-        if (issue_error)
-          msg (SE, _("Character `%c' (in %s) may not appear in "
-                     "a variable name."),
-               name[i], name);
-        return false;
-      }
-        
-  if (!lex_is_id1 (name[0]))
-    {
-      if (issue_error)
-        msg (SE, _("Character `%c' (in %s), may not appear "
-                   "as the first character in a variable name."),
-             name[0], name);
       return false;
     }
 
@@ -228,7 +259,7 @@ void
 var_set_short_name (struct variable *v, const char *short_name) 
 {
   assert (v != NULL);
-  assert (short_name[0] == '\0' || var_is_valid_name (short_name, false));
+  assert (short_name[0] == '\0' || var_is_plausible_name (short_name, false));
   
   str_copy_trunc (v->short_name, sizeof v->short_name, short_name);
   str_uppercase (v->short_name);

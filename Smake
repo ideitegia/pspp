@@ -3,7 +3,7 @@
 GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
-GNULIB_MODULES = alloca alloca-opt assert full-read full-write		\
+GNULIB_MODULES = alloca alloca-opt assert c-ctype full-read full-write	\
 gethostname getline getlogin_r getopt gettext intprops memcasecmp	\
 memchr memcmp memmem memmove memset progname readlink restrict		\
 snprintf stat-macros stdbool stpcpy strcase strcspn strerror strftime	\

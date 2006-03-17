@@ -87,6 +87,7 @@ struct variable
 
 /* Variable names. */
 bool var_is_valid_name (const char *, bool issue_error);
+bool var_is_plausible_name (const char *name, bool issue_error);
 int compare_var_names (const void *, const void *, void *);
 unsigned hash_var_name (const void *, void *);
 

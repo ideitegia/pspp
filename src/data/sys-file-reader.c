@@ -18,26 +18,27 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "sys-file-reader.h"
-#include "sfm-private.h"
-#include <libpspp/message.h>
+
 #include <stdlib.h>
-#include <ctype.h>
 #include <errno.h>
 #include <float.h>
-#include <setjmp.h>
+#include <c-ctype.h>
+
 #include <libpspp/alloc.h>
-#include "case.h"
-#include <libpspp/compiler.h>
-#include "dictionary.h"
 #include <libpspp/message.h>
+#include <libpspp/compiler.h>
+#include <libpspp/magic.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
+
+#include "sys-file-reader.h"
+#include "sfm-private.h"
+#include "case.h"
+#include "dictionary.h"
 #include "file-handle-def.h"
 #include "filename.h"
 #include "format.h"
-#include <libpspp/magic.h>
-#include <libpspp/misc.h>
 #include "value-labels.h"
-#include <libpspp/str.h>
 #include "variable.h"
 
 #include "gettext.h"
@@ -619,10 +620,10 @@ read_header (struct sfm_reader *r,
   /* Check eye-category.her string. */
   memcpy (prod_name, hdr.prod_name, sizeof hdr.prod_name);
   for (i = 0; i < 60; i++)
-    if (!isprint ((unsigned char) prod_name[i]))
+    if (!c_isprint ((unsigned char) prod_name[i]))
       prod_name[i] = ' ';
   for (i = 59; i >= 0; i--)
-    if (!isgraph ((unsigned char) prod_name[i]))
+    if (!c_isgraph ((unsigned char) prod_name[i]))
       {
 	prod_name[i] = '\0';
 	break;
@@ -697,16 +698,18 @@ read_header (struct sfm_reader *r,
     int i;
 
     for (i = sizeof hdr.file_label - 1; i >= 0; i--)
-      if (!isspace ((unsigned char) hdr.file_label[i])
-	  && hdr.file_label[i] != 0)
-	{
-          char *label = xmalloc (i + 2);
-	  memcpy (label, hdr.file_label, i + 1);
-	  label[i + 1] = 0;
-          dict_set_label (dict, label);
-          free (label);
-	  break;
-	}
+      {
+	if (!c_isspace ((unsigned char) hdr.file_label[i])
+	    && hdr.file_label[i] != 0)
+	  {
+	    char *label = xmalloc (i + 2);
+	    memcpy (label, hdr.file_label, i + 1);
+	    label[i + 1] = 0;
+	    dict_set_label (dict, label);
+	    free (label);
+	    break;
+	  }
+      }
   }
 
   if (info)
@@ -730,7 +733,7 @@ read_header (struct sfm_reader *r,
       info->case_cnt = hdr.case_cnt;
 
       for (cp = &prod_name[skip_amt]; cp < &prod_name[60]; cp++)
-	if (isgraph ((unsigned char) *cp))
+	if (c_isgraph ((unsigned char) *cp))
 	  break;
       strcpy (info->product, cp);
     }
@@ -838,52 +841,30 @@ read_variables (struct sfm_reader *r,
 		     "-3, -2, 0, 1, 2, or 3."), fh_get_filename (r->fh), i));
 
       /* Copy first character of variable name. */
-      if (!isalpha ((unsigned char) sv.name[0])
-	  && sv.name[0] != '@' && sv.name[0] != '#')
+      if (sv.name[0] == '@' || sv.name[0] == '#')
 	lose ((ME, _("%s: position %d: Variable name begins with invalid "
                      "character."),
                fh_get_filename (r->fh), i));
-      if (islower ((unsigned char) sv.name[0]))
-	msg (MW, _("%s: position %d: Variable name begins with lowercase letter "
-                   "%c."),
-             fh_get_filename (r->fh), i, sv.name[0]);
-      if (sv.name[0] == '#')
-	msg (MW, _("%s: position %d: Variable name begins with octothorpe "
-		   "(`#').  Scratch variables should not appear in system "
-		   "files."),
-             fh_get_filename (r->fh), i);
-      name[0] = toupper ((unsigned char) (sv.name[0]));
+
+      name[0] = sv.name[0];
 
       /* Copy remaining characters of variable name. */
       for (j = 1; j < SHORT_NAME_LEN; j++)
 	{
 	  int c = (unsigned char) sv.name[j];
 
-	  if (isspace (c))
+	  if (c == ' ') 
 	    break;
-	  else if (islower (c))
-	    {
-	      msg (MW, _("%s: position %d: Variable name character %d is "
-                         "lowercase letter %c."),
-                   fh_get_filename (r->fh), i, j + 1, sv.name[j]);
-	      name[j] = toupper ((unsigned char) (c));
-	    }
-	  else if (isalnum (c) || c == '.' || c == '@'
-		   || c == '#' || c == '$' || c == '_')
+	  else 
 	    name[j] = c;
-	  else
-	    lose ((ME, _("%s: position %d: character `\\%03o' (%c) is not valid in a "
-                         "variable name."),
-                   fh_get_filename (r->fh), i, c, c));
 	}
       name[j] = 0;
 
-      if ( ! var_is_valid_name(name, false) ) 
+      if ( ! var_is_plausible_name(name, false) ) 
         lose ((ME, _("%s: Invalid variable name `%s' within system file."),
                fh_get_filename (r->fh), name));
 
       /* Create variable. */
-
       vv = (*var_by_idx)[i] = dict_create_var (dict, name, sv.type);
       if (vv == NULL) 
         lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
@@ -1558,3 +1539,4 @@ sfm_detect (FILE *file)
     return false;
   return true; 
 }
+

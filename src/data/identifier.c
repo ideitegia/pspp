@@ -42,13 +42,14 @@ const char *keywords[T_N_KEYWORDS + 1] =
 /* Recognizing identifiers. */
 
 /* Returns true if C may be the first character in an
-   identifier. */
+   identifier in the current locale. */
 bool
 lex_is_id1 (char c_) 
 {
   unsigned char c = c_;
   return isalpha (c) || c == '@' || c == '#' || c == '$';
 }
+
 
 /* Returns true if C may be a character in an identifier other
    than the first. */

@@ -269,7 +269,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
 
   assert (width >= 0 && width < 256);
 
-  assert (var_is_valid_name(name,0));
+  assert (var_is_plausible_name(name,0));
     
   /* Make sure there's not already a variable by that name. */
   if (dict_lookup_var (d, name) != NULL)
@@ -585,7 +585,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   assert (d != NULL);
   assert (v != NULL);
   assert (new_name != NULL);
-  assert (var_is_valid_name (new_name, false));
+  assert (var_is_plausible_name (new_name, false));
   assert (dict_contains_var (d, v));
   assert (!compare_var_names (v->name, new_name, NULL)
           || dict_lookup_var (d, new_name) == NULL);
@@ -623,7 +623,7 @@ dict_rename_vars (struct dictionary *d,
   for (i = 0; i < count; i++) 
     {
       assert (d->var[vars[i]->index] == vars[i]);
-      assert (var_is_valid_name (new_names[i], false));
+      assert (var_is_plausible_name (new_names[i], false));
       hsh_force_delete (d->name_tab, vars[i]);
       old_names[i] = xstrdup (vars[i]->name);
       strcpy (vars[i]->name, new_names[i]);
@@ -1064,7 +1064,7 @@ dict_create_vector (struct dictionary *d,
 
   assert (d != NULL);
   assert (name != NULL);
-  assert (var_is_valid_name (name, false));
+  assert (var_is_plausible_name (name, false));
   assert (var != NULL);
   assert (cnt > 0);
   

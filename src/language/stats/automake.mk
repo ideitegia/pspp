@@ -30,6 +30,9 @@ EXTRA_DIST += $(src_language_stats_q_sources_q)
 nodist_src_language_stats_libstats_a_SOURCES = $(src_language_stats_q_sources_c)
 CLEANFILES += $(src_language_stats_q_sources_c)
 
+src_language_stats_libstats_a_CPPFLAGS = $(AM_CPPFLAGS) \
+	-I$(top_srcdir)/src/language/stats
+
 src_language_stats_libstats_a_SOURCES = \
 	src/language/stats/aggregate.c \
 	src/language/stats/autorecode.c \
