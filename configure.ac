@@ -4,7 +4,7 @@ dnl Initialize.
 AX_PREREQ(2.57)
 AC_INIT(pspp, 0.4.1,bug-gnu-pspp@gnu.org)
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(1.9)
 
 dnl Checks for programs.
 AC_GNU_SOURCE

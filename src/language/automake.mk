@@ -19,4 +19,3 @@ src_language_liblanguage_a_SOURCES = \
 	src/language/command.h \
 	src/language/command.def 
 
-	

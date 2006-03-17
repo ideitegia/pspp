@@ -3,7 +3,7 @@ cvs archive, you must install:
 
 	* Autoconf 2.58 (or later).
 
-	* Automake 1.7 (or later).
+	* Automake 1.9.x (or later).
 
 	* Gettext 0.14.5 (or later).
 
