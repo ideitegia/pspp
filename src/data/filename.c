@@ -41,9 +41,7 @@
 
 #ifdef unix
 #include <pwd.h>
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <sys/stat.h>
 #include "stat-macros.h"
 #endif

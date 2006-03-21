@@ -7,8 +7,8 @@ GNULIB_MODULES = alloca alloca-opt assert c-ctype full-read full-write	\
 gethostname getline getlogin_r getopt gettext intprops memcasecmp	\
 memchr memcmp memmem memmove memset progname readlink restrict		\
 snprintf stat-macros stdbool stpcpy strcase strcspn strerror strftime	\
-strstr strtod strtok_r strtol strtoul vsnprintf xalloc xalloc-die	\
-xreadlink xvasprintf
+strstr strtod strtok_r strtol strtoul unistd vsnprintf xalloc		\
+xalloc-die xreadlink xvasprintf
 
 all: po/POTFILES.in
 	test -d m4 || mkdir m4

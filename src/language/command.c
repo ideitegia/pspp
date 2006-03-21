@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+#include <unistd.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <data/dictionary.h>
@@ -35,10 +36,6 @@
 #include <output/table.h>
 #include <data/variable.h>
 #include <procedure.h>
-
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>

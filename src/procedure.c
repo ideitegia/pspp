@@ -23,9 +23,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if HAVE_UNISTD_H
-#include <unistd.h>	/* Required by SunOS4. */
-#endif
+#include <unistd.h>
 #include <libpspp/alloc.h>
 #include <data/case.h>
 #include <data/casefile.h>

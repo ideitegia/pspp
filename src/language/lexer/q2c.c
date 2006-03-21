@@ -26,9 +26,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <errno.h>
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
 

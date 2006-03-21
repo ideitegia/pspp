@@ -27,9 +27,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <time.h>
-#if HAVE_UNISTD_H
-#include <unistd.h>	/* Required by SunOS4. */
-#endif
+#include <unistd.h>
 #include <libpspp/alloc.h>
 #include "case.h"
 #include "dictionary.h"
