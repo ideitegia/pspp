@@ -79,7 +79,8 @@ struct pfm_reader
 
 static void
 error (struct pfm_reader *r, const char *msg,...)
-     PRINTF_FORMAT (2, 3);
+     PRINTF_FORMAT (2, 3)
+     NO_RETURN;
 
 /* Displays MSG as an error message and aborts reading the
    portable file via longjmp(). */

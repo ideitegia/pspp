@@ -1,3 +1,7 @@
+Mon Mar 20 16:33:53 2006  Ben Pfaff  <blp@gnu.org>
+
+	* por-file-reader.c: (error) Mark as NO_RETURN.
+
 Sat Mar 11 15:06:07 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* settings.c: Changed default value of scompress to true.
