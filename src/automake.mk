@@ -13,6 +13,7 @@ if WITHGUI
 include $(top_srcdir)/src/ui/gui/automake.mk
 endif
 
+AM_CPPFLAGS += -DPKGDATADIR=\"$(pkgdatadir)\"
 
 src/message.o: AM_CPPFLAGS += \
  -I$(top_srcdir)/src/language \

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-03-17 12:47+0800\n"
+"POT-Creation-Date: 2006-03-21 09:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -312,21 +312,21 @@ msgstr ""
 msgid "Can't re-open %s as a %s for %s."
 msgstr ""
 
-#: src/data/filename.c:228
+#: src/data/filename.c:226
 #, c-format
 msgid "Searching for `%s'..."
 msgstr ""
 
-#: src/data/filename.c:236 src/data/filename.c:268
+#: src/data/filename.c:234 src/data/filename.c:266
 msgid "Search unsuccessful!"
 msgstr ""
 
-#: src/data/filename.c:261
+#: src/data/filename.c:259
 #, c-format
 msgid "Found `%s'."
 msgstr ""
 
-#: src/data/filename.c:678
+#: src/data/filename.c:676
 #, c-format
 msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
@@ -387,13 +387,13 @@ msgstr ""
 msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/data/format.c:197 src/data/por-file-reader.c:480
+#: src/data/format.c:197 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:994 src/data/sys-file-reader.c:1003
 #: src/ui/gui/psppire-var-store.c:430
 msgid "String"
 msgstr ""
 
-#: src/data/format.c:197 src/data/por-file-reader.c:480
+#: src/data/format.c:197 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:994 src/data/sys-file-reader.c:1003
 #: src/ui/gui/psppire-var-store.c:423
 msgid "Numeric"
@@ -431,119 +431,119 @@ msgstr ""
 msgid "%s: Creating file: %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:99
+#: src/data/por-file-reader.c:100
 #, c-format
 msgid "portable file %s corrupt at offset %ld: "
 msgstr ""
 
-#: src/data/por-file-reader.c:128
+#: src/data/por-file-reader.c:129
 msgid "unexpected end of file"
 msgstr ""
 
-#: src/data/por-file-reader.c:187
+#: src/data/por-file-reader.c:188
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a portable file: %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:204
+#: src/data/por-file-reader.c:205
 msgid "Data record expected."
 msgstr ""
 
-#: src/data/por-file-reader.c:312
+#: src/data/por-file-reader.c:313
 msgid "Missing numeric terminator."
 msgstr ""
 
-#: src/data/por-file-reader.c:335
+#: src/data/por-file-reader.c:336
 msgid "Invalid integer."
 msgstr ""
 
-#: src/data/por-file-reader.c:346
+#: src/data/por-file-reader.c:347
 #, c-format
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:407
+#: src/data/por-file-reader.c:408
 #, c-format
 msgid "%s: Not a portable file."
 msgstr ""
 
-#: src/data/por-file-reader.c:432
+#: src/data/por-file-reader.c:433
 #, c-format
 msgid "Bad date string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:434
+#: src/data/por-file-reader.c:435
 #, c-format
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:472 src/data/sys-file-reader.c:986
+#: src/data/por-file-reader.c:473 src/data/sys-file-reader.c:986
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/data/por-file-reader.c:479 src/data/sys-file-reader.c:1002
+#: src/data/por-file-reader.c:480 src/data/sys-file-reader.c:1002
 #, c-format
 msgid "%s variable %s has invalid format specifier %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:494
+#: src/data/por-file-reader.c:495
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/data/por-file-reader.c:498
+#: src/data/por-file-reader.c:499
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:508
+#: src/data/por-file-reader.c:509
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/data/por-file-reader.c:520
+#: src/data/por-file-reader.c:521
 msgid "Expected variable record."
 msgstr ""
 
-#: src/data/por-file-reader.c:524
+#: src/data/por-file-reader.c:525
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:532
+#: src/data/por-file-reader.c:533
 #, c-format
 msgid "position %d: Invalid variable name `%s'."
 msgstr ""
 
-#: src/data/por-file-reader.c:540 src/language/expressions/evaluate.c:155
+#: src/data/por-file-reader.c:541 src/language/expressions/evaluate.c:155
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:576
+#: src/data/por-file-reader.c:577
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/data/por-file-reader.c:623
+#: src/data/por-file-reader.c:624
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/data/por-file-reader.c:626
+#: src/data/por-file-reader.c:627
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types "
 "or widths."
 msgstr ""
 
-#: src/data/por-file-reader.c:650
+#: src/data/por-file-reader.c:651
 #, c-format
 msgid "Duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:653
+#: src/data/por-file-reader.c:654
 #, c-format
 msgid "Duplicate label for value `%.*s' for variable %s."
 msgstr ""
@@ -908,17 +908,17 @@ msgstr ""
 msgid "%s: Partial record at end of system file."
 msgstr ""
 
-#: src/data/sys-file-writer.c:143
+#: src/data/sys-file-writer.c:141
 #, c-format
 msgid "Unknown system file version %d. Treating as version %d."
 msgstr ""
 
-#: src/data/sys-file-writer.c:252
+#: src/data/sys-file-writer.c:250
 #, c-format
 msgid "Error opening \"%s\" for writing as a system file: %s."
 msgstr ""
 
-#: src/data/sys-file-writer.c:899
+#: src/data/sys-file-writer.c:897
 #, c-format
 msgid "An I/O error occurred writing system file \"%s\"."
 msgstr ""
@@ -969,32 +969,32 @@ msgstr ""
 msgid "scratch"
 msgstr ""
 
-#: src/language/command.c:144
+#: src/language/command.c:141
 #, c-format
 msgid "%s not allowed inside FILE TYPE/END FILE TYPE."
 msgstr ""
 
-#: src/language/command.c:147
+#: src/language/command.c:144
 #, c-format
 msgid "%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."
 msgstr ""
 
-#: src/language/command.c:150
+#: src/language/command.c:147
 msgid "RECORD TYPE must be the first command inside a FILE TYPE structure."
 msgstr ""
 
-#: src/language/command.c:197
+#: src/language/command.c:194
 msgid "expecting command name"
 msgstr ""
 
-#: src/language/command.c:207 src/language/expressions/parse.c:1222
+#: src/language/command.c:204 src/language/expressions/parse.c:1222
 #: src/ui/terminal/command-line.c:125 src/ui/terminal/command-line.c:144
 #: src/ui/terminal/command-line.c:156
 #, c-format
 msgid "%s is not yet implemented."
 msgstr ""
 
-#: src/language/command.c:226
+#: src/language/command.c:223
 #, c-format
 msgid ""
 "%s is not allowed (1) before a command to specify the input program, such as "
@@ -1002,42 +1002,42 @@ msgid ""
 "PROGRAM and END INPUT PROGRAM."
 msgstr ""
 
-#: src/language/command.c:230
+#: src/language/command.c:227
 #, c-format
 msgid "%s is not allowed within an input program."
 msgstr ""
 
-#: src/language/command.c:231 src/language/command.c:232
+#: src/language/command.c:228 src/language/command.c:229
 #, c-format
 msgid "%s is only allowed within an input program."
 msgstr ""
 
-#: src/language/command.c:507
+#: src/language/command.c:504
 #, c-format
 msgid "Unknown command %s."
 msgstr ""
 
-#: src/language/command.c:648 src/language/command.c:779
+#: src/language/command.c:645 src/language/command.c:776
 #: src/language/utilities/permissions.c:102
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
-#: src/language/command.c:660
+#: src/language/command.c:657
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr ""
 
-#: src/language/command.c:710
+#: src/language/command.c:707
 #, c-format
 msgid "Couldn't fork: %s."
 msgstr ""
 
-#: src/language/command.c:752
+#: src/language/command.c:749
 #, c-format
 msgid "Error executing command: %s."
 msgstr ""
 
-#: src/language/command.c:761 src/language/data-io/matrix-data.c:534
+#: src/language/command.c:758 src/language/data-io/matrix-data.c:534
 #: src/language/data-io/print.c:336 src/language/data-io/print.c:1051
 #: src/language/dictionary/vector.c:197 src/language/lexer/lexer.c:451
 #: src/language/stats/autorecode.c:144 src/language/xforms/select-if.c:57
@@ -1045,7 +1045,7 @@ msgstr ""
 msgid "expecting end of command"
 msgstr ""
 
-#: src/language/command.c:800
+#: src/language/command.c:797
 msgid "No operating system support for this command."
 msgstr ""
 
@@ -1196,7 +1196,7 @@ msgstr ""
 #: src/language/data-io/print.c:798
 #: src/language/dictionary/sys-file-info.c:139
 #: src/language/dictionary/sys-file-info.c:373
-#: src/language/stats/descriptives.c:887 src/procedure.c:888
+#: src/language/stats/descriptives.c:887 src/procedure.c:886
 msgid "Variable"
 msgstr ""
 
@@ -1762,7 +1762,7 @@ msgstr ""
 msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
 msgstr ""
 
-#: src/language/data-io/list.q:258 src/output/html.c:414
+#: src/language/data-io/list.q:258 src/output/html.c:411
 #, c-format
 msgid "Cannot open first page on HTML device %s."
 msgstr ""
@@ -2293,7 +2293,7 @@ msgid "Documents in the active file:"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:380
-#: src/language/dictionary/sys-file-info.c:519 src/procedure.c:890
+#: src/language/dictionary/sys-file-info.c:519 src/procedure.c:888
 #: src/ui/gui/var-sheet.c:71
 msgid "Label"
 msgstr ""
@@ -2321,7 +2321,7 @@ msgstr ""
 #: src/language/stats/crosstabs.q:1111 src/language/stats/crosstabs.q:1138
 #: src/language/stats/crosstabs.q:1158 src/language/stats/crosstabs.q:1180
 #: src/language/stats/examine.q:1138 src/language/stats/frequencies.q:1146
-#: src/language/stats/frequencies.q:1267 src/procedure.c:889
+#: src/language/stats/frequencies.q:1267 src/procedure.c:887
 msgid "Value"
 msgstr ""
 
@@ -2785,7 +2785,7 @@ msgstr ""
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/language/line-buffer.c:459 src/output/html.c:342
+#: src/language/line-buffer.c:459 src/output/html.c:339
 #: src/output/postscript.c:1454
 #, c-format
 msgid "Reading `%s': %s."
@@ -4146,17 +4146,17 @@ msgid ""
 "by %d lines."
 msgstr ""
 
-#: src/output/ascii.c:395 src/output/html.c:106 src/output/postscript.c:454
+#: src/output/ascii.c:395 src/output/html.c:103 src/output/postscript.c:454
 #, c-format
 msgid "%s: Initialization complete."
 msgstr ""
 
-#: src/output/ascii.c:407 src/output/html.c:118 src/output/postscript.c:467
+#: src/output/ascii.c:407 src/output/html.c:115 src/output/postscript.c:467
 #, c-format
 msgid "%s: Beginning closing..."
 msgstr ""
 
-#: src/output/ascii.c:429 src/output/html.c:123 src/output/postscript.c:486
+#: src/output/ascii.c:429 src/output/html.c:120 src/output/postscript.c:486
 #, c-format
 msgid "%s: Finished closing."
 msgstr ""
@@ -4400,48 +4400,48 @@ msgstr ""
 msgid "<<fallback>>"
 msgstr ""
 
-#: src/output/html.c:70
+#: src/output/html.c:67
 #, c-format
 msgid "HTML driver initializing as `%s'..."
 msgstr ""
 
-#: src/output/html.c:174
+#: src/output/html.c:171
 #, c-format
 msgid "Unknown configuration parameter `%s' for HTML device driver."
 msgstr ""
 
-#: src/output/html.c:254
+#: src/output/html.c:251
 msgid ""
 "Cannot find HTML prologue.  The use of `-vv' on the command line is "
 "suggested as a debugging aid."
 msgstr ""
 
-#: src/output/html.c:259
+#: src/output/html.c:256
 #, c-format
 msgid "%s: %s: Opening HTML prologue..."
 msgstr ""
 
-#: src/output/html.c:283 src/output/postscript.c:1350
+#: src/output/html.c:280 src/output/postscript.c:1350
 #: src/output/postscript.c:1361
 msgid "nobody"
 msgstr ""
 
-#: src/output/html.c:292 src/output/html.c:295 src/output/postscript.c:1357
+#: src/output/html.c:289 src/output/html.c:292 src/output/postscript.c:1357
 #: src/output/postscript.c:1362
 msgid "nowhere"
 msgstr ""
 
-#: src/output/html.c:351
+#: src/output/html.c:348
 #, c-format
 msgid "%s: HTML prologue read successfully."
 msgstr ""
 
-#: src/output/html.c:355
+#: src/output/html.c:352
 #, c-format
 msgid "%s: Error reading HTML prologue."
 msgstr ""
 
-#: src/output/html.c:383
+#: src/output/html.c:380
 #, c-format
 msgid "HTML output driver: %s: %s"
 msgstr ""
