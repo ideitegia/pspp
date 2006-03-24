@@ -52,6 +52,7 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
+activity="Create File 1"
 cat > $TESTFILE <<EOF
 title 'Test COUNT transformation'.
 
@@ -72,6 +73,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
+activity="Run pspp 1"
 $SUPERVISOR $PSPP -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -98,5 +100,50 @@ V1 V2        C
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
+
+
+
+activity="Create file 2"
+cat > $TESTFILE <<EOF
+data list list /x * y *.
+begin data.
+1 2
+2 3
+4 5
+2 2
+5 6
+end data.
+
+count C=x y (2).
+
+list.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+activity="Run pspp 2"
+$SUPERVISOR $PSPP -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+activity="compare results"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - <<EOF
+1.1 DATA LIST.  Reading free-form data from INLINE.
++--------+------+
+|Variable|Format|
+#========#======#
+|x       |F8.0  |
+|y       |F8.0  |
++--------+------+
+       x        y        C
+-------- -------- --------
+    1.00     2.00     1.00 
+    2.00     3.00     1.00 
+    4.00     5.00      .00 
+    2.00     2.00     2.00 
+    5.00     6.00      .00 
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

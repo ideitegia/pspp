@@ -32,6 +32,7 @@ TESTS = \
 	tests/command/permissions.sh \
 	tests/command/print.sh \
 	tests/command/rename.sh \
+	tests/command/regression.sh \
 	tests/command/sample.sh \
 	tests/command/sort.sh \
 	tests/command/sysfiles.sh \
