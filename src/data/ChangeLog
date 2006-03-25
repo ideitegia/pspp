@@ -1,3 +1,7 @@
+2006-03-25  Jason Stover  <jhs@math.gcsu.edu>
+
+	* category.c (cat_stored_values_destroy): Fixed memory leak.
+
 Fri Mar 24 18:15:41 2006  Ben Pfaff  <blp@gnu.org>
 
 	Add some missing frees.  Thanks to John Darrington for reporting
