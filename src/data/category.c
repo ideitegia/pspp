@@ -59,9 +59,16 @@ void
 cat_stored_values_destroy (struct variable *v)
 {
   assert (v != NULL);
+
   if (v->obs_vals != NULL)
     {
+      if (v->obs_vals->n_allocated_categories > 0)
+	{
+	  free (v->obs_vals->vals);
+	  v->obs_vals->vals = NULL;
+	}
       free (v->obs_vals);
+      v->obs_vals = NULL;
     }
 }
 
