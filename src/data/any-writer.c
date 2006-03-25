@@ -189,21 +189,29 @@ any_writer_error (const struct any_writer *writer)
 bool
 any_writer_close (struct any_writer *writer) 
 {
+  bool ok;
+  
   if (writer == NULL)
     return true;
 
   switch (writer->type) 
     {
     case SYSTEM_FILE:
-      return sfm_close_writer (writer->private);
+      ok = sfm_close_writer (writer->private);
+      break;
 
     case PORTABLE_FILE:
-      return pfm_close_writer (writer->private);
+      ok = pfm_close_writer (writer->private);
+      break;
 
     case SCRATCH_FILE:
-      return scratch_writer_close (writer->private);
-
+      ok = scratch_writer_close (writer->private);
+      break;
+      
     default:
       abort ();
     }
+
+  free (writer);
+  return ok;
 }

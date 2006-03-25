@@ -204,4 +204,6 @@ any_reader_close (struct any_reader *reader)
     default:
       abort ();
     }
+
+  free (reader);
 }

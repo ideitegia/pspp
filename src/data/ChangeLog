@@ -1,3 +1,12 @@
+Fri Mar 24 18:15:41 2006  Ben Pfaff  <blp@gnu.org>
+
+	Add some missing frees.  Thanks to John Darrington for reporting
+	these.
+
+	* any-writer.c (any_writer_close): Free writer.
+
+	* any-reader.c (any_reader_close): Free reader.
+
 Mon Mar 20 16:33:53 2006  Ben Pfaff  <blp@gnu.org>
 
 	* por-file-reader.c: (error) Mark as NO_RETURN.
