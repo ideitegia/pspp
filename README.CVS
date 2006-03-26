@@ -8,10 +8,8 @@ cvs archive, you must install:
 	* Gettext 0.14.5 (or later).
 
 	* Gnulib, from CVS (see http://savannah.gnu.org/cvs/?group=gnulib).
-	  Consider applying the patch at the end of this file, unless
-	  the bug it fixes has already been fixed.  Note that Gnulib
-	  does not require any form of installation: simply checking it
-	  out into a directory is sufficient.  
+	  Note that Gnulib does not require any form of installation:
+	  simply checking it out into a directory is sufficient.
 
 Once you have these installed, execute
 	make -f Smake
