@@ -1153,7 +1153,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 
       tab_offset (risk, nvar - 2, 0);
       tab_joint_text (risk, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
-		      _(" 95%% Confidence Interval"));
+		      _("95%% Confidence Interval"));
       tab_text (risk, 0, 1, TAB_LEFT | TAT_TITLE, _("Statistic"));
       tab_text (risk, 1, 1, TAB_RIGHT | TAT_TITLE, _("Value"));
       tab_text (risk, 2, 1, TAB_RIGHT | TAT_TITLE, _("Lower"));
