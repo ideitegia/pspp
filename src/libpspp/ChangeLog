@@ -1,3 +1,8 @@
+Tue Mar 28 13:49:11 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* str.[ch]: New functions ds_create_substr, ds_find, ds_n_find, 
+	ds_ltrim_spaces
+
 Sat Mar  4 12:59:01 2006  Ben Pfaff  <blp@gnu.org>
 
 	* compiler.h: New file.

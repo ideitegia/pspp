@@ -1,3 +1,8 @@
+Tue Mar 28 13:50:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* html.c, postscript.c, output.c:  Changed to fit the new signature 
+	of fn_interp_vars
+	
 Sun Mar  5 13:19:32 2006  Ben Pfaff  <blp@gnu.org>
 
 	* postscript.c: (postopen) Fix segfault when the active file has

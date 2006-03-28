@@ -299,7 +299,7 @@ postopen (struct file_ext *f)
   html_var_tab = dict;
   while (-1 != getline (&buf, &buf_size, prologue_file))
     {
-      char *buf2;
+
       int len;
 
       if (strstr (buf, "!!!"))
@@ -328,12 +328,14 @@ postopen (struct file_ext *f)
       }
       
       /* PORTME: Line terminator. */
-      buf2 = fn_interp_vars (buf, html_get_var);
-      len = strlen (buf2);
-      fwrite (buf2, len, 1, f->file);
-      if (buf2[len - 1] != '\n')
+      struct string line;
+      ds_create(&line, buf);
+      fn_interp_vars(&line, html_get_var);
+      len = ds_length(&line);
+      fwrite (ds_c_str(&line), len, 1, f->file);
+      if (ds_c_str(&line)[len - 1] != '\n')
 	putc ('\n', f->file);
-      free (buf2);
+      ds_destroy(&line);
     }
   if (ferror (f->file))
     msg (IE, _("Reading `%s': %s."), prologue_fn, strerror (errno));

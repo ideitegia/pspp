@@ -69,69 +69,87 @@ fn_init (void)
 
 /* Functions for performing operations on filenames. */
 
-/* Substitutes $variables as defined by GETENV into INPUT and returns
-   a copy of the resultant string.  Supports $var and ${var} syntaxes;
-   $$ substitutes as $. */
-char *
-fn_interp_vars (const char *input, const char *(*getenv) (const char *))
+
+/* Substitutes $variables as defined by GETENV into TARGET.
+   TARGET must be a string containing the text for which substitution 
+   is required.
+   Supports $var and ${var} syntaxes;
+   $$ substitutes as $. 
+*/
+void 
+fn_interp_vars (struct string *target, 
+		   const char *(*getenv) (const char *))
 {
-  struct string output;
+  assert (target);
 
-  if (NULL == strchr (input, '$'))
-    return xstrdup (input);
+  char *input = xmalloc(ds_length(target) + 1);
+  char *s = input;
 
-  ds_init (&output, strlen (input));
+  strcpy(input, ds_c_str(target));
+
+  if (NULL == strchr (ds_c_str(target), '$'))
+    goto done;
+
+  ds_clear(target);
 
   for (;;)
-    switch (*input)
-      {
-      case '\0':
-	return ds_c_str (&output);
+    {
+      switch (*s)
+	{
+	case '\0':
+	  goto done ;
 	
-      case '$':
-	input++;
+	case '$':
+	  s++;
 
-	if (*input == '$')
-	  {
-	    ds_putc (&output, '$');
-	    input++;
-	  }
-	else
-	  {
-	    int stop;
-	    int start;
-	    const char *value;
+	  if (*s == '$')
+	    {
+	      ds_putc (target, '$');
+	      s++;
+	    }
+	  else
+	    {
+	      int stop;
+	      int start;
+	      const char *value;
 
-	    start = ds_length (&output);
+	      start = ds_length (target);
 
-	    if (*input == '(')
-	      {
-		stop = ')';
-		input++;
-	      }
-	    else if (*input == '{')
-	      {
-		stop = '}';
-		input++;
-	      }
-	    else
-	      stop = 0;
+	      if (*s == '(')
+		{
+		  stop = ')';
+		  s++;
+		}
+	      else if (*s == '{')
+		{
+		  stop = '}';
+		  s++;
+		}
+	      else
+		stop = 0;
 
-	    while (*input && *input != stop
-		   && (stop || isalpha ((unsigned char) *input)))
-	      ds_putc (&output, *input++);
+	      while (*s && *s != stop
+		     && (stop || isalpha ((unsigned char) *s)))
+		{
+		  ds_putc (target, *s++);
+		}
 	    
-	    value = getenv (ds_c_str (&output) + start);
-	    ds_truncate (&output, start);
-	    ds_puts (&output, value);
+	      value = getenv (ds_c_str (target) + start);
+	      ds_truncate (target, start);
+	      ds_puts (target, value);
 
-	    if (stop && *input == stop)
-	      input++;
-	  }
+	      if (stop && *s == stop)
+		s++;
+	    }
 
-      default:
-	ds_putc (&output, *input++);
-      }
+	default:
+	  ds_putc (target, *s++);
+	}
+    }
+
+ done:
+  free(input);
+  return;
 }
 
 #ifdef unix
@@ -218,9 +236,14 @@ fn_search_path (const char *basename, const char *path, const char *prepend)
     return fn_tilde_expand (basename);
   
   {
-    char *temp = fn_interp_vars (path, fn_getenv);
-    bp = subst_path = fn_tilde_expand (temp);
-    free (temp);
+    struct string temp;
+    ds_create(&temp, path);
+
+    fn_interp_vars(&temp, fn_getenv);
+
+    bp = subst_path = fn_tilde_expand (ds_c_str(&temp));
+
+    ds_destroy(&temp);
   }
 
   msg (VM (4), _("Searching for `%s'..."), basename);

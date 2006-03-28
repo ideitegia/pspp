@@ -36,7 +36,9 @@ extern const char *config_path;
 
 void fn_init (void);
 
-char *fn_interp_vars (const char *input, const char *(*getenv) (const char *));
+struct string;
+void fn_interp_vars (struct string *target, 
+			const char *(*getenv) (const char *));
 char *fn_tilde_expand (const char *fn);
 char *fn_search_path (const char *basename, const char *path,
 		      const char *prepend);

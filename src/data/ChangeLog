@@ -1,3 +1,9 @@
+Tue Mar 28 13:47:16 WST 2006 John Darrington <john@darrington.wattle.id.au>
+	
+	* filename.[ch] (fn_interp_vars): Changed the signature and semantics
+	so as to modify the string inline.   Thus makeing it easier to
+	destroy the results when no longer needed.
+	
 2006-03-25  Jason Stover  <jhs@math.gcsu.edu>
 
 	* category.c (cat_stored_values_destroy): Fixed memory leak.

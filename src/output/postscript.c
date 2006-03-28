@@ -1406,7 +1406,7 @@ postopen (struct file_ext *f)
   while (-1 != getline (&buf, &buf_size, prologue_file))
     {
       char *cp;
-      char *buf2;
+
       int len;
 
       cp = strstr (buf, "!eps");
@@ -1436,18 +1436,16 @@ postopen (struct file_ext *f)
 	output_encodings (this);
       else
 	{
-	  char *beg;
-	  beg = buf2 = fn_interp_vars (buf, ps_get_var);
-	  len = strlen (buf2);
-	  while (isspace ((unsigned char) *beg))
-	    beg++, len--;
-	  if (beg[len - 1] == '\n')
-	    len--;
-	  if (beg[len - 1] == '\r')
-	    len--;
-	  fwrite (beg, len, 1, f->file);
+	  struct string line;
+	  ds_create(&line, buf);
+	  fn_interp_vars(&line, ps_get_var);
+	  ds_ltrim_spaces(&line);
+	  len = ds_length(&line);
+	  fwrite (ds_c_str(&line), len, 1, f->file);
+
+	  ds_destroy(&line);
+
 	  fputs (x->eol, f->file);
-	  free (buf2);
 	}
     }
   if (ferror (f->file))

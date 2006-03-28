@@ -20,6 +20,7 @@
 #if !str_h
 #define str_h 1
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -128,6 +129,8 @@ void ds_shrink (struct string *);
 void ds_truncate (struct string *, size_t);
 void ds_rpad (struct string *, size_t length, char pad);
 int ds_rtrim_spaces (struct string *);
+int ds_ltrim_spaces (struct string *st);
+
 bool ds_chomp (struct string *, char);
 
 /* Inspectors. */
@@ -171,6 +174,7 @@ ds_length (const struct string *st)
 extern inline char *
 ds_c_str (const struct string *st)
 {
+  assert(st);
   ((char *) st->string)[st->length] = '\0';
   return st->string;
 }
@@ -205,5 +209,13 @@ spprintf (char *dst, const char *format, ...)
 
   return dst + count;
 }
+
+int ds_find(const struct string *st, const char cs[]);
+
+int ds_n_find(const struct string *st, const char cs[]);
+
+void ds_create_substr(struct string *dst, const struct string *src, 
+		      int first, int last);
+
 
 #endif /* str_h */

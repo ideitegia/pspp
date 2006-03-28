@@ -242,6 +242,21 @@ ds_create (struct string *st, const char *s)
   strcpy (st->string, s);
 }
 
+/* Initializes DST with the contents of SRC between characters FIRST and LAST 
+   inclusive */
+void
+ds_create_substr(struct string *dst, const struct string *src, 
+		 int first, int last)
+{
+  assert(last >= first);
+  dst->length = last - first + 1;
+  dst->capacity = 8 + dst->length * 2;
+  dst->string = xmalloc (dst->capacity + 1);
+
+  memcpy (dst->string, &src->string[first], dst->length);
+}
+
+
 /* Initializes ST, making room for at least CAPACITY characters. */
 void
 ds_init (struct string *st, size_t capacity)
@@ -330,6 +345,28 @@ ds_rtrim_spaces (struct string *st)
   return cnt;
 }
 
+/* Removes leading spaces from ST.
+   Returns number of spaces removed. */
+int
+ds_ltrim_spaces (struct string *st) 
+{
+  int idx = ds_n_find(st, "\t ");
+  if (0 == idx)
+    return 0;
+
+  if (idx < 0 ) 
+    {
+      int len = ds_length(st);
+      ds_clear(st);
+      return len;
+    }
+  
+  ds_replace(st, &ds_c_str(st)[idx]);
+    
+  return idx;
+}
+
+
 /* If the last character in ST is C, removes it and returns true.
    Otherwise, returns false without modifying ST. */
 bool
@@ -400,6 +437,59 @@ ds_capacity (const struct string *st)
 {
   return st->capacity;
 }
+
+
+/* Returns the index of the first character in ST which 
+   is an element of the set CS.
+   Returns -1 if no characters are found.
+*/
+int
+ds_find(const struct string *st, const char cs[])
+{
+  int i;
+  int j;
+  for(i = 0; i < st->length ;  ++i)
+    {
+      if ('\0' == st->string[i]) 
+	break;
+      for (j = 0 ; j < strlen(cs) ; ++j)
+	{
+	  if ( st->string[i] == cs[j])
+	    return i;
+	}
+    }
+  return -1;
+}
+
+/* Returns the index of the first character in ST which 
+   is NOT an element of the set CS.
+   Returns -1 if no such character is found.
+*/
+int
+ds_n_find(const struct string *st, const char cs[])
+{
+  int i;
+  int j;
+  for(i = 0; i < st->length ;  ++i)
+    {
+      bool found = false;
+      if ('\0' == st->string[i]) 
+	break;
+      for (j = 0 ; j < strlen(cs) ; ++j)
+	{
+	  if ( st->string[i] == cs[j])
+	    {
+	      found = true;
+	      break;
+	    }
+	}
+      if ( !found )
+	return i;
+    }
+  return -1;
+}
+
+
 
 /* Returns the first character in ST as a value in the range of
    unsigned char.  Returns EOF if ST is the empty string. */

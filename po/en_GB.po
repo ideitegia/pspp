@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-03-21 09:48+0800\n"
+"POT-Creation-Date: 2006-03-28 13:51+0800\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -311,21 +311,21 @@ msgstr ""
 msgid "Can't re-open %s as a %s for %s."
 msgstr ""
 
-#: src/data/filename.c:226
+#: src/data/filename.c:249
 #, c-format
 msgid "Searching for `%s'..."
 msgstr ""
 
-#: src/data/filename.c:234 src/data/filename.c:266
+#: src/data/filename.c:257 src/data/filename.c:289
 msgid "Search unsuccessful!"
 msgstr ""
 
-#: src/data/filename.c:259
+#: src/data/filename.c:282
 #, c-format
 msgid "Found `%s'."
 msgstr ""
 
-#: src/data/filename.c:676
+#: src/data/filename.c:699
 #, c-format
 msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
@@ -1761,7 +1761,7 @@ msgstr ""
 msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
 msgstr ""
 
-#: src/language/data-io/list.q:258 src/output/html.c:411
+#: src/language/data-io/list.q:258 src/output/html.c:413
 #, c-format
 msgid "Cannot open first page on HTML device %s."
 msgstr ""
@@ -2784,8 +2784,8 @@ msgstr ""
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/language/line-buffer.c:459 src/output/html.c:339
-#: src/output/postscript.c:1454
+#: src/language/line-buffer.c:459 src/output/html.c:341
+#: src/output/postscript.c:1452
 #, c-format
 msgid "Reading `%s': %s."
 msgstr ""
@@ -2999,7 +2999,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1156
 #, c-format
-msgid " 95%% Confidence Interval"
+msgid "95%% Confidence Interval"
 msgstr ""
 
 #: src/language/stats/crosstabs.q:1159 src/language/stats/t-test.q:984
@@ -4242,7 +4242,7 @@ msgstr ""
 msgid "Writing `%s': %s"
 msgstr ""
 
-#: src/output/ascii.c:1584 src/output/postscript.c:2101
+#: src/output/ascii.c:1584 src/output/postscript.c:2099
 #, c-format
 msgid "%s - Page %d"
 msgstr ""
@@ -4430,17 +4430,17 @@ msgstr ""
 msgid "nowhere"
 msgstr ""
 
-#: src/output/html.c:348
+#: src/output/html.c:350
 #, c-format
 msgid "%s: HTML prologue read successfully."
 msgstr ""
 
-#: src/output/html.c:352
+#: src/output/html.c:354
 #, c-format
 msgid "%s: Error reading HTML prologue."
 msgstr ""
 
-#: src/output/html.c:380
+#: src/output/html.c:382
 #, c-format
 msgid "HTML output driver: %s: %s"
 msgstr ""
@@ -4469,19 +4469,19 @@ msgstr ""
 msgid "%s: Opening device description file..."
 msgstr ""
 
-#: src/output/output.c:297 src/output/output.c:1172
+#: src/output/output.c:297 src/output/output.c:1205
 #: src/output/postscript.c:1095
 #, c-format
 msgid "Opening %s: %s."
 msgstr ""
 
-#: src/output/output.c:308 src/output/output.c:1183
+#: src/output/output.c:308 src/output/output.c:1216
 #: src/output/postscript.c:1110
 #, c-format
 msgid "Reading %s: %s."
 msgstr ""
 
-#: src/output/output.c:330 src/output/output.c:495
+#: src/output/output.c:330 src/output/output.c:497
 msgid "Syntax error."
 msgstr ""
 
@@ -4502,119 +4502,119 @@ msgstr ""
 msgid "Error reading device definition file."
 msgstr ""
 
-#: src/output/output.c:467
+#: src/output/output.c:469
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output/output.c:596
+#: src/output/output.c:598
 msgid "Syntax error in string constant."
 msgstr ""
 
-#: src/output/output.c:628
+#: src/output/output.c:630
 msgid "Syntax error in options."
 msgstr ""
 
-#: src/output/output.c:638
+#: src/output/output.c:640
 msgid "Syntax error in options (`=' expected)."
 msgstr ""
 
-#: src/output/output.c:645
+#: src/output/output.c:647
 msgid "Syntax error in options (value expected after `=')."
 msgstr ""
 
-#: src/output/output.c:721
+#: src/output/output.c:744
 #, c-format
 msgid "Unknown output driver class `%s'."
 msgstr ""
 
-#: src/output/output.c:728
+#: src/output/output.c:751
 #, c-format
 msgid "Can't initialize output driver class `%s'."
 msgstr ""
 
-#: src/output/output.c:735
+#: src/output/output.c:758
 #, c-format
 msgid "Can't initialize output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output/output.c:757
+#: src/output/output.c:780
 #, c-format
 msgid "Unknown device type `%s'."
 msgstr ""
 
-#: src/output/output.c:770
+#: src/output/output.c:793
 #, c-format
 msgid "Can't complete initialization of output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output/output.c:813
+#: src/output/output.c:839
 msgid "Driver definition line contains fewer fields than expected"
 msgstr ""
 
-#: src/output/output.c:843
+#: src/output/output.c:876
 #, c-format
 msgid "Can't deinitialize output driver class `%s'."
 msgstr ""
 
-#: src/output/output.c:916
+#: src/output/output.c:949
 #, c-format
 msgid "Trying to find keyword `%s'...\n"
 msgstr ""
 
-#: src/output/output.c:1033
+#: src/output/output.c:1066
 #, c-format
 msgid "Unit \"%s\" is unknown in dimension \"%s\"."
 msgstr ""
 
-#: src/output/output.c:1048
+#: src/output/output.c:1081
 #, c-format
 msgid "Bad dimension \"%s\"."
 msgstr ""
 
-#: src/output/output.c:1074
+#: src/output/output.c:1107
 #, c-format
 msgid "`x' expected in paper size `%s'."
 msgstr ""
 
-#: src/output/output.c:1084
+#: src/output/output.c:1117
 #, c-format
 msgid "Trailing garbage `%s' on paper size `%s'."
 msgstr ""
 
-#: src/output/output.c:1133
+#: src/output/output.c:1166
 msgid "Paper size name must not be empty."
 msgstr ""
 
-#: src/output/output.c:1164
+#: src/output/output.c:1197
 msgid "Cannot find `papersize' configuration file."
 msgstr ""
 
-#: src/output/output.c:1168
+#: src/output/output.c:1201
 #, c-format
 msgid "%s: Opening paper size definition file..."
 msgstr ""
 
-#: src/output/output.c:1210
+#: src/output/output.c:1243
 msgid "Syntax error in paper size definition."
 msgstr ""
 
-#: src/output/output.c:1239
+#: src/output/output.c:1272
 msgid "Paper size definition file read successfully."
 msgstr ""
 
-#: src/output/output.c:1241
+#: src/output/output.c:1274
 msgid "Error reading paper size definition file."
 msgstr ""
 
-#: src/output/output.c:1297
+#: src/output/output.c:1330
 #, c-format
 msgid "Error closing page on %s device of %s class."
 msgstr ""
 
-#: src/output/output.c:1301
+#: src/output/output.c:1334
 #, c-format
 msgid "Error opening page on %s device of %s class."
 msgstr ""
@@ -4730,22 +4730,22 @@ msgstr ""
 msgid "%s: %s: Opening PostScript prologue..."
 msgstr ""
 
-#: src/output/postscript.c:1467
+#: src/output/postscript.c:1465
 #, c-format
 msgid "%s: PostScript prologue read successfully."
 msgstr ""
 
-#: src/output/postscript.c:1471
+#: src/output/postscript.c:1469
 #, c-format
 msgid "%s: Error reading PostScript prologue."
 msgstr ""
 
-#: src/output/postscript.c:1641
+#: src/output/postscript.c:1639
 #, c-format
 msgid "PostScript output driver: %s: %s"
 msgstr ""
 
-#: src/output/postscript.c:2340
+#: src/output/postscript.c:2338
 #, c-format
 msgid "PostScript driver: Cannot find encoding `%s' for PostScript font `%s'."
 msgstr ""
