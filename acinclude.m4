@@ -3,6 +3,22 @@ dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
+dnl Check whether a warning flag is accepted.
+dnl If so, add it to CFLAGS.
+dnl Example: PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
+AC_DEFUN([PSPP_ENABLE_WARNING],
+[
+  m4_define([pspp_cv_name], [pspp_cv_[]m4_translit([$1], [-], [_])])dnl
+  AC_CACHE_CHECK([whether $CC accepts $1], [pspp_cv_name], 
+    [pspp_save_CFLAGS="$CFLAGS"
+     CFLAGS="$CFLAGS $1"
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(,)], [pspp_cv_name[]=yes], [pspp_cv_name[]=no])
+     CFLAGS="$pspp_save_CFLAGS"])
+  if test $pspp_cv_name = yes; then
+    CFLAGS="$CFLAGS $1"
+  fi
+])
+
 dnl Check for readline and history libraries.
 
 dnl Modified for PSPP by Ben Pfaff, based on readline.m4 serial 3 from

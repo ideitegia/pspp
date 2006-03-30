@@ -1,4 +1,4 @@
-0dnl Process this file with autoconf to produce a configure script.
+dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AX_PREREQ(2.57)
@@ -12,6 +12,8 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_RANLIB
 gl_EARLY
+
+PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 
