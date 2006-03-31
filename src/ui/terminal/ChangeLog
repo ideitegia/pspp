@@ -1,3 +1,8 @@
+Fri Mar 31 10:33:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command-line.c: (var pre_syntax_message) -d and -u are no longer
+	supported.
+
 Sat Mar 11 14:18:39 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* automake.mk: Moved the pspp binary here.

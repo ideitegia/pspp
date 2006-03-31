@@ -92,18 +92,6 @@ Sets the configuration directory to @var{dir}.  @xref{File locations}.
 Selects the output device with name @var{device}.  If this option is
 given more than once, then all devices mentioned are selected.  This
 option disables all devices besides those mentioned on the command line.
-
-@item -d @var{var}[=@var{value}]
-@itemx --define=@var{var}[=@var{value}]
-
-Defines an `environment variable' named @var{var} having the optional
-value @var{value} specified.  @xref{Variable values}.
-
-@item -u @var{var}
-@itemx --undef=@var{var}
-
-Undefines the `environment variable' named @var{var}.  @xref{Variable
-values}.
 @end table
 
 @node Input and output options, Language control options, Configuration Options, Invocation
