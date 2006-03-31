@@ -562,7 +562,7 @@ do_repeat_read (struct string *output, char **file_name, int *line_number,
     }
   line = block->cur_line;
 
-  ds_replace (output, line->line);
+  ds_assign_c_str (output, line->line);
   *file_name = line->file_name;
   *line_number = -line->line_number;
   block->cur_line = line->next;

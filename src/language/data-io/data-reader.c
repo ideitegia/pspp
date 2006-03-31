@@ -187,7 +187,7 @@ read_inline_record (struct dfm_reader *r)
       return false;
     }
 
-  ds_replace (&r->line, ds_c_str (&getl_buf));
+  ds_assign_string (&r->line, &getl_buf);
   return true;
 }
 

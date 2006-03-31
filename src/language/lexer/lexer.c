@@ -34,6 +34,8 @@
 #include <data/settings.h>
 #include <libpspp/str.h>
 
+#include "size_max.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -125,7 +127,7 @@ restore_token (void)
 {
   assert (put_token != 0);
   token = put_token;
-  ds_replace (&tokstr, ds_c_str (&put_tokstr));
+  ds_assign_string (&tokstr, &put_tokstr);
   str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
   tokval = put_tokval;
   put_token = 0;
@@ -137,7 +139,7 @@ static void
 save_token (void) 
 {
   put_token = token;
-  ds_replace (&put_tokstr, ds_c_str (&tokstr));
+  ds_assign_string (&put_tokstr, &tokstr);
   put_tokval = tokval;
 }
 
@@ -693,7 +695,7 @@ lex_put_back_id (const char *id)
   assert (lex_id_to_token (id, strlen (id)) == T_ID);
   save_token ();
   token = T_ID;
-  ds_replace (&tokstr, id);
+  ds_assign_c_str (&tokstr, id);
   str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
 }
 
@@ -930,7 +932,7 @@ lex_negative_to_dash (void)
     {
       token = T_POS_NUM;
       tokval = -tokval;
-      ds_replace (&tokstr, ds_c_str (&tokstr) + 1);
+      ds_assign_substring (&tokstr, &tokstr, 1, SIZE_MAX);
       save_token ();
       token = '-';
     }

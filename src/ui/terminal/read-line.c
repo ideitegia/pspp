@@ -130,7 +130,7 @@ readln_read (struct string *line, const char *prompt)
     {
       if (string[0])
         add_history (string);
-      ds_replace (line, string);
+      ds_assign_c_str (line, string);
       free (string);
       return true; 
     }

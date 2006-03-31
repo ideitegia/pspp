@@ -935,7 +935,7 @@ output_encodings (struct outp_driver *this)
 	  where.line_number = 0;
 	  err_push_file_locator (&where);
 
-	  while (ds_get_config_line (f, &buf, &where))
+	  while (ds_get_config_line (f, &buf, &where.line_number))
 	    {
 	      char *sp;	
 
@@ -1104,7 +1104,7 @@ read_ps_encodings (struct outp_driver *this)
     
   for (;;)
     {
-      if (!ds_get_config_line (f, &line, &where))
+      if (!ds_get_config_line (f, &line, &where.line_number))
 	{
 	  if (ferror (f))
 	    msg (ME, _("Reading %s: %s."), encoding_fn, strerror (errno));

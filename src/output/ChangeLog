@@ -1,3 +1,8 @@
+Thu Mar 30 16:26:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	* output.c: (colon_tokenize) Removed.
+	(configure_driver_line) Rewrote to use ds_separate().  Fixed leak.
+
 Tue Mar 28 13:50:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* html.c, postscript.c, output.c:  Changed to fit the new signature 

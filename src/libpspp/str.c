@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include "alloc.h"
 #include "message.h"
+#include "minmax.h"
+#include "size_max.h"
 
 /* Reverses the order of NBYTES bytes at address P, thus converting
    between little- and big-endian byte orders.  */
@@ -237,66 +239,31 @@ void
 ds_create (struct string *st, const char *s)
 {
   st->length = strlen (s);
-  st->capacity = 8 + st->length * 2;
+  st->capacity = MAX (8, st->length * 2);
   st->string = xmalloc (st->capacity + 1);
   strcpy (st->string, s);
 }
-
-/* Initializes DST with the contents of SRC between characters FIRST and LAST 
-   inclusive */
-void
-ds_create_substr(struct string *dst, const struct string *src, 
-		 int first, int last)
-{
-  assert(last >= first);
-  dst->length = last - first + 1;
-  dst->capacity = 8 + dst->length * 2;
-  dst->string = xmalloc (dst->capacity + 1);
-
-  memcpy (dst->string, &src->string[first], dst->length);
-}
-
 
 /* Initializes ST, making room for at least CAPACITY characters. */
 void
 ds_init (struct string *st, size_t capacity)
 {
   st->length = 0;
-  if (capacity > 8)
-    st->capacity = capacity;
-  else
-    st->capacity = 8;
+  st->capacity = MAX (8, capacity);
   st->string = xmalloc (st->capacity + 1);
-}
-
-/* Replaces the contents of ST with STRING.  STRING may overlap with
-   ST. */
-void
-ds_replace (struct string *st, const char *string)
-{
-  size_t new_length = strlen (string);
-  if (new_length > st->capacity) 
-    {
-      /* The new length is longer than the allocated length, so
-         there can be no overlap. */
-      st->length = 0;
-      ds_concat (st, string, new_length);
-    }
-  else
-    {
-      /* Overlap is possible, but the new string will fit in the
-         allocated space, so we can just copy data. */
-      st->length = new_length;
-      memmove (st->string, string, st->length);
-    }
 }
 
 /* Frees ST. */
 void
 ds_destroy (struct string *st)
 {
-  free (st->string);
-  st->string = NULL;
+  if (st != NULL) 
+    {
+      free (st->string);
+      st->string = NULL;
+      st->length = 0;
+      st->capacity = 0; 
+    }
 }
 
 /* Swaps the contents of strings A and B. */
@@ -308,11 +275,95 @@ ds_swap (struct string *a, struct string *b)
   *b = tmp;
 }
 
+/* Initializes DST with the CNT characters from SRC starting at
+   position IDX. */
+void
+ds_init_substring (struct string *dst,
+                   const struct string *src, size_t idx, size_t cnt)
+{
+  assert (dst != src);
+  ds_init (dst, cnt);
+  ds_assign_substring (dst, src, idx, cnt);
+}
+
+/* Copies SRC into DST.
+   DST and SRC may be the same string. */
+void
+ds_assign_string (struct string *dst, const struct string *src) 
+{
+  ds_assign_buffer (dst, ds_data (src), ds_length (src));
+}
+
+/* Replaces DST by CNT characters from SRC starting at position
+   IDX.
+   DST and SRC may be the same string. */
+void
+ds_assign_substring (struct string *dst,
+                     const struct string *src, size_t idx, size_t cnt) 
+{
+  if (idx < src->length)
+    ds_assign_buffer (dst, src->string + idx, MIN (cnt, src->length - idx));
+  else 
+    ds_clear (dst);
+}
+
+/* Replaces DST by the LENGTH characters in SRC.
+   SRC may be a substring within DST. */
+void
+ds_assign_buffer (struct string *dst, const char *src, size_t length)
+{
+  dst->length = length;
+  ds_extend (dst, length);
+  memmove (dst->string, src, length);
+}
+
+/* Replaces DST by null-terminated string SRC.  SRC may overlap
+   with DST. */
+void
+ds_assign_c_str (struct string *dst, const char *src)
+{
+  ds_assign_buffer (dst, src, strlen (src));
+}
+
 /* Truncates ST to zero length. */
 void
 ds_clear (struct string *st)
 {
   st->length = 0;
+}
+
+/* Ensures that ST can hold at least MIN_CAPACITY characters plus a null
+   terminator. */
+void
+ds_extend (struct string *st, size_t min_capacity)
+{
+  if (min_capacity > st->capacity)
+    {
+      st->capacity *= 2;
+      if (st->capacity < min_capacity)
+	st->capacity = 2 * min_capacity;
+
+      st->string = xrealloc (st->string, st->capacity + 1);
+    }
+}
+
+/* Shrink ST to the minimum capacity need to contain its content. */
+void
+ds_shrink (struct string *st)
+{
+  if (st->capacity != st->length)
+    {
+      st->capacity = st->length;
+      st->string = xrealloc (st->string, st->capacity + 1);
+    }
+}
+
+/* Truncates ST to at most LENGTH characters long. */
+void
+ds_truncate (struct string *st, size_t length)
+{
+  if (st->length > length)
+    st->length = length;
 }
 
 /* Pad ST on the right with copies of PAD until ST is at least
@@ -321,14 +372,8 @@ ds_clear (struct string *st)
 void
 ds_rpad (struct string *st, size_t length, char pad) 
 {
-  assert (st != NULL);
-  if (st->length < length) 
-    {
-      if (st->capacity < length)
-        ds_extend (st, length);
-      memset (&st->string[st->length], pad, length - st->length);
-      st->length = length;
-    }
+  if (length > st->length)
+    ds_putc_multiple (st, pad, length - st->length);
 }
 
 /* Removes trailing spaces from ST.
@@ -350,22 +395,21 @@ ds_rtrim_spaces (struct string *st)
 int
 ds_ltrim_spaces (struct string *st) 
 {
-  int idx = ds_n_find(st, "\t ");
-  if (0 == idx)
-    return 0;
-
-  if (idx < 0 ) 
-    {
-      int len = ds_length(st);
-      ds_clear(st);
-      return len;
-    }
-  
-  ds_replace(st, &ds_c_str(st)[idx]);
-    
-  return idx;
+  size_t cnt = 0;
+  while (isspace (ds_at (st, cnt)))
+    cnt++;
+  if (cnt > 0)
+    ds_assign_substring (st, st, cnt, SIZE_MAX);
+  return cnt;
 }
 
+/* Trims leading and trailing spaces from ST. */
+void
+ds_trim_spaces (struct string *st) 
+{
+  ds_rtrim_spaces (st);
+  ds_ltrim_spaces (st);
+}
 
 /* If the last character in ST is C, removes it and returns true.
    Otherwise, returns false without modifying ST. */
@@ -382,39 +426,42 @@ ds_chomp (struct string *st, char c_)
     return false;
 }
 
-/* Ensures that ST can hold at least MIN_CAPACITY characters plus a null
-   terminator. */
-void
-ds_extend (struct string *st, size_t min_capacity)
-{
-  if (min_capacity > st->capacity)
-    {
-      st->capacity *= 2;
-      if (st->capacity < min_capacity)
-	st->capacity = min_capacity * 2;
-      
-      st->string = xrealloc (st->string, st->capacity + 1);
-    }
-}
+/* Divides ST into tokens separated by any of the DELIMITERS.
+   Each call replaces TOKEN by the next token in ST, or by an
+   empty string if no tokens remain.  Returns true if a token was
+   obtained, false otherwise.
 
-/* Shrink ST to the minimum capacity need to contain its content. */
-void
-ds_shrink (struct string *st)
-{
-  if (st->capacity != st->length)
-    {
-      st->capacity = st->length;
-      st->string = xrealloc (st->string, st->capacity + 1);
-    }
-}
+   Before the first call, initialize *SAVE_IDX to -1.  Do not
+   modify *SAVE_IDX between calls.
 
-/* Truncates ST to at most LENGTH characters long. */
-void
-ds_truncate (struct string *st, size_t length)
+   ST divides into exactly one more tokens than it contains
+   delimiters.  That is, a delimiter at the start or end of ST or
+   a pair of adjacent delimiters yields an empty token, and the
+   empty string contains a single token. */
+bool
+ds_separate (const struct string *st, struct string *token,
+             const char *delimiters, int *save_idx)
 {
-  if (length >= st->length)
-    return;
-  st->length = length;
+  int start_idx;
+
+  ds_clear (token);
+  if (*save_idx < 0) 
+    {
+      *save_idx = 0;
+      if (ds_is_empty (st))
+        return true;
+    }
+  else if (*save_idx < ds_length (st))
+    ++*save_idx;
+  else
+    return false;
+
+  start_idx = *save_idx;
+  while (*save_idx < ds_length (st)
+         && strchr (delimiters, ds_data (st)[*save_idx]) == NULL)
+    ++*save_idx;
+  ds_assign_substring (token, st, start_idx, *save_idx - start_idx);
+  return true;
 }
 
 /* Returns true if ST is empty, false otherwise. */
@@ -431,87 +478,14 @@ ds_length (const struct string *st)
   return st->length;
 }
 
-/* Returns the allocation size of ST. */
-size_t
-ds_capacity (const struct string *st)
-{
-  return st->capacity;
-}
-
-
-/* Returns the index of the first character in ST which 
-   is an element of the set CS.
-   Returns -1 if no characters are found.
-*/
-int
-ds_find(const struct string *st, const char cs[])
-{
-  int i;
-  int j;
-  for(i = 0; i < st->length ;  ++i)
-    {
-      if ('\0' == st->string[i]) 
-	break;
-      for (j = 0 ; j < strlen(cs) ; ++j)
-	{
-	  if ( st->string[i] == cs[j])
-	    return i;
-	}
-    }
-  return -1;
-}
-
-/* Returns the index of the first character in ST which 
-   is NOT an element of the set CS.
-   Returns -1 if no such character is found.
-*/
-int
-ds_n_find(const struct string *st, const char cs[])
-{
-  int i;
-  int j;
-  for(i = 0; i < st->length ;  ++i)
-    {
-      bool found = false;
-      if ('\0' == st->string[i]) 
-	break;
-      for (j = 0 ; j < strlen(cs) ; ++j)
-	{
-	  if ( st->string[i] == cs[j])
-	    {
-	      found = true;
-	      break;
-	    }
-	}
-      if ( !found )
-	return i;
-    }
-  return -1;
-}
-
-
-
-/* Returns the first character in ST as a value in the range of
-   unsigned char.  Returns EOF if ST is the empty string. */
-int
-ds_first (const struct string *st) 
-{
-  return st->length > 0 ? (unsigned char) st->string[0] : EOF;
-}
-
-/* Returns the last character in ST as a value in the range of
-   unsigned char.  Returns EOF if ST is the empty string. */
-int
-ds_last (const struct string *st) 
-{
-  return st->length > 0 ? (unsigned char) st->string[st->length - 1] : EOF;
-}
-
 /* Returns the value of ST as a null-terminated string. */
 char *
-ds_c_str (const struct string *st)
+ds_c_str (const struct string *st_)
 {
-  ((char *) st->string)[st->length] = '\0';
+  struct string *st = (struct string *) st_;
+  if (st->string == NULL) 
+    ds_extend (st, 1);
+  st->string[st->length] = '\0';
   return st->string;
 }
 
@@ -529,6 +503,151 @@ char *
 ds_end (const struct string *st)
 {
   return st->string + st->length;
+}
+
+/* Returns the allocation size of ST. */
+size_t
+ds_capacity (const struct string *st)
+{
+  return st->capacity;
+}
+
+/* Returns the character in position IDX in ST, as a value in the
+   range of unsigned char.  Returns EOF if IDX is out of the
+   range of indexes for ST. */
+int
+ds_at (const struct string *st, size_t idx) 
+{
+  return idx < st->length ? (unsigned char) st->string[idx] : EOF;
+}
+
+/* Returns the first character in ST as a value in the range of
+   unsigned char.  Returns EOF if ST is the empty string. */
+int
+ds_first (const struct string *st) 
+{
+  return ds_at (st, 0);
+}
+
+/* Returns the last character in ST as a value in the range of
+   unsigned char.  Returns EOF if ST is the empty string. */
+int
+ds_last (const struct string *st) 
+{
+  return st->length > 0 ? (unsigned char) st->string[st->length - 1] : EOF;
+}
+
+/* Returns the number of consecutive characters starting at OFS
+   in ST that are in SKIP_SET.  (The null terminator is not
+   considered to be part of SKIP_SET.) */
+size_t
+ds_span (const struct string *st, size_t ofs, const char skip_set[])
+{
+  size_t i;
+  for (i = ofs; i < st->length; i++) 
+    {
+      int c = st->string[i];
+      if (strchr (skip_set, c) == NULL || c == '\0')
+        break; 
+    }
+  return i - ofs;
+}
+
+/* Returns the number of consecutive characters starting at OFS
+   in ST that are not in STOP_SET.  (The null terminator is not
+   considered to be part of STOP_SET.) */
+size_t
+ds_cspan (const struct string *st, size_t ofs, const char stop_set[])
+{
+  size_t i;
+  for (i = ofs; i < st->length; i++) 
+    {
+      int c = st->string[i];
+      if (strchr (stop_set, c) != NULL)
+        break; 
+    }
+  return i - ofs;
+}
+
+/* Appends to ST a newline-terminated line read from STREAM.
+   Newline is the last character of ST on return, unless an I/O error
+   or end of file is encountered after reading some characters.
+   Returns true if a line is successfully read, false if no characters at
+   all were read before an I/O error or end of file was
+   encountered. */
+bool
+ds_gets (struct string *st, FILE *stream)
+{
+  int c;
+
+  c = getc (stream);
+  if (c == EOF)
+    return false;
+
+  for (;;)
+    {
+      ds_putc (st, c);
+      if (c == '\n')
+	return true;
+
+      c = getc (stream);
+      if (c == EOF)
+	return true;
+    }
+}
+
+/* Removes a comment introduced by `#' from ST,
+   ignoring occurrences inside quoted strings. */
+static void
+remove_comment (struct string *st)
+{
+  char *cp;
+  int quote = 0;
+      
+  for (cp = ds_c_str (st); cp < ds_end (st); cp++)
+    if (quote)
+      {
+        if (*cp == quote)
+          quote = 0;
+        else if (*cp == '\\')
+          cp++;
+      }
+    else if (*cp == '\'' || *cp == '"')
+      quote = *cp;
+    else if (*cp == '#')
+      {
+        ds_truncate (st, cp - ds_c_str (st));
+        break;
+      }
+}
+
+/* Reads a line from STREAM into ST, then preprocesses as follows:
+
+   - Splices lines terminated with `\'.
+
+   - Deletes comments introduced by `#' outside of single or double
+     quotes.
+
+   - Deletes trailing white space.  
+
+   Returns true if a line was successfully read, false on
+   failure.  If LINE_NUMBER is non-null, then *LINE_NUMBER is
+   incremented by the number of lines read. */
+bool
+ds_get_config_line (FILE *stream, struct string *st, int *line_number)
+{
+  ds_clear (st);
+  do
+    {
+      if (!ds_gets (st, stream))
+        return false;
+      (*line_number)++;
+      ds_rtrim_spaces (st);
+    }
+  while (ds_chomp (st, '\\'));
+ 
+  remove_comment (st);
+  return true;
 }
 
 /* Concatenates S onto ST. */
@@ -554,9 +673,6 @@ ds_concat (struct string *st, const char *buf, size_t len)
   st->length += len;
 }
 
-void ds_vprintf (struct string *st, const char *format, va_list args);
-
-
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
 ds_printf (struct string *st, const char *format, ...)
@@ -564,48 +680,48 @@ ds_printf (struct string *st, const char *format, ...)
   va_list args;
 
   va_start (args, format);
-  ds_vprintf(st,format,args);
+  ds_vprintf(st, format, args);
   va_end (args);
-
 }
 
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
-ds_vprintf (struct string *st, const char *format, va_list args)
+ds_vprintf (struct string *st, const char *format, va_list args_)
 {
-  /* Fscking glibc silently changed behavior between 2.0 and 2.1.
-     Fsck fsck fsck.  Before, it returned -1 on buffer overflow.  Now,
-     it returns the number of characters (not bytes) that would have
-     been written. */
-
   int avail, needed;
-  va_list a1;
+  va_list args;
 
-  va_copy(a1, args);
+#ifndef va_copy
+#define va_copy(DST, SRC) (DST) = (SRC)
+#endif
+
+  va_copy (args, args_);
   avail = st->capacity - st->length + 1;
   needed = vsnprintf (st->string + st->length, avail, format, args);
-
+  va_end (args);
 
   if (needed >= avail)
     {
       ds_extend (st, st->length + needed);
       
-      vsprintf (st->string + st->length, format, a1);
+      va_copy (args, args_);
+      vsprintf (st->string + st->length, format, args);
+      va_end (args);
     }
-  else
-    while (needed == -1)
-      {
-	va_list a2;
-	va_copy(a2, a1);
+  else 
+    {
+      /* Some old libc's returned -1 when the destination string
+         was too short. */
+      while (needed == -1)
+        {
+          ds_extend (st, (st->capacity + 1) * 2);
+          avail = st->capacity - st->length + 1;
 
-	ds_extend (st, (st->capacity + 1) * 2);
-	avail = st->capacity - st->length + 1;
-
-	needed = vsnprintf (st->string + st->length, avail, format, a2);
-	va_end(a2);
-
-      }
-  va_end(a1);
+          va_copy (args, args_);
+          needed = vsnprintf (st->string + st->length, avail, format, args);
+          va_end (args);
+        } 
+    }
 
   st->length += needed;
 }
@@ -614,110 +730,20 @@ ds_vprintf (struct string *st, const char *format, va_list args)
 void
 ds_putc (struct string *st, int ch)
 {
-  if (st->length == st->capacity)
+  if (st->length >= st->capacity)
     ds_extend (st, st->length + 1);
   st->string[st->length++] = ch;
 }
 
-/* Appends to ST a newline-terminated line read from STREAM.
-   Newline is the last character of ST on return, unless an I/O error
-   or end of file is encountered after reading some characters.
-   Returns 1 if a line is successfully read, or 0 if no characters at
-   all were read before an I/O error or end of file was
-   encountered. */
-int
-ds_gets (struct string *st, FILE *stream)
+/* Appends CNT copies of character CH to ST. */
+void
+ds_putc_multiple (struct string *st, int ch, size_t cnt) 
 {
-  int c;
-
-  c = getc (stream);
-  if (c == EOF)
-    return 0;
-
-  for (;;)
-    {
-      ds_putc (st, c);
-      if (c == '\n')
-	return 1;
-
-      c = getc (stream);
-      if (c == EOF)
-	return 1;
-    }
+  ds_extend (st, st->length + cnt);
+  memset (&st->string[st->length], ch, cnt);
+  st->length += cnt;
 }
 
-/* Reads a line from STREAM into ST, then preprocesses as follows:
-
-   - Splices lines terminated with `\'.
-
-   - Deletes comments introduced by `#' outside of single or double
-     quotes.
-
-   - Trailing whitespace will be deleted.  
-
-   Increments cust_ln as appropriate.
-
-   Returns nonzero only if a line was successfully read. */
-int
-ds_get_config_line (FILE *stream, struct string *st, struct file_locator *where)
-{
-  /* Read the first line. */
-  ds_clear (st);
-  where->line_number++;
-  if (!ds_gets (st, stream))
-    return 0;
-
-  /* Read additional lines, if any. */
-  for (;;)
-    {
-      /* Remove trailing whitespace. */
-      {
-	char *s = ds_c_str (st);
-	size_t len = ds_length (st);
-      
-	while (len > 0 && isspace ((unsigned char) s[len - 1]))
-	  len--;
-	ds_truncate (st, len);
-      }
-
-      /* Check for trailing \.  Remove if found, bail otherwise. */
-      if (ds_length (st) == 0 || ds_c_str (st)[ds_length (st) - 1] != '\\')
-	break;
-      ds_truncate (st, ds_length (st) - 1);
-
-      /* Append another line and go around again. */
-      {
-	int success = ds_gets (st, stream);
-	where->line_number++;
-	if (!success)
-	  return 1;
-      }
-    }
-
-  /* Find a comment and remove. */
-  {
-    char *cp;
-    int quote = 0;
-      
-    for (cp = ds_c_str (st); *cp; cp++)
-      if (quote)
-	{
-	  if (*cp == quote)
-	    quote = 0;
-	  else if (*cp == '\\')
-	    cp++;
-	}
-      else if (*cp == '\'' || *cp == '"')
-	quote = *cp;
-      else if (*cp == '#')
-	{
-	  ds_truncate (st, cp - ds_c_str (st));
-	  break;
-	}
-  }
-
-  return 1;
-}
 
 /* Lengthed strings. */
 

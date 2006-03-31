@@ -302,7 +302,7 @@ outp_read_devices (void)
     {
       char *cp;
 
-      if (!ds_get_config_line (f, &line, &where))
+      if (!ds_get_config_line (f, &line, &where.line_number))
 	{
 	  if (ferror (f))
 	    msg (ME, _("Reading %s: %s."), init_fn, strerror (errno));
@@ -664,58 +664,6 @@ find_driver (char *name)
   return NULL;
 }
 
-/* Tokenize string SRC into colon-separated fields, removing leading and
-   trailing whitespace on tokens.  Tokens are placed into DEST.
-   
-   CP should remain unchanged throughout. 
-   It is the callers responsibility to destroy CP and DEST.
-
-
-   Returns true if there are more fields, false otherwise.
-
-   FIXME: Should ignore colons inside double quotes. */
-static bool
-colon_tokenize(const struct string *src, struct string *dest, 
-		  struct string *cp)
-{
-  int last;
-
-  if ( src ) 
-    ds_create(cp, ds_c_str(src));
-
-  int first = ds_n_find(cp, "\t ");
-  int delim = ds_find(cp, ":") ;
-  
-  if ( delim < 0 ) 
-    last = ds_length(cp);
-  else
-    last = delim - 1;
-
-  if ( delim == first) 
-    {
-      ds_create(dest,"");
-    }
-  else
-    {
-      ds_create_substr(dest, cp, first, last);
-    }
-
-  if ( last < ds_length(cp) ) 
-    {
-      struct string temp;
-      ds_create_substr(&temp, cp, last + 2, ds_length(cp));
-      ds_swap(cp, &temp);
-      ds_destroy(&temp);
-      return true;
-    }
-  else
-    {
-      ds_clear(cp);
-      return false;
-    }
-}
-
-
 /* String S is in format:
    DRIVERNAME:CLASSNAME:DEVICETYPE:OPTIONS
    Adds a driver to outp_driver_list pursuant to the specification
@@ -821,34 +769,29 @@ error:
 static void
 configure_driver_line (struct string *line)
 {
-  fn_interp_vars(line, find_defn_value);
+  struct string tokens[4];
+  int save_idx;
+  size_t i;
 
-  struct string driver_name;
-  struct string class_name;
-  struct string device_type;
-  struct string options;
+  fn_interp_vars (line, find_defn_value);
 
-  struct string sss;
-  colon_tokenize (line, &driver_name, &sss);
-  colon_tokenize (NULL, &class_name,  &sss);
-  colon_tokenize (NULL, &device_type, &sss);
-  colon_tokenize (NULL, &options, &sss);
-
-  if (ds_is_empty(&driver_name) || ds_is_empty(&class_name))
+  save_idx = -1;
+  for (i = 0; i < 4; i++) 
     {
-      msg (IS, _("Driver definition line contains fewer fields "
-                 "than expected"));
-      return;
+      struct string *token = &tokens[i];
+      ds_init (token, 0);
+      ds_separate (line, token, i < 3 ? ":" : "", &save_idx);
+      ds_trim_spaces (token);
     }
 
-  configure_driver (ds_c_str(&driver_name), ds_c_str(&class_name), 
-		    ds_c_str(&device_type), ds_c_str(&options));
+  if (!ds_is_empty (&tokens[0]) && !ds_is_empty (&tokens[1]))
+    configure_driver (ds_c_str (&tokens[0]), ds_c_str (&tokens[1]), 
+                      ds_c_str (&tokens[2]), ds_c_str (&tokens[3]));
+  else
+    msg (IS, _("Driver definition line missing driver name or class name"));
 
-  ds_destroy(&driver_name);
-  ds_destroy(&class_name);
-  ds_destroy(&device_type);
-  ds_destroy(&options);
-  ds_destroy(&sss);
+  for (i = 0; i < 4; i++) 
+    ds_destroy (&tokens[i]);
 }
 
 /* Destroys output driver D. */
@@ -1210,7 +1153,7 @@ outp_get_paper_size (char *size, int *h, int *v)
     {
       char *cp, *bp, *ep;
 
-      if (!ds_get_config_line (f, &line, &where))
+      if (!ds_get_config_line (f, &line, &where.line_number))
 	{
 	  if (ferror (f))
 	    msg (ME, _("Reading %s: %s."), pprsz_fn, strerror (errno));

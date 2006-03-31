@@ -1,3 +1,38 @@
+Thu Mar 30 16:15:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c: (ds_create) Adjust capacity selection.
+	(ds_init) Use MAX macro for clarity.
+	(ds_create_substr) Rewrote.
+	(ds_replace) Renamed ds_assign_c_str(), reimplemented.  Changed
+	all callers to use a ds_assign_*() function.
+	(ds_init_substring) New function.
+	(ds_assign_string) New function.
+	(ds_assign_substring) New function.
+	(ds_assign_buffer) New function.
+	(ds_assign_c_str) New function.
+	(ds_truncate) Rewrote for clarity.
+	(ds_rpad) Reimplement in terms of ds_putc_multiple().
+	(ds_ltrim_spaces) Reimplement.
+	(ds_trim_spaces) New function.
+	(ds_separate) New function.
+	(ds_c_str) Make tolerant of null pointer, allowing static
+	initialization of strings.
+	(ds_find) Rename ds_span(), change interface.
+	(ds_n_find) Rename ds_cspan(), change interface.
+	(ds_at) New function.
+	(ds_first) Reimplement in terms of ds_at().
+	(remove_comment) New function.
+	(ds_get_config_line) Reimplement in terms of other functions.
+	Change type of LINE_NUMBER parameter.  Updated all callers.
+	(ds_vprintf) Modify for clarity.
+	(ds_putc) Better to be safe than sorry.
+	(ds_putc_multiple) New function.
+
+	* str.h: (struct string) Reorder members.
+	(macro DS_INITIALIZER) New macro that can be used to initialize a
+	string (as empty).
+	(ds_c_str) Remove inline version.
+
 Tue Mar 28 13:49:11 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* str.[ch]: New functions ds_create_substr, ds_find, ds_n_find, 
