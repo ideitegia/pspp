@@ -1,3 +1,11 @@
+Fri Mar 31 10:38:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	Add freaderror() analogous to fwriteerror() in gnulib.
+
+	* freaderror.c: New file.
+
+	* freaderror.h: New file.
+
 Thu Mar 30 16:15:37 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.c: (ds_create) Adjust capacity selection.
