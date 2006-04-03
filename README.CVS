@@ -1,5 +1,5 @@
-To build this project from the sources direct from the 
-cvs archive, you must install:
+To build this project from the sources direct from the cvs archive,
+you must the prerequisites listed in README, plus the following:
 
 	* Autoconf 2.58 (or later).
 
