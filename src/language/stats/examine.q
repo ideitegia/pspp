@@ -914,7 +914,7 @@ show_summary(struct variable **dependent_var, int n_dep_var,
   tab_vline (tbl, TAL_2, heading_columns, 0, n_rows - 1);
 
 
-  tab_title (tbl, 0, _("Case Processing Summary"));
+  tab_title (tbl, _("Case Processing Summary"));
   
 
   tab_joint_text(tbl, heading_columns, 0, 
@@ -1120,7 +1120,7 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 
   tab_hline (tbl, TAL_2, 0, n_cols - 1, heading_rows );
 
-  tab_title (tbl, 0, _("Extreme Values"));
+  tab_title (tbl, _("Extreme Values"));
 
   tab_vline (tbl, TAL_2, n_cols - 2, 0, n_rows -1);
   tab_vline (tbl, TAL_1, n_cols - 1, 0, n_rows -1);
@@ -1369,7 +1369,7 @@ show_descriptives(struct variable **dependent_var,
   tab_text (tbl, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _("Statistic"));
   tab_text (tbl, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _("Std. Error"));
 
-  tab_title (tbl, 0, _("Descriptives"));
+  tab_title (tbl, _("Descriptives"));
 
 
   for ( i = 0 ; i < n_dep_var ; ++i ) 
@@ -1957,7 +1957,7 @@ show_percentiles(struct variable **dependent_var,
   tab_vline (tbl, TAL_2, n_heading_columns, 0, n_rows - 1);
 
 
-  tab_title (tbl, 0, _("Percentiles"));
+  tab_title (tbl, _("Percentiles"));
 
 
   tab_hline (tbl, TAL_1, n_heading_columns, n_cols - 1, 1 );

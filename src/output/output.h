@@ -25,91 +25,39 @@
 #include <libpspp/str.h>
 
 
-/* A rectangle. */
-struct rect
+/* Line styles.  */
+enum outp_line_style
   {
-    int x1, y1;			/* Upper left. */
-    int x2, y2;			/* Lower right, not part of the rectangle. */
+    OUTP_L_NONE,		/* No line. */
+    OUTP_L_SINGLE,		/* Single line. */
+    OUTP_L_DOUBLE,		/* Double line. */
+    OUTP_L_COUNT
   };
 
-/* Color descriptor. */
-struct color
+/* Text justification. */
+enum outp_justification
   {
-    int flags;			/* 0=normal, 1=transparent (ignore r,g,b). */
-    int r;			/* Red component, 0-65535. */
-    int g;			/* Green component, 0-65535. */
-    int b;			/* Blue component, 0-65535. */
+    OUTP_RIGHT,                 /* Right justification. */
+    OUTP_LEFT,                  /* Left justification. */
+    OUTP_CENTER,                /* Center justification. */
   };
 
-/* Mount positions for the four basic fonts.  Do not change the values. */
-enum
+enum outp_font 
   {
-    OUTP_F_R,			/* Roman font. */
-    OUTP_F_I,			/* Italic font. */
-    OUTP_F_B,			/* Bold font. */
-    OUTP_F_BI			/* Bold-italic font. */
-  };
-
-/* Line styles.  These must match:
-   som.h:SLIN_*
-   ascii.c:ascii_line_*() 
-   postscript.c:ps_line_*() */
-enum
-  {
-    OUTP_L_NONE = 0,		/* No line. */
-    OUTP_L_SINGLE = 1,		/* Single line. */
-    OUTP_L_DOUBLE = 2,		/* Double line. */
-    OUTP_L_SPECIAL = 3,		/* Special line of driver-defined style. */
-
-    OUTP_L_COUNT		/* Number of line styles. */
-  };
-
-/* Contains a line style for each part of an intersection. */
-struct outp_styles
-  {
-    int l;			/* left */
-    int t;			/* top */
-    int r;			/* right */
-    int b;			/* bottom */
-  };
-
-/* Text display options. */
-enum
-  {
-    OUTP_T_NONE = 0,
-
-    /* Must match tab.h:TAB_*. */
-    OUTP_T_JUST_MASK = 00003,	/* Justification mask. */
-    OUTP_T_JUST_RIGHT = 00000,	/* Right justification. */
-    OUTP_T_JUST_LEFT = 00001,	/* Left justification. */
-    OUTP_T_JUST_CENTER = 00002,	/* Center justification. */
-
-    OUTP_T_HORZ = 00010,	/* Horizontal size is specified. */
-    OUTP_T_VERT = 00020,	/* (Max) vertical size is specified. */
-
-    OUTP_T_0 = 00140,		/* Normal orientation. */
-    OUTP_T_CC90 = 00040,	/* 90 degrees counterclockwise. */
-    OUTP_T_CC180 = 00100,	/* 180 degrees counterclockwise. */
-    OUTP_T_CC270 = 00140,	/* 270 degrees counterclockwise. */
-    OUTP_T_C90 = 00140,		/* 90 degrees clockwise. */
-    OUTP_T_C180 = 00100,	/* 180 degrees clockwise. */
-    OUTP_T_C270 = 00040,	/* 270 degrees clockwise. */
-
-    /* Internal use by drivers only. */
-    OUTP_T_INTERNAL_DRAW = 01000	/* 1=Draw the text, 0=Metrics only. */
+    OUTP_FIXED,                 /* Fixed-width font. */
+    OUTP_PROPORTIONAL,          /* Proportional font. */
+    OUTP_EMPHASIS,              /* Proportional font used for emphasis. */
+    OUTP_FONT_CNT               /* Number of fonts. */
   };
 
 /* Describes text output. */
 struct outp_text
   {
-    /* Public. */
-    int options;		/* What is specified. */
-    struct fixed_string s;	/* String. */
+    enum outp_font font;
+    enum outp_justification justification;
+    struct fixed_string string;
     int h, v;			/* Horizontal, vertical size. */
     int x, y;			/* Position. */
-
-    /* Internal use only. */
-    int w, l;			/* Width, length. */
   };
 
 struct som_entity;
@@ -119,61 +67,27 @@ struct chart;
 /* Defines a class of output driver. */
 struct outp_class
   {
-    /* Basic class information. */
     const char *name;		/* Name of this driver class. */
-    int magic;			/* Driver-specific constant. */
     int special;		/* Boolean value. */
 
-    /* Static member functions. */
-    int (*open_global) (struct outp_class *);
-    int (*close_global) (struct outp_class *);
-    int *(*font_sizes) (struct outp_class *, int *n_valid_sizes);
+    bool (*open_driver) (struct outp_driver *, const char *options);
+    bool (*close_driver) (struct outp_driver *);
 
-    /* Virtual member functions. */
-    int (*preopen_driver) (struct outp_driver *);
-    void (*option) (struct outp_driver *, const char *key,
-		    const struct string *value);
-    int (*postopen_driver) (struct outp_driver *);
-    int (*close_driver) (struct outp_driver *);
+    void (*open_page) (struct outp_driver *);
+    void (*close_page) (struct outp_driver *);
 
-    int (*open_page) (struct outp_driver *);
-    int (*close_page) (struct outp_driver *);
-
-    /* special != 0: Used to submit entities for output. */
+    /* special != 0 only. */
     void (*submit) (struct outp_driver *, struct som_entity *);
     
-    /* special != 0: Methods below need not be defined. */
-    
-    /* Line methods. */
-    void (*line_horz) (struct outp_driver *, const struct rect *,
-		       const struct color *, int style);
-    void (*line_vert) (struct outp_driver *, const struct rect *,
-		       const struct color *, int style);
-    void (*line_intersection) (struct outp_driver *, const struct rect *,
-			       const struct color *,
-			       const struct outp_styles *style);
-
-    /* Drawing methods. */
-    void (*box) (struct outp_driver *, const struct rect *,
-		 const struct color *bord, const struct color *fill);
-    void (*polyline_begin) (struct outp_driver *, const struct color *);
-    void (*polyline_point) (struct outp_driver *, int, int);
-    void (*polyline_end) (struct outp_driver *);
-
-    /* Text methods. */
-    void (*text_set_font_by_name) (struct outp_driver *, const char *s);
-    void (*text_set_font_by_position) (struct outp_driver *, int);
-    void (*text_set_font_family) (struct outp_driver *, const char *s);
-    const char *(*text_get_font_name) (struct outp_driver *);
-    const char *(*text_get_font_family) (struct outp_driver *);
-    int (*text_set_size) (struct outp_driver *, int);
-    int (*text_get_size) (struct outp_driver *, int *em_width);
-    void (*text_metrics) (struct outp_driver *, struct outp_text *);
-    void (*text_draw) (struct outp_driver *, struct outp_text *);
-
+    /* special == 0 only.  */
+    void (*line) (struct outp_driver *, int x0, int y0, int x1, int y1,
+                  enum outp_line_style top, enum outp_line_style left,
+                  enum outp_line_style bottom, enum outp_line_style right);
+    void (*text_metrics) (struct outp_driver *, const struct outp_text *,
+                          int *width, int *height);
+    void (*text_draw) (struct outp_driver *, const struct outp_text *);
     void (*initialise_chart)(struct outp_driver *, struct chart *);
     void (*finalise_chart)(struct outp_driver *, struct chart *);
-
   };
 
 /* Device types. */
@@ -183,31 +97,24 @@ enum
     OUTP_DEV_LISTING = 001,	/* Listing device. */
     OUTP_DEV_SCREEN = 002,	/* Screen device. */
     OUTP_DEV_PRINTER = 004,	/* Printer device. */
-    OUTP_DEV_DISABLED = 010	/* Broken device. */
   };
 
 /* Defines the configuration of an output driver. */
 struct outp_driver
   {
-    struct outp_class *class;		/* Driver class. */
+    struct outp_driver *next, *prev; /* List of drivers. */
+    struct outp_class *class;	/* Driver class. */
     char *name;			/* Name of this driver. */
-    int driver_open;		/* 1=driver is open, 0=driver is closed. */
-    int page_open;		/* 1=page is open, 0=page is closed. */
-
-    struct outp_driver *next, *prev;	/* Next, previous output driver in list. */
-
+    bool page_open;		/* 1=page is open, 0=page is closed. */
     int device;			/* Zero or more of OUTP_DEV_*. */
-    int res, horiz, vert;	/* Device resolution. */
-    int width, length;		/* Page size. */
-
     int cp_x, cp_y;		/* Current position. */
+
+    int width, length;		/* Page size. */
     int font_height;		/* Default font character height. */
     int prop_em_width;		/* Proportional font em width. */
     int fixed_width;		/* Fixed-pitch font character width. */
     int horiz_line_width[OUTP_L_COUNT];	/* Width of horizontal lines. */
     int vert_line_width[OUTP_L_COUNT];	/* Width of vertical lines. */
-    int horiz_line_spacing[1 << OUTP_L_COUNT];
-    int vert_line_spacing[1 << OUTP_L_COUNT];
 
     void *ext;			/* Private extension record. */
     void *prc;			/* Per-procedure extension record. */
@@ -219,21 +126,6 @@ struct outp_option
     const char *keyword;	/* Keyword name. */
     int cat;			/* Category. */
     int subcat;			/* Subcategory. */
-  };
-
-/* Information structure for the keyword recognizer. */
-struct outp_option_info
-  {
-    char *initial;			/* Initial characters. */
-    struct outp_option **options;	/* Search starting points. */
-  };
-
-/* A list of driver classes. */
-struct outp_driver_class_list
-  {
-    int ref_count;
-    struct outp_class *class;
-    struct outp_driver_class_list *next;
   };
 
 /* List of configured output drivers. */
@@ -256,15 +148,20 @@ void outp_list_classes (void);
 void outp_enable_device (int enable, int device);
 struct outp_driver *outp_drivers (struct outp_driver *);
 
-int outp_match_keyword (const char *, struct outp_option *,
-			struct outp_option_info *, int *);
+bool outp_parse_options (const char *options,
+                         bool (*) (struct outp_driver *, const char *key,
+                                   const struct string *value),
+                         struct outp_driver *);
+int outp_match_keyword (const char *, struct outp_option *, int *);
 
 int outp_evaluate_dimension (char *, char **);
 int outp_get_paper_size (char *, int *h, int *v);
 
-int outp_eject_page (struct outp_driver *);
+void outp_open_page (struct outp_driver *);
+void outp_close_page (struct outp_driver *);
+void outp_eject_page (struct outp_driver *);
 
-int outp_string_width (struct outp_driver *, const char *);
+int outp_string_width (struct outp_driver *, const char *, enum outp_font);
 
 /* Imported from som-frnt.c. */
 void som_destroy_driver (struct outp_driver *);

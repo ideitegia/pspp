@@ -355,7 +355,7 @@ show_anova_table(void)
     }
 
 
-  tab_title (t, 0, _("ANOVA"));
+  tab_title (t, _("ANOVA"));
   tab_submit (t);
 
 
@@ -412,7 +412,7 @@ show_descriptives(void)
   tab_text (t, 9, 1, TAB_CENTER | TAT_TITLE, _("Maximum"));
 
 
-  tab_title (t, 0, _("Descriptives"));
+  tab_title (t, _("Descriptives"));
 
 
   row = 2;
@@ -541,7 +541,7 @@ show_homogeneity(void)
   tab_text (t,  4, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
   
 
-  tab_title (t, 0, _("Test of Homogeneity of Variances"));
+  tab_title (t, _("Test of Homogeneity of Variances"));
 
   for ( v=0 ; v < n_vars ; ++v ) 
     {
@@ -611,7 +611,7 @@ show_contrast_coeffs(short *bad_contrast)
 
   tab_vline(t, TAL_2, 2, 0, n_rows - 1);
 
-  tab_title (t, 0, _("Contrast Coefficients"));
+  tab_title (t, _("Contrast Coefficients"));
 
   tab_text (t,  0, 2, TAB_LEFT | TAT_TITLE, _("Contrast"));
 
@@ -678,7 +678,7 @@ show_contrast_tests(short *bad_contrast)
   tab_vline(t, TAL_2, 3, 0, n_rows - 1);
 
 
-  tab_title (t, 0, _("Contrast Tests"));
+  tab_title (t, _("Contrast Tests"));
 
   tab_text (t,  2, 0, TAB_CENTER | TAT_TITLE, _("Contrast"));
   tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("Value of Contrast"));

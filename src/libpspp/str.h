@@ -144,7 +144,9 @@ int ds_ltrim_spaces (struct string *);
 void ds_trim_spaces (struct string *);
 bool ds_chomp (struct string *, char);
 bool ds_separate (const struct string *src, struct string *token,
-                  const char *delimiters, int *save_idx);
+                  const char *delimiters, size_t *save_idx);
+bool ds_tokenize (const struct string *src, struct string *token,
+                  const char *delimiters, size_t *save_idx);
 
 /* Inspectors. */
 bool ds_is_empty (const struct string *);

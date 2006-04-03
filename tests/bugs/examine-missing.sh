@@ -70,7 +70,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o raw-ascii $TESTFILE > /dev/null 2>&1
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

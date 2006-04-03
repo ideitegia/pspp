@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -20,502 +20,250 @@
 #include <config.h>
 
 #include <ctype.h>
-#include "chart.h"
-#include <libpspp/message.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <time.h>
-
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include <libpspp/alloc.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <data/filename.h>
-#include "font.h"
-#include "getline.h"
+#include <libpspp/freaderror.h>
 #include <libpspp/hash.h>
-#include "intprops.h"
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
-#include "output.h"
-#include "manager.h"
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
+
+#include <data/filename.h>
+
+#include "afm.h"
+#include "chart.h"
+#include "error.h"
+#include "getline.h"
+#include "intprops.h"
+#include "manager.h"
+#include "minmax.h"
+#include "output.h"
+#include "size_max.h"
+#include "strsep.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* FIXMEs:
-
-   optimize-text-size not implemented.
-   
-   Line buffering is the only possibility; page buffering should also
-   be possible.
-
-   max-fonts-simult
-   
-   Should add a field to give a file that has a list of fonts
-   typically used.
-   
-   Should add an option that tells the driver it can emit %%Include:'s.
-   
-   Should have auto-encode=true stream-edit or whatever to allow
-   addition to list of encodings.
-   
-   Should align fonts of different sizes along their baselines (see
-   text()).  */
-
 /* PostScript driver options: (defaults listed first)
 
    output-file="pspp.ps"
-   color=yes|no
-   data=clean7bit|clean8bit|binary
-   line-ends=lf|crlf
 
    paper-size=letter (see "papersize" file)
    orientation=portrait|landscape
    headers=on|off
-   
+
    left-margin=0.5in
    right-margin=0.5in
    top-margin=0.5in
    bottom-margin=0.5in
 
-   font-dir=devps
-   prologue-file=ps-prologue
-   device-file=DESC
-   encoding-file=ps-encodings
-   auto-encode=true|false
-
-   prop-font-family=T
-   fixed-font-family=C
+   prop-font=Times-Roman
+   emph-font=Times-Italic
+   fixed-font=Courier
    font-size=10000
 
-   line-style=thick|double
-   line-gutter=0.5pt
-   line-spacing=0.5pt
+   line-gutter=1pt
+   line-spacing=1pt
    line-width=0.5pt
-   line-width-thick=1pt
-
-   optimize-text-size=1|0|2
-   optimize-line-size=1|0
-   max-fonts-simult=0     Max # of fonts in printer memory at once (0=infinite)
  */
 
-/* The number of `psus' (PostScript driver UnitS) per inch.  Although
-   this is a #define, the value is expected never to change.  If it
-   does, review all uses.  */
+/* The number of `psus' (PostScript driver UnitS) per inch. */
 #define PSUS 72000
 
-/* Magic numbers for PostScript and EPSF drivers. */
-enum
+/* A PostScript font. */
+struct font
   {
-    MAGIC_PS,
-    MAGIC_EPSF
-  };
-
-/* Orientations. */
-enum
-  {
-    OTN_PORTRAIT,		/* Portrait. */
-    OTN_LANDSCAPE		/* Landscape. */
-  };
-
-/* Output options. */
-enum
-  {
-    OPO_MIRROR_HORZ = 001,	/* 1=Mirror across a horizontal axis. */
-    OPO_MIRROR_VERT = 002,	/* 1=Mirror across a vertical axis. */
-    OPO_ROTATE_180 = 004,	/* 1=Rotate the page 180 degrees. */
-    OPO_COLOR = 010,		/* 1=Enable color. */
-    OPO_HEADERS = 020,		/* 1=Draw headers at top of page. */
-    OPO_AUTO_ENCODE = 040,	/* 1=Add encodings semi-intelligently. */
-    OPO_DOUBLE_LINE = 0100	/* 1=Double lines instead of thick lines. */
-  };
-
-/* Data allowed in output. */
-enum
-  {
-    ODA_CLEAN7BIT,		/* 0x09, 0x0a, 0x0d, 0x1b...0x7e */
-    ODA_CLEAN8BIT,		/* 0x09, 0x0a, 0x0d, 0x1b...0xff */
-    ODA_BINARY,			/* 0x00...0xff */
-    ODA_COUNT
-  };
-
-/* Types of lines for purpose of caching. */
-enum
-  {
-    horz,			/* Single horizontal. */
-    dbl_horz,			/* Double horizontal. */
-    spl_horz,			/* Special horizontal. */
-    vert,			/* Single vertical. */
-    dbl_vert,			/* Double vertical. */
-    spl_vert,			/* Special vertical. */
-    n_line_types
-  };
-
-/* Cached line. */
-struct line_form
-  {
-    int ind;			/* Independent var.  Don't reorder. */
-    int mdep;			/* Maximum number of dependent var pairs. */
-    int ndep;			/* Current number of dependent var pairs. */
-    int dep[1][2];		/* Dependent var pairs. */
-  };
-
-/* Contents of ps_driver_ext.loaded. */
-struct font_entry
-  {
-    char *dit;			/* Font Groff name. */
-    struct font_desc *font;	/* Font descriptor. */
-  };
-
-/* Combines a font with a font size for benefit of generated code. */
-struct ps_font_combo
-  {
-    struct font_entry *font;	/* Font. */
-    int size;			/* Font size. */
-    int index;			/* PostScript index. */
-  };
-
-/* A font encoding. */
-struct ps_encoding
-  {
-    char *filename;		/* Normalized filename of this encoding. */
-    int index;			/* Index value. */
+    struct afm *metrics;        /* Metrics. */
+    char *embed_fn;             /* Name of file to embed. */
+    char *encoding_fn;          /* Name of file with encoding. */
   };
 
 /* PostScript output driver extension record. */
 struct ps_driver_ext
   {
-    /* User parameters. */
-    int orientation;		/* OTN_PORTRAIT or OTN_LANDSCAPE. */
-    int output_options;		/* OPO_*. */
-    int data;			/* ODA_*. */
+    char *file_name;            /* Output file name. */
+    FILE *file;                 /* Output file. */
 
+    bool draw_headers;          /* Draw headers at top of page? */
+    int page_number;		/* Current page number. */
+
+    bool portrait;              /* Portrait mode? */
+    int paper_width;            /* Width of paper before dropping margins. */
+    int paper_length;           /* Length of paper before dropping margins. */
     int left_margin;		/* Left margin in psus. */
     int right_margin;		/* Right margin in psus. */
     int top_margin;		/* Top margin in psus. */
     int bottom_margin;		/* Bottom margin in psus. */
 
-    char eol[3];		/* End of line--CR, LF, or CRLF. */
-    
-    char *font_dir;		/* Font directory relative to font path. */
-    char *prologue_fn;		/* Prologue's filename relative to font dir. */
-    char *desc_fn;		/* DESC filename relative to font dir. */
-    char *encoding_fn;		/* Encoding's filename relative to font dir. */
-
-    char *prop_family;		/* Default proportional font family. */
-    char *fixed_family;		/* Default fixed-pitch font family. */
-    int font_size;		/* Default font size (psus). */
-
     int line_gutter;		/* Space around lines. */
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
-    int line_width_thick;	/* Width of thick lines. */
 
-    int text_opt;		/* Text optimization level. */
-    int line_opt;		/* Line optimization level. */
-    int max_fonts;		/* Max # of simultaneous fonts (0=infinite). */
-
-    /* Internal state. */
-    struct file_ext file;	/* Output file. */
-    int page_number;		/* Current page number. */
-    int file_page_number;	/* Page number in this file. */
-    int w, l;			/* Paper size. */
-    struct hsh_table *lines[n_line_types];	/* Line buffers. */
-    
-    struct font_entry *prop;	/* Default Roman proportional font. */
-    struct font_entry *fixed;	/* Default Roman fixed-pitch font. */
-    struct hsh_table *loaded;	/* Fonts in memory. */
-
-    struct hsh_table *combos;	/* Combinations of fonts with font sizes. */
-    struct ps_font_combo *last_font;	/* PostScript selected font. */
-    int next_combo;		/* Next font combo position index. */
-
-    struct hsh_table *encodings;/* Set of encodings. */
-    int next_encoding;		/* Next font encoding index. */
-
-    /* Currently selected font. */
-    struct font_entry *current;	/* Current font. */
-    char *family;		/* Font family. */
-    int size;			/* Size in psus. */
+    struct font *fonts[OUTP_FONT_CNT];
+    int last_font;              /* Index of last font set with setfont. */
   }
 ps_driver_ext;
 
 /* Transform logical y-ordinate Y into a page ordinate. */
 #define YT(Y) (this->length - (Y))
 
-/* Prototypes. */
-static int postopen (struct file_ext *);
-static int preclose (struct file_ext *);
+static bool handle_option (struct outp_driver *this, const char *key,
+                           const struct string *val);
 static void draw_headers (struct outp_driver *this);
 
-static int compare_font_entry (const void *, const void *, void *param);
-static unsigned hash_font_entry (const void *, void *param);
-static void free_font_entry (void *, void *foo);
-static struct font_entry *load_font (struct outp_driver *, const char *dit);
-static void init_fonts (void);
-static void done_fonts (void);
+static void write_ps_prologue (struct outp_driver *);
 
-static void dump_lines (struct outp_driver *this);
+static char *quote_ps_name (const char *string);
 
-static void read_ps_encodings (struct outp_driver *this);
-static int compare_ps_encoding (const void *pa, const void *pb, void *foo);
-static unsigned hash_ps_encoding (const void *pa, void *foo);
-static void free_ps_encoding (void *a, void *foo);
-static void add_encoding (struct outp_driver *this, char *filename);
-static struct ps_encoding *default_encoding (struct outp_driver *this);
-
-static int compare_ps_combo (const void *pa, const void *pb, void *foo);
-static unsigned hash_ps_combo (const void *pa, void *foo);
-static void free_ps_combo (void *a, void *foo);
-
-static char *quote_ps_name (char *dest, const char *string);
-static char *quote_ps_string (char *dest, const char *string);
+static struct font *load_font (const char *string);
+static void free_font (struct font *);
+static void setup_font (struct outp_driver *this, struct font *, int index);
 
 /* Driver initialization. */
 
-static int
-ps_open_global (struct outp_class *this UNUSED)
-{
-  init_fonts ();
-  groff_init ();
-  return 1;
-}
-
-static int
-ps_close_global (struct outp_class *this UNUSED)
-{
-  groff_done ();
-  done_fonts ();
-  return 1;
-}
-
-static int *
-ps_font_sizes (struct outp_class *this UNUSED, int *n_valid_sizes)
-{
-  /* Allow fonts up to 1" in height. */
-  static int valid_sizes[] =
-  {1, PSUS, 0, 0};
-
-  assert (n_valid_sizes != NULL);
-  *n_valid_sizes = 1;
-  return valid_sizes;
-}
-
-static int
-ps_preopen_driver (struct outp_driver *this)
+static bool
+ps_open_driver (struct outp_driver *this, const char *options)
 {
   struct ps_driver_ext *x;
-  
-  int i;
+  size_t i;
 
-  assert (this->driver_open == 0);
-  msg (VM (1), _("PostScript driver initializing as `%s'..."), this->name);
-	
-  this->ext = x = xmalloc (sizeof *x);
-  this->res = PSUS;
-  this->horiz = this->vert = 1;
   this->width = this->length = 0;
+  this->font_height = PSUS * 10 / 72;
 
-  x->orientation = OTN_PORTRAIT;
-  x->output_options = OPO_COLOR | OPO_HEADERS | OPO_AUTO_ENCODE;
-  x->data = ODA_CLEAN7BIT;
-	
-  x->left_margin = x->right_margin =
-    x->top_margin = x->bottom_margin = PSUS / 2;
-	
-  strcpy (x->eol, "\n");
-
-  x->font_dir = NULL;
-  x->prologue_fn = NULL;
-  x->desc_fn = NULL;
-  x->encoding_fn = NULL;
-
-  x->prop_family = NULL;
-  x->fixed_family = NULL;
-  x->font_size = PSUS * 10 / 72;
-
-  x->line_gutter = PSUS / 144;
-  x->line_space = PSUS / 144;
-  x->line_width = PSUS / 144;
-  x->line_width_thick = PSUS / 48;
-
-  x->text_opt = -1;
-  x->line_opt = -1;
-  x->max_fonts = 0;
-
-  x->file.filename = NULL;
-  x->file.mode = "wb";
-  x->file.file = NULL;
-  x->file.sequence_no = &x->page_number;
-  x->file.param = this;
-  x->file.postopen = postopen;
-  x->file.preclose = preclose;
+  this->ext = x = xmalloc (sizeof *x);
+  x->file_name = xstrdup ("pspp.ps");
+  x->file = NULL;
+  x->draw_headers = true;
   x->page_number = 0;
-  x->w = x->l = 0;
+  x->portrait = true;
+  x->paper_width = PSUS * 17 / 2;
+  x->paper_length = PSUS * 11;
+  x->left_margin = PSUS / 2;
+  x->right_margin = PSUS / 2;
+  x->top_margin = PSUS / 2;
+  x->bottom_margin = PSUS / 2;
+  x->line_gutter = PSUS / 72;
+  x->line_space = PSUS / 72;
+  x->line_width = PSUS / 144;
+  for (i = 0; i < OUTP_FONT_CNT; i++)
+    x->fonts[i] = NULL;
 
-  x->file_page_number = 0;
-  for (i = 0; i < n_line_types; i++)
-    x->lines[i] = NULL;
-  x->last_font = NULL;
+  outp_parse_options (options, handle_option, this);
 
-  x->prop = NULL;
-  x->fixed = NULL;
-  x->loaded = NULL;
-
-  x->next_combo = 0;
-  x->combos = NULL;
-
-  x->encodings = hsh_create (31, compare_ps_encoding, hash_ps_encoding,
-			     free_ps_encoding, NULL);
-  x->next_encoding = 0;
-
-  x->current = NULL;
-  x->family = NULL;
-  x->size = 0;
-
-  return 1;
-}
-
-static int
-ps_postopen_driver (struct outp_driver *this)
-{
-  struct ps_driver_ext *x = this->ext;
-  
-  assert (this->driver_open == 0);
-
-  if (this->width == 0)
+  x->file = fn_open (x->file_name, "w");
+  if (x->file == NULL)
     {
-      this->width = PSUS * 17 / 2;	/* Defaults to 8.5"x11". */
-      this->length = PSUS * 11;
+      error (0, errno, _("opening PostScript output file \"%s\""),
+             x->file_name);
+      goto error;
     }
 
-  if (x->text_opt == -1)
-    x->text_opt = (this->device & OUTP_DEV_SCREEN) ? 0 : 1;
-  if (x->line_opt == -1)
-    x->line_opt = (this->device & OUTP_DEV_SCREEN) ? 0 : 1;
-
-  x->w = this->width;
-  x->l = this->length;
-  if (x->orientation == OTN_LANDSCAPE)
+  if (x->portrait) 
     {
-      int temp = this->width;
-      this->width = this->length;
-      this->length = temp;
+      this->width = x->paper_width;
+      this->length = x->paper_length;
     }
+  else
+    {
+      this->width = x->paper_length;
+      this->length = x->paper_width;
+    }    
   this->width -= x->left_margin + x->right_margin;
   this->length -= x->top_margin + x->bottom_margin;
-  if (x->output_options & OPO_HEADERS)
+  if (x->draw_headers)
     {
-      this->length -= 3 * x->font_size;
-      x->top_margin += 3 * x->font_size;
-    }
-  if (NULL == x->file.filename)
-    x->file.filename = xstrdup ("pspp.ps");
-
-  if (x->font_dir == NULL)
-    x->font_dir = xstrdup ("devps");
-  if (x->prologue_fn == NULL)
-    x->prologue_fn = xstrdup ("ps-prologue");
-  if (x->desc_fn == NULL)
-    x->desc_fn = xstrdup ("DESC");
-  if (x->encoding_fn == NULL)
-    x->encoding_fn = xstrdup ("ps-encodings");
-
-  if (x->prop_family == NULL)
-    x->prop_family = xstrdup ("H");
-  if (x->fixed_family == NULL)
-    x->fixed_family = xstrdup ("C");
-
-  read_ps_encodings (this);
-
-  x->family = NULL;
-  x->size = PSUS / 6;
-
-  if (this->length / x->font_size < 15)
-    {
-      msg (SE, _("PostScript driver: The defined page is not long "
-		 "enough to hold margins and headers, plus least 15 "
-		 "lines of the default fonts.  In fact, there's only "
-		 "room for %d lines of each font at the default size "
-		 "of %d.%03d points."),
-	   this->length / x->font_size,
-	   x->font_size / 1000, x->font_size % 1000);
-      return 0;
+      int header_length = 3 * this->font_height;
+      this->length -= header_length;
+      x->top_margin += header_length;
     }
 
-  this->driver_open = 1;
-  msg (VM (2), _("%s: Initialization complete."), this->name);
+  for (i = 0; i < OUTP_FONT_CNT; i++)
+    if (x->fonts[i] == NULL)
+      {
+        const char *default_fonts[OUTP_FONT_CNT];
+        default_fonts[OUTP_FIXED] = "Courier.afm";
+        default_fonts[OUTP_PROPORTIONAL] = "Times-Roman.afm";
+        default_fonts[OUTP_EMPHASIS] = "Times-Italic.afm";
+        x->fonts[i] = load_font (default_fonts[i]);
+        if (x->fonts[i] == NULL)
+          goto error;
+      }
 
-  return 1;
+  if (this->length / this->font_height < 15)
+    {
+      error (0, 0, _("The defined PostScript page is not long "
+                     "enough to hold margins and headers, plus least 15 "
+                     "lines of the default fonts.  In fact, there's only "
+                     "room for %d lines of each font at the default size "
+                     "of %d.%03d points."),
+	   this->length / this->font_height,
+	   this->font_height / 1000, this->font_height % 1000);
+      goto error;
+    }
+
+  this->fixed_width =
+    afm_get_character (x->fonts[OUTP_FIXED]->metrics, '0')->width
+    * this->font_height / 1000;
+  this->prop_em_width =
+    afm_get_character (x->fonts[OUTP_PROPORTIONAL]->metrics, '0')->width
+    * this->font_height / 1000;
+
+  this->horiz_line_width[OUTP_L_NONE] = 0;
+  this->horiz_line_width[OUTP_L_SINGLE] = 2 * x->line_gutter + x->line_width;
+  this->horiz_line_width[OUTP_L_DOUBLE] = (2 * x->line_gutter + x->line_space
+                                           + 2 * x->line_width);
+  memcpy (this->vert_line_width, this->horiz_line_width,
+          sizeof this->vert_line_width);
+
+  write_ps_prologue (this);
+
+  return true;
+
+ error:
+  this->class->close_driver (this);
+  return false;
 }
 
-static int
+static bool
 ps_close_driver (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
-  
-  int i;
+  bool ok;
+  size_t i;
 
-  assert (this->driver_open == 1);
-  msg (VM (2), _("%s: Beginning closing..."), this->name);
-  
-  fn_close_ext (&x->file);
-  free (x->file.filename);
-  free (x->font_dir);
-  free (x->prologue_fn);
-  free (x->desc_fn);
-  free (x->encoding_fn);
-  free (x->prop_family);
-  free (x->fixed_family);
-  free (x->family);
-  for (i = 0; i < n_line_types; i++)
-    hsh_destroy (x->lines[i]);
-  hsh_destroy (x->encodings);
-  hsh_destroy (x->combos);
-  hsh_destroy (x->loaded);
+  fprintf (x->file,
+	   "%%%%Trailer\n"
+           "%%%%Pages: %d\n"
+           "%%%%EOF\n",
+           x->page_number);
+
+  ok = fn_close (x->file_name, x->file) == 0;
+  if (!ok)
+    error (0, errno, _("closing PostScript output file \"%s\""), x->file_name);
+  free (x->file_name);
+  for (i = 0; i < OUTP_FONT_CNT; i++)
+    free_font (x->fonts[i]);
   free (x);
-  
-  this->driver_open = 0;
-  msg (VM (3), _("%s: Finished closing."), this->name);
 
-  return 1;
-}
-
-/* font_entry comparison function for hash tables. */
-static int
-compare_font_entry (const void *a, const void *b, void *foobar UNUSED)
-{
-  return strcmp (((struct font_entry *) a)->dit, ((struct font_entry *) b)->dit);
-}
-
-/* font_entry hash function for hash tables. */
-static unsigned
-hash_font_entry (const void *fe_, void *foobar UNUSED)
-{
-  const struct font_entry *fe = fe_;
-  return hsh_hash_string (fe->dit);
-}
-
-/* font_entry destructor function for hash tables. */
-static void
-free_font_entry (void *pa, void *foo UNUSED)
-{
-  struct font_entry *a = pa;
-  free (a->dit);
-  free (a);
+  return ok;
 }
 
 /* Generic option types. */
 enum
 {
-  boolean_arg = -10,
+  output_file_arg,
+  paper_size_arg,
+  orientation_arg,
+  line_style_arg,
+  boolean_arg,
   pos_int_arg,
   dimension_arg,
   string_arg,
@@ -525,145 +273,71 @@ enum
 /* All the options that the PostScript driver supports. */
 static struct outp_option option_tab[] =
 {
-  /* *INDENT-OFF* */
-  {"output-file",		1,		0},
-  {"paper-size",		2,		0},
-  {"orientation",		3,		0},
-  {"color",			boolean_arg,	0},
-  {"data",			4,		0},
-  {"auto-encode",		boolean_arg,	5},
+  {"output-file",		output_file_arg,0},
+  {"paper-size",		paper_size_arg, 0},
+  {"orientation",		orientation_arg,0},
+
   {"headers",			boolean_arg,	1},
+
+  {"prop-font", 		string_arg,	OUTP_PROPORTIONAL},
+  {"emph-font", 		string_arg,	OUTP_EMPHASIS},
+  {"fixed-font",		string_arg,	OUTP_FIXED},
+
   {"left-margin",		pos_int_arg,	0},
   {"right-margin",		pos_int_arg,	1},
   {"top-margin",		pos_int_arg,	2},
   {"bottom-margin",		pos_int_arg,	3},
-  {"font-dir",			string_arg,	0},
-  {"prologue-file",		string_arg,	1},
-  {"device-file",		string_arg,	2},
-  {"encoding-file",		string_arg,	3},
-  {"prop-font-family",		string_arg,	5},
-  {"fixed-font-family",		string_arg,	6},
   {"font-size",			pos_int_arg,	4},
-  {"optimize-text-size",	nonneg_int_arg,	0},
-  {"optimize-line-size",	nonneg_int_arg,	1},
-  {"max-fonts-simult",		nonneg_int_arg,	2},
-  {"line-ends",			6,              0},
-  {"line-style",		7,		0},
-  {"line-width",		dimension_arg,	2},
-  {"line-gutter",		dimension_arg,	3},
-  {"line-width",		dimension_arg,	4},
-  {"line-width-thick",		dimension_arg,	5},
-  {"", 0, 0},
-  /* *INDENT-ON* */
-};
-static struct outp_option_info option_info;
 
-static void
-ps_option (struct outp_driver *this, const char *key, const struct string *val)
+  {"line-width",		dimension_arg,	0},
+  {"line-gutter",		dimension_arg,	1},
+  {"line-width",		dimension_arg,	2},
+  {NULL, 0, 0},
+};
+
+static bool
+handle_option (struct outp_driver *this, const char *key,
+               const struct string *val)
 {
   struct ps_driver_ext *x = this->ext;
-  int cat, subcat;
+  int subcat;
   char *value = ds_c_str (val);
 
-  cat = outp_match_keyword (key, option_tab, &option_info, &subcat);
-
-  switch (cat)
+  switch (outp_match_keyword (key, option_tab, &subcat))
     {
-    case 0:
-      msg (SE, _("Unknown configuration parameter `%s' for PostScript device "
-	   "driver."), key);
+    case -1:
+      error (0, 0,
+             _("unknown configuration parameter `%s' for PostScript device "
+               "driver"), key);
       break;
-    case 1:
-      free (x->file.filename);
-      x->file.filename = xstrdup (value);
+    case output_file_arg:
+      free (x->file_name);
+      x->file_name = xstrdup (value);
       break;
-    case 2:
+    case paper_size_arg:
       outp_get_paper_size (value, &this->width, &this->length);
       break;
-    case 3:
+    case orientation_arg:
       if (!strcmp (value, "portrait"))
-	x->orientation = OTN_PORTRAIT;
+	x->portrait = true;
       else if (!strcmp (value, "landscape"))
-	x->orientation = OTN_LANDSCAPE;
+	x->portrait = false;
       else
-	msg (SE, _("Unknown orientation `%s'.  Valid orientations are "
-	     "`portrait' and `landscape'."), value);
-      break;
-    case 4:
-      if (!strcmp (value, "clean7bit") || !strcmp (value, "Clean7Bit"))
-	x->data = ODA_CLEAN7BIT;
-      else if (!strcmp (value, "clean8bit")
-	       || !strcmp (value, "Clean8Bit"))
-	x->data = ODA_CLEAN8BIT;
-      else if (!strcmp (value, "binary") || !strcmp (value, "Binary"))
-	x->data = ODA_BINARY;
-      else
-	msg (SE, _("Unknown value for `data'.  Valid values are `clean7bit', "
-	     "`clean8bit', and `binary'."));
-      break;
-    case 6:
-      if (!strcmp (value, "lf"))
-	strcpy (x->eol, "\n");
-      else if (!strcmp (value, "crlf"))
-	strcpy (x->eol, "\r\n");
-      else
-	msg (SE, _("Unknown value for `line-ends'.  Valid values are `lf' and "
-		   "`crlf'."));
-      break;
-    case 7:
-      if (!strcmp (value, "thick"))
-	x->output_options &= ~OPO_DOUBLE_LINE;
-      else if (!strcmp (value, "double"))
-	x->output_options |= OPO_DOUBLE_LINE;
-      else
-	msg (SE, _("Unknown value for `line-style'.  Valid values are `thick' "
-		   "and `double'."));
+	error (0, 0, _("unknown orientation `%s' (valid orientations are "
+                       "`portrait' and `landscape')"), value);
       break;
     case boolean_arg:
-      {
-	int setting;
-	int mask;
-
-	if (!strcmp (value, "on") || !strcmp (value, "true")
-	    || !strcmp (value, "yes") || atoi (value))
-	  setting = 1;
-	else if (!strcmp (value, "off") || !strcmp (value, "false")
-		 || !strcmp (value, "no") || !strcmp (value, "0"))
-	  setting = 0;
-	else
-	  {
-	    msg (SE, _("Boolean value expected for %s."), key);
-	    return;
-	  }
-	switch (subcat)
-	  {
-	  case 0:
-	    mask = OPO_COLOR;
-	    break;
-	  case 1:
-	    mask = OPO_HEADERS;
-	    break;
-	  case 2:
-	    mask = OPO_MIRROR_HORZ;
-	    break;
-	  case 3:
-	    mask = OPO_MIRROR_VERT;
-	    break;
-	  case 4:
-	    mask = OPO_ROTATE_180;
-	    break;
-	  case 5:
-	    mask = OPO_AUTO_ENCODE;
-	    break;
-	  default:
-	    assert (0);
-            abort ();
-	  }
-	if (setting)
-	  x->output_options |= mask;
-	else
-	  x->output_options &= ~mask;
-      }
+      if (!strcmp (value, "on") || !strcmp (value, "true")
+          || !strcmp (value, "yes") || atoi (value))
+        x->draw_headers = true;
+      else if (!strcmp (value, "off") || !strcmp (value, "false")
+               || !strcmp (value, "no") || !strcmp (value, "0"))
+        x->draw_headers = false;
+      else
+        {
+          error (0, 0, _("boolean value expected for %s"), key);
+          return false;
+        }
       break;
     case pos_int_arg:
       {
@@ -674,13 +348,13 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 	arg = strtol (value, &tail, 0);
 	if (arg < 1 || errno == ERANGE || *tail)
 	  {
-	    msg (SE, _("Positive integer required as value for `%s'."), key);
+	    error (0, 0, _("positive integer value required for `%s'"), key);
 	    break;
 	  }
 	if ((subcat == 4 || subcat == 5) && arg < 1000)
 	  {
-	    msg (SE, _("Default font size must be at least 1 point (value "
-		 "of 1000 for key `%s')."), key);
+	    error (0, 0, _("default font size must be at least 1 point (value "
+                           "of 1000 for key `%s')"), key);
 	    break;
 	  }
 	switch (subcat)
@@ -698,10 +372,10 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 	    x->bottom_margin = arg;
 	    break;
 	  case 4:
-	    x->font_size = arg;
+	    this->font_height = arg;
 	    break;
 	  default:
-	    assert (0);
+	    abort ();
 	  }
       }
       break;
@@ -711,1365 +385,429 @@ ps_option (struct outp_driver *this, const char *key, const struct string *val)
 
 	if (dimension <= 0)
 	  {
-	    msg (SE, _("Value for `%s' must be a dimension of positive "
-		 "length (i.e., `1in')."), key);
+	    error (0, 0, _("value for `%s' must be a dimension of positive "
+                           "length (i.e., `1in')"), key);
 	    break;
 	  }
 	switch (subcat)
 	  {
+	  case 0:
+	    x->line_width = dimension;
+	    break;
+	  case 1:
+	    x->line_gutter = dimension;
+	    break;
 	  case 2:
 	    x->line_width = dimension;
 	    break;
-	  case 3:
-	    x->line_gutter = dimension;
-	    break;
-	  case 4:
-	    x->line_width = dimension;
-	    break;
-	  case 5:
-	    x->line_width_thick = dimension;
-	    break;
 	  default:
-	    assert (0);
+	    abort ();
 	  }
       }
       break;
     case string_arg:
       {
-	char **dest;
-	switch (subcat)
-	  {
-	  case 0:
-	    dest = &x->font_dir;
-	    break;
-	  case 1:
-	    dest = &x->prologue_fn;
-	    break;
-	  case 2:
-	    dest = &x->desc_fn;
-	    break;
-	  case 3:
-	    dest = &x->encoding_fn;
-	    break;
-	  case 5:
-	    dest = &x->prop_family;
-	    break;
-	  case 6:
-	    dest = &x->fixed_family;
-	    break;
-	  default:
-	    assert (0);
-            abort ();
-	  }
-	if (*dest)
-	  free (*dest);
-	*dest = xstrdup (value);
-      }
-      break;
-    case nonneg_int_arg:
-      {
-	char *tail;
-	int arg;
-
-	errno = 0;
-	arg = strtol (value, &tail, 0);
-	if (arg < 0 || errno == ERANGE || *tail)
-	  {
-	    msg (SE, _("Nonnegative integer required as value for `%s'."), key);
-	    break;
-	  }
-	switch (subcat)
-	  {
-	  case 0:
-	    x->text_opt = arg;
-	    break;
-	  case 1:
-	    x->line_opt = arg;
-	    break;
-	  case 2:
-	    x->max_fonts = arg;
-	    break;
-	  default:
-	    assert (0);
-	  }
+        struct font *font = load_font (value);
+        if (font != NULL)
+          {
+            struct font **dst = &x->fonts[subcat];
+            if (*dst != NULL)
+              free_font (*dst);
+            *dst = font;
+          }
       }
       break;
     default:
-      assert (0);
+      abort ();
     }
+
+  return true;
 }
 
 /* Looks for a PostScript font file or config file in all the
    appropriate places.  Returns the filename on success, NULL on
    failure. */
-/* PORTME: Filename operations. */
 static char *
-find_ps_file (struct outp_driver *this, const char *name)
+find_ps_file (const char *name)
 {
-  struct ps_driver_ext *x = this->ext;
-  char *cp;
-
-  /* x->font_dir + name: "devps/ps-encodings". */
-  char *basename;
-
-  /* Usually equal to groff_font_path. */
-  char *pathname;
-
-  /* Final filename. */
-  char *fn;
-
-  /* Make basename. */
-  basename = local_alloc (strlen (x->font_dir) + 1 + strlen (name) + 1);
-  cp = stpcpy (basename, x->font_dir);
-  *cp++ = DIR_SEPARATOR;
-  strcpy (cp, name);
-
-  /* Decide on search path. */
-  {
-    const char *pre_pathname;
-    
-    pre_pathname = getenv ("STAT_GROFF_FONT_PATH");
-    if (pre_pathname == NULL)
-      pre_pathname = getenv ("GROFF_FONT_PATH");
-    if (pre_pathname == NULL)
-      pre_pathname = groff_font_path;
-    pathname = fn_tilde_expand (pre_pathname);
-  }
-
-  /* Search all possible places for the file. */
-  fn = fn_search_path (basename, pathname, NULL);
-  if (fn == NULL)
-    fn = fn_search_path (basename, config_path, NULL);
-  if (fn == NULL)
-    fn = fn_search_path (name, pathname, NULL);
-  if (fn == NULL)
-    fn = fn_search_path (name, config_path, NULL);
-  free (pathname);
-  local_free (basename);
-
-  return fn;
-}
-
-/* Encodings. */
-
-/* Hash table comparison function for ps_encoding's. */
-static int
-compare_ps_encoding (const void *pa, const void *pb, void *foo UNUSED)
-{
-  const struct ps_encoding *a = pa;
-  const struct ps_encoding *b = pb;
-
-  return strcmp (a->filename, b->filename);
-}
-
-/* Hash table hash function for ps_encoding's. */
-static unsigned
-hash_ps_encoding (const void *pa, void *foo UNUSED)
-{
-  const struct ps_encoding *a = pa;
-
-  return hsh_hash_string (a->filename);
-}
-
-/* Hash table free function for ps_encoding's. */
-static void
-free_ps_encoding (void *pa, void *foo UNUSED)
-{
-  struct ps_encoding *a = pa;
-
-  free (a->filename);
-  free (a);
-}
-
-/* Iterates through the list of encodings used for this driver
-   instance, reads each of them from disk, and writes them as
-   PostScript code to the output file. */
-static void
-output_encodings (struct outp_driver *this)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  struct hsh_iterator iter;
-  struct ps_encoding *pe;
-
-  struct string line, buf;
-
-  ds_init (&line, 128);
-  ds_init (&buf, 128);
-  for (pe = hsh_first (x->encodings, &iter); pe != NULL;
-       pe = hsh_next (x->encodings, &iter)) 
+  if (fn_absolute_p (name))
+    return xstrdup (name);
+  else
     {
-      FILE *f;
-
-      msg (VM (1), _("%s: %s: Opening PostScript font encoding..."),
-	   this->name, pe->filename);
-      
-      f = fopen (pe->filename, "r");
-      if (!f)
-	{
-	  msg (IE, _("PostScript driver: Cannot open encoding file `%s': %s.  "
-	       "Substituting ISOLatin1Encoding for missing encoding."),
-	       pe->filename, strerror (errno));
-	  fprintf (x->file.file, "/E%x ISOLatin1Encoding def%s",
-		   pe->index, x->eol);
-	}
-      else
-	{
-	  struct file_locator where;
-	  
-	  const char *tab[256];
-
-	  char *pschar;
-	  char *code;
-	  int code_val;
-	  char *fubar;
-
-	  const char *notdef = ".notdef";
-
-	  int i;
-
-	  for (i = 0; i < 256; i++)
-	    tab[i] = notdef;
-
-	  where.filename = pe->filename;
-	  where.line_number = 0;
-	  err_push_file_locator (&where);
-
-	  while (ds_get_config_line (f, &buf, &where.line_number))
-	    {
-	      char *sp;	
-
-	      if (buf.length == 0) 
-		continue;
-
-	      pschar = strtok_r (ds_c_str (&buf), " \t\r\n", &sp);
-	      code = strtok_r (NULL, " \t\r\n", &sp);
-	      if (*pschar == 0 || *code == 0)
-		continue;
-	      code_val = strtol (code, &fubar, 0);
-	      if (*fubar)
-		{
-		  msg (IS, _("PostScript driver: Invalid numeric format."));
-		  continue;
-		}
-	      if (code_val < 0 || code_val > 255)
-		{
-		  msg (IS, _("PostScript driver: Codes must be between 0 "
-			     "and 255.  (%d is not allowed.)"), code_val);
-		  break;
-		}
-	      tab[code_val] = local_alloc (strlen (pschar) + 1);
-	      strcpy ((char *) (tab[code_val]), pschar);
-	    }
-	  err_pop_file_locator (&where);
-
-	  ds_clear (&line);
-	  ds_printf (&line, "/E%x[", pe->index);
-	  for (i = 0; i < 257; i++)
-	    {
-	      char temp[288];
-
-	      if (i < 256)
-		{
-		  quote_ps_name (temp, tab[i]);
-		  if (tab[i] != notdef)
-		    local_free (tab[i]);
-		}
-	      else
-		strcpy (temp, "]def");
-	      
-	      if (ds_length (&line) + strlen (temp) > 70)
-		{
-		  ds_puts (&line, x->eol);
-		  fputs (ds_c_str (&line), x->file.file);
-		  ds_clear (&line);
-		}
-	      ds_puts (&line, temp);
-	    }
-	  ds_puts (&line, x->eol);
-	  fputs (ds_c_str (&line), x->file.file);
-
-	  if (fclose (f) == EOF)
-	    msg (MW, _("PostScript driver: Error closing encoding file `%s'."),
-		 pe->filename);
-
-	  msg (VM (2), _("%s: PostScript font encoding read successfully."),
-	       this->name);
-	}
+      char *base_name = xasprintf ("psfonts%c%s", DIR_SEPARATOR, name);
+      char *file_name = fn_search_path (base_name, config_path, NULL);
+      free (base_name);
+      return file_name;
     }
-  ds_destroy (&line);
-  ds_destroy (&buf);
-}
-
-/* Finds the ps_encoding in THIS that corresponds to the file with
-   name NORM_FILENAME, which must have previously been normalized with
-   normalize_filename(). */
-static struct ps_encoding *
-get_encoding (struct outp_driver *this, const char *norm_filename)
-{
-  struct ps_driver_ext *x = this->ext;
-  struct ps_encoding *pe;
-
-  pe = (struct ps_encoding *) hsh_find (x->encodings, (void *) &norm_filename);
-  return pe;
-}
-
-/* Searches the filesystem for an encoding file with name FILENAME;
-   returns its malloc'd, normalized name if found, otherwise NULL. */
-static char *
-find_encoding_file (struct outp_driver *this, char *filename)
-{
-  char *cp, *temp;
-
-  if (filename == NULL)
-    return NULL;
-  while (isspace ((unsigned char) *filename))
-    filename++;
-  for (cp = filename; *cp && !isspace ((unsigned char) *cp); cp++)
-    ;
-  if (cp == filename)
-    return NULL;
-  *cp = 0;
-
-  temp = find_ps_file (this, filename);
-  if (temp == NULL)
-    return NULL;
-
-  filename = fn_normalize (temp);
-  assert (filename != NULL);
-  free (temp);
-
-  return filename;
-}
-
-/* Adds the encoding represented by the not-necessarily-normalized
-   file FILENAME to the list of encodings, if it exists and is not
-   already in the list. */
-static void
-add_encoding (struct outp_driver *this, char *filename)
-{
-  struct ps_driver_ext *x = this->ext;
-  struct ps_encoding **pe;
-
-  filename = find_encoding_file (this, filename);
-  if (!filename)
-    return;
-
-  pe = (struct ps_encoding **) hsh_probe (x->encodings, &filename);
-  if (*pe)
-    {
-      free (filename);
-      return;
-    }
-  *pe = xmalloc (sizeof **pe);
-  (*pe)->filename = filename;
-  (*pe)->index = x->next_encoding++;
-}
-
-/* Finds the file on disk that contains the list of encodings to
-   include in the output file, then adds those encodings to the list
-   of encodings. */
-static void
-read_ps_encodings (struct outp_driver *this)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  /* Encodings file. */
-  char *encoding_fn;		/* `ps-encodings' filename. */
-  FILE *f;
-
-  struct string line;
-  struct file_locator where;
-
-  /* It's okay if there's no list of encodings; not everyone cares. */
-  encoding_fn = find_ps_file (this, x->encoding_fn);
-  if (encoding_fn == NULL)
-    return;
-  free (encoding_fn);
-
-  msg (VM (1), _("%s: %s: Opening PostScript encoding list file."),
-       this->name, encoding_fn);
-  f = fopen (encoding_fn, "r");
-  if (!f)
-    {
-      msg (IE, _("Opening %s: %s."), encoding_fn, strerror (errno));
-      return;
-    }
-
-  where.filename = encoding_fn;
-  where.line_number = 0;
-  err_push_file_locator (&where);
-
-  ds_init (&line, 128);
-    
-  for (;;)
-    {
-      if (!ds_get_config_line (f, &line, &where.line_number))
-	{
-	  if (ferror (f))
-	    msg (ME, _("Reading %s: %s."), encoding_fn, strerror (errno));
-	  break;
-	}
-
-      add_encoding (this, line.string);
-    }
-
-  ds_destroy (&line);
-  err_pop_file_locator (&where);
-  
-  if (-1 == fclose (f))
-    msg (MW, _("Closing %s: %s."), encoding_fn, strerror (errno));
-
-  msg (VM (2), _("%s: PostScript encoding list file read successfully."), this->name);
-}
-
-/* Creates a default encoding for driver D that can be substituted for
-   an unavailable encoding. */
-struct ps_encoding *
-default_encoding (struct outp_driver *d)
-{
-  struct ps_driver_ext *x = d->ext;
-  static struct ps_encoding *enc;
-
-  if (!enc)
-    {
-      enc = xmalloc (sizeof *enc);
-      enc->filename = xstrdup (_("<<default encoding>>"));
-      enc->index = x->next_encoding++;
-    }
-  return enc;
 }
 
 /* Basic file operations. */
 
-/* Variables for the prologue. */
-struct ps_variable
-  {
-    const char *key;
-    const char *value;
-  };
-
-static struct ps_variable *ps_var_tab;
-
-/* Searches ps_var_tab for a ps_variable with key KEY, and returns the
-   associated value. */
-static const char *
-ps_get_var (const char *key)
-{
-  struct ps_variable *v;
-
-  for (v = ps_var_tab; v->key; v++)
-    if (!strcmp (key, v->key))
-      return v->value;
-  return NULL;
-}
-
 /* Writes the PostScript prologue to file F. */
-static int
-postopen (struct file_ext *f)
+static void
+write_ps_prologue (struct outp_driver *this)
 {
-  static struct ps_variable dict[] =
-  {
-    {"bounding-box", 0},
-    {"creator", 0},
-    {"date", 0},
-    {"data", 0},
-    {"orientation", 0},
-    {"user", 0},
-    {"host", 0},
-    {"prop-font", 0},
-    {"fixed-font", 0},
-    {"scale-factor", 0},
-    {"paper-width", 0},
-    {"paper-length", 0},
-    {"left-margin", 0},
-    {"top-margin", 0},
-    {"line-width", 0},
-    {"line-width-thick", 0},
-    {"title", 0},
-    {0, 0},
-  };
-  char boundbox[INT_STRLEN_BOUND (int) * 4 + 4];
-#if HAVE_UNISTD_H
-  char host[128];
-#endif
-  char scaling[INT_STRLEN_BOUND (int) + 5];
-  time_t curtime;
-  struct tm *loctime;
-  char *p, *cp;
-  char paper_width[INT_STRLEN_BOUND (int) + 1];
-  char paper_length[INT_STRLEN_BOUND (int) + 1];
-  char left_margin[INT_STRLEN_BOUND (int) + 1];
-  char top_margin[INT_STRLEN_BOUND (int) + 1];
-  char line_width[INT_STRLEN_BOUND (int) + 1];
-  char line_width_thick[INT_STRLEN_BOUND (int) + 1];
-
-  struct outp_driver *this = f->param;
   struct ps_driver_ext *x = this->ext;
+  size_t embedded_cnt, preloaded_cnt;
+  size_t i;
 
-  char *prologue_fn = find_ps_file (this, x->prologue_fn);
-  FILE *prologue_file;
+  fputs ("%!PS-Adobe-3.0\n", x->file);
+  fputs ("%%Pages: (atend)\n", x->file);
 
-  char *buf = NULL;
-  size_t buf_size = 0;
-
-  x->loaded = hsh_create (31, compare_font_entry, hash_font_entry,
-			  free_font_entry, NULL);
-  
-  {
-    char *font_name = local_alloc (2 + max (strlen (x->prop_family),
-					    strlen (x->fixed_family)));
-    
-    strcpy (stpcpy (font_name, x->prop_family), "R");
-    x->prop = load_font (this, font_name);
-
-    strcpy (stpcpy (font_name, x->fixed_family), "R");
-    x->fixed = load_font (this, font_name);
-
-    local_free(font_name);
-  }
-
-  x->current = x->prop;
-  x->family = xstrdup (x->prop_family);
-  x->size = x->font_size;
-  
-  {
-    int *h = this->horiz_line_width, *v = this->vert_line_width;
-    
-    this->cp_x = this->cp_y = 0;
-    this->font_height = x->font_size;
+  embedded_cnt = preloaded_cnt = 0;
+  for (i = 0; i < OUTP_FONT_CNT; i++)
     {
-      struct char_metrics *metric;
-
-      metric = font_get_char_metrics (x->prop->font, '0');
-      this->prop_em_width = ((metric
-			      ? metric->width : x->prop->font->space_width)
-			     * x->font_size / 1000);
-
-      metric = font_get_char_metrics (x->fixed->font, '0');
-      this->fixed_width = ((metric
-			    ? metric->width : x->fixed->font->space_width)
-			   * x->font_size / 1000);
+      bool embed = x->fonts[i]->embed_fn != NULL;
+      embedded_cnt += embed;
+      preloaded_cnt += !embed;
     }
-        
-    h[0] = v[0] = 0;
-    h[1] = v[1] = 2 * x->line_gutter + x->line_width;
-    if (x->output_options & OPO_DOUBLE_LINE)
-      h[2] = v[2] = 2 * x->line_gutter + 2 * x->line_width + x->line_space;
-    else
-      h[2] = v[2] = 2 * x->line_gutter + x->line_width_thick;
-    h[3] = v[3] = 2 * x->line_gutter + x->line_width;
-    
+  if (preloaded_cnt > 0)
     {
-      int i;
-      
-      for (i = 0; i < (1 << OUTP_L_COUNT); i++)
-	{
-	  int bit;
-
-	  /* Maximum width of any line type so far. */
-	  int max = 0;
-
-	  for (bit = 0; bit < OUTP_L_COUNT; bit++)
-	    if ((i & (1 << bit)) && h[bit] > max)
-	      max = h[bit];
-	  this->horiz_line_spacing[i] = this->vert_line_spacing[i] = max;
-	}
+      fputs ("%%DocumentNeededResources: font", x->file);
+      for (i = 0; i < OUTP_FONT_CNT; i++)
+        {
+          struct font *f = x->fonts[i];
+          if (f->embed_fn == NULL)
+            fprintf (x->file, " %s", afm_get_findfont_name (f->metrics));
+        }
+      fputs ("\n", x->file);
     }
-  }
-
-  if (x->output_options & OPO_AUTO_ENCODE)
+  if (embedded_cnt > 0)
     {
-      /* It's okay if this is done more than once since add_encoding()
-         is idempotent over identical encodings. */
-      add_encoding (this, x->prop->font->encoding);
-      add_encoding (this, x->fixed->font->encoding);
+      fputs ("%%DocumentSuppliedResources: font", x->file);
+      for (i = 0; i < OUTP_FONT_CNT; i++)
+        {
+          struct font *f = x->fonts[i];
+          if (f->embed_fn != NULL)
+            fprintf (x->file, " %s", afm_get_findfont_name (f->metrics));
+        }
+      fputs ("\n", x->file);
     }
-
-  x->file_page_number = 0;
-
-  errno = 0;
-  if (prologue_fn == NULL)
-    {
-      msg (IE, _("Cannot find PostScript prologue.  The use of `-vv' "
-		 "on the command line is suggested as a debugging aid."));
-      return 0;
-    }
-
-  msg (VM (1), _("%s: %s: Opening PostScript prologue..."),
-       this->name, prologue_fn);
-  prologue_file = fopen (prologue_fn, "rb");
-  if (prologue_file == NULL)
-    {
-      fclose (prologue_file);
-      free (prologue_fn);
-      msg (IE, "%s: %s", prologue_fn, strerror (errno));
-      goto error;
-    }
-
-  sprintf (boundbox, "0 0 %d %d",
-	   x->w / (PSUS / 72) + (x->w % (PSUS / 72) > 0),
-	   x->l / (PSUS / 72) + (x->l % (PSUS / 72) > 0));
-  dict[0].value = boundbox;
-
-  dict[1].value = (char *) version;
-
-  curtime = time (NULL);
-  loctime = localtime (&curtime);
-  dict[2].value = asctime (loctime);
-  cp = strchr (dict[2].value, '\n');
-  if (cp)
-    *cp = 0;
-
-  switch (x->data)
-    {
-    case ODA_CLEAN7BIT:
-      dict[3].value = "Clean7Bit";
-      break;
-    case ODA_CLEAN8BIT:
-      dict[3].value = "Clean8Bit";
-      break;
-    case ODA_BINARY:
-      dict[3].value = "Binary";
-      break;
-    default:
-      assert (0);
-    }
-
-  if (x->orientation == OTN_PORTRAIT)
-    dict[4].value = "Portrait";
-  else
-    dict[4].value = "Landscape";
-
-  /* PORTME: Determine username, net address. */
-#if HAVE_UNISTD_H
-  dict[5].value = getenv ("LOGNAME");
-  if (!dict[5].value)
-    dict[5].value = getlogin ();
-  if (!dict[5].value)
-    dict[5].value = _("nobody");
-
-  if (gethostname (host, 128) == -1)
-    {
-      if (errno == ENAMETOOLONG)
-	host[127] = 0;
-      else
-	strcpy (host, _("nowhere"));
-    }
-  dict[6].value = host;
-#else /* !HAVE_UNISTD_H */
-  dict[5].value = _("nobody");
-  dict[6].value = _("nowhere");
-#endif /* !HAVE_UNISTD_H */
-
-  cp = stpcpy (p = local_alloc (288), "font ");
-  quote_ps_string (cp, x->prop->font->internal_name);
-  dict[7].value = p;
-
-  cp = stpcpy (p = local_alloc (288), "font ");
-  quote_ps_string (cp, x->fixed->font->internal_name);
-  dict[8].value = p;
-
-  sprintf (scaling, "%.3f", PSUS / 72.0);
-  dict[9].value = scaling;
-
-  sprintf (paper_width, "%g", x->w / (PSUS / 72.0));
-  dict[10].value = paper_width;
-
-  sprintf (paper_length, "%g", x->l / (PSUS / 72.0));
-  dict[11].value = paper_length;
-
-  sprintf (left_margin, "%d", x->left_margin);
-  dict[12].value = left_margin;
-
-  sprintf (top_margin, "%d", x->top_margin);
-  dict[13].value = top_margin;
-
-  sprintf (line_width, "%d", x->line_width);
-  dict[14].value = line_width;
-
-  sprintf (line_width, "%d", x->line_width_thick);
-  dict[15].value = line_width_thick;
-  
-  if (!outp_title)
-    {
-      dict[16].value = cp = local_alloc (16);
-      strcpy (cp, "PSPP");
-    }
-  else
-    {
-      dict[16].value = local_alloc (strlen (outp_title) + 1);
-      strcpy ((char *) (dict[16].value), outp_title);
-    }
-  
-  ps_var_tab = dict;
-  while (-1 != getline (&buf, &buf_size, prologue_file))
-    {
-      char *cp;
-
-      int len;
-
-      cp = strstr (buf, "!eps");
-      if (cp)
-	{
-	  if (this->class->magic == MAGIC_PS)
-	    continue;
-	  else
-	    *cp = '\0';
-	}
-      else
-	{
-	  cp = strstr (buf, "!ps");
-	  if (cp)
-	    {
-	      if (this->class->magic == MAGIC_EPSF)
-		continue;
-	      else
-		*cp = '\0';
-	    } else {
-	      if (strstr (buf, "!!!"))
-		continue;
-	    }
-	}
-
-      if (!strncmp (buf, "!encodings", 10))
-	output_encodings (this);
-      else
-	{
-	  struct string line;
-	  ds_create(&line, buf);
-	  fn_interp_vars(&line, ps_get_var);
-	  ds_ltrim_spaces(&line);
-	  len = ds_length(&line);
-	  fwrite (ds_c_str(&line), len, 1, f->file);
-
-	  ds_destroy(&line);
-
-	  fputs (x->eol, f->file);
-	}
-    }
-  if (ferror (f->file))
-    msg (IE, _("Reading `%s': %s."), prologue_fn, strerror (errno));
-  fclose (prologue_file);
-
-  free (prologue_fn);
-  free (buf);
-
-  local_free (dict[7].value);
-  local_free (dict[8].value);
-  local_free (dict[16].value);
-
-  if (ferror (f->file))
-    goto error;
-
-  msg (VM (2), _("%s: PostScript prologue read successfully."), this->name);
-  return 1;
-
-error:
-  msg (VM (1), _("%s: Error reading PostScript prologue."), this->name);
-  return 0;
+  fputs ("%%Copyright: This prologue is public domain.\n", x->file);
+  fprintf (x->file, "%%%%Creator: %s\n", version);
+  fprintf (x->file, "%%%%DocumentMedia: Plain %g %g 75 white ()\n",
+           x->paper_width / (PSUS / 72.0), x->paper_length / (PSUS / 72.0));
+  fprintf (x->file, "%%%%Orientation: %s\n",
+           x->portrait ? "Portrait" : "Landscape");
+  fputs ("%%EndComments\n", x->file);
+  fputs ("%%BeginDefaults\n", x->file);
+  fputs ("%%PageResources: font", x->file);
+  for (i = 0; i < OUTP_FONT_CNT; i++)
+    fprintf (x->file, " %s", afm_get_findfont_name (x->fonts[i]->metrics));
+  fputs ("\n", x->file);
+  fputs ("%%EndDefaults\n", x->file);
+  fputs ("%%BeginProlog\n", x->file);
+  fputs ("/ED{exch def}bind def\n", x->file);
+  fputs ("/L{moveto lineto stroke}bind def\n", x->file);
+  fputs ("/D{moveto lineto moveto lineto stroke}bind def\n", x->file);
+  fputs ("/S{show}bind def\n", x->file);
+  fputs ("/GS{glyphshow}def\n", x->file);
+  fputs ("/RF{\n", x->file);
+  fputs (" exch dup maxlength 1 add dict begin\n", x->file);
+  fputs (" {\n", x->file);
+  fputs ("  1 index/FID ne{def}{pop pop}ifelse\n", x->file);
+  fputs (" }forall\n", x->file);
+  fputs (" /Encoding ED\n", x->file);
+  fputs (" currentdict end\n", x->file);
+  fputs ("}bind def\n", x->file);
+  fputs ("/F{setfont}bind def\n", x->file);
+  fputs ("/EP{\n", x->file);
+  fputs (" pg restore\n", x->file);
+  fputs (" showpage\n", x->file);
+  fputs ("}bind def\n", x->file);
+  fputs ("/GB{\n", x->file);
+  fputs (" /y2 ED/x2 ED/y1 ED/x1 ED\n", x->file);
+  fputs (" x1 y1 moveto x2 y1 lineto x2 y2 lineto x1 y2 lineto closepath\n",
+         x->file);
+  fputs (" gsave 0.9 setgray fill grestore stroke\n", x->file);
+  fputs ("}bind def\n", x->file);
+  fputs ("/K{0 rmoveto}bind def\n", x->file);
+  fputs ("%%EndProlog\n", x->file);
+  fputs ("%%BeginSetup\n", x->file);
+  for (i = 0; i < OUTP_FONT_CNT; i++)
+    setup_font (this, x->fonts[i], i);
+  fputs ("%%EndSetup\n", x->file);
 }
 
-/* Writes the string STRING to buffer DEST (of at least 288
-   characters) as a PostScript name object.  Returns a pointer
-   to the null terminator of the resultant string. */
+/* Returns STRING as a Postscript name, which is just '/'
+   followed by STRING unless characters need to be quoted.
+   The caller must free the string. */
 static char *
-quote_ps_name (char *dest, const char *string)
+quote_ps_name (const char *string)
 {
-  const char *sp;
+  const char *cp;
 
-  for (sp = string; *sp; sp++)
-    switch (*sp)
-      {
-      case 'a':
-      case 'f':
-      case 'k':
-      case 'p':
-      case 'u':
-      case 'b':
-      case 'g':
-      case 'l':
-      case 'q':
-      case 'v':
-      case 'c':
-      case 'h':
-      case 'm':
-      case 'r':
-      case 'w':
-      case 'd':
-      case 'i':
-      case 'n':
-      case 's':
-      case 'x':
-      case 'e':
-      case 'j':
-      case 'o':
-      case 't':
-      case 'y':
-      case 'z':
-      case 'A':
-      case 'F':
-      case 'K':
-      case 'P':
-      case 'U':
-      case 'B':
-      case 'G':
-      case 'L':
-      case 'Q':
-      case 'V':
-      case 'C':
-      case 'H':
-      case 'M':
-      case 'R':
-      case 'W':
-      case 'D':
-      case 'I':
-      case 'N':
-      case 'S':
-      case 'X':
-      case 'E':
-      case 'J':
-      case 'O':
-      case 'T':
-      case 'Y':
-      case 'Z':
-      case '@':
-      case '^':
-      case '_':
-      case '|':
-      case '!':
-      case '$':
-      case '&':
-      case ':':
-      case ';':
-      case '.':
-      case ',':
-      case '-':
-      case '+':
-	break;
-      default:
-	{
-	  char *dp = dest;
-
-	  *dp++ = '<';
-	  for (sp = string; *sp && dp < &dest[256]; sp++)
-	    {
-	      sprintf (dp, "%02x", (unsigned char) *sp);
-	      dp += 2;
-	    }
-	  return stpcpy (dp, ">cvn");
-	}
-      }
-  dest[0] = '/';
-  return stpcpy (&dest[1], string);
-}
-
-/* Adds the string STRING to buffer DEST as a PostScript quoted
-   string; returns a pointer to the null terminator added.  Will not
-   add more than 235 characters. */
-static char *
-quote_ps_string (char *dest, const char *string)
-{
-  const char *sp = string;
-  char *dp = dest;
-
-  *dp++ = '(';
-  for (; *sp && dp < &dest[235]; sp++)
-    if (*sp == '(')
-      dp = stpcpy (dp, "\\(");
-    else if (*sp == ')')
-      dp = stpcpy (dp, "\\)");
-    else if (*sp < 32 || (unsigned char) *sp > 127)
-      dp = spprintf (dp, "\\%3o", *sp);
-    else
-      *dp++ = *sp;
-  return stpcpy (dp, ")");
-}
-
-/* Writes the PostScript epilogue to file F. */
-static int
-preclose (struct file_ext *f)
-{
-  struct outp_driver *this = f->param;
-  struct ps_driver_ext *x = this->ext;
-  struct hsh_iterator iter;
-  struct font_entry *fe;
-
-  fprintf (f->file,
-	   ("%%%%Trailer%s"
-	    "%%%%Pages: %d%s"
-	    "%%%%DocumentNeededResources:%s"),
-	   x->eol, x->file_page_number, x->eol, x->eol);
-
-  for (fe = hsh_first (x->loaded, &iter); fe != NULL;
-       fe = hsh_next (x->loaded, &iter)) 
+  for (cp = string; *cp != '\0'; cp++)
     {
-      char buf[256], *cp;
-
-      cp = stpcpy (buf, "%%+ font ");
-      cp = quote_ps_string (cp, fe->font->internal_name);
-      strcpy (cp, x->eol);
-      fputs (buf, f->file);
+      unsigned char c = *cp;
+      if (!isalpha (c) && strchr ("^_|!$&:;.,-+", c) == NULL
+          && (cp == string || !isdigit (c)))
+        {
+          struct string out = DS_INITIALIZER;
+          ds_putc (&out, '<');
+	  for (cp = string; *cp != '\0'; cp++)
+            {
+              c = *cp;
+              ds_printf (&out, "%02x", c);
+            }
+	  ds_puts (&out, ">cvn");
+          return ds_c_str (&out);
+        }
     }
-
-  hsh_destroy (x->loaded);
-  x->loaded = NULL;
-  hsh_destroy (x->combos);
-  x->combos = NULL;
-  x->last_font = NULL;
-  x->next_combo = 0;
-
-  fprintf (f->file, "%%EOF%s", x->eol);
-  if (ferror (f->file))
-    return 0;
-  return 1;
+  return xasprintf ("/%s", string);
 }
 
-static int
+static void
 ps_open_page (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
 
-  assert (this->driver_open && !this->page_open);
-      
+  /* Assure page independence. */
+  x->last_font = -1;
+
   x->page_number++;
-  if (!fn_open_ext (&x->file))
-    {
-      if (errno)
-	msg (ME, _("PostScript output driver: %s: %s"), x->file.filename,
-	     strerror (errno));
-      return 0;
-    }
-  x->file_page_number++;
 
-  hsh_destroy (x->combos);
-  x->combos = hsh_create (31, compare_ps_combo, hash_ps_combo,
-			  free_ps_combo, NULL);
-  x->last_font = NULL;
-  x->next_combo = 0;
+  fprintf (x->file,
+	   "%%%%Page: %d %d\n"
+	   "%%%%BeginPageSetup\n"
+	   "/pg save def 0.001 dup scale\n",
+	   x->page_number, x->page_number);
 
-  fprintf (x->file.file,
-	   "%%%%Page: %d %d%s"
-	   "%%%%BeginPageSetup%s"
-	   "/pg save def 0.001 dup scale%s",
-	   x->page_number, x->file_page_number, x->eol,
-	   x->eol,
-	   x->eol);
-
-  if (x->orientation == OTN_LANDSCAPE)
-    fprintf (x->file.file,
-	     "%d 0 translate 90 rotate%s",
-	     x->w, x->eol);
+  if (!x->portrait)
+    fprintf (x->file,
+	     "%d 0 translate 90 rotate\n",
+	     x->paper_width);
 
   if (x->bottom_margin != 0 || x->left_margin != 0)
-    fprintf (x->file.file,
-	     "%d %d translate%s",
-	     x->left_margin, x->bottom_margin, x->eol);
+    fprintf (x->file,
+	     "%d %d translate\n",
+	     x->left_margin, x->bottom_margin);
 
-  fprintf (x->file.file,
-	   "/LW %d def/TW %d def %d setlinewidth%s"
-	   "%%%%EndPageSetup%s",
-	   x->line_width, x->line_width_thick, x->line_width, x->eol,
-	   x->eol);
+  fprintf (x->file,
+	   "/LW %d def %d setlinewidth\n"
+	   "%%%%EndPageSetup\n",
+	   x->line_width, x->line_width);
 
-  if (!ferror (x->file.file))
-    {
-      this->page_open = 1;
-      if (x->output_options & OPO_HEADERS)
-	draw_headers (this);
-    }
-
-  this->cp_y = 0;
-
-  return !ferror (x->file.file);
+  if (x->draw_headers)
+    draw_headers (this);
 }
 
-static int
+static void
 ps_close_page (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  
-  if (x->line_opt)
-    dump_lines (this);
-
-  fprintf (x->file.file,
-	   "%%PageTrailer%s"
-	   "EP%s",
-	   x->eol, x->eol);
-
-  this->page_open = 0;
-  return !ferror (x->file.file);
+  fputs ("%%PageTrailer\n"
+         "EP\n",
+         x->file);
 }
 
 static void
 ps_submit (struct outp_driver *this UNUSED, struct som_entity *s)
 {
-  switch (s->type) 
+  switch (s->type)
     {
     case SOM_CHART:
       break;
     default:
-      assert(0);
+      abort ();
       break;
     }
 }
 
-/* Lines. */
-
-/* qsort() comparison function for int tuples. */
-static int
-int_2_compare (const void *a_, const void *b_)
-{
-  const int *a = a_;
-  const int *b = b_;
-
-  return *a < *b ? -1 : *a > *b;
-}
-
-/* Hash table comparison function for cached lines. */
-static int
-compare_line (const void *a_, const void *b_, void *foo UNUSED)
-{
-  const struct line_form *a = a_;
-  const struct line_form *b = b_;
-
-  return a->ind < b->ind ? -1 : a->ind > b->ind;
-}
-
-/* Hash table hash function for cached lines. */
-static unsigned
-hash_line (const void *pa, void *foo UNUSED)
-{
-  const struct line_form *a = pa;
-
-  return a->ind;
-}
-
-/* Hash table free function for cached lines. */
+/* Draws a line from (x0,y0) to (x1,y1). */
 static void
-free_line (void *pa, void *foo UNUSED)
-{
-  free (pa);
-}
-
-/* Writes PostScript code to draw a line from (x1,y1) to (x2,y2) to
-   the output file. */
-#define dump_line(x1, y1, x2, y2)			\
-	fprintf (ext->file.file, "%d %d %d %d L%s", 	\
-		 x1, YT (y1), x2, YT (y2), ext->eol)
-
-/* Write PostScript code to draw a thick line from (x1,y1) to (x2,y2)
-   to the output file. */
-#define dump_thick_line(x1, y1, x2, y2)			\
-	fprintf (ext->file.file, "%d %d %d %d TL%s",	\
-		 x1, YT (y1), x2, YT (y2), ext->eol)
-
-/* Writes a line of type TYPE to THIS driver's output file.  The line
-   (or its center, in the case of double lines) has its independent
-   axis coordinate at IND; it extends from DEP1 to DEP2 on the
-   dependent axis. */
-static void
-dump_fancy_line (struct outp_driver *this, int type, int ind, int dep1, int dep2)
+dump_line (struct outp_driver *this, int x0, int y0, int x1, int y1)
 {
   struct ps_driver_ext *ext = this->ext;
-  int ofs = ext->line_space / 2 + ext->line_width / 2;
+  fprintf (ext->file, "%d %d %d %d L\n", x0, YT (y0), x1, YT (y1));
+}
 
-  switch (type)
+/* Draws a horizontal line X0...X2 at Y if LEFT says so,
+   shortening it to X0...X1 if SHORTEN is true.
+   Draws a horizontal line X1...X3 at Y if RIGHT says so,
+   shortening it to X2...X3 if SHORTEN is true. */
+static void
+horz_line (struct outp_driver *this,
+           int x0, int x1, int x2, int x3, int y,
+           enum outp_line_style left, enum outp_line_style right,
+           bool shorten)
+{
+  if (left != OUTP_L_NONE && right != OUTP_L_NONE && !shorten)
+    dump_line (this, x0, y, x3, y);
+  else
     {
-    case horz:
-      dump_line (dep1, ind, dep2, ind);
-      break;
-    case dbl_horz:
-      if (ext->output_options & OPO_DOUBLE_LINE)
-	{
-	  dump_line (dep1, ind - ofs, dep2, ind - ofs);
-	  dump_line (dep1, ind + ofs, dep2, ind + ofs);
-	}
-      else
-	dump_thick_line (dep1, ind, dep2, ind);
-      break;
-    case spl_horz:
-      assert (0);
-    case vert:
-      dump_line (ind, dep1, ind, dep2);
-      break;
-    case dbl_vert:
-      if (ext->output_options & OPO_DOUBLE_LINE)
-	{
-	  dump_line (ind - ofs, dep1, ind - ofs, dep2);
-	  dump_line (ind + ofs, dep1, ind + ofs, dep2);
-	}
-      else
-	dump_thick_line (ind, dep1, ind, dep2);
-      break;
-    case spl_vert:
-      assert (0);
-    default:
-      assert (0);
+      if (left != OUTP_L_NONE)
+        dump_line (this, x0, y, shorten ? x1 : x2, y);
+      if (right != OUTP_L_NONE)
+        dump_line (this, shorten ? x2 : x1, y, x3, y);
     }
 }
 
-#undef dump_line
-
-/* Writes all the cached lines to the output file, then clears the
-   cache. */
+/* Draws a vertical line Y0...Y2 at X if TOP says so,
+   shortening it to Y0...Y1 if SHORTEN is true.
+   Draws a vertical line Y1...Y3 at X if BOTTOM says so,
+   shortening it to Y2...Y3 if SHORTEN is true. */
 static void
-dump_lines (struct outp_driver *this)
+vert_line (struct outp_driver *this,
+           int y0, int y1, int y2, int y3, int x,
+           enum outp_line_style top, enum outp_line_style bottom,
+           bool shorten)
 {
-  struct ps_driver_ext *x = this->ext;
-
-  struct hsh_iterator iter;
-  int type;
-
-  for (type = 0; type < n_line_types; type++)
+  if (top != OUTP_L_NONE && bottom != OUTP_L_NONE && !shorten)
+    dump_line (this, x, y0, x, y3);
+  else
     {
-      struct line_form *line;
-
-      if (x->lines[type] == NULL) 
-        continue;
-
-      for (line = hsh_first (x->lines[type], &iter); line != NULL;
-           line = hsh_next (x->lines[type], &iter)) 
-        {
-	  int i;
-	  int lo = INT_MIN, hi;
-
-	  qsort (line->dep, line->ndep, sizeof *line->dep, int_2_compare);
-	  lo = line->dep[0][0];
-	  hi = line->dep[0][1];
-	  for (i = 1; i < line->ndep; i++)
-	    if (line->dep[i][0] <= hi + 1)
-	      {
-		int min_hi = line->dep[i][1];
-		if (min_hi > hi)
-		  hi = min_hi;
-	      }
-	    else
-	      {
-		dump_fancy_line (this, type, line->ind, lo, hi);
-		lo = line->dep[i][0];
-		hi = line->dep[i][1];
-	      }
-	  dump_fancy_line (this, type, line->ind, lo, hi);
-	}
-
-      hsh_destroy (x->lines[type]);
-      x->lines[type] = NULL;
+      if (top != OUTP_L_NONE)
+        dump_line (this, x, y0, x, shorten ? y1 : y2);
+      if (bottom != OUTP_L_NONE)
+        dump_line (this, x, shorten ? y2 : y1, x, y3);
     }
 }
 
-/* (Same args as dump_fancy_line()).  Either dumps the line directly
-   to the output file, or adds it to the cache, depending on the
-   user-selected line optimization mode. */
+/* Draws a generalized intersection of lines in the rectangle
+   (X0,Y0)-(X3,Y3).  The line coming from the top to the center
+   is of style TOP, from left to center of style LEFT, from
+   bottom to center of style BOTTOM, and from right to center of
+   style RIGHT. */
 static void
-line (struct outp_driver *this, int type, int ind, int dep1, int dep2)
+ps_line (struct outp_driver *this,
+         int x0, int y0, int x3, int y3,
+         enum outp_line_style top, enum outp_line_style left,
+         enum outp_line_style bottom, enum outp_line_style right)
 {
-  struct ps_driver_ext *ext = this->ext;
-  struct line_form **f;
+/* The algorithm here is somewhat subtle, to allow it to handle
+   all the kinds of intersections that we need.
 
-  assert (dep2 >= dep1);
-  if (ext->line_opt == 0)
-    {
-      dump_fancy_line (this, type, ind, dep1, dep2);
-      return;
-    }
+   Three additional ordinates are assigned along the x axis.  The
+   first is xc, midway between x0 and x3.  The others are x1 and
+   x2; for a single vertical line these are equal to xc, and for
+   a double vertical line they are the ordinates of the left and
+   right half of the double line.
 
-  if (ext->lines[type] == NULL)
-    ext->lines[type] = hsh_create (31, compare_line, hash_line,
-				   free_line, NULL);
-  f = (struct line_form **) hsh_probe (ext->lines[type], &ind);
-  if (*f == NULL)
-    {
-      *f = xmalloc (sizeof **f + sizeof (int[15][2]));
-      (*f)->ind = ind;
-      (*f)->mdep = 16;
-      (*f)->ndep = 1;
-      (*f)->dep[0][0] = dep1;
-      (*f)->dep[0][1] = dep2;
-      return;
-    }
-  if ((*f)->ndep >= (*f)->mdep)
-    {
-      (*f)->mdep += 16;
-      *f = xrealloc (*f, sizeof **f + sizeof (int[2]) * ((*f)->mdep - 1));
-    }
-  (*f)->dep[(*f)->ndep][0] = dep1;
-  (*f)->dep[(*f)->ndep][1] = dep2;
-  (*f)->ndep++;
-}
+   yc, y1, and y2 are assigned similarly along the y axis.
 
-static void
-ps_line_horz (struct outp_driver *this, const struct rect *r,
-	      const struct color *c UNUSED, int style)
-{
-  /* Must match output.h:OUTP_L_*. */
-  static const int types[OUTP_L_COUNT] =
-  {-1, horz, dbl_horz, spl_horz};
+   The following diagram shows the coordinate system and output
+   for double top and bottom lines, single left line, and no
+   right line:
 
-  int y = (r->y1 + r->y2) / 2;
-
-  assert (this->driver_open && this->page_open);
-  assert (style >= 0 && style < OUTP_L_COUNT);
-  style = types[style];
-  if (style != -1)
-    line (this, style, y, r->x1, r->x2);
-}
-
-static void
-ps_line_vert (struct outp_driver *this, const struct rect *r,
-	      const struct color *c UNUSED, int style)
-{
-  /* Must match output.h:OUTP_L_*. */
-  static const int types[OUTP_L_COUNT] =
-  {-1, vert, dbl_vert, spl_vert};
-
-  int x = (r->x1 + r->x2) / 2;
-
-  assert (this->driver_open && this->page_open);
-  assert (style >= 0 && style < OUTP_L_COUNT);
-  style = types[style];
-  if (style != -1)
-    line (this, style, x, r->y1, r->y2);
-}
-
-#define L (style->l != OUTP_L_NONE)
-#define R (style->r != OUTP_L_NONE)
-#define T (style->t != OUTP_L_NONE)
-#define B (style->b != OUTP_L_NONE)
-
-static void
-ps_line_intersection (struct outp_driver *this, const struct rect *r,
-		      const struct color *c UNUSED,
-		      const struct outp_styles *style)
-{
+               x0       x1 xc  x2      x3
+             y0 ________________________
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+   y1 = y2 = yc |#########     #       |
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+             y3 |________#_____#_______|
+*/
   struct ps_driver_ext *ext = this->ext;
 
-  int x = (r->x1 + r->x2) / 2;
-  int y = (r->y1 + r->y2) / 2;
-  int ofs = (ext->line_space + ext->line_width) / 2;
-  int x1 = x - ofs, x2 = x + ofs;
-  int y1 = y - ofs, y2 = y + ofs;
+  /* Offset from center of each line in a pair of double lines. */
+  int double_line_ofs = (ext->line_space + ext->line_width) / 2;
 
-  assert (this->driver_open && this->page_open);
-  assert (!((style->l != style->r && style->l != OUTP_L_NONE
-	     && style->r != OUTP_L_NONE)
-	    || (style->t != style->b && style->t != OUTP_L_NONE
-		&& style->b != OUTP_L_NONE)));
+  /* Are the lines along each axis single or double?
+     (It doesn't make sense to have different kinds of line on the
+     same axis, so we don't try to gracefully handle that case.) */
+  bool double_vert = top == OUTP_L_DOUBLE || bottom == OUTP_L_DOUBLE;
+  bool double_horz = left == OUTP_L_DOUBLE || right == OUTP_L_DOUBLE;
 
-  switch ((style->l | style->r) | ((style->t | style->b) << 8))
+  /* When horizontal lines are doubled,
+     the left-side line along y1 normally runs from x0 to x2,
+     and the right-side line along y1 from x3 to x1.
+     If the top-side line is also doubled, we shorten the y1 lines,
+     so that the left-side line runs only to x1,
+     and the right-side line only to x2.
+     Otherwise, the horizontal line at y = y1 below would cut off
+     the intersection, which looks ugly:
+               x0       x1     x2      x3
+             y0 ________________________
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+                |        #     #       |
+             y1 |#########     ########|
+                |                      |
+                |                      |
+             y2 |######################|
+                |                      |
+                |                      |
+             y3 |______________________|
+     It is more of a judgment call when the horizontal line is
+     single.  We actually choose to cut off the line anyhow, as
+     shown in the first diagram above.
+  */
+  bool shorten_y1_lines = top == OUTP_L_DOUBLE;
+  bool shorten_y2_lines = bottom == OUTP_L_DOUBLE;
+  bool shorten_yc_line = shorten_y1_lines && shorten_y2_lines;
+  int horz_line_ofs = double_vert ? double_line_ofs : 0;
+  int xc = (x0 + x3) / 2;
+  int x1 = xc - horz_line_ofs;
+  int x2 = xc + horz_line_ofs;
+
+  bool shorten_x1_lines = left == OUTP_L_DOUBLE;
+  bool shorten_x2_lines = right == OUTP_L_DOUBLE;
+  bool shorten_xc_line = shorten_x1_lines && shorten_x2_lines;
+  int vert_line_ofs = double_horz ? double_line_ofs : 0;
+  int yc = (y0 + y3) / 2;
+  int y1 = yc - vert_line_ofs;
+  int y2 = yc + vert_line_ofs;
+
+  if (!double_horz)
+    horz_line (this, x0, x1, x2, x3, yc, left, right, shorten_yc_line);
+  else
     {
-    case (OUTP_L_SINGLE) | (OUTP_L_SINGLE << 8):
-    case (OUTP_L_SINGLE) | (OUTP_L_NONE << 8):
-    case (OUTP_L_NONE) | (OUTP_L_SINGLE << 8):
-      if (L)
-	line (this, horz, y, r->x1, x);
-      if (R)
-	line (this, horz, y, x, r->x2);
-      if (T)
-	line (this, vert, x, r->y1, y);
-      if (B)
-	line (this, vert, x, y, r->y2);
-      break;
-    case (OUTP_L_SINGLE) | (OUTP_L_DOUBLE << 8):
-    case (OUTP_L_NONE) | (OUTP_L_DOUBLE << 8):
-      if (L)
-	line (this, horz, y, r->x1, x1);
-      if (R)
-	line (this, horz, y, x2, r->x2);
-      if (T)
-	line (this, dbl_vert, x, r->y1, y);
-      if (B)
-	line (this, dbl_vert, x, y, r->y2);
-      if ((L && R) && !(T && B))
-	line (this, horz, y, x1, x2);
-      break;
-    case (OUTP_L_DOUBLE) | (OUTP_L_SINGLE << 8):
-    case (OUTP_L_DOUBLE) | (OUTP_L_NONE << 8):
-      if (L)
-	line (this, dbl_horz, y, r->x1, x);
-      if (R)
-	line (this, dbl_horz, y, x, r->x2);
-      if (T)
-	line (this, vert, x, r->y1, y);
-      if (B)
-	line (this, vert, x, y, r->y2);
-      if ((T && B) && !(L && R))
-	line (this, vert, x, y1, y2);
-      break;
-    case (OUTP_L_DOUBLE) | (OUTP_L_DOUBLE << 8):
-      if (L)
-	line (this, dbl_horz, y, r->x1, x);
-      if (R)
-	line (this, dbl_horz, y, x, r->x2);
-      if (T)
-	line (this, dbl_vert, x, r->y1, y);
-      if (B)
-	line (this, dbl_vert, x, y, r->y2);
-      if (T && B && !L)
-	line (this, vert, x1, y1, y2);
-      if (T && B && !R)
-	line (this, vert, x2, y1, y2);
-      if (L && R && !T)
-	line (this, horz, y1, x1, x2);
-      if (L && R && !B)
-	line (this, horz, y2, x1, x2);
-      break;
-    default:
-      assert (0);
+      horz_line (this, x0, x1, x2, x3, y1, left, right, shorten_y1_lines);
+      horz_line (this, x0, x1, x2, x3, y2, left, right, shorten_y2_lines);
+    }
+
+  if (!double_vert)
+    vert_line (this, y0, y1, y2, y3, xc, top, bottom, shorten_xc_line);
+  else
+    {
+      vert_line (this, y0, y1, y2, y3, x1, top, bottom, shorten_x1_lines);
+      vert_line (this, y0, y1, y2, y3, x2, top, bottom, shorten_x2_lines);
     }
 }
 
-static void
-ps_box (struct outp_driver *this UNUSED, const struct rect *r UNUSED,
-	const struct color *bord UNUSED, const struct color *fill UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-
-static void 
-ps_polyline_begin (struct outp_driver *this UNUSED,
-		   const struct color *c UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-static void 
-ps_polyline_point (struct outp_driver *this UNUSED, int x UNUSED, int y UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-static void 
-ps_polyline_end (struct outp_driver *this UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-
-/* Returns the width of string S for THIS driver. */
+/* Writes STRING at location (X,Y) trimmed to the given MAX_WIDTH
+   and with the given JUSTIFICATION for THIS driver. */
 static int
-text_width (struct outp_driver *this, char *s)
+draw_text (struct outp_driver *this,
+           const char *string, int x, int y, int max_width,
+           enum outp_justification justification)
 {
   struct outp_text text;
+  int width;
 
-  text.options = OUTP_T_JUST_LEFT;
-  ls_init (&text.s, s, strlen (s));
-  this->class->text_metrics (this, &text);
-  return text.h;
-}
-
-/* Write string S at location (X,Y) with width W for THIS driver. */
-static void
-out_text_plain (struct outp_driver *this, char *s, int x, int y, int w)
-{
-  struct outp_text text;
-
-  text.options = OUTP_T_JUST_LEFT | OUTP_T_HORZ | OUTP_T_VERT;
-  ls_init (&text.s, s, strlen (s));
-  text.h = w;
+  text.font = OUTP_PROPORTIONAL;
+  text.justification = justification;
+  ls_init (&text.string, (char *) string, strlen (string));
+  text.h = max_width;
   text.v = this->font_height;
   text.x = x;
   text.y = y;
+  this->class->text_metrics (this, &text, &width, NULL);
   this->class->text_draw (this, &text);
+  return width;
+}
+
+/* Writes LEFT left-justified and RIGHT right-justified within
+   (X0...X1) at Y.  LEFT or RIGHT or both may be null. */
+static void
+draw_header_line (struct outp_driver *this,
+                  const char *left, const char *right,
+                  int x0, int x1, int y) 
+{
+  int right_width = 0;
+  if (right != NULL)
+    right_width = (draw_text (this, right, x0, y, x1 - x0, OUTP_RIGHT)
+                   + this->prop_em_width);
+  if (left != NULL)
+    draw_text (this, left, x0, y, x1 - x0 - right_width, OUTP_LEFT);
 }
 
 /* Draw top of page headers for THIS driver. */
@@ -2077,801 +815,279 @@ static void
 draw_headers (struct outp_driver *this)
 {
   struct ps_driver_ext *ext = this->ext;
-  
-  struct font_entry *old_current = ext->current;
-  char *old_family = xstrdup (ext->family); /* FIXME */
-  int old_size = ext->size;
+  char *r1, *r2;
+  int x0, x1;
+  int y;
 
-  int fh = this->font_height;
-  int y = -3 * fh;
+  y = -3 * this->font_height;
+  x0 = this->prop_em_width;
+  x1 = this->width - this->prop_em_width;
 
-  fprintf (ext->file.file, "%d %d %d %d GB%s",
-	   0, YT (y), this->width, YT (y + 2 * fh + ext->line_gutter),
-	   ext->eol);
-  this->class->text_set_font_family (this, "T");
-
+  /* Draw box. */
+  fprintf (ext->file, "%d %d %d %d GB\n",
+	   0, YT (y),
+           this->width, YT (y + 2 * this->font_height + ext->line_gutter));
   y += ext->line_width + ext->line_gutter;
+
+  r1 = xasprintf (_("%s - Page %d"), get_start_date (), ext->page_number);
+  r2 = xasprintf ("%s - %s", version, host_system);
+ 
+  draw_header_line (this, outp_title, r1, x0, x1, y);
+  y += this->font_height;
   
-  {
-    int rh_width;
-    char buf[128];
-
-    sprintf (buf, _("%s - Page %d"), get_start_date (), ext->page_number);
-    rh_width = text_width (this, buf);
-
-    out_text_plain (this, buf, this->width - this->prop_em_width - rh_width,
-		    y, rh_width);
-
-    if (outp_title && outp_subtitle)
-      out_text_plain (this, outp_title, this->prop_em_width, y,
-		      this->width - 3 * this->prop_em_width - rh_width);
-
-    y += fh;
-  }
-  
-  {
-    int rh_width;
-    char buf[128];
-    char *string = outp_subtitle ? outp_subtitle : outp_title;
-
-    sprintf (buf, "%s - %s", version, host_system);
-    rh_width = text_width (this, buf);
-    
-    out_text_plain (this, buf, this->width - this->prop_em_width - rh_width,
-		    y, rh_width);
-
-    if (string)
-      out_text_plain (this, string, this->prop_em_width, y,
-		      this->width - 3 * this->prop_em_width - rh_width);
-
-    y += fh;
-  }
-
-  ext->current = old_current;
-  free (ext->family);
-  ext->family = old_family;
-  ext->size = old_size;
+  draw_header_line (this, outp_subtitle, r2, x0, x1, y);
+ 
+  free (r1);
+  free (r2);
 }
-
 
-/* Text. */
-
-static void
-ps_text_set_font_by_name (struct outp_driver *this, const char *dit)
-{
-  struct ps_driver_ext *x = this->ext;
-  struct font_entry *fe;
-
-  assert (this->driver_open && this->page_open);
-  
-  /* Short-circuit common fonts. */
-  if (!strcmp (dit, "PROP"))
-    {
-      x->current = x->prop;
-      x->size = x->font_size;
-      return;
-    }
-  else if (!strcmp (dit, "FIXED"))
-    {
-      x->current = x->fixed;
-      x->size = x->font_size;
-      return;
-    }
-
-  /* Find font_desc corresponding to Groff name dit. */
-  fe = hsh_find (x->loaded, &dit);
-  if (fe == NULL)
-    fe = load_font (this, dit);
-  x->current = fe;
-}
-
-static void
-ps_text_set_font_by_position (struct outp_driver *this, int pos)
-{
-  struct ps_driver_ext *x = this->ext;
-  char *dit;
-
-  assert (this->driver_open && this->page_open);
-
-  /* Determine font name by suffixing position string to font family
-     name. */
-  {
-    char *cp;
-
-    dit = local_alloc (strlen (x->family) + 3);
-    cp = stpcpy (dit, x->family);
-    switch (pos)
-      {
-      case OUTP_F_R:
-	*cp++ = 'R';
-	break;
-      case OUTP_F_I:
-	*cp++ = 'I';
-	break;
-      case OUTP_F_B:
-	*cp++ = 'B';
-	break;
-      case OUTP_F_BI:
-	*cp++ = 'B';
-	*cp++ = 'I';
-	break;
-      default:
-	assert(0);
-      }
-    *cp++ = 0;
-  }
-  
-  /* Find font_desc corresponding to Groff name dit. */
-  {
-    struct font_entry *fe = hsh_find (x->loaded, &dit);
-    if (fe == NULL)
-      fe = load_font (this, dit);
-    x->current = fe;
-  }
-
-  local_free (dit);
-}
-
-static void
-ps_text_set_font_family (struct outp_driver *this, const char *s)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  
-  free(x->family);
-  x->family = xstrdup (s);
-}
-
-static const char *
-ps_text_get_font_name (struct outp_driver *this)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  return x->current->font->name;
-}
-
-static const char *
-ps_text_get_font_family (struct outp_driver *this)
-{
-  struct ps_driver_ext *x = this->ext;
-  
-  assert (this->driver_open && this->page_open);
-  return x->family;
-}
-
-static int
-ps_text_set_size (struct outp_driver *this, int size)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  x->size = PSUS / 72000 * size;
-  return 1;
-}
-
-static int
-ps_text_get_size (struct outp_driver *this, int *em_width)
-{
-  struct ps_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  if (em_width)
-    *em_width = (x->current->font->space_width * x->size) / 1000;
-  return x->size / (PSUS / 72000);
-}
-
-/* An output character. */
-struct output_char
-  {
-    struct font_entry *font;	/* Font of character. */
-    int size;			/* Size of character. */
-    int x, y;			/* Location of character. */
-    unsigned char ch;		/* Character. */
-    char separate;		/* Must be separate from previous char. */
-  };
-
-/* Hash table comparison function for ps_combo structs. */
-static int
-compare_ps_combo (const void *pa, const void *pb, void *foo UNUSED)
-{
-  const struct ps_font_combo *a = pa;
-  const struct ps_font_combo *b = pb;
-
-  return !((a->font == b->font) && (a->size == b->size));
-}
-
-/* Hash table hash function for ps_combo structs. */
-static unsigned
-hash_ps_combo (const void *pa, void *foo UNUSED)
-{
-  const struct ps_font_combo *a = pa;
-  unsigned name_hash = hsh_hash_string (a->font->font->internal_name);
-  return name_hash ^ hsh_hash_int (a->size);
-}
-
-/* Hash table free function for ps_combo structs. */
-static void
-free_ps_combo (void *a, void *foo UNUSED)
-{
-  free (a);
-}
-
-/* Causes PostScript code to be output that switches to the font
-   CP->FONT and font size CP->SIZE.  The first time a particular
-   font/size combination is used on a particular page, this involves
-   outputting PostScript code to load the font. */
-static void
-switch_font (struct outp_driver *this, const struct output_char *cp)
-{
-  struct ps_driver_ext *ext = this->ext;
-  struct ps_font_combo srch, **fc;
-
-  srch.font = cp->font;
-  srch.size = cp->size;
-
-  fc = (struct ps_font_combo **) hsh_probe (ext->combos, &srch);
-  if (*fc)
-    {
-      fprintf (ext->file.file, "F%x%s", (*fc)->index, ext->eol);
-    }
-  else
-    {
-      char *filename;
-      struct ps_encoding *encoding;
-      char buf[512], *bp;
-
-      *fc = xmalloc (sizeof **fc);
-      (*fc)->font = cp->font;
-      (*fc)->size = cp->size;
-      (*fc)->index = ext->next_combo++;
-
-      filename = find_encoding_file (this, cp->font->font->encoding);
-      if (filename)
-	{
-	  encoding = get_encoding (this, filename);
-	  free (filename);
-	}
-      else
-	{
-	  msg (IE, _("PostScript driver: Cannot find encoding `%s' for "
-	       "PostScript font `%s'."), cp->font->font->encoding,
-	       cp->font->font->internal_name);
-	  encoding = default_encoding (this);
-	}
-
-      if (cp->font != ext->fixed && cp->font != ext->prop)
-	{
-	  bp = stpcpy (buf, "%%IncludeResource: font ");
-	  bp = quote_ps_string (bp, cp->font->font->internal_name);
-	  bp = stpcpy (bp, ext->eol);
-	}
-      else
-	bp = buf;
-
-      bp = spprintf (bp, "/F%x E%x %d", (*fc)->index, encoding->index,
-		     cp->size);
-      bp = quote_ps_name (bp, cp->font->font->internal_name);
-      sprintf (bp, " SF%s", ext->eol);
-      fputs (buf, ext->file.file);
-    }
-  ext->last_font = *fc;
-}
-
-/* (write_text) Writes the accumulated line buffer to the output
-   file. */
-#define output_line()				\
-	do					\
-	  {					\
-            lp = stpcpy (lp, ext->eol);		\
-	    *lp = 0;				\
-	    fputs (line, ext->file.file);	\
-	    lp = line;				\
-	  }					\
-        while (0)
-
-/* (write_text) Adds the string representing number X to the line
-   buffer, flushing the buffer to disk beforehand if necessary. */
-#define put_number(X)				\
-	do					\
-	  {					\
-	    int n = nsprintf (number, "%d", X);	\
-	    if (n + lp > &line[75])		\
-	      output_line ();			\
-	    lp = stpcpy (lp, number);		\
-	  }					\
-	while (0)
-
-/* Outputs PostScript code to THIS driver's output file to display the
-   characters represented by the output_char's between CP and END,
-   using the associated outp_text T to determine formatting.  WIDTH is
-   the width of the output region; WIDTH_LEFT is the amount of the
-   WIDTH that is not taken up by text (so it can be used to determine
-   justification). */
+/* Writes the CHAR_CNT characters in CHARS at (X0,Y0), using the
+   given FONT.
+   The characters are justified according to JUSTIFICATION in a
+   field that has WIDTH_LEFT space remaining after the characters
+   themselves are accounted for.
+   Before character I is written, its x-position is adjusted by
+   KERNS[I]. */
 static void
 write_text (struct outp_driver *this,
-	    const struct output_char *cp, const struct output_char *end,
-	    struct outp_text *t, int width UNUSED, int width_left)
+            int x0, int y0,
+            enum outp_font font, 
+            enum outp_justification justification,
+            const struct afm_character **chars, int *kerns, size_t char_cnt,
+            int width_left)
 {
   struct ps_driver_ext *ext = this->ext;
-  int ofs;
+  struct afm *afm = ext->fonts[font]->metrics;
+  struct string out;
+  size_t i, j;
 
-  int last_y;
+  if (justification == OUTP_RIGHT)
+    x0 += width_left;
+  else if (justification == OUTP_CENTER)
+    x0 += width_left / 2;
+  y0 += afm_get_ascent (afm) * this->font_height / 1000;
 
-  char number[INT_STRLEN_BOUND (int) + 1];
-  char line[80];
-  char *lp;
+  fprintf (ext->file, "\n%d %d moveto\n", x0, YT (y0));
 
-  switch (t->options & OUTP_T_JUST_MASK)
+  if (ext->last_font != font)
     {
-    case OUTP_T_JUST_LEFT:
-      ofs = 0;
-      break;
-    case OUTP_T_JUST_RIGHT:
-      ofs = width_left;
-      break;
-    case OUTP_T_JUST_CENTER:
-      ofs = width_left / 2;
-      break;
-    default:
-      assert (0);
-      abort ();
+      ext->last_font = font;
+      fprintf (ext->file, "F%d setfont\n", font);
     }
 
-  lp = line;
-  last_y = INT_MIN;
-  while (cp < end)
+  ds_init (&out, 0);
+  for (i = 0; i < char_cnt; i = j)
     {
-      int x = cp->x + ofs;
-      int y = cp->y + (cp->font->font->ascent * cp->size / 1000);
+      for (j = i + 1; j < char_cnt; j++)
+        if (kerns[j] != 0)
+          break;
 
-      if (ext->last_font == NULL
-	  || cp->font != ext->last_font->font
-	  || cp->size != ext->last_font->size)
-	switch_font (this, cp);
+      if (kerns[i] != 0)
+        fprintf (ext->file, "%d K", kerns[i]);
+      while (i < j)
+        {
+          size_t encoded = afm_encode_string (afm, chars + i, j - i, &out);
+          if (encoded > 0)
+            {
+              fprintf (ext->file, "%sS\n", ds_c_str (&out));
+              ds_clear (&out);
+              i += encoded;
+            }
 
-      *lp++ = '(';
-      do
-	{
-	  /* PORTME! */
-	  static unsigned char literal_chars[ODA_COUNT][32] =
-	  {
-	    {0x00, 0x00, 0x00, 0xf8, 0xff, 0xfc, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f,
-	     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	    },
-	    {0x00, 0x00, 0x00, 0xf8, 0xff, 0xfc, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	    },
-	    {0x7e, 0xd6, 0xff, 0xfb, 0xff, 0xfc, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	    }
-	  };
-
-	  if (TEST_BIT (literal_chars[ext->data], cp->ch))
-	    *lp++ = cp->ch;
-	  else
-	    switch ((char) cp->ch)
-	      {
-	      case '(':
-		lp = stpcpy (lp, "\\(");
-		break;
-	      case ')':
-		lp = stpcpy (lp, "\\)");
-		break;
-	      default:
-		lp = spprintf (lp, "\\%03o", cp->ch);
-		break;
-	      }
-	  cp++;
-	}
-      while (cp < end && lp < &line[70] && cp->separate == 0);
-      *lp++ = ')';
-
-      put_number (x);
-
-      if (y != last_y)
-	{
-	  *lp++ = ' ';
-	  put_number (YT (y));
-	  *lp++ = ' ';
-	  *lp++ = 'S';
-	  last_y = y;
-	}
-      else
-	{
-	  *lp++ = ' ';
-	  *lp++ = 'T';
-	}
-
-      if (lp >= &line[70])
-	output_line ();
+          if (i < j)
+            {
+              fprintf (ext->file, "/%s GS\n", chars[i]->name);
+              i++;
+            }
+        }
     }
-  if (lp != line)
-    output_line ();
+  ds_destroy (&out);
 }
 
-#undef output_line
-#undef put_number
-
-/* Displays the text in outp_text T, if DRAW is nonzero; or, merely
-   determine the text metrics, if DRAW is zero. */
-static void
-text (struct outp_driver *this, struct outp_text *t, int draw)
-{
-  struct ps_driver_ext *ext = this->ext;
-
-  /* Output. */
-  struct output_char *buf;	/* Output buffer. */
-  struct output_char *buf_end;	/* End of output buffer. */
-  struct output_char *buf_loc;	/* Current location in output buffer. */
-
-  /* Saved state. */
-  struct font_entry *old_current = ext->current;
-  char *old_family = xstrdup (ext->family); /* FIXME */
-  int old_size = ext->size;
-
-  /* Input string. */
-  char *cp, *end;
-
-  /* Current location. */
-  int x, y;
-
-  /* Keeping track of what's left over. */
-  int width;			/* Width available for characters. */
-  int width_left, height_left;	/* Width, height left over. */
-  int max_height;		/* Tallest character on this line so far. */
-
-  /* Previous character. */
-  int prev_char;
-
-  /* Information about location of previous space. */
-  char *space_char;		/* Character after space. */
-  struct output_char *space_buf_loc; /* Buffer location after space. */
-  int space_width_left;		/* Width of characters before space. */
-
-  /* Name of the current character. */
-  const char *char_name;
-  char local_char_name[2] = {0, 0};
-
-  local_char_name[0] = local_char_name[1] = 0;
-
-  buf = local_alloc (sizeof *buf * 128);
-  buf_end = &buf[128];
-  buf_loc = buf;
-
-  assert (!ls_null_p (&t->s));
-  cp = ls_c_str (&t->s);
-  end = ls_end (&t->s);
-  if (draw)
-    {
-      x = t->x;
-      y = t->y;
-    }
-  else
-    x = y = 0;
-  width = width_left = (t->options & OUTP_T_HORZ) ? t->h : INT_MAX;
-  height_left = (t->options & OUTP_T_VERT) ? t->v : INT_MAX;
-  max_height = 0;
-  prev_char = -1;
-  space_char = NULL;
-  space_buf_loc = NULL;
-  space_width_left = 0;
-  
-
-  if (!width || !height_left)
-    goto exit;
-
-  while (cp < end)
-    {
-      struct char_metrics *metric;
-      int cur_char;
-      int kern_amt;
-      int char_width;
-      int separate = 0;
-
-      /* Set char_name to the name of the character or ligature at
-         *cp. */
-      local_char_name[0] = *cp;
-      char_name = local_char_name;
-      if (ext->current->font->ligatures && *cp == 'f')
-	{
-	  int lig = 0;
-          char_name = NULL;
-
-	  if (cp < end - 1)
-	    switch (cp[1])
-	      {
-	      case 'i':
-		lig = LIG_fi, char_name = "fi";
-		break;
-	      case 'l':
-		lig = LIG_fl, char_name = "fl";
-		break;
-	      case 'f':
-		if (cp < end - 2)
-		  switch (cp[2])
-		    {
-		    case 'i':
-		      lig = LIG_ffi, char_name = "ffi";
-		      goto got_ligature;
-		    case 'l':
-		      lig = LIG_ffl, char_name = "ffl";
-		      goto got_ligature;
-		    }
-		lig = LIG_ff, char_name = "ff";
-	      got_ligature:
-		break;
-	      }
-	  if ((lig & ext->current->font->ligatures) == 0)
-	    {
-	      local_char_name[0] = *cp;	/* 'f' */
-	      char_name = local_char_name;
-	    }
-	}
-      else if (*cp == '\n')
-	{
-	  if (draw)
-	    {
-	      write_text (this, buf, buf_loc, t, width, width_left);
-	      buf_loc = buf;
-	      x = t->x;
-	      y += max_height;
-	    }
-
-	  width_left = width;
-	  height_left -= max_height;
-	  max_height = 0;
-	  kern_amt = 0;
-	  separate = 1;
-	  cp++;
-
-	  /* FIXME: when we're page buffering it will be necessary to
-	     set separate to 1. */
-	  continue;
-	}
-      cp += strlen (char_name);
-
-      /* Figure out what size this character is, and what kern
-         adjustment we need. */
-      cur_char = font_char_name_to_index (char_name);
-      metric = font_get_char_metrics (ext->current->font, cur_char);
-      if (!metric)
-	{
-	  static struct char_metrics m;
-	  metric = &m;
-	  m.width = ext->current->font->space_width;
-	  m.code = *char_name;
-	}
-      kern_amt = font_get_kern_adjust (ext->current->font, prev_char,
-				       cur_char);
-      if (kern_amt)
-	{
-	  kern_amt = (kern_amt * ext->size / 1000);
-	  separate = 1;
-	}
-      char_width = metric->width * ext->size / 1000;
-
-      /* Record the current status if this is a space character. */
-      if (cur_char == space_index && buf_loc > buf)
-	{
-	  space_char = cp;
-	  space_buf_loc = buf_loc;
-	  space_width_left = width_left;
-	}
-
-      /* Drop down to a new line if there's no room left on this
-         line. */
-      if (char_width + kern_amt > width_left)
-	{
-	  /* Regress to previous space, if any. */
-	  if (space_char)
-	    {
-	      cp = space_char;
-	      width_left = space_width_left;
-	      buf_loc = space_buf_loc;
-	    }
-
-	  if (draw)
-	    {
-	      write_text (this, buf, buf_loc, t, width, width_left);
-	      buf_loc = buf;
-	      x = t->x;
-	      y += max_height;
-	    }
-
-	  width_left = width;
-	  height_left -= max_height;
-	  max_height = 0;
-	  kern_amt = 0;
-
-	  if (space_char)
-	    {
-	      space_char = NULL;
-	      prev_char = -1;
-	      /* FIXME: when we're page buffering it will be
-	         necessary to set separate to 1. */
-	      continue;
-	    }
-	  separate = 1;
-	}
-      if (ext->size > max_height)
-	max_height = ext->size;
-      if (max_height > height_left)
-	goto exit;
-
-      /* Actually draw the character. */
-      if (draw)
-	{
-	  if (buf_loc >= buf_end)
-	    {
-	      int buf_len = buf_end - buf;
-
-	      if (buf_len == 128)
-		{
-		  struct output_char *new_buf;
-
-		  new_buf = xmalloc (sizeof *new_buf * 256);
-		  memcpy (new_buf, buf, sizeof *new_buf * 128);
-		  buf_loc = new_buf + 128;
-		  buf_end = new_buf + 256;
-		  local_free (buf);
-		  buf = new_buf;
-		}
-	      else
-		{
-		  buf = xnrealloc (buf, buf_len * 2, sizeof *buf);
-		  buf_loc = buf + buf_len;
-		  buf_end = buf + buf_len * 2;
-		}
-	    }
-
-	  x += kern_amt;
-	  buf_loc->font = ext->current;
-	  buf_loc->size = ext->size;
-	  buf_loc->x = x;
-	  buf_loc->y = y;
-	  buf_loc->ch = metric->code;
-	  buf_loc->separate = separate;
-	  buf_loc++;
-	  x += char_width;
-	}
-
-      /* Prepare for next iteration. */
-      width_left -= char_width + kern_amt;
-      prev_char = cur_char;
-    }
-  height_left -= max_height;
-  if (buf_loc > buf && draw)
-    write_text (this, buf, buf_loc, t, width, width_left);
-
-exit:
-  if (!(t->options & OUTP_T_HORZ))
-    t->h = INT_MAX - width_left;
-  if (!(t->options & OUTP_T_VERT))
-    t->v = INT_MAX - height_left;
-  else
-    t->v -= height_left;
-  if (buf_end - buf == 128)
-    local_free (buf);
-  else
-    free (buf);
-  ext->current = old_current;
-  free (ext->family);
-  ext->family = old_family;
-  ext->size = old_size;
-}
-
-static void
-ps_text_metrics (struct outp_driver *this, struct outp_text *t)
-{
-  assert (this->driver_open && this->page_open);
-  text (this, t, 0);
-}
-
-static void
-ps_text_draw (struct outp_driver *this, struct outp_text *t)
-{
-  assert (this->driver_open && this->page_open);
-  text (this, t, 1);
-}
-
-/* Font loader. */
-
-/* Translate a filename to a font. */
-struct filename2font
+/* State of a text formatting operation. */
+struct text_state
   {
-    char *filename;		/* Normalized filename. */
-    struct font_desc *font;
+    /* Input. */
+    const struct outp_text *text;
+    bool draw;
+
+    /* Output. */
+    const struct afm_character **glyphs;
+    int *glyph_kerns;
+
+    /* State. */
+    size_t glyph_cnt;           /* Number of glyphs output. */
+    int width_left;       	/* Width left over. */
+    int height_left;            /* Height left over. */
+
+    /* State as of last space. */
+    const char *space_char;     /* Just past last space. */
+    size_t space_glyph_cnt;     /* Number of glyphs as of last space. */
+    int space_width_left;       /* Width left over as of last space. */
+
+    /* Statistics. */
+    int max_width;             /* Widest line so far. */
   };
 
-/* Table of `filename2font's. */
-static struct hsh_table *ps_fonts;
-
-/* Hash table comparison function for filename2font structs. */
-static int
-compare_filename2font (const void *a, const void *b, void *param UNUSED)
-{
-  return strcmp (((struct filename2font *) a)->filename,
-		 ((struct filename2font *) b)->filename);
-}
-
-/* Hash table hash function for filename2font structs. */
-static unsigned
-hash_filename2font (const void *f2f_, void *param UNUSED)
-{
-  const struct filename2font *f2f = f2f_;
-  return hsh_hash_string (f2f->filename);
-}
-
-/* Initializes the global font list by creating the hash table for
-   translation of filenames to font_desc structs. */
+/* Adjusts S to complete a line of text,
+   and draws the current line if appropriate. */
 static void
-init_fonts (void)
+finish_line (struct outp_driver *this, struct text_state *s)
 {
-  ps_fonts = hsh_create (31, compare_filename2font, hash_filename2font,
-			 NULL, NULL);
-}
+  int width;
 
-static void
-done_fonts (void)
-{
- hsh_destroy (ps_fonts);
-}
-
-/* Loads the font having Groff name DIT into THIS driver instance.
-   Specifically, adds it into the THIS driver's `loaded' hash
-   table. */
-static struct font_entry *
-load_font (struct outp_driver *this, const char *dit)
-{
-  struct ps_driver_ext *x = this->ext;
-  char *filename1, *filename2;
-  void **entry;
-  struct font_entry *fe;
-
-  filename1 = find_ps_file (this, dit);
-  if (!filename1)
-    filename1 = xstrdup (dit);
-  filename2 = fn_normalize (filename1);
-  free (filename1);
-
-  entry = hsh_probe (ps_fonts, &filename2);
-  if (*entry == NULL)
+  if (s->draw)
     {
-      struct filename2font *f2f;
-      struct font_desc *f = groff_read_font (filename2);
-
-      if (f == NULL)
-	{
-	  if (x->fixed)
-	    f = x->fixed->font;
-	  else
-	    f = default_font ();
-	}
-      
-      f2f = xmalloc (sizeof *f2f);
-      f2f->filename = filename2;
-      f2f->font = f;
-      *entry = f2f;
+      write_text (this,
+                  s->text->x, s->text->y + (s->text->v - s->height_left),
+                  s->text->font,
+                  s->text->justification,
+                  s->glyphs, s->glyph_kerns, s->glyph_cnt,
+                  s->width_left);
+      s->glyph_cnt = 0;
     }
-  else
-    free (filename2);
 
-  fe = xmalloc (sizeof *fe);
-  fe->dit = xstrdup (dit);
-  fe->font = ((struct filename2font *) * entry)->font;
-  *hsh_probe (x->loaded, &dit) = fe;
+  /* Update maximum width. */
+  width = s->text->h - s->width_left;
+  if (width > s->max_width)
+    s->max_width = width;
 
-  return fe;
+  /* Move to next line. */
+  s->width_left = s->text->h;
+  s->height_left -= this->font_height;
+
+  /* No spaces on this line yet. */
+  s->space_char = NULL;
 }
 
+/* Format TEXT on THIS driver.
+   If DRAW is nonzero, draw the text.
+   The width of the widest line is stored into *WIDTH, if WIDTH
+   is nonnull.
+   The total height of the text written is stored into *HEIGHT,
+   if HEIGHT is nonnull. */
+static void
+text (struct outp_driver *this, const struct outp_text *text, bool draw,
+      int *width, int *height)
+{
+  struct ps_driver_ext *ext = this->ext;
+  struct afm *afm = ext->fonts[text->font]->metrics;
+  const char *cp;
+  size_t glyph_cap;
+  struct text_state s;
+
+  s.text = text;
+  s.draw = draw;
+
+  s.glyphs = NULL;
+  s.glyph_kerns = NULL;
+  glyph_cap = 0;
+
+  s.glyph_cnt = 0;
+  s.width_left = s.text->h;
+  s.height_left = s.text->v;
+
+  s.space_char = 0;
+
+  s.max_width = 0;
+
+  cp = ls_c_str (&s.text->string);
+  while (s.height_left >= this->font_height && cp < ls_end (&s.text->string))
+    {
+      const struct afm_character *cur;
+      int char_width;
+      int kern_adjust;
+
+      if (*cp == '\n')
+        {
+          finish_line (this, &s);
+          cp++;
+          continue;
+        }
+
+      /* Get character and resolve ligatures. */
+      cur = afm_get_character (afm, *cp);
+      while (++cp < ls_end (&s.text->string))
+        {
+          const struct afm_character *next = afm_get_character (afm, *cp);
+          const struct afm_character *ligature = afm_get_ligature (cur, next);
+          if (ligature == NULL)
+            break;
+          cur = ligature;
+        }
+      char_width = cur->width * this->font_height / 1000;
+
+      /* Get kern adjustment. */
+      if (s.glyph_cnt > 0) 
+        kern_adjust = (afm_get_kern_adjustment (s.glyphs[s.glyph_cnt - 1], cur)
+                       * this->font_height / 1000);
+      else
+        kern_adjust = 0;
+
+      /* Record the current status if this is a space character. */
+      if (cur->code == ' ' && cp > ls_c_str (&s.text->string))
+	{
+	  s.space_char = cp;
+	  s.space_glyph_cnt = s.glyph_cnt;
+          s.space_width_left = s.width_left;
+	}
+
+      /* Enough room on this line? */
+      if (char_width + kern_adjust > s.width_left)
+	{
+	  if (s.space_char == NULL)
+            {
+              finish_line (this, &s);
+              kern_adjust = 0;
+            }
+          else
+            {
+              cp = s.space_char;
+              s.glyph_cnt = s.space_glyph_cnt;
+              s.width_left = s.space_width_left;
+              finish_line (this, &s);
+              continue;
+            }
+	}
+
+      if (s.glyph_cnt >= glyph_cap)
+        {
+          glyph_cap = 2 * (glyph_cap + 8);
+          s.glyphs = xnrealloc (s.glyphs, glyph_cap, sizeof *s.glyphs);
+          s.glyph_kerns = xnrealloc (s.glyph_kerns,
+                                     glyph_cap, sizeof *s.glyph_kerns);
+        }
+      s.glyphs[s.glyph_cnt] = cur;
+      s.glyph_kerns[s.glyph_cnt] = kern_adjust;
+      s.glyph_cnt++;
+
+      s.width_left -= char_width + kern_adjust;
+    }
+  if (s.height_left >= this->font_height && s.glyph_cnt > 0)
+    finish_line (this, &s);
+
+  if (width != NULL)
+    *width = s.max_width;
+  if (height != NULL)
+    *height = text->v - s.height_left;
+  free (s.glyphs);
+  free (s.glyph_kerns);
+}
+
+static void
+ps_text_metrics (struct outp_driver *this, const struct outp_text *t,
+                 int *width, int *height)
+{
+  text (this, t, false, width, height);
+}
+
+static void
+ps_text_draw (struct outp_driver *this, const struct outp_text *t)
+{
+  assert (this->page_open);
+  text (this, t, true, NULL, NULL);
+}
+
 static void
 ps_chart_initialise (struct outp_driver *this UNUSED, struct chart *ch)
 {
@@ -2884,12 +1100,12 @@ ps_chart_initialise (struct outp_driver *this UNUSED, struct chart *ch)
   int x_origin, y_origin;
 
   ch->file = tmpfile ();
-  if (ch->file == NULL) 
+  if (ch->file == NULL)
     {
       ch->lp = NULL;
       return;
     }
-  
+
   size = this->width < this->length ? this->width : this->length;
   x_origin = x->left_margin + (size - this->width) / 2;
   y_origin = x->bottom_margin + (size - this->length) / 2;
@@ -2905,7 +1121,7 @@ ps_chart_initialise (struct outp_driver *this UNUSED, struct chart *ch)
 #endif
 }
 
-static void 
+static void
 ps_chart_finalise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
 {
 #ifndef NO_CHARTS
@@ -2913,59 +1129,311 @@ ps_chart_finalise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
   char buf[BUFSIZ];
   static int doc_num = 0;
 
-  if (this->page_open) 
-    {
-      this->class->close_page (this);
-      this->page_open = 0; 
-    }
-  this->class->open_page (this);
-  fprintf (x->file.file,
-           "/sp save def%s"
-           "%d %d translate 1000 dup scale%s"
-           "userdict begin%s"
-           "/showpage { } def%s"
-           "0 setgray 0 setlinecap 1 setlinewidth%s"
-           "0 setlinejoin 10 setmiterlimit [ ] 0 setdash newpath clear%s"
-           "%%%%BeginDocument: %d%s",
-           x->eol,
-           -x->left_margin, -x->bottom_margin, x->eol,
-           x->eol,
-           x->eol,
-           x->eol,
-           x->eol,
-           doc_num++, x->eol);
+  outp_eject_page (this);
+  fprintf (x->file,
+           "/sp save def\n"
+           "%d %d translate 1000 dup scale\n"
+           "userdict begin\n"
+           "/showpage { } def\n"
+           "0 setgray 0 setlinecap 1 setlinewidth\n"
+           "0 setlinejoin 10 setmiterlimit [ ] 0 setdash newpath clear\n"
+           "%%%%BeginDocument: %d\n",
+           -x->left_margin, -x->bottom_margin,
+           doc_num++);
 
   rewind (ch->file);
-  while (fwrite (buf, 1, fread (buf, 1, sizeof buf, ch->file), x->file.file))
+  while (fwrite (buf, 1, fread (buf, 1, sizeof buf, ch->file), x->file))
     continue;
   fclose (ch->file);
 
-  fprintf (x->file.file,
-           "%%%%EndDocument%s"
-           "end%s"
-           "sp restore%s",
-           x->eol,
-           x->eol,
-           x->eol);
-  this->class->close_page (this);
-  this->page_open = 0;
+  fputs ("%%%%EndDocument\n"
+         "end\n"
+         "sp restore\n",
+         x->file);
+  outp_close_page (this);
 #endif
+}
+
+static void embed_font (struct outp_driver *this, struct font *font);
+static void reencode_font (struct outp_driver *this, struct font *font);
+
+/* Loads and returns the font for STRING, which has the format
+   "AFM,PFA,ENC", where AFM is the AFM file's name, PFA is the
+   PFA or PFB file's name, and ENC is the encoding file's name.
+   PFA and ENC are optional.
+   Returns a null pointer if unsuccessful. */
+static struct font *
+load_font (const char *string_)
+{
+  char *string = xstrdup (string_);
+  struct font *font;
+  char *position = string;
+  char *token;
+  char *afm_file_name;
+
+  font = xmalloc (sizeof *font);
+  font->metrics = NULL;
+  font->embed_fn = NULL;
+  font->encoding_fn = NULL;
+
+  token = strsep (&position, ",");
+  if (token == NULL)
+    {
+      error (0, 0, _("\"%s\": bad font specification"), string);
+      goto error;
+    }
+
+  /* Read AFM file. */
+  afm_file_name = find_ps_file (token);
+  if (afm_file_name == NULL)
+    {
+      error (0, 0, _("could not find AFM file \"%s\""), token);
+      goto error;
+    }
+  font->metrics = afm_open (afm_file_name);
+  free (afm_file_name);
+  if (font->metrics == NULL)
+    goto error;
+
+  /* Find font file to embed. */
+  token = strsep (&position, ",");
+  if (token != NULL && *token != '\0')
+    {
+      font->embed_fn = find_ps_file (token);
+      if (font->embed_fn == NULL)
+        error (0, 0, _("could not find font \"%s\""), token);
+    }
+
+  /* Find encoding. */
+  token = strsep (&position, ",");
+  if (token != NULL && *token == '\0')
+    {
+      font->encoding_fn = find_ps_file (token);
+      if (font->encoding_fn == NULL)
+        error (0, 0, _("could not find encoding \"%s\""), token);
+    }
+
+  free (string);
+  return font;
+
+ error:
+  free (string);
+  free_font (font);
+  return NULL;
+}
+
+/* Frees FONT. */
+static void
+free_font (struct font *font)
+{
+  if (font != NULL)
+    {
+      afm_close (font->metrics);
+      free (font->embed_fn);
+      free (font->encoding_fn);
+      free (font);
+    }
+}
+
+/* Emits PostScript code to embed FONT (if necessary), scale it
+   to the proper size, re-encode it (if necessary), and store the
+   resulting font as an object named F#, where INDEX is
+   substituted for #. */
+static void
+setup_font (struct outp_driver *this, struct font *font, int index)
+{
+  struct ps_driver_ext *x = this->ext;
+  char *ps_name;
+
+  if (font->embed_fn != NULL)
+    embed_font (this, font);
+  else
+    fprintf (x->file, "%%%%IncludeResource: font %s\n",
+             afm_get_findfont_name (font->metrics));
+
+  ps_name = quote_ps_name (afm_get_findfont_name (font->metrics));
+  fprintf (x->file, "%s findfont %d scalefont\n", ps_name, this->font_height);
+  free (ps_name);
+
+  if (font->encoding_fn != NULL)
+    reencode_font (this, font);
+
+  fprintf (x->file, "/F%d ED\n", index);
+}
+
+/* Copies up to COPY_BYTES bytes from SRC to DST, stopping at
+   end-of-file or on error. */
+static void
+copy_bytes_literally (FILE *src, FILE *dst, unsigned long copy_bytes)
+{
+  while (copy_bytes > 0)
+    {
+      char buffer[BUFSIZ];
+      unsigned long chunk_bytes = MIN (copy_bytes, sizeof buffer);
+      size_t read_bytes = fread (buffer, 1, chunk_bytes, src);
+      size_t write_bytes = fwrite (buffer, 1, read_bytes, dst);
+      if (write_bytes != chunk_bytes)
+        break;
+      copy_bytes -= chunk_bytes;
+    }
+}
+
+/* Copies up to COPY_BYTES bytes from SRC to DST, stopping at
+   end-of-file or on error.  The bytes are translated into
+   hexadecimal during copying and broken into lines with
+   new-line characters. */
+static void
+copy_bytes_as_hex (FILE *src, FILE *dst, unsigned long copy_bytes)
+{
+  unsigned long i;
+
+  for (i = 0; i < copy_bytes; i++)
+    {
+      int c = getc (src);
+      if (c == EOF)
+        break;
+      if (i > 0 && i % 36 == 0)
+        putc ('\n', dst);
+      fprintf (dst, "%02X", c);
+    }
+  putc ('\n', dst);
+}
+
+/* Embeds the given FONT into THIS driver's output stream. */
+static void
+embed_font (struct outp_driver *this, struct font *font)
+{
+  struct ps_driver_ext *x = this->ext;
+  FILE *file;
+  int c;
+
+  file = fopen (font->embed_fn, "rb");
+  if (file == NULL)
+    {
+      error (errno, 0, _("cannot open font file \"%s\""), font->embed_fn);
+      return;
+    }
+
+  fprintf (x->file, "%%%%BeginResource: font %s\n",
+           afm_get_findfont_name (font->metrics));
+
+  c = getc (file);
+  ungetc (c, file);
+  if (c != 128)
+    {
+      /* PFA file.  Copy literally. */
+      copy_bytes_literally (file, x->file, ULONG_MAX);
+    }
+  else
+    {
+      /* PFB file.  Translate as specified in Adobe Technical
+         Note #5040. */
+      while ((c = getc (file)) == 128)
+        {
+          int type;
+          unsigned long length;
+
+          type = getc (file);
+          if (type == 3)
+            break;
+
+          length = getc (file);
+          length |= (unsigned long) getc (file) << 8;
+          length |= (unsigned long) getc (file) << 16;
+          length |= (unsigned long) getc (file) << 24;
+
+          if (type == 1)
+            copy_bytes_literally (file, x->file, length);
+          else if (type == 2)
+            copy_bytes_as_hex (file, x->file, length);
+          else
+            break;
+        }
+    }
+  if (freaderror (file))
+    error (errno, 0, _("reading font file \"%s\""), font->embed_fn);
+  fputs ("%%EndResource\n", x->file);
+}
+
+/* Re-encodes FONT according to the specified encoding. */
+static void
+reencode_font (struct outp_driver *this, struct font *font)
+{
+  struct ps_driver_ext *x = this->ext;
+
+  struct string line;
+
+  int line_number;
+  FILE *file;
+
+  char *tab[256];
+
+  int i;
+
+  file = fopen (font->encoding_fn, "r");
+  if (file == NULL)
+    {
+      error (errno, 0, _("cannot open font encoding file \"%s\""),
+             font->encoding_fn);
+      return;
+    }
+
+  for (i = 0; i < 256; i++)
+    tab[i] = NULL;
+
+  line_number = 0;
+
+  ds_init (&line, 0);
+  while (ds_get_config_line (file, &line, &line_number))
+    {
+      char *pschar, *code;
+      char *save_ptr, *tail;
+      int code_val;
+
+      if (ds_is_empty (&line) == 0)
+        continue;
+
+      pschar = strtok_r (ds_c_str (&line), " \t\r\n", &save_ptr);
+      code = strtok_r (NULL, " \t\r\n", &save_ptr);
+      if (pschar == NULL || code == NULL)
+        continue;
+
+      code_val = strtol (code, &tail, 0);
+      if (*tail)
+        {
+          error_at_line (0, 0, font->encoding_fn, line_number,
+                         _("invalid numeric format"));
+          continue;
+        }
+      if (code_val < 0 || code_val > 255)
+        continue;
+      if (tab[code_val] != 0)
+        free (tab[code_val]);
+      tab[code_val] = xstrdup (pschar);
+    }
+  ds_destroy (&line);
+
+  fputs ("[", x->file);
+  for (i = 0; i < 256; i++)
+    {
+      char *name = quote_ps_name (tab[i] != NULL ? tab[i] : ".notdef");
+      fprintf (x->file, "%s\n", name);
+      free (name);
+      free (tab[i]);
+    }
+  fputs ("] RF\n", x->file);
+
+  if (freaderror (file) != 0)
+    error (errno, 0, "closing Postscript encoding \"%s\"", font->encoding_fn);
 }
 
 /* PostScript driver class. */
 struct outp_class postscript_class =
 {
   "postscript",
-  MAGIC_PS,
   0,
 
-  ps_open_global,
-  ps_close_global,
-  ps_font_sizes,
-
-  ps_preopen_driver,
-  ps_option,
-  ps_postopen_driver,
+  ps_open_driver,
   ps_close_driver,
 
   ps_open_page,
@@ -2973,70 +1441,10 @@ struct outp_class postscript_class =
 
   ps_submit,
 
-  ps_line_horz,
-  ps_line_vert,
-  ps_line_intersection,
-
-  ps_box,
-  ps_polyline_begin,
-  ps_polyline_point,
-  ps_polyline_end,
-
-  ps_text_set_font_by_name,
-  ps_text_set_font_by_position,
-  ps_text_set_font_family,
-  ps_text_get_font_name,
-  ps_text_get_font_family,
-  ps_text_set_size,
-  ps_text_get_size,
+  ps_line,
   ps_text_metrics,
   ps_text_draw,
 
   ps_chart_initialise,
   ps_chart_finalise
-};
-
-/* EPSF driver class.  FIXME: Probably doesn't work right. */
-struct outp_class epsf_class =
-{
-  "epsf",
-  MAGIC_EPSF,
-  0,
-
-  ps_open_global,
-  ps_close_global,
-  ps_font_sizes,
-
-  ps_preopen_driver,
-  ps_option,
-  ps_postopen_driver,
-  ps_close_driver,
-
-  ps_open_page,
-  ps_close_page,
-
-  ps_submit,
-
-  ps_line_horz,
-  ps_line_vert,
-  ps_line_intersection,
-
-  ps_box,
-  ps_polyline_begin,
-  ps_polyline_point,
-  ps_polyline_end,
-
-  ps_text_set_font_by_name,
-  ps_text_set_font_by_position,
-  ps_text_set_font_family,
-  ps_text_get_font_name,
-  ps_text_get_font_family,
-  ps_text_set_size,
-  ps_text_get_size,
-  ps_text_metrics,
-  ps_text_draw,
-
-  ps_chart_initialise,
-  ps_chart_finalise
-
 };

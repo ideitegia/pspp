@@ -1,11 +1,28 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2006-01-28 19:05:46 blp>
+Time-stamp: <2006-04-03 10:56:18 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+
 Changes since 0.4.1:
 
+  Output changes:
+
+    * Output configuration options have changed.  Please refer to the
+      manual for a full description of the available options.
+
+      In consequence, you will need to reinstall your "devices" file.
+      "make install" will do this for you.
+
+    * The PostScript driver now obtains font metrics from AFM files,
+      instead of Groff-format metrics files.  It can now embed
+      PostScript fonts in its output.
+
+      In consequence, you will need to install an AFM file for each
+      font used in PostScript output.  "make install" will install AFM
+      files for the standard PostScript files, including the ones that
+      the PostScript driver uses by default.
 
 Changes since 0.4.0 to 0.4.1:
 
@@ -21,10 +38,10 @@ Changes since 0.4.0 to 0.4.1:
 
     A new PSPP extension called "scratch files" has been implemented.
     A scratch file, like a system file, consists of a dictionary and
-    any number of cases.  A sufficiently small scratch file is stored
-    in memory; if it grows too large, it is written to disk.  By
-    default, any file handle whose name begins with # is assumed to
-    refer to a scratch file.  
+    any number of cases.  Small scratch files are stored in memory;
+    one that grows too large is written to disk.  By default, any file
+    handle whose name begins with # is assumed to refer to a scratch
+    file.
 
     Scratch files can be used just about anywhere a system or portable
     file can be used.  Also, portable files are now allowed in most

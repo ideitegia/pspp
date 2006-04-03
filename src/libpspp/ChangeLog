@@ -1,3 +1,10 @@
+Mon Apr  3 11:10:21 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c: (ds_separate) Change interface for cleanliness and
+	consistency with ds_tokenize(), and rewrite to shorten and
+	simplify.  Updated all callers.
+	(ds_tokenize) New function.
+
 Fri Mar 31 10:38:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	Add freaderror() analogous to fwriteerror() in gnulib.

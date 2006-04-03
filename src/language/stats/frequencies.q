@@ -1214,7 +1214,7 @@ dump_full (struct variable *v)
     }
 
   tab_box (t, TAL_1, TAL_1,
-	   cmd.spaces == FRQ_SINGLE ? -1 : (TAL_1 | TAL_SPACING), TAL_1,
+	   cmd.spaces == FRQ_SINGLE ? -1 : TAL_GAP, TAL_1,
 	   0, 0, 4 + lab, r);
   tab_hline (t, TAL_2, 0, 4 + lab, 2);
   tab_hline (t, TAL_2, 0, 4 + lab, r);
@@ -1224,7 +1224,7 @@ dump_full (struct variable *v)
   tab_float (t, 2 + lab, r, TAB_NONE, 100.0, 5, 1);
   tab_float (t, 3 + lab, r, TAB_NONE, 100.0, 5, 1);
 
-  tab_title (t, 1, "%s: %s", v->name, v->label ? v->label : "");
+  tab_title (t, "%s: %s", v->name, v->label ? v->label : "");
   tab_submit (t);
 
 }
@@ -1234,9 +1234,9 @@ dump_full (struct variable *v)
 static void
 condensed_dim (struct tab_table *t, struct outp_driver *d)
 {
-  int cum_w = max (outp_string_width (d, _("Cum")),
-		   max (outp_string_width (d, _("Cum")),
-			outp_string_width (d, "000")));
+  int cum_w = max (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
+		   max (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
+			outp_string_width (d, "000", OUTP_PROPORTIONAL)));
 
   int i;
 
@@ -1295,10 +1295,10 @@ dump_condensed (struct variable *v)
     }
 
   tab_box (t, TAL_1, TAL_1,
-	   cmd.spaces == FRQ_SINGLE ? -1 : (TAL_1 | TAL_SPACING), TAL_1,
+	   cmd.spaces == FRQ_SINGLE ? -1 : TAL_GAP, TAL_1,
 	   0, 0, 3, r - 1);
   tab_hline (t, TAL_2, 0, 3, 2);
-  tab_title (t, 1, "%s: %s", v->name, v->label ? v->label : "");
+  tab_title (t, "%s: %s", v->name, v->label ? v->label : "");
   tab_columns (t, SOM_COL_DOWN, 1);
   tab_submit (t);
 }
@@ -1500,7 +1500,7 @@ dump_statistics (struct variable *v, int show_varname)
 
 
   tab_vline (t, TAL_1 , 2, 0, tab_nr(t) - 1);
-  tab_vline (t, TAL_1 | TAL_SPACING , 1, 0, tab_nr(t) - 1 ) ;
+  tab_vline (t, TAL_GAP , 1, 0, tab_nr(t) - 1 ) ;
   
   r=2; /* N missing and N valid are always dumped */
 
@@ -1537,9 +1537,9 @@ dump_statistics (struct variable *v, int show_varname)
   if (show_varname)
     {
       if (v->label)
-	tab_title (t, 1, "%s: %s", v->name, v->label);
+	tab_title (t, "%s: %s", v->name, v->label);
       else
-	tab_title (t, 0, v->name);
+	tab_title (t, "%s", v->name);
     }
   else
     tab_flags (t, SOMF_NO_TITLE);

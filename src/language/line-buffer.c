@@ -465,7 +465,7 @@ read_syntax_file (struct string *line, struct getl_source *s)
 
   /* Echo to listing file, if configured to do so. */
   if (get_echo ())
-    tab_output_text (TAB_LEFT | TAT_FIX, ds_c_str (line));
+    tab_output_text (TAB_LEFT | TAB_FIX, ds_c_str (line));
 
   return true;
 }

@@ -150,7 +150,7 @@ reg_stats_r (pspp_linreg_cache * c)
   tab_float (t, 2, 1, TAB_RIGHT, rsq, 10, 2);
   tab_float (t, 3, 1, TAB_RIGHT, adjrsq, 10, 2);
   tab_float (t, 4, 1, TAB_RIGHT, std_error, 10, 2);
-  tab_title (t, 0, _("Model Summary"));
+  tab_title (t, _("Model Summary"));
   tab_submit (t);
 }
 
@@ -252,7 +252,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
       pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
       tab_float (t, 6, j + 1, 0, pval, 10, 2);
     }
-  tab_title (t, 0, _("Coefficients"));
+  tab_title (t, _("Coefficients"));
   tab_submit (t);
   free (tmp);
 }
@@ -313,7 +313,7 @@ reg_stats_anova (pspp_linreg_cache * c)
 
   tab_float (t, 6, 1, 0, pval, 8, 3);
 
-  tab_title (t, 0, _("ANOVA"));
+  tab_title (t, _("ANOVA"));
   tab_submit (t);
 }
 static void
@@ -384,7 +384,7 @@ reg_stats_bcov (pspp_linreg_cache * c)
 		     gsl_matrix_get (c->cov, row, col), 8, 3);
 	}
     }
-  tab_title (t, 0, _("Coefficient Correlations"));
+  tab_title (t, _("Coefficient Correlations"));
   tab_submit (t);
 }
 static void

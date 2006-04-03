@@ -677,7 +677,7 @@ ssbox_one_sample_init(struct ssbox *this,
   this->populate = ssbox_one_sample_populate;
 
   ssbox_base_init(this, hsize,vsize);
-  tab_title (this->t, 0, _("One-Sample Statistics"));
+  tab_title (this->t, _("One-Sample Statistics"));
   tab_vline(this->t, TAL_2, 1,0,vsize - 1);
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
@@ -699,8 +699,8 @@ ssbox_independent_samples_init(struct ssbox *this,
   this->populate = ssbox_independent_samples_populate;
 
   ssbox_base_init(this, hsize,vsize);
-  tab_title (this->t, 0, _("Group Statistics"));
-  tab_vline(this->t,0,1,0,vsize - 1);
+  tab_vline (this->t, TAL_GAP, 1, 0,vsize - 1);
+  tab_title (this->t, _("Group Statistics"));
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, indep_var->name);
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
@@ -823,8 +823,8 @@ ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd UNUSED)
   this->populate = ssbox_paired_populate;
 
   ssbox_base_init(this, hsize,vsize);
-  tab_title (this->t, 0, _("Paired Sample Statistics"));
-  tab_vline(this->t,TAL_0,1,0,vsize-1);
+  tab_title (this->t, _("Paired Sample Statistics"));
+  tab_vline(this->t,TAL_GAP,1,0,vsize-1);
   tab_vline(this->t,TAL_2,2,0,vsize-1);
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("N"));
@@ -962,7 +962,7 @@ trbox_independent_samples_init(struct trbox *self,
   self->populate = trbox_independent_samples_populate;
 
   trbox_base_init(self,cmd->n_variables*2,hsize);
-  tab_title(self->t,0,_("Independent Samples Test"));
+  tab_title(self->t,_("Independent Samples Test"));
   tab_hline(self->t,TAL_1,2,hsize-1,1);
   tab_vline(self->t,TAL_2,2,0,vsize-1);
   tab_vline(self->t,TAL_1,4,0,vsize-1);
@@ -1150,14 +1150,14 @@ trbox_paired_init(struct trbox *self,
   self->populate = trbox_paired_populate;
 
   trbox_base_init(self,n_pairs,hsize);
-  tab_title (self->t, 0, _("Paired Samples Test"));
+  tab_title (self->t, _("Paired Samples Test"));
   tab_hline(self->t,TAL_1,2,6,1);
   tab_vline(self->t,TAL_2,2,0,vsize - 1);
   tab_joint_text(self->t,2,0,6,0,TAB_CENTER,_("Paired Differences"));
   tab_box(self->t,-1,-1,-1,TAL_1, 2,1,6,vsize-1);
   tab_box(self->t,-1,-1,-1,TAL_1, 6,0,hsize-1,vsize-1);
   tab_hline(self->t,TAL_1,5,6, 2);
-  tab_vline(self->t,TAL_0,6,0,1);
+  tab_vline(self->t,TAL_GAP,6,0,1);
 
   tab_joint_text(self->t, 5, 1, 6, 1, TAB_CENTER | TAT_PRINTF, 
 		 _("%g%% Confidence Interval of the Difference"),
@@ -1244,7 +1244,7 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
   self->populate = trbox_one_sample_populate;
 
   trbox_base_init(self, cmd->n_variables,hsize);
-  tab_title (self->t, 0, _("One-Sample Test"));
+  tab_title (self->t, _("One-Sample Test"));
   tab_hline(self->t, TAL_1, 1, hsize - 1, 1);
   tab_vline(self->t, TAL_2, 1, 0, vsize - 1);
 
@@ -1258,7 +1258,7 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
 		 _("%g%% Confidence Interval of the Difference"),
 		 cmd->criteria*100.0);
 
-  tab_vline(self->t,TAL_0,6,1,1);
+  tab_vline(self->t,TAL_GAP,6,1,1);
   tab_hline(self->t,TAL_1,5,6,2);
   tab_text (self->t, 1, 2, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("df"));
@@ -1359,7 +1359,7 @@ pscbox(void)
   tab_hline(table, TAL_2, 0, cols - 1, 1);
   tab_vline(table, TAL_2, 2, 0, rows - 1);
   tab_dim(table, tab_natural_dimensions);
-  tab_title(table, 0, _("Paired Samples Correlations"));
+  tab_title(table, _("Paired Samples Correlations"));
 
   /* column headings */
   tab_text(table, 2,0, TAB_CENTER | TAT_TITLE, _("N"));

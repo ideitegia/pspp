@@ -115,10 +115,12 @@ write_line (struct outp_driver *d, char *s)
   struct outp_text text;
   
   assert (d->cp_y + d->font_height <= d->length);
-  text.options = OUTP_T_JUST_LEFT;
-  ls_init (&text.s, s, strlen (s));
+  text.font = OUTP_FIXED;
+  text.justification = OUTP_LEFT;
+  ls_init (&text.string, s, strlen (s));
   text.x = d->cp_x;
   text.y = d->cp_y;
+  text.h = text.v = INT_MAX;
   d->class->text_draw (d, &text);
   d->cp_x = 0;
   d->cp_y += d->font_height;
@@ -252,25 +254,17 @@ write_all_headers (void *aux UNUSED)
 	{
 	  struct html_driver_ext *x = d->ext;
   
-	  assert (d->driver_open);
-	  if (x->sequence_no == 0 && !d->class->open_page (d))
-	    {
-	      msg (ME, _("Cannot open first page on HTML device %s."),
-		   d->name);
-	      return;
-	    }
-
-	  fputs ("<TABLE BORDER=1>\n  <TR>\n", x->file.file);
+	  fputs ("<TABLE BORDER=1>\n  <TR>\n", x->file);
 	  
 	  {
 	    size_t i;
 
 	    for (i = 0; i < cmd.n_variables; i++)
-	      fprintf (x->file.file, "    <TH><I><B>%s</B></I></TH>\n",
+	      fprintf (x->file, "    <TH><EM>%s</EM></TH>\n",
 		       cmd.v_variables[i]->name);
 	  }
 
-	  fputs ("  <TR>\n", x->file.file);
+	  fputs ("  </TR>\n", x->file);
 	}
       else
 	assert (0);
@@ -380,16 +374,14 @@ clean_up (void)
 	    free (prc->header);
 	  }
 	free (prc);
-      
-	d->class->text_set_font_by_name (d, "PROP");
       }
     else if (d->class == &html_class)
       {
-	if (d->driver_open && d->page_open)
+	if (d->page_open)
 	  {
 	    struct html_driver_ext *x = d->ext;
 
-	    fputs ("</TABLE>\n", x->file.file);
+	    fputs ("</TABLE>\n", x->file);
 	  }
       }
     else
@@ -405,12 +397,9 @@ static void
 write_varname (struct outp_driver *d, char *string, int indent)
 {
   struct outp_text text;
-
-  text.options = OUTP_T_JUST_LEFT;
-  ls_init (&text.s, string, strlen (string));
-  d->class->text_metrics (d, &text);
+  int width;
   
-  if (d->cp_x + text.h > d->width)
+  if (d->cp_x + outp_string_width (d, string, OUTP_FIXED) > d->width)
     {
       d->cp_y += d->font_height;
       if (d->cp_y + d->font_height > d->length)
@@ -418,10 +407,15 @@ write_varname (struct outp_driver *d, char *string, int indent)
       d->cp_x = indent;
     }
 
+  text.font = OUTP_FIXED;
+  text.justification = OUTP_LEFT;
+  ls_init (&text.string, string, strlen (string));
   text.x = d->cp_x;
   text.y = d->cp_y;
+  text.h = text.v = INT_MAX;
   d->class->text_draw (d, &text);
-  d->cp_x += text.h;
+  d->class->text_metrics (d, &text, &width, NULL);
+  d->cp_x += width;
 }
 
 /* When we can't fit all the values across the page, we write out all
@@ -448,13 +442,15 @@ write_fallback_headers (struct outp_driver *d)
 	outp_eject_page (d);
       
       /* The leader is a string like `Line 1: '.  Write the leader. */
-      sprintf(leader, "%s %d:", Line, ++line_number);
-      text.options = OUTP_T_JUST_LEFT;
-      ls_init (&text.s, leader, strlen (leader));
+      sprintf (leader, "%s %d:", Line, ++line_number);
+      text.font = OUTP_FIXED;
+      text.justification = OUTP_LEFT;
+      ls_init (&text.string, leader, strlen (leader));
       text.x = 0;
       text.y = d->cp_y;
+      text.h = text.v = INT_MAX;
       d->class->text_draw (d, &text);
-      d->cp_x = text.h;
+      d->class->text_metrics (d, &text, &d->cp_x, NULL);
 
       goto entry;
       do
@@ -528,8 +524,7 @@ determine_layout (void)
       
       assert (d->class->special == 0);
 
-      if (!d->page_open)
-	d->class->open_page (d);
+      outp_open_page (d);
       
       max_width = n_chars_width (d);
       largest_page_width = max (largest_page_width, max_width);
@@ -548,7 +543,6 @@ determine_layout (void)
       if (width <= max_width)
 	{
 	  prc->header_rows = 2;
-	  d->class->text_set_font_by_name (d, "FIXED");
 	  continue;
 	}
 
@@ -593,8 +587,6 @@ determine_layout (void)
 	    prc->header_rows = max (prc->header_rows,
 				    strlen (cmd.v_variables[column]->name));
 	  prc->header_rows++;
-
-	  d->class->text_set_font_by_name (d, "FIXED");
 	  continue;
 	}
 
@@ -605,7 +597,6 @@ determine_layout (void)
       d->cp_y += d->font_height;
       write_fallback_headers (d);
       d->cp_y += d->font_height;
-      d->class->text_set_font_by_name (d, "FIXED");
     }
 
   line_buf = xmalloc (max (1022, largest_page_width) + 2);
@@ -692,12 +683,13 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	struct html_driver_ext *x = d->ext;
 	int column;
 
-	fputs ("  <TR>\n", x->file.file);
+	fputs ("  <TR>\n", x->file);
 	
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
 	    struct variable *v = cmd.v_variables[column];
-	    char buf[41];
+	    char buf[256];
+            struct fixed_string s;
 	    
             if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
 	      data_out (buf, &v->print, case_data (c, v->fv));
@@ -707,13 +699,14 @@ list_cases (struct ccase *c, void *aux UNUSED)
                 case_idx_value.f = case_idx;
                 data_out (buf, &v->print, &case_idx_value); 
               }
-	    buf[v->print.w] = 0;
 
-	    fprintf (x->file.file, "    <TD ALIGN=RIGHT>%s</TD>\n",
-		     &buf[strspn (buf, " ")]);
+            ls_init (&s, buf, v->print.w);
+            fputs ("    <TD>", x->file);
+            html_put_cell_contents (d, TAB_FIX, &s);
+            fputs ("</TD>\n", x->file);
 	  }
 	  
-	fputs ("  </TR>\n", x->file.file);
+	fputs ("  </TR>\n", x->file);
       }
     else
       assert (0);

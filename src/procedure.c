@@ -881,8 +881,8 @@ dump_splits (struct ccase *c)
 
   t = tab_create (3, split_cnt + 1, 0);
   tab_dim (t, tab_natural_dimensions);
-  tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, split_cnt);
-  tab_vline (t, TAL_1 | TAL_SPACING, 2, 0, split_cnt);
+  tab_vline (t, TAL_GAP, 1, 0, split_cnt);
+  tab_vline (t, TAL_GAP, 2, 0, split_cnt);
   tab_text (t, 0, 0, TAB_NONE, _("Variable"));
   tab_text (t, 1, 0, TAB_LEFT, _("Value"));
   tab_text (t, 2, 0, TAB_LEFT, _("Label"));

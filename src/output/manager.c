@@ -147,13 +147,7 @@ output_entity (struct outp_driver *driver, struct som_entity *entity)
   bool fits_width, fits_length;
   d = driver;
 
-  assert (d->driver_open);
-  if (!d->page_open && !d->class->open_page (d))
-    {
-      d->device = OUTP_DEV_DISABLED;
-      return;
-    }
-  
+  outp_open_page (d);
   if (d->class->special || entity->type == SOM_CHART)
     {
       driver->class->submit (d, entity);

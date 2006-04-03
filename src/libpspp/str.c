@@ -431,7 +431,7 @@ ds_chomp (struct string *st, char c_)
    empty string if no tokens remain.  Returns true if a token was
    obtained, false otherwise.
 
-   Before the first call, initialize *SAVE_IDX to -1.  Do not
+   Before the first call, initialize *SAVE_IDX to 0.  Do not
    modify *SAVE_IDX between calls.
 
    ST divides into exactly one more tokens than it contains
@@ -440,28 +440,36 @@ ds_chomp (struct string *st, char c_)
    empty string contains a single token. */
 bool
 ds_separate (const struct string *st, struct string *token,
-             const char *delimiters, int *save_idx)
+             const char *delimiters, size_t *save_idx)
 {
-  int start_idx;
-
-  ds_clear (token);
-  if (*save_idx < 0) 
+  if (*save_idx <= ds_length (st))
     {
-      *save_idx = 0;
-      if (ds_is_empty (st))
-        return true;
+      size_t length = ds_cspan (st, *save_idx, delimiters);
+      ds_assign_substring (token, st, *save_idx, length);
+      *save_idx += length + 1;
+      return true;
     }
-  else if (*save_idx < ds_length (st))
-    ++*save_idx;
-  else
+  else 
     return false;
+}
 
-  start_idx = *save_idx;
-  while (*save_idx < ds_length (st)
-         && strchr (delimiters, ds_data (st)[*save_idx]) == NULL)
-    ++*save_idx;
-  ds_assign_substring (token, st, start_idx, *save_idx - start_idx);
-  return true;
+/* Divides ST into tokens separated by any of the DELIMITERS,
+   merging adjacent delimiters so that the empty string is never
+   produced as a token.  Each call replaces TOKEN by the next
+   token in ST, or by an empty string if no tokens remain.
+   Returns true if a token was obtained, false otherwise.
+
+   Before the first call, initialize *SAVE_IDX to 0.  Do not
+   modify *SAVE_IDX between calls. */
+bool
+ds_tokenize (const struct string *st, struct string *token,
+             const char *delimiters, size_t *save_idx)
+{
+  size_t start = *save_idx + ds_span (st, *save_idx, delimiters);
+  size_t length = ds_cspan (st, start, delimiters);
+  ds_assign_substring (token, st, start, length);
+  *save_idx = start + length;
+  return length > 0;
 }
 
 /* Returns true if ST is empty, false otherwise. */

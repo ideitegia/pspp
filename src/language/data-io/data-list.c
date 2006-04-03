@@ -792,12 +792,12 @@ dump_fixed_table (const struct dls_var_spec *specs,
       tab_text (t, 1, i, TAT_PRINTF, "%d", spec->rec);
       tab_text (t, 2, i, TAT_PRINTF, "%3d-%3d",
 		    spec->fc, spec->lc);
-      tab_text (t, 3, i, TAB_LEFT | TAT_FIX,
+      tab_text (t, 3, i, TAB_LEFT | TAB_FIX,
 		    fmt_to_string (&spec->input));
     }
 
-  tab_title (t, 1, ngettext ("Reading %d record from %s.",
-                             "Reading %d records from %s.", rec_cnt),
+  tab_title (t, ngettext ("Reading %d record from %s.",
+                          "Reading %d records from %s.", rec_cnt),
              rec_cnt, fh_get_name (fh));
   tab_submit (t);
 }
@@ -908,11 +908,11 @@ dump_free_table (const struct data_list_pgm *dls,
     for (i = 1, spec = dls->first; spec; spec = spec->next, i++)
       {
 	tab_text (t, 0, i, TAB_LEFT, spec->v->name);
-	tab_text (t, 1, i, TAB_LEFT | TAT_FIX, fmt_to_string (&spec->input));
+	tab_text (t, 1, i, TAB_LEFT | TAB_FIX, fmt_to_string (&spec->input));
       }
   }
 
-  tab_title (t, 1, _("Reading free-form data from %s."), fh_get_name (fh));
+  tab_title (t, _("Reading free-form data from %s."), fh_get_name (fh));
   
   tab_submit (t);
 }

@@ -1,3 +1,120 @@
+Mon Apr  3 11:14:38 2006  Ben Pfaff  <blp@gnu.org>
+
+	Rewrite a lot of the output drivers and infrastructure.
+	Started transitioning from msg() to error().
+	Vertical rules in tables now default to putting a small gap
+	between columns, instead of no gap or rule at all.
+	See NEWS for user-visible changes.
+
+	* automake.mk: (output_sources) Add afm.c, afm.h.  Remove font.h,
+	groff-font.c.
+	
+	* afm.c, afm.h: New files.
+
+	* font.h: Removed.
+
+	* groff-font.c: Removed.
+	
+	* ascii.c: Rewrote and simplified.
+
+	* html.c: Ditto.
+
+	* postscript.c: Ditto.
+
+	* output.c: (struct outp_driver_class_list) Move here from
+	output.h.  Remove ref_count member and all references to it.
+	(outp_init) Remove epsf_class references.
+	(init_default_drivers) Use new configure_driver_line() interface.
+	(parse_options) Renamed outp_parse_options(), changed interface.
+	(configure_driver) Changed args from `const char *'s to `const
+	struct string *'s.  Rewrote.  Don't call ->open_global().  Now
+	just calls ->open_driver() instead of ->preopen_driver(),
+	->option(), ->postopen_driver().
+	(configure_driver_line) Adapt to new configure_driver() interface.
+	(destroy_driver) Don't call ->close_global().
+	(option_cmp) Removed.
+	(outp_match_keyword) Rewrite for simplicity.
+	(outp_open_page) New function.  Changed all equivalent
+	functionality to use this function instead.
+	(outp_close_page) Ditto.
+	(outp_eject_page) Use above functions.
+	(outp_string_width) Add font argument and change all callers to
+	pass one.
+
+	* output.h: (struct rect) Removed.
+	(OUTP_L_*) Name this enumeration "enum outp_line_style".
+	(OUTP_L_SPECIAL) Removed.
+	(struct color) Removed.
+	(OUTP_F_*) Removed.
+	(struct outp_styles) Removed.
+	(OUTP_T_*) Removed.
+	(enum outp_justification) New, containing OUTP_RIGHT, OUTP_LEFT,
+	OUTP_CENTER.
+	(enum outp_font) New, containing OUTP_FIXED, OUTP_PROPORTIONAL,
+	and OUTP_EMPHASIS.
+	(struct outp_text) Replaced `options' member by `font' and
+	`justification'.  Renamed `s' to `string'.  Removed `w', `l'.
+	Updated all usages.
+	(struct outp_class) Removed `magic', `open_global',
+	`close_global', `font_sizes', `preopen_driver', `option',
+	`postopen_driver', `line_horz', `line_vert', `line_intersection',
+	`box', `polyline_begin', `polyline_point', `polyline_end',
+	`text_set_font_by_name', `text_set_font_by_position',
+	`text_set_font_family', `text_get_font_name',
+	`text_get_font_family', `text_set_Size', and `text_get_size'
+	members.  Added `open_driver', `close_driver', `line' members.
+	Changed interface of `open_page', `close_page', `text_metrics',
+	`text_draw' members.  Updated all usages.
+	(struct outp_driver) Rearranged members.  Removed `driver_open',
+	`res', `horiz', `vert', `horiz_line_spacing', `vert_line_spacing'
+	members.
+	(struct outp_option_info) Removed.
+	(struct outp_driver_class_list) Removed.
+	(outp_match_keyword) Changed interface.
+
+	* table.c: (tab_create) Now ignores reallocable argument: tables
+	can always be reallocated.  Use pool_create_container().
+	Initialize vertical rules to UCHAR_MAX.
+	(options_to_font) New function.
+	(tab_destroy) Remove futile assignment.
+	(tab_realloc) Initialize vertical rules to UCHAR_MAX.
+	(text_format) Use xvasprintf() instead of local_alloc().
+	(tab_title) Always format the argument, and drop the option
+	argument.  Change all callers to agree.
+	(tab_natural_width) Adapt to new ->text_metrics() interface.
+	(tab_natural_height) Ditto.
+	(tab_joint_text) Clear rules within the joined cell.  Now
+	necessary because of the default to put spacing between cells.
+	(tab_output_text) Use xvasprintf() instead of local_alloc().
+	Remove special cases for fixed-width font.
+	(rule_to_spacing_type) New function.
+	(tabi_driver) Calculate rule widths manually now that we don't
+	have ->trh or ->trv.  Implement new default for vertical rules.
+	(render_rows) New function.
+	(tabi_render) Rewrite in terms of render_rows() for clarity.
+	(translate_justification) New function.
+	(rule_to_draw_type) New function.
+	(get_hrule) New function.
+	(get_vrule) New function.
+	(render_horz_rule) New function.
+	(render_vert_rule) New function.
+	(render_rule_intersection) New function.
+	(strip_width) New function.
+	(strip_height) New function.
+	(render_cell) New function.
+	(render_strip) Rewrite in terms of new functions.
+
+	* table.h: (TAB_EMPH) New flag.
+	(TAB_FIX) New flag.
+	(TAL_3) Removed.
+	(TAL_GAP) Added.
+	(TAL_SPACING) Removed.
+	(struct tab_table) Members `trh', `hrv', `hr_tot', `vr_tot'
+	removed.
+	[DEBUGGING] (reallocable) Removed.
+	(TAT_FIX) Removed.  All references replaced by TAB_FIX.
+	(TAT_TITLE) Now implies TAB_EMPH.
+		
 Thu Mar 30 16:26:56 2006  Ben Pfaff  <blp@gnu.org>
 
 	* output.c: (colon_tokenize) Removed.

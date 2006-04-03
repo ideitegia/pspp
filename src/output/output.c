@@ -68,6 +68,13 @@ struct outp_defn
 static struct outp_defn *outp_macros;
 static struct outp_names *outp_configure_vec;
 
+/* A list of driver classes. */
+struct outp_driver_class_list
+  {
+    struct outp_class *class;
+    struct outp_driver_class_list *next;
+  };
+
 struct outp_driver_class_list *outp_class_list;
 struct outp_driver *outp_driver_list;
 
@@ -80,8 +87,8 @@ static int disabled_devices;
 
 static void destroy_driver (struct outp_driver *);
 static void configure_driver_line (struct string *);
-static void configure_driver (const char *, const char *,
-                              const char *, const char *);
+static void configure_driver (const struct string *, const struct string *,
+                              const struct string *, const struct string *);
 
 /* Add a class to the class list. */
 static void
@@ -90,7 +97,6 @@ add_class (struct outp_class *class)
   struct outp_driver_class_list *new_list = xmalloc (sizeof *new_list);
 
   new_list->class = class;
-  new_list->ref_count = 0;
 
   if (!outp_class_list)
     {
@@ -221,13 +227,11 @@ outp_init (void)
 {
   extern struct outp_class ascii_class;
   extern struct outp_class postscript_class;
-  extern struct outp_class epsf_class;
   extern struct outp_class html_class;
 
   char def[] = "default";
 
   add_class (&html_class);
-  add_class (&epsf_class);
   add_class (&postscript_class);
   add_class (&ascii_class);
 
@@ -252,11 +256,15 @@ delete_macros (void)
 static void
 init_default_drivers (void) 
 {
+  struct string s;
+
   msg (MM, _("Using default output driver configuration."));
-  configure_driver ("list-ascii", "ascii", "listing",
-                    "length=66 width=79 char-set=ascii "
-                    "output-file=\"pspp.list\" "
-                    "bold-on=\"\" italic-on=\"\" bold-italic-on=\"\"");
+
+  ds_create (&s,
+             "list:ascii:listing:"
+             "length=66 width=79 output-file=\"pspp.list\"");
+  configure_driver_line (&s);
+  ds_destroy (&s);
 }
 
 /* Reads the initialization file; initializes
@@ -290,7 +298,6 @@ outp_read_devices (void)
       goto exit;
     }
 
-  msg (VM (1), _("%s: Opening device description file..."), init_fn);
   f = fopen (init_fn, "r");
   if (f == NULL)
     {
@@ -344,7 +351,6 @@ exit:
 
   if (result) 
     {
-      msg (VM (2), _("Device definition file read successfully."));
       if (outp_driver_list == NULL) 
         msg (MW, _("No output drivers are active.")); 
     }
@@ -612,16 +618,19 @@ tokener (void)
   return 1;
 }
 
-/* Applies the user-specified options in string S to output driver D
-   (at configuration time). */
-static void
-parse_options (const char *s, struct outp_driver * d)
+bool
+outp_parse_options (const char *options,
+                    bool (*callback) (struct outp_driver *, const char *key,
+                                      const struct string *value),
+                    struct outp_driver *driver)
 {
-  prog = s;
+  bool ok = true;
+
+  prog = options;
   op_token = -1;
 
   ds_init (&op_tokstr, 64);
-  while (tokener ())
+  while (ok && tokener ())
     {
       char key[65];
 
@@ -647,9 +656,11 @@ parse_options (const char *s, struct outp_driver * d)
 	  msg (IS, _("Syntax error in options (value expected after `=')."));
 	  break;
 	}
-      d->class->option (d, key, &op_tokstr);
+      ok = callback (driver, key, &op_tokstr);
     }
   ds_destroy (&op_tokstr);
+
+  return ok;
 }
 
 /* Find the driver in outp_driver_list with name NAME. */
@@ -669,97 +680,79 @@ find_driver (char *name)
    Adds a driver to outp_driver_list pursuant to the specification
    provided.  */
 static void
-configure_driver (const char *driver_name, const char *class_name,
-                  const char *device_type, const char *options)
+configure_driver (const struct string *driver_name,
+                  const struct string *class_name,
+                  const struct string *device_type,
+                  const struct string *options)
 {
-  struct outp_driver *d = NULL, *iter;
-  struct outp_driver_class_list *c = NULL;
+  struct outp_driver *d, *iter;
+  struct outp_driver_class_list *c;
+  int device;
 
-  d = xmalloc (sizeof *d);
-  d->class = NULL;
-  d->name = xstrdup (driver_name);
-  d->driver_open = 0;
-  d->page_open = 0;
-  d->next = d->prev = NULL;
-  d->device = OUTP_DEV_NONE;
-  d->ext = NULL;
-
+  /* Find class. */
   for (c = outp_class_list; c; c = c->next)
-    if (!strcmp (c->class->name, class_name))
+    if (!strcmp (c->class->name, ds_c_str (class_name)))
       break;
-  if (!c)
+  if (c == NULL)
     {
-      msg (IS, _("Unknown output driver class `%s'."), class_name);
-      goto error;
+      msg (IS, _("Unknown output driver class `%s'."), ds_c_str (class_name));
+      return;
     }
   
-  d->class = c->class;
-  if (!c->ref_count && !d->class->open_global (d->class))
+  /* Parse device type. */
+  device = 0;
+  if (device_type != NULL)
     {
-      msg (IS, _("Can't initialize output driver class `%s'."),
-	   d->class->name);
-      goto error;
+      struct string token = DS_INITIALIZER;
+      size_t save_idx = 0;
+
+      while (ds_tokenize (device_type, &token, " \t\r\v", &save_idx)) 
+        {
+          const char *type = ds_c_str (&token);
+	  if (!strcmp (type, "listing"))
+	    device |= OUTP_DEV_LISTING;
+	  else if (!strcmp (type, "screen"))
+	    device |= OUTP_DEV_SCREEN;
+	  else if (!strcmp (type, "printer"))
+	    device |= OUTP_DEV_PRINTER;
+	  else
+            msg (IS, _("Unknown device type `%s'."), type);
+	}
+      ds_destroy (&token);
     }
-  c->ref_count++;
-  if (!d->class->preopen_driver (d))
+
+  /* Open the device. */
+  d = xmalloc (sizeof *d);
+  d->next = d->prev = NULL;
+  d->class = c->class;
+  d->name = xstrdup (ds_c_str (driver_name));
+  d->page_open = false;
+  d->device = OUTP_DEV_NONE;
+  d->cp_x = d->cp_y = 0;
+  d->ext = NULL;
+  d->prc = NULL;
+
+  /* Open driver. */
+  if (!d->class->open_driver (d, ds_c_str (options)))
     {
       msg (IS, _("Can't initialize output driver `%s' of class `%s'."),
 	   d->name, d->class->name);
-      goto error;
-    }
-
-  /* Device types. */
-  if (device_type != NULL)
-    {
-      char *copy = xstrdup (device_type);
-      char *sp, *type;
-
-      for (type = strtok_r (copy, " \t\r\v", &sp); type;
-	   type = strtok_r (NULL, " \t\r\v", &sp))
-	{
-	  if (!strcmp (type, "listing"))
-	    d->device |= OUTP_DEV_LISTING;
-	  else if (!strcmp (type, "screen"))
-	    d->device |= OUTP_DEV_SCREEN;
-	  else if (!strcmp (type, "printer"))
-	    d->device |= OUTP_DEV_PRINTER;
-	  else
-	    {
-	      msg (IS, _("Unknown device type `%s'."), type);
-              free (copy);
-	      goto error;
-	    }
-	}
-      free (copy);
-    }
-  
-  /* Options. */
-  if (options != NULL)
-    parse_options (options, d);
-  if (!d->class->postopen_driver (d))
-    {
-      msg (IS, _("Can't complete initialization of output driver `%s' of "
-	   "class `%s'."), d->name, d->class->name);
-      goto error;
+      free (d->name);
+      free (d);
+      return;
     }
 
   /* Find like-named driver and delete. */
   iter = find_driver (d->name);
-  if (iter)
+  if (iter != NULL)
     destroy_driver (iter);
 
   /* Add to list. */
   d->next = outp_driver_list;
   d->prev = NULL;
-  if (outp_driver_list)
+  if (outp_driver_list != NULL)
     outp_driver_list->prev = d;
   outp_driver_list = d;
-  return;
-
-error:
-  if (d)
-    destroy_driver (d);
-  return;
 }
 
 /* String LINE is in format:
@@ -770,12 +763,12 @@ static void
 configure_driver_line (struct string *line)
 {
   struct string tokens[4];
-  int save_idx;
+  size_t save_idx;
   size_t i;
 
   fn_interp_vars (line, find_defn_value);
 
-  save_idx = -1;
+  save_idx = 0;
   for (i = 0; i < 4; i++) 
     {
       struct string *token = &tokens[i];
@@ -785,8 +778,7 @@ configure_driver_line (struct string *line)
     }
 
   if (!ds_is_empty (&tokens[0]) && !ds_is_empty (&tokens[1]))
-    configure_driver (ds_c_str (&tokens[0]), ds_c_str (&tokens[1]), 
-                      ds_c_str (&tokens[2]), ds_c_str (&tokens[3]));
+    configure_driver (&tokens[0], &tokens[1], &tokens[2], &tokens[3]);
   else
     msg (IS, _("Driver definition line missing driver name or class name"));
 
@@ -798,27 +790,17 @@ configure_driver_line (struct string *line)
 static void
 destroy_driver (struct outp_driver *d)
 {
-  if (d->page_open)
-    d->class->close_page (d);
+  outp_close_page (d);
   if (d->class)
     {
       struct outp_driver_class_list *c;
 
-      if (d->driver_open)
-	d->class->close_driver (d);
+      d->class->close_driver (d);
 
       for (c = outp_class_list; c; c = c->next)
 	if (c->class == d->class)
 	  break;
       assert (c != NULL);
-      
-      c->ref_count--;
-      if (c->ref_count == 0)
-	{
-	  if (!d->class->close_global (d->class))
-	    msg (IS, _("Can't deinitialize output driver class `%s'."),
-		 d->class->name);
-	}
     }
   free (d->name);
 
@@ -831,82 +813,20 @@ destroy_driver (struct outp_driver *d)
     outp_driver_list = d->next;
 }
 
-static int
-option_cmp (const void *a, const void *b)
-{
-  const struct outp_option *o1 = a;
-  const struct outp_option *o2 = b;
-  return strcmp (o1->keyword, o2->keyword);
-}
-
-/* Tries to match S as one of the keywords in TAB, with corresponding
-   information structure INFO.  Returns category code or 0 on failure;
-   if category code is negative then stores subcategory in *SUBCAT. */
+/* Tries to match S as one of the keywords in TAB, with
+   corresponding information structure INFO.  Returns category
+   code and stores subcategory in *SUBCAT on success.  Returns -1
+   on failure. */
 int
-outp_match_keyword (const char *s, struct outp_option *tab,
-		    struct outp_option_info *info, int *subcat)
+outp_match_keyword (const char *s, struct outp_option *tab, int *subcat)
 {
-  char *cp;
-  struct outp_option *oip;
-
-  /* Form hash table. */
-  if (NULL == info->initial)
-    {
-      /* Count items. */
-      int count, i;
-      char s[256], *cp;
-      struct outp_option *ptr[255], **oip;
-
-      for (count = 0; tab[count].keyword[0]; count++)
-	;
-
-      /* Sort items. */
-      qsort (tab, count, sizeof *tab, option_cmp);
-
-      cp = s;
-      oip = ptr;
-      *cp = tab[0].keyword[0];
-      *oip++ = &tab[0];
-      for (i = 0; i < count; i++)
-	if (tab[i].keyword[0] != *cp)
-	  {
-	    *++cp = tab[i].keyword[0];
-	    *oip++ = &tab[i];
-	  }
-      *++cp = 0;
-
-      info->initial = xstrdup (s);
-      info->options = xnmalloc (cp - s, sizeof *info->options);
-      memcpy (info->options, ptr, sizeof *info->options * (cp - s));
-    }
-
-  cp = info->initial;
-  oip = *info->options;
-
-  if (s[0] == 0)
-    return 0;
-  cp = strchr (info->initial, s[0]);
-  if (!cp)
-    return 0;
-#if 0
-  printf (_("Trying to find keyword `%s'...\n"), s);
-#endif
-  oip = info->options[cp - info->initial];
-  while (oip->keyword[0] == s[0])
-    {
-#if 0
-      printf ("- %s\n", oip->keyword);
-#endif
-      if (!strcmp (s, oip->keyword))
-	{
-	  if (oip->cat < 0)
-	    *subcat = oip->subcat;
-	  return oip->cat;
-	}
-      oip++;
-    }
-
-  return 0;
+  for (; tab->keyword != NULL; tab++)
+    if (!strcmp (s, tab->keyword))
+      {
+        *subcat = tab->subcat;
+        return tab->cat;
+      }
+  return -1;
 }
 
 /* Encapsulate two characters in a single int. */
@@ -1141,7 +1061,6 @@ outp_get_paper_size (char *size, int *h, int *v)
       goto exit;
     }
 
-  msg (VM (1), _("%s: Opening paper size definition file..."), pprsz_fn);
   f = fopen (pprsz_fn, "r");
   if (!f)
     {
@@ -1211,9 +1130,7 @@ exit:
   if (free_it)
     free (size);
 
-  if (result)
-    msg (VM (2), _("Paper size definition file read successfully."));
-  else
+  if (!result)
     msg (VM (1), _("Error reading paper size definition file."));
   
   return result;
@@ -1238,9 +1155,7 @@ outp_drivers (struct outp_driver *d)
 	d = d->next;
 
       if (d == NULL
-	  || (d->driver_open
-	      && (d->device == 0
-		  || (d->device & disabled_devices) != d->device)))
+	  || (d->device == 0 || (d->device & disabled_devices) != d->device))
 	break;
     }
 
@@ -1258,40 +1173,57 @@ outp_enable_device (int enable, int device)
     disabled_devices |= device;
 }
 
-/* Ejects the paper on device D, if the page is not blank. */
-int
-outp_eject_page (struct outp_driver *d)
+/* Opens a page on driver D (if one is not open). */
+void
+outp_open_page (struct outp_driver *d) 
 {
-  if (d->page_open == 0)
-    return 1;
-  
-  if (d->cp_y != 0)
+  if (!d->page_open) 
     {
       d->cp_x = d->cp_y = 0;
 
-      if (d->class->close_page (d) == 0)
-	msg (ME, _("Error closing page on %s device of %s class."),
-	     d->name, d->class->name);
-      if (d->class->open_page (d) == 0)
-	{
-	  msg (ME, _("Error opening page on %s device of %s class."),
-	       d->name, d->class->name);
-	  return 0;
-	}
+      d->page_open = true;
+      if (d->class->open_page != NULL)
+        d->class->open_page (d);
     }
-  return 1;
+}
+
+/* Closes the page on driver D (if one is open). */
+void
+outp_close_page (struct outp_driver *d) 
+{
+  if (d->page_open) 
+    {
+      if (d->class->close_page != NULL)
+        d->class->close_page (d);
+      d->page_open = false;
+    }
+}
+
+/* Ejects the paper on device D, if a page is open and is not
+   blank. */
+void
+outp_eject_page (struct outp_driver *d)
+{
+  if (d->page_open && d->cp_y != 0)
+    {
+      outp_close_page (d);
+      outp_open_page (d);
+    }
 }
 
 /* Returns the width of string S, in device units, when output on
    device D. */
 int
-outp_string_width (struct outp_driver *d, const char *s)
+outp_string_width (struct outp_driver *d, const char *s, enum outp_font font)
 {
   struct outp_text text;
+  int width;
+  
+  text.font = font;
+  text.justification = OUTP_LEFT;
+  ls_init (&text.string, (char *) s, strlen (s));
+  text.h = text.v = INT_MAX;
+  d->class->text_metrics (d, &text, &width, NULL);
 
-  text.options = OUTP_T_JUST_LEFT;
-  ls_init (&text.s, (char *) s, strlen (s));
-  d->class->text_metrics (d, &text);
-
-  return text.h;
+  return width;
 }

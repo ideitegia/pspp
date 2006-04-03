@@ -28,27 +28,28 @@ enum
   {
     TAB_NONE = 0,
 
-    /* Must match output.h: OUTP_T_JUST_*. */
     TAB_ALIGN_MASK = 03,	/* Alignment mask. */
     TAB_RIGHT = 00,		/* Right justify. */
     TAB_LEFT = 01,		/* Left justify. */
     TAB_CENTER = 02,		/* Center. */
 
-    /* Oddball cell types. */
-    TAB_JOIN = 010,		/* Joined cell. */
-    TAB_EMPTY = 020		/* Empty cell. */
+    /* Cell types. */
+    TAB_JOIN = 004,		/* Joined cell. */
+    TAB_EMPTY = 010,		/* Empty cell. */
+
+    /* Flags. */
+    TAB_EMPH = 020,             /* Emphasize cell contents. */
+    TAB_FIX = 040,              /* Use fixed font. */
   };
 
-/* Line styles.  These must match output.h:OUTP_L_*. */
+/* Line styles. */
 enum
   {
     TAL_0 = 0,			/* No line. */
     TAL_1 = 1,			/* Single line. */
     TAL_2 = 2,			/* Double line. */
-    TAL_3 = 3,			/* Special line of driver-defined style. */
+    TAL_GAP = 3,                /* Spacing but no line. */
     TAL_COUNT,			/* Number of line styles. */
-
-    TAL_SPACING = 0200		/* Don't draw the line, just reserve space. */
   };
 
 /* Column styles.  Must correspond to SOM_COL_*. */
@@ -87,9 +88,7 @@ struct tab_table
     struct fixed_string *cc;	/* Cell contents; fixed_string *[nr][nc]. */
     unsigned char *ct;		/* Cell types; unsigned char[nr][nc]. */
     unsigned char *rh;		/* Horiz rules; unsigned char[nr+1][nc]. */
-    unsigned char *trh;		/* Types of horiz rules; [nr+1]. */
     unsigned char *rv;		/* Vert rules; unsigned char[nr][nc+1]. */
-    unsigned char *trv;		/* Types of vert rules; [nc+1]. */
     tab_dim_func *dim;		/* Calculates cell widths and heights. */
 
     /* Calculated during output. */
@@ -98,13 +97,9 @@ struct tab_table
     int *hrh;			/* Heights of horizontal rules; [nr+1]. */
     int *wrv;			/* Widths of vertical rules; [nc+1]. */
     int wl, wr, ht, hb;		/* Width/height of header rows/columns. */
-    int hr_tot, vr_tot;		/* Hrules total height, vrules total width. */
 
     /* Editing info. */
     int col_ofs, row_ofs;	/* X and Y offsets. */
-#if DEBUGGING
-    int reallocable;		/* Can table be reallocated? */
-#endif
   };
 
 extern int tab_hit;
@@ -134,7 +129,8 @@ void tab_resize (struct tab_table *, int nc, int nr);
 void tab_realloc (struct tab_table *, int nc, int nr);
 void tab_headers (struct tab_table *, int l, int r, int t, int b);
 void tab_columns (struct tab_table *, int style, int group);
-void tab_title (struct tab_table *, int format, const char *, ...);
+void tab_title (struct tab_table *, const char *, ...)
+     PRINTF_FORMAT (2, 3);
 void tab_flags (struct tab_table *, unsigned);
 void tab_submit (struct tab_table *);
 
@@ -155,8 +151,7 @@ enum
   {
     TAT_NONE = 0,		/* No options. */
     TAT_PRINTF = 0x0100,	/* Format the text string with sprintf. */
-    TAT_TITLE = 0x0204,		/* Title attributes. */
-    TAT_FIX = 0x0400,		/* Use fixed-pitch font. */
+    TAT_TITLE = 0x0200 | TAB_EMPH, /* Title attributes. */
     TAT_NOWRAP = 0x0800         /* No text wrap (tab_output_text() only). */
   };
 

@@ -6,9 +6,9 @@ include $(top_srcdir)/src/output/charts/automake.mk
 noinst_LIBRARIES += src/output/liboutput.a 
 
 output_sources = \
+	src/output/afm.c \
+	src/output/afm.h \
 	src/output/ascii.c \
-	src/output/font.h \
-	src/output/groff-font.c \
 	src/output/html.c \
 	src/output/htmlP.h \
 	src/output/output.c \

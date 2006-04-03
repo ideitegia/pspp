@@ -809,7 +809,7 @@ make_summary_table (void)
   int cur_tab = 0;
 
   summary = tab_create (7, 3 + nxtab, 1);
-  tab_title (summary, 0, _("Summary."));
+  tab_title (summary, _("Summary."));
   tab_headers (summary, 1, 0, 3, 0);
   tab_joint_text (summary, 1, 0, 6, 0, TAB_CENTER, _("Cases"));
   tab_joint_text (summary, 1, 1, 2, 1, TAB_CENTER, _("Valid"));
@@ -1088,7 +1088,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	  }
 	strcpy (cp, "].");
 
-	tab_title (table, 0, title);
+	tab_title (table, "%s", title);
 	local_free (title);
       }
       
@@ -1104,7 +1104,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 			  (pe - pb) / n_cols * 3 / 2 * N_CHISQ + 10, 1);
       tab_headers (chisq, 1 + (nvar - 2), 0, 1, 0);
 
-      tab_title (chisq, 0, "Chi-square tests.");
+      tab_title (chisq, _("Chi-square tests."));
       
       tab_offset (chisq, nvar - 2, 0);
       tab_text (chisq, 0, 0, TAB_LEFT | TAT_TITLE, _("Statistic"));
@@ -1130,7 +1130,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
     {
       sym = tab_create (6 + (nvar - 2), (pe - pb) / n_cols * 7 + 10, 1);
       tab_headers (sym, 2 + (nvar - 2), 0, 1, 0);
-      tab_title (sym, 0, "Symmetric measures.");
+      tab_title (sym, _("Symmetric measures."));
 
       tab_offset (sym, nvar - 2, 0);
       tab_text (sym, 0, 0, TAB_LEFT | TAT_TITLE, _("Category"));
@@ -1149,7 +1149,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
     {
       risk = tab_create (4 + (nvar - 2), (pe - pb) / n_cols * 4 + 10, 1);
       tab_headers (risk, 1 + nvar - 2, 0, 2, 0);
-      tab_title (risk, 0, "Risk estimate.");
+      tab_title (risk, _("Risk estimate."));
 
       tab_offset (risk, nvar - 2, 0);
       tab_joint_text (risk, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
@@ -1171,7 +1171,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
     {
       direct = tab_create (7 + (nvar - 2), (pe - pb) / n_cols * 7 + 10, 1);
       tab_headers (direct, 3 + (nvar - 2), 0, 1, 0);
-      tab_title (direct, 0, "Directional measures.");
+      tab_title (direct, _("Directional measures."));
 
       tab_offset (direct, nvar - 2, 0);
       tab_text (direct, 0, 0, TAB_LEFT | TAT_TITLE, _("Category"));
@@ -1466,7 +1466,7 @@ submit (struct tab_table *t)
   tab_box (t, TAL_2, TAL_2, -1, -1, 0, 0, tab_nc (t) - 1, tab_nr (t) - 1);
   tab_box (t, -1, -1, -1, TAL_1, tab_l (t), tab_t (t) - 1, tab_nc (t) - 1,
 	   tab_nr (t) - 1);
-  tab_box (t, -1, -1, -1, TAL_1 | TAL_SPACING, 0, tab_t (t), tab_l (t) - 1,
+  tab_box (t, -1, -1, -1, TAL_GAP, 0, tab_t (t), tab_l (t) - 1,
 	   tab_nr (t) - 1);
   tab_vline (t, TAL_2, tab_l (t), 0, tab_nr (t) - 1);
   tab_dim (t, crosstabs_dim);
@@ -1481,14 +1481,20 @@ crosstabs_dim (struct tab_table *t, struct outp_driver *d)
   int i;
   
   /* Width of a numerical column. */
-  int c = outp_string_width (d, "0.000000");
+  int c = outp_string_width (d, "0.000000", OUTP_PROPORTIONAL);
   if (cmd.miss == CRS_REPORT)
-    c += outp_string_width (d, "M");
+    c += outp_string_width (d, "M", OUTP_PROPORTIONAL);
 
   /* Set width for header columns. */
   if (t->l != 0)
     {
-      int w = (d->width - t->vr_tot - c * (t->nc - t->l)) / t->l;
+      size_t i;
+      int w;
+
+      w = d->width - c * (t->nc - t->l);
+      for (i = 0; i <= t->nc; i++)
+        w -= t->wrv[i];
+      w /= t->l;
       
       if (w < d->prop_em_width * 8)
 	w = d->prop_em_width * 8;

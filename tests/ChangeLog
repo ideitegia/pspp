@@ -1,3 +1,7 @@
+Mon Apr  3 12:32:36 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Updated tests to match changes in output formatting.
+
 2006-03-23  Jason Stover  <jhs@math.gcsu.edu>
 
 	* command/regression.sh: New test.

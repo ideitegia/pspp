@@ -96,7 +96,7 @@ cmd_sysfile_info (void)
   sfm_close_reader (reader);
 
   t = tab_create (2, 9, 0);
-  tab_vline (t, TAL_1 | TAL_SPACING, 1, 0, 8);
+  tab_vline (t, TAL_GAP, 1, 0, 8);
   tab_text (t, 0, 0, TAB_LEFT, _("File:"));
   tab_text (t, 1, 0, TAB_LEFT, fh_get_filename (h));
   tab_text (t, 0, 1, TAB_LEFT, _("Label:"));
@@ -200,7 +200,7 @@ cmd_display (void)
       else
 	{
 	  tab_output_text (TAB_LEFT | TAT_TITLE, _("File label:"));
-	  tab_output_text (TAB_LEFT | TAT_FIX, dict_get_label (default_dict));
+	  tab_output_text (TAB_LEFT | TAB_FIX, dict_get_label (default_dict));
 	}
     }
   else
@@ -311,7 +311,7 @@ display_documents (void)
 		 && len > 0)
 	    len--;
 	  buf[len + 1] = 0;
-	  tab_output_text (TAB_LEFT | TAT_FIX | TAT_NOWRAP, buf);
+	  tab_output_text (TAB_LEFT | TAB_FIX | TAT_NOWRAP, buf);
 	}
     }
 }

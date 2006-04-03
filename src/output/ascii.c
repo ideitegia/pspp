@@ -18,21 +18,24 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
-#include <libpspp/message.h>
-#include "chart.h"
-#include <libpspp/compiler.h>
+
 #include <data/filename.h>
-#include <libpspp/misc.h>
-#include "output.h"
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
 #include <libpspp/pool.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
+
+#include "chart.h"
+#include "error.h"
+#include "minmax.h"
+#include "output.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -40,69 +43,23 @@
 /* ASCII driver options: (defaults listed first)
 
    output-file="pspp.list"
-   char-set=ascii|latin1
-   form-feed-string="\f"        Written as a formfeed.
-   newline-string=default|"\r\n"|"\n"   
-                                Written as a newline.
    paginate=on|off              Formfeeds are desired?
    tab-width=8                  Width of a tab; 0 to not use tabs.
-   init=""                      Written at beginning of output.
-   done=""                      Written at end of output.
    
    headers=on|off               Put headers at top of page?
+   emphasis=bold|underline|none Style to use for emphasis.
    length=66
    width=130
-   lpi=6                        Only used to determine font size.
-   cpi=10                       
    squeeze=off|on               Squeeze multiple newlines into exactly one.
 
-   left-margin=0
-   right-margin=0
    top-margin=2
    bottom-margin=2
 
    box[x]="strng"               Sets box character X (X in base 4: 0-3333).
-   italic-on=overstrike|"strng" Turns on italic (underline).
-   italic-off=""|"strng"        Turns off italic; ignored for overstrike.
-   bold-on=overstrike|"strng"   Turns on bold.
-   bold-off=""|"strng"          Turns off bold; ignored for overstrike.
-   bold-italic-on=overstrike|"strng" Turns on bold-italic.
-   bold-italic-off=""|"strng"   Turns off bold-italic; ignored for overstrike.
-   overstrike-style=single|line Can we print a whole line then BS over it, or
-   must we go char by char, as on a terminal?
-   carriage-return-style=bs|cr  Must we return the carriage with a sequence of
-   BSes, or will a single CR do it?
  */
 
 /* Disable messages by failed range checks. */
 /*#define SUPPRESS_WARNINGS 1 */
-
-/* Character set. */
-enum
-  {
-    CHS_ASCII,			/* 7-bit ASCII */
-    CHS_LATIN1			/* Latin 1; not really supported at the moment */
-  };
-
-/* Overstrike style. */
-enum
-  {
-    OVS_SINGLE,			/* Overstrike each character: "a\b_b\b_c\b_" */
-    OVS_LINE			/* Overstrike lines: "abc\b\b\b___" (or if
-				   newline is "\r\n", then "abc\r___").  Easier
-				   on the printer, doesn't work on a tty. */
-  };
-
-/* Basic output strings. */
-enum
-  {
-    OPS_INIT,			/* Document initialization string. */
-    OPS_DONE,			/* Document uninit string. */
-    OPS_FORMFEED,		/* Formfeed string. */
-    OPS_NEWLINE,		/* Newline string. */
-
-    OPS_COUNT			/* Number of output strings. */
-  };
 
 /* Line styles bit shifts. */
 enum
@@ -115,36 +72,9 @@ enum
     LNS_COUNT = 256
   };
 
-/* Carriage return style. */
-enum
-  {
-    CRS_BS,			/* Multiple backspaces. */
-    CRS_CR			/* Single carriage return. */
-  };
-
-/* Assembles a byte from four taystes. */
-#define TAYSTE2BYTE(T, L, B, R)			\
-	(((T) << LNS_TOP)			\
-	 | ((L) << LNS_LEFT)			\
-	 | ((B) << LNS_BOTTOM)			\
-	 | ((R) << LNS_RIGHT))
-
-/* Extract tayste with shift value S from byte B. */
-#define BYTE2TAYSTE(B, S) 			\
-	(((B) >> (S)) & 3)
-
-/* Font style; take one of the first group |'d with one of the second group. */
-enum
-  {
-    FSTY_ON = 000,		/* Turn font on. */
-    FSTY_OFF = 001,		/* Turn font off. */
-
-    FSTY_ITALIC = 0,		/* Italic font. */
-    FSTY_BOLD = 2,		/* Bold font. */
-    FSTY_BOLD_ITALIC = 4,	/* Bold-italic font. */
-
-    FSTY_COUNT = 6		/* Number of font styles. */
-  };
+/* Character attributes. */
+#define ATTR_EMPHASIS   0x100   /* Bold-face. */
+#define ATTR_BOX        0x200   /* Line drawing character. */
 
 /* A line of text. */
 struct line 
@@ -154,330 +84,195 @@ struct line
     int char_cap;               /* Allocated bytes. */
   };
 
+/* How to emphasize text. */
+enum emphasis_style 
+  {
+    EMPH_BOLD,                  /* Overstrike for bold. */
+    EMPH_UNDERLINE,             /* Overstrike for underlining. */
+    EMPH_NONE                   /* No emphasis. */
+  };
+
 /* ASCII output driver extension record. */
 struct ascii_driver_ext
   {
+    struct pool *pool;
+
     /* User parameters. */
-    int char_set;		/* CHS_ASCII/CHS_LATIN1; no-op right now. */
-    int headers;		/* 1=print headers at top of page. */
-    int page_length;		/* Page length in lines. */
-    int page_width;		/* Page width in characters. */
-    int lpi;			/* Lines per inch. */
-    int cpi;			/* Characters per inch. */
-    int left_margin;		/* Left margin in characters. */
-    int right_margin;		/* Right margin in characters. */
+    bool headers;		/* Print headers at top of page? */
+    bool paginate;		/* Insert formfeeds? */
+    bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
+    enum emphasis_style emphasis; /* How to emphasize text. */
+    int tab_width;		/* Width of a tab; 0 not to use tabs. */
+
+    int page_length;		/* Page length before subtracting margins. */
     int top_margin;		/* Top margin in lines. */
     int bottom_margin;		/* Bottom margin in lines. */
-    int paginate;		/* 1=insert formfeeds. */
-    int tab_width;		/* Width of a tab; 0 not to use tabs. */
-    struct fixed_string ops[OPS_COUNT]; /* Basic output strings. */
-    struct fixed_string box[LNS_COUNT]; /* Line & box drawing characters. */
-    struct fixed_string fonts[FSTY_COUNT]; /* Font styles; NULL=overstrike. */
-    int overstrike_style;	/* OVS_SINGLE or OVS_LINE. */
-    int carriage_return_style;	/* Carriage return style. */
-    int squeeze_blank_lines;    /* 1=squeeze multiple blank lines into one. */
+
+    char *box[LNS_COUNT];       /* Line & box drawing characters. */
 
     /* Internal state. */
-    struct file_ext file;	/* Output file. */
+    char *file_name;            /* Output file name. */
+    FILE *file;                 /* Output file. */
     int page_number;		/* Current page number. */
     struct line *lines;         /* Page content. */
-    int lines_cap;              /* Number of lines allocated. */
-    int w, l;			/* Actual width & length w/o margins, etc. */
-    int cur_font;		/* Current font by OUTP_F_*. */
-#if DEBUGGING
-    int debug;			/* Set by som_text_draw(). */
-#endif
+    int line_cap;               /* Number of lines allocated. */
   };
 
-static int postopen (struct file_ext *);
-static int preclose (struct file_ext *);
+static int get_default_box_char (size_t idx);
+static bool handle_option (struct outp_driver *this, const char *key,
+                           const struct string *val);
 
-static struct outp_option_info *option_info;
-
-static int
-ascii_open_global (struct outp_class *this UNUSED)
-{
-  option_info = xmalloc (sizeof *option_info);
-  option_info->initial = 0;
-  option_info->options = 0;
-  return 1;
-}
-
-
-static char *s;
-static int
-ascii_close_global (struct outp_class *this UNUSED)
-{
-  free(option_info->initial);
-  free(option_info->options);
-  free(option_info);
-  free(s);
-  return 1;
-}
-
-static int *
-ascii_font_sizes (struct outp_class *this UNUSED, int *n_valid_sizes)
-{
-  static int valid_sizes[] = {12, 12, 0, 0};
-
-  assert (n_valid_sizes);
-  *n_valid_sizes = 1;
-  return valid_sizes;
-}
-
-static int
-ascii_preopen_driver (struct outp_driver *this)
+static bool
+ascii_open_driver (struct outp_driver *this, const char *options)
 {
   struct ascii_driver_ext *x;
   int i;
-  
-  assert (this->driver_open == 0);
-  msg (VM (1), _("ASCII driver initializing as `%s'..."), this->name);
-  this->ext = x = xmalloc (sizeof *x);
-  x->char_set = CHS_ASCII;
-  x->headers = 1;
+
+  this->width = 79;
+  this->font_height = 1;
+  this->prop_em_width = 1;
+  this->fixed_width = 1;
+  for (i = 0; i < OUTP_L_COUNT; i++)
+    this->horiz_line_width[i] = this->vert_line_width[i] = i != OUTP_L_NONE;
+
+  this->ext = x = pool_create_container (struct ascii_driver_ext, pool);
+  x->headers = true;
+  x->paginate = true;
+  x->squeeze_blank_lines = false;
+  x->emphasis = EMPH_BOLD;
+  x->tab_width = 8;
   x->page_length = 66;
-  x->page_width = 79;
-  x->lpi = 6;
-  x->cpi = 10;
-  x->left_margin = 0;
-  x->right_margin = 0;
   x->top_margin = 2;
   x->bottom_margin = 2;
-  x->paginate = 1;
-  x->tab_width = 8;
-  for (i = 0; i < OPS_COUNT; i++)
-    ls_null (&x->ops[i]);
   for (i = 0; i < LNS_COUNT; i++)
-    ls_null (&x->box[i]);
-  for (i = 0; i < FSTY_COUNT; i++)
-    ls_null (&x->fonts[i]);
-  x->overstrike_style = OVS_SINGLE;
-  x->carriage_return_style = CRS_BS;
-  x->squeeze_blank_lines = 0;
-  x->file.filename = NULL;
-  x->file.mode = "wb";
-  x->file.file = NULL;
-  x->file.sequence_no = &x->page_number;
-  x->file.param = x;
-  x->file.postopen = postopen;
-  x->file.preclose = preclose;
+    x->box[i] = NULL;
+  x->file_name = pool_strdup (x->pool, "pspp.list");
+  x->file = NULL;
   x->page_number = 0;
   x->lines = NULL;
-  x->lines_cap = 0;
-  x->cur_font = OUTP_F_R;
-#if DEBUGGING
-  x->debug = 0;
-#endif
-  return 1;
+  x->line_cap = 0;
+
+  if (!outp_parse_options (options, handle_option, this))
+    goto error;
+
+  x->file = pool_fopen (x->pool, x->file_name, "w");
+  if (x->file == NULL)
+    {
+      error (0, errno, _("ascii: opening output file \"%s\""), x->file_name);
+      goto error;
+    }
+
+  this->length = x->page_length - x->top_margin - x->bottom_margin - 1;
+  if (x->headers)
+    this->length -= 3;
+  
+  if (this->width < 59 || this->length < 15)
+    {
+      error (0, 0,
+             _("ascii: page excluding margins and headers "
+               "must be at least 59 characters wide by 15 lines long, but as "
+               "configured is only %d characters by %d lines"),
+             this->width, this->length);
+      return false;
+    }
+
+  for (i = 0; i < LNS_COUNT; i++)
+    if (x->box[i] == NULL) 
+      {
+        char s[2];
+        s[0] = get_default_box_char (i);
+        s[1] = '\0';
+        x->box[i] = pool_strdup (x->pool, s);
+      }
+  
+  return true;
+
+ error:
+  pool_destroy (x->pool);
+  return false;
 }
 
 static int
-ascii_postopen_driver (struct outp_driver *this)
+get_default_box_char (size_t idx)
 {
-  struct ascii_driver_ext *x = this->ext;
-  
-  assert (this->driver_open == 0);
-  
-  if (NULL == x->file.filename)
-    x->file.filename = xstrdup ("pspp.list");
-  
-  x->w = x->page_width - x->left_margin - x->right_margin;
-  x->l = (x->page_length - (x->headers ? 3 : 0) - x->top_margin
-	  - x->bottom_margin - 1);
-  if (x->w < 59 || x->l < 15)
+  /* Disassemble IDX into components. */
+  unsigned top = (idx >> LNS_TOP) & 3;
+  unsigned left = (idx >> LNS_LEFT) & 3;
+  unsigned bottom = (idx >> LNS_BOTTOM) & 3;
+  unsigned right = (idx >> LNS_RIGHT) & 3;
+
+  /* Reassemble components into nibbles in the order TLBR.
+     This makes it easy to read the case labels. */
+  unsigned value = (top << 12) | (left << 8) | (bottom << 4) | (right << 0);
+  switch (value)
     {
-      msg (SE, _("ascii driver: Area of page excluding margins and headers "
-		 "must be at least 59 characters wide by 15 lines long.  Page as "
-		 "configured is only %d characters by %d lines."), x->w, x->l);
-      return 0;
+    case 0x0000:
+      return ' ';
+
+    case 0x0100: case 0x0101: case 0x0001:
+      return '-';
+
+    case 0x1000: case 0x1010: case 0x0010:
+      return '|';
+
+    case 0x0300: case 0x0303: case 0x0003:
+    case 0x0200: case 0x0202: case 0x0002:
+      return '=';
+
+    default:
+      return left > 1 || top > 1 || right > 1 || bottom > 1 ? '#' : '+';
     }
-  
-  this->res = x->lpi * x->cpi;
-  this->horiz = x->lpi;
-  this->vert = x->cpi;
-  this->width = x->w * this->horiz;
-  this->length = x->l * this->vert;
-  
-  if (ls_null_p (&x->ops[OPS_FORMFEED]))
-    ls_create (&x->ops[OPS_FORMFEED], "\f");
-  if (ls_null_p (&x->ops[OPS_NEWLINE])
-      || !strcmp (ls_c_str (&x->ops[OPS_NEWLINE]), "default"))
-    {
-      ls_create (&x->ops[OPS_NEWLINE], "\n");
-      x->file.mode = "wt";
-    }
-  
-  {
-    int i;
-    
-    for (i = 0; i < LNS_COUNT; i++)
-      {
-	char c[2];
-	c[1] = 0;
-	if (!ls_null_p (&x->box[i]))
-	  continue;
-	switch (i)
-	  {
-	  case TAYSTE2BYTE (0, 0, 0, 0):
-	    c[0] = ' ';
-	    break;
-
-	  case TAYSTE2BYTE (0, 1, 0, 0):
-	  case TAYSTE2BYTE (0, 1, 0, 1):
-	  case TAYSTE2BYTE (0, 0, 0, 1):
-	    c[0] = '-';
-	    break;
-
-	  case TAYSTE2BYTE (1, 0, 0, 0):
-	  case TAYSTE2BYTE (1, 0, 1, 0):
-	  case TAYSTE2BYTE (0, 0, 1, 0):
-	    c[0] = '|';
-	    break;
-
-	  case TAYSTE2BYTE (0, 3, 0, 0):
-	  case TAYSTE2BYTE (0, 3, 0, 3):
-	  case TAYSTE2BYTE (0, 0, 0, 3):
-	  case TAYSTE2BYTE (0, 2, 0, 0):
-	  case TAYSTE2BYTE (0, 2, 0, 2):
-	  case TAYSTE2BYTE (0, 0, 0, 2):
-	    c[0] = '=';
-	    break;
-
-	  case TAYSTE2BYTE (3, 0, 0, 0):
-	  case TAYSTE2BYTE (3, 0, 3, 0):
-	  case TAYSTE2BYTE (0, 0, 3, 0):
-	  case TAYSTE2BYTE (2, 0, 0, 0):
-	  case TAYSTE2BYTE (2, 0, 2, 0):
-	  case TAYSTE2BYTE (0, 0, 2, 0):
-	    c[0] = '#';
-	    break;
-
-	  default:
-	    if (BYTE2TAYSTE (i, LNS_LEFT) > 1
-		|| BYTE2TAYSTE (i, LNS_TOP) > 1
-		|| BYTE2TAYSTE (i, LNS_RIGHT) > 1
-		|| BYTE2TAYSTE (i, LNS_BOTTOM) > 1)
-	      c[0] = '#';
-	    else
-	      c[0] = '+';
-	    break;
-	  }
-	ls_create (&x->box[i], c);
-      }
-  }
-  
-  {
-    int i;
-    
-    this->cp_x = this->cp_y = 0;
-    this->font_height = this->vert;
-    this->prop_em_width = this->horiz;
-    this->fixed_width = this->horiz;
-
-    this->horiz_line_width[0] = 0;
-    this->vert_line_width[0] = 0;
-    
-    for (i = 1; i < OUTP_L_COUNT; i++)
-      {
-	this->horiz_line_width[i] = this->vert;
-	this->vert_line_width[i] = this->horiz;
-      }
-    
-    for (i = 0; i < (1 << OUTP_L_COUNT); i++)
-      {
-	this->horiz_line_spacing[i] = (i & ~1) ? this->vert : 0;
-	this->vert_line_spacing[i] = (i & ~1) ? this->horiz : 0;
-      }
-  }
-  
-  this->driver_open = 1;
-  msg (VM (2), _("%s: Initialization complete."), this->name);
-
-  return 1;
 }
 
-static int
+static bool
 ascii_close_driver (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
-  int i;
   
-  assert (this->driver_open == 1);
-  msg (VM (2), _("%s: Beginning closing..."), this->name);
+  if (fn_close (x->file_name, x->file) != 0)
+    error (0, errno, _("ascii: closing output file \"%s\""), x->file_name);
+  pool_detach_file (x->pool, x->file);
+  pool_destroy (x->pool);
   
-  x = this->ext;
-  for (i = 0; i < OPS_COUNT; i++)
-    ls_destroy (&x->ops[i]);
-  for (i = 0; i < LNS_COUNT; i++)
-    ls_destroy (&x->box[i]);
-  for (i = 0; i < FSTY_COUNT; i++)
-    ls_destroy (&x->fonts[i]);
-  if (x->lines != NULL) 
-    {
-      int line;
-      
-      for (line = 0; line < x->lines_cap; line++) 
-        free (x->lines[line].chars);
-      free (x->lines); 
-    }
-  fn_close_ext (&x->file);
-  free (x->file.filename);
-  free (x);
-  
-  this->driver_open = 0;
-  msg (VM (3), _("%s: Finished closing."), this->name);
-  
-  return 1;
+  return true;
 }
 
 /* Generic option types. */
 enum
   {
-    pos_int_arg = -10,
-    nonneg_int_arg,
+    boolean_arg,
     string_arg,
-    font_string_arg,
-    boolean_arg
+    nonneg_int_arg,
+    pos_int_arg,
+    output_file_arg
   };
 
 static struct outp_option option_tab[] =
   {
     {"headers", boolean_arg, 0},
-    {"output-file", 1, 0},
-    {"char-set", 2, 0},
+    {"paginate", boolean_arg, 1},
+    {"squeeze", boolean_arg, 2},
+
+    {"emphasis", string_arg, 3},
+
+    {"output-file", output_file_arg, 0},
+
     {"length", pos_int_arg, 0},
     {"width", pos_int_arg, 1},
-    {"lpi", pos_int_arg, 2},
-    {"cpi", pos_int_arg, 3},
-    {"init", string_arg, 0},
-    {"done", string_arg, 1},
-    {"left-margin", nonneg_int_arg, 0},
-    {"right-margin", nonneg_int_arg, 1},
-    {"top-margin", nonneg_int_arg, 2},
-    {"bottom-margin", nonneg_int_arg, 3},
-    {"paginate", boolean_arg, 1},
-    {"form-feed-string", string_arg, 2},
-    {"newline-string", string_arg, 3},
-    {"italic-on", font_string_arg, 0},
-    {"italic-off", font_string_arg, 1},
-    {"bold-on", font_string_arg, 2},
-    {"bold-off", font_string_arg, 3},
-    {"bold-italic-on", font_string_arg, 4},
-    {"bold-italic-off", font_string_arg, 5},
-    {"overstrike-style", 3, 0},
-    {"tab-width", nonneg_int_arg, 4},
-    {"carriage-return-style", 4, 0},
-    {"squeeze", boolean_arg, 2},
-    {"", 0, 0},
+
+    {"top-margin", nonneg_int_arg, 0},
+    {"bottom-margin", nonneg_int_arg, 1},
+    {"tab-width", nonneg_int_arg, 2},
+
+    {NULL, 0, 0},
   };
 
-static void
-ascii_option (struct outp_driver *this, const char *key,
-	      const struct string *val)
+static bool
+handle_option (struct outp_driver *this, const char *key,
+               const struct string *val)
 {
   struct ascii_driver_ext *x = this->ext;
-  int cat, subcat;
+  int subcat;
   const char *value;
 
   value = ds_c_str (val);
@@ -487,54 +282,25 @@ ascii_option (struct outp_driver *this, const char *key,
       int indx = strtol (&key[4], &tail, 4);
       if (*tail != ']' || indx < 0 || indx > LNS_COUNT)
 	{
-	  msg (SE, _("Bad index value for `box' key: syntax is box[INDEX], "
-	       "0 <= INDEX < %d decimal, with INDEX expressed in base 4."),
-	       LNS_COUNT);
-	  return;
+	  error (0, 0, _("ascii: bad index value for `box' key: syntax "
+                         "is box[INDEX], 0 <= INDEX < %d decimal, with INDEX "
+                         "expressed in base 4"),
+                 LNS_COUNT);
+	  return false;
 	}
-      if (!ls_null_p (&x->box[indx]))
-	msg (SW, _("Duplicate value for key `%s'."), key);
-      ls_create (&x->box[indx], value);
-      return;
+      if (x->box[indx] != NULL)
+	error (0, 0, _("ascii: multiple values for %s"), key);
+      x->box[indx] = pool_strdup (x->pool, value);
+      return true;
     }
 
-  cat = outp_match_keyword (key, option_tab, option_info, &subcat);
-  switch (cat)
+  switch (outp_match_keyword (key, option_tab, &subcat))
     {
-    case 0:
-      msg (SE, _("Unknown configuration parameter `%s' for ascii device driver."),
-	   key);
+    case -1:
+      error (0, 0, _("ascii: unknown parameter `%s'"), key);
       break;
-    case 1:
-      free (x->file.filename);
-      x->file.filename = xstrdup (value);
-      break;
-    case 2:
-      if (!strcmp (value, "ascii"))
-	x->char_set = CHS_ASCII;
-      else if (!strcmp (value, "latin1"))
-	x->char_set = CHS_LATIN1;
-      else
-	msg (SE, _("Unknown character set `%s'.  Valid character sets are "
-	     "`ascii' and `latin1'."), value);
-      break;
-    case 3:
-      if (!strcmp (value, "single"))
-	x->overstrike_style = OVS_SINGLE;
-      else if (!strcmp (value, "line"))
-	x->overstrike_style = OVS_LINE;
-      else
-	msg (SE, _("Unknown overstrike style `%s'.  Valid overstrike styles "
-	     "are `single' and `line'."), value);
-      break;
-    case 4:
-      if (!strcmp (value, "bs"))
-	x->carriage_return_style = CRS_BS;
-      else if (!strcmp (value, "cr"))
-	x->carriage_return_style = CRS_CR;
-      else
-	msg (SE, _("Unknown carriage return style `%s'.  Valid carriage "
-	     "return styles are `cr' and `bs'."), value);
+    case output_file_arg:
+      x->file_name = pool_strdup (x->pool, value);
       break;
     case pos_int_arg:
       {
@@ -545,7 +311,8 @@ ascii_option (struct outp_driver *this, const char *key,
 	arg = strtol (value, &tail, 0);
 	if (arg < 1 || errno == ERANGE || *tail)
 	  {
-	    msg (SE, _("Positive integer required as value for `%s'."), key);
+	    error (0, 0, _("ascii: positive integer required as `%s' value"),
+                   key);
 	    break;
 	  }
 	switch (subcat)
@@ -554,18 +321,24 @@ ascii_option (struct outp_driver *this, const char *key,
 	    x->page_length = arg;
 	    break;
 	  case 1:
-	    x->page_width = arg;
-	    break;
-	  case 2:
-	    x->lpi = arg;
-	    break;
-	  case 3:
-	    x->cpi = arg;
+	    this->width = arg;
 	    break;
 	  default:
-	    assert (0);
+	    abort ();
 	  }
       }
+      break;
+    case string_arg:
+      if (!strcmp (value, "bold"))
+        x->emphasis = EMPH_BOLD;
+      else if (!strcmp (value, "underline"))
+        x->emphasis = EMPH_UNDERLINE;
+      else if (!strcmp (value, "none"))
+        x->emphasis = EMPH_NONE;
+      else 
+        error (0, 0,
+               _("ascii: `emphasis' value must be `bold', "
+                 "`underline', or `none'"));
       break;
     case nonneg_int_arg:
       {
@@ -576,79 +349,40 @@ ascii_option (struct outp_driver *this, const char *key,
 	arg = strtol (value, &tail, 0);
 	if (arg < 0 || errno == ERANGE || *tail)
 	  {
-	    msg (SE, _("Zero or positive integer required as value for `%s'."),
-		 key);
+	    error (0, 0,
+                   _("ascii: zero or positive integer required as `%s' value"),
+                   key);
 	    break;
 	  }
 	switch (subcat)
 	  {
 	  case 0:
-	    x->left_margin = arg;
-	    break;
-	  case 1:
-	    x->right_margin = arg;
-	    break;
-	  case 2:
 	    x->top_margin = arg;
 	    break;
-	  case 3:
+	  case 1:
 	    x->bottom_margin = arg;
 	    break;
-	  case 4:
+	  case 2:
 	    x->tab_width = arg;
 	    break;
 	  default:
-	    assert (0);
+	    abort ();
 	  }
-      }
-      break;
-    case string_arg:
-      {
-	struct fixed_string *s;
-	switch (subcat)
-	  {
-	  case 0:
-	    s = &x->ops[OPS_INIT];
-	    break;
-	  case 1:
-	    s = &x->ops[OPS_DONE];
-	    break;
-	  case 2:
-	    s = &x->ops[OPS_FORMFEED];
-	    break;
-	  case 3:
-	    s = &x->ops[OPS_NEWLINE];
-	    break;
-	  default:
-	    assert (0);
-            abort ();
-	  }
-	ls_create (s, value);
-      }
-      break;
-    case font_string_arg:
-      {
-	if (!strcmp (value, "overstrike"))
-	  {
-	    ls_destroy (&x->fonts[subcat]);
-	    return;
-	  }
-	ls_create (&x->fonts[subcat], value);
       }
       break;
     case boolean_arg:
       {
-	int setting;
+	bool setting;
 	if (!strcmp (value, "on") || !strcmp (value, "true")
 	    || !strcmp (value, "yes") || atoi (value))
-	  setting = 1;
+	  setting = true;
 	else if (!strcmp (value, "off") || !strcmp (value, "false")
 		 || !strcmp (value, "no") || !strcmp (value, "0"))
-	  setting = 0;
+	  setting = false;
 	else
 	  {
-	    msg (SE, _("Boolean value expected for %s."), key);
-	    return;
+	    error (0, 0, _("ascii: boolean value expected for `%s'"), key);
+	    return false;
 	  }
 	switch (subcat)
 	  {
@@ -662,988 +396,340 @@ ascii_option (struct outp_driver *this, const char *key,
             x->squeeze_blank_lines = setting;
             break;
 	  default:
-	    assert (0);
+	    abort ();
 	  }
       }
       break;
     default:
-      assert (0);
+      abort ();
     }
+
+  return true;
 }
 
-int
-postopen (struct file_ext *f)
-{
-  struct ascii_driver_ext *x = f->param;
-  struct fixed_string *s = &x->ops[OPS_INIT];
-
-  if (!ls_empty_p (s) && fwrite (ls_c_str (s), ls_length (s), 1, f->file) < 1)
-    {
-      msg (ME, _("ASCII output driver: %s: %s"),
-	   f->filename, strerror (errno));
-      return 0;
-    }
-  return 1;
-}
-
-int
-preclose (struct file_ext *f)
-{
-  struct ascii_driver_ext *x = f->param;
-  struct fixed_string *d = &x->ops[OPS_DONE];
-
-  if (!ls_empty_p (d) && fwrite (ls_c_str (d), ls_length (d), 1, f->file) < 1)
-    {
-      msg (ME, _("ASCII output driver: %s: %s"),
-	   f->filename, strerror (errno));
-      return 0;
-    }
-  return 1;
-}
-
-static int
+static void
 ascii_open_page (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
   int i;
 
-  assert (this->driver_open && !this->page_open);
   x->page_number++;
-  if (!fn_open_ext (&x->file))
-    {
-      msg (ME, _("ASCII output driver: %s: %s"), x->file.filename,
-	   strerror (errno));
-      return 0;
-    }
 
-  if (x->l > x->lines_cap)
+  if (this->length > x->line_cap)
     {
-      x->lines = xnrealloc (x->lines, x->l, sizeof *x->lines);
-      for (i = x->lines_cap; i < x->l; i++) 
+      x->lines = pool_nrealloc (x->pool,
+                                x->lines, this->length, sizeof *x->lines);
+      for (i = x->line_cap; i < this->length; i++) 
         {
           struct line *line = &x->lines[i];
           line->chars = NULL;
           line->char_cap = 0;
         }
-      x->lines_cap = x->l;
+      x->line_cap = this->length;
     }
 
-  for (i = 0; i < x->l; i++)
+  for (i = 0; i < this->length; i++)
     x->lines[i].char_cnt = 0;
-
-  this->page_open = 1;
-  return 1;
 }
 
-/* Ensures that at least the first L characters of line I in the
-   driver identified by struct ascii_driver_ext *X have been cleared out. */
+/* Ensures that at least the first LENGTH characters of line Y in
+   THIS driver identified X have been cleared out. */
 static inline void
-expand_line (struct ascii_driver_ext *x, int i, int l)
-{
-  struct line *line;
-  int j;
-
-  assert (i < x->lines_cap);
-  line = &x->lines[i];
-  if (l > line->char_cap) 
-    {
-      line->char_cap = l * 2;
-      line->chars = xnrealloc (line->chars,
-                               line->char_cap, sizeof *line->chars); 
-    }
-  for (j = line->char_cnt; j < l; j++)
-    line->chars[j] = ' ';
-  line->char_cnt = l;
-}
-
-/* Puts line L at (H,K) in the current output page.  Assumes
-   struct ascii_driver_ext named `ext'. */
-#define draw_line(H, K, L) 				\
-        ext->lines[K].chars[H] = (L) | 0x800
-
-/* Line styles for each position. */
-#define T(STYLE) (STYLE<<LNS_TOP)
-#define L(STYLE) (STYLE<<LNS_LEFT)
-#define B(STYLE) (STYLE<<LNS_BOTTOM)
-#define R(STYLE) (STYLE<<LNS_RIGHT)
-
-static void
-ascii_line_horz (struct outp_driver *this, const struct rect *r,
-		 const struct color *c UNUSED, int style)
+expand_line (struct outp_driver *this, int y, int length)
 {
   struct ascii_driver_ext *ext = this->ext;
-  int x1 = r->x1 / this->horiz;
-  int x2 = r->x2 / this->horiz;
-  int y1 = r->y1 / this->vert;
-  int x;
-
-  assert (this->driver_open && this->page_open);
-  if (x1 == x2)
-    return;
-#if DEBUGGING
-  if (x1 > x2
-      || x1 < 0 || x1 >= ext->w
-      || x2 <= 0 || x2 > ext->w
-      || y1 < 0 || y1 >= ext->l)
+  struct line *line = &ext->lines[y];
+  if (line->char_cnt < length) 
     {
-#if !SUPPRESS_WARNINGS
-      printf (_("ascii_line_horz: bad hline (%d,%d),%d out of (%d,%d)\n"),
-	      x1, x2, y1, ext->w, ext->l);
-#endif
-      return;
+      int x;
+      if (line->char_cap < length) 
+        {
+          line->char_cap = MIN (length * 2, this->width);
+          line->chars = pool_nrealloc (ext->pool,
+                                       line->chars,
+                                       line->char_cap, sizeof *line->chars); 
+        }
+      for (x = line->char_cnt; x < length; x++)
+        line->chars[x] = ' ';
+      line->char_cnt = length; 
     }
-#endif
-
-  if (ext->lines[y1].char_cnt < x2)
-    expand_line (ext, y1, x2);
-
-  for (x = x1; x < x2; x++)
-    draw_line (x, y1, (style << LNS_LEFT) | (style << LNS_RIGHT));
 }
 
 static void
-ascii_line_vert (struct outp_driver *this, const struct rect *r,
-		 const struct color *c UNUSED, int style)
+ascii_line (struct outp_driver *this, 
+            int x0, int y0, int x1, int y1,
+            enum outp_line_style top, enum outp_line_style left,
+            enum outp_line_style bottom, enum outp_line_style right)
 {
   struct ascii_driver_ext *ext = this->ext;
-  int x1 = r->x1 / this->horiz;
-  int y1 = r->y1 / this->vert;
-  int y2 = r->y2 / this->vert;
   int y;
+  unsigned short value;
 
-  assert (this->driver_open && this->page_open);
-  if (y1 == y2)
-    return;
+  assert (this->page_open);
 #if DEBUGGING
-  if (y1 > y2
-      || x1 < 0 || x1 >= ext->w
-      || y1 < 0 || y1 >= ext->l
-      || y2 < 0 || y2 > ext->l)
+  if (x0 < 0 || x1 > this->width || y0 < 0 || y1 > this->length)
     {
 #if !SUPPRESS_WARNINGS
-      printf (_("ascii_line_vert: bad vline %d,(%d,%d) out of (%d,%d)\n"),
-	      x1, y1, y2, ext->w, ext->l);
+      printf (_("ascii: bad line (%d,%d)-(%d,%d) out of (%d,%d)\n"),
+	      x0, y0, x1, y1, this->width, this->length);
 #endif
       return;
     }
 #endif
 
-  for (y = y1; y < y2; y++)
-    if (ext->lines[y].char_cnt <= x1)
-      expand_line (ext, y, x1 + 1);
+  value = ((left << LNS_LEFT) | (right << LNS_RIGHT)
+           | (top << LNS_TOP) | (bottom << LNS_BOTTOM) | ATTR_BOX);
+  for (y = y0; y < y1; y++) 
+    {
+      int x;
 
-  for (y = y1; y < y2; y++)
-    draw_line (x1, y, (style << LNS_TOP) | (style << LNS_BOTTOM));
+      expand_line (this, y, x1);
+      for (x = x0; x < x1; x++)
+        ext->lines[y].chars[x] = value; 
+    }
 }
 
 static void
-ascii_line_intersection (struct outp_driver *this, const struct rect *r,
-			 const struct color *c UNUSED,
-			 const struct outp_styles *style)
+text_draw (struct outp_driver *this,
+           enum outp_font font,
+           int x, int y,
+           enum outp_justification justification, int width,
+           const char *string, size_t length)
 {
   struct ascii_driver_ext *ext = this->ext;
-  int x = r->x1 / this->horiz;
-  int y = r->y1 / this->vert;
-  int l;
+  unsigned short attr = font == OUTP_EMPHASIS ? ATTR_EMPHASIS : 0;
 
-  assert (this->driver_open && this->page_open);
-#if DEBUGGING
-  if (x < 0 || x >= ext->w || y < 0 || y >= ext->l)
+  int line_len;
+
+  switch (justification)
     {
-#if !SUPPRESS_WARNINGS
-      printf (_("ascii_line_intersection: bad intsct (%d,%d) out of (%d,%d)\n"),
-	      x, y, ext->w, ext->l);
-#endif
-      return;
-    }
-#endif
-
-  l = ((style->l << LNS_LEFT) | (style->r << LNS_RIGHT)
-       | (style->t << LNS_TOP) | (style->b << LNS_BOTTOM));
-
-  if (ext->lines[y].char_cnt <= x)
-    expand_line (ext, y, x + 1);
-  draw_line (x, y, l);
-}
-
-/* FIXME: Later we could set this up so that for certain devices it
-   performs shading? */
-static void
-ascii_box (struct outp_driver *this UNUSED, const struct rect *r UNUSED,
-	   const struct color *bord UNUSED, const struct color *fill UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-
-/* Polylines not supported. */
-static void
-ascii_polyline_begin (struct outp_driver *this UNUSED, const struct color *c UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-static void
-ascii_polyline_point (struct outp_driver *this UNUSED, int x UNUSED, int y UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-static void
-ascii_polyline_end (struct outp_driver *this UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-
-static void
-ascii_text_set_font_by_name (struct outp_driver * this, const char *s)
-{
-  struct ascii_driver_ext *x = this->ext;
-  int len = strlen (s);
-
-  assert (this->driver_open && this->page_open);
-  x->cur_font = OUTP_F_R;
-  if (len == 0)
-    return;
-  if (s[len - 1] == 'I')
-    {
-      if (len > 1 && s[len - 2] == 'B')
-	x->cur_font = OUTP_F_BI;
-      else
-	x->cur_font = OUTP_F_I;
-    }
-  else if (s[len - 1] == 'B')
-    x->cur_font = OUTP_F_B;
-}
-
-static void
-ascii_text_set_font_by_position (struct outp_driver *this, int pos)
-{
-  struct ascii_driver_ext *x = this->ext;
-  assert (this->driver_open && this->page_open);
-  x->cur_font = pos >= 0 && pos < 4 ? pos : 0;
-}
-
-static void
-ascii_text_set_font_by_family (struct outp_driver *this UNUSED, const char *s UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-}
-
-static const char *
-ascii_text_get_font_name (struct outp_driver *this)
-{
-  struct ascii_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  switch (x->cur_font)
-    {
-    case OUTP_F_R:
-      return "R";
-    case OUTP_F_I:
-      return "I";
-    case OUTP_F_B:
-      return "B";
-    case OUTP_F_BI:
-      return "BI";
+    case OUTP_LEFT:
+      break;
+    case OUTP_CENTER:
+      x += (width - length + 1) / 2;
+      break;
+    case OUTP_RIGHT:
+      x += width - length;
+      break;
     default:
-      assert (0);
+      abort ();
     }
-  abort ();
-}
 
-static const char *
-ascii_text_get_font_family (struct outp_driver *this UNUSED)
-{
-  assert (this->driver_open && this->page_open);
-  return "";
-}
+  if (y >= this->length || x >= this->width)
+    return;
 
-static int
-ascii_text_set_size (struct outp_driver *this, int size)
-{
-  assert (this->driver_open && this->page_open);
-  return size == this->vert;
-}
+  if (x + length > this->width)
+    length = this->width - x;
 
-static int
-ascii_text_get_size (struct outp_driver *this, int *em_width)
-{
-  assert (this->driver_open && this->page_open);
-  if (em_width)
-    *em_width = this->horiz;
-  return this->vert;
-}
+  line_len = x + length;
 
-static void text_draw (struct outp_driver *this, struct outp_text *t);
+  expand_line (this, y, line_len);
+  while (length-- > 0)
+    ext->lines[y].chars[x++] = *string++ | attr;
+}
 
 /* Divides the text T->S into lines of width T->H.  Sets T->V to the
    number of lines necessary.  Actually draws the text if DRAW is
-   nonzero.
-
-   You probably don't want to look at this code. */
+   true. */
 static void
-delineate (struct outp_driver *this, struct outp_text *t, int draw)
+delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
+           int *width, int *height)
 {
-  /* Width we're fitting everything into. */
-  int width = t->h / this->horiz;
+  int max_width;
+  int height_left;
 
-  /* Maximum `y' position we can write to. */
-  int max_y;
+  const char *cp = ls_c_str (&text->string);
 
-  /* Current position in string, character following end of string. */
-  const char *s = ls_c_str (&t->s);
-  const char *end = ls_end (&t->s);
+  max_width = 0;
+  height_left = text->v;
 
-  /* Temporary struct outp_text to pass to low-level function. */
-  struct outp_text temp;
-
-#if DEBUGGING && 0
-  if (!ext->debug)
+  while (height_left > 0)
     {
-      ext->debug = 1;
-      printf (_("%s: horiz=%d, vert=%d\n"), this->name, this->horiz, this->vert);
-    }
-#endif
+      size_t chars_left;
+      size_t line_len;
+      const char *end;
 
-  if (!width)
-    {
-      t->h = t->v = 0;
-      return;
-    }
+      /* Initially the line is up to text->h characters long. */
+      chars_left = ls_end (&text->string) - cp;
+      if (chars_left == 0)
+        break;
+      line_len = MIN (chars_left, text->h);
 
-  if (draw)
-    {
-      temp.options = t->options;
-      ls_shallow_copy (&temp.s, &t->s);
-      temp.h = t->h / this->horiz;
-      temp.x = t->x / this->horiz;
-    }
-  else
-    t->y = 0;
-  temp.y = t->y / this->vert;
+      /* A new-line terminates the line prematurely. */
+      end = memchr (cp, '\n', line_len);
+      if (end != NULL)
+        line_len = end - cp;
 
-  if (t->options & OUTP_T_VERT)
-    max_y = (t->v / this->vert) + temp.y - 1;
-  else
-    max_y = INT_MAX;
-  
-  while (end - s > width)
-    {
-      const char *beg = s;
-      const char *space;
-
-      /* Find first space before &s[width]. */
-      space = &s[width];
-      for (;;)
-	{
-	  if (space > s)
-	    {
-	      if (!isspace ((unsigned char) space[-1]))
-		{
-		  space--;
-		  continue;
-		}
-	      else
-		s = space;
-	    }
-	  else
-	    s = space = &s[width];
-	  break;
-	}
-
+      /* Don't cut off words if it can be avoided. */
+      if (cp + line_len < ls_end (&text->string)) 
+        {
+          size_t space_len = line_len;
+          while (space_len > 0 && !isspace ((unsigned char) cp[space_len]))
+            space_len--;
+          if (space_len > 0)
+            line_len = space_len;
+        }
+      
       /* Draw text. */
       if (draw)
-	{
-	  ls_init (&temp.s, beg, space - beg);
-	  temp.w = space - beg;
-	  text_draw (this, &temp);
-	}
-      if (++temp.y > max_y)
-	return;
+        text_draw (this,
+                   text->font,
+                   text->x, text->y + (text->v - height_left),
+                   text->justification, text->h,
+                   cp, line_len);
 
-      /* Find first nonspace after space. */
-      while (s < end && isspace ((unsigned char) *s))
-	s++;
-    }
-  if (s < end)
-    {
-      if (draw)
-	{
-	  ls_init (&temp.s, s, end - s);
-	  temp.w = end - s;
-	  text_draw (this, &temp);
-	}
-      temp.y++;
+      /* Update. */
+      height_left--;
+      if (line_len > max_width)
+        max_width = line_len;
+
+      /* Next line. */
+      cp += line_len;
+      if (cp < ls_end (&text->string) && isspace ((unsigned char) *cp))
+        cp++;
     }
 
-  t->v = (temp.y * this->vert) - t->y;
+  if (width != NULL)
+    *width = max_width;
+  if (height != NULL)
+    *height = text->v - height_left;
 }
 
 static void
-ascii_text_metrics (struct outp_driver *this, struct outp_text *t)
+ascii_text_metrics (struct outp_driver *this, const struct outp_text *t,
+                    int *width, int *height)
 {
-  assert (this->driver_open && this->page_open);
-  if (!(t->options & OUTP_T_HORZ))
-    {
-      t->v = this->vert;
-      t->h = ls_length (&t->s) * this->horiz;
-    }
-  else
-    delineate (this, t, 0);
+  delineate (this, t, false, width, height);
 }
 
 static void
-ascii_text_draw (struct outp_driver *this, struct outp_text *t)
+ascii_text_draw (struct outp_driver *this, const struct outp_text *t)
 {
-  /* FIXME: orientations not supported. */
-  assert (this->driver_open && this->page_open);
-  if (!(t->options & OUTP_T_HORZ))
-    {
-      struct outp_text temp;
-
-      temp.options = t->options;
-      temp.s = t->s;
-      temp.h = temp.v = 0;
-      temp.x = t->x / this->horiz;
-      temp.y = t->y / this->vert;
-      text_draw (this, &temp);
-      ascii_text_metrics (this, t);
-      
-      return;
-    }
-  delineate (this, t, 1);
+  assert (this->page_open);
+  delineate (this, t, true, NULL, NULL);
 }
 
-static void
-text_draw (struct outp_driver *this, struct outp_text *t)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  unsigned attr = ext->cur_font << 8;
-
-  int x = t->x;
-  int y = t->y;
-
-  char *s = ls_c_str (&t->s);
-
-  /* Expand the line with the assumption that S takes up LEN character
-     spaces (sometimes it takes up less). */
-  int min_len;
-
-  assert (this->driver_open && this->page_open);
-  switch (t->options & OUTP_T_JUST_MASK)
-    {
-    case OUTP_T_JUST_LEFT:
-      break;
-    case OUTP_T_JUST_CENTER:
-      x -= (t->h - t->w) / 2;	/* fall through */
-    case OUTP_T_JUST_RIGHT:
-      x += (t->h - t->w);
-      break;
-    default:
-      assert (0);
-    }
-
-  if (!(t->y < ext->l && x < ext->w))
-    return;
-  min_len = min (x + ls_length (&t->s), ext->w);
-  if (ext->lines[t->y].char_cnt < min_len)
-    expand_line (ext, t->y, min_len);
-
-  {
-    int len = ls_length (&t->s);
-
-    if (len + x > ext->w)
-      len = ext->w - x;
-    while (len--)
-      ext->lines[y].chars[x++] = *s++ | attr;
-  }
-}
 
 /* ascii_close_page () and support routines. */
 
-#define LINE_BUF_SIZE 1024
-static char *line_buf;
-static char *line_p;
+/* Writes the LENGTH characters in S to OUT.  */
+static void
+output_line (struct outp_driver *this, const struct line *line,
+             struct string *out)
+{
+  struct ascii_driver_ext *ext = this->ext;
+  const unsigned short *s = line->chars;
+  size_t length;
 
-static inline int
-commit_line_buf (struct outp_driver *this)
+  for (length = line->char_cnt; length-- > 0; s++)
+    if (*s & ATTR_BOX)
+      ds_puts (out, ext->box[*s & 0xff]);
+    else
+      {
+        if (*s & ATTR_EMPHASIS) 
+          {
+            if (ext->emphasis == EMPH_BOLD)
+              {
+                ds_putc (out, *s);
+                ds_putc (out, '\b'); 
+              }
+            else if (ext->emphasis == EMPH_UNDERLINE)
+              ds_puts (out, "_\b"); 
+          }
+        ds_putc (out, *s);
+      }
+}
+
+static void
+append_lr_justified (struct string *out, int width,
+                     const char *left, const char *right)
+{
+  ds_putc_multiple (out, ' ', width);
+  if (left != NULL) 
+    {
+      size_t length = MIN (strlen (left), width);
+      memcpy (ds_end (out) - width, left, length); 
+    }
+  if (right != NULL)
+    {
+      size_t length = MIN (strlen (right), width);
+      memcpy (ds_end (out) - length, right, length);
+    }
+  ds_putc (out, '\n');
+}
+
+static void
+dump_output (struct outp_driver *this, struct string *out) 
 {
   struct ascii_driver_ext *x = this->ext;
-  
-  if ((int) fwrite (line_buf, 1, line_p - line_buf, x->file.file)
-      < line_p - line_buf)
-    {
-      msg (ME, _("Writing `%s': %s"), x->file.filename, strerror (errno));
-      return 0;
-    }
-
-  line_p = line_buf;
-  return 1;
+  fwrite (ds_data (out), ds_length (out), 1, x->file);
+  ds_clear (out);
 }
 
-/* Writes everything from BP to EP exclusive into line_buf, or to
-   THIS->output if line_buf overflows. */
-static inline void
-output_string (struct outp_driver *this, const char *bp, const char *ep)
-{
-  if (LINE_BUF_SIZE - (line_p - line_buf) >= ep - bp)
-    {
-      memcpy (line_p, bp, ep - bp);
-      line_p += ep - bp;
-    }
-  else
-    while (bp < ep)
-      {
-	if (LINE_BUF_SIZE - (line_p - line_buf) <= 1 && !commit_line_buf (this))
-	  return;
-	*line_p++ = *bp++;
-      }
-}
-
-/* Writes everything from BP to EP exclusive into line_buf, or to
-   THIS->output if line_buf overflows.  Returns 1 if additional passes
-   over the line are required.  FIXME: probably could do a lot of
-   optimization here. */
-static inline int
-output_shorts (struct outp_driver *this,
-	       const unsigned short *bp, const unsigned short *ep)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  size_t remaining = LINE_BUF_SIZE - (line_p - line_buf);
-  int result = 0;
-
-  for (; bp < ep; bp++)
-    {
-      if (*bp & 0x800)
-	{
-	  struct fixed_string *box = &ext->box[*bp & 0xff];
-	  size_t len = ls_length (box);
-
-	  if (remaining >= len)
-	    {
-	      memcpy (line_p, ls_c_str (box), len);
-	      line_p += len;
-	      remaining -= len;
-	    }
-	  else
-	    {
-	      if (!commit_line_buf (this))
-		return 0;
-	      output_string (this, ls_c_str (box), ls_end (box));
-	      remaining = LINE_BUF_SIZE - (line_p - line_buf);
-	    }
-	}
-      else if (*bp & 0x0300)
-	{
-	  struct fixed_string *on;
-	  char buf[5];
-	  int len;
-
-	  switch (*bp & 0x0300)
-	    {
-	    case OUTP_F_I << 8:
-	      on = &ext->fonts[FSTY_ON | FSTY_ITALIC];
-	      break;
-	    case OUTP_F_B << 8:
-	      on = &ext->fonts[FSTY_ON | FSTY_BOLD];
-	      break;
-	    case OUTP_F_BI << 8:
-	      on = &ext->fonts[FSTY_ON | FSTY_BOLD_ITALIC];
-	      break;
-	    default:
-	      assert (0);
-              abort ();
-	    }
-	  if (!on)
-	    {
-	      if (ext->overstrike_style == OVS_SINGLE)
-		switch (*bp & 0x0300)
-		  {
-		  case OUTP_F_I << 8:
-		    buf[0] = '_';
-		    buf[1] = '\b';
-		    buf[2] = *bp;
-		    len = 3;
-		    break;
-		  case OUTP_F_B << 8:
-		    buf[0] = *bp;
-		    buf[1] = '\b';
-		    buf[2] = *bp;
-		    len = 3;
-		    break;
-		  case OUTP_F_BI << 8:
-		    buf[0] = '_';
-		    buf[1] = '\b';
-		    buf[2] = *bp;
-		    buf[3] = '\b';
-		    buf[4] = *bp;
-		    len = 5;
-		    break;
-		  default:
-		    assert (0);
-                    abort ();
-		  }
-	      else
-		{
-		  buf[0] = *bp;
-		  result = len = 1;
-		}
-	    }
-	  else
-	    {
-	      buf[0] = *bp;
-	      len = 1;
-	    }
-	  output_string (this, buf, &buf[len]);
-	}
-      else if (remaining)
-	{
-	  *line_p++ = *bp;
-	  remaining--;
-	}
-      else
-	{
-	  if (!commit_line_buf (this))
-	    return 0;
-	  remaining = LINE_BUF_SIZE - (line_p - line_buf);
-	  *line_p++ = *bp;
-	}
-    }
-
-  return result;
-}
-
-/* Writes CH into line_buf N times, or to THIS->output if line_buf
-   overflows. */
-static inline void
-output_char (struct outp_driver *this, int n, char ch)
-{
-  if (LINE_BUF_SIZE - (line_p - line_buf) >= n)
-    {
-      memset (line_p, ch, n);
-      line_p += n;
-    }
-  else
-    while (n--)
-      {
-	if (LINE_BUF_SIZE - (line_p - line_buf) <= 1 && !commit_line_buf (this))
-	  return;
-	*line_p++ = ch;
-      }
-}
-
-/* Advance the carriage from column 0 to the left margin. */
 static void
-advance_to_left_margin (struct outp_driver *this)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  int margin;
-
-  margin = ext->left_margin;
-  if (margin == 0)
-    return;
-  if (ext->tab_width && margin >= ext->tab_width)
-    {
-      output_char (this, margin / ext->tab_width, '\t');
-      margin %= ext->tab_width;
-    }
-  if (margin)
-    output_char (this, margin, ' ');
-}
-
-/* Move the output file carriage N_CHARS left, to the left margin. */
-static void
-return_carriage (struct outp_driver *this, int n_chars)
-{
-  struct ascii_driver_ext *ext = this->ext;
-
-  switch (ext->carriage_return_style)
-    {
-    case CRS_BS:
-      output_char (this, n_chars, '\b');
-      break;
-    case CRS_CR:
-      output_char (this, 1, '\r');
-      advance_to_left_margin (this);
-      break;
-    default:
-      assert (0);
-      abort ();
-    }
-}
-
-/* Writes COUNT lines from the line buffer in THIS, starting at line
-   number FIRST. */
-static void
-output_lines (struct outp_driver *this, int first, int count)
-{
-  struct ascii_driver_ext *ext = this->ext;
-  int line_num;
-
-  struct fixed_string *newline = &ext->ops[OPS_NEWLINE];
-
-  int n_chars;
-  int n_passes;
-
-  if (NULL == ext->file.file)
-    return;
-
-  /* Iterate over all the lines to be output. */
-  for (line_num = first; line_num < first + count; line_num++)
-    {
-      struct line *line = &ext->lines[line_num];
-      unsigned short *p = line->chars;
-      unsigned short *end_p = p + line->char_cnt;
-      unsigned short *bp, *ep;
-      unsigned short attr = 0;
-
-      assert (end_p >= p);
-
-      /* Squeeze multiple blank lines into a single blank line if
-         requested. */
-      if (ext->squeeze_blank_lines
-          && line_num > first
-          && ext->lines[line_num].char_cnt == 0
-          && ext->lines[line_num - 1].char_cnt == 0)
-        continue;
-
-      /* Output every character in the line in the appropriate
-         manner. */
-      n_passes = 1;
-      bp = ep = p;
-      n_chars = 0;
-      advance_to_left_margin (this);
-      for (;;)			
-	{
-	  while (ep < end_p && attr == (*ep & 0x0300))
-	    ep++;
-	  if (output_shorts (this, bp, ep))
-	    n_passes = 2;
-	  n_chars += ep - bp;
-	  bp = ep;
-
-	  if (bp >= end_p)
-	    break;
-
-	  /* Turn off old font. */
-	  if (attr != (OUTP_F_R << 8))
-	    {
-	      struct fixed_string *off;
-
-	      switch (attr)
-		{
-		case OUTP_F_I << 8:
-		  off = &ext->fonts[FSTY_OFF | FSTY_ITALIC];
-		  break;
-		case OUTP_F_B << 8:
-		  off = &ext->fonts[FSTY_OFF | FSTY_BOLD];
-		  break;
-		case OUTP_F_BI << 8:
-		  off = &ext->fonts[FSTY_OFF | FSTY_BOLD_ITALIC];
-		  break;
-		default:
-		  assert (0);
-                  abort ();
-		}
-	      if (off)
-		output_string (this, ls_c_str (off), ls_end (off));
-	    }
-
-	  /* Turn on new font. */
-	  attr = (*bp & 0x0300);
-	  if (attr != (OUTP_F_R << 8))
-	    {
-	      struct fixed_string *on;
-
-	      switch (attr)
-		{
-		case OUTP_F_I << 8:
-		  on = &ext->fonts[FSTY_ON | FSTY_ITALIC];
-		  break;
-		case OUTP_F_B << 8:
-		  on = &ext->fonts[FSTY_ON | FSTY_BOLD];
-		  break;
-		case OUTP_F_BI << 8:
-		  on = &ext->fonts[FSTY_ON | FSTY_BOLD_ITALIC];
-		  break;
-		default:
-		  assert (0);
-                  abort ();
-		}
-	      if (on)
-		output_string (this, ls_c_str (on), ls_end (on));
-	    }
-
-	  ep = bp + 1;
-	}
-      if (n_passes > 1)
-	{
-	  char ch;
-
-	  return_carriage (this, n_chars);
-	  n_chars = 0;
-	  bp = ep = p;
-	  for (;;)
-	    {
-	      while (ep < end_p && (*ep & 0x0300) == (OUTP_F_R << 8))
-		ep++;
-	      if (ep >= end_p)
-		break;
-	      output_char (this, ep - bp, ' ');
-
-	      switch (*ep & 0x0300)
-		{
-		case OUTP_F_I << 8:
-		  ch = '_';
-		  break;
-		case OUTP_F_B << 8:
-		  ch = *ep;
-		  break;
-		case OUTP_F_BI << 8:
-		  ch = *ep;
-		  n_passes = 3;
-		  break;
-                default:
-                  assert (0);
-                  abort ();
-		}
-	      output_char (this, 1, ch);
-	      n_chars += ep - bp + 1;
-	      bp = ep + 1;
-	      ep = bp;
-	    }
-	}
-      if (n_passes > 2)
-	{
-	  return_carriage (this, n_chars);
-	  bp = ep = p;
-	  for (;;)
-	    {
-	      while (ep < end_p && (*ep & 0x0300) != (OUTP_F_BI << 8))
-		ep++;
-	      if (ep >= end_p)
-		break;
-	      output_char (this, ep - bp, ' ');
-	      output_char (this, 1, '_');
-	      bp = ep + 1;
-	      ep = bp;
-	    }
-	}
-
-      output_string (this, ls_c_str (newline), ls_end (newline));
-    }
-}
-
-
-static int
 ascii_close_page (struct outp_driver *this)
 {
-  static int s_len;
-
   struct ascii_driver_ext *x = this->ext;
-  int nl_len, ff_len, total_len;
-  char *cp;
-  int i;
-
-  assert (this->driver_open && this->page_open);
-  
-  if (!line_buf)
-    line_buf = xmalloc (LINE_BUF_SIZE);
-  line_p = line_buf;
-
-  nl_len = ls_length (&x->ops[OPS_NEWLINE]);
-  if (x->top_margin)
-    {
-      total_len = x->top_margin * nl_len;
-      if (s_len < total_len)
-	{
-	  s_len = total_len;
-	  s = xrealloc (s, s_len);
-	}
-      for (cp = s, i = 0; i < x->top_margin; i++)
-	{
-	  memcpy (cp, ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
-	  cp += nl_len;
-	}
-      output_string (this, s, &s[total_len]);
-    }
+  struct string out;
+  int line_num;
+ 
+  ds_init (&out, 128);
+ 
+  ds_putc_multiple (&out, '\n', x->top_margin);
   if (x->headers)
     {
-      int len;
-
-      total_len = nl_len + x->w;
-      if (s_len < total_len + 1)
-	{
-	  s_len = total_len + 1;
-	  s = xrealloc (s, s_len);
-	}
-      
-      memset (s, ' ', x->w);
-
-      {
-	char temp[40];
-
-	snprintf (temp, 80, _("%s - Page %d"), get_start_date (),
-                  x->page_number);
-	memcpy (&s[x->w - strlen (temp)], temp, strlen (temp));
-      }
-
-      if (outp_title && outp_subtitle)
-	{
-	  len = min ((int) strlen (outp_title), x->w);
-	  memcpy (s, outp_title, len);
-	}
-      memcpy (&s[x->w], ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
-      output_string (this, s, &s[total_len]);
-
-      memset (s, ' ', x->w);
-      len = strlen (version) + 3 + strlen (host_system);
-      if (len < x->w)
-	sprintf (&s[x->w - len], "%s - %s" , version, host_system);
-      if (outp_subtitle || outp_title)
-	{
-	  char *string = outp_subtitle ? outp_subtitle : outp_title;
-	  len = min ((int) strlen (string), x->w);
-	  memcpy (s, string, len);
-	}
-      memcpy (&s[x->w], ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
-      output_string (this, s, &s[total_len]);
-      output_string (this, &s[x->w], &s[total_len]);
+      char *r1, *r2;
+ 
+      r1 = xasprintf (_("%s - Page %d"), get_start_date (), x->page_number);
+      r2 = xasprintf ("%s - %s" , version, host_system);
+ 
+      append_lr_justified (&out, this->width, outp_title, r1);
+      append_lr_justified (&out, this->width, outp_subtitle, r2);
+      ds_putc (&out, '\n');
+ 
+      free (r1);
+      free (r2);
     }
-  if (line_p != line_buf && !commit_line_buf (this))
-    return 0;
-
-  output_lines (this, 0, x->l);
-
-  ff_len = ls_length (&x->ops[OPS_FORMFEED]);
-  total_len = x->bottom_margin * nl_len + ff_len;
-  if (s_len < total_len)
-    s = xrealloc (s, total_len);
-  for (cp = s, i = 0; i < x->bottom_margin; i++)
+  dump_output (this, &out);
+ 
+  for (line_num = 0; line_num < this->length; line_num++)
     {
-      memcpy (cp, ls_c_str (&x->ops[OPS_NEWLINE]), nl_len);
-      cp += nl_len;
+ 
+      /* Squeeze multiple blank lines into a single blank line if
+         requested. */
+      if (x->squeeze_blank_lines) 
+        {
+          if (line_num >= x->line_cap)
+            break;
+          if (line_num > 0
+              && x->lines[line_num].char_cnt == 0
+              && x->lines[line_num - 1].char_cnt == 0)
+            continue; 
+        }
+ 
+      if (line_num < x->line_cap) 
+        output_line (this, &x->lines[line_num], &out); 
+      ds_putc (&out, '\n');
+      dump_output (this, &out);
     }
-  memcpy (cp, ls_c_str (&x->ops[OPS_FORMFEED]), ff_len);
-  if ( x->paginate ) 
-	  output_string (this, s, &s[total_len]);
+ 
+  ds_putc_multiple (&out, '\n', x->bottom_margin);
+  if (x->paginate) 
+    ds_putc (&out, '\f');
 
-  if (line_p != line_buf && !commit_line_buf (this))
-    return 0;
-
-  this->page_open = 0;
-  return 1;
+  dump_output (this, &out);
+  ds_destroy (&out);
 }
 
-
-
 static void
-ascii_chart_initialise(struct outp_driver *d UNUSED, struct chart *ch )
+ascii_chart_initialise (struct outp_driver *d UNUSED, struct chart *ch)
 {
-  msg(MW, _("Charts are unsupported with ascii drivers."));
+  error (0, 0, _("ascii: charts are unsupported by this driver"));
   ch->lp = 0;
 }
 
 static void 
-ascii_chart_finalise(struct outp_driver *d UNUSED, struct chart *ch UNUSED)
+ascii_chart_finalise (struct outp_driver *d UNUSED, struct chart *ch UNUSED)
 {
   
 }
@@ -1652,15 +738,8 @@ struct outp_class ascii_class =
 {
   "ascii",
   0,
-  0,
 
-  ascii_open_global,
-  ascii_close_global,
-  ascii_font_sizes,
-
-  ascii_preopen_driver,
-  ascii_option,
-  ascii_postopen_driver,
+  ascii_open_driver,
   ascii_close_driver,
 
   ascii_open_page,
@@ -1668,22 +747,7 @@ struct outp_class ascii_class =
 
   NULL,
 
-  ascii_line_horz,
-  ascii_line_vert,
-  ascii_line_intersection,
-
-  ascii_box,
-  ascii_polyline_begin,
-  ascii_polyline_point,
-  ascii_polyline_end,
-
-  ascii_text_set_font_by_name,
-  ascii_text_set_font_by_position,
-  ascii_text_set_font_by_family,
-  ascii_text_get_font_name,
-  ascii_text_get_font_family,
-  ascii_text_set_size,
-  ascii_text_get_size,
+  ascii_line,
   ascii_text_metrics,
   ascii_text_draw,
 

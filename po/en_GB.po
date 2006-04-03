@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.3.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-03-28 13:51+0800\n"
+"POT-Creation-Date: 2006-04-03 11:09-0700\n"
 "PO-Revision-Date: 2004-01-23 13:04+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -1038,7 +1038,7 @@ msgstr ""
 
 #: src/language/command.c:758 src/language/data-io/matrix-data.c:534
 #: src/language/data-io/print.c:336 src/language/data-io/print.c:1051
-#: src/language/dictionary/vector.c:197 src/language/lexer/lexer.c:451
+#: src/language/dictionary/vector.c:197 src/language/lexer/lexer.c:453
 #: src/language/stats/autorecode.c:144 src/language/xforms/select-if.c:57
 #: src/language/xforms/select-if.c:137
 msgid "expecting end of command"
@@ -1729,44 +1729,39 @@ msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
 
-#: src/language/data-io/list.q:149 src/language/stats/descriptives.c:356
+#: src/language/data-io/list.q:151 src/language/stats/descriptives.c:356
 msgid "No variables specified."
 msgstr ""
 
-#: src/language/data-io/list.q:157
+#: src/language/data-io/list.q:159
 #, c-format
 msgid ""
 "The first case (%ld) specified precedes the last case (%ld) specified.  The "
 "values will be swapped."
 msgstr ""
 
-#: src/language/data-io/list.q:165
+#: src/language/data-io/list.q:167
 #, c-format
 msgid ""
 "The first case (%ld) to list is less than 1.  The value is being reset to 1."
 msgstr ""
 
-#: src/language/data-io/list.q:171
+#: src/language/data-io/list.q:173
 #, c-format
 msgid ""
 "The last case (%ld) to list is less than 1.  The value is being reset to 1."
 msgstr ""
 
-#: src/language/data-io/list.q:177
+#: src/language/data-io/list.q:179
 #, c-format
 msgid "The step value %ld is less than 1.  The value is being reset to 1."
 msgstr ""
 
-#: src/language/data-io/list.q:203
+#: src/language/data-io/list.q:205
 msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
 msgstr ""
 
-#: src/language/data-io/list.q:258 src/output/html.c:413
-#, c-format
-msgid "Cannot open first page on HTML device %s."
-msgstr ""
-
-#: src/language/data-io/list.q:438
+#: src/language/data-io/list.q:432
 msgid "Line"
 msgstr ""
 
@@ -2339,11 +2334,11 @@ msgid ""
 "s."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:157 src/language/lexer/lexer.c:588
+#: src/language/dictionary/value-labels.c:157 src/language/lexer/lexer.c:590
 msgid "expecting string"
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:166 src/language/lexer/lexer.c:602
+#: src/language/dictionary/value-labels.c:166 src/language/lexer/lexer.c:604
 msgid "expecting integer"
 msgstr ""
 
@@ -2576,98 +2571,98 @@ msgstr ""
 msgid "Data format %s is not valid."
 msgstr ""
 
-#: src/language/lexer/lexer.c:262
+#: src/language/lexer/lexer.c:264
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/language/lexer/lexer.c:366
+#: src/language/lexer/lexer.c:368
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:368
+#: src/language/lexer/lexer.c:370
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:399
+#: src/language/lexer/lexer.c:401
 #, c-format
 msgid "Subcommand %s may only be specified once."
 msgstr ""
 
-#: src/language/lexer/lexer.c:407
+#: src/language/lexer/lexer.c:409
 #, c-format
 msgid "missing required subcommand %s"
 msgstr ""
 
-#: src/language/lexer/lexer.c:436
+#: src/language/lexer/lexer.c:438
 #, c-format
 msgid "Syntax error %s at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:439
+#: src/language/lexer/lexer.c:441
 #, c-format
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:557 src/language/lexer/lexer.c:574
+#: src/language/lexer/lexer.c:559 src/language/lexer/lexer.c:576
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/language/lexer/lexer.c:616
+#: src/language/lexer/lexer.c:618
 msgid "expecting number"
 msgstr ""
 
-#: src/language/lexer/lexer.c:630
+#: src/language/lexer/lexer.c:632
 msgid "expecting identifier"
 msgstr ""
 
-#: src/language/lexer/lexer.c:840
+#: src/language/lexer/lexer.c:842
 msgid "<ERROR>"
 msgstr ""
 
-#: src/language/lexer/lexer.c:986
+#: src/language/lexer/lexer.c:988
 msgid "binary"
 msgstr ""
 
-#: src/language/lexer/lexer.c:991
+#: src/language/lexer/lexer.c:993
 msgid "octal"
 msgstr ""
 
-#: src/language/lexer/lexer.c:996
+#: src/language/lexer/lexer.c:998
 msgid "hex"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1006
+#: src/language/lexer/lexer.c:1008
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1035
+#: src/language/lexer/lexer.c:1037
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1066
+#: src/language/lexer/lexer.c:1068
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1120
+#: src/language/lexer/lexer.c:1122
 msgid "Unexpected end of file in string concatenation."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1128
+#: src/language/lexer/lexer.c:1130
 msgid "String expected following `+'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1141
+#: src/language/lexer/lexer.c:1143
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1156
+#: src/language/lexer/lexer.c:1158
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."
@@ -2784,8 +2779,7 @@ msgstr ""
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/language/line-buffer.c:459 src/output/html.c:341
-#: src/output/postscript.c:1452
+#: src/language/line-buffer.c:459
 #, c-format
 msgid "Reading `%s': %s."
 msgstr ""
@@ -2905,7 +2899,7 @@ msgid "Missing"
 msgstr ""
 
 #: src/language/stats/crosstabs.q:817 src/language/stats/crosstabs.q:1020
-#: src/language/stats/crosstabs.q:1734 src/language/stats/examine.q:859
+#: src/language/stats/crosstabs.q:1740 src/language/stats/examine.q:859
 #: src/language/stats/frequencies.q:1221 src/language/stats/oneway.q:312
 #: src/language/stats/oneway.q:475 src/language/stats/regression.q:294
 msgid "Total"
@@ -2956,6 +2950,10 @@ msgstr ""
 msgid "adj. resid."
 msgstr ""
 
+#: src/language/stats/crosstabs.q:1107
+msgid "Chi-square tests."
+msgstr ""
+
 #: src/language/stats/crosstabs.q:1110 src/language/stats/crosstabs.q:1137
 #: src/language/stats/crosstabs.q:1157 src/language/stats/crosstabs.q:1178
 #: src/language/stats/examine.q:1369
@@ -2981,6 +2979,10 @@ msgstr ""
 msgid "Exact. Sig. (1-sided)"
 msgstr ""
 
+#: src/language/stats/crosstabs.q:1133
+msgid "Symmetric measures."
+msgstr ""
+
 #: src/language/stats/crosstabs.q:1136 src/language/stats/crosstabs.q:1177
 msgid "Category"
 msgstr ""
@@ -2995,6 +2997,10 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1141 src/language/stats/crosstabs.q:1183
 msgid "Approx. Sig."
+msgstr ""
+
+#: src/language/stats/crosstabs.q:1152
+msgid "Risk estimate."
 msgstr ""
 
 #: src/language/stats/crosstabs.q:1156
@@ -3012,136 +3018,140 @@ msgstr ""
 msgid "Upper"
 msgstr ""
 
+#: src/language/stats/crosstabs.q:1174
+msgid "Directional measures."
+msgstr ""
+
 #: src/language/stats/crosstabs.q:1179 src/ui/gui/var-sheet.c:68
 msgid "Type"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1929
+#: src/language/stats/crosstabs.q:1935
 msgid "Pearson Chi-Square"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1930
+#: src/language/stats/crosstabs.q:1936
 msgid "Likelihood Ratio"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1931
+#: src/language/stats/crosstabs.q:1937
 msgid "Fisher's Exact Test"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1932
+#: src/language/stats/crosstabs.q:1938
 msgid "Continuity Correction"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1933
+#: src/language/stats/crosstabs.q:1939
 msgid "Linear-by-Linear Association"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1970 src/language/stats/crosstabs.q:2040
-#: src/language/stats/crosstabs.q:2099
+#: src/language/stats/crosstabs.q:1976 src/language/stats/crosstabs.q:2046
+#: src/language/stats/crosstabs.q:2105
 msgid "N of Valid Cases"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1986 src/language/stats/crosstabs.q:2115
+#: src/language/stats/crosstabs.q:1992 src/language/stats/crosstabs.q:2121
 msgid "Nominal by Nominal"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1987 src/language/stats/crosstabs.q:2116
+#: src/language/stats/crosstabs.q:1993 src/language/stats/crosstabs.q:2122
 msgid "Ordinal by Ordinal"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1988
+#: src/language/stats/crosstabs.q:1994
 msgid "Interval by Interval"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1989
+#: src/language/stats/crosstabs.q:1995
 msgid "Measure of Agreement"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1994
+#: src/language/stats/crosstabs.q:2000
 msgid "Phi"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1995
+#: src/language/stats/crosstabs.q:2001
 msgid "Cramer's V"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1996
+#: src/language/stats/crosstabs.q:2002
 msgid "Contingency Coefficient"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1997
+#: src/language/stats/crosstabs.q:2003
 msgid "Kendall's tau-b"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1998
+#: src/language/stats/crosstabs.q:2004
 msgid "Kendall's tau-c"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1999
+#: src/language/stats/crosstabs.q:2005
 msgid "Gamma"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2000
+#: src/language/stats/crosstabs.q:2006
 msgid "Spearman Correlation"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2001
+#: src/language/stats/crosstabs.q:2007
 msgid "Pearson's R"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2002
+#: src/language/stats/crosstabs.q:2008
 msgid "Kappa"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2072
+#: src/language/stats/crosstabs.q:2078
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2075
+#: src/language/stats/crosstabs.q:2081
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2083
+#: src/language/stats/crosstabs.q:2089
 #, c-format
 msgid "For cohort %s = %g"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2086
+#: src/language/stats/crosstabs.q:2092
 #, c-format
 msgid "For cohort %s = %.*s"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2117
+#: src/language/stats/crosstabs.q:2123
 msgid "Nominal by Interval"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2122
+#: src/language/stats/crosstabs.q:2128
 msgid "Lambda"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2123
+#: src/language/stats/crosstabs.q:2129
 msgid "Goodman and Kruskal tau"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2124
+#: src/language/stats/crosstabs.q:2130
 msgid "Uncertainty Coefficient"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2125
+#: src/language/stats/crosstabs.q:2131
 msgid "Somers' d"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2126
+#: src/language/stats/crosstabs.q:2132
 msgid "Eta"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2131
+#: src/language/stats/crosstabs.q:2137
 msgid "Symmetric"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2132 src/language/stats/crosstabs.q:2133
+#: src/language/stats/crosstabs.q:2138 src/language/stats/crosstabs.q:2139
 #, c-format
 msgid "%s Dependent"
 msgstr ""
@@ -3725,7 +3735,7 @@ msgstr ""
 msgid "SE. Mean"
 msgstr ""
 
-#: src/language/stats/t-test.q:702
+#: src/language/stats/t-test.q:703
 msgid "Group Statistics"
 msgstr ""
 
@@ -4132,630 +4142,376 @@ msgstr ""
 msgid "installation error"
 msgstr ""
 
-#: src/output/ascii.c:235
+#: src/output/afm.c:150
 #, c-format
-msgid "ASCII driver initializing as `%s'..."
+msgid "opening font metrics file \"%s\""
 msgstr ""
 
-#: src/output/ascii.c:290
+#: src/output/afm.c:240
+msgid "first line must be StartFontMetrics"
+msgstr ""
+
+#: src/output/afm.c:267
+#, c-format
+msgid "unsupported MappingScheme %d"
+msgstr ""
+
+#: src/output/afm.c:288
+msgid "required FontName is missing"
+msgstr ""
+
+#: src/output/afm.c:395
+msgid "CharMetrics line must start with C or CH"
+msgstr ""
+
+#: src/output/afm.c:536
+#, c-format
+msgid "reference to unknown character \"%s\""
+msgstr ""
+
+#: src/output/afm.c:594
+msgid "expected end of file"
+msgstr ""
+
+#: src/output/afm.c:606
+msgid "syntax error expecting end of line"
+msgstr ""
+
+#: src/output/afm.c:624 src/output/afm.c:661
+msgid "number out of valid range"
+msgstr ""
+
+#: src/output/afm.c:626 src/output/afm.c:663
+msgid "invalid numeric syntax"
+msgstr ""
+
+#: src/output/afm.c:642
+msgid "syntax error expecting integer"
+msgstr ""
+
+#: src/output/afm.c:680
+msgid "syntax error expecting number"
+msgstr ""
+
+#: src/output/afm.c:693
+msgid "syntax error in hex constant"
+msgstr ""
+
+#: src/output/afm.c:708
+msgid "syntax error expecting hex constant"
+msgstr ""
+
+#: src/output/afm.c:746
+msgid "unexpected end of line"
+msgstr ""
+
+#: src/output/afm.c:797
+msgid "unexpected end of line expecting string"
+msgstr ""
+
+#: src/output/ascii.c:161
+#, c-format
+msgid "ascii: opening output file \"%s\""
+msgstr ""
+
+#: src/output/ascii.c:172
 #, c-format
 msgid ""
-"ascii driver: Area of page excluding margins and headers must be at least 59 "
-"characters wide by 15 lines long.  Page as configured is only %d characters "
-"by %d lines."
+"ascii: page excluding margins and headers must be at least 59 characters "
+"wide by 15 lines long, but as configured is only %d characters by %d lines"
 msgstr ""
 
-#: src/output/ascii.c:395 src/output/html.c:103 src/output/postscript.c:454
+#: src/output/ascii.c:233
 #, c-format
-msgid "%s: Initialization complete."
+msgid "ascii: closing output file \"%s\""
 msgstr ""
 
-#: src/output/ascii.c:407 src/output/html.c:115 src/output/postscript.c:467
-#, c-format
-msgid "%s: Beginning closing..."
-msgstr ""
-
-#: src/output/ascii.c:429 src/output/html.c:120 src/output/postscript.c:486
-#, c-format
-msgid "%s: Finished closing."
-msgstr ""
-
-#: src/output/ascii.c:490
+#: src/output/ascii.c:285
 #, c-format
 msgid ""
-"Bad index value for `box' key: syntax is box[INDEX], 0 <= INDEX < %d "
-"decimal, with INDEX expressed in base 4."
+"ascii: bad index value for `box' key: syntax is box[INDEX], 0 <= INDEX < %d "
+"decimal, with INDEX expressed in base 4"
 msgstr ""
 
-#: src/output/ascii.c:496
+#: src/output/ascii.c:292
 #, c-format
-msgid "Duplicate value for key `%s'."
+msgid "ascii: multiple values for %s"
 msgstr ""
 
-#: src/output/ascii.c:505
+#: src/output/ascii.c:300
 #, c-format
-msgid "Unknown configuration parameter `%s' for ascii device driver."
+msgid "ascii: unknown parameter `%s'"
 msgstr ""
 
-#: src/output/ascii.c:518
+#: src/output/ascii.c:314
 #, c-format
-msgid ""
-"Unknown character set `%s'.  Valid character sets are `ascii' and `latin1'."
+msgid "ascii: positive integer required as `%s' value"
 msgstr ""
 
-#: src/output/ascii.c:527
+#: src/output/ascii.c:340
+msgid "ascii: `emphasis' value must be `bold', `underline', or `none'"
+msgstr ""
+
+#: src/output/ascii.c:353
 #, c-format
-msgid ""
-"Unknown overstrike style `%s'.  Valid overstrike styles are `single' and "
-"`line'."
+msgid "ascii: zero or positive integer required as `%s' value"
 msgstr ""
 
-#: src/output/ascii.c:536
+#: src/output/ascii.c:384
 #, c-format
-msgid ""
-"Unknown carriage return style `%s'.  Valid carriage return styles are `cr' "
-"and `bs'."
+msgid "ascii: boolean value expected for `%s'"
 msgstr ""
 
-#: src/output/ascii.c:548 src/output/postscript.c:677
+#: src/output/ascii.c:473
 #, c-format
-msgid "Positive integer required as value for `%s'."
+msgid "ascii: bad line (%d,%d)-(%d,%d) out of (%d,%d)\n"
 msgstr ""
 
-#: src/output/ascii.c:579
-#, c-format
-msgid "Zero or positive integer required as value for `%s'."
-msgstr ""
-
-#: src/output/ascii.c:650 src/output/postscript.c:635
-#, c-format
-msgid "Boolean value expected for %s."
-msgstr ""
-
-#: src/output/ascii.c:682 src/output/ascii.c:697 src/output/ascii.c:714
-#, c-format
-msgid "ASCII output driver: %s: %s"
-msgstr ""
-
-#: src/output/ascii.c:790
-#, c-format
-msgid "ascii_line_horz: bad hline (%d,%d),%d out of (%d,%d)\n"
-msgstr ""
-
-#: src/output/ascii.c:824
-#, c-format
-msgid "ascii_line_vert: bad vline %d,(%d,%d) out of (%d,%d)\n"
-msgstr ""
-
-#: src/output/ascii.c:854
-#, c-format
-msgid "ascii_line_intersection: bad intsct (%d,%d) out of (%d,%d)\n"
-msgstr ""
-
-#: src/output/ascii.c:1002
-#, c-format
-msgid "%s: horiz=%d, vert=%d\n"
-msgstr ""
-
-#: src/output/ascii.c:1174
-#, c-format
-msgid "Writing `%s': %s"
-msgstr ""
-
-#: src/output/ascii.c:1584 src/output/postscript.c:2099
+#: src/output/ascii.c:683 src/output/postscript.c:832
 #, c-format
 msgid "%s - Page %d"
 msgstr ""
 
-#: src/output/ascii.c:1641
-msgid "Charts are unsupported with ascii drivers."
+#: src/output/ascii.c:727
+msgid "ascii: charts are unsupported by this driver"
 msgstr ""
 
 #: src/output/charts/plot-hist.c:127
 msgid "HISTOGRAM"
 msgstr ""
 
-#: src/output/groff-font.c:107
+#: src/output/html.c:68
 #, c-format
-msgid "%s: Opening Groff font file..."
+msgid "opening HTML output file: %s"
 msgstr ""
 
-#: src/output/groff-font.c:161
-msgid "Missing font name."
+#: src/output/html.c:79
+msgid "PSPP Output"
 msgstr ""
 
-#: src/output/groff-font.c:171
-msgid "Missing encoding filename."
-msgstr ""
-
-#: src/output/groff-font.c:184
-msgid "Bad spacewidth value."
-msgstr ""
-
-#: src/output/groff-font.c:196
-msgid "Bad slant value."
-msgstr ""
-
-#: src/output/groff-font.c:221
+#: src/output/html.c:165
 #, c-format
-msgid "Unknown ligature `%s'."
+msgid "unknown configuration parameter `%s' for HTML device driver"
 msgstr ""
 
-#: src/output/groff-font.c:256
-msgid "Unexpected end of line reading character set."
-msgstr ""
-
-#: src/output/groff-font.c:264
-msgid "Can't use ditto mark for first character."
-msgstr ""
-
-#: src/output/groff-font.c:269
-msgid "Can't ditto into an unnamed character."
-msgstr ""
-
-#: src/output/groff-font.c:286
-#, c-format
-msgid "Missing metrics for character `%s'."
-msgstr ""
-
-#: src/output/groff-font.c:295
-#, c-format
-msgid "Missing type for character `%s'."
-msgstr ""
-
-#: src/output/groff-font.c:304
-#, c-format
-msgid "Missing code for character `%s'."
-msgstr ""
-
-#: src/output/groff-font.c:323
-msgid "Malformed kernpair."
-msgstr ""
-
-#: src/output/groff-font.c:330
-msgid "Unexpected end of line reading kernpairs."
-msgstr ""
-
-#: src/output/groff-font.c:336
-msgid "Bad kern value."
-msgstr ""
-
-#: src/output/groff-font.c:368
-#, c-format
-msgid "Font read successfully with internal name %s."
-msgstr ""
-
-#: src/output/groff-font.c:389
-msgid "Error reading font."
-msgstr ""
-
-#: src/output/groff-font.c:402
-msgid "installation error: Groff font error: "
-msgstr ""
-
-#: src/output/groff-font.c:432
-#, c-format
-msgid "Bad character \\%3o."
-msgstr ""
-
-#: src/output/groff-font.c:687
-#, c-format
-msgid "Groff font error: Cannot find \"%s\"."
-msgstr ""
-
-#: src/output/groff-font.c:752
-#, c-format
-msgid "%s: Opening Groff description file..."
-msgstr ""
-
-#: src/output/groff-font.c:768
-msgid "Multiple `sizes' declarations."
-msgstr ""
-
-#: src/output/groff-font.c:785
-msgid "Unexpected end of file.  Missing 0 terminator to `sizes' command?"
-msgstr ""
-
-#: src/output/groff-font.c:797 src/output/groff-font.c:804
-#: src/output/groff-font.c:817
-msgid "Bad argument to `sizes'."
-msgstr ""
-
-#: src/output/groff-font.c:809
-msgid "Bad range in argument to `sizes'."
-msgstr ""
-
-#: src/output/groff-font.c:838
-msgid "Family name expected."
-msgstr ""
-
-#: src/output/groff-font.c:843
-msgid "This command already specified."
-msgstr ""
-
-#: src/output/groff-font.c:863
-#, c-format
-msgid "%s: Device characteristic already defined."
-msgstr ""
-
-#: src/output/groff-font.c:869
-#, c-format
-msgid "%s: Invalid numeric format."
-msgstr ""
-
-#: src/output/groff-font.c:899
-msgid "Missing `res', `unitwidth', and/or `sizes' line(s)."
-msgstr ""
-
-#: src/output/groff-font.c:925
-msgid "Description file read successfully."
-msgstr ""
-
-#: src/output/groff-font.c:957
-msgid "Error reading description file."
-msgstr ""
-
-#: src/output/groff-font.c:1014
-msgid "<<fallback>>"
-msgstr ""
-
-#: src/output/html.c:67
-#, c-format
-msgid "HTML driver initializing as `%s'..."
-msgstr ""
-
-#: src/output/html.c:171
-#, c-format
-msgid "Unknown configuration parameter `%s' for HTML device driver."
-msgstr ""
-
-#: src/output/html.c:251
-msgid ""
-"Cannot find HTML prologue.  The use of `-vv' on the command line is "
-"suggested as a debugging aid."
-msgstr ""
-
-#: src/output/html.c:256
-#, c-format
-msgid "%s: %s: Opening HTML prologue..."
-msgstr ""
-
-#: src/output/html.c:280 src/output/postscript.c:1350
-#: src/output/postscript.c:1361
-msgid "nobody"
-msgstr ""
-
-#: src/output/html.c:289 src/output/html.c:292 src/output/postscript.c:1357
-#: src/output/postscript.c:1362
-msgid "nowhere"
-msgstr ""
-
-#: src/output/html.c:350
-#, c-format
-msgid "%s: HTML prologue read successfully."
-msgstr ""
-
-#: src/output/html.c:354
-#, c-format
-msgid "%s: Error reading HTML prologue."
-msgstr ""
-
-#: src/output/html.c:382
-#, c-format
-msgid "HTML output driver: %s: %s"
-msgstr ""
-
-#: src/output/output.c:160
+#: src/output/output.c:159
 #, c-format
 msgid "Unknown output driver `%s'."
 msgstr ""
 
-#: src/output/output.c:162
+#: src/output/output.c:161
 #, c-format
 msgid "Output driver `%s' referenced but never defined."
 msgstr ""
 
-#: src/output/output.c:255
+#: src/output/output.c:254
 msgid "Using default output driver configuration."
 msgstr ""
 
-#: src/output/output.c:288
+#: src/output/output.c:289
 msgid ""
 "Cannot find output initialization file.  Use `-vvvvv' to view search path."
 msgstr ""
 
-#: src/output/output.c:293
-#, c-format
-msgid "%s: Opening device description file..."
-msgstr ""
-
-#: src/output/output.c:297 src/output/output.c:1205
-#: src/output/postscript.c:1095
+#: src/output/output.c:297 src/output/output.c:1060
 #, c-format
 msgid "Opening %s: %s."
 msgstr ""
 
-#: src/output/output.c:308 src/output/output.c:1216
-#: src/output/postscript.c:1110
+#: src/output/output.c:308 src/output/output.c:1071
 #, c-format
 msgid "Reading %s: %s."
 msgstr ""
 
-#: src/output/output.c:330 src/output/output.c:497
+#: src/output/output.c:330 src/output/output.c:496
 msgid "Syntax error."
 msgstr ""
 
-#: src/output/output.c:340 src/output/postscript.c:1121
+#: src/output/output.c:340
 #, c-format
 msgid "Closing %s: %s."
 msgstr ""
 
-#: src/output/output.c:347
-msgid "Device definition file read successfully."
-msgstr ""
-
-#: src/output/output.c:349
+#: src/output/output.c:348
 msgid "No output drivers are active."
 msgstr ""
 
-#: src/output/output.c:352
+#: src/output/output.c:351
 msgid "Error reading device definition file."
 msgstr ""
 
-#: src/output/output.c:469
+#: src/output/output.c:468
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output/output.c:598
+#: src/output/output.c:597
 msgid "Syntax error in string constant."
 msgstr ""
 
-#: src/output/output.c:630
+#: src/output/output.c:632
 msgid "Syntax error in options."
 msgstr ""
 
-#: src/output/output.c:640
+#: src/output/output.c:642
 msgid "Syntax error in options (`=' expected)."
 msgstr ""
 
-#: src/output/output.c:647
+#: src/output/output.c:649
 msgid "Syntax error in options (value expected after `=')."
 msgstr ""
 
-#: src/output/output.c:744
+#: src/output/output.c:691
 #, c-format
 msgid "Unknown output driver class `%s'."
 msgstr ""
 
-#: src/output/output.c:751
-#, c-format
-msgid "Can't initialize output driver class `%s'."
-msgstr ""
-
-#: src/output/output.c:758
-#, c-format
-msgid "Can't initialize output driver `%s' of class `%s'."
-msgstr ""
-
-#: src/output/output.c:780
+#: src/output/output.c:712
 #, c-format
 msgid "Unknown device type `%s'."
 msgstr ""
 
-#: src/output/output.c:793
+#: src/output/output.c:731
 #, c-format
-msgid "Can't complete initialization of output driver `%s' of class `%s'."
+msgid "Can't initialize output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output/output.c:839
-msgid "Driver definition line contains fewer fields than expected"
+#: src/output/output.c:776
+msgid "Driver definition line missing driver name or class name"
 msgstr ""
 
-#: src/output/output.c:876
-#, c-format
-msgid "Can't deinitialize output driver class `%s'."
-msgstr ""
-
-#: src/output/output.c:949
-#, c-format
-msgid "Trying to find keyword `%s'...\n"
-msgstr ""
-
-#: src/output/output.c:1066
+#: src/output/output.c:922
 #, c-format
 msgid "Unit \"%s\" is unknown in dimension \"%s\"."
 msgstr ""
 
-#: src/output/output.c:1081
+#: src/output/output.c:937
 #, c-format
 msgid "Bad dimension \"%s\"."
 msgstr ""
 
-#: src/output/output.c:1107
+#: src/output/output.c:963
 #, c-format
 msgid "`x' expected in paper size `%s'."
 msgstr ""
 
-#: src/output/output.c:1117
+#: src/output/output.c:973
 #, c-format
 msgid "Trailing garbage `%s' on paper size `%s'."
 msgstr ""
 
-#: src/output/output.c:1166
+#: src/output/output.c:1022
 msgid "Paper size name must not be empty."
 msgstr ""
 
-#: src/output/output.c:1197
+#: src/output/output.c:1053
 msgid "Cannot find `papersize' configuration file."
 msgstr ""
 
-#: src/output/output.c:1201
-#, c-format
-msgid "%s: Opening paper size definition file..."
-msgstr ""
-
-#: src/output/output.c:1243
+#: src/output/output.c:1098
 msgid "Syntax error in paper size definition."
 msgstr ""
 
-#: src/output/output.c:1272
-msgid "Paper size definition file read successfully."
-msgstr ""
-
-#: src/output/output.c:1274
+#: src/output/output.c:1127
 msgid "Error reading paper size definition file."
 msgstr ""
 
-#: src/output/output.c:1330
+#: src/output/postscript.c:164
 #, c-format
-msgid "Error closing page on %s device of %s class."
+msgid "opening PostScript output file \"%s\""
 msgstr ""
 
-#: src/output/output.c:1334
-#, c-format
-msgid "Error opening page on %s device of %s class."
-msgstr ""
-
-#: src/output/postscript.c:319
-#, c-format
-msgid "PostScript driver initializing as `%s'..."
-msgstr ""
-
-#: src/output/postscript.c:443
+#: src/output/postscript.c:202
 #, c-format
 msgid ""
-"PostScript driver: The defined page is not long enough to hold margins and "
-"headers, plus least 15 lines of the default fonts.  In fact, there's only "
-"room for %d lines of each font at the default size of %d.%03d points."
+"The defined PostScript page is not long enough to hold margins and headers, "
+"plus least 15 lines of the default fonts.  In fact, there's only room for %d "
+"lines of each font at the default size of %d.%03d points."
 msgstr ""
 
-#: src/output/postscript.c:573
+#: src/output/postscript.c:250
 #, c-format
-msgid "Unknown configuration parameter `%s' for PostScript device driver."
+msgid "closing PostScript output file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:589
+#: src/output/postscript.c:310
 #, c-format
-msgid ""
-"Unknown orientation `%s'.  Valid orientations are `portrait' and `landscape'."
+msgid "unknown configuration parameter `%s' for PostScript device driver"
 msgstr ""
 
-#: src/output/postscript.c:601
-msgid ""
-"Unknown value for `data'.  Valid values are `clean7bit', `clean8bit', and "
-"`binary'."
-msgstr ""
-
-#: src/output/postscript.c:610
-msgid "Unknown value for `line-ends'.  Valid values are `lf' and `crlf'."
-msgstr ""
-
-#: src/output/postscript.c:619
-msgid "Unknown value for `line-style'.  Valid values are `thick' and `double'."
-msgstr ""
-
-#: src/output/postscript.c:682
+#: src/output/postscript.c:326
 #, c-format
 msgid ""
-"Default font size must be at least 1 point (value of 1000 for key `%s')."
+"unknown orientation `%s' (valid orientations are `portrait' and `landscape')"
 msgstr ""
 
-#: src/output/postscript.c:714
+#: src/output/postscript.c:338
 #, c-format
-msgid "Value for `%s' must be a dimension of positive length (i.e., `1in')."
+msgid "boolean value expected for %s"
 msgstr ""
 
-#: src/output/postscript.c:778
+#: src/output/postscript.c:351
 #, c-format
-msgid "Nonnegative integer required as value for `%s'."
+msgid "positive integer value required for `%s'"
 msgstr ""
 
-#: src/output/postscript.c:904
+#: src/output/postscript.c:356
 #, c-format
-msgid "%s: %s: Opening PostScript font encoding..."
+msgid "default font size must be at least 1 point (value of 1000 for key `%s')"
 msgstr ""
 
-#: src/output/postscript.c:910
+#: src/output/postscript.c:388
 #, c-format
-msgid ""
-"PostScript driver: Cannot open encoding file `%s': %s.  Substituting "
-"ISOLatin1Encoding for missing encoding."
+msgid "value for `%s' must be a dimension of positive length (i.e., `1in')"
 msgstr ""
 
-#: src/output/postscript.c:952
-msgid "PostScript driver: Invalid numeric format."
-msgstr ""
-
-#: src/output/postscript.c:957
+#: src/output/postscript.c:1182
 #, c-format
-msgid ""
-"PostScript driver: Codes must be between 0 and 255.  (%d is not allowed.)"
+msgid "\"%s\": bad font specification"
 msgstr ""
 
-#: src/output/postscript.c:993
+#: src/output/postscript.c:1190
 #, c-format
-msgid "PostScript driver: Error closing encoding file `%s'."
+msgid "could not find AFM file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:996
+#: src/output/postscript.c:1204
 #, c-format
-msgid "%s: PostScript font encoding read successfully."
+msgid "could not find font \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1090
+#: src/output/postscript.c:1213
 #, c-format
-msgid "%s: %s: Opening PostScript encoding list file."
+msgid "could not find encoding \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1123
+#: src/output/postscript.c:1313
 #, c-format
-msgid "%s: PostScript encoding list file read successfully."
+msgid "cannot open font file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1137
-msgid "<<default encoding>>"
-msgstr ""
-
-#: src/output/postscript.c:1294
-msgid ""
-"Cannot find PostScript prologue.  The use of `-vv' on the command line is "
-"suggested as a debugging aid."
-msgstr ""
-
-#: src/output/postscript.c:1299
+#: src/output/postscript.c:1354
 #, c-format
-msgid "%s: %s: Opening PostScript prologue..."
+msgid "reading font file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1465
+#: src/output/postscript.c:1376
 #, c-format
-msgid "%s: PostScript prologue read successfully."
+msgid "cannot open font encoding file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1469
-#, c-format
-msgid "%s: Error reading PostScript prologue."
+#: src/output/postscript.c:1405
+msgid "invalid numeric format"
 msgstr ""
 
-#: src/output/postscript.c:1639
-#, c-format
-msgid "PostScript output driver: %s: %s"
-msgstr ""
-
-#: src/output/postscript.c:2338
-#, c-format
-msgid "PostScript driver: Cannot find encoding `%s' for PostScript font `%s'."
-msgstr ""
-
-#: src/output/table.c:259
+#: src/output/table.c:239
 #, c-format
 msgid "bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr ""
 
-#: src/output/table.c:334
+#: src/output/table.c:310
 #, c-format
 msgid ""
 "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
@@ -4918,8 +4674,6 @@ msgid ""
 "  -B, --config-dir=DIR      set configuration directory to DIR\n"
 "  -o, --device=DEVICE       select output driver DEVICE and disable "
 "defaults\n"
-"  -d, --define=VAR[=VALUE]  set environment variable VAR to VALUE, or empty\n"
-"  -u, --undef=VAR           undefine environment variable VAR\n"
 "\n"
 "Input and output:\n"
 "  -f, --out-file=FILE       send output to FILE (overwritten)\n"
@@ -4948,7 +4702,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/terminal/command-line.c:249
+#: src/ui/terminal/command-line.c:247
 #, c-format
 msgid ""
 "\n"

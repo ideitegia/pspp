@@ -1,3 +1,19 @@
+Mon Apr  3 11:01:16 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: (pkgsysconf_DATA) Add AFM files in config/psfonts.
+	Remove config/html-prologue, config/ps-prologue.
+
+	* html-prologue: Removed.
+
+	* ps-prologue: Removed.
+
+	* psfonts/Courier-Bold.afm, psfonts/Courier-BoldOblique.afm,
+	psfonts/Courier-Oblique.afm, psfonts/Courier.afm,
+	psfonts/Helvetica-Bold.afm, psfonts/Helvetica-BoldOblique.afm,
+	psfonts/Helvetica-Oblique.afm, psfonts/Helvetica.afm,
+	psfonts/Times-Bold.afm, psfonts/Times-BoldItalic.afm,
+	psfonts/Times-Italic.afm, psfonts/Times-Roman.afm: New files.
+
 Sat Feb 11 21:58:29 2006  Ben Pfaff  <blp@gnu.org>
 
 	* html-prologue: Don't use ${source-file}, which is no longer

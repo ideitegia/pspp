@@ -810,12 +810,12 @@ dump_table (const struct file_handle *fh)
 	{
 	  int len = strlen (spec->u.c);
 	  nspec++;
-	  tab_text (t, 0, nspec, TAB_LEFT | TAT_FIX | TAT_PRINTF,
+	  tab_text (t, 0, nspec, TAB_LEFT | TAB_FIX | TAT_PRINTF,
 			"\"%s\"", spec->u.c);
 	  tab_text (t, 1, nspec, TAT_PRINTF, "%d", recno + 1);
 	  tab_text (t, 2, nspec, TAT_PRINTF, "%3d-%3d",
 			spec->fc + 1, spec->fc + len);
-	  tab_text (t, 3, nspec, TAB_LEFT | TAT_FIX | TAT_PRINTF,
+	  tab_text (t, 3, nspec, TAB_LEFT | TAB_FIX | TAT_PRINTF,
 			"A%d", len);
 	  break;
 	}
@@ -826,7 +826,7 @@ dump_table (const struct file_handle *fh)
 	  tab_text (t, 1, nspec, TAT_PRINTF, "%d", recno + 1);
 	  tab_text (t, 2, nspec, TAT_PRINTF, "%3d-%3d",
 			spec->fc + 1, spec->fc + spec->u.v.f.w);
-	  tab_text (t, 3, nspec, TAB_LEFT | TAT_FIX,
+	  tab_text (t, 3, nspec, TAB_LEFT | TAB_FIX,
 			fmt_to_string (&spec->u.v.f));
 	  break;
 	}
@@ -837,12 +837,12 @@ dump_table (const struct file_handle *fh)
       }
 
   if (fh != NULL)
-    tab_title (t, 1, ngettext ("Writing %d record to %s.",
-                               "Writing %d records to %s.", recno),
+    tab_title (t, ngettext ("Writing %d record to %s.",
+                            "Writing %d records to %s.", recno),
                recno, fh_get_name (fh));
   else
-    tab_title (t, 1, ngettext ("Writing %d record.",
-                               "Writing %d records.", recno), recno);
+    tab_title (t, ngettext ("Writing %d record.",
+                            "Writing %d records.", recno), recno);
   tab_submit (t);
 }
 
@@ -927,7 +927,7 @@ print_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 	if (t->writer == NULL)
 	  {
 	    buf[len] = 0;
-	    tab_output_text (TAT_FIX | TAT_NOWRAP, buf);
+	    tab_output_text (TAB_FIX | TAT_NOWRAP, buf);
 	  }
 	else
 	  {

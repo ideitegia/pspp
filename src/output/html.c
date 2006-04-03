@@ -31,6 +31,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <data/filename.h>
+#include "error.h"
 #include "getline.h"
 #include "getlogin_r.h"
 #include "output.h"
@@ -42,361 +43,137 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Prototypes. */
-static int postopen (struct file_ext *);
-static int preclose (struct file_ext *);
+static void escape_string (FILE *file,
+                           const char *text, size_t length,
+                           const char *space);
+static bool handle_option (struct outp_driver *this,
+                           const char *key, const struct string *val);
+static void print_title_tag (FILE *file, const char *name,
+                             const char *content);
 
-static int
-html_open_global (struct outp_class *this UNUSED)
-{
-  return 1;
-}
-
-static int
-html_close_global (struct outp_class *this UNUSED)
-{
-  return 1;
-}
-
-static int
-html_preopen_driver (struct outp_driver *this)
+static bool
+html_open_driver (struct outp_driver *this, const char *options)
 {
   struct html_driver_ext *x;
 
-  assert (this->driver_open == 0);
-  msg (VM (1), _("HTML driver initializing as `%s'..."), this->name);
-
   this->ext = x = xmalloc (sizeof *x);
-  this->res = 0;
-  this->horiz = this->vert = 0;
-  this->width = this->length = 0;
+  x->file_name = xstrdup ("pspp.html");
+  x->file = NULL;
 
-  this->cp_x = this->cp_y = 0;
+  outp_parse_options (options, handle_option, this);
 
-  x->prologue_fn = NULL;
+  x->file = fn_open (x->file_name, "w");
+  if (x->file == NULL)
+    {
+      error (0, errno, _("opening HTML output file: %s"), x->file_name);
+      goto error;
+    }
+ 
+  fputs ("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n"
+         "   \"http://www.w3.org/TR/html4/loose.dtd\">\n", x->file);
+  fputs ("<HTML>\n", x->file);
+  fputs ("<HEAD>\n", x->file);
+  /* The <TITLE> tag is required, so we use a default if the user
+     didn't provide one. */
+  print_title_tag (x->file,
+                   "TITLE", outp_title ? outp_title : _("PSPP Output"));
+  fprintf (x->file, "<META NAME=\"generator\" CONTENT=\"%s\">\n", version);
+  fputs ("<META HTTP-EQUIV=\"Content-Type\" "
+         "CONTENT=\"text/html; charset=ISO-8859-1\">\n", x->file);
+  fputs ("</HEAD>\n", x->file);
+  fputs ("<BODY BGCOLOR=\"#ffffff\" TEXT=\"#000000\"\n", x->file);
+  fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", x->file);
+  print_title_tag (x->file, "H1", outp_title);
+  print_title_tag (x->file, "H2", outp_subtitle);
 
-  x->file.filename = NULL;
-  x->file.mode = "w";
-  x->file.file = NULL;
-  x->file.sequence_no = &x->sequence_no;
-  x->file.param = this;
-  x->file.postopen = postopen;
-  x->file.preclose = preclose;
+  return true;
 
-  x->sequence_no = 0;
-
-  return 1;
+ error:
+  this->class->close_driver (this);
+  return false;
 }
 
-static int
-html_postopen_driver (struct outp_driver *this)
+/* Emits <NAME>CONTENT</NAME> to the output, escaping CONTENT as
+   necessary for HTML. */
+static void
+print_title_tag (FILE *file, const char *name, const char *content) 
 {
-  struct html_driver_ext *x = this->ext;
-
-  assert (this->driver_open == 0);
-  if (NULL == x->file.filename)
-    x->file.filename = xstrdup ("pspp.html");
-	
-  if (x->prologue_fn == NULL)
-    x->prologue_fn = xstrdup ("html-prologue");
-
-  msg (VM (2), _("%s: Initialization complete."), this->name);
-  this->driver_open = 1;
-
-  return 1;
+  if (content != NULL) 
+    {
+      fprintf (file, "<%s>", name);
+      escape_string (file, content, strlen (content), " ");
+      fprintf (file, "</%s>\n", name);
+    }
 }
 
-static int
+static bool
 html_close_driver (struct outp_driver *this)
 {
   struct html_driver_ext *x = this->ext;
-
-  assert (this->driver_open);
-  msg (VM (2), _("%s: Beginning closing..."), this->name);
-  fn_close_ext (&x->file);
-  free (x->prologue_fn);
-  free (x->file.filename);
+  bool ok;
+ 
+  if (x->file != NULL) 
+    {
+      fprintf (x->file,
+               "</BODY>\n"
+               "</HTML>\n"
+               "<!-- end of file -->\n");
+      ok = fn_close (x->file_name, x->file) == 0;
+      x->file = NULL; 
+    }
+  else
+    ok = true;
+  free (x->file_name);
   free (x);
-  msg (VM (3), _("%s: Finished closing."), this->name);
-  this->driver_open = 0;
-  
-  return 1;
+   
+  return ok;
 }
 
-
-/* Link the image contained in FILENAME to the 
-   HTML stream in file F. */
-static int
-link_image (struct file_ext *f, char *filename)
+/* Link the image contained in FILE_NAME to the 
+   HTML stream in FILE. */
+static void
+link_image (FILE *file, char *file_name)
 {
-  fprintf (f->file,
-	   "<IMG SRC=\"%s\"/>", filename);
-
-  if (ferror (f->file))
-    return 0;
-
-  return 1;
-}
-
+  fprintf (file, "<IMG SRC=\"%s\"/>", file_name);
+ }
 
 /* Generic option types. */
 enum
-{
-  boolean_arg = -10,
-  string_arg,
-  nonneg_int_arg
-};
+  {
+    string_arg,
+    nonneg_int_arg
+  };
 
 /* All the options that the HTML driver supports. */
 static struct outp_option option_tab[] =
-{
-  /* *INDENT-OFF* */
-  {"output-file",		1,		0},
-  {"prologue-file",		string_arg,	0},
-  {"", 0, 0},
-  /* *INDENT-ON* */
-};
-static struct outp_option_info option_info;
+  {
+    {"output-file",		string_arg,     0},
+    {NULL, 0, 0},
+  };
 
-static void
-html_option (struct outp_driver *this, const char *key, const struct string *val)
+static bool
+handle_option (struct outp_driver *this,
+               const char *key, const struct string *val)
 {
   struct html_driver_ext *x = this->ext;
-  int cat, subcat;
+  int subcat;
 
-  cat = outp_match_keyword (key, option_tab, &option_info, &subcat);
-  switch (cat)
+  switch (outp_match_keyword (key, option_tab, &subcat))
     {
-    case 0:
-      msg (SE, _("Unknown configuration parameter `%s' for HTML device "
-	   "driver."), key);
-      break;
-    case 1:
-      free (x->file.filename);
-      x->file.filename = xstrdup (ds_c_str (val));
+    case -1:
+      error (0, 0,
+             _("unknown configuration parameter `%s' for HTML device driver"),
+             key);
       break;
     case string_arg:
-      {
-	char **dest;
-	switch (subcat)
-	  {
-	  case 0:
-	    dest = &x->prologue_fn;
-	    break;
-	  default:
-	    assert (0);
-            abort ();
-	  }
-	if (*dest)
-	  free (*dest);
-	*dest = xstrdup (ds_c_str (val));
-      }
+      free (x->file_name);
+      x->file_name = xstrdup (ds_c_str (val));
       break;
     default:
-      assert (0);
+      abort ();
     }
-}
-
-/* Variables for the prologue. */
-struct html_variable
-  {
-    const char *key;
-    const char *value;
-  };
   
-static struct html_variable *html_var_tab;
-
-/* Searches html_var_tab for a html_variable with key KEY, and returns
-   the associated value. */
-static const char *
-html_get_var (const char *key)
-{
-  struct html_variable *v;
-
-  for (v = html_var_tab; v->key; v++)
-    if (!strcmp (key, v->key))
-      return v->value;
-  return NULL;
-}
-
-/* Writes the HTML prologue to file F. */
-static int
-postopen (struct file_ext *f)
-{
-  static struct html_variable dict[] =
-    {
-      {"generator", 0},
-      {"date", 0},
-      {"user", 0},
-      {"host", 0},
-      {"title", 0},
-      {"subtitle", 0},
-      {0, 0},
-    };
-  char login[128], host[128];
-  time_t curtime;
-  struct tm *loctime;
-
-  struct outp_driver *this = f->param;
-  struct html_driver_ext *x = this->ext;
-
-  char *prologue_fn = fn_search_path (x->prologue_fn, config_path, NULL);
-  FILE *prologue_file;
-
-  char *buf = NULL;
-  size_t buf_size = 0;
-
-  if (prologue_fn == NULL)
-    {
-      msg (IE, _("Cannot find HTML prologue.  The use of `-vv' "
-		 "on the command line is suggested as a debugging aid."));
-      return 0;
-    }
-
-  msg (VM (1), _("%s: %s: Opening HTML prologue..."), this->name, prologue_fn);
-  prologue_file = fopen (prologue_fn, "rb");
-  if (prologue_file == NULL)
-    {
-      fclose (prologue_file);
-      free (prologue_fn);
-      msg (IE, "%s: %s", prologue_fn, strerror (errno));
-      goto error;
-    }
-
-  dict[0].value = version;
-
-  curtime = time (NULL);
-  loctime = localtime (&curtime);
-  dict[1].value = asctime (loctime);
-  {
-    char *cp = strchr (dict[1].value, '\n');
-    if (cp)
-      *cp = 0;
-  }
-
-  if (getenv ("LOGNAME") != NULL)
-    str_copy_rpad (login, sizeof login, getenv ("LOGNAME"));
-  else if (getlogin_r (login, sizeof login))
-    strcpy (login, _("nobody"));
-  dict[2].value = login;
-
-#ifdef HAVE_UNISTD_H
-  if (gethostname (host, 128) == -1)
-    {
-      if (errno == ENAMETOOLONG)
-	host[127] = 0;
-      else
-	strcpy (host, _("nowhere"));
-    }
-#else
-  strcpy (host, _("nowhere"));
-#endif
-  dict[3].value = host;
-
-  dict[4].value = outp_title ? outp_title : "";
-  dict[5].value = outp_subtitle ? outp_subtitle : "";
-
-  html_var_tab = dict;
-  while (-1 != getline (&buf, &buf_size, prologue_file))
-    {
-
-      int len;
-
-      if (strstr (buf, "!!!"))
-	continue;
-      
-      {
-	char *cp = strstr (buf, "!title");
-	if (cp)
-	  {
-	    if (outp_title == NULL)
-	      continue;
-	    else
-	      *cp = '\0';
-	  }
-      }
-      
-      {
-	char *cp = strstr (buf, "!subtitle");
-	if (cp)
-	  {
-	    if (outp_subtitle == NULL)
-	      continue;
-	    else
-	      *cp = '\0';
-	  }
-      }
-      
-      /* PORTME: Line terminator. */
-      struct string line;
-      ds_create(&line, buf);
-      fn_interp_vars(&line, html_get_var);
-      len = ds_length(&line);
-      fwrite (ds_c_str(&line), len, 1, f->file);
-      if (ds_c_str(&line)[len - 1] != '\n')
-	putc ('\n', f->file);
-      ds_destroy(&line);
-    }
-  if (ferror (f->file))
-    msg (IE, _("Reading `%s': %s."), prologue_fn, strerror (errno));
-  fclose (prologue_file);
-
-  free (prologue_fn);
-  free (buf);
-
-  if (ferror (f->file))
-    goto error;
-
-  msg (VM (2), _("%s: HTML prologue read successfully."), this->name);
-  return 1;
-
-error:
-  msg (VM (1), _("%s: Error reading HTML prologue."), this->name);
-  return 0;
-}
-
-/* Writes the HTML epilogue to file F. */
-static int
-preclose (struct file_ext *f)
-{
-  fprintf (f->file,
-	   "</BODY>\n"
-	   "</HTML>\n"
-	   "<!-- end of file -->\n");
-
-  if (ferror (f->file))
-    return 0;
-  return 1;
-}
-
-static int
-html_open_page (struct outp_driver *this)
-{
-  struct html_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open == 0);
-  x->sequence_no++;
-  if (!fn_open_ext (&x->file))
-    {
-      if (errno)
-	msg (ME, _("HTML output driver: %s: %s"), x->file.filename,
-	     strerror (errno));
-      return 0;
-    }
-
-  if (!ferror (x->file.file))
-    this->page_open = 1;
-  return !ferror (x->file.file);
-}
-
-static int
-html_close_page (struct outp_driver *this)
-{
-  struct html_driver_ext *x = this->ext;
-
-  assert (this->driver_open && this->page_open);
-  this->page_open = 0;
-  return !ferror (x->file.file);
+  return true;
 }
 
 static void output_tab_table (struct outp_driver *, struct tab_table *);
@@ -407,14 +184,7 @@ html_submit (struct outp_driver *this, struct som_entity *s)
   extern struct som_table_class tab_table_class;
   struct html_driver_ext *x = this->ext;
   
-  assert (this->driver_open && this->page_open);
-  if (x->sequence_no == 0 && !html_open_page (this))
-    {
-      msg (ME, _("Cannot open first page on HTML device %s."), this->name);
-      return;
-    }
-
-  assert ( s->class == &tab_table_class ) ;
+  assert (s->class == &tab_table_class ) ;
 
   switch (s->type) 
     {
@@ -422,49 +192,76 @@ html_submit (struct outp_driver *this, struct som_entity *s)
       output_tab_table ( this, (struct tab_table *) s->ext);
       break;
     case SOM_CHART:
-      link_image( &x->file, ((struct chart *)s->ext)->filename);
+      link_image (x->file, ((struct chart *)s->ext)->filename);
       break;
     default:
-      assert(0);
-      break;
+      abort ();
     }
-
 }
 
-/* Write string S of length LEN to file F, escaping characters as
-   necessary for HTML. */
+/* Write LENGTH characters in TEXT to file F, escaping characters
+   as necessary for HTML.  Spaces are replaced by SPACE, which
+   should be " " or "&nbsp;". */
 static void
-escape_string (FILE *f, char *s, int len)
+escape_string (FILE *file,
+               const char *text, size_t length,
+               const char *space)
 {
-  char *ep = &s[len];
-  char *bp, *cp;
-
-  for (bp = cp = s; bp < ep; bp = cp)
+  while (length-- > 0)
     {
-      while (cp < ep && *cp != '&' && *cp != '<' && *cp != '>' && *cp)
-	cp++;
-      if (cp > bp)
-	fwrite (bp, 1, cp - bp, f);
-      if (cp < ep)
-	switch (*cp++)
-	  {
-	  case '&':
-	    fputs ("&amp;", f);
-	    break;
-	  case '<':
-	    fputs ("&lt;", f);
-	    break;
-	  case '>':
-	    fputs ("&gt;", f);
-	    break;
-	  case 0:
-	    break;
-	  default:
-	    assert (0);
-	  }
+      char c = *text++;
+      switch (c)
+        {
+        case '&':
+          fputs ("&amp;", file);
+          break;
+        case '<':
+          fputs ("&lt;", file);
+          break;
+        case '>':
+          fputs ("&gt;", file);
+          break;
+        case ' ':
+          fputs (space, file);
+          break;
+        default:
+          putc (c, file);
+          break;
+        }
     }
 }
   
+/* Outputs content for a cell with options OPTS and contents
+   TEXT. */
+void
+html_put_cell_contents (struct outp_driver *this,
+                        unsigned int opts, struct fixed_string *text)
+{
+  struct html_driver_ext *x = this->ext;
+
+  if (!(opts & TAB_EMPTY)) 
+    {
+      if (opts & TAB_EMPH)
+        fputs ("<EM>", x->file);
+      if (opts & TAB_FIX) 
+        {
+          fputs ("<TT>", x->file);
+          escape_string (x->file, ls_c_str (text), ls_length (text), "&nbsp;");
+          fputs ("</TT>", x->file);
+        }
+      else 
+        {
+          size_t initial_spaces = strspn (ls_c_str (text), " \t");
+          escape_string (x->file,
+                         ls_c_str (text) + initial_spaces,
+                         ls_length (text) - initial_spaces,
+                         " "); 
+        }
+      if (opts & TAB_EMPH)
+        fputs ("</EM>", x->file);
+    }
+}
+
 /* Write table T to THIS output driver. */
 static void
 output_tab_table (struct outp_driver *this, struct tab_table *t)
@@ -473,22 +270,21 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   
   if (t->nr == 1 && t->nc == 1)
     {
-      fputs ("<P>", x->file.file);
-      if (!ls_empty_p (t->cc))
-	escape_string (x->file.file, ls_c_str (t->cc), ls_length (t->cc));
-      fputs ("</P>\n", x->file.file);
+      fputs ("<P>", x->file);
+      html_put_cell_contents (this, t->ct[0], t->cc);
+      fputs ("</P>\n", x->file);
       
       return;
     }
 
-  fputs ("<TABLE BORDER=1>\n", x->file.file);
+  fputs ("<TABLE BORDER=1>\n", x->file);
   
   if (!ls_empty_p (&t->title))
     {
-      fprintf (x->file.file, "  <TR>\n    <TH COLSPAN=%d>", t->nc);
-      escape_string (x->file.file, ls_c_str (&t->title),
-		     ls_length (&t->title));
-      fputs ("</TH>\n  </TR>\n", x->file.file);
+      fprintf (x->file, "  <CAPTION>");
+      escape_string (x->file, ls_c_str (&t->title), ls_length (&t->title),
+                     " ");
+      fputs ("</CAPTION>\n", x->file);
     }
   
   {
@@ -499,17 +295,15 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
       {
 	int c;
 	
-	fputs ("  <TR>\n", x->file.file);
+	fputs ("  <TR>\n", x->file);
 	for (c = 0; c < t->nc; c++, ct++)
 	  {
             struct fixed_string *cc;
-	    int tag;
-	    char header[128];
-	    char *cp;
+            const char *tag;
             struct tab_joined_cell *j = NULL;
 
             cc = t->cc + c + r * t->nc;
-	    if (*ct & TAB_JOIN) 
+	    if (*ct & TAB_JOIN)
               {
                 j = (struct tab_joined_cell *) ls_c_str (cc);
                 cc = &j->contents;
@@ -517,62 +311,34 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
                   continue; 
               }
 
-	    if (r < t->t || r >= t->nr - t->b
-		|| c < t->l || c >= t->nc - t->r)
-	      tag = 'H';
-	    else
-	      tag = 'D';
-	    cp = stpcpy (header, "    <T");
-	    *cp++ = tag;
-	    
-	    switch (*ct & TAB_ALIGN_MASK)
-	      {
-	      case TAB_RIGHT:
-		cp = stpcpy (cp, " ALIGN=RIGHT");
-		break;
-	      case TAB_LEFT:
-		break;
-	      case TAB_CENTER:
-		cp = stpcpy (cp, " ALIGN=CENTER");
-		break;
-	      default:
-		assert (0);
-	      }
-
+            /* Output <TD> or <TH> tag. */
+            tag = (r < t->t || r >= t->nr - t->b
+                   || c < t->l || c >= t->nc - t->r) ? "TH" : "TD";
+            fprintf (x->file, "    <%s ALIGN=%s",
+                     tag,
+                     (*ct & TAB_ALIGN_MASK) == TAB_LEFT ? "LEFT"
+                     : (*ct & TAB_ALIGN_MASK) == TAB_RIGHT ? "RIGHT"
+                     : "CENTER");
 	    if (*ct & TAB_JOIN)
 	      {
 		if (j->x2 - j->x1 > 1)
-		  cp = spprintf (cp, " COLSPAN=%d", j->x2 - j->x1);
+		  fprintf (x->file, " COLSPAN=%d", j->x2 - j->x1);
 		if (j->y2 - j->y1 > 1)
-		  cp = spprintf (cp, " ROWSPAN=%d", j->y2 - j->y1);
-
-                cc = &j->contents;
+		  fprintf (x->file, " ROWSPAN=%d", j->y2 - j->y1);
 	      }
-	    
-	    strcpy (cp, ">");
-	    fputs (header, x->file.file);
-	    
-	    if ( ! (*ct & TAB_EMPTY)  ) 
-	      {
-		char *s = ls_c_str (cc);
-		size_t l = ls_length (cc);
+	    putc ('>', x->file);
 
-		while (l && isspace ((unsigned char) *s))
-		  {
-		    l--;
-		    s++;
-		  }
-	      
-		escape_string (x->file.file, s, l);
-	      }
+            /* Output cell contents. */
+            html_put_cell_contents (this, *ct, cc);
 
-	    fprintf (x->file.file, "</T%c>\n", tag);
+            /* Output </TH> or </TD>. */
+	    fprintf (x->file, "</%s>\n", tag);
 	  }
-	fputs ("  </TR>\n", x->file.file);
+	fputs ("  </TR>\n", x->file);
       }
   }
 	      
-  fputs ("</TABLE>\n\n", x->file.file);
+  fputs ("</TABLE>\n\n", x->file);
 }
 
 static void
@@ -602,45 +368,21 @@ html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 
 /* HTML driver class. */
 struct outp_class html_class =
-{
-  "html",
-  0xfaeb,
-  1,
+  {
+    "html",
+    1,
 
-  html_open_global,
-  html_close_global,
-  NULL,
+    html_open_driver,
+    html_close_driver,
 
-  html_preopen_driver,
-  html_option,
-  html_postopen_driver,
-  html_close_driver,
+    NULL,
+    NULL,
 
-  html_open_page,
-  html_close_page,
+    html_submit,
 
-  html_submit,
-
-  NULL,
-  NULL,
-  NULL,
-
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-
-  html_initialise_chart,
-  html_finalise_chart
-
-};
+    NULL,
+    NULL,
+    NULL,
+    html_initialise_chart,
+    html_finalise_chart
+  };

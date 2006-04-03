@@ -86,7 +86,6 @@ Software Foundation raise funds for GNU development.''
 * Command Index::               Index of PSPP procedures.
 * Concept Index::               Index of concepts.
 
-* Installation::                How to compile and install PSPP.
 * Configuration::               Configuring PSPP.
 
 * Portable File Format::        Format of PSPP portable files.
@@ -117,7 +116,6 @@ Software Foundation raise funds for GNU development.''
 @include command-index.texi
 @include concept-index.texi
 
-@include installing.texi
 @include configuring.texi
 
 @include portable-file-format.texi

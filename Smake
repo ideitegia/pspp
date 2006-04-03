@@ -35,6 +35,7 @@ GNULIB_MODULES = \
 	strcspn \
 	strerror \
 	strftime \
+	strsep \
 	strstr \
 	strtod \
 	strtok_r \

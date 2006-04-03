@@ -25,14 +25,14 @@
 /* HTML output driver extension record. */
 struct html_driver_ext
   {
-    /* User parameters. */
-    char *prologue_fn;		/* Prologue's filename relative to font dir. */
-
-    /* Internal state. */
-    struct file_ext file;	/* Output file. */
-    int sequence_no;		/* Sequence number. */
+    char *file_name;
+    FILE *file;
   };
 
 extern struct outp_class html_class;
+
+struct outp_driver;
+void html_put_cell_contents (struct outp_driver *this,
+                             unsigned int opts, struct fixed_string *text);
 
 #endif /* !htmlP_h */

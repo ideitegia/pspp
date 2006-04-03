@@ -1,18 +1,13 @@
-@node Configuration, Portable File Format, Installation, Top
+@node Configuration, Portable File Format, Concept Index, Top
 @appendix Configuring PSPP
 @cindex configuration
 @cindex PSPP, configuring
 
-PSPP has dozens of configuration possibilities and hundreds of
-settings.  This is both a bane and a blessing.  On one hand, it's
-possible to easily accommodate diverse ranges of setups.  But, on the
-other, the multitude of possibilities can overwhelm the casual user.
-Fortunately, the configuration mechanisms are profusely described in the
-sections below@enddots{}
+This chapter describe how to configure PSPP for your system.
 
 @menu
 * File locations::              How PSPP finds config files.
-* Configuration techniques::    Many different methods of configuration@enddots{}
+* Configuration techniques::    Many different methods of configuration...
 * Configuration files::         How configuration files are read.
 * Environment variables::       All about environment variables.
 * Output devices::              Describing your terminal(s) and printer(s).
@@ -20,123 +15,19 @@ sections below@enddots{}
 * ASCII driver class::          Configuration of character-code devices.
 * HTML driver class::           Configuration for HTML output.
 * Miscellaneous configuring::   Even more configuration variables.
-* Improving output quality::    Hints for producing ever-more-lovely output.
 @end menu
 
 @node File locations, Configuration techniques, Configuration, Configuration
 @section Locating configuration files
 
-PSPP uses the same method to find most of its configuration files:
-
-@enumerate
-@item
-The @dfn{base name} of the file being sought is determined.
-
-@item
-The path to search is determined.  
-
-@item
-Each directory in the search path, from left to right, is searched for a
-file with the name of the base name.  The first occurrence is read
-as the configuration file.
-@end enumerate
-
-The first two steps are elaborated below for the sake of our pedantic
-friends.
-
-@enumerate
-@item
-A @dfn{base name} is a file name lacking an absolute directory
-reference.  Some examples of base names are: @file{ps-encodings},
-@file{devices}, @file{devps/DESC} (under UNIX), @file{devps\DESC} (under
-M$ environments).
-
-Determining the base name is a two-step process:
-
-@enumerate a
-@item
-If the appropriate environment variable is defined, the value of that
-variable is used (@pxref{Environment variables}).  For instance, when
-searching for the output driver initialization file, the variable
-examined is @code{STAT_OUTPUT_INIT_FILE}.
-
-@item
-Otherwise, the compiled-in default is used.  For example, when searching
-for the output driver initialization file, the default base name is
-@file{devices}.
-@end enumerate
-
-@strong{Please note:} If a user-specified base name does contain an
-absolute directory reference, as in a file name like
-@file{/home/pfaff/fonts/TR}, no path is searched---the file name is used
-exactly as given---and the algorithm terminates.
-
-@item
-The path is the first of the following that is defined:
-
-@itemize @bullet
-@item
-A variable definition for the path given in the user environment.  This
-is a PSPP-specific environment variable name; for instance,
-@code{STAT_OUTPUT_INIT_PATH}.
-
-@item 
-In some cases, another, less-specific environment variable is checked.
-For instance, when searching for font files, the PostScript driver first
-checks for a variable with name @code{STAT_GROFF_FONT_PATH}, then for
-one with name @code{GROFF_FONT_PATH}.  (However, font searching has its
-own list of esoteric search rules.)
-
-@item
-The configuration file path, which is itself determined by the
-following rules:
-
-@enumerate a
-@item
-If the command line contains an option of the form @samp{-B @var{path}}
-or @samp{--config-dir=@var{path}}, then the value given on the
-rightmost occurrence of such an option is used.
-
-@item
-Otherwise, if the environment variable @code{STAT_CONFIG_PATH} is
-defined, the value of that variable is used.
-
-@item
-Otherwise, the compiled-in fallback default is used.  On UNIX machines,
-the default fallback path is
-
-@enumerate 1
-@item
-@file{~/.pspp}
-
-@item
-@file{/usr/local/lib/pspp}
-
-@item
-@file{/usr/lib/pspp}
-@end enumerate
-
-On DOS machines, the default fallback path is:
-
-@enumerate 1
-@item
-All the paths from the DOS search path in the @samp{PATH} environment
-variable, in left-to-right order.
-
-@item
-@file{C:\PSPP}, as a last resort.
-@end enumerate
-
-Note that the installer of PSPP can easily change this default
-fallback path; thus the above should not be taken as gospel.
-@end enumerate
-@end itemize
-@end enumerate
-
-As a final note: Under DOS, directories given in paths are delimited by
-semicolons (@samp{;}); under UNIX, directories are delimited by colons
-(@samp{:}).  This corresponds with the standard path delimiter under
-these OSes.
+PSPP searches each directory in the configuration file path for most
+configuration files.  The default configuration file path searches first
+@file{~/.pspp}, then the package system configuration directory (usually
+@file{/usr/local/etc/pspp} or @file{/etc/pspp}).  The value of
+environment variable @env{PSPP_CONFIG_PATH}, if defined, overrides this
+default path.  Finally, @samp{-B @var{path}} or
+@samp{--config-dir=@var{path}} specified on the command line has highest
+priority.
 
 @node Configuration techniques, Configuration files, File locations, Configuration
 @section Configuration techniques
@@ -231,55 +122,11 @@ even something so simple.  Environment variables are further described
 in the sections below:
 
 @menu
-* Variable values::             Values of variables are determined this way.
 * Environment substitutions::   How environment substitutions are made.
 * Predefined variables::        A few variables are automatically defined.
 @end menu
 
-@node Variable values, Environment substitutions, Environment variables, Environment variables
-@subsection Values of environment variables
-
-Values for environment variables are obtained by the following means,
-which are arranged in order of decreasing precedence:
-
-@enumerate
-@item
-Command-line options.  @xref{Invocation}.
-
-@item
-The @file{environment} configuration file---more on this below.
-
-@item
-Actual environment variables (defined in the shell or other parent
-process).
-@end enumerate
-
-The @file{environment} configuration file is located through application
-of the usual algorithm for configuration files (@pxref{File locations}),
-except that its contents do not affect the search path used to find
-@file{environment} itself.  Use of @file{environment} is discouraged on
-systems that allow an arbitrarily large environment; it is supported for
-use on systems like MS-DOS that limit environment size.
-
-@file{environment} is composed of lines having the form
-@samp{@var{key}=@var{value}}, where @var{key} and the equals sign
-(@samp{=}) are required, and @var{value} is optional.  If @var{value} is
-given, variable @var{key} is given that value; if @var{value} is absent,
-variable @var{key} is undefined (deleted).  Variables may not be defined
-with a null value.
-
-Environment substitutions are performed on each line in the file
-(@pxref{Environment substitutions}).
-
-See @ref{Configuration files}, for more details on formatting of the
-environment configuration file.
-
-@quotation
-@strong{Please note:} Support for @file{environment} is not yet
-implemented.
-@end quotation
-
-@node Environment substitutions, Predefined variables, Variable values, Environment variables
+@node Environment substitutions, Predefined variables, Environment variables, Environment variables
 @subsection Environment substitutions
 
 Much of the power of environment variables lies in the way that they may
@@ -287,24 +134,15 @@ be substituted into configuration files.  Variable substitutions are
 described below.
 
 The line is scanned from left to right.  In this scan, all characters
-other than dollar signs (@samp{$}) are retained unmolested.  Dollar
-signs, however, introduce an environment variable reference.  References
+other than dollar signs (@samp{$}) are retained without change.  Dollar
+signs introduce environment variable references.  References
 take three forms:
 
 @table @code
 @item $@var{var}
-Replaced by the value of environment variable @var{var}, determined as
-specified in @ref{Variable values}.  @var{var} must be one of the
-following:
-
-@itemize @bullet
-@item
-One or more letters.
-
-@item
-Exactly one nonalphabetic character.  This may not be a left brace
-(@samp{@{}).
-@end itemize
+Replaced by the value of environment variable @var{var}.  @var{var} must
+consist of either one or more letters, or exactly one non-alphabetic
+character other than a left brace (@samp{@{}).
 
 @item $@{@var{var}@}
 Same as above, but @var{var} may contain any character (except
@@ -737,34 +575,9 @@ signs.
 @section The PostScript driver class
 
 The @code{postscript} driver class is used to produce output that is
-acceptable to PostScript printers and to PC-based PostScript
-interpreters such as Ghostscript.  Continuing a long tradition,
-PSPP's PostScript driver is configurable to the point of
-absurdity.
+acceptable to PostScript printers and other interpreters.
 
-There are actually two PostScript drivers.  The first one,
-@samp{postscript}, produces ordinary DSC-compliant PostScript output.
-The second one @samp{epsf}, produces an Encapsulated PostScript file.
-The two drivers are otherwise identical in configuration and in
-operation.
-
-The PostScript driver is described in further detail below.
-
-@menu
-* PS output options::           Output file options.
-* PS page options::             Paper, margins, scaling & rotation, more!
-* PS file options::             Configuration files.
-* PS font options::             Default fonts, font options.
-* PS line options::             Line widths, options.
-* Prologue::                    Details on the PostScript prologue.
-* Encodings::                   Details on PostScript font encodings.
-@end menu
-
-@node PS output options, PS page options, PostScript driver class, PostScript driver class
-@subsection PostScript output options
-
-These options deal with the form of the output and the output file
-itself:
+The available options are listed below.
 
 @table @code
 @item output-file=@var{filename}
@@ -773,57 +586,6 @@ File to which output should be sent.  This can be an ordinary filename
 (i.e., @code{"pspp.ps"}), a pipe filename (i.e., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.ps"}.
 
-@item color=@var{boolean}
-
-Most of the time black-and-white PostScript devices are smart enough to
-map colors to shades themselves.  However, you can cause the PSPP
-output driver to do an ugly simulation of this in its own driver by
-turning @code{color} off.  Default: @code{on}.
-
-This is a boolean setting, as are many settings in the PostScript
-driver.  Valid positive boolean values are @samp{on}, @samp{true},
-@samp{yes}, and nonzero integers.  Negative boolean values are
-@samp{off}, @samp{false}, @samp{no}, and zero.
-
-@item data=@var{data-type}
-
-One of @code{clean7bit}, @code{clean8bit}, or @code{binary}.  This
-controls what characters will be written to the output file.  PostScript
-produced with @code{clean7bit} can be transmitted over 7-bit
-transmission channels that use ASCII control characters for line
-control.  @code{clean8bit} is similar but allows characters above 127 to
-be written to the output file.  @code{binary} allows any character in
-the output file.  Default: @code{clean7bit}.
-
-@item line-ends=@var{line-end-type}
-
-One of @code{cr}, @code{lf}, or @code{crlf}.  This controls what is used
-for new-line in the output file.  Default: @code{cr}.
-
-@item optimize-line-size=@var{level}
-
-Either @code{0} or @code{1}.  If @var{level} is @code{1}, then short
-line segments will be collected and merged into longer ones.  This
-reduces output file size but requires more time and memory.  A
-@var{level} of @code{0} has the advantage of being better for
-interactive environments.  @code{1} is the default unless the
-@code{screen} flag is set; in that case, the default is @code{0}.
-
-@item optimize-text-size=@var{level}
-
-One of @code{0}, @code{1}, or @code{2}, each higher level representing
-correspondingly more aggressive space savings for text in the output
-file and requiring correspondingly more time and memory.  Unfortunately
-the levels presently are all the same.  @code{1} is the default unless
-the @code{screen} flag is set; in that case, the default is @code{0}.
-@end table
-
-@node PS page options, PS file options, PS output options, PostScript driver class
-@subsection PostScript page options
-
-These options affect page setup:
-
-@table @code
 @item headers=@var{boolean}
 
 Controls whether the standard headers showing the time and date and
@@ -849,355 +611,58 @@ Sets the margins around the page.  The headers, if enabled, are not
 included in the margins; they are in addition to the margins.  For a
 description of dimensions, see @ref{Dimensions}.  Default: @code{0.5in}.
 
-@end table
+@item prop-font=@var{afm-file}[,@var{font-file}[,@var{encoding-file}]]
+@itemx emph-font=@var{afm-file}[,@var{font-file}[,@var{encoding-file}]]
+@itemx fixed-font=@var{afm-file}[,@var{font-file}[,@var{encoding-file}]]
 
-@node PS file options, PS font options, PS page options, PostScript driver class
-@subsection PostScript file options
+Sets the font used for proportional, emphasized, or fixed-pitch text.
+The only required value is @var{afm-file}, the AFM file for the font.
 
-Oh, my.  You don't really want to know about the way that the PostScript
-driver deals with files, do you?  Well I suppose you're entitled, but I
-warn you right now: it's not pretty.  Here goes@enddots{}
+If specified, @var{font-file} will be downloaded to the printer at the
+beginning of the print job.  The font file may be in PFA or PFB format.
 
-First let's look at the options that are available:
+The font is reencoded as specified in @var{encoding-file}, if specified.
+Each line in @var{encoding-file} should consist of a PostScript
+character name and a decimal encoding value (between 0 and 255),
+separated by white space.  Blank lines and comments introduced by
+@samp{#} are also allowed.
 
-@table @code
+The files specified on these options are located as follows.  If
+the file name begins with @samp{/}, then it is taken as an absolute
+path.  Otherwise, PSPP searches its configuration path for the specified
+name prefixed by @code{psfonts/} (@pxref{File locations}).
 
-@item font-dir=@var{font-directory}
-
-Sets the font directory.  Default: @code{devps}.
-
-@item prologue-file=@var{prologue-file-name}
-
-Sets the name of the PostScript prologue file.  You can write your own
-prologue, though I have no idea why you'd want to: see @ref{Prologue}.
-Default: @code{ps-prologue}.
-
-@item device-file=@var{device-file-name}
-
-Sets the name of the Groff-format device description file.  The
-PostScript driver reads this to know about the scaling of fonts
-and so on.  The format of such files is described in the groff_font man page,
-included with Groff.  Default: @code{DESC}.
-
-@item encoding-file=@var{encoding-file-name}
-
-Sets the name of the encoding file.  This file contains a list of all
-font encodings that will be needed so that the driver can put all of
-them at the top of the prologue.  @xref{Encodings}.  Default:
-@code{ps-encodings}.
-
-If the specified encoding file cannot be found, this error will be
-silently ignored, since most people do not need any encodings besides
-the ones that can be found using @code{auto-encodings}, described below.
-
-@item auto-encode=@var{boolean}
-
-When enabled, the font encodings needed by the default proportional- and
-fixed-pitch fonts will automatically be dumped to the PostScript
-output.  Otherwise, it is assumed that the user has an encoding file
-and knows how to use it (@pxref{Encodings}).  There is probably no good
-reason to turn off this convenient feature.  Default: @code{on}.
-
-@end table
-
-Next I suppose it's time to describe the search algorithm.  When the
-PostScript driver needs a file, whether that file be a font, a
-PostScript prologue, or what you will, it searches in this manner:
-
-@enumerate
-
-@item
-Constructs a path by taking the first of the following that is defined:
-
-@enumerate a
-
-@item
-Environment variable @code{STAT_GROFF_FONT_PATH}.  @xref{Environment
-variables}.
-
-@item
-Environment variable @code{GROFF_FONT_PATH}.
-
-@item
-The compiled-in fallback default.
-@end enumerate
-
-@item
-Constructs a base name from concatenating, in order, the font directory,
-a path separator (@samp{/} or @samp{\}), and the file to be found.  A
-typical base name would be something like @code{devps/ps-encodings}.
-
-@item
-Searches for the base name in the path constructed above.  If the file
-is found, the algorithm terminates.
-
-@item
-Searches for the base name in the standard configuration path.  See
-@ref{File locations}, for more details.  If the file is found, the
-algorithm terminates.
-
-@item
-At this point we remove the font directory and path separator from the
-base name.  Now the base name is simply the file to be found, i.e.,
-@code{ps-encodings}.
-
-@item
-Searches for the base name in the path constructed in the first step.
-If the file is found, the algorithm terminates.
-
-@item
-Searches for the base name in the standard configuration path.  If the
-file is found, the algorithm terminates.
-
-@item
-The algorithm terminates unsuccessfully.
-@end enumerate
-
-So, as you see, there are several ways to configure the PostScript
-drivers.  Careful selection of techniques can make the configuration
-very flexible indeed.
-
-@node PS font options, PS line options, PS file options, PostScript driver class
-@subsection PostScript font options
-
-The list of available font options is short and sweet:
-
-@table @code
-@item prop-font=@var{font-name}
-
-Sets the default proportional font.  The name should be that of a
-PostScript font.  Default: @code{"Helvetica"}.
-
-@item fixed-font=@var{font-name}
-
-Sets the default fixed-pitch font.  The name should be that of a
-PostScript font.  Default: @code{"Courier"}.
+Default: proportional font @code{Times-Roman.afm}, emphasis font
+@code{Times-Italic.afm}, fixed-pitch font @code{Courier.afm}.
 
 @item font-size=@var{font-size}
 
 Sets the size of the default fonts, in thousandths of a point.  Default:
-@code{10000}.
-
-@end table
-
-@node PS line options, Prologue, PS font options, PostScript driver class
-@subsection PostScript line options
-
-Most tables contain lines, or rules, between cells.  Some features of
-the way that lines are drawn in PostScript tables are user-definable:
-
-@table @code
-
-@item line-style=@var{style}
-
-Sets the style used for lines used to divide tables into sections.
-@var{style} must be either @code{thick}, in which case thick lines are
-used, or @var{double}, in which case double lines are used.  Default:
-@code{thick}.
+10000 (10 point).
 
 @item line-gutter=@var{dimension}
 
-Sets the line gutter, which is the amount of white space on either side
-of lines that border text or graphics objects.  @xref{Dimensions}.
-Default: @code{0.5pt}.
+Sets the width of white space on either side of lines that border text
+or graphics objects.  @xref{Dimensions}.  Default: @code{1pt}.
 
 @item line-spacing=@var{dimension}
 
-Sets the line spacing, which is the amount of white space that separates
-lines that are side by side, as in a double line.  Default:
-@code{0.5pt}.
+Sets the spacing between the lines in a double line in a table.
+Default: @code{1pt}.
 
 @item line-width=@var{dimension}
 
-Sets the width of a typical line used in tables.  Default: @code{0.5pt}.
-
-@item line-width-thick=@var{dimension}
-
-Sets the width of a thick line used in tables.  Not used if
-@code{line-style} is set to @code{thick}.  Default: @code{1.5pt}.
-
+Sets the width of the lines used in tables.  Default: @code{0.5pt}.
 @end table
-
-@node Prologue, Encodings, PS line options, PostScript driver class
-@subsection The PostScript prologue
-
-Most PostScript files that are generated mechanically by programs
-consist of two parts: a prologue and a body.  The prologue is generally
-a collection of boilerplate.  Only the body differs greatly between
-two outputs from the same program.
- 
-This is also the strategy used in the PSPP PostScript driver.  In
-general, the prologue supplied with PSPP will be more than sufficient.
-In this case, you will not need to read the rest of this section.
-However, hackers might want to know more.  Read on, if you fall into
-this category.
-
-The prologue is dumped into the output stream essentially unmodified.
-However, two actions are performed on its lines.  First, certain lines
-may be omitted as specified in the prologue file itself.  Second,
-variables are substituted.
-
-The following lines are omitted:
-
-@enumerate
-@item
-All lines that contain three bangs in a row (@code{!!!}).
-
-@item
-Lines that contain @code{!eps}, if the PostScript driver is producing
-ordinary PostScript output.  Otherwise an EPS file is being produced,
-and the line is included in the output, although everything following
-@code{!eps} is deleted.
-
-@item
-Lines that contain @code{!ps}, if the PostScript driver is producing EPS
-output.  Otherwise, ordinary PostScript is being produced, and the line
-is included in the output, although everything following @code{!ps} is
-deleted.
-@end enumerate
-
-The following are the variables that are substituted.  Only the
-variables listed are substituted; environment variables are not.
-@xref{Environment substitutions}.
-
-@table @code
-@item bounding-box
-
-The page bounding box, in points, as four space-separated numbers.  For
-U.S. letter size paper, this is @samp{0 0 612 792}.
-
-@item creator
-
-PSPP version as a string: @samp{GNU PSPP 0.1b}, for example.
-
-@item date
-
-Date the file was created.  Example: @samp{Tue May 21 13:46:22 1991}.
-
-@item data
-
-Value of the @code{data} PostScript driver option, as one of the strings
-@samp{Clean7Bit}, @samp{Clean8Bit}, or @samp{Binary}.
-
-@item orientation
-
-Page orientation, as one of the strings @code{Portrait} or
-@code{Landscape}.
-
-@item user
-
-Under multiuser OSes, the user's login name, taken either from the
-environment variable @code{LOGNAME} or, if that fails, the result of the
-C library function @code{getlogin()}.  Defaults to @samp{nobody}.
-
-@item host
-
-System hostname as reported by @code{gethostname()}.  Defaults to
-@samp{nowhere}.
-
-@item prop-font
-
-Name of the default proportional font, prefixed by the word
-@samp{font} and a space.  Example: @samp{font Times-Roman}.
-
-@item fixed-font
-
-Name of the default fixed-pitch font, prefixed by the word @samp{font}
-and a space.
-
-@item scale-factor
-
-The page scaling factor as a floating-point number.  Example:
-@code{1.0}.  Note that this is also passed as an argument to the BP
-macro.
-
-@item paper-length
-@item paper-width
-
-The paper length and paper width, respectively, in thousandths of a
-point.  Note that these are also passed as arguments to the BP macro.
-
-@item left-margin
-@item top-margin
-
-The left margin and top margin, respectively, in thousandths of a
-point.  Note that these are also passed as arguments to the BP macro.
-
-@item title
-
-Document title as a string.  This is not the title specified in the
-PSPP syntax file.  A typical title is the word @samp{PSPP} followed
-by the syntax file name in parentheses.  Example: @samp{PSPP
-(<stdin>)}.
-
-@item source-file
-
-PSPP syntax file name.  Example: @samp{mary96/first.stat}.
-
-@end table
-
-Any other questions about the PostScript prologue can best be answered
-by examining the default prologue or the PSPP source.
-
-@node Encodings,  , Prologue, PostScript driver class
-@subsection PostScript encodings
-
-PostScript fonts often contain many more than 256 characters, in order
-to accommodate foreign language characters and special symbols.
-PostScript uses @dfn{encodings} to map these onto single-byte symbol
-sets.  Each font can have many different encodings applied to it.
-
-PSPP's PostScript driver needs to know which encoding to apply to each
-font.  It can determine this from the information encapsulated in the
-Groff font description that it reads.  However, there is an additional
-problem---for efficiency, the PostScript driver needs to have a complete
-list of all encodings that will be used in the entire session @emph{when
-it opens the output file}.  For this reason, it can't use the
-information built into the fonts because it doesn't know which fonts
-will be used.
-
-As a stopgap solution, there are two mechanisms for specifying which
-encodings will be used.  The first mechanism is automatic and it is the
-only one that most PSPP users will ever need.  The second mechanism is
-manual, but it is more flexible.  Either mechanism or both may be used
-at one time.
-
-The first mechanism is activated by the @samp{auto-encode} driver option
-(@pxref{PS file options}).  When enabled, @samp{auto-encode} causes the
-PostScript driver to include the encodings used by the default
-proportional and fixed-pitch fonts (@pxref{PS font options}).  Many
-PSPP output files will only need these encodings.
-
-The second mechanism is the file specified by the @samp{encoding-file}
-option (@pxref{PS file options}).  If it exists, this file must consist
-of lines in PSPP configuration-file format (@pxref{Configuration
-files}).  Each line that is not a comment should name a PostScript
-encoding to include in the output.
-
-It is not an error if an encoding is included more than once, by either
-mechanism.  It will appear only once in the output.  It is also not an
-error if an encoding is included in the output but never used.  It
-@emph{is} an error if an encoding is used but not included by one of
-these mechanisms.  In this case, the built-in PostScript encoding
-@samp{ISOLatin1Encoding} is substituted.
 
 @node ASCII driver class, HTML driver class, PostScript driver class, Configuration
 @section The ASCII driver class
 
 The ASCII driver class produces output that can be displayed on a
-terminal or output to printers.  All of its options are highly
-configurable.  The ASCII driver has class name @samp{ascii}.
+terminal or output to printers.  The ASCII driver has class name
+@samp{ascii}.
 
-The ASCII driver is described in further detail below.
-
-@menu
-* ASCII output options::        Output file options.
-* ASCII page options::          Page size, margins, more.
-* ASCII font options::          Box character, bold & italics.
-@end menu
-
-@node ASCII output options, ASCII page options, ASCII driver class, ASCII driver class
-@subsection ASCII output options
+The available options are listed below.
 
 @table @code
 @item output-file=@var{filename}
@@ -1206,55 +671,16 @@ File to which output should be sent.  This can be an ordinary filename
 (e.g., @code{"pspp.txt"}), a pipe filename (e.g., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.list"}.
 
-@item char-set=@var{char-set-type}
-
-One of @samp{ascii} or @samp{latin1}.  This has no effect on output at
-the present time.  Default: @code{ascii}.
-
-@item form-feed-string=@var{form-feed-value}
-
-The string written to the output to cause a formfeed.  See also
-@code{paginate}, described below, for a related setting.  Default:
-@code{"\f"}.
-
-@item newline-string=@var{new-line-value}
-
-The string written to the output to cause a new-line (carriage return
-plus linefeed).  The default, which can be specified explicitly with
-@code{newline-string=default}, is to use the system-dependent new-line
-sequence by opening the output file in text mode.  This is usually the
-right choice.
-
-However, @code{newline-string} can be set to any string.  When this is
-done, the output file is opened in binary mode.
-
 @item paginate=@var{boolean}
 
-If set, a formfeed (as set in @code{form-feed-string}, described above)
-will be written to the device after every page.  Default: @code{on}.
+If set, a formfeed will be written at the end of every page.  Default:
+@code{on}.
 
 @item tab-width=@var{tab-width-value}
 
 The distance between tab stops for this device.  If set to 0, tabs will
 not be used in the output.  Default: @code{8}.
 
-@item init=@var{initialization-string}.
-
-String written to the device before anything else, at the beginning of
-the output.  Default: @code{""} (the empty string).
-
-@item done=@var{finalization-string}.
-
-String written to the device after everything else, at the end of the
-output.  Default: @code{""} (the empty string).
-@end table
-
-@node ASCII page options, ASCII font options, ASCII output options, ASCII driver class
-@subsection ASCII page options
-
-These options affect page setup:
-
-@table @code
 @item headers=@var{boolean}
 
 If enabled, two lines of header information giving title and subtitle,
@@ -1272,25 +698,6 @@ from this value.  Default: @code{66}.
 Physical width of a page, in characters.  Margins are subtracted from
 this value.  Default: @code{130}.
 
-@item lpi=@var{lines-per-inch}
-
-Number of lines per vertical inch.  Not currently used.  Default: @code{6}.
-
-@item cpi=@var{characters-per-inch}
-
-Number of characters per horizontal inch.  Not currently used.  Default:
-@code{10}.
-
-@item left-margin=@var{left-margin-width}
-
-Width of the left margin, in characters.  PSPP subtracts this value
-from the page width.  Default: @code{0}.
-
-@item right-margin=@var{right-margin-width}
-
-Width of the right margin, in characters.  PSPP subtracts this value
-from the page width.  Default: @code{0}.
-
 @item top-margin=@var{top-margin-lines}
 
 Length of the top margin, in lines.  PSPP subtracts this value from
@@ -1301,14 +708,6 @@ the page length.  Default: @code{2}.
 Length of the bottom margin, in lines.  PSPP subtracts this value from
 the page length.  Default: @code{2}.
 
-@end table
-
-@node ASCII font options,  , ASCII page options, ASCII driver class
-@subsection ASCII font options
-
-These are the ASCII font options:
-
-@table @code
 @item box[@var{line-type}]=@var{box-chars}
 
 The characters used for lines in tables produced by the ASCII driver can
@@ -1316,9 +715,8 @@ be changed using this option.  @var{line-type} is used to indicate which
 type of line to change; @var{box-chars} is the character or string of
 characters to use for this type of line.
 
-@var{line-type} must be a 4-digit number in base 4.  The digits are in
-the order `right', `bottom', `left', `top'.  The four possibilities for
-each digit are:
+@var{line-type} must be a 4-digit number.  The digits are in the order
+`right', `bottom', `left', `top'.  The possibilities for each digit are:
 
 @table @asis
 @item 0
@@ -1329,10 +727,6 @@ Single line.
 
 @item 2
 Double line.
-
-@item 3
-Special device-defined line, if one is available; otherwise, a double
-line.
 @end table
 
 Examples:
@@ -1378,112 +772,21 @@ Defaults:
 @*@code{box[2020]="="}
 
 @item
-@code{box[0200]="#"}
-@*@code{box[0002]="#"}
-@*@code{box[0202]="#"}
-
-@item
 @code{box[3000]="="}
 @*@code{box[0030]="="}
 @*@code{box[3030]="="}
-
-@item
-@code{box[0300]="#"}
-@*@code{box[0003]="#"}
-@*@code{box[0303]="#"}
 
 @item
 For all others, @samp{+} is used unless there are double lines or
 special lines, in which case @samp{#} is used.
 @end itemize
 
-@item italic-on=@var{italic-on-string}
+@item emphasis=@var{emphasis-style}
 
-Character sequence written to turn on italics or underline printing.  If
-this is set to @code{overstrike}, then the driver will simulate
-underlining by overstriking with underscore characters (@samp{_}) in the
-manner described by @code{overstrike-style} and
-@code{carriage-return-style}.  Default: @code{overstrike}.
-
-@item italic-off=@var{italic-off-string}
-
-Character sequence to turn off italics or underline printing.  Default:
-@code{""} (the empty string).
-
-@item bold-on=@var{bold-on-string}
-
-Character sequence written to turn on bold or emphasized printing.  If
-set to @code{overstrike}, then the driver will simulated bold printing
-by overstriking characters in the manner described by
-@code{overstrike-style} and @code{carriage-return-style}.  Default:
-@code{overstrike}.
-
-@item bold-off=@var{bold-off-string}
-
-Character sequence to turn off bold or emphasized printing.  Default:
-@code{""} (the empty string).
-
-@item bold-italic-on=@var{bold-italic-on-string}
-
-Character sequence written to turn on bold-italic printing.  If set to
-@code{overstrike}, then the driver will simulate bold-italics by
-overstriking twice, once with the character, a second time with an
-underscore (@samp{_}) character, in the manner described by
-@code{overstrike-style} and @code{carriage-return-style}.  Default:
-@code{overstrike}.
-
-@item bold-italic-off=@var{bold-italic-off-string}
-
-Character sequence to turn off bold-italic printing.  Default: @code{""}
-(the empty string).
-
-@item overstrike-style=@var{overstrike-option}
-
-Either @code{single} or @code{line}:
-
-@itemize @bullet
-@item
-If @code{single} is selected, then, to overstrike a line of text, the
-output driver will output a character, backspace, overstrike, output a
-character, backspace, overstrike, and so on along a line.
-
-@item
-If @code{line} is selected then the output driver will output an entire
-line, then backspace or emit a carriage return (as indicated by
-@code{carriage-return-style}), then overstrike the entire line at once.
-@end itemize
-
-@code{single} is recommended for use with ttys and programs that
-understand overstriking in text files, such as the pager @code{less}.
-@code{single} will also work with printer devices but results in rapid
-back-and-forth motions of the printhead that can cause the printer to
-physically overheat!
-
-@code{line} is recommended for use with printer devices.  Most programs
-that understand overstriking in text files will not properly deal with
-@code{line} mode.  
-
-Default: @code{single}.
-
-@item carriage-return-style=@var{carriage-return-type}
-
-Either @code{bs} or @code{cr}.  This option applies only when one or
-more of the font commands is set to @code{overstrike} and, at the same
-time, @code{overstrike-style} is set to @code{line}.
-
-@itemize @bullet
-@item
-If @code{bs} is selected then the driver will return to the beginning of
-a line by emitting a sequence of backspace characters (ASCII 8).
-
-@item
-If @code{cr} is selected then the driver will return to the beginning of
-a line by emitting a single carriage-return character (ASCII 13).
-@end itemize
-
-Although @code{cr} is preferred as being more compact, @code{bs} is more
-general since some devices do not interpret carriage returns in the
-desired manner.  Default: @code{bs}.
+How to emphasize text.  Your choices are @code{bold}, @code{underline},
+or @code{none}.  Bold and underline emphasis are achieved with
+overstriking, which may not be supported by all the software to which
+you might pass the output.
 @end table
 
 @node HTML driver class, Miscellaneous configuring, ASCII driver class, Configuration
@@ -1494,7 +797,7 @@ tables-capable web browsers such as Emacs' w3-mode.  Its configuration
 is very simple.  Currently, the output has a very plain format.  In the
 future, further work may be done on improving the output appearance.
 
-There are few options for use with the @code{html} driver class:
+There are is only one option:
 
 @table @code
 @item output-file=@var{filename}
@@ -1502,87 +805,9 @@ There are few options for use with the @code{html} driver class:
 File to which output should be sent.  This can be an ordinary filename
 (i.e., @code{"pspp.ps"}), a pipe filename (i.e., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.html"}.
-
-@item prologue-file=@var{prologue-file-name}
-
-Sets the name of the PostScript prologue file.  You can write your own
-prologue if you want to customize colors or other settings: see
-@ref{HTML Prologue}.  Default: @code{html-prologue}.
 @end table
 
-@menu
-* HTML Prologue::               Format of the HTML prologue file.
-@end menu
-
-@node HTML Prologue,  , HTML driver class, HTML driver class
-@subsection The HTML prologue
-
-HTML files that are generated by PSPP consist of two parts: a prologue
-and a body.  The prologue is a collection of boilerplate.  Only the body
-differs greatly between two outputs.  You can tune the colors and other
-attributes of the output by editing the prologue.
- 
-The prologue is dumped into the output stream essentially unmodified.
-However, two actions are performed on its lines.  First, certain lines
-may be omitted as specified in the prologue file itself.  Second,
-variables are substituted.
-
-The following lines are omitted:
-
-@enumerate
-@item
-All lines that contain three bangs in a row (@code{!!!}).
-
-@item
-Lines that contain @code{!title}, if no title is set for the output.  If
-a title is set, then the characters @code{!title} are removed before the
-line is output.
-
-@item
-Lines that contain @code{!subtitle}, if no subtitle is set for the
-output.  If a subtitle is set, then the characters @code{!subtitle} are
-removed before the line is output.
-@end enumerate
-
-The following are the variables that are substituted.  Only the
-variables listed are substituted; environment variables are not.
-@xref{Environment substitutions}.
-
-@table @code
-@item generator
-
-PSPP version as a string: @samp{GNU PSPP 0.1b}, for example.
-
-@item date
-
-Date the file was created.  Example: @samp{Tue May 21 13:46:22 1991}.
-
-@item user
-
-Under multiuser OSes, the user's login name, taken either from the
-environment variable @code{LOGNAME} or, if that fails, the result of the
-C library function @code{getlogin()}.  Defaults to @samp{nobody}.
-
-@item host
-
-System hostname as reported by @code{gethostname()}.  Defaults to
-@samp{nowhere}.
-
-@item title
-
-Document title as a string.  This is the title specified in the PSPP
-syntax file.
-
-@item subtitle
-
-Document subtitle as a string.  
-
-@item source-file
-
-PSPP syntax file name.  Example: @samp{mary96/first.stat}.
-@end table
-
-@node Miscellaneous configuring, Improving output quality, HTML driver class, Configuration
+@node Miscellaneous configuring,, HTML driver class, Configuration
 @section Miscellaneous configuration
 
 The following environment variables can be used to further configure
@@ -1670,66 +895,3 @@ Default: (UNIX) @file{/tmp}, (MS-DOS) @file{\}, (other OSes) empty string.
 Under MS-DOS only, these variables are consulted after TMPDIR, in this
 order.
 @end table
-
-@node Improving output quality,  , Miscellaneous configuring, Configuration
-@section Improving output quality
-
-When its drivers are set up properly, PSPP can produce output that
-looks very good indeed.  The PostScript driver, suitably configured, can
-produce presentation-quality output.  Here are a few guidelines for
-producing better-looking output, regardless of output driver.  Your
-mileage may vary, of course, and everyone has different esthetic
-preferences.
-
-@itemize @bullet
-@item
-Width is important in PSPP output.  Greater output width leads to more
-readable output, to a point.  Try the following to increase the output
-width:
-
-@itemize @minus
-@item
-If you're using the ASCII driver with a dot-matrix printer, figure out
-what you need to do to put the printer into compressed mode.  Put that
-string into the @code{init-string} setting.  Try to get 132 columns; 160
-might be better, but you might find that print that tiny is difficult to
-read.
-
-@item
-With the PostScript driver, try these ideas:
-
-@itemize +
-@item
-Landscape mode.
-
-@item
-Legal-size (8.5" x 14") paper in landscape mode.
-
-@item
-Reducing font sizes.  If you're using 12-point fonts, try 10 point; if
-you're using 10-point fonts, try 8 point.  Some fonts are more readable
-than others at small sizes.
-@end itemize
-@end itemize
-
-Try to strike a balance between character size and page width.
-
-@item
-Use high-quality fonts.  Many public domain fonts are poor in quality.
-Recently, URW made some high-quality fonts available under the GPL.
-These are probably suitable.
-
-@item
-Be sure you're using the proper font metrics.  The font metrics provided
-with PSPP may not correspond to the fonts actually being printed.
-This can cause bizarre-looking output.
-
-@item
-Make sure that you're using good ink/ribbon/toner.  Darker print is
-easier to read.
-
-@item
-Use plain fonts with serifs, such as Times-Roman or Palatino.  Avoid
-choosing italic or bold fonts as document base fonts.
-@end itemize
-@setfilename ignored
