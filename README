@@ -6,6 +6,33 @@ PSPP development is ongoing. It already supports a large subset of
 SPSS's transformation language.  Its statistical procedure support is
 currently limited, but growing.
 
+Instructions for installation are in INSTALL.  Before you install
+PSPP, you will need to install certain prerequisites:
+
+    * An ANSI C compiler and tool chain.
+
+    * GNU make.  Other make programs will not work.
+
+    * The GNU Scientific Library (libgsl), version 1.6 or later,
+      including libgslcblas included with GSL.
+
+    * Perl, version 5.005_03 or later.  (Perl is required during build
+      but not after installation.)
+
+    * Optional: libncurses.  Without it, PSPP will assume it is
+      running in an 80x25 terminal.
+
+    * Optional: libreadline and libhistory.  Without them, interactive
+      command editing and history features will be disabled.
+
+    * Optional: libplot (from GNU plotutils).  Without it,
+      graphing features will not work.  If you do not have it
+      installed, you must run `configure' with --without-libplot.
+
+    * Optional: GTK+ version 2.6.0 or later, plus libglade 2.0 or
+      later.  Without them, the GUI will not be built.  If you do have
+      these installed, you must run `configure' with --without-gui.
+
 For information on differences from previous versions, please see file
 NEWS.  Full documentation on PSPP's language can be found in the doc/
 directory.
