@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-04-03 11:09-0700\n"
+"POT-Creation-Date: 2006-04-04 09:56+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4295,127 +4295,127 @@ msgstr ""
 msgid "unknown configuration parameter `%s' for HTML device driver"
 msgstr ""
 
-#: src/output/output.c:159
+#: src/output/output.c:166
 #, c-format
 msgid "Unknown output driver `%s'."
 msgstr ""
 
-#: src/output/output.c:161
+#: src/output/output.c:168
 #, c-format
 msgid "Output driver `%s' referenced but never defined."
 msgstr ""
 
-#: src/output/output.c:254
+#: src/output/output.c:261
 msgid "Using default output driver configuration."
 msgstr ""
 
-#: src/output/output.c:289
+#: src/output/output.c:296
 msgid ""
 "Cannot find output initialization file.  Use `-vvvvv' to view search path."
 msgstr ""
 
-#: src/output/output.c:297 src/output/output.c:1060
+#: src/output/output.c:304 src/output/output.c:1067
 #, c-format
 msgid "Opening %s: %s."
 msgstr ""
 
-#: src/output/output.c:308 src/output/output.c:1071
+#: src/output/output.c:315 src/output/output.c:1078
 #, c-format
 msgid "Reading %s: %s."
 msgstr ""
 
-#: src/output/output.c:330 src/output/output.c:496
+#: src/output/output.c:337 src/output/output.c:503
 msgid "Syntax error."
 msgstr ""
 
-#: src/output/output.c:340
+#: src/output/output.c:347
 #, c-format
 msgid "Closing %s: %s."
 msgstr ""
 
-#: src/output/output.c:348
+#: src/output/output.c:355
 msgid "No output drivers are active."
 msgstr ""
 
-#: src/output/output.c:351
+#: src/output/output.c:358
 msgid "Error reading device definition file."
 msgstr ""
 
-#: src/output/output.c:468
+#: src/output/output.c:475
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output/output.c:597
+#: src/output/output.c:604
 msgid "Syntax error in string constant."
 msgstr ""
 
-#: src/output/output.c:632
+#: src/output/output.c:639
 msgid "Syntax error in options."
 msgstr ""
 
-#: src/output/output.c:642
+#: src/output/output.c:649
 msgid "Syntax error in options (`=' expected)."
 msgstr ""
 
-#: src/output/output.c:649
+#: src/output/output.c:656
 msgid "Syntax error in options (value expected after `=')."
 msgstr ""
 
-#: src/output/output.c:691
+#: src/output/output.c:698
 #, c-format
 msgid "Unknown output driver class `%s'."
 msgstr ""
 
-#: src/output/output.c:712
+#: src/output/output.c:719
 #, c-format
 msgid "Unknown device type `%s'."
 msgstr ""
 
-#: src/output/output.c:731
+#: src/output/output.c:738
 #, c-format
 msgid "Can't initialize output driver `%s' of class `%s'."
 msgstr ""
 
-#: src/output/output.c:776
+#: src/output/output.c:783
 msgid "Driver definition line missing driver name or class name"
 msgstr ""
 
-#: src/output/output.c:922
+#: src/output/output.c:929
 #, c-format
 msgid "Unit \"%s\" is unknown in dimension \"%s\"."
 msgstr ""
 
-#: src/output/output.c:937
+#: src/output/output.c:944
 #, c-format
 msgid "Bad dimension \"%s\"."
 msgstr ""
 
-#: src/output/output.c:963
+#: src/output/output.c:970
 #, c-format
 msgid "`x' expected in paper size `%s'."
 msgstr ""
 
-#: src/output/output.c:973
+#: src/output/output.c:980
 #, c-format
 msgid "Trailing garbage `%s' on paper size `%s'."
 msgstr ""
 
-#: src/output/output.c:1022
+#: src/output/output.c:1029
 msgid "Paper size name must not be empty."
 msgstr ""
 
-#: src/output/output.c:1053
+#: src/output/output.c:1060
 msgid "Cannot find `papersize' configuration file."
 msgstr ""
 
-#: src/output/output.c:1098
+#: src/output/output.c:1105
 msgid "Syntax error in paper size definition."
 msgstr ""
 
-#: src/output/output.c:1127
+#: src/output/output.c:1134
 msgid "Error reading paper size definition file."
 msgstr ""
 

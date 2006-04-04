@@ -64,7 +64,7 @@ gettextize:
 po/POTFILES.in:
 	for f in `find src -name \*.[qc] ! -name .\* -print \
 		  | sed 's/\.[qc]$$//'`; do \
-		if test $$f = src/libpspp/version.c; then break; fi;		  \
+		if test $$f = src/libpspp/version; then continue; fi;	  \
 		if test -e $$f.q; then echo $$f.q; else echo $$f.c; fi	  \
 	done | sort | uniq > $@.tmp
 	if test ! -e $@ || ! cmp -s $@.tmp $@; then mv $@.tmp $@; fi
