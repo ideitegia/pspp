@@ -78,12 +78,15 @@ fn_init (void)
 */
 void 
 fn_interp_vars (struct string *target, 
-		   const char *(*getenv) (const char *))
+		const char *(*getenv) (const char *))
 {
+  char *input ;
+  char *s ;
+
   assert (target);
 
-  char *input = xmalloc(ds_length(target) + 1);
-  char *s = input;
+  input = xmalloc(ds_length(target) + 1);
+  s = input;
 
   strcpy(input, ds_c_str(target));
 
@@ -141,6 +144,7 @@ fn_interp_vars (struct string *target,
 	      if (stop && *s == stop)
 		s++;
 	    }
+	  break;
 
 	default:
 	  ds_putc (target, *s++);
@@ -592,10 +596,10 @@ fn_get_cwd (void)
   int size = 2;
   char *buffer = xmalloc (size);
   if ( buffer) 
-  {
-    buffer[0]='.';
-    buffer[1]='\0';
-  }
+    {
+      buffer[0]='.';
+      buffer[1]='\0';
+    }
 
   return buffer;
      
@@ -889,10 +893,10 @@ fn_close_ext (struct file_ext *f)
 #ifdef unix
 /* A file's identity. */
 struct file_identity 
-  {
-    dev_t device;               /* Device number. */
-    ino_t inode;                /* Inode number. */
-  };
+{
+  dev_t device;               /* Device number. */
+  ino_t inode;                /* Inode number. */
+};
 
 /* Returns a pointer to a dynamically allocated structure whose
    value can be used to tell whether two files are actually the
@@ -938,9 +942,9 @@ fn_compare_file_identities (const struct file_identity *a,
 #else /* not unix */
 /* A file's identity. */
 struct file_identity 
-  {
-    char *normalized_filename;  /* File's normalized name. */
-  };
+{
+  char *normalized_filename;  /* File's normalized name. */
+};
 
 /* Returns a pointer to a dynamically allocated structure whose
    value can be used to tell whether two files are actually the
