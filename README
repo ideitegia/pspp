@@ -30,8 +30,9 @@ PSPP, you will need to install certain prerequisites:
       installed, you must run `configure' with --without-libplot.
 
     * Optional: GTK+ version 2.6.0 or later, plus libglade 2.0 or
-      later.  Without them, the GUI will not be built.  If you do have
-      these installed, you must run `configure' with --without-gui.
+      later.  Without them, the GUI will not be built.  If you do not
+      have these installed, you must run `configure' with
+      --without-gui.
 
 For information on differences from previous versions, please see file
 NEWS.  Full documentation on PSPP's language can be found in the doc/
