@@ -124,8 +124,6 @@ g_sheet_uniform_column_get_visibility(const GSheetColumn *geom, gint u)
 static const gchar *
 g_sheet_uniform_column_get_button_label(const GSheetColumn *geom, gint u)
 {
-  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
-  
   static gchar *label; 
 
   g_free(label);

@@ -45,6 +45,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <math/group.h>
 #include <math/levene.h>
 
+#include "sort-criteria.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -428,7 +430,8 @@ show_descriptives(void)
 
       const char *s = var_to_string(vars[v]);
 
-      struct group_statistics *const *gs_array = hsh_sort(gp->group_hash);
+      struct group_statistics *const *gs_array =
+	(struct group_statistics *const *) hsh_sort(gp->group_hash);
       int count = 0;
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);

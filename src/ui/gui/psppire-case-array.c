@@ -218,12 +218,13 @@ psppire_case_array_iterate_case(PsppireCaseArray *ca,
 void
 psppire_case_array_insert_case(PsppireCaseArray *ca, gint posn)
 {
+  gint i;
+
   g_return_if_fail(posn >= 0);
   g_return_if_fail(posn <= ca->size);
 
   g_assert(ca->size + 1 <= ca->capacity);
 
-  gint i;
 
   for(i = ca->size; i > posn ; --i)
       case_move(&ca->cases[i], &ca->cases[i - 1]);
@@ -237,11 +238,12 @@ psppire_case_array_insert_case(PsppireCaseArray *ca, gint posn)
 void
 psppire_case_array_delete_cases(PsppireCaseArray *ca, gint first, gint n_cases)
 {
+  gint i;
+
   g_return_if_fail(n_cases > 0);
   g_return_if_fail(first >= 0);
   g_return_if_fail(first + n_cases < ca->size);
   
-  gint i;
 
   /* FIXME: Is this right ?? */
   for ( i = first; i < first + n_cases ; ++i ) 
@@ -290,13 +292,17 @@ psppire_case_array_set_value(PsppireCaseArray *ca, gint c, gint idx,
 			  value_fill_func_t ff,
 			  gpointer data)
 {
+  struct ccase *cc ;
+  union value *val ;
+  gboolean changed ;
+
   g_return_if_fail(c < ca->size);
 
-  struct ccase *cc = &ca->cases[c];
+  cc = &ca->cases[c];
 
-  union value *val = case_data_rw(cc, idx);
+  val = case_data_rw(cc, idx);
 
-  gboolean changed = ff(val, data);
+  changed = ff(val, data);
 
   case_unshare(cc);
 

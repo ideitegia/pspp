@@ -115,10 +115,9 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
 static void
 psppire_var_store_init (PsppireVarStore *var_store)
 {
+  GdkColormap *colormap = gdk_colormap_get_system();
 
   g_assert(gdk_color_parse("gray", &var_store->disabled));
-
-  GdkColormap *colormap = gdk_colormap_get_system();
 
   gdk_colormap_alloc_color (colormap, &var_store->disabled, FALSE, TRUE);
 
@@ -128,6 +127,7 @@ psppire_var_store_init (PsppireVarStore *var_store)
 static gboolean
 psppire_var_store_item_editable(PsppireVarStore *var_store, gint row, gint column)
 {
+  const struct fmt_spec *write_spec ;
 
   struct PsppireVariable *pv = psppire_var_store_get_variable(var_store, row);
 
@@ -137,7 +137,7 @@ psppire_var_store_item_editable(PsppireVarStore *var_store, gint row, gint colum
   if ( ALPHA == psppire_variable_get_type(pv) && column == COL_DECIMALS ) 
     return FALSE;
 
-  const struct fmt_spec *write_spec = psppire_variable_get_write_spec(pv);
+  write_spec = psppire_variable_get_write_spec(pv);
 
   switch ( write_spec->type ) 
     {
@@ -298,6 +298,8 @@ psppire_var_store_finalize (GObject *object)
 static const gchar *const 
 psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
 {
+  const gchar *s ;
+
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
   struct PsppireVariable *pv;
@@ -307,7 +309,7 @@ psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
   
   pv = psppire_dict_get_variable (store->dict, row);
   
-  const gchar *s = text_for_column(pv, column);
+  s = text_for_column(pv, column);
 
   return s;
 }
@@ -332,12 +334,14 @@ psppire_var_store_get_variable(PsppireVarStore *store, gint row)
 static gboolean 
 psppire_var_store_clear(GSheetModel *model,  gint row, gint col)
 {
+  struct PsppireVariable *pv ;
+
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
 
   if ( row >= psppire_dict_get_var_cnt(var_store->dict))
       return FALSE;
 
-  struct PsppireVariable *pv = psppire_var_store_get_variable(var_store, row);
+  pv = psppire_var_store_get_variable(var_store, row);
 
   if ( !pv ) 
     return FALSE;
@@ -361,13 +365,14 @@ static gboolean
 psppire_var_store_set_string(GSheetModel *model, 
 			  const gchar *text, gint row, gint col)
 {
+  struct PsppireVariable *pv ;
+
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
 
   if ( row >= psppire_dict_get_var_cnt(var_store->dict))
       return FALSE;
 
-  struct PsppireVariable *pv = psppire_var_store_get_variable(var_store, row);
-
+  pv = psppire_var_store_get_variable(var_store, row);
   if ( !pv ) 
     return FALSE;
 
@@ -583,11 +588,12 @@ text_for_column(const struct PsppireVariable *pv, gint c)
 
 	    g_assert(vl);
 
-	    gchar *const vstr = value_to_text(vl->value, *write_spec);
+	    {
+	      gchar *const vstr = value_to_text(vl->value, *write_spec);
 
-	    g_snprintf(buf, MAX_CELL_TEXT_LEN, "{%s,\"%s\"}_", vstr, vl->label);
-
-	    g_free(vstr);
+	      g_snprintf(buf, MAX_CELL_TEXT_LEN, "{%s,\"%s\"}_", vstr, vl->label);
+	      g_free(vstr);
+	    }
 
 	    val_labs_done(&ip);
 

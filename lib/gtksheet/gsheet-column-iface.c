@@ -163,11 +163,11 @@ inline const GtkSheetButton *
 g_sheet_column_get_button(const GSheetColumn *column,
 			      gint col, const GtkSheet *sheet)
 {
-  g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
-
+  static GtkSheetButton button ;
   GSheetColumnIface *iface = G_SHEET_COLUMN_GET_IFACE (column);
 
-  static GtkSheetButton button ;
+  g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
+
   memcpy(&button, &default_button, sizeof (button));
 
   if ( iface->get_button_label)
@@ -251,12 +251,12 @@ g_sheet_column_get_column_count(const GSheetColumn *geo, const GtkSheet *sheet)
 inline gint  
 g_sheet_column_start_pixel(const GSheetColumn *geo, gint col, const GtkSheet *sheet)
 {
+  gint i;
+  gint start_pixel = 0;
+
   g_return_val_if_fail (G_IS_SHEET_COLUMN (geo), -1);
   g_return_val_if_fail (col < 
 			g_sheet_column_get_column_count(geo, sheet),-1);
-
-  gint i;
-  gint start_pixel = 0;
 
   for ( i = 0 ; i < col ; ++i ) 
     {

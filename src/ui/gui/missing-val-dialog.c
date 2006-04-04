@@ -39,6 +39,7 @@
 static void
 err_dialog(const gchar *msg, GtkWindow *window)
 {
+  GtkWidget *hbox ;
   GtkWidget *label = gtk_label_new (msg);
 
   GtkWidget *dialog = 
@@ -60,7 +61,7 @@ err_dialog(const gchar *msg, GtkWindow *window)
 			    G_CALLBACK (gtk_widget_destroy),
 			    dialog);
 
-  GtkWidget *hbox = gtk_hbox_new(FALSE, 10);
+  hbox = gtk_hbox_new(FALSE, 10);
 
   gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox),
 		     hbox);
@@ -117,6 +118,7 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
   
   if (gtk_toggle_button_get_active(dialog->button_range))
     {
+      gchar *discrete_text ;
       
       union value low_val ; 
       union value high_val;
@@ -141,9 +143,8 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
 	  return;
 	}
 
-      gchar *discrete_text = 
+      discrete_text = 
 	g_strdup(gtk_entry_get_text(GTK_ENTRY(dialog->discrete)));
-
 
       mv_set_type(&dialog->mvl, MV_NONE);
       mv_add_num_range(&dialog->mvl, low_val.f, high_val.f);
@@ -254,13 +255,15 @@ missing_val_dialog_create(GladeXML *xml)
 void 
 missing_val_dialog_show(struct missing_val_dialog *dialog)
 {
+  const struct fmt_spec *write_spec ;
+
   gint i;
   g_return_if_fail(dialog);
   g_return_if_fail(dialog->pv);
 
   mv_copy (&dialog->mvl, psppire_variable_get_missing(dialog->pv));
 
-  const struct fmt_spec *write_spec = psppire_variable_get_write_spec(dialog->pv);
+  write_spec = psppire_variable_get_write_spec(dialog->pv);
 
   /* Blank all entry boxes and make them insensitive */
   gtk_entry_set_text(GTK_ENTRY(dialog->low), "");
@@ -318,10 +321,11 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
 	{
 	  if ( i < n)
 	    {
+	      gchar *text ;
 	      union value value;
 
 	      mv_peek_value(&dialog->mvl, &value, i);
-	      gchar *text = value_to_text(value, *write_spec);
+	      text = value_to_text(value, *write_spec);
 	      gtk_entry_set_text(GTK_ENTRY(dialog->mv[i]), text);
 	      g_free(text);
 	    }

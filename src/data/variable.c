@@ -131,6 +131,7 @@ hash_value(const union value  *v, int width)
 bool
 var_is_valid_name (const char *name, bool issue_error) 
 {
+  bool plausible;
   size_t length, i;
   
   assert (name != NULL);
@@ -139,7 +140,7 @@ var_is_valid_name (const char *name, bool issue_error)
      CHARACTERS */
   length = strlen (name);
 
-  bool plausible = var_is_plausible_name(name, issue_error);
+  plausible = var_is_plausible_name(name, issue_error);
 
   if ( ! plausible ) 
     return false;

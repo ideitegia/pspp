@@ -3498,52 +3498,58 @@ gtk_sheet_set_cell(GtkSheet *sheet, gint row, gint col,
                    GtkJustification justification,
                    const gchar *text)
 {
- GtkSheetRange range;
- gint text_width;
- GtkSheetCellAttr attributes;
+  GSheetModel *model ;
+  gboolean changed ;
+  const gchar *old_text ; 
 
- g_return_if_fail (sheet != NULL);
- g_return_if_fail (GTK_IS_SHEET (sheet));
- if (col >= xxx_column_count(sheet) || row >= yyy_row_count(sheet)) return;
- if (col < 0 || row < 0) return;
+  GtkSheetRange range;
+  gint text_width;
+  GtkSheetCellAttr attributes;
 
- gtk_sheet_get_attributes(sheet, row, col, &attributes);
+  g_return_if_fail (sheet != NULL);
+  g_return_if_fail (GTK_IS_SHEET (sheet));
+  if (col >= xxx_column_count(sheet) || row >= yyy_row_count(sheet)) return;
+  if (col < 0 || row < 0) return;
 
- attributes.justification = justification;
+  gtk_sheet_get_attributes(sheet, row, col, &attributes);
 
- GSheetModel *model =  gtk_sheet_get_model(sheet);
+  attributes.justification = justification;
 
- const gchar *old_text = g_sheet_model_get_string(model, row, col);
+  model =  gtk_sheet_get_model(sheet);
 
- gboolean changed = FALSE;
+  old_text = g_sheet_model_get_string(model, row, col);
 
- if (0 != safe_strcmp(old_text, text))
-   changed = g_sheet_model_set_string(model, text, row, col);
+  changed = FALSE;
 
- if(changed && attributes.is_visible){
-   const gchar *s = gtk_sheet_cell_get_text(sheet, row, col);
-   text_width = 0;
-   if(s && strlen(s) > 0) {
-     text_width = STRING_WIDTH(GTK_WIDGET(sheet), attributes.font_desc, text);
-   }
+  if (0 != safe_strcmp(old_text, text))
+    changed = g_sheet_model_set_string(model, text, row, col);
 
-   range.row0 = row;
-   range.rowi = row;
-   range.col0 = sheet->view.col0;
-   range.coli = sheet->view.coli;
+  if(changed && attributes.is_visible)
+    {
+      const gchar *s = gtk_sheet_cell_get_text(sheet, row, col);
+      text_width = 0;
+      if(s && strlen(s) > 0) {
+	text_width = STRING_WIDTH(GTK_WIDGET(sheet), 
+				  attributes.font_desc, text);
+      }
 
-   if(gtk_sheet_autoresize(sheet) &&
-      text_width > xxx_column_width(sheet, col) - 2*CELLOFFSET-attributes.border.width){
+    range.row0 = row;
+    range.rowi = row;
+    range.col0 = sheet->view.col0;
+    range.coli = sheet->view.coli;
+
+    if(gtk_sheet_autoresize(sheet) &&
+       text_width > xxx_column_width(sheet, col) - 2*CELLOFFSET-attributes.border.width){
       gtk_sheet_set_column_width(sheet, col, text_width+2*CELLOFFSET+attributes.border.width);
       GTK_SHEET_SET_FLAGS(sheet, GTK_SHEET_REDRAW_PENDING);
-   }
-   else
-     if(!GTK_SHEET_IS_FROZEN(sheet))
-       gtk_sheet_range_draw(sheet, &range);
- }
+    }
+    else
+      if(!GTK_SHEET_IS_FROZEN(sheet))
+	gtk_sheet_range_draw(sheet, &range);
+  }
 
- if ( changed ) 
-   gtk_signal_emit(GTK_OBJECT(sheet),sheet_signals[CHANGED], row, col);
+  if ( changed ) 
+    gtk_signal_emit(GTK_OBJECT(sheet),sheet_signals[CHANGED], row, col);
 
 }
 
@@ -3595,12 +3601,10 @@ gtk_sheet_cell_delete (GtkSheet *sheet, gint row, gint column)
 static void
 gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column, gboolean delete)
 {
-  const gchar *old_text;
-
-  old_text = gtk_sheet_cell_get_text(sheet, row, column); 
- 
   GSheetModel *model =  gtk_sheet_get_model(sheet);
 
+  const gchar *old_text = gtk_sheet_cell_get_text(sheet, row, column); 
+ 
   if (old_text && strlen(old_text) > 0 )
     {
       g_sheet_model_datum_clear(model, row, column);
@@ -6665,7 +6669,6 @@ vadjustment_value_changed (GtkAdjustment * adjustment,
 {
   GtkSheet *sheet;
   gint diff, value, old_value;
-  gint i;
   gint row, new_row;
   gint y=0;
 
@@ -6689,7 +6692,7 @@ vadjustment_value_changed (GtkAdjustment * adjustment,
   y = g_sheet_row_start_pixel(sheet->row_geometry, new_row, sheet);
 
   if (adjustment->value > sheet->old_vadjustment && sheet->old_vadjustment > 0. &&
-      yyy_row_height(sheet, i) > sheet->vadjustment->step_increment){
+      yyy_row_height(sheet, row) > sheet->vadjustment->step_increment){
 /* This avoids embarrassing twitching */
           if(row == new_row && row != yyy_row_count(sheet) - 1 &&
              adjustment->value - sheet->old_vadjustment >= 
@@ -7111,6 +7114,11 @@ gtk_sheet_set_row_height (GtkSheet * sheet,
 gboolean
 gtk_sheet_get_attributes(GtkSheet *sheet, gint row, gint col, GtkSheetCellAttr *attributes)
 {
+ const GdkColor *fg, *bg; 
+ const GtkJustification *j ; 
+ const PangoFontDescription *font_desc ;
+ const GtkSheetCellBorder *border ;
+
  g_return_val_if_fail (sheet != NULL, FALSE);
  g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
 
@@ -7124,26 +7132,23 @@ gtk_sheet_get_attributes(GtkSheet *sheet, gint row, gint col, GtkSheetCellAttr *
  attributes->is_editable = g_sheet_model_is_editable(sheet->model, row, col);
  attributes->is_visible = g_sheet_model_is_visible(sheet->model, row, col);
 
- const GdkColor *fg = g_sheet_model_get_foreground(sheet->model, row, col);
+ fg = g_sheet_model_get_foreground(sheet->model, row, col);
  if ( fg ) 
    attributes->foreground =  *fg;
 
- const GdkColor *bg = g_sheet_model_get_background(sheet->model, row, col);
+ bg = g_sheet_model_get_background(sheet->model, row, col);
  if ( bg ) 
    attributes->background =  *bg;
 
- const GtkJustification *j = g_sheet_model_get_justification(sheet->model,
-							       row, col);
+ j = g_sheet_model_get_justification(sheet->model, row, col);
  if (j)   attributes->justification = *j;
 
- const PangoFontDescription *font_desc = 
-   g_sheet_model_get_font_desc(sheet->model, row, col);
+ font_desc = g_sheet_model_get_font_desc(sheet->model, row, col);
  if ( font_desc )  attributes->font_desc = font_desc;
 
- const GtkSheetCellBorder *border = 
-  g_sheet_model_get_cell_border(sheet->model, row, col);
+ border = g_sheet_model_get_cell_border(sheet->model, row, col);
 
- if ( border )    attributes->border = *border;
+ if ( border ) attributes->border = *border;
 
  return TRUE;
 }
@@ -7344,7 +7349,7 @@ gtk_sheet_button_attach		(GtkSheet *sheet,
 				 GtkWidget *widget, 
 				 gint row, gint col)
 {
-  GtkSheetButton *button;
+  GtkSheetButton *button = 0;
   GtkSheetChild *child;
   GtkRequisition button_requisition;
 

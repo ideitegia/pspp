@@ -158,11 +158,12 @@ const GtkSheetButton *
 g_sheet_row_get_button(const GSheetRow *row_geo,
 			      gint row, const GtkSheet *sheet)
 {
-  g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
+  static GtkSheetButton button ;
 
   GSheetRowIface *iface = G_SHEET_ROW_GET_IFACE (row_geo);
 
-  static GtkSheetButton button ;
+  g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
+
   memcpy(&button, &default_button, sizeof (button));
 
   if ( iface->get_button_label)
@@ -198,13 +199,13 @@ g_sheet_row_get_row_count(const GSheetRow *geo, const GtkSheet *sheet)
 gint  
 g_sheet_row_start_pixel(const GSheetRow *geo, gint row, const GtkSheet *sheet)
 {
+  gint i;
+  gint start_pixel = 0;
+
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
   g_return_val_if_fail (row >= 0, -1);
   g_return_val_if_fail (row < 
 			g_sheet_row_get_row_count(geo, sheet),-1);
-
-  gint i;
-  gint start_pixel = 0;
 
   if ( G_SHEET_ROW_GET_IFACE(geo)->top_ypixel) 
     return (G_SHEET_ROW_GET_IFACE(geo)->top_ypixel)(geo, row, sheet);

@@ -35,16 +35,18 @@ text_to_value(const gchar *text, union value *v,
   if ( format.type != FMT_A) 
     {
       if ( ! text ) return FALSE;
-  
-      const gchar *s = text;
-      while(*s) 
-	{
-	  if ( !isspace(*s))
-	    break;
-	  s++;
-	}
+
+      {
+	const gchar *s = text;
+	while(*s) 
+	  {
+	    if ( !isspace(*s))
+	      break;
+	    s++;
+	  }
  
-      if ( !*s) return FALSE;
+	if ( !*s) return FALSE;
+      }
     }
 
   di.s = text;
@@ -62,9 +64,11 @@ text_to_value(const gchar *text, union value *v,
 GtkWidget *
 get_widget_assert(GladeXML *xml, const gchar *name)
 {
+  GtkWidget *w;
   g_assert(xml);
   g_assert(name);
-  GtkWidget * w = glade_xml_get_widget(xml, name);
+  
+  w = glade_xml_get_widget(xml, name);
 
   if ( !w ) 
     g_warning("Widget \"%s\" could not be found\n",name);

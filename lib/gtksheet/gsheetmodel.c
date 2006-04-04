@@ -122,7 +122,7 @@ g_sheet_model_base_init (gpointer g_class)
  * Retrieves the datum at location ROW, COLUMN in the form of a string.
  * Returns: The string representation of the datum, or NULL on error.
  **/
-inline const gchar *const      
+inline const gchar *
 g_sheet_model_get_string (const GSheetModel *sheet_model, 
 			  gint row, gint column)
 {

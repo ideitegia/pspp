@@ -44,6 +44,9 @@ vmsg(int klass, const char *fmt, va_list args)
   gchar *msg = 0;
   gchar *text = g_strdup_vprintf (fmt, args);
 
+  GtkWindow *parent ;
+  GtkWidget *dialog ;
+		    
   gint message_type;
 
   switch (klass)
@@ -93,14 +96,13 @@ vmsg(int klass, const char *fmt, va_list args)
       break;
     };
   
-  GtkWindow *parent = GTK_WINDOW(get_widget_assert(xml, "data_editor"));
+  parent = GTK_WINDOW(get_widget_assert(xml, "data_editor"));
 
-  GtkWidget *dialog  =  gtk_message_dialog_new(parent,
-					       GTK_DIALOG_MODAL,
-					       message_type,
-					       GTK_BUTTONS_CLOSE,
-					       msg);
-
+  dialog = gtk_message_dialog_new(parent,
+				  GTK_DIALOG_MODAL,
+				  message_type,
+				  GTK_BUTTONS_CLOSE,
+				  msg);
   
   gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), text);
 

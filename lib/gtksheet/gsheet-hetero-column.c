@@ -84,6 +84,7 @@ static GtkSheetButton default_button;
 GObject *
 g_sheet_hetero_column_new (gint default_width, gint n_columns)
 {
+  gint i;
   GSheetHeteroColumn *hg;
   GObject *retval;
 
@@ -94,7 +95,6 @@ g_sheet_hetero_column_new (gint default_width, gint n_columns)
   hg->default_width = default_width;
   hg->col = g_new0(struct GSheetHeteroColumnUnit, n_columns);
 
-  gint i;
   for (i = 0 ; i < hg->n_columns; ++i ) 
     {
       hg->col[i].button = default_button;

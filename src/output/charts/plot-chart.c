@@ -29,7 +29,6 @@
 #include <math.h>
 
 #include <output/charts/plot-chart.h>
-#include <output/charts/plot-chart.h>
 
 #include <math/chart-geometry.h>
 
@@ -176,4 +175,39 @@ chart_write_yscale(struct chart *ch, double smin, double smax, int ticks)
     draw_tick (ch, TICK_ORDINATE, 
 	       (y - ch->y_min) * ch->ordinate_scale, "%g", y);
     }
+}
+
+
+/* Write the abscissa label */
+void 
+chart_write_xlabel(struct chart *ch, const char *label)
+{
+  if ( ! ch ) 
+    return ;
+
+  pl_savestate_r(ch->lp);
+
+  pl_move_r(ch->lp,ch->data_left, ch->abscissa_top);
+  pl_alabel_r(ch->lp,0,'t',label);
+
+  pl_restorestate_r(ch->lp);
+
+}
+
+
+
+/* Write the ordinate label */
+void 
+chart_write_ylabel(struct chart *ch, const char *label)
+{
+  if ( ! ch ) 
+    return ;
+
+  pl_savestate_r(ch->lp);
+
+  pl_move_r(ch->lp, ch->data_bottom, ch->ordinate_right);
+  pl_textangle_r(ch->lp, 90);
+  pl_alabel_r(ch->lp, 0, 0, label);
+
+  pl_restorestate_r(ch->lp);
 }

@@ -70,8 +70,9 @@ static gboolean
 click2column(GtkWidget *w, gint col, gpointer data)
 {
   gint current_row, current_column;
-  select_sheet(PAGE_VAR_SHEET);
   GtkWidget *var_sheet  = get_widget_assert(xml, "variable_sheet");
+
+  select_sheet(PAGE_VAR_SHEET);
 
   gtk_sheet_get_active_cell(GTK_SHEET(var_sheet), 
 			    &current_row, &current_column);
@@ -86,26 +87,30 @@ click2column(GtkWidget *w, gint col, gpointer data)
 static gint 
 update_data_ref_entry(GtkSheet *sheet, gint row, gint col)
 {
+
   /* The entry where the reference to the current cell is displayed */
   GtkEntry *cell_ref_entry;
 
   PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(sheet));
+  if (data_store)
+    {
+      const struct PsppireVariable *pv = 
+	psppire_dict_get_variable(data_store->dict, col);
 
+      gchar *text ;
 
-  if ( !xml) 
-    return FALSE;
+      if ( !xml) 
+	return FALSE;
 
-  const struct PsppireVariable *pv = 
-    psppire_dict_get_variable(data_store->dict, col);
-
-  gchar *text = g_strdup_printf("%d: %s", row, 
-				pv ? psppire_variable_get_name(pv) : "");
+      text = g_strdup_printf("%d: %s", row, 
+			     pv ? psppire_variable_get_name(pv) : "");
   
-  cell_ref_entry = GTK_ENTRY(get_widget_assert(xml, "cell_ref_entry"));
+      cell_ref_entry = GTK_ENTRY(get_widget_assert(xml, "cell_ref_entry"));
 
-  gtk_entry_set_text(cell_ref_entry, text);
+      gtk_entry_set_text(cell_ref_entry, text);
 
-  g_free(text);
+      g_free(text);
+    }
 
   return FALSE;
 }
@@ -119,7 +124,6 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 			   gint int1, gint int2)
 {
   GtkWidget *sheet;
-  gint i;
 
   const gint rows = 10046;
 

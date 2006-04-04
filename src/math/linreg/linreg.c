@@ -305,6 +305,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
     }
   else
     {
+      gsl_multifit_linear_workspace *wk ;
       /*
          Use QR decomposition via GSL.
        */
@@ -321,8 +322,8 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	      gsl_matrix_set (design, j, i + 1, tmp);
 	    }
 	}
-      gsl_multifit_linear_workspace *wk =
-	gsl_multifit_linear_alloc (design->size1, design->size2);
+
+      wk = gsl_multifit_linear_alloc (design->size1, design->size2);
       rc = gsl_multifit_linear (design, Y, param_estimates,
 				cache->cov, &(cache->sse), wk);
       for (i = 0; i < cache->n_coeffs; i++)

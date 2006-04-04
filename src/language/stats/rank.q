@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <math/sort.h>
 #include <data/variable.h>
 
+#include "sort-criteria.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 

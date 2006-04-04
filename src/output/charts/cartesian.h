@@ -30,12 +30,6 @@ enum CHART_DIM
   };
 
 
-/* Write the abscissa label */
-void chart_write_xlabel(struct chart *ch, const char *label);
-
-
-/* Write the ordinate label */
-void  chart_write_ylabel(struct chart *ch, const char *label);
 
 /* Plot a data point */
 void chart_datum(struct chart *ch, int dataset UNUSED, double x, double y);

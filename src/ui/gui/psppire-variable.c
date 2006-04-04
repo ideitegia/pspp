@@ -87,11 +87,13 @@ psppire_variable_set_label(struct PsppireVariable *pv, const gchar *label)
 gboolean
 psppire_variable_set_decimals(struct PsppireVariable *pv, gint decimals)
 {
+  struct fmt_spec fmt;
+
   g_return_val_if_fail(pv, FALSE);
   g_return_val_if_fail(pv->dict, FALSE);
   g_return_val_if_fail(pv->v, FALSE);
 
-  struct fmt_spec fmt = pv->v->write;
+  fmt = pv->v->write;
 
   fmt.d = decimals;
 
@@ -103,11 +105,12 @@ psppire_variable_set_decimals(struct PsppireVariable *pv, gint decimals)
 gboolean
 psppire_variable_set_width(struct PsppireVariable *pv, gint width)
 {
+  struct fmt_spec fmt ;
   g_return_val_if_fail(pv, FALSE);
   g_return_val_if_fail(pv->dict, FALSE);
   g_return_val_if_fail(pv->v, FALSE);
 
-  struct fmt_spec fmt = pv->v->write;
+  fmt = pv->v->write;
 
   fmt.w = width;
 

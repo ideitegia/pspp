@@ -56,6 +56,11 @@ static bool parse_command_line (int *argc, char ***argv);
 int 
 main(int argc, char *argv[]) 
 {
+  PsppireVarStore *var_store ;
+  GtkWidget *data_editor ;
+  GtkSheet *var_sheet ; 
+  GtkSheet *data_sheet ;
+
   if ( ! parse_command_line(&argc, &argv) ) 
     return 0;
 
@@ -66,7 +71,7 @@ main(int argc, char *argv[])
   the_dictionary = psppire_dict_new();
 
   /* Create the model for the var_sheet */
-  PsppireVarStore *var_store = psppire_var_store_new(the_dictionary);
+  var_store = psppire_var_store_new(the_dictionary);
 
   /* Create the model for the data sheet */
   the_cases = psppire_case_array_new(100, 20);
@@ -78,15 +83,15 @@ main(int argc, char *argv[])
 
   if ( !xml ) return 1;
 
-  GtkWidget *data_editor = get_widget_assert(xml, "data_editor");
+  data_editor = get_widget_assert(xml, "data_editor");
   gtk_window_set_icon_from_file(GTK_WINDOW(data_editor), 
 				PKGDATADIR "/psppicon.png",0);
 
   /* connect the signals in the interface */
   glade_xml_signal_autoconnect(xml);
 
-  GtkSheet *var_sheet  = GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
-  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  var_sheet  = GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
+  data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
 
   gtk_sheet_set_model(var_sheet, G_SHEET_MODEL(var_store));
   

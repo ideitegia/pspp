@@ -34,11 +34,12 @@
 static void
 on_label_entry_change(GtkEntry *entry, gpointer data)
 {
+  union value v;
+  const gchar *text ;
   struct val_labs_dialog *dialog = data;
   g_assert(dialog->labs);
 
-  union value v;
-  const gchar *text = gtk_entry_get_text(GTK_ENTRY(dialog->value_entry));
+  text = gtk_entry_get_text(GTK_ENTRY(dialog->value_entry));
 
   text_to_value(text, &v, 
 		*psppire_variable_get_write_spec(dialog->pv));
@@ -61,6 +62,8 @@ on_label_entry_change(GtkEntry *entry, gpointer data)
 static void
 select_treeview_from_value(GtkTreeView *treeview, union value *val)
 {
+  GtkTreePath *path ;
+  
   /*
     We do this with a linear search through the model --- hardly 
     efficient, but the list is short ... */
@@ -73,11 +76,11 @@ select_treeview_from_value(GtkTreeView *treeview, union value *val)
        success;
        success = gtk_tree_model_iter_next(model, &iter))
     {
+      union value v;
       GValue gvalue = {0};
 
       gtk_tree_model_get_value(model, &iter, 1, &gvalue);
 	  
-      union value v;
       v.f = g_value_get_double(&gvalue);
 
       if ( 0 == memcmp(&v, val, sizeof (union value)))
@@ -86,7 +89,7 @@ select_treeview_from_value(GtkTreeView *treeview, union value *val)
 	}
     }
 	
-  GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+  path = gtk_tree_model_get_path(model, &iter);
   if ( path ) 
     {
       gtk_tree_view_set_cursor(treeview, path, 0, 0);
@@ -101,6 +104,8 @@ select_treeview_from_value(GtkTreeView *treeview, union value *val)
 static void
 on_value_entry_change(GtkEntry *entry, gpointer data)
 {
+  char *s;
+  
   struct val_labs_dialog *dialog = data;
 
   const gchar *text = gtk_entry_get_text(GTK_ENTRY(dialog->value_entry));
@@ -116,7 +121,6 @@ on_value_entry_change(GtkEntry *entry, gpointer data)
   gtk_entry_set_text(GTK_ENTRY(dialog->label_entry),"");
 
 
-  char *s;
   if ( (s = val_labs_find (dialog->labs, v)) ) 
     {
       gtk_entry_set_text(GTK_ENTRY(dialog->label_entry), s);
@@ -302,6 +306,10 @@ on_select_row                  (GtkTreeView *treeview,
 struct val_labs_dialog *
 val_labs_dialog_create(GladeXML *xml)
 {
+  GtkTreeViewColumn *column;
+
+  GtkCellRenderer *renderer ;
+
   struct val_labs_dialog *dialog = g_malloc(sizeof(*dialog));
 
   dialog->window = get_widget_assert(xml,"val_labs_dialog");
@@ -321,9 +329,7 @@ val_labs_dialog_create(GladeXML *xml)
 
   gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(dialog->treeview), FALSE);
 
-  GtkTreeViewColumn *column;
-
-  GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+  renderer = gtk_cell_renderer_text_new();
   
   column = gtk_tree_view_column_new_with_attributes ("Title",
 						     renderer,

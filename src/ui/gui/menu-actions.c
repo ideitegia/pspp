@@ -99,8 +99,11 @@ void
 on_open1_activate                      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  bool finished = FALSE;
+
   GtkWidget *dialog;
   GtkWidget *data_editor  = get_widget_assert(xml, "data_editor");
+  GtkFileFilter *filter ;
  
   dialog = gtk_file_chooser_dialog_new (_("Open"),
 					GTK_WINDOW(data_editor),
@@ -108,7 +111,6 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 					GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 					GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 					NULL);
-  GtkFileFilter *filter ;
 
   filter = gtk_file_filter_new();
   gtk_file_filter_set_name(filter, _("System Files (*.sav)"));
@@ -128,18 +130,24 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 
 
-  bool finished = FALSE;
   do {
 
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
       {
-	GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
-	g_assert(data_sheet);
+	PsppireVarStore *var_store ;
+	PsppireDataStore *data_store ;
+	struct dictionary *new_dict;
+	struct sfm_read_info ri;
+	struct sfm_reader *reader ; 
 
+	GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
 	GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
+	gchar *filename;
+
+	g_assert(data_sheet);
 	g_assert(var_sheet);
 
-	char *filename = gtk_file_chooser_get_filename
+	filename = gtk_file_chooser_get_filename
 	  (GTK_FILE_CHOOSER (dialog));
 
 	if ( psppire_handle ) 
@@ -155,9 +163,6 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 	    continue;
 	  }
 
-	struct dictionary *new_dict;
-	struct sfm_read_info ri;
-	struct sfm_reader *reader ; 
 
 	reader = sfm_open_reader (psppire_handle, &new_dict, &ri);
       
@@ -166,13 +171,13 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 
 	the_dictionary = psppire_dict_new_from_dict(new_dict);
 
-	PsppireVarStore *var_store = 
+	var_store = 
 	  PSPPIRE_VAR_STORE(gtk_sheet_get_model(GTK_SHEET(var_sheet)));
 	
 	psppire_var_store_set_dictionary(var_store, the_dictionary);
 
 
-	PsppireDataStore *data_store = 
+	data_store = 
 	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(GTK_SHEET(data_sheet)));
 	
 
@@ -186,17 +191,21 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 
 	g_free (filename);
 
-	const int ni = dict_get_next_value_idx(the_dictionary->dict);
-	if ( ni == 0 ) 
-	  goto done;
+	{
+	  const int ni = dict_get_next_value_idx(the_dictionary->dict);
+	  gint case_num;
+	  if ( ni == 0 ) 
+	    goto done;
       
-	gint case_num;
-	for(case_num=0;;case_num++)
-	  {
-	    if (!psppire_case_array_add_case(the_cases, 
-				     populate_case_from_reader, reader))
-	      break;
-	  }
+
+	  for(case_num=0;;case_num++)
+	    {
+	      if (!psppire_case_array_add_case(the_cases, 
+					       populate_case_from_reader, 
+					       reader))
+		break;
+	    }
+	}
 
 	sfm_close_reader(reader);
 	finished = TRUE;
@@ -250,11 +259,14 @@ void
 on_save1_activate                      (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  GtkSheet *data_sheet ;
+  PsppireDataStore *data_store ;
+
   if ( ! psppire_handle ) 
     recreate_save_handle(&psppire_handle);
   
-  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
+  data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
   
   if ( psppire_handle ) 
     psppire_data_store_create_system_file(data_store,
@@ -266,12 +278,15 @@ void
 on_save_as1_activate                   (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  GtkSheet *data_sheet ;
+  PsppireDataStore *data_store ;
+
   recreate_save_handle(&psppire_handle);
   if ( ! psppire_handle ) 
     return ;
 
-  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
+  data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
 
   if ( psppire_handle ) 
     psppire_data_store_create_system_file(data_store,

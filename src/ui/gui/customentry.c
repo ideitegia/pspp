@@ -253,10 +253,10 @@ static gint
 psppire_custom_entry_expose (GtkWidget      *widget,
 		     GdkEventExpose *event)
 {
+  PsppireCustomEntry *ce = PSPPIRE_CUSTOM_ENTRY(widget);
+
   g_return_val_if_fail (PSPPIRE_IS_CUSTOM_ENTRY (widget), FALSE);
   g_return_val_if_fail (event != NULL, FALSE);
-
-  PsppireCustomEntry *ce = PSPPIRE_CUSTOM_ENTRY(widget);
 
   if (GTK_WIDGET_DRAWABLE (widget))
     {

@@ -68,5 +68,9 @@ void  chart_write_xscale(struct chart *ch, double min, double max, int ticks);
 /* Set the scale for the ordinate */
 void  chart_write_yscale(struct chart *ch, double smin, double smax, int ticks);
 
+void chart_write_xlabel(struct chart *ch, const char *label) ;
+
+/* Write the ordinate label */
+void  chart_write_ylabel(struct chart *ch, const char *label);
 
 #endif

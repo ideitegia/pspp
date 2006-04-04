@@ -169,9 +169,11 @@ gboolean always_true()
 static void
 delete_cases_callback(GtkWidget *w, gint first, gint n_cases, gpointer data)
 {
+  PsppireDataStore *store  ;
+
   g_return_if_fail (data);
 
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE(data);
+  store  = PSPPIRE_DATA_STORE(data);
 
   g_assert(first >= 0);
 
@@ -182,9 +184,10 @@ delete_cases_callback(GtkWidget *w, gint first, gint n_cases, gpointer data)
 static void
 insert_case_callback(GtkWidget *w, gint casenum, gpointer data)
 {
+  PsppireDataStore *store  ;
   g_return_if_fail (data);
 
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE(data);
+  store  = PSPPIRE_DATA_STORE(data);
   
   g_sheet_model_range_changed (G_SHEET_MODEL(store),
 				 casenum, -1,
@@ -196,11 +199,11 @@ insert_case_callback(GtkWidget *w, gint casenum, gpointer data)
 static void
 changed_case_callback(GtkWidget *w, gint casenum, gpointer data)
 {
+  PsppireDataStore *store  ;
   g_return_if_fail (data);
 
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE(data);
+  store  = PSPPIRE_DATA_STORE(data);
   
-
   g_sheet_model_range_changed (G_SHEET_MODEL(store),
 				 casenum, -1,
 				 casenum, -1);
@@ -211,9 +214,11 @@ changed_case_callback(GtkWidget *w, gint casenum, gpointer data)
 static void
 delete_variables_callback(GtkWidget *w, gint var_num, gint n_vars, gpointer data)
 {
+  PsppireDataStore *store ;
+
   g_return_if_fail (data);
 
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE(data);
+  store  = PSPPIRE_DATA_STORE(data);
 
   g_sheet_column_columns_deleted(G_SHEET_COLUMN(store),
 				   var_num, n_vars);
@@ -223,9 +228,11 @@ delete_variables_callback(GtkWidget *w, gint var_num, gint n_vars, gpointer data
 static void
 insert_variable_callback(GtkWidget *w, gint var_num, gpointer data)
 {
+  PsppireDataStore *store;
+
   g_return_if_fail (data);
 
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE(data);
+  store  = PSPPIRE_DATA_STORE(data);
   
   /* 
   g_sheet_model_range_changed (G_SHEET_MODEL(store),
@@ -322,6 +329,9 @@ psppire_data_store_finalize (GObject *object)
 static const gchar *const 
 psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 {
+  const struct fmt_spec *fp ;
+  const struct PsppireVariable *pv ;
+  const union value *v ;
   static gchar s[255];
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
 
@@ -334,13 +344,10 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
   if ( row >= psppire_case_array_get_n_cases(store->cases))
     return NULL;
 
-  const struct PsppireVariable *pv = psppire_dict_get_variable(store->dict, column);
+  pv = psppire_dict_get_variable(store->dict, column);
 
-
-  const union value *v = 
-    psppire_case_array_get_value(store->cases, row, 
+  v =  psppire_case_array_get_value(store->cases, row, 
 			      psppire_variable_get_index(pv));
-
 
   if ( store->show_labels) 
     {
@@ -353,7 +360,7 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 	}
     }
 
-  const struct fmt_spec *fp = psppire_variable_get_write_spec(pv);
+  fp = psppire_variable_get_write_spec(pv);
 
   if ( psppire_variable_get_type(pv) == NUMERIC ) 
     {
@@ -370,22 +377,24 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
       s[len] = '\0';
     }
 
-  static gchar buf[255];
-  GError *err = NULL;
-  gchar *text = g_locale_to_utf8(s, fp->w, 0, 0, &err);
-  if ( !err ) 
-    { 
-      g_snprintf(buf, 255, text);
-      g_free(text);
-    }
-  else
-    {
-      g_warning("Cannot convert string \"%s\" to utf-8: %s\n", s, err->message);
-      g_error_free(err);
-      return NULL;
-    }
+  {
+    static gchar buf[255];
+    GError *err = NULL;
+    gchar *text = g_locale_to_utf8(s, fp->w, 0, 0, &err);
+    if ( !err ) 
+      { 
+	g_snprintf(buf, 255, text);
+	g_free(text);
+      }
+    else
+      {
+	g_warning("Cannot convert string \"%s\" to utf-8: %s\n", s, err->message);
+	g_error_free(err);
+	return NULL;
+      }
 
   return buf ;
+  }
 }
 
 
@@ -462,17 +471,19 @@ psppire_data_store_set_string(GSheetModel *model,
 	psppire_data_store_clear_datum(model, r, c);
     }
 
-  const gint index = psppire_variable_get_index(pv);
+  {
+    const gint index = psppire_variable_get_index(pv);
 
-  struct data_in d_in;
-  d_in.s = text;
-  d_in.e = text + strlen(text);
-  d_in.v = 0;
-  d_in.f1 = d_in.f2 = 0;
-  d_in.format = * psppire_variable_get_write_spec(pv);
-  d_in.flags = 0;
+    struct data_in d_in;
+    d_in.s = text;
+    d_in.e = text + strlen(text);
+    d_in.v = 0;
+    d_in.f1 = d_in.f2 = 0;
+    d_in.format = * psppire_variable_get_write_spec(pv);
+    d_in.flags = 0;
 
-  psppire_case_array_set_value(store->cases, row, index, fillit, &d_in);
+    psppire_case_array_set_value(store->cases, row, index, fillit, &d_in);
+  }
 
   return TRUE;
 }
@@ -521,15 +532,17 @@ void
 psppire_data_store_create_system_file(PsppireDataStore *store,
 			      struct file_handle *handle)
 {
-  g_assert(handle);
-
   const struct sfm_write_options wo = {
     true, /* writeable */
     false, /* dont compress */
     3 /* version */
   }; 
 
-  struct sfm_writer *writer = sfm_open_writer(handle, store->dict->dict, wo);
+  struct sfm_writer *writer ;
+
+  g_assert(handle);
+
+  writer = sfm_open_writer(handle, store->dict->dict, wo);
 
   if ( ! writer) 
     return;
@@ -557,12 +570,12 @@ static guint
 M_width(GtkSheet *sheet, gint row, gint col)
 {
   GtkSheetCellAttr attributes;
-
-  gtk_sheet_get_attributes(sheet, row, col, &attributes);
-
   PangoRectangle rect;
   /* FIXME: make this a member of the data store */
   static PangoLayout *layout = 0;
+
+
+  gtk_sheet_get_attributes(sheet, row, col, &attributes);
 
   if (! layout ) 
     layout = gtk_widget_create_pango_layout (GTK_WIDGET(sheet), "M");
@@ -592,13 +605,14 @@ columnWidthToPixels(GtkSheet *sheet, gint column, guint width)
 static gint
 geometry_get_width(const GSheetColumn *geom, gint unit, GtkSheet *sheet)
 {
+  const struct PsppireVariable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
     return 75;
 
   /* FIXME: We can optimise this by caching the widths until they're resized */
-  const struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, unit);
+  pv = psppire_dict_get_variable(ds->dict, unit);
 
   return columnWidthToPixels(sheet, unit, psppire_variable_get_columns(pv));
 }
@@ -622,12 +636,13 @@ static GtkJustification
 geometry_get_justification(const GSheetColumn *geom, gint unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
+  const struct PsppireVariable *pv ;
 
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
     return GTK_JUSTIFY_LEFT;
 
-  const struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, unit);
+  pv = psppire_dict_get_variable(ds->dict, unit);
 
   /* Kludge: Happily GtkJustification is defined similarly
      to enum alignment from pspp/variable.h */
@@ -640,12 +655,13 @@ static const gchar null_var_name[]=_("var");
 static const gchar *
 geometry_get_button_label(const GSheetColumn *geom, gint unit)
 {
+  struct PsppireVariable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
     return null_var_name;
 
-  struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, unit);
+  pv = psppire_dict_get_variable(ds->dict, unit);
 
   return psppire_variable_get_name(pv);
 }

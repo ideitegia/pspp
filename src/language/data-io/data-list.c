@@ -43,6 +43,8 @@
 #include <data/variable.h>
 #include <procedure.h>
 
+#include "data-list.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 

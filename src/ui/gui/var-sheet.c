@@ -81,9 +81,9 @@ static gboolean
 click2row(GtkWidget *w, gint row, gpointer data)
 {
   gint current_row, current_column;
+  GtkWidget *data_sheet  = get_widget_assert(xml, "data_sheet");
 
   select_sheet(PAGE_DATA_SHEET);
-  GtkWidget *data_sheet  = get_widget_assert(xml, "data_sheet");
 
   gtk_sheet_get_active_cell(GTK_SHEET(data_sheet), 
 			    &current_row, &current_column);
@@ -112,13 +112,14 @@ const gchar *measures[]={
 static GtkListStore *
 create_label_list(const gchar **labels)
 {
+  const gchar *s;
   gint i = 0;
   GtkTreeIter iter;
 
   GtkListStore *list_store;
   list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
-  const gchar *s;
+
   while ( (s = labels[i++]))
     {
       gtk_list_store_append (list_store, &iter);
@@ -206,9 +207,13 @@ static gboolean
 var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column, 
 			     gpointer leaving)
 {
+  GtkSheetCellAttr attributes;
+  PsppireVarStore *var_store ;
+  struct PsppireVariable *pv ;
+
   g_return_val_if_fail(sheet != NULL, FALSE);
 
-  PsppireVarStore *var_store = PSPPIRE_VAR_STORE(gtk_sheet_get_model(sheet));
+  var_store = PSPPIRE_VAR_STORE(gtk_sheet_get_model(sheet));
 
   if ( row >= psppire_var_store_get_var_cnt(var_store))
     return TRUE;
@@ -219,10 +224,10 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
       return TRUE;
     }
 
-  GtkSheetCellAttr attributes;
+
   gtk_sheet_get_attributes(sheet, row, column, &attributes);
 
-  struct PsppireVariable *pv = psppire_var_store_get_variable(var_store, row);
+  pv = psppire_var_store_get_variable(var_store, row);
 
   switch (column)
     {
@@ -351,40 +356,43 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 	    if (!s) 
 	      return FALSE;
 
-	    const gint current_value  = atoi(s);
+	    {
+	      GtkSpinButton *spinButton ;
+	      const gint current_value  = atoi(s);
+	      GtkObject *adj ;
 
-	    const struct fmt_spec *fmt = psppire_variable_get_write_spec(pv);
-	    switch (column) 
-	      {
-	      case COL_WIDTH:
-		r_min = fmt->d + 1;
-		r_max = (psppire_variable_get_type(pv) == ALPHA) ? 255 : 40;
-		break;
-	      case COL_DECIMALS:
-		r_min = 0 ; 
-		r_max = min(fmt->w - 1, 16);
-		break;
-	      case COL_COLUMNS:
-		r_min = 1;
-		r_max = 255 ; /* Is this a sensible value ? */
-		break;
-	      default:
-		g_assert_not_reached();
-	      }
+	      const struct fmt_spec *fmt = psppire_variable_get_write_spec(pv);
+	      switch (column) 
+		{
+		case COL_WIDTH:
+		  r_min = fmt->d + 1;
+		  r_max = (psppire_variable_get_type(pv) == ALPHA) ? 255 : 40;
+		  break;
+		case COL_DECIMALS:
+		  r_min = 0 ; 
+		  r_max = min(fmt->w - 1, 16);
+		  break;
+		case COL_COLUMNS:
+		  r_min = 1;
+		  r_max = 255 ; /* Is this a sensible value ? */
+		  break;
+		default:
+		  g_assert_not_reached();
+		}
 
-	    GtkObject *adj =  
-	      gtk_adjustment_new(current_value,
-				 r_min, r_max,
-				 1.0, 1.0, 1.0 /* steps */
-				 );
+	      adj = gtk_adjustment_new(current_value,
+				       r_min, r_max,
+				       1.0, 1.0, 1.0 /* steps */
+				       );
 
-	    gtk_sheet_change_entry(sheet, GTK_TYPE_SPIN_BUTTON);
+	      gtk_sheet_change_entry(sheet, GTK_TYPE_SPIN_BUTTON);
 
-	    GtkSpinButton *spinButton = 
-	      GTK_SPIN_BUTTON(gtk_sheet_get_entry(sheet));
+	      spinButton = 
+		GTK_SPIN_BUTTON(gtk_sheet_get_entry(sheet));
 
-	    gtk_spin_button_set_adjustment(spinButton, GTK_ADJUSTMENT(adj));
-	    gtk_spin_button_set_digits(spinButton, 0);
+	      gtk_spin_button_set_adjustment(spinButton, GTK_ADJUSTMENT(adj));
+	      gtk_spin_button_set_digits(spinButton, 0);
+	    }
 	  }
       }
       break; 

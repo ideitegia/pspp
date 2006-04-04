@@ -84,7 +84,7 @@ struct _GSheetModelIface
 
 
   /* Virtual Table */
-  const gchar *const      (* get_string)      (const GSheetModel *sheet_model, 
+  const gchar *      (* get_string)      (const GSheetModel *sheet_model, 
 					       gint row, gint column);
 
   gboolean  (* set_string) (GSheetModel *sheet_model, 
@@ -118,7 +118,7 @@ struct _GSheetModelIface
 GType              g_sheet_model_get_type   (void) G_GNUC_CONST;
 
 
-inline const gchar *const g_sheet_model_get_string (const GSheetModel *sheet_model, 
+inline const gchar * g_sheet_model_get_string (const GSheetModel *sheet_model, 
 					       gint row, gint column);
 
 inline gboolean  g_sheet_model_set_string (GSheetModel *sheet_model, 

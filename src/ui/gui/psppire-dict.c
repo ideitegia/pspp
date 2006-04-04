@@ -228,6 +228,7 @@ auto_generate_var_name(PsppireDict *dict)
 void
 psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name)
 {
+  struct variable *var ;
   gint i;
   g_return_if_fail(d);
   g_return_if_fail(G_IS_PSPPIRE_DICT(d));
@@ -257,11 +258,9 @@ psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name)
   if ( ! name ) 
     name = auto_generate_var_name(d);
   
-  struct variable *var = 
-    dict_create_var(d->dict, name, 0);
+  var = dict_create_var(d->dict, name, 0);
 
   dict_reorder_var(d->dict, var, idx);
-
 
   d->variables[idx] = g_malloc(sizeof (struct PsppireVariable));
   d->variables[idx]->v = var;
@@ -332,6 +331,7 @@ psppire_dict_set_name(PsppireDict* d, gint idx, const gchar *name)
 struct PsppireVariable *
 psppire_dict_get_variable(PsppireDict *d, gint idx)
 {
+  struct PsppireVariable *var ;
   g_return_val_if_fail(d, NULL);
   g_return_val_if_fail(d->dict, NULL);
   g_return_val_if_fail(d->variables, NULL);
@@ -339,7 +339,7 @@ psppire_dict_get_variable(PsppireDict *d, gint idx)
   if (idx < 0 || idx >= psppire_dict_get_var_cnt(d))
     return NULL;
 
-  struct PsppireVariable *var = d->variables[idx] ; 
+  var = d->variables[idx] ; 
 
   if (! var ) 
     {
@@ -394,19 +394,21 @@ psppire_dict_clear(PsppireDict *d)
   g_return_if_fail(d);
   g_return_if_fail(d->dict);
 
-  const gint n_vars = dict_get_var_cnt(d->dict);
-  gint i;
+  {
+    const gint n_vars = dict_get_var_cnt(d->dict);
+    gint i;
   
-  dict_clear(d->dict);
+    dict_clear(d->dict);
 
-  /* Invalidate the entire cache */
-  for ( i = 0 ; i < d->cache_size ; ++i ) 
-    {
-      g_free(d->variables[i]);
-      d->variables[i] = 0;
-    }
+    /* Invalidate the entire cache */
+    for ( i = 0 ; i < d->cache_size ; ++i ) 
+      {
+	g_free(d->variables[i]);
+	d->variables[i] = 0;
+      }
 
-  g_signal_emit(d, signal[VARIABLES_DELETED], 0, 0, n_vars );  
+    g_signal_emit(d, signal[VARIABLES_DELETED], 0, 0, n_vars );  
+  }
 }
 
 
