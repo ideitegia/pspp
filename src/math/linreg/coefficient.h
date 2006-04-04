@@ -100,5 +100,8 @@ const union value *
 pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
 			     const struct variable *v);
 
-
+const struct pspp_linreg_coeff *
+pspp_linreg_get_coeff (const pspp_linreg_cache *,
+		       const struct variable *,
+		       const union value *);
 #endif

@@ -34,19 +34,20 @@
 
 struct varinfo
 {
-  const struct variable *v; /* Variable associated with this
-			       coefficient. Note this variable may not
-			       be unique. In other words, a
-			       coefficient structure may have other
-			       v_info's, each with its own variable.
-			     */
-  const union value *val; /* Value of the variable v which this
-			     varinfo refers to. This member is relevant
-			     only to categorical variables.
-			  */
+  const struct variable *v;	/* Variable associated with this
+				   coefficient. Note this variable may not
+				   be unique. In other words, a
+				   coefficient structure may have other
+				   v_info's, each with its own variable.
+				 */
+  const union value *val;	/* Value of the variable v which this
+				   varinfo refers to. This member is relevant
+				   only to categorical variables.
+				 */
 };
 
-void pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
+void
+pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
 {
   free (c);
 }
@@ -56,50 +57,51 @@ void pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
   coefficient structures for the linear model.
  */
 void
-pspp_linreg_coeff_init (pspp_linreg_cache *c, struct design_matrix *X)
+pspp_linreg_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
 {
   size_t i;
   size_t j;
   int n_vals = 1;
   struct pspp_linreg_coeff *coeff;
-  
-  c->coeff = 
-	xnmalloc (X->m->size2 + 1, 
-	sizeof (*c->coeff));
+
+  c->coeff = xnmalloc (X->m->size2 + 1, sizeof (*c->coeff));
   for (i = 0; i < X->m->size2; i++)
     {
       j = i + 1;		/* The first coefficient is the intercept. */
       coeff = c->coeff + j;
-      coeff->n_vars = n_vals; /* Currently, no procedures allow interactions.
-				 This will have to change when procedures that
-				 allow interaction terms are written.
-			      */
+      coeff->n_vars = n_vals;	/* Currently, no procedures allow
+				   interactions.  This will have to
+				   change when procedures that allow
+				   interaction terms are written.
+				 */
       coeff->v_info = xnmalloc (coeff->n_vars, sizeof (*coeff->v_info));
       assert (coeff->v_info != NULL);
-      coeff->v_info->v = (const struct variable *) design_matrix_col_to_var (X, i);
-      
+      coeff->v_info->v =
+	(const struct variable *) design_matrix_col_to_var (X, i);
+
       if (coeff->v_info->v->type == ALPHA)
 	{
 	  size_t k;
 	  k = design_matrix_var_to_column (X, coeff->v_info->v);
 	  assert (k <= i);
 	  k = i - k;
-	  coeff->v_info->val = cat_subscript_to_value (k, (struct variable *) coeff->v_info->v);
+	  coeff->v_info->val =
+	    cat_subscript_to_value (k, (struct variable *) coeff->v_info->v);
 	}
     }
 }
 void
-pspp_linreg_coeff_set_estimate (struct pspp_linreg_coeff *c,
-				double estimate)
+pspp_linreg_coeff_set_estimate (struct pspp_linreg_coeff *c, double estimate)
 {
   c->estimate = estimate;
 }
+
 void
-pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c,
-			       double std_err)
+pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c, double std_err)
 {
   c->std_err = std_err;
 }
+
 /*
   How many variables are associated with this coefficient?
  */
@@ -107,7 +109,8 @@ int
 pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c)
 {
   return c->n_vars;
-}			      
+}
+
 /*
   Which variable does this coefficient match?
  */
@@ -117,6 +120,7 @@ pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i)
   assert (i < c->n_vars);
   return (c->v_info + i)->v;
 }
+
 /* 
    Which value is associated with this coefficient/variable comination? 
 */
@@ -138,3 +142,59 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
     }
   return NULL;
 }
+/*
+  Which coefficient is associated with V? The VAL argument is relevant
+  only to categorical variables.
+ */
+const struct pspp_linreg_coeff *
+pspp_linreg_get_coeff (const pspp_linreg_cache *c,
+		       const struct variable *v,
+		       const union value *val)
+{
+  int i = 1;
+  struct pspp_linreg_coeff *result;
+  const struct variable *tmp;
+
+  assert (c != NULL);
+  assert (c->coeff != NULL);
+  assert (c->n_indeps > 0);
+  assert (v != NULL);
+  assert (val != NULL);
+  
+  result = c->coeff + i;
+  tmp = pspp_linreg_coeff_get_var (result, 0);
+  while (tmp->index != v->index && i < c->n_coeffs)
+    {
+      i++;
+      result = c->coeff + i;
+      tmp = pspp_linreg_coeff_get_var (result, 0);
+    }
+  if (i == c->n_coeffs)
+    {
+      return NULL;
+    }
+  if (v->type == NUMERIC)
+    {
+      return result;
+    }
+  else
+    {
+      /*
+	If v is categorical, we need to ensure the coefficient
+	matches the VAL.
+       */
+      while (tmp->index != v->index && i < c->n_coeffs &&
+	     compare_values (pspp_linreg_coeff_get_value (result, tmp), val, v->width))/*FIX THIS*/
+	{
+	  i++;
+	  result = c->coeff + i;
+	  tmp = pspp_linreg_coeff_get_var (result, 0);
+	}
+      if (i == c->n_coeffs)
+	{
+	  return NULL;
+	}
+      return result;
+    }
+}
+
