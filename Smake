@@ -30,6 +30,7 @@ GNULIB_MODULES = \
 	snprintf \
 	stat-macros \
 	stdbool \
+	stdint \
 	stpcpy \
 	strcase \
 	strcspn \
