@@ -1,3 +1,7 @@
+Tue Apr  4 20:20:49 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Fix bugs in installation targets.
+
 Mon Apr  3 11:01:16 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: (pkgsysconf_DATA) Add AFM files in config/psfonts.
