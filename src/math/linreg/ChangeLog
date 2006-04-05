@@ -1,7 +1,16 @@
+2006-04-05  Jason Stover  <jhs@math.gcsu.edu>
+
+	* predict.c: New file. pspp_linreg_predict() uses a linear model
+	to return a predicted value of the dependent variable.
+
+	* coefficient.c: Added pspp_linreg_coeff_get_est() and
+	pspp_linreg_coeff_get_std_err() to access estimated values of
+	coefficients and standard errors.
+
 2006-04-03  Jason Stover  <jhs@math.gcsu.edu>
 
 	* coefficient.c: Added pspp_linreg_get_coeff() to find a
-	coefficient corresponding to a variabl/value combination.
+	coefficient corresponding to a variable/value combination.
 
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	

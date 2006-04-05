@@ -23,8 +23,10 @@
 #ifndef COEFFICIENT_H
 #define COEFFICIENT_H
 
-
+#include <assert.h>
 #include <math/linreg/linreg.h>
+#include <src/data/variable.h>
+#include <src/data/value.h>
 
 struct design_matrix;
 
@@ -63,42 +65,54 @@ struct pspp_linreg_coeff
   Accessor functions for matching coefficients and variables.
  */
 
-void pspp_linreg_coeff_free (struct pspp_linreg_coeff *c);
+void pspp_linreg_coeff_free (struct pspp_linreg_coeff *);
 
 /*
   Initialize the variable and value pointers inside the
   coefficient structures for the linear model.
  */
 void
-pspp_linreg_coeff_init (pspp_linreg_cache *c, 
-			struct design_matrix *X);
+pspp_linreg_coeff_init (pspp_linreg_cache *, 
+			struct design_matrix *);
 
 
 void
-pspp_linreg_coeff_set_estimate (struct pspp_linreg_coeff *c,
+pspp_linreg_coeff_set_estimate (struct pspp_linreg_coeff *,
 				double estimate);
 
 void
-pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c,
+pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *,
 			       double std_err);
+/*
+  Return the estimated value of the coefficient.
+ */
+double
+pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *);
+
+/*
+  Return the standard error of the estimated coefficient.
+*/
+double 
+pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *);
+
 /*
   How many variables are associated with this coefficient?
  */
 int
-pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c);
+pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *);
 
 /*
   Which variable does this coefficient match?
  */
 const struct variable *
-pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i);
+pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *, int );
 
 /* 
    Which value is associated with this coefficient/variable comination? 
 */
 const union value *
-pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
-			     const struct variable *v);
+pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *,
+			     const struct variable *);
 
 const struct pspp_linreg_coeff *
 pspp_linreg_get_coeff (const pspp_linreg_cache *,

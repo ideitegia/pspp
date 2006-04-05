@@ -22,12 +22,9 @@
 /*
   Accessor functions for matching coefficients and variables.
  */
-#include <assert.h>
 #include <math/linreg/coefficient.h>
 #include <math/linreg/linreg.h>
 #include "src/math/design-matrix.h"
-#include "src/data/variable.h"
-#include "src/data/value.h"
 
 #include <gl/xalloc.h>
 
@@ -102,6 +99,24 @@ pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c, double std_err)
   c->std_err = std_err;
 }
 
+/*
+  Return the estimated value of the coefficient.
+ */
+double
+pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *c)
+{
+  assert (c != NULL);
+  return c->estimate;
+}
+/*
+  Return the standard error of the estimated coefficient.
+*/
+double 
+pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
+{
+  assert (c != NULL);
+  return c->std_err;
+}
 /*
   How many variables are associated with this coefficient?
  */

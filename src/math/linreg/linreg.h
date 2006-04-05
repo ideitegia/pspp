@@ -28,7 +28,7 @@
 
 struct variable ;
 struct pspp_linreg_coeff;
-
+union value;
 
 enum
 {
@@ -178,5 +178,7 @@ int pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 		 const pspp_linreg_opts * opts, 
 		 pspp_linreg_cache * cache);
 
-
+double
+pspp_linreg_predict (const struct variable *, const union value *, 
+		     const pspp_linreg_cache *, int);
 #endif
