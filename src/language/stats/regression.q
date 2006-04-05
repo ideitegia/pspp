@@ -599,6 +599,23 @@ reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
 	   "if (strncmp (v_name, model_depvars[i], PSPP_REG_MAXLEN) == 0)\n\t\t{\n\t\t\t");
   fprintf (fp, "return i;\n\t\t}\n\t}\n}\n");
 }
+static int
+reg_has_categorical (pspp_linreg_cache * c)
+{
+  int i;
+  const struct variable *v;
+  
+  for (i = 1; i < c->n_coeffs; i++)
+    {
+      v = pspp_linreg_coeff_get_var (c->coeff + i, 0);
+      if (v->type == ALPHA)
+	{
+	  return 1;
+	}
+    }
+  return 0;
+}
+
 static void
 subcommand_export (int export, pspp_linreg_cache * c)
 {
@@ -618,7 +635,10 @@ subcommand_export (int export, pspp_linreg_cache * c)
       assert (fp != NULL);
       fprintf (fp, "%s", reg_preamble);
       reg_print_getvar (fp, c);
-      reg_print_categorical_encoding (fp, c);
+      if (reg_has_categorical (c))
+	{
+	  reg_print_categorical_encoding (fp, c);
+	}
       fprintf (fp, "%s", reg_export_t_quantiles_1);
       increment = 0.5 / (double) increment;
       for (i = 0; i < n_quantiles - 1; i++)
