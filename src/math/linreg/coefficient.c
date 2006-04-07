@@ -188,11 +188,14 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
   struct pspp_linreg_coeff *result;
   const struct variable *tmp;
 
-  if (c == NULL || c->coeff == NULL || c->n_indeps == NULL || v == NULL)
+  if (c == NULL)
     {
       return NULL;
     }
-  
+  if ( c->coeff == NULL || c->n_indeps == NULL || v == NULL)
+    {
+      return NULL;
+    }
   result = c->coeff + i;
   tmp = pspp_linreg_coeff_get_var (result, 0);
   while (tmp->index != v->index && i < c->n_coeffs)
