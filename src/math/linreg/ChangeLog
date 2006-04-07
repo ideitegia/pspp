@@ -1,3 +1,12 @@
+2006-04-07  Jason Stover  <jhs@math.gcsu.edu>
+
+	* predict.c (pspp_linreg_predict): Improved handling of null
+	pointer args.
+
+	* predict.c (pspp_linreg_residuals): New function.
+
+	* coefficient.c: Improved handling of null pointer args.
+
 2006-04-05  Jason Stover  <jhs@math.gcsu.edu>
 
 	* predict.c: New file. pspp_linreg_predict() uses a linear model

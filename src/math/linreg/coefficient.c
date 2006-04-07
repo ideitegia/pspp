@@ -105,7 +105,10 @@ pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c, double std_err)
 double
 pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *c)
 {
-  assert (c != NULL);
+  if (c == NULL)
+    {
+      return 0.0;
+    }
   return c->estimate;
 }
 /*
@@ -114,7 +117,10 @@ pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *c)
 double 
 pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
 {
-  assert (c != NULL);
+  if (c == NULL)
+    {
+      return 0.0;
+    }
   return c->std_err;
 }
 /*
@@ -123,6 +129,10 @@ pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
 int
 pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c)
 {
+  if (c == NULL)
+    {
+      return 0;
+    }
   return c->n_vars;
 }
 
@@ -132,6 +142,10 @@ pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c)
 const struct variable *
 pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i)
 {
+  if (c == NULL)
+    {
+      return NULL;
+    }
   assert (i < c->n_vars);
   return (c->v_info + i)->v;
 }
@@ -146,6 +160,10 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
   int i = 0;
   const struct variable *candidate;
 
+  if (c == NULL || v == NULL)
+    {
+      return NULL;
+    }
   while (i < c->n_vars)
     {
       candidate = pspp_linreg_coeff_get_var (c, i);
@@ -170,11 +188,10 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
   struct pspp_linreg_coeff *result;
   const struct variable *tmp;
 
-  assert (c != NULL);
-  assert (c->coeff != NULL);
-  assert (c->n_indeps > 0);
-  assert (v != NULL);
-  assert (val != NULL);
+  if (c == NULL || c->coeff == NULL || c->n_indeps == NULL || v == NULL)
+    {
+      return NULL;
+    }
   
   result = c->coeff + i;
   tmp = pspp_linreg_coeff_get_var (result, 0);
@@ -192,7 +209,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
     {
       return result;
     }
-  else
+  else if (val != NULL)
     {
       /*
 	If v is categorical, we need to ensure the coefficient
@@ -211,5 +228,6 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
 	}
       return result;
     }
+  return NULL;
 }
 

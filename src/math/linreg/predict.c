@@ -38,10 +38,15 @@ pspp_linreg_predict (const struct variable *predictors,
   double result;
   double tmp;
   
-  assert (predictors != NULL);
-  assert (vals != NULL);
-  assert (c != NULL);
-
+  if (predictors == NULL || vals == NULL || c == NULL)
+    {
+      return GSL_NAN;
+    }
+  if (c->coeff == NULL)
+    {
+      /* The stupid model: just guess the mean. */
+      return c->depvar_mean;
+    }
   result = c->coeff->estimate; /* Intercept. */
 
   /*
@@ -58,5 +63,26 @@ pspp_linreg_predict (const struct variable *predictors,
 	}
       result += tmp;
     }
+  return result;
+}
+
+double
+pspp_linreg_residual (const struct variable *predictors,
+		      const union value *vals,
+		      const union value *obs,
+		      const pspp_linreg_cache *c,
+		      int n_vals)
+{
+  double pred;
+  double result;
+
+  if (predictors == NULL || vals == NULL || c == NULL || obs == NULL)
+    {
+      return GSL_NAN;
+    }
+  
+  pred = pspp_linreg_predict (predictors, vals, c, n_vals);
+  
+  result = gsl_isnan (pred) ? GSL_NAN : (obs->f - pred);
   return result;
 }
