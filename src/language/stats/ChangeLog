@@ -1,3 +1,7 @@
+2006-04-07  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (subcommand_save): New function.
+
 2006-04-04  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q: New function reg_has_categorical () to tell

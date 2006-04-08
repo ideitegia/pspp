@@ -71,6 +71,7 @@
    all;
    export=custom;
    ^dependent=varlist;
+   save=residuals;
    method=enter.
 */
 /* (declarations) */
@@ -499,6 +500,37 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_collin, keywords[collin], c);
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
+}
+static void
+subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int *is_missing)
+{
+  int i;
+  int k;
+  int case_num;
+  double residual;
+  const union value **vals;
+  struct casereader *r;
+  struct ccase c;
+
+  assert (lc != NULL);
+  if (save)
+    {
+      vals = xnmalloc (n_variables, sizeof (*vals));
+      for (r = casefile_get_reader (cf); casereader_read (r, &c);
+	   case_destroy (&c))
+	{
+	  case_num = casereader_cnum (r) - 1;
+	  if (!is_missing[case_num])
+	    {
+	      for (i = 0; i < n_variables; ++i)
+		{
+		  vals[i] = case_data (&c, v_variables[i]->fv);
+		}
+	      residual = (*lc->predict) (v_variables, vals, lc, n_variables);
+	    }
+	}
+      free (vals);
+    }
 }
 static int
 reg_inserted (const struct variable *v, struct variable **varlist, int n_vars)
@@ -1002,6 +1034,7 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
        */
       pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
       subcommand_statistics (cmd.a_statistics, lcache);
+      subcommand_save (cmd.sbc_save, lcache, cf, is_missing_case);
       subcommand_export (cmd.sbc_export, lcache);
       gsl_vector_free (Y);
       design_matrix_destroy (X);
