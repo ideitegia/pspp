@@ -29,8 +29,8 @@
   in the same order.
  */
 double
-pspp_linreg_predict (const struct variable *predictors, 
-		     const union value *vals, 
+pspp_linreg_predict (const struct variable **predictors, 
+		     const union value **vals, 
 		     const pspp_linreg_cache *c,
 		     int n_vals)
 {
@@ -54,12 +54,13 @@ pspp_linreg_predict (const struct variable *predictors,
     the caller passed us inadequate information, such as too
     few or too many values.
    */
+  n_vals++;
   for (i = 1; i < c->n_coeffs && i < n_vals; i++)
     {
-      tmp = pspp_linreg_coeff_get_est (pspp_linreg_get_coeff (c, predictors + i, vals + i));
-      if ((predictors + i)->type == NUMERIC)
+      tmp = pspp_linreg_coeff_get_est (pspp_linreg_get_coeff (c, predictors[i], vals[i]));
+      if (predictors[i]->type == NUMERIC)
 	{
-	  tmp *= (vals + i)->f;
+	  tmp *= vals[i]->f;
 	}
       result += tmp;
     }
@@ -68,7 +69,7 @@ pspp_linreg_predict (const struct variable *predictors,
 
 double
 pspp_linreg_residual (const struct variable *predictors,
-		      const union value *vals,
+		      const union value **vals,
 		      const union value *obs,
 		      const pspp_linreg_cache *c,
 		      int n_vals)
