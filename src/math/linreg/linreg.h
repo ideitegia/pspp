@@ -1,22 +1,22 @@
 /*
- * lib/linreg/linreg.h
- * 
- * Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H. Stover.
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
- */
+  lib/linreg/linreg.h
+  
+  Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H. Stover.
+  
+  This program is free software; you can redistribute it and/or modify it under
+  the terms of the GNU General Public License as published by the Free
+  Software Foundation; either version 2 of the License, or (at your option)
+  any later version.
+  
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+  
+  You should have received a copy of the GNU General Public License along with
+  this program; if not, write to the Free Software Foundation, Inc., 51
+  Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
+*/
 
 #ifndef LINREG_H
 #define LINREG_H
@@ -46,25 +46,25 @@ struct pspp_linreg_opts_struct
 
   int get_depvar_mean_std;
   int *get_indep_mean_std;	/* Array of booleans
-				 * dictating which
-				 * independent variables need
-				 * their means and standard
-				 * deviations computed within
-				 * pspp_linreg. This array
-				 * MUST be of length
-				 * n_indeps. If element i is
-				 * 1, pspp_linreg will
-				 * compute the mean and
-				 * variance of indpendent
-				 * variable i. If element i
-				 * is 0, it will not compute
-				 * the mean and standard
-				 * deviation, and assume the
-				 * values are stored.
-				 * cache->indep_mean[i] is
-				 * the mean and
-				 * cache->indep_std[i] is the
-				 * sample standard deviation. */
+				   dictating which
+				   independent variables need
+				   their means and standard
+				   deviations computed within
+				   pspp_linreg. This array
+				   MUST be of length
+				   n_indeps. If element i is
+				   1, pspp_linreg will
+				   compute the mean and
+				   variance of indpendent
+				   variable i. If element i
+				   is 0, it will not compute
+				   the mean and standard
+				   deviation, and assume the
+				   values are stored.
+				   cache->indep_mean[i] is
+				   the mean and
+				   cache->indep_std[i] is the
+				   sample standard deviation. */
 };
 typedef struct pspp_linreg_opts_struct pspp_linreg_opts;
 
@@ -103,8 +103,8 @@ struct pspp_linreg_cache_struct
   int n_coeffs;
 
   /*
-   * The variable struct is ignored during estimation. It is here so
-   * the calling procedure can find the variable used in the model.
+    The variable struct is ignored during estimation. It is here so
+    the calling procedure can find the variable used in the model.
    */
   const struct variable *depvar;
 
@@ -130,17 +130,18 @@ struct pspp_linreg_cache_struct
    */
   double ssm;			/* Sums of squares for the overall model. */
   gsl_vector *ss_indeps;	/* Sums of squares from each
-				 * independent variable. */
+				   independent variable. */
   double sst;			/* Sum of squares total. */
   double sse;			/* Sum of squares error. */
   double mse;			/* Mean squared error. This is just sse /
-				 * dfe, but since it is the best unbiased
-				 * estimate of the population variance, it
-				 * has its own entry here. */
+				   dfe, but since it is the best unbiased
+				   estimate of the population variance, it
+				   has its own entry here. */
   gsl_vector *ssx;		/* Centered sums of squares for independent
-				 * variables, i.e. \sum (x[i] - mean(x))^2. */
+				   variables, i.e. \sum (x[i] - mean(x))^2. */
   double ssy;			/* Centered sums of squares for dependent
-				 * variable. */
+				   variable. 
+				*/
   /*
      Covariance matrix of the parameter estimates.
    */
@@ -158,7 +159,7 @@ struct pspp_linreg_cache_struct
    */
   gsl_matrix *hat;
 
-  double (*predict) (const struct variable *, const union value *,
+  double (*predict) (const struct variable **, const union value **,
 		     const void *, int);
 };
 
