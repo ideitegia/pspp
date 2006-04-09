@@ -1,22 +1,21 @@
-/* lib/linreg/coefficient.c
-
-   Copyright (C) 2005 Free Software Foundation, Inc.
-   Written by Jason H Stover.
-
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or (at
-   your option) any later version.
-
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02111-1307, USA.
+/*
+ * lib/linreg/coefficient.c
+ * 
+ * Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H Stover.
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
  */
 
 /*
@@ -32,15 +31,14 @@
 struct varinfo
 {
   const struct variable *v;	/* Variable associated with this
-				   coefficient. Note this variable may not
-				   be unique. In other words, a
-				   coefficient structure may have other
-				   v_info's, each with its own variable.
-				 */
-  const union value *val;	/* Value of the variable v which this
-				   varinfo refers to. This member is relevant
-				   only to categorical variables.
-				 */
+				 * coefficient. Note this variable
+				 * may not be unique. In other words,
+				 * a coefficient structure may have
+				 * other v_info's, each with its own
+				 * variable. */
+  const union value *val;	/* Value of the variable v which this varinfo
+				 * refers to. This member is relevant only to
+				 * categorical variables. */
 };
 
 void
@@ -67,10 +65,10 @@ pspp_linreg_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
       j = i + 1;		/* The first coefficient is the intercept. */
       coeff = c->coeff + j;
       coeff->n_vars = n_vals;	/* Currently, no procedures allow
-				   interactions.  This will have to
+				   interactions.  This line will have to
 				   change when procedures that allow
-				   interaction terms are written.
-				 */
+				   interaction terms are written. 
+				*/
       coeff->v_info = xnmalloc (coeff->n_vars, sizeof (*coeff->v_info));
       assert (coeff->v_info != NULL);
       coeff->v_info->v =
@@ -111,10 +109,11 @@ pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *c)
     }
   return c->estimate;
 }
+
 /*
   Return the standard error of the estimated coefficient.
 */
-double 
+double
 pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
 {
   if (c == NULL)
@@ -123,6 +122,7 @@ pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
     }
   return c->std_err;
 }
+
 /*
   How many variables are associated with this coefficient?
  */
@@ -150,9 +150,9 @@ pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i)
   return (c->v_info + i)->v;
 }
 
-/* 
-   Which value is associated with this coefficient/variable comination? 
-*/
+/*
+  Which value is associated with this coefficient/variable combination?
+ */
 const union value *
 pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
 			     const struct variable *v)
@@ -161,6 +161,10 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
   const struct variable *candidate;
 
   if (c == NULL || v == NULL)
+    {
+      return NULL;
+    }
+  if (v->type == NULL)
     {
       return NULL;
     }
@@ -175,14 +179,14 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
     }
   return NULL;
 }
+
 /*
   Which coefficient is associated with V? The VAL argument is relevant
   only to categorical variables.
  */
 const struct pspp_linreg_coeff *
-pspp_linreg_get_coeff (const pspp_linreg_cache *c,
-		       const struct variable *v,
-		       const union value *val)
+pspp_linreg_get_coeff (const pspp_linreg_cache * c,
+		       const struct variable *v, const union value *val)
 {
   int i = 1;
   struct pspp_linreg_coeff *result;
@@ -192,17 +196,16 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
     {
       return NULL;
     }
-  if ( c->coeff == NULL || c->n_indeps == NULL || v == NULL)
+  if (c->coeff == NULL || c->n_indeps == NULL || v == NULL)
     {
       return NULL;
     }
-  result = c->coeff + i;
-  tmp = pspp_linreg_coeff_get_var (result, 0);
+
   while (tmp->index != v->index && i < c->n_coeffs)
     {
-      i++;
       result = c->coeff + i;
       tmp = pspp_linreg_coeff_get_var (result, 0);
+      i++;
     }
   if (i == c->n_coeffs)
     {
@@ -215,12 +218,13 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
   else if (val != NULL)
     {
       /*
-	If v is categorical, we need to ensure the coefficient
-	matches the VAL.
+         If v is categorical, we need to ensure the coefficient
+         matches the VAL.
        */
-      while (tmp->index != v->index && i < c->n_coeffs &&
-	     compare_values (pspp_linreg_coeff_get_value (result, tmp), val, v->width))/*FIX THIS*/
-	{
+      while (tmp->index != v->index && i < c->n_coeffs
+	     && compare_values (pspp_linreg_coeff_get_value (result, tmp),
+				val, v->width))
+	{			/* FIX THIS */
 	  i++;
 	  result = c->coeff + i;
 	  tmp = pspp_linreg_coeff_get_var (result, 0);
@@ -233,4 +237,3 @@ pspp_linreg_get_coeff (const pspp_linreg_cache *c,
     }
   return NULL;
 }
-
