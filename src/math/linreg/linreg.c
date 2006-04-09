@@ -115,6 +115,7 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
    */
   c->method = PSPP_LINREG_SWEEP;
   c->predict = pspp_linreg_predict;
+  c->residual = pspp_linreg_residual;
 
   return c;
 }

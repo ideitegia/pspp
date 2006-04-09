@@ -161,6 +161,10 @@ struct pspp_linreg_cache_struct
 
   double (*predict) (const struct variable **, const union value **,
 		     const void *, int);
+  double (*residual) (const struct variable **,
+		      const union value **,
+		      const union value *,
+		      const void *, int);
 };
 
 typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
@@ -189,6 +193,6 @@ double
 pspp_linreg_predict (const struct variable **, const union value **,
 		     const pspp_linreg_cache *, int);
 double
-pspp_linreg_residual (const struct variable *, const union value **,
+pspp_linreg_residual (const struct variable **, const union value **,
 		      const union value *, const pspp_linreg_cache *, int);
 #endif

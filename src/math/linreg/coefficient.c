@@ -1,22 +1,22 @@
 /*
- * lib/linreg/coefficient.c
- * 
- * Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H Stover.
- * 
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free
- * Software Foundation; either version 2 of the License, or (at your option)
- * any later version.
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 51
- * Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
- */
+  lib/linreg/coefficient.c
+  
+  Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H Stover.
+  
+  This program is free software; you can redistribute it and/or modify it under
+  the terms of the GNU General Public License as published by the Free
+  Software Foundation; either version 2 of the License, or (at your option)
+  any later version.
+  
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+  
+  You should have received a copy of the GNU General Public License along with
+  this program; if not, write to the Free Software Foundation, Inc., 51
+  Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
+*/
 
 /*
   Accessor functions for matching coefficients and variables.
@@ -31,14 +31,14 @@
 struct varinfo
 {
   const struct variable *v;	/* Variable associated with this
-				 * coefficient. Note this variable
-				 * may not be unique. In other words,
-				 * a coefficient structure may have
-				 * other v_info's, each with its own
-				 * variable. */
+				   coefficient. Note this variable
+				   may not be unique. In other words,
+				   a coefficient structure may have
+				   other v_info's, each with its own
+				   variable. */
   const union value *val;	/* Value of the variable v which this varinfo
-				 * refers to. This member is relevant only to
-				 * categorical variables. */
+				   refers to. This member is relevant only to
+				   categorical variables. */
 };
 
 void
@@ -189,8 +189,8 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 		       const struct variable *v, const union value *val)
 {
   int i = 1;
-  struct pspp_linreg_coeff *result;
-  const struct variable *tmp;
+  struct pspp_linreg_coeff *result = NULL;
+  const struct variable *tmp = NULL;
 
   if (c == NULL)
     {

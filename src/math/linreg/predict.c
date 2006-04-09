@@ -1,26 +1,26 @@
-/* lib/linreg/predict.c
+/*
+   lib/linreg/predict.c
+  
+   Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H. Stover.
 
- Copyright (C) 2005 Free Software Foundation, Inc.
- Written by Jason H. Stover.
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or (at
- your option) any later version.
-
- This program is distributed in the hope that it will be useful, but
- WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- 02111-1307, USA.
-*/
+   This program is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free
+   Software Foundation; either version 2 of the License, or (at your option)
+   any later version.
+   
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+   more details.
+   
+   You should have received a copy of the GNU General Public License along with
+   this program; if not, write to the Free Software Foundation, Inc., 51
+   Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
+ */
 
 #include <math/linreg/linreg.h>
 #include <math/linreg/coefficient.h>
+#include <gl/xalloc.h>
 
 /*
   Predict the value of the dependent variable with the
@@ -29,15 +29,17 @@
   in the same order.
  */
 double
-pspp_linreg_predict (const struct variable **predictors, 
-		     const union value **vals, 
-		     const pspp_linreg_cache *c,
-		     int n_vals)
+pspp_linreg_predict (const struct variable **predictors,
+		     const union value **vals,
+		     const pspp_linreg_cache * c, int n_vals)
 {
   int i;
+  int j;
+  const struct pspp_linreg_coeff **found;
+  const struct pspp_linreg_coeff *coe;
   double result;
   double tmp;
-  
+
   if (predictors == NULL || vals == NULL || c == NULL)
     {
       return GSL_NAN;
@@ -47,32 +49,44 @@ pspp_linreg_predict (const struct variable **predictors,
       /* The stupid model: just guess the mean. */
       return c->depvar_mean;
     }
-  result = c->coeff->estimate; /* Intercept. */
+  found = xnmalloc (c->n_coeffs, sizeof (*found));
+  *found = c->coeff;
+  result = c->coeff->estimate;	/* Intercept. */
 
   /*
-    Stop at the minimum of c->n_coeffs and n_vals in case
-    the caller passed us inadequate information, such as too
-    few or too many values.
+    The loops guard against the possibility that the caller passed us
+    inadequate information, such as too few or too many values, or
+    a redundant list of variable names.
    */
-  n_vals++;
-  for (i = 1; i < c->n_coeffs && i < n_vals; i++)
+  for (j = 0; j < n_vals; j++)
     {
-      tmp = pspp_linreg_coeff_get_est (pspp_linreg_get_coeff (c, predictors[i], vals[i]));
-      if (predictors[i]->type == NUMERIC)
+      coe = pspp_linreg_get_coeff (c, predictors[j], vals[j]);
+      i = 1;
+      while (found[i] != coe && i < c->n_coeffs)
 	{
-	  tmp *= vals[i]->f;
+	  i++;
 	}
-      result += tmp;
+      if (i < c->n_coeffs)
+	{
+	  found[i] = coe;
+	  tmp = pspp_linreg_coeff_get_est (coe);
+	  if (predictors[j]->type == NUMERIC)
+	    {
+	      tmp *= vals[j]->f;
+	    }
+	  result += tmp;
+	}
     }
+  free (found);
+
   return result;
 }
 
 double
-pspp_linreg_residual (const struct variable *predictors,
+pspp_linreg_residual (const struct variable **predictors,
 		      const union value **vals,
 		      const union value *obs,
-		      const pspp_linreg_cache *c,
-		      int n_vals)
+		      const pspp_linreg_cache * c, int n_vals)
 {
   double pred;
   double result;
@@ -81,9 +95,8 @@ pspp_linreg_residual (const struct variable *predictors,
     {
       return GSL_NAN;
     }
-  
   pred = pspp_linreg_predict (predictors, vals, c, n_vals);
-  
+
   result = gsl_isnan (pred) ? GSL_NAN : (obs->f - pred);
   return result;
 }
