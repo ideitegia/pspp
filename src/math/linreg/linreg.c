@@ -1,23 +1,22 @@
-/* lib/linreg/linreg.c
-
- Copyright (C) 2005 Free Software Foundation, Inc.
- Written by Jason H. Stover.
-
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or (at
- your option) any later version.
-
- This program is distributed in the hope that it will be useful, but
- WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- 02111-1307, USA.
-*/
+/*
+ * lib/linreg/linreg.c
+ * 
+ * Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H. Stover.
+ * 
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option)
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
+ */
 
 #include <gsl/gsl_fit.h>
 #include <gsl/gsl_multifit.h>
@@ -32,7 +31,7 @@
 
   Y = Xb + Z
 
-  where Y is an n-by-1 column vector, X is an n-by-p matrix of 
+  where Y is an n-by-1 column vector, X is an n-by-p matrix of
   independent variables, b is a p-by-1 vector of regression coefficients,
   and Z is an n-by-1 normally-distributed random vector with independent
   identically distributed components with mean 0.
@@ -91,7 +90,7 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
 
 /*
   Allocate a pspp_linreg_cache and return a pointer
-  to it. n is the number of cases, p is the number of 
+  to it. n is the number of cases, p is the number of
   independent variables.
  */
 pspp_linreg_cache *
@@ -102,12 +101,10 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   c = (pspp_linreg_cache *) malloc (sizeof (pspp_linreg_cache));
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
-  c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the independent
-					   variables.
-					 */
-  c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the model 
-					   parameters. 
-					 */
+  c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the
+					 * independent variables. */
+  c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the
+					 * model parameters. */
   c->cov = gsl_matrix_alloc (p + 1, p + 1);	/* Covariance matrix. */
   c->n_obs = n;
   c->n_indeps = p;
@@ -115,6 +112,7 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
      Default settings.
    */
   c->method = PSPP_LINREG_SWEEP;
+  c->predict = pspp_linreg_predict;
 
   return c;
 }
@@ -133,7 +131,7 @@ pspp_linreg_cache_free (pspp_linreg_cache * c)
 /*
   Fit the linear model via least squares. All pointers passed to pspp_linreg
   are assumed to be allocated to the correct size and initialized to the
-  values as indicated by opts. 
+  values as indicated by opts.
  */
 int
 pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
@@ -181,9 +179,8 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   cache->dft = cache->n_obs - 1;
   cache->dfm = cache->n_indeps;
   cache->dfe = cache->dft - cache->dfm;
-  cache->n_coeffs = X->size2 + 1; /* Adjust this later to allow for regression
-				     through the origin.
-				  */
+  cache->n_coeffs = X->size2 + 1;	/* Adjust this later to allow for
+					 * regression through the origin. */
   if (cache->method == PSPP_LINREG_SWEEP)
     {
       gsl_matrix *sw;
@@ -262,7 +259,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	}
       /*
          Get the covariance matrix of the parameter estimates.
-         Only the upper triangle is necessary. 
+         Only the upper triangle is necessary.
        */
 
       /*
@@ -305,7 +302,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
     }
   else
     {
-      gsl_multifit_linear_workspace *wk ;
+      gsl_multifit_linear_workspace *wk;
       /*
          Use QR decomposition via GSL.
        */
