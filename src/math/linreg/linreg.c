@@ -99,6 +99,7 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   pspp_linreg_cache *c;
 
   c = (pspp_linreg_cache *) malloc (sizeof (pspp_linreg_cache));
+  c->depvar = NULL;
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
   c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the

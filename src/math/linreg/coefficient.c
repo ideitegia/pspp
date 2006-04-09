@@ -201,6 +201,8 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
       return NULL;
     }
 
+  result = c->coeff + i;
+  tmp = pspp_linreg_coeff_get_var (result, 0);
   while (tmp->index != v->index && i < c->n_coeffs)
     {
       result = c->coeff + i;
