@@ -505,7 +505,6 @@ static void
 subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int *is_missing)
 {
   int i;
-  int k;
   int case_num;
   double residual;
   const union value **vals;
@@ -513,6 +512,8 @@ subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int
   struct ccase c;
 
   assert (lc != NULL);
+  assert (is_missing != NULL);
+
   if (save)
     {
       vals = xnmalloc (n_variables, sizeof (*vals));
@@ -526,7 +527,8 @@ subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int
 		{
 		  vals[i] = case_data (&c, v_variables[i]->fv);
 		}
-	      residual = (*lc->predict) (v_variables, vals, lc, n_variables);
+	      residual = (*lc->predict) ((const struct variable **) v_variables, 
+					 (const union value **) vals, lc, n_variables);
 	    }
 	}
       free (vals);
