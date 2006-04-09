@@ -507,11 +507,13 @@ subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int
   int i;
   int case_num;
   double residual;
-  const union value **vals;
+  const union value **vals = NULL;
+  const union value *obs = NULL;
   struct casereader *r;
   struct ccase c;
 
   assert (lc != NULL);
+  assert (lc->depvar != NULL);
   assert (is_missing != NULL);
 
   if (save)
@@ -526,9 +528,13 @@ subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int
 	      for (i = 0; i < n_variables; ++i)
 		{
 		  vals[i] = case_data (&c, v_variables[i]->fv);
+		  if (v_variables[i]->index == lc->depvar->index)
+		    {
+		      obs = vals[i];
+		    }
 		}
-	      residual = (*lc->predict) ((const struct variable **) v_variables, 
-					 (const union value **) vals, lc, n_variables);
+	      residual = (*lc->residual) ((const struct variable **) v_variables, 
+					  (const union value **) vals, obs, lc, n_variables);
 	    }
 	}
       free (vals);
