@@ -209,7 +209,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
       tmp = pspp_linreg_coeff_get_var (result, 0);
       i++;
     }
-  if (i == c->n_coeffs)
+  if (i > c->n_coeffs)
     {
       return NULL;
     }

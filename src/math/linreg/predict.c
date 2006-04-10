@@ -62,7 +62,7 @@ pspp_linreg_predict (const struct variable **predictors,
     {
       coe = pspp_linreg_get_coeff (c, predictors[j], vals[j]);
       i = 1;
-      while (found[i] != coe && i < c->n_coeffs)
+      while (found[i] == coe && i < c->n_coeffs)
 	{
 	  i++;
 	}
