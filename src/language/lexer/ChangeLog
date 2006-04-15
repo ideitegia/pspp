@@ -1,3 +1,9 @@
+Sat Apr 15 14:30:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: Change DEBUGGING macro to DUMP_TOKENS for clarity and to
+	avoid dumping all the tokens to stdout when --enable-debug is
+	passed to configure.
+
 Fri Mar 10 08:29:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: (dump_free) Free proper member for var list, instead of

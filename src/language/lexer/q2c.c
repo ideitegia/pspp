@@ -336,7 +336,7 @@ find_symbol (int x)
   return iter;
 }
 
-#if DEBUGGING 
+#if DUMP_TOKENS 
 /* Writes a printable representation of the current token to
    stdout. */
 static void
@@ -354,7 +354,7 @@ dump_token (void)
       printf ("PUNCT\t%c\n", token);
     }
 }
-#endif /* DEBUGGING */
+#endif /* DUMP_TOKENS */
 
 /* Reads a token from the input file. */
 static int
@@ -404,7 +404,7 @@ lex_get (void)
   else
     token = *cp++;
   
-#if DEBUGGING
+#if DUMP_TOKENS
   dump_token ();
 #endif
   
