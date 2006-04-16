@@ -30,6 +30,7 @@
 #include <data/case.h>
 #include <data/casefile.h>
 #include <libpspp/message.h>
+#include <language/expressions/public.h>
 
 #include <libpspp/misc.h>
 #include <data/settings.h>

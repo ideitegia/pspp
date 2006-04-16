@@ -1348,6 +1348,8 @@ static int parse_repeating_data (struct dls_var_spec **,
 static void find_variable_input_spec (struct variable *v,
 				      struct fmt_spec *spec);
 
+int cmd_repeating_data (void);
+
 /* Parses the REPEATING DATA command. */
 int
 cmd_repeating_data (void)

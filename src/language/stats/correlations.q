@@ -23,6 +23,7 @@
 #include <libpspp/compiler.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <language/data-io/file-handle.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <data/variable.h>

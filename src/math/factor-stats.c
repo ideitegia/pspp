@@ -185,9 +185,11 @@ metrics_postcalc(struct metrics *m)
 
 
   /* Calculate the percentiles */
-  ptiles(m->ptile_hash, m->wvp, m->n_data, m->n, m->ptile_alg);
+  ptiles (m->ptile_hash, (const struct weighted_value **) m->wvp,
+          m->n_data, m->n, m->ptile_alg);
 
-  tukey_hinges(m->wvp, m->n_data, m->n, m->hinge);
+  tukey_hinges ((const struct weighted_value **) m->wvp,
+                m->n_data, m->n, m->hinge);
 
   /* Special case here */
   if ( k1 + 1 == k2 ) 

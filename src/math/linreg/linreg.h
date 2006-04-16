@@ -191,8 +191,8 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 
 double
 pspp_linreg_predict (const struct variable **, const union value **,
-		     const pspp_linreg_cache *, int);
+		     const void *, int);
 double
 pspp_linreg_residual (const struct variable **, const union value **,
-		      const union value *, const pspp_linreg_cache *, int);
+		      const union value *, const void *, int);
 #endif

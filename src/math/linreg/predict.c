@@ -31,8 +31,9 @@
 double
 pspp_linreg_predict (const struct variable **predictors,
 		     const union value **vals,
-		     const pspp_linreg_cache * c, int n_vals)
+		     const void *c_, int n_vals)
 {
+  const pspp_linreg_cache *c = c_;
   int i;
   int j;
   const struct pspp_linreg_coeff **found;
@@ -86,8 +87,9 @@ double
 pspp_linreg_residual (const struct variable **predictors,
 		      const union value **vals,
 		      const union value *obs,
-		      const pspp_linreg_cache * c, int n_vals)
+		      const void *c_, int n_vals)
 {
+  const pspp_linreg_cache *c = c_;
   double pred;
   double result;
 

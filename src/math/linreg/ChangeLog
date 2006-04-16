@@ -1,3 +1,20 @@
+Sat Apr 15 18:03:01 2006  Ben Pfaff  <blp@gnu.org>
+
+	* predict.c (pspp_linreg_predict): Change prototype to match
+	struct pspp_linreg_cache_struct's predict member.
+	* predict.c (pspp_linreg_residual): Change prototype to match
+	struct pspp_linreg_cache_struct's residual member.
+
+Sat Apr 15 18:01:39 2006  Ben Pfaff  <blp@gnu.org>
+
+	* coefficient.c (pspp_linreg_get_coeff): Compare n_indeps against
+	0, instead of NULL, because it's an integer type.
+
+Mon Apr  3 13:20:54 2006  Ben Pfaff  <blp@gnu.org>
+
+	* linreg.c (pspp_linreg): Move declaration before code for C90
+	compliance.
+
 2006-04-09  Jason Stover  <jhs@math.gcsu.edu>
 
 	* predict.c (pspp_linreg_predict): Do something sensible even with

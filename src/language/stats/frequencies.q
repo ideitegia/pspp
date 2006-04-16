@@ -54,6 +54,7 @@
 #include <output/charts/piechart.h>
 #include <output/chart.h>
 #include <output/charts/plot-hist.h>
+#include <math/histogram.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

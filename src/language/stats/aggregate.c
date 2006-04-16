@@ -28,7 +28,9 @@
 #include <data/dictionary.h>
 #include <libpspp/message.h>
 #include <data/file-handle-def.h>
+#include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
+#include <language/stats/sort-criteria.h>
 #include <libpspp/misc.h>
 #include <math/moments.h>
 #include <libpspp/pool.h>

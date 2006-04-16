@@ -1,3 +1,8 @@
+Sat Apr 15 18:00:32 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-list.c: Add prototype to suppress warning for
+	cmd_repeating_data().
+	
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

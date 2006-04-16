@@ -23,9 +23,9 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <math/moments.h>
-#include "xalloc.h"
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
+#include "xalloc.h"
 
 #define _(msgid) gettext (msgid)
 

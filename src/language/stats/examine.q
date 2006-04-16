@@ -285,12 +285,13 @@ output_examine(void)
 	    {
 	      if ( cmd.cmp == XMN_GROUPS ) 
 		{
-		  box_plot_group(0, dependent_vars, n_dependent_vars, 
-				 cmd.v_id);
+		  box_plot_group (0, (const struct variable **) dependent_vars,
+                                  n_dependent_vars, cmd.v_id);
 		}
 	      else
-		box_plot_variables(0, dependent_vars, n_dependent_vars,
-				   cmd.v_id);
+		box_plot_variables (0,
+                                    (const struct variable **) dependent_vars,
+                                    n_dependent_vars, cmd.v_id);
 	    }
 
 	  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
@@ -342,11 +343,13 @@ output_examine(void)
 	  if ( cmd.a_plot[XMN_PLT_BOXPLOT] )
 	    {
 	      if ( cmd.cmp == XMN_VARIABLES ) 
-		box_plot_variables(fctr, dependent_vars, n_dependent_vars, 
-				   cmd.v_id);
+		box_plot_variables (fctr,
+                                    (const struct variable **) dependent_vars,
+                                    n_dependent_vars, cmd.v_id);
 	      else
-		box_plot_group(fctr, dependent_vars, n_dependent_vars, 
-			       cmd.v_id);
+		box_plot_group (fctr,
+                                (const struct variable **) dependent_vars,
+                                n_dependent_vars, cmd.v_id);
 	    }
 
 	  for ( v = 0 ; v < n_dependent_vars; ++v )

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <config.h>
 #include <language/command.h>
+#include <language/stats/sort-criteria.h>
 #include <libpspp/compiler.h>
 #include <data/dictionary.h>
 #include <math/sort.h>

@@ -196,7 +196,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
     {
       return NULL;
     }
-  if (c->coeff == NULL || c->n_indeps == NULL || v == NULL)
+  if (c->coeff == NULL || c->n_indeps == 0 || v == NULL)
     {
       return NULL;
     }
