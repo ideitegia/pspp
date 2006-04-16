@@ -1,4 +1,4 @@
-Time-stamp: <2006-02-17 22:06:31 blp>
+Time-stamp: <2006-04-15 18:11:46 blp>
 
 Get rid of need for GNU diff in `make check'.
 
@@ -27,9 +27,6 @@ strd.itl.nist.gov/div898/strd
 
 In debug mode hash table code should verify that collisions are reasonably low.
 
-Use AFM files instead of Groff font files, and include AFMs for our default
-fonts with the distribution.
-
 Storage of value labels on disk is inefficient.  Invent new data structure.
 
 Add an output flag which would cause a page break if a table segment could fit
@@ -39,34 +36,8 @@ Fix spanned joint cells, i.e., EDLEVEL on crosstabs.stat.
 
 Cell footnotes.
 
-PostScript driver should emit thin lines, then thick lines, to optimize time
-and space.
-
 Should be able to bottom-justify cells.  It'll be expensive, though, by
 requiring an extra metrics call.
-
-Perhaps instead of the current lines we should define the following line types:
-null, thin, thick, double.  It might look pretty classy.
-
-Perhaps thick table borders that are cut off by a page break should decay to
-thin borders.  (i.e., on a thick bordered table that's longer than one page,
-but narrow, the bottom border would be thin on the first page, and the top and
-bottom borders on middle pages.)
-
-Support multi-line titles on tables. (For the first page only, presumably.)
-
-In addition to searching the source directory, we should search the current
-directory (for data files).  (Yuck!)
-
-Fix line-too-long problems in PostScript code, instead of covering them up.
-setlinecap is *not* a proper solution.
-
-Fix som_columns().
-
-Improve interactivity of output by allowing a `commit' function for a page.
-This will also allow for infinite-length pages.
-
-Implement thin single lines, should be pretty easy now.
 
 SELECT IF should be moved before other transformations whenever possible.  It
 should only be impossible when one of the variables referred to in SELECT IF is
@@ -104,12 +75,6 @@ postscript drivers, but it's not good in the general case.  Should they be
 split somehow?  (One way that wide columns can occur is through user request,
 for instance through a wide PRINT request--try time-date.stat with a narrow
 ascii page or with the postscript driver on letter size paper.)
-
-NULs in input files break the products we're replacing: although it will input
-them properly and display them properly as AHEX format, it truncates them in A
-format.  Also, string-manipulation functions such as CONCAT truncate their
-results after the first NUL.  This should simplify the result of PSPP design.
-Perhaps those ugly a_string, b_string, ..., can all be eliminated.
 
 From Moshe Braner <mbraner@nessie.vdh.state.vt.us>: An idea regarding MATCH
 FILES, again getting BEYOND the state of SPSS: it always bothered me that if I
