@@ -35,8 +35,6 @@
 
 /* (headers) */
 
-#include <libpspp/debug-print.h>
-
 /* (specification)
    means (mns_):
      *tables=custom;

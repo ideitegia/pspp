@@ -42,8 +42,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* FIXME: /N subcommand not implemented.  It should be pretty simple,
    too. */
 
@@ -1123,7 +1121,6 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	if (mx->fmt != FREE
             && !force_eol (mx->reader, content_names[content]))
 	  return 0;
-	debug_printf (("\n"));
       }
 
       if (mx->section == LOWER)
@@ -1419,11 +1416,8 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
 	    size_t factor;
 
 	    for (factor = 0; factor < mx->n_factors; factor++)
-	      {
-		case_data_rw (c, mx->factors[factor]->fv)->f
-		  = nr->factor_values[factor + cell * mx->n_factors];
-		debug_printf (("f:%s ", mx->factors[factor]->name));
-	      }
+              case_data_rw (c, mx->factors[factor]->fv)->f
+                = nr->factor_values[factor + cell * mx->n_factors];
 	  }
 	  
 	  {
@@ -1973,8 +1967,6 @@ wr_read_indeps (struct wr_aux_data *wr)
     }
   c->n_rows[wr->content]++;
 
-  debug_printf ((" (c=%p,r=%d,n=%d)", c, n_rows + 1, n_cols));
-
   /* Read N_COLS items at CP. */
   {
     int j;
@@ -1997,7 +1989,6 @@ wr_read_indeps (struct wr_aux_data *wr)
     if (mx->fmt != FREE
         && !force_eol (mx->reader, content_names[wr->content]))
       return 0;
-    debug_printf (("\n"));
   }
 
   return 1;

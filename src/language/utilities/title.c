@@ -34,8 +34,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 static int get_title (const char *cmd, char **title);
 
 int
@@ -56,7 +54,6 @@ get_title (const char *cmd, char **title)
   int c;
 
   c = lex_look_ahead ();
-  debug_printf ((_("%s before: %s\n"), cmd, *title ? *title : _("<none>")));
   if (c == '"' || c == '\'')
     {
       lex_get ();
@@ -84,7 +81,6 @@ get_title (const char *cmd, char **title)
 	*cp = toupper ((unsigned char) (*cp));
       token = '.';
     }
-  debug_printf ((_("%s after: %s\n"), cmd, *title));
   return CMD_SUCCESS;
 }
 

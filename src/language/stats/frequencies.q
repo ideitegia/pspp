@@ -62,8 +62,6 @@
 
 /* (headers) */
 
-#include <libpspp/debug-print.h>
-
 /* (specification)
    FREQUENCIES (frq_):
      *variables=custom;

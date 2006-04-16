@@ -37,8 +37,6 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-#include <libpspp/debug-print.h>
 
 struct som_table_class tab_table_class;
 static char *command_name;

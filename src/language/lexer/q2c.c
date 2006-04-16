@@ -41,8 +41,6 @@
 #endif
 
      
-#include <libpspp/debug-print.h>
-
 /* Max length of an input line. */
 #define MAX_LINE_LEN 1024
 

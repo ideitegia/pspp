@@ -40,8 +40,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* Indicates how a `union value' should be initialized. */
 enum value_init_type
   {

@@ -47,8 +47,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* portable_to_local[PORTABLE] translates the given portable
    character into the local character set. */
 static const char portable_to_local[256] =

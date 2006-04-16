@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "output.h"
-#include <libpspp/debug-print.h>
 
 /* Table. */
 int table_num = 1;

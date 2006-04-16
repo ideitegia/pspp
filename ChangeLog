@@ -1,3 +1,8 @@
+Sat Apr 15 21:45:40 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of src/libpspp/debug-print.h and all its users.  (There
+	were few real users, but many inclusions of its header file.)
+
 Sat Apr 15 19:51:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of our own int32 type in favor of the standard int32_t

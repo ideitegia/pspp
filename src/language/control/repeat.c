@@ -39,8 +39,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* Defines a list of lines used by DO REPEAT. */
 struct line_list
   {

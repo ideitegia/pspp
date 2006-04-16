@@ -34,8 +34,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* The two different types of samples. */
 enum
   {

@@ -60,8 +60,6 @@
 
 /* (headers) */
 
-#include <libpspp/debug-print.h>
-
 /* (specification)
    crosstabs (crs_):
      *^tables=custom;

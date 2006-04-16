@@ -29,7 +29,6 @@
 #include <language/command.h>
 #include <libpspp/compiler.h>
 #include <data/data-in.h>
-#include <libpspp/debug-print.h>
 #include <language/data-io/data-reader.h>
 #include <data/dictionary.h>
 #include <libpspp/message.h>

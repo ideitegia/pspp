@@ -30,8 +30,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 int
 cmd_variable_labels (void)
 {

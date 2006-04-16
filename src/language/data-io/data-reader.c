@@ -37,8 +37,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* Flags for DFM readers. */
 enum dfm_reader_flags
   {

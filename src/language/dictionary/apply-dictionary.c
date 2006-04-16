@@ -34,8 +34,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* Parses and executes APPLY DICTIONARY. */
 int
 cmd_apply_dictionary (void)

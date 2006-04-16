@@ -27,8 +27,6 @@
 #include <libpspp/str.h>
 #include <data/variable.h>
 
-#include <libpspp/debug-print.h>
-
 /* Set variables' alignment
    This is the alignment for GUI display only.
    It affects nothing but GUIs

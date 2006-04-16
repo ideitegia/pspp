@@ -29,8 +29,6 @@
 #include <data/variable.h>
 /* (headers) */
 
-#include <libpspp/debug-print.h>
-
 struct cor_set
   {
     struct cor_set *next;

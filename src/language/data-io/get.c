@@ -43,8 +43,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* Rearranging and reducing a dictionary. */
 static void start_case_map (struct dictionary *);
 static struct case_map *finish_case_map (struct dictionary *);
@@ -734,8 +732,6 @@ keep_variables (struct dictionary *dict)
 }
 
 /* MATCH FILES. */
-
-#include <libpspp/debug-print.h>
 
 /* File types. */
 enum

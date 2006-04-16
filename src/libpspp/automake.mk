@@ -12,7 +12,6 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/copyleft.c \
 	src/libpspp/copyleft.h \
 	src/libpspp/compiler.h \
-	src/libpspp/debug-print.h \
 	src/libpspp/freaderror.c \
 	src/libpspp/freaderror.h \
 	src/libpspp/hash.c \

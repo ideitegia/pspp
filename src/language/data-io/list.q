@@ -45,8 +45,6 @@
 
 /* (headers) */
 
-#include <libpspp/debug-print.h>
-
 /* (specification)
    list (lst_):
      *variables=varlist("PV_NO_SCRATCH");

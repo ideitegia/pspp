@@ -55,8 +55,6 @@
 
 #include <stdlib.h>
 
-#include <libpspp/debug-print.h>
-
 static void i18n_init (void);
 static void fpu_init (void);
 static void handle_error (int code);

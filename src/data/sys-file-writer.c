@@ -46,8 +46,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <libpspp/debug-print.h>
-
 /* Compression bias used by PSPP.  Values between (1 -
    COMPRESSION_BIAS) and (251 - COMPRESSION_BIAS) inclusive can be
    compressed. */
