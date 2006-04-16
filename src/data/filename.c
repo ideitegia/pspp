@@ -160,53 +160,40 @@ fn_interp_vars (struct string *target,
 char *
 fn_tilde_expand (const char *input)
 {
-  const char *ip;
-  struct string output;
+  struct string output = DS_INITIALIZER;
+  if (input[0] == '~')
+    {
+      const char *home = NULL;
+      const char *remainder = NULL;
+      if (input[1] == '/' || input[1] == '\0')
+        {
+          home = fn_getenv ("HOME");
+          remainder = input + 1; 
+        }
+      else
+        {
+          struct string user_name = DS_INITIALIZER;
+          struct passwd *pwd;
 
-  if (NULL == strchr (input, '~'))
-    return xstrdup (input);
-  ds_init (&output, strlen (input));
+          ds_assign_buffer (&user_name, input + 1, strcspn (input + 1, "/"));
+          pwd = getpwnam (ds_c_str (&user_name));
+          if (pwd != NULL && pwd->pw_dir[0] != '\0')
+            {
+              home = pwd->pw_dir;
+              remainder = input + 1 + ds_length (&user_name);
+            }
+          ds_destroy (&user_name);
+        }
 
-  ip = input;
-
-  for (ip = input; *ip; )
-    if (*ip != '~' || (ip != input && ip[-1] != PATH_DELIMITER))
-      ds_putc (&output, *ip++);
-    else
-      {
-	static const char stop_set[3] = {DIR_SEPARATOR, PATH_DELIMITER, 0};
-	const char *cp;
-	
-	ip++;
-
-	cp = ip + strcspn (ip, stop_set);
-
-	if (cp > ip)
-	  {
-	    struct passwd *pwd;
-	    char username[9];
-
-	    strncpy (username, ip, cp - ip + 1);
-	    username[8] = 0;
-	    pwd = getpwnam (username);
-
-	    if (!pwd || !pwd->pw_dir)
-	      ds_putc (&output, *ip++);
-	    else
-	      ds_puts (&output, pwd->pw_dir);
-	  }
-	else
-	  {
-	    const char *home = fn_getenv ("HOME");
-	    if (!home)
-	      ds_putc (&output, *ip++);
-	    else
-	      ds_puts (&output, home);
-	  }
-
-	ip = cp;
-      }
-
+      if (home != NULL) 
+        {
+          ds_puts (&output, home);
+          if (*remainder != '\0')
+            ds_puts (&output, remainder);
+        }
+    }
+  if (ds_is_empty (&output))
+    ds_puts (&output, input);
   return ds_c_str (&output);
 }
 #else /* !unix */
@@ -232,24 +219,27 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
   struct string path;
   struct string dir = DS_INITIALIZER;
   struct string file = DS_INITIALIZER;
-  char *tmp_str;
   size_t save_idx = 0;
 
   if (fn_absolute_p (base_name))
     return fn_tilde_expand (base_name);
 
-  /* Interpolate environment variables and do tilde-expansion. */
+  /* Interpolate environment variables. */
   ds_create (&path, path_);
   fn_interp_vars (&path, fn_getenv);
-
-  tmp_str = fn_tilde_expand (ds_c_str (&path));
-  ds_assign_c_str (&path, tmp_str);
-  free (tmp_str); 
 
   verbose_msg (2, _("searching for \"%s\" in path \"%s\""),
                base_name, ds_c_str (&path));
   while (ds_separate (&path, &dir, PATH_DELIMITER_STRING, &save_idx))
     {
+      /* Do tilde expansion. */
+      if (ds_first (&dir) == '~') 
+        {
+          char *tmp_str = fn_tilde_expand (ds_c_str (&dir));
+          ds_assign_c_str (&dir, tmp_str);
+          free (tmp_str); 
+        }
+
       /* Construct file name. */
       ds_clear (&file);
       if (prefix != NULL && !fn_absolute_p (ds_c_str (&dir)))
