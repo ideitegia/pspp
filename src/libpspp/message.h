@@ -28,7 +28,6 @@
 enum
   {
     SE, SW, SM,			/* Script error/warning/message. */
-    IE, IS,			/* Installation error/script error. */
     DE, DW,			/* Data-file error/warning. */
     ME, MW, MM,			/* General error/warning/message. */
     ERR_CLASS_COUNT,		/* Number of message classes. */

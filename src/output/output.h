@@ -70,7 +70,7 @@ struct outp_class
     const char *name;		/* Name of this driver class. */
     int special;		/* Boolean value. */
 
-    bool (*open_driver) (struct outp_driver *, const char *options);
+    bool (*open_driver) (struct outp_driver *, const struct string *options);
     bool (*close_driver) (struct outp_driver *);
 
     void (*open_page) (struct outp_driver *);
@@ -148,7 +148,7 @@ void outp_list_classes (void);
 void outp_enable_device (int enable, int device);
 struct outp_driver *outp_drivers (struct outp_driver *);
 
-bool outp_parse_options (const char *options,
+bool outp_parse_options (const struct string *options,
                          bool (*) (struct outp_driver *, const char *key,
                                    const struct string *value),
                          struct outp_driver *);

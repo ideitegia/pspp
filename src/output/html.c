@@ -20,7 +20,6 @@
 #include <config.h>
 #include "chart.h"
 #include "htmlP.h"
-#include <libpspp/message.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -29,7 +28,6 @@
 
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include <libpspp/message.h>
 #include <data/filename.h>
 #include "error.h"
 #include "getline.h"
@@ -52,7 +50,7 @@ static void print_title_tag (FILE *file, const char *name,
                              const char *content);
 
 static bool
-html_open_driver (struct outp_driver *this, const char *options)
+html_open_driver (struct outp_driver *this, const struct string *options)
 {
   struct html_driver_ext *x;
 

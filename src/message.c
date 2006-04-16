@@ -144,9 +144,6 @@ err_vmsg (const struct error *e, const char *format, va_list args)
       {3, &err_warning_count, N_("warning")},	/* SW */
       {3, NULL, N_("note")},			/* SM */
 
-      {0, NULL, N_("installation error")},	/* IE */
-      {2, NULL, N_("installation error")},	/* IS */
-
       {2, &err_error_count, N_("error")},	/* DE */
       {2, &err_warning_count, N_("warning")},	/* DW */
 

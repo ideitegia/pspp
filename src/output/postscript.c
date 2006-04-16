@@ -31,7 +31,6 @@
 #include <libpspp/compiler.h>
 #include <libpspp/freaderror.h>
 #include <libpspp/hash.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
@@ -130,7 +129,7 @@ static void setup_font (struct outp_driver *this, struct font *, int index);
 /* Driver initialization. */
 
 static bool
-ps_open_driver (struct outp_driver *this, const char *options)
+ps_open_driver (struct outp_driver *this, const struct string *options)
 {
   struct ps_driver_ext *x;
   size_t i;

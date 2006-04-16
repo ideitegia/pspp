@@ -27,7 +27,6 @@
 #include <data/filename.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include <libpspp/message.h>
 #include <libpspp/pool.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
@@ -123,7 +122,7 @@ static bool handle_option (struct outp_driver *this, const char *key,
                            const struct string *val);
 
 static bool
-ascii_open_driver (struct outp_driver *this, const char *options)
+ascii_open_driver (struct outp_driver *this, const struct string *options)
 {
   struct ascii_driver_ext *x;
   int i;

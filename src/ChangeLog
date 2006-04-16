@@ -1,3 +1,11 @@
+Sun Apr 16 11:46:51 2006  Ben Pfaff  <blp@gnu.org>
+
+	Start reforming error message support.  In this phase, we get rid
+	of "installation errors" and change all uses of msg() in the
+	output drivers to uses of error() or error_at_line().
+
+	* message.c: (err_vmsg) Get rid of IE, IS support.
+
 Sat Mar 11 14:17:47 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* automake.mk: Changed the pattern specific AM_CPPFLAGS to two target 

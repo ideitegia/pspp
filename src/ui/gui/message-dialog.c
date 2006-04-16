@@ -52,7 +52,6 @@ vmsg(int klass, const char *fmt, va_list args)
   switch (klass)
     {
     case SE:
-    case IE:
     case DE:
     case ME:
       message_type = GTK_MESSAGE_ERROR;
@@ -63,7 +62,6 @@ vmsg(int klass, const char *fmt, va_list args)
       message_type = GTK_MESSAGE_WARNING;
       break;
     case SM:
-    case IS:
     case MM:
     default:
       message_type = GTK_MESSAGE_INFO;
@@ -76,11 +74,6 @@ vmsg(int klass, const char *fmt, va_list args)
     case SW:
     case SM:
       msg = g_strdup(_("Script Error"));
-      break;
-
-    case IE:
-    case IS:
-      msg = g_strdup(_("Installation Error"));
       break;
 
     case DE:

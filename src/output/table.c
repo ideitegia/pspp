@@ -23,7 +23,6 @@
 #include <stdarg.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <libpspp/message.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <data/format.h>

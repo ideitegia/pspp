@@ -19,19 +19,18 @@
 
 #include <config.h>
 #include "output.h"
-#include <libpspp/message.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
 #include <libpspp/alloc.h>
-#include <libpspp/message.h>
 #include <data/filename.h>
 #include "htmlP.h"
 #include "intprops.h"
 #include <libpspp/misc.h>
 #include <data/settings.h>
 #include <libpspp/str.h>
+#include "error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -163,9 +162,10 @@ check_configure_vec (void)
 
   for (n = outp_configure_vec; n; n = n->next)
     if (n->source == OUTP_S_COMMAND_LINE)
-      msg (ME, _("Unknown output driver `%s'."), n->name);
+      error (0, 0, _("unknown output driver `%s'"), n->name);
     else
-      msg (IE, _("Output driver `%s' referenced but never defined."), n->name);
+      error (0, 0, _("output driver `%s' referenced but never defined"),
+             n->name);
   outp_configure_clear ();
 }
 
@@ -258,7 +258,7 @@ init_default_drivers (void)
 {
   struct string s;
 
-  msg (MM, _("Using default output driver configuration."));
+  error (0, 0, _("using default output driver configuration"));
 
   ds_create (&s,
              "list:ascii:listing:"
@@ -278,41 +278,39 @@ outp_read_devices (void)
 
   FILE *f = NULL;
   struct string line;
-  struct file_locator where;
+  int line_number;
 
   init_fn = fn_search_path (fn_getenv_default ("STAT_OUTPUT_INIT_FILE",
 					       "devices"),
 			    fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
 					       config_path),
 			    NULL);
-  where.filename = init_fn;
-  where.line_number = 0;
-  err_push_file_locator (&where);
 
   ds_init (&line, 128);
 
   if (init_fn == NULL)
     {
-      msg (IE, _("Cannot find output initialization file.  "
-                 "Use `-vvvvv' to view search path."));
+      error (0, 0, _("cannot find output initialization file "
+                     "(use `-vvvvv' to view search path)"));
       goto exit;
     }
 
   f = fopen (init_fn, "r");
   if (f == NULL)
     {
-      msg (IE, _("Opening %s: %s."), init_fn, strerror (errno));
+      error (0, errno, _("cannot open \"%s\""), init_fn);
       goto exit;
     }
 
+  line_number = 0;
   for (;;)
     {
       char *cp;
 
-      if (!ds_get_config_line (f, &line, &where.line_number))
+      if (!ds_get_config_line (f, &line, &line_number))
 	{
 	  if (ferror (f))
-	    msg (ME, _("Reading %s: %s."), init_fn, strerror (errno));
+	    error (0, errno, _("reading \"%s\""), init_fn);
 	  break;
 	}
       for (cp = ds_c_str (&line); isspace ((unsigned char) *cp); cp++);
@@ -334,7 +332,7 @@ outp_read_devices (void)
 		}
 	    }
 	  else
-	    msg (IS, _("Syntax error."));
+	    error_at_line (0, 0, init_fn, line_number, _("syntax error"));
 	}
     }
   result = 1;
@@ -342,9 +340,8 @@ outp_read_devices (void)
   check_configure_vec ();
 
 exit:
-  err_pop_file_locator (&where);
   if (f && -1 == fclose (f))
-    msg (MW, _("Closing %s: %s."), init_fn, strerror (errno));
+    error (0, errno, _("error closing \"%s\""), init_fn);
   free (init_fn);
   ds_destroy (&line);
   delete_macros ();
@@ -352,10 +349,10 @@ exit:
   if (result) 
     {
       if (outp_driver_list == NULL) 
-        msg (MW, _("No output drivers are active.")); 
+        error (0, 0, _("no active output drivers")); 
     }
   else
-    msg (VM (1), _("Error reading device definition file."));
+    error (0, 0, _("error reading device definition file"));
 
   if (!result || outp_driver_list == NULL)
     init_default_drivers ();
@@ -488,177 +485,174 @@ outp_list_classes (void)
   putc('\n', stdout);
 }
 
-static int op_token;		/* `=', 'a', 0. */
-static struct string op_tokstr;
-static const char *prog;
+/* Obtains a token from S starting at position *POS, which is
+   updated.  Errors are reported against the given DRIVER_NAME.
+   The token is stored in TOKEN.  Returns true if successful,
+   false on syntax error.
 
-/* Parses a token from prog into op_token, op_tokstr.  Sets op_token
-   to '=' on an equals sign, to 'a' on a string or identifier token,
-   or to 0 at end of line.  Returns the new op_token. */
-static int
-tokener (void)
+   Caller is responsible for skipping leading spaces. */
+static bool
+get_option_token (const struct string *s, const char *driver_name,
+                  size_t *pos, struct string *token)
 {
-  if (op_token == 0)
+  int c;
+  
+  ds_clear (token);
+  c = ds_at (s, *pos);
+  if (c == EOF)
     {
-      msg (IS, _("Syntax error."));
-      return 0;
+      error (0, 0, _("syntax error parsing options for \"%s\" driver"),
+             driver_name);
+      return false;
     }
-
-  while (isspace ((unsigned char) *prog))
-    prog++;
-  if (!*prog)
+  else if (c == '\'' || c == '"')
     {
-      op_token = 0;
-      return 0;
-    }
+      int quote = c;
 
-  if (*prog == '=')
-    op_token = *prog++;
-  else
-    {
-      ds_clear (&op_tokstr);
-
-      if (*prog == '\'' || *prog == '"')
-	{
-	  int quote = *prog++;
-
-	  while (*prog && *prog != quote)
-	    {
-	      if (*prog != '\\')
-		ds_putc (&op_tokstr, *prog++);
-	      else
-		{
-		  int c;
+      ++*pos;
+      for (;;)
+        {
+          c = ds_at (s, (*pos)++);
+          if (c == quote)
+            break;
+          else if (c == EOF) 
+            {
+              error (0, 0,
+                     _("reached end of options inside quoted string "
+                       "parsing options for \"%s\" driver"),
+                     driver_name);
+              return false;
+            }
+          else if (c != '\\')
+            ds_putc (token, c);
+          else
+            {
+              int out;
 		  
-		  prog++;
-		  assert ((int) *prog);	/* How could a line end in `\'? */
-		  switch (*prog++)
-		    {
-		    case '\'':
-		      c = '\'';
-		      break;
-		    case '"':
-		      c = '"';
-		      break;
-		    case '?':
-		      c = '?';
-		      break;
-		    case '\\':
-		      c = '\\';
-		      break;
-		    case '}':
-		      c = '}';
-		      break;
-		    case 'a':
-		      c = '\a';
-		      break;
-		    case 'b':
-		      c = '\b';
-		      break;
-		    case 'f':
-		      c = '\f';
-		      break;
-		    case 'n':
-		      c = '\n';
-		      break;
-		    case 'r':
-		      c = '\r';
-		      break;
-		    case 't':
-		      c = '\t';
-		      break;
-		    case 'v':
-		      c = '\v';
-		      break;
-		    case '0':
-		    case '1':
-		    case '2':
-		    case '3':
-		    case '4':
-		    case '5':
-		    case '6':
-		    case '7':
-		      {
-			c = prog[-1] - '0';
-			while (*prog >= '0' && *prog <= '7')
-			  c = c * 8 + *prog++ - '0';
-		      }
-		      break;
-		    case 'x':
-		    case 'X':
-		      {
-			c = 0;
-			while (isxdigit ((unsigned char) *prog))
-			  {
-			    c *= 16;
-			    if (isdigit ((unsigned char) *prog))
-			      c += *prog - '0';
-			    else
-			      c += (tolower ((unsigned char) (*prog))
-				    - 'a' + 10);
-			    prog++;
-			  }
-		      }
-		      break;
-		    default:
-		      msg (IS, _("Syntax error in string constant."));
-                      continue;
-		    }
-		  ds_putc (&op_tokstr, (unsigned char) c);
-		}
-	    }
-	  prog++;
-	}
-      else
-	while (*prog && !isspace ((unsigned char) *prog) && *prog != '=')
-	  ds_putc (&op_tokstr, *prog++);
-      op_token = 'a';
-    }
+              switch (ds_at (s, *pos))
+                {
+                case '\'':
+                  out = '\'';
+                  break;
+                case '"':
+                  out = '"';
+                  break;
+                case '\\':
+                  out = '\\';
+                  break;
+                case 'a':
+                  out = '\a';
+                  break;
+                case 'b':
+                  out = '\b';
+                  break;
+                case 'f':
+                  out = '\f';
+                  break;
+                case 'n':
+                  out = '\n';
+                  break;
+                case 'r':
+                  out = '\r';
+                  break;
+                case 't':
+                  out = '\t';
+                  break;
+                case 'v':
+                  out = '\v';
+                  break;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                  out = c - '0';
+                  while (ds_at (s, *pos) >= '0' && ds_at (s, *pos) <= '7')
+                    out = c * 8 + ds_at (s, (*pos)++) - '0';
+                  break;
+                case 'x':
+                case 'X':
+                  out = 0;
+                  while (isxdigit (ds_at (s, *pos)))
+                    {
+                      c = ds_at (s, *pos);
+                      if (!isxdigit (c))
+                          break;
+                      (*pos)++;
 
+                      out *= 16;
+                      if (isdigit (c))
+                        out += c - '0';
+                      else
+                        out += tolower (c) - 'a' + 10;
+                    }
+                  break;
+                default:
+                  error (0, 0, _("syntax error in string constant "
+                                 "parsing options for \"%s\" driver"),
+                         driver_name);
+                  return false;
+                }
+              ds_putc (token, out);
+            }
+        }
+    }
+  else 
+    {
+      do
+        {
+          ds_putc (token, c);
+          c = ds_at (s, ++*pos);
+        }
+      while (c != EOF && c != '=' && !isspace (c));
+    }
+  
   return 1;
 }
 
 bool
-outp_parse_options (const char *options,
+outp_parse_options (const struct string *options,
                     bool (*callback) (struct outp_driver *, const char *key,
                                       const struct string *value),
                     struct outp_driver *driver)
 {
+  struct string key = DS_INITIALIZER;
+  struct string value = DS_INITIALIZER;
+  size_t pos = 0;
   bool ok = true;
 
-  prog = options;
-  op_token = -1;
-
-  ds_init (&op_tokstr, 64);
-  while (ok && tokener ())
+  do
     {
-      char key[65];
+      pos += ds_span (options, pos, " \t");
+      if (ds_at (options, pos) == EOF)
+        break;
+      
+      if (!get_option_token (options, driver->name, &pos, &key))
+        break;
 
-      if (op_token != 'a')
+      pos += ds_span (options, pos, " \t");
+      if (ds_at (options, pos) != '=')
 	{
-	  msg (IS, _("Syntax error in options."));
+	  error (0, 0, _("syntax error expecting `=' "
+                         "parsing options for driver \"%s\""),
+                 driver->name);
 	  break;
 	}
+      pos++;
+      
+      pos += ds_span (options, pos, " \t");
+      if (!get_option_token (options, driver->name, &pos, &value))
+        break;
 
-      ds_truncate (&op_tokstr, 64);
-      strcpy (key, ds_c_str (&op_tokstr));
-
-      tokener ();
-      if (op_token != '=')
-	{
-	  msg (IS, _("Syntax error in options (`=' expected)."));
-	  break;
-	}
-
-      tokener ();
-      if (op_token != 'a')
-	{
-	  msg (IS, _("Syntax error in options (value expected after `=')."));
-	  break;
-	}
-      ok = callback (driver, key, &op_tokstr);
+      ok = callback (driver, ds_c_str (&key), &value);
     }
-  ds_destroy (&op_tokstr);
+  while (ok);
+  
+  ds_destroy (&key);
+  ds_destroy (&value);
 
   return ok;
 }
@@ -695,7 +689,8 @@ configure_driver (const struct string *driver_name,
       break;
   if (c == NULL)
     {
-      msg (IS, _("Unknown output driver class `%s'."), ds_c_str (class_name));
+      error (0, 0, _("unknown output driver class `%s'"),
+             ds_c_str (class_name));
       return;
     }
   
@@ -716,7 +711,7 @@ configure_driver (const struct string *driver_name,
 	  else if (!strcmp (type, "printer"))
 	    device |= OUTP_DEV_PRINTER;
 	  else
-            msg (IS, _("Unknown device type `%s'."), type);
+            error (0, 0, _("unknown device type `%s'"), type);
 	}
       ds_destroy (&token);
     }
@@ -733,10 +728,10 @@ configure_driver (const struct string *driver_name,
   d->prc = NULL;
 
   /* Open driver. */
-  if (!d->class->open_driver (d, ds_c_str (options)))
+  if (!d->class->open_driver (d, options))
     {
-      msg (IS, _("Can't initialize output driver `%s' of class `%s'."),
-	   d->name, d->class->name);
+      error (0, 0, _("cannot initialize output driver `%s' of class `%s'"),
+             d->name, d->class->name);
       free (d->name);
       free (d);
       return;
@@ -780,7 +775,8 @@ configure_driver_line (struct string *line)
   if (!ds_is_empty (&tokens[0]) && !ds_is_empty (&tokens[1]))
     configure_driver (&tokens[0], &tokens[1], &tokens[2], &tokens[3]);
   else
-    msg (IS, _("Driver definition line missing driver name or class name"));
+    error (0, 0,
+           _("driver definition line missing driver name or class name"));
 
   for (i = 0; i < 4; i++) 
     ds_destroy (&tokens[i]);
@@ -926,7 +922,8 @@ outp_evaluate_dimension (char *dimen, char **tail)
 	    factor = 72000 / 72.27 / 65536.0;
 	    break;
 	  default:
-	    msg (SE, _("Unit \"%s\" is unknown in dimension \"%s\"."), s, dimen);
+	    error (0, 0,
+                   _("unit \"%s\" is unknown in dimension \"%s\""), s, dimen);
 	    *tail = NULL;
 	    return 0;
 	  }
@@ -941,7 +938,7 @@ outp_evaluate_dimension (char *dimen, char **tail)
 
 lossage:
   *tail = NULL;
-  msg (SE, _("Bad dimension \"%s\"."), dimen);
+  error (0, 0, _("bad dimension \"%s\""), dimen);
   return 0;
 }
 
@@ -967,7 +964,7 @@ internal_get_paper_size (char *size, int *h, int *v)
     tail += 2;
   else
     {
-      msg (SE, _("`x' expected in paper size `%s'."), size);
+      error (0, 0, _("`x' expected in paper size `%s'"), size);
       return 0;
     }
   *v = outp_evaluate_dimension (tail, &tail);
@@ -977,7 +974,7 @@ internal_get_paper_size (char *size, int *h, int *v)
     tail++;
   if (*tail)
     {
-      msg (SE, _("Trailing garbage `%s' on paper size `%s'."), tail, size);
+      error (0, 0, _("trailing garbage `%s' on paper size `%s'"), tail, size);
       return 0;
     }
   
@@ -1000,20 +997,15 @@ outp_get_paper_size (char *size, int *h, int *v)
       int h, v;
     };
 
-  static struct paper_size cache[4];
-  static int use;
-
   FILE *f;
   char *pprsz_fn;
 
   struct string line;
-  struct file_locator where;
+  int line_number = 0;
 
   int free_it = 0;
   int result = 0;
-  int min_value, min_index;
   char *ep;
-  int i;
 
   while (isspace ((unsigned char) *size))
     size++;
@@ -1026,7 +1018,7 @@ outp_get_paper_size (char *size, int *h, int *v)
     ep--;
   if (ep == size)
     {
-      msg (SE, _("Paper size name must not be empty."));
+      error (0, 0, _("paper size name cannot be empty"));
       return 0;
     }
   
@@ -1034,37 +1026,24 @@ outp_get_paper_size (char *size, int *h, int *v)
   if (*ep)
     *ep = 0;
 
-  use++;
-  for (i = 0; i < 4; i++)
-    if (cache[i].name != NULL && !strcasecmp (cache[i].name, size))
-      {
-	*h = cache[i].h;
-	*v = cache[i].v;
-	cache[i].use = use;
-	return 1;
-      }
-
   pprsz_fn = fn_search_path (fn_getenv_default ("STAT_OUTPUT_PAPERSIZE_FILE",
 						"papersize"),
 			     fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
 						config_path),
 			     NULL);
 
-  where.filename = pprsz_fn;
-  where.line_number = 0;
-  err_push_file_locator (&where);
   ds_init (&line, 128);
 
   if (pprsz_fn == NULL)
     {
-      msg (IE, _("Cannot find `papersize' configuration file."));
+      error (0, 0, _("cannot find `papersize' configuration file"));
       goto exit;
     }
 
   f = fopen (pprsz_fn, "r");
   if (!f)
     {
-      msg (IE, _("Opening %s: %s."), pprsz_fn, strerror (errno));
+      error (0, errno, _("error opening \"%s\""), pprsz_fn);
       goto exit;
     }
 
@@ -1072,10 +1051,10 @@ outp_get_paper_size (char *size, int *h, int *v)
     {
       char *cp, *bp, *ep;
 
-      if (!ds_get_config_line (f, &line, &where.line_number))
+      if (!ds_get_config_line (f, &line, &line_number))
 	{
 	  if (ferror (f))
-	    msg (ME, _("Reading %s: %s."), pprsz_fn, strerror (errno));
+	    error (0, errno, _("error reading \"%s\""), pprsz_fn);
 	  break;
 	}
       for (cp = ds_c_str (&line); isspace ((unsigned char) *cp); cp++);
@@ -1102,36 +1081,20 @@ outp_get_paper_size (char *size, int *h, int *v)
       break;
 
     lex_error:
-      msg (IE, _("Syntax error in paper size definition."));
+      error_at_line (0, 0, pprsz_fn, line_number,
+                     _("syntax error in paper size definition"));
     }
 
   /* We found the one we want! */
   result = internal_get_paper_size (size, h, v);
-  if (result)
-    {
-      min_value = cache[0].use;
-      min_index = 0;
-      for (i = 1; i < 4; i++)
-	if (cache[0].use < min_value)
-	  {
-	    min_value = cache[i].use;
-	    min_index = i;
-	  }
-      free (cache[min_index].name);
-      cache[min_index].name = xstrdup (size);
-      cache[min_index].use = use;
-      cache[min_index].h = *h;
-      cache[min_index].v = *v;
-    }
 
 exit:
-  err_pop_file_locator (&where);
   ds_destroy (&line);
   if (free_it)
     free (size);
 
   if (!result)
-    msg (VM (1), _("Error reading paper size definition file."));
+    error (0, 0, _("error reading paper size definition file"));
   
   return result;
 }

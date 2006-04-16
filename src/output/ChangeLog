@@ -1,3 +1,27 @@
+Sun Apr 16 11:48:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	Start reforming error message support.  In this phase, we get rid
+	of "installation errors" and change all uses of msg() in the
+	output drivers to uses of error() or error_at_line().
+
+	* Removed all inclusion of <libpspp/message.h> in this directory.
+
+	* output.c: Changed all uses of msg() to error() or
+	error_at_line().
+	(outp_read_devices) Maintain line number in int variable instead
+	of "struct file_locator".
+	(tokener) Renamed get_option_token(), rewritten, changed interface.
+	(outp_parse_options) Change `options' argument to type const
+	struct string *.  Rewritten.
+	(configure_driver) Passes a struct string * to ->open_driver()
+	instead of char *.
+	(outp_get_paper_size) Maintain line number in int variable instead
+	of "struct file_locator".  Removed stupid cache.
+
+	* output.h: (struct outp_class) Change `open_driver' function to
+	take const struct string * instead of const char *.  Updated all
+	implementations.
+
 Mon Apr  3 11:14:38 2006  Ben Pfaff  <blp@gnu.org>
 
 	Rewrite a lot of the output drivers and infrastructure.
