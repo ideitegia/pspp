@@ -40,7 +40,9 @@ enum var_type
 const char *var_type_adj (enum var_type);
 const char *var_type_noun (enum var_type);
 
-/* Maximum variable name lengths. */
+/* Maximum lengths of short and long variable names.
+   Most operations support long variable names,
+   but some file formats are limited to short names. */
 #define SHORT_NAME_LEN 8        /* Short name length. */
 #define LONG_NAME_LEN 64        /* Long name length. */
 
