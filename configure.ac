@@ -62,10 +62,6 @@ AC_C_INLINE
 
 dnl  Dont use AC_TYPE_OFF_T --- it doesnt generate the HAVE_TYPE macro
 AC_CHECK_TYPES(off_t) 
-AC_CHECK_SIZEOF(short, 2)
-AC_CHECK_SIZEOF(int, 4)
-AC_CHECK_SIZEOF(long, 4)
-AC_CHECK_SIZEOF(long long, 0)
 AC_CHECK_SIZEOF(float, 0)
 AC_CHECK_SIZEOF(double, 8)
 AC_CHECK_SIZEOF(long double, 0)

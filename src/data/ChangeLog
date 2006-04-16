@@ -1,3 +1,15 @@
+Sat Apr 15 19:48:57 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of our own int32 type in favor of the standard int32_t
+	type.
+	
+	* sfm-private.h: (int32 macro) Don't define this anymore.  Do
+	include <stdint.h>.
+
+	* sys-file-reader.c: Use int32_t instead of int32 throughout.
+	
+	* sys-file-writer.c: Use int32_t instead of int32 throughout.
+
 Sat Apr 15 19:36:47 2006  Ben Pfaff  <blp@gnu.org>
 
 	Remove ill-considered file routines that are no longer used.

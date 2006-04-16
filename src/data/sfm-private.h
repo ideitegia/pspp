@@ -21,6 +21,7 @@
    structures. */
 
 #include <libpspp/compiler.h>
+#include <stdint.h>
 #include "variable.h"
 
 /* This attribute might avoid some problems.  On the other hand... */
@@ -28,17 +29,6 @@
 
 #if __BORLANDC__
 #pragma option -a-		/* Turn off alignment. */
-#endif
-
-/* Find 32-bit signed integer type. */
-#if SIZEOF_SHORT == 4
-  #define int32 short
-#elif SIZEOF_INT == 4
-  #define int32 int
-#elif SIZEOF_LONG == 4
-  #define int32 long
-#else
-  #error Which one of your basic types is 32-bit signed integer?
 #endif
 
 /* Find 64-bit floating-point type. */
@@ -70,12 +60,12 @@ struct sysfile_header
   {
     char rec_type[4] P;		/* 00: Record-type code, "$FL2". */
     char prod_name[60] P;	/* 04: Product identification. */
-    int32 layout_code P;	/* 40: 2. */
-    int32 case_size P;		/* 44: Number of `value's per case. 
+    int32_t layout_code P;	/* 40: 2. */
+    int32_t case_size P;	/* 44: Number of `value's per case. 
 				   Note: some systems set this to -1 */
-    int32 compress P;		/* 48: 1=compressed, 0=not compressed. */
-    int32 weight_idx P;         /* 4c: 1-based index of weighting var, or 0. */
-    int32 case_cnt P;		/* 50: Number of cases, -1 if unknown. */
+    int32_t compress P;		/* 48: 1=compressed, 0=not compressed. */
+    int32_t weight_idx P;         /* 4c: 1-based index of weighting var, or 0. */
+    int32_t case_cnt P;		/* 50: Number of cases, -1 if unknown. */
     flt64 bias P;		/* 54: Compression bias (100.0). */
     char creation_date[9] P;	/* 5c: `dd mmm yy' creation date of file. */
     char creation_time[8] P;	/* 65: `hh:mm:ss' 24-hour creation time. */
@@ -86,13 +76,13 @@ struct sysfile_header
 /* Record Type 2: Variable. */
 struct sysfile_variable
   {
-    int32 rec_type P;		/* 2. */
-    int32 type P;		/* 0=numeric, 1-255=string width,
+    int32_t rec_type P;		/* 2. */
+    int32_t type P;		/* 0=numeric, 1-255=string width,
 				   -1=continued string. */
-    int32 has_var_label P;	/* 1=has a variable label, 0=doesn't. */
-    int32 n_missing_values P;	/* Missing value code of -3,-2,0,1,2, or 3. */
-    int32 print P;	/* Print format. */
-    int32 write P;	/* Write format. */
+    int32_t has_var_label P;	/* 1=has a variable label, 0=doesn't. */
+    int32_t n_missing_values P;	/* Missing value code of -3,-2,0,1,2, or 3. */
+    int32_t print P;	/* Print format. */
+    int32_t write P;	/* Write format. */
     char name[SHORT_NAME_LEN] P; /* Variable name. */
     /* The rest of the structure varies. */
   };

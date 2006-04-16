@@ -99,7 +99,7 @@ bswap (char *a, char *b)
 
 /* Reverse the byte order of 32-bit integer *X. */
 static inline void
-bswap_int32 (int32 *x_)
+bswap_int32 (int32_t *x_)
 {
   char *x = (char *) x_;
   bswap (x + 0, x + 3);
@@ -170,7 +170,7 @@ static void *buf_read (struct sfm_reader *, void *buf, size_t byte_cnt,
 
 static int read_header (struct sfm_reader *,
                         struct dictionary *, struct sfm_read_info *);
-static int parse_format_spec (struct sfm_reader *, int32,
+static int parse_format_spec (struct sfm_reader *, int32_t,
 			      struct fmt_spec *, const struct variable *);
 static int read_value_labels (struct sfm_reader *, struct dictionary *,
                               struct variable **var_by_idx);
@@ -279,7 +279,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   /* Read records of types 3, 4, 6, and 7. */
   for (;;)
     {
-      int32 rec_type;
+      int32_t rec_type;
 
       assertive_buf_read (r, &rec_type, sizeof rec_type, 0);
       if (r->reverse_endian)
@@ -307,9 +307,9 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	  {
 	    struct
 	      {
-		int32 subtype P;
-		int32 size P;
-		int32 count P;
+		int32_t subtype P;
+		int32_t size P;
+		int32_t count P;
 	      }
 	    data;
             unsigned long bytes;
@@ -361,9 +361,9 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		    {
 		      struct
 		      {
-			int32 measure P;
-			int32 width P;
-			int32 align P;
+			int32_t measure P;
+			int32_t width P;
+			int32_t align P;
 		      }
 		      params;
 
@@ -476,7 +476,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
 	case 999:
 	  {
-	    int32 filler;
+	    int32_t filler;
 
 	    assertive_buf_read (r, &filler, sizeof filler, 0);
 	    goto success;
@@ -509,15 +509,15 @@ error:
 static int
 read_machine_int32_info (struct sfm_reader *r, int size, int count)
 {
-  int32 data[8];
+  int32_t data[8];
   int file_bigendian;
 
   int i;
 
-  if (size != sizeof (int32) || count != 8)
+  if (size != sizeof (int32_t) || count != 8)
     lose ((ME, _("%s: Bad size (%d) or count (%d) field on record type 7, "
                  "subtype 3.	Expected size %d, count 8."),
-	   fh_get_filename (r->fh), size, count, sizeof (int32)));
+	   fh_get_filename (r->fh), size, count, sizeof (int32_t)));
 
   assertive_buf_read (r, data, sizeof data, 0);
   if (r->reverse_endian)
@@ -881,7 +881,7 @@ read_variables (struct sfm_reader *r,
       if (sv.has_var_label == 1)
 	{
 	  /* Disk buffer. */
-	  int32 len;
+	  int32_t len;
 
 	  /* Read length of label. */
 	  assertive_buf_read (r, &len, sizeof len, 0);
@@ -897,7 +897,7 @@ read_variables (struct sfm_reader *r,
 	  if ( len != 0 ) 
 	    {
 	      /* Read label into variable structure. */
-	      vv->label = buf_read (r, NULL, ROUND_UP (len, sizeof (int32)), len + 1);
+	      vv->label = buf_read (r, NULL, ROUND_UP (len, sizeof (int32_t)), len + 1);
 	      if (vv->label == NULL)
 		goto error;
 	      vv->label[len] = '\0';
@@ -978,7 +978,7 @@ error:
 /* Translates the format spec from sysfile format to internal
    format. */
 static int
-parse_format_spec (struct sfm_reader *r, int32 s,
+parse_format_spec (struct sfm_reader *r, int32_t s,
                    struct fmt_spec *f, const struct variable *v)
 {
   f->type = translate_fmt ((s >> 16) & 0xff);
@@ -1024,10 +1024,10 @@ read_value_labels (struct sfm_reader *r,
     };
 
   struct label *labels = NULL;
-  int32 n_labels;		/* Number of labels. */
+  int32_t n_labels;		/* Number of labels. */
 
   struct variable **var = NULL;	/* Associated variables. */
-  int32 n_vars;			/* Number of associated variables. */
+  int32_t n_vars;			/* Number of associated variables. */
 
   int i;
 
@@ -1040,7 +1040,7 @@ read_value_labels (struct sfm_reader *r,
   if (r->reverse_endian)
     bswap_int32 (&n_labels);
 
-  if ( n_labels >= ((int32) ~0) / sizeof *labels)
+  if ( n_labels >= ((int32_t) ~0) / sizeof *labels)
     {    
       corrupt_msg(MW, _("%s: Invalid number of labels: %d.  Ignoring labels."),
 		  fh_get_filename (r->fh), n_labels);
@@ -1077,7 +1077,7 @@ read_value_labels (struct sfm_reader *r,
 
   /* Read record type of type 4 record. */
   {
-    int32 rec_type;
+    int32_t rec_type;
     
     assertive_buf_read (r, &rec_type, sizeof rec_type, 0);
     if (r->reverse_endian)
@@ -1103,7 +1103,7 @@ read_value_labels (struct sfm_reader *r,
   var = xnmalloc (n_vars, sizeof *var);
   for (i = 0; i < n_vars; i++)
     {
-      int32 var_idx;
+      int32_t var_idx;
       struct variable *v;
 
       /* Read variable index, check range. */
@@ -1251,7 +1251,7 @@ buf_unread(struct sfm_reader *r, size_t byte_cnt)
 static int
 read_documents (struct sfm_reader *r, struct dictionary *dict)
 {
-  int32 line_cnt;
+  int32_t line_cnt;
   char *documents;
 
   if (dict_get_documents (dict) != NULL)

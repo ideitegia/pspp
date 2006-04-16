@@ -1,3 +1,11 @@
+Sat Apr 15 19:51:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of our own int32 type in favor of the standard int32_t
+	type.
+	
+	* configure.ac: Don't need to check the sizes of integer types
+	anymore.
+
 Sat Apr 15 19:13:59 2006  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac, acinclude.m4: Complain about missing prerequisites
