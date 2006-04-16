@@ -3,6 +3,49 @@ dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
+dnl Check that a new enough version of Perl is available.
+AC_DEFUN([PSPP_PERL],
+[
+  AC_PATH_PROG([PERL], perl, no)
+  AC_SUBST([PERL])dnl
+  if test "$PERL" = no; then
+    AC_MSG_ERROR([perl is not found])
+  fi
+  $PERL -e 'require 5.005_03;' || {
+     AC_MSG_ERROR([Perl 5.005_03 or better is required])
+  }
+])
+
+dnl Check that libplot is available.
+AC_DEFUN([PSPP_LIBPLOT],
+[
+  AC_ARG_WITH(libplot, [  --without-libplot         don't compile in support of charts (using libplot)])
+
+  if test x"$with_libplot" != x"no" ; then 
+	  AC_CHECK_LIB(plot, pl_newpl_r,,
+	    AC_MSG_ERROR([You must install libplot development libraries (or use --without-libplot)])
+	  )
+  fi
+])
+
+dnl Check that off_t is defined as an integer type.
+dnl Solaris sometimes declares it as a struct, if it
+dnl thinks that the compiler does not support `long long'.
+AC_DEFUN([PSPP_OFF_T],
+[
+  AC_COMPILE_IFELSE([#include <sys/types.h>
+  #include <unistd.h>
+  off_t x = 0;
+  int main (void) 
+  { 
+    lseek (0, 1, 2);
+    return 0;
+  }], [], [AC_MSG_ERROR(
+  [Your system's definition of off_t is broken.  You are probably
+  using Solaris.  You can probably fix the problem with
+  `--disable-largefile' or `CFLAGS=-ansi'.])])
+])
+
 dnl Check whether a warning flag is accepted.
 dnl If so, add it to CFLAGS.
 dnl Example: PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
