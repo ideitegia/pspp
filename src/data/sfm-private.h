@@ -43,8 +43,6 @@
   #define FLT64_MAX LDBL_MAX
 #else
   #error Which one of your basic types is 64-bit floating point?
-  #define flt64 double
-  #define FLT64_MAX DBL_MAX
 #endif
 
 /* Figure out SYSMIS value for flt64. */

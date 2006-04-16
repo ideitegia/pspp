@@ -1,3 +1,8 @@
+Sat Apr 15 19:53:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sfm-private.h: Get rid of #defines after #error, which makes no
+	sense.
+
 Sat Apr 15 19:48:57 2006  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of our own int32 type in favor of the standard int32_t
