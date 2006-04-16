@@ -1,3 +1,10 @@
+Sat Apr 15 19:13:59 2006  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac, acinclude.m4: Complain about missing prerequisites
+	in a group at the end of configuration, not piecemeal.  This
+	should make building PSPP less frustrating.  Thanks to John
+	Darrington for the suggestion.
+
 Sat Apr 15 18:17:15 2006  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Move code into acinclude.m4 to make the configure

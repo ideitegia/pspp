@@ -42,9 +42,8 @@ AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 PSPP_OFF_T
 
-AC_CHECK_LIB(gslcblas,main,,AC_MSG_ERROR([You must install libgslcblas development libraries]))
-AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,
-  AC_MSG_ERROR([You must install development libraries for libgsl version 1.4 or later]))
+AC_CHECK_LIB(gslcblas,main,,[PSPP_REQUIRED_PREREQ([libgslcblas])])
+AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])
 
 AC_CHECK_LIB(ncurses, tgetent)
 AC_CHECK_HEADERS(termcap.h)
@@ -93,6 +92,8 @@ AC_ARG_ENABLE(debug, [  --enable-debug          Turn on diagnostic features in t
 if test x"$enable_debug" = x"yes"  ; then
   AC_DEFINE(DEBUGGING, 1, [Define to 1 if debugging is enabled.])
 fi
+
+PSPP_CHECK_PREREQS
 
 AC_CONFIG_FILES([Makefile gl/Makefile intl/Makefile po/Makefile.in])
 

@@ -3,17 +3,35 @@ dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
+dnl Prerequisites.
+
+dnl Instead of giving an error about each prerequisite as we encounter it, 
+dnl group them all together at the end of the run, to be user-friendly.
+AC_DEFUN([PSPP_REQUIRED_PREREQ], [pspp_required_prereqs="$pspp_required_prereqs
+	$1"])
+AC_DEFUN([PSPP_OPTIONAL_PREREQ], [pspp_optional_prereqs="$pspp_optional_prereqs
+	$1"])
+AC_DEFUN([PSPP_CHECK_PREREQS], 
+[
+  if test "$pspp_optional_prereqs" != ""; then
+    AC_MSG_WARN([The following optional prerequisites are not installed.
+You may wish to install them to obtain additional functionality:$pspp_optional_prereqs])
+fi
+  if test "$pspp_required_prereqs" != ""; then
+    AC_MSG_ERROR([The following required prerequisites are not installed.
+You must install them before PSPP can be built:$pspp_required_prereqs])
+fi
+])
+    
+
 dnl Check that a new enough version of Perl is available.
 AC_DEFUN([PSPP_PERL],
 [
   AC_PATH_PROG([PERL], perl, no)
   AC_SUBST([PERL])dnl
-  if test "$PERL" = no; then
-    AC_MSG_ERROR([perl is not found])
+  if test "$PERL" != no && $PERL -e 'require 5.005_03;'; then :; else
+    PSPP_REQUIRED_PREREQ([Perl 5.005_03 (or later)])
   fi
-  $PERL -e 'require 5.005_03;' || {
-     AC_MSG_ERROR([Perl 5.005_03 or better is required])
-  }
 ])
 
 dnl Check that libplot is available.
@@ -22,9 +40,8 @@ AC_DEFUN([PSPP_LIBPLOT],
   AC_ARG_WITH(libplot, [  --without-libplot         don't compile in support of charts (using libplot)])
 
   if test x"$with_libplot" != x"no" ; then 
-	  AC_CHECK_LIB(plot, pl_newpl_r,,
-	    AC_MSG_ERROR([You must install libplot development libraries (or use --without-libplot)])
-	  )
+    AC_CHECK_LIB(plot, pl_newpl_r,,
+	         [PSPP_REQUIRED_PREREQ([libplot (or use --without-libplot)])])
   fi
 ])
 
@@ -117,9 +134,6 @@ AC_DEFUN([PSPP_READLINE],
 
   if test "$gl_cv_lib_readline" = yes; then
     AC_DEFINE(HAVE_READLINE, 1, [Define if you have the readline library.])
-  fi
-
-  if test "$gl_cv_lib_readline" = yes; then
     AC_MSG_CHECKING([how to link with libreadline])
     AC_MSG_RESULT([$LIBREADLINE])
   else
@@ -130,6 +144,7 @@ AC_DEFUN([PSPP_READLINE],
     LTLIBREADLINE=
     LIBHISTORY=
     LTLIBHISTORY=
+    PSPP_OPTIONAL_PREREQ([libreadline (which may itself require libncurses or libtermcap)])
   fi
   AC_SUBST(LIBREADLINE)
   AC_SUBST(LTLIBREADLINE)
