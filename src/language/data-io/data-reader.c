@@ -56,7 +56,7 @@ struct dfm_reader
     struct string line;         /* Current line. */
     struct string scratch;      /* Extra line buffer. */
     enum dfm_reader_flags flags; /* Zero or more of DFM_*. */
-    struct file_ext file;	/* Associated file. */
+    FILE *file;                 /* Associated file. */
     size_t pos;                 /* Offset in line of current character. */
     unsigned eof_cnt;           /* # of attempts to advance past EOF. */
   };
@@ -67,21 +67,22 @@ dfm_close_reader (struct dfm_reader *r)
 {
   int still_open;
   bool is_inline;
+  char *file_name;
 
   if (r == NULL)
     return;
 
   is_inline = r->fh == fh_inline_file ();
+  file_name = is_inline ? NULL : xstrdup (fh_get_filename (r->fh));
   still_open = fh_close (r->fh, "data file", "rs");
-  if (still_open)
-    return;
+  if (still_open) 
+    {
+      free (file_name);
+      return; 
+    }
 
   if (!is_inline)
-    {
-      fn_close_ext (&r->file);
-      free (r->file.filename);
-      r->file.filename = NULL;
-    }
+    fn_close (file_name, r->file);
   else
     {
       /* Skip any remaining data on the inline file. */
@@ -96,6 +97,7 @@ dfm_close_reader (struct dfm_reader *r)
   ds_destroy (&r->line);
   ds_destroy (&r->scratch);
   free (r);
+  free (file_name);
 }
 
 /* Opens the file designated by file handle FH for reading as a
@@ -125,15 +127,8 @@ dfm_open_reader (struct file_handle *fh)
     {
       r->where.filename = fh_get_filename (fh);
       r->where.line_number = 0; 
-      r->file.file = NULL;
-      r->file.filename = xstrdup (fh_get_filename (r->fh));
-      r->file.mode = "rb";
-      r->file.file = NULL;
-      r->file.sequence_no = NULL;
-      r->file.param = NULL;
-      r->file.postopen = NULL;
-      r->file.preclose = NULL;
-      if (!fn_open_ext (&r->file))
+      r->file = fn_open (fh_get_filename (fh), "rb");
+      if (r->file == NULL)
         {
           msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
                fh_get_filename (r->fh), strerror (errno));
@@ -151,7 +146,7 @@ dfm_open_reader (struct file_handle *fh)
 bool
 dfm_reader_error (const struct dfm_reader *r) 
 {
-  return fh_get_referent (r->fh) == FH_REF_FILE && ferror (r->file.file);
+  return fh_get_referent (r->fh) == FH_REF_FILE && ferror (r->file);
 }
 
 /* Reads a record from the inline file into R.
@@ -200,9 +195,9 @@ read_file_record (struct dfm_reader *r)
   if (fh_get_mode (r->fh) == FH_MODE_TEXT)
     {
       ds_clear (&r->line);
-      if (!ds_gets (&r->line, r->file.file)) 
+      if (!ds_gets (&r->line, r->file)) 
         {
-          if (ferror (r->file.file))
+          if (ferror (r->file))
             msg (ME, _("Error reading file %s: %s."),
                  fh_get_name (r->fh), strerror (errno));
           return false;
@@ -216,11 +211,10 @@ read_file_record (struct dfm_reader *r)
       if (ds_length (&r->line) < record_width) 
         ds_rpad (&r->line, record_width, 0);
           
-      amt = fread (ds_c_str (&r->line), 1, record_width,
-                   r->file.file);
+      amt = fread (ds_c_str (&r->line), 1, record_width, r->file);
       if (record_width != amt)
         {
-          if (ferror (r->file.file))
+          if (ferror (r->file))
             msg (ME, _("Error reading file %s: %s."),
                  fh_get_name (r->fh), strerror (errno));
           else if (amt != 0)

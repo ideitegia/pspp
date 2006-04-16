@@ -35,7 +35,7 @@
 struct dfm_writer
   {
     struct file_handle *fh;     /* File handle. */
-    struct file_ext file;	/* Associated file. */
+    FILE *file;                 /* Associated file. */
     char *bounce;               /* Bounce buffer for fixed-size fields. */
   };
 
@@ -54,18 +54,10 @@ dfm_open_writer (struct file_handle *fh)
 
   w = *aux = xmalloc (sizeof *w);
   w->fh = fh;
-  w->file.file = NULL;
+  w->file = fn_open (fh_get_filename (w->fh), "wb");
   w->bounce = NULL;
 
-  w->file.filename = xstrdup (fh_get_filename (w->fh));
-  w->file.mode = "wb";
-  w->file.file = NULL;
-  w->file.sequence_no = NULL;
-  w->file.param = NULL;
-  w->file.postopen = NULL;
-  w->file.preclose = NULL;
-      
-  if (!fn_open_ext (&w->file))
+  if (w->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
                  "as a data file: %s."),
@@ -84,7 +76,7 @@ dfm_open_writer (struct file_handle *fh)
 bool
 dfm_write_error (const struct dfm_writer *writer) 
 {
-  return ferror (writer->file.file);
+  return ferror (writer->file);
 }
 
 /* Writes record REC having length LEN to the file corresponding to
@@ -110,7 +102,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
       len = rec_width;
     }
 
-  fwrite (rec, len, 1, w->file.file);
+  fwrite (rec, len, 1, w->file);
   return !dfm_write_error (w);
 }
 
@@ -118,29 +110,29 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 bool
 dfm_close_writer (struct dfm_writer *w)
 {
+  char *file_name;
   bool ok;
 
   if (w == NULL)
     return true;
+  file_name = xstrdup (fh_get_name (w->fh));
   if (fh_close (w->fh, "data file", "ws"))
-    return true;
+    {
+      free (file_name);
+      return true; 
+    }
 
   ok = true;
-  if (w->file.file != NULL)
+  if (w->file != NULL)
     {
-      ok = !dfm_write_error (w);
-      if (!fn_close_ext (&w->file))
-        ok = false;
+      ok = !dfm_write_error (w) && !fn_close (file_name, w->file);
 
       if (!ok)
-        msg (ME, _("I/O error occurred writing data file \"%s\"."),
-             fh_get_filename (w->fh));
-
-      free (w->file.filename);
-      w->file.filename = NULL;
+        msg (ME, _("I/O error occurred writing data file \"%s\"."), file_name);
     }
   free (w->bounce);
   free (w);
+  free (file_name);
 
   return ok;
 }

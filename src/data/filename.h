@@ -65,26 +65,5 @@ struct file_identity *fn_get_identity (const char *filename);
 void fn_free_identity (struct file_identity *);
 int fn_compare_file_identities (const struct file_identity *,
                                 const struct file_identity *);
-
-/* Extended file routines. */
-struct file_ext;
-
-typedef int (*file_callback) (struct file_ext *);
-
-/* File callbacks may not return zero to indicate failure unless they
-   set errno to a sensible value. */
-struct file_ext
-  {
-    char *filename;		/* Filename. */
-    const char *mode;		/* Open mode, i.e, "wb". */
-    FILE *file;			/* File. */
-    int *sequence_no;		/* Page number, etc. */
-    void *param;		/* User data. */
-    file_callback postopen;	/* Called after FILE opened. */
-    file_callback preclose;	/* Called before FILE closed. */
-  };
-
-int fn_open_ext (struct file_ext *file);
-int fn_close_ext (struct file_ext *file);
 
 #endif /* filename_h */

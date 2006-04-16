@@ -1,3 +1,26 @@
+Sat Apr 15 19:38:13 2006  Ben Pfaff  <blp@gnu.org>
+
+	Remove last users of struct file_ext so we can get rid of it
+	entirely.
+	
+	* data-reader.c: (struct dfm_reader) Change file member from
+	struct file_ext to FILE *.  Updated all references.
+	(dfm_close_reader) Close file with fn_close() instead of
+	fn_close_ext().  Also, make a copy of the file name from the file
+	handle before closing it, because we can't extract it after we
+	close the file.
+	(dfm_open_reader) Open file with fn_open() instead of
+	fn_open_ext().
+
+	* data-writer.c: (struct dfm_writer) Change file member 
+	struct file_ext to FILE *.  Updated all references.
+	(dfm_close_writer) Close file with fn_close() instead of
+	fn_close_ext().  Also, make a copy of the file name from the file
+	handle before closing it, because we can't extract it after we
+	close the file.
+	(dfm_open_writer) Open file with fn_open() instead of
+	fn_open_ext().
+
 Sat Apr 15 18:00:32 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-list.c: Add prototype to suppress warning for
