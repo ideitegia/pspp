@@ -164,7 +164,7 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
     {
       return NULL;
     }
-  if (v->type == NULL)
+  if (v->type == NUMERIC)
     {
       return NULL;
     }
