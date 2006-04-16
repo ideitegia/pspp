@@ -42,20 +42,19 @@ void fn_init (void);
 
 struct string;
 void fn_interp_vars (struct string *target, 
-			const char *(*getenv) (const char *));
+                     const char *(*getenv) (const char *));
 char *fn_tilde_expand (const char *fn);
 char *fn_search_path (const char *base_name, const char *path,
 		      const char *prefix);
 char *fn_normalize (const char *fn);
-char *fn_dirname (const char *fn);
-char *fn_basename (const char *fn);
+char *fn_dir_name (const char *fn);
 char *fn_extension (const char *fn);
 
 char *fn_get_cwd (void);
 
-int fn_absolute_p (const char *fn);
-int fn_special_p (const char *fn);
-int fn_exists_p (const char *fn);
+int fn_is_absolute (const char *fn);
+int fn_is_special (const char *fn);
+int fn_exists (const char *fn);
 char *fn_readlink (const char *fn);
 
 const char *fn_getenv (const char *variable);

@@ -236,7 +236,7 @@ getl_include_syntax_file (const char *fn)
   if (cur_source != NULL) 
     {
       char *found_fn = fn_search_path (fn, ds_c_str (&getl_include_path),
-                                       fn_dirname (cur_source->fn));
+                                       fn_dir_name (cur_source->fn));
       if (found_fn != NULL) 
         {
           include_source (create_syntax_file_source (found_fn));

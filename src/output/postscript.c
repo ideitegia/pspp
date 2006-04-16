@@ -429,7 +429,7 @@ handle_option (struct outp_driver *this, const char *key,
 static char *
 find_ps_file (const char *name)
 {
-  if (fn_absolute_p (name))
+  if (fn_is_absolute (name))
     return xstrdup (name);
   else
     {

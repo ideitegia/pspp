@@ -1,3 +1,12 @@
+Sun Apr 16 16:42:47 2006  Ben Pfaff  <blp@gnu.org>
+
+	* filename.c: (fn_dirname) Renamed fn_dir_name(), all references
+	updated.
+	(fn_basename) Removed (dead code).
+	(fn_absolute_p) Renamed fn_is_absolute(), all references updated.
+	(fn_special_p) Renamed fn_is_special(), all references updated.
+	(fn_exists_p) Renamed fn_exists(), all references updated.
+
 Sun Apr 16 16:33:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	* filename.c: (fn_tilde_expand) Rewrite for cleaner code.  

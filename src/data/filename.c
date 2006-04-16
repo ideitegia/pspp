@@ -221,7 +221,7 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
   struct string file = DS_INITIALIZER;
   size_t save_idx = 0;
 
-  if (fn_absolute_p (base_name))
+  if (fn_is_absolute (base_name))
     return fn_tilde_expand (base_name);
 
   /* Interpolate environment variables. */
@@ -242,7 +242,7 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
 
       /* Construct file name. */
       ds_clear (&file);
-      if (prefix != NULL && !fn_absolute_p (ds_c_str (&dir)))
+      if (prefix != NULL && !fn_is_absolute (ds_c_str (&dir)))
 	{
 	  ds_puts (&file, prefix);
 	  ds_putc (&file, DIR_SEPARATOR);
@@ -253,7 +253,7 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
       ds_puts (&file, base_name);
 
       /* Check whether file exists. */
-      if (fn_exists_p (ds_c_str (&file)))
+      if (fn_exists (ds_c_str (&file)))
 	{
 	  verbose_msg (2, _("...found \"%s\""), ds_c_str (&file));
           ds_destroy (&path);
@@ -283,7 +283,7 @@ fn_normalize (const char *filename)
   char *fn1, *fn2, *dest;
   int maxlen;
 
-  if (fn_special_p (filename))
+  if (fn_is_special (filename))
     return xstrdup (filename);
   
   fn1 = fn_tilde_expand (filename);
@@ -450,7 +450,7 @@ fn_normalize (const char *fn)
 /* Returns the directory part of FILENAME, as a malloc()'d
    string. */
 char *
-fn_dirname (const char *filename)
+fn_dir_name (const char *filename)
 {
   const char *p;
   char *s;
@@ -472,16 +472,6 @@ fn_dirname (const char *filename)
 
   return s;
 }
-
-/* Returns the basename part of FILENAME as a malloc()'d string. */
-#if 0
-char *
-fn_basename (const char *filename)
-{
-  /* Not used, not implemented. */
-  abort ();
-}
-#endif
 
 /* Returns the extension part of FILENAME as a malloc()'d string.
    If FILENAME does not have an extension, returns an empty
@@ -536,7 +526,7 @@ fn_get_cwd (void)
 
 /* Returns nonzero iff NAME specifies an absolute filename. */
 int
-fn_absolute_p (const char *name)
+fn_is_absolute (const char *name)
 {
 #ifdef unix
   if (name[0] == '/'
@@ -558,7 +548,7 @@ fn_absolute_p (const char *name)
 /* Returns 1 if the filename specified is a virtual file that doesn't
    really exist on disk, 0 if it's a real filename. */
 int
-fn_special_p (const char *filename)
+fn_is_special (const char *filename)
 {
   if (!strcmp (filename, "-") || !strcmp (filename, "stdin")
       || !strcmp (filename, "stdout") || !strcmp (filename, "stderr")
@@ -574,7 +564,7 @@ fn_special_p (const char *filename)
 
 /* Returns nonzero if file with name NAME exists. */
 int
-fn_exists_p (const char *name)
+fn_exists (const char *name)
 {
 #ifdef unix
   struct stat temp;
