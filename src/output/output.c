@@ -291,7 +291,7 @@ outp_read_devices (void)
   if (init_fn == NULL)
     {
       error (0, 0, _("cannot find output initialization file "
-                     "(use `-vvvvv' to view search path)"));
+                     "(use `-vv' to view search path)"));
       goto exit;
     }
 

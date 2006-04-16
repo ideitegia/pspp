@@ -223,123 +223,61 @@ fn_tilde_expand (const char *input)
    Returns the malloc'd full name of the first file found, or NULL if
    none is found.
 
-   If PREPEND is non-NULL, then it is prepended to each filename;
-   i.e., it looks like PREPEND/PATH_COMPONENT/NAME.  This is not done
+   If PREFIX is non-NULL, then it is prefixed to each filename;
+   i.e., it looks like PREFIX/PATH_COMPONENT/NAME.  This is not done
    with absolute directories in the path. */
-#if defined (unix) || defined (__MSDOS__) || defined (__WIN32__)
 char *
-fn_search_path (const char *basename, const char *path, const char *prepend)
+fn_search_path (const char *base_name, const char *path_, const char *prefix)
 {
-  char *subst_path;
-  struct string filename;
-  const char *bp;
+  struct string path;
+  struct string dir = DS_INITIALIZER;
+  struct string file = DS_INITIALIZER;
+  char *tmp_str;
+  size_t save_idx = 0;
 
-  if (fn_absolute_p (basename))
-    return fn_tilde_expand (basename);
-  
-  {
-    struct string temp;
-    ds_create(&temp, path);
+  if (fn_absolute_p (base_name))
+    return fn_tilde_expand (base_name);
 
-    fn_interp_vars(&temp, fn_getenv);
+  /* Interpolate environment variables and do tilde-expansion. */
+  ds_create (&path, path_);
+  fn_interp_vars (&path, fn_getenv);
 
-    bp = subst_path = fn_tilde_expand (ds_c_str(&temp));
+  tmp_str = fn_tilde_expand (ds_c_str (&path));
+  ds_assign_c_str (&path, tmp_str);
+  free (tmp_str); 
 
-    ds_destroy(&temp);
-  }
-
-  msg (VM (4), _("Searching for `%s'..."), basename);
-  ds_init (&filename, 64);
-
-  for (;;)
+  verbose_msg (2, _("searching for \"%s\" in path \"%s\""),
+               base_name, ds_c_str (&path));
+  while (ds_separate (&path, &dir, PATH_DELIMITER_STRING, &save_idx))
     {
-      const char *ep;
-      if (0 == *bp)
+      /* Construct file name. */
+      ds_clear (&file);
+      if (prefix != NULL && !fn_absolute_p (ds_c_str (&dir)))
 	{
-	  msg (VM (4), _("Search unsuccessful!"));
-	  ds_destroy (&filename);
-	  free (subst_path);
-	  return NULL;
+	  ds_puts (&file, prefix);
+	  ds_putc (&file, DIR_SEPARATOR);
 	}
+      ds_puts (&file, ds_c_str (&dir));
+      if (ds_length (&dir) && ds_last (&file) != DIR_SEPARATOR)
+	ds_putc (&file, DIR_SEPARATOR);
+      ds_puts (&file, base_name);
 
-      for (ep = bp; *ep && *ep != PATH_DELIMITER; ep++)
-	;
-
-      /* Paste together PREPEND/PATH/BASENAME. */
-      ds_clear (&filename);
-      if (prepend && !fn_absolute_p (bp))
+      /* Check whether file exists. */
+      if (fn_exists_p (ds_c_str (&file)))
 	{
-	  ds_puts (&filename, prepend);
-	  ds_putc (&filename, DIR_SEPARATOR);
+	  verbose_msg (2, _("...found \"%s\""), ds_c_str (&file));
+          ds_destroy (&path);
+          ds_destroy (&dir);
+	  return ds_c_str (&file);
 	}
-      ds_concat (&filename, bp, ep - bp);
-      if (ep - bp
-	  && ds_c_str (&filename)[ds_length (&filename) - 1] != DIR_SEPARATOR)
-	ds_putc (&filename, DIR_SEPARATOR);
-      ds_puts (&filename, basename);
-      
-      msg (VM (5), " - %s", ds_c_str (&filename));
-      if (fn_exists_p (ds_c_str (&filename)))
-	{
-	  msg (VM (4), _("Found `%s'."), ds_c_str (&filename));
-	  free (subst_path);
-	  return ds_c_str (&filename);
-	}
-
-      if (0 == *ep)
-	{
-	  msg (VM (4), _("Search unsuccessful!"));
-	  free (subst_path);
-	  ds_destroy (&filename);
-	  return NULL;
-	}
-      bp = ep + 1;
     }
-}
-#else /* not unix, msdog, lose32 */
-char *
-fn_search_path (const char *basename, const char *path, const char *prepend)
-{
-  size_t size = strlen (path) + 1 + strlen (basename) + 1;
-  char *string;
-  char *cp;
-  
-  if (prepend)
-    size += strlen (prepend) + 1;
-  string = xmalloc (size);
-  
-  cp = string;
-  if (prepend)
-    {
-      cp = stpcpy (cp, prepend);
-      *cp++ = DIR_SEPARATOR;
-    }
-  cp = stpcpy (cp, path);
-  *cp++ = DIR_SEPARATOR;
-  strcpy (cp, basename);
 
-  return string;
-}
-#endif /* not unix, msdog, lose32 */
-
-/* Prepends directory DIR to filename FILE and returns a malloc()'d
-   copy of it. */
-char *
-fn_prepend_dir (const char *file, const char *dir)
-{
-  char *temp;
-  char *cp;
-  
-  if (fn_absolute_p (file))
-    return xstrdup (file);
-
-  temp = xmalloc (strlen (file) + 1 + strlen (dir) + 1);
-  cp = stpcpy (temp, dir);
-  if (cp != temp && cp[-1] != DIR_SEPARATOR)
-    *cp++ = DIR_SEPARATOR;
-  cp = stpcpy (cp, file);
-
-  return temp;
+  /* Failure. */
+  verbose_msg (2, _("...not found"));
+  ds_destroy (&path);
+  ds_destroy (&dir);
+  ds_destroy (&file);
+  return NULL;
 }
 
 /* fn_normalize(): This very OS-dependent routine canonicalizes

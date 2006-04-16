@@ -26,9 +26,13 @@
 #ifndef __MSDOS__
 #define DIR_SEPARATOR '/'
 #define PATH_DELIMITER ':'
+#define DIR_SEPARATOR_STRING "/"
+#define PATH_DELIMITER_STRING ":"
 #else
 #define DIR_SEPARATOR '\\'
 #define PATH_DELIMITER ';'
+#define DIR_SEPARATOR_STRING "\\"
+#define PATH_DELIMITER_STRING ";"
 #endif
 
 /* Search path for configuration files. */
@@ -40,9 +44,8 @@ struct string;
 void fn_interp_vars (struct string *target, 
 			const char *(*getenv) (const char *));
 char *fn_tilde_expand (const char *fn);
-char *fn_search_path (const char *basename, const char *path,
-		      const char *prepend);
-char *fn_prepend_dir (const char *filename, const char *directory);
+char *fn_search_path (const char *base_name, const char *path,
+		      const char *prefix);
 char *fn_normalize (const char *fn);
 char *fn_dirname (const char *fn);
 char *fn_basename (const char *fn);

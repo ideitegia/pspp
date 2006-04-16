@@ -26,6 +26,7 @@
 #include <config.h>
 #include <libpspp/message.h>
 #include "message-dialog.h"
+#include "progname.h"
 
 
 #include <gtk/gtk.h>
@@ -134,21 +135,13 @@ err_assert_fail(const char *expr, const char *file, int line)
   msg(ME, "Assertion failed: %s:%d; (%s)\n",file,line,expr);
 }
 
-/* The GUI is always interactive.
-   So this function does nothing */
-void 
-err_cond_fail(void)
-{
-}
-
-
+/* Writes MESSAGE formatted with printf, to stderr, if the
+   verbosity level is at least LEVEL. */
 void
-err_failure(void)
+verbose_msg (int level, const char *format, ...)
 {
-  msg(ME, _("Terminating NOW due to fatal error"));
-  gtk_main_quit();
+  /* Do nothing for now. */
 }
-
 
 /* FIXME: This is a stub .
  * A temporary workaround until getl.c is rearranged

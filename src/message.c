@@ -30,6 +30,7 @@
 #include <data/settings.h>
 #include <ui/terminal/read-line.h>
 #include <libpspp/version.h>
+#include "progname.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -78,6 +79,23 @@ msg (int class, const char *format, ...)
   va_start (args, format);
   err_vmsg (&e, format, args);
   va_end (args);
+}
+
+/* Writes MESSAGE formatted with printf, to stderr, if the
+   verbosity level is at least LEVEL. */
+void
+verbose_msg (int level, const char *format, ...)
+{
+  if (err_verbosity >= level)
+    {
+      va_list args;
+  
+      va_start (args, format);
+      fprintf (stderr, "%s: ", program_name);
+      vfprintf (stderr, format, args);
+      putc ('\n', stderr);
+      va_end (args);
+    }
 }
 
 /* Checks whether we've had so many errors that it's time to quit
@@ -138,7 +156,7 @@ err_vmsg (const struct error *e, const char *format, va_list args)
       const char *banner;	/* Banner. */
     };
 
-  static const struct error_class error_classes[ERR_CLASS_COUNT] =
+  static const struct error_class error_classes[MSG_CLASS_CNT] =
     {
       {3, &err_error_count, N_("error")},	/* SE */
       {3, &err_warning_count, N_("warning")},	/* SW */
@@ -153,19 +171,12 @@ err_vmsg (const struct error *e, const char *format, va_list args)
     };
 
   struct string msg;
-  int class;
 
-  /* Check verbosity level. */
-  class = e->class;
-  if (((class >> ERR_VERBOSITY_SHIFT) & ERR_VERBOSITY_MASK) > err_verbosity)
-    return;
-  class &= ERR_CLASS_MASK;
-  
-  assert (class >= 0 && class < ERR_CLASS_COUNT);
+  assert (e->class >= 0 && e->class < MSG_CLASS_CNT);
   assert (format != NULL);
   
   ds_init (&msg, 64);
-  if (e->where.filename && (error_classes[class].flags & ERR_WITH_FILE))
+  if (e->where.filename && (error_classes[e->class].flags & ERR_WITH_FILE))
     {
       ds_printf (&msg, "%s:", e->where.filename);
       if (e->where.line_number != -1)
@@ -173,15 +184,16 @@ err_vmsg (const struct error *e, const char *format, va_list args)
       ds_putc (&msg, ' ');
     }
 
-  ds_printf (&msg, "%s: ", gettext (error_classes[class].banner));
+  ds_printf (&msg, "%s: ", gettext (error_classes[e->class].banner));
   
   {
-    int *count = error_classes[class].count;
+    int *count = error_classes[e->class].count;
     if (count)
       (*count)++;
   }
   
-  if (command_name != NULL && (error_classes[class].flags & ERR_IN_PROCEDURE))
+  if (command_name != NULL
+      && (error_classes[e->class].flags & ERR_IN_PROCEDURE))
     ds_printf (&msg, "%s: ", command_name);
 
   if (e->title)

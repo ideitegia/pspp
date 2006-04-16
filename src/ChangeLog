@@ -1,3 +1,12 @@
+Sun Apr 16 15:58:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, we get
+	rid of VM() and the other msg() support for "verbosity", replacing
+	it by a new function verbose_msg().
+
+	* message.c: (verbose_msg) New function.
+	(err_vmsg) Remove support for verbosity levels.
+
 Sun Apr 16 11:46:51 2006  Ben Pfaff  <blp@gnu.org>
 
 	Start reforming error message support.  In this phase, we get rid

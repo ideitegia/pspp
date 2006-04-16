@@ -30,15 +30,8 @@ enum
     SE, SW, SM,			/* Script error/warning/message. */
     DE, DW,			/* Data-file error/warning. */
     ME, MW, MM,			/* General error/warning/message. */
-    ERR_CLASS_COUNT,		/* Number of message classes. */
-    ERR_CLASS_MASK = 0xf,	/* Bitmask for class. */
-    ERR_VERBOSITY_SHIFT = 4,	/* Shift count for verbosity. */
-    ERR_VERBOSITY_MASK = 0xf 	/* Bitmask for verbosity. */
+    MSG_CLASS_CNT,
   };
-
-/* If passed to msg() as CLASS, the return value will cause the message
-   to be displayed only if `verbosity' is at least LEVEL. */
-#define VM(LEVEL) (MM | ((LEVEL) << ERR_VERBOSITY_SHIFT))
 
 /* A file location.  */
 struct file_locator
@@ -72,6 +65,9 @@ void msg (int class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
 void tmsg (int class, const char *title, const char *format, ...)
      PRINTF_FORMAT (3, 4);
+
+void verbose_msg (int level, const char *format, ...)
+     PRINTF_FORMAT (2, 3);
 
 /* File-locator stack. */
 void err_push_file_locator (const struct file_locator *);

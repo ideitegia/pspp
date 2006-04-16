@@ -1,3 +1,17 @@
+Sun Apr 16 16:05:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, we get
+	rid of VM() and the other msg() support for "verbosity", replacing
+	it by a new function verbose_msg().
+
+	* filename.c: (fn_search_path) Rewrite for cleaner code.  Also,
+	get rid of non-Unixlike version of the code, which has probably
+	never been tested.
+	(fn_prepend_dir) Removed (dead code).
+
+	* filename.h: (macro DIR_SEPARATOR_STRING) New.
+	(macro PATH_SEPARATOR_STRING) New.
+
 Sat Apr 15 19:53:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* sfm-private.h: Get rid of #defines after #error, which makes no

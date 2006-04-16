@@ -1,3 +1,15 @@
+Sun Apr 16 16:05:43 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, we get
+	rid of VM() and the other msg() support for "verbosity", replacing
+	it by a new function verbose_msg().
+
+	* message.h: (enum ERR_CLASS_COUNT) Renamed ERR_CLASS_CNT.
+	(enum ERR_CLASS_MASK) Removed.
+	(enum ERR_VERBOSITY_SHIFT) Removed.
+	(enum ERR_VERBOSITY_MASK) Removed.
+	(macro VM) Removed.
+
 Sun Apr 16 11:48:07 2006  Ben Pfaff  <blp@gnu.org>
 
 	Start reforming error message support.  In this phase, we get rid

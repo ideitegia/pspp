@@ -438,7 +438,7 @@ read_syntax_file (struct string *line, struct getl_source *s)
   /* Open file, if not yet opened. */
   if (s->u.syntax_file == NULL)
     {
-      msg (VM (1), _("%s: Opening as syntax file."), s->fn);
+      verbose_msg (1, _("opening \"%s\" as syntax file"), s->fn);
       s->u.syntax_file = fn_open (s->fn, "r");
 
       if (s->u.syntax_file == NULL)
