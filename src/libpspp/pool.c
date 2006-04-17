@@ -621,18 +621,18 @@ pool_add_subpool (struct pool *pool, struct pool *subpool)
   subpool->parent = pool;
 }
 
-/* Opens file FILENAME with mode MODE and returns a handle to it
+/* Opens file FILE_NAME with mode MODE and returns a handle to it
    if successful or a null pointer if not.
    The file will be closed automatically when POOL is destroyed, or it
    may be closed explicitly in advance using pool_fclose(), or
    detached from the pool with pool_detach_file(). */
 FILE *
-pool_fopen (struct pool *pool, const char *filename, const char *mode)
+pool_fopen (struct pool *pool, const char *file_name, const char *mode)
 {
   FILE *f;
 
-  assert (pool && filename && mode);
-  f = fopen (filename, mode);
+  assert (pool && file_name && mode);
+  f = fopen (file_name, mode);
   if (f == NULL)
     return NULL;
 

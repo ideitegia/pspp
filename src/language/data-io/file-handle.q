@@ -158,7 +158,7 @@ referent_name (enum fh_referent referent)
     }
 }
 
-/* Parses a file handle name, which may be a filename as a string
+/* Parses a file handle name, which may be a file name as a string
    or a file handle name as an identifier.  The allowed types of
    file handle are restricted to those in REFERENT_MASK.  Returns
    the file handle when successful, a null pointer on failure. */
@@ -181,14 +181,14 @@ fh_parse (enum fh_referent referent_mask)
       if (token == T_ID) 
         handle = fh_from_name (tokid);
       if (handle == NULL) 
-        handle = fh_from_filename (ds_c_str (&tokstr)); 
+        handle = fh_from_file_name (ds_c_str (&tokstr)); 
       if (handle == NULL)
         {
           if (token != T_ID || tokid[0] != '#' || get_syntax () != ENHANCED) 
             {
-              char *filename = ds_c_str (&tokstr);
-              char *handle_name = xasprintf ("\"%s\"", filename);
-              handle = fh_create_file (handle_name, filename,
+              char *file_name = ds_c_str (&tokstr);
+              char *handle_name = xasprintf ("\"%s\"", file_name);
+              handle = fh_create_file (handle_name, file_name,
                                        fh_default_properties ());
               free (handle_name);
             }

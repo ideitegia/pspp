@@ -145,7 +145,7 @@ err_vmsg (const struct error *e, const char *format, va_list args)
   enum
     {
       ERR_IN_PROCEDURE = 01,	/* 1=Display name of current procedure. */
-      ERR_WITH_FILE = 02,	/* 1=Display filename and line number. */
+      ERR_WITH_FILE = 02,	/* 1=Display file name and line number. */
     };
 
   /* Describes one class of error. */
@@ -176,9 +176,9 @@ err_vmsg (const struct error *e, const char *format, va_list args)
   assert (format != NULL);
   
   ds_init (&msg, 64);
-  if (e->where.filename && (error_classes[e->class].flags & ERR_WITH_FILE))
+  if (e->where.file_name && (error_classes[e->class].flags & ERR_WITH_FILE))
     {
-      ds_printf (&msg, "%s:", e->where.filename);
+      ds_printf (&msg, "%s:", e->where.file_name);
       if (e->where.line_number != -1)
 	ds_printf (&msg, "%d:", e->where.line_number);
       ds_putc (&msg, ' ');

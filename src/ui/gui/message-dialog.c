@@ -149,7 +149,7 @@ verbose_msg (int level, const char *format, ...)
 void
 err_location (struct file_locator *f)
 {
-	f->filename = 0;
+	f->file_name = 0;
 	f->line_number = -1;
 }
 

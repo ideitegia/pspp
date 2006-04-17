@@ -50,7 +50,7 @@ struct file_handle
     enum fh_referent referent;  /* What the file handle refers to. */
 
     /* FH_REF_FILE only. */
-    char *filename;		/* Filename as provided by user. */
+    char *file_name;		/* File name as provided by user. */
     struct file_identity *identity; /* For checking file identity. */
     enum fh_mode mode;  	/* File mode. */
 
@@ -100,7 +100,7 @@ free_handle (struct file_handle *handle)
 
   /* Free data. */
   free (handle->name);
-  free (handle->filename);
+  free (handle->file_name);
   fn_free_identity (handle->identity);
   scratch_handle_destroy (handle->sh);
   free (handle);
@@ -127,18 +127,18 @@ fh_from_name (const char *handle_name)
   return NULL;
 }
 
-/* Returns the handle for the file named FILENAME,
+/* Returns the handle for the file named FILE_NAME,
    or a null pointer if none exists.
    Different names for the same file (e.g. "x" and "./x") are
    considered equivalent. */
 struct file_handle *
-fh_from_filename (const char *filename)
+fh_from_file_name (const char *file_name)
 {
   struct file_identity *identity;
   struct file_handle *iter;
       
   /* First check for a file with the same identity. */
-  identity = fn_get_identity (filename);
+  identity = fn_get_identity (file_name);
   if (identity != NULL) 
     {
       for (iter = file_handles; iter != NULL; iter = iter->next)
@@ -156,7 +156,7 @@ fh_from_filename (const char *filename)
   /* Then check for a file with the same name. */
   for (iter = file_handles; iter != NULL; iter = iter->next)
     if (!iter->deleted
-        && iter->referent == FH_REF_FILE && !strcmp (filename, iter->filename))
+        && iter->referent == FH_REF_FILE && !strcmp (file_name, iter->file_name))
       return iter; 
 
   return NULL;
@@ -194,16 +194,16 @@ fh_inline_file (void)
 
 /* Creates a new file handle named HANDLE_NAME, which must not be
    the name of an existing file handle.  The new handle is
-   associated with file FILENAME and the given PROPERTIES. */
+   associated with file FILE_NAME and the given PROPERTIES. */
 struct file_handle *
-fh_create_file (const char *handle_name, const char *filename,
+fh_create_file (const char *handle_name, const char *file_name,
                 const struct fh_properties *properties)
 {
   struct file_handle *handle;
   assert (fh_from_name (handle_name) == NULL);
   handle = create_handle (handle_name, FH_REF_FILE);
-  handle->filename = xstrdup (filename);
-  handle->identity = fn_get_identity (filename);
+  handle->file_name = xstrdup (file_name);
+  handle->identity = fn_get_identity (file_name);
   handle->mode = properties->mode;
   handle->record_width = properties->record_width;
   handle->tab_width = properties->tab_width;
@@ -367,8 +367,8 @@ fh_is_open (const struct file_handle *handle)
 }
 
 /* Returns the identifier of file HANDLE.  If HANDLE was created
-   by referring to a filename instead of a handle name, returns
-   the filename, enclosed in double quotes.  Return value is
+   by referring to a file name instead of a handle name, returns
+   the file name, enclosed in double quotes.  Return value is
    owned by the file handle. 
 
    Useful for printing error messages about use of file handles.  */
@@ -387,10 +387,10 @@ fh_get_referent (const struct file_handle *handle)
 
 /* Returns the name of the file associated with HANDLE. */
 const char *
-fh_get_filename (const struct file_handle *handle) 
+fh_get_file_name (const struct file_handle *handle) 
 {
   assert (handle->referent == FH_REF_FILE);
-  return handle->filename;
+  return handle->file_name;
 }
 
 /* Returns the mode of HANDLE. */

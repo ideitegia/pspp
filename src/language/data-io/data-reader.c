@@ -71,7 +71,7 @@ dfm_close_reader (struct dfm_reader *r)
     return;
 
   is_inline = r->fh == fh_inline_file ();
-  file_name = is_inline ? NULL : xstrdup (fh_get_filename (r->fh));
+  file_name = is_inline ? NULL : xstrdup (fh_get_file_name (r->fh));
   still_open = fh_close (r->fh, "data file", "rs");
   if (still_open) 
     {
@@ -123,13 +123,13 @@ dfm_open_reader (struct file_handle *fh)
   r->eof_cnt = 0;
   if (fh != fh_inline_file ()) 
     {
-      r->where.filename = fh_get_filename (fh);
+      r->where.file_name = fh_get_file_name (fh);
       r->where.line_number = 0; 
-      r->file = fn_open (fh_get_filename (fh), "rb");
+      r->file = fn_open (fh_get_file_name (fh), "rb");
       if (r->file == NULL)
         {
           msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
-               fh_get_filename (r->fh), strerror (errno));
+               fh_get_file_name (r->fh), strerror (errno));
           fh_close (fh,"data file", "rs");
           free (r);
           return NULL;
@@ -387,7 +387,7 @@ dfm_column_start (struct dfm_reader *r)
   return r->pos + 1;
 }
 
-/* Pushes the filename and line number on the fn/ln stack. */
+/* Pushes the file name and line number on the fn/ln stack. */
 void
 dfm_push (struct dfm_reader *r)
 {
@@ -395,7 +395,7 @@ dfm_push (struct dfm_reader *r)
     err_push_file_locator (&r->where);
 }
 
-/* Pops the filename and line number from the fn/ln stack. */
+/* Pops the file name and line number from the fn/ln stack. */
 void
 dfm_pop (struct dfm_reader *r)
 {

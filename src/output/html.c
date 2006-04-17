@@ -190,7 +190,7 @@ html_submit (struct outp_driver *this, struct som_entity *s)
       output_tab_table ( this, (struct tab_table *) s->ext);
       break;
     case SOM_CHART:
-      link_image (x->file, ((struct chart *)s->ext)->filename);
+      link_image (x->file, ((struct chart *)s->ext)->file_name);
       break;
     default:
       abort ();
@@ -345,7 +345,7 @@ html_initialise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 
   FILE  *fp;
 
-  make_unique_file_stream(&fp, &ch->filename);
+  make_unique_file_stream(&fp, &ch->file_name);
 
 #ifdef NO_CHARTS
   ch->lp = 0;
@@ -359,7 +359,7 @@ html_initialise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 static void 
 html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 {
-  free(ch->filename);
+  free(ch->file_name);
 }
 
 

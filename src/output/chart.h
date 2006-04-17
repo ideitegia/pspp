@@ -47,7 +47,7 @@ struct chart {
 #else
   void *lp;
 #endif
-  char *filename;
+  char *file_name;
   FILE *file;
 
   /* The geometry of the chart 

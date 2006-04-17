@@ -135,7 +135,7 @@ struct casefile
 
     /* Disk storage. */
     int fd;                             /* File descriptor, -1 if none. */
-    char *filename;                     /* Filename. */
+    char *file_name;                    /* File name. */
     union value *buffer;                /* I/O buffer, NULL if none. */
     size_t buffer_used;                 /* Number of values used in buffer. */
     size_t buffer_size;                 /* Buffer size in values. */
@@ -179,7 +179,7 @@ static bool fill_buffer (struct casereader *reader);
 
 static void io_error (struct casefile *, const char *, ...)
      PRINTF_FORMAT (2, 3);
-static int safe_open (const char *filename, int flags);
+static int safe_open (const char *file_name, int flags);
 static int safe_close (int fd);
 
 /* Creates and returns a casefile to store cases of VALUE_CNT
@@ -203,7 +203,7 @@ casefile_create (size_t value_cnt)
   cf->ok = true;
   cf->cases = NULL;
   cf->fd = -1;
-  cf->filename = NULL;
+  cf->file_name = NULL;
   cf->buffer = NULL;
   cf->buffer_size = ROUND_UP (cf->value_cnt, IO_BUF_SIZE);
   if (cf->value_cnt > 0 && cf->buffer_size % cf->value_cnt > 64)
@@ -252,10 +252,10 @@ casefile_destroy (struct casefile *cf)
       if (cf->fd != -1)
         safe_close (cf->fd);
           
-      if (cf->filename != NULL && remove (cf->filename) == -1) 
+      if (cf->file_name != NULL && remove (cf->file_name) == -1) 
         io_error (cf, _("%s: Removing temporary file: %s."),
-                  cf->filename, strerror (errno));
-      free (cf->filename);
+                  cf->file_name, strerror (errno));
+      free (cf->file_name);
 
       free (cf->buffer);
 
@@ -442,11 +442,11 @@ casefile_to_disk (const struct casefile *cf_)
     {
       size_t idx, block_cnt;
       
-      assert (cf->filename == NULL);
+      assert (cf->file_name == NULL);
       assert (cf->fd == -1);
       assert (cf->buffer_used == 0);
 
-      if (!make_temp_file (&cf->fd, &cf->filename))
+      if (!make_temp_file (&cf->fd, &cf->file_name))
         {
           cf->ok = false;
           return false;
@@ -566,10 +566,10 @@ reader_open_file (struct casereader *reader)
     }
   else 
     {
-      reader->fd = safe_open (cf->filename, O_RDONLY);
+      reader->fd = safe_open (cf->file_name, O_RDONLY);
       if (reader->fd < 0)
         io_error (cf, _("%s: Opening temporary file: %s."),
-                  cf->filename, strerror (errno));
+                  cf->file_name, strerror (errno));
     }
 
   if (cf->buffer != NULL) 
@@ -595,7 +595,7 @@ reader_open_file (struct casereader *reader)
     file_ofs = 0;
   if (lseek (reader->fd, file_ofs, SEEK_SET) != file_ofs)
     io_error (cf, _("%s: Seeking temporary file: %s."),
-              cf->filename, strerror (errno));
+              cf->file_name, strerror (errno));
 
   if (cf->case_cnt > 0 && cf->value_cnt > 0)
     fill_buffer (reader);
@@ -613,10 +613,10 @@ fill_buffer (struct casereader *reader)
                              reader->cf->buffer_size * sizeof *reader->buffer);
       if (bytes < 0) 
         io_error (reader->cf, _("%s: Reading temporary file: %s."),
-                  reader->cf->filename, strerror (errno));
+                  reader->cf->file_name, strerror (errno));
       else if (bytes != reader->cf->buffer_size * sizeof *reader->buffer) 
         io_error (reader->cf, _("%s: Temporary file ended unexpectedly."),
-                  reader->cf->filename); 
+                  reader->cf->file_name); 
     }
   return reader->cf->ok;
 }
@@ -737,7 +737,7 @@ io_error (struct casefile *cf, const char *format, ...)
       va_list args;
 
       e.class = ME;
-      e.where.filename = NULL;
+      e.where.file_name = NULL;
       e.where.line_number = -1;
       e.title = NULL;
 
@@ -748,16 +748,16 @@ io_error (struct casefile *cf, const char *format, ...)
   cf->ok = false;
 }
 
-/* Calls open(), passing FILENAME and FLAGS, repeating as necessary
+/* Calls open(), passing FILE_NAME and FLAGS, repeating as necessary
    to deal with interrupted calls. */
 static int
-safe_open (const char *filename, int flags) 
+safe_open (const char *file_name, int flags) 
 {
   int fd;
 
   do 
     {
-      fd = open (filename, flags);
+      fd = open (file_name, flags);
     }
   while (fd == -1 && errno == EINTR);
 

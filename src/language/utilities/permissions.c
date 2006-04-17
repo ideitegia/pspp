@@ -37,7 +37,7 @@
 
 enum PER {PER_RO, PER_RW};
 
-int change_permissions(const char *filename, enum PER per);
+int change_permissions(const char *file_name, enum PER per);
 
 
 /* Parses the PERMISSIONS command. */
@@ -92,7 +92,7 @@ cmd_permissions (void)
 
 
 int
-change_permissions(const char *filename, enum PER per)
+change_permissions(const char *file_name, enum PER per)
 {
   struct stat buf;
   mode_t mode;
@@ -104,10 +104,10 @@ change_permissions(const char *filename, enum PER per)
     }
 
 
-  if ( -1 == stat(filename, &buf) ) 
+  if ( -1 == stat(file_name, &buf) ) 
     {
       const int errnum = errno;
-      msg(ME,_("Cannot stat %s: %s"), filename, strerror(errnum));
+      msg(ME,_("Cannot stat %s: %s"), file_name, strerror(errnum));
       return 0;
     }
 
@@ -116,11 +116,11 @@ change_permissions(const char *filename, enum PER per)
   else
     mode = buf.st_mode & ~( S_IWOTH | S_IWUSR | S_IWGRP );
 
-  if ( -1 == chmod(filename, mode))
+  if ( -1 == chmod(file_name, mode))
 
     {
       const int errnum = errno;
-      msg(ME,_("Cannot change mode of %s: %s"), filename, strerror(errnum));
+      msg(ME,_("Cannot change mode of %s: %s"), file_name, strerror(errnum));
       return 0;
     }
 

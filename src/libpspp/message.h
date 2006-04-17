@@ -36,7 +36,7 @@ enum
 /* A file location.  */
 struct file_locator
   {
-    const char *filename;		/* Filename. */
+    const char *file_name;		/* File name. */
     int line_number;			/* Line number. */
   };
 

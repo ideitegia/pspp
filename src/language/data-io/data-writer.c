@@ -54,14 +54,14 @@ dfm_open_writer (struct file_handle *fh)
 
   w = *aux = xmalloc (sizeof *w);
   w->fh = fh;
-  w->file = fn_open (fh_get_filename (w->fh), "wb");
+  w->file = fn_open (fh_get_file_name (w->fh), "wb");
   w->bounce = NULL;
 
   if (w->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
                  "as a data file: %s."),
-           fh_get_filename (w->fh), strerror (errno));
+           fh_get_file_name (w->fh), strerror (errno));
       goto error;
     }
 

@@ -36,15 +36,15 @@
 #define P_tmpdir "/tmp"
 #endif
 
-/* Creates a temporary file and stores its name in *FILENAME and
+/* Creates a temporary file and stores its name in *FILE_NAME and
    a file descriptor for it in *FD.  Returns success.  Caller is
-   responsible for freeing *FILENAME. */
+   responsible for freeing *FILE_NAME. */
 int
-make_temp_file (int *fd, char **filename)
+make_temp_file (int *fd, char **file_name)
 {
   const char *parent_dir;
 
-  assert (filename != NULL);
+  assert (file_name != NULL);
   assert (fd != NULL);
 
   if (getenv ("TMPDIR") != NULL)
@@ -52,26 +52,26 @@ make_temp_file (int *fd, char **filename)
   else
     parent_dir = P_tmpdir;
 
-  *filename = xmalloc (strlen (parent_dir) + 32);
-  sprintf (*filename, "%s/psppXXXXXX", parent_dir);
-  *fd = mkstemp (*filename);
+  *file_name = xmalloc (strlen (parent_dir) + 32);
+  sprintf (*file_name, "%s/psppXXXXXX", parent_dir);
+  *fd = mkstemp (*file_name);
   if (*fd < 0)
     {
       msg (ME, _("%s: Creating temporary file: %s."),
-           *filename, strerror (errno));
-      free (*filename);
-      *filename = NULL;
+           *file_name, strerror (errno));
+      free (*file_name);
+      *file_name = NULL;
       return 0;
     }
   return 1;
 }
 
 
-/* Creates a temporary file and stores its name in *FILENAME and
+/* Creates a temporary file and stores its name in *FILE_NAME and
    a file stream for it in *FP.  Returns success.  Caller is
-   responsible for freeing *FILENAME and for closing *FP */
+   responsible for freeing *FILE_NAME and for closing *FP */
 int
-make_unique_file_stream (FILE **fp, char **filename)
+make_unique_file_stream (FILE **fp, char **file_name)
 {
   static int serial = 0;
   const char *parent_dir;
@@ -82,7 +82,7 @@ make_unique_file_stream (FILE **fp, char **filename)
      Need also to pass in the directory instead of using /tmp 
   */
 
-  assert (filename != NULL);
+  assert (file_name != NULL);
   assert (fp != NULL);
 
   if (getenv ("TMPDIR") != NULL)
@@ -90,18 +90,18 @@ make_unique_file_stream (FILE **fp, char **filename)
   else
     parent_dir = P_tmpdir;
 
-  *filename = xmalloc (strlen (parent_dir) + 32);
+  *file_name = xmalloc (strlen (parent_dir) + 32);
 
 
-  sprintf (*filename, "%s/pspp%d.png", parent_dir, serial++);
+  sprintf (*file_name, "%s/pspp%d.png", parent_dir, serial++);
 
-  *fp = fopen(*filename, "w");
+  *fp = fopen(*file_name, "w");
 
   if (! *fp )
     {
-      msg (ME, _("%s: Creating file: %s."), *filename, strerror (errno));
-      free (*filename);
-      *filename = NULL;
+      msg (ME, _("%s: Creating file: %s."), *file_name, strerror (errno));
+      free (*file_name);
+      *file_name = NULL;
       return 0;
     }
 

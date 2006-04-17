@@ -45,7 +45,7 @@ struct getl_source
     struct getl_source *next;		/* Next file in list. */
 
     /* Current location. */
-    char *fn;				/* Filename. */
+    char *fn;				/* File name. */
     int ln;				/* Line number. */
 
     enum getl_source_type
@@ -228,8 +228,8 @@ getl_append_syntax_file (const char *fn)
   append_source (create_syntax_file_source (fn));
 }
 
-/* Inserts the given file with filename FN into the current file after
-   the current line. */
+/* Inserts the given file with name FN into the current file
+   after the current line. */
 void
 getl_include_syntax_file (const char *fn)
 {
@@ -427,7 +427,7 @@ err_location (struct file_locator *f)
   if (nfile_loc)
     *f = *file_loc[nfile_loc - 1];
   else
-    getl_location (&f->filename, &f->line_number);
+    getl_location (&f->file_name, &f->line_number);
 }
 
 /* Reads a line from syntax file source S into LINE.

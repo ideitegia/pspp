@@ -37,10 +37,10 @@ cmd_include (void)
   if (lex_match_id ("FILE"))
     lex_match ('=');
 
-  /* Filename can be identifier or string. */
+  /* File name can be identifier or string. */
   if (token != T_ID && token != T_STRING) 
     {
-      lex_error (_("expecting filename")); 
+      lex_error (_("expecting file name")); 
       return CMD_CASCADING_FAILURE;
     }
   getl_include_syntax_file (ds_c_str (&tokstr));

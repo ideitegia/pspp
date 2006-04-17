@@ -424,7 +424,7 @@ handle_option (struct outp_driver *this, const char *key,
 }
 
 /* Looks for a PostScript font file or config file in all the
-   appropriate places.  Returns the filename on success, NULL on
+   appropriate places.  Returns the file name on success, NULL on
    failure. */
 static char *
 find_ps_file (const char *name)

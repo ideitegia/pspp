@@ -142,24 +142,24 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 
 	GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
 	GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
-	gchar *filename;
+	gchar *file_name;
 
 	g_assert(data_sheet);
 	g_assert(var_sheet);
 
-	filename = gtk_file_chooser_get_filename
+	file_name = gtk_file_chooser_get_filename
 	  (GTK_FILE_CHOOSER (dialog));
 
 	if ( psppire_handle ) 
 	  fh_free(psppire_handle);
 
 	psppire_handle = 
-	  fh_create_file (handle_name, filename, fh_default_properties());
+	  fh_create_file (handle_name, file_name, fh_default_properties());
 
 	if ( !psppire_handle ) 
 	  {
 	    g_warning("Cannot read handle for reading system file \"%s\"\n", 
-		      filename);
+		      file_name);
 	    continue;
 	  }
 
@@ -187,9 +187,9 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 	psppire_case_array_clear(data_store->cases);
 
 
-	psppire_set_window_title(basename(filename));
+	psppire_set_window_title(basename(file_name));
 
-	g_free (filename);
+	g_free (file_name);
 
 	{
 	  const int ni = dict_get_next_value_idx(the_dictionary->dict);
@@ -238,18 +238,18 @@ recreate_save_handle(struct file_handle **handle)
 
   if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     {
-      char *filename = gtk_file_chooser_get_filename
+      char *file_name = gtk_file_chooser_get_filename
 	(GTK_FILE_CHOOSER (dialog));
 
 #if 0
       if ( *handle ) 
 	destroy_file_handle(*handle, 0);
 #endif
-      *handle = fh_create_file (handle_name, filename, fh_default_properties());
+      *handle = fh_create_file (handle_name, file_name, fh_default_properties());
 
-      psppire_set_window_title(basename(filename));
+      psppire_set_window_title(basename(file_name));
 
-      g_free (filename);
+      g_free (file_name);
     }
 
   gtk_widget_destroy (dialog);

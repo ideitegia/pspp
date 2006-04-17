@@ -65,7 +65,7 @@ fn_init (void)
   config_path = fn_getenv_default ("STAT_CONFIG_PATH", default_config_path);
 }
 
-/* Functions for performing operations on filenames. */
+/* Functions for performing operations on file names. */
 
 
 /* Substitutes $variables as defined by GETENV into TARGET.
@@ -210,9 +210,9 @@ fn_tilde_expand (const char *input)
    malloc'd full name of the first file found, or NULL if none is
    found.
 
-   If PREFIX is non-NULL, then it is prefixed to each filename;
-   i.e., it looks like PREFIX/PATH_COMPONENT/NAME.  This is not done
-   with absolute directories in the path. */
+   If PREFIX is non-NULL, then it is prefixed to each file name;
+   i.e., it looks like PREFIX/PATH_COMPONENT/NAME.  This is not
+   done with absolute directories in the path. */
 char *
 fn_search_path (const char *base_name, const char *path_, const char *prefix)
 {
@@ -271,22 +271,22 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
 }
 
 /* fn_normalize(): This very OS-dependent routine canonicalizes
-   filename FN1.  The filename should not need to be the name of an
+   file name FN1.  The file name should not need to be the name of an
    existing file.  Returns a malloc()'d copy of the canonical name.
    This function must always succeed; if it needs to bail out then it
    should return xstrdup(FN1).  */
 #ifdef unix
 char *
-fn_normalize (const char *filename)
+fn_normalize (const char *file_name)
 {
   const char *src;
   char *fn1, *fn2, *dest;
   int maxlen;
 
-  if (fn_is_special (filename))
-    return xstrdup (filename);
+  if (fn_is_special (file_name))
+    return xstrdup (file_name);
   
-  fn1 = fn_tilde_expand (filename);
+  fn1 = fn_tilde_expand (file_name);
 
   /* Follow symbolic links. */
   for (;;)
@@ -393,9 +393,9 @@ fn_normalize (const char *fn1)
   DWORD success;
   char *fn2;
 
-  /* Don't change special filenames. */
-  if (is_special_filename (filename))
-    return xstrdup (filename);
+  /* Don't change special file names. */
+  if (is_special_file_name (file_name))
+    return xstrdup (file_name);
 
   /* First find the required buffer length. */
   len = GetFullPathName (fn1, 0, NULL, NULL);
@@ -447,39 +447,39 @@ fn_normalize (const char *fn)
 }
 #endif /* not Lose32, Unix, or DJGPP */
 
-/* Returns the directory part of FILENAME, as a malloc()'d
+/* Returns the directory part of FILE_NAME, as a malloc()'d
    string. */
 char *
-fn_dir_name (const char *filename)
+fn_dir_name (const char *file_name)
 {
   const char *p;
   char *s;
   size_t len;
 
-  len = strlen (filename);
-  if (len == 1 && filename[0] == '/')
-    p = filename + 1;
-  else if (len && filename[len - 1] == '/')
-    p = buf_find_reverse (filename, len - 1, filename + len - 1, 1);
+  len = strlen (file_name);
+  if (len == 1 && file_name[0] == '/')
+    p = file_name + 1;
+  else if (len && file_name[len - 1] == '/')
+    p = buf_find_reverse (file_name, len - 1, file_name + len - 1, 1);
   else
-    p = strrchr (filename, '/');
+    p = strrchr (file_name, '/');
   if (p == NULL)
-    p = filename;
+    p = file_name;
 
-  s = xmalloc (p - filename + 1);
-  memcpy (s, filename, p - filename);
-  s[p - filename] = 0;
+  s = xmalloc (p - file_name + 1);
+  memcpy (s, file_name, p - file_name);
+  s[p - file_name] = 0;
 
   return s;
 }
 
-/* Returns the extension part of FILENAME as a malloc()'d string.
-   If FILENAME does not have an extension, returns an empty
+/* Returns the extension part of FILE_NAME as a malloc()'d string.
+   If FILE_NAME does not have an extension, returns an empty
    string. */
 char *
-fn_extension (const char *filename) 
+fn_extension (const char *file_name) 
 {
-  const char *extension = strrchr (filename, '.');
+  const char *extension = strrchr (file_name, '.');
   if (extension == NULL)
     extension = "";
   return xstrdup (extension);
@@ -524,7 +524,7 @@ fn_get_cwd (void)
 
 /* Find out information about files. */
 
-/* Returns nonzero iff NAME specifies an absolute filename. */
+/* Returns nonzero iff NAME specifies an absolute file name. */
 int
 fn_is_absolute (const char *name)
 {
@@ -545,16 +545,16 @@ fn_is_absolute (const char *name)
   return 0;
 }
   
-/* Returns 1 if the filename specified is a virtual file that doesn't
-   really exist on disk, 0 if it's a real filename. */
+/* Returns 1 if FILE_NAME is a virtual file that doesn't
+   really exist on disk, 0 if it's a real file name. */
 int
-fn_is_special (const char *filename)
+fn_is_special (const char *file_name)
 {
-  if (!strcmp (filename, "-") || !strcmp (filename, "stdin")
-      || !strcmp (filename, "stdout") || !strcmp (filename, "stderr")
+  if (!strcmp (file_name, "-") || !strcmp (file_name, "stdin")
+      || !strcmp (file_name, "stdout") || !strcmp (file_name, "stderr")
 #ifdef unix
-      || filename[0] == '|'
-      || (*filename && filename[strlen (filename) - 1] == '|')
+      || file_name[0] == '|'
+      || (*file_name && file_name[strlen (file_name) - 1] == '|')
 #endif
       )
     return 1;
@@ -579,12 +579,12 @@ fn_exists (const char *name)
 #endif
 }
 
-/* Returns the symbolic link value for FILENAME as a dynamically
+/* Returns the symbolic link value for FILE_NAME as a dynamically
    allocated buffer, or a null pointer on failure. */
 char *
-fn_readlink (const char *filename)
+fn_readlink (const char *file_name)
 {
-  return xreadlink (filename, 32);
+  return xreadlink (file_name, 32);
 }
 
 /* Environment variables. */
@@ -714,11 +714,11 @@ struct file_identity
    caller is responsible for freeing the structure with
    fn_free_identity() when finished. */  
 struct file_identity *
-fn_get_identity (const char *filename) 
+fn_get_identity (const char *file_name) 
 {
   struct stat s;
 
-  if (stat (filename, &s) == 0) 
+  if (stat (file_name, &s) == 0) 
     {
       struct file_identity *identity = xmalloc (sizeof *identity);
       identity->device = s.st_dev;
@@ -752,7 +752,7 @@ fn_compare_file_identities (const struct file_identity *a,
 /* A file's identity. */
 struct file_identity 
 {
-  char *normalized_filename;  /* File's normalized name. */
+  char *normalized_file_name;  /* File's normalized name. */
 };
 
 /* Returns a pointer to a dynamically allocated structure whose
@@ -762,10 +762,10 @@ struct file_identity
    caller is responsible for freeing the structure with
    fn_free_identity() when finished. */  
 struct file_identity *
-fn_get_identity (const char *filename) 
+fn_get_identity (const char *file_name) 
 {
   struct file_identity *identity = xmalloc (sizeof *identity);
-  identity->normalized_filename = fn_normalize (filename);
+  identity->normalized_file_name = fn_normalize (file_name);
   return identity;
 }
 
@@ -775,7 +775,7 @@ fn_free_identity (struct file_identity *identity)
 {
   if (identity != NULL) 
     {
-      free (identity->normalized_filename);
+      free (identity->normalized_file_name);
       free (identity);
     }
 }
@@ -785,6 +785,6 @@ int
 fn_compare_file_identities (const struct file_identity *a,
                             const struct file_identity *b) 
 {
-  return strcmp (a->normalized_filename, b->normalized_filename);
+  return strcmp (a->normalized_file_name, b->normalized_file_name);
 }
 #endif /* not unix */

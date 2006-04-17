@@ -21,15 +21,15 @@
 #define MKFILE_H
 
 
-/* Creates a temporary file and stores its name in *FILENAME and
+/* Creates a temporary file and stores its name in *FILE_NAME and
    a file descriptor for it in *FD.  Returns success.  Caller is
-   responsible for freeing *FILENAME. */
-int make_temp_file (int *fd, char **filename); 
+   responsible for freeing *FILE_NAME. */
+int make_temp_file (int *fd, char **file_name); 
 
 
-/* Creates a temporary file and stores its name in *FILENAME and
+/* Creates a temporary file and stores its name in *FILE_NAME and
    a file stream for it in *FP.  Returns success.  Caller is
-   responsible for freeing *FILENAME. */
-int make_unique_file_stream (FILE **fp, char **filename) ;
+   responsible for freeing *FILE_NAME. */
+int make_unique_file_stream (FILE **fp, char **file_name) ;
 
 #endif /* make-file.h */

@@ -62,7 +62,7 @@ any_writer_open (struct file_handle *handle, struct dictionary *dict)
         struct any_writer *writer;
         char *extension;
 
-        extension = fn_extension (fh_get_filename (handle));
+        extension = fn_extension (fh_get_file_name (handle));
         str_lowercase (extension);
 
         if (!strcmp (extension, ".por"))

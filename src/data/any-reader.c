@@ -68,17 +68,17 @@ try_detect (struct file_handle *handle, bool (*detect) (FILE *))
   FILE *file;
   bool is_type;
 
-  file = fn_open (fh_get_filename (handle), "rb");
+  file = fn_open (fh_get_file_name (handle), "rb");
   if (file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\": %s."),
-           fh_get_filename (handle), strerror (errno));
+           fh_get_file_name (handle), strerror (errno));
       return IO_ERROR;
     }
     
   is_type = detect (file);
   
-  fn_close (fh_get_filename (handle), file);
+  fn_close (fh_get_file_name (handle), file);
 
   return is_type ? YES : NO;
 }
@@ -127,7 +127,7 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
                                   pfm_open_reader (handle, dict, NULL));
 
         msg (SE, _("\"%s\" is not a system or portable file."),
-             fh_get_filename (handle));
+             fh_get_file_name (handle));
         return NULL;
       }
 

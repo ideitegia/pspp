@@ -53,7 +53,7 @@ void fh_done (void);
 
 /* Creating file handles. */
 struct file_handle *fh_create_file (const char *handle_name,
-                                    const char *filename,
+                                    const char *file_name,
                                     const struct fh_properties *);
 struct file_handle *fh_create_scratch (const char *handle_name);
 const struct fh_properties *fh_default_properties (void);
@@ -63,7 +63,7 @@ void fh_free (struct file_handle *);
 
 /* Finding file handles. */
 struct file_handle *fh_from_name (const char *handle_name);
-struct file_handle *fh_from_filename (const char *filename);
+struct file_handle *fh_from_file_name (const char *file_name);
 struct file_handle *fh_inline_file (void);
 
 /* Generic properties of file handles. */
@@ -71,7 +71,7 @@ const char *fh_get_name (const struct file_handle *);
 enum fh_referent fh_get_referent (const struct file_handle *);
 
 /* Properties of FH_REF_FILE file handles. */
-const char *fh_get_filename (const struct file_handle *);
+const char *fh_get_file_name (const struct file_handle *);
 enum fh_mode fh_get_mode (const struct file_handle *) ;
 
 /* Properties of FH_REF_FILE and FH_REF_INLINE file handles. */
