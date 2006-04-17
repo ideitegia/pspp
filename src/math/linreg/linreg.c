@@ -122,8 +122,9 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
 }
 
 bool
-pspp_linreg_cache_free (pspp_linreg_cache * c)
+pspp_linreg_cache_free (void * m)
 {
+  pspp_linreg_cache *c = m;
   gsl_vector_free (c->indep_means);
   gsl_vector_free (c->indep_std);
   gsl_vector_free (c->ss_indeps);

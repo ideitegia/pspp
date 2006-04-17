@@ -1,3 +1,8 @@
+2006-04-17  Jason Stover  <jason@wonko.gcsu.edu>
+
+	* linreg.c (pspp_linreg_cache_free): Accept a pointer of type
+	void to match definition of trns_proc_func.
+
 2006-04-17  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.c (pspp_linreg_cache_free): Return a bool.

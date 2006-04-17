@@ -178,7 +178,7 @@ typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
  */
 pspp_linreg_cache *pspp_linreg_cache_alloc (size_t n, size_t p);
 
-bool pspp_linreg_cache_free (pspp_linreg_cache * c);
+bool pspp_linreg_cache_free (void *);
 
 /*
   Fit the linear model via least squares. All pointers passed to pspp_linreg
