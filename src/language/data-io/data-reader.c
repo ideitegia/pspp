@@ -28,7 +28,7 @@
 #include <libpspp/message.h>
 #include <language/data-io/file-handle.h>
 #include <data/file-handle-def.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <language/line-buffer.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/str.h>

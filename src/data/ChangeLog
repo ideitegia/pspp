@@ -1,3 +1,16 @@
+Sun Apr 16 18:28:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	GNU standards require "file name" instead of "filename" in
+	documentation.  It's nice for our code to follow the convention
+	too.
+	
+	* filename.c: Rename to file-name.c.
+
+	* filename.h: Rename to file-name.h.  Update all inclusions.
+	Update header guards.
+
+	* automake.mk: Update file names.
+
 Sun Apr 16 16:42:47 2006  Ben Pfaff  <blp@gnu.org>
 
 	* filename.c: (fn_dirname) Renamed fn_dir_name(), all references

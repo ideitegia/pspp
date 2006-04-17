@@ -26,12 +26,12 @@
 
 #include "read-line.h"
 #include <language/command.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <libpspp/version.h>
 #include <libpspp/str.h>
 #include <output/table.h>
 #include <libpspp/message.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <data/settings.h>
 
 #include "gettext.h"

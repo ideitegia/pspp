@@ -17,8 +17,8 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !filename_h
-#define filename_h 1
+#ifndef FILE_NAME_H
+#define FILE_NAME_H 1
 
 #include <stdio.h>
 
@@ -68,4 +68,4 @@ void fn_free_identity (struct file_identity *);
 int fn_compare_file_identities (const struct file_identity *,
                                 const struct file_identity *);
 
-#endif /* filename_h */
+#endif /* file-name.h */

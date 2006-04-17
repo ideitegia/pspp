@@ -28,7 +28,7 @@
 
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include "error.h"
 #include "getline.h"
 #include "getlogin_r.h"

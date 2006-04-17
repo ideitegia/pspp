@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <libpspp/message.h>
 #include "file-handle-def.h"
-#include "filename.h"
+#include "file-name.h"
 #include "por-file-writer.h"
 #include "sys-file-writer.h"
 #include <libpspp/str.h>

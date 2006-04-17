@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/line-buffer.h>

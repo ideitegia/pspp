@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include <libpspp/message.h>
-#include "filename.h"
+#include "file-name.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>

@@ -35,7 +35,7 @@
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
 
-#include <data/filename.h>
+#include <data/file-name.h>
 
 #include "afm.h"
 #include "chart.h"

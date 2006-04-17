@@ -36,7 +36,7 @@
 #include "case.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
-#include "filename.h"
+#include "file-name.h"
 #include "format.h"
 #include "value-labels.h"
 #include "variable.h"

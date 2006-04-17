@@ -27,7 +27,7 @@
 #include <data/dictionary.h>
 #include <libpspp/message.h>
 #include <data/file-handle-def.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <language/line-buffer.h>
 #include <language/lexer/lexer.h>
 #include <output/output.h>

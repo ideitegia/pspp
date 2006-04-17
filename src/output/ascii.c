@@ -24,7 +24,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/pool.h>

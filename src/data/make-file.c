@@ -23,7 +23,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
-#include "filename.h"
+#include "file-name.h"
 #include "make-file.h"
 #include <libpspp/message.h>
 #include <libpspp/alloc.h>

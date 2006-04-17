@@ -26,7 +26,7 @@
 #include <libpspp/alloc.h>
 #include <language/command.h>
 #include <libpspp/message.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <language/lexer/lexer.h>
 #include <data/settings.h>
 #include <libpspp/str.h>

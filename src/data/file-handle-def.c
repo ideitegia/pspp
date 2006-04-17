@@ -25,7 +25,7 @@
 #include <string.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include "filename.h"
+#include "file-name.h"
 #include <libpspp/message.h>
 #include <libpspp/magic.h>
 #include "variable.h"

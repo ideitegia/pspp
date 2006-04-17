@@ -24,7 +24,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <libpspp/alloc.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include "htmlP.h"
 #include "intprops.h"
 #include <libpspp/misc.h>

@@ -25,7 +25,7 @@
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <language/data-io/file-handle.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <libpspp/str.h>
 
 #include "gettext.h"

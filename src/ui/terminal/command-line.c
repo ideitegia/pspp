@@ -33,7 +33,7 @@
 #include <data/settings.h>
 #include "read-line.h"
 #include <output/output.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 

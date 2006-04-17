@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
-#include <data/filename.h>
+#include <data/file-name.h>
 #include <language/line-buffer.h>
 #include <language/lexer/lexer.h>
 #include <data/settings.h>
