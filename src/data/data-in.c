@@ -60,8 +60,9 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
   else
     ds_printf (&title, _("(columns %d-%d"), i->f1, i->f2);
   ds_printf (&title, _(", field type %s) "), fmt_to_string (&i->format));
-    
-  e.class = DE;
+
+  e.category = MSG_DATA;
+  e.severity = MSG_ERROR;
   err_location (&e.where);
   e.title = ds_c_str (&title);
 

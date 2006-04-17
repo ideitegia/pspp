@@ -50,41 +50,31 @@ vmsg(int klass, const char *fmt, va_list args)
 		    
   gint message_type;
 
-  switch (klass)
+  switch (msg_class_to_severity (klass))
     {
-    case SE:
-    case DE:
-    case ME:
+    case MSG_ERROR:
       message_type = GTK_MESSAGE_ERROR;
       break;
-    case SW:
-    case DW:
-    case MW:
+    case MSG_WARNING:
       message_type = GTK_MESSAGE_WARNING;
       break;
-    case SM:
-    case MM:
+    case MSG_NOTE:
     default:
       message_type = GTK_MESSAGE_INFO;
       break;
     };
   
-  switch (klass) 
+  switch (msg_class_to_category (klass)) 
     {
-    case SE:
-    case SW:
-    case SM:
+    case MSG_SYNTAX:
       msg = g_strdup(_("Script Error"));
       break;
 
-    case DE:
-    case DW:
+    case MSG_DATA:
       msg = g_strdup(_("Data File Error"));
       break;
 
-    case ME:
-    case MW:
-    case MM:
+    case MSG_GENERAL:
     default:
       msg = g_strdup(_("PSPP Error"));
       break;
@@ -113,7 +103,7 @@ vmsg(int klass, const char *fmt, va_list args)
 
 
 void 
-msg(int klass, const char *fmt, ...)
+msg(enum msg_class klass, const char *fmt, ...)
 {
   va_list ap;
   va_start(ap, fmt);
@@ -125,7 +115,8 @@ msg(int klass, const char *fmt, ...)
 void
 err_vmsg (const struct error *e, const char *format, va_list args)
 {
-  vmsg(e->class, format, args);
+  vmsg(msg_class_from_category_and_severity (e->category, e->severity),
+       format, args);
 }
 
 

@@ -25,13 +25,48 @@
 #include "compiler.h"
 
 /* Message classes. */
-enum
+enum msg_class
   {
-    SE, SW, SM,			/* Script error/warning/message. */
-    DE, DW,			/* Data-file error/warning. */
-    ME, MW, MM,			/* General error/warning/message. */
+    ME, MW, MN,			/* General error/warning/note. */
+    SE, SW, SN,			/* Script error/warning/note. */
+    DE, DW, DN,			/* Data-file error/note. */
     MSG_CLASS_CNT,
   };
+
+/* What kind of message is this? */
+enum msg_category 
+  {
+    MSG_GENERAL,        /* General info. */
+    MSG_SYNTAX,         /* Messages that relate to syntax files. */
+    MSG_DATA            /* Messages that relate to data files. */
+  };
+
+/* How important a condition is it? */
+enum msg_severity 
+  {
+    MSG_ERROR,
+    MSG_WARNING,
+    MSG_NOTE
+  };
+
+static inline enum msg_category
+msg_class_to_category (enum msg_class class) 
+{
+  return class / 3;
+}
+
+static inline enum msg_severity
+msg_class_to_severity (enum msg_class class) 
+{
+  return class % 3;
+}
+
+static inline enum msg_class
+msg_class_from_category_and_severity (enum msg_category category,
+                                      enum msg_severity severity) 
+{
+  return category * 3 + severity;
+}
 
 /* A file location.  */
 struct file_locator
@@ -43,7 +78,8 @@ struct file_locator
 /* An error message. */
 struct error
   {
-    int class;			/* One of the classes above. */
+    enum msg_category category; /* Message category. */
+    enum msg_severity severity; /* Message severity. */
     struct file_locator where;	/* File location, or (NULL, -1). */
     const char *title;		/* Special text inserted if not null. */
   };
@@ -61,9 +97,9 @@ extern int err_already_flagged;
 extern int err_verbosity;
 
 /* Functions. */
-void msg (int class, const char *format, ...)
+void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
-void tmsg (int class, const char *title, const char *format, ...)
+void tmsg (enum msg_class, const char *title, const char *format, ...)
      PRINTF_FORMAT (3, 4);
 
 void verbose_msg (int level, const char *format, ...)

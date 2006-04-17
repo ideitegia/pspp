@@ -1,3 +1,16 @@
+Sun Apr 16 20:41:10 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, we
+	divide the classification of messages along "category" and
+	"severity" axes.
+
+	* message.c: (err_vmsg) Rewrite to deal with categories and
+	severities in a straightforward manner instead of mixing them into
+	classes.
+	[0] (puts_stderr) Removed (dead code).
+	(msg) Changed first argument from `int' to `enum msg_class'.
+	(tmsg) Ditto.
+
 Sun Apr 16 18:53:12 2006  Ben Pfaff  <blp@gnu.org>
 
 	GNU standards require "file name" instead of "filename" in

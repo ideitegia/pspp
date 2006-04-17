@@ -469,9 +469,9 @@ static void
 show_blanks (void) 
 {
   if (get_blanks () == SYSMIS)
-    msg (MM, _("BLANKS is SYSMIS."));
+    msg (MN, _("BLANKS is SYSMIS."));
   else
-    msg (MM, _("BLANKS is %g."), get_blanks ());
+    msg (MN, _("BLANKS is %g."), get_blanks ());
 
 }
 
@@ -503,7 +503,7 @@ show_cc (int idx)
   out = format_cc (cc->neg_suffix, cc->grouping, out);
   *out = '\0';
   
-  msg (MM, _("CC%c is \"%s\"."), "ABCDE"[idx], cc_string);
+  msg (MN, _("CC%c is \"%s\"."), "ABCDE"[idx], cc_string);
 }
 
 
@@ -540,61 +540,61 @@ show_cce (void)
 static void
 show_decimals (void) 
 {
-  msg (MM, _("DECIMAL is \"%c\"."), get_decimal ());
+  msg (MN, _("DECIMAL is \"%c\"."), get_decimal ());
 }
 
 static void
 show_endcmd (void) 
 {
-  msg (MM, _("ENDCMD is \"%c\"."), get_endcmd ());
+  msg (MN, _("ENDCMD is \"%c\"."), get_endcmd ());
 }
 
 static void
 show_format (void) 
 {
-  msg (MM, _("FORMAT is %s."), fmt_to_string (get_format ()));
+  msg (MN, _("FORMAT is %s."), fmt_to_string (get_format ()));
 }
 
 static void
 show_length (void) 
 {
-  msg (MM, _("LENGTH is %d."), get_viewlength ());
+  msg (MN, _("LENGTH is %d."), get_viewlength ());
 }
 
 static void
 show_mxerrs (void) 
 {
-  msg (MM, _("MXERRS is %d."), get_mxerrs ());
+  msg (MN, _("MXERRS is %d."), get_mxerrs ());
 }
 
 static void
 show_mxloops (void) 
 {
-  msg (MM, _("MXLOOPS is %d."), get_mxloops ());
+  msg (MN, _("MXLOOPS is %d."), get_mxloops ());
 }
 
 static void
 show_mxwarns (void) 
 {
-  msg (MM, _("MXWARNS is %d."), get_mxwarns ());
+  msg (MN, _("MXWARNS is %d."), get_mxwarns ());
 }
 
 static void
 show_scompression (void) 
 {
   if (get_scompression ())
-    msg (MM, _("SCOMPRESSION is ON."));
+    msg (MN, _("SCOMPRESSION is ON."));
   else
-    msg (MM, _("SCOMPRESSION is OFF."));
+    msg (MN, _("SCOMPRESSION is OFF."));
 }
 
 static void
 show_undefined (void) 
 {
   if (get_undefined ())
-    msg (MM, _("UNDEFINED is WARN."));
+    msg (MN, _("UNDEFINED is WARN."));
   else
-    msg (MM, _("UNDEFINED is NOWARN."));
+    msg (MN, _("UNDEFINED is NOWARN."));
 }
 
 static void
@@ -602,15 +602,15 @@ show_weight (void)
 {
   struct variable *var = dict_get_weight (default_dict);
   if (var == NULL)
-    msg (MM, _("WEIGHT is off."));
+    msg (MN, _("WEIGHT is off."));
   else
-    msg (MM, _("WEIGHT is variable %s."), var->name);
+    msg (MN, _("WEIGHT is variable %s."), var->name);
 }
 
 static void
 show_width (void) 
 {
-  msg (MM, _("WIDTH is %d."), get_viewwidth ());
+  msg (MN, _("WIDTH is %d."), get_viewwidth ());
 }
 
 struct show_sbc 
@@ -661,13 +661,13 @@ show_all_cc (void)
 static void
 show_warranty (void) 
 {
-  msg (MM, lack_of_warranty);
+  msg (MN, lack_of_warranty);
 }
 
 static void
 show_copying (void) 
 {
-  msg (MM, copyleft);
+  msg (MN, copyleft);
 }
 
 int

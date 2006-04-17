@@ -15,7 +15,8 @@ expr_error (void *aux UNUSED, const char *format, ...)
 
   /* FIXME: we can do better about saying where the error
      occurred. */
-  e.class = SE;
+  e.category = MSG_SYNTAX;
+  e.severity = MSG_ERROR;
   err_location (&e.where);
   e.title = NULL;
 

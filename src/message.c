@@ -45,17 +45,18 @@ int err_verbosity;
 
 static char *command_name;
 
-/* Fairly common public functions. */
+/* Public functions. */
 
 /* Writes error message in CLASS, with title TITLE and text FORMAT,
    formatted with printf, to the standard places. */
 void
-tmsg (int class, const char *title, const char *format, ...)
+tmsg (enum msg_class class, const char *title, const char *format, ...)
 {
   struct error e;
   va_list args;
 
-  e.class = class;
+  e.category = msg_class_to_category (class);
+  e.severity = msg_class_to_severity (class);
   err_location (&e.where);
   e.title = title;
 
@@ -67,12 +68,13 @@ tmsg (int class, const char *title, const char *format, ...)
 /* Writes error message in CLASS, with text FORMAT, formatted with
    printf, to the standard places. */
 void
-msg (int class, const char *format, ...)
+msg (enum msg_class class, const char *format, ...)
 {
   struct error e;
   va_list args;
 
-  e.class = class;
+  e.category = msg_class_to_category (class);
+  e.severity = msg_class_to_severity (class);
   err_location (&e.where);
   e.title = NULL;
 
@@ -104,12 +106,12 @@ void
 err_check_count (void)
 {
   if (get_errorbreak() && err_error_count)
-    msg (MM, _("Terminating execution of syntax file due to error."));
+    msg (MN, _("Terminating execution of syntax file due to error."));
   else if (err_error_count > get_mxerrs() )
-    msg (MM, _("Errors (%d) exceeds limit (%d)."),
+    msg (MN, _("Errors (%d) exceeds limit (%d)."),
 	 err_error_count, get_mxerrs());
   else if (err_error_count + err_warning_count > get_mxwarns() )
-    msg (MM, _("Warnings (%d) exceed limit (%d)."),
+    msg (MN, _("Warnings (%d) exceed limit (%d)."),
 	 err_error_count + err_warning_count, get_mxwarns() );
   else
     return;
@@ -141,42 +143,37 @@ err_done (void)
 void
 err_vmsg (const struct error *e, const char *format, va_list args)
 {
-  /* Class flags. */
-  enum
+  struct category 
     {
-      ERR_IN_PROCEDURE = 01,	/* 1=Display name of current procedure. */
-      ERR_WITH_FILE = 02,	/* 1=Display file name and line number. */
+      bool show_command_name;   /* Show command name with error? */
+      bool show_file_location;  /* Show syntax file location? */
     };
 
-  /* Describes one class of error. */
-  struct error_class
+  static const struct category categories[] = 
     {
-      int flags;		/* Zero or more of ERR_*. */
-      int *count;		/* Counting category. */
-      const char *banner;	/* Banner. */
+      {false, false},           /* MSG_GENERAL. */
+      {true, true},             /* MSG_SYNTAX. */
+      {false, true},            /* MSG_DATA. */
     };
 
-  static const struct error_class error_classes[MSG_CLASS_CNT] =
+  struct severity 
     {
-      {3, &err_error_count, N_("error")},	/* SE */
-      {3, &err_warning_count, N_("warning")},	/* SW */
-      {3, NULL, N_("note")},			/* SM */
-
-      {2, &err_error_count, N_("error")},	/* DE */
-      {2, &err_warning_count, N_("warning")},	/* DW */
-
-      {0, &err_error_count, N_("error")},	/* ME */
-      {0, &err_warning_count, N_("warning")},	/* MW */
-      {0, NULL, N_("note")},			/* MM */
+      const char *name;         /* How to identify this severity. */
+      int *count;               /* Number of msgs with this severity so far. */
     };
-
-  struct string msg;
-
-  assert (e->class >= 0 && e->class < MSG_CLASS_CNT);
-  assert (format != NULL);
   
-  ds_init (&msg, 64);
-  if (e->where.file_name && (error_classes[e->class].flags & ERR_WITH_FILE))
+  static struct severity severities[] = 
+    {
+      {N_("error"), &err_error_count},          /* MSG_ERROR. */
+      {N_("warning"), &err_warning_count},      /* MSG_WARNING. */
+      {NULL, NULL},                             /* MSG_NOTE. */
+    };
+
+  const struct category *category = &categories[e->category];
+  const struct severity *severity = &severities[e->severity];
+  struct string msg = DS_INITIALIZER;
+
+  if (category->show_file_location && e->where.file_name)
     {
       ds_printf (&msg, "%s:", e->where.file_name);
       if (e->where.line_number != -1)
@@ -184,16 +181,13 @@ err_vmsg (const struct error *e, const char *format, va_list args)
       ds_putc (&msg, ' ');
     }
 
-  ds_printf (&msg, "%s: ", gettext (error_classes[e->class].banner));
+  if (severity->name != NULL)
+    ds_printf (&msg, "%s: ", gettext (severity->name));
   
-  {
-    int *count = error_classes[e->class].count;
-    if (count)
-      (*count)++;
-  }
+  if (severity->count != NULL)
+    ++*severity->count;
   
-  if (command_name != NULL
-      && (error_classes[e->class].flags & ERR_IN_PROCEDURE))
+  if (category->show_command_name && command_name != NULL)
     ds_printf (&msg, "%s: ", command_name);
 
   if (e->title)
@@ -202,27 +196,13 @@ err_vmsg (const struct error *e, const char *format, va_list args)
   ds_vprintf (&msg, format, args);
 
   /* FIXME: Check set_messages and set_errors to determine where to
-     send errors and messages.
-
-     Please note that this is not trivial.  We have to avoid an
-     infinite loop in reporting errors that originate in the output
-     section. */
+     send errors and messages. */
   dump_message (ds_c_str (&msg), 8, puts_stdout, get_viewwidth());
 
   ds_destroy (&msg);
 }
 
 /* Private functions. */
-
-#if 0
-/* Write S followed by a newline to stderr. */
-static void
-puts_stderr (const char *s)
-{
-  fputs (s, stderr);
-  fputc ('\n', stderr);
-}
-#endif
 
 /* Write S followed by a newline to stdout. */
 static void

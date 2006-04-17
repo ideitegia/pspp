@@ -1,3 +1,19 @@
+Sun Apr 16 20:43:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, we
+	divide the classification of messages along "category" and
+	"severity" axes.
+
+	* message.h: (enum msg_class) Named this set of enumerations.
+	(enum msg_category) New enum: MSG_GENERAL, MSG_SYNTAX, MSG_DATA.
+	(enum msg_severity) New enum: MSG_ERROR, MSG_WARNING, MSG_NOTE.
+	(msg_class_to_category) New inline function.
+	(msg_class_to_severity) New inline function.
+	(msg_class_from_category_and_severity) New inline function.
+	(struct error) Removed `class' member, added `category',
+	`severity'.  Updated all users of this struct to use the new
+	members.
+
 Sun Apr 16 20:33:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.c (ds_vprintf): Don't try to write into the string if it is

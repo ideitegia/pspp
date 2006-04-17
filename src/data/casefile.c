@@ -736,7 +736,8 @@ io_error (struct casefile *cf, const char *format, ...)
       struct error e;
       va_list args;
 
-      e.class = ME;
+      e.category = MSG_GENERAL;
+      e.severity = MSG_ERROR;
       e.where.file_name = NULL;
       e.where.line_number = -1;
       e.title = NULL;

@@ -1,3 +1,13 @@
+Sun Apr 16 20:45:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, we
+	divide the classification of messages along "category" and
+	"severity" axes.
+
+	* message-dialog.c: (vmsg) Use severity and category in
+	straightforward fashion instead of the less obvious "class".
+	(err_vmsg) Construct class before passing along to vmsg().
+
 Sun Apr 16 16:06:54 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, we get

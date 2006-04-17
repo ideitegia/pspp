@@ -90,7 +90,8 @@ error (struct pfm_reader *r, const char *msg, ...)
   char *title;
   va_list args;
 
-  e.class = ME;
+  e.category = MSG_GENERAL;
+  e.severity = MSG_ERROR;
   e.where.file_name = NULL;
   e.where.line_number = 0;
   file_name = fh_get_file_name (r->fh);

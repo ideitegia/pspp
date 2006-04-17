@@ -91,7 +91,7 @@ cmd_flip (void)
 
   if (temporary != 0)
     {
-      msg (SM, _("FLIP ignores TEMPORARY.  "
+      msg (SW, _("FLIP ignores TEMPORARY.  "
                  "Temporary transformations will be made permanent."));
       cancel_temporary (); 
     }
