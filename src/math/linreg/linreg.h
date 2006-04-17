@@ -20,7 +20,7 @@
 
 #ifndef LINREG_H
 #define LINREG_H
-
+#include <stdbool.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
@@ -178,7 +178,7 @@ typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
  */
 pspp_linreg_cache *pspp_linreg_cache_alloc (size_t n, size_t p);
 
-void pspp_linreg_cache_free (pspp_linreg_cache * c);
+bool pspp_linreg_cache_free (pspp_linreg_cache * c);
 
 /*
   Fit the linear model via least squares. All pointers passed to pspp_linreg
