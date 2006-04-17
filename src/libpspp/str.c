@@ -704,7 +704,7 @@ ds_vprintf (struct string *st, const char *format, va_list args_)
 #endif
 
   va_copy (args, args_);
-  avail = st->capacity - st->length + 1;
+  avail = st->string != NULL ? st->capacity - st->length + 1 : 0;
   needed = vsnprintf (st->string + st->length, avail, format, args);
   va_end (args);
 

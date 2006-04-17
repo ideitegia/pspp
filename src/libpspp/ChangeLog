@@ -1,3 +1,8 @@
+Sun Apr 16 20:33:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (ds_vprintf): Don't try to write into the string if it is
+	null.
+
 Sun Apr 16 18:52:41 2006  Ben Pfaff  <blp@gnu.org>
 
 	GNU standards require "file name" instead of "filename" in
