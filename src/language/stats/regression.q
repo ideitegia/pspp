@@ -502,7 +502,7 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
 static int
-regression_trns_proc (void *m, struct ccase *c, size_t case_idx)
+regression_trns_proc (void *m, struct ccase *c, int case_idx)
 {
   size_t i;
   size_t n_vars;
