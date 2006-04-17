@@ -1,3 +1,16 @@
+Sun Apr 16 18:49:51 2006  Ben Pfaff  <blp@gnu.org>
+
+	GNU standards require "file name" instead of "filename" in
+	documentation.  It's nice for our code to follow the convention
+	too.
+	
+	* casefile.c: (struct casefile) Rename `filename' member to
+	`file_name'.  Updated all references.
+
+	* file-name.c: [!unix] (struct file_identity) Rename
+	normalized_filename member to normalized_file_name.  Updated all
+	references.
+
 Sun Apr 16 18:35:33 2006  Ben Pfaff  <blp@gnu.org>
 
 	We don't really support anything but Unix-like environments well,

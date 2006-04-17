@@ -1,3 +1,12 @@
+Sun Apr 16 18:52:41 2006  Ben Pfaff  <blp@gnu.org>
+
+	GNU standards require "file name" instead of "filename" in
+	documentation.  It's nice for our code to follow the convention
+	too.
+	
+	* message.h: (struct file_locator) Rename filename member to
+	file_name.  Updated all references.
+
 Sun Apr 16 16:05:43 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, we get
