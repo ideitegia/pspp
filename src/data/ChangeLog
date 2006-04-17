@@ -1,3 +1,17 @@
+Sun Apr 16 18:35:33 2006  Ben Pfaff  <blp@gnu.org>
+
+	We don't really support anything but Unix-like environments well,
+	so we might as well de-obfuscate by writing directory and path
+	separators explicitly.
+
+	* file-name.h: (macro DIR_SEPARATOR) Removed.  Changed all usages
+	to just '/'.
+	(macro PATH_SEPARATOR) Removed.  Changed all usages to just ':'.
+	(macro DIR_SEPARATOR_STRING) Removed.  Changed all usages to just
+	"/".
+	(macro PATH_SEPARATOR_STRING) Removed.  Changed all usages to just
+	":"
+
 Sun Apr 16 18:28:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	GNU standards require "file name" instead of "filename" in

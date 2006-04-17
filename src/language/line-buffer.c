@@ -123,7 +123,7 @@ void
 getl_add_include_dir (const char *path)
 {
   if (ds_length (&getl_include_path))
-    ds_putc (&getl_include_path, PATH_DELIMITER);
+    ds_putc (&getl_include_path, ':');
 
   ds_puts (&getl_include_path, path);
 }

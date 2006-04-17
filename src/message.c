@@ -243,8 +243,8 @@ compulsory_break(int c)
 static inline int
 char_is_break (int quote, int c)
 {
-  return ((quote && c == DIR_SEPARATOR)
-	  || (!quote && (isspace (c) || c == '-' || c == '/'))); 
+  return ((quote && c == '/')
+          || (!quote && (isspace (c) || c == '-' || c == '/'))); 
 }
 
 /* Returns 1 if C is a break character where the break should be made

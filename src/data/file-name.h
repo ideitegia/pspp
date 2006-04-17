@@ -22,19 +22,6 @@
 
 #include <stdio.h>
 
-/* Directory separator and path delimiter for this OS. */
-#ifndef __MSDOS__
-#define DIR_SEPARATOR '/'
-#define PATH_DELIMITER ':'
-#define DIR_SEPARATOR_STRING "/"
-#define PATH_DELIMITER_STRING ":"
-#else
-#define DIR_SEPARATOR '\\'
-#define PATH_DELIMITER ';'
-#define DIR_SEPARATOR_STRING "\\"
-#define PATH_DELIMITER_STRING ";"
-#endif
-
 /* Search path for configuration files. */
 extern const char *config_path;
 

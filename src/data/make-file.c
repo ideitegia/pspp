@@ -53,7 +53,7 @@ make_temp_file (int *fd, char **filename)
     parent_dir = P_tmpdir;
 
   *filename = xmalloc (strlen (parent_dir) + 32);
-  sprintf (*filename, "%s%cpsppXXXXXX", parent_dir, DIR_SEPARATOR);
+  sprintf (*filename, "%s/psppXXXXXX", parent_dir);
   *fd = mkstemp (*filename);
   if (*fd < 0)
     {
@@ -93,7 +93,7 @@ make_unique_file_stream (FILE **fp, char **filename)
   *filename = xmalloc (strlen (parent_dir) + 32);
 
 
-  sprintf (*filename, "%s%cpspp%d.png", parent_dir, DIR_SEPARATOR, serial++);
+  sprintf (*filename, "%s/pspp%d.png", parent_dir, serial++);
 
   *fp = fopen(*filename, "w");
 

@@ -204,11 +204,11 @@ fn_tilde_expand (const char *input)
 }
 #endif /* !unix */
 
-/* Searches for a configuration file with name NAME in the path given
-   by PATH, which is tilde- and environment-interpolated.  Directories
-   in PATH are delimited by PATH_DELIMITER, defined in <pref.h>.
-   Returns the malloc'd full name of the first file found, or NULL if
-   none is found.
+/* Searches for a configuration file with name NAME in the path
+   given by PATH, which is tilde- and environment-interpolated.
+   Directories in PATH are delimited by ':'.  Returns the
+   malloc'd full name of the first file found, or NULL if none is
+   found.
 
    If PREFIX is non-NULL, then it is prefixed to each filename;
    i.e., it looks like PREFIX/PATH_COMPONENT/NAME.  This is not done
@@ -230,7 +230,7 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
 
   verbose_msg (2, _("searching for \"%s\" in path \"%s\""),
                base_name, ds_c_str (&path));
-  while (ds_separate (&path, &dir, PATH_DELIMITER_STRING, &save_idx))
+  while (ds_separate (&path, &dir, ":", &save_idx))
     {
       /* Do tilde expansion. */
       if (ds_first (&dir) == '~') 
@@ -245,11 +245,11 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
       if (prefix != NULL && !fn_is_absolute (ds_c_str (&dir)))
 	{
 	  ds_puts (&file, prefix);
-	  ds_putc (&file, DIR_SEPARATOR);
+	  ds_putc (&file, '/');
 	}
       ds_puts (&file, ds_c_str (&dir));
-      if (ds_length (&dir) && ds_last (&file) != DIR_SEPARATOR)
-	ds_putc (&file, DIR_SEPARATOR);
+      if (ds_length (&dir) && ds_last (&file) != '/')
+	ds_putc (&file, '/');
       ds_puts (&file, base_name);
 
       /* Check whether file exists. */
@@ -307,7 +307,7 @@ fn_normalize (const char *filename)
   dest = fn2 = xmalloc (maxlen + 1);
   src = fn1;
 
-  if (*src == DIR_SEPARATOR)
+  if (*src == '/')
     *dest++ = *src++;
   else
     {
@@ -332,8 +332,8 @@ fn_normalize (const char *filename)
 	  fn2 = xrealloc (fn2, maxlen + 1);
 	  dest = fn2 + ofs;
 	}
-      if (dest[-1] != DIR_SEPARATOR)
-	*dest++ = DIR_SEPARATOR;
+      if (dest[-1] != '/')
+	*dest++ = '/';
     }
 
   for (;;)
@@ -343,25 +343,25 @@ fn_normalize (const char *filename)
       c = *src++;
 
       f = 0;
-      if (c == DIR_SEPARATOR || c == 0)
+      if (c == '/' || c == 0)
 	{
 	  /* remove `./', `../' from directory */
-	  if (dest[-1] == '.' && dest[-2] == DIR_SEPARATOR)
+	  if (dest[-1] == '.' && dest[-2] == '/')
 	    dest--;
-	  else if (dest[-1] == '.' && dest[-2] == '.' && dest[-3] == DIR_SEPARATOR)
+	  else if (dest[-1] == '.' && dest[-2] == '.' && dest[-3] == '/')
 	    {
 	      dest -= 3;
 	      if (dest == fn2)
 		dest++;
-	      while (dest[-1] != DIR_SEPARATOR)
+	      while (dest[-1] != '/')
 		dest--;
 	    }
-	  else if (dest[-1] != DIR_SEPARATOR)	/* remove extra slashes */
+	  else if (dest[-1] != '/')	/* remove extra slashes */
 	    f = 1;
 
 	  if (c == 0)
 	    {
-	      if (dest[-1] == DIR_SEPARATOR && dest > fn2 + 1)
+	      if (dest[-1] == '/' && dest > fn2 + 1)
 		dest--;
 	      *dest = 0;
 	      free (fn1);
@@ -459,10 +459,10 @@ fn_dir_name (const char *filename)
   len = strlen (filename);
   if (len == 1 && filename[0] == '/')
     p = filename + 1;
-  else if (len && filename[len - 1] == DIR_SEPARATOR)
+  else if (len && filename[len - 1] == '/')
     p = buf_find_reverse (filename, len - 1, filename + len - 1, 1);
   else
-    p = strrchr (filename, DIR_SEPARATOR);
+    p = strrchr (filename, '/');
   if (p == NULL)
     p = filename;
 
