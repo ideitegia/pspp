@@ -1,3 +1,8 @@
+Sun Apr 16 19:12:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	Consistently write "file name" as two words, in accordance with
+	the GNU standards.
+
 Wed Feb 15 21:53:12 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-file-format.texi: Fix values for "measure" in Auxiliary

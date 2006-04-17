@@ -21,7 +21,7 @@ portable files.
 @vindex APPLY DICTIONARY
 
 @display
-APPLY DICTIONARY FROM=@{'filename',file_handle@}.
+APPLY DICTIONARY FROM=@{'file-name',file_handle@}.
 @end display
 
 @cmd{APPLY DICTIONARY} applies the variable labels, value labels,
@@ -68,7 +68,7 @@ file.  The system file is not modified.
 
 @display
 EXPORT
-        /OUTFILE='filename'
+        /OUTFILE='file-name'
         /UNSELECTED=@{RETAIN,DELETE@}
         /DIGITS=n
         /DROP=var_list
@@ -114,7 +114,7 @@ The MAP subcommand is currently ignored.
 
 @display
 GET
-        /FILE=@{'filename',file_handle@}
+        /FILE=@{'file-name',file_handle@}
         /DROP=var_list
         /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
@@ -162,7 +162,7 @@ extension.
 
 @display
 IMPORT
-        /FILE='filename'
+        /FILE='file-name'
         /TYPE=@{COMM,TAPE@}
         /DROP=var_list
         /KEEP=var_list
@@ -194,7 +194,7 @@ extension.
 
 @display
 MATCH FILES
-        /@{FILE,TABLE@}=@{*,'filename'@}
+        /@{FILE,TABLE@}=@{*,'file-name'@}
         /DROP=var_list
         /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
@@ -265,7 +265,7 @@ extension.
 
 @display
 SAVE
-        /OUTFILE=@{'filename',file_handle@}
+        /OUTFILE=@{'file-name',file_handle@}
         /UNSELECTED=@{RETAIN,DELETE@}
         /@{COMPRESSED,UNCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
@@ -334,7 +334,7 @@ The NAMES and MAP subcommands are currently ignored.
 @vindex SYSFILE INFO
 
 @display 
-SYSFILE INFO FILE='filename'.
+SYSFILE INFO FILE='file-name'.
 @end display
 
 @cmd{SYSFILE INFO} reads the dictionary in a system file and
@@ -351,7 +351,7 @@ a system file and displays information on its dictionary.
 
 @display
 EXPORT
-        /OUTFILE='filename'
+        /OUTFILE='file-name'
         /DIGITS=n
         /DROP=var_list
         /KEEP=var_list
@@ -384,7 +384,7 @@ the data is read by a procedure or procedure-like command.
 
 @display
 XSAVE
-        /OUTFILE='filename'
+        /OUTFILE='file-name'
         /@{COMPRESSED,UNCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
         /DROP=var_list

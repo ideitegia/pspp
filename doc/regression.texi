@@ -44,7 +44,7 @@ REGRESSION
         /VARIABLES=var_list
         /DEPENDENT=var_list
         /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
-        /EXPORT (filename)
+        /EXPORT ('file-name')
 @end display
 
 The @cmd{REGRESSION} procedure reads the active file and outputs
@@ -82,7 +82,7 @@ corresponding new
 value of the dependent variable. The generated program will also contain
 functions that return prediction and confidence intervals related to
 those new estimates. PSPP will write the program to the
-'filename' given by the user, and write declarations of functions
+'file-name' given by the user, and write declarations of functions
 to a file called pspp_model_reg.h. The user can then compile the C
 program and use it as part of another program. This subcommand is a
 PSPP extension.

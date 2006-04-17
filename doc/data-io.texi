@@ -138,7 +138,7 @@ Each form of @cmd{DATA LIST} is described in detail below.
 @display
 DATA LIST [FIXED]
         @{TABLE,NOTABLE@}
-        FILE='filename'
+        FILE='file-name'
         RECORDS=record_count
         END=end_var
         /[line_no] var_spec@dots{}
@@ -153,7 +153,7 @@ positions on each line of single-line or multiline records.  The
 keyword FIXED is optional.
 
 The FILE subcommand must be used if input is to be taken from an
-external file.  It may be used to specify a filename as a string or a
+external file.  It may be used to specify a file name as a string or a
 file handle (@pxref{File Handles}).  If the FILE subcommand is not used,
 then input is assumed to be specified within the command file using
 @cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
@@ -346,7 +346,7 @@ This example shows keywords abbreviated to their first 3 letters.
 DATA LIST FREE
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        FILE='filename'
+        FILE='file-name'
         END=end_var
         /var_spec@dots{}
 
@@ -398,7 +398,7 @@ on field width apply, but they are honored on output.
 DATA LIST LIST
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        FILE='filename'
+        FILE='file-name'
         END=end_var
         /var_spec@dots{}
 
@@ -442,13 +442,13 @@ the current input program.  @xref{INPUT PROGRAM}.
 @display
 For text files:
         FILE HANDLE handle_name
-                /NAME='filename'
+                /NAME='file-name'
                 [/MODE=CHARACTER]
                 /TABWIDTH=tab_width
 
 For binary files with fixed-length records:
         FILE HANDLE handle_name
-                /NAME='filename'
+                /NAME='file-name'
                 /MODE=IMAGE
                 [/LRECL=rec_len]
 
@@ -694,7 +694,7 @@ cannot fit on a single line, then a multi-line format will be used.
 @display
 MATRIX DATA
         /VARIABLES=var_list
-        /FILE='filename'
+        /FILE='file-name'
         /FORMAT=@{LIST,FREE@} @{LOWER,UPPER,FULL@} @{DIAGONAL,NODIAGONAL@}
         /SPLIT=@{new_var,var_list@}
         /FACTORS=var_list
@@ -805,7 +805,7 @@ NEW FILE.
 
 @display
 PRINT 
-        OUTFILE='filename'
+        OUTFILE='file-name'
         RECORDS=n_lines
         @{NOTABLE,TABLE@}
         /[line_no] arg@dots{}
@@ -868,7 +868,7 @@ again extend the line to that length.
 
 @display
 PRINT EJECT 
-        OUTFILE='filename'
+        OUTFILE='file-name'
         RECORDS=n_lines
         @{NOTABLE,TABLE@}
         /[line_no] arg@dots{}
@@ -890,7 +890,7 @@ written, the current page in the listing file is ejected.
 @vindex PRINT SPACE
 
 @display
-PRINT SPACE OUTFILE='filename' n_lines.
+PRINT SPACE OUTFILE='file-name' n_lines.
 @end display
 
 @cmd{PRINT SPACE} prints one or more blank lines to an output file.
@@ -940,7 +940,7 @@ file.  Instead, it will re-read the same line multiple times.
 REPEATING DATA
         /STARTS=start-end
         /OCCURS=n_occurs
-        /FILE='filename'
+        /FILE='file-name'
         /LENGTH=length
         /CONTINUED[=cont_start-cont_end]
         /ID=id_start-id_end=id_var
@@ -1020,7 +1020,7 @@ structure (@pxref{LOOP}).  Use @cmd{DATA LIST} before, not after,
 
 @display
 WRITE 
-        OUTFILE='filename'
+        OUTFILE='file-name'
         RECORDS=n_lines
         @{NOTABLE,TABLE@}
         /[line_no] arg@dots{}

@@ -23,7 +23,7 @@ as a rule.
 
 @display
 AGGREGATE 
-        OUTFILE=@{*,'filename',file_handle@}          
+        OUTFILE=@{*,'file-name',file_handle@}
         /PRESORTED
         /DOCUMENT
         /MISSING=COLUMNWISE

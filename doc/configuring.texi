@@ -580,10 +580,10 @@ acceptable to PostScript printers and other interpreters.
 The available options are listed below.
 
 @table @code
-@item output-file=@var{filename}
+@item output-file=@var{file-name}
 
-File to which output should be sent.  This can be an ordinary filename
-(i.e., @code{"pspp.ps"}), a pipe filename (i.e., @code{"|lpr"}), or
+File to which output should be sent.  This can be an ordinary file name
+(i.e., @code{"pspp.ps"}), a pipe (i.e., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.ps"}.
 
 @item headers=@var{boolean}
@@ -665,10 +665,10 @@ terminal or output to printers.  The ASCII driver has class name
 The available options are listed below.
 
 @table @code
-@item output-file=@var{filename}
+@item output-file=@var{file-name}
 
-File to which output should be sent.  This can be an ordinary filename
-(e.g., @code{"pspp.txt"}), a pipe filename (e.g., @code{"|lpr"}), or
+File to which output should be sent.  This can be an ordinary file name
+(e.g., @code{"pspp.txt"}), a pipe (e.g., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.list"}.
 
 @item paginate=@var{boolean}
@@ -800,10 +800,10 @@ future, further work may be done on improving the output appearance.
 There are is only one option:
 
 @table @code
-@item output-file=@var{filename}
+@item output-file=@var{file-name}
 
-File to which output should be sent.  This can be an ordinary filename
-(i.e., @code{"pspp.ps"}), a pipe filename (i.e., @code{"|lpr"}), or
+File to which output should be sent.  This can be an ordinary file name
+(i.e., @code{"pspp.ps"}), a pipe (i.e., @code{"|lpr"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.html"}.
 @end table
 

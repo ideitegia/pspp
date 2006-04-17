@@ -184,8 +184,8 @@ This command cannot be used if the SAFER setting is active.
 
 @display
 Two possible syntaxes:
-        INCLUDE 'filename'.
-        @@filename.
+        INCLUDE 'file-name'.
+        @@file-name.
 @end display
 
 @cmd{INCLUDE} causes the PSPP command processor to read an
@@ -205,7 +205,7 @@ memory.
 
 @display
 PERMISSIONS
-        FILE='filename'
+        FILE='file-name'
         /PERMISSIONS = @{READONLY,WRITEABLE@}.
 @end display
 
@@ -270,12 +270,12 @@ SET
 (output driver options)
         /HEADERS=@{NO,YES,BLANK@}
         /LENGTH=@{NONE,length_in_lines@}
-        /LISTING=@{ON,OFF,filename@}
+        /LISTING=@{ON,OFF,'file-name'@}
         /MORE=@{ON,OFF@}
         /WIDTH=@{NARROW,WIDTH,n_characters@}
 
 (logging)
-        /JOURNAL=@{ON,OFF@} [filename]
+        /JOURNAL=@{ON,OFF@} ['file-name']
 
 (system files)
         /COMPRESSION=@{ON,OFF@}
@@ -504,7 +504,7 @@ The HOST command.
 @item
 The PERMISSIONS command.
 @item
-Pipe filenames (filenames beginning or ending with @samp{|}).
+Pipes (file names beginning or ending with @samp{|}).
 @end itemize
 
 Be aware that this setting does not guarantee safety (commands can still
