@@ -501,43 +501,66 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
-static void
-subcommand_save (int save, pspp_linreg_cache *lc, const struct casefile *cf, int *is_missing)
+static int
+regression_trns_proc (void *m, struct ccase *c, size_t case_idx)
 {
-  int i;
-  int case_num;
-  double residual;
+  size_t i;
+  size_t n_vars;
+  pspp_linreg_cache *model = m;
+  union value *output;
   const union value **vals = NULL;
   const union value *obs = NULL;
-  struct casereader *r;
-  struct ccase c;
+  struct variable **vars = NULL;
+  struct variable *resid = NULL;
+  
+  assert (model != NULL);
+  assert (model->depvar != NULL);
+  
+  vals = xnmalloc (n_variables, sizeof (*vals));
+  dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_ORDINARY);
+  resid = dict_get_var (default_dict, case_idx);
+  assert (resid != NULL);
+  output = case_data_rw (c, resid->fv);
+  assert (output);
+
+  for (i = 0; i < n_vars; i++)
+    {
+      if (i != case_idx) /* Do not use the residual variable as a predictor. */
+	{
+	  if (vars[i]->index == model->depvar->index) 
+	    {
+	      /* Do not use the dependent variable as a predictor. */
+	      obs = case_data (c, i);
+	      assert (obs != NULL);
+	    }
+	  else
+	    {
+	      vals[i] = case_data (c, i);
+	    }
+	}
+    }
+  output->f = (*model->residual) ((const struct variable **) vars, 
+				  vals, obs, model, i);
+  free (vals);
+  return TRNS_CONTINUE;
+}
+static void
+subcommand_save (int save, pspp_linreg_cache *lc)
+{
+  struct variable *residuals = NULL;
 
   assert (lc != NULL);
   assert (lc->depvar != NULL);
-  assert (is_missing != NULL);
 
   if (save)
     {
-      vals = xnmalloc (n_variables, sizeof (*vals));
-      for (r = casefile_get_reader (cf); casereader_read (r, &c);
-	   case_destroy (&c))
-	{
-	  case_num = casereader_cnum (r) - 1;
-	  if (!is_missing[case_num])
-	    {
-	      for (i = 0; i < n_variables; ++i)
-		{
-		  vals[i] = case_data (&c, v_variables[i]->fv);
-		  if (v_variables[i]->index == lc->depvar->index)
-		    {
-		      obs = vals[i];
-		    }
-		}
-	      residual = (*lc->residual) ((const struct variable **) v_variables, 
-					  (const union value **) vals, obs, lc, n_variables);
-	    }
-	}
-      free (vals);
+      residuals = dict_create_var_assert (default_dict, "residuals", 0);
+      assert (residuals != NULL);
+      add_transformation (regression_trns_proc, pspp_linreg_cache_free, lc);
+    }
+  else 
+    {
+      pspp_linreg_cache_free (lc);
     }
 }
 static int
@@ -1042,12 +1065,11 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
        */
       pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
       subcommand_statistics (cmd.a_statistics, lcache);
-      subcommand_save (cmd.sbc_save, lcache, cf, is_missing_case);
       subcommand_export (cmd.sbc_export, lcache);
+      subcommand_save (cmd.sbc_save, lcache);
       gsl_vector_free (Y);
       design_matrix_destroy (X);
       free (indep_vars);
-      pspp_linreg_cache_free (lcache);
       free (lopts.get_indep_mean_std);
       casereader_destroy (r);
     }

@@ -1,3 +1,16 @@
+2006-04-17  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (regression_trns_proc): New function.
+
+	* regression.q (subcommand_save): Create variable residuals and
+	add a transformation to assign values to them. Also free the
+	linreg_cache if the SAVE command was not called. Removed the
+	casereading loop. Placed actual computation of residuals in
+	regression_trns_proc.
+
+	* regression.q (run_regression): Moved call to free
+	pspp_linreg_cache to subcommand_save.
+
 Sat Apr 15 18:01:03 2006  Ben Pfaff  <blp@gnu.org>
 
 	* examine.q (output_examine): Add casts to fix warnings.
