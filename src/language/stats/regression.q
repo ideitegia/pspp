@@ -516,14 +516,15 @@ regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
   assert (model->depvar != NULL);
   assert (model->resid != NULL);
   
-  vals = xnmalloc (n_variables, sizeof (*vals));
   dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_ORDINARY);
+  vals = xnmalloc (n_vars, sizeof (*vals));
+  assert (vals != NULL);
   output = case_data_rw (c, model->resid->fv);
   assert (output != NULL);
 
   for (i = 0; i < n_vars; i++)
     {
-      /* Do not use the residual variable as a predictor. */
+      /* Do not use the residual variable. */
       if (vars[i]->index != model->resid->index) 
 	{
 	  /* Do not use the dependent variable as a predictor. */

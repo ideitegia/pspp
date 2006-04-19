@@ -1,3 +1,8 @@
+2006-04-19  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (regression_trns_proc): Fixed the look-up of the
+	number of variables.
+
 2006-04-18  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (regression_trns_proc): Look up the residual
