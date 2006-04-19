@@ -502,7 +502,7 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
 static int
-regression_trns_proc (void *m, struct ccase *c, int case_idx)
+regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
 {
   size_t i;
   size_t n_vars;
@@ -511,25 +511,24 @@ regression_trns_proc (void *m, struct ccase *c, int case_idx)
   const union value **vals = NULL;
   const union value *obs = NULL;
   struct variable **vars = NULL;
-  struct variable *resid = NULL;
   
   assert (model != NULL);
   assert (model->depvar != NULL);
+  assert (model->resid != NULL);
   
   vals = xnmalloc (n_variables, sizeof (*vals));
   dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_ORDINARY);
-  resid = dict_get_var (default_dict, case_idx);
-  assert (resid != NULL);
-  output = case_data_rw (c, resid->fv);
-  assert (output);
+  output = case_data_rw (c, model->resid->fv);
+  assert (output != NULL);
 
   for (i = 0; i < n_vars; i++)
     {
-      if (i != case_idx) /* Do not use the residual variable as a predictor. */
+      /* Do not use the residual variable as a predictor. */
+      if (vars[i]->index != model->resid->index) 
 	{
+	  /* Do not use the dependent variable as a predictor. */
 	  if (vars[i]->index == model->depvar->index) 
 	    {
-	      /* Do not use the dependent variable as a predictor. */
 	      obs = case_data (c, i);
 	      assert (obs != NULL);
 	    }
@@ -554,8 +553,9 @@ subcommand_save (int save, pspp_linreg_cache *lc)
 
   if (save)
     {
-      residuals = dict_create_var_assert (default_dict, "residuals", 0);
+      residuals = dict_create_var (default_dict, "residuals", 0);
       assert (residuals != NULL);
+      lc->resid = residuals;
       add_transformation (regression_trns_proc, pspp_linreg_cache_free, lc);
     }
   else 
