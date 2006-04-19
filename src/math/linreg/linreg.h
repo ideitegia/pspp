@@ -42,8 +42,6 @@ enum
  */
 struct pspp_linreg_opts_struct
 {
-  int resid;			/* Should the residuals be returned? */
-
   int get_depvar_mean_std;
   int *get_indep_mean_std;	/* Array of booleans
 				   dictating which
@@ -165,6 +163,7 @@ struct pspp_linreg_cache_struct
 		      const union value **,
 		      const union value *,
 		      const void *, int);
+  struct variable *resid;
 };
 
 typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
