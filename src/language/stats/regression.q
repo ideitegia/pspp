@@ -43,7 +43,7 @@
 #include <output/table.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
-#include "procedure.h"
+#include <procedure.h>
 
 #define REG_LARGE_DATA 1000
 
@@ -77,6 +77,9 @@
 /* (declarations) */
 /* (functions) */
 static struct cmd_regression cmd;
+
+/* Linear regression models. */
+pspp_linreg_cache **models = NULL;
 
 /*
   Variables used (both explanatory and response).
@@ -506,6 +509,7 @@ regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
 {
   size_t i;
   size_t n_vars;
+  size_t n_vals = 0;
   pspp_linreg_cache *model = m;
   union value *output;
   const union value **vals = NULL;
@@ -516,7 +520,7 @@ regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
   assert (model->depvar != NULL);
   assert (model->resid != NULL);
   
-  dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_ORDINARY);
+  dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_SYSTEM);
   vals = xnmalloc (n_vars, sizeof (*vals));
   assert (vals != NULL);
   output = case_data_rw (c, model->resid->fv);
@@ -536,32 +540,42 @@ regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
 	  else
 	    {
 	      vals[i] = case_data (c, i);
+	      n_vals++;
 	    }
 	}
     }
   output->f = (*model->residual) ((const struct variable **) vars, 
-				  vals, obs, model, i);
+				  vals, obs, model, n_vals);
   free (vals);
   return TRNS_CONTINUE;
 }
 static void
-subcommand_save (int save, pspp_linreg_cache *lc)
+subcommand_save (int save, pspp_linreg_cache **models)
 {
   struct variable *residuals = NULL;
+  pspp_linreg_cache **lc;
 
-  assert (lc != NULL);
-  assert (lc->depvar != NULL);
+  assert (models != NULL);
 
   if (save)
     {
-      residuals = dict_create_var (default_dict, "residuals", 0);
-      assert (residuals != NULL);
-      lc->resid = residuals;
-      add_transformation (regression_trns_proc, pspp_linreg_cache_free, lc);
+      for (lc = models; lc < models + cmd.n_dependent; lc++)
+	{
+	  assert (*lc != NULL);
+	  assert ((*lc)->depvar != NULL);
+	  residuals = dict_create_var (default_dict, "residuals", 0);
+	  assert (residuals != NULL);
+	  (*lc)->resid = residuals;
+	  add_transformation (regression_trns_proc, pspp_linreg_cache_free, *lc);
+	}
     }
   else 
     {
-      pspp_linreg_cache_free (lc);
+      for (lc = models; lc < models + cmd.n_dependent; lc++)
+	{
+	  assert (*lc != NULL);
+	  pspp_linreg_cache_free (*lc);
+	}
     }
 }
 static int
@@ -791,11 +805,13 @@ cmd_regression (void)
 {
   if (!parse_regression (&cmd))
     return CMD_FAILURE;
+
+  models = xnmalloc (cmd.n_dependent, sizeof *models);
   if (!multipass_procedure_with_splits (run_regression, &cmd))
     return CMD_CASCADING_FAILURE;
-
+  subcommand_save (cmd.sbc_save, models);
   free (v_variables);
-
+  free (models);
   return pspp_reg_rc;
 }
 
@@ -951,9 +967,10 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   struct variable **indep_vars;
   struct design_matrix *X;
   gsl_vector *Y;
-  pspp_linreg_cache *lcache;
+
   pspp_linreg_opts lopts;
 
+  assert (models != NULL);
   if (!v_variables)
     {
       dict_get_vars (default_dict, &v_variables, &n_variables,
@@ -975,7 +992,6 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   is_missing_case = xnmalloc (n_cases, sizeof (*is_missing_case));
 
   lopts.get_depvar_mean_std = 1;
-
 
   for (k = 0; k < cmd.n_dependent; k++)
     {
@@ -1000,20 +1016,20 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
 	{
 	  lopts.get_indep_mean_std[i] = 1;
 	}
-      lcache = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
-      lcache->indep_means = gsl_vector_alloc (X->m->size2);
-      lcache->indep_std = gsl_vector_alloc (X->m->size2);
-      lcache->depvar = (const struct variable *) cmd.v_dependent[k];
+      models[k] = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
+      models[k]->indep_means = gsl_vector_alloc (X->m->size2);
+      models[k]->indep_std = gsl_vector_alloc (X->m->size2);
+      models[k]->depvar = (const struct variable *) cmd.v_dependent[k];
       /*
          For large data sets, use QR decomposition.
        */
       if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	{
-	  lcache->method = PSPP_LINREG_SVD;
+	  models[k]->method = PSPP_LINREG_SVD;
 	}
 
       /*
-         The second pass creates the design matrix.
+         The second pass fills the design matrix.
        */
       row = 0;
       for (r = casefile_get_reader (cf); casereader_read (r, &c);
@@ -1059,15 +1075,15 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
          and store pointers to the variables that correspond to the
          coefficients.
        */
-      pspp_linreg_coeff_init (lcache, X);
+      pspp_linreg_coeff_init (models[k], X);
 
       /* 
          Find the least-squares estimates and other statistics.
        */
-      pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, lcache);
-      subcommand_statistics (cmd.a_statistics, lcache);
-      subcommand_export (cmd.sbc_export, lcache);
-      subcommand_save (cmd.sbc_save, lcache);
+      pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, models[k]);
+      subcommand_statistics (cmd.a_statistics, models[k]);
+      subcommand_export (cmd.sbc_export, models[k]);
+
       gsl_vector_free (Y);
       design_matrix_destroy (X);
       free (indep_vars);

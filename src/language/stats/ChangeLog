@@ -1,3 +1,11 @@
+2006-04-20  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (cmd_regression): Moved call to subcommand_save()
+	outside multipass_procedure_with_splits().
+	
+	* regression.q (regression_trns_proc): Fixed value counter n_vals
+	before calling *model->residual().
+
 2006-04-19  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (regression_trns_proc): Fixed the look-up of the
