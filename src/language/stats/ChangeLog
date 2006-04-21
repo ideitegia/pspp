@@ -1,3 +1,11 @@
+2006-04-21  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (try_name): New function. (Partly copied from
+	try_name in descriptives.c.)
+
+	* regression.q (subcommand_save): Choose residual variable names
+	correctly. 
+
 2006-04-20  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (cmd_regression): Moved call to subcommand_save()

@@ -549,9 +549,23 @@ regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
   free (vals);
   return TRNS_CONTINUE;
 }
+/* 
+   Returns 0 if NAME is a duplicate of any existing variable name.
+*/
+static int
+try_name (char *name)
+{
+  if (dict_lookup_var (default_dict, name) != NULL)
+    return 0;
+
+  return 1;
+}
+
 static void
 subcommand_save (int save, pspp_linreg_cache **models)
 {
+  int i;
+  char name[LONG_NAME_LEN + 1];
   struct variable *residuals = NULL;
   pspp_linreg_cache **lc;
 
@@ -559,11 +573,18 @@ subcommand_save (int save, pspp_linreg_cache **models)
 
   if (save)
     {
+      i = 1;
+      snprintf (name, LONG_NAME_LEN, "RES%d", i);
       for (lc = models; lc < models + cmd.n_dependent; lc++)
 	{
 	  assert (*lc != NULL);
 	  assert ((*lc)->depvar != NULL);
-	  residuals = dict_create_var (default_dict, "residuals", 0);
+	  while (!try_name (name))
+	    {
+	      i++;
+	      snprintf (name, LONG_NAME_LEN, "RES%d", i);
+	    }
+	  residuals = dict_create_var (default_dict, name, 0);
 	  assert (residuals != NULL);
 	  (*lc)->resid = residuals;
 	  add_transformation (regression_trns_proc, pspp_linreg_cache_free, *lc);
