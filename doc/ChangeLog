@@ -1,3 +1,7 @@
+2006-04-21  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.texi: Initial description of the SAVE subcommand.
+
 Sun Apr 16 19:12:26 2006  Ben Pfaff  <blp@gnu.org>
 
 	Consistently write "file name" as two words, in accordance with

@@ -45,6 +45,7 @@ REGRESSION
         /DEPENDENT=var_list
         /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
         /EXPORT ('file-name')
+        /SAVE
 @end display
 
 The @cmd{REGRESSION} procedure reads the active file and outputs
@@ -74,6 +75,11 @@ Analysis of variance table for the model.
 @item BCOV
 The covariance matrix for the estimated model coefficients.
 @end table
+
+The SAVE subcommand causes PSPP to save the residuals from the fitted
+model to the active file. PSPP will store the residuals in a variable
+called RES1 if no such variable exists, RES2 if RES1 already exists,
+RES3 if RES1 and RES2 already exist, etc.
 
 The EXPORT subcommand causes PSPP to write a C program containing
 functions related to the model. One such function accepts values of
