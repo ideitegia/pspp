@@ -87,9 +87,8 @@ double
 pspp_linreg_residual (const struct variable **predictors,
 		      const union value **vals,
 		      const union value *obs,
-		      const void *c_, int n_vals)
+		      const void *c, int n_vals)
 {
-  const pspp_linreg_cache *c = c_;
   double pred;
   double result;
 
