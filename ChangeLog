@@ -8,7 +8,7 @@ Sun Apr 23 20:34:50 2006  Ben Pfaff  <blp@gnu.org>
 
 Sat Apr 15 21:45:40 2006  Ben Pfaff  <blp@gnu.org>
 
-	Get rid of src/libpspp/debug-print.h and all its users.  (There
+	Get rid of src/libpspp/debug-print.h and all its uses.  (There
 	were few real users, but many inclusions of its header file.)
 
 Sat Apr 15 19:51:22 2006  Ben Pfaff  <blp@gnu.org>
