@@ -86,22 +86,23 @@ static void
 error (struct pfm_reader *r, const char *msg, ...)
 {
   struct error e;
-  const char *file_name;
-  char *title;
+  struct string text;
   va_list args;
+
+  ds_init (&text, 64);
+  ds_printf (&text, _("portable file %s corrupt at offset %ld: "),
+             fh_get_file_name (r->fh), ftell (r->file));
+  va_start (args, msg);
+  ds_vprintf (&text, msg, args);
+  va_end (args);
 
   e.category = MSG_GENERAL;
   e.severity = MSG_ERROR;
   e.where.file_name = NULL;
   e.where.line_number = 0;
-  file_name = fh_get_file_name (r->fh);
-  e.title = title = pool_alloc (r->pool, strlen (file_name) + 80);
-  sprintf (title, _("portable file %s corrupt at offset %ld: "),
-           file_name, ftell (r->file));
-
-  va_start (args, msg);
-  err_vmsg (&e, msg, args);
-  va_end (args);
+  e.text = ds_c_str (&text);
+  
+  err_msg (&e);
 
   r->ok = false;
 

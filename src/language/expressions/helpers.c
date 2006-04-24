@@ -18,11 +18,11 @@ expr_error (void *aux UNUSED, const char *format, ...)
   e.category = MSG_SYNTAX;
   e.severity = MSG_ERROR;
   err_location (&e.where);
-  e.title = NULL;
-
   va_start (args, format);
-  err_vmsg (&e, format, args);
+  e.text = xvasprintf (format, args);
   va_end (args);
+
+  err_msg (&e);
 }
 
 double

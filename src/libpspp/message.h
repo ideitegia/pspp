@@ -81,7 +81,7 @@ struct error
     enum msg_category category; /* Message category. */
     enum msg_severity severity; /* Message severity. */
     struct file_locator where;	/* File location, or (NULL, -1). */
-    const char *title;		/* Special text inserted if not null. */
+    char *text;                 /* Error text. */
   };
 
 /* Number of errors, warnings reported. */
@@ -96,11 +96,10 @@ extern int err_already_flagged;
 /* Nonnegative verbosity level.  Higher value == more verbose. */
 extern int err_verbosity;
 
-/* Functions. */
+/* Emitting messages. */
 void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
-void tmsg (enum msg_class, const char *title, const char *format, ...)
-     PRINTF_FORMAT (3, 4);
+void err_msg (const struct error *);
 
 void verbose_msg (int level, const char *format, ...)
      PRINTF_FORMAT (2, 3);
@@ -114,7 +113,6 @@ void err_location (struct file_locator *);
 void err_set_command_name (const char *);
 void err_done (void);
 void err_check_count (void);
-void err_vmsg (const struct error *, const char *, va_list);
 
 /* Used in panic situations only */
 void request_bug_report_and_abort(const char *msg );

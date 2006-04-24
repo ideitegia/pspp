@@ -1,3 +1,12 @@
+Sun Apr 23 22:07:49 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, get rid
+	of message "titles" and put the message text in `struct error'.
+	Now `struct error' encapsulates a message more properly.
+	
+	* message-dialog.c: (err_vmsg) Rename err_msg().  Updated
+	interface.
+
 Sun Apr 16 20:45:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, we

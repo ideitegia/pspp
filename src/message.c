@@ -48,24 +48,6 @@ static char *command_name;
 
 /* Public functions. */
 
-/* Writes error message in CLASS, with title TITLE and text FORMAT,
-   formatted with printf, to the standard places. */
-void
-tmsg (enum msg_class class, const char *title, const char *format, ...)
-{
-  struct error e;
-  va_list args;
-
-  e.category = msg_class_to_category (class);
-  e.severity = msg_class_to_severity (class);
-  err_location (&e.where);
-  e.title = title;
-
-  va_start (args, format);
-  err_vmsg (&e, format, args);
-  va_end (args);
-}
-
 /* Writes error message in CLASS, with text FORMAT, formatted with
    printf, to the standard places. */
 void
@@ -77,11 +59,11 @@ msg (enum msg_class class, const char *format, ...)
   e.category = msg_class_to_category (class);
   e.severity = msg_class_to_severity (class);
   err_location (&e.where);
-  e.title = NULL;
-
   va_start (args, format);
-  err_vmsg (&e, format, args);
+  e.text = xvasprintf (format, args);
   va_end (args);
+
+  err_msg (&e);
 }
 
 /* Writes MESSAGE formatted with printf, to stderr, if the
@@ -143,8 +125,10 @@ err_done (void)
   readln_uninitialize();
 }
 
+/* Emits E as an error message.
+   Frees `text' member in E. */
 void
-err_vmsg (const struct error *e, const char *format, va_list args)
+err_msg (const struct error *e)
 {
   struct category 
     {
@@ -193,16 +177,14 @@ err_vmsg (const struct error *e, const char *format, va_list args)
   if (category->show_command_name && command_name != NULL)
     ds_printf (&msg, "%s: ", command_name);
 
-  if (e->title)
-    ds_puts (&msg, e->title);
-
-  ds_vprintf (&msg, format, args);
+  ds_puts (&msg, e->text);
 
   /* FIXME: Check set_messages and set_errors to determine where to
      send errors and messages. */
   dump_message (ds_c_str (&msg), puts_stdout, get_viewwidth (), 8);
 
   ds_destroy (&msg);
+  free (e->text);
 }
 
 /* Private functions. */

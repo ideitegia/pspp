@@ -98,6 +98,7 @@ struct data_list_pgm
 
 static const struct case_source_class data_list_source_class;
 
+static void rpd_msg (enum msg_class, const char *format, ...);
 static int parse_fixed (struct data_list_pgm *);
 static int parse_free (struct dls_var_spec **, struct dls_var_spec **);
 static void dump_fixed_table (const struct dls_var_spec *,
@@ -107,9 +108,6 @@ static void dump_free_table (const struct data_list_pgm *,
 static void destroy_dls_var_spec (struct dls_var_spec *);
 static trns_free_func data_list_trns_free;
 static trns_proc_func data_list_trns_proc;
-
-/* Message title for REPEATING DATA. */
-#define RPD_ERR "REPEATING DATA: "
 
 int
 cmd_data_list (void)
@@ -1814,9 +1812,10 @@ rpd_parse_record (const struct rpd_parse_info *info)
 	  data_out (actual_str, &t->id_var->print, id_temp);
           actual_str[t->id_var->print.w] = '\0';
 	    
-	  tmsg (SE, RPD_ERR, 
-		_("Encountered mismatched record ID \"%s\" expecting \"%s\"."),
-		actual_str, expected_str);
+	  rpd_msg (SE, 
+                   _("Encountered mismatched record ID \"%s\" "
+                     "expecting \"%s\"."),
+                   actual_str, expected_str);
 
 	  return 0;
 	}
@@ -1846,10 +1845,10 @@ rpd_parse_record (const struct rpd_parse_info *info)
 		{
 		  warned = 1;
 
-		  tmsg (SW, RPD_ERR,
-			_("Variable %s starting in column %d extends "
-			  "beyond physical record length of %d."),
-			var_spec->v->name, fc, info->len);
+		  rpd_msg (SW,
+                           _("Variable %s starting in column %d extends "
+                             "beyond physical record length of %d."),
+                           var_spec->v->name, fc, info->len);
 		}
 	      
 	      {
@@ -1914,46 +1913,45 @@ repeating_data_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
   occurs_left = occurs = realize_value (&t->occurs, c);
   if (occurs <= 0)
     {
-      tmsg (SE, RPD_ERR, _("Invalid value %d for OCCURS."), occurs);
+      rpd_msg (SE, _("Invalid value %d for OCCURS."), occurs);
       return TRNS_NEXT_CASE;
     }
   starts_beg = realize_value (&t->starts_beg, c);
   if (starts_beg <= 0)
     {
-      tmsg (SE, RPD_ERR, _("Beginning column for STARTS (%d) must be "
-                           "at least 1."),
-            starts_beg);
+      rpd_msg (SE, _("Beginning column for STARTS (%d) must be at least 1."),
+               starts_beg);
       return TRNS_NEXT_CASE;
     }
   starts_end = realize_value (&t->starts_end, c);
   if (starts_end < starts_beg)
     {
-      tmsg (SE, RPD_ERR, _("Ending column for STARTS (%d) is less than "
-                           "beginning column (%d)."),
-            starts_end, starts_beg);
+      rpd_msg (SE, _("Ending column for STARTS (%d) is less than "
+                     "beginning column (%d)."),
+               starts_end, starts_beg);
       skip_first_record = 1;
     }
   length = realize_value (&t->length, c);
   if (length < 0)
     {
-      tmsg (SE, RPD_ERR, _("Invalid value %d for LENGTH."), length);
+      rpd_msg (SE, _("Invalid value %d for LENGTH."), length);
       length = 1;
       occurs = occurs_left = 1;
     }
   cont_beg = realize_value (&t->cont_beg, c);
   if (cont_beg < 0)
     {
-      tmsg (SE, RPD_ERR, _("Beginning column for CONTINUED (%d) must be "
-                           "at least 1."),
-            cont_beg);
+      rpd_msg (SE, _("Beginning column for CONTINUED (%d) must be "
+                     "at least 1."),
+               cont_beg);
       return TRNS_DROP_CASE;
     }
   cont_end = realize_value (&t->cont_end, c);
   if (cont_end < cont_beg)
     {
-      tmsg (SE, RPD_ERR, _("Ending column for CONTINUED (%d) is less than "
-                           "beginning column (%d)."),
-            cont_end, cont_beg);
+      rpd_msg (SE, _("Ending column for CONTINUED (%d) is less than "
+                     "beginning column (%d)."),
+               cont_end, cont_beg);
       return TRNS_DROP_CASE;
     }
 
@@ -1982,11 +1980,11 @@ repeating_data_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
      continuation records. */
   if (occurs_left > 0 && cont_beg == 0)
     {
-      tmsg (SE, RPD_ERR,
-            _("Number of repetitions specified on OCCURS (%d) "
-              "exceed number of repetitions available in "
-              "space on STARTS (%d), and CONTINUED not specified."),
-            occurs, (starts_end - starts_beg + 1) / length);
+      rpd_msg (SE,
+               _("Number of repetitions specified on OCCURS (%d) "
+                 "exceed number of repetitions available in "
+                 "space on STARTS (%d), and CONTINUED not specified."),
+               occurs, (starts_end - starts_beg + 1) / length);
       return TRNS_DROP_CASE;
     }
 
@@ -2000,10 +1998,10 @@ repeating_data_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
       /* Read in another record. */
       if (dfm_eof (t->reader))
         {
-          tmsg (SE, RPD_ERR,
-                _("Unexpected end of file with %d repetitions "
-                  "remaining out of %d."),
-                occurs_left, occurs);
+          rpd_msg (SE,
+                   _("Unexpected end of file with %d repetitions "
+                     "remaining out of %d."),
+                   occurs_left, occurs);
           return TRNS_DROP_CASE;
         }
       dfm_expand_tabs (t->reader);
@@ -2059,4 +2057,28 @@ repeating_data_set_write_case (struct transformation *trns_,
   assert (trns_->proc == repeating_data_trns_proc);
   t->write_case = write_case;
   t->wc_data = wc_data;
+}
+
+/* Reports a message in CLASS with the given FORMAT as text,
+   prefixing the message with "REPEATING DATA: " to make the
+   cause clear. */
+static void
+rpd_msg (enum msg_class class, const char *format, ...)
+{
+  struct error e;
+  va_list args;
+  struct string text;
+
+  ds_create (&text, "REPEATING DATA: ");
+  va_start (args, format);
+  ds_vprintf (&text, format, args);
+  va_end (args);
+
+  e.category = msg_class_to_category (class);
+  e.severity = msg_class_to_severity (class);
+  e.where.file_name = NULL;
+  e.where.line_number = 0;
+  e.text = ds_c_str (&text);
+
+  err_msg (&e);
 }

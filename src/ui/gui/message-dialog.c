@@ -113,10 +113,10 @@ msg(enum msg_class klass, const char *fmt, ...)
 
 
 void
-err_vmsg (const struct error *e, const char *format, va_list args)
+err_msg (const struct error *e)
 {
   vmsg(msg_class_from_category_and_severity (e->category, e->severity),
-       format, args);
+       "%s", e->text);
 }
 
 

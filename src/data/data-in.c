@@ -49,26 +49,25 @@ static void
 vdls_error (const struct data_in *i, const char *format, va_list args)
 {
   struct error e;
-  struct string title;
+  struct string text;
 
   if (i->flags & DI_IGNORE_ERROR)
     return;
 
-  ds_init (&title, 64);
+  ds_init (&text, 64);
   if (i->f1 == i->f2)
-    ds_printf (&title, _("(column %d"), i->f1);
+    ds_printf (&text, _("(column %d"), i->f1);
   else
-    ds_printf (&title, _("(columns %d-%d"), i->f1, i->f2);
-  ds_printf (&title, _(", field type %s) "), fmt_to_string (&i->format));
+    ds_printf (&text, _("(columns %d-%d"), i->f1, i->f2);
+  ds_printf (&text, _(", field type %s) "), fmt_to_string (&i->format));
+  ds_vprintf (&text, format, args);
 
   e.category = MSG_DATA;
   e.severity = MSG_ERROR;
   err_location (&e.where);
-  e.title = ds_c_str (&title);
+  e.text = ds_c_str (&text);
 
-  err_vmsg (&e, format, args);
-
-  ds_destroy (&title);
+  err_msg (&e);
 }
 
 static void

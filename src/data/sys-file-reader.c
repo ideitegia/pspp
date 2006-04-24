@@ -125,16 +125,20 @@ corrupt_msg (int class, const char *format,...)
 {
   struct error e;
   va_list args;
+  struct string text;
+
+  ds_create (&text, _("corrupt system file: "));
+  va_start (args, format);
+  ds_vprintf (&text, format, args);
+  va_end (args);
 
   e.category = msg_class_to_category (class);
   e.severity = msg_class_to_severity (class);
   e.where.file_name = NULL;
   e.where.line_number = 0;
-  e.title = _("corrupt system file: ");
+  e.text = ds_c_str (&text);
 
-  va_start (args, format);
-  err_vmsg (&e, format, args);
-  va_end (args);
+  err_msg (&e);
 }
 
 /* Closes a system file after we're done with it. */

@@ -1,3 +1,13 @@
+Sun Apr 23 22:05:58 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, get rid
+	of message "titles" and put the message text in `struct error'.
+	Now `struct error' encapsulates a message more properly.
+	
+	* data-list.c: (macro RPD_ERR) Removed.
+	(rpd_msg) New function.  Updated all references to tmsg() to call
+	this function instead.
+
 Sat Apr 15 19:38:13 2006  Ben Pfaff  <blp@gnu.org>
 
 	Remove last users of struct file_ext so we can get rid of it

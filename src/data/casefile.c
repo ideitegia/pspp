@@ -740,11 +740,11 @@ io_error (struct casefile *cf, const char *format, ...)
       e.severity = MSG_ERROR;
       e.where.file_name = NULL;
       e.where.line_number = -1;
-      e.title = NULL;
-
       va_start (args, format);
-      err_vmsg (&e, format, args);
+      e.text = xvasprintf (format, args);
       va_end (args);
+      
+      err_msg (&e);
     }
   cf->ok = false;
 }

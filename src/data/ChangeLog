@@ -1,3 +1,18 @@
+Sun Apr 23 22:04:45 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, get rid
+	of message "titles" and put the message text in `struct error'.
+	Now `struct error' encapsulates a message more properly.
+	
+	* casefile.c: (io_error) Use err_msg() instead of err_vmsg().
+	Format message ourselves.
+
+	* data-in.c: (vdls_error) Ditto.
+
+	* por-file-reader.c: (error) Ditto.
+
+	* sys-file-reader.c: (corrupt_msg) Ditto.
+
 Sun Apr 16 18:49:51 2006  Ben Pfaff  <blp@gnu.org>
 
 	GNU standards require "file name" instead of "filename" in

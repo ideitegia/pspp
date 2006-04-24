@@ -1,3 +1,12 @@
+Sun Apr 23 22:07:06 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, get rid
+	of message "titles" and put the message text in `struct error'.
+	Now `struct error' encapsulates a message more properly.
+	
+	* message.h: (struct error) Remove `title' member.  Add `text'
+	member.
+	
 Sun Apr 16 20:43:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, we
