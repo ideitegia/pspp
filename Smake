@@ -18,6 +18,7 @@ GNULIB_MODULES = \
 	getopt \
 	gettext \
 	intprops \
+	linebreak \
 	memcasecmp \
 	memchr \
 	memcmp \

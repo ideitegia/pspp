@@ -1,3 +1,7 @@
+Sun Apr 23 20:34:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Add linebreak to GNULIB_MODULES.
+
 Sat Apr 15 21:45:40 2006  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of src/libpspp/debug-print.h and all its users.  (There
