@@ -1,3 +1,8 @@
+Mon Apr 24 14:12:08 2006  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: Use exit.h from gnulib instead of checking for and
+	defining EXIT_SUCCESS and EXIT_FAILURE by hand.
+
 Sat Apr 15 14:30:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: Change DEBUGGING macro to DUMP_TOKENS for clarity and to

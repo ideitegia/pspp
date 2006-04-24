@@ -10,6 +10,7 @@ GNULIB_MODULES = \
 	assert \
 	c-ctype \
 	c-strtod \
+	exit \
 	full-read \
 	full-write \
 	gethostname \

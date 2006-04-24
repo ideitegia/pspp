@@ -29,16 +29,7 @@
 #include <unistd.h>
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
-
-
-/* Brokenness. */
-#ifndef EXIT_SUCCESS
-#define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-#define EXIT_FAILURE 1
-#endif
+#include "exit.h"
 
      
 /* Max length of an input line. */

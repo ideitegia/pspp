@@ -30,6 +30,7 @@
 #include <data/settings.h>
 #include <ui/terminal/read-line.h>
 #include <libpspp/version.h>
+#include "exit.h"
 #include "linebreak.h"
 #include "progname.h"
 
@@ -101,15 +102,6 @@ err_check_count (void)
 
   getl_abort_noninteractive ();
 }
-
-/* Some machines are broken.  Compensate. */
-#ifndef EXIT_SUCCESS
-#define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-#define EXIT_FAILURE 1
-#endif
 
 static void puts_stdout (int line_indent, const char *line, size_t length);
 static void dump_message (char *msg,
