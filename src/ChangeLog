@@ -1,3 +1,17 @@
+Sun Apr 23 20:35:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.
+
+	* message.c: Use linebreak module from gnulib instead of home-brew
+	line breaking.
+	(puts_stdout) Rewrote.
+	(dump_message) Rewrote.  Changed interface and updated all callers.
+	(compulsory_break) Removed.
+	(char_is_break) Removed.
+	(break_before) Removed.
+	(break_after) Removed.
+	(macro BREAK_LONG_WORD) Removed.
+
 Sun Apr 16 20:41:10 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, we

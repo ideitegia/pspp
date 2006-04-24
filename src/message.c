@@ -30,6 +30,7 @@
 #include <data/settings.h>
 #include <ui/terminal/read-line.h>
 #include <libpspp/version.h>
+#include "linebreak.h"
 #include "progname.h"
 
 #include "gettext.h"
@@ -128,9 +129,11 @@ err_check_count (void)
 #define EXIT_FAILURE 1
 #endif
 
-static void puts_stdout (const char *s);
-static void dump_message (char *errbuf, unsigned indent,
-			  void (*func) (const char *), unsigned width);
+static void puts_stdout (int line_indent, const char *line, size_t length);
+static void dump_message (char *msg,
+                          void (*func) (int line_indent,
+                                        const char *line, size_t length),
+                          unsigned width, unsigned indent);
 
 void
 err_done (void) 
@@ -197,185 +200,88 @@ err_vmsg (const struct error *e, const char *format, va_list args)
 
   /* FIXME: Check set_messages and set_errors to determine where to
      send errors and messages. */
-  dump_message (ds_c_str (&msg), 8, puts_stdout, get_viewwidth());
+  dump_message (ds_c_str (&msg), puts_stdout, get_viewwidth (), 8);
 
   ds_destroy (&msg);
 }
 
 /* Private functions. */
 
-/* Write S followed by a newline to stdout. */
+/* Write LINE_INDENT spaces, the LENGTH characters in LINE, then
+   a new-line to stdout. */
+static void puts_stdout (int line_indent,
+                         const char *line, size_t length)
+{
+  int i;
+  for (i = 0; i < line_indent; i++)
+    putchar (' ');
+  fwrite (line, 1, length, stdout);
+  putchar ('\n');
+}
+
+/* Divides MSG into lines of WIDTH width for the first line and
+   WIDTH - INDENT width for each succeeding line.  Each line is
+   passed to FUNC as a null-terminated string (no new-line
+   character is included in the string). */
 static void
-puts_stdout (const char *s)
+dump_message (char *msg,
+              void (*func) (int line_indent, const char *line, size_t length),
+	      unsigned width, unsigned indent)
 {
-  puts (s);
-}
+  size_t length = strlen (msg);
+  char *string, *breaks;
+  int line_indent;
+  size_t line_start, i;
 
-/* Returns 1 if the line must be broken here */
-static int
-compulsory_break(int c)
-{
-  return ( c == '\n' );
-}
-
-/* Returns 1 if C is a `break character', that is, if it is a good
-   place to break a message into lines. */
-static inline int
-char_is_break (int quote, int c)
-{
-  return ((quote && c == '/')
-          || (!quote && (isspace (c) || c == '-' || c == '/'))); 
-}
-
-/* Returns 1 if C is a break character where the break should be made
-   BEFORE the character. */
-static inline int
-break_before (int quote, int c)
-{
-  return !quote && isspace (c);
-}
-
-/* If C is a break character, returns 1 if the break should be made
-   AFTER the character.  Does not return a meaningful result if C is
-   not a break character. */
-static inline int
-break_after (int quote, int c)
-{
-  return !break_before (quote, c);
-}
-
-/* If you want very long words that occur at a bad break point to be
-   broken into two lines even if they're shorter than a whole line by
-   themselves, define as 2/3, or 4/5, or whatever fraction of a whole
-   line you think is necessary in order to consider a word long enough
-   to break into pieces.  Otherwise, define as 0.  See code to grok
-   the details.  Do NOT parenthesize the expression!  */
-#define BREAK_LONG_WORD 0
-/* #define BREAK_LONG_WORD 2/3 */
-/* #define BREAK_LONG_WORD 4/5 */
-
-/* Divides MSG into lines of WIDTH width for the first line and WIDTH
-   - INDENT width for each succeeding line.  Each line is dumped
-   through FUNC, which may do with the string what it will. */
-static void
-dump_message (char *msg, unsigned indent, void (*func) (const char *),
-	      unsigned width)
-{
-  char *cp;
-
-  /* 1 when at a position inside double quotes ("). */
-  int quote = 0;
-
-  /* Buffer for a single line. */
-  char *buf;
-
-  /* If the message is short, just print the full thing. */
-  if (strlen (msg) < width)
+  /* Allocate temporary buffers.
+     If we can't get memory for them, then just dump the whole
+     message. */
+  string = strdup (msg);
+  breaks = malloc (length);
+  if (string == NULL || breaks == NULL)
     {
-      func (msg);
+      free (string);
+      free (breaks);
+      func (0, msg, length);
       return;
     }
 
-  /* Make sure the indent isn't too big relative to the page width. */
+  /* Break into lines. */
   if (indent > width / 3)
     indent = width / 3;
-  
-  buf = local_alloc (width + 2);
+  mbs_width_linebreaks (string, length,
+                        width - indent, -indent, 0,
+                        NULL, locale_charset (), breaks);
 
-  /* Advance WIDTH characters into MSG.
-     If that's a valid breakpoint, keep it; otherwise, back up.
-     Output the line. */
-  for (cp = msg; (unsigned) (cp - msg) < width - 1 && 
-	 ! compulsory_break(*cp); cp++)
-    if (*cp == '"')
-      quote ^= 1;
-
-  if (break_after (quote, (unsigned char) *cp))
-    {
-      for (cp--; !char_is_break (quote, (unsigned char) *cp) && cp > msg; cp--)
-	if (*cp == '"')
-	  quote ^= 1;
-      
-      if (break_after (quote, (unsigned char) *cp))
-	cp++;
-    }
-
-  if (cp <= msg + width * BREAK_LONG_WORD)
-    for (; cp < msg + width - 1; cp++)
-      if (*cp == '"')
-	quote ^= 1;
-  
-  {
-    int c = *cp;
-    *cp = '\0';
-    func (msg);
-    *cp = c;
-  }
-
-
-  /* Repeat above procedure for remaining lines. */
-  for (;;)
-    {
-      static int hard_break=0;
-
-      int idx=0;
-      char *cp2;
-
-      /* Advance past whitespace. */
-      if (! hard_break ) 
-	while ( isspace ((unsigned char) *cp) )
-	  cp++;
-      else
-	cp++;
-
-      if (*cp == 0)
-	  break; 
-
-
-      /* Advance WIDTH - INDENT characters. */
-      for (cp2 = cp; (unsigned) (cp2 - cp) < width - indent && 
-	     *cp2 && !compulsory_break(*cp2);  cp2++)
-	if (*cp2 == '"')
-	  quote ^= 1;
-      
-      if ( compulsory_break(*cp2) )
-	hard_break = 1;
-      else
-	hard_break = 0;
-
-
-      /* Back up if this isn't a breakpoint. */
+  /* Pass lines to FUNC. */
+  line_start = 0;
+  line_indent = 0;
+  for (i = 0; i < length; i++)
+    switch (breaks[i]) 
       {
-	unsigned w = cp2 - cp;
-	if (*cp2 && ! compulsory_break(*cp2) )
-	for (cp2--; !char_is_break (quote, (unsigned char) *cp2) && 
-	       cp2 > cp;
-	       cp2--)
-	  {
-
-	    if (*cp2 == '"')
-	      quote ^= 1;
-	  }
-
-	if (w == width - indent
-	    && (unsigned) (cp2 - cp) <= (width - indent) * BREAK_LONG_WORD)
-	  for (; (unsigned) (cp2 - cp) < width - indent && *cp2 ; cp2++)
-	    if (*cp2 == '"')
-	      quote ^= 1;
+      case UC_BREAK_POSSIBLE:
+        /* Break before this character,
+           and include this character in the next line. */
+        func (line_indent, &string[line_start], i - line_start);
+        line_start = i;
+        line_indent = indent;
+        break;
+      case UC_BREAK_MANDATORY:
+        /* Break before this character,
+           but don't include this character in the next line
+           (because it'string a new-line). */
+        func (line_indent, &string[line_start], i - line_start);
+        line_start = i + 1;
+        line_indent = indent;
+        break;
+      default:
+        break;
       }
+  if (line_start < length)
+    func (line_indent, &string[line_start], length - line_start);
 
-      
-      /* Write out the line. */
-
-      memset (buf, ' ', indent);
-      memcpy (&buf[indent], cp, cp2 - cp);
-
-      buf[indent + idx + cp2 - cp] = '\0';
-      func (buf);
-      cp = cp2;
-    }
-
-  local_free (buf);
+  free (string);
+  free (breaks);
 }
 
 /* Sets COMMAND_NAME as the command name included in some kinds
