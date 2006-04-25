@@ -1,3 +1,8 @@
+Tue Apr 25 13:16:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c (flip_sink_write): Use snprintf() to simplify a bit of
+	code.
+
 2006-04-21  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (try_name): New function. (Partly copied from

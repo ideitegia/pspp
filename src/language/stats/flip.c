@@ -331,12 +331,8 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
             strcpy (v->name, "VNEGINF");
           else if (f > INT_MAX)
             strcpy (v->name, "VPOSINF");
-          else 
-            {
-              char name[INT_STRLEN_BOUND (int) + 2];
-              sprintf (name, "V%d", (int) f);
-              str_copy_trunc (v->name, sizeof v->name, name);
-            }
+          else
+            snprintf (v->name, sizeof v->name, "V%d", (int) f);
         }
       else
 	{
