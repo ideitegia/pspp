@@ -1,3 +1,8 @@
+Tue Apr 25 13:18:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	* rank.q (parse_rank_function): Use SE instead of ME for parse
+	errors.
+
 Tue Apr 25 13:16:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c (flip_sink_write): Use snprintf() to simplify a bit of

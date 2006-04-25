@@ -242,12 +242,12 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 	  ++var_count;
 	  if ( dict_lookup_var (default_dict, tokid) != NULL )
 	    {
-	      msg(ME, _("Variable %s already exists."), tokid);
+	      msg(SE, _("Variable %s already exists."), tokid);
 	      return 0;
 	    }
 	  if ( var_count > sc->crit_cnt ) 
 	    {
-	      msg(ME, _("Too many variables in INTO clause."));
+	      msg(SE, _("Too many variables in INTO clause."));
 	      return 0;
 	    }
 
