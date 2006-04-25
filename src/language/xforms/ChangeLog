@@ -1,3 +1,8 @@
+Tue Apr 25 13:23:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	* select-if.c (cmd_process_if): Use SW instead of MW for warning
+	associated with a syntax file command.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

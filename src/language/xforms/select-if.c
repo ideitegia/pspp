@@ -140,7 +140,7 @@ cmd_process_if (void)
 
   if (process_if_expr)
     {
-      msg (MW, _("Only last instance of this command is in effect."));
+      msg (SW, _("Only last instance of this command is in effect."));
       expr_free (process_if_expr);
     }
   process_if_expr = e;
