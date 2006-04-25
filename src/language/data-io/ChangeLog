@@ -1,3 +1,10 @@
+Tue Apr 25 13:11:55 2006  Ben Pfaff  <blp@gnu.org>
+
+	* print.c: Don't special-case MS-DOS line terminators.
+	(macro LINE_END_WIDTH) Removed.
+	(alloc_line) Line ends are 1 byte.
+	(print_trns_proc) Just output \n for line end.
+
 Sun Apr 23 22:05:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, get rid

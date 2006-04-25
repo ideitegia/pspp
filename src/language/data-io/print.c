@@ -846,13 +846,6 @@ dump_table (const struct file_handle *fh)
   tab_submit (t);
 }
 
-/* PORTME: The number of characters in a line terminator. */
-#ifdef __MSDOS__ 
-#define LINE_END_WIDTH 2	/* \r\n */
-#else
-#define LINE_END_WIDTH 1	/* \n */
-#endif
-
 /* Calculates the maximum possible line width and allocates a buffer
    big enough to contain it */
 static void
@@ -891,7 +884,7 @@ alloc_line (void)
       if (pot_w > w)
 	w = pot_w;
     }
-  prt.max_width = w + LINE_END_WIDTH + 1;
+  prt.max_width = w + 2;
   prt.line = xmalloc (prt.max_width);
 }
 
@@ -933,13 +926,7 @@ print_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 	  {
 	    if ((t->options & PRT_CMD_MASK) == PRT_PRINT
                 || !(t->options & PRT_BINARY))
-	      {
-		/* PORTME: Line ends. */
-#ifdef __MSDOS__
-		buf[len++] = '\r';
-#endif
-		buf[len++] = '\n';
-	      }
+              buf[len++] = '\n';
 
 	    dfm_put_record (t->writer, buf, len);
 	  }
