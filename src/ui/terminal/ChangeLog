@@ -12,7 +12,8 @@ Tue Apr 25 10:58:19 2006  Ben Pfaff  <blp@gnu.org>
 	and add the callback to each UI.  Also, move verbose_msg() into
 	its own module.
 
-	* automake.mk (src_ui_terminal_libui_a_SOURCES): Add msg-ui.c.
+	* automake.mk (src_ui_terminal_libui_a_SOURCES): Add msg-ui.c,
+	msg-ui.h.
 
 	* command-line.c: (parse_command_line) Call
 	verbose_increment_level() instead of increment err_verbosity
