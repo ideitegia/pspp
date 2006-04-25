@@ -1,0 +1,5 @@
+The source code in this directory must not call msg() to report
+errors.  This can lead to reentrance in the output driver, because
+msg() may report error messages using the output driver.  Instead,
+this code should report errors with error(), which will never call
+into the output drivers.
