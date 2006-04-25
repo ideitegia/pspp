@@ -1,3 +1,27 @@
+Tue Apr 25 10:58:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, drop
+	actual message printing from core code, substituting a callback,
+	and add the callback to each UI.  Also, move verbose_msg() into
+	its own module.
+
+	* automake.mk (src_ui_terminal_libui_a_SOURCES): Add msg-ui.c.
+
+	* command-line.c: (parse_command_line) Call
+	verbose_increment_level() instead of increment err_verbosity
+	directly, now that we have a little abstraction.
+
+	* msg-ui.c: New file.
+
+	* msg-ui.h: New file.
+
+	* main.c: (main) Call msg_ui_init().  Use any_errors().
+	(terminate) Call msg_ui_done().  Make termination order more
+	rational.
+
+	* read-line.c: (readln_read) Use reset_msg_count() now we have a
+	little abstraction.
+
 Tue Apr 25 09:39:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	* main.c: (terminate) Mark static and NO_RETURN.  If called

@@ -39,6 +39,7 @@
 #include "data-sheet.h"
 #include "var-sheet.h"
 #include "psppire-case-array.h"
+#include "message-dialog.h"
 
 GladeXML *xml;
 
@@ -67,6 +68,8 @@ main(int argc, char *argv[])
   gtk_init(&argc, &argv);
 
   glade_init();
+
+  message_dialog_init();
 
   the_dictionary = psppire_dict_new();
 

@@ -18,25 +18,29 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <gsl/gsl_errno.h>
-#include <signal.h>
-#include <stdio.h>
+
 #include "command-line.h"
-#include <language/command.h>
-#include <libpspp/compiler.h>
+#include "msg-ui.h"
+#include "progname.h"
+#include "read-line.h"
+
 #include <data/dictionary.h>
-#include <libpspp/message.h>
 #include <data/file-handle-def.h>
 #include <data/file-name.h>
-#include <language/line-buffer.h>
-#include <language/lexer/lexer.h>
-#include <output/output.h>
-#include "progname.h"
-#include <math/random.h>
-#include "read-line.h"
 #include <data/settings.h>
 #include <data/variable.h>
+#include <gsl/gsl_errno.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <language/line-buffer.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
 #include <libpspp/version.h>
+#include <math/random.h>
+#include <output/output.h>
+#include <signal.h>
+#include <stdio.h>
+
 
 #if HAVE_FPU_CONTROL_H
 #include <fpu_control.h>
@@ -82,6 +86,7 @@ main (int argc, char **argv)
   gsl_set_error_handler_off ();
 
   outp_init ();
+  msg_ui_init ();
   fn_init ();
   fh_init ();
   getl_initialize ();
@@ -100,7 +105,7 @@ main (int argc, char **argv)
         {
           int retval;
 
-          err_check_count ();
+          check_msg_count ();
 
           retval = execute_command ();
           if (retval == CMD_EOF)
@@ -110,7 +115,7 @@ main (int argc, char **argv)
         }
     }
   
-  terminate (err_error_count == 0);
+  terminate (!any_errors ());
 }
 
 /* Parse and execute a command, returning its return code. */
@@ -252,9 +257,6 @@ terminate (bool success)
     {
       terminating = true;
 
-      msg_done ();
-      outp_done ();
-
       cancel_transformations ();
       dict_destroy (default_dict);
 
@@ -264,6 +266,9 @@ terminate (bool success)
       lex_done ();
       getl_uninitialize ();
       readln_uninitialize ();
+
+      outp_done ();
+      msg_ui_done ();
     }
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }

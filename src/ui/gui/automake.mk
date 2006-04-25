@@ -17,7 +17,7 @@ src_ui_gui_psppire_LDADD = \
 	 @LIBINTL@ @LIBREADLINE@
 
 src_ui_gui_psppiredir = $(pkgdatadir)
-	
+
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
@@ -55,5 +55,5 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/var-sheet.c \
 	src/ui/gui/var-sheet.h \
 	src/ui/gui/var-type-dialog.c \
-	src/ui/gui/var-type-dialog.h 
-
+	src/ui/gui/var-type-dialog.h \
+	src/message.c

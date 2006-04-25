@@ -1,3 +1,17 @@
+Tue Apr 25 10:54:44 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, drop
+	actual message printing from core code, substituting a callback,
+	and add the callback to each UI.  Also, move verbose_msg() into
+	its own module.
+
+	* automake.mk (src_libpspp_libpspp_a_SOURCES): Added
+	verbose-msg.c, verbose-msg.h.
+
+	* verbose-msg.c: New file.
+
+	* verbose-msg.h: New file.
+
 Mon Apr 24 17:26:47 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, rename

@@ -1,3 +1,21 @@
+Tue Apr 25 10:56:53 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, drop
+	actual message printing from core code, substituting a callback,
+	and add the callback to each UI.  Also, move verbose_msg() into
+	its own module.
+
+	* automake.mk: (src_ui_gui_psppire_SOURCES) Add src/message.c.
+
+	* message-dialog.c: (message_dialog_init) New function.
+	(vmsg) Rename handle_msg(), rewrite as callback function.
+	(msg) Removed.
+	(msg_emit) Removed.
+	(msg_assert_fail) Removed.
+	(verbose_msg) Removed.
+
+	* psppire.c: (main) Call message_dialog_init().
+
 Sun Apr 23 22:07:49 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, get rid

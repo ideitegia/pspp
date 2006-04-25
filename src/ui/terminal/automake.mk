@@ -3,16 +3,20 @@
 noinst_LIBRARIES += src/ui/terminal/libui.a
 
 src_ui_terminal_libui_a_SOURCES = \
- src/ui/terminal/command-line.c src/ui/terminal/command-line.h \
- src/ui/terminal/read-line.c src/ui/terminal/read-line.h  \
- src/ui/terminal/main.c
+	src/ui/terminal/command-line.c \
+	src/ui/terminal/command-line.h \
+	src/ui/terminal/read-line.c \
+	src/ui/terminal/read-line.h \
+	src/ui/terminal/main.c \
+	src/ui/terminal/msg-ui.c
 
 
 bin_PROGRAMS += src/ui/terminal/pspp
 
-src_ui_terminal_pspp_SOURCES =					\
-	src/message.c					\
-	src/procedure.c  src/procedure.h 
+src_ui_terminal_pspp_SOURCES = \
+	src/message.c \
+	src/procedure.c \
+	src/procedure.h
 
 src_ui_terminal_pspp_LDADD =					\
 	$(top_builddir)/src/language/expressions/libexpressions.a \

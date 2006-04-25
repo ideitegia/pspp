@@ -1,3 +1,32 @@
+Tue Apr 25 10:47:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, drop
+	actual message printing from core code, substituting a callback,
+	and add the callback to each UI.  Also, move verbose_msg() into
+	its own module.
+
+	* message.c: (var err_error_count) Renamed error_count and moved
+	to ui/terminal/msg-ui.c.
+	(var err_warning_count) Renamed warning_count and moved to
+	ui/terminal/msg-ui.c.
+	(err_check_count) Renamed check_msg_count() and moved to
+	ui/terminal/msg-ui.c.
+	(dump_message) Rewrote to take stream instead of function pointer
+	and moved to ui/terminal/msg-ui.c.
+	(msg_emit) Moved its guts to ui/terminal/msg-ui.c as handle_msg()
+	and rewrote to just pass message to callback.
+	
+	(var err_verbosity) Renamed "verbosity" and moved to
+	libpspp/verbose-msg.c.
+	(verbose_msg) Moved to libpspp/verbose-msg.c.
+	
+	(var err_already_flagged) Removed.
+	(puts_stdout) Removed.
+	
+	(var msg_handler) New static variable.
+	(msg_init) New function.
+	(msg_get_command_name) New function.
+	
 Mon Apr 24 17:40:08 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, rename

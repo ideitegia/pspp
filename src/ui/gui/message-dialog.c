@@ -38,19 +38,24 @@ extern GladeXML *xml;
 
 #define _(A) A
 
+static void handle_msg(const struct msg *);
 
-void 
-vmsg(int klass, const char *fmt, va_list args)
+void
+message_dialog_init (void) 
 {
-  gchar *msg = 0;
-  gchar *text = g_strdup_vprintf (fmt, args);
+  msg_init(handle_msg);
+}
 
-  GtkWindow *parent ;
-  GtkWidget *dialog ;
-		    
+static void
+handle_msg(const struct msg *m)
+{
+  GtkWindow *parent;
+  GtkWidget *dialog;
+
   gint message_type;
+  const char *msg;
 
-  switch (msg_class_to_severity (klass))
+  switch (m->severity)
     {
     case MSG_ERROR:
       message_type = GTK_MESSAGE_ERROR;
@@ -64,19 +69,19 @@ vmsg(int klass, const char *fmt, va_list args)
       break;
     };
   
-  switch (msg_class_to_category (klass)) 
+  switch (m->category) 
     {
     case MSG_SYNTAX:
-      msg = g_strdup(_("Script Error"));
+      msg = _("Script Error");
       break;
 
     case MSG_DATA:
-      msg = g_strdup(_("Data File Error"));
+      msg = _("Data File Error");
       break;
 
     case MSG_GENERAL:
     default:
-      msg = g_strdup(_("PSPP Error"));
+      msg = _("PSPP Error");
       break;
     };
   
@@ -88,50 +93,14 @@ vmsg(int klass, const char *fmt, va_list args)
 				  GTK_BUTTONS_CLOSE,
 				  msg);
   
-  gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), text);
-
-  g_free(text);
-  g_free(msg);
+  gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+                                           "%s", m->text);
     
   gtk_window_set_transient_for(GTK_WINDOW(dialog), parent);
 
   gtk_dialog_run(GTK_DIALOG(dialog));
 
   gtk_widget_destroy (dialog);
-
-}
-
-
-void 
-msg(enum msg_class klass, const char *fmt, ...)
-{
-  va_list ap;
-  va_start(ap, fmt);
-  vmsg(klass, fmt, ap);
-  va_end(ap);
-}
-
-
-void
-msg_emit (const struct msg *m)
-{
-  vmsg (msg_class_from_category_and_severity (m->category, m->severity),
-        "%s", m->text);
-}
-
-
-void 
-msg_assert_fail(const char *expr, const char *file, int line)
-{
-  msg(ME, "Assertion failed: %s:%d; (%s)\n",file,line,expr);
-}
-
-/* Writes MESSAGE formatted with printf, to stderr, if the
-   verbosity level is at least LEVEL. */
-void
-verbose_msg (int level, const char *format, ...)
-{
-  /* Do nothing for now. */
 }
 
 /* FIXME: This is a stub .

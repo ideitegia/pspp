@@ -19,20 +19,23 @@
 
 #include <config.h>
 
+#include "read-line.h"
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <errno.h>
 
-#include "read-line.h"
-#include <language/command.h>
+#include "msg-ui.h"
+
 #include <data/file-name.h>
-#include <libpspp/version.h>
-#include <libpspp/str.h>
-#include <output/table.h>
-#include <libpspp/message.h>
 #include <data/file-name.h>
 #include <data/settings.h>
+#include <language/command.h>
+#include <libpspp/message.h>
+#include <libpspp/str.h>
+#include <libpspp/version.h>
+#include <output/table.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -117,8 +120,7 @@ readln_read (struct string *line, const char *prompt)
   
   assert(initialised);
 
-  err_error_count = err_warning_count = 0;
-  err_already_flagged = 0;
+  reset_msg_count ();
 
   welcome ();
 

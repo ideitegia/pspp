@@ -24,4 +24,6 @@
 
 #include <libpspp/message.h>
 
+void message_dialog_init (void);
+
 #endif

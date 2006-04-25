@@ -36,6 +36,7 @@
 #include <data/file-name.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
+#include <libpspp/verbose-msg.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -163,7 +164,7 @@ parse_command_line (int argc, char **argv)
 	  set_safer_mode ();
 	  break;
 	case 'v':
-	  err_verbosity++;
+	  verbose_increment_level ();
 	  break;
 	case 'V':
 	  puts (version);

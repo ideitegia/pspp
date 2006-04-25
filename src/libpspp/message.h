@@ -85,35 +85,21 @@ struct msg
     char *text;                 /* Error text. */
   };
 
-/* Number of errors, warnings reported. */
-extern int err_error_count;
-extern int err_warning_count;
-
-/* If number of allowable errors/warnings is exceeded, then a message
-   is displayed and this flag is set to suppress subsequent
-   messages. */
-extern int err_already_flagged;
-
-/* Nonnegative verbosity level.  Higher value == more verbose. */
-extern int err_verbosity;
-
 /* Initialization. */
+void msg_init (void (*handler) (const struct msg *));
 void msg_done (void);
 
 /* Emitting messages. */
 void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
-void msg_emit (const struct msg *);
-
-void verbose_msg (int level, const char *format, ...)
-     PRINTF_FORMAT (2, 3);
+void msg_emit (struct msg *);
 
 /* Error context. */
 void msg_set_command_name (const char *);
+const char *msg_get_command_name (void);
 void msg_push_msg_locator (const struct msg_locator *);
 void msg_pop_msg_locator (const struct msg_locator *);
 void msg_location (struct msg_locator *);
-void err_check_count (void);
 
 /* Used in panic situations only. */
 void request_bug_report_and_abort (const char *msg);
