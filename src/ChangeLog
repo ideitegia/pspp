@@ -1,3 +1,17 @@
+Mon Apr 24 17:40:08 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, rename
+	all the message functions and types to start with "msg", except
+	for the ones that will be moving to other modules anyway.
+
+	All references to the identifiers below were updated likewise.
+	
+	* message.c: (err_done) Renamed msg_done().
+	(err_push_file_locator) Renamed msg_push_msg_locator().
+	(err_pop_file_locator) Renamed msg_pop_msg_locator().
+	(err_location) Renamed msg_location().
+	(err_set_command_name) Renamed msg_set_command_name().
+
 Mon Apr 24 14:11:33 2006  Ben Pfaff  <blp@gnu.org>
 
 	* message.c: Use exit.h from gnulib instead of checking for and

@@ -1,3 +1,15 @@
+Mon Apr 24 17:26:47 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming error message support.  In this phase, rename
+	all the message functions and types to start with "msg", except
+	for the ones that will be moving to other modules anyway.
+
+	All references to the identifiers below were updated likewise.
+	
+	* message.h: (enum file_locator) Renamed `enum msg_locator'.
+	(struct error) Renamed `struct msg'.
+	(err_assert_fail) Renamed msg_assert_fail().
+
 Sun Apr 23 22:07:06 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, get rid

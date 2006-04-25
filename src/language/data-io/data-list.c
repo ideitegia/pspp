@@ -2065,7 +2065,7 @@ repeating_data_set_write_case (struct transformation *trns_,
 static void
 rpd_msg (enum msg_class class, const char *format, ...)
 {
-  struct error e;
+  struct msg m;
   va_list args;
   struct string text;
 
@@ -2074,11 +2074,11 @@ rpd_msg (enum msg_class class, const char *format, ...)
   ds_vprintf (&text, format, args);
   va_end (args);
 
-  e.category = msg_class_to_category (class);
-  e.severity = msg_class_to_severity (class);
-  e.where.file_name = NULL;
-  e.where.line_number = 0;
-  e.text = ds_c_str (&text);
+  m.category = msg_class_to_category (class);
+  m.severity = msg_class_to_severity (class);
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
+  m.text = ds_c_str (&text);
 
-  err_msg (&e);
+  msg_emit (&m);
 }

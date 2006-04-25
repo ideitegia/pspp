@@ -253,7 +253,7 @@ terminate (bool success)
     return;
   terminating = true;
 
-  err_done ();
+  msg_done ();
   outp_done ();
 
   cancel_transformations ();

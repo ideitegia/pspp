@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,21 +17,12 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !error_h
-#define error_h 1
+#ifndef MESSAGE_H
+#define MESSAGE_H 1
 
 #include <stdarg.h>
 #include <stdbool.h>
-#include "compiler.h"
-
-/* Message classes. */
-enum msg_class
-  {
-    ME, MW, MN,			/* General error/warning/note. */
-    SE, SW, SN,			/* Script error/warning/note. */
-    DE, DW, DN,			/* Data-file error/note. */
-    MSG_CLASS_CNT,
-  };
+#include <libpspp/compiler.h>
 
 /* What kind of message is this? */
 enum msg_category 
@@ -48,6 +39,16 @@ enum msg_severity
     MSG_WARNING,
     MSG_NOTE
   };
+
+/* Combination of a category and a severity for convenience. */
+enum msg_class
+  {
+    ME, MW, MN,			/* General error/warning/note. */
+    SE, SW, SN,			/* Script error/warning/note. */
+    DE, DW, DN,			/* Data-file error/note. */
+    MSG_CLASS_CNT,
+  };
+
 
 static inline enum msg_category
 msg_class_to_category (enum msg_class class) 
@@ -69,18 +70,18 @@ msg_class_from_category_and_severity (enum msg_category category,
 }
 
 /* A file location.  */
-struct file_locator
+struct msg_locator
   {
     const char *file_name;		/* File name. */
     int line_number;			/* Line number. */
   };
 
-/* An error message. */
-struct error
+/* A message. */
+struct msg
   {
     enum msg_category category; /* Message category. */
     enum msg_severity severity; /* Message severity. */
-    struct file_locator where;	/* File location, or (NULL, -1). */
+    struct msg_locator where;	/* File location, or (NULL, -1). */
     char *text;                 /* Error text. */
   };
 
@@ -96,37 +97,34 @@ extern int err_already_flagged;
 /* Nonnegative verbosity level.  Higher value == more verbose. */
 extern int err_verbosity;
 
+/* Initialization. */
+void msg_done (void);
+
 /* Emitting messages. */
 void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
-void err_msg (const struct error *);
+void msg_emit (const struct msg *);
 
 void verbose_msg (int level, const char *format, ...)
      PRINTF_FORMAT (2, 3);
 
-/* File-locator stack. */
-void err_push_file_locator (const struct file_locator *);
-void err_pop_file_locator (const struct file_locator *);
-void err_location (struct file_locator *);
-
-/* Obscure functions. */
-void err_set_command_name (const char *);
-void err_done (void);
+/* Error context. */
+void msg_set_command_name (const char *);
+void msg_push_msg_locator (const struct msg_locator *);
+void msg_pop_msg_locator (const struct msg_locator *);
+void msg_location (struct msg_locator *);
 void err_check_count (void);
 
-/* Used in panic situations only */
-void request_bug_report_and_abort(const char *msg );
+/* Used in panic situations only. */
+void request_bug_report_and_abort (const char *msg);
 
-void err_assert_fail(const char *expr, const char *file, int line);
+void msg_assert_fail (const char *expr, const char *file, int line);
 
 #undef __STRING
 #define __STRING(x) #x
 #undef assert
-
 			       
 #define assert(expr) ( (void) ( expr ? (void) 0 : \
-	       err_assert_fail(__STRING(expr), __FILE__, __LINE__)) )
+	       msg_assert_fail(__STRING(expr), __FILE__, __LINE__)) )
 
-
-
-#endif /* error.h */
+#endif /* message.h */

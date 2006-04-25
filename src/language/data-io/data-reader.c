@@ -50,7 +50,7 @@ enum dfm_reader_flags
 struct dfm_reader
   {
     struct file_handle *fh;     /* File handle. */
-    struct file_locator where;  /* Current location in data file. */
+    struct msg_locator where;   /* Current location in data file. */
     struct string line;         /* Current line. */
     struct string scratch;      /* Extra line buffer. */
     enum dfm_reader_flags flags; /* Zero or more of DFM_*. */
@@ -392,7 +392,7 @@ void
 dfm_push (struct dfm_reader *r)
 {
   if (r->fh != fh_inline_file ())
-    err_push_file_locator (&r->where);
+    msg_push_msg_locator (&r->where);
 }
 
 /* Pops the file name and line number from the fn/ln stack. */
@@ -400,7 +400,7 @@ void
 dfm_pop (struct dfm_reader *r)
 {
   if (r->fh != fh_inline_file ())
-    err_pop_file_locator (&r->where);
+    msg_pop_msg_locator (&r->where);
 }
 
 /* BEGIN DATA...END DATA procedure. */

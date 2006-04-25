@@ -85,7 +85,7 @@ error (struct pfm_reader *r, const char *msg,...)
 static void
 error (struct pfm_reader *r, const char *msg, ...)
 {
-  struct error e;
+  struct msg m;
   struct string text;
   va_list args;
 
@@ -96,13 +96,13 @@ error (struct pfm_reader *r, const char *msg, ...)
   ds_vprintf (&text, msg, args);
   va_end (args);
 
-  e.category = MSG_GENERAL;
-  e.severity = MSG_ERROR;
-  e.where.file_name = NULL;
-  e.where.line_number = 0;
-  e.text = ds_c_str (&text);
+  m.category = MSG_GENERAL;
+  m.severity = MSG_ERROR;
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
+  m.text = ds_c_str (&text);
   
-  err_msg (&e);
+  msg_emit (&m);
 
   r->ok = false;
 

@@ -372,7 +372,7 @@ getl_location (const char **fn, int *ln)
 }
 
 /* File locator stack. */
-static const struct file_locator **file_loc;
+static const struct msg_locator **file_loc;
 static int nfile_loc, mfile_loc;
 
 /* Close getl. */
@@ -394,7 +394,7 @@ getl_uninitialize (void)
 
 /* Pushes F onto the stack of file locations. */
 void
-err_push_file_locator (const struct file_locator *f)
+msg_push_msg_locator (const struct msg_locator *loc)
 {
   if (nfile_loc >= mfile_loc)
     {
@@ -406,28 +406,28 @@ err_push_file_locator (const struct file_locator *f)
       file_loc = xnrealloc (file_loc, mfile_loc, sizeof *file_loc);
     }
 
-  file_loc[nfile_loc++] = f;
+  file_loc[nfile_loc++] = loc;
 }
 
 /* Pops F off the stack of file locations.
    Argument F is only used for verification that that is actually the
    item on top of the stack. */
 void
-err_pop_file_locator (const struct file_locator *f)
+msg_pop_msg_locator (const struct msg_locator *loc)
 {
-  assert (nfile_loc >= 0 && file_loc[nfile_loc - 1] == f);
+  assert (nfile_loc >= 0 && file_loc[nfile_loc - 1] == loc);
   nfile_loc--;
 }
 
 /* Puts the current file and line number in F, or NULL and -1 if
    none. */
 void
-err_location (struct file_locator *f)
+msg_location (struct msg_locator *loc)
 {
   if (nfile_loc)
-    *f = *file_loc[nfile_loc - 1];
+    *loc = *file_loc[nfile_loc - 1];
   else
-    getl_location (&f->file_name, &f->line_number);
+    getl_location (&loc->file_name, &loc->line_number);
 }
 
 /* Reads a line from syntax file source S into LINE.

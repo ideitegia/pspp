@@ -54,17 +54,17 @@ static char *command_name;
 void
 msg (enum msg_class class, const char *format, ...)
 {
-  struct error e;
+  struct msg m;
   va_list args;
 
-  e.category = msg_class_to_category (class);
-  e.severity = msg_class_to_severity (class);
-  err_location (&e.where);
+  m.category = msg_class_to_category (class);
+  m.severity = msg_class_to_severity (class);
+  msg_location (&m.where);
   va_start (args, format);
-  e.text = xvasprintf (format, args);
+  m.text = xvasprintf (format, args);
   va_end (args);
 
-  err_msg (&e);
+  msg_emit (&m);
 }
 
 /* Writes MESSAGE formatted with printf, to stderr, if the
@@ -110,7 +110,7 @@ static void dump_message (char *msg,
                           unsigned width, unsigned indent);
 
 void
-err_done (void) 
+msg_done (void) 
 {
   lex_done();
   getl_uninitialize ();
@@ -120,7 +120,7 @@ err_done (void)
 /* Emits E as an error message.
    Frees `text' member in E. */
 void
-err_msg (const struct error *e)
+msg_emit (const struct msg *m)
 {
   struct category 
     {
@@ -148,35 +148,35 @@ err_msg (const struct error *e)
       {NULL, NULL},                             /* MSG_NOTE. */
     };
 
-  const struct category *category = &categories[e->category];
-  const struct severity *severity = &severities[e->severity];
-  struct string msg = DS_INITIALIZER;
+  const struct category *category = &categories[m->category];
+  const struct severity *severity = &severities[m->severity];
+  struct string string = DS_INITIALIZER;
 
-  if (category->show_file_location && e->where.file_name)
+  if (category->show_file_location && m->where.file_name)
     {
-      ds_printf (&msg, "%s:", e->where.file_name);
-      if (e->where.line_number != -1)
-	ds_printf (&msg, "%d:", e->where.line_number);
-      ds_putc (&msg, ' ');
+      ds_printf (&string, "%s:", m->where.file_name);
+      if (m->where.line_number != -1)
+	ds_printf (&string, "%d:", m->where.line_number);
+      ds_putc (&string, ' ');
     }
 
   if (severity->name != NULL)
-    ds_printf (&msg, "%s: ", gettext (severity->name));
+    ds_printf (&string, "%s: ", gettext (severity->name));
   
   if (severity->count != NULL)
     ++*severity->count;
   
   if (category->show_command_name && command_name != NULL)
-    ds_printf (&msg, "%s: ", command_name);
+    ds_printf (&string, "%s: ", command_name);
 
-  ds_puts (&msg, e->text);
+  ds_puts (&string, m->text);
 
   /* FIXME: Check set_messages and set_errors to determine where to
      send errors and messages. */
-  dump_message (ds_c_str (&msg), puts_stdout, get_viewwidth (), 8);
+  dump_message (ds_c_str (&string), puts_stdout, get_viewwidth (), 8);
 
-  ds_destroy (&msg);
-  free (e->text);
+  ds_destroy (&string);
+  free (m->text);
 }
 
 /* Private functions. */
@@ -261,7 +261,7 @@ dump_message (char *msg,
 /* Sets COMMAND_NAME as the command name included in some kinds
    of error messages. */
 void
-err_set_command_name (const char *command_name_) 
+msg_set_command_name (const char *command_name_) 
 {
   free (command_name);
   command_name = command_name_ ? xstrdup (command_name_) : NULL;
@@ -318,7 +318,7 @@ request_bug_report_and_abort(const char *msg )
 }
 
 void 
-err_assert_fail(const char *expr, const char *file, int line)
+msg_assert_fail(const char *expr, const char *file, int line)
 {
   char msg[256];
   snprintf(msg,256,"Assertion failed: %s:%d; (%s)",file,line,expr);

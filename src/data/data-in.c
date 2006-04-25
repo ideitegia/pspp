@@ -48,7 +48,7 @@ static void dls_error (const struct data_in *, const char *format, ...)
 static void
 vdls_error (const struct data_in *i, const char *format, va_list args)
 {
-  struct error e;
+  struct msg m;
   struct string text;
 
   if (i->flags & DI_IGNORE_ERROR)
@@ -62,12 +62,12 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
   ds_printf (&text, _(", field type %s) "), fmt_to_string (&i->format));
   ds_vprintf (&text, format, args);
 
-  e.category = MSG_DATA;
-  e.severity = MSG_ERROR;
-  err_location (&e.where);
-  e.text = ds_c_str (&text);
+  m.category = MSG_DATA;
+  m.severity = MSG_ERROR;
+  msg_location (&m.where);
+  m.text = ds_c_str (&text);
 
-  err_msg (&e);
+  msg_emit (&m);
 }
 
 static void

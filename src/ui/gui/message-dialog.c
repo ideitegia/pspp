@@ -113,15 +113,15 @@ msg(enum msg_class klass, const char *fmt, ...)
 
 
 void
-err_msg (const struct error *e)
+msg_emit (const struct msg *m)
 {
-  vmsg(msg_class_from_category_and_severity (e->category, e->severity),
-       "%s", e->text);
+  vmsg (msg_class_from_category_and_severity (m->category, m->severity),
+        "%s", m->text);
 }
 
 
 void 
-err_assert_fail(const char *expr, const char *file, int line)
+msg_assert_fail(const char *expr, const char *file, int line)
 {
   msg(ME, "Assertion failed: %s:%d; (%s)\n",file,line,expr);
 }
@@ -138,9 +138,9 @@ verbose_msg (int level, const char *format, ...)
  * A temporary workaround until getl.c is rearranged
  */
 void
-err_location (struct file_locator *f)
+msg_location (struct msg_locator *loc)
 {
-	f->file_name = 0;
-	f->line_number = -1;
+	loc->file_name = 0;
+	loc->line_number = -1;
 }
 

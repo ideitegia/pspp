@@ -733,18 +733,18 @@ io_error (struct casefile *cf, const char *format, ...)
 {
   if (cf->ok) 
     {
-      struct error e;
+      struct msg m;
       va_list args;
 
-      e.category = MSG_GENERAL;
-      e.severity = MSG_ERROR;
-      e.where.file_name = NULL;
-      e.where.line_number = -1;
+      m.category = MSG_GENERAL;
+      m.severity = MSG_ERROR;
+      m.where.file_name = NULL;
+      m.where.line_number = -1;
       va_start (args, format);
-      e.text = xvasprintf (format, args);
+      m.text = xvasprintf (format, args);
       va_end (args);
       
-      err_msg (&e);
+      msg_emit (&m);
     }
   cf->ok = false;
 }

@@ -123,7 +123,7 @@ corrupt_msg (int class, const char *format,...)
 static void
 corrupt_msg (int class, const char *format,...)
 {
-  struct error e;
+  struct msg m;
   va_list args;
   struct string text;
 
@@ -132,13 +132,13 @@ corrupt_msg (int class, const char *format,...)
   ds_vprintf (&text, format, args);
   va_end (args);
 
-  e.category = msg_class_to_category (class);
-  e.severity = msg_class_to_severity (class);
-  e.where.file_name = NULL;
-  e.where.line_number = 0;
-  e.text = ds_c_str (&text);
+  m.category = msg_class_to_category (class);
+  m.severity = msg_class_to_severity (class);
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
+  m.text = ds_c_str (&text);
 
-  err_msg (&e);
+  msg_emit (&m);
 }
 
 /* Closes a system file after we're done with it. */

@@ -241,10 +241,10 @@ cmd_parse (void)
     int result;
     
     /* Call the command dispatcher. */
-    err_set_command_name (cp->name);
+    msg_set_command_name (cp->name);
     tab_set_command_name (cp->name);
     result = cp->func ();
-    err_set_command_name (NULL);
+    msg_set_command_name (NULL);
     tab_set_command_name (NULL);
     
     /* Perform the state transition if the command completed
