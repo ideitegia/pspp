@@ -1,3 +1,8 @@
+Tue Apr 25 13:21:12 2006  Ben Pfaff  <blp@gnu.org>
+
+	* permissions.c (change_permissions): Use SE instead of ME for
+	errors associated with a syntax file command.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

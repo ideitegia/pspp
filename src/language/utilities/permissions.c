@@ -74,7 +74,7 @@ cmd_permissions (void)
     }
   else
     {
-      msg(ME, _("Expecting %s or %s."), "WRITEABLE", "READONLY");
+      msg (SE, _("Expecting %s or %s."), "WRITEABLE", "READONLY");
       goto error;
     }
 
@@ -107,7 +107,7 @@ change_permissions(const char *file_name, enum PER per)
   if ( -1 == stat(file_name, &buf) ) 
     {
       const int errnum = errno;
-      msg(ME,_("Cannot stat %s: %s"), file_name, strerror(errnum));
+      msg (SE, _("Cannot stat %s: %s"), file_name, strerror(errnum));
       return 0;
     }
 
@@ -120,7 +120,7 @@ change_permissions(const char *file_name, enum PER per)
 
     {
       const int errnum = errno;
-      msg(ME,_("Cannot change mode of %s: %s"), file_name, strerror(errnum));
+      msg (SE, _("Cannot change mode of %s: %s"), file_name, strerror(errnum));
       return 0;
     }
 
