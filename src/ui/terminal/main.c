@@ -59,6 +59,7 @@ static void i18n_init (void);
 static void fpu_init (void);
 static void handle_error (int code);
 static int execute_command (void);
+static void terminate (bool success) NO_RETURN;
 
 /* If a segfault happens, issue a message to that effect and halt */
 void bug_handler(int sig);
@@ -66,7 +67,6 @@ void bug_handler(int sig);
 /* Handle quit/term/int signals */
 void interrupt_handler(int sig);
 
-void terminate (bool success);
 
 /* Program entry point. */
 int
@@ -111,7 +111,6 @@ main (int argc, char **argv)
     }
   
   terminate (err_error_count == 0);
-  abort ();
 }
 
 /* Parse and execute a command, returning its return code. */
@@ -245,25 +244,26 @@ interrupt_handler(int sig UNUSED)
 
 /* Terminate PSPP.  SUCCESS should be true to exit successfully,
    false to exit as a failure.  */
-void
+static void
 terminate (bool success)
 {
   static bool terminating = false;
-  if (terminating)
-    return;
-  terminating = true;
+  if (!terminating) 
+    {
+      terminating = true;
 
-  msg_done ();
-  outp_done ();
+      msg_done ();
+      outp_done ();
 
-  cancel_transformations ();
-  dict_destroy (default_dict);
+      cancel_transformations ();
+      dict_destroy (default_dict);
 
-  random_done ();
-  settings_done ();
-  fh_done ();
-  lex_done ();
-  getl_uninitialize ();
-
+      random_done ();
+      settings_done ();
+      fh_done ();
+      lex_done ();
+      getl_uninitialize ();
+      readln_uninitialize ();
+    }
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }

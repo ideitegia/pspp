@@ -1,3 +1,9 @@
+Tue Apr 25 09:39:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	* main.c: (terminate) Mark static and NO_RETURN.  If called
+	recursively, which can only happen via signal, just exit instead
+	of trying to gracefully shut down.	
+
 Fri Mar 31 10:33:37 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command-line.c: (var pre_syntax_message) -d and -u are no longer
