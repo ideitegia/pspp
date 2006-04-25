@@ -1,3 +1,10 @@
+Tue Apr 25 11:08:04 2006  Ben Pfaff  <blp@gnu.org>
+
+	Finish reforming error message support.  In this phase, move
+	message.c into libpspp.
+	
+	* automake.mk: (src_ui_gui_psppire_SOURCES) Remove src/message.c.
+
 Tue Apr 25 10:56:53 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, drop

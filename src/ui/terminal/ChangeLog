@@ -1,3 +1,10 @@
+Tue Apr 25 11:08:17 2006  Ben Pfaff  <blp@gnu.org>
+
+	Finish reforming error message support.  In this phase, move
+	message.c into libpspp.
+	
+	* automake.mk: Remove message.c from sources.
+
 Tue Apr 25 10:58:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, drop

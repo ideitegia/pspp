@@ -55,5 +55,4 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/var-sheet.c \
 	src/ui/gui/var-sheet.h \
 	src/ui/gui/var-type-dialog.c \
-	src/ui/gui/var-type-dialog.h \
-	src/message.c
+	src/ui/gui/var-type-dialog.h

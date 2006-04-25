@@ -14,7 +14,6 @@ src_ui_terminal_libui_a_SOURCES = \
 bin_PROGRAMS += src/ui/terminal/pspp
 
 src_ui_terminal_pspp_SOURCES = \
-	src/message.c \
 	src/procedure.c \
 	src/procedure.h
 

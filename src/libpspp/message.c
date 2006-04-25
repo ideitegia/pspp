@@ -21,13 +21,10 @@
 
 #include <libpspp/message.h>
 
-#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/file-name.h>
-#include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/version.h>
 

@@ -1,3 +1,10 @@
+Tue Apr 25 11:06:49 2006  Ben Pfaff  <blp@gnu.org>
+
+	Finish reforming error message support.  In this phase, move
+	message.c into libpspp.
+	
+	* message.c: Move to libpspp.
+
 Tue Apr 25 10:47:37 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, drop
