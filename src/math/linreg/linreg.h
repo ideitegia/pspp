@@ -164,6 +164,7 @@ struct pspp_linreg_cache_struct
 		      const union value *,
 		      const void *, int);
   struct variable *resid;
+  struct variable *pred;
 };
 
 typedef struct pspp_linreg_cache_struct pspp_linreg_cache;

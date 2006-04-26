@@ -1,3 +1,10 @@
+2006-04-26  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.h: Added a pointer to predicted values.
+
+	* linreg.c (pspp_linreg_cache_alloc): Initialized pointer to
+	predicted values.
+
 2006-04-22  Jason Stover  <jhs@debs.hjklfdsss.org>
 
 	* predict.c (pspp_linreg_residual): Removed unnecessary cast of c_

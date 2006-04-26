@@ -118,6 +118,7 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   c->predict = pspp_linreg_predict;
   c->residual = pspp_linreg_residual; /* The procedure to comput my residuals. */
   c->resid = NULL; /* The variable storing my residuals. */
+  c->pred = NULL; /* The variable storing my predicted values. */
 
   return c;
 }
