@@ -1,3 +1,11 @@
+Wed Apr 26 14:55:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable.h: (struct variable) Remove `init' member and all
+	references to it from other files.  It was initialized in several
+	places, but nothing really ever used it for anything worthwhile.
+	Thanks to Jason Stover for pointing out how confusing this
+	member is.
+
 Sun Apr 23 22:04:45 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, get rid

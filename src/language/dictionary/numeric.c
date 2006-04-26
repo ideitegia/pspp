@@ -196,7 +196,6 @@ cmd_leave (void)
       if (!v[i]->reinit)
 	continue;
       v[i]->reinit = 0;
-      v[i]->init = 1;
     }
   free (v);
 

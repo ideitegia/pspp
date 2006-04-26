@@ -661,7 +661,6 @@ setup_z_trns (struct dsc_proc *dsc)
 	  struct variable *dst_var;
 
 	  dst_var = dict_create_var_assert (default_dict, dv->z_name, 0);
-          dst_var->init = 0;
 	  if (dv->v->label)
 	    {
 	      dst_var->label = xmalloc (strlen (dv->v->label) + 12);

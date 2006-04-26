@@ -64,7 +64,6 @@ struct variable
 
     /* Case information. */
     int fv, nv;			/* Index into `value's, number of values. */
-    bool init;                  /* True if needs init and possibly reinit. */
     bool reinit;                /* True: reinitialize; false: leave. */
 
     /* Data for use by containing dictionary. */

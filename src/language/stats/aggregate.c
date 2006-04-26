@@ -591,7 +591,6 @@ parse_aggregate_functions (struct agr_proc *agr)
 	      }
 
 	    free (dest[i]);
-            destvar->init = 0;
 	    if (dest_label[i])
 	      {
 		destvar->label = dest_label[i];

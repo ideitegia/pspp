@@ -421,7 +421,7 @@ clear_case (struct ccase *c)
   for (i = 0; i < var_cnt; i++) 
     {
       struct variable *v = dict_get_var (default_dict, i);
-      if (v->init && v->reinit) 
+      if (v->reinit) 
         {
           if (v->type == NUMERIC)
             case_data_rw (c, v->fv)->f = SYSMIS;

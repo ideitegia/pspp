@@ -178,11 +178,8 @@ cmd_autorecode (void)
   ok = procedure (autorecode_proc_func, &arc);
 
   for (i = 0; i < arc.var_cnt; i++)
-    {
-      arc.dst_vars[i] = dict_create_var_assert (default_dict,
-                                                arc.dst_names[i], 0);
-      arc.dst_vars[i]->init = 0;
-    }
+    arc.dst_vars[i] = dict_create_var_assert (default_dict,
+                                              arc.dst_names[i], 0);
 
   recode (&arc);
   arc_free (&arc);

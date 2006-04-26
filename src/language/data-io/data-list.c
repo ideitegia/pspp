@@ -545,8 +545,6 @@ fixed_parse_compatible (struct fixed_parsing_state *fx,
 	{
 	  convert_fmt_ItoO (&input, &v->print);
 	  v->write = v->print;
-          if (!in_input_program () && !in_file_type ())
-            v->init = 0;
 	}
       else
 	{
@@ -653,9 +651,6 @@ dump_fmt_list (struct fixed_parsing_state *fx, struct fmt_list *f,
 		return 0;
 	      }
 	    
-            if (!in_input_program () && !in_file_type ())
-              v->init = 0;
-
             spec = xmalloc (sizeof *spec);
             spec->v = v;
 	    spec->input = f->f;
@@ -861,9 +856,6 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 	      return 0;
 	    }
 	  v->print = v->write = output;
-
-          if (!in_input_program () && !in_file_type ())
-            v->init = 0;
 
           spec = xmalloc (sizeof *spec);
           spec->input = input;
