@@ -111,6 +111,8 @@
    casefile_destroy().  This function will also destroy any
    remaining casereaders. */
 
+/* FIXME: should we implement compression? */
+
 /* In-memory cases are arranged in an array of arrays.  The top
    level is variable size and the size of each bottom level array
    is fixed at the number of cases defined here.  */

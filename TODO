@@ -1,8 +1,6 @@
-Time-stamp: <2006-04-15 18:11:46 blp>
+Time-stamp: <2006-04-26 15:15:36 blp>
 
 Get rid of need for GNU diff in `make check'.
-
-Get rid of need for file name canonicalization.
 
 Format specifier code needs to be rewritten for lowered crappiness.
 
@@ -12,38 +10,20 @@ RANK, which is needed for the Wilcoxon signed-rank statistic, Mann-Whitney U,
 Kruskal-Wallis on NPAR TESTS and for Spearman and the Johnkheere trend test (in
 other procedures).
 
-lex_token_representation() should take a buffer to fill.
-
-Make valgrind --leak-check=yes --show-reachable=yes work.
-
 Add NOT_REACHED() macro.
-
-Add compression to casefiles.
 
 Scratch variables should not be available for use following TEMPORARY.
 
 Check our results against the NIST StRD benchmark results at
 strd.itl.nist.gov/div898/strd
 
-In debug mode hash table code should verify that collisions are reasonably low.
-
 Storage of value labels on disk is inefficient.  Invent new data structure.
 
-Add an output flag which would cause a page break if a table segment could fit
-vertically on a page but it just happens to be positioned such that it won't.
-
 Fix spanned joint cells, i.e., EDLEVEL on crosstabs.stat.
-
-Cell footnotes.
-
-Should be able to bottom-justify cells.  It'll be expensive, though, by
-requiring an extra metrics call.
 
 SELECT IF should be moved before other transformations whenever possible.  It
 should only be impossible when one of the variables referred to in SELECT IF is
 created or modified by a previous transformation.
-
-The manual: add text, add index entries, add examples.
 
 Figure out a stylesheet for messages displayed by PSPP: i.e., what quotation
 marks around filenames, etc.
@@ -65,9 +45,6 @@ From Zvi Grauer <z.grauer@csuohio.edu> and <zvi@mail.ohio.net>:
    5. Conjoint analysis
 
    6. Categorical data analsys ?
-
-MORE NOTES/IDEAS/BUGS
----------------------
 
 Sometimes very wide (or very tall) columns can occur in tables.  What is a good
 way to truncate them?  It doesn't seem to cause problems for the ascii or
