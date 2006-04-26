@@ -1,3 +1,8 @@
+Wed Apr 26 15:06:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	* set.q: Use SN instead of MN for most output from SHOW, because
+	the output is tied to the SHOW command that caused it.
+
 Tue Apr 25 13:21:12 2006  Ben Pfaff  <blp@gnu.org>
 
 	* permissions.c (change_permissions): Use SE instead of ME for

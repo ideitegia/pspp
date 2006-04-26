@@ -169,29 +169,29 @@ cmd_set (void)
     set_workspace (cmd.n_workspace[0] * 1024L);
 
   if (cmd.sbc_block)
-    msg (SW, _("%s is obsolete."),"BLOCK");
+    msg (SW, _("%s is obsolete."), "BLOCK");
   if (cmd.sbc_boxstring)
-    msg (SW, _("%s is obsolete."),"BOXSTRING");
+    msg (SW, _("%s is obsolete."), "BOXSTRING");
   if (cmd.sbc_histogram)
-    msg (MW, _("%s is obsolete."),"HISTOGRAM");
-  if (cmd.sbc_menus )
-    msg (MW, _("%s is obsolete."),"MENUS");
-  if (cmd.sbc_xsort )
-    msg (SW, _("%s is obsolete."),"XSORT");
-  if (cmd.sbc_mxmemory )
-    msg (SE, _("%s is obsolete."),"MXMEMORY");
+    msg (SW, _("%s is obsolete."), "HISTOGRAM");
+  if (cmd.sbc_menus)
+    msg (SW, _("%s is obsolete."), "MENUS");
+  if (cmd.sbc_xsort)
+    msg (SW, _("%s is obsolete."), "XSORT");
+  if (cmd.sbc_mxmemory)
+    msg (SE, _("%s is obsolete."), "MXMEMORY");
   if (cmd.sbc_scripttab)
-    msg (SE, _("%s is obsolete."),"SCRIPTTAB");
+    msg (SE, _("%s is obsolete."), "SCRIPTTAB");
   if (cmd.sbc_tbfonts)
-    msg (SW, _("%s is obsolete."),"TBFONTS");
+    msg (SW, _("%s is obsolete."), "TBFONTS");
   if (cmd.sbc_tb1 && cmd.s_tb1)
-    msg (SW, _("%s is obsolete."),"TB1");
+    msg (SW, _("%s is obsolete."), "TB1");
 
   if (cmd.sbc_case)
     msg (SW, _("%s is not implemented."), "CASE");
 
   if (cmd.sbc_compression)
-    msg (MW, _("Active file compression is not implemented."));
+    msg (SW, _("Active file compression is not implemented."));
 
   return CMD_SUCCESS;
 }
@@ -469,9 +469,9 @@ static void
 show_blanks (void) 
 {
   if (get_blanks () == SYSMIS)
-    msg (MN, _("BLANKS is SYSMIS."));
+    msg (SN, _("BLANKS is SYSMIS."));
   else
-    msg (MN, _("BLANKS is %g."), get_blanks ());
+    msg (SN, _("BLANKS is %g."), get_blanks ());
 
 }
 
@@ -503,7 +503,7 @@ show_cc (int idx)
   out = format_cc (cc->neg_suffix, cc->grouping, out);
   *out = '\0';
   
-  msg (MN, _("CC%c is \"%s\"."), "ABCDE"[idx], cc_string);
+  msg (SN, _("CC%c is \"%s\"."), "ABCDE"[idx], cc_string);
 }
 
 
@@ -540,61 +540,61 @@ show_cce (void)
 static void
 show_decimals (void) 
 {
-  msg (MN, _("DECIMAL is \"%c\"."), get_decimal ());
+  msg (SN, _("DECIMAL is \"%c\"."), get_decimal ());
 }
 
 static void
 show_endcmd (void) 
 {
-  msg (MN, _("ENDCMD is \"%c\"."), get_endcmd ());
+  msg (SN, _("ENDCMD is \"%c\"."), get_endcmd ());
 }
 
 static void
 show_format (void) 
 {
-  msg (MN, _("FORMAT is %s."), fmt_to_string (get_format ()));
+  msg (SN, _("FORMAT is %s."), fmt_to_string (get_format ()));
 }
 
 static void
 show_length (void) 
 {
-  msg (MN, _("LENGTH is %d."), get_viewlength ());
+  msg (SN, _("LENGTH is %d."), get_viewlength ());
 }
 
 static void
 show_mxerrs (void) 
 {
-  msg (MN, _("MXERRS is %d."), get_mxerrs ());
+  msg (SN, _("MXERRS is %d."), get_mxerrs ());
 }
 
 static void
 show_mxloops (void) 
 {
-  msg (MN, _("MXLOOPS is %d."), get_mxloops ());
+  msg (SN, _("MXLOOPS is %d."), get_mxloops ());
 }
 
 static void
 show_mxwarns (void) 
 {
-  msg (MN, _("MXWARNS is %d."), get_mxwarns ());
+  msg (SN, _("MXWARNS is %d."), get_mxwarns ());
 }
 
 static void
 show_scompression (void) 
 {
   if (get_scompression ())
-    msg (MN, _("SCOMPRESSION is ON."));
+    msg (SN, _("SCOMPRESSION is ON."));
   else
-    msg (MN, _("SCOMPRESSION is OFF."));
+    msg (SN, _("SCOMPRESSION is OFF."));
 }
 
 static void
 show_undefined (void) 
 {
   if (get_undefined ())
-    msg (MN, _("UNDEFINED is WARN."));
+    msg (SN, _("UNDEFINED is WARN."));
   else
-    msg (MN, _("UNDEFINED is NOWARN."));
+    msg (SN, _("UNDEFINED is NOWARN."));
 }
 
 static void
@@ -602,15 +602,15 @@ show_weight (void)
 {
   struct variable *var = dict_get_weight (default_dict);
   if (var == NULL)
-    msg (MN, _("WEIGHT is off."));
+    msg (SN, _("WEIGHT is off."));
   else
-    msg (MN, _("WEIGHT is variable %s."), var->name);
+    msg (SN, _("WEIGHT is variable %s."), var->name);
 }
 
 static void
 show_width (void) 
 {
-  msg (MN, _("WIDTH is %d."), get_viewwidth ());
+  msg (SN, _("WIDTH is %d."), get_viewwidth ());
 }
 
 struct show_sbc 
