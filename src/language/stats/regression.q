@@ -71,7 +71,7 @@
    all;
    export=custom;
    ^dependent=varlist;
-   save=residuals;
+   save[sv_]=resid,pred;
    method=enter.
 */
 /* (declarations) */
@@ -81,6 +81,16 @@ static struct cmd_regression cmd;
 /* Linear regression models. */
 pspp_linreg_cache **models = NULL;
 
+/*
+  Transformations for saving predicted values
+  and residuals, etc.
+ */
+struct reg_trns
+{
+  int n_trns; /* Number of transformations. */
+  int trns_id; /* Which trns is this one? */
+  pspp_linreg_cache *c; /* Linear model for this trns. */
+};
 /*
   Variables used (both explanatory and response).
  */
@@ -504,49 +514,150 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
+/*
+  Free the transformation. Free its linear model if this
+  transformation is the last one.
+ */
+static
+bool regression_trns_free (void *t_)
+{
+  bool result = true;
+  struct reg_trns *t = t_;
+
+  if (t->trns_id == t->n_trns)
+    {
+      result = pspp_linreg_cache_free (t->c);
+    }
+  free (t);
+
+  return result;
+}
+/*
+  Gets the predicted values.
+ */
 static int
-regression_trns_proc (void *m, struct ccase *c, int case_idx UNUSED)
+regression_trns_pred_proc (void *t_, struct ccase *c, int case_idx UNUSED)
 {
   size_t i;
   size_t n_vars;
   size_t n_vals = 0;
-  pspp_linreg_cache *model = m;
+  union value *tmp = NULL;
+  struct reg_trns *t = t_;
+  pspp_linreg_cache *model;
   union value *output;
+  const union value **vals = NULL;
+  struct variable **vars = NULL;
+  struct variable **model_vars = NULL;
+  
+  assert (t != NULL);
+  model = t->c;
+  assert (model != NULL);
+  assert (model->depvar != NULL);
+  assert (model->pred != NULL);
+  
+  dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_SYSTEM);
+  vals = xnmalloc (n_vars, sizeof (*vals));
+  model_vars = xnmalloc (n_vars, sizeof (*model_vars));
+  assert (vals != NULL);
+  output = case_data_rw (c, model->pred->fv);
+  assert (output != NULL);
+
+  for (i = 0; i < n_vars; i++)
+    {
+      /* Use neither the predicted values nor the dependent variable. */
+      if (vars[i]->index != model->pred->index &&
+	  vars[i]->index != model->depvar->index)
+	{
+	  if (vars[i]->type == ALPHA && vars[i]->obs_vals != NULL)
+	    {
+	      tmp = vars[i]->obs_vals->vals;
+	    }
+	  else 
+	    {
+	      tmp = NULL;
+	    }
+	  /* 
+	     Make sure the variable we use is in the linear model.
+	  */
+	  if (pspp_linreg_get_coeff (model, vars[i], tmp) != NULL)
+	    {
+	      vals[n_vals] = case_data (c, i);
+	      model_vars[n_vals] = vars[i];
+	      n_vals++;
+	    }
+	}
+    }
+  output->f = (*model->predict) ((const struct variable **) vars, 
+				  vals, model, n_vals);
+  free (vals);
+  free (model_vars);
+  return TRNS_CONTINUE;
+}
+/*
+  Gets the residuals.
+ */
+static int
+regression_trns_resid_proc (void *t_, struct ccase *c, int case_idx UNUSED)
+{
+  size_t i;
+  size_t n_vars;
+  size_t n_vals = 0;
+  struct reg_trns *t = t_;
+  pspp_linreg_cache *model;
+  union value *output;
+  union value *tmp;
   const union value **vals = NULL;
   const union value *obs = NULL;
   struct variable **vars = NULL;
+  struct variable **model_vars = NULL;
   
+  assert (t!= NULL);
+  model = t->c;
   assert (model != NULL);
   assert (model->depvar != NULL);
   assert (model->resid != NULL);
   
   dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_SYSTEM);
   vals = xnmalloc (n_vars, sizeof (*vals));
+  model_vars = xnmalloc (n_vars, sizeof (*model_vars));
   assert (vals != NULL);
   output = case_data_rw (c, model->resid->fv);
   assert (output != NULL);
 
   for (i = 0; i < n_vars; i++)
     {
-      /* Do not use the residual variable. */
-      if (vars[i]->index != model->resid->index) 
+      /* Use neither the predicted values nor the dependent variable. */
+      if (vars[i]->index != model->resid->index &&
+	  vars[i]->index != model->depvar->index)
+	    {
+	      if (vars[i]->type == ALPHA && vars[i]->obs_vals != NULL)
+		{
+		  tmp = vars[i]->obs_vals->vals;
+		}
+	      else 
+		{
+		  tmp = NULL;
+		}
+	      /* 
+		 Make sure the variable we use is in the linear model.
+	      */
+	      if (pspp_linreg_get_coeff (model, vars[i], tmp) != NULL)
+		{
+		  vals[n_vals] = case_data (c, i);
+		  model_vars[n_vals] = vars[i];
+		  n_vals++;
+		}
+	    }
+      if (vars[i]->index == model->depvar->index)
 	{
-	  /* Do not use the dependent variable as a predictor. */
-	  if (vars[i]->index == model->depvar->index) 
-	    {
-	      obs = case_data (c, i);
-	      assert (obs != NULL);
-	    }
-	  else
-	    {
-	      vals[i] = case_data (c, i);
-	      n_vals++;
-	    }
+	  obs = case_data (c, i);
+	  assert (obs != NULL);
 	}
     }
   output->f = (*model->residual) ((const struct variable **) vars, 
 				  vals, obs, model, n_vals);
   free (vals);
+  free (model_vars);
   return TRNS_CONTINUE;
 }
 /* 
@@ -560,34 +671,73 @@ try_name (char *name)
 
   return 1;
 }
+static
+void reg_get_name (char name[LONG_NAME_LEN], const char prefix[LONG_NAME_LEN])
+{
+  int i = 1;
 
+  snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
+  while (!try_name(name))
+    {
+      i++;
+      snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
+    }
+}
+static void 
+reg_save_var (const char *prefix, trns_proc_func *f,
+	      pspp_linreg_cache *c, struct variable **v,
+	      int n_trns)
+{
+  static int trns_index = 1;
+  char name[LONG_NAME_LEN + 1];
+  struct variable *new_var;
+  struct reg_trns *t = NULL;
+
+  t = xmalloc (sizeof (*t));
+  assert (t != NULL);
+  t->trns_id = trns_index;
+  t->n_trns = n_trns;
+  t->c = c;
+  reg_get_name (name, prefix);
+  new_var = dict_create_var (default_dict, name, 0);
+  assert (new_var != NULL);
+  *v = new_var;
+  add_transformation (f, regression_trns_free, t);
+  trns_index++;
+}
 static void
 subcommand_save (int save, pspp_linreg_cache **models)
 {
-  int i;
-  char name[LONG_NAME_LEN + 1];
-  struct variable *residuals = NULL;
   pspp_linreg_cache **lc;
+  int n_trns = 0;
+  int i;
 
   assert (models != NULL);
 
   if (save)
     {
-      i = 1;
-      snprintf (name, LONG_NAME_LEN, "RES%d", i);
+      /* Count the number of transformations we will need. */
+      for (i = 0; i < REGRESSION_SV_count; i++)
+	{
+	  if (cmd.a_save[i])
+	    {
+	      n_trns++;
+	    }
+	}
+      n_trns *= cmd.n_dependent;
+
       for (lc = models; lc < models + cmd.n_dependent; lc++)
 	{
 	  assert (*lc != NULL);
 	  assert ((*lc)->depvar != NULL);
-	  while (!try_name (name))
+	  if (cmd.a_save[REGRESSION_SV_RESID])
 	    {
-	      i++;
-	      snprintf (name, LONG_NAME_LEN, "RES%d", i);
+	      reg_save_var ("RES", regression_trns_resid_proc, *lc, &(*lc)->resid, n_trns);
 	    }
-	  residuals = dict_create_var (default_dict, name, 0);
-	  assert (residuals != NULL);
-	  (*lc)->resid = residuals;
-	  add_transformation (regression_trns_proc, pspp_linreg_cache_free, *lc);
+	  if (cmd.a_save[REGRESSION_SV_PRED])
+	    {
+	      reg_save_var ("PRED", regression_trns_pred_proc, *lc, &(*lc)->pred, n_trns);
+	    }
 	}
     }
   else 

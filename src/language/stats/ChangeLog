@@ -1,3 +1,20 @@
+2006-04-26  Jason Stover  <jhs@math.gcsu.edu>
+
+ 	* regression.q: Added support for multiple transformations.
+	
+	* regression.q (regression_trns_resid_proc): New function.
+
+	* regression.q (regression_trns_pred_proc): New function.
+
+	* regression.q (subcommand_save): Added support for saving
+	predicted values.
+
+	* regression.q (regression_trns_free): New function. 
+
+	* regression.q (reg_get_name): New function.
+
+	* regression.q (reg_save_var): New function.
+
 Tue Apr 25 13:18:56 2006  Ben Pfaff  <blp@gnu.org>
 
 	* rank.q (parse_rank_function): Use SE instead of ME for parse
