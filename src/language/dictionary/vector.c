@@ -201,5 +201,5 @@ cmd_vector (void)
 
 fail:
   free (vecnames);
-  return CMD_PART_SUCCESS_MAYBE;
+  return CMD_FAILURE;
 }

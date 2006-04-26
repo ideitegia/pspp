@@ -56,8 +56,9 @@ readln_initialize (void)
 {
   initialised = true;
 
-#if HAVE_READLINE 
-  rl_completion_entry_function = pspp_completion_function;
+#if HAVE_READLINE
+  rl_basic_word_break_characters = "\n";
+  rl_attempted_completion_function = pspp_attempted_completion_function;
 #ifdef unix
   if (history_file == NULL)
     {

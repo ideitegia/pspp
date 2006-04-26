@@ -1,3 +1,58 @@
+Wed Apr 26 13:06:42 2006  Ben Pfaff  <blp@gnu.org>
+
+	Work on readline completion.
+
+	* command.c: (pspp_completion_function) Removed.
+	(pspp_attempted_completion_function) New function.
+	(command_generator) New function.
+
+Wed Apr 26 13:04:48 2006  Ben Pfaff  <blp@gnu.org>
+
+	Improve the way we handle the various parsing "states".  Until now
+	we've hard-coded the state transitions in the command definition
+	file, but that's error-prone and, worse, it's redundant--we can
+	figure out what state we're in anyhow.  We can cleanly handle
+	INPUT PROGRAM and FILE TYPE with a nested command-processing loop.
+	
+	* command.c: (cmd_result_is_success) New function.
+	(cmd_result_is_failure) New function.
+	(enum states) New enum.
+	(enum flags) New enum.
+	(struct command) Add states, flags members.  Remove transition,
+	skip_entire_name, debug members.  Renamed func member as function.
+	(macro DEFCMD) Removed.
+	(macro DBGCMD) Removed.
+	(macro SPCCMD) Removed.
+	(macro UNIMPL) Removed.
+	(macro DEF_CMD) New.
+	(macro UNIMPL_CMD) New.
+	(macro COMMAND_CNT) Changed to static const var, renamed
+	command_cnt.  Updated all references.
+	(FILE_TYPE_okay) Removed.
+	(cmd_parse) Rewrote in terms of do_parse_command().
+	(do_parse_command) New function.
+	(find_command) New function.
+	(unknown_command_error) Use struct string to simplify code.
+	(parse_command_name) Recognize comment command names.  Handle
+	flags.  Don't reject testing-mode-only commands here--let higher
+	level do it.
+	(verify_valid_command) New function.
+	(cmd_comment) New function.
+
+	* command.def: Completely rewritten and now sensibly organized.
+
+	* command.h: (enum STATE_*) Renamed CMD_STATE_*.
+	(CMD_*) Now "enum cmd_result".  Added CMD_QUIT.  New
+	CMD_END_SUBLOOP.  Removed CMD_TRAILING_GARBAGE, CMD_PART_SUCCESS,
+	CMD_PART_SUCCESS_MAYBE and replaced all references by CMD_FAILURE.
+	Added CMD_NOT_IMPLEMENTED.
+        (macro DEFCMD) Removed.
+	(macro DBGCMD) Removed.
+	(macro SPCCMD) Removed.
+	(macro UNIMPL) Removed.
+	(macro DEF_CMD) New.
+	(macro UNIMPL_CMD) New.
+
 Mon Apr  3 11:03:36 2006  Ben Pfaff  <blp@gnu.org>
 
 	* list.q: (write_all_headers) Adapt to new html and output

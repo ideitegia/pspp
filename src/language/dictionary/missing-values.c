@@ -38,7 +38,7 @@ cmd_missing_values (void)
   struct variable **v;
   size_t nv;
 
-  int retval = CMD_PART_SUCCESS_MAYBE;
+  int retval = CMD_FAILURE;
   bool deferred_errors = false;
 
   while (token != '.')
@@ -147,7 +147,7 @@ cmd_missing_values (void)
  done:
   free (v);
   if (deferred_errors)
-    retval = CMD_PART_SUCCESS_MAYBE;
+    retval = CMD_FAILURE;
   return retval;
 }
 

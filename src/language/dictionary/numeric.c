@@ -47,7 +47,7 @@ cmd_numeric (void)
   do
     {
       if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
-	return CMD_PART_SUCCESS_MAYBE;
+	return CMD_FAILURE;
 
       /* Get the optional format specification. */
       if (lex_match ('('))
@@ -98,7 +98,7 @@ fail:
   for (i = 0; i < nv; i++)
     free (v[i]);
   free (v);
-  return CMD_PART_SUCCESS_MAYBE;
+  return CMD_FAILURE;
 }
 
 /* Parses the STRING command. */
@@ -120,7 +120,7 @@ cmd_string (void)
   do
     {
       if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
-	return CMD_PART_SUCCESS_MAYBE;
+	return CMD_FAILURE;
 
       if (!lex_force_match ('(')
 	  || !parse_format_specifier (&f, 0))
@@ -177,7 +177,7 @@ fail:
   for (i = 0; i < nv; i++)
     free (v[i]);
   free (v);
-  return CMD_PART_SUCCESS_MAYBE;
+  return CMD_FAILURE;
 }
 
 /* Parses the LEAVE command. */

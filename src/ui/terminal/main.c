@@ -22,6 +22,7 @@
 #include "command-line.h"
 #include "msg-ui.h"
 #include "progname.h"
+#include "procedure.h"
 #include "read-line.h"
 
 #include <data/dictionary.h>
@@ -61,7 +62,6 @@
 
 static void i18n_init (void);
 static void fpu_init (void);
-static void handle_error (int code);
 static int execute_command (void);
 static void terminate (bool success) NO_RETURN;
 
@@ -103,27 +103,27 @@ main (int argc, char **argv)
 
       for (;;)
         {
-          int retval;
-
-          check_msg_count ();
-
-          retval = execute_command ();
-          if (retval == CMD_EOF)
+          int result = execute_command ();
+          if (result == CMD_EOF || result == CMD_QUIT)
             break;
-          if (retval != CMD_SUCCESS)
-            handle_error (retval);
+          if (result == CMD_CASCADING_FAILURE && !getl_is_interactive ())
+            {
+              msg (SE, _("Stopping syntax file processing here to avoid "
+                         "a cascade of dependent command failures."));
+              getl_abort_noninteractive (); 
+            }
+          else
+            check_msg_count ();
         }
     }
   
   terminate (!any_errors ());
 }
 
-/* Parse and execute a command, returning its return code. */
+/* Parses a command and returns the result. */
 static int
 execute_command (void)
 {
-  int result;
-  
   /* Read the command's first token.  
      The first token is part of the first line of the command. */
   getl_set_prompt_style (GETL_PROMPT_FIRST);
@@ -135,67 +135,7 @@ execute_command (void)
      Any lines read after the first token must be continuation
      lines. */
   getl_set_prompt_style (GETL_PROMPT_LATER);
-  result = cmd_parse ();
- 
-  /* Unset the /ALGORITHM subcommand if it was used */
-  unset_cmd_algorithm ();
-
-  /* Clear any auxiliary data from the dictionary. */
-  dict_clear_aux (default_dict);
-
-  return result;
-}
-
-/* Print an error message corresponding to the command return code
-   CODE. */
-static void
-handle_error (int code)
-{
-  if (code == CMD_CASCADING_FAILURE && !getl_is_interactive ()) 
-    {
-      msg (SW, _("This command not executed.  Stopping here "
-                 "to avoid cascading failures."));
-      getl_abort_noninteractive ();
-      return;
-    }
-
-  switch (code)
-    {
-    case CMD_FAILURE:
-    case CMD_CASCADING_FAILURE:
-      msg (SW,  _("This command not executed."));
-      break;
-
-    case CMD_PART_SUCCESS_MAYBE:
-      msg (SW, _("Skipping the rest of this command.  Part of "
-		 "this command may have been executed."));
-      break;
-		  
-    case CMD_PART_SUCCESS:
-      msg (SW, _("Skipping the rest of this command.  This "
-		 "command was fully executed up to this point."));
-      break;
-
-    case CMD_TRAILING_GARBAGE:
-      msg (SW, _("Trailing garbage was encountered following "
-		 "this command.  The command was fully executed "
-		 "to this point."));
-      break;
-
-    default:
-      abort ();
-    }
-
-  if (!getl_is_interactive ())
-    {
-      while (token != T_STOP && token != '.')
-	lex_get ();
-    }
-  else 
-    {
-      msg (SW, _("The rest of this command has been discarded."));
-      lex_discard_line (); 
-    }
+  return cmd_parse (vfm_source != NULL ? CMD_STATE_DATA : CMD_STATE_INITIAL);
 }
 
 static void

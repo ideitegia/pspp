@@ -79,7 +79,7 @@ internal_cmd_formats (int which)
 	break;
 
       if (!parse_variables (default_dict, &v, &cv, PV_NUMERIC))
-	return CMD_PART_SUCCESS_MAYBE;
+	return CMD_FAILURE;
       type = v[0]->type;
 
       if (!lex_match ('('))
@@ -112,5 +112,5 @@ internal_cmd_formats (int which)
 
 fail:
   free (v);
-  return CMD_PART_SUCCESS_MAYBE;
+  return CMD_FAILURE;
 }

@@ -18,20 +18,24 @@
    02110-1301, USA. */
 
 #include <config.h>
+
+#include <language/data-io/file-type.h>
+
 #include <stdlib.h>
-#include <libpspp/alloc.h>
+
 #include <data/case.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
 #include <data/data-in.h>
-#include <language/data-io/data-reader.h>
 #include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <language/data-io/file-handle.h>
 #include <data/format.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/str.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/data-io/data-reader.h>
+#include <language/data-io/file-handle.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <libpspp/str.h>
 #include <procedure.h>
 
 #include "gettext.h"
@@ -96,6 +100,17 @@ struct file_type_pgm
 
 static int parse_col_spec (struct col_spec *, const char *);
 static void create_col_var (struct col_spec *c);
+static const struct case_source_class file_type_source_class;
+
+static bool inside_file_type;
+
+/* Returns true if we're parsing the inside of a FILE TYPE...END
+   FILE TYPE construct, false otherwise. */
+bool
+in_file_type (void) 
+{
+  return inside_file_type;
+}
 
 int cmd_file_type (void);
 
@@ -390,15 +405,6 @@ cmd_record_type (void)
   struct file_type_pgm *fty;
   struct record_type *rct;
 
-  /* Make sure we're inside a FILE TYPE structure. */
-  if (pgm_state != STATE_INPUT
-      || !case_source_is_class (vfm_source, &file_type_source_class))
-    {
-      msg (SE, _("This command may only appear within a "
-		 "FILE TYPE/END FILE TYPE structure."));
-      return CMD_CASCADING_FAILURE;
-    }
-
   fty = vfm_source->aux;
 
   /* Initialize the record_type structure. */
@@ -580,13 +586,6 @@ cmd_end_file_type (void)
 {
   struct file_type_pgm *fty;
 
-  if (pgm_state != STATE_INPUT
-      || case_source_is_class (vfm_source, &file_type_source_class))
-    {
-      msg (SE, _("This command may only appear within a "
-		 "FILE TYPE/END FILE TYPE structure."));
-      return CMD_CASCADING_FAILURE;
-    }
   fty = vfm_source->aux;
   fty->case_size = dict_get_case_size (default_dict);
 
@@ -735,7 +734,7 @@ file_type_source_destroy (struct case_source *source)
     }
 }
 
-const struct case_source_class file_type_source_class =
+static const struct case_source_class file_type_source_class =
   {
     "FILE TYPE",
     NULL,

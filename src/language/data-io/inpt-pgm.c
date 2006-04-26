@@ -18,23 +18,27 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
+#include <language/data-io/inpt-pgm.h>
+
 #include <float.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
+
 #include <data/case.h>
+#include <data/dictionary.h>
+#include <data/variable.h>
 #include <language/command.h>
-#include <libpspp/compiler.h>
 #include <language/data-io/data-list.h>
 #include <language/data-io/data-reader.h>
-#include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <language/expressions/public.h>
 #include <language/data-io/file-handle.h>
+#include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-#include <data/variable.h>
 #include <procedure.h>
 
 #include "gettext.h"
@@ -59,34 +63,49 @@ struct input_program_pgm
 
 static trns_proc_func end_case_trns_proc, reread_trns_proc, end_file_trns_proc;
 static trns_free_func reread_trns_free;
+static const struct case_source_class input_program_source_class;
+static bool inside_input_program;
+
+/* Returns true if we're parsing the inside of a INPUT
+   PROGRAM...END INPUT PROGRAM construct, false otherwise. */
+bool
+in_input_program (void) 
+{
+  return inside_input_program;
+}
 
 int
 cmd_input_program (void)
 {
-  discard_variables ();
-
-  /* FIXME: we shouldn't do this here, but I'm afraid that other
-     code will check the class of vfm_source. */
-  vfm_source = create_case_source (&input_program_source_class, NULL);
-
-  return lex_end_of_command ();
-}
-
-int
-cmd_end_input_program (void)
-{
   struct input_program_pgm *inp;
   size_t i;
 
-  if (!case_source_is_class (vfm_source, &input_program_source_class))
+  discard_variables ();
+  if (token != '.')
+    return lex_end_of_command ();
+
+  inside_input_program = true;
+  for (;;) 
     {
-      msg (SE, _("No matching INPUT PROGRAM command."));
-      return CMD_CASCADING_FAILURE;
+      enum cmd_result result;
+      lex_get ();
+      result = cmd_parse (CMD_STATE_INPUT_PROGRAM);
+      if (result == CMD_END_SUBLOOP)
+        break;
+      if (result == CMD_EOF || result == CMD_QUIT || result == CMD_CASCADING_FAILURE)
+        {
+          if (result == CMD_EOF)
+            msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
+          discard_variables ();
+          inside_input_program = false;
+          return result;
+        }
     }
-  
+  inside_input_program = false;
+
   if (dict_get_next_value_idx (default_dict) == 0)
     msg (SW, _("No data-input or transformation commands specified "
-	 "between INPUT PROGRAM and END INPUT PROGRAM."));
+               "between INPUT PROGRAM and END INPUT PROGRAM."));
 
   /* Mark the boundary between INPUT PROGRAM transformations and
      ordinary transformations. */
@@ -114,10 +133,17 @@ cmd_end_input_program (void)
     assert (inp->init[i] != -1);
   inp->case_size = dict_get_case_size (default_dict);
 
-  /* Put inp into vfm_source for later use. */
-  vfm_source->aux = inp;
+  /* Create vfm_source. */
+  vfm_source = create_case_source (&input_program_source_class, inp);
 
-  return lex_end_of_command ();
+  return CMD_SUCCESS;
+}
+
+int
+cmd_end_input_program (void)
+{
+  assert (in_input_program ());
+  return CMD_END_SUBLOOP; 
 }
 
 /* Initializes case C.  Called before the first case is read. */
@@ -274,7 +300,7 @@ input_program_source_destroy (struct case_source *source)
     }
 }
 
-const struct case_source_class input_program_source_class =
+static const struct case_source_class input_program_source_class =
   {
     "INPUT PROGRAM",
     NULL,
@@ -285,13 +311,7 @@ const struct case_source_class input_program_source_class =
 int
 cmd_end_case (void)
 {
-  if (!case_source_is_class (vfm_source, &input_program_source_class))
-    {
-      msg (SE, _("This command may only be executed between INPUT PROGRAM "
-		 "and END INPUT PROGRAM."));
-      return CMD_CASCADING_FAILURE;
-    }
-
+  assert (in_input_program ());
   add_transformation (end_case_trns_proc, NULL, NULL);
 
   return lex_end_of_command ();
@@ -404,12 +424,7 @@ reread_trns_free (void *t_)
 int
 cmd_end_file (void)
 {
-  if (!case_source_is_class (vfm_source, &input_program_source_class))
-    {
-      msg (SE, _("This command may only be executed between INPUT PROGRAM "
-		 "and END INPUT PROGRAM."));
-      return CMD_CASCADING_FAILURE;
-    }
+  assert (in_input_program ());
 
   add_transformation (end_file_trns_proc, NULL, NULL);
 

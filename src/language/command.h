@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,52 +17,49 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !command_h
-#define command_h 1
+#ifndef COMMAND_H
+#define COMMAND_H 1
 
-/* Current program state. */
-enum
-  {
-    STATE_INIT,			/* Initialization state. */
-    STATE_INPUT,		/* Input state. */
-    STATE_TRANS,		/* Transformation state. */
-    STATE_PROC,			/* Procedure state. */
-    STATE_ERROR			/* Invalid state transition. */
-  };
+#include <stdbool.h>
 
 /* Command return values. */
-enum
+enum cmd_result
   {
     /* Successful return values. */
-    CMD_SUCCESS = 0x1000,       /* Successfully parsed and executed. */
-    CMD_EOF,                    /* Requested exit. */
+    CMD_SUCCESS = 1,            /* Successfully parsed and executed. */
+    CMD_EOF,                    /* No commands left. */
+    CMD_QUIT,                   /* Requested exit. */
+    CMD_END_SUBLOOP,            /* End of INPUT PROGRAM or FILE TYPE. */
 
-    /* Various kinds of failures, in increasing order of severity. */
-    CMD_TRAILING_GARBAGE, 	/* Followed by garbage. */
-    CMD_PART_SUCCESS,		/* Fully executed up to error. */
-    CMD_PART_SUCCESS_MAYBE,	/* May have been partially executed. */
+    /* Various kinds of failures. */
     CMD_FAILURE,                /* Not executed at all. */
+    CMD_NOT_IMPLEMENTED,        /* Command not implemented. */
     CMD_CASCADING_FAILURE       /* Serious error: don't continue. */
   };
 
-extern int pgm_state;
+bool cmd_result_is_success (enum cmd_result);
+bool cmd_result_is_failure (enum cmd_result);
 
-char *pspp_completion_function (const char *text,   int state);
+/* Command processing state. */
+enum cmd_state
+  {
+    CMD_STATE_INITIAL,          /* No active file yet defined. */
+    CMD_STATE_DATA,             /* Active file has been defined. */
+    CMD_STATE_INPUT_PROGRAM,    /* Inside INPUT PROGRAM. */
+    CMD_STATE_FILE_TYPE         /* Inside FILE TYPE. */
+  };
 
-int cmd_parse (void);
+#if HAVE_READLINE
+char **pspp_attempted_completion_function (const char *, int start, int end);
+#endif
+
+enum cmd_result cmd_parse (enum cmd_state);
 
 /* Prototype all the command functions. */
-#define DEFCMD(NAME, T1, T2, T3, T4, FUNC)	\
-	int FUNC (void);
-#define SPCCMD(NAME, T1, T2, T3, T4, FUNC)	\
-	int FUNC (void);
-#define DBGCMD(NAME, T1, T2, T3, T4, FUNC)	\
-	int FUNC (void);
-#define UNIMPL(NAME, T1, T2, T3, T4, DESC)
+#define DEF_CMD(STATES, FLAGS, NAME, FUNCTION) int FUNCTION (void);
+#define UNIMPL_CMD(NAME, DESCRIPTION)
 #include "command.def"
-#undef DEFCMD
-#undef SPCCMD
-#undef UNIMPL
-#undef DBGCMD
+#undef DEF_CMD
+#undef UNIMPL_CMD
 
-#endif /* !command_h */
+#endif /* command.h */

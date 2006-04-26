@@ -92,17 +92,14 @@ do_value_labels (int erase)
       free (vars);
     }
 
-  if (token != '.')
-    {
-      lex_error (NULL);
-      return CMD_TRAILING_GARBAGE;
-    }
+  if (parse_err)
+    return CMD_FAILURE;
 
-  return parse_err ? CMD_PART_SUCCESS_MAYBE : CMD_SUCCESS;
+  return lex_end_of_command ();
 
  lossage:
   free (vars);
-  return CMD_PART_SUCCESS_MAYBE;
+  return CMD_FAILURE;
 }
 
 /* Verifies that none of the VAR_CNT variables in VARS are long

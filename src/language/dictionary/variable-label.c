@@ -41,13 +41,13 @@ cmd_variable_labels (void)
       size_t i;
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
-        return CMD_PART_SUCCESS_MAYBE;
+        return CMD_FAILURE;
 
       if (token != T_STRING)
 	{
 	  msg (SE, _("String expected for variable label."));
 	  free (v);
-	  return CMD_PART_SUCCESS_MAYBE;
+	  return CMD_FAILURE;
 	}
       if (ds_length (&tokstr) > 255)
 	{

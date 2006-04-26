@@ -1,3 +1,29 @@
+Wed Apr 26 13:34:54 2006  Ben Pfaff  <blp@gnu.org>
+
+	Improve command name completion in readline.
+	
+	* read-line.c (readln_initialize): Set up readline to only break
+	words for completion at new-line.  That way we can complete a
+	whole command name.  Also, set rl_attempted_completion_function
+	instead of rl_completion_entry_function so we can disable
+	completing on file names, which is usually not what we want in
+	PSPP.
+
+Wed Apr 26 13:31:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	Improve the way we handle the various parsing "states".  Until now
+	we've hard-coded the state transitions in the command definition
+	file, but that's error-prone and, worse, it's redundant--we can
+	figure out what state we're in anyhow.  We can cleanly handle
+	INPUT PROGRAM and FILE TYPE with a nested command-processing loop.
+	
+	* automake.mk (src_ui_terminal_pspp_LDADD): Move libui earlier to
+	avoid link errors.
+
+	* main.c (main): Handle new CMD_* results.
+	(execute_command) Move most per-command actions into cmd_parse().
+	(handle_error) Removed.  cmd_parse() handles command failure.
+
 Tue Apr 25 11:08:17 2006  Ben Pfaff  <blp@gnu.org>
 
 	Finish reforming error message support.  In this phase, move

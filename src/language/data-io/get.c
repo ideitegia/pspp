@@ -882,8 +882,7 @@ cmd_match_files (void)
             }
           used_active_file = true;
 
-          assert (pgm_state != STATE_INPUT);
-          if (pgm_state == STATE_INIT)
+          if (vfm_source == NULL)
             {
               msg (SE, _("Cannot specify the active file since no active "
                          "file has been defined."));

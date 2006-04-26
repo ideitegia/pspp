@@ -44,7 +44,7 @@ cmd_variable_alignment (void)
 
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
-        return CMD_PART_SUCCESS_MAYBE;
+        return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
 	{
@@ -95,7 +95,7 @@ cmd_variable_width (void)
       size_t i;
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
-        return CMD_PART_SUCCESS_MAYBE;
+        return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
 	{
@@ -130,7 +130,7 @@ cmd_variable_level (void)
       size_t i;
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
-        return CMD_PART_SUCCESS_MAYBE;
+        return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
 	{

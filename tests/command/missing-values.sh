@@ -116,12 +116,9 @@ if [ $? -eq 0 ] ; then fail ; fi
 activity="compare error messages"
 diff -w $TEMPDIR/errs - <<EOF
 $TEMPDIR/missing-values.stat:34: error: MISSING VALUES: Missing values provided are too long to assign to variable of width 3.
-$TEMPDIR/missing-values.stat:34: warning: Skipping the rest of this command.  Part of this command may have been executed.
 $TEMPDIR/missing-values.stat:37: error: MISSING VALUES: Syntax error expecting string at \`THRU'.
 $TEMPDIR/missing-values.stat:37: error: MISSING VALUES: THRU is not a variable name.
-$TEMPDIR/missing-values.stat:37: warning: Skipping the rest of this command.  Part of this command may have been executed.
 $TEMPDIR/missing-values.stat:40: error: MISSING VALUES: Cannot mix numeric variables (e.g. num1) and string variables (e.g. str1) within a single list.
-$TEMPDIR/missing-values.stat:40: warning: Skipping the rest of this command.  Part of this command may have been executed.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

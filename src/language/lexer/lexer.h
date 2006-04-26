@@ -74,6 +74,7 @@ const char *lex_entire_line (void);
 const char *lex_rest_of_line (int *end_dot);
 void lex_discard_line (void);
 void lex_set_prog (char *p);
+void lex_discard_rest_of_command (void);
 
 /* Weird line reading functions. */
 bool lex_get_line (void);

@@ -700,14 +700,14 @@ cmd_show (void)
                 goto found;
               }
           lex_error (NULL);
-          return CMD_PART_SUCCESS_MAYBE;
+          return CMD_FAILURE;
 
         found: ;
         }
       else 
         {
           lex_error (NULL);
-          return CMD_PART_SUCCESS_MAYBE;
+          return CMD_FAILURE;
         }
 
       lex_match ('/');

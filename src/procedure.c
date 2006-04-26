@@ -726,14 +726,6 @@ free_case_source (struct case_source *source)
     }
 }
 
-/* Returns nonzero if a case source is "complex". */
-int
-case_source_is_complex (const struct case_source *source) 
-{
-  return source != NULL && (source->class == &input_program_source_class
-                            || source->class == &file_type_source_class);
-}
-
 /* Returns nonzero if CLASS is the class of SOURCE. */
 int
 case_source_is_class (const struct case_source *source,
@@ -1012,6 +1004,4 @@ discard_variables (void)
   process_if_expr = NULL;
 
   cancel_temporary ();
-
-  pgm_state = STATE_INIT;
 }

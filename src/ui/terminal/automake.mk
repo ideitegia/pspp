@@ -19,6 +19,7 @@ src_ui_terminal_pspp_SOURCES = \
 	src/procedure.h
 
 src_ui_terminal_pspp_LDADD =					\
+	$(top_builddir)/src/ui/terminal/libui.a \
 	$(top_builddir)/src/language/expressions/libexpressions.a \
 	$(top_builddir)/src/language/liblanguage.a \
 	$(top_builddir)/src/language/tests/libtests.a \
@@ -33,7 +34,6 @@ src_ui_terminal_pspp_LDADD =					\
 	$(top_builddir)/src/output/liboutput.a \
 	$(top_builddir)/src/math/libpspp_math.a  \
 	$(top_builddir)/src/math/linreg/libpspp_linreg.a  \
-	$(top_builddir)/src/ui/terminal/libui.a \
 	$(top_builddir)/lib/linreg/liblinreg.a	\
 	$(top_builddir)/lib/gsl-extras/libgsl-extras.a	\
 	$(top_builddir)/src/data/libdata.a \

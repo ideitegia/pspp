@@ -18,31 +18,35 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <language/data-io/data-list.h>
-#include <libpspp/message.h>
+
+#include "data-list.h"
+
 #include <ctype.h>
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
+
 #include <data/case.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
 #include <data/data-in.h>
-#include <language/data-io/data-reader.h>
 #include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <language/data-io/file-handle.h>
 #include <data/format.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/misc.h>
 #include <data/settings.h>
+#include <data/variable.h>
+#include <language/command.h>
+#include <language/data-io/data-list.h>
+#include <language/data-io/data-reader.h>
+#include <language/data-io/file-handle.h>
+#include <language/data-io/file-type.h>
+#include <language/data-io/inpt-pgm.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <output/table.h>
-#include <data/variable.h>
 #include <procedure.h>
-
-#include "data-list.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -116,7 +120,7 @@ cmd_data_list (void)
   int table = -1;                /* Print table if nonzero, -1=undecided. */
   struct file_handle *fh = fh_inline_file ();
 
-  if (!case_source_is_complex (vfm_source))
+  if (!in_input_program () && !in_file_type ())
     discard_variables ();
 
   dls = xmalloc (sizeof *dls);
@@ -136,8 +140,7 @@ cmd_data_list (void)
 	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
-	  if (case_source_is_class (vfm_source, &file_type_source_class)
-              && fh != fh_get_default_handle ())
+	  if (in_file_type () && fh != fh_get_default_handle ())
 	    {
 	      msg (SE, _("DATA LIST must use the same file "
 			 "as the enclosing FILE TYPE."));
@@ -542,7 +545,7 @@ fixed_parse_compatible (struct fixed_parsing_state *fx,
 	{
 	  convert_fmt_ItoO (&input, &v->print);
 	  v->write = v->print;
-          if (!case_source_is_complex (vfm_source))
+          if (!in_input_program () && !in_file_type ())
             v->init = 0;
 	}
       else
@@ -650,7 +653,7 @@ dump_fmt_list (struct fixed_parsing_state *fx, struct fmt_list *f,
 		return 0;
 	      }
 	    
-            if (!case_source_is_complex (vfm_source))
+            if (!in_input_program () && !in_file_type ())
               v->init = 0;
 
             spec = xmalloc (sizeof *spec);
@@ -859,7 +862,7 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 	    }
 	  v->print = v->write = output;
 
-          if (!case_source_is_complex (vfm_source))
+          if (!in_input_program () && !in_file_type ())
             v->init = 0;
 
           spec = xmalloc (sizeof *spec);
@@ -1360,7 +1363,7 @@ cmd_repeating_data (void)
   bool saw_id = false;          /* Saw ID subcommand? */
   struct file_handle *const fh = fh_get_default_handle ();
   
-  assert (case_source_is_complex (vfm_source));
+  assert (in_input_program () || in_file_type ());
 
   rpd = xmalloc (sizeof *rpd);
   rpd->reader = dfm_open_reader (fh);

@@ -1,3 +1,41 @@
+Wed Apr 26 13:41:05 2006  Ben Pfaff  <blp@gnu.org>
+
+Wed Apr 26 13:16:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	Improve the way we handle the various parsing "states".  Until now
+	we've hard-coded the state transitions in the command definition
+	file, but that's error-prone and, worse, it's redundant--we can
+	figure out what state we're in anyhow.  We can cleanly handle
+	INPUT PROGRAM and FILE TYPE with a nested command-processing loop.
+	
+	* data-list.c: (cmd_data_list) Use in_file_type() or
+	in_input_program() in place of case_source_is_class() or
+	case_source_is_complex().
+
+	* file-type.c: NB: Not really fixed except minimally to compile,
+	because it doesn't work anyway.
+	(in_file_type) New function.
+	(cmd_record_type) No need to check that we're in FILE TYPE.
+	(cmd_end_file_type) Ditto.
+	(var file_type_source_class) Make static.
+
+	* get.c: (cmd_match_files) Check vfm_source instead of pgm_state.
+
+	* inpt-pgm.c: (in_input_program) New function.
+	(cmd_input_program) Rewrite to include nested command processing
+	loop.
+	(cmd_end_input_program) Just return CMD_END_SUBLOOP.
+	(var input_program_source_class) Make static.
+	(cmd_end_case) No need to check that we're in INPUT PROGRAM.
+	(cmd_end_file) Ditto.
+	
+	* automake.mk (src_language_data_io_libdata_io_a_SOURCES): Add
+	file-type.h, inpt-pgm.h.
+
+	* file-type.h: New file.
+
+	* inpt-pgm.h: New file.
+
 Tue Apr 25 13:11:55 2006  Ben Pfaff  <blp@gnu.org>
 
 	* print.c: Don't special-case MS-DOS line terminators.

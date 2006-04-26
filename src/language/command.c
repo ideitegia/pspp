@@ -18,251 +18,164 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <language/command.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
+
+#include <data/dictionary.h>
+#include <data/settings.h>
+#include <data/variable.h>
+#include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include <data/dictionary.h>
 #include <libpspp/message.h>
-#include <language/lexer/lexer.h>
-#include <data/settings.h>
-#include <output/manager.h>
+#include <libpspp/message.h>
 #include <libpspp/str.h>
+#include <output/manager.h>
 #include <output/table.h>
-#include <data/variable.h>
 #include <procedure.h>
 
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
 
+#if HAVE_READLINE
+#include <readline/readline.h>
+#endif
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-/* Global variables. */
+/* Returns true if RESULT indicates success,
+   false otherwise. */
+bool
+cmd_result_is_success (enum cmd_result result) 
+{
+  return (result == CMD_SUCCESS || result == CMD_EOF
+          || result == CMD_QUIT || result == CMD_END_SUBLOOP);
+}
 
-/* A STATE_* constant giving the current program state. */
-int pgm_state;
+/* Returns true if RESULT indicates failure,
+   false otherwise. */
+bool
+cmd_result_is_failure (enum cmd_result result) 
+{
+  return !cmd_result_is_success (result);
+}
 
-/* Static variables. */
+/* Command processing states. */
+enum states
+  {
+    S_INITIAL = 0x01,         /* Allowed before active file defined. */
+    S_DATA = 0x02,            /* Allowed after active file defined. */
+    S_INPUT_PROGRAM = 0x04,   /* Allowed in INPUT PROGRAM. */
+    S_FILE_TYPE = 0x08,       /* Allowed in FILE TYPE. */
+    S_ANY = 0x0f              /* Allowed anywhere. */
+  };
+
+/* Other command requirements. */
+enum flags 
+  {
+    F_ENHANCED = 0x10,        /* Allowed only in enhanced syntax mode. */
+    F_TESTING = 0x20,         /* Allowed only in testing mode. */
+    F_KEEP_FINAL_TOKEN = 0x40 /* Don't skip final token in command name. */
+  };
 
 /* A single command. */
 struct command
   {
+    enum states states;         /* States in which command is allowed. */
+    enum flags flags;           /* Other command requirements. */
     const char *name;		/* Command name. */
-    int transition[4];		/* Transitions to make from each state. */
-    int (*func) (void);		/* Function to call. */
-    int skip_entire_name;       /* If zero, we don't skip the
-                                   final token in the command name. */
-    short debug;                /* Set if this cmd available only in test mode*/
+    int (*function) (void);	/* Function to call. */
   };
 
 /* Define the command array. */
-#define DEFCMD(NAME, T1, T2, T3, T4, FUNC)		\
-	{NAME, {T1, T2, T3, T4}, FUNC, 1, 0},
-#define DBGCMD(NAME, T1, T2, T3, T4, FUNC)		\
-	{NAME, {T1, T2, T3, T4}, FUNC, 1, 1},
-#define SPCCMD(NAME, T1, T2, T3, T4, FUNC)		\
-	{NAME, {T1, T2, T3, T4}, FUNC, 0, 0},
-#define UNIMPL(NAME, T1, T2, T3, T4, DESC)		\
-	{NAME, {T1, T2, T3, T4}, NULL, 1, 0},
+#define DEF_CMD(STATES, FLAGS, NAME, FUNCTION) {STATES, FLAGS, NAME, FUNCTION},
+#define UNIMPL_CMD(NAME, DESCRIPTION) {S_ANY, 0, NAME, NULL},
 static const struct command commands[] = 
   {
 #include "command.def"
   };
-#undef DEFCMD
-#undef DBGCMD
-#undef UNIMPL
+#undef DEF_CMD
+#undef UNIMPL_CMD
 
+static const size_t command_cnt = sizeof commands / sizeof *commands;
 
-/* Complete the line using the name of a command, 
- * based upon the current prg_state
- */
-char * 
-pspp_completion_function (const char *text,   int state)
-{
-  static int skip=0;
-  const struct command *cmd = 0;
-  
-  for(;;)
-    {
-      if ( state + skip >= sizeof(commands)/ sizeof(struct command))
-	{
-	  skip = 0;
-	  return 0;
-	}
-
-      cmd = &commands[state + skip];
-  
-      if ( cmd->transition[pgm_state] == STATE_ERROR || ( cmd->debug  &&  ! get_testing_mode () ) ) 
-	{
-	  skip++; 
-	  continue;
-	}
-      
-      if ( text == 0 || 0 == strncasecmp (cmd->name, text, strlen(text)))
-	{
-	  break;
-	}
-
-      skip++;
-    }
-  
-
-  return xstrdup(cmd->name);
-}
-
-
-
-#define COMMAND_CNT (sizeof commands / sizeof *commands)
+static bool verify_valid_command (const struct command *, enum cmd_state);
+static const struct command *find_command (const char *name);
 
 /* Command parser. */
 
 static const struct command *parse_command_name (void);
+static enum cmd_result do_parse_command (enum cmd_state);
 
-/* Determines whether command C is appropriate to call in this
-   part of a FILE TYPE structure. */
-static int
-FILE_TYPE_okay (const struct command *c UNUSED)
-#if 0
+/* Parses an entire command, from command name to terminating
+   dot.  On failure, skips to the terminating dot.
+   Returns the command's success or failure result. */
+enum cmd_result
+cmd_parse (enum cmd_state state) 
 {
-  int okay = 0;
+  int result;
   
-  if (c->func != cmd_record_type
-      && c->func != cmd_data_list
-      && c->func != cmd_repeating_data
-      && c->func != cmd_end_file_type)
-    msg (SE, _("%s not allowed inside FILE TYPE/END FILE TYPE."), c->name);
-  /* FIXME */
-  else if (c->func == cmd_repeating_data && fty.type == FTY_GROUPED)
-    msg (SE, _("%s not allowed inside FILE TYPE GROUPED/END FILE TYPE."),
-	 c->name);
-  else if (!fty.had_rec_type && c->func != cmd_record_type)
-    msg (SE, _("RECORD TYPE must be the first command inside a "
-		      "FILE TYPE structure."));
-  else
-    okay = 1;
+  som_new_series ();
 
-  if (c->func == cmd_record_type)
-    fty.had_rec_type = 1;
+  result = do_parse_command (state);
+  if (cmd_result_is_failure (result)) 
+    lex_discard_rest_of_command ();
 
-  return okay;
+  unset_cmd_algorithm ();
+  dict_clear_aux (default_dict);
+
+  return result;
 }
-#else
-{
-  return 1;
-}
-#endif
 
-/* Parses an entire PSPP command.  This includes everything from the
-   command name to the terminating dot.  Does most of its work by
-   passing it off to the respective command dispatchers.  Only called
-   by parse() in main.c. */
-int
-cmd_parse (void)
+/* Parses an entire command, from command name to terminating
+   dot. */
+static enum cmd_result
+do_parse_command (enum cmd_state state)
 {
-  const struct command *cp;	/* Iterator used to find the proper command. */
-
-#if C_ALLOCA
-  /* The generic alloca package performs garbage collection when it is
-     called with an argument of zero. */
-  alloca (0);
-#endif /* C_ALLOCA */
+  const struct command *command;
+  enum cmd_result result;
 
   /* Null commands can result from extra empty lines. */
   if (token == '.')
     return CMD_SUCCESS;
 
-  /* Parse comments. */
-  if ((token == T_ID && !strcasecmp (tokid, "COMMENT"))
-      || token == T_EXP || token == '*' || token == '[')
-    {
-      lex_skip_comment ();
-      return CMD_SUCCESS;
-    }
-
-  /* Otherwise the line must begin with a command name, which is
-     always an ID token. */
-  if (token != T_ID)
-    {
-      lex_error (_("expecting command name"));
-      return CMD_FAILURE;
-    }
-
   /* Parse the command name. */
-  cp = parse_command_name ();
-  if (cp == NULL)
+  command = parse_command_name ();
+  if (command == NULL)
     return CMD_FAILURE;
-  if (cp->func == NULL)
+  else if (command->function == NULL)
+    return CMD_NOT_IMPLEMENTED;
+  else if ((command->flags & F_TESTING) && !get_testing_mode ()) 
     {
-      msg (SE, _("%s is not yet implemented."), cp->name);
-      while (token && token != '.')
-	lex_get ();
-      return CMD_SUCCESS;
-    }
-
-  /* If we're in a FILE TYPE structure, only certain commands can be
-     allowed. */
-  if (pgm_state == STATE_INPUT
-      && case_source_is_class (vfm_source, &file_type_source_class)
-      && !FILE_TYPE_okay (cp))
-    return CMD_FAILURE;
-
-  /* Certain state transitions are not allowed.  Check for these. */
-  assert (pgm_state >= 0 && pgm_state < STATE_ERROR);
-  if (cp->transition[pgm_state] == STATE_ERROR)
-    {
-      static const char *state_name[4] =
-      {
-	N_("%s is not allowed (1) before a command to specify the "
-	   "input program, such as DATA LIST, (2) between FILE TYPE "
-	   "and END FILE TYPE, (3) between INPUT PROGRAM and END "
-	   "INPUT PROGRAM."),
-	N_("%s is not allowed within an input program."),
-	N_("%s is only allowed within an input program."),
-	N_("%s is only allowed within an input program."),
-      };
-
-      msg (SE, gettext (state_name[pgm_state]), cp->name);
+      msg (SE, _("%s may be used only in testing mode."), command->name);
       return CMD_FAILURE;
     }
+  else if ((command->flags & F_ENHANCED) && get_syntax () != ENHANCED) 
+    {
+      msg (SE, _("%s may be used only in enhanced syntax mode."),
+           command->name);
+       return CMD_FAILURE;
+    }
+  else if (!verify_valid_command (command, state))
+    return CMD_FAILURE;
 
-  /* The structured output manager numbers all its tables.  Increment
-     the major table number for each separate procedure. */
-  som_new_series ();
-  
-  {
-    int result;
+  /* Execute command. */
+  msg_set_command_name (command->name);
+  tab_set_command_name (command->name);
+  result = command->function ();
+  tab_set_command_name (NULL);
+  msg_set_command_name (NULL);
     
-    /* Call the command dispatcher. */
-    msg_set_command_name (cp->name);
-    tab_set_command_name (cp->name);
-    result = cp->func ();
-    msg_set_command_name (NULL);
-    tab_set_command_name (NULL);
-    
-    /* Perform the state transition if the command completed
-       successfully (at least in part). */
-    if (result != CMD_FAILURE && result != CMD_CASCADING_FAILURE)
-      {
-	pgm_state = cp->transition[pgm_state];
-
-	if (pgm_state == STATE_ERROR)
-	  {
-	    discard_variables ();
-	    pgm_state = STATE_INIT;
-	  }
-      }
-
-    /* Pass the command's success value up to the caller. */
-    return result;
-  }
+  return result;
 }
 
 static size_t
@@ -349,11 +262,11 @@ conflicting_3char_prefixes (const char *a, const char *b)
 static int
 conflicting_3char_prefix_command (const struct command *cmd) 
 {
-  assert (cmd >= commands && cmd < commands + COMMAND_CNT);
+  assert (cmd >= commands && cmd < commands + command_cnt);
 
   return ((cmd > commands
            && conflicting_3char_prefixes (cmd[-1].name, cmd[0].name))
-          || (cmd < commands + COMMAND_CNT
+          || (cmd < commands + command_cnt
               && conflicting_3char_prefixes (cmd[0].name, cmd[1].name)));
 }
 
@@ -447,7 +360,7 @@ count_matching_commands (char *const words[], size_t word_cnt,
 
   cmd_match_count = 0;
   *dash_possible = 0;
-  for (cmd = commands; cmd < commands + COMMAND_CNT; cmd++) 
+  for (cmd = commands; cmd < commands + command_cnt; cmd++) 
     if (cmd_match_words (cmd, words, word_cnt, dash_possible) != MISMATCH) 
       cmd_match_count++; 
 
@@ -462,11 +375,24 @@ get_complete_match (char *const words[], size_t word_cnt)
 {
   const struct command *cmd;
   
-  for (cmd = commands; cmd < commands + COMMAND_CNT; cmd++) 
+  for (cmd = commands; cmd < commands + command_cnt; cmd++) 
     if (cmd_match_words (cmd, words, word_cnt, NULL) == COMPLETE_MATCH) 
       return cmd; 
   
   return NULL;
+}
+
+/* Returns the command with the given exact NAME.
+   Aborts if no such command exists. */
+static const struct command *
+find_command (const char *name) 
+{
+  const struct command *cmd;
+  
+  for (cmd = commands; cmd < commands + command_cnt; cmd++) 
+    if (!strcmp (cmd->name, name))
+      return cmd;
+  abort ();
 }
 
 /* Frees the WORD_CNT words in WORDS. */
@@ -484,28 +410,26 @@ free_words (char *words[], size_t word_cnt)
 static void
 unknown_command_error (char *const words[], size_t word_cnt) 
 {
-  size_t idx;
-  size_t words_len;
-  char *name, *cp;
-
-  words_len = 0;
-  for (idx = 0; idx < word_cnt; idx++)
-    words_len += strlen (words[idx]);
-
-  cp = name = xmalloc (words_len + word_cnt + 16);
-  for (idx = 0; idx < word_cnt; idx++) 
+  if (word_cnt == 0) 
+    lex_error (_("expecting command name"));
+  else 
     {
-      if (idx != 0)
-        *cp++ = ' ';
-      cp = stpcpy (cp, words[idx]);
+      struct string s;
+      size_t i;
+
+      ds_init (&s, 0);
+      for (i = 0; i < word_cnt; i++) 
+        {
+          if (i != 0)
+            ds_putc (&s, ' ');
+          ds_puts (&s, words[i]);
+        }
+
+      msg (SE, _("Unknown command %s."), ds_c_str (&s));
+
+      ds_destroy (&s);
     }
-  *cp = '\0';
-
-  msg (SE, _("Unknown command %s."), name);
-
-  free (name);
 }
-
 
 /* Parse the command name and return a pointer to the corresponding
    struct command if successful.
@@ -518,6 +442,9 @@ parse_command_name (void)
   int complete_word_cnt;
   int dash_possible;
 
+  if (token == T_EXP || token == '*' || token == '[') 
+    return find_command ("COMMENT");
+
   dash_possible = 0;
   word_cnt = complete_word_cnt = 0;
   while (token == T_ID || (dash_possible && token == '-')) 
@@ -525,11 +452,13 @@ parse_command_name (void)
       int cmd_match_cnt;
       
       assert (word_cnt < sizeof words / sizeof *words);
-      if (token == T_ID)
-        words[word_cnt] = xstrdup (ds_c_str (&tokstr));
-      else
+      if (token == T_ID) 
+        {
+          words[word_cnt] = xstrdup (ds_c_str (&tokstr));
+          str_uppercase (words[word_cnt]); 
+        }
+      else if (token == '-')
         words[word_cnt] = xstrdup ("-");
-      str_uppercase (words[word_cnt]);
       word_cnt++;
 
       cmd_match_cnt = count_matching_commands (words, word_cnt,
@@ -541,10 +470,8 @@ parse_command_name (void)
           const struct command *command = get_complete_match (words, word_cnt);
           if (command != NULL) 
             {
-              if (command->skip_entire_name)
+              if (!(command->flags & F_KEEP_FINAL_TOKEN))
                 lex_get ();
-	      if ( command->debug & !get_testing_mode () ) 
-		goto error;
               free_words (words, word_cnt);
               return command;
             }
@@ -572,7 +499,7 @@ parse_command_name (void)
       /* Figure out how many words we want to keep.
          We normally want to swallow the entire command. */
       pushback_word_cnt = complete_word_cnt + 1;
-      if (!command->skip_entire_name)
+      if (command->flags & F_KEEP_FINAL_TOKEN)
         pushback_word_cnt--;
       
       /* FIXME: We only support one-token pushback. */
@@ -588,18 +515,112 @@ parse_command_name (void)
           free (words[word_cnt]);
         }
 
-      if ( command->debug && !get_testing_mode () ) 
-	goto error;
-
       free_words (words, word_cnt);
       return command;
     }
 
-error:
+  /* We didn't get a valid command name. */
   unknown_command_error (words, word_cnt);
   free_words (words, word_cnt);
   return NULL;
 }
+
+/* Returns true if COMMAND is allowed in STATE,
+   false otherwise.
+   If COMMAND is not allowed, emits an appropriate error
+   message. */
+static bool
+verify_valid_command (const struct command *command, enum cmd_state state)
+{
+  if ((state == CMD_STATE_INITIAL && command->states & S_INITIAL)
+      || (state == CMD_STATE_DATA && command->states & S_DATA)
+      || (state == CMD_STATE_INPUT_PROGRAM
+          && command->states & S_INPUT_PROGRAM)
+      || (state == CMD_STATE_FILE_TYPE && command->states & S_FILE_TYPE))
+    return true;
+
+  if (state == CMD_STATE_INITIAL || state == CMD_STATE_DATA)
+    {
+      const char *allowed[3];
+      int allowed_cnt;
+      char *s;
+
+      allowed_cnt = 0;
+      if (command->states & S_INITIAL)
+        allowed[allowed_cnt++] = _("before the active file has been defined");
+      else if (command->states & S_DATA)
+        allowed[allowed_cnt++] = _("after the active file has been defined");
+      if (command->states & S_INPUT_PROGRAM)
+        allowed[allowed_cnt++] = _("inside INPUT PROGRAM");
+      if (command->states & S_FILE_TYPE)
+        allowed[allowed_cnt++] = _("inside FILE TYPE");
+
+      if (allowed_cnt == 1)
+        s = xstrdup (allowed[0]);
+      else if (allowed_cnt == 2)
+        s = xasprintf (_("%s or %s"), allowed[0], allowed[1]);
+      else if (allowed_cnt == 3)
+        s = xasprintf (_("%s, %s, or %s"), allowed[0], allowed[1], allowed[2]);
+      else
+        abort ();
+
+      msg (SE, _("%s is allowed only %s."), command->name, s);
+
+      free (s);
+    }
+  else if (state == CMD_STATE_INPUT_PROGRAM)
+    msg (SE, _("%s is not allowed inside INPUT PROGRAM."), command->name);
+  else if (state == CMD_STATE_FILE_TYPE)
+    msg (SE, _("%s is not allowed inside FILE TYPE."), command->name);
+
+  return false;
+}
+
+/* Readline command name completion. */
+
+#if HAVE_READLINE
+static char *command_generator (const char *text, int state);
+
+/* Returns a set of completions for TEXT.
+   This is of the proper form for assigning to
+   rl_attempted_completion_function. */
+char **
+pspp_attempted_completion_function (const char *text,
+                                    int start, int end UNUSED)
+{
+  if (start == 0) 
+    {
+      /* Complete command name at start of line. */
+      return rl_completion_matches (text, command_generator); 
+    }
+  else 
+    {
+      /* Otherwise don't do any completion. */
+      rl_attempted_completion_over = 1;
+      return NULL; 
+    }
+}
+
+/* If STATE is 0, returns the first command name matching TEXT.
+   Otherwise, returns the next command name matching TEXT.
+   Returns a null pointer when no matches are left. */
+static char *
+command_generator (const char *text, int state) 
+{
+  static const struct command *cmd;
+  
+  if (!state)
+    cmd = commands;
+
+  for (; cmd < commands + command_cnt; cmd++) 
+    if (!memcasecmp (cmd->name, text, strlen (text))
+        && (!(cmd->flags & F_TESTING) || get_testing_mode ())
+        && (!(cmd->flags & F_ENHANCED) || get_syntax () == ENHANCED))
+      return xstrdup (cmd++->name);
+
+  return NULL;
+}
+#endif /* HAVE_READLINE */
 
 /* Simple commands. */
 
@@ -607,7 +628,7 @@ error:
 int
 cmd_finish (void)
 {
-  return CMD_EOF;
+  return CMD_QUIT;
 }
 
 /* Parses the N command. */
@@ -756,7 +777,7 @@ run_command (void)
       if (token != '.')
 	{
 	  lex_error (_("expecting end of command"));
-	  return CMD_TRAILING_GARBAGE;
+	  return CMD_FAILURE;
 	}
     }
   else
@@ -783,7 +804,7 @@ cmd_host (void)
   if (lex_look_ahead () == '.')
     {
       lex_get ();
-      code = shell () ? CMD_PART_SUCCESS_MAYBE : CMD_SUCCESS;
+      code = shell () ? CMD_FAILURE : CMD_SUCCESS;
     }
   else
     code = run_command ();
@@ -819,5 +840,13 @@ cmd_clear_transformations (void)
   /* FIXME: what about variables created by transformations?
      They need to be properly initialized. */
 
+  return CMD_SUCCESS;
+}
+
+/* Parses a comment. */
+int
+cmd_comment (void)
+{
+  lex_skip_comment ();
   return CMD_SUCCESS;
 }

@@ -139,7 +139,7 @@ cmd_recode (void)
           || !parse_dst_vars (trns))
         {
           recode_trns_free (trns);
-          return CMD_PART_SUCCESS;
+          return CMD_FAILURE;
         }
 
       /* Ensure that all the output strings are at least as wide

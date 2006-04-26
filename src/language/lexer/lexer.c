@@ -451,7 +451,7 @@ lex_end_of_command (void)
   if (token != '.')
     {
       lex_error (_("expecting end of command"));
-      return CMD_TRAILING_GARBAGE;
+      return CMD_FAILURE;
     }
   else
     return CMD_SUCCESS;
@@ -735,6 +735,25 @@ void
 lex_set_prog (char *p)
 {
   prog = p;
+}
+
+/* Discards the rest of the current command.
+   When we're reading commands from a file, we skip tokens until
+   a terminal dot or EOF.
+   When we're reading commands interactively from the user,
+   that's just discarding the current line, because presumably
+   the user doesn't want to finish typing a command that will be
+   ignored anyway. */
+void
+lex_discard_rest_of_command (void) 
+{
+  if (!getl_is_interactive ())
+    {
+      while (token != T_STOP && token != '.')
+	lex_get ();
+    }
+  else 
+    lex_discard_line (); 
 }
 
 /* Weird line reading functions. */

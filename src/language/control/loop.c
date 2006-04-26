@@ -116,7 +116,7 @@ cmd_loop (void)
   
   if (!ok)
     loop->max_pass_count = 0;
-  return ok ? CMD_SUCCESS : CMD_PART_SUCCESS;
+  return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
 
 /* Parses END LOOP. */
@@ -141,7 +141,7 @@ cmd_end_loop (void)
 
   ctl_stack_pop (loop);
   
-  return ok ? CMD_SUCCESS : CMD_PART_SUCCESS;
+  return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
 
 /* Parses BREAK. */
