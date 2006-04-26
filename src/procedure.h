@@ -108,9 +108,6 @@ extern const struct case_sink_class null_sink_class;
 struct case_sink *create_case_sink (const struct case_sink_class *,
                                     const struct dictionary *,
                                     void *);
-void case_sink_open (struct case_sink *);
-void case_sink_write (struct case_sink *, const struct ccase *);
-void case_sink_destroy (struct case_sink *);
 void free_case_sink (struct case_sink *);
 
 /* Number of cases to lag. */

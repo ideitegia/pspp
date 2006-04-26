@@ -1,3 +1,11 @@
+Wed Apr 26 15:29:45 2006  Ben Pfaff  <blp@gnu.org>
+
+	Start reforming procedure execution.  In this phase, get rid of
+	function prototypes for never-defined functions.
+	
+	* procedure.h: Get rid of function prototypes for never-defined
+	functions.
+
 Wed Apr 26 12:58:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	Improve the way we handle the various parsing "states".  Until now
