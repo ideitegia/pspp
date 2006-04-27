@@ -1,3 +1,8 @@
+Wed Apr 26 20:00:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	* procedure.c (create_trns_case): Fix inverted decision on whether
+	numeric values should be initialized to 0 or SYSMIS.
+
 Wed Apr 26 19:48:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, assert

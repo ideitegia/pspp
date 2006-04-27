@@ -282,7 +282,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->width = width;
   v->fv = d->next_value_idx;
   v->nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
-  v->reinit = dict_class_from_id (v->name) != DC_SCRATCH;
+  v->leave = dict_class_from_id (v->name) == DC_SCRATCH;
   v->index = d->var_cnt;
   mv_init (&v->miss, width);
   if (v->type == NUMERIC)
@@ -358,7 +358,7 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
      short_name[] is intentionally not copied, because there is
      no reason to give a new variable with potentially a new name
      the same short name. */
-  nv->reinit = ov->reinit;
+  nv->leave = ov->leave;
   mv_copy (&nv->miss, &ov->miss);
   nv->print = ov->print;
   nv->write = ov->write;

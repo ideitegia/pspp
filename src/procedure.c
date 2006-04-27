@@ -227,7 +227,7 @@ create_trns_case (struct ccase *trns_case, struct dictionary *dict)
       union value *value = case_data_rw (trns_case, v->fv);
 
       if (v->type == NUMERIC)
-        value->f = v->reinit ? 0.0 : SYSMIS;
+        value->f = v->leave ? 0.0 : SYSMIS;
       else
         memset (value->s, ' ', v->width);
     }
@@ -428,7 +428,7 @@ clear_case (struct ccase *c)
   for (i = 0; i < var_cnt; i++) 
     {
       struct variable *v = dict_get_var (default_dict, i);
-      if (v->reinit) 
+      if (!v->leave) 
         {
           if (v->type == NUMERIC)
             case_data_rw (c, v->fv)->f = SYSMIS;

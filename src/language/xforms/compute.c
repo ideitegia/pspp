@@ -392,7 +392,7 @@ lvalue_finalize (struct lvalue *lvalue, struct compute_trns *compute)
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
       if (dict_class_from_id (compute->variable->name) != DC_SCRATCH)
-        compute->variable->reinit = 1;
+        compute->variable->leave = false;
     }
   else 
     {

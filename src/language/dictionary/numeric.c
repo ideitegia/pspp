@@ -192,11 +192,7 @@ cmd_leave (void)
   if (!parse_variables (default_dict, &v, &nv, PV_NONE))
     return CMD_CASCADING_FAILURE;
   for (i = 0; i < nv; i++)
-    {
-      if (!v[i]->reinit)
-	continue;
-      v[i]->reinit = 0;
-    }
+    v[i]->leave = true;
   free (v);
 
   return lex_end_of_command ();
