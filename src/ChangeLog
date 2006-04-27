@@ -1,3 +1,18 @@
+Wed Apr 26 19:48:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, assert
+	that add_transformation() is not called during procedure
+	execution.  Thanks to John Darrington for the suggestion.
+	
+	* procedure.c: (static var in_procedure) New var.
+	(internal_procedure) Get rid of recursive_call local var and
+	logic.
+	(open_active_file) Set in_procedure and make sure it wasn't
+	already set.
+	(close_active_file) Reset in_procedure and make sure it was
+	already set.
+	(add_transformation) Make sure we're not in a procedure.
+
 Wed Apr 26 19:33:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, break

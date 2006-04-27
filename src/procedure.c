@@ -85,6 +85,10 @@ static struct dict_compactor *compactor;
 /* Time at which vfm was last invoked. */
 static time_t last_vfm_invocation;
 
+/* Whether we're inside a procedure.
+   For debugging purposes only. */
+static bool in_procedure;
+
 /* Lag queue. */
 int n_lag;			/* Number of cases to lag. */
 static int lag_count;		/* Number of cases in lag_queue so far. */
@@ -178,11 +182,8 @@ procedure (bool (*proc_func) (struct ccase *, void *), void *aux)
 static bool
 internal_procedure (bool (*proc_func) (struct ccase *, void *), void *aux) 
 {
-  static int recursive_call;
   struct write_case_data wc_data;
   bool ok;
-
-  assert (++recursive_call == 1);
 
   wc_data.proc_func = proc_func;
   wc_data.aux = aux;
@@ -199,8 +200,6 @@ internal_procedure (bool (*proc_func) (struct ccase *, void *), void *aux)
 
   case_destroy (&wc_data.sink_case);
   case_destroy (&wc_data.trns_case);
-
-  assert (--recursive_call == 0);
 
   return ok;
 }
@@ -239,6 +238,9 @@ create_trns_case (struct ccase *trns_case, struct dictionary *dict)
 static void
 open_active_file (void)
 {
+  assert (!in_procedure);
+  in_procedure = true;
+
   /* Make temp_dict refer to the dictionary right before data
      reaches the sink */
   if (!temporary)
@@ -483,6 +485,10 @@ close_active_file (void)
   process_if_expr = NULL;
   dict_set_case_limit (default_dict, 0);
   dict_clear_vectors (default_dict);
+
+  assert (in_procedure);
+  in_procedure = false;
+
   return cancel_transformations ();
 }
 
@@ -511,6 +517,9 @@ void
 add_transformation (trns_proc_func *proc, trns_free_func *free, void *private)
 {
   struct transformation *trns;
+
+  assert (!in_procedure);
+
   if (n_trns >= m_trns)
     t_trns = x2nrealloc (t_trns, &m_trns, sizeof *t_trns);
   trns = &t_trns[n_trns++];
