@@ -275,9 +275,9 @@ open_active_file (void)
 }
 
 /* Transforms trns_case and writes it to the replacement active
-   file if advisable.  Returns nonzero if more cases can be
-   accepted, zero otherwise.  Do not call this function again
-   after it has returned zero once.  */
+   file if advisable.  Returns true if more cases can be
+   accepted, false otherwise.  Do not call this function again
+   after it has returned false once.  */
 static bool
 write_case (struct write_case_data *wc_data)
 {
