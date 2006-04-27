@@ -832,17 +832,6 @@ cmd_new_file (void)
   return lex_end_of_command ();
 }
 
-/* Parses, performs the CLEAR TRANSFORMATIONS command. */
-int
-cmd_clear_transformations (void)
-{
-  cancel_transformations ();
-  /* FIXME: what about variables created by transformations?
-     They need to be properly initialized. */
-
-  return CMD_SUCCESS;
-}
-
 /* Parses a comment. */
 int
 cmd_comment (void)

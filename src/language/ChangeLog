@@ -1,3 +1,13 @@
+Wed Apr 26 21:13:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	CLEAR TRANSFORMATIONS is unsafe as implemented.  It's a fair
+	amount of work to implement it correctly, so make it
+	unimplemented.
+		
+	* command.c: (cmd_clear_transformations) Removed.
+
+	* command.def: Mark CLEAR TRANSFORMATIONS as unimplemented.
+
 Wed Apr 26 13:06:42 2006  Ben Pfaff  <blp@gnu.org>
 
 	Work on readline completion.
