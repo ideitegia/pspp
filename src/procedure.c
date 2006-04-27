@@ -20,9 +20,6 @@
 #include <config.h>
 
 #include <procedure.h>
-#include <data/case-source.h>
-#include <data/case-sink.h>
-#include <data/storage-stream.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -30,11 +27,14 @@
 #include <unistd.h>
 
 #include "expressions/public.h"
+#include <data/case-source.h>
+#include <data/case-sink.h>
 #include <data/case.h>
 #include <data/casefile.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/settings.h>
+#include <data/storage-stream.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/control/control-stack.h>
