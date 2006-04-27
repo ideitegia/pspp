@@ -18,31 +18,35 @@
    02110-1301, USA. */
 
 #include "config.h"
-#include <libpspp/message.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <libpspp/array.h>
-#include <libpspp/alloc.h>
-#include <data/case.h>
-#include <language/command.h>
-#include <data/dictionary.h>
-#include <libpspp/message.h>
-#include "intprops.h"
-#include <language/lexer/lexer.h>
-#include <libpspp/misc.h>
-#include <libpspp/pool.h>
-#include <data/settings.h>
-#include <libpspp/str.h>
-#include <data/value.h>
-#include <data/variable.h>
-#include <procedure.h>
-
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
+
+#include <data/case-sink.h>
+#include <data/case-source.h>
+#include <data/case.h>
+#include <data/dictionary.h>
+#include <data/settings.h>
+#include <data/value.h>
+#include <data/variable.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
+#include <libpspp/str.h>
+#include <procedure.h>
+
+#include "intprops.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -1,3 +1,22 @@
+Wed Apr 26 19:39:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, break
+	procedure.c into multiple files.
+	
+	* automake.mk: (src_data_libdata_a_SOURCES) Add all the new files.
+
+	* case-sink.c: New file.
+
+	* case-sink.h: New file.
+	
+	* case-source.c: New file.
+
+	* case-source.h: New file.
+	
+	* storage-stream.c: New file.
+
+	* storage-stream.h: New file.
+
 Wed Apr 26 14:55:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable.h: (struct variable) Remove `init' member and all

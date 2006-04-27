@@ -18,28 +18,33 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <procedure.h>
-#include <libpspp/message.h>
+#include <data/case-source.h>
+#include <data/case-sink.h>
+#include <data/storage-stream.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <libpspp/alloc.h>
+
+#include "expressions/public.h"
 #include <data/case.h>
 #include <data/casefile.h>
-#include <language/command.h>
 #include <data/dictionary.h>
-#include <language/control/control-stack.h>
-#include <libpspp/message.h>
-#include "expressions/public.h"
 #include <data/file-handle-def.h>
-#include <libpspp/misc.h>
 #include <data/settings.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <language/control/control-stack.h>
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include <output/manager.h>
 #include <output/table.h>
-#include <libpspp/str.h>
-#include <data/variable.h>
-#include <data/value-labels.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -109,7 +114,7 @@ static bool close_active_file (void);
 
 /* Returns the last time the data was read. */
 time_t
-vfm_last_invocation (void) 
+time_of_last_procedure (void) 
 {
   if (last_vfm_invocation == 0)
     update_last_vfm_invocation ();
@@ -376,7 +381,7 @@ execute_transformations (struct ccase *c,
 }
 
 /* Returns nonzero if case C with case number CASE_NUM should be
-   exclude as specified on FILTER or PROCESS IF, otherwise
+   excluded as specified on FILTER or PROCESS IF, otherwise
    zero. */
 static int
 filter_case (const struct ccase *c, int case_idx)
@@ -481,160 +486,6 @@ close_active_file (void)
   return cancel_transformations ();
 }
 
-/* Storage case stream. */
-
-/* Information about storage sink or source. */
-struct storage_stream_info 
-  {
-    struct casefile *casefile;  /* Storage. */
-  };
-
-/* Initializes a storage sink. */
-static void
-storage_sink_open (struct case_sink *sink)
-{
-  struct storage_stream_info *info;
-
-  sink->aux = info = xmalloc (sizeof *info);
-  info->casefile = casefile_create (sink->value_cnt);
-}
-
-/* Destroys storage stream represented by INFO. */
-static void
-destroy_storage_stream_info (struct storage_stream_info *info) 
-{
-  if (info != NULL) 
-    {
-      casefile_destroy (info->casefile);
-      free (info); 
-    }
-}
-
-/* Writes case C to the storage sink SINK.
-   Returns true if successful, false if an I/O error occurred. */
-static bool
-storage_sink_write (struct case_sink *sink, const struct ccase *c)
-{
-  struct storage_stream_info *info = sink->aux;
-
-  return casefile_append (info->casefile, c);
-}
-
-/* Destroys internal data in SINK. */
-static void
-storage_sink_destroy (struct case_sink *sink)
-{
-  destroy_storage_stream_info (sink->aux);
-}
-
-/* Closes the sink and returns a storage source to read back the
-   written data. */
-static struct case_source *
-storage_sink_make_source (struct case_sink *sink) 
-{
-  struct case_source *source
-    = create_case_source (&storage_source_class, sink->aux);
-  sink->aux = NULL;
-  return source;
-}
-
-/* Storage sink. */
-const struct case_sink_class storage_sink_class = 
-  {
-    "storage",
-    storage_sink_open,
-    storage_sink_write,
-    storage_sink_destroy,
-    storage_sink_make_source,
-  };
-
-/* Storage source. */
-
-/* Returns the number of cases that will be read by
-   storage_source_read(). */
-static int
-storage_source_count (const struct case_source *source) 
-{
-  struct storage_stream_info *info = source->aux;
-
-  return casefile_get_case_cnt (info->casefile);
-}
-
-/* Reads all cases from the storage source and passes them one by one to
-   write_case(). */
-static bool
-storage_source_read (struct case_source *source,
-                     struct ccase *output_case,
-                     write_case_func *write_case, write_case_data wc_data)
-{
-  struct storage_stream_info *info = source->aux;
-  struct ccase casefile_case;
-  struct casereader *reader;
-  bool ok = true;
-
-  for (reader = casefile_get_reader (info->casefile);
-       ok && casereader_read (reader, &casefile_case);
-       case_destroy (&casefile_case))
-    {
-      case_copy (output_case, 0,
-                 &casefile_case, 0,
-                 casefile_get_value_cnt (info->casefile));
-      ok = write_case (wc_data);
-    }
-  casereader_destroy (reader);
-
-  return ok;
-}
-
-/* Destroys the source's internal data. */
-static void
-storage_source_destroy (struct case_source *source)
-{
-  destroy_storage_stream_info (source->aux);
-}
-
-/* Storage source. */
-const struct case_source_class storage_source_class = 
-  {
-    "storage",
-    storage_source_count,
-    storage_source_read,
-    storage_source_destroy,
-  };
-
-struct casefile *
-storage_source_get_casefile (struct case_source *source) 
-{
-  struct storage_stream_info *info = source->aux;
-
-  assert (source->class == &storage_source_class);
-  return info->casefile;
-}
-
-struct case_source *
-storage_source_create (struct casefile *cf)
-{
-  struct storage_stream_info *info;
-
-  info = xmalloc (sizeof *info);
-  info->casefile = cf;
-
-  return create_case_source (&storage_source_class, info);
-}
-
-/* Null sink.  Used by a few procedures that keep track of output
-   themselves and would throw away anything that the sink
-   contained anyway. */
-
-const struct case_sink_class null_sink_class = 
-  {
-    "null",
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-  };
-
 /* Returns a pointer to the lagged case from N_BEFORE cases before the
    current one, or NULL if there haven't been that many cases yet. */
 struct ccase *
@@ -699,65 +550,6 @@ cancel_transformations (void)
   t_trns = NULL;
   m_trns = 0;
   return ok;
-}
-
-/* Creates a case source with class CLASS and auxiliary data AUX
-   and based on dictionary DICT. */
-struct case_source *
-create_case_source (const struct case_source_class *class,
-                    void *aux) 
-{
-  struct case_source *source = xmalloc (sizeof *source);
-  source->class = class;
-  source->aux = aux;
-  return source;
-}
-
-/* Destroys case source SOURCE.  It is the caller's responsible to
-   call the source's destroy function, if any. */
-void
-free_case_source (struct case_source *source) 
-{
-  if (source != NULL) 
-    {
-      if (source->class->destroy != NULL)
-        source->class->destroy (source);
-      free (source);
-    }
-}
-
-/* Returns nonzero if CLASS is the class of SOURCE. */
-int
-case_source_is_class (const struct case_source *source,
-                      const struct case_source_class *class) 
-{
-  return source != NULL && source->class == class;
-}
-
-/* Creates a case sink to accept cases from the given DICT with
-   class CLASS and auxiliary data AUX. */
-struct case_sink *
-create_case_sink (const struct case_sink_class *class,
-                  const struct dictionary *dict,
-                  void *aux) 
-{
-  struct case_sink *sink = xmalloc (sizeof *sink);
-  sink->class = class;
-  sink->value_cnt = dict_get_compacted_value_cnt (dict);
-  sink->aux = aux;
-  return sink;
-}
-
-/* Destroys case sink SINK.  */
-void
-free_case_sink (struct case_sink *sink) 
-{
-  if (sink != NULL) 
-    {
-      if (sink->class->destroy != NULL)
-        sink->class->destroy (sink);
-      free (sink); 
-    }
 }
 
 /* Represents auxiliary data for handling SPLIT FILE. */

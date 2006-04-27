@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,113 +17,34 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !vfm_h
-#define vfm_h 1
+#ifndef PROCEDURE_H
+#define PROCEDURE_H 1
 
 #include <time.h>
 #include <stdbool.h>
 
 struct ccase;
-typedef struct write_case_data *write_case_data;
-typedef bool write_case_func (write_case_data);
-
+struct casefile;
+
 /* The current active file, from which cases are read. */
 extern struct case_source *vfm_source;
 
-/* A case source. */
-struct case_source 
-  {
-    const struct case_source_class *class;      /* Class. */
-    void *aux;          /* Auxiliary data. */
-  };
-
-/* A case source class. */
-struct case_source_class
-  {
-    const char *name;                   /* Identifying name. */
-    
-    /* Returns the exact number of cases that READ will pass to
-       WRITE_CASE, if known, or -1 otherwise. */
-    int (*count) (const struct case_source *);
-
-    /* Reads the cases one by one into C and for each one calls
-       WRITE_CASE passing the given AUX data.
-       Returns true if successful, false if an I/O error occurred. */
-    bool (*read) (struct case_source *,
-                  struct ccase *c,
-                  write_case_func *write_case, write_case_data aux);
-
-    /* Destroys the source. */
-    void (*destroy) (struct case_source *);
-  };
-
-extern const struct case_source_class storage_source_class;
-
-struct dictionary;
-struct case_source *create_case_source (const struct case_source_class *,
-                                        void *);
-void free_case_source (struct case_source *);
-
-int case_source_is_class (const struct case_source *,
-                          const struct case_source_class *);
-
-struct casefile *storage_source_get_casefile (struct case_source *);
-struct case_source *storage_source_create (struct casefile *);
-
 /* The replacement active file, to which cases are written. */
 extern struct case_sink *vfm_sink;
-
-/* A case sink. */
-struct case_sink 
-  {
-    const struct case_sink_class *class;        /* Class. */
-    void *aux;          /* Auxiliary data. */
-    size_t value_cnt;   /* Number of `union value's in case. */
-  };
-
-/* A case sink class. */
-struct case_sink_class
-  {
-    const char *name;                   /* Identifying name. */
-    
-    /* Opens the sink for writing. */
-    void (*open) (struct case_sink *);
-                  
-    /* Writes a case to the sink. */
-    bool (*write) (struct case_sink *, const struct ccase *);
-    
-    /* Closes and destroys the sink. */
-    void (*destroy) (struct case_sink *);
-
-    /* Closes the sink and returns a source that can read back
-       the cases that were written, perhaps transformed in some
-       way.  The sink must still be separately destroyed by
-       calling destroy(). */
-    struct case_source *(*make_source) (struct case_sink *);
-  };
-
-extern const struct case_sink_class storage_sink_class;
-extern const struct case_sink_class null_sink_class;
-
-struct case_sink *create_case_sink (const struct case_sink_class *,
-                                    const struct dictionary *,
-                                    void *);
-void free_case_sink (struct case_sink *);
-
-/* Number of cases to lag. */
-extern int n_lag;
 
 bool procedure (bool (*proc_func) (struct ccase *, void *aux), void *aux);
 bool procedure_with_splits (void (*begin_func) (void *aux),
                             bool (*proc_func) (struct ccase *, void *aux),
                             void (*end_func) (void *aux),
                             void *aux);
-struct ccase *lagged_case (int n_before);
-
 bool multipass_procedure_with_splits (bool (*) (const struct casefile *,
                                                 void *),
                                       void *aux);
-
-time_t vfm_last_invocation (void);
+time_t time_of_last_procedure (void);
 
-#endif /* !vfm_h */
+/* Number of cases to lag. */
+extern int n_lag;
+
+struct ccase *lagged_case (int n_before);
+
+#endif /* procedure.h */

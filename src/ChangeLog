@@ -1,3 +1,35 @@
+Wed Apr 26 19:33:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, break
+	procedure.c into multiple files.
+	
+	* procedure.c (vfm_last_invocation): Rename
+	time_of_last_procedure().  Update all references.
+	(struct storage_stream_info) Move to data/storage-stream.c.
+	(storage_sink_open) Ditto.
+	(destroy_storage_stream_info) Ditto.
+	(storage_sink_write) Ditto.
+	(storage_sink_destroy) Ditto.
+	(storage_sink_make_source) Ditto.
+	(var storage_sink_class) Ditto.
+	(storage_source_count) Ditto.
+	(storage_source_read) Ditto.
+	(storage_source_destroy) Ditto.
+	(storage_source_class) Ditto.
+	(storage_source_get_casefile) Ditto.
+	(storage_source_create) Ditto.
+	(null_sink_class) Move to data/case-sink.c.
+	(create_case_source) Move to data/case-source.c.
+	(free_case_source) Ditto.
+	(case_source_is_class) Ditto.
+	(create_case_sink) Move to data/case-sink.c.
+	(free_case_sink) Ditto.
+
+	* procedure.h: (struct case_source) Move to data/case-source.h.
+	(struct case_source_class) Ditto.
+	(struct case_sink) Move to data/case-sink.h.
+	(struct case_sink_class) Ditto.
+
 Thu Apr 27 09:28:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* automake.mk: Removed explicit dependencies for message.o, since

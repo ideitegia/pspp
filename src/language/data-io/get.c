@@ -18,26 +18,31 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <stdlib.h>
-#include <libpspp/alloc.h>
+
 #include <data/any-reader.h>
 #include <data/any-writer.h>
+#include <data/case-sink.h>
+#include <data/case-source.h>
 #include <data/case.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
 #include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <language/data-io/file-handle.h>
-#include <libpspp/hash.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/misc.h>
 #include <data/por-file-writer.h>
 #include <data/settings.h>
+#include <data/storage-stream.h>
 #include <data/sys-file-writer.h>
-#include <libpspp/str.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/data-io/file-handle.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include <procedure.h>
 
 #include "gettext.h"

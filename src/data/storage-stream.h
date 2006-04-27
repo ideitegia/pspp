@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,18 +17,16 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef INCLUDED_DATA_LIST_H
-#define INCLUDED_DATA_LIST_H
+#ifndef STORAGE_STREAM_H
+#define STORAGE_STREAM_H 1
 
-/* FIXME: This header is a kluge and should go away when we come
-   up with a less-klugy solution. */
+struct case_source;
+struct casefile;
 
-#include <data/case-source.h>
-#include <data/variable.h>
-#include <procedure.h>
+extern const struct case_sink_class storage_sink_class;
+extern const struct case_source_class storage_source_class;
 
-trns_proc_func repeating_data_trns_proc;
-void repeating_data_set_write_case (struct transformation *,
-                                    write_case_func *, write_case_data);
+struct casefile *storage_source_get_casefile (struct case_source *);
+struct case_source *storage_source_create (struct casefile *);
 
-#endif /* data-list.h */
+#endif /* storage-stream.h */

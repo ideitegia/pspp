@@ -9,6 +9,10 @@ src_data_libdata_a_SOURCES = \
 	src/data/any-writer.h \
 	src/data/calendar.c \
 	src/data/calendar.h \
+	src/data/case-sink.c \
+	src/data/case-sink.h \
+	src/data/case-source.c \
+	src/data/case-source.h \
 	src/data/case.c \
 	src/data/casefile.c \
 	src/data/casefile.h \
@@ -47,6 +51,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/settings.c \
 	src/data/settings.h \
 	src/data/sfm-private.h \
+	src/data/storage-stream.c \
+	src/data/storage-stream.h \
 	src/data/sys-file-reader.c \
 	src/data/sys-file-reader.h \
 	src/data/sys-file-writer.c \

@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 
+#include <data/case-source.h>
 #include <data/case.h>
 #include <data/data-in.h>
 #include <data/dictionary.h>

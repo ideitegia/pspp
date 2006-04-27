@@ -18,24 +18,28 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "sort.h"
-#include <libpspp/message.h>
-#include <libpspp/alloc.h>
+
+#include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <libpspp/array.h>
-#include <stdbool.h>
+
+#include <data/case-source.h>
 #include <data/case.h>
 #include <data/casefile.h>
-#include <libpspp/message.h>
-#include <language/expressions/public.h>
-
-#include <libpspp/misc.h>
 #include <data/settings.h>
-#include <libpspp/str.h>
 #include <data/variable.h>
+#include <data/storage-stream.h>
+#include <language/expressions/public.h>
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include <procedure.h>
 
 #include "gettext.h"

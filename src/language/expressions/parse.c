@@ -731,11 +731,11 @@ parse_sysvar (struct expression *e)
           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
         };
 
-      time_t last_vfm_invocation = vfm_last_invocation ();
+      time_t last_proc_time = time_of_last_procedure ();
       struct tm *time;
       char temp_buf[10];
 
-      time = localtime (&last_vfm_invocation);
+      time = localtime (&last_proc_time);
       sprintf (temp_buf, "%02d %s %02d", abs (time->tm_mday) % 100,
                months[abs (time->tm_mon) % 12], abs (time->tm_year) % 100);
 
@@ -749,7 +749,7 @@ parse_sysvar (struct expression *e)
     return expr_allocate_number (e, SYSMIS);
   else if (lex_match_id ("$JDATE"))
     {
-      time_t time = vfm_last_invocation ();
+      time_t time = time_of_last_procedure ();
       struct tm *tm = localtime (&time);
       return expr_allocate_number (e, expr_ymd_to_ofs (tm->tm_year + 1900,
                                                        tm->tm_mon + 1,
@@ -757,7 +757,7 @@ parse_sysvar (struct expression *e)
     }
   else if (lex_match_id ("$TIME"))
     {
-      time_t time = vfm_last_invocation ();
+      time_t time = time_of_last_procedure ();
       struct tm *tm = localtime (&time);
       return expr_allocate_number (e,
                                    expr_ymd_to_date (tm->tm_year + 1900,
