@@ -1,3 +1,8 @@
+Thu Apr 27 09:28:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
+	
+	* automake.mk: Removed explicit dependencies for message.o, since
+	that module no longer exists.
+
 Wed Apr 26 15:29:45 2006  Ben Pfaff  <blp@gnu.org>
 
 	Start reforming procedure execution.  In this phase, get rid of

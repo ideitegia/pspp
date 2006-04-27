@@ -15,13 +15,6 @@ endif
 
 AM_CPPFLAGS += -DPKGDATADIR=\"$(pkgdatadir)\"
 
-src/message.o: AM_CPPFLAGS += \
- -I$(top_srcdir)/src/language \
- -I$(top_srcdir)/src/language/lexer \
- -I$(top_srcdir)/src/ui/terminal \
- -I$(top_srcdir)/src/data \
- -I$(top_srcdir)/src/libpspp
-
 src/procedure.o: AM_CPPFLAGS += \
  -I$(top_srcdir)/src/language \
  -I$(top_srcdir)/src/language/control \
