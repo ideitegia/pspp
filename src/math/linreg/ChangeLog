@@ -1,3 +1,14 @@
+2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.c (pspp_linreg_get_vars): New function. Fills an array with
+	pointers to the variables used in the model.
+
+	* linreg.h: Add a pointer called get_vars to pspp_linreg_get_vars()
+	to access variables in a model.
+
+	* coefficient.c (pspp_linreg_coeff_init): Set the variable
+	associated with the intercept term to NULL.
+
 2006-04-26  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.h: Added a pointer to predicted values.

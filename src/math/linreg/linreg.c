@@ -87,6 +87,53 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
 
   return GSL_SUCCESS;
 }
+/*
+  Set V to contain an array of pointers to the variables
+  used in the model. V must be at least C->N_COEFFS in length.
+  The return value is the number of distinct variables found.
+ */
+int
+pspp_linreg_get_vars (const void *c_, struct variable **v)
+{
+  const pspp_linreg_cache *c = c_;
+  struct pspp_linreg_coeff *coef = NULL;
+  const struct variable *tmp;
+  int i;
+  int result = 0;
+
+  /*
+    Make sure the caller doesn't try to sneak a variable
+    into V that is not in the model.
+   */
+  for (i = 0; i < c->n_coeffs; i++)
+    {
+      v[i] = NULL;
+    }
+  /*
+    Start at c->coeff + 1 to avoid the intercept.
+   */
+  v[result] = (struct variable *) pspp_linreg_coeff_get_var (c->coeff + 1, 0);
+  result = (v[result] == NULL) ? 0 : 1;
+
+  for (coef = c->coeff + 2; coef < c->coeff + c->n_coeffs; coef++)
+    {
+      tmp = pspp_linreg_coeff_get_var (coef, 0);
+      assert (tmp != NULL);
+      /* Repeated variables are likely to bunch together, at the end
+	 of the array. */
+      i = result - 1;
+      while (i >= 0 && (v[i]->index != tmp->index))
+	{
+	  i--;
+	}
+      if (i < 0 && result < c->n_coeffs)
+	{
+	  v[result] = (struct variable *) tmp;
+	  result++;
+	}
+    }
+  return result;
+}
 
 /*
   Allocate a pspp_linreg_cache and return a pointer
@@ -116,7 +163,11 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
    */
   c->method = PSPP_LINREG_SWEEP;
   c->predict = pspp_linreg_predict;
-  c->residual = pspp_linreg_residual; /* The procedure to comput my residuals. */
+  c->residual = pspp_linreg_residual; /* The procedure to compute my
+					 residuals. */
+  c->get_vars = pspp_linreg_get_vars; /* The procedure that returns
+					 pointers to model
+					 variables. */
   c->resid = NULL; /* The variable storing my residuals. */
   c->pred = NULL; /* The variable storing my predicted values. */
 

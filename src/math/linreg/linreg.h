@@ -163,8 +163,13 @@ struct pspp_linreg_cache_struct
 		      const union value **,
 		      const union value *,
 		      const void *, int);
+  /*
+    Returns pointers to the variables used in the model.
+   */
+  int (*get_vars) (const void *, struct variable **);
   struct variable *resid;
   struct variable *pred;
+
 };
 
 typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
@@ -195,4 +200,8 @@ pspp_linreg_predict (const struct variable **, const union value **,
 double
 pspp_linreg_residual (const struct variable **, const union value **,
 		      const union value *, const void *, int);
+/*
+  All variables used in the model.
+ */
+int pspp_linreg_get_vars (const void *, struct variable **);
 #endif

@@ -60,6 +60,7 @@ pspp_linreg_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
   struct pspp_linreg_coeff *coeff;
 
   c->coeff = xnmalloc (X->m->size2 + 1, sizeof (*c->coeff));
+  c->coeff->v_info = NULL; /* Intercept has no associated variable. */
   for (i = 0; i < X->m->size2; i++)
     {
       j = i + 1;		/* The first coefficient is the intercept. */
@@ -137,7 +138,8 @@ pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c)
 }
 
 /*
-  Which variable does this coefficient match?
+  Which variable does this coefficient match? I should be
+  0 unless the coefficient refers to an interaction term.
  */
 const struct variable *
 pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i)
