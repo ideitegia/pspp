@@ -1,3 +1,8 @@
+2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (regression_trns_resid_proc): Pass only the
+	variables used in the model to (*model->residual)().
+
 2006-04-26  Jason Stover  <jhs@math.gcsu.edu>
 
  	* regression.q: Added support for multiple transformations.

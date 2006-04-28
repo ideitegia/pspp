@@ -600,64 +600,36 @@ static int
 regression_trns_resid_proc (void *t_, struct ccase *c, int case_idx UNUSED)
 {
   size_t i;
-  size_t n_vars;
-  size_t n_vals = 0;
-  struct reg_trns *t = t_;
+  size_t n_vals;
+  struct reg_trns *trns = t_;
   pspp_linreg_cache *model;
-  union value *output;
-  union value *tmp;
+  union value *output = NULL;
   const union value **vals = NULL;
   const union value *obs = NULL;
   struct variable **vars = NULL;
-  struct variable **model_vars = NULL;
   
-  assert (t!= NULL);
-  model = t->c;
+  assert (trns!= NULL);
+  model = trns->c;
   assert (model != NULL);
   assert (model->depvar != NULL);
   assert (model->resid != NULL);
-  
-  dict_get_vars (default_dict, &vars, &n_vars, 1u << DC_SYSTEM);
-  vals = xnmalloc (n_vars, sizeof (*vals));
-  model_vars = xnmalloc (n_vars, sizeof (*model_vars));
-  assert (vals != NULL);
+
+  vars = xnmalloc (model->n_coeffs, sizeof (*vars));
+  n_vals = (*model->get_vars) (model, vars);
+
+  vals = xnmalloc (n_vals, sizeof (*vals));
   output = case_data_rw (c, model->resid->fv);
   assert (output != NULL);
 
-  for (i = 0; i < n_vars; i++)
+  for (i = 0; i < n_vals; i++)
     {
-      /* Use neither the predicted values nor the dependent variable. */
-      if (vars[i]->index != model->resid->index &&
-	  vars[i]->index != model->depvar->index)
-	    {
-	      if (vars[i]->type == ALPHA && vars[i]->obs_vals != NULL)
-		{
-		  tmp = vars[i]->obs_vals->vals;
-		}
-	      else 
-		{
-		  tmp = NULL;
-		}
-	      /* 
-		 Make sure the variable we use is in the linear model.
-	      */
-	      if (pspp_linreg_get_coeff (model, vars[i], tmp) != NULL)
-		{
-		  vals[n_vals] = case_data (c, i);
-		  model_vars[n_vals] = vars[i];
-		  n_vals++;
-		}
-	    }
-      if (vars[i]->index == model->depvar->index)
-	{
-	  obs = case_data (c, i);
-	  assert (obs != NULL);
-	}
+      vals[i] = case_data (c, vars[i]->fv);
     }
+  obs = case_data (c, model->depvar->fv);
   output->f = (*model->residual) ((const struct variable **) vars, 
 				  vals, obs, model, n_vals);
   free (vals);
-  free (model_vars);
+  free (vars);
   return TRNS_CONTINUE;
 }
 /* 
@@ -689,12 +661,11 @@ reg_save_var (const char *prefix, trns_proc_func *f,
 	      int n_trns)
 {
   static int trns_index = 1;
-  char name[LONG_NAME_LEN + 1];
+  char name[LONG_NAME_LEN];
   struct variable *new_var;
   struct reg_trns *t = NULL;
 
   t = xmalloc (sizeof (*t));
-  assert (t != NULL);
   t->trns_id = trns_index;
   t->n_trns = n_trns;
   t->c = c;
