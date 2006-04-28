@@ -1,4 +1,5 @@
-@node REGRESSION, , ONEWAY, Statistics
+@node REGRESSION, ,ONEWAY, Statistics
+@comment  node-name,  next,  previous,  up
 @section REGRESSION
 
 The REGRESSION procedure fits linear models to data via least-squares
@@ -45,7 +46,7 @@ REGRESSION
         /DEPENDENT=var_list
         /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
         /EXPORT ('file-name')
-        /SAVE
+        /SAVE=@{PRED, RESID@}
 @end display
 
 The @cmd{REGRESSION} procedure reads the active file and outputs
@@ -54,7 +55,7 @@ statistics relevant to the linear model specified by the user.
 The VARIABLES subcommand, which is required, specifies the list of
 variables to be analyzed.  Keyword VARIABLES is required. The
 DEPENDENT subcommand specifies the dependent variable of the linear
-model. The DEPENDENT subcommond is required. All variables listed in
+model. The DEPENDENT subcommand is required. All variables listed in
 the VARIABLES subcommand, but not listed in the DEPENDENT subcommand,
 are treated as explanatory variables in the linear model.
 
@@ -76,10 +77,13 @@ Analysis of variance table for the model.
 The covariance matrix for the estimated model coefficients.
 @end table
 
-The SAVE subcommand causes PSPP to save the residuals from the fitted
+The SAVE subcommand causes PSPP to save the residuals or predicted
+values from the fitted
 model to the active file. PSPP will store the residuals in a variable
 called RES1 if no such variable exists, RES2 if RES1 already exists,
-RES3 if RES1 and RES2 already exist, etc.
+RES3 if RES1 and RES2 already exist, etc. It will choose the name of
+the variable for the predicted values similarly, but with PRED as a
+prefix.
 
 The EXPORT subcommand causes PSPP to write a C program containing
 functions related to the model. One such function accepts values of
@@ -95,7 +99,8 @@ PSPP extension.
 
 @node Examples, , Syntax, REGRESSION
 @subsection Examples
-The following PSPP code will generate the default output, and save the
+The following PSPP syntax will generate the default output, save the
+predicted values and residuals to the active file, and save the
 linear model in a program called ``model.c.''
 
 @example
@@ -114,7 +119,8 @@ a  8.838262 -29.25689
 b  6.200189 -18.58219
 end data.
 list.
-regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /export (model.c) /method=enter.
+regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 
+           /export (model.c) /save pred resid /method=enter.
 @end example
 
 The file pspp_model_reg.h contains these declarations:

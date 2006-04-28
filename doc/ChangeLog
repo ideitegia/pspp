@@ -1,3 +1,10 @@
+2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.texi: Added description of the RESID and PRED
+	keywords to the SAVE subcommand.
+
+	* statistics.texi: Added REGRESSION node.
+
 2006-04-21  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.texi: Initial description of the SAVE subcommand.

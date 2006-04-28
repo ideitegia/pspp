@@ -24,6 +24,7 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/q2c.texi \
 	doc/statistics.texi \
 	doc/transformation.texi \
+	doc/regression.texi \
 	doc/utilities.texi \
 	doc/variables.texi \
 	doc/fdl.texi 
