@@ -40,7 +40,6 @@
 #include <language/control/control-stack.h>
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <output/manager.h>
