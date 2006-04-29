@@ -64,7 +64,7 @@ input program.
 +    end case.
 + end loop.
 + end file.
-end input program.                                                              
+end input program.
 
 list.
 EOF
