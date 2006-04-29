@@ -1,3 +1,7 @@
+Sat Apr 29 11:09:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* removed unused variable.
+
 Sat Apr 15 18:01:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	* factor-stats.c (metrics_postcalc): Add casts to fix warnings.

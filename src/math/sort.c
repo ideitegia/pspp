@@ -304,8 +304,6 @@ struct initial_run_state
     int okay;                   /* Zero if an error has been encountered. */
   };
 
-static const struct case_sink_class sort_sink_class;
-
 static bool destroy_initial_run_state (struct initial_run_state *);
 static void process_case (struct initial_run_state *, const struct ccase *,
                           size_t);
