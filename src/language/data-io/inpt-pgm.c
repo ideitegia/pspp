@@ -24,11 +24,11 @@
 #include <float.h>
 #include <stdlib.h>
 
+#include <data/case-source.h>
 #include <data/case.h>
 #include <data/dictionary.h>
 #include <data/variable.h>
 #include <language/command.h>
-#include <language/data-io/data-list.h>
 #include <language/data-io/data-reader.h>
 #include <language/data-io/file-handle.h>
 #include <language/expressions/public.h>
@@ -222,11 +222,6 @@ input_program_source_read (struct case_source *source,
   for (i = 0; i < f_trns; i++)
     if (t_trns[i].proc == end_case_trns_proc)
       end_case = 1;
-
-  /* FIXME: This is an ugly kluge. */
-  for (i = 0; i < f_trns; i++)
-    if (t_trns[i].proc == repeating_data_trns_proc)
-      repeating_data_set_write_case (t_trns[i].private, write_case, wc_data);
 
   init_case (inp, c);
   for (;;)

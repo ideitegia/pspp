@@ -1,3 +1,24 @@
+Mon May  1 16:06:30 2006  Ben Pfaff  <blp@gnu.org>
+
+	Remove vestiges of REPEATING DATA support.
+	
+	* data-list.c: (struct rpd_num_or_var) Removed.
+	(struct repeating_data_trns) Removed.
+	(cmd_repeating_data) Removed.
+	(find_variable_input_spec) Removed.
+	(parse_num_or_var) Removed.
+	(parse_repeating_data) Removed.
+	(realize_value) Removed.
+	(struct rpd_parse_info) Removed.
+	(rpd_parse_record) Removed.
+	(repeating_data_trns_proc) Removed.
+	(repeating_data_trns_free) Removed.
+	(repeating_data_set_write_case) Removed.
+	(rpd_msg) Removed.
+
+	* inpt-pgm.c: (input_program_source_read) Don't deal with
+	REPEATING DATA.
+
 Mon May  1 15:58:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	Remove vestiges of FILE TYPE support. 
