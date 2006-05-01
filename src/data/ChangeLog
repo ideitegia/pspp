@@ -1,3 +1,12 @@
+Mon May  1 15:45:42 2006  Ben Pfaff  <blp@gnu.org>
+
+	Change case limit type from int to size_t.
+
+	* dictionary.c: (struct dictionary) Change type of case_limit
+	member.
+	(dict_get_case_limit) Change return type.
+	(dict_set_case_limit) Change parameter type.
+
 Wed Apr 26 20:01:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable.h: (struct variable) Rename `reinit' member as `leave'

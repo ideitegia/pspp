@@ -18,22 +18,25 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "dictionary.h"
+
 #include <stdlib.h>
 #include <ctype.h>
-#include <libpspp/array.h>
-#include <libpspp/alloc.h>
+
 #include "case.h"
-#include "category.h"
 #include "cat-routines.h"
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
-#include <libpspp/hash.h>
-#include <libpspp/misc.h>
+#include "category.h"
 #include "settings.h"
-#include <libpspp/str.h>
 #include "value-labels.h"
 #include "variable.h"
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -49,7 +52,7 @@ struct dictionary
     size_t split_cnt;           /* SPLIT FILE count. */
     struct variable *weight;    /* WEIGHT variable. */
     struct variable *filter;    /* FILTER variable. */
-    int case_limit;             /* Current case limit (N command). */
+    size_t case_limit;          /* Current case limit (N command). */
     char *label;		/* File label. */
     char *documents;		/* Documents, as a string. */
     struct vector **vector;     /* Vectors of variables. */
@@ -748,8 +751,8 @@ dict_set_filter (struct dictionary *d, struct variable *v)
 }
 
 /* Returns the case limit for dictionary D, or zero if the number
-   of cases is unlimited (see cmd_n()). */
-int
+   of cases is unlimited. */
+size_t
 dict_get_case_limit (const struct dictionary *d) 
 {
   assert (d != NULL);
@@ -757,13 +760,12 @@ dict_get_case_limit (const struct dictionary *d)
   return d->case_limit;
 }
 
-/* Sets CASE_LIMIT as the case limit for dictionary D.  Zero for
-   CASE_LIMIT indicates no limit. */
+/* Sets CASE_LIMIT as the case limit for dictionary D.  Use
+   0 for CASE_LIMIT to indicate no limit. */
 void
-dict_set_case_limit (struct dictionary *d, int case_limit) 
+dict_set_case_limit (struct dictionary *d, size_t case_limit) 
 {
   assert (d != NULL);
-  assert (case_limit >= 0);
 
   d->case_limit = case_limit;
 }
