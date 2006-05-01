@@ -19,6 +19,11 @@ Mon May  1 16:06:30 2006  Ben Pfaff  <blp@gnu.org>
 	* inpt-pgm.c: (input_program_source_read) Don't deal with
 	REPEATING DATA.
 
+	* data-list.h: Removed.
+
+	* automake.mk (src_language_data_io_libdata_io_a_SOURCES): Removed
+	data-list.h.
+
 Mon May  1 15:58:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	Remove vestiges of FILE TYPE support. 

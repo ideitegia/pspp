@@ -18,7 +18,6 @@ src_language_data_io_libdata_io_a_SOURCES = \
 	src/language/data-io/inpt-pgm.h \
 	src/language/data-io/print.c \
 	src/language/data-io/matrix-data.c   \
-	src/language/data-io/data-list.h \
 	src/language/data-io/data-reader.c \
 	src/language/data-io/data-reader.h \
 	src/language/data-io/data-writer.c \
