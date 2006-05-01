@@ -55,6 +55,7 @@ sub generate_output {
 	push (@flags, "OPF_NONOPTIMIZABLE") if !$op->{OPTIMIZABLE};
 	push (@flags, "OPF_EXTENSION") if $op->{EXTENSION};
 	push (@flags, "OPF_UNIMPLEMENTED") if $op->{UNIMPLEMENTED};
+	push (@flags, "OPF_PERM_ONLY") if $op->{PERM_ONLY};
 	push (@members, @flags ? join (' | ', @flags) : 0);
 
 	push (@members, "OP_$op->{RETURNS}{NAME}");

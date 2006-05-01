@@ -1,3 +1,21 @@
+Mon May  1 15:11:48 2006  Ben Pfaff  <blp@gnu.org>
+
+	Prohibit LAG following TEMPORARY.  This both matches SPSS behavior
+	and fixes a bug: we saved the cases for LAG before TEMPORARY but
+	allowed access to variables created afterward anyhow (which could
+	cause a segfault).
+
+	* generate.pl: Parse "perm_only" flag on operations.
+
+	* operations.def: Add "perm_only" flag to LAG operations.
+
+	* parse.c: Disallow OPF_PERM_ONLY operations after TEMPORARY.
+
+	* parse.inc.pl: Output OPF_PERM_ONLY flag for "perm_only"
+	operations.
+
+	* private.h: Add OPF_PERM_ONLY flag.
+
 Sun Apr 23 22:06:45 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming error message support.  In this phase, get rid

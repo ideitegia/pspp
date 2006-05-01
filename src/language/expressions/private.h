@@ -58,7 +58,11 @@ enum operation_flags
     OPF_UNIMPLEMENTED = 020,
 
     /* If set, this operation is a PSPP extension. */
-    OPF_EXTENSION = 040
+    OPF_EXTENSION = 040,
+
+    /* If set, this operation may not occur after TEMPORARY.
+       (Currently this applies only to LAG.) */
+    OPF_PERM_ONLY = 0100
   };
 
 #define EXPR_ARG_MAX 4

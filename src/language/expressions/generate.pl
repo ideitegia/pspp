@@ -233,6 +233,7 @@ sub parse_input {
 	$op{OPTIMIZABLE} = 1;
 	$op{UNIMPLEMENTED} = 0;
 	$op{EXTENSION} = 0;
+	$op{PERM_ONLY} = 0;
 	for (;;) {
 	    if (match ('extension')) {
 		$op{EXTENSION} = 1;
@@ -240,6 +241,8 @@ sub parse_input {
 		$op{OPTIMIZABLE} = 0;
 	    } elsif (match ('absorb_miss')) {
 		$op{ABSORB_MISS} = 1;
+	    } elsif (match ('perm_only')) {
+		$op{PERM_ONLY} = 1;
 	    } else {
 		last;
 	    }

@@ -1222,6 +1222,11 @@ parse_function (struct expression *e)
       msg (SE, _("%s is not yet implemented."), f->prototype);
       goto fail;
     }
+  if ((f->flags & OPF_PERM_ONLY) && in_temporary_transformations ()) 
+    {
+      msg (SE, _("%s may not appear after TEMPORARY."), f->prototype);
+      goto fail;
+    }
   
   n = expr_allocate_composite (e, f - operations, args, arg_cnt);
   n->composite.min_valid = min_valid != -1 ? min_valid : f->array_min_elems; 

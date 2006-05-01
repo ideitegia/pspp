@@ -956,7 +956,7 @@ no_opt string operator STR_VAR ()
   return s;
 }
 
-no_opt function LAG (num_var v, pos_int n_before)
+no_opt perm_only function LAG (num_var v, pos_int n_before)
 {
   struct ccase *c = lagged_case (n_before);
   if (c != NULL)
@@ -968,7 +968,7 @@ no_opt function LAG (num_var v, pos_int n_before)
     return SYSMIS;
 }
 
-no_opt function LAG (num_var v)
+no_opt perm_only function LAG (num_var v)
 {
   struct ccase *c = lagged_case (1);
   if (c != NULL)
@@ -980,7 +980,7 @@ no_opt function LAG (num_var v)
     return SYSMIS;
 }
 
-no_opt string function LAG (str_var v, pos_int n_before)
+no_opt perm_only string function LAG (str_var v, pos_int n_before)
      expression e;
 {
   struct ccase *c = lagged_case (n_before);
@@ -990,7 +990,7 @@ no_opt string function LAG (str_var v, pos_int n_before)
     return empty_string;
 }
 
-no_opt string function LAG (str_var v)
+no_opt perm_only string function LAG (str_var v)
      expression e;
 {
   struct ccase *c = lagged_case (1);
