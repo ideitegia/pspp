@@ -4,10 +4,6 @@ Mon May  1 15:58:28 2006  Ben Pfaff  <blp@gnu.org>
 	
 	* data-list.c: (cmd_data_list) Don't check for FILE TYPE.
 	(cmd_repeating_data) Ditto.
-	
-
-Mon May  1 15:57:24 2006  Ben Pfaff  <blp@gnu.org>
-
 	Remove vestiges of FILE TYPE support. 
 	
 	* automake.mk (src_language_data_io_libdata_io_a_SOURCES): Remove
