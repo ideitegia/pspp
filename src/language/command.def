@@ -120,9 +120,6 @@ DEF_CMD (S_DATA, 0, "T-TEST", cmd_t_test)
 DEF_CMD (S_DATA, 0, "TEMPORARY", cmd_temporary)
 DEF_CMD (S_DATA, 0, "USE", cmd_use)
 
-/* FILE TYPE. */
-DEF_CMD (S_FILE_TYPE, 0, "RECORD TYPE", cmd_record_type)
-
 /* Commands valid only with INPUT PROGRAM. */
 DEF_CMD (S_INPUT_PROGRAM, 0, "END CASE", cmd_end_case)
 DEF_CMD (S_INPUT_PROGRAM, 0, "END FILE", cmd_end_file)
@@ -182,6 +179,7 @@ UNIMPL_CMD ("PROCEDURE OUTPUT", "Specify output file")
 UNIMPL_CMD ("PROXIMITIES", "Pairwise similarity")
 UNIMPL_CMD ("QUICK CLUSTER", "Fast clustering")
 UNIMPL_CMD ("RANK", "Create rank scores")
+UNIMPL_CMD ("RECORD TYPE", "Defines a type of record within FILE TYPE")
 UNIMPL_CMD ("REFORMAT", "Read obsolete files")
 UNIMPL_CMD ("REPEATING DATA", "Specify multiple cases per input record")
 UNIMPL_CMD ("REPORT", "Pretty print working file")

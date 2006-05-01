@@ -29,7 +29,7 @@ enum cmd_result
     CMD_SUCCESS = 1,            /* Successfully parsed and executed. */
     CMD_EOF,                    /* No commands left. */
     CMD_QUIT,                   /* Requested exit. */
-    CMD_END_SUBLOOP,            /* End of INPUT PROGRAM or FILE TYPE. */
+    CMD_END_SUBLOOP,            /* End of INPUT PROGRAM. */
 
     /* Various kinds of failures. */
     CMD_FAILURE,                /* Not executed at all. */

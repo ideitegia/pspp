@@ -13,8 +13,6 @@ CLEANFILES += $(src_language_data_io_q_sources_c)
 
 src_language_data_io_libdata_io_a_SOURCES = \
 	src/language/data-io/data-list.c \
-	src/language/data-io/file-type.c \
-	src/language/data-io/file-type.h \
 	src/language/data-io/get.c \
 	src/language/data-io/inpt-pgm.c \
 	src/language/data-io/inpt-pgm.h \

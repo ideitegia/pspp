@@ -1,3 +1,9 @@
+Mon May  1 15:56:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	Remove vestiges of FILE TYPE support. 
+	
+	* command.def: Mark FILE TYPE, RECORD TYPE unimplemented.
+
 Wed Apr 26 21:13:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	CLEAR TRANSFORMATIONS is unsafe as implemented.  It's a fair

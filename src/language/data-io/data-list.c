@@ -36,7 +36,6 @@
 #include <language/data-io/data-list.h>
 #include <language/data-io/data-reader.h>
 #include <language/data-io/file-handle.h>
-#include <language/data-io/file-type.h>
 #include <language/data-io/inpt-pgm.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
@@ -120,7 +119,7 @@ cmd_data_list (void)
   int table = -1;                /* Print table if nonzero, -1=undecided. */
   struct file_handle *fh = fh_inline_file ();
 
-  if (!in_input_program () && !in_file_type ())
+  if (!in_input_program ())
     discard_variables ();
 
   dls = xmalloc (sizeof *dls);
@@ -140,12 +139,6 @@ cmd_data_list (void)
 	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
-	  if (in_file_type () && fh != fh_get_default_handle ())
-	    {
-	      msg (SE, _("DATA LIST must use the same file "
-			 "as the enclosing FILE TYPE."));
-	      goto error;
-	    }
 	}
       else if (lex_match_id ("RECORDS"))
 	{
@@ -1355,7 +1348,7 @@ cmd_repeating_data (void)
   bool saw_id = false;          /* Saw ID subcommand? */
   struct file_handle *const fh = fh_get_default_handle ();
   
-  assert (in_input_program () || in_file_type ());
+  assert (in_input_program ());
 
   rpd = xmalloc (sizeof *rpd);
   rpd->reader = dfm_open_reader (fh);
