@@ -1024,19 +1024,26 @@ Returns the year (as an integer 1582 or greater) corresponding to
 @subsection Miscellaneous Functions
 @cindex functions, miscellaneous
 
-Miscellaneous functions take various arguments and produce various
-results.
-
 @cindex cross-case function
 @cindex function, cross-case
-@deftypefn {Function} {} LAG (@var{variable}[, @var{ncases}])
+@deftypefn {Function} {} LAG (@var{variable}[, @var{n}])
 @anchor{LAG}
+
 @var{variable} must be a numeric or string variable name.  @code{LAG}
-results in the value of that variable for the case @var{ncases} before
-the current one.  In case-selection procedures, @code{LAG} results in
-the value of the variable for the last case selected.  Results in
-system-missing (for numeric variables) or blanks (for string
-variables) for the first case or before any cases are selected.
+yields the value of that variable for the case @var{n} before the
+current one.  Results in system-missing (for numeric variables) or
+blanks (for string variables) for the first @var{n} cases.
+
+@code{LAG} obtains values from the cases that become the new active file
+after a procedure executes.  Thus, @code{LAG} will not return values
+from cases dropped by transformations such as @cmd{SELECT IF}, and
+transformations like @cmd{COMPUTE} that modify data will change the
+values returned by @code{LAG}.  These are both the case whether these
+transformations precede or follow the use of @code{LAG}.
+
+If @code{LAG} is used before @cmd{TEMPORARY}, then the values it returns
+are those in cases just before @cmd{TEMPORARY}.  @code{LAG} may not be
+used after @cmd{TEMPORARY}.
 
 If omitted, @var{ncases} defaults to 1.  Otherwise, @var{ncases} must
 be a small positive constant integer.  There is no explicit limit, but
