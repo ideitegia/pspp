@@ -27,6 +27,7 @@ extern const struct case_sink_class storage_sink_class;
 extern const struct case_source_class storage_source_class;
 
 struct casefile *storage_source_get_casefile (struct case_source *);
+struct casefile *storage_source_decapsulate (struct case_source *);
 struct case_source *storage_source_create (struct casefile *);
 
 #endif /* storage-stream.h */

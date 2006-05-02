@@ -160,6 +160,21 @@ storage_source_get_casefile (struct case_source *source)
   return info->casefile;
 }
 
+/* Destroys SOURCE and returns the casefile that it
+   encapsulated. */
+struct casefile *
+storage_source_decapsulate (struct case_source *source) 
+{
+  struct storage_stream_info *info = source->aux;
+  struct casefile *casefile;
+
+  assert (source->class == &storage_source_class);
+  casefile = info->casefile;
+  info->casefile = NULL;
+  destroy_storage_stream_info (info);
+  return casefile;
+}
+
 struct case_source *
 storage_source_create (struct casefile *cf)
 {
