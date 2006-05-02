@@ -135,7 +135,7 @@ format and using 24-hour time.  If the time is not available then this
 field is arbitrarily set to @samp{00:00:00}.
 
 @item char file_label[64];
-Set the the file label declared by the user, if any @xref{FILE LABEL}.
+Set the the file label declared by the user, if any (@pxref{FILE LABEL}).
 Padded on the right with spaces.
 
 @item char padding[3];
@@ -638,7 +638,8 @@ The total number of bytes in @code{var_name_pairs}.
 A list of @var{key}--@var{value} tuples, where @var{key} is the name
 of a variable, and @var{value} is its long variable name. 
 The @var{key} field is at most 8 bytes long and must match the
-name of a variable which appears in the variable record @xref{Variable Record}.
+name of a variable which appears in the variable record (@pxref{Variable
+Record}).
 The @var{value} field is at most 64 bytes long.
 The @var{key} and @var{value} fields are separated by a @samp{=} byte.
 Each tuple is separated by a byte whose value is 09.  There is no
@@ -686,12 +687,13 @@ The total number of bytes in @code{string_lengths}.
 A list of @var{key}--@var{value} tuples, where @var{key} is the name
 of a variable, and @var{value} is its length.
 The @var{key} field is at most 8 bytes long and must match the
-name of a variable which appears in the variable record @xref{Variable Record}.
-The @var{value} field is exactly 5 bytes long. It is a zero padded ascii 
-encoded, string which is the length of the variable.
+name of a variable which appears in the variable record (@pxref{Variable
+Record}).
+The @var{value} field is exactly 5 bytes long. It is a zero-padded,
+ASCII-encoded string that is the length of the variable.
 The @var{key} and @var{value} fields are separated by a @samp{=} byte.
-Tuples are delimeted  a two byte sequence  @{00, 09@}.  
-After the last tuple, there may be a single byte 00, or by @{00, 09@}.  
+Tuples are delimited by a two-byte sequence @{00, 09@}.  
+After the last tuple, there may be a single byte 00, or @{00, 09@}.  
 The total length is @code{count} bytes.
 @end table
 
