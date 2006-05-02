@@ -78,7 +78,7 @@ $SUPERVISOR $PSPP -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="compare results"
+activity="compare results 1"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - <<EOF
 1.1 DATA LIST.  Reading 1 record from INLINE.

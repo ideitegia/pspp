@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -72,12 +72,12 @@ static struct cmd_list cmd;
 static int case_idx;
 
 /* Line buffer. */
-static char *line_buf;
+static struct string line_buffer;
 
 /* TTY-style output functions. */
 static unsigned n_lines_remaining (struct outp_driver *d);
 static unsigned n_chars_width (struct outp_driver *d);
-static void write_line (struct outp_driver *d, char *s);
+static void write_line (struct outp_driver *d, const char *s);
 
 /* Other functions. */
 static bool list_cases (struct ccase *, void *);
@@ -108,7 +108,7 @@ n_chars_width (struct outp_driver *d)
 /* Writes the line S at the current position and advances to the next
    line.  */
 static void
-write_line (struct outp_driver *d, char *s)
+write_line (struct outp_driver *d, const char *s)
 {
   struct outp_text text;
   
@@ -227,7 +227,7 @@ cmd_list (void)
 
   case_idx = 0;
   ok = procedure_with_splits (write_all_headers, list_cases, NULL, NULL);
-  free (line_buf);
+  ds_destroy(&line_buffer);
 
   clean_up ();
 
@@ -597,7 +597,7 @@ determine_layout (void)
       d->cp_y += d->font_height;
     }
 
-  line_buf = xmalloc (max (1022, largest_page_width) + 2);
+  ds_init(&line_buffer, largest_page_width + 2);
 }
 
 /* Writes case C to output. */
@@ -617,10 +617,12 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	const struct list_ext *prc = d->prc;
 	const int max_width = n_chars_width (d);
 	int column;
-	int x = 0;
 
 	if (!prc->header_rows)
-	  x = nsprintf (line_buf, "%8s: ", cmd.v_variables[0]->name);
+	  {
+	    ds_printf(&line_buffer, "%8s: ", cmd.v_variables[0]->name);
+	  }
+	
       
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
@@ -632,7 +634,8 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	    else
 	      width = v->print.w;
 
-	    if (width + x > max_width && x != 0)
+	    if (width + ds_length(&line_buffer) > max_width && 
+		ds_length(&line_buffer) != 0)
 	      {
 		if (!n_lines_remaining (d))
 		  {
@@ -640,31 +643,34 @@ list_cases (struct ccase *c, void *aux UNUSED)
 		    write_header (d);
 		  }
 	      
-		line_buf[x] = 0;
-		write_line (d, line_buf);
+		write_line (d, ds_c_str(&line_buffer));
+		ds_clear(&line_buffer);
 
-		x = 0;
 		if (!prc->header_rows)
-		  x = nsprintf (line_buf, "%8s: ", v->name);
+		  {
+		    ds_printf (&line_buffer, "%8s: ", v->name);
+		  }
 	      }
 
 	    if (width > v->print.w)
 	      {
-		memset(&line_buf[x], ' ', width - v->print.w);
-		x += width - v->print.w;
+		ds_putc_multiple(&line_buffer, ' ', width - v->print.w);
 	      }
 
             if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
-	      data_out (&line_buf[x], &v->print, case_data (c, v->fv));
+	      {
+                data_out (ds_append_uninit(&line_buffer, v->print.w),
+			  &v->print, case_data (c, v->fv));
+	      }
             else 
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (&line_buf[x], &v->print, &case_idx_value); 
+                data_out (ds_append_uninit(&line_buffer,v->print.w), 
+			  &v->print,   &case_idx_value); 
               }
-	    x += v->print.w;
-	  
-	    line_buf[x++] = ' ';
+
+	    ds_putc(&line_buffer, ' ');
 	  }
       
 	if (!n_lines_remaining (d))
@@ -673,8 +679,8 @@ list_cases (struct ccase *c, void *aux UNUSED)
 	    write_header (d);
 	  }
 	      
-	line_buf[x] = 0;
-	write_line (d, line_buf);
+	write_line (d, ds_c_str(&line_buffer));
+	ds_clear(&line_buffer);
       }
     else if (d->class == &html_class)
       {

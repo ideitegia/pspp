@@ -128,6 +128,11 @@ parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags flags)
              ds_c_str (&tokstr));
       return 0;
     }
+  if ( w > MAX_STRING )
+    {
+      msg (SE, _("String variable width may not exceed %d"), MAX_STRING);
+      return 0;
+    }
 
   cp = cp2;
   if (f->n_args > 1 && *cp == '.')

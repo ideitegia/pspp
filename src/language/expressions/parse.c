@@ -1422,8 +1422,8 @@ expr_allocate_string_buffer (struct expression *e,
 {
   union any_node *n = pool_alloc (e->expr_pool, sizeof n->string);
   n->type = OP_string;
-  if (length > 255)
-    length = 255;
+  if (length > MAX_STRING)
+    length = MAX_STRING;
   n->string.s = copy_string (e, string, length);
   return n;
 }

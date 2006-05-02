@@ -107,8 +107,6 @@ enum fmt_parse_flags
 /* Common formats. */
 extern const struct fmt_spec f8_2;      /* F8.2. */
 
-int parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags);
-int parse_format_specifier_name (const char **cp, enum fmt_parse_flags);
 int check_input_specifier (const struct fmt_spec *spec, int emit_error);
 int check_output_specifier (const struct fmt_spec *spec, int emit_error);
 bool check_specifier_type (const struct fmt_spec *, int type, bool emit_error);

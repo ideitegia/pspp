@@ -270,7 +270,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   assert (d != NULL);
   assert (name != NULL);
 
-  assert (width >= 0 && width < 256);
+  assert (width >= 0 && width <= MAX_STRING);
 
   assert (var_is_plausible_name(name,0));
     
@@ -284,7 +284,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   v->type = width == 0 ? NUMERIC : ALPHA;
   v->width = width;
   v->fv = d->next_value_idx;
-  v->nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
+  v->nv = width_to_bytes(width) / MAX_SHORT_STRING ;
   v->leave = dict_class_from_id (v->name) == DC_SCRATCH;
   v->index = d->var_cnt;
   mv_init (&v->miss, width);

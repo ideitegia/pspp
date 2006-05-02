@@ -221,6 +221,8 @@ spprintf (char *dst, const char *format, ...)
 }
 
 
+char * ds_append_uninit(struct string *st, size_t incr);
+
 
 
 #endif /* str_h */

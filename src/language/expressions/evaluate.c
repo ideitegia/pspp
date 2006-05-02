@@ -82,6 +82,8 @@ expr_evaluate_num (struct expression *e, const struct ccase *c, int case_idx)
   return d;
 }
 
+
+
 void
 expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
                    char *dst, size_t dst_size) 
@@ -91,7 +93,8 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
   assert (e->type == OP_string);
   assert ((dst == NULL) == (dst_size == 0));
   expr_evaluate (e, c, case_idx, &s);
-  buf_copy_rpad (dst, dst_size, s.string, s.length);
+  
+  copy_mangle (dst, dst_size, s.string, s.length);
 }
 
 #include <language/lexer/lexer.h>

@@ -31,6 +31,7 @@ TESTS = \
 	tests/command/oneway-with-splits.sh \
 	tests/command/permissions.sh \
 	tests/command/print.sh \
+	tests/command/print-strings.sh \
 	tests/command/rename.sh \
 	tests/command/regression.sh \
 	tests/command/sample.sh \
@@ -52,6 +53,7 @@ TESTS = \
 	tests/command/trimmed-mean.sh \
 	tests/command/tabs.sh \
 	tests/command/use.sh \
+	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \
 	tests/bugs/agg_crash.sh \
 	tests/bugs/agg-crash-2.sh \
@@ -74,6 +76,7 @@ TESTS = \
 	tests/bugs/if_crash.sh \
 	tests/bugs/input-crash.sh \
 	tests/bugs/lag_crash.sh \
+	tests/bugs/list-overflow.sh \
 	tests/bugs/match-files-scratch.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/random.sh \

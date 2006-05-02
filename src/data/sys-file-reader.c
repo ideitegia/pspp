@@ -30,6 +30,7 @@
 #include <libpspp/magic.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <libpspp/hash.h>
 
 #include "sys-file-reader.h"
 #include "sfm-private.h"
@@ -40,49 +41,50 @@
 #include "format.h"
 #include "value-labels.h"
 #include "variable.h"
+#include "value.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
 /* System file reader. */
 struct sfm_reader
-  {
-    struct file_handle *fh;     /* File handle. */
-    FILE *file;			/* File stream. */
+{
+  struct file_handle *fh;     /* File handle. */
+  FILE *file;			/* File stream. */
 
-    int reverse_endian;		/* 1=file has endianness opposite us. */
-    int fix_specials;           /* 1=SYSMIS/HIGHEST/LOWEST differs from us. */
-    int value_cnt;		/* Number of `union values's per case. */
-    long case_cnt;		/* Number of cases, -1 if unknown. */
-    int compressed;		/* 1=compressed, 0=not compressed. */
-    double bias;		/* Compression bias, usually 100.0. */
-    int weight_idx;		/* 0-based index of weighting variable, or -1. */
-    bool ok;                    /* False after an I/O error or corrupt data. */
+  int reverse_endian;		/* 1=file has endianness opposite us. */
+  int fix_specials;           /* 1=SYSMIS/HIGHEST/LOWEST differs from us. */
+  int value_cnt;		/* Number of `union values's per case. */
+  long case_cnt;		/* Number of cases, -1 if unknown. */
+  int compressed;		/* 1=compressed, 0=not compressed. */
+  double bias;		/* Compression bias, usually 100.0. */
+  int weight_idx;		/* 0-based index of weighting variable, or -1. */
+  bool ok;                    /* False after an I/O error or corrupt data. */
 
-    /* Variables. */
-    struct sfm_var *vars;       /* Variables. */
+  /* Variables. */
+  struct sfm_var *vars;       /* Variables. */
 
-    /* File's special constants. */
-    flt64 sysmis;
-    flt64 highest;
-    flt64 lowest;
+  /* File's special constants. */
+  flt64 sysmis;
+  flt64 highest;
+  flt64 lowest;
 
-    /* Decompression buffer. */
-    flt64 *buf;			/* Buffer data. */
-    flt64 *ptr;			/* Current location in buffer. */
-    flt64 *end;			/* End of buffer data. */
+  /* Decompression buffer. */
+  flt64 *buf;			/* Buffer data. */
+  flt64 *ptr;			/* Current location in buffer. */
+  flt64 *end;			/* End of buffer data. */
 
-    /* Compression instruction octet. */
-    unsigned char x[8];         /* Current instruction octet. */
-    unsigned char *y;		/* Location in current instruction octet. */
-  };
+  /* Compression instruction octet. */
+  unsigned char x[8];         /* Current instruction octet. */
+  unsigned char *y;		/* Location in current instruction octet. */
+};
 
 /* A variable in a system file. */
 struct sfm_var 
-  {
-    int width;                  /* 0=numeric, otherwise string width. */
-    int fv;                     /* Index into case. */
-  };
+{
+  int width;                  /* 0=numeric, otherwise string width. */
+  int fv;                     /* Index into case. */
+};
 
 /* Utilities. */
 
@@ -119,9 +121,9 @@ static void
 corrupt_msg (int class, const char *format,...)
      PRINTF_FORMAT (2, 3);
 
-/* Displays a corrupt sysfile error. */
-static void
-corrupt_msg (int class, const char *format,...)
+     /* Displays a corrupt sysfile error. */
+     static void
+     corrupt_msg (int class, const char *format,...)
 {
   struct msg m;
   va_list args;
@@ -158,7 +160,7 @@ sfm_close_reader (struct sfm_reader *r)
 
   if (r->fh != NULL)
     fh_close (r->fh, "system file", "rs");
-  
+
   free (r->vars);
   free (r->buf);
   free (r);
@@ -201,6 +203,36 @@ static int fread_ok (struct sfm_reader *, void *, size_t);
 	      goto error;                       \
 	} while (0)
 
+
+struct name_pair
+{
+  char *shortname;
+  char *longname;
+};
+
+static int
+pair_sn_compare(const void *_p1, const void *_p2, void *aux UNUSED)
+{
+  const struct name_pair *p1 = _p1;
+  const struct name_pair *p2 = _p2;
+  
+  return strcmp(p1->shortname, p2->shortname);
+}
+
+static unsigned
+pair_sn_hash(const void *_p, void *aux UNUSED)
+{
+  const struct name_pair *p = _p;
+  return hsh_hash_bytes(p->shortname, strlen(p->shortname));
+}
+
+static void
+pair_sn_free(void *p, void *aux UNUSED)
+{
+  free(p);
+}
+
+
 /* Opens the system file designated by file handle FH for
    reading.  Reads the system file's dictionary into *DICT.
    If INFO is non-null, then it receives additional info about the
@@ -211,6 +243,9 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 {
   struct sfm_reader *r = NULL;
   struct variable **var_by_idx = NULL;
+
+  /* A hash table of long variable names indexed by short name */
+  struct hsh_table *short_to_long = NULL;
 
   *dict = dict_create ();
   if (!fh_open (fh, FH_REF_FILE, "system file", "rs"))
@@ -269,7 +304,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
       if (weight_var == NULL)
 	lose ((ME,
                _("%s: Weighting variable may not be a continuation of "
-	       "a long string variable."), fh_get_file_name (fh)));
+		 "a long string variable."), fh_get_file_name (fh)));
       else if (weight_var->type == ALPHA)
 	lose ((ME, _("%s: Weighting variable may not be a string variable."),
 	       fh_get_file_name (fh)));
@@ -287,6 +322,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
       assertive_buf_read (r, &rec_type, sizeof rec_type, 0);
       if (r->reverse_endian)
 	bswap_int32 (&rec_type);
+
 
       switch (rec_type)
 	{
@@ -309,11 +345,11 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	case 7:
 	  {
 	    struct
-	      {
-		int32_t subtype P;
-		int32_t size P;
-		int32_t count P;
-	      }
+	    {
+	      int32_t subtype P;
+	      int32_t size P;
+	      int32_t count P;
+	    }
 	    data;
             unsigned long bytes;
 
@@ -327,6 +363,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		bswap_int32 (&data.count);
 	      }
             bytes = data.size * data.count;
+
             if (bytes < data.size || bytes < data.count)
               lose ((ME, "%s: Record type %d subtype %d too large.",
                      fh_get_file_name (r->fh), rec_type, data.subtype));
@@ -352,12 +389,13 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		{
 		  const int  n_vars = data.count / 3 ;
 		  int i;
-		  if ( data.count % 3 || n_vars > dict_get_var_cnt(*dict) ) 
+		  if ( data.count % 3 || n_vars != dict_get_var_cnt(*dict) ) 
 		    {
 		      msg (MW, _("%s: Invalid subrecord length. "
 				 "Record: 7; Subrecord: 11"), 
 			   fh_get_file_name (r->fh));
 		      skip = 1;
+		      break;
 		    }
 
 		  for ( i = 0 ; i < min(n_vars, dict_get_var_cnt(*dict)) ; ++i ) 
@@ -397,11 +435,18 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                     }
 		  buf[bytes] = '\0';
 
+		  short_to_long = hsh_create(4, 
+					     pair_sn_compare,
+					     pair_sn_hash,
+					     pair_sn_free, 
+					     0);
+
                   /* Parse data. */
 		  for (short_name = strtok_r (buf, "=", &save_ptr), idx = 0;
                        short_name != NULL;
                        short_name = strtok_r (NULL, "=", &save_ptr), idx++)
 		    {
+		      struct name_pair *pair ;
                       char *long_name = strtok_r (NULL, "\t", &save_ptr);
                       struct variable *v;
 
@@ -433,7 +478,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
                       /* Identify any duplicates. */
 		      if ( compare_var_names(short_name, long_name, 0) &&
-			  NULL != dict_lookup_var (*dict, long_name))
+			   NULL != dict_lookup_var (*dict, long_name))
                         lose ((ME, _("%s: Duplicate long variable name `%s' "
                                      "within system file."),
                                fh_get_file_name (r->fh), long_name));
@@ -446,6 +491,17 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                       dict_rename_var (*dict, v, long_name);
                       var_set_short_name (v, short_name);
 
+		      pair = xmalloc(sizeof *pair);
+		      pair->shortname = short_name;
+		      pair->longname = long_name;
+		      hsh_insert(short_to_long, pair);
+#if 0 
+      /* This messes up the processing of subtype 14 (below).
+	 I'm not sure if it is needed anyway, so I'm removing it for
+	 now.  If it's needed, then it will need to be done after all the
+	 records have been processed. --- JMD 27 April 2006
+      */
+		      
                       /* For compatability, make sure dictionary
                          is in long variable name map order.  In
                          the common case, this has no effect,
@@ -453,10 +509,119 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                          variable name map are already in the
                          same order. */
                       dict_reorder_var (*dict, v, idx);
+#endif
 		    }
+		  
 
 		  /* Free data. */
 		  free (buf);
+		}
+		break;
+
+	      case 14:
+		{
+		  int j = 0;
+		  bool eq_seen = false;
+		  int i;
+
+                  /* Read data. */
+                  char *buf = xmalloc (bytes + 1);
+		  if (!buf_read (r, buf, bytes, 0)) 
+                    {
+                      free (buf);
+                      goto error;
+                    }
+		  buf[bytes] = '\0';
+
+
+		  /* Note:  SPSS v13 terminates this record with 00,
+		     whereas SPSS v14 terminates it with 00 09. We must
+		     accept either */ 
+		  for(i = 0; i < bytes ; ++i)
+		    {
+		      long int length;
+		      static char name[SHORT_NAME_LEN + 1];
+		      static char len_str[6];
+
+		      switch( buf[i] )
+			{
+			case '=':
+			  eq_seen = true;
+			  j = 0;
+			  break;
+			case '\0':
+			  length = strtol(len_str, 0, 10);
+			  if ( length != LONG_MAX && length != LONG_MIN) 
+			    {
+			      char *lookup_name = name;
+			      int l;
+			      int idx;
+			      struct variable *v;
+
+			      if ( short_to_long ) 
+				{
+				  struct name_pair pair;
+				  struct name_pair *p;
+
+				  pair.shortname = name;
+				  p = hsh_find(short_to_long, &pair);
+				  if ( p ) 
+				    lookup_name = p->longname;
+				}
+				
+			      
+			      v = dict_lookup_var(*dict, lookup_name);
+			      if ( !v ) 
+				{
+				  corrupt_msg(MW, 
+					      _("%s: No variable called %s but it is listed in length table."),
+					      fh_get_file_name (r->fh), lookup_name);
+
+				  goto error;
+
+				}
+			      
+			      l = length;
+			      if ( v->width > EFFECTIVE_LONG_STRING_LENGTH ) 
+				l -= EFFECTIVE_LONG_STRING_LENGTH;
+			      else
+				l -= v->width;
+
+			      idx = v->index;
+			      while ( l > 0 ) 
+				{
+				  struct variable *v_next;
+				  v_next = dict_get_var(*dict, idx + 1);
+
+				  if ( v_next->width > EFFECTIVE_LONG_STRING_LENGTH ) 
+				    l -= EFFECTIVE_LONG_STRING_LENGTH;
+				  else
+				    l -= v_next->width;
+
+				  dict_delete_var(*dict, v_next);
+				}
+			      
+			      v->width = length;
+			      v->print.w = v->width;
+			      v->write.w = v->width;
+			    }
+			  eq_seen = false;
+			  memset(name, 0, SHORT_NAME_LEN+1); 
+			  memset(len_str, 0, 6); 
+			  j = 0;
+			  break;
+			case '\t':
+			  break;
+			default:
+			  if ( eq_seen ) 
+			    len_str[j] = buf[i];
+			  else
+			    name[j] = buf[i];
+			  j++;
+			  break;
+			}
+		    }
+		  free(buf);
 		}
 		break;
 
@@ -482,24 +647,29 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	    int32_t filler;
 
 	    assertive_buf_read (r, &filler, sizeof filler, 0);
+
 	    goto success;
 	  }
 
 	default:
 	  corrupt_msg(MW, _("%s: Unrecognized record type %d."),
-                 fh_get_file_name (r->fh), rec_type);
+		      fh_get_file_name (r->fh), rec_type);
 	}
     }
 
-success:
+ success:
   /* Come here on successful completion. */
+
+
   free (var_by_idx);
+  hsh_destroy(short_to_long);
   return r;
 
-error:
+ error:
   /* Come here on unsuccessful completion. */
   sfm_close_reader (r);
   free (var_by_idx);
+  hsh_destroy(short_to_long);
   if (*dict != NULL) 
     {
       dict_destroy (*dict);
@@ -550,7 +720,7 @@ read_machine_int32_info (struct sfm_reader *r, int size, int count)
 	   fh_get_file_name (r->fh),
            file_bigendian ? _("big-endian") : _("little-endian"),
 	   data[6] == 1 ? _("big-endian") : (data[6] == 2 ? _("little-endian")
-					  : _("unknown"))));
+					     : _("unknown"))));
 
   /* PORTME: Character representation code. */
   if (data[7] != 2 && data[7] != 3) 
@@ -562,7 +732,7 @@ read_machine_int32_info (struct sfm_reader *r, int size, int count)
 
   return 1;
 
-error:
+ error:
   return 0;
 }
 
@@ -600,7 +770,7 @@ read_machine_flt64_info (struct sfm_reader *r, int size, int count)
   
   return 1;
 
-error:
+ error:
   return 0;
 }
 
@@ -663,7 +833,7 @@ read_header (struct sfm_reader *r,
 	       fh_get_file_name (r->fh), hdr.layout_code));
 
       r->reverse_endian = 1;
-      bswap_int32 (&hdr.case_size);
+      bswap_int32 (&hdr.nominal_case_size);
       bswap_int32 (&hdr.compress);
       bswap_int32 (&hdr.weight_idx);
       bswap_int32 (&hdr.case_cnt);
@@ -672,7 +842,7 @@ read_header (struct sfm_reader *r,
 
 
   /* Copy basic info and verify correctness. */
-  r->value_cnt = hdr.case_size;
+  r->value_cnt = hdr.nominal_case_size;
 
   /* If value count is rediculous, then force it to -1 (a sentinel value) */
   if ( r->value_cnt < 0 || 
@@ -743,7 +913,7 @@ read_header (struct sfm_reader *r,
 
   return 1;
 
-error:
+ error:
   return 0;
 }
 
@@ -781,9 +951,6 @@ read_variables (struct sfm_reader *r,
       int nv;
       int j;
 
-      if ( r->value_cnt != -1  && i >= r->value_cnt ) 
-	break;
-
       assertive_buf_read (r, &sv, sizeof sv, 0);
 
       if (r->reverse_endian)
@@ -804,11 +971,8 @@ read_variables (struct sfm_reader *r,
 	  break;
 	}
 
-      if ( -1 == r->value_cnt ) 
-	{
-	  *var_by_idx = xnrealloc (*var_by_idx, i + 1, sizeof **var_by_idx);
-	  r->vars = xnrealloc (r->vars, i + 1, sizeof *r->vars);
-	}
+      *var_by_idx = xnrealloc (*var_by_idx, i + 1, sizeof **var_by_idx);
+      r->vars = xnrealloc (r->vars, i + 1, sizeof *r->vars);
 
       /* If there was a long string previously, make sure that the
 	 continuations are present; otherwise make sure there aren't
@@ -837,7 +1001,7 @@ read_variables (struct sfm_reader *r,
 	       fh_get_file_name (r->fh), i, sv.type));
       if (sv.has_var_label != 0 && sv.has_var_label != 1)
 	lose ((ME, _("%s: position %d: Variable label indicator field is not "
-	       "0 or 1."), fh_get_file_name (r->fh), i));
+		     "0 or 1."), fh_get_file_name (r->fh), i));
       if (sv.n_missing_values < -3 || sv.n_missing_values > 3
 	  || sv.n_missing_values == -1)
 	lose ((ME, _("%s: position %d: Missing value indicator field is not "
@@ -873,6 +1037,7 @@ read_variables (struct sfm_reader *r,
         lose ((ME, _("%s: Duplicate variable name `%s' within system file."),
                fh_get_file_name (r->fh), name));
 
+      /* Set the short name the same as the long name */
       var_set_short_name (vv, vv->name);
 
       /* Case reading data. */
@@ -968,13 +1133,13 @@ read_variables (struct sfm_reader *r,
 
   if (next_value != r->value_cnt)
     corrupt_msg(MW, _("%s: System file header indicates %d variable positions but "
-                 "%d were read from file."),
-           fh_get_file_name (r->fh), r->value_cnt, next_value);
+		      "%d were read from file."),
+		fh_get_file_name (r->fh), r->value_cnt, next_value);
 
 
   return 1;
 
-error:
+ error:
   return 0;
 }
 
@@ -1009,7 +1174,7 @@ parse_format_spec (struct sfm_reader *r, int32_t s,
     }
   return 1;
 
-error:
+ error:
   return 0;
 }
 
@@ -1020,11 +1185,11 @@ read_value_labels (struct sfm_reader *r,
                    struct dictionary *dict, struct variable **var_by_idx)
 {
   struct label 
-    {
-      char raw_value[8];        /* Value as uninterpreted bytes. */
-      union value value;        /* Value. */
-      char *label;              /* Null-terminated label string. */
-    };
+  {
+    char raw_value[8];        /* Value as uninterpreted bytes. */
+    union value value;        /* Value. */
+    char *label;              /* Null-terminated label string. */
+  };
 
   struct label *labels = NULL;
   int32_t n_labels;		/* Number of labels. */
@@ -1194,7 +1359,7 @@ read_value_labels (struct sfm_reader *r,
   free (var);
   return 1;
 
-error:
+ error:
   if (labels) 
     {
       for (i = 0; i < n_labels; i++)
@@ -1232,6 +1397,7 @@ buf_read (struct sfm_reader *r, void *buf, size_t byte_cnt, size_t min_alloc)
       r->ok = false;
       return NULL;
     }
+
   return buf;
 }
 
@@ -1277,7 +1443,7 @@ read_documents (struct sfm_reader *r, struct dictionary *dict)
   free (documents);
   return 1;
 
-error:
+ error:
   return 0;
 }
 
@@ -1398,13 +1564,13 @@ read_compressed_data (struct sfm_reader *r, flt64 *buf)
 
   abort ();
 
-success:
+ success:
   /* We have filled up an entire record.  Update state and return
      successfully. */
   r->y = ++p;
   return 1;
 
-error:
+ error:
   /* I/O error. */
   r->ok = false;
   return 0;

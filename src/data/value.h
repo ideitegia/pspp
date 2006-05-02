@@ -27,11 +27,20 @@
 /* Values. */
 
 /* Max length of a short string value, generally 8 chars. */
-#define MAX_SHORT_STRING ((SIZEOF_DOUBLE)>=8 ? ((SIZEOF_DOUBLE)+1)/2*2 : 8)
-#define MIN_LONG_STRING (MAX_SHORT_STRING+1)
+#define MAX_SHORT_STRING ( (SIZEOF_DOUBLE)>=8 ? (SIZEOF_DOUBLE + 1)/2 * 2 : 8 )
+
+#define MIN_LONG_STRING (MAX_SHORT_STRING + 1)
 
 /* Max string length. */
-#define MAX_STRING 255
+#define MAX_LONG_STRING 255
+
+/* This nonsense is required for SPSS compatibility */
+#define EFFECTIVE_LONG_STRING_LENGTH (MAX_LONG_STRING - 3)
+
+#define MAX_VERY_LONG_STRING 32767
+
+#define MAX_STRING MAX_VERY_LONG_STRING
+
 
 /* Special values. */
 #define SYSMIS (-DBL_MAX)

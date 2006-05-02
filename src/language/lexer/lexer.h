@@ -88,4 +88,7 @@ void lex_negative_to_dash (void);
 void lex_reset_eof (void);
 void lex_skip_comment (void);
 
+int parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags);
+int parse_format_specifier_name (const char **cp, enum fmt_parse_flags);
+
 #endif /* !lexer_h */

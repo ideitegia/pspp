@@ -1,3 +1,8 @@
+Tue May  2 10:39:56 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* list.q Changed from using fixed length char buffers to struct 
+	string so that any length variables can be used.
+
 Mon May  1 18:21:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	Further clean up the CMD_* command result codes.

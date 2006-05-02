@@ -72,6 +72,8 @@ struct sfm_writer
     /* Variables. */
     struct sfm_var *vars;       /* Variables. */
     size_t var_cnt;             /* Number of variables. */
+    size_t var_cnt_vls;         /* Number of variables including 
+				   very long string components. */
   };
 
 /* A variable in a system file. */
@@ -85,13 +87,17 @@ struct sfm_var
 static char *append_string_max (char *, const char *, const char *);
 static void write_header (struct sfm_writer *, const struct dictionary *);
 static void buf_write (struct sfm_writer *, const void *, size_t);
-static void write_variable (struct sfm_writer *, struct variable *);
+static void write_variable (struct sfm_writer *, const struct variable *);
 static void write_value_labels (struct sfm_writer *,
                                 struct variable *, int idx);
 static void write_rec_7_34 (struct sfm_writer *);
 
 static void write_longvar_table (struct sfm_writer *w, 
                                  const struct dictionary *dict);
+
+static void write_vls_length_table (struct sfm_writer *w, 
+			      const struct dictionary *dict);
+
 
 static void write_variable_display_parameters (struct sfm_writer *w, 
                                                const struct dictionary *dict);
@@ -102,8 +108,16 @@ static int does_dict_need_translation (const struct dictionary *);
 static inline int
 var_flt64_cnt (const struct variable *v) 
 {
+  assert(sizeof(flt64) == MAX_SHORT_STRING);
+  return width_to_bytes(v->width) / MAX_SHORT_STRING ;
+}
+
+static inline int
+var_flt64_cnt_nom (const struct variable *v) 
+{
   return v->type == NUMERIC ? 1 : DIV_RND_UP (v->width, sizeof (flt64));
 }
+
 
 /* Returns default options for writing a system file. */
 struct sfm_write_options
@@ -115,6 +129,28 @@ sfm_writer_default_options (void)
   opts.version = 3;
   return opts;
 }
+
+
+/* Return a short variable name to be used as the continuation of the
+   variable with the short name SN.
+
+   FIXME: Need to resolve clashes somehow.
+
+ */
+static const char *
+cont_var_name(const char *sn, int idx)
+{
+  static char s[SHORT_NAME_LEN + 1];
+
+  char abb[SHORT_NAME_LEN + 1 - 3]= {0}; 
+
+  strncpy(abb, sn, SHORT_NAME_LEN - 3);
+
+  snprintf(s, SHORT_NAME_LEN + 1, "%s%03d", abb, idx);
+
+  return s;
+}
+
 
 /* Opens the system file designated by file handle FH for writing
    cases from dictionary D according to the given OPTS.  If
@@ -167,12 +203,17 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->x = w->y = NULL;
 
   w->var_cnt = dict_get_var_cnt (d);
+  w->var_cnt_vls = w->var_cnt;
   w->vars = xnmalloc (w->var_cnt, sizeof *w->vars);
   for (i = 0; i < w->var_cnt; i++) 
     {
       const struct variable *dv = dict_get_var (d, i);
       struct sfm_var *sv = &w->vars[i];
       sv->width = dv->width;
+      /* spss compatibility nonsense */
+      if ( dv->width > MAX_LONG_STRING ) 
+	sv->width = (dv->width / MAX_LONG_STRING) * (MAX_LONG_STRING + 1)
+	  + (dv->width % MAX_LONG_STRING) ;
       sv->fv = dv->fv;
       sv->flt64_cnt = var_flt64_cnt (dv);
     }
@@ -190,7 +231,42 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   /* Write basic variable info. */
   dict_assign_short_names (d);
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    write_variable (w, dict_get_var (d, i));
+    {
+      int count = 0;
+      const struct variable *v = dict_get_var(d, i);
+      int wcount = v->width;
+
+      do {
+	struct variable var_cont = *v;
+	if ( v->type == ALPHA) 
+	  {
+	    if ( 0 != count ) 
+	      {
+		mv_init(&var_cont.miss, 0);
+		strcpy(var_cont.short_name,
+		       cont_var_name(v->short_name, count));
+		var_cont.label = NULL;
+		w->var_cnt_vls++;
+	      }
+	    count++;
+	    if ( wcount > MAX_LONG_STRING ) 
+	      {
+		var_cont.width = MAX_LONG_STRING;
+		wcount -= EFFECTIVE_LONG_STRING_LENGTH;
+	      }
+	    else
+	      {
+		var_cont.width = wcount;
+		wcount -= var_cont.width;
+	      }
+	
+	    var_cont.write.w = var_cont.width;
+	    var_cont.print.w = var_cont.width;
+	  }
+
+	write_variable (w, &var_cont);
+      } while(wcount > 0);
+    }
 
   /* Write out value labels. */
   for (idx = i = 0; i < dict_get_var_cnt (d); i++)
@@ -210,6 +286,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
   if (opts.version >= 3) 
     write_longvar_table (w, d);
+
+  write_vls_length_table(w, d);
 
   /* Write end-of-headers record. */
   {
@@ -300,8 +378,10 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
 
   w->flt64_cnt = 0;
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    w->flt64_cnt += var_flt64_cnt (dict_get_var (d, i));
-  hdr.case_size = w->flt64_cnt;
+    {
+      w->flt64_cnt += var_flt64_cnt (dict_get_var (d, i));
+    }
+  hdr.nominal_case_size = w->flt64_cnt;
 
   hdr.compress = w->compress;
 
@@ -370,15 +450,16 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
 /* Translates format spec from internal form in SRC to system file
    format in DEST. */
 static inline void
-write_format_spec (struct fmt_spec *src, int32_t *dest)
+write_format_spec (const struct fmt_spec *src, int32_t *dest)
 {
+  assert(check_output_specifier(src, true));
   *dest = (formats[src->type].spss << 16) | (src->w << 8) | src->d;
 }
 
 /* Write the variable record(s) for primary variable P and secondary
    variable S to system file W. */
 static void
-write_variable (struct sfm_writer *w, struct variable *v)
+write_variable (struct sfm_writer *w, const struct variable *v)
 {
   struct sysfile_variable sv;
 
@@ -388,7 +469,7 @@ write_variable (struct sfm_writer *w, struct variable *v)
   int nm;               /* Number of missing values, possibly negative. */
 
   sv.rec_type = 2;
-  sv.type = v->width;
+  sv.type = min(v->width, MAX_LONG_STRING);
   sv.has_var_label = (v->label != NULL);
 
   mv_copy (&mv, &v->miss);
@@ -453,7 +534,8 @@ write_variable (struct sfm_writer *w, struct variable *v)
       memset (&sv.write, 0, sizeof sv.write);
       memset (&sv.name, 0, sizeof sv.name);
 
-      pad_count = DIV_RND_UP (v->width, (int) sizeof (flt64)) - 1;
+      pad_count = DIV_RND_UP (min(v->width, MAX_LONG_STRING),
+			      (int) sizeof (flt64)) - 1;
       for (i = 0; i < pad_count; i++)
 	buf_write (w, &sv, sizeof sv);
     }
@@ -563,7 +645,7 @@ write_variable_display_parameters (struct sfm_writer *w,
   vdp_hdr.rec_type = 7;
   vdp_hdr.subtype = 11;
   vdp_hdr.elem_size = 4;
-  vdp_hdr.n_elem = w->var_cnt * 3;
+  vdp_hdr.n_elem = w->var_cnt_vls * 3;
 
   buf_write (w, &vdp_hdr, sizeof vdp_hdr);
 
@@ -585,7 +667,68 @@ write_variable_display_parameters (struct sfm_writer *w,
       params.align = v->alignment;
       
       buf_write (w, &params, sizeof(params));
+
+      if ( v->width > MAX_LONG_STRING ) 
+	{
+	  int wcount = v->width - EFFECTIVE_LONG_STRING_LENGTH ;
+
+	  while (wcount > 0) 
+	    {
+	      params.width = wcount > MAX_LONG_STRING ? 32 : wcount;
+	    
+	      buf_write (w, &params, sizeof(params));
+
+	      wcount -= EFFECTIVE_LONG_STRING_LENGTH ;
+	    } 
+	}
     }
+}
+
+/* Writes the table of lengths for Very Long String Variables */
+static void 
+write_vls_length_table (struct sfm_writer *w, 
+			const struct dictionary *dict)
+{
+  int i;
+  struct
+    {
+      int32_t rec_type P;
+      int32_t subtype P;
+      int32_t elem_size P;
+      int32_t n_elem P;
+    }
+  vls_hdr;
+
+  struct string vls_length_map;
+
+  ds_init (&vls_length_map, 12 * dict_get_var_cnt (dict));
+
+  vls_hdr.rec_type = 7;
+  vls_hdr.subtype = 14;
+  vls_hdr.elem_size = 1;
+
+
+  for (i = 0; i < dict_get_var_cnt (dict); ++i)
+    {
+      const struct variable *v = dict_get_var (dict, i);
+      
+      if ( v->width <=  MAX_LONG_STRING ) 
+	continue;
+
+      ds_printf (&vls_length_map, "%s=%05d", v->short_name, v->width);
+      ds_putc (&vls_length_map, '\0');
+      ds_putc (&vls_length_map, '\t');
+    }
+
+  vls_hdr.n_elem = ds_length (&vls_length_map);
+
+  if ( vls_hdr.n_elem > 0 ) 
+    {
+      buf_write (w, &vls_hdr, sizeof vls_hdr);
+      buf_write (w, ds_data (&vls_length_map), ds_length (&vls_length_map));
+    }
+
+  ds_destroy (&vls_length_map);
 }
 
 /* Writes the long variable name table */
@@ -758,20 +901,28 @@ sfm_write_case (struct sfm_writer *w, const struct ccase *c)
          Write into a bounce buffer, then write to W. */
       flt64 *bounce;
       flt64 *bounce_cur;
+      flt64 *bounce_end;
       size_t bounce_size;
       size_t i;
 
       bounce_size = sizeof *bounce * w->flt64_cnt;
       bounce = bounce_cur = local_alloc (bounce_size);
+      bounce_end = bounce + bounce_size;
 
       for (i = 0; i < w->var_cnt; i++) 
         {
           struct sfm_var *v = &w->vars[i];
 
+	  memset(bounce_cur, ' ', v->flt64_cnt * sizeof (flt64));
+
           if (v->width == 0) 
             *bounce_cur = case_num (c, v->fv);
           else 
-            memcpy (bounce_cur, case_data (c, v->fv)->s, v->width);
+	    {
+	      buf_copy_rpad((char*)bounce_cur, v->flt64_cnt * sizeof (flt64),
+			    case_data(c, v->fv)->s, 
+			    v->width);
+	    }
           bounce_cur += v->flt64_cnt;
         }
 

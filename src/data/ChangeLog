@@ -1,3 +1,20 @@
+Tue May  2 10:42:05 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* data-out.c, data-in.c, variable.c, variable.h: New functions 
+	copy_mangle and copy_demangle for reading/writing cases; emulates the 
+	way SPSS deals with strings > 255 bytes.
+
+	* sys-file-reader.c sys-file-writer.c: Added support for Record 7, 
+	subtype 14 needed for strings longer than 255 bytes.
+
+	* dictionary.c, format.def, value.c : Updated to use MAX_STRING 
+        instead of literal values. Also fixed some constness issues.
+
+	* format.h: Constness
+
+	* sfm-private.h: Renamed the case_size identifier, since I discovered 
+        that SPSS's respect for this variable is very nominal.
+
 Mon May  1 15:45:42 2006  Ben Pfaff  <blp@gnu.org>
 
 	Change case limit type from int to size_t.

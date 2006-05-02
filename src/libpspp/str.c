@@ -681,6 +681,22 @@ ds_concat (struct string *st, const char *buf, size_t len)
   st->length += len;
 }
 
+/* Returns ds_end(ST) and THEN increases the length by INCR */
+char *
+ds_append_uninit(struct string *st, size_t incr)
+{
+  char *end ;
+  assert(incr >= 0 );
+
+  ds_extend(st, ds_length(st) + incr + 1);
+
+  end = ds_end(st);
+
+  st->length += incr;
+ 
+  return end;
+}
+
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
 ds_printf (struct string *st, const char *format, ...)

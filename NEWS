@@ -5,7 +5,12 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Changes since 0.4.1:
+Changes since 0.4.2:
+
+
+Changes since 0.4.0 to 0.4.1:
+
+  Added support for very long string variables > 255 bytes.
 
   Output changes:
 
@@ -23,8 +28,6 @@ Changes since 0.4.1:
       font used in PostScript output.  "make install" will install AFM
       files for the standard PostScript files, including the ones that
       the PostScript driver uses by default.
-
-Changes since 0.4.0 to 0.4.1:
 
   Newly implemented commands and statistical features:
 

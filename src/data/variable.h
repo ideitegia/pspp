@@ -240,4 +240,16 @@ int parse_mixed_vars_pool (struct pool *,
 const char * var_to_string(const struct variable *var);
 
 
+/* Two complementary functions for dealing with 
+   Very Long String variables */
+
+void copy_demangle (char *dst, size_t dst_size,
+		    const char *src, size_t src_size);
+
+void copy_mangle (char *dst, size_t dst_size,
+		  const char *src, size_t src_size);
+
+int width_to_bytes(int width);
+
+
 #endif /* !variable.h */

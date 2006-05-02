@@ -9,7 +9,8 @@ There are three data types used in system files: 32-bit integers, 64-bit
 floating points, and 1-byte characters.  In this document these will
 simply be referred to as @code{int32}, @code{flt64}, and @code{char},
 the names that are used in the PSPP source code.  Every field of type
-@code{int32} or @code{flt64} is aligned on a 32-bit boundary.
+@code{int32} or @code{flt64} is aligned on a 32-bit boundary relative to 
+the start of the record.
 
 The endianness of data in PSPP system files is not specified.  System
 files output on a computer of a particular endianness will have the
@@ -45,6 +46,7 @@ described below:
 * Machine flt64 Info Record::   
 * Auxiliary Variable Parameter Record::
 * Long Variable Names Record::
+* Very Long String Length Record::
 * Miscellaneous Informational Records::  
 * Dictionary Termination Record::  
 * Data Record::                 
@@ -61,7 +63,7 @@ struct sysfile_header
     char                rec_type[4];
     char                prod_name[60];
     int32               layout_code;
-    int32               case_size;
+    int32               nominal_case_size;
     int32               compressed;
     int32               weight_index;
     int32               ncases;
@@ -90,13 +92,13 @@ with spaces.
 Always set to 2.  PSPP reads this value to determine the
 file's endianness.
 
-@item int32 case_size;
+@item int32 nominal_case_size;
 Number of data elements per case.  This is the number of variables,
 except that long string variables add extra data elements (one for every
-8 characters after the first 8).
-When reading system files, PSPP will use this value unless it is set
-to -1, in which case it will determine the number of data elements by
-context.  When writing system files PSPP always uses this value.
+8 characters after the first 8).  However, string variables do not 
+contribute to this value beyond the first 255 bytes.   Further, system
+files written by some systems set this value to -1.  In general, it is
+unsafe for systems reading system files to rely upon this value.
 
 @item int32 compressed;
 Set to 1 if the data in the file is compressed, 0 otherwise.
@@ -133,8 +135,8 @@ format and using 24-hour time.  If the time is not available then this
 field is arbitrarily set to @samp{00:00:00}.
 
 @item char file_label[64];
-Set the the file label declared by the user, if any.  Padded on the
-right with spaces.
+Set the the file label declared by the user, if any @xref{FILE LABEL}.
+Padded on the right with spaces.
 
 @item char padding[3];
 Ignored padding bytes to make the structure a multiple of 32 bits in
@@ -146,9 +148,7 @@ length.  Set to zeros.
 
 Immediately following the header must come the variable records.  There
 must be one variable record for every variable and every 8 characters in
-a long string beyond the first 8; i.e., there must be exactly as many
-variable records as the value specified for @code{case_size} in the file
-header record.
+a long string beyond the first 8.
 
 @example
 struct sysfile_variable
@@ -168,7 +168,7 @@ struct sysfile_variable
 
     /* The following field is present only
        if n_missing_values is not 0. */
-    flt64               missing_values[/* variable length*/];
+    flt64               missing_values[/* variable length */];
   @};
 @end example
 
@@ -367,7 +367,7 @@ Record type.  Always set to 4.
 Number of variables that the associated value labels from the value
 label record are to be applied.
 
-@item int32 vars[/* variable length];
+@item int32 vars[/* variable length */];
 A list of variables to which to apply the value labels.  There are
 @code{count} elements.
 @end table
@@ -600,7 +600,7 @@ Centre aligned
 
 
 
-@node Long Variable Names Record, Miscellaneous Informational Records, Auxiliary Variable Parameter Record,  Data File Format
+@node Long Variable Names Record, Very Long String Length Record, Auxiliary Variable Parameter Record,  Data File Format
 @section Long Variable Names Record
 
 There must be no more than one long variable names record per
@@ -634,7 +634,7 @@ The size of each element in the @code{var_name_pairs} member. Always set to 1.
 @item int32 count;
 The total number of bytes in @code{var_name_pairs}.
 
-@item char var_name_pairs[/* variable length];
+@item char var_name_pairs[/* variable length */];
 A list of @var{key}--@var{value} tuples, where @var{key} is the name
 of a variable, and @var{value} is its long variable name. 
 The @var{key} field is at most 8 bytes long and must match the
@@ -646,8 +646,58 @@ trailing separator following the last tuple.
 The total length is @code{count} bytes.
 @end table
 
+@node Very Long String Length Record, Miscellaneous Informational Records, Long Variable Names Record, Data File Format
+@comment  node-name,  next,  previous,  up
+@section Very Long String Length Record
 
-@node Miscellaneous Informational Records, Dictionary Termination Record, Long Variable Names Record, Data File Format
+
+There must be no more than one very long string length record per
+system file.  This  record must follow the variable records and precede the 
+dictionary termination record. 
+
+@example
+struct sysfile_very_long_string_lengths
+  @{
+    /* Header. */
+    int32               rec_type;
+    int32               subtype;
+    int32               size;
+    int32               count;
+
+    /* Data. */
+    char                string_lengths[/* variable length */];
+  @};
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 14.
+
+@item int32 size;
+The size of each element in the @code{string_lengths} member. Always set to 1.
+
+@item int32 count;
+The total number of bytes in @code{string_lengths}.
+
+@item char string_lengths[/* variable length */];
+A list of @var{key}--@var{value} tuples, where @var{key} is the name
+of a variable, and @var{value} is its length.
+The @var{key} field is at most 8 bytes long and must match the
+name of a variable which appears in the variable record @xref{Variable Record}.
+The @var{value} field is exactly 5 bytes long. It is a zero padded ascii 
+encoded, string which is the length of the variable.
+The @var{key} and @var{value} fields are separated by a @samp{=} byte.
+Tuples are delimeted  a two byte sequence  @{00, 09@}.  
+After the last tuple, there may be a single byte 00, or by @{00, 09@}.  
+The total length is @code{count} bytes.
+@end table
+
+
+
+@node Miscellaneous Informational Records, Dictionary Termination Record, Very Long String Length Record, Data File Format
 @section Miscellaneous Informational Records
 
 Miscellaneous informational records must follow the variable records and
@@ -724,9 +774,8 @@ The format of data records varies depending on whether the data is
 compressed.  Regardless, the data is arranged in a series of 8-byte
 elements.
 
-When data is not compressed, Every case is composed of @code{case_size}
-of these 8-byte elements, where @code{case_size} comes from the file
-header record (@pxref{File Header Record}).  Each element corresponds to
+When data is not compressed, 
+each element corresponds to
 the variable declared in the respective variable record (@pxref{Variable
 Record}).  Numeric values are given in @code{flt64} format; string
 values are literal characters string, padded on the right when

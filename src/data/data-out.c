@@ -395,7 +395,7 @@ convert_Z (char *dst, const struct fmt_spec *fp, double number)
 static int
 convert_A (char *dst, const struct fmt_spec *fp, const char *string)
 {
-  memcpy (dst, string, fp->w);
+  copy_demangle(dst, fp->w, string, fp->w);
   return 1;
 }
 
@@ -1063,6 +1063,7 @@ try_F (char *dst, const struct fmt_spec *fp, double number)
                  avoids wasting too much time formatting more
                  decimal places on the first try. */
               int result = format_and_round (dst, number, fp, fp->d + 2);
+
               if (result >= 0)
                 return result;
 
@@ -1143,7 +1144,7 @@ format_and_round (char *dst, double number, const struct fmt_spec *fp,
          digits of the fraction.
          Right-justify the integer part and sign. */
       dst[0] = ' ';
-      memcpy (dst + 1, buf, fp->w);
+      memcpy (dst + 1, buf, fp->w - 1);
       return 1;
     }
 

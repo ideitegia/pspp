@@ -1,3 +1,8 @@
+Tue May  2 10:43:06 WST 2006 <john@darrington.wattle.id.au>
+
+	* data-file-format.texi: Updated information about the case_size 
+	value.  Added description of Record Type 7, subtype 14.
+
 2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.texi: Added description of the RESID and PRED
