@@ -1,3 +1,9 @@
+Tue May  2 15:41:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (ds_append_uninit): No need to add 1 to arg passed to
+	ds_extend(), because the argument does not include space for a
+	null terminator.  Also, fix warning.
+
 Tue Apr 25 11:07:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	Finish reforming error message support.  In this phase, move

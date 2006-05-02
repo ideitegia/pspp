@@ -681,14 +681,13 @@ ds_concat (struct string *st, const char *buf, size_t len)
   st->length += len;
 }
 
-/* Returns ds_end(ST) and THEN increases the length by INCR */
+/* Returns ds_end(ST) and THEN increases the length by INCR. */
 char *
 ds_append_uninit(struct string *st, size_t incr)
 {
-  char *end ;
-  assert(incr >= 0 );
+  char *end;
 
-  ds_extend(st, ds_length(st) + incr + 1);
+  ds_extend(st, ds_length(st) + incr);
 
   end = ds_end(st);
 
