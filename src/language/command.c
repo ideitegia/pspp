@@ -52,13 +52,24 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+/* Returns true if RESULT is a valid "enum cmd_result",
+   false otherwise. */
+static inline bool
+cmd_result_is_valid (enum cmd_result result) 
+{
+  return (result == CMD_SUCCESS || result == CMD_EOF || result == CMD_FINISH
+          || (result >= CMD_PRIVATE_FIRST && result <= CMD_PRIVATE_LAST)
+          || result == CMD_FAILURE || result == CMD_NOT_IMPLEMENTED
+          || result == CMD_CASCADING_FAILURE);
+}
+
 /* Returns true if RESULT indicates success,
    false otherwise. */
 bool
 cmd_result_is_success (enum cmd_result result) 
 {
-  return (result == CMD_SUCCESS || result == CMD_EOF
-          || result == CMD_QUIT || result == CMD_END_SUBLOOP);
+  assert (cmd_result_is_valid (result));
+  return result > 0;
 }
 
 /* Returns true if RESULT indicates failure,
@@ -66,7 +77,8 @@ cmd_result_is_success (enum cmd_result result)
 bool
 cmd_result_is_failure (enum cmd_result result) 
 {
-  return !cmd_result_is_success (result);
+  assert (cmd_result_is_valid (result));
+  return result < 0;
 }
 
 /* Command processing states. */
@@ -175,6 +187,7 @@ do_parse_command (enum cmd_state state)
   tab_set_command_name (NULL);
   msg_set_command_name (NULL);
     
+  assert (cmd_result_is_valid (result));
   return result;
 }
 
@@ -628,7 +641,7 @@ command_generator (const char *text, int state)
 int
 cmd_finish (void)
 {
-  return CMD_QUIT;
+  return CMD_FINISH;
 }
 
 /* Parses the N command. */

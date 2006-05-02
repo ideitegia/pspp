@@ -26,6 +26,7 @@
 
 #include <data/case-source.h>
 #include <data/case.h>
+#include <data/case-source.h>
 #include <data/dictionary.h>
 #include <data/variable.h>
 #include <language/command.h>
@@ -44,6 +45,13 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* Private result codes for use within INPUT PROGRAM. */
+enum cmd_result_extensions 
+  {
+    CMD_END_INPUT_PROGRAM = CMD_PRIVATE_FIRST,
+    CMD_END_CASE
+  };
+
 /* Indicates how a `union value' should be initialized. */
 enum value_init_type
   {
@@ -56,14 +64,23 @@ enum value_init_type
 
 struct input_program_pgm 
   {
+    size_t case_nr;             /* Incremented by END CASE transformation. */
+    write_case_func *write_case;/* Called by END CASE. */
+    write_case_data wc_data;    /* Aux data used by END CASE. */
+
     enum value_init_type *init; /* How to initialize each `union value'. */
     size_t init_cnt;            /* Number of elements in inp_init. */
     size_t case_size;           /* Size of case in bytes. */
   };
 
-static trns_proc_func end_case_trns_proc, reread_trns_proc, end_file_trns_proc;
+static void destroy_input_program (struct input_program_pgm *);
+static trns_proc_func end_case_trns_proc;
+static trns_proc_func reread_trns_proc;
+static trns_proc_func end_file_trns_proc;
 static trns_free_func reread_trns_free;
+
 static const struct case_source_class input_program_source_class;
+
 static bool inside_input_program;
 
 /* Returns true if we're parsing the inside of a INPUT
@@ -74,45 +91,67 @@ in_input_program (void)
   return inside_input_program;
 }
 
+/* Emits an END CASE transformation for INP. */
+static void
+emit_END_CASE (struct input_program_pgm *inp) 
+{
+  add_transformation (end_case_trns_proc, NULL, inp);
+}
+
 int
 cmd_input_program (void)
 {
   struct input_program_pgm *inp;
   size_t i;
+  bool saw_END_CASE = false;
 
   discard_variables ();
   if (token != '.')
     return lex_end_of_command ();
 
+  inp = xmalloc (sizeof *inp);
+  inp->init = NULL;
+  
   inside_input_program = true;
   for (;;) 
     {
       enum cmd_result result;
       lex_get ();
       result = cmd_parse (CMD_STATE_INPUT_PROGRAM);
-      if (result == CMD_END_SUBLOOP)
+      if (result == CMD_END_INPUT_PROGRAM)
         break;
-      if (result == CMD_EOF || result == CMD_QUIT || result == CMD_CASCADING_FAILURE)
+      else if (result == CMD_END_CASE) 
+        {
+          emit_END_CASE (inp);
+          saw_END_CASE = true; 
+        }
+      else if (cmd_result_is_failure (result) && result != CMD_FAILURE)
         {
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
-          discard_variables ();
           inside_input_program = false;
+          discard_variables ();
+          destroy_input_program (inp);
           return result;
         }
     }
+  if (!saw_END_CASE)
+    emit_END_CASE (inp);
   inside_input_program = false;
 
-  if (dict_get_next_value_idx (default_dict) == 0)
-    msg (SW, _("No data-input or transformation commands specified "
-               "between INPUT PROGRAM and END INPUT PROGRAM."));
-
+  if (dict_get_next_value_idx (default_dict) == 0) 
+    {
+      msg (SE, _("Input program did not create any variables."));
+      discard_variables ();
+      destroy_input_program (inp);
+      return CMD_FAILURE;
+    }
+  
   /* Mark the boundary between INPUT PROGRAM transformations and
      ordinary transformations. */
   f_trns = n_trns;
 
   /* Figure out how to initialize each input case. */
-  inp = xmalloc (sizeof *inp);
   inp->init_cnt = dict_get_next_value_idx (default_dict);
   inp->init = xnmalloc (inp->init_cnt, sizeof *inp->init);
   for (i = 0; i < inp->init_cnt; i++)
@@ -143,7 +182,7 @@ int
 cmd_end_input_program (void)
 {
   assert (in_input_program ());
-  return CMD_END_SUBLOOP; 
+  return CMD_END_INPUT_PROGRAM; 
 }
 
 /* Initializes case C.  Called before the first case is read. */
@@ -203,45 +242,20 @@ input_program_source_read (struct case_source *source,
                            write_case_data wc_data)
 {
   struct input_program_pgm *inp = source->aux;
-  size_t i;
 
-  /* Nonzero if there were any END CASE commands in the set of
-     transformations.  If so, we don't automatically write out
-     cases. */
-  int end_case = 0;
-
-  /* FIXME?  This is the number of cases sent out of the input
-     program, not the number of cases written to the procedure.
-     The difference should only show up in $CASENUM in COMPUTE.
-     We should check behavior against SPSS. */
-  int cases_written = 0;
-
-  assert (inp != NULL);
-
-  /* Figure end_case. */
-  for (i = 0; i < f_trns; i++)
-    if (t_trns[i].proc == end_case_trns_proc)
-      end_case = 1;
-
-  init_case (inp, c);
-  for (;;)
+  inp->case_nr = 1;
+  inp->write_case = write_case;
+  inp->wc_data = wc_data;
+  for (init_case (inp, c); ; clear_case (inp, c))
     {
+      int i;
+      
       /* Perform transformations on `blank' case. */
       for (i = 0; i < f_trns; )
 	{
           int code;
 
-          if (t_trns[i].proc == end_case_trns_proc) 
-            {
-              cases_written++;
-              if (!write_case (wc_data))
-                return false;
-              clear_case (inp, c);
-              i++;
-              continue;
-            }
-
-	  code = t_trns[i].proc (t_trns[i].private, c, cases_written + 1);
+	  code = t_trns[i].proc (t_trns[i].private, c, inp->case_nr);
 	  switch (code)
 	    {
 	    case TRNS_CONTINUE:
@@ -249,7 +263,7 @@ input_program_source_read (struct case_source *source,
 	      break;
 
             case TRNS_DROP_CASE:
-              abort ();
+              break;
 
             case TRNS_ERROR:
               return false;
@@ -265,18 +279,17 @@ input_program_source_read (struct case_source *source,
 	      break;
 	    }
 	}
+    next_case: ;
+    }
+}
 
-      /* Write the case if appropriate. */
-      if (!end_case) 
-        {
-          cases_written++;
-          if (!write_case (wc_data))
-            return false;
-        }
-
-      /* Blank out the case for the next iteration. */
-    next_case:
-      clear_case (inp, c);
+static void
+destroy_input_program (struct input_program_pgm *pgm) 
+{
+  if (pgm != NULL) 
+    {
+      free (pgm->init);
+      free (pgm);
     }
 }
 
@@ -286,13 +299,7 @@ input_program_source_destroy (struct case_source *source)
 {
   struct input_program_pgm *inp = source->aux;
 
-  cancel_transformations ();
-
-  if (inp != NULL) 
-    {
-      free (inp->init);
-      free (inp);
-    }
+  destroy_input_program (inp);
 }
 
 static const struct case_source_class input_program_source_class =
@@ -307,18 +314,23 @@ int
 cmd_end_case (void)
 {
   assert (in_input_program ());
-  add_transformation (end_case_trns_proc, NULL, NULL);
-
+  if (token == '.')
+    return CMD_END_CASE;
   return lex_end_of_command ();
 }
 
-/* Should never be called, because this is handled in
-   input_program_source_read(). */
+/* Sends the current case as the source's output. */
 int
-end_case_trns_proc (void *trns_ UNUSED, struct ccase *c UNUSED,
-                    int case_num UNUSED)
+end_case_trns_proc (void *inp_, struct ccase *c, int case_nr UNUSED)
 {
-  abort ();
+  struct input_program_pgm *inp = inp_;
+
+  if (!inp->write_case (inp->wc_data))
+    return TRNS_ERROR;
+
+  inp->case_nr++;
+  clear_case (inp, c);
+  return TRNS_CONTINUE;
 }
 
 /* REREAD transformation. */

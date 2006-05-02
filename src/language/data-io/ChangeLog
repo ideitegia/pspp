@@ -1,3 +1,28 @@
+Mon May  1 18:21:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	Further clean up the CMD_* command result codes.
+	
+	* (enum cmd_result_extensions) New.  Add CMD_END_INPUT_PROGRAM and
+	CMD_END_CASE result codes.
+	(struct input_program_pgm) Added case_nr, write_case, wc_data
+	members for use by END CASE transformation.
+	(emit_END_CASE) New function.
+	(cmd_input_program) Interpret CMD_END_CASE by outputting an END
+	CASE transformation.  If none is output by the input program
+	itself, add one automatically at the end.  Change lack of
+	variables from warning to error.
+	(cmd_end_input_program) Return CMD_END_INPUT_PROGRAM instead of
+	CMD_END_SUBLOOP.
+	(input_program_source_read) No longer any need to special-case END
+	CASE.  Handle TRNS_DROP_CASE properly.  Initialize new members in
+	inp for use by END CASE transformation.
+	(destroy_input_program) New function.
+	(input_program_source_destroy) Just call destroy_input_program().
+	(cmd_end_case) Just return CMD_END_CASE.
+	(end_case_trns_proc) No longer a stub handled by
+	input_program_source_read().  Actually output the case and
+	increment the case number.
+
 Mon May  1 16:06:30 2006  Ben Pfaff  <blp@gnu.org>
 
 	Remove vestiges of REPEATING DATA support.

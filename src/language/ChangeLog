@@ -1,3 +1,19 @@
+Mon May  1 18:17:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	Further clean up the CMD_* command result codes.
+	
+	* command.c (cmd_result_is_valid): New function.
+	(cmd_result_is_success) Assert that argument is valid.  Simplified
+	check to one for a positive result.
+	(cmd_result_is_failure) Assert that argument is valid.  Simplified
+	check to one for a negative result.
+	(do_parse_command) Check that command's returned result is valid.
+
+	* command.h: (enum cmd_result) Renamed CMD_QUIT to CMD_FINISH and
+	updated all users.  Removed CMD_END_SUBLOOP in favor of new
+	CMD_PRIVATE_FIRST...CMD_PRIVATE_LAST range.  Changed failure codes
+	to have negative values.
+
 Mon May  1 15:56:56 2006  Ben Pfaff  <blp@gnu.org>
 
 	Remove vestiges of FILE TYPE support. 

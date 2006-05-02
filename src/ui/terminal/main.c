@@ -104,7 +104,7 @@ main (int argc, char **argv)
       for (;;)
         {
           int result = execute_command ();
-          if (result == CMD_EOF || result == CMD_QUIT)
+          if (result == CMD_EOF || result == CMD_FINISH)
             break;
           if (result == CMD_CASCADING_FAILURE && !getl_is_interactive ())
             {

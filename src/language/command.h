@@ -27,14 +27,19 @@ enum cmd_result
   {
     /* Successful return values. */
     CMD_SUCCESS = 1,            /* Successfully parsed and executed. */
-    CMD_EOF,                    /* No commands left. */
-    CMD_QUIT,                   /* Requested exit. */
-    CMD_END_SUBLOOP,            /* End of INPUT PROGRAM. */
+    CMD_EOF = 2,                /* End of input. */
+    CMD_FINISH = 3,             /* FINISH was executed. */
+
+    /* Range of successful return values available for use
+       by agreement between a command and the caller of
+       cmd_parse(). */
+    CMD_PRIVATE_FIRST = 4,      
+    CMD_PRIVATE_LAST = 127,      
 
     /* Various kinds of failures. */
-    CMD_FAILURE,                /* Not executed at all. */
-    CMD_NOT_IMPLEMENTED,        /* Command not implemented. */
-    CMD_CASCADING_FAILURE       /* Serious error: don't continue. */
+    CMD_FAILURE = -1,           /* Not executed at all. */
+    CMD_NOT_IMPLEMENTED = -2,   /* Command not implemented. */
+    CMD_CASCADING_FAILURE = -3  /* Serious error: don't continue. */
   };
 
 bool cmd_result_is_success (enum cmd_result);
