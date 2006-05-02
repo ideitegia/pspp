@@ -432,6 +432,8 @@ copy_mangle (char *dst, size_t dst_size,
 int
 width_to_bytes(int width)
 {
+  const int chunks = width / EFFECTIVE_LONG_STRING_LENGTH ;
+  const int remainder = width - (chunks * EFFECTIVE_LONG_STRING_LENGTH) ;
   int bytes, mod8;
 
   assert (width >= 0);
@@ -442,9 +444,6 @@ width_to_bytes(int width)
   if ( width <= MAX_LONG_STRING) 
     return MAX_SHORT_STRING * DIV_RND_UP(width, MAX_SHORT_STRING);
 
-  const int chunks = width / EFFECTIVE_LONG_STRING_LENGTH ;
-
-  const int remainder = width - (chunks * EFFECTIVE_LONG_STRING_LENGTH) ;
 
   bytes =  remainder + (chunks * (MAX_LONG_STRING + 1) );
 

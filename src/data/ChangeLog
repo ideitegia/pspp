@@ -1,3 +1,8 @@
+Tue May  2 15:43:36 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable.c (width_to_bytes): Declarations must precede
+	statements for C90 compliance.
+
 Tue May  2 10:42:05 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* data-out.c, data-in.c, variable.c, variable.h: New functions 
