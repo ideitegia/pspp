@@ -1,3 +1,14 @@
+Tue May  2 15:57:10 2006  Ben Pfaff  <blp@gnu.org>
+
+	* storage-stream.c: Add missing function comments.
+
+Tue May  2 15:50:21 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, add some
+	new, needed functionality to storage-stream.
+
+	* storage-stream.c: (storage_source_decapsulate) New function.
+
 Tue May  2 15:43:36 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable.c (width_to_bytes): Declarations must precede

@@ -151,6 +151,7 @@ const struct case_source_class storage_source_class =
     storage_source_destroy,
   };
 
+/* Returns the casefile encapsulated by SOURCE. */
 struct casefile *
 storage_source_get_casefile (struct case_source *source) 
 {
@@ -175,13 +176,15 @@ storage_source_decapsulate (struct case_source *source)
   return casefile;
 }
 
+/* Creates and returns a new storage stream that encapsulates
+   CASEFILE. */
 struct case_source *
-storage_source_create (struct casefile *cf)
+storage_source_create (struct casefile *casefile)
 {
   struct storage_stream_info *info;
 
   info = xmalloc (sizeof *info);
-  info->casefile = cf;
+  info->casefile = casefile;
 
   return create_case_source (&storage_source_class, info);
 }
