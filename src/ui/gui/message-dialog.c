@@ -31,6 +31,7 @@
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
+#include <glib.h>
 
 #include "helper.h"
 
@@ -39,11 +40,58 @@ extern GladeXML *xml;
 #define _(A) A
 
 static void handle_msg(const struct msg *);
+static void enqueue_msg(const struct msg *m);
+
+
+static GQueue *message_queue;
 
 void
 message_dialog_init (void) 
 {
-  msg_init(handle_msg);
+  message_queue = g_queue_new();
+  msg_init(enqueue_msg);
+}
+
+
+void
+message_dialog_done (void)
+{
+  msg_done();
+  g_queue_free(message_queue);
+}
+
+static gboolean 
+dequeue_message(gpointer data)
+{
+  struct msg * m ;
+
+  /* If a pointer grab is in effect, then the combination of that, and
+     a modal dialog box, will cause an impossible situation. 
+     So don't pop it up just yet.
+  */ 
+  if ( gdk_pointer_is_grabbed())
+    return TRUE;
+
+  m = g_queue_pop_tail(message_queue);
+
+  if ( m ) 
+    {
+      handle_msg(m);
+      msg_destroy(m);
+      return TRUE;
+    }
+  
+  return FALSE;
+}
+
+static void
+enqueue_msg(const struct msg *msg)
+{
+  struct msg *m = msg_dup(msg);
+
+  g_queue_push_head(message_queue, m);
+
+  g_idle_add(dequeue_message, 0);
 }
 
 static void

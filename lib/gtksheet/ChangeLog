@@ -1,3 +1,9 @@
+Thu May  4 17:55:48 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * gtksheet.c: Added callback on inserted rows.
+
+Sat Jan 28 08:48:08 2006 UTC John Darrington <john@darrington.wattle.id.au>
+
     * Separated the data out of the GtkSheet.  The gtksheet should now be
     regarded as a way of looking into the data.  The data is represented by a
     GSheetModel and the rows and columns by  GSheetRow and GSheetColumn.

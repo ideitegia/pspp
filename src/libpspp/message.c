@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <libpspp/alloc.h>
 #include <libpspp/version.h>
@@ -67,6 +68,27 @@ void
 msg_done (void) 
 {
 }
+
+
+/* Duplicate a message */
+struct msg * 
+msg_dup(const struct msg *m)
+{
+  struct msg *new_msg = xmalloc (sizeof *m);
+
+  *new_msg = *m;
+  new_msg->text = strdup(m->text);
+
+  return new_msg;
+}
+
+void
+msg_destroy(struct msg *m)
+{
+  free(m->text);
+  free(m);
+}
+
 
 /* Emits M as an error message.
    Frees allocated data in M. */

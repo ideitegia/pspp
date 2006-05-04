@@ -10,11 +10,11 @@ src_ui_gui_psppire_LDFLAGS = \
 src_ui_gui_psppire_LDADD = \
 	$(GTK_LIBS) \
 	$(GLADE_LIBS) \
-	-lgtksheet -L$(top_builddir)/lib/gtksheet \
-	-ldata -L$(top_builddir)/src/data \
-	-lpspp -L$(top_builddir)/src/libpspp \
-	 -lgl -L$(top_builddir)/gl    \
-	 @LIBINTL@ @LIBREADLINE@
+	$(top_builddir)/lib/gtksheet/libgtksheet.a \
+	$(top_builddir)/src/data/libdata.a \
+	$(top_builddir)/src/libpspp/libpspp.a \
+	$(top_builddir)/gl/libgl.a \
+	@LIBINTL@ @LIBREADLINE@
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 

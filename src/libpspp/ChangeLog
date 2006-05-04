@@ -1,3 +1,7 @@
+Thu May  4 18:01:37 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* message.c message.h: Added functions to create and copy a msg.
+
 Tue May  2 15:41:50 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.c (ds_append_uninit): No need to add 1 to arg passed to

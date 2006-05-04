@@ -1,3 +1,14 @@
+Thu May  4 18:04:04 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* message-dialog.c message-dialog.h: Added simple queuing to messages
+	reported, and ensure that dialog boxes dont appear when pointer grab
+	is active.
+
+	* psppire-data-store.c: Fix overflow on very long string variables.
+
+	* automake.mk: Fix broken dependency.
+
+
 Tue Apr 25 11:08:04 2006  Ben Pfaff  <blp@gnu.org>
 
 	Finish reforming error message support.  In this phase, move

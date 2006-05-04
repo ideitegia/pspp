@@ -62,10 +62,11 @@ main(int argc, char *argv[])
   GtkSheet *var_sheet ; 
   GtkSheet *data_sheet ;
 
+  gtk_init(&argc, &argv);
+
   if ( ! parse_command_line(&argc, &argv) ) 
     return 0;
 
-  gtk_init(&argc, &argv);
 
   glade_init();
 
@@ -105,6 +106,9 @@ main(int argc, char *argv[])
 
   /* start the event loop */
   gtk_main();
+
+  message_dialog_done();
+
   return 0;
 }
 
@@ -141,7 +145,7 @@ parse_command_line (int *argc, char ***argv)
 	  g_print(legal);
 	  return false;
 	default:
-	  assert (0);
+	  return false;
 	}
     }
 

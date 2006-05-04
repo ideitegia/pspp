@@ -329,10 +329,11 @@ psppire_data_store_finalize (GObject *object)
 static const gchar *const 
 psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 {
+
   const struct fmt_spec *fp ;
   const struct PsppireVariable *pv ;
   const union value *v ;
-  static gchar s[255];
+  GString *s;
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
 
   g_return_val_if_fail(store->dict, NULL);
@@ -343,6 +344,7 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 
   if ( row >= psppire_case_array_get_n_cases(store->cases))
     return NULL;
+
 
   pv = psppire_dict_get_variable(store->dict, column);
 
@@ -362,21 +364,15 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 
   fp = psppire_variable_get_write_spec(pv);
 
-  if ( psppire_variable_get_type(pv) == NUMERIC ) 
-    {
-      /* Converts binary value V into printable form in the exactly
-	 FP->W character in buffer S according to format specification
-	 FP.  No null terminator is appended to the buffer.  */
-      data_out (s, fp, v);
-      s[fp->w] = '\0';
-    }
-  else
-    {
-      const gint len = psppire_variable_get_width(pv);
-      memcpy(s, v->s, len);
-      s[len] = '\0';
-    }
+  s = g_string_sized_new (fp->w);
+    
+  /* Converts binary value V into printable form in the exactly
+     FP->W character in buffer S according to format specification
+     FP.  No null terminator is appended to the buffer.  */
+  data_out (s->str, fp, v);
 
+  return g_string_free(s, FALSE);
+#if 0
   {
     static gchar buf[255];
     GError *err = NULL;
@@ -395,6 +391,7 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 
   return buf ;
   }
+#endif
 }
 
 
@@ -574,11 +571,12 @@ M_width(GtkSheet *sheet, gint row, gint col)
   /* FIXME: make this a member of the data store */
   static PangoLayout *layout = 0;
 
-
   gtk_sheet_get_attributes(sheet, row, col, &attributes);
 
   if (! layout ) 
     layout = gtk_widget_create_pango_layout (GTK_WIDGET(sheet), "M");
+
+  g_assert(layout);
   
   pango_layout_set_font_description (layout, 
 				     attributes.font_desc);

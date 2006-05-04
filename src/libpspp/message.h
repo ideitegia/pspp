@@ -89,6 +89,9 @@ struct msg
 void msg_init (void (*handler) (const struct msg *));
 void msg_done (void);
 
+struct msg * msg_dup(const struct msg *m);
+void msg_destroy(struct msg *m);
+
 /* Emitting messages. */
 void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);

@@ -1123,14 +1123,18 @@ gtk_sheet_init (GtkSheet *sheet)
 }
 
 
+/* Callback which occurs whenever rows are inserted/deleted in the model */
 static void 
-rows_deleted_callback (GSheetModel *m, gint first_row, gint n_rows,
+rows_inserted_deleted_callback (GSheetModel *m, gint first_row, gint n_rows,
 		      gpointer data)
 {
   GtkSheet *sheet = GTK_SHEET(data);
 
   GtkSheetRange range;
 
+  /* Need to update all the rows starting from the first row and onwards.
+   * Previous rows are unchanged, so don't need to be updated.
+   */
   range.row0 = first_row;
   range.col0 = 0;
   range.rowi = yyy_row_count(sheet) - 1;
@@ -1230,8 +1234,11 @@ gtk_sheet_set_model(GtkSheet *sheet, GSheetModel *model)
   g_signal_connect(model, "range_changed", 
 		   G_CALLBACK(range_update_callback), sheet);
 
+  g_signal_connect(model, "rows_inserted",
+		   G_CALLBACK(rows_inserted_deleted_callback), sheet);
+
   g_signal_connect(model, "rows_deleted",
-		   G_CALLBACK(rows_deleted_callback), sheet);
+		   G_CALLBACK(rows_inserted_deleted_callback), sheet);
 
 }
 
@@ -1481,7 +1488,6 @@ gtk_sheet_autoresize_column (GtkSheet *sheet, gint column)
   g_return_if_fail (GTK_IS_SHEET (sheet));
   if (column >= xxx_column_count(sheet) || column < 0) return;
 
-  g_print("%s:%d Iterating rows\n",__FILE__, __LINE__);
   for (row = 0; row < yyy_row_count(sheet); row++){
     const gchar *text = gtk_sheet_cell_get_text(sheet, row, column);
     if (text && strlen(text) > 0){
@@ -4098,7 +4104,6 @@ gtk_sheet_draw_active_cell(GtkSheet *sheet)
 #endif
     gtk_sheet_draw_backing_pixmap(sheet, sheet->range);
     gtk_sheet_draw_border(sheet, sheet->range);
-
 }
 
 
