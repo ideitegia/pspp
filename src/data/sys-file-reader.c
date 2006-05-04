@@ -844,7 +844,8 @@ read_header (struct sfm_reader *r,
   /* Copy basic info and verify correctness. */
   r->value_cnt = hdr.nominal_case_size;
 
-  /* If value count is rediculous, then force it to -1 (a sentinel value) */
+  /* If value count is ridiculous, then force it to -1 (a
+     sentinel value). */
   if ( r->value_cnt < 0 || 
        r->value_cnt > (INT_MAX / (int) sizeof (union value) / 2))
     r->value_cnt = -1;
