@@ -28,8 +28,6 @@
 #include "format.h"
 #include "missing-values.h"
 
-/* Script variables. */
-
 /* Variable type. */
 enum var_type
   {
@@ -128,71 +126,15 @@ struct vector
     int cnt;			/* Number of variables. */
   };
 
-void discard_variables (void);
-
-/* This is the active file dictionary. */
-extern struct dictionary *default_dict;
-
-/* Transformation state. */
-
 /* PROCESS IF expression. */
 extern struct expression *process_if_expr;
-
-/* TEMPORARY support. */
-
-/* 1=TEMPORARY has been executed at some point. */
-extern int temporary;
-
-/* If temporary!=0, the saved dictionary. */
-extern struct dictionary *temp_dict;
-
-/* If temporary!=0, index into t_trns[] (declared far below) that
-   gives the point at which data should be written out.  -1 means that
-   the data shouldn't be changed since all transformations are
-   temporary. */
-extern size_t temp_trns;
-
-void cancel_temporary (void);
 
 struct ccase;
 void dump_split_vars (const struct ccase *);
 
-/* Transformations. */
-
-/* trns_proc_func return values. */
-#define TRNS_CONTINUE   -1 /* Continue to next transformation. */
-#define TRNS_DROP_CASE  -2 /* Drop this case. */
-#define TRNS_ERROR      -3 /* A serious error, so stop the procedure. */
-#define TRNS_NEXT_CASE  -4 /* Skip to next case.  INPUT PROGRAM only. */
-#define TRNS_END_FILE   -5 /* End of input.  INPUT PROGRAM only. */
-
-typedef int trns_proc_func (void *, struct ccase *, int);
-typedef bool trns_free_func (void *);
-
-/* A transformation. */
-struct transformation
-  {
-    trns_proc_func *proc;       /* Transformation proc. */
-    trns_free_func *free;       /* Garbage collector proc. */
-    void *private;              /* Private data. */
-  };
-
-/* Array of transformations */
-extern struct transformation *t_trns;
-
-/* Number of transformations, maximum number in array currently. */
-extern size_t n_trns, m_trns;
-
-/* Index of first transformation that is really a transformation.  Any
-   transformations before this belong to INPUT PROGRAM. */
-extern size_t f_trns;
-
-void add_transformation (trns_proc_func *, trns_free_func *, void *);
-size_t next_transformation (void);
-bool cancel_transformations (void);
-
 struct var_set;
 
+struct dictionary;
 struct var_set *var_set_create_from_dict (const struct dictionary *d);
 struct var_set *var_set_create_from_array (struct variable *const *var,
                                            size_t);

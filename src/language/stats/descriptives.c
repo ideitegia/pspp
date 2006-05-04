@@ -20,24 +20,26 @@
 /* FIXME: Many possible optimizations. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
-#include <libpspp/array.h>
-#include <libpspp/alloc.h>
+
 #include <data/case.h>
 #include <data/casefile.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
 #include <data/dictionary.h>
+#include <data/transformations.h>
+#include <data/variable.h>
+#include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/message.h>
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
+#include <libpspp/compiler.h>
 #include <libpspp/magic.h>
+#include <libpspp/message.h>
 #include <math/moments.h>
 #include <output/manager.h>
 #include <output/table.h>
-#include <data/variable.h>
 #include <procedure.h>
 
 #include "gettext.h"

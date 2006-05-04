@@ -26,10 +26,12 @@
 
 #include <data/case-source.h>
 #include <data/case.h>
+#include <data/case-source.h>
 #include <data/data-in.h>
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/settings.h>
+#include <data/transformations.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/data-io/data-reader.h>
@@ -101,6 +103,7 @@ static void dump_fixed_table (const struct dls_var_spec *,
 static void dump_free_table (const struct data_list_pgm *,
                              const struct file_handle *);
 static void destroy_dls_var_spec (struct dls_var_spec *);
+
 static trns_free_func data_list_trns_free;
 static trns_proc_func data_list_trns_proc;
 
@@ -255,10 +258,10 @@ cmd_data_list (void)
   if (dls->reader == NULL)
     goto error;
 
-  if (vfm_source != NULL)
+  if (in_input_program ())
     add_transformation (data_list_trns_proc, data_list_trns_free, dls);
   else 
-    vfm_source = create_case_source (&data_list_source_class, dls);
+    proc_set_source (create_case_source (&data_list_source_class, dls));
 
   return CMD_SUCCESS;
 
@@ -534,7 +537,7 @@ fixed_parse_compatible (struct fixed_parsing_state *fx,
       else
 	{
 	  v = dict_lookup_var_assert (default_dict, fx->name[i]);
-	  if (vfm_source == NULL)
+	  if (!in_input_program ())
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), fx->name[i]);
 	      return 0;
@@ -1228,7 +1231,7 @@ data_list_trns_proc (void *dls_, struct ccase *c, int case_num UNUSED)
       retval = TRNS_ERROR;
     }
   else
-    retval = TRNS_DROP_CASE;
+    retval = TRNS_END_FILE;
   
   /* If there was an END subcommand handle it. */
   if (dls->end != NULL) 
@@ -1237,7 +1240,7 @@ data_list_trns_proc (void *dls_, struct ccase *c, int case_num UNUSED)
       if (retval == TRNS_DROP_CASE)
         {
           *end = 1.0;
-          retval = TRNS_CONTINUE;
+          retval = TRNS_END_FILE;
         }
       else
         *end = 0.0;

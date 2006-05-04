@@ -32,6 +32,7 @@
 #include <data/case-source.h>
 #include <data/case.h>
 #include <data/dictionary.h>
+#include <procedure.h>
 #include <data/settings.h>
 #include <data/value.h>
 #include <data/variable.h>
@@ -91,14 +92,12 @@ int
 cmd_flip (void)
 {
   struct flip_pgm *flip;
+  struct case_sink *sink;
   bool ok;
 
-  if (temporary != 0)
-    {
-      msg (SW, _("FLIP ignores TEMPORARY.  "
-                 "Temporary transformations will be made permanent."));
-      cancel_temporary (); 
-    }
+  if (proc_make_temporary_transformations_permanent ())
+    msg (SW, _("FLIP ignores TEMPORARY.  "
+               "Temporary transformations will be made permanent."));
 
   flip = pool_create_container (struct flip_pgm, pool);
   flip->var = NULL;
@@ -150,10 +149,11 @@ cmd_flip (void)
 
   /* Read the active file into a flip_sink. */
   flip->case_cnt = 0;
-  temp_trns = temporary = 0;
-  vfm_sink = flip_sink_create (flip);
-  if (vfm_sink == NULL)
+  proc_make_temporary_transformations_permanent ();
+  sink = flip_sink_create (flip);
+  if (sink == NULL)
     goto error;
+  proc_set_sink (sink);
   flip->new_names_tail = NULL;
   ok = procedure (NULL, NULL);
 
@@ -174,7 +174,7 @@ cmd_flip (void)
   flip->case_size = dict_get_case_size (default_dict);
 
   /* Set up flipped data for reading. */
-  vfm_source = flip_source_create (flip);
+  proc_set_source (flip_source_create (flip));
 
   return ok ? lex_end_of_command () : CMD_CASCADING_FAILURE;
 

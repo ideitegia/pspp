@@ -1,3 +1,14 @@
+Wed May  3 23:05:31 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	many global variables, consolidating procedure execution in
+	procedure.c.  Encapsulate transformations in new "struct
+	trns_chain".  Also, change implementation of N OF CASES, FILTER,
+	and PROCESS IF from special cases to transformations.
+	 
+	* aggregate.c (cmd_aggregate) Use discard_variables().
+	
+
 2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (regression_trns_resid_proc): Pass only the

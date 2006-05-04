@@ -57,6 +57,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/sys-file-reader.h \
 	src/data/sys-file-writer.c \
 	src/data/sys-file-writer.h \
+	src/data/transformations.c \
+	src/data/transformations.h \
 	src/data/value.h \
 	src/data/value-labels.c \
 	src/data/value-labels.h \

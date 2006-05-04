@@ -18,21 +18,23 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
-#include <libpspp/alloc.h>
-#include <data/case.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
-#include <data/dictionary.h>
+
 #include "control-stack.h"
-#include <libpspp/message.h>
+#include <data/case.h>
+#include <data/dictionary.h>
+#include <procedure.h>
+#include <data/settings.h>
+#include <data/transformations.h>
+#include <data/variable.h>
+#include <language/command.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
-#include <data/settings.h>
 #include <libpspp/str.h>
-#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -79,6 +81,7 @@ struct loop_trns
 
 static struct ctl_class loop_class;
 
+static trns_finalize_func loop_trns_finalize;
 static trns_proc_func loop_trns_proc, end_loop_trns_proc, break_trns_proc;
 static trns_free_func loop_trns_free;
 
@@ -248,12 +251,24 @@ create_loop_trns (void)
   loop->first_expr = loop->by_expr = loop->last_expr = NULL;
   loop->loop_condition = loop->end_loop_condition = NULL;
 
-  add_transformation (loop_trns_proc, loop_trns_free, loop);
+  add_transformation_with_finalizer (loop_trns_finalize,
+                                     loop_trns_proc, loop_trns_free, loop);
   loop->past_LOOP_index = next_transformation ();
 
   ctl_stack_push (&loop_class, loop);
 
   return loop;
+}
+
+/* Finalizes LOOP by clearing the control stack, thus ensuring
+   that all open LOOPs are closed. */ 
+static void
+loop_trns_finalize (void *do_if_ UNUSED) 
+{
+  /* This will be called multiple times if multiple LOOPs were
+     executed, which is slightly unclean, but at least it's
+     idempotent. */
+  ctl_stack_clear ();
 }
 
 /* Sets up LOOP for the first pass. */

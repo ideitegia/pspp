@@ -18,14 +18,17 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
-#include <language/command.h>
-#include <libpspp/message.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/str.h>
+
+#include <procedure.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
+#include <libpspp/str.h>
 
 /* Set variables' alignment
    This is the alignment for GUI display only.
@@ -41,7 +44,6 @@ cmd_variable_alignment (void)
 
       size_t i;
       enum alignment align;
-
 
       if (!parse_variables (default_dict, &v, &nv, PV_NONE))
         return CMD_FAILURE;

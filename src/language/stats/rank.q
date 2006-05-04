@@ -19,14 +19,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 #include <config.h>
+
+#include "sort-criteria.h"
+#include <data/dictionary.h>
+#include <procedure.h>
+#include <data/variable.h>
 #include <language/command.h>
 #include <language/stats/sort-criteria.h>
 #include <libpspp/compiler.h>
-#include <data/dictionary.h>
 #include <math/sort.h>
-#include <data/variable.h>
-
-#include "sort-criteria.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

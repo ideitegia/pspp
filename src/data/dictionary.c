@@ -59,9 +59,6 @@ struct dictionary
     size_t vector_cnt;          /* Number of vectors. */
   };
 
-/* Active file dictionary. */
-struct dictionary *default_dict;
-
 /* Creates and returns a new dictionary. */
 struct dictionary *
 dict_create (void) 

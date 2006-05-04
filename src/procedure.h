@@ -22,26 +22,59 @@
 
 #include <time.h>
 #include <stdbool.h>
+#include <data/transformations.h>
 
 struct ccase;
 struct casefile;
+struct case_sink;
+struct case_source;
 
-/* The current active file, from which cases are read. */
-extern struct case_source *vfm_source;
+/* Dictionary produced by permanent and temporary transformations
+   on data from the source. */
+extern struct dictionary *default_dict;
+
+/* Transformations. */
 
-/* The replacement active file, to which cases are written. */
-extern struct case_sink *vfm_sink;
+void add_transformation (trns_proc_func *, trns_free_func *, void *);
+void add_transformation_with_finalizer (trns_finalize_func *,
+                                        trns_proc_func *,
+                                        trns_free_func *, void *);
+size_t next_transformation (void);
+
+void discard_variables (void);
+
+bool proc_cancel_all_transformations (void);
+struct trns_chain *proc_capture_transformations (void);
+
+void proc_start_temporary_transformations (void);
+bool proc_in_temporary_transformations (void);
+bool proc_make_temporary_transformations_permanent (void);
+bool proc_cancel_temporary_transformations (void);
+
+/* Procedures. */
+
+void proc_init (void);
+void proc_done (void);
+
+void proc_set_source (struct case_source *);
+bool proc_has_source (void);
+
+void proc_set_sink (struct case_sink *);
+struct casefile *proc_capture_output (void);
 
 bool procedure (bool (*proc_func) (struct ccase *, void *aux), void *aux);
 bool procedure_with_splits (void (*begin_func) (void *aux),
                             bool (*proc_func) (struct ccase *, void *aux),
                             void (*end_func) (void *aux),
                             void *aux);
+bool multipass_procedure (bool (*proc_func) (const struct casefile *,
+                                             void *aux),
+                          void *aux);
 bool multipass_procedure_with_splits (bool (*) (const struct casefile *,
                                                 void *),
                                       void *aux);
 time_t time_of_last_procedure (void);
-
+
 /* Number of cases to lag. */
 extern int n_lag;
 

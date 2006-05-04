@@ -28,6 +28,7 @@
 #include <data/case.h>
 #include <data/case-source.h>
 #include <data/dictionary.h>
+#include <data/transformations.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/data-io/data-reader.h>
@@ -64,6 +65,8 @@ enum value_init_type
 
 struct input_program_pgm 
   {
+    struct trns_chain *trns_chain;
+
     size_t case_nr;             /* Incremented by END CASE transformation. */
     write_case_func *write_case;/* Called by END CASE. */
     write_case_data wc_data;    /* Aux data used by END CASE. */
@@ -110,6 +113,7 @@ cmd_input_program (void)
     return lex_end_of_command ();
 
   inp = xmalloc (sizeof *inp);
+  inp->trns_chain = NULL;
   inp->init = NULL;
   
   inside_input_program = true;
@@ -147,9 +151,8 @@ cmd_input_program (void)
       return CMD_FAILURE;
     }
   
-  /* Mark the boundary between INPUT PROGRAM transformations and
-     ordinary transformations. */
-  f_trns = n_trns;
+  inp->trns_chain = proc_capture_transformations ();
+  trns_chain_finalize (inp->trns_chain);
 
   /* Figure out how to initialize each input case. */
   inp->init_cnt = dict_get_next_value_idx (default_dict);
@@ -172,8 +175,7 @@ cmd_input_program (void)
     assert (inp->init[i] != -1);
   inp->case_size = dict_get_case_size (default_dict);
 
-  /* Create vfm_source. */
-  vfm_source = create_case_source (&input_program_source_class, inp);
+  proc_set_source (create_case_source (&input_program_source_class, inp));
 
   return CMD_SUCCESS;
 }
@@ -248,38 +250,12 @@ input_program_source_read (struct case_source *source,
   inp->wc_data = wc_data;
   for (init_case (inp, c); ; clear_case (inp, c))
     {
-      int i;
-      
-      /* Perform transformations on `blank' case. */
-      for (i = 0; i < f_trns; )
-	{
-          int code;
-
-	  code = t_trns[i].proc (t_trns[i].private, c, inp->case_nr);
-	  switch (code)
-	    {
-	    case TRNS_CONTINUE:
-	      i++;
-	      break;
-
-            case TRNS_DROP_CASE:
-              break;
-
-            case TRNS_ERROR:
-              return false;
-
-	    case TRNS_NEXT_CASE:
-	      goto next_case;
-
-	    case TRNS_END_FILE:
-              return true;
-
-	    default:
-	      i = code;
-	      break;
-	    }
-	}
-    next_case: ;
+      enum trns_result result = trns_chain_execute (inp->trns_chain, c,
+                                                    &inp->case_nr);
+      if (result == TRNS_ERROR)
+        return false;
+      else if (result == TRNS_END_FILE)
+        return true;
     }
 }
 
@@ -288,6 +264,7 @@ destroy_input_program (struct input_program_pgm *pgm)
 {
   if (pgm != NULL) 
     {
+      trns_chain_destroy (pgm->trns_chain);
       free (pgm->init);
       free (pgm);
     }

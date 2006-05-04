@@ -88,12 +88,9 @@ cmd_modify_vars (void)
 
   size_t i;
 
-  if (temporary != 0)
-    {
-      msg (SE, _("MODIFY VARS may not be used after TEMPORARY.  "
-                 "Temporary transformations will be made permanent."));
-      cancel_temporary (); 
-    }
+  if (proc_make_temporary_transformations_permanent ())
+    msg (SE, _("MODIFY VARS may not be used after TEMPORARY.  "
+               "Temporary transformations will be made permanent."));
 
   vm.reorder_vars = NULL;
   vm.reorder_cnt = 0;

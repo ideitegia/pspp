@@ -22,15 +22,17 @@
 #include <stdlib.h>
 
 #include "control-stack.h"
-#include <libpspp/message.h>
-#include <libpspp/alloc.h>
+#include <procedure.h>
+#include <data/transformations.h>
+#include <data/variable.h>
 #include <language/command.h>
-#include <libpspp/compiler.h>
-#include <libpspp/message.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
 #include <libpspp/str.h>
-#include <data/variable.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -89,6 +91,7 @@ static bool has_else (struct do_if_trns *);
 static bool must_not_have_else (struct do_if_trns *);
 static void close_do_if (void *do_if);
 
+static trns_finalize_func do_if_finalize_func;
 static trns_proc_func do_if_trns_proc, break_trns_proc;
 static trns_free_func do_if_trns_free;
 
@@ -101,7 +104,8 @@ cmd_do_if (void)
   do_if->clause_cnt = 0;
 
   ctl_stack_push (&do_if_class, do_if);
-  add_transformation (do_if_trns_proc, do_if_trns_free, do_if);
+  add_transformation_with_finalizer (do_if_finalize_func,
+                                     do_if_trns_proc, do_if_trns_free, do_if);
 
   return parse_clause (do_if);
 }
@@ -217,6 +221,17 @@ add_clause (struct do_if_trns *do_if,
   clause = &do_if->clauses[do_if->clause_cnt++];
   clause->condition = condition;
   clause->target_index = target_index;
+}
+
+/* Finalizes DO IF by clearing the control stack, thus ensuring
+   that all open DO IFs are closed. */ 
+static void
+do_if_finalize_func (void *do_if_ UNUSED) 
+{
+  /* This will be called multiple times if multiple DO IFs were
+     executed, which is slightly unclean, but at least it's
+     idempotent. */
+  ctl_stack_clear ();
 }
 
 /* DO IF transformation procedure.

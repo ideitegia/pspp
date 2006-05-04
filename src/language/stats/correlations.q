@@ -18,15 +18,19 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <stdlib.h>
-#include <libpspp/alloc.h>
-#include <libpspp/compiler.h>
+
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
-#include <language/data-io/file-handle.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
+#include <procedure.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/data-io/file-handle.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+
 /* (headers) */
 
 struct cor_set

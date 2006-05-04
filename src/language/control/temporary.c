@@ -18,66 +18,35 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <stddef.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
-#include <language/command.h>
-#include <data/dictionary.h>
+
 #include "control-stack.h"
-#include <libpspp/message.h>
-#include <libpspp/hash.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/str.h>
+#include <data/dictionary.h>
+#include <procedure.h>
+#include <data/transformations.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/hash.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-int temporary;
-struct dictionary *temp_dict;
-size_t temp_trns;
 
 /* Parses the TEMPORARY command. */
 int
 cmd_temporary (void)
 {
-  /* TEMPORARY is not allowed inside DO IF or LOOP. */
-  if (!ctl_stack_is_empty ())
-    {
-      msg (SE, _("This command is not valid inside DO IF or LOOP."));
-      return CMD_FAILURE;
-    }
-
-  /* TEMPORARY can only appear once! */
-  if (temporary)
-    {
-      msg (SE, _("This command may only appear once between "
-	   "procedures and procedure-like commands."));
-      return CMD_FAILURE;
-    }
-
-  /* Make a copy of the current dictionary. */
-  temporary = 1;
-  temp_dict = dict_clone (default_dict);
-  temp_trns = n_trns;
-
+  if (!proc_in_temporary_transformations ())
+    proc_start_temporary_transformations ();
+  else
+    msg (SE, _("This command may only appear once between "
+               "procedures and procedure-like commands."));
   return lex_end_of_command ();
-}
-
-/* Cancels the temporary transformation, if any. */
-void
-cancel_temporary (void)
-{
-  if (temporary)
-    {
-      if (temp_dict) 
-        {
-          dict_destroy (temp_dict);
-          temp_dict = NULL; 
-        }
-      temporary = 0;
-      temp_trns = 0;
-    }
 }

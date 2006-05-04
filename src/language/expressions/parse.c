@@ -1222,7 +1222,7 @@ parse_function (struct expression *e)
       msg (SE, _("%s is not yet implemented."), f->prototype);
       goto fail;
     }
-  if ((f->flags & OPF_PERM_ONLY) && temporary != 0) 
+  if ((f->flags & OPF_PERM_ONLY) && proc_in_temporary_transformations ()) 
     {
       msg (SE, _("%s may not appear after TEMPORARY."), f->prototype);
       goto fail;

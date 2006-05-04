@@ -57,24 +57,13 @@ static struct casefile *do_internal_sort (struct casereader *,
 static struct casefile *do_external_sort (struct casereader *,
                                           const struct sort_criteria *);
 
-/* Gets ready to sort the active file, either in-place or to a
-   separate casefile. */
-static bool
+/* Get ready to sort the active file. */
+static void
 prepare_to_sort_active_file (void) 
 {
-  bool ok;
-  
-  /* Cancel temporary transformations and PROCESS IF. */
-  if (temporary != 0)
-    cancel_temporary (); 
+  proc_cancel_temporary_transformations (); 
   expr_free (process_if_expr);
   process_if_expr = NULL;
-
-  /* Make sure source cases are in a storage source. */
-  ok = procedure (NULL, NULL);
-  assert (case_source_is_class (vfm_source, &storage_source_class));
-
-  return ok;
 }
 
 /* Sorts the active file in-place according to CRITERIA.
@@ -82,21 +71,35 @@ prepare_to_sort_active_file (void)
 int
 sort_active_file_in_place (const struct sort_criteria *criteria) 
 {
-  struct casefile *src, *dst;
+  struct casefile *in, *out;
+
+  prepare_to_sort_active_file ();
+  if (!procedure (NULL, NULL))
+    return 0;
   
-  if (!prepare_to_sort_active_file ())
+  in = proc_capture_output ();
+  out = sort_execute (casefile_get_destructive_reader (in), criteria);
+  if (out == NULL) 
     return 0;
 
-  src = storage_source_get_casefile (vfm_source);
-  dst = sort_execute (casefile_get_destructive_reader (src), criteria);
-  free_case_source (vfm_source);
-  vfm_source = NULL;
-
-  if (dst == NULL) 
-    return 0;
-
-  vfm_source = storage_source_create (dst);
+  proc_set_source (storage_source_create (out));
   return 1;
+}
+
+/* Data passed to sort_to_casefile_callback(). */
+struct sort_to_casefile_cb_data 
+  {
+    const struct sort_criteria *criteria;
+    struct casefile *output;
+  };
+
+/* Sorts casefile CF according to the criteria in CB_DATA. */
+static bool
+sort_to_casefile_callback (const struct casefile *cf, void *cb_data_) 
+{
+  struct sort_to_casefile_cb_data *cb_data = cb_data_;
+  cb_data->output = sort_execute (casefile_get_reader (cf), cb_data->criteria);
+  return cb_data->output != NULL;
 }
 
 /* Sorts the active file to a separate casefile.  If successful,
@@ -105,13 +108,15 @@ sort_active_file_in_place (const struct sort_criteria *criteria)
 struct casefile *
 sort_active_file_to_casefile (const struct sort_criteria *criteria) 
 {
-  struct casefile *src;
+  struct sort_to_casefile_cb_data cb_data;
   
-  if (!prepare_to_sort_active_file ())
-    return NULL;
+  prepare_to_sort_active_file ();
 
-  src = storage_source_get_casefile (vfm_source);
-  return sort_execute (casefile_get_reader (src), criteria);
+  cb_data.criteria = criteria;
+  cb_data.output = NULL;
+  multipass_procedure (sort_to_casefile_callback, &cb_data);
+
+  return cb_data.output;
 }
 
 

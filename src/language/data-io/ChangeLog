@@ -1,3 +1,23 @@
+Wed May  3 23:00:17 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	many global variables, consolidating procedure execution in
+	procedure.c.  Encapsulate transformations in new "struct
+	trns_chain".  Also, change implementation of N OF CASES, FILTER,
+	and PROCESS IF from special cases to transformations.
+	 
+	* data-list.c: (data_list_trns_proc) Return TRNS_END_FILE at end
+	of file.  (Why didn't we do this before?)
+	(cmd_match_files) Direct procedure output to null sink.
+	Use discard_variables() instead of indirect version.
+
+	* inpt-pgm.c: Use transformation chain.
+	(struct input_program_pgm) Add trns_chain member.
+	(cmd_input_program) Initialize trns_chain member and capture
+	transformations with proc_capture_transformations().
+	(input_program_source_read) Use trns_chain_execute().
+	(destroy_input_program) Destroy input chain.
+
 Tue May  2 10:39:56 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* list.q Changed from using fixed length char buffers to struct 

@@ -18,16 +18,18 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <stdlib.h>
-#include <libpspp/message.h>
-#include <libpspp/alloc.h>
-#include <language/command.h>
+
 #include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <libpspp/hash.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/str.h>
+#include <procedure.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/hash.h>
+#include <libpspp/message.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -44,12 +46,9 @@ cmd_rename_variables (void)
 
   int status = CMD_CASCADING_FAILURE;
 
-  if (temporary != 0)
-    {
-      msg (SE, _("RENAME VARS may not be used after TEMPORARY.  "
-                 "Temporary transformations will be made permanent."));
-      cancel_temporary (); 
-    }
+  if (proc_make_temporary_transformations_permanent ())
+    msg (SE, _("RENAME VARS may not be used after TEMPORARY.  "
+               "Temporary transformations will be made permanent."));
 
   do
     {

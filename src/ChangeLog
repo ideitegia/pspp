@@ -1,3 +1,70 @@
+Wed May  3 22:24:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	many global variables, consolidating procedure execution in
+	procedure.c.  Encapsulate transformations in new "struct
+	trns_chain".  Also, change implementation of N OF CASES, FILTER,
+	and PROCESS IF from special cases to transformations.
+	 
+	* procedure.c: (global var vfm_source) Make static.  Changed
+	external references to use in_input_program(), proc_set_source(),
+	or proc_capture_output() instead.
+	(global var vfm_sink) Make static.  Changed external references to
+	use proc_set_sink() instead.
+	(global var default_dict) Move here from data/dictionary.c.
+	(static var permanent_trns_chain) New var.
+	(static var temp_dict) Renamed permanent_dict, updated references.
+	(static var temporary_trns_chain) New var.
+	(static var cur_trns_chain) New var.
+	(static var in_procedure) Removed.
+	(global var t_trns) Removed.
+	(global var n_trns) Removed.
+	(global var m_trns) Removed.
+	(global var f_trns) Removed.
+	(procedure) Even if there's "nothing to do" we need to clear
+	PROCESS IF, N OF CASES, vector state.  (This should be
+	abstracted.)
+	(multipass_callback) New function.
+	(multipass_procedure) New function.
+	(open_active_file) Add N OF CASES, FILTER, PROCESS IF
+	transformations.  Finalize transformations.  No need to call
+	ctl_stack_clear() anymore because finalizers will do that.
+	(write_case) Simplify and rewrite.
+	(execute_transformations) Removed.
+	(filter_case) Removed.
+	(close_active_file) Use proc_cancel_temporary_transformations().
+	No need to clear PROCESS IF, N OF CASES here anymore because
+	helpers do that.
+	(multipass_procedure_with_splits) Keep track of success.
+	(multipass_split_callback) Ditto.
+	(multipass_split_output) Ditto.
+	(discard_variables) No need to call ctl_stack_clear() anymore
+	because finalizers will do that.
+	(proc_capture_transformations) New function.
+	(add_transformation) Rewrite in terms of trns_chain_append().
+	(add_transformation_with_finalizer) New function.
+	(next_transformation) Rewrite in terms of trns_chain_next().
+	(proc_in_temporary_transformations) New function.
+	(proc_start_temporary_transformations) New function.
+	(proc_make_temporary_transformations_permanent) New function.
+	(proc_cancel_temporary_transformations) New function.
+	(cancel_transformations) Rename proc_cancel_all_transformations(),
+	rewrite in terms of trns_chain_destroy().
+	(proc_init) New function.
+	(proc_done) New function.
+	(proc_set_sink) New function.
+	(proc_set_source) New function.
+	(proc_has_source) New function.
+	(proc_capture_output) New function.
+	(add_case_limit_trns) New function.
+	(case_limit_trns_proc) New function.
+	(case_limit_trns_free) New function.
+	(add_filter_trns) New function.
+	(filter_trns_proc) New function.
+	(add_process_if_trns) New function.
+	(process_if_trns_proc) New function.
+	(process_if_trns_free) New function.
+
 Wed Apr 26 20:00:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	* procedure.c (create_trns_case): Fix inverted decision on whether

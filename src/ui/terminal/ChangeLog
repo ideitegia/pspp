@@ -1,3 +1,14 @@
+Wed May  3 23:09:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	many global variables, consolidating procedure execution in
+	procedure.c.  Encapsulate transformations in new "struct
+	trns_chain".  Also, change implementation of N OF CASES, FILTER,
+	and PROCESS IF from special cases to transformations.
+	 
+	* main.c: (main) Use proc_init().
+	(terminate) Use proc_done().
+
 Wed Apr 26 13:34:54 2006  Ben Pfaff  <blp@gnu.org>
 
 	Improve command name completion in readline.

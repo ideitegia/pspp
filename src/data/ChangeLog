@@ -1,3 +1,20 @@
+Wed May  3 22:42:12 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	many global variables, consolidating procedure execution in
+	procedure.c.  Encapsulate transformations in new "struct
+	trns_chain".  Also, change implementation of N OF CASES, FILTER,
+	and PROCESS IF from special cases to transformations.
+	 
+	* automake.mk: (src_data_libdata_a_SOURCES) Add transformations.c,
+	transformations.h.
+
+	* dictionary.c: (global variable default_dict) Move to
+	src/procedure.c.
+
+	* variable.h: (TRNS_*) Move to transformations.h.
+	(struct transformation) Move to transformations.c.
+
 Thu May  4 13:47:06 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* sys-file-reader.c: Fixed invalid read problems.

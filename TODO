@@ -1,4 +1,18 @@
-Time-stamp: <2006-04-26 15:15:36 blp>
+Time-stamp: <2006-05-03 22:28:57 blp>
+
+Procedure processing:
+
+* Should not need temporary casefile in the common case.
+
+* All of the procedure_*() variants can (and should) be implemented in terms of
+  a variant that provides "proc_func" plus an "end_func" called after all
+  processing is complete.
+
+* The "split" variants should not dump the splits to the output file
+  automatically.  There is no need for the procedure code to talk to the output
+  manager.
+
+* LAG need not be as much of a special case.
 
 Get rid of need for GNU diff in `make check'.
 

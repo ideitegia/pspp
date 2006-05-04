@@ -27,6 +27,7 @@
 #include <data/casefile.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <procedure.h>
 #include <data/settings.h>
 #include <data/storage-stream.h>
 #include <data/sys-file-writer.h>
@@ -260,7 +261,7 @@ cmd_aggregate (void)
     {
       /* The active file will be replaced by the aggregated data,
          so TEMPORARY is moot. */
-      cancel_temporary ();
+      proc_cancel_temporary_transformations ();
 
       if (agr.sort != NULL && !presorted) 
         {
@@ -271,7 +272,7 @@ cmd_aggregate (void)
       agr.sink = create_case_sink (&storage_sink_class, agr.dict, NULL);
       if (agr.sink->class->open != NULL)
         agr.sink->class->open (agr.sink);
-      vfm_sink = create_case_sink (&null_sink_class, default_dict, NULL);
+      proc_set_sink (create_case_sink (&null_sink_class, default_dict, NULL));
       if (!procedure (agr_to_active_file, &agr))
         goto error;
       if (agr.case_cnt > 0) 
@@ -280,10 +281,10 @@ cmd_aggregate (void)
           if (!agr.sink->class->write (agr.sink, &agr.agr_case))
             goto error;
         }
-      dict_destroy (default_dict);
+      discard_variables ();
       default_dict = agr.dict;
       agr.dict = NULL;
-      vfm_source = agr.sink->class->make_source (agr.sink);
+      proc_set_source (agr.sink->class->make_source (agr.sink));
       free_case_sink (agr.sink);
     }
   else

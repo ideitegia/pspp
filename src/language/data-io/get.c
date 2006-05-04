@@ -31,6 +31,7 @@
 #include <data/settings.h>
 #include <data/storage-stream.h>
 #include <data/sys-file-writer.h>
+#include <data/transformations.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
@@ -147,7 +148,7 @@ parse_read_command (enum reader_command type)
   dict_destroy (default_dict);
   default_dict = dict;
 
-  vfm_source = create_case_source (&case_reader_source_class, pgm);
+  proc_set_source (create_case_source (&case_reader_source_class, pgm));
 
   return CMD_SUCCESS;
 
@@ -887,21 +888,18 @@ cmd_match_files (void)
             }
           used_active_file = true;
 
-          if (vfm_source == NULL)
+          if (!proc_has_source ())
             {
               msg (SE, _("Cannot specify the active file since no active "
                          "file has been defined."));
               goto error;
             }
 
-          if (temporary != 0)
-            {
-              msg (SE,
-                   _("MATCH FILES may not be used after TEMPORARY when "
-                     "the active file is an input source.  "
-                     "Temporary transformations will be made permanent."));
-              cancel_temporary (); 
-            }
+          if (proc_make_temporary_transformations_permanent ())
+            msg (SE,
+                 _("MATCH FILES may not be used after TEMPORARY when "
+                   "the active file is an input source.  "
+                   "Temporary transformations will be made permanent."));
 
           file->dict = default_dict;
         }
@@ -1134,17 +1132,18 @@ cmd_match_files (void)
     goto error;
 
   if (used_active_file) 
-    ok = procedure (mtf_processing, &mtf) && mtf_processing_finish (&mtf);
+    {
+      proc_set_sink (create_case_sink (&null_sink_class, default_dict, NULL));
+      ok = procedure (mtf_processing, &mtf) && mtf_processing_finish (&mtf); 
+    }
   else
     ok = mtf_processing_finish (&mtf);
 
-  free_case_source (vfm_source);
-  vfm_source = NULL;
+  discard_variables ();
 
-  dict_destroy (default_dict);
   default_dict = mtf.dict;
   mtf.dict = NULL;
-  vfm_source = mtf.sink->class->make_source (mtf.sink);
+  proc_set_source (mtf.sink->class->make_source (mtf.sink));
   free_case_sink (mtf.sink);
   
   if (!mtf_free (&mtf))

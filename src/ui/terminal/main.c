@@ -19,6 +19,9 @@
 
 #include <config.h>
 
+#include <signal.h>
+#include <stdio.h>
+
 #include "command-line.h"
 #include "msg-ui.h"
 #include "progname.h"
@@ -39,9 +42,7 @@
 #include <libpspp/version.h>
 #include <math/random.h>
 #include <output/output.h>
-#include <signal.h>
-#include <stdio.h>
-
+#include <procedure.h>
 
 #if HAVE_FPU_CONTROL_H
 #include <fpu_control.h>
@@ -93,8 +94,7 @@ main (int argc, char **argv)
   readln_initialize ();
   settings_init ();
   random_init ();
-
-  default_dict = dict_create ();
+  proc_init ();
 
   if (parse_command_line (argc, argv)) 
     {
@@ -135,7 +135,8 @@ execute_command (void)
      Any lines read after the first token must be continuation
      lines. */
   getl_set_prompt_style (GETL_PROMPT_LATER);
-  return cmd_parse (vfm_source != NULL ? CMD_STATE_DATA : CMD_STATE_INITIAL);
+  return cmd_parse (proc_has_source ()
+                    ? CMD_STATE_DATA : CMD_STATE_INITIAL);
 }
 
 static void
@@ -197,8 +198,7 @@ terminate (bool success)
     {
       terminating = true;
 
-      cancel_transformations ();
-      dict_destroy (default_dict);
+      proc_done ();
 
       random_done ();
       settings_done ();

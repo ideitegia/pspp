@@ -18,32 +18,36 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <stdlib.h>
+
 #include <gsl/gsl_cdf.h>
-#include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
 #include <math.h>
-#include <libpspp/alloc.h>
+#include <stdlib.h>
+
+#include "regression-export.h"
 #include <data/case.h>
 #include <data/casefile.h>
-#include <data/category.h>
 #include <data/cat-routines.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
-#include <math/design-matrix.h>
+#include <data/category.h>
 #include <data/dictionary.h>
-#include <libpspp/message.h>
-#include <language/data-io/file-handle.h>
-#include "gettext.h"
-#include <language/lexer/lexer.h>
-#include <math/linreg/linreg.h>
-#include <math/linreg/coefficient.h>
 #include <data/missing-values.h>
-#include "regression-export.h"
-#include <output/table.h>
+#include <data/transformations.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <language/command.h>
+#include <language/data-io/file-handle.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
+#include <libpspp/message.h>
+#include <math/design-matrix.h>
+#include <math/linreg/coefficient.h>
+#include <math/linreg/linreg.h>
+#include <output/table.h>
 #include <procedure.h>
+
+#include "gettext.h"
 
 #define REG_LARGE_DATA 1000
 
