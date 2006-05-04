@@ -213,17 +213,50 @@ struct name_pair
 static int
 pair_sn_compare(const void *_p1, const void *_p2, void *aux UNUSED)
 {
+  int i;
+
   const struct name_pair *p1 = _p1;
   const struct name_pair *p2 = _p2;
-  
-  return strcmp(p1->shortname, p2->shortname);
+
+  char buf1[SHORT_NAME_LEN + 1];
+  char buf2[SHORT_NAME_LEN + 1];
+
+  memset(buf1, 0, SHORT_NAME_LEN + 1);
+  memset(buf2, 0, SHORT_NAME_LEN + 1);
+
+  for (i = 0 ; i <= SHORT_NAME_LEN ; ++i ) 
+    {
+      buf1[i] = p1->shortname[i];
+      if ( '\0' == buf1[i]) 
+	break;
+    }
+
+  for (i = 0 ; i <= SHORT_NAME_LEN ; ++i ) 
+    {
+      buf2[i] = p2->shortname[i];
+      if ( '\0' == buf2[i]) 
+	break;
+    }
+
+  return strncmp(buf1, buf2, SHORT_NAME_LEN);
 }
 
-static unsigned
+static unsigned int
 pair_sn_hash(const void *_p, void *aux UNUSED)
 {
+  int i;
   const struct name_pair *p = _p;
-  return hsh_hash_bytes(p->shortname, strlen(p->shortname));
+  char buf[SHORT_NAME_LEN + 1];
+
+  memset(buf, 0, SHORT_NAME_LEN + 1); 
+  for (i = 0 ; i <= SHORT_NAME_LEN ; ++i ) 
+    {
+      buf[i] = p->shortname[i];
+      if ( '\0' == buf[i]) 
+	break;
+    }
+
+  return hsh_hash_bytes(buf, strlen(buf));
 }
 
 static void
@@ -244,8 +277,12 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct sfm_reader *r = NULL;
   struct variable **var_by_idx = NULL;
 
+  /* The data in record 7(14) */
+  char *subrec14data = 0;
+
   /* A hash table of long variable names indexed by short name */
   struct hsh_table *short_to_long = NULL;
+
 
   *dict = dict_create ();
   if (!fh_open (fh, FH_REF_FILE, "system file", "rs"))
@@ -423,17 +460,16 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
 	      case 13: /* SPSS 12.0 Long variable name map */
 		{
-		  char *buf, *short_name, *save_ptr;
+		  char *short_name, *save_ptr;
                   int idx;
 
                   /* Read data. */
-                  buf = xmalloc (bytes + 1);
-		  if (!buf_read (r, buf, bytes, 0)) 
+                  subrec14data = xmalloc (bytes + 1);
+		  if (!buf_read (r, subrec14data, bytes, 0)) 
                     {
-                      free (buf);
                       goto error;
                     }
-		  buf[bytes] = '\0';
+		  subrec14data[bytes] = '\0';
 
 		  short_to_long = hsh_create(4, 
 					     pair_sn_compare,
@@ -442,7 +478,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 					     0);
 
                   /* Parse data. */
-		  for (short_name = strtok_r (buf, "=", &save_ptr), idx = 0;
+		  for (short_name = strtok_r (subrec14data, "=", &save_ptr), idx = 0;
                        short_name != NULL;
                        short_name = strtok_r (NULL, "=", &save_ptr), idx++)
 		    {
@@ -512,9 +548,6 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 #endif
 		    }
 		  
-
-		  /* Free data. */
-		  free (buf);
 		}
 		break;
 
@@ -525,13 +558,13 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		  int i;
 
                   /* Read data. */
-                  char *buf = xmalloc (bytes + 1);
-		  if (!buf_read (r, buf, bytes, 0)) 
+                  char *buffer = xmalloc (bytes + 1);
+		  if (!buf_read (r, buffer, bytes, 0)) 
                     {
-                      free (buf);
+                      free (buffer);
                       goto error;
                     }
-		  buf[bytes] = '\0';
+		  buffer[bytes] = '\0';
 
 
 		  /* Note:  SPSS v13 terminates this record with 00,
@@ -540,10 +573,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		  for(i = 0; i < bytes ; ++i)
 		    {
 		      long int length;
-		      static char name[SHORT_NAME_LEN + 1];
-		      static char len_str[6];
+		      static char name[SHORT_NAME_LEN + 1]  = {0};
+		      static char len_str[6]  ={0};
 
-		      switch( buf[i] )
+		      switch( buffer[i] )
 			{
 			case '=':
 			  eq_seen = true;
@@ -569,7 +602,6 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 				    lookup_name = p->longname;
 				}
 				
-			      
 			      v = dict_lookup_var(*dict, lookup_name);
 			      if ( !v ) 
 				{
@@ -614,14 +646,14 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 			  break;
 			default:
 			  if ( eq_seen ) 
-			    len_str[j] = buf[i];
+			    len_str[j] = buffer[i];
 			  else
-			    name[j] = buf[i];
+			    name[j] = buffer[i];
 			  j++;
 			  break;
 			}
 		    }
-		  free(buf);
+		  free(buffer);
 		}
 		break;
 
@@ -663,6 +695,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
   free (var_by_idx);
   hsh_destroy(short_to_long);
+  free (subrec14data);
   return r;
 
  error:
@@ -670,6 +703,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   sfm_close_reader (r);
   free (var_by_idx);
   hsh_destroy(short_to_long);
+  free (subrec14data);
   if (*dict != NULL) 
     {
       dict_destroy (*dict);

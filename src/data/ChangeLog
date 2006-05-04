@@ -1,3 +1,7 @@
+Thu May  4 13:47:06 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* sys-file-reader.c: Fixed invalid read problems.
+
 Tue May  2 15:57:10 2006  Ben Pfaff  <blp@gnu.org>
 
 	* storage-stream.c: Add missing function comments.
