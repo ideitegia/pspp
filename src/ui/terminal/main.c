@@ -25,12 +25,12 @@
 #include "command-line.h"
 #include "msg-ui.h"
 #include "progname.h"
-#include "procedure.h"
 #include "read-line.h"
 
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/file-name.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
 #include <gsl/gsl_errno.h>
@@ -42,7 +42,6 @@
 #include <libpspp/version.h>
 #include <math/random.h>
 #include <output/output.h>
-#include <procedure.h>
 
 #if HAVE_FPU_CONTROL_H
 #include <fpu_control.h>

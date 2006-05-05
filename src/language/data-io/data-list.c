@@ -30,6 +30,7 @@
 #include <data/data-in.h>
 #include <data/dictionary.h>
 #include <data/format.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/transformations.h>
 #include <data/variable.h>
@@ -45,7 +46,6 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <output/table.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

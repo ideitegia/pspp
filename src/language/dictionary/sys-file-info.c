@@ -24,7 +24,7 @@
 
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/sys-file-reader.h>
 #include <data/value-labels.h>
 #include <data/variable.h>

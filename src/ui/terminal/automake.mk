@@ -14,17 +14,15 @@ src_ui_terminal_libui_a_SOURCES = \
 
 bin_PROGRAMS += src/ui/terminal/pspp
 
-src_ui_terminal_pspp_SOURCES = \
-	src/procedure.c \
-	src/procedure.h
+src_ui_terminal_pspp_SOURCES =
 
 src_ui_terminal_pspp_LDADD =					\
 	$(top_builddir)/src/ui/terminal/libui.a \
-	$(top_builddir)/src/language/expressions/libexpressions.a \
 	$(top_builddir)/src/language/liblanguage.a \
 	$(top_builddir)/src/language/tests/libtests.a \
 	$(top_builddir)/src/language/utilities/libutilities.a \
 	$(top_builddir)/src/language/control/libcontrol.a \
+	$(top_builddir)/src/language/expressions/libexpressions.a \
 	$(top_builddir)/src/language/stats/libstats.a \
 	$(top_builddir)/src/language/xforms/libxforms.a \
 	$(top_builddir)/src/language/dictionary/libcmddict.a \

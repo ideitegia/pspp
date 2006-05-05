@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include <data/dictionary.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
 #include <language/lexer/lexer.h>
@@ -38,7 +39,6 @@
 #include <libpspp/str.h>
 #include <output/manager.h>
 #include <output/table.h>
-#include <procedure.h>
 
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>

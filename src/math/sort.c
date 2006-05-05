@@ -30,6 +30,7 @@
 #include <data/case-source.h>
 #include <data/case.h>
 #include <data/casefile.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
 #include <data/storage-stream.h>
@@ -40,7 +41,6 @@
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

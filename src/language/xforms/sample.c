@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
@@ -32,7 +33,6 @@
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <math/random.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

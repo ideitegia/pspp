@@ -26,7 +26,7 @@
 
 #include <data/dictionary.h>
 #include <data/format.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
 #include <language/command.h>

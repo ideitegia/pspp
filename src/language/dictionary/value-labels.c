@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>

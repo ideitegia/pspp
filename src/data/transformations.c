@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 #include <libpspp/str.h>
-#include <procedure.h>
 
 #include "xalloc.h"
 

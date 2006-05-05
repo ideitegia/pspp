@@ -1,3 +1,13 @@
+Thu May  4 21:50:11 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, move
+	procedure.c and procedure.h from src to src/data.  Update
+	makefiles and #includes accordingly.
+
+	* procedure.c: Moved here from src/.
+
+	* procedure.h: Moved here from src/.
+
 Wed May  3 22:42:12 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

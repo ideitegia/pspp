@@ -21,8 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <config.h>
 
 #include "sort-criteria.h"
+
 #include <data/dictionary.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/stats/sort-criteria.h>

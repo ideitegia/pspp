@@ -23,7 +23,7 @@
 
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/data-io/file-handle.h>

@@ -1,3 +1,15 @@
+Thu May  4 21:47:48 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, move
+	procedure.c and procedure.h from src to src/data.  Update
+	makefiles and #includes accordingly.
+
+	* automake.mk: Remove special rule for src/procedure.o.
+
+	* procedure.c: Moved to src/data.
+
+	* procedure.h: Moved to src/data.
+
 Wed May  3 22:24:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

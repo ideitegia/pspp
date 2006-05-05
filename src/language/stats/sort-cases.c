@@ -24,7 +24,7 @@
 #include <limits.h>
 
 #include "sort-criteria.h"
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
 #include <language/command.h>

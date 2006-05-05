@@ -35,7 +35,6 @@
 #include <data/settings.h>
 #include <libpspp/str.h>
 #include <data/variable.h>
-#include <procedure.h>
 
 /* Declarations. */
 

@@ -28,6 +28,7 @@
 #include <data/case.h>
 #include <data/casefile.h>
 #include <data/dictionary.h>
+#include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
 #include <language/command.h>
@@ -40,7 +41,6 @@
 #include <math/moments.h>
 #include <output/manager.h>
 #include <output/table.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

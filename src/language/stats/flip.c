@@ -32,7 +32,7 @@
 #include <data/case-source.h>
 #include <data/case.h>
 #include <data/dictionary.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/value.h>
 #include <data/variable.h>
@@ -45,7 +45,6 @@
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
-#include <procedure.h>
 
 #include "intprops.h"
 

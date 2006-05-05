@@ -14,12 +14,3 @@ include $(top_srcdir)/src/ui/gui/automake.mk
 endif
 
 AM_CPPFLAGS += -DPKGDATADIR=\"$(pkgdatadir)\"
-
-src/procedure.o: AM_CPPFLAGS += \
- -I$(top_srcdir)/src/language \
- -I$(top_srcdir)/src/language/control \
- -I$(top_srcdir)/src/output \
- -I$(top_srcdir)/src/data \
- -I$(top_srcdir)/src/libpspp
-
-

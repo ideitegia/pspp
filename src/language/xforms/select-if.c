@@ -23,7 +23,7 @@
 
 #include <data/dictionary.h>
 #include <data/transformations.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/expressions/public.h>

@@ -19,33 +19,35 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 #include <config.h>
+
 #include <gsl/gsl_cdf.h>
 #include <libpspp/message.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <libpspp/alloc.h>
-#include <libpspp/str.h>
+
 #include <data/case.h>
+#include <data/casefile.h>
 #include <data/dictionary.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <libpspp/magic.h>
-#include <libpspp/misc.h>
-#include <output/table.h>
-#include <output/manager.h>
+#include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
-#include <procedure.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/compiler.h>
 #include <libpspp/hash.h>
-#include <data/casefile.h>
+#include <libpspp/magic.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include <math/factor-stats.h>
 #include <math/moments.h>
 #include <math/percentiles.h>
 #include <output/charts/box-whisker.h>
 #include <output/charts/cartesian.h>
+#include <output/manager.h>
+#include <output/table.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

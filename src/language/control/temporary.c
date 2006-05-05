@@ -24,7 +24,7 @@
 
 #include "control-stack.h"
 #include <data/dictionary.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/value-labels.h>
 #include <data/variable.h>

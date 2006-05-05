@@ -31,8 +31,8 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <data/procedure.h>
 #include <data/variable.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

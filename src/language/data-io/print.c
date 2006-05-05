@@ -24,7 +24,7 @@
 #include <stdlib.h>
 
 #include <data/case.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
 #include <language/command.h>

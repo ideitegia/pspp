@@ -38,6 +38,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/missing-values.h \
 	src/data/make-file.c \
 	src/data/make-file.h \
+	src/data/procedure.c \
+	src/data/procedure.h \
 	src/data/por-file-reader.c \
 	src/data/por-file-reader.h \
 	src/data/por-file-writer.c \

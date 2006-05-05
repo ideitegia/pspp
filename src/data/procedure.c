@@ -19,25 +19,24 @@
 
 #include <config.h>
 
-#include <procedure.h>
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "expressions/public.h"
 #include <data/case-source.h>
 #include <data/case-sink.h>
 #include <data/case.h>
 #include <data/casefile.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/storage-stream.h>
 #include <data/transformations.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <language/expressions/public.h>
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>

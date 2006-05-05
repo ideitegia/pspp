@@ -29,7 +29,7 @@
 #include <libpspp/hash.h>
 #include <libpspp/str.h>
 #include <data/variable.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <libpspp/alloc.h>
 #include <libpspp/misc.h>
 #include "group.h"

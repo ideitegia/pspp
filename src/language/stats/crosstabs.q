@@ -30,29 +30,31 @@
 */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <ctype.h>
+#include <gsl/gsl_cdf.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <gsl/gsl_cdf.h>
-#include <libpspp/array.h>
-#include <libpspp/alloc.h>
+
 #include <data/case.h>
 #include <data/dictionary.h>
-#include <libpspp/hash.h>
-#include <libpspp/pool.h>
-#include <language/command.h>
-#include <libpspp/compiler.h>
-#include <language/lexer/lexer.h>
-#include <libpspp/message.h>
-#include <libpspp/magic.h>
-#include <libpspp/misc.h>
-#include <output/output.h>
-#include <libpspp/str.h>
-#include <output/table.h>
+#include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
-#include <procedure.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/magic.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
+#include <libpspp/str.h>
+#include <output/output.h>
+#include <output/table.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

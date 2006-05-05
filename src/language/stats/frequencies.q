@@ -24,37 +24,38 @@
 */
 
 #include <config.h>
-#include <libpspp/message.h>
+
 #include <math.h>
 #include <stdlib.h>
 #include <gsl/gsl_histogram.h>
 
-#include <libpspp/alloc.h>
-#include <libpspp/bit-vector.h>
 #include <data/case.h>
-#include <libpspp/compiler.h>
 #include <data/dictionary.h>
-#include <libpspp/hash.h>
-#include <libpspp/pool.h>
-#include <language/command.h>
-#include <language/lexer/lexer.h>
-#include <math/moments.h>
-#include <libpspp/message.h>
-#include <libpspp/array.h>
-#include <libpspp/magic.h>
-#include <libpspp/misc.h>
-#include <output/output.h>
-#include <output/manager.h>
-#include <libpspp/str.h>
-#include <output/table.h>
+#include <data/procedure.h>
+#include <data/settings.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
-#include <procedure.h>
-#include <data/settings.h>
-#include <output/charts/piechart.h>
-#include <output/chart.h>
-#include <output/charts/plot-hist.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
+#include <libpspp/bit-vector.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/magic.h>
+#include <libpspp/message.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/pool.h>
+#include <libpspp/str.h>
 #include <math/histogram.h>
+#include <math/moments.h>
+#include <output/chart.h>
+#include <output/charts/piechart.h>
+#include <output/charts/plot-hist.h>
+#include <output/manager.h>
+#include <output/output.h>
+#include <output/table.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

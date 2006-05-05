@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #include <data/data-in.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>

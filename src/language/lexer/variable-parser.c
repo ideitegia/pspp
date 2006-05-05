@@ -25,7 +25,7 @@
 
 #include "lexer.h"
 #include <data/dictionary.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/variable.h>
 #include <libpspp/alloc.h>
 #include <libpspp/bit-vector.h>

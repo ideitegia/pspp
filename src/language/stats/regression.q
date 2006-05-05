@@ -32,6 +32,7 @@
 #include <data/category.h>
 #include <data/dictionary.h>
 #include <data/missing-values.h>
+#include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
@@ -45,7 +46,6 @@
 #include <math/linreg/coefficient.h>
 #include <math/linreg/linreg.h>
 #include <output/table.h>
-#include <procedure.h>
 
 #include "gettext.h"
 

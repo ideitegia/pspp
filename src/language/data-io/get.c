@@ -28,6 +28,7 @@
 #include <data/case.h>
 #include <data/dictionary.h>
 #include <data/por-file-writer.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/storage-stream.h>
 #include <data/sys-file-writer.h>
@@ -44,7 +45,6 @@
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

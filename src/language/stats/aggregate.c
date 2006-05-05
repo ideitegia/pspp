@@ -27,7 +27,7 @@
 #include <data/casefile.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
-#include <procedure.h>
+#include <data/procedure.h>
 #include <data/settings.h>
 #include <data/storage-stream.h>
 #include <data/sys-file-writer.h>
@@ -44,7 +44,6 @@
 #include <libpspp/str.h>
 #include <math/moments.h>
 #include <math/sort.h>
-#include <procedure.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
