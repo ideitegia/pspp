@@ -1,4 +1,4 @@
-Time-stamp: <2006-05-03 22:28:57 blp>
+Time-stamp: <2006-05-04 20:39:17 blp>
 
 Procedure processing:
 
@@ -13,6 +13,8 @@ Procedure processing:
   manager.
 
 * LAG need not be as much of a special case.
+
+* Change sources into state machines?
 
 Get rid of need for GNU diff in `make check'.
 
