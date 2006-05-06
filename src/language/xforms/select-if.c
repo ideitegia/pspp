@@ -95,6 +95,12 @@ cmd_filter (void)
 {
   if (lex_match_id ("OFF"))
     dict_set_filter (default_dict, NULL);
+  else if (token == '.') 
+    {
+      msg (SW, _("Syntax error expecting OFF or BY.  "
+                 "Turning off case filtering."));
+      dict_set_filter (default_dict, NULL);
+    }
   else
     {
       struct variable *v;
@@ -102,22 +108,22 @@ cmd_filter (void)
       lex_match (T_BY);
       v = parse_variable ();
       if (!v)
-	return CMD_CASCADING_FAILURE;
+	return CMD_FAILURE;
 
       if (v->type == ALPHA)
 	{
 	  msg (SE, _("The filter variable must be numeric."));
-	  return CMD_CASCADING_FAILURE;
+	  return CMD_FAILURE;
 	}
 
       if (dict_class_from_id (v->name) == DC_SCRATCH)
 	{
 	  msg (SE, _("The filter variable may not be scratch."));
-	  return CMD_CASCADING_FAILURE;
+	  return CMD_FAILURE;
 	}
 
       dict_set_filter (default_dict, v);
     }
 
-  return CMD_SUCCESS;
+  return lex_end_of_command ();
 }

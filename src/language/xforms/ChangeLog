@@ -1,3 +1,10 @@
+Sat May  6 14:08:42 2006  Ben Pfaff  <blp@gnu.org>
+
+	* select-if.c (cmd_filter): Make FILTER without any further
+	keywords turn off filtering, with a warning, for compatibility.
+	Change errors from cascading failures to ordinary failures.  Check
+	for command terminator.
+
 Sat May  6 13:25:57 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, remove
