@@ -83,7 +83,8 @@ size_t dict_get_case_size (const struct dictionary *);
 void dict_compact_values (struct dictionary *);
 size_t dict_get_compacted_value_cnt (const struct dictionary *);
 int *dict_get_compacted_idx_to_fv (const struct dictionary *);
-bool dict_needs_compaction (const struct dictionary *);
+bool dict_compacting_would_shrink (const struct dictionary *);
+bool dict_compacting_would_change (const struct dictionary *);
 
 struct dict_compactor *dict_make_compactor (const struct dictionary *);
 void dict_compactor_compact (const struct dict_compactor *,

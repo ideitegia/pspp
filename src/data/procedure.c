@@ -47,7 +47,7 @@ struct write_case_data
 
     struct ccase trns_case;     /* Case used for transformations. */
     struct ccase sink_case;     /* Case written to sink, if
-                                   compaction is necessary. */
+                                   compacting is necessary. */
     size_t cases_written;       /* Cases output so far. */
   };
 
@@ -281,8 +281,8 @@ open_active_file (void)
   if (permanent_dict == NULL)
     permanent_dict = default_dict;
 
-  /* Figure out compaction. */
-  compactor = (dict_needs_compaction (permanent_dict)
+  /* Figure out whether to compact. */
+  compactor = (dict_compacting_would_shrink (permanent_dict)
                ? dict_make_compactor (permanent_dict)
                : NULL);
 
@@ -411,7 +411,7 @@ close_active_file (void)
   /* Dictionary from before TEMPORARY becomes permanent. */
   proc_cancel_temporary_transformations ();
 
-  /* Finish compaction. */
+  /* Finish compacting. */
   if (compactor != NULL) 
     {
       dict_compactor_destroy (compactor);

@@ -855,18 +855,43 @@ dict_get_compacted_idx_to_fv (const struct dictionary *d)
 }
 
 /* Returns true if a case for dictionary D would be smaller after
-   compaction, false otherwise.  Compacting a case eliminates
+   compacting, false otherwise.  Compacting a case eliminates
    "holes" between values and after the last value.  Holes are
    created by deleting variables (or by scratch variables).
 
    The return value may differ from whether compacting a case
-   from dictionary D would *change* the case: compaction could
+   from dictionary D would *change* the case: compacting could
    rearrange values even if it didn't reduce space
    requirements. */
 bool
-dict_needs_compaction (const struct dictionary *d) 
+dict_compacting_would_shrink (const struct dictionary *d) 
 {
   return dict_get_compacted_value_cnt (d) < dict_get_next_value_idx (d);
+}
+
+/* Returns true if a case for dictionary D would be smaller after
+   compacting, false otherwise.  Compacting a case eliminates
+   "holes" between values and after the last value.  Holes are
+   created by deleting variables (or by scratch variables).
+
+   The return value may differ from whether compacting a case
+   from dictionary D would *shrink* the case: compacting could
+   rearrange values without reducing space requirements. */
+bool
+dict_compacting_would_change (const struct dictionary *d) 
+{
+  size_t case_idx;
+  size_t i;
+
+  case_idx = 0;
+  for (i = 0; i < dict_get_var_cnt (d); i++) 
+    {
+      struct variable *v = dict_get_var (d, i);
+      if (v->fv != case_idx)
+        return true;
+      case_idx += v->nv;
+    }
+  return false;
 }
 
 /* How to copy a contiguous range of values between cases. */

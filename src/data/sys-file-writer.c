@@ -103,7 +103,6 @@ static void write_variable_display_parameters (struct sfm_writer *w,
                                                const struct dictionary *dict);
 
 static void write_documents (struct sfm_writer *, const struct dictionary *);
-static int does_dict_need_translation (const struct dictionary *);
 
 static inline int
 var_flt64_cnt (const struct variable *v) 
@@ -194,7 +193,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->fh = fh;
   w->file = fdopen (fd, "w");
 
-  w->needs_translation = does_dict_need_translation (d);
+  w->needs_translation = dict_compacting_would_change (d);
   w->compress = opts.compress;
   w->case_cnt = 0;
   w->flt64_cnt = 0;
@@ -326,27 +325,6 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
        fh_get_file_name (fh), strerror (errno));
   goto error;
-}
-
-/* Returns zero if dictionary D's cases are ordered in the
-   natural manner, with the first variable followed by the
-   second, and so on,
-   nonzero otherwise. */
-static int
-does_dict_need_translation (const struct dictionary *d)
-{
-  size_t case_idx;
-  size_t i;
-
-  case_idx = 0;
-  for (i = 0; i < dict_get_var_cnt (d); i++) 
-    {
-      struct variable *v = dict_get_var (d, i);
-      if (v->fv != case_idx)
-        return 1;
-      case_idx += v->nv;
-    }
-  return 0;
 }
 
 /* Returns value of X truncated to two least-significant digits. */

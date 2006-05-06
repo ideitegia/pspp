@@ -61,7 +61,7 @@ scratch_writer_open (struct file_handle *fh,
 
   /* Copy the dictionary and compact if needed. */
   scratch_dict = dict_clone (dictionary);
-  if (dict_needs_compaction (scratch_dict)) 
+  if (dict_compacting_would_shrink (scratch_dict)) 
     {
       compactor = dict_make_compactor (scratch_dict);
       dict_compact_values (scratch_dict);

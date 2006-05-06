@@ -1,3 +1,19 @@
+Sat May  6 15:36:59 2006  Ben Pfaff  <blp@gnu.org>
+
+	Make dictionary compacting functions a little more general.
+	
+	* sys-file-writer.c (sfm_open_writer): Use
+	dict_compacting_would_change().
+	(does_dict_need_translation) Removed.
+
+Sat May  6 15:35:42 2006  Ben Pfaff  <blp@gnu.org>
+
+	Make dictionary compacting functions a little more general.
+	
+	* dictionary.c (dict_needs_compaction): Rename
+	dict_compacting_would_shrink().  Update all callers.
+	(dict_compacting_would_change) New function.
+	
 Sat May  6 14:25:49 2006  Ben Pfaff  <blp@gnu.org>
 
 	* sys-file-writer.c: (does_dict_need_translation) Fix bug:
