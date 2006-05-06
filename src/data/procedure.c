@@ -38,15 +38,6 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 
-/*
-   Virtual File Manager (vfm):
-
-   vfm is used to process data files.  It uses the model that
-   data is read from one stream (the data source), processed,
-   then written to another (the data sink).  The data source is
-   then deleted and the data sink becomes the data source for the
-   next procedure. */
-
 /* Procedure execution data. */
 struct write_case_data
   {
@@ -60,17 +51,17 @@ struct write_case_data
     size_t cases_written;       /* Cases output so far. */
   };
 
-/* Cases are read from vfm_source,
+/* Cases are read from proc_source,
    pass through permanent_trns_chain (which transforms them into
    the format described by permanent_dict),
-   are written to vfm_sink,
+   are written to proc_sink,
    pass through temporary_trns_chain (which transforms them into
    the format described by default_dict),
    and are finally passed to the procedure. */
-static struct case_source *vfm_source;
+static struct case_source *proc_source;
 static struct trns_chain *permanent_trns_chain;
 static struct dictionary *permanent_dict;
-static struct case_sink *vfm_sink;
+static struct case_sink *proc_sink;
 static struct trns_chain *temporary_trns_chain;
 struct dictionary *default_dict;
 
@@ -82,8 +73,8 @@ static struct trns_chain *cur_trns_chain;
    otherwise a null pointer. */
 static struct dict_compactor *compactor;
 
-/* Time at which vfm was last invoked. */
-static time_t last_vfm_invocation;
+/* Time at which proc was last invoked. */
+static time_t last_proc_invocation;
 
 /* Lag queue. */
 int n_lag;			/* Number of cases to lag. */
@@ -98,7 +89,7 @@ static bool internal_procedure (bool (*case_func) (const struct ccase *,
                                                    void *),
                                 bool (*end_func) (void *),
                                 void *aux);
-static void update_last_vfm_invocation (void);
+static void update_last_proc_invocation (void);
 static void create_trns_case (struct ccase *, struct dictionary *);
 static void open_active_file (void);
 static bool write_case (struct write_case_data *wc_data);
@@ -112,9 +103,9 @@ static bool close_active_file (void);
 time_t
 time_of_last_procedure (void) 
 {
-  if (last_vfm_invocation == 0)
-    update_last_vfm_invocation ();
-  return last_vfm_invocation;
+  if (last_proc_invocation == 0)
+    update_last_proc_invocation ();
+  return last_proc_invocation;
 }
 
 /* Regular procedure. */
@@ -204,15 +195,15 @@ internal_procedure (bool (*case_func) (const struct ccase *, void *),
   struct write_case_data wc_data;
   bool ok = true;
 
-  assert (vfm_source != NULL);
+  assert (proc_source != NULL);
 
-  update_last_vfm_invocation ();
+  update_last_proc_invocation ();
 
   /* Optimize the trivial case where we're not going to do
      anything with the data, by not reading the data at all. */
   if (case_func == NULL && end_func == NULL
-      && case_source_is_class (vfm_source, &storage_source_class)
-      && vfm_sink == NULL
+      && case_source_is_class (proc_source, &storage_source_class)
+      && proc_sink == NULL
       && (temporary_trns_chain == NULL
           || trns_chain_is_empty (temporary_trns_chain))
       && trns_chain_is_empty (permanent_trns_chain))
@@ -231,9 +222,9 @@ internal_procedure (bool (*case_func) (const struct ccase *, void *),
   case_create (&wc_data.sink_case, dict_get_next_value_idx (default_dict));
   wc_data.cases_written = 0;
 
-  ok = vfm_source->class->read (vfm_source,
-                                &wc_data.trns_case,
-                                write_case, &wc_data) && ok;
+  ok = proc_source->class->read (proc_source,
+                                 &wc_data.trns_case,
+                                 write_case, &wc_data) && ok;
   if (end_func != NULL)
     ok = end_func (aux) && ok;
 
@@ -245,11 +236,11 @@ internal_procedure (bool (*case_func) (const struct ccase *, void *),
   return ok;
 }
 
-/* Updates last_vfm_invocation. */
+/* Updates last_proc_invocation. */
 static void
-update_last_vfm_invocation (void) 
+update_last_proc_invocation (void) 
 {
-  last_vfm_invocation = time (NULL);
+  last_proc_invocation = time (NULL);
 }
 
 /* Creates and returns a case, initializing it from the vectors
@@ -296,10 +287,10 @@ open_active_file (void)
                : NULL);
 
   /* Prepare sink. */
-  if (vfm_sink == NULL)
-    vfm_sink = create_case_sink (&storage_sink_class, permanent_dict, NULL);
-  if (vfm_sink->class->open != NULL)
-    vfm_sink->class->open (vfm_sink);
+  if (proc_sink == NULL)
+    proc_sink = create_case_sink (&storage_sink_class, permanent_dict, NULL);
+  if (proc_sink->class->open != NULL)
+    proc_sink->class->open (proc_sink);
 
   /* Allocate memory for lag queue. */
   if (n_lag > 0)
@@ -337,16 +328,16 @@ write_case (struct write_case_data *wc_data)
 
   /* Write case to replacement active file. */
   wc_data->cases_written++;
-  if (vfm_sink->class->write != NULL) 
+  if (proc_sink->class->write != NULL) 
     {
       if (compactor != NULL) 
         {
           dict_compactor_compact (compactor, &wc_data->sink_case,
                                   &wc_data->trns_case);
-          vfm_sink->class->write (vfm_sink, &wc_data->sink_case);
+          proc_sink->class->write (proc_sink, &wc_data->sink_case);
         }
       else
-        vfm_sink->class->write (vfm_sink, &wc_data->trns_case);
+        proc_sink->class->write (proc_sink, &wc_data->trns_case);
     }
   
   /* Execute temporary transformations. */
@@ -429,14 +420,14 @@ close_active_file (void)
     }
     
   /* Free data source. */
-  free_case_source (vfm_source);
-  vfm_source = NULL;
+  free_case_source (proc_source);
+  proc_source = NULL;
 
   /* Old data sink becomes new data source. */
-  if (vfm_sink->class->make_source != NULL)
-    vfm_source = vfm_sink->class->make_source (vfm_sink);
-  free_case_sink (vfm_sink);
-  vfm_sink = NULL;
+  if (proc_sink->class->make_source != NULL)
+    proc_source = proc_sink->class->make_source (proc_sink);
+  free_case_sink (proc_sink);
+  proc_sink = NULL;
 
   dict_clear_vectors (default_dict);
   permanent_dict = NULL;
@@ -666,8 +657,8 @@ discard_variables (void)
 
   n_lag = 0;
   
-  free_case_source (vfm_source);
-  vfm_source = NULL;
+  free_case_source (proc_source);
+  proc_source = NULL;
 
   proc_cancel_all_transformations ();
 }
@@ -818,8 +809,8 @@ proc_done (void)
 void
 proc_set_sink (struct case_sink *sink) 
 {
-  assert (vfm_sink == NULL);
-  vfm_sink = sink;
+  assert (proc_sink == NULL);
+  proc_sink = sink;
 }
 
 /* Sets SOURCE as the source for procedure input for the next
@@ -827,8 +818,8 @@ proc_set_sink (struct case_sink *sink)
 void
 proc_set_source (struct case_source *source) 
 {
-  assert (vfm_source == NULL);
-  vfm_source = source;
+  assert (proc_source == NULL);
+  proc_source = source;
 }
 
 /* Returns true if a source for the next procedure has been
@@ -836,7 +827,7 @@ proc_set_source (struct case_source *source)
 bool
 proc_has_source (void) 
 {
-  return vfm_source != NULL;
+  return proc_source != NULL;
 }
 
 /* Returns the output from the previous procedure.
@@ -850,13 +841,13 @@ proc_capture_output (void)
 
   /* Try to make sure that this function is called immediately
      after procedure() or a similar function. */
-  assert (vfm_source != NULL);
-  assert (case_source_is_class (vfm_source, &storage_source_class));
+  assert (proc_source != NULL);
+  assert (case_source_is_class (proc_source, &storage_source_class));
   assert (trns_chain_is_empty (permanent_trns_chain));
   assert (!proc_in_temporary_transformations ());
 
-  casefile = storage_source_decapsulate (vfm_source);
-  vfm_source = NULL;
+  casefile = storage_source_decapsulate (proc_source);
+  proc_source = NULL;
 
   return casefile;
 }

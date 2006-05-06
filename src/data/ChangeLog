@@ -1,3 +1,12 @@
+Sat May  6 13:37:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  
+
+	* procedure.c: Search and replace "vfm" by "proc".  Notably:
+	(static var vfm_source) Rename proc_source.  Update all
+	references.
+	(static var vfm_sink) Rename proc_sink.  Update all references.
+	
 Sat May  6 12:38:55 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, remove
