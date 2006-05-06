@@ -328,6 +328,10 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   goto error;
 }
 
+/* Returns zero if dictionary D's cases are ordered in the
+   natural manner, with the first variable followed by the
+   second, and so on,
+   nonzero otherwise. */
 static int
 does_dict_need_translation (const struct dictionary *d)
 {
@@ -339,10 +343,10 @@ does_dict_need_translation (const struct dictionary *d)
     {
       struct variable *v = dict_get_var (d, i);
       if (v->fv != case_idx)
-        return 0;
+        return 1;
       case_idx += v->nv;
     }
-  return 1;
+  return 0;
 }
 
 /* Returns value of X truncated to two least-significant digits. */

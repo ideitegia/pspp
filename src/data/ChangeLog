@@ -1,3 +1,8 @@
+Sat May  6 14:25:49 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sys-file-writer.c: (does_dict_need_translation) Fix bug:
+	inverted return value (!).
+
 Sat May  6 13:37:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  
