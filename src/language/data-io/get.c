@@ -26,6 +26,7 @@
 #include <data/case-sink.h>
 #include <data/case-source.h>
 #include <data/case.h>
+#include <data/casefile.h>
 #include <data/dictionary.h>
 #include <data/por-file-writer.h>
 #include <data/procedure.h>
@@ -779,7 +780,7 @@ struct mtf_proc
     char first[LONG_NAME_LEN + 1], last[LONG_NAME_LEN + 1];
     
     struct dictionary *dict;    /* Dictionary of output file. */
-    struct case_sink *sink;     /* Sink to receive output. */
+    struct casefile *output;    /* MATCH FILES output. */
     struct ccase mtf_case;      /* Case used for output. */
 
     unsigned seq_num;           /* Have we initialized this variable? */
@@ -819,7 +820,7 @@ cmd_match_files (void)
   mtf.first[0] = '\0';
   mtf.last[0] = '\0';
   mtf.dict = dict_create ();
-  mtf.sink = NULL;
+  mtf.output = NULL;
   case_nullify (&mtf.mtf_case);
   mtf.seq_num = 0;
   mtf.seq_nums = NULL;
@@ -1121,10 +1122,7 @@ cmd_match_files (void)
     discard_variables ();
 
   dict_compact_values (mtf.dict);
-  mtf.sink = create_case_sink (&storage_sink_class, mtf.dict, NULL);
-  if (mtf.sink->class->open != NULL)
-    mtf.sink->class->open (mtf.sink);
-
+  mtf.output = casefile_create (dict_get_next_value_idx (mtf.dict));
   mtf.seq_nums = xcalloc (dict_get_var_cnt (mtf.dict), sizeof *mtf.seq_nums);
   case_create (&mtf.mtf_case, dict_get_next_value_idx (mtf.dict));
 
@@ -1143,8 +1141,8 @@ cmd_match_files (void)
 
   default_dict = mtf.dict;
   mtf.dict = NULL;
-  proc_set_source (mtf.sink->class->make_source (mtf.sink));
-  free_case_sink (mtf.sink);
+  proc_set_source (storage_source_create (mtf.output));
+  mtf.output = NULL;
   
   if (!mtf_free (&mtf))
     ok = false;
@@ -1467,7 +1465,7 @@ mtf_processing (const struct ccase *c, void *mtf_)
 	}
 
       /* 5. Write the output record. */
-      mtf->sink->class->write (mtf->sink, &mtf->mtf_case);
+      casefile_append (mtf->output, &mtf->mtf_case);
 
       /* 6. Read another record from each input file FILE and TABLE
 	 that we stored values from above.  If we come to the end of

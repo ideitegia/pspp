@@ -1,3 +1,13 @@
+Sat May  6 13:51:16 2006  Ben Pfaff  <blp@gnu.org>
+
+	Use a casefile, instead of a case sink, for MATCH FILES output.
+	It's more straightforward, although it has the same effect.
+	
+	* get.c: (struct mtf_proc) Replace `sink' case sink member by
+	`output' casefile member.
+	(cmd_match_files) Work with casefile instead of sink.
+	(mtf_processing) Add case to casefile instead of sink.
+
 Sat May  6 10:43:07 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of
