@@ -1,12 +1,8 @@
-Time-stamp: <2006-05-05 22:56:48 blp>
+Time-stamp: <2006-05-06 11:03:32 blp>
 
 Procedure processing:
 
 * Should not need temporary casefile in the common case.
-
-* The "split" variants should not dump the splits to the output file
-  automatically.  There is no need for the procedure code to talk to the output
-  manager.
 
 * LAG need not be as much of a special case.
 
