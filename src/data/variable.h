@@ -126,9 +126,6 @@ struct vector
     int cnt;			/* Number of variables. */
   };
 
-/* PROCESS IF expression. */
-extern struct expression *process_if_expr;
-
 struct ccase;
 void dump_split_vars (const struct ccase *);
 

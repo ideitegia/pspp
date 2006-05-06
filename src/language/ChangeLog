@@ -1,3 +1,11 @@
+Sat May  6 13:25:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, remove
+	PROCESS IF, which was deprecated anyway and can be easily
+	simulated with TEMPORARY followed by SELECT IF.
+
+	* command.def: Removed PROCESS IF.
+
 Mon May  1 18:17:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	Further clean up the CMD_* command result codes.

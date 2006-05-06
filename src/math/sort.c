@@ -62,8 +62,6 @@ static void
 prepare_to_sort_active_file (void) 
 {
   proc_cancel_temporary_transformations (); 
-  expr_free (process_if_expr);
-  process_if_expr = NULL;
 }
 
 /* Sorts the active file in-place according to CRITERIA.

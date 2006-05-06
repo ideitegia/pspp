@@ -121,33 +121,3 @@ cmd_filter (void)
 
   return CMD_SUCCESS;
 }
-
-/* Expression on PROCESS IF. */
-struct expression *process_if_expr;
-
-/* Parses the PROCESS IF command. */
-int
-cmd_process_if (void)
-{
-  struct expression *e;
-
-  e = expr_parse (default_dict, EXPR_BOOLEAN);
-  if (!e)
-    return CMD_FAILURE;
-
-  if (token != '.')
-    {
-      expr_free (e);
-      lex_error (_("expecting end of command"));
-      return CMD_FAILURE;
-    }
-
-  if (process_if_expr)
-    {
-      msg (SW, _("Only last instance of this command is in effect."));
-      expr_free (process_if_expr);
-    }
-  process_if_expr = e;
-
-  return CMD_SUCCESS;
-}

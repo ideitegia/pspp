@@ -389,7 +389,6 @@
 				"PRINT FORMATS"          
 				"PRINT SPACE"            
 				"PROCEDURE OUTPUT"       
-				"PROCESS IF"             
 				"PROXIMITIES"            
 				"Q"                      
 				"QUICK CLUSTER"          

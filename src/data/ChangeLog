@@ -1,3 +1,17 @@
+Sat May  6 12:38:55 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, remove
+	PROCESS IF, which was deprecated anyway and can be easily
+	simulated with TEMPORARY followed by SELECT IF.
+
+	* procedure.c: (open_active_file) Don't call
+	add_process_if_trns().
+	(discard_variables) Get rid of redundant call to
+	proc_cancel_all_transformations().
+	(add_process_if_trns) Removed.
+	(process_if_trns_proc) Removed.
+	(process_if_trns_free) Removed.
+
 Sat May  6 10:58:05 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, add

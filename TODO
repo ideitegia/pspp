@@ -1,4 +1,4 @@
-Time-stamp: <2006-05-06 11:03:32 blp>
+Time-stamp: <2006-05-06 11:38:03 blp>
 
 Procedure processing:
 
@@ -6,7 +6,7 @@ Procedure processing:
 
 * LAG need not be as much of a special case.
 
-* Push PROCESS IF, FILTER, N OF CASES out of procedure.c.
+* Push FILTER, N OF CASES out of procedure.c.
 
 * Change sources into state machines?
 
@@ -86,7 +86,7 @@ For each case we read from the input program:
 3. Write case to replacement active file.
 4. Execute temporary transformations.  If these drop the case, stop.
 5. Post-TEMPORARY N OF CASES.  If we have already analyzed N cases, stop.
-6. FILTER, PROCESS IF.  If these drop the case, stop.
+6. FILTER.  If this drops the case, stop.
 7. Pass case to procedure.
 
 Ugly cases:
@@ -98,7 +98,7 @@ procedure.  When output goes to the active file, step 3 should be skipped,
 because AGGREGATE creates its own case sink and writes to it in step 7.  Also,
 TEMPORARY has no effect and we just cancel it.  Regardless of direction of
 output, we should not implement AGGREGATE through a transformation because that
-will fail to honor FILTER, PROCESS IF, N OF CASES.
+will fail to honor FILTER, N OF CASES.
 
 ADD FILES: Essentially an input program.  It silently cancels unclosed LOOPs
 and DO IFs.  If the active file is used for input, then runs EXECUTE (if there
@@ -147,14 +147,6 @@ FILTER
   * Before TEMPORARY, selection is permanent.  After TEMPORARY,
     selection stops after a procedure.
 
-PROCESS IF
-
-  * Always selects cases sent to the procedure.
-
-  * No effect on cases sent to sink.
-
-  * Always stops after a procedure.
-
 SPLIT FILE
 
   * Ignored by AGGREGATE.  Used when procedures write matrices.
@@ -180,7 +172,7 @@ TEMPORARY
 
   * RENAME VARIABLES is invalid after TEMPORARY.
 
-  * WEIGHT, SPLIT FILE, N OF CASES, FILTER, PROCESS IF apply only to
+  * WEIGHT, SPLIT FILE, N OF CASES, FILTER apply only to
     the next procedure when used after TEMPORARY.
 
 WEIGHT

@@ -1,3 +1,13 @@
+Sat May  6 13:25:57 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, remove
+	PROCESS IF, which was deprecated anyway and can be easily
+	simulated with TEMPORARY followed by SELECT IF.
+
+	* select-if.c (cmd_process_if): Removed.
+	(global var process_if_expr) Removed, along with all references
+	globally.
+
 Tue Apr 25 13:23:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	* select-if.c (cmd_process_if): Use SW instead of MW for warning

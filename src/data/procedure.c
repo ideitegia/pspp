@@ -34,7 +34,6 @@
 #include <data/storage-stream.h>
 #include <data/transformations.h>
 #include <data/variable.h>
-#include <language/expressions/public.h>
 #include <libpspp/alloc.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
@@ -94,7 +93,6 @@ static struct ccase *lag_queue; /* Array of n_lag ccase * elements. */
 
 static void add_case_limit_trns (void);
 static void add_filter_trns (void);
-static void add_process_if_trns (void);
 
 static bool internal_procedure (bool (*case_func) (const struct ccase *,
                                                    void *),
@@ -220,8 +218,6 @@ internal_procedure (bool (*case_func) (const struct ccase *, void *),
       && trns_chain_is_empty (permanent_trns_chain))
     {
       n_lag = 0;
-      expr_free (process_if_expr);
-      process_if_expr = NULL;
       dict_set_case_limit (default_dict, 0);
       dict_clear_vectors (default_dict);
       return true;
@@ -285,7 +281,6 @@ open_active_file (void)
 {
   add_case_limit_trns ();
   add_filter_trns ();
-  add_process_if_trns ();
 
   /* Finalize transformations. */
   trns_chain_finalize (cur_trns_chain);
@@ -443,8 +438,6 @@ close_active_file (void)
   free_case_sink (vfm_sink);
   vfm_sink = NULL;
 
-  /* Cancel TEMPORARY, PROCESS IF, FILTER, N OF CASES, vectors,
-     and get rid of all the transformations. */
   dict_clear_vectors (default_dict);
   permanent_dict = NULL;
   return proc_cancel_all_transformations ();
@@ -677,11 +670,6 @@ discard_variables (void)
   vfm_source = NULL;
 
   proc_cancel_all_transformations ();
-
-  expr_free (process_if_expr);
-  process_if_expr = NULL;
-
-  proc_cancel_temporary_transformations ();
 }
 
 /* Returns the current set of permanent transformations,
@@ -943,40 +931,4 @@ filter_trns_proc (void *filter_var_,
   return (f != 0.0 && !mv_is_num_missing (&filter_var->miss, f)
           ? TRNS_CONTINUE : TRNS_DROP_CASE);
 }
-
-static trns_proc_func process_if_trns_proc;
-static trns_free_func process_if_trns_free;
 
-/* Adds a temporary transformation to filter data according to
-   the expression specified on PROCESS IF, if any. */
-static void
-add_process_if_trns (void) 
-{
-  if (process_if_expr != NULL) 
-    {
-      proc_start_temporary_transformations ();
-      add_transformation (process_if_trns_proc, process_if_trns_free,
-                          process_if_expr);
-      process_if_expr = NULL;
-    }
-}
-
-/* PROCESS IF transformation. */
-static int
-process_if_trns_proc (void *expression_,
-                      struct ccase *c UNUSED, int case_nr UNUSED) 
-  
-{
-  struct expression *expression = expression_;
-  return (expr_evaluate_num (expression, c, case_nr) == 1.0
-          ? TRNS_CONTINUE : TRNS_DROP_CASE);
-}
-
-/* Frees a PROCESS IF transformation. */
-static bool
-process_if_trns_free (void *expression_) 
-{
-  struct expression *expression = expression_;
-  expr_free (expression);
-  return true;
-}

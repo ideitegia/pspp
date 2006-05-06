@@ -7,7 +7,6 @@ select data records from the active file for analysis.
 @menu
 * FILTER::                      Exclude cases based on a variable.
 * N OF CASES::                  Limit the size of the active file.
-* PROCESS IF::                  Temporarily excluding cases.
 * SAMPLE::                      Select a specified proportion of cases.
 * SELECT IF::                   Permanently delete selected cases.
 * SPLIT FILE::                  Do multiple analyses with one command.
@@ -44,7 +43,7 @@ case filtering continues until it is explicitly turned off with @code{FILTER
 OFF}.  However, if @cmd{FILTER} is placed after TEMPORARY, it filters only
 the next procedure or procedure-like command.
 
-@node N OF CASES, PROCESS IF, FILTER, Data Selection
+@node N OF CASES
 @section N OF CASES
 @vindex N OF CASES
 
@@ -70,7 +69,7 @@ specify a very high number: 100000 or whatever you think is large enough.)
 Transformation procedures performed after @cmd{N} is executed
 @emph{do} cause cases to be discarded.
 
-@cmd{SAMPLE}, @cmd{PROCESS IF}, and @cmd{SELECT IF} have
+@cmd{SAMPLE} and @cmd{SELECT IF} have
 precedence over @cmd{N}---the same results are obtained by both of the
 following fragments, given the same random number seeds:
 
@@ -98,41 +97,7 @@ case count estimates.
 When @cmd{N} is specified after @cmd{TEMPORARY}, it affects only
 the next procedure (@pxref{TEMPORARY}).
 
-@node PROCESS IF, SAMPLE, N OF CASES, Data Selection
-@section PROCESS IF
-@vindex PROCESS IF
-
-@example
-PROCESS IF expression.
-@end example
-
-@cmd{PROCESS IF} temporarily eliminates cases from the
-data stream.  Its effects are active only through the execution of the
-next procedure or procedure-like command.
-
-Specify a boolean expression (@pxref{Expressions}).  If the value of the
-expression is true for a particular case, the case will be analyzed.  If
-the expression has a false or missing value, then the case will be
-deleted from the data stream for this procedure only.
-
-Regardless of its placement relative to other commands, @cmd{PROCESS IF}
-always takes effect immediately before data passes to the procedure.
-Only one @cmd{PROCESS IF} command may be in effect at any given time.
-
-The effects of @cmd{PROCESS IF} are similar, but not identical, to the
-effects of executing @cmd{TEMPORARY}, then @cmd{SELECT IF}
-(@pxref{SELECT IF}).
-
-The filtering performed by @cmd{PROCESS IF} takes place immediately
-before cases pass to a procedure for analysis.  Because @cmd{PROCESS
-IF} affects only a single procedure, its placement relative to
-@cmd{TEMPORARY} is unimportant.
-
-@cmd{PROCESS IF} is deprecated.  It is included for compatibility with
-old command files.  New syntax files should use @cmd{SELECT IF} or
-@cmd{FILTER} instead.
-
-@node SAMPLE, SELECT IF, PROCESS IF, Data Selection
+@node SAMPLE
 @section SAMPLE
 @vindex SAMPLE
 
