@@ -21,9 +21,11 @@
 #define VAL_LABS_H 1
 
 #include <stddef.h>
-#include "variable.h"
+
+#include <data/value.h>
 
 struct val_labs;
+struct variable;
 
 struct val_lab 
   {

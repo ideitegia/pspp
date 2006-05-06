@@ -1,3 +1,7 @@
+Sat May  6 16:14:08 2006  Ben Pfaff  <blp@gnu.org>
+
+	* value-labels.h: Remove unneeded dependency on variable.h.
+
 Sat May  6 15:58:36 2006  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of `char *c' member in union value, for cleanliness.
