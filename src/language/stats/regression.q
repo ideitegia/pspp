@@ -37,6 +37,7 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
@@ -116,7 +117,8 @@ struct file_handle *model_file;
  */
 int pspp_reg_rc = CMD_SUCCESS;
 
-static bool run_regression (const struct casefile *, void *);
+static bool run_regression (const struct ccase *,
+                            const struct casefile *, void *);
 
 /* 
    STATISTICS subcommand output functions.
@@ -1070,7 +1072,8 @@ int prepare_data (int n_data, int is_missing_case[],
   return n_data;
 }
 static bool
-run_regression (const struct casefile *cf, void *cmd_ UNUSED)
+run_regression (const struct ccase *first,
+                const struct casefile *cf, void *cmd_ UNUSED)
 {
   size_t i;
   size_t n_data = 0; /* Number of valide cases. */
@@ -1093,6 +1096,9 @@ run_regression (const struct casefile *cf, void *cmd_ UNUSED)
   pspp_linreg_opts lopts;
 
   assert (models != NULL);
+
+  output_split_file_values (first);
+
   if (!v_variables)
     {
       dict_get_vars (default_dict, &v_variables, &n_variables,

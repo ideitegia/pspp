@@ -1,3 +1,22 @@
+Sat May  6 10:43:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	the output code for SPLIT FILE groups in procedure.c, which really
+	shouldn't be doing any output.  Move it into the individual
+	procedures instead.  This also adds some flexibility.
+
+	* split-file.c (output_split_file_values): New function.
+
+Sat May  6 10:42:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	the output code for SPLIT FILE groups in procedure.c, which really
+	shouldn't be doing any output.  Move it into the individual
+	procedures instead.  This also adds some flexibility.
+
+	* automake.mk (src_language_dictionary_libcmddict_a_SOURCES): Add
+	split-file.h.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

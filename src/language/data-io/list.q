@@ -30,6 +30,7 @@
 #include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
@@ -82,11 +83,11 @@ static unsigned n_chars_width (struct outp_driver *d);
 static void write_line (struct outp_driver *d, const char *s);
 
 /* Other functions. */
-static bool list_cases (struct ccase *, void *);
+static bool list_cases (const struct ccase *, void *);
 static void determine_layout (void);
 static void clean_up (void);
 static void write_header (struct outp_driver *);
-static void write_all_headers (void *);
+static void write_all_headers (const struct ccase *, void *);
 
 /* Returns the number of text lines that can fit on the remainder of
    the page. */
@@ -239,10 +240,11 @@ cmd_list (void)
 /* Writes headers to all devices.  This is done at the beginning of
    each SPLIT FILE group. */
 static void
-write_all_headers (void *aux UNUSED)
+write_all_headers (const struct ccase *c, void *aux UNUSED)
 {
   struct outp_driver *d;
 
+  output_split_file_values (c);
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     {
       if (!d->class->special)
@@ -604,7 +606,7 @@ determine_layout (void)
 
 /* Writes case C to output. */
 static bool
-list_cases (struct ccase *c, void *aux UNUSED)
+list_cases (const struct ccase *c, void *aux UNUSED)
 {
   struct outp_driver *d;
   

@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
@@ -94,7 +95,8 @@ static int ostensible_number_of_groups=-1;
 static is_missing_func *value_is_missing;
 
 
-static bool run_oneway(const struct casefile *cf, void *_mode);
+static bool run_oneway(const struct ccase *first,
+                       const struct casefile *cf, void *_mode);
 
 
 /* Routines to show the output tables */
@@ -892,12 +894,14 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 
 
 static bool
-run_oneway(const struct casefile *cf, void *cmd_)
+run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_)
 {
   struct casereader *r;
   struct ccase c;
 
   struct cmd_oneway *cmd = (struct cmd_oneway *) cmd_;
+
+  output_split_file_values (first);
 
   global_group_hash = hsh_create(4, 
 				 (hsh_compare_func *) compare_values,

@@ -42,6 +42,7 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
@@ -173,9 +174,9 @@ static struct pool *pl_tc;	/* For table cells. */
 static struct pool *pl_col;	/* For column data. */
 
 static int internal_cmd_crosstabs (void);
-static void precalc (void *);
-static bool calc_general (struct ccase *, void *);
-static bool calc_integer (struct ccase *, void *);
+static void precalc (const struct ccase *, void *);
+static bool calc_general (const struct ccase *, void *);
+static bool calc_integer (const struct ccase *, void *);
 static void postcalc (void *);
 static void submit (struct tab_table *);
 
@@ -485,8 +486,9 @@ static unsigned hash_table_entry (const void *, void *);
 
 /* Set up the crosstabulation tables for processing. */
 static void
-precalc (void *aux UNUSED)
+precalc (const struct ccase *first, void *aux UNUSED)
 {
+  output_split_file_values (first);
   if (mode == GENERAL)
     {
       gen_tab = hsh_create (512, compare_table_entry, hash_table_entry,
@@ -558,7 +560,7 @@ precalc (void *aux UNUSED)
 
 /* Form crosstabulations for general mode. */
 static bool
-calc_general (struct ccase *c, void *aux UNUSED)
+calc_general (const struct ccase *c, void *aux UNUSED)
 {
   int bad_warn = 1;
 
@@ -632,7 +634,7 @@ calc_general (struct ccase *c, void *aux UNUSED)
 }
 
 static bool
-calc_integer (struct ccase *c, void *aux UNUSED)
+calc_integer (const struct ccase *c, void *aux UNUSED)
 {
   int bad_warn = 1;
 

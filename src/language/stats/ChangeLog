@@ -1,3 +1,24 @@
+Sat May  6 10:43:33 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	the output code for SPLIT FILE groups in procedure.c, which really
+	shouldn't be doing any output.  Move it into the individual
+	procedures instead.  This also adds some flexibility.
+
+	* crosstabs.q (precalc): Call output_split_file_values().
+
+	* descriptives.c (calc_descriptives): Ditto.
+
+	* examine.q (run_examine): Ditto.
+	
+	* frequencies.q (precalc): Ditto.
+
+	* oneway.q (run_oneway): Ditto.
+
+	* regression.q (run_regression): Ditto.
+
+	* t-test.q (calculate): Ditto.
+
 Wed May  3 23:05:31 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of
@@ -8,7 +29,6 @@ Wed May  3 23:05:31 2006  Ben Pfaff  <blp@gnu.org>
 	 
 	* aggregate.c (cmd_aggregate) Use discard_variables().
 	
-
 2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (regression_trns_resid_proc): Pass only the

@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
@@ -150,7 +151,8 @@ void box_plot_variables(const struct factor *fctr,
 
 
 /* Per Split function */
-static bool run_examine(const struct casefile *cf, void *cmd_);
+static bool run_examine(const struct ccase *,
+                        const struct casefile *cf, void *cmd_);
 
 static void output_examine(void);
 
@@ -676,7 +678,7 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 }
 
 static bool 
-run_examine(const struct casefile *cf, void *cmd_ )
+run_examine(const struct ccase *first, const struct casefile *cf, void *cmd_ )
 {
   struct casereader *r;
   struct ccase c;
@@ -684,9 +686,13 @@ run_examine(const struct casefile *cf, void *cmd_ )
 
   const struct cmd_examine *cmd = (struct cmd_examine *) cmd_;
 
+  struct factor *fctr;
+
+  output_split_file_values (first);
+
   /* Make sure we haven't got rubbish left over from a 
      previous split */
-  struct factor *fctr = factors;
+  fctr = factors;
   while (fctr) 
     {
       struct factor *next = fctr->next;

@@ -21,14 +21,23 @@
 
 #include <stdlib.h>
 
+#include <data/case.h>
 #include <data/dictionary.h>
+#include <data/format.h>
 #include <data/procedure.h>
+#include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+#include <output/manager.h>
+#include <output/table.h>
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 int
 cmd_split_file (void)
@@ -52,4 +61,47 @@ cmd_split_file (void)
     }
 
   return lex_end_of_command ();
+}
+
+/* Dumps out the values of all the split variables for the case C. */
+void
+output_split_file_values (const struct ccase *c)
+{
+  struct variable *const *split;
+  struct tab_table *t;
+  size_t split_cnt;
+  int i;
+
+  split_cnt = dict_get_split_cnt (default_dict);
+  if (split_cnt == 0)
+    return;
+
+  t = tab_create (3, split_cnt + 1, 0);
+  tab_dim (t, tab_natural_dimensions);
+  tab_vline (t, TAL_GAP, 1, 0, split_cnt);
+  tab_vline (t, TAL_GAP, 2, 0, split_cnt);
+  tab_text (t, 0, 0, TAB_NONE, _("Variable"));
+  tab_text (t, 1, 0, TAB_LEFT, _("Value"));
+  tab_text (t, 2, 0, TAB_LEFT, _("Label"));
+  split = dict_get_split_vars (default_dict);
+  for (i = 0; i < split_cnt; i++)
+    {
+      struct variable *v = split[i];
+      char temp_buf[80];
+      const char *val_lab;
+
+      assert (v->type == NUMERIC || v->type == ALPHA);
+      tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
+      
+      data_out (temp_buf, &v->print, case_data (c, v->fv));
+      
+      temp_buf[v->print.w] = 0;
+      tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);
+
+      val_lab = val_labs_find (v->val_labs, *case_data (c, v->fv));
+      if (val_lab)
+	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);
+    }
+  tab_flags (t, SOMF_NO_TITLE);
+  tab_submit (t);
 }

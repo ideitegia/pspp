@@ -1,3 +1,12 @@
+Sat May  6 10:43:07 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, get rid of
+	the output code for SPLIT FILE groups in procedure.c, which really
+	shouldn't be doing any output.  Move it into the individual
+	procedures instead.  This also adds some flexibility.
+
+	* list.q (write_all_headers): Call output_split_file_values().
+
 Wed May  3 23:00:17 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

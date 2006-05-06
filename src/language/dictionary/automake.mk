@@ -10,6 +10,7 @@ src_language_dictionary_libcmddict_a_SOURCES = \
  src/language/dictionary/numeric.c \
  src/language/dictionary/rename-variables.c \
  src/language/dictionary/split-file.c \
+ src/language/dictionary/split-file.h \
  src/language/dictionary/sys-file-info.c \
  src/language/dictionary/value-labels.c \
  src/language/dictionary/variable-label.c \

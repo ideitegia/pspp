@@ -32,6 +32,7 @@
 #include <data/transformations.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
@@ -177,7 +178,8 @@ static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *);
 
 /* Procedure execution functions. */
-static bool calc_descriptives (const struct casefile *, void *dsc_);
+static bool calc_descriptives (const struct ccase *first,
+                               const struct casefile *, void *dsc_);
 static void display (struct dsc_proc *dsc);
 
 /* Parser and outline. */
@@ -695,12 +697,15 @@ static int listwise_missing (struct dsc_proc *dsc, const struct ccase *c);
 /* Calculates and displays descriptive statistics for the cases
    in CF. */
 static bool
-calc_descriptives (const struct casefile *cf, void *dsc_) 
+calc_descriptives (const struct ccase *first,
+                   const struct casefile *cf, void *dsc_) 
 {
   struct dsc_proc *dsc = dsc_;
   struct casereader *reader;
   struct ccase c;
   size_t i;
+
+  output_split_file_values (first);
 
   for (i = 0; i < dsc->var_cnt; i++)
     {

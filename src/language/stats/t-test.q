@@ -33,6 +33,7 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
@@ -233,7 +234,8 @@ static int  group_calc (const struct ccase *, struct cmd_t_test *);
 static void group_postcalc (struct cmd_t_test *);
 
 
-static bool calculate(const struct casefile *cf, void *_mode);
+static bool calculate(const struct ccase *first,
+                      const struct casefile *cf, void *_mode);
 
 static  int mode;
 
@@ -1835,7 +1837,7 @@ group_postcalc ( struct cmd_t_test *cmd )
 
 
 static bool
-calculate(const struct casefile *cf, void *cmd_)
+calculate(const struct ccase *first, const struct casefile *cf, void *cmd_)
 {
   struct ssbox stat_summary_box;
   struct trbox test_results_box;
@@ -1845,6 +1847,7 @@ calculate(const struct casefile *cf, void *cmd_)
 
   struct cmd_t_test *cmd = (struct cmd_t_test *) cmd_;
 
+  output_split_file_values (first);
   common_precalc(cmd);
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;

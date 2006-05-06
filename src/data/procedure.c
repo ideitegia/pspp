@@ -31,21 +31,13 @@
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/procedure.h>
-#include <data/settings.h>
 #include <data/storage-stream.h>
 #include <data/transformations.h>
-#include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/expressions/public.h>
 #include <libpspp/alloc.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-#include <output/manager.h>
-#include <output/table.h>
-
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
 
 /*
    Virtual File Manager (vfm):
@@ -484,22 +476,23 @@ struct split_aux_data
     size_t case_count;          /* Number of cases so far. */
     struct ccase prev_case;     /* Data in previous case. */
 
-    /* Functions to call... */
-    void (*begin_func) (void *);               /* ...before data. */
-    bool (*proc_func) (struct ccase *, void *); /* ...with data. */
-    void (*end_func) (void *);                 /* ...after data. */
-    void *func_aux;                            /* Auxiliary data. */ 
+    /* Callback functions. */
+    void (*begin_func) (const struct ccase *, void *);
+    bool (*proc_func) (const struct ccase *, void *);
+    void (*end_func) (void *);
+    void *func_aux;
   };
 
 static int equal_splits (const struct ccase *, const struct ccase *);
 static bool split_procedure_case_func (struct ccase *c, void *split_aux_);
 static bool split_procedure_end_func (void *split_aux_);
-static void dump_splits (struct ccase *);
 
 /* Like procedure(), but it automatically breaks the case stream
    into SPLIT FILE break groups.  Before each group of cases with
-   identical SPLIT FILE variable values, BEGIN_FUNC is called.
-   Then PROC_FUNC is called with each case in the group.  
+   identical SPLIT FILE variable values, BEGIN_FUNC is called
+   with the first case in the group.
+   Then PROC_FUNC is called for each case in the group (including
+   the first).
    END_FUNC is called when the group is finished.  FUNC_AUX is
    passed to each of the functions as auxiliary data.
 
@@ -512,8 +505,8 @@ static void dump_splits (struct ccase *);
    
    Returns true if successful, false if an I/O error occurred. */
 bool
-procedure_with_splits (void (*begin_func) (void *aux),
-                       bool (*proc_func) (struct ccase *, void *aux),
+procedure_with_splits (void (*begin_func) (const struct ccase *, void *aux),
+                       bool (*proc_func) (const struct ccase *, void *aux),
                        void (*end_func) (void *aux),
                        void *func_aux) 
 {
@@ -548,12 +541,11 @@ split_procedure_case_func (struct ccase *c, void *split_aux_)
       if (split_aux->case_count > 0 && split_aux->end_func != NULL)
         split_aux->end_func (split_aux->func_aux);
 
-      dump_splits (c);
       case_destroy (&split_aux->prev_case);
       case_clone (&split_aux->prev_case, c);
 
       if (split_aux->begin_func != NULL)
-	split_aux->begin_func (split_aux->func_aux);
+	split_aux->begin_func (&split_aux->prev_case, split_aux->func_aux);
     }
 
   split_aux->case_count++;
@@ -581,49 +573,6 @@ equal_splits (const struct ccase *a, const struct ccase *b)
                        dict_get_split_vars (default_dict),
                        dict_get_split_cnt (default_dict)) == 0;
 }
-
-/* Dumps out the values of all the split variables for the case C. */
-static void
-dump_splits (struct ccase *c)
-{
-  struct variable *const *split;
-  struct tab_table *t;
-  size_t split_cnt;
-  int i;
-
-  split_cnt = dict_get_split_cnt (default_dict);
-  if (split_cnt == 0)
-    return;
-
-  t = tab_create (3, split_cnt + 1, 0);
-  tab_dim (t, tab_natural_dimensions);
-  tab_vline (t, TAL_GAP, 1, 0, split_cnt);
-  tab_vline (t, TAL_GAP, 2, 0, split_cnt);
-  tab_text (t, 0, 0, TAB_NONE, _("Variable"));
-  tab_text (t, 1, 0, TAB_LEFT, _("Value"));
-  tab_text (t, 2, 0, TAB_LEFT, _("Label"));
-  split = dict_get_split_vars (default_dict);
-  for (i = 0; i < split_cnt; i++)
-    {
-      struct variable *v = split[i];
-      char temp_buf[80];
-      const char *val_lab;
-
-      assert (v->type == NUMERIC || v->type == ALPHA);
-      tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
-      
-      data_out (temp_buf, &v->print, case_data (c, v->fv));
-      
-      temp_buf[v->print.w] = 0;
-      tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);
-
-      val_lab = val_labs_find (v->val_labs, *case_data (c, v->fv));
-      if (val_lab)
-	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);
-    }
-  tab_flags (t, SOMF_NO_TITLE);
-  tab_submit (t);
-}
 
 /* Multipass procedure that separates the data into SPLIT FILE
    groups. */
@@ -636,7 +585,8 @@ struct multipass_split_aux_data
     struct casefile *casefile;  /* Accumulates data for a split. */
 
     /* Function to call with the accumulated data. */
-    bool (*split_func) (const struct casefile *, void *);
+    bool (*split_func) (const struct ccase *first, const struct casefile *,
+                        void *);
     void *func_aux;                            /* Auxiliary data. */ 
   };
 
@@ -646,9 +596,10 @@ static bool multipass_split_output (struct multipass_split_aux_data *);
 
 /* Returns true if successful, false if an I/O error occurred. */
 bool
-multipass_procedure_with_splits (bool (*split_func) (const struct casefile *,
-                                                     void *),
-                                 void *func_aux) 
+multipass_procedure_with_splits (bool (*split_func) (const struct ccase *first,
+                                                     const struct casefile *,
+                                                     void *aux),
+                                 void *func_aux)
 {
   struct multipass_split_aux_data aux;
   bool ok;
@@ -675,17 +626,16 @@ multipass_split_case_func (struct ccase *c, void *aux_)
   /* Start a new series if needed. */
   if (aux->casefile == NULL || !equal_splits (c, &aux->prev_case))
     {
+      /* Record split values. */
+      case_destroy (&aux->prev_case);
+      case_clone (&aux->prev_case, c);
+
       /* Pass any cases to split_func. */
       if (aux->casefile != NULL)
         ok = multipass_split_output (aux);
 
       /* Start a new casefile. */
       aux->casefile = casefile_create (dict_get_next_value_idx (default_dict));
-
-      /* Record split values. */
-      dump_splits (c);
-      case_destroy (&aux->prev_case);
-      case_clone (&aux->prev_case, c);
     }
 
   return casefile_append (aux->casefile, c) && ok;
@@ -705,7 +655,7 @@ multipass_split_output (struct multipass_split_aux_data *aux)
   bool ok;
   
   assert (aux->casefile != NULL);
-  ok = aux->split_func (aux->casefile, aux->func_aux);
+  ok = aux->split_func (&aux->prev_case, aux->casefile, aux->func_aux);
   casefile_destroy (aux->casefile);
   aux->casefile = NULL;
 

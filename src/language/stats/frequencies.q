@@ -36,6 +36,7 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
@@ -267,8 +268,8 @@ static void determine_charts (void);
 
 static void calc_stats (struct variable *v, double d[frq_n_stats]);
 
-static void precalc (void *);
-static bool calc (struct ccase *, void *);
+static void precalc (const struct ccase *, void *);
+static bool calc (const struct ccase *, void *);
 static void postcalc (void *);
 
 static void postprocess_freq_tab (struct variable *);
@@ -494,7 +495,7 @@ determine_charts (void)
 
 /* Add data from case C to the frequency table. */
 static bool
-calc (struct ccase *c, void *aux UNUSED)
+calc (const struct ccase *c, void *aux UNUSED)
 {
   double weight;
   size_t i;
@@ -549,9 +550,11 @@ calc (struct ccase *c, void *aux UNUSED)
 /* Prepares each variable that is the target of FREQUENCIES by setting
    up its hash table. */
 static void
-precalc (void *aux UNUSED)
+precalc (const struct ccase *first, void *aux UNUSED)
 {
   size_t i;
+
+  output_split_file_values (first);
 
   pool_destroy (gen_pool);
   gen_pool = pool_create ();
