@@ -1,32 +1,3 @@
-Sat May  6 10:30:33 2006  Ben Pfaff  <blp@gnu.org>
-
-	Continue reforming procedure execution.  In this phase, get rid of
-	the output code for SPLIT FILE groups in procedure.c, which really
-	shouldn't be doing any output.  Move it into the individual
-	procedures instead.  This also adds some flexibility.
-
-	Updated many users of procedure_with_splits() and
-	multipass_procedure_with_splits() to call
-	output_split_file_values() and to deal with increased use of
-	const.
-
-	* procedure.c: (struct split_aux_data) Add "const struct ccase *"
-	parameter to begin_func member.
-	(procedure_with_splits) Add "const struct ccase *" parameter to
-	begin_func parameter.  Make ccase parameter const in proc_func
-	parameter.
-	(split_procedure_case_func) Don't dump split file group.  Pass
-	case to begin_func.
-	(dump_splits) Moved to language/dictionary/split-file.c as
-	output_split_file_values().
-	(struct multipass_split_aux_data) Add "const struct ccase *"
-	parameter to split_func member.
-	(multipass_procedure_with_splits) Add "const struct ccase *"
-	parameter to split_func parameter.
-	(multipass_split_case_func) Save new SPLIT FILE case before
-	outputting case.
-	(multipass_split_output) Pass saved SPLIT FILE case to split_func.
-	
 Thu May  4 21:47:48 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, move
