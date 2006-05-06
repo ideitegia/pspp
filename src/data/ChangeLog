@@ -1,3 +1,9 @@
+Sat May  6 15:58:36 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of `char *c' member in union value, for cleanliness.
+	
+	* value.h: (union value) Remove `c' member.
+
 Sat May  6 15:36:59 2006  Ben Pfaff  <blp@gnu.org>
 
 	Make dictionary compacting functions a little more general.

@@ -40,10 +40,17 @@
 
 /* FIXME: Implement PRINT subcommand. */
 
+/* An AUTORECODE variable's original value. */
+union arc_value 
+  {
+    double f;                   /* Numeric. */
+    char *c;                    /* Short or long string. */
+  };
+
 /* Explains how to recode one value.  `from' must be first element.  */
 struct arc_item
   {
-    union value from;		/* Original value. */
+    union arc_value from;	/* Original value. */
     double to;			/* Recoded value. */
   };
 
@@ -76,7 +83,7 @@ struct autorecode_pgm
     struct variable **src_vars;    /* Source variables. */
     char **dst_names;              /* Target variable names. */
     struct variable **dst_vars;    /* Target variables. */
-    struct hsh_table **src_values; /* `union value's of source vars. */
+    struct hsh_table **src_values; /* `union arc_value's of source vars. */
     size_t var_cnt;                /* Number of variables. */
     struct pool *src_values_pool;  /* Pool used by src_values. */
     enum direction direction;      /* Sort order. */
@@ -248,7 +255,7 @@ recode (const struct autorecode_pgm *arc)
       for (j = 0; *p; p++, j++)
 	{
 	  struct arc_item *item = pool_alloc (trns->pool, sizeof *item);
-          union value *vp = *p;
+          union arc_value *vp = *p;
           
 	  if (arc->src_vars[i]->type == NUMERIC)
             item->from.f = vp->f;
@@ -273,7 +280,7 @@ autorecode_trns_proc (void *trns_, struct ccase *c, int case_idx UNUSED)
     {
       struct arc_spec *spec = &trns->specs[i];
       struct arc_item *item;
-      union value v;
+      union arc_value v;
 
       if (spec->src->type == NUMERIC)
         v.f = case_num (c, spec->src->fv);
@@ -304,8 +311,8 @@ autorecode_trns_free (void *trns_)
 static int
 compare_alpha_value (const void *a_, const void *b_, void *v_)
 {
-  const union value *a = a_;
-  const union value *b = b_;
+  const union arc_value *a = a_;
+  const union arc_value *b = b_;
   const struct variable *v = v_;
 
   return memcmp (a->c, b->c, v->width);
@@ -314,7 +321,7 @@ compare_alpha_value (const void *a_, const void *b_, void *v_)
 static unsigned
 hash_alpha_value (const void *a_, void *v_)
 {
-  const union value *a = a_;
+  const union arc_value *a = a_;
   const struct variable *v = v_;
   
   return hsh_hash_bytes (a->c, v->width);
@@ -323,8 +330,8 @@ hash_alpha_value (const void *a_, void *v_)
 static int
 compare_numeric_value (const void *a_, const void *b_, void *foo UNUSED)
 {
-  const union value *a = a_;
-  const union value *b = b_;
+  const union arc_value *a = a_;
+  const union arc_value *b = b_;
 
   return a->f < b->f ? -1 : a->f > b->f;
 }
@@ -332,7 +339,7 @@ compare_numeric_value (const void *a_, const void *b_, void *foo UNUSED)
 static unsigned
 hash_numeric_value (const void *a_, void *foo UNUSED)
 {
-  const union value *a = a_;
+  const union arc_value *a = a_;
 
   return hsh_hash_double (a->f);
 }
@@ -345,14 +352,14 @@ autorecode_proc_func (const struct ccase *c, void *arc_)
 
   for (i = 0; i < arc->var_cnt; i++)
     {
-      union value v, *vp, **vpp;
+      union arc_value v, *vp, **vpp;
 
       if (arc->src_vars[i]->type == NUMERIC)
         v.f = case_num (c, arc->src_vars[i]->fv);
       else
         v.c = (char *) case_str (c, arc->src_vars[i]->fv);
 
-      vpp = (union value **) hsh_probe (arc->src_values[i], &v);
+      vpp = (union arc_value **) hsh_probe (arc->src_values[i], &v);
       if (*vpp == NULL)
         {
           vp = pool_alloc (arc->src_values_pool, sizeof *vp);

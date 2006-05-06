@@ -48,6 +48,13 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* Argument for AGGREGATE function. */
+union agr_argument
+  {
+    double f;                           /* Numeric. */
+    char *c;                            /* Short or long string. */
+  };
+
 /* Specifies how to make an aggregate variable. */
 struct agr_var
   {
@@ -58,7 +65,7 @@ struct agr_var
     struct variable *dest;	/* Target variable. */
     int function;		/* Function. */
     int include_missing;	/* 1=Include user-missing values. */
-    union value arg[2];		/* Arguments. */
+    union agr_argument arg[2];	/* Arguments. */
 
     /* Accumulated during AGGREGATE execution. */
     double dbl[3];
@@ -359,7 +366,7 @@ parse_aggregate_functions (struct agr_proc *agr)
       const struct agr_func *function;
       int func_index;
 
-      union value arg[2];
+      union agr_argument arg[2];
 
       struct variable **src;
       size_t n_src;
@@ -515,7 +522,7 @@ parse_aggregate_functions (struct agr_proc *agr)
                   || (src[0]->type == ALPHA
                       && str_compare_rpad (arg[0].c, arg[1].c) > 0)))
             {
-              union value t = arg[0];
+              union agr_argument t = arg[0];
               arg[0] = arg[1];
               arg[1] = t;
                   

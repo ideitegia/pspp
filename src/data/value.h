@@ -47,23 +47,12 @@
 #define LOWEST second_lowest_value
 #define HIGHEST DBL_MAX
 
-/* Describes one value, which is either a floating-point number or a
-   short string. */
+/* A numeric or short string value.
+   Multiple consecutive values represent a long string. */
 union value
   {
-    /* A numeric value. */
     double f;
-
-    /* A short-string value. */
     char s[MAX_SHORT_STRING];
-
-    /* Used by evaluate_expression() to return a string result.
-       As currently implemented, it's a pointer to a dynamic
-       buffer in the appropriate expression.
-
-       Also used by the AGGREGATE procedure in handling string
-       values. */
-    char *c;
   };
 
 /* Maximum number of `union value's in a single number or string

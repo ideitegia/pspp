@@ -1,3 +1,24 @@
+Sat May  6 16:00:13 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of `char *c' member in union value, for cleanliness.
+	
+	* aggregate.c: (union agr_argument) New union.
+	(struct agr_var) Change element type of arg[] from union value to
+	union agr_argument.
+	(parse_aggregate_functions) Change local variable types likewise.
+
+	* autorecode.c: (union arc_value) New union.
+	(struct arc_item) Change "from" from union value to union
+	arc_value.
+	(recode) Change local variable from union value to union
+	arc_value.
+	(autorecode_trns_proc) Ditto.
+	(compare_alpha_value) Ditto.
+	(hash_alpha_value) Ditto.
+	(compare_numeric_value) Ditto.
+	(hash_numeric_value) Ditto.
+	(autorecode_proc_func) Ditto.
+
 Sat May  6 10:43:33 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

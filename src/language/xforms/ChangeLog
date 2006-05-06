@@ -1,3 +1,13 @@
+Sat May  6 16:02:55 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of `char *c' member in union value, for cleanliness.
+
+	* recode.c: (union recode_value) New union.
+	(struct map_in) Change x, y types to union recode_value.
+	(struct map_out) Change value type to union recode_value.
+	(find_src_string) Wrap data_in() call so it uses a real `union
+	value'.
+
 Sat May  6 14:08:42 2006  Ben Pfaff  <blp@gnu.org>
 
 	* select-if.c (cmd_filter): Make FILTER without any further

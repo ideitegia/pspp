@@ -56,18 +56,25 @@ enum map_in_type
     MAP_CONVERT			/* "123" => 123. */
   };
 
+/* A value involved in a RECODE mapping. */
+union recode_value 
+  {
+    double f;                   /* Numeric. */
+    char *c;                    /* Short or long string. */
+  };
+
 /* Describes input values to be mapped. */
 struct map_in
   {
     enum map_in_type type;      /* One of MAP_*. */
-    union value x, y;           /* Source values. */
+    union recode_value x, y;    /* Source values. */
   };
 
 /* Describes the value used as output from a mapping. */
 struct map_out 
   {
     bool copy_input;            /* If true, copy input to output. */
-    union value value;          /* If copy_input false, recoded value. */
+    union recode_value value;   /* If copy_input false, recoded value. */
     int width;                  /* If copy_input false, output value width. */ 
   };
 
@@ -585,17 +592,19 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
           break;
         case MAP_CONVERT:
           {
+            union value uv;
             struct data_in di;
 
             di.s = value;
             di.e = value + width;
-            di.v = &out->value;
+            di.v = &uv;
             di.flags = DI_IGNORE_ERROR;
             di.f1 = di.f2 = 0;
             di.format.type = FMT_F;
             di.format.w = width;
             di.format.d = 0;
             match = data_in (&di);
+            out->value.f = uv.f;
             break;
           }
         default:
