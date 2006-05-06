@@ -85,7 +85,7 @@ struct autorecode_pgm
 
 static trns_proc_func autorecode_trns_proc;
 static trns_free_func autorecode_trns_free;
-static bool autorecode_proc_func (struct ccase *, void *);
+static bool autorecode_proc_func (const struct ccase *, void *);
 static hsh_compare_func compare_alpha_value, compare_numeric_value;
 static hsh_hash_func hash_alpha_value, hash_numeric_value;
 
@@ -338,7 +338,7 @@ hash_numeric_value (const void *a_, void *foo UNUSED)
 }
 
 static bool
-autorecode_proc_func (struct ccase *c, void *arc_)
+autorecode_proc_func (const struct ccase *c, void *arc_)
 {
   struct autorecode_pgm *arc = arc_;
   size_t i;

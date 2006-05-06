@@ -154,10 +154,10 @@ static int aggregate_single_case (struct agr_proc *agr,
 static void dump_aggregate_info (struct agr_proc *agr, struct ccase *output);
 
 /* Aggregating to the active file. */
-static bool agr_to_active_file (struct ccase *, void *aux);
+static bool agr_to_active_file (const struct ccase *, void *aux);
 
 /* Aggregating to a system file. */
-static bool presorted_agr_to_sysfile (struct ccase *, void *aux);
+static bool presorted_agr_to_sysfile (const struct ccase *, void *aux);
 
 /* Parsing. */
 
@@ -1074,7 +1074,7 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
    are dropped.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-agr_to_active_file (struct ccase *c, void *agr_)
+agr_to_active_file (const struct ccase *c, void *agr_)
 {
   struct agr_proc *agr = agr_;
 
@@ -1087,7 +1087,7 @@ agr_to_active_file (struct ccase *c, void *agr_)
 /* Aggregate the current case and output it if we passed a
    breakpoint. */
 static bool
-presorted_agr_to_sysfile (struct ccase *c, void *agr_) 
+presorted_agr_to_sysfile (const struct ccase *c, void *agr_) 
 {
   struct agr_proc *agr = agr_;
 

@@ -450,7 +450,7 @@ parse_write_command (enum writer_type writer_type,
 
 /* Writes case C to writer AW. */
 static bool
-case_writer_write_case (struct case_writer *aw, struct ccase *c) 
+case_writer_write_case (struct case_writer *aw, const struct ccase *c) 
 {
   if (aw->map != NULL) 
     {
@@ -462,7 +462,7 @@ case_writer_write_case (struct case_writer *aw, struct ccase *c)
 
 /* SAVE and EXPORT. */
 
-static bool output_proc (struct ccase *, void *);
+static bool output_proc (const struct ccase *, void *);
 
 /* Parses and performs the SAVE or EXPORT procedure. */
 static int
@@ -489,7 +489,7 @@ parse_output_proc (enum writer_type writer_type)
 
 /* Writes case C to file. */
 static bool
-output_proc (struct ccase *c, void *aw_) 
+output_proc (const struct ccase *c, void *aw_) 
 {
   struct case_writer *aw = aw_;
   return case_writer_write_case (aw, c);
@@ -793,7 +793,7 @@ static bool mtf_delete_file_in_place (struct mtf_proc *, struct mtf_file **);
 
 static bool mtf_read_nonactive_records (void *);
 static bool mtf_processing_finish (void *);
-static bool mtf_processing (struct ccase *, void *);
+static bool mtf_processing (const struct ccase *, void *);
 
 static char *var_type_description (struct variable *);
 
@@ -1305,10 +1305,10 @@ mtf_read_nonactive_records (void *mtf_)
 static inline int
 mtf_compare_BY_values (struct mtf_proc *mtf,
                        struct mtf_file *a, struct mtf_file *b,
-                       struct ccase *c)
+                       const struct ccase *c)
 {
-  struct ccase *ca = case_is_null (&a->input) ? c : &a->input;
-  struct ccase *cb = case_is_null (&b->input) ? c : &b->input;
+  const struct ccase *ca = case_is_null (&a->input) ? c : &a->input;
+  const struct ccase *cb = case_is_null (&b->input) ? c : &b->input;
   assert ((a == NULL) + (b == NULL) + (c == NULL) <= 1);
   return case_compare_2dict (ca, cb, a->by, b->by, mtf->by_cnt);
 }
@@ -1316,7 +1316,7 @@ mtf_compare_BY_values (struct mtf_proc *mtf,
 /* Perform one iteration of steps 3...7 above.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-mtf_processing (struct ccase *c, void *mtf_)
+mtf_processing (const struct ccase *c, void *mtf_)
 {
   struct mtf_proc *mtf = mtf_;
 
@@ -1420,7 +1420,7 @@ mtf_processing (struct ccase *c, void *mtf_)
 	  
 	      if (mv != NULL && mtf->seq_nums[mv->index] != mtf->seq_num) 
                 {
-                  struct ccase *record
+                  const struct ccase *record
                     = case_is_null (&iter->input) ? c : &iter->input;
                   union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
 

@@ -1,3 +1,20 @@
+Sat May  6 10:58:05 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  In this phase, add
+	`const' to the case passed to procedure()'s callback.
+
+	Updated all users of procedure() as well.
+	
+	* procedure.c: (struct write_case_data) Add "const" to ccase
+	parameter for case_func member.
+	(procedure) Add "const" to ccase parameter for proc_func
+	parameter.
+	(multipass_case_func) Make ccase parameter const.
+	(internal_procedure) Add "const" to ccase parameter for case_func
+	parameter.
+	(split_procedure_case_func) Make ccase parameter const.
+	(multipass_split_case_func) Make ccase parameter const.
+	
 Sat May  6 10:30:33 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

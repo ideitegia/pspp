@@ -62,7 +62,7 @@ bool proc_has_source (void);
 void proc_set_sink (struct case_sink *);
 struct casefile *proc_capture_output (void);
 
-bool procedure (bool (*proc_func) (struct ccase *, void *),
+bool procedure (bool (*proc_func) (const struct ccase *, void *),
                 void *aux);
 bool procedure_with_splits (void (*begin_func) (const struct ccase *, void *),
                             bool (*proc_func) (const struct ccase *, void *),

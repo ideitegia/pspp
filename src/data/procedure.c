@@ -52,8 +52,8 @@
 struct write_case_data
   {
     /* Function to call for each case. */
-    bool (*case_func) (struct ccase *, void *); /* Function. */
-    void *aux;                                 /* Auxiliary data. */ 
+    bool (*case_func) (const struct ccase *, void *);
+    void *aux;
 
     struct ccase trns_case;     /* Case used for transformations. */
     struct ccase sink_case;     /* Case written to sink, if
@@ -96,7 +96,8 @@ static void add_case_limit_trns (void);
 static void add_filter_trns (void);
 static void add_process_if_trns (void);
 
-static bool internal_procedure (bool (*case_func) (struct ccase *, void *),
+static bool internal_procedure (bool (*case_func) (const struct ccase *,
+                                                   void *),
                                 bool (*end_func) (void *),
                                 void *aux);
 static void update_last_vfm_invocation (void);
@@ -136,7 +137,7 @@ time_of_last_procedure (void)
 
    Returns true if successful, false if an I/O error occurred. */
 bool
-procedure (bool (*proc_func) (struct ccase *, void *), void *aux)
+procedure (bool (*proc_func) (const struct ccase *, void *), void *aux)
 {
   return internal_procedure (proc_func, NULL, aux);
 }
@@ -153,7 +154,7 @@ struct multipass_aux_data
 
 /* Case processing function for multipass_procedure(). */
 static bool
-multipass_case_func (struct ccase *c, void *aux_data_) 
+multipass_case_func (const struct ccase *c, void *aux_data_) 
 {
   struct multipass_aux_data *aux_data = aux_data_;
   return casefile_append (aux_data->casefile, c);
@@ -198,7 +199,7 @@ multipass_procedure (bool (*proc_func) (const struct casefile *, void *aux),
    Returns true if successful, false if an I/O error occurred (or
    if CASE_FUNC or END_FUNC ever returned false). */
 static bool
-internal_procedure (bool (*case_func) (struct ccase *, void *),
+internal_procedure (bool (*case_func) (const struct ccase *, void *),
                     bool (*end_func) (void *),
                     void *aux) 
 {
@@ -484,8 +485,8 @@ struct split_aux_data
   };
 
 static int equal_splits (const struct ccase *, const struct ccase *);
-static bool split_procedure_case_func (struct ccase *c, void *split_aux_);
-static bool split_procedure_end_func (void *split_aux_);
+static bool split_procedure_case_func (const struct ccase *c, void *);
+static bool split_procedure_end_func (void *);
 
 /* Like procedure(), but it automatically breaks the case stream
    into SPLIT FILE break groups.  Before each group of cases with
@@ -530,7 +531,7 @@ procedure_with_splits (void (*begin_func) (const struct ccase *, void *aux),
 
 /* Case callback used by procedure_with_splits(). */
 static bool
-split_procedure_case_func (struct ccase *c, void *split_aux_) 
+split_procedure_case_func (const struct ccase *c, void *split_aux_) 
 {
   struct split_aux_data *split_aux = split_aux_;
 
@@ -590,7 +591,7 @@ struct multipass_split_aux_data
     void *func_aux;                            /* Auxiliary data. */ 
   };
 
-static bool multipass_split_case_func (struct ccase *c, void *aux_);
+static bool multipass_split_case_func (const struct ccase *c, void *aux_);
 static bool multipass_split_end_func (void *aux_);
 static bool multipass_split_output (struct multipass_split_aux_data *);
 
@@ -618,7 +619,7 @@ multipass_procedure_with_splits (bool (*split_func) (const struct ccase *first,
 
 /* Case callback used by multipass_procedure_with_splits(). */
 static bool
-multipass_split_case_func (struct ccase *c, void *aux_)
+multipass_split_case_func (const struct ccase *c, void *aux_)
 {
   struct multipass_split_aux_data *aux = aux_;
   bool ok = true;
