@@ -1,3 +1,11 @@
+Fri May  5 21:34:02 2006  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of unused member.
+
+	* procedure.c: (struct write_case_data) Remove `cases_analyzed'
+	member.
+	(write_case) Don't increment cases_analyzed.
+
 Thu May  4 21:50:11 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, move

@@ -67,7 +67,6 @@ struct write_case_data
     struct ccase sink_case;     /* Case written to sink, if
                                    compaction is necessary. */
     size_t cases_written;       /* Cases output so far. */
-    size_t cases_analyzed;      /* Cases passed to procedure so far. */
   };
 
 /* Cases are read from vfm_source,
@@ -365,7 +364,6 @@ write_case (struct write_case_data *wc_data)
     }
 
   /* Pass case to procedure. */
-  wc_data->cases_analyzed++;
   if (wc_data->proc_func != NULL)
     if (!wc_data->proc_func (&wc_data->trns_case, wc_data->aux))
       retval = TRNS_ERROR;
