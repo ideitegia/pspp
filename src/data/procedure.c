@@ -60,7 +60,7 @@
 struct write_case_data
   {
     /* Function to call for each case. */
-    bool (*proc_func) (struct ccase *, void *); /* Function. */
+    bool (*case_func) (struct ccase *, void *); /* Function. */
     void *aux;                                 /* Auxiliary data. */ 
 
     struct ccase trns_case;     /* Case used for transformations. */
@@ -104,7 +104,8 @@ static void add_case_limit_trns (void);
 static void add_filter_trns (void);
 static void add_process_if_trns (void);
 
-static bool internal_procedure (bool (*proc_func) (struct ccase *, void *),
+static bool internal_procedure (bool (*case_func) (struct ccase *, void *),
+                                bool (*end_func) (void *),
                                 void *aux);
 static void update_last_vfm_invocation (void);
 static void create_trns_case (struct ccase *, struct dictionary *);
@@ -124,6 +125,8 @@ time_of_last_procedure (void)
     update_last_vfm_invocation ();
   return last_vfm_invocation;
 }
+
+/* Regular procedure. */
 
 /* Reads the data from the input program and writes it to a new
    active file.  For each case we read from the input program, we
@@ -143,38 +146,34 @@ time_of_last_procedure (void)
 bool
 procedure (bool (*proc_func) (struct ccase *, void *), void *aux)
 {
-  if (proc_func == NULL
-      && case_source_is_class (vfm_source, &storage_source_class)
-      && vfm_sink == NULL
-      && temporary_trns_chain == NULL
-      && trns_chain_is_empty (permanent_trns_chain))
-    {
-      expr_free (process_if_expr);
-      process_if_expr = NULL;
-      dict_set_case_limit (default_dict, 0);
-      dict_clear_vectors (default_dict);
+  return internal_procedure (proc_func, NULL, aux);
+}
+
+/* Multipass procedure. */
 
-      update_last_vfm_invocation ();
-      return true;
-    }
-  else 
-    {
-      bool ok;
-      
-      open_active_file ();
-      ok = internal_procedure (proc_func, aux);
-      ok = close_active_file () && ok;
+struct multipass_aux_data 
+  {
+    struct casefile *casefile;
+    
+    bool (*proc_func) (const struct casefile *, void *aux);
+    void *aux;
+  };
 
-      return ok;
-    }
+/* Case processing function for multipass_procedure(). */
+static bool
+multipass_case_func (struct ccase *c, void *aux_data_) 
+{
+  struct multipass_aux_data *aux_data = aux_data_;
+  return casefile_append (aux_data->casefile, c);
 }
 
-/* Callback function for multipass_procedure(). */
+/* End-of-file function for multipass_procedure(). */
 static bool
-multipass_callback (struct ccase *c, void *cf_) 
+multipass_end_func (void *aux_data_) 
 {
-  struct casefile *cf = cf_;
-  return casefile_append (cf, c);
+  struct multipass_aux_data *aux_data = aux_data_;
+  return (aux_data->proc_func == NULL
+          || aux_data->proc_func (aux_data->casefile, aux_data->aux));
 }
 
 /* Procedure that allows multiple passes over the input data.
@@ -184,66 +183,75 @@ bool
 multipass_procedure (bool (*proc_func) (const struct casefile *, void *aux),
                      void *aux) 
 {
-  if (case_source_is_class (vfm_source, &storage_source_class)
+  struct multipass_aux_data aux_data;
+  bool ok;
+
+  aux_data.casefile = casefile_create (dict_get_next_value_idx (default_dict));
+  aux_data.proc_func = proc_func;
+  aux_data.aux = aux;
+
+  ok = internal_procedure (multipass_case_func, multipass_end_func, &aux_data);
+  ok = !casefile_error (aux_data.casefile) && ok;
+
+  casefile_destroy (aux_data.casefile);
+
+  return ok;
+}
+
+/* Procedure implementation. */
+
+/* Executes a procedure.
+   Passes each case to CASE_FUNC.
+   Calls END_FUNC after the last case.
+   Returns true if successful, false if an I/O error occurred (or
+   if CASE_FUNC or END_FUNC ever returned false). */
+static bool
+internal_procedure (bool (*case_func) (struct ccase *, void *),
+                    bool (*end_func) (void *),
+                    void *aux) 
+{
+  struct write_case_data wc_data;
+  bool ok = true;
+
+  assert (vfm_source != NULL);
+
+  update_last_vfm_invocation ();
+
+  /* Optimize the trivial case where we're not going to do
+     anything with the data, by not reading the data at all. */
+  if (case_func == NULL && end_func == NULL
+      && case_source_is_class (vfm_source, &storage_source_class)
       && vfm_sink == NULL
-      && temporary_trns_chain == NULL
+      && (temporary_trns_chain == NULL
+          || trns_chain_is_empty (temporary_trns_chain))
       && trns_chain_is_empty (permanent_trns_chain))
     {
-      proc_func (storage_source_get_casefile (vfm_source), aux);
-
+      n_lag = 0;
       expr_free (process_if_expr);
       process_if_expr = NULL;
       dict_set_case_limit (default_dict, 0);
       dict_clear_vectors (default_dict);
-
-      update_last_vfm_invocation ();
       return true;
     }
-  else 
-    {
-      struct casefile *cf;
-      bool ok;
-
-      assert (proc_func != NULL);
-
-      cf = casefile_create (dict_get_next_value_idx (default_dict));
-
-      open_active_file ();
-      ok = internal_procedure (multipass_callback, cf);
-      ok = proc_func (cf, aux) && ok;
-      ok = close_active_file () && ok;
-
-      casefile_destroy (cf);
-
-      return ok;
-    }
-}
-
-/* Executes a procedure, as procedure(), except that the caller
-   is responsible for calling open_active_file() and
-   close_active_file().
-   Returns true if successful, false if an I/O error occurred. */
-static bool
-internal_procedure (bool (*proc_func) (struct ccase *, void *), void *aux) 
-{
-  struct write_case_data wc_data;
-  bool ok;
-
-  wc_data.proc_func = proc_func;
+  
+  open_active_file ();
+  
+  wc_data.case_func = case_func;
   wc_data.aux = aux;
   create_trns_case (&wc_data.trns_case, default_dict);
   case_create (&wc_data.sink_case, dict_get_next_value_idx (default_dict));
   wc_data.cases_written = 0;
 
-  update_last_vfm_invocation ();
-
-  ok = (vfm_source == NULL
-        || vfm_source->class->read (vfm_source,
-                                    &wc_data.trns_case,
-                                    write_case, &wc_data));
+  ok = vfm_source->class->read (vfm_source,
+                                &wc_data.trns_case,
+                                write_case, &wc_data) && ok;
+  if (end_func != NULL)
+    ok = end_func (aux) && ok;
 
   case_destroy (&wc_data.sink_case);
   case_destroy (&wc_data.trns_case);
+
+  ok = close_active_file () && ok;
 
   return ok;
 }
@@ -364,8 +372,8 @@ write_case (struct write_case_data *wc_data)
     }
 
   /* Pass case to procedure. */
-  if (wc_data->proc_func != NULL)
-    if (!wc_data->proc_func (&wc_data->trns_case, wc_data->aux))
+  if (wc_data->case_func != NULL)
+    if (!wc_data->case_func (&wc_data->trns_case, wc_data->aux))
       retval = TRNS_ERROR;
 
  done:
@@ -428,7 +436,8 @@ close_active_file (void)
   if (compactor != NULL) 
     {
       dict_compactor_destroy (compactor);
-      dict_compact_values (default_dict); 
+      dict_compact_values (default_dict);
+      compactor = NULL;
     }
     
   /* Free data source. */
@@ -467,6 +476,8 @@ lagged_case (int n_before)
     return NULL;
 }
 
+/* Procedure that separates the data into SPLIT FILE groups. */
+
 /* Represents auxiliary data for handling SPLIT FILE. */
 struct split_aux_data 
   {
@@ -481,7 +492,8 @@ struct split_aux_data
   };
 
 static int equal_splits (const struct ccase *, const struct ccase *);
-static bool procedure_with_splits_callback (struct ccase *, void *);
+static bool split_procedure_case_func (struct ccase *c, void *split_aux_);
+static bool split_procedure_end_func (void *split_aux_);
 static void dump_splits (struct ccase *);
 
 /* Like procedure(), but it automatically breaks the case stream
@@ -515,21 +527,17 @@ procedure_with_splits (void (*begin_func) (void *aux),
   split_aux.end_func = end_func;
   split_aux.func_aux = func_aux;
 
-  open_active_file ();
-  ok = internal_procedure (procedure_with_splits_callback, &split_aux);
-  if (split_aux.case_count > 0 && end_func != NULL)
-    end_func (func_aux);
-  if (!close_active_file ())
-    ok = false;
+  ok = internal_procedure (split_procedure_case_func,
+                           split_procedure_end_func, &split_aux);
 
   case_destroy (&split_aux.prev_case);
 
   return ok;
 }
 
-/* procedure() callback used by procedure_with_splits(). */
+/* Case callback used by procedure_with_splits(). */
 static bool
-procedure_with_splits_callback (struct ccase *c, void *split_aux_) 
+split_procedure_case_func (struct ccase *c, void *split_aux_) 
 {
   struct split_aux_data *split_aux = split_aux_;
 
@@ -549,10 +557,19 @@ procedure_with_splits_callback (struct ccase *c, void *split_aux_)
     }
 
   split_aux->case_count++;
-  if (split_aux->proc_func != NULL)
-    return split_aux->proc_func (c, split_aux->func_aux);
-  else
-    return true;
+  return (split_aux->proc_func == NULL
+          || split_aux->proc_func (c, split_aux->func_aux));
+}
+
+/* End-of-file callback used by procedure_with_splits(). */
+static bool
+split_procedure_end_func (void *split_aux_) 
+{
+  struct split_aux_data *split_aux = split_aux_;
+
+  if (split_aux->case_count > 0 && split_aux->end_func != NULL)
+    split_aux->end_func (split_aux->func_aux);
+  return true;
 }
 
 /* Compares the SPLIT FILE variables in cases A and B and returns
@@ -608,6 +625,9 @@ dump_splits (struct ccase *c)
   tab_submit (t);
 }
 
+/* Multipass procedure that separates the data into SPLIT FILE
+   groups. */
+
 /* Represents auxiliary data for handling SPLIT FILE in a
    multipass procedure. */
 struct multipass_split_aux_data 
@@ -620,7 +640,8 @@ struct multipass_split_aux_data
     void *func_aux;                            /* Auxiliary data. */ 
   };
 
-static bool multipass_split_callback (struct ccase *c, void *aux_);
+static bool multipass_split_case_func (struct ccase *c, void *aux_);
+static bool multipass_split_end_func (void *aux_);
 static bool multipass_split_output (struct multipass_split_aux_data *);
 
 /* Returns true if successful, false if an I/O error occurred. */
@@ -632,29 +653,21 @@ multipass_procedure_with_splits (bool (*split_func) (const struct casefile *,
   struct multipass_split_aux_data aux;
   bool ok;
 
-  assert (split_func != NULL);
-
-  open_active_file ();
-
   case_nullify (&aux.prev_case);
   aux.casefile = NULL;
   aux.split_func = split_func;
   aux.func_aux = func_aux;
 
-  ok = internal_procedure (multipass_split_callback, &aux);
-  if (aux.casefile != NULL)
-    ok = multipass_split_output (&aux) && ok;
+  ok = internal_procedure (multipass_split_case_func,
+                           multipass_split_end_func, &aux);
   case_destroy (&aux.prev_case);
-
-  if (!close_active_file ())
-    ok = false;
 
   return ok;
 }
 
-/* procedure() callback used by multipass_procedure_with_splits(). */
+/* Case callback used by multipass_procedure_with_splits(). */
 static bool
-multipass_split_callback (struct ccase *c, void *aux_)
+multipass_split_case_func (struct ccase *c, void *aux_)
 {
   struct multipass_split_aux_data *aux = aux_;
   bool ok = true;
@@ -678,6 +691,14 @@ multipass_split_callback (struct ccase *c, void *aux_)
   return casefile_append (aux->casefile, c) && ok;
 }
 
+/* End-of-file callback used by multipass_procedure_with_splits(). */
+static bool
+multipass_split_end_func (void *aux_)
+{
+  struct multipass_split_aux_data *aux = aux_;
+  return (aux->casefile == NULL || multipass_split_output (aux));
+}
+
 static bool
 multipass_split_output (struct multipass_split_aux_data *aux)
 {
@@ -690,7 +711,7 @@ multipass_split_output (struct multipass_split_aux_data *aux)
 
   return ok;
 }
-
+
 /* Discards all the current state in preparation for a data-input
    command like DATA LIST or GET. */
 void
@@ -701,11 +722,8 @@ discard_variables (void)
 
   n_lag = 0;
   
-  if (vfm_source != NULL)
-    {
-      free_case_source (vfm_source);
-      vfm_source = NULL;
-    }
+  free_case_source (vfm_source);
+  vfm_source = NULL;
 
   proc_cancel_all_transformations ();
 

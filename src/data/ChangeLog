@@ -1,6 +1,34 @@
+Fri May  5 22:48:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	Continue reforming procedure execution.  Change
+	internal_procedure() so that it calls open_active_file() and
+	close_active_file(), which isolates most of the actual procedure
+	functionality.
+
+	* procedure.c: (struct write_case_data) Rename `proc_func' member
+	to `case_func' and update all references.
+	(procedure) Rewrite as one-line wrapper around
+	internal_procedure().
+	(struct multipass_aux_data) New.
+	(multipass_callback) Renamed multipass_case_func().  Use struct
+	multipass_aux_data as auxiliary data.
+	(multipass_end_func) New function.
+	(multipass_procedure) Rewrite as wrapper for internal_procedure()
+	that uses multipass_case_func, multipass_end_func.
+	(internal_procedure) Add `end_func' argument.  Move optimization
+	of trivial case in here.  Move call to open_active_file() and
+	close_active_file() in here.  Now assert that vfm_source is
+	non-null.
+	(procedure_with_splits_callback) Rename
+	split_procedure_case_func().
+	(split_procedure_end_func) New function.
+	(multipass_split_callback) Rename multipass_split_case_func.
+	(multipass_split_end_func) New function.
+	(discard_variables) No need to test for nonnull vfm_source.
+
 Fri May  5 21:34:02 2006  Ben Pfaff  <blp@gnu.org>
 
-	Get rid of unused member.
+	Continue reforming procedure execution.  Get rid of unused member.
 
 	* procedure.c: (struct write_case_data) Remove `cases_analyzed'
 	member.
