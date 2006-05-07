@@ -438,6 +438,7 @@ write_fallback_headers (struct outp_driver *d)
   while (index < cmd.n_variables)
     {
       struct outp_text text;
+      int leader_width;
 
       /* Ensure that there is enough room for a line of text. */
       if (d->cp_y + d->font_height > d->length)
@@ -452,7 +453,8 @@ write_fallback_headers (struct outp_driver *d)
       text.y = d->cp_y;
       text.h = text.v = INT_MAX;
       d->class->text_draw (d, &text);
-      d->class->text_metrics (d, &text, &d->cp_x, NULL);
+      d->class->text_metrics (d, &text, &leader_width, NULL);
+      d->cp_x = leader_width;
 
       goto entry;
       do
@@ -473,9 +475,10 @@ write_fallback_headers (struct outp_driver *d)
 	  }
 	  
 	  {
-	    char varname[10];
-	    sprintf (varname, " %s", cmd.v_variables[index]->name);
-	    write_varname (d, varname, text.h);
+	    char varname[LONG_NAME_LEN + 2];
+	    snprintf (varname, sizeof varname,
+                      " %s", cmd.v_variables[index]->name);
+	    write_varname (d, varname, leader_width);
 	  }
 	}
       while (++index < cmd.n_variables);

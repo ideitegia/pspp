@@ -1,3 +1,10 @@
+Sat May  6 22:25:09 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix segfault.
+	
+	* list.q (write_fallback_headers): (write_fallback_headers)
+	Properly record width of leader and pass it to write_varname().
+
 Sat May  6 19:03:13 2006  Ben Pfaff  <blp@gnu.org>
 
 	* get.c: (mtf_merge_dictionary) Fix value label memory leak.
