@@ -47,8 +47,8 @@ struct val_labs
   };
 
 /* Creates and returns a new, empty set of value labels with the
-   given WIDTH, which must designate a numeric (0) or short
-   string (1...MAX_SHORT_STRING inclusive) width. */
+   given WIDTH.  To actually add any value labels, WIDTH must be
+   a numeric or short string width. */
 struct val_labs *
 val_labs_create (int width) 
 {
@@ -80,16 +80,53 @@ val_labs_copy (const struct val_labs *vls)
   return copy;
 }
 
+/* Determines whether VLS's width can be changed to NEW_WIDTH.
+   Numeric widths cannot be changed at all.
+   Strings can be widened.  They can be shortened only if the
+   characters that will be truncated are spaces. */
+bool
+val_labs_can_set_width (const struct val_labs *vls, int new_width) 
+{
+  assert ((vls->width == 0) == (new_width == 0));
+
+  if (vls->width == 0)
+    return new_width == 0;
+  else if (new_width < vls->width)
+    {
+      struct val_labs_iterator *i;
+      struct val_lab *lab;
+
+      for (lab = val_labs_first (vls, &i); lab != NULL;
+           lab = val_labs_next (vls, &i))
+        {
+          int j;
+
+          /* We can shorten the value labels only if all the
+             truncated characters are blanks. */
+          for (j = vls->width; j < new_width; j++)
+            if (lab->value.s[j] != ' ') 
+              {
+                val_labs_done (&i);
+                return false;
+              }
+        }
+      return true;
+    }
+  else
+    return true;
+}
+
 /* Changes the width of VLS to NEW_WIDTH.  If VLS is numeric,
    NEW_WIDTH must be 0, otherwise it must be within the range
    1...MAX_SHORT_STRING inclusive. */
 void
 val_labs_set_width (struct val_labs *vls, int new_width) 
 {
-  assert (vls != NULL);
-  assert ((vls->width == 0) == (new_width == 0));
+  assert (val_labs_can_set_width (vls, new_width));
 
   vls->width = new_width;
+  if (new_width > MAX_SHORT_STRING)
+    val_labs_clear (vls);
 }
 
 /* Destroys VLS. */
@@ -98,8 +135,7 @@ val_labs_destroy (struct val_labs *vls)
 {
   if (vls != NULL) 
     {
-      if (vls->labels != NULL)
-        hsh_destroy (vls->labels);
+      hsh_destroy (vls->labels);
       free (vls);
     }
 }

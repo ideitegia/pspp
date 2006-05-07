@@ -1,3 +1,10 @@
+Sat May  6 19:02:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	* value-labels.c (val_labs_can_set_width): New function.
+	(val_labs_set_width) Clear labels if increasing width to long
+	string.
+	(val_labs_destroy) Remove unneeded test for null.
+	
 Sat May  6 16:14:08 2006  Ben Pfaff  <blp@gnu.org>
 
 	* value-labels.h: Remove unneeded dependency on variable.h.

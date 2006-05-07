@@ -1,3 +1,7 @@
+Sat May  6 19:03:13 2006  Ben Pfaff  <blp@gnu.org>
+
+	* get.c: (mtf_merge_dictionary) Fix value label memory leak.
+
 Sat May  6 13:51:16 2006  Ben Pfaff  <blp@gnu.org>
 
 	Use a casefile, instead of a case sink, for MATCH FILES output.

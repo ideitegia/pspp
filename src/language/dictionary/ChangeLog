@@ -1,3 +1,8 @@
+Sat May  6 19:03:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	* apply-dictionary.c: (cmd_apply_dictionary) Use new function
+	val_labs_can_set_width().
+
 Sat May  6 10:43:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

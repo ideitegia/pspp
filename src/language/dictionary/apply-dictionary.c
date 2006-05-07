@@ -91,38 +91,7 @@ cmd_apply_dictionary (void)
 	     s->name);
       else if (val_labs_count (s->val_labs))
 	{
-          /* Whether to apply the value labels. */
-          int apply = 1;
-          
-	  if (t->width < s->width)
-	    {
-	      struct val_labs_iterator *i;
-	      struct val_lab *lab;
-
-              for (lab = val_labs_first (s->val_labs, &i); lab != NULL;
-                   lab = val_labs_next (s->val_labs, &i))
-		{
-		  int j;
-
-		  /* We will apply the value labels only if all
-                     the truncated characters are blanks. */
-		  for (j = t->width; j < s->width; j++)
-		    if (lab->value.s[j] != ' ') 
-                      {
-                        val_labs_done (&i);
-                        apply = 0;
-                        break; 
-                      }
-		}
-	    }
-	  else
-	    {
-	      /* Fortunately, we follow the convention that all value
-		 label values are right-padded with spaces, so it is
-		 unnecessary to bother padding values here. */
-	    }
-
-	  if (apply) 
+          if (val_labs_can_set_width (s->val_labs, t->width))
             {
               val_labs_destroy (t->val_labs);
               t->val_labs = s->val_labs;

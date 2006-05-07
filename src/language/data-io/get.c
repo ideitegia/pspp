@@ -1540,8 +1540,11 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
           if (dv->width == mv->width)
             {
               if (val_labs_count (dv->val_labs)
-                  && !val_labs_count (mv->val_labs))
-                mv->val_labs = val_labs_copy (dv->val_labs);
+                  && !val_labs_count (mv->val_labs)) 
+                {
+                  val_labs_destroy (mv->val_labs);
+                  mv->val_labs = val_labs_copy (dv->val_labs); 
+                }
               if (!mv_is_empty (&dv->miss) && mv_is_empty (&mv->miss))
                 mv_copy (&mv->miss, &dv->miss);
             }

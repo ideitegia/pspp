@@ -20,6 +20,7 @@
 #ifndef VAL_LABS_H
 #define VAL_LABS_H 1
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include <data/value.h>
@@ -35,10 +36,12 @@ struct val_lab
 
 struct val_labs *val_labs_create (int width);
 struct val_labs *val_labs_copy (const struct val_labs *);
-void val_labs_set_width (struct val_labs *, int new_width);
 void val_labs_destroy (struct val_labs *);
 void val_labs_clear (struct val_labs *);
 size_t val_labs_count (const struct val_labs *);
+
+bool val_labs_can_set_width (const struct val_labs *, int new_width);
+void val_labs_set_width (struct val_labs *, int new_width);
 
 int val_labs_add (struct val_labs *, union value, const char *);
 int val_labs_replace (struct val_labs *, union value, const char *);
