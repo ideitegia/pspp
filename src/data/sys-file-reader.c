@@ -66,7 +66,7 @@ struct sfm_reader
 
   /* Variables. */
   struct hsh_table *var_hash;
-  struct variable *const *svars;
+  struct variable **svars;
 
   /* File's special constants. */
   flt64 sysmis;
@@ -1693,7 +1693,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
 
   if ( ! r->svars ) 
     {
-      r->svars = (struct variable *const *) hsh_data(r->var_hash);
+      r->svars = (struct variable **) hsh_data(r->var_hash);
       sort(r->svars, hsh_count(r->var_hash), 
 	   sizeof(*r->svars), compare_var_index, 0);
     }

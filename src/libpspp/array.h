@@ -45,7 +45,7 @@ size_t count_if (const void *array, size_t count, size_t size,
 /* Sorts ARRAY, which contains COUNT elements of SIZE bytes each,
    using COMPARE for comparisons.  AUX is passed to each
    comparison as auxiliary data. */
-void sort (const void *array, size_t count, size_t size,
+void sort (void *array, size_t count, size_t size,
            algo_compare_func *compare, void *aux);
 
 /* Tests whether ARRAY, which contains COUNT elements of SIZE

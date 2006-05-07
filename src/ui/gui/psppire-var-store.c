@@ -30,6 +30,7 @@
 #include "psppire-variable.h"
 #include "psppire-var-store.h"
 #include "var-sheet.h"
+#include "helper.h"
 
 #include <data/dictionary.h>
 #include <data/variable.h>
@@ -48,7 +49,7 @@ static void         psppire_var_store_class_init      (PsppireVarStoreClass *cla
 static void         psppire_var_store_sheet_model_init (GSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
 
-static const gchar *const psppire_var_store_get_string(GSheetModel *sheet_model, gint row, gint column);
+static const gchar *psppire_var_store_get_string(GSheetModel *sheet_model, gint row, gint column);
 
 static gboolean  psppire_var_store_clear(GSheetModel *model,  gint row, gint col);
 
@@ -57,7 +58,7 @@ static gboolean psppire_var_store_set_string(GSheetModel *model,
 					  const gchar *text, gint row, gint column);
 
 
-static const gchar *const text_for_column(const struct PsppireVariable *pv, gint c);
+static const gchar *text_for_column(const struct PsppireVariable *pv, gint c);
 
 
 static GObjectClass *parent_class = NULL;
@@ -295,7 +296,7 @@ psppire_var_store_finalize (GObject *object)
   (* parent_class->finalize) (object);
 }
 
-static const gchar *const 
+static const gchar *
 psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
 {
   const gchar *s ;
@@ -311,7 +312,7 @@ psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
   
   s = text_for_column(pv, column);
 
-  return s;
+  return g_locale_to_utf8(s, -1, 0,0,0);
 }
 
 
@@ -416,7 +417,7 @@ psppire_var_store_set_string(GSheetModel *model,
 
 #define MAX_CELL_TEXT_LEN 255
 
-static const gchar *const
+static const gchar *
 text_for_column(const struct PsppireVariable *pv, gint c)
 {
   static gchar buf[MAX_CELL_TEXT_LEN];

@@ -48,7 +48,7 @@ static void psppire_data_store_sheet_model_init (GSheetModelIface *iface);
 static void psppire_data_store_sheet_column_init (GSheetColumnIface *iface);
 static void psppire_data_store_finalize        (GObject           *object);
 
-static const gchar *const psppire_data_store_get_string(GSheetModel *sheet_model, gint row, gint column);
+static const gchar *psppire_data_store_get_string(GSheetModel *sheet_model, gint row, gint column);
 
 static gboolean psppire_data_store_set_string(GSheetModel *model, 
 					  const gchar *text, gint row, gint column);
@@ -326,7 +326,7 @@ psppire_data_store_finalize (GObject *object)
 }
 
 
-static const gchar *const 
+static const gchar *
 psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 {
 

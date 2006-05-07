@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-05-07 09:52+0800\n"
+"POT-Creation-Date: 2006-05-07 12:07+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1755,13 +1755,13 @@ msgstr ""
 msgid "Cannot add value labels from source file to long string variable %s."
 msgstr ""
 
-#: src/language/dictionary/apply-dictionary.c:135
+#: src/language/dictionary/apply-dictionary.c:104
 #, c-format
 msgid ""
 "Cannot apply missing values from source file to long string variable %s."
 msgstr ""
 
-#: src/language/dictionary/apply-dictionary.c:155
+#: src/language/dictionary/apply-dictionary.c:124
 msgid "No matching variables found between the source and target files."
 msgstr ""
 

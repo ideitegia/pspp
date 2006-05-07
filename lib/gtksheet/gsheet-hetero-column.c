@@ -116,8 +116,6 @@ g_sheet_hetero_column_get_width(const GSheetColumn *geom, gint i)
 static gint 
 g_sheet_hetero_column_get_sensitivity(const GSheetColumn *geom, gint u)
 {
-  GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
-
   return TRUE;
 }
 
@@ -125,8 +123,6 @@ g_sheet_hetero_column_get_sensitivity(const GSheetColumn *geom, gint u)
 static gint 
 g_sheet_hetero_column_get_visibility(const GSheetColumn *geom, gint u)
 {
-  GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
-
   return TRUE;
 }
 
@@ -136,7 +132,7 @@ static const gchar *
 g_sheet_hetero_column_get_button_label(const GSheetColumn *geom, gint u)
 {
   GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
-  
+
   return hg->col[u].button.label;
 }
 
@@ -144,8 +140,6 @@ g_sheet_hetero_column_get_button_label(const GSheetColumn *geom, gint u)
 static GtkJustification
 g_sheet_hetero_column_get_justification(const GSheetColumn *geom, gint u)
 {
-  GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
-  
   return GTK_JUSTIFY_FILL;
 }
 

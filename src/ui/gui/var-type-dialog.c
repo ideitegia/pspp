@@ -31,6 +31,7 @@
 #include "var-type-dialog.h"
 
 #include "psppire-variable.h"
+#include "helper.h"
 
 #include <data/variable.h>
 #include <data/settings.h>
