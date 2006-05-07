@@ -105,6 +105,7 @@ trns_chain_destroy (struct trns_chain *chain)
           if (trns->free != NULL) 
             ok = trns->free (trns->aux) && ok;
         }
+      free (chain->trns);
       free (chain);
     }
   
