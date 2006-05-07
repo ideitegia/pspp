@@ -172,7 +172,7 @@ storage_source_decapsulate (struct case_source *source)
   assert (source->class == &storage_source_class);
   casefile = info->casefile;
   info->casefile = NULL;
-  destroy_storage_stream_info (info);
+  free_case_source (source);
   return casefile;
 }
 
