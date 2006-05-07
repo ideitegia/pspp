@@ -13,4 +13,4 @@ if WITHGUI
 include $(top_srcdir)/src/ui/gui/automake.mk
 endif
 
-AM_CPPFLAGS += -DPKGDATADIR=\"$(pkgdatadir)\"
+AM_CPPFLAGS += -I$(top_srcdir)/src -I$(top_srcdir)/lib -DPKGDATADIR=\"$(pkgdatadir)\"

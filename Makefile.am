@@ -6,8 +6,7 @@ SUBDIRS = intl gl po
 DISTCLEANFILES = 
 
 
-AM_CPPFLAGS=-I$(top_srcdir) -I$(top_srcdir)/src -I$(top_srcdir)/lib	\
--I$(top_srcdir)/intl -I$(top_srcdir)/gl -I$(top_builddir)/gl
+AM_CPPFLAGS=-I$(top_srcdir)/intl -I$(top_srcdir)/gl -I$(top_builddir)/gl
 
 AM_CFLAGS=
 

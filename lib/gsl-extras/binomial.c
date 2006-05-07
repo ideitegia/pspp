@@ -33,7 +33,6 @@
  * Applications," volume 1. Wiley, 1968. Exercise 45, page 173,
  * chapter 6.
  */
-#include <config.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>

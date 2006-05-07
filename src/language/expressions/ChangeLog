@@ -1,3 +1,8 @@
+Sun May  7 10:05:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* evaluate.c: Removed call to copy_mangle, and replaced with the
+	original buf_copy_rpad.
+
 Mon May  1 15:11:48 2006  Ben Pfaff  <blp@gnu.org>
 
 	Prohibit LAG following TEMPORARY.  This both matches SPSS behavior

@@ -33,7 +33,6 @@
  * August 1968, pages 1264-1273.
  */
 
-#include <config.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>

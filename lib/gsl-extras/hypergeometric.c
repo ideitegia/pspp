@@ -40,7 +40,6 @@
  * W. Feller. An Introduction to Probability Theory and Its Applications,
  * third edition. 1968. Chapter 2, section 6. 
  */
-#include <config.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_errno.h>

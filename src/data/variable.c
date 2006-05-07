@@ -351,82 +351,6 @@ dict_class_to_name (enum dict_class dict_class)
     }
 }
 
-
-/* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
-   Each 256th byte, which is expected to be a ' ', is deleted.
-   DST is then truncated to DST_SIZE bytes or padded on the right with
-   spaces as needed. */
-void
-copy_demangle (char *dst, size_t dst_size,
-	    const char *src, size_t src_size)
-{
-  int src_bytes_left = src_size;
-  int dst_bytes_left = dst_size;
-  const char *s = src;
-  char *d = dst;
-
-
-  while( src_bytes_left > 0 ) 
-    {
-      const size_t s_chunk = min(MAX_LONG_STRING, src_bytes_left);
-      const size_t d_chunk = min(MAX_LONG_STRING, dst_bytes_left);
-
-      assert ( d < dst + dst_size);
-
-      buf_copy_rpad (d, d_chunk,
-		     s, s_chunk);
-
-      d += d_chunk;
-      s += s_chunk;
-      src_bytes_left -= s_chunk;
-      dst_bytes_left -= d_chunk;
-
-      if ( src_bytes_left > 0 && ! (++s - src) % (MAX_LONG_STRING+1) )
-	{
-	  if ( *s != ' ') 
-	    msg(MW, _("Expected a space in very long string"));
-	  src_bytes_left--;
-	}
-    }
-}
-
-/* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
-   DST is rounded up to the nearest 8 byte boundary.
-   A space is inserted at each 256th byte.
-   DST is then truncated to DST_SIZE bytes or padded on the right with
-   spaces as needed. */
-void
-copy_mangle (char *dst, size_t dst_size,
-	    const char *src, size_t src_size)
-{
-  int src_bytes_left = src_size;
-  int dst_bytes_left = dst_size;
-  const char *s = src;
-  char *d = dst;
-
-  memset(dst, ' ', dst_size);
-
-  while( src_bytes_left > 0 ) 
-    {
-      const size_t s_chunk = min(MAX_LONG_STRING, src_bytes_left);
-      const size_t d_chunk = min(MAX_LONG_STRING, dst_bytes_left);
-
-      buf_copy_rpad (d, d_chunk, s, s_chunk);
-
-      d += d_chunk;
-      s += s_chunk;
-      src_bytes_left -= s_chunk;
-      dst_bytes_left -= d_chunk;
-
-      if ( dst_bytes_left > 0 && 0 == ( d + 1 - dst ) % (MAX_LONG_STRING + 1) )
-	{
-	  memset(d, ' ', 1);
-	  d++;
-	  dst_bytes_left--;
-	}
-    }
-}
-
 /* Return the number of bytes used when writing case_data for a variable 
    of WIDTH */
 int
@@ -457,4 +381,5 @@ width_to_bytes(int width)
 
   return bytes;
 }
+
 

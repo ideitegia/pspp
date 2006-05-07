@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <float.h>
 #include <c-ctype.h>
+#include <minmax.h>
 
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
@@ -31,6 +32,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <libpspp/hash.h>
+#include <libpspp/array.h>
 
 #include "sys-file-reader.h"
 #include "sfm-private.h"
@@ -53,16 +55,18 @@ struct sfm_reader
   FILE *file;			/* File stream. */
 
   int reverse_endian;		/* 1=file has endianness opposite us. */
-  int fix_specials;           /* 1=SYSMIS/HIGHEST/LOWEST differs from us. */
+  int fix_specials;             /* 1=SYSMIS/HIGHEST/LOWEST differs from us. */
   int value_cnt;		/* Number of `union values's per case. */
   long case_cnt;		/* Number of cases, -1 if unknown. */
   int compressed;		/* 1=compressed, 0=not compressed. */
-  double bias;		/* Compression bias, usually 100.0. */
+  double bias;		        /* Compression bias, usually 100.0. */
   int weight_idx;		/* 0-based index of weighting variable, or -1. */
   bool ok;                    /* False after an I/O error or corrupt data. */
+  bool has_vls;         /* True if the file has one or more Very Long Strings*/
 
   /* Variables. */
-  struct sfm_var *vars;       /* Variables. */
+  struct hsh_table *var_hash;
+  struct variable *const *svars;
 
   /* File's special constants. */
   flt64 sysmis;
@@ -82,6 +86,7 @@ struct sfm_reader
 /* A variable in a system file. */
 struct sfm_var 
 {
+  char name[SHORT_NAME_LEN + 1];  /* name */
   int width;                  /* 0=numeric, otherwise string width. */
   int fv;                     /* Index into case. */
 };
@@ -161,7 +166,7 @@ sfm_close_reader (struct sfm_reader *r)
   if (r->fh != NULL)
     fh_close (r->fh, "system file", "rs");
 
-  free (r->vars);
+  hsh_destroy(r->var_hash);
   free (r->buf);
   free (r);
 }
@@ -266,6 +271,60 @@ pair_sn_free(void *p, void *aux UNUSED)
 }
 
 
+
+/* A hsh_compare_func that orders variables A and B by their
+   names. */
+static int
+compare_var_shortnames (const void *a_, const void *b_, void *foo UNUSED) 
+{
+  int i;
+  const struct variable *a = a_;
+  const struct variable *b = b_;
+
+  char buf1[SHORT_NAME_LEN + 1];
+  char buf2[SHORT_NAME_LEN + 1];
+
+  memset(buf1, 0, SHORT_NAME_LEN + 1);
+  memset(buf2, 0, SHORT_NAME_LEN + 1);
+
+  for (i = 0 ; i <= SHORT_NAME_LEN ; ++i ) 
+    {
+      buf1[i] = a->short_name[i];
+      if ( '\0' == buf1[i]) 
+	break;
+    }
+
+  for (i = 0 ; i <= SHORT_NAME_LEN ; ++i ) 
+    {
+      buf2[i] = b->short_name[i];
+      if ( '\0' == buf2[i]) 
+	break;
+    }
+
+  return strncmp(buf1, buf2, SHORT_NAME_LEN);
+}
+
+/* A hsh_hash_func that hashes variable V based on its name. */
+static unsigned
+hash_var_shortname (const void *v_, void *foo UNUSED) 
+{
+  int i;
+  const struct variable *v = v_;
+  char buf[SHORT_NAME_LEN + 1];
+
+  memset(buf, 0, SHORT_NAME_LEN + 1); 
+  for (i = 0 ; i <= SHORT_NAME_LEN ; ++i ) 
+    {
+      buf[i] = v->short_name[i];
+      if ( '\0' == buf[i]) 
+	break;
+    }
+
+  return hsh_hash_bytes(buf, strlen(buf));
+}
+
+
+
 /* Opens the system file designated by file handle FH for
    reading.  Reads the system file's dictionary into *DICT.
    If INFO is non-null, then it receives additional info about the
@@ -301,8 +360,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->bias = 100.0;
   r->weight_idx = -1;
   r->ok = true;
+  r->has_vls = false;
+  r->svars = 0;
 
-  r->vars = NULL;
+  r->var_hash = hsh_create(4, compare_var_shortnames, hash_var_shortname, 0, 0);
 
   r->sysmis = -FLT64_MAX;
   r->highest = FLT64_MAX;
@@ -463,6 +524,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		  char *short_name, *save_ptr;
                   int idx;
 
+		  r->has_vls = true;
+
                   /* Read data. */
                   subrec14data = xmalloc (bytes + 1);
 		  if (!buf_read (r, subrec14data, bytes, 0)) 
@@ -612,7 +675,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 				  goto error;
 
 				}
-			      
+
 			      l = length;
 			      if ( v->width > EFFECTIVE_LONG_STRING_LENGTH ) 
 				l -= EFFECTIVE_LONG_STRING_LENGTH;
@@ -630,12 +693,17 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 				  else
 				    l -= v_next->width;
 
+				  hsh_delete(r->var_hash, v_next);
+
 				  dict_delete_var(*dict, v_next);
 				}
-			      
+
+			      assert ( length > MAX_LONG_STRING );
+
 			      v->width = length;
 			      v->print.w = v->width;
 			      v->write.w = v->width;
+			      v->nv = DIV_RND_UP (length, MAX_SHORT_STRING);
 			    }
 			  eq_seen = false;
 			  memset(name, 0, SHORT_NAME_LEN+1); 
@@ -654,6 +722,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 			}
 		    }
 		  free(buffer);
+		  dict_compact_values(*dict);
 		}
 		break;
 
@@ -691,7 +760,6 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
  success:
   /* Come here on successful completion. */
-
 
   free (var_by_idx);
   hsh_destroy(short_to_long);
@@ -969,13 +1037,6 @@ read_variables (struct sfm_reader *r,
 
   *var_by_idx = 0;
 
-  /* Pre-allocate variables. */
-  if (r->value_cnt != -1) 
-    {
-      *var_by_idx = xnmalloc (r->value_cnt, sizeof **var_by_idx);
-      r->vars = xnmalloc (r->value_cnt, sizeof *r->vars);
-    }
-
 
   /* Read in the entry for each variable and use the info to
      initialize the dictionary. */
@@ -1007,7 +1068,6 @@ read_variables (struct sfm_reader *r,
 	}
 
       *var_by_idx = xnrealloc (*var_by_idx, i + 1, sizeof **var_by_idx);
-      r->vars = xnrealloc (r->vars, i + 1, sizeof *r->vars);
 
       /* If there was a long string previously, make sure that the
 	 continuations are present; otherwise make sure there aren't
@@ -1020,7 +1080,6 @@ read_variables (struct sfm_reader *r,
                    fh_get_file_name (r->fh), i));
 
 
-	  r->vars[i].width = -1;
 	  (*var_by_idx)[i] = NULL;
 	  long_string_count--;
 	  continue;
@@ -1155,9 +1214,8 @@ read_variables (struct sfm_reader *r,
 	  || !parse_format_spec (r, sv.write, &vv->write, vv))
 	goto error;
 
-      r->vars[i].width = vv->width;
-      r->vars[i].fv = vv->fv;
-
+      if ( vv->width != -1)
+	hsh_insert(r->var_hash, vv);
     }
 
   /* Some consistency checks. */
@@ -1611,6 +1669,20 @@ read_compressed_data (struct sfm_reader *r, flt64 *buf)
   return 0;
 }
 
+
+static int
+compare_var_index(const void *_v1, const void *_v2, void *aux UNUSED)
+{
+  const struct variable *const *v1 = _v1;
+  const struct variable *const *v2 = _v2;
+
+  if ( (*v1)->index < (*v2)->index) 
+    return -1;
+
+  return ( (*v1)->index > (*v2)->index) ;
+}
+
+
 /* Reads one case from READER's file into C.  Returns nonzero
    only if successful. */
 int
@@ -1618,8 +1690,15 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
 {
   if (!r->ok)
     return 0;
-  
-  if (!r->compressed && sizeof (flt64) == sizeof (double)) 
+
+  if ( ! r->svars ) 
+    {
+      r->svars = (struct variable *const *) hsh_data(r->var_hash);
+      sort(r->svars, hsh_count(r->var_hash), 
+	   sizeof(*r->svars), compare_var_index, 0);
+    }
+
+  if (!r->compressed && sizeof (flt64) == sizeof (double) && ! r->has_vls) 
     {
       /* Fast path: external and internal representations are the
          same, except possibly for endianness or SYSMIS.  Read
@@ -1634,9 +1713,12 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
         {
           int i;
           
-          for (i = 0; i < r->value_cnt; i++) 
-            if (r->vars[i].width == 0)
-              bswap_flt64 (&case_data_rw (c, r->vars[i].fv)->f);
+          for (i = 0; i < hsh_count(r->var_hash); i++) 
+	    {
+	      struct variable *v = r->svars[i];
+	      if (v->width == 0)
+		bswap_flt64 (&case_data_rw (c, v->fv)->f);
+	    }
         }
 
       /* Fix up SYSMIS values if needed.
@@ -1645,10 +1727,12 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
       if (r->sysmis != SYSMIS) 
         {
           int i;
-          
-          for (i = 0; i < r->value_cnt; i++) 
-            if (r->vars[i].width == 0 && case_num (c, i) == r->sysmis)
-              case_data_rw (c, r->vars[i].fv)->f = SYSMIS;
+          for (i = 0; i < hsh_count(r->var_hash); i++) 
+	    {
+	      struct variable *v = r->svars[i];
+	      if (v->width == 0 && case_num (c, i) == r->sysmis)
+		case_data_rw (c, v->fv)->f = SYSMIS;
+	    }
         }
     }
   else 
@@ -1664,6 +1748,8 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
       bounce_size = sizeof *bounce * r->value_cnt;
       bounce = bounce_cur = local_alloc (bounce_size);
 
+      memset(bounce, 0, bounce_size);
+
       if (!r->compressed)
         read_ok = fread_ok (r, bounce, bounce_size);
       else
@@ -1674,21 +1760,31 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
           return 0;
         }
 
-      for (i = 0; i < r->value_cnt; i++)
+      for (i = 0; i < hsh_count(r->var_hash); i++)
         {
-          struct sfm_var *v = &r->vars[i];
+	  struct variable *tv = r->svars[i];
 
-          if (v->width == 0)
+          if (tv->width == 0)
             {
               flt64 f = *bounce_cur++;
               if (r->reverse_endian)
                 bswap_flt64 (&f);
-              case_data_rw (c, v->fv)->f = f == r->sysmis ? SYSMIS : f;
+              case_data_rw (c, tv->fv)->f = f == r->sysmis ? SYSMIS : f;
             }
-          else if (v->width != -1)
+          else if (tv->width != -1)
             {
-              memcpy (case_data_rw (c, v->fv)->s, bounce_cur, v->width);
-              bounce_cur += DIV_RND_UP (v->width, sizeof (flt64));
+	      flt64 *bc_start = bounce_cur;
+	      int ofs = 0;
+              while (ofs < tv->width )
+                {
+                  const int chunk = MIN (MAX_LONG_STRING, tv->width - ofs);
+                  memcpy (case_data_rw (c, tv->fv)->s + ofs, bounce_cur, chunk);
+
+                  bounce_cur += DIV_RND_UP (chunk, sizeof (flt64));
+
+                  ofs += chunk;
+                }
+	      bounce_cur = bc_start + width_to_bytes(tv->width) / sizeof(flt64);
             }
         }
 

@@ -595,7 +595,7 @@ typedef struct
       stack size is needed (actually O(1) in this case)!  */
 
 void
-sort (void *array, size_t count, size_t size,
+sort (const void *array, size_t count, size_t size,
       algo_compare_func *compare, void *aux)
 {
   char *const first = array;

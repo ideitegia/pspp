@@ -395,7 +395,7 @@ convert_Z (char *dst, const struct fmt_spec *fp, double number)
 static int
 convert_A (char *dst, const struct fmt_spec *fp, const char *string)
 {
-  copy_demangle(dst, fp->w, string, fp->w);
+  memcpy(dst, string, fp->w);
   return 1;
 }
 

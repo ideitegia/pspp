@@ -364,13 +364,18 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 
   fp = psppire_variable_get_write_spec(pv);
 
-  s = g_string_sized_new (fp->w);
+  s = g_string_sized_new (fp->w + 1);
+  g_string_set_size(s, fp->w);
+  
+  memset(s->str, 0, fp->w);
+
+  g_assert(fp->w == s->len);
     
   /* Converts binary value V into printable form in the exactly
      FP->W character in buffer S according to format specification
      FP.  No null terminator is appended to the buffer.  */
   data_out (s->str, fp, v);
-
+  
   return g_string_free(s, FALSE);
 #if 0
   {

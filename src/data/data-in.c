@@ -572,9 +572,7 @@ parse_RB (struct data_in *i)
 static inline bool
 parse_A (struct data_in *i)
 {
-  const int bytes = width_to_bytes(i->format.w);
-
-  copy_mangle (i->v->s, bytes, i->s, i->e - i->s);
+  buf_copy_rpad (i->v->s, i->format.w, i->s, i->e - i->s);
   
   return true;
 }

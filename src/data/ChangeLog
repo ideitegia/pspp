@@ -1,3 +1,9 @@
+Sun May  7 10:04:06 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* data-in.c data-out.c dictionary.c sys-file-reader.c
+	sys-file-writer.c variable.c variable.h:  Reworked very long string
+	support for better encapsulation.
+
 Sat May  6 19:02:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	* value-labels.c (val_labs_can_set_width): New function.

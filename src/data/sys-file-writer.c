@@ -42,6 +42,7 @@
 #include "value-labels.h"
 #include "variable.h"
 #include <libpspp/version.h>
+#include <minmax.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -61,6 +62,7 @@ struct sfm_writer
     int compress;		/* 1=compressed, 0=not compressed. */
     int case_cnt;		/* Number of cases written so far. */
     size_t flt64_cnt;           /* Number of flt64 elements in case. */
+    bool has_vls;               /* Does the dict have very long strings? */
 
     /* Compression buffering. */
     flt64 *buf;			/* Buffered data. */
@@ -197,6 +199,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->compress = opts.compress;
   w->case_cnt = 0;
   w->flt64_cnt = 0;
+  w->has_vls = false;
 
   w->buf = w->end = w->ptr = NULL;
   w->x = w->y = NULL;
@@ -211,8 +214,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       sv->width = dv->width;
       /* spss compatibility nonsense */
       if ( dv->width > MAX_LONG_STRING ) 
-	sv->width = (dv->width / MAX_LONG_STRING) * (MAX_LONG_STRING + 1)
-	  + (dv->width % MAX_LONG_STRING) ;
+	  w->has_vls = true;
+
       sv->fv = dv->fv;
       sv->flt64_cnt = var_flt64_cnt (dv);
     }
@@ -870,7 +873,7 @@ sfm_write_case (struct sfm_writer *w, const struct ccase *c)
   w->case_cnt++;
 
   if (!w->needs_translation && !w->compress
-      && sizeof (flt64) == sizeof (union value)) 
+      && sizeof (flt64) == sizeof (union value) && ! w->has_vls )
     {
       /* Fast path: external and internal representations are the
          same and the dictionary is properly ordered.  Write
@@ -898,14 +901,23 @@ sfm_write_case (struct sfm_writer *w, const struct ccase *c)
 	  memset(bounce_cur, ' ', v->flt64_cnt * sizeof (flt64));
 
           if (v->width == 0) 
-            *bounce_cur = case_num (c, v->fv);
-          else 
 	    {
-	      buf_copy_rpad((char*)bounce_cur, v->flt64_cnt * sizeof (flt64),
-			    case_data(c, v->fv)->s, 
-			    v->width);
+	      *bounce_cur = case_num (c, v->fv);
+	      bounce_cur += v->flt64_cnt;
 	    }
-          bounce_cur += v->flt64_cnt;
+          else 
+	    { int ofs = 0;
+	    while (ofs < v->width)
+	      {
+		int chunk = MIN (MAX_LONG_STRING, v->width - ofs);
+		int nv = DIV_RND_UP (chunk, sizeof (flt64));
+		buf_copy_rpad ((char *) bounce_cur, nv * sizeof (flt64),
+			       case_data (c, v->fv)->s + ofs, chunk);
+		bounce_cur += nv;
+		ofs += chunk;
+	      }
+	    }
+
         }
 
       if (!w->compress)
