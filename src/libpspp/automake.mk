@@ -28,6 +28,7 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/start-date.h \
 	src/libpspp/str.c \
 	src/libpspp/str.h \
+	src/libpspp/va_copy.h \
 	src/libpspp/verbose-msg.c \
 	src/libpspp/verbose-msg.h \
 	src/libpspp/version.h 

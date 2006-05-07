@@ -18,13 +18,17 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "str.h"
-#include "message.h"
+
 #include <ctype.h>
 #include <limits.h>
 #include <stdlib.h>
-#include "alloc.h"
-#include "message.h"
+
+#include <libpspp/va_copy.h>
+#include <libpspp/alloc.h>
+#include <libpspp/message.h>
+
 #include "minmax.h"
 #include "size_max.h"
 
@@ -713,10 +717,6 @@ ds_vprintf (struct string *st, const char *format, va_list args_)
 {
   int avail, needed;
   va_list args;
-
-#ifndef va_copy
-#define va_copy(DST, SRC) (DST) = (SRC)
-#endif
 
   va_copy (args, args_);
   avail = st->string != NULL ? st->capacity - st->length + 1 : 0;
