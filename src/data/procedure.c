@@ -458,7 +458,6 @@ lagged_case (int n_before)
 /* Represents auxiliary data for handling SPLIT FILE. */
 struct split_aux_data 
   {
-    size_t case_count;          /* Number of cases so far. */
     struct ccase prev_case;     /* Data in previous case. */
 
     /* Callback functions. */
@@ -498,7 +497,6 @@ procedure_with_splits (void (*begin_func) (const struct ccase *, void *aux),
   struct split_aux_data split_aux;
   bool ok;
 
-  split_aux.case_count = 0;
   case_nullify (&split_aux.prev_case);
   split_aux.begin_func = begin_func;
   split_aux.proc_func = proc_func;
@@ -520,10 +518,10 @@ split_procedure_case_func (const struct ccase *c, void *split_aux_)
   struct split_aux_data *split_aux = split_aux_;
 
   /* Start a new series if needed. */
-  if (split_aux->case_count == 0
+  if (case_is_null (&split_aux->prev_case)
       || !equal_splits (c, &split_aux->prev_case))
     {
-      if (split_aux->case_count > 0 && split_aux->end_func != NULL)
+      if (!case_is_null (&split_aux->prev_case) && split_aux->end_func != NULL)
         split_aux->end_func (split_aux->func_aux);
 
       case_destroy (&split_aux->prev_case);
@@ -533,7 +531,6 @@ split_procedure_case_func (const struct ccase *c, void *split_aux_)
 	split_aux->begin_func (&split_aux->prev_case, split_aux->func_aux);
     }
 
-  split_aux->case_count++;
   return (split_aux->proc_func == NULL
           || split_aux->proc_func (c, split_aux->func_aux));
 }
@@ -544,7 +541,7 @@ split_procedure_end_func (void *split_aux_)
 {
   struct split_aux_data *split_aux = split_aux_;
 
-  if (split_aux->case_count > 0 && split_aux->end_func != NULL)
+  if (!case_is_null (&split_aux->prev_case) && split_aux->end_func != NULL)
     split_aux->end_func (split_aux->func_aux);
   return true;
 }
@@ -802,6 +799,7 @@ void
 proc_done (void)
 {
   discard_variables ();
+  dict_destroy (default_dict);
 }
 
 /* Sets SINK as the destination for procedure output from the

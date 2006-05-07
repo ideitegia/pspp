@@ -1,3 +1,18 @@
+Sat May  6 22:45:55 2006  Ben Pfaff  <blp@gnu.org>
+
+	* procedure.c (proc_done): Destroy default_dict, to fix memory
+	leak.
+
+Sat May  6 22:44:44 2006  Ben Pfaff  <blp@gnu.org>
+
+	Simplify procedure_with_splits().
+	
+	* procedure.c (struct split_aux_data): Removed case_count member.
+	(procedure_with_splits) Don't initialize case_count.
+	(split_procedure_case_func) Check whether prev_case is null
+	instead of case_count.
+	(split_procedure_end_func) Ditto.
+
 Sat May  6 22:42:23 2006  Ben Pfaff  <blp@gnu.org>
 
 	* case.c (case_move): Do nothing if dst and src are the same
