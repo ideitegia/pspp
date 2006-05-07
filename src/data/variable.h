@@ -126,9 +126,6 @@ struct vector
     int cnt;			/* Number of variables. */
   };
 
-struct ccase;
-void dump_split_vars (const struct ccase *);
-
 struct var_set;
 
 struct dictionary;
