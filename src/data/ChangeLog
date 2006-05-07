@@ -1,3 +1,10 @@
+Sat May  6 22:46:47 2006  Ben Pfaff  <blp@gnu.org>
+
+	* scratch-reader.c (scratch_reader_read_case): Copy into existing
+	case passed as argument instead of initializing the argument as a
+	case.  Fixes memory leak that showed up in
+	tests/command/aggregate.sh with scratch files.
+
 Sat May  6 22:45:55 2006  Ben Pfaff  <blp@gnu.org>
 
 	* procedure.c (proc_done): Destroy default_dict, to fix memory

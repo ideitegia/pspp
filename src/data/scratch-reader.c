@@ -18,13 +18,18 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "scratch-reader.h"
+
 #include <stdlib.h>
+
 #include "casefile.h"
 #include "dictionary.h"
-#include <libpspp/message.h>
 #include "file-handle-def.h"
 #include "scratch-handle.h"
+#include <data/case.h>
+#include <libpspp/message.h>
+
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -70,12 +75,22 @@ scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
   return reader;
 }
 
-/* Reads a case from READER into C.
+/* Reads a case from READER and copies it into C.
    Returns true if successful, false on error or at end of file. */
 bool
 scratch_reader_read_case (struct scratch_reader *reader, struct ccase *c)
 {
-  return casereader_read (reader->casereader, c);
+  struct ccase tmp;
+  if (casereader_read (reader->casereader, &tmp)) 
+    {
+      case_copy (c, 0, &tmp, 0,
+                 casefile_get_value_cnt (
+                   casereader_get_casefile (reader->casereader)));
+      case_destroy (&tmp);
+      return true;
+    }
+  else
+    return false;
 }
 
 /* Returns true if an I/O error occurred on READER, false otherwise. */
