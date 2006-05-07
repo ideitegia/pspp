@@ -115,8 +115,11 @@ case_clone (struct ccase *clone, const struct ccase *orig)
 static inline void
 case_move (struct ccase *dst, struct ccase *src) 
 {
-  *dst = *src;
-  src->case_data = NULL;
+  if (dst != src) 
+    {
+      *dst = *src;
+      src->case_data = NULL; 
+    }
 }
 
 static inline void
@@ -132,12 +135,14 @@ case_copy (struct ccase *dst, size_t dst_idx,
            const struct ccase *src, size_t src_idx,
            size_t value_cnt) 
 {
-  if (dst->case_data->ref_cnt > 1)
-    case_unshare (dst);
   if (dst->case_data != src->case_data || dst_idx != src_idx) 
-    memmove (dst->case_data->values + dst_idx,
-             src->case_data->values + src_idx,
-             sizeof *dst->case_data->values * value_cnt); 
+    {
+      if (dst->case_data->ref_cnt > 1)
+        case_unshare (dst);
+      memmove (dst->case_data->values + dst_idx,
+               src->case_data->values + src_idx,
+               sizeof *dst->case_data->values * value_cnt); 
+    }
 }
 
 static inline void

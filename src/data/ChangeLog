@@ -1,3 +1,10 @@
+Sat May  6 22:42:23 2006  Ben Pfaff  <blp@gnu.org>
+
+	* case.c (case_move): Do nothing if dst and src are the same
+	object.
+	(case_try_create) Merge two similar cases.
+	(case_copy) Unshare only if data must be actually copied.
+
 Sun May  7 10:04:06 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* data-in.c data-out.c dictionary.c sys-file-reader.c

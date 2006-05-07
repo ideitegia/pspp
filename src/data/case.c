@@ -126,10 +126,13 @@ case_move (struct ccase *dst, struct ccase *src)
   assert (src->case_data != NULL);
   assert (src->case_data->ref_cnt > 0);
   assert (dst != NULL);
-
-  *dst = *src;
-  dst->this = dst;
-  case_nullify (src);
+  
+  if (dst != src) 
+    {
+      *dst = *src;
+      dst->this = dst;
+      case_nullify (src); 
+    }
 }
 #endif /* DEBUGGING */
 
@@ -180,23 +183,18 @@ case_swap (struct ccase *a, struct ccase *b)
 int
 case_try_create (struct ccase *c, size_t value_cnt) 
 {
+#ifdef DEBUGGING
+  c->this = c;
+#endif
   c->case_data = malloc (case_size (value_cnt));
   if (c->case_data != NULL) 
     {
-#ifdef DEBUGGING
-      c->this = c;
-#endif
       c->case_data->value_cnt = value_cnt;
       c->case_data->ref_cnt = 1;
       return 1;
     }
   else 
-    {
-#ifdef DEBUGGING
-      c->this = c;
-#endif
-      return 0;
-    }
+    return 0;
 }
 
 /* Tries to initialize CLONE as a copy of ORIG.
@@ -229,12 +227,14 @@ case_copy (struct ccase *dst, size_t dst_idx,
   assert (src->case_data->ref_cnt > 0);
   assert (src_idx + value_cnt <= dst->case_data->value_cnt);
 
-  if (dst->case_data->ref_cnt > 1)
-    case_unshare (dst);
   if (dst->case_data != src->case_data || dst_idx != src_idx) 
-    memmove (dst->case_data->values + dst_idx,
-             src->case_data->values + src_idx,
-             sizeof *dst->case_data->values * value_cnt); 
+    {
+      if (dst->case_data->ref_cnt > 1)
+        case_unshare (dst);
+      memmove (dst->case_data->values + dst_idx,
+               src->case_data->values + src_idx,
+               sizeof *dst->case_data->values * value_cnt); 
+    }
 }
 #endif /* DEBUGGING */
 
