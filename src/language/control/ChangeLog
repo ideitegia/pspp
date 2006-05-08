@@ -1,3 +1,17 @@
+Sun May  7 18:18:33 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix memory leaks.
+	
+	* repeat.c: (parse_ids) Take pool parameter and allocate all
+	memory from pool.  Reduce implementation from loop to single call
+	to parse_mixed_vars_pool().
+	(store_numeric) Removed.
+	(add_replacement) New function.
+	(parse_numbers) Take pool parameter and allocate all memory from
+	pool.  Require ranges to be in increasing order.
+	(parse_strings) Take pool parameter and allocate all memory from
+	pool.
+
 Wed May  3 22:45:41 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

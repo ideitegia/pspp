@@ -85,9 +85,9 @@ static bool parse_specification (struct repeat_block *);
 static bool parse_lines (struct repeat_block *);
 static void create_vars (struct repeat_block *);
 
-static int parse_ids (struct repeat_entry *);
-static int parse_numbers (struct repeat_entry *);
-static int parse_strings (struct repeat_entry *);
+static int parse_ids (struct repeat_entry *, struct pool *);
+static int parse_numbers (struct repeat_entry *, struct pool *);
+static int parse_strings (struct repeat_entry *, struct pool *);
 
 static void do_repeat_filter (struct string *line, void *block);
 static bool do_repeat_read (struct string *line, char **file_name,
@@ -161,11 +161,11 @@ parse_specification (struct repeat_block *block)
 
       /* Get the details of the variable's possible values. */
       if (token == T_ID)
-	count = parse_ids (e);
+	count = parse_ids (e, block->pool);
       else if (lex_is_number ())
-	count = parse_numbers (e);
+	count = parse_numbers (e, block->pool);
       else if (token == T_STRING)
-	count = parse_strings (e);
+	count = parse_strings (e, block->pool);
       else
 	{
 	  lex_error (NULL);
@@ -173,6 +173,11 @@ parse_specification (struct repeat_block *block)
 	}
       if (count == 0)
 	return false;
+      if (token != '/' && token != '.') 
+        {
+          lex_error (NULL);
+          return false;
+        }
 
       /* If this is the first variable then it defines how many
 	 replacements there must be; otherwise enforce this number of
@@ -332,65 +337,41 @@ create_vars (struct repeat_block *block)
 
 /* Parses a set of ids for DO REPEAT. */
 static int
-parse_ids (struct repeat_entry *e)
+parse_ids (struct repeat_entry *e, struct pool *pool)
 {
-  size_t i;
   size_t n = 0;
-
   e->type = VAR_NAMES;
-  e->replacement = NULL;
-
-  do
-    {
-      char **names;
-      size_t nnames;
-
-      if (!parse_mixed_vars (&names, &nnames, PV_NONE))
-	return 0;
-
-      e->replacement = xnrealloc (e->replacement,
-                                  nnames + n, sizeof *e->replacement);
-      for (i = 0; i < nnames; i++)
-	{
-	  e->replacement[n + i] = xstrdup (names[i]);
-	  free (names[i]);
-	}
-      free (names);
-      n += nnames;
-    }
-  while (token != '/' && token != '.');
-
-  return n;
+  return parse_mixed_vars_pool (pool, &e->replacement, &n, PV_NONE) ? n : 0;
 }
 
-/* Stores VALUE into *REPL. */
-static inline void
-store_numeric (char **repl, long value)
+/* Adds STRING to E's list of replacements, which has *USED
+   elements and has room for *ALLOCATED.  Allocates memory from
+   POOL. */
+static void
+add_replacement (char *string,
+                 struct repeat_entry *e, struct pool *pool,
+                 size_t *used, size_t *allocated) 
 {
-  *repl = xmalloc (INT_STRLEN_BOUND (value) + 1);
-  sprintf (*repl, "%ld", value);
+  if (*used == *allocated)
+    e->replacement = pool_2nrealloc (pool, e->replacement, allocated,
+                                     sizeof *e->replacement);
+  e->replacement[(*used)++] = string;
 }
 
 /* Parses a list of numbers for DO REPEAT. */
 static int
-parse_numbers (struct repeat_entry *e)
+parse_numbers (struct repeat_entry *e, struct pool *pool)
 {
-  /* First and last numbers for TO, plus the step factor. */
-  long a, b;
-
-  /* Alias to e->replacement. */
-  char **array;
-
-  /* Number of entries in array; maximum number for this allocation
-     size. */
-  int n, m;
-
-  n = m = 0;
+  size_t used = 0;
+  size_t allocated = 0;
+  
   e->type = OTHER;
-  e->replacement = array = NULL;
+  e->replacement = NULL;
 
   do
     {
+      long a, b, i;
+
       /* Parse A TO B into a, b. */
       if (!lex_force_int ())
 	return 0;
@@ -403,78 +384,58 @@ parse_numbers (struct repeat_entry *e)
 	  if (!lex_force_int ())
 	    return 0;
 	  b = lex_integer ();
-
+          if (b < a) 
+            {
+              msg (SE, _("%ld TO %ld is an invalid range."), a, b);
+              return 0;
+            }
 	  lex_get ();
 	}
-      else b = a;
-
-      if (n + (abs (b - a) + 1) > m)
-	{
-	  m = n + (abs (b - a) + 1) + 16;
-	  e->replacement = array = xnrealloc (array,
-                                              m, sizeof *e->replacement);
-	}
-
-      if (a == b)
-	store_numeric (&array[n++], a);
       else
-	{
-	  long iter;
+        b = a;
 
-	  if (a < b)
-	    for (iter = a; iter <= b; iter++)
-	      store_numeric (&array[n++], iter);
-	  else
-	    for (iter = a; iter >= b; iter--)
-	      store_numeric (&array[n++], iter);
-	}
+      for (i = a; i <= b; i++)
+        add_replacement (pool_asprintf (pool, "%ld", i),
+                         e, pool, &used, &allocated);
+
 
       lex_match (',');
     }
   while (token != '/' && token != '.');
-  e->replacement = xrealloc (array, n * sizeof *e->replacement);
 
-  return n;
+  return used;
 }
 
 /* Parses a list of strings for DO REPEAT. */
 int
-parse_strings (struct repeat_entry *e)
+parse_strings (struct repeat_entry *e, struct pool *pool)
 {
-  char **string;
-  int n, m;
-
+  size_t used = 0;
+  size_t allocated = 0;
+  
   e->type = OTHER;
-  string = e->replacement = NULL;
-  n = m = 0;
+  e->replacement = NULL;
 
   do
     {
+      char *string;
+      
       if (token != T_STRING)
 	{
-	  int i;
 	  msg (SE, _("String expected."));
-	  for (i = 0; i < n; i++)
-	    free (string[i]);
-	  free (string);
 	  return 0;
 	}
 
-      if (n + 1 > m)
-	{
-	  m += 16;
-	  e->replacement = string = xnrealloc (string,
-                                               m, sizeof *e->replacement);
-	}
-      string[n++] = lex_token_representation ();
-      lex_get ();
+      string = lex_token_representation ();
+      pool_register (pool, free, string);
+      add_replacement (string, e, pool, &used, &allocated);
 
+      lex_get ();
       lex_match (',');
     }
   while (token != '/' && token != '.');
-  e->replacement = xnrealloc (string, n, sizeof *e->replacement);
 
-  return n;
+  return used;
 }
 
 int
