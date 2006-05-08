@@ -84,14 +84,14 @@ repetition.
 
 Specify a repeat variable name followed by an equals sign (@samp{=}) and
 the list of replacements.  Replacements can be a list of variables
-(which may be existing variables or new variables or a combination
-thereof), of numbers, or of strings.  When new variable names are
+(which may be existing variables or new variables or some combination),
+numbers, or strings.  When new variable names are
 specified, @cmd{DO REPEAT} creates them as numeric variables.  When numbers
-are specified, runs of integers may be indicated with TO notation, for
-instance @samp{1 TO 5} and @samp{1 2 3 4 5} would be equivalent.  There
-is no equivalent notation for string values.
+are specified, runs of increasing integers may be indicated as
+@code{@var{num1} TO @var{num2}}, so that
+@samp{1 TO 5} is short for @samp{1 2 3 4 5}.
 
-Multiple repeat variables can be specified.  When this is done, each
+Multiple repeat variables can be specified.  Each
 variable must have the same number of replacements.
 
 The code within @cmd{DO REPEAT} is repeated as many times as there are
@@ -101,8 +101,8 @@ for each repeat variable is substituted; and so on.
 
 Repeat variable substitutions work like macros.  They take place
 anywhere in a line that the repeat variable name occurs as a token,
-including command and subcommand names.  For this reason it is not a
-good idea to select words commonly used in command and subcommand names
+including command and subcommand names.  For this reason,
+words commonly used in command and subcommand names should not be used
 as repeat variable identifiers.
 
 If PRINT is specified on @cmd{END REPEAT}, the commands after substitutions
