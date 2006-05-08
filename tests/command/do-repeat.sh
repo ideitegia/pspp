@@ -60,7 +60,7 @@ BEGIN DATA.
 0
 END DATA.
 
-DO REPEAT h = h0 TO h3 / x = 0 1 2 3 / y = 8 TO 5.
+DO REPEAT h = h0 TO h3 / x = 0 TO 3 / y = 8, 7, 6, 5.
 	COMPUTE h = x + y.
 END REPEAT.
 
