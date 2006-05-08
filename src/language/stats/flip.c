@@ -474,7 +474,11 @@ flip_file (struct flip_pgm *flip)
       case_idx += read_cases;
     }
 
-  pool_fclose (flip->pool, input_file);
+  if (pool_fclose (flip->pool, input_file) == EOF)
+    {
+      msg (SE, _("Error closing FLIP source file: %s."), strerror (errno));
+      return false;
+    }
   pool_unregister (flip->pool, input_buf);
   free (input_buf);
   

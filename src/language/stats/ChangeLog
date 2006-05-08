@@ -1,3 +1,7 @@
+Sun May  7 17:09:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c (flip_file): Check return value of pool_fclose().
+
 Sat May  6 16:00:13 2006  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of `char *c' member in union value, for cleanliness.
