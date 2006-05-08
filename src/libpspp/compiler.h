@@ -44,4 +44,11 @@
 #define MALLOC_LIKE
 #endif
 
+/* This attribute was added in GCC 4.0. */
+#if __GNUC__ >= 4
+#define WARN_UNUSED_RESULT ATTRIBUTE ((warn_unused_result))
+#else
+#define WARN_UNUSED_RESULT
+#endif
+
 #endif /* compiler.h */

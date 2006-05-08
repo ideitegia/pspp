@@ -1,3 +1,7 @@
+Sun May  7 17:09:54 2006  Ben Pfaff  <blp@gnu.org>
+
+	* compiler.h: (macro WARN_UNUSED_RESULT) New macro.
+
 Sun May  7 14:32:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	* va_copy.h: New header.
