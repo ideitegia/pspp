@@ -1,3 +1,10 @@
+Sun May  7 18:31:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix memory leak.
+	
+	* aggregate.c (cmd_aggregate): Free default_dict before replacing
+	it.
+
 Sun May  7 17:09:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c (flip_file): Check return value of pool_fclose().

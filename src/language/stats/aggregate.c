@@ -288,6 +288,7 @@ cmd_aggregate (void)
             goto error;
         }
       discard_variables ();
+      dict_destroy (default_dict);
       default_dict = agr.dict;
       agr.dict = NULL;
       proc_set_source (agr.sink->class->make_source (agr.sink));
