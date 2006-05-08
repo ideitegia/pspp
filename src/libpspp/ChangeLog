@@ -1,3 +1,8 @@
+Sun May  7 18:17:32 2006  Ben Pfaff  <blp@gnu.org>
+
+	* pool.c (pool_vasprintf): New function.
+	(pool_asprintf) New function.
+
 Sun May  7 17:09:54 2006  Ben Pfaff  <blp@gnu.org>
 
 	* compiler.h: (macro WARN_UNUSED_RESULT) New macro.

@@ -364,6 +364,72 @@ pool_strdup (struct pool *pool, const char *string)
 {
   return pool_clone_unaligned (pool, string, strlen (string) + 1);
 }
+
+/* Formats FORMAT with the given ARGS in memory allocated from
+   POOL and returns the formatted string. */
+char *
+pool_vasprintf (struct pool *pool, const char *format, va_list args_)
+{
+  struct pool_block *b;
+  va_list args;
+  int needed, avail;
+  char *s;
+
+  va_copy (args, args_);
+  b = pool->blocks;
+  avail = BLOCK_SIZE - b->ofs;
+  s = ((char *) b) + b->ofs;
+  needed = vsnprintf (s, avail, format, args);
+  va_end (args);
+
+  if (needed >= 0) 
+    {
+      if (needed < avail) 
+        {
+          /* Success.  Reserve the space that was actually used. */
+          b->ofs += needed + 1;
+        }
+      else
+        {
+          /* Failure, but now we know how much space is needed.
+             Allocate that much and reformat. */
+          s = pool_alloc (pool, needed + 1);
+
+          va_copy (args, args_);
+          vsprintf (s, format, args);
+          va_end (args);
+        }
+    }
+  else 
+    {
+      /* Some old libc's returned -1 when the destination string
+         was too short.  This should be uncommon these days and
+         it's a rare case anyhow.  Use the easiest solution: punt
+         to dynamic allocation. */
+      va_copy (args, args_);
+      s = xvasprintf (format, args);
+      va_end (args);
+
+      pool_register (pool, free, s);
+    }
+
+  return s;
+}
+
+/* Formats FORMAT in memory allocated from POOL
+   and returns the formatted string. */
+char *
+pool_asprintf (struct pool *pool, const char *format, ...)
+{
+  va_list args;
+  char *string;
+  
+  va_start (args, format);
+  string = pool_vasprintf (pool, format, args);
+  va_end (args);
+
+  return string;
+}
 
 /* Standard allocation routines. */
 

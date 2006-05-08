@@ -63,7 +63,10 @@ void *pool_clone (struct pool *, const void *, size_t) MALLOC_LIKE;
 void *pool_alloc_unaligned (struct pool *, size_t) MALLOC_LIKE;
 void *pool_clone_unaligned (struct pool *, const void *, size_t) MALLOC_LIKE;
 char *pool_strdup (struct pool *, const char *) MALLOC_LIKE;
-char *pool_strcat (struct pool *, const char *, ...) MALLOC_LIKE;
+char *pool_vasprintf (struct pool *, const char *, va_list) 
+     MALLOC_LIKE PRINTF_FORMAT (2, 0);
+char *pool_asprintf (struct pool *, const char *, ...)
+     MALLOC_LIKE PRINTF_FORMAT (2, 3);
 
 /* Standard allocation routines. */
 void *pool_malloc (struct pool *, size_t) MALLOC_LIKE;
@@ -79,7 +82,7 @@ void pool_add_subpool (struct pool *, struct pool *subpool);
 
 /* Files. */
 FILE *pool_fopen (struct pool *, const char *, const char *);
-int pool_fclose (struct pool *, FILE *);
+int pool_fclose (struct pool *, FILE *) WARN_UNUSED_RESULT;
 FILE *pool_tmpfile (struct pool *);
 void pool_attach_file (struct pool *, FILE *);
 void pool_detach_file (struct pool *, FILE *);
