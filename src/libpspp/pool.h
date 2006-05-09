@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #if !pool_h
 #define pool_h 1
 
+#include <stdarg.h>
 #include <stdio.h>
 #include "compiler.h"
 
