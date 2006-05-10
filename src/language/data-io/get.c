@@ -1139,6 +1139,7 @@ cmd_match_files (void)
 
   discard_variables ();
 
+  dict_destroy (default_dict);
   default_dict = mtf.dict;
   mtf.dict = NULL;
   proc_set_source (storage_source_create (mtf.output));
