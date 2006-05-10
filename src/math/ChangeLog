@@ -1,3 +1,8 @@
+Tue May  9 21:09:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sort.c (sort_active_file_to_casefile): Check return value of
+	multipass_procedure().
+
 Wed May  3 23:06:43 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, get rid of

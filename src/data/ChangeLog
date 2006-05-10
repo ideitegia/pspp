@@ -1,3 +1,8 @@
+Tue May  9 21:09:17 2006  Ben Pfaff  <blp@gnu.org>
+
+	* procedure.h: Add WARN_UNUSED_RESULT to procedure function
+	prototypes.
+
 Tue May  9 21:08:05 2006  Ben Pfaff  <blp@gnu.org>
 
 	* casefile.c: Convert many uses of `int' to `bool'.

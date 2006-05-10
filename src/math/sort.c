@@ -112,8 +112,11 @@ sort_active_file_to_casefile (const struct sort_criteria *criteria)
 
   cb_data.criteria = criteria;
   cb_data.output = NULL;
-  multipass_procedure (sort_to_casefile_callback, &cb_data);
-
+  if (!multipass_procedure (sort_to_casefile_callback, &cb_data)) 
+    {
+      casefile_destroy (cb_data.output);
+      return NULL;
+    }
   return cb_data.output;
 }
 

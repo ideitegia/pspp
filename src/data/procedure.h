@@ -22,7 +22,9 @@
 
 #include <time.h>
 #include <stdbool.h>
+
 #include <data/transformations.h>
+#include <libpspp/compiler.h>
 
 struct ccase;
 struct casefile;
@@ -63,17 +65,21 @@ void proc_set_sink (struct case_sink *);
 struct casefile *proc_capture_output (void);
 
 bool procedure (bool (*proc_func) (const struct ccase *, void *),
-                void *aux);
+                void *aux)
+     WARN_UNUSED_RESULT;
 bool procedure_with_splits (void (*begin_func) (const struct ccase *, void *),
                             bool (*proc_func) (const struct ccase *, void *),
                             void (*end_func) (void *),
-                            void *aux);
+                            void *aux)
+     WARN_UNUSED_RESULT;
 bool multipass_procedure (bool (*proc_func) (const struct casefile *, void *),
-                          void *aux);
+                          void *aux)
+     WARN_UNUSED_RESULT;
 bool multipass_procedure_with_splits (bool (*) (const struct ccase *,
                                                 const struct casefile *,
                                                 void *),
-                                      void *aux);
+                                      void *aux)
+     WARN_UNUSED_RESULT;
 time_t time_of_last_procedure (void);
 
 /* Number of cases to lag. */
