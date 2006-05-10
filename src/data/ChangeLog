@@ -1,3 +1,7 @@
+Tue May  9 21:08:05 2006  Ben Pfaff  <blp@gnu.org>
+
+	* casefile.c: Convert many uses of `int' to `bool'.
+
 Sat May  6 22:49:43 2006  Ben Pfaff  <blp@gnu.org>
 
 	* transformations.c (trns_chain_destroy): Destroy chain's trns

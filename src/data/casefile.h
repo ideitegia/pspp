@@ -31,7 +31,7 @@ struct casefile *casefile_create (size_t value_cnt);
 void casefile_destroy (struct casefile *);
 
 bool casefile_error (const struct casefile *);
-int casefile_in_core (const struct casefile *);
+bool casefile_in_core (const struct casefile *);
 bool casefile_to_disk (const struct casefile *);
 bool casefile_sleep (const struct casefile *);
 
@@ -46,8 +46,8 @@ struct casereader *casefile_get_reader (const struct casefile *);
 struct casereader *casefile_get_destructive_reader (struct casefile *);
 
 const struct casefile *casereader_get_casefile (const struct casereader *);
-int casereader_read (struct casereader *, struct ccase *);
-int casereader_read_xfer (struct casereader *, struct ccase *);
+bool casereader_read (struct casereader *, struct ccase *);
+bool casereader_read_xfer (struct casereader *, struct ccase *);
 void casereader_destroy (struct casereader *);
 
 unsigned long casereader_cnum(const struct casereader *);

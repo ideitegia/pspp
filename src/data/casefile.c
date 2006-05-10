@@ -129,7 +129,7 @@ struct casefile
     enum { MEMORY, DISK } storage;      /* Where cases are stored. */
     enum { WRITE, READ } mode;          /* Is writing or reading allowed? */
     struct casereader *readers;         /* List of our readers. */
-    int being_destroyed;                /* Does a destructive reader exist? */
+    bool being_destroyed;               /* Does a destructive reader exist? */
     bool ok;                            /* False after I/O error. */
 
     /* Memory storage. */
@@ -149,7 +149,7 @@ struct casereader
     struct casereader *next, *prev;     /* Next, prev in casefile's list. */
     struct casefile *cf;                /* Our casefile. */
     unsigned long case_idx;             /* Case number of current case. */
-    int destructive;                    /* Is this a destructive reader? */
+    bool destructive;                   /* Is this a destructive reader? */
 
     /* Disk storage. */
     int fd;                             /* File descriptor. */
@@ -272,9 +272,9 @@ casefile_error (const struct casefile *cf)
   return !cf->ok;
 }
 
-/* Returns nonzero only if casefile CF is stored in memory (instead of on
-   disk). */
-int
+/* Returns true only if casefile CF is stored in memory (instead of on
+   disk), false otherwise. */
+bool
 casefile_in_core (const struct casefile *cf) 
 {
   assert (cf != NULL);
@@ -635,13 +635,13 @@ casereader_get_casefile (const struct casereader *reader)
 /* Reads a copy of the next case from READER into C.
    Caller is responsible for destroying C.
    Returns true if successful, false at end of file. */
-int
+bool
 casereader_read (struct casereader *reader, struct ccase *c) 
 {
   assert (reader != NULL);
   
   if (!reader->cf->ok || reader->case_idx >= reader->cf->case_cnt) 
-    return 0;
+    return false;
 
   if (reader->cf->storage == MEMORY) 
     {
@@ -650,14 +650,14 @@ casereader_read (struct casereader *reader, struct ccase *c)
 
       case_clone (c, &reader->cf->cases[block_idx][case_idx]);
       reader->case_idx++;
-      return 1;
+      return true;
     }
   else 
     {
       if (reader->buffer_pos + reader->cf->value_cnt > reader->cf->buffer_size)
         {
           if (!fill_buffer (reader))
-            return 0;
+            return false;
           reader->buffer_pos = 0;
         }
 
@@ -667,7 +667,7 @@ casereader_read (struct casereader *reader, struct ccase *c)
       reader->case_idx++;
 
       case_clone (c, &reader->c);
-      return 1;
+      return true;
     }
 }
 
@@ -675,7 +675,7 @@ casereader_read (struct casereader *reader, struct ccase *c)
    to the caller.  Caller is responsible for destroying C.
    Returns true if successful, false at end of file or on I/O
    error. */
-int
+bool
 casereader_read_xfer (struct casereader *reader, struct ccase *c)
 {
   assert (reader != NULL);
@@ -692,7 +692,7 @@ casereader_read_xfer (struct casereader *reader, struct ccase *c)
 
       case_move (c, read_case);
       reader->case_idx++;
-      return 1;
+      return true;
     }
 }
 
@@ -787,15 +787,13 @@ static int safe_close (int fd)
 static void
 register_atexit (void) 
 {
-  static int registered = 0;
+  static bool registered = false;
   if (!registered) 
     {
-      registered = 1;
+      registered = true;
       atexit (exit_handler);
     }
 }
-
-
 
 /* atexit() handler that closes and deletes our temporary
    files. */
