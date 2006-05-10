@@ -1,3 +1,7 @@
+Tue May  9 20:46:06 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Add stdarg to GNULIB_MODULES.
+
 Sun May  7 09:27:40 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* po/en_GB.po : Removed.  Now that messages talking about coloUrs have 

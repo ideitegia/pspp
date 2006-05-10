@@ -31,6 +31,7 @@ GNULIB_MODULES = \
 	restrict \
 	snprintf \
 	stat-macros \
+	stdarg \
 	stdbool \
 	stdint \
 	stpcpy \

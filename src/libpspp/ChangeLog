@@ -1,3 +1,10 @@
+Tue May  9 09:56:57 2006  Ben Pfaff  <blp@gnu.org>
+
+	* va_copy.h: Removed.  Now use va_copy() provided by gnulib
+	instead.
+
+	* automake.mk: (src_libpspp_libpspp_a_SOURCES) Removed va_copy.h.
+
 Sun May  7 18:17:32 2006  Ben Pfaff  <blp@gnu.org>
 
 	* pool.c (pool_vasprintf): New function.

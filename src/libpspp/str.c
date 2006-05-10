@@ -25,7 +25,6 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <libpspp/va_copy.h>
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
 
