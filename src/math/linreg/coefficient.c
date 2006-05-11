@@ -44,6 +44,7 @@ struct varinfo
 void
 pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
 {
+  free (c->v_info);
   free (c);
 }
 
@@ -60,16 +61,18 @@ pspp_linreg_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
   struct pspp_linreg_coeff *coeff;
 
   c->coeff = xnmalloc (X->m->size2 + 1, sizeof (*c->coeff));
-  c->coeff->v_info = NULL; /* Intercept has no associated variable. */
+  c->coeff[0] = xmalloc (sizeof (*c->coeff[0]));
+  c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
   for (i = 0; i < X->m->size2; i++)
     {
       j = i + 1;		/* The first coefficient is the intercept. */
-      coeff = c->coeff + j;
+      c->coeff[j] = xmalloc (sizeof (*c->coeff[j]));
+      coeff = c->coeff[j];
       coeff->n_vars = n_vals;	/* Currently, no procedures allow
 				   interactions.  This line will have to
 				   change when procedures that allow
 				   interaction terms are written. 
-				*/
+				 */
       coeff->v_info = xnmalloc (coeff->n_vars, sizeof (*coeff->v_info));
       assert (coeff->v_info != NULL);
       coeff->v_info->v =
@@ -203,11 +206,11 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
       return NULL;
     }
 
-  result = c->coeff + i;
+  result = c->coeff[i];
   tmp = pspp_linreg_coeff_get_var (result, 0);
   while (tmp->index != v->index && i < c->n_coeffs)
     {
-      result = c->coeff + i;
+      result = c->coeff[i];
       tmp = pspp_linreg_coeff_get_var (result, 0);
       i++;
     }
@@ -230,7 +233,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 				val, v->width))
 	{			/* FIX THIS */
 	  i++;
-	  result = c->coeff + i;
+	  result = c->coeff[i];
 	  tmp = pspp_linreg_coeff_get_var (result, 0);
 	}
       if (i == c->n_coeffs)

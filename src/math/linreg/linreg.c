@@ -87,6 +87,7 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
 
   return GSL_SUCCESS;
 }
+
 /*
   Set V to contain an array of pointers to the variables
   used in the model. V must be at least C->N_COEFFS in length.
@@ -102,25 +103,25 @@ pspp_linreg_get_vars (const void *c_, struct variable **v)
   int result = 0;
 
   /*
-    Make sure the caller doesn't try to sneak a variable
-    into V that is not in the model.
+     Make sure the caller doesn't try to sneak a variable
+     into V that is not in the model.
    */
   for (i = 0; i < c->n_coeffs; i++)
     {
       v[i] = NULL;
     }
   /*
-    Start at c->coeff + 1 to avoid the intercept.
+     Start at c->coeff[1] to avoid the intercept.
    */
-  v[result] = (struct variable *) pspp_linreg_coeff_get_var (c->coeff + 1, 0);
+  v[result] = (struct variable *) pspp_linreg_coeff_get_var (c->coeff[1], 0);
   result = (v[result] == NULL) ? 0 : 1;
 
-  for (coef = c->coeff + 2; coef < c->coeff + c->n_coeffs; coef++)
+  for (coef = c->coeff[2]; coef < c->coeff[c->n_coeffs]; coef++)
     {
       tmp = pspp_linreg_coeff_get_var (coef, 0);
       assert (tmp != NULL);
       /* Repeated variables are likely to bunch together, at the end
-	 of the array. */
+         of the array. */
       i = result - 1;
       while (i >= 0 && (v[i]->index != tmp->index))
 	{
@@ -151,10 +152,10 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   c->indep_std = gsl_vector_alloc (p);
   c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the
 					   independent variables. 
-					*/
+					 */
   c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the
 					   model parameters. 
-					*/
+					 */
   c->cov = gsl_matrix_alloc (p + 1, p + 1);	/* Covariance matrix. */
   c->n_obs = n;
   c->n_indeps = p;
@@ -163,26 +164,31 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
    */
   c->method = PSPP_LINREG_SWEEP;
   c->predict = pspp_linreg_predict;
-  c->residual = pspp_linreg_residual; /* The procedure to compute my
-					 residuals. */
-  c->get_vars = pspp_linreg_get_vars; /* The procedure that returns
-					 pointers to model
-					 variables. */
-  c->resid = NULL; /* The variable storing my residuals. */
-  c->pred = NULL; /* The variable storing my predicted values. */
+  c->residual = pspp_linreg_residual;	/* The procedure to compute my
+					   residuals. */
+  c->get_vars = pspp_linreg_get_vars;	/* The procedure that returns
+					   pointers to model
+					   variables. */
+  c->resid = NULL;		/* The variable storing my residuals. */
+  c->pred = NULL;		/* The variable storing my predicted values. */
 
   return c;
 }
 
 bool
-pspp_linreg_cache_free (void * m)
+pspp_linreg_cache_free (void *m)
 {
+  int i;
+
   pspp_linreg_cache *c = m;
   gsl_vector_free (c->indep_means);
   gsl_vector_free (c->indep_std);
   gsl_vector_free (c->ss_indeps);
   gsl_matrix_free (c->cov);
-  pspp_linreg_coeff_free (c->coeff);
+  for (i = 0; i < c->n_coeffs; i++)
+    {
+      pspp_linreg_coeff_free (c->coeff[i]);
+    }
   free (c);
   return true;
 }
@@ -240,7 +246,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   cache->dfe = cache->dft - cache->dfm;
   cache->n_coeffs = X->size2 + 1;	/* Adjust this later to allow for
 					   regression through the origin. 
-					*/
+					 */
   if (cache->method == PSPP_LINREG_SWEEP)
     {
       gsl_matrix *sw;
@@ -314,7 +320,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
       for (i = 0; i < cache->n_indeps; i++)
 	{
 	  tmp = gsl_matrix_get (sw, i, cache->n_indeps);
-	  cache->coeff[i + 1].estimate = tmp;
+	  cache->coeff[i + 1]->estimate = tmp;
 	  m -= tmp * gsl_vector_get (cache->indep_means, i);
 	}
       /*
@@ -350,7 +356,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	    }
 	  gsl_matrix_set (cache->cov, 0, 0, tmp);
 
-	  cache->coeff[0].estimate = m;
+	  cache->coeff[0]->estimate = m;
 	}
       else
 	{
@@ -385,7 +391,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 				cache->cov, &(cache->sse), wk);
       for (i = 0; i < cache->n_coeffs; i++)
 	{
-	  cache->coeff[i].estimate = gsl_vector_get (param_estimates, i);
+	  cache->coeff[i]->estimate = gsl_vector_get (param_estimates, i);
 	}
       if (rc == GSL_SUCCESS)
 	{

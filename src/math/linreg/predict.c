@@ -30,8 +30,7 @@
  */
 double
 pspp_linreg_predict (const struct variable **predictors,
-		     const union value **vals,
-		     const void *c_, int n_vals)
+		     const union value **vals, const void *c_, int n_vals)
 {
   const pspp_linreg_cache *c = c_;
   int i;
@@ -51,13 +50,13 @@ pspp_linreg_predict (const struct variable **predictors,
       return c->depvar_mean;
     }
   found = xnmalloc (c->n_coeffs, sizeof (*found));
-  *found = c->coeff;
-  result = c->coeff->estimate;	/* Intercept. */
+  *found = c->coeff[0];
+  result = c->coeff[0]->estimate;	/* Intercept. */
 
   /*
-    The loops guard against the possibility that the caller passed us
-    inadequate information, such as too few or too many values, or
-    a redundant list of variable names.
+     The loops guard against the possibility that the caller passed us
+     inadequate information, such as too few or too many values, or
+     a redundant list of variable names.
    */
   for (j = 0; j < n_vals; j++)
     {
@@ -86,8 +85,7 @@ pspp_linreg_predict (const struct variable **predictors,
 double
 pspp_linreg_residual (const struct variable **predictors,
 		      const union value **vals,
-		      const union value *obs,
-		      const void *c, int n_vals)
+		      const union value *obs, const void *c, int n_vals)
 {
   double pred;
   double result;

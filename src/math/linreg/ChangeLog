@@ -1,3 +1,7 @@
+2006-05-11  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.h: Made linreg_cache's coeff a pspp_linreg_coeff**. 
+
 2006-04-28  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.c (pspp_linreg_get_vars): New function. Fills an array with
