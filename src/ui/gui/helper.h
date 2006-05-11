@@ -38,4 +38,8 @@ gboolean text_to_value(const gchar *text, union value *v,
 
 GtkWidget * get_widget_assert(GladeXML *xml, const gchar *name);
 
+/* Converts a string in the pspp locale to utf-8 */
+const char * pspp_locale_to_utf8(const gchar *text, gssize len, GError **err);
+
+
 #endif

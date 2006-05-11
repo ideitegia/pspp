@@ -78,7 +78,7 @@ main(int argc, char *argv[])
   var_store = psppire_var_store_new(the_dictionary);
 
   /* Create the model for the data sheet */
-  the_cases = psppire_case_array_new(100, 20);
+  the_cases = psppire_case_array_new(100000, 20);
 
   data_store = psppire_data_store_new(the_dictionary, the_cases);
 

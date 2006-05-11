@@ -98,6 +98,7 @@ update_data_ref_entry(GtkSheet *sheet, gint row, gint col)
 	psppire_dict_get_variable(data_store->dict, col);
 
       gchar *text ;
+      gchar *s ;
 
       if ( !xml) 
 	return FALSE;
@@ -107,9 +108,13 @@ update_data_ref_entry(GtkSheet *sheet, gint row, gint col)
   
       cell_ref_entry = GTK_ENTRY(get_widget_assert(xml, "cell_ref_entry"));
 
-      gtk_entry_set_text(cell_ref_entry, text);
+      s = pspp_locale_to_utf8(text, -1, 0);
 
       g_free(text);
+
+      gtk_entry_set_text(cell_ref_entry, s);
+
+      g_free(s);
     }
 
   return FALSE;

@@ -71,8 +71,30 @@ get_widget_assert(GladeXML *xml, const gchar *name)
   w = glade_xml_get_widget(xml, name);
 
   if ( !w ) 
-    g_warning("Widget \"%s\" could not be found\n",name);
+    g_warning("Widget \"%s\" could not be found\n", name);
 
   return w;
+}
+
+/* Converts a string in the pspp locale to utf-8 */
+const char *
+pspp_locale_to_utf8(const gchar *text, gssize len, GError **err)
+{
+  GError *tmp_error = 0;
+
+  const gchar *s;
+
+  if ( ! text ) 
+    return 0;
+
+  s = g_locale_to_utf8(text, len, 0, 0, &tmp_error);
+
+  if ( tmp_error)
+    {
+      g_warning("Error converting to UTF8: %s", tmp_error->message);
+      g_propagate_error (err, tmp_error);
+    }
+
+  return s;
 }
 

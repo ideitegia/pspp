@@ -1,3 +1,7 @@
+Thu May 11 22:20:04 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * gtksheet.c, gtksheet.h: Fixed broken deallocation of sheet->pixmap.
+
 Thu May  4 17:55:48 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * gtksheet.c: Added callback on inserted rows.

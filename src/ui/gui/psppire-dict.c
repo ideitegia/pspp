@@ -212,10 +212,10 @@ static gchar *
 auto_generate_var_name(PsppireDict *dict)
 {
   gint d = 0;
-  static gchar name[255];
+  static gchar name[10];
 
 
-  while (g_snprintf(name, 255, "VAR%05d",d++),
+  while (g_snprintf(name, 10, "VAR%05d",d++),
 	 psppire_dict_lookup_var(dict, name))
     ;
 

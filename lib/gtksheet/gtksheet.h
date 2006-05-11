@@ -178,7 +178,7 @@ struct _GtkSheet{
   guint sheet_window_height;
 
   /* sheet backing pixmap */  
-  GdkWindow *pixmap;    
+  GdkPixmap *pixmap;    
 
   /* offsets for scrolling */
   gint hoffset;

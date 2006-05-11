@@ -1,3 +1,14 @@
+Thu May 11 22:25:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* data-sheet.c helper.c helper.h psppire-data-store.c psppire-var-store.c 
+	psppire.c: Converted strings to utf8 before passing to gtksheet.
+
+	* psppire-dict.c: Changed buffer to more reasonable length
+
+	* var-sheet.c: Changed maximum string length to use macro from
+	data/values.h
+
+	
 Sun May  7 10:07:28 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-data-store.c: Fixed buglet initialising string members.

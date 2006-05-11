@@ -329,7 +329,7 @@ psppire_data_store_finalize (GObject *object)
 static const gchar *
 psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
 {
-
+  const char *text;
   const struct fmt_spec *fp ;
   const struct PsppireVariable *pv ;
   const union value *v ;
@@ -358,7 +358,7 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
       const gchar *label;
       if ( (label = val_labs_find(vl, *v)) )
 	{
-	  return label;
+	  return pspp_locale_to_utf8(label, -1, 0);
 	}
     }
 
@@ -375,28 +375,12 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
      FP->W character in buffer S according to format specification
      FP.  No null terminator is appended to the buffer.  */
   data_out (s->str, fp, v);
-  
-  return g_string_free(s, FALSE);
-#if 0
-  {
-    static gchar buf[255];
-    GError *err = NULL;
-    gchar *text = g_locale_to_utf8(s, fp->w, 0, 0, &err);
-    if ( !err ) 
-      { 
-	g_snprintf(buf, 255, text);
-	g_free(text);
-      }
-    else
-      {
-	g_warning("Cannot convert string \"%s\" to utf-8: %s\n", s, err->message);
-	g_error_free(err);
-	return NULL;
-      }
 
-  return buf ;
-  }
-#endif
+  
+  text = pspp_locale_to_utf8(s->str, fp->w, 0);
+  g_string_free(s, TRUE);
+
+  return text;
 }
 
 
@@ -658,15 +642,18 @@ static const gchar null_var_name[]=_("var");
 static const gchar *
 geometry_get_button_label(const GSheetColumn *geom, gint unit)
 {
+  const gchar *text;
   struct PsppireVariable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
-    return null_var_name;
+    return pspp_locale_to_utf8(null_var_name, -1, 0);
 
   pv = psppire_dict_get_variable(ds->dict, unit);
 
-  return psppire_variable_get_name(pv);
+  text =  pspp_locale_to_utf8(psppire_variable_get_name(pv), -1, 0);
+
+  return text;
 }
 
 

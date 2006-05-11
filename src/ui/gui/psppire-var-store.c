@@ -312,7 +312,7 @@ psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
   
   s = text_for_column(pv, column);
 
-  return g_locale_to_utf8(s, -1, 0,0,0);
+  return pspp_locale_to_utf8(s, -1, 0);
 }
 
 
