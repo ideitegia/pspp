@@ -92,9 +92,9 @@ pspp_linreg_cache **models = NULL;
  */
 struct reg_trns
 {
-  int n_trns; /* Number of transformations. */
-  int trns_id; /* Which trns is this one? */
-  pspp_linreg_cache *c; /* Linear model for this trns. */
+  int n_trns;			/* Number of transformations. */
+  int trns_id;			/* Which trns is this one? */
+  pspp_linreg_cache *c;		/* Linear model for this trns. */
 };
 /*
   Variables used (both explanatory and response).
@@ -213,7 +213,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
-  coeff = c->coeff[0].estimate;
+  coeff = c->coeff[0]->estimate;
   tab_float (t, 2, 1, 0, coeff, 10, 2);
   std_err = sqrt (gsl_matrix_get (c->cov, 0, 0));
   tab_float (t, 3, 1, 0, std_err, 10, 2);
@@ -225,7 +225,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 6, 1, 0, pval, 10, 2);
   for (j = 1; j <= c->n_indeps; j++)
     {
-      v = pspp_linreg_coeff_get_var (c->coeff + j, 0);
+      v = pspp_linreg_coeff_get_var (c->coeff[j], 0);
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
       strncpy (tmp, label, MAX_STRING);
@@ -237,7 +237,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
 	     for that value.
 	   */
 
-	  val = pspp_linreg_coeff_get_value (c->coeff + j, v);
+	  val = pspp_linreg_coeff_get_value (c->coeff[j], v);
 	  val_s = value_to_string (val, v);
 	  strncat (tmp, val_s, MAX_STRING);
 	}
@@ -246,7 +246,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
       /*
          Regression coefficients.
        */
-      coeff = c->coeff[j].estimate;
+      coeff = c->coeff[j]->estimate;
       tab_float (t, 2, j + 1, 0, coeff, 10, 2);
       /*
          Standard error of the coefficients.
@@ -392,7 +392,7 @@ reg_stats_bcov (pspp_linreg_cache * c)
   tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Covariances"));
   for (i = 1; i < c->n_coeffs; i++)
     {
-      const struct variable *v = pspp_linreg_coeff_get_var (c->coeff + i, 0);
+      const struct variable *v = pspp_linreg_coeff_get_var (c->coeff[i], 0);
       label = var_to_string (v);
       tab_text (t, 2, i, TAB_CENTER, label);
       tab_text (t, i + 2, 0, TAB_CENTER, label);
@@ -520,12 +520,13 @@ subcommand_statistics (int *keywords, pspp_linreg_cache * c)
   statistics_keyword_output (reg_stats_tol, keywords[tol], c);
   statistics_keyword_output (reg_stats_selection, keywords[selection], c);
 }
+
 /*
   Free the transformation. Free its linear model if this
   transformation is the last one.
  */
-static
-bool regression_trns_free (void *t_)
+static bool
+regression_trns_free (void *t_)
 {
   bool result = true;
   struct reg_trns *t = t_;
@@ -538,6 +539,7 @@ bool regression_trns_free (void *t_)
 
   return result;
 }
+
 /*
   Gets the predicted values.
  */
@@ -551,8 +553,8 @@ regression_trns_pred_proc (void *t_, struct ccase *c, int case_idx UNUSED)
   union value *output = NULL;
   const union value **vals = NULL;
   struct variable **vars = NULL;
-  
-  assert (trns!= NULL);
+
+  assert (trns != NULL);
   model = trns->c;
   assert (model != NULL);
   assert (model->depvar != NULL);
@@ -569,12 +571,13 @@ regression_trns_pred_proc (void *t_, struct ccase *c, int case_idx UNUSED)
     {
       vals[i] = case_data (c, vars[i]->fv);
     }
-  output->f = (*model->predict) ((const struct variable **) vars, 
-				  vals, model, n_vals);
+  output->f = (*model->predict) ((const struct variable **) vars,
+				 vals, model, n_vals);
   free (vals);
   free (vars);
   return TRNS_CONTINUE;
 }
+
 /*
   Gets the residuals.
  */
@@ -589,8 +592,8 @@ regression_trns_resid_proc (void *t_, struct ccase *c, int case_idx UNUSED)
   const union value **vals = NULL;
   const union value *obs = NULL;
   struct variable **vars = NULL;
-  
-  assert (trns!= NULL);
+
+  assert (trns != NULL);
   model = trns->c;
   assert (model != NULL);
   assert (model->depvar != NULL);
@@ -608,12 +611,13 @@ regression_trns_resid_proc (void *t_, struct ccase *c, int case_idx UNUSED)
       vals[i] = case_data (c, vars[i]->fv);
     }
   obs = case_data (c, model->depvar->fv);
-  output->f = (*model->residual) ((const struct variable **) vars, 
+  output->f = (*model->residual) ((const struct variable **) vars,
 				  vals, obs, model, n_vals);
   free (vals);
   free (vars);
   return TRNS_CONTINUE;
 }
+
 /* 
    Returns 0 if NAME is a duplicate of any existing variable name.
 */
@@ -625,22 +629,21 @@ try_name (char *name)
 
   return 1;
 }
-static
-void reg_get_name (char name[LONG_NAME_LEN], const char prefix[LONG_NAME_LEN])
+static void
+reg_get_name (char name[LONG_NAME_LEN], const char prefix[LONG_NAME_LEN])
 {
   int i = 1;
 
   snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
-  while (!try_name(name))
+  while (!try_name (name))
     {
       i++;
       snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
     }
 }
-static void 
-reg_save_var (const char *prefix, trns_proc_func *f,
-	      pspp_linreg_cache *c, struct variable **v,
-	      int n_trns)
+static void
+reg_save_var (const char *prefix, trns_proc_func * f,
+	      pspp_linreg_cache * c, struct variable **v, int n_trns)
 {
   static int trns_index = 1;
   char name[LONG_NAME_LEN];
@@ -659,7 +662,7 @@ reg_save_var (const char *prefix, trns_proc_func *f,
   trns_index++;
 }
 static void
-subcommand_save (int save, pspp_linreg_cache **models)
+subcommand_save (int save, pspp_linreg_cache ** models)
 {
   pspp_linreg_cache **lc;
   int n_trns = 0;
@@ -685,15 +688,17 @@ subcommand_save (int save, pspp_linreg_cache **models)
 	  assert ((*lc)->depvar != NULL);
 	  if (cmd.a_save[REGRESSION_SV_RESID])
 	    {
-	      reg_save_var ("RES", regression_trns_resid_proc, *lc, &(*lc)->resid, n_trns);
+	      reg_save_var ("RES", regression_trns_resid_proc, *lc,
+			    &(*lc)->resid, n_trns);
 	    }
 	  if (cmd.a_save[REGRESSION_SV_PRED])
 	    {
-	      reg_save_var ("PRED", regression_trns_pred_proc, *lc, &(*lc)->pred, n_trns);
+	      reg_save_var ("PRED", regression_trns_pred_proc, *lc,
+			    &(*lc)->pred, n_trns);
 	    }
 	}
     }
-  else 
+  else
     {
       for (lc = models; lc < models + cmd.n_dependent; lc++)
 	{
@@ -732,7 +737,7 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
   varlist = xnmalloc (c->n_indeps, sizeof (*varlist));
   for (i = 1; i < c->n_indeps; i++)	/* c->coeff[0] is the intercept. */
     {
-      coeff = c->coeff + i;
+      coeff = c->coeff[i];
       v = pspp_linreg_coeff_get_var (coeff, 0);
       if (v->type == ALPHA)
 	{
@@ -756,7 +761,7 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 
   for (i = 0; i < n_vars; i++)
     {
-      coeff = c->coeff + i;
+      coeff = c->coeff[i];
       fprintf (fp, "%s.name = \"%s\";\n\t", varlist[i]->name,
 	       varlist[i]->name);
       fprintf (fp, "%s.n_vals = %d;\n\t", varlist[i]->name,
@@ -782,11 +787,11 @@ reg_print_depvars (FILE * fp, pspp_linreg_cache * c)
   fprintf (fp, "char *model_depvars[%d] = {", c->n_indeps);
   for (i = 1; i < c->n_indeps; i++)
     {
-      coeff = c->coeff + i;
+      coeff = c->coeff[i];
       v = pspp_linreg_coeff_get_var (coeff, 0);
       fprintf (fp, "\"%s\",\n\t\t", v->name);
     }
-  coeff = c->coeff + i;
+  coeff = c->coeff[i];
   v = pspp_linreg_coeff_get_var (coeff, 0);
   fprintf (fp, "\"%s\"};\n\t", v->name);
 }
@@ -806,10 +811,10 @@ reg_has_categorical (pspp_linreg_cache * c)
 {
   int i;
   const struct variable *v;
-  
+
   for (i = 1; i < c->n_coeffs; i++)
     {
-      v = pspp_linreg_coeff_get_var (c->coeff + i, 0);
+      v = pspp_linreg_coeff_get_var (c->coeff[i], 0);
       if (v->type == ALPHA)
 	{
 	  return 1;
@@ -827,7 +832,7 @@ subcommand_export (int export, pspp_linreg_cache * c)
   int n_quantiles = 100;
   double increment;
   double tmp;
-  struct pspp_linreg_coeff coeff;
+  struct pspp_linreg_coeff *coeff;
 
   if (export)
     {
@@ -859,12 +864,12 @@ subcommand_export (int export, pspp_linreg_cache * c)
       for (i = 1; i < c->n_indeps; i++)
 	{
 	  coeff = c->coeff[i];
-	  fprintf (fp, "%.15e,\n\t\t", coeff.estimate);
+	  fprintf (fp, "%.15e,\n\t\t", coeff->estimate);
 	}
       coeff = c->coeff[i];
-      fprintf (fp, "%.15e};\n\t", coeff.estimate);
+      fprintf (fp, "%.15e};\n\t", coeff->estimate);
       coeff = c->coeff[0];
-      fprintf (fp, "double estimate = %.15e;\n\t", coeff.estimate);
+      fprintf (fp, "double estimate = %.15e;\n\t", coeff->estimate);
       fprintf (fp, "int i;\n\tint j;\n\n\t");
       fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
       fprintf (fp, "%s", reg_getvar);
@@ -946,9 +951,9 @@ static int
 is_depvar (size_t k, const struct variable *v)
 {
   /*
-    compare_var_names returns 0 if the variable
-    names match.
-  */
+     compare_var_names returns 0 if the variable
+     names match.
+   */
   if (!compare_var_names (v, v_variables[k], NULL))
     return 1;
 
@@ -991,32 +996,32 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
 /* Parser for the variables sub command */
 static int
-regression_custom_variables(struct cmd_regression *cmd UNUSED)
+regression_custom_variables (struct cmd_regression *cmd UNUSED)
 {
 
-  lex_match('=');
+  lex_match ('=');
 
   if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
       && token != T_ALL)
     return 2;
-  
 
-  if (!parse_variables (default_dict, &v_variables, &n_variables,
-			PV_NONE ))
+
+  if (!parse_variables (default_dict, &v_variables, &n_variables, PV_NONE))
     {
       free (v_variables);
       return 0;
     }
-  assert(n_variables);
+  assert (n_variables);
 
   return 1;
 }
+
 /*
   Count the explanatory variables. The user may or may
   not have specified a response variable in the syntax.
  */
-static
-int get_n_indep (const struct variable *v)
+static int
+get_n_indep (const struct variable *v)
 {
   int result;
   int i = 0;
@@ -1033,16 +1038,16 @@ int get_n_indep (const struct variable *v)
     }
   return result;
 }
+
 /*
   Read from the active file. Identify the explanatory variables in
   v_variables. Encode categorical variables. Drop cases with missing
   values.
 */
-static 
-int prepare_data (int n_data, int is_missing_case[], 
-		  struct variable **indep_vars, 
-		  struct variable *depvar,
-		  const struct casefile *cf)
+static int
+prepare_data (int n_data, int is_missing_case[],
+	      struct variable **indep_vars,
+	      struct variable *depvar, const struct casefile *cf)
 {
   int i;
   int j;
@@ -1050,7 +1055,7 @@ int prepare_data (int n_data, int is_missing_case[],
   assert (indep_vars != NULL);
   j = 0;
   for (i = 0; i < n_variables; i++)
-    {	  
+    {
       if (!is_depvar (i, depvar))
 	{
 	  indep_vars[j] = v_variables[i];
@@ -1058,26 +1063,28 @@ int prepare_data (int n_data, int is_missing_case[],
 	  if (v_variables[i]->type == ALPHA)
 	    {
 	      /* Make a place to hold the binary vectors 
-		 corresponding to this variable's values. */
+	         corresponding to this variable's values. */
 	      cat_stored_values_create (v_variables[i]);
 	    }
-	  n_data = mark_missing_cases (cf, v_variables[i], is_missing_case, n_data);
+	  n_data =
+	    mark_missing_cases (cf, v_variables[i], is_missing_case, n_data);
 	}
     }
   /*
-    Mark missing cases for the dependent variable.
+     Mark missing cases for the dependent variable.
    */
   n_data = mark_missing_cases (cf, depvar, is_missing_case, n_data);
 
   return n_data;
 }
+
 static bool
 run_regression (const struct ccase *first,
                 const struct casefile *cf, void *cmd_ UNUSED)
 {
   size_t i;
-  size_t n_data = 0; /* Number of valide cases. */
-  size_t n_cases; /* Number of cases. */
+  size_t n_data = 0;		/* Number of valide cases. */
+  size_t n_cases;		/* Number of cases. */
   size_t row;
   size_t case_num;
   int n_indep = 0;
@@ -1125,15 +1132,15 @@ run_regression (const struct ccase *first,
     {
       n_indep = get_n_indep ((const struct variable *) cmd.v_dependent[k]);
       lopts.get_indep_mean_std = xnmalloc (n_indep, sizeof (int));
-      indep_vars = xnmalloc (n_indep, sizeof *indep_vars);  
+      indep_vars = xnmalloc (n_indep, sizeof *indep_vars);
       assert (indep_vars != NULL);
 
       for (i = 0; i < n_cases; i++)
 	{
 	  is_missing_case[i] = 0;
 	}
-      n_data = prepare_data (n_cases, is_missing_case, indep_vars, 
-			     cmd.v_dependent[k], 
+      n_data = prepare_data (n_cases, is_missing_case, indep_vars,
+			     cmd.v_dependent[k],
 			     (const struct casefile *) cf);
       Y = gsl_vector_alloc (n_data);
 
@@ -1170,7 +1177,7 @@ run_regression (const struct ccase *first,
 	      for (i = 0; i < n_variables; ++i)	/* Iterate over the
 						   variables for the
 						   current case.
-						*/
+						 */
 		{
 		  val = case_data (&c, v_variables[i]->fv);
 		  /*
@@ -1185,11 +1192,13 @@ run_regression (const struct ccase *first,
 		    {
 		      if (v_variables[i]->type == ALPHA)
 			{
-			  design_matrix_set_categorical (X, row, v_variables[i], val);
+			  design_matrix_set_categorical (X, row,
+							 v_variables[i], val);
 			}
 		      else if (v_variables[i]->type == NUMERIC)
 			{
-			  design_matrix_set_numeric (X, row, v_variables[i], val);
+			  design_matrix_set_numeric (X, row, v_variables[i],
+						     val);
 			}
 		    }
 		}
