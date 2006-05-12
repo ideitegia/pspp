@@ -101,13 +101,13 @@ struct pspp_linreg_cache_struct
   int n_coeffs;
 
   /*
-    The variable struct is ignored during estimation. It is here so
-    the calling procedure can find the variable used in the model.
+     The variable struct is ignored during estimation. It is here so
+     the calling procedure can find the variable used in the model.
    */
   const struct variable *depvar;
 
   gsl_vector *residuals;
-  struct pspp_linreg_coeff *coeff;
+  struct pspp_linreg_coeff **coeff;
   int method;			/* Method to use to estimate parameters. */
   /*
      Means and standard deviations of the variables.
@@ -139,7 +139,7 @@ struct pspp_linreg_cache_struct
 				   variables, i.e. \sum (x[i] - mean(x))^2. */
   double ssy;			/* Centered sums of squares for dependent
 				   variable. 
-				*/
+				 */
   /*
      Covariance matrix of the parameter estimates.
    */
@@ -161,10 +161,9 @@ struct pspp_linreg_cache_struct
 		     const void *, int);
   double (*residual) (const struct variable **,
 		      const union value **,
-		      const union value *,
-		      const void *, int);
+		      const union value *, const void *, int);
   /*
-    Returns pointers to the variables used in the model.
+     Returns pointers to the variables used in the model.
    */
   int (*get_vars) (const void *, struct variable **);
   struct variable *resid;
