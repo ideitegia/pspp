@@ -113,6 +113,23 @@ g_sheet_model_base_init (gpointer g_class)
     }
 }
 
+
+/**
+ * g_sheet_model_free_strings
+ * @sheet_model: A #GSheetModel
+ * 
+ * Returns: True if strings obtained with get_string should be freed by the 
+ * sheet when no longer required.
+ **/
+inline  gboolean 
+g_sheet_model_free_strings (const GSheetModel *sheet_model)
+{
+  g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
+
+  return G_SHEET_MODEL_GET_IFACE (sheet_model)->free_strings;
+}
+
+
 /**
  * g_sheet_model_get_string:
  * @sheet_model: A #GSheetModel
@@ -122,7 +139,7 @@ g_sheet_model_base_init (gpointer g_class)
  * Retrieves the datum at location ROW, COLUMN in the form of a string.
  * Returns: The string representation of the datum, or NULL on error.
  **/
-inline const gchar *
+inline gchar *
 g_sheet_model_get_string (const GSheetModel *sheet_model, 
 			  gint row, gint column)
 {
@@ -393,3 +410,6 @@ g_sheet_model_get_cell_border (const GSheetModel *model,
   return G_SHEET_MODEL_GET_IFACE (model)->get_cell_border (model, 
 							   row, column);
 }
+
+
+

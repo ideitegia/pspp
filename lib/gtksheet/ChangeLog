@@ -1,3 +1,9 @@
+Sat May 13 07:58:32 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+        * gsheetmodel.c gsheetmodel.h gtksheet.c gtksheeet.h: Added
+	free_strings flag to tell the sheet whether to free the string
+	data passed from the model.
+
 Thu May 11 22:20:04 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * gtksheet.c, gtksheet.h: Fixed broken deallocation of sheet->pixmap.

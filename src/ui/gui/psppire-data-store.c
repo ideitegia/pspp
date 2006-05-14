@@ -29,6 +29,7 @@
 
 #include "psppire-variable.h"
 #include "psppire-data-store.h"
+#include "helper.h"
 
 #include <data/dictionary.h>
 #include <data/missing-values.h>
@@ -147,6 +148,7 @@ psppire_data_store_get_font_desc(GSheetModel *model,
 static void
 psppire_data_store_sheet_model_init (GSheetModelIface *iface)
 {
+  iface->free_strings = TRUE;
   iface->get_string = psppire_data_store_get_string;
   iface->set_string = psppire_data_store_set_string;
   iface->clear_datum = psppire_data_store_clear_datum;

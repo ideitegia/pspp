@@ -1,3 +1,11 @@
+Sat May 13 08:00:50 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* data-sheet.c, helper.c, helper.h, psppire-data-store.c, 
+          psppire-var-store.c:
+	  
+	  Set free_strings flag so that the gtksheet frees the string data 
+	  when it's done with them.
+
 Thu May 11 22:25:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* data-sheet.c helper.c helper.h psppire-data-store.c psppire-var-store.c 

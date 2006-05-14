@@ -540,8 +540,8 @@ gtk_sheet_set_cell_text			(GtkSheet *sheet,
 					gint row, gint col,
                    			const gchar *text);
 /* get cell contents */
-const gchar *     
-gtk_sheet_cell_get_text 		(GtkSheet *sheet, gint row, gint col);
+gchar *     
+gtk_sheet_cell_get_text 		(const GtkSheet *sheet, gint row, gint col);
 
 /* clear cell contents */
 void 

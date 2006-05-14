@@ -85,7 +85,7 @@ click2column(GtkWidget *w, gint col, gpointer data)
 
 /* Update the data_ref_entry with the reference of the active cell */
 static gint 
-update_data_ref_entry(GtkSheet *sheet, gint row, gint col)
+update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
 {
 
   /* The entry where the reference to the current cell is displayed */

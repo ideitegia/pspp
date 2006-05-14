@@ -199,6 +199,7 @@ psppire_var_store_get_font_desc(GSheetModel *model,
 static void
 psppire_var_store_sheet_model_init (GSheetModelIface *iface)
 {
+  iface->free_strings = TRUE;
   iface->get_string = psppire_var_store_get_string;
   iface->set_string = psppire_var_store_set_string;
   iface->clear_datum = psppire_var_store_clear;

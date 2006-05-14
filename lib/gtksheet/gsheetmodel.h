@@ -15,6 +15,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+
 #ifndef __G_SHEET_MODEL_H__
 #define __G_SHEET_MODEL_H__
 
@@ -70,6 +71,8 @@ struct _GSheetModelIface
 {
   GTypeInterface g_iface;
 
+  gboolean free_strings;
+
   /* Signals */
   void         (* range_changed)    (GSheetModel *sheet_model,
 				     gint row0, gint col0, 
@@ -82,9 +85,9 @@ struct _GSheetModelIface
 				     gint row, gint n_rows);
 
 
-
   /* Virtual Table */
-  const gchar *      (* get_string)      (const GSheetModel *sheet_model, 
+
+  gchar *      (* get_string)      (const GSheetModel *sheet_model, 
 					       gint row, gint column);
 
   gboolean  (* set_string) (GSheetModel *sheet_model, 
@@ -118,7 +121,7 @@ struct _GSheetModelIface
 GType              g_sheet_model_get_type   (void) G_GNUC_CONST;
 
 
-inline const gchar * g_sheet_model_get_string (const GSheetModel *sheet_model, 
+inline  gchar * g_sheet_model_get_string (const GSheetModel *sheet_model, 
 					       gint row, gint column);
 
 inline gboolean  g_sheet_model_set_string (GSheetModel *sheet_model, 
@@ -163,6 +166,7 @@ inline const PangoFontDescription *g_sheet_model_get_font_desc
 inline const GtkSheetCellBorder * g_sheet_model_get_cell_border 
                    (const GSheetModel *model, gint row, gint column);
 
+inline  gboolean g_sheet_model_free_strings (const GSheetModel *sheet_model);
 
 
 

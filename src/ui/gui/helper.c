@@ -77,12 +77,12 @@ get_widget_assert(GladeXML *xml, const gchar *name)
 }
 
 /* Converts a string in the pspp locale to utf-8 */
-const char *
+char *
 pspp_locale_to_utf8(const gchar *text, gssize len, GError **err)
 {
   GError *tmp_error = 0;
 
-  const gchar *s;
+  gchar *s;
 
   if ( ! text ) 
     return 0;
