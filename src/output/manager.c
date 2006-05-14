@@ -206,7 +206,9 @@ render_columns (void)
 	{
 	  assert (d->cp_y);
 	  outp_eject_page (d);
-	} else {
+	}
+      else
+        {
 	  if (len > max_len)
 	    max_len = len;
 
