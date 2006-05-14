@@ -1162,16 +1162,14 @@ outp_close_page (struct outp_driver *d)
     }
 }
 
-/* Ejects the paper on device D, if a page is open and is not
-   blank. */
+/* Ejects the page on device D, if a page is open and non-blank,
+   and opens a new page.  */
 void
 outp_eject_page (struct outp_driver *d)
 {
   if (d->page_open && d->cp_y != 0)
-    {
-      outp_close_page (d);
-      outp_open_page (d);
-    }
+    outp_close_page (d);
+  outp_open_page (d);
 }
 
 /* Returns the width of string S, in device units, when output on

@@ -1,3 +1,8 @@
+Sun May 14 14:03:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	* output.c (outp_eject_page): Always make sure that a page is open
+	upon return.
+
 Sun May 14 13:54:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	* postscript.c: (ps_chart_finalise) Fix format of %%EndDocument
