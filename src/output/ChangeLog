@@ -1,3 +1,10 @@
+Sun May 14 13:54:58 2006  Ben Pfaff  <blp@gnu.org>
+
+	* postscript.c: (ps_chart_finalise) Fix format of %%EndDocument
+	comment, which screwed up gv's idea of where one page ended and
+	the next one began.  Thanks to John Darrington for pointing out
+	the bug.
+
 Sun Apr 16 11:48:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	Start reforming error message support.  In this phase, we get rid

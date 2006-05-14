@@ -1145,7 +1145,7 @@ ps_chart_finalise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
     continue;
   fclose (ch->file);
 
-  fputs ("%%%%EndDocument\n"
+  fputs ("%%EndDocument\n"
          "end\n"
          "sp restore\n",
          x->file);
