@@ -674,35 +674,35 @@ ps_line (struct outp_driver *this,
          enum outp_line_style top, enum outp_line_style left,
          enum outp_line_style bottom, enum outp_line_style right)
 {
-/* The algorithm here is somewhat subtle, to allow it to handle
-   all the kinds of intersections that we need.
+  /* The algorithm here is somewhat subtle, to allow it to handle
+     all the kinds of intersections that we need.
 
-   Three additional ordinates are assigned along the x axis.  The
-   first is xc, midway between x0 and x3.  The others are x1 and
-   x2; for a single vertical line these are equal to xc, and for
-   a double vertical line they are the ordinates of the left and
-   right half of the double line.
+     Three additional ordinates are assigned along the x axis.  The
+     first is xc, midway between x0 and x3.  The others are x1 and
+     x2; for a single vertical line these are equal to xc, and for
+     a double vertical line they are the ordinates of the left and
+     right half of the double line.
 
-   yc, y1, and y2 are assigned similarly along the y axis.
+     yc, y1, and y2 are assigned similarly along the y axis.
 
-   The following diagram shows the coordinate system and output
-   for double top and bottom lines, single left line, and no
-   right line:
+     The following diagram shows the coordinate system and output
+     for double top and bottom lines, single left line, and no
+     right line:
 
-               x0       x1 xc  x2      x3
-             y0 ________________________
-                |        #     #       |
-                |        #     #       |
-                |        #     #       |
-                |        #     #       |
-                |        #     #       |
-   y1 = y2 = yc |#########     #       |
-                |        #     #       |
-                |        #     #       |
-                |        #     #       |
-                |        #     #       |
-             y3 |________#_____#_______|
-*/
+                 x0       x1 xc  x2      x3
+               y0 ________________________
+                  |        #     #       |
+                  |        #     #       |
+                  |        #     #       |
+                  |        #     #       |
+                  |        #     #       |
+     y1 = y2 = yc |#########     #       |
+                  |        #     #       |
+                  |        #     #       |
+                  |        #     #       |
+                  |        #     #       |
+               y3 |________#_____#_______|
+  */
   struct ps_driver_ext *ext = this->ext;
 
   /* Offset from center of each line in a pair of double lines. */
