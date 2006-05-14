@@ -279,7 +279,9 @@ render_segments (void)
 	    {
 	      assert (d->cp_y);
 	      outp_eject_page (d);
-	    } else {
+	    }
+          else
+            {
 	      t->class->title (x_index ? x_index : y_index,
 			       x_index ? y_index : 0);
 	      t->class->render (x0, y0, x1, y1);
