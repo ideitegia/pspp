@@ -6537,40 +6537,6 @@ gtk_sheet_button_draw (GtkSheet *sheet, gint row, gint column)
            }
            g_free(line);
     }
-    if(button->label && strlen(button->label) > 0){
-      PangoLayout *layout = NULL;
-      gint real_x = x, real_y = y;
-
-      text_width = STRING_WIDTH(GTK_WIDGET(sheet), GTK_WIDGET(sheet)->style->font_desc, button->label);
-
-      layout = gtk_widget_create_pango_layout (GTK_WIDGET(sheet), button->label);
-      switch(button->justification){
-      case GTK_JUSTIFY_LEFT:
-	real_x = x + CELLOFFSET;
-	align = rtl ? PANGO_ALIGN_RIGHT : PANGO_ALIGN_LEFT;
-	break;
-      case GTK_JUSTIFY_RIGHT:
-	real_x = x + width - text_width - CELLOFFSET;
-	align = rtl ? PANGO_ALIGN_LEFT : PANGO_ALIGN_RIGHT;
-	break;
-      case GTK_JUSTIFY_CENTER:
-      default:
-	real_x = x + (width - text_width)/2;
-	align = rtl ? PANGO_ALIGN_RIGHT : PANGO_ALIGN_LEFT;
-	pango_layout_set_justify (layout, TRUE);
-      }
-      pango_layout_set_alignment (layout, align);
-      gtk_paint_layout (GTK_WIDGET(sheet)->style,
-			window,
-			state,
-			FALSE,
-			&allocation,
-			GTK_WIDGET(sheet),
-			"label",
-			real_x, real_y,
-			layout);
-      g_object_unref(G_OBJECT(layout));
-    }
 
     gdk_gc_set_clip_rectangle(GTK_WIDGET(sheet)->style->fg_gc[button->state],
                             NULL);

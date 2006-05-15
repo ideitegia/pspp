@@ -58,7 +58,7 @@ all: po/POTFILES.in
 	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
 		--source-base=gl --lib=libgl --tests-base=tests \
 		--import $(GNULIB_MODULES)
-	autopoint
+	autopoint --force
 	aclocal -I m4 -I gl/m4
 	autoconf
 	autoheader

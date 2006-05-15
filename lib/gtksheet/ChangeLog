@@ -1,3 +1,8 @@
+Mon May 15 16:10:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * gtksheet.c: Removed code which rendered the title buttons a second 
+    time.  Cut and Paste error ?
+
 Sat May 13 07:58:32 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
         * gsheetmodel.c gsheetmodel.h gtksheet.c gtksheeet.h: Added
