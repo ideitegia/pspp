@@ -151,8 +151,6 @@ psppire_dict_finalize (GObject *object)
   gint v;
   PsppireDict *d = PSPPIRE_DICT (object);
   
-
-
   for (v = 0 ; v < psppire_dict_get_var_cnt(d) ; ++v ) 
     g_free(d->variables[v]);
 

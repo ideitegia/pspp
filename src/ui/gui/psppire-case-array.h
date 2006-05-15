@@ -72,7 +72,6 @@ PsppireCaseArray *psppire_case_array_new (gint capacity, gint width);
 
 void psppire_case_array_resize(PsppireCaseArray *ca,  gint new_size);
 
-void psppire_case_array_insert_case(PsppireCaseArray *ca, gint posn);
 
 void psppire_case_array_delete_cases(PsppireCaseArray *ca, gint first, gint n_cases);
 
@@ -81,10 +80,13 @@ typedef gboolean psppire_case_array_fill_case_func(struct ccase *, gpointer aux)
 
 typedef gboolean psppire_case_array_use_case_func(const struct ccase *, gpointer aux);
 
+gboolean psppire_case_array_insert_case(PsppireCaseArray *ca, gint posn,
+					psppire_case_array_fill_case_func fill_case_func,
+					gpointer aux);
 
-gboolean psppire_case_array_add_case(PsppireCaseArray *ca, 
-				  psppire_case_array_fill_case_func fill_case_func,
-				  gpointer aux);
+inline gboolean psppire_case_array_append_case(PsppireCaseArray *ca, 
+					psppire_case_array_fill_case_func fill_case_func,
+					gpointer aux);
 
 
 gboolean psppire_case_array_iterate_case(PsppireCaseArray *ca, 

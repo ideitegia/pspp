@@ -72,11 +72,6 @@ PsppireDict*     psppire_dict_new_from_dict (struct dictionary *d);
 void           psppire_dict_set_name (PsppireDict* s, gint idx, const gchar *name);
 void           psppire_dict_delete_var (PsppireDict *s, gint idx);
 
-/* Return the variable indexed by IDX.
-   returns NULL if IDX is not valid.
-*/
-struct variable *psppire_dict_get_var(PsppireDict *d, gint idx);
-
 /* Return the number of variables in the dictionary */
 gint psppire_dict_get_var_cnt(const PsppireDict *d);
 

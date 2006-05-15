@@ -345,6 +345,8 @@ psppire_variable_get_width(const struct PsppireVariable *pv)
   return pv->v->width;
 }
 
+
+/* FIXME: This name is misleading */
 gint
 psppire_variable_get_index(const struct PsppireVariable *pv)
 {

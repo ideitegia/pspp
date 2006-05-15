@@ -187,14 +187,15 @@ static void
 insert_case_callback(GtkWidget *w, gint casenum, gpointer data)
 {
   PsppireDataStore *store  ;
+
   g_return_if_fail (data);
 
   store  = PSPPIRE_DATA_STORE(data);
   
   g_sheet_model_range_changed (G_SHEET_MODEL(store),
-				 casenum, -1,
-				 psppire_case_array_get_n_cases(store->cases),
-				 -1);
+			       casenum, -1,
+			       psppire_case_array_get_n_cases(store->cases),
+			       -1);
 }
 
 
@@ -453,7 +454,7 @@ psppire_data_store_set_string(GSheetModel *model,
   for(r = psppire_case_array_get_n_cases(store->cases) ; r <= row ; ++r ) 
     {
       gint c;
-      psppire_case_array_insert_case(store->cases, r);
+      psppire_case_array_insert_case(store->cases, r, 0, 0);
 
       for (c = 0 ; c < psppire_dict_get_var_cnt(store->dict); ++c ) 
 	psppire_data_store_clear_datum(model, r, c);

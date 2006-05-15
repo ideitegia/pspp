@@ -176,24 +176,15 @@ psppire_case_array_resize(PsppireCaseArray *ca,  gint new_size)
   ca->width = new_size;
 }
 
-/* FIXME: add_case and insert_case need to be merged/refactored */
-gboolean
-psppire_case_array_add_case(PsppireCaseArray *ca, 
+
+/* Append a case to the case array.  If FILL_CASE_FUNC is not NULL, 
+ * then use it to populate the case */
+inline gboolean
+psppire_case_array_append_case(PsppireCaseArray *ca, 
 			 psppire_case_array_fill_case_func fill_case_func,
 			 gpointer aux)
 {
-  g_return_val_if_fail(ca->size < ca->capacity, FALSE);
-
-  case_create(&ca->cases[ca->size], ca->width);
-
-  if ( !fill_case_func(&ca->cases[ca->size], aux))
-    return FALSE;
-
-  ca->size++;
-
-  g_signal_emit(ca, signal[CASE_INSERTED], 0, ca->size - 1);  
-
-  return TRUE;
+  return psppire_case_array_insert_case(ca, ca->size, fill_case_func, aux);
 }
 
 
@@ -215,24 +206,33 @@ psppire_case_array_iterate_case(PsppireCaseArray *ca,
 }
 
 
-void
-psppire_case_array_insert_case(PsppireCaseArray *ca, gint posn)
+/* Insert a new case before case POSN.
+ * If FILL_CASE_FUNC is not NULL, then use it to populate the new case */
+gboolean
+psppire_case_array_insert_case(PsppireCaseArray *ca, gint posn,
+			       psppire_case_array_fill_case_func fill_case_func,
+			       gpointer aux)
+
 {
   gint i;
 
-  g_return_if_fail(posn >= 0);
-  g_return_if_fail(posn <= ca->size);
+  g_return_val_if_fail(posn >= 0, FALSE);
+  g_return_val_if_fail(posn <= ca->size, FALSE);
 
-  g_assert(ca->size + 1 <= ca->capacity);
-
+  g_return_val_if_fail(ca->size < ca->capacity, FALSE);
 
   for(i = ca->size; i > posn ; --i)
       case_move(&ca->cases[i], &ca->cases[i - 1]);
 
   case_create(&ca->cases[posn], ca->width);
 
+  if ( fill_case_func && !fill_case_func(&ca->cases[posn], aux))
+    return FALSE;
+
   ca->size++;
   g_signal_emit(ca, signal[CASE_INSERTED], 0, posn);
+
+  return TRUE;
 }
 
 void

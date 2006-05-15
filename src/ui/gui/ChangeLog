@@ -1,3 +1,11 @@
+Mon May 15 20:01:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
+	
+	* menu-actions.c psppire-case-array.c psppire-case-array.h
+	  psppire-data-store.c  psppire-dict.c psppire-dict.h 
+	  psppire-variable.c:
+
+	  Initialised new cases to SYSMIS/blank when inserting in data sheet.
+
 Sat May 13 08:00:50 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* data-sheet.c, helper.c, helper.h, psppire-data-store.c, 

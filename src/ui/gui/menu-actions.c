@@ -200,9 +200,9 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 
 	  for(case_num=0;;case_num++)
 	    {
-	      if (!psppire_case_array_add_case(the_cases, 
-					       populate_case_from_reader, 
-					       reader))
+	      if (!psppire_case_array_append_case(the_cases, 
+						  populate_case_from_reader, 
+						  reader))
 		break;
 	    }
 	}
@@ -325,6 +325,35 @@ on_paste1_activate                     (GtkMenuItem     *menuitem,
 
 }
 
+/* Fill a case with SYSMIS for numeric and whitespace for string
+   variables respectively */ 
+static gboolean 
+blank_case(struct ccase *cc, gpointer _dict)
+{
+  gint i;
+  PsppireDict *dict = _dict;
+
+  for(i = 0 ; i < psppire_dict_get_var_cnt(dict); ++i ) 
+    {
+      union value *val ;
+
+      const struct PsppireVariable *var = psppire_dict_get_variable(dict, i);
+      
+      gint idx = psppire_variable_get_index(var);
+
+      val = case_data_rw(cc, idx) ;
+
+      if ( psppire_variable_get_type(var) == ALPHA ) 
+	memset(val->s, ' ', psppire_variable_get_width(var));
+      else
+	val->f = SYSMIS;
+
+      case_unshare(cc);
+    }
+
+  return TRUE;
+}
+
 
 void
 on_insert1_activate                    (GtkMenuItem     *menuitem,
@@ -343,7 +372,9 @@ on_insert1_activate                    (GtkMenuItem     *menuitem,
 	PsppireDataStore *data_store = 
 	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
 
-	psppire_case_array_insert_case(data_store->cases, data_sheet->range.row0);
+	psppire_case_array_insert_case(data_store->cases, 
+				       data_sheet->range.row0, 
+				       blank_case, the_dictionary);
       }
       break;
     case PAGE_VAR_SHEET:
