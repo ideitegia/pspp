@@ -286,7 +286,7 @@ outp_read_devices (void)
 					       config_path),
 			    NULL);
 
-  ds_init (&line, 128);
+  ds_init (&line);
 
   if (init_fn == NULL)
     {
@@ -767,7 +767,7 @@ configure_driver_line (struct string *line)
   for (i = 0; i < 4; i++) 
     {
       struct string *token = &tokens[i];
-      ds_init (token, 0);
+      ds_init (token);
       ds_separate (line, token, i < 3 ? ":" : "", &save_idx);
       ds_trim_spaces (token);
     }
@@ -1032,7 +1032,7 @@ outp_get_paper_size (char *size, int *h, int *v)
 						config_path),
 			     NULL);
 
-  ds_init (&line, 128);
+  ds_init (&line);
 
   if (pprsz_fn == NULL)
     {

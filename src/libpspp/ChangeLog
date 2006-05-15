@@ -1,3 +1,8 @@
+Sun May 14 20:52:20 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (ds_init): Remove `capacity' argument and just initialize
+	the string to a capacity of zero.  Updated all callers.
+
 Tue May  9 09:56:57 2006  Ben Pfaff  <blp@gnu.org>
 
 	* va_copy.h: Removed.  Now use va_copy() provided by gnulib

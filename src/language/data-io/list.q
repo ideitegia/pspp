@@ -604,7 +604,7 @@ determine_layout (void)
       d->cp_y += d->font_height;
     }
 
-  ds_init(&line_buffer, largest_page_width + 2);
+  ds_init (&line_buffer);
 }
 
 /* Writes case C to output. */

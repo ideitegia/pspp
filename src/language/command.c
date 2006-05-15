@@ -430,7 +430,7 @@ unknown_command_error (char *const words[], size_t word_cnt)
       struct string s;
       size_t i;
 
-      ds_init (&s, 0);
+      ds_init (&s);
       for (i = 0; i < word_cnt; i++) 
         {
           if (i != 0)

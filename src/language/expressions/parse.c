@@ -1112,7 +1112,7 @@ no_match (const char *func_name,
   struct string s;
   const struct operation *f;
 
-  ds_init (&s, 128);
+  ds_init (&s);
 
   if (last - first == 1) 
     {

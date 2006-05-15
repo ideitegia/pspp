@@ -54,7 +54,7 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
   if (i->flags & DI_IGNORE_ERROR)
     return;
 
-  ds_init (&text, 64);
+  ds_init (&text);
   if (i->f1 == i->f2)
     ds_printf (&text, _("(column %d"), i->f1);
   else

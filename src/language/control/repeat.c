@@ -469,7 +469,7 @@ do_repeat_filter (struct string *line, void *block_)
   struct string output;
   bool dot;
 
-  ds_init (&output, ds_capacity (line));
+  ds_init (&output);
 
   /* Strip trailing whitespace, check for & remove terminal dot. */
   while (isspace (ds_last (line)))

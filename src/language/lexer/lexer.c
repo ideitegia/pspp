@@ -104,8 +104,8 @@ static void dump_token (void);
 void
 lex_init (void)
 {
-  ds_init (&tokstr, 64);
-  ds_init (&put_tokstr, 64);
+  ds_init (&tokstr);
+  ds_init (&put_tokstr);
   if (!lex_get_line ())
     eof = true;
 }

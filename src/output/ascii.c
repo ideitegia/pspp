@@ -672,7 +672,7 @@ ascii_close_page (struct outp_driver *this)
   struct string out;
   int line_num;
  
-  ds_init (&out, 128);
+  ds_init (&out);
  
   ds_putc_multiple (&out, '\n', x->top_margin);
   if (x->headers)

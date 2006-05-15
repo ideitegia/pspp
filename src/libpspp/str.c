@@ -247,13 +247,13 @@ ds_create (struct string *st, const char *s)
   strcpy (st->string, s);
 }
 
-/* Initializes ST, making room for at least CAPACITY characters. */
+/* Initializes ST as an empty string. */
 void
-ds_init (struct string *st, size_t capacity)
+ds_init (struct string *st)
 {
   st->length = 0;
-  st->capacity = MAX (8, capacity);
-  st->string = xmalloc (st->capacity + 1);
+  st->capacity = 0;
+  st->string = NULL;
 }
 
 /* Frees ST. */
@@ -285,7 +285,7 @@ ds_init_substring (struct string *dst,
                    const struct string *src, size_t idx, size_t cnt)
 {
   assert (dst != src);
-  ds_init (dst, cnt);
+  ds_init (dst);
   ds_assign_substring (dst, src, idx, cnt);
 }
 

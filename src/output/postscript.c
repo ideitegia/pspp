@@ -874,7 +874,7 @@ write_text (struct outp_driver *this,
       fprintf (ext->file, "F%d setfont\n", font);
     }
 
-  ds_init (&out, 0);
+  ds_init (&out);
   for (i = 0; i < char_cnt; i = j)
     {
       for (j = i + 1; j < char_cnt; j++)
@@ -1382,7 +1382,7 @@ reencode_font (struct outp_driver *this, struct font *font)
 
   line_number = 0;
 
-  ds_init (&line, 0);
+  ds_init (&line);
   while (ds_get_config_line (file, &line, &line_number))
     {
       char *pschar, *code;

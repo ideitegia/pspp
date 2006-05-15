@@ -89,7 +89,7 @@ error (struct pfm_reader *r, const char *msg, ...)
   struct string text;
   va_list args;
 
-  ds_init (&text, 64);
+  ds_init (&text);
   ds_printf (&text, _("portable file %s corrupt at offset %ld: "),
              fh_get_file_name (r->fh), ftell (r->file));
   va_start (args, msg);

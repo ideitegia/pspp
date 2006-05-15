@@ -686,7 +686,7 @@ write_vls_length_table (struct sfm_writer *w,
 
   struct string vls_length_map;
 
-  ds_init (&vls_length_map, 12 * dict_get_var_cnt (dict));
+  ds_init (&vls_length_map);
 
   vls_hdr.rec_type = 7;
   vls_hdr.subtype = 14;
@@ -732,7 +732,7 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   struct string long_name_map;
   size_t i;
 
-  ds_init (&long_name_map, 10 * dict_get_var_cnt (dict));
+  ds_init (&long_name_map);
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);

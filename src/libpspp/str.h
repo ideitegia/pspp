@@ -117,7 +117,7 @@ struct string
 #define DS_INITIALIZER {NULL, 0, 0}
 
 /* Constructors, destructors. */
-void ds_init (struct string *, size_t);
+void ds_init (struct string *);
 void ds_init_substring (struct string *,
                         const struct string *src, size_t start, size_t cnt);
 void ds_create (struct string *, const char *);

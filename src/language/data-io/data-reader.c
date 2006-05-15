@@ -120,8 +120,8 @@ dfm_open_reader (struct file_handle *fh)
   
   r = xmalloc (sizeof *r);
   r->fh = fh;
-  ds_init (&r->line, 64);
-  ds_init (&r->scratch, 0);
+  ds_init (&r->line);
+  ds_init (&r->scratch);
   r->flags = DFM_ADVANCE;
   r->eof_cnt = 0;
   if (fh != fh_inline_file ()) 

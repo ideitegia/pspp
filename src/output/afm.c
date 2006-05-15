@@ -720,7 +720,7 @@ get_word (struct parser *p, char **word)
       struct string s;
       int c;
 
-      ds_init (&s, 0);
+      ds_init (&s);
       while (!isspace (c = getc (p->file)) && c != EOF)
         ds_putc (&s, c);
       ungetc (c, p->file);
@@ -756,9 +756,8 @@ force_get_word (struct parser *p)
 static bool
 get_string (struct parser *p, char **string)
 {
-  struct string s;
+  struct string s = DS_INITIALIZER;
 
-  ds_init (&s, 0);
   skip_spaces (p);
   for (;;) 
     {

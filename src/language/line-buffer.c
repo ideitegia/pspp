@@ -111,7 +111,7 @@ getl_initialize (void)
 {
   ds_create (&getl_include_path,
 	     fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
-  ds_init (&getl_buf, 256);
+  ds_init (&getl_buf);
   init_prompts ();
 }
 
