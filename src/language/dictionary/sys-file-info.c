@@ -482,11 +482,11 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
           double x, y;
           mv_pop_range (&mv, &x, &y);
           if (x == LOWEST)
-            cp += nsprintf (cp, "LOWEST THRU %g", y);
+            cp += sprintf (cp, "LOWEST THRU %g", y);
           else if (y == HIGHEST)
-            cp += nsprintf (cp, "%g THRU HIGHEST", x);
+            cp += sprintf (cp, "%g THRU HIGHEST", x);
           else
-            cp += nsprintf (cp, "%g THRU %g", x, y);
+            cp += sprintf (cp, "%g THRU %g", x, y);
           cnt++;
         }
       while (mv_has_value (&mv)) 
@@ -494,9 +494,9 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
           union value value;
           mv_pop_value (&mv, &value);
           if (cnt++ > 0)
-            cp += nsprintf (cp, "; ");
+            cp += sprintf (cp, "; ");
           if (v->type == NUMERIC)
-            cp += nsprintf (cp, "%g", value.f);
+            cp += sprintf (cp, "%g", value.f);
           else 
             {
               *cp++ = '"';

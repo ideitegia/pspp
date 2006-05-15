@@ -61,6 +61,8 @@ void str_copy_trunc (char *, size_t, const char *);
 void str_copy_buf_trunc (char *, size_t, const char *, size_t);
 void str_uppercase (char *);
 void str_lowercase (char *);
+
+char *spprintf (char *dst, const char *format, ...);
 
 /* Fixed-length strings. */
 struct fixed_string 
@@ -173,6 +175,7 @@ void ds_concat (struct string *, const char *, size_t);
 void ds_vprintf (struct string *st, const char *, va_list);
 void ds_printf (struct string *, const char *, ...)
      PRINTF_FORMAT (2, 3);
+char *ds_append_uninit (struct string *st, size_t incr);
 
 #if __GNUC__ > 1
 extern inline void
@@ -201,28 +204,5 @@ ds_end (const struct string *st)
   return st->string + st->length;
 }
 #endif
-
-#define nsprintf sprintf
-#define nvsprintf vsprintf
-
-/* Formats FORMAT into DST, as with sprintf(), and returns the
-   address of the terminating null written to DST. */
-static inline char *
-spprintf (char *dst, const char *format, ...) 
-{
-  va_list args;
-  int count;
-
-  va_start (args, format);
-  count = nvsprintf (dst, format, args);
-  va_end (args);
-
-  return dst + count;
-}
-
-
-char * ds_append_uninit(struct string *st, size_t incr);
-
-
 
 #endif /* str_h */

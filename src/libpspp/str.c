@@ -236,6 +236,21 @@ str_lowercase (char *s)
   for (; *s != '\0'; s++)
     *s = tolower ((unsigned char) *s);
 }
+
+/* Formats FORMAT into DST, as with sprintf(), and returns the
+   address of the terminating null written to DST. */
+char *
+spprintf (char *dst, const char *format, ...) 
+{
+  va_list args;
+  int count;
+
+  va_start (args, format);
+  count = vsprintf (dst, format, args);
+  va_end (args);
+
+  return dst + count;
+}
 
 /* Initializes ST with initial contents S. */
 void

@@ -1,3 +1,12 @@
+Sun May 14 22:06:53 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (spprintf): Moved definition of spprintf() here, from
+	str.h.
+
+	* str.h: (nsprintf) Removed.  Changed all users to use sprintf()
+	instead.
+	(nvsprintf) Removed.  Changed all users to use vsprintf() instead.
+
 Sun May 14 20:52:20 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.c (ds_init): Remove `capacity' argument and just initialize
