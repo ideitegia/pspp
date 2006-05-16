@@ -1,3 +1,13 @@
+Tue May 16 06:50:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk (src/libpspp/version.c): Removed groff_font_path,
+	which is no longer used.
+
+	* message.c (request_bug_report_and_abort): Don't print
+	groff_font_path, which no longer exists.
+
+	* version.h (locale_dir): Removed groff_font_path.
+
 Sun May 14 22:06:53 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.c (spprintf): Moved definition of spprintf() here, from

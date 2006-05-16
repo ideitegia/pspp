@@ -42,9 +42,6 @@ extern const char default_config_path[];
 /* Include path. */
 extern const char include_path[];
 
-/* Font path. */
-extern const char groff_font_path[];
-
 /* Locale directory. */
 extern const char locale_dir[];
 

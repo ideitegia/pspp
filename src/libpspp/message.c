@@ -137,7 +137,6 @@ request_bug_report_and_abort(const char *msg )
 	  "build_system:        %s\n"
 	  "default_config_path: %s\n"
 	  "include_path:        %s\n"
-	  "groff_font_path:     %s\n"
 	  "locale_dir:          %s\n"
 	  "compiler version:    %s\n"
 	  ,
@@ -149,7 +148,6 @@ request_bug_report_and_abort(const char *msg )
 	  build_system,
 	  default_config_path,
 	  include_path, 
-	  groff_font_path,
 	  locale_dir,
 #ifdef __VERSION__
 	  __VERSION__

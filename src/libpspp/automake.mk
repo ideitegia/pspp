@@ -52,12 +52,6 @@ src/libpspp/version.c:
 \"~/.pspp:$(pkgsysconfdir)\";" >> $@
 	echo "const char include_path[] =\
 \"./:~/.pspp/include:$(pkgdatadir)\";" >> $@
-	echo "const char groff_font_path[] = \"~/.pspp/font:\" \\" >> $@
-	echo "	\"$(pkgdatadir)/font:\" \\" >> $@
-	echo "	\"/usr/local/lib/groff/font:\" \\" >> $@
-	echo "	\"/usr/lib/groff/font:\" \\" >> $@
-	echo "	\"/usr/local/share/groff/font:\" \\" >> $@
-	echo "	\"/usr/share/groff/font\";" >> $@
 	echo "const char locale_dir[] = \"$(datadir)/locale\";" >> $@
 
 
