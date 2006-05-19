@@ -27,6 +27,16 @@
 #include <src/data/variable.h>
 #include <src/data/value.h>
 
+/*
+  This file contains definitions of data structures for storing
+  coefficients of a statistical model. The coefficients are the point
+  in the model where the theoretical aspects of the model meet the
+  data. As such, the coefficients are the interface where users need
+  to match variable names and values with any information about the
+  model itself. This file and coefficient.c provide this interface
+  between data and model structures.
+ */
+
 struct design_matrix;
 
 /*
