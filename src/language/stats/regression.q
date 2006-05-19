@@ -44,7 +44,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <math/design-matrix.h>
-#include <math/linreg/coefficient.h>
+#include <math/coefficient.h>
 #include <math/linreg/linreg.h>
 #include <output/table.h>
 
