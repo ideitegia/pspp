@@ -9,6 +9,8 @@ src_math_libpspp_math_a_SOURCES = \
 	src/math/factor-stats.h \
 	src/math/chart-geometry.c \
 	src/math/chart-geometry.h \
+	src/math/coefficient.c \
+	src/math/coefficient.h \
 	src/math/group.c  src/math/group.h \
 	src/math/histogram.c src/math/histogram.h \
 	src/math/group-proc.h \

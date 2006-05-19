@@ -19,7 +19,7 @@
  */
 
 #include <math/linreg/linreg.h>
-#include <math/linreg/coefficient.h>
+#include <math/coefficient.h>
 #include <gl/xalloc.h>
 
 /*

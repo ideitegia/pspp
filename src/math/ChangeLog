@@ -1,3 +1,9 @@
+2006-05-19  Jason Stover  <jhs@math.gcsu.edu>
+
+	* coefficient.c: Moved to src/math.
+
+	* coefficient.h: Moved to src/math.
+
 Tue May  9 21:09:37 2006  Ben Pfaff  <blp@gnu.org>
 
 	* sort.c (sort_active_file_to_casefile): Check return value of

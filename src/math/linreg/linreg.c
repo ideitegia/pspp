@@ -53,7 +53,7 @@
 */
 
 #include <math/linreg/linreg.h>
-#include <math/linreg/coefficient.h>
+#include <math/coefficient.h>
 #include <gsl/gsl_errno.h>
 #include <linreg/sweep.h>
 /*
