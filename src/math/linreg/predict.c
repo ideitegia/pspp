@@ -35,8 +35,8 @@ pspp_linreg_predict (const struct variable **predictors,
   const pspp_linreg_cache *c = c_;
   int i;
   int j;
-  const struct pspp_linreg_coeff **found;
-  const struct pspp_linreg_coeff *coe;
+  const struct pspp_coeff **found;
+  const struct pspp_coeff *coe;
   double result;
   double tmp;
 
@@ -69,7 +69,7 @@ pspp_linreg_predict (const struct variable **predictors,
       if (i < c->n_coeffs)
 	{
 	  found[i] = coe;
-	  tmp = pspp_linreg_coeff_get_est (coe);
+	  tmp = pspp_coeff_get_est (coe);
 	  if (predictors[j]->type == NUMERIC)
 	    {
 	      tmp *= vals[j]->f;

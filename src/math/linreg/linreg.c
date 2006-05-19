@@ -97,7 +97,7 @@ int
 pspp_linreg_get_vars (const void *c_, struct variable **v)
 {
   const pspp_linreg_cache *c = c_;
-  struct pspp_linreg_coeff *coef = NULL;
+  struct pspp_coeff *coef = NULL;
   const struct variable *tmp;
   int i;
   int result = 0;
@@ -113,12 +113,12 @@ pspp_linreg_get_vars (const void *c_, struct variable **v)
   /*
      Start at c->coeff[1] to avoid the intercept.
    */
-  v[result] = (struct variable *) pspp_linreg_coeff_get_var (c->coeff[1], 0);
+  v[result] = (struct variable *) pspp_coeff_get_var (c->coeff[1], 0);
   result = (v[result] == NULL) ? 0 : 1;
 
   for (coef = c->coeff[2]; coef < c->coeff[c->n_coeffs]; coef++)
     {
-      tmp = pspp_linreg_coeff_get_var (coef, 0);
+      tmp = pspp_coeff_get_var (coef, 0);
       assert (tmp != NULL);
       /* Repeated variables are likely to bunch together, at the end
          of the array. */
@@ -187,7 +187,7 @@ pspp_linreg_cache_free (void *m)
   gsl_matrix_free (c->cov);
   for (i = 0; i < c->n_coeffs; i++)
     {
-      pspp_linreg_coeff_free (c->coeff[i]);
+      pspp_coeff_free (c->coeff[i]);
     }
   free (c);
   return true;

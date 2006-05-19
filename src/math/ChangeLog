@@ -1,5 +1,7 @@
 2006-05-19  Jason Stover  <jhs@math.gcsu.edu>
 
+	* coefficient.h: Renamed pspp_linreg_coeff to pspp_coeff.
+
 	* coefficient.c: Moved to src/math.
 
 	* coefficient.h: Moved to src/math.

@@ -1,5 +1,5 @@
 /*
-  lib/linreg/coefficient.c
+  src/math/coefficient.c
   
   Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H Stover.
   
@@ -42,7 +42,7 @@ struct varinfo
 };
 
 void
-pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
+pspp_coeff_free (struct pspp_coeff *c)
 {
   free (c->v_info);
   free (c);
@@ -53,12 +53,12 @@ pspp_linreg_coeff_free (struct pspp_linreg_coeff *c)
   coefficient structures for the linear model.
  */
 void
-pspp_linreg_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
+pspp_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
 {
   size_t i;
   size_t j;
   int n_vals = 1;
-  struct pspp_linreg_coeff *coeff;
+  struct pspp_coeff *coeff;
 
   c->coeff = xnmalloc (X->m->size2 + 1, sizeof (*c->coeff));
   c->coeff[0] = xmalloc (sizeof (*c->coeff[0]));
@@ -90,13 +90,13 @@ pspp_linreg_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
     }
 }
 void
-pspp_linreg_coeff_set_estimate (struct pspp_linreg_coeff *c, double estimate)
+pspp_coeff_set_estimate (struct pspp_coeff *c, double estimate)
 {
   c->estimate = estimate;
 }
 
 void
-pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c, double std_err)
+pspp_coeff_set_std_err (struct pspp_coeff *c, double std_err)
 {
   c->std_err = std_err;
 }
@@ -105,7 +105,7 @@ pspp_linreg_coeff_set_std_err (struct pspp_linreg_coeff *c, double std_err)
   Return the estimated value of the coefficient.
  */
 double
-pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *c)
+pspp_coeff_get_est (const struct pspp_coeff *c)
 {
   if (c == NULL)
     {
@@ -118,7 +118,7 @@ pspp_linreg_coeff_get_est (const struct pspp_linreg_coeff *c)
   Return the standard error of the estimated coefficient.
 */
 double
-pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
+pspp_coeff_get_std_err (const struct pspp_coeff *c)
 {
   if (c == NULL)
     {
@@ -131,7 +131,7 @@ pspp_linreg_coeff_get_std_err (const struct pspp_linreg_coeff *c)
   How many variables are associated with this coefficient?
  */
 int
-pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c)
+pspp_coeff_get_n_vars (struct pspp_coeff *c)
 {
   if (c == NULL)
     {
@@ -145,7 +145,7 @@ pspp_linreg_coeff_get_n_vars (struct pspp_linreg_coeff *c)
   0 unless the coefficient refers to an interaction term.
  */
 const struct variable *
-pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i)
+pspp_coeff_get_var (struct pspp_coeff *c, int i)
 {
   if (c == NULL)
     {
@@ -159,7 +159,7 @@ pspp_linreg_coeff_get_var (struct pspp_linreg_coeff *c, int i)
   Which value is associated with this coefficient/variable combination?
  */
 const union value *
-pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
+pspp_coeff_get_value (struct pspp_coeff *c,
 			     const struct variable *v)
 {
   int i = 0;
@@ -175,7 +175,7 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
     }
   while (i < c->n_vars)
     {
-      candidate = pspp_linreg_coeff_get_var (c, i);
+      candidate = pspp_coeff_get_var (c, i);
       if (v->index == candidate->index)
 	{
 	  return (c->v_info + i)->val;
@@ -189,12 +189,12 @@ pspp_linreg_coeff_get_value (struct pspp_linreg_coeff *c,
   Which coefficient is associated with V? The VAL argument is relevant
   only to categorical variables.
  */
-const struct pspp_linreg_coeff *
+const struct pspp_coeff *
 pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 		       const struct variable *v, const union value *val)
 {
   int i = 1;
-  struct pspp_linreg_coeff *result = NULL;
+  struct pspp_coeff *result = NULL;
   const struct variable *tmp = NULL;
 
   if (c == NULL)
@@ -207,11 +207,11 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
     }
 
   result = c->coeff[i];
-  tmp = pspp_linreg_coeff_get_var (result, 0);
+  tmp = pspp_coeff_get_var (result, 0);
   while (tmp->index != v->index && i < c->n_coeffs)
     {
       result = c->coeff[i];
-      tmp = pspp_linreg_coeff_get_var (result, 0);
+      tmp = pspp_coeff_get_var (result, 0);
       i++;
     }
   if (i > c->n_coeffs)
@@ -229,12 +229,12 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
          matches the VAL.
        */
       while (tmp->index != v->index && i < c->n_coeffs
-	     && compare_values (pspp_linreg_coeff_get_value (result, tmp),
+	     && compare_values (pspp_coeff_get_value (result, tmp),
 				val, v->width))
 	{			/* FIX THIS */
 	  i++;
 	  result = c->coeff[i];
-	  tmp = pspp_linreg_coeff_get_var (result, 0);
+	  tmp = pspp_coeff_get_var (result, 0);
 	}
       if (i == c->n_coeffs)
 	{

@@ -225,7 +225,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 6, 1, 0, pval, 10, 2);
   for (j = 1; j <= c->n_indeps; j++)
     {
-      v = pspp_linreg_coeff_get_var (c->coeff[j], 0);
+      v = pspp_coeff_get_var (c->coeff[j], 0);
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
       strncpy (tmp, label, MAX_STRING);
@@ -237,7 +237,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
 	     for that value.
 	   */
 
-	  val = pspp_linreg_coeff_get_value (c->coeff[j], v);
+	  val = pspp_coeff_get_value (c->coeff[j], v);
 	  val_s = value_to_string (val, v);
 	  strncat (tmp, val_s, MAX_STRING);
 	}
@@ -392,7 +392,7 @@ reg_stats_bcov (pspp_linreg_cache * c)
   tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Covariances"));
   for (i = 1; i < c->n_coeffs; i++)
     {
-      const struct variable *v = pspp_linreg_coeff_get_var (c->coeff[i], 0);
+      const struct variable *v = pspp_coeff_get_var (c->coeff[i], 0);
       label = var_to_string (v);
       tab_text (t, 2, i, TAB_CENTER, label);
       tab_text (t, i + 2, 0, TAB_CENTER, label);
@@ -728,7 +728,7 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
   size_t j;
   int n_vars = 0;
   struct variable **varlist;
-  struct pspp_linreg_coeff *coeff;
+  struct pspp_coeff *coeff;
   const struct variable *v;
   union value *val;
 
@@ -738,7 +738,7 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
   for (i = 1; i < c->n_indeps; i++)	/* c->coeff[0] is the intercept. */
     {
       coeff = c->coeff[i];
-      v = pspp_linreg_coeff_get_var (coeff, 0);
+      v = pspp_coeff_get_var (coeff, 0);
       if (v->type == ALPHA)
 	{
 	  if (!reg_inserted (v, varlist, n_vars))
@@ -781,18 +781,18 @@ static void
 reg_print_depvars (FILE * fp, pspp_linreg_cache * c)
 {
   int i;
-  struct pspp_linreg_coeff *coeff;
+  struct pspp_coeff *coeff;
   const struct variable *v;
 
   fprintf (fp, "char *model_depvars[%d] = {", c->n_indeps);
   for (i = 1; i < c->n_indeps; i++)
     {
       coeff = c->coeff[i];
-      v = pspp_linreg_coeff_get_var (coeff, 0);
+      v = pspp_coeff_get_var (coeff, 0);
       fprintf (fp, "\"%s\",\n\t\t", v->name);
     }
   coeff = c->coeff[i];
-  v = pspp_linreg_coeff_get_var (coeff, 0);
+  v = pspp_coeff_get_var (coeff, 0);
   fprintf (fp, "\"%s\"};\n\t", v->name);
 }
 static void
@@ -814,7 +814,7 @@ reg_has_categorical (pspp_linreg_cache * c)
 
   for (i = 1; i < c->n_coeffs; i++)
     {
-      v = pspp_linreg_coeff_get_var (c->coeff[i], 0);
+      v = pspp_coeff_get_var (c->coeff[i], 0);
       if (v->type == ALPHA)
 	{
 	  return 1;
@@ -832,7 +832,7 @@ subcommand_export (int export, pspp_linreg_cache * c)
   int n_quantiles = 100;
   double increment;
   double tmp;
-  struct pspp_linreg_coeff *coeff;
+  struct pspp_coeff *coeff;
 
   if (export)
     {
@@ -1212,7 +1212,7 @@ run_regression (const struct ccase *first,
          and store pointers to the variables that correspond to the
          coefficients.
        */
-      pspp_linreg_coeff_init (models[k], X);
+      pspp_coeff_init (models[k], X);
 
       /* 
          Find the least-squares estimates and other statistics.

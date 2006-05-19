@@ -26,7 +26,7 @@
 #include <gsl/gsl_matrix.h>
 
 struct variable;
-struct pspp_linreg_coeff;
+struct pspp_coeff;
 union value;
 
 enum
@@ -107,7 +107,7 @@ struct pspp_linreg_cache_struct
   const struct variable *depvar;
 
   gsl_vector *residuals;
-  struct pspp_linreg_coeff **coeff;
+  struct pspp_coeff **coeff;
   int method;			/* Method to use to estimate parameters. */
   /*
      Means and standard deviations of the variables.
