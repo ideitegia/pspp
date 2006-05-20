@@ -84,6 +84,14 @@ struct _GSheetModelIface
   void         (* rows_deleted)     (GSheetModel *sheet_model,
 				     gint row, gint n_rows);
 
+  void         (* columns_inserted)    (GSheetModel *sheet_model,
+				     gint column, gint n_columns);
+
+  void         (* columns_deleted)     (GSheetModel *sheet_model,
+				     gint column, gint n_columns);
+
+
+
 
   /* Virtual Table */
 
@@ -114,6 +122,11 @@ struct _GSheetModelIface
   const GtkSheetCellBorder *  (* get_cell_border) (const GSheetModel *sheet_model, 
 						   gint row, gint column);
 
+
+  gint (*get_column_count) (const GSheetModel *model);
+
+  gint (*get_row_count) (const GSheetModel *model);
+
 };
 
 
@@ -142,6 +155,13 @@ inline void g_sheet_model_rows_deleted (GSheetModel *sheet_model,
 inline void g_sheet_model_rows_inserted (GSheetModel *sheet_model,
 				    gint row, gint n_rows);
 
+inline void g_sheet_model_columns_inserted (GSheetModel *sheet_model,
+					    gint column, gint n_columns);
+
+inline void g_sheet_model_columns_deleted (GSheetModel *sheet_model,
+					   gint column, gint n_columns);
+
+
 inline gboolean g_sheet_model_is_editable (const GSheetModel *model, 
 				      gint row, gint column);
 
@@ -168,7 +188,9 @@ inline const GtkSheetCellBorder * g_sheet_model_get_cell_border
 
 inline  gboolean g_sheet_model_free_strings (const GSheetModel *sheet_model);
 
+inline gint g_sheet_model_get_column_count(const GSheetModel *sheet_model);
 
+inline gint g_sheet_model_get_row_count(const GSheetModel *sheet_model);
 
 G_END_DECLS
 

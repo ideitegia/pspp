@@ -76,9 +76,16 @@ void
 on_new1_activate                       (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
 {
+  GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
+  GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
+ 
+  gtk_sheet_set_active_cell(GTK_SHEET(data_sheet), -1, -1);
+
+  gtk_sheet_set_active_cell(GTK_SHEET(var_sheet), 0, 0);
+
   psppire_dict_clear(the_dictionary);
   psppire_case_array_clear(the_cases);
-
+  
   psppire_set_window_title(untitled);
 
   if (psppire_handle)
@@ -86,12 +93,93 @@ on_new1_activate                       (GtkMenuItem     *menuitem,
   psppire_handle = 0 ;
 }
 
+
 static gboolean
 populate_case_from_reader(struct ccase *c, gpointer aux)
 {
   struct sfm_reader *reader = aux;
 
   return sfm_read_case(reader, c);
+}
+
+
+/* Load a system file.
+   Return TRUE if successfull
+*/
+gboolean
+load_system_file(const gchar *file_name)
+{
+  int ni ;
+  gint case_num;
+
+  PsppireVarStore *var_store ;
+  PsppireDataStore *data_store ;
+  struct dictionary *new_dict;
+  struct sfm_read_info ri;
+  struct sfm_reader *reader ; 
+
+  GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
+  GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
+
+
+  g_assert(data_sheet);
+  g_assert(var_sheet);
+
+  if ( psppire_handle ) 
+    fh_free(psppire_handle);
+
+  psppire_handle = 
+    fh_create_file (handle_name, file_name, fh_default_properties());
+
+  if ( !psppire_handle ) 
+    {
+      g_warning("Cannot read handle for reading system file \"%s\"\n", 
+		file_name);
+      return FALSE;
+    }
+
+
+  reader = sfm_open_reader (psppire_handle, &new_dict, &ri);
+      
+  if ( ! reader ) 
+    return FALSE;
+
+  /* FIXME: We need a better way of updating a dictionary than this */
+  the_dictionary = psppire_dict_new_from_dict(new_dict);
+
+  var_store = 
+    PSPPIRE_VAR_STORE(gtk_sheet_get_model(GTK_SHEET(var_sheet)));
+	
+  psppire_var_store_set_dictionary(var_store, the_dictionary);
+
+
+  data_store = 
+    PSPPIRE_DATA_STORE(gtk_sheet_get_model(GTK_SHEET(data_sheet)));
+	
+  psppire_data_store_set_dictionary(data_store,
+				    the_dictionary);
+
+  psppire_case_array_clear(data_store->cases);
+
+
+  psppire_set_window_title(basename(file_name));
+
+  ni = dict_get_next_value_idx(the_dictionary->dict);
+  if ( ni == 0 ) 
+    return FALSE;
+
+  for(case_num=0;;case_num++)
+    {
+      if (!psppire_case_array_append_case(the_cases, 
+					  populate_case_from_reader, 
+					  reader))
+	break;
+    }
+
+
+  sfm_close_reader(reader);
+
+  return TRUE;
 }
 
 
@@ -129,94 +217,22 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
   gtk_file_filter_add_pattern(filter, "*");
   gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
 
-
   do {
 
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
       {
-	PsppireVarStore *var_store ;
-	PsppireDataStore *data_store ;
-	struct dictionary *new_dict;
-	struct sfm_read_info ri;
-	struct sfm_reader *reader ; 
-
-	GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
-	GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
-	gchar *file_name;
-
-	g_assert(data_sheet);
-	g_assert(var_sheet);
-
-	file_name = gtk_file_chooser_get_filename
-	  (GTK_FILE_CHOOSER (dialog));
-
-	if ( psppire_handle ) 
-	  fh_free(psppire_handle);
-
-	psppire_handle = 
-	  fh_create_file (handle_name, file_name, fh_default_properties());
-
-	if ( !psppire_handle ) 
-	  {
-	    g_warning("Cannot read handle for reading system file \"%s\"\n", 
-		      file_name);
-	    continue;
-	  }
-
-
-	reader = sfm_open_reader (psppire_handle, &new_dict, &ri);
-      
-	if ( ! reader ) 
-	  continue;
-
-	the_dictionary = psppire_dict_new_from_dict(new_dict);
-
-	var_store = 
-	  PSPPIRE_VAR_STORE(gtk_sheet_get_model(GTK_SHEET(var_sheet)));
+	gchar *file_name = 
+	  gtk_file_chooser_get_filename(GTK_FILE_CHOOSER (dialog));
 	
-	psppire_var_store_set_dictionary(var_store, the_dictionary);
+	finished =  load_system_file(file_name) ;
 
-
-	data_store = 
-	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(GTK_SHEET(data_sheet)));
-	
-
-	psppire_data_store_set_dictionary(data_store,
-					  the_dictionary);
-
-	psppire_case_array_clear(data_store->cases);
-
-
-	psppire_set_window_title(basename(file_name));
-
-	g_free (file_name);
-
-	{
-	  const int ni = dict_get_next_value_idx(the_dictionary->dict);
-	  gint case_num;
-	  if ( ni == 0 ) 
-	    goto done;
-      
-
-	  for(case_num=0;;case_num++)
-	    {
-	      if (!psppire_case_array_append_case(the_cases, 
-						  populate_case_from_reader, 
-						  reader))
-		break;
-	    }
-	}
-
-	sfm_close_reader(reader);
-	finished = TRUE;
+	g_free(file_name);
       }
     else
-      {
-	finished = TRUE;
-      }
+      finished = TRUE;
+
   } while ( ! finished ) ;
 
- done:
   gtk_widget_destroy (dialog);
 }
 

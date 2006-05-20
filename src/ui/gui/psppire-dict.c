@@ -46,7 +46,6 @@ static GObjectClass     *parent_class = NULL;
 
 enum  {VARIABLE_CHANGED, 
        VARIABLE_INSERTED,
-       VARIABLE_DELETED, 
        VARIABLES_DELETED, 
        n_SIGNALS};
 
@@ -110,17 +109,6 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   signal[VARIABLE_INSERTED] =
     g_signal_new ("variable_inserted",
-		  G_TYPE_FROM_CLASS(class),
-		  G_SIGNAL_RUN_FIRST,
-		  0,
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__INT,
-		  G_TYPE_NONE, 
-		  1,
-		  G_TYPE_INT);
-
-  signal[VARIABLE_DELETED] =
-    g_signal_new ("variable_deleted",
 		  G_TYPE_FROM_CLASS(class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
@@ -332,7 +320,9 @@ psppire_dict_get_variable(PsppireDict *d, gint idx)
   struct PsppireVariable *var ;
   g_return_val_if_fail(d, NULL);
   g_return_val_if_fail(d->dict, NULL);
-  g_return_val_if_fail(d->variables, NULL);
+
+  if ( ! d->variables) 
+    return NULL;
   
   if (idx < 0 || idx >= psppire_dict_get_var_cnt(d))
     return NULL;

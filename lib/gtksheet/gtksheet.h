@@ -71,7 +71,6 @@ enum
 
 /* Public flags, for compatibility */
 
-#define GTK_SHEET_IS_LOCKED(sheet)       gtk_sheet_locked(sheet)
 #define GTK_SHEET_ROW_FROZEN(sheet)      !gtk_sheet_rows_resizable(sheet)
 #define GTK_SHEET_COLUMN_FROZEN(sheet)   !gtk_sheet_columns_resizable(sheet)
 #define GTK_SHEET_AUTORESIZE(sheet)      gtk_sheet_autoresize(sheet)
@@ -120,7 +119,6 @@ struct _GtkSheet{
   gboolean autoscroll;
   gboolean clip_text;
   gboolean justify_entry;
-  gboolean locked;
 
   guint freeze_count;
 
@@ -377,7 +375,7 @@ void
 gtk_sheet_set_locked			(GtkSheet *sheet, gboolean lock);
 
 gboolean
-gtk_sheet_locked			(GtkSheet *sheet);
+gtk_sheet_locked			(const GtkSheet *sheet);
 
 /* set sheet title */
 void

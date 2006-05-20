@@ -1,3 +1,15 @@
+Sat May 20 21:08:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * data-sheet.c, menu-actions.c menu-actions: Fixed data sheet so that
+   active cell is never on a deleted variable.
+
+   * psppire-data-store.c psppire-data-store.h:  Added get_var_count and
+   get_case_count functions.
+
+   * psppire-dict.c: removed VARIABLE_DELETED (singular) signal.
+
+   * psppire.c: Allowed user to specify *.sav file on command line.
+
 Mon May 15 20:01:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* menu-actions.c psppire-case-array.c psppire-case-array.h

@@ -84,7 +84,7 @@ click2column(GtkWidget *w, gint col, gpointer data)
 
 
 /* Update the data_ref_entry with the reference of the active cell */
-static gint 
+gint 
 update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
 {
 
@@ -150,6 +150,7 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 		    GTK_SIGNAL_FUNC (click2column),
 		    0);
 
+  gtk_sheet_set_active_cell(GTK_SHEET(sheet), -1, -1);
   gtk_widget_show(sheet);
 
   return sheet;

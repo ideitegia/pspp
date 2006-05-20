@@ -1,3 +1,11 @@
+Sat May 20 21:02:03 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * gsheetmodel.c gsheetmodel.h: Added columns-inserted and columns-deleted 
+    signals.  Added g_sheet_get_{row,column}_count functions.
+
+    * gtksheet.c gtksheet.h: Allowed -1 to be passed to
+    gtk_sheet_set_active_cell to indicate no active cell.
+
 Mon May 15 16:10:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * gtksheet.c: Removed code which rendered the title buttons a second 

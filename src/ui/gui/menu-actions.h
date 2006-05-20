@@ -83,7 +83,11 @@ gboolean callbacks_on_init(gpointer data) ;
 /* Switch between the VAR SHEET and the DATA SHEET */
 enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
+gboolean load_system_file(const gchar *file_name);
+
+void select_sheet(gint page);
 
 #endif
 
-void select_sheet(gint page);
+
+

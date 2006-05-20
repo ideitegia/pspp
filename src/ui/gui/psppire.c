@@ -51,7 +51,8 @@ PsppireCaseArray *the_cases = 0;
 PsppireDataStore *data_store = 0;
 
 
-static bool parse_command_line (int *argc, char ***argv);
+static bool parse_command_line (int *argc, char ***argv, 
+				gchar **filename, GError **err);
 
 
 int 
@@ -62,10 +63,16 @@ main(int argc, char *argv[])
   GtkSheet *var_sheet ; 
   GtkSheet *data_sheet ;
 
+  gchar *filename=0;
+  GError *err = 0;
+
   gtk_init(&argc, &argv);
 
-  if ( ! parse_command_line(&argc, &argv) ) 
-    return 0;
+  if ( ! parse_command_line(&argc, &argv, &filename, &err) ) 
+    {
+      g_clear_error(&err);
+      return 1;
+    }
 
 
   glade_init();
@@ -101,8 +108,10 @@ main(int argc, char *argv[])
   
   gtk_sheet_set_model(data_sheet, G_SHEET_MODEL(data_store));
 
-
   gtk_init_add(callbacks_on_init, 0);
+
+  if (filename)
+    gtk_init_add((GtkFunction)load_system_file, filename);
 
   /* start the event loop */
   gtk_main();
@@ -117,7 +126,7 @@ main(int argc, char *argv[])
    main().  Returns true if normal execution should proceed,
    false if the command-line indicates that PSPP should exit. */
 static bool
-parse_command_line (int *argc, char ***argv)
+parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
 {
   static struct option long_options[] =
     {
@@ -137,7 +146,7 @@ parse_command_line (int *argc, char ***argv)
       switch (c)
 	{
 	case 'h':
-	  g_print("Usage: psppire {|--help|--version}\n");
+	  g_printerr("Usage: psppire {|--help|--version}\n");
           return false;
 	case 'V':
 	  g_print(version);
@@ -147,6 +156,11 @@ parse_command_line (int *argc, char ***argv)
 	default:
 	  return false;
 	}
+    }
+
+  if ( optind < *argc) 
+    {
+      *filename = (*argv)[optind];
     }
 
   return true;

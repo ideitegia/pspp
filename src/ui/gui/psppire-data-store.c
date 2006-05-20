@@ -22,6 +22,7 @@
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
+#include <minmax.h>
 
 #include <gtksheet/gtksheet.h>
 #include <gtksheet/gsheetmodel.h>
@@ -60,7 +61,6 @@ static gboolean psppire_data_store_clear_datum(GSheetModel *model,
 
 #define MIN_COLUMNS 10
 
-#define max(A,B) ((A>B)?A:B)
 
 static GObjectClass *parent_class = NULL;
 
@@ -128,6 +128,24 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
 }
 
 
+
+static gint
+psppire_data_store_get_var_count (const GSheetModel *model)
+{
+  const PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
+  
+  return psppire_dict_get_var_cnt(store->dict);
+}
+
+static gint
+psppire_data_store_get_case_count (const GSheetModel *model)
+{
+  const PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
+
+  return psppire_case_array_get_n_cases(store->cases);
+}
+
+
 static void
 psppire_data_store_init (PsppireDataStore *data_store)
 {
@@ -158,6 +176,8 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_background = NULL;
   iface->get_font_desc = psppire_data_store_get_font_desc;
   iface->get_cell_border = NULL;
+  iface->get_column_count = psppire_data_store_get_var_count;
+  iface->get_row_count = psppire_data_store_get_case_count;
 }
 
 static
@@ -165,7 +185,6 @@ gboolean always_true()
 {
   return TRUE;
 }
-
 
 
 static void
@@ -215,7 +234,7 @@ changed_case_callback(GtkWidget *w, gint casenum, gpointer data)
 
 
 static void
-delete_variables_callback(GtkWidget *w, gint var_num, gint n_vars, gpointer data)
+delete_variables_callback(GObject *obj, gint var_num, gint n_vars, gpointer data)
 {
   PsppireDataStore *store ;
 
@@ -225,11 +244,13 @@ delete_variables_callback(GtkWidget *w, gint var_num, gint n_vars, gpointer data
 
   g_sheet_column_columns_deleted(G_SHEET_COLUMN(store),
 				   var_num, n_vars);
+
+  g_sheet_model_columns_deleted (G_SHEET_MODEL(store), var_num, n_vars);
 }
 
 
 static void
-insert_variable_callback(GtkWidget *w, gint var_num, gpointer data)
+insert_variable_callback(GObject *obj, gint var_num, gpointer data)
 {
   PsppireDataStore *store;
 
@@ -247,6 +268,7 @@ insert_variable_callback(GtkWidget *w, gint var_num, gpointer data)
   psppire_case_array_resize(store->cases, 
 			 dict_get_next_value_idx (store->dict->dict));
 
+  g_sheet_model_columns_inserted (G_SHEET_MODEL(store), var_num, 1);
 }
 
 
@@ -276,7 +298,6 @@ psppire_data_store_new (PsppireDict *dict, PsppireCaseArray *cases)
 
   g_signal_connect(cases, "case-changed", G_CALLBACK(changed_case_callback), 
 		   retval);
-
 
   psppire_data_store_set_dictionary(retval, dict);
 
@@ -314,7 +335,6 @@ psppire_data_store_set_dictionary(PsppireDataStore *data_store, PsppireDict *dic
   g_signal_connect(dict, "variables-deleted", 
 		   G_CALLBACK(delete_variables_callback), 
 		   data_store);
-
 
   /* The entire model has changed */
   g_sheet_model_range_changed (G_SHEET_MODEL(data_store), -1, -1, -1, -1);
@@ -450,6 +470,7 @@ psppire_data_store_set_string(GSheetModel *model,
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
 
   const struct PsppireVariable *pv = psppire_dict_get_variable(store->dict, col);
+  g_return_val_if_fail(pv, FALSE);
 
   for(r = psppire_case_array_get_n_cases(store->cases) ; r <= row ; ++r ) 
     {
@@ -550,7 +571,7 @@ geometry_get_column_count(const GSheetColumn *geom)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
-  return max(MIN_COLUMNS, psppire_dict_get_var_cnt(ds->dict));
+  return MAX(MIN_COLUMNS, psppire_dict_get_var_cnt(ds->dict));
 }
 
 /* Return the width that an  'M' character would occupy when typeset at

@@ -24,6 +24,8 @@ enum {
   RANGE_CHANGED,
   ROWS_INSERTED,
   ROWS_DELETED,
+  COLUMNS_INSERTED,
+  COLUMNS_DELETED,
   LAST_SIGNAL
 };
 
@@ -102,6 +104,29 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_TYPE_SHEET_MODEL,
 		      G_SIGNAL_RUN_LAST,
 		      G_STRUCT_OFFSET (GSheetModelIface, rows_deleted),
+		      NULL, NULL,
+		      gtkextra_VOID__INT_INT,
+		      G_TYPE_NONE, 2,
+		      G_TYPE_INT,
+		      G_TYPE_INT);
+
+      sheet_model_signals[COLUMNS_INSERTED] =
+	g_signal_new ("columns_inserted",
+		      G_TYPE_SHEET_MODEL,
+		      G_SIGNAL_RUN_LAST,
+		      G_STRUCT_OFFSET (GSheetModelIface, columns_inserted),
+		      NULL, NULL,
+		      gtkextra_VOID__INT_INT,
+		      G_TYPE_NONE, 2,
+		      G_TYPE_INT,
+		      G_TYPE_INT);
+
+
+      sheet_model_signals[COLUMNS_DELETED] =
+	g_signal_new ("columns_deleted",
+		      G_TYPE_SHEET_MODEL,
+		      G_SIGNAL_RUN_LAST,
+		      G_STRUCT_OFFSET (GSheetModelIface, columns_deleted),
 		      NULL, NULL,
 		      gtkextra_VOID__INT_INT,
 		      G_TYPE_NONE, 2,
@@ -237,6 +262,25 @@ g_sheet_model_rows_inserted (GSheetModel *sheet_model,
 }
 
 
+/**
+ * g_sheet_model_columns_inserted:
+ * @sheet_model: A #GSheetModel
+ * @column: The column before which the new columns should be inserted.
+ * @n_columns: The number of columns to insert.
+ * 
+ * Emits the "columns_inserted" signal on @sheet_model.
+ **/
+void
+g_sheet_model_columns_inserted (GSheetModel *sheet_model,
+			       gint column, gint n_columns)
+{
+  g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
+
+  g_signal_emit (sheet_model, sheet_model_signals[COLUMNS_INSERTED], 0, 
+		 column, n_columns);
+}
+
+
 
 
 /**
@@ -256,6 +300,27 @@ g_sheet_model_rows_deleted (GSheetModel *sheet_model,
   g_signal_emit (sheet_model, sheet_model_signals[ROWS_DELETED], 0, 
 		 row, n_rows);
 }
+
+
+
+/**
+ * g_sheet_model_columns_deleted:
+ * @sheet_model: A #GSheetModel
+ * @column: The first column to be deleted.
+ * @n_columns: The number of columns to delete.
+ * 
+ * Emits the "columns_deleted" signal on @sheet_model.
+ **/
+void
+g_sheet_model_columns_deleted (GSheetModel *sheet_model,
+			       gint column, gint n_columns)
+{
+  g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
+
+  g_signal_emit (sheet_model, sheet_model_signals[COLUMNS_DELETED], 0, 
+		 column, n_columns);
+}
+
 
 
 
@@ -413,3 +478,31 @@ g_sheet_model_get_cell_border (const GSheetModel *model,
 
 
 
+/**
+ * g_sheet_model_get_column_count:
+ * @model: A #GSheetModel
+ *
+ * Returns the total number of columns represented by the model
+ **/
+inline gint 
+g_sheet_model_get_column_count(const GSheetModel *model)
+{
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);
+
+  return G_SHEET_MODEL_GET_IFACE (model)->get_column_count (model);
+}
+
+/**
+ * g_sheet_model_get_row_count:
+ * @model: A #GSheetModel
+ *
+ * Returns the total number of rows represented by the model
+ **/
+inline gint 
+g_sheet_model_get_row_count(const GSheetModel *model)
+{
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);
+
+
+  return G_SHEET_MODEL_GET_IFACE (model)->get_row_count (model);
+}
