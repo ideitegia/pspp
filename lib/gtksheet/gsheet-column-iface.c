@@ -25,7 +25,7 @@
 #include <gobject/gvaluecollector.h>
 #include "gsheet-column-iface.h"
 #include "gtkextra-marshal.h"
-
+#include "gtkextra-sheet.h"
 
 enum {
   COLUMNS_CHANGED,
@@ -73,8 +73,6 @@ g_sheet_column_get_type (void)
 }
 
 
-static GtkSheetButton default_button;
-
 static void
 g_sheet_column_base_init (gpointer g_class)
 {
@@ -94,12 +92,6 @@ g_sheet_column_base_init (gpointer g_class)
 		      G_TYPE_INT,
 		      G_TYPE_INT);
 
-
-      default_button.state = GTK_STATE_NORMAL;
-      default_button.label = NULL;
-      default_button.label_visible = TRUE;
-      default_button.child = NULL;
-      default_button.justification = GTK_JUSTIFY_FILL;
 
       initialized = TRUE;
     }
@@ -159,21 +151,20 @@ g_sheet_column_get_sensitivity(const GSheetColumn *column,
 }
 
 
-inline const GtkSheetButton *
+inline GtkSheetButton *
 g_sheet_column_get_button(const GSheetColumn *column,
 			      gint col, const GtkSheet *sheet)
 {
-  static GtkSheetButton button ;
+  GtkSheetButton *button = gtk_sheet_button_new();
+
   GSheetColumnIface *iface = G_SHEET_COLUMN_GET_IFACE (column);
 
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
 
-  memcpy(&button, &default_button, sizeof (button));
-
   if ( iface->get_button_label)
-    button.label = iface->get_button_label(column, col, sheet);
+    button->label = iface->get_button_label(column, col, sheet);
 
-  return &button;
+  return button;
 }
 
 inline GtkJustification 

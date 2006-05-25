@@ -141,7 +141,7 @@ static int
 internal_cmd_print (int f)
 {
   int table = 0;                /* Print table? */
-  struct print_trns *trns;      /* malloc()'d transformation. */
+  struct print_trns *trns = NULL; /* malloc()'d transformation. */
   struct file_handle *fh = NULL;
 
   /* Fill in prt to facilitate error-handling. */
@@ -966,7 +966,7 @@ print_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
   return TRNS_CONTINUE;
 }
 
-/* Frees all the data inside print_trns T.  Does not free T. */
+/* Frees all the data inside print_trns PRT.  Does not free PRT. */
 static bool
 print_trns_free (void *prt_)
 {
@@ -996,7 +996,6 @@ print_trns_free (void *prt_)
   if (prt->writer != NULL)
     ok = dfm_close_writer (prt->writer);
   free (prt->line);
-  free (prt);
   return ok;
 }
 

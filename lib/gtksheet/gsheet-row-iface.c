@@ -154,22 +154,20 @@ g_sheet_row_get_sensitivity(const GSheetRow *row_geo,
 }
 
 
-const GtkSheetButton *
+GtkSheetButton *
 g_sheet_row_get_button(const GSheetRow *row_geo,
 			      gint row, const GtkSheet *sheet)
 {
-  static GtkSheetButton button ;
+  GtkSheetButton *button  = gtk_sheet_button_new();
 
   GSheetRowIface *iface = G_SHEET_ROW_GET_IFACE (row_geo);
 
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
-  memcpy(&button, &default_button, sizeof (button));
-
   if ( iface->get_button_label)
-    button.label = iface->get_button_label(row_geo, row, sheet);
+    button->label = iface->get_button_label(row_geo, row, sheet);
 
-  return &button;
+  return button;
 }
 
 

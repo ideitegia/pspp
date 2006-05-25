@@ -1,3 +1,7 @@
+Thu May 25 18:02:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* table.c: Removed redundant extern declaration.
+
 Sun May 14 14:03:56 2006  Ben Pfaff  <blp@gnu.org>
 
 	* output.c (outp_eject_page): Always make sure that a page is open

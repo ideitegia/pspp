@@ -1,3 +1,8 @@
+Thu May 25 18:01:17 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * psppire-var-store.c: Converted strings to utf8 and returned them on the
+   heap.
+
 Sat May 20 21:08:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * data-sheet.c, menu-actions.c menu-actions: Fixed data sheet so that

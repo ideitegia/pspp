@@ -123,9 +123,7 @@ g_sheet_uniform_row_get_visibility(const GSheetRow *geom, gint u)
 static const gchar *
 g_sheet_uniform_row_get_button_label(const GSheetRow *geom, gint u)
 {
-  static gchar *label; 
-  g_free(label);
-  label = g_strdup_printf("%d", u);
+  gchar *label = g_strdup_printf("%d", u);
 
   return label;
 }

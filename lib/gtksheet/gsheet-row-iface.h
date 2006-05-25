@@ -69,8 +69,8 @@ struct _GSheetRowIface
   GtkStateType  (*get_button_state)(const GSheetRow *geo, gint row, 
 				    const GtkSheet *);
 
-  const gchar * (*get_button_label)(const GSheetRow *geo, gint row, 
-				    const GtkSheet *);
+  gchar * (*get_button_label)(const GSheetRow *geo, gint row, 
+			      const GtkSheet *);
 
   gboolean      (*get_button_visibility)(const GSheetRow *geo, 
 					gint row, const GtkSheet *);
@@ -101,7 +101,7 @@ gboolean  g_sheet_row_get_sensitivity(const GSheetRow *grow,
 					     gint row, const GtkSheet *sheet);
 
 
-const GtkSheetButton *g_sheet_row_get_button(const GSheetRow *grow,
+GtkSheetButton *g_sheet_row_get_button(const GSheetRow *grow,
 					     gint row, const GtkSheet *sheet);
 
 

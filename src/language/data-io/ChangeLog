@@ -1,3 +1,9 @@
+Thu May 25 18:26:26 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* print.c (print_trns_free): Made the code agree with the comment, by
+	not freeing PRT.  Has the side effect that the command no longer
+	crashes on invalid syntax.
+
 Tue May  9 20:55:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	* get.c (cmd_match_files): Fix memory leak replacing default_dict.

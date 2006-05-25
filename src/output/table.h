@@ -102,8 +102,6 @@ struct tab_table
     int col_ofs, row_ofs;	/* X and Y offsets. */
   };
 
-extern int tab_hit;
-
 /* Number of rows in TABLE. */
 #define tab_nr(TABLE) ((TABLE)->nr)
 

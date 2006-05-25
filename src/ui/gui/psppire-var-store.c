@@ -49,7 +49,7 @@ static void         psppire_var_store_class_init      (PsppireVarStoreClass *cla
 static void         psppire_var_store_sheet_model_init (GSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
 
-static const gchar *psppire_var_store_get_string(GSheetModel *sheet_model, gint row, gint column);
+static gchar *psppire_var_store_get_string(GSheetModel *sheet_model, gint row, gint column);
 
 static gboolean  psppire_var_store_clear(GSheetModel *model,  gint row, gint col);
 
@@ -58,7 +58,7 @@ static gboolean psppire_var_store_set_string(GSheetModel *model,
 					  const gchar *text, gint row, gint column);
 
 
-static const gchar *text_for_column(const struct PsppireVariable *pv, gint c);
+static gchar *text_for_column(const struct PsppireVariable *pv, gint c, GError **err);
 
 
 static GObjectClass *parent_class = NULL;
@@ -297,11 +297,9 @@ psppire_var_store_finalize (GObject *object)
   (* parent_class->finalize) (object);
 }
 
-static const gchar *
+static gchar *
 psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
 {
-  const gchar *s ;
-
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
   struct PsppireVariable *pv;
@@ -311,9 +309,7 @@ psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
   
   pv = psppire_dict_get_variable (store->dict, row);
   
-  s = text_for_column(pv, column);
-
-  return pspp_locale_to_utf8(s, -1, 0);
+  return text_for_column(pv, column, 0);
 }
 
 
@@ -416,13 +412,9 @@ psppire_var_store_set_string(GSheetModel *model,
 }
 
 
-#define MAX_CELL_TEXT_LEN 255
-
-static const gchar *
-text_for_column(const struct PsppireVariable *pv, gint c)
+static  gchar *
+text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 {
-  static gchar buf[MAX_CELL_TEXT_LEN];
-
   static gchar none[]=_("None");
 
   static const gchar *const type_label[] = 
@@ -444,23 +436,23 @@ text_for_column(const struct PsppireVariable *pv, gint c)
   switch (c)
     {
     case COL_NAME:
-      return psppire_variable_get_name(pv);
+      return pspp_locale_to_utf8(psppire_variable_get_name(pv), -1, err);
       break;
     case COL_TYPE:
       {
 	switch ( write_spec->type ) 
 	  {
 	  case FMT_F:
-	    return type_label[VT_NUMERIC];
+	    return g_locale_to_utf8(type_label[VT_NUMERIC], -1, 0, 0, err);
 	    break;
 	  case FMT_COMMA:
-	    return type_label[VT_COMMA];
+	    return g_locale_to_utf8(type_label[VT_COMMA], -1, 0, 0, err);
 	    break;
 	  case FMT_DOT:
-	    return type_label[VT_DOT];
+	    return g_locale_to_utf8(type_label[VT_DOT], -1, 0, 0, err);
 	    break;
 	  case FMT_E:
-	    return type_label[VT_SCIENTIFIC];
+	    return g_locale_to_utf8(type_label[VT_SCIENTIFIC], -1, 0, 0, err);
 	    break;
 	  case FMT_DATE:	
 	  case FMT_EDATE:	
@@ -475,20 +467,20 @@ text_for_column(const struct PsppireVariable *pv, gint c)
 	  case FMT_DTIME:	
 	  case FMT_WKDAY:	
 	  case FMT_MONTH:	
-	    return type_label[VT_DATE];
+	    return g_locale_to_utf8(type_label[VT_DATE], -1, 0, 0, err);
 	    break;
 	  case FMT_DOLLAR:
-	    return type_label[VT_DOLLAR];
+	    return g_locale_to_utf8(type_label[VT_DOLLAR], -1, 0, 0, err);
 	    break;
 	  case FMT_CCA:
 	  case FMT_CCB:
 	  case FMT_CCC:
 	  case FMT_CCD:
 	  case FMT_CCE:
-	    return type_label[VT_CUSTOM];
+	    return g_locale_to_utf8(type_label[VT_CUSTOM], -1, 0, 0, err);
 	    break;
 	  case FMT_A:
-	    return type_label[VT_STRING];
+	    return g_locale_to_utf8(type_label[VT_STRING], -1, 0, 0, err);
 	    break;
 	  default:
 	    g_warning("Unknown format: \"%s\"\n", 
@@ -499,93 +491,109 @@ text_for_column(const struct PsppireVariable *pv, gint c)
       break;
     case COL_WIDTH:
       {
-	g_snprintf(buf, MAX_CELL_TEXT_LEN, "%d", write_spec->w);
-	return buf;
+	gchar *s;
+	GString *gstr = g_string_sized_new(10);
+	g_string_printf(gstr, "%d", write_spec->w);
+	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
+	g_string_free(gstr, TRUE);
+	return s;
       }
       break;
     case COL_DECIMALS:
       {
-	g_snprintf(buf, MAX_CELL_TEXT_LEN, "%d", write_spec->d);
-	return buf;
+	gchar *s;
+	GString *gstr = g_string_sized_new(10);
+	g_string_printf(gstr, "%d", write_spec->d);
+	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
+	g_string_free(gstr, TRUE);
+	return s;
       }
       break;
     case COL_COLUMNS:
       {
-	g_snprintf(buf, MAX_CELL_TEXT_LEN, 
-		   "%d", psppire_variable_get_columns(pv));
-	return buf;
+	gchar *s;
+	GString *gstr = g_string_sized_new(10);
+	g_string_printf(gstr, "%d", psppire_variable_get_columns(pv));
+	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
+	g_string_free(gstr, TRUE);
+	return s;
       }
       break;
     case COL_LABEL:
-      return psppire_variable_get_label(pv);
+      return g_locale_to_utf8(psppire_variable_get_label(pv), -1, 0, 0, err);
       break;
+
     case COL_MISSING:
       {
-      const struct missing_values *miss = psppire_variable_get_missing(pv);
-      if ( mv_is_empty(miss)) 
-	return none;
-      else
-	{
-	  if ( ! mv_has_range (miss))
-	    {
-	      const int n = mv_n_values(miss);
-	      gchar *mv[4] = {0,0,0,0};
-	      gint i;
-	      for(i = 0 ; i < n; ++i ) 
-		{
-		  union value v;
-		  mv_peek_value(miss, &v, i);
-		  mv[i] = value_to_text(v, *write_spec);
-		}
-	      g_stpcpy(buf, "");
-	      for(i = 0 ; i < n; ++i ) 
-		{
-		  if ( i > 0) 
-		    g_strlcat(buf, ", ", MAX_CELL_TEXT_LEN);
-		  g_strlcat(buf, mv[i], MAX_CELL_TEXT_LEN);
-		  g_free(mv[i]);
-		}
-	    }
-	  else
-	    {
-	      gchar *l, *h;
-	      union value low, high;
-	      mv_peek_range(miss, &low.f, &high.f);
+	gchar *s;
+	const struct missing_values *miss = psppire_variable_get_missing(pv);
+	if ( mv_is_empty(miss)) 
+	  return g_locale_to_utf8(none, -1, 0, 0, err);
+	else
+	  {
+	    if ( ! mv_has_range (miss))
+	      {
+		GString *gstr = g_string_sized_new(10);
+		const int n = mv_n_values(miss);
+		gchar *mv[4] = {0,0,0,0};
+		gint i;
+		for(i = 0 ; i < n; ++i ) 
+		  {
+		    union value v;
+		    mv_peek_value(miss, &v, i);
+		    mv[i] = value_to_text(v, *write_spec);
+		    if ( i > 0 ) 
+		      g_string_append(gstr, ", ");
+		    g_string_append(gstr, mv[i]);
+		    g_free(mv[i]);
+		  }
+		s = pspp_locale_to_utf8(gstr->str, gstr->len, err);
+		g_string_free(gstr, TRUE);
+	      }
+	    else
+	      {
+		GString *gstr = g_string_sized_new(10);
+		gchar *l, *h;
+		union value low, high;
+		mv_peek_range(miss, &low.f, &high.f);
 		  
-	      l = value_to_text(low, *write_spec);
-	      h = value_to_text(high, *write_spec);
+		l = value_to_text(low, *write_spec);
+		h = value_to_text(high, *write_spec);
 
-	      g_snprintf(buf, MAX_CELL_TEXT_LEN, "%s - %s", l, h);
-	      g_free(l);
-	      g_free(h);
+		g_string_printf(gstr, "%s - %s", l, h);
+		g_free(l);
+		g_free(h);
 
-	      if ( mv_has_value(miss)) 
-		{
-		  gchar buf2[MAX_CELL_TEXT_LEN];
-		  gchar *s = 0;
-		  union value v;
-		  mv_peek_value(miss, &v, 0);
+		if ( mv_has_value(miss)) 
+		  {
+		    gchar *ss = 0;
+		    union value v;
+		    mv_peek_value(miss, &v, 0);
 
-		  s = value_to_text(v, *write_spec);
+		    ss = value_to_text(v, *write_spec);
 
-		  g_snprintf(buf2, MAX_CELL_TEXT_LEN, "%s, %s", buf, s);
-		  free(s);
-		  g_stpcpy(buf, buf2);
-		}
-	    }
+		    g_string_append(gstr, ", ");
+		    g_string_append(gstr, ss);
+		    free(ss);
+		  }
+		s = pspp_locale_to_utf8(gstr->str, gstr->len, err);
+		g_string_free(gstr, TRUE);
+	      }
 
-	  return buf;
-	}
+	    return s;
+	  }
       }
       break;
     case COL_VALUES:
       {
 	const struct val_labs *vls = psppire_variable_get_value_labels(pv);
-	if ( ! vls || 0 == val_labs_count(vls)) 
-	  return none;
+	if ( ! vls || 0 == val_labs_count(vls) ) 
+	  return g_locale_to_utf8(none, -1, 0, 0, err);
 	else
 	  {
-	    struct val_labs_iterator *ip=0;
+	    gchar *ss;
+	    GString *gstr = g_string_sized_new(10);
+	    struct val_labs_iterator *ip = 0;
 	    struct val_lab *vl = val_labs_first_sorted (vls, &ip);
 
 	    g_assert(vl);
@@ -593,22 +601,27 @@ text_for_column(const struct PsppireVariable *pv, gint c)
 	    {
 	      gchar *const vstr = value_to_text(vl->value, *write_spec);
 
-	      g_snprintf(buf, MAX_CELL_TEXT_LEN, "{%s,\"%s\"}_", vstr, vl->label);
+	      g_string_printf(gstr, "{%s,\"%s\"}_", vstr, vl->label);
 	      g_free(vstr);
 	    }
 
 	    val_labs_done(&ip);
-
-	    return buf;
+	    
+	    ss = pspp_locale_to_utf8(gstr->str, gstr->len, err);
+	    g_string_free(gstr, TRUE);
+	    return ss;
 	  }
       }
       break;
     case COL_ALIGN:
-      return alignments[psppire_variable_get_alignment(pv)];
+      return g_locale_to_utf8(alignments[psppire_variable_get_alignment(pv)], 
+					 -1, -0, 0, err);
       break;
     case COL_MEASURE:
-      return measures[psppire_variable_get_measure(pv)];
+      return g_locale_to_utf8(measures[psppire_variable_get_measure(pv)], 
+					 -1, -0, 0, err);
       break;
+
     }
   return 0;
 }
@@ -633,6 +646,7 @@ psppire_var_store_set_font(PsppireVarStore *store, PangoFontDescription *fd)
 
   g_sheet_model_range_changed (G_SHEET_MODEL(store), -1, -1, -1, -1);
 }
+
 
 
 

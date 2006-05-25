@@ -128,12 +128,12 @@ g_sheet_hetero_column_get_visibility(const GSheetColumn *geom, gint u)
 
 
 
-static const gchar *
+static gchar *
 g_sheet_hetero_column_get_button_label(const GSheetColumn *geom, gint u)
 {
   GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
 
-  return hg->col[u].button.label;
+  return g_locale_to_utf8(hg->col[u].button.label, -1, 0, 0, 0);
 }
 
 

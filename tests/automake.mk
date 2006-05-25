@@ -91,6 +91,7 @@ TESTS = \
 	tests/bugs/computebug.sh \
 	tests/bugs/compute-lv.sh \
 	tests/bugs/temp-freq.sh \
+	tests/bugs/print-crash.sh \
 	tests/xforms/casefile.sh \
 	tests/stats/descript-basic.sh \
 	tests/stats/descript-missing.sh \
