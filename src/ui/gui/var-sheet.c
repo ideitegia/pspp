@@ -22,6 +22,11 @@
 /* This module creates the Variable Sheet used for inputing the
    variables in the  dictonary */
 
+#include <config.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 #include <data/value-labels.h>
 
 #include <glade/glade.h>
@@ -31,8 +36,6 @@
 #include <string.h>
 
 #include <data/value.h>
-
-#include <minmax.h>
 
 #include <gtksheet/gtksheet.h>
 #include <gtksheet/gsheet-hetero-column.h>
@@ -50,8 +53,6 @@
 #include "val-labs-dialog.h"
 #include "missing-val-dialog.h"
 
-#define _(A) A
-#define N_(A) A
 
 
 static const gint n_initial_rows = 40;
@@ -66,16 +67,16 @@ struct column_parameters
 };
 
 static const struct column_parameters column_def[] = {
-  {N_("Name"),    80},
-  {N_("Type"),    100},
-  {N_("Width"),   57}, 
-  {N_("Decimals"),91}, 
-  {N_("Label"),   95}, 
-  {N_("Values"),  103},
-  {N_("Missing"), 95}, 
-  {N_("Columns"), 80}, 
-  {N_("Align"),   69}, 
-  {N_("Measure"), 99}, 
+  { N_("Name"),    80},
+  { N_("Type"),    100},
+  { N_("Width"),   57}, 
+  { N_("Decimals"),91}, 
+  { N_("Label"),   95}, 
+  { N_("Values"),  103},
+  { N_("Missing"), 95}, 
+  { N_("Columns"), 80}, 
+  { N_("Align"),   69}, 
+  { N_("Measure"), 99}, 
 };
 
 
@@ -98,16 +99,16 @@ click2row(GtkWidget *w, gint row, gpointer data)
 
 
 const gchar *alignments[]={
-  _("Left"),
-  _("Right"),
-  _("Centre"),
+  N_("Left"),
+  N_("Right"),
+  N_("Centre"),
   0
 };
 
 const gchar *measures[]={
-  _("Nominal"),
-  _("Ordinal"),
-  _("Scale"),
+  N_("Nominal"),
+  N_("Ordinal"),
+  N_("Scale"),
   0
 };
 
@@ -126,7 +127,7 @@ create_label_list(const gchar **labels)
     {
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-			  0, s,
+			  0, gettext(s),
 			  -1);
     }
 	
@@ -447,7 +448,7 @@ psppire_variable_sheet_create (gchar *widget_name,
   for (i = 0 ; i < n_COLS ; ++i ) 
     {
       g_sheet_hetero_column_set_button_label(G_SHEET_HETERO_COLUMN(geo), i, 
-					       column_def[i].label);
+					       gettext(column_def[i].label));
 
       g_sheet_hetero_column_set_width(G_SHEET_HETERO_COLUMN(geo), i, 
 					       column_def[i].width);

@@ -40,8 +40,6 @@
 #include "menu-actions.h"
 #include "data-sheet.h"
 
-#define _(A) A
-#define N_(A) A
 
 
 extern GladeXML *xml;

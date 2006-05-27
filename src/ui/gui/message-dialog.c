@@ -24,6 +24,10 @@
 #include <stdarg.h>
 
 #include <config.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 #include <libpspp/message.h>
 #include "message-dialog.h"
 #include "progname.h"
@@ -37,7 +41,6 @@
 
 extern GladeXML *xml;
 
-#define _(A) A
 
 static void handle_msg(const struct msg *);
 static void enqueue_msg(const struct msg *m);

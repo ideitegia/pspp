@@ -1,21 +1,22 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Free Software Foundation, Inc.
+# German translations for PSPP
+# Copyright (C) 2006 Free Software Foundation, Inc.
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# John Darrington <john@darrington.wattle.id.au>, 2006.
+# DISCLAIMER: I am not a native speaker of German.  Many of the translations here may
+# be ganz komisch oder sogar falsch.  This file exists primarily to test the 
+# internationalisation of PSPP
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2006-05-26 13:30+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2006-05-26 10:49+0800\n"
+"Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
+"Language-Team: German <pspp-dev@gnu.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: src/data/any-reader.c:74
 #, c-format
@@ -391,13 +392,13 @@ msgstr ""
 #: src/data/sys-file-reader.c:1255 src/data/sys-file-reader.c:1264
 #: src/ui/gui/psppire-var-store.c:432 src/ui/gui/psppire.glade:764
 msgid "String"
-msgstr ""
+msgstr "Zeichenkette"
 
 #: src/data/format.c:197 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:1255 src/data/sys-file-reader.c:1264
 #: src/ui/gui/psppire-var-store.c:425 src/ui/gui/psppire.glade:625
 msgid "Numeric"
-msgstr ""
+msgstr "Nummer"
 
 #: src/data/format.c:198 src/data/sys-file-reader.c:1257
 #: src/data/sys-file-reader.c:1402 src/data/sys-file-reader.c:1403
@@ -405,7 +406,7 @@ msgstr ""
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/xforms/recode.c:476 src/language/xforms/recode.c:477
 msgid "numeric"
-msgstr ""
+msgstr "numerisch"
 
 #: src/data/format.c:198 src/data/sys-file-reader.c:1257
 #: src/data/sys-file-reader.c:1402 src/data/sys-file-reader.c:1403
@@ -414,7 +415,7 @@ msgstr ""
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/xforms/recode.c:476 src/language/xforms/recode.c:477
 msgid "string"
-msgstr ""
+msgstr "kette"
 
 #: src/data/format.c:217
 #, c-format
@@ -438,7 +439,7 @@ msgstr ""
 
 #: src/data/por-file-reader.c:129
 msgid "unexpected end of file"
-msgstr ""
+msgstr "plotzlich ist der Datei beendet"
 
 #: src/data/por-file-reader.c:188
 #, c-format
@@ -946,7 +947,7 @@ msgstr ""
 
 #: src/data/variable.c:193
 msgid "Variable name cannot be empty string."
-msgstr ""
+msgstr "Ein Variablename darf nicht eines leeres Kette sein."
 
 #: src/data/variable.c:199
 #, c-format
@@ -1220,7 +1221,7 @@ msgstr ""
 #: src/language/data-io/data-list.c:768 src/language/data-io/print.c:804
 #: src/ui/gui/var-sheet.c:77
 msgid "Columns"
-msgstr ""
+msgstr "Spalten"
 
 #: src/language/data-io/data-list.c:769 src/language/data-io/data-list.c:882
 #: src/language/data-io/print.c:805
@@ -1932,23 +1933,23 @@ msgstr ""
 #: src/language/dictionary/sys-file-info.c:384
 #: src/language/dictionary/sys-file-info.c:523 src/ui/gui/var-sheet.c:74
 msgid "Label"
-msgstr ""
+msgstr "Kennsatz"
 
 #: src/language/dictionary/sys-file-info.c:104
 msgid "File:"
-msgstr ""
+msgstr "Datei:"
 
 #: src/language/dictionary/sys-file-info.c:106
 msgid "Label:"
-msgstr ""
+msgstr "Kennsatz:"
 
 #: src/language/dictionary/sys-file-info.c:110
 msgid "No label."
-msgstr ""
+msgstr "Kein Kennsatz."
 
 #: src/language/dictionary/sys-file-info.c:113
 msgid "Created:"
-msgstr ""
+msgstr "Gemacht:"
 
 #: src/language/dictionary/sys-file-info.c:116
 msgid "Endian:"
@@ -2649,7 +2650,7 @@ msgstr ""
 #: src/language/stats/frequencies.q:1215 src/language/stats/frequencies.q:1521
 #: src/ui/gui/var-sheet.c:76
 msgid "Missing"
-msgstr ""
+msgstr "Löse"
 
 #: src/language/stats/crosstabs.q:819 src/language/stats/crosstabs.q:1022
 #: src/language/stats/crosstabs.q:1742 src/language/stats/examine.q:870
@@ -2669,7 +2670,7 @@ msgstr ""
 #: src/language/stats/frequencies.q:1151 src/language/stats/frequencies.q:1152
 #: src/language/stats/frequencies.q:1153
 msgid "Percent"
-msgstr ""
+msgstr "Prozent"
 
 #: src/language/stats/crosstabs.q:1072
 msgid "count"
@@ -2777,7 +2778,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1181 src/ui/gui/var-sheet.c:71
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: src/language/stats/crosstabs.q:1937
 msgid "Pearson Chi-Square"
@@ -4256,15 +4257,15 @@ msgstr ""
 
 #: src/ui/gui/menu-actions.c:60
 msgid "Untitled"
-msgstr ""
+msgstr "Unbetitlet"
 
 #: src/ui/gui/menu-actions.c:62
 msgid "PSPP Data Editor"
-msgstr ""
+msgstr "PSPP Dateiaufbereiter"
 
 #: src/ui/gui/menu-actions.c:198 src/ui/gui/psppire.glade:292
 msgid "Open"
-msgstr ""
+msgstr "Öffen"
 
 #: src/ui/gui/menu-actions.c:206
 msgid "System Files (*.sav)"
@@ -4276,7 +4277,7 @@ msgstr ""
 
 #: src/ui/gui/menu-actions.c:218
 msgid "All Files"
-msgstr ""
+msgstr "Alle Datei"
 
 #: src/ui/gui/menu-actions.c:250
 msgid "Save Data As"
@@ -4288,23 +4289,23 @@ msgstr ""
 
 #: src/ui/gui/message-dialog.c:126
 msgid "Script Error"
-msgstr ""
+msgstr "Skript Fehler"
 
 #: src/ui/gui/message-dialog.c:130
 msgid "Data File Error"
-msgstr ""
+msgstr "Datei Fehler"
 
 #: src/ui/gui/message-dialog.c:135
 msgid "PSPP Error"
-msgstr ""
+msgstr "PSPP Fehler"
 
 #: src/ui/gui/missing-val-dialog.c:118 src/ui/gui/missing-val-dialog.c:163
 msgid "Incorrect value for variable type"
-msgstr ""
+msgstr "Unpassend Wert für Variable"
 
 #: src/ui/gui/missing-val-dialog.c:139 src/ui/gui/missing-val-dialog.c:146
 msgid "Incorrect range specification"
-msgstr ""
+msgstr "Falshe Spannweitebeschreibung"
 
 #: src/ui/gui/psppire-data-store.c:666
 msgid "var"
@@ -4312,67 +4313,67 @@ msgstr ""
 
 #: src/ui/gui/psppire-var-store.c:421
 msgid "None"
-msgstr ""
+msgstr "Keine"
 
 #: src/ui/gui/psppire-var-store.c:426 src/ui/gui/psppire.glade:644
 msgid "Comma"
-msgstr ""
+msgstr "Komma"
 
 #: src/ui/gui/psppire-var-store.c:427 src/ui/gui/psppire.glade:664
 msgid "Dot"
-msgstr ""
+msgstr "Punkt"
 
 #: src/ui/gui/psppire-var-store.c:428
 msgid "Scientific"
-msgstr ""
+msgstr "Wissenschäflich"
 
 #: src/ui/gui/psppire-var-store.c:429 src/ui/gui/psppire.glade:704
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: src/ui/gui/psppire-var-store.c:430 src/ui/gui/psppire.glade:724
 msgid "Dollar"
-msgstr ""
+msgstr "Euro"
 
 #: src/ui/gui/psppire-var-store.c:431
 msgid "Custom"
-msgstr ""
+msgstr "Spezial"
 
 #: src/ui/gui/var-sheet.c:70
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: src/ui/gui/var-sheet.c:72
 msgid "Width"
-msgstr ""
+msgstr "Große"
 
 #: src/ui/gui/var-sheet.c:73
 msgid "Decimals"
-msgstr ""
+msgstr "Dezemalen"
 
 #: src/ui/gui/var-sheet.c:75
 msgid "Values"
-msgstr ""
+msgstr "Werten"
 
 #: src/ui/gui/var-sheet.c:78
 msgid "Align"
-msgstr ""
+msgstr "Einstellung"
 
 #: src/ui/gui/var-sheet.c:79
 msgid "Measure"
-msgstr ""
+msgstr "Messe"
 
 #: src/ui/gui/var-sheet.c:102
 msgid "Left"
-msgstr ""
+msgstr "Links"
 
 #: src/ui/gui/var-sheet.c:103
 msgid "Right"
-msgstr ""
+msgstr "Rechts"
 
 #: src/ui/gui/var-sheet.c:104
 msgid "Centre"
-msgstr ""
+msgstr "Mittel"
 
 #: src/ui/gui/var-sheet.c:109
 msgid "Nominal"
@@ -4429,7 +4430,7 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:226
 msgid "Data"
-msgstr ""
+msgstr "Datum"
 
 #: src/ui/gui/psppire.glade:235
 msgid "Variables"
@@ -4449,11 +4450,11 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:328
 msgid "Print"
-msgstr ""
+msgstr "Prozent"
 
 #: src/ui/gui/psppire.glade:474
 msgid "Data View"
-msgstr ""
+msgstr "Datum"
 
 #: src/ui/gui/psppire.glade:522
 msgid "Variable View"
@@ -4469,7 +4470,7 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:568
 msgid "This is pre-alpha software.  It probably will not work."
-msgstr ""
+msgstr "Diese Software ist vor-Alpha.  Wahrscheinlich Funktioniert es nicht."
 
 #: src/ui/gui/psppire.glade:569
 msgid ""
@@ -4514,16 +4515,18 @@ msgid "negative"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:943
+#, fuzzy
 msgid "Sample"
-msgstr ""
+msgstr "Name"
 
 #: src/ui/gui/psppire.glade:1021
 msgid "Decimal Places:"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:1098
+#, fuzzy
 msgid "Width:"
-msgstr ""
+msgstr "Große:"
 
 #: src/ui/gui/psppire.glade:1316
 msgid "Value:"
@@ -4534,8 +4537,9 @@ msgid "Value Label:"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:1560
+#, fuzzy
 msgid "Missing Values"
-msgstr ""
+msgstr "Löse"
 
 #: src/ui/gui/psppire.glade:1645
 msgid "_No missing values"

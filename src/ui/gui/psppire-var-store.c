@@ -22,6 +22,11 @@
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
 
 #include <gobject/gvaluecollector.h>
 
@@ -40,8 +45,6 @@
 #include "missing-val-dialog.h"
 #include <data/value-labels.h>
 
-#define _(A) A
-#define N_(A) A
 
 
 static void         psppire_var_store_init            (PsppireVarStore      *var_store);
@@ -415,18 +418,18 @@ psppire_var_store_set_string(GSheetModel *model,
 static  gchar *
 text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 {
-  static gchar none[]=_("None");
+  static gchar none[] = N_("None");
 
   static const gchar *const type_label[] = 
     {
-      _("Numeric"),
-      _("Comma"),
-      _("Dot"),
-      _("Scientific"),
-      _("Date"),
-      _("Dollar"),
-      _("Custom"),
-      _("String")
+      N_("Numeric"),
+      N_("Comma"),
+      N_("Dot"),
+      N_("Scientific"),
+      N_("Date"),
+      N_("Dollar"),
+      N_("Custom"),
+      N_("String")
     };
   enum {VT_NUMERIC, VT_COMMA, VT_DOT, VT_SCIENTIFIC, VT_DATE, VT_DOLLAR, 
 	VT_CUSTOM, VT_STRING};
@@ -443,16 +446,16 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 	switch ( write_spec->type ) 
 	  {
 	  case FMT_F:
-	    return g_locale_to_utf8(type_label[VT_NUMERIC], -1, 0, 0, err);
+	    return g_locale_to_utf8(gettext(type_label[VT_NUMERIC]), -1, 0, 0, err);
 	    break;
 	  case FMT_COMMA:
-	    return g_locale_to_utf8(type_label[VT_COMMA], -1, 0, 0, err);
+	    return g_locale_to_utf8(gettext(type_label[VT_COMMA]), -1, 0, 0, err);
 	    break;
 	  case FMT_DOT:
-	    return g_locale_to_utf8(type_label[VT_DOT], -1, 0, 0, err);
+	    return g_locale_to_utf8(gettext(type_label[VT_DOT]), -1, 0, 0, err);
 	    break;
 	  case FMT_E:
-	    return g_locale_to_utf8(type_label[VT_SCIENTIFIC], -1, 0, 0, err);
+	    return g_locale_to_utf8(gettext(type_label[VT_SCIENTIFIC]), -1, 0, 0, err);
 	    break;
 	  case FMT_DATE:	
 	  case FMT_EDATE:	
@@ -477,10 +480,10 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 	  case FMT_CCC:
 	  case FMT_CCD:
 	  case FMT_CCE:
-	    return g_locale_to_utf8(type_label[VT_CUSTOM], -1, 0, 0, err);
+	    return g_locale_to_utf8(gettext(type_label[VT_CUSTOM]), -1, 0, 0, err);
 	    break;
 	  case FMT_A:
-	    return g_locale_to_utf8(type_label[VT_STRING], -1, 0, 0, err);
+	    return g_locale_to_utf8(gettext(type_label[VT_STRING]), -1, 0, 0, err);
 	    break;
 	  default:
 	    g_warning("Unknown format: \"%s\"\n", 
@@ -520,7 +523,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       }
       break;
     case COL_LABEL:
-      return g_locale_to_utf8(psppire_variable_get_label(pv), -1, 0, 0, err);
+      return pspp_locale_to_utf8(psppire_variable_get_label(pv), -1, err);
       break;
 
     case COL_MISSING:
@@ -528,7 +531,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 	gchar *s;
 	const struct missing_values *miss = psppire_variable_get_missing(pv);
 	if ( mv_is_empty(miss)) 
-	  return g_locale_to_utf8(none, -1, 0, 0, err);
+	  return g_locale_to_utf8(gettext(none), -1, 0, 0, err);
 	else
 	  {
 	    if ( ! mv_has_range (miss))
@@ -588,7 +591,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       {
 	const struct val_labs *vls = psppire_variable_get_value_labels(pv);
 	if ( ! vls || 0 == val_labs_count(vls) ) 
-	  return g_locale_to_utf8(none, -1, 0, 0, err);
+	  return g_locale_to_utf8(gettext(none), -1, 0, 0, err);
 	else
 	  {
 	    gchar *ss;
@@ -614,11 +617,11 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       }
       break;
     case COL_ALIGN:
-      return g_locale_to_utf8(alignments[psppire_variable_get_alignment(pv)], 
+      return g_locale_to_utf8(gettext(alignments[psppire_variable_get_alignment(pv)]), 
 					 -1, -0, 0, err);
       break;
     case COL_MEASURE:
-      return g_locale_to_utf8(measures[psppire_variable_get_measure(pv)], 
+      return g_locale_to_utf8(gettext(measures[psppire_variable_get_measure(pv)]), 
 					 -1, -0, 0, err);
       break;
 

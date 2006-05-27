@@ -58,11 +58,15 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/. 
  */
 
+#include <config.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+
+
 #include <gtk/gtksignal.h>
 #include <gtk/gtkentry.h>
 #include "customentry.h"
 
-#define P_(A) A
 
 static void psppire_custom_entry_class_init          (PsppireCustomEntryClass *klass);
 static void psppire_custom_entry_init                (PsppireCustomEntry      *ce);
@@ -331,7 +335,7 @@ psppire_custom_entry_class_init (PsppireCustomEntryClass *klass)
     (widget_class,
      g_param_spec_enum ("shadow_type", 
 			"Shadow Type", 
-			P_("Style of bevel around the custom entry button"),
+			_("Style of bevel around the custom entry button"),
 			GTK_TYPE_SHADOW_TYPE,
 			GTK_SHADOW_ETCHED_IN,
 			G_PARAM_READABLE),

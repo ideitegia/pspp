@@ -21,6 +21,12 @@
 /*  This module describes the behaviour of the Missing Values dialog box,
     used for input of the missing values in the variable sheet */
 
+#include <config.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
 #include "helper.h"
 #include "missing-val-dialog.h"
 #include <data/missing-values.h>
@@ -33,7 +39,6 @@
 
 #include <string.h>
 
-#define _(A) A
 
 /* A simple (sub) dialog box for displaying user input errors */
 static void

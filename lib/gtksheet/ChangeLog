@@ -1,3 +1,8 @@
+Sat May 27 16:29:36 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * gtksheet.c: Removed call to gtk_entry_set_text, which caused warnings 
+	and was unnecessary.
+
 Thu May 25 17:58:51 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * gsheet-column-iface.c gsheet-column-iface.h gsheet-hetero-column.c

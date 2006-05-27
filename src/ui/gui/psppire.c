@@ -24,6 +24,8 @@
  */
 
 #include <assert.h>
+#include <libintl.h>
+
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
 #include <getopt.h>
@@ -54,6 +56,19 @@ PsppireDataStore *data_store = 0;
 static bool parse_command_line (int *argc, char ***argv, 
 				gchar **filename, GError **err);
 
+static void
+i18n_init (void) 
+{
+#if ENABLE_NLS
+#if HAVE_LC_MESSAGES
+  setlocale (LC_MESSAGES, "");
+#endif
+  setlocale (LC_MONETARY, "");
+  bindtextdomain (PACKAGE, locale_dir);
+  textdomain (PACKAGE);
+#endif /* ENABLE_NLS */
+}
+
 
 int 
 main(int argc, char *argv[]) 
@@ -76,6 +91,8 @@ main(int argc, char *argv[])
 
 
   glade_init();
+
+  i18n_init();
 
   message_dialog_init();
 

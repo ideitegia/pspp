@@ -22,7 +22,11 @@
 #include <config.h>
 #include <string.h>
 #include <stdlib.h>
-#include <minmax.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
 
 #include <gtksheet/gtksheet.h>
 #include <gtksheet/gsheetmodel.h>
@@ -40,8 +44,6 @@
 #include <data/file-handle-def.h>
 #include <data/sys-file-writer.h>
 
-#define _(A) A
-#define N_(A) A
 
 
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
@@ -661,7 +663,7 @@ geometry_get_justification(const GSheetColumn *geom, gint unit)
 }
 
 
-static const gchar null_var_name[]=_("var");
+static const gchar null_var_name[]=N_("var");
  
 static const gchar *
 geometry_get_button_label(const GSheetColumn *geom, gint unit)

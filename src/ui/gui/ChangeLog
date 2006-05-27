@@ -1,3 +1,9 @@
+Sat May 27 16:25:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * customentry.c data-sheet.c menu-actions.c message-dialog.c 
+     missing-val-dialog.c psppire-data-store.c psppire-var-store.c 
+     psppire.c psppire.glade var-sheet.c: Fixed internationalisation.
+
 Thu May 25 18:01:17 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * psppire-var-store.c: Converted strings to utf8 and returned them on the

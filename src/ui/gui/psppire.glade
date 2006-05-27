@@ -5,7 +5,7 @@
 
 <widget class="GtkWindow" id="data_editor">
   <property name="visible">True</property>
-  <property name="title" translatable="yes">Psppire</property>
+  <property name="title" translatable="no">Psppire</property>
   <property name="type">GTK_WINDOW_TOPLEVEL</property>
   <property name="window_position">GTK_WIN_POS_NONE</property>
   <property name="modal">False</property>
@@ -563,9 +563,9 @@
 
 <widget class="GtkAboutDialog" id="aboutdialog1">
   <property name="destroy_with_parent">False</property>
-  <property name="name" translatable="yes">PSPPire</property>
-  <property name="copyright" translatable="yes">Free Software Foundation</property>
-  <property name="comments" translatable="yes">This is pre-alpha software.  It probably won't work.</property>
+  <property name="name" translatable="no">PSPPire</property>
+  <property name="copyright" translatable="no">Free Software Foundation</property>
+  <property name="comments" translatable="yes">This is pre-alpha software.  It probably will not work.</property>
   <property name="license" translatable="yes">    This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or

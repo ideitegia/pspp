@@ -4032,10 +4032,10 @@ gtk_sheet_hide_active_cell(GtkSheet *sheet)
  gtk_sheet_get_attributes(sheet, row, col, &attributes); 
  justification=attributes.justification;
 
- if(text && strlen(text)!=0){
+ if(text && strlen(text) != 0) 
+ {
       gtk_sheet_set_cell(sheet, row, col, justification, text);
       gtk_signal_emit(GTK_OBJECT(sheet),sheet_signals[SET_CELL], row, col);
-      gtk_entry_set_text(GTK_ENTRY(sheet->sheet_entry), "");
  }
  else
  {

@@ -20,6 +20,10 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 
 #include <data/file-handle-def.h>
 #include <data/sys-file-reader.h>
@@ -40,8 +44,6 @@
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
 
-#define _(A) A
-#define N_(A) A
 
 
 extern GladeXML *xml;
@@ -55,9 +57,9 @@ static struct file_handle *psppire_handle = 0;
 
 static const gchar handle_name[] = "psppire_handle";
 
-static const gchar untitled[] = _("Untitled");
+static const gchar untitled[] = N_("Untitled");
 
-static const gchar window_title[]=_("PSPP Data Editor");
+static const gchar window_title[] = N_("PSPP Data Editor");
 
 
 static void
@@ -65,7 +67,7 @@ psppire_set_window_title(const gchar *text)
 {
   GtkWidget *data_editor = get_widget_assert(xml, "data_editor");
   
-  gchar *title = g_strdup_printf("%s --- %s", text, window_title);
+  gchar *title = g_strdup_printf("%s --- %s", text, gettext(window_title));
 
   gtk_window_set_title(GTK_WINDOW(data_editor), title);
 
@@ -86,7 +88,7 @@ on_new1_activate                       (GtkMenuItem     *menuitem,
   psppire_dict_clear(the_dictionary);
   psppire_case_array_clear(the_cases);
   
-  psppire_set_window_title(untitled);
+  psppire_set_window_title(gettext(untitled));
 
   if (psppire_handle)
     fh_free(psppire_handle);
@@ -629,7 +631,7 @@ on_variables1_activate(GtkMenuItem     *menuitem,
 gboolean
 callbacks_on_init(gpointer data)
 {
-  psppire_set_window_title(untitled);
+  psppire_set_window_title(gettext(untitled));
 
   var_data_selection_init();
 

@@ -1,0 +1,7 @@
+Sat May 27 16:31:29 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* Makevars, POTFILES.in: Added glade file to the list of 
+	translatable files.
+	
+	* de.po: Added.
+
