@@ -1,3 +1,16 @@
+   
+Tue May 30 19:53:35 WST 2006 John Darringotn <john@darrington.wattle.id.au>
+
+   * menu-actions.c menu-actions.h psppire.c: Fixed up load/new 
+   interactions with startup.
+
+   * psppire-data-store.c: Fixed bad i18n call.
+
+   * pspppire-var-store.c, psppire-var-store.h: constness.
+
+   * helper.c: Implemented proper way to convert from PSPP to UTF8 encoding.
+
+
 Sat May 27 16:25:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * customentry.c data-sheet.c menu-actions.c message-dialog.c 

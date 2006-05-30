@@ -1,10 +1,12 @@
-
 #include "helper.h"
 #include <data/data-in.h>
 #include <libpspp/message.h>
 
+#include <libpspp/i18n.h>
+
 #include <ctype.h>
 #include <string.h>
+#include <data/settings.h>
 
 /* Formats a value according to FORMAT 
    The returned string must be freed when no longer required */
@@ -80,21 +82,6 @@ get_widget_assert(GladeXML *xml, const gchar *name)
 char *
 pspp_locale_to_utf8(const gchar *text, gssize len, GError **err)
 {
-  GError *tmp_error = 0;
-
-  gchar *s;
-
-  if ( ! text ) 
-    return 0;
-
-  s = g_locale_to_utf8(text, len, 0, 0, &tmp_error);
-
-  if ( tmp_error)
-    {
-      g_warning("Error converting to UTF8: %s", tmp_error->message);
-      g_propagate_error (err, tmp_error);
-    }
-
-  return s;
+  return recode_string(CONV_PSPP_TO_UTF8, text, len);
 }
 

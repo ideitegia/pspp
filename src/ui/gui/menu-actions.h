@@ -77,15 +77,15 @@ psppire_variable_sheet_create (gchar *widget_name, gchar *string1, gchar *string
                 gint int1, gint int2);
 
 
-gboolean callbacks_on_init(gpointer data) ;
-
-
 /* Switch between the VAR SHEET and the DATA SHEET */
 enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
 gboolean load_system_file(const gchar *file_name);
+gboolean clear_file(void);
 
 void select_sheet(gint page);
+void var_data_selection_init(void);
+
 
 #endif
 

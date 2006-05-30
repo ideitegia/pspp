@@ -20,6 +20,7 @@ GNULIB_MODULES = \
 	gettext \
 	intprops \
 	linebreak \
+	localcharset \
 	memcasecmp \
 	memchr \
 	memcmp \

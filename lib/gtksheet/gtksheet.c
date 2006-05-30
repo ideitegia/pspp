@@ -104,6 +104,7 @@ enum
 #define DEFAULT_COLUMN_WIDTH 80
 
 
+
 static gboolean gtk_sheet_cell_empty (const GtkSheet *sheet, gint row, gint col);
 
 static inline
@@ -720,7 +721,7 @@ static void gtk_sheet_button_size_request	(GtkSheet *sheet,
                                  		 GtkRequisition *requisition);
 
 /* Attributes routines */
-static void init_attributes			(GtkSheet *sheet, gint col,  
+static void init_attributes			(const GtkSheet *sheet, gint col,  
 						 GtkSheetCellAttr *attributes);
 
 
@@ -3959,11 +3960,12 @@ gtk_sheet_entry_changed(GtkWidget *widget, gpointer data)
 
  GTK_SHEET_SET_FLAGS(sheet, GTK_SHEET_IS_FROZEN);
 
- if(text && strlen(text) > 0){
-      gtk_sheet_get_attributes(sheet, row, col, &attributes); 
-      justification=attributes.justification;
-      gtk_sheet_set_cell(sheet, row, col, justification, text);
- }
+ if(text && strlen(text) > 0)
+   {
+     gtk_sheet_get_attributes(sheet, row, col, &attributes); 
+     justification = attributes.justification;
+     gtk_sheet_set_cell(sheet, row, col, justification, text);
+   }
 
  if(sheet->freeze_count == 0)
         GTK_SHEET_UNSET_FLAGS(sheet, GTK_SHEET_IS_FROZEN);
@@ -6135,7 +6137,7 @@ static void
 gtk_sheet_size_allocate_entry(GtkSheet *sheet)
 {
  GtkAllocation shentry_allocation;
- GtkSheetCellAttr attributes;
+ GtkSheetCellAttr attributes = { 0 };
  GtkEntry *sheet_entry;
  GtkStyle *style = NULL, *previous_style = NULL;
  gint row, col;
@@ -6147,40 +6149,41 @@ gtk_sheet_size_allocate_entry(GtkSheet *sheet)
 
  sheet_entry = GTK_ENTRY(gtk_sheet_get_entry(sheet));
 
- gtk_sheet_get_attributes(sheet, sheet->active_cell.row, sheet->active_cell.col, &attributes); 
+ gtk_sheet_get_attributes(sheet, sheet->active_cell.row, sheet->active_cell.col, 				&attributes);
 
- if(GTK_WIDGET_REALIZED(sheet->sheet_entry)){
+ if(GTK_WIDGET_REALIZED(sheet->sheet_entry))
+    {
 
-  if(!GTK_WIDGET(sheet_entry)->style) 
+      if(!GTK_WIDGET(sheet_entry)->style) 
         gtk_widget_ensure_style(GTK_WIDGET(sheet_entry));
 
-  previous_style = GTK_WIDGET(sheet_entry)->style;
+      previous_style = GTK_WIDGET(sheet_entry)->style;
 
-  style = gtk_style_copy(previous_style);
-  style->bg[GTK_STATE_NORMAL] = attributes.background;
-  style->fg[GTK_STATE_NORMAL] = attributes.foreground;
-  style->text[GTK_STATE_NORMAL] = attributes.foreground;
-  style->bg[GTK_STATE_ACTIVE] = attributes.background;
-  style->fg[GTK_STATE_ACTIVE] = attributes.foreground;
-  style->text[GTK_STATE_ACTIVE] = attributes.foreground;
+      style = gtk_style_copy(previous_style);
+      style->bg[GTK_STATE_NORMAL] = attributes.background;
+      style->fg[GTK_STATE_NORMAL] = attributes.foreground;
+      style->text[GTK_STATE_NORMAL] = attributes.foreground;
+      style->bg[GTK_STATE_ACTIVE] = attributes.background;
+      style->fg[GTK_STATE_ACTIVE] = attributes.foreground;
+      style->text[GTK_STATE_ACTIVE] = attributes.foreground;
 
-  pango_font_description_free(style->font_desc);
-  style->font_desc = pango_font_description_copy(attributes.font_desc);
+      pango_font_description_free(style->font_desc);
+      style->font_desc = pango_font_description_copy(attributes.font_desc);
 
-  GTK_WIDGET(sheet_entry)->style = style;
-  gtk_widget_size_request(sheet->sheet_entry, NULL);
-  GTK_WIDGET(sheet_entry)->style = previous_style;
+      GTK_WIDGET(sheet_entry)->style = style;
+      gtk_widget_size_request(sheet->sheet_entry, NULL);
+      GTK_WIDGET(sheet_entry)->style = previous_style;
 
-  if(style != previous_style){
-    if(!GTK_IS_ITEM_ENTRY(sheet->sheet_entry)){
-      style->bg[GTK_STATE_NORMAL] = previous_style->bg[GTK_STATE_NORMAL];
-      style->fg[GTK_STATE_NORMAL] = previous_style->fg[GTK_STATE_NORMAL];
-      style->bg[GTK_STATE_ACTIVE] = previous_style->bg[GTK_STATE_ACTIVE];
-      style->fg[GTK_STATE_ACTIVE] = previous_style->fg[GTK_STATE_ACTIVE];
+      if(style != previous_style){
+	if(!GTK_IS_ITEM_ENTRY(sheet->sheet_entry)){
+	  style->bg[GTK_STATE_NORMAL] = previous_style->bg[GTK_STATE_NORMAL];
+	  style->fg[GTK_STATE_NORMAL] = previous_style->fg[GTK_STATE_NORMAL];
+	  style->bg[GTK_STATE_ACTIVE] = previous_style->bg[GTK_STATE_ACTIVE];
+	  style->fg[GTK_STATE_ACTIVE] = previous_style->fg[GTK_STATE_ACTIVE];
+	}
+	gtk_widget_set_style(GTK_WIDGET(sheet_entry), style);
+      }
     }
-    gtk_widget_set_style(GTK_WIDGET(sheet_entry), style);
-  }
- }
 
  if(GTK_IS_ITEM_ENTRY(sheet_entry))
     max_size = GTK_ITEM_ENTRY(sheet_entry)->text_max_size;
@@ -6230,12 +6233,13 @@ gtk_sheet_size_allocate_entry(GtkSheet *sheet)
 
  }
 
- if(!GTK_IS_ITEM_ENTRY(sheet->sheet_entry)){
-   shentry_allocation.x += 2;
-   shentry_allocation.y += 2;
-   shentry_allocation.width -= MIN(shentry_allocation.width, 3);
-   shentry_allocation.height -= MIN(shentry_allocation.height, 3);
- }
+ if(!GTK_IS_ITEM_ENTRY(sheet->sheet_entry))
+   {
+     shentry_allocation.x += 2;
+     shentry_allocation.y += 2;
+     shentry_allocation.width -= MIN(shentry_allocation.width, 3);
+     shentry_allocation.height -= MIN(shentry_allocation.height, 3);
+   }
 
  gtk_widget_size_allocate(sheet->sheet_entry, &shentry_allocation);
 
@@ -7213,7 +7217,8 @@ gtk_sheet_set_row_height (GtkSheet * sheet,
 
 
 gboolean
-gtk_sheet_get_attributes(GtkSheet *sheet, gint row, gint col, GtkSheetCellAttr *attributes)
+gtk_sheet_get_attributes(const GtkSheet *sheet, gint row, gint col, 
+			 GtkSheetCellAttr *attributes)
 {
  const GdkColor *fg, *bg; 
  const GtkJustification *j ; 
@@ -7228,7 +7233,7 @@ gtk_sheet_get_attributes(GtkSheet *sheet, gint row, gint col, GtkSheetCellAttr *
  init_attributes(sheet, col, attributes);
 
  if ( !sheet->model) 
-	 return FALSE;
+   return FALSE;
 
  attributes->is_editable = g_sheet_model_is_editable(sheet->model, row, col);
  attributes->is_visible = g_sheet_model_is_visible(sheet->model, row, col);
@@ -7255,7 +7260,7 @@ gtk_sheet_get_attributes(GtkSheet *sheet, gint row, gint col, GtkSheetCellAttr *
 }
 
 static void
-init_attributes(GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
+init_attributes(const GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
 {
  /* DEFAULT VALUES */    
  attributes->foreground = GTK_WIDGET(sheet)->style->black;
@@ -7276,9 +7281,7 @@ init_attributes(GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
  attributes->is_editable = TRUE;
  attributes->is_visible = TRUE;
  attributes->font_desc = GTK_WIDGET(sheet)->style->font_desc;
-
 }       
- 
 
 
 /********************************************************************
@@ -7913,7 +7916,7 @@ gtk_sheet_get_model(const GtkSheet *sheet)
 GtkSheetButton *
 gtk_sheet_button_new(void)
 {
-  GtkSheetButton *button = g_slice_new(GtkSheetButton);
+  GtkSheetButton *button = g_malloc(sizeof(GtkSheetButton));
   
   button->state = GTK_STATE_NORMAL;
   button->label = NULL;
@@ -7929,5 +7932,5 @@ inline void
 gtk_sheet_button_free(GtkSheetButton *button)
 {
   g_free(button->label);
-  g_slice_free(GtkSheetButton, button);
+  g_free(button);
 }

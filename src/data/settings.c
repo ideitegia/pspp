@@ -25,6 +25,7 @@
 #include "format.h"
 #include "value.h"
 #include "xalloc.h"
+#include <libpspp/i18n.h>
 
 static int viewlength = 24;
 static int viewwidth = 79;
@@ -87,11 +88,13 @@ void
 settings_init (void)
 {
   init_viewport ();
+  i18n_init ();
 }
 
 void
 settings_done (void)
 {
+  i18n_done ();
 }
 
 /* Screen length in lines. */

@@ -62,6 +62,7 @@ static const gchar untitled[] = N_("Untitled");
 static const gchar window_title[] = N_("PSPP Data Editor");
 
 
+/* Sets the title bar to TEXT */
 static void
 psppire_set_window_title(const gchar *text)
 {
@@ -70,13 +71,11 @@ psppire_set_window_title(const gchar *text)
   gchar *title = g_strdup_printf("%s --- %s", text, gettext(window_title));
 
   gtk_window_set_title(GTK_WINDOW(data_editor), title);
-
-  g_free(title);
 }
 
-void
-on_new1_activate                       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+
+gboolean
+clear_file(void)
 {
   GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
   GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
@@ -93,7 +92,17 @@ on_new1_activate                       (GtkMenuItem     *menuitem,
   if (psppire_handle)
     fh_free(psppire_handle);
   psppire_handle = 0 ;
+
+  return TRUE;
 }
+
+void
+on_new1_activate                       (GtkMenuItem     *menuitem,
+                                        gpointer         user_data)
+{
+  clear_file();
+}
+
 
 
 static gboolean
@@ -593,8 +602,10 @@ data_var_select(GtkNotebook *notebook,
   switch_menus(page_num);
 }
 
-static void
-var_data_selection_init()
+
+/* Initialised things on the variable sheet */
+void
+var_data_selection_init(void)
 {
   notebook = GTK_NOTEBOOK(get_widget_assert(xml, "notebook1"));
   menuitems[PAGE_DATA_SHEET] = get_widget_assert(xml, "data1");
@@ -626,14 +637,3 @@ on_variables1_activate(GtkMenuItem     *menuitem,
   select_sheet(PAGE_VAR_SHEET);
 }
 
-
-/* Callback which occurs when gtk_main is entered */
-gboolean
-callbacks_on_init(gpointer data)
-{
-  psppire_set_window_title(gettext(untitled));
-
-  var_data_selection_init();
-
-  return FALSE;
-}

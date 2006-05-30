@@ -1,3 +1,7 @@
+Di Mai 30 19:51:19 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * gtksheet.c gtksheet.h: constness. Removed dependence on glib2.10
+
 Sat May 27 16:29:36 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * gtksheet.c: Removed call to gtk_entry_set_text, which caused warnings 

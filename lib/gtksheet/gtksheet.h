@@ -659,7 +659,7 @@ gtk_sheet_range_set_font		(GtkSheet *sheet,
 /* get cell attributes of the given cell */
 /* TRUE means that the cell is currently allocated */
 gboolean
-gtk_sheet_get_attributes		(GtkSheet *sheet, 
+gtk_sheet_get_attributes		(const GtkSheet *sheet, 
 					gint row, gint col, 
 					GtkSheetCellAttr *attributes);
 

@@ -16,6 +16,8 @@ top_srcdir=`cd $top_srcdir; pwd`
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
 
+LANG=C
+export LANG
 
 cleanup()
 {

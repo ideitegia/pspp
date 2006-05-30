@@ -401,7 +401,6 @@ psppire_data_store_get_string(GSheetModel *model, gint row, gint column)
      FP.  No null terminator is appended to the buffer.  */
   data_out (s->str, fp, v);
 
-  
   text = pspp_locale_to_utf8(s->str, fp->w, 0);
   g_string_free(s, TRUE);
 
@@ -579,7 +578,7 @@ geometry_get_column_count(const GSheetColumn *geom)
 /* Return the width that an  'M' character would occupy when typeset at
    row, col */
 static guint 
-M_width(GtkSheet *sheet, gint row, gint col)
+M_width(const GtkSheet *sheet, gint row, gint col)
 {
   GtkSheetCellAttr attributes;
   PangoRectangle rect;
@@ -673,7 +672,7 @@ geometry_get_button_label(const GSheetColumn *geom, gint unit)
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
-    return pspp_locale_to_utf8(null_var_name, -1, 0);
+    return g_locale_to_utf8(null_var_name, -1, 0, 0, 0);
 
   pv = psppire_dict_get_variable(ds->dict, unit);
 

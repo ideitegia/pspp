@@ -1,3 +1,7 @@
+Tue May 30 19:52:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* settings.c: Added call to i18n{done, init}.
+
 Tue May  9 21:09:17 2006  Ben Pfaff  <blp@gnu.org>
 
 	* procedure.h: Add WARN_UNUSED_RESULT to procedure function

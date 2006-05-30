@@ -16,6 +16,8 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/freaderror.h \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
+	src/libpspp/i18n.c \
+	src/libpspp/i18n.h \
 	src/libpspp/magic.c \
 	src/libpspp/magic.h \
 	src/libpspp/misc.c \

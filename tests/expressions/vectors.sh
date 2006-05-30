@@ -14,6 +14,9 @@ PSPP=$top_builddir/src/ui/terminal/pspp
 STAT_CONFIG_PATH=$top_srcdir/config
 export STAT_CONFIG_PATH
 
+LANG=C
+export LANG
+
 
 cleanup()
 {

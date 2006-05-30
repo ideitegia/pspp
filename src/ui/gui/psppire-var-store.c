@@ -640,7 +640,7 @@ psppire_var_store_get_var_cnt(PsppireVarStore  *store)
 
 
 void
-psppire_var_store_set_font(PsppireVarStore *store, PangoFontDescription *fd)
+psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *fd)
 {
   g_return_if_fail (store);
   g_return_if_fail (PSPPIRE_IS_VAR_STORE (store));

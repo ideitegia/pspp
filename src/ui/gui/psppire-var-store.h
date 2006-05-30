@@ -59,7 +59,7 @@ struct _PsppireVarStore
   /*< private >*/
   PsppireDict *dict;
   GdkColor disabled;
-  PangoFontDescription *font_desc;
+  const PangoFontDescription *font_desc;
 };
 
 struct _PsppireVarStoreClass
@@ -86,7 +86,7 @@ void psppire_var_store_set_dictionary(PsppireVarStore *var_store, PsppireDict *d
 /* Return the number of variables */
 gint psppire_var_store_get_var_cnt(PsppireVarStore      *var_store);
 
-void psppire_var_store_set_font(PsppireVarStore *store, PangoFontDescription *fd);
+void psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *fd);
 
 
 #ifdef __cplusplus
