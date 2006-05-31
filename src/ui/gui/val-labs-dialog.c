@@ -271,6 +271,7 @@ static void
 on_select_row                  (GtkTreeView *treeview,
 				gpointer data)
 {
+  gchar *labeltext;
   struct val_labs_dialog *dialog = data;
 
   struct val_lab * vl  = get_selected_tuple(dialog);
@@ -290,8 +291,10 @@ on_select_row                  (GtkTreeView *treeview,
   g_signal_handler_block(GTK_ENTRY(dialog->label_entry), 
 			 dialog->change_handler_id);
 
+  labeltext = pspp_locale_to_utf8(vl->label, -1, 0);
   gtk_entry_set_text(GTK_ENTRY(dialog->label_entry),
-		     vl->label);
+		     labeltext);
+  g_free(labeltext);
 
   g_signal_handler_unblock(GTK_ENTRY(dialog->label_entry), 
 			 dialog->change_handler_id);
@@ -412,21 +415,25 @@ repopulate_dialog(struct val_labs_dialog *dialog)
       vl;
       vl = val_labs_next(dialog->labs, &vli))
     {
+
       gchar *const vstr  = 
 	value_to_text(vl->value, 
 		      *psppire_variable_get_write_spec(dialog->pv));
 
+      gchar *labeltext = 
+	pspp_locale_to_utf8(vl->label, -1, 0);	
 					   
-      
       gchar *const text = g_strdup_printf("%s = \"%s\"",
-					  vstr, vl->label);
- 
+					  vstr, labeltext);
+
+      
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, text, 
 			  1, vl->value.f,
 			  -1);
 
+      g_free(labeltext);
       g_free(text); 
       g_free(vstr);
     }

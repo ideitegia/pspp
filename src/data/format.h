@@ -76,7 +76,8 @@ enum alignment
   {
     ALIGN_LEFT = 0,
     ALIGN_RIGHT = 1,
-    ALIGN_CENTRE = 2
+    ALIGN_CENTRE = 2, 
+    n_ALIGN
   };
 
 
@@ -84,9 +85,12 @@ enum measure
   {
     MEASURE_NOMINAL=1,
     MEASURE_ORDINAL=2,
-    MEASURE_SCALE=3
+    MEASURE_SCALE=3,
+    n_MEASURES
   };
 
+bool measure_is_valid(enum measure m);
+bool alignment_is_valid(enum alignment a);
 
 
 /* Descriptions of all the display formats above. */

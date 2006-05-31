@@ -50,10 +50,13 @@ GtkWidget* psppire_variable_sheet_create (gchar *widget_name,
 					  gchar *string2,
 					  gint int1, gint int2);
 
+#define n_ALIGNMENTS 3
 
-extern const gchar *alignments[];
+extern const gchar *alignments[n_ALIGNMENTS + 1];
 
-extern const gchar *measures[];
+#define n_MEASURES 3
+
+extern const gchar *measures[n_MEASURES + 1];
 
 
 #endif

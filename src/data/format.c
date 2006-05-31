@@ -372,3 +372,20 @@ make_output_format (int type, int w, int d)
   assert (check_output_specifier (&f, 0));
   return f;
 }
+
+
+bool 
+measure_is_valid(enum measure m)
+{
+  if ( m <= 0 ) return false;
+  if ( m >= n_MEASURES) false;
+  return true;
+}
+
+bool 
+alignment_is_valid(enum alignment a)
+{
+  if ( a < 0 ) return false;
+  if ( a >= n_ALIGN) return false;
+  return true;
+}

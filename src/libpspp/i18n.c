@@ -54,6 +54,9 @@ recode_string(enum conv_id how,  const char *text, int length)
   /* FIXME: Need to ensure that this char is valid in the target encoding */
   const char fallbackchar = '?';
 
+  if ( text == NULL ) 
+    return NULL;
+
   if ( length == -1 ) 
      length = strlen(text);
 
@@ -71,8 +74,6 @@ recode_string(enum conv_id how,  const char *text, int length)
   inbytes = length;
   
   do {
-
-  
     result = iconv(convertor[how], &ip, &inbytes, 
 		   &op, &outbytes);
 
@@ -108,11 +109,17 @@ recode_string(enum conv_id how,  const char *text, int length)
 	  }
 
       }
-
   } while ( -1 == result );
 
+  if (outbytes == 0 ) 
+    {
+      char *const oldaddr = outbuf;
+      outbuf = xrealloc(outbuf, outbufferlength + 1);
+      
+      op += (outbuf - oldaddr) ;
+    }
+
   *op = '\0';
-  
 
   return outbuf;
 }

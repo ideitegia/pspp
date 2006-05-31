@@ -98,14 +98,14 @@ click2row(GtkWidget *w, gint row, gpointer data)
 
 
 
-const gchar *alignments[]={
+const gchar *alignments[n_ALIGNMENTS + 1]={
   N_("Left"),
   N_("Right"),
   N_("Centre"),
   0
 };
 
-const gchar *measures[]={
+const gchar *measures[n_MEASURES + 1]={
   N_("Nominal"),
   N_("Ordinal"),
   N_("Scale"),

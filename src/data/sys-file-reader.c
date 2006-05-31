@@ -510,6 +510,16 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
 		      assertive_buf_read (r, &params, sizeof(params), 0);
 
+		      if ( ! measure_is_valid(params.measure) 
+			   || 
+			   ! alignment_is_valid(params.align))
+			{
+			  msg(MW, 
+			      _("Invalid variable display parameters.  Default parameters substituted."), 
+			      fh_get_file_name(r->fh));
+			  continue;
+			}
+
 		      v = dict_get_var(*dict, i);
 
 		      v->measure = params.measure;

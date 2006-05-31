@@ -71,6 +71,8 @@ psppire_set_window_title(const gchar *text)
   gchar *title = g_strdup_printf("%s --- %s", text, gettext(window_title));
 
   gtk_window_set_title(GTK_WINDOW(data_editor), title);
+
+  g_free(title);
 }
 
 

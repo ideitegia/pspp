@@ -617,14 +617,21 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       }
       break;
     case COL_ALIGN:
-      return g_locale_to_utf8(gettext(alignments[psppire_variable_get_alignment(pv)]), 
-					 -1, -0, 0, err);
+      {
+	const gint align = psppire_variable_get_alignment(pv);
+
+	g_assert(align < n_ALIGNMENTS);
+	return g_locale_to_utf8(gettext(alignments[align]),-1, -0, 0, err);
+      }
       break;
     case COL_MEASURE:
-      return g_locale_to_utf8(gettext(measures[psppire_variable_get_measure(pv)]), 
-					 -1, -0, 0, err);
-      break;
+      {
+	const gint measure = psppire_variable_get_measure(pv);
 
+	g_assert(measure < n_MEASURES);
+	return g_locale_to_utf8(gettext(measures[measure]), -1, -0, 0, err);
+      }
+      break;
     }
   return 0;
 }
