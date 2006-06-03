@@ -71,10 +71,10 @@ gettextize:
 	gettextize -f -c --intl --no-changelog
 
 po/POTFILES.in:
-	for f in `find src -name \*.[qc] ! -name .\* -print \
-		  | sed 's/\.[qc]$$//'`; do \
-		if test $$f = src/libpspp/version; then continue; fi;	  \
-		if test -e $$f.q; then echo $$f.q; else echo $$f.c; fi	  \
+	for f in `find src \( -name \*.[qc] -o -name \*.glade \) ! -name .\* -print` ; do \
+		if test $$f = src/libpspp/version.c; then continue; fi;	  \
+		if test -e `dirname $$f`/`basename $$f .c`.q ; then continue; fi; \
+		echo $$f ; \
 	done | sort | uniq > $@.tmp
 	if test ! -e $@ || ! cmp -s $@.tmp $@; then mv $@.tmp $@; fi
 	rm -f $@.tmp
@@ -94,7 +94,7 @@ PO_FILES = po/ChangeLog po/Makefile po/Makefile.in po/Makefile.in.in	\
 po/POTFILES po/POTFILES.in po/Rules-quot po/boldquot.sed		\
 po/cat-id-tbl.c po/en@boldquot.header po/en@quot.header			\
 po/insert-header.sin po/quot.sed po/remove-potcdate.sin po/stamp-po	\
-po/Makevars.template
+po/Makevars.template po/pspp.pot
 
 clean:
 	rm -f config.sub config.guess config.rpath
@@ -107,7 +107,7 @@ clean:
 	rm -f depcomp
 	rm -rf intl gl
 	rm -f m4/*.m4
-	rm -f $(PO_FILES)
+	rm -f $(PO_FILES) po/*.gmo 
 	rm -f mdate-sh texinfo.tex
 	rm -f doc/stamp-vti
 	rm -f config.h.in~

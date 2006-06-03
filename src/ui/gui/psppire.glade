@@ -1174,7 +1174,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkButton" id="var_type_help">
+	    <widget class="GtkButton" id="help_button_variable_type">
 	      <property name="visible">True</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>
@@ -1533,7 +1533,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkButton" id="val_labs_help">
+	    <widget class="GtkButton" id="help_button_value_labels">
 	      <property name="visible">True</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>
@@ -1613,7 +1613,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkButton" id="missing_val_help">
+	    <widget class="GtkButton" id="help_button_missing_values">
 	      <property name="visible">True</property>
 	      <property name="can_default">True</property>
 	      <property name="can_focus">True</property>

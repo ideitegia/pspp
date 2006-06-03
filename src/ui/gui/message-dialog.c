@@ -42,7 +42,7 @@
 extern GladeXML *xml;
 
 
-static void handle_msg(const struct msg *);
+
 static void enqueue_msg(const struct msg *m);
 
 
@@ -79,7 +79,7 @@ dequeue_message(gpointer data)
 
   if ( m ) 
     {
-      handle_msg(m);
+      popup_message(m);
       msg_destroy(m);
       return TRUE;
     }
@@ -97,8 +97,9 @@ enqueue_msg(const struct msg *msg)
   g_idle_add(dequeue_message, 0);
 }
 
-static void
-handle_msg(const struct msg *m)
+
+void 
+popup_message(const struct msg *m)
 {
   GtkWindow *parent;
   GtkWidget *dialog;

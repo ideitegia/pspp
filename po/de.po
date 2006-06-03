@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-05-26 13:30+0800\n"
-"PO-Revision-Date: 2006-05-26 10:49+0800\n"
+"POT-Creation-Date: 2006-06-03 10:37+0800\n"
+"PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
 "MIME-Version: 1.0\n"
@@ -21,26 +21,26 @@ msgstr ""
 #: src/data/any-reader.c:74
 #, c-format
 msgid "An error occurred while opening \"%s\": %s."
-msgstr ""
+msgstr "Ein Fehler ist passiert als \\\"%s\\\" geoffnet war: %s"
 
 #: src/data/any-reader.c:129
 #, c-format
 msgid "\"%s\" is not a system or portable file."
-msgstr ""
+msgstr "\"%s\" ist kein Systemdatei und kein Tragbardatei."
 
 #: src/data/any-reader.c:135 src/data/any-writer.c:80
 msgid "The inline file is not allowed here."
-msgstr ""
+msgstr "Diese Inlindatei ist hier verboten."
 
 #: src/data/calendar.c:81
 #, c-format
 msgid "Month %d is not in acceptable range of 0 to 13."
-msgstr ""
+msgstr "Monate %d muß zwischen 0 bis 13 sein."
 
 #: src/data/calendar.c:89
 #, c-format
 msgid "Day %d is not in acceptable range of 0 to 31."
-msgstr ""
+msgstr "Tag %d muß zwischen 0 bit 31 sein."
 
 #: src/data/calendar.c:96
 #, c-format
@@ -389,27 +389,27 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:197 src/data/por-file-reader.c:481
-#: src/data/sys-file-reader.c:1255 src/data/sys-file-reader.c:1264
-#: src/ui/gui/psppire-var-store.c:432 src/ui/gui/psppire.glade:764
+#: src/data/sys-file-reader.c:1265 src/data/sys-file-reader.c:1274
+#: src/ui/gui/psppire.glade:764 src/ui/gui/psppire-var-store.c:432
 msgid "String"
 msgstr "Zeichenkette"
 
 #: src/data/format.c:197 src/data/por-file-reader.c:481
-#: src/data/sys-file-reader.c:1255 src/data/sys-file-reader.c:1264
-#: src/ui/gui/psppire-var-store.c:425 src/ui/gui/psppire.glade:625
+#: src/data/sys-file-reader.c:1265 src/data/sys-file-reader.c:1274
+#: src/ui/gui/psppire.glade:625 src/ui/gui/psppire-var-store.c:425
 msgid "Numeric"
 msgstr "Nummer"
 
-#: src/data/format.c:198 src/data/sys-file-reader.c:1257
-#: src/data/sys-file-reader.c:1402 src/data/sys-file-reader.c:1403
+#: src/data/format.c:198 src/data/sys-file-reader.c:1267
+#: src/data/sys-file-reader.c:1412 src/data/sys-file-reader.c:1413
 #: src/data/variable.c:41 src/language/dictionary/apply-dictionary.c:76
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/xforms/recode.c:476 src/language/xforms/recode.c:477
 msgid "numeric"
 msgstr "numerisch"
 
-#: src/data/format.c:198 src/data/sys-file-reader.c:1257
-#: src/data/sys-file-reader.c:1402 src/data/sys-file-reader.c:1403
+#: src/data/format.c:198 src/data/sys-file-reader.c:1267
+#: src/data/sys-file-reader.c:1412 src/data/sys-file-reader.c:1413
 #: src/data/variable.c:41 src/data/variable.c:49
 #: src/language/dictionary/apply-dictionary.c:76
 #: src/language/dictionary/apply-dictionary.c:77
@@ -479,12 +479,12 @@ msgstr ""
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:473 src/data/sys-file-reader.c:1247
+#: src/data/por-file-reader.c:473 src/data/sys-file-reader.c:1257
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/data/por-file-reader.c:480 src/data/sys-file-reader.c:1263
+#: src/data/por-file-reader.c:480 src/data/sys-file-reader.c:1273
 #, c-format
 msgid "%s variable %s has invalid format specifier %s."
 msgstr ""
@@ -572,7 +572,7 @@ msgid ""
 "procedure, so it cannot yet be used for reading."
 msgstr ""
 
-#: src/data/settings.c:143
+#: src/data/settings.c:146
 #, c-format
 msgid "Could not access definition for terminal `%s'."
 msgstr ""
@@ -622,95 +622,101 @@ msgstr ""
 msgid "%s: Invalid subrecord length. Record: 7; Subrecord: 11"
 msgstr ""
 
-#: src/data/sys-file-reader.c:555
+#: src/data/sys-file-reader.c:518
+#, c-format
+msgid ""
+"%s: Invalid variable display parameters.  Default parameters substituted."
+msgstr ""
+
+#: src/data/sys-file-reader.c:565
 #, c-format
 msgid "%s: Trailing garbage in long variable name map."
 msgstr ""
 
-#: src/data/sys-file-reader.c:562
+#: src/data/sys-file-reader.c:572
 #, c-format
 msgid "%s: Long variable mapping to invalid variable name `%s'."
 msgstr ""
 
-#: src/data/sys-file-reader.c:572
+#: src/data/sys-file-reader.c:582
 #, c-format
 msgid "%s: Long variable mapping for nonexistent variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:581
+#: src/data/sys-file-reader.c:591
 #, c-format
 msgid "%s: Duplicate long variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:672
+#: src/data/sys-file-reader.c:682
 #, c-format
 msgid "%s: No variable called %s but it is listed in length table."
 msgstr ""
 
-#: src/data/sys-file-reader.c:730
+#: src/data/sys-file-reader.c:740
 #, c-format
 msgid "%s: Unrecognized record type 7, subtype %d encountered in system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:756
+#: src/data/sys-file-reader.c:766
 #, c-format
 msgid "%s: Unrecognized record type %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:793
+#: src/data/sys-file-reader.c:803
 #, c-format
 msgid ""
 "%s: Bad size (%d) or count (%d) field on record type 7, subtype 3.\tExpected "
 "size %d, count 8."
 msgstr ""
 
-#: src/data/sys-file-reader.c:804
+#: src/data/sys-file-reader.c:814
 #, c-format
 msgid ""
 "%s: Floating-point representation in system file is not IEEE-754.  PSPP "
 "cannot convert between floating-point formats."
 msgstr ""
 
-#: src/data/sys-file-reader.c:820
+#: src/data/sys-file-reader.c:830
 #, c-format
 msgid ""
 "%s: File-indicated endianness (%s) does not match endianness intuited from "
 "file header (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:823 src/data/sys-file-reader.c:824
+#: src/data/sys-file-reader.c:833 src/data/sys-file-reader.c:834
 msgid "big-endian"
 msgstr ""
 
-#: src/data/sys-file-reader.c:823 src/data/sys-file-reader.c:824
+#: src/data/sys-file-reader.c:833 src/data/sys-file-reader.c:834
 msgid "little-endian"
 msgstr ""
 
-#: src/data/sys-file-reader.c:825
+#: src/data/sys-file-reader.c:835
 msgid "unknown"
 msgstr ""
 
-#: src/data/sys-file-reader.c:829
+#: src/data/sys-file-reader.c:839
 #, c-format
 msgid "%s: File-indicated character representation code (%s) is not ASCII."
 msgstr ""
 
-#: src/data/sys-file-reader.c:833
+#: src/data/sys-file-reader.c:843
 msgid "DEC Kanji"
 msgstr ""
 
-#: src/data/sys-file-reader.c:833 src/language/dictionary/sys-file-info.c:123
+#: src/data/sys-file-reader.c:843 src/language/dictionary/sys-file-info.c:123
 msgid "Unknown"
 msgstr ""
 
-#: src/data/sys-file-reader.c:849
+#: src/data/sys-file-reader.c:859
 #, c-format
 msgid ""
 "%s: Bad size (%d) or count (%d) field on record type 7, subtype 4.\tExpected "
 "size %d, count 8."
 msgstr ""
 
-#: src/data/sys-file-reader.c:864
+#: src/data/sys-file-reader.c:874
 #, c-format
 msgid ""
 "%s: File-indicated value is different from internal value for at least one "
@@ -718,198 +724,198 @@ msgid ""
 "%g; LOWEST: %g, %g."
 msgstr ""
 
-#: src/data/sys-file-reader.c:891
+#: src/data/sys-file-reader.c:901
 #, c-format
 msgid ""
 "%s: Bad magic.  Proper system files begin with the four characters `$FL2'. "
 "This file will not be read."
 msgstr ""
 
-#: src/data/sys-file-reader.c:933
+#: src/data/sys-file-reader.c:943
 #, c-format
 msgid ""
 "%s: File layout code has unexpected value %d.  Value should be 2, in big-"
 "endian or little-endian format."
 msgstr ""
 
-#: src/data/sys-file-reader.c:962
+#: src/data/sys-file-reader.c:972
 #, c-format
 msgid "%s: Number of cases in file (%ld) is not between -1 and %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:967
+#: src/data/sys-file-reader.c:977
 #, c-format
 msgid "%s: Compression bias (%g) is not the usual value of 100."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1078
+#: src/data/sys-file-reader.c:1088
 #, c-format
 msgid ""
 "%s: position %d: String variable does not have proper number of continuation "
 "records."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1088
+#: src/data/sys-file-reader.c:1098
 #, c-format
 msgid "%s: position %d: Superfluous long string continuation record."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1094
+#: src/data/sys-file-reader.c:1104
 #, c-format
 msgid "%s: position %d: Bad variable type code %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1097
+#: src/data/sys-file-reader.c:1107
 #, c-format
 msgid "%s: position %d: Variable label indicator field is not 0 or 1."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1101
+#: src/data/sys-file-reader.c:1111
 #, c-format
 msgid ""
 "%s: position %d: Missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1106
+#: src/data/sys-file-reader.c:1116
 #, c-format
 msgid "%s: position %d: Variable name begins with invalid character."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1125
+#: src/data/sys-file-reader.c:1135
 #, c-format
 msgid "%s: Invalid variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1131
+#: src/data/sys-file-reader.c:1141
 #, c-format
 msgid "%s: Duplicate variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1155
+#: src/data/sys-file-reader.c:1165
 #, c-format
 msgid "%s: Variable %s indicates variable label of invalid length %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1176
+#: src/data/sys-file-reader.c:1186
 #, c-format
 msgid "%s: Long string variable %s may not have missing values."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1197
+#: src/data/sys-file-reader.c:1207
 #, c-format
 msgid ""
 "%s: String variable %s may not have missing values specified as a range."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1223
+#: src/data/sys-file-reader.c:1233
 #, c-format
 msgid "%s: Long string continuation records omitted at end of dictionary."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1228
+#: src/data/sys-file-reader.c:1238
 #, c-format
 msgid ""
 "%s: System file header indicates %d variable positions but %d were read from "
 "file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1253
+#: src/data/sys-file-reader.c:1263
 #, c-format
 msgid "%s: %s variable %s has %s format specifier %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1306
+#: src/data/sys-file-reader.c:1316
 #, c-format
 msgid "%s: Invalid number of labels: %d.  Ignoring labels."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1348
+#: src/data/sys-file-reader.c:1358
 #, c-format
 msgid ""
 "%s: Variable index record (type 4) does not immediately follow value label "
 "record (type 3) as it should."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1359
+#: src/data/sys-file-reader.c:1369
 #, c-format
 msgid ""
 "%s: Number of variables associated with a value label (%d) is not between 1 "
 "and the number of variables (%d)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1375
+#: src/data/sys-file-reader.c:1385
 #, c-format
 msgid ""
 "%s: Variable index associated with value label (%d) is not between 1 and the "
 "number of values (%d)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1382
+#: src/data/sys-file-reader.c:1392
 #, c-format
 msgid ""
 "%s: Variable index associated with value label (%d) refers to a continuation "
 "of a string variable, not to an actual variable."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1387
+#: src/data/sys-file-reader.c:1397
 #, c-format
 msgid "%s: Value labels are not allowed on long string variables (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1398
+#: src/data/sys-file-reader.c:1408
 #, c-format
 msgid ""
 "%s: Variables associated with value label are not all of identical type.  "
 "Variable %s has %s type, but variable %s has %s type."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1439
+#: src/data/sys-file-reader.c:1449
 #, c-format
 msgid "%s: File contains duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1443
+#: src/data/sys-file-reader.c:1453
 #, c-format
 msgid "%s: File contains duplicate label for value `%.*s' for variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1485 src/data/sys-file-reader.c:1807
+#: src/data/sys-file-reader.c:1495 src/data/sys-file-reader.c:1817
 #, c-format
 msgid "%s: Reading system file: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1488 src/data/sys-file-reader.c:1607
-#: src/data/sys-file-reader.c:1648
+#: src/data/sys-file-reader.c:1498 src/data/sys-file-reader.c:1617
+#: src/data/sys-file-reader.c:1658
 #, c-format
 msgid "%s: Unexpected end of file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1505
+#: src/data/sys-file-reader.c:1515
 #, c-format
 msgid "%s: Seeking system file: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1520
+#: src/data/sys-file-reader.c:1530
 #, c-format
 msgid "%s: System file contains multiple type 6 (document) records."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1526
+#: src/data/sys-file-reader.c:1536
 #, c-format
 msgid "%s: Number of document lines (%ld) must be greater than 0."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1560
+#: src/data/sys-file-reader.c:1570
 #, c-format
 msgid "%s: Error reading file: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1599
+#: src/data/sys-file-reader.c:1609
 #, c-format
 msgid "%s: Compressed data is corrupted.  Data ends in partial case."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1813
+#: src/data/sys-file-reader.c:1823
 #, c-format
 msgid "%s: Partial record at end of system file."
 msgstr ""
@@ -4257,45 +4263,45 @@ msgstr ""
 
 #: src/ui/gui/menu-actions.c:60
 msgid "Untitled"
-msgstr "Unbetitlet"
+msgstr "Unbetitelt"
 
 #: src/ui/gui/menu-actions.c:62
 msgid "PSPP Data Editor"
 msgstr "PSPP Dateiaufbereiter"
 
-#: src/ui/gui/menu-actions.c:198 src/ui/gui/psppire.glade:292
+#: src/ui/gui/menu-actions.c:209 src/ui/gui/psppire.glade:292
 msgid "Open"
 msgstr "Öffen"
 
-#: src/ui/gui/menu-actions.c:206
+#: src/ui/gui/menu-actions.c:217
 msgid "System Files (*.sav)"
-msgstr ""
+msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/menu-actions.c:212
+#: src/ui/gui/menu-actions.c:223
 msgid "Portable Files (*.por) "
-msgstr ""
+msgstr "Tragbardatein (*.por)"
 
-#: src/ui/gui/menu-actions.c:218
+#: src/ui/gui/menu-actions.c:229
 msgid "All Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/menu-actions.c:250
+#: src/ui/gui/menu-actions.c:261
 msgid "Save Data As"
-msgstr ""
+msgstr "Speichern unter"
 
-#: src/ui/gui/menu-actions.c:523
+#: src/ui/gui/menu-actions.c:534
 msgid "Font Selection"
-msgstr ""
+msgstr "Schriftwahlung"
 
-#: src/ui/gui/message-dialog.c:126
+#: src/ui/gui/message-dialog.c:127
 msgid "Script Error"
 msgstr "Skript Fehler"
 
-#: src/ui/gui/message-dialog.c:130
+#: src/ui/gui/message-dialog.c:131
 msgid "Data File Error"
 msgstr "Datei Fehler"
 
-#: src/ui/gui/message-dialog.c:135
+#: src/ui/gui/message-dialog.c:136
 msgid "PSPP Error"
 msgstr "PSPP Fehler"
 
@@ -4307,33 +4313,205 @@ msgstr "Unpassend Wert für Variable"
 msgid "Incorrect range specification"
 msgstr "Falshe Spannweitebeschreibung"
 
-#: src/ui/gui/psppire-data-store.c:666
+#: src/ui/gui/psppire.c:72
+msgid "Sorry. The help system hasn't yet been implemented."
+msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
+
+#: src/ui/gui/psppire-data-store.c:665
 msgid "var"
 msgstr ""
+
+#: src/ui/gui/psppire.glade:36
+msgid "_File"
+msgstr "_Datei"
+
+#: src/ui/gui/psppire.glade:100
+msgid "_Edit"
+msgstr "_Bearbeiten"
+
+#: src/ui/gui/psppire.glade:145
+msgid "_Insert"
+msgstr "_Stecken"
+
+#: src/ui/gui/psppire.glade:158
+msgid "_View"
+msgstr "_Ansicht"
+
+#: src/ui/gui/psppire.glade:167
+msgid "Status Bar"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:176
+msgid "Toolbars"
+msgstr "Werkzeugregal"
+
+#: src/ui/gui/psppire.glade:191
+msgid "Fonts"
+msgstr "Schrift"
+
+#: src/ui/gui/psppire.glade:200
+msgid "Grid Lines"
+msgstr "Glitten"
+
+#: src/ui/gui/psppire.glade:210 src/ui/gui/psppire.glade:1199
+#: src/ui/gui/psppire.glade:1475
+msgid "Value Labels"
+msgstr "Werten"
+
+#: src/ui/gui/psppire.glade:226
+msgid "Data"
+msgstr "Daten"
+
+#: src/ui/gui/psppire.glade:235
+msgid "Variables"
+msgstr "Variableansicht"
+
+#: src/ui/gui/psppire.glade:248
+msgid "_Help"
+msgstr "_Hilfe"
+
+#: src/ui/gui/psppire.glade:257
+msgid "_About"
+msgstr "_Info"
+
+#: src/ui/gui/psppire.glade:310
+#, fuzzy
+msgid "Save"
+msgstr "Name"
+
+#: src/ui/gui/psppire.glade:328
+msgid "Print"
+msgstr "Drucken"
+
+#: src/ui/gui/psppire.glade:474
+msgid "Data View"
+msgstr "Datenansicht"
+
+#: src/ui/gui/psppire.glade:522
+msgid "Variable View"
+msgstr "Variableansicht"
+
+#: src/ui/gui/psppire.glade:568
+msgid "This is pre-alpha software.  It probably will not work."
+msgstr "Diese Software ist vor-Alpha.  Wahrscheinlich Funktioniert es nicht."
+
+#: src/ui/gui/psppire.glade:569
+msgid ""
+"    This program is free software; you can redistribute it and/or modify\n"
+"    it under the terms of the GNU General Public License as published by\n"
+"    the Free Software Foundation; either version 2 of the License, or\n"
+"    (at your option) any later version.\n"
+"\n"
+"    This program is distributed in the hope that it will be useful,\n"
+"    but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"    GNU General Public License for more details.\n"
+"\n"
+"    You should have received a copy of the GNU General Public License\n"
+"    along with this program; if not, write to the Free Software\n"
+"    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA\n"
+"    02110-1301, USA.\n"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:587
+msgid "translator-credits"
+msgstr "Überseztenangaben"
+
+#: src/ui/gui/psppire.glade:593
+msgid "Variable Type"
+msgstr "Variableansicht"
+
+#: src/ui/gui/psppire.glade:644 src/ui/gui/psppire-var-store.c:426
+msgid "Comma"
+msgstr "Komma"
+
+#: src/ui/gui/psppire.glade:664 src/ui/gui/psppire-var-store.c:427
+msgid "Dot"
+msgstr "Punkt"
+
+#: src/ui/gui/psppire.glade:684
+msgid "Scientific notation"
+msgstr "Wissenschaftlichnotation"
+
+#: src/ui/gui/psppire.glade:704 src/ui/gui/psppire-var-store.c:429
+msgid "Date"
+msgstr "Datum"
+
+#: src/ui/gui/psppire.glade:724 src/ui/gui/psppire-var-store.c:430
+msgid "Dollar"
+msgstr "Euro"
+
+#: src/ui/gui/psppire.glade:744
+msgid "Custom currency"
+msgstr "Spezialwährung"
+
+#: src/ui/gui/psppire.glade:889
+msgid "positive"
+msgstr "positiv"
+
+#: src/ui/gui/psppire.glade:914
+msgid "negative"
+msgstr "negativ"
+
+#: src/ui/gui/psppire.glade:943
+#, fuzzy
+msgid "Sample"
+msgstr "Name"
+
+#: src/ui/gui/psppire.glade:1021
+#, fuzzy
+msgid "Decimal Places:"
+msgstr "Detzimalen"
+
+#: src/ui/gui/psppire.glade:1098
+msgid "Width:"
+msgstr "Große:"
+
+#: src/ui/gui/psppire.glade:1316
+msgid "Value:"
+msgstr "Werte:"
+
+#: src/ui/gui/psppire.glade:1344
+#, fuzzy
+msgid "Value Label:"
+msgstr "Kennsatz:"
+
+#: src/ui/gui/psppire.glade:1560
+msgid "Missing Values"
+msgstr "Lösewerten"
+
+#: src/ui/gui/psppire.glade:1645
+msgid "_No missing values"
+msgstr "_Kein Lösewerten"
+
+#: src/ui/gui/psppire.glade:1670
+#, fuzzy
+msgid "_Discrete missing values"
+msgstr "_Kein Lösewerten"
+
+#: src/ui/gui/psppire.glade:1799
+msgid "_Range plus one optional discrete missing value"
+msgstr "Wertebereich und ein optional Lösewert"
+
+#: src/ui/gui/psppire.glade:1836
+msgid "_Low:"
+msgstr "_Tief:"
+
+#: src/ui/gui/psppire.glade:1895
+msgid "_High:"
+msgstr "_Hoch:"
+
+#: src/ui/gui/psppire.glade:1969
+msgid "Di_screte value:"
+msgstr "Di_skretwerte"
 
 #: src/ui/gui/psppire-var-store.c:421
 msgid "None"
 msgstr "Keine"
 
-#: src/ui/gui/psppire-var-store.c:426 src/ui/gui/psppire.glade:644
-msgid "Comma"
-msgstr "Komma"
-
-#: src/ui/gui/psppire-var-store.c:427 src/ui/gui/psppire.glade:664
-msgid "Dot"
-msgstr "Punkt"
-
 #: src/ui/gui/psppire-var-store.c:428
 msgid "Scientific"
 msgstr "Wissenschäflich"
-
-#: src/ui/gui/psppire-var-store.c:429 src/ui/gui/psppire.glade:704
-msgid "Date"
-msgstr "Datum"
-
-#: src/ui/gui/psppire-var-store.c:430 src/ui/gui/psppire.glade:724
-msgid "Dollar"
-msgstr "Euro"
 
 #: src/ui/gui/psppire-var-store.c:431
 msgid "Custom"
@@ -4349,7 +4527,7 @@ msgstr "Große"
 
 #: src/ui/gui/var-sheet.c:73
 msgid "Decimals"
-msgstr "Dezemalen"
+msgstr "Detzimalen"
 
 #: src/ui/gui/var-sheet.c:75
 msgid "Values"
@@ -4377,193 +4555,15 @@ msgstr "Mittel"
 
 #: src/ui/gui/var-sheet.c:109
 msgid "Nominal"
-msgstr ""
+msgstr "Nominalwert"
 
 #: src/ui/gui/var-sheet.c:110
 msgid "Ordinal"
-msgstr ""
+msgstr "Ordinalwert"
 
 #: src/ui/gui/var-sheet.c:111
 msgid "Scale"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:8
-msgid "Psppire"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:36
-msgid "_File"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:100
-msgid "_Edit"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:145
-msgid "_Insert"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:158
-msgid "_View"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:167
-msgid "Status Bar"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:176
-msgid "Toolbars"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:191
-msgid "Fonts"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:200
-msgid "Grid Lines"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:210 src/ui/gui/psppire.glade:1199
-#: src/ui/gui/psppire.glade:1475
-msgid "Value Labels"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:226
-msgid "Data"
-msgstr "Datum"
-
-#: src/ui/gui/psppire.glade:235
-msgid "Variables"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:248
-msgid "_Help"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:257
-msgid "_About"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:310
-msgid "Save"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:328
-msgid "Print"
-msgstr "Prozent"
-
-#: src/ui/gui/psppire.glade:474
-msgid "Data View"
-msgstr "Datum"
-
-#: src/ui/gui/psppire.glade:522
-msgid "Variable View"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:566
-msgid "PSPPire"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:567
-msgid "Free Software Foundation"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:568
-msgid "This is pre-alpha software.  It probably will not work."
-msgstr "Diese Software ist vor-Alpha.  Wahrscheinlich Funktioniert es nicht."
-
-#: src/ui/gui/psppire.glade:569
-msgid ""
-"    This program is free software; you can redistribute it and/or modify\n"
-"    it under the terms of the GNU General Public License as published by\n"
-"    the Free Software Foundation; either version 2 of the License, or\n"
-"    (at your option) any later version.\n"
-"\n"
-"    This program is distributed in the hope that it will be useful,\n"
-"    but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"    GNU General Public License for more details.\n"
-"\n"
-"    You should have received a copy of the GNU General Public License\n"
-"    along with this program; if not, write to the Free Software\n"
-"    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA\n"
-"    02110-1301, USA.\n"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:587
-msgid "translator-credits"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:593
-msgid "Variable Type"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:684
-msgid "Scientific notation"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:744
-msgid "Custom currency"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:889
-msgid "positive"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:914
-msgid "negative"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:943
-#, fuzzy
-msgid "Sample"
-msgstr "Name"
-
-#: src/ui/gui/psppire.glade:1021
-msgid "Decimal Places:"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1098
-#, fuzzy
-msgid "Width:"
-msgstr "Große:"
-
-#: src/ui/gui/psppire.glade:1316
-msgid "Value:"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1344
-msgid "Value Label:"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1560
-#, fuzzy
-msgid "Missing Values"
-msgstr "Löse"
-
-#: src/ui/gui/psppire.glade:1645
-msgid "_No missing values"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1670
-msgid "_Discrete missing values"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1799
-msgid "_Range plus one optional discrete missing value"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1836
-msgid "_Low:"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1895
-msgid "_High:"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1969
-msgid "Di_screte value:"
-msgstr ""
+msgstr "Skalwert"
 
 #: src/ui/terminal/command-line.c:214
 #, c-format
@@ -4639,8 +4639,8 @@ msgstr ""
 
 #: src/ui/terminal/msg-ui.c:115
 msgid "error"
-msgstr ""
+msgstr "Fehler"
 
 #: src/ui/terminal/msg-ui.c:116
 msgid "warning"
-msgstr ""
+msgstr "Warnung"

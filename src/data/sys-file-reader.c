@@ -515,7 +515,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 			   ! alignment_is_valid(params.align))
 			{
 			  msg(MW, 
-			      _("Invalid variable display parameters.  Default parameters substituted."), 
+			      _("%s: Invalid variable display parameters.  Default parameters substituted."), 
 			      fh_get_file_name(r->fh));
 			  continue;
 			}

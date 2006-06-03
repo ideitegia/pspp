@@ -54,6 +54,26 @@ PsppireDataStore *data_store = 0;
 static bool parse_command_line (int *argc, char ***argv, 
 				gchar **filename, GError **err);
 
+
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+static void
+give_help(void)
+{
+  static struct msg m = {
+    MSG_GENERAL, 
+    MSG_NOTE,
+    {0, -1},
+    0, 
+  };
+
+  if (! m.text) 
+    m.text=g_strdup(_("Sorry. The help system hasn't yet been implemented."));
+
+  popup_message(&m);
+}
+
 int 
 main(int argc, char *argv[]) 
 {
@@ -129,6 +149,15 @@ main(int argc, char *argv[])
 
   var_data_selection_init();
 
+  {
+  GList *helps = glade_xml_get_widget_prefix(xml, "help_button_");
+
+  GList *i;
+  for ( i = g_list_first(helps); i ; i = g_list_next(i))
+      g_signal_connect(GTK_WIDGET(i->data), "clicked", give_help, 0);
+  }
+
+
   /* start the event loop */
   gtk_main();
 
@@ -183,3 +212,5 @@ parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
 
   return true;
 }
+
+

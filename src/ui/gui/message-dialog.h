@@ -26,5 +26,6 @@
 
 void message_dialog_init (void);
 void message_dialog_done (void);
+void popup_message(const struct msg *m);
 
 #endif
