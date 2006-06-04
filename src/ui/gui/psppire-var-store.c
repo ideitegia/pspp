@@ -64,6 +64,10 @@ static gboolean psppire_var_store_set_string(GSheetModel *model,
 static gchar *text_for_column(const struct PsppireVariable *pv, gint c, GError **err);
 
 
+static void psppire_var_store_sheet_row_init (GSheetRowIface *iface);
+
+
+
 static GObjectClass *parent_class = NULL;
 
 GType
@@ -93,12 +97,24 @@ psppire_var_store_get_type (void)
 	NULL
       };
 
-      var_store_type = g_type_register_static (G_TYPE_OBJECT, "PsppireVarStore",
-						&var_store_info, 0);
+      static const GInterfaceInfo sheet_row_info =
+      {
+	(GInterfaceInitFunc) psppire_var_store_sheet_row_init,
+	NULL,
+	NULL
+      };
+
+      var_store_type = g_type_register_static (G_TYPE_OBJECT, "PsppireVarStore", &var_store_info, 0);
 
       g_type_add_interface_static (var_store_type,
 				   G_TYPE_SHEET_MODEL,
 				   &sheet_model_info);
+
+      g_type_add_interface_static (var_store_type,
+				   G_TYPE_SHEET_ROW,
+				   &sheet_row_info);
+
+
     }
 
   return var_store_type;
@@ -496,7 +512,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, "%d", write_spec->w);
+	g_string_printf(gstr, _("%d"), write_spec->w);
 	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
 	g_string_free(gstr, TRUE);
 	return s;
@@ -506,7 +522,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, "%d", write_spec->d);
+	g_string_printf(gstr, _("%d"), write_spec->d);
 	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
 	g_string_free(gstr, TRUE);
 	return s;
@@ -516,7 +532,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, "%d", psppire_variable_get_columns(pv));
+	g_string_printf(gstr, _("%d"), psppire_variable_get_columns(pv));
 	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
 	g_string_free(gstr, TRUE);
 	return s;
@@ -621,7 +637,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 	const gint align = psppire_variable_get_alignment(pv);
 
 	g_assert(align < n_ALIGNMENTS);
-	return g_locale_to_utf8(gettext(alignments[align]),-1, -0, 0, err);
+	return g_locale_to_utf8(gettext(alignments[align]), -1, 0, 0, err);
       }
       break;
     case COL_MEASURE:
@@ -629,7 +645,7 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 	const gint measure = psppire_variable_get_measure(pv);
 
 	g_assert(measure < n_MEASURES);
-	return g_locale_to_utf8(gettext(measures[measure]), -1, -0, 0, err);
+	return g_locale_to_utf8(gettext(measures[measure]), -1, 0, 0, err);
       }
       break;
     }
@@ -659,4 +675,48 @@ psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *f
 
 
 
+/* Row related funcs */
 
+static gint
+geometry_get_row_count(const GSheetRow *geom)
+{
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
+
+  return psppire_dict_get_var_cnt(vs->dict)+ 40;
+}
+
+
+static gint
+geometry_get_height(const GSheetRow *geom)
+{
+  return 25;
+}
+
+
+static
+gboolean always_true()
+{
+  return TRUE;
+}
+
+
+static const gchar *
+geometry_get_button_label(const GSheetRow *geom, gint unit)
+{
+  gchar *label = g_strdup_printf(_("%d"), unit);
+  
+  return label;
+}
+
+
+static void
+psppire_var_store_sheet_row_init (GSheetRowIface *iface)
+{
+  iface->get_row_count =     geometry_get_row_count;
+  iface->get_height =        geometry_get_height;
+  iface->set_height =        0;
+  iface->get_visibility =    always_true;
+  iface->get_sensitivity =   always_true;
+
+  iface->get_button_label = geometry_get_button_label;
+}

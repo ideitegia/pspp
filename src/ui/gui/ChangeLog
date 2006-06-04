@@ -1,5 +1,9 @@
-   
-Tue May 30 19:53:35 WST 2006 John Darringotn <john@darrington.wattle.id.au>
+Sun Jun  4 15:50:28 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * psppire-var-store.c, psppire.c, var-sheet.c :  Unlimited the number of 
+   variables that can be displayed. Minor i18n issues.
+
+Tue May 30 19:53:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * menu-actions.c menu-actions.h psppire.c: Fixed up load/new 
    interactions with startup.

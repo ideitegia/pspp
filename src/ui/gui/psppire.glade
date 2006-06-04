@@ -584,7 +584,7 @@
   <property name="website">http://www.gnu.org/software/pspp</property>
   <property name="authors">John Darrington</property>
   <property name="artists">Patrick Brunier</property>
-  <property name="translator_credits" translatable="yes" comments="TRANSLATORS: Replace this string with your names, one name per line.">translator-credits</property>
+  <property name="translator_credits" translatable="no" comments="TRANSLATORS: Replace this string with your names, one name per line.">translator-credits</property>
   <property name="logo">pspplogo.png</property>
 </widget>
 

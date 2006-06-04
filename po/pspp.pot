@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-06-03 10:37+0800\n"
+"POT-Creation-Date: 2006-06-04 13:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -389,13 +389,13 @@ msgstr ""
 
 #: src/data/format.c:197 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:1265 src/data/sys-file-reader.c:1274
-#: src/ui/gui/psppire.glade:764 src/ui/gui/psppire-var-store.c:432
+#: src/ui/gui/psppire.glade:764 src/ui/gui/psppire-var-store.c:448
 msgid "String"
 msgstr ""
 
 #: src/data/format.c:197 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:1265 src/data/sys-file-reader.c:1274
-#: src/ui/gui/psppire.glade:625 src/ui/gui/psppire-var-store.c:425
+#: src/ui/gui/psppire.glade:625 src/ui/gui/psppire-var-store.c:441
 msgid "Numeric"
 msgstr ""
 
@@ -1224,7 +1224,7 @@ msgid "Record"
 msgstr ""
 
 #: src/language/data-io/data-list.c:768 src/language/data-io/print.c:804
-#: src/ui/gui/var-sheet.c:77
+#: src/ui/gui/var-sheet.c:78
 msgid "Columns"
 msgstr ""
 
@@ -1936,7 +1936,7 @@ msgstr ""
 
 #: src/language/dictionary/split-file.c:85
 #: src/language/dictionary/sys-file-info.c:384
-#: src/language/dictionary/sys-file-info.c:523 src/ui/gui/var-sheet.c:74
+#: src/language/dictionary/sys-file-info.c:523 src/ui/gui/var-sheet.c:75
 msgid "Label"
 msgstr ""
 
@@ -2653,7 +2653,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:818 src/language/stats/examine.q:869
 #: src/language/stats/frequencies.q:1215 src/language/stats/frequencies.q:1521
-#: src/ui/gui/var-sheet.c:76
+#: src/ui/gui/var-sheet.c:77
 msgid "Missing"
 msgstr ""
 
@@ -2781,7 +2781,7 @@ msgstr ""
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1181 src/ui/gui/var-sheet.c:71
+#: src/language/stats/crosstabs.q:1181 src/ui/gui/var-sheet.c:72
 msgid "Type"
 msgstr ""
 
@@ -4312,7 +4312,7 @@ msgstr ""
 msgid "Incorrect range specification"
 msgstr ""
 
-#: src/ui/gui/psppire.c:72
+#: src/ui/gui/psppire.c:70
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr ""
 
@@ -4411,19 +4411,15 @@ msgid ""
 "    02110-1301, USA.\n"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:587
-msgid "translator-credits"
-msgstr ""
-
 #: src/ui/gui/psppire.glade:593
 msgid "Variable Type"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:644 src/ui/gui/psppire-var-store.c:426
+#: src/ui/gui/psppire.glade:644 src/ui/gui/psppire-var-store.c:442
 msgid "Comma"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:664 src/ui/gui/psppire-var-store.c:427
+#: src/ui/gui/psppire.glade:664 src/ui/gui/psppire-var-store.c:443
 msgid "Dot"
 msgstr ""
 
@@ -4431,11 +4427,11 @@ msgstr ""
 msgid "Scientific notation"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:704 src/ui/gui/psppire-var-store.c:429
+#: src/ui/gui/psppire.glade:704 src/ui/gui/psppire-var-store.c:445
 msgid "Date"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:724 src/ui/gui/psppire-var-store.c:430
+#: src/ui/gui/psppire.glade:724 src/ui/gui/psppire-var-store.c:446
 msgid "Dollar"
 msgstr ""
 
@@ -4499,63 +4495,69 @@ msgstr ""
 msgid "Di_screte value:"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:421
+#: src/ui/gui/psppire-var-store.c:437
 msgid "None"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:428
+#: src/ui/gui/psppire-var-store.c:444
 msgid "Scientific"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:431
+#: src/ui/gui/psppire-var-store.c:447
 msgid "Custom"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:70
+#: src/ui/gui/psppire-var-store.c:515 src/ui/gui/psppire-var-store.c:525
+#: src/ui/gui/psppire-var-store.c:535 src/ui/gui/psppire-var-store.c:706
+#, c-format
+msgid "%d"
+msgstr ""
+
+#: src/ui/gui/var-sheet.c:71
 msgid "Name"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:72
+#: src/ui/gui/var-sheet.c:73
 msgid "Width"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:73
+#: src/ui/gui/var-sheet.c:74
 msgid "Decimals"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:75
+#: src/ui/gui/var-sheet.c:76
 msgid "Values"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:78
+#: src/ui/gui/var-sheet.c:79
 msgid "Align"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:79
+#: src/ui/gui/var-sheet.c:80
 msgid "Measure"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:102
+#: src/ui/gui/var-sheet.c:103
 msgid "Left"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:103
+#: src/ui/gui/var-sheet.c:104
 msgid "Right"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:104
+#: src/ui/gui/var-sheet.c:105
 msgid "Centre"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:109
+#: src/ui/gui/var-sheet.c:110
 msgid "Nominal"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:110
+#: src/ui/gui/var-sheet.c:111
 msgid "Ordinal"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:111
+#: src/ui/gui/var-sheet.c:112
 msgid "Scale"
 msgstr ""
 

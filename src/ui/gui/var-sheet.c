@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <langinfo.h>
 
 #include <data/value.h>
 
@@ -409,6 +410,8 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 }
 
 
+extern PsppireVarStore *var_store;
+
 
 /* Create the var sheet */
 GtkWidget*
@@ -417,15 +420,13 @@ psppire_variable_sheet_create (gchar *widget_name,
 			       gchar *string2,
 			       gint int1, gint int2)
 {
+  gchar *codeset;
   gint i;
   GtkWidget *sheet;
 
   GObject *geo = g_sheet_hetero_column_new(75, n_COLS);
-  GObject *row_geometry = g_sheet_uniform_row_new(25, n_initial_rows); 
 
-
-
-  sheet = gtk_sheet_new(G_SHEET_ROW(row_geometry),
+  sheet = gtk_sheet_new(G_SHEET_ROW(var_store),
 			G_SHEET_COLUMN(geo), 
 			"variable sheet", 0); 
 
@@ -445,14 +446,19 @@ psppire_variable_sheet_create (gchar *widget_name,
 		    GTK_SIGNAL_FUNC (click2row),
 		    sheet);
 
+  /* Since this happens inside glade_xml_new, we must prevent strings from 
+   * being re-encoded twice */
+  codeset = bind_textdomain_codeset(PACKAGE, 0);
+  bind_textdomain_codeset(PACKAGE, nl_langinfo(CODESET));
   for (i = 0 ; i < n_COLS ; ++i ) 
     {
       g_sheet_hetero_column_set_button_label(G_SHEET_HETERO_COLUMN(geo), i, 
-					       gettext(column_def[i].label));
-
+		      	gettext(column_def[i].label));
+      
       g_sheet_hetero_column_set_width(G_SHEET_HETERO_COLUMN(geo), i, 
 					       column_def[i].width);
     }
+  bind_textdomain_codeset(PACKAGE, codeset);
 
   gtk_widget_show(sheet);
 

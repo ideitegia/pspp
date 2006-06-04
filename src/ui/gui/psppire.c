@@ -18,7 +18,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-
 #include <assert.h>
 #include <libintl.h>
 
@@ -34,7 +33,6 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
-
 #include "helper.h"
 #include "data-sheet.h"
 #include "var-sheet.h"
@@ -74,10 +72,12 @@ give_help(void)
   popup_message(&m);
 }
 
+PsppireVarStore *var_store = 0;
+
 int 
 main(int argc, char *argv[]) 
 {
-  PsppireVarStore *var_store ;
+
   GtkWidget *data_editor ;
   GtkSheet *var_sheet ; 
   GtkSheet *data_sheet ;
@@ -92,6 +92,7 @@ main(int argc, char *argv[])
   setlocale (LC_NUMERIC, "C");
 
   bindtextdomain (PACKAGE, locale_dir);
+
   textdomain (PACKAGE);
 
   if ( ! parse_command_line(&argc, &argv, &filename, &err) ) 
@@ -100,12 +101,11 @@ main(int argc, char *argv[])
       return 1;
     }
 
+
   glade_init();
 
 
   settings_init();
-
-  
 
   /* 
   set_pspp_locale("da_DK");
@@ -114,6 +114,8 @@ main(int argc, char *argv[])
   message_dialog_init();
 
   the_dictionary = psppire_dict_new();
+
+  bind_textdomain_codeset(PACKAGE, "UTF-8");
 
   /* Create the model for the var_sheet */
   var_store = psppire_var_store_new(the_dictionary);
