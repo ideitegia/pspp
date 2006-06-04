@@ -48,17 +48,16 @@ get_mean_variance (size_t n_vars, const struct casefile *cf,
 {
   struct casereader *r;
   struct ccase *c;
+  struct ccase *c2;
   size_t n;
   double *x;
   double d;
   double tmp;
   double variance;
 
-  x = xnmalloc (n_vars, sizeof *j);
-  
   for (n = 0; n < n_vars; n++)
     {
-      x[n] = 2.0;
+      est[n]->n_obs = 2.0;
       est[n]->mean = 0.0;
       est[n]->variance = 0.0;
     }
@@ -70,22 +69,113 @@ get_mean_variance (size_t n_vars, const struct casefile *cf,
 	  if (!mv_is_value_missing (&v->miss, val))
 	    {
 	      tmp = case_data (&c, est[n]->variable->fv);
-	      d = (tmp - est[n]->mean) / x[n];
+	      d = (tmp - est[n]->mean) / est[n]->n_obs;
 	      est[n]->mean += d;
-	      est[n]->variance += x[n] * x[n] * d * d;
-	      x[n] += 1.0;
+	      est[n]->variance += est[n]->n_obs * est[n]->n_obs * d * d;
+	      est[n]->n_obs += 1.0;
 	    }
 	}
     }
   for (n = 0; n < n_vars; n++)
     {
-      est[n]->variance /= x[n];
+      /* Maximum likelihood estimate of the variance. */
+      est[n]->variance /= est[n]->n_obs;
     }
-  free (x);
+}
+
+/*
+  Read the first MAX_LAG cases.
+ */
+static bool
+innovations_init_cases (struct casereader *r, struct ccase **c, size_t max_lag)
+{
+  bool value = true;
+  size_t lag = 0;
+
+  while (value)
+    {
+      lag++;
+      value = casereader_read (r, c + lag);
+    }
+  return value;
+}
+
+/*
+  Read one case and update C, which contains the last MAX_LAG cases.
+ */
+static bool
+innovations_update_cases (struct casereader *r, struct ccase **c, size_t max_lag)
+{
+  size_t lag;
+  bool value = false;
+  
+  for (lag = 0; lag < max_lag - 1; lag++)
+    {
+      c[lag] = c[lag+1];
+    }
+  value = casereader_read (r, c + lag);
+  return value;
+}
+static void
+get_covariance (size_t n_vars, const struct casefile *cf, 
+		struct innovations **est, size_t max_lag)
+{
+  struct casereader *r;
+  struct ccase **c;
+  struct ccase *cur_case;
+  size_t lag;
+  size_t n_vars;
+  bool read_case = false;
+  double d;
+  double tmp;
+
+  c = xnmalloc (max_lag, sizeof (*c));
+  
+  for (lag = 0; lag < max_lag; lag++)
+    {
+      c[lag] = xmalloc (sizeof *c[i]);
+    }
+
+  r = casefile_get_reader (cf);
+  read_case = innovations_init_cases (r, c, max_lag);
+
+  while (read_case)
+    {
+      for (n = 0; n < n_vars; n++)
+	{
+	  cur_case = case_data (c[0], est[n]->variable->fv);
+	  if (!mv_is_value_missing (&est[n]->variable->miss, cur_case))
+	    {
+	      cur_case -= est[n]->mean;
+	      for (lag = 1; lag <= max_lag; lag++)
+		{
+		  tmp = case_data (c[lag], est[n]->variable->fv);
+		  if (!mv_is_value_missing (&est[n]->variable->miss, tmp))
+		    {
+		      d = (tmp - est[n]->mean);
+		      *(est[n]->cov + lag) += d * cur_case;
+		    }
+		}
+	    }
+	}
+      read_case = innovations_update_cases (r, c, max_lag);
+    }
+  for (lag = 0; lag <= max_lag; lag++)
+    {
+      for (n = 0; n < n_vars; n++)
+	{
+	  *(est[n]->cov + lag) /= (est[n]->n_obs - lag);
+	}
+    }
+  for (lag = 0; lag < max_lag; lag++)
+    {
+      free (c[lag]);
+    }
+  free (c);
 }
 
 struct innovations_estimate ** pspp_innovations (const struct variable **vars, size_t *n_vars,
-						 size_t max_lag, const struct casefile *cf)
+						 size_t lag, const struct casefile *cf)
 {
   struct innovations_estimate **est;
   struct casereader *r;
@@ -101,9 +191,9 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
 	  est[i]->variable = vars[i];
 	  est[i]->mean = 0.0;
 	  est[i]->variance = 0.0;
-	  est[i]->cov = gsl_matrix_calloc (max_lag, max_lag);
-	  est[i]->coeff = xnmalloc (max_lag, sizeof (*est[i]->coeff));
-	  for (j = 0; j < max_lag; j++)
+	  est[i]->cov = gsl_matrix_calloc (lag, lag);
+	  est[i]->coeff = xnmalloc (lag, sizeof (*est[i]->coeff));
+	  for (j = 0; j < lag; j++)
 	    {
 	      est[i]->coeff + j = xmalloc (sizeof (*(est[i]->coeff + j)));
 	    }
@@ -120,4 +210,5 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
     First data pass to get the mean and variance.
    */
   get_mean_variance (*n_vars, cf, est);
+  get_covariance (*n_vars, cf, est, lag);
 }
