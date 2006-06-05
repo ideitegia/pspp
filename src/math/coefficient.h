@@ -64,7 +64,7 @@ struct pspp_coeff
 				   interaction terms will have more than one
 				   variable. */
 };
-
+typedef struct pspp_coeff coefficient;
 
 void pspp_coeff_free (struct pspp_coeff *);
 
