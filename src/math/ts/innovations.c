@@ -38,6 +38,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <math/coefficient.h>
+#include <math/innovations.h>
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 
@@ -191,7 +192,7 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
 	  est[i]->variable = vars[i];
 	  est[i]->mean = 0.0;
 	  est[i]->variance = 0.0;
-	  est[i]->cov = gsl_matrix_calloc (lag, lag);
+	  est[i]->cov = xnmalloc (lag, sizeof (est[i]->cov));
 	  est[i]->coeff = xnmalloc (lag, sizeof (*est[i]->coeff));
 	  for (j = 0; j < lag; j++)
 	    {
