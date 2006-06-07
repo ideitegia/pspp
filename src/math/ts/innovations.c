@@ -88,10 +88,10 @@ innovations_init_cases (struct casereader *r, struct ccase **c, size_t max_lag)
   bool value = true;
   size_t lag = 0;
 
-  while (value)
+  while (value && lag < max_lag)
     {
       lag++;
-      value = casereader_read (r, c + lag);
+      value = casereader_read (r, c[lag]);
     }
   return value;
 }
@@ -109,27 +109,28 @@ innovations_update_cases (struct casereader *r, struct ccase **c, size_t max_lag
     {
       c[lag] = c[lag+1];
     }
-  value = casereader_read (r, c + lag);
+  value = casereader_read (r, c[lag]);
   return value;
 }
 static void
 get_covariance (size_t n_vars, const struct casefile *cf, 
-		struct innovations **est, size_t max_lag)
+		struct innovations_estimate **est, size_t max_lag)
 {
   struct casereader *r;
   struct ccase **c;
-  struct ccase *cur_case;
   size_t lag;
-  size_t n_vars;
+  size_t n;
   bool read_case = false;
   double d;
-  double tmp;
+  double x;
+  const union value *tmp;
+  const union value *tmp2;
 
   c = xnmalloc (max_lag, sizeof (*c));
   
   for (lag = 0; lag < max_lag; lag++)
     {
-      c[lag] = xmalloc (sizeof *c[i]);
+      c[lag] = xmalloc (sizeof *c[lag]);
     }
 
   r = casefile_get_reader (cf);
@@ -139,17 +140,17 @@ get_covariance (size_t n_vars, const struct casefile *cf,
     {
       for (n = 0; n < n_vars; n++)
 	{
-	  cur_case = case_data (c[0], est[n]->variable->fv);
-	  if (!mv_is_value_missing (&est[n]->variable->miss, cur_case))
+	  tmp2 = case_data (c[0], est[n]->variable->fv);
+	  if (!mv_is_value_missing (&est[n]->variable->miss, tmp2))
 	    {
-	      cur_case -= est[n]->mean;
+	      x = tmp2->f - est[n]->mean;
 	      for (lag = 1; lag <= max_lag; lag++)
 		{
 		  tmp = case_data (c[lag], est[n]->variable->fv);
 		  if (!mv_is_value_missing (&est[n]->variable->miss, tmp))
 		    {
-		      d = (tmp - est[n]->mean);
-		      *(est[n]->cov + lag) += d * cur_case;
+		      d = (tmp->f - est[n]->mean);
+		      *(est[n]->cov + lag) += d * x;
 		    }
 		}
 	    }
@@ -174,8 +175,6 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
 						 size_t lag, const struct casefile *cf)
 {
   struct innovations_estimate **est;
-  struct casereader *r;
-  struct ccase *c;
   size_t i;
   size_t j;
 
@@ -192,7 +191,7 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
 	  est[i]->coeff = xnmalloc (lag, sizeof (*est[i]->coeff));
 	  for (j = 0; j < lag; j++)
 	    {
-	      est[i]->coeff + j = xmalloc (sizeof (*(est[i]->coeff + j)));
+	      est[i]->coeff[j] = xmalloc (sizeof (*(est[i]->coeff + j)));
 	    }
 	}
       else
@@ -208,4 +207,6 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
    */
   get_mean_variance (*n_vars, cf, est);
   get_covariance (*n_vars, cf, est, lag);
+  
+  return est;
 }

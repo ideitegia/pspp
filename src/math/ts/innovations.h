@@ -32,12 +32,14 @@
 #include <math/coefficient.h>
 struct innovations_estimate
 {
-  struct variable *variable;
+  const struct variable *variable;
   double mean;
   double variance;
   double *cov;
   double n_obs;
   double max_lag;
-  coefficient *coeff;
+  coefficient **coeff;
 };
+struct innovations_estimate ** pspp_innovations (const struct variable **, size_t *,
+						 size_t, const struct casefile *);
 #endif
