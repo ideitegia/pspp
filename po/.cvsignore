@@ -6,6 +6,7 @@ POTFILES
 POTFILES.in
 Rules-quot
 boldquot.sed
+de.gmo
 en@boldquot.header
 en@quot.header
 en_GB.gmo
