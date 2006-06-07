@@ -38,9 +38,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <math/coefficient.h>
-#include <math/innovations.h>
-#include <gettext.h>
-#define _(msgid) gettext (msgid)
+#include <math/ts/innovations.h>
 
 static void
 get_mean_variance (size_t n_vars, const struct casefile *cf,
@@ -48,13 +46,10 @@ get_mean_variance (size_t n_vars, const struct casefile *cf,
 		   
 {
   struct casereader *r;
-  struct ccase *c;
-  struct ccase *c2;
+  struct ccase c;
   size_t n;
-  double *x;
   double d;
-  double tmp;
-  double variance;
+  const union value *tmp;
 
   for (n = 0; n < n_vars; n++)
     {
@@ -67,10 +62,10 @@ get_mean_variance (size_t n_vars, const struct casefile *cf,
     {
       for (n = 0; n < n_vars; n++)
 	{
-	  if (!mv_is_value_missing (&v->miss, val))
+	  tmp = case_data (&c, est[n]->variable->fv);
+	  if (!mv_is_value_missing (&(est[n]->variable->miss), tmp))
 	    {
-	      tmp = case_data (&c, est[n]->variable->fv);
-	      d = (tmp - est[n]->mean) / est[n]->n_obs;
+	      d = (tmp->f - est[n]->mean) / est[n]->n_obs;
 	      est[n]->mean += d;
 	      est[n]->variance += est[n]->n_obs * est[n]->n_obs * d * d;
 	      est[n]->n_obs += 1.0;
@@ -182,6 +177,7 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
   struct casereader *r;
   struct ccase *c;
   size_t i;
+  size_t j;
 
   est = xnmalloc (*n_vars, sizeof *est);
   for (i = 0; i < *n_vars; i++)
@@ -202,8 +198,8 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
       else
 	{
 	  *n_vars--;
-	  msg (MW, _("Cannot compute autocovariance for a non-numeric variable %s"),
-		     var_to_string (vars[i]));
+/* 	  msg (MW, _("Cannot compute autocovariance for a non-numeric variable %s"), */
+/* 		     var_to_string (vars[i])); */
 	}
     }
 
