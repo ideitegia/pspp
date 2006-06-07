@@ -150,9 +150,12 @@ struct casereader
     struct casefile *cf;                /* Our casefile. */
     unsigned long case_idx;             /* Case number of current case. */
     bool destructive;                   /* Is this a destructive reader? */
+    bool random;                        /* Is this a random reader? */
 
     /* Disk storage. */
     int fd;                             /* File descriptor. */
+    off_t file_ofs;                     /* Current position in fd. */
+    off_t buffer_ofs;                   /* File offset of buffer start. */
     union value *buffer;                /* I/O buffer. */
     size_t buffer_pos;                  /* Offset of buffer position. */
     struct ccase c;                     /* Current case. */
@@ -174,10 +177,11 @@ static size_t case_bytes;
 static void register_atexit (void);
 static void exit_handler (void);
 
-static void reader_open_file (struct casereader *reader);
-static void write_case_to_disk (struct casefile *cf, const struct ccase *c);
-static void flush_buffer (struct casefile *cf);
-static bool fill_buffer (struct casereader *reader);
+static void reader_open_file (struct casereader *);
+static void write_case_to_disk (struct casefile *, const struct ccase *);
+static void flush_buffer (struct casefile *);
+static void seek_and_fill_buffer (struct casereader *);
+static bool fill_buffer (struct casereader *);
 
 static void io_error (struct casefile *, const char *, ...)
      PRINTF_FORMAT (2, 3);
@@ -423,8 +427,6 @@ flush_buffer (struct casefile *cf)
                        cf->buffer_size * sizeof *cf->buffer))
         io_error (cf, _("Error writing temporary file: %s."),
                   strerror (errno));
-
-
       cf->buffer_used = 0;
     }
 }
@@ -519,6 +521,7 @@ casefile_get_reader (const struct casefile *cf_)
   reader->cf = cf;
   reader->case_idx = 0;
   reader->destructive = 0;
+  reader->random = false;
   reader->fd = -1;
   reader->buffer = NULL;
   reader->buffer_pos = 0;
@@ -527,6 +530,17 @@ casefile_get_reader (const struct casefile *cf_)
   if (reader->cf->storage == DISK) 
     reader_open_file (reader);
 
+  return reader;
+}
+
+/* Creates and returns a random casereader for CF.  A random
+   casereader can be used to randomly read the cases in a
+   casefile. */
+struct casereader *
+casefile_get_random_reader (const struct casefile *cf) 
+{
+  struct casereader *reader = casefile_get_reader (cf);
+  reader->random = true;
   return reader;
 }
 
@@ -556,8 +570,6 @@ static void
 reader_open_file (struct casereader *reader) 
 {
   struct casefile *cf = reader->cf;
-  off_t file_ofs;
-
   if (!cf->ok || reader->case_idx >= cf->case_cnt)
     return;
 
@@ -585,24 +597,42 @@ reader_open_file (struct casereader *reader)
       memset (reader->buffer, 0, cf->buffer_size * sizeof *cf->buffer); 
     }
 
+  case_create (&reader->c, cf->value_cnt);
+
+  reader->buffer_ofs = -1;
+  reader->file_ofs = -1;
+  seek_and_fill_buffer (reader);
+}
+
+/* Seeks the backing file for READER to the proper position and
+   refreshes the buffer contents. */
+static void
+seek_and_fill_buffer (struct casereader *reader) 
+{
+  struct casefile *cf = reader->cf;
+  off_t new_ofs;
+
   if (cf->value_cnt != 0) 
     {
       size_t buffer_case_cnt = cf->buffer_size / cf->value_cnt;
-      file_ofs = ((off_t) reader->case_idx / buffer_case_cnt
+      new_ofs = ((off_t) reader->case_idx / buffer_case_cnt
                   * cf->buffer_size * sizeof *cf->buffer);
       reader->buffer_pos = (reader->case_idx % buffer_case_cnt
                             * cf->value_cnt);
     }
   else 
-    file_ofs = 0;
-  if (lseek (reader->fd, file_ofs, SEEK_SET) != file_ofs)
-    io_error (cf, _("%s: Seeking temporary file: %s."),
-              cf->file_name, strerror (errno));
+    new_ofs = 0;
+  if (new_ofs != reader->file_ofs) 
+    {
+      if (lseek (reader->fd, new_ofs, SEEK_SET) != new_ofs)
+        io_error (cf, _("%s: Seeking temporary file: %s."),
+                  cf->file_name, strerror (errno));
+      else
+        reader->file_ofs = new_ofs;
+    }
 
-  if (cf->case_cnt > 0 && cf->value_cnt > 0)
+  if (cf->case_cnt > 0 && cf->value_cnt > 0 && reader->buffer_ofs != new_ofs)
     fill_buffer (reader);
-
-  case_create (&reader->c, cf->value_cnt);
 }
 
 /* Fills READER's buffer by reading a block from disk. */
@@ -618,7 +648,12 @@ fill_buffer (struct casereader *reader)
                   reader->cf->file_name, strerror (errno));
       else if (bytes != reader->cf->buffer_size * sizeof *reader->buffer) 
         io_error (reader->cf, _("%s: Temporary file ended unexpectedly."),
-                  reader->cf->file_name); 
+                  reader->cf->file_name);
+      else 
+        {
+          reader->buffer_ofs = reader->file_ofs;
+          reader->file_ofs += bytes; 
+        }
     }
   return reader->cf->ok;
 }
@@ -694,6 +729,21 @@ casereader_read_xfer (struct casereader *reader, struct ccase *c)
       reader->case_idx++;
       return true;
     }
+}
+
+/* Sets the next case to be read by READER to CASE_IDX,
+   which must be less than the number of cases in the casefile.
+   Allowed only for random readers. */
+void
+casereader_seek (struct casereader *reader, unsigned long case_idx) 
+{
+  assert (reader != NULL);
+  assert (reader->random);
+  assert (case_idx < reader->cf->case_cnt);
+
+  reader->case_idx = case_idx;
+  if (reader->cf->storage == DISK)
+    seek_and_fill_buffer (reader);
 }
 
 /* Destroys READER. */

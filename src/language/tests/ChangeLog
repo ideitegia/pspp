@@ -1,3 +1,8 @@
+Tue Jun  6 18:48:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	* casefile-test.c: (test_casefile) Test the new casereader_seek()
+	function.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

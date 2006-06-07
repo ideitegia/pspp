@@ -44,11 +44,14 @@ bool casefile_append_xfer (struct casefile *, struct ccase *);
 void casefile_mode_reader (struct casefile *);
 struct casereader *casefile_get_reader (const struct casefile *);
 struct casereader *casefile_get_destructive_reader (struct casefile *);
+struct casereader *casefile_get_random_reader (const struct casefile *);
 
 const struct casefile *casereader_get_casefile (const struct casereader *);
 bool casereader_read (struct casereader *, struct ccase *);
 bool casereader_read_xfer (struct casereader *, struct ccase *);
 void casereader_destroy (struct casereader *);
+
+void casereader_seek (struct casereader *, unsigned long case_idx);
 
 unsigned long casereader_cnum(const struct casereader *);
 

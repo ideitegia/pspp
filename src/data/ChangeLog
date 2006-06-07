@@ -1,3 +1,15 @@
+Tue Jun  6 18:46:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	Implement random access to casefiles, for use in GUI.
+	
+	* casefile.c: (struct casereader) Add `random', `file_ofs',
+	`buffer_ofs' members.
+	(casefile_get_random_reader) New function.
+	(read_open_file) Break part into new function
+	seek_and_fill_buffer().
+	(fill_buffer) Update buffer_ofs, file_ofs.
+	(casereader_seek) New function.
+
 Tue May 30 19:52:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* settings.c: Added call to i18n{done, init}.
