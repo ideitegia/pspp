@@ -66,10 +66,10 @@
           during the reading phase.  Each casereader has an
           independent position in the casefile.
 
-          Casereaders may only move forward.  They cannot move
-          backward to arbitrary records or seek randomly.
-          Cloning casereaders is possible, but it is not yet
-          implemented.
+          Ordinary casereaders may only move forward.  They
+          cannot move backward to arbitrary records or seek
+          randomly.  Cloning casereaders is possible, but it is
+          not yet implemented.
 
           Use casefile_get_reader() to create a casereader for
           use in phase 2.  This also transitions from phase 1 to
@@ -79,6 +79,12 @@
           Use casereader_read() or casereader_read_xfer() to read
           a case from a casereader.  Use casereader_destroy() to
           discard a casereader when it is no longer needed.
+
+          "Random" casereaders, which support a seek operation,
+          may also be created.  These should not, generally, be
+          used for statistical procedures, because random access
+          is much slower than sequential access.  They are
+          intended for use by the GUI.
 
        3. Destruction.  This phase is optional.  The casefile is
           also read with casereaders in this phase, but the
