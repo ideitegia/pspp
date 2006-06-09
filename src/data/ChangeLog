@@ -1,3 +1,8 @@
+Fri Jun  9 12:11:24 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format.c (measure_is_valid): Really return false when m >=
+	n_MEASURES.
+
 Tue Jun  6 18:46:26 2006  Ben Pfaff  <blp@gnu.org>
 
 	Implement random access to casefiles, for use in GUI.

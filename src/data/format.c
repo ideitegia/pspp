@@ -378,7 +378,7 @@ bool
 measure_is_valid(enum measure m)
 {
   if ( m <= 0 ) return false;
-  if ( m >= n_MEASURES) false;
+  if ( m >= n_MEASURES) return false;
   return true;
 }
 
