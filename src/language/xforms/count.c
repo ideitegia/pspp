@@ -254,7 +254,7 @@ parse_string_criteria (struct pool *pool, struct criteria *crit)
 	return false;
       cur = &crit->values.str[crit->value_cnt++];
       *cur = pool_alloc (pool, len + 1);
-      str_copy_rpad (*cur, len + 1, ds_c_str (&tokstr));
+      str_copy_rpad (*cur, len + 1, ds_cstr (&tokstr));
       lex_get ();
 
       lex_match (',');

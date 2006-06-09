@@ -54,18 +54,18 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
   if (i->flags & DI_IGNORE_ERROR)
     return;
 
-  ds_init (&text);
+  ds_init_empty (&text);
   if (i->f1 == i->f2)
-    ds_printf (&text, _("(column %d"), i->f1);
+    ds_put_format (&text, _("(column %d"), i->f1);
   else
-    ds_printf (&text, _("(columns %d-%d"), i->f1, i->f2);
-  ds_printf (&text, _(", field type %s) "), fmt_to_string (&i->format));
-  ds_vprintf (&text, format, args);
+    ds_put_format (&text, _("(columns %d-%d"), i->f1, i->f2);
+  ds_put_format (&text, _(", field type %s) "), fmt_to_string (&i->format));
+  ds_put_vformat (&text, format, args);
 
   m.category = MSG_DATA;
   m.severity = MSG_ERROR;
   msg_location (&m.where);
-  m.text = ds_c_str (&text);
+  m.text = ds_cstr (&text);
 
   msg_emit (&m);
 }

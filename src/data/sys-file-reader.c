@@ -134,16 +134,16 @@ corrupt_msg (int class, const char *format,...)
   va_list args;
   struct string text;
 
-  ds_create (&text, _("corrupt system file: "));
+  ds_init_cstr (&text, _("corrupt system file: "));
   va_start (args, format);
-  ds_vprintf (&text, format, args);
+  ds_put_vformat (&text, format, args);
   va_end (args);
 
   m.category = msg_class_to_category (class);
   m.severity = msg_class_to_severity (class);
   m.where.file_name = NULL;
   m.where.line_number = 0;
-  m.text = ds_c_str (&text);
+  m.text = ds_cstr (&text);
 
   msg_emit (&m);
 }

@@ -122,7 +122,7 @@ static bool handle_option (struct outp_driver *this, const char *key,
                            const struct string *val);
 
 static bool
-ascii_open_driver (struct outp_driver *this, const struct string *options)
+ascii_open_driver (struct outp_driver *this, struct substring options)
 {
   struct ascii_driver_ext *x;
   int i;
@@ -274,7 +274,7 @@ handle_option (struct outp_driver *this, const char *key,
   int subcat;
   const char *value;
 
-  value = ds_c_str (val);
+  value = ds_cstr (val);
   if (!strncmp (key, "box[", 4))
     {
       char *tail;
@@ -537,7 +537,7 @@ delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
   int max_width;
   int height_left;
 
-  const char *cp = ls_c_str (&text->string);
+  const char *cp = ss_data (text->string);
 
   max_width = 0;
   height_left = text->v;
@@ -549,7 +549,7 @@ delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
       const char *end;
 
       /* Initially the line is up to text->h characters long. */
-      chars_left = ls_end (&text->string) - cp;
+      chars_left = ss_end (text->string) - cp;
       if (chars_left == 0)
         break;
       line_len = MIN (chars_left, text->h);
@@ -560,7 +560,7 @@ delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
         line_len = end - cp;
 
       /* Don't cut off words if it can be avoided. */
-      if (cp + line_len < ls_end (&text->string)) 
+      if (cp + line_len < ss_end (text->string)) 
         {
           size_t space_len = line_len;
           while (space_len > 0 && !isspace ((unsigned char) cp[space_len]))
@@ -584,7 +584,7 @@ delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
 
       /* Next line. */
       cp += line_len;
-      if (cp < ls_end (&text->string) && isspace ((unsigned char) *cp))
+      if (cp < ss_end (text->string) && isspace ((unsigned char) *cp))
         cp++;
     }
 
@@ -622,20 +622,20 @@ output_line (struct outp_driver *this, const struct line *line,
 
   for (length = line->char_cnt; length-- > 0; s++)
     if (*s & ATTR_BOX)
-      ds_puts (out, ext->box[*s & 0xff]);
+      ds_put_cstr (out, ext->box[*s & 0xff]);
     else
       {
         if (*s & ATTR_EMPHASIS) 
           {
             if (ext->emphasis == EMPH_BOLD)
               {
-                ds_putc (out, *s);
-                ds_putc (out, '\b'); 
+                ds_put_char (out, *s);
+                ds_put_char (out, '\b'); 
               }
             else if (ext->emphasis == EMPH_UNDERLINE)
-              ds_puts (out, "_\b"); 
+              ds_put_cstr (out, "_\b"); 
           }
-        ds_putc (out, *s);
+        ds_put_char (out, *s);
       }
 }
 
@@ -643,7 +643,7 @@ static void
 append_lr_justified (struct string *out, int width,
                      const char *left, const char *right)
 {
-  ds_putc_multiple (out, ' ', width);
+  ds_put_char_multiple (out, ' ', width);
   if (left != NULL) 
     {
       size_t length = MIN (strlen (left), width);
@@ -654,7 +654,7 @@ append_lr_justified (struct string *out, int width,
       size_t length = MIN (strlen (right), width);
       memcpy (ds_end (out) - length, right, length);
     }
-  ds_putc (out, '\n');
+  ds_put_char (out, '\n');
 }
 
 static void
@@ -672,9 +672,9 @@ ascii_close_page (struct outp_driver *this)
   struct string out;
   int line_num;
  
-  ds_init (&out);
+  ds_init_empty (&out);
  
-  ds_putc_multiple (&out, '\n', x->top_margin);
+  ds_put_char_multiple (&out, '\n', x->top_margin);
   if (x->headers)
     {
       char *r1, *r2;
@@ -684,7 +684,7 @@ ascii_close_page (struct outp_driver *this)
  
       append_lr_justified (&out, this->width, outp_title, r1);
       append_lr_justified (&out, this->width, outp_subtitle, r2);
-      ds_putc (&out, '\n');
+      ds_put_char (&out, '\n');
  
       free (r1);
       free (r2);
@@ -708,13 +708,13 @@ ascii_close_page (struct outp_driver *this)
  
       if (line_num < x->line_cap) 
         output_line (this, &x->lines[line_num], &out); 
-      ds_putc (&out, '\n');
+      ds_put_char (&out, '\n');
       dump_output (this, &out);
     }
  
-  ds_putc_multiple (&out, '\n', x->bottom_margin);
+  ds_put_char_multiple (&out, '\n', x->bottom_margin);
   if (x->paginate) 
-    ds_putc (&out, '\f');
+    ds_put_char (&out, '\f');
 
   dump_output (this, &out);
   ds_destroy (&out);

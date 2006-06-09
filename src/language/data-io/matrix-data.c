@@ -42,6 +42,8 @@
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
+#include "size_max.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -769,38 +771,25 @@ mget_token_dump (struct matrix_token *token, struct dfm_reader *reader)
 static const char *
 context (struct dfm_reader *reader)
 {
-  static char buf[32];
+  static struct string buf = DS_EMPTY_INITIALIZER;
 
+  ds_clear (&buf);
   if (dfm_eof (reader))
-    strcpy (buf, "at end of file");
+    ds_assign_cstr (&buf, "at end of file");
   else 
     {
-      struct fixed_string line;
-      const char *sp;
+      struct substring p;
       
-      dfm_get_record (reader, &line);
-      sp = ls_c_str (&line);
-      while (sp < ls_end (&line) && isspace ((unsigned char) *sp))
-        sp++;
-      if (sp >= ls_end (&line))
-        strcpy (buf, "at end of line");
+      p = dfm_get_record (reader);
+      ss_ltrim (&p, ss_cstr (CC_SPACES));
+      if (ss_is_empty (p))
+        ds_assign_cstr (&buf, "at end of line");
       else
-        {
-          char *dp;
-          size_t copy_cnt = 0;
-
-          dp = stpcpy (buf, "before `");
-          while (sp < ls_end (&line) && !isspace ((unsigned char) *sp)
-                 && copy_cnt < 10) 
-            {
-              *dp++ = *sp++;
-              copy_cnt++; 
-            }
-          strcpy (dp, "'");
-        }
+        ds_put_format (&buf, "before `%.*s'",
+                       (int) ss_cspan (p, ss_cstr (CC_SPACES)), ss_data (p));
     }
   
-  return buf;
+  return ds_cstr (&buf);
 }
 
 /* Is there at least one token left in the data file? */
@@ -809,20 +798,17 @@ another_token (struct dfm_reader *reader)
 {
   for (;;)
     {
-      struct fixed_string line;
-      const char *cp;
+      struct substring p;
+      size_t space_cnt;
       
       if (dfm_eof (reader))
         return 0;
-      dfm_get_record (reader, &line);
 
-      cp = ls_c_str (&line);
-      while (isspace ((unsigned char) *cp) && cp < ls_end (&line))
-	cp++;
-
-      if (cp < ls_end (&line)) 
+      p = dfm_get_record (reader);
+      space_cnt = ss_span (p, ss_cstr (CC_SPACES));
+      if (space_cnt < ss_length (p)) 
         {
-          dfm_forward_columns (reader, cp - ls_c_str (&line));
+          dfm_forward_columns (reader, space_cnt);
           return 1;
         }
 
@@ -834,73 +820,65 @@ another_token (struct dfm_reader *reader)
 static int
 (mget_token) (struct matrix_token *token, struct dfm_reader *reader)
 {
-  struct fixed_string line;
-  int first_column;
-  char *cp;
+  struct substring line, p;
+  struct substring s;
+  int c;
 
   if (!another_token (reader))
     return 0;
 
-  dfm_get_record (reader, &line);
-  first_column = dfm_column_start (reader);
+  line = p = dfm_get_record (reader);
 
   /* Three types of fields: quoted with ', quoted with ", unquoted. */
-  cp = ls_c_str (&line);
-  if (*cp == '\'' || *cp == '"')
+  c = ss_first (p);
+  if (c == '\'' || c == '"')
     {
-      int quote = *cp;
-
-      token->type = MSTR;
-      token->string = ++cp;
-      while (cp < ls_end (&line) && *cp != quote)
-	cp++;
-      token->length = cp - token->string;
-      if (cp < ls_end (&line))
-	cp++;
-      else
-	msg (SW, _("Scope of string exceeds line."));
+      ss_get_char (&p);
+      if (!ss_get_until (&p, c, &s))
+        msg (SW, _("Scope of string exceeds line."));
     }
   else
     {
-      int is_num = isdigit ((unsigned char) *cp) || *cp == '.';
-
-      token->string = cp++;
-      while (cp < ls_end (&line)
-             && !isspace ((unsigned char) *cp) && *cp != ','
-	     && *cp != '-' && *cp != '+')
-	{
-	  if (isdigit ((unsigned char) *cp))
-	    is_num = 1;
-	  
-	  if ((tolower ((unsigned char) *cp) == 'd'
-	       || tolower ((unsigned char) *cp) == 'e')
-	      && (cp[1] == '+' || cp[1] == '-'))
-	    cp += 2;
-	  else
-	    cp++;
-	}
+      bool is_num = isdigit (c) || c == '.';
+      const char *start = ss_data (p);
       
-      token->length = cp - token->string;
-      assert (token->length);
+      for (;;) 
+        {
+          c = ss_first (p);
+          if (strchr (CC_SPACES ",-+", c) != NULL)
+            break;
+
+          if (isdigit (c))
+            is_num = true;
+          if (strchr ("deDE", c) && strchr ("+-", ss_at (p, 1)))
+            {
+              is_num = true;
+              ss_advance (&p, 2);
+            }
+          else
+            ss_advance (&p, 1);
+        }
+      s = ss_buffer (start, ss_data (p) - start);
 
       if (is_num)
 	{
 	  struct data_in di;
 
-	  di.s = token->string;
-	  di.e = token->string + token->length;
+	  di.s = ss_data (s);
+	  di.e = ss_end (s);
 	  di.v = (union value *) &token->number;
-	  di.f1 = first_column;
+	  di.f1 = dfm_get_column (reader, di.s);
 	  di.format = make_output_format (FMT_F, token->length, 0);
 
-	  if (!data_in (&di))
-	    return 0;
+	  data_in (&di);
 	}
       else
 	token->type = MSTR;
     }
-
-  dfm_forward_columns (reader, cp - ls_c_str (&line));
+  token->string = ss_data (s);
+  token->length = ss_length (s);
+  
+  dfm_reread_record (reader, dfm_get_column (reader, ss_end (s)));
     
   return 1;
 }
@@ -910,18 +888,13 @@ static int
 static int
 force_eol (struct dfm_reader *reader, const char *content)
 {
-  struct fixed_string line;
-  const char *cp;
+  struct substring p;
 
   if (dfm_eof (reader))
     return 0;
-  dfm_get_record (reader, &line);
 
-  cp = ls_c_str (&line);
-  while (isspace ((unsigned char) *cp) && cp < ls_end (&line))
-    cp++;
-  
-  if (cp < ls_end (&line))
+  p = dfm_get_record (reader);
+  if (ss_span (p, ss_cstr (CC_SPACES)) != ss_length (p))
     {
       msg (SE, _("End of line expected %s while reading %s."),
 	   context (reader), content);

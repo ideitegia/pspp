@@ -44,9 +44,9 @@ static inline double check_errno (double x)
 #define MIN_S 60.                       /* Seconds per minute. */
 #define WEEK_DAY 7.                     /* Days per week. */
 
-extern const struct fixed_string empty_string;
+extern const struct substring empty_string;
 
-int compare_string (const struct fixed_string *, const struct fixed_string *);
+int compare_string (const struct substring *, const struct substring *);
 
 double expr_ymd_to_date (double year, double month, double day);
 double expr_ymd_to_ofs (double year, double month, double day);
@@ -54,9 +54,9 @@ double expr_wkyr_to_date (double wk, double yr);
 double expr_yrday_to_date (double yr, double day);
 double expr_yrmoda (double year, double month, double day);
 
-struct fixed_string alloc_string (struct expression *, size_t length);
-struct fixed_string copy_string (struct expression *,
-                                 const char *, size_t length);
+struct substring alloc_string (struct expression *, size_t length);
+struct substring copy_string (struct expression *,
+                              const char *, size_t length);
 
 static inline bool
 is_valid (double d) 

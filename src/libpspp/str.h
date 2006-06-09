@@ -64,74 +64,97 @@ void str_lowercase (char *);
 
 char *spprintf (char *dst, const char *format, ...);
 
-/* Fixed-length strings. */
-struct fixed_string 
+/* Common character classes for use with substring and string functions. */
+
+#define CC_SPACES " \t\v\r\n"
+#define CC_DIGITS "0123456789"
+#define CC_XDIGITS "0123456789abcdefABCDEF"
+#define CC_LETTERS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define CC_ALNUM CC_LETTERS CC_DIGITS
+
+/* Substrings. */
+struct substring 
   {
     char *string;
     size_t length;
   };
 
-void ls_create (struct fixed_string *, const char *);
-void ls_create_buffer (struct fixed_string *,
-		       const char *, size_t len);
-void ls_init (struct fixed_string *, const char *, size_t);
-void ls_shallow_copy (struct fixed_string *, const struct fixed_string *);
-void ls_destroy (struct fixed_string *);
+#define SS_EMPTY_INITIALIZER {NULL, 0}
+#define SS_LITERAL_INITIALIZER(LITERAL) {LITERAL, (sizeof LITERAL) - 1}
 
-void ls_null (struct fixed_string *);
-int ls_null_p (const struct fixed_string *);
-int ls_empty_p (const struct fixed_string *);
+/* Constructors.
+   These functions do not allocate any memory, so the substrings
+   they create should not normally be destroyed. */
+struct substring ss_empty (void);
+struct substring ss_cstr (const char *);
+struct substring ss_buffer (const char *, size_t);
+struct substring ss_substr (struct substring, size_t start, size_t);
+struct substring ss_head (struct substring, size_t);
+struct substring ss_tail (struct substring, size_t);
 
-size_t ls_length (const struct fixed_string *);
-char *ls_c_str (const struct fixed_string *);
-char *ls_end (const struct fixed_string *);
+/* Constructors and destructor that allocate and deallocate
+   memory. */
+void ss_alloc_substring (struct substring *, struct substring);
+void ss_alloc_uninit (struct substring *, size_t);
+void ss_dealloc (struct substring *);
 
-#if __GNUC__ > 1
-extern inline size_t
-ls_length (const struct fixed_string *st)
-{
-  return st->length;
-}
+/* Mutators.
+   Functions that advance the beginning of a string should not be
+   used if a substring is to be deallocated. */
+void ss_truncate (struct substring *, size_t);
+size_t ss_rtrim (struct substring *, struct substring trim_set);
+size_t ss_ltrim (struct substring *, struct substring trim_set);
+void ss_trim (struct substring *, struct substring trim_set);
+bool ss_chomp (struct substring *, char);
+bool ss_separate (struct substring src, struct substring delimiters,
+                  size_t *save_idx, struct substring *token);
+bool ss_tokenize (struct substring src, struct substring delimiters,
+                  size_t *save_idx, struct substring *token);
+void ss_advance (struct substring *, size_t);
+bool ss_match_char (struct substring *, char);
+int ss_get_char (struct substring *);
+size_t ss_get_chars (struct substring *, size_t cnt, struct substring *);
+bool ss_get_until (struct substring *, char delimiter, struct substring *);
 
-extern inline char *
-ls_c_str (const struct fixed_string *st)
-{
-  return st->string;
-}
-
-extern inline char *
-ls_end (const struct fixed_string *st)
-{
-  return st->string + st->length;
-}
-#endif
+/* Inspectors. */
+bool ss_is_empty (struct substring);
+size_t ss_length (struct substring);
+char *ss_data (struct substring);
+char *ss_end (struct substring);
+int ss_at (struct substring, size_t idx);
+int ss_first (struct substring);
+int ss_last (struct substring);
+size_t ss_span (struct substring, struct substring skip_set);
+size_t ss_cspan (struct substring, struct substring stop_set);
+size_t ss_find_char (struct substring, char);
+int ss_compare (struct substring, struct substring);
+size_t ss_pointer_to_position (struct substring, const char *);
+char *ss_xstrdup (struct substring);
 
 /* Variable length strings. */
 
 struct string
   {
-    char *string;       /* String data, not necessarily null terminated. */
-    size_t length;      /* Length, not including a null terminator. */
+    struct substring ss;
+
     size_t capacity;    /* Allocated capacity, not including one
                            extra byte allocated for null terminator. */
   };
 
-#define DS_INITIALIZER {NULL, 0, 0}
+#define DS_EMPTY_INITIALIZER {SS_EMPTY_INITIALIZER, 0}
 
 /* Constructors, destructors. */
-void ds_init (struct string *);
-void ds_init_substring (struct string *,
-                        const struct string *src, size_t start, size_t cnt);
-void ds_create (struct string *, const char *);
+void ds_init_empty (struct string *);
+void ds_init_string (struct string *, const struct string *);
+void ds_init_substring (struct string *, struct substring);
+void ds_init_cstr (struct string *, const char *);
 void ds_destroy (struct string *);
 void ds_swap (struct string *, struct string *);
 
 /* Replacement. */
 void ds_assign_string (struct string *, const struct string *);
-void ds_assign_substring (struct string *,
-                          const struct string *, size_t start, size_t cnt);
-void ds_assign_buffer (struct string *, const char *, size_t);
-void ds_assign_c_str (struct string *, const char *);
+void ds_assign_substring (struct string *, struct substring);
+void ds_assign_cstr (struct string *, const char *);
 
 /* Shrink, extend. */
 void ds_clear (struct string *);
@@ -140,69 +163,54 @@ void ds_shrink (struct string *);
 void ds_truncate (struct string *, size_t);
 
 /* Padding, trimming. */
-void ds_rpad (struct string *, size_t length, char pad);
-int ds_rtrim_spaces (struct string *);
-int ds_ltrim_spaces (struct string *);
-void ds_trim_spaces (struct string *);
+size_t ds_rtrim (struct string *, struct substring trim_set);
+size_t ds_ltrim (struct string *, struct substring trim_set);
+size_t ds_trim (struct string *, struct substring trim_set);
 bool ds_chomp (struct string *, char);
-bool ds_separate (const struct string *src, struct string *token,
-                  const char *delimiters, size_t *save_idx);
-bool ds_tokenize (const struct string *src, struct string *token,
-                  const char *delimiters, size_t *save_idx);
+bool ds_separate (const struct string *src, struct substring delimiters,
+                  size_t *save_idx, struct substring *token);
+bool ds_tokenize (const struct string *src, struct substring delimiters,
+                  size_t *save_idx, struct substring *token);
+void ds_rpad (struct string *, size_t length, char pad);
+
+/* Extracting substrings. */
+struct substring ds_ss (const struct string *);
+struct substring ds_substr (const struct string *, size_t start, size_t);
+struct substring ds_head (const struct string *, size_t);
+struct substring ds_tail (const struct string *, size_t);
 
 /* Inspectors. */
 bool ds_is_empty (const struct string *);
 size_t ds_length (const struct string *);
-char *ds_c_str (const struct string *);
 char *ds_data (const struct string *);
 char *ds_end (const struct string *);
-size_t ds_capacity (const struct string *);
 int ds_at (const struct string *, size_t idx);
 int ds_first (const struct string *);
 int ds_last (const struct string *);
-size_t ds_span (const struct string *st, size_t ofs, const char skip_set[]);
-size_t ds_cspan (const struct string *st, size_t ofs, const char stop_set[]);
+size_t ds_span (const struct string *, struct substring skip_set);
+size_t ds_cspan (const struct string *, struct substring stop_set);
+size_t ds_find_char (const struct string *, char);
+int ds_compare (const struct string *, const struct string *);
+size_t ds_pointer_to_position (const struct string *, const char *);
+char *ds_xstrdup (const struct string *);
+
+size_t ds_capacity (const struct string *);
+char *ds_cstr (const struct string *);
 
 /* File input. */
-bool ds_gets (struct string *, FILE *);
-bool ds_get_config_line (FILE *, struct string *, int *line_number);
+bool ds_read_line (struct string *, FILE *);
+bool ds_read_config_line (struct string *, int *line_number, FILE *);
+size_t ds_read_stream (struct string *, size_t size, size_t cnt, FILE *stream);
 
 /* Append. */
-void ds_putc (struct string *, int ch);
-void ds_putc_multiple (struct string *, int ch, size_t);
-void ds_puts (struct string *, const char *);
-void ds_concat (struct string *, const char *, size_t);
-void ds_vprintf (struct string *st, const char *, va_list);
-void ds_printf (struct string *, const char *, ...)
+void ds_put_char (struct string *, int ch);
+void ds_put_char_multiple (struct string *, int ch, size_t);
+void ds_put_cstr (struct string *, const char *);
+void ds_put_substring (struct string *, struct substring);
+void ds_put_vformat (struct string *st, const char *, va_list)
+     PRINTF_FORMAT (2, 0);
+void ds_put_format (struct string *, const char *, ...)
      PRINTF_FORMAT (2, 3);
-char *ds_append_uninit (struct string *st, size_t incr);
-
-#if __GNUC__ > 1
-extern inline void
-ds_putc (struct string *st, int ch)
-{
-  if (st->length == st->capacity)
-    ds_extend (st, st->length + 1);
-  st->string[st->length++] = ch;
-}
-
-extern inline size_t
-ds_length (const struct string *st)
-{
-  return st->length;
-}
-
-extern inline char *
-ds_data (const struct string *st)
-{
-  return st->string;
-}
-
-extern inline char *
-ds_end (const struct string *st)
-{
-  return st->string + st->length;
-}
-#endif
+char *ds_put_uninit (struct string *st, size_t incr);
 
 #endif /* str_h */

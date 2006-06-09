@@ -1,3 +1,10 @@
+Fri Jun  9 12:20:09 2006  Ben Pfaff  <blp@gnu.org>
+
+	Reform string library.
+	
+	* file-name.c (fn_interp_vars): Change interface to take a
+	substring as input.  Updated all users.
+	
 Fri Jun  9 12:11:24 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format.c (measure_is_valid): Really return false when m >=

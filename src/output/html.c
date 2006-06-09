@@ -50,7 +50,7 @@ static void print_title_tag (FILE *file, const char *name,
                              const char *content);
 
 static bool
-html_open_driver (struct outp_driver *this, const struct string *options)
+html_open_driver (struct outp_driver *this, struct substring options)
 {
   struct html_driver_ext *x;
 
@@ -165,7 +165,7 @@ handle_option (struct outp_driver *this,
       break;
     case string_arg:
       free (x->file_name);
-      x->file_name = xstrdup (ds_c_str (val));
+      x->file_name = ds_xstrdup (val);
       break;
     default:
       abort ();
@@ -233,7 +233,7 @@ escape_string (FILE *file,
    TEXT. */
 void
 html_put_cell_contents (struct outp_driver *this,
-                        unsigned int opts, struct fixed_string *text)
+                        unsigned int opts, const struct substring text)
 {
   struct html_driver_ext *x = this->ext;
 
@@ -244,15 +244,15 @@ html_put_cell_contents (struct outp_driver *this,
       if (opts & TAB_FIX) 
         {
           fputs ("<TT>", x->file);
-          escape_string (x->file, ls_c_str (text), ls_length (text), "&nbsp;");
+          escape_string (x->file, ss_data (text), ss_length (text), "&nbsp;");
           fputs ("</TT>", x->file);
         }
       else 
         {
-          size_t initial_spaces = strspn (ls_c_str (text), " \t");
+          size_t initial_spaces = ss_span (text, ss_cstr (CC_SPACES));
           escape_string (x->file,
-                         ls_c_str (text) + initial_spaces,
-                         ls_length (text) - initial_spaces,
+                         ss_data (text) + initial_spaces,
+                         ss_length (text) - initial_spaces,
                          " "); 
         }
       if (opts & TAB_EMPH)
@@ -269,7 +269,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   if (t->nr == 1 && t->nc == 1)
     {
       fputs ("<P>", x->file);
-      html_put_cell_contents (this, t->ct[0], t->cc);
+      html_put_cell_contents (this, t->ct[0], *t->cc);
       fputs ("</P>\n", x->file);
       
       return;
@@ -277,11 +277,10 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 
   fputs ("<TABLE BORDER=1>\n", x->file);
   
-  if (!ls_empty_p (&t->title))
+  if (t->title != NULL)
     {
       fprintf (x->file, "  <CAPTION>");
-      escape_string (x->file, ls_c_str (&t->title), ls_length (&t->title),
-                     " ");
+      escape_string (x->file, t->title, strlen (t->title), " ");
       fputs ("</CAPTION>\n", x->file);
     }
   
@@ -296,14 +295,14 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	fputs ("  <TR>\n", x->file);
 	for (c = 0; c < t->nc; c++, ct++)
 	  {
-            struct fixed_string *cc;
+            struct substring *cc;
             const char *tag;
             struct tab_joined_cell *j = NULL;
 
             cc = t->cc + c + r * t->nc;
 	    if (*ct & TAB_JOIN)
               {
-                j = (struct tab_joined_cell *) ls_c_str (cc);
+                j = (struct tab_joined_cell *) ss_data (*cc);
                 cc = &j->contents;
                 if (j->x1 != c || j->y1 != r)
                   continue; 
@@ -327,7 +326,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	    putc ('>', x->file);
 
             /* Output cell contents. */
-            html_put_cell_contents (this, *ct, cc);
+            html_put_cell_contents (this, *ct, *cc);
 
             /* Output </TH> or </TD>. */
 	    fprintf (x->file, "</%s>\n", tag);

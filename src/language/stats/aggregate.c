@@ -404,7 +404,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  if (token == T_STRING)
 	    {
 	      ds_truncate (&tokstr, 255);
-	      dest_label[n_dest - 1] = xstrdup (ds_c_str (&tokstr));
+	      dest_label[n_dest - 1] = ds_xstrdup (&tokstr);
 	      lex_get ();
 	    }
 	}
@@ -472,7 +472,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 		lex_match (',');
 		if (token == T_STRING)
 		  {
-		    arg[i].c = xstrdup (ds_c_str (&tokstr));
+		    arg[i].c = ds_xstrdup (&tokstr);
 		    type = ALPHA;
 		  }
 		else if (lex_is_number ())

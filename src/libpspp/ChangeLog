@@ -1,3 +1,117 @@
+Fri Jun  9 14:03:29 2006  Ben Pfaff  <blp@gnu.org>
+
+	Reform string library.
+	
+	* str.c (ss_empty): New function.  Replaces some uses of ls_init()
+	or ls_null().
+	(ss_cstr) New function.  Replaces some uses of ls_init().
+	(ss_buffer) New function.  Replaces some uses of ls_init().
+	(ss_substr) New function.
+	(ss_head) New function.
+	(ss_tail) New function.
+	(ss_alloc_substring) New function.  Replaces use of ls_create().
+	(ss_alloc_uninit) New function.
+	(ss_dealloc) New function.  Replaces use of ls_destroy().
+	(ss_truncate) New function.
+	(ss_rtrim) New function.
+	(ss_ltrim) New function.
+	(ss_trim) New function.
+	(ss_chomp) New function.
+	(ss_separate) New function.
+	(ss_tokenize) New function.
+	(ss_advance) New function.
+	(ds_create) Renamed ds_init_cstr().  Updated all callers.
+	(ss_match_char) New function.
+	(ss_get_char) New function.
+	(ss_get_until) New function.
+	(ss_get_chars) New function.
+	(ss_is_empty) New function.
+	(ss_length) New function.  Replaces ls_length().
+	(ss_data) New function.  Replaces many uses of ls_c_str().
+	(ss_end) New function.  Replaces ls_end().
+	(ss_at) New function.
+	(ss_first) New function.
+	(ss_last) New function.
+	(ss_span) New function.
+	(ss_cspan) New function.
+	(ss_compare) New function.
+	(ss_pointer_to_position) New function.
+	(ss_xstrdup) New function.
+	(ds_init) Renamed ds_init_empty().  All callers updated.
+	(ds_init_string) New function.
+	(ds_init_substring) Changed interface to take a struct substring.
+	Updated all callers.
+	(ds_init_cstr) New function.  Replaces ds_create().  All callers
+	updated.
+	(ds_assign_substring) Changed interface to take a struct
+	substring.  Updated all callers.
+	(ds_assign_buffer) Removed.  Changed all callers to use
+	ds_assign_substring().
+	(ds_assign_c_str) Renamed ds_assign_cstr().  All callers updated.
+	(ds_ss) New function.
+	(ds_substr) New function.
+	(ds_head) New function.
+	(ds_tail) New function.
+	(ds_rtrim) New function.  Replaces ds_rtrim_spaces().  All callers
+	updated.
+	(ds_ltrim) New function.  Replaces ds_ltrim_spaces().  All callers
+	updated.
+	(ds_trim) New function.  Replaces ds_trim_spaces().  All callers
+	updated.
+	(ds_rtrim_spaces) Removed.
+	(ds_ltrim_spaces) Removed.
+	(ds_trim_spaces) Removed.
+	(ds_separate) Changed interface to use substrings.  All callers
+	updated.
+	(ds_tokenize) Changed interface to use substrings.  All callers
+	updated.
+	(ds_c_str) Renamed ds_cstr().  All callers updated.
+	(ds_span) Changed interface to use substring for SKIP_SET and
+	dropped OFS.  All callers updated.
+	(ds_cspan) Changed interface to use substring for STOP_SET and
+	dropped OFS.  All callers updated.
+	(ds_find_char) New function.
+	(ds_compare) New function.
+	(ds_pointer_to_position) New function.
+	(ds_xstrdup) New function.  Replaced all users of
+	xstrdup(ds_c_str(s)) by a call to this function.
+	(ds_gets) Renamed ds_read_line().  All callers updated.
+	(ds_get_config_line) Renamed ds_read_config_line().  All callers
+	updated.
+	(ds_puts) Renamed ds_put_cstr().  All callers updated.
+	(ds_put_substring) New function.  Replaces ds_concat().  All
+	callers updated.
+	(ds_concat) Removed.
+	(ds_append_uninit) Renamed ds_put_uninit().  All callers updated.
+	(ds_printf) Renamed ds_put_format().  All callers updated.
+	(ds_vprintf) Renamed ds_put_vformat().  All callers updated.
+	(ds_putc) Renamed ds_put_char().  All callers updated.
+	(ds_putc_multiple) Renamed ds_put_char_multiple().  All callers
+	updated.
+	(ls_create) Removed.  Replaced by ss_alloc_substring().
+	(ls_create_buffer) Removed.  Replaced by ss_alloc_substring().
+	(ls_init) Removed.  Replaced by ss_buffer().
+	(ls_shallow_copy) Removed.  Just use assignment.
+	(ls_destroy) Removed.  Replaced by ss_dealloc().
+	(ls_null) Removed.
+	(ls_null_p) Removed.
+	(ls_empty_p) Removed.  Replaced by ss_is_empty().
+	(ls_c_str) Removed.
+	(ls_end) Removed.  Replaced by ss_end().
+
+	* str.h (struct fixed_string): Renamed struct substring, updated
+	all users.
+	(CC_SPACES) New macro.
+	(CC_DIGITS) Ditto.
+	(CC_XDIGITS) Ditto.
+	(CC_LETTERS) Ditto.
+	(CC_ALNUM) Ditto.
+	(SS_EMPTY_INITIALIZER) Ditto.
+	(SS_LITERAL_INITIALIZER) Ditto.
+	(struct string) Removed string, length members.  Add substring
+	member.
+	(DS_INITIALIZER) Rename DS_EMPTY_INITIALIZER.
+
 Tue May 30 19:45:12 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* i18n.c i18n.h: New files.

@@ -63,7 +63,7 @@ get_title (const char *cmd, char **title)
 	return CMD_FAILURE;
       if (*title)
 	free (*title);
-      *title = xstrdup (ds_c_str (&tokstr));
+      *title = ds_xstrdup (&tokstr);
       lex_get ();
       if (token != '.')
 	{

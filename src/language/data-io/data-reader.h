@@ -30,21 +30,23 @@
 #include <stddef.h>
 
 struct file_handle;
-struct fixed_string;
+struct string;
 
 /* Input. */
 struct dfm_reader *dfm_open_reader (struct file_handle *);
 void dfm_close_reader (struct dfm_reader *);
 bool dfm_reader_error (const struct dfm_reader *);
 unsigned dfm_eof (struct dfm_reader *);
-void dfm_get_record (struct dfm_reader *, struct fixed_string *);
+struct substring dfm_get_record (struct dfm_reader *);
 void dfm_expand_tabs (struct dfm_reader *);
 
 /* Line control. */
 void dfm_forward_record (struct dfm_reader *);
 void dfm_reread_record (struct dfm_reader *, size_t column);
 void dfm_forward_columns (struct dfm_reader *, size_t columns);
-size_t dfm_column_start (struct dfm_reader *);
+size_t dfm_column_start (const struct dfm_reader *);
+size_t dfm_columns_past_end (const struct dfm_reader *);
+size_t dfm_get_column (const struct dfm_reader *, const char *);
 
 /* File stack. */
 void dfm_push (struct dfm_reader *);

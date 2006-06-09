@@ -1,3 +1,10 @@
+Fri Jun  9 14:02:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	Reform string library.
+	
+	* q2c.c (dump_subcommand): ds_c_str() became ds_cstr(), in
+	generated code.
+
 Wed Apr 26 13:30:41 2006  Ben Pfaff  <blp@gnu.org>
 
 	* lexer.c: (lex_discard_rest_of_command) New function.

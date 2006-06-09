@@ -118,7 +118,7 @@ write_line (struct outp_driver *d, const char *s)
   assert (d->cp_y + d->font_height <= d->length);
   text.font = OUTP_FIXED;
   text.justification = OUTP_LEFT;
-  ls_init (&text.string, s, strlen (s));
+  text.string = ss_cstr (s);
   text.x = d->cp_x;
   text.y = d->cp_y;
   text.h = text.v = INT_MAX;
@@ -411,7 +411,7 @@ write_varname (struct outp_driver *d, char *string, int indent)
 
   text.font = OUTP_FIXED;
   text.justification = OUTP_LEFT;
-  ls_init (&text.string, string, strlen (string));
+  text.string = ss_cstr (string);
   text.x = d->cp_x;
   text.y = d->cp_y;
   text.h = text.v = INT_MAX;
@@ -448,7 +448,7 @@ write_fallback_headers (struct outp_driver *d)
       sprintf (leader, "%s %d:", Line, ++line_number);
       text.font = OUTP_FIXED;
       text.justification = OUTP_LEFT;
-      ls_init (&text.string, leader, strlen (leader));
+      text.string = ss_cstr (leader);
       text.x = 0;
       text.y = d->cp_y;
       text.h = text.v = INT_MAX;
@@ -604,7 +604,7 @@ determine_layout (void)
       d->cp_y += d->font_height;
     }
 
-  ds_init (&line_buffer);
+  ds_init_empty (&line_buffer);
 }
 
 /* Writes case C to output. */
@@ -627,7 +627,7 @@ list_cases (const struct ccase *c, void *aux UNUSED)
 
 	if (!prc->header_rows)
 	  {
-	    ds_printf(&line_buffer, "%8s: ", cmd.v_variables[0]->name);
+	    ds_put_format(&line_buffer, "%8s: ", cmd.v_variables[0]->name);
 	  }
 	
       
@@ -650,34 +650,34 @@ list_cases (const struct ccase *c, void *aux UNUSED)
 		    write_header (d);
 		  }
 	      
-		write_line (d, ds_c_str(&line_buffer));
+		write_line (d, ds_cstr (&line_buffer));
 		ds_clear(&line_buffer);
 
 		if (!prc->header_rows)
 		  {
-		    ds_printf (&line_buffer, "%8s: ", v->name);
+		    ds_put_format (&line_buffer, "%8s: ", v->name);
 		  }
 	      }
 
 	    if (width > v->print.w)
 	      {
-		ds_putc_multiple(&line_buffer, ' ', width - v->print.w);
+		ds_put_char_multiple(&line_buffer, ' ', width - v->print.w);
 	      }
 
             if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
 	      {
-                data_out (ds_append_uninit(&line_buffer, v->print.w),
+                data_out (ds_put_uninit(&line_buffer, v->print.w),
 			  &v->print, case_data (c, v->fv));
 	      }
             else 
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (ds_append_uninit(&line_buffer,v->print.w), 
+                data_out (ds_put_uninit(&line_buffer,v->print.w), 
 			  &v->print,   &case_idx_value); 
               }
 
-	    ds_putc(&line_buffer, ' ');
+	    ds_put_char(&line_buffer, ' ');
 	  }
       
 	if (!n_lines_remaining (d))
@@ -686,7 +686,7 @@ list_cases (const struct ccase *c, void *aux UNUSED)
 	    write_header (d);
 	  }
 	      
-	write_line (d, ds_c_str(&line_buffer));
+	write_line (d, ds_cstr (&line_buffer));
 	ds_clear(&line_buffer);
       }
     else if (d->class == &html_class)
@@ -700,7 +700,6 @@ list_cases (const struct ccase *c, void *aux UNUSED)
 	  {
 	    struct variable *v = cmd.v_variables[column];
 	    char buf[256];
-            struct fixed_string s;
 	    
             if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
 	      data_out (buf, &v->print, case_data (c, v->fv));
@@ -711,9 +710,8 @@ list_cases (const struct ccase *c, void *aux UNUSED)
                 data_out (buf, &v->print, &case_idx_value); 
               }
 
-            ls_init (&s, buf, v->print.w);
             fputs ("    <TD>", x->file);
-            html_put_cell_contents (d, TAB_FIX, &s);
+            html_put_cell_contents (d, TAB_FIX, ss_buffer (buf, v->print.w));
             fputs ("</TD>\n", x->file);
 	  }
 	  

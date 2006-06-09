@@ -288,11 +288,11 @@ parse_lines (struct repeat_block *block)
           || !strcmp (cur_file_name, previous_file_name))
         previous_file_name = pool_strdup (block->pool, cur_file_name);
 
-      ds_rtrim_spaces (&getl_buf);
+      ds_rtrim (&getl_buf, ss_cstr (CC_SPACES));
       dot = ds_chomp (&getl_buf, get_endcmd ());
-      if (recognize_do_repeat (ds_c_str (&getl_buf))) 
+      if (recognize_do_repeat (ds_cstr (&getl_buf))) 
         nesting_level++; 
-      else if (recognize_end_repeat (ds_c_str (&getl_buf), &block->print)) 
+      else if (recognize_end_repeat (ds_cstr (&getl_buf), &block->print)) 
         {
         if (nesting_level-- == 0)
           {
@@ -301,13 +301,13 @@ parse_lines (struct repeat_block *block)
           } 
         }
       if (dot)
-        ds_putc (&getl_buf, get_endcmd ());
+        ds_put_char (&getl_buf, get_endcmd ());
       
       line = *last_line = pool_alloc (block->pool, sizeof *line);
       line->next = NULL;
       line->file_name = previous_file_name;
       line->line_number = cur_line_number;
-      line->line = pool_strdup (block->pool, ds_c_str (&getl_buf));
+      line->line = pool_strdup (block->pool, ds_cstr (&getl_buf));
       last_line = &line->next;
     }
 
@@ -469,7 +469,7 @@ do_repeat_filter (struct string *line, void *block_)
   struct string output;
   bool dot;
 
-  ds_init (&output);
+  ds_init_empty (&output);
 
   /* Strip trailing whitespace, check for & remove terminal dot. */
   while (isspace (ds_last (line)))
@@ -477,7 +477,7 @@ do_repeat_filter (struct string *line, void *block_)
   dot = ds_chomp (line, get_endcmd ());
 
   in_apos = in_quote = false;
-  for (cp = ds_c_str (line); cp < ds_end (line); )
+  for (cp = ds_cstr (line); cp < ds_end (line); )
     {
       if (*cp == '\'' && !in_quote)
 	in_apos = !in_apos;
@@ -485,7 +485,7 @@ do_repeat_filter (struct string *line, void *block_)
 	in_quote = !in_quote;
       
       if (in_quote || in_apos || !lex_is_id1 (*cp))
-        ds_putc (&output, *cp++);
+        ds_put_char (&output, *cp++);
       else 
         {
           const char *start = cp;
@@ -493,14 +493,14 @@ do_repeat_filter (struct string *line, void *block_)
           const char *substitution = find_substitution (block,
                                                         start, end - start);
           if (substitution != NULL) 
-            ds_puts (&output, substitution);
+            ds_put_cstr (&output, substitution);
           else
-            ds_concat (&output, start, end - start);
+            ds_put_substring (&output, ss_buffer (start, end - start));
           cp = end;
         }
     }
   if (dot)
-    ds_putc (&output, get_endcmd ());
+    ds_put_char (&output, get_endcmd ());
 
   ds_swap (line, &output);
   ds_destroy (&output);
@@ -526,7 +526,7 @@ do_repeat_read (struct string *output, char **file_name, int *line_number,
     }
   line = block->cur_line;
 
-  ds_assign_c_str (output, line->line);
+  ds_assign_cstr (output, line->line);
   *file_name = line->file_name;
   *line_number = -line->line_number;
   block->cur_line = line->next;

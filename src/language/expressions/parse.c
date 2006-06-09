@@ -829,8 +829,8 @@ parse_primary (struct expression *e)
 
     case T_STRING:
       {
-        union any_node *node = expr_allocate_string_buffer (e, ds_c_str (&tokstr),
-                                                       ds_length (&tokstr));
+        union any_node *node = expr_allocate_string_buffer (
+          e, ds_cstr (&tokstr), ds_length (&tokstr));
 	lex_get ();
 	return node;
       }
@@ -1094,14 +1094,14 @@ put_invocation (struct string *s,
 {
   size_t i;
 
-  ds_printf (s, "%s(", func_name);
+  ds_put_format (s, "%s(", func_name);
   for (i = 0; i < arg_cnt; i++)
     {
       if (i > 0)
-        ds_puts (s, ", ");
-      ds_puts (s, operations[expr_node_returns (args[i])].prototype);
+        ds_put_cstr (s, ", ");
+      ds_put_cstr (s, operations[expr_node_returns (args[i])].prototype);
     }
-  ds_putc (s, ')');
+  ds_put_char (s, ')');
 }
 
 static void
@@ -1112,25 +1112,25 @@ no_match (const char *func_name,
   struct string s;
   const struct operation *f;
 
-  ds_init (&s);
+  ds_init_empty (&s);
 
   if (last - first == 1) 
     {
-      ds_printf (&s, _("Type mismatch invoking %s as "), first->prototype);
+      ds_put_format (&s, _("Type mismatch invoking %s as "), first->prototype);
       put_invocation (&s, func_name, args, arg_cnt);
     }
   else 
     {
-      ds_puts (&s, _("Function invocation "));
+      ds_put_cstr (&s, _("Function invocation "));
       put_invocation (&s, func_name, args, arg_cnt);
-      ds_puts (&s, _(" does not match any known function.  Candidates are:"));
+      ds_put_cstr (&s, _(" does not match any known function.  Candidates are:"));
 
       for (f = first; f < last; f++)
-        ds_printf (&s, "\n%s", f->prototype);
+        ds_put_format (&s, "\n%s", f->prototype);
     }
-  ds_putc (&s, '.');
+  ds_put_char (&s, '.');
 
-  msg (SE, "%s", ds_c_str (&s));
+  msg (SE, "%s", ds_cstr (&s));
     
   ds_destroy (&s);
 }
@@ -1145,23 +1145,23 @@ parse_function (struct expression *e)
   int arg_cnt = 0;
   int arg_cap = 0;
 
-  struct fixed_string func_name;
+  struct string func_name;
 
   union any_node *n;
 
-  ls_create (&func_name, ds_c_str (&tokstr));
-  min_valid = extract_min_valid (ds_c_str (&tokstr));
-  if (!lookup_function (ds_c_str (&tokstr), &first, &last)) 
+  ds_init_string (&func_name, &tokstr);
+  min_valid = extract_min_valid (ds_cstr (&tokstr));
+  if (!lookup_function (ds_cstr (&tokstr), &first, &last)) 
     {
-      msg (SE, _("No function or vector named %s."), ds_c_str (&tokstr));
-      ls_destroy (&func_name);
+      msg (SE, _("No function or vector named %s."), ds_cstr (&tokstr));
+      ds_destroy (&func_name);
       return NULL;
     }
 
   lex_get ();
   if (!lex_force_match ('(')) 
     {
-      ls_destroy (&func_name);
+      ds_destroy (&func_name);
       return NULL; 
     }
   
@@ -1206,7 +1206,7 @@ parse_function (struct expression *e)
       break;
   if (f >= last) 
     {
-      no_match (ls_c_str (&func_name), args, arg_cnt, first, last);
+      no_match (ds_cstr (&func_name), args, arg_cnt, first, last);
       goto fail;
     }
 
@@ -1246,12 +1246,12 @@ parse_function (struct expression *e)
     }
   
   free (args);
-  ls_destroy (&func_name);
+  ds_destroy (&func_name);
   return n;
 
 fail:
   free (args);
-  ls_destroy (&func_name);
+  ds_destroy (&func_name);
   return NULL;
 }
 
@@ -1428,7 +1428,7 @@ expr_allocate_string_buffer (struct expression *e,
 }
 
 union any_node *
-expr_allocate_string (struct expression *e, struct fixed_string s)
+expr_allocate_string (struct expression *e, struct substring s)
 {
   union any_node *n = pool_alloc (e->expr_pool, sizeof n->string);
   n->type = OP_string;

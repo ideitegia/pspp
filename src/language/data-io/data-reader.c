@@ -37,6 +37,9 @@
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
+#include "size_max.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -120,8 +123,8 @@ dfm_open_reader (struct file_handle *fh)
   
   r = xmalloc (sizeof *r);
   r->fh = fh;
-  ds_init (&r->line);
-  ds_init (&r->scratch);
+  ds_init_empty (&r->line);
+  ds_init_empty (&r->scratch);
   r->flags = DFM_ADVANCE;
   r->eof_cnt = 0;
   if (fh != fh_inline_file ()) 
@@ -177,9 +180,9 @@ read_inline_record (struct dfm_reader *r)
     }
 
   if (ds_length (&getl_buf) >= 8
-      && !strncasecmp (ds_c_str (&getl_buf), "end data", 8))
+      && !strncasecmp (ds_cstr (&getl_buf), "end data", 8))
     {
-      lex_set_prog (ds_c_str (&getl_buf) + ds_length (&getl_buf));
+      lex_set_prog (ds_end (&getl_buf));
       return false;
     }
 
@@ -193,10 +196,10 @@ static bool
 read_file_record (struct dfm_reader *r)
 {
   assert (r->fh != fh_inline_file ());
+  ds_clear (&r->line);
   if (fh_get_mode (r->fh) == FH_MODE_TEXT)
     {
-      ds_clear (&r->line);
-      if (!ds_gets (&r->line, r->file)) 
+      if (!ds_read_line (&r->line, r->file)) 
         {
           if (ferror (r->file))
             msg (ME, _("Error reading file %s: %s."),
@@ -207,12 +210,7 @@ read_file_record (struct dfm_reader *r)
   else if (fh_get_mode (r->fh) == FH_MODE_BINARY)
     {
       size_t record_width = fh_get_record_width (r->fh);
-      size_t amt;
-
-      if (ds_length (&r->line) < record_width) 
-        ds_rpad (&r->line, record_width, 0);
-          
-      amt = fread (ds_c_str (&r->line), 1, record_width, r->file);
+      size_t amt = ds_read_stream (&r->line, 1, record_width, r->file);
       if (record_width != amt)
         {
           if (ferror (r->file))
@@ -282,18 +280,14 @@ dfm_eof (struct dfm_reader *r)
 
 /* Returns the current record in the file corresponding to
    HANDLE.  Aborts if reading from the file is necessary or at
-   end of file, so call dfm_eof() first.  Sets *LINE to the line,
-   which is not null-terminated.  The caller must not free or
-   modify the returned string.  */
-void
-dfm_get_record (struct dfm_reader *r, struct fixed_string *line)
+   end of file, so call dfm_eof() first. */
+struct substring
+dfm_get_record (struct dfm_reader *r)
 {
   assert ((r->flags & DFM_ADVANCE) == 0);
   assert (r->eof_cnt == 0);
-  assert (r->pos <= ds_length (&r->line));
 
-  line->string = ds_data (&r->line) + r->pos;
-  line->length = ds_length (&r->line) - r->pos;
+  return ds_substr (&r->line, r->pos, SIZE_MAX);
 }
 
 /* Expands tabs in the current line into the equivalent number of
@@ -303,12 +297,10 @@ dfm_get_record (struct dfm_reader *r, struct fixed_string *line)
 void
 dfm_expand_tabs (struct dfm_reader *r) 
 {
-  struct string temp;
   size_t ofs, new_pos, tab_width;
 
   assert ((r->flags & DFM_ADVANCE) == 0);
   assert (r->eof_cnt == 0);
-  assert (r->pos <= ds_length (&r->line));
 
   if (r->flags & DFM_TABS_EXPANDED)
     return;
@@ -317,14 +309,14 @@ dfm_expand_tabs (struct dfm_reader *r)
   if (r->fh != fh_inline_file ()
       && (fh_get_mode (r->fh) == FH_MODE_BINARY
           || fh_get_tab_width (r->fh) == 0
-          || memchr (ds_c_str (&r->line), '\t', ds_length (&r->line)) == NULL))
+          || ds_find_char (&r->line, '\t') == SIZE_MAX))
     return;
 
   /* Expand tabs from r->line into r->scratch, and figure out
      new value for r->pos. */
   tab_width = fh_get_tab_width (r->fh);
   ds_clear (&r->scratch);
-  new_pos = 0;
+  new_pos = SIZE_MAX;
   for (ofs = 0; ofs < ds_length (&r->line); ofs++)
     {
       unsigned char c;
@@ -332,26 +324,34 @@ dfm_expand_tabs (struct dfm_reader *r)
       if (ofs == r->pos)
         new_pos = ds_length (&r->scratch);
 
-      c = ds_c_str (&r->line)[ofs];
+      c = ds_data (&r->line)[ofs];
       if (c != '\t')
-        ds_putc (&r->scratch, c);
+        ds_put_char (&r->scratch, c);
       else 
         {
           do
-            ds_putc (&r->scratch, ' ');
+            ds_put_char (&r->scratch, ' ');
           while (ds_length (&r->scratch) % tab_width != 0);
         }
     }
+  if (new_pos == SIZE_MAX) 
+    {
+      /* Maintain the same relationship between position and line
+         length that we had before.  DATA LIST uses a
+         beyond-the-end position to deal with an empty field at
+         the end of the line. */
+      assert (r->pos >= ds_length (&r->line));
+      new_pos = (r->pos - ds_length (&r->line)) + ds_length (&r->scratch);
+    }
 
   /* Swap r->line and r->scratch and set new r->pos. */
-  temp = r->line;
-  r->line = r->scratch;
-  r->scratch = temp;
+  ds_swap (&r->line, &r->scratch);
   r->pos = new_pos;
 }
 
-/* Causes dfm_get_record() to read in the next record the next time it
-   is executed on file HANDLE. */
+/* Causes dfm_get_record() or dfm_get_whole_record() to read in
+   the next record the next time it is executed on file
+   HANDLE. */
 void
 dfm_forward_record (struct dfm_reader *r)
 {
@@ -365,12 +365,7 @@ void
 dfm_reread_record (struct dfm_reader *r, size_t column)
 {
   r->flags &= ~DFM_ADVANCE;
-  if (column < 1)
-    r->pos = 0;
-  else if (column > ds_length (&r->line))
-    r->pos = ds_length (&r->line);
-  else
-    r->pos = column - 1;
+  r->pos = MAX (column, 1) - 1;
 }
 
 /* Sets the current line to begin COLUMNS characters following
@@ -385,9 +380,26 @@ dfm_forward_columns (struct dfm_reader *r, size_t columns)
    is set.  Unless dfm_reread_record() or dfm_forward_columns()
    have been called, this is 1. */
 size_t
-dfm_column_start (struct dfm_reader *r)
+dfm_column_start (const struct dfm_reader *r)
 {
   return r->pos + 1;
+}
+
+/* Returns the number of columns we are currently beyond the end
+   of the line.  At or before end-of-line, this is 0; one column
+   after end-of-line, this is 1; and so on. */
+size_t
+dfm_columns_past_end (const struct dfm_reader *r) 
+{
+  return r->pos < ds_length (&r->line) ? 0 : ds_length (&r->line) - r->pos;
+}
+
+/* Returns the 1-based column within the current line that P
+   designates. */
+size_t
+dfm_get_column (const struct dfm_reader *r, const char *p) 
+{
+  return ds_pointer_to_position (&r->line, p) + 1;
 }
 
 /* Pushes the file name and line number on the fn/ln stack. */

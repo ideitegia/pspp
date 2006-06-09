@@ -720,11 +720,11 @@ get_word (struct parser *p, char **word)
       struct string s;
       int c;
 
-      ds_init (&s);
+      ds_init_empty (&s);
       while (!isspace (c = getc (p->file)) && c != EOF)
-        ds_putc (&s, c);
+        ds_put_char (&s, c);
       ungetc (c, p->file);
-      *word = ds_c_str (&s);
+      *word = ds_cstr (&s);
       pool_register (p->pool, free, *word);
       return true;
     }
@@ -756,7 +756,7 @@ force_get_word (struct parser *p)
 static bool
 get_string (struct parser *p, char **string)
 {
-  struct string s = DS_INITIALIZER;
+  struct string s = DS_EMPTY_INITIALIZER;
 
   skip_spaces (p);
   for (;;) 
@@ -764,14 +764,14 @@ get_string (struct parser *p, char **string)
       int c = getc (p->file);
       if (c == EOF || c == '\n')
         break;
-      ds_putc (&s, c);
+      ds_put_char (&s, c);
     }
   ungetc ('\n', p->file);
-  ds_rtrim_spaces (&s);
+  ds_rtrim (&s, ss_cstr (CC_SPACES));
 
   if (!ds_is_empty (&s)) 
     {
-      *string = ds_c_str (&s);
+      *string = ds_cstr (&s);
       pool_register (p->pool, free, *string);
       return true;
     }
@@ -874,7 +874,7 @@ static size_t
 encode_one_byte (const struct afm_character **s, size_t n,
                  struct string *out)
 {
-  ds_putc (out, '(');
+  ds_put_char (out, '(');
   for (; n > 0; s++, n--)
     {
       uint8_t code = (*s)->code;
@@ -882,13 +882,13 @@ encode_one_byte (const struct afm_character **s, size_t n,
         break;
           
       if (code == '(' || code == ')' || code == '\\')
-        ds_printf (out, "\\%c", code);
+        ds_put_format (out, "\\%c", code);
       else if (!c_isprint (code))
-        ds_printf (out, "\\%03o", code);
+        ds_put_format (out, "\\%03o", code);
       else
-        ds_putc (out, code); 
+        ds_put_char (out, code); 
     }
-  ds_putc (out, ')');
+  ds_put_char (out, ')');
   return n;
 }
 
@@ -935,7 +935,7 @@ append_ascii85_block (unsigned b, size_t n, struct string *out)
       c[i] = value_to_ascii85 (b % 85);
       b /= 85; 
     }
-  ds_concat (out, c, n);
+  ds_put_substring (out, ss_buffer (c, n));
 }
 
 /* Encodes BYTE with encoder E. */
@@ -947,12 +947,12 @@ binary_put (struct binary_encoder *e, uint8_t byte)
   if (e->n % 4 == 0)
     {
       if (e->n == 4)
-        ds_puts (e->out, "<~");
+        ds_put_cstr (e->out, "<~");
 
       if (e->b != 0)
         append_ascii85_block (e->b, 5, e->out);
       else 
-        ds_putc (e->out, 'z');
+        ds_put_char (e->out, 'z');
     }
 }
 
@@ -967,7 +967,7 @@ binary_finish (struct binary_encoder *e)
       size_t n = e->n % 4;
       if (n > 0)
         append_ascii85_block (e->b << 8 * (4 - n), n + 1, e->out); 
-      ds_puts (e->out, "~>");
+      ds_put_cstr (e->out, "~>");
     }
   else if (e->n > 0)
     {
@@ -976,19 +976,19 @@ binary_finish (struct binary_encoder *e)
       uint32_t b;
       size_t i;
 
-      ds_puts (e->out, "<");
+      ds_put_cstr (e->out, "<");
       b = e->b << 8 * (4 - e->n);
       for (i = 0; i < e->n; i++) 
         {
-          ds_printf (e->out, "%02x", b >> 24);
+          ds_put_format (e->out, "%02x", b >> 24);
           b <<= 8;
         }
-      ds_puts (e->out, ">");
+      ds_put_cstr (e->out, ">");
     }
   else 
     {
       /* Empty string. */
-      ds_puts (e->out, "()"); 
+      ds_put_cstr (e->out, "()"); 
     }
 }
 

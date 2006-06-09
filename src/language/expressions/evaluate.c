@@ -34,7 +34,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
   union operation_data *op = e->ops;
 
   double *ns = e->number_stack;
-  struct fixed_string *ss = e->string_stack;
+  struct substring *ss = e->string_stack;
 
   assert ((c != NULL) == (e->dict != NULL));
   pool_clear (e->eval_pool);
@@ -51,7 +51,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
 
         case OP_string:
           {
-            const struct fixed_string *s = &op++->string;
+            const struct substring *s = &op++->string;
             *ss++ = copy_string (e, s->string, s->length);
           }
           break;
@@ -61,7 +61,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
           return;
 
         case OP_return_string:
-          *(struct fixed_string *) result = ss[-1];
+          *(struct substring *) result = ss[-1];
           return;
 
 #include "evaluate.inc"
@@ -88,7 +88,7 @@ void
 expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
                    char *dst, size_t dst_size) 
 {
-  struct fixed_string s;
+  struct substring s;
 
   assert (e->type == OP_string);
   assert ((dst == NULL) == (dst_size == 0));
@@ -140,7 +140,7 @@ cmd_debug_evaluate (void)
           else if (token == T_STRING) 
             {
               width = ds_length (&tokstr);
-              fprintf (stderr, "(%s = \"%.2s\")", name, ds_c_str (&tokstr)); 
+              fprintf (stderr, "(%s = \"%.2s\")", name, ds_cstr (&tokstr)); 
             }
           else
             {
@@ -223,7 +223,7 @@ cmd_debug_evaluate (void)
 
       case OP_string: 
         {
-          struct fixed_string s;
+          struct substring s;
           expr_evaluate (expr, c, 0, &s);
 
           fputc ('"', stderr);

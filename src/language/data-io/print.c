@@ -350,7 +350,7 @@ parse_string_argument (void)
 {
   fx.spec.type = PRT_CONST;
   fx.spec.fc = fx.sc - 1;
-  fx.spec.u.c = xstrdup (ds_c_str (&tokstr));
+  fx.spec.u.c = ds_xstrdup (&tokstr);
   lex_get ();
 
   /* Parse the included column range. */

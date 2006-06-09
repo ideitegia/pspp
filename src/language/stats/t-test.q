@@ -582,7 +582,7 @@ parse_value (union value * v, int type )
     {
       if (!lex_force_string ())
 	return 0;
-      strncpy (v->s, ds_c_str (&tokstr), ds_length (&tokstr));
+      strncpy (v->s, ds_cstr (&tokstr), ds_length (&tokstr));
     }
 
   lex_get ();

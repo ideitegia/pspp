@@ -181,12 +181,12 @@ fh_parse (enum fh_referent referent_mask)
       if (token == T_ID) 
         handle = fh_from_name (tokid);
       if (handle == NULL) 
-        handle = fh_from_file_name (ds_c_str (&tokstr)); 
+        handle = fh_from_file_name (ds_cstr (&tokstr)); 
       if (handle == NULL)
         {
           if (token != T_ID || tokid[0] != '#' || get_syntax () != ENHANCED) 
             {
-              char *file_name = ds_c_str (&tokstr);
+              char *file_name = ds_cstr (&tokstr);
               char *handle_name = xasprintf ("\"%s\"", file_name);
               handle = fh_create_file (handle_name, file_name,
                                        fh_default_properties ());

@@ -129,7 +129,7 @@ static void setup_font (struct outp_driver *this, struct font *, int index);
 /* Driver initialization. */
 
 static bool
-ps_open_driver (struct outp_driver *this, const struct string *options)
+ps_open_driver (struct outp_driver *this, struct substring options)
 {
   struct ps_driver_ext *x;
   size_t i;
@@ -300,7 +300,7 @@ handle_option (struct outp_driver *this, const char *key,
 {
   struct ps_driver_ext *x = this->ext;
   int subcat;
-  char *value = ds_c_str (val);
+  char *value = ds_cstr (val);
 
   switch (outp_match_keyword (key, option_tab, &subcat))
     {
@@ -542,15 +542,15 @@ quote_ps_name (const char *string)
       if (!isalpha (c) && strchr ("^_|!$&:;.,-+", c) == NULL
           && (cp == string || !isdigit (c)))
         {
-          struct string out = DS_INITIALIZER;
-          ds_putc (&out, '<');
+          struct string out = DS_EMPTY_INITIALIZER;
+          ds_put_char (&out, '<');
 	  for (cp = string; *cp != '\0'; cp++)
             {
               c = *cp;
-              ds_printf (&out, "%02x", c);
+              ds_put_format (&out, "%02x", c);
             }
-	  ds_puts (&out, ">cvn");
-          return ds_c_str (&out);
+	  ds_put_cstr (&out, ">cvn");
+          return ds_cstr (&out);
         }
     }
   return xasprintf ("/%s", string);
@@ -784,7 +784,7 @@ draw_text (struct outp_driver *this,
 
   text.font = OUTP_PROPORTIONAL;
   text.justification = justification;
-  ls_init (&text.string, (char *) string, strlen (string));
+  text.string = ss_cstr (string);
   text.h = max_width;
   text.v = this->font_height;
   text.x = x;
@@ -874,7 +874,7 @@ write_text (struct outp_driver *this,
       fprintf (ext->file, "F%d setfont\n", font);
     }
 
-  ds_init (&out);
+  ds_init_empty (&out);
   for (i = 0; i < char_cnt; i = j)
     {
       for (j = i + 1; j < char_cnt; j++)
@@ -888,7 +888,7 @@ write_text (struct outp_driver *this,
           size_t encoded = afm_encode_string (afm, chars + i, j - i, &out);
           if (encoded > 0)
             {
-              fprintf (ext->file, "%sS\n", ds_c_str (&out));
+              fprintf (ext->file, "%sS\n", ds_cstr (&out));
               ds_clear (&out);
               i += encoded;
             }
@@ -990,8 +990,8 @@ text (struct outp_driver *this, const struct outp_text *text, bool draw,
 
   s.max_width = 0;
 
-  cp = ls_c_str (&s.text->string);
-  while (s.height_left >= this->font_height && cp < ls_end (&s.text->string))
+  cp = ss_data (s.text->string);
+  while (s.height_left >= this->font_height && cp < ss_end (s.text->string))
     {
       const struct afm_character *cur;
       int char_width;
@@ -1006,7 +1006,7 @@ text (struct outp_driver *this, const struct outp_text *text, bool draw,
 
       /* Get character and resolve ligatures. */
       cur = afm_get_character (afm, *cp);
-      while (++cp < ls_end (&s.text->string))
+      while (++cp < ss_end (s.text->string))
         {
           const struct afm_character *next = afm_get_character (afm, *cp);
           const struct afm_character *ligature = afm_get_ligature (cur, next);
@@ -1024,7 +1024,7 @@ text (struct outp_driver *this, const struct outp_text *text, bool draw,
         kern_adjust = 0;
 
       /* Record the current status if this is a space character. */
-      if (cur->code == ' ' && cp > ls_c_str (&s.text->string))
+      if (cur->code == ' ' && cp > ss_data (s.text->string))
 	{
 	  s.space_char = cp;
 	  s.space_glyph_cnt = s.glyph_cnt;
@@ -1382,8 +1382,8 @@ reencode_font (struct outp_driver *this, struct font *font)
 
   line_number = 0;
 
-  ds_init (&line);
-  while (ds_get_config_line (file, &line, &line_number))
+  ds_init_empty (&line);
+  while (ds_read_config_line (&line, &line_number, file))
     {
       char *pschar, *code;
       char *save_ptr, *tail;
@@ -1392,7 +1392,7 @@ reencode_font (struct outp_driver *this, struct font *font)
       if (ds_is_empty (&line) == 0)
         continue;
 
-      pschar = strtok_r (ds_c_str (&line), " \t\r\n", &save_ptr);
+      pschar = strtok_r (ds_cstr (&line), " \t\r\n", &save_ptr);
       code = strtok_r (NULL, " \t\r\n", &save_ptr);
       if (pschar == NULL || code == NULL)
         continue;

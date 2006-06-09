@@ -58,7 +58,7 @@ tab_create (int nc, int nr, int reallocable UNUSED)
   t = pool_create_container (struct tab_table, container);
   t->col_style = TAB_COL_NONE;
   t->col_group = 0;
-  ls_null (&t->title);
+  t->title = NULL;
   t->flags = SOMF_NONE;
   t->nr = nr;
   t->nc = t->cf = nc;
@@ -143,7 +143,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
       int mr1 = min (nr, t->nr);
       int mc1 = min (nc, t->nc);
       
-      struct fixed_string *new_cc;
+      struct substring *new_cc;
       unsigned char *new_ct;
       int r;
 
@@ -372,23 +372,16 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
     }
 }
 
-/* Formats text TEXT and arguments ARGS as indicated in OPT and sets
-   the resultant string into S in TABLE's pool. */
-static void
-text_format (struct tab_table *table, int opt, const char *text, va_list args,
-	     struct fixed_string *s)
+/* Formats text TEXT and arguments ARGS as indicated in OPT in
+   TABLE's pool and returns the resultant string. */
+static struct substring
+text_format (struct tab_table *table, int opt, const char *text, va_list args)
 {
-  char *tmp = NULL;
-  
-  assert (table != NULL && text != NULL && s != NULL);
-  
-  if (opt & TAT_PRINTF) 
-    text = tmp = xvasprintf (text, args);
+  assert (table != NULL && text != NULL);
 
-  ls_create_buffer (s, text, strlen (text));
-  pool_register (table->container, free, s->string);
-  
-  free (tmp);
+  return ss_cstr (opt & TAT_PRINTF
+                  ? pool_vasprintf (table->container, text, args)
+                  : pool_strdup (table->container, text));
 }
 
 /* Set the title of table T to TITLE, which is formatted as if
@@ -400,7 +393,7 @@ tab_title (struct tab_table *t, const char *title, ...)
 
   assert (t != NULL && title != NULL);
   va_start (args, title);
-  text_format (t, TAT_PRINTF, title, args, &t->title);
+  t->title = xvasprintf (title, args);
   va_end (args);
 }
 
@@ -435,7 +428,6 @@ tab_natural_width (struct tab_table *t, struct outp_driver *d, int c)
 	  continue;
 
 	text.string = t->cc[c + r * t->cf];
-	assert (!ls_null_p (&text.string));
 	text.justification = OUTP_LEFT;
         text.font = options_to_font (opt);
         text.h = text.v = INT_MAX;
@@ -488,7 +480,6 @@ tab_natural_height (struct tab_table *t, struct outp_driver *d, int r)
 	  continue;
 
 	text.string = t->cc[c + r * t->cf];
-	assert (!ls_null_p (&text.string));
         text.justification = OUTP_LEFT;
         text.font = options_to_font (opt);
 	text.h = t->w[c];
@@ -546,7 +537,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   contents = pool_alloc (table->container, f->w);
-  ls_init (&table->cc[c + r * table->cf], contents, f->w);
+  table->cc[c + r * table->cf] = ss_buffer (contents, f->w);
   table->ct[c + r * table->cf] = opt;
   
   data_out (contents, f, v);
@@ -596,7 +587,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
   f.w = w - (cp - buf);
 
   contents = pool_alloc (table->container, f.w);
-  ls_init (&table->cc[c + r * table->cf], contents, f.w);
+  table->cc[c + r * table->cf] = ss_buffer (contents, f.w);
   table->ct[c + r * table->cf] = opt;
   memcpy (contents, cp, f.w);
 }
@@ -631,7 +622,7 @@ tab_text (struct tab_table *table, int c, int r, unsigned opt, const char *text,
 #endif
 
   va_start (args, text);
-  text_format (table, opt, text, args, &table->cc[c + r * table->cf]);
+  table->cc[c + r * table->cf] = text_format (table, opt, text, args);
   table->ct[c + r * table->cf] = opt;
   va_end (args);
 }
@@ -683,14 +674,14 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
     va_list args;
     
     va_start (args, text);
-    text_format (table, opt, text, args, &j->contents);
+    j->contents = text_format (table, opt, text, args);
     va_end (args);
   }
   
   opt |= TAB_JOIN;
   
   {
-    struct fixed_string *cc = &table->cc[x1 + y1 * table->cf];
+    struct substring *cc = &table->cc[x1 + y1 * table->cf];
     unsigned char *ct = &table->ct[x1 + y1 * table->cf];
     const int ofs = table->cf - (x2 - x1);
 
@@ -702,7 +693,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 	
 	for (x = x1; x < x2; x++)
 	  {
-	    ls_init (cc++, (char *) j, 0);
+	    *cc++ = ss_buffer ((char *) j, 0);
 	    *ct++ = opt;
 	  }
 	
@@ -715,7 +706,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 /* Sets cell (C,R) in TABLE, with options OPT, to contents STRING. */
 void
 tab_raw (struct tab_table *table, int c, int r, unsigned opt,
-	 struct fixed_string *string)
+	 struct substring *string)
 {
   assert (table != NULL && string != NULL);
   
@@ -1169,10 +1160,11 @@ tabi_title (int x, int y)
   if (command_name != NULL)
     cp = spprintf (cp, " %s", command_name);
   cp = stpcpy (cp, ".  ");
-  if (!ls_empty_p (&t->title))
+  if (t->title != NULL)
     {
-      memcpy (cp, ls_c_str (&t->title), ls_length (&t->title));
-      cp += ls_length (&t->title);
+      size_t length = strlen (t->title);
+      memcpy (cp, t->title, length);
+      cp += length;
     }
   *cp = 0;
   
@@ -1181,7 +1173,7 @@ tabi_title (int x, int y)
 
     text.font = OUTP_PROPORTIONAL;
     text.justification = OUTP_LEFT;
-    ls_init (&text.string, buf, cp - buf);
+    text.string = ss_buffer (buf, cp - buf);
     text.h = d->width;
     text.v = d->font_height;
     text.x = 0;
@@ -1393,7 +1385,7 @@ render_cell (int x, int y, int c, int r, int c1, int r1)
 {
   const int index = c + (r * t->cf);
   unsigned char type = t->ct[index];
-  struct fixed_string *content = &t->cc[index];
+  struct substring *content = &t->cc[index];
   
   if (!(type & TAB_JOIN))
     {
@@ -1413,7 +1405,7 @@ render_cell (int x, int y, int c, int r, int c1, int r1)
   else
     {
       struct tab_joined_cell *j
-        = (struct tab_joined_cell *) ls_c_str (content);
+        = (struct tab_joined_cell *) ss_data (*content);
 
       if (j->hit != tab_hit)
         {

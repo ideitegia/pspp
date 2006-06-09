@@ -43,7 +43,7 @@ cmd_include (void)
       lex_error (_("expecting file name")); 
       return CMD_CASCADING_FAILURE;
     }
-  getl_include_syntax_file (ds_c_str (&tokstr));
+  getl_include_syntax_file (ds_cstr (&tokstr));
 
   lex_get ();
   return lex_end_of_command ();

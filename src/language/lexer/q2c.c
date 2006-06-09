@@ -1624,7 +1624,7 @@ dump_subcommand (const subcommand *sbc)
 	  outdent ();
 	}
       dump (0, "free(p->s_%s);", st_lower(sbc->name) );
-      dump (0, "p->s_%s = xstrdup (ds_c_str (&tokstr));",
+      dump (0, "p->s_%s = ds_xstrdup (&tokstr);",
 	    st_lower (sbc->name));
       dump (0, "lex_get ();");
       if (sbc->restriction)

@@ -686,7 +686,7 @@ write_vls_length_table (struct sfm_writer *w,
 
   struct string vls_length_map;
 
-  ds_init (&vls_length_map);
+  ds_init_empty (&vls_length_map);
 
   vls_hdr.rec_type = 7;
   vls_hdr.subtype = 14;
@@ -700,9 +700,9 @@ write_vls_length_table (struct sfm_writer *w,
       if ( v->width <=  MAX_LONG_STRING ) 
 	continue;
 
-      ds_printf (&vls_length_map, "%s=%05d", v->short_name, v->width);
-      ds_putc (&vls_length_map, '\0');
-      ds_putc (&vls_length_map, '\t');
+      ds_put_format (&vls_length_map, "%s=%05d", v->short_name, v->width);
+      ds_put_char (&vls_length_map, '\0');
+      ds_put_char (&vls_length_map, '\t');
     }
 
   vls_hdr.n_elem = ds_length (&vls_length_map);
@@ -732,14 +732,14 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   struct string long_name_map;
   size_t i;
 
-  ds_init (&long_name_map);
+  ds_init_empty (&long_name_map);
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);
       
       if (i)
-        ds_putc (&long_name_map, '\t');
-      ds_printf (&long_name_map, "%s=%s", v->short_name, v->name);
+        ds_put_char (&long_name_map, '\t');
+      ds_put_format (&long_name_map, "%s=%s", v->short_name, v->name);
     }
 
   lv_hdr.rec_type = 7;

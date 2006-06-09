@@ -92,7 +92,7 @@ struct number_node
 struct string_node
   {
     operation_type type;   /* OP_string. */
-    struct fixed_string s;
+    struct substring s;
   };
 
 struct variable_node
@@ -145,7 +145,7 @@ union operation_data
   {
     operation_type operation;
     double number;
-    struct fixed_string string;
+    struct substring string;
     struct variable *variable;
     const struct vector *vector;
     struct fmt_spec *format;
@@ -164,7 +164,7 @@ struct expression
     size_t op_cnt, op_cap;      /* Number of ops, amount of allocated space. */
 
     double *number_stack;       /* Evaluation stack: numerics, Booleans. */
-    struct fixed_string *string_stack; /* Evaluation stack: strings. */
+    struct substring *string_stack; /* Evaluation stack: strings. */
     struct pool *eval_pool;     /* Pool for evaluation temporaries. */
   };
 
@@ -190,7 +190,7 @@ union any_node *expr_allocate_pos_int (struct expression *e, int);
 union any_node *expr_allocate_string_buffer (struct expression *e,
                                              const char *string, size_t length);
 union any_node *expr_allocate_string (struct expression *e,
-                                      struct fixed_string);
+                                      struct substring);
 union any_node *expr_allocate_variable (struct expression *e,
                                         struct variable *);
 union any_node *expr_allocate_format (struct expression *e,

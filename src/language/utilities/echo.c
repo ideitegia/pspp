@@ -41,7 +41,7 @@ cmd_echo(void)
   tab_dim (tab, tab_natural_dimensions);
   tab_flags (tab, SOMF_NO_TITLE );
 
-  tab_text(tab, 0, 0, 0, tokstr.string);
+  tab_text(tab, 0, 0, 0, ds_cstr (&tokstr));
 
   tab_submit(tab);
 

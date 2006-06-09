@@ -119,30 +119,30 @@ handle_msg (const struct msg *m)
 
   const struct category *category = &categories[m->category];
   const struct severity *severity = &severities[m->severity];
-  struct string string = DS_INITIALIZER;
+  struct string string = DS_EMPTY_INITIALIZER;
 
   if (category->show_file_location && m->where.file_name)
     {
-      ds_printf (&string, "%s:", m->where.file_name);
+      ds_put_format (&string, "%s:", m->where.file_name);
       if (m->where.line_number != -1)
-	ds_printf (&string, "%d:", m->where.line_number);
-      ds_putc (&string, ' ');
+	ds_put_format (&string, "%d:", m->where.line_number);
+      ds_put_char (&string, ' ');
     }
 
   if (severity->name != NULL)
-    ds_printf (&string, "%s: ", gettext (severity->name));
+    ds_put_format (&string, "%s: ", gettext (severity->name));
   
   if (severity->count != NULL)
     ++*severity->count;
   
   if (category->show_command_name && msg_get_command_name () != NULL)
-    ds_printf (&string, "%s: ", msg_get_command_name ());
+    ds_put_format (&string, "%s: ", msg_get_command_name ());
 
-  ds_puts (&string, m->text);
+  ds_put_cstr (&string, m->text);
 
   /* FIXME: Check set_messages and set_errors to determine where to
      send errors and messages. */
-  dump_message (ds_c_str (&string), get_viewwidth (), 8, stdout);
+  dump_message (ds_cstr (&string), get_viewwidth (), 8, stdout);
 
   ds_destroy (&string);
 }

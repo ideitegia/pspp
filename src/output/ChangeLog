@@ -1,3 +1,24 @@
+Fri Jun  9 14:42:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	Reform string library.
+	
+	* output.c (init_default_drivers): Update call to
+	configure_driver() to new interface.
+	(get_option_token) Use a modifiable substring in interface instead
+	of a separate position parameter.  Use ss_get_*() functions.
+	(configure_driver) Take and work with substrings.
+	(configure_driver_line) Update call to configure_driver() to new
+	interface.
+	(outp_get_paper_size) Use substrings.
+
+	* output.h (struct outp_class): Change open_driver interface to
+	use substring.  Update all implementations.
+
+	* table.c (text_format): Change to return substring.
+	(tab_title) Use xvasprintf().
+
+	* table.h (struct tab_table): Change title member to char *.
+
 Thu May 25 18:02:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* table.c: Removed redundant extern declaration.

@@ -30,6 +30,7 @@
 
 #include "minmax.h"
 #include "size_max.h"
+#include "xsize.h"
 
 /* Reverses the order of NBYTES bytes at address P, thus converting
    between little- and big-endian byte orders.  */
@@ -252,23 +253,405 @@ spprintf (char *dst, const char *format, ...)
   return dst + count;
 }
 
-/* Initializes ST with initial contents S. */
-void
-ds_create (struct string *st, const char *s)
+/* Substrings. */
+
+/* Returns an empty substring. */
+struct substring
+ss_empty (void) 
 {
-  st->length = strlen (s);
-  st->capacity = MAX (8, st->length * 2);
-  st->string = xmalloc (st->capacity + 1);
-  strcpy (st->string, s);
+  struct substring ss;
+  ss.string = NULL;
+  ss.length = 0;
+  return ss;
 }
 
+/* Returns a substring whose contents are the given C-style
+   string CSTR. */
+struct substring
+ss_cstr (const char *cstr) 
+{
+  return ss_buffer (cstr, strlen (cstr));
+}
+
+/* Returns a substring whose contents are the CNT characters in
+   BUFFER. */   
+struct substring
+ss_buffer (const char *buffer, size_t cnt) 
+{
+  struct substring ss;
+  ss.string = (char *) buffer;
+  ss.length = cnt;
+  return ss;
+}
+
+/* Returns a substring whose contents are the CNT characters
+   starting at the (0-based) position START in SS. */
+struct substring
+ss_substr (struct substring ss, size_t start, size_t cnt)
+{
+  if (start < ss.length)
+    return ss_buffer (ss.string + start, MIN (cnt, ss.length - start));
+  else 
+    return ss_buffer (ss.string + ss.length, 0);
+}
+
+/* Returns a substring whose contents are the first CNT
+   characters in SS. */
+struct substring
+ss_head (struct substring ss, size_t cnt) 
+{
+  return ss_buffer (ss.string, MIN (cnt, ss.length));
+}
+
+/* Returns a substring whose contents are the last CNT characters
+   in SS. */
+struct substring
+ss_tail (struct substring ss, size_t cnt) 
+{
+  if (cnt < ss.length)
+    return ss_buffer (ss.string + (ss.length - cnt), cnt);
+  else
+    return ss;
+}
+
+/* Makes a malloc()'d copy of the contents of OLD
+   and stores it in NEW. */
+void
+ss_alloc_substring (struct substring *new, struct substring old) 
+{
+  new->string = xmalloc (old.length);
+  new->length = old.length;
+  memcpy (new->string, old.string, old.length);
+}
+
+/* Allocates room for a CNT-character string in NEW. */
+void
+ss_alloc_uninit (struct substring *new, size_t cnt) 
+{
+  new->string = xmalloc (cnt);
+  new->length = cnt;
+}
+
+/* Frees the string that SS points to. */
+void
+ss_dealloc (struct substring *ss) 
+{
+  free (ss->string);
+}
+
+/* Truncates SS to at most CNT characters in length. */
+void
+ss_truncate (struct substring *ss, size_t cnt) 
+{
+  if (ss->length > cnt)
+    ss->length = cnt;
+}
+
+/* Removes trailing characters in TRIM_SET from SS.
+   Returns number of characters removed. */
+size_t
+ss_rtrim (struct substring *ss, struct substring trim_set) 
+{
+  size_t cnt = 0;
+  while (cnt < ss->length
+         && ss_find_char (trim_set,
+                          ss->string[ss->length - cnt - 1]) != SIZE_MAX) 
+    cnt++;
+  ss->length -= cnt;
+  return cnt;
+}  
+
+/* Removes leading characters in TRIM_SET from SS.
+   Returns number of characters removed. */
+size_t
+ss_ltrim (struct substring *ss, struct substring trim_set)
+{
+  size_t cnt = ss_span (*ss, trim_set);
+  ss_advance (ss, cnt);
+  return cnt;
+}
+
+/* Trims leading and trailing characters in TRIM_SET from SS. */
+void
+ss_trim (struct substring *ss, struct substring trim_set) 
+{
+  ss_ltrim (ss, trim_set);
+  ss_rtrim (ss, trim_set);
+}
+
+/* If the last character in SS is C, removes it and returns true.
+   Otherwise, returns false without changing the string. */
+bool
+ss_chomp (struct substring *ss, char c) 
+{
+  if (ss_last (*ss) == c)
+    {
+      ss->length--;
+      return true;
+    }
+  else
+    return false;
+}
+
+/* Divides SS into tokens separated by any of the DELIMITERS.
+   Each call replaces TOKEN by the next token in SS, or by an
+   empty string if no tokens remain.  Returns true if a token was
+   obtained, false otherwise.
+
+   Before the first call, initialize *SAVE_IDX to 0.  Do not
+   modify *SAVE_IDX between calls.
+
+   SS divides into exactly one more tokens than it contains
+   delimiters.  That is, a delimiter at the start or end of SS or
+   a pair of adjacent delimiters yields an empty token, and the
+   empty string contains a single token. */
+bool
+ss_separate (struct substring ss, struct substring delimiters,
+             size_t *save_idx, struct substring *token) 
+{
+  if (*save_idx <= ss_length (ss))
+    {
+      struct substring tmp = ss_substr (ss, *save_idx, SIZE_MAX);
+      size_t length = ss_cspan (tmp, delimiters);
+      *token = ss_head (tmp, length);
+      *save_idx += length + 1;
+      return true;
+    }
+  else 
+    {
+      *token = ss_empty ();
+      return false; 
+    }
+}
+
+/* Divides SS into tokens separated by any of the DELIMITERS,
+   merging adjacent delimiters so that the empty string is never
+   produced as a token.  Each call replaces TOKEN by the next
+   token in SS, or by an empty string if no tokens remain.
+   Returns true if a token was obtained, false otherwise.
+
+   Before the first call, initialize *SAVE_IDX to 0.  Do not
+   modify *SAVE_IDX between calls. */
+bool
+ss_tokenize (struct substring ss, struct substring delimiters,
+             size_t *save_idx, struct substring *token)
+{
+  ss_advance (&ss, *save_idx);
+  *save_idx += ss_ltrim (&ss, delimiters);
+  *save_idx += ss_get_chars (&ss, ss_cspan (ss, delimiters), token);
+  return ss_length (*token) > 0;
+}
+
+/* Removes the first CNT characters from SS. */
+void
+ss_advance (struct substring *ss, size_t cnt) 
+{
+  if (cnt > ss->length)
+    cnt = ss->length;
+  ss->string += cnt;
+  ss->length -= cnt;
+}
+
+/* If the first character in SS is C, removes it and returns true.
+   Otherwise, returns false without changing the string. */
+bool
+ss_match_char (struct substring *ss, char c) 
+{
+  if (ss_first (*ss) == c)
+    {
+      ss->string++;
+      ss->length--;
+      return true;
+    }
+  else
+    return false;
+}
+
+/* Removes the first character from SS and returns it.
+   If SS is empty, returns EOF without modifying SS. */
+int
+ss_get_char (struct substring *ss) 
+{
+  int c = ss_first (*ss);
+  if (c != EOF) 
+    {
+      ss->string++;
+      ss->length--;
+    }
+  return c;
+}
+
+/* Stores the prefix of SS up to the first DELIMITER in OUT (if
+   any).  Trims those same characters from SS.  DELIMITER is
+   removed from SS but not made part of OUT.  Returns true if
+   DELIMITER was found (and removed), false otherwise. */
+bool
+ss_get_until (struct substring *ss, char delimiter, struct substring *out)
+{
+  ss_get_chars (ss, ss_cspan (*ss, ss_buffer (&delimiter, 1)), out);
+  return ss_match_char (ss, delimiter);
+}
+
+/* Stores the first CNT characters in SS in OUT (or fewer, if SS
+   is shorter than CNT characters).  Trims the same characters
+   from the beginning of SS. */
+size_t
+ss_get_chars (struct substring *ss, size_t cnt, struct substring *out) 
+{
+  *out = ss_head (*ss, cnt);
+  ss_advance (ss, cnt);
+  return cnt;
+}
+
+/* Returns true if SS is empty (contains no characters),
+   false otherwise. */
+bool
+ss_is_empty (struct substring ss) 
+{
+  return ss.length == 0;
+}
+
+/* Returns the number of characters in SS. */
+size_t
+ss_length (struct substring ss) 
+{
+  return ss.length;
+}
+
+/* Returns a pointer to the characters in SS. */
+char *
+ss_data (struct substring ss) 
+{
+  return ss.string;
+}
+
+/* Returns a pointer just past the last character in SS. */
+char *
+ss_end (struct substring ss) 
+{
+  return ss.string + ss.length;
+}
+
+/* Returns the character in position IDX in SS, as a value in the
+   range of unsigned char.  Returns EOF if IDX is out of the
+   range of indexes for SS. */
+int
+ss_at (struct substring ss, size_t idx) 
+{
+  return idx < ss.length ? (unsigned char) ss.string[idx] : EOF;
+}
+
+/* Returns the first character in SS as a value in the range of
+   unsigned char.  Returns EOF if SS is the empty string. */
+int
+ss_first (struct substring ss) 
+{
+  return ss_at (ss, 0);
+}
+
+/* Returns the last character in SS as a value in the range of
+   unsigned char.  Returns EOF if SS is the empty string. */
+int
+ss_last (struct substring ss) 
+{
+  return ss.length > 0 ? (unsigned char) ss.string[ss.length - 1] : EOF;
+}
+
+/* Returns the number of contiguous characters at the beginning
+   of SS that are in SKIP_SET. */
+size_t
+ss_span (struct substring ss, struct substring skip_set) 
+{
+  size_t i;
+  for (i = 0; i < ss.length; i++) 
+    if (ss_find_char (skip_set, ss.string[i]) == SIZE_MAX)
+      break; 
+  return i;
+}
+
+/* Returns the number of contiguous characters at the beginning
+   of SS that are not in SKIP_SET. */
+size_t
+ss_cspan (struct substring ss, struct substring stop_set) 
+{
+  size_t i;
+  for (i = 0; i < ss.length; i++) 
+    if (ss_find_char (stop_set, ss.string[i]) != SIZE_MAX)
+      break; 
+  return i;
+}
+
+/* Returns the offset in SS of the first instance of C,
+   or SIZE_MAX if C does not occur in SS. */
+size_t
+ss_find_char (struct substring ss, char c) 
+{
+  const char *p = memchr (ss.string, c, ss.length);
+  return p != NULL ? p - ss.string : SIZE_MAX;
+}
+
+/* Compares A and B and returns a strcmp()-type comparison
+   result. */
+int
+ss_compare (struct substring a, struct substring b)
+{
+  int retval = memcmp (a.string, b.string, MIN (a.length, b.length));
+  if (retval == 0)
+    retval = a.length < b.length ? -1 : a.length > b.length;
+  return retval;
+}
+
+/* Returns the position in SS that the character at P occupies.
+   P must point within SS or one past its end. */
+size_t
+ss_pointer_to_position (struct substring ss, const char *p)
+{
+  size_t pos = p - ss.string;
+  assert (pos <= ss.length);
+  return pos;
+}
+
+/* Allocates and returns a null-terminated string that contains
+   SS. */
+char *
+ss_xstrdup (struct substring ss) 
+{
+  char *s = xmalloc (ss.length + 1);
+  memcpy (s, ss.string, ss.length);
+  s[ss.length] = '\0';
+  return s;
+}
+
 /* Initializes ST as an empty string. */
 void
-ds_init (struct string *st)
+ds_init_empty (struct string *st)
 {
-  st->length = 0;
+  st->ss = ss_empty ();
   st->capacity = 0;
-  st->string = NULL;
+}
+
+/* Initializes ST with initial contents S. */
+void
+ds_init_string (struct string *st, const struct string *s) 
+{
+  ds_init_substring (st, ds_ss (s));
+}
+
+/* Initializes ST with initial contents SS. */
+void
+ds_init_substring (struct string *st, struct substring ss)
+{
+  st->capacity = MAX (8, ss.length * 2);
+  st->ss.string = xmalloc (st->capacity + 1);
+  memcpy (st->ss.string, ss.string, ss.length);
+  st->ss.length = ss.length;
+}
+
+/* Initializes ST with initial contents S. */
+void
+ds_init_cstr (struct string *st, const char *s) 
+{
+  ds_init_substring (st, ss_cstr (s));
 }
 
 /* Frees ST. */
@@ -277,9 +660,9 @@ ds_destroy (struct string *st)
 {
   if (st != NULL) 
     {
-      free (st->string);
-      st->string = NULL;
-      st->length = 0;
+      ss_dealloc (&st->ss);
+      st->ss.string = NULL;
+      st->ss.length = 0;
       st->capacity = 0; 
     }
 }
@@ -293,61 +676,75 @@ ds_swap (struct string *a, struct string *b)
   *b = tmp;
 }
 
-/* Initializes DST with the CNT characters from SRC starting at
-   position IDX. */
-void
-ds_init_substring (struct string *dst,
-                   const struct string *src, size_t idx, size_t cnt)
-{
-  assert (dst != src);
-  ds_init (dst);
-  ds_assign_substring (dst, src, idx, cnt);
-}
-
 /* Copies SRC into DST.
    DST and SRC may be the same string. */
 void
 ds_assign_string (struct string *dst, const struct string *src) 
 {
-  ds_assign_buffer (dst, ds_data (src), ds_length (src));
+  ds_assign_substring (dst, ds_ss (src));
 }
 
-/* Replaces DST by CNT characters from SRC starting at position
-   IDX.
-   DST and SRC may be the same string. */
+/* Replaces DST by SS.
+   SS may be a substring of DST. */
 void
-ds_assign_substring (struct string *dst,
-                     const struct string *src, size_t idx, size_t cnt) 
+ds_assign_substring (struct string *dst, struct substring ss)
 {
-  if (idx < src->length)
-    ds_assign_buffer (dst, src->string + idx, MIN (cnt, src->length - idx));
-  else 
-    ds_clear (dst);
-}
-
-/* Replaces DST by the LENGTH characters in SRC.
-   SRC may be a substring within DST. */
-void
-ds_assign_buffer (struct string *dst, const char *src, size_t length)
-{
-  dst->length = length;
-  ds_extend (dst, length);
-  memmove (dst->string, src, length);
+  dst->ss.length = ss.length;
+  ds_extend (dst, ss.length);
+  memmove (dst->ss.string, ss.string, ss.length);
 }
 
 /* Replaces DST by null-terminated string SRC.  SRC may overlap
    with DST. */
 void
-ds_assign_c_str (struct string *dst, const char *src)
+ds_assign_cstr (struct string *dst, const char *src)
 {
-  ds_assign_buffer (dst, src, strlen (src));
+  ds_assign_substring (dst, ss_cstr (src));
 }
 
 /* Truncates ST to zero length. */
 void
 ds_clear (struct string *st)
 {
-  st->length = 0;
+  st->ss.length = 0;
+}
+
+/* Returns a substring that contains ST. */
+struct substring
+ds_ss (const struct string *st) 
+{
+  return st->ss;
+}
+
+/* Returns a substring that contains CNT characters from ST
+   starting at position START.
+
+   If START is greater than or equal to the length of ST, then
+   the substring will be the empty string.  If START + CNT
+   exceeds the length of ST, then the substring will only be
+   ds_length(ST) - START characters long. */
+struct substring
+ds_substr (const struct string *st, size_t start, size_t cnt) 
+{
+  return ss_substr (ds_ss (st), start, cnt);
+}
+
+/* Returns a substring that contains the first CNT characters in
+   ST.  If CNT exceeds the length of ST, then the substring will
+   contain all of ST. */
+struct substring
+ds_head (const struct string *st, size_t cnt) 
+{
+  return ss_head (ds_ss (st), cnt);
+}
+
+/* Returns a substring that contains the last CNT characters in
+   ST.  If CNT exceeds the length of ST, then the substring will
+   contain all of ST. */
+struct substring
+ds_tail (const struct string *st, size_t cnt)
+{
+  return ss_tail (ds_ss (st), cnt);
 }
 
 /* Ensures that ST can hold at least MIN_CAPACITY characters plus a null
@@ -361,7 +758,7 @@ ds_extend (struct string *st, size_t min_capacity)
       if (st->capacity < min_capacity)
 	st->capacity = 2 * min_capacity;
 
-      st->string = xrealloc (st->string, st->capacity + 1);
+      st->ss.string = xrealloc (st->ss.string, st->capacity + 1);
     }
 }
 
@@ -369,10 +766,10 @@ ds_extend (struct string *st, size_t min_capacity)
 void
 ds_shrink (struct string *st)
 {
-  if (st->capacity != st->length)
+  if (st->capacity != st->ss.length)
     {
-      st->capacity = st->length;
-      st->string = xrealloc (st->string, st->capacity + 1);
+      st->capacity = st->ss.length;
+      st->ss.string = xrealloc (st->ss.string, st->capacity + 1);
     }
 }
 
@@ -380,68 +777,43 @@ ds_shrink (struct string *st)
 void
 ds_truncate (struct string *st, size_t length)
 {
-  if (st->length > length)
-    st->length = length;
+  ss_truncate (&st->ss, length);
 }
 
-/* Pad ST on the right with copies of PAD until ST is at least
-   LENGTH characters in size.  If ST is initially LENGTH
-   characters or longer, this is a no-op. */
-void
-ds_rpad (struct string *st, size_t length, char pad) 
+/* Removes trailing characters in TRIM_SET from ST.
+   Returns number of characters removed. */
+size_t
+ds_rtrim (struct string *st, struct substring trim_set) 
 {
-  if (length > st->length)
-    ds_putc_multiple (st, pad, length - st->length);
+  return ss_rtrim (&st->ss, trim_set);
 }
 
-/* Removes trailing spaces from ST.
-   Returns number of spaces removed. */
-int
-ds_rtrim_spaces (struct string *st) 
+/* Removes leading characters in TRIM_SET from ST.
+   Returns number of characters removed. */
+size_t
+ds_ltrim (struct string *st, struct substring trim_set) 
 {
-  int cnt = 0;
-  while (isspace (ds_last (st))) 
-    {
-      st->length--;
-      cnt++;
-    }
-  return cnt;
-}
-
-/* Removes leading spaces from ST.
-   Returns number of spaces removed. */
-int
-ds_ltrim_spaces (struct string *st) 
-{
-  size_t cnt = 0;
-  while (isspace (ds_at (st, cnt)))
-    cnt++;
+  size_t cnt = ds_span (st, trim_set);
   if (cnt > 0)
-    ds_assign_substring (st, st, cnt, SIZE_MAX);
+    ds_assign_substring (st, ds_substr (st, cnt, SIZE_MAX));
   return cnt;
 }
 
-/* Trims leading and trailing spaces from ST. */
-void
-ds_trim_spaces (struct string *st) 
+/* Trims leading and trailing characters in TRIM_SET from ST.
+   Returns number of charactesr removed. */
+size_t
+ds_trim (struct string *st, struct substring trim_set) 
 {
-  ds_rtrim_spaces (st);
-  ds_ltrim_spaces (st);
+  size_t cnt = ds_rtrim (st, trim_set);
+  return cnt + ds_ltrim (st, trim_set);
 }
 
 /* If the last character in ST is C, removes it and returns true.
    Otherwise, returns false without modifying ST. */
 bool
-ds_chomp (struct string *st, char c_) 
+ds_chomp (struct string *st, char c) 
 {
-  unsigned char c = c_;
-  if (ds_last (st) == c)
-    {
-      st->length--;
-      return true;
-    }
-  else
-    return false;
+  return ss_chomp (&st->ss, c);
 }
 
 /* Divides ST into tokens separated by any of the DELIMITERS.
@@ -457,18 +829,10 @@ ds_chomp (struct string *st, char c_)
    a pair of adjacent delimiters yields an empty token, and the
    empty string contains a single token. */
 bool
-ds_separate (const struct string *st, struct string *token,
-             const char *delimiters, size_t *save_idx)
+ds_separate (const struct string *st, struct substring delimiters,
+             size_t *save_idx, struct substring *token)
 {
-  if (*save_idx <= ds_length (st))
-    {
-      size_t length = ds_cspan (st, *save_idx, delimiters);
-      ds_assign_substring (token, st, *save_idx, length);
-      *save_idx += length + 1;
-      return true;
-    }
-  else 
-    return false;
+  return ss_separate (ds_ss (st), delimiters, save_idx, token);
 }
 
 /* Divides ST into tokens separated by any of the DELIMITERS,
@@ -480,46 +844,41 @@ ds_separate (const struct string *st, struct string *token,
    Before the first call, initialize *SAVE_IDX to 0.  Do not
    modify *SAVE_IDX between calls. */
 bool
-ds_tokenize (const struct string *st, struct string *token,
-             const char *delimiters, size_t *save_idx)
+ds_tokenize (const struct string *st, struct substring delimiters,
+             size_t *save_idx, struct substring *token)
 {
-  size_t start = *save_idx + ds_span (st, *save_idx, delimiters);
-  size_t length = ds_cspan (st, start, delimiters);
-  ds_assign_substring (token, st, start, length);
-  *save_idx = start + length;
-  return length > 0;
+  return ss_tokenize (ds_ss (st), delimiters, save_idx, token);
+}
+
+/* Pad ST on the right with copies of PAD until ST is at least
+   LENGTH characters in size.  If ST is initially LENGTH
+   characters or longer, this is a no-op. */
+void
+ds_rpad (struct string *st, size_t length, char pad) 
+{
+  if (length > st->ss.length)
+    ds_put_char_multiple (st, pad, length - st->ss.length);
 }
 
 /* Returns true if ST is empty, false otherwise. */
 bool
 ds_is_empty (const struct string *st) 
 {
-  return st->length == 0;
+  return ss_is_empty (st->ss);
 }
 
 /* Returns the length of ST. */
 size_t
 ds_length (const struct string *st)
 {
-  return st->length;
-}
-
-/* Returns the value of ST as a null-terminated string. */
-char *
-ds_c_str (const struct string *st_)
-{
-  struct string *st = (struct string *) st_;
-  if (st->string == NULL) 
-    ds_extend (st, 1);
-  st->string[st->length] = '\0';
-  return st->string;
+  return ss_length (ds_ss (st));
 }
 
 /* Returns the string data inside ST. */
 char *
 ds_data (const struct string *st)
 {
-  return st->string;
+  return ss_data (ds_ss (st));
 }
 
 /* Returns a pointer to the null terminator ST.
@@ -528,7 +887,81 @@ ds_data (const struct string *st)
 char *
 ds_end (const struct string *st)
 {
-  return st->string + st->length;
+  return ss_end (ds_ss (st));
+}
+
+/* Returns the character in position IDX in ST, as a value in the
+   range of unsigned char.  Returns EOF if IDX is out of the
+   range of indexes for ST. */
+int
+ds_at (const struct string *st, size_t idx) 
+{
+  return ss_at (ds_ss (st), idx);
+}
+
+/* Returns the first character in ST as a value in the range of
+   unsigned char.  Returns EOF if ST is the empty string. */
+int
+ds_first (const struct string *st) 
+{
+  return ss_first (ds_ss (st));
+}
+
+/* Returns the last character in ST as a value in the range of
+   unsigned char.  Returns EOF if ST is the empty string. */
+int
+ds_last (const struct string *st) 
+{
+  return ss_last (ds_ss (st));
+}
+
+/* Returns the number of consecutive characters at the beginning
+   of ST that are in SKIP_SET. */
+size_t
+ds_span (const struct string *st, struct substring skip_set)
+{
+  return ss_span (ds_ss (st), skip_set);
+}
+
+/* Returns the number of consecutive characters at the beginning
+   of ST that are not in STOP_SET.  */
+size_t
+ds_cspan (const struct string *st, struct substring stop_set)
+{
+  return ss_cspan (ds_ss (st), stop_set);
+}
+
+/* Returns the position of the first occurrence of character C in
+   ST at or after position OFS, or SIZE_MAX if there is no such
+   occurrence. */
+size_t
+ds_find_char (const struct string *st, char c)
+{
+  return ss_find_char (ds_ss (st), c);
+}
+
+/* Compares A and B and returns a strcmp()-type comparison
+   result. */
+int
+ds_compare (const struct string *a, const struct string *b)
+{
+  return ss_compare (ds_ss (a), ds_ss (b));
+}
+
+/* Returns the position in ST that the character at P occupies.
+   P must point within ST or one past its end. */
+size_t
+ds_pointer_to_position (const struct string *st, const char *p)
+{
+  return ss_pointer_to_position (ds_ss (st), p);
+}
+
+/* Allocates and returns a null-terminated string that contains
+   ST. */
+char *
+ds_xstrdup (const struct string *st) 
+{
+  return ss_xstrdup (ds_ss (st));
 }
 
 /* Returns the allocation size of ST. */
@@ -538,61 +971,15 @@ ds_capacity (const struct string *st)
   return st->capacity;
 }
 
-/* Returns the character in position IDX in ST, as a value in the
-   range of unsigned char.  Returns EOF if IDX is out of the
-   range of indexes for ST. */
-int
-ds_at (const struct string *st, size_t idx) 
+/* Returns the value of ST as a null-terminated string. */
+char *
+ds_cstr (const struct string *st_)
 {
-  return idx < st->length ? (unsigned char) st->string[idx] : EOF;
-}
-
-/* Returns the first character in ST as a value in the range of
-   unsigned char.  Returns EOF if ST is the empty string. */
-int
-ds_first (const struct string *st) 
-{
-  return ds_at (st, 0);
-}
-
-/* Returns the last character in ST as a value in the range of
-   unsigned char.  Returns EOF if ST is the empty string. */
-int
-ds_last (const struct string *st) 
-{
-  return st->length > 0 ? (unsigned char) st->string[st->length - 1] : EOF;
-}
-
-/* Returns the number of consecutive characters starting at OFS
-   in ST that are in SKIP_SET.  (The null terminator is not
-   considered to be part of SKIP_SET.) */
-size_t
-ds_span (const struct string *st, size_t ofs, const char skip_set[])
-{
-  size_t i;
-  for (i = ofs; i < st->length; i++) 
-    {
-      int c = st->string[i];
-      if (strchr (skip_set, c) == NULL || c == '\0')
-        break; 
-    }
-  return i - ofs;
-}
-
-/* Returns the number of consecutive characters starting at OFS
-   in ST that are not in STOP_SET.  (The null terminator is not
-   considered to be part of STOP_SET.) */
-size_t
-ds_cspan (const struct string *st, size_t ofs, const char stop_set[])
-{
-  size_t i;
-  for (i = ofs; i < st->length; i++) 
-    {
-      int c = st->string[i];
-      if (strchr (stop_set, c) != NULL)
-        break; 
-    }
-  return i - ofs;
+  struct string *st = (struct string *) st_;
+  if (st->ss.string == NULL) 
+    ds_extend (st, 1);
+  st->ss.string[st->ss.length] = '\0';
+  return st->ss.string;
 }
 
 /* Appends to ST a newline-terminated line read from STREAM.
@@ -602,7 +989,7 @@ ds_cspan (const struct string *st, size_t ofs, const char stop_set[])
    all were read before an I/O error or end of file was
    encountered. */
 bool
-ds_gets (struct string *st, FILE *stream)
+ds_read_line (struct string *st, FILE *stream)
 {
   int c;
 
@@ -612,7 +999,7 @@ ds_gets (struct string *st, FILE *stream)
 
   for (;;)
     {
-      ds_putc (st, c);
+      ds_put_char (st, c);
       if (c == '\n')
 	return true;
 
@@ -630,7 +1017,7 @@ remove_comment (struct string *st)
   char *cp;
   int quote = 0;
       
-  for (cp = ds_c_str (st); cp < ds_end (st); cp++)
+  for (cp = ds_data (st); cp < ds_end (st); cp++)
     if (quote)
       {
         if (*cp == quote)
@@ -642,7 +1029,7 @@ remove_comment (struct string *st)
       quote = *cp;
     else if (*cp == '#')
       {
-        ds_truncate (st, cp - ds_c_str (st));
+        ds_truncate (st, cp - ds_cstr (st));
         break;
       }
 }
@@ -660,15 +1047,15 @@ remove_comment (struct string *st)
    failure.  If LINE_NUMBER is non-null, then *LINE_NUMBER is
    incremented by the number of lines read. */
 bool
-ds_get_config_line (FILE *stream, struct string *st, int *line_number)
+ds_read_config_line (struct string *st, int *line_number, FILE *stream)
 {
   ds_clear (st);
   do
     {
-      if (!ds_gets (st, stream))
+      if (!ds_read_line (st, stream))
         return false;
       (*line_number)++;
-      ds_rtrim_spaces (st);
+      ds_rtrim (st, ss_cstr (CC_SPACES));
     }
   while (ds_chomp (st, '\\'));
  
@@ -676,73 +1063,79 @@ ds_get_config_line (FILE *stream, struct string *st, int *line_number)
   return true;
 }
 
-/* Concatenates S onto ST. */
-void
-ds_puts (struct string *st, const char *s)
+/* Attempts to read SIZE * CNT bytes from STREAM and append them
+   to ST.
+   Returns number of bytes actually read. */
+size_t
+ds_read_stream (struct string *st, size_t size, size_t cnt, FILE *stream) 
 {
-  size_t s_len;
-
-  if (!s) return;
-
-  s_len = strlen (s);
-  ds_extend (st, st->length + s_len);
-  strcpy (st->string + st->length, s);
-  st->length += s_len;
+  if (size != 0)
+    {
+      size_t try_bytes = xtimes (cnt, size);
+      if (size_in_bounds_p (xsum (ds_length (st), try_bytes)))
+        {
+          char *buffer = ds_put_uninit (st, try_bytes);
+          size_t got_bytes = fread (buffer, size, cnt, stream);
+          ds_truncate (st, ds_length (st) - (try_bytes - got_bytes));
+          return got_bytes; 
+        }
+    }
+  return 0;
 }
 
-/* Concatenates LEN characters from BUF onto ST. */
+/* Concatenates S onto ST. */
 void
-ds_concat (struct string *st, const char *buf, size_t len)
+ds_put_cstr (struct string *st, const char *s)
 {
-  ds_extend (st, st->length + len);
-  memcpy (st->string + st->length, buf, len);
-  st->length += len;
+  if (s != NULL)
+    ds_put_substring (st, ss_cstr (s));
+}
+
+/* Concatenates SS to ST. */
+void
+ds_put_substring (struct string *st, struct substring ss)
+{
+  memcpy (ds_put_uninit (st, ss_length (ss)), ss_data (ss), ss_length (ss));
 }
 
 /* Returns ds_end(ST) and THEN increases the length by INCR. */
 char *
-ds_append_uninit(struct string *st, size_t incr)
+ds_put_uninit (struct string *st, size_t incr)
 {
   char *end;
-
-  ds_extend(st, ds_length(st) + incr);
-
-  end = ds_end(st);
-
-  st->length += incr;
- 
+  ds_extend (st, ds_length (st) + incr);
+  end = ds_end (st);
+  st->ss.length += incr;
   return end;
 }
 
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
-ds_printf (struct string *st, const char *format, ...)
+ds_put_format (struct string *st, const char *format, ...)
 {
   va_list args;
 
   va_start (args, format);
-  ds_vprintf(st, format, args);
+  ds_put_vformat (st, format, args);
   va_end (args);
 }
 
 /* Formats FORMAT as a printf string and appends the result to ST. */
 void
-ds_vprintf (struct string *st, const char *format, va_list args_)
+ds_put_vformat (struct string *st, const char *format, va_list args_)
 {
   int avail, needed;
   va_list args;
 
   va_copy (args, args_);
-  avail = st->string != NULL ? st->capacity - st->length + 1 : 0;
-  needed = vsnprintf (st->string + st->length, avail, format, args);
+  avail = st->ss.string != NULL ? st->capacity - st->ss.length + 1 : 0;
+  needed = vsnprintf (st->ss.string + st->ss.length, avail, format, args);
   va_end (args);
 
   if (needed >= avail)
     {
-      ds_extend (st, st->length + needed);
-      
       va_copy (args, args_);
-      vsprintf (st->string + st->length, format, args);
+      vsprintf (ds_put_uninit (st, needed), format, args);
       va_end (args);
     }
   else 
@@ -752,121 +1145,26 @@ ds_vprintf (struct string *st, const char *format, va_list args_)
       while (needed == -1)
         {
           ds_extend (st, (st->capacity + 1) * 2);
-          avail = st->capacity - st->length + 1;
+          avail = st->capacity - st->ss.length + 1;
 
           va_copy (args, args_);
-          needed = vsnprintf (st->string + st->length, avail, format, args);
+          needed = vsnprintf (ds_end (st), avail, format, args);
           va_end (args);
         } 
+      st->ss.length += needed;
     }
-
-  st->length += needed;
 }
 
 /* Appends character CH to ST. */
 void
-ds_putc (struct string *st, int ch)
+ds_put_char (struct string *st, int ch)
 {
-  if (st->length >= st->capacity)
-    ds_extend (st, st->length + 1);
-  st->string[st->length++] = ch;
+  ds_put_uninit (st, 1)[0] = ch;
 }
 
 /* Appends CNT copies of character CH to ST. */
 void
-ds_putc_multiple (struct string *st, int ch, size_t cnt) 
+ds_put_char_multiple (struct string *st, int ch, size_t cnt) 
 {
-  ds_extend (st, st->length + cnt);
-  memset (&st->string[st->length], ch, cnt);
-  st->length += cnt;
-}
-
-
-/* Lengthed strings. */
-
-/* Creates a new lengthed string LS with contents as a copy of
-   S. */
-void
-ls_create (struct fixed_string *ls, const char *s)
-{
-  ls->length = strlen (s);
-  ls->string = xmalloc (ls->length + 1);
-  memcpy (ls->string, s, ls->length + 1);
-}
-
-/* Creates a new lengthed string LS with contents as a copy of
-   BUFFER with length LEN. */
-void
-ls_create_buffer (struct fixed_string *ls,
-		  const char *buffer, size_t len)
-{
-  ls->length = len;
-  ls->string = xmalloc (len + 1);
-  memcpy (ls->string, buffer, len);
-  ls->string[len] = '\0';
-}
-
-/* Sets the fields of LS to the specified values. */
-void
-ls_init (struct fixed_string *ls, const char *string, size_t length)
-{
-  ls->string = (char *) string;
-  ls->length = length;
-}
-
-/* Copies the fields of SRC to DST. */
-void
-ls_shallow_copy (struct fixed_string *dst, const struct fixed_string *src)
-{
-  *dst = *src;
-}
-
-/* Frees the memory backing LS. */
-void
-ls_destroy (struct fixed_string *ls)
-{
-  free (ls->string);
-}
-
-/* Sets LS to a null pointer value. */
-void
-ls_null (struct fixed_string *ls)
-{
-  ls->string = NULL;
-}
-
-/* Returns nonzero only if LS has a null pointer value. */
-int
-ls_null_p (const struct fixed_string *ls)
-{
-  return ls->string == NULL;
-}
-
-/* Returns nonzero only if LS is a null pointer or has length 0. */
-int
-ls_empty_p (const struct fixed_string *ls)
-{
-  return ls->string == NULL || ls->length == 0;
-}
-
-/* Returns the length of LS, which must not be null. */
-size_t
-ls_length (const struct fixed_string *ls)
-{
-  return ls->length;
-}
-
-/* Returns a pointer to the character string in LS. */
-char *
-ls_c_str (const struct fixed_string *ls)
-{
-  return (char *) ls->string;
-}
-
-/* Returns a pointer to the null terminator of the character string in
-   LS. */
-char *
-ls_end (const struct fixed_string *ls)
-{
-  return (char *) (ls->string + ls->length);
+  memset (ds_put_uninit (st, cnt), ch, cnt);
 }

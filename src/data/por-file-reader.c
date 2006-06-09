@@ -89,18 +89,18 @@ error (struct pfm_reader *r, const char *msg, ...)
   struct string text;
   va_list args;
 
-  ds_init (&text);
-  ds_printf (&text, _("portable file %s corrupt at offset %ld: "),
-             fh_get_file_name (r->fh), ftell (r->file));
+  ds_init_empty (&text);
+  ds_put_format (&text, _("portable file %s corrupt at offset %ld: "),
+                 fh_get_file_name (r->fh), ftell (r->file));
   va_start (args, msg);
-  ds_vprintf (&text, msg, args);
+  ds_put_vformat (&text, msg, args);
   va_end (args);
 
   m.category = MSG_GENERAL;
   m.severity = MSG_ERROR;
   m.where.file_name = NULL;
   m.where.line_number = 0;
-  m.text = ds_c_str (&text);
+  m.text = ds_cstr (&text);
   
   msg_emit (&m);
 

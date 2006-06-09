@@ -85,9 +85,9 @@ char *outp_subtitle;
 static int disabled_devices;
 
 static void destroy_driver (struct outp_driver *);
-static void configure_driver_line (struct string *);
-static void configure_driver (const struct string *, const struct string *,
-                              const struct string *, const struct string *);
+static void configure_driver_line (struct substring);
+static void configure_driver (const struct substring, const struct substring,
+                              const struct substring, const struct substring);
 
 /* Add a class to the class list. */
 static void
@@ -206,7 +206,7 @@ find_defn_value (const char *key)
 
   for (d = outp_macros; d; d = d->next)
     if (!strcmp (key, d->key))
-      return ds_c_str(&d->value);
+      return ds_cstr (&d->value);
   if (!strcmp (key, "viewwidth"))
     {
       sprintf (buf, "%d", get_viewwidth ());
@@ -256,15 +256,11 @@ delete_macros (void)
 static void
 init_default_drivers (void) 
 {
-  struct string s;
-
   error (0, 0, _("using default output driver configuration"));
-
-  ds_create (&s,
-             "list:ascii:listing:"
-             "length=66 width=79 output-file=\"pspp.list\"");
-  configure_driver_line (&s);
-  ds_destroy (&s);
+  configure_driver (ss_cstr ("list"),
+                    ss_cstr ("ascii"),
+                    ss_cstr ("listing"),
+                    ss_cstr ("length=66 width=79 output-file=\"pspp.list\""));
 }
 
 /* Reads the initialization file; initializes
@@ -286,7 +282,7 @@ outp_read_devices (void)
 					       config_path),
 			    NULL);
 
-  ds_init (&line);
+  ds_init_empty (&line);
 
   if (init_fn == NULL)
     {
@@ -307,13 +303,13 @@ outp_read_devices (void)
     {
       char *cp;
 
-      if (!ds_get_config_line (f, &line, &line_number))
+      if (!ds_read_config_line (&line, &line_number, f))
 	{
 	  if (ferror (f))
 	    error (0, errno, _("reading \"%s\""), init_fn);
 	  break;
 	}
-      for (cp = ds_c_str (&line); isspace ((unsigned char) *cp); cp++);
+      for (cp = ds_cstr (&line); isspace ((unsigned char) *cp); cp++);
       if (!strncmp ("define", cp, 6) && isspace ((unsigned char) cp[6]))
 	outp_configure_macro (&cp[7]);
       else if (*cp)
@@ -327,7 +323,7 @@ outp_read_devices (void)
 	      struct outp_names *n = search_names (cp, ep);
 	      if (n)
 		{
-		  configure_driver_line (&line);
+		  configure_driver_line (ds_ss (&line));
 		  delete_name (n);
 		}
 	    }
@@ -415,8 +411,8 @@ outp_configure_macro (char *bp)
   while (isspace ((unsigned char) *ep))
     ep++;
 
-  ds_create(&d->value, ep);
-  fn_interp_vars(&d->value, find_defn_value);
+  ds_init_cstr (&d->value, ep);
+  fn_interp_vars (ds_ss (&d->value), find_defn_value, &d->value);
   d->next = outp_macros;
   d->prev = NULL;
   if (outp_macros)
@@ -485,20 +481,20 @@ outp_list_classes (void)
   putc('\n', stdout);
 }
 
-/* Obtains a token from S starting at position *POS, which is
-   updated.  Errors are reported against the given DRIVER_NAME.
+/* Obtains a token from S and advances its position.  Errors are
+   reported against the given DRIVER_NAME.
    The token is stored in TOKEN.  Returns true if successful,
    false on syntax error.
 
    Caller is responsible for skipping leading spaces. */
 static bool
-get_option_token (const struct string *s, const char *driver_name,
-                  size_t *pos, struct string *token)
+get_option_token (struct substring *s, const char *driver_name,
+                  struct string *token)
 {
   int c;
   
   ds_clear (token);
-  c = ds_at (s, *pos);
+  c = ss_get_char (s);
   if (c == EOF)
     {
       error (0, 0, _("syntax error parsing options for \"%s\" driver"),
@@ -509,10 +505,9 @@ get_option_token (const struct string *s, const char *driver_name,
     {
       int quote = c;
 
-      ++*pos;
       for (;;)
         {
-          c = ds_at (s, (*pos)++);
+          c = ss_get_char (s);
           if (c == quote)
             break;
           else if (c == EOF) 
@@ -524,12 +519,13 @@ get_option_token (const struct string *s, const char *driver_name,
               return false;
             }
           else if (c != '\\')
-            ds_putc (token, c);
+            ds_put_char (token, c);
           else
             {
               int out;
-		  
-              switch (ds_at (s, *pos))
+
+              c = ss_get_char (s);
+              switch (c)
                 {
                 case '\'':
                   out = '\'';
@@ -570,19 +566,15 @@ get_option_token (const struct string *s, const char *driver_name,
                 case '6':
                 case '7':
                   out = c - '0';
-                  while (ds_at (s, *pos) >= '0' && ds_at (s, *pos) <= '7')
-                    out = c * 8 + ds_at (s, (*pos)++) - '0';
+                  while (ss_first (*s) >= '0' && ss_first (*s) <= '7')
+                    out = c * 8 + (ss_get_char (s) - '0');
                   break;
                 case 'x':
                 case 'X':
                   out = 0;
-                  while (isxdigit (ds_at (s, *pos)))
+                  while (isxdigit (ss_first (*s)))
                     {
-                      c = ds_at (s, *pos);
-                      if (!isxdigit (c))
-                          break;
-                      (*pos)++;
-
+                      c = ss_get_char (s);
                       out *= 16;
                       if (isdigit (c))
                         out += c - '0';
@@ -596,58 +588,60 @@ get_option_token (const struct string *s, const char *driver_name,
                          driver_name);
                   return false;
                 }
-              ds_putc (token, out);
+              ds_put_char (token, out);
             }
         }
     }
   else 
     {
-      do
+      for (;;)
         {
-          ds_putc (token, c);
-          c = ds_at (s, ++*pos);
+          ds_put_char (token, c);
+
+          c = ss_first (*s);
+          if (c == EOF || c == '=' || isspace (c))
+            break;
+          ss_advance (s, 1);
         }
-      while (c != EOF && c != '=' && !isspace (c));
     }
   
   return 1;
 }
 
 bool
-outp_parse_options (const struct string *options,
+outp_parse_options (struct substring options,
                     bool (*callback) (struct outp_driver *, const char *key,
                                       const struct string *value),
                     struct outp_driver *driver)
 {
-  struct string key = DS_INITIALIZER;
-  struct string value = DS_INITIALIZER;
-  size_t pos = 0;
+  struct string key = DS_EMPTY_INITIALIZER;
+  struct string value = DS_EMPTY_INITIALIZER;
+  struct substring left = options;
   bool ok = true;
 
   do
     {
-      pos += ds_span (options, pos, " \t");
-      if (ds_at (options, pos) == EOF)
+      ss_ltrim (&left, ss_cstr (CC_SPACES));
+      if (ss_is_empty (left))
         break;
       
-      if (!get_option_token (options, driver->name, &pos, &key))
+      if (!get_option_token (&left, driver->name, &key))
         break;
 
-      pos += ds_span (options, pos, " \t");
-      if (ds_at (options, pos) != '=')
+      ss_ltrim (&left, ss_cstr (CC_SPACES));
+      if (!ss_match_char (&left, '='))
 	{
 	  error (0, 0, _("syntax error expecting `=' "
                          "parsing options for driver \"%s\""),
                  driver->name);
 	  break;
 	}
-      pos++;
-      
-      pos += ds_span (options, pos, " \t");
-      if (!get_option_token (options, driver->name, &pos, &value))
+
+      ss_ltrim (&left, ss_cstr (CC_SPACES));
+      if (!get_option_token (&left, driver->name, &value))
         break;
 
-      ok = callback (driver, ds_c_str (&key), &value);
+      ok = callback (driver, ds_cstr (&key), &value);
     }
   while (ok);
   
@@ -669,58 +663,48 @@ find_driver (char *name)
   return NULL;
 }
 
-/* String S is in format:
-   DRIVERNAME:CLASSNAME:DEVICETYPE:OPTIONS
-   Adds a driver to outp_driver_list pursuant to the specification
-   provided.  */
+/* Adds a driver to outp_driver_list pursuant to the
+   specification provided.  */
 static void
-configure_driver (const struct string *driver_name,
-                  const struct string *class_name,
-                  const struct string *device_type,
-                  const struct string *options)
+configure_driver (struct substring driver_name, struct substring class_name,
+                  struct substring device_type, struct substring options)
 {
   struct outp_driver *d, *iter;
   struct outp_driver_class_list *c;
+
+  struct substring token;
+  size_t save_idx = 0;
   int device;
 
   /* Find class. */
   for (c = outp_class_list; c; c = c->next)
-    if (!strcmp (c->class->name, ds_c_str (class_name)))
+    if (!ss_compare (ss_cstr (c->class->name), class_name))
       break;
   if (c == NULL)
     {
-      error (0, 0, _("unknown output driver class `%s'"),
-             ds_c_str (class_name));
+      error (0, 0, _("unknown output driver class `%.*s'"),
+             (int) ss_length (class_name), ss_data (class_name));
       return;
     }
   
   /* Parse device type. */
   device = 0;
-  if (device_type != NULL)
-    {
-      struct string token = DS_INITIALIZER;
-      size_t save_idx = 0;
-
-      while (ds_tokenize (device_type, &token, " \t\r\v", &save_idx)) 
-        {
-          const char *type = ds_c_str (&token);
-	  if (!strcmp (type, "listing"))
-	    device |= OUTP_DEV_LISTING;
-	  else if (!strcmp (type, "screen"))
-	    device |= OUTP_DEV_SCREEN;
-	  else if (!strcmp (type, "printer"))
-	    device |= OUTP_DEV_PRINTER;
-	  else
-            error (0, 0, _("unknown device type `%s'"), type);
-	}
-      ds_destroy (&token);
-    }
+  while (ss_tokenize (device_type, ss_cstr (CC_SPACES), &save_idx, &token))
+    if (!ss_compare (token, ss_cstr ("listing")))
+      device |= OUTP_DEV_LISTING;
+    else if (!ss_compare (token, ss_cstr ("screen")))
+      device |= OUTP_DEV_SCREEN;
+    else if (!ss_compare (token, ss_cstr ("printer")))
+      device |= OUTP_DEV_PRINTER;
+    else
+      error (0, 0, _("unknown device type `%.*s'"),
+             (int) ss_length (token), ss_data (token));
 
   /* Open the device. */
   d = xmalloc (sizeof *d);
   d->next = d->prev = NULL;
   d->class = c->class;
-  d->name = xstrdup (ds_c_str (driver_name));
+  d->name = ss_xstrdup (driver_name);
   d->page_open = false;
   d->device = OUTP_DEV_NONE;
   d->cp_x = d->cp_y = 0;
@@ -755,31 +739,30 @@ configure_driver (const struct string *driver_name,
    Adds a driver to outp_driver_list pursuant to the specification
    provided.  */
 static void
-configure_driver_line (struct string *line)
+configure_driver_line (struct substring line_)
 {
-  struct string tokens[4];
+  struct string line = DS_EMPTY_INITIALIZER;
+  struct substring tokens[4];
   size_t save_idx;
   size_t i;
 
-  fn_interp_vars (line, find_defn_value);
+  fn_interp_vars (line_, find_defn_value, &line);
 
   save_idx = 0;
   for (i = 0; i < 4; i++) 
     {
-      struct string *token = &tokens[i];
-      ds_init (token);
-      ds_separate (line, token, i < 3 ? ":" : "", &save_idx);
-      ds_trim_spaces (token);
+      struct substring *token = &tokens[i];
+      ds_separate (&line, ss_cstr (i < 3 ? ":" : ""), &save_idx, token);
+      ss_trim (token, ss_cstr (CC_SPACES));
     }
 
-  if (!ds_is_empty (&tokens[0]) && !ds_is_empty (&tokens[1]))
-    configure_driver (&tokens[0], &tokens[1], &tokens[2], &tokens[3]);
+  if (!ss_is_empty (tokens[0]) && !ss_is_empty (tokens[1]))
+    configure_driver (tokens[0], tokens[1], tokens[2], tokens[3]);
   else
     error (0, 0,
            _("driver definition line missing driver name or class name"));
 
-  for (i = 0; i < 4; i++) 
-    ds_destroy (&tokens[i]);
+  ds_destroy (&line);
 }
 
 /* Destroys output driver D. */
@@ -1003,7 +986,7 @@ outp_get_paper_size (char *size, int *h, int *v)
   struct string line;
   int line_number = 0;
 
-  int free_it = 0;
+  bool free_it = false;
   int result = 0;
   char *ep;
 
@@ -1032,7 +1015,7 @@ outp_get_paper_size (char *size, int *h, int *v)
 						config_path),
 			     NULL);
 
-  ds_init (&line);
+  ds_init_empty (&line);
 
   if (pprsz_fn == NULL)
     {
@@ -1049,35 +1032,33 @@ outp_get_paper_size (char *size, int *h, int *v)
 
   for (;;)
     {
-      char *cp, *bp, *ep;
+      struct substring p, name;
 
-      if (!ds_get_config_line (f, &line, &line_number))
+      if (!ds_read_config_line (&line, &line_number, f))
 	{
 	  if (ferror (f))
 	    error (0, errno, _("error reading \"%s\""), pprsz_fn);
 	  break;
 	}
-      for (cp = ds_c_str (&line); isspace ((unsigned char) *cp); cp++);
-      if (*cp == 0)
-	continue;
-      if (*cp != '"')
+
+      p = ds_ss (&line);
+      ss_ltrim (&p, ss_cstr (CC_SPACES));
+      if (!ss_match_char (&p, '"') || !ss_get_until (&p, '"', &name))
 	goto lex_error;
-      for (bp = ep = cp + 1; *ep && *ep != '"'; ep++);
-      if (!*ep)
-	goto lex_error;
-      *ep = 0;
-      if (0 != strcasecmp (bp, size))
+      if (ss_compare (name, ss_cstr (size)))
 	continue;
 
-      for (cp = ep + 1; isspace ((unsigned char) *cp); cp++);
-      if (*cp == '=')
+      ss_ltrim (&p, ss_cstr (CC_SPACES));
+      if (ss_match_char (&p, '='))
 	{
-	  size = xmalloc (ep - bp + 1);
-	  strcpy (size, bp);
-	  free_it = 1;
+          if (free_it)
+            free (size);
+          ss_trim (&p, ss_cstr (CC_SPACES));
+          size = ss_xstrdup (p);
+	  free_it = true;
 	  continue;
 	}
-      size = &ep[1];
+      size = ss_data (p);
       break;
 
     lex_error:
@@ -1182,7 +1163,7 @@ outp_string_width (struct outp_driver *d, const char *s, enum outp_font font)
   
   text.font = font;
   text.justification = OUTP_LEFT;
-  ls_init (&text.string, (char *) s, strlen (s));
+  text.string = ss_cstr (s);
   text.h = text.v = INT_MAX;
   d->class->text_metrics (d, &text, &width, NULL);
 

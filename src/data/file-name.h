@@ -28,8 +28,10 @@ extern const char *config_path;
 void fn_init (void);
 
 struct string;
-void fn_interp_vars (struct string *target, 
-                     const char *(*getenv) (const char *));
+struct substring;
+void fn_interp_vars (struct substring src, 
+                     const char *(*getenv) (const char *),
+                     struct string *dst);
 char *fn_tilde_expand (const char *fn);
 char *fn_search_path (const char *base_name, const char *path,
 		      const char *prefix);

@@ -5,7 +5,7 @@
 #include <libpspp/pool.h>
 #include "private.h"
 
-const struct fixed_string empty_string = {NULL, 0};
+const struct substring empty_string = {NULL, 0};
 
 static void
 expr_error (void *aux UNUSED, const char *format, ...) 
@@ -121,7 +121,7 @@ expr_yrmoda (double year, double month, double day)
 }
 
 int
-compare_string (const struct fixed_string *a, const struct fixed_string *b) 
+compare_string (const struct substring *a, const struct substring *b) 
 {
   size_t i;
 
@@ -149,19 +149,19 @@ count_valid (double *d, size_t d_cnt)
   return valid_cnt;
 }
 
-struct fixed_string
+struct substring
 alloc_string (struct expression *e, size_t length) 
 {
-  struct fixed_string s;
+  struct substring s;
   s.length = length;
   s.string = pool_alloc (e->eval_pool, length);
   return s;
 }
 
-struct fixed_string
+struct substring
 copy_string (struct expression *e, const char *old, size_t length) 
 {
-  struct fixed_string s = alloc_string (e, length);
+  struct substring s = alloc_string (e, length);
   memcpy (s.string, old, length);
   return s;
 }

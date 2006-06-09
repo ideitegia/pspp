@@ -91,7 +91,6 @@ enum string_type
     HEX_STRING          /* Hexadecimal digits. */
   };
 
-static void convert_numeric_string_to_char_string (enum string_type);
 static int parse_string (enum string_type);
 
 #if DUMP_TOKENS
@@ -104,8 +103,8 @@ static void dump_token (void);
 void
 lex_init (void)
 {
-  ds_init (&tokstr);
-  ds_init (&put_tokstr);
+  ds_init_empty (&tokstr);
+  ds_init_empty (&put_tokstr);
   if (!lex_get_line ())
     eof = true;
 }
@@ -128,7 +127,7 @@ restore_token (void)
   assert (put_token != 0);
   token = put_token;
   ds_assign_string (&tokstr, &put_tokstr);
-  str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
+  str_copy_trunc (tokid, sizeof tokid, ds_cstr (&tokstr));
   tokval = put_tokval;
   put_token = 0;
 }
@@ -225,7 +224,7 @@ lex_get (void)
 	       negative numbers into two tokens. */
 	    if (*prog == '-')
 	      {
-		ds_putc (&tokstr, *prog++);
+		ds_put_char (&tokstr, *prog++);
 		while (isspace ((unsigned char) *prog))
 		  prog++;
 
@@ -241,32 +240,32 @@ lex_get (void)
                 
 	    /* Parse the number, copying it into tokstr. */
 	    while (isdigit ((unsigned char) *prog))
-	      ds_putc (&tokstr, *prog++);
+	      ds_put_char (&tokstr, *prog++);
 	    if (*prog == '.')
 	      {
-		ds_putc (&tokstr, *prog++);
+		ds_put_char (&tokstr, *prog++);
 		while (isdigit ((unsigned char) *prog))
-		  ds_putc (&tokstr, *prog++);
+		  ds_put_char (&tokstr, *prog++);
 	      }
 	    if (*prog == 'e' || *prog == 'E')
 	      {
-		ds_putc (&tokstr, *prog++);
+		ds_put_char (&tokstr, *prog++);
 		if (*prog == '+' || *prog == '-')
-		  ds_putc (&tokstr, *prog++);
+		  ds_put_char (&tokstr, *prog++);
 		while (isdigit ((unsigned char) *prog))
-		  ds_putc (&tokstr, *prog++);
+		  ds_put_char (&tokstr, *prog++);
 	      }
 
 	    /* Parse as floating point. */
-	    tokval = strtod (ds_c_str (&tokstr), &tail);
+	    tokval = strtod (ds_cstr (&tokstr), &tail);
 	    if (*tail)
 	      {
 		msg (SE, _("%s does not form a valid number."),
-		     ds_c_str (&tokstr));
+		     ds_cstr (&tokstr));
 		tokval = 0.0;
 
 		ds_clear (&tokstr);
-		ds_putc (&tokstr, '0');
+		ds_put_char (&tokstr, '0');
 	      }
 
 	    break;
@@ -388,9 +387,9 @@ parse_id (void)
   const char *start = prog;
   prog = lex_skip_identifier (start);
 
-  ds_concat (&tokstr, start, prog - start);
-  str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
-  return lex_id_to_token (ds_c_str (&tokstr), ds_length (&tokstr));
+  ds_put_substring (&tokstr, ss_buffer (start, prog - start));
+  str_copy_trunc (tokid, sizeof tokid, ds_cstr (&tokstr));
+  return lex_id_to_token (ds_cstr (&tokstr), ds_length (&tokstr));
 }
 
 /* Reports an error to the effect that subcommand SBC may only be
@@ -695,8 +694,8 @@ lex_put_back_id (const char *id)
   assert (lex_id_to_token (id, strlen (id)) == T_ID);
   save_token ();
   token = T_ID;
-  ds_assign_c_str (&tokstr, id);
-  str_copy_trunc (tokid, sizeof tokid, ds_c_str (&tokstr));
+  ds_assign_cstr (&tokstr, id);
+  str_copy_trunc (tokid, sizeof tokid, ds_cstr (&tokstr));
 }
 
 /* Weird line processing functions. */
@@ -705,7 +704,7 @@ lex_put_back_id (const char *id)
 const char *
 lex_entire_line (void)
 {
-  return ds_c_str (&getl_buf);
+  return ds_cstr (&getl_buf);
 }
 
 /* As lex_entire_line(), but only returns the part of the current line
@@ -769,7 +768,7 @@ strip_comments (struct string *string)
 
   in_comment = false;
   quote = EOF;
-  for (cp = ds_c_str (string); *cp; )
+  for (cp = ds_cstr (string); *cp; )
     {
       /* If we're not in a comment, check for quote marks. */
       if (!in_comment)
@@ -819,7 +818,7 @@ lex_get_line (void)
     return false;
 
   strip_comments (line);
-  ds_rtrim_spaces (line);
+  ds_rtrim (line, ss_cstr (CC_SPACES));
   
   /* Check for and remove terminal dot. */
   dot = (ds_chomp (line, get_endcmd ())
@@ -837,7 +836,7 @@ lex_get_line (void)
 	put_token = '.';
     }
 
-  prog = ds_c_str (line);
+  prog = ds_cstr (line);
 
   return true;
 }
@@ -873,7 +872,7 @@ lex_token_representation (void)
     case T_ID:
     case T_POS_NUM:
     case T_NEG_NUM:
-      return xstrdup (ds_c_str (&tokstr));
+      return ds_xstrdup (&tokstr);
       break;
 
     case T_STRING:
@@ -881,7 +880,7 @@ lex_token_representation (void)
 	int hexstring = 0;
 	char *sp, *dp;
 
-	for (sp = ds_c_str (&tokstr); sp < ds_end (&tokstr); sp++)
+	for (sp = ds_cstr (&tokstr); sp < ds_end (&tokstr); sp++)
 	  if (!isprint ((unsigned char) *sp))
 	    {
 	      hexstring = 1;
@@ -896,14 +895,14 @@ lex_token_representation (void)
 	*dp++ = '\'';
 
 	if (!hexstring)
-	  for (sp = ds_c_str (&tokstr); *sp; )
+	  for (sp = ds_cstr (&tokstr); *sp; )
 	    {
 	      if (*sp == '\'')
 		*dp++ = '\'';
 	      *dp++ = (unsigned char) *sp++;
 	    }
 	else
-	  for (sp = ds_c_str (&tokstr); sp < ds_end (&tokstr); sp++)
+	  for (sp = ds_cstr (&tokstr); sp < ds_end (&tokstr); sp++)
 	    {
 	      *dp++ = (((unsigned char) *sp) >> 4)["0123456789ABCDEF"];
 	      *dp++ = (((unsigned char) *sp) & 15)["0123456789ABCDEF"];
@@ -951,7 +950,7 @@ lex_negative_to_dash (void)
     {
       token = T_POS_NUM;
       tokval = -tokval;
-      ds_assign_substring (&tokstr, &tokstr, 1, SIZE_MAX);
+      ds_assign_substring (&tokstr, ds_substr (&tokstr, 1, SIZE_MAX));
       save_token ();
       token = '-';
     }
@@ -1028,7 +1027,7 @@ convert_numeric_string_to_char_string (enum string_type type)
 	       "multiple of %d."),
 	 base_name, ds_length (&tokstr), chars_per_byte);
 
-  p = ds_c_str (&tokstr);
+  p = ds_cstr (&tokstr);
   for (i = 0; i < byte_cnt; i++)
     {
       int value;
@@ -1058,7 +1057,7 @@ convert_numeric_string_to_char_string (enum string_type type)
 	  value = value * base + v;
 	}
 
-      ds_c_str (&tokstr)[i] = (unsigned char) value;
+      ds_cstr (&tokstr)[i] = (unsigned char) value;
     }
 
   ds_truncate (&tokstr, byte_cnt);
@@ -1097,7 +1096,7 @@ parse_string (enum string_type type)
 		break;
 	    }
 
-	  ds_putc (&tokstr, *prog++);
+	  ds_put_char (&tokstr, *prog++);
 	}
       prog++;
 
@@ -1170,7 +1169,7 @@ finish:
     int warned = 0;
 
     for (i = 0; i < ds_length (&tokstr); i++)
-      if (ds_c_str (&tokstr)[i] == 0)
+      if (ds_cstr (&tokstr)[i] == 0)
 	{
 	  if (!warned)
 	    {
@@ -1178,7 +1177,7 @@ finish:
 			 "characters.  Replacing with spaces."));
 	      warned = 1;
 	    }
-	  ds_c_str (&tokstr)[i] = ' ';
+	  ds_cstr (&tokstr)[i] = ' ';
 	}
   }
 
@@ -1212,7 +1211,7 @@ dump_token (void)
       break;
 
     case T_STRING:
-      fprintf (stderr, "STRING\t\"%s\"\n", ds_c_str (&tokstr));
+      fprintf (stderr, "STRING\t\"%s\"\n", ds_cstr (&tokstr));
       break;
 
     case T_STOP:

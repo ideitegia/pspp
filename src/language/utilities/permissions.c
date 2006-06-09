@@ -51,7 +51,7 @@ cmd_permissions (void)
   if (lex_match_id ("FILE"))
     lex_match ('=');
 
-  fn = strdup(ds_c_str(&tokstr));
+  fn = ds_xstrdup (&tokstr);
   lex_force_match(T_STRING);
 
 

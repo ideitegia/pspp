@@ -45,7 +45,7 @@ parse_format_specifier_name (const char **cp, enum fmt_parse_flags flags)
   char *sp, *ep;
   int idx;
 
-  sp = ep = ds_c_str (&tokstr);
+  sp = ep = ds_cstr (&tokstr);
   while (isalpha ((unsigned char) *ep))
     ep++;
 
@@ -72,7 +72,7 @@ parse_format_specifier_name (const char **cp, enum fmt_parse_flags flags)
           /* No match. */
           if (!(flags & FMTP_SUPPRESS_ERRORS))
             msg (SE, _("%.*s is not a valid data format."),
-                 (int) (ep - sp), ds_c_str (&tokstr));
+                 (int) (ep - sp), ds_cstr (&tokstr));
           idx = -1; 
         }
     }
@@ -125,7 +125,7 @@ parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags flags)
     {
       if (!(flags & FMTP_SUPPRESS_ERRORS))
         msg (SE, _("Data format %s does not specify a width."),
-             ds_c_str (&tokstr));
+             ds_cstr (&tokstr));
       return 0;
     }
   if ( w > MAX_STRING )
@@ -147,7 +147,7 @@ parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags flags)
   if (*cp)
     {
       if (!(flags & FMTP_SUPPRESS_ERRORS))
-        msg (SE, _("Data format %s is not valid."), ds_c_str (&tokstr));
+        msg (SE, _("Data format %s is not valid."), ds_cstr (&tokstr));
       return 0;
     }
   lex_get ();

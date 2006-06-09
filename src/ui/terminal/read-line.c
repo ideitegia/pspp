@@ -133,14 +133,14 @@ readln_read (struct string *line, const char *prompt)
     {
       if (string[0])
         add_history (string);
-      ds_assign_c_str (line, string);
+      ds_assign_cstr (line, string);
       free (string);
       return true; 
     }
 #else
   fputs (prompt, stdout);
   fflush (stdout);
-  if (ds_gets (line, stdin)) 
+  if (ds_read_line (line, stdin)) 
     {
       ds_chomp (line, '\n');
       return true;

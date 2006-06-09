@@ -47,6 +47,8 @@
 #include <libpspp/str.h>
 #include <output/table.h>
 
+#include "size_max.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -90,8 +92,7 @@ struct data_list_pgm
     struct variable *end;	/* Variable specified on END subcommand. */
     int rec_cnt;                /* Number of records. */
     size_t case_size;           /* Case size in bytes. */
-    char *delims;               /* Delimiters if any; not null-terminated. */
-    size_t delim_cnt;           /* Number of delimiter, or 0 for spaces. */
+    struct string delims;       /* Field delimiters. */
   };
 
 static const struct case_source_class data_list_source_class;
@@ -122,8 +123,7 @@ cmd_data_list (void)
   dls->type = -1;
   dls->end = NULL;
   dls->rec_cnt = 0;
-  dls->delims = NULL;
-  dls->delim_cnt = 0;
+  ds_init_empty (&dls->delims);
   dls->first = dls->last = NULL;
 
   while (token != '/')
@@ -199,9 +199,9 @@ cmd_data_list (void)
 
                       if (lex_match_id ("TAB"))
                         delim = '\t';
-                      else if (token == T_STRING && tokstr.length == 1)
+                      else if (token == T_STRING && ds_length (&tokstr) == 1)
 			{
-			  delim = tokstr.string[0];
+			  delim = ds_first (&tokstr);
 			  lex_get();
 			}
                       else 
@@ -210,8 +210,7 @@ cmd_data_list (void)
                           goto error;
                         }
 
-                      dls->delims = xrealloc (dls->delims, dls->delim_cnt + 1);
-                      dls->delims[dls->delim_cnt++] = delim;
+                      ds_put_char (&dls->delims, delim);
 
                       lex_match (',');
                     }
@@ -903,109 +902,73 @@ dump_free_table (const struct data_list_pgm *dls,
 
 /* Extracts a field from the current position in the current
    record.  Fields can be unquoted or quoted with single- or
-   double-quote characters.  *FIELD is set to the field content.
+   double-quote characters.
+
+   *FIELD is set to the field content.  The caller must not
+   or destroy this constant string.
+   
    After parsing the field, sets the current position in the
    record to just past the field and any trailing delimiter.
-   END_BLANK is used internally; it should be initialized by the
-   caller to 0 and left alone afterward.  Returns 0 on failure or
-   a 1-based column number indicating the beginning of the field
-   on success. */
-static int
-cut_field (const struct data_list_pgm *dls, struct fixed_string *field,
-           int *end_blank)
+   Returns 0 on failure or a 1-based column number indicating the
+   beginning of the field on success. */
+static bool
+cut_field (const struct data_list_pgm *dls, struct substring *field)
 {
-  struct fixed_string line;
-  char *cp;
-  size_t column_start;
+  struct substring line, p;
 
   if (dfm_eof (dls->reader))
-    return 0;
-  if (dls->delim_cnt == 0)
+    return false;
+  if (ds_is_empty (&dls->delims))
     dfm_expand_tabs (dls->reader);
-  dfm_get_record (dls->reader, &line);
+  line = p = dfm_get_record (dls->reader);
 
-  cp = ls_c_str (&line);
-  if (dls->delim_cnt == 0) 
+  if (ds_is_empty (&dls->delims)) 
     {
+      bool missing_quote = false;
+      
       /* Skip leading whitespace. */
-      while (cp < ls_end (&line) && isspace ((unsigned char) *cp))
-        cp++;
-      if (cp >= ls_end (&line))
-        return 0;
+      ss_ltrim (&p, ss_cstr (CC_SPACES));
+      if (ss_is_empty (p))
+        return false;
       
       /* Handle actual data, whether quoted or unquoted. */
-      if (*cp == '\'' || *cp == '"')
-        {
-          int quote = *cp;
-
-          field->string = ++cp;
-          while (cp < ls_end (&line) && *cp != quote)
-            cp++;
-          field->length = cp - field->string;
-          if (cp < ls_end (&line))
-            cp++;
-          else
-            msg (SW, _("Quoted string missing terminating `%c'."), quote);
-        }
+      if (ss_match_char (&p, '\''))
+        missing_quote = !ss_get_until (&p, '\'', field);
+      else if (ss_match_char (&p, '"'))
+        missing_quote = !ss_get_until (&p, '"', field);
       else
-        {
-          field->string = cp;
-          while (cp < ls_end (&line)
-                 && !isspace ((unsigned char) *cp) && *cp != ',')
-            cp++;
-          field->length = cp - field->string;
-        }
+        ss_get_chars (&p, ss_cspan (p, ss_cstr ("," CC_SPACES)), field);
+      if (missing_quote)
+        msg (SW, _("Quoted string extends beyond end of line."));
 
       /* Skip trailing whitespace and a single comma if present. */
-      while (cp < ls_end (&line) && isspace ((unsigned char) *cp))
-        cp++;
-      if (cp < ls_end (&line) && *cp == ',')
-        cp++;
+      ss_ltrim (&p, ss_cstr (CC_SPACES));
+      ss_match_char (&p, ',');
+
+      dfm_forward_columns (dls->reader, ss_length (line) - ss_length (p));
     }
   else 
     {
-      if (cp >= ls_end (&line)) 
+      if (!ss_is_empty (p))
+        ss_get_chars (&p, ss_cspan (p, ds_ss (&dls->delims)), field);
+      else if (dfm_columns_past_end (dls->reader) == 0)
         {
-          int column = dfm_column_start (dls->reader);
-               /* A blank line or a line that ends in \t has a
+          /* A blank line or a line that ends in a delimiter has a
              trailing blank field. */
-          if (column == 1 || (column > 1 && cp[-1] == '\t'))
-            {
-              if (*end_blank == 0)
-                {
-                  *end_blank = 1;
-                  field->string = ls_end (&line);
-                  field->length = 0;
-                  dfm_forward_record (dls->reader);
-                  return column;
-                }
-              else 
-                {
-                  *end_blank = 0;
-                  return 0;
-                }
-            }
-          else 
-            return 0;
+          *field = p;
         }
       else 
-        {
-          field->string = cp;
-          while (cp < ls_end (&line)
-                 && memchr (dls->delims, *cp, dls->delim_cnt) == NULL)
-            cp++; 
-          field->length = cp - field->string;
-          if (cp < ls_end (&line)) 
-            cp++;
-        }
+        return false;
+
+      /* Advance past the field.
+         
+         Also advance past a trailing delimiter, regardless of
+         whether one actually existed.  If we "skip" a delimiter
+         that was not actually there, then we will return
+         end-of-line on our next call, which is what we want. */
+      dfm_forward_columns (dls->reader, ss_length (line) - ss_length (p) + 1);
     }
-  
-  dfm_forward_columns (dls->reader, field->string - line.string);
-  column_start = dfm_column_start (dls->reader);
-    
-  dfm_forward_columns (dls->reader, cp - field->string);
-    
-  return column_start;
+  return true;
 }
 
 static bool read_from_data_list_fixed (const struct data_list_pgm *,
@@ -1055,7 +1018,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
     return false;
   for (i = 1; i <= dls->rec_cnt; i++)
     {
-      struct fixed_string line;
+      struct substring line;
       
       if (dfm_eof (dls->reader))
 	{
@@ -1065,13 +1028,13 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
 	  return false;
 	}
       dfm_expand_tabs (dls->reader);
-      dfm_get_record (dls->reader, &line);
+      line = dfm_get_record (dls->reader);
 
       for (; var_spec && i == var_spec->rec; var_spec = var_spec->next)
 	{
 	  struct data_in di;
 
-	  data_in_finite_line (&di, ls_c_str (&line), ls_length (&line),
+	  data_in_finite_line (&di, ss_data (line), ss_length (line),
                                var_spec->fc, var_spec->lc);
 	  di.v = case_data_rw (c, var_spec->fv);
 	  di.flags = DI_IMPLIED_DECIMALS;
@@ -1094,20 +1057,15 @@ static bool
 read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 {
   struct dls_var_spec *var_spec;
-  int end_blank = 0;
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
-      struct fixed_string field;
-      int column;
+      struct substring field;
+      struct data_in di;
       
       /* Cut out a field and read in a new record if necessary. */
-      for (;;)
+      while (!cut_field (dls, &field))
 	{
-	  column = cut_field (dls, &field, &end_blank);
-	  if (column != 0)
-	    break;
-
 	  if (!dfm_eof (dls->reader)) 
             dfm_forward_record (dls->reader);
 	  if (dfm_eof (dls->reader))
@@ -1119,17 +1077,13 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 	    }
 	}
       
-      {
-	struct data_in di;
-
-	di.s = ls_c_str (&field);
-	di.e = ls_end (&field);
-	di.v = case_data_rw (c, var_spec->fv);
-	di.flags = 0;
-	di.f1 = column;
-	di.format = var_spec->input;
-	data_in (&di);
-      }
+      di.s = ss_data (field);
+      di.e = ss_end (field);
+      di.v = case_data_rw (c, var_spec->fv);
+      di.flags = 0;
+      di.f1 = dfm_get_column (dls->reader, ss_data (field));
+      di.format = var_spec->input;
+      data_in (&di);
     }
   return true;
 }
@@ -1141,19 +1095,16 @@ static bool
 read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 {
   struct dls_var_spec *var_spec;
-  int end_blank = 0;
 
   if (dfm_eof (dls->reader))
     return false;
 
   for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
     {
-      struct fixed_string field;
-      int column;
+      struct substring field;
+      struct data_in di;
 
-      /* Cut out a field and check for end-of-line. */
-      column = cut_field (dls, &field, &end_blank);
-      if (column == 0)
+      if (!cut_field (dls, &field))
 	{
 	  if (get_undefined ())
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
@@ -1171,17 +1122,13 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 	  break;
 	}
       
-      {
-	struct data_in di;
-
-	di.s = ls_c_str (&field);
-	di.e = ls_end (&field);
-	di.v = case_data_rw (c, var_spec->fv);
-	di.flags = 0;
-	di.f1 = column;
-	di.format = var_spec->input;
-	data_in (&di);
-      }
+      di.s = ss_data (field);
+      di.e = ss_end (field);
+      di.v = case_data_rw (c, var_spec->fv);
+      di.flags = 0;
+      di.f1 = dfm_get_column (dls->reader, ss_data (field));
+      di.format = var_spec->input;
+      data_in (&di);
     }
 
   dfm_forward_record (dls->reader);
@@ -1208,7 +1155,7 @@ static bool
 data_list_trns_free (void *dls_)
 {
   struct data_list_pgm *dls = dls_;
-  free (dls->delims);
+  ds_destroy (&dls->delims);
   destroy_dls_var_spec (dls->first);
   dfm_close_reader (dls->reader);
   free (dls);

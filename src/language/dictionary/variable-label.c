@@ -61,7 +61,7 @@ cmd_variable_labels (void)
 	{
 	  if (v[i]->label)
 	    free (v[i]->label);
-	  v[i]->label = xstrdup (ds_c_str (&tokstr));
+	  v[i]->label = ds_xstrdup (&tokstr);
 	}
 
       lex_get ();

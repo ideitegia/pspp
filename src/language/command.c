@@ -430,15 +430,15 @@ unknown_command_error (char *const words[], size_t word_cnt)
       struct string s;
       size_t i;
 
-      ds_init (&s);
+      ds_init_empty (&s);
       for (i = 0; i < word_cnt; i++) 
         {
           if (i != 0)
-            ds_putc (&s, ' ');
-          ds_puts (&s, words[i]);
+            ds_put_char (&s, ' ');
+          ds_put_cstr (&s, words[i]);
         }
 
-      msg (SE, _("Unknown command %s."), ds_c_str (&s));
+      msg (SE, _("Unknown command %s."), ds_cstr (&s));
 
       ds_destroy (&s);
     }
@@ -467,7 +467,7 @@ parse_command_name (void)
       assert (word_cnt < sizeof words / sizeof *words);
       if (token == T_ID) 
         {
-          words[word_cnt] = xstrdup (ds_c_str (&tokstr));
+          words[word_cnt] = ds_xstrdup (&tokstr);
           str_uppercase (words[word_cnt]); 
         }
       else if (token == '-')
@@ -686,10 +686,10 @@ cmd_erase (void)
   if (!lex_force_string ())
     return CMD_FAILURE;
 
-  if (remove (ds_c_str (&tokstr)) == -1)
+  if (remove (ds_cstr (&tokstr)) == -1)
     {
       msg (SW, _("Error removing `%s': %s."),
-	   ds_c_str (&tokstr), strerror (errno));
+	   ds_cstr (&tokstr), strerror (errno));
       return CMD_FAILURE;
     }
 
@@ -767,7 +767,7 @@ run_command (void)
 	lex_get ();
 	if (!lex_force_string ())
 	  return CMD_FAILURE;
-	cmd = ds_c_str (&tokstr);
+	cmd = ds_cstr (&tokstr);
 	string = 1;
       }
     else

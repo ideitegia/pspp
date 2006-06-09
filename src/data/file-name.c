@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "intprops.h"
+#include "minmax.h"
 #include "settings.h"
 #include "xreadlink.h"
 
@@ -73,90 +74,49 @@ fn_init (void)
 /* Functions for performing operations on file names. */
 
 
-/* Substitutes $variables as defined by GETENV into TARGET.
-   TARGET must be a string containing the text for which substitution 
-   is required.
-   Supports $var and ${var} syntaxes;
-   $$ substitutes as $. 
-*/
+/* Substitutes $variables in SRC, putting the result in DST,
+   properly handling the case where SRC is a substring of DST.
+   Variables are as defined by GETENV. Supports $var and ${var}
+   syntaxes; $$ substitutes as $. */
 void 
-fn_interp_vars (struct string *target, 
-		const char *(*getenv) (const char *))
+fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
+                struct string *dst_)
 {
-  char *input ;
-  char *s ;
+  struct string dst = DS_EMPTY_INITIALIZER;
+  int c;
 
-  assert (target);
+  while ((c = ss_get_char (&src)) != EOF)
+    if (c != '$') 
+      ds_put_char (&dst, c);
+    else
+      {
+        if (ss_match_char (&src, '$') || ss_is_empty (src))
+          ds_put_char (&dst, '$');
+        else
+          {
+            struct substring var_name;
+            size_t start;
+            const char *value;
 
-  input = xmalloc(ds_length(target) + 1);
-  s = input;
+            if (ss_match_char (&src, '('))
+              ss_get_until (&src, ')', &var_name);
+            else if (ss_match_char (&src, '{'))
+              ss_get_until (&src, '}', &var_name);
+            else
+              ss_get_chars (&src, MIN (1, ss_span (src, ss_cstr (CC_ALNUM))),
+                            &var_name);
 
-  strcpy(input, ds_c_str(target));
+            start = ds_length (&dst);
+            ds_put_substring (&dst, var_name);
+            value = getenv (ds_cstr (&dst) + start);
+            ds_truncate (&dst, start);
 
-  if (NULL == strchr (ds_c_str(target), '$'))
-    goto done;
+            ds_put_cstr (&dst, value);
+          } 
+      }
 
-  ds_clear(target);
-
-  for (;;)
-    {
-      switch (*s)
-	{
-	case '\0':
-	  goto done ;
-	
-	case '$':
-	  s++;
-
-	  if (*s == '$')
-	    {
-	      ds_putc (target, '$');
-	      s++;
-	    }
-	  else
-	    {
-	      int stop;
-	      int start;
-	      const char *value;
-
-	      start = ds_length (target);
-
-	      if (*s == '(')
-		{
-		  stop = ')';
-		  s++;
-		}
-	      else if (*s == '{')
-		{
-		  stop = '}';
-		  s++;
-		}
-	      else
-		stop = 0;
-
-	      while (*s && *s != stop
-		     && (stop || isalpha ((unsigned char) *s)))
-		{
-		  ds_putc (target, *s++);
-		}
-	    
-	      value = getenv (ds_c_str (target) + start);
-	      ds_truncate (target, start);
-	      ds_puts (target, value);
-
-	      if (stop && *s == stop)
-		s++;
-	    }
-	  break;
-
-	default:
-	  ds_putc (target, *s++);
-	}
-    }
-
- done:
-  free(input);
-  return;
+  ds_swap (&dst, dst_);
+  ds_destroy (&dst);
 }
 
 #ifdef unix
@@ -165,7 +125,7 @@ fn_interp_vars (struct string *target,
 char *
 fn_tilde_expand (const char *input)
 {
-  struct string output = DS_INITIALIZER;
+  struct string output = DS_EMPTY_INITIALIZER;
   if (input[0] == '~')
     {
       const char *home = NULL;
@@ -177,11 +137,13 @@ fn_tilde_expand (const char *input)
         }
       else
         {
-          struct string user_name = DS_INITIALIZER;
+          struct string user_name = DS_EMPTY_INITIALIZER;
           struct passwd *pwd;
 
-          ds_assign_buffer (&user_name, input + 1, strcspn (input + 1, "/"));
-          pwd = getpwnam (ds_c_str (&user_name));
+          ds_assign_substring (&user_name,
+                               ss_buffer (input + 1,
+                                          strcspn (input + 1, "/")));
+          pwd = getpwnam (ds_cstr (&user_name));
           if (pwd != NULL && pwd->pw_dir[0] != '\0')
             {
               home = pwd->pw_dir;
@@ -192,14 +154,14 @@ fn_tilde_expand (const char *input)
 
       if (home != NULL) 
         {
-          ds_puts (&output, home);
+          ds_put_cstr (&output, home);
           if (*remainder != '\0')
-            ds_puts (&output, remainder);
+            ds_put_cstr (&output, remainder);
         }
     }
   if (ds_is_empty (&output))
-    ds_puts (&output, input);
-  return ds_c_str (&output);
+    ds_put_cstr (&output, input);
+  return ds_cstr (&output);
 }
 #else /* !unix */
 char *
@@ -222,55 +184,57 @@ char *
 fn_search_path (const char *base_name, const char *path_, const char *prefix)
 {
   struct string path;
-  struct string dir = DS_INITIALIZER;
-  struct string file = DS_INITIALIZER;
+  struct substring dir_;
+  struct string file = DS_EMPTY_INITIALIZER;
   size_t save_idx = 0;
 
   if (fn_is_absolute (base_name))
     return fn_tilde_expand (base_name);
 
   /* Interpolate environment variables. */
-  ds_create (&path, path_);
-  fn_interp_vars (&path, fn_getenv);
+  ds_init_cstr (&path, path_);
+  fn_interp_vars (ds_ss (&path), fn_getenv, &path);
 
   verbose_msg (2, _("searching for \"%s\" in path \"%s\""),
-               base_name, ds_c_str (&path));
-  while (ds_separate (&path, &dir, ":", &save_idx))
+               base_name, ds_cstr (&path));
+  while (ds_separate (&path, ss_cstr (":"), &save_idx, &dir_))
     {
+      struct string dir;
+
       /* Do tilde expansion. */
+      ds_init_substring (&dir, dir_);
       if (ds_first (&dir) == '~') 
         {
-          char *tmp_str = fn_tilde_expand (ds_c_str (&dir));
-          ds_assign_c_str (&dir, tmp_str);
+          char *tmp_str = fn_tilde_expand (ds_cstr (&dir));
+          ds_assign_cstr (&dir, tmp_str);
           free (tmp_str); 
         }
 
       /* Construct file name. */
       ds_clear (&file);
-      if (prefix != NULL && !fn_is_absolute (ds_c_str (&dir)))
+      if (prefix != NULL && !fn_is_absolute (ds_cstr (&dir)))
 	{
-	  ds_puts (&file, prefix);
-	  ds_putc (&file, '/');
+	  ds_put_cstr (&file, prefix);
+	  ds_put_char (&file, '/');
 	}
-      ds_puts (&file, ds_c_str (&dir));
-      if (ds_length (&dir) && ds_last (&file) != '/')
-	ds_putc (&file, '/');
-      ds_puts (&file, base_name);
+      ds_put_cstr (&file, ds_cstr (&dir));
+      if (!ds_is_empty (&file) && ds_last (&file) != '/')
+	ds_put_char (&file, '/');
+      ds_put_cstr (&file, base_name);
+      ds_destroy (&dir);
 
       /* Check whether file exists. */
-      if (fn_exists (ds_c_str (&file)))
+      if (fn_exists (ds_cstr (&file)))
 	{
-	  verbose_msg (2, _("...found \"%s\""), ds_c_str (&file));
+	  verbose_msg (2, _("...found \"%s\""), ds_cstr (&file));
           ds_destroy (&path);
-          ds_destroy (&dir);
-	  return ds_c_str (&file);
+	  return ds_cstr (&file);
 	}
     }
 
   /* Failure. */
   verbose_msg (2, _("...not found"));
   ds_destroy (&path);
-  ds_destroy (&dir);
   ds_destroy (&file);
   return NULL;
 }

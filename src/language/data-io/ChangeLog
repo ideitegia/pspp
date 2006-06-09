@@ -1,3 +1,29 @@
+Fri Jun  9 13:56:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	Reform string library.
+	
+	* matrix-data.c (context): Use dynamic string.
+	(another_token) Deal with changed dfm_get_record() interface.
+	(mget_token) Ditto.
+	(force_eol) Ditto.
+
+	* data-list.c (struct data_list_pgm) Delete delims, delim_cnt
+	members, replacing them by struct string delims.  Update all
+	references to use struct string functions.
+	(cut_field) Change interface to avoid needing "end_blank", by
+	getting the data-reader to remember that state for us.  Change
+	internals to use substring.  Update both callers.
+
+	* data-reader.c (read_file_record): Use ds_read_stream().
+	(dfm_get_record) Change interface to return substring.  Updated
+	all callers.
+	(dfm_expand_tabs) Use ds_find_char().  Now maintain position
+	relative to end-of-line.  Use ds_swap().
+	(dfm_reread_record) Don't limit position by line length.
+	(dfm_column_start) Make parameter const.
+	(dfm_columns_past_end) New function.
+	(dfm_get_column) New function.
+
 Thu May 25 18:26:26 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* print.c (print_trns_free): Made the code agree with the comment, by

@@ -65,7 +65,7 @@ struct tab_joined_cell
     int x1, y1;
     int x2, y2;
     int hit;
-    struct fixed_string contents;
+    struct substring contents;
   };
 
 struct outp_driver;
@@ -80,12 +80,12 @@ struct tab_table
     /* Contents. */
     int col_style;		/* Columns: One of TAB_COL_*. */
     int col_group;		/* Number of rows per column group. */
-    struct fixed_string title;	/* Table title. */
+    char *title;                /* Table title. */
     unsigned flags;		/* SOMF_*. */
     int nc, nr;			/* Number of columns, rows. */
     int cf;			/* Column factor for indexing purposes. */
     int l, r, t, b;		/* Number of header rows on each side. */
-    struct fixed_string *cc;	/* Cell contents; fixed_string *[nr][nc]. */
+    struct substring *cc;	/* Cell contents; substring *[nr][nc]. */
     unsigned char *ct;		/* Cell types; unsigned char[nr][nc]. */
     unsigned char *rh;		/* Horiz rules; unsigned char[nr+1][nc]. */
     unsigned char *rv;		/* Vert rules; unsigned char[nr][nc+1]. */
@@ -170,7 +170,7 @@ void tab_joint_text (struct tab_table *, int x1, int y1, int x2, int y2,
 /* Cell low-level access. */
 #define tab_alloc(TABLE, AMT) pool_alloc ((TABLE)->container, (AMT))
 void tab_raw (struct tab_table *, int c, int r, unsigned opt,
-	      struct fixed_string *);
+	      struct substring *);
 
 /* Editing. */
 void tab_offset (struct tab_table *, int col, int row);

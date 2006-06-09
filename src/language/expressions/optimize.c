@@ -141,9 +141,9 @@ static double get_number_arg (struct composite_node *, size_t arg_idx);
 static double *get_number_args (struct composite_node *,
                                  size_t arg_idx, size_t arg_cnt,
                                  struct expression *);
-static struct fixed_string get_string_arg (struct composite_node *,
+static struct substring get_string_arg (struct composite_node *,
                                            size_t arg_idx);
-static struct fixed_string *get_string_args (struct composite_node *,
+static struct substring *get_string_args (struct composite_node *,
                                              size_t arg_idx, size_t arg_cnt,
                                              struct expression *);
 static const struct fmt_spec *get_format_arg (struct composite_node *,
@@ -187,7 +187,7 @@ get_number_args (struct composite_node *c, size_t arg_idx, size_t arg_cnt,
   return d;
 }
 
-static struct fixed_string
+static struct substring
 get_string_arg (struct composite_node *c, size_t arg_idx) 
 {
   assert (arg_idx < c->arg_cnt);
@@ -195,11 +195,11 @@ get_string_arg (struct composite_node *c, size_t arg_idx)
   return c->args[arg_idx]->string.s;
 }
 
-static struct fixed_string *
+static struct substring *
 get_string_args (struct composite_node *c, size_t arg_idx, size_t arg_cnt,
                  struct expression *e) 
 {
-  struct fixed_string *s;
+  struct substring *s;
   size_t i;
 
   s = pool_alloc (e->expr_pool, sizeof *s * arg_cnt);
@@ -236,7 +236,7 @@ emit_number (struct expression *e, double n)
 }
 
 static void
-emit_string (struct expression *e, struct fixed_string s) 
+emit_string (struct expression *e, struct substring s) 
 {
   allocate_aux (e, OP_string)->string = s;
 }

@@ -109,9 +109,9 @@ static const char *get_prompt (void);
 void
 getl_initialize (void)
 {
-  ds_create (&getl_include_path,
-	     fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
-  ds_init (&getl_buf);
+  ds_init_cstr (&getl_include_path,
+                fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
+  ds_init_empty (&getl_buf);
   init_prompts ();
 }
 
@@ -127,9 +127,9 @@ void
 getl_add_include_dir (const char *path)
 {
   if (ds_length (&getl_include_path))
-    ds_putc (&getl_include_path, ':');
+    ds_put_char (&getl_include_path, ':');
 
-  ds_puts (&getl_include_path, path);
+  ds_put_cstr (&getl_include_path, path);
 }
 
 /* Appends source S to the list of source files. */
@@ -239,7 +239,7 @@ getl_include_syntax_file (const char *fn)
 {
   if (cur_source != NULL) 
     {
-      char *found_fn = fn_search_path (fn, ds_c_str (&getl_include_path),
+      char *found_fn = fn_search_path (fn, ds_cstr (&getl_include_path),
                                        fn_dir_name (cur_source->fn));
       if (found_fn != NULL) 
         {
@@ -457,7 +457,7 @@ read_syntax_file (struct string *line, struct getl_source *s)
   do 
     {
       s->ln++;
-      if (!ds_gets (line, s->u.syntax_file))
+      if (!ds_read_line (line, s->u.syntax_file))
         {
           if (ferror (s->u.syntax_file))
             msg (ME, _("Reading `%s': %s."), s->fn, strerror (errno));
@@ -465,11 +465,11 @@ read_syntax_file (struct string *line, struct getl_source *s)
         }
       ds_chomp (line, '\n');
     }
-  while (s->ln == 1 && !memcmp (ds_c_str (line), "#!", 2));
+  while (s->ln == 1 && !memcmp (ds_cstr (line), "#!", 2));
 
   /* Echo to listing file, if configured to do so. */
   if (get_echo ())
-    tab_output_text (TAB_LEFT | TAB_FIX, ds_c_str (line));
+    tab_output_text (TAB_LEFT | TAB_FIX, ds_cstr (line));
 
   return true;
 }

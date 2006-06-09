@@ -68,7 +68,7 @@ sub init_all_types {
     init_type ('number', 'any', C_TYPE => 'double',
 	       ATOM => 'number', MANGLE => 'n', HUMAN_NAME => 'num',
 	       STACK => 'ns', MISSING_VALUE => 'SYSMIS');
-    init_type ('string', 'any', C_TYPE => 'struct fixed_string',
+    init_type ('string', 'any', C_TYPE => 'struct substring',
 	       ATOM => 'string', MANGLE => 's', HUMAN_NAME => 'string',
 	       STACK => 'ss', MISSING_VALUE => 'empty_string');
     init_type ('boolean', 'any', C_TYPE => 'double',
