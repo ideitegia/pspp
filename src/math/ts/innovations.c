@@ -1,5 +1,5 @@
 /*
-  src/math/time-series/arma/innovations.c
+  src/math/ts/innovations.c
   
   Copyright (C) 2006 Free Software Foundation, Inc. Written by Jason H. Stover.
   
@@ -170,9 +170,50 @@ get_covariance (size_t n_vars, const struct casefile *cf,
     }
   free (c);
 }
+static double
+innovations_convolve (double **theta, struct innovations_estimate *est,
+		      int i, int j)
+{
+  int k;
+  double result = 0.0;
 
-struct innovations_estimate ** pspp_innovations (const struct variable **vars, size_t *n_vars,
-						 size_t lag, const struct casefile *cf)
+  for (k = 0; k < i; k++)
+    {
+      result += theta[i][i-k] * theta[j][i-j] * est->cov[k];
+    }
+  return result;
+}
+static void
+get_coef (size_t n_vars, const struct casefile *cf, 
+		struct innovations_estimate **est, size_t max_lag)
+{
+  int j;
+  int i;
+  int k;
+  size_t n;
+  double v;
+  double **theta;
+
+  for (n = 0; n < n_vars; n++)
+    {
+      for (i = 0; i < max_lag; i++)
+	{
+	  v = est[n]->cov[i];
+	  for (j = 0; j < i; j++)
+	    {
+	      k = i - j;
+	      theta[i][k] = est[n]->cov[k] - 
+		innovations_convolve (theta, est, i, j);
+	    }
+	}
+    }
+}
+
+struct innovations_estimate ** 
+pspp_innovations (const struct variable **vars, 
+		  size_t *n_vars,
+		  size_t lag, 
+		  const struct casefile *cf)
 {
   struct innovations_estimate **est;
   size_t i;
@@ -202,11 +243,9 @@ struct innovations_estimate ** pspp_innovations (const struct variable **vars, s
 	}
     }
 
-  /*
-    First data pass to get the mean and variance.
-   */
   get_mean_variance (*n_vars, cf, est);
   get_covariance (*n_vars, cf, est, lag);
+  get_coef (*n_vars, cf, est, lag);
   
   return est;
 }
