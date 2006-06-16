@@ -1,4 +1,4 @@
-2006-06-16  Jason Stover  <jhs@debs.hjklfdsss.org>
+2006-06-16  Jason Stover  <jhs@math.gcsu.edu>
 
 	* innovations.c (innovations_convolve): New function.
 	* innovations.c (get_coef): New function.
