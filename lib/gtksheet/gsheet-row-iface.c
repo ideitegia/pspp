@@ -103,60 +103,60 @@ g_sheet_row_base_init (gpointer g_class)
 
 void  
 g_sheet_row_set_height (GSheetRow *row_geo,
-				gint row, gint size, const GtkSheet *sheet)
+				gint row, gint size, gpointer data)
 {
   g_return_if_fail (G_IS_SHEET_ROW (row_geo));
 
   if ((G_SHEET_ROW_GET_IFACE (row_geo)->set_height) ) 
     (G_SHEET_ROW_GET_IFACE (row_geo)->set_height) (row_geo, row, 
-							size, sheet);
+							size, data);
 }
 
 
 gint 
 g_sheet_row_get_height     (const GSheetRow *row_geo, 
-				    gint row, const GtkSheet *sheet)
+				    gint row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), -1);
 
   g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_height);
   
   return (G_SHEET_ROW_GET_IFACE (row_geo)->get_height) (row_geo, row, 
-							     sheet);
+							     data);
 }
 
 
 
 gboolean  
 g_sheet_row_get_visibility(const GSheetRow *row_geo,
-					    gint row, const GtkSheet *sheet)
+					    gint row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
   g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility);
   
   return (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility) (row_geo, 
-								  row, sheet);
+								  row, data);
 
 }
 
 gboolean  
 g_sheet_row_get_sensitivity(const GSheetRow *row_geo,
-					     gint row, const GtkSheet *sheet)
+					     gint row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
   g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_sensitivity);
   
   return (G_SHEET_ROW_GET_IFACE (row_geo)->get_sensitivity) (row_geo, 
-								   row, sheet);
+								   row, data);
 
 }
 
 
 GtkSheetButton *
 g_sheet_row_get_button(const GSheetRow *row_geo,
-			      gint row, const GtkSheet *sheet)
+			      gint row, gpointer data)
 {
   GtkSheetButton *button  = gtk_sheet_button_new();
 
@@ -165,20 +165,20 @@ g_sheet_row_get_button(const GSheetRow *row_geo,
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
   if ( iface->get_button_label)
-    button->label = iface->get_button_label(row_geo, row, sheet);
+    button->label = iface->get_button_label(row_geo, row, data);
 
   return button;
 }
 
 
 gint  
-g_sheet_row_get_row_count(const GSheetRow *geo, const GtkSheet *sheet)
+g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
 
   g_assert  ( G_SHEET_ROW_GET_IFACE (geo)->get_row_count);
 
-  return (G_SHEET_ROW_GET_IFACE (geo)->get_row_count) (geo, sheet);
+  return (G_SHEET_ROW_GET_IFACE (geo)->get_row_count) (geo, data);
 }
 
 /**
@@ -195,7 +195,7 @@ g_sheet_row_get_row_count(const GSheetRow *geo, const GtkSheet *sheet)
  */
 
 gint  
-g_sheet_row_start_pixel(const GSheetRow *geo, gint row, const GtkSheet *sheet)
+g_sheet_row_start_pixel(const GSheetRow *geo, gint row, gpointer data)
 {
   gint i;
   gint start_pixel = 0;
@@ -203,15 +203,15 @@ g_sheet_row_start_pixel(const GSheetRow *geo, gint row, const GtkSheet *sheet)
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
   g_return_val_if_fail (row >= 0, -1);
   g_return_val_if_fail (row < 
-			g_sheet_row_get_row_count(geo, sheet),-1);
+			g_sheet_row_get_row_count(geo, data),-1);
 
   if ( G_SHEET_ROW_GET_IFACE(geo)->top_ypixel) 
-    return (G_SHEET_ROW_GET_IFACE(geo)->top_ypixel)(geo, row, sheet);
+    return (G_SHEET_ROW_GET_IFACE(geo)->top_ypixel)(geo, row, data);
 
   for ( i = 0 ; i < row ; ++i ) 
     {
-      if ( g_sheet_row_get_visibility(geo, i, sheet))
-	start_pixel += g_sheet_row_get_height(geo, i, sheet);
+      if ( g_sheet_row_get_visibility(geo, i, data))
+	start_pixel += g_sheet_row_get_height(geo, i, data);
     }
   
   return start_pixel;
@@ -220,29 +220,29 @@ g_sheet_row_start_pixel(const GSheetRow *geo, gint row, const GtkSheet *sheet)
 
 gint  
 g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel, 
-			 const GtkSheet *s)
+			 gpointer data)
 {
   gint i, cy;
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
   g_return_val_if_fail (pixel >= 0, -1) ;
 
   if ( G_SHEET_ROW_GET_IFACE(geo)->pixel_to_row) 
-    return (G_SHEET_ROW_GET_IFACE(geo)->pixel_to_row)(geo, pixel, s);
+    return (G_SHEET_ROW_GET_IFACE(geo)->pixel_to_row)(geo, pixel, data);
 
   cy = 0;
-  for (i = 0; i < g_sheet_row_get_row_count(geo, s); ++i ) 
+  for (i = 0; i < g_sheet_row_get_row_count(geo, data); ++i ) 
     {
       if (pixel >= cy  && 
-	  pixel <= (cy + g_sheet_row_get_height(geo, i, s)) && 
-	  g_sheet_row_get_visibility(geo, i, s))
+	  pixel <= (cy + g_sheet_row_get_height(geo, i, data)) && 
+	  g_sheet_row_get_visibility(geo, i, data))
 	return i;
 
-      if(g_sheet_row_get_visibility(geo, i, s))
-	cy += g_sheet_row_get_height(geo, i, s);
+      if(g_sheet_row_get_visibility(geo, i, data))
+	cy += g_sheet_row_get_height(geo, i, data);
     }
 
   /* no match */
-  return g_sheet_row_get_row_count(geo, s) - 1;
+  return g_sheet_row_get_row_count(geo, data) - 1;
 }
 
 

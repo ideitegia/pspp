@@ -100,6 +100,8 @@ void psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name);
 gboolean psppire_dict_check_name(const PsppireDict *dict, 
 			      const gchar *name, gboolean report);
 
+gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
+
 
 G_END_DECLS
 

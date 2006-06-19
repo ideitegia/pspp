@@ -385,7 +385,6 @@ measure_is_valid(enum measure m)
 bool 
 alignment_is_valid(enum alignment a)
 {
-  if ( a < 0 ) return false;
   if ( a >= n_ALIGN) return false;
   return true;
 }

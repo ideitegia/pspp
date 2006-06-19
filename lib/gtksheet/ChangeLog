@@ -1,3 +1,11 @@
+Mon Jun 19 18:03:21 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* gsheet-column-iface.c gsheet-column-iface.h
+	gsheet-hetero-column.c gsheet-row-iface.c gsheet-row-iface.h
+	gsheet-uniform-column.c gsheet-uniform-row.c gtksheet.c
+	gtksheet.h:  Fixed some warnings.  Corrected errors updating
+		row/column titles
+	
 Di Mai 30 19:51:19 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * gtksheet.c gtksheet.h: constness. Removed dependence on glib2.10

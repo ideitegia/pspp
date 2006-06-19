@@ -545,8 +545,14 @@ casefile_get_reader (const struct casefile *cf_)
 struct casereader *
 casefile_get_random_reader (const struct casefile *cf) 
 {
-  struct casereader *reader = casefile_get_reader (cf);
+  struct casefile  *mutable_casefile = (struct casefile*) cf;
+  struct casereader *reader;
+
+  enum { WRITE, READ } mode = cf->mode ;
+  reader = casefile_get_reader (cf);
   reader->random = true;
+  mutable_casefile->mode = mode;
+  
   return reader;
 }
 

@@ -437,7 +437,7 @@ gtk_sheet_row_button_justify		(GtkSheet *sheet,
 
 /* scroll the viewing area of the sheet to the given column
  * and row; row_align and col_align are between 0-1 representing the
- * location the row should appear on the screnn, 0.0 being top or left,
+ * location the row should appear on the screen, 0.0 being top or left,
  * 1.0 being bottom or right; if row or column is negative then there
  * is no change */
 void

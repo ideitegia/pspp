@@ -46,13 +46,14 @@
 #include <data/value-labels.h>
 
 
+#define TRAILING_ROWS 40
 
 static void         psppire_var_store_init            (PsppireVarStore      *var_store);
 static void         psppire_var_store_class_init      (PsppireVarStoreClass *class);
 static void         psppire_var_store_sheet_model_init (GSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
 
-static gchar *psppire_var_store_get_string(GSheetModel *sheet_model, gint row, gint column);
+static gchar *psppire_var_store_get_string(const GSheetModel *sheet_model, gint row, gint column);
 
 static gboolean  psppire_var_store_clear(GSheetModel *model,  gint row, gint col);
 
@@ -60,6 +61,7 @@ static gboolean  psppire_var_store_clear(GSheetModel *model,  gint row, gint col
 static gboolean psppire_var_store_set_string(GSheetModel *model, 
 					  const gchar *text, gint row, gint column);
 
+static gint psppire_var_store_get_row_count(const GSheetModel * model);
 
 static gchar *text_for_column(const struct PsppireVariable *pv, gint c, GError **err);
 
@@ -185,7 +187,7 @@ psppire_var_store_item_editable(PsppireVarStore *var_store, gint row, gint colum
 }
 
 static gboolean
-psppire_var_store_is_editable(GSheetModel *model, gint row, gint column)
+psppire_var_store_is_editable(const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
   return psppire_var_store_item_editable(store, row, column);
@@ -193,7 +195,7 @@ psppire_var_store_is_editable(GSheetModel *model, gint row, gint column)
 
 
 static const GdkColor *
-psppire_var_store_get_foreground(GSheetModel *model, gint row, gint column)
+psppire_var_store_get_foreground(const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
@@ -205,7 +207,7 @@ psppire_var_store_get_foreground(GSheetModel *model, gint row, gint column)
 
 
 const PangoFontDescription *
-psppire_var_store_get_font_desc(GSheetModel *model,
+psppire_var_store_get_font_desc(const GSheetModel *model,
 			      gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
@@ -218,6 +220,7 @@ psppire_var_store_get_font_desc(GSheetModel *model,
 static void
 psppire_var_store_sheet_model_init (GSheetModelIface *iface)
 {
+  iface->get_row_count = psppire_var_store_get_row_count;
   iface->free_strings = TRUE;
   iface->get_string = psppire_var_store_get_string;
   iface->set_string = psppire_var_store_set_string;
@@ -317,7 +320,7 @@ psppire_var_store_finalize (GObject *object)
 }
 
 static gchar *
-psppire_var_store_get_string(GSheetModel *model, gint row, gint column)
+psppire_var_store_get_string(const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
@@ -674,24 +677,50 @@ psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *f
 }
 
 
+static gint
+psppire_var_store_get_row_count(const GSheetModel * model)
+{
+  gint rows = 0;
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE(model);
+
+  if (vs->dict) 
+    rows =  psppire_dict_get_var_cnt(vs->dict); 
+
+  return rows ;
+}
 
 /* Row related funcs */
 
 static gint
-geometry_get_row_count(const GSheetRow *geom)
+geometry_get_row_count(const GSheetRow *geom, gpointer data)
 {
+  gint rows = 0;
   PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
 
-  return psppire_dict_get_var_cnt(vs->dict)+ 40;
+  if (vs->dict) 
+    rows =  psppire_dict_get_var_cnt(vs->dict); 
+
+  return rows + TRAILING_ROWS;
 }
 
 
 static gint
-geometry_get_height(const GSheetRow *geom)
+geometry_get_height(const GSheetRow *geom, gint row, gpointer data)
 {
   return 25;
 }
 
+
+static gboolean
+geometry_is_sensitive(const GSheetRow *geom, gint row, gpointer data)
+{
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
+  
+  if ( ! vs->dict) 
+    return FALSE;
+
+  return  row < psppire_dict_get_var_cnt(vs->dict); 
+}
 
 static
 gboolean always_true()
@@ -700,8 +729,8 @@ gboolean always_true()
 }
 
 
-static const gchar *
-geometry_get_button_label(const GSheetRow *geom, gint unit)
+static gchar *
+geometry_get_button_label(const GSheetRow *geom, gint unit, gpointer data)
 {
   gchar *label = g_strdup_printf(_("%d"), unit);
   
@@ -716,7 +745,7 @@ psppire_var_store_sheet_row_init (GSheetRowIface *iface)
   iface->get_height =        geometry_get_height;
   iface->set_height =        0;
   iface->get_visibility =    always_true;
-  iface->get_sensitivity =   always_true;
+  iface->get_sensitivity =   geometry_is_sensitive;
 
   iface->get_button_label = geometry_get_button_label;
 }

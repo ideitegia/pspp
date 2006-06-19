@@ -128,11 +128,7 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 {
   GtkWidget *sheet;
 
-  const gint rows = 10046;
-
-  GObject *row_geometry = g_sheet_uniform_row_new(25, rows); 
-
-  sheet = gtk_sheet_new(G_SHEET_ROW(row_geometry), 
+  sheet = gtk_sheet_new(G_SHEET_ROW(data_store), 
 			G_SHEET_COLUMN(data_store), "data sheet", 0); 
 
 

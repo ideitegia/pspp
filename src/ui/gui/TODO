@@ -1,0 +1,23 @@
+* Crashes when resizing rows/columns when no cell is selected.
+
+* Blank cell reference when deselecting cells. (Eg New command).
+
+* Strip leading/trailing whitespace on data in cells.
+
+* Cell Ref Entry populate/depopulate.
+
+* Case weights.
+
+* Resizing of string variables.
+
+* Goto Variable / Goto Case.
+
+* Widen columns in var sheet as necessary to accomodate non-english translations.
+
+Wishlist
+========
+
+* Cut/Paste Buffer.  Cut and paste: a) Between psppire instances. b) From other applications.
+
+* In datasheet, add tooltips to column buttons, so that hovering over a column button displays 
+  the label for that variable.

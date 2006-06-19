@@ -1,3 +1,14 @@
+Mon Jun 19 18:10:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * psppire-case-file.c psppire-case-file.h (new files)
+   
+   * automake.mk data-sheet.c data-sheet.h menu-actions.c
+   psppire-data-store.c psppire-data-store.h psppire-dict.c
+   psppire-dict.h psppire-var-store.c psppire.c
+   
+     Replaced psppire-case-array.c  with psppire-case-file.c, so as to
+     allow an arbitrary number of cases to be represented.
+   
 Sun Jun  4 15:50:28 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * psppire-var-store.c, psppire.c, var-sheet.c :  Unlimited the number of 

@@ -23,7 +23,6 @@
 #define DATA_SHEET_H
 
 #include <gtksheet/gtksheet.h>
-#include "psppire-case-array.h"
 #include "psppire-dict.h"
 
 void psppire_data_sheet_clear(GtkSheet *sheet);

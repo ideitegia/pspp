@@ -104,7 +104,7 @@ g_sheet_hetero_column_new (gint default_width, gint n_columns)
 }
 
 static gint 
-g_sheet_hetero_column_get_width(const GSheetColumn *geom, gint i)
+g_sheet_hetero_column_get_width(const GSheetColumn *geom, gint i, gpointer data)
 {
   GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
 
@@ -114,14 +114,14 @@ g_sheet_hetero_column_get_width(const GSheetColumn *geom, gint i)
 }
 
 static gint 
-g_sheet_hetero_column_get_sensitivity(const GSheetColumn *geom, gint u)
+g_sheet_hetero_column_get_sensitivity(const GSheetColumn *geom, gint u, gpointer data)
 {
   return TRUE;
 }
 
 
 static gint 
-g_sheet_hetero_column_get_visibility(const GSheetColumn *geom, gint u)
+g_sheet_hetero_column_get_visibility(const GSheetColumn *geom, gint u, gpointer data)
 {
   return TRUE;
 }
@@ -129,7 +129,7 @@ g_sheet_hetero_column_get_visibility(const GSheetColumn *geom, gint u)
 
 
 static gchar *
-g_sheet_hetero_column_get_button_label(const GSheetColumn *geom, gint u)
+g_sheet_hetero_column_get_button_label(const GSheetColumn *geom, gint u, gpointer data)
 {
   GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
 
@@ -138,7 +138,7 @@ g_sheet_hetero_column_get_button_label(const GSheetColumn *geom, gint u)
 
 
 static GtkJustification
-g_sheet_hetero_column_get_justification(const GSheetColumn *geom, gint u)
+g_sheet_hetero_column_get_justification(const GSheetColumn *geom, gint u, gpointer data)
 {
   return GTK_JUSTIFY_FILL;
 }
@@ -146,7 +146,7 @@ g_sheet_hetero_column_get_justification(const GSheetColumn *geom, gint u)
 
 
 static gint 
-g_sheet_hetero_column_get_column_count(const GSheetColumn *geom)
+g_sheet_hetero_column_get_column_count(const GSheetColumn *geom, gpointer data)
 {
   GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geom);
 
@@ -184,12 +184,24 @@ g_sheet_hetero_column_finalize (GObject           *object)
   g_free(hg->col);
 }
 
+static void 
+hetero_column_set_width(GSheetColumn *geo,
+				      gint i, gint size, gpointer data)
+{
+  GSheetHeteroColumn *hg = G_SHEET_HETERO_COLUMN(geo);
+
+  g_return_if_fail(i < hg->n_columns);
+
+  hg->col[i].width = size;
+}
+
+
 
 static void
 g_sheet_column_init (GSheetColumnIface *iface)
 {
   iface->get_width = g_sheet_hetero_column_get_width ;
-  iface->set_width = g_sheet_hetero_column_set_width ;
+  iface->set_width = hetero_column_set_width ;
   iface->get_sensitivity = g_sheet_hetero_column_get_sensitivity ;
   iface->get_visibility = g_sheet_hetero_column_get_visibility ;
   iface->get_justification = g_sheet_hetero_column_get_justification;
@@ -213,13 +225,15 @@ g_sheet_hetero_column_set_button_label(GSheetHeteroColumn *geo,
 
 
 
-void 
-g_sheet_hetero_column_set_width(GSheetHeteroColumn *geo,
-				      gint i, gint size)
-{
-  g_return_if_fail(i < geo->n_columns);
 
-  geo->col[i].width = size;
+inline void 
+g_sheet_hetero_column_set_width(GSheetHeteroColumn *geo,
+					     gint i, gint size)
+{
+  GSheetColumn *iface = G_SHEET_COLUMN(geo);
+
+  hetero_column_set_width(iface, i, size, 0);
 }
+
 
 

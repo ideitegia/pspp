@@ -36,15 +36,12 @@
 #include "helper.h"
 #include "data-sheet.h"
 #include "var-sheet.h"
-#include "psppire-case-array.h"
 #include "message-dialog.h"
 
 GladeXML *xml;
 
 
 PsppireDict *the_dictionary = 0;
-PsppireCaseArray *the_cases = 0;
-
 
 PsppireDataStore *data_store = 0;
 
@@ -120,10 +117,7 @@ main(int argc, char *argv[])
   /* Create the model for the var_sheet */
   var_store = psppire_var_store_new(the_dictionary);
 
-  /* Create the model for the data sheet */
-  the_cases = psppire_case_array_new(100000, 20);
-
-  data_store = psppire_data_store_new(the_dictionary, the_cases);
+  data_store = psppire_data_store_new(the_dictionary);
 
   /* load the interface */
   xml = glade_xml_new(PKGDATADIR "/psppire.glade", NULL, NULL);

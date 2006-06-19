@@ -1,3 +1,10 @@
+Mon Jun 19 18:05:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* casefile.c (casefile_get_random_reader): Nasty hack to get around 
+	the mode assertion.
+
+	* format.c: Removed tortological assertion.
+
 Fri Jun  9 12:20:09 2006  Ben Pfaff  <blp@gnu.org>
 
 	Reform string library.

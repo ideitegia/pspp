@@ -25,6 +25,7 @@
 #define N_(msgid) msgid
 
 
+#include <data/casefile.h>
 #include <data/file-handle-def.h>
 #include <data/sys-file-reader.h>
 #include <data/case.h>
@@ -50,8 +51,6 @@ extern GladeXML *xml;
 
 
 extern PsppireDict *the_dictionary ;
-extern PsppireCaseArray *the_cases ;
-
 
 static struct file_handle *psppire_handle = 0;
 
@@ -75,20 +74,32 @@ psppire_set_window_title(const gchar *text)
   g_free(title);
 }
 
-
+/* Clear the active file and set the data and var sheets to 
+   reflect this.
+ */
 gboolean
 clear_file(void)
 {
-  GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
-  GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
- 
-  gtk_sheet_set_active_cell(GTK_SHEET(data_sheet), -1, -1);
+  PsppireDataStore *data_store ;
+  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  GtkSheet *var_sheet = GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
 
-  gtk_sheet_set_active_cell(GTK_SHEET(var_sheet), 0, 0);
+  gtk_sheet_set_active_cell(data_sheet, -1, -1);
+  gtk_sheet_set_active_cell(var_sheet, 0, 0);
 
-  psppire_dict_clear(the_dictionary);
-  psppire_case_array_clear(the_cases);
-  
+  if ( GTK_WIDGET_REALIZED(GTK_WIDGET(data_sheet)))
+    gtk_sheet_unselect_range(data_sheet);
+
+  if ( GTK_WIDGET_REALIZED(GTK_WIDGET(var_sheet)))
+    gtk_sheet_unselect_range(var_sheet);
+
+  gtk_sheet_moveto(data_sheet, 0, 0, 0.0, 0.0);
+  gtk_sheet_moveto(var_sheet,  0, 0, 0.0, 0.0);
+
+  data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
+
+  psppire_data_store_clear(data_store);
+
   psppire_set_window_title(gettext(untitled));
 
   if (psppire_handle)
@@ -107,23 +118,13 @@ on_new1_activate                       (GtkMenuItem     *menuitem,
 
 
 
-static gboolean
-populate_case_from_reader(struct ccase *c, gpointer aux)
-{
-  struct sfm_reader *reader = aux;
-
-  return sfm_read_case(reader, c);
-}
-
-
 /* Load a system file.
    Return TRUE if successfull
 */
 gboolean
 load_system_file(const gchar *file_name)
 {
-  int ni ;
-  gint case_num;
+  int var_cnt ;
 
   PsppireVarStore *var_store ;
   PsppireDataStore *data_store ;
@@ -134,12 +135,10 @@ load_system_file(const gchar *file_name)
   GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
   GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
 
-
   g_assert(data_sheet);
   g_assert(var_sheet);
 
-  if ( psppire_handle ) 
-    fh_free(psppire_handle);
+  clear_file();
 
   psppire_handle = 
     fh_create_file (handle_name, file_name, fh_default_properties());
@@ -150,7 +149,6 @@ load_system_file(const gchar *file_name)
 		file_name);
       return FALSE;
     }
-
 
   reader = sfm_open_reader (psppire_handle, &new_dict, &ri);
       
@@ -172,25 +170,36 @@ load_system_file(const gchar *file_name)
   psppire_data_store_set_dictionary(data_store,
 				    the_dictionary);
 
-  psppire_case_array_clear(data_store->cases);
-
-
   psppire_set_window_title(basename(file_name));
 
-  ni = dict_get_next_value_idx(the_dictionary->dict);
-  if ( ni == 0 ) 
+  var_cnt = dict_get_next_value_idx(the_dictionary->dict);
+  if ( var_cnt == 0 ) 
     return FALSE;
 
-  for(case_num=0;;case_num++)
+
+  for(;;)
     {
-      if (!psppire_case_array_append_case(the_cases, 
-					  populate_case_from_reader, 
-					  reader))
-	break;
+      struct ccase c;
+      case_create(&c, var_cnt);
+      if ( 0 == sfm_read_case (reader, &c) )
+	{
+	  case_destroy(&c);
+	  break;
+	}
+
+      if ( !psppire_case_file_append_case(data_store->case_file, &c) ) 
+	{
+	  g_warning("Cannot write case to casefile\n");
+	  break;
+	}
+
+      case_destroy(&c);
+
     }
+  
+  sfm_close_reader(reader);      
 
-
-  sfm_close_reader(reader);
+  psppire_case_file_get_case_count(data_store->case_file);
 
   return TRUE;
 }
@@ -396,6 +405,7 @@ on_insert1_activate                    (GtkMenuItem     *menuitem,
   switch (page) 
     {
     case PAGE_DATA_SHEET:
+#if 0
       {
 	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
 	PsppireDataStore *data_store = 
@@ -406,6 +416,7 @@ on_insert1_activate                    (GtkMenuItem     *menuitem,
 				       blank_case, the_dictionary);
       }
       break;
+#endif
     case PAGE_VAR_SHEET:
       {
 	GtkSheet *var_sheet = 
@@ -430,6 +441,7 @@ on_delete1_activate                    (GtkMenuItem     *menuitem,
   page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
   switch ( page) 
     {
+#if 0
     case PAGE_DATA_SHEET:
       {
 	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
@@ -442,6 +454,7 @@ on_delete1_activate                    (GtkMenuItem     *menuitem,
 				    - data_sheet->range.row0  );
       }
       break;
+#endif
     case PAGE_VAR_SHEET:
       {
 	GtkSheet *var_sheet = 

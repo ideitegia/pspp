@@ -306,7 +306,6 @@ psppire_dict_set_name(PsppireDict* d, gint idx, const gchar *name)
     {
       /* new variable */
       dict_create_var(d->dict, name, 0);
-      g_print("Emitting variable-inserted signal\n");
       g_signal_emit(d, signal[VARIABLE_INSERTED], 0, idx);
     }
 }
@@ -420,4 +419,11 @@ psppire_dict_check_name(const PsppireDict *dict,
     }
 
   return TRUE;
+}
+
+
+inline gint 
+psppire_dict_get_next_value_idx (const PsppireDict *dict)
+{
+  return dict_get_next_value_idx(dict->dict);
 }
