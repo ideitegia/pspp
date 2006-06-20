@@ -58,6 +58,8 @@
 #include <output/output.h>
 #include <output/table.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -985,7 +987,7 @@ hash_value_alpha (const void *value_, void *v_)
   const struct freq *value = value_;
   struct variable *v = v_;
 
-  return hsh_hash_bytes (value->v.s, v->width);
+  return hsh_hash_bytes (value->v.s, MIN (MAX_SHORT_STRING, v->width));
 }
 
 /* Ascending numeric compare of values. */
@@ -1011,7 +1013,7 @@ compare_value_alpha_a (const void *a_, const void *b_, void *v_)
   const struct freq *b = b_;
   const struct variable *v = v_;
 
-  return memcmp (a->v.s, b->v.s, v->width);
+  return memcmp (a->v.s, b->v.s, MIN (MAX_SHORT_STRING, v->width));
 }
 
 /* Descending numeric compare of values. */
@@ -1063,7 +1065,7 @@ compare_freq_alpha_a (const void *a_, const void *b_, void *v_)
   else if (a->c < b->c)
     return -1;
   else
-    return memcmp (a->v.s, b->v.s, v->width);
+    return memcmp (a->v.s, b->v.s, MIN (MAX_SHORT_STRING, v->width));
 }
 
 /* Descending numeric compare of frequency;
@@ -1101,7 +1103,7 @@ compare_freq_alpha_d (const void *a_, const void *b_, void *v_)
   else if (a->c < b->c)
     return 1;
   else
-    return memcmp (a->v.s, b->v.s, v->width);
+    return memcmp (a->v.s, b->v.s, MIN (MAX_SHORT_STRING, v->width));
 }
 
 /* Frequency table display. */
@@ -1133,6 +1135,7 @@ dump_full (struct variable *v)
   int r;
   double cum_total = 0.0;
   double cum_freq = 0.0;
+  struct fmt_spec fmt;
 
   struct init
     {
@@ -1172,6 +1175,10 @@ dump_full (struct variable *v)
     tab_text (t, p->c - (p->r ? !lab : 0), p->r,
 		  TAB_CENTER | TAT_TITLE, gettext (p->s));
 
+  fmt = v->print;
+  if (v->width > MAX_SHORT_STRING)
+    fmt.w = MAX_SHORT_STRING * (fmt.type == FMT_AHEX ? 2 : 1);
+
   r = 2;
   for (f = ft->valid; f < ft->missing; f++)
     {
@@ -1190,7 +1197,7 @@ dump_full (struct variable *v)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
 
-      tab_value (t, 0 + lab, r, TAB_NONE, &f->v, &v->print);
+      tab_value (t, 0 + lab, r, TAB_NONE, &f->v, &fmt);
       tab_float (t, 1 + lab, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2 + lab, r, TAB_NONE, percent, 5, 1);
       tab_float (t, 3 + lab, r, TAB_NONE, valid_percent, 5, 1);
@@ -1208,7 +1215,7 @@ dump_full (struct variable *v)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
 
-      tab_value (t, 0 + lab, r, TAB_NONE, &f->v, &v->print);
+      tab_value (t, 0 + lab, r, TAB_NONE, &f->v, &fmt);
       tab_float (t, 1 + lab, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2 + lab, r, TAB_NONE,
 		     f->c / ft->total_cases * 100.0, 5, 1);
@@ -1261,6 +1268,7 @@ dump_condensed (struct variable *v)
   struct tab_table *t;
   int r;
   double cum_total = 0.0;
+  struct fmt_spec fmt;
 
   ft = &get_var_freqs (v)->tab;
   n_categories = ft->n_valid + ft->n_missing;
@@ -1274,6 +1282,10 @@ dump_condensed (struct variable *v)
   tab_text (t, 3, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
   tab_dim (t, condensed_dim);
 
+  fmt = v->print;
+  if (v->width > MAX_SHORT_STRING)
+    fmt.w = MAX_SHORT_STRING * (fmt.type == FMT_AHEX ? 2 : 1);
+
   r = 2;
   for (f = ft->valid; f < ft->missing; f++)
     {
@@ -1282,7 +1294,7 @@ dump_condensed (struct variable *v)
       percent = f->c / ft->total_cases * 100.0;
       cum_total += f->c / ft->valid_cases * 100.0;
 
-      tab_value (t, 0, r, TAB_NONE, &f->v, &v->print);
+      tab_value (t, 0, r, TAB_NONE, &f->v, &fmt);
       tab_float (t, 1, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2, r, TAB_NONE, percent, 3, 0);
       tab_float (t, 3, r, TAB_NONE, cum_total, 3, 0);
@@ -1290,7 +1302,7 @@ dump_condensed (struct variable *v)
     }
   for (; f < &ft->valid[n_categories]; f++)
     {
-      tab_value (t, 0, r, TAB_NONE, &f->v, &v->print);
+      tab_value (t, 0, r, TAB_NONE, &f->v, &fmt);
       tab_float (t, 1, r, TAB_NONE, f->c, 8, 0);
       tab_float (t, 2, r, TAB_NONE,
 		 f->c / ft->total_cases * 100.0, 3, 0);

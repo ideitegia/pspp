@@ -1,3 +1,21 @@
+Mon Jun 19 22:07:13 2006  Ben Pfaff  <blp@gnu.org>
+
+	* frequencies.q: (dump_full) Only put the first MAX_SHORT_STRING
+	bytes of string variables into the output cells, seeing as we only
+	copy that many.
+	(dump_condensed) Ditto.
+
+Mon Jun 19 21:52:05 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fixes a bug reported by Greg Hunt <greg@firmansyah.com>.
+	
+	* frequencies.q: (hsh_hash_bytes) We only copy the first
+	MAX_SHORT_STRING bytes of string variables, so we must only
+	compare that many bytes, even if the string variable is longer.
+	(compare_value_alpha_a) Ditto.
+	(compare_freq_alpha_a) Ditto.
+	(compare_freq_alpha_d) Ditto.
+
 2006-05-11  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q: Adjusted code to account for cache->coeff being a
