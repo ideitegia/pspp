@@ -179,34 +179,72 @@ innovations_convolve (double **theta, struct innovations_estimate *est,
 
   for (k = 0; k < i; k++)
     {
-      result += theta[i][i-k] * theta[j][i-j] * est->cov[k];
+      result += theta[i-1][i-k-1] * theta[j-1][j-k-1] * est->scale[k];
     }
   return result;
 }
 static void
+innovations_update_scale (struct innovations_estimate *est, double *theta,
+			  size_t i)
+{
+  double result = 0.0;
+  size_t j;
+  size_t k;
+
+
+  result = est->cov[0];
+  for (j = 0; j < i; j++)
+    {
+      k = i - j;
+      result -= theta[k] * theta[k] * est->scale[j];
+    }
+  est->scale[i] = result;
+}
+
+static void
 get_coef (size_t n_vars, const struct casefile *cf, 
 		struct innovations_estimate **est, size_t max_lag)
 {
-  int j;
-  int i;
-  int k;
+  size_t j;
+  size_t i;
+  size_t k;
   size_t n;
   double v;
   double **theta;
 
+  theta = xnmalloc (max_lag, sizeof (*theta));
+  for (i = 0; i < max_lag; i++)
+    {
+      theta[i] = xnmalloc (i+1, sizeof (theta[i]));
+
+    }
   for (n = 0; n < n_vars; n++)
     {
+      for (i = 0; i < max_lag; i++)
+	{
+	  for (j = 0; j < i; j++)
+	    {
+	      theta[i][j] = 0.0;
+	    }
+	}
+      innovations_update_scale (est[n], theta[0], 0);
       for (i = 0; i < max_lag; i++)
 	{
 	  v = est[n]->cov[i];
 	  for (j = 0; j < i; j++)
 	    {
 	      k = i - j;
-	      theta[i][k] = est[n]->cov[k] - 
-		innovations_convolve (theta, est, i, j);
+	      theta[i-1][k-1] = est[n]->cov[k] - 
+		innovations_convolve (theta, est[n], i, j);
 	    }
+	  innovations_update_scale (est[n], theta[i], i);
 	}
     }
+  for (i = 0; i < max_lag; i++)
+    {
+      free (theta[i]);
+    }
+  free (theta);
 }
 
 struct innovations_estimate ** 
@@ -228,7 +266,8 @@ pspp_innovations (const struct variable **vars,
 	  est[i]->variable = vars[i];
 	  est[i]->mean = 0.0;
 	  est[i]->variance = 0.0;
-	  est[i]->cov = xnmalloc (lag, sizeof (est[i]->cov));
+	  est[i]->cov = xnmalloc (lag, sizeof (*est[i]->cov));
+	  est[i]->scale = xnmalloc (lag, sizeof (*est[i]->scale));
 	  est[i]->coeff = xnmalloc (lag, sizeof (*est[i]->coeff));
 	  for (j = 0; j < lag; j++)
 	    {
