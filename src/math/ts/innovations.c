@@ -239,6 +239,30 @@ get_coef (size_t n_vars, const struct casefile *cf,
 	    }
 	  innovations_update_scale (est[n], theta[i], i);
 	}
+      /* Copy the final row of coefficients into EST->COEFF.*/
+      for (i = 0; i < max_lag; i++)
+	{
+	  /*
+	    The order of storage here means that the best predicted value
+	    for the time series is computed as follows:
+
+	    Let X[m], X[m-1],... denote the original series.
+	    Let X_hat[0] denote the best predicted value of X[0],
+	    X_hat[1] denote the projection of X[1] onto the subspace
+	    spanned by {X[0] - X_hat[0]}. Let X_hat[m] denote the 
+	    projection of X[m] onto the subspace spanned by {X[m-1] - X_hat[m-1],
+	    X[m-2] - X_hat[m-2],...,X[0] - X_hat[0]}.
+
+	    Then X_hat[m] = est->coeff[m-1] * (X[m-1] - X_hat[m-1])
+	                  + est->coeff[m-1] * (X[m-2] - X_hat[m-2])
+			  ...
+			  + est->coeff[m-max_lag] * (X[m - max_lag] - X_hat[m - max_lag])
+
+	    (That is what X_hat[m] SHOULD be, anyway. These routines need
+	    to be tested.)
+	   */
+	  pspp_coeff_set_estimate (est[n]->coeff[i], theta[max_lag - 1][i]);
+	}
     }
   for (i = 0; i < max_lag; i++)
     {
