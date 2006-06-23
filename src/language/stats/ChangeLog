@@ -1,3 +1,22 @@
+Fri Jun 23 14:18:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	Support long string variables on FREQUENCIES, as
+	an extension when in enhanced algorithms mode.  For Greg Hunt
+	<greg@firmansyah.com>.
+	
+	* frequencies.q: (struct freq) Change `v' member from union value
+	to union value *.  Update all references.
+	(struct var_freqs) Add width, print members to represent effective
+	variable width and display format.
+	(calc) Copy entire long string value into the hash table.
+	(frq_custom_variables) Set new width, print members.
+	(hash_value_alpha) Get width from var_freqs.
+	(compare_value_alpha_a) Ditto.
+	(compare_freq_alpha_a) Ditto.
+	(compare_freq_alpha_d) Ditto.
+	(dump_full) Get display format from var_freqs.
+	(dump_condensed) Ditto.
+
 Mon Jun 19 22:07:13 2006  Ben Pfaff  <blp@gnu.org>
 
 	* frequencies.q: (dump_full) Only put the first MAX_SHORT_STRING
