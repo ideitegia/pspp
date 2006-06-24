@@ -346,13 +346,23 @@ psppire_variable_get_width(const struct PsppireVariable *pv)
 }
 
 
-/* FIXME: This name is misleading */
+gint
+psppire_variable_get_fv(const struct PsppireVariable *pv)
+{
+  g_return_val_if_fail(pv, -1);
+  g_return_val_if_fail(pv->v, -1);
+
+  return pv->v->fv;
+}
+
+
+
 gint
 psppire_variable_get_index(const struct PsppireVariable *pv)
 {
   g_return_val_if_fail(pv, -1);
   g_return_val_if_fail(pv->v, -1);
 
-  return pv->v->fv;
+  return pv->v->index;
 }
 

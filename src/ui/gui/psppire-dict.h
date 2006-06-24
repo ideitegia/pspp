@@ -47,6 +47,8 @@ G_BEGIN_DECLS
 typedef struct _PsppireDict	   PsppireDict;
 typedef struct _PsppireDictClass PsppireDictClass;
 
+enum {DICT_TVM_COL_NAME=0, DICT_TVM_COL_VAR, n_DICT_COLS} ;
+
 struct _PsppireDict
 {
   GObject             parent;
@@ -56,6 +58,9 @@ struct _PsppireDict
   struct PsppireVariable **variables;
 
   gint cache_size;
+
+  /* For GtkTreeModelIface */
+  gint stamp;
 };
 
 struct _PsppireDictClass

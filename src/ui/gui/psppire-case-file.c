@@ -31,6 +31,8 @@
 #include <data/casefile.h>
 #include <data/data-in.h>
 
+#include <math/sort.h>
+
 /* --- prototypes --- */
 static void psppire_case_file_class_init	(PsppireCaseFileClass	*class);
 static void psppire_case_file_init	(PsppireCaseFile	*case_file);
@@ -245,4 +247,18 @@ psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, gint idx,
   g_signal_emit(cf, signal[CASE_CHANGED], 0, casenum);
 
   return TRUE;
+}
+
+
+void
+psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *sc)
+{
+  gint c;
+  struct casereader *reader = casefile_get_reader(cf->casefile);
+  cf->casefile = sort_execute(reader, sc);
+
+  /* FIXME: Need to have a signal to change a range of cases, instead of
+     calling a signal many times */
+  for ( c = 0 ; c < casefile_get_case_cnt(cf->casefile) ; ++c ) 
+    g_signal_emit(cf, signal[CASE_CHANGED], 0, c);
 }

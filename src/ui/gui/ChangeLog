@@ -1,3 +1,21 @@
+Sat Jun 24 16:56:22 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * menu-actions.c: Added goto case and sort cases dialogs.
+
+   * psppire-case-file.c psppire-case-file.h: Added sort function.
+
+   * psppire-data-store.c psppire-variable.c psppire-variable.h: 
+     Renamed  psppire_variable_get_index to psppire_variable_get_fv and
+     dealt with the consequences.  Added a psppire_variable_get_index
+     function which actually does what the name suggests.
+
+   * psppire-dict.c psppire-dict.h: Implemented GtkTreeModel interface,
+     which allows a dictionary to be displayed in a GtkTreeView.	
+
+   * psppire.glade: Added dialog boxes for Goto Case and Sort Case.	
+
+   * sort-cases-dialog.c sort-cases-dialog.h (new files).
+
 Mon Jun 19 18:10:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * psppire-case-file.c psppire-case-file.h (new files)

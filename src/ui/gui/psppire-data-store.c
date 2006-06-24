@@ -402,7 +402,7 @@ psppire_data_store_get_string(const GSheetModel *model, gint row, gint column)
 
   pv = psppire_dict_get_variable(store->dict, column);
 
-  idx = psppire_variable_get_index(pv);
+  idx = psppire_variable_get_fv(pv);
 
   v = psppire_case_file_get_value(store->case_file, row, idx);
 
@@ -448,7 +448,7 @@ psppire_data_store_clear_datum(GSheetModel *model,
   union value v;
   const struct PsppireVariable *pv = psppire_dict_get_variable(store->dict, col);
 
-  const gint index = psppire_variable_get_index(pv) ;
+  const gint index = psppire_variable_get_fv(pv) ;
 
   if ( psppire_variable_get_type(pv) == NUMERIC) 
     v.f = SYSMIS;
@@ -490,7 +490,7 @@ psppire_data_store_set_string(GSheetModel *model,
 #endif
 
   {
-    const gint index = psppire_variable_get_index(pv);
+    const gint index = psppire_variable_get_fv(pv);
 
     struct data_in d_in;
     d_in.s = text;

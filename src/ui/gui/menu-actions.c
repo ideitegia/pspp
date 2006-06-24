@@ -1,6 +1,6 @@
 /* 
     PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2004, 2005  Free Software Foundation
+    Copyright (C) 2004, 2005, 2006  Free Software Foundation
     Written by John Darrington
 
     This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+#include <math/sort.h>
 
 #include <data/casefile.h>
 #include <data/file-handle-def.h>
@@ -45,6 +46,7 @@
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
 
+#include "sort-cases-dialog.h"
 
 
 extern GladeXML *xml;
@@ -377,7 +379,7 @@ blank_case(struct ccase *cc, gpointer _dict)
 
       const struct PsppireVariable *var = psppire_dict_get_variable(dict, i);
       
-      gint idx = psppire_variable_get_index(var);
+      gint idx = psppire_variable_get_fv(var);
 
       val = case_data_rw(cc, idx) ;
 
@@ -491,25 +493,40 @@ on_about1_activate(GtkMenuItem     *menuitem,
 }
 
 
-
+/* Set the value labels state from the toolbar's toggle button */
 void
-on_toolbars1_activate
-                     (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+on_togglebutton_value_labels_toggled(GtkToggleToolButton *toggle_tool_button,
+				     gpointer             user_data)
 {
+  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  GtkCheckMenuItem *item = 
+    GTK_CHECK_MENU_ITEM(get_widget_assert(xml, "menuitem-value-labels"));
 
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
 
+  gboolean show_value_labels = gtk_toggle_tool_button_get_active(toggle_tool_button);
+  
+  gtk_check_menu_item_set_active(item, show_value_labels);
+
+  psppire_data_store_show_labels(ds, show_value_labels);
 }
 
+/* Set the value labels state from the view menu */
 void
-on_value_labels1_activate(GtkCheckMenuItem     *menuitem,
+on_value_labels_activate(GtkCheckMenuItem     *menuitem,
 			  gpointer         user_data)
 {
   GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  GtkToggleToolButton *tb = 
+   GTK_TOGGLE_TOOL_BUTTON(get_widget_assert(xml, "togglebutton-value-labels"));
+
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
-		
-  psppire_data_store_show_labels(ds, 
-			      gtk_check_menu_item_get_active(menuitem));
+
+  gboolean show_value_labels = gtk_check_menu_item_get_active(menuitem);
+
+  gtk_toggle_tool_button_set_active(tb, show_value_labels);
+
+  psppire_data_store_show_labels(ds, show_value_labels);
 }
 
 void
@@ -652,3 +669,68 @@ on_variables1_activate(GtkMenuItem     *menuitem,
   select_sheet(PAGE_VAR_SHEET);
 }
 
+
+
+void
+on_go_to_case_activate(GtkMenuItem     *menuitem,
+		       gpointer         user_data)
+{
+  GtkWidget *dialog = get_widget_assert(xml, "go_to_case_dialog");
+  GtkEntry *entry = GTK_ENTRY(get_widget_assert(xml, "entry_go_to_case"));
+  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+  
+
+  
+  switch (result)
+    {
+    case GTK_RESPONSE_OK:
+      {
+	gint row, column;
+	const gchar *text = gtk_entry_get_text(entry);
+	gint casenum = g_strtod(text, NULL);
+
+	gtk_sheet_get_active_cell(data_sheet, &row, &column);
+	if ( column < 0 ) column = 0;
+	if ( row < 0 ) row = 0;
+	
+	gtk_sheet_set_active_cell(data_sheet, casenum, column);
+      }
+      break;
+    default:
+      break;
+    }
+
+  gtk_widget_hide(dialog);
+  gtk_entry_set_text(entry, "");
+}
+
+
+
+void
+on_sort_cases_activate (GtkMenuItem     *menuitem,
+			gpointer         user_data)
+{
+  gint response;
+  PsppireDataStore *data_store ;
+
+  struct sort_criteria criteria;
+  static struct sort_cases_dialog *dialog ;
+
+  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+
+  data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
+
+  if ( NULL == dialog) 
+    dialog = sort_cases_dialog_create(xml);
+
+  response = sort_cases_dialog_run(dialog, the_dictionary, &criteria);
+
+  switch ( response) 
+    {
+    case GTK_RESPONSE_OK:
+      psppire_case_file_sort(data_store->case_file, &criteria);
+      break;
+    }
+}

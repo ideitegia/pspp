@@ -21,3 +21,5 @@ Wishlist
 
 * In datasheet, add tooltips to column buttons, so that hovering over a column button displays 
   the label for that variable.
+
+* GtkSheet should implement the AtkTable interface, to allow psppire to become accessible to disabled users.

@@ -84,6 +84,9 @@ gboolean psppire_case_file_set_value(PsppireCaseFile *cf, gint c, gint idx,
 
 void psppire_case_file_clear(PsppireCaseFile *cf);
 
+struct sort_criteria;
+void psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *);
+
 
 G_END_DECLS
 

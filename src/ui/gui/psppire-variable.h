@@ -82,12 +82,13 @@ gint psppire_variable_get_alignment(const struct PsppireVariable *pv);
 
 gint psppire_variable_get_measure(const struct PsppireVariable *pv);
 
-gint psppire_variable_get_index(const struct PsppireVariable *pv);
+gint psppire_variable_get_fv(const struct PsppireVariable *pv);
 
 gint psppire_variable_get_type(const struct PsppireVariable *pv);
 
 gint psppire_variable_get_width(const struct PsppireVariable *pv);
 
+gint psppire_variable_get_index(const struct PsppireVariable *pv);
 
 
 #endif /* __PSPPIRE_VARIABLE_H__ */

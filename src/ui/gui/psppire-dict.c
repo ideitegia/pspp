@@ -22,7 +22,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <gtksheet/gtkextra-marshal.c>
+#include <gtk/gtk.h>
+#include <gtksheet/gtkextra-marshal.h>
 
 #include "psppire-object.h"
 #include "psppire-dict.h"
@@ -39,6 +40,8 @@
 static void psppire_dict_class_init	(PsppireDictClass	*class);
 static void psppire_dict_init	(PsppireDict		*dict);
 static void psppire_dict_finalize	(GObject		*object);
+
+static void dictionary_tree_model_init(GtkTreeModelIface *iface);
 
 
 /* --- variables --- */
@@ -77,8 +80,20 @@ psppire_dict_get_type (void)
 	(GInstanceInitFunc) psppire_dict_init,
       };
 
-      object_type = g_type_register_static (G_TYPE_PSPPIRE_OBJECT, "PsppireDict",
+      static const GInterfaceInfo tree_model_info = {
+	(GInterfaceInitFunc) dictionary_tree_model_init, 
+	NULL, 
+	NULL
+      };
+
+      object_type = g_type_register_static (G_TYPE_PSPPIRE_OBJECT, 
+					    "PsppireDict",
 					    &object_info, 0);
+
+      g_type_add_interface_static(object_type, GTK_TYPE_TREE_MODEL, 
+				  &tree_model_info);
+
+
     }
 
   return object_type;
@@ -157,6 +172,8 @@ psppire_dict_init (PsppireDict *psppire_dict)
 
   psppire_dict->variables = 0; 
   psppire_dict->cache_size = 0;
+
+  psppire_dict->stamp = g_random_int();
 }
 
 /**
@@ -426,4 +443,215 @@ inline gint
 psppire_dict_get_next_value_idx (const PsppireDict *dict)
 {
   return dict_get_next_value_idx(dict->dict);
+}
+
+
+
+/* Tree Model Stuff */
+
+static GtkTreeModelFlags tree_model_get_flags(GtkTreeModel *model);
+
+static gint tree_model_n_columns(GtkTreeModel *model);
+
+static GType tree_model_column_type(GtkTreeModel *model, gint index);
+
+static gboolean tree_model_get_iter(GtkTreeModel *model, GtkTreeIter *iter, 
+				    GtkTreePath *path);
+
+static gboolean tree_model_iter_next(GtkTreeModel *model, GtkTreeIter *iter);
+
+static GtkTreePath * tree_model_get_path(GtkTreeModel *model, 
+					 GtkTreeIter *iter);
+
+static void tree_model_get_value(GtkTreeModel *model, GtkTreeIter *iter,
+				 gint column, GValue *value);
+
+static gboolean tree_model_nth_child(GtkTreeModel *model, GtkTreeIter *iter, 
+				     GtkTreeIter *parent, gint n);
+
+
+static void
+dictionary_tree_model_init(GtkTreeModelIface *iface)
+{
+  iface->get_flags = tree_model_get_flags;
+  iface->get_n_columns = tree_model_n_columns;
+  iface->get_column_type = tree_model_column_type;
+  iface->get_iter = tree_model_get_iter;
+  iface->iter_next = tree_model_iter_next;
+  iface->get_path = tree_model_get_path;
+  iface->get_value = tree_model_get_value;
+
+  iface->iter_children = 0;
+  iface->iter_has_child =0;
+  iface->iter_n_children =0;
+  iface->iter_nth_child = tree_model_nth_child ;
+  iface->iter_parent =0;
+}
+
+static GtkTreeModelFlags
+tree_model_get_flags(GtkTreeModel *model)
+{
+  g_return_val_if_fail(G_IS_PSPPIRE_DICT(model), (GtkTreeModelFlags) 0);
+
+  return GTK_TREE_MODEL_LIST_ONLY;
+}
+
+
+static gint
+tree_model_n_columns(GtkTreeModel *model)
+{
+  return n_DICT_COLS;
+}
+
+static GType
+tree_model_column_type(GtkTreeModel *model, gint index)
+{
+ g_return_val_if_fail(G_IS_PSPPIRE_DICT(model), (GType) 0);
+
+ switch(index) 
+   {
+   case DICT_TVM_COL_NAME:
+     return G_TYPE_STRING;
+     break;
+   case DICT_TVM_COL_VAR:
+     return G_TYPE_POINTER;
+     break;
+   default:
+     g_return_val_if_reached((GType)0);
+     break;
+   }
+
+ g_assert_not_reached();
+ return ((GType)0);
+}
+
+static gboolean
+tree_model_get_iter(GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
+{
+  gint *indices, depth;
+  gint n;
+  struct PsppireVariable *variable;
+
+  PsppireDict *dict = PSPPIRE_DICT (model);
+
+  g_return_val_if_fail(path, FALSE);
+
+  indices = gtk_tree_path_get_indices(path);
+  depth = gtk_tree_path_get_depth(path);
+
+  g_return_val_if_fail(depth == 1, FALSE);
+
+  n = indices[0];
+
+  if ( n < 0 || n >= psppire_dict_get_var_cnt(dict)) 
+    return FALSE;
+
+  variable = psppire_dict_get_variable(dict, n);
+
+  g_assert(psppire_variable_get_index(variable) == n);
+
+  iter->stamp = dict->stamp;
+  iter->user_data = variable; 
+
+  return TRUE;
+}
+
+
+static gboolean
+tree_model_iter_next(GtkTreeModel *model, GtkTreeIter *iter)
+{
+  PsppireDict *dict = PSPPIRE_DICT (model);
+  struct PsppireVariable *variable;
+  gint idx;
+
+  g_return_val_if_fail(iter->stamp == dict->stamp, FALSE);
+
+  if ( iter == NULL || iter->user_data == NULL)
+    return FALSE;
+
+  variable = (struct PsppireVariable *) iter->user_data;
+
+  idx = psppire_variable_get_index(variable);
+  
+  if ( idx + 1 >= psppire_dict_get_var_cnt(dict))
+    return FALSE;
+
+  variable = psppire_dict_get_variable(dict, idx + 1);
+
+  g_assert(psppire_variable_get_index(variable) == idx + 1);
+  
+  iter->user_data = variable;
+
+  return TRUE;
+}
+
+static GtkTreePath *
+tree_model_get_path(GtkTreeModel *model, GtkTreeIter *iter)
+{
+  GtkTreePath *path;
+  struct PsppireVariable *variable;
+  PsppireDict *dict = PSPPIRE_DICT (model);
+
+  g_return_val_if_fail(iter->stamp == dict->stamp, FALSE);
+
+  variable = (struct PsppireVariable *) iter->user_data;
+
+  path = gtk_tree_path_new();
+  gtk_tree_path_append_index(path, psppire_variable_get_index(variable));
+
+  return path;
+}
+
+
+static void
+tree_model_get_value(GtkTreeModel *model, GtkTreeIter *iter,
+		     gint column, GValue *value)
+{
+  struct PsppireVariable *variable;
+  PsppireDict *dict = PSPPIRE_DICT (model);
+
+  g_return_if_fail(iter->stamp == dict->stamp);
+
+  variable = (struct PsppireVariable *) iter->user_data;
+
+  switch(column)
+    {
+    case DICT_TVM_COL_NAME:
+      g_value_init(value, G_TYPE_STRING);
+      g_value_set_string(value, psppire_variable_get_name(variable));
+      break;
+    case DICT_TVM_COL_VAR:
+      g_value_init(value, G_TYPE_POINTER);
+      g_value_set_pointer(value, variable);
+      break;
+    default:
+      g_return_if_reached();
+      break;
+    }
+}
+
+
+static gboolean
+tree_model_nth_child(GtkTreeModel *model, GtkTreeIter *iter, 
+		     GtkTreeIter *parent, gint n)
+{
+  PsppireDict *dict;
+  g_return_val_if_fail(G_IS_PSPPIRE_DICT(model), FALSE);
+
+  dict = PSPPIRE_DICT(model);
+
+  if ( parent ) 
+    return FALSE;
+
+  if ( n >= psppire_dict_get_var_cnt(dict) ) 
+    return FALSE;
+
+  iter->stamp = dict->stamp;
+  iter->user_data = psppire_dict_get_variable(dict, n);
+
+  if ( !iter->user_data) 
+    return FALSE;
+  
+  
+  return TRUE;
 }
