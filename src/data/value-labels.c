@@ -547,11 +547,9 @@ value_to_string (const union value *val, const struct variable *var)
   s = val_labs_find (var->val_labs, *val);
   if (s == NULL) 
     {
-      static char buf[256];
-      if (var->width != 0) 
-        str_copy_buf_trunc (buf, sizeof buf, val->s, var->width);
-      else
-        snprintf(buf, 100, "%g", val->f);
+      static char buf[MAX_STRING + 1];
+      data_out (buf, &var->print, val);
+      buf[var->print.w] = '\0';
       s = buf;
     }
   

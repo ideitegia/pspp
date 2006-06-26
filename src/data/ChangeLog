@@ -1,3 +1,9 @@
+Sun Jun 25 22:39:32 2006  Ben Pfaff  <blp@gnu.org>
+
+	* value-labels.c (value_to_string): When there's no value label,
+	format the variable according to its print format, instead of
+	always effectively using A or F format.
+
 Mon Jun 19 18:05:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* casefile.c (casefile_get_random_reader): Nasty hack to get around 
