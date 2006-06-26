@@ -231,8 +231,9 @@ hsh_destroy (struct hsh_table *h)
     }
 }
 
-/* Locates an entry matching TARGET.  Returns a pointer to the
-   entry, or a null pointer on failure. */
+/* Locates an entry matching TARGET.  Returns the index for the
+   entry, if found, or the index of an empty entry that indicates
+   where TARGET should go, otherwise. */
 static inline unsigned
 locate_matching_entry (struct hsh_table *h, const void *target) 
 {
