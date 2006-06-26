@@ -251,6 +251,24 @@ locate_matching_entry (struct hsh_table *h, const void *target)
     }
 }
 
+/* Returns the index of an empty entry that indicates
+   where TARGET should go, assuming that TARGET is not equal to
+   any item already in the hash table. */
+static inline unsigned
+locate_empty_entry (struct hsh_table *h, const void *target) 
+{
+  unsigned i = h->hash (target, h->aux);
+
+  assert (h->hash_ordered);
+  for (;;)
+    {
+      i &= h->size - 1;
+      if (h->entries[i] == NULL)
+	return i;
+      i--;
+    }
+}
+
 /* Changes the capacity of H to NEW_SIZE, which must be a
    positive power of 2 at least as large as the number of
    elements in H. */
@@ -277,7 +295,7 @@ rehash (struct hsh_table *h, size_t new_size)
     {
       void *entry = *table_p;
       if (entry != NULL)
-        h->entries[locate_matching_entry (h, entry)] = entry;
+        h->entries[locate_empty_entry (h, entry)] = entry;
     }
   free (begin);
 

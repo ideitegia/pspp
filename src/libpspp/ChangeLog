@@ -1,3 +1,13 @@
+Sun Jun 25 22:35:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	Optimize rehashing: we know that none of the entries in the hash
+	table are equal, so we need not compare them to each other during
+	rehashing.
+	
+	* hash.c: (locate_empty_entry) New function.
+	(rehash) Use locate_empty_entry() instead of
+	locate_matching_entry().
+
 Fri Jun  9 14:03:29 2006  Ben Pfaff  <blp@gnu.org>
 
 	Reform string library.
