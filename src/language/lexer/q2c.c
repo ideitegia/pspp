@@ -1931,9 +1931,11 @@ dump_free (int persistent)
 	      dump (0, "free (p->s_%s);", st_lower (sbc->name));
 	      break;
 	    case SBC_DBL_LIST:
-	      dump (0, "int i;");
-	      dump (1, "for(i = 0; i < MAXLISTS ; ++i)");
-	      dump (0, "subc_list_double_destroy(&p->dl_%s[i]);", st_lower (sbc->name));
+              dump (0, "{");
+	      dump (1, "int i;");
+	      dump (2, "for(i = 0; i < MAXLISTS ; ++i)");
+	      dump (1, "subc_list_double_destroy(&p->dl_%s[i]);", st_lower (sbc->name));
+              dump (0, "}");
 	      outdent();
 	      break;
 	    default:
