@@ -81,8 +81,16 @@ main(int argc, char *argv[])
 
   gchar *filename=0;
   GError *err = 0;
+  gchar *vers;
 
   gtk_init(&argc, &argv);
+  if ( (vers = gtk_check_version(GTK_MAJOR_VERSION, 
+				 GTK_MINOR_VERSION, 
+				 GTK_MICRO_VERSION)) )
+    {
+      g_critical(vers);
+    }
+	
 
   /* gtk_init messes with the locale. 
      So unset the bits we want to control ourselves */
