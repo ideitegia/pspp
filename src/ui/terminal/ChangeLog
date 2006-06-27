@@ -1,3 +1,8 @@
+Tue Jun 27 08:23:07 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk (src_ui_terminal_pspp_LDADD): Add $(LIBICONV).
+	Thanks to Jason Stover for reporting the omission.
+
 Thu May  4 21:50:59 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, move

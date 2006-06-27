@@ -37,5 +37,6 @@ src_ui_terminal_pspp_LDADD =					\
 	$(top_builddir)/src/data/libdata.a \
 	$(top_builddir)/src/libpspp/libpspp.a \
 	$(top_builddir)/gl/libgl.a	\
+	$(LIBICONV) \
 	@LIBINTL@ @LIBREADLINE@
 
