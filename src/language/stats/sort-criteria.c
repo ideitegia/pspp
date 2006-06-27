@@ -26,6 +26,7 @@
 #include <language/command.h>
 #include <libpspp/message.h>
 #include <language/lexer/lexer.h>
+#include <language/lexer/variable-parser.h>
 #include <data/settings.h>
 #include <data/variable.h>
 #include "sort-criteria.h"

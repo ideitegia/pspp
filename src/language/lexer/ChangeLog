@@ -1,3 +1,10 @@
+Tue Jun 27 12:07:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable-parser.h: New header.  Moved the var_set and variable
+	parsing declarations here.
+
+	* q2c.c (main): Emit include for new variable-parser.h header.
+
 Sun Jun 25 22:41:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c (dump_free): For SBC_DBL_LIST, enclose the output code in

@@ -1,3 +1,9 @@
+Tue Jun 27 12:06:49 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable.h: Move var_set and variable parsing declarations to
+	new header, src/language/lexer/variable-parser.h.  Modified lots
+	of files to include the new header.
+
 Sun Jun 25 22:39:32 2006  Ben Pfaff  <blp@gnu.org>
 
 	* value-labels.c (value_to_string): When there's no value label,

@@ -30,6 +30,7 @@
 #include <data/settings.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
+#include <language/lexer/variable-parser.h>
 #include <language/line-buffer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>

@@ -19,6 +19,8 @@
 
 #include <config.h>
 
+#include <language/lexer/variable-parser.h>
+
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>

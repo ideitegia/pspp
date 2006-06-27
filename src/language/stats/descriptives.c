@@ -34,6 +34,7 @@
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
+#include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/compiler.h>

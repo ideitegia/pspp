@@ -125,48 +125,6 @@ struct vector
     struct variable **var;	/* Vector of variables. */
     int cnt;			/* Number of variables. */
   };
-
-struct var_set;
-
-struct dictionary;
-struct var_set *var_set_create_from_dict (const struct dictionary *d);
-struct var_set *var_set_create_from_array (struct variable *const *var,
-                                           size_t);
-
-size_t var_set_get_cnt (const struct var_set *vs);
-struct variable *var_set_get_var (const struct var_set *vs, size_t idx);
-struct variable *var_set_lookup_var (const struct var_set *vs,
-                                     const char *name);
-bool var_set_lookup_var_idx (const struct var_set *vs, const char *name,
-                             size_t *idx);
-void var_set_destroy (struct var_set *vs);
-
-/* Variable parsers. */
-
-enum
-  {
-    PV_NONE = 0,		/* No options. */
-    PV_SINGLE = 0001,		/* Restrict to a single name or TO use. */
-    PV_DUPLICATE = 0002,	/* Don't merge duplicates. */
-    PV_APPEND = 0004,		/* Append to existing list. */
-    PV_NO_DUPLICATE = 0010,	/* Error on duplicates. */
-    PV_NUMERIC = 0020,		/* Vars must be numeric. */
-    PV_STRING = 0040,		/* Vars must be string. */
-    PV_SAME_TYPE = 00100,	/* All vars must be the same type. */
-    PV_NO_SCRATCH = 00200 	/* Disallow scratch variables. */
-  };
-
-struct pool;
-struct variable *parse_variable (void);
-struct variable *parse_dict_variable (const struct dictionary *);
-int parse_variables (const struct dictionary *, struct variable ***, size_t *,
-                     int opts);
-int parse_var_set_vars (const struct var_set *, struct variable ***, size_t *,
-                        int opts);
-int parse_DATA_LIST_vars (char ***names, size_t *cnt, int opts);
-int parse_mixed_vars (char ***names, size_t *cnt, int opts);
-int parse_mixed_vars_pool (struct pool *,
-                           char ***names, size_t *cnt, int opts);
 
 
 /* Return a string representing this variable, in the form most 

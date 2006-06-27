@@ -2032,6 +2032,7 @@ main (int argc, char *argv[])
 	  dump (0, "#include <libpspp/alloc.h>");
 	  dump (0, "#include <libpspp/message.h>");
 	  dump (0, "#include <language/lexer/lexer.h>");
+	  dump (0, "#include <language/lexer/variable-parser.h>");
           dump (0, "#include <data/settings.h>");
 	  dump (0, "#include <libpspp/str.h>");
           dump (0, "#include <language/lexer/subcommand-list.h>");
