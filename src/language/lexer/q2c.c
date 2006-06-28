@@ -1177,7 +1177,7 @@ dump_declarations (void)
 	      dump (0, "/* Prototype for custom subcommands of %s. */",
 		    cmdname);
 	    }
-	  dump (0, "static int %scustom_%s (struct cmd_%s *);",
+	  dump (0, "static int %scustom_%s (struct cmd_%s *, void *);",
 		st_lower (prefix), st_lower (sbc->name),
 		make_identifier (cmdname));
 	}
@@ -1189,7 +1189,7 @@ dump_declarations (void)
   /* Prototypes for parsing and freeing functions. */
   {
     dump (0, "/* Command parsing functions. */");
-    dump (0, "static int parse_%s (struct cmd_%s *);",
+    dump (0, "static int parse_%s (struct cmd_%s *, void *);",
 	  make_identifier (cmdname), make_identifier (cmdname));
     dump (0, "static void free_%s (struct cmd_%s *);",
 	  make_identifier (cmdname), make_identifier (cmdname));
@@ -1696,7 +1696,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_CUSTOM)
     {
-      dump (1, "switch (%scustom_%s (p))",
+      dump (1, "switch (%scustom_%s (p, aux))",
 	    st_lower (prefix), st_lower (sbc->name));
       dump (0, "{");
       dump (1, "case 0:");
@@ -1725,7 +1725,8 @@ dump_parser (int persistent)
   indent = 0;
 
   dump (0, "static int");
-  dump (0, "parse_%s (struct cmd_%s *p)", make_identifier (cmdname),
+  dump (0, "parse_%s (struct cmd_%s *p, void *aux UNUSED)",
+        make_identifier (cmdname),
 	make_identifier (cmdname));
   dump (1, "{");
 
@@ -1761,7 +1762,7 @@ dump_parser (int persistent)
     }
   else if (def && def->type == SBC_CUSTOM)
     {
-      dump (1, "switch (%scustom_%s (p))",
+      dump (1, "switch (%scustom_%s (p, aux))",
 	    st_lower (prefix), st_lower (def->name));
       dump (0, "{");
       dump (1, "case 0:");

@@ -134,7 +134,7 @@ cmd_list (void)
   struct variable casenum_var;
   bool ok;
 
-  if (!parse_list (&cmd))
+  if (!parse_list (&cmd, NULL))
     return CMD_FAILURE;
   
   /* Fill in defaults. */

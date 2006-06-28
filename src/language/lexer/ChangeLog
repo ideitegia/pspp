@@ -1,3 +1,16 @@
+Tue Jun 27 19:15:33 2006  Ben Pfaff  <blp@gnu.org>
+
+	Add auxiliary data pointer to q2c parse_<command> function, and
+	pass it along to the custom parser functions.
+
+	Updated all uses of custom functions in all the existing .q files.
+	
+	* q2c.c (dump_declarations): Include auxiliary parameter in
+	function prototypes.
+	(dump_subcommand) Include aux arg in calls to custom functions.
+	(dump_parser) Include aux param in parse_<command> function
+	definition.  Include aux arg in calls to custom functions.
+
 Tue Jun 27 12:07:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable-parser.h: New header.  Moved the var_set and variable

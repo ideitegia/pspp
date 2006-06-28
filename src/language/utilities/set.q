@@ -122,7 +122,7 @@ cmd_set (void)
   struct cmd_set cmd;
   bool ok = true;
 
-  if (!parse_set (&cmd))
+  if (!parse_set (&cmd, NULL))
     return CMD_FAILURE;
 
   if (cmd.sbc_cca)
@@ -286,7 +286,7 @@ do_cc (const char *cc_string, int idx)
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
    SYSMIS or a numeric value. */
 static int
-stc_custom_blanks (struct cmd_set *cmd UNUSED)
+stc_custom_blanks (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if ((token == T_ID && lex_id_match ("SYSMIS", tokid)))
@@ -307,7 +307,7 @@ stc_custom_blanks (struct cmd_set *cmd UNUSED)
 /* Parses the EPOCH subcommand, which controls the epoch used for
    parsing 2-digit years. */
 static int
-stc_custom_epoch (struct cmd_set *cmd UNUSED) 
+stc_custom_epoch (struct cmd_set *cmd UNUSED, void *aux UNUSED) 
 {
   lex_match ('=');
   if (lex_match_id ("AUTOMATIC"))
@@ -333,7 +333,7 @@ stc_custom_epoch (struct cmd_set *cmd UNUSED)
 }
 
 static int
-stc_custom_length (struct cmd_set *cmd UNUSED)
+stc_custom_length (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   int page_length;
 
@@ -360,7 +360,7 @@ stc_custom_length (struct cmd_set *cmd UNUSED)
 }
 
 static int
-stc_custom_seed (struct cmd_set *cmd UNUSED)
+stc_custom_seed (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("RANDOM"))
@@ -377,7 +377,7 @@ stc_custom_seed (struct cmd_set *cmd UNUSED)
 }
 
 static int
-stc_custom_width (struct cmd_set *cmd UNUSED)
+stc_custom_width (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("NARROW"))
@@ -403,7 +403,7 @@ stc_custom_width (struct cmd_set *cmd UNUSED)
 /* Parses FORMAT subcommand, which consists of a numeric format
    specifier. */
 static int
-stc_custom_format (struct cmd_set *cmd UNUSED)
+stc_custom_format (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   struct fmt_spec fmt;
 
@@ -423,7 +423,7 @@ stc_custom_format (struct cmd_set *cmd UNUSED)
 }
 
 static int
-stc_custom_journal (struct cmd_set *cmd UNUSED)
+stc_custom_journal (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if (!lex_match_id ("ON") && !lex_match_id ("OFF")) 
@@ -440,7 +440,7 @@ stc_custom_journal (struct cmd_set *cmd UNUSED)
 }
 
 static int
-stc_custom_listing (struct cmd_set *cmd UNUSED)
+stc_custom_listing (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   bool listing;
 
@@ -460,9 +460,9 @@ stc_custom_listing (struct cmd_set *cmd UNUSED)
 }
 
 static int
-stc_custom_disk (struct cmd_set *cmd UNUSED)
+stc_custom_disk (struct cmd_set *cmd UNUSED, void *aux)
 {
-  return stc_custom_listing (cmd);
+  return stc_custom_listing (cmd, aux);
 }
 
 static void

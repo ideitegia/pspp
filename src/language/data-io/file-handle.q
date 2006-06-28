@@ -75,7 +75,7 @@ cmd_file_handle (void)
   if (!lex_force_match ('/'))
     return CMD_CASCADING_FAILURE;
 
-  if (!parse_file_handle (&cmd))
+  if (!parse_file_handle (&cmd, NULL))
     return CMD_CASCADING_FAILURE;
 
   if (lex_end_of_command () != CMD_SUCCESS)

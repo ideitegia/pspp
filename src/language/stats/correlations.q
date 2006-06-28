@@ -78,7 +78,7 @@ internal_cmd_correlations (void)
   cor_list = cor_last = NULL;
   matrix_file = NULL;
 
-  if (!parse_correlations (&cmd))
+  if (!parse_correlations (&cmd, NULL))
     return CMD_FAILURE;
   free_correlations (&cmd);
 
@@ -86,7 +86,7 @@ internal_cmd_correlations (void)
 }
 
 static int
-cor_custom_variables (struct cmd_correlations *cmd UNUSED)
+cor_custom_variables (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
   struct variable **v1, **v2;
   size_t nv1, nv2;
@@ -133,7 +133,7 @@ cor_custom_variables (struct cmd_correlations *cmd UNUSED)
 }
 
 static int
-cor_custom_matrix (struct cmd_correlations *cmd UNUSED)
+cor_custom_matrix (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
   if (!lex_force_match ('('))
     return 0;

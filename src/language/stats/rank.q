@@ -95,7 +95,7 @@ cmd_rank(void)
   size_t i;
   n_rank_specs = 0;
 
-  if ( !parse_rank(&cmd) )
+  if ( !parse_rank(&cmd, NULL) )
     return CMD_FAILURE;
 
 #if 1
@@ -139,7 +139,7 @@ cmd_rank(void)
 /* Parser for the variables sub command  
    Returns 1 on success */
 static int
-rank_custom_variables(struct cmd_rank *cmd UNUSED)
+rank_custom_variables(struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 {
   static const int terminators[2] = {T_BY, 0};
 
@@ -298,50 +298,50 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 
 
 static int
-rank_custom_rank(struct cmd_rank *cmd )
+rank_custom_rank(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, RANK);
 }
 
 static int
-rank_custom_normal(struct cmd_rank *cmd )
+rank_custom_normal(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, NORMAL);
 }
 
 static int
-rank_custom_percent(struct cmd_rank *cmd )
+rank_custom_percent(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, NORMAL);
 }
 
 static int
-rank_custom_rfraction(struct cmd_rank *cmd )
+rank_custom_rfraction(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, RFRACTION);
 }
 
 static int
-rank_custom_proportion(struct cmd_rank *cmd )
+rank_custom_proportion(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, PROPORTION);
 }
 
 static int
-rank_custom_n(struct cmd_rank *cmd )
+rank_custom_n(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, N);
 }
 
 static int
-rank_custom_savage(struct cmd_rank *cmd )
+rank_custom_savage(struct cmd_rank *cmd, void *aux UNUSED )
 {
   return parse_rank_function(cmd, SAVAGE);
 }
 
 
 static int
-rank_custom_ntiles(struct cmd_rank *cmd )
+rank_custom_ntiles(struct cmd_rank *cmd, void *aux UNUSED )
 {
   if ( lex_force_match('(') ) 
     {

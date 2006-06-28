@@ -335,7 +335,7 @@ internal_cmd_frequencies (void)
   n_variables = 0;
   v_variables = NULL;
 
-  if (!parse_frequencies (&cmd))
+  if (!parse_frequencies (&cmd, NULL))
     return CMD_FAILURE;
 
   if (cmd.onepage_limit == NOT_LONG)
@@ -791,7 +791,7 @@ cleanup_freq_tab (struct variable *v)
 /* Parses the VARIABLES subcommand, adding to
    {n_variables,v_variables}. */
 static int
-frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
+frq_custom_variables (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
   int mode;
   int min = 0, max = 0;
@@ -879,7 +879,7 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED)
 /* Parses the GROUPED subcommand, setting the n_grouped, grouped
    fields of specified variables. */
 static int
-frq_custom_grouped (struct cmd_frequencies *cmd UNUSED)
+frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if ((token == T_ID && dict_lookup_var (default_dict, tokid) != NULL)

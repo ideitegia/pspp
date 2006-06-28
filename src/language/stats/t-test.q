@@ -259,7 +259,7 @@ cmd_t_test(void)
 {
   bool ok;
   
-  if ( !parse_t_test(&cmd) )
+  if ( !parse_t_test(&cmd, NULL) )
     return CMD_FAILURE;
 
   if (! cmd.sbc_criteria)
@@ -366,7 +366,7 @@ cmd_t_test(void)
 }
 
 static int
-tts_custom_groups (struct cmd_t_test *cmd UNUSED)
+tts_custom_groups (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
   int n_group_values=0;
 
@@ -445,7 +445,7 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED)
 
 
 static int
-tts_custom_pairs (struct cmd_t_test *cmd UNUSED)
+tts_custom_pairs (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
   struct variable **vars;
   size_t n_vars;

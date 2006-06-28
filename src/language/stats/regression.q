@@ -908,7 +908,7 @@ subcommand_export (int export, pspp_linreg_cache * c)
     }
 }
 static int
-regression_custom_export (struct cmd_regression *cmd UNUSED)
+regression_custom_export (struct cmd_regression *cmd UNUSED, void *aux UNUSED)
 {
   /* 0 on failure, 1 on success, 2 on failure that should result in syntax error */
   if (!lex_force_match ('('))
@@ -932,7 +932,7 @@ regression_custom_export (struct cmd_regression *cmd UNUSED)
 int
 cmd_regression (void)
 {
-  if (!parse_regression (&cmd))
+  if (!parse_regression (&cmd, NULL))
     return CMD_FAILURE;
 
   models = xnmalloc (cmd.n_dependent, sizeof *models);
@@ -996,7 +996,8 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
 /* Parser for the variables sub command */
 static int
-regression_custom_variables (struct cmd_regression *cmd UNUSED)
+regression_custom_variables (struct cmd_regression *cmd UNUSED,
+                             void *aux UNUSED)
 {
 
   lex_match ('=');

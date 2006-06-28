@@ -211,7 +211,7 @@ internal_cmd_crosstabs (void)
   pl_tc = pool_create ();
   pl_col = pool_create ();
 
-  if (!parse_crosstabs (&cmd))
+  if (!parse_crosstabs (&cmd, NULL))
     return CMD_FAILURE;
 
   mode = variables ? INTEGER : GENERAL;
@@ -301,7 +301,7 @@ internal_cmd_crosstabs (void)
 
 /* Parses the TABLES subcommand. */
 static int
-crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
+crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
   struct var_set *var_set;
   int n_by;
@@ -405,7 +405,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED)
 
 /* Parses the VARIABLES subcommand. */
 static int
-crs_custom_variables (struct cmd_crosstabs *cmd UNUSED)
+crs_custom_variables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
   if (nxtab)
     {

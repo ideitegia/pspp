@@ -72,7 +72,7 @@ cmd_means (void)
   v_dim = NULL;
   v_var = NULL;
 
-  if (!parse_means (&cmd))
+  if (!parse_means (&cmd, NULL))
     goto free;
 
   if (cmd.sbc_cells)
@@ -123,7 +123,7 @@ free:
 
 /* Parses the TABLES subcommand. */
 static int
-mns_custom_tables (struct cmd_means *cmd)
+mns_custom_tables (struct cmd_means *cmd, void *aux UNUSED)
 {
   struct var_set *var_set;
   

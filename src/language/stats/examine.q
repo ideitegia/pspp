@@ -198,7 +198,7 @@ cmd_examine(void)
   subc_list_double_create(&percentile_list);
   percentile_algorithm = PC_HAVERAGE;
 
-  if ( !parse_examine(&cmd) )
+  if ( !parse_examine(&cmd, NULL) )
     return CMD_FAILURE;
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
@@ -423,7 +423,7 @@ list_to_ptile_hash(const subc_list_double *l)
 
 /* Parse the PERCENTILES subcommand */
 static int
-xmn_custom_percentiles(struct cmd_examine *p UNUSED)
+xmn_custom_percentiles(struct cmd_examine *p UNUSED, void *aux UNUSED)
 {
   sbc_percentile = 1;
 
@@ -478,7 +478,7 @@ xmn_custom_percentiles(struct cmd_examine *p UNUSED)
 
 /* TOTAL and NOTOTAL are simple, mutually exclusive flags */
 static int
-xmn_custom_total(struct cmd_examine *p)
+xmn_custom_total(struct cmd_examine *p, void *aux UNUSED)
 {
   if ( p->sbc_nototal ) 
     {
@@ -490,7 +490,7 @@ xmn_custom_total(struct cmd_examine *p)
 }
 
 static int
-xmn_custom_nototal(struct cmd_examine *p)
+xmn_custom_nototal(struct cmd_examine *p, void *aux UNUSED)
 {
   if ( p->sbc_total ) 
     {
@@ -506,7 +506,7 @@ xmn_custom_nototal(struct cmd_examine *p)
 /* Parser for the variables sub command  
    Returns 1 on success */
 static int
-xmn_custom_variables(struct cmd_examine *cmd )
+xmn_custom_variables(struct cmd_examine *cmd, void *aux UNUSED)
 {
   lex_match('=');
 

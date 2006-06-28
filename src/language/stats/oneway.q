@@ -121,7 +121,7 @@ cmd_oneway(void)
   int i;
   bool ok;
 
-  if ( !parse_oneway(&cmd) )
+  if ( !parse_oneway(&cmd, NULL) )
     return CMD_FAILURE;
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
@@ -223,7 +223,7 @@ output_oneway(void)
 
 /* Parser for the variables sub command */
 static int
-oneway_custom_variables(struct cmd_oneway *cmd UNUSED)
+oneway_custom_variables(struct cmd_oneway *cmd UNUSED, void *aux UNUSED)
 {
 
   lex_match('=');
