@@ -1,3 +1,8 @@
+Tue Jun 27 22:54:30 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk (src_language_lexer_liblexer_a_SOURCES): Add
+	variable-parser.h.
+
 Tue Jun 27 19:15:33 2006  Ben Pfaff  <blp@gnu.org>
 
 	Add auxiliary data pointer to q2c parse_<command> function, and

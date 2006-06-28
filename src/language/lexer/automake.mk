@@ -10,7 +10,8 @@ src_language_lexer_liblexer_a_SOURCES = \
 	src/language/lexer/format-parser.c \
 	src/language/lexer/range-parser.c \
 	src/language/lexer/range-parser.h \
-	src/language/lexer/variable-parser.c 
+	src/language/lexer/variable-parser.c \
+	src/language/lexer/variable-parser.h
 
 EXTRA_DIST += src/language/lexer/q2c.c
 
