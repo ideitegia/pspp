@@ -21,10 +21,11 @@
 #define READLN_H
 
 #include <libpspp/str.h>
+#include <language/line-buffer.h>
 
 void readln_initialize (void);
 void readln_uninitialize (void);
-bool readln_read (struct string *line, const char *prompt);
+bool readln_read (struct string *line, enum getl_prompt_style);
 
 #endif /* READLN_H */
 

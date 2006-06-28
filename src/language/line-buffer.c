@@ -85,7 +85,7 @@ struct getl_source
         function;
 
         /* INTERACTIVE. */
-        bool (*interactive) (struct string *line, const char *prompt);
+        bool (*interactive) (struct string *line, enum getl_prompt_style);
       }
     u;
 
@@ -103,7 +103,7 @@ static void close_source (void);
 
 static void init_prompts (void);
 static void uninit_prompts (void);
-static const char *get_prompt (void);
+static enum getl_prompt_style get_prompt_style (void);
 
 /* Initialize getl. */
 void
@@ -214,7 +214,7 @@ create_function_source (bool (*read) (struct string *line,
 /* Creates an interactive source with the given FUNCTION. */
 static struct getl_source *
 create_interactive_source (bool (*function) (struct string *line,
-                                             const char *prompt)) 
+                                             enum getl_prompt_style)) 
 {
   struct getl_source *s = xmalloc (sizeof *s);
   s->fn = NULL;
@@ -297,7 +297,7 @@ getl_include_function (bool (*read) (struct string *line,
    obtained or false at end of file. */
 void
 getl_append_interactive (bool (*function) (struct string *line,
-                                           const char *prompt)) 
+                                           enum getl_prompt_style)) 
 {
   append_source (create_interactive_source (function));
 }
@@ -489,7 +489,7 @@ read_line_from_source (struct string *line, struct getl_source *s)
     case FUNCTION:
       return s->u.function.read (line, &s->fn, &s->ln, s->u.function.aux);
     case INTERACTIVE:
-      return s->u.interactive (line, get_prompt ());
+      return s->u.interactive (line, get_prompt_style ());
     }
 
   abort ();
@@ -589,8 +589,8 @@ getl_set_prompt_style (enum getl_prompt_style style)
 }
 
 /* Returns the current prompt. */
-static const char *
-get_prompt (void) 
+static enum getl_prompt_style
+get_prompt_style (void) 
 {
-  return prompts[current_style];
+  return current_style;
 }

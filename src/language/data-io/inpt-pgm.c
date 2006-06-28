@@ -119,9 +119,7 @@ cmd_input_program (void)
   inside_input_program = true;
   for (;;) 
     {
-      enum cmd_result result;
-      lex_get ();
-      result = cmd_parse (CMD_STATE_INPUT_PROGRAM);
+      enum cmd_result result = cmd_parse (CMD_STATE_INPUT_PROGRAM);
       if (result == CMD_END_INPUT_PROGRAM)
         break;
       else if (result == CMD_END_CASE) 

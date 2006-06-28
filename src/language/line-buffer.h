@@ -23,6 +23,14 @@
 #include <stdbool.h>
 #include <libpspp/str.h>
 
+enum getl_prompt_style
+  {
+    GETL_PROMPT_FIRST,		/* First line of command. */
+    GETL_PROMPT_LATER,          /* Second or later line of command. */
+    GETL_PROMPT_DATA,		/* Between BEGIN DATA and END DATA. */
+    GETL_PROMPT_CNT
+  };
+
 /* Current line.  This line may be modified by modules other than
    getl.c, and by lexer.c in particular.  (Ugh.) */
 extern struct string getl_buf;
@@ -43,23 +51,13 @@ void getl_include_function (bool (*read) (struct string *line,
                             void (*close) (void *aux),
                             void *aux);
 void getl_append_interactive (bool (*function) (struct string *line,
-                                                const char *prompt));
+                                                enum getl_prompt_style));
 void getl_abort_noninteractive (void);
 bool getl_is_interactive (void);
 
 bool getl_read_line (bool *interactive);
 
 void getl_location (const char **, int *);
-
-/* Prompting. */
-
-enum getl_prompt_style
-  {
-    GETL_PROMPT_FIRST,		/* First line of command. */
-    GETL_PROMPT_LATER,           /* Second or later line of command. */
-    GETL_PROMPT_DATA,		/* Between BEGIN DATA and END DATA. */
-    GETL_PROMPT_CNT
-  };
 
 const char *getl_get_prompt (enum getl_prompt_style);
 void getl_set_prompt (enum getl_prompt_style, const char *);

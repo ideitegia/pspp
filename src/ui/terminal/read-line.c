@@ -37,15 +37,19 @@
 #include <libpspp/version.h>
 #include <output/table.h>
 
+#include "xalloc.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
 
 #if HAVE_READLINE
 #include <readline/readline.h>
 #include <readline/history.h>
 
 static char *history_file;
+
+static char **complete_command_name (const char *, int, int);
+static char **dont_complete (const char *, int, int);
 #endif /* HAVE_READLINE */
 
 static bool initialised = false;
@@ -58,7 +62,6 @@ readln_initialize (void)
 
 #if HAVE_READLINE
   rl_basic_word_break_characters = "\n";
-  rl_attempted_completion_function = pspp_attempted_completion_function;
 #ifdef unix
   if (history_file == NULL)
     {
@@ -113,19 +116,23 @@ welcome (void)
    Returns true if successful, false at end of file.
    Suitable for passing to getl_append_interactive(). */
 bool
-readln_read (struct string *line, const char *prompt)
+readln_read (struct string *line, enum getl_prompt_style style)
 {
+  const char *prompt = getl_get_prompt (style);
 #if HAVE_READLINE
   char *string;
 #endif
   
-  assert(initialised);
+  assert (initialised);
 
   reset_msg_count ();
 
   welcome ();
 
 #if HAVE_READLINE
+  rl_attempted_completion_function = (style == GETL_PROMPT_FIRST
+                                      ? complete_command_name
+                                      : dont_complete);
   string = readline (prompt);
   if (string == NULL)
     return false;
@@ -149,3 +156,49 @@ readln_read (struct string *line, const char *prompt)
     return false;
 #endif
 }
+
+#ifdef HAVE_READLINE
+static char *command_generator (const char *text, int state);
+
+/* Returns a set of command name completions for TEXT.
+   This is of the proper form for assigning to
+   rl_attempted_completion_function. */
+static char **
+complete_command_name (const char *text, int start, int end UNUSED)
+{
+  if (start == 0) 
+    {
+      /* Complete command name at start of line. */
+      return rl_completion_matches (text, command_generator); 
+    }
+  else 
+    {
+      /* Otherwise don't do any completion. */
+      rl_attempted_completion_over = 1;
+      return NULL; 
+    }
+}
+
+/* Do not do any completion for TEXT. */
+static char **
+dont_complete (const char *text UNUSED, int start UNUSED, int end UNUSED)
+{
+  rl_attempted_completion_over = 1;
+  return NULL; 
+}
+
+/* If STATE is 0, returns the first command name matching TEXT.
+   Otherwise, returns the next command name matching TEXT.
+   Returns a null pointer when no matches are left. */
+static char *
+command_generator (const char *text, int state) 
+{ 
+  static const struct command *cmd;
+  const char *name;
+
+  if (state == 0)
+    cmd = NULL;
+  name = cmd_complete (text, &cmd);
+  return name ? xstrdup (name) : NULL;
+}
+#endif /* HAVE_READLINE */

@@ -1,3 +1,30 @@
+Tue Jun 27 22:36:38 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix regression in command name completion reported by John
+	Darrington.  Now completion is again state-dependent and occurs
+	only on the first line of a command.
+	
+	* command.c (do_parse_command): Move reading the first token of
+	the command here, from execute_command and cmd_input_program.
+	Call set_completion_state and getl_set_prompt_style here.
+	(do_parse_command) Use in_correct_state instead of
+	verify_valid_command.
+	(verify_valid_command) Break into two new functions,
+	in_correct_state and report_state_mismatch.
+	(set_completion_state) New function.
+	(cmd_complete) New function.
+	[HAVE_READLINE] (pspp_attempted_completion_function) Removed.
+	[HAVE_READLINE] (command_generator) Removed.
+
+	* line-buffer.c: (struct getl_source) Change `interactive' member
+	signature to take enum getl_prompt_style instead of const char *.
+	(create_interactive_source) Ditto, for parameter type.
+	(getl_append_interactive) Ditto.
+	(read_line_from_source) Pass get_prompt_style() to interactive
+	function instead of get_prompt().
+	(get_prompt) Removed.
+	(get_prompt_style) New function.
+	
 Sat May  6 13:25:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	Continue reforming procedure execution.  In this phase, remove

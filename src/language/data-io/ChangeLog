@@ -1,3 +1,12 @@
+Tue Jun 27 22:44:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix regression in command name completion reported by John
+	Darrington.  Now completion is again state-dependent and occurs
+	only on the first line of a command.
+	
+	* inpt-pgm.c: (cmd_input_program) Reading of first token in
+	command moved into cmd_parse.
+
 Fri Jun  9 13:56:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	Reform string library.

@@ -54,11 +54,10 @@ enum cmd_state
     CMD_STATE_FILE_TYPE         /* Inside FILE TYPE. */
   };
 
-#if HAVE_READLINE
-char **pspp_attempted_completion_function (const char *, int start, int end);
-#endif
-
 enum cmd_result cmd_parse (enum cmd_state);
+
+struct command;
+const char *cmd_complete (const char *, const struct command **);
 
 /* Prototype all the command functions. */
 #define DEF_CMD(STATES, FLAGS, NAME, FUNCTION) int FUNCTION (void);

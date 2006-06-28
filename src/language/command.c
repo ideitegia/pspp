@@ -32,6 +32,7 @@
 #include <data/settings.h>
 #include <data/variable.h>
 #include <language/lexer/lexer.h>
+#include <language/line-buffer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
@@ -120,8 +121,10 @@ static const struct command commands[] =
 
 static const size_t command_cnt = sizeof commands / sizeof *commands;
 
-static bool verify_valid_command (const struct command *, enum cmd_state);
+static bool in_correct_state (const struct command *, enum cmd_state);
+static bool report_state_mismatch (const struct command *, enum cmd_state);
 static const struct command *find_command (const char *name);
+static void set_completion_state (enum cmd_state); 
 
 /* Command parser. */
 
@@ -156,9 +159,18 @@ do_parse_command (enum cmd_state state)
   const struct command *command;
   enum cmd_result result;
 
-  /* Null commands can result from extra empty lines. */
-  if (token == '.')
-    return CMD_SUCCESS;
+  /* Read the command's first token. */
+  getl_set_prompt_style (GETL_PROMPT_FIRST);
+  set_completion_state (state);
+  lex_get ();
+  if (token == T_STOP)
+    return CMD_EOF;
+  else if (token == '.') 
+    {
+      /* Null commands can result from extra empty lines. */
+      return CMD_SUCCESS; 
+    }
+  getl_set_prompt_style (GETL_PROMPT_LATER);
 
   /* Parse the command name. */
   command = parse_command_name ();
@@ -177,8 +189,11 @@ do_parse_command (enum cmd_state state)
            command->name);
        return CMD_FAILURE;
     }
-  else if (!verify_valid_command (command, state))
-    return CMD_FAILURE;
+  else if (!in_correct_state (command, state)) 
+    {
+      report_state_mismatch (command, state);
+      return CMD_FAILURE; 
+    }
 
   /* Execute command. */
   msg_set_command_name (command->name);
@@ -539,19 +554,23 @@ parse_command_name (void)
 }
 
 /* Returns true if COMMAND is allowed in STATE,
-   false otherwise.
-   If COMMAND is not allowed, emits an appropriate error
-   message. */
+   false otherwise. */
 static bool
-verify_valid_command (const struct command *command, enum cmd_state state)
+in_correct_state (const struct command *command, enum cmd_state state) 
 {
-  if ((state == CMD_STATE_INITIAL && command->states & S_INITIAL)
-      || (state == CMD_STATE_DATA && command->states & S_DATA)
-      || (state == CMD_STATE_INPUT_PROGRAM
-          && command->states & S_INPUT_PROGRAM)
-      || (state == CMD_STATE_FILE_TYPE && command->states & S_FILE_TYPE))
-    return true;
+  return ((state == CMD_STATE_INITIAL && command->states & S_INITIAL)
+          || (state == CMD_STATE_DATA && command->states & S_DATA)
+          || (state == CMD_STATE_INPUT_PROGRAM
+              && command->states & S_INPUT_PROGRAM)
+          || (state == CMD_STATE_FILE_TYPE && command->states & S_FILE_TYPE));
+}
 
+/* Emits an appropriate error message for trying to invoke
+   COMMAND in STATE. */
+static bool
+report_state_mismatch (const struct command *command, enum cmd_state state)
+{
+  assert (!in_correct_state (command, state));
   if (state == CMD_STATE_INITIAL || state == CMD_STATE_DATA)
     {
       const char *allowed[3];
@@ -589,51 +608,36 @@ verify_valid_command (const struct command *command, enum cmd_state state)
   return false;
 }
 
-/* Readline command name completion. */
+/* Command name completion. */
 
-#if HAVE_READLINE
-static char *command_generator (const char *text, int state);
+static enum cmd_state completion_state = CMD_STATE_INITIAL;
 
-/* Returns a set of completions for TEXT.
-   This is of the proper form for assigning to
-   rl_attempted_completion_function. */
-char **
-pspp_attempted_completion_function (const char *text,
-                                    int start, int end UNUSED)
+static void
+set_completion_state (enum cmd_state state) 
 {
-  if (start == 0) 
-    {
-      /* Complete command name at start of line. */
-      return rl_completion_matches (text, command_generator); 
-    }
-  else 
-    {
-      /* Otherwise don't do any completion. */
-      rl_attempted_completion_over = 1;
-      return NULL; 
-    }
+  completion_state = state;
 }
 
-/* If STATE is 0, returns the first command name matching TEXT.
-   Otherwise, returns the next command name matching TEXT.
-   Returns a null pointer when no matches are left. */
-static char *
-command_generator (const char *text, int state) 
+/* Returns the next possible completion of a command name that
+   begins with PREFIX, in the current command state, or a null
+   pointer if no completions remain.
+   Before calling the first time, set *CMD to a null pointer. */
+const char *
+cmd_complete (const char *prefix, const struct command **cmd)
 {
-  static const struct command *cmd;
-  
-  if (!state)
-    cmd = commands;
+  if (*cmd == NULL)
+    *cmd = commands;
 
-  for (; cmd < commands + command_cnt; cmd++) 
-    if (!memcasecmp (cmd->name, text, strlen (text))
-        && (!(cmd->flags & F_TESTING) || get_testing_mode ())
-        && (!(cmd->flags & F_ENHANCED) || get_syntax () == ENHANCED))
-      return xstrdup (cmd++->name);
+  for (; *cmd < commands + command_cnt; (*cmd)++) 
+    if (!memcasecmp ((*cmd)->name, prefix, strlen (prefix))
+        && (!((*cmd)->flags & F_TESTING) || get_testing_mode ())
+        && (!((*cmd)->flags & F_ENHANCED) || get_syntax () == ENHANCED)
+        && ((*cmd)->function != NULL)
+        && in_correct_state (*cmd, completion_state))
+      return (*cmd)++->name;
 
   return NULL;
 }
-#endif /* HAVE_READLINE */
 
 /* Simple commands. */
 

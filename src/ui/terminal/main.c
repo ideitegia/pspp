@@ -62,7 +62,6 @@
 
 static void i18n_init (void);
 static void fpu_init (void);
-static int execute_command (void);
 static void terminate (bool success) NO_RETURN;
 
 /* If a segfault happens, issue a message to that effect and halt */
@@ -102,7 +101,8 @@ main (int argc, char **argv)
 
       for (;;)
         {
-          int result = execute_command ();
+          int result = cmd_parse (proc_has_source ()
+                                  ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
           if (result == CMD_CASCADING_FAILURE && !getl_is_interactive ())
@@ -117,25 +117,6 @@ main (int argc, char **argv)
     }
   
   terminate (!any_errors ());
-}
-
-/* Parses a command and returns the result. */
-static int
-execute_command (void)
-{
-  /* Read the command's first token.  
-     The first token is part of the first line of the command. */
-  getl_set_prompt_style (GETL_PROMPT_FIRST);
-  lex_get ();
-  if (token == T_STOP)
-    return CMD_EOF;
-
-  /* Parse the command.
-     Any lines read after the first token must be continuation
-     lines. */
-  getl_set_prompt_style (GETL_PROMPT_LATER);
-  return cmd_parse (proc_has_source ()
-                    ? CMD_STATE_DATA : CMD_STATE_INITIAL);
 }
 
 static void
