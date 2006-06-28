@@ -97,7 +97,8 @@ enum flags
   {
     F_ENHANCED = 0x10,        /* Allowed only in enhanced syntax mode. */
     F_TESTING = 0x20,         /* Allowed only in testing mode. */
-    F_KEEP_FINAL_TOKEN = 0x40 /* Don't skip final token in command name. */
+    F_KEEP_FINAL_TOKEN = 0x40,/* Don't skip final token in command name. */
+    F_ABBREV = 0x80           /* Not a candidate for name completion. */
   };
 
 /* A single command. */
@@ -632,6 +633,7 @@ cmd_complete (const char *prefix, const struct command **cmd)
     if (!memcasecmp ((*cmd)->name, prefix, strlen (prefix))
         && (!((*cmd)->flags & F_TESTING) || get_testing_mode ())
         && (!((*cmd)->flags & F_ENHANCED) || get_syntax () == ENHANCED)
+        && !((*cmd)->flags & F_ABBREV)
         && ((*cmd)->function != NULL)
         && in_correct_state (*cmd, completion_state))
       return (*cmd)++->name;

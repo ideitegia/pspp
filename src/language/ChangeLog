@@ -1,3 +1,13 @@
+Wed Jun 28 11:38:23 2006  Ben Pfaff  <blp@gnu.org>
+
+	Don't offer both the full and abbreviated names for a single
+	command in command name completion.
+	
+	* command.c: (enum flags) Add F_ABBREV flag.
+	(cmd_complete) Ignore command with F_ABBREV flag set.
+
+	* command.def: Add F_ABBREV to N, Q, SORT commands.
+
 Tue Jun 27 22:36:38 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix regression in command name completion reported by John
