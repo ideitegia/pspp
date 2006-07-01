@@ -1,5 +1,5 @@
 /*
-  src/math/time-series/arma/innovations.h
+  src/math/ts/innovations.h
   
   Copyright (C) 2006 Free Software Foundation, Inc. Written by Jason H. Stover.
   
@@ -36,10 +36,10 @@ struct innovations_estimate
   double mean;
   double variance;
   double *cov;
+  double *scale;
   double n_obs;
   double max_lag;
   coefficient **coeff;
 };
-struct innovations_estimate ** pspp_innovations (const struct variable **, size_t *,
-						 size_t, const struct casefile *);
+struct innovations_estimate ** pspp_innovations (const gsl_matrix *, size_t);
 #endif

@@ -1,3 +1,8 @@
+2006-07-01  Jason Stover  <jhs@math.gcsu.edu>
+
+	* innovations.c: Use gsl_matrices to avoid use of casefiles by
+	backend math routine.
+
 2006-06-21  Jason Stover  <jhs@math.gcsu.edu>
 
 	* innovations.c (innovations_update_scale): New function.
