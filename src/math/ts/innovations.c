@@ -83,15 +83,18 @@ get_mean_variance (size_t n_vars, const struct casefile *cf,
   Read the first MAX_LAG cases.
  */
 static bool
-innovations_init_cases (struct casereader *r, struct ccase **c, size_t max_lag)
+innovations_init_cases (struct casereader *r, struct ccase **inn_cs, size_t max_lag)
 {
   bool value = true;
   size_t lag = 0;
 
+  assert (r != NULL);
+  assert (inn_cs != NULL);
   while (value && lag < max_lag)
     {
+      assert (inn_cs[lag] != NULL);
+      value = casereader_read (r, inn_cs[lag]);
       lag++;
-      value = casereader_read (r, c[lag]);
     }
   return value;
 }
@@ -117,7 +120,7 @@ get_covariance (size_t n_vars, const struct casefile *cf,
 		struct innovations_estimate **est, size_t max_lag)
 {
   struct casereader *r;
-  struct ccase **c;
+  struct ccase **inn_c;
   size_t lag;
   size_t n;
   bool read_case = false;
@@ -126,27 +129,27 @@ get_covariance (size_t n_vars, const struct casefile *cf,
   const union value *tmp;
   const union value *tmp2;
 
-  c = xnmalloc (max_lag, sizeof (*c));
+  inn_c = xnmalloc (max_lag, sizeof (*inn_c));
   
   for (lag = 0; lag < max_lag; lag++)
     {
-      c[lag] = xmalloc (sizeof *c[lag]);
+      inn_c[lag] = xmalloc (sizeof *inn_c[lag]);
     }
 
   r = casefile_get_reader (cf);
-  read_case = innovations_init_cases (r, c, max_lag);
+  read_case = innovations_init_cases (r, inn_c, max_lag);
 
   while (read_case)
     {
       for (n = 0; n < n_vars; n++)
 	{
-	  tmp2 = case_data (c[0], est[n]->variable->fv);
+	  tmp2 = case_data (inn_c[0], est[n]->variable->fv);
 	  if (!mv_is_value_missing (&est[n]->variable->miss, tmp2))
 	    {
 	      x = tmp2->f - est[n]->mean;
 	      for (lag = 1; lag <= max_lag; lag++)
 		{
-		  tmp = case_data (c[lag], est[n]->variable->fv);
+		  tmp = case_data (inn_c[lag], est[n]->variable->fv);
 		  if (!mv_is_value_missing (&est[n]->variable->miss, tmp))
 		    {
 		      d = (tmp->f - est[n]->mean);
@@ -155,7 +158,7 @@ get_covariance (size_t n_vars, const struct casefile *cf,
 		}
 	    }
 	}
-      read_case = innovations_update_cases (r, c, max_lag);
+      read_case = innovations_update_cases (r, inn_c, max_lag);
     }
   for (lag = 0; lag <= max_lag; lag++)
     {
@@ -166,9 +169,9 @@ get_covariance (size_t n_vars, const struct casefile *cf,
     }
   for (lag = 0; lag < max_lag; lag++)
     {
-      free (c[lag]);
+      free (inn_c[lag]);
     }
-  free (c);
+  free (inn_c);
 }
 static double
 innovations_convolve (double **theta, struct innovations_estimate *est,
@@ -273,7 +276,7 @@ get_coef (size_t n_vars, const struct casefile *cf,
 
 struct innovations_estimate ** 
 pspp_innovations (const struct variable **vars, 
-		  size_t *n_vars,
+		  size_t n_vars,
 		  size_t lag, 
 		  const struct casefile *cf)
 {
@@ -281,8 +284,8 @@ pspp_innovations (const struct variable **vars,
   size_t i;
   size_t j;
 
-  est = xnmalloc (*n_vars, sizeof *est);
-  for (i = 0; i < *n_vars; i++)
+  est = xnmalloc (n_vars, sizeof *est);
+  for (i = 0; i < n_vars; i++)
     {
       if (vars[i]->type == NUMERIC)
 	{
@@ -300,15 +303,15 @@ pspp_innovations (const struct variable **vars,
 	}
       else
 	{
-	  *n_vars--;
+	  n_vars--;
 /* 	  msg (MW, _("Cannot compute autocovariance for a non-numeric variable %s"), */
 /* 		     var_to_string (vars[i])); */
 	}
     }
 
-  get_mean_variance (*n_vars, cf, est);
-  get_covariance (*n_vars, cf, est, lag);
-  get_coef (*n_vars, cf, est, lag);
+  get_mean_variance (n_vars, cf, est);
+  get_covariance (n_vars, cf, est, lag);
+  get_coef (n_vars, cf, est, lag);
   
   return est;
 }
