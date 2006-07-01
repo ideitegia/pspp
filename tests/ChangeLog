@@ -1,3 +1,11 @@
+Sat Jul  1 15:33:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add ll-test, llx-test to TESTS.
+	
+	* libpspp/ll-test.c: New file.
+
+	* libpspp/llx-test.c: New file.
+
 Sun May  7 18:15:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command/do-repeat.sh: Only use "A TO B" for increasing runs of
