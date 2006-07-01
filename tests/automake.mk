@@ -104,7 +104,23 @@ TESTS = \
 	tests/expressions/epoch.sh \
 	tests/expressions/randist.sh \
 	tests/expressions/variables.sh \
-	tests/expressions/vectors.sh
+	tests/expressions/vectors.sh \
+	tests/libpspp/ll-test \
+	tests/libpspp/llx-test
+
+noinst_PROGRAMS += tests/libpspp/ll-test tests/libpspp/llx-test
+
+tests_libpspp_ll_test_SOURCES = \
+	src/libpspp/ll.c \
+	src/libpspp/ll.h \
+	tests/libpspp/ll-test.c
+
+tests_libpspp_llx_test_SOURCES = \
+	src/libpspp/ll.c \
+	src/libpspp/ll.h \
+	src/libpspp/llx.c \
+	src/libpspp/llx.h \
+	tests/libpspp/llx-test.c
 
 EXTRA_DIST += $(TESTS) tests/weighting.data tests/data-list.data tests/list.data \
 	tests/no_case_size.sav \

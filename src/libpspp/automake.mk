@@ -18,6 +18,10 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/hash.h \
 	src/libpspp/i18n.c \
 	src/libpspp/i18n.h \
+	src/libpspp/ll.c \
+	src/libpspp/ll.h \
+	src/libpspp/llx.c \
+	src/libpspp/llx.h \
 	src/libpspp/magic.c \
 	src/libpspp/magic.h \
 	src/libpspp/misc.c \

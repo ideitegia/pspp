@@ -39,6 +39,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4
 CLEANFILES = 
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
+noinst_PROGRAMS=
 bin_PROGRAMS=
 
 include $(top_srcdir)/lib/automake.mk

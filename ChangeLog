@@ -1,3 +1,7 @@
+Sat Jul  1 15:32:31 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Makefile.am: Add noinst_PROGRAMS and define to empty.
+
 Tue May  9 20:46:06 2006  Ben Pfaff  <blp@gnu.org>
 
 	* Smake: Add stdarg to GNULIB_MODULES.

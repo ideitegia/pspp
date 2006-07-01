@@ -1,3 +1,15 @@
+Sat Jul  1 15:32:54 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: (src_libpspp_libpspp_a_SOURCES) Add new files.
+
+	* ll.c: New file.
+
+	* ll.h: New file.
+
+	* llx.c: New file.
+
+	* llx.h: New file.
+
 Sun Jun 25 22:35:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	Optimize rehashing: we know that none of the entries in the hash
