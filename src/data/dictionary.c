@@ -869,7 +869,7 @@ dict_compacting_would_shrink (const struct dictionary *d)
   return dict_get_compacted_value_cnt (d) < dict_get_next_value_idx (d);
 }
 
-/* Returns true if a case for dictionary D would be smaller after
+/* Returns true if a case for dictionary D would change after
    compacting, false otherwise.  Compacting a case eliminates
    "holes" between values and after the last value.  Holes are
    created by deleting variables (or by scratch variables).
