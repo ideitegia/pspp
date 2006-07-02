@@ -1,3 +1,13 @@
+2006-07-02  Jason Stover  <jhs@math.gcsu.edu>
+
+	* innovations.c (get_coef): Moved instructions to
+	innovations_update_coeff() and init_theta().
+	* innovations.c (get_coef): Fixed allocation of theta.
+	* innovations.c (innovations_update_theta): New function.
+	* innovations.c (init_theta): New function.
+	* innovations.c (innovations_convolve): Fixed upper bound of
+	subscript in sum.
+
 2006-07-01  Jason Stover  <jhs@math.gcsu.edu>
 
 	* innovations.c: Use gsl_matrices to avoid use of casefiles by
