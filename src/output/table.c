@@ -71,14 +71,8 @@ tab_create (int nc, int nr, int reallocable UNUSED)
   t->rh = pool_nmalloc (t->container, nc, nr + 1);
   memset (t->rh, 0, nc * (nr + 1));
 
-  t->hrh = pool_nmalloc (t->container, nr + 1, sizeof *t->hrh);
-  memset (t->hrh, 0, sizeof *t->hrh * (nr + 1));
-
   t->rv = pool_nmalloc (t->container, nr, nc + 1);
   memset (t->rv, UCHAR_MAX, nr * (nc + 1));
-
-  t->wrv = pool_nmalloc (t->container, nc + 1, sizeof *t->wrv);
-  memset (t->wrv, 0, sizeof *t->wrv * (nc + 1));
 
   t->dim = NULL;
   t->w = t->h = NULL;
@@ -857,6 +851,8 @@ tabi_table (struct som_entity *table)
   assert (t->w == NULL && t->h == NULL);
   t->w = pool_nalloc (t->container, t->nc, sizeof *t->w);
   t->h = pool_nalloc (t->container, t->nr, sizeof *t->h);
+  t->hrh = pool_nmalloc (t->container, t->nr + 1, sizeof *t->hrh);
+  t->wrv = pool_nmalloc (t->container, t->nc + 1, sizeof *t->wrv);
 }
 
 /* Returns the line style to use for spacing purposes for a rule

@@ -1,3 +1,11 @@
+Sat Jul  1 22:41:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #16644: Output Driver crashes in DISPLAY VARIABLES.
+	
+	* table.c (tab_create): Don't allocate t->hrh, t->wrv yet, because
+	the table size might change before we're ready to use them.
+	(tabi_table) Allocate them here instead.
+
 Fri Jun  9 14:42:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	Reform string library.
