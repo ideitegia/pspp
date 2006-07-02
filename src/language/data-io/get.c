@@ -440,6 +440,8 @@ parse_write_command (enum writer_type writer_type,
     }
   else
     aw->writer = any_writer_open (handle, dict);
+  if (aw->writer == NULL)
+    goto error;
   dict_destroy (dict);
   
   return aw;

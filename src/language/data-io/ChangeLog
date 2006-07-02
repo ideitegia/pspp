@@ -1,3 +1,11 @@
+Sat Jul  1 20:44:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #15786: System File Creation crashes if directoy is
+	nonexistent.
+	
+	* get.c (parse_write_command): Check that the any_writer open
+	succeeds.
+
 Tue Jun 27 22:44:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix regression in command name completion reported by John
