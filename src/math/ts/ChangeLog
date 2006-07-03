@@ -1,3 +1,11 @@
+2006-07-03  Jason Stover  <jhs@math.gcsu.edu>
+
+	* innovations.c (init_theta): Fixed subscripts.
+	* innovations.c (innovations_update_coeff): Fixed subscripts.
+	* innovations.c (get_covarience): Fixed subscripts.
+	* innovations.c (pspp_innovations_free): New function.
+	* innovations.c (pspp_innovations_free_one): New function.
+
 2006-07-02  Jason Stover  <jhs@math.gcsu.edu>
 
 	* innovations.c (get_coef): Moved instructions to

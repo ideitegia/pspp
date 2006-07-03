@@ -97,20 +97,20 @@ get_covariance (const gsl_matrix *data,
 	  if (!gsl_isnan (x))
 	    {
 	      x -= est[j]->mean;
-	      for (lag = 1; lag <= max_lag && lag < data->size1 - max_lag; lag++)
+	      for (lag = 1; lag <= max_lag && lag < (data->size1 - i); lag++)
 		{
 		  y = gsl_matrix_get (data, i + lag, j);
 		  if (!gsl_isnan (y))
 		    {
 		      y -= est[j]->mean;
-		      *(est[j]->cov + lag) += y * x;
+		      *(est[j]->cov + lag - 1) += y * x;
 		      est[j]->n_obs += 1.0;
 		    }
 		}
 	    }
 	}
     }
-  for (lag = 0; lag <= max_lag && lag < data->size1 - max_lag; lag++)
+  for (lag = 1; lag <= max_lag; lag++)
     {
       for (j = 0; j < data->size2; j++)
 	{
@@ -141,10 +141,10 @@ innovations_update_scale (struct innovations_estimate *est, double *theta,
   size_t k;
 
 
-  result = est->cov[0];
+  result = est->variance;
   for (j = 0; j < i; j++)
     {
-      k = i - j;
+      k = i - j - 1;
       result -= theta[k] * theta[k] * est->scale[j];
     }
   est->scale[i] = result;
@@ -174,14 +174,14 @@ innovations_update_coeff (double **theta, struct innovations_estimate *est,
 
   for (i = 0; i < max_lag; i++)
     {
-      v = est->cov[i];
-      for (j = 0; j < i; j++)
+      for (j = 0; j <= i; j++)
 	{
 	  k = i - j;
-	  theta[i-1][k-1] = est->cov[k] - 
-	    innovations_convolve (theta, est, i, j);
+	  theta[i][k] = (est->cov[k] - 
+	    innovations_convolve (theta, est, i, j))
+	    / est->scale[k];
 	}
-      innovations_update_scale (est, theta[i], i);
+      innovations_update_scale (est, theta[i], i + 1);
     }  
 }
 static void
@@ -246,13 +246,16 @@ pspp_innovations (const gsl_matrix *data, size_t lag)
   est = xnmalloc (data->size2, sizeof *est);
   for (i = 0; i < data->size2; i++)
     {
-      est[i] = xmalloc (sizeof **est);
+      est[i] = xmalloc (sizeof *est[i]);
 /*       est[i]->variable = vars[i]; */
       est[i]->mean = 0.0;
       est[i]->variance = 0.0;
+      /* COV does not the variance (i.e., the lag 0 covariance). So COV[0]
+         holds the lag 1 covariance, COV[i] holds the lag i+1 covariance. */
       est[i]->cov = xnmalloc (lag, sizeof (*est[i]->cov));
       est[i]->scale = xnmalloc (lag, sizeof (*est[i]->scale));
       est[i]->coeff = xnmalloc (lag, sizeof (*est[i]->coeff));
+      est[i]->max_lag = (double) lag;
       for (j = 0; j < lag; j++)
 	{
 	  est[i]->coeff[j] = xmalloc (sizeof (*(est[i]->coeff + j)));
@@ -264,4 +267,30 @@ pspp_innovations (const gsl_matrix *data, size_t lag)
   get_coef (data, est, lag);
   
   return est;
+}
+
+static void 
+pspp_innovations_free_one (struct innovations_estimate *est)
+{
+  size_t i;
+
+  assert (est != NULL);
+  free (est->cov);
+  free (est->scale);
+  for (i = 0; i < (size_t) est->max_lag; i++)
+    {
+      pspp_coeff_free (est->coeff[i]);
+    }
+}
+
+void pspp_innovations_free (struct innovations_estimate **est, size_t n)
+{
+  size_t i;
+
+  assert (est != NULL);
+  for (i = 0; i < n; i++)
+    {
+      pspp_innovations_free_one (est[i]);
+    }
+  free (est);
 }

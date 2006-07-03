@@ -42,4 +42,5 @@ struct innovations_estimate
   coefficient **coeff;
 };
 struct innovations_estimate ** pspp_innovations (const gsl_matrix *, size_t);
+void pspp_innovations_free (struct innovations_estimate **, size_t);
 #endif
