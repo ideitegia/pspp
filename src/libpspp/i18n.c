@@ -21,6 +21,7 @@
 #include <xalloc.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <iconv.h>
 #include <errno.h>
@@ -28,6 +29,7 @@
 #include "i18n.h"
 
 #include <localcharset.h>
+#include "xstrndup.h"
 
 
 static char *locale = 0;
@@ -35,6 +37,26 @@ static const char *charset;
 
 
 static iconv_t convertor[n_CONV];
+
+
+/* A wrapper around iconv_open */
+static iconv_t 
+create_iconv (const char* tocode, const char* fromcode)
+{
+  iconv_t conv = iconv_open (tocode, fromcode);
+
+  /* I don't think it's safe to translate this string or to use messaging
+     as the convertors have not yet been set up */
+  if ( (iconv_t) -1 == conv) 
+    {
+      const int err = errno;
+      fprintf (stderr, 
+	"Warning: cannot create a convertor for \"%s\" to \"%s\": %s\n",
+	fromcode, tocode, strerror (err));
+    }
+   
+  return conv;
+}
 
 /* Return a string based on TEXT converted according to HOW.
    If length is not -1, then it must be the number of bytes in TEXT.
@@ -61,6 +83,9 @@ recode_string(enum conv_id how,  const char *text, int length)
      length = strlen(text);
 
   assert(how < n_CONV);
+
+  if (convertor[how] == (iconv_t) -1) 
+    return xstrndup (text, length);
 
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
     if ( outbufferlength > length) 
@@ -151,10 +176,10 @@ set_pspp_locale(const char *l)
   setlocale(LC_CTYPE, current_locale);
 
   iconv_close(convertor[CONV_PSPP_TO_UTF8]);
-  convertor[CONV_PSPP_TO_UTF8] = iconv_open("UTF-8", charset);
+  convertor[CONV_PSPP_TO_UTF8] = create_iconv ("UTF-8", charset);
 
   iconv_close(convertor[CONV_SYSTEM_TO_PSPP]);
-  convertor[CONV_SYSTEM_TO_PSPP] = iconv_open(charset, current_charset);
+  convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, current_charset);
 }
 
 void
@@ -166,8 +191,8 @@ i18n_init(void)
   setlocale(LC_CTYPE, locale);
   charset = locale_charset();
 
-  convertor[CONV_PSPP_TO_UTF8] = iconv_open("UTF-8", charset);
-  convertor[CONV_SYSTEM_TO_PSPP] = iconv_open(charset, charset);
+  convertor[CONV_PSPP_TO_UTF8] = create_iconv ("UTF-8", charset);
+  convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, charset);
 }
 
 
@@ -179,5 +204,10 @@ i18n_done(void)
   locale = 0;
 
   for(i = 0 ; i < n_CONV; ++i ) 
-    iconv_close(convertor[i]);
+    {
+      if ( (iconv_t) -1 == convertor[i] ) 
+	continue;
+      iconv_close(convertor[i]);
+    }
 }
+

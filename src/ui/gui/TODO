@@ -10,7 +10,7 @@
 
 * Resizing of string variables.
 
-* Goto Variable / Goto Case.
+* Goto Variable.
 
 * Widen columns in var sheet as necessary to accomodate non-english translations.
 

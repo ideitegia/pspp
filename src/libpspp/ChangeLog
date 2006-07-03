@@ -1,3 +1,8 @@
+Mon Jul  3 09:36:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* i18n.c: Made character conversion tolerant of failure to create the 
+	necessary iconv structs.
+
 Sat Jul  1 15:32:54 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: (src_libpspp_libpspp_a_SOURCES) Add new files.
