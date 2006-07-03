@@ -36,7 +36,8 @@
 #include "manager.h"
 #include "table.h"
 #include <libpspp/version.h>
-#include <data/make-file.h>
+
+#include "size_max.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -56,7 +57,9 @@ html_open_driver (struct outp_driver *this, struct substring options)
 
   this->ext = x = xmalloc (sizeof *x);
   x->file_name = xstrdup ("pspp.html");
+  x->chart_file_name = xstrdup ("pspp-#.png");
   x->file = NULL;
+  x->chart_cnt = 0;
 
   outp_parse_options (options, handle_option, this);
 
@@ -146,6 +149,7 @@ enum
 static struct outp_option option_tab[] =
   {
     {"output-file",		string_arg,     0},
+    {"chart-files",            string_arg,     1},
     {NULL, 0, 0},
   };
 
@@ -164,8 +168,23 @@ handle_option (struct outp_driver *this,
              key);
       break;
     case string_arg:
-      free (x->file_name);
-      x->file_name = ds_xstrdup (val);
+      switch (subcat) 
+        {
+        case 0:
+          free (x->file_name);
+          x->file_name = ds_xstrdup (val);
+          break;
+        case 1:
+          if (ds_find_char (val, '#') != SIZE_MAX) 
+            {
+              free (x->chart_file_name);
+              x->chart_file_name = ds_xstrdup (val);
+            }
+          error (0, 0, _("`chart-files' value must contain `#'"));
+          break;
+        default:
+          abort ();
+        }
       break;
     default:
       abort ();
@@ -339,20 +358,35 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 }
 
 static void
-html_initialise_chart(struct outp_driver *d UNUSED, struct chart *ch)
+html_initialise_chart (struct outp_driver *this, struct chart *ch)
 {
-
-  FILE  *fp;
-
-  make_unique_file_stream(&fp, &ch->file_name);
-
 #ifdef NO_CHARTS
-  ch->lp = 0;
+  ch->lp = NULL;
 #else
-  ch->pl_params = pl_newplparams();
+  struct html_driver_ext *x = this->ext;
+  
+  FILE *fp;
+  int number_pos;
+
+  x->chart_cnt++;
+  
+  number_pos = strchr (x->chart_file_name, '#') - x->chart_file_name;
+  ch->file_name = xasprintf ("%.*s%d%s",
+                             number_pos, x->chart_file_name,
+                             x->chart_cnt,
+                             x->chart_file_name + number_pos + 1);
+  fp = fopen (ch->file_name, "wb");
+  if (fp == NULL) 
+    {
+      error (0, errno, _("creating \"%s\""), ch->file_name);
+      free (ch->file_name);
+      ch->file_name = NULL;
+      return;
+    }
+
+  ch->pl_params = pl_newplparams ();
   ch->lp = pl_newpl_r ("png", 0, fp, stderr, ch->pl_params);
 #endif
-
 }
 
 static void 

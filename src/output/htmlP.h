@@ -26,7 +26,10 @@
 struct html_driver_ext
   {
     char *file_name;
+    char *chart_file_name;
     FILE *file;
+
+    size_t chart_cnt;
   };
 
 extern struct outp_class html_class;

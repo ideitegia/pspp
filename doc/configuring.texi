@@ -797,14 +797,19 @@ tables-capable web browsers such as Emacs' w3-mode.  Its configuration
 is very simple.  Currently, the output has a very plain format.  In the
 future, further work may be done on improving the output appearance.
 
-There are is only one option:
+There are only a few options:
 
 @table @code
 @item output-file=@var{file-name}
 
 File to which output should be sent.  This can be an ordinary file name
 (i.e., @code{"pspp.ps"}), a pipe (i.e., @code{"|lpr"}), or
-stdout (@code{"-"}).  Default: @code{"pspp.html"}.
+stdout (@code{"-"}).  Default: @file{"pspp.html"}.
+
+@item chart-files=@var{file-name-template}
+Template for the file names used for charts, which are output in PNG
+format.  The name should contain a single @samp{#}, which is replaced by
+the chart number.  Default: @file{"pspp-#.png"}.
 @end table
 
 @node Miscellaneous configuring,, HTML driver class, Configuration
