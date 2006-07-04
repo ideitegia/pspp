@@ -67,8 +67,8 @@ if [ $? -ne 0 ] ; then fail ; fi
 for d in beta cauchy chisq exp f gamma laplace logistic lnormal \
 	 normal pareto t uniform weibull; do
     activity="compare output for $d distribution"
-    perl -pi -e 's/^\s*$//g' $top_srcdir/tests/expressions/randist/$d.out $TEMPDIR/$d.out
-    diff -b $top_srcdir/tests/expressions/randist/$d.out $TEMPDIR/$d.out
+    perl $top_srcdir/tests/expressions/randist/compare.pl \
+	$top_srcdir/tests/expressions/randist/$d.out $TEMPDIR/$d.out
     if [ $? -ne 0 ] ; then fail ; fi
 done
 

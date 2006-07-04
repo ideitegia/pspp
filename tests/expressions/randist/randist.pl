@@ -37,13 +37,18 @@ while (<>) {
     }
 
     print "DATA LIST LIST/", join (' ', 'P', @vars), ".\n";
+    print "NUMERIC ", join (' ', 'x', @funcs), " (F10.4)\n";
     print "COMPUTE x = IDF.$dist (", join (', ', 'P', @vars), ").\n";
     foreach my $func (@funcs) {
 	print "COMPUTE $func = $func.$dist (",
 	  join (', ', 'x', @vars), ").\n";
     }
+    my (@print) = ('P', @vars, 'x', @funcs);
+    print "DO IF \$CASENUM = 1.\n";
+    print "PRINT OUTFILE='$dist.out'/'", heading (@print), "'\n";
+    print "END IF.\n";
     print "PRINT OUTFILE='$dist.out'/",
-      join (' ', 'P', @vars, 'x', @funcs), ".\n";
+      join (' ', @print), ".\n";
     print "BEGIN DATA.\n";
     print_all_values (['P', @vars], []);
     print "END DATA.\n";
@@ -62,4 +67,17 @@ sub print_all_values {
 	    print_all_values (\@vars, \@assign);
 	}
     }
+}
+
+sub heading {
+    my (@names) = @_;
+    my ($out);
+    $out .= pad_to (shift (@names), 8) while $names[0] ne 'x';
+    $out .= pad_to (shift (@names), 10) while @names;
+    return $out;
+}
+
+sub pad_to {
+    my ($s, $n) = @_;
+    return (' ' x ($n - length ($s))) . $s . ' ';
 }

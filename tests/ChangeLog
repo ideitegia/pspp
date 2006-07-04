@@ -1,3 +1,24 @@
+Mon Jul  3 21:09:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	Modify the random distributions test to verify to 2 more decimal
+	places of accuracy, but to allow +/- 1 units in the last (tested)
+	place.  This allows the test to pass on machines or with compilers
+	whose calculated values are off by epsilon from the expected
+	results.  Because of the way the test is constructed, this was
+	quite common and often caused gratuitous test failures.
+
+	This is patch #5215, tested by Jason Stover and John Darrington.
+	 
+	* expressions/randist.sh: Use compare.pl to do comparisons.
+
+	* expressions/randist/compare.pl: New script to do comparisons.
+
+	* expressions/randist/randist.pl: Print output to 4 decimal
+	places, not just 2.  Also, print a brief explanatory header at the
+	top of each output file.
+
+	* expressions/randist/*.out: Replace with new expected output.
+
 Sat Jul  1 15:33:37 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add ll-test, llx-test to TESTS.
