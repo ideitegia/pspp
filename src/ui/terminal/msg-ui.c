@@ -41,7 +41,7 @@ static void handle_msg (const struct msg *);
 void
 msg_ui_init (void) 
 {
-  msg_init (handle_msg);
+  msg_init (handle_msg, get_msg_location);
 }
 
 void
@@ -49,6 +49,7 @@ msg_ui_done (void)
 {
   msg_done ();
 }
+
 
 /* Checks whether we've had so many errors that it's time to quit
    processing this syntax file. */

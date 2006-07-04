@@ -57,10 +57,12 @@ bool getl_is_interactive (void);
 
 bool getl_read_line (bool *interactive);
 
-void getl_location (const char **, int *);
-
 const char *getl_get_prompt (enum getl_prompt_style);
 void getl_set_prompt (enum getl_prompt_style, const char *);
 void getl_set_prompt_style (enum getl_prompt_style);
+
+struct msg_locator;
+void get_msg_location (struct msg_locator *loc);
+
 
 #endif /* line-buffer.h */

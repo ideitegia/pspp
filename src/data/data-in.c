@@ -64,7 +64,6 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
 
   m.category = MSG_DATA;
   m.severity = MSG_ERROR;
-  msg_location (&m.where);
   m.text = ds_cstr (&text);
 
   msg_emit (&m);

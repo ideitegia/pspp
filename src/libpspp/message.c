@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -36,7 +36,9 @@
 static char *command_name;
 
 /* Message handler as set by msg_init(). */
-static void (*msg_handler) (const struct msg *);
+static void (*msg_handler)  (const struct msg *);
+static void (*msg_location) (struct msg_locator *);
+
 
 /* Public functions. */
 
@@ -50,7 +52,6 @@ msg (enum msg_class class, const char *format, ...)
 
   m.category = msg_class_to_category (class);
   m.severity = msg_class_to_severity (class);
-  msg_location (&m.where);
   va_start (args, format);
   m.text = xvasprintf (format, args);
   va_end (args);
@@ -59,9 +60,11 @@ msg (enum msg_class class, const char *format, ...)
 }
 
 void
-msg_init (void (*handler) (const struct msg *)) 
+msg_init ( void (*handler) (const struct msg *), 
+	   void (*location) (struct msg_locator *) ) 
 {
   msg_handler = handler;
+  msg_location = location;
 }
 
 void
@@ -95,6 +98,7 @@ msg_destroy(struct msg *m)
 void
 msg_emit (struct msg *m) 
 {
+  msg_location (&m->where);
   msg_handler (m);
   free (m->text);
 }

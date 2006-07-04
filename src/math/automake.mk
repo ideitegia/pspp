@@ -1,5 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
+include $(top_srcdir)/src/math/ts/automake.mk
 include $(top_srcdir)/src/math/linreg/automake.mk
 
 noinst_LIBRARIES += src/math/libpspp_math.a

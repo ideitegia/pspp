@@ -377,6 +377,7 @@ getl_location (const char **fn, int *ln)
 
 /* File locator stack. */
 static const struct msg_locator **file_loc;
+
 static int nfile_loc, mfile_loc;
 
 /* Close getl. */
@@ -423,10 +424,10 @@ msg_pop_msg_locator (const struct msg_locator *loc)
   nfile_loc--;
 }
 
-/* Puts the current file and line number in F, or NULL and -1 if
+/* Puts the current file and line number into LOC, or NULL and -1 if
    none. */
 void
-msg_location (struct msg_locator *loc)
+get_msg_location (struct msg_locator *loc)
 {
   if (nfile_loc)
     *loc = *file_loc[nfile_loc - 1];

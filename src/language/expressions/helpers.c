@@ -13,11 +13,8 @@ expr_error (void *aux UNUSED, const char *format, ...)
   struct msg m;
   va_list args;
 
-  /* FIXME: we can do better about saying where the error
-     occurred. */
   m.category = MSG_SYNTAX;
   m.severity = MSG_ERROR;
-  msg_location (&m.where);
   va_start (args, format);
   m.text = xvasprintf (format, args);
   va_end (args);

@@ -43,16 +43,25 @@ extern GladeXML *xml;
 
 
 
-static void enqueue_msg(const struct msg *m);
+static void enqueue_msg (const struct msg *m);
 
 
 static GQueue *message_queue;
+
+
+static void 
+msg_location (struct msg_locator *loc)
+{
+  loc->file_name = NULL; 
+  loc->line_number = -1;
+}
+
 
 void
 message_dialog_init (void) 
 {
   message_queue = g_queue_new();
-  msg_init(enqueue_msg);
+  msg_init (enqueue_msg, msg_location);
 }
 
 
@@ -153,15 +162,5 @@ popup_message(const struct msg *m)
   gtk_dialog_run(GTK_DIALOG(dialog));
 
   gtk_widget_destroy (dialog);
-}
-
-/* FIXME: This is a stub .
- * A temporary workaround until getl.c is rearranged
- */
-void
-msg_location (struct msg_locator *loc)
-{
-	loc->file_name = 0;
-	loc->line_number = -1;
 }
 
