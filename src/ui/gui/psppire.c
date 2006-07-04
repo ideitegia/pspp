@@ -103,7 +103,7 @@ main(int argc, char *argv[])
   if ( ! parse_command_line(&argc, &argv, &filename, &err) ) 
     {
       g_clear_error(&err);
-      return 1;
+      return 0;
     }
 
 
@@ -197,12 +197,12 @@ parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
       switch (c)
 	{
 	case 'h':
-	  g_printerr("Usage: psppire {|--help|--version}\n");
+	  g_print ("Usage: psppire {|--help|--version}\n");
           return false;
 	case 'V':
-	  g_print(version);
-	  g_print("\n");
-	  g_print(legal);
+	  g_print (version);
+	  g_print ("\n");
+	  g_print (legal);
 	  return false;
 	default:
 	  return false;

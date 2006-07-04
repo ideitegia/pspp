@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-06-28 14:41+0800\n"
+"POT-Creation-Date: 2006-07-04 09:03+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -981,94 +981,94 @@ msgstr ""
 msgid "scratch"
 msgstr ""
 
-#: src/language/command.c:183
+#: src/language/command.c:184
 #, c-format
 msgid "%s may be used only in testing mode."
 msgstr ""
 
-#: src/language/command.c:188
+#: src/language/command.c:189
 #, c-format
 msgid "%s may be used only in enhanced syntax mode."
 msgstr ""
 
-#: src/language/command.c:442
+#: src/language/command.c:443
 msgid "expecting command name"
 msgstr ""
 
-#: src/language/command.c:456
+#: src/language/command.c:457
 #, c-format
 msgid "Unknown command %s."
 msgstr ""
 
-#: src/language/command.c:582
+#: src/language/command.c:583
 msgid "before the active file has been defined"
 msgstr ""
 
-#: src/language/command.c:584
+#: src/language/command.c:585
 msgid "after the active file has been defined"
 msgstr ""
 
-#: src/language/command.c:586
+#: src/language/command.c:587
 msgid "inside INPUT PROGRAM"
 msgstr ""
 
-#: src/language/command.c:588
+#: src/language/command.c:589
 msgid "inside FILE TYPE"
 msgstr ""
 
-#: src/language/command.c:593
+#: src/language/command.c:594
 #, c-format
 msgid "%s or %s"
 msgstr ""
 
-#: src/language/command.c:595
+#: src/language/command.c:596
 #, c-format
 msgid "%s, %s, or %s"
 msgstr ""
 
-#: src/language/command.c:599
+#: src/language/command.c:600
 #, c-format
 msgid "%s is allowed only %s."
 msgstr ""
 
-#: src/language/command.c:604
+#: src/language/command.c:605
 #, c-format
 msgid "%s is not allowed inside INPUT PROGRAM."
 msgstr ""
 
-#: src/language/command.c:606
+#: src/language/command.c:607
 #, c-format
 msgid "%s is not allowed inside FILE TYPE."
 msgstr ""
 
-#: src/language/command.c:683 src/language/command.c:814
+#: src/language/command.c:685 src/language/command.c:816
 #: src/language/utilities/permissions.c:102
 msgid "This command not allowed when the SAFER option is set."
 msgstr ""
 
-#: src/language/command.c:695
+#: src/language/command.c:697
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr ""
 
-#: src/language/command.c:745
+#: src/language/command.c:747
 #, c-format
 msgid "Couldn't fork: %s."
 msgstr ""
 
-#: src/language/command.c:787
+#: src/language/command.c:789
 #, c-format
 msgid "Error executing command: %s."
 msgstr ""
 
-#: src/language/command.c:796 src/language/data-io/matrix-data.c:538
+#: src/language/command.c:798 src/language/data-io/matrix-data.c:538
 #: src/language/data-io/print.c:341 src/language/data-io/print.c:1042
 #: src/language/dictionary/vector.c:200 src/language/lexer/lexer.c:452
 #: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:62
 msgid "expecting end of command"
 msgstr ""
 
-#: src/language/command.c:835
+#: src/language/command.c:837
 msgid "No operating system support for this command."
 msgstr ""
 
@@ -1367,11 +1367,11 @@ msgstr ""
 msgid "expecting %s or %s"
 msgstr ""
 
-#: src/language/data-io/get.c:602 src/language/data-io/print.c:185
+#: src/language/data-io/get.c:604 src/language/data-io/print.c:185
 msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/language/data-io/get.c:635
+#: src/language/data-io/get.c:637
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1379,75 +1379,75 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/language/data-io/get.c:660
+#: src/language/data-io/get.c:662
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/language/data-io/get.c:667
+#: src/language/data-io/get.c:669
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%d) does not match number of "
 "variables on right side (%d), in parenthesized group %d of RENAME subcommand."
 msgstr ""
 
-#: src/language/data-io/get.c:680
+#: src/language/data-io/get.c:682
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/language/data-io/get.c:710
+#: src/language/data-io/get.c:712
 msgid "Cannot DROP all variables from dictionary."
 msgstr ""
 
-#: src/language/data-io/get.c:887
+#: src/language/data-io/get.c:889
 msgid "The active file may not be specified more than once."
 msgstr ""
 
-#: src/language/data-io/get.c:895
+#: src/language/data-io/get.c:897
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/language/data-io/get.c:902
+#: src/language/data-io/get.c:904
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/language/data-io/get.c:938
+#: src/language/data-io/get.c:940
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/language/data-io/get.c:958
+#: src/language/data-io/get.c:960
 msgid "BY may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:978
+#: src/language/data-io/get.c:980
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:992
+#: src/language/data-io/get.c:994
 msgid "FIRST may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:1006
+#: src/language/data-io/get.c:1008
 msgid "LAST may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:1047
+#: src/language/data-io/get.c:1049
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1052
+#: src/language/data-io/get.c:1054
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1080
+#: src/language/data-io/get.c:1082
 #, c-format
 msgid "IN variable name %s duplicates an existing variable name."
 msgstr ""
 
-#: src/language/data-io/get.c:1534
+#: src/language/data-io/get.c:1536
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
@@ -4000,18 +4000,27 @@ msgstr ""
 msgid "HISTOGRAM"
 msgstr ""
 
-#: src/output/html.c:66
+#: src/output/html.c:69
 #, c-format
 msgid "opening HTML output file: %s"
 msgstr ""
 
-#: src/output/html.c:77
+#: src/output/html.c:80
 msgid "PSPP Output"
 msgstr ""
 
-#: src/output/html.c:163
+#: src/output/html.c:167
 #, c-format
 msgid "unknown configuration parameter `%s' for HTML device driver"
+msgstr ""
+
+#: src/output/html.c:183
+msgid "`chart-files' value must contain `#'"
+msgstr ""
+
+#: src/output/html.c:381
+#, c-format
+msgid "creating \"%s\""
 msgstr ""
 
 #: src/output/output.c:165
@@ -4240,12 +4249,12 @@ msgstr ""
 msgid "invalid numeric format"
 msgstr ""
 
-#: src/output/table.c:236
+#: src/output/table.c:230
 #, c-format
 msgid "bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr ""
 
-#: src/output/table.c:307
+#: src/output/table.c:301
 #, c-format
 msgid ""
 "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
@@ -4576,11 +4585,11 @@ msgstr "Di_skretwerte"
 msgid "Case Number:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2660
+#: src/ui/gui/psppire.glade:2660 src/ui/gui/sort-cases-dialog.c:282
 msgid "Ascending"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2679
+#: src/ui/gui/psppire.glade:2679 src/ui/gui/sort-cases-dialog.c:284
 msgid "Descending"
 msgstr ""
 
@@ -4603,6 +4612,14 @@ msgstr "Wissenschäflich"
 #: src/ui/gui/psppire-var-store.c:450
 msgid "Custom"
 msgstr "Spezial"
+
+#: src/ui/gui/sort-cases-dialog.c:342
+msgid "Var"
+msgstr ""
+
+#: src/ui/gui/sort-cases-dialog.c:370
+msgid "Criteria"
+msgstr ""
 
 #: src/ui/gui/var-sheet.c:71
 msgid "Name"

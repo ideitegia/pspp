@@ -1,3 +1,7 @@
+Tue Jul  4 09:08:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
+	
+   * psppire.c: Fixed --help and --version options.
+	
 Sat Jun 24 16:56:22 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * menu-actions.c: Added goto case and sort cases dialogs.
