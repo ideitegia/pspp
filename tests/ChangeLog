@@ -1,3 +1,12 @@
+Tue Jul  4 09:59:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #15766 (/KEEP subcommand on SAVE doesn't fully support
+	ALL) and additional underlying system file issues.
+	
+	* automake.mk: Add keep-all.sh to TESTS.
+	
+	* bugs/keep-all.sh: New test.
+
 Mon Jul  3 21:09:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	Modify the random distributions test to verify to 2 more decimal

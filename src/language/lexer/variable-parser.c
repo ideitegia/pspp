@@ -164,20 +164,16 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
          (*v)[0]->name, add->name, add->name);
   else if ((pv_opts & PV_NO_DUPLICATE) && included[idx]) 
     msg (SE, _("Variable %s appears twice in variable list."), add->name);
-  else 
+  else if ((pv_opts & PV_DUPLICATE) || !included[idx])
     {
       if (*nv >= *mv)
         {
           *mv = 2 * (*nv + 1);
           *v = xnrealloc (*v, *mv, sizeof **v);
         }
-
-      if ((pv_opts & PV_DUPLICATE) || !included[idx])
-        {
-          (*v)[(*nv)++] = add;
-          if (!(pv_opts & PV_DUPLICATE))
-            included[idx] = 1;
-        }
+      (*v)[(*nv)++] = add;
+      if (included != NULL)
+        included[idx] = 1;
     }
 }
 
@@ -243,16 +239,16 @@ parse_var_set_vars (const struct var_set *vs,
   else
     included = NULL;
 
-  if (lex_match (T_ALL))
-    add_variables (v, nv, &mv, included, pv_opts,
-                   vs, 0, var_set_get_cnt (vs) - 1, DC_ORDINARY);
-  else 
+  do
     {
-      do
+      if (lex_match (T_ALL))
+        add_variables (v, nv, &mv, included, pv_opts,
+                       vs, 0, var_set_get_cnt (vs) - 1, DC_ORDINARY);
+      else 
         {
           enum dict_class class;
           size_t first_idx;
-          
+
           if (!parse_var_idx_class (vs, &first_idx, &class))
             goto fail;
 
@@ -293,13 +289,15 @@ parse_var_set_vars (const struct var_set *vs,
 
               add_variables (v, nv, &mv, included, pv_opts,
                              vs, first_idx, last_idx, class);
-            }
-          if (pv_opts & PV_SINGLE)
-            break;
-          lex_match (',');
+            } 
         }
-      while (token == T_ID && var_set_lookup_var (vs, tokid) != NULL);
+
+      if (pv_opts & PV_SINGLE)
+        break;
+      lex_match (',');
     }
+  while (token == T_ALL
+         || (token == T_ID && var_set_lookup_var (vs, tokid) != NULL));
   
   if (*nv == 0)
     goto fail;

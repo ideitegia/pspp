@@ -1,3 +1,34 @@
+Tue Jul  4 08:47:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #15766 (/KEEP subcommand on SAVE doesn't fully support
+	ALL) and additional underlying system file issues.
+
+	Thanks to John Darrington for review.
+
+	First problem: var_hash points to variables not owned by the
+	sys-file-reader, which the caller may free or modify.  Use an
+	array of sfm_vars instead, as done earlier (e.g. CVS version
+	1.12).
+	
+	* sys-file-reader.c (struct sfm_reader): Remove var_hash, svars
+	members and remove all code that references it.  Add vars, var_cnt
+	members.  Remove fix_specials member, which was unused.
+	(struct sfm_var) Remove name member, which was unused.
+	(sfm_close_reader) Free vars member instead of var_hash.
+	(compare_var_shortnames) Removed.
+	(hash_var_shortname) Removed.
+	(sfm_open_reader) Fill out vars array.
+	(compare_var_index) Removed.
+	(sfm_read_case) Use vars instead of var_hash.
+	
+	Second problem: we're confused about when we actually have very
+	long strings, causing us to choose incorrectly between slow path
+	and fast path in sfm_read_case.
+
+	* sys-file-reader.c: (sfm_open_reader) Only mark has_vls if we
+	have very long strings, not when we have long variable names,
+	which is an unrelated feature.
+
 Tue Jun 27 12:06:49 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable.h: Move var_set and variable parsing declarations to

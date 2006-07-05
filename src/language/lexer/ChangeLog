@@ -1,3 +1,13 @@
+Tue Jul  4 09:45:12 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #15766 (/KEEP subcommand on SAVE doesn't fully support
+	ALL) and additional underlying system file issues.
+	
+	* variable-parser.c (add_variable): Move test earlier for clarity
+	and efficiency.
+	(parse_var_set_vars) Accept ALL within a variable list, not just
+	at the beginning of one.
+
 Tue Jun 27 22:54:30 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk (src_language_lexer_liblexer_a_SOURCES): Add
