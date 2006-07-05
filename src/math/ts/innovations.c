@@ -170,7 +170,6 @@ innovations_update_coeff (double **theta, struct innovations_estimate *est,
   size_t i;
   size_t j;
   size_t k;
-  double v;
 
   for (i = 0; i < max_lag; i++)
     {
@@ -195,7 +194,7 @@ get_coef (const gsl_matrix *data,
   theta = xnmalloc (max_lag, sizeof (*theta));
   for (i = 0; i < max_lag; i++)
     {
-      theta[i] = xnmalloc (i + 1, sizeof (**(theta + i)));
+      theta[i] = xnmalloc (max_lag, sizeof (**(theta + i)));
     }
 
   for (n = 0; n < data->size2; n++)
@@ -236,30 +235,37 @@ get_coef (const gsl_matrix *data,
   free (theta);
 }
 
+static void
+innovations_struct_init (struct innovations_estimate *est, size_t lag)
+{
+  size_t j;
+
+  est->mean = 0.0;
+  est->variance = 0.0;
+  est->cov = xnmalloc (lag, sizeof (*est->cov));
+  est->scale = xnmalloc (lag, sizeof (*est->scale));
+  est->coeff = xnmalloc (lag, sizeof (*est->coeff));
+  est->max_lag = (double) lag;
+  /* COV does not the variance (i.e., the lag 0 covariance). So COV[0]
+     holds the lag 1 covariance, COV[i] holds the lag i+1 covariance. */
+  for (j = 0; j < lag; j++)
+    {
+      est->coeff[j] = xmalloc (sizeof (*(est->coeff[j])));
+    }
+}
+      
 struct innovations_estimate ** 
 pspp_innovations (const gsl_matrix *data, size_t lag)
 {
   struct innovations_estimate **est;
   size_t i;
-  size_t j;
 
   est = xnmalloc (data->size2, sizeof *est);
   for (i = 0; i < data->size2; i++)
     {
       est[i] = xmalloc (sizeof *est[i]);
 /*       est[i]->variable = vars[i]; */
-      est[i]->mean = 0.0;
-      est[i]->variance = 0.0;
-      /* COV does not the variance (i.e., the lag 0 covariance). So COV[0]
-         holds the lag 1 covariance, COV[i] holds the lag i+1 covariance. */
-      est[i]->cov = xnmalloc (lag, sizeof (*est[i]->cov));
-      est[i]->scale = xnmalloc (lag, sizeof (*est[i]->scale));
-      est[i]->coeff = xnmalloc (lag, sizeof (*est[i]->coeff));
-      est[i]->max_lag = (double) lag;
-      for (j = 0; j < lag; j++)
-	{
-	  est[i]->coeff[j] = xmalloc (sizeof (*(est[i]->coeff + j)));
-	}
+      innovations_struct_init (est[i], lag);
     }
 
   get_mean_variance (data, est);
