@@ -47,7 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    +n=custom;
    +savage=custom;
    +print=print:!yes/no;
-   +missing=miss:!exclude/include.
+   missing=miss:!exclude/include.
 */
 /* (declarations) */
 /* (functions) */

@@ -64,9 +64,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    *^variables=custom;
    +total=custom;
    +nototal=custom;
-   +missing=miss:pairwise/!listwise,
-   rep:report/!noreport,
-   incl:include/!exclude;
+   missing=miss:pairwise/!listwise,
+           rep:report/!noreport,
+           incl:include/!exclude;
    +compare=cmp:variables/!groups;
    +percentiles=custom;
    +id=var;

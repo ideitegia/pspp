@@ -1,3 +1,10 @@
+Sat Jul  1 17:40:38 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #11612, "q2c documentation does not agree with code".
+	
+	* q2c.c (parse_subcommand): Make "+" mean ARITY_MANY, absence
+	mean ARITY_ONCE_ONLY.
+
 Tue Jul  4 09:45:12 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #15766 (/KEEP subcommand on SAVE doesn't fully support

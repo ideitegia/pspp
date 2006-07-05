@@ -57,10 +57,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* (specification)
    "ONEWAY" (oneway_):
    *^variables=custom;
-   +missing=miss:!analysis/listwise,
-   incl:include/!exclude;
-   contrast= double list;
-   statistics[st_]=descriptives,homogeneity.
+   missing=miss:!analysis/listwise,
+           incl:include/!exclude;
+   +contrast= double list;
+   +statistics[st_]=descriptives,homogeneity.
 */
 /* (declarations) */
 /* (functions) */

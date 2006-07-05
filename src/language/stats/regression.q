@@ -57,27 +57,27 @@
 /* (specification)
    "REGRESSION" (regression_):
    *variables=custom;
-   statistics[st_]=r,
-   coeff,
-   anova,
-   outs,
-   zpp,
-   label,
-   sha,
-   ci,
-   bcov,
-   ses,
-   xtx,
-   collin,
-   tol,
-   selection,
-   f,
-   defaults,
-   all;
+   +statistics[st_]=r,
+                    coeff,
+                    anova,
+                    outs,
+                    zpp,
+                    label,
+                    sha,
+                    ci,
+                    bcov,
+                    ses,
+                    xtx,
+                    collin,
+                    tol,
+                    selection,
+                    f,
+                    defaults,
+                    all;
    export=custom;
    ^dependent=varlist;
-   save[sv_]=resid,pred;
-   method=enter.
+   +save[sv_]=resid,pred;
+   +method=enter.
 */
 /* (declarations) */
 /* (functions) */

@@ -123,13 +123,12 @@ separated by semicolons (@samp{;}) and terminated with a full stop
 (@samp{.}).
 
 @example
-subcommand ::= sbc-options ID sbc-defn
-sbc-options ::= 
-            ::= sbc-option
-            ::= sbc-options sbc-options
-sbc-option ::= *
-           ::= +
-           ::= ^
+subcommand ::= default-opt arity-opt ID sbc-defn
+default-opt ::=
+            ::= *
+arity-opt ::=
+          ::= +
+          ::= ^
 sbc-defn ::= opt-prefix = specifiers
          ::= [ ID ] = array-sbc
          ::= opt-prefix = sbc-special-form
@@ -137,16 +136,16 @@ opt-prefix ::=
            ::= ( ID )
 @end example
 
-Each subcommand can be prefixed with one or more option characters.  An
-asterisk (@samp{*}) is used to indicate the default subcommand; the
-keyword used for the default subcommand can be omitted in the PSPP
-syntax file.  A plus sign (@samp{+}) is used to indicate that a
-subcommand can appear more than once; if it is not present then that
-subcommand can appear no more than once.
-A carat sign (@samp{^}) is used to indicate that a subcommand must appear
-at least once.
+A subcommand that begins with an asterisk (@samp{*}) is the default
+subcommand.  The keyword used for the default subcommand can be omitted
+in the PSPP syntax file.
 
-The subcommand name appears after the option characters.
+A plus sign (@samp{+}) indicates that a subcommand can appear more than
+once.  A caret (@samp{^}) indicate that a subcommand must appear exactly
+once.  A subcommand marked with neither character may appear once or not
+at all, but not more than once.
+
+The subcommand name appears after the leading option characters.
 
 There are three forms of subcommands.  The first and most common form
 simply gives an equals sign (@samp{=}) and a list of specifiers, which

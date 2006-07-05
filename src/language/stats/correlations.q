@@ -59,8 +59,8 @@ cmd_correlations (void)
 /* (specification)
    "CORRELATIONS" (cor_):
      *variables=custom;
-     +missing=miss:!pairwise/listwise,
-	      inc:include/exclude;
+     missing=miss:!pairwise/listwise,
+	     inc:include/exclude;
      +print=tail:!twotail/onetail,
 	    sig:!sig/nosig;
      +format=fmt:!matrix/serial;

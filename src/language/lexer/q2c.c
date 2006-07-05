@@ -739,8 +739,6 @@ parse_specifiers (subcommand *sbc)
 static void
 parse_subcommand (subcommand *sbc)
 {
-  sbc->arity = ARITY_MANY;
-
   if (match_token ('*'))
     {
       if (def)
@@ -748,8 +746,9 @@ parse_subcommand (subcommand *sbc)
       def = sbc;
     }
 
+  sbc->arity = ARITY_ONCE_ONLY;
   if ( match_token('+'))
-    sbc->arity = ARITY_ONCE_ONLY ;
+    sbc->arity = ARITY_MANY;
   else if (match_token('^'))
     sbc->arity = ARITY_ONCE_EXACTLY ;
 

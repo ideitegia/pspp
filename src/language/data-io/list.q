@@ -52,9 +52,9 @@
    list (lst_):
      *variables=varlist("PV_NO_SCRATCH");
      cases=:from n:first,"%s>0"/by n:step,"%s>0"/ *to n:last,"%s>0";
-     format=numbering:numbered/!unnumbered,
-            wrap:!wrap/single,
-            weight:weight/!noweight.
+     +format=numbering:numbered/!unnumbered,
+             wrap:!wrap/single,
+             weight:weight/!noweight.
 */
 /* (declarations) */
 /* (functions) */

@@ -59,11 +59,11 @@
    "T-TEST" (tts_):
      +groups=custom;
      testval=double;
-     variables=varlist("PV_NO_SCRATCH | PV_NUMERIC");
-     pairs=custom;
-     +missing=miss:!analysis/listwise,
-             incl:include/!exclude;
-     format=fmt:!labels/nolabels;
+     +variables=varlist("PV_NO_SCRATCH | PV_NUMERIC");
+     +pairs=custom;
+     missing=miss:!analysis/listwise,
+            incl:include/!exclude;
+     +format=fmt:!labels/nolabels;
      criteria=:cin(d:criteria,"%s > 0. && %s < 1.").
 */
 /* (declarations) */

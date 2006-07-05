@@ -1,3 +1,18 @@
+Sat Jul  1 17:41:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #11612, "q2c documentation does not agree with code".
+	
+	* examine.q: Audit use of q2c "+" prefixes that indicate that a
+	command may appear multiple times.
+
+	* frequencies.q: Ditto.
+
+	* oneway.q: Ditto.
+
+	* regression.q: Ditto.
+
+	* t-test.q: Ditto.
+
 Fri Jun 23 14:18:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	Support long string variables on FREQUENCIES, as

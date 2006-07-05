@@ -44,7 +44,7 @@
             name:!names/nonames,
             val:!values/novalues,
             fmt:!table/tree;
-     +missing=miss:!table/include/dependent;
+     missing=miss:!table/include/dependent;
      +cells[cl_]=default,count,sum,mean,stddev,variance,all;
      +statistics[st_]=anova,linearity,all,none.
 */

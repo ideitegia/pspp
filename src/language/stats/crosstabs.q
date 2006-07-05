@@ -68,7 +68,7 @@
    crosstabs (crs_):
      *^tables=custom;
      +variables=custom;
-     +missing=miss:!table/include/report;
+     missing=miss:!table/include/report;
      +write[wr_]=none,cells,all;
      +format=fmt:!labels/nolabels/novallabs,
 	     val:!avalue/dvalue,

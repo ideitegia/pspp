@@ -68,13 +68,13 @@
 
 /* (specification)
    FREQUENCIES (frq_):
-     *variables=custom;
-     format=cond:condense/onepage(*n:onepage_limit,"%s>=0")/!standard,
-	    table:limit(n:limit,"%s>0")/notable/!table, 
-	    labels:!labels/nolabels,
-	    sort:!avalue/dvalue/afreq/dfreq,
-	    spaces:!single/double,
-	    paging:newpage/!oldpage;
+     *+variables=custom;
+     +format=cond:condense/onepage(*n:onepage_limit,"%s>=0")/!standard,
+	     table:limit(n:limit,"%s>0")/notable/!table, 
+	     labels:!labels/nolabels,
+	     sort:!avalue/dvalue/afreq/dfreq,
+	     spaces:!single/double,
+	     paging:newpage/!oldpage;
      missing=miss:include/!exclude;
      barchart(ba_)=:minimum(d:min),
 	    :maximum(d:max),
@@ -92,12 +92,12 @@
 	    scale:freq(*n:freq,"%s>0")/percent(*n:pcnt,"%s>0"),
 	    norm:!nonormal/normal,
 	    incr:increment(d:inc,"%s>0");
-     grouped=custom;
-     ntiles=integer;
+     +grouped=custom;
+     +ntiles=integer;
      +percentiles = double list;
-     statistics[st_]=1|mean,2|semean,3|median,4|mode,5|stddev,6|variance,
-	    7|kurtosis,8|skewness,9|range,10|minimum,11|maximum,12|sum,
-	    13|default,14|seskewness,15|sekurtosis,all,none.
+     +statistics[st_]=1|mean,2|semean,3|median,4|mode,5|stddev,6|variance,
+ 	    7|kurtosis,8|skewness,9|range,10|minimum,11|maximum,12|sum,
+ 	    13|default,14|seskewness,15|sekurtosis,all,none.
 */
 /* (declarations) */
 /* (functions) */
