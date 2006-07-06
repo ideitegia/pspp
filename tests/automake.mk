@@ -141,6 +141,7 @@ EXTRA_DIST += $(TESTS) tests/weighting.data tests/data-list.data tests/list.data
 	tests/expressions/randist/logistic.out \
 	tests/expressions/randist/normal.out \
 	tests/expressions/randist/pareto.out \
+	tests/expressions/randist/compare.pl \
 	tests/expressions/randist/randist.pl \
 	tests/expressions/randist/randist.txt \
 	tests/expressions/randist/t.out \

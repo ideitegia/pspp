@@ -1,3 +1,7 @@
+Wed Jul  5 22:15:24 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add expressions/randist/compare.pl to EXTRA_DIST.
+
 Tue Jul  4 09:59:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #15766 (/KEEP subcommand on SAVE doesn't fully support
