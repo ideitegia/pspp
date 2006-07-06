@@ -114,7 +114,7 @@ get_covariance (const gsl_matrix *data,
     {
       for (j = 0; j < data->size2; j++)
 	{
-	  *(est[j]->cov + lag) /= (est[j]->n_obs - lag);
+	  *(est[j]->cov + lag - 1) /= (est[j]->n_obs - lag);
 	}
     }
   return rc;
@@ -140,14 +140,16 @@ innovations_update_scale (struct innovations_estimate *est, double *theta,
   size_t j;
   size_t k;
 
-
-  result = est->variance;
-  for (j = 0; j < i; j++)
+  if (i < (size_t) est->max_lag)
     {
-      k = i - j - 1;
-      result -= theta[k] * theta[k] * est->scale[j];
+      result = est->variance;
+      for (j = 0; j < i; j++)
+	{
+	  k = i - j - 1;
+	  result -= theta[k] * theta[k] * est->scale[j];
+	}
+      est->scale[i] = result;
     }
-  est->scale[i] = result;
 }
 static void
 init_theta (double **theta, size_t max_lag)
@@ -243,7 +245,7 @@ innovations_struct_init (struct innovations_estimate *est, size_t lag)
   est->mean = 0.0;
   est->variance = 0.0;
   est->cov = xnmalloc (lag, sizeof (*est->cov));
-  est->scale = xnmalloc (lag, sizeof (*est->scale));
+  est->scale = xnmalloc (lag + 1, sizeof (*est->scale));
   est->coeff = xnmalloc (lag, sizeof (*est->coeff));
   est->max_lag = (double) lag;
   /* COV does not the variance (i.e., the lag 0 covariance). So COV[0]
@@ -281,12 +283,13 @@ pspp_innovations_free_one (struct innovations_estimate *est)
   size_t i;
 
   assert (est != NULL);
-  free (est->cov);
-  free (est->scale);
   for (i = 0; i < (size_t) est->max_lag; i++)
     {
       pspp_coeff_free (est->coeff[i]);
     }
+  free (est->scale);
+  free (est->cov);
+  free (est);
 }
 
 void pspp_innovations_free (struct innovations_estimate **est, size_t n)
