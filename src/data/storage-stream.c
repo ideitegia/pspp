@@ -21,6 +21,7 @@
 
 #include <data/storage-stream.h>
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include <data/case-sink.h>

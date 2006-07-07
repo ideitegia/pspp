@@ -1,3 +1,9 @@
+Thu Jul  6 19:09:53 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix link error noted by Jason Stover.
+	
+	* storage-stream.c: Include <assert.h>.
+
 Tue Jul  4 08:47:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #15766 (/KEEP subcommand on SAVE doesn't fully support
