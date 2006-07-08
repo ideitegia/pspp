@@ -18,16 +18,19 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "file-handle-def.h"
-#include <libpspp/message.h>
+
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include "file-name.h"
-#include <libpspp/message.h>
 #include <libpspp/magic.h>
+#include <libpspp/message.h>
+#include "file-name.h"
 #include "variable.h"
 #include "scratch-handle.h"
 

@@ -28,6 +28,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/array.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
@@ -259,7 +260,7 @@ cmd_modify_vars (void)
                               compare_variables_given_ordering,
                               &forward_positional_ordering)
               != drop_cnt)
-            assert (0);
+            NOT_REACHED ();
 
           free (keep_vars);
           free (all_vars);
@@ -420,7 +421,7 @@ validate_var_modification (const struct dictionary *d,
                       keep_vars,
                       compare_variables_given_ordering,
                       &forward_positional_ordering) != keep_cnt)
-    assert (0);
+    NOT_REACHED ();
 
   /* Copy variables into var_renaming array. */
   var_renaming = xnmalloc (keep_cnt, sizeof *var_renaming);
@@ -514,7 +515,7 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
   /* Do renaming. */
   if (dict_rename_vars (d, rename_vars, rename_new_names, rename_cnt,
                         NULL) == 0)
-    assert (0);
+    NOT_REACHED ();
 
   /* Clean up. */
   for (i = 0; i < vm->rename_cnt; i++)

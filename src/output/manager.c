@@ -21,6 +21,7 @@
 #include "manager.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <libpspp/assertion.h>
 #include "output.h"
 
 /* Table. */
@@ -110,7 +111,7 @@ som_submit (struct som_entity *t)
 	{
 	  printf ("headers: (l,r)=(%d,%d), (t,b)=(%d,%d) in table size (%d,%d)\n",
 		  hl, hr, ht, hb, nc, nr);
-	  abort ();
+	  NOT_REACHED ();
 	}
       else if (hl + hr == nc)
 	printf ("warning: headers (l,r)=(%d,%d) in table width %d\n", hl, hr, nc);

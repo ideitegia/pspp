@@ -96,14 +96,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
+#include <libpspp/assertion.h>
 
-/* Some of the assertions in this file are very expensive.  We
-   don't use them by default. */
-#ifdef EXTRA_CHECKS
-#define expensive_assert(X) assert(X)
-#else
-#define expensive_assert(X) ((void) 0)
-#endif
 #include "message.h"
 
 /* Finds an element in ARRAY, which contains COUNT elements of

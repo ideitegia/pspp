@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <libpspp/alloc.h>
 #include <libpspp/version.h>
@@ -122,58 +123,30 @@ msg_get_command_name (void)
 }
 
 void 
-request_bug_report_and_abort(const char *msg )
+request_bug_report_and_abort (const char *msg)
 {
-  fprintf(stderr,
-	  "******************************************************************\n"
-	  "You have discovered a bug in PSPP.\n\n"
-	  "  Please report this, by sending "
-	  "an email to " PACKAGE_BUGREPORT ",\n"
-	  "explaining what you were doing when this happened, and including\n"
-	  "a sample of your input file which caused it.\n");
-
-  fprintf(stderr,
-	  "Also, please copy the following lines into your bug report:\n\n"
-	  "bare_version:        %s\n" 
-	  "version:             %s\n"
-	  "stat_version:        %s\n"
-	  "host_system:         %s\n"
-	  "build_system:        %s\n"
-	  "default_config_path: %s\n"
-	  "include_path:        %s\n"
-	  "locale_dir:          %s\n"
-	  "compiler version:    %s\n"
-	  ,
-
-	  bare_version,         
-	  version,
-	  stat_version,
-	  host_system,        
-	  build_system,
-	  default_config_path,
-	  include_path, 
-	  locale_dir,
+  fprintf (stderr, "******************************************************\n");
+  fprintf (stderr, "You have discovered a bug in PSPP.  Please report this\n");
+  fprintf (stderr, "to " PACKAGE_BUGREPORT ".  Please include this entire\n");
+  fprintf (stderr, "message, *plus* several lines of output just above it.\n");
+  fprintf (stderr, "For the best chance at having the bug fixed, also\n");
+  fprintf (stderr, "include the syntax file that triggered it and a sample\n");
+  fprintf (stderr, "of any data file used for input.\n");
+  fprintf (stderr, "proximate cause:     %s\n", msg);
+  fprintf (stderr, "version:             %s\n", stat_version);
+  fprintf (stderr, "host_system:         %s\n", host_system);
+  fprintf (stderr, "build_system:        %s\n", build_system);
+  fprintf (stderr, "default_config_path: %s\n", default_config_path);
+  fprintf (stderr, "include_path:        %s\n", include_path);
+  fprintf (stderr, "locale_dir:          %s\n", locale_dir);
+  fprintf (stderr, "compiler version:    %s\n",
 #ifdef __VERSION__
-	  __VERSION__
+           __VERSION__
 #else
-	  "Unknown"
+           "Unknown"
 #endif
-	  );     
+           );     
+  fprintf (stderr, "******************************************************\n");
 
-  if ( msg )
-    fprintf(stderr,"Diagnosis: %s\n",msg);
-
-  fprintf(stderr,
-    "******************************************************************\n");
-
-  abort();
+  _exit (EXIT_FAILURE);
 }
-
-void 
-msg_assert_fail(const char *expr, const char *file, int line)
-{
-  char msg[256];
-  snprintf(msg,256,"Assertion failed: %s:%d; (%s)",file,line,expr);
-  request_bug_report_and_abort( msg );
-}
-

@@ -26,6 +26,7 @@
 #include <minmax.h>
 
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/compiler.h>
 #include <libpspp/magic.h>
@@ -1619,7 +1620,7 @@ read_compressed_data (struct sfm_reader *r, flt64 *buf)
       p = r->x;
     }
 
-  abort ();
+  NOT_REACHED ();
 
  success:
   /* We have filled up an entire record.  Update state and return

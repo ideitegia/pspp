@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "calendar.h"
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include "format.h"
 #include <libpspp/magic.h>
@@ -101,12 +102,10 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
           break;
 
         case FMT_A:
-          assert (0);
-          abort ();
+          NOT_REACHED ();
 
         case FMT_AHEX:
-          assert (0);
-          abort ();
+          NOT_REACHED ();
 
         case FMT_IB:
           ok = convert_IB (s, fp, number);
@@ -159,8 +158,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
           break;
 
         default:
-          assert (0);
-          abort ();
+          NOT_REACHED ();
         }
     }
   else 
@@ -179,8 +177,7 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
           break;
 
         default:
-          assert (0);
-          abort ();
+          NOT_REACHED ();
         }
     }
 
@@ -751,7 +748,7 @@ convert_date (char *dst, const struct fmt_spec *fp, double number)
       }
       break;
     default:
-      assert (0);
+      NOT_REACHED ();
     }
 
   if (buf[0] == 0)

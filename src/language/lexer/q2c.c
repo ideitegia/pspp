@@ -27,6 +27,7 @@
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
 #include "exit.h"
@@ -1321,7 +1322,7 @@ dump_vars_init (int persistent)
 		break;
 
 	      default:
-		assert (0);
+		NOT_REACHED ();
 	      }
 	  }
       }
@@ -1709,7 +1710,7 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1, "default:");
       indent ();
-      dump (0, "assert (0);");
+      dump (0, "NOT_REACHED ();");
       dump (-1, "}");
       outdent ();
     }
@@ -1775,7 +1776,7 @@ dump_parser (int persistent)
       dump (0, "break;");
       dump (-1, "default:");
       indent ();
-      dump (0, "assert (0);");
+      dump (0, "NOT_REACHED ();");
       dump (-1, "}");
       outdent ();
     }
@@ -2030,6 +2031,7 @@ main (int argc, char *argv[])
 
 	  dump (0, "#include <stdlib.h>");
 	  dump (0, "#include <libpspp/alloc.h>");
+	  dump (0, "#include <libpspp/assertion.h>");
 	  dump (0, "#include <libpspp/message.h>");
 	  dump (0, "#include <language/lexer/lexer.h>");
 	  dump (0, "#include <language/lexer/variable-parser.h>");

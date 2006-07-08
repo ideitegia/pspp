@@ -36,6 +36,7 @@
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
@@ -623,7 +624,7 @@ ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
 	ssbox_paired_init(ssb,cmd);
 	break;
       default:
-	assert(0);
+	NOT_REACHED ();
       }
 }
 
@@ -937,7 +938,7 @@ trbox_create(struct trbox *trb,
 	trbox_paired_init(trb,cmd);
 	break;
       default:
-	assert(0);
+        NOT_REACHED ();
       }
 }
 
@@ -1970,7 +1971,7 @@ hash_group_binary(const struct group_statistics *g,
       flag = which_group(g,p);
     }
   else
-    assert(0);
+    NOT_REACHED ();
 
   return flag;
 }

@@ -37,6 +37,7 @@
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
@@ -205,7 +206,7 @@ init_case (const struct input_program_pgm *inp, struct ccase *c)
         memset (case_data_rw (c, i)->s, ' ', sizeof case_data_rw (c, i)->s);
         break;
       default:
-        assert (0);
+        NOT_REACHED ();
       }
 }
 
@@ -229,7 +230,7 @@ clear_case (const struct input_program_pgm *inp, struct ccase *c)
         memset (case_data_rw (c, i)->s, ' ', sizeof case_data_rw (c, i)->s);
         break;
       default:
-        assert (0);
+        NOT_REACHED ();
       }
 }
 

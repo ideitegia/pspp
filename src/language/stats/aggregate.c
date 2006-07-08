@@ -38,7 +38,7 @@
 #include <language/lexer/variable-parser.h>
 #include <language/stats/sort-criteria.h>
 #include <libpspp/alloc.h>
-#include <libpspp/message.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -892,7 +892,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
                caught earlier.  Nothing to do. */
             break;
 	  default:
-	    assert (0);
+	    NOT_REACHED ();
 	  }
     } else {
       switch (iter->function)
@@ -904,7 +904,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	  iter->int1++;
 	  break;
 	default:
-	  assert (0);
+	  NOT_REACHED ();
 	}
     }
 }
@@ -1033,7 +1033,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    v->f = i->int1;
 	    break;
 	  default:
-	    assert (0);
+	    NOT_REACHED ();
 	  }
       }
   }

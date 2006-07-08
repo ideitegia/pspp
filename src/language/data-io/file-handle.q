@@ -27,6 +27,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/line-buffer.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/magic.h>
 #include <libpspp/str.h>
@@ -109,7 +110,7 @@ cmd_file_handle (void)
         properties.record_width = cmd.n_lrecl[0];
       break;
     default:
-      assert (0);
+      NOT_REACHED ();
     }
 
   if (cmd.mode != FH_SCRATCH)
@@ -154,7 +155,7 @@ referent_name (enum fh_referent referent)
     case FH_REF_SCRATCH:
       return _("scratch file");
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 

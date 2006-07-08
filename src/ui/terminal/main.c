@@ -75,6 +75,7 @@ void interrupt_handler(int sig);
 int
 main (int argc, char **argv)
 {
+  signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
   signal (SIGINT, interrupt_handler);
@@ -149,15 +150,14 @@ bug_handler(int sig)
 {
   switch (sig) 
     {
+    case SIGABRT:
+      request_bug_report_and_abort("Assertion Failure/Abort");
     case SIGFPE:
       request_bug_report_and_abort("Floating Point Exception");
-      break;
     case SIGSEGV:
       request_bug_report_and_abort("Segmentation Violation");
-      break;
     default:
-      request_bug_report_and_abort("");
-      break;
+      request_bug_report_and_abort("Unknown");
     }
 }
 

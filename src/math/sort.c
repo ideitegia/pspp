@@ -37,6 +37,7 @@
 #include <language/expressions/public.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
@@ -173,7 +174,7 @@ do_internal_sort (struct casereader *reader,
             {
               bool ok = casereader_read_xfer (reader, &cases[i].c);
               if (!ok)
-                abort ();
+                NOT_REACHED ();
               cases[i].idx = i;
             }
 
@@ -183,7 +184,7 @@ do_internal_sort (struct casereader *reader,
           for (i = 0; i < case_cnt; i++)
             casefile_append_xfer (dst, &cases[i].c);
           if (casefile_error (dst))
-            abort ();
+            NOT_REACHED ();
 
           free (cases);
         }

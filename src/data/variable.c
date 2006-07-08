@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include "variable.h"
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
@@ -346,8 +347,7 @@ dict_class_to_name (enum dict_class dict_class)
     case DC_SCRATCH:
       return _("scratch");
     default:
-      assert (0);
-      abort ();
+      NOT_REACHED ();
     }
 }
 

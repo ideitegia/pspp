@@ -21,6 +21,7 @@
 #include "pool.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include <libpspp/assertion.h>
 #include "message.h"
 #include "size_max.h"
 #include "str.h"
@@ -915,7 +916,7 @@ free_gizmo (struct pool_gizmo *gizmo)
       gizmo->p.registered.free (gizmo->p.registered.p);
       break;
     default:
-      assert (0);
+      NOT_REACHED ();
     }
 }
 

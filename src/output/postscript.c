@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
 #include <libpspp/freaderror.h>
@@ -374,7 +375,7 @@ handle_option (struct outp_driver *this, const char *key,
 	    this->font_height = arg;
 	    break;
 	  default:
-	    abort ();
+	    NOT_REACHED ();
 	  }
       }
       break;
@@ -400,7 +401,7 @@ handle_option (struct outp_driver *this, const char *key,
 	    x->line_width = dimension;
 	    break;
 	  default:
-	    abort ();
+	    NOT_REACHED ();
 	  }
       }
       break;
@@ -417,7 +418,7 @@ handle_option (struct outp_driver *this, const char *key,
       }
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 
   return true;
@@ -608,8 +609,7 @@ ps_submit (struct outp_driver *this UNUSED, struct som_entity *s)
     case SOM_CHART:
       break;
     default:
-      abort ();
-      break;
+      NOT_REACHED ();
     }
 }
 

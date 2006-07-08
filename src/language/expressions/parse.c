@@ -31,6 +31,7 @@
 #include "helpers.h"
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
+#include <libpspp/assertion.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <data/settings.h>
@@ -167,7 +168,7 @@ atom_type_stack (atom_type type)
       return &not_on_stack;
           
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 
@@ -271,7 +272,7 @@ type_check (struct expression *e,
       break;
 
     default:
-      abort ();
+      NOT_REACHED ();
     }
   
   return true;
@@ -345,7 +346,7 @@ type_coercion_core (struct expression *e,
       break;
 
     case OP_format:
-      abort ();
+      NOT_REACHED ();
 
     case OP_ni_format:
       if ((*node)->type == OP_format
@@ -399,7 +400,7 @@ type_coercion_core (struct expression *e,
       break;
 
     default:
-      abort ();
+      NOT_REACHED ();
     }
 
   if (do_coercion) 
@@ -1282,7 +1283,7 @@ expr_node_returns (const union any_node *n)
   else if (is_composite (n->type))
     return operations[n->type].returns;
   else
-    abort ();
+    NOT_REACHED ();
 }
 
 static const char *

@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <data/format.h>
 #include <libpspp/magic.h>
@@ -305,7 +306,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
 	      x2, t->col_ofs, x2 + t->col_ofs,
 	      y2, t->row_ofs, y2 + t->row_ofs,
 	      t->nc, t->nr);
-      abort ();
+      NOT_REACHED ();
     }
 #endif
 
@@ -804,12 +805,12 @@ tab_offset (struct tab_table *t, int col, int row)
   if (row < -1 || row >= t->nr)
     {
       printf ("tab_offset(): row=%d in %d-row table\n", row, t->nr);
-      abort ();
+      NOT_REACHED ();
     }
   if (col < -1 || col >= t->nc)
     {
       printf ("tab_offset(): col=%d in %d-column table\n", col, t->nc);
-      abort ();
+      NOT_REACHED ();
     }
 #endif
 
@@ -870,7 +871,7 @@ rule_to_spacing_type (unsigned char type)
     case TAL_2:
       return OUTP_L_DOUBLE;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 
@@ -1256,7 +1257,7 @@ translate_justification (unsigned int opt)
     case TAB_CENTER:
       return OUTP_CENTER;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 
@@ -1275,7 +1276,7 @@ rule_to_draw_type (unsigned char type)
     case TAL_2:
       return OUTP_L_DOUBLE;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 

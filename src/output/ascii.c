@@ -26,6 +26,7 @@
 
 #include <data/file-name.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/pool.h>
 #include <libpspp/start-date.h>
@@ -323,7 +324,7 @@ handle_option (struct outp_driver *this, const char *key,
 	    this->width = arg;
 	    break;
 	  default:
-	    abort ();
+	    NOT_REACHED ();
 	  }
       }
       break;
@@ -365,7 +366,7 @@ handle_option (struct outp_driver *this, const char *key,
 	    x->tab_width = arg;
 	    break;
 	  default:
-	    abort ();
+	    NOT_REACHED ();
 	  }
       }
       break;
@@ -395,12 +396,12 @@ handle_option (struct outp_driver *this, const char *key,
             x->squeeze_blank_lines = setting;
             break;
 	  default:
-	    abort ();
+	    NOT_REACHED ();
 	  }
       }
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 
   return true;
@@ -511,7 +512,7 @@ text_draw (struct outp_driver *this,
       x += width - length;
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 
   if (y >= this->length || x >= this->width)

@@ -1,3 +1,18 @@
+Fri Jul  7 20:01:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: (src_libpspp_libpspp_a_SOURCES) Add assertion.h.
+	
+	* assertion.h: New file.  Replaced usage of assert(0) and abort()
+	with NOT_REACHED() from this file throughout the source tree.
+
+	* message.c: (request_bug_report_and_abort) Revise message printed
+	to include request to include lines above the message, which
+	should include an assertion failure message in many cases.
+	(msg_assert_fail) Removed.
+
+	* message.h: (assert) Removed.
+	(request_bug_report_and_abort) Mark NO_RETURN.
+
 Mon Jul  3 09:36:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* i18n.c: Made character conversion tolerant of failure to create the 

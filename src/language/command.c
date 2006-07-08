@@ -34,6 +34,7 @@
 #include <language/lexer/lexer.h>
 #include <language/line-buffer.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
@@ -421,7 +422,7 @@ find_command (const char *name)
   for (cmd = commands; cmd < commands + command_cnt; cmd++) 
     if (!strcmp (cmd->name, name))
       return cmd;
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Frees the WORD_CNT words in WORDS. */
@@ -595,7 +596,7 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
       else if (allowed_cnt == 3)
         s = xasprintf (_("%s, %s, or %s"), allowed[0], allowed[1], allowed[2]);
       else
-        abort ();
+        NOT_REACHED ();
 
       msg (SE, _("%s is allowed only %s."), command->name, s);
 

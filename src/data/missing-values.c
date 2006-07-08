@@ -21,6 +21,7 @@
 #include "missing-values.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <libpspp/assertion.h>
 #include <libpspp/str.h>
 
 
@@ -90,7 +91,7 @@ mv_add_value (struct missing_values *mv, const union value *v)
     case MV_RANGE_1:
       return false;
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Attempts to add S to the set of string missing values MV.  S
@@ -139,7 +140,7 @@ mv_add_num_range (struct missing_values *mv, double low, double high)
     case MV_RANGE_1:
       return false;
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Returns true if MV contains an individual value,
@@ -159,7 +160,7 @@ mv_has_value (const struct missing_values *mv)
     case MV_RANGE:
       return false;
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Removes one individual value from MV and stores it in *V.
@@ -224,7 +225,7 @@ mv_has_range (const struct missing_values *mv)
     case MV_3:
       return false;
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Removes the numeric range from MV and stores it in *LOW and
@@ -275,7 +276,7 @@ using_element (unsigned type, int idx)
     case MV_RANGE_1:
       return true;
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Returns true if S contains only spaces between indexes
@@ -398,7 +399,7 @@ mv_is_num_user_missing (const struct missing_values *mv, double d)
     case MV_RANGE_1:
       return v[0].f == d || (v[1].f <= d && d <= v[2].f);
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Returns true if S[] is a missing value in MV, false otherwise.
@@ -425,9 +426,9 @@ mv_is_str_user_missing (const struct missing_values *mv,
               || !memcmp (v[2].s, s, mv->width));
     case MV_RANGE:
     case MV_RANGE_1:
-      abort ();
+      NOT_REACHED ();
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Returns true if MV is a set of numeric missing values and V is

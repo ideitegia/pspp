@@ -27,6 +27,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <language/command.h>
 #include <libpspp/message.h>
 #include <language/line-buffer.h>
@@ -934,7 +935,7 @@ lex_token_representation (void)
 	}
     }
 	
-  assert (0);
+  NOT_REACHED ();
 }
 
 /* Really weird functions. */
@@ -1018,7 +1019,7 @@ convert_numeric_string_to_char_string (enum string_type type)
       chars_per_byte = 2;
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
   
   byte_cnt = ds_length (&tokstr) / chars_per_byte;

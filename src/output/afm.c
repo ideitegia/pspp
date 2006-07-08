@@ -31,6 +31,7 @@
 #include <setjmp.h>
 #include "error.h"
 #include "minmax.h"
+#include <libpspp/assertion.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
@@ -1146,7 +1147,7 @@ afm_encode_string (const struct afm *afm,
           break;
       
         default:
-          abort ();
+          NOT_REACHED ();
         }
       binary_finish (&e);
     }

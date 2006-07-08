@@ -269,7 +269,7 @@ write_all_headers (const struct ccase *c, void *aux UNUSED)
 	  fputs ("  </TR>\n", x->file);
 	}
       else
-	assert (0);
+	NOT_REACHED ();
     }
 }
 
@@ -387,7 +387,7 @@ clean_up (void)
 	  }
       }
     else
-      assert (0);
+      NOT_REACHED ();
   
   free (cmd.v_variables);
 }
@@ -718,7 +718,7 @@ list_cases (const struct ccase *c, void *aux UNUSED)
 	fputs ("  </TR>\n", x->file);
       }
     else
-      assert (0);
+      NOT_REACHED ();
 
   return true;
 }

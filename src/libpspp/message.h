@@ -107,15 +107,6 @@ void msg_pop_msg_locator (const struct msg_locator *);
 
 
 /* Used in panic situations only. */
-void request_bug_report_and_abort (const char *msg);
-
-void msg_assert_fail (const char *expr, const char *file, int line);
-
-#undef __STRING
-#define __STRING(x) #x
-#undef assert
-			       
-#define assert(expr) ( (void) ( expr ? (void) 0 : \
-	       msg_assert_fail(__STRING(expr), __FILE__, __LINE__)) )
+void request_bug_report_and_abort (const char *msg) NO_RETURN;
 
 #endif /* message.h */

@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include "helpers.h"
 #include "evaluate.h"
@@ -67,7 +68,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
 #include "evaluate.inc"
           
 	default:
-	  abort ();
+	  NOT_REACHED ();
 	}
     }
 }
@@ -233,7 +234,7 @@ cmd_debug_evaluate (void)
         }
 
       default:
-        assert (0);
+        NOT_REACHED ();
       }
 
   expr_free (expr);
@@ -299,7 +300,7 @@ expr_debug_print_postfix (const struct expression *e)
           fprintf (stderr, "i<%d>", op->integer);
           break;
         default:
-          abort ();
+          NOT_REACHED ();
         } 
     }
   fprintf (stderr, "\n");

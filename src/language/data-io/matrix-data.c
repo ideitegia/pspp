@@ -36,6 +36,7 @@
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
@@ -754,7 +755,7 @@ mdump_token (const struct matrix_token *token)
       printf (" '%.*s'", token->length, token->string);
       break;
     default:
-      assert (0);
+      NOT_REACHED ();
     }
   fflush (stdout);
 }
@@ -1066,16 +1067,14 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	      n_cols = mx->n_continuous;
 	      break;
 	    default:
-	      assert (0);
-              abort ();
+              NOT_REACHED ();
 	    }
 	  break;
 	case 2:
 	  n_cols = 1;
 	  break;
 	default:
-	  assert (0);
-          abort ();
+          NOT_REACHED ();
 	}
 
       {
@@ -1935,13 +1934,11 @@ wr_read_indeps (struct wr_aux_data *wr)
 	  n_cols = mx->n_continuous;
 	  break;
 	default:
-	  assert (0);
-          abort ();
+          NOT_REACHED ();
 	}
       break;
     default:
-      assert (0);
-      abort ();
+      NOT_REACHED ();
     }
   c->n_rows[wr->content]++;
 

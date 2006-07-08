@@ -31,6 +31,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
@@ -493,7 +494,7 @@ read_line_from_source (struct string *line, struct getl_source *s)
       return s->u.interactive (line, get_prompt_style ());
     }
 
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Reads a single line into LINE.

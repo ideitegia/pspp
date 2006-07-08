@@ -28,6 +28,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
@@ -177,7 +178,7 @@ cmd_vector (void)
 		  v[i] = dict_create_var_assert (default_dict, name, 0);
 		}
               if (!dict_create_vector (default_dict, cp, v, nv))
-                assert (0);
+                NOT_REACHED ();
 	      cp += strlen (cp) + 1;
 	    }
           free (v);

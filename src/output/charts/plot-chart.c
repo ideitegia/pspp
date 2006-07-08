@@ -36,6 +36,7 @@
 
 #include <libpspp/str.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <output/manager.h>
 #include <output/output.h>
 
@@ -76,7 +77,7 @@ draw_tick(struct chart *chart,
   else if (orientation == TICK_ORDINATE ) 
       pl_flinerel_r(chart->lp, 0, position, -tickSize, position);
   else
-    assert(0);
+    NOT_REACHED ();
 
   if ( label ) {
     char buf[10];

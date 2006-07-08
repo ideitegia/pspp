@@ -34,6 +34,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
@@ -838,7 +839,7 @@ dump_table (const struct file_handle *fh)
       case PRT_SPACE:
 	break;
       case PRT_ERROR:
-	assert (0);
+        NOT_REACHED ();
       }
 
   if (fh != NULL)
@@ -883,8 +884,7 @@ alloc_line (void)
 	  break;
 	case PRT_ERROR:
         default:
-	  assert (0);
-          abort ();
+          NOT_REACHED ();
 	}
       if (pot_w > w)
 	w = pot_w;
@@ -958,8 +958,7 @@ print_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
 	break;
 
       case PRT_ERROR:
-	assert (0);
-	break;
+        NOT_REACHED ();
       }
 
   if (t->writer != NULL && dfm_write_error (t->writer))
@@ -988,8 +987,7 @@ print_trns_free (void *prt_)
 	  /* nothing to do */
 	  break;
 	case PRT_ERROR:
-	  assert (0);
-	  break;
+	  NOT_REACHED ();
 	}
       n = i->next;
       free (i);

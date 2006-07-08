@@ -27,7 +27,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/message.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
@@ -151,8 +151,7 @@ cmd_string (void)
 	  width = f.w / 2;
 	  break;
 	default:
-	  assert (0);
-          abort ();
+          NOT_REACHED ();
 	}
 
       /* Create each variable. */

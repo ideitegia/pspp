@@ -34,6 +34,7 @@
 #include <language/lexer/variable-parser.h>
 #include <language/lexer/range-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
@@ -560,7 +561,7 @@ find_src_numeric (struct recode_trns *trns, double value, struct variable *v)
           match = true;
           break;
         default:
-          abort ();
+          NOT_REACHED ();
         }
 
       if (match)
@@ -609,7 +610,7 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
             break;
           }
         default:
-          abort ();
+          NOT_REACHED ();
         }
 
       if (match)

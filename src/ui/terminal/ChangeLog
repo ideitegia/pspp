@@ -1,3 +1,8 @@
+Fri Jul  7 20:03:42 2006  Ben Pfaff  <blp@gnu.org>
+
+	* main.c: (main) Register SIGABRT with bug_handler also.
+	(bug_handler) Handle SIGABRT also.
+
 Tue Jun 27 22:44:56 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix regression in command name completion reported by John

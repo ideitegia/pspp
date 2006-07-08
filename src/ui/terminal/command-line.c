@@ -26,6 +26,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/copyleft.h>
 #include <libpspp/message.h>
 #include <language/line-buffer.h>
@@ -180,7 +181,7 @@ parse_command_line (int argc, char **argv)
 	case 0:
 	  break;
 	default:
-	  assert (0);
+	  NOT_REACHED ();
 	}
     }
 

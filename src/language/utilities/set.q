@@ -110,6 +110,8 @@ int tgetnum (const char *);
      xsort=xsort:yes/no.
 */
 
+/* (headers) */
+
 /* (declarations) */
 
 /* (_functions) */

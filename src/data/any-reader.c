@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include "file-handle-def.h"
 #include "file-name.h"
@@ -139,7 +140,7 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
       return make_any_reader (SCRATCH_FILE,
                               scratch_reader_open (handle, dict));
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Reads a single case from READER into C.
@@ -158,7 +159,7 @@ any_reader_read (struct any_reader *reader, struct ccase *c)
     case SCRATCH_FILE:
       return scratch_reader_read_case (reader->private, c);
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Returns true if an I/O error has occurred on READER, false
@@ -177,7 +178,7 @@ any_reader_error (struct any_reader *reader)
     case SCRATCH_FILE:
       return scratch_reader_error (reader->private);
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Closes READER. */
@@ -202,7 +203,7 @@ any_reader_close (struct any_reader *reader)
       break;
 
     default:
-      abort ();
+      NOT_REACHED ();
     }
 
   free (reader);

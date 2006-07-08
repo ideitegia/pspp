@@ -6,7 +6,7 @@ sub generate_output {
 
 	if ($op->{UNIMPLEMENTED}) {
 	    print "case $opname:\n";
-	    print "  abort ();\n\n";
+	    print "  NOT_REACHED ();\n\n";
 	    next;
 	}
 

@@ -557,7 +557,7 @@ calc (const struct ccase *c, void *aux UNUSED)
 	    ft->out_of_range += weight;
 	  break;
 	default:
-	  assert (0);
+          NOT_REACHED ();
 	}
     }
   return true;
@@ -645,7 +645,7 @@ postcalc (void *aux UNUSED)
 	      dump_full (v);
 	    break;
 	  default:
-	    assert (0);
+            NOT_REACHED ();
 	  }
       else
 	dumped_freq_tab = 0;
@@ -706,7 +706,7 @@ get_freq_comparator (int frq_sort, int var_type)
     case FRQ_AFREQ | (ALPHA << 16):     return compare_freq_alpha_a;
     case FRQ_DFREQ | (NUMERIC << 16):   return compare_freq_numeric_d;
     case FRQ_DFREQ | (ALPHA << 16):     return compare_freq_alpha_d;
-    default: assert (0);
+    default: NOT_REACHED ();
     }
 
   return 0;

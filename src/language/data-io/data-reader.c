@@ -34,6 +34,7 @@
 #include <language/lexer/lexer.h>
 #include <language/line-buffer.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
@@ -224,7 +225,7 @@ read_file_record (struct dfm_reader *r)
         }
     }
   else
-    abort ();
+    NOT_REACHED ();
 
   r->where.line_number++;
 

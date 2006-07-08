@@ -37,7 +37,7 @@
 #define CAT_H
 #define CAT_VALUE_NOT_FOUND -2
 #include <stdbool.h>
-
+#include <stddef.h>
 
 union value;
 struct variable ; 

@@ -41,6 +41,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
@@ -843,7 +844,7 @@ cmd_match_files (void)
           saw_table = true;
         }
       else
-        assert (0);
+        NOT_REACHED ();
       lex_match ('=');
 
       file->by = NULL;
@@ -1169,7 +1170,7 @@ mtf_processing_finish (void *mtf_)
     if (iter->handle == NULL)
       {
         if (!mtf_delete_file_in_place (mtf, &iter))
-          abort ();
+          NOT_REACHED ();
         break;
       }
   

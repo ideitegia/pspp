@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include "file-handle-def.h"
 #include "file-name.h"
@@ -85,7 +86,7 @@ any_writer_open (struct file_handle *handle, struct dictionary *dict)
                                                                   dict));
     }
 
-  abort ();
+  NOT_REACHED ();
 }
 
 /* If PRIVATE is non-null, creates and returns a new any_writer,
@@ -162,7 +163,7 @@ any_writer_write (struct any_writer *writer, const struct ccase *c)
     case SCRATCH_FILE:
       return scratch_writer_write_case (writer->private, c);
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Returns true if an I/O error has occurred on WRITER, false
@@ -181,7 +182,7 @@ any_writer_error (const struct any_writer *writer)
     case SCRATCH_FILE:
       return scratch_writer_error (writer->private);
     }
-  abort ();
+  NOT_REACHED ();
 }
 
 /* Closes WRITER.
@@ -209,7 +210,7 @@ any_writer_close (struct any_writer *writer)
       break;
       
     default:
-      abort ();
+      NOT_REACHED ();
     }
 
   free (writer);

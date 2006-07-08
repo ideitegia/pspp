@@ -41,6 +41,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
@@ -999,7 +1000,7 @@ read_from_data_list (const struct data_list_pgm *dls, struct ccase *c)
       retval = read_from_data_list_list (dls, c);
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
   dfm_pop (dls->reader);
 

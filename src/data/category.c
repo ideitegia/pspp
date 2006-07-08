@@ -32,12 +32,16 @@
   'cat_var'.
 */
 #include <config.h>
+
+#include "category.h"
+
+#include <assert.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
-#include "category.h"
 #include "cat-routines.h"
-#include <string.h>
 #include "variable.h"
 
 #define N_INITIAL_CATEGORIES 1

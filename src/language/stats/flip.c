@@ -41,6 +41,7 @@
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
@@ -538,7 +539,7 @@ flip_source_read (struct case_source *source,
           else if (feof (flip->file))
             msg (SE, _("Unexpected end of file reading FLIP temporary file."));
           else
-            abort ();
+            NOT_REACHED ();
           ok = false;
           break;
         }

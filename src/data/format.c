@@ -20,6 +20,7 @@
 #include <config.h>
 #include "format.h"
 #include <ctype.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <stdlib.h>
 #include <libpspp/compiler.h>
@@ -280,7 +281,7 @@ convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output)
     case FMT_CCC:
     case FMT_CCD:
     case FMT_CCE:
-      assert (0);
+      NOT_REACHED ();
     case FMT_Z:
     case FMT_A:
       /* nothing is necessary */
@@ -314,7 +315,7 @@ convert_fmt_ItoO (const struct fmt_spec *input, struct fmt_spec *output)
       /* nothing is necessary */
       break;
     default:
-      assert (0);
+      NOT_REACHED ();
     }
 
   assert (check_output_specifier (output, 0));

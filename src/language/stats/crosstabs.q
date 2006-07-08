@@ -47,6 +47,7 @@
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
@@ -1799,8 +1800,7 @@ display_crosstabulation (void)
 				 * (1. - col_tot[c] / W)));
 		    break;
 		  default:
-		    assert (0);
-                    abort ();
+                    NOT_REACHED ();
 		  }
 
                 format_cell_entry (table, c, i, v, suffix, mark_missing);
@@ -1855,8 +1855,7 @@ display_crosstabulation (void)
                 v = 0.;
                 break;
               default:
-                assert (0);
-                abort ();
+                NOT_REACHED ();
               }
 
             format_cell_entry (table, n_cols, 0, v, suffix, mark_missing);
@@ -1911,8 +1910,7 @@ display_crosstabulation (void)
 	      case CRS_CL_ASRESIDUAL:
 		continue;
 	      default:
-		assert (0);
-                abort ();
+                NOT_REACHED ();
 	      }
 
             format_cell_entry (table, c, i, v, suffix, mark_missing);

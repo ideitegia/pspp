@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <data/calendar.h>
 #include <data/data-in.h>
 #include <libpspp/message.h>
@@ -157,12 +158,10 @@ evaluate_tree (struct composite_node *node, struct expression *e)
 #include "optimize.inc"
 
     default:
-      assert (0);
+      NOT_REACHED ();
     }
 
-  /* Not reached. */
-  assert (0);
-  abort ();
+  NOT_REACHED ();
 }
 
 static double
@@ -302,7 +301,7 @@ flatten_atom (union any_node *n, struct expression *e)
       break;
 
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 
@@ -363,7 +362,7 @@ flatten_node (union any_node *n, struct expression *e)
   else if (is_composite (n->type))
     flatten_composite (n, e);
   else 
-    abort ();
+    NOT_REACHED ();
 }
 
 static union operation_data *

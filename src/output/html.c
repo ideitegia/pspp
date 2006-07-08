@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <data/file-name.h>
 #include "error.h"
@@ -183,11 +184,11 @@ handle_option (struct outp_driver *this,
           error (0, 0, _("`chart-files' value must contain `#'"));
           break;
         default:
-          abort ();
+          NOT_REACHED ();
         }
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
   
   return true;
@@ -212,7 +213,7 @@ html_submit (struct outp_driver *this, struct som_entity *s)
       link_image (x->file, ((struct chart *)s->ext)->file_name);
       break;
     default:
-      abort ();
+      NOT_REACHED ();
     }
 }
 
