@@ -356,6 +356,8 @@ casefile_append (struct casefile *cf, const struct ccase *c)
   assert (c != NULL);
   assert (cf->mode == WRITE);
 
+  assert ( cf->value_cnt <= c->case_data->value_cnt );
+
   /* Try memory first. */
   if (cf->storage == MEMORY) 
     {

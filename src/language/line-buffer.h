@@ -64,5 +64,7 @@ void getl_set_prompt_style (enum getl_prompt_style);
 struct msg_locator;
 void get_msg_location (struct msg_locator *loc);
 
+void getl_location (const char **fn, int *ln);
+
 
 #endif /* line-buffer.h */

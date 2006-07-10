@@ -32,14 +32,9 @@
 #endif
 
 #include <libpspp/llx.h>
+#include "compiler.h"
 #include <assert.h>
 #include <stdlib.h>
-
-#if __GNUC__ >= 2 && !defined UNUSED
-#define UNUSED __attribute__ ((unused))
-#else
-#define UNUSED
-#endif
 
 /* Destroys LIST and frees all of its nodes using MANAGER.
    If DESTRUCTOR is non-null, each node in the list will be
