@@ -40,6 +40,7 @@ CLEANFILES =
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
 noinst_PROGRAMS=
+check_PROGRAM=
 bin_PROGRAMS=
 
 include $(top_srcdir)/lib/automake.mk
