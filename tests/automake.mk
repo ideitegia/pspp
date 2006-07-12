@@ -109,7 +109,7 @@ TESTS = \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test
 
-noinst_PROGRAMS += tests/libpspp/ll-test tests/libpspp/llx-test
+check_PROGRAMS += tests/libpspp/ll-test tests/libpspp/llx-test
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \

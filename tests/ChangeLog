@@ -1,3 +1,8 @@
+Wed Jul 12 10:07:52 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Put ll-test, llx-test in check_PROGRAMS instead of
+	noinst_PROGRAMS.
+
 Wed Jul  5 22:15:24 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add expressions/randist/compare.pl to EXTRA_DIST.
