@@ -201,7 +201,7 @@ Write format for this variable.  See below.
 
 @item char name[8];
 Variable name.  The variable name must begin with a capital letter or
-the at-sign (@samp{@@}).  Subsequent characters may also be octothorpes
+the at-sign (@samp{@@}).  Subsequent characters may also be digits, octothorpes
 (@samp{#}), dollar signs (@samp{$}), underscores (@samp{_}), or full
 stops (@samp{.}).  The variable name is padded on the right with spaces.
 
