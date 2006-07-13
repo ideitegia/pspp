@@ -1,3 +1,7 @@
+Wed Jul 12 20:58:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* output.c (outp_drivers): [DEBUGGING] Delete unused declaration.
+
 Sat Jul  1 17:20:03 2006  Ben Pfaff  <blp@gnu.org>
 
 	Make the destination for charts configurable in the HTML driver.

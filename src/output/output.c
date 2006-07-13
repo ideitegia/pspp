@@ -1087,10 +1087,6 @@ exit:
 struct outp_driver *
 outp_drivers (struct outp_driver *d)
 {
-#if DEBUGGING
-  struct outp_driver *orig_d = d;
-#endif
-
   for (;;)
     {
       if (d == NULL)
