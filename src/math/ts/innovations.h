@@ -30,6 +30,8 @@
 #ifndef INNOVATIONS_H
 #define INNOVATIONS_H
 #include <math/coefficient.h>
+#include <math/design-matrix.h>
+
 struct innovations_estimate
 {
   const struct variable *variable;
@@ -41,6 +43,6 @@ struct innovations_estimate
   double max_lag;
   coefficient **coeff;
 };
-struct innovations_estimate ** pspp_innovations (const gsl_matrix *, size_t);
+struct innovations_estimate ** pspp_innovations (const struct design_matrix *, size_t);
 void pspp_innovations_free (struct innovations_estimate **, size_t);
 #endif

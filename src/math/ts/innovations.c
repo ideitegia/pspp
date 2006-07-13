@@ -110,13 +110,11 @@ get_covariance (const gsl_matrix *data,
 	    }
 	}
     }
-  for (lag = 1; lag <= max_lag; lag++)
+  for (j = 0; j < data->size2; j++)
     {
-      for (j = 0; j < data->size2; j++)
-	{
-	  *(est[j]->cov + lag - 1) /= (est[j]->n_obs - lag);
-	}
+      *(est[j]->cov + lag - 1) /= est[j]->n_obs;
     }
+
   return rc;
 }
 static double
@@ -257,22 +255,22 @@ innovations_struct_init (struct innovations_estimate *est, size_t lag)
 }
       
 struct innovations_estimate ** 
-pspp_innovations (const gsl_matrix *data, size_t lag)
+pspp_innovations (const struct design_matrix *dm, size_t lag)
 {
   struct innovations_estimate **est;
   size_t i;
 
-  est = xnmalloc (data->size2, sizeof *est);
-  for (i = 0; i < data->size2; i++)
+  est = xnmalloc (dm->m->size2, sizeof *est);
+  for (i = 0; i < dm->m->size2; i++)
     {
       est[i] = xmalloc (sizeof *est[i]);
 /*       est[i]->variable = vars[i]; */
       innovations_struct_init (est[i], lag);
     }
 
-  get_mean_variance (data, est);
-  get_covariance (data, est, lag);
-  get_coef (data, est, lag);
+  get_mean_variance (dm->m, est);
+  get_covariance (dm->m, est, lag);
+  get_coef (dm->m, est, lag);
   
   return est;
 }
