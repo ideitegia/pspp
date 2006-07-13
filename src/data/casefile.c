@@ -33,6 +33,7 @@
 #include "full-read.h"
 #include "full-write.h"
 #include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include "make-file.h"
 #include "settings.h"
 #include "variable.h"

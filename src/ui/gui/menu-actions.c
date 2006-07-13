@@ -34,6 +34,8 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 
+#include <libpspp/str.h>
+
 #include <gtksheet/gtksheet.h>
 #include "helper.h"
 #include "menu-actions.h"
