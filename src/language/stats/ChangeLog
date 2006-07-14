@@ -1,3 +1,8 @@
+2006-07-14  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (run_regression): New function to move knowledge of
+	pspp_linreg_cache out of math/coefficient.[ch].
+
 Sat Jul  1 17:41:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #11612, "q2c documentation does not agree with code".

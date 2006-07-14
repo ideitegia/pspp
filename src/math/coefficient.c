@@ -53,39 +53,32 @@ pspp_coeff_free (struct pspp_coeff *c)
   coefficient structures for the linear model.
  */
 void
-pspp_coeff_init (pspp_linreg_cache * c, struct design_matrix *X)
+pspp_coeff_init (struct pspp_coeff ** c, struct design_matrix *X)
 {
   size_t i;
-  size_t j;
   int n_vals = 1;
-  struct pspp_coeff *coeff;
 
-  c->coeff = xnmalloc (X->m->size2 + 1, sizeof (*c->coeff));
-  c->coeff[0] = xmalloc (sizeof (*c->coeff[0]));
-  c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
   for (i = 0; i < X->m->size2; i++)
     {
-      j = i + 1;		/* The first coefficient is the intercept. */
-      c->coeff[j] = xmalloc (sizeof (*c->coeff[j]));
-      coeff = c->coeff[j];
-      coeff->n_vars = n_vals;	/* Currently, no procedures allow
+      c[i] = xmalloc (sizeof (*c[i]));
+      c[i]->n_vars = n_vals;	/* Currently, no procedures allow
 				   interactions.  This line will have to
 				   change when procedures that allow
 				   interaction terms are written. 
 				 */
-      coeff->v_info = xnmalloc (coeff->n_vars, sizeof (*coeff->v_info));
-      assert (coeff->v_info != NULL);
-      coeff->v_info->v =
+      c[i]->v_info = xnmalloc (c[i]->n_vars, sizeof (*c[i]->v_info));
+      assert (c[i]->v_info != NULL);
+      c[i]->v_info->v =
 	(const struct variable *) design_matrix_col_to_var (X, i);
 
-      if (coeff->v_info->v->type == ALPHA)
+      if (c[i]->v_info->v->type == ALPHA)
 	{
 	  size_t k;
-	  k = design_matrix_var_to_column (X, coeff->v_info->v);
+	  k = design_matrix_var_to_column (X, c[i]->v_info->v);
 	  assert (k <= i);
 	  k = i - k;
-	  coeff->v_info->val =
-	    cat_subscript_to_value (k, (struct variable *) coeff->v_info->v);
+	  c[i]->v_info->val =
+	    cat_subscript_to_value (k, (struct variable *) c[i]->v_info->v);
 	}
     }
 }

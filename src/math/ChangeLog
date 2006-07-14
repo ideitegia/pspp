@@ -1,3 +1,8 @@
+2006-07-14  Jason Stover  <jhs@math.gcsu.edu>
+
+	* coefficient.c (pspp_coeff_init): Removed use of
+	pspp_linreg_cache to make the routines more generally useful.
+
 2006-05-19  Jason Stover  <jhs@math.gcsu.edu>
 
 	* coefficient.h: Renamed pspp_linreg_coeff to pspp_coeff.

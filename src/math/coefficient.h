@@ -72,7 +72,7 @@ void pspp_coeff_free (struct pspp_coeff *);
   Initialize the variable and value pointers inside the
   coefficient structures for the linear model.
  */
-void pspp_coeff_init (pspp_linreg_cache *, struct design_matrix *);
+void pspp_coeff_init (struct pspp_coeff **, struct design_matrix *);
 
 
 void

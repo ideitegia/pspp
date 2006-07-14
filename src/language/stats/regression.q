@@ -1078,7 +1078,14 @@ prepare_data (int n_data, int is_missing_case[],
 
   return n_data;
 }
-
+static void
+coeff_init (pspp_linreg_cache *c, struct design_matrix *dm)
+{
+  c->coeff = xnmalloc (dm->m->size2 + 1, sizeof (*c->coeff));
+  c->coeff[0] = xmalloc (sizeof (*(c->coeff[0]))); /* The first coefficient is the intercept. */
+  c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
+  pspp_coeff_init (c->coeff + 1, dm);
+}
 static bool
 run_regression (const struct ccase *first,
                 const struct casefile *cf, void *cmd_ UNUSED)
@@ -1213,8 +1220,8 @@ run_regression (const struct ccase *first,
          and store pointers to the variables that correspond to the
          coefficients.
        */
-      pspp_coeff_init (models[k], X);
-
+      coeff_init (models[k], X);
+      
       /* 
          Find the least-squares estimates and other statistics.
        */
