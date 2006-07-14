@@ -435,10 +435,10 @@ tab_natural_width (struct tab_table *t, struct outp_driver *d, int c)
 
   if (width == 0)
     {
-      width = d->prop_em_width * 8;
-#if DEBUGGING
-      printf ("warning: table column %d contains no data.\n", c);
-#endif
+      /* FIXME: This is an ugly kluge to compensate for the fact
+         that we don't let joined cells contribute to column
+         widths. */
+      width = d->prop_em_width * 8; 
     }
   
   {
@@ -802,12 +802,12 @@ tab_offset (struct tab_table *t, int col, int row)
 
   assert (t != NULL);
 #if DEBUGGING
-  if (row < -1 || row >= t->nr)
+  if (row < -1 || row > t->nr)
     {
       printf ("tab_offset(): row=%d in %d-row table\n", row, t->nr);
       NOT_REACHED ();
     }
-  if (col < -1 || col >= t->nc)
+  if (col < -1 || col > t->nc)
     {
       printf ("tab_offset(): col=%d in %d-column table\n", col, t->nc);
       NOT_REACHED ();

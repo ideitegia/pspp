@@ -163,9 +163,10 @@ cmd_debug_evaluate (void)
           if (c == NULL) 
             {
               c = xmalloc (sizeof *c);
-              case_nullify (c);
+              case_create (c, dict_get_next_value_idx (d));
             }
-          case_resize (c, old_value_cnt, dict_get_next_value_idx (d));
+          else
+            case_resize (c, old_value_cnt, dict_get_next_value_idx (d));
 
           if (lex_is_number ())
             case_data_rw (c, v->fv)->f = tokval;

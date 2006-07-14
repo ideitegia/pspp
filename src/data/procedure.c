@@ -219,7 +219,8 @@ internal_procedure (bool (*case_func) (const struct ccase *, void *),
   wc_data.case_func = case_func;
   wc_data.aux = aux;
   create_trns_case (&wc_data.trns_case, default_dict);
-  case_create (&wc_data.sink_case, dict_get_next_value_idx (default_dict));
+  case_create (&wc_data.sink_case,
+               dict_get_compacted_value_cnt (default_dict));
   wc_data.cases_written = 0;
 
   ok = proc_source->class->read (proc_source,

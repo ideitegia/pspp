@@ -30,9 +30,6 @@
 struct ccase 
   {
     struct case_data *case_data;        /* Actual data. */
-#if DEBUGGING
-    struct ccase *this;                 /* Detects unauthorized move/copy. */
-#endif
   };
 
 /* Invisible to user code. */

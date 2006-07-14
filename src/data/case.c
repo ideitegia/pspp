@@ -45,9 +45,6 @@ case_unshare (struct ccase *c)
 {
   struct case_data *cd;
   
-  assert (c != NULL);
-  assert (c->this == c);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 1);
 
   cd = c->case_data;
@@ -72,7 +69,6 @@ void
 case_nullify (struct ccase *c) 
 {
   c->case_data = NULL;
-  c->this = c;
 }
 #endif /* DEBUGGING */
 
@@ -100,17 +96,10 @@ case_create (struct ccase *c, size_t value_cnt)
 void
 case_clone (struct ccase *clone, const struct ccase *orig)
 {
-  assert (orig != NULL);
-  assert (orig->this == orig);
-  assert (orig->case_data != NULL);
   assert (orig->case_data->ref_cnt > 0);
-  assert (clone != NULL);
 
   if (clone != orig) 
-    {
-      *clone = *orig;
-      clone->this = clone;
-    }
+    *clone = *orig;
   orig->case_data->ref_cnt++;
 }
 #endif /* DEBUGGING */
@@ -121,16 +110,11 @@ case_clone (struct ccase *clone, const struct ccase *orig)
 void
 case_move (struct ccase *dst, struct ccase *src) 
 {
-  assert (src != NULL);
-  assert (src->this == src);
-  assert (src->case_data != NULL);
   assert (src->case_data->ref_cnt > 0);
-  assert (dst != NULL);
   
   if (dst != src) 
     {
       *dst = *src;
-      dst->this = dst;
       case_nullify (src); 
     }
 }
@@ -144,7 +128,6 @@ case_destroy (struct ccase *c)
   struct case_data *cd;
   
   assert (c != NULL);
-  assert (c->this == c);
 
   cd = c->case_data;
   if (cd != NULL && --cd->ref_cnt == 0) 
@@ -183,9 +166,6 @@ case_swap (struct ccase *a, struct ccase *b)
 int
 case_try_create (struct ccase *c, size_t value_cnt) 
 {
-#ifdef DEBUGGING
-  c->this = c;
-#endif
   c->case_data = malloc (case_size (value_cnt));
   if (c->case_data != NULL) 
     {
@@ -215,17 +195,11 @@ case_copy (struct ccase *dst, size_t dst_idx,
            const struct ccase *src, size_t src_idx,
            size_t value_cnt)
 {
-  assert (dst != NULL);
-  assert (dst->this == dst);
-  assert (dst->case_data != NULL);
   assert (dst->case_data->ref_cnt > 0);
   assert (dst_idx + value_cnt <= dst->case_data->value_cnt);
 
-  assert (src != NULL);
-  assert (src->this == src);
-  assert (src->case_data != NULL);
   assert (src->case_data->ref_cnt > 0);
-  assert (src_idx + value_cnt <= dst->case_data->value_cnt);
+  assert (src_idx + value_cnt <= src->case_data->value_cnt);
 
   if (dst->case_data != src->case_data || dst_idx != src_idx) 
     {
@@ -246,9 +220,6 @@ void
 case_to_values (const struct ccase *c, union value *output,
                 size_t output_size UNUSED) 
 {
-  assert (c != NULL);
-  assert (c->this == c);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (output_size == c->case_data->value_cnt);
   assert (output != NULL || output_size == 0);
@@ -267,7 +238,6 @@ case_from_values (struct ccase *c, const union value *input,
                   size_t input_size UNUSED) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (input_size == c->case_data->value_cnt);
@@ -288,7 +258,6 @@ const union value *
 case_data (const struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
@@ -304,7 +273,6 @@ double
 case_num (const struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
@@ -322,7 +290,6 @@ const char *
 case_str (const struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
@@ -339,7 +306,6 @@ union value *
 case_data_rw (struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
@@ -405,7 +371,6 @@ const union value *
 case_data_all (const struct ccase *c) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
 
@@ -421,7 +386,6 @@ union value *
 case_data_all_rw (struct ccase *c) 
 {
   assert (c != NULL);
-  assert (c->this == c);
   assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
 

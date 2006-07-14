@@ -1,3 +1,8 @@
+Wed Jul 12 21:03:17 2006  Ben Pfaff  <blp@gnu.org>
+
+	* evaluate.c (cmd_debug_evaluate): Don't try to resize a null
+	case.
+
 Fri Jun  9 13:59:15 2006  Ben Pfaff  <blp@gnu.org>
 
 	Reform string library.

@@ -1,3 +1,17 @@
+Wed Jul 12 21:02:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	* procedure.c (internal_procedure): Create sink_case with only as
+	many values as the compacted dictionary.
+
+Wed Jul 12 21:01:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	Remove "debugging" code that caused plenty of false positives and
+	no true positives.
+	
+	* case.h (struct ccase): [DEBUGGING] Remove `this' member.
+
+	* case.c: Remove all references to `this' member.
+
 Thu Jul  6 19:09:53 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix link error noted by Jason Stover.

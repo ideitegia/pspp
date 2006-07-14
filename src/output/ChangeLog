@@ -1,3 +1,13 @@
+Wed Jul 12 21:03:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	* table.c (tab_natural_width): Get rid of warning on empty column,
+	which tended to just trigger false positives because we handle
+	joined cells so badly.  We need a real fix, and the warning is not
+	helpful.
+
+	* table.c (tab_offset): [DEBUGGING] Let row, col arguments be as
+	big as row or column count.
+	
 Wed Jul 12 20:58:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* output.c (outp_drivers): [DEBUGGING] Delete unused declaration.
