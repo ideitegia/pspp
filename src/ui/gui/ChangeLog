@@ -1,3 +1,8 @@
+Sat Jul 15 11:27:15 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+   * psppire.c psppire.glade automake.mk icons/* : Added toolbar icons where 
+   	there's no suitable gtk stock icon.
+
 Tue Jul  4 09:08:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
    * psppire.c: Fixed --help and --version options.

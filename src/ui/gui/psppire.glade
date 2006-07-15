@@ -547,6 +547,7 @@
 		<widget class="GtkToolButton" id="variables">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Variables</property>
+		  <property name="stock_id">pspp-goto-variable</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
@@ -604,6 +605,7 @@
 		<widget class="GtkToolButton" id="insert_case">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Insert Case</property>
+		  <property name="stock_id">pspp-insert-case</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
@@ -620,6 +622,7 @@
 		<widget class="GtkToolButton" id="insert_variable">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Insert Variable</property>
+	          <property name="stock_id">pspp-insert-variable</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
@@ -649,6 +652,7 @@
 		<widget class="GtkToolButton" id="toolbutton8">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Split File</property>
+		  <property name="stock_id">pspp-split-file</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
@@ -665,6 +669,7 @@
 		<widget class="GtkToolButton" id="toolbutton9">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Weight Cases</property>
+		  <property name="stock_id">pspp-weight-cases</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
@@ -681,6 +686,7 @@
 		<widget class="GtkToolButton" id="toolbutton10">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Select Cases</property>
+		  <property name="stock_id">pspp-select-cases</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
@@ -710,6 +716,7 @@
 		<widget class="GtkToggleToolButton" id="togglebutton-value-labels">
 		  <property name="visible">True</property>
 		  <property name="tooltip" translatable="yes">Value Labels</property>
+		  <property name="stock_id">pspp-value-labels</property>
 		  <property name="label" translatable="yes"></property>
 		  <property name="use_underline">True</property>
 		  <property name="visible_horizontal">True</property>
