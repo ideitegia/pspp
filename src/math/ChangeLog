@@ -1,3 +1,7 @@
+2006-07-15  Jason Stover  <jhs@math.gcsu.edu>
+
+	* coefficient.c (pspp_coeff_init): Make design_matrix arg const.
+
 2006-07-14  Jason Stover  <jhs@math.gcsu.edu>
 
 	* coefficient.c (pspp_coeff_init): Removed use of

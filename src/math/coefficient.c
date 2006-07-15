@@ -53,7 +53,7 @@ pspp_coeff_free (struct pspp_coeff *c)
   coefficient structures for the linear model.
  */
 void
-pspp_coeff_init (struct pspp_coeff ** c, struct design_matrix *X)
+pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
 {
   size_t i;
   int n_vals = 1;
