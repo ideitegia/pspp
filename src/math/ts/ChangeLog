@@ -1,3 +1,11 @@
+2006-07-15  Jason Stover  <jhs@math.gcsu.edu>
+
+	* innovations.c (get_covariance): Fixed computation of
+	covariance. Made COV[i] the lag i covariance.
+	(update_cov): New function.
+	(get_covariance): Use gsl_vector_view's to get rows of correct
+	lag.
+
 2006-07-14  Jason Stover  <jhs@math.gcsu.edu>
 
 	* innovations.c (innovations_struct_init): Fix initialization of

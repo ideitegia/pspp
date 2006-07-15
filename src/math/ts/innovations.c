@@ -38,8 +38,8 @@
 #include <math/ts/innovations.h>
 
 static void
-get_mean_variance (const gsl_matrix *data,
-		   struct innovations_estimate **est)
+get_mean (const gsl_matrix *data,
+	  struct innovations_estimate **est)
 		   
 {
   size_t n;
@@ -49,9 +49,8 @@ get_mean_variance (const gsl_matrix *data,
 
   for (n = 0; n < data->size2; n++)
     {
-      est[n]->n_obs = 2.0;
+      est[n]->n_obs = 0.0;
       est[n]->mean = 0.0;
-      est[n]->variance = 0.0;
     }
   for (i = 0; i < data->size1; i++)
     {
@@ -60,20 +59,36 @@ get_mean_variance (const gsl_matrix *data,
 	  tmp = gsl_matrix_get (data, i, n);
 	  if (!gsl_isnan (tmp))
 	    {
+	      est[n]->n_obs += 1.0;
 	      d = (tmp - est[n]->mean) / est[n]->n_obs;
 	      est[n]->mean += d;
-	      est[n]->variance += est[n]->n_obs * est[n]->n_obs * d * d;
-	      est[n]->n_obs += 1.0;
 	    }
 	}
     }
-  for (n = 0; n < data->size2; n++)
+}
+static void 
+update_cov (struct innovations_estimate **est, gsl_vector_const_view x,
+	    gsl_vector_const_view y, size_t lag)
+{
+  size_t j;
+  double xj;
+  double yj;
+
+  for (j = 0; j < x.vector.size; j++)
     {
-      /* Maximum likelihood estimate of the variance. */
-      est[n]->variance /= est[n]->n_obs;
+      xj = gsl_vector_get (&x.vector, j);
+      yj = gsl_vector_get (&y.vector, j);
+      if (!gsl_isnan (xj))
+	{
+	  if (!gsl_isnan (yj))
+	    {
+	      xj -= est[j]->mean;
+	      yj -= est[j]->mean;
+	      *(est[j]->cov + lag) += xj * yj;
+	    }
+	}
     }
 }
-
 static int
 get_covariance (const gsl_matrix *data, 
 		struct innovations_estimate **est, size_t max_lag)
@@ -81,42 +96,41 @@ get_covariance (const gsl_matrix *data,
   size_t lag;
   size_t j;
   size_t i;
-  double x;
-  double y;
   int rc = 1;
 
   assert (data != NULL);
   assert (est != NULL);
-  
+
+  for (j = 0; j < data->size2; j++)
+    {
+      for (lag = 0; lag <= max_lag; lag++)
+	{
+	  *(est[j]->cov + lag) = 0.0;
+	}
+    }
+  /*
+    The rows are in the outer loop because a gsl_matrix is stored in
+    row-major order.
+   */
   for (i = 0; i < data->size1; i++)
     {
-      for (j = 0; j < data->size2; j++)
+      for (lag = 0; lag < max_lag && lag < data->size1 - i; lag++)
 	{
-	  x = gsl_matrix_get (data, i, j);
-
-	  if (!gsl_isnan (x))
-	    {
-	      x -= est[j]->mean;
-	      for (lag = 1; lag <= max_lag && lag < (data->size1 - i); lag++)
-		{
-		  y = gsl_matrix_get (data, i + lag, j);
-		  if (!gsl_isnan (y))
-		    {
-		      y -= est[j]->mean;
-		      *(est[j]->cov + lag - 1) += y * x;
-		      est[j]->n_obs += 1.0;
-		    }
-		}
-	    }
+	  update_cov (est, gsl_matrix_const_row (data, i), 
+		      gsl_matrix_const_row (data, i + lag), lag);
 	}
     }
   for (j = 0; j < data->size2; j++)
     {
-      *(est[j]->cov + lag - 1) /= est[j]->n_obs;
+      for (lag = 0; lag <= max_lag; lag++)
+	{
+	  *(est[j]->cov + lag) /= est[j]->n_obs;
+	}
     }
 
   return rc;
 }
+
 static double
 innovations_convolve (double **theta, struct innovations_estimate *est,
 		      int i, int j)
@@ -140,7 +154,7 @@ innovations_update_scale (struct innovations_estimate *est, double *theta,
 
   if (i < (size_t) est->max_lag)
     {
-      result = est->variance;
+      result = est->cov[0];
       for (j = 0; j < i; j++)
 	{
 	  k = i - j - 1;
@@ -236,22 +250,31 @@ get_coef (const gsl_matrix *data,
 }
 
 static void
-innovations_struct_init (struct innovations_estimate *est, size_t lag)
+innovations_struct_init (struct innovations_estimate *est, 
+			 const struct design_matrix *dm, 
+			 size_t lag)
 {
   size_t j;
 
   est->mean = 0.0;
-  est->variance = 0.0;
-  est->cov = xnmalloc (lag, sizeof (*est->cov));
+  /* COV[0] stores the lag 0 covariance (i.e., the variance), COV[1]
+     holds the lag-1 covariance, etc.
+   */
+  est->cov = xnmalloc (lag + 1, sizeof (*est->cov));
   est->scale = xnmalloc (lag + 1, sizeof (*est->scale));
-  est->coeff = xnmalloc (lag, sizeof (*est->coeff));
-  est->max_lag = (double) lag;
-  /* COV does not the variance (i.e., the lag 0 covariance). So COV[0]
-     holds the lag 1 covariance, COV[i] holds the lag i+1 covariance. */
+  est->coeff = xnmalloc (lag, sizeof (*est->coeff)); /* No intercept. */
+
+  /*
+    The loop below is an unusual use of PSPP_COEFF_INIT(). In a
+    typical model, one column of a DESIGN_MATRIX has one
+    coefficient. But in a time-series model, one column has many
+    coefficients.
+   */
   for (j = 0; j < lag; j++)
     {
-      est->coeff[j] = xmalloc (sizeof (*(est->coeff[j])));
+      pspp_coeff_init (est->coeff + j, dm);
     }
+  est->max_lag = (double) lag;
 }
       
 struct innovations_estimate ** 
@@ -265,10 +288,10 @@ pspp_innovations (const struct design_matrix *dm, size_t lag)
     {
       est[i] = xmalloc (sizeof *est[i]);
 /*       est[i]->variable = vars[i]; */
-      innovations_struct_init (est[i], lag);
+      innovations_struct_init (est[i], dm, lag);
     }
 
-  get_mean_variance (dm->m, est);
+  get_mean (dm->m, est);
   get_covariance (dm->m, est, lag);
   get_coef (dm->m, est, lag);
   
