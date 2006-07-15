@@ -494,7 +494,7 @@ ss_get_until (struct substring *ss, char delimiter, struct substring *out)
 
 /* Stores the first CNT characters in SS in OUT (or fewer, if SS
    is shorter than CNT characters).  Trims the same characters
-   from the beginning of SS. */
+   from the beginning of SS.  Returns CNT. */
 size_t
 ss_get_chars (struct substring *ss, size_t cnt, struct substring *out) 
 {
