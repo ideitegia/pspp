@@ -46,7 +46,7 @@ src_libpspp_libpspp_a_CPPFLAGS = -I $(top_srcdir)/src/libpspp $(AM_CPPFLAGS)
 nodist_src_libpspp_libpspp_a_SOURCES = src/libpspp/version.c
 
 src/libpspp/version.c:
-	@mkdir -p src/libpspp
+	@$(top_srcdir)/mkinstalldirs  src/libpspp
 	echo "#include <config.h>" > $@
 	echo "#include \"version.h\"" > $@
 	echo "const char bare_version[] = \"@VERSION@\";" >> $@

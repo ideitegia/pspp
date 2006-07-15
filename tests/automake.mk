@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-TESTS_ENVIRONMENT = top_srcdir=${top_srcdir} top_builddir=${top_builddir}
+TESTS_ENVIRONMENT = top_srcdir='$(top_srcdir)' top_builddir='$(top_builddir)'
 TESTS_ENVIRONMENT += PERL='@PERL@'
 TESTS = \
 	tests/command/aggregate.sh \

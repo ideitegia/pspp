@@ -1,15 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-
 noinst_LIBRARIES += src/language/data-io/libdata_io.a
-
-src_language_data_io_q_sources_q =  src/language/data-io/file-handle.q src/language/data-io/list.q
-
-src_language_data_io_q_sources_c =  src/language/data-io/file-handle.c src/language/data-io/list.c
-
-EXTRA_DIST += $(src_language_data_io_q_sources_q)
-nodist_src_language_data_io_libdata_io_a_SOURCES = $(src_language_data_io_q_sources_c)
-CLEANFILES += $(src_language_data_io_q_sources_c)
 
 src_language_data_io_libdata_io_a_SOURCES = \
 	src/language/data-io/data-list.c \
@@ -24,4 +15,16 @@ src_language_data_io_libdata_io_a_SOURCES = \
 	src/language/data-io/data-writer.h \
 	src/language/data-io/file-handle.h
 
+src_language_data_io_built_sources = \
+	src/language/data-io/file-handle.c \
+	src/language/data-io/list.c
+
+all_q_sources += $(src_language_data_io_built_sources:.c=.q)
+EXTRA_DIST += $(src_language_data_io_built_sources:.c=.q)
+
+nodist_src_language_data_io_libdata_io_a_SOURCES = \
+	$(src_language_data_io_built_sources)
+
+
+CLEANFILES += $(src_language_data_io_built_sources)
 

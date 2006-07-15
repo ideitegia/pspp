@@ -36,16 +36,15 @@ EXTRA_DIST += doc/pspp.man \
 	doc/get-commands.pl \
 	$(doc_pspp_TEXINFOS)
 
-CLEANFILES += doc/pspp.info doc/pspp.info-* $(top_builddir)/doc/ni.texi
-
-#Kludge to overcome automake limitations
-doc/%.dvi: am__TEXINFO_TEX_DIR=$(top_builddir)/doc
+# Kludge to get around automake deficiency.
+am__TEXINFO_TEX_DIR=./doc
 
 doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
-	@mkdir -p doc
+	@$(top_srcdir)/mkinstalldirs  doc
 	@PERL@ $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
 
 
-$(INFO_DEPS): $(top_builddir)/doc/ni.texi
-$(HTML_DEPS): $(top_builddir)/doc/ni.texi
+$(INFO_DEPS): doc/ni.texi
+$(HTML_DEPS): doc/ni.texi
 
+CLEANFILES += doc/ni.texi

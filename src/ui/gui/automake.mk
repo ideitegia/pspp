@@ -2,7 +2,7 @@
 
 bin_PROGRAMS += src/ui/gui/psppire
 
-src/ui/gui/%: AM_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall
+src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall
 
 src_ui_gui_psppire_LDFLAGS = \
 	-export-dynamic 

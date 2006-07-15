@@ -2,7 +2,7 @@
 
 noinst_LIBRARIES += lib/gtksheet/libgtksheet.a
 
-lib/gtksheet/%: AM_CFLAGS = $(GTK_CFLAGS) -Wall
+lib_gtksheet_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall
 
 
 lib_gtksheet_libgtksheet_a_SOURCES = \

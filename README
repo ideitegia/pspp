@@ -11,8 +11,6 @@ PSPP, you will need to install certain prerequisites:
 
     * An ANSI C compiler and tool chain.
 
-    * GNU make.  Other make programs will not work.
-
     * The GNU Scientific Library (libgsl), version 1.6 or later,
       including libgslcblas included with GSL.
 

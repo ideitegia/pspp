@@ -3,8 +3,8 @@
 AUTOMAKE_OPTIONS = gnits 1.7 subdir-objects
 
 SUBDIRS = intl gl po
-DISTCLEANFILES = 
-
+DISTCLEANFILES = ./intl/plural.c ./po/stamp-po
+BUILT_SOURCES =
 
 AM_CPPFLAGS=-I$(top_srcdir)/intl -I$(top_srcdir)/gl -I$(top_builddir)/gl
 
@@ -23,19 +23,18 @@ if msdos
 AM_CFLAGS+=-D__MSDOS__
 endif
 
+.q.c:
+	@$(top_srcdir)/mkinstalldirs  `dirname $@`
+	./src/language/lexer/q2c $< $@
 
-%.c: %.q $(top_builddir)/src/language/lexer/q2c$(EXEEXT)
-	@mkdir -p `dirname $@`
-	$(top_builddir)/src/language/lexer/q2c $< $@
-
+$(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT)
+all_q_sources =
 
 pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 
-EXTRA_DIST = AUTHORS NEWS ONEWS README TODO THANKS config.rpath	\
-mkinstalldirs config.rpath configure pspp-mode.el
+EXTRA_DIST = ONEWS config.rpath pspp-mode.el
 
-MAINTAINERCLEANFILES = Makefile.in aclocal.m4 
 CLEANFILES = 
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=

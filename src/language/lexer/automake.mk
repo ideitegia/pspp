@@ -16,9 +16,9 @@ src_language_lexer_liblexer_a_SOURCES = \
 EXTRA_DIST += src/language/lexer/q2c.c
 
 
-$(top_builddir)/src/language/lexer/q2c: $(top_srcdir)/src/language/lexer/q2c.c 
-	@mkdir -p `dirname $@`
-	$(CC) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $< -o $@
+src/language/lexer/q2c$(EXEEXT): $(top_srcdir)/src/language/lexer/q2c.c 
+	@$(top_srcdir)/mkinstalldirs `dirname $@`
+	$(CC) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $(top_srcdir)/src/language/lexer/q2c.c -o $@
 
 
-CLEANFILES+=$(top_builddir)/src/language/lexer/q2c
+CLEANFILES += src/language/lexer/q2c$(EXEEXT)
