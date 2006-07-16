@@ -114,7 +114,7 @@ get_covariance (const gsl_matrix *data,
    */
   for (i = 0; i < data->size1; i++)
     {
-      for (lag = 0; lag < max_lag && lag < data->size1 - i; lag++)
+      for (lag = 0; lag <= max_lag && lag < data->size1 - i; lag++)
 	{
 	  update_cov (est, gsl_matrix_const_row (data, i), 
 		      gsl_matrix_const_row (data, i + lag), lag);
@@ -132,15 +132,19 @@ get_covariance (const gsl_matrix *data,
 }
 
 static double
-innovations_convolve (double **theta, struct innovations_estimate *est,
-		      int i, int j)
+innovations_convolve (double *x, double *y, struct innovations_estimate *est,
+		      int i)
 {
   int k;
   double result = 0.0;
 
-  for (k = 0; k < j; k++)
+  assert (x != NULL && y != NULL);
+  assert (est != NULL);
+  assert (est->scale != NULL);
+  assert (i > 0);
+  for (k = 0; k < i; k++)
     {
-      result += theta[i-1][i-k-1] * theta[j][j-k-1] * est->scale[k];
+      result += x[k] * y[k] * est->scale[i-k-1];
     }
   return result;
 }
@@ -187,12 +191,13 @@ innovations_update_coeff (double **theta, struct innovations_estimate *est,
 
   for (i = 0; i < max_lag; i++)
     {
-      for (j = 0; j <= i; j++)
+      theta[i][i] = est->cov[i+1] / est->scale[0];
+      for (j = 1; j <= i; j++)
 	{
 	  k = i - j;
-	  theta[i][k] = (est->cov[k] - 
-	    innovations_convolve (theta, est, i, j))
-	    / est->scale[k];
+	  theta[i][k] = (est->cov[k+1] - 
+			 innovations_convolve (theta[i] + k + 1, theta[j - 1], est, j))
+	    / est->scale[j];
 	}
       innovations_update_scale (est, theta[i], i + 1);
     }  
