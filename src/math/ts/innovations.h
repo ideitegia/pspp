@@ -36,7 +36,6 @@ struct innovations_estimate
 {
   const struct variable *variable;
   double mean;
-  double variance;
   double *cov;
   double *scale;
   double n_obs;

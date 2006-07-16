@@ -239,9 +239,6 @@ get_coef (const gsl_matrix *data,
 	                  + est->coeff[m-1] * (X[m-2] - X_hat[m-2])
 			  ...
 			  + est->coeff[m-max_lag] * (X[m - max_lag] - X_hat[m - max_lag])
-
-	    (That is what X_hat[m] SHOULD be, anyway. These routines need
-	    to be tested.)
 	   */
 	  pspp_coeff_set_estimate (est[n]->coeff[i], theta[max_lag - 1][i]);
 	}
@@ -281,7 +278,28 @@ innovations_struct_init (struct innovations_estimate *est,
     }
   est->max_lag = (double) lag;
 }
-      
+/*
+  The mean is subtracted from the original data before computing the
+  coefficients. The mean is NOT added back, so if you want to predict
+  a new value, you must add the mean to X_hat[m] to get the correct
+  value.
+ */
+static void
+subtract_mean (gsl_matrix *m, struct innovations_estimate **est)
+{      
+  size_t i;
+  size_t j;
+  double tmp;
+
+  for (i = 0; i < m->size1; i++)
+    {
+      for (j = 0; j < m->size2; j++)
+	{
+	  tmp = gsl_matrix_get (m, i, j) - est[j]->mean;
+	  gsl_matrix_set (m, i, j, tmp);
+	}
+    }
+}
 struct innovations_estimate ** 
 pspp_innovations (const struct design_matrix *dm, size_t lag)
 {
@@ -297,6 +315,7 @@ pspp_innovations (const struct design_matrix *dm, size_t lag)
     }
 
   get_mean (dm->m, est);
+  subtract_mean (dm->m, est);
   get_covariance (dm->m, est, lag);
   get_coef (dm->m, est, lag);
   

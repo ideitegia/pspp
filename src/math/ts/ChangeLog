@@ -2,6 +2,8 @@
 
 	* innovations.c (get_coef): Fixed diagonal elements and call to
 	innovations_convolve().
+	(subtract_mean): New function. Subtract the mean before computing
+	the coefficients.
 
 2006-07-15  Jason Stover  <jhs@math.gcsu.edu>
 
