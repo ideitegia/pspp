@@ -1,4 +1,3 @@
-## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 noinst_LIBRARIES += src/data/libdata.a
 
@@ -14,8 +13,11 @@ src_data_libdata_a_SOURCES = \
 	src/data/case-source.c \
 	src/data/case-source.h \
 	src/data/case.c \
-	src/data/casefile.c \
 	src/data/casefile.h \
+	src/data/casefile.c \
+	src/data/casefile-private.h \
+	src/data/fastfile.c \
+	src/data/fastfile.h \
 	src/data/case.h \
 	src/data/category.c \
 	src/data/category.h \

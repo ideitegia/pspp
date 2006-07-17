@@ -20,6 +20,7 @@ src_ui_terminal_pspp_LDADD =					\
 	src/ui/terminal/libui.a \
 	src/language/liblanguage.a \
 	src/language/tests/libtests.a \
+	src/ui/libuicommon.a \
 	src/language/utilities/libutilities.a \
 	src/language/control/libcontrol.a \
 	src/language/expressions/libexpressions.a \

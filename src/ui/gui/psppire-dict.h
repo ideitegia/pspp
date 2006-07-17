@@ -102,6 +102,10 @@ void psppire_dict_delete_variables(PsppireDict *d, gint first, gint n);
 /* Insert a new variable at posn IDX */
 void psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name);
 
+void psppire_dict_resize_variable(PsppireDict *d, 
+				  const struct PsppireVariable *pv,
+				  gint old_size, gint new_size);
+
 gboolean psppire_dict_check_name(const PsppireDict *dict, 
 			      const gchar *name, gboolean report);
 

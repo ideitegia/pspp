@@ -196,9 +196,7 @@ load_system_file(const gchar *file_name)
 	  g_warning("Cannot write case to casefile\n");
 	  break;
 	}
-
       case_destroy(&c);
-
     }
   
   sfm_close_reader(reader);      
@@ -345,57 +343,60 @@ on_quit1_activate                      (GtkMenuItem     *menuitem,
 
 
 void
-on_cut1_activate                       (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+on_clear_activate                    (GtkMenuItem     *menuitem,
+				      gpointer         user_data)
 {
+  GtkNotebook *notebook = GTK_NOTEBOOK(get_widget_assert(xml, "notebook1"));
+  gint page = -1;
 
-}
+  page = gtk_notebook_get_current_page(notebook);
 
-
-void
-on_copy1_activate                      (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_paste1_activate                     (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-
-}
-
-/* Fill a case with SYSMIS for numeric and whitespace for string
-   variables respectively */ 
-static gboolean 
-blank_case(struct ccase *cc, gpointer _dict)
-{
-  gint i;
-  PsppireDict *dict = _dict;
-
-  for(i = 0 ; i < psppire_dict_get_var_cnt(dict); ++i ) 
+  switch (page) 
     {
-      union value *val ;
+    case PAGE_DATA_SHEET:
+      {
+	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+	PsppireDataStore *data_store = 
+	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
+	
 
-      const struct PsppireVariable *var = psppire_dict_get_variable(dict, i);
-      
-      gint idx = psppire_variable_get_fv(var);
+	switch ( data_sheet->state ) 
+	  {
+	  case GTK_SHEET_ROW_SELECTED:
+	    psppire_case_file_delete_cases(data_store->case_file,
+					   data_sheet->range.rowi 
+					   - data_sheet->range.row0 + 1,
+					   data_sheet->range.row0);
+	    break;
+	  case GTK_SHEET_COLUMN_SELECTED:
+	    {
+	      gint fv;
+	      struct PsppireVariable *pv = 
+		psppire_dict_get_variable(the_dictionary, 
+					  data_sheet->range.col0);
+	      fv = psppire_variable_get_fv(pv);
+	      
+	      
+	      psppire_dict_delete_variables(the_dictionary, 
+					    data_sheet->range.col0,
+					    1);
 
-      val = case_data_rw(cc, idx) ;
+	      psppire_case_file_insert_values(data_store->case_file, 
+					      -1, fv);
+	    }
+	    break;
+	  default:
+	    gtk_sheet_cell_clear(data_sheet, 
+				 data_sheet->active_cell.row,
+				 data_sheet->active_cell.col);
+	    break;
+	  }
 
-      if ( psppire_variable_get_type(var) == ALPHA ) 
-	memset(val->s, ' ', psppire_variable_get_width(var));
-      else
-	val->f = SYSMIS;
-
-      case_unshare(cc);
+      }
+      break;
     }
 
-  return TRUE;
 }
-
 
 void
 on_insert1_activate                    (GtkMenuItem     *menuitem,
@@ -435,6 +436,7 @@ on_insert1_activate                    (GtkMenuItem     *menuitem,
     }
 }
 
+#if 0
 void
 on_delete1_activate                    (GtkMenuItem     *menuitem,
                                         gpointer         user_data)
@@ -475,7 +477,7 @@ on_delete1_activate                    (GtkMenuItem     *menuitem,
       break;
     }
 }
-
+#endif
 
 void
 on_about1_activate(GtkMenuItem     *menuitem,
@@ -601,15 +603,22 @@ static GtkNotebook *notebook = 0;
 static void
 switch_menus(gint page)
 {
+  GtkWidget *insert_variable = get_widget_assert(xml, "insert-variable");
+  GtkWidget *insert_cases = get_widget_assert(xml, "insert-cases");
+
   switch (page) 
     {
     case PAGE_VAR_SHEET:
       gtk_widget_hide(menuitems[PAGE_VAR_SHEET]);
       gtk_widget_show(menuitems[PAGE_DATA_SHEET]);
+      gtk_widget_set_sensitive(insert_variable, TRUE);
+      gtk_widget_set_sensitive(insert_cases, FALSE);
       break;
     case PAGE_DATA_SHEET:
       gtk_widget_show(menuitems[PAGE_VAR_SHEET]);
       gtk_widget_hide(menuitems[PAGE_DATA_SHEET]);
+      gtk_widget_set_sensitive(insert_variable, FALSE);
+      gtk_widget_set_sensitive(insert_cases, TRUE);
       break;
     default:
       g_assert_not_reached();
@@ -736,3 +745,44 @@ on_sort_cases_activate (GtkMenuItem     *menuitem,
       break;
     }
 }
+
+
+static void 
+insert_case(void)
+{
+  gint row, col;
+  PsppireDataStore *data_store ;
+  GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+
+  data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
+
+  gtk_sheet_get_active_cell(data_sheet, &row, &col);
+
+  psppire_case_file_insert_case(data_store->case_file, row);
+}
+
+void
+on_insert_case_clicked (GtkButton *button, gpointer user_data)      
+{
+  insert_case();
+}
+
+void
+on_insert_cases (GtkMenuItem *menuitem, gpointer user_data)
+{
+  insert_case();
+}
+
+
+void
+on_insert_variable (GtkMenuItem *menuitem, gpointer user_data)
+{
+  gint row, col;
+  GtkSheet *var_sheet = GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
+
+  gtk_sheet_get_active_cell(var_sheet, &row, &col);
+
+  psppire_dict_insert_variable(the_dictionary, row, NULL);
+}
+
+

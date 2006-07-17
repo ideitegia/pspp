@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,42 +17,51 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef HEADER_CASEFILE
-#define HEADER_CASEFILE
+#ifndef CASEFILE_H
+#define CASEFILE_H
 
+#include <config.h>
 #include <stddef.h>
 #include <stdbool.h>
 
+
 struct ccase;
-struct casefile;
 struct casereader;
+struct casefile;
 
-struct casefile *casefile_create (size_t value_cnt);
-void casefile_destroy (struct casefile *);
 
-bool casefile_error (const struct casefile *);
-bool casefile_in_core (const struct casefile *);
-bool casefile_to_disk (const struct casefile *);
-bool casefile_sleep (const struct casefile *);
 
-size_t casefile_get_value_cnt (const struct casefile *);
-unsigned long casefile_get_case_cnt (const struct casefile *);
+struct casefile *casereader_get_casefile (const struct casereader *r);
 
-bool casefile_append (struct casefile *, const struct ccase *);
-bool casefile_append_xfer (struct casefile *, struct ccase *);
+unsigned long casereader_cnum (const struct casereader *r);
 
-void casefile_mode_reader (struct casefile *);
-struct casereader *casefile_get_reader (const struct casefile *);
-struct casereader *casefile_get_destructive_reader (struct casefile *);
-struct casereader *casefile_get_random_reader (const struct casefile *);
+bool casereader_read (struct casereader *r, struct ccase *c);
 
-const struct casefile *casereader_get_casefile (const struct casereader *);
-bool casereader_read (struct casereader *, struct ccase *);
-bool casereader_read_xfer (struct casereader *, struct ccase *);
-void casereader_destroy (struct casereader *);
+bool casereader_read_xfer (struct casereader *r, struct ccase *c);
 
-void casereader_seek (struct casereader *, unsigned long case_idx);
+void casereader_destroy (struct casereader *r);
 
-unsigned long casereader_cnum(const struct casereader *);
+void casefile_destroy (struct casefile *cf);
 
-#endif /* casefile.h */
+bool casefile_error (const struct casefile *cf);
+
+unsigned long casefile_get_case_cnt (const struct casefile *cf);
+
+size_t casefile_get_value_cnt (const struct casefile *cf);
+
+struct casereader *casefile_get_reader (const struct casefile *cf);
+struct casereader *casefile_get_destructive_reader (struct casefile *cf);
+
+
+
+bool casefile_append (struct casefile *cf, const struct ccase *c);
+
+bool casefile_append_xfer (struct casefile *cf, struct ccase *c);
+
+bool casefile_sleep (const struct casefile *cf);
+
+bool casefile_in_core (const struct casefile *cf);
+
+bool casefile_to_disk (const struct casefile *cf);
+
+#endif

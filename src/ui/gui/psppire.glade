@@ -109,45 +109,73 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="cut1">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label">gtk-cut</property>
 		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_cut1_activate" last_modification_time="Tue, 23 Mar 2004 10:22:51 GMT"/>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkImageMenuItem" id="copy1">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label">gtk-copy</property>
 		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_copy1_activate" last_modification_time="Tue, 23 Mar 2004 10:22:51 GMT"/>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkImageMenuItem" id="paste1">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label">gtk-paste</property>
 		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_paste1_activate" last_modification_time="Tue, 23 Mar 2004 10:22:51 GMT"/>
 		    </widget>
 		  </child>
 
 		  <child>
-		    <widget class="GtkImageMenuItem" id="delete1">
+		    <widget class="GtkMenuItem" id="paste_variables1">
 		      <property name="visible">True</property>
-		      <property name="label">gtk-delete</property>
-		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_delete1_activate" last_modification_time="Tue, 23 Mar 2004 10:22:51 GMT"/>
-		    </widget>
-		  </child>
-
-		  <child>
-		    <widget class="GtkMenuItem" id="insert1">
-		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Insert</property>
+		      <property name="sensitive">False</property>
+		      <property name="label" translatable="yes">Paste _Variables</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_insert1_activate" last_modification_time="Mon, 02 Jan 2006 12:46:02 GMT"/>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkMenuItem" id="clear1">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Cl_ear</property>
+		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_clear_activate" last_modification_time="Sun, 02 Jul 2006 07:00:12 GMT"/>
+		      <accelerator key="Delete" modifiers="0" signal="activate"/>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkSeparatorMenuItem" id="separator6">
+		      <property name="visible">True</property>
+		    </widget>
+		  </child>
+
+		  <child>
+		    <widget class="GtkImageMenuItem" id="find1">
+		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
+		      <property name="label" translatable="yes">_Find</property>
+		      <property name="use_underline">True</property>
+
+		      <child internal-child="image">
+			<widget class="GtkImage" id="image10">
+			  <property name="visible">True</property>
+			  <property name="stock">gtk-find</property>
+			  <property name="icon_size">1</property>
+			  <property name="xalign">0.5</property>
+			  <property name="yalign">0.5</property>
+			  <property name="xpad">0</property>
+			  <property name="ypad">0</property>
+			</widget>
+		      </child>
 		    </widget>
 		  </child>
 		</widget>
@@ -254,20 +282,21 @@
 		<widget class="GtkMenu" id="menuitem4_menu">
 
 		  <child>
-		    <widget class="GtkMenuItem" id="insert_variable1">
+		    <widget class="GtkMenuItem" id="insert-variable">
 		      <property name="visible">True</property>
 		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Insert Variable</property>
 		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_insert_variable" />
 		    </widget>
 		  </child>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="insert_cases1">
+		    <widget class="GtkMenuItem" id="insert-cases">
 		      <property name="visible">True</property>
-		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Insert Cases</property>
 		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_insert_cases" last_modification_time="Sat, 01 Jul 2006 08:40:06 GMT"/>
 		    </widget>
 		  </child>
 
@@ -279,7 +308,7 @@
 		      <signal name="activate" handler="on_go_to_case_activate" last_modification_time="Mon, 19 Jun 2006 10:29:37 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image1">
+			<widget class="GtkImage" id="image11">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-jump-to</property>
 			  <property name="icon_size">1</property>
@@ -611,6 +640,7 @@
 		  <property name="visible_horizontal">True</property>
 		  <property name="visible_vertical">True</property>
 		  <property name="is_important">False</property>
+		  <signal name="clicked" handler="on_insert_case_clicked" last_modification_time="Sat, 01 Jul 2006 08:41:07 GMT"/>
 		</widget>
 		<packing>
 		  <property name="expand">False</property>

@@ -1,3 +1,7 @@
+Mon Jul 17 18:22:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* flexifile.c flexifile.h: New files. Implementations of casefiles.
+
 Thu Mar  2 08:40:33 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	
 	* Moved files from src directory

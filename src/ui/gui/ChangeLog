@@ -1,3 +1,9 @@
+Mon Jul 17 18:21:29 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+    * automake.mk menu-actions.c psppire-case-file.c psppire-case-file.h
+    psppire-data-store.c psppire-dict.c psppire-dict.h psppire-variable.c
+    psppire.c psppire.glade: Adjusted code to use the new flexifile object.
+
 Sat Jul 15 11:27:15 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * psppire.c psppire.glade automake.mk icons/* : Added toolbar icons where 

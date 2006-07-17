@@ -11,6 +11,7 @@ src_ui_gui_psppire_LDADD = \
 	$(GTK_LIBS) \
 	$(GLADE_LIBS) \
 	$(top_builddir)/lib/gtksheet/libgtksheet.a \
+	$(top_builddir)/src/ui/libuicommon.a \
 	$(top_builddir)/src/math/libpspp_math.a \
 	$(top_builddir)/src/data/libdata.a \
 	$(top_builddir)/src/libpspp/libpspp.a \

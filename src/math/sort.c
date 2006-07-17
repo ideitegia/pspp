@@ -30,6 +30,7 @@
 #include <data/case-source.h>
 #include <data/case.h>
 #include <data/casefile.h>
+#include <data/fastfile.h>
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
@@ -162,7 +163,7 @@ do_internal_sort (struct casereader *reader,
     return NULL;
       
   case_cnt = casefile_get_case_cnt (src);
-  dst = casefile_create (casefile_get_value_cnt (src));
+  dst = fastfile_create (casefile_get_value_cnt (src));
   if (case_cnt != 0) 
     {
       struct indexed_case *cases = nmalloc (sizeof *cases, case_cnt);
@@ -508,7 +509,7 @@ start_run (struct initial_run_state *irs)
 {
   irs->run++;
   irs->case_cnt = 0;
-  irs->casefile = casefile_create (irs->xsrt->value_cnt);
+  irs->casefile = fastfile_create (irs->xsrt->value_cnt);
   casefile_to_disk (irs->casefile);
   case_nullify (&irs->last_output); 
 }
@@ -673,7 +674,7 @@ merge_once (struct external_sort *xsrt,
     }
 
   /* Create output file. */
-  output = casefile_create (xsrt->value_cnt);
+  output = fastfile_create (xsrt->value_cnt);
   casefile_to_disk (output);
 
   /* Merge. */

@@ -111,11 +111,8 @@ main(int argc, char *argv[])
   glade_init();
 
 
-  settings_init();
 
-  /* 
-  set_pspp_locale("da_DK");
-  */
+  settings_init();
 
   message_dialog_init();
 

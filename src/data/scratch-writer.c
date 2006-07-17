@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include "case.h"
 #include "casefile.h"
+#include "fastfile.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "scratch-handle.h"
@@ -72,7 +73,7 @@ scratch_writer_open (struct file_handle *fh,
   /* Create new contents. */
   sh = xmalloc (sizeof *sh);
   sh->dictionary = scratch_dict;
-  sh->casefile = casefile_create (dict_get_next_value_idx (sh->dictionary));
+  sh->casefile = fastfile_create (dict_get_next_value_idx (sh->dictionary));
 
   /* Create writer. */
   writer = xmalloc (sizeof *writer);
@@ -115,7 +116,6 @@ scratch_writer_close (struct scratch_writer *writer)
 {
   struct casefile *cf = writer->handle->casefile;
   bool ok = casefile_error (cf);
-  casefile_mode_reader (cf);
   fh_close (writer->fh, "scratch file", "we");
   free (writer);
   return ok;

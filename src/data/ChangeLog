@@ -1,3 +1,9 @@
+Mon Jul 17 18:26:21 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* casefile.c casefile.h: Converted to  an abstract base class.
+	* casefile-private.h fastfile.c fastfile.h: New files.
+	* automake.mk procedure.c scratch-writer.c storage-stream.c
+
 Wed Jul 12 21:02:26 2006  Ben Pfaff  <blp@gnu.org>
 
 	* procedure.c (internal_procedure): Create sink_case with only as

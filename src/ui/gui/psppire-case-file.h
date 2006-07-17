@@ -47,13 +47,13 @@ typedef struct _PsppireCaseFile	   PsppireCaseFile;
 typedef struct _PsppireCaseFileClass PsppireCaseFileClass;
 
 struct ccase;
-struct casefile;
+struct casefilefile;
 
 struct _PsppireCaseFile
 {
   GObject             parent;
 
-  struct casefile *casefile;
+  struct casefile *flexifile;
 };
 
 
@@ -79,10 +79,22 @@ const union value * psppire_case_file_get_value(const PsppireCaseFile *cf,
 
 struct data_in;
 
-gboolean psppire_case_file_set_value(PsppireCaseFile *cf, gint c, gint idx,
+gboolean psppire_case_file_data_in(PsppireCaseFile *cf, gint c, gint idx,
 				 struct data_in *d_in);
 
+gboolean psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, 
+				     gint idx, union value *v, gint width);
+
 void psppire_case_file_clear(PsppireCaseFile *cf);
+
+
+gboolean psppire_case_file_delete_cases(PsppireCaseFile *cf, gint n_rows, 
+					gint first);
+
+gboolean psppire_case_file_insert_case(PsppireCaseFile *cf, gint row);
+
+
+gboolean psppire_case_file_insert_values(PsppireCaseFile *cf, gint n_values, gint before);
 
 struct sort_criteria;
 void psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *);

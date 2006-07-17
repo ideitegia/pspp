@@ -19,6 +19,8 @@
 
 #include <config.h>
 #include <data/casefile.h>
+#include <data/fastfile.h>
+
 #include <data/case.h>
 
 #include <gsl/gsl_randist.h>
@@ -88,7 +90,7 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
   size_t i, j;
 
   rng = gsl_rng_alloc (gsl_rng_mt19937);
-  cf = casefile_create (value_cnt);
+  cf = fastfile_create (value_cnt);
   if (pattern == 5)
     casefile_to_disk (cf);
   for (i = 0; i < case_cnt; i++)
@@ -136,24 +138,6 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
     casereader_destroy (r1);
   if (pattern != 2)
     casereader_destroy (r2);
-  if (pattern > 3) 
-    {
-      int *order;
-      r1 = casefile_get_random_reader (cf);
-      order = xmalloc (sizeof *order * case_cnt);
-      for (i = 0; i < case_cnt; i++)
-        order[i] = i;
-      if (case_cnt > 0)
-        gsl_ran_shuffle (rng, order, case_cnt, sizeof *order);
-      for (i = 0; i < case_cnt; i++)
-        {
-          int case_idx = order[i];
-          casereader_seek (r1, case_idx);
-          read_and_verify_random_case (cf, r1, case_idx);
-        }
-      casereader_destroy (r1);
-      free (order);
-    }
   if (pattern > 2) 
     {
       r1 = casefile_get_destructive_reader (cf);

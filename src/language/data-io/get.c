@@ -27,6 +27,7 @@
 #include <data/case-source.h>
 #include <data/case.h>
 #include <data/casefile.h>
+#include <data/fastfile.h>
 #include <data/dictionary.h>
 #include <data/por-file-writer.h>
 #include <data/procedure.h>
@@ -1126,7 +1127,7 @@ cmd_match_files (void)
     discard_variables ();
 
   dict_compact_values (mtf.dict);
-  mtf.output = casefile_create (dict_get_next_value_idx (mtf.dict));
+  mtf.output = fastfile_create (dict_get_next_value_idx (mtf.dict));
   mtf.seq_nums = xcalloc (dict_get_var_cnt (mtf.dict), sizeof *mtf.seq_nums);
   case_create (&mtf.mtf_case, dict_get_next_value_idx (mtf.dict));
 

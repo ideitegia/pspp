@@ -25,6 +25,8 @@
 #include <data/value-labels.h>
 #include <data/format.h>
 
+#include <libpspp/misc.h>
+
 #include "psppire-variable.h"
 #include "psppire-dict.h"
 
@@ -115,7 +117,20 @@ psppire_variable_set_width(struct PsppireVariable *pv, gint width)
   fmt.w = width;
 
   if ( pv->v->type == ALPHA ) 
+    {
+      gint old_var_cnt , new_var_cnt ;
+
+      if ( pv->v->width == 0 ) 
+	old_var_cnt = 1;
+      else
+	old_var_cnt = DIV_RND_UP(pv->v->width, MAX_SHORT_STRING);
+      
+      new_var_cnt = DIV_RND_UP(width, MAX_SHORT_STRING);
     pv->v->width = width;
+
+      psppire_dict_resize_variable(pv->dict, pv,
+				   old_var_cnt, new_var_cnt);
+    }
 
   return psppire_variable_set_format(pv, &fmt);
 }
@@ -124,14 +139,29 @@ psppire_variable_set_width(struct PsppireVariable *pv, gint width)
 gboolean
 psppire_variable_set_type(struct PsppireVariable *pv, int type)
 {
+  gint old_var_cnt , new_var_cnt ;
+
   g_return_val_if_fail(pv, FALSE);
   g_return_val_if_fail(pv->dict, FALSE);
   g_return_val_if_fail(pv->v, FALSE);
 
   pv->v->type = type; 
 
+  if ( pv->v->width == 0 ) 
+    old_var_cnt = 1;
+  else
+    old_var_cnt = DIV_RND_UP(pv->v->width, MAX_SHORT_STRING);
+
   if ( type == NUMERIC ) 
     pv->v->width = 0;
+
+  if ( pv->v->width == 0 ) 
+    new_var_cnt = 1;
+  else
+    new_var_cnt = DIV_RND_UP(pv->v->width, MAX_SHORT_STRING);
+
+  psppire_dict_resize_variable(pv->dict, pv,
+			       old_var_cnt, new_var_cnt);
 
   psppire_dict_var_changed(pv->dict, pv->v->index);
   return TRUE;

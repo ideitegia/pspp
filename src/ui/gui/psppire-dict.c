@@ -48,6 +48,7 @@ static void dictionary_tree_model_init(GtkTreeModelIface *iface);
 static GObjectClass     *parent_class = NULL;
 
 enum  {VARIABLE_CHANGED, 
+       VARIABLE_RESIZED,
        VARIABLE_INSERTED,
        VARIABLES_DELETED, 
        n_SIGNALS};
@@ -136,6 +137,19 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   signal[VARIABLES_DELETED] =
     g_signal_new ("variables_deleted",
+		  G_TYPE_FROM_CLASS(class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  gtkextra_VOID__INT_INT,
+		  G_TYPE_NONE, 
+		  2,
+		  G_TYPE_INT,
+		  G_TYPE_INT);
+
+
+  signal[VARIABLE_RESIZED] =
+    g_signal_new ("dict-size-changed",
 		  G_TYPE_FROM_CLASS(class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
@@ -299,6 +313,7 @@ psppire_dict_delete_variables(PsppireDict *d, gint first, gint n)
       var = dict_get_var(d->dict, first);
       dict_delete_var (d->dict, var);
     }
+  dict_compact_values(d->dict);
 
   g_signal_emit(d, signal[VARIABLES_DELETED], 0, first, idx );  
 }
@@ -444,6 +459,31 @@ psppire_dict_get_next_value_idx (const PsppireDict *dict)
 {
   return dict_get_next_value_idx(dict->dict);
 }
+
+
+void 
+psppire_dict_resize_variable(PsppireDict *d, const struct PsppireVariable *pv,
+			     gint old_size, gint new_size)
+{
+  gint fv;
+  g_return_if_fail (d);
+  g_return_if_fail (d->dict);
+  
+  if ( old_size == new_size ) 
+    return ;
+
+  pv->v->nv = new_size;
+
+  dict_compact_values(d->dict);
+
+  fv = psppire_variable_get_fv(pv);
+
+  g_signal_emit(d, signal[VARIABLE_RESIZED], 0, 
+		fv + old_size, 
+		new_size - old_size );  
+}
+
+
 
 
 

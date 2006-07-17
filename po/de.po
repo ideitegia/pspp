@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-07-15 12:13+0800\n"
+"POT-Creation-Date: 2006-07-15 18:15+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -45,36 +45,6 @@ msgstr "Tag %d muß zwischen 0 bit 31 sein."
 #: src/data/calendar.c:96
 #, c-format
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
-msgstr ""
-
-#: src/data/casefile.c:269
-#, c-format
-msgid "%s: Removing temporary file: %s."
-msgstr ""
-
-#: src/data/casefile.c:437
-#, c-format
-msgid "Error writing temporary file: %s."
-msgstr ""
-
-#: src/data/casefile.c:600
-#, c-format
-msgid "%s: Opening temporary file: %s."
-msgstr ""
-
-#: src/data/casefile.c:643
-#, c-format
-msgid "%s: Seeking temporary file: %s."
-msgstr ""
-
-#: src/data/casefile.c:662
-#, c-format
-msgid "%s: Reading temporary file: %s."
-msgstr ""
-
-#: src/data/casefile.c:665
-#, c-format
-msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
 
 #: src/data/data-in.c:59
@@ -298,6 +268,36 @@ msgid ""
 "system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
+#: src/data/fastfile.c:499
+#, c-format
+msgid "%s: Removing temporary file: %s."
+msgstr ""
+
+#: src/data/fastfile.c:623
+#, c-format
+msgid "Error writing temporary file: %s."
+msgstr ""
+
+#: src/data/fastfile.c:651
+#, c-format
+msgid "%s: Opening temporary file: %s."
+msgstr ""
+
+#: src/data/fastfile.c:695
+#, c-format
+msgid "%s: Seeking temporary file: %s."
+msgstr ""
+
+#: src/data/fastfile.c:717
+#, c-format
+msgid "%s: Reading temporary file: %s."
+msgstr ""
+
+#: src/data/fastfile.c:720
+#, c-format
+msgid "%s: Temporary file ended unexpectedly."
+msgstr ""
+
 #: src/data/file-handle-def.c:304
 #, c-format
 msgid "Can't open %s as a %s because it is already open as a %s."
@@ -390,13 +390,13 @@ msgstr ""
 
 #: src/data/format.c:198 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:1220 src/data/sys-file-reader.c:1229
-#: src/ui/gui/psppire.glade:1162 src/ui/gui/psppire-var-store.c:451
+#: src/ui/gui/psppire.glade:1192 src/ui/gui/psppire-var-store.c:451
 msgid "String"
 msgstr "Zeichenkette"
 
 #: src/data/format.c:198 src/data/por-file-reader.c:481
 #: src/data/sys-file-reader.c:1220 src/data/sys-file-reader.c:1229
-#: src/ui/gui/psppire.glade:1023 src/ui/gui/psppire-var-store.c:444
+#: src/ui/gui/psppire.glade:1053 src/ui/gui/psppire-var-store.c:444
 msgid "Numeric"
 msgstr "Nummer"
 
@@ -1357,21 +1357,21 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
-#: src/language/data-io/get.c:115
+#: src/language/data-io/get.c:116
 msgid "expecting COMM or TAPE"
 msgstr ""
 
-#: src/language/data-io/get.c:357 src/language/data-io/get.c:371
-#: src/language/data-io/get.c:396
+#: src/language/data-io/get.c:358 src/language/data-io/get.c:372
+#: src/language/data-io/get.c:397
 #, c-format
 msgid "expecting %s or %s"
 msgstr ""
 
-#: src/language/data-io/get.c:605 src/language/data-io/print.c:186
+#: src/language/data-io/get.c:606 src/language/data-io/print.c:186
 msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/language/data-io/get.c:638
+#: src/language/data-io/get.c:639
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1379,75 +1379,75 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/language/data-io/get.c:663
+#: src/language/data-io/get.c:664
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/language/data-io/get.c:670
+#: src/language/data-io/get.c:671
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%d) does not match number of "
 "variables on right side (%d), in parenthesized group %d of RENAME subcommand."
 msgstr ""
 
-#: src/language/data-io/get.c:683
+#: src/language/data-io/get.c:684
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/language/data-io/get.c:713
+#: src/language/data-io/get.c:714
 msgid "Cannot DROP all variables from dictionary."
 msgstr ""
 
-#: src/language/data-io/get.c:890
+#: src/language/data-io/get.c:891
 msgid "The active file may not be specified more than once."
 msgstr ""
 
-#: src/language/data-io/get.c:898
+#: src/language/data-io/get.c:899
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/language/data-io/get.c:905
+#: src/language/data-io/get.c:906
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/language/data-io/get.c:941
+#: src/language/data-io/get.c:942
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/language/data-io/get.c:961
+#: src/language/data-io/get.c:962
 msgid "BY may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:981
+#: src/language/data-io/get.c:982
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:995
+#: src/language/data-io/get.c:996
 msgid "FIRST may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:1009
+#: src/language/data-io/get.c:1010
 msgid "LAST may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:1050
+#: src/language/data-io/get.c:1051
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1055
+#: src/language/data-io/get.c:1056
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1083
+#: src/language/data-io/get.c:1084
 #, c-format
 msgid "IN variable name %s duplicates an existing variable name."
 msgstr ""
 
-#: src/language/data-io/get.c:1537
+#: src/language/data-io/get.c:1538
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
@@ -3441,7 +3441,7 @@ msgstr ""
 msgid "Coefficient Correlations"
 msgstr ""
 
-#: src/language/stats/regression.q:1122
+#: src/language/stats/regression.q:1129
 msgid "Dependent variable must be numeric."
 msgstr ""
 
@@ -3855,7 +3855,7 @@ msgstr ""
 msgid "Empirical with averaging"
 msgstr ""
 
-#: src/math/sort.c:439
+#: src/math/sort.c:440
 #, c-format
 msgid ""
 "Out of memory.  Could not allocate room for minimum of %d cases of %d bytes "
@@ -4272,27 +4272,27 @@ msgstr "Unbetitelt"
 msgid "PSPP Data Editor"
 msgstr "PSPP Dateiaufbereiter"
 
-#: src/ui/gui/menu-actions.c:222 src/ui/gui/psppire.glade:430
+#: src/ui/gui/menu-actions.c:220 src/ui/gui/psppire.glade:459
 msgid "Open"
 msgstr "Öffen"
 
-#: src/ui/gui/menu-actions.c:230
+#: src/ui/gui/menu-actions.c:228
 msgid "System Files (*.sav)"
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/menu-actions.c:236
+#: src/ui/gui/menu-actions.c:234
 msgid "Portable Files (*.por) "
 msgstr "Tragbardatein (*.por)"
 
-#: src/ui/gui/menu-actions.c:242
+#: src/ui/gui/menu-actions.c:240
 msgid "All Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/menu-actions.c:274
+#: src/ui/gui/menu-actions.c:272
 msgid "Save Data As"
 msgstr "Speichern unter"
 
-#: src/ui/gui/menu-actions.c:566
+#: src/ui/gui/menu-actions.c:568
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
@@ -4320,11 +4320,11 @@ msgstr "Falshe Spannweitebeschreibung"
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
 
-#: src/ui/gui/psppire-data-store.c:693
+#: src/ui/gui/psppire-data-store.c:695
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:777 src/ui/gui/psppire-var-store.c:518
+#: src/ui/gui/psppire-data-store.c:779 src/ui/gui/psppire-var-store.c:518
 #: src/ui/gui/psppire-var-store.c:528 src/ui/gui/psppire-var-store.c:538
 #: src/ui/gui/psppire-var-store.c:735
 #, c-format
@@ -4339,147 +4339,157 @@ msgstr "_Datei"
 msgid "_Edit"
 msgstr "_Bearbeiten"
 
-#: src/ui/gui/psppire.glade:148
-msgid "_Insert"
-msgstr "_Stecken"
+#: src/ui/gui/psppire.glade:140
+#, fuzzy
+msgid "Paste _Variables"
+msgstr "Variableansicht"
 
-#: src/ui/gui/psppire.glade:161
+#: src/ui/gui/psppire.glade:148
+msgid "Cl_ear"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:165
+#, fuzzy
+msgid "_Find"
+msgstr "_Datei"
+
+#: src/ui/gui/psppire.glade:189
 msgid "_View"
 msgstr "_Ansicht"
 
-#: src/ui/gui/psppire.glade:170
+#: src/ui/gui/psppire.glade:198
 msgid "Status Bar"
 msgstr "Statusleiste"
 
-#: src/ui/gui/psppire.glade:179
+#: src/ui/gui/psppire.glade:207
 msgid "Toolbars"
 msgstr "Werkzeugregal"
 
-#: src/ui/gui/psppire.glade:193
+#: src/ui/gui/psppire.glade:221
 msgid "Fonts"
 msgstr "Schrift"
 
-#: src/ui/gui/psppire.glade:202
+#: src/ui/gui/psppire.glade:230
 msgid "Grid Lines"
 msgstr "Glitten"
 
-#: src/ui/gui/psppire.glade:212 src/ui/gui/psppire.glade:718
-#: src/ui/gui/psppire.glade:1597 src/ui/gui/psppire.glade:1874
+#: src/ui/gui/psppire.glade:240 src/ui/gui/psppire.glade:748
+#: src/ui/gui/psppire.glade:1627 src/ui/gui/psppire.glade:1904
 msgid "Value Labels"
 msgstr "Werten"
 
-#: src/ui/gui/psppire.glade:228
+#: src/ui/gui/psppire.glade:256
 msgid "Data"
 msgstr "Daten"
 
-#: src/ui/gui/psppire.glade:237 src/ui/gui/psppire.glade:549
+#: src/ui/gui/psppire.glade:265 src/ui/gui/psppire.glade:578
 msgid "Variables"
 msgstr "Variableansicht"
 
-#: src/ui/gui/psppire.glade:250
+#: src/ui/gui/psppire.glade:278
 #, fuzzy
 msgid "_Data"
 msgstr "Daten"
 
-#: src/ui/gui/psppire.glade:260 src/ui/gui/psppire.glade:624
+#: src/ui/gui/psppire.glade:288 src/ui/gui/psppire.glade:654
 #, fuzzy
 msgid "Insert Variable"
 msgstr "Variableansicht"
 
-#: src/ui/gui/psppire.glade:269
+#: src/ui/gui/psppire.glade:297
 #, fuzzy
 msgid "Insert Cases"
 msgstr "_Stecken"
 
-#: src/ui/gui/psppire.glade:277 src/ui/gui/psppire.glade:533
-#: src/ui/gui/psppire.glade:2439
+#: src/ui/gui/psppire.glade:306 src/ui/gui/psppire.glade:562
+#: src/ui/gui/psppire.glade:2469
 msgid "Go To Case"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:304 src/ui/gui/psppire.glade:2550
+#: src/ui/gui/psppire.glade:333 src/ui/gui/psppire.glade:2580
 msgid "Sort Cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:314
+#: src/ui/gui/psppire.glade:343
 msgid "Transpose"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:323
+#: src/ui/gui/psppire.glade:352
 msgid "Restructure"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:332
+#: src/ui/gui/psppire.glade:361
 #, fuzzy
 msgid "Merge Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/psppire.glade:341
+#: src/ui/gui/psppire.glade:370
 msgid "Aggregate"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:356 src/ui/gui/psppire.glade:654
+#: src/ui/gui/psppire.glade:385 src/ui/gui/psppire.glade:684
 #, fuzzy
 msgid "Split File"
 msgstr "Alle Datei"
 
-#: src/ui/gui/psppire.glade:365 src/ui/gui/psppire.glade:688
+#: src/ui/gui/psppire.glade:394 src/ui/gui/psppire.glade:718
 msgid "Select Cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:374 src/ui/gui/psppire.glade:671
+#: src/ui/gui/psppire.glade:403 src/ui/gui/psppire.glade:701
 msgid "Weight Cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:386
+#: src/ui/gui/psppire.glade:415
 msgid "_Help"
 msgstr "_Hilfe"
 
-#: src/ui/gui/psppire.glade:395
+#: src/ui/gui/psppire.glade:424
 msgid "_About"
 msgstr "_Info"
 
-#: src/ui/gui/psppire.glade:446
+#: src/ui/gui/psppire.glade:475
 msgid "Save"
 msgstr "Speichen"
 
-#: src/ui/gui/psppire.glade:462
+#: src/ui/gui/psppire.glade:491
 msgid "Print"
 msgstr "Drucken"
 
-#: src/ui/gui/psppire.glade:490
+#: src/ui/gui/psppire.glade:519
 msgid "Undo"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:505
+#: src/ui/gui/psppire.glade:534
 msgid "Redo"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:579
+#: src/ui/gui/psppire.glade:608
 msgid "Find"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:607
+#: src/ui/gui/psppire.glade:636
 #, fuzzy
 msgid "Insert Case"
 msgstr "_Stecken"
 
-#: src/ui/gui/psppire.glade:738
+#: src/ui/gui/psppire.glade:768
 msgid "Use Sets"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:870
+#: src/ui/gui/psppire.glade:900
 msgid "Data View"
 msgstr "Datenansicht"
 
-#: src/ui/gui/psppire.glade:918
+#: src/ui/gui/psppire.glade:948
 msgid "Variable View"
 msgstr "Variableansicht"
 
-#: src/ui/gui/psppire.glade:964
+#: src/ui/gui/psppire.glade:994
 msgid "This is pre-alpha software.  It probably will not work."
 msgstr "Diese Software ist vor-Alpha.  Wahrscheinlich Funktioniert es nicht."
 
-#: src/ui/gui/psppire.glade:965
+#: src/ui/gui/psppire.glade:995
 msgid ""
 "    This program is free software; you can redistribute it and/or modify\n"
 "    it under the terms of the GNU General Public License as published by\n"
@@ -4497,107 +4507,107 @@ msgid ""
 "    02110-1301, USA.\n"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:990
+#: src/ui/gui/psppire.glade:1020
 msgid "Variable Type"
 msgstr "Variableansicht"
 
-#: src/ui/gui/psppire.glade:1042 src/ui/gui/psppire-var-store.c:445
+#: src/ui/gui/psppire.glade:1072 src/ui/gui/psppire-var-store.c:445
 msgid "Comma"
 msgstr "Komma"
 
-#: src/ui/gui/psppire.glade:1062 src/ui/gui/psppire-var-store.c:446
+#: src/ui/gui/psppire.glade:1092 src/ui/gui/psppire-var-store.c:446
 msgid "Dot"
 msgstr "Punkt"
 
-#: src/ui/gui/psppire.glade:1082
+#: src/ui/gui/psppire.glade:1112
 msgid "Scientific notation"
 msgstr "Wissenschaftlichnotation"
 
-#: src/ui/gui/psppire.glade:1102 src/ui/gui/psppire-var-store.c:448
+#: src/ui/gui/psppire.glade:1132 src/ui/gui/psppire-var-store.c:448
 msgid "Date"
 msgstr "Datum"
 
-#: src/ui/gui/psppire.glade:1122 src/ui/gui/psppire-var-store.c:449
+#: src/ui/gui/psppire.glade:1152 src/ui/gui/psppire-var-store.c:449
 msgid "Dollar"
 msgstr "Euro"
 
-#: src/ui/gui/psppire.glade:1142
+#: src/ui/gui/psppire.glade:1172
 msgid "Custom currency"
 msgstr "Spezialwährung"
 
-#: src/ui/gui/psppire.glade:1287
+#: src/ui/gui/psppire.glade:1317
 msgid "positive"
 msgstr "positiv"
 
-#: src/ui/gui/psppire.glade:1312
+#: src/ui/gui/psppire.glade:1342
 msgid "negative"
 msgstr "negativ"
 
-#: src/ui/gui/psppire.glade:1341
+#: src/ui/gui/psppire.glade:1371
 msgid "Sample"
 msgstr "Muster"
 
-#: src/ui/gui/psppire.glade:1419
+#: src/ui/gui/psppire.glade:1449
 msgid "Decimal Places:"
 msgstr "Dezimalstellen:"
 
-#: src/ui/gui/psppire.glade:1496
+#: src/ui/gui/psppire.glade:1526
 msgid "Width:"
 msgstr "Große:"
 
-#: src/ui/gui/psppire.glade:1715
+#: src/ui/gui/psppire.glade:1745
 msgid "Value:"
 msgstr "Werte:"
 
-#: src/ui/gui/psppire.glade:1743
+#: src/ui/gui/psppire.glade:1773
 msgid "Value Label:"
 msgstr "Kennsatz:"
 
-#: src/ui/gui/psppire.glade:1959
+#: src/ui/gui/psppire.glade:1989
 msgid "Missing Values"
 msgstr "Lösewerten"
 
-#: src/ui/gui/psppire.glade:2045
+#: src/ui/gui/psppire.glade:2075
 msgid "_No missing values"
 msgstr "_Kein Lösewerten"
 
-#: src/ui/gui/psppire.glade:2070
+#: src/ui/gui/psppire.glade:2100
 msgid "_Discrete missing values"
 msgstr "_Diskret Lösewerten"
 
-#: src/ui/gui/psppire.glade:2199
+#: src/ui/gui/psppire.glade:2229
 msgid "_Range plus one optional discrete missing value"
 msgstr "Wertebereich und ein optional Lösewert"
 
-#: src/ui/gui/psppire.glade:2236
+#: src/ui/gui/psppire.glade:2266
 msgid "_Low:"
 msgstr "_Tief:"
 
-#: src/ui/gui/psppire.glade:2295
+#: src/ui/gui/psppire.glade:2325
 msgid "_High:"
 msgstr "_Hoch:"
 
-#: src/ui/gui/psppire.glade:2369
+#: src/ui/gui/psppire.glade:2399
 msgid "Di_screte value:"
 msgstr "Di_skretwerte"
 
-#: src/ui/gui/psppire.glade:2495
+#: src/ui/gui/psppire.glade:2525
 msgid "Case Number:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2667 src/ui/gui/sort-cases-dialog.c:282
+#: src/ui/gui/psppire.glade:2697 src/ui/gui/sort-cases-dialog.c:282
 msgid "Ascending"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2686 src/ui/gui/sort-cases-dialog.c:284
+#: src/ui/gui/psppire.glade:2716 src/ui/gui/sort-cases-dialog.c:284
 msgid "Descending"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2707
+#: src/ui/gui/psppire.glade:2737
 msgid "Sort Order"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2744
+#: src/ui/gui/psppire.glade:2774
 msgid "Sort by:"
 msgstr ""
 
@@ -4748,3 +4758,6 @@ msgstr "Fehler"
 #: src/ui/terminal/msg-ui.c:117
 msgid "warning"
 msgstr "Warnung"
+
+#~ msgid "_Insert"
+#~ msgstr "_Stecken"

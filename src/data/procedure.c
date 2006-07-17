@@ -28,6 +28,7 @@
 #include <data/case-sink.h>
 #include <data/case.h>
 #include <data/casefile.h>
+#include <data/fastfile.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/procedure.h>
@@ -168,7 +169,7 @@ multipass_procedure (bool (*proc_func) (const struct casefile *, void *aux),
   struct multipass_aux_data aux_data;
   bool ok;
 
-  aux_data.casefile = casefile_create (dict_get_next_value_idx (default_dict));
+  aux_data.casefile = fastfile_create (dict_get_next_value_idx (default_dict));
   aux_data.proc_func = proc_func;
   aux_data.aux = aux;
 
@@ -618,7 +619,7 @@ multipass_split_case_func (const struct ccase *c, void *aux_)
         ok = multipass_split_output (aux);
 
       /* Start a new casefile. */
-      aux->casefile = casefile_create (dict_get_next_value_idx (default_dict));
+      aux->casefile = fastfile_create (dict_get_next_value_idx (default_dict));
     }
 
   return casefile_append (aux->casefile, c) && ok;
