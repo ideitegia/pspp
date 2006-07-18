@@ -8,6 +8,7 @@ src_language_lexer_liblexer_a_SOURCES = \
 	src/language/lexer/subcommand-list.c  \
 	src/language/lexer/subcommand-list.h \
 	src/language/lexer/format-parser.c \
+	src/language/lexer/format-parser.h \
 	src/language/lexer/range-parser.c \
 	src/language/lexer/range-parser.h \
 	src/language/lexer/variable-parser.c \

@@ -1,3 +1,7 @@
+Sun Jul 16 21:08:51 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command/print.sh: Update output to match PRINT revisions.
+
 Wed Jul 12 10:07:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Put ll-test, llx-test in check_PROGRAMS instead of

@@ -1,3 +1,23 @@
+Sun Jul 16 19:52:03 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format.c: (fmt_type_from_string) New function.
+	(fmt_to_string) Include decimals in output if the format has
+	decimals, even if the format type does not.  This way, we can
+	accurately reproduce incorrect formats in user output.
+	(check_common_specifier) Make the check for a bad format type an
+	assertion, so we get bug reports if they show up.  Fix message.
+	Check for decimal places with a format type that doesn't allow
+	them.
+	(check_input_specifier) Remove check for FMT_X, which has been
+	deleted.
+	(check_output_specifier) Ditto.	
+
+	* format.def: Remove FMT_T, FMT_X, FMT_DESCEND, FMT_NEWREC.
+
+	* format.h: (macro FMT_TYPE_LEN_MAX) New macro.
+	(struct fmt_desc) Use FMT_TYPE_LEN_MAX in definition.
+	(enum fmt_parse_flags) Removed.
+
 Mon Jul 17 18:26:21 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* casefile.c casefile.h: Converted to  an abstract base class.

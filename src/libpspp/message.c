@@ -21,6 +21,7 @@
 
 #include <libpspp/message.h>
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,6 +41,9 @@ static char *command_name;
 static void (*msg_handler)  (const struct msg *);
 static void (*msg_location) (struct msg_locator *);
 
+
+/* Disables emitting messages if positive. */
+static int messages_disabled;
 
 /* Public functions. */
 
@@ -93,15 +97,33 @@ msg_destroy(struct msg *m)
   free(m);
 }
 
-
 /* Emits M as an error message.
    Frees allocated data in M. */
 void
 msg_emit (struct msg *m) 
 {
   msg_location (&m->where);
-  msg_handler (m);
+  if (!messages_disabled)
+    msg_handler (m);
   free (m->text);
+}
+
+/* Disables message output until the next call to msg_enable.  If
+   this function is called multiple times, msg_enable must be
+   called an equal number of times before messages are actually
+   re-enabled. */
+void
+msg_disable (void) 
+{
+  messages_disabled++;
+}
+
+/* Enables message output that was disabled by msg_disable. */
+void
+msg_enable (void) 
+{
+  assert (messages_disabled > 0);
+  messages_disabled--;
 }
 
 /* Private functions. */

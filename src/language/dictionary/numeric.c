@@ -25,6 +25,7 @@
 #include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/assertion.h>
@@ -56,7 +57,7 @@ cmd_numeric (void)
       /* Get the optional format specification. */
       if (lex_match ('('))
 	{
-	  if (!parse_format_specifier (&f, 0))
+	  if (!parse_format_specifier (&f))
 	    goto fail;
 	  if (formats[f.type].cat & FCAT_STRING)
 	    {
@@ -126,8 +127,7 @@ cmd_string (void)
       if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
 	return CMD_FAILURE;
 
-      if (!lex_force_match ('(')
-	  || !parse_format_specifier (&f, 0))
+      if (!lex_force_match ('(') || !parse_format_specifier (&f))
 	goto fail;
       if (!(formats[f.type].cat & FCAT_STRING))
 	{

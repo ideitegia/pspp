@@ -44,14 +44,34 @@ struct fmt_desc formats[FMT_NUMBER_OF_FORMATS + 1] =
 /* Common formats. */
 const struct fmt_spec f8_2 = {FMT_F, 8, 2};
 
+/* Tries to parse NAME as a format type.
+   If successful, stores the type in *TYPE and returns true.
+   On failure, returns false. */
+bool
+fmt_type_from_string (const char *name, int *type) 
+{
+  int i;
+
+  for (i = 0; i < FMT_NUMBER_OF_FORMATS; i++)
+    if (!strcasecmp (name, formats[i].name))
+      {
+        *type = i;
+        return true;
+      }
+  return false;
+}
+
 /* Converts F to its string representation (for instance, "F8.2") and
-   returns a pointer to a static buffer containing that string. */
+   returns a pointer to a static buffer containing that string.
+   If F has decimals, then they are included in the output
+   string, even if F's format type does not, so that we can
+   accurately present incorrect formats to the user. */
 char *
 fmt_to_string (const struct fmt_spec *f)
 {
   static char buf[32];
 
-  if (formats[f->type].n_args >= 2)
+  if (formats[f->type].n_args >= 2 || f->d > 0)
     sprintf (buf, "%s%d.%d", formats[f->type].name, f->w, f->d);
   else
     sprintf (buf, "%s%d", formats[f->type].name, f->w);
@@ -68,14 +88,7 @@ check_common_specifier (const struct fmt_spec *spec, bool emit_error)
   struct fmt_desc *f ; 
   char *str;
 
-  if ( spec->type > FMT_NUMBER_OF_FORMATS ) 
-    {
-      if (emit_error)
-        msg (SE, _("Format specifies a bad type (%d)"), spec->type);
-      
-      return false;
-    }
-
+  assert (spec->type < FMT_NUMBER_OF_FORMATS);
   f = &formats[spec->type];
   str = fmt_to_string (spec);
 
@@ -91,8 +104,16 @@ check_common_specifier (const struct fmt_spec *spec, bool emit_error)
     {
       if (emit_error)
         msg (SE, _("Format %s specifies a bad number of "
-                   "implied decimal places %d.  Input format %s allows "
+                   "implied decimal places %d.  Format type %s allows "
                    "up to 16 implied decimal places."), str, spec->d, f->name);
+      return false;
+    }
+  if (f->n_args <= 1 && spec->d) 
+    {
+      if (emit_error)
+        msg (SE, _("Format %s specifies %d decimal places, but "
+                   "format type %s does not allow for decimal places."),
+             str, spec->d, f->name);
       return false;
     }
   return true;
@@ -104,7 +125,7 @@ check_common_specifier (const struct fmt_spec *spec, bool emit_error)
 int
 check_input_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f ;
+  struct fmt_desc *f;
   char *str ;
 
   if (!check_common_specifier (spec, emit_error))
@@ -112,10 +133,6 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
 
   f = &formats[spec->type];
   str = fmt_to_string (spec);
-
-
-  if (spec->type == FMT_X)
-    return 1;
   if (f->cat & FCAT_OUTPUT_ONLY)
     {
       if (emit_error)
@@ -156,9 +173,6 @@ check_output_specifier (const struct fmt_spec *spec, int emit_error)
 
   f = &formats[spec->type];
   str = fmt_to_string (spec);
-
-  if (spec->type == FMT_X)
-    return 1;
   if (spec->w < f->Omin_w || spec->w > f->Omax_w)
     {
       if (emit_error)

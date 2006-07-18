@@ -30,6 +30,7 @@
 #include <data/settings.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/line-buffer.h>
 #include <libpspp/alloc.h>
@@ -410,7 +411,7 @@ stc_custom_format (struct cmd_set *cmd UNUSED, void *aux UNUSED)
   struct fmt_spec fmt;
 
   lex_match ('=');
-  if (!parse_format_specifier (&fmt, 0))
+  if (!parse_format_specifier (&fmt))
     return 0;
   if ((formats[fmt.type].cat & FCAT_STRING) != 0)
     {

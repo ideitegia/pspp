@@ -120,6 +120,29 @@ parse_variables (const struct dictionary *d, struct variable ***var,
   return success;
 }
 
+/* Parses a set of variables from dictionary D given options
+   OPTS.  Resulting list of variables stored in *VARS and the
+   number of variables into *VAR_CNT.  Returns nonzero only if
+   successful.  Same behavior as parse_variables, except that all
+   allocations are taken from the given POOL. */
+int
+parse_variables_pool (struct pool *pool, const struct dictionary *dict,
+                      struct variable ***vars, size_t *var_cnt, int opts) 
+{
+  int retval;
+
+  /* PV_APPEND is unsafe because parse_variables would free the
+     existing names on failure, but those names are presumably
+     already in the pool, which would attempt to re-free it
+     later. */
+  assert (!(opts & PV_APPEND));
+  
+  retval = parse_variables (dict, vars, var_cnt, opts);
+  if (retval)
+    pool_register (pool, free, *vars);
+  return retval;
+}
+
 /* Parses a variable name from VS.  If successful, sets *IDX to
    the variable's index in VS, *CLASS to the variable's
    dictionary class, and returns nonzero.  Returns zero on
@@ -472,6 +495,40 @@ fail:
   return success;
 }
 
+/* Registers each of the NAMES[0...NNAMES - 1] in POOL, as well
+   as NAMES itself. */
+static void
+register_vars_pool (struct pool *pool, char **names, size_t nnames)
+{
+  size_t i;
+
+  for (i = 0; i < nnames; i++)
+    pool_register (pool, free, names[i]);
+  pool_register (pool, free, names);
+}
+
+/* Parses a list of variable names according to the DATA LIST
+   version of the TO convention.  Same args as
+   parse_DATA_LIST_vars(), except that all allocations are taken
+   from the given POOL. */
+int
+parse_DATA_LIST_vars_pool (struct pool *pool,
+                           char ***names, size_t *nnames, int pv_opts)
+{
+  int retval;
+
+  /* PV_APPEND is unsafe because parse_DATA_LIST_vars would free
+     the existing names on failure, but those names are
+     presumably already in the pool, which would attempt to
+     re-free it later. */
+  assert (!(pv_opts & PV_APPEND));
+  
+  retval = parse_DATA_LIST_vars (names, nnames, pv_opts);
+  if (retval)
+    register_vars_pool (pool, *names, *nnames);
+  return retval;
+}
+
 /* Parses a list of variables where some of the variables may be
    existing and the rest are to be created.  Same args as
    parse_DATA_LIST_vars(). */
@@ -520,24 +577,25 @@ fail:
 
 /* Parses a list of variables where some of the variables may be
    existing and the rest are to be created.  Same args as
-   parse_DATA_LIST_vars(), except that all allocations are taken
+   parse_mixed_vars(), except that all allocations are taken
    from the given POOL. */
 int
 parse_mixed_vars_pool (struct pool *pool,
                        char ***names, size_t *nnames, int pv_opts)
 {
-  int retval = parse_mixed_vars (names, nnames, pv_opts);
-  if (retval)
-    {
-      size_t i;
+  int retval;
 
-      for (i = 0; i < *nnames; i++)
-        pool_register (pool, free, (*names)[i]);
-      pool_register (pool, free, *names);
-    }
+  /* PV_APPEND is unsafe because parse_mixed_vars_pool would free
+     the existing names on failure, but those names are
+     presumably already in the pool, which would attempt to
+     re-free it later. */
+  assert (!(pv_opts & PV_APPEND));
+
+  retval = parse_mixed_vars (names, nnames, pv_opts);
+  if (retval)
+    register_vars_pool (pool, *names, *nnames);
   return retval;
 }
-
 
 /* A set of variables. */
 struct var_set 

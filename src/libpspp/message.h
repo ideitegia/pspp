@@ -99,6 +99,10 @@ void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
 void msg_emit (struct msg *);
 
+/* Enable and disable messages. */
+void msg_enable (void);
+void msg_disable (void);
+
 /* Error context. */
 void msg_set_command_name (const char *);
 const char *msg_get_command_name (void);

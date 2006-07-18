@@ -8,12 +8,15 @@ src_language_data_io_libdata_io_a_SOURCES = \
 	src/language/data-io/inpt-pgm.c \
 	src/language/data-io/inpt-pgm.h \
 	src/language/data-io/print.c \
+	src/language/data-io/print-space.c \
 	src/language/data-io/matrix-data.c   \
 	src/language/data-io/data-reader.c \
 	src/language/data-io/data-reader.h \
 	src/language/data-io/data-writer.c \
 	src/language/data-io/data-writer.h \
-	src/language/data-io/file-handle.h
+	src/language/data-io/file-handle.h \
+	src/language/data-io/placement-parser.c \
+	src/language/data-io/placement-parser.h
 
 src_language_data_io_built_sources = \
 	src/language/data-io/file-handle.c \

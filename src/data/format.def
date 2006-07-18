@@ -57,9 +57,3 @@ DEFFMT (FMT_TIME,	  "TIME",      2,  5,  40,  5,   40, 0001, FMT_TIME, 21)
 DEFFMT (FMT_DTIME,	  "DTIME",     2, 11,  40,  8,   40, 0001, FMT_DTIME, 25)
 DEFFMT (FMT_WKDAY,	  "WKDAY",     1,  2,  40,  2,   40, 0001, FMT_WKDAY, 26)
 DEFFMT (FMT_MONTH,	  "MONTH",     1,  3,  40,  3,   40, 0001, FMT_MONTH, 27)
-			  					     
-/* These aren't real formats.  They're used by DATA LIST. */	     
-DEFFMT (FMT_T,            "T",         1,  1,99999, 1,99999, 0000, FMT_T, -1)
-DEFFMT (FMT_X,		  "X",         1,  1,99999, 1,99999, 0000, FMT_X, -1)
-DEFFMT (FMT_DESCEND,      "***",       1,  1,99999, 1,99999, 0000, -1, -1)
-DEFFMT (FMT_NEWREC,	  "***",       1,  1,99999, 1,99999, 0000, -1, -1)

@@ -59,9 +59,13 @@ struct variable *parse_variable (void);
 struct variable *parse_dict_variable (const struct dictionary *);
 int parse_variables (const struct dictionary *, struct variable ***, size_t *,
                      int opts);
+int parse_variables_pool (struct pool *, const struct dictionary *,
+                          struct variable ***, size_t *, int opts);
 int parse_var_set_vars (const struct var_set *, struct variable ***, size_t *,
                         int opts);
 int parse_DATA_LIST_vars (char ***names, size_t *cnt, int opts);
+int parse_DATA_LIST_vars_pool (struct pool *,
+                               char ***names, size_t *cnt, int opts);
 int parse_mixed_vars (char ***names, size_t *cnt, int opts);
 int parse_mixed_vars_pool (struct pool *,
                            char ***names, size_t *cnt, int opts);

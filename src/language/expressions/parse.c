@@ -29,6 +29,7 @@
 #include <data/dictionary.h>
 #include <libpspp/message.h>
 #include "helpers.h"
+#include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/assertion.h>
@@ -812,7 +813,13 @@ parse_primary (struct expression *e)
         {
           /* Try to parse it as a format specifier. */
           struct fmt_spec fmt;
-          if (parse_format_specifier (&fmt, FMTP_SUPPRESS_ERRORS))
+          bool ok;
+          
+          msg_disable ();
+          ok = parse_format_specifier (&fmt);
+          msg_enable ();
+
+          if (ok)
             return expr_allocate_format (e, &fmt);
 
           /* All attempts failed. */

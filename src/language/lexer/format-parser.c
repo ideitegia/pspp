@@ -18,145 +18,117 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <data/format.h>
+
+#include <language/lexer/format-parser.h>
+
 #include <ctype.h>
-#include <libpspp/message.h>
 #include <stdlib.h>
-#include <libpspp/message.h>
+
 #include "lexer.h"
+#include <data/format.h>
+#include <data/variable.h>
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-#include <data/variable.h>
+
+#include "size_max.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* Parses a token taking the form of a format specifier and
+   returns true only if successful.  Emits an error message on
+   failure.  Stores a null-terminated string representing the
+   format type in TYPE, and the width and number of decimal
+   places in *WIDTH and *DECIMALS.
 
-/* Parses the alphabetic prefix of the current token as a format
-   specifier name.  Returns the corresponding format specifier
-   type if successful, or -1 on failure.  If ALLOW_XT is zero,
-   then X and T format specifiers are not allowed.  If CP is
-   nonzero, then *CP is set to the first non-alphabetic character
-   in the current token on success or to a null pointer on
-   failure. */
-int
-parse_format_specifier_name (const char **cp, enum fmt_parse_flags flags)
+   TYPE is not checked as to whether it is really the name of a
+   format.  Both width and decimals are considered optional.  If
+   missing, *WIDTH or *DECIMALS or both will be set to 0. */
+bool
+parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
+                                 int *width, int *decimals) 
 {
-  char *sp, *ep;
-  int idx;
-
-  sp = ep = ds_cstr (&tokstr);
-  while (isalpha ((unsigned char) *ep))
-    ep++;
-
-  if (sp != ep) 
-    {
-      /* Find format. */
-      for (idx = 0; idx < FMT_NUMBER_OF_FORMATS; idx++)
-        if (strlen (formats[idx].name) == ep - sp
-            && !buf_compare_case (formats[idx].name, sp, ep - sp))
-          break;
-
-      /* Check format. */
-      if (idx < FMT_NUMBER_OF_FORMATS)
-        {
-          if (!(flags & FMTP_ALLOW_XT) && (idx == FMT_T || idx == FMT_X)) 
-            {
-              if (!(flags & FMTP_SUPPRESS_ERRORS))
-                msg (SE, _("X and T format specifiers not allowed here."));
-              idx = -1; 
-            }
-        }
-      else 
-        {
-          /* No match. */
-          if (!(flags & FMTP_SUPPRESS_ERRORS))
-            msg (SE, _("%.*s is not a valid data format."),
-                 (int) (ep - sp), ds_cstr (&tokstr));
-          idx = -1; 
-        }
-    }
-  else 
-    {
-      lex_error ("expecting data format");
-      idx = -1;
-    }
-      
-  if (cp != NULL) 
-    {
-      if (idx != -1)
-        *cp = ep;
-      else
-        *cp = NULL;
-    }
-
-  return idx;
-}
-
-
-/* Parses a format specifier from the token stream and returns
-   nonzero only if successful.  Emits an error message on
-   failure.  Allows X and T format specifiers only if ALLOW_XT is
-   nonzero.  The caller should call check_input_specifier() or
-   check_output_specifier() on the parsed format as
-   necessary.  */
-int
-parse_format_specifier (struct fmt_spec *input, enum fmt_parse_flags flags)
-{
-  struct fmt_spec spec;
-  struct fmt_desc *f;
-  const char *cp;
-  char *cp2;
-  int type, w, d;
+  struct substring s;
+  struct substring type_ss, width_ss, decimals_ss;
+  bool has_decimals;
 
   if (token != T_ID)
-    {
-      if (!(flags & FMTP_SUPPRESS_ERRORS))
-        msg (SE, _("Format specifier expected."));
-      return 0;
-    }
-  type = parse_format_specifier_name (&cp, flags);
-  if (type == -1)
-    return 0;
-  f = &formats[type];
+    goto error;
 
-  w = strtol (cp, &cp2, 10);
-  if (cp2 == cp && type != FMT_X)
+  /* Extract pieces. */
+  s = ds_ss (&tokstr);
+  ss_get_chars (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
+  ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
+  if (ss_match_char (&s, '.')) 
     {
-      if (!(flags & FMTP_SUPPRESS_ERRORS))
-        msg (SE, _("Data format %s does not specify a width."),
-             ds_cstr (&tokstr));
-      return 0;
-    }
-  if ( w > MAX_STRING )
-    {
-      msg (SE, _("String variable width may not exceed %d"), MAX_STRING);
-      return 0;
-    }
-
-  cp = cp2;
-  if (f->n_args > 1 && *cp == '.')
-    {
-      cp++;
-      d = strtol (cp, &cp2, 10);
-      cp = cp2;
+      has_decimals = true;
+      ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &decimals_ss);
     }
   else
-    d = 0;
+    has_decimals = false;
 
-  if (*cp)
-    {
-      if (!(flags & FMTP_SUPPRESS_ERRORS))
-        msg (SE, _("Data format %s is not valid."), ds_cstr (&tokstr));
-      return 0;
-    }
+  /* Check pieces. */
+  if (ss_is_empty (type_ss) || ss_length (type_ss) > FMT_TYPE_LEN_MAX)
+    goto error;
+  if (has_decimals && ss_is_empty (decimals_ss))
+    goto error;
+  if (!ss_is_empty (s))
+    goto error;
+
+  /* Return pieces.
+     These uses of strtol are valid only because we know that
+     their substrings are followed by non-digit characters. */
+  str_copy_buf_trunc (type, FMT_TYPE_LEN_MAX + 1,
+                      ss_data (type_ss), ss_length (type_ss));
+  *width = strtol (ss_data (width_ss), NULL, 10);
+  *decimals = has_decimals ? strtol (ss_data (decimals_ss), NULL, 10) : 0;
+
   lex_get ();
+  return true;
 
-  spec.type = type;
-  spec.w = w;
-  spec.d = d;
-  *input = spec;
-
-  return 1;
+ error:
+  lex_error (_("expecting valid format specifier"));
+  return false;
 }
 
+/* Parses a format specifier from the token stream and returns
+   true only if successful.  Emits an error message on
+   failure.  The caller should call check_input_specifier() or
+   check_output_specifier() on the parsed format as
+   necessary.  */
+bool
+parse_format_specifier (struct fmt_spec *format)
+{
+  char type[FMT_TYPE_LEN_MAX + 1];
+
+  if (!parse_abstract_format_specifier (type, &format->w, &format->d))
+    return false;
+
+  if (!fmt_type_from_string (type, &format->type))
+    {
+      msg (SE, _("Unknown format type \"%s\"."), type);
+      return false;
+    }
+  
+  return true;
+}
+
+/* Parses a token containing just the name of a format type and
+   returns true if successful. */
+bool
+parse_format_specifier_name (int *type) 
+{
+  if (token != T_ID) 
+    {
+      lex_error (_("expecting format type"));
+      return false;
+    }
+  if (!fmt_type_from_string (ds_cstr (&tokstr), type))
+    {
+      msg (SE, _("Unknown format type \"%s\"."), ds_cstr (&tokstr));
+      return false;
+    }
+  lex_get ();
+  return true;
+}

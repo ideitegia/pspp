@@ -27,6 +27,7 @@
 
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
+#include <libpspp/pool.h>
 
 #include "minmax.h"
 #include "size_max.h"
@@ -676,6 +677,30 @@ ds_swap (struct string *a, struct string *b)
   *b = tmp;
 }
 
+/* Helper function for ds_register_pool. */
+static void
+free_string (void *st_) 
+{
+  struct string *st = st_;
+  ds_destroy (st);
+}
+
+/* Arranges for ST to be destroyed automatically as part of
+   POOL. */
+void
+ds_register_pool (struct string *st, struct pool *pool) 
+{
+  pool_register (pool, free_string, st);
+}
+
+/* Cancels the arrangement for ST to be destroyed automatically
+   as part of POOL. */
+void
+ds_unregister_pool (struct string *st, struct pool *pool)
+{
+  pool_unregister (pool, st);
+}
+
 /* Copies SRC into DST.
    DST and SRC may be the same string. */
 void
@@ -858,6 +883,18 @@ ds_rpad (struct string *st, size_t length, char pad)
 {
   if (length > st->ss.length)
     ds_put_char_multiple (st, pad, length - st->ss.length);
+}
+
+/* Sets the length of ST to exactly NEW_LENGTH,
+   either by truncating characters from the end,
+   or by padding on the right with PAD. */
+void
+ds_set_length (struct string *st, size_t new_length, char pad)
+{
+  if (st->ss.length < new_length)
+    ds_rpad (st, new_length, pad);
+  else
+    st->ss.length = new_length;
 }
 
 /* Returns true if ST is empty, false otherwise. */

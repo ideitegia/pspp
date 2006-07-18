@@ -39,10 +39,14 @@ enum
   };
 #undef DEFFMT
 
+/* Length of longest format specifier name,
+   not including terminating null. */
+#define FMT_TYPE_LEN_MAX 8
+
 /* Describes one of the display formats above. */
 struct fmt_desc
   {
-    char name[9];		/* `DATETIME' is the longest name. */
+    char name[FMT_TYPE_LEN_MAX + 1]; /* Name, in all caps. */
     int n_args;			/* 1=width; 2=width.decimals. */
     int Imin_w, Imax_w;		/* Bounds on input width. */
     int Omin_w, Omax_w;		/* Bounds on output width. */
@@ -101,13 +105,6 @@ union value;
 /* Maximum length of formatted value, in characters. */
 #define MAX_FORMATTED_LEN 256
 
-/* Flags for parsing formats. */
-enum fmt_parse_flags
-  {
-    FMTP_ALLOW_XT = 001,                /* 1=Allow X and T formats. */
-    FMTP_SUPPRESS_ERRORS = 002          /* 1=Do not emit error messages. */
-  };
-
 /* Common formats. */
 extern const struct fmt_spec f8_2;      /* F8.2. */
 
@@ -122,6 +119,7 @@ int parse_string_as_format (const char *s, int len, const struct fmt_spec *fp,
 			    int fc, union value *v);
 int translate_fmt (int spss);
 bool data_out (char *s, const struct fmt_spec *fp, const union value *v);
+bool fmt_type_from_string (const char *name, int *type);
 char *fmt_to_string (const struct fmt_spec *);
 void num_to_string (double v, char *s, int w, int d);
 struct fmt_spec make_input_format (int type, int w, int d);

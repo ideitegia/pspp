@@ -1,3 +1,20 @@
+Sun Jul 16 19:57:10 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: (src_language_data_io_libdata_io_a_SOURCE) Add
+	print-space.c, placement-parser.c, placement-parser.h.
+
+	* data-list.c: Basically rewrote the whole thing.  Broke out a lot
+	of code into placement-parser.c.  Code is much cleaner now.
+
+	* placement-parser.c: New file.
+
+	* placement-parser.h: New file.
+
+	* print.c: Basically rewrote the whole thing.  Broke out PRINT
+	SPACE into print-space.c.  Code is much cleaner now.
+
+	* print-space.c: New file.
+
 Sat Jul  1 17:39:40 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #11612, "q2c documentation does not agree with code".

@@ -1,3 +1,15 @@
+Sun Jul 16 21:07:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	* message.c: (static int messages_disabled) New variable.
+	(msg_emit) Don't emit the message if messages are disabled.
+	(msg_disable) New function.
+	(msg_enable) New function.
+
+	* str.c: (free_string) New function.
+	(ds_register_pool) New function.
+	(ds_unregister_pool) New function.
+	(ds_set_length) New function.
+
 Mon Jul 10 17:26:58 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* llx.c: #included compiler.h and removed explicit preprocessor cruft.

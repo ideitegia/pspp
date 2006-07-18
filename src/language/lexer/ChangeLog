@@ -1,3 +1,23 @@
+Sun Jul 16 21:03:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format-parser.h: New file.  Moved prototypes of format-parser.c
+	functions here, from lexer.h.
+
+	* format-parser.c: (parse_format_specifier_name) Rewrote and
+	changed semantics.
+	(parse_abstract_format_specifier) New function.
+	(parse_format_specifier) Rewrote in terms of
+	parse_abstract_format_specifier.  Removed "options" parameter, so
+	callers had to be updated.  Callers that didn't want messages
+	emitted were changed to use the new msg_disable/msg_enable
+	functions.
+
+	* variables-parser.c: (parse_variables_pool) New function.
+	(register_vars_pool) New function.
+	(parse_DATA_LIST_vars_pool) New function.
+	(parse_mixed_vars_pool) Use register_vars_pool.  Assert that
+	PV_APPEND is not in the options.
+	
 Sat Jul  1 17:40:38 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #11612, "q2c documentation does not agree with code".

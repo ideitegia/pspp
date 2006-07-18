@@ -38,18 +38,22 @@
 #include <language/data-io/data-reader.h>
 #include <language/data-io/file-handle.h>
 #include <language/data-io/inpt-pgm.h>
+#include <language/data-io/placement-parser.h>
+#include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/message.h>
+#include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
+#include <libpspp/pool.h>
 #include <libpspp/str.h>
 #include <output/table.h>
 
 #include "size_max.h"
+#include "xsize.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -59,25 +63,26 @@
 /* Describes how to parse one variable. */
 struct dls_var_spec
   {
-    struct dls_var_spec *next;  /* Next specification in list. */
+    struct ll ll;               /* List element. */
 
-    /* Both free and fixed formats. */
+    /* All parsers. */
     struct fmt_spec input;	/* Input format of this field. */
-    struct variable *v;		/* Associated variable.  Used only in
-				   parsing.  Not safe later. */
     int fv;			/* First value in case. */
+    char name[LONG_NAME_LEN + 1]; /* Var name for error messages and tables. */
 
     /* Fixed format only. */
-    int rec;			/* Record number (1-based). */
-    int fc, lc;			/* Column numbers in record. */
-
-    /* Free format only. */
-    char name[LONG_NAME_LEN + 1]; /* Name of variable. */
+    int record;			/* Record number (1-based). */
+    int first_column;           /* Column numbers in record. */
   };
 
+static struct dls_var_spec *
+ll_to_dls_var_spec (struct ll *ll) 
+{
+  return ll_data (ll, struct dls_var_spec, ll);
+}
+
 /* Constants for DATA LIST type. */
-/* Must match table in cmd_data_list(). */
-enum
+enum dls_type
   {
     DLS_FIXED,
     DLS_FREE,
@@ -87,25 +92,23 @@ enum
 /* DATA LIST private data structure. */
 struct data_list_pgm
   {
-    struct dls_var_spec *first, *last;	/* Variable parsing specifications. */
+    struct pool *pool;          /* Used for all DATA LIST storage. */
+    struct ll_list specs;       /* List of dls_var_specs. */
     struct dfm_reader *reader;  /* Data file reader. */
-
-    int type;			/* A DLS_* constant. */
+    enum dls_type type;		/* Type of DATA LIST construct. */
     struct variable *end;	/* Variable specified on END subcommand. */
-    int rec_cnt;                /* Number of records. */
-    size_t case_size;           /* Case size in bytes. */
+    int record_cnt;             /* Number of records. */
     struct string delims;       /* Field delimiters. */
   };
 
 static const struct case_source_class data_list_source_class;
 
-static int parse_fixed (struct data_list_pgm *);
-static int parse_free (struct dls_var_spec **, struct dls_var_spec **);
-static void dump_fixed_table (const struct dls_var_spec *,
-                              const struct file_handle *, int rec_cnt);
+static bool parse_fixed (struct pool *tmp_pool, struct data_list_pgm *);
+static bool parse_free (struct pool *tmp_pool, struct data_list_pgm *);
+static void dump_fixed_table (const struct ll_list *,
+                              const struct file_handle *, int record_cnt);
 static void dump_free_table (const struct data_list_pgm *,
                              const struct file_handle *);
-static void destroy_dls_var_spec (struct dls_var_spec *);
 
 static trns_free_func data_list_trns_free;
 static trns_proc_func data_list_trns_proc;
@@ -116,17 +119,22 @@ cmd_data_list (void)
   struct data_list_pgm *dls;
   int table = -1;                /* Print table if nonzero, -1=undecided. */
   struct file_handle *fh = fh_inline_file ();
+  struct pool *tmp_pool;
+  bool ok;
 
   if (!in_input_program ())
     discard_variables ();
 
-  dls = xmalloc (sizeof *dls);
+  dls = pool_create_container (struct data_list_pgm, pool);
+  ll_init (&dls->specs);
   dls->reader = NULL;
   dls->type = -1;
   dls->end = NULL;
-  dls->rec_cnt = 0;
+  dls->record_cnt = 0;
   ds_init_empty (&dls->delims);
-  dls->first = dls->last = NULL;
+  ds_register_pool (&dls->delims, dls->pool);
+
+  tmp_pool = pool_create_subpool (dls->pool);
 
   while (token != '/')
     {
@@ -143,7 +151,7 @@ cmd_data_list (void)
 	  lex_match ('(');
 	  if (!lex_force_int ())
 	    goto error;
-	  dls->rec_cnt = lex_integer ();
+	  dls->record_cnt = lex_integer ();
 	  lex_get ();
 	  lex_match (')');
 	}
@@ -204,7 +212,7 @@ cmd_data_list (void)
                       else if (token == T_STRING && ds_length (&tokstr) == 1)
 			{
 			  delim = ds_first (&tokstr);
-			  lex_get();
+			  lex_get ();
 			}
                       else 
                         {
@@ -226,32 +234,26 @@ cmd_data_list (void)
 	}
     }
 
-  dls->case_size = dict_get_case_size (default_dict);
   fh_set_default_handle (fh);
 
   if (dls->type == -1)
     dls->type = DLS_FIXED;
 
   if (table == -1)
-    {
-      if (dls->type == DLS_FREE)
-	table = 0;
-      else
-	table = 1;
-    }
+    table = dls->type != DLS_FREE;
 
-  if (dls->type == DLS_FIXED)
+  ok = (dls->type == DLS_FIXED ? parse_fixed : parse_free) (tmp_pool, dls);
+  if (!ok)
+    goto error;
+
+  if (lex_end_of_command () != CMD_SUCCESS)
+    goto error;
+
+  if (table)
     {
-      if (!parse_fixed (dls))
-	goto error;
-      if (table)
-	dump_fixed_table (dls->first, fh, dls->rec_cnt);
-    }
-  else
-    {
-      if (!parse_free (&dls->first, &dls->last))
-	goto error;
-      if (table)
+      if (dls->type == DLS_FIXED)
+	dump_fixed_table (&dls->specs, fh, dls->record_cnt);
+      else
 	dump_free_table (dls, fh);
     }
 
@@ -264,537 +266,172 @@ cmd_data_list (void)
   else 
     proc_set_source (create_case_source (&data_list_source_class, dls));
 
+  pool_destroy (tmp_pool);
+
   return CMD_SUCCESS;
 
  error:
   data_list_trns_free (dls);
   return CMD_CASCADING_FAILURE;
 }
-
-/* Adds SPEC to the linked list with head at FIRST and tail at
-   LAST. */
-static void
-append_var_spec (struct dls_var_spec **first, struct dls_var_spec **last,
-                 struct dls_var_spec *spec)
-{
-  spec->next = NULL;
-
-  if (*first == NULL)
-    *first = spec;
-  else 
-    (*last)->next = spec;
-  *last = spec;
-}
 
 /* Fixed-format parsing. */
 
-/* Used for chaining together fortran-like format specifiers. */
-struct fmt_list
-  {
-    struct fmt_list *next;
-    int count;
-    struct fmt_spec f;
-    struct fmt_list *down;
-  };
-
-/* State of parsing DATA LIST. */
-struct fixed_parsing_state
-  {
-    char **name;		/* Variable names. */
-    size_t name_cnt;		/* Number of names. */
-
-    int recno;			/* Index of current record. */
-    int sc;			/* 1-based column number of starting column for
-				   next field to output. */
-  };
-
-static int fixed_parse_compatible (struct fixed_parsing_state *,
-                                   struct dls_var_spec **,
-                                   struct dls_var_spec **);
-static int fixed_parse_fortran (struct fixed_parsing_state *,
-                                struct dls_var_spec **,
-                                struct dls_var_spec **);
-
 /* Parses all the variable specifications for DATA LIST FIXED,
-   storing them into DLS.  Returns nonzero if successful. */
-static int
-parse_fixed (struct data_list_pgm *dls)
+   storing them into DLS.  Uses TMP_POOL for data that is not
+   needed once parsing is complete.  Returns true only if
+   successful. */
+static bool
+parse_fixed (struct pool *tmp_pool, struct data_list_pgm *dls)
 {
-  struct fixed_parsing_state fx;
-  size_t i;
-
-  fx.recno = 0;
-  fx.sc = 1;
+  int last_nonempty_record;
+  int record = 0;
+  int column = 1;
 
   while (token != '.')
     {
-      while (lex_match ('/'))
-	{
-	  fx.recno++;
-	  if (lex_is_integer ())
-	    {
-	      if (lex_integer () < fx.recno)
-		{
-		  msg (SE, _("The record number specified, %ld, is "
-			     "before the previous record, %d.  Data "
-			     "fields must be listed in order of "
-			     "increasing record number."),
-		       lex_integer (), fx.recno - 1);
-		  return 0;
-		}
-	      
-	      fx.recno = lex_integer ();
-	      lex_get ();
-	    }
-	  fx.sc = 1;
-	}
+      char **names;
+      size_t name_cnt, name_idx;
+      struct fmt_spec *formats, *f;
+      size_t format_cnt;
 
-      if (!parse_DATA_LIST_vars (&fx.name, &fx.name_cnt, PV_NONE))
-	return 0;
+      /* Parse everything. */
+      if (!parse_record_placement (&record, &column)
+          || !parse_DATA_LIST_vars_pool (tmp_pool, &names, &name_cnt, PV_NONE)
+          || !parse_var_placements (tmp_pool, name_cnt, &formats, &format_cnt))
+        return false;
 
-      if (lex_is_number ())
-	{
-	  if (!fixed_parse_compatible (&fx, &dls->first, &dls->last))
-	    goto fail;
-	}
-      else if (token == '(')
-	{
-	  if (!fixed_parse_fortran (&fx, &dls->first, &dls->last))
-	    goto fail;
-	}
-      else
-	{
-	  msg (SE, _("SPSS-like or FORTRAN-like format "
-                     "specification expected after variable names."));
-	  goto fail;
-	}
+      /* Create variables and var specs. */
+      name_idx = 0;
+      for (f = formats; f < &formats[format_cnt]; f++)
+        if (!execute_placement_format (f, &record, &column))
+          {
+            char *name;
+            int width;
+            struct variable *v;
+            struct dls_var_spec *spec;
+              
+            name = names[name_idx++];
 
-      for (i = 0; i < fx.name_cnt; i++)
-	free (fx.name[i]);
-      free (fx.name);
+            /* Create variable. */
+            width = get_format_var_width (f);
+            v = dict_create_var (default_dict, name, width);
+            if (v != NULL)
+              {
+                /* Success. */
+                struct fmt_spec output;
+                convert_fmt_ItoO (f, &output);
+                v->print = output;
+                v->write = output;
+              }
+            else
+              {
+                /* Failure.
+                   This can be acceptable if we're in INPUT
+                   PROGRAM, but only if the existing variable has
+                   the same width as the one we would have
+                   created. */ 
+                if (!in_input_program ())
+                  {
+                    msg (SE, _("%s is a duplicate variable name."), name);
+                    return false;
+                  }
+
+                v = dict_lookup_var_assert (default_dict, name);
+                if ((width != 0) != (v->width != 0))
+                  {
+                    msg (SE, _("There is already a variable %s of a "
+                               "different type."),
+                         name);
+                    return false;
+                  }
+                if (width != 0 && width != v->width)
+                  {
+                    msg (SE, _("There is already a string variable %s of a "
+                               "different width."), name);
+                    return false;
+                  }
+              }
+
+            /* Create specifier for parsing the variable. */
+            spec = pool_alloc (dls->pool, sizeof *spec);
+            spec->input = *f;
+            spec->fv = v->fv;
+            spec->record = record;
+            spec->first_column = column;
+            strcpy (spec->name, v->name);
+            ll_push_tail (&dls->specs, &spec->ll);
+
+            column += f->w;
+          }
+      assert (name_idx == name_cnt);
     }
-  if (dls->first == NULL) 
+  if (ll_is_empty (&dls->specs)) 
     {
       msg (SE, _("At least one variable must be specified."));
-      return 0;
+      return false;
     }
-  if (dls->rec_cnt && dls->last->rec > dls->rec_cnt)
+
+  last_nonempty_record = ll_to_dls_var_spec (ll_tail (&dls->specs))->record;
+  if (dls->record_cnt && last_nonempty_record > dls->record_cnt)
     {
       msg (SE, _("Variables are specified on records that "
 		 "should not exist according to RECORDS subcommand."));
-      return 0;
+      return false;
     }
-  else if (!dls->rec_cnt)
-    dls->rec_cnt = dls->last->rec;
-  return lex_end_of_command () == CMD_SUCCESS;
+  else if (!dls->record_cnt) 
+    dls->record_cnt = last_nonempty_record;
 
-fail:
-  for (i = 0; i < fx.name_cnt; i++)
-    free (fx.name[i]);
-  free (fx.name);
-  return 0;
-}
-
-/* Parses a variable specification in the form 1-10 (A) based on
-   FX and adds specifications to the linked list with head at
-   FIRST and tail at LAST. */
-static int
-fixed_parse_compatible (struct fixed_parsing_state *fx,
-                        struct dls_var_spec **first, struct dls_var_spec **last)
-{
-  struct fmt_spec input;
-  int fc, lc;
-  int width;
-  int i;
-
-  /* First column. */
-  if (!lex_force_int ())
-    return 0;
-  fc = lex_integer ();
-  if (fc < 1)
-    {
-      msg (SE, _("Column positions for fields must be positive."));
-      return 0;
-    }
-  lex_get ();
-
-  /* Last column. */
-  lex_negative_to_dash ();
-  if (lex_match ('-'))
-    {
-      if (!lex_force_int ())
-	return 0;
-      lc = lex_integer ();
-      if (lc < 1)
-	{
-	  msg (SE, _("Column positions for fields must be positive."));
-	  return 0;
-	}
-      else if (lc < fc)
-	{
-	  msg (SE, _("The ending column for a field must be "
-		     "greater than the starting column."));
-	  return 0;
-	}
-      
-      lex_get ();
-    }
-  else
-    lc = fc;
-
-  /* Divide columns evenly. */
-  input.w = (lc - fc + 1) / fx->name_cnt;
-  if ((lc - fc + 1) % fx->name_cnt)
-    {
-      msg (SE, _("The %d columns %d-%d "
-		 "can't be evenly divided into %d fields."),
-	   lc - fc + 1, fc, lc, fx->name_cnt);
-      return 0;
-    }
-
-  /* Format specifier. */
-  if (lex_match ('('))
-    {
-      struct fmt_desc *fdp;
-
-      if (token == T_ID)
-	{
-	  const char *cp;
-
-	  input.type = parse_format_specifier_name (&cp, 0);
-	  if (input.type == -1)
-	    return 0;
-	  if (*cp)
-	    {
-	      msg (SE, _("A format specifier on this line "
-			 "has extra characters on the end."));
-	      return 0;
-	    }
-	  
-	  lex_get ();
-	  lex_match (',');
-	}
-      else
-	input.type = FMT_F;
-
-      if (lex_is_integer ())
-	{
-	  if (lex_integer () < 1)
-	    {
-	      msg (SE, _("The value for number of decimal places "
-			 "must be at least 1."));
-	      return 0;
-	    }
-	  
-	  input.d = lex_integer ();
-	  lex_get ();
-	}
-      else
-	input.d = 0;
-
-      fdp = &formats[input.type];
-      if (fdp->n_args < 2 && input.d)
-	{
-	  msg (SE, _("Input format %s doesn't accept decimal places."),
-	       fdp->name);
-	  return 0;
-	}
-      
-      if (input.d > 16)
-	input.d = 16;
-
-      if (!lex_force_match (')'))
-	return 0;
-    }
-  else
-    {
-      input.type = FMT_F;
-      input.d = 0;
-    }
-  if (!check_input_specifier (&input, 1))
-    return 0;
-
-  /* Start column for next specification. */
-  fx->sc = lc + 1;
-
-  /* Width of variables to create. */
-  if (input.type == FMT_A || input.type == FMT_AHEX) 
-    width = input.w;
-  else
-    width = 0;
-
-  /* Create variables and var specs. */
-  for (i = 0; i < fx->name_cnt; i++)
-    {
-      struct dls_var_spec *spec;
-      struct variable *v;
-
-      v = dict_create_var (default_dict, fx->name[i], width);
-      if (v != NULL)
-	{
-	  convert_fmt_ItoO (&input, &v->print);
-	  v->write = v->print;
-	}
-      else
-	{
-	  v = dict_lookup_var_assert (default_dict, fx->name[i]);
-	  if (!in_input_program ())
-	    {
-	      msg (SE, _("%s is a duplicate variable name."), fx->name[i]);
-	      return 0;
-	    }
-	  if ((width != 0) != (v->width != 0))
-	    {
-	      msg (SE, _("There is already a variable %s of a "
-			 "different type."),
-		   fx->name[i]);
-	      return 0;
-	    }
-	  if (width != 0 && width != v->width)
-	    {
-	      msg (SE, _("There is already a string variable %s of a "
-			 "different width."), fx->name[i]);
-	      return 0;
-	    }
-	}
-
-      spec = xmalloc (sizeof *spec);
-      spec->input = input;
-      spec->v = v;
-      spec->fv = v->fv;
-      spec->rec = fx->recno;
-      spec->fc = fc + input.w * i;
-      spec->lc = spec->fc + input.w - 1;
-      append_var_spec (first, last, spec);
-    }
-  return 1;
-}
-
-/* Destroy format list F and, if RECURSE is nonzero, all its
-   sublists. */
-static void
-destroy_fmt_list (struct fmt_list *f, int recurse)
-{
-  struct fmt_list *next;
-
-  for (; f; f = next)
-    {
-      next = f->next;
-      if (recurse && f->f.type == FMT_DESCEND)
-	destroy_fmt_list (f->down, 1);
-      free (f);
-    }
-}
-
-/* Takes a hierarchically structured fmt_list F as constructed by
-   fixed_parse_fortran(), and flattens it, adding the variable
-   specifications to the linked list with head FIRST and tail
-   LAST.  NAME_IDX is used to take values from the list of names
-   in FX; it should initially point to a value of 0. */
-static int
-dump_fmt_list (struct fixed_parsing_state *fx, struct fmt_list *f,
-               struct dls_var_spec **first, struct dls_var_spec **last,
-               int *name_idx)
-{
-  int i;
-
-  for (; f; f = f->next)
-    if (f->f.type == FMT_X)
-      fx->sc += f->count;
-    else if (f->f.type == FMT_T)
-      fx->sc = f->f.w;
-    else if (f->f.type == FMT_NEWREC)
-      {
-	fx->recno += f->count;
-	fx->sc = 1;
-      }
-    else
-      for (i = 0; i < f->count; i++)
-	if (f->f.type == FMT_DESCEND)
-	  {
-	    if (!dump_fmt_list (fx, f->down, first, last, name_idx))
-	      return 0;
-	  }
-	else
-	  {
-            struct dls_var_spec *spec;
-            int width;
-	    struct variable *v;
-
-            if (formats[f->f.type].cat & FCAT_STRING) 
-              width = f->f.w;
-            else
-              width = 0;
-	    if (*name_idx >= fx->name_cnt)
-	      {
-		msg (SE, _("The number of format "
-			   "specifications exceeds the given number of "
-			   "variable names."));
-		return 0;
-	      }
-	    
-	    v = dict_create_var (default_dict, fx->name[(*name_idx)++], width);
-	    if (!v)
-	      {
-		msg (SE, _("%s is a duplicate variable name."), fx->name[i]);
-		return 0;
-	      }
-	    
-            spec = xmalloc (sizeof *spec);
-            spec->v = v;
-	    spec->input = f->f;
-	    spec->fv = v->fv;
-	    spec->rec = fx->recno;
-	    spec->fc = fx->sc;
-	    spec->lc = fx->sc + f->f.w - 1;
-	    append_var_spec (first, last, spec);
-
-	    convert_fmt_ItoO (&spec->input, &v->print);
-	    v->write = v->print;
-
-	    fx->sc += f->f.w;
-	  }
-  return 1;
-}
-
-/* Recursively parses a FORTRAN-like format specification into
-   the linked list with head FIRST and tail TAIL.  LEVEL is the
-   level of recursion, starting from 0.  Returns the parsed
-   specification if successful, or a null pointer on failure.  */
-static struct fmt_list *
-fixed_parse_fortran_internal (struct fixed_parsing_state *fx,
-                              struct dls_var_spec **first,
-                              struct dls_var_spec **last)
-{
-  struct fmt_list *head = NULL;
-  struct fmt_list *tail = NULL;
-
-  lex_force_match ('(');
-  while (token != ')')
-    {
-      /* New fmt_list. */
-      struct fmt_list *new = xmalloc (sizeof *new);
-      new->next = NULL;
-
-      /* Append new to list. */
-      if (head != NULL)
-	tail->next = new;
-      else
-	head = new;
-      tail = new;
-
-      /* Parse count. */
-      if (lex_is_integer ())
-	{
-	  new->count = lex_integer ();
-	  lex_get ();
-	}
-      else
-	new->count = 1;
-
-      /* Parse format specifier. */
-      if (token == '(')
-	{
-	  new->f.type = FMT_DESCEND;
-	  new->down = fixed_parse_fortran_internal (fx, first, last);
-	  if (new->down == NULL)
-	    goto fail;
-	}
-      else if (lex_match ('/'))
-	new->f.type = FMT_NEWREC;
-      else if (!parse_format_specifier (&new->f, FMTP_ALLOW_XT)
-	       || !check_input_specifier (&new->f, 1))
-	goto fail;
-
-      lex_match (',');
-    }
-  lex_force_match (')');
-
-  return head;
-
-fail:
-  destroy_fmt_list (head, 0);
-
-  return NULL;
-}
-
-/* Parses a FORTRAN-like format specification into the linked
-   list with head FIRST and tail LAST.  Returns nonzero if
-   successful. */
-static int
-fixed_parse_fortran (struct fixed_parsing_state *fx,
-                     struct dls_var_spec **first, struct dls_var_spec **last)
-{
-  struct fmt_list *list;
-  int name_idx;
-
-  list = fixed_parse_fortran_internal (fx, first, last);
-  if (list == NULL)
-    return 0;
-  
-  name_idx = 0;
-  dump_fmt_list (fx, list, first, last, &name_idx);
-  destroy_fmt_list (list, 1);
-  if (name_idx < fx->name_cnt)
-    {
-      msg (SE, _("There aren't enough format specifications "
-                 "to match the number of variable names given."));
-      return 0; 
-    }
-
-  return 1;
+  return true;
 }
 
 /* Displays a table giving information on fixed-format variable
    parsing on DATA LIST. */
-/* FIXME: The `Columns' column should be divided into three columns,
-   one for the starting column, one for the dash, one for the ending
-   column; then right-justify the starting column and left-justify the
-   ending column. */
 static void
-dump_fixed_table (const struct dls_var_spec *specs,
-                  const struct file_handle *fh, int rec_cnt)
+dump_fixed_table (const struct ll_list *specs,
+                  const struct file_handle *fh, int record_cnt)
 {
-  const struct dls_var_spec *spec;
+  size_t spec_cnt;
   struct tab_table *t;
-  int i;
+  struct dls_var_spec *spec;
+  int row;
 
-  for (i = 0, spec = specs; spec; spec = spec->next)
-    i++;
-  t = tab_create (4, i + 1, 0);
+  spec_cnt = ll_count (specs);
+  t = tab_create (4, spec_cnt + 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Variable"));
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Record"));
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("Columns"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Format"));
-  tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 3, i);
+  tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 3, spec_cnt);
   tab_hline (t, TAL_2, 0, 3, 1);
   tab_dim (t, tab_natural_dimensions);
 
-  for (i = 1, spec = specs; spec; spec = spec->next, i++)
+  row = 1;
+  ll_for_each (spec, struct dls_var_spec, ll, specs)
     {
-      tab_text (t, 0, i, TAB_LEFT, spec->v->name);
-      tab_text (t, 1, i, TAT_PRINTF, "%d", spec->rec);
-      tab_text (t, 2, i, TAT_PRINTF, "%3d-%3d",
-		    spec->fc, spec->lc);
-      tab_text (t, 3, i, TAB_LEFT | TAB_FIX,
-		    fmt_to_string (&spec->input));
+      tab_text (t, 0, row, TAB_LEFT, spec->name);
+      tab_text (t, 1, row, TAT_PRINTF, "%d", spec->record);
+      tab_text (t, 2, row, TAT_PRINTF, "%3d-%3d",
+                spec->first_column, spec->first_column + spec->input.w - 1);
+      tab_text (t, 3, row, TAB_LEFT | TAB_FIX, fmt_to_string (&spec->input));
+      row++;
     }
 
   tab_title (t, ngettext ("Reading %d record from %s.",
-                          "Reading %d records from %s.", rec_cnt),
-             rec_cnt, fh_get_name (fh));
+                          "Reading %d records from %s.", record_cnt),
+             record_cnt, fh_get_name (fh));
   tab_submit (t);
 }
 
 /* Free-format parsing. */
 
 /* Parses variable specifications for DATA LIST FREE and adds
-   them to the linked list with head FIRST and tail LAST.
-   Returns nonzero only if successful. */
-static int
-parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
+   them to DLS.  Uses TMP_POOL for data that is not needed once
+   parsing is complete.  Returns true only if successful. */
+static bool
+parse_free (struct pool *tmp_pool, struct data_list_pgm *dls)
 {
   lex_get ();
   while (token != '.')
@@ -802,23 +439,17 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
       struct fmt_spec input, output;
       char **name;
       size_t name_cnt;
-      int width;
       size_t i;
 
-      if (!parse_DATA_LIST_vars (&name, &name_cnt, PV_NONE))
+      if (!parse_DATA_LIST_vars_pool (tmp_pool, &name, &name_cnt, PV_NONE))
 	return 0;
 
       if (lex_match ('('))
 	{
-	  if (!parse_format_specifier (&input, 0)
+	  if (!parse_format_specifier (&input)
               || !check_input_specifier (&input, 1)
               || !lex_force_match (')')) 
-            {
-              for (i = 0; i < name_cnt; i++)
-                free (name[i]);
-              free (name);
-              return 0; 
-            }
+            return NULL;
 	  convert_fmt_ItoO (&input, &output);
 	}
       else
@@ -828,37 +459,29 @@ parse_free (struct dls_var_spec **first, struct dls_var_spec **last)
 	  output = *get_format ();
 	}
 
-      if (input.type == FMT_A || input.type == FMT_AHEX)
-	width = input.w;
-      else
-	width = 0;
       for (i = 0; i < name_cnt; i++)
 	{
           struct dls_var_spec *spec;
 	  struct variable *v;
 
-	  v = dict_create_var (default_dict, name[i], width);
-	  
-	  if (!v)
+	  v = dict_create_var (default_dict, name[i],
+                               get_format_var_width (&input));
+	  if (v == NULL)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
 	      return 0;
 	    }
 	  v->print = v->write = output;
 
-          spec = xmalloc (sizeof *spec);
+          spec = pool_alloc (dls->pool, sizeof *spec);
           spec->input = input;
-          spec->v = v;
 	  spec->fv = v->fv;
-	  str_copy_trunc (spec->name, sizeof spec->name, v->name);
-	  append_var_spec (first, last, spec);
+	  strcpy (spec->name, v->name);
+          ll_push_tail (&dls->specs, &spec->ll);
 	}
-      for (i = 0; i < name_cnt; i++)
-	free (name[i]);
-      free (name);
     }
 
-  return lex_end_of_command () == CMD_SUCCESS;
+  return true;
 }
 
 /* Displays a table giving information on free-format variable parsing
@@ -868,32 +491,28 @@ dump_free_table (const struct data_list_pgm *dls,
                  const struct file_handle *fh)
 {
   struct tab_table *t;
-  int i;
+  struct dls_var_spec *spec;
+  size_t spec_cnt;
+  int row;
+
+  spec_cnt = ll_count (&dls->specs);
   
-  {
-    struct dls_var_spec *spec;
-    for (i = 0, spec = dls->first; spec; spec = spec->next)
-      i++;
-  }
-  
-  t = tab_create (2, i + 1, 0);
+  t = tab_create (2, spec_cnt + 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Variable"));
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Format"));
-  tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 1, i);
+  tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 1, spec_cnt);
   tab_hline (t, TAL_2, 0, 1, 1);
   tab_dim (t, tab_natural_dimensions);
-  
-  {
-    struct dls_var_spec *spec;
-    
-    for (i = 1, spec = dls->first; spec; spec = spec->next, i++)
-      {
-	tab_text (t, 0, i, TAB_LEFT, spec->v->name);
-	tab_text (t, 1, i, TAB_LEFT | TAB_FIX, fmt_to_string (&spec->input));
-      }
-  }
+
+  row = 1;
+  ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
+    {
+      tab_text (t, 0, row, TAB_LEFT, spec->name);
+      tab_text (t, 1, row, TAB_LEFT | TAB_FIX, fmt_to_string (&spec->input));
+      row++;
+    }
 
   tab_title (t, _("Reading free-form data from %s."), fh_get_name (fh));
   
@@ -1013,38 +632,40 @@ read_from_data_list (const struct data_list_pgm *dls, struct ccase *c)
 static bool
 read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
 {
-  struct dls_var_spec *var_spec = dls->first;
-  int i;
+  struct dls_var_spec *spec;
+  int row;
 
-  if (dfm_eof (dls->reader))
-    return false;
-  for (i = 1; i <= dls->rec_cnt; i++)
+  if (dfm_eof (dls->reader)) 
+    return false; 
+
+  spec = ll_to_dls_var_spec (ll_head (&dls->specs));
+  for (row = 1; row <= dls->record_cnt; row++)
     {
       struct substring line;
-      
+
       if (dfm_eof (dls->reader))
-	{
-	  /* Note that this can't occur on the first record. */
-	  msg (SW, _("Partial case of %d of %d records discarded."),
-	       i - 1, dls->rec_cnt);
-	  return false;
-	}
+        {
+          msg (SW, _("Partial case of %d of %d records discarded."),
+               row - 1, dls->record_cnt);
+          return false;
+        } 
       dfm_expand_tabs (dls->reader);
       line = dfm_get_record (dls->reader);
 
-      for (; var_spec && i == var_spec->rec; var_spec = var_spec->next)
-	{
-	  struct data_in di;
+      ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs) 
+        {
+          struct data_in di;
 
-	  data_in_finite_line (&di, ss_data (line), ss_length (line),
-                               var_spec->fc, var_spec->lc);
-	  di.v = case_data_rw (c, var_spec->fv);
-	  di.flags = DI_IMPLIED_DECIMALS;
-	  di.f1 = var_spec->fc;
-	  di.format = var_spec->input;
+          data_in_finite_line (&di, ss_data (line), ss_length (line),
+                               spec->first_column,
+                               spec->first_column + spec->input.w - 1);
+          di.v = case_data_rw (c, spec->fv);
+          di.flags = DI_IMPLIED_DECIMALS;
+          di.f1 = spec->first_column;
+          di.format = spec->input;
 
-	  data_in (&di);
-	}
+          data_in (&di); 
+        }
 
       dfm_forward_record (dls->reader);
     }
@@ -1058,9 +679,9 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
 static bool
 read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 {
-  struct dls_var_spec *var_spec;
+  struct dls_var_spec *spec;
 
-  for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
+  ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
     {
       struct substring field;
       struct data_in di;
@@ -1072,19 +693,19 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
             dfm_forward_record (dls->reader);
 	  if (dfm_eof (dls->reader))
 	    {
-	      if (var_spec != dls->first)
+	      if (&spec->ll != ll_head (&dls->specs))
 		msg (SW, _("Partial case discarded.  The first variable "
-                           "missing was %s."), var_spec->name);
+                           "missing was %s."), spec->name);
 	      return false;
 	    }
 	}
       
       di.s = ss_data (field);
       di.e = ss_end (field);
-      di.v = case_data_rw (c, var_spec->fv);
+      di.v = case_data_rw (c, spec->fv);
       di.flags = 0;
       di.f1 = dfm_get_column (dls->reader, ss_data (field));
-      di.format = var_spec->input;
+      di.format = spec->input;
       data_in (&di);
     }
   return true;
@@ -1096,12 +717,12 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 static bool
 read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 {
-  struct dls_var_spec *var_spec;
+  struct dls_var_spec *spec;
 
   if (dfm_eof (dls->reader))
     return false;
 
-  for (var_spec = dls->first; var_spec; var_spec = var_spec->next)
+  ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
     {
       struct substring field;
       struct data_in di;
@@ -1112,43 +733,29 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
                        "These will be filled with the system-missing value "
                        "or blanks, as appropriate."),
-		 var_spec->name);
-	  for (; var_spec; var_spec = var_spec->next)
+		 spec->name);
+          ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs)
             {
-              int width = get_format_var_width (&var_spec->input);
+              int width = get_format_var_width (&spec->input);
               if (width == 0)
-                case_data_rw (c, var_spec->fv)->f = SYSMIS;
+                case_data_rw (c, spec->fv)->f = SYSMIS;
               else
-                memset (case_data_rw (c, var_spec->fv)->s, ' ', width); 
+                memset (case_data_rw (c, spec->fv)->s, ' ', width); 
             }
 	  break;
 	}
       
       di.s = ss_data (field);
       di.e = ss_end (field);
-      di.v = case_data_rw (c, var_spec->fv);
+      di.v = case_data_rw (c, spec->fv);
       di.flags = 0;
       di.f1 = dfm_get_column (dls->reader, ss_data (field));
-      di.format = var_spec->input;
+      di.format = spec->input;
       data_in (&di);
     }
 
   dfm_forward_record (dls->reader);
   return true;
-}
-
-/* Destroys SPEC. */
-static void
-destroy_dls_var_spec (struct dls_var_spec *spec) 
-{
-  struct dls_var_spec *next;
-
-  while (spec != NULL)
-    {
-      next = spec->next;
-      free (spec);
-      spec = next;
-    }
 }
 
 /* Destroys DATA LIST transformation DLS.
@@ -1157,10 +764,8 @@ static bool
 data_list_trns_free (void *dls_)
 {
   struct data_list_pgm *dls = dls_;
-  ds_destroy (&dls->delims);
-  destroy_dls_var_spec (dls->first);
   dfm_close_reader (dls->reader);
-  free (dls);
+  pool_destroy (dls->pool);
   return true;
 }
 

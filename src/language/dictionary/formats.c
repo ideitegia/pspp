@@ -26,6 +26,7 @@
 #include <data/procedure.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/message.h>
@@ -91,7 +92,7 @@ internal_cmd_formats (int which)
 	  msg (SE, _("`(' expected after variable list"));
 	  goto fail;
 	}
-      if (!parse_format_specifier (&f, 0)
+      if (!parse_format_specifier (&f)
           || !check_output_specifier (&f, true)
           || !check_specifier_type (&f, NUMERIC, true))
 	goto fail;

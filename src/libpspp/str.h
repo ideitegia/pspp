@@ -151,6 +151,11 @@ void ds_init_cstr (struct string *, const char *);
 void ds_destroy (struct string *);
 void ds_swap (struct string *, struct string *);
 
+/* Pools. */
+struct pool;
+void ds_register_pool (struct string *, struct pool *);
+void ds_unregister_pool (struct string *, struct pool *);
+
 /* Replacement. */
 void ds_assign_string (struct string *, const struct string *);
 void ds_assign_substring (struct string *, struct substring);
@@ -172,6 +177,7 @@ bool ds_separate (const struct string *src, struct substring delimiters,
 bool ds_tokenize (const struct string *src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 void ds_rpad (struct string *, size_t length, char pad);
+void ds_set_length (struct string *, size_t new_length, char pad);
 
 /* Extracting substrings. */
 struct substring ds_ss (const struct string *);
