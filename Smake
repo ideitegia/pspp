@@ -59,7 +59,7 @@ all: po/POTFILES.in
 	touch m4/Makefile.am
 	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
 		--source-base=gl --lib=libgl --tests-base=tests \
-		--import $(GNULIB_MODULES)
+		--doc-base=gl/doc --import $(GNULIB_MODULES)
 	autopoint --force
 	aclocal -I m4 -I gl/m4
 	autoconf

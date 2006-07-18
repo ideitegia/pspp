@@ -1,3 +1,12 @@
+Mon Jul 17 18:23:38 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Add --doc-base=gl/doc to gnulib-tool invocation, which is
+	required by recent gnulib.
+
+Sun Jul 16 19:51:45 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Add xsize to GNULIB_MODULES.
+
 Wed Jul 12 13:41:18 2006  Ben Pfaff  <blp@gnu.org>
 
 	* Makefile.am: Add check_PROGRAMS and define to empty.
