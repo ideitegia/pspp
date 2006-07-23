@@ -59,7 +59,11 @@ struct _PsppireDataStore
   /*< private >*/
   PsppireDict *dict;
   PsppireCaseFile *case_file;
-  PangoFontDescription *font_desc;
+  const PangoFontDescription *font_desc;
+
+  /* The width of an upper case 'M' rendered in the current font */
+  gint width_of_m ; 
+  
   gboolean show_labels;
 
   /* Geometry */
@@ -81,16 +85,16 @@ struct _PsppireDataStoreClass
 inline GType psppire_data_store_get_type (void) G_GNUC_CONST;
 PsppireDataStore *psppire_data_store_new     (PsppireDict *dict);
 
-void psppire_data_store_set_dictionary(PsppireDataStore *data_store, PsppireDict *dict);
-void psppire_data_store_set_font(PsppireDataStore *store, PangoFontDescription *fd);
+void psppire_data_store_set_dictionary(PsppireDataStore *data_store, 
+				       PsppireDict *dict);
 
-void psppire_data_store_show_labels(PsppireDataStore *store, gboolean show_labels);
+void psppire_data_store_set_font(PsppireDataStore *store, 
+				 const PangoFontDescription *fd);
 
+void psppire_data_store_show_labels(PsppireDataStore *store, 
+				    gboolean show_labels);
   
 void psppire_data_store_clear(PsppireDataStore *data_store);
-
-
-
 
 struct file_handle;
 

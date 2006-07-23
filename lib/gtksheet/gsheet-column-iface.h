@@ -47,37 +47,37 @@ struct _GSheetColumnIface
 				      gint col, gint n_columns);
 
   /* Virtual Table */
-  gint (* get_width) (const GSheetColumn *gcolumn, gint col, gpointer data);
-  void (* set_width) (GSheetColumn *gcolumn, gint col, gint width, gpointer data);
+  gint (* get_width) (const GSheetColumn *gcolumn, gint col);
+  void (* set_width) (GSheetColumn *gcolumn, gint col, gint width);
 
-  gboolean (* get_visibility) (const GSheetColumn *gcolumn, gint col, gpointer data);
-  gboolean (* get_sensitivity) (const GSheetColumn *gcolumn, gint col, gpointer data);
-  const GtkSheetButton * (* get_button) (const GSheetColumn *gcolumn, gint col, gpointer data);
-  GtkJustification (* get_justification) (const GSheetColumn *gcolumn, gint col, gpointer data);
+  gboolean (* get_visibility) (const GSheetColumn *gcolumn, gint col);
+  gboolean (* get_sensitivity) (const GSheetColumn *gcolumn, gint col);
+  const GtkSheetButton * (* get_button) (const GSheetColumn *gcolumn, gint col);
+  GtkJustification (* get_justification) (const GSheetColumn *gcolumn, gint col);
 
   gint  (*get_left_text_column) (const GSheetColumn *gcolumn,
-				 gint col, gpointer data);
+				 gint col);
 
   gint  (*get_right_text_column) (const GSheetColumn *gcolumn,
-				  gint col, gpointer data);
+				  gint col);
 
   void (* set_left_text_column) (const GSheetColumn *gcolumn,
-				 gint col, gint i, gpointer data);
+				 gint col, gint i);
 
   void (* set_right_text_column) (const GSheetColumn *gcolumn,
-				  gint col, gint i, gpointer data);
+				  gint col, gint i);
 
-  gint  (* get_column_count) (const GSheetColumn *geo, gpointer data);
+  gint  (* get_column_count) (const GSheetColumn *geo);
 
 
-  GtkStateType  (*get_button_state)(const GSheetColumn *geo, gint col, gpointer data);
-  gchar * (*get_button_label)(const GSheetColumn *geo, gint col, gpointer data);
+  GtkStateType  (*get_button_state)(const GSheetColumn *geo, gint col);
+  gchar * (*get_button_label)(const GSheetColumn *geo, gint col);
   gboolean      (*get_button_visibility)(const GSheetColumn *geo, 
-					gint col, gpointer data);
+					gint col);
   const GtkSheetChild * (*get_button_child)(const GSheetColumn *geo, 
-					   gint col, gpointer data);
+					   gint col);
   GtkJustification * (*get_button_justification)(const GSheetColumn *geo, 
-						gint col, gpointer data);
+						gint col);
 };
 
 
@@ -85,43 +85,43 @@ inline GType g_sheet_column_get_type   (void) G_GNUC_CONST;
 
 
 inline gint  g_sheet_column_get_width (const GSheetColumn *gcolumn,
-				       gint col, gpointer data);
+				       gint col);
 
 
 inline void  g_sheet_column_set_width (GSheetColumn *gcolumn,
-				       gint col, gint size, gpointer data);
+				       gint col, gint size);
 
 
 inline gboolean  g_sheet_column_get_visibility(const GSheetColumn *gcolumn,
-					    gint col, gpointer data);
+					    gint col);
 
 inline gboolean  g_sheet_column_get_sensitivity(const GSheetColumn *gcolumn,
-					     gint col, gpointer data);
+					     gint col);
 
 
 inline GtkSheetButton *g_sheet_column_get_button(const GSheetColumn *gcolumn,
-					     gint col, gpointer data);
+					     gint col);
 
-inline GtkJustification g_sheet_column_get_justification(const GSheetColumn *gcolumn, gint col, gpointer data);
+inline GtkJustification g_sheet_column_get_justification(const GSheetColumn *gcolumn, gint col);
 
 
 inline gint  g_sheet_column_get_left_text_column (const GSheetColumn *gcolumn,
-					gint col, gpointer data);
+					gint col);
 
 inline gint  g_sheet_column_get_right_text_column (const GSheetColumn *gcolumn,
-					gint col, gpointer data);
+					gint col);
 
 inline void g_sheet_column_set_left_text_column (const GSheetColumn *gcolumn,
-					gint col, gint i, gpointer data);
+					gint col, gint i);
 
 
 inline void g_sheet_column_set_right_text_column (const GSheetColumn *gcolumn,
-					gint col, gint i, gpointer data);
+					gint col, gint i);
 
 
-inline gint  g_sheet_column_get_column_count(const GSheetColumn *geo, gpointer data);
+inline gint  g_sheet_column_get_column_count(const GSheetColumn *geo);
 
-inline gint  g_sheet_column_start_pixel(const GSheetColumn *geo, gint col, gpointer data);
+inline gint  g_sheet_column_start_pixel(const GSheetColumn *geo, gint col);
 
 inline void g_sheet_column_columns_changed(GSheetColumn *geo, 
 					   gint first, gint n_columns);

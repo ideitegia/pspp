@@ -33,6 +33,8 @@
 #include <gtksheet/gsheetmodel.h>
 #include <gtksheet/gsheet-column-iface.h>
 
+#include <pango/pango-context.h>
+
 #include "psppire-variable.h"
 #include "psppire-data-store.h"
 #include "helper.h"
@@ -69,6 +71,13 @@ static gboolean psppire_data_store_clear_datum(GSheetModel *model,
 #define TRAILING_ROWS 10
 
 static GObjectClass *parent_class = NULL;
+
+
+enum  {FONT_CHANGED,
+       n_SIGNALS};
+
+static guint signal[n_SIGNALS];
+
 
 inline GType
 psppire_data_store_get_type (void)
@@ -131,6 +140,7 @@ psppire_data_store_get_type (void)
   return data_store_type;
 }
 
+
 static void
 psppire_data_store_class_init (PsppireDataStoreClass *class)
 {
@@ -140,6 +150,16 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
   object_class = (GObjectClass*) class;
 
   object_class->finalize = psppire_data_store_finalize;
+
+  signal[FONT_CHANGED] =
+    g_signal_new ("font_changed",
+		  G_TYPE_FROM_CLASS(class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__VOID,
+		  G_TYPE_NONE, 
+		  0);
 }
 
 
@@ -166,6 +186,7 @@ psppire_data_store_init (PsppireDataStore *data_store)
 {
   data_store->dict = 0;
   data_store->case_file = 0;
+  data_store->width_of_m = 10;
 }
 
 const PangoFontDescription *
@@ -531,12 +552,19 @@ psppire_data_store_set_string(GSheetModel *model,
 
 
 void
-psppire_data_store_set_font(PsppireDataStore *store, PangoFontDescription *fd)
+psppire_data_store_set_font(PsppireDataStore *store, 
+			    const PangoFontDescription *fd)
 {
   g_return_if_fail (store);
   g_return_if_fail (PSPPIRE_IS_DATA_STORE (store));
 
   store->font_desc = fd;
+#if 0
+  store->width_of_m = calc_m_width(fd);
+#endif
+  g_signal_emit(store, signal[FONT_CHANGED], 0);  
+
+
   g_sheet_model_range_changed (G_SHEET_MODEL(store),
 				 -1, -1, -1, -1);
 }
@@ -598,84 +626,46 @@ psppire_data_store_clear(PsppireDataStore *data_store)
 /* Column related funcs */
 
 static gint
-geometry_get_column_count(const GSheetColumn *geom, gpointer data)
+geometry_get_column_count(const GSheetColumn *geom)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   return MAX(MIN_COLUMNS, psppire_dict_get_var_cnt(ds->dict));
 }
 
-/* Return the width that an  'M' character would occupy when typeset at
-   row, col */
-static guint 
-M_width(const GtkSheet *sheet, gint row, gint col)
-{
-  GtkSheetCellAttr attributes;
-  PangoRectangle rect;
-  /* FIXME: make this a member of the data store */
-  static PangoLayout *layout = 0;
-
-  gtk_sheet_get_attributes(sheet, row, col, &attributes);
-
-  if (! layout ) 
-    layout = gtk_widget_create_pango_layout (GTK_WIDGET(sheet), "M");
-
-  g_assert(layout);
-  
-  pango_layout_set_font_description (layout, 
-				     attributes.font_desc);
-
-  pango_layout_get_extents (layout, NULL, &rect);
-
-#if 0
-  g_object_unref(G_OBJECT(layout));
-#endif
-
-  return PANGO_PIXELS(rect.width);
-}
-
-
-/* Return the number of pixels corresponding to a column of 
-   WIDTH characters */
-static inline guint 
-columnWidthToPixels(GtkSheet *sheet, gint column, guint width)
-{
-  return (M_width(sheet, 0, column) * width);
-}
 
 
 static gint
-geometry_get_width(const GSheetColumn *geom, gint unit, GtkSheet *sheet)
+geometry_get_width(const GSheetColumn *geom, gint unit)
 {
   const struct PsppireVariable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
-    return 75;
+    return ds->width_of_m * 8 ;
 
-  /* FIXME: We can optimise this by caching the widths until they're resized */
   pv = psppire_dict_get_variable(ds->dict, unit);
 
-  return columnWidthToPixels(sheet, unit, psppire_variable_get_columns(pv));
+  if ( pv == NULL ) 
+    return ds->width_of_m * 8 ;
+
+  return ds->width_of_m * psppire_variable_get_columns(pv);
 }
 
-
-
-
 static void
-geometry_set_width(GSheetColumn *geom, gint unit, gint width, GtkSheet *sheet)
+geometry_set_width(GSheetColumn *geom, gint unit, gint width)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, unit);
 
-  psppire_variable_set_columns(pv, width / M_width(sheet, 1, unit));
+  psppire_variable_set_columns(pv, width / ds->width_of_m );
 }
 
 
 
 static GtkJustification
-geometry_get_justification(const GSheetColumn *geom, gint unit, gpointer data)
+geometry_get_justification(const GSheetColumn *geom, gint unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
   const struct PsppireVariable *pv ;
@@ -695,8 +685,7 @@ geometry_get_justification(const GSheetColumn *geom, gint unit, gpointer data)
 static const gchar null_var_name[]=N_("var");
  
 static gchar *
-geometry_get_column_button_label(const GSheetColumn *geom, gint unit, 
-				 gpointer data)
+geometry_get_column_button_label(const GSheetColumn *geom, gint unit)
 {
   gchar *text;
   struct PsppireVariable *pv ;
@@ -714,7 +703,7 @@ geometry_get_column_button_label(const GSheetColumn *geom, gint unit,
 
 
 static gboolean
-geometry_get_sensitivity(const GSheetColumn *geom, gint unit, gpointer data)
+geometry_get_sensitivity(const GSheetColumn *geom, gint unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
@@ -798,7 +787,3 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_button_label = geometry_get_row_button_label;
 }
-
-
-
-

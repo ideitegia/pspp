@@ -96,7 +96,7 @@ g_sheet_uniform_column_new (gint width, gint n_columns)
 }
 
 static gint 
-g_sheet_uniform_column_get_width(const GSheetColumn *geom, gint u, gpointer data)
+g_sheet_uniform_column_get_width(const GSheetColumn *geom, gint u)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
   
@@ -104,7 +104,7 @@ g_sheet_uniform_column_get_width(const GSheetColumn *geom, gint u, gpointer data
 }
 
 static gint 
-g_sheet_uniform_column_get_sensitivity(const GSheetColumn *geom, gint u, gpointer data)
+g_sheet_uniform_column_get_sensitivity(const GSheetColumn *geom, gint u)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
   
@@ -113,7 +113,7 @@ g_sheet_uniform_column_get_sensitivity(const GSheetColumn *geom, gint u, gpointe
 
 
 static gint 
-g_sheet_uniform_column_get_visibility(const GSheetColumn *geom, gint u, gpointer data)
+g_sheet_uniform_column_get_visibility(const GSheetColumn *geom, gint u)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
   
@@ -122,7 +122,7 @@ g_sheet_uniform_column_get_visibility(const GSheetColumn *geom, gint u, gpointer
 
 
 static gchar *
-g_sheet_uniform_column_get_button_label(const GSheetColumn *geom, gint u, gpointer data)
+g_sheet_uniform_column_get_button_label(const GSheetColumn *geom, gint u)
 {
   gchar *label = g_strdup_printf("%d", u);
 
@@ -131,7 +131,7 @@ g_sheet_uniform_column_get_button_label(const GSheetColumn *geom, gint u, gpoint
 
 
 static GtkJustification
-g_sheet_uniform_column_get_justification(const GSheetColumn *geom, gint u, gpointer data)
+g_sheet_uniform_column_get_justification(const GSheetColumn *geom, gint u)
 {
   return GTK_JUSTIFY_FILL;
 }
@@ -139,7 +139,7 @@ g_sheet_uniform_column_get_justification(const GSheetColumn *geom, gint u, gpoin
 
 
 static gint 
-g_sheet_uniform_column_get_column_count(const GSheetColumn *geom, gpointer data)
+g_sheet_uniform_column_get_column_count(const GSheetColumn *geom)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
 

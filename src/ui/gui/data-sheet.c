@@ -118,9 +118,44 @@ update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
   return FALSE;
 }
 
-
 extern PsppireDataStore *data_store ;
 
+
+/* Return the width that an  'M' character would occupy when typeset in WIDGET */
+static guint 
+calc_m_width(GtkWidget *widget, const PangoFontDescription *font_desc)
+{
+  PangoRectangle rect;
+  PangoLayout *layout ;
+  PangoContext * context;
+
+  context = gtk_widget_create_pango_context (widget);
+  g_assert (context);
+  layout = pango_layout_new (context);
+  g_assert (layout);
+
+  pango_layout_set_text (layout, "M", 1);
+  
+  pango_layout_set_font_description (layout, font_desc);
+
+  pango_layout_get_extents (layout, NULL, &rect);
+
+  g_object_unref(G_OBJECT(layout));
+  g_object_unref(G_OBJECT(context));
+
+  return PANGO_PIXELS(rect.width);
+}
+
+
+
+void
+font_change_callback(GObject *obj, gpointer data)
+{
+  GtkWidget *sheet  = data;
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE(obj);
+
+  ds->width_of_m = calc_m_width(sheet, ds->font_desc);
+}
 
 GtkWidget*
 psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
@@ -131,18 +166,22 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
   sheet = gtk_sheet_new(G_SHEET_ROW(data_store), 
 			G_SHEET_COLUMN(data_store), "data sheet", 0); 
 
+  data_store->width_of_m = calc_m_width(sheet, data_store->font_desc);
 
-  g_signal_connect (GTK_OBJECT (sheet), "activate",
-		    GTK_SIGNAL_FUNC (update_data_ref_entry),
+  g_signal_connect (G_OBJECT (sheet), "activate",
+		    G_CALLBACK (update_data_ref_entry),
 		    0);
 
-  g_signal_connect (GTK_OBJECT (sheet), "traverse",
-		    GTK_SIGNAL_FUNC (traverse_callback), 0);
+  g_signal_connect (G_OBJECT (sheet), "traverse",
+		    G_CALLBACK (traverse_callback), 0);
 
 
-  g_signal_connect (GTK_OBJECT (sheet), "double-click-column",
-		    GTK_SIGNAL_FUNC (click2column),
+  g_signal_connect (G_OBJECT (sheet), "double-click-column",
+		    G_CALLBACK (click2column),
 		    0);
+
+  g_signal_connect (G_OBJECT (data_store), "font-changed",
+		    G_CALLBACK (font_change_callback), sheet);
 
   gtk_sheet_set_active_cell(GTK_SHEET(sheet), -1, -1);
   gtk_widget_show(sheet);
