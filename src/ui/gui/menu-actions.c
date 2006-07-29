@@ -262,9 +262,10 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 
 
 /* Re initialise HANDLE, by interrogating the user for a new file name */
-static void
+static gboolean
 recreate_save_handle(struct file_handle **handle)
 {
+  gint response;
   GtkWidget *dialog;
 
   GtkWidget *data_editor  = get_widget_assert(xml, "data_editor");
@@ -276,7 +277,9 @@ recreate_save_handle(struct file_handle **handle)
 					GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
 					NULL);
 
-  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+  response = gtk_dialog_run (GTK_DIALOG (dialog));
+
+  if (response == GTK_RESPONSE_ACCEPT)
     {
       char *file_name = gtk_file_chooser_get_filename
 	(GTK_FILE_CHOOSER (dialog));
@@ -285,7 +288,8 @@ recreate_save_handle(struct file_handle **handle)
       if ( *handle ) 
 	fh_free(*handle);
 
-      *handle = fh_create_file (handle_name, file_name, fh_default_properties());
+      *handle = fh_create_file (handle_name, file_name, 
+		      	fh_default_properties());
 
       psppire_set_window_title(basename(file_name));
 
@@ -293,6 +297,8 @@ recreate_save_handle(struct file_handle **handle)
     }
 
   gtk_widget_destroy (dialog);
+
+  return ( response == GTK_RESPONSE_ACCEPT ) ;
 }
 
 void
@@ -303,7 +309,10 @@ on_save1_activate                      (GtkMenuItem     *menuitem,
   PsppireDataStore *data_store ;
 
   if ( ! psppire_handle ) 
-    recreate_save_handle(&psppire_handle);
+    {
+      if ( ! recreate_save_handle(&psppire_handle) ) 
+	return;
+    }
   
   data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
   data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
@@ -321,7 +330,9 @@ on_save_as1_activate                   (GtkMenuItem     *menuitem,
   GtkSheet *data_sheet ;
   PsppireDataStore *data_store ;
 
-  recreate_save_handle(&psppire_handle);
+  if ( ! recreate_save_handle(&psppire_handle) ) 
+    return ;
+
   if ( ! psppire_handle ) 
     return ;
 
