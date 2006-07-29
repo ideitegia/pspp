@@ -192,13 +192,15 @@ traverse_cell_callback (GtkSheet * sheet,
     }
 
   /* If the destination cell is outside the current  variables, then
-     accept the destination only as the name column of the first blank row
+     automatically create variables for the new rows.
   */
-  if ( *new_row > n_vars) 
-    return FALSE;
-  
-  if ( *new_row >= n_vars && *new_column != COL_NAME) 
-    return FALSE;
+  if ( (*new_row > n_vars) || 
+       (*new_row == n_vars && *new_column != COL_NAME) ) 
+    {
+      gint i;
+      for ( i = n_vars ; i <= *new_row; ++i )
+	psppire_dict_insert_variable(var_store->dict, i, NULL);
+    }
 
   return TRUE;
 }
