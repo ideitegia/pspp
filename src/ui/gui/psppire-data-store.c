@@ -37,6 +37,7 @@
 
 #include "psppire-variable.h"
 #include "psppire-data-store.h"
+#include "psppire-case-file.h"
 #include "helper.h"
 
 #include <data/dictionary.h>
@@ -584,10 +585,13 @@ psppire_data_store_show_labels(PsppireDataStore *store, gboolean show_labels)
 
 
 
+/* FIXME: There's no reason to actually have this function.
+   It should be done by a procedure */
 void
 psppire_data_store_create_system_file(PsppireDataStore *store,
 			      struct file_handle *handle)
 {
+  gint i, var_cnt;
   const struct sfm_write_options wo = {
     true, /* writeable */
     false, /* dont compress */
@@ -603,9 +607,19 @@ psppire_data_store_create_system_file(PsppireDataStore *store,
   if ( ! writer) 
     return;
 
-#if 0
-  psppire_case_array_iterate_case(store->cases, write_case, writer);
-#endif
+
+  var_cnt = psppire_data_store_get_var_count (G_SHEET_MODEL(store));
+
+  for (i = 0 ; i < psppire_case_file_get_case_count(store->case_file); ++i ) 
+    {
+      struct ccase c;
+      
+      case_create (&c, var_cnt);
+      psppire_case_file_get_case (store->case_file, i, &c);
+      sfm_write_case (writer, &c);
+
+      case_destroy (&c);
+    }
 
   sfm_close_writer(writer);
 }
@@ -707,7 +721,6 @@ geometry_get_sensitivity(const GSheetColumn *geom, gint unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
-
   return (unit < psppire_dict_get_var_cnt(ds->dict));
 }
 
@@ -721,7 +734,6 @@ psppire_data_store_sheet_column_init (GSheetColumnIface *iface)
   iface->get_visibility = always_true;
   iface->get_sensitivity = geometry_get_sensitivity;
   iface->get_justification = geometry_get_justification;
-
   iface->get_button_label = geometry_get_column_button_label;
 }
 

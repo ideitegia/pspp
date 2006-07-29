@@ -99,6 +99,9 @@ gboolean psppire_case_file_insert_values(PsppireCaseFile *cf, gint n_values, gin
 struct sort_criteria;
 void psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *);
 
+gboolean psppire_case_file_get_case(const PsppireCaseFile *cf, gint casenum, 
+				    struct ccase *c);
+
 
 G_END_DECLS
 

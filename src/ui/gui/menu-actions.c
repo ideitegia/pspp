@@ -281,10 +281,10 @@ recreate_save_handle(struct file_handle **handle)
       char *file_name = gtk_file_chooser_get_filename
 	(GTK_FILE_CHOOSER (dialog));
 
-#if 0
+
       if ( *handle ) 
-	destroy_file_handle(*handle, 0);
-#endif
+	fh_free(*handle);
+
       *handle = fh_create_file (handle_name, file_name, fh_default_properties());
 
       psppire_set_window_title(basename(file_name));
