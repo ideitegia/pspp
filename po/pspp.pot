@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-07-29 13:49+0800\n"
+"POT-Creation-Date: 2006-07-30 14:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4217,11 +4217,11 @@ msgstr ""
 msgid "All Files"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:272
+#: src/ui/gui/menu-actions.c:273
 msgid "Save Data As"
 msgstr ""
 
-#: src/ui/gui/menu-actions.c:568
+#: src/ui/gui/menu-actions.c:582
 msgid "Font Selection"
 msgstr ""
 
@@ -4249,11 +4249,11 @@ msgstr ""
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:699
+#: src/ui/gui/psppire-data-store.c:731
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:780 src/ui/gui/psppire-var-store.c:518
+#: src/ui/gui/psppire-data-store.c:812 src/ui/gui/psppire-var-store.c:518
 #: src/ui/gui/psppire-var-store.c:528 src/ui/gui/psppire-var-store.c:538
 #: src/ui/gui/psppire-var-store.c:735
 #, c-format

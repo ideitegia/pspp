@@ -364,6 +364,8 @@ on_clear_activate                    (GtkMenuItem     *menuitem,
 
   switch (page) 
     {
+    case PAGE_VAR_SHEET:
+	    break;
     case PAGE_DATA_SHEET:
       {
 	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
@@ -408,87 +410,6 @@ on_clear_activate                    (GtkMenuItem     *menuitem,
     }
 
 }
-
-void
-on_insert1_activate                    (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  GtkNotebook *notebook = GTK_NOTEBOOK(get_widget_assert(xml, "notebook1"));
-  gint page = -1;
-
-  page = gtk_notebook_get_current_page(notebook);
-
-  switch (page) 
-    {
-    case PAGE_DATA_SHEET:
-#if 0
-      {
-	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-	PsppireDataStore *data_store = 
-	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
-
-	psppire_case_array_insert_case(data_store->cases, 
-				       data_sheet->range.row0, 
-				       blank_case, the_dictionary);
-      }
-      break;
-#endif
-    case PAGE_VAR_SHEET:
-      {
-	GtkSheet *var_sheet = 
-	  GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
-
-	PsppireVarStore *var_store = 
-	  PSPPIRE_VAR_STORE(gtk_sheet_get_model(var_sheet));
-
-	psppire_dict_insert_variable(var_store->dict, var_sheet->range.row0, 0);
-      }
-      break;
-    }
-}
-
-#if 0
-void
-on_delete1_activate                    (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
-{
-  gint page = -1;
-  GtkWidget *notebook = get_widget_assert(xml, "notebook1");
-
-  page = gtk_notebook_get_current_page(GTK_NOTEBOOK(notebook));
-  switch ( page) 
-    {
-#if 0
-    case PAGE_DATA_SHEET:
-      {
-	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-	PsppireDataStore *data_store = 
-	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
-
-	psppire_case_array_delete_cases(data_store->cases, 
-				    data_sheet->range.row0, 
-				    1 + data_sheet->range.rowi 
-				    - data_sheet->range.row0  );
-      }
-      break;
-#endif
-    case PAGE_VAR_SHEET:
-      {
-	GtkSheet *var_sheet = 
-	  GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
-
-	PsppireVarStore *var_store = 
-	  PSPPIRE_VAR_STORE(gtk_sheet_get_model(var_sheet));
-
-	psppire_dict_delete_variables(var_store->dict, 
-				   var_sheet->range.row0,
-				   1 + var_sheet->range.rowi 
-				   - var_sheet->range.row0  );
-      }
-      break;
-    }
-}
-#endif
 
 void
 on_about1_activate(GtkMenuItem     *menuitem,
@@ -769,7 +690,7 @@ insert_case(void)
 
   gtk_sheet_get_active_cell(data_sheet, &row, &col);
 
-  psppire_case_file_insert_case(data_store->case_file, row);
+  psppire_data_store_insert_new_case(data_store, row);
 }
 
 void

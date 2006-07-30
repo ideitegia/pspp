@@ -1,6 +1,6 @@
-* Blank cell reference when deselecting cells. (Eg New command).
+* Crashes when reducing the size of string variables.
 
-* Strip leading/trailing whitespace on data in cells.
+* Blank cell reference when deselecting cells. (Eg New command).
 
 * Cell Ref Entry populate/depopulate.
 
@@ -8,10 +8,10 @@
 
 * Goto Variable.
 
-* Widen columns in var sheet as necessary to accomodate non-english translations.
-
 Wishlist
 ========
+
+* Widen columns in var sheet as necessary to accomodate non-english translations.
 
 * Cut/Paste Buffer.  Cut and paste: a) Between psppire instances. b) From other applications.
 

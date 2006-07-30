@@ -156,7 +156,7 @@ psppire_case_file_new (gint val_cnt)
 {
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
 
-  cf->flexifile = flexifile_create(val_cnt);
+  cf->flexifile = flexifile_create (val_cnt);
 
   return cf;
 }
@@ -177,23 +177,19 @@ psppire_case_file_delete_cases(PsppireCaseFile *cf, gint n_cases, gint first)
   return result;
 }
 
-/* Insert a blank case to the case file */
+/* Insert case CC into the case file before POSN */
 gboolean
 psppire_case_file_insert_case(PsppireCaseFile *cf, 
-			       gint posn)
+			      struct ccase *cc,
+			      gint posn)
 {
   bool result ;
-  struct ccase cc;
 
   g_return_val_if_fail(cf, FALSE);
   g_return_val_if_fail(cf->flexifile, FALSE);
 
-  case_create (&cc, casefile_get_value_cnt(cf->flexifile));
-
-  result = flexifile_insert_case(FLEXIFILE(cf->flexifile), &cc, posn);
+  result = flexifile_insert_case(FLEXIFILE(cf->flexifile), cc, posn);
   
-  case_destroy (&cc);
-
   if ( result ) 
     g_signal_emit(cf, signal[CASE_INSERTED], 0, posn);
   else
@@ -201,6 +197,7 @@ psppire_case_file_insert_case(PsppireCaseFile *cf,
 		
   return result;
 }
+
 
 /* Append a case to the case file */
 gboolean
@@ -354,8 +351,8 @@ psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *sc)
 /* Resize the cases in the casefile, by inserting N_VALUES into every 
    one of them. */
 gboolean 
-psppire_case_file_insert_values(PsppireCaseFile *cf, 
-				gint n_values, gint before)
+psppire_case_file_insert_values (PsppireCaseFile *cf, 
+				 gint n_values, gint before)
 {
   g_return_val_if_fail(cf, FALSE);
 
@@ -365,21 +362,18 @@ psppire_case_file_insert_values(PsppireCaseFile *cf,
       return TRUE;
     }
 
-  return flexifile_resize(FLEXIFILE(cf->flexifile), n_values, before);
+  return flexifile_resize (FLEXIFILE(cf->flexifile), n_values, before);
 }
-
-
-
 
 /* Fills C with the CASENUMth case.
    Returns true on success, false otherwise.
  */
 gboolean
-psppire_case_file_get_case(const PsppireCaseFile *cf, gint casenum, 
+psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum, 
 			   struct ccase *c)
 {
-  g_return_val_if_fail(cf, FALSE);
-  g_return_val_if_fail(cf->flexifile, FALSE);
+  g_return_val_if_fail (cf, FALSE);
+  g_return_val_if_fail (cf->flexifile, FALSE);
 
-  return flexifile_get_case(FLEXIFILE(cf->flexifile), casenum, c);
+  return flexifile_get_case (FLEXIFILE(cf->flexifile), casenum, c);
 }

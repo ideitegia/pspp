@@ -44,19 +44,30 @@
 
 extern GladeXML *xml;
 
-
 static gboolean 
 traverse_callback (GtkSheet * sheet, 
-			gint row, gint col, 
-			gint *new_row, gint *new_column
-			)
+		   gint row, gint col, 
+		   gint *new_row, gint *new_column
+		   )
 {
+  gint case_count;
   PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(sheet));
-
   const gint n_vars = psppire_dict_get_var_cnt(data_store->dict);
 
   if ( *new_column >= n_vars ) 
     return FALSE;
+
+  case_count = psppire_case_file_get_case_count(data_store->case_file);
+
+  if ( *new_row >= case_count )
+    {
+      gint i;
+
+      for ( i = case_count ; i <= *new_row; ++i ) 
+	psppire_data_store_insert_new_case (data_store, i);
+
+      return TRUE;
+    }
 
   return TRUE;
 }

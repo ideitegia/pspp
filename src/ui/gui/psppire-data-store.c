@@ -327,9 +327,6 @@ dict_size_change_callback(GObject *obj,
 
   store  = PSPPIRE_DATA_STORE(data);
 
-  /* 
-  if ( adjustment > 0 )
-  */
   psppire_case_file_insert_values (store->case_file, adjustment, posn);
 }
 
@@ -423,8 +420,43 @@ psppire_data_store_finalize (GObject *object)
 }
 
 
+
+/* Insert a blank case before POSN */
+gboolean
+psppire_data_store_insert_new_case(PsppireDataStore *ds, gint posn)
+{
+  gboolean result;
+  gint val_cnt, v; 
+  struct ccase cc;
+  g_return_val_if_fail (ds, FALSE);
+
+
+  /* Opportunity for optimisation exists here when creating a blank case */
+  val_cnt = casefile_get_value_cnt(ds->case_file->flexifile) ;
+  
+  case_create (&cc, val_cnt);
+
+  memset ( case_data_rw (&cc, 0), 0, val_cnt * MAX_SHORT_STRING);
+
+  for (v = 0 ; v < psppire_dict_get_var_cnt (ds->dict) ; ++v) 
+    {
+      const struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, v);
+      if (ALPHA ==  psppire_variable_get_type(pv) ) 
+	continue;
+
+      case_data_rw (&cc, psppire_variable_get_fv (pv))->f = SYSMIS;
+    }
+
+  result = psppire_case_file_insert_case (ds->case_file, &cc, posn);
+
+  case_destroy (&cc);
+
+  return result;
+}
+
+
 static gchar *
-psppire_data_store_get_string(const GSheetModel *model, gint row, gint column)
+psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 {
   gint idx;
   char *text;
@@ -434,26 +466,26 @@ psppire_data_store_get_string(const GSheetModel *model, gint row, gint column)
   GString *s;
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
 
-  g_return_val_if_fail(store->dict, NULL);
-  g_return_val_if_fail(store->case_file, NULL);
+  g_return_val_if_fail (store->dict, NULL);
+  g_return_val_if_fail (store->case_file, NULL);
 
-  if (column >= psppire_dict_get_var_cnt(store->dict))
+  if (column >= psppire_dict_get_var_cnt (store->dict))
     return NULL;
 
-  if ( row >= psppire_case_file_get_case_count(store->case_file))
+  if ( row >= psppire_case_file_get_case_count (store->case_file))
     return NULL;
 
-  pv = psppire_dict_get_variable(store->dict, column);
+  pv = psppire_dict_get_variable (store->dict, column);
 
-  idx = psppire_variable_get_fv(pv);
+  idx = psppire_variable_get_fv (pv);
 
-  v = psppire_case_file_get_value(store->case_file, row, idx);
+  v = psppire_case_file_get_value (store->case_file, row, idx);
 
   g_return_val_if_fail(v, NULL);
 
   if ( store->show_labels) 
     {
-      const struct val_labs * vl = psppire_variable_get_value_labels(pv);
+      const struct val_labs * vl = psppire_variable_get_value_labels (pv);
 
       const gchar *label;
       if ( (label = val_labs_find(vl, *v)) )
@@ -462,29 +494,31 @@ psppire_data_store_get_string(const GSheetModel *model, gint row, gint column)
 	}
     }
 
-  fp = psppire_variable_get_write_spec(pv);
+  fp = psppire_variable_get_write_spec (pv);
 
   s = g_string_sized_new (fp->w + 1);
-  g_string_set_size(s, fp->w);
+  g_string_set_size (s, fp->w);
   
-  memset(s->str, 0, fp->w);
+  memset (s->str, 0, fp->w);
 
-  g_assert(fp->w == s->len);
+  g_assert (fp->w == s->len);
     
   /* Converts binary value V into printable form in the exactly
      FP->W character in buffer S according to format specification
      FP.  No null terminator is appended to the buffer.  */
   data_out (s->str, fp, v);
 
-  text = pspp_locale_to_utf8(s->str, fp->w, 0);
-  g_string_free(s, TRUE);
+  text = pspp_locale_to_utf8 (s->str, fp->w, 0);
+  g_string_free (s, TRUE);
+
+  g_strchomp (text);
 
   return text;
 }
 
 
 static gboolean 
-psppire_data_store_clear_datum(GSheetModel *model, 
+psppire_data_store_clear_datum (GSheetModel *model, 
 					  gint row, gint col)
 
 {

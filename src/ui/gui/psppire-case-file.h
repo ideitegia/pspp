@@ -71,6 +71,8 @@ PsppireCaseFile *psppire_case_file_new (gint var_cnt);
 gboolean psppire_case_file_append_case(PsppireCaseFile *cf, 
 					     struct ccase *c);
 
+gboolean psppire_case_file_insert_case(PsppireCaseFile *cf, struct ccase *c, gint row);
+
 gint psppire_case_file_get_case_count(const PsppireCaseFile *cf);
 
 
@@ -90,9 +92,6 @@ void psppire_case_file_clear(PsppireCaseFile *cf);
 
 gboolean psppire_case_file_delete_cases(PsppireCaseFile *cf, gint n_rows, 
 					gint first);
-
-gboolean psppire_case_file_insert_case(PsppireCaseFile *cf, gint row);
-
 
 gboolean psppire_case_file_insert_values(PsppireCaseFile *cf, gint n_values, gint before);
 

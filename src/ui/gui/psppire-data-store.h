@@ -98,8 +98,11 @@ void psppire_data_store_clear(PsppireDataStore *data_store);
 
 struct file_handle;
 
-void psppire_data_store_create_system_file(PsppireDataStore *store,
-				   struct file_handle *handle);
+void psppire_data_store_create_system_file (PsppireDataStore *store,
+					    struct file_handle *handle);
+
+gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn);
+
 
 
 #ifdef __cplusplus

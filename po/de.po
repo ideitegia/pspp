@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-07-29 13:49+0800\n"
+"POT-Creation-Date: 2006-07-30 14:13+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -4218,11 +4218,11 @@ msgstr "Tragbardatein (*.por)"
 msgid "All Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/menu-actions.c:272
+#: src/ui/gui/menu-actions.c:273
 msgid "Save Data As"
 msgstr "Speichern unter"
 
-#: src/ui/gui/menu-actions.c:568
+#: src/ui/gui/menu-actions.c:582
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
@@ -4250,11 +4250,11 @@ msgstr "Falshe Spannweitebeschreibung"
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
 
-#: src/ui/gui/psppire-data-store.c:699
+#: src/ui/gui/psppire-data-store.c:731
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:780 src/ui/gui/psppire-var-store.c:518
+#: src/ui/gui/psppire-data-store.c:812 src/ui/gui/psppire-var-store.c:518
 #: src/ui/gui/psppire-var-store.c:528 src/ui/gui/psppire-var-store.c:538
 #: src/ui/gui/psppire-var-store.c:735
 #, c-format
