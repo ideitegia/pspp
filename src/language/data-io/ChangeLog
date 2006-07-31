@@ -1,3 +1,7 @@
+Mon Jul 31 10:32:31 2006  Ben Pfaff  <blp@gnu.org>
+
+	* print.c (parse_specs): Allow a comma between specifications.
+
 Sun Jul 16 19:57:10 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: (src_language_data_io_libdata_io_a_SOURCE) Add

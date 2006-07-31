@@ -240,6 +240,8 @@ parse_specs (struct pool *tmp_pool, struct print_trns *trns,
                                       which_formats);
       if (!ok)
 	return 0;
+
+      lex_match (',');
     }
 
   if (trns->record_cnt != 0 && trns->record_cnt != record)
