@@ -1,3 +1,8 @@
+Mon Jul 31 15:49:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	* compiler.h: (macro CONST_FUNCTION) New macro.
+	(macro PURE_FUNCTION) New macro.
+
 Sun Jul 16 21:07:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	* message.c: (static int messages_disabled) New variable.

@@ -32,12 +32,21 @@
 #define ATTRIBUTE(X)
 #endif
 
+/* Marks a function argument as possibly not used. */
 #define UNUSED ATTRIBUTE ((unused))
+
+/* Marks a function that will never return. */
 #define NO_RETURN ATTRIBUTE ((noreturn))
+
+/* Mark a function as taking a printf- or scanf-like format
+   string as its FMT'th argument and that the FIRST'th argument
+   is the first one to be checked against the format string. */
 #define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (printf, FMT, FIRST)))
 #define SCANF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (scanf, FMT, FIRST)))
 
-/* This attribute was added late in the GCC 2.x cycle. */
+/* Tells the compiler that a function may be treated as if any
+   non-`NULL' pointer it returns cannot alias any other pointer
+   valid when the function returns. */
 #if __GNUC__ > 2
 #define MALLOC_LIKE ATTRIBUTE ((malloc))
 #else
@@ -49,6 +58,26 @@
 #define WARN_UNUSED_RESULT ATTRIBUTE ((warn_unused_result))
 #else
 #define WARN_UNUSED_RESULT
+#endif
+
+/* This attribute indicates that the function does not examine
+   any values except its arguments, and have no effects except
+   the return value.  A function that has pointer arguments and
+   examines the data pointed to must _not_ be declared
+   `const'.  */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5)
+#define CONST_FUNCTION ATTRIBUTE ((const))
+#else
+#define CONST_FUNCTION
+#endif
+
+/* This attribute indicates that the function has no effects
+   except the return value and its return value depends only on
+   the parameters and/or global variables. */
+#if __GNUC__ > 2
+#define PURE_FUNCTION ATTRIBUTE ((pure))
+#else
+#define PURE_FUNCTION
 #endif
 
 #endif /* compiler.h */
