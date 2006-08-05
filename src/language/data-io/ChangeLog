@@ -1,3 +1,9 @@
+Sat Aug  5 08:25:07 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #17329 in REREAD parsing, reported by John Darrington.
+
+	* inpt-pgm.c (cmd_reread): Fix file handle parsing.
+
 Mon Jul 31 10:32:31 2006  Ben Pfaff  <blp@gnu.org>
 
 	* print.c (parse_specs): Allow a comma between specifications.

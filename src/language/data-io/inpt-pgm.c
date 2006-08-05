@@ -352,7 +352,6 @@ cmd_reread (void)
 	      expr_free (e);
 	      return CMD_CASCADING_FAILURE;
 	    }
-	  lex_get ();
 	}
       else
 	{
