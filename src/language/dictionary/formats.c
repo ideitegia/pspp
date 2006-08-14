@@ -89,7 +89,7 @@ internal_cmd_formats (int which)
 
       if (!lex_match ('('))
 	{
-	  msg (SE, _("`(' expected after variable list"));
+	  msg (SE, _("`(' expected after variable list."));
 	  goto fail;
 	}
       if (!parse_format_specifier (&f)
