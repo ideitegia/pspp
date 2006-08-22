@@ -171,8 +171,7 @@ procedures are not executed.  Not yet implemented.
 @item -r
 @itemx --no-statrc
 
-Prevents the execution of the PSPP startup syntax file.  Not yet
-implemented, as startup syntax files aren't, either.
+Prevents the execution of the PSPP startup syntax file.
 
 @item -s
 @itemx --safer
