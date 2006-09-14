@@ -505,7 +505,7 @@ Record type.  Always set to 7.
 Record subtype.  Always set to 4.
 
 @item int32 size;
-Size of each piece of data in the data part, in bytes.  Always set to 4.
+Size of each piece of data in the data part, in bytes.  Always set to 8.
 
 @item int32 count;
 Number of pieces of data in the data part.  Always set to 3.
