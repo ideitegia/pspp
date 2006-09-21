@@ -1,3 +1,7 @@
+Thu Sep 21 07:00:30 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable.c: (width_to_bytes) Rephrase code for clarify.
+
 Sun Jul 16 19:52:03 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format.c: (fmt_type_from_string) New function.

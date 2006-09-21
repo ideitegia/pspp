@@ -356,30 +356,19 @@ dict_class_to_name (enum dict_class dict_class)
 int
 width_to_bytes(int width)
 {
-  const int chunks = width / EFFECTIVE_LONG_STRING_LENGTH ;
-  const int remainder = width - (chunks * EFFECTIVE_LONG_STRING_LENGTH) ;
-  int bytes, mod8;
-
   assert (width >= 0);
 
   if ( width == 0 ) 
     return MAX_SHORT_STRING ;
-
-  if ( width <= MAX_LONG_STRING) 
-    return MAX_SHORT_STRING * DIV_RND_UP(width, MAX_SHORT_STRING);
-
-
-  bytes =  remainder + (chunks * (MAX_LONG_STRING + 1) );
-
-  /* Round up to the nearest 8 */
-  mod8 = bytes % MAX_SHORT_STRING;
-
-  if ( mod8 ) 
-    bytes += MAX_SHORT_STRING - mod8;
-
-  assert( bytes % MAX_SHORT_STRING == 0 );
-
-  return bytes;
+  else if (width <= MAX_LONG_STRING) 
+    return ROUND_UP (width, MAX_SHORT_STRING);
+  else 
+    {
+      int chunks = width / EFFECTIVE_LONG_STRING_LENGTH ;
+      int remainder = width % EFFECTIVE_LONG_STRING_LENGTH ;
+      int bytes = remainder + (chunks * (MAX_LONG_STRING + 1) );
+      return ROUND_UP (bytes, MAX_SHORT_STRING); 
+    }
 }
 
 
