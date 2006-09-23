@@ -68,7 +68,7 @@ bool dict_rename_vars (struct dictionary *,
 struct ccase;
 struct variable *dict_get_weight (const struct dictionary *);
 double dict_get_case_weight (const struct dictionary *, 
-			     const struct ccase *, int *);
+			     const struct ccase *, bool *);
 void dict_set_weight (struct dictionary *, struct variable *);
 
 struct variable *dict_get_filter (const struct dictionary *);

@@ -564,7 +564,7 @@ precalc (const struct ccase *first, void *aux UNUSED)
 static bool
 calc_general (const struct ccase *c, void *aux UNUSED)
 {
-  int bad_warn = 1;
+  bool bad_warn = true;
 
   /* Case weight. */
   double weight = dict_get_case_weight (default_dict, c, &bad_warn);
@@ -638,7 +638,7 @@ calc_general (const struct ccase *c, void *aux UNUSED)
 static bool
 calc_integer (const struct ccase *c, void *aux UNUSED)
 {
-  int bad_warn = 1;
+  bool bad_warn = true;
 
   /* Case weight. */
   double weight = dict_get_case_weight (default_dict, c, &bad_warn);

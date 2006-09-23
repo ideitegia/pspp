@@ -509,7 +509,7 @@ calc (const struct ccase *c, void *aux UNUSED)
 {
   double weight;
   size_t i;
-  int bad_warn = 1;
+  bool bad_warn = true;
 
   weight = dict_get_case_weight (default_dict, c, &bad_warn);
 

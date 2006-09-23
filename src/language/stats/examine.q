@@ -618,7 +618,7 @@ void populate_summary(struct tab_table *t, int col, int row,
 
 
 
-static int bad_weight_warn = 1;
+static bool bad_weight_warn = true;
 
 
 /* Perform calculations for the sub factors */

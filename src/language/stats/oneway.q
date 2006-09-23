@@ -67,7 +67,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 
 
-static int bad_weight_warn = 1;
+static bool bad_weight_warn = true;
 
 
 static struct cmd_oneway cmd;
@@ -917,7 +917,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_)
       size_t i;
 
       const double weight = 
-	dict_get_case_weight(default_dict,&c,&bad_weight_warn);
+	dict_get_case_weight (default_dict, &c, &bad_weight_warn);
       
       const union value *indep_val = case_data (&c, indep_var->fv);
 

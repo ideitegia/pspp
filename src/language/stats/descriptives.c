@@ -159,7 +159,7 @@ struct dsc_proc
     /* Accumulated results. */
     double missing_listwise;    /* Sum of weights of cases missing listwise. */
     double valid;               /* Sum of weights of valid cases. */
-    int bad_warn;               /* Warn if bad weight found. */
+    bool bad_warn;               /* Warn if bad weight found. */
     enum dsc_statistic sort_by_stat; /* Statistic to sort by; -1: name. */
     int sort_ascending;         /* !0: ascending order; 0: descending. */
     unsigned long show_stats;   /* Statistics to display. */

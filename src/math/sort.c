@@ -67,23 +67,23 @@ prepare_to_sort_active_file (void)
 }
 
 /* Sorts the active file in-place according to CRITERIA.
-   Returns nonzero if successful. */
-int
+   Returns true if successful. */
+bool
 sort_active_file_in_place (const struct sort_criteria *criteria) 
 {
   struct casefile *in, *out;
 
   prepare_to_sort_active_file ();
   if (!procedure (NULL, NULL))
-    return 0;
+    return false;
   
   in = proc_capture_output ();
   out = sort_execute (casefile_get_destructive_reader (in), criteria);
   if (out == NULL) 
-    return 0;
+    return false;
 
   proc_set_source (storage_source_create (out));
-  return 1;
+  return true;
 }
 
 /* Data passed to sort_to_casefile_callback(). */
