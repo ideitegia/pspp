@@ -544,7 +544,8 @@ regression_trns_free (void *t_)
   Gets the predicted values.
  */
 static int
-regression_trns_pred_proc (void *t_, struct ccase *c, int case_idx UNUSED)
+regression_trns_pred_proc (void *t_, struct ccase *c, 
+			   casenum_t case_idx UNUSED)
 {
   size_t i;
   size_t n_vals;
@@ -582,7 +583,8 @@ regression_trns_pred_proc (void *t_, struct ccase *c, int case_idx UNUSED)
   Gets the residuals.
  */
 static int
-regression_trns_resid_proc (void *t_, struct ccase *c, int case_idx UNUSED)
+regression_trns_resid_proc (void *t_, struct ccase *c, 
+			    casenum_t case_idx UNUSED)
 {
   size_t i;
   size_t n_vals;

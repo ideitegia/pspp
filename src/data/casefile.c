@@ -157,7 +157,10 @@ casereader_read_xfer (struct casereader *ffr, struct ccase *c)
   if ( ! read_case ) return false;
 
   if ( ffr->destructive && casefile_in_core (cf) )
+    {
+      case_nullify (c);
     case_move (c, read_case);
+    }
   else
     case_clone (c, read_case);
 
@@ -171,6 +174,16 @@ casereader_destroy (struct casereader *r)
   ll_remove (&r->ll);
 
   r->class->destroy(r);
+}
+
+/* Creates a copy of R and returns it */
+struct casereader *
+casereader_clone(const struct casereader *r)
+{
+  /* Would we ever want to clone a destructive reader ?? */
+  assert ( ! r->destructive ) ;
+
+  return r->class->clone (r);
 }
 
 /* Destroys casefile CF. */

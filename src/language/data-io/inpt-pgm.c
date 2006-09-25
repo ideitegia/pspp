@@ -297,7 +297,7 @@ cmd_end_case (void)
 
 /* Sends the current case as the source's output. */
 int
-end_case_trns_proc (void *inp_, struct ccase *c, int case_nr UNUSED)
+end_case_trns_proc (void *inp_, struct ccase *c, casenum_t case_nr UNUSED)
 {
   struct input_program_pgm *inp = inp_;
 
@@ -370,7 +370,7 @@ cmd_reread (void)
 
 /* Executes a REREAD transformation. */
 static int
-reread_trns_proc (void *t_, struct ccase *c, int case_num)
+reread_trns_proc (void *t_, struct ccase *c, casenum_t case_num)
 {
   struct reread_trns *t = t_;
 
@@ -416,7 +416,7 @@ cmd_end_file (void)
 /* Executes an END FILE transformation. */
 static int
 end_file_trns_proc (void *trns_ UNUSED, struct ccase *c UNUSED,
-                    int case_num UNUSED)
+                    casenum_t case_num UNUSED)
 {
   return TRNS_END_FILE;
 }

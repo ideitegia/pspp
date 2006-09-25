@@ -212,6 +212,24 @@ flexifile_get_reader (const struct casefile *cf_)
   return reader;
 }
 
+
+static struct casereader *
+flexifilereader_clone (const struct casereader *cr)
+{
+  const struct flexifilereader *ffr = (const struct flexifilereader *) cr;
+  struct flexifilereader *new_ffr = xzalloc (sizeof *new_ffr);
+  struct casereader *new_reader = (struct casereader *) new_ffr;
+  struct casefile *cf = casereader_get_casefile (cr);
+
+  casereader_register (cf, new_reader, CLASS_CASEREADER(&class_reader));
+
+  new_ffr->case_idx = ffr->case_idx ;
+  new_ffr->destructive = ffr->destructive ;
+
+  return new_reader;
+}
+
+
 static bool
 flexifile_in_core(const struct casefile *cf UNUSED)
 {
@@ -268,7 +286,8 @@ static const struct class_flexifilereader class_reader =
     {
       flexifilereader_get_next_case,
       0,  /* cnum */
-      flexifilereader_destroy
+      flexifilereader_destroy,
+      flexifilereader_clone
     }
   };
 

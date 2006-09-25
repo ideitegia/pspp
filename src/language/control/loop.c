@@ -273,7 +273,7 @@ loop_trns_finalize (void *do_if_ UNUSED)
 
 /* Sets up LOOP for the first pass. */
 static int
-loop_trns_proc (void *loop_, struct ccase *c, int case_num)
+loop_trns_proc (void *loop_, struct ccase *c, casenum_t case_num)
 {
   struct loop_trns *loop = loop_;
 
@@ -325,7 +325,7 @@ loop_trns_free (void *loop_)
 
 /* Finishes a pass through the loop and starts the next. */
 static int
-end_loop_trns_proc (void *loop_, struct ccase *c, int case_num UNUSED)
+end_loop_trns_proc (void *loop_, struct ccase *c, casenum_t case_num UNUSED)
 {
   struct loop_trns *loop = loop_;
 
@@ -363,7 +363,7 @@ end_loop_trns_proc (void *loop_, struct ccase *c, int case_num UNUSED)
 
 /* Executes BREAK. */
 static int
-break_trns_proc (void *loop_, struct ccase *c UNUSED, int case_num UNUSED)
+break_trns_proc (void *loop_, struct ccase *c UNUSED, casenum_t case_num UNUSED)
 {
   struct loop_trns *loop = loop_;
 

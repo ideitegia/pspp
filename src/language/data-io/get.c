@@ -542,7 +542,7 @@ parse_output_trns (enum writer_type writer_type)
 
 /* Writes case C to the system file specified on XSAVE or XEXPORT. */
 static int
-output_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
+output_trns_proc (void *trns_, struct ccase *c, casenum_t case_num UNUSED)
 {
   struct output_trns *t = trns_;
   case_writer_write_case (t->aw, c);

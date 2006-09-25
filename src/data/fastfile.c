@@ -86,8 +86,7 @@
           also read with casereaders in this phase, but the
           ability to create new casereaders is curtailed.
 
-          In this phase, casereaders could still be cloned (once
-          we eventually implement cloning).
+          In this phase, casereaders could still be cloned.
 
           To transition from phase 1 or 2 to phase 3 and create a
           casereader, call casefile_get_destructive_reader().
@@ -286,6 +285,44 @@ fastfile_get_reader (const struct casefile *cf_)
 
   return reader;
 }
+
+
+/* Creates a copy of the casereader CR, and returns it */
+static struct casereader *
+fastfilereader_clone (const struct casereader *cr)
+{
+  const struct fastfilereader *ffr = (const struct fastfilereader *) cr ;
+  struct fastfilereader *new_ffr = xzalloc (sizeof *new_ffr);
+
+  struct casereader *new_reader = (struct casereader *) new_ffr;
+
+  struct casefile *cf =  casereader_get_casefile (cr);
+  struct fastfile *ff = (struct fastfile *) cf;
+
+  assert (!cf->being_destroyed);
+
+  /* Flush the buffer to disk if it's not empty. */
+  if (ff->mode == WRITE && ff->storage == DISK)
+    flush_buffer (ff);
+
+  ff->mode = READ;
+
+  casereader_register (cf, new_reader, &class_reader);
+
+  new_ffr->case_idx = ffr->case_idx ;
+  new_reader->destructive = cr->destructive;
+  new_ffr->fd = ffr->fd ;
+  new_ffr->buffer = ffr->buffer ;
+  new_ffr->buffer_pos = ffr->buffer_pos;
+
+  if (ff->storage == DISK)
+    reader_open_file (new_ffr);
+
+  return new_reader;
+}
+
+
+
 
 /* Returns the number of `union value's in a case for CF. */
 static size_t
@@ -748,4 +785,5 @@ static const struct class_casereader class_reader =
     fastfilereader_get_next_case,
     fastfilereader_cnum,
     fastfilereader_destroy,
+    fastfilereader_clone,
   };

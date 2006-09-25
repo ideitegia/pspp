@@ -103,7 +103,7 @@ cmd_print_space (void)
 /* Executes a PRINT SPACE transformation. */
 static int
 print_space_trns_proc (void *t_, struct ccase *c,
-                       int case_num UNUSED)
+                       casenum_t case_num UNUSED)
 {
   struct print_space_trns *trns = t_;
   int n;

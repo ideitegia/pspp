@@ -272,7 +272,7 @@ recode (const struct autorecode_pgm *arc)
 
 /* Executes an AUTORECODE transformation. */
 static int
-autorecode_trns_proc (void *trns_, struct ccase *c, int case_idx UNUSED)
+autorecode_trns_proc (void *trns_, struct ccase *c, casenum_t case_idx UNUSED)
 {
   struct autorecode_trns *trns = trns_;
   size_t i;

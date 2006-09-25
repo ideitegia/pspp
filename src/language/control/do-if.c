@@ -238,7 +238,7 @@ do_if_finalize_func (void *do_if_ UNUSED)
    Checks each clause and jumps to the appropriate
    transformation. */
 static int 
-do_if_trns_proc (void *do_if_, struct ccase *c, int case_num UNUSED)
+do_if_trns_proc (void *do_if_, struct ccase *c, casenum_t case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
   struct clause *clause;
@@ -277,7 +277,7 @@ do_if_trns_free (void *do_if_)
 
 /* Breaks out of a DO IF construct. */
 static int 
-break_trns_proc (void *do_if_, struct ccase *c UNUSED, int case_num UNUSED)
+break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenum_t case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
 

@@ -30,6 +30,7 @@ struct casereader;
 struct casefile;
 
 
+/* Casereader functions */
 
 struct casefile *casereader_get_casefile (const struct casereader *r);
 
@@ -41,6 +42,11 @@ bool casereader_read_xfer (struct casereader *r, struct ccase *c);
 
 void casereader_destroy (struct casereader *r);
 
+struct casereader *casereader_clone(const struct casereader *r);
+
+
+/* Casefile functions */
+
 void casefile_destroy (struct casefile *cf);
 
 bool casefile_error (const struct casefile *cf);
@@ -50,9 +56,8 @@ unsigned long casefile_get_case_cnt (const struct casefile *cf);
 size_t casefile_get_value_cnt (const struct casefile *cf);
 
 struct casereader *casefile_get_reader (const struct casefile *cf);
+
 struct casereader *casefile_get_destructive_reader (struct casefile *cf);
-
-
 
 bool casefile_append (struct casefile *cf, const struct ccase *c);
 

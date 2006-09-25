@@ -110,7 +110,7 @@ cmd_compute (void)
 
 /* Handle COMPUTE or IF with numeric target variable. */
 static int
-compute_num (void *compute_, struct ccase *c, int case_num)
+compute_num (void *compute_, struct ccase *c, casenum_t case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -125,7 +125,7 @@ compute_num (void *compute_, struct ccase *c, int case_num)
 /* Handle COMPUTE or IF with numeric vector element target
    variable. */
 static int
-compute_num_vec (void *compute_, struct ccase *c, int case_num)
+compute_num_vec (void *compute_, struct ccase *c, casenum_t case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -157,7 +157,7 @@ compute_num_vec (void *compute_, struct ccase *c, int case_num)
 
 /* Handle COMPUTE or IF with string target variable. */
 static int
-compute_str (void *compute_, struct ccase *c, int case_num)
+compute_str (void *compute_, struct ccase *c, casenum_t case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -172,7 +172,7 @@ compute_str (void *compute_, struct ccase *c, int case_num)
 /* Handle COMPUTE or IF with string vector element target
    variable. */
 static int
-compute_str_vec (void *compute_, struct ccase *c, int case_num)
+compute_str_vec (void *compute_, struct ccase *c, casenum_t case_num)
 {
   struct compute_trns *compute = compute_;
 

@@ -771,7 +771,7 @@ data_list_trns_free (void *dls_)
 
 /* Handle DATA LIST transformation DLS, parsing data into C. */
 static int
-data_list_trns_proc (void *dls_, struct ccase *c, int case_num UNUSED)
+data_list_trns_proc (void *dls_, struct ccase *c, casenum_t case_num UNUSED)
 {
   struct data_list_pgm *dls = dls_;
   int retval;

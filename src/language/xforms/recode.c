@@ -622,7 +622,7 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
 
 /* Performs RECODE transformation. */
 static int
-recode_trns_proc (void *trns_, struct ccase *c, int case_idx UNUSED)
+recode_trns_proc (void *trns_, struct ccase *c, casenum_t case_idx UNUSED)
 {
   struct recode_trns *trns = trns_;
   size_t i;

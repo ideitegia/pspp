@@ -875,7 +875,7 @@ add_case_limit_trns (void)
    *CASES_REMAINING. */
 static int
 case_limit_trns_proc (void *cases_remaining_,
-                      struct ccase *c UNUSED, int case_nr UNUSED) 
+                      struct ccase *c UNUSED, casenum_t case_nr UNUSED) 
 {
   size_t *cases_remaining = cases_remaining_;
   if (*cases_remaining > 0) 
@@ -914,7 +914,7 @@ add_filter_trns (void)
 /* FILTER transformation. */
 static int
 filter_trns_proc (void *filter_var_,
-                  struct ccase *c UNUSED, int case_nr UNUSED) 
+                  struct ccase *c UNUSED, casenum_t case_nr UNUSED) 
   
 {
   struct variable *filter_var = filter_var_;

@@ -576,7 +576,7 @@ dump_z_table (struct dsc_proc *dsc)
 */
 static int
 descriptives_trns_proc (void *trns_, struct ccase * c,
-                        int case_idx UNUSED)
+                        casenum_t case_idx UNUSED)
 {
   struct dsc_trns *t = trns_;
   struct dsc_z_score *z;

@@ -325,7 +325,7 @@ count_string (struct criteria *crit, struct ccase *c)
 /* Performs the COUNT transformation T on case C. */
 static int
 count_trns_proc (void *trns_, struct ccase *c,
-                 int case_num UNUSED)
+                 casenum_t case_num UNUSED)
 {
   struct count_trns *trns = trns_;
   struct dst_var *dv;

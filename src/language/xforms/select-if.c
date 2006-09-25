@@ -73,7 +73,7 @@ cmd_select_if (void)
 /* Performs the SELECT IF transformation T on case C. */
 static int
 select_if_proc (void *t_, struct ccase *c,
-                int case_num)
+                casenum_t case_num)
 {
   struct select_if_trns *t = t_;
   return (expr_evaluate_num (t->e, c, case_num) == 1.0

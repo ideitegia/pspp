@@ -65,6 +65,8 @@ struct class_casereader
   unsigned long (*cnum) (const struct casereader *);
 
   void (*destroy) (struct casereader * r);
+
+  struct casereader * (*clone) (const struct casereader *);
 };
 
 

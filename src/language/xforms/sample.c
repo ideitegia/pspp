@@ -119,7 +119,7 @@ cmd_sample (void)
 /* Executes a SAMPLE transformation. */
 static int
 sample_trns_proc (void *t_, struct ccase *c UNUSED,
-                  int case_num UNUSED)
+                  casenum_t case_num UNUSED)
 {
   struct sample_trns *t = t_;
   double U;

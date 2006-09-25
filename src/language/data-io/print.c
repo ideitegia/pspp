@@ -416,7 +416,7 @@ static void flush_records (struct print_trns *,
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
-print_trns_proc (void *trns_, struct ccase *c, int case_num UNUSED)
+print_trns_proc (void *trns_, struct ccase *c, casenum_t case_num UNUSED)
 {
   struct print_trns *trns = trns_;
   struct prt_out_spec *spec;

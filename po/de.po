@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-07-30 14:13+0800\n"
+"POT-Creation-Date: 2006-09-25 16:28+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -268,32 +268,32 @@ msgid ""
 "system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
-#: src/data/fastfile.c:499
+#: src/data/fastfile.c:536
 #, c-format
 msgid "%s: Removing temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:623
+#: src/data/fastfile.c:660
 #, c-format
 msgid "Error writing temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:651
+#: src/data/fastfile.c:688
 #, c-format
 msgid "%s: Opening temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:695
+#: src/data/fastfile.c:732
 #, c-format
 msgid "%s: Seeking temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:717
+#: src/data/fastfile.c:754
 #, c-format
 msgid "%s: Reading temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:720
+#: src/data/fastfile.c:757
 #, c-format
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
@@ -1163,24 +1163,24 @@ msgid ""
 msgstr ""
 
 #: src/language/data-io/data-list.c:403 src/language/data-io/data-list.c:503
-#: src/language/data-io/print.c:368 src/language/dictionary/split-file.c:84
+#: src/language/data-io/print.c:370 src/language/dictionary/split-file.c:84
 #: src/language/dictionary/sys-file-info.c:144
 #: src/language/dictionary/sys-file-info.c:378
 #: src/language/stats/descriptives.c:894
 msgid "Variable"
 msgstr ""
 
-#: src/language/data-io/data-list.c:404 src/language/data-io/print.c:369
+#: src/language/data-io/data-list.c:404 src/language/data-io/print.c:371
 msgid "Record"
 msgstr ""
 
-#: src/language/data-io/data-list.c:405 src/language/data-io/print.c:370
+#: src/language/data-io/data-list.c:405 src/language/data-io/print.c:372
 #: src/ui/gui/var-sheet.c:78
 msgid "Columns"
 msgstr "Spalten"
 
 #: src/language/data-io/data-list.c:406 src/language/data-io/data-list.c:504
-#: src/language/data-io/print.c:371
+#: src/language/data-io/print.c:373
 msgid "Format"
 msgstr ""
 
@@ -1416,7 +1416,7 @@ msgstr ""
 msgid "COLUMN subcommand multiply specified."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:385
+#: src/language/data-io/inpt-pgm.c:384
 msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
@@ -1678,19 +1678,19 @@ msgid ""
 "Data fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/language/data-io/print.c:246
+#: src/language/data-io/print.c:248
 #, c-format
 msgid "Output calls for %d records but %d specified on RECORDS subcommand."
 msgstr ""
 
-#: src/language/data-io/print.c:400
+#: src/language/data-io/print.c:402
 #, c-format
 msgid "Writing %d record to %s."
 msgid_plural "Writing %d records to %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/print.c:404
+#: src/language/data-io/print.c:406
 #, c-format
 msgid "Writing %d record."
 msgid_plural "Writing %d records."
@@ -1727,7 +1727,7 @@ msgid "No matching variables found between the source and target files."
 msgstr ""
 
 #: src/language/dictionary/formats.c:92
-msgid "`(' expected after variable list"
+msgid "`(' expected after variable list."
 msgstr ""
 
 #: src/language/dictionary/formats.c:102 src/language/dictionary/numeric.c:71
@@ -4222,7 +4222,7 @@ msgstr "Alle Datei"
 msgid "Save Data As"
 msgstr "Speichern unter"
 
-#: src/ui/gui/menu-actions.c:582
+#: src/ui/gui/menu-actions.c:500
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
@@ -4250,11 +4250,11 @@ msgstr "Falshe Spannweitebeschreibung"
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
 
-#: src/ui/gui/psppire-data-store.c:731
+#: src/ui/gui/psppire-data-store.c:733
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:812 src/ui/gui/psppire-var-store.c:518
+#: src/ui/gui/psppire-data-store.c:814 src/ui/gui/psppire-var-store.c:518
 #: src/ui/gui/psppire-var-store.c:528 src/ui/gui/psppire-var-store.c:538
 #: src/ui/gui/psppire-var-store.c:735
 #, c-format
