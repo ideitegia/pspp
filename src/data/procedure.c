@@ -880,7 +880,7 @@ case_limit_trns_proc (void *cases_remaining_,
   size_t *cases_remaining = cases_remaining_;
   if (*cases_remaining > 0) 
     {
-      *cases_remaining--;
+      (*cases_remaining)--;
       return TRNS_CONTINUE;
     }
   else

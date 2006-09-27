@@ -387,10 +387,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	  {
 	    struct
 	    {
-	      int32_t subtype P;
-	      int32_t size P;
-	      int32_t count P;
-	    }
+	      int32_t subtype ;
+	      int32_t size ;
+	      int32_t count ;
+	    } ATTRIBUTE((packed)) 
 	    data;
             unsigned long bytes;
 
@@ -443,10 +443,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		    {
 		      struct
 		      {
-			int32_t measure P;
-			int32_t width P;
-			int32_t align P;
-		      }
+			int32_t measure ;
+			int32_t width ;
+			int32_t align ;
+		      } ATTRIBUTE((packed))
 		      params;
 
 		      struct variable *v;
@@ -474,7 +474,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
 	      case 13: /* SPSS 12.0 Long variable name map */
 		{
-		  char *short_name, *save_ptr;
+		  char *short_name; 
+		  char *save_ptr = NULL;
                   int idx;
 
                   /* Read data. */

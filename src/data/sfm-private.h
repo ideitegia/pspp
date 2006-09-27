@@ -24,8 +24,6 @@
 #include <stdint.h>
 #include "variable.h"
 
-/* This attribute might avoid some problems.  On the other hand... */
-#define P ATTRIBUTE ((packed))
 
 #if __BORLANDC__
 #pragma option -a-		/* Turn off alignment. */
@@ -56,34 +54,34 @@
 /* Record Type 1: General Information. */
 struct sysfile_header
   {
-    char rec_type[4] P;		/* 00: Record-type code, "$FL2". */
-    char prod_name[60] P;	/* 04: Product identification. */
-    int32_t layout_code P;	/* 40: 2. */
-    int32_t nominal_case_size P;	/* 44: Number of `value's per case. 
+    char rec_type[4] ;		/* 00: Record-type code, "$FL2". */
+    char prod_name[60] ;	/* 04: Product identification. */
+    int32_t layout_code ;	/* 40: 2. */
+    int32_t nominal_case_size ;	/* 44: Number of `value's per case. 
 				   Note: some systems set this to -1 */
-    int32_t compress P;		/* 48: 1=compressed, 0=not compressed. */
-    int32_t weight_idx P;         /* 4c: 1-based index of weighting var, or 0. */
-    int32_t case_cnt P;		/* 50: Number of cases, -1 if unknown. */
-    flt64 bias P;		/* 54: Compression bias (100.0). */
-    char creation_date[9] P;	/* 5c: `dd mmm yy' creation date of file. */
-    char creation_time[8] P;	/* 65: `hh:mm:ss' 24-hour creation time. */
-    char file_label[64] P;	/* 6d: File label. */
-    char padding[3] P;		/* ad: Ignored padding. */
-  };
+    int32_t compress ;		/* 48: 1=compressed, 0=not compressed. */
+    int32_t weight_idx ;         /* 4c: 1-based index of weighting var, or 0. */
+    int32_t case_cnt ;		/* 50: Number of cases, -1 if unknown. */
+    flt64 bias ;		/* 54: Compression bias (100.0). */
+    char creation_date[9] ;	/* 5c: `dd mmm yy' creation date of file. */
+    char creation_time[8] ;	/* 65: `hh:mm:ss' 24-hour creation time. */
+    char file_label[64] ;	/* 6d: File label. */
+    char padding[3] ;		/* ad: Ignored padding. */
+  } ATTRIBUTE((packed)) ;
 
 /* Record Type 2: Variable. */
 struct sysfile_variable
   {
-    int32_t rec_type P;		/* 2. */
-    int32_t type P;		/* 0=numeric, 1-255=string width,
+    int32_t rec_type ;		/* 2. */
+    int32_t type ;		/* 0=numeric, 1-255=string width,
 				   -1=continued string. */
-    int32_t has_var_label P;	/* 1=has a variable label, 0=doesn't. */
-    int32_t n_missing_values P;	/* Missing value code of -3,-2,0,1,2, or 3. */
-    int32_t print P;	/* Print format. */
-    int32_t write P;	/* Write format. */
-    char name[SHORT_NAME_LEN] P; /* Variable name. */
+    int32_t has_var_label ;	/* 1=has a variable label, 0=doesn't. */
+    int32_t n_missing_values ;	/* Missing value code of -3,-2,0,1,2, or 3. */
+    int32_t print ;	        /* Print format. */
+    int32_t write ;	        /* Write format. */
+    char name[SHORT_NAME_LEN] ; /* Variable name. */
     /* The rest of the structure varies. */
-  };
+  } ATTRIBUTE((packed)) ;
 
 #if __BORLANDC__
 #pragma -a4

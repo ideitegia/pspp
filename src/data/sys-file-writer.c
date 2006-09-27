@@ -295,9 +295,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   {
     struct
       {
-	int32_t rec_type P;
-	int32_t filler P;
-      }
+	int32_t rec_type ;
+	int32_t filler ;
+    } ATTRIBUTE((packed))
     rec_999;
 
     rec_999.rec_type = 999;
@@ -489,9 +489,9 @@ write_variable (struct sfm_writer *w, const struct variable *v)
     {
       struct label
 	{
-	  int32_t label_len P;
-	  char label[255] P;
-	}
+	  int32_t label_len ;
+	  char label[255] ;
+      } ATTRIBUTE((packed))
       l;
 
       int ext_len;
@@ -533,17 +533,17 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 {
   struct value_label_rec
     {
-      int32_t rec_type P;
-      int32_t n_labels P;
-      flt64 labels[1] P;
-    };
+      int32_t rec_type ;
+      int32_t n_labels ;
+      flt64 labels[1] ;
+    } ATTRIBUTE((packed));
 
   struct var_idx_rec
     {
-      int32_t rec_type P;
-      int32_t n_vars P;
-      int32_t vars[1] P;
-    };
+      int32_t rec_type ;
+      int32_t n_vars ;
+      int32_t vars[1] ;
+    } ATTRIBUTE((packed));
 
   struct val_labs_iterator *i;
   struct value_label_rec *vlr;
@@ -594,11 +594,10 @@ static void
 write_documents (struct sfm_writer *w, const struct dictionary *d)
 {
   struct
-    {
-      int32_t rec_type P;		/* Always 6. */
-      int32_t n_lines P;		/* Number of lines of documents. */
-    }
-  rec_6;
+  {
+    int32_t rec_type ;		/* Always 6. */
+    int32_t n_lines ;		/* Number of lines of documents. */
+  } ATTRIBUTE((packed)) rec_6;
 
   const char *documents;
   size_t n_lines;
@@ -621,11 +620,11 @@ write_variable_display_parameters (struct sfm_writer *w,
 
   struct
   {
-    int32_t rec_type P;
-    int32_t subtype P;
-    int32_t elem_size P;
-    int32_t n_elem P;
-  } vdp_hdr;
+    int32_t rec_type ;
+    int32_t subtype ;
+    int32_t elem_size ;
+    int32_t n_elem ;
+  } ATTRIBUTE((packed)) vdp_hdr;
 
   vdp_hdr.rec_type = 7;
   vdp_hdr.subtype = 11;
@@ -639,11 +638,10 @@ write_variable_display_parameters (struct sfm_writer *w,
       struct variable *v;
       struct
       {
-	int32_t measure P;
-	int32_t width P;
-	int32_t align P;
-      }
-      params;
+	int32_t measure ;
+	int32_t width ;
+	int32_t align ;
+      } ATTRIBUTE((packed)) params;
 
       v = dict_get_var(dict, i);
 
@@ -676,13 +674,12 @@ write_vls_length_table (struct sfm_writer *w,
 {
   int i;
   struct
-    {
-      int32_t rec_type P;
-      int32_t subtype P;
-      int32_t elem_size P;
-      int32_t n_elem P;
-    }
-  vls_hdr;
+  {
+    int32_t rec_type ;
+    int32_t subtype ;
+    int32_t elem_size ;
+    int32_t n_elem ;
+  } ATTRIBUTE((packed)) vls_hdr;
 
   struct string vls_length_map;
 
@@ -722,12 +719,11 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
 {
   struct
     {
-      int32_t rec_type P;
-      int32_t subtype P;
-      int32_t elem_size P;
-      int32_t n_elem P;
-    }
-  lv_hdr;
+      int32_t rec_type ;
+      int32_t subtype ;
+      int32_t elem_size ;
+      int32_t n_elem ;
+  } ATTRIBUTE((packed)) lv_hdr;
 
   struct string long_name_map;
   size_t i;
@@ -759,18 +755,17 @@ write_rec_7_34 (struct sfm_writer *w)
 {
   struct
     {
-      int32_t rec_type_3 P;
-      int32_t subtype_3 P;
-      int32_t data_type_3 P;
-      int32_t n_elem_3 P;
-      int32_t elem_3[8] P;
-      int32_t rec_type_4 P;
-      int32_t subtype_4 P;
-      int32_t data_type_4 P;
-      int32_t n_elem_4 P;
-      flt64 elem_4[3] P;
-    }
-  rec_7;
+      int32_t rec_type_3 ;
+      int32_t subtype_3 ;
+      int32_t data_type_3 ;
+      int32_t n_elem_3 ;
+      int32_t elem_3[8] ;
+      int32_t rec_type_4 ;
+      int32_t subtype_4 ;
+      int32_t data_type_4 ;
+      int32_t n_elem_4 ;
+      flt64 elem_4[3] ;
+  } ATTRIBUTE((packed)) rec_7;
 
   /* Components of the version number, from major to minor. */
   int version_component[3];

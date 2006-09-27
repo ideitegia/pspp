@@ -51,7 +51,7 @@ cmd_split_file (void)
       size_t n;
 
       /* For now, ignore SEPARATE and LAYERED. */
-      lex_match_id ("SEPARATE") || lex_match_id ("LAYERED");
+      (void) ( lex_match_id ("SEPARATE") || lex_match_id ("LAYERED") );
       
       lex_match (T_BY);
       if (!parse_variables (default_dict, &v, &n, PV_NO_DUPLICATE))

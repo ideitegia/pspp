@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-09-25 16:28+0800\n"
+"POT-Creation-Date: 2006-09-27 08:45+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -391,27 +391,27 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:212 src/data/por-file-reader.c:481
-#: src/data/sys-file-reader.c:1220 src/data/sys-file-reader.c:1229
+#: src/data/sys-file-reader.c:1221 src/data/sys-file-reader.c:1230
 #: src/ui/gui/psppire.glade:1192 src/ui/gui/psppire-var-store.c:451
 msgid "String"
 msgstr "Zeichenkette"
 
 #: src/data/format.c:212 src/data/por-file-reader.c:481
-#: src/data/sys-file-reader.c:1220 src/data/sys-file-reader.c:1229
+#: src/data/sys-file-reader.c:1221 src/data/sys-file-reader.c:1230
 #: src/ui/gui/psppire.glade:1053 src/ui/gui/psppire-var-store.c:444
 msgid "Numeric"
 msgstr "Nummer"
 
-#: src/data/format.c:213 src/data/sys-file-reader.c:1222
-#: src/data/sys-file-reader.c:1367 src/data/sys-file-reader.c:1368
+#: src/data/format.c:213 src/data/sys-file-reader.c:1223
+#: src/data/sys-file-reader.c:1368 src/data/sys-file-reader.c:1369
 #: src/data/variable.c:42 src/language/dictionary/apply-dictionary.c:76
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/xforms/recode.c:478 src/language/xforms/recode.c:479
 msgid "numeric"
 msgstr "numerisch"
 
-#: src/data/format.c:213 src/data/sys-file-reader.c:1222
-#: src/data/sys-file-reader.c:1367 src/data/sys-file-reader.c:1368
+#: src/data/format.c:213 src/data/sys-file-reader.c:1223
+#: src/data/sys-file-reader.c:1368 src/data/sys-file-reader.c:1369
 #: src/data/variable.c:42 src/data/variable.c:50
 #: src/language/dictionary/apply-dictionary.c:76
 #: src/language/dictionary/apply-dictionary.c:77
@@ -481,12 +481,12 @@ msgstr ""
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:473 src/data/sys-file-reader.c:1212
+#: src/data/por-file-reader.c:473 src/data/sys-file-reader.c:1213
 #, c-format
 msgid "%s: Bad format specifier byte (%d)."
 msgstr ""
 
-#: src/data/por-file-reader.c:480 src/data/sys-file-reader.c:1228
+#: src/data/por-file-reader.c:480 src/data/sys-file-reader.c:1229
 #, c-format
 msgid "%s variable %s has invalid format specifier %s."
 msgstr ""
@@ -630,95 +630,95 @@ msgid ""
 "%s: Invalid variable display parameters.  Default parameters substituted."
 msgstr ""
 
-#: src/data/sys-file-reader.c:506
+#: src/data/sys-file-reader.c:507
 #, c-format
 msgid "%s: Trailing garbage in long variable name map."
 msgstr ""
 
-#: src/data/sys-file-reader.c:513
+#: src/data/sys-file-reader.c:514
 #, c-format
 msgid "%s: Long variable mapping to invalid variable name `%s'."
 msgstr ""
 
-#: src/data/sys-file-reader.c:523
+#: src/data/sys-file-reader.c:524
 #, c-format
 msgid "%s: Long variable mapping for nonexistent variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:532
+#: src/data/sys-file-reader.c:533
 #, c-format
 msgid "%s: Duplicate long variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:624
+#: src/data/sys-file-reader.c:625
 #, c-format
 msgid "%s: No variable called %s but it is listed in length table."
 msgstr ""
 
-#: src/data/sys-file-reader.c:680
+#: src/data/sys-file-reader.c:681
 #, c-format
 msgid "%s: Unrecognized record type 7, subtype %d encountered in system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:706
+#: src/data/sys-file-reader.c:707
 #, c-format
 msgid "%s: Unrecognized record type %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:761
+#: src/data/sys-file-reader.c:762
 #, c-format
 msgid ""
 "%s: Bad size (%d) or count (%d) field on record type 7, subtype 3.\tExpected "
 "size %d, count 8."
 msgstr ""
 
-#: src/data/sys-file-reader.c:772
+#: src/data/sys-file-reader.c:773
 #, c-format
 msgid ""
 "%s: Floating-point representation in system file is not IEEE-754.  PSPP "
 "cannot convert between floating-point formats."
 msgstr ""
 
-#: src/data/sys-file-reader.c:788
+#: src/data/sys-file-reader.c:789
 #, c-format
 msgid ""
 "%s: File-indicated endianness (%s) does not match endianness intuited from "
 "file header (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:791 src/data/sys-file-reader.c:792
+#: src/data/sys-file-reader.c:792 src/data/sys-file-reader.c:793
 msgid "big-endian"
 msgstr ""
 
-#: src/data/sys-file-reader.c:791 src/data/sys-file-reader.c:792
+#: src/data/sys-file-reader.c:792 src/data/sys-file-reader.c:793
 msgid "little-endian"
 msgstr ""
 
-#: src/data/sys-file-reader.c:793
+#: src/data/sys-file-reader.c:794
 msgid "unknown"
 msgstr ""
 
-#: src/data/sys-file-reader.c:797
+#: src/data/sys-file-reader.c:798
 #, c-format
 msgid "%s: File-indicated character representation code (%s) is not ASCII."
 msgstr ""
 
-#: src/data/sys-file-reader.c:801
+#: src/data/sys-file-reader.c:802
 msgid "DEC Kanji"
 msgstr ""
 
-#: src/data/sys-file-reader.c:801 src/language/dictionary/sys-file-info.c:124
+#: src/data/sys-file-reader.c:802 src/language/dictionary/sys-file-info.c:124
 msgid "Unknown"
 msgstr ""
 
-#: src/data/sys-file-reader.c:817
+#: src/data/sys-file-reader.c:818
 #, c-format
 msgid ""
 "%s: Bad size (%d) or count (%d) field on record type 7, subtype 4.\tExpected "
 "size %d, count 8."
 msgstr ""
 
-#: src/data/sys-file-reader.c:832
+#: src/data/sys-file-reader.c:833
 #, c-format
 msgid ""
 "%s: File-indicated value is different from internal value for at least one "
@@ -726,198 +726,198 @@ msgid ""
 "%g; LOWEST: %g, %g."
 msgstr ""
 
-#: src/data/sys-file-reader.c:859
+#: src/data/sys-file-reader.c:860
 #, c-format
 msgid ""
 "%s: Bad magic.  Proper system files begin with the four characters `$FL2'. "
 "This file will not be read."
 msgstr ""
 
-#: src/data/sys-file-reader.c:901
+#: src/data/sys-file-reader.c:902
 #, c-format
 msgid ""
 "%s: File layout code has unexpected value %d.  Value should be 2, in big-"
 "endian or little-endian format."
 msgstr ""
 
-#: src/data/sys-file-reader.c:930
+#: src/data/sys-file-reader.c:931
 #, c-format
 msgid "%s: Number of cases in file (%ld) is not between -1 and %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:935
+#: src/data/sys-file-reader.c:936
 #, c-format
 msgid "%s: Compression bias (%g) is not the usual value of 100."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1046
+#: src/data/sys-file-reader.c:1047
 #, c-format
 msgid ""
 "%s: position %d: String variable does not have proper number of continuation "
 "records."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1056
+#: src/data/sys-file-reader.c:1057
 #, c-format
 msgid "%s: position %d: Superfluous long string continuation record."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1062
+#: src/data/sys-file-reader.c:1063
 #, c-format
 msgid "%s: position %d: Bad variable type code %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1065
+#: src/data/sys-file-reader.c:1066
 #, c-format
 msgid "%s: position %d: Variable label indicator field is not 0 or 1."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1069
+#: src/data/sys-file-reader.c:1070
 #, c-format
 msgid ""
 "%s: position %d: Missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1074
+#: src/data/sys-file-reader.c:1075
 #, c-format
 msgid "%s: position %d: Variable name begins with invalid character."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1093
+#: src/data/sys-file-reader.c:1094
 #, c-format
 msgid "%s: Invalid variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1099
+#: src/data/sys-file-reader.c:1100
 #, c-format
 msgid "%s: Duplicate variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1123
+#: src/data/sys-file-reader.c:1124
 #, c-format
 msgid "%s: Variable %s indicates variable label of invalid length %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1144
+#: src/data/sys-file-reader.c:1145
 #, c-format
 msgid "%s: Long string variable %s may not have missing values."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1165
+#: src/data/sys-file-reader.c:1166
 #, c-format
 msgid ""
 "%s: String variable %s may not have missing values specified as a range."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1188
+#: src/data/sys-file-reader.c:1189
 #, c-format
 msgid "%s: Long string continuation records omitted at end of dictionary."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1193
+#: src/data/sys-file-reader.c:1194
 #, c-format
 msgid ""
 "%s: System file header indicates %d variable positions but %d were read from "
 "file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1218
+#: src/data/sys-file-reader.c:1219
 #, c-format
 msgid "%s: %s variable %s has %s format specifier %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1271
+#: src/data/sys-file-reader.c:1272
 #, c-format
 msgid "%s: Invalid number of labels: %d.  Ignoring labels."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1313
+#: src/data/sys-file-reader.c:1314
 #, c-format
 msgid ""
 "%s: Variable index record (type 4) does not immediately follow value label "
 "record (type 3) as it should."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1324
+#: src/data/sys-file-reader.c:1325
 #, c-format
 msgid ""
 "%s: Number of variables associated with a value label (%d) is not between 1 "
 "and the number of variables (%d)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1340
+#: src/data/sys-file-reader.c:1341
 #, c-format
 msgid ""
 "%s: Variable index associated with value label (%d) is not between 1 and the "
 "number of values (%d)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1347
+#: src/data/sys-file-reader.c:1348
 #, c-format
 msgid ""
 "%s: Variable index associated with value label (%d) refers to a continuation "
 "of a string variable, not to an actual variable."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1352
+#: src/data/sys-file-reader.c:1353
 #, c-format
 msgid "%s: Value labels are not allowed on long string variables (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1363
+#: src/data/sys-file-reader.c:1364
 #, c-format
 msgid ""
 "%s: Variables associated with value label are not all of identical type.  "
 "Variable %s has %s type, but variable %s has %s type."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1404
+#: src/data/sys-file-reader.c:1405
 #, c-format
 msgid "%s: File contains duplicate label for value %g for variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1408
+#: src/data/sys-file-reader.c:1409
 #, c-format
 msgid "%s: File contains duplicate label for value `%.*s' for variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1450 src/data/sys-file-reader.c:1746
+#: src/data/sys-file-reader.c:1451 src/data/sys-file-reader.c:1747
 #, c-format
 msgid "%s: Reading system file: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1453 src/data/sys-file-reader.c:1572
-#: src/data/sys-file-reader.c:1613
+#: src/data/sys-file-reader.c:1454 src/data/sys-file-reader.c:1573
+#: src/data/sys-file-reader.c:1614
 #, c-format
 msgid "%s: Unexpected end of file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1470
+#: src/data/sys-file-reader.c:1471
 #, c-format
 msgid "%s: Seeking system file: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1485
+#: src/data/sys-file-reader.c:1486
 #, c-format
 msgid "%s: System file contains multiple type 6 (document) records."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1491
+#: src/data/sys-file-reader.c:1492
 #, c-format
 msgid "%s: Number of document lines (%ld) must be greater than 0."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1525
+#: src/data/sys-file-reader.c:1526
 #, c-format
 msgid "%s: Error reading file: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1564
+#: src/data/sys-file-reader.c:1565
 #, c-format
 msgid "%s: Compressed data is corrupted.  Data ends in partial case."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1752
+#: src/data/sys-file-reader.c:1753
 #, c-format
 msgid "%s: Partial record at end of system file."
 msgstr ""
@@ -932,7 +932,7 @@ msgstr ""
 msgid "Error opening \"%s\" for writing as a system file: %s."
 msgstr ""
 
-#: src/data/sys-file-writer.c:1040
+#: src/data/sys-file-writer.c:1035
 #, c-format
 msgid "An I/O error occurred writing system file \"%s\"."
 msgstr ""
@@ -3371,7 +3371,7 @@ msgstr ""
 msgid "Coefficient Correlations"
 msgstr ""
 
-#: src/language/stats/regression.q:1129
+#: src/language/stats/regression.q:1131
 msgid "Dependent variable must be numeric."
 msgstr ""
 
