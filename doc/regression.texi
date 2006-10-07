@@ -1,4 +1,4 @@
-@node REGRESSION, ,ONEWAY, Statistics
+@node REGRESSION, ,RANK, Statistics
 @comment  node-name,  next,  previous,  up
 @section REGRESSION
 

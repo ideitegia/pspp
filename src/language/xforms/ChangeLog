@@ -1,3 +1,7 @@
+Sat Oct  7 11:04:01 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* automake.mk fail.c: Added a debug transformation which always fails.
+
 Sat May  6 16:02:55 2006  Ben Pfaff  <blp@gnu.org>
 
 	Get rid of `char *c' member in union value, for cleanliness.

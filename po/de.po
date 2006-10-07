@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-09-27 08:45+0800\n"
+"POT-Creation-Date: 2006-10-06 17:58+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -3306,12 +3306,56 @@ msgstr ""
 msgid "Does not assume equal"
 msgstr ""
 
-#: src/language/stats/rank.q:247
+#: src/language/stats/rank.q:221
+#, c-format
+msgid "%s of %s by %s"
+msgstr ""
+
+#: src/language/stats/rank.q:226
+#, c-format
+msgid "%s of %s"
+msgstr ""
+
+#: src/language/stats/rank.q:710
+msgid "Cannot create new rank variable.  All candidates in use."
+msgstr ""
+
+#: src/language/stats/rank.q:810
+msgid "Variables Created By RANK"
+msgstr ""
+
+#: src/language/stats/rank.q:834
+#, c-format
+msgid "%s into %s(%s of %s using %s BY %s)"
+msgstr ""
+
+#: src/language/stats/rank.q:845
+#, c-format
+msgid "%s into %s(%s of %s BY %s)"
+msgstr ""
+
+#: src/language/stats/rank.q:859
+#, c-format
+msgid "%s into %s(%s of %s using %s)"
+msgstr ""
+
+#: src/language/stats/rank.q:869
+#, c-format
+msgid "%s into %s(%s of %s)"
+msgstr ""
+
+#: src/language/stats/rank.q:882
+msgid ""
+"FRACTION has been specified, but NORMAL and PROPORTION rank functions have "
+"not been requested.  The FRACTION subcommand will be ignored."
+msgstr ""
+
+#: src/language/stats/rank.q:974
 #, c-format
 msgid "Variable %s already exists."
 msgstr ""
 
-#: src/language/stats/rank.q:252
+#: src/language/stats/rank.q:979
 msgid "Too many variables in INTO clause."
 msgstr ""
 

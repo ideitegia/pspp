@@ -33,6 +33,7 @@ TESTS = \
 	tests/command/permissions.sh \
 	tests/command/print.sh \
 	tests/command/print-strings.sh \
+	tests/command/rank.sh \
 	tests/command/rename.sh \
 	tests/command/regression.sh \
 	tests/command/sample.sh \
