@@ -1,3 +1,8 @@
+Sun Oct  8 09:45:40 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* rank.q: Plugged a small memory leak which occurred under error
+	conditions.
+	
 Sat Oct  7 11:06:01 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* rank.q: Implemented most of the RANK command.

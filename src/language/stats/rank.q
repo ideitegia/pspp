@@ -264,7 +264,8 @@ rank_cmd (const struct sort_criteria *sc,
 
       /* Obtain active file in CF. */
       if (!procedure (NULL, NULL))
-	return false;
+	goto error;
+
       cf = proc_capture_output ();
 
       /* Sort CF into SORTED_CF. */
@@ -285,9 +286,13 @@ rank_cmd (const struct sort_criteria *sc,
       
       proc_set_source (storage_source_create (out));
     }
-  free (criteria.crits);
 
+  free (criteria.crits);
   return result ; 
+
+error:
+  free (criteria.crits);
+  return false ;
 }
 
 /* Hardly a rank function !! */

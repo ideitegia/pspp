@@ -1,3 +1,10 @@
+Sun Oct  8 07:09:34 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* table.c (tab_destroy): Freed title, since this is not allocated
+	from the pool.
+
+	* html.c (html_open_driver): Freed chart_file_name.
+
 Wed Jul 12 21:03:37 2006  Ben Pfaff  <blp@gnu.org>
 
 	* table.c (tab_natural_width): Get rid of warning on empty column,

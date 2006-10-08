@@ -87,6 +87,7 @@ void
 tab_destroy (struct tab_table *t)
 {
   assert (t != NULL);
+  free (t->title);
   pool_destroy (t->container);
 }
 

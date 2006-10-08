@@ -87,10 +87,12 @@ html_open_driver (struct outp_driver *this, struct substring options)
   fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", x->file);
   print_title_tag (x->file, "H1", outp_title);
   print_title_tag (x->file, "H2", outp_subtitle);
+  free (x->chart_file_name); 
 
   return true;
 
  error:
+  free (x->chart_file_name); 
   this->class->close_driver (this);
   return false;
 }
