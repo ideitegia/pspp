@@ -79,13 +79,13 @@ Note that the last line should end with a period: .
 
 /* Display the documents.
 display documents.
-display file label.	/* undocumented feature of PSPP
+display file label.
 
 /* Save the active file then get it and display the documents again.
 save /OUTFILE='foo.save'.
 get /FILE='foo.save'.
 display documents.
-display file label.	/* undocumented feature of PSPP
+display file label.
 
 /* There is an interesting interaction that occurs if the 'execute'
 /* command below.  What happens is that an error message is output
@@ -104,7 +104,7 @@ display documents.
 save /OUTFILE='foo.save'.
 get /FILE='foo.save'.
 display documents.
-display file label.	/* undocumented feature of PSPP
+display file label.
 
 /* Done.
 
