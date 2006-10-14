@@ -93,7 +93,7 @@ trim_whitespace (struct data_in *i)
     i->e--;
 }
 
-/* Returns nonzero if we're not at the end of the string being
+/* Returns true if we're not at the end of the string being
    parsed. */
 static inline bool
 have_char (struct data_in *i)

@@ -927,9 +927,9 @@ lossage:
 
 /* Stores the dimensions in 1/72000" units of paper identified by
    SIZE, which is of form `HORZ x VERT' or `HORZ by VERT' where each
-   of HORZ and VERT are dimensions, into *H and *V.  Return nonzero on
+   of HORZ and VERT are dimensions, into *H and *V.  Return true on
    success. */
-static int
+static bool
 internal_get_paper_size (char *size, int *h, int *v)
 {
   char *tail;
@@ -938,7 +938,7 @@ internal_get_paper_size (char *size, int *h, int *v)
     size++;
   *h = outp_evaluate_dimension (size, &tail);
   if (tail == NULL)
-    return 0;
+    return false;
   while (isspace ((unsigned char) *tail))
     tail++;
   if (*tail == 'x')
@@ -948,7 +948,7 @@ internal_get_paper_size (char *size, int *h, int *v)
   else
     {
       error (0, 0, _("`x' expected in paper size `%s'"), size);
-      return 0;
+      return false;
     }
   *v = outp_evaluate_dimension (tail, &tail);
   if (tail == NULL)
@@ -958,19 +958,19 @@ internal_get_paper_size (char *size, int *h, int *v)
   if (*tail)
     {
       error (0, 0, _("trailing garbage `%s' on paper size `%s'"), tail, size);
-      return 0;
+      return false;
     }
   
-  return 1;
+  return true;
 }
 
 /* Stores the dimensions, in 1/72000" units, of paper identified by
    SIZE into *H and *V.  SIZE may be a pair of dimensions of form `H x
    V', or it may be a case-insensitive paper identifier, which is
-   looked up in the `papersize' configuration file.  Returns nonzero
+   looked up in the `papersize' configuration file.  Returns true
    on success.  May modify SIZE. */
 /* Don't read further unless you've got a strong stomach. */
-int
+bool
 outp_get_paper_size (char *size, int *h, int *v)
 {
   struct paper_size
@@ -987,7 +987,7 @@ outp_get_paper_size (char *size, int *h, int *v)
   int line_number = 0;
 
   bool free_it = false;
-  int result = 0;
+  bool result = false;
   char *ep;
 
   while (isspace ((unsigned char) *size))

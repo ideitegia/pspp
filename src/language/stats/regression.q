@@ -949,7 +949,7 @@ cmd_regression (void)
 /*
   Is variable k the dependent variable?
  */
-static int
+static bool
 is_depvar (size_t k, const struct variable *v)
 {
   /*
@@ -957,9 +957,9 @@ is_depvar (size_t k, const struct variable *v)
      names match.
    */
   if (!compare_var_names (v, v_variables[k], NULL))
-    return 1;
+    return true;
 
-  return 0;
+  return false;
 }
 
 /*

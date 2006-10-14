@@ -1702,11 +1702,11 @@ display_dimensions (struct tab_table *table, int first_difference, struct table_
 }
 
 /* Put VALUE into cell (C,R) of TABLE, suffixed with character
-   SUFFIX if nonzero.  If MARK_MISSING is nonzero the entry is
+   SUFFIX if nonzero.  If MARK_MISSING is true the entry is
    additionally suffixed with a letter `M'. */
 static void
 format_cell_entry (struct tab_table *table, int c, int r, double value,
-                   char suffix, int mark_missing)
+                   char suffix, bool mark_missing)
 {
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
@@ -1755,13 +1755,13 @@ display_crosstabulation (void)
 	  tab_hline (table, TAL_1, -1, n_cols, 0);
 	for (c = 0; c < n_cols; c++)
 	  {
-            int mark_missing = 0;
+            bool mark_missing = false;
             double expected_value = row_tot[r] * col_tot[c] / W;
             if (cmd.miss == CRS_REPORT
                 && (mv_is_num_user_missing (&x->vars[COL_VAR]->miss, cols[c].f)
                     || mv_is_num_user_missing (&x->vars[ROW_VAR]->miss,
                                                rows[r].f)))
-              mark_missing = 1;
+              mark_missing = true;
 	    for (i = 0; i < num_cells; i++)
 	      {
 		double v;
@@ -1821,11 +1821,11 @@ display_crosstabulation (void)
     for (r = 0; r < n_rows; r++) 
       {
         char suffix = 0;
-        int mark_missing = 0;
+        bool mark_missing = false;
 
         if (cmd.miss == CRS_REPORT
             && mv_is_num_user_missing (&x->vars[ROW_VAR]->miss, rows[r].f))
-          mark_missing = 1;
+          mark_missing = true;
 
         for (i = 0; i < num_cells; i++)
           {
@@ -1874,13 +1874,13 @@ display_crosstabulation (void)
     for (c = 0; c <= n_cols; c++)
       {
 	double ct = c < n_cols ? col_tot[c] : W;
-        int mark_missing = 0;
+        bool mark_missing = false;
         char suffix = 0;
         int i;
 	    
         if (cmd.miss == CRS_REPORT && c < n_cols 
             && mv_is_num_user_missing (&x->vars[COL_VAR]->miss, cols[c].f))
-          mark_missing = 1;
+          mark_missing = true;
 
         for (i = 0; i < num_cells; i++)
 	  {

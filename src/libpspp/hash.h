@@ -21,6 +21,7 @@
 #define hash_h 1
 
 #include <stddef.h>
+#include <stdbool.h>
 
 typedef int hsh_compare_func (const void *, const void *, void *aux);
 typedef unsigned hsh_hash_func (const void *, void *aux);
@@ -55,7 +56,7 @@ void **hsh_probe (struct hsh_table *, const void *);
 void *hsh_insert (struct hsh_table *, void *);
 void *hsh_replace (struct hsh_table *, void *);
 void *hsh_find (struct hsh_table *, const void *);
-int hsh_delete (struct hsh_table *, const void *);
+bool hsh_delete (struct hsh_table *, const void *);
 
 /* Iteration. */
 void *hsh_first (struct hsh_table *, struct hsh_iterator *);

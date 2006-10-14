@@ -73,7 +73,7 @@ struct var_modification
     size_t rename_cnt;
   };
 
-static int rearrange_dict (struct dictionary *d,
+static bool rearrange_dict (struct dictionary *d,
                            const struct var_modification *vm);
 
 /* Performs MODIFY VARS command. */
@@ -466,11 +466,11 @@ validate_var_modification (const struct dictionary *d,
 }
 
 /* Reoders, removes, and renames variables in dictionary D
-   according to VM.  Returns nonzero if successful, zero if there
+   according to VM.  Returns true if successful, false if there
    would have been duplicate variable names if the modifications
    had been carried out.  In the latter case, the dictionary is
    not modified. */
-static int
+static bool
 rearrange_dict (struct dictionary *d, const struct var_modification *vm)
 {
   char **rename_old_names;
@@ -484,7 +484,7 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
   /* Check whether the modifications will cause duplicate
      names. */
   if (!validate_var_modification (d, vm))
-    return 0;
+    return false;
 
   /* Record the old names of variables to rename.  After
      variables are deleted, we can't depend on the variables to
@@ -524,5 +524,5 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
   free (rename_vars);
   free (rename_new_names);
 
-  return 1;
+  return true;
 }

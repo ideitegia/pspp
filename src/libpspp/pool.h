@@ -22,6 +22,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "compiler.h"
 
 /* Maximum size of a suballocated block.  Larger blocks are allocated
@@ -90,7 +91,7 @@ void pool_detach_file (struct pool *, FILE *);
 
 /* Custom allocations. */
 void pool_register (struct pool *, void (*free) (void *), void *p);
-int pool_unregister (struct pool *, void *);
+bool pool_unregister (struct pool *, void *);
 
 /* Partial freeing. */
 void pool_mark (struct pool *, struct pool_mark *);

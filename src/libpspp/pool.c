@@ -777,8 +777,8 @@ pool_register (struct pool *pool, void (*free) (void *), void *p)
 }
 
 /* Unregisters previously registered P from POOL.
-   Returns nonzero only if P was found to be registered in POOL. */
-int
+   Returns true only if P was found to be registered in POOL. */
+bool
 pool_unregister (struct pool *pool, void *p)
 {
   assert (pool && p);
@@ -790,11 +790,11 @@ pool_unregister (struct pool *pool, void *p)
       if (g->type == POOL_GIZMO_REGISTERED && g->p.registered.p == p)
 	{
 	  delete_gizmo (pool, g);
-	  return 1;
+	  return true;
 	}
   }
   
-  return 0;
+  return false;
 }
 
 /* Partial freeing. */

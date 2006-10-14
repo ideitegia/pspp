@@ -2,14 +2,14 @@
 #define ALGORITHM_H 1
 
 #include <stddef.h>
+#include <stdbool.h>
 
 /* Compares A and B, given auxiliary data AUX, and returns a
    strcmp()-type result. */
 typedef int algo_compare_func (const void *a, const void *b, void *aux);
 
-/* Tests a predicate on DATA, given auxiliary data AUX, and
-   returns nonzero if true or zero if false. */
-typedef int algo_predicate_func (const void *data, void *aux);
+/* Tests a predicate on DATA, given auxiliary data AUX */
+typedef bool algo_predicate_func (const void *data, void *aux);
 
 /* Returns a random number in the range 0 through MAX exclusive,
    given auxiliary data AUX. */
@@ -37,7 +37,7 @@ size_t count_equal (const void *array, size_t count, size_t size,
 
 /* Counts and return the number of elements in ARRAY, which
    contains COUNT elements of SIZE bytes each, for which
-   PREDICATE returns nonzero.  AUX is passed as auxiliary data to
+   PREDICATE returns true.  AUX is passed as auxiliary data to
    PREDICATE. */
 size_t count_if (const void *array, size_t count, size_t size,
                  algo_predicate_func *predicate, void *aux);
@@ -51,7 +51,7 @@ void sort (void *array, size_t count, size_t size,
 /* Tests whether ARRAY, which contains COUNT elements of SIZE
    bytes each, is sorted in order according to COMPARE.  AUX is
    passed to COMPARE as auxiliary data. */
-int is_sorted (const void *array, size_t count, size_t size,
+bool is_sorted (const void *array, size_t count, size_t size,
                algo_compare_func *compare, void *aux);
 
 /* Makes the elements in ARRAY unique, by moving up duplicates,
@@ -65,19 +65,19 @@ size_t sort_unique (void *array, size_t count, size_t size,
                     algo_compare_func *compare, void *aux);
 
 /* Reorders ARRAY, which contains COUNT elements of SIZE bytes
-   each, so that the elements for which PREDICATE returns nonzero
-   precede those for which PREDICATE returns zero.  AUX is passed
+   each, so that the elements for which PREDICATE returns true
+   precede those for which PREDICATE returns false.  AUX is passed
    as auxiliary data to PREDICATE.  Returns the number of
-   elements for which PREDICATE returns nonzero.  Not stable. */
+   elements for which PREDICATE returns true.  Not stable. */
 size_t partition (void *array, size_t count, size_t size,
                   algo_predicate_func *predicate, void *aux);
 
 /* Checks whether ARRAY, which contains COUNT elements of SIZE
-   bytes each, is partitioned such that PREDICATE returns nonzero
-   for the first NONZERO_CNT elements and zero for the remaining
+   bytes each, is partitioned such that PREDICATE returns true
+   for the first TRUE_CNT elements and zero for the remaining
    elements.  AUX is passed as auxiliary data to PREDICATE. */
-int is_partitioned (const void *array, size_t count, size_t size,
-                    size_t nonzero_cnt,
+bool is_partitioned (const void *array, size_t count, size_t size,
+                    size_t true_cnt,
                     algo_predicate_func *predicate, void *aux);
 
 /* Randomly reorders ARRAY, which contains COUNT elements of SIZE
@@ -164,7 +164,7 @@ size_t set_difference (const void *array1, size_t count1,
 
 /* Finds the first pair of adjacent equal elements in ARRAY,
    which has COUNT elements of SIZE bytes.  Returns the first
-   element in ARRAY such that COMPARE returns zero when it and
+   element in ARRAY such that COMPARE returns true when it and
    its successor element are compared.  AUX is passed to COMPARE
    as auxiliary data. */
 void *adjacent_find_equal (const void *array, size_t count, size_t size,
@@ -202,10 +202,10 @@ void sort_heap (void *array, size_t count, size_t size,
                 algo_compare_func *compare, void *aux);
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  This
-   function tests whether ARRAY is a heap and returns 1 if so, 0
-   otherwise.  Uses COMPARE to compare elements, passing AUX as
-   auxiliary data. */
-int is_heap (const void *array, size_t count, size_t size,
+   function tests whether ARRAY is a heap and returns true if so, 
+   false otherwise.  Uses COMPARE to compare elements, passing 
+   AUX as auxiliary data. */
+bool is_heap (const void *array, size_t count, size_t size,
              algo_compare_func *compare, void *aux);
 
 

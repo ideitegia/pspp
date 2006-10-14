@@ -493,8 +493,8 @@ fn_get_cwd (void)
 
 /* Find out information about files. */
 
-/* Returns nonzero iff NAME specifies an absolute file name. */
-int
+/* Returns true iff NAME specifies an absolute file name. */
+bool
 fn_is_absolute (const char *name)
 {
 #ifdef unix
@@ -502,21 +502,21 @@ fn_is_absolute (const char *name)
       || !strncmp (name, "./", 2)
       || !strncmp (name, "../", 3)
       || name[0] == '~')
-    return 1;
+    return true;
 #elif defined (__MSDOS__)
   if (name[0] == '\\'
       || !strncmp (name, ".\\", 2)
       || !strncmp (name, "..\\", 3)
       || (name[0] && name[1] == ':'))
-    return 1;
+    return true;
 #endif
   
-  return 0;
+  return false;
 }
   
-/* Returns 1 if FILE_NAME is a virtual file that doesn't
-   really exist on disk, 0 if it's a real file name. */
-int
+/* Returns true if FILE_NAME is a virtual file that doesn't
+   really exist on disk, false if it's a real file name. */
+bool
 fn_is_special (const char *file_name)
 {
   if (!strcmp (file_name, "-") || !strcmp (file_name, "stdin")
@@ -526,13 +526,13 @@ fn_is_special (const char *file_name)
       || (*file_name && file_name[strlen (file_name) - 1] == '|')
 #endif
       )
-    return 1;
+    return true;
 
-  return 0;
+  return false;
 }
 
-/* Returns nonzero if file with name NAME exists. */
-int
+/* Returns true if file with name NAME exists. */
+bool
 fn_exists (const char *name)
 {
 #ifdef unix
@@ -542,9 +542,9 @@ fn_exists (const char *name)
 #else
   FILE *f = fopen (name, "r");
   if (!f)
-    return 0;
+    return false;
   fclose (f);
-  return 1;
+  return true;
 #endif
 }
 

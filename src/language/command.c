@@ -264,9 +264,9 @@ find_word (const char *string, size_t *word_len)
   return string;
 }
 
-/* Returns nonzero if strings A and B can be confused based on
+/* Returns true if strings A and B can be confused based on
    their first three letters. */
-static int
+static bool
 conflicting_3char_prefixes (const char *a, const char *b) 
 {
   size_t aw_len, bw_len;
@@ -278,7 +278,7 @@ conflicting_3char_prefixes (const char *a, const char *b)
 
   /* Words that are the same don't conflict. */
   if (aw_len == bw_len && !buf_compare_case (aw, bw, aw_len))
-    return 0;
+    return false;
   
   /* Words that are otherwise the same in the first three letters
      do conflict. */
@@ -287,9 +287,9 @@ conflicting_3char_prefixes (const char *a, const char *b)
           || (bw_len == 3 && aw_len > 3)) && !buf_compare_case (aw, bw, 3);
 }
 
-/* Returns nonzero if CMD can be confused with another command
+/* Returns true if CMD can be confused with another command
    based on the first three letters of its first word. */
-static int
+static bool
 conflicting_3char_prefix_command (const struct command *cmd) 
 {
   assert (cmd >= commands && cmd < commands + command_cnt);

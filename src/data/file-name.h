@@ -21,6 +21,7 @@
 #define FILE_NAME_H 1
 
 #include <stdio.h>
+#include <stdbool.h>
 
 /* Search path for configuration files. */
 extern const char *config_path;
@@ -41,9 +42,9 @@ char *fn_extension (const char *fn);
 
 char *fn_get_cwd (void);
 
-int fn_is_absolute (const char *fn);
-int fn_is_special (const char *fn);
-int fn_exists (const char *fn);
+bool fn_is_absolute (const char *fn);
+bool fn_is_special (const char *fn);
+bool fn_exists (const char *fn);
 char *fn_readlink (const char *fn);
 
 const char *fn_getenv (const char *variable);

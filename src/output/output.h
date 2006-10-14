@@ -155,7 +155,7 @@ bool outp_parse_options (struct substring options,
 int outp_match_keyword (const char *, struct outp_option *, int *);
 
 int outp_evaluate_dimension (char *, char **);
-int outp_get_paper_size (char *, int *h, int *v);
+bool outp_get_paper_size (char *, int *h, int *v);
 
 void outp_open_page (struct outp_driver *);
 void outp_close_page (struct outp_driver *);

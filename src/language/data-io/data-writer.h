@@ -29,6 +29,6 @@ struct file_handle;
 struct dfm_writer *dfm_open_writer (struct file_handle *);
 bool dfm_close_writer (struct dfm_writer *);
 bool dfm_write_error (const struct dfm_writer *);
-int dfm_put_record (struct dfm_writer *, const char *rec, size_t len);
+bool dfm_put_record (struct dfm_writer *, const char *rec, size_t len);
 
 #endif /* data-writer.h */

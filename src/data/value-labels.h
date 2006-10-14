@@ -43,9 +43,9 @@ size_t val_labs_count (const struct val_labs *);
 bool val_labs_can_set_width (const struct val_labs *, int new_width);
 void val_labs_set_width (struct val_labs *, int new_width);
 
-int val_labs_add (struct val_labs *, union value, const char *);
-int val_labs_replace (struct val_labs *, union value, const char *);
-int val_labs_remove (struct val_labs *, union value);
+bool val_labs_add (struct val_labs *, union value, const char *);
+bool val_labs_replace (struct val_labs *, union value, const char *);
+bool val_labs_remove (struct val_labs *, union value);
 char *val_labs_find (const struct val_labs *, union value);
 
 struct val_labs_iterator;

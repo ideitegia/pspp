@@ -43,7 +43,7 @@
 char *program_name;
 
 /* Have the input and output files been opened yet? */
-int is_open;
+bool is_open;
 
 /* Input, output files. */
 FILE *in, *out;
@@ -80,7 +80,7 @@ finish_up (void)
 {
   if (!is_open)
     return;
-  is_open = 0;
+  is_open = false;
   fclose (in);
   fclose (out);
   if (remove (ofn) == -1)
@@ -225,7 +225,7 @@ skip_ws (const char *s)
 
 /* Read one line from the input file into buf.  Lines having special
    formats are handled specially. */
-static int
+static bool
 get_line (void)
 {
   ln++;
@@ -233,7 +233,7 @@ get_line (void)
     {
       if (ferror (in))
 	fail ("%s: fgets: %s", ifn, strerror (errno));
-      return 0;
+      return false;
     }
 
   cp = strchr (buf, '\n');
@@ -241,7 +241,7 @@ get_line (void)
     *cp = '\0';
 
   cp = buf;
-  return 1;
+  return true;
 }
 
 /* Symbol table manager. */
@@ -418,29 +418,29 @@ force_string (void)
 }
 
 /* Checks whether the current token is the identifier S; if so, skips
-   the token and returns 1; otherwise, returns 0. */
-static int
+   the token and returns true; otherwise, returns false. */
+static bool
 match_id (const char *s)
 {
   if (token == T_ID && !strcmp (tokstr, s))
     {
       lex_get ();
-      return 1;
+      return true;
     }
-  return 0;
+  return false;
 }
 
 /* Checks whether the current token is T.  If so, skips the token and
-   returns 1; otherwise, returns 0. */
-static int
+   returns true; otherwise, returns false. */
+static bool
 match_token (int t)
 {
   if (token == t)
     {
       lex_get ();
-      return 1;
+      return true;
     }
-  return 0;
+  return false;
 }
 
 /* Force the current token to be T, and skip it. */
@@ -948,8 +948,8 @@ dump_specifier_vars (const specifier *spec, const subcommand *sbc)
   }
 }
 
-/* Returns 1 if string T is a PSPP keyword, 0 otherwise. */
-static int
+/* Returns true if string T is a PSPP keyword, false otherwise. */
+static bool
 is_keyword (const char *t)
 {
   static const char *kw[] =
@@ -961,8 +961,8 @@ is_keyword (const char *t)
 
   for (cp = kw; *cp; cp++)
     if (!strcmp (t, *cp))
-      return 1;
-  return 0;
+      return true;
+  return false;
 }
 
 /* Transforms a string NAME into a valid C identifier: makes
@@ -1165,7 +1165,7 @@ dump_declarations (void)
 
   /* Write out prototypes for custom_*() functions as necessary. */
   {
-    int seen = 0;
+    bool seen = false;
     subcommand *sbc;
 
     for (sbc = subcommands; sbc; sbc = sbc->next)
@@ -1173,7 +1173,7 @@ dump_declarations (void)
 	{
 	  if (!seen)
 	    {
-	      seen = 1;
+	      seen = true;
 	      dump (0, "/* Prototype for custom subcommands of %s. */",
 		    cmdname);
 	    }
@@ -1610,7 +1610,7 @@ dump_subcommand (const subcommand *sbc)
 	  dump (0, "int x;");
 	}
       dump (1, "if (!lex_force_string ())");
-      dump (0, "return 0;");
+      dump (0, "return false;");
       outdent ();
       if (sbc->restriction)
 	{
@@ -1860,12 +1860,12 @@ dump_parser (int persistent)
       }
   }
 
-  dump (-1, "return 1;");
+  dump (-1, "return true;");
   dump (0, nullstr);
   dump (-1, "lossage:");
   indent ();
   dump (0, "free_%s (p);", make_identifier (cmdname));
-  dump (0, "return 0;");
+  dump (0, "return false;");
   dump (-1, "}");
   dump (0, nullstr);
 }
@@ -1995,7 +1995,7 @@ main (int argc, char *argv[])
   if (!out)
     fail ("%s: open: %s.", ofn, strerror (errno));
 
-  is_open = 1;
+  is_open = true;
   buf = xmalloc (MAX_LINE_LEN);
   tokstr = xmalloc (MAX_TOK_LEN);
 

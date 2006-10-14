@@ -154,9 +154,9 @@ static void initialize_aggregate_info (struct agr_proc *,
                                        const struct ccase *);
 
 /* Prototypes. */
-static int parse_aggregate_functions (struct agr_proc *);
+static bool parse_aggregate_functions (struct agr_proc *);
 static void agr_destroy (struct agr_proc *);
-static int aggregate_single_case (struct agr_proc *agr,
+static bool aggregate_single_case (struct agr_proc *agr,
                                   const struct ccase *input,
                                   struct ccase *output);
 static void dump_aggregate_info (struct agr_proc *agr, struct ccase *output);
@@ -351,7 +351,7 @@ error:
 }
 
 /* Parse all the aggregate functions. */
-static int
+static bool
 parse_aggregate_functions (struct agr_proc *agr)
 {
   struct agr_var *tail; /* Tail of linked list starting at agr->vars. */
@@ -642,10 +642,10 @@ parse_aggregate_functions (struct agr_proc *agr)
       if (!lex_match ('/'))
 	{
 	  if (token == '.')
-	    return 1;
+	    return true;
 
 	  lex_error ("expecting end of command");
-	  return 0;
+	  return false;
 	}
       continue;
       
@@ -667,7 +667,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	  }
       free (src);
 	
-      return 0;
+      return false;
     }
 }
 
@@ -713,9 +713,9 @@ static void accumulate_aggregate_info (struct agr_proc *,
 static void dump_aggregate_info (struct agr_proc *, struct ccase *);
 
 /* Processes a single case INPUT for aggregation.  If output is
-   warranted, writes it to OUTPUT and returns nonzero.
-   Otherwise, returns zero and OUTPUT is unmodified. */
-static int
+   warranted, writes it to OUTPUT and returns true.
+   Otherwise, returns false and OUTPUT is unmodified. */
+static bool
 aggregate_single_case (struct agr_proc *agr,
                        const struct ccase *input, struct ccase *output)
 {

@@ -52,17 +52,17 @@ bool lex_is_integer (void);
 long lex_integer (void);
 
 /* Token matching functions. */
-int lex_match (int);
-int lex_match_id (const char *);
-int lex_match_int (int);
+bool lex_match (int);
+bool lex_match_id (const char *);
+bool lex_match_int (int);
 
 /* Forcible matching functions. */
-int lex_force_match (int);
-int lex_force_match_id (const char *);
-int lex_force_int (void);
-int lex_force_num (void);
-int lex_force_id (void);
-int lex_force_string (void);
+bool lex_force_match (int);
+bool lex_force_match_id (const char *);
+bool lex_force_int (void);
+bool lex_force_num (void);
+bool lex_force_id (void);
+bool lex_force_string (void);
 	
 /* Weird token functions. */
 int lex_look_ahead (void);

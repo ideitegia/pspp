@@ -18,6 +18,7 @@
    02110-1301, USA. */
 
 #include <config.h>
+#include <stdbool.h>
 #include "hash.h"
 #include "message.h"
 #include <assert.h>
@@ -304,9 +305,9 @@ rehash (struct hsh_table *h, size_t new_size)
 #endif
 }
 
-/* A "algo_predicate_func" that returns nonzero if DATA points
+/* A "algo_predicate_func" that returns true if DATA points
    to a non-null void. */
-static int
+static bool
 not_null (const void *data_, void *aux UNUSED) 
 {
   void *const *data = data_;
@@ -495,13 +496,13 @@ hsh_find (struct hsh_table *h, const void *target)
 }
 
 /* Deletes the entry in hash table H that matches TARGET.
-   Returns nonzero if an entry was deleted.
+   Returns true if an entry was deleted.
 
    Uses Knuth's Algorithm 6.4R (Deletion with linear probing).
    Because our load factor is at most 1/2, the average number of
    moves that this algorithm makes should be at most 2 - ln 2 ~=
    1.65. */
-int
+bool
 hsh_delete (struct hsh_table *h, const void *target) 
 {
   unsigned i = locate_matching_entry (h, target);
@@ -522,7 +523,7 @@ hsh_delete (struct hsh_table *h, const void *target)
             {
               i = (i - 1) & (h->size - 1);
               if (h->entries[i] == NULL)
-                return 1;
+                return true;
               
               r = h->hash (h->entries[i], h->aux) & (h->size - 1);
             }
@@ -531,7 +532,7 @@ hsh_delete (struct hsh_table *h, const void *target)
         }
     }
   else
-    return 0;
+    return false;
 }
 
 /* Iteration. */

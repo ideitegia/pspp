@@ -50,8 +50,8 @@ free_case_source (struct case_source *source)
     }
 }
 
-/* Returns nonzero if CLASS is the class of SOURCE. */
-int
+/* Returns true if CLASS is the class of SOURCE. */
+bool
 case_source_is_class (const struct case_source *source,
                       const struct case_source_class *class) 
 {

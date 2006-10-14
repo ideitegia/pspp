@@ -372,7 +372,7 @@ lvalue_get_type (const struct lvalue *lvalue)
     return lvalue->vector->var[0]->type;
 }
 
-/* Returns nonzero if LVALUE has a vector as its target. */
+/* Returns true if LVALUE has a vector as its target. */
 static bool
 lvalue_is_vector (const struct lvalue *lvalue) 
 {

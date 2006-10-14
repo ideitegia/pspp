@@ -148,24 +148,24 @@ count_equal (const void *array, size_t count, size_t size,
 
 /* Counts and return the number of elements in ARRAY, which
    contains COUNT elements of SIZE bytes each, for which
-   PREDICATE returns nonzero.  AUX is passed as auxiliary data to
+   PREDICATE returns true.  AUX is passed as auxiliary data to
    PREDICATE. */
 size_t
 count_if (const void *array, size_t count, size_t size,
           algo_predicate_func *predicate, void *aux) 
 {
   const char *first = array;
-  size_t nonzero_cnt = 0;
+  size_t true_cnt = 0;
 
   while (count-- > 0) 
     {
       if (predicate (first, aux) != 0)
-        nonzero_cnt++;
+        true_cnt++;
       
       first += size;
     }
 
-  return nonzero_cnt;
+  return true_cnt;
 }
 
 /* Byte-wise swap two items of size SIZE. */
@@ -224,18 +224,18 @@ sort_unique (void *array, size_t count, size_t size,
 }
 
 /* Reorders ARRAY, which contains COUNT elements of SIZE bytes
-   each, so that the elements for which PREDICATE returns nonzero
+   each, so that the elements for which PREDICATE returns true
    precede those for which PREDICATE returns zero.  AUX is
    passed to each predicate as auxiliary data.  Returns the
-   number of elements for which PREDICATE returns nonzero.  Not
+   number of elements for which PREDICATE returns true.  Not
    stable. */
 size_t 
 partition (void *array, size_t count, size_t size,
            algo_predicate_func *predicate, void *aux) 
 {
-  size_t nonzero_cnt = count;
+  size_t true_cnt = count;
   char *first = array;
-  char *last = first + nonzero_cnt * size;
+  char *last = first + true_cnt * size;
 
   for (;;)
     {
@@ -250,7 +250,7 @@ partition (void *array, size_t count, size_t size,
 
           first += size; 
         }
-      nonzero_cnt--;
+      true_cnt--;
 
       /* Move LAST backward to point to last element that passes
          PREDICATE. */
@@ -263,7 +263,7 @@ partition (void *array, size_t count, size_t size,
           else if (predicate (last, aux)) 
             break;
           else
-            nonzero_cnt--;
+            true_cnt--;
         }
       
       /* By swapping FIRST and LAST we extend the starting and
@@ -274,30 +274,30 @@ partition (void *array, size_t count, size_t size,
     }
 
  done:
-  assert (is_partitioned (array, count, size, nonzero_cnt, predicate, aux));
-  return nonzero_cnt; 
+  assert (is_partitioned (array, count, size, true_cnt, predicate, aux));
+  return true_cnt; 
 }
 
 /* Checks whether ARRAY, which contains COUNT elements of SIZE
-   bytes each, is partitioned such that PREDICATE returns nonzero
-   for the first NONZERO_CNT elements and zero for the remaining
+   bytes each, is partitioned such that PREDICATE returns true
+   for the first TRUE_CNT elements and zero for the remaining
    elements.  AUX is passed as auxiliary data to PREDICATE. */
-int
+bool
 is_partitioned (const void *array, size_t count, size_t size,
-                size_t nonzero_cnt,
+                size_t true_cnt,
                 algo_predicate_func *predicate, void *aux) 
 {
   const char *first = array;
   size_t idx;
 
-  assert (nonzero_cnt <= count);
-  for (idx = 0; idx < nonzero_cnt; idx++)
+  assert (true_cnt <= count);
+  for (idx = 0; idx < true_cnt; idx++)
     if (predicate (first + idx * size, aux) == 0)
-      return 0;
-  for (idx = nonzero_cnt; idx < count; idx++)
+      return false;
+  for (idx = true_cnt; idx < count; idx++)
     if (predicate (first + idx * size, aux) != 0)
-      return 0;
-  return 1;
+      return false;
+  return true;
 }
 
 /* Copies the COUNT elements of SIZE bytes each from ARRAY to
@@ -397,7 +397,7 @@ struct pred_aux
     void *aux;
   };
 
-static int
+static bool
 not (const void *data, void *pred_aux_) 
 {
   const struct pred_aux *pred_aux = pred_aux_;
@@ -753,7 +753,7 @@ sort (void *array, size_t count, size_t size,
 /* Tests whether ARRAY, which contains COUNT elements of SIZE
    bytes each, is sorted in order according to COMPARE.  AUX is
    passed to COMPARE as auxiliary data. */
-int
+bool
 is_sorted (const void *array, size_t count, size_t size,
            algo_compare_func *compare, void *aux) 
 {
@@ -762,9 +762,9 @@ is_sorted (const void *array, size_t count, size_t size,
       
   for (idx = 0; idx + 1 < count; idx++)
     if (compare (first + idx * size, first + (idx + 1) * size, aux) > 0)
-      return 0; 
+      return false; 
   
-  return 1;
+  return true;
 }
 
 /* Computes the generalized set difference, ARRAY1 minus ARRAY2,
@@ -958,10 +958,10 @@ sort_heap (void *array, size_t count, size_t size,
 }
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  This
-   function tests whether ARRAY is a heap and returns 1 if so, 0
-   otherwise.  Uses COMPARE to compare elements, passing AUX as
-   auxiliary data. */
-int
+   function tests whether ARRAY is a heap and returns true if so, 
+   false otherwise.  Uses COMPARE to compare elements, passing 
+   AUX as auxiliary data. */
+bool
 is_heap (const void *array, size_t count, size_t size,
          algo_compare_func *compare, void *aux) 
 {
@@ -973,9 +973,9 @@ is_heap (const void *array, size_t count, size_t size,
       size_t parent = child / 2;
       if (compare (first + (parent - 1) * size,
                    first + (child - 1) * size, aux) < 0)
-        return 0;
+        return false;
     }
 
-  return 1;
+  return true;
 }
 

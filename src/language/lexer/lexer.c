@@ -69,11 +69,11 @@ struct string tokstr;
 /* Pointer to next token in getl_buf. */
 static char *prog;
 
-/* Nonzero only if this line ends with a terminal dot. */
-static int dot;
+/* True only if this line ends with a terminal dot. */
+static bool dot;
 
-/* Nonzero only if the last token returned was T_STOP. */
-static int eof;
+/* True only if the last token returned was T_STOP. */
+static bool eof;
 
 /* If nonzero, next token returned by lex_get().
    Used only in exceptional circumstances. */
@@ -186,7 +186,7 @@ lex_get (void)
 	    }
 	  else if (!lex_get_line ())
 	    {
-	      eof = 1;
+	      eof = true;
 	      token = T_STOP;
 #if DUMP_TOKENS
 	      dump_token ();
@@ -497,48 +497,48 @@ lex_integer (void)
   
 /* Token matching functions. */
 
-/* If TOK is the current token, skips it and returns nonzero.
-   Otherwise, returns zero. */
-int
+/* If TOK is the current token, skips it and returns true
+   Otherwise, returns false. */
+bool
 lex_match (int t)
 {
   if (token == t)
     {
       lex_get ();
-      return 1;
+      return true;
     }
   else
-    return 0;
+    return false;
 }
 
 /* If the current token is the identifier S, skips it and returns
-   nonzero.  The identifier may be abbreviated to its first three
+   true.  The identifier may be abbreviated to its first three
    letters.
-   Otherwise, returns zero. */
-int
+   Otherwise, returns false. */
+bool
 lex_match_id (const char *s)
 {
   if (token == T_ID && lex_id_match (s, tokid))
     {
       lex_get ();
-      return 1;
+      return true;
     }
   else
-    return 0;
+    return false;
 }
 
-/* If the current token is integer N, skips it and returns nonzero.
-   Otherwise, returns zero. */
-int
+/* If the current token is integer N, skips it and returns true.
+   Otherwise, returns false. */
+bool
 lex_match_int (int x)
 {
   if (lex_is_integer () && lex_integer () == x)
     {
       lex_get ();
-      return 1;
+      return true;
     }
   else
-    return 0;
+    return false;
 }
 
 /* Forced matches. */
@@ -546,91 +546,91 @@ lex_match_int (int x)
 /* If this token is identifier S, fetches the next token and returns
    nonzero.
    Otherwise, reports an error and returns zero. */
-int
+bool
 lex_force_match_id (const char *s)
 {
   if (token == T_ID && lex_id_match (s, tokid))
     {
       lex_get ();
-      return 1;
+      return true;
     }
   else
     {
       lex_error (_("expecting `%s'"), s);
-      return 0;
+      return false;
     }
 }
 
 /* If the current token is T, skips the token.  Otherwise, reports an
-   error and returns from the current function with return value 0. */
-int
+   error and returns from the current function with return value false. */
+bool
 lex_force_match (int t)
 {
   if (token == t)
     {
       lex_get ();
-      return 1;
+      return true;
     }
   else
     {
       lex_error (_("expecting `%s'"), lex_token_name (t));
-      return 0;
+      return false;
     }
 }
 
-/* If this token is a string, does nothing and returns nonzero.
-   Otherwise, reports an error and returns zero. */
-int
+/* If this token is a string, does nothing and returns true.
+   Otherwise, reports an error and returns false. */
+bool
 lex_force_string (void)
 {
   if (token == T_STRING)
-    return 1;
+    return true;
   else
     {
       lex_error (_("expecting string"));
-      return 0;
+      return false;
     }
 }
 
-/* If this token is an integer, does nothing and returns nonzero.
-   Otherwise, reports an error and returns zero. */
-int
+/* If this token is an integer, does nothing and returns true.
+   Otherwise, reports an error and returns false. */
+bool
 lex_force_int (void)
 {
   if (lex_is_integer ())
-    return 1;
+    return true;
   else
     {
       lex_error (_("expecting integer"));
-      return 0;
+      return false;
     }
 }
 	
-/* If this token is a number, does nothing and returns nonzero.
-   Otherwise, reports an error and returns zero. */
-int
+/* If this token is a number, does nothing and returns true.
+   Otherwise, reports an error and returns false. */
+bool
 lex_force_num (void)
 {
   if (lex_is_number ())
-    return 1;
+    return true;
   else
     {
       lex_error (_("expecting number"));
-      return 0;
+      return false;
     }
 }
 	
-/* If this token is an identifier, does nothing and returns nonzero.
-   Otherwise, reports an error and returns zero. */
-int
+/* If this token is an identifier, does nothing and returns true.
+   Otherwise, reports an error and returns false. */
+bool
 lex_force_id (void)
 {
   if (token == T_ID)
-    return 1;
+    return true;
   else
     {
       lex_error (_("expecting identifier"));
-      return 0;
+      return false;
     }
 }
 /* Weird token functions. */
@@ -726,7 +726,8 @@ void
 lex_discard_line (void)
 {
   prog = ds_end (&getl_buf);
-  dot = put_token = 0;
+  dot = false;
+  put_token = 0;
 }
 
 /* Sets the current position in the current line to P, which must be
@@ -961,7 +962,7 @@ lex_negative_to_dash (void)
 void
 lex_reset_eof (void)
 {
-  eof = 0;
+  eof = false;
 }
 
 /* Skip a COMMENT command. */
@@ -973,7 +974,7 @@ lex_skip_comment (void)
       if (!lex_get_line ()) 
         {
           put_token = T_STOP;
-          eof = 1;
+          eof = true;
           return;
         }
       

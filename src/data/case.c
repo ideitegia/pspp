@@ -161,9 +161,9 @@ case_swap (struct ccase *a, struct ccase *b)
 }
 
 /* Attempts to create C as a new case that holds VALUE_CNT
-   values.  Returns nonzero if successful, zero if memory
+   values.  Returns true if successful, false if memory
    allocation failed. */
-int
+bool
 case_try_create (struct ccase *c, size_t value_cnt) 
 {
   c->case_data = malloc (case_size (value_cnt));
@@ -171,20 +171,20 @@ case_try_create (struct ccase *c, size_t value_cnt)
     {
       c->case_data->value_cnt = value_cnt;
       c->case_data->ref_cnt = 1;
-      return 1;
+      return true;
     }
-  else 
-    return 0;
+  
+  return false;
 }
 
 /* Tries to initialize CLONE as a copy of ORIG.
-   Returns nonzero if successful, zero if memory allocation
+   Returns true if successful, false if memory allocation
    failed. */
-int
+bool
 case_try_clone (struct ccase *clone, const struct ccase *orig) 
 {
   case_clone (clone, orig);
-  return 1;
+  return true;
 }
 
 #ifdef DEBUGGING

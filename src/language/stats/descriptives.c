@@ -40,6 +40,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
+#include <libpspp/assertion.h>
 #include <math/moments.h>
 #include <output/manager.h>
 #include <output/table.h>
@@ -172,8 +173,8 @@ static enum dsc_statistic match_statistic (void);
 static void free_dsc_proc (struct dsc_proc *);
 
 /* Z-score functions. */
-static int try_name (struct dsc_proc *dsc, char *name);
-static int generate_z_varname (struct dsc_proc *dsc, char *z_name,
+static bool try_name (struct dsc_proc *dsc, char *name);
+static bool generate_z_varname (struct dsc_proc *dsc, char *z_name,
                                const char *name, size_t *z_cnt);
 static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *);
@@ -465,26 +466,26 @@ free_dsc_proc (struct dsc_proc *dsc)
 
 /* Z scores. */
 
-/* Returns 0 if NAME is a duplicate of any existing variable name or
-   of any previously-declared z-var name; otherwise returns 1. */
-static int
+/* Returns false if NAME is a duplicate of any existing variable name or
+   of any previously-declared z-var name; otherwise returns true. */
+static bool
 try_name (struct dsc_proc *dsc, char *name)
 {
   size_t i;
 
   if (dict_lookup_var (default_dict, name) != NULL)
-    return 0;
+    return false;
   for (i = 0; i < dsc->var_cnt; i++)
     if (!strcasecmp (dsc->vars[i].z_name, name))
-      return 0;
-  return 1;
+      return false;
+  return true;
 }
 
 /* Generates a name for a Z-score variable based on a variable
    named VAR_NAME, given that *Z_CNT generated variable names are
-   known to already exist.  If successful, returns nonzero and
-   copies the new name into Z_NAME.  On failure, returns zero. */
-static int
+   known to already exist.  If successful, returns true and
+   copies the new name into Z_NAME.  On failure, returns false. */
+static bool
 generate_z_varname (struct dsc_proc *dsc, char *z_name,
                     const char *var_name, size_t *z_cnt)
 {
@@ -496,7 +497,7 @@ generate_z_varname (struct dsc_proc *dsc, char *z_name,
   if (try_name (dsc, name))
     {
       strcpy (z_name, name);
-      return 1;
+      return true;
     }
 
   /* Generate a synthetic name. */
@@ -517,15 +518,16 @@ generate_z_varname (struct dsc_proc *dsc, char *z_name,
 	  msg (SE, _("Ran out of generic names for Z-score variables.  "
 		     "There are only 126 generic names: ZSC001-ZSC0999, "
 		     "STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."));
-	  return 0;
+	  return false;
 	}
       
       if (try_name (dsc, name))
 	{
 	  strcpy (z_name, name);
-	  return 1;
+	  return true;
 	}
     }
+  NOT_REACHED();
 }
 
 /* Outputs a table describing the mapping between source
@@ -693,7 +695,7 @@ setup_z_trns (struct dsc_proc *dsc)
 
 /* Statistical calculation. */
 
-static int listwise_missing (struct dsc_proc *dsc, const struct ccase *c);
+static bool listwise_missing (struct dsc_proc *dsc, const struct ccase *c);
 
 /* Calculates and displays descriptive statistics for the cases
    in CF. */
@@ -841,9 +843,9 @@ calc_descriptives (const struct ccase *first,
   return true;
 }
 
-/* Returns nonzero if any of the descriptives variables in DSC's
-   variable list have missing values in case C, zero otherwise. */
-static int
+/* Returns true if any of the descriptives variables in DSC's
+   variable list have missing values in case C, false otherwise. */
+static bool
 listwise_missing (struct dsc_proc *dsc, const struct ccase *c) 
 {
   size_t i;
@@ -856,9 +858,9 @@ listwise_missing (struct dsc_proc *dsc, const struct ccase *c)
       if (x == SYSMIS
           || (!dsc->include_user_missing
               && mv_is_num_user_missing (&dv->v->miss, x)))
-        return 1;
+        return true;
     }
-  return 0;
+  return false;
 }
 
 /* Statistical display. */

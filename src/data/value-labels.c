@@ -189,10 +189,10 @@ create_int_val_lab (struct val_labs *vls, union value value, const char *label)
 }
 
 /* If VLS does not already contain a value label for VALUE, adds
-   LABEL for it and returns nonzero.  Otherwise, returns zero.
+   LABEL for it and returns true.  Otherwise, returns false.
    Behavior is undefined if VLS's width is greater than
    MAX_SHORT_STRING. */
-int
+bool
 val_labs_add (struct val_labs *vls, union value value, const char *label) 
 {
   struct int_val_lab *ivl;
@@ -211,20 +211,17 @@ val_labs_add (struct val_labs *vls, union value value, const char *label)
   if (*vlpp == NULL) 
     {
       *vlpp = ivl;
-      return 1; 
+      return true; 
     }
-  else 
-    {
-      free_int_val_lab (ivl, vls);
-      return 0;
-    }
+  free_int_val_lab (ivl, vls);
+  return false;
 }
 
-/* Sets LABEL as the value label for VALUE in VLS.  Returns zero
-   if there wasn't already a value label for VALUE, or nonzero if
+/* Sets LABEL as the value label for VALUE in VLS.  Returns false
+   if there wasn't already a value label for VALUE, or true if
    there was.  Behavior is undefined if VLS's width is greater
    than MAX_SHORT_STRING. */
-int
+bool
 val_labs_replace (struct val_labs *vls, union value value, const char *label) 
 {
   struct int_val_lab *ivl;
@@ -236,23 +233,23 @@ val_labs_replace (struct val_labs *vls, union value value, const char *label)
   if (vls->labels == NULL)
     {
       val_labs_add (vls, value, label);
-      return 0;
+      return false;
     }
 
   ivl = hsh_replace (vls->labels, create_int_val_lab (vls, value, label));
   if (ivl == NULL) 
-    return 0;
+    return false;
   else 
     {
       free_int_val_lab (ivl, vls);
-      return 1;
+      return true;
     }
 }
 
-/* Removes any value label for VALUE within VLS.  Returns nonzero
+/* Removes any value label for VALUE within VLS.  Returns true
    if a value label was removed. Behavior is undefined if VLS's
    width is greater than MAX_SHORT_STRING. */
-int 
+bool
 val_labs_remove (struct val_labs *vls, union value value) 
 {
   assert (vls != NULL);
@@ -266,7 +263,7 @@ val_labs_remove (struct val_labs *vls, union value value)
       return deleted;
     }
   else
-    return 0;
+    return false;
 }
 
 /* Searches VLS for a value label for VALUE.  If successful,

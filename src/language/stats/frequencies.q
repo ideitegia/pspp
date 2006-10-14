@@ -712,9 +712,9 @@ get_freq_comparator (int frq_sort, int var_type)
   return 0;
 }
 
-/* Returns nonzero iff the value in struct freq F is non-missing
+/* Returns true iff the value in struct freq F is non-missing
    for variable V. */
-static int
+static bool
 not_missing (const void *f_, void *v_) 
 {
   const struct freq *f = f_;

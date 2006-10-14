@@ -59,7 +59,7 @@ struct case_source *create_case_source (const struct case_source_class *,
                                         void *);
 void free_case_source (struct case_source *);
 
-int case_source_is_class (const struct case_source *,
+bool case_source_is_class (const struct case_source *,
                           const struct case_source_class *);
 
 #endif /* case-source.h */

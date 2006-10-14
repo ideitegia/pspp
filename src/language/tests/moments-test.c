@@ -29,7 +29,7 @@
 
 #define _(msgid) gettext (msgid)
 
-static int
+static bool
 read_values (double **values, double **weights, size_t *cnt) 
 {
   size_t cap = 0;
@@ -47,7 +47,7 @@ read_values (double **values, double **weights, size_t *cnt)
           if (!lex_is_number ())
             {
               lex_error (_("expecting weight value"));
-              return 0;
+              return false;
             }
           weight = tokval;
           lex_get ();
@@ -65,7 +65,7 @@ read_values (double **values, double **weights, size_t *cnt)
       (*cnt)++;
     }
 
-  return 1;
+  return true;
 }
 
 int

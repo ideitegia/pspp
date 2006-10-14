@@ -80,15 +80,15 @@ dfm_write_error (const struct dfm_writer *writer)
 }
 
 /* Writes record REC having length LEN to the file corresponding to
-   HANDLE.  REC is not null-terminated.  Returns nonzero on success,
-   zero on failure. */
-int
+   HANDLE.  REC is not null-terminated.  Returns true on success,
+   false on failure. */
+bool
 dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 {
   assert (w != NULL);
 
   if (dfm_write_error (w))
-    return 0;
+    return false;
   
   if (fh_get_mode (w->fh) == FH_MODE_BINARY
       && len < fh_get_record_width (w->fh))

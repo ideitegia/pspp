@@ -99,9 +99,9 @@ parse_variable (void)
 
 /* Parses a set of variables from dictionary D given options
    OPTS.  Resulting list of variables stored in *VAR and the
-   number of variables into *CNT.  Returns nonzero only if
+   number of variables into *CNT.  Returns true only if
    successful. */
-int
+bool
 parse_variables (const struct dictionary *d, struct variable ***var,
                  size_t *cnt, int opts) 
 {
@@ -122,10 +122,10 @@ parse_variables (const struct dictionary *d, struct variable ***var,
 
 /* Parses a set of variables from dictionary D given options
    OPTS.  Resulting list of variables stored in *VARS and the
-   number of variables into *VAR_CNT.  Returns nonzero only if
+   number of variables into *VAR_CNT.  Returns true only if
    successful.  Same behavior as parse_variables, except that all
    allocations are taken from the given POOL. */
-int
+bool
 parse_variables_pool (struct pool *pool, const struct dictionary *dict,
                       struct variable ***vars, size_t *var_cnt, int opts) 
 {
@@ -145,17 +145,17 @@ parse_variables_pool (struct pool *pool, const struct dictionary *dict,
 
 /* Parses a variable name from VS.  If successful, sets *IDX to
    the variable's index in VS, *CLASS to the variable's
-   dictionary class, and returns nonzero.  Returns zero on
+   dictionary class, and returns true.  Returns false on
    failure. */
-static int
+static bool
 parse_var_idx_class (const struct var_set *vs, size_t *idx,
                      enum dict_class *class)
 {
   if (!parse_vs_variable_idx (vs, idx))
-    return 0;
+    return false;
 
   *class = dict_class_from_id (var_set_get_var (vs, *idx)->name);
-  return 1;
+  return true;
 }
 
 /* Add the variable from VS with index IDX to the list of
@@ -218,10 +218,10 @@ add_variables (struct variable ***v, size_t *nv, size_t *mv, char *included,
       add_variable (v, nv, mv, included, pv_opts, vs, i);
 }
 
-/* Note that if parse_variables() returns 0, *v is free()'d.
-   Conversely, if parse_variables() returns non-zero, then *nv is
+/* Note that if parse_variables() returns false, *v is free()'d.
+   Conversely, if parse_variables() returns true, then *nv is
    nonzero and *v is non-NULL. */
-int
+bool
 parse_var_set_vars (const struct var_set *vs, 
                     struct variable ***v, size_t *nv,
                     int pv_opts)
@@ -381,7 +381,7 @@ extract_num (char *s, char *r, int *n, int *d)
 
 /* Parses a list of variable names according to the DATA LIST version
    of the TO convention.  */
-int
+bool
 parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
 {
   int n1, n2;
@@ -511,7 +511,7 @@ register_vars_pool (struct pool *pool, char **names, size_t nnames)
    version of the TO convention.  Same args as
    parse_DATA_LIST_vars(), except that all allocations are taken
    from the given POOL. */
-int
+bool
 parse_DATA_LIST_vars_pool (struct pool *pool,
                            char ***names, size_t *nnames, int pv_opts)
 {
@@ -532,7 +532,7 @@ parse_DATA_LIST_vars_pool (struct pool *pool,
 /* Parses a list of variables where some of the variables may be
    existing and the rest are to be created.  Same args as
    parse_DATA_LIST_vars(). */
-int
+bool
 parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
 {
   size_t i;
@@ -579,7 +579,7 @@ fail:
    existing and the rest are to be created.  Same args as
    parse_mixed_vars(), except that all allocations are taken
    from the given POOL. */
-int
+bool
 parse_mixed_vars_pool (struct pool *pool,
                        char ***names, size_t *nnames, int pv_opts)
 {

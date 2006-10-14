@@ -795,7 +795,7 @@ context (struct dfm_reader *reader)
 }
 
 /* Is there at least one token left in the data file? */
-static int
+static bool
 another_token (struct dfm_reader *reader)
 {
   for (;;)
@@ -804,18 +804,19 @@ another_token (struct dfm_reader *reader)
       size_t space_cnt;
       
       if (dfm_eof (reader))
-        return 0;
+        return false;
 
       p = dfm_get_record (reader);
       space_cnt = ss_span (p, ss_cstr (CC_SPACES));
       if (space_cnt < ss_length (p)) 
         {
           dfm_forward_columns (reader, space_cnt);
-          return 1;
+          return true;
         }
 
       dfm_forward_record (reader);
     }
+  NOT_REACHED();
 }
 
 /* Parse a MATRIX DATA token from READER into TOKEN. */
@@ -919,8 +920,8 @@ struct nr_aux_data
     double *split_values;       /* SPLIT FILE variable values. */
   };
 
-static int nr_read_splits (struct nr_aux_data *, int compare);
-static int nr_read_factors (struct nr_aux_data *, int cell);
+static bool nr_read_splits (struct nr_aux_data *, int compare);
+static bool nr_read_factors (struct nr_aux_data *, int cell);
 static bool nr_output_data (struct nr_aux_data *, struct ccase *,
                             write_case_func *, write_case_data);
 static bool matrix_data_read_without_rowtype (struct case_source *source,
@@ -1212,9 +1213,9 @@ matrix_data_read_without_rowtype (struct case_source *source,
 }
 
 /* Read the split file variables.  If COMPARE is 1, compares the
-   values read to the last values read and returns 1 if they're equal,
-   0 otherwise. */
-static int
+   values read to the last values read and returns true if they're equal,
+   false otherwise. */
+static bool
 nr_read_splits (struct nr_aux_data *nr, int compare)
 {
   struct matrix_data_pgm *mx = nr->mx;
@@ -1225,11 +1226,11 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
   if (compare && just_read)
     {
       just_read = 0;
-      return 1;
+      return true;
     }
   
   if (dict_get_split_vars (default_dict) == NULL)
-    return 1;
+    return true;
 
   if (mx->single_split)
     {
@@ -1238,7 +1239,7 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
           struct mxd_var *mv = dict_get_split_vars (default_dict)[0]->aux;
           nr->split_values[0] = ++mv->sub_type; 
         }
-      return 1;
+      return true;
     }
 
   if (!compare)
@@ -1249,12 +1250,12 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
     {
       struct matrix_token token;
       if (!mget_token (&token, mx->reader))
-        return 0;
+        return false;
       if (token.type != MNUM)
         {
           msg (SE, _("Syntax error expecting SPLIT FILE value %s."),
                context (mx->reader));
-          return 0;
+          return false;
         }
 
       if (!compare)
@@ -1264,31 +1265,31 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
           msg (SE, _("Expecting value %g for %s."),
                nr->split_values[i],
                dict_get_split_vars (default_dict)[i]->name);
-          return 0;
+          return false;
         }
     }
 
-  return 1;
+  return true;
 }
 
 /* Read the factors for cell CELL.  If COMPARE is 1, compares the
-   values read to the last values read and returns 1 if they're equal,
-   0 otherwise. */
-static int
+   values read to the last values read and returns true if they're equal,
+   false otherwise. */
+static bool
 nr_read_factors (struct nr_aux_data *nr, int cell)
 {
   struct matrix_data_pgm *mx = nr->mx;
-  int compare;
+  bool compare;
   
   if (mx->n_factors == 0)
-    return 1;
+    return true;
 
   assert (nr->max_cell_idx >= cell);
   if (cell != nr->max_cell_idx)
-    compare = 1;
+    compare = true;
   else
     {
-      compare = 0;
+      compare = false;
       nr->max_cell_idx++;
     }
       
@@ -1299,12 +1300,12 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
       {
         struct matrix_token token;
 	if (!mget_token (&token, mx->reader))
-	  return 0;
+	  return false;
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting factor value %s."),
 		 context (mx->reader));
-	    return 0;
+	    return false;
 	  }
 	
 	if (!compare)
@@ -1314,12 +1315,12 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
 	    msg (SE, _("Syntax error expecting value %g for %s %s."),
 		 nr->factor_values[i + mx->n_factors * cell],
 		 mx->factors[i]->name, context (mx->reader));
-	    return 0;
+	    return false;
 	  }
       }
   }
 
-  return 1;
+  return true;
 }
 
 /* Write the contents of a cell having content type CONTENT and data
@@ -1457,14 +1458,14 @@ struct wr_aux_data
     struct factor_data *current;        /* Current factor. */
   };
 
-static int wr_read_splits (struct wr_aux_data *, struct ccase *,
+static bool wr_read_splits (struct wr_aux_data *, struct ccase *,
                            write_case_func *, write_case_data);
 static bool wr_output_data (struct wr_aux_data *, struct ccase *,
                            write_case_func *, write_case_data);
-static int wr_read_rowtype (struct wr_aux_data *, 
+static bool wr_read_rowtype (struct wr_aux_data *, 
                             const struct matrix_token *, struct dfm_reader *);
-static int wr_read_factors (struct wr_aux_data *);
-static int wr_read_indeps (struct wr_aux_data *);
+static bool wr_read_factors (struct wr_aux_data *);
+static bool wr_read_indeps (struct wr_aux_data *);
 static bool matrix_data_read_with_rowtype (struct case_source *,
                                            struct ccase *,
                                            write_case_func *,
@@ -1523,55 +1524,55 @@ matrix_data_read_with_rowtype (struct case_source *source,
 
 /* Read the split file variables.  If they differ from the previous
    set of split variables then output the data.  Returns success. */
-static int 
+static bool 
 wr_read_splits (struct wr_aux_data *wr,
                 struct ccase *c,
                 write_case_func *write_case, write_case_data wc_data)
 {
   struct matrix_data_pgm *mx = wr->mx;
-  int compare;
+  bool compare;
   size_t split_cnt;
 
   split_cnt = dict_get_split_cnt (default_dict);
   if (split_cnt == 0)
-    return 1;
+    return true;
 
   if (wr->split_values)
-    compare = 1;
+    compare = true;
   else
     {
-      compare = 0;
+      compare = false;
       wr->split_values = xnmalloc (split_cnt, sizeof *wr->split_values);
     }
   
   {
-    int different = 0;
+    bool different = false;
     int i;
 
     for (i = 0; i < split_cnt; i++)
       {
         struct matrix_token token;
 	if (!mget_token (&token, mx->reader))
-	  return 0;
+	  return false;
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error %s expecting SPLIT FILE value."),
 		 context (mx->reader));
-	    return 0;
+	    return false;
 	  }
 
 	if (compare && wr->split_values[i] != token.number && !different)
 	  {
 	    if (!wr_output_data (wr, c, write_case, wc_data))
 	      return 0;
-	    different = 1;
+	    different = true;
 	    mx->cells = 0;
 	  }
 	wr->split_values[i] = token.number;
       }
   }
 
-  return 1;
+  return true;
 }
 
 /* Compares doubles A and B, treating SYSMIS as greatest. */
@@ -1714,7 +1715,7 @@ wr_output_data (struct wr_aux_data *wr,
 
 /* Sets ROWTYPE_ based on the given TOKEN read from READER.
    Return success. */
-static int 
+static bool 
 wr_read_rowtype (struct wr_aux_data *wr,
                  const struct matrix_token *token,
                  struct dfm_reader *reader)
@@ -1722,13 +1723,13 @@ wr_read_rowtype (struct wr_aux_data *wr,
   if (wr->content != -1)
     {
       msg (SE, _("Multiply specified ROWTYPE_ %s."), context (reader));
-      return 0;
+      return false;
     }
   if (token->type != MSTR)
     {
       msg (SE, _("Syntax error %s expecting ROWTYPE_ string."),
            context (reader));
-      return 0;
+      return false;
     }
   
   {
@@ -1750,12 +1751,12 @@ wr_read_rowtype (struct wr_aux_data *wr,
       return 0;
     }
 
-  return 1;
+  return true;
 }
 
 /* Read the factors for the current row.  Select a set of factors and
    point wr_current to it. */
-static int 
+static bool 
 wr_read_factors (struct wr_aux_data *wr)
 {
   struct matrix_data_pgm *mx = wr->mx;
@@ -1859,15 +1860,15 @@ cache_miss:
 
 winnage:
   local_free (factor_values);
-  return 1;
+  return true;
 
 lossage:
   local_free (factor_values);
-  return 0;
+  return false;
 }
 
 /* Read the independent variables into wr->current. */
-static int 
+static bool 
 wr_read_indeps (struct wr_aux_data *wr)
 {
   struct matrix_data_pgm *mx = wr->mx;
@@ -1899,7 +1900,7 @@ wr_read_indeps (struct wr_aux_data *wr)
 	{
 	  msg (SE, _("Duplicate specification for %s."),
 	       content_names[wr->content]);
-	  return 0;
+	  return false;
 	}
       if (type == 0)
 	n_cols = mx->n_continuous;
@@ -1911,7 +1912,7 @@ wr_read_indeps (struct wr_aux_data *wr)
 	{
 	  msg (SE, _("Too many rows of matrix data for %s."),
 	       content_names[wr->content]);
-	  return 0;
+	  return false;
 	}
       
       switch (mx->section)
@@ -1950,23 +1951,23 @@ wr_read_indeps (struct wr_aux_data *wr)
       {
         struct matrix_token token;
 	if (!mget_token (&token, mx->reader))
-	  return 0;
+	  return false;
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting value for %s %s."),
                  dict_get_var (default_dict, mx->first_continuous + j)->name,
                  context (mx->reader));
-	    return 0;
+	    return false;
 	  }
 
 	*cp++ = token.number;
       }
     if (mx->fmt != FREE
         && !force_eol (mx->reader, content_names[wr->content]))
-      return 0;
+      return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* Matrix source. */
