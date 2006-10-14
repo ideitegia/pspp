@@ -1,3 +1,8 @@
+Sat Oct 14 16:52:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	* rank.q: (rank_sorted_casefile) Add some missing case_destroy()
+	calls to fix a memory leak.
+
 Sun Oct  8 09:45:40 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* rank.q: Plugged a small memory leak which occurred under error

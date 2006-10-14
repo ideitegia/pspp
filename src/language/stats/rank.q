@@ -626,11 +626,14 @@ rank_sorted_casefile (struct casefile *cf,
 			  dest_idx, dest);
 
               w = 0.0;
+              case_destroy (&group_case);
               case_move (&group_case, &this_case);
             }
 	  if ( !value_is_missing (mv, this_value) )
 	    w += c;
+          case_destroy (&this_case);
         }
+      case_destroy (&group_case);
       rank_cases (pos, ULONG_MAX, ultimate_crit, mv, w,
 		  rs, n_rank_specs, dest_idx, dest);
     }
