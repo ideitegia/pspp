@@ -232,14 +232,17 @@ test_casereader_clone (struct casereader *reader1, size_t case_cnt)
 
   /* Read a 3rd of the cases */
   for ( i = 0 ; i < case_cnt / 3 ; ++i ) 
-    casereader_read (reader1, &c1);
+    {
+      casereader_read (reader1, &c1);
+      case_destroy (&c1);
+    }
 
   clone = casereader_clone (reader1);
 
   /* Copy all the cases into a new file */
   while( casereader_read (reader1, &c1))
     { 
-      casefile_append (newfile, &c1);
+      casefile_append_xfer (newfile, &c1);
       cases ++;
     }
 
@@ -254,13 +257,19 @@ test_casereader_clone (struct casereader *reader1, size_t case_cnt)
       cases --;
 
       if ( ! casereader_read_xfer (newreader, &c2) ) 
-	break;
+        {
+          case_destroy (&c1);
+          break; 
+        }
       
       v1 = case_data_all (&c1) ;
       v2 = case_data_all (&c2) ;
 
       if ( 0 != memcmp (v1, v2, value_cnt * MAX_SHORT_STRING))
 	fail_test ("Cloned reader read different value at case %ld", cases);
+
+      case_destroy (&c1);
+      case_destroy (&c2);
     }
 
   if ( cases > 0 ) 

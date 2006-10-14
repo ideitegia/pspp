@@ -1,3 +1,8 @@
+Sat Oct 14 16:21:45 2006  Ben Pfaff  <blp@gnu.org>
+
+	* casefile-test.c: (test_casereader_clone) Free cases that we
+	read, to avoid memory leak.
+
 Tue Jun  6 18:48:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	* casefile-test.c: (test_casefile) Test the new casereader_seek()
