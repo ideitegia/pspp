@@ -150,6 +150,7 @@ casereader_read_xfer (struct casereader *ffr, struct ccase *c)
 
   struct ccase *read_case = NULL ;
 
+  case_nullify (c);
   if ( casefile_error (cf) )
     return false;
 
@@ -157,10 +158,7 @@ casereader_read_xfer (struct casereader *ffr, struct ccase *c)
   if ( ! read_case ) return false;
 
   if ( ffr->destructive && casefile_in_core (cf) )
-    {
-      case_nullify (c);
     case_move (c, read_case);
-    }
   else
     case_clone (c, read_case);
 

@@ -1,3 +1,8 @@
+Sat Oct 14 16:56:44 2006  Ben Pfaff  <blp@gnu.org>
+
+	* casefile.c (casereader_read_xfer): Always initialize the case,
+	even on an error condition.
+
 Wed Sep 27 09:37:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* procedure.c (case_limit_trns_proc): Fixed buglet which rendered the 
