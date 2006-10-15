@@ -31,6 +31,8 @@
 #include "compiler.h"
 #include "misc.h"
 #include "str.h"
+#include "pool.h"
+
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -159,15 +161,27 @@ struct hsh_table
        so that most hsh_*() functions may no longer be called. */
     bool hash_ordered;
 #endif
+
+    struct pool *pool;         /* The pool used for this hash table */
   };
+
+struct hsh_table *
+hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
+            hsh_free_func *free, void *aux)
+{
+  return hsh_create_pool (NULL, size, compare, hash, free, aux);
+}
+
+
 
 /* Creates a hash table with at least M entries.  COMPARE is a
    function that compares two entries and returns 0 if they are
    identical, nonzero otherwise; HASH returns a nonnegative hash value
    for an entry; FREE destroys an entry. */
 struct hsh_table *
-hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
-            hsh_free_func *free, void *aux)
+hsh_create_pool (struct pool *pool, int size, 
+		 hsh_compare_func *compare, hsh_hash_func *hash,
+		 hsh_free_func *free, void *aux)
 {
   struct hsh_table *h;
   int i;
@@ -175,12 +189,13 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
   assert (compare != NULL);
   assert (hash != NULL);
   
-  h = xmalloc (sizeof *h);
+  h = pool_malloc (pool, sizeof *h);
+  h->pool = pool;
   h->used = 0;
   if (size < 4)
     size = 4;
   h->size = next_power_of_2 (size);
-  h->entries = xnmalloc (h->size, sizeof *h->entries);
+  h->entries = pool_nmalloc (pool, h->size, sizeof *h->entries);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
   h->aux = aux;
@@ -227,8 +242,8 @@ hsh_destroy (struct hsh_table *h)
         for (i = 0; i < h->size; i++)
           if (h->entries[i] != NULL)
             h->free (h->entries[i], h->aux);
-      free (h->entries);
-      free (h);
+      pool_free (h->pool, h->entries);
+      pool_free (h->pool, h);
     }
 }
 
@@ -289,7 +304,7 @@ rehash (struct hsh_table *h, size_t new_size)
   end = begin + h->size;
 
   h->size = new_size;
-  h->entries = xnmalloc (h->size, sizeof *h->entries);
+  h->entries = pool_nmalloc (h->pool, h->size, sizeof *h->entries);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
   for (table_p = begin; table_p < end; table_p++) 
@@ -298,7 +313,7 @@ rehash (struct hsh_table *h, size_t new_size)
       if (entry != NULL)
         h->entries[locate_empty_entry (h, entry)] = entry;
     }
-  free (begin);
+  pool_free (h->pool, begin);
 
 #ifndef NDEBUG
   h->hash_ordered = true;
@@ -406,7 +421,7 @@ hsh_data_copy (struct hsh_table *h)
   void **copy;
 
   assert (h != NULL);
-  copy = xnmalloc ((h->used + 1), sizeof *copy);
+  copy = pool_nmalloc (h->pool, (h->used + 1), sizeof *copy);
   copy_if (h->entries, h->size, sizeof *h->entries, copy, not_null, NULL);
   copy[h->used] = NULL;
   return copy;

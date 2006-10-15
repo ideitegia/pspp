@@ -44,6 +44,13 @@ unsigned hsh_hash_double (double);
 struct hsh_table *hsh_create (int m, hsh_compare_func *,
                               hsh_hash_func *, hsh_free_func *,
 			      void *aux);
+
+struct pool;
+struct hsh_table *hsh_create_pool (struct pool *pool, int m, 
+				   hsh_compare_func *,
+				   hsh_hash_func *, hsh_free_func *,
+				   void *aux);
+
 void hsh_clear (struct hsh_table *);
 void hsh_destroy (struct hsh_table *);
 void *const *hsh_sort (struct hsh_table *);
