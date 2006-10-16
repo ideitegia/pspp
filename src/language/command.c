@@ -178,8 +178,11 @@ do_parse_command (enum cmd_state state)
   command = parse_command_name ();
   if (command == NULL)
     return CMD_FAILURE;
-  else if (command->function == NULL)
-    return CMD_NOT_IMPLEMENTED;
+  else if (command->function == NULL) 
+    {
+      msg (SE, _("%s is unimplemented."), command->name);
+      return CMD_NOT_IMPLEMENTED; 
+    }
   else if ((command->flags & F_TESTING) && !get_testing_mode ()) 
     {
       msg (SE, _("%s may be used only in testing mode."), command->name);
