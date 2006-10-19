@@ -191,7 +191,7 @@ levene_calc (const struct ccase *c, void *_l)
   struct levene_info *l = (struct levene_info *) _l;
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;
-  double weight = dict_get_case_weight (default_dict, c, &warn); 
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &warn); 
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
   if ( l->missing == LEV_LISTWISE ) 
@@ -295,7 +295,7 @@ levene2_calc (const struct ccase *c, void *_l)
 
   struct levene_info *l = (struct levene_info *) _l;
 
-  double weight = dict_get_case_weight (default_dict, c, &warn); 
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &warn); 
 
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;

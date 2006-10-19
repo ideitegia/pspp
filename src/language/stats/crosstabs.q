@@ -293,7 +293,7 @@ internal_cmd_crosstabs (void)
   else
     write = CRS_WR_NONE;
 
-  ok = procedure_with_splits (precalc,
+  ok = procedure_with_splits (current_dataset, precalc,
                               mode == GENERAL ? calc_general : calc_integer,
                               postcalc, NULL);
 
@@ -313,7 +313,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id ("TABLES")
-      && (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+      && (token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
@@ -321,7 +321,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
   if (variables != NULL)
     var_set = var_set_create_from_array (variables, variables_cnt);
   else
-    var_set = var_set_create_from_dict (default_dict);
+    var_set = var_set_create_from_dict (dataset_dict (current_dataset));
   assert (var_set != NULL);
   
   for (n_by = 0; ;)
@@ -423,7 +423,7 @@ crs_custom_variables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 
       long min, max;
       
-      if (!parse_variables (default_dict, &variables, &variables_cnt,
+      if (!parse_variables (dataset_dict (current_dataset), &variables, &variables_cnt,
 			    (PV_APPEND | PV_NUMERIC
 			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
@@ -487,7 +487,7 @@ static int compare_table_entry (const void *, const void *, void *);
 static unsigned hash_table_entry (const void *, void *);
 
 /* Set up the crosstabulation tables for processing. */
-static void
+static  void
 precalc (const struct ccase *first, void *aux UNUSED)
 {
   output_split_file_values (first);
@@ -558,6 +558,7 @@ precalc (const struct ccase *first, void *aux UNUSED)
                               n_sorted_tab + 1, sizeof *sorted_tab);
       sorted_tab[n_sorted_tab] = NULL;
     }
+
 }
 
 /* Form crosstabulations for general mode. */
@@ -567,7 +568,7 @@ calc_general (const struct ccase *c, void *aux UNUSED)
   bool bad_warn = true;
 
   /* Case weight. */
-  double weight = dict_get_case_weight (default_dict, c, &bad_warn);
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_warn);
 
   /* Flattened current table index. */
   int t;
@@ -641,7 +642,7 @@ calc_integer (const struct ccase *c, void *aux UNUSED)
   bool bad_warn = true;
 
   /* Case weight. */
-  double weight = dict_get_case_weight (default_dict, c, &bad_warn);
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_warn);
   
   /* Flattened current table index. */
   int t;

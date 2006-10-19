@@ -441,7 +441,7 @@ cmd_begin_data (void)
 
   /* Input procedure reads from inline file. */
   getl_set_prompt_style (GETL_PROMPT_DATA);
-  ok = procedure (NULL, NULL);
+  ok = procedure (current_dataset,NULL, NULL);
 
   dfm_close_reader (r);
 

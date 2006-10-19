@@ -69,7 +69,7 @@ cmd_print_space (void)
 
   if (token != '.')
     {
-      expr = expr_parse (default_dict, EXPR_NUMBER);
+      expr = expr_parse (dataset_dict (current_dataset), EXPR_NUMBER);
       if (token != '.')
 	{
 	  expr_free (expr);
@@ -96,7 +96,8 @@ cmd_print_space (void)
   trns->writer = writer;
   trns->expr = expr;
 
-  add_transformation (print_space_trns_proc, print_space_trns_free, trns);
+  add_transformation (current_dataset, 
+		      print_space_trns_proc, print_space_trns_free, trns);
   return CMD_SUCCESS;
 }
 

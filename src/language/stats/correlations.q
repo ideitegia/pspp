@@ -94,18 +94,18 @@ cor_custom_variables (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 
   /* Ensure that this is a VARIABLES subcommand. */
   if (!lex_match_id ("VARIABLES")
-      && (token != T_ID || dict_lookup_var (default_dict, tokid) != NULL)
+      && (token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
 
-  if (!parse_variables (default_dict, &v1, &nv1,
+  if (!parse_variables (dataset_dict (current_dataset), &v1, &nv1,
 			PV_NO_DUPLICATE | PV_NUMERIC))
     return 0;
   
   if (lex_match (T_WITH))
     {
-      if (!parse_variables (default_dict, &v2, &nv2,
+      if (!parse_variables (dataset_dict (current_dataset), &v2, &nv2,
 			    PV_NO_DUPLICATE | PV_NUMERIC))
 	{
 	  free (v1);

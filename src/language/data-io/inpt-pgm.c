@@ -99,7 +99,7 @@ in_input_program (void)
 static void
 emit_END_CASE (struct input_program_pgm *inp) 
 {
-  add_transformation (end_case_trns_proc, NULL, inp);
+  add_transformation (current_dataset, end_case_trns_proc, NULL, inp);
 }
 
 int
@@ -109,7 +109,7 @@ cmd_input_program (void)
   size_t i;
   bool saw_END_CASE = false;
 
-  discard_variables ();
+  discard_variables (current_dataset);
   if (token != '.')
     return lex_end_of_command ();
 
@@ -133,7 +133,7 @@ cmd_input_program (void)
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
           inside_input_program = false;
-          discard_variables ();
+          discard_variables (current_dataset);
           destroy_input_program (inp);
           return result;
         }
@@ -142,25 +142,25 @@ cmd_input_program (void)
     emit_END_CASE (inp);
   inside_input_program = false;
 
-  if (dict_get_next_value_idx (default_dict) == 0) 
+  if (dict_get_next_value_idx (dataset_dict (current_dataset)) == 0) 
     {
       msg (SE, _("Input program did not create any variables."));
-      discard_variables ();
+      discard_variables (current_dataset);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
   
-  inp->trns_chain = proc_capture_transformations ();
+  inp->trns_chain = proc_capture_transformations (current_dataset);
   trns_chain_finalize (inp->trns_chain);
 
   /* Figure out how to initialize each input case. */
-  inp->init_cnt = dict_get_next_value_idx (default_dict);
+  inp->init_cnt = dict_get_next_value_idx (dataset_dict (current_dataset));
   inp->init = xnmalloc (inp->init_cnt, sizeof *inp->init);
   for (i = 0; i < inp->init_cnt; i++)
     inp->init[i] = -1;
-  for (i = 0; i < dict_get_var_cnt (default_dict); i++)
+  for (i = 0; i < dict_get_var_cnt (dataset_dict (current_dataset)); i++)
     {
-      struct variable *var = dict_get_var (default_dict, i);
+      struct variable *var = dict_get_var (dataset_dict (current_dataset), i);
       enum value_init_type value_init;
       size_t j;
       
@@ -172,9 +172,10 @@ cmd_input_program (void)
     }
   for (i = 0; i < inp->init_cnt; i++)
     assert (inp->init[i] != -1);
-  inp->case_size = dict_get_case_size (default_dict);
+  inp->case_size = dict_get_case_size (dataset_dict (current_dataset));
 
-  proc_set_source (create_case_source (&input_program_source_class, inp));
+  proc_set_source (current_dataset, 
+		  create_case_source (&input_program_source_class, inp));
 
   return CMD_SUCCESS;
 }
@@ -339,7 +340,7 @@ cmd_reread (void)
 	      return CMD_CASCADING_FAILURE;
 	    }
 	  
-	  e = expr_parse (default_dict, EXPR_NUMBER);
+	  e = expr_parse (dataset_dict (current_dataset), EXPR_NUMBER);
 	  if (!e)
 	    return CMD_CASCADING_FAILURE;
 	}
@@ -363,7 +364,7 @@ cmd_reread (void)
   t = xmalloc (sizeof *t);
   t->reader = dfm_open_reader (fh);
   t->column = e;
-  add_transformation (reread_trns_proc, reread_trns_free, t);
+  add_transformation (current_dataset, reread_trns_proc, reread_trns_free, t);
 
   return CMD_SUCCESS;
 }
@@ -408,7 +409,7 @@ cmd_end_file (void)
 {
   assert (in_input_program ());
 
-  add_transformation (end_file_trns_proc, NULL, NULL);
+  add_transformation (current_dataset, end_file_trns_proc, NULL, NULL);
 
   return lex_end_of_command ();
 }

@@ -238,13 +238,13 @@ rank_cmd (const struct sort_criteria *sc,
   struct sort_criteria criteria;
   bool result = true;
   int i;
-  const int n_splits = dict_get_split_cnt (default_dict);
+  const int n_splits = dict_get_split_cnt (dataset_dict (current_dataset));
 
   criteria.crit_cnt = n_splits + n_group_vars + 1;
   criteria.crits = xnmalloc (criteria.crit_cnt, sizeof *criteria.crits);
   for (i = 0; i < n_splits ; i++) 
     {
-      struct variable *v = dict_get_split_vars (default_dict)[i];
+      struct variable *v = dict_get_split_vars (dataset_dict (current_dataset))[i];
       criteria.crits[i].fv = v->fv;
       criteria.crits[i].width = v->width;
       criteria.crits[i].dir = SRT_ASCEND;
@@ -263,10 +263,10 @@ rank_cmd (const struct sort_criteria *sc,
       struct casefile *sorted_cf ;
 
       /* Obtain active file in CF. */
-      if (!procedure (NULL, NULL))
+      if (!procedure (current_dataset, NULL, NULL))
 	goto error;
 
-      cf = proc_capture_output ();
+      cf = proc_capture_output (current_dataset);
 
       /* Sort CF into SORTED_CF. */
       reader = casefile_get_destructive_reader (cf) ;
@@ -284,7 +284,7 @@ rank_cmd (const struct sort_criteria *sc,
 	  continue ;
 	}
       
-      proc_set_source (storage_source_create (out));
+      proc_set_source (current_dataset, storage_source_create (out));
     }
 
   free (criteria.crits);
@@ -516,7 +516,7 @@ rank_cases (struct casereader *cr,
         break;
       
       this_value = case_data (&this_case, fv);
-      c = dict_get_case_weight (default_dict, &this_case, &warn);
+      c = dict_get_case_weight (dataset_dict (current_dataset), &this_case, &warn);
               
       lookahead = casereader_clone (cr);
       n = 0;
@@ -535,7 +535,7 @@ rank_cases (struct casereader *cr,
               break; 
             }
 
-          c += dict_get_case_weight (default_dict, &lookahead_case, &warn);
+          c += dict_get_case_weight (dataset_dict (current_dataset), &lookahead_case, &warn);
           case_destroy (&lookahead_case);
           n++;
         }
@@ -610,13 +610,13 @@ rank_sorted_casefile (struct casefile *cf,
       this_value = case_data( &group_case, ultimate_crit->fv);
 
       if ( !value_is_missing(mv, this_value) )
-	w = dict_get_case_weight (default_dict, &group_case, &warn);
+	w = dict_get_case_weight (dataset_dict (current_dataset), &group_case, &warn);
 
       while (casereader_read (lookahead, &this_case)) 
         {
 	  const union value *this_value = 
 	    case_data(&this_case, ultimate_crit->fv);
-          double c = dict_get_case_weight (default_dict, &this_case, &warn);
+          double c = dict_get_case_weight (dataset_dict (current_dataset), &this_case, &warn);
           if (!same_group (&group_case, &this_case, crit)) 
             {
               rank_cases (pos, casereader_cnum (lookahead) - 1,
@@ -676,14 +676,14 @@ create_rank_variable (enum RANK_FUNC f,
   char name[SHORT_NAME_LEN + 1];
 
   if ( vname ) 
-    var = dict_create_var(default_dict, vname, 0);
+    var = dict_create_var(dataset_dict (current_dataset), vname, 0);
 
   if ( NULL == var )
     {
       snprintf(name, SHORT_NAME_LEN + 1, "%c%s", 
 	       function_name[f][0], src_var->name);
   
-      var = dict_create_var(default_dict, name, 0);
+      var = dict_create_var(dataset_dict (current_dataset), name, 0);
     }
 
   i = 1;
@@ -694,7 +694,7 @@ create_rank_variable (enum RANK_FUNC f,
       snprintf(name, SHORT_NAME_LEN + 1, "%s%03d", func_abb, 
 	       i);
 
-      var = dict_create_var(default_dict, name, 0);
+      var = dict_create_var(dataset_dict (current_dataset), name, 0);
       if (i++ >= 999) 
 	break;
     }
@@ -708,7 +708,7 @@ create_rank_variable (enum RANK_FUNC f,
       snprintf(name, SHORT_NAME_LEN + 1, 
 	       "RNK%s%02d", func_abb, i);
 
-      var = dict_create_var(default_dict, name, 0);
+      var = dict_create_var(dataset_dict (current_dataset), name, 0);
       if ( i++ >= 99 ) 
 	break;
     }
@@ -891,9 +891,9 @@ cmd_rank(void)
 
   /* Add a variable which we can sort by to get back the original
      order */
-  order = dict_create_var_assert (default_dict, "$ORDER_", 0);
+  order = dict_create_var_assert (dataset_dict (current_dataset), "$ORDER_", 0);
 
-  add_transformation (create_resort_key, 0, order);
+  add_transformation (current_dataset, create_resort_key, 0, order);
 
   /* Do the ranking */
   result = rank_cmd (sc, rank_specs, n_rank_specs);
@@ -913,7 +913,7 @@ cmd_rank(void)
 }
 
   /* ... and we don't need our sort key anymore. So delete it */
-  dict_delete_var (default_dict, order);
+  dict_delete_var (dataset_dict (current_dataset), order);
 
   rank_cleanup();
 
@@ -930,21 +930,21 @@ rank_custom_variables(struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 
   lex_match('=');
 
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
       return 2;
 
-  sc = sort_parse_criteria (default_dict, 
+  sc = sort_parse_criteria (dataset_dict (current_dataset), 
 			    &src_vars, &n_src_vars, 0, terminators);
 
   if ( lex_match(T_BY)  )
     {
-      if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL))
+      if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL))
 	{
 	  return 2;
 	}
 
-      if (!parse_variables (default_dict, &group_vars, &n_group_vars,
+      if (!parse_variables (dataset_dict (current_dataset), &group_vars, &n_group_vars,
 			    PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
 	{
 	  free (group_vars);
@@ -977,7 +977,7 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
       while( token == T_ID ) 
 	{
 
-	  if ( dict_lookup_var (default_dict, tokid) != NULL )
+	  if ( dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL )
 	    {
 	      msg(SE, _("Variable %s already exists."), tokid);
 	      return 0;

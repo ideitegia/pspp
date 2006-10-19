@@ -70,7 +70,7 @@ do_value_labels (int erase)
   
   while (token != '.')
     {
-      parse_err = !parse_variables (default_dict, &vars, &var_cnt, 
+      parse_err = !parse_variables (dataset_dict (current_dataset), &vars, &var_cnt, 
 				    PV_SAME_TYPE) ;
       if (var_cnt < 1)
 	{

@@ -117,7 +117,7 @@ cmd_count (void)
       /* Get destination variable, or at least its name. */
       if (!lex_force_id ())
 	goto fail;
-      dv->var = dict_lookup_var (default_dict, tokid);
+      dv->var = dict_lookup_var (dataset_dict (current_dataset), tokid);
       if (dv->var != NULL)
         {
           if (dv->var->type == ALPHA)
@@ -140,7 +140,7 @@ cmd_count (void)
           
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables (default_dict, &crit->vars, &crit->var_cnt,
+	  if (!parse_variables (dataset_dict (current_dataset), &crit->vars, &crit->var_cnt,
                                 PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
           pool_register (trns->pool, free, crit->vars);
@@ -176,13 +176,13 @@ cmd_count (void)
       {
 	/* It's valid, though motivationally questionable, to count to
 	   the same dest var more than once. */
-	dv->var = dict_lookup_var (default_dict, dv->name);
+	dv->var = dict_lookup_var (dataset_dict (current_dataset), dv->name);
 
 	if (dv->var == NULL) 
-          dv->var = dict_create_var_assert (default_dict, dv->name, 0);
+          dv->var = dict_create_var_assert (dataset_dict (current_dataset), dv->name, 0);
       }
 
-  add_transformation (count_trns_proc, count_trns_free, trns);
+  add_transformation (current_dataset, count_trns_proc, count_trns_free, trns);
   return CMD_SUCCESS;
 
 fail:

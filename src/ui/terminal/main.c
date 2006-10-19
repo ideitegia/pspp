@@ -93,7 +93,7 @@ main (int argc, char **argv)
   readln_initialize ();
   settings_init ();
   random_init ();
-  proc_init ();
+  current_dataset = create_dataset ();
 
   if (parse_command_line (argc, argv)) 
     {
@@ -102,7 +102,7 @@ main (int argc, char **argv)
 
       for (;;)
         {
-          int result = cmd_parse (proc_has_source ()
+          int result = cmd_parse (proc_has_source (current_dataset)
                                   ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
@@ -178,7 +178,7 @@ terminate (bool success)
     {
       terminating = true;
 
-      proc_done ();
+      destroy_dataset (current_dataset);
 
       random_done ();
       settings_done ();

@@ -112,9 +112,9 @@ cmd_loop (void)
   /* Find index variable and create if necessary. */
   if (ok && index_var_name[0] != '\0')
     {
-      loop->index_var = dict_lookup_var (default_dict, index_var_name);
+      loop->index_var = dict_lookup_var (dataset_dict (current_dataset), index_var_name);
       if (loop->index_var == NULL)
-        loop->index_var = dict_create_var (default_dict, index_var_name, 0);
+        loop->index_var = dict_create_var (dataset_dict (current_dataset), index_var_name, 0);
     }
   
   if (!ok)
@@ -155,7 +155,7 @@ cmd_break (void)
   if (loop == NULL)
     return CMD_CASCADING_FAILURE;
 
-  add_transformation (break_trns_proc, NULL, loop);
+  add_transformation (current_dataset, break_trns_proc, NULL, loop);
 
   return lex_end_of_command ();
 }
@@ -167,8 +167,8 @@ close_loop (void *loop_)
 {
   struct loop_trns *loop = loop_;
   
-  add_transformation (end_loop_trns_proc, NULL, loop);
-  loop->past_END_LOOP_index = next_transformation ();
+  add_transformation (current_dataset, end_loop_trns_proc, NULL, loop);
+  loop->past_END_LOOP_index = next_transformation (current_dataset);
 
   /* If there's nothing else limiting the number of loops, use
      MXLOOPS as a limit. */
@@ -185,7 +185,7 @@ close_loop (void *loop_)
 static bool
 parse_if_clause (struct loop_trns *loop, struct expression **condition) 
 {
-  *condition = expr_parse_pool (loop->pool, default_dict, EXPR_BOOLEAN);
+  *condition = expr_parse_pool (loop->pool, dataset_dict (current_dataset), EXPR_BOOLEAN);
   return *condition != NULL;
 }
 
@@ -206,7 +206,7 @@ parse_index_clause (struct loop_trns *loop, char index_var_name[])
   if (!lex_force_match ('='))
     return false;
 
-  loop->first_expr = expr_parse_pool (loop->pool, default_dict, EXPR_NUMBER);
+  loop->first_expr = expr_parse_pool (loop->pool, dataset_dict (current_dataset), EXPR_NUMBER);
   if (loop->first_expr == NULL)
     return false;
 
@@ -225,7 +225,7 @@ parse_index_clause (struct loop_trns *loop, char index_var_name[])
           lex_sbc_only_once (e == &loop->last_expr ? "TO" : "BY");
           return false;
         }
-      *e = expr_parse_pool (loop->pool, default_dict, EXPR_NUMBER);
+      *e = expr_parse_pool (loop->pool, dataset_dict (current_dataset), EXPR_NUMBER);
       if (*e == NULL)
         return false;
     }
@@ -251,9 +251,9 @@ create_loop_trns (void)
   loop->first_expr = loop->by_expr = loop->last_expr = NULL;
   loop->loop_condition = loop->end_loop_condition = NULL;
 
-  add_transformation_with_finalizer (loop_trns_finalize,
+  add_transformation_with_finalizer (current_dataset, loop_trns_finalize,
                                      loop_trns_proc, loop_trns_free, loop);
-  loop->past_LOOP_index = next_transformation ();
+  loop->past_LOOP_index = next_transformation (current_dataset);
 
   ctl_stack_push (&loop_class, loop);
 

@@ -121,7 +121,7 @@ cmd_autorecode (void)
 
   lex_match_id ("VARIABLES");
   lex_match ('=');
-  if (!parse_variables (default_dict, &arc.src_vars, &arc.var_cnt,
+  if (!parse_variables (dataset_dict (current_dataset), &arc.src_vars, &arc.var_cnt,
                         PV_NO_DUPLICATE))
     goto lossage;
   if (!lex_force_match_id ("INTO"))
@@ -159,7 +159,7 @@ cmd_autorecode (void)
     {
       int j;
 
-      if (dict_lookup_var (default_dict, arc.dst_names[i]) != NULL)
+      if (dict_lookup_var (dataset_dict (current_dataset), arc.dst_names[i]) != NULL)
 	{
 	  msg (SE, _("Target variable %s duplicates existing variable %s."),
 	       arc.dst_names[i], arc.dst_names[i]);
@@ -185,10 +185,10 @@ cmd_autorecode (void)
       arc.src_values[i] = hsh_create (10, compare_numeric_value,
                                       hash_numeric_value, NULL, NULL);
 
-  ok = procedure (autorecode_proc_func, &arc);
+  ok = procedure (current_dataset,autorecode_proc_func, &arc);
 
   for (i = 0; i < arc.var_cnt; i++)
-    arc.dst_vars[i] = dict_create_var_assert (default_dict,
+    arc.dst_vars[i] = dict_create_var_assert (dataset_dict (current_dataset),
                                               arc.dst_names[i], 0);
 
   recode (&arc);
@@ -267,7 +267,8 @@ recode (const struct autorecode_pgm *arc)
 	  hsh_force_insert (spec->items, item);
 	}
     }
-  add_transformation (autorecode_trns_proc, autorecode_trns_free, trns);
+  add_transformation (current_dataset, 
+		      autorecode_trns_proc, autorecode_trns_free, trns);
 }
 
 /* Executes an AUTORECODE transformation. */

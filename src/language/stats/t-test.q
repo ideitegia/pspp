@@ -345,7 +345,7 @@ cmd_t_test(void)
 
   bad_weight_warn = true;
 
-  ok = multipass_procedure_with_splits (calculate, &cmd);
+  ok = multipass_procedure_with_splits (current_dataset, calculate, &cmd);
 
   n_pairs=0;
   free(pairs);
@@ -459,7 +459,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
   lex_match('=');
 
   n_vars=0;
-  if (!parse_variables (default_dict, &vars, &n_vars,
+  if (!parse_variables (dataset_dict (current_dataset), &vars, &n_vars,
 			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
     {
       free (vars);
@@ -471,7 +471,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
   if (lex_match (T_WITH))
     {
       n_before_WITH = n_vars;
-      if (!parse_variables (default_dict, &vars, &n_vars,
+      if (!parse_variables (dataset_dict (current_dataset), &vars, &n_vars,
 			    PV_DUPLICATE | PV_APPEND
 			    | PV_NUMERIC | PV_NO_SCRATCH))
 	{
@@ -1416,7 +1416,7 @@ common_calc (const struct ccase *c, void *_cmd)
   int i;
   struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;  
 
-  double weight = dict_get_case_weight (default_dict, c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
 
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
@@ -1516,7 +1516,7 @@ one_sample_calc (const struct ccase *c, void *cmd_)
   struct cmd_t_test *cmd = (struct cmd_t_test *)cmd_;
 
 
-  double weight = dict_get_case_weight (default_dict, c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
   if ( cmd->miss == TTS_LISTWISE ) 
@@ -1606,7 +1606,7 @@ paired_calc (const struct ccase *c, void *cmd_)
 
   struct cmd_t_test *cmd  = (struct cmd_t_test *) cmd_;
 
-  double weight = dict_get_case_weight (default_dict, c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
 
   /* Skip the entire case if /MISSING=LISTWISE is set , 
    AND one member of a pair is missing */
@@ -1752,7 +1752,7 @@ group_calc (const struct ccase *c, struct cmd_t_test *cmd)
   const union value *gv = case_data (c, indep_var->fv);
 
   const double weight = 
-    dict_get_case_weight (default_dict, c, &bad_weight_warn);
+    dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
 
   if ( value_is_missing(&indep_var->miss, gv) )
     {

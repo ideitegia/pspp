@@ -92,7 +92,7 @@ cmd_modify_vars (void)
 
   size_t i;
 
-  if (proc_make_temporary_transformations_permanent ())
+  if (proc_make_temporary_transformations_permanent (current_dataset))
     msg (SE, _("MODIFY VARS may not be used after TEMPORARY.  "
                "Temporary transformations will be made permanent."));
 
@@ -142,7 +142,7 @@ cmd_modify_vars (void)
 			   "of variables."));
 		      goto done;
 		    }
-		  dict_get_vars (default_dict, &v, &nv, 1u << DC_SYSTEM);
+		  dict_get_vars (dataset_dict (current_dataset), &v, &nv, 1u << DC_SYSTEM);
 		}
 	      else
 		{
@@ -152,7 +152,7 @@ cmd_modify_vars (void)
 		      free (v);
 		      goto done;
 		    }
-		  if (!parse_variables (default_dict, &v, &nv,
+		  if (!parse_variables (dataset_dict (current_dataset), &v, &nv,
 					PV_APPEND | PV_NO_DUPLICATE))
 		    {
 		      free (v);
@@ -194,7 +194,7 @@ cmd_modify_vars (void)
 		  msg (SE, _("`(' expected on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_variables (default_dict, &vm.rename_vars, &vm.rename_cnt,
+	      if (!parse_variables (dataset_dict (current_dataset), &vm.rename_vars, &vm.rename_cnt,
 				    PV_APPEND | PV_NO_DUPLICATE))
 		goto done;
 	      if (!lex_match ('='))
@@ -239,7 +239,7 @@ cmd_modify_vars (void)
 	  already_encountered |= 4;
 
 	  lex_match ('=');
-	  if (!parse_variables (default_dict, &keep_vars, &keep_cnt, PV_NONE))
+	  if (!parse_variables (dataset_dict (current_dataset), &keep_vars, &keep_cnt, PV_NONE))
 	    goto done;
 
 	  /* Transform the list of variables to keep into a list of
@@ -248,7 +248,7 @@ cmd_modify_vars (void)
 	  sort (keep_vars, keep_cnt, sizeof *keep_vars,
                 compare_variables_given_ordering, &forward_positional_ordering);
 
-          dict_get_vars (default_dict, &all_vars, &all_cnt, 0);
+          dict_get_vars (dataset_dict (current_dataset), &all_vars, &all_cnt, 0);
           assert (all_cnt >= keep_cnt);
 
           drop_cnt = all_cnt - keep_cnt;
@@ -283,14 +283,14 @@ cmd_modify_vars (void)
 	  already_encountered |= 4;
 
 	  lex_match ('=');
-	  if (!parse_variables (default_dict, &drop_vars, &drop_cnt, PV_NONE))
+	  if (!parse_variables (dataset_dict (current_dataset), &drop_vars, &drop_cnt, PV_NONE))
 	    goto done;
           vm.drop_vars = drop_vars;
           vm.drop_cnt = drop_cnt;
 	}
       else if (lex_match_id ("MAP"))
 	{
-          struct dictionary *temp = dict_clone (default_dict);
+          struct dictionary *temp = dict_clone (dataset_dict (current_dataset));
           int success = rearrange_dict (temp, &vm);
           if (success) 
             {
@@ -320,11 +320,11 @@ cmd_modify_vars (void)
   if (already_encountered & (1 | 4))
     {
       /* Read the data. */
-      if (!procedure (NULL, NULL)) 
+      if (!procedure (current_dataset,NULL, NULL)) 
         goto done; 
     }
 
-  if (!rearrange_dict (default_dict, &vm))
+  if (!rearrange_dict (dataset_dict (current_dataset), &vm))
     goto done; 
 
   ret_code = CMD_SUCCESS;

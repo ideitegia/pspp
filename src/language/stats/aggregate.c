@@ -185,8 +185,8 @@ cmd_aggregate (void)
   case_nullify (&agr.break_case);
   
   agr.dict = dict_create ();
-  dict_set_label (agr.dict, dict_get_label (default_dict));
-  dict_set_documents (agr.dict, dict_get_documents (default_dict));
+  dict_set_label (agr.dict, dict_get_label (dataset_dict (current_dataset)));
+  dict_set_documents (agr.dict, dict_get_documents (dataset_dict (current_dataset)));
 
   /* OUTFILE subcommand must be first. */
   if (!lex_force_match_id ("OUTFILE"))
@@ -223,7 +223,7 @@ cmd_aggregate (void)
           int i;
 
 	  lex_match ('=');
-          agr.sort = sort_parse_criteria (default_dict,
+          agr.sort = sort_parse_criteria (dataset_dict (current_dataset),
                                           &agr.break_vars, &agr.break_var_cnt,
                                           &saw_direction, NULL);
           if (agr.sort == NULL)
@@ -268,7 +268,7 @@ cmd_aggregate (void)
     {
       /* The active file will be replaced by the aggregated data,
          so TEMPORARY is moot. */
-      proc_cancel_temporary_transformations ();
+      proc_cancel_temporary_transformations (current_dataset);
 
       if (agr.sort != NULL && !presorted) 
         {
@@ -279,8 +279,10 @@ cmd_aggregate (void)
       agr.sink = create_case_sink (&storage_sink_class, agr.dict, NULL);
       if (agr.sink->class->open != NULL)
         agr.sink->class->open (agr.sink);
-      proc_set_sink (create_case_sink (&null_sink_class, default_dict, NULL));
-      if (!procedure (agr_to_active_file, &agr))
+      proc_set_sink (current_dataset, 
+		     create_case_sink (&null_sink_class, 
+				       dataset_dict (current_dataset), NULL));
+      if (!procedure (current_dataset,agr_to_active_file, &agr))
         goto error;
       if (agr.case_cnt > 0) 
         {
@@ -288,11 +290,12 @@ cmd_aggregate (void)
           if (!agr.sink->class->write (agr.sink, &agr.agr_case))
             goto error;
         }
-      discard_variables ();
-      dict_destroy (default_dict);
-      default_dict = agr.dict;
+      discard_variables (current_dataset);
+      dict_destroy (dataset_dict (current_dataset));
+      dataset_set_dict (current_dataset, agr.dict);
       agr.dict = NULL;
-      proc_set_source (agr.sink->class->make_source (agr.sink));
+      proc_set_source (current_dataset, 
+		       agr.sink->class->make_source (agr.sink));
       free_case_sink (agr.sink);
     }
   else
@@ -329,7 +332,7 @@ cmd_aggregate (void)
       else 
         {
           /* Active file is already sorted. */
-          if (!procedure (presorted_agr_to_sysfile, &agr))
+          if (!procedure (current_dataset,presorted_agr_to_sysfile, &agr))
             goto error;
         }
       
@@ -459,7 +462,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	    else if (function->n_args)
 	      pv_opts |= PV_SAME_TYPE;
 
-	    if (!parse_variables (default_dict, &src, &n_src, pv_opts))
+	    if (!parse_variables (dataset_dict (current_dataset), &src, &n_src, pv_opts))
 	      goto error;
 	  }
 
@@ -577,7 +580,7 @@ parse_aggregate_functions (struct agr_proc *agr)
                     if (destvar != NULL) 
                       {
                         if ((func_index == N || func_index == NMISS)
-                            && dict_get_weight (default_dict) != NULL)
+                            && dict_get_weight (dataset_dict (current_dataset)) != NULL)
                           destvar->print = destvar->write = f8_2; 
                         else
                           destvar->print = destvar->write = function->format;
@@ -587,7 +590,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
                 if (func_index == N_NO_VARS
-                    && dict_get_weight (default_dict) != NULL)
+                    && dict_get_weight (dataset_dict (current_dataset)) != NULL)
                   destvar->print = destvar->write = f8_2; 
                 else
                   destvar->print = destvar->write = function->format;
@@ -745,7 +748,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
   double weight;
   bool bad_warn = true;
 
-  weight = dict_get_case_weight (default_dict, input, &bad_warn);
+  weight = dict_get_case_weight (dataset_dict (current_dataset), input, &bad_warn);
 
   for (iter = agr->agr_vars; iter; iter = iter->next)
     if (iter->src)

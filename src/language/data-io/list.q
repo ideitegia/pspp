@@ -145,7 +145,7 @@ cmd_list (void)
   if (cmd.last == NOT_LONG)
     cmd.last = LONG_MAX;
   if (!cmd.sbc_variables)
-    dict_get_vars (default_dict, &cmd.v_variables, &cmd.n_variables,
+    dict_get_vars (dataset_dict (current_dataset), &cmd.v_variables, &cmd.n_variables,
 		   (1u << DC_SYSTEM) | (1u << DC_SCRATCH));
   if (cmd.n_variables == 0)
     {
@@ -185,12 +185,12 @@ cmd_list (void)
   /* Weighting variable. */
   if (cmd.weight == LST_WEIGHT)
     {
-      if (dict_get_weight (default_dict) != NULL)
+      if (dict_get_weight (dataset_dict (current_dataset)) != NULL)
 	{
 	  size_t i;
 
 	  for (i = 0; i < cmd.n_variables; i++)
-	    if (cmd.v_variables[i] == dict_get_weight (default_dict))
+	    if (cmd.v_variables[i] == dict_get_weight (dataset_dict (current_dataset)))
 	      break;
 	  if (i >= cmd.n_variables)
 	    {
@@ -199,7 +199,7 @@ cmd_list (void)
 	      cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
                                            sizeof *cmd.v_variables);
 	      cmd.v_variables[cmd.n_variables - 1]
-                = dict_get_weight (default_dict);
+                = dict_get_weight (dataset_dict (current_dataset));
 	    }
 	}
       else
@@ -229,7 +229,7 @@ cmd_list (void)
   determine_layout ();
 
   case_idx = 0;
-  ok = procedure_with_splits (write_all_headers, list_cases, NULL, NULL);
+  ok = procedure_with_splits (current_dataset, write_all_headers, list_cases, NULL, NULL);
   ds_destroy(&line_buffer);
 
   clean_up ();

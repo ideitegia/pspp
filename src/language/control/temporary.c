@@ -43,8 +43,8 @@
 int
 cmd_temporary (void)
 {
-  if (!proc_in_temporary_transformations ())
-    proc_start_temporary_transformations ();
+  if (!proc_in_temporary_transformations (current_dataset))
+    proc_start_temporary_transformations (current_dataset);
   else
     msg (SE, _("This command may only appear once between "
                "procedures and procedure-like commands."));

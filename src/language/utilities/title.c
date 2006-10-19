@@ -97,13 +97,13 @@ cmd_file_label (void)
   while (isspace ((unsigned char) *label))
     label++;
 
-  dict_set_label (default_dict, label);
+  dict_set_label (dataset_dict (current_dataset), label);
   token = '.';
 
   return CMD_SUCCESS;
 }
 
-/* Add LINE as a line of document information to default_dict,
+/* Add LINE as a line of document information to dataset_dict (current_dataset),
    indented by INDENT spaces. */
 static void
 add_document_line (const char *line, int indent)
@@ -112,7 +112,7 @@ add_document_line (const char *line, int indent)
   size_t old_len;
   char *new_documents;
 
-  old_documents = dict_get_documents (default_dict);
+  old_documents = dict_get_documents (dataset_dict (current_dataset));
   old_len = old_documents != NULL ? strlen (old_documents) : 0;
   new_documents = xmalloc (old_len + 81);
 
@@ -121,7 +121,7 @@ add_document_line (const char *line, int indent)
   buf_copy_str_rpad (new_documents + old_len + indent, 80 - indent, line);
   new_documents[old_len + 80] = '\0';
 
-  dict_set_documents (default_dict, new_documents);
+  dict_set_documents (dataset_dict (current_dataset), new_documents);
 
   free (new_documents);
 }
@@ -134,7 +134,7 @@ cmd_document (void)
   {
     char buf[256];
 
-    if (dict_get_documents (default_dict) != NULL)
+    if (dict_get_documents (dataset_dict (current_dataset)) != NULL)
       add_document_line ("", 0);
 
     sprintf (buf, _("Document entered %s by %s:"), get_start_date (), version);
@@ -173,7 +173,7 @@ cmd_document (void)
 int
 cmd_drop_documents (void)
 {
-  dict_set_documents (default_dict, NULL);
+  dict_set_documents (dataset_dict (current_dataset), NULL);
 
   return lex_end_of_command ();
 }

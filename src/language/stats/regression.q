@@ -626,7 +626,7 @@ regression_trns_resid_proc (void *t_, struct ccase *c,
 static int
 try_name (char *name)
 {
-  if (dict_lookup_var (default_dict, name) != NULL)
+  if (dict_lookup_var (dataset_dict (current_dataset), name) != NULL)
     return 0;
 
   return 1;
@@ -657,10 +657,10 @@ reg_save_var (const char *prefix, trns_proc_func * f,
   t->n_trns = n_trns;
   t->c = c;
   reg_get_name (name, prefix);
-  new_var = dict_create_var (default_dict, name, 0);
+  new_var = dict_create_var (dataset_dict (current_dataset), name, 0);
   assert (new_var != NULL);
   *v = new_var;
-  add_transformation (f, regression_trns_free, t);
+  add_transformation (current_dataset, f, regression_trns_free, t);
   trns_index++;
 }
 static void
@@ -938,7 +938,7 @@ cmd_regression (void)
     return CMD_FAILURE;
 
   models = xnmalloc (cmd.n_dependent, sizeof *models);
-  if (!multipass_procedure_with_splits (run_regression, &cmd))
+  if (!multipass_procedure_with_splits (current_dataset, run_regression, &cmd))
     return CMD_CASCADING_FAILURE;
   subcommand_save (cmd.sbc_save, models);
   free (v_variables);
@@ -1004,12 +1004,12 @@ regression_custom_variables (struct cmd_regression *cmd UNUSED,
 
   lex_match ('=');
 
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
     return 2;
 
 
-  if (!parse_variables (default_dict, &v_variables, &n_variables, PV_NONE))
+  if (!parse_variables (dataset_dict (current_dataset), &v_variables, &n_variables, PV_NONE))
     {
       free (v_variables);
       return 0;
@@ -1118,7 +1118,7 @@ run_regression (const struct ccase *first,
 
   if (!v_variables)
     {
-      dict_get_vars (default_dict, &v_variables, &n_variables,
+      dict_get_vars (dataset_dict (current_dataset), &v_variables, &n_variables,
 		     1u << DC_SYSTEM);
     }
 

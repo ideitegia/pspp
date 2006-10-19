@@ -149,7 +149,7 @@ cmd_oneway(void)
 	}
     }
 
-  ok = multipass_procedure_with_splits (run_oneway, &cmd);
+  ok = multipass_procedure_with_splits (current_dataset, run_oneway, &cmd);
 
   free (vars);
   free_oneway (&cmd);
@@ -228,12 +228,12 @@ oneway_custom_variables(struct cmd_oneway *cmd UNUSED, void *aux UNUSED)
 
   lex_match('=');
 
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
     return 2;
   
 
-  if (!parse_variables (default_dict, &vars, &n_vars,
+  if (!parse_variables (dataset_dict (current_dataset), &vars, &n_vars,
 			PV_DUPLICATE 
 			| PV_NUMERIC | PV_NO_SCRATCH) )
     {
@@ -917,7 +917,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_)
       size_t i;
 
       const double weight = 
-	dict_get_case_weight (default_dict, &c, &bad_weight_warn);
+	dict_get_case_weight (dataset_dict (current_dataset), &c, &bad_weight_warn);
       
       const union value *indep_val = case_data (&c, indep_var->fv);
 

@@ -44,7 +44,7 @@ int
 cmd_split_file (void)
 {
   if (lex_match_id ("OFF"))
-    dict_set_split_vars (default_dict, NULL, 0);
+    dict_set_split_vars (dataset_dict (current_dataset), NULL, 0);
   else
     {
       struct variable **v;
@@ -54,10 +54,10 @@ cmd_split_file (void)
       (void) ( lex_match_id ("SEPARATE") || lex_match_id ("LAYERED") );
       
       lex_match (T_BY);
-      if (!parse_variables (default_dict, &v, &n, PV_NO_DUPLICATE))
+      if (!parse_variables (dataset_dict (current_dataset), &v, &n, PV_NO_DUPLICATE))
 	return CMD_CASCADING_FAILURE;
 
-      dict_set_split_vars (default_dict, v, n);
+      dict_set_split_vars (dataset_dict (current_dataset), v, n);
       free (v);
     }
 
@@ -73,7 +73,7 @@ output_split_file_values (const struct ccase *c)
   size_t split_cnt;
   int i;
 
-  split_cnt = dict_get_split_cnt (default_dict);
+  split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
   if (split_cnt == 0)
     return;
 
@@ -84,7 +84,7 @@ output_split_file_values (const struct ccase *c)
   tab_text (t, 0, 0, TAB_NONE, _("Variable"));
   tab_text (t, 1, 0, TAB_LEFT, _("Value"));
   tab_text (t, 2, 0, TAB_LEFT, _("Label"));
-  split = dict_get_split_vars (default_dict);
+  split = dict_get_split_vars (dataset_dict (current_dataset));
   for (i = 0; i < split_cnt; i++)
     {
       struct variable *v = split[i];

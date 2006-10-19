@@ -128,7 +128,7 @@ mns_custom_tables (struct cmd_means *cmd, void *aux UNUSED)
   struct var_set *var_set;
   
   if (!lex_match_id ("TABLES")
-      && (token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+      && (token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
@@ -140,7 +140,7 @@ mns_custom_tables (struct cmd_means *cmd, void *aux UNUSED)
       return 0;
     }
 
-  var_set = var_set_create_from_dict (default_dict);
+  var_set = var_set_create_from_dict (dataset_dict (current_dataset));
   assert (var_set != NULL);
 
   do

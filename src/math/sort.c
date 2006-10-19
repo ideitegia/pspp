@@ -63,7 +63,7 @@ static struct casefile *do_external_sort (struct casereader *,
 static void
 prepare_to_sort_active_file (void) 
 {
-  proc_cancel_temporary_transformations (); 
+  proc_cancel_temporary_transformations (current_dataset); 
 }
 
 /* Sorts the active file in-place according to CRITERIA.
@@ -74,15 +74,15 @@ sort_active_file_in_place (const struct sort_criteria *criteria)
   struct casefile *in, *out;
 
   prepare_to_sort_active_file ();
-  if (!procedure (NULL, NULL))
+  if (!procedure (current_dataset,NULL, NULL))
     return false;
   
-  in = proc_capture_output ();
+  in = proc_capture_output (current_dataset);
   out = sort_execute (casefile_get_destructive_reader (in), criteria);
   if (out == NULL) 
     return false;
 
-  proc_set_source (storage_source_create (out));
+  proc_set_source (current_dataset, storage_source_create (out));
   return true;
 }
 
@@ -114,7 +114,7 @@ sort_active_file_to_casefile (const struct sort_criteria *criteria)
 
   cb_data.criteria = criteria;
   cb_data.output = NULL;
-  if (!multipass_procedure (sort_to_casefile_callback, &cb_data)) 
+  if (!multipass_procedure (current_dataset,sort_to_casefile_callback, &cb_data)) 
     {
       casefile_destroy (cb_data.output);
       return NULL;

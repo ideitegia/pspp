@@ -314,7 +314,7 @@ cmd_descriptives (void)
             {
               int i;
               
-              if (!parse_variables (default_dict, &vars, &var_cnt,
+              if (!parse_variables (dataset_dict (current_dataset), &vars, &var_cnt,
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
 		goto error;
 
@@ -410,7 +410,7 @@ cmd_descriptives (void)
       dsc->vars[i].moments = moments_create (dsc->max_moment);
 
   /* Data pass. */
-  ok = multipass_procedure_with_splits (calc_descriptives, dsc);
+  ok = multipass_procedure_with_splits (current_dataset, calc_descriptives, dsc);
 
   /* Z-scoring! */
   if (ok && z_cnt)
@@ -473,7 +473,7 @@ try_name (struct dsc_proc *dsc, char *name)
 {
   size_t i;
 
-  if (dict_lookup_var (default_dict, name) != NULL)
+  if (dict_lookup_var (dataset_dict (current_dataset), name) != NULL)
     return false;
   for (i = 0; i < dsc->var_cnt; i++)
     if (!strcasecmp (dsc->vars[i].z_name, name))
@@ -667,7 +667,7 @@ setup_z_trns (struct dsc_proc *dsc)
 	  char *cp;
 	  struct variable *dst_var;
 
-	  dst_var = dict_create_var_assert (default_dict, dv->z_name, 0);
+	  dst_var = dict_create_var_assert (dataset_dict (current_dataset), dv->z_name, 0);
 	  if (dv->v->label)
 	    {
 	      dst_var->label = xmalloc (strlen (dv->v->label) + 12);
@@ -690,7 +690,8 @@ setup_z_trns (struct dsc_proc *dsc)
 	}
     }
 
-  add_transformation (descriptives_trns_proc, descriptives_trns_free, t);
+  add_transformation (current_dataset, 
+		      descriptives_trns_proc, descriptives_trns_free, t);
 }
 
 /* Statistical calculation. */
@@ -728,7 +729,7 @@ calc_descriptives (const struct ccase *first,
        casereader_read (reader, &c);
        case_destroy (&c))
     {
-      double weight = dict_get_case_weight (default_dict, &c, &dsc->bad_warn);
+      double weight = dict_get_case_weight (dataset_dict (current_dataset), &c, &dsc->bad_warn);
       if (weight <= 0.0) 
         continue;
        
@@ -773,7 +774,7 @@ calc_descriptives (const struct ccase *first,
            casereader_read (reader, &c);
            case_destroy (&c))
         {
-          double weight = dict_get_case_weight (default_dict, &c, 
+          double weight = dict_get_case_weight (dataset_dict (current_dataset), &c, 
 						&dsc->bad_warn);
           if (weight <= 0.0)
             continue;

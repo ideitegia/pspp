@@ -127,7 +127,7 @@ parse_read_command (enum reader_command type)
       goto error;
     }
               
-  discard_variables ();
+  discard_variables (current_dataset);
 
   pgm = xmalloc (sizeof *pgm);
   pgm->reader = any_reader_open (fh, &dict);
@@ -149,10 +149,11 @@ parse_read_command (enum reader_command type)
 
   pgm->map = finish_case_map (dict);
   
-  dict_destroy (default_dict);
-  default_dict = dict;
+  dict_destroy (dataset_dict (current_dataset));
+  dataset_set_dict (current_dataset, dict);
 
-  proc_set_source (create_case_source (&case_reader_source_class, pgm));
+  proc_set_source (current_dataset, 
+		   create_case_source (&case_reader_source_class, pgm));
 
   return CMD_SUCCESS;
 
@@ -312,7 +313,7 @@ parse_write_command (enum writer_type writer_type,
     *retain_unselected = true;
 
   handle = NULL;
-  dict = dict_clone (default_dict);
+  dict = dict_clone (dataset_dict (current_dataset));
   aw = xmalloc (sizeof *aw);
   aw->writer = NULL;
   aw->map = NULL;
@@ -483,11 +484,11 @@ parse_output_proc (enum writer_type writer_type)
   if (aw == NULL) 
     return CMD_CASCADING_FAILURE;
 
-  saved_filter_variable = dict_get_filter (default_dict);
+  saved_filter_variable = dict_get_filter (dataset_dict (current_dataset));
   if (retain_unselected) 
-    dict_set_filter (default_dict, NULL);
-  ok = procedure (output_proc, aw);
-  dict_set_filter (default_dict, saved_filter_variable);
+    dict_set_filter (dataset_dict (current_dataset), NULL);
+  ok = procedure (current_dataset,output_proc, aw);
+  dict_set_filter (dataset_dict (current_dataset), saved_filter_variable);
 
   case_writer_destroy (aw);
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
@@ -536,7 +537,7 @@ parse_output_trns (enum writer_type writer_type)
       return CMD_CASCADING_FAILURE;
     }
 
-  add_transformation (output_trns_proc, output_trns_free, t);
+  add_transformation (current_dataset, output_trns_proc, output_trns_free, t);
   return CMD_SUCCESS;
 }
 
@@ -829,7 +830,7 @@ cmd_match_files (void)
   case_nullify (&mtf.mtf_case);
   mtf.seq_num = 0;
   mtf.seq_nums = NULL;
-  dict_set_case_limit (mtf.dict, dict_get_case_limit (default_dict));
+  dict_set_case_limit (mtf.dict, dict_get_case_limit (dataset_dict (current_dataset)));
 
   lex_match ('/');
   while (token == T_ID
@@ -894,20 +895,20 @@ cmd_match_files (void)
             }
           used_active_file = true;
 
-          if (!proc_has_source ())
+          if (!proc_has_source (current_dataset))
             {
               msg (SE, _("Cannot specify the active file since no active "
                          "file has been defined."));
               goto error;
             }
 
-          if (proc_make_temporary_transformations_permanent ())
+          if (proc_make_temporary_transformations_permanent (current_dataset))
             msg (SE,
                  _("MATCH FILES may not be used after TEMPORARY when "
                    "the active file is an input source.  "
                    "Temporary transformations will be made permanent."));
 
-          file->dict = default_dict;
+          file->dict = dataset_dict (current_dataset);
         }
       else
         {
@@ -1124,7 +1125,7 @@ cmd_match_files (void)
      values. */
 
   if (!used_active_file)
-    discard_variables ();
+    discard_variables (current_dataset);
 
   dict_compact_values (mtf.dict);
   mtf.output = fastfile_create (dict_get_next_value_idx (mtf.dict));
@@ -1136,18 +1137,20 @@ cmd_match_files (void)
 
   if (used_active_file) 
     {
-      proc_set_sink (create_case_sink (&null_sink_class, default_dict, NULL));
-      ok = procedure (mtf_processing, &mtf) && mtf_processing_finish (&mtf); 
+      proc_set_sink (current_dataset, 
+		     create_case_sink (&null_sink_class, 
+				       dataset_dict (current_dataset), NULL));
+      ok = procedure (current_dataset,mtf_processing, &mtf) && mtf_processing_finish (&mtf); 
     }
   else
     ok = mtf_processing_finish (&mtf);
 
-  discard_variables ();
+  discard_variables (current_dataset);
 
-  dict_destroy (default_dict);
-  default_dict = mtf.dict;
+  dict_destroy (dataset_dict (current_dataset));
+  dataset_set_dict (current_dataset, mtf.dict);
   mtf.dict = NULL;
-  proc_set_source (storage_source_create (mtf.output));
+  proc_set_source (current_dataset, storage_source_create (mtf.output));
   mtf.output = NULL;
   
   if (!mtf_free (&mtf))

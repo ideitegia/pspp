@@ -52,7 +52,7 @@ cmd_select_if (void)
   struct expression *e;
   struct select_if_trns *t;
 
-  e = expr_parse (default_dict, EXPR_BOOLEAN);
+  e = expr_parse (dataset_dict (current_dataset), EXPR_BOOLEAN);
   if (!e)
     return CMD_CASCADING_FAILURE;
 
@@ -65,7 +65,7 @@ cmd_select_if (void)
 
   t = xmalloc (sizeof *t);
   t->e = e;
-  add_transformation (select_if_proc, select_if_free, t);
+  add_transformation (current_dataset, select_if_proc, select_if_free, t);
 
   return CMD_SUCCESS;
 }
@@ -95,12 +95,12 @@ int
 cmd_filter (void)
 {
   if (lex_match_id ("OFF"))
-    dict_set_filter (default_dict, NULL);
+    dict_set_filter (dataset_dict (current_dataset), NULL);
   else if (token == '.') 
     {
       msg (SW, _("Syntax error expecting OFF or BY.  "
                  "Turning off case filtering."));
-      dict_set_filter (default_dict, NULL);
+      dict_set_filter (dataset_dict (current_dataset), NULL);
     }
   else
     {
@@ -123,7 +123,7 @@ cmd_filter (void)
 	  return CMD_FAILURE;
 	}
 
-      dict_set_filter (default_dict, v);
+      dict_set_filter (dataset_dict (current_dataset), v);
     }
 
   return lex_end_of_command ();

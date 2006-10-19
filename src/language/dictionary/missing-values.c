@@ -49,7 +49,7 @@ cmd_missing_values (void)
     {
       size_t i;
 
-      if (!parse_variables (default_dict, &v, &nv, PV_NONE)) 
+      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE)) 
         goto done;
 
       if (!lex_match ('('))

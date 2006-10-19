@@ -45,7 +45,7 @@ int
 cmd_debug_xform_fail (void)
 {
 
-  add_transformation (trns_fail, NULL, NULL);
+  add_transformation (current_dataset, trns_fail, NULL, NULL);
 
   return lex_end_of_command ();
 }

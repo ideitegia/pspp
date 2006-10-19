@@ -733,7 +733,7 @@ parse_sysvar (struct expression *e)
           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
         };
 
-      time_t last_proc_time = time_of_last_procedure ();
+      time_t last_proc_time = time_of_last_procedure (current_dataset);
       struct tm *time;
       char temp_buf[10];
 
@@ -751,7 +751,7 @@ parse_sysvar (struct expression *e)
     return expr_allocate_number (e, SYSMIS);
   else if (lex_match_id ("$JDATE"))
     {
-      time_t time = time_of_last_procedure ();
+      time_t time = time_of_last_procedure (current_dataset);
       struct tm *tm = localtime (&time);
       return expr_allocate_number (e, expr_ymd_to_ofs (tm->tm_year + 1900,
                                                        tm->tm_mon + 1,
@@ -759,7 +759,7 @@ parse_sysvar (struct expression *e)
     }
   else if (lex_match_id ("$TIME"))
     {
-      time_t time = time_of_last_procedure ();
+      time_t time = time_of_last_procedure (current_dataset);
       struct tm *tm = localtime (&time);
       return expr_allocate_number (e,
                                    expr_ymd_to_date (tm->tm_year + 1900,
@@ -872,7 +872,7 @@ parse_vector_element (struct expression *e)
   /* Find vector, skip token.
      The caller must already have verified that the current token
      is the name of a vector. */
-  vector = dict_lookup_vector (default_dict, tokid);
+  vector = dict_lookup_vector (dataset_dict (current_dataset), tokid);
   assert (vector != NULL);
   lex_get ();
 
@@ -1185,7 +1185,7 @@ parse_function (struct expression *e)
             size_t var_cnt;
             size_t i;
 
-            if (!parse_variables (default_dict, &vars, &var_cnt, PV_SINGLE))
+            if (!parse_variables (dataset_dict (current_dataset), &vars, &var_cnt, PV_SINGLE))
               goto fail;
             for (i = 0; i < var_cnt; i++)
               add_arg (&args, &arg_cnt, &arg_cap,
@@ -1230,7 +1230,8 @@ parse_function (struct expression *e)
       msg (SE, _("%s is not yet implemented."), f->prototype);
       goto fail;
     }
-  if ((f->flags & OPF_PERM_ONLY) && proc_in_temporary_transformations ()) 
+  if ((f->flags & OPF_PERM_ONLY) && 
+      proc_in_temporary_transformations (current_dataset)) 
     {
       msg (SE, _("%s may not appear after TEMPORARY."), f->prototype);
       goto fail;
@@ -1241,8 +1242,8 @@ parse_function (struct expression *e)
 
   if (n->type == OP_LAG_Vn || n->type == OP_LAG_Vs) 
     {
-      if (n_lag < 1)
-        n_lag = 1; 
+      if (dataset_n_lag (current_dataset) < 1)
+        dataset_set_n_lag (current_dataset, 1);
     }
   else if (n->type == OP_LAG_Vnn || n->type == OP_LAG_Vsn)
     {
@@ -1250,8 +1251,8 @@ parse_function (struct expression *e)
       assert (n->composite.arg_cnt == 2);
       assert (n->composite.args[1]->type == OP_pos_int);
       n_before = n->composite.args[1]->integer.i;
-      if (n_lag < n_before)
-        n_lag = n_before;
+      if ( dataset_n_lag (current_dataset) < n_before)
+        dataset_set_n_lag (current_dataset, n_before);
     }
   
   free (args);

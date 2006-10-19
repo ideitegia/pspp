@@ -87,13 +87,13 @@ parse_dict_variable (const struct dictionary *d)
   return var;
 }
 
-/* Parses a variable name in default_dict and returns the
+/* Parses a variable name in dataset_dict (current_dataset) and returns the
    variable if successful.  On failure emits an error message and
    returns a null pointer. */
 struct variable *
 parse_variable (void)
 {
-  return parse_dict_variable (default_dict);
+  return parse_dict_variable (dataset_dict (current_dataset));
 }
 
 
@@ -548,12 +548,12 @@ parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
     }
   while (token == T_ID || token == T_ALL)
     {
-      if (token == T_ALL || dict_lookup_var (default_dict, tokid) != NULL)
+      if (token == T_ALL || dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
 	{
 	  struct variable **v;
 	  size_t nv;
 
-	  if (!parse_variables (default_dict, &v, &nv, PV_NONE))
+	  if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
 	    goto fail;
 	  *names = xnrealloc (*names, *nnames + nv, sizeof **names);
 	  for (i = 0; i < nv; i++)

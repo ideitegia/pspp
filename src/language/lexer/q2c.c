@@ -1584,7 +1584,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_VARLIST)
     {
-      dump (1, "if (!parse_variables (default_dict, &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (dataset_dict (current_dataset), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND%s%s))",
 	    st_lower (sbc->prefix), st_lower (sbc->name),
 	    st_lower (sbc->prefix), st_lower (sbc->name),
@@ -1740,18 +1740,18 @@ dump_parser (int persistent)
     {
       if (def->type == SBC_VARLIST)
 	dump (1, "if (token == T_ID "
-              "&& dict_lookup_var (default_dict, tokid) != NULL "
+              "&& dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL "
 	      "&& lex_look_ahead () != '=')");
       else
 	{
 	  dump (0, "if ((token == T_ID "
-                "&& dict_lookup_var (default_dict, tokid) "
+                "&& dict_lookup_var (dataset_dict (current_dataset), tokid) "
 		"&& lex_look_ahead () != '=')");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");
       dump (0, "p->sbc_%s++;", st_lower (def->name));
-      dump (1, "if (!parse_variables (default_dict, &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (dataset_dict (current_dataset), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND))",
 	    st_lower (def->prefix), st_lower (def->name),
 	    st_lower (def->prefix), st_lower (def->name));

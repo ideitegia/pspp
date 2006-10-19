@@ -63,7 +63,7 @@ cmd_apply_dictionary (void)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *s = dict_get_var (dict, i);
-      struct variable *t = dict_lookup_var (default_dict, s->name);
+      struct variable *t = dict_lookup_var (dataset_dict (current_dataset), s->name);
       if (t == NULL)
 	continue;
 
@@ -128,10 +128,10 @@ cmd_apply_dictionary (void)
   if (dict_get_weight (dict) != NULL) 
     {
       struct variable *new_weight
-        = dict_lookup_var (default_dict, dict_get_weight (dict)->name);
+        = dict_lookup_var (dataset_dict (current_dataset), dict_get_weight (dict)->name);
 
       if (new_weight != NULL)
-        dict_set_weight (default_dict, new_weight);
+        dict_set_weight (dataset_dict (current_dataset), new_weight);
     }
   
   any_reader_close (reader);

@@ -75,7 +75,7 @@ cmd_vector (void)
 		goto fail;
 	      }
 
-	  if (dict_lookup_vector (default_dict, tokid))
+	  if (dict_lookup_vector (dataset_dict (current_dataset), tokid))
 	    {
 	      msg (SE, _("There is already a vector with name %s."), tokid);
 	      goto fail;
@@ -104,11 +104,11 @@ cmd_vector (void)
 	      goto fail;
 	    }
 
-	  if (!parse_variables (default_dict, &v, &nv,
+	  if (!parse_variables (dataset_dict (current_dataset), &v, &nv,
                                 PV_SAME_TYPE | PV_DUPLICATE))
 	    goto fail;
 
-          dict_create_vector (default_dict, vecnames, v, nv);
+          dict_create_vector (dataset_dict (current_dataset), vecnames, v, nv);
           free (v);
 	}
       else if (lex_match ('('))
@@ -158,7 +158,7 @@ cmd_vector (void)
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  if (dict_lookup_var (default_dict, name))
+		  if (dict_lookup_var (dataset_dict (current_dataset), name))
 		    {
 		      msg (SE, _("There is already a variable named %s."),
                            name);
@@ -175,9 +175,9 @@ cmd_vector (void)
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  v[i] = dict_create_var_assert (default_dict, name, 0);
+		  v[i] = dict_create_var_assert (dataset_dict (current_dataset), name, 0);
 		}
-              if (!dict_create_vector (default_dict, cp, v, nv))
+              if (!dict_create_vector (dataset_dict (current_dataset), cp, v, nv))
                 NOT_REACHED ();
 	      cp += strlen (cp) + 1;
 	    }

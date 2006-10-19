@@ -391,7 +391,7 @@ internal_cmd_frequencies (void)
   
 
   /* Do it! */
-  ok = procedure_with_splits (precalc, calc, postcalc, NULL);
+  ok = procedure_with_splits (current_dataset, precalc, calc, postcalc, NULL);
 
   free_frequencies(&cmd);
 
@@ -511,7 +511,7 @@ calc (const struct ccase *c, void *aux UNUSED)
   size_t i;
   bool bad_warn = true;
 
-  weight = dict_get_case_weight (default_dict, c, &bad_warn);
+  weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_warn);
 
   for (i = 0; i < n_variables; i++)
     {
@@ -801,10 +801,10 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 
   lex_match ('=');
   if (token != T_ALL && (token != T_ID
-                         || dict_lookup_var (default_dict, tokid) == NULL))
+                         || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL))
     return 2;
 
-  if (!parse_variables (default_dict, &v_variables, &n_variables,
+  if (!parse_variables (dataset_dict (current_dataset), &v_variables, &n_variables,
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
@@ -882,7 +882,7 @@ static int
 frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
-  if ((token == T_ID && dict_lookup_var (default_dict, tokid) != NULL)
+  if ((token == T_ID && dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
       || token == T_ID)
     for (;;)
       {
@@ -896,7 +896,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 	size_t n;
 	struct variable **v;
 
-	if (!parse_variables (default_dict, &v, &n,
+	if (!parse_variables (dataset_dict (current_dataset), &v, &n,
                               PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
 	if (lex_match ('('))
@@ -949,7 +949,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 	free (v);
 	if (!lex_match ('/'))
 	  break;
-	if ((token != T_ID || dict_lookup_var (default_dict, tokid) != NULL)
+	if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
             && token != T_ALL)
 	  {
 	    lex_put_back ('/');

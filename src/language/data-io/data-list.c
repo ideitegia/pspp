@@ -123,7 +123,7 @@ cmd_data_list (void)
   bool ok;
 
   if (!in_input_program ())
-    discard_variables ();
+    discard_variables (current_dataset);
 
   dls = pool_create_container (struct data_list_pgm, pool);
   ll_init (&dls->specs);
@@ -166,9 +166,9 @@ cmd_data_list (void)
 	  lex_match ('=');
 	  if (!lex_force_id ())
 	    goto error;
-	  dls->end = dict_lookup_var (default_dict, tokid);
+	  dls->end = dict_lookup_var (dataset_dict (current_dataset), tokid);
 	  if (!dls->end) 
-            dls->end = dict_create_var_assert (default_dict, tokid, 0);
+            dls->end = dict_create_var_assert (dataset_dict (current_dataset), tokid, 0);
 	  lex_get ();
 	}
       else if (token == T_ID)
@@ -262,9 +262,10 @@ cmd_data_list (void)
     goto error;
 
   if (in_input_program ())
-    add_transformation (data_list_trns_proc, data_list_trns_free, dls);
+    add_transformation (current_dataset, data_list_trns_proc, data_list_trns_free, dls);
   else 
-    proc_set_source (create_case_source (&data_list_source_class, dls));
+    proc_set_source (current_dataset, 
+		     create_case_source (&data_list_source_class, dls));
 
   pool_destroy (tmp_pool);
 
@@ -315,7 +316,7 @@ parse_fixed (struct pool *tmp_pool, struct data_list_pgm *dls)
 
             /* Create variable. */
             width = get_format_var_width (f);
-            v = dict_create_var (default_dict, name, width);
+            v = dict_create_var (dataset_dict (current_dataset), name, width);
             if (v != NULL)
               {
                 /* Success. */
@@ -337,7 +338,7 @@ parse_fixed (struct pool *tmp_pool, struct data_list_pgm *dls)
                     return false;
                   }
 
-                v = dict_lookup_var_assert (default_dict, name);
+                v = dict_lookup_var_assert (dataset_dict (current_dataset), name);
                 if ((width != 0) != (v->width != 0))
                   {
                     msg (SE, _("There is already a variable %s of a "
@@ -464,7 +465,7 @@ parse_free (struct pool *tmp_pool, struct data_list_pgm *dls)
           struct dls_var_spec *spec;
 	  struct variable *v;
 
-	  v = dict_create_var (default_dict, name[i],
+	  v = dict_create_var (dataset_dict (current_dataset), name[i],
                                get_format_var_width (&input));
 	  if (v == NULL)
 	    {

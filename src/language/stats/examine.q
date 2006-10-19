@@ -222,7 +222,7 @@ cmd_examine(void)
       subc_list_double_push(&percentile_list, 75);
     }
 
-  ok = multipass_procedure_with_splits (run_examine, &cmd);
+  ok = multipass_procedure_with_splits (current_dataset, run_examine, &cmd);
 
   if ( totals ) 
     {
@@ -510,13 +510,13 @@ xmn_custom_variables(struct cmd_examine *cmd, void *aux UNUSED)
 {
   lex_match('=');
 
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
     {
       return 2;
     }
   
-  if (!parse_variables (default_dict, &dependent_vars, &n_dependent_vars,
+  if (!parse_variables (dataset_dict (current_dataset), &dependent_vars, &n_dependent_vars,
 			PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
     {
       free (dependent_vars);
@@ -550,7 +550,7 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
   int success;
   struct factor *sf = xmalloc (sizeof *sf);
 
-  if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
       && token != T_ALL)
     {
       free ( sf ) ;
@@ -566,7 +566,7 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
 
       lex_match(T_BY);
 
-      if ((token != T_ID || dict_lookup_var (default_dict, tokid) == NULL)
+      if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
 	  && token != T_ALL)
 	{
 	  free ( sf ) ;
@@ -717,7 +717,7 @@ run_examine(const struct ccase *first, const struct casefile *cf, void *cmd_ )
       const int case_no = casereader_cnum(r);
 
       const double weight = 
-	dict_get_case_weight(default_dict, &c, &bad_weight_warn);
+	dict_get_case_weight(dataset_dict (current_dataset), &c, &bad_weight_warn);
 
       if ( cmd->miss == XMN_LISTWISE ) 
 	{

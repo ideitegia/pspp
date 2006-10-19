@@ -37,7 +37,7 @@ int
 cmd_weight (void)
 {
   if (lex_match_id ("OFF"))
-    dict_set_weight (default_dict, NULL);
+    dict_set_weight (dataset_dict (current_dataset), NULL);
   else
     {
       struct variable *v;
@@ -57,7 +57,7 @@ cmd_weight (void)
 	  return CMD_CASCADING_FAILURE;
 	}
 
-      dict_set_weight (default_dict, v);
+      dict_set_weight (dataset_dict (current_dataset), v);
     }
 
   return lex_end_of_command ();

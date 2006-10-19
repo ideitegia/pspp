@@ -167,7 +167,8 @@ cmd_recode (void)
         create_dst_vars (trns);
 
       /* Done. */
-      add_transformation (recode_trns_proc, recode_trns_free, trns);
+      add_transformation (current_dataset, 
+			  recode_trns_proc, recode_trns_free, trns);
     }
   while (lex_match ('/'));
   
@@ -180,7 +181,7 @@ cmd_recode (void)
 static bool
 parse_src_vars (struct recode_trns *trns) 
 {
-  if (!parse_variables (default_dict, &trns->src_vars, &trns->var_cnt,
+  if (!parse_variables (dataset_dict (current_dataset), &trns->src_vars, &trns->var_cnt,
                         PV_SAME_TYPE))
     return false;
   pool_register (trns->pool, free, trns->src_vars);
@@ -441,7 +442,7 @@ parse_dst_vars (struct recode_trns *trns)
       for (i = 0; i < trns->var_cnt; i++)
         {
           struct variable *v;
-          v = trns->dst_vars[i] = dict_lookup_var (default_dict,
+          v = trns->dst_vars[i] = dict_lookup_var (dataset_dict (current_dataset),
                                                   trns->dst_names[i]);
           if (v == NULL && trns->dst_type == ALPHA) 
             {
@@ -524,9 +525,9 @@ create_dst_vars (struct recode_trns *trns)
       struct variable **var = &trns->dst_vars[i];
       const char *name = trns->dst_names[i];
           
-      *var = dict_lookup_var (default_dict, name);
+      *var = dict_lookup_var (dataset_dict (current_dataset), name);
       if (*var == NULL)
-        *var = dict_create_var_assert (default_dict, name, 0);
+        *var = dict_create_var_assert (dataset_dict (current_dataset), name, 0);
       assert ((*var)->type == trns->dst_type);
     }
 }

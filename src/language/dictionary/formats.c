@@ -83,7 +83,7 @@ internal_cmd_formats (int which)
       if (token == '.')
 	break;
 
-      if (!parse_variables (default_dict, &v, &cv, PV_NUMERIC))
+      if (!parse_variables (dataset_dict (current_dataset), &v, &cv, PV_NUMERIC))
 	return CMD_FAILURE;
       type = v[0]->type;
 

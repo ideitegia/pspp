@@ -137,7 +137,7 @@ parse_specification (struct repeat_block *block)
       /* Get a stand-in variable name and make sure it's unique. */
       if (!lex_force_id ())
 	return false;
-      if (dict_lookup_var (default_dict, tokid))
+      if (dict_lookup_var (dataset_dict (current_dataset), tokid))
         msg (SW, _("Dummy variable name \"%s\" hides dictionary "
                    "variable \"%s\"."),
              tokid, tokid);
@@ -331,7 +331,7 @@ create_vars (struct repeat_block *block)
           {
             /* Ignore return value: if the variable already
                exists there is no harm done. */
-            dict_create_var (default_dict, iter->replacement[i], 0);
+            dict_create_var (dataset_dict (current_dataset), iter->replacement[i], 0);
           }
       }
 }

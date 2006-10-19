@@ -31,60 +31,80 @@ struct casefile;
 struct case_sink;
 struct case_source;
 
-/* Dictionary produced by permanent and temporary transformations
-   on data from the source. */
-extern struct dictionary *default_dict;
+struct dataset;
+
 
 /* Transformations. */
 
-void add_transformation (trns_proc_func *, trns_free_func *, void *);
-void add_transformation_with_finalizer (trns_finalize_func *,
+void add_transformation (struct dataset *ds, 
+			 trns_proc_func *, trns_free_func *, void *);
+void add_transformation_with_finalizer (struct dataset *ds, 
+					trns_finalize_func *,
                                         trns_proc_func *,
                                         trns_free_func *, void *);
-size_t next_transformation (void);
+size_t next_transformation (const struct dataset *ds);
 
-void discard_variables (void);
+void discard_variables (struct dataset *ds);
 
-bool proc_cancel_all_transformations (void);
-struct trns_chain *proc_capture_transformations (void);
 
-void proc_start_temporary_transformations (void);
-bool proc_in_temporary_transformations (void);
-bool proc_make_temporary_transformations_permanent (void);
-bool proc_cancel_temporary_transformations (void);
+
+bool proc_cancel_all_transformations (struct dataset *ds);
+struct trns_chain *proc_capture_transformations (struct dataset *ds);
+
+void proc_start_temporary_transformations (struct dataset *ds);
+bool proc_in_temporary_transformations (const struct dataset *ds);
+bool proc_make_temporary_transformations_permanent (struct dataset *ds);
+bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 /* Procedures. */
 
-void proc_init (void);
-void proc_done (void);
 
-void proc_set_source (struct case_source *);
-bool proc_has_source (void);
+struct dataset *create_dataset (void);
+void destroy_dataset (struct dataset *);
 
-void proc_set_sink (struct case_sink *);
-struct casefile *proc_capture_output (void);
+void proc_set_source (struct dataset *ds, struct case_source *);
+bool proc_has_source (const struct dataset *ds);
 
-bool procedure (bool (*proc_func) (const struct ccase *, void *),
-                void *aux)
-     WARN_UNUSED_RESULT;
-bool procedure_with_splits (void (*begin_func) (const struct ccase *, void *),
-                            bool (*proc_func) (const struct ccase *, void *),
+void proc_set_sink (struct dataset *ds, struct case_sink *);
+struct casefile *proc_capture_output (struct dataset *ds);
+
+typedef bool (*casefile_func_t) (const struct casefile *, void *);
+typedef bool (*case_func_t) (const struct ccase *, void *);
+typedef void (*begin_func_t) (const struct ccase *, void *);
+
+
+
+bool procedure (struct dataset *ds, case_func_t, void *aux)  WARN_UNUSED_RESULT;
+
+bool procedure_with_splits (struct dataset *ds, 
+			    begin_func_t begin_func,
+                            case_func_t proc_func,
                             void (*end_func) (void *),
                             void *aux)
      WARN_UNUSED_RESULT;
-bool multipass_procedure (bool (*proc_func) (const struct casefile *, void *),
-                          void *aux)
+bool multipass_procedure (struct dataset *ds, casefile_func_t, void  *aux)
      WARN_UNUSED_RESULT;
-bool multipass_procedure_with_splits (bool (*) (const struct ccase *,
-                                                const struct casefile *,
-                                                void *),
-                                      void *aux)
+bool multipass_procedure_with_splits (struct dataset *ds,
+					   bool (*) (const struct ccase *,
+						     const struct casefile *,
+						     void *),
+					   void *aux)
      WARN_UNUSED_RESULT;
-time_t time_of_last_procedure (void);
-
-/* Number of cases to lag. */
-extern int n_lag;
 
-struct ccase *lagged_case (int n_before);
+
+
+time_t time_of_last_procedure (struct dataset *ds);
+
+
+struct ccase *lagged_case (const struct dataset *ds, int n_before);
+
+extern struct dataset *current_dataset;
+
+inline struct dictionary *dataset_dict (const struct dataset *ds);
+inline void dataset_set_dict ( struct dataset *ds, struct dictionary *dict);
+
+inline int dataset_n_lag (const struct dataset *ds);
+inline void dataset_set_n_lag (struct dataset *ds, int n_lag);
+
 
 #endif /* procedure.h */

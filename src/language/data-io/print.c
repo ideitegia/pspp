@@ -198,7 +198,7 @@ internal_cmd_print (enum which_formats which_formats, bool eject)
     dump_table (trns, fh);
 
   /* Put the transformation in the queue. */
-  add_transformation (print_trns_proc, print_trns_free, trns);
+  add_transformation (current_dataset, print_trns_proc, print_trns_free, trns);
 
   pool_destroy (tmp_pool);
 
@@ -299,7 +299,7 @@ parse_variable_argument (struct print_trns *trns, struct pool *tmp_pool,
   bool add_space;
   
   if (!parse_variables_pool (tmp_pool,
-                             default_dict, &vars, &var_cnt, PV_DUPLICATE))
+                             dataset_dict (current_dataset), &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
   if (lex_is_number () || token == '(')

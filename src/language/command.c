@@ -148,7 +148,7 @@ cmd_parse (enum cmd_state state)
     lex_discard_rest_of_command ();
 
   unset_cmd_algorithm ();
-  dict_clear_aux (default_dict);
+  dict_clear_aux (dataset_dict (current_dataset));
 
   return result;
 }
@@ -666,7 +666,7 @@ cmd_n_of_cases (void)
   x = lex_integer ();
   lex_get ();
   if (!lex_match_id ("ESTIMATED"))
-    dict_set_case_limit (default_dict, x);
+    dict_set_case_limit (dataset_dict (current_dataset), x);
 
   return lex_end_of_command ();
 }
@@ -675,7 +675,7 @@ cmd_n_of_cases (void)
 int
 cmd_execute (void)
 {
-  if (!procedure (NULL, NULL))
+  if (!procedure (current_dataset,NULL, NULL))
     return CMD_CASCADING_FAILURE;
   return lex_end_of_command ();
 }
@@ -850,7 +850,7 @@ cmd_host (void)
 int
 cmd_new_file (void)
 {
-  discard_variables ();
+  discard_variables (current_dataset);
 
   return lex_end_of_command ();
 }

@@ -96,13 +96,13 @@ cmd_flip (void)
   struct case_sink *sink;
   bool ok;
 
-  if (proc_make_temporary_transformations_permanent ())
+  if (proc_make_temporary_transformations_permanent (current_dataset))
     msg (SW, _("FLIP ignores TEMPORARY.  "
                "Temporary transformations will be made permanent."));
 
   flip = pool_create_container (struct flip_pgm, pool);
   flip->var = NULL;
-  flip->idx_to_fv = dict_get_compacted_idx_to_fv (default_dict);
+  flip->idx_to_fv = dict_get_compacted_idx_to_fv (dataset_dict (current_dataset));
   pool_register (flip->pool, free, flip->idx_to_fv);
   flip->var_cnt = 0;
   flip->case_cnt = 0;
@@ -115,13 +115,13 @@ cmd_flip (void)
   if (lex_match_id ("VARIABLES"))
     {
       lex_match ('=');
-      if (!parse_variables (default_dict, &flip->var, &flip->var_cnt,
+      if (!parse_variables (dataset_dict (current_dataset), &flip->var, &flip->var_cnt,
                             PV_NO_DUPLICATE))
 	goto error;
       lex_match ('/');
     }
   else
-    dict_get_vars (default_dict, &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
+    dict_get_vars (dataset_dict (current_dataset), &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
   pool_register (flip->pool, free, flip->var);
 
   lex_match ('/');
@@ -133,7 +133,7 @@ cmd_flip (void)
         goto error;
     }
   else
-    flip->new_names = dict_lookup_var (default_dict, "CASE_LBL");
+    flip->new_names = dict_lookup_var (dataset_dict (current_dataset), "CASE_LBL");
 
   if (flip->new_names)
     {
@@ -150,32 +150,32 @@ cmd_flip (void)
 
   /* Read the active file into a flip_sink. */
   flip->case_cnt = 0;
-  proc_make_temporary_transformations_permanent ();
+  proc_make_temporary_transformations_permanent (current_dataset);
   sink = flip_sink_create (flip);
   if (sink == NULL)
     goto error;
-  proc_set_sink (sink);
+  proc_set_sink (current_dataset, sink);
   flip->new_names_tail = NULL;
-  ok = procedure (NULL, NULL);
+  ok = procedure (current_dataset,NULL, NULL);
 
   /* Flip the data we read. */
   if (!flip_file (flip)) 
     {
-      discard_variables ();
+      discard_variables (current_dataset);
       goto error;
     }
 
   /* Flip the dictionary. */
-  dict_clear (default_dict);
+  dict_clear (dataset_dict (current_dataset));
   if (!build_dictionary (flip))
     {
-      discard_variables ();
+      discard_variables (current_dataset);
       goto error;
     }
-  flip->case_size = dict_get_case_size (default_dict);
+  flip->case_size = dict_get_case_size (dataset_dict (current_dataset));
 
   /* Set up flipped data for reading. */
-  proc_set_source (flip_source_create (flip));
+  proc_set_source (current_dataset, flip_source_create (flip));
 
   return ok ? lex_end_of_command () : CMD_CASCADING_FAILURE;
 
@@ -219,7 +219,7 @@ make_new_var (char name[])
   *cp = '\0';
   str_uppercase (name);
   
-  if (dict_create_var (default_dict, name, 0))
+  if (dict_create_var (dataset_dict (current_dataset), name, 0))
     return 1;
 
   /* Add numeric extensions until acceptable. */
@@ -234,7 +234,7 @@ make_new_var (char name[])
 	memcpy (n, name, ofs);
 	sprintf (&n[ofs], "%d", i);
 
-	if (dict_create_var (default_dict, n, 0))
+	if (dict_create_var (dataset_dict (current_dataset), n, 0))
 	  return 1;
       }
   }
@@ -247,7 +247,7 @@ make_new_var (char name[])
 static int
 build_dictionary (struct flip_pgm *flip)
 {
-  dict_create_var_assert (default_dict, "CASE_LBL", 8);
+  dict_create_var_assert (dataset_dict (current_dataset), "CASE_LBL", 8);
 
   if (flip->new_names_head == NULL)
     {
@@ -265,7 +265,7 @@ build_dictionary (struct flip_pgm *flip)
 	  char s[SHORT_NAME_LEN + 1];
 
 	  sprintf (s, "VAR%03d", i);
-	  v = dict_create_var_assert (default_dict, s, 0);
+	  v = dict_create_var_assert (dataset_dict (current_dataset), s, 0);
 	}
     }
   else
@@ -309,7 +309,7 @@ flip_sink_create (struct flip_pgm *flip)
 
   flip->case_cnt = 1;
 
-  return create_case_sink (&flip_sink_class, default_dict, flip);
+  return create_case_sink (&flip_sink_class, dataset_dict (current_dataset), flip);
 }
 
 /* Writes case C to the FLIP sink.

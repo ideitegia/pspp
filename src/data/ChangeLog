@@ -1,3 +1,8 @@
+Thu Oct 19 22:59:56 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* procedure.c procedure.h: Encapsulated the static data into a single
+	struct.  
+
 Sat Oct 14 16:56:44 2006  Ben Pfaff  <blp@gnu.org>
 
 	* casefile.c (casereader_read_xfer): Always initialize the case,

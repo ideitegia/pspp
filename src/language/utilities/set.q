@@ -603,7 +603,7 @@ show_undefined (void)
 static void
 show_weight (void) 
 {
-  struct variable *var = dict_get_weight (default_dict);
+  struct variable *var = dict_get_weight (dataset_dict (current_dataset));
   if (var == NULL)
     msg (SN, _("WEIGHT is off."));
   else

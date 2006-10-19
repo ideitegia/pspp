@@ -46,7 +46,7 @@ cmd_variable_alignment (void)
       size_t i;
       enum alignment align;
 
-      if (!parse_variables (default_dict, &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
@@ -97,7 +97,7 @@ cmd_variable_width (void)
       size_t nv;
       size_t i;
 
-      if (!parse_variables (default_dict, &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
@@ -132,7 +132,7 @@ cmd_variable_level (void)
       enum measure level;
       size_t i;
 
-      if (!parse_variables (default_dict, &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 

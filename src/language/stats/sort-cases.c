@@ -47,7 +47,7 @@ cmd_sort_cases (void)
 
   lex_match (T_BY);
 
-  criteria = sort_parse_criteria (default_dict, NULL, NULL, NULL, NULL);
+  criteria = sort_parse_criteria (dataset_dict (current_dataset), NULL, NULL, NULL, NULL);
   if (criteria == NULL)
     return CMD_CASCADING_FAILURE;
 

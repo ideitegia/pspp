@@ -104,7 +104,7 @@ cmd_do_if (void)
   do_if->clause_cnt = 0;
 
   ctl_stack_push (&do_if_class, do_if);
-  add_transformation_with_finalizer (do_if_finalize_func,
+  add_transformation_with_finalizer (current_dataset, do_if_finalize_func,
                                      do_if_trns_proc, do_if_trns_free, do_if);
 
   return parse_clause (do_if);
@@ -153,7 +153,7 @@ close_do_if (void *do_if_)
   
   if (!has_else (do_if)) 
     add_else (do_if);
-  do_if->past_END_IF_index = next_transformation ();
+  do_if->past_END_IF_index = next_transformation (current_dataset);
 }
 
 /* Adds an ELSE clause to DO_IF pointing to the next
@@ -162,7 +162,7 @@ static void
 add_else (struct do_if_trns *do_if) 
 {
   assert (!has_else (do_if));
-  add_clause (do_if, NULL, next_transformation ());
+  add_clause (do_if, NULL, next_transformation (current_dataset));
 }
 
 /* Returns true if DO_IF does not yet have an ELSE clause.
@@ -196,11 +196,11 @@ parse_clause (struct do_if_trns *do_if)
 {
   struct expression *condition;
 
-  condition = expr_parse (default_dict, EXPR_BOOLEAN);
+  condition = expr_parse (dataset_dict (current_dataset), EXPR_BOOLEAN);
   if (condition == NULL)
     return CMD_CASCADING_FAILURE;
 
-  add_clause (do_if, condition, next_transformation ());
+  add_clause (do_if, condition, next_transformation (current_dataset));
 
   return lex_end_of_command ();
 }
@@ -214,7 +214,7 @@ add_clause (struct do_if_trns *do_if,
   struct clause *clause;
 
   if (do_if->clause_cnt > 0)
-    add_transformation (break_trns_proc, NULL, do_if);
+    add_transformation (current_dataset, break_trns_proc, NULL, do_if);
 
   do_if->clauses = xnrealloc (do_if->clauses,
                               do_if->clause_cnt + 1, sizeof *do_if->clauses);

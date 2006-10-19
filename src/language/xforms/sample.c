@@ -111,7 +111,7 @@ cmd_sample (void)
   trns->N = b;
   trns->m = trns->t = 0;
   trns->frac = frac;
-  add_transformation (sample_trns_proc, sample_trns_free, trns);
+  add_transformation (current_dataset, sample_trns_proc, sample_trns_free, trns);
 
   return lex_end_of_command ();
 }

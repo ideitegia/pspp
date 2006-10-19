@@ -94,7 +94,8 @@ cmd_compute (void)
   if (compute->rvalue == NULL)
     goto fail;
 
-  add_transformation (get_proc_func (lvalue), compute_trns_free, compute);
+  add_transformation (current_dataset, 
+		      get_proc_func (lvalue), compute_trns_free, compute);
 
   lvalue_finalize (lvalue, compute);
 
@@ -219,7 +220,7 @@ cmd_if (void)
   compute = compute_trns_create ();
 
   /* Test expression. */
-  compute->test = expr_parse (default_dict, EXPR_BOOLEAN);
+  compute->test = expr_parse (dataset_dict (current_dataset), EXPR_BOOLEAN);
   if (compute->test == NULL)
     goto fail;
 
@@ -235,7 +236,8 @@ cmd_if (void)
   if (compute->rvalue == NULL)
     goto fail;
 
-  add_transformation (get_proc_func (lvalue), compute_trns_free, compute);
+  add_transformation (current_dataset, 
+		      get_proc_func (lvalue), compute_trns_free, compute);
 
   lvalue_finalize (lvalue, compute);
 
@@ -267,7 +269,7 @@ parse_rvalue (const struct lvalue *lvalue)
 {
   bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
 
-  return expr_parse (default_dict, is_numeric ? EXPR_NUMBER : EXPR_STRING);
+  return expr_parse (dataset_dict (current_dataset), is_numeric ? EXPR_NUMBER : EXPR_STRING);
 }
 
 /* Returns a new struct compute_trns after initializing its fields. */
@@ -325,7 +327,7 @@ lvalue_parse (void)
   if (lex_look_ahead () == '(')
     {
       /* Vector. */
-      lvalue->vector = dict_lookup_vector (default_dict, tokid);
+      lvalue->vector = dict_lookup_vector (dataset_dict (current_dataset), tokid);
       if (lvalue->vector == NULL)
 	{
 	  msg (SE, _("There is no vector named %s."), tokid);
@@ -336,7 +338,7 @@ lvalue_parse (void)
       lex_get ();
       if (!lex_force_match ('('))
 	goto lossage;
-      lvalue->element = expr_parse (default_dict, EXPR_NUMBER);
+      lvalue->element = expr_parse (dataset_dict (current_dataset), EXPR_NUMBER);
       if (lvalue->element == NULL)
         goto lossage;
       if (!lex_force_match (')'))
@@ -362,7 +364,7 @@ lvalue_get_type (const struct lvalue *lvalue)
 {
   if (lvalue->vector == NULL) 
     {
-      struct variable *var = dict_lookup_var (default_dict, lvalue->var_name);
+      struct variable *var = dict_lookup_var (dataset_dict (current_dataset), lvalue->var_name);
       if (var == NULL)
         return NUMERIC;
       else
@@ -386,9 +388,9 @@ lvalue_finalize (struct lvalue *lvalue, struct compute_trns *compute)
 {
   if (lvalue->vector == NULL)
     {
-      compute->variable = dict_lookup_var (default_dict, lvalue->var_name);
+      compute->variable = dict_lookup_var (dataset_dict (current_dataset), lvalue->var_name);
       if (compute->variable == NULL)
-	  compute->variable = dict_create_var_assert (default_dict,
+	  compute->variable = dict_create_var_assert (dataset_dict (current_dataset),
 						      lvalue->var_name, 0);
 
       compute->fv = compute->variable->fv;
