@@ -838,7 +838,7 @@ tab_next_row (struct tab_table *t)
 
 static struct tab_table *t;
 static struct outp_driver *d;
-int tab_hit;
+static int tab_hit;
 
 /* Set the current table to TABLE. */
 static void

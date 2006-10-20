@@ -52,13 +52,12 @@
 /* (functions) */
 
 /* TABLES: Variable lists for each dimension. */
-int n_dim;		/* Number of dimensions. */
-size_t *nv_dim;		/* Number of variables in each dimension. */
-struct variable ***v_dim;	/* Variables in each dimension.  */
+static int n_dim;		/* Number of dimensions. */
+static size_t *nv_dim;		/* Number of variables in each dimension. */
+static struct variable ***v_dim;	/* Variables in each dimension.  */
 
 /* VARIABLES: List of variables. */
-int n_var;
-struct variable **v_var;
+static struct variable **v_var;
 
 /* Parses and executes the T-TEST procedure. */
 int

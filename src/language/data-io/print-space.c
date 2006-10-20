@@ -41,8 +41,7 @@ struct print_space_trns
   {
     struct dfm_writer *writer;  /* Output data file. */
     struct expression *expr;	/* Number of lines; NULL means 1. */
-  }
-print_space_trns;
+  };
 
 static trns_proc_func print_space_trns_proc;
 static trns_free_func print_space_trns_free;

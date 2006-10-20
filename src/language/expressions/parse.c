@@ -894,7 +894,7 @@ parse_vector_element (struct expression *e)
 
 /* Individual function parsing. */
 
-struct operation operations[OP_first + OP_cnt] = {
+const struct operation operations[OP_first + OP_cnt] = {
 #include "parse.inc"
 };
     
@@ -953,7 +953,7 @@ lookup_function_helper (const char *name,
                         const struct operation **first,
                         const struct operation **last)
 {
-  struct operation *f;
+  const struct operation *f;
   
   for (f = operations + OP_function_first;
        f <= operations + OP_function_last; f++) 
@@ -1327,7 +1327,7 @@ expr_allocate_binary (struct expression *e, operation_type op,
 static bool
 is_valid_node (union any_node *n) 
 {
-  struct operation *op;
+  const struct operation *op;
   size_t i;
   
   assert (n != NULL);

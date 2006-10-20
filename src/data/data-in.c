@@ -1394,7 +1394,8 @@ data_in (struct data_in *i)
     }
   
   {
-    static bool (*const handlers[FMT_NUMBER_OF_FORMATS])(struct data_in *) = 
+    typedef bool (*handler_t) (struct data_in *);
+    static const handler_t handlers[FMT_NUMBER_OF_FORMATS] = 
       {
 	parse_numeric, parse_N, parse_numeric, parse_numeric,
 	parse_numeric, parse_numeric, parse_numeric,
@@ -1407,7 +1408,7 @@ data_in (struct data_in *i)
 	parse_WKDAY, parse_MONTH,
       };
 
-    bool (*handler)(struct data_in *);
+    handler_t handler;
     bool success;
 
     handler = handlers[i->format.type];

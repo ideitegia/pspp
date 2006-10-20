@@ -35,7 +35,7 @@
 #define DEFFMT(LABEL, NAME, N_ARGS, IMIN_W, IMAX_W, OMIN_W, OMAX_W, CAT, \
 	       OUTPUT, SPSS_FMT) \
 	{NAME, N_ARGS, IMIN_W, IMAX_W, OMIN_W, OMAX_W, CAT, OUTPUT, SPSS_FMT},
-struct fmt_desc formats[FMT_NUMBER_OF_FORMATS + 1] =
+const struct fmt_desc formats[FMT_NUMBER_OF_FORMATS + 1] =
 {
 #include "format.def"
   {"",         -1, -1,  -1, -1,   -1, 0000, -1, -1},
@@ -85,7 +85,7 @@ fmt_to_string (const struct fmt_spec *f)
 static bool
 check_common_specifier (const struct fmt_spec *spec, bool emit_error)
 {
-  struct fmt_desc *f ; 
+  const struct fmt_desc *f ; 
   char *str;
 
   assert (spec->type < FMT_NUMBER_OF_FORMATS);
@@ -125,7 +125,7 @@ check_common_specifier (const struct fmt_spec *spec, bool emit_error)
 int
 check_input_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f;
+  const struct fmt_desc *f;
   char *str ;
 
   if (!check_common_specifier (spec, emit_error))
@@ -165,7 +165,7 @@ check_input_specifier (const struct fmt_spec *spec, int emit_error)
 int
 check_output_specifier (const struct fmt_spec *spec, int emit_error)
 {
-  struct fmt_desc *f;
+  const struct fmt_desc *f;
   char *str ; 
 
   if (!check_common_specifier (spec, emit_error))

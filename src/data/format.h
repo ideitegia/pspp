@@ -98,7 +98,7 @@ bool alignment_is_valid(enum alignment a);
 
 
 /* Descriptions of all the display formats above. */
-extern struct fmt_desc formats[];
+extern const struct fmt_desc formats[];
 
 union value;
 

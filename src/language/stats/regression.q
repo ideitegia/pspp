@@ -84,7 +84,7 @@
 static struct cmd_regression cmd;
 
 /* Linear regression models. */
-pspp_linreg_cache **models = NULL;
+static pspp_linreg_cache **models = NULL;
 
 /*
   Transformations for saving predicted values
@@ -110,12 +110,12 @@ static size_t n_variables;
   File where the model will be saved if the EXPORT subcommand
   is given. 
  */
-struct file_handle *model_file;
+static struct file_handle *model_file;
 
 /*
   Return value for the procedure.
  */
-int pspp_reg_rc = CMD_SUCCESS;
+static int pspp_reg_rc = CMD_SUCCESS;
 
 static bool run_regression (const struct ccase *,
                             const struct casefile *, void *);

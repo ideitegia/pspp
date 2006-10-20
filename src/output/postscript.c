@@ -109,8 +109,7 @@ struct ps_driver_ext
 
     struct font *fonts[OUTP_FONT_CNT];
     int last_font;              /* Index of last font set with setfont. */
-  }
-ps_driver_ext;
+  };
 
 /* Transform logical y-ordinate Y into a page ordinate. */
 #define YT(Y) (this->length - (Y))

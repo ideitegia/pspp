@@ -16,7 +16,7 @@ struct ctl_struct
     void *private;              /* Private data. */
   };
 
-struct ctl_struct *ctl_stack;
+static struct ctl_struct *ctl_stack;
 
 void
 ctl_stack_clear (void) 

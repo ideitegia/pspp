@@ -46,11 +46,6 @@
 */
 
 
-/* Global variables. */
-
-extern const char *keywords[T_N_KEYWORDS + 1];
-
-
 /* Current token. */
 int token;
 
@@ -859,7 +854,7 @@ lex_token_name (int token)
       return t;
     }
 
-  return _("<ERROR>");
+  NOT_REACHED ();
 }
 
 /* Returns an ASCII representation of the current token as a

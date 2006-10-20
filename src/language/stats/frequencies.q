@@ -1168,9 +1168,9 @@ dump_full (struct variable *v)
       const char *s;
     };
 
-  struct init *p;
+  const struct init *p;
 
-  static struct init vec[] =
+  static const struct init vec[] =
   {
     {4, 0, N_("Valid")},
     {5, 0, N_("Cum")},

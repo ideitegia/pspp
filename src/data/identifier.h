@@ -68,4 +68,6 @@ bool lex_id_match_len (const char *keyword_string, size_t keyword_len,
 bool lex_id_match (const char *keyword_string, const char *token_string);
 int lex_id_to_token (const char *id, size_t len);
 
+extern const char *keywords[T_N_KEYWORDS + 1] ;
+
 #endif /* !lex_def_h */

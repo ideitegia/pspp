@@ -45,7 +45,7 @@ expr_optimize (union any_node *node, struct expression *e)
 {
   int nonconst_cnt = 0; /* Number of nonconstant children. */
   int sysmis_cnt = 0;   /* Number of system-missing children. */
-  struct operation *op;
+  const struct operation *op;
   struct composite_node *c;
   int i;
 
@@ -308,7 +308,7 @@ flatten_atom (union any_node *n, struct expression *e)
 static void
 flatten_composite (union any_node *n, struct expression *e)
 {
-  struct operation *op = &operations[n->type];
+  const struct operation *op = &operations[n->type];
   size_t i;
       
   for (i = 0; i < n->composite.arg_cnt; i++)

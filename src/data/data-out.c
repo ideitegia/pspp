@@ -348,7 +348,7 @@ convert_F_plus (char *dst, const struct fmt_spec *fp, double number)
 static int
 convert_Z (char *dst, const struct fmt_spec *fp, double number)
 {
-  static int warned = 0;
+  static bool warned = false;
 
   if (!warned)
     {

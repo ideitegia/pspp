@@ -78,7 +78,7 @@ struct operation
     int array_granularity;
   };
 
-extern struct operation operations[];
+extern const struct operation operations[];
 
 /* Tree structured expressions. */ 
 
