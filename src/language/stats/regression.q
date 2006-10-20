@@ -118,7 +118,7 @@ static struct file_handle *model_file;
 static int pspp_reg_rc = CMD_SUCCESS;
 
 static bool run_regression (const struct ccase *,
-                            const struct casefile *, void *);
+			    const struct casefile *, void *);
 
 /* 
    STATISTICS subcommand output functions.
@@ -544,7 +544,7 @@ regression_trns_free (void *t_)
   Gets the predicted values.
  */
 static int
-regression_trns_pred_proc (void *t_, struct ccase *c, 
+regression_trns_pred_proc (void *t_, struct ccase *c,
 			   casenum_t case_idx UNUSED)
 {
   size_t i;
@@ -583,7 +583,7 @@ regression_trns_pred_proc (void *t_, struct ccase *c,
   Gets the residuals.
  */
 static int
-regression_trns_resid_proc (void *t_, struct ccase *c, 
+regression_trns_resid_proc (void *t_, struct ccase *c,
 			    casenum_t case_idx UNUSED)
 {
   size_t i;
@@ -832,7 +832,6 @@ subcommand_export (int export, pspp_linreg_cache * c)
   size_t i;
   size_t j;
   int n_quantiles = 100;
-  double increment;
   double tmp;
   struct pspp_coeff *coeff;
 
@@ -849,7 +848,6 @@ subcommand_export (int export, pspp_linreg_cache * c)
 	  reg_print_categorical_encoding (fp, c);
 	}
       fprintf (fp, "%s", reg_export_t_quantiles_1);
-      increment = 0.5 / (double) increment;
       for (i = 0; i < n_quantiles - 1; i++)
 	{
 	  tmp = 0.5 + 0.005 * (double) i;
@@ -999,7 +997,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 /* Parser for the variables sub command */
 static int
 regression_custom_variables (struct cmd_regression *cmd UNUSED,
-                             void *aux UNUSED)
+			     void *aux UNUSED)
 {
 
   lex_match ('=');
@@ -1081,16 +1079,17 @@ prepare_data (int n_data, int is_missing_case[],
   return n_data;
 }
 static void
-coeff_init (pspp_linreg_cache *c, struct design_matrix *dm)
+coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
 {
   c->coeff = xnmalloc (dm->m->size2 + 1, sizeof (*c->coeff));
-  c->coeff[0] = xmalloc (sizeof (*(c->coeff[0]))); /* The first coefficient is the intercept. */
+  c->coeff[0] = xmalloc (sizeof (*(c->coeff[0])));	/* The first coefficient is the intercept. */
   c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
   pspp_coeff_init (c->coeff + 1, dm);
 }
+
 static bool
 run_regression (const struct ccase *first,
-                const struct casefile *cf, void *cmd_ UNUSED)
+		const struct casefile *cf, void *cmd_ UNUSED)
 {
   size_t i;
   size_t n_data = 0;		/* Number of valide cases. */
@@ -1223,7 +1222,7 @@ run_regression (const struct ccase *first,
          coefficients.
        */
       coeff_init (models[k], X);
-      
+
       /* 
          Find the least-squares estimates and other statistics.
        */
