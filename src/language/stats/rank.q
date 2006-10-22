@@ -117,7 +117,7 @@ static const struct fmt_spec dest_format[n_RANK_FUNCS] = {
   {FMT_F, 8, 4}  /* savage */
 };
 
-static const char *function_name[n_RANK_FUNCS] = {
+static const char * const function_name[n_RANK_FUNCS] = {
   "RANK",
   "NORMAL",
   "PERCENT",
@@ -128,7 +128,7 @@ static const char *function_name[n_RANK_FUNCS] = {
   "SAVAGE"
 };
 
-static rank_function_t rank_func[n_RANK_FUNCS] = {
+static const rank_function_t rank_func[n_RANK_FUNCS] = {
   rank_rank,
   rank_normal,
   rank_percent,

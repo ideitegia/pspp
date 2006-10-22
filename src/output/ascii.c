@@ -247,7 +247,7 @@ enum
     output_file_arg
   };
 
-static struct outp_option option_tab[] =
+static const struct outp_option option_tab[] =
   {
     {"headers", boolean_arg, 0},
     {"paginate", boolean_arg, 1},
@@ -734,7 +734,7 @@ ascii_chart_finalise (struct outp_driver *d UNUSED, struct chart *ch UNUSED)
   
 }
 
-struct outp_class ascii_class =
+const struct outp_class ascii_class =
 {
   "ascii",
   0,

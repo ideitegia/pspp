@@ -88,7 +88,7 @@ static struct hsh_table *global_group_hash ;
 
 /* The number of distinct values of the independent variable, when all 
    missing values are disregarded */
-static int ostensible_number_of_groups=-1;
+static int ostensible_number_of_groups = -1;
 
 
 /* Function to use for testing for missing values */

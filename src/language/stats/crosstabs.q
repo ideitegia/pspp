@@ -950,7 +950,7 @@ static int n_rows;
 static int ns_cols, ns_rows;
 
 /* Crosstabulation. */
-static struct crosstab *x;
+static const struct crosstab *x;
 
 /* Number of variables from the crosstabulation to consider.  This is
    either x->nvar, if pivoting is on, or 2, if pivoting is off. */

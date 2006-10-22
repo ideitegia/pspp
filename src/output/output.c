@@ -70,12 +70,12 @@ static struct outp_names *outp_configure_vec;
 /* A list of driver classes. */
 struct outp_driver_class_list
   {
-    struct outp_class *class;
+    const struct outp_class *class;
     struct outp_driver_class_list *next;
   };
 
-struct outp_driver_class_list *outp_class_list;
-struct outp_driver *outp_driver_list;
+static struct outp_driver_class_list *outp_class_list;
+static struct outp_driver *outp_driver_list;
 
 char *outp_title;
 char *outp_subtitle;
@@ -91,7 +91,7 @@ static void configure_driver (const struct substring, const struct substring,
 
 /* Add a class to the class list. */
 static void
-add_class (struct outp_class *class)
+add_class (const struct outp_class *class)
 {
   struct outp_driver_class_list *new_list = xmalloc (sizeof *new_list);
 
@@ -227,7 +227,6 @@ outp_init (void)
 {
   extern struct outp_class ascii_class;
   extern struct outp_class postscript_class;
-  extern struct outp_class html_class;
 
   char def[] = "default";
 
@@ -797,7 +796,7 @@ destroy_driver (struct outp_driver *d)
    code and stores subcategory in *SUBCAT on success.  Returns -1
    on failure. */
 int
-outp_match_keyword (const char *s, struct outp_option *tab, int *subcat)
+outp_match_keyword (const char *s, const struct outp_option *tab, int *subcat)
 {
   for (; tab->keyword != NULL; tab++)
     if (!strcmp (s, tab->keyword))

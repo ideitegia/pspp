@@ -118,7 +118,7 @@ struct frq_info
   };
 
 /* Table of statistics, indexed by dsc_*. */
-static struct frq_info st_name[frq_n_stats + 1] =
+static const struct frq_info st_name[frq_n_stats + 1] =
 {
   {FRQ_ST_MEAN, N_("Mean")},
   {FRQ_ST_SEMEAN, N_("S.E. Mean")},

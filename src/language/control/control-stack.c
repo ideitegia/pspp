@@ -11,7 +11,7 @@
 
 struct ctl_struct
   {
-    struct ctl_class *class;    /* Class of control structure. */
+    const struct ctl_class *class;    /* Class of control structure. */
     struct ctl_struct *down;	/* Points toward the bottom of ctl_stack. */
     void *private;              /* Private data. */
   };
@@ -31,7 +31,7 @@ ctl_stack_clear (void)
 }
 
 void
-ctl_stack_push (struct ctl_class *class, void *private) 
+ctl_stack_push (const struct ctl_class *class, void *private) 
 {
   struct ctl_struct *ctl;
 
@@ -44,7 +44,7 @@ ctl_stack_push (struct ctl_class *class, void *private)
 }
 
 void *
-ctl_stack_top (struct ctl_class *class) 
+ctl_stack_top (const struct ctl_class *class) 
 {
   struct ctl_struct *top = ctl_stack;
   if (top != NULL && top->class == class)
@@ -61,7 +61,7 @@ ctl_stack_top (struct ctl_class *class)
 }
 
 void *
-ctl_stack_search (struct ctl_class *class) 
+ctl_stack_search (const struct ctl_class *class) 
 {
   struct ctl_struct *ctl;
   

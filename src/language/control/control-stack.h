@@ -30,9 +30,9 @@ struct ctl_class
   };
 
 void ctl_stack_clear (void);
-void ctl_stack_push (struct ctl_class *, void *private);
-void *ctl_stack_top (struct ctl_class *);
-void *ctl_stack_search (struct ctl_class *);
+void ctl_stack_push (const struct ctl_class *, void *private);
+void *ctl_stack_top (const struct ctl_class *);
+void *ctl_stack_search (const struct ctl_class *);
 void ctl_stack_pop (void *);
 bool ctl_stack_is_empty (void);
 

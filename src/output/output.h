@@ -103,7 +103,7 @@ enum
 struct outp_driver
   {
     struct outp_driver *next, *prev; /* List of drivers. */
-    struct outp_class *class;	/* Driver class. */
+    const struct outp_class *class;	/* Driver class. */
     char *name;			/* Name of this driver. */
     bool page_open;		/* 1=page is open, 0=page is closed. */
     int device;			/* Zero or more of OUTP_DEV_*. */
@@ -128,8 +128,6 @@ struct outp_option
     int subcat;			/* Subcategory. */
   };
 
-/* List of configured output drivers. */
-extern struct outp_driver *outp_driver_list;
 
 /* Title, subtitle. */
 extern char *outp_title;
@@ -152,7 +150,7 @@ bool outp_parse_options (struct substring options,
                          bool (*) (struct outp_driver *, const char *key,
                                    const struct string *value),
                          struct outp_driver *);
-int outp_match_keyword (const char *, struct outp_option *, int *);
+int outp_match_keyword (const char *, const struct outp_option *, int *);
 
 int outp_evaluate_dimension (char *, char **);
 bool outp_get_paper_size (char *, int *h, int *v);

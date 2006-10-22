@@ -115,7 +115,7 @@ static const int content_type[PROX + 1] =
   };
 
 /* Name of each content type. */
-static const char *content_names[PROX + 1] =
+static const char *const content_names[PROX + 1] =
   {
     "N", "N", "N_MATRIX", "MEAN", "STDDEV", "COUNT", "MSE",
     "DFE", "MAT", "COV", "CORR", "PROX",

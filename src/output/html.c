@@ -149,7 +149,7 @@ enum
   };
 
 /* All the options that the HTML driver supports. */
-static struct outp_option option_tab[] =
+static const struct outp_option option_tab[] =
   {
     {"output-file",		string_arg,     0},
     {"chart-files",            string_arg,     1},
@@ -401,7 +401,7 @@ html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 
 
 /* HTML driver class. */
-struct outp_class html_class =
+const struct outp_class html_class =
   {
     "html",
     1,

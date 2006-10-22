@@ -270,7 +270,7 @@ enum
 };
 
 /* All the options that the PostScript driver supports. */
-static struct outp_option option_tab[] =
+static const struct outp_option option_tab[] =
 {
   {"output-file",		output_file_arg,0},
   {"paper-size",		paper_size_arg, 0},
@@ -1426,7 +1426,7 @@ reencode_font (struct outp_driver *this, struct font *font)
 }
 
 /* PostScript driver class. */
-struct outp_class postscript_class =
+const struct outp_class postscript_class =
 {
   "postscript",
   0,

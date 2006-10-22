@@ -32,7 +32,7 @@ struct html_driver_ext
     size_t chart_cnt;
   };
 
-extern struct outp_class html_class;
+extern const struct outp_class html_class;
 
 struct outp_driver;
 void html_put_cell_contents (struct outp_driver *this,

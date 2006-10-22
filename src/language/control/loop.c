@@ -79,7 +79,7 @@ struct loop_trns
     int past_END_LOOP_index;    /* Just past END LOOP transformation. */
   };
 
-static struct ctl_class loop_class;
+static const struct ctl_class loop_class;
 
 static trns_finalize_func loop_trns_finalize;
 static trns_proc_func loop_trns_proc, end_loop_trns_proc, break_trns_proc;
@@ -371,7 +371,7 @@ break_trns_proc (void *loop_, struct ccase *c UNUSED, casenum_t case_num UNUSED)
 }
 
 /* LOOP control structure class definition. */
-static struct ctl_class loop_class =
+static const struct ctl_class loop_class =
   {
     "LOOP",
     "END LOOP",

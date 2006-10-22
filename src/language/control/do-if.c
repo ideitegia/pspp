@@ -80,7 +80,7 @@ struct do_if_trns
     int past_END_IF_index;      /* Transformation just past last clause. */
   };
 
-static struct ctl_class do_if_class;
+static const struct ctl_class do_if_class;
 
 static int parse_clause (struct do_if_trns *);
 static void add_clause (struct do_if_trns *,
@@ -285,7 +285,7 @@ break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenum_t case_num UNUSED
 }
 
 /* DO IF control structure class definition. */
-static struct ctl_class do_if_class = 
+static const struct ctl_class do_if_class = 
   {
     "DO IF",
     "END IF",

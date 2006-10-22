@@ -41,9 +41,9 @@ struct cor_set
     size_t nv1, nv2;
   };
 
-struct cor_set *cor_list, *cor_last;
+static struct cor_set *cor_list, *cor_last;
 
-struct file_handle *matrix_file;
+static struct file_handle *matrix_file;
 
 static void free_correlations_state (void);
 static int internal_cmd_correlations (void);

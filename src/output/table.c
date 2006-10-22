@@ -38,7 +38,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-struct som_table_class tab_table_class;
+const struct som_table_class tab_table_class;
 static char *command_name;
 
 /* Returns the font to use for a cell with the given OPTIONS. */
@@ -1220,7 +1220,7 @@ tabi_render (int c0, int r0, int c1, int r1)
   y = render_rows (y, c0, c1, (t->nr - t->b) * 2, t->nr * 2 + 1);
 }
 
-struct som_table_class tab_table_class =
+const struct som_table_class tab_table_class =
   {
     tabi_table,
     tabi_driver,
