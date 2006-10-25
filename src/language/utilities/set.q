@@ -622,7 +622,7 @@ struct show_sbc
     void (*function) (void);
   };
 
-struct show_sbc show_table[] = 
+const struct show_sbc show_table[] = 
   {
     {"BLANKS", show_blanks},
     {"CCA", show_cca},

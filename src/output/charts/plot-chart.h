@@ -40,7 +40,7 @@
 #define PLOT_CHART_H
 
 							     
-extern const char *data_colour[];
+extern const char *const data_colour[];
 
 enum tick_orientation {
   TICK_ABSCISSA=0,

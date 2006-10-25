@@ -31,7 +31,7 @@
 
 
 /* Table of keywords. */
-const char *keywords[T_N_KEYWORDS + 1] = 
+const char *const keywords[T_N_KEYWORDS + 1] = 
   {
     "AND", "OR", "NOT",
     "EQ", "GE", "GT", "LE", "LT", "NE",
@@ -117,7 +117,7 @@ lex_id_match (const char *kw, const char *tok)
 int
 lex_id_to_token (const char *id, size_t len)
 {
-  const char **kwp;
+  const char *const *kwp;
 
   if (len < 2 || len > 4)
     return T_ID;

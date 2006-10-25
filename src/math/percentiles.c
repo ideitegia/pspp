@@ -39,7 +39,7 @@ struct ptile_params
 };
 
 
-const char *ptile_alg_desc[] = {
+const char *const ptile_alg_desc[] = {
   "",
   N_("HAverage"),
   N_("Weighted Average"),

@@ -41,7 +41,7 @@
 #include <output/output.h>
 
 
-const char *data_colour[] = {
+const char *const data_colour[] = {
   "brown",
   "red",
   "orange",

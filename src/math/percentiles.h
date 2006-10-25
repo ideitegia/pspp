@@ -38,7 +38,7 @@ enum pc_alg {
 
 
 
-extern  const char *ptile_alg_desc[];
+extern  const char *const ptile_alg_desc[];
 
 
 
