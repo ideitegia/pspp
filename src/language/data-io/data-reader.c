@@ -423,7 +423,7 @@ dfm_pop (struct dfm_reader *r)
 
 /* Perform BEGIN DATA...END DATA as a procedure in itself. */
 int
-cmd_begin_data (void)
+cmd_begin_data (struct dataset *ds)
 {
   struct dfm_reader *r;
   bool ok;
@@ -441,7 +441,7 @@ cmd_begin_data (void)
 
   /* Input procedure reads from inline file. */
   getl_set_prompt_style (GETL_PROMPT_DATA);
-  ok = procedure (current_dataset,NULL, NULL);
+  ok = procedure (ds, NULL, NULL);
 
   dfm_close_reader (r);
 

@@ -43,7 +43,7 @@
 struct write_case_data
   {
     /* Function to call for each case. */
-    case_func_t case_func;
+    case_func *proc;
     void *aux;
 
     struct dataset *dataset;    /* The dataset concerned */
@@ -88,13 +88,11 @@ struct dataset {
 }; /* struct dataset */
 
 
-struct dataset *current_dataset;
-
 static void add_case_limit_trns (struct dataset *ds);
 static void add_filter_trns (struct dataset *ds);
 
-static bool internal_procedure (struct dataset *ds, case_func_t,
-                                bool (*end_func) (void *),
+static bool internal_procedure (struct dataset *ds, case_func *,
+                                end_func *,
                                 void *aux);
 static void update_last_proc_invocation (struct dataset *ds);
 static void create_trns_case (struct ccase *, struct dictionary *);
@@ -135,7 +133,7 @@ time_of_last_procedure (struct dataset *ds)
 
    Returns true if successful, false if an I/O error occurred. */
 bool
-procedure (struct dataset *ds, case_func_t cf, void *aux)
+procedure (struct dataset *ds, case_func *cf, void *aux)
 {
   return internal_procedure (ds, cf, NULL, aux);
 }
@@ -152,7 +150,7 @@ struct multipass_aux_data
 
 /* Case processing function for multipass_procedure(). */
 static bool
-multipass_case_func (const struct ccase *c, void *aux_data_) 
+multipass_case_func (const struct ccase *c, void *aux_data_, const struct dataset *ds UNUSED) 
 {
   struct multipass_aux_data *aux_data = aux_data_;
   return casefile_append (aux_data->casefile, c);
@@ -160,7 +158,7 @@ multipass_case_func (const struct ccase *c, void *aux_data_)
 
 /* End-of-file function for multipass_procedure(). */
 static bool
-multipass_end_func (void *aux_data_) 
+multipass_end_func (void *aux_data_, const struct dataset *ds UNUSED) 
 {
   struct multipass_aux_data *aux_data = aux_data_;
   return (aux_data->proc_func == NULL
@@ -171,7 +169,7 @@ multipass_end_func (void *aux_data_)
    The entire active file is passed to PROC_FUNC, with the given
    AUX as auxiliary data, as a unit. */
 bool
-multipass_procedure (struct dataset *ds, casefile_func_t proc_func,  void *aux) 
+multipass_procedure (struct dataset *ds, casefile_func *proc_func,  void *aux) 
 {
   struct multipass_aux_data aux_data;
   bool ok;
@@ -197,8 +195,8 @@ multipass_procedure (struct dataset *ds, casefile_func_t proc_func,  void *aux)
    Returns true if successful, false if an I/O error occurred (or
    if CASE_FUNC or END_FUNC ever returned false). */
 static bool
-internal_procedure (struct dataset *ds, case_func_t case_func,
-                    bool (*end_func) (void *),
+internal_procedure (struct dataset *ds, case_func *proc,
+		    end_func *end,
                     void *aux) 
 {
   struct write_case_data wc_data;
@@ -210,7 +208,7 @@ internal_procedure (struct dataset *ds, case_func_t case_func,
 
   /* Optimize the trivial case where we're not going to do
      anything with the data, by not reading the data at all. */
-  if (case_func == NULL && end_func == NULL
+  if (proc == NULL && end == NULL
       && case_source_is_class (ds->proc_source, &storage_source_class)
       && ds->proc_sink == NULL
       && (ds->temporary_trns_chain == NULL
@@ -225,7 +223,7 @@ internal_procedure (struct dataset *ds, case_func_t case_func,
   
   open_active_file (ds);
   
-  wc_data.case_func = case_func;
+  wc_data.proc = proc;
   wc_data.aux = aux;
   wc_data.dataset = ds;
   create_trns_case (&wc_data.trns_case, ds->dict);
@@ -236,8 +234,8 @@ internal_procedure (struct dataset *ds, case_func_t case_func,
   ok = ds->proc_source->class->read (ds->proc_source,
                                  &wc_data.trns_case,
                                  write_case, &wc_data) && ok;
-  if (end_func != NULL)
-    ok = end_func (aux) && ok;
+  if (end != NULL)
+    ok = end (aux, ds) && ok;
 
   case_destroy (&wc_data.sink_case);
   case_destroy (&wc_data.trns_case);
@@ -365,8 +363,8 @@ write_case (struct write_case_data *wc_data)
     }
 
   /* Pass case to procedure. */
-  if (wc_data->case_func != NULL)
-    if (!wc_data->case_func (&wc_data->trns_case, wc_data->aux))
+  if (wc_data->proc != NULL)
+    if (!wc_data->proc (&wc_data->trns_case, wc_data->aux, ds))
       retval = TRNS_ERROR;
 
  done:
@@ -476,15 +474,15 @@ struct split_aux_data
     struct ccase prev_case;     /* Data in previous case. */
 
     /* Callback functions. */
-    begin_func_t begin_func ; 
-    case_func_t proc_func ;
-    void (*end_func) (void *);
+    begin_func *begin; 
+    case_func *proc;
+    end_func *end;
     void *func_aux;
   };
 
 static int equal_splits (const struct ccase *, const struct ccase *, const struct dataset *ds);
-static bool split_procedure_case_func (const struct ccase *c, void *);
-static bool split_procedure_end_func (void *);
+static bool split_procedure_case_func (const struct ccase *c, void *, const struct dataset *);
+static bool split_procedure_end_func (void *, const struct dataset *);
 
 /* Like procedure(), but it automatically breaks the case stream
    into SPLIT FILE break groups.  Before each group of cases with
@@ -505,18 +503,18 @@ static bool split_procedure_end_func (void *);
    Returns true if successful, false if an I/O error occurred. */
 bool
 procedure_with_splits (struct dataset *ds,
-		       begin_func_t begin_func, 
-		       case_func_t proc_func,
-                       void (*end_func) (void *aux),
+		       begin_func begin, 
+		       case_func *proc,
+                       end_func *end,
                        void *func_aux) 
 {
   struct split_aux_data split_aux;
   bool ok;
 
   case_nullify (&split_aux.prev_case);
-  split_aux.begin_func = begin_func;
-  split_aux.proc_func = proc_func;
-  split_aux.end_func = end_func;
+  split_aux.begin = begin;
+  split_aux.proc = proc;
+  split_aux.end = end;
   split_aux.func_aux = func_aux;
   split_aux.dataset = ds;
 
@@ -530,7 +528,7 @@ procedure_with_splits (struct dataset *ds,
 
 /* Case callback used by procedure_with_splits(). */
 static bool
-split_procedure_case_func (const struct ccase *c, void *split_aux_) 
+split_procedure_case_func (const struct ccase *c, void *split_aux_, const struct dataset *ds) 
 {
   struct split_aux_data *split_aux = split_aux_;
 
@@ -538,29 +536,28 @@ split_procedure_case_func (const struct ccase *c, void *split_aux_)
   if (case_is_null (&split_aux->prev_case)
       || !equal_splits (c, &split_aux->prev_case, split_aux->dataset))
     {
-      if (!case_is_null (&split_aux->prev_case) && split_aux->end_func != NULL)
-        split_aux->end_func (split_aux->func_aux);
+      if (!case_is_null (&split_aux->prev_case) && split_aux->end != NULL)
+        split_aux->end (split_aux->func_aux, ds);
 
       case_destroy (&split_aux->prev_case);
       case_clone (&split_aux->prev_case, c);
 
-      if (split_aux->begin_func != NULL)
-	split_aux->begin_func (&split_aux->prev_case, split_aux->func_aux);
-
+      if (split_aux->begin != NULL)
+	split_aux->begin (&split_aux->prev_case, split_aux->func_aux, ds);
     }
 
-  return (split_aux->proc_func == NULL
-          || split_aux->proc_func (c, split_aux->func_aux));
+  return (split_aux->proc == NULL
+          || split_aux->proc (c, split_aux->func_aux, ds));
 }
 
 /* End-of-file callback used by procedure_with_splits(). */
 static bool
-split_procedure_end_func (void *split_aux_) 
+split_procedure_end_func (void *split_aux_, const struct dataset *ds) 
 {
   struct split_aux_data *split_aux = split_aux_;
 
-  if (!case_is_null (&split_aux->prev_case) && split_aux->end_func != NULL)
-    split_aux->end_func (split_aux->func_aux);
+  if (!case_is_null (&split_aux->prev_case) && split_aux->end != NULL)
+    split_aux->end (split_aux->func_aux, ds);
   return true;
 }
 
@@ -585,23 +582,19 @@ struct multipass_split_aux_data
     struct dataset *dataset;    /* The dataset of the split */
     struct ccase prev_case;     /* Data in previous case. */
     struct casefile *casefile;  /* Accumulates data for a split. */
-
-    /* Function to call with the accumulated data. */
-    bool (*split_func) (const struct ccase *first, const struct casefile *,
-                        void *);
-    void *func_aux;                            /* Auxiliary data. */ 
+    split_func *split;          /* Function to call with the accumulated 
+				   data. */
+    void *func_aux;             /* Auxiliary data. */ 
   };
 
-static bool multipass_split_case_func (const struct ccase *c, void *aux_);
-static bool multipass_split_end_func (void *aux_);
-static bool multipass_split_output (struct multipass_split_aux_data *);
+static bool multipass_split_case_func (const struct ccase *c, void *aux_, const struct dataset *);
+static bool multipass_split_end_func (void *aux_, const struct dataset *ds);
+static bool multipass_split_output (struct multipass_split_aux_data *, const struct dataset *ds);
 
 /* Returns true if successful, false if an I/O error occurred. */
 bool
 multipass_procedure_with_splits (struct dataset *ds, 
-				 bool (*split_func) (const struct ccase *first,
-                                                     const struct casefile *,
-                                                     void *aux),
+				 split_func  *split,
                                  void *func_aux)
 {
   struct multipass_split_aux_data aux;
@@ -609,7 +602,7 @@ multipass_procedure_with_splits (struct dataset *ds,
 
   case_nullify (&aux.prev_case);
   aux.casefile = NULL;
-  aux.split_func = split_func;
+  aux.split = split;
   aux.func_aux = func_aux;
   aux.dataset = ds;
 
@@ -622,10 +615,9 @@ multipass_procedure_with_splits (struct dataset *ds,
 
 /* Case callback used by multipass_procedure_with_splits(). */
 static bool
-multipass_split_case_func (const struct ccase *c, void *aux_)
+multipass_split_case_func (const struct ccase *c, void *aux_, const struct dataset *ds)
 {
   struct multipass_split_aux_data *aux = aux_;
-  struct dataset *ds = aux->dataset;
   bool ok = true;
 
   /* Start a new series if needed. */
@@ -637,7 +629,7 @@ multipass_split_case_func (const struct ccase *c, void *aux_)
 
       /* Pass any cases to split_func. */
       if (aux->casefile != NULL)
-        ok = multipass_split_output (aux);
+        ok = multipass_split_output (aux, ds);
 
       /* Start a new casefile. */
       aux->casefile = 
@@ -649,19 +641,19 @@ multipass_split_case_func (const struct ccase *c, void *aux_)
 
 /* End-of-file callback used by multipass_procedure_with_splits(). */
 static bool
-multipass_split_end_func (void *aux_)
+multipass_split_end_func (void *aux_, const struct dataset *ds)
 {
   struct multipass_split_aux_data *aux = aux_;
-  return (aux->casefile == NULL || multipass_split_output (aux));
+  return (aux->casefile == NULL || multipass_split_output (aux, ds));
 }
 
 static bool
-multipass_split_output (struct multipass_split_aux_data *aux)
+multipass_split_output (struct multipass_split_aux_data *aux, const struct dataset *ds)
 {
   bool ok;
   
   assert (aux->casefile != NULL);
-  ok = aux->split_func (&aux->prev_case, aux->casefile, aux->func_aux);
+  ok = aux->split (&aux->prev_case, aux->casefile, aux->func_aux, ds);
   casefile_destroy (aux->casefile);
   aux->casefile = NULL;
 
@@ -827,6 +819,7 @@ destroy_dataset (struct dataset *ds)
 {
   discard_variables (ds);
   dict_destroy (ds->dict);
+  trns_chain_destroy (ds->permanent_trns_chain);
   free (ds);
 }
 
@@ -901,7 +894,7 @@ add_case_limit_trns (struct dataset *ds)
    *CASES_REMAINING. */
 static int
 case_limit_trns_proc (void *cases_remaining_,
-                      struct ccase *c UNUSED, casenum_t case_nr UNUSED) 
+                      struct ccase *c UNUSED, casenumber case_nr UNUSED) 
 {
   size_t *cases_remaining = cases_remaining_;
   if (*cases_remaining > 0) 
@@ -940,7 +933,7 @@ add_filter_trns (struct dataset *ds)
 /* FILTER transformation. */
 static int
 filter_trns_proc (void *filter_var_,
-                  struct ccase *c UNUSED, casenum_t case_nr UNUSED) 
+                  struct ccase *c UNUSED, casenumber case_nr UNUSED) 
   
 {
   struct variable *filter_var = filter_var_;

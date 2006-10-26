@@ -108,9 +108,9 @@ struct recode_trns
     size_t map_cnt;             /* Number of mappings. */
   };
 
-static bool parse_src_vars (struct recode_trns *);
+static bool parse_src_vars (struct recode_trns *, const struct dictionary *dict);
 static bool parse_mappings (struct recode_trns *);
-static bool parse_dst_vars (struct recode_trns *);
+static bool parse_dst_vars (struct recode_trns *, const struct dictionary *dict);
 
 static void add_mapping (struct recode_trns *,
                          size_t *map_allocated, const struct map_in *);
@@ -128,7 +128,7 @@ static void set_map_out_str (struct map_out *, struct pool *,
                              const struct string *);
 
 static void enlarge_dst_widths (struct recode_trns *);
-static void create_dst_vars (struct recode_trns *);
+static void create_dst_vars (struct recode_trns *, struct dictionary *);
 
 static trns_proc_func recode_trns_proc;
 static trns_free_func recode_trns_free;
@@ -137,7 +137,7 @@ static trns_free_func recode_trns_free;
 
 /* Parses the RECODE transformation. */
 int
-cmd_recode (void)
+cmd_recode (struct dataset *ds)
 {
   do
     {
@@ -147,9 +147,9 @@ cmd_recode (void)
       /* Parse source variable names,
          then input to output mappings,
          then destintation variable names. */
-      if (!parse_src_vars (trns)
+      if (!parse_src_vars (trns, dataset_dict (ds) )
           || !parse_mappings (trns)
-          || !parse_dst_vars (trns))
+          || !parse_dst_vars (trns, dataset_dict (ds)))
         {
           recode_trns_free (trns);
           return CMD_FAILURE;
@@ -164,10 +164,10 @@ cmd_recode (void)
          This must be the final step; otherwise we'd have to
          delete destination variables on failure. */
       if (trns->src_vars != trns->dst_vars)
-        create_dst_vars (trns);
+        create_dst_vars (trns, dataset_dict (ds));
 
       /* Done. */
-      add_transformation (current_dataset, 
+      add_transformation (ds, 
 			  recode_trns_proc, recode_trns_free, trns);
     }
   while (lex_match ('/'));
@@ -179,9 +179,9 @@ cmd_recode (void)
    TRNS->var_cnt.  Sets TRNS->src_type.  Returns true if
    successful, false on parse error. */
 static bool
-parse_src_vars (struct recode_trns *trns) 
+parse_src_vars (struct recode_trns *trns, const struct dictionary *dict) 
 {
-  if (!parse_variables (dataset_dict (current_dataset), &trns->src_vars, &trns->var_cnt,
+  if (!parse_variables (dict, &trns->src_vars, &trns->var_cnt,
                         PV_SAME_TYPE))
     return false;
   pool_register (trns->pool, free, trns->src_vars);
@@ -415,7 +415,7 @@ set_map_out_str (struct map_out *out, struct pool *pool,
 /* Parses a set of target variables into TRNS->dst_vars and
    TRNS->dst_names. */
 static bool
-parse_dst_vars (struct recode_trns *trns) 
+parse_dst_vars (struct recode_trns *trns, const struct dictionary *dict) 
 {
   size_t i;
   
@@ -424,7 +424,8 @@ parse_dst_vars (struct recode_trns *trns)
       size_t name_cnt;
       size_t i;
 
-      if (!parse_mixed_vars_pool (trns->pool, &trns->dst_names, &name_cnt,
+      if (!parse_mixed_vars_pool (dict, trns->pool, 
+				  &trns->dst_names, &name_cnt,
                                   PV_NONE))
         return false;
 
@@ -442,8 +443,7 @@ parse_dst_vars (struct recode_trns *trns)
       for (i = 0; i < trns->var_cnt; i++)
         {
           struct variable *v;
-          v = trns->dst_vars[i] = dict_lookup_var (dataset_dict (current_dataset),
-                                                  trns->dst_names[i]);
+          v = trns->dst_vars[i] = dict_lookup_var (dict, trns->dst_names[i]);
           if (v == NULL && trns->dst_type == ALPHA) 
             {
               msg (SE, _("There is no variable named "
@@ -516,7 +516,7 @@ enlarge_dst_widths (struct recode_trns *trns)
 
 /* Creates destination variables that don't already exist. */
 static void
-create_dst_vars (struct recode_trns *trns)
+create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 {
   size_t i;
 
@@ -525,9 +525,9 @@ create_dst_vars (struct recode_trns *trns)
       struct variable **var = &trns->dst_vars[i];
       const char *name = trns->dst_names[i];
           
-      *var = dict_lookup_var (dataset_dict (current_dataset), name);
+      *var = dict_lookup_var (dict, name);
       if (*var == NULL)
-        *var = dict_create_var_assert (dataset_dict (current_dataset), name, 0);
+        *var = dict_create_var_assert (dict, name, 0);
       assert ((*var)->type == trns->dst_type);
     }
 }
@@ -623,7 +623,7 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
 
 /* Performs RECODE transformation. */
 static int
-recode_trns_proc (void *trns_, struct ccase *c, casenum_t case_idx UNUSED)
+recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
 {
   struct recode_trns *trns = trns_;
   size_t i;

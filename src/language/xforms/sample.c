@@ -57,7 +57,7 @@ static trns_proc_func sample_trns_proc;
 static trns_free_func sample_trns_free;
 
 int
-cmd_sample (void)
+cmd_sample (struct dataset *ds)
 {
   struct sample_trns *trns;
 
@@ -111,7 +111,7 @@ cmd_sample (void)
   trns->N = b;
   trns->m = trns->t = 0;
   trns->frac = frac;
-  add_transformation (current_dataset, sample_trns_proc, sample_trns_free, trns);
+  add_transformation (ds, sample_trns_proc, sample_trns_free, trns);
 
   return lex_end_of_command ();
 }
@@ -119,7 +119,7 @@ cmd_sample (void)
 /* Executes a SAMPLE transformation. */
 static int
 sample_trns_proc (void *t_, struct ccase *c UNUSED,
-                  casenum_t case_num UNUSED)
+                  casenumber case_num UNUSED)
 {
   struct sample_trns *t = t_;
   double U;

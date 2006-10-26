@@ -97,7 +97,7 @@ static bool parse_numeric_criteria (struct pool *, struct criteria *);
 static bool parse_string_criteria (struct pool *, struct criteria *);
 
 int
-cmd_count (void)
+cmd_count (struct dataset *ds)
 {
   struct dst_var *dv;           /* Destination var being parsed. */
   struct count_trns *trns;      /* Transformation. */
@@ -117,7 +117,7 @@ cmd_count (void)
       /* Get destination variable, or at least its name. */
       if (!lex_force_id ())
 	goto fail;
-      dv->var = dict_lookup_var (dataset_dict (current_dataset), tokid);
+      dv->var = dict_lookup_var (dataset_dict (ds), tokid);
       if (dv->var != NULL)
         {
           if (dv->var->type == ALPHA)
@@ -140,7 +140,7 @@ cmd_count (void)
           
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables (dataset_dict (current_dataset), &crit->vars, &crit->var_cnt,
+	  if (!parse_variables (dataset_dict (ds), &crit->vars, &crit->var_cnt,
                                 PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
           pool_register (trns->pool, free, crit->vars);
@@ -176,13 +176,13 @@ cmd_count (void)
       {
 	/* It's valid, though motivationally questionable, to count to
 	   the same dest var more than once. */
-	dv->var = dict_lookup_var (dataset_dict (current_dataset), dv->name);
+	dv->var = dict_lookup_var (dataset_dict (ds), dv->name);
 
 	if (dv->var == NULL) 
-          dv->var = dict_create_var_assert (dataset_dict (current_dataset), dv->name, 0);
+          dv->var = dict_create_var_assert (dataset_dict (ds), dv->name, 0);
       }
 
-  add_transformation (current_dataset, count_trns_proc, count_trns_free, trns);
+  add_transformation (ds, count_trns_proc, count_trns_free, trns);
   return CMD_SUCCESS;
 
 fail:
@@ -325,7 +325,7 @@ count_string (struct criteria *crit, struct ccase *c)
 /* Performs the COUNT transformation T on case C. */
 static int
 count_trns_proc (void *trns_, struct ccase *c,
-                 casenum_t case_num UNUSED)
+                 casenumber case_num UNUSED)
 {
   struct count_trns *trns = trns_;
   struct dst_var *dv;

@@ -110,7 +110,7 @@ static struct factor *factors=0;
 static struct metrics *totals=0;
 
 /* Parse the clause specifying the factors */
-static int examine_parse_independent_vars(struct cmd_examine *cmd);
+static int examine_parse_independent_vars (const struct dictionary *dict, struct cmd_examine *cmd);
 
 
 
@@ -151,8 +151,8 @@ void box_plot_variables(const struct factor *fctr,
 
 
 /* Per Split function */
-static bool run_examine(const struct ccase *,
-                        const struct casefile *cf, void *cmd_);
+static bool run_examine (const struct ccase *,
+                        const struct casefile *cf, void *cmd_, const struct dataset *);
 
 static void output_examine(void);
 
@@ -191,14 +191,14 @@ static short sbc_percentile;
 
 
 int
-cmd_examine(void)
+cmd_examine (struct dataset *ds)
 {
   bool ok;
 
   subc_list_double_create(&percentile_list);
   percentile_algorithm = PC_HAVERAGE;
 
-  if ( !parse_examine(&cmd, NULL) )
+  if ( !parse_examine (ds, &cmd, NULL) )
     return CMD_FAILURE;
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
@@ -222,7 +222,7 @@ cmd_examine(void)
       subc_list_double_push(&percentile_list, 75);
     }
 
-  ok = multipass_procedure_with_splits (current_dataset, run_examine, &cmd);
+  ok = multipass_procedure_with_splits (ds, run_examine, &cmd);
 
   if ( totals ) 
     {
@@ -423,7 +423,8 @@ list_to_ptile_hash(const subc_list_double *l)
 
 /* Parse the PERCENTILES subcommand */
 static int
-xmn_custom_percentiles(struct cmd_examine *p UNUSED, void *aux UNUSED)
+xmn_custom_percentiles(struct dataset *ds UNUSED, 
+		       struct cmd_examine *p UNUSED, void *aux UNUSED)
 {
   sbc_percentile = 1;
 
@@ -433,7 +434,7 @@ xmn_custom_percentiles(struct cmd_examine *p UNUSED, void *aux UNUSED)
 
   while ( lex_is_number() ) 
     {
-      subc_list_double_push(&percentile_list,lex_number());
+      subc_list_double_push (&percentile_list, lex_number());
 
       lex_get();
 
@@ -464,13 +465,13 @@ xmn_custom_percentiles(struct cmd_examine *p UNUSED, void *aux UNUSED)
 
   if ( 0 == subc_list_double_count(&percentile_list))
     {
-      subc_list_double_push(&percentile_list, 5);
-      subc_list_double_push(&percentile_list, 10);
-      subc_list_double_push(&percentile_list, 25);
-      subc_list_double_push(&percentile_list, 50);
-      subc_list_double_push(&percentile_list, 75);
-      subc_list_double_push(&percentile_list, 90);
-      subc_list_double_push(&percentile_list, 95);
+      subc_list_double_push (&percentile_list, 5);
+      subc_list_double_push (&percentile_list, 10);
+      subc_list_double_push (&percentile_list, 25);
+      subc_list_double_push (&percentile_list, 50);
+      subc_list_double_push (&percentile_list, 75);
+      subc_list_double_push (&percentile_list, 90);
+      subc_list_double_push (&percentile_list, 95);
     }
 
   return 1;
@@ -478,7 +479,7 @@ xmn_custom_percentiles(struct cmd_examine *p UNUSED, void *aux UNUSED)
 
 /* TOTAL and NOTOTAL are simple, mutually exclusive flags */
 static int
-xmn_custom_total(struct cmd_examine *p, void *aux UNUSED)
+xmn_custom_total (struct dataset *ds UNUSED, struct cmd_examine *p, void *aux UNUSED)
 {
   if ( p->sbc_nototal ) 
     {
@@ -490,7 +491,8 @@ xmn_custom_total(struct cmd_examine *p, void *aux UNUSED)
 }
 
 static int
-xmn_custom_nototal(struct cmd_examine *p, void *aux UNUSED)
+xmn_custom_nototal (struct dataset *ds UNUSED, 
+		    struct cmd_examine *p, void *aux UNUSED)
 {
   if ( p->sbc_total ) 
     {
@@ -506,17 +508,18 @@ xmn_custom_nototal(struct cmd_examine *p, void *aux UNUSED)
 /* Parser for the variables sub command  
    Returns 1 on success */
 static int
-xmn_custom_variables(struct cmd_examine *cmd, void *aux UNUSED)
+xmn_custom_variables(struct dataset *ds, struct cmd_examine *cmd, void *aux UNUSED)
 {
+  const struct dictionary *dict = dataset_dict (ds);
   lex_match('=');
 
-  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
       && token != T_ALL)
     {
       return 2;
     }
   
-  if (!parse_variables (dataset_dict (current_dataset), &dependent_vars, &n_dependent_vars,
+  if (!parse_variables (dict, &dependent_vars, &n_dependent_vars,
 			PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
     {
       free (dependent_vars);
@@ -530,7 +533,7 @@ xmn_custom_variables(struct cmd_examine *cmd, void *aux UNUSED)
   if ( lex_match(T_BY))
     {
       int success ; 
-      success =  examine_parse_independent_vars(cmd);
+      success =  examine_parse_independent_vars (dict, cmd);
       if ( success != 1 ) {
         free (dependent_vars);
       	free (totals) ; 
@@ -545,12 +548,12 @@ xmn_custom_variables(struct cmd_examine *cmd, void *aux UNUSED)
 
 /* Parse the clause specifying the factors */
 static int
-examine_parse_independent_vars(struct cmd_examine *cmd)
+examine_parse_independent_vars (const struct dictionary *dict, struct cmd_examine *cmd)
 {
   int success;
   struct factor *sf = xmalloc (sizeof *sf);
 
-  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
       && token != T_ALL)
     {
       free ( sf ) ;
@@ -558,7 +561,7 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
     }
 
 
-  sf->indep_var[0] = parse_variable();
+  sf->indep_var[0] = parse_variable (dict);
   sf->indep_var[1] = 0;
 
   if ( token == T_BY ) 
@@ -566,14 +569,14 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
 
       lex_match(T_BY);
 
-      if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+      if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
 	  && token != T_ALL)
 	{
 	  free ( sf ) ;
 	  return 2;
 	}
 
-      sf->indep_var[1] = parse_variable();
+      sf->indep_var[1] = parse_variable (dict);
 
     }
 
@@ -592,7 +595,7 @@ examine_parse_independent_vars(struct cmd_examine *cmd)
   if ( token == '.' || token == '/' ) 
     return 1;
 
-  success =  examine_parse_independent_vars(cmd);
+  success =  examine_parse_independent_vars (dict, cmd);
   
   if ( success != 1 ) 
     free ( sf ) ; 
@@ -678,8 +681,10 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 }
 
 static bool 
-run_examine(const struct ccase *first, const struct casefile *cf, void *cmd_ )
+run_examine(const struct ccase *first, const struct casefile *cf, 
+	    void *cmd_, const struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct casereader *r;
   struct ccase c;
   int v;
@@ -688,7 +693,7 @@ run_examine(const struct ccase *first, const struct casefile *cf, void *cmd_ )
 
   struct factor *fctr;
 
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
 
   /* Make sure we haven't got rubbish left over from a 
      previous split */
@@ -704,8 +709,6 @@ run_examine(const struct ccase *first, const struct casefile *cf, void *cmd_ )
       fctr = next;
     }
 
-
-
   for ( v = 0 ; v < n_dependent_vars ; ++v ) 
     metrics_precalc(&totals[v]);
 
@@ -717,7 +720,7 @@ run_examine(const struct ccase *first, const struct casefile *cf, void *cmd_ )
       const int case_no = casereader_cnum(r);
 
       const double weight = 
-	dict_get_case_weight(dataset_dict (current_dataset), &c, &bad_weight_warn);
+	dict_get_case_weight(dict, &c, &bad_weight_warn);
 
       if ( cmd->miss == XMN_LISTWISE ) 
 	{

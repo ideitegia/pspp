@@ -79,23 +79,13 @@ parse_vs_variable (const struct var_set *vs)
    variable if successful.  On failure emits an error message and
    returns a null pointer. */
 struct variable *
-parse_dict_variable (const struct dictionary *d) 
+parse_variable (const struct dictionary *d) 
 {
   struct var_set *vs = var_set_create_from_dict (d);
   struct variable *var = parse_vs_variable (vs);
   var_set_destroy (vs);
   return var;
 }
-
-/* Parses a variable name in dataset_dict (current_dataset) and returns the
-   variable if successful.  On failure emits an error message and
-   returns a null pointer. */
-struct variable *
-parse_variable (void)
-{
-  return parse_dict_variable (dataset_dict (current_dataset));
-}
-
 
 /* Parses a set of variables from dictionary D given options
    OPTS.  Resulting list of variables stored in *VAR and the
@@ -533,7 +523,8 @@ parse_DATA_LIST_vars_pool (struct pool *pool,
    existing and the rest are to be created.  Same args as
    parse_DATA_LIST_vars(). */
 bool
-parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
+parse_mixed_vars (const struct dictionary *dict, 
+		  char ***names, size_t *nnames, int pv_opts)
 {
   size_t i;
 
@@ -548,12 +539,12 @@ parse_mixed_vars (char ***names, size_t *nnames, int pv_opts)
     }
   while (token == T_ID || token == T_ALL)
     {
-      if (token == T_ALL || dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
+      if (token == T_ALL || dict_lookup_var (dict, tokid) != NULL)
 	{
 	  struct variable **v;
 	  size_t nv;
 
-	  if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
+	  if (!parse_variables (dict, &v, &nv, PV_NONE))
 	    goto fail;
 	  *names = xnrealloc (*names, *nnames + nv, sizeof **names);
 	  for (i = 0; i < nv; i++)
@@ -580,7 +571,7 @@ fail:
    parse_mixed_vars(), except that all allocations are taken
    from the given POOL. */
 bool
-parse_mixed_vars_pool (struct pool *pool,
+parse_mixed_vars_pool (const struct dictionary *dict, struct pool *pool,
                        char ***names, size_t *nnames, int pv_opts)
 {
   int retval;
@@ -591,7 +582,7 @@ parse_mixed_vars_pool (struct pool *pool,
      re-free it later. */
   assert (!(pv_opts & PV_APPEND));
 
-  retval = parse_mixed_vars (names, nnames, pv_opts);
+  retval = parse_mixed_vars (dict, names, nnames, pv_opts);
   if (retval)
     register_vars_pool (pool, *names, *nnames);
   return retval;

@@ -118,7 +118,8 @@ static struct file_handle *model_file;
 static int pspp_reg_rc = CMD_SUCCESS;
 
 static bool run_regression (const struct ccase *,
-			    const struct casefile *, void *);
+			    const struct casefile *, void *, 
+			    const struct dataset *);
 
 /* 
    STATISTICS subcommand output functions.
@@ -621,32 +622,35 @@ regression_trns_resid_proc (void *t_, struct ccase *c,
 }
 
 /* 
-   Returns 0 if NAME is a duplicate of any existing variable name.
+   Returns false if NAME is a duplicate of any existing variable name.
 */
-static int
-try_name (char *name)
+static bool
+try_name (const struct dictionary *dict, const char *name)
 {
-  if (dict_lookup_var (dataset_dict (current_dataset), name) != NULL)
-    return 0;
+  if (dict_lookup_var (dict, name) != NULL)
+    return false;
 
-  return 1;
+  return true;
 }
+
 static void
-reg_get_name (char name[LONG_NAME_LEN], const char prefix[LONG_NAME_LEN])
+reg_get_name (const struct dictionary *dict, char name[LONG_NAME_LEN], const char prefix[LONG_NAME_LEN])
 {
   int i = 1;
 
   snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
-  while (!try_name (name))
+  while (!try_name (dict, name))
     {
       i++;
       snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
     }
 }
+
 static void
-reg_save_var (const char *prefix, trns_proc_func * f,
+reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
 	      pspp_linreg_cache * c, struct variable **v, int n_trns)
 {
+  struct dictionary *dict = dataset_dict (ds);
   static int trns_index = 1;
   char name[LONG_NAME_LEN];
   struct variable *new_var;
@@ -656,15 +660,16 @@ reg_save_var (const char *prefix, trns_proc_func * f,
   t->trns_id = trns_index;
   t->n_trns = n_trns;
   t->c = c;
-  reg_get_name (name, prefix);
-  new_var = dict_create_var (dataset_dict (current_dataset), name, 0);
+  reg_get_name (dict, name, prefix);
+  new_var = dict_create_var (dict, name, 0);
   assert (new_var != NULL);
   *v = new_var;
-  add_transformation (current_dataset, f, regression_trns_free, t);
+  add_transformation (ds, f, regression_trns_free, t);
   trns_index++;
 }
+
 static void
-subcommand_save (int save, pspp_linreg_cache ** models)
+subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
 {
   pspp_linreg_cache **lc;
   int n_trns = 0;
@@ -690,12 +695,12 @@ subcommand_save (int save, pspp_linreg_cache ** models)
 	  assert ((*lc)->depvar != NULL);
 	  if (cmd.a_save[REGRESSION_SV_RESID])
 	    {
-	      reg_save_var ("RES", regression_trns_resid_proc, *lc,
+	      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
 			    &(*lc)->resid, n_trns);
 	    }
 	  if (cmd.a_save[REGRESSION_SV_PRED])
 	    {
-	      reg_save_var ("PRED", regression_trns_pred_proc, *lc,
+	      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
 			    &(*lc)->pred, n_trns);
 	    }
 	}
@@ -709,6 +714,7 @@ subcommand_save (int save, pspp_linreg_cache ** models)
 	}
     }
 }
+
 static int
 reg_inserted (const struct variable *v, struct variable **varlist, int n_vars)
 {
@@ -723,6 +729,7 @@ reg_inserted (const struct variable *v, struct variable **varlist, int n_vars)
     }
   return 0;
 }
+
 static void
 reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 {
@@ -907,8 +914,9 @@ subcommand_export (int export, pspp_linreg_cache * c)
       fclose (fp);
     }
 }
+
 static int
-regression_custom_export (struct cmd_regression *cmd UNUSED, void *aux UNUSED)
+regression_custom_export (struct dataset *ds UNUSED, struct cmd_regression *cmd UNUSED, void *aux UNUSED)
 {
   /* 0 on failure, 1 on success, 2 on failure that should result in syntax error */
   if (!lex_force_match ('('))
@@ -930,15 +938,15 @@ regression_custom_export (struct cmd_regression *cmd UNUSED, void *aux UNUSED)
 }
 
 int
-cmd_regression (void)
+cmd_regression (struct dataset *ds)
 {
-  if (!parse_regression (&cmd, NULL))
+  if (!parse_regression (ds, &cmd, NULL))
     return CMD_FAILURE;
 
   models = xnmalloc (cmd.n_dependent, sizeof *models);
-  if (!multipass_procedure_with_splits (current_dataset, run_regression, &cmd))
+  if (!multipass_procedure_with_splits (ds, run_regression, &cmd))
     return CMD_CASCADING_FAILURE;
-  subcommand_save (cmd.sbc_save, models);
+  subcommand_save (ds, cmd.sbc_save, models);
   free (v_variables);
   free (models);
   return pspp_reg_rc;
@@ -996,18 +1004,20 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
 /* Parser for the variables sub command */
 static int
-regression_custom_variables (struct cmd_regression *cmd UNUSED,
+regression_custom_variables (struct dataset *ds, 
+			     struct cmd_regression *cmd UNUSED,
 			     void *aux UNUSED)
 {
+  const struct dictionary *dict = dataset_dict (ds);
 
   lex_match ('=');
 
-  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
       && token != T_ALL)
     return 2;
 
 
-  if (!parse_variables (dataset_dict (current_dataset), &v_variables, &n_variables, PV_NONE))
+  if (!parse_variables (dict, &v_variables, &n_variables, PV_NONE))
     {
       free (v_variables);
       return 0;
@@ -1089,7 +1099,7 @@ coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
 
 static bool
 run_regression (const struct ccase *first,
-		const struct casefile *cf, void *cmd_ UNUSED)
+		const struct casefile *cf, void *cmd_ UNUSED, const struct dataset *ds)
 {
   size_t i;
   size_t n_data = 0;		/* Number of valide cases. */
@@ -1113,11 +1123,11 @@ run_regression (const struct ccase *first,
 
   assert (models != NULL);
 
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
 
   if (!v_variables)
     {
-      dict_get_vars (dataset_dict (current_dataset), &v_variables, &n_variables,
+      dict_get_vars (dataset_dict (ds), &v_variables, &n_variables,
 		     1u << DC_SYSTEM);
     }
 

@@ -41,10 +41,10 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_split_file (void)
+cmd_split_file (struct dataset *ds)
 {
   if (lex_match_id ("OFF"))
-    dict_set_split_vars (dataset_dict (current_dataset), NULL, 0);
+    dict_set_split_vars (dataset_dict (ds), NULL, 0);
   else
     {
       struct variable **v;
@@ -54,10 +54,10 @@ cmd_split_file (void)
       (void) ( lex_match_id ("SEPARATE") || lex_match_id ("LAYERED") );
       
       lex_match (T_BY);
-      if (!parse_variables (dataset_dict (current_dataset), &v, &n, PV_NO_DUPLICATE))
+      if (!parse_variables (dataset_dict (ds), &v, &n, PV_NO_DUPLICATE))
 	return CMD_CASCADING_FAILURE;
 
-      dict_set_split_vars (dataset_dict (current_dataset), v, n);
+      dict_set_split_vars (dataset_dict (ds), v, n);
       free (v);
     }
 
@@ -66,14 +66,15 @@ cmd_split_file (void)
 
 /* Dumps out the values of all the split variables for the case C. */
 void
-output_split_file_values (const struct ccase *c)
+output_split_file_values (const struct dataset *ds, const struct ccase *c)
 {
+  const struct dictionary *dict = dataset_dict (ds);
   struct variable *const *split;
   struct tab_table *t;
   size_t split_cnt;
   int i;
 
-  split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
+  split_cnt = dict_get_split_cnt (dict);
   if (split_cnt == 0)
     return;
 
@@ -84,7 +85,7 @@ output_split_file_values (const struct ccase *c)
   tab_text (t, 0, 0, TAB_NONE, _("Variable"));
   tab_text (t, 1, 0, TAB_LEFT, _("Value"));
   tab_text (t, 2, 0, TAB_LEFT, _("Label"));
-  split = dict_get_split_vars (dataset_dict (current_dataset));
+  split = dict_get_split_vars (dict);
   for (i = 0; i < split_cnt; i++)
     {
       struct variable *v = split[i];

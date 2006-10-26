@@ -69,6 +69,8 @@ void bug_handler(int sig);
 
 /* Handle quit/term/int signals */
 void interrupt_handler(int sig);
+static struct dataset * the_dataset = NULL;
+
 
 
 /* Program entry point. */
@@ -93,7 +95,7 @@ main (int argc, char **argv)
   readln_initialize ();
   settings_init ();
   random_init ();
-  current_dataset = create_dataset ();
+  the_dataset = create_dataset ();
 
   if (parse_command_line (argc, argv)) 
     {
@@ -102,7 +104,8 @@ main (int argc, char **argv)
 
       for (;;)
         {
-          int result = cmd_parse (proc_has_source (current_dataset)
+          int result = cmd_parse (the_dataset, 
+				  proc_has_source (the_dataset)
                                   ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
@@ -178,7 +181,7 @@ terminate (bool success)
     {
       terminating = true;
 
-      destroy_dataset (current_dataset);
+      destroy_dataset (the_dataset);
 
       random_done ();
       settings_done ();

@@ -40,7 +40,9 @@ The dependent variables :   v_dep;
 */
 
 
-void  levene(const struct casefile *cf, 
+struct dictionary ;
+
+void  levene(const struct dictionary *dict, const struct casefile *cf, 
 	     struct variable *v_indep, size_t n_dep, struct variable **v_dep,
 	     enum lev_missing,   is_missing_func);
 

@@ -35,7 +35,7 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_variable_labels (void)
+cmd_variable_labels (struct dataset *ds)
 {
   do
     {
@@ -44,7 +44,7 @@ cmd_variable_labels (void)
 
       size_t i;
 
-      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if (token != T_STRING)

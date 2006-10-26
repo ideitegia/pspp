@@ -42,7 +42,7 @@ int change_permissions(const char *file_name, enum PER per);
 
 /* Parses the PERMISSIONS command. */
 int
-cmd_permissions (void)
+cmd_permissions (struct dataset *ds UNUSED)
 {
   char  *fn = 0;
 

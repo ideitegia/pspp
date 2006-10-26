@@ -82,20 +82,21 @@ struct levene_info
 
 /* First pass */
 static void  levene_precalc (const struct levene_info *l);
-static int levene_calc (const struct ccase *, void *);
+static int levene_calc (const struct dictionary *dict, const struct ccase *, void *);
 static void levene_postcalc (void *);
 
 
 /* Second pass */
 static void levene2_precalc (void *);
-static int levene2_calc (const struct ccase *, void *);
+static int levene2_calc (const struct dictionary *,const struct ccase *, void *);
 static void levene2_postcalc (void *);
 
 
 void  
-levene(const struct casefile *cf,
+levene(const struct dictionary *dict, 
+       const struct casefile *cf,
        struct variable *v_indep, size_t n_dep, struct variable **v_dep,
-	     enum lev_missing missing,   is_missing_func value_is_missing)
+       enum lev_missing missing,   is_missing_func value_is_missing)
 {
   struct casereader *r;
   struct ccase c;
@@ -114,7 +115,7 @@ levene(const struct casefile *cf,
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
-      levene_calc(&c,&l);
+      levene_calc (dict, &c,&l);
     }
   casereader_destroy (r);
   levene_postcalc(&l);
@@ -124,7 +125,7 @@ levene(const struct casefile *cf,
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
-      levene2_calc(&c,&l);
+      levene2_calc (dict, &c,&l);
     }
   casereader_destroy (r);
   levene2_postcalc(&l);
@@ -184,14 +185,14 @@ levene_precalc (const struct levene_info *l)
 }
 
 static int 
-levene_calc (const struct ccase *c, void *_l)
+levene_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
 {
   size_t i;
   bool warn = false;
   struct levene_info *l = (struct levene_info *) _l;
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &warn); 
+  double weight = dict_get_case_weight (dict, c, &warn); 
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
   if ( l->missing == LEV_LISTWISE ) 
@@ -207,7 +208,6 @@ levene_calc (const struct ccase *c, void *_l)
 	    }
 	}
     }
-
   
   key.id = *gv;
 
@@ -288,14 +288,14 @@ levene2_precalc (void *_l)
 }
 
 static int 
-levene2_calc (const struct ccase *c, void *_l)
+levene2_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
 {
   size_t i;
   bool warn = false;
 
   struct levene_info *l = (struct levene_info *) _l;
 
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &warn); 
+  double weight = dict_get_case_weight (dict, c, &warn); 
 
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;

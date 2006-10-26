@@ -41,10 +41,10 @@
 
 /* Parses the TEMPORARY command. */
 int
-cmd_temporary (void)
+cmd_temporary (struct dataset *ds)
 {
-  if (!proc_in_temporary_transformations (current_dataset))
-    proc_start_temporary_transformations (current_dataset);
+  if (!proc_in_temporary_transformations (ds))
+    proc_start_temporary_transformations (ds);
   else
     msg (SE, _("This command may only appear once between "
                "procedures and procedure-like commands."));

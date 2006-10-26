@@ -39,7 +39,7 @@
 
 /* Parses and executes APPLY DICTIONARY. */
 int
-cmd_apply_dictionary (void)
+cmd_apply_dictionary (struct dataset *ds)
 {
   struct file_handle *handle;
   struct any_reader *reader;
@@ -63,7 +63,7 @@ cmd_apply_dictionary (void)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *s = dict_get_var (dict, i);
-      struct variable *t = dict_lookup_var (dataset_dict (current_dataset), s->name);
+      struct variable *t = dict_lookup_var (dataset_dict (ds), s->name);
       if (t == NULL)
 	continue;
 
@@ -128,10 +128,10 @@ cmd_apply_dictionary (void)
   if (dict_get_weight (dict) != NULL) 
     {
       struct variable *new_weight
-        = dict_lookup_var (dataset_dict (current_dataset), dict_get_weight (dict)->name);
+        = dict_lookup_var (dataset_dict (ds), dict_get_weight (dict)->name);
 
       if (new_weight != NULL)
-        dict_set_weight (dataset_dict (current_dataset), new_weight);
+        dict_set_weight (dataset_dict (ds), new_weight);
     }
   
   any_reader_close (reader);

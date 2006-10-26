@@ -23,7 +23,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef unsigned long casenum_t ;
+typedef unsigned long casenumber ;
 
 /* trns_proc_func return values. */
 enum trns_result 
@@ -37,7 +37,7 @@ enum trns_result
 
 struct ccase;
 typedef void trns_finalize_func (void *);
-typedef int trns_proc_func (void *, struct ccase *, casenum_t);
+typedef int trns_proc_func (void *, struct ccase *, casenumber);
 typedef bool trns_free_func (void *);
 
 /* Transformation chains. */

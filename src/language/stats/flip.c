@@ -80,29 +80,30 @@ struct flip_pgm
   };
 
 static void destroy_flip_pgm (struct flip_pgm *);
-static struct case_sink *flip_sink_create (struct flip_pgm *);
+static struct case_sink *flip_sink_create (struct dictionary *d, struct flip_pgm *);
 static struct case_source *flip_source_create (struct flip_pgm *);
 static bool flip_file (struct flip_pgm *);
-static int build_dictionary (struct flip_pgm *);
+static int build_dictionary (struct dictionary *, struct flip_pgm *);
 
 static const struct case_source_class flip_source_class;
 static const struct case_sink_class flip_sink_class;
 
 /* Parses and executes FLIP. */
 int
-cmd_flip (void)
+cmd_flip (struct dataset *ds)
 {
   struct flip_pgm *flip;
   struct case_sink *sink;
+  struct dictionary *dict = dataset_dict (ds);
   bool ok;
 
-  if (proc_make_temporary_transformations_permanent (current_dataset))
+  if (proc_make_temporary_transformations_permanent (ds))
     msg (SW, _("FLIP ignores TEMPORARY.  "
                "Temporary transformations will be made permanent."));
 
   flip = pool_create_container (struct flip_pgm, pool);
   flip->var = NULL;
-  flip->idx_to_fv = dict_get_compacted_idx_to_fv (dataset_dict (current_dataset));
+  flip->idx_to_fv = dict_get_compacted_idx_to_fv (dict);
   pool_register (flip->pool, free, flip->idx_to_fv);
   flip->var_cnt = 0;
   flip->case_cnt = 0;
@@ -115,25 +116,25 @@ cmd_flip (void)
   if (lex_match_id ("VARIABLES"))
     {
       lex_match ('=');
-      if (!parse_variables (dataset_dict (current_dataset), &flip->var, &flip->var_cnt,
+      if (!parse_variables (dict, &flip->var, &flip->var_cnt,
                             PV_NO_DUPLICATE))
 	goto error;
       lex_match ('/');
     }
   else
-    dict_get_vars (dataset_dict (current_dataset), &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
+    dict_get_vars (dict, &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
   pool_register (flip->pool, free, flip->var);
 
   lex_match ('/');
   if (lex_match_id ("NEWNAMES"))
     {
       lex_match ('=');
-      flip->new_names = parse_variable ();
+      flip->new_names = parse_variable (dict);
       if (!flip->new_names)
         goto error;
     }
   else
-    flip->new_names = dict_lookup_var (dataset_dict (current_dataset), "CASE_LBL");
+    flip->new_names = dict_lookup_var (dict, "CASE_LBL");
 
   if (flip->new_names)
     {
@@ -150,32 +151,32 @@ cmd_flip (void)
 
   /* Read the active file into a flip_sink. */
   flip->case_cnt = 0;
-  proc_make_temporary_transformations_permanent (current_dataset);
-  sink = flip_sink_create (flip);
+  proc_make_temporary_transformations_permanent (ds);
+  sink = flip_sink_create (dict, flip);
   if (sink == NULL)
     goto error;
-  proc_set_sink (current_dataset, sink);
+  proc_set_sink (ds, sink);
   flip->new_names_tail = NULL;
-  ok = procedure (current_dataset,NULL, NULL);
+  ok = procedure (ds,NULL, NULL);
 
   /* Flip the data we read. */
   if (!flip_file (flip)) 
     {
-      discard_variables (current_dataset);
+      discard_variables (ds);
       goto error;
     }
 
   /* Flip the dictionary. */
-  dict_clear (dataset_dict (current_dataset));
-  if (!build_dictionary (flip))
+  dict_clear (dict);
+  if (!build_dictionary (dict, flip))
     {
-      discard_variables (current_dataset);
+      discard_variables (ds);
       goto error;
     }
-  flip->case_size = dict_get_case_size (dataset_dict (current_dataset));
+  flip->case_size = dict_get_case_size (dict);
 
   /* Set up flipped data for reading. */
-  proc_set_source (current_dataset, flip_source_create (flip));
+  proc_set_source (ds, flip_source_create (flip));
 
   return ok ? lex_end_of_command () : CMD_CASCADING_FAILURE;
 
@@ -195,7 +196,7 @@ destroy_flip_pgm (struct flip_pgm *flip)
 /* Make a new variable with base name NAME, which is bowdlerized and
    mangled until acceptable, and returns success. */
 static int
-make_new_var (char name[])
+make_new_var (struct dictionary *dict, char name[])
 {
   char *cp;
 
@@ -219,7 +220,7 @@ make_new_var (char name[])
   *cp = '\0';
   str_uppercase (name);
   
-  if (dict_create_var (dataset_dict (current_dataset), name, 0))
+  if (dict_create_var (dict, name, 0))
     return 1;
 
   /* Add numeric extensions until acceptable. */
@@ -234,7 +235,7 @@ make_new_var (char name[])
 	memcpy (n, name, ofs);
 	sprintf (&n[ofs], "%d", i);
 
-	if (dict_create_var (dataset_dict (current_dataset), n, 0))
+	if (dict_create_var (dict, n, 0))
 	  return 1;
       }
   }
@@ -245,9 +246,9 @@ make_new_var (char name[])
 
 /* Make a new dictionary for all the new variable names. */
 static int
-build_dictionary (struct flip_pgm *flip)
+build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
 {
-  dict_create_var_assert (dataset_dict (current_dataset), "CASE_LBL", 8);
+  dict_create_var_assert (dict, "CASE_LBL", 8);
 
   if (flip->new_names_head == NULL)
     {
@@ -265,7 +266,7 @@ build_dictionary (struct flip_pgm *flip)
 	  char s[SHORT_NAME_LEN + 1];
 
 	  sprintf (s, "VAR%03d", i);
-	  v = dict_create_var_assert (dataset_dict (current_dataset), s, 0);
+	  v = dict_create_var_assert (dict, s, 0);
 	}
     }
   else
@@ -273,7 +274,7 @@ build_dictionary (struct flip_pgm *flip)
       struct varname *v;
 
       for (v = flip->new_names_head; v; v = v->next)
-        if (!make_new_var (v->name))
+        if (!make_new_var (dict, v->name))
           return 0;
     }
   
@@ -282,7 +283,7 @@ build_dictionary (struct flip_pgm *flip)
      
 /* Creates a flip sink based on FLIP. */
 static struct case_sink *
-flip_sink_create (struct flip_pgm *flip) 
+flip_sink_create (struct dictionary *dict, struct flip_pgm *flip) 
 {
   size_t i;
 
@@ -309,7 +310,7 @@ flip_sink_create (struct flip_pgm *flip)
 
   flip->case_cnt = 1;
 
-  return create_case_sink (&flip_sink_class, dataset_dict (current_dataset), flip);
+  return create_case_sink (&flip_sink_class, dict, flip);
 }
 
 /* Writes case C to the FLIP sink.

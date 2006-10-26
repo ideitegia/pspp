@@ -26,6 +26,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "xalloc.h"
+#include <libpspp/compiler.h>
 
 #define _(msgid) gettext (msgid)
 
@@ -69,7 +70,7 @@ read_values (double **values, double **weights, size_t *cnt)
 }
 
 int
-cmd_debug_moments (void) 
+cmd_debug_moments (struct dataset *ds UNUSED) 
 {
   int retval = CMD_FAILURE;
   double *values = NULL;

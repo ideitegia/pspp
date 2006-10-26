@@ -74,6 +74,7 @@ struct repeat_entry
 struct repeat_block 
   {
     struct pool *pool;                  /* Pool used for storage. */
+    struct dataset *ds;                 /* The dataset for this block */
     struct line_list *first_line;       /* First line in line buffer. */
     struct line_list *cur_line;         /* Current line in line buffer. */
     int loop_cnt;                       /* Number of loops. */
@@ -86,7 +87,7 @@ static bool parse_specification (struct repeat_block *);
 static bool parse_lines (struct repeat_block *);
 static void create_vars (struct repeat_block *);
 
-static int parse_ids (struct repeat_entry *, struct pool *);
+static int parse_ids (const struct dictionary *dict, struct repeat_entry *, struct pool *);
 static int parse_numbers (struct repeat_entry *, struct pool *);
 static int parse_strings (struct repeat_entry *, struct pool *);
 
@@ -96,11 +97,12 @@ static bool do_repeat_read (struct string *line, char **file_name,
 static void do_repeat_close (void *block);
 
 int
-cmd_do_repeat (void)
+cmd_do_repeat (struct dataset *ds)
 {
   struct repeat_block *block;
 
   block = pool_create_container (struct repeat_block, pool);
+  block->ds = ds;
 
   if (!parse_specification (block) || !parse_lines (block))
     goto error;
@@ -132,12 +134,13 @@ parse_specification (struct repeat_block *block)
     {
       struct repeat_entry *e;
       struct repeat_entry *iter;
+      struct dictionary *dict = dataset_dict (block->ds);
       int count;
 
       /* Get a stand-in variable name and make sure it's unique. */
       if (!lex_force_id ())
 	return false;
-      if (dict_lookup_var (dataset_dict (current_dataset), tokid))
+      if (dict_lookup_var (dict, tokid))
         msg (SW, _("Dummy variable name \"%s\" hides dictionary "
                    "variable \"%s\"."),
              tokid, tokid);
@@ -162,7 +165,7 @@ parse_specification (struct repeat_block *block)
 
       /* Get the details of the variable's possible values. */
       if (token == T_ID)
-	count = parse_ids (e, block->pool);
+	count = parse_ids (dict, e, block->pool);
       else if (lex_is_number ())
 	count = parse_numbers (e, block->pool);
       else if (token == T_STRING)
@@ -331,18 +334,18 @@ create_vars (struct repeat_block *block)
           {
             /* Ignore return value: if the variable already
                exists there is no harm done. */
-            dict_create_var (dataset_dict (current_dataset), iter->replacement[i], 0);
+            dict_create_var (dataset_dict (block->ds), iter->replacement[i], 0);
           }
       }
 }
 
 /* Parses a set of ids for DO REPEAT. */
 static int
-parse_ids (struct repeat_entry *e, struct pool *pool)
+parse_ids (const struct dictionary *dict, struct repeat_entry *e, struct pool *pool)
 {
   size_t n = 0;
   e->type = VAR_NAMES;
-  return parse_mixed_vars_pool (pool, &e->replacement, &n, PV_NONE) ? n : 0;
+  return parse_mixed_vars_pool (dict, pool, &e->replacement, &n, PV_NONE) ? n : 0;
 }
 
 /* Adds STRING to E's list of replacements, which has *USED
@@ -440,7 +443,7 @@ parse_strings (struct repeat_entry *e, struct pool *pool)
 }
 
 int
-cmd_end_repeat (void)
+cmd_end_repeat (struct dataset *ds UNUSED)
 {
   msg (SE, _("No matching DO REPEAT."));
   return CMD_CASCADING_FAILURE;

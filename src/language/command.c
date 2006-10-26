@@ -108,7 +108,7 @@ struct command
     enum states states;         /* States in which command is allowed. */
     enum flags flags;           /* Other command requirements. */
     const char *name;		/* Command name. */
-    int (*function) (void);	/* Function to call. */
+    int (*function) (struct dataset *);	/* Function to call. */
   };
 
 /* Define the command array. */
@@ -131,24 +131,24 @@ static void set_completion_state (enum cmd_state);
 /* Command parser. */
 
 static const struct command *parse_command_name (void);
-static enum cmd_result do_parse_command (enum cmd_state);
+static enum cmd_result do_parse_command (struct dataset *ds, enum cmd_state);
 
 /* Parses an entire command, from command name to terminating
    dot.  On failure, skips to the terminating dot.
    Returns the command's success or failure result. */
 enum cmd_result
-cmd_parse (enum cmd_state state) 
+cmd_parse (struct dataset *ds, enum cmd_state state) 
 {
   int result;
   
   som_new_series ();
 
-  result = do_parse_command (state);
+  result = do_parse_command (ds, state);
   if (cmd_result_is_failure (result)) 
     lex_discard_rest_of_command ();
 
   unset_cmd_algorithm ();
-  dict_clear_aux (dataset_dict (current_dataset));
+  dict_clear_aux (dataset_dict (ds));
 
   return result;
 }
@@ -156,7 +156,7 @@ cmd_parse (enum cmd_state state)
 /* Parses an entire command, from command name to terminating
    dot. */
 static enum cmd_result
-do_parse_command (enum cmd_state state)
+do_parse_command (struct dataset *ds, enum cmd_state state)
 {
   const struct command *command;
   enum cmd_result result;
@@ -203,7 +203,7 @@ do_parse_command (enum cmd_state state)
   /* Execute command. */
   msg_set_command_name (command->name);
   tab_set_command_name (command->name);
-  result = command->function ();
+  result = command->function (ds);
   tab_set_command_name (NULL);
   msg_set_command_name (NULL);
     
@@ -649,14 +649,14 @@ cmd_complete (const char *prefix, const struct command **cmd)
 
 /* Parse and execute FINISH command. */
 int
-cmd_finish (void)
+cmd_finish (struct dataset *ds UNUSED)
 {
   return CMD_FINISH;
 }
 
 /* Parses the N command. */
 int
-cmd_n_of_cases (void)
+cmd_n_of_cases (struct dataset *ds)
 {
   /* Value for N. */
   int x;
@@ -666,23 +666,23 @@ cmd_n_of_cases (void)
   x = lex_integer ();
   lex_get ();
   if (!lex_match_id ("ESTIMATED"))
-    dict_set_case_limit (dataset_dict (current_dataset), x);
+    dict_set_case_limit (dataset_dict (ds), x);
 
   return lex_end_of_command ();
 }
 
 /* Parses, performs the EXECUTE procedure. */
 int
-cmd_execute (void)
+cmd_execute (struct dataset *ds)
 {
-  if (!procedure (current_dataset,NULL, NULL))
+  if (!procedure (ds, NULL, NULL))
     return CMD_CASCADING_FAILURE;
   return lex_end_of_command ();
 }
 
 /* Parses, performs the ERASE command. */
 int
-cmd_erase (void)
+cmd_erase (struct dataset *ds UNUSED)
 {
   if (get_safer_mode ()) 
     { 
@@ -811,7 +811,7 @@ run_command (void)
 
 /* Parses, performs the HOST command. */
 int
-cmd_host (void)
+cmd_host (struct dataset *ds UNUSED)
 {
   int code;
 
@@ -848,16 +848,16 @@ cmd_host (void)
 
 /* Parses, performs the NEW FILE command. */
 int
-cmd_new_file (void)
+cmd_new_file (struct dataset *ds)
 {
-  discard_variables (current_dataset);
+  discard_variables (ds);
 
   return lex_end_of_command ();
 }
 
 /* Parses a comment. */
 int
-cmd_comment (void)
+cmd_comment (struct dataset *ds UNUSED)
 {
   lex_skip_comment ();
   return CMD_SUCCESS;

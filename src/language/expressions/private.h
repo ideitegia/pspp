@@ -156,7 +156,7 @@ union operation_data
 struct expression
   {
     struct pool *expr_pool;     /* Pool for expression static data. */
-    struct dictionary *dict;    /* Dictionary for variables, vectors. */
+    struct dataset *ds ;        /* The dataset */
     atom_type type;             /* Type of expression result. */
 
     union operation_data *ops;  /* Expression data. */
@@ -168,7 +168,7 @@ struct expression
     struct pool *eval_pool;     /* Pool for evaluation temporaries. */
   };
 
-struct expression *expr_parse_any (struct dictionary *, bool optimize);
+struct expression *expr_parse_any (struct dataset *,  bool optimize);
 void expr_debug_print_postfix (const struct expression *);
 
 union any_node *expr_optimize (union any_node *, struct expression *);

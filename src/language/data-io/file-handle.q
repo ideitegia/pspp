@@ -51,7 +51,7 @@
 /* (functions) */
 
 int
-cmd_file_handle (void)
+cmd_file_handle (struct dataset *ds)
 {
   char handle_name[LONG_NAME_LEN + 1];
   struct fh_properties properties = *fh_default_properties ();
@@ -76,7 +76,7 @@ cmd_file_handle (void)
   if (!lex_force_match ('/'))
     return CMD_CASCADING_FAILURE;
 
-  if (!parse_file_handle (&cmd, NULL))
+  if (!parse_file_handle (ds, &cmd, NULL))
     return CMD_CASCADING_FAILURE;
 
   if (lex_end_of_command () != CMD_SUCCESS)
@@ -127,7 +127,7 @@ cmd_file_handle (void)
 }
 
 int
-cmd_close_file_handle (void) 
+cmd_close_file_handle (struct dataset *ds UNUSED) 
 {
   struct file_handle *handle;
 

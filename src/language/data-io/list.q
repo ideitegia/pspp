@@ -83,11 +83,11 @@ static unsigned n_chars_width (struct outp_driver *d);
 static void write_line (struct outp_driver *d, const char *s);
 
 /* Other functions. */
-static bool list_cases (const struct ccase *, void *);
+static bool list_cases (const struct ccase *, void *, const struct dataset *);
 static void determine_layout (void);
 static void clean_up (void);
 static void write_header (struct outp_driver *);
-static void write_all_headers (const struct ccase *, void *);
+static void write_all_headers (const struct ccase *, void *, const struct dataset*);
 
 /* Returns the number of text lines that can fit on the remainder of
    the page. */
@@ -129,12 +129,12 @@ write_line (struct outp_driver *d, const char *s)
     
 /* Parses and executes the LIST procedure. */
 int
-cmd_list (void)
+cmd_list (struct dataset *ds)
 {
   struct variable casenum_var;
   bool ok;
 
-  if (!parse_list (&cmd, NULL))
+  if (!parse_list (ds, &cmd, NULL))
     return CMD_FAILURE;
   
   /* Fill in defaults. */
@@ -145,7 +145,7 @@ cmd_list (void)
   if (cmd.last == NOT_LONG)
     cmd.last = LONG_MAX;
   if (!cmd.sbc_variables)
-    dict_get_vars (dataset_dict (current_dataset), &cmd.v_variables, &cmd.n_variables,
+    dict_get_vars (dataset_dict (ds), &cmd.v_variables, &cmd.n_variables,
 		   (1u << DC_SYSTEM) | (1u << DC_SCRATCH));
   if (cmd.n_variables == 0)
     {
@@ -185,12 +185,12 @@ cmd_list (void)
   /* Weighting variable. */
   if (cmd.weight == LST_WEIGHT)
     {
-      if (dict_get_weight (dataset_dict (current_dataset)) != NULL)
+      if (dict_get_weight (dataset_dict (ds)) != NULL)
 	{
 	  size_t i;
 
 	  for (i = 0; i < cmd.n_variables; i++)
-	    if (cmd.v_variables[i] == dict_get_weight (dataset_dict (current_dataset)))
+	    if (cmd.v_variables[i] == dict_get_weight (dataset_dict (ds)))
 	      break;
 	  if (i >= cmd.n_variables)
 	    {
@@ -199,7 +199,7 @@ cmd_list (void)
 	      cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
                                            sizeof *cmd.v_variables);
 	      cmd.v_variables[cmd.n_variables - 1]
-                = dict_get_weight (dataset_dict (current_dataset));
+                = dict_get_weight (dataset_dict (ds));
 	    }
 	}
       else
@@ -229,7 +229,7 @@ cmd_list (void)
   determine_layout ();
 
   case_idx = 0;
-  ok = procedure_with_splits (current_dataset, write_all_headers, list_cases, NULL, NULL);
+  ok = procedure_with_splits (ds, write_all_headers, list_cases, NULL, NULL);
   ds_destroy(&line_buffer);
 
   clean_up ();
@@ -240,11 +240,11 @@ cmd_list (void)
 /* Writes headers to all devices.  This is done at the beginning of
    each SPLIT FILE group. */
 static void
-write_all_headers (const struct ccase *c, void *aux UNUSED)
+write_all_headers (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 {
   struct outp_driver *d;
 
-  output_split_file_values (c);
+  output_split_file_values (ds, c);
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     {
       if (!d->class->special)
@@ -609,7 +609,7 @@ determine_layout (void)
 
 /* Writes case C to output. */
 static bool
-list_cases (const struct ccase *c, void *aux UNUSED)
+list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UNUSED)
 {
   struct outp_driver *d;
   

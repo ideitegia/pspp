@@ -47,7 +47,7 @@ static trns_proc_func print_space_trns_proc;
 static trns_free_func print_space_trns_free;
 
 int
-cmd_print_space (void)
+cmd_print_space (struct dataset *ds)
 {
   struct print_space_trns *trns;
   struct file_handle *handle;
@@ -68,7 +68,7 @@ cmd_print_space (void)
 
   if (token != '.')
     {
-      expr = expr_parse (dataset_dict (current_dataset), EXPR_NUMBER);
+      expr = expr_parse (ds, EXPR_NUMBER);
       if (token != '.')
 	{
 	  expr_free (expr);
@@ -95,7 +95,7 @@ cmd_print_space (void)
   trns->writer = writer;
   trns->expr = expr;
 
-  add_transformation (current_dataset, 
+  add_transformation (ds,
 		      print_space_trns_proc, print_space_trns_free, trns);
   return CMD_SUCCESS;
 }
@@ -103,7 +103,7 @@ cmd_print_space (void)
 /* Executes a PRINT SPACE transformation. */
 static int
 print_space_trns_proc (void *t_, struct ccase *c,
-                       casenum_t case_num UNUSED)
+                       casenumber case_num UNUSED)
 {
   struct print_space_trns *trns = t_;
   int n;

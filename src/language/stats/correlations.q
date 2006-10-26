@@ -46,12 +46,12 @@ static struct cor_set *cor_list, *cor_last;
 static struct file_handle *matrix_file;
 
 static void free_correlations_state (void);
-static int internal_cmd_correlations (void);
+static int internal_cmd_correlations (struct dataset *ds);
 
 int
-cmd_correlations (void)
+cmd_correlations (struct dataset *ds)
 {
-  int result = internal_cmd_correlations ();
+  int result = internal_cmd_correlations (ds);
   free_correlations_state ();
   return result;
 }
@@ -71,22 +71,23 @@ cmd_correlations (void)
 /* (functions) */
 
 int
-internal_cmd_correlations (void)
+internal_cmd_correlations (struct dataset *ds)
 {
   struct cmd_correlations cmd;
 
   cor_list = cor_last = NULL;
   matrix_file = NULL;
 
-  if (!parse_correlations (&cmd, NULL))
+  if (!parse_correlations (ds, &cmd, NULL))
     return CMD_FAILURE;
+
   free_correlations (&cmd);
 
   return CMD_SUCCESS;
 }
 
 static int
-cor_custom_variables (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
+cor_custom_variables (struct dataset *ds, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
   struct variable **v1, **v2;
   size_t nv1, nv2;
@@ -94,18 +95,18 @@ cor_custom_variables (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 
   /* Ensure that this is a VARIABLES subcommand. */
   if (!lex_match_id ("VARIABLES")
-      && (token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
+      && (token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) != NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
 
-  if (!parse_variables (dataset_dict (current_dataset), &v1, &nv1,
+  if (!parse_variables (dataset_dict (ds), &v1, &nv1,
 			PV_NO_DUPLICATE | PV_NUMERIC))
     return 0;
   
   if (lex_match (T_WITH))
     {
-      if (!parse_variables (dataset_dict (current_dataset), &v2, &nv2,
+      if (!parse_variables (dataset_dict (ds), &v2, &nv2,
 			    PV_NO_DUPLICATE | PV_NUMERIC))
 	{
 	  free (v1);
@@ -133,7 +134,7 @@ cor_custom_variables (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-cor_custom_matrix (struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
+cor_custom_matrix (struct dataset *ds UNUSED, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
   if (!lex_force_match ('('))
     return 0;

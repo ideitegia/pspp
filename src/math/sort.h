@@ -60,8 +60,11 @@ void sort_destroy_criteria (struct sort_criteria *);
 struct casefile *sort_execute (struct casereader *,
                                const struct sort_criteria *);
 
-bool sort_active_file_in_place (const struct sort_criteria *);
+struct dataset ;
+bool sort_active_file_in_place (struct dataset *ds, 
+				const struct sort_criteria *);
 
-struct casefile *sort_active_file_to_casefile (const struct sort_criteria *);
+struct casefile *sort_active_file_to_casefile (struct dataset *ds, 
+					       const struct sort_criteria *);
 
 #endif /* !sort_h */

@@ -58,6 +58,7 @@
 struct loop_trns
   {
     struct pool *pool;
+    struct dataset *ds;
 
     /* Iteration limit. */
     int max_pass_count;         /* Maximum number of passes (-1=unlimited). */
@@ -85,7 +86,7 @@ static trns_finalize_func loop_trns_finalize;
 static trns_proc_func loop_trns_proc, end_loop_trns_proc, break_trns_proc;
 static trns_free_func loop_trns_free;
 
-static struct loop_trns *create_loop_trns (void);
+static struct loop_trns *create_loop_trns (struct dataset *);
 static bool parse_if_clause (struct loop_trns *, struct expression **);
 static bool parse_index_clause (struct loop_trns *, char index_var_name[]);
 static void close_loop (void *);
@@ -94,13 +95,13 @@ static void close_loop (void *);
 
 /* Parses LOOP. */
 int
-cmd_loop (void)
+cmd_loop (struct dataset *ds)
 {
   struct loop_trns *loop;
   char index_var_name[LONG_NAME_LEN + 1];
   bool ok = true;
 
-  loop = create_loop_trns ();
+  loop = create_loop_trns (ds);
   while (token != '.' && ok) 
     {
       if (lex_match_id ("IF")) 
@@ -112,9 +113,10 @@ cmd_loop (void)
   /* Find index variable and create if necessary. */
   if (ok && index_var_name[0] != '\0')
     {
-      loop->index_var = dict_lookup_var (dataset_dict (current_dataset), index_var_name);
+      loop->index_var = dict_lookup_var (dataset_dict (ds), index_var_name);
       if (loop->index_var == NULL)
-        loop->index_var = dict_create_var (dataset_dict (current_dataset), index_var_name, 0);
+        loop->index_var = dict_create_var (dataset_dict (ds), 
+					   index_var_name, 0);
     }
   
   if (!ok)
@@ -124,7 +126,7 @@ cmd_loop (void)
 
 /* Parses END LOOP. */
 int
-cmd_end_loop (void)
+cmd_end_loop (struct dataset *ds)
 {
   struct loop_trns *loop;
   bool ok = true;
@@ -132,6 +134,8 @@ cmd_end_loop (void)
   loop = ctl_stack_top (&loop_class);
   if (loop == NULL)
     return CMD_CASCADING_FAILURE;
+
+  assert (loop->ds == ds);
   
   /* Parse syntax. */
   if (lex_match_id ("IF"))
@@ -149,13 +153,13 @@ cmd_end_loop (void)
 
 /* Parses BREAK. */
 int
-cmd_break (void)
+cmd_break (struct dataset *ds)
 {
   struct ctl_stmt *loop = ctl_stack_search (&loop_class);
   if (loop == NULL)
     return CMD_CASCADING_FAILURE;
 
-  add_transformation (current_dataset, break_trns_proc, NULL, loop);
+  add_transformation (ds, break_trns_proc, NULL, loop);
 
   return lex_end_of_command ();
 }
@@ -167,8 +171,8 @@ close_loop (void *loop_)
 {
   struct loop_trns *loop = loop_;
   
-  add_transformation (current_dataset, end_loop_trns_proc, NULL, loop);
-  loop->past_END_LOOP_index = next_transformation (current_dataset);
+  add_transformation (loop->ds, end_loop_trns_proc, NULL, loop);
+  loop->past_END_LOOP_index = next_transformation (loop->ds);
 
   /* If there's nothing else limiting the number of loops, use
      MXLOOPS as a limit. */
@@ -185,7 +189,7 @@ close_loop (void *loop_)
 static bool
 parse_if_clause (struct loop_trns *loop, struct expression **condition) 
 {
-  *condition = expr_parse_pool (loop->pool, dataset_dict (current_dataset), EXPR_BOOLEAN);
+  *condition = expr_parse_pool (loop->pool, loop->ds, EXPR_BOOLEAN);
   return *condition != NULL;
 }
 
@@ -206,7 +210,7 @@ parse_index_clause (struct loop_trns *loop, char index_var_name[])
   if (!lex_force_match ('='))
     return false;
 
-  loop->first_expr = expr_parse_pool (loop->pool, dataset_dict (current_dataset), EXPR_NUMBER);
+  loop->first_expr = expr_parse_pool (loop->pool, loop->ds, EXPR_NUMBER);
   if (loop->first_expr == NULL)
     return false;
 
@@ -225,7 +229,7 @@ parse_index_clause (struct loop_trns *loop, char index_var_name[])
           lex_sbc_only_once (e == &loop->last_expr ? "TO" : "BY");
           return false;
         }
-      *e = expr_parse_pool (loop->pool, dataset_dict (current_dataset), EXPR_NUMBER);
+      *e = expr_parse_pool (loop->pool, loop->ds, EXPR_NUMBER);
       if (*e == NULL)
         return false;
     }
@@ -242,7 +246,7 @@ parse_index_clause (struct loop_trns *loop, char index_var_name[])
 
 /* Creates, initializes, and returns a new loop_trns. */
 static struct loop_trns *
-create_loop_trns (void) 
+create_loop_trns (struct dataset *ds) 
 {
   struct loop_trns *loop = pool_create_container (struct loop_trns, pool);
   loop->max_pass_count = -1;
@@ -250,10 +254,11 @@ create_loop_trns (void)
   loop->index_var = NULL;
   loop->first_expr = loop->by_expr = loop->last_expr = NULL;
   loop->loop_condition = loop->end_loop_condition = NULL;
+  loop->ds = ds;
 
-  add_transformation_with_finalizer (current_dataset, loop_trns_finalize,
+  add_transformation_with_finalizer (ds, loop_trns_finalize,
                                      loop_trns_proc, loop_trns_free, loop);
-  loop->past_LOOP_index = next_transformation (current_dataset);
+  loop->past_LOOP_index = next_transformation (ds);
 
   ctl_stack_push (&loop_class, loop);
 
@@ -273,7 +278,7 @@ loop_trns_finalize (void *do_if_ UNUSED)
 
 /* Sets up LOOP for the first pass. */
 static int
-loop_trns_proc (void *loop_, struct ccase *c, casenum_t case_num)
+loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num)
 {
   struct loop_trns *loop = loop_;
 
@@ -325,7 +330,7 @@ loop_trns_free (void *loop_)
 
 /* Finishes a pass through the loop and starts the next. */
 static int
-end_loop_trns_proc (void *loop_, struct ccase *c, casenum_t case_num UNUSED)
+end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct loop_trns *loop = loop_;
 
@@ -363,7 +368,7 @@ end_loop_trns_proc (void *loop_, struct ccase *c, casenum_t case_num UNUSED)
 
 /* Executes BREAK. */
 static int
-break_trns_proc (void *loop_, struct ccase *c UNUSED, casenum_t case_num UNUSED)
+break_trns_proc (void *loop_, struct ccase *c UNUSED, casenumber case_num UNUSED)
 {
   struct loop_trns *loop = loop_;
 

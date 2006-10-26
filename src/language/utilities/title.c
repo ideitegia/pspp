@@ -39,13 +39,13 @@
 static int get_title (const char *cmd, char **title);
 
 int
-cmd_title (void)
+cmd_title (struct dataset *ds UNUSED)
 {
   return get_title ("TITLE", &outp_title);
 }
 
 int
-cmd_subtitle (void)
+cmd_subtitle (struct dataset *ds UNUSED)
 {
   return get_title ("SUBTITLE", &outp_subtitle);
 }
@@ -88,7 +88,7 @@ get_title (const char *cmd, char **title)
 
 /* Performs the FILE LABEL command. */
 int
-cmd_file_label (void)
+cmd_file_label (struct dataset *ds)
 {
   const char *label;
 
@@ -97,22 +97,22 @@ cmd_file_label (void)
   while (isspace ((unsigned char) *label))
     label++;
 
-  dict_set_label (dataset_dict (current_dataset), label);
+  dict_set_label (dataset_dict (ds), label);
   token = '.';
 
   return CMD_SUCCESS;
 }
 
-/* Add LINE as a line of document information to dataset_dict (current_dataset),
+/* Add LINE as a line of document information to dictionary
    indented by INDENT spaces. */
 static void
-add_document_line (const char *line, int indent)
+add_document_line (struct dictionary *dict, const char *line, int indent)
 {
   const char *old_documents;
   size_t old_len;
   char *new_documents;
 
-  old_documents = dict_get_documents (dataset_dict (current_dataset));
+  old_documents = dict_get_documents (dict);
   old_len = old_documents != NULL ? strlen (old_documents) : 0;
   new_documents = xmalloc (old_len + 81);
 
@@ -121,24 +121,25 @@ add_document_line (const char *line, int indent)
   buf_copy_str_rpad (new_documents + old_len + indent, 80 - indent, line);
   new_documents[old_len + 80] = '\0';
 
-  dict_set_documents (dataset_dict (current_dataset), new_documents);
+  dict_set_documents (dict, new_documents);
 
   free (new_documents);
 }
 
 /* Performs the DOCUMENT command. */
 int
-cmd_document (void)
+cmd_document (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   /* Add a few header lines for reference. */
   {
     char buf[256];
 
-    if (dict_get_documents (dataset_dict (current_dataset)) != NULL)
-      add_document_line ("", 0);
+    if (dict && dict_get_documents (dict))
+      add_document_line (dict, "", 0);
 
     sprintf (buf, _("Document entered %s by %s:"), get_start_date (), version);
-    add_document_line (buf, 1);
+    add_document_line (dict, buf, 1);
   }
 
   for (;;)
@@ -157,7 +158,7 @@ cmd_document (void)
       if (had_dot)
         strcat (copy_line, ".");
 
-      add_document_line (copy_line, 3);
+      add_document_line (dict, copy_line, 3);
       free (copy_line);
 
       lex_get_line ();
@@ -171,9 +172,9 @@ cmd_document (void)
 
 /* Performs the DROP DOCUMENTS command. */
 int
-cmd_drop_documents (void)
+cmd_drop_documents (struct dataset *ds)
 {
-  dict_set_documents (dataset_dict (current_dataset), NULL);
+  dict_set_documents (dataset_dict (ds), NULL);
 
   return lex_end_of_command ();
 }

@@ -37,7 +37,7 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_vector (void)
+cmd_vector (struct dataset *ds)
 {
   /* Just to be different, points to a set of null terminated strings
      containing the names of the vectors to be created.  The list
@@ -50,6 +50,8 @@ cmd_vector (void)
 
   /* Maximum allocated position for vecnames, plus one position. */
   char *endp = NULL;
+
+  struct dictionary *dict = dataset_dict (ds);
 
   cp = vecnames = xmalloc (256);
   endp = &vecnames[256];
@@ -75,7 +77,7 @@ cmd_vector (void)
 		goto fail;
 	      }
 
-	  if (dict_lookup_vector (dataset_dict (current_dataset), tokid))
+	  if (dict_lookup_vector (dict, tokid))
 	    {
 	      msg (SE, _("There is already a vector with name %s."), tokid);
 	      goto fail;
@@ -104,11 +106,11 @@ cmd_vector (void)
 	      goto fail;
 	    }
 
-	  if (!parse_variables (dataset_dict (current_dataset), &v, &nv,
+	  if (!parse_variables (dict, &v, &nv,
                                 PV_SAME_TYPE | PV_DUPLICATE))
 	    goto fail;
 
-          dict_create_vector (dataset_dict (current_dataset), vecnames, v, nv);
+          dict_create_vector (dict, vecnames, v, nv);
           free (v);
 	}
       else if (lex_match ('('))
@@ -158,7 +160,7 @@ cmd_vector (void)
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  if (dict_lookup_var (dataset_dict (current_dataset), name))
+		  if (dict_lookup_var (dict, name))
 		    {
 		      msg (SE, _("There is already a variable named %s."),
                            name);
@@ -175,9 +177,9 @@ cmd_vector (void)
 	      for (i = 0; i < nv; i++)
 		{
 		  sprintf (name, "%s%d", cp, i + 1);
-		  v[i] = dict_create_var_assert (dataset_dict (current_dataset), name, 0);
+		  v[i] = dict_create_var_assert (dict, name, 0);
 		}
-              if (!dict_create_vector (dataset_dict (current_dataset), cp, v, nv))
+              if (!dict_create_vector (dict, cp, v, nv))
                 NOT_REACHED ();
 	      cp += strlen (cp) + 1;
 	    }

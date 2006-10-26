@@ -78,7 +78,7 @@ sysfile_info_dim (struct tab_table *t, struct outp_driver *d)
 
 /* SYSFILE INFO utility. */
 int
-cmd_sysfile_info (void)
+cmd_sysfile_info (struct dataset *ds UNUSED)
 {
   struct file_handle *h;
   struct dictionary *d;
@@ -176,12 +176,12 @@ cmd_sysfile_info (void)
 /* DISPLAY utility. */
 
 static void display_macros (void);
-static void display_documents (void);
+static void display_documents (const struct dictionary *dict);
 static void display_variables (struct variable **, size_t, int);
-static void display_vectors (int sorted);
+static void display_vectors (const struct dictionary *dict, int sorted);
 
 int
-cmd_display (void)
+cmd_display (struct dataset *ds)
 {
   /* Whether to sort the list of variables alphabetically. */
   int sorted;
@@ -193,19 +193,19 @@ cmd_display (void)
   if (lex_match_id ("MACROS"))
     display_macros ();
   else if (lex_match_id ("DOCUMENTS"))
-    display_documents ();
+    display_documents (dataset_dict (ds));
   else if (lex_match_id ("FILE"))
     {
       som_blank_line ();
       if (!lex_force_match_id ("LABEL"))
 	return CMD_FAILURE;
-      if (dict_get_label (dataset_dict (current_dataset)) == NULL)
+      if (dict_get_label (dataset_dict (ds)) == NULL)
 	tab_output_text (TAB_LEFT,
 			 _("The active file does not have a file label."));
       else
 	{
 	  tab_output_text (TAB_LEFT | TAT_TITLE, _("File label:"));
-	  tab_output_text (TAB_LEFT | TAB_FIX, dict_get_label (dataset_dict (current_dataset)));
+	  tab_output_text (TAB_LEFT | TAB_FIX, dict_get_label (dataset_dict (ds)));
 	}
     }
   else
@@ -231,7 +231,7 @@ cmd_display (void)
 
       if (as == AS_VECTOR)
 	{
-	  display_vectors (sorted);
+	  display_vectors (dataset_dict(ds), sorted);
 	  return CMD_SUCCESS;
 	}
 
@@ -241,7 +241,7 @@ cmd_display (void)
 
       if (token != '.')
 	{
-	  if (!parse_variables (dataset_dict (current_dataset), &vl, &n, PV_NONE))
+	  if (!parse_variables (dataset_dict (ds), &vl, &n, PV_NONE))
 	    {
 	      free (vl);
 	      return CMD_FAILURE;
@@ -249,7 +249,7 @@ cmd_display (void)
 	  as = AS_DICTIONARY;
 	}
       else
-	dict_get_vars (dataset_dict (current_dataset), &vl, &n, 0);
+	dict_get_vars (dataset_dict (ds), &vl, &n, 0);
 
       if (as == AS_SCRATCH)
 	{
@@ -289,9 +289,9 @@ display_macros (void)
 }
 
 static void
-display_documents (void)
+display_documents (const struct dictionary *dict)
 {
-  const char *documents = dict_get_documents (dataset_dict (current_dataset));
+  const char *documents = dict_get_documents (dict);
 
   som_blank_line ();
   if (documents == NULL)
@@ -567,14 +567,14 @@ compare_vectors_by_name (const void *a_, const void *b_)
 /* Display a list of vectors.  If SORTED is nonzero then they are
    sorted alphabetically. */
 static void
-display_vectors (int sorted)
+display_vectors (const struct dictionary *dict, int sorted)
 {
   const struct vector **vl;
   int i;
   struct tab_table *t;
   size_t nvec;
   
-  nvec = dict_get_vector_cnt (dataset_dict (current_dataset));
+  nvec = dict_get_vector_cnt (dict);
   if (nvec == 0)
     {
       msg (SW, _("No vectors defined."));
@@ -583,7 +583,7 @@ display_vectors (int sorted)
 
   vl = xnmalloc (nvec, sizeof *vl);
   for (i = 0; i < nvec; i++)
-    vl[i] = dict_get_vector (dataset_dict (current_dataset), i);
+    vl[i] = dict_get_vector (dict, i);
   if (sorted)
     qsort (vl, nvec, sizeof *vl, compare_vectors_by_name);
 

@@ -35,12 +35,15 @@ struct expression;
 struct ccase;
 struct pool;
 union value;
+struct dataset ;
 
-struct expression *expr_parse (struct dictionary *, enum expr_type);
+struct expression *expr_parse (struct dataset *, enum expr_type);
 struct expression *expr_parse_pool (struct pool *,
-                                    struct dictionary *, enum expr_type);
+				    struct dataset *,
+                                    enum expr_type);
 void expr_free (struct expression *);
 
+struct dataset;
 double expr_evaluate_num (struct expression *, const struct ccase *,
                           int case_idx);
 void expr_evaluate_str (struct expression *, const struct ccase *,

@@ -32,12 +32,19 @@ static void
 expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
                void *result)
 {
+  struct dataset *ds = e->ds;
   union operation_data *op = e->ops;
 
   double *ns = e->number_stack;
   struct substring *ss = e->string_stack;
 
-  assert ((c != NULL) == (e->dict != NULL));
+  /* Without a dictionary/dataset, the expression can't refer to variables, 
+     and you don't need to specify a case when you evaluate the
+     expression.  With a dictionary/dataset, the expression can refer
+     to variables, so you must specify a case when you evaluate the
+     expression. */
+  assert ((c != NULL) == (e->ds != NULL));
+
   pool_clear (e->eval_pool);
 
   for (;;)
@@ -102,18 +109,21 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
 #include <language/command.h>
 
 int
-cmd_debug_evaluate (void)
+cmd_debug_evaluate (struct dataset *dsother UNUSED)
 {
   bool optimize = true;
   int retval = CMD_FAILURE;
   bool dump_postfix = false;
-  struct dictionary *d = NULL;
+
   struct ccase *c = NULL;
+
+  struct dataset *ds = NULL;
 
   struct expression *expr;
 
   for (;;) 
     {
+      struct dictionary *d = NULL;
       if (lex_match_id ("NOOPTIMIZE"))
         optimize = 0;
       else if (lex_match_id ("POSTFIX"))
@@ -148,9 +158,12 @@ cmd_debug_evaluate (void)
               lex_error (_("expecting number or string"));
               goto done;
             }
-
-          if (d == NULL)
-            d = dict_create ();
+	  
+	  if  ( ds == NULL ) 
+	    {
+	      ds = create_dataset ();
+	      d = dataset_dict (ds);
+	    }
           
           old_value_cnt = dict_get_next_value_idx (d);
           v = dict_create_var (d, name, width);
@@ -186,12 +199,13 @@ cmd_debug_evaluate (void)
       lex_force_match ('/');
       goto done;
     }
-  if (d != NULL)
-    fprintf (stderr, "; ");
+
+  if ( ds != NULL ) 
+    fprintf(stderr, "; ");
   fprintf (stderr, "%s => ", lex_rest_of_line (NULL));
   lex_get ();
 
-  expr = expr_parse_any (d, optimize);
+  expr = expr_parse_any (ds, optimize);
   if (!expr || lex_end_of_command () != CMD_SUCCESS)
     {
       if (expr != NULL)
@@ -242,12 +256,15 @@ cmd_debug_evaluate (void)
   retval = CMD_SUCCESS;
 
  done:
+  if (ds)
+    destroy_dataset (ds);
+
   if (c != NULL) 
     {
       case_destroy (c);
       free (c); 
     }
-  dict_destroy (d);
+
   return retval;
 }
 

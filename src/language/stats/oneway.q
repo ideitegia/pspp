@@ -96,7 +96,7 @@ static is_missing_func *value_is_missing;
 
 
 static bool run_oneway(const struct ccase *first,
-                       const struct casefile *cf, void *_mode);
+                       const struct casefile *cf, void *_mode, const struct dataset *);
 
 
 /* Routines to show the output tables */
@@ -116,12 +116,12 @@ void output_oneway(void);
 
 
 int
-cmd_oneway(void)
+cmd_oneway (struct dataset *ds)
 {
   int i;
   bool ok;
 
-  if ( !parse_oneway(&cmd, NULL) )
+  if ( !parse_oneway (ds, &cmd, NULL) )
     return CMD_FAILURE;
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
@@ -149,7 +149,7 @@ cmd_oneway(void)
 	}
     }
 
-  ok = multipass_procedure_with_splits (current_dataset, run_oneway, &cmd);
+  ok = multipass_procedure_with_splits (ds, run_oneway, &cmd);
 
   free (vars);
   free_oneway (&cmd);
@@ -223,17 +223,17 @@ output_oneway(void)
 
 /* Parser for the variables sub command */
 static int
-oneway_custom_variables(struct cmd_oneway *cmd UNUSED, void *aux UNUSED)
+oneway_custom_variables(struct dataset *ds, struct cmd_oneway *cmd UNUSED, void *aux UNUSED)
 {
+  struct dictionary *dict = dataset_dict (ds);
 
   lex_match('=');
 
-  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
       && token != T_ALL)
     return 2;
-  
 
-  if (!parse_variables (dataset_dict (current_dataset), &vars, &n_vars,
+  if (!parse_variables (dict, &vars, &n_vars,
 			PV_DUPLICATE 
 			| PV_NUMERIC | PV_NO_SCRATCH) )
     {
@@ -246,15 +246,13 @@ oneway_custom_variables(struct cmd_oneway *cmd UNUSED, void *aux UNUSED)
   if ( ! lex_match(T_BY))
     return 2;
 
-
-  indep_var = parse_variable();
+  indep_var = parse_variable (dict);
 
   if ( !indep_var ) 
     {
       msg(SE,_("`%s' is not a variable name"),tokid);
       return 0;
     }
-
 
   return 1;
 }
@@ -894,14 +892,14 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 
 
 static bool
-run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_)
+run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, const struct dataset *ds)
 {
   struct casereader *r;
   struct ccase c;
 
   struct cmd_oneway *cmd = (struct cmd_oneway *) cmd_;
 
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
 
   global_group_hash = hsh_create(4, 
 				 (hsh_compare_func *) compare_values,
@@ -917,7 +915,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_)
       size_t i;
 
       const double weight = 
-	dict_get_case_weight (dataset_dict (current_dataset), &c, &bad_weight_warn);
+	dict_get_case_weight (dataset_dict (ds), &c, &bad_weight_warn);
       
       const union value *indep_val = case_data (&c, indep_var->fv);
 
@@ -1006,7 +1004,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_)
 
   
   if ( stat_tables & STAT_HOMO ) 
-    levene(cf, indep_var, n_vars, vars, 
+    levene (dataset_dict (ds), cf, indep_var, n_vars, vars, 
 	   (cmd->miss == ONEWAY_LISTWISE) ? LEV_LISTWISE : LEV_ANALYSIS ,
 	   value_is_missing);
 

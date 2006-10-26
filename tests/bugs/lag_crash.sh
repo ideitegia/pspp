@@ -70,7 +70,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run_program"
-$SUPERVISOR $PSPP $TESTFILE > /dev/null
+$SUPERVISOR $PSPP $TESTFILE 
 if [ $? -ne 0 ] ; then fail ; fi
 
 

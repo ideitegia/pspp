@@ -29,7 +29,7 @@
 
 /* Echos a string to the output stream */
 int
-cmd_echo(void)
+cmd_echo (struct dataset *ds UNUSED)
 {
   struct tab_table *tab;
 

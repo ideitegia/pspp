@@ -1177,7 +1177,7 @@ dump_declarations (void)
 	      dump (0, "/* Prototype for custom subcommands of %s. */",
 		    cmdname);
 	    }
-	  dump (0, "static int %scustom_%s (struct cmd_%s *, void *);",
+	  dump (0, "static int %scustom_%s (struct dataset *, struct cmd_%s *, void *);",
 		st_lower (prefix), st_lower (sbc->name),
 		make_identifier (cmdname));
 	}
@@ -1189,7 +1189,7 @@ dump_declarations (void)
   /* Prototypes for parsing and freeing functions. */
   {
     dump (0, "/* Command parsing functions. */");
-    dump (0, "static int parse_%s (struct cmd_%s *, void *);",
+    dump (0, "static int parse_%s (struct dataset *, struct cmd_%s *, void *);",
 	  make_identifier (cmdname), make_identifier (cmdname));
     dump (0, "static void free_%s (struct cmd_%s *);",
 	  make_identifier (cmdname), make_identifier (cmdname));
@@ -1584,7 +1584,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_VARLIST)
     {
-      dump (1, "if (!parse_variables (dataset_dict (current_dataset), &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND%s%s))",
 	    st_lower (sbc->prefix), st_lower (sbc->name),
 	    st_lower (sbc->prefix), st_lower (sbc->name),
@@ -1595,7 +1595,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_VAR)
     {
-      dump (0, "p->%sv_%s = parse_variable ();",
+      dump (0, "p->%sv_%s = parse_variable (dataset_dict (ds));",
 	    st_lower (sbc->prefix), st_lower (sbc->name));
       dump (1, "if (!p->%sv_%s)",
 	    st_lower (sbc->prefix), st_lower (sbc->name));
@@ -1696,7 +1696,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_CUSTOM)
     {
-      dump (1, "switch (%scustom_%s (p, aux))",
+      dump (1, "switch (%scustom_%s (ds, p, aux))",
 	    st_lower (prefix), st_lower (sbc->name));
       dump (0, "{");
       dump (1, "case 0:");
@@ -1725,8 +1725,9 @@ dump_parser (int persistent)
   indent = 0;
 
   dump (0, "static int");
-  dump (0, "parse_%s (struct cmd_%s *p, void *aux UNUSED)",
+  dump (0, "parse_%s (struct dataset *ds%s, struct cmd_%s *p, void *aux UNUSED)",
         make_identifier (cmdname),
+	(def && ( def->type == SBC_VARLIST && def->type == SBC_CUSTOM))?"":" UNUSED",
 	make_identifier (cmdname));
   dump (1, "{");
 
@@ -1740,18 +1741,18 @@ dump_parser (int persistent)
     {
       if (def->type == SBC_VARLIST)
 	dump (1, "if (token == T_ID "
-              "&& dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL "
+              "&& dict_lookup_var (dataset_dict (ds), tokid) != NULL "
 	      "&& lex_look_ahead () != '=')");
       else
 	{
 	  dump (0, "if ((token == T_ID "
-                "&& dict_lookup_var (dataset_dict (current_dataset), tokid) "
+                "&& dict_lookup_var (dataset_dict (ds), tokid) "
 		"&& lex_look_ahead () != '=')");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");
       dump (0, "p->sbc_%s++;", st_lower (def->name));
-      dump (1, "if (!parse_variables (dataset_dict (current_dataset), &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND))",
 	    st_lower (def->prefix), st_lower (def->name),
 	    st_lower (def->prefix), st_lower (def->name));
@@ -1762,7 +1763,7 @@ dump_parser (int persistent)
     }
   else if (def && def->type == SBC_CUSTOM)
     {
-      dump (1, "switch (%scustom_%s (p, aux))",
+      dump (1, "switch (%scustom_%s (ds, p, aux))",
 	    st_lower (prefix), st_lower (def->name));
       dump (0, "{");
       dump (1, "case 0:");
@@ -2062,8 +2063,6 @@ main (int argc, char *argv[])
       indent = 0;
       dump (0, "#line %d \"%s\"", ln + 1, ifn);
     }
-
-
 
   return EXIT_SUCCESS;
 }

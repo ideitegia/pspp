@@ -34,16 +34,17 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_weight (void)
+cmd_weight (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   if (lex_match_id ("OFF"))
-    dict_set_weight (dataset_dict (current_dataset), NULL);
+    dict_set_weight (dataset_dict (ds), NULL);
   else
     {
       struct variable *v;
 
       lex_match (T_BY);
-      v = parse_variable ();
+      v = parse_variable (dict);
       if (!v)
 	return CMD_CASCADING_FAILURE;
       if (v->type == ALPHA)
@@ -57,7 +58,7 @@ cmd_weight (void)
 	  return CMD_CASCADING_FAILURE;
 	}
 
-      dict_set_weight (dataset_dict (current_dataset), v);
+      dict_set_weight (dict, v);
     }
 
   return lex_end_of_command ();

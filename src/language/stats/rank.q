@@ -168,6 +168,7 @@ static struct cmd_rank cmd;
 
 static struct casefile *rank_sorted_casefile (struct casefile *cf, 
 					      const struct sort_criteria *, 
+					      const struct dictionary *,
 					      const struct rank_spec *rs, 
 					      int n_rank_specs,
 					      int idx,
@@ -232,19 +233,19 @@ create_var_label (struct variable *dest_var,
 
 
 static bool 
-rank_cmd (const struct sort_criteria *sc, 
-      const struct rank_spec *rank_specs, int n_rank_specs)
+rank_cmd (struct dataset *ds, const struct sort_criteria *sc, 
+	  const struct rank_spec *rank_specs, int n_rank_specs)
 {
   struct sort_criteria criteria;
   bool result = true;
   int i;
-  const int n_splits = dict_get_split_cnt (dataset_dict (current_dataset));
+  const int n_splits = dict_get_split_cnt (dataset_dict (ds));
 
   criteria.crit_cnt = n_splits + n_group_vars + 1;
   criteria.crits = xnmalloc (criteria.crit_cnt, sizeof *criteria.crits);
   for (i = 0; i < n_splits ; i++) 
     {
-      struct variable *v = dict_get_split_vars (dataset_dict (current_dataset))[i];
+      struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
       criteria.crits[i].fv = v->fv;
       criteria.crits[i].width = v->width;
       criteria.crits[i].dir = SRT_ASCEND;
@@ -263,10 +264,10 @@ rank_cmd (const struct sort_criteria *sc,
       struct casefile *sorted_cf ;
 
       /* Obtain active file in CF. */
-      if (!procedure (current_dataset, NULL, NULL))
+      if (!procedure (ds, NULL, NULL))
 	goto error;
 
-      cf = proc_capture_output (current_dataset);
+      cf = proc_capture_output (ds);
 
       /* Sort CF into SORTED_CF. */
       reader = casefile_get_destructive_reader (cf) ;
@@ -276,6 +277,7 @@ rank_cmd (const struct sort_criteria *sc,
       casefile_destroy (cf);
 
       out = rank_sorted_casefile (sorted_cf, &criteria,
+				  dataset_dict (ds),
                                   rank_specs, n_rank_specs, 
 				  i, &src_vars[i]->miss)  ;
       if ( NULL == out ) 
@@ -284,7 +286,7 @@ rank_cmd (const struct sort_criteria *sc,
 	  continue ;
 	}
       
-      proc_set_source (current_dataset, storage_source_create (out));
+      proc_set_source (ds, storage_source_create (out));
     }
 
   free (criteria.crits);
@@ -487,6 +489,7 @@ rank_savage (double c, double cc, double cc_1,
 static void
 rank_cases (struct casereader *cr,
 	    unsigned long end,
+	    const struct dictionary *dict,
 	    const struct sort_criterion *criterion,
 	    const struct missing_values *mv,
 	    double w,
@@ -516,7 +519,7 @@ rank_cases (struct casereader *cr,
         break;
       
       this_value = case_data (&this_case, fv);
-      c = dict_get_case_weight (dataset_dict (current_dataset), &this_case, &warn);
+      c = dict_get_case_weight (dict, &this_case, &warn);
               
       lookahead = casereader_clone (cr);
       n = 0;
@@ -535,7 +538,7 @@ rank_cases (struct casereader *cr,
               break; 
             }
 
-          c += dict_get_case_weight (dataset_dict (current_dataset), &lookahead_case, &warn);
+          c += dict_get_case_weight (dict, &lookahead_case, &warn);
           case_destroy (&lookahead_case);
           n++;
         }
@@ -589,6 +592,7 @@ same_group (const struct ccase *a, const struct ccase *b,
 static struct casefile *
 rank_sorted_casefile (struct casefile *cf, 
 		      const struct sort_criteria *crit, 
+		      const struct dictionary *dict,
 		      const struct rank_spec *rs, 
 		      int n_rank_specs, 
 		      int dest_idx, 
@@ -610,16 +614,17 @@ rank_sorted_casefile (struct casefile *cf,
       this_value = case_data( &group_case, ultimate_crit->fv);
 
       if ( !value_is_missing(mv, this_value) )
-	w = dict_get_case_weight (dataset_dict (current_dataset), &group_case, &warn);
+	w = dict_get_case_weight (dict, &group_case, &warn);
 
       while (casereader_read (lookahead, &this_case)) 
         {
 	  const union value *this_value = 
 	    case_data(&this_case, ultimate_crit->fv);
-          double c = dict_get_case_weight (dataset_dict (current_dataset), &this_case, &warn);
+          double c = dict_get_case_weight (dict, &this_case, &warn);
           if (!same_group (&group_case, &this_case, crit)) 
             {
               rank_cases (pos, casereader_cnum (lookahead) - 1,
+			  dict,
 			  ultimate_crit, 
 			  mv, w, 
 			  rs, n_rank_specs, 
@@ -634,7 +639,7 @@ rank_sorted_casefile (struct casefile *cf,
           case_destroy (&this_case);
         }
       case_destroy (&group_case);
-      rank_cases (pos, ULONG_MAX, ultimate_crit, mv, w,
+      rank_cases (pos, ULONG_MAX, dict, ultimate_crit, mv, w,
 		  rs, n_rank_specs, dest_idx, dest);
     }
 
@@ -667,7 +672,7 @@ create_resort_key (void *key_var_, struct ccase *cc, casenum_t case_num)
    If VNAME is NULL, then a name will be automatically chosen.
  */
 static struct variable *
-create_rank_variable (enum RANK_FUNC f, 
+create_rank_variable (struct dictionary *dict, enum RANK_FUNC f, 
 		      const struct variable *src_var, 
 		      const char *vname)
 {
@@ -676,14 +681,14 @@ create_rank_variable (enum RANK_FUNC f,
   char name[SHORT_NAME_LEN + 1];
 
   if ( vname ) 
-    var = dict_create_var(dataset_dict (current_dataset), vname, 0);
+    var = dict_create_var(dict, vname, 0);
 
   if ( NULL == var )
     {
       snprintf(name, SHORT_NAME_LEN + 1, "%c%s", 
 	       function_name[f][0], src_var->name);
   
-      var = dict_create_var(dataset_dict (current_dataset), name, 0);
+      var = dict_create_var(dict, name, 0);
     }
 
   i = 1;
@@ -694,7 +699,7 @@ create_rank_variable (enum RANK_FUNC f,
       snprintf(name, SHORT_NAME_LEN + 1, "%s%03d", func_abb, 
 	       i);
 
-      var = dict_create_var(dataset_dict (current_dataset), name, 0);
+      var = dict_create_var(dict, name, 0);
       if (i++ >= 999) 
 	break;
     }
@@ -708,7 +713,7 @@ create_rank_variable (enum RANK_FUNC f,
       snprintf(name, SHORT_NAME_LEN + 1, 
 	       "RNK%s%02d", func_abb, i);
 
-      var = dict_create_var(dataset_dict (current_dataset), name, 0);
+      var = dict_create_var(dict, name, 0);
       if ( i++ >= 99 ) 
 	break;
     }
@@ -724,7 +729,7 @@ create_rank_variable (enum RANK_FUNC f,
   return var;
 }
 
-int cmd_rank(void);
+int cmd_rank(struct dataset *ds);
 
 static void
 rank_cleanup(void)
@@ -753,14 +758,14 @@ rank_cleanup(void)
 }
 
 int
-cmd_rank(void)
+cmd_rank (struct dataset *ds)
 {
   bool result;
   struct variable *order;
   size_t i;
   n_rank_specs = 0;
 
-  if ( !parse_rank(&cmd, NULL) )
+  if ( !parse_rank (ds, &cmd, NULL) )
     {
       rank_cleanup ();
     return CMD_FAILURE;
@@ -802,7 +807,7 @@ cmd_rank(void)
 	  if ( rank_specs[i].destvars[v] == NULL ) 
 	    {
 	      rank_specs[i].destvars[v] = 
-		create_rank_variable (rank_specs[i].rfunc, src_vars[v], NULL);
+		create_rank_variable (dataset_dict(ds), rank_specs[i].rfunc, src_vars[v], NULL);
 	    }
       
 	  create_var_label ( rank_specs[i].destvars[v],
@@ -891,12 +896,12 @@ cmd_rank(void)
 
   /* Add a variable which we can sort by to get back the original
      order */
-  order = dict_create_var_assert (dataset_dict (current_dataset), "$ORDER_", 0);
+  order = dict_create_var_assert (dataset_dict (ds), "$ORDER_", 0);
 
-  add_transformation (current_dataset, create_resort_key, 0, order);
+  add_transformation (ds, create_resort_key, 0, order);
 
   /* Do the ranking */
-  result = rank_cmd (sc, rank_specs, n_rank_specs);
+  result = rank_cmd (ds, sc, rank_specs, n_rank_specs);
 
   /* Put the active file back in its original order */
   {
@@ -909,11 +914,11 @@ cmd_rank(void)
     criteria.crits = &restore_criterion;
     criteria.crit_cnt = 1;
     
-    sort_active_file_in_place (&criteria);
+    sort_active_file_in_place (ds, &criteria);
 }
 
   /* ... and we don't need our sort key anymore. So delete it */
-  dict_delete_var (dataset_dict (current_dataset), order);
+  dict_delete_var (dataset_dict (ds), order);
 
   rank_cleanup();
 
@@ -924,27 +929,27 @@ cmd_rank(void)
 /* Parser for the variables sub command  
    Returns 1 on success */
 static int
-rank_custom_variables(struct cmd_rank *cmd UNUSED, void *aux UNUSED)
+rank_custom_variables (struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 {
   static const int terminators[2] = {T_BY, 0};
 
   lex_match('=');
 
-  if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+  if ((token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL)
       && token != T_ALL)
       return 2;
 
-  sc = sort_parse_criteria (dataset_dict (current_dataset), 
+  sc = sort_parse_criteria (dataset_dict (ds), 
 			    &src_vars, &n_src_vars, 0, terminators);
 
   if ( lex_match(T_BY)  )
     {
-      if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL))
+      if ((token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL))
 	{
 	  return 2;
 	}
 
-      if (!parse_variables (dataset_dict (current_dataset), &group_vars, &n_group_vars,
+      if (!parse_variables (dataset_dict (ds), &group_vars, &n_group_vars,
 			    PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
 	{
 	  free (group_vars);
@@ -958,7 +963,7 @@ rank_custom_variables(struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 
 /* Parse the [/rank INTO var1 var2 ... varN ] clause */
 static int
-parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
+parse_rank_function(struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 {
   int var_count = 0;
   
@@ -977,7 +982,7 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
       while( token == T_ID ) 
 	{
 
-	  if ( dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL )
+	  if ( dict_lookup_var (dict, tokid) != NULL )
 	    {
 	      msg(SE, _("Variable %s already exists."), tokid);
 	      return 0;
@@ -988,7 +993,7 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 	      return 0;
 	    }
 
-	  destvar = create_rank_variable (f, src_vars[var_count], tokid);
+	  destvar = create_rank_variable (dict, f, src_vars[var_count], tokid);
 	  rank_specs[n_rank_specs - 1].destvars[var_count] = destvar ;
 
 	  lex_get();
@@ -1001,51 +1006,67 @@ parse_rank_function(struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 
 
 static int
-rank_custom_rank(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_rank(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function(cmd, RANK);
+  struct dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, RANK);
 }
 
 static int
-rank_custom_normal(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_normal(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function(cmd, NORMAL);
+  struct  dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, NORMAL);
 }
 
 static int
-rank_custom_percent(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_percent(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function (cmd, PERCENT);
+  struct dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, PERCENT);
 }
 
 static int
-rank_custom_rfraction(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_rfraction(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function(cmd, RFRACTION);
+  struct dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, RFRACTION);
 }
 
 static int
-rank_custom_proportion(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_proportion(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function(cmd, PROPORTION);
+  struct dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, PROPORTION);
 }
 
 static int
-rank_custom_n(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_n (struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function(cmd, N);
+  struct dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, N);
 }
 
 static int
-rank_custom_savage(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_savage(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
-  return parse_rank_function(cmd, SAVAGE);
+  struct dictionary *dict = dataset_dict (ds);
+
+  return parse_rank_function (dict, cmd, SAVAGE);
 }
 
 
 static int
-rank_custom_ntiles(struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_ntiles (struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
+  struct dictionary *dict = dataset_dict (ds);
+
   if ( lex_force_match('(') ) 
     {
       if ( lex_force_int() ) 
@@ -1060,5 +1081,5 @@ rank_custom_ntiles(struct cmd_rank *cmd, void *aux UNUSED )
   else
     return 0;
 
-  return parse_rank_function(cmd, NTILES);
+  return parse_rank_function(dict, cmd, NTILES);
 }

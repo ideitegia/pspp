@@ -59,30 +59,25 @@ static struct casefile *do_internal_sort (struct casereader *,
 static struct casefile *do_external_sort (struct casereader *,
                                           const struct sort_criteria *);
 
-/* Get ready to sort the active file. */
-static void
-prepare_to_sort_active_file (void) 
-{
-  proc_cancel_temporary_transformations (current_dataset); 
-}
 
 /* Sorts the active file in-place according to CRITERIA.
    Returns true if successful. */
 bool
-sort_active_file_in_place (const struct sort_criteria *criteria) 
+sort_active_file_in_place (struct dataset *ds, 
+			   const struct sort_criteria *criteria) 
 {
   struct casefile *in, *out;
 
-  prepare_to_sort_active_file ();
-  if (!procedure (current_dataset,NULL, NULL))
+  proc_cancel_temporary_transformations (ds);
+  if (!procedure (ds, NULL, NULL))
     return false;
   
-  in = proc_capture_output (current_dataset);
+  in = proc_capture_output (ds);
   out = sort_execute (casefile_get_destructive_reader (in), criteria);
   if (out == NULL) 
     return false;
 
-  proc_set_source (current_dataset, storage_source_create (out));
+  proc_set_source (ds, storage_source_create (out));
   return true;
 }
 
@@ -106,15 +101,16 @@ sort_to_casefile_callback (const struct casefile *cf, void *cb_data_)
    returns the sorted casefile.  Returns a null pointer on
    failure. */
 struct casefile *
-sort_active_file_to_casefile (const struct sort_criteria *criteria) 
+sort_active_file_to_casefile (struct dataset *ds, 
+			      const struct sort_criteria *criteria) 
 {
   struct sort_to_casefile_cb_data cb_data;
   
-  prepare_to_sort_active_file ();
+  proc_cancel_temporary_transformations (ds);
 
   cb_data.criteria = criteria;
   cb_data.output = NULL;
-  if (!multipass_procedure (current_dataset,sort_to_casefile_callback, &cb_data)) 
+  if (!multipass_procedure (ds, sort_to_casefile_callback, &cb_data)) 
     {
       casefile_destroy (cb_data.output);
       return NULL;

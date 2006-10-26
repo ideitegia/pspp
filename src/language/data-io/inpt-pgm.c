@@ -97,19 +97,19 @@ in_input_program (void)
 
 /* Emits an END CASE transformation for INP. */
 static void
-emit_END_CASE (struct input_program_pgm *inp) 
+emit_END_CASE (struct dataset *ds, struct input_program_pgm *inp) 
 {
-  add_transformation (current_dataset, end_case_trns_proc, NULL, inp);
+  add_transformation (ds, end_case_trns_proc, NULL, inp);
 }
 
 int
-cmd_input_program (void)
+cmd_input_program (struct dataset *ds)
 {
   struct input_program_pgm *inp;
   size_t i;
   bool saw_END_CASE = false;
 
-  discard_variables (current_dataset);
+  discard_variables (ds);
   if (token != '.')
     return lex_end_of_command ();
 
@@ -120,12 +120,12 @@ cmd_input_program (void)
   inside_input_program = true;
   for (;;) 
     {
-      enum cmd_result result = cmd_parse (CMD_STATE_INPUT_PROGRAM);
+      enum cmd_result result = cmd_parse (ds, CMD_STATE_INPUT_PROGRAM);
       if (result == CMD_END_INPUT_PROGRAM)
         break;
       else if (result == CMD_END_CASE) 
         {
-          emit_END_CASE (inp);
+          emit_END_CASE (ds, inp);
           saw_END_CASE = true; 
         }
       else if (cmd_result_is_failure (result) && result != CMD_FAILURE)
@@ -133,34 +133,34 @@ cmd_input_program (void)
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
           inside_input_program = false;
-          discard_variables (current_dataset);
+          discard_variables (ds);
           destroy_input_program (inp);
           return result;
         }
     }
   if (!saw_END_CASE)
-    emit_END_CASE (inp);
+    emit_END_CASE (ds, inp);
   inside_input_program = false;
 
-  if (dict_get_next_value_idx (dataset_dict (current_dataset)) == 0) 
+  if (dict_get_next_value_idx (dataset_dict (ds)) == 0) 
     {
       msg (SE, _("Input program did not create any variables."));
-      discard_variables (current_dataset);
+      discard_variables (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
   
-  inp->trns_chain = proc_capture_transformations (current_dataset);
+  inp->trns_chain = proc_capture_transformations (ds);
   trns_chain_finalize (inp->trns_chain);
 
   /* Figure out how to initialize each input case. */
-  inp->init_cnt = dict_get_next_value_idx (dataset_dict (current_dataset));
+  inp->init_cnt = dict_get_next_value_idx (dataset_dict (ds));
   inp->init = xnmalloc (inp->init_cnt, sizeof *inp->init);
   for (i = 0; i < inp->init_cnt; i++)
     inp->init[i] = -1;
-  for (i = 0; i < dict_get_var_cnt (dataset_dict (current_dataset)); i++)
+  for (i = 0; i < dict_get_var_cnt (dataset_dict (ds)); i++)
     {
-      struct variable *var = dict_get_var (dataset_dict (current_dataset), i);
+      struct variable *var = dict_get_var (dataset_dict (ds), i);
       enum value_init_type value_init;
       size_t j;
       
@@ -172,16 +172,16 @@ cmd_input_program (void)
     }
   for (i = 0; i < inp->init_cnt; i++)
     assert (inp->init[i] != -1);
-  inp->case_size = dict_get_case_size (dataset_dict (current_dataset));
+  inp->case_size = dict_get_case_size (dataset_dict (ds));
 
-  proc_set_source (current_dataset, 
+  proc_set_source (ds, 
 		  create_case_source (&input_program_source_class, inp));
 
   return CMD_SUCCESS;
 }
 
 int
-cmd_end_input_program (void)
+cmd_end_input_program (struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
   return CMD_END_INPUT_PROGRAM; 
@@ -288,7 +288,7 @@ static const struct case_source_class input_program_source_class =
   };
 
 int
-cmd_end_case (void)
+cmd_end_case (struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
   if (token == '.')
@@ -298,7 +298,7 @@ cmd_end_case (void)
 
 /* Sends the current case as the source's output. */
 int
-end_case_trns_proc (void *inp_, struct ccase *c, casenum_t case_nr UNUSED)
+end_case_trns_proc (void *inp_, struct ccase *c, casenumber case_nr UNUSED)
 {
   struct input_program_pgm *inp = inp_;
 
@@ -319,7 +319,7 @@ struct reread_trns
 
 /* Parses REREAD command. */
 int
-cmd_reread (void)
+cmd_reread (struct dataset *ds)
 {
   struct file_handle *fh;       /* File to be re-read. */
   struct expression *e;         /* Expression for column to set. */
@@ -340,7 +340,7 @@ cmd_reread (void)
 	      return CMD_CASCADING_FAILURE;
 	    }
 	  
-	  e = expr_parse (dataset_dict (current_dataset), EXPR_NUMBER);
+	  e = expr_parse (ds, EXPR_NUMBER);
 	  if (!e)
 	    return CMD_CASCADING_FAILURE;
 	}
@@ -364,14 +364,14 @@ cmd_reread (void)
   t = xmalloc (sizeof *t);
   t->reader = dfm_open_reader (fh);
   t->column = e;
-  add_transformation (current_dataset, reread_trns_proc, reread_trns_free, t);
+  add_transformation (ds, reread_trns_proc, reread_trns_free, t);
 
   return CMD_SUCCESS;
 }
 
 /* Executes a REREAD transformation. */
 static int
-reread_trns_proc (void *t_, struct ccase *c, casenum_t case_num)
+reread_trns_proc (void *t_, struct ccase *c, casenumber case_num)
 {
   struct reread_trns *t = t_;
 
@@ -405,11 +405,11 @@ reread_trns_free (void *t_)
 
 /* Parses END FILE command. */
 int
-cmd_end_file (void)
+cmd_end_file (struct dataset *ds)
 {
   assert (in_input_program ());
 
-  add_transformation (current_dataset, end_file_trns_proc, NULL, NULL);
+  add_transformation (ds, end_file_trns_proc, NULL, NULL);
 
   return lex_end_of_command ();
 }
@@ -417,7 +417,7 @@ cmd_end_file (void)
 /* Executes an END FILE transformation. */
 static int
 end_file_trns_proc (void *trns_ UNUSED, struct ccase *c UNUSED,
-                    casenum_t case_num UNUSED)
+                    casenumber case_num UNUSED)
 {
   return TRNS_END_FILE;
 }

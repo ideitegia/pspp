@@ -36,7 +36,7 @@
    It affects nothing but GUIs
 */
 int
-cmd_variable_alignment (void)
+cmd_variable_alignment (struct dataset *ds)
 {
   do
     {
@@ -46,7 +46,7 @@ cmd_variable_alignment (void)
       size_t i;
       enum alignment align;
 
-      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
@@ -89,7 +89,7 @@ cmd_variable_alignment (void)
    It affects nothing but GUIs
 */
 int
-cmd_variable_width (void)
+cmd_variable_width (struct dataset *ds)
 {
   do
     {
@@ -97,7 +97,7 @@ cmd_variable_width (void)
       size_t nv;
       size_t i;
 
-      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 
@@ -123,7 +123,7 @@ cmd_variable_width (void)
 
 /* Set variables' measurement level */
 int
-cmd_variable_level (void)
+cmd_variable_level (struct dataset *ds)
 {
   do
     {
@@ -132,7 +132,7 @@ cmd_variable_level (void)
       enum measure level;
       size_t i;
 
-      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
+      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
       if ( lex_force_match('(') ) 

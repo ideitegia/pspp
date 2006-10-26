@@ -152,7 +152,7 @@ struct matrix_data_pgm
 
     /* Continuous variables. */
     int n_continuous;           /* Number of continuous variables. */
-    int first_continuous;       /* Index into dataset_dict (current_dataset).var of
+    int first_continuous;       /* Index into dictionary of
                                    first continuous variable. */
   };
 
@@ -168,13 +168,13 @@ static const struct case_source_class matrix_data_without_rowtype_source_class;
 
 static int compare_variables_by_mxd_var_type (const void *pa,
 					     const void *pb);
-static bool read_matrices_without_rowtype (struct matrix_data_pgm *);
-static bool read_matrices_with_rowtype (struct matrix_data_pgm *);
+static bool read_matrices_without_rowtype (struct dataset *ds, struct matrix_data_pgm *);
+static bool read_matrices_with_rowtype (struct dataset *ds, struct matrix_data_pgm *);
 static int string_to_content_type (char *, int *);
 static void attach_mxd_aux (struct variable *, int var_type, int sub_type);
 
 int
-cmd_matrix_data (void)
+cmd_matrix_data (struct dataset *ds)
 {
   struct pool *pool;
   struct matrix_data_pgm *mx;
@@ -183,7 +183,7 @@ cmd_matrix_data (void)
     
   unsigned seen = 0;
   
-  discard_variables (current_dataset);
+  discard_variables (ds);
 
   pool = pool_create ();
   mx = pool_alloc (pool, sizeof *mx);
@@ -248,7 +248,7 @@ cmd_matrix_data (void)
 		
 		if (strcasecmp (v[i], "ROWTYPE_"))
 		  {
-		    new_var = dict_create_var_assert (dataset_dict (current_dataset), v[i], 0);
+		    new_var = dict_create_var_assert (dataset_dict (ds), v[i], 0);
                     attach_mxd_aux (new_var, MXD_CONTINUOUS, i);
                   }
 		else
@@ -258,7 +258,7 @@ cmd_matrix_data (void)
 	    free (v);
 	  }
 	  
-          mx->rowtype_ = dict_create_var_assert (dataset_dict (current_dataset),
+          mx->rowtype_ = dict_create_var_assert (dataset_dict (ds),
                                                  "ROWTYPE_", 8);
           attach_mxd_aux (mx->rowtype_, MXD_ROWTYPE, 0);
 	}
@@ -313,7 +313,7 @@ cmd_matrix_data (void)
 	      goto lossage;
 	    }
 	  
-	  if (dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL
+	  if (dict_lookup_var (dataset_dict (ds), tokid) == NULL
 	      && (lex_look_ahead () == '.' || lex_look_ahead () == '/'))
 	    {
 	      if (!strcasecmp (tokid, "ROWTYPE_")
@@ -324,27 +324,27 @@ cmd_matrix_data (void)
 		  goto lossage;
 		}
 
-	      mx->single_split = dict_create_var_assert (dataset_dict (current_dataset),
+	      mx->single_split = dict_create_var_assert (dataset_dict (ds),
                                                          tokid, 0);
               attach_mxd_aux (mx->single_split, MXD_CONTINUOUS, 0);
 	      lex_get ();
 
-              dict_set_split_vars (dataset_dict (current_dataset), &mx->single_split, 1);
+              dict_set_split_vars (dataset_dict (ds), &mx->single_split, 1);
 	    }
 	  else
 	    {
 	      struct variable **split;
 	      size_t n;
 
-	      if (!parse_variables (dataset_dict (current_dataset), &split, &n, PV_NO_DUPLICATE))
+	      if (!parse_variables (dataset_dict (ds), &split, &n, PV_NO_DUPLICATE))
 		goto lossage;
 
-              dict_set_split_vars (dataset_dict (current_dataset), split, n);
+              dict_set_split_vars (dataset_dict (ds), split, n);
 	    }
 	  
 	  {
-            struct variable *const *split = dict_get_split_vars (dataset_dict (current_dataset));
-            size_t split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
+            struct variable *const *split = dict_get_split_vars (dataset_dict (ds));
+            size_t split_cnt = dict_get_split_cnt (dataset_dict (ds));
             int i;
 
             for (i = 0; i < split_cnt; i++)
@@ -373,7 +373,7 @@ cmd_matrix_data (void)
 	    }
 	  seen |= 4;
 
-	  if (!parse_variables (dataset_dict (current_dataset), &mx->factors, &mx->n_factors,
+	  if (!parse_variables (dataset_dict (ds), &mx->factors, &mx->n_factors,
                                 PV_NONE))
 	    goto lossage;
 	  
@@ -572,7 +572,7 @@ cmd_matrix_data (void)
     }
       
   /* Create VARNAME_. */
-  mx->varname_ = dict_create_var_assert (dataset_dict (current_dataset), "VARNAME_", 8);
+  mx->varname_ = dict_create_var_assert (dataset_dict (ds), "VARNAME_", 8);
   attach_mxd_aux (mx->varname_, MXD_VARNAME, 0);
   
   /* Sort the dictionary variables into the desired order for the
@@ -581,9 +581,9 @@ cmd_matrix_data (void)
     struct variable **v;
     size_t nv;
 
-    dict_get_vars (dataset_dict (current_dataset), &v, &nv, 0);
+    dict_get_vars (dataset_dict (ds), &v, &nv, 0);
     qsort (v, nv, sizeof *v, compare_variables_by_mxd_var_type);
-    dict_reorder_vars (dataset_dict (current_dataset), v, nv);
+    dict_reorder_vars (dataset_dict (ds), v, nv);
     free (v);
   }
 
@@ -601,9 +601,9 @@ cmd_matrix_data (void)
     int i;
 
     mx->first_continuous = -1;
-    for (i = 0; i < dict_get_var_cnt (dataset_dict (current_dataset)); i++)
+    for (i = 0; i < dict_get_var_cnt (dataset_dict (ds)); i++)
       {
-	struct variable *v = dict_get_var (dataset_dict (current_dataset), i);
+	struct variable *v = dict_get_var (dataset_dict (ds), i);
         struct mxd_var *mv = v->aux;
 	int type = mv->var_type;
 	
@@ -628,9 +628,9 @@ cmd_matrix_data (void)
     goto lossage;
 
   if (mx->explicit_rowtype)
-    ok = read_matrices_with_rowtype (mx);
+    ok = read_matrices_with_rowtype (ds, mx);
   else
-    ok = read_matrices_without_rowtype (mx);
+    ok = read_matrices_without_rowtype (ds, mx);
 
   dfm_close_reader (mx->reader);
 
@@ -639,7 +639,7 @@ cmd_matrix_data (void)
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
 lossage:
-  discard_variables (current_dataset);
+  discard_variables (ds);
   free (mx->factors);
   pool_destroy (mx->container);
   return CMD_CASCADING_FAILURE;
@@ -912,6 +912,7 @@ force_eol (struct dfm_reader *reader, const char *content)
 
 struct nr_aux_data 
   {
+    const struct dictionary *dict; /* The dictionary */
     struct matrix_data_pgm *mx; /* MATRIX DATA program. */
     double ***data;             /* MATRIX DATA data. */
     double *factor_values;      /* Factor values. */
@@ -932,7 +933,7 @@ static bool matrix_data_read_without_rowtype (struct case_source *source,
 /* Read from the data file and write it to the active file.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-read_matrices_without_rowtype (struct matrix_data_pgm *mx)
+read_matrices_without_rowtype (struct dataset *ds, struct matrix_data_pgm *mx)
 {
   struct nr_aux_data nr;
   bool ok;
@@ -941,17 +942,18 @@ read_matrices_without_rowtype (struct matrix_data_pgm *mx)
     mx->cells = 1;
 
   nr.mx = mx;
+  nr.dict = dataset_dict (ds);
   nr.data = NULL;
   nr.factor_values = xnmalloc (mx->n_factors * mx->cells,
                                sizeof *nr.factor_values);
   nr.max_cell_idx = 0;
-  nr.split_values = xnmalloc (dict_get_split_cnt (dataset_dict (current_dataset)),
+  nr.split_values = xnmalloc (dict_get_split_cnt (dataset_dict (ds)),
                               sizeof *nr.split_values);
 
-  proc_set_source (current_dataset, create_case_source (
+  proc_set_source (ds, create_case_source (
                      &matrix_data_without_rowtype_source_class, &nr));
   
-  ok = procedure (current_dataset,NULL, NULL);
+  ok = procedure (ds, NULL, NULL);
 
   free (nr.split_values);
   free (nr.factor_values);
@@ -1089,7 +1091,7 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	    if (token.type != MNUM)
 	      {
 		msg (SE, _("expecting value for %s %s"),
-		     dict_get_var (dataset_dict (current_dataset), j)->name,
+		     dict_get_var (nr->dict, j)->name,
                      context (mx->reader));
 		return 0;
 	      }
@@ -1206,7 +1208,7 @@ matrix_data_read_without_rowtype (struct case_source *source,
       if (!nr_output_data (nr, c, write_case, wc_data))
         return false;
 
-      if (dict_get_split_cnt (dataset_dict (current_dataset)) == 0
+      if (dict_get_split_cnt (nr->dict) == 0
           || !another_token (mx->reader))
 	return true;
     }
@@ -1229,14 +1231,14 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
       return true;
     }
   
-  if (dict_get_split_vars (dataset_dict (current_dataset)) == NULL)
+  if (dict_get_split_vars (nr->dict) == NULL)
     return true;
 
   if (mx->single_split)
     {
       if (!compare) 
         {
-          struct mxd_var *mv = dict_get_split_vars (dataset_dict (current_dataset))[0]->aux;
+          struct mxd_var *mv = dict_get_split_vars (nr->dict)[0]->aux;
           nr->split_values[0] = ++mv->sub_type; 
         }
       return true;
@@ -1245,7 +1247,7 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
   if (!compare)
     just_read = 1;
 
-  split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
+  split_cnt = dict_get_split_cnt (nr->dict);
   for (i = 0; i < split_cnt; i++) 
     {
       struct matrix_token token;
@@ -1264,7 +1266,7 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
         {
           msg (SE, _("Expecting value %g for %s."),
                nr->split_values[i],
-               dict_get_split_vars (dataset_dict (current_dataset))[i]->name);
+               dict_get_split_vars (nr->dict)[i]->name);
           return false;
         }
     }
@@ -1327,7 +1329,8 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
    CP to the active file.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
+dump_cell_content (const struct dictionary *dict, 
+		   struct matrix_data_pgm *mx, int content, double *cp,
                    struct ccase *c,
                    write_case_func *write_case, write_case_data wc_data)
 {
@@ -1351,13 +1354,13 @@ dump_cell_content (struct matrix_data_pgm *mx, int content, double *cp,
 
 	for (j = 0; j < mx->n_continuous; j++)
 	  {
-            int fv = dict_get_var (dataset_dict (current_dataset), mx->first_continuous + j)->fv;
+            int fv = dict_get_var (dict, mx->first_continuous + j)->fv;
             case_data_rw (c, fv)->f = *cp;
 	    cp++;
 	  }
 	if (type == 1)
 	  buf_copy_str_rpad (case_data_rw (c, mx->varname_->fv)->s, 8,
-                             dict_get_var (dataset_dict (current_dataset),
+                             dict_get_var (dict,
                                            mx->first_continuous + i)->name);
 	if (!write_case (wc_data))
           return false;
@@ -1378,8 +1381,8 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
     size_t split_cnt;
     size_t i;
 
-    split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
-    split = dict_get_split_vars (dataset_dict (current_dataset));
+    split_cnt = dict_get_split_cnt (nr->dict);
+    split = dict_get_split_vars (nr->dict);
     for (i = 0; i < split_cnt; i++)
       case_data_rw (c, split[i]->fv)->f = nr->split_values[i];
   }
@@ -1407,7 +1410,8 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
 		  assert (nr->data[content] != NULL
 			  && nr->data[content][cell] != NULL);
 
-		  if (!dump_cell_content (mx, content, nr->data[content][cell],
+		  if (!dump_cell_content (nr->dict, mx, 
+					  content, nr->data[content][cell],
                                           c, write_case, wc_data))
                     return false;
 		}
@@ -1428,7 +1432,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
     for (content = 0; content <= PROX; content++)
       if (!mx->is_per_factor[content] && nr->data[content] != NULL) 
         {
-          if (!dump_cell_content (mx, content, nr->data[content][0],
+          if (!dump_cell_content (nr->dict, mx, content, nr->data[content][0],
                                   c, write_case, wc_data))
             return false; 
         }
@@ -1451,6 +1455,7 @@ struct factor_data
 /* With ROWTYPE_ auxiliary data. */
 struct wr_aux_data 
   {
+    const struct dictionary *dict;            /* The dictionary */
     struct matrix_data_pgm *mx;         /* MATRIX DATA program. */
     int content;                        /* Type of current row. */
     double *split_values;               /* SPLIT FILE variable values. */
@@ -1475,7 +1480,7 @@ static bool matrix_data_read_with_rowtype (struct case_source *,
    them to the output file.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-read_matrices_with_rowtype (struct matrix_data_pgm *mx)
+read_matrices_with_rowtype (struct dataset *ds, struct matrix_data_pgm *mx)
 {
   struct wr_aux_data wr;
   bool ok;
@@ -1485,12 +1490,13 @@ read_matrices_with_rowtype (struct matrix_data_pgm *mx)
   wr.split_values = NULL;
   wr.data = NULL;
   wr.current = NULL;
+  wr.dict = dataset_dict (ds);
   mx->cells = 0;
 
-  proc_set_source (current_dataset, 
+  proc_set_source (ds, 
 		   create_case_source (&matrix_data_with_rowtype_source_class,
                                        &wr));
-  ok = procedure (current_dataset,NULL, NULL);
+  ok = procedure (ds, NULL, NULL);
 
   free (wr.split_values);
   return ok;
@@ -1534,7 +1540,7 @@ wr_read_splits (struct wr_aux_data *wr,
   bool compare;
   size_t split_cnt;
 
-  split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
+  split_cnt = dict_get_split_cnt (wr->dict);
   if (split_cnt == 0)
     return true;
 
@@ -1628,8 +1634,8 @@ wr_output_data (struct wr_aux_data *wr,
     size_t split_cnt;
     size_t i;
 
-    split_cnt = dict_get_split_cnt (dataset_dict (current_dataset));
-    split = dict_get_split_vars (dataset_dict (current_dataset));
+    split_cnt = dict_get_split_cnt (wr->dict);
+    split = dict_get_split_vars (wr->dict);
     for (i = 0; i < split_cnt; i++)
       case_data_rw (c, split[i]->fv)->f = wr->split_values[i];
   }
@@ -1697,7 +1703,8 @@ wr_output_data (struct wr_aux_data *wr,
 
 	      fill_matrix (mx, content, iter->data[content]);
 
-	      ok = dump_cell_content (mx, content, iter->data[content],
+	      ok = dump_cell_content (wr->dict, mx, content, 
+				      iter->data[content],
                                       c, write_case, wc_data);
               if (!ok)
                 break;
@@ -1956,7 +1963,7 @@ wr_read_indeps (struct wr_aux_data *wr)
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting value for %s %s."),
-                 dict_get_var (dataset_dict (current_dataset), mx->first_continuous + j)->name,
+                 dict_get_var (wr->dict, mx->first_continuous + j)->name,
                  context (mx->reader));
 	    return false;
 	  }

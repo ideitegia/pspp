@@ -40,14 +40,14 @@
 
 /* Performs the SORT CASES procedures. */
 int
-cmd_sort_cases (void)
+cmd_sort_cases (struct dataset *ds)
 {
   struct sort_criteria *criteria;
   bool success = false;
 
   lex_match (T_BY);
 
-  criteria = sort_parse_criteria (dataset_dict (current_dataset), NULL, NULL, NULL, NULL);
+  criteria = sort_parse_criteria (dataset_dict (ds), NULL, NULL, NULL, NULL);
   if (criteria == NULL)
     return CMD_CASCADING_FAILURE;
 
@@ -68,7 +68,7 @@ cmd_sort_cases (void)
       lex_get ();
     }
 
-  success = sort_active_file_in_place (criteria);
+  success = sort_active_file_in_place (ds, criteria);
 
  done:
   min_buffers = 64;

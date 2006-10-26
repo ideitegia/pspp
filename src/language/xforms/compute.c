@@ -43,11 +43,11 @@ struct lvalue;
 
 /* Target of a COMPUTE or IF assignment, either a variable or a
    vector element. */
-static struct lvalue *lvalue_parse (void);
-static int lvalue_get_type (const struct lvalue *);
+static struct lvalue *lvalue_parse (struct dataset *);
+static int lvalue_get_type (const struct lvalue *, const struct dictionary *);
 static bool lvalue_is_vector (const struct lvalue *);
 static void lvalue_finalize (struct lvalue *,
-                             struct compute_trns *);
+                             struct compute_trns *, struct dictionary *);
 static void lvalue_destroy (struct lvalue *);
 
 /* COMPUTE and IF transformation. */
@@ -69,35 +69,36 @@ struct compute_trns
     struct expression *rvalue;	 /* Rvalue expression. */
   };
 
-static struct expression *parse_rvalue (const struct lvalue *);
+static struct expression *parse_rvalue (const struct lvalue *, struct dataset *);
 static struct compute_trns *compute_trns_create (void);
-static trns_proc_func *get_proc_func (const struct lvalue *);
+static trns_proc_func *get_proc_func (const struct lvalue *, const struct dictionary *);
 static trns_free_func compute_trns_free;
 
 /* COMPUTE. */
 
 int
-cmd_compute (void)
+cmd_compute (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct lvalue *lvalue = NULL;
   struct compute_trns *compute = NULL;
 
   compute = compute_trns_create ();
 
-  lvalue = lvalue_parse ();
+  lvalue = lvalue_parse (ds);
   if (lvalue == NULL)
     goto fail;
 
   if (!lex_force_match ('='))
     goto fail;
-  compute->rvalue = parse_rvalue (lvalue);
+  compute->rvalue = parse_rvalue (lvalue, ds);
   if (compute->rvalue == NULL)
     goto fail;
 
-  add_transformation (current_dataset, 
-		      get_proc_func (lvalue), compute_trns_free, compute);
+  add_transformation (ds, get_proc_func (lvalue, dict), 
+		      compute_trns_free, compute);
 
-  lvalue_finalize (lvalue, compute);
+  lvalue_finalize (lvalue, compute, dict);
 
   return lex_end_of_command ();
 
@@ -111,7 +112,7 @@ cmd_compute (void)
 
 /* Handle COMPUTE or IF with numeric target variable. */
 static int
-compute_num (void *compute_, struct ccase *c, casenum_t case_num)
+compute_num (void *compute_, struct ccase *c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -126,7 +127,7 @@ compute_num (void *compute_, struct ccase *c, casenum_t case_num)
 /* Handle COMPUTE or IF with numeric vector element target
    variable. */
 static int
-compute_num_vec (void *compute_, struct ccase *c, casenum_t case_num)
+compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -158,7 +159,7 @@ compute_num_vec (void *compute_, struct ccase *c, casenum_t case_num)
 
 /* Handle COMPUTE or IF with string target variable. */
 static int
-compute_str (void *compute_, struct ccase *c, casenum_t case_num)
+compute_str (void *compute_, struct ccase *c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -173,7 +174,7 @@ compute_str (void *compute_, struct ccase *c, casenum_t case_num)
 /* Handle COMPUTE or IF with string vector element target
    variable. */
 static int
-compute_str_vec (void *compute_, struct ccase *c, casenum_t case_num)
+compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
@@ -212,34 +213,35 @@ compute_str_vec (void *compute_, struct ccase *c, casenum_t case_num)
 /* IF. */
 
 int
-cmd_if (void)
+cmd_if (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct compute_trns *compute = NULL;
   struct lvalue *lvalue = NULL;
 
   compute = compute_trns_create ();
 
   /* Test expression. */
-  compute->test = expr_parse (dataset_dict (current_dataset), EXPR_BOOLEAN);
+  compute->test = expr_parse (ds, EXPR_BOOLEAN);
   if (compute->test == NULL)
     goto fail;
 
   /* Lvalue variable. */
-  lvalue = lvalue_parse ();
+  lvalue = lvalue_parse (ds);
   if (lvalue == NULL)
     goto fail;
 
   /* Rvalue expression. */
   if (!lex_force_match ('='))
     goto fail;
-  compute->rvalue = parse_rvalue (lvalue);
+  compute->rvalue = parse_rvalue (lvalue, ds);
   if (compute->rvalue == NULL)
     goto fail;
 
-  add_transformation (current_dataset, 
-		      get_proc_func (lvalue), compute_trns_free, compute);
+  add_transformation (ds, get_proc_func (lvalue, dict), 
+		      compute_trns_free, compute);
 
-  lvalue_finalize (lvalue, compute);
+  lvalue_finalize (lvalue, compute, dict);
 
   return lex_end_of_command ();
 
@@ -252,9 +254,9 @@ cmd_if (void)
 /* Code common to COMPUTE and IF. */
 
 static trns_proc_func *
-get_proc_func (const struct lvalue *lvalue) 
+get_proc_func (const struct lvalue *lvalue, const struct dictionary *dict) 
 {
-  bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue, dict) == NUMERIC;
   bool is_vector = lvalue_is_vector (lvalue);
 
   return (is_numeric
@@ -265,11 +267,12 @@ get_proc_func (const struct lvalue *lvalue)
 /* Parses and returns an rvalue expression of the same type as
    LVALUE, or a null pointer on failure. */
 static struct expression *
-parse_rvalue (const struct lvalue *lvalue)
+parse_rvalue (const struct lvalue *lvalue, struct dataset *ds)
 {
-  bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
+  const struct dictionary *dict = dataset_dict (ds);
+  bool is_numeric = lvalue_get_type (lvalue, dict) == NUMERIC;
 
-  return expr_parse (dataset_dict (current_dataset), is_numeric ? EXPR_NUMBER : EXPR_STRING);
+  return expr_parse (ds, is_numeric ? EXPR_NUMBER : EXPR_STRING);
 }
 
 /* Returns a new struct compute_trns after initializing its fields. */
@@ -312,7 +315,7 @@ struct lvalue
 /* Parses the target variable or vector element into a new
    `struct lvalue', which is returned. */
 static struct lvalue *
-lvalue_parse (void) 
+lvalue_parse (struct dataset *ds) 
 {
   struct lvalue *lvalue;
 
@@ -327,7 +330,7 @@ lvalue_parse (void)
   if (lex_look_ahead () == '(')
     {
       /* Vector. */
-      lvalue->vector = dict_lookup_vector (dataset_dict (current_dataset), tokid);
+      lvalue->vector = dict_lookup_vector (dataset_dict (ds), tokid);
       if (lvalue->vector == NULL)
 	{
 	  msg (SE, _("There is no vector named %s."), tokid);
@@ -338,7 +341,7 @@ lvalue_parse (void)
       lex_get ();
       if (!lex_force_match ('('))
 	goto lossage;
-      lvalue->element = expr_parse (dataset_dict (current_dataset), EXPR_NUMBER);
+      lvalue->element = expr_parse (ds, EXPR_NUMBER);
       if (lvalue->element == NULL)
         goto lossage;
       if (!lex_force_match (')'))
@@ -360,11 +363,11 @@ lvalue_parse (void)
 /* Returns the type (NUMERIC or ALPHA) of the target variable or
    vector in LVALUE. */
 static int
-lvalue_get_type (const struct lvalue *lvalue) 
+lvalue_get_type (const struct lvalue *lvalue, const struct dictionary *dict) 
 {
   if (lvalue->vector == NULL) 
     {
-      struct variable *var = dict_lookup_var (dataset_dict (current_dataset), lvalue->var_name);
+      struct variable *var = dict_lookup_var (dict, lvalue->var_name);
       if (var == NULL)
         return NUMERIC;
       else
@@ -384,14 +387,15 @@ lvalue_is_vector (const struct lvalue *lvalue)
 /* Finalizes making LVALUE the target of COMPUTE, by creating the
    target variable if necessary and setting fields in COMPUTE. */
 static void
-lvalue_finalize (struct lvalue *lvalue, struct compute_trns *compute) 
+lvalue_finalize (struct lvalue *lvalue, 
+		 struct compute_trns *compute, 
+		 struct dictionary *dict) 
 {
   if (lvalue->vector == NULL)
     {
-      compute->variable = dict_lookup_var (dataset_dict (current_dataset), lvalue->var_name);
+      compute->variable = dict_lookup_var (dict, lvalue->var_name);
       if (compute->variable == NULL)
-	  compute->variable = dict_create_var_assert (dataset_dict (current_dataset),
-						      lvalue->var_name, 0);
+	  compute->variable = dict_create_var_assert (dict, lvalue->var_name, 0);
 
       compute->fv = compute->variable->fv;
       compute->width = compute->variable->width;

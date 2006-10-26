@@ -111,6 +111,8 @@ sub init_all_types {
 	       FIXED_VALUE => 'c');
     init_type ('case_idx', 'fixed', C_TYPE => 'size_t',
 	       FIXED_VALUE => 'case_idx');
+    init_type ('dataset', 'fixed', C_TYPE => 'struct dataset *',
+	       FIXED_VALUE => 'ds');
 
     # One of these is emitted at the end of each expression as a sentinel
     # that tells expr_evaluate() to return the value on the stack.

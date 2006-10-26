@@ -68,26 +68,29 @@ bool proc_has_source (const struct dataset *ds);
 void proc_set_sink (struct dataset *ds, struct case_sink *);
 struct casefile *proc_capture_output (struct dataset *ds);
 
-typedef bool (*casefile_func_t) (const struct casefile *, void *);
-typedef bool (*case_func_t) (const struct ccase *, void *);
-typedef void (*begin_func_t) (const struct ccase *, void *);
+typedef bool casefile_func (const struct casefile *, void *);
+typedef bool case_func (const struct ccase *, void *, const struct dataset *);
+typedef void begin_func (const struct ccase *, void *, const struct dataset*);
+
+typedef bool end_func (void *, const struct dataset *);
+
+typedef bool split_func (const struct ccase *, const struct casefile *,
+			      void *, const struct dataset *);
 
 
 
-bool procedure (struct dataset *ds, case_func_t, void *aux)  WARN_UNUSED_RESULT;
+bool procedure (struct dataset *ds, case_func *, void *aux)  WARN_UNUSED_RESULT;
 
 bool procedure_with_splits (struct dataset *ds, 
-			    begin_func_t begin_func,
-                            case_func_t proc_func,
-                            void (*end_func) (void *),
+			    begin_func *,
+                            case_func *,
+			    end_func *,
                             void *aux)
      WARN_UNUSED_RESULT;
-bool multipass_procedure (struct dataset *ds, casefile_func_t, void  *aux)
+bool multipass_procedure (struct dataset *ds, casefile_func *, void  *aux)
      WARN_UNUSED_RESULT;
 bool multipass_procedure_with_splits (struct dataset *ds,
-					   bool (*) (const struct ccase *,
-						     const struct casefile *,
-						     void *),
+					   split_func *,
 					   void *aux)
      WARN_UNUSED_RESULT;
 
@@ -97,8 +100,6 @@ time_t time_of_last_procedure (struct dataset *ds);
 
 
 struct ccase *lagged_case (const struct dataset *ds, int n_before);
-
-extern struct dataset *current_dataset;
 
 inline struct dictionary *dataset_dict (const struct dataset *ds);
 inline void dataset_set_dict ( struct dataset *ds, struct dictionary *dict);

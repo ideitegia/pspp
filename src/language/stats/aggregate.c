@@ -146,6 +146,7 @@ struct agr_proc
     enum missing_treatment missing;     /* How to treat missing values. */
     struct agr_var *agr_vars;           /* First aggregate variable. */
     struct dictionary *dict;            /* Aggregate dictionary. */
+    const struct dictionary *src_dict;  /* Dict of the source */
     int case_cnt;                       /* Counts aggregated cases. */
     struct ccase agr_case;              /* Aggregate case for output. */
   };
@@ -154,25 +155,27 @@ static void initialize_aggregate_info (struct agr_proc *,
                                        const struct ccase *);
 
 /* Prototypes. */
-static bool parse_aggregate_functions (struct agr_proc *);
+static bool parse_aggregate_functions (const struct dictionary *,
+				       struct agr_proc *);
 static void agr_destroy (struct agr_proc *);
 static bool aggregate_single_case (struct agr_proc *agr,
-                                  const struct ccase *input,
-                                  struct ccase *output);
+				   const struct ccase *input,
+				   struct ccase *output);
 static void dump_aggregate_info (struct agr_proc *agr, struct ccase *output);
 
 /* Aggregating to the active file. */
-static bool agr_to_active_file (const struct ccase *, void *aux);
+static bool agr_to_active_file (const struct ccase *, void *aux, const struct dataset *);
 
 /* Aggregating to a system file. */
-static bool presorted_agr_to_sysfile (const struct ccase *, void *aux);
+static bool presorted_agr_to_sysfile (const struct ccase *, void *aux, const struct dataset *);
 
 /* Parsing. */
 
 /* Parses and executes the AGGREGATE procedure. */
 int
-cmd_aggregate (void)
+cmd_aggregate (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct agr_proc agr;
   struct file_handle *out_file = NULL;
 
@@ -185,8 +188,9 @@ cmd_aggregate (void)
   case_nullify (&agr.break_case);
   
   agr.dict = dict_create ();
-  dict_set_label (agr.dict, dict_get_label (dataset_dict (current_dataset)));
-  dict_set_documents (agr.dict, dict_get_documents (dataset_dict (current_dataset)));
+  agr.src_dict = dict;
+  dict_set_label (agr.dict, dict_get_label (dict));
+  dict_set_documents (agr.dict, dict_get_documents (dict));
 
   /* OUTFILE subcommand must be first. */
   if (!lex_force_match_id ("OUTFILE"))
@@ -223,7 +227,7 @@ cmd_aggregate (void)
           int i;
 
 	  lex_match ('=');
-          agr.sort = sort_parse_criteria (dataset_dict (current_dataset),
+          agr.sort = sort_parse_criteria (dict,
                                           &agr.break_vars, &agr.break_var_cnt,
                                           &saw_direction, NULL);
           if (agr.sort == NULL)
@@ -249,7 +253,7 @@ cmd_aggregate (void)
       
   /* Read in the aggregate functions. */
   lex_match ('/');
-  if (!parse_aggregate_functions (&agr))
+  if (!parse_aggregate_functions (dict, &agr))
     goto error;
 
   /* Delete documents. */
@@ -268,21 +272,21 @@ cmd_aggregate (void)
     {
       /* The active file will be replaced by the aggregated data,
          so TEMPORARY is moot. */
-      proc_cancel_temporary_transformations (current_dataset);
+      proc_cancel_temporary_transformations (ds);
 
       if (agr.sort != NULL && !presorted) 
         {
-          if (!sort_active_file_in_place (agr.sort))
+          if (!sort_active_file_in_place (ds, agr.sort))
             goto error;
         }
 
       agr.sink = create_case_sink (&storage_sink_class, agr.dict, NULL);
       if (agr.sink->class->open != NULL)
         agr.sink->class->open (agr.sink);
-      proc_set_sink (current_dataset, 
+      proc_set_sink (ds, 
 		     create_case_sink (&null_sink_class, 
-				       dataset_dict (current_dataset), NULL));
-      if (!procedure (current_dataset,agr_to_active_file, &agr))
+				       dict, NULL));
+      if (!procedure (ds, agr_to_active_file, &agr))
         goto error;
       if (agr.case_cnt > 0) 
         {
@@ -290,11 +294,11 @@ cmd_aggregate (void)
           if (!agr.sink->class->write (agr.sink, &agr.agr_case))
             goto error;
         }
-      discard_variables (current_dataset);
-      dict_destroy (dataset_dict (current_dataset));
-      dataset_set_dict (current_dataset, agr.dict);
+      discard_variables (ds);
+      dict_destroy (dict);
+      dataset_set_dict (ds, agr.dict);
       agr.dict = NULL;
-      proc_set_source (current_dataset, 
+      proc_set_source (ds, 
 		       agr.sink->class->make_source (agr.sink));
       free_case_sink (agr.sink);
     }
@@ -312,7 +316,7 @@ cmd_aggregate (void)
           struct ccase c;
           bool ok = true;
           
-          dst = sort_active_file_to_casefile (agr.sort);
+          dst = sort_active_file_to_casefile (ds, agr.sort);
           if (dst == NULL)
             goto error;
           reader = casefile_get_destructive_reader (dst);
@@ -332,7 +336,7 @@ cmd_aggregate (void)
       else 
         {
           /* Active file is already sorted. */
-          if (!procedure (current_dataset,presorted_agr_to_sysfile, &agr))
+          if (!procedure (ds, presorted_agr_to_sysfile, &agr))
             goto error;
         }
       
@@ -355,7 +359,7 @@ error:
 
 /* Parse all the aggregate functions. */
 static bool
-parse_aggregate_functions (struct agr_proc *agr)
+parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 {
   struct agr_var *tail; /* Tail of linked list starting at agr->vars. */
 
@@ -462,7 +466,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 	    else if (function->n_args)
 	      pv_opts |= PV_SAME_TYPE;
 
-	    if (!parse_variables (dataset_dict (current_dataset), &src, &n_src, pv_opts))
+	    if (!parse_variables (dict, &src, &n_src, pv_opts))
 	      goto error;
 	  }
 
@@ -580,7 +584,7 @@ parse_aggregate_functions (struct agr_proc *agr)
                     if (destvar != NULL) 
                       {
                         if ((func_index == N || func_index == NMISS)
-                            && dict_get_weight (dataset_dict (current_dataset)) != NULL)
+                            && dict_get_weight (dict) != NULL)
                           destvar->print = destvar->write = f8_2; 
                         else
                           destvar->print = destvar->write = function->format;
@@ -590,7 +594,7 @@ parse_aggregate_functions (struct agr_proc *agr)
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
                 if (func_index == N_NO_VARS
-                    && dict_get_weight (dataset_dict (current_dataset)) != NULL)
+                    && dict_get_weight (dict) != NULL)
                   destvar->print = destvar->write = f8_2; 
                 else
                   destvar->print = destvar->write = function->format;
@@ -748,7 +752,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
   double weight;
   bool bad_warn = true;
 
-  weight = dict_get_case_weight (dataset_dict (current_dataset), input, &bad_warn);
+  weight = dict_get_case_weight (agr->src_dict, input, &bad_warn);
 
   for (iter = agr->agr_vars; iter; iter = iter->next)
     if (iter->src)
@@ -1086,7 +1090,7 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
    are dropped.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-agr_to_active_file (const struct ccase *c, void *agr_)
+agr_to_active_file (const struct ccase *c, void *agr_, const struct dataset *ds UNUSED)
 {
   struct agr_proc *agr = agr_;
 
@@ -1099,7 +1103,7 @@ agr_to_active_file (const struct ccase *c, void *agr_)
 /* Aggregate the current case and output it if we passed a
    breakpoint. */
 static bool
-presorted_agr_to_sysfile (const struct ccase *c, void *agr_) 
+presorted_agr_to_sysfile (const struct ccase *c, void *agr_, const struct dataset *ds UNUSED) 
 {
   struct agr_proc *agr = agr_;
 

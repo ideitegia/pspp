@@ -38,7 +38,7 @@
 
 /* Declarations. */
 
-static int do_value_labels (int);
+static int do_value_labels (const struct dictionary *dict, int);
 static int verify_val_labs (struct variable **vars, size_t var_cnt);
 static void erase_labels (struct variable **vars, size_t var_cnt);
 static int get_label (struct variable **vars, size_t var_cnt);
@@ -46,21 +46,21 @@ static int get_label (struct variable **vars, size_t var_cnt);
 /* Stubs. */
 
 int
-cmd_value_labels (void)
+cmd_value_labels (struct dataset *ds)
 {
-  return do_value_labels (1);
+  return do_value_labels (dataset_dict (ds), 1);
 }
 
 int
-cmd_add_value_labels (void)
+cmd_add_value_labels (struct dataset *ds)
 {
-  return do_value_labels (0);
+  return do_value_labels (dataset_dict (ds), 0);
 }
 
 /* Do it. */
 
 static int
-do_value_labels (int erase)
+do_value_labels (const struct dictionary *dict, int erase)
 {
   struct variable **vars; /* Variable list. */
   size_t var_cnt;         /* Number of variables. */
@@ -70,7 +70,7 @@ do_value_labels (int erase)
   
   while (token != '.')
     {
-      parse_err = !parse_variables (dataset_dict (current_dataset), &vars, &var_cnt, 
+      parse_err = !parse_variables (dict, &vars, &var_cnt, 
 				    PV_SAME_TYPE) ;
       if (var_cnt < 1)
 	{

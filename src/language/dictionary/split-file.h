@@ -20,6 +20,6 @@
 #ifndef SPLIT_FILE_H
 #define SPLIT_FILE_H 1
 
-void output_split_file_values (const struct ccase *);
+void output_split_file_values (const struct dataset *ds, const struct ccase *);
 
 #endif /* split-file.h */

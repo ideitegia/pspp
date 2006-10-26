@@ -173,23 +173,27 @@ static enum dsc_statistic match_statistic (void);
 static void free_dsc_proc (struct dsc_proc *);
 
 /* Z-score functions. */
-static bool try_name (struct dsc_proc *dsc, char *name);
-static bool generate_z_varname (struct dsc_proc *dsc, char *z_name,
-                               const char *name, size_t *z_cnt);
+static bool try_name (const struct dictionary *dict, 
+		      struct dsc_proc *dsc, char *name);
+static bool generate_z_varname (const struct dictionary *dict, 
+				struct dsc_proc *dsc, char *z_name,
+				const char *name, size_t *z_cnt);
 static void dump_z_table (struct dsc_proc *);
-static void setup_z_trns (struct dsc_proc *);
+static void setup_z_trns (struct dsc_proc *, struct dataset *);
 
 /* Procedure execution functions. */
 static bool calc_descriptives (const struct ccase *first,
-                               const struct casefile *, void *dsc_);
+                               const struct casefile *, void *dsc_, 
+			       const struct dataset *);
 static void display (struct dsc_proc *dsc);
 
 /* Parser and outline. */
 
 /* Handles DESCRIPTIVES. */
 int
-cmd_descriptives (void)
+cmd_descriptives (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct dsc_proc *dsc;
   struct variable **vars = NULL;
   size_t var_cnt = 0;
@@ -314,7 +318,7 @@ cmd_descriptives (void)
             {
               int i;
               
-              if (!parse_variables (dataset_dict (current_dataset), &vars, &var_cnt,
+              if (!parse_variables (dataset_dict (ds), &vars, &var_cnt,
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
 		goto error;
 
@@ -335,7 +339,7 @@ cmd_descriptives (void)
                       lex_error (NULL);
                       goto error;
                     }
-                  if (try_name (dsc, tokid)) 
+                  if (try_name (dict, dsc, tokid)) 
                     {
                       strcpy (dsc->vars[dsc->var_cnt - 1].z_name, tokid);
                       z_cnt++;
@@ -373,7 +377,7 @@ cmd_descriptives (void)
           for (i = 0; i < dsc->var_cnt; i++)
             if (dsc->vars[i].z_name[0] == 0) 
               {
-                if (!generate_z_varname (dsc, dsc->vars[i].z_name,
+                if (!generate_z_varname (dict, dsc, dsc->vars[i].z_name,
                                          dsc->vars[i].v->name, &gen_cnt))
                   goto error;
                 z_cnt++;
@@ -410,11 +414,11 @@ cmd_descriptives (void)
       dsc->vars[i].moments = moments_create (dsc->max_moment);
 
   /* Data pass. */
-  ok = multipass_procedure_with_splits (current_dataset, calc_descriptives, dsc);
+  ok = multipass_procedure_with_splits (ds, calc_descriptives, dsc);
 
   /* Z-scoring! */
   if (ok && z_cnt)
-    setup_z_trns (dsc);
+    setup_z_trns (dsc, ds);
 
   /* Done. */
   free (vars);
@@ -469,11 +473,11 @@ free_dsc_proc (struct dsc_proc *dsc)
 /* Returns false if NAME is a duplicate of any existing variable name or
    of any previously-declared z-var name; otherwise returns true. */
 static bool
-try_name (struct dsc_proc *dsc, char *name)
+try_name (const struct dictionary *dict, struct dsc_proc *dsc, char *name)
 {
   size_t i;
 
-  if (dict_lookup_var (dataset_dict (current_dataset), name) != NULL)
+  if (dict_lookup_var (dict, name) != NULL)
     return false;
   for (i = 0; i < dsc->var_cnt; i++)
     if (!strcasecmp (dsc->vars[i].z_name, name))
@@ -486,7 +490,7 @@ try_name (struct dsc_proc *dsc, char *name)
    known to already exist.  If successful, returns true and
    copies the new name into Z_NAME.  On failure, returns false. */
 static bool
-generate_z_varname (struct dsc_proc *dsc, char *z_name,
+generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z_name,
                     const char *var_name, size_t *z_cnt)
 {
   char name[LONG_NAME_LEN + 1];
@@ -494,7 +498,7 @@ generate_z_varname (struct dsc_proc *dsc, char *z_name,
   /* Try a name based on the original variable name. */
   name[0] = 'Z';
   str_copy_trunc (name + 1, sizeof name - 1, var_name);
-  if (try_name (dsc, name))
+  if (try_name (dict, dsc, name))
     {
       strcpy (z_name, name);
       return true;
@@ -521,7 +525,7 @@ generate_z_varname (struct dsc_proc *dsc, char *z_name,
 	  return false;
 	}
       
-      if (try_name (dsc, name))
+      if (try_name (dict, dsc, name))
 	{
 	  strcpy (z_name, name);
 	  return true;
@@ -578,7 +582,7 @@ dump_z_table (struct dsc_proc *dsc)
 */
 static int
 descriptives_trns_proc (void *trns_, struct ccase * c,
-                        casenum_t case_idx UNUSED)
+                        casenumber case_idx UNUSED)
 {
   struct dsc_trns *t = trns_;
   struct dsc_z_score *z;
@@ -631,7 +635,7 @@ descriptives_trns_free (void *trns_)
 
 /* Sets up a transformation to calculate Z scores. */
 static void
-setup_z_trns (struct dsc_proc *dsc)
+setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
 {
   struct dsc_trns *t;
   size_t cnt, i;
@@ -667,7 +671,7 @@ setup_z_trns (struct dsc_proc *dsc)
 	  char *cp;
 	  struct variable *dst_var;
 
-	  dst_var = dict_create_var_assert (dataset_dict (current_dataset), dv->z_name, 0);
+	  dst_var = dict_create_var_assert (dataset_dict (ds), dv->z_name, 0);
 	  if (dv->v->label)
 	    {
 	      dst_var->label = xmalloc (strlen (dv->v->label) + 12);
@@ -690,7 +694,7 @@ setup_z_trns (struct dsc_proc *dsc)
 	}
     }
 
-  add_transformation (current_dataset, 
+  add_transformation (ds,
 		      descriptives_trns_proc, descriptives_trns_free, t);
 }
 
@@ -702,14 +706,15 @@ static bool listwise_missing (struct dsc_proc *dsc, const struct ccase *c);
    in CF. */
 static bool
 calc_descriptives (const struct ccase *first,
-                   const struct casefile *cf, void *dsc_) 
+                   const struct casefile *cf, void *dsc_, 
+		   const struct dataset *ds) 
 {
   struct dsc_proc *dsc = dsc_;
   struct casereader *reader;
   struct ccase c;
   size_t i;
 
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
 
   for (i = 0; i < dsc->var_cnt; i++)
     {
@@ -729,7 +734,7 @@ calc_descriptives (const struct ccase *first,
        casereader_read (reader, &c);
        case_destroy (&c))
     {
-      double weight = dict_get_case_weight (dataset_dict (current_dataset), &c, &dsc->bad_warn);
+      double weight = dict_get_case_weight (dataset_dict (ds), &c, &dsc->bad_warn);
       if (weight <= 0.0) 
         continue;
        
@@ -774,7 +779,7 @@ calc_descriptives (const struct ccase *first,
            casereader_read (reader, &c);
            case_destroy (&c))
         {
-          double weight = dict_get_case_weight (dataset_dict (current_dataset), &c, 
+          double weight = dict_get_case_weight (dataset_dict (ds), &c, 
 						&dsc->bad_warn);
           if (weight <= 0.0)
             continue;

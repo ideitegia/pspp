@@ -37,7 +37,7 @@
 
 /* Parses the NUMERIC command. */
 int
-cmd_numeric (void)
+cmd_numeric (struct dataset *ds)
 {
   size_t i;
 
@@ -78,7 +78,7 @@ cmd_numeric (void)
       /* Create each variable. */
       for (i = 0; i < nv; i++)
 	{
-	  struct variable *new_var = dict_create_var (dataset_dict (current_dataset), v[i], 0);
+	  struct variable *new_var = dict_create_var (dataset_dict (ds), v[i], 0);
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
 	  else
@@ -108,7 +108,7 @@ fail:
 
 /* Parses the STRING command. */
 int
-cmd_string (void)
+cmd_string (struct dataset *ds)
 {
   size_t i;
 
@@ -157,7 +157,7 @@ cmd_string (void)
       /* Create each variable. */
       for (i = 0; i < nv; i++)
 	{
-	  struct variable *new_var = dict_create_var (dataset_dict (current_dataset), v[i],
+	  struct variable *new_var = dict_create_var (dataset_dict (ds), v[i],
                                                       width);
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
@@ -185,14 +185,14 @@ fail:
 
 /* Parses the LEAVE command. */
 int
-cmd_leave (void)
+cmd_leave (struct dataset *ds)
 {
   struct variable **v;
   size_t nv;
 
   size_t i;
 
-  if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE))
+  if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
     return CMD_CASCADING_FAILURE;
   for (i = 0; i < nv; i++)
     v[i]->leave = true;

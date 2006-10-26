@@ -37,7 +37,7 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_missing_values (void)
+cmd_missing_values (struct dataset *ds)
 {
   struct variable **v;
   size_t nv;
@@ -49,7 +49,7 @@ cmd_missing_values (void)
     {
       size_t i;
 
-      if (!parse_variables (dataset_dict (current_dataset), &v, &nv, PV_NONE)) 
+      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE)) 
         goto done;
 
       if (!lex_match ('('))

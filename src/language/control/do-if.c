@@ -75,6 +75,7 @@ struct clause
 /* DO IF transformation. */
 struct do_if_trns
   {
+    struct dataset *ds;         /* The dataset */
     struct clause *clauses;     /* Clauses. */
     size_t clause_cnt;          /* Number of clauses. */
     int past_END_IF_index;      /* Transformation just past last clause. */
@@ -82,7 +83,7 @@ struct do_if_trns
 
 static const struct ctl_class do_if_class;
 
-static int parse_clause (struct do_if_trns *);
+static int parse_clause (struct do_if_trns *, struct dataset *ds);
 static void add_clause (struct do_if_trns *,
                         struct expression *condition, int target_index);
 static void add_else (struct do_if_trns *);
@@ -97,34 +98,36 @@ static trns_free_func do_if_trns_free;
 
 /* Parse DO IF. */
 int
-cmd_do_if (void)
+cmd_do_if (struct dataset *ds)
 {
   struct do_if_trns *do_if = xmalloc (sizeof *do_if);
   do_if->clauses = NULL;
   do_if->clause_cnt = 0;
+  do_if->ds = ds;
 
   ctl_stack_push (&do_if_class, do_if);
-  add_transformation_with_finalizer (current_dataset, do_if_finalize_func,
+  add_transformation_with_finalizer (ds, do_if_finalize_func,
                                      do_if_trns_proc, do_if_trns_free, do_if);
 
-  return parse_clause (do_if);
+  return parse_clause (do_if, ds);
 }
 
 /* Parse ELSE IF. */
 int
-cmd_else_if (void)
+cmd_else_if (struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
   if (do_if == NULL || !must_not_have_else (do_if))
     return CMD_CASCADING_FAILURE;
-  return parse_clause (do_if);
+  return parse_clause (do_if, ds);
 }
 
 /* Parse ELSE. */
 int
-cmd_else (void)
+cmd_else (struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
+  assert (ds == do_if->ds);
   if (do_if == NULL || !must_not_have_else (do_if))
     return CMD_CASCADING_FAILURE;
   add_else (do_if);
@@ -133,9 +136,11 @@ cmd_else (void)
 
 /* Parse END IF. */
 int
-cmd_end_if (void)
+cmd_end_if (struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
+  assert (ds == do_if->ds);
+
   if (do_if == NULL)
     return CMD_CASCADING_FAILURE;
 
@@ -147,13 +152,13 @@ cmd_end_if (void)
 /* Closes out DO_IF, by adding a sentinel ELSE clause if
    necessary and setting past_END_IF_index. */
 static void
-close_do_if (void *do_if_) 
+close_do_if (void *do_if_)
 {
   struct do_if_trns *do_if = do_if_;
   
   if (!has_else (do_if)) 
     add_else (do_if);
-  do_if->past_END_IF_index = next_transformation (current_dataset);
+  do_if->past_END_IF_index = next_transformation (do_if->ds);
 }
 
 /* Adds an ELSE clause to DO_IF pointing to the next
@@ -162,7 +167,7 @@ static void
 add_else (struct do_if_trns *do_if) 
 {
   assert (!has_else (do_if));
-  add_clause (do_if, NULL, next_transformation (current_dataset));
+  add_clause (do_if, NULL, next_transformation (do_if->ds));
 }
 
 /* Returns true if DO_IF does not yet have an ELSE clause.
@@ -192,15 +197,15 @@ has_else (struct do_if_trns *do_if)
    corresponding clause to DO_IF.  Checks for end of command and
    returns a command return code. */
 static int
-parse_clause (struct do_if_trns *do_if)
+parse_clause (struct do_if_trns *do_if, struct dataset *ds)
 {
   struct expression *condition;
 
-  condition = expr_parse (dataset_dict (current_dataset), EXPR_BOOLEAN);
+  condition = expr_parse (ds, EXPR_BOOLEAN);
   if (condition == NULL)
     return CMD_CASCADING_FAILURE;
 
-  add_clause (do_if, condition, next_transformation (current_dataset));
+  add_clause (do_if, condition, next_transformation (ds));
 
   return lex_end_of_command ();
 }
@@ -214,7 +219,7 @@ add_clause (struct do_if_trns *do_if,
   struct clause *clause;
 
   if (do_if->clause_cnt > 0)
-    add_transformation (current_dataset, break_trns_proc, NULL, do_if);
+    add_transformation (do_if->ds, break_trns_proc, NULL, do_if);
 
   do_if->clauses = xnrealloc (do_if->clauses,
                               do_if->clause_cnt + 1, sizeof *do_if->clauses);
@@ -238,7 +243,7 @@ do_if_finalize_func (void *do_if_ UNUSED)
    Checks each clause and jumps to the appropriate
    transformation. */
 static int 
-do_if_trns_proc (void *do_if_, struct ccase *c, casenum_t case_num UNUSED)
+do_if_trns_proc (void *do_if_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
   struct clause *clause;
@@ -277,7 +282,7 @@ do_if_trns_free (void *do_if_)
 
 /* Breaks out of a DO IF construct. */
 static int 
-break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenum_t case_num UNUSED)
+break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenumber case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
 

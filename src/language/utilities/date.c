@@ -27,7 +27,7 @@
 
 /* Stub for USE command. */
 int
-cmd_use (void) 
+cmd_use (struct dataset *ds UNUSED) 
 {
   if (lex_match (T_ALL))
     return lex_end_of_command ();

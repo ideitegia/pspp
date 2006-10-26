@@ -175,11 +175,11 @@ static struct cmd_crosstabs cmd;
 static struct pool *pl_tc;	/* For table cells. */
 static struct pool *pl_col;	/* For column data. */
 
-static int internal_cmd_crosstabs (void);
-static void precalc (const struct ccase *, void *);
-static bool calc_general (const struct ccase *, void *);
-static bool calc_integer (const struct ccase *, void *);
-static void postcalc (void *);
+static int internal_cmd_crosstabs (struct dataset *ds);
+static void precalc (const struct ccase *, void *, const struct dataset *);
+static bool calc_general (const struct ccase *, void *, const struct dataset *);
+static bool calc_integer (const struct ccase *, void *, const struct dataset *);
+static bool postcalc (void *, const struct dataset *);
 static void submit (struct tab_table *);
 
 static void format_short (char *s, const struct fmt_spec *fp,
@@ -187,9 +187,9 @@ static void format_short (char *s, const struct fmt_spec *fp,
 
 /* Parse and execute CROSSTABS, then clean up. */
 int
-cmd_crosstabs (void)
+cmd_crosstabs (struct dataset *ds)
 {
-  int result = internal_cmd_crosstabs ();
+  int result = internal_cmd_crosstabs (ds);
 
   free (variables);
   pool_destroy (pl_tc);
@@ -200,7 +200,7 @@ cmd_crosstabs (void)
 
 /* Parses and executes the CROSSTABS procedure. */
 static int
-internal_cmd_crosstabs (void)
+internal_cmd_crosstabs (struct dataset *ds)
 {
   int i;
   bool ok;
@@ -212,7 +212,7 @@ internal_cmd_crosstabs (void)
   pl_tc = pool_create ();
   pl_col = pool_create ();
 
-  if (!parse_crosstabs (&cmd, NULL))
+  if (!parse_crosstabs (ds, &cmd, NULL))
     return CMD_FAILURE;
 
   mode = variables ? INTEGER : GENERAL;
@@ -293,7 +293,7 @@ internal_cmd_crosstabs (void)
   else
     write = CRS_WR_NONE;
 
-  ok = procedure_with_splits (current_dataset, precalc,
+  ok = procedure_with_splits (ds, precalc,
                               mode == GENERAL ? calc_general : calc_integer,
                               postcalc, NULL);
 
@@ -302,7 +302,7 @@ internal_cmd_crosstabs (void)
 
 /* Parses the TABLES subcommand. */
 static int
-crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
+crs_custom_tables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
   struct var_set *var_set;
   int n_by;
@@ -313,7 +313,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id ("TABLES")
-      && (token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+      && (token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
@@ -321,7 +321,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
   if (variables != NULL)
     var_set = var_set_create_from_array (variables, variables_cnt);
   else
-    var_set = var_set_create_from_dict (dataset_dict (current_dataset));
+    var_set = var_set_create_from_dict (dataset_dict (ds));
   assert (var_set != NULL);
   
   for (n_by = 0; ;)
@@ -406,7 +406,7 @@ crs_custom_tables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 
 /* Parses the VARIABLES subcommand. */
 static int
-crs_custom_variables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
+crs_custom_variables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
   if (nxtab)
     {
@@ -423,7 +423,7 @@ crs_custom_variables (struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 
       long min, max;
       
-      if (!parse_variables (dataset_dict (current_dataset), &variables, &variables_cnt,
+      if (!parse_variables (dataset_dict (ds), &variables, &variables_cnt,
 			    (PV_APPEND | PV_NUMERIC
 			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
@@ -488,9 +488,9 @@ static unsigned hash_table_entry (const void *, void *);
 
 /* Set up the crosstabulation tables for processing. */
 static  void
-precalc (const struct ccase *first, void *aux UNUSED)
+precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
 {
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
   if (mode == GENERAL)
     {
       gen_tab = hsh_create (512, compare_table_entry, hash_table_entry,
@@ -563,12 +563,12 @@ precalc (const struct ccase *first, void *aux UNUSED)
 
 /* Form crosstabulations for general mode. */
 static bool
-calc_general (const struct ccase *c, void *aux UNUSED)
+calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 {
   bool bad_warn = true;
 
   /* Case weight. */
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_warn);
+  double weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
 
   /* Flattened current table index. */
   int t;
@@ -637,12 +637,12 @@ calc_general (const struct ccase *c, void *aux UNUSED)
 }
 
 static bool
-calc_integer (const struct ccase *c, void *aux UNUSED)
+calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 {
   bool bad_warn = true;
 
   /* Case weight. */
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_warn);
+  double weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
   
   /* Flattened current table index. */
   int t;
@@ -762,8 +762,8 @@ static void output_pivot_table (struct table_entry **, struct table_entry **,
 				int *, int *, int *);
 static void make_summary_table (void);
 
-static void
-postcalc (void *aux UNUSED)
+static bool
+postcalc (void *aux UNUSED, const struct dataset *ds UNUSED)
 {
   if (mode == GENERAL)
     {
@@ -799,6 +799,8 @@ postcalc (void *aux UNUSED)
   }
   
   hsh_destroy (gen_tab);
+
+  return true;
 }
 
 static void insert_summary (struct tab_table *, int tab_index, double valid);

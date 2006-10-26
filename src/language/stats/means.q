@@ -61,7 +61,7 @@ static struct variable **v_var;
 
 /* Parses and executes the T-TEST procedure. */
 int
-cmd_means (void)
+cmd_means (struct dataset *ds)
 {
   struct cmd_means cmd;
   int success = CMD_FAILURE;
@@ -71,7 +71,7 @@ cmd_means (void)
   v_dim = NULL;
   v_var = NULL;
 
-  if (!parse_means (&cmd, NULL))
+  if (!parse_means (ds, &cmd, NULL))
     goto free;
 
   if (cmd.sbc_cells)
@@ -122,12 +122,12 @@ free:
 
 /* Parses the TABLES subcommand. */
 static int
-mns_custom_tables (struct cmd_means *cmd, void *aux UNUSED)
+mns_custom_tables (struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
 {
   struct var_set *var_set;
   
   if (!lex_match_id ("TABLES")
-      && (token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL)
+      && (token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL)
       && token != T_ALL)
     return 2;
   lex_match ('=');
@@ -139,7 +139,7 @@ mns_custom_tables (struct cmd_means *cmd, void *aux UNUSED)
       return 0;
     }
 
-  var_set = var_set_create_from_dict (dataset_dict (current_dataset));
+  var_set = var_set_create_from_dict (dataset_dict (ds));
   assert (var_set != NULL);
 
   do

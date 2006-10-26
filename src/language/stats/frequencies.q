@@ -278,9 +278,9 @@ static void determine_charts (void);
 
 static void calc_stats (struct variable *v, double d[frq_n_stats]);
 
-static void precalc (const struct ccase *, void *);
-static bool calc (const struct ccase *, void *);
-static void postcalc (void *);
+static void precalc (const struct ccase *, void *, const struct dataset *);
+static bool calc (const struct ccase *, void *, const struct dataset *);
+static bool postcalc (void *, const struct dataset *);
 
 static void postprocess_freq_tab (struct variable *);
 static void dump_full (struct variable *);
@@ -305,15 +305,15 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var);
 
 /* Parser and outline. */
 
-static int internal_cmd_frequencies (void);
+static int internal_cmd_frequencies (struct dataset *ds);
 
 int
-cmd_frequencies (void)
+cmd_frequencies (struct dataset *ds)
 {
   int result;
 
   int_pool = pool_create ();
-  result = internal_cmd_frequencies ();
+  result = internal_cmd_frequencies (ds);
   pool_destroy (int_pool);
   int_pool=0;
   pool_destroy (gen_pool);
@@ -324,7 +324,7 @@ cmd_frequencies (void)
 }
 
 static int
-internal_cmd_frequencies (void)
+internal_cmd_frequencies (struct dataset *ds)
 {
   int i;
   bool ok;
@@ -335,7 +335,7 @@ internal_cmd_frequencies (void)
   n_variables = 0;
   v_variables = NULL;
 
-  if (!parse_frequencies (&cmd, NULL))
+  if (!parse_frequencies (ds, &cmd, NULL))
     return CMD_FAILURE;
 
   if (cmd.onepage_limit == NOT_LONG)
@@ -391,7 +391,7 @@ internal_cmd_frequencies (void)
   
 
   /* Do it! */
-  ok = procedure_with_splits (current_dataset, precalc, calc, postcalc, NULL);
+  ok = procedure_with_splits (ds, precalc, calc, postcalc, NULL);
 
   free_frequencies(&cmd);
 
@@ -505,13 +505,13 @@ determine_charts (void)
 
 /* Add data from case C to the frequency table. */
 static bool
-calc (const struct ccase *c, void *aux UNUSED)
+calc (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 {
   double weight;
   size_t i;
   bool bad_warn = true;
 
-  weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_warn);
+  weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
 
   for (i = 0; i < n_variables; i++)
     {
@@ -566,11 +566,11 @@ calc (const struct ccase *c, void *aux UNUSED)
 /* Prepares each variable that is the target of FREQUENCIES by setting
    up its hash table. */
 static void
-precalc (const struct ccase *first, void *aux UNUSED)
+precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
 {
   size_t i;
 
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
 
   pool_destroy (gen_pool);
   gen_pool = pool_create ();
@@ -611,8 +611,8 @@ precalc (const struct ccase *first, void *aux UNUSED)
 
 /* Finishes up with the variables after frequencies have been
    calculated.  Displays statistics, percentiles, ... */
-static void
-postcalc (void *aux UNUSED)
+static bool
+postcalc (void *aux UNUSED, const struct dataset *ds  UNUSED)
 {
   size_t i;
 
@@ -687,6 +687,8 @@ postcalc (void *aux UNUSED)
       cleanup_freq_tab (v);
 
     }
+
+  return true;
 }
 
 /* Returns the comparison function that should be used for
@@ -791,7 +793,7 @@ cleanup_freq_tab (struct variable *v)
 /* Parses the VARIABLES subcommand, adding to
    {n_variables,v_variables}. */
 static int
-frq_custom_variables (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
+frq_custom_variables (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
   int mode;
   int min = 0, max = 0;
@@ -801,10 +803,10 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 
   lex_match ('=');
   if (token != T_ALL && (token != T_ID
-                         || dict_lookup_var (dataset_dict (current_dataset), tokid) == NULL))
+                         || dict_lookup_var (dataset_dict (ds), tokid) == NULL))
     return 2;
 
-  if (!parse_variables (dataset_dict (current_dataset), &v_variables, &n_variables,
+  if (!parse_variables (dataset_dict (ds), &v_variables, &n_variables,
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
@@ -879,10 +881,10 @@ frq_custom_variables (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 /* Parses the GROUPED subcommand, setting the n_grouped, grouped
    fields of specified variables. */
 static int
-frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
+frq_custom_grouped (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
-  if ((token == T_ID && dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
+  if ((token == T_ID && dict_lookup_var (dataset_dict (ds), tokid) != NULL)
       || token == T_ID)
     for (;;)
       {
@@ -896,7 +898,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 	size_t n;
 	struct variable **v;
 
-	if (!parse_variables (dataset_dict (current_dataset), &v, &n,
+	if (!parse_variables (dataset_dict (ds), &v, &n,
                               PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
 	if (lex_match ('('))
@@ -949,7 +951,7 @@ frq_custom_grouped (struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 	free (v);
 	if (!lex_match ('/'))
 	  break;
-	if ((token != T_ID || dict_lookup_var (dataset_dict (current_dataset), tokid) != NULL)
+	if ((token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) != NULL)
             && token != T_ALL)
 	  {
 	    lex_put_back ('/');

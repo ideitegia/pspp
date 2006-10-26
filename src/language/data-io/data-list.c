@@ -103,8 +103,10 @@ struct data_list_pgm
 
 static const struct case_source_class data_list_source_class;
 
-static bool parse_fixed (struct pool *tmp_pool, struct data_list_pgm *);
-static bool parse_free (struct pool *tmp_pool, struct data_list_pgm *);
+static bool parse_fixed (struct dictionary *dict, 
+			 struct pool *tmp_pool, struct data_list_pgm *);
+static bool parse_free (struct dictionary *dict, 
+			struct pool *tmp_pool, struct data_list_pgm *);
 static void dump_fixed_table (const struct ll_list *,
                               const struct file_handle *, int record_cnt);
 static void dump_free_table (const struct data_list_pgm *,
@@ -114,8 +116,9 @@ static trns_free_func data_list_trns_free;
 static trns_proc_func data_list_trns_proc;
 
 int
-cmd_data_list (void)
+cmd_data_list (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct data_list_pgm *dls;
   int table = -1;                /* Print table if nonzero, -1=undecided. */
   struct file_handle *fh = fh_inline_file ();
@@ -123,7 +126,7 @@ cmd_data_list (void)
   bool ok;
 
   if (!in_input_program ())
-    discard_variables (current_dataset);
+    discard_variables (ds);
 
   dls = pool_create_container (struct data_list_pgm, pool);
   ll_init (&dls->specs);
@@ -166,9 +169,9 @@ cmd_data_list (void)
 	  lex_match ('=');
 	  if (!lex_force_id ())
 	    goto error;
-	  dls->end = dict_lookup_var (dataset_dict (current_dataset), tokid);
+	  dls->end = dict_lookup_var (dataset_dict (ds), tokid);
 	  if (!dls->end) 
-            dls->end = dict_create_var_assert (dataset_dict (current_dataset), tokid, 0);
+            dls->end = dict_create_var_assert (dataset_dict (ds), tokid, 0);
 	  lex_get ();
 	}
       else if (token == T_ID)
@@ -242,7 +245,7 @@ cmd_data_list (void)
   if (table == -1)
     table = dls->type != DLS_FREE;
 
-  ok = (dls->type == DLS_FIXED ? parse_fixed : parse_free) (tmp_pool, dls);
+  ok = (dls->type == DLS_FIXED ? parse_fixed : parse_free) (dict, tmp_pool, dls);
   if (!ok)
     goto error;
 
@@ -262,10 +265,9 @@ cmd_data_list (void)
     goto error;
 
   if (in_input_program ())
-    add_transformation (current_dataset, data_list_trns_proc, data_list_trns_free, dls);
+    add_transformation (ds, data_list_trns_proc, data_list_trns_free, dls);
   else 
-    proc_set_source (current_dataset, 
-		     create_case_source (&data_list_source_class, dls));
+    proc_set_source (ds, create_case_source (&data_list_source_class, dls));
 
   pool_destroy (tmp_pool);
 
@@ -283,7 +285,8 @@ cmd_data_list (void)
    needed once parsing is complete.  Returns true only if
    successful. */
 static bool
-parse_fixed (struct pool *tmp_pool, struct data_list_pgm *dls)
+parse_fixed (struct dictionary *dict, 
+	     struct pool *tmp_pool, struct data_list_pgm *dls)
 {
   int last_nonempty_record;
   int record = 0;
@@ -316,7 +319,7 @@ parse_fixed (struct pool *tmp_pool, struct data_list_pgm *dls)
 
             /* Create variable. */
             width = get_format_var_width (f);
-            v = dict_create_var (dataset_dict (current_dataset), name, width);
+            v = dict_create_var (dict, name, width);
             if (v != NULL)
               {
                 /* Success. */
@@ -338,7 +341,7 @@ parse_fixed (struct pool *tmp_pool, struct data_list_pgm *dls)
                     return false;
                   }
 
-                v = dict_lookup_var_assert (dataset_dict (current_dataset), name);
+                v = dict_lookup_var_assert (dict, name);
                 if ((width != 0) != (v->width != 0))
                   {
                     msg (SE, _("There is already a variable %s of a "
@@ -432,7 +435,7 @@ dump_fixed_table (const struct ll_list *specs,
    them to DLS.  Uses TMP_POOL for data that is not needed once
    parsing is complete.  Returns true only if successful. */
 static bool
-parse_free (struct pool *tmp_pool, struct data_list_pgm *dls)
+parse_free (struct dictionary *dict, struct pool *tmp_pool, struct data_list_pgm *dls)
 {
   lex_get ();
   while (token != '.')
@@ -465,7 +468,7 @@ parse_free (struct pool *tmp_pool, struct data_list_pgm *dls)
           struct dls_var_spec *spec;
 	  struct variable *v;
 
-	  v = dict_create_var (dataset_dict (current_dataset), name[i],
+	  v = dict_create_var (dict, name[i],
                                get_format_var_width (&input));
 	  if (v == NULL)
 	    {
@@ -772,7 +775,7 @@ data_list_trns_free (void *dls_)
 
 /* Handle DATA LIST transformation DLS, parsing data into C. */
 static int
-data_list_trns_proc (void *dls_, struct ccase *c, casenum_t case_num UNUSED)
+data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct data_list_pgm *dls = dls_;
   int retval;

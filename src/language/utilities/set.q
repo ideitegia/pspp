@@ -120,12 +120,12 @@ int tgetnum (const char *);
 static bool do_cc (const char *cc_string, int idx);
 
 int
-cmd_set (void)
+cmd_set (struct dataset *ds)
 {
   struct cmd_set cmd;
   bool ok = true;
 
-  if (!parse_set (&cmd, NULL))
+  if (!parse_set (ds, &cmd, NULL))
     return CMD_FAILURE;
 
   if (cmd.sbc_cca)
@@ -289,7 +289,7 @@ do_cc (const char *cc_string, int idx)
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
    SYSMIS or a numeric value. */
 static int
-stc_custom_blanks (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_blanks (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if ((token == T_ID && lex_id_match ("SYSMIS", tokid)))
@@ -310,7 +310,7 @@ stc_custom_blanks (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 /* Parses the EPOCH subcommand, which controls the epoch used for
    parsing 2-digit years. */
 static int
-stc_custom_epoch (struct cmd_set *cmd UNUSED, void *aux UNUSED) 
+stc_custom_epoch (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED) 
 {
   lex_match ('=');
   if (lex_match_id ("AUTOMATIC"))
@@ -336,7 +336,7 @@ stc_custom_epoch (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-stc_custom_length (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_length (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   int page_length;
 
@@ -363,7 +363,7 @@ stc_custom_length (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-stc_custom_seed (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_seed (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("RANDOM"))
@@ -380,7 +380,7 @@ stc_custom_seed (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-stc_custom_width (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_width (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if (lex_match_id ("NARROW"))
@@ -406,7 +406,7 @@ stc_custom_width (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 /* Parses FORMAT subcommand, which consists of a numeric format
    specifier. */
 static int
-stc_custom_format (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_format (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   struct fmt_spec fmt;
 
@@ -426,7 +426,7 @@ stc_custom_format (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-stc_custom_journal (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_journal (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match ('=');
   if (!lex_match_id ("ON") && !lex_match_id ("OFF")) 
@@ -443,7 +443,7 @@ stc_custom_journal (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-stc_custom_listing (struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_listing (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   bool listing;
 
@@ -463,13 +463,13 @@ stc_custom_listing (struct cmd_set *cmd UNUSED, void *aux UNUSED)
 }
 
 static int
-stc_custom_disk (struct cmd_set *cmd UNUSED, void *aux)
+stc_custom_disk (struct dataset *ds, struct cmd_set *cmd UNUSED, void *aux)
 {
-  return stc_custom_listing (cmd, aux);
+  return stc_custom_listing (ds, cmd, aux);
 }
 
 static void
-show_blanks (void) 
+show_blanks (const struct dataset *ds UNUSED) 
 {
   if (get_blanks () == SYSMIS)
     msg (SN, _("BLANKS is SYSMIS."));
@@ -511,79 +511,79 @@ show_cc (int idx)
 
 
 static void
-show_cca (void) 
+show_cca (const struct dataset *ds UNUSED) 
 {
   show_cc (0);
 }
 
 static void
-show_ccb (void) 
+show_ccb (const struct dataset *ds UNUSED) 
 {
   show_cc (1);
 }
 
 static void
-show_ccc (void) 
+show_ccc (const struct dataset *ds UNUSED) 
 {
   show_cc (2);
 }
 
 static void
-show_ccd (void) 
+show_ccd (const struct dataset *ds UNUSED) 
 {
   show_cc (3);
 }
 
 static void
-show_cce (void) 
+show_cce (const struct dataset *ds UNUSED) 
 {
   show_cc (4);
 }
 
 static void
-show_decimals (void) 
+show_decimals (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("DECIMAL is \"%c\"."), get_decimal ());
 }
 
 static void
-show_endcmd (void) 
+show_endcmd (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("ENDCMD is \"%c\"."), get_endcmd ());
 }
 
 static void
-show_format (void) 
+show_format (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("FORMAT is %s."), fmt_to_string (get_format ()));
 }
 
 static void
-show_length (void) 
+show_length (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("LENGTH is %d."), get_viewlength ());
 }
 
 static void
-show_mxerrs (void) 
+show_mxerrs (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("MXERRS is %d."), get_mxerrs ());
 }
 
 static void
-show_mxloops (void) 
+show_mxloops (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("MXLOOPS is %d."), get_mxloops ());
 }
 
 static void
-show_mxwarns (void) 
+show_mxwarns (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("MXWARNS is %d."), get_mxwarns ());
 }
 
 static void
-show_scompression (void) 
+show_scompression (const struct dataset *ds UNUSED) 
 {
   if (get_scompression ())
     msg (SN, _("SCOMPRESSION is ON."));
@@ -592,7 +592,7 @@ show_scompression (void)
 }
 
 static void
-show_undefined (void) 
+show_undefined (const struct dataset *ds UNUSED) 
 {
   if (get_undefined ())
     msg (SN, _("UNDEFINED is WARN."));
@@ -601,9 +601,9 @@ show_undefined (void)
 }
 
 static void
-show_weight (void) 
+show_weight (const struct dataset *ds) 
 {
-  struct variable *var = dict_get_weight (dataset_dict (current_dataset));
+  struct variable *var = dict_get_weight (dataset_dict (ds));
   if (var == NULL)
     msg (SN, _("WEIGHT is off."));
   else
@@ -611,7 +611,7 @@ show_weight (void)
 }
 
 static void
-show_width (void) 
+show_width (const struct dataset *ds UNUSED) 
 {
   msg (SN, _("WIDTH is %d."), get_viewwidth ());
 }
@@ -619,7 +619,7 @@ show_width (void)
 struct show_sbc 
   {
     const char *name;
-    void (*function) (void);
+    void (*function) (const struct dataset *);
   };
 
 const struct show_sbc show_table[] = 
@@ -644,12 +644,12 @@ const struct show_sbc show_table[] =
   };
 
 static void
-show_all (void) 
+show_all (const struct dataset *ds) 
 {
   size_t i;
   
   for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
-    show_table[i].function ();
+    show_table[i].function (ds);
 }
 
 static void
@@ -662,36 +662,36 @@ show_all_cc (void)
 }
 
 static void
-show_warranty (void) 
+show_warranty (const struct dataset *ds UNUSED) 
 {
   msg (MN, lack_of_warranty);
 }
 
 static void
-show_copying (void) 
+show_copying (const struct dataset *ds UNUSED) 
 {
   msg (MN, copyleft);
 }
 
 int
-cmd_show (void) 
+cmd_show (struct dataset *ds) 
 {
   if (token == '.') 
     {
-      show_all ();
+      show_all (ds);
       return CMD_SUCCESS;
     }
 
   do 
     {
       if (lex_match (T_ALL))
-        show_all ();
+        show_all (ds);
       else if (lex_match_id ("CC")) 
         show_all_cc ();
       else if (lex_match_id ("WARRANTY"))
-        show_warranty ();
+        show_warranty (ds);
       else if (lex_match_id ("COPYING"))
-        show_copying ();
+        show_copying (ds);
       else if (token == T_ID)
         {
           int i;
@@ -699,7 +699,7 @@ cmd_show (void)
           for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
             if (lex_match_id (show_table[i].name)) 
               {
-                show_table[i].function ();
+                show_table[i].function (ds);
                 goto found;
               }
           lex_error (NULL);

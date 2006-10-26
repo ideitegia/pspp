@@ -45,7 +45,7 @@ static void test_casereader_clone (struct casereader *reader1, size_t case_cnt);
 static void fail_test (const char *message, ...);
 
 int
-cmd_debug_casefile (void) 
+cmd_debug_casefile (struct dataset *ds UNUSED) 
 {
   static const size_t sizes[] =
     {

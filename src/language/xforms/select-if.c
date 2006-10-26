@@ -47,12 +47,12 @@ static trns_free_func select_if_free;
 
 /* Parses the SELECT IF transformation. */
 int
-cmd_select_if (void)
+cmd_select_if (struct dataset *ds)
 {
   struct expression *e;
   struct select_if_trns *t;
 
-  e = expr_parse (dataset_dict (current_dataset), EXPR_BOOLEAN);
+  e = expr_parse (ds, EXPR_BOOLEAN);
   if (!e)
     return CMD_CASCADING_FAILURE;
 
@@ -65,7 +65,7 @@ cmd_select_if (void)
 
   t = xmalloc (sizeof *t);
   t->e = e;
-  add_transformation (current_dataset, select_if_proc, select_if_free, t);
+  add_transformation (ds, select_if_proc, select_if_free, t);
 
   return CMD_SUCCESS;
 }
@@ -73,7 +73,7 @@ cmd_select_if (void)
 /* Performs the SELECT IF transformation T on case C. */
 static int
 select_if_proc (void *t_, struct ccase *c,
-                casenum_t case_num)
+                casenumber case_num)
 {
   struct select_if_trns *t = t_;
   return (expr_evaluate_num (t->e, c, case_num) == 1.0
@@ -92,22 +92,23 @@ select_if_free (void *t_)
 
 /* Parses the FILTER command. */
 int
-cmd_filter (void)
+cmd_filter (struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   if (lex_match_id ("OFF"))
-    dict_set_filter (dataset_dict (current_dataset), NULL);
+    dict_set_filter (dataset_dict (ds), NULL);
   else if (token == '.') 
     {
       msg (SW, _("Syntax error expecting OFF or BY.  "
                  "Turning off case filtering."));
-      dict_set_filter (dataset_dict (current_dataset), NULL);
+      dict_set_filter (dataset_dict (ds), NULL);
     }
   else
     {
       struct variable *v;
 
       lex_match (T_BY);
-      v = parse_variable ();
+      v = parse_variable (dict);
       if (!v)
 	return CMD_FAILURE;
 
@@ -123,7 +124,7 @@ cmd_filter (void)
 	  return CMD_FAILURE;
 	}
 
-      dict_set_filter (dataset_dict (current_dataset), v);
+      dict_set_filter (dict, v);
     }
 
   return lex_end_of_command ();

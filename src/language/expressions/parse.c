@@ -50,7 +50,7 @@ static parse_recursively_func parse_primary;
 static parse_recursively_func parse_vector_element, parse_function;
 
 /* Utility functions. */
-static struct expression *expr_create (struct dictionary *);
+static struct expression *expr_create (struct dataset *ds);
 atom_type expr_node_returns (const union any_node *);
 
 static const char *atom_type_name (atom_type);
@@ -70,14 +70,14 @@ static union any_node *allocate_unary_variable (struct expression *,
    Returns the new expression if successful or a null pointer
    otherwise. */
 struct expression *
-expr_parse (struct dictionary *dict, enum expr_type type) 
+expr_parse (struct dataset *ds, enum expr_type type) 
 {
   union any_node *n;
   struct expression *e;
 
   assert (type == EXPR_NUMBER || type == EXPR_STRING || type == EXPR_BOOLEAN);
 
-  e = expr_create (dict);
+  e = expr_create (ds);
   n = parse_or (e);
   if (n != NULL && type_check (e, &n, type))
     return finish_expression (expr_optimize (n, e), e);
@@ -93,9 +93,10 @@ expr_parse (struct dictionary *dict, enum expr_type type)
    the expression as well. */
 struct expression *
 expr_parse_pool (struct pool *pool,
-                 struct dictionary *dict, enum expr_type type) 
+		 struct dataset *ds, 
+                 enum expr_type type) 
 {
-  struct expression *e = expr_parse (dict, type);
+  struct expression *e = expr_parse (ds, type);
   if (e != NULL)
     pool_add_subpool (pool, e->expr_pool);
   return e;
@@ -110,12 +111,12 @@ expr_free (struct expression *e)
 }
 
 struct expression *
-expr_parse_any (struct dictionary *dict, bool optimize)
+expr_parse_any (struct dataset *ds, bool optimize)
 {
   union any_node *n;
   struct expression *e;
 
-  e = expr_create (dict);
+  e = expr_create (ds);
   n = parse_or (e);
   if (n == NULL)
     {
@@ -733,7 +734,7 @@ parse_sysvar (struct expression *e)
           "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
         };
 
-      time_t last_proc_time = time_of_last_procedure (current_dataset);
+      time_t last_proc_time = time_of_last_procedure (e->ds);
       struct tm *time;
       char temp_buf[10];
 
@@ -751,7 +752,7 @@ parse_sysvar (struct expression *e)
     return expr_allocate_number (e, SYSMIS);
   else if (lex_match_id ("$JDATE"))
     {
-      time_t time = time_of_last_procedure (current_dataset);
+      time_t time = time_of_last_procedure (e->ds);
       struct tm *tm = localtime (&time);
       return expr_allocate_number (e, expr_ymd_to_ofs (tm->tm_year + 1900,
                                                        tm->tm_mon + 1,
@@ -759,7 +760,7 @@ parse_sysvar (struct expression *e)
     }
   else if (lex_match_id ("$TIME"))
     {
-      time_t time = time_of_last_procedure (current_dataset);
+      time_t time = time_of_last_procedure (e->ds);
       struct tm *tm = localtime (&time);
       return expr_allocate_number (e,
                                    expr_ymd_to_date (tm->tm_year + 1900,
@@ -792,7 +793,7 @@ parse_primary (struct expression *e)
           /* An identifier followed by a left parenthesis may be
              a vector element reference.  If not, it's a function
              call. */
-          if (e->dict != NULL && dict_lookup_vector (e->dict, tokid) != NULL) 
+          if (e->ds != NULL && dict_lookup_vector (dataset_dict (e->ds), tokid) != NULL) 
             return parse_vector_element (e);
           else
             return parse_function (e);
@@ -802,12 +803,12 @@ parse_primary (struct expression *e)
           /* $ at the beginning indicates a system variable. */
           return parse_sysvar (e);
         }
-      else if (e->dict != NULL && dict_lookup_var (e->dict, tokid))
+      else if (e->ds != NULL && dict_lookup_var (dataset_dict (e->ds), tokid))
         {
           /* It looks like a user variable.
              (It could be a format specifier, but we'll assume
              it's a variable unless proven otherwise. */
-          return allocate_unary_variable (e, parse_dict_variable (e->dict));
+          return allocate_unary_variable (e, parse_variable (dataset_dict (e->ds)));
         }
       else 
         {
@@ -872,7 +873,7 @@ parse_vector_element (struct expression *e)
   /* Find vector, skip token.
      The caller must already have verified that the current token
      is the name of a vector. */
-  vector = dict_lookup_vector (dataset_dict (current_dataset), tokid);
+  vector = dict_lookup_vector (dataset_dict (e->ds), tokid);
   assert (vector != NULL);
   lex_get ();
 
@@ -1185,7 +1186,7 @@ parse_function (struct expression *e)
             size_t var_cnt;
             size_t i;
 
-            if (!parse_variables (dataset_dict (current_dataset), &vars, &var_cnt, PV_SINGLE))
+            if (!parse_variables (dataset_dict (e->ds), &vars, &var_cnt, PV_SINGLE))
               goto fail;
             for (i = 0; i < var_cnt; i++)
               add_arg (&args, &arg_cnt, &arg_cap,
@@ -1231,7 +1232,7 @@ parse_function (struct expression *e)
       goto fail;
     }
   if ((f->flags & OPF_PERM_ONLY) && 
-      proc_in_temporary_transformations (current_dataset)) 
+      proc_in_temporary_transformations (e->ds)) 
     {
       msg (SE, _("%s may not appear after TEMPORARY."), f->prototype);
       goto fail;
@@ -1242,8 +1243,8 @@ parse_function (struct expression *e)
 
   if (n->type == OP_LAG_Vn || n->type == OP_LAG_Vs) 
     {
-      if (dataset_n_lag (current_dataset) < 1)
-        dataset_set_n_lag (current_dataset, 1);
+      if (dataset_n_lag (e->ds) < 1)
+        dataset_set_n_lag (e->ds, 1);
     }
   else if (n->type == OP_LAG_Vnn || n->type == OP_LAG_Vsn)
     {
@@ -1251,8 +1252,8 @@ parse_function (struct expression *e)
       assert (n->composite.arg_cnt == 2);
       assert (n->composite.args[1]->type == OP_pos_int);
       n_before = n->composite.args[1]->integer.i;
-      if ( dataset_n_lag (current_dataset) < n_before)
-        dataset_set_n_lag (current_dataset, n_before);
+      if ( dataset_n_lag (e->ds) < n_before)
+        dataset_set_n_lag (e->ds, n_before);
     }
   
   free (args);
@@ -1268,12 +1269,12 @@ fail:
 /* Utility functions. */
 
 static struct expression *
-expr_create (struct dictionary *dict)
+expr_create (struct dataset *ds)
 {
   struct pool *pool = pool_create ();
   struct expression *e = pool_alloc (pool, sizeof *e);
   e->expr_pool = pool;
-  e->dict = dict;
+  e->ds = ds;
   e->eval_pool = pool_create_subpool (e->expr_pool);
   e->ops = NULL;
   e->op_types = NULL;

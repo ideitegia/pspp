@@ -42,28 +42,28 @@ enum
     FORMATS_WRITE = 002
   };
 
-static int internal_cmd_formats (int);
+static int internal_cmd_formats (struct dataset *ds, int);
 
 int
-cmd_print_formats (void)
+cmd_print_formats (struct dataset *ds)
 {
-  return internal_cmd_formats (FORMATS_PRINT);
+  return internal_cmd_formats (ds, FORMATS_PRINT);
 }
 
 int
-cmd_write_formats (void)
+cmd_write_formats (struct dataset *ds)
 {
-  return internal_cmd_formats (FORMATS_WRITE);
+  return internal_cmd_formats (ds, FORMATS_WRITE);
 }
 
 int
-cmd_formats (void)
+cmd_formats (struct dataset *ds)
 {
-  return internal_cmd_formats (FORMATS_PRINT | FORMATS_WRITE);
+  return internal_cmd_formats (ds, FORMATS_PRINT | FORMATS_WRITE);
 }
 
-int
-internal_cmd_formats (int which)
+static int
+internal_cmd_formats (struct dataset *ds, int which)
 {
   /* Variables. */
   struct variable **v;
@@ -83,7 +83,7 @@ internal_cmd_formats (int which)
       if (token == '.')
 	break;
 
-      if (!parse_variables (dataset_dict (current_dataset), &v, &cv, PV_NUMERIC))
+      if (!parse_variables (dataset_dict (ds), &v, &cv, PV_NUMERIC))
 	return CMD_FAILURE;
       type = v[0]->type;
 

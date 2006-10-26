@@ -93,16 +93,16 @@ struct autorecode_pgm
 
 static trns_proc_func autorecode_trns_proc;
 static trns_free_func autorecode_trns_free;
-static bool autorecode_proc_func (const struct ccase *, void *);
+static bool autorecode_proc_func (const struct ccase *, void *, const struct dataset *);
 static hsh_compare_func compare_alpha_value, compare_numeric_value;
 static hsh_hash_func hash_alpha_value, hash_numeric_value;
 
-static void recode (const struct autorecode_pgm *);
+static void recode (struct dataset *, const struct autorecode_pgm *);
 static void arc_free (struct autorecode_pgm *);
 
 /* Performs the AUTORECODE procedure. */
 int
-cmd_autorecode (void)
+cmd_autorecode (struct dataset *ds)
 {
   struct autorecode_pgm arc;
   size_t dst_cnt;
@@ -121,7 +121,7 @@ cmd_autorecode (void)
 
   lex_match_id ("VARIABLES");
   lex_match ('=');
-  if (!parse_variables (dataset_dict (current_dataset), &arc.src_vars, &arc.var_cnt,
+  if (!parse_variables (dataset_dict (ds), &arc.src_vars, &arc.var_cnt,
                         PV_NO_DUPLICATE))
     goto lossage;
   if (!lex_force_match_id ("INTO"))
@@ -159,7 +159,7 @@ cmd_autorecode (void)
     {
       int j;
 
-      if (dict_lookup_var (dataset_dict (current_dataset), arc.dst_names[i]) != NULL)
+      if (dict_lookup_var (dataset_dict (ds), arc.dst_names[i]) != NULL)
 	{
 	  msg (SE, _("Target variable %s duplicates existing variable %s."),
 	       arc.dst_names[i], arc.dst_names[i]);
@@ -185,13 +185,13 @@ cmd_autorecode (void)
       arc.src_values[i] = hsh_create (10, compare_numeric_value,
                                       hash_numeric_value, NULL, NULL);
 
-  ok = procedure (current_dataset,autorecode_proc_func, &arc);
+  ok = procedure (ds, autorecode_proc_func, &arc);
 
   for (i = 0; i < arc.var_cnt; i++)
-    arc.dst_vars[i] = dict_create_var_assert (dataset_dict (current_dataset),
+    arc.dst_vars[i] = dict_create_var_assert (dataset_dict (ds),
                                               arc.dst_names[i], 0);
 
-  recode (&arc);
+  recode (ds, &arc);
   arc_free (&arc);
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
@@ -228,7 +228,7 @@ arc_free (struct autorecode_pgm *arc)
 /* AUTORECODE transformation. */
 
 static void
-recode (const struct autorecode_pgm *arc)
+recode (struct dataset *ds, const struct autorecode_pgm *arc)
 {
   struct autorecode_trns *trns;
   size_t i;
@@ -267,13 +267,13 @@ recode (const struct autorecode_pgm *arc)
 	  hsh_force_insert (spec->items, item);
 	}
     }
-  add_transformation (current_dataset, 
+  add_transformation (ds, 
 		      autorecode_trns_proc, autorecode_trns_free, trns);
 }
 
 /* Executes an AUTORECODE transformation. */
 static int
-autorecode_trns_proc (void *trns_, struct ccase *c, casenum_t case_idx UNUSED)
+autorecode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
 {
   struct autorecode_trns *trns = trns_;
   size_t i;
@@ -347,7 +347,7 @@ hash_numeric_value (const void *a_, void *foo UNUSED)
 }
 
 static bool
-autorecode_proc_func (const struct ccase *c, void *arc_)
+autorecode_proc_func (const struct ccase *c, void *arc_, const struct dataset *ds UNUSED)
 {
   struct autorecode_pgm *arc = arc_;
   size_t i;

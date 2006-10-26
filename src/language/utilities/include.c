@@ -31,7 +31,7 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_include (void)
+cmd_include (struct dataset *ds UNUSED)
 {
   /* Skip optional FILE=. */
   if (lex_match_id ("FILE"))

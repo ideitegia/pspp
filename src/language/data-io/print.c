@@ -94,39 +94,41 @@ enum which_formats
     WRITE
   };
 
-static int internal_cmd_print (enum which_formats, bool eject);
+static int internal_cmd_print (struct dataset *ds, 
+			       enum which_formats, bool eject);
 static trns_proc_func print_trns_proc;
 static trns_free_func print_trns_free;
 static bool parse_specs (struct pool *tmp_pool, struct print_trns *,
-                         enum which_formats);
+			 struct dictionary *dict, enum which_formats);
 static void dump_table (struct print_trns *, const struct file_handle *);
 
 /* Basic parsing. */
 
 /* Parses PRINT command. */
 int
-cmd_print (void)
+cmd_print (struct dataset *ds)
 {
-  return internal_cmd_print (PRINT, false);
+  return internal_cmd_print (ds, PRINT, false);
 }
 
 /* Parses PRINT EJECT command. */
 int
-cmd_print_eject (void)
+cmd_print_eject (struct dataset *ds)
 {
-  return internal_cmd_print (PRINT, true);
+  return internal_cmd_print (ds, PRINT, true);
 }
 
 /* Parses WRITE command. */
 int
-cmd_write (void)
+cmd_write (struct dataset *ds)
 {
-  return internal_cmd_print (WRITE, false);
+  return internal_cmd_print (ds, WRITE, false);
 }
 
 /* Parses the output commands. */
 static int
-internal_cmd_print (enum which_formats which_formats, bool eject)
+internal_cmd_print (struct dataset *ds, 
+		    enum which_formats which_formats, bool eject)
 {
   bool print_table = 0;
   struct print_trns *trns;
@@ -177,7 +179,7 @@ internal_cmd_print (enum which_formats which_formats, bool eject)
     }
 
   /* Parse variables and strings. */
-  if (!parse_specs (tmp_pool, trns, which_formats))
+  if (!parse_specs (tmp_pool, trns, dataset_dict (ds), which_formats))
     goto error;
 
   if (lex_end_of_command () != CMD_SUCCESS)
@@ -198,7 +200,7 @@ internal_cmd_print (enum which_formats which_formats, bool eject)
     dump_table (trns, fh);
 
   /* Put the transformation in the queue. */
-  add_transformation (current_dataset, print_trns_proc, print_trns_free, trns);
+  add_transformation (ds, print_trns_proc, print_trns_free, trns);
 
   pool_destroy (tmp_pool);
 
@@ -211,7 +213,8 @@ internal_cmd_print (enum which_formats which_formats, bool eject)
 
 static bool parse_string_argument (struct print_trns *,
                                    int record, int *column);
-static bool parse_variable_argument (struct print_trns *,
+static bool parse_variable_argument (const struct dictionary *, 
+				     struct print_trns *,
                                      struct pool *tmp_pool,
                                      int *record, int *column,
                                      enum which_formats);
@@ -221,6 +224,7 @@ static bool parse_variable_argument (struct print_trns *,
    Returns success. */
 static bool
 parse_specs (struct pool *tmp_pool, struct print_trns *trns,
+	     struct dictionary *dict, 
              enum which_formats which_formats)
 {
   int record = 0;
@@ -236,7 +240,7 @@ parse_specs (struct pool *tmp_pool, struct print_trns *trns,
       if (token == T_STRING)
 	ok = parse_string_argument (trns, record, &column);
       else
-	ok = parse_variable_argument (trns, tmp_pool, &record, &column,
+	ok = parse_variable_argument (dict, trns, tmp_pool, &record, &column,
                                       which_formats);
       if (!ok)
 	return 0;
@@ -288,7 +292,8 @@ parse_string_argument (struct print_trns *trns, int record, int *column)
    to fixed_parse_compatible() or fixed_parse_fortran() as appropriate.
    Returns success. */
 static bool
-parse_variable_argument (struct print_trns *trns, struct pool *tmp_pool,
+parse_variable_argument (const struct dictionary *dict,
+			 struct print_trns *trns, struct pool *tmp_pool,
                          int *record, int *column,
                          enum which_formats which_formats)
 {
@@ -298,8 +303,7 @@ parse_variable_argument (struct print_trns *trns, struct pool *tmp_pool,
   size_t format_cnt;
   bool add_space;
   
-  if (!parse_variables_pool (tmp_pool,
-                             dataset_dict (current_dataset), &vars, &var_cnt, PV_DUPLICATE))
+  if (!parse_variables_pool (tmp_pool, dict, &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
   if (lex_is_number () || token == '(')
@@ -416,7 +420,7 @@ static void flush_records (struct print_trns *,
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
-print_trns_proc (void *trns_, struct ccase *c, casenum_t case_num UNUSED)
+print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
   struct prt_out_spec *spec;

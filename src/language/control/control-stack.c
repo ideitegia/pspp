@@ -75,7 +75,7 @@ ctl_stack_search (const struct ctl_class *class)
 }
 
 void
-ctl_stack_pop (void *private UNUSED) 
+ctl_stack_pop (void *private) 
 {
   struct ctl_struct *top = ctl_stack;
   

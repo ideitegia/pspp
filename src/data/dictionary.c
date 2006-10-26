@@ -435,8 +435,8 @@ compare_var_ptrs (const void *a_, const void *b_, void *aux UNUSED)
 /* Deletes variable V from dictionary D and frees V.
 
    This is a very bad idea if there might be any pointers to V
-   from outside D.  In general, no variable in current_dataset->dict
-   should be deleted when any transformations are active, because
+   from outside D.  In general, no variable in should be deleted when 
+   any transformations are active on the dictionary's dataset, because
    those transformations might reference the deleted variable.
    The safest time to delete a variable is just after a procedure
    has been executed, as done by MODIFY VARS.

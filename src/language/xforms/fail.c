@@ -27,7 +27,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 
-static int trns_fail (void *x, struct ccase *c, casenum_t n);
+static int trns_fail (void *x, struct ccase *c, casenumber n);
 
 
 
@@ -35,17 +35,17 @@ static int trns_fail (void *x, struct ccase *c, casenum_t n);
 
 static int 
 trns_fail (void *x UNUSED, struct ccase *c UNUSED, 
-	   casenum_t n UNUSED)
+	   casenumber n UNUSED)
 {
   return TRNS_ERROR;
 }
 
 
 int
-cmd_debug_xform_fail (void)
+cmd_debug_xform_fail (struct dataset *ds)
 {
 
-  add_transformation (current_dataset, trns_fail, NULL, NULL);
+  add_transformation (ds, trns_fail, NULL, NULL);
 
   return lex_end_of_command ();
 }

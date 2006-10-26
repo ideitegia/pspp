@@ -218,25 +218,27 @@ enum {
 };
 
 
-static int common_calc (const struct ccase *, void *);
+static int common_calc (const struct dictionary *dict, 
+			const struct ccase *, void *);
 static void common_precalc (struct cmd_t_test *);
 static void common_postcalc (struct cmd_t_test *);
 
-static int one_sample_calc (const struct ccase *, void *);
+static int one_sample_calc (const struct dictionary *dict, const struct ccase *, void *);
 static void one_sample_precalc (struct cmd_t_test *);
 static void one_sample_postcalc (struct cmd_t_test *);
 
-static int  paired_calc (const struct ccase *, void *);
+static int  paired_calc (const struct dictionary *dict, const struct ccase *, void *);
 static void paired_precalc (struct cmd_t_test *);
 static void paired_postcalc (struct cmd_t_test *);
 
 static void group_precalc (struct cmd_t_test *);
-static int  group_calc (const struct ccase *, struct cmd_t_test *);
+static int  group_calc (const struct dictionary *dict, const struct ccase *, struct cmd_t_test *);
 static void group_postcalc (struct cmd_t_test *);
 
 
 static bool calculate(const struct ccase *first,
-                      const struct casefile *cf, void *_mode);
+                      const struct casefile *cf, void *_mode, 
+		      const struct dataset *ds);
 
 static  int mode;
 
@@ -256,11 +258,11 @@ static unsigned  hash_group_binary(const struct group_statistics *g,
 
 
 int
-cmd_t_test(void)
+cmd_t_test (struct dataset *ds)
 {
   bool ok;
   
-  if ( !parse_t_test(&cmd, NULL) )
+  if ( !parse_t_test (ds, &cmd, NULL) )
     return CMD_FAILURE;
 
   if (! cmd.sbc_criteria)
@@ -345,7 +347,7 @@ cmd_t_test(void)
 
   bad_weight_warn = true;
 
-  ok = multipass_procedure_with_splits (current_dataset, calculate, &cmd);
+  ok = multipass_procedure_with_splits (ds, calculate, &cmd);
 
   n_pairs=0;
   free(pairs);
@@ -367,13 +369,13 @@ cmd_t_test(void)
 }
 
 static int
-tts_custom_groups (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
+tts_custom_groups (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
   int n_group_values=0;
 
   lex_match('=');
 
-  indep_var = parse_variable ();
+  indep_var = parse_variable (dataset_dict (ds));
   if (!indep_var)
     {
       lex_error ("expecting variable name in GROUPS subcommand");
@@ -446,7 +448,7 @@ tts_custom_groups (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 
 
 static int
-tts_custom_pairs (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
+tts_custom_pairs (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
   struct variable **vars;
   size_t n_vars;
@@ -459,7 +461,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
   lex_match('=');
 
   n_vars=0;
-  if (!parse_variables (dataset_dict (current_dataset), &vars, &n_vars,
+  if (!parse_variables (dataset_dict (ds), &vars, &n_vars,
 			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
     {
       free (vars);
@@ -471,7 +473,7 @@ tts_custom_pairs (struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
   if (lex_match (T_WITH))
     {
       n_before_WITH = n_vars;
-      if (!parse_variables (dataset_dict (current_dataset), &vars, &n_vars,
+      if (!parse_variables (dataset_dict (ds), &vars, &n_vars,
 			    PV_DUPLICATE | PV_APPEND
 			    | PV_NUMERIC | PV_NO_SCRATCH))
 	{
@@ -1411,12 +1413,12 @@ pscbox(void)
 
 /* Per case calculations common to all variants of the T test */
 static int 
-common_calc (const struct ccase *c, void *_cmd)
+common_calc (const struct dictionary *dict, const struct ccase *c, void *_cmd)
 {
   int i;
   struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;  
 
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dict, c, &bad_weight_warn);
 
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
@@ -1510,13 +1512,14 @@ common_postcalc (  struct cmd_t_test *cmd )
 
 /* Per case calculations for one sample t test  */
 static int 
-one_sample_calc (const struct ccase *c, void *cmd_)
+one_sample_calc (const struct dictionary *dict, 
+		 const struct ccase *c, void *cmd_)
 {
   int i;
   struct cmd_t_test *cmd = (struct cmd_t_test *)cmd_;
 
 
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dict, c, &bad_weight_warn);
 
   /* Skip the entire case if /MISSING=LISTWISE is set */
   if ( cmd->miss == TTS_LISTWISE ) 
@@ -1600,13 +1603,13 @@ paired_precalc (struct cmd_t_test *cmd UNUSED)
 
 
 static int  
-paired_calc (const struct ccase *c, void *cmd_)
+paired_calc (const struct dictionary *dict, const struct ccase *c, void *cmd_)
 {
   int i;
 
   struct cmd_t_test *cmd  = (struct cmd_t_test *) cmd_;
 
-  double weight = dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dict, c, &bad_weight_warn);
 
   /* Skip the entire case if /MISSING=LISTWISE is set , 
    AND one member of a pair is missing */
@@ -1745,14 +1748,15 @@ group_precalc (struct cmd_t_test *cmd )
 }
 
 static int  
-group_calc (const struct ccase *c, struct cmd_t_test *cmd)
+group_calc (const struct dictionary *dict, 
+	    const struct ccase *c, struct cmd_t_test *cmd)
 {
   int i;
 
   const union value *gv = case_data (c, indep_var->fv);
 
   const double weight = 
-    dict_get_case_weight (dataset_dict (current_dataset), c, &bad_weight_warn);
+    dict_get_case_weight (dict, c, &bad_weight_warn);
 
   if ( value_is_missing(&indep_var->miss, gv) )
     {
@@ -1839,8 +1843,10 @@ group_postcalc ( struct cmd_t_test *cmd )
 
 
 static bool
-calculate(const struct ccase *first, const struct casefile *cf, void *cmd_)
+calculate(const struct ccase *first, const struct casefile *cf, 
+	  void *cmd_, const struct dataset *ds)
 {
+  const struct dictionary *dict = dataset_dict (ds);
   struct ssbox stat_summary_box;
   struct trbox test_results_box;
 
@@ -1849,13 +1855,13 @@ calculate(const struct ccase *first, const struct casefile *cf, void *cmd_)
 
   struct cmd_t_test *cmd = (struct cmd_t_test *) cmd_;
 
-  output_split_file_values (first);
+  output_split_file_values (ds, first);
   common_precalc(cmd);
   for(r = casefile_get_reader (cf);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
-      common_calc(&c,cmd);
+      common_calc(dict, &c,cmd);
     }
   casereader_destroy (r);
   common_postcalc(cmd);
@@ -1868,7 +1874,7 @@ calculate(const struct ccase *first, const struct casefile *cf, void *cmd_)
 	  casereader_read (r, &c) ;
           case_destroy (&c)) 
 	{
-	  one_sample_calc(&c,cmd);
+	  one_sample_calc (dict, &c,cmd);
 	}
       casereader_destroy (r);
       one_sample_postcalc(cmd);
@@ -1880,10 +1886,10 @@ calculate(const struct ccase *first, const struct casefile *cf, void *cmd_)
 	  casereader_read (r, &c) ;
           case_destroy (&c)) 
 	{
-	  paired_calc(&c,cmd);
+	  paired_calc (dict, &c,cmd);
 	}
       casereader_destroy (r);
-      paired_postcalc(cmd);
+      paired_postcalc (cmd);
 
       break;
     case T_IND_SAMPLES:
@@ -1893,12 +1899,12 @@ calculate(const struct ccase *first, const struct casefile *cf, void *cmd_)
 	  casereader_read (r, &c) ;
           case_destroy (&c)) 
 	{
-	  group_calc(&c,cmd);
+	  group_calc (dict, &c, cmd);
 	}
       casereader_destroy (r);
       group_postcalc(cmd);
 
-      levene(cf, indep_var, cmd->n_variables, cmd->v_variables,
+      levene (dict, cf, indep_var, cmd->n_variables, cmd->v_variables,
 	     (cmd->miss == TTS_LISTWISE)?LEV_LISTWISE:LEV_ANALYSIS ,
 	     value_is_missing);
       break;

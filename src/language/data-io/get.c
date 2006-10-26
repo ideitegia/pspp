@@ -85,7 +85,7 @@ static void case_reader_pgm_free (struct case_reader_pgm *);
 
 /* Parses a GET or IMPORT command. */
 static int
-parse_read_command (enum reader_command type)
+parse_read_command (struct dataset *ds, enum reader_command type)
 {
   struct case_reader_pgm *pgm = NULL;
   struct file_handle *fh = NULL;
@@ -127,7 +127,7 @@ parse_read_command (enum reader_command type)
       goto error;
     }
               
-  discard_variables (current_dataset);
+  discard_variables (ds);
 
   pgm = xmalloc (sizeof *pgm);
   pgm->reader = any_reader_open (fh, &dict);
@@ -149,10 +149,10 @@ parse_read_command (enum reader_command type)
 
   pgm->map = finish_case_map (dict);
   
-  dict_destroy (dataset_dict (current_dataset));
-  dataset_set_dict (current_dataset, dict);
+  dict_destroy (dataset_dict (ds));
+  dataset_set_dict (ds, dict);
 
-  proc_set_source (current_dataset, 
+  proc_set_source (ds, 
 		   create_case_source (&case_reader_source_class, pgm));
 
   return CMD_SUCCESS;
@@ -227,16 +227,16 @@ static const struct case_source_class case_reader_source_class =
 
 /* GET. */
 int
-cmd_get (void) 
+cmd_get (struct dataset *ds) 
 {
-  return parse_read_command (GET_CMD);
+  return parse_read_command (ds, GET_CMD);
 }
 
 /* IMPORT. */
 int
-cmd_import (void) 
+cmd_import (struct dataset *ds) 
 {
-  return parse_read_command (IMPORT_CMD);
+  return parse_read_command (ds, IMPORT_CMD);
 }
 
 /* Writing system and portable files. */ 
@@ -290,7 +290,8 @@ case_writer_destroy (struct case_writer *aw)
 
    On failure, returns a null pointer. */
 static struct case_writer *
-parse_write_command (enum writer_type writer_type,
+parse_write_command (struct dataset *ds, 
+		     enum writer_type writer_type,
                      enum command_type command_type,
                      bool *retain_unselected)
 {
@@ -313,7 +314,7 @@ parse_write_command (enum writer_type writer_type,
     *retain_unselected = true;
 
   handle = NULL;
-  dict = dict_clone (dataset_dict (current_dataset));
+  dict = dict_clone (dataset_dict (ds));
   aw = xmalloc (sizeof *aw);
   aw->writer = NULL;
   aw->map = NULL;
@@ -469,26 +470,26 @@ case_writer_write_case (struct case_writer *aw, const struct ccase *c)
 
 /* SAVE and EXPORT. */
 
-static bool output_proc (const struct ccase *, void *);
+static bool output_proc (const struct ccase *, void *, const struct dataset *);
 
 /* Parses and performs the SAVE or EXPORT procedure. */
 static int
-parse_output_proc (enum writer_type writer_type)
+parse_output_proc (struct dataset *ds, enum writer_type writer_type)
 {
   bool retain_unselected;
   struct variable *saved_filter_variable;
   struct case_writer *aw;
   bool ok;
 
-  aw = parse_write_command (writer_type, PROC_CMD, &retain_unselected);
+  aw = parse_write_command (ds, writer_type, PROC_CMD, &retain_unselected);
   if (aw == NULL) 
     return CMD_CASCADING_FAILURE;
 
-  saved_filter_variable = dict_get_filter (dataset_dict (current_dataset));
+  saved_filter_variable = dict_get_filter (dataset_dict (ds));
   if (retain_unselected) 
-    dict_set_filter (dataset_dict (current_dataset), NULL);
-  ok = procedure (current_dataset,output_proc, aw);
-  dict_set_filter (dataset_dict (current_dataset), saved_filter_variable);
+    dict_set_filter (dataset_dict (ds), NULL);
+  ok = procedure (ds, output_proc, aw);
+  dict_set_filter (dataset_dict (ds), saved_filter_variable);
 
   case_writer_destroy (aw);
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
@@ -496,22 +497,22 @@ parse_output_proc (enum writer_type writer_type)
 
 /* Writes case C to file. */
 static bool
-output_proc (const struct ccase *c, void *aw_) 
+output_proc (const struct ccase *c, void *aw_, const struct dataset *ds UNUSED) 
 {
   struct case_writer *aw = aw_;
   return case_writer_write_case (aw, c);
 }
 
 int
-cmd_save (void) 
+cmd_save (struct dataset *ds) 
 {
-  return parse_output_proc (SYSFILE_WRITER);
+  return parse_output_proc (ds, SYSFILE_WRITER);
 }
 
 int
-cmd_export (void) 
+cmd_export (struct dataset *ds) 
 {
-  return parse_output_proc (PORFILE_WRITER);
+  return parse_output_proc (ds, PORFILE_WRITER);
 }
 
 /* XSAVE and XEXPORT. */
@@ -527,23 +528,23 @@ static trns_free_func output_trns_free;
 
 /* Parses the XSAVE or XEXPORT transformation command. */
 static int
-parse_output_trns (enum writer_type writer_type) 
+parse_output_trns (struct dataset *ds, enum writer_type writer_type) 
 {
   struct output_trns *t = xmalloc (sizeof *t);
-  t->aw = parse_write_command (writer_type, XFORM_CMD, NULL);
+  t->aw = parse_write_command (ds, writer_type, XFORM_CMD, NULL);
   if (t->aw == NULL) 
     {
       free (t);
       return CMD_CASCADING_FAILURE;
     }
 
-  add_transformation (current_dataset, output_trns_proc, output_trns_free, t);
+  add_transformation (ds, output_trns_proc, output_trns_free, t);
   return CMD_SUCCESS;
 }
 
 /* Writes case C to the system file specified on XSAVE or XEXPORT. */
 static int
-output_trns_proc (void *trns_, struct ccase *c, casenum_t case_num UNUSED)
+output_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct output_trns *t = trns_;
   case_writer_write_case (t->aw, c);
@@ -568,16 +569,16 @@ output_trns_free (void *trns_)
 
 /* XSAVE command. */
 int
-cmd_xsave (void) 
+cmd_xsave (struct dataset *ds) 
 {
-  return parse_output_trns (SYSFILE_WRITER);
+  return parse_output_trns (ds, SYSFILE_WRITER);
 }
 
 /* XEXPORT command. */
 int
-cmd_xexport (void) 
+cmd_xexport (struct dataset *ds) 
 {
-  return parse_output_trns (PORFILE_WRITER);
+  return parse_output_trns (ds, PORFILE_WRITER);
 }
 
 static bool rename_variables (struct dictionary *dict);
@@ -629,7 +630,7 @@ rename_variables (struct dictionary *dict)
     {
       struct variable *v;
 
-      v = parse_dict_variable (dict);
+      v = parse_variable (dict);
       if (v == NULL)
 	return 0;
       if (!lex_force_match ('=')
@@ -799,8 +800,8 @@ static int mtf_merge_dictionary (struct dictionary *const, struct mtf_file *);
 static bool mtf_delete_file_in_place (struct mtf_proc *, struct mtf_file **);
 
 static bool mtf_read_nonactive_records (void *);
-static bool mtf_processing_finish (void *);
-static bool mtf_processing (const struct ccase *, void *);
+static bool mtf_processing_finish (void *, const struct dataset *);
+static bool mtf_processing (const struct ccase *, void *, const struct dataset *);
 
 static char *var_type_description (struct variable *);
 
@@ -809,7 +810,7 @@ static struct variable *get_master (struct variable *);
 
 /* Parse and execute the MATCH FILES command. */
 int
-cmd_match_files (void)
+cmd_match_files (struct dataset *ds)
 {
   struct mtf_proc mtf;
   struct mtf_file *first_table = NULL;
@@ -830,7 +831,7 @@ cmd_match_files (void)
   case_nullify (&mtf.mtf_case);
   mtf.seq_num = 0;
   mtf.seq_nums = NULL;
-  dict_set_case_limit (mtf.dict, dict_get_case_limit (dataset_dict (current_dataset)));
+  dict_set_case_limit (mtf.dict, dict_get_case_limit (dataset_dict (ds)));
 
   lex_match ('/');
   while (token == T_ID
@@ -895,20 +896,20 @@ cmd_match_files (void)
             }
           used_active_file = true;
 
-          if (!proc_has_source (current_dataset))
+          if (!proc_has_source (ds))
             {
               msg (SE, _("Cannot specify the active file since no active "
                          "file has been defined."));
               goto error;
             }
 
-          if (proc_make_temporary_transformations_permanent (current_dataset))
+          if (proc_make_temporary_transformations_permanent (ds))
             msg (SE,
                  _("MATCH FILES may not be used after TEMPORARY when "
                    "the active file is an input source.  "
                    "Temporary transformations will be made permanent."));
 
-          file->dict = dataset_dict (current_dataset);
+          file->dict = dataset_dict (ds);
         }
       else
         {
@@ -1125,7 +1126,7 @@ cmd_match_files (void)
      values. */
 
   if (!used_active_file)
-    discard_variables (current_dataset);
+    discard_variables (ds);
 
   dict_compact_values (mtf.dict);
   mtf.output = fastfile_create (dict_get_next_value_idx (mtf.dict));
@@ -1137,20 +1138,22 @@ cmd_match_files (void)
 
   if (used_active_file) 
     {
-      proc_set_sink (current_dataset, 
+      proc_set_sink (ds, 
 		     create_case_sink (&null_sink_class, 
-				       dataset_dict (current_dataset), NULL));
-      ok = procedure (current_dataset,mtf_processing, &mtf) && mtf_processing_finish (&mtf); 
+				       dataset_dict (ds), NULL));
+      ok = 
+	( procedure (ds, mtf_processing, &mtf) && 
+	  mtf_processing_finish (&mtf, ds) ); 
     }
   else
-    ok = mtf_processing_finish (&mtf);
+    ok = mtf_processing_finish (&mtf, ds);
 
-  discard_variables (current_dataset);
+  discard_variables (ds);
 
-  dict_destroy (dataset_dict (current_dataset));
-  dataset_set_dict (current_dataset, mtf.dict);
+  dict_destroy (dataset_dict (ds));
+  dataset_set_dict (ds, mtf.dict);
   mtf.dict = NULL;
-  proc_set_source (current_dataset, storage_source_create (mtf.output));
+  proc_set_source (ds, storage_source_create (mtf.output));
   mtf.output = NULL;
   
   if (!mtf_free (&mtf))
@@ -1164,7 +1167,7 @@ cmd_match_files (void)
 
 /* Repeats 2...7 an arbitrary number of times. */
 static bool
-mtf_processing_finish (void *mtf_)
+mtf_processing_finish (void *mtf_, const struct dataset *ds)
 {
   struct mtf_proc *mtf = mtf_;
   struct mtf_file *iter;
@@ -1179,7 +1182,7 @@ mtf_processing_finish (void *mtf_)
       }
   
   while (mtf->head && mtf->head->type == MTF_FILE)
-    if (!mtf_processing (NULL, mtf))
+    if (!mtf_processing (NULL, mtf, ds))
       return false;
 
   return true;
@@ -1323,7 +1326,7 @@ mtf_compare_BY_values (struct mtf_proc *mtf,
 /* Perform one iteration of steps 3...7 above.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-mtf_processing (const struct ccase *c, void *mtf_)
+mtf_processing (const struct ccase *c, void *mtf_, const struct dataset *ds UNUSED)
 {
   struct mtf_proc *mtf = mtf_;
 
