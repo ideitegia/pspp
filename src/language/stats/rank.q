@@ -656,7 +656,7 @@ rank_sorted_casefile (struct casefile *cf,
 
 /* Transformation function to enumerate all the cases */
 static int 
-create_resort_key (void *key_var_, struct ccase *cc, casenum_t case_num)
+create_resort_key (void *key_var_, struct ccase *cc, casenumber case_num)
 {
   struct variable *key_var = key_var_;
 

@@ -546,7 +546,7 @@ regression_trns_free (void *t_)
  */
 static int
 regression_trns_pred_proc (void *t_, struct ccase *c,
-			   casenum_t case_idx UNUSED)
+			   casenumber case_idx UNUSED)
 {
   size_t i;
   size_t n_vals;
@@ -585,7 +585,7 @@ regression_trns_pred_proc (void *t_, struct ccase *c,
  */
 static int
 regression_trns_resid_proc (void *t_, struct ccase *c,
-			    casenum_t case_idx UNUSED)
+			    casenumber case_idx UNUSED)
 {
   size_t i;
   size_t n_vals;
