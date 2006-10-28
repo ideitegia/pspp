@@ -1,3 +1,19 @@
+Thu Oct 26 20:19:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add the new files.
+
+	* legacy-encoding.c: New file.
+
+	* legacy-encoding.h: New file.
+
+	* float-format.c: New file.
+
+	* float-format.h: New file.
+
+	* integer-format.c: New file.
+
+	* integer-format.h: New file.
+
 Sun Oct 15 09:49:50 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* hash.c hash.h: Added hsh_create_pool, a hash which uses a pool

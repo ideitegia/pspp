@@ -8,6 +8,7 @@ GNULIB_MODULES = \
 	alloca \
 	alloca-opt \
 	assert \
+	byteswap \
 	c-ctype \
 	c-strtod \
 	exit \

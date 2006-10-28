@@ -1,3 +1,7 @@
+Thu Oct 26 20:19:00 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command.def: Add DEBUG FLOAT FORMAT.
+
 Fri Oct 20 10:59:06 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* command.def: Added additional unimpl commands.

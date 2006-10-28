@@ -57,6 +57,7 @@ TESTS = \
 	tests/command/use.sh \
 	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \
+	tests/formats/float-format.sh \
 	tests/bugs/agg_crash.sh \
 	tests/bugs/agg-crash-2.sh \
 	tests/bugs/alpha-freq.sh \

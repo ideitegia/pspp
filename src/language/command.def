@@ -131,6 +131,7 @@ DEF_CMD (S_ANY, F_TESTING, "DEBUG CASEFILE", cmd_debug_casefile)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG EVALUATE", cmd_debug_evaluate)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG MOMENTS", cmd_debug_moments)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG POOL", cmd_debug_pool)
+DEF_CMD (S_ANY, F_TESTING, "DEBUG FLOAT FORMAT", cmd_debug_float_format)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG XFORM FAIL", cmd_debug_xform_fail)
 
 /* Unimplemented commands. */

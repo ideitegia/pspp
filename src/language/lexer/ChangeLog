@@ -1,3 +1,9 @@
+Thu Oct 26 20:18:03 2006  Ben Pfaff  <blp@gnu.org>
+
+	* lexer.c (parse_string): Make lexing of binary, hex, and octal
+	strings work (fixes bug #17948).  Allow null bytes in strings, now
+	that there's a use for them (see tests/formats/float-format.sh).
+
 Sun Jul 16 21:03:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format-parser.h: New file.  Moved prototypes of format-parser.c

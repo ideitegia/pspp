@@ -1067,6 +1067,9 @@ convert_numeric_string_to_char_string (enum string_type type)
 static int 
 parse_string (enum string_type type)
 {
+  if (type != CHARACTER_STRING)
+    prog++;
+
   /* Accumulate the entire string, joining sections indicated by +
      signs. */
   for (;;)
@@ -1160,24 +1163,6 @@ finish:
       ds_truncate (&tokstr, 255);
     }
       
-  {
-    /* FIXME. */
-    size_t i;
-    int warned = 0;
-
-    for (i = 0; i < ds_length (&tokstr); i++)
-      if (ds_cstr (&tokstr)[i] == 0)
-	{
-	  if (!warned)
-	    {
-	      msg (SE, _("Sorry, literal strings may not contain null "
-			 "characters.  Replacing with spaces."));
-	      warned = 1;
-	    }
-	  ds_cstr (&tokstr)[i] = ' ';
-	}
-  }
-
   return T_STRING;
 }
 	

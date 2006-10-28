@@ -1,3 +1,9 @@
+Thu Oct 26 20:20:39 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add tests/formats/float-format.sh.
+
+	* tests/formats/float-format.sh: New test.
+
 Sat Oct  7 11:06:59 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* command/rank.sh: New file 
