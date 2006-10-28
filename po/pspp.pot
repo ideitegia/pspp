@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-10-26 14:25+0800\n"
+"POT-Creation-Date: 2006-10-26 16:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1069,7 +1069,7 @@ msgstr ""
 
 #: src/language/command.c:802 src/language/data-io/matrix-data.c:539
 #: src/language/data-io/print-space.c:75 src/language/dictionary/vector.c:203
-#: src/language/lexer/lexer.c:448 src/language/stats/autorecode.c:154
+#: src/language/lexer/lexer.c:456 src/language/stats/autorecode.c:154
 #: src/language/xforms/select-if.c:62
 msgid "expecting end of command"
 msgstr ""
@@ -1114,16 +1114,16 @@ msgid ""
 "specified."
 msgstr ""
 
-#: src/language/control/repeat.c:393
+#: src/language/control/repeat.c:399
 #, c-format
 msgid "%ld TO %ld is an invalid range."
 msgstr ""
 
-#: src/language/control/repeat.c:429
+#: src/language/control/repeat.c:435
 msgid "String expected."
 msgstr ""
 
-#: src/language/control/repeat.c:448
+#: src/language/control/repeat.c:454
 msgid "No matching DO REPEAT."
 msgstr ""
 
@@ -1233,27 +1233,27 @@ msgid ""
 "by itself on a single line with exactly one space between words."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:206
-#: src/language/data-io/data-reader.c:218
+#: src/language/data-io/data-reader.c:207
+#: src/language/data-io/data-reader.c:219
 #, c-format
 msgid "Error reading file %s: %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:221
+#: src/language/data-io/data-reader.c:222
 #, c-format
 msgid "%s: Partial record at end of file."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:272
+#: src/language/data-io/data-reader.c:273
 #, c-format
 msgid "Attempt to read beyond end-of-file on file %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:275
+#: src/language/data-io/data-reader.c:276
 msgid "Attempt to read beyond END DATA."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:433
+#: src/language/data-io/data-reader.c:434
 msgid ""
 "This command is not valid here since the current input program does not "
 "access the inline file."
@@ -2031,11 +2031,11 @@ msgid ""
 "s."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:158 src/language/lexer/lexer.c:585
+#: src/language/dictionary/value-labels.c:158 src/language/lexer/lexer.c:593
 msgid "expecting string"
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:167 src/language/lexer/lexer.c:599
+#: src/language/dictionary/value-labels.c:167 src/language/lexer/lexer.c:607
 msgid "expecting integer"
 msgstr ""
 
@@ -2264,94 +2264,94 @@ msgstr ""
 msgid "expecting format type"
 msgstr ""
 
-#: src/language/lexer/lexer.c:259
+#: src/language/lexer/lexer.c:267
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/language/lexer/lexer.c:363
+#: src/language/lexer/lexer.c:371
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:365
+#: src/language/lexer/lexer.c:373
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:396
+#: src/language/lexer/lexer.c:404
 #, c-format
 msgid "Subcommand %s may only be specified once."
 msgstr ""
 
-#: src/language/lexer/lexer.c:404
+#: src/language/lexer/lexer.c:412
 #, c-format
 msgid "missing required subcommand %s"
 msgstr ""
 
-#: src/language/lexer/lexer.c:433
+#: src/language/lexer/lexer.c:441
 #, c-format
 msgid "Syntax error %s at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:436
+#: src/language/lexer/lexer.c:444
 #, c-format
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:554 src/language/lexer/lexer.c:571
+#: src/language/lexer/lexer.c:562 src/language/lexer/lexer.c:579
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/language/lexer/lexer.c:613
+#: src/language/lexer/lexer.c:621
 msgid "expecting number"
 msgstr ""
 
-#: src/language/lexer/lexer.c:627
+#: src/language/lexer/lexer.c:635
 msgid "expecting identifier"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1003
+#: src/language/lexer/lexer.c:1020
 msgid "binary"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1008
+#: src/language/lexer/lexer.c:1025
 msgid "octal"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1013
+#: src/language/lexer/lexer.c:1030
 msgid "hex"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1023
+#: src/language/lexer/lexer.c:1040
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1052
+#: src/language/lexer/lexer.c:1069
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1083
+#: src/language/lexer/lexer.c:1100
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1137
+#: src/language/lexer/lexer.c:1154
 msgid "Unexpected end of file in string concatenation."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1145
+#: src/language/lexer/lexer.c:1162
 msgid "String expected following `+'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1158
+#: src/language/lexer/lexer.c:1175
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1173
+#: src/language/lexer/lexer.c:1190
 msgid ""
 "Sorry, literal strings may not contain null characters.  Replacing with "
 "spaces."
@@ -2458,17 +2458,17 @@ msgstr ""
 msgid "Closing `%s': %s."
 msgstr ""
 
-#: src/language/line-buffer.c:447
+#: src/language/line-buffer.c:446
 #, c-format
 msgid "opening \"%s\" as syntax file"
 msgstr ""
 
-#: src/language/line-buffer.c:452
+#: src/language/line-buffer.c:451
 #, c-format
 msgid "Opening `%s': %s."
 msgstr ""
 
-#: src/language/line-buffer.c:465
+#: src/language/line-buffer.c:464
 #, c-format
 msgid "Reading `%s': %s."
 msgstr ""

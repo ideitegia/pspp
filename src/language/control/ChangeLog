@@ -1,3 +1,7 @@
+Sat Oct 28 16:18:48 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* repeat.c: Eliminated references to extern variable getl_buf.
+
 Sun May  7 18:18:33 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix memory leaks.

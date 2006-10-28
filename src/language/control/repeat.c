@@ -281,9 +281,10 @@ parse_lines (struct repeat_block *block)
       const char *cur_file_name;
       int cur_line_number;
       struct line_list *line;
+      struct string cur_line_copy;
       bool dot;
 
-      if (!getl_read_line (NULL))
+      if (! lex_get_line_raw ())
         return false;
 
       /* If the current file has changed then record the fact. */
@@ -292,27 +293,32 @@ parse_lines (struct repeat_block *block)
           || !strcmp (cur_file_name, previous_file_name))
         previous_file_name = pool_strdup (block->pool, cur_file_name);
 
-      ds_rtrim (&getl_buf, ss_cstr (CC_SPACES));
-      dot = ds_chomp (&getl_buf, get_endcmd ());
-      if (recognize_do_repeat (ds_cstr (&getl_buf))) 
+      ds_init_string (&cur_line_copy, lex_entire_line_ds () );
+      ds_rtrim (&cur_line_copy, ss_cstr (CC_SPACES));
+      dot = ds_chomp (&cur_line_copy, get_endcmd ());
+
+      if (recognize_do_repeat (ds_cstr (&cur_line_copy)))
         nesting_level++; 
-      else if (recognize_end_repeat (ds_cstr (&getl_buf), &block->print)) 
+      else if (recognize_end_repeat (ds_cstr (&cur_line_copy), &block->print)) 
         {
         if (nesting_level-- == 0)
           {
             lex_discard_line ();
+	    ds_destroy (&cur_line_copy);
             return true;
           } 
         }
       if (dot)
-        ds_put_char (&getl_buf, get_endcmd ());
+        ds_put_char (&cur_line_copy, get_endcmd ());
       
       line = *last_line = pool_alloc (block->pool, sizeof *line);
       line->next = NULL;
       line->file_name = previous_file_name;
       line->line_number = cur_line_number;
-      line->line = pool_strdup (block->pool, ds_cstr (&getl_buf));
+      line->line = pool_strdup (block->pool, ds_cstr (&cur_line_copy) );
       last_line = &line->next;
+
+      ds_destroy (&cur_line_copy);
     }
 
   lex_discard_line ();
@@ -463,7 +469,8 @@ find_substitution (struct repeat_block *block, const char *name, size_t length)
   return NULL;
 }
 
-/* Makes appropriate DO REPEAT macro substitutions within getl_buf. */
+/* Makes appropriate DO REPEAT macro substitutions within the 
+   repeated lines. */
 static void
 do_repeat_filter (struct string *line, void *block_)
 {

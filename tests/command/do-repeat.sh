@@ -66,9 +66,9 @@ END REPEAT.
 
 VECTOR v(6).
 COMPUTE #idx = 0.
-DO REPEAT a = 1 TO 2.
-	DO REPEAT b = 3 TO 5.
-		COMPUTE #x = a + b.
+DO REPEAT i = 1 TO 2.
+	DO REPEAT j = 3 TO 5.
+		COMPUTE #x = i + j.
 		COMPUTE #idx = #idx + 1.
 		COMPUTE v(#idx) = #x.
 	END REPEAT.
@@ -80,7 +80,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE >/dev/null 2>&1
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE 
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"

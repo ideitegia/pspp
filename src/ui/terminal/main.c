@@ -100,7 +100,7 @@ main (int argc, char **argv)
   if (parse_command_line (argc, argv)) 
     {
       outp_read_devices ();
-      lex_init ();
+      lex_init (do_read_line);
 
       for (;;)
         {

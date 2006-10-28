@@ -170,7 +170,7 @@ read_inline_record (struct dfm_reader *r)
       getl_set_prompt_style (GETL_PROMPT_DATA);
     }
       
-  if (!getl_read_line (NULL))
+  if (!lex_get_line_raw ())
     {
       msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
                  "DATA.  This probably indicates "
@@ -180,14 +180,15 @@ read_inline_record (struct dfm_reader *r)
       return false;
     }
 
-  if (ds_length (&getl_buf) >= 8
-      && !strncasecmp (ds_cstr (&getl_buf), "end data", 8))
+  if (ds_length (lex_entire_line_ds() ) >= 8
+      && !strncasecmp (lex_entire_line (), "end data", 8))
     {
-      lex_set_prog (ds_end (&getl_buf));
+      lex_discard_line ();
       return false;
     }
 
-  ds_assign_string (&r->line, &getl_buf);
+  ds_assign_string (&r->line, lex_entire_line_ds () );
+
   return true;
 }
 

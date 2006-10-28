@@ -31,9 +31,6 @@ enum getl_prompt_style
     GETL_PROMPT_CNT
   };
 
-/* Current line.  This line may be modified by modules other than
-   getl.c, and by lexer.c in particular.  (Ugh.) */
-extern struct string getl_buf;
 
 void getl_initialize (void);
 void getl_uninitialize (void);
@@ -65,6 +62,8 @@ struct msg_locator;
 void get_msg_location (struct msg_locator *loc);
 
 void getl_location (const char **fn, int *ln);
+
+bool do_read_line (struct string *line, bool *interactive);
 
 
 #endif /* line-buffer.h */

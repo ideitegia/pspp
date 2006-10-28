@@ -1,3 +1,8 @@
+Sat Oct 28 16:17:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* lexer.c lexer.h: Added a line_buffer (previously an external
+	reference called getl_buf). 
+
 Thu Oct 26 20:18:03 2006  Ben Pfaff  <blp@gnu.org>
 
 	* lexer.c (parse_string): Make lexing of binary, hex, and octal

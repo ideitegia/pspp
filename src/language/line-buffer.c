@@ -98,7 +98,6 @@ static struct getl_source *last_source;
 
 static struct string getl_include_path;
 
-struct string getl_buf;
 
 static void close_source (void);
 
@@ -106,15 +105,16 @@ static void init_prompts (void);
 static void uninit_prompts (void);
 static enum getl_prompt_style get_prompt_style (void);
 
+
 /* Initialize getl. */
 void
 getl_initialize (void)
 {
   ds_init_cstr (&getl_include_path,
                 fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
-  ds_init_empty (&getl_buf);
   init_prompts ();
 }
+
 
 /* Delete everything from the include path. */
 void
@@ -387,7 +387,6 @@ getl_uninitialize (void)
 {
   while (cur_source != NULL)
     close_source ();
-  ds_destroy (&getl_buf);
   ds_destroy (&getl_include_path);
   free(file_loc);
   file_loc = NULL;
@@ -502,7 +501,7 @@ read_line_from_source (struct string *line, struct getl_source *s)
    If INTERACTIVE is non-null, then when true is returned
    *INTERACTIVE will be set to true if the line was obtained
    interactively, false otherwise. */
-static bool
+bool
 do_read_line (struct string *line, bool *interactive)
 {
   while (cur_source != NULL)
@@ -525,16 +524,6 @@ do_read_line (struct string *line, bool *interactive)
   return false;
 }
 
-/* Reads a single line into getl_buf.
-   Returns true when a line has been read, false at end of input.
-   If INTERACTIVE is non-null, then when true is returned
-   *INTERACTIVE will be set to true if the line was obtained
-   interactively, false otherwise. */
-bool
-getl_read_line (bool *interactive)
-{
-  return do_read_line (&getl_buf, interactive);
-}
 
 /* Current prompts in each style. */
 static char *prompts[GETL_PROMPT_CNT];

@@ -1,3 +1,7 @@
+Sat Oct 28 16:19:57 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* data-reader.c: Eliminated references to extern variable getl_buf
+
 Sat Aug  5 08:25:07 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #17329 in REREAD parsing, reported by John Darrington.

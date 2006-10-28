@@ -35,7 +35,7 @@ extern struct string tokstr;
 #include <stddef.h>
 
 /* Initialization. */
-void lex_init (void);
+void lex_init (bool (*)(struct string *, bool*));
 void lex_done (void);
 
 /* Common functions. */
@@ -71,13 +71,14 @@ void lex_put_back_id (const char *tokid);
 
 /* Weird line processing functions. */
 const char *lex_entire_line (void);
+const struct string *lex_entire_line_ds (void);
 const char *lex_rest_of_line (int *end_dot);
 void lex_discard_line (void);
-void lex_set_prog (char *p);
 void lex_discard_rest_of_command (void);
 
 /* Weird line reading functions. */
 bool lex_get_line (void);
+bool lex_get_line_raw (void);
 
 /* Token names. */
 const char *lex_token_name (int);

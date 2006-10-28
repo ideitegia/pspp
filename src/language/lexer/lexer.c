@@ -61,7 +61,7 @@ struct string tokstr;
 
 /* Static variables. */
 
-/* Pointer to next token in getl_buf. */
+/* Pointer to next token in line_buffer. */
 static char *prog;
 
 /* True only if this line ends with a terminal dot. */
@@ -95,12 +95,19 @@ static void dump_token (void);
 
 /* Initialization. */
 
+static struct string line_buffer;
+
+static bool (*lex_read_line) (struct string *, bool *);
+
 /* Initializes the lexer. */
 void
-lex_init (void)
+lex_init (bool (*read_line_func) (struct string *, bool *))
 {
   ds_init_empty (&tokstr);
   ds_init_empty (&put_tokstr);
+  ds_init_empty (&line_buffer);
+  lex_read_line = read_line_func;
+
   if (!lex_get_line ())
     eof = true;
 }
@@ -110,6 +117,7 @@ lex_done (void)
 {
   ds_destroy (&put_tokstr);
   ds_destroy (&tokstr);
+  ds_destroy (&line_buffer);
 }
 
 
@@ -700,7 +708,13 @@ lex_put_back_id (const char *id)
 const char *
 lex_entire_line (void)
 {
-  return ds_cstr (&getl_buf);
+  return ds_cstr (&line_buffer);
+}
+
+const struct string *
+lex_entire_line_ds (void)
+{
+  return &line_buffer;
 }
 
 /* As lex_entire_line(), but only returns the part of the current line
@@ -720,18 +734,12 @@ lex_rest_of_line (int *end_dot)
 void
 lex_discard_line (void)
 {
-  prog = ds_end (&getl_buf);
+  ds_cstr (&line_buffer);  /* Ensures ds_end points to something valid */
+  prog = ds_end (&line_buffer);
   dot = false;
   put_token = 0;
 }
 
-/* Sets the current position in the current line to P, which must be
-   in getl_buf. */
-void
-lex_set_prog (char *p)
-{
-  prog = p;
-}
 
 /* Discards the rest of the current command.
    When we're reading commands from a file, we skip tokens until
@@ -802,16 +810,24 @@ strip_comments (struct string *string)
     }
 }
 
+/* Reads a line, without performing any preprocessing */
+bool 
+lex_get_line_raw (void)
+{
+  bool dummy;
+  return lex_read_line (&line_buffer, &dummy);
+}
+
 /* Reads a line for use by the tokenizer, and preprocesses it by
    removing comments, stripping trailing whitespace and the
    terminal dot, and removing leading indentors. */
 bool
 lex_get_line (void)
 {
-  struct string *line = &getl_buf;
+  struct string *line = &line_buffer;
   bool interactive;
 
-  if (!getl_read_line (&interactive))
+  if (!lex_read_line (line, &interactive))
     return false;
 
   strip_comments (line);
@@ -976,7 +992,8 @@ lex_skip_comment (void)
       if (put_token == '.')
 	break;
 
-      prog = ds_end (&getl_buf);
+      ds_cstr (&line_buffer); /* Ensures ds_end will point to a valid char */
+      prog = ds_end (&line_buffer);
       if (dot)
 	break;
     }
