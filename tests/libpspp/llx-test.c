@@ -41,6 +41,9 @@
 #define UNUSED
 #endif
 
+/* Currently running test. */
+static const char *test_name;
+
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
@@ -56,7 +59,8 @@ check_func (bool ok, int line)
 {
   if (!ok) 
     {
-      printf ("check failed at %s, line %d\n", __FILE__, line);
+      printf ("Check failed in %s test at %s, line %d\n",
+              test_name, __FILE__, line);
       check_die ();
     }
 }
@@ -2018,10 +2022,10 @@ test_allocation_failure (void)
 static void
 run_test (void (*test_function) (void), const char *name) 
 {
-  printf ("Running %s test...  ", name);
+  test_name = name;
+  putchar ('.');
   fflush (stdout);
   test_function ();
-  printf ("done.\n");
 }
 
 int
@@ -2058,6 +2062,7 @@ main (void)
   run_test (test_insert_ordered, "insert_ordered");
   run_test (test_partition, "partition");
   run_test (test_allocation_failure, "allocation failure");
+  putchar ('\n');
 
   return 0;
 }
