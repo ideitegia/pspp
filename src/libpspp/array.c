@@ -108,7 +108,7 @@
 void *
 find (const void *array, size_t count, size_t size,
       const void *target,
-      algo_compare_func *compare, void *aux) 
+      algo_compare_func *compare, const void *aux) 
 {
   const char *element = array;
 
@@ -130,7 +130,7 @@ find (const void *array, size_t count, size_t size,
 size_t
 count_equal (const void *array, size_t count, size_t size,
              const void *element,
-             algo_compare_func *compare, void *aux)
+             algo_compare_func *compare, const void *aux)
 {
   const char *first = array;
   size_t equal_cnt = 0;
@@ -152,7 +152,7 @@ count_equal (const void *array, size_t count, size_t size,
    PREDICATE. */
 size_t
 count_if (const void *array, size_t count, size_t size,
-          algo_predicate_func *predicate, void *aux) 
+          algo_predicate_func *predicate, const void *aux) 
 {
   const char *first = array;
   size_t true_cnt = 0;
@@ -187,7 +187,7 @@ count_if (const void *array, size_t count, size_t size,
    arrays only.  Arguments same as for sort() above. */
 size_t
 unique (void *array, size_t count, size_t size,
-        algo_compare_func *compare, void *aux) 
+        algo_compare_func *compare, const void *aux) 
 {
   char *first = array;
   char *last = first + size * count;
@@ -217,7 +217,7 @@ unique (void *array, size_t count, size_t size,
 /* Helper function that calls sort(), then unique(). */
 size_t
 sort_unique (void *array, size_t count, size_t size,
-             algo_compare_func *compare, void *aux) 
+             algo_compare_func *compare, const void *aux) 
 {
   sort (array, count, size, compare, aux);
   return unique (array, count, size, compare, aux);
@@ -231,7 +231,7 @@ sort_unique (void *array, size_t count, size_t size,
    stable. */
 size_t 
 partition (void *array, size_t count, size_t size,
-           algo_predicate_func *predicate, void *aux) 
+           algo_predicate_func *predicate, const void *aux) 
 {
   size_t true_cnt = count;
   char *first = array;
@@ -285,7 +285,7 @@ partition (void *array, size_t count, size_t size,
 bool
 is_partitioned (const void *array, size_t count, size_t size,
                 size_t true_cnt,
-                algo_predicate_func *predicate, void *aux) 
+                algo_predicate_func *predicate, const void *aux) 
 {
   const char *first = array;
   size_t idx;
@@ -307,7 +307,7 @@ is_partitioned (const void *array, size_t count, size_t size,
 size_t 
 copy_if (const void *array, size_t count, size_t size,
          void *result,
-         algo_predicate_func *predicate, void *aux) 
+         algo_predicate_func *predicate, const void *aux) 
 {
   const char *input = array;
   const char *last = input + size * count;
@@ -394,11 +394,11 @@ move_element (void *array_, size_t count, size_t size,
 struct pred_aux 
   {
     algo_predicate_func *predicate;
-    void *aux;
+    const void *aux;
   };
 
 static bool
-not (const void *data, void *pred_aux_) 
+not (const void *data, const void *pred_aux_) 
 {
   const struct pred_aux *pred_aux = pred_aux_;
 
@@ -412,7 +412,7 @@ not (const void *data, void *pred_aux_)
 size_t
 remove_equal (void *array, size_t count, size_t size,
               void *element,
-              algo_compare_func *compare, void *aux) 
+              algo_compare_func *compare, const void *aux) 
 {
   char *first = array;
   char *last = first + count * size;
@@ -458,7 +458,7 @@ remove_equal (void *array, size_t count, size_t size,
 size_t 
 remove_copy_if (const void *array, size_t count, size_t size,
                 void *result,
-                algo_predicate_func *predicate, void *aux) 
+                algo_predicate_func *predicate, const void *aux) 
 {
   struct pred_aux pred_aux;
   pred_aux.predicate = predicate;
@@ -474,7 +474,7 @@ remove_copy_if (const void *array, size_t count, size_t size,
 void *
 binary_search (const void *array, size_t count, size_t size,
                void *value,
-               algo_compare_func *compare, void *aux) 
+               algo_compare_func *compare, const void *aux) 
 {
   assert (array != NULL);
   assert (count <= INT_MAX);
@@ -514,7 +514,7 @@ int
 lexicographical_compare_3way (const void *array1, size_t count1,
                               const void *array2, size_t count2,
                               size_t size,
-                              algo_compare_func *compare, void *aux) 
+                              algo_compare_func *compare, const void *aux) 
 {
   const char *first1 = array1;
   const char *first2 = array2;
@@ -779,7 +779,7 @@ size_t set_difference (const void *array1, size_t count1,
                        const void *array2, size_t count2,
                        size_t size,
                        void *result_,
-                       algo_compare_func *compare, void *aux) 
+                       algo_compare_func *compare, const void *aux) 
 {
   const char *first1 = array1;
   const char *last1 = first1 + count1 * size;
@@ -826,7 +826,7 @@ size_t set_difference (const void *array1, size_t count1,
    data. */
 void *
 adjacent_find_equal (const void *array, size_t count, size_t size,
-                     algo_compare_func *compare, void *aux) 
+                     algo_compare_func *compare, const void *aux) 
 {
   const char *first = array;
   const char *last = first + count * size;
@@ -849,7 +849,7 @@ adjacent_find_equal (const void *array, size_t count, size_t size,
    data. */
 void
 push_heap (void *array, size_t count, size_t size,
-           algo_compare_func *compare, void *aux) 
+           algo_compare_func *compare, const void *aux) 
 {
   char *first = array;
   size_t i;
@@ -876,7 +876,7 @@ push_heap (void *array, size_t count, size_t size,
 static void
 heapify (void *array, size_t count, size_t size,
          size_t idx,
-         algo_compare_func *compare, void *aux) 
+         algo_compare_func *compare, const void *aux) 
 {
   char *first = array;
   
@@ -912,7 +912,7 @@ heapify (void *array, size_t count, size_t size,
    AUX as auxiliary data. */
 void
 pop_heap (void *array, size_t count, size_t size,
-          algo_compare_func *compare, void *aux) 
+          algo_compare_func *compare, const void *aux) 
 {
   char *first = array;
 
@@ -928,7 +928,7 @@ pop_heap (void *array, size_t count, size_t size,
    auxiliary data. */
 void
 make_heap (void *array, size_t count, size_t size,
-           algo_compare_func *compare, void *aux) 
+           algo_compare_func *compare, const void *aux) 
 {
   size_t idx;
   
@@ -943,7 +943,7 @@ make_heap (void *array, size_t count, size_t size,
    passing AUX as auxiliary data. */
 void
 sort_heap (void *array, size_t count, size_t size,
-           algo_compare_func *compare, void *aux) 
+           algo_compare_func *compare, const void *aux) 
 {
   char *first = array;
   size_t idx;
@@ -963,7 +963,7 @@ sort_heap (void *array, size_t count, size_t size,
    AUX as auxiliary data. */
 bool
 is_heap (const void *array, size_t count, size_t size,
-         algo_compare_func *compare, void *aux) 
+         algo_compare_func *compare, const void *aux) 
 {
   const char *first = array;
   size_t child;

@@ -372,7 +372,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
 
   if (dict_get_weight (d) != NULL)
     {
-      struct variable *weight_var;
+      const struct variable *weight_var;
       int recalc_weight_idx = 1;
       int i;
 

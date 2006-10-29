@@ -167,7 +167,7 @@ struct hsh_table
 
 struct hsh_table *
 hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
-            hsh_free_func *free, void *aux)
+            hsh_free_func *free, const void *aux)
 {
   return hsh_create_pool (NULL, size, compare, hash, free, aux);
 }
@@ -181,7 +181,7 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
 struct hsh_table *
 hsh_create_pool (struct pool *pool, int size, 
 		 hsh_compare_func *compare, hsh_hash_func *hash,
-		 hsh_free_func *free, void *aux)
+		 hsh_free_func *free, const void *aux)
 {
   struct hsh_table *h;
   int i;
@@ -323,7 +323,7 @@ rehash (struct hsh_table *h, size_t new_size)
 /* A "algo_predicate_func" that returns true if DATA points
    to a non-null void. */
 static bool
-not_null (const void *data_, void *aux UNUSED) 
+not_null (const void *data_, const void *aux UNUSED) 
 {
   void *const *data = data_;
 
