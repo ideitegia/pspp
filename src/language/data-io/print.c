@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <data/case.h>
+#include <data/format.h>
 #include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
@@ -65,6 +66,7 @@ struct prt_out_spec
     struct variable *var;	/* Associated variable. */
     struct fmt_spec format;	/* Output spec. */
     bool add_space;             /* Add trailing space? */
+    bool sysmis_as_spaces;      /* Output SYSMIS as spaces? */
 
     /* PRT_LITERAL only. */
     struct string string;       /* String to output. */
@@ -81,7 +83,7 @@ struct print_trns
   {
     struct pool *pool;          /* Stores related data. */
     bool eject;                 /* Eject page before printing? */
-    bool omit_new_lines;        /* Omit new-line characters? */
+    bool include_prefix;        /* Prefix lines with space? */
     struct dfm_writer *writer;	/* Output file, NULL=listing file. */
     struct ll_list specs;       /* List of struct prt_out_specs. */
     size_t record_cnt;          /* Number of records to write. */
@@ -147,7 +149,7 @@ internal_cmd_print (struct dataset *ds,
   tmp_pool = pool_create_subpool (trns->pool);
 
   /* Parse the command options. */
-  while (token != '/')
+  while (token != '/' && token != '.')
     {
       if (lex_match_id ("OUTFILE"))
 	{
@@ -178,6 +180,10 @@ internal_cmd_print (struct dataset *ds,
 	}
     }
 
+  /* When PRINT or PRINT EJECT writes to an external file, we
+     prefix each line with a space for compatibility. */
+  trns->include_prefix = which_formats == PRINT && fh != NULL;
+
   /* Parse variables and strings. */
   if (!parse_specs (tmp_pool, trns, dataset_dict (ds), which_formats))
     goto error;
@@ -190,9 +196,6 @@ internal_cmd_print (struct dataset *ds,
       trns->writer = dfm_open_writer (fh);
       if (trns->writer == NULL)
         goto error;
-
-      trns->omit_new_lines = (which_formats == WRITE
-                              && fh_get_mode (fh) == FH_MODE_BINARY);
     }
 
   /* Output the variable table if requested. */
@@ -229,6 +232,12 @@ parse_specs (struct pool *tmp_pool, struct print_trns *trns,
 {
   int record = 0;
   int column = 1;
+
+  if (token == '.') 
+    {
+      trns->record_cnt = 1;
+      return true;
+    }
 
   while (token != '.')
     {
@@ -325,7 +334,7 @@ parse_variable_argument (const struct dictionary *dict,
           struct variable *v = vars[i];
           formats[i] = which_formats == PRINT ? v->print : v->write; 
         }
-      add_space = true;
+      add_space = which_formats == PRINT;
     }
 
   var_idx = 0;
@@ -346,6 +355,15 @@ parse_variable_argument (const struct dictionary *dict,
         spec->var = var;
         spec->format = *f;
         spec->add_space = add_space;
+
+        /* This is a completely bizarre twist for compatibility:
+           WRITE outputs the system-missing value as a field
+           filled with spaces, instead of using the normal format
+           that usually contains a period. */ 
+        spec->sysmis_as_spaces = (which_formats == WRITE
+                                  && var->type == NUMERIC
+                                  && !fmt_is_binary (spec->format.type));
+
         ll_push_tail (&trns->specs, &spec->ll);
 
         *column += f->w + add_space;
@@ -415,62 +433,83 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
 
 /* Transformation. */
 
-static void flush_records (struct print_trns *,
-                           int target_record, int *record);
+static void flush_records (struct print_trns *, int target_record,
+                           bool *eject, int *record);
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
 print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
+  bool eject = trns->eject;
+  int record = 1;
   struct prt_out_spec *spec;
-  int record;
 
-  if (trns->eject)
-    som_eject_page ();
-
-  record = 1;
   ds_clear (&trns->line);
+  ds_put_char (&trns->line, ' ');
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs) 
     {
-      flush_records (trns, spec->record, &record);
+      flush_records (trns, spec->record, &eject, &record);
  
-      ds_set_length (&trns->line, spec->first_column - 1, ' ');
+      ds_set_length (&trns->line, spec->first_column, ' ');
       if (spec->type == PRT_VAR)
         {
-          data_out (ds_put_uninit (&trns->line, spec->format.w),
-                    &spec->format, case_data (c, spec->var->fv));
+          const union value *input = case_data (c, spec->var->fv);
+          char *output = ds_put_uninit (&trns->line, spec->format.w);
+          if (!spec->sysmis_as_spaces || input->f != SYSMIS)
+            data_out (output, &spec->format, input);
+          else
+            memset (output, ' ', spec->format.w);
           if (spec->add_space)
             ds_put_char (&trns->line, ' ');
         }
       else 
         ds_put_substring (&trns->line, ds_ss (&spec->string));
     }
-  flush_records (trns, trns->record_cnt + 1, &record);
+  flush_records (trns, trns->record_cnt + 1, &eject, &record);
   
   if (trns->writer != NULL && dfm_write_error (trns->writer))
     return TRNS_ERROR;
   return TRNS_CONTINUE;
 }
 
+/* Advance from *RECORD to TARGET_RECORD, outputting records
+   along the way.  If *EJECT is true, then the first record
+   output is preceded by ejecting the page (and *EJECT is set
+   false). */
 static void
-flush_records (struct print_trns *trns, int target_record, int *record)
+flush_records (struct print_trns *trns, int target_record,
+               bool *eject, int *record)
 {
-  while (target_record > *record) 
+  for (; target_record > *record; (*record)++) 
     {
+      char *line = ds_cstr (&trns->line);
+      size_t length = ds_length (&trns->line);
+      char leader = ' ';
+      
+      if (*eject) 
+        {
+          *eject = false;
+          if (trns->writer == NULL)
+            som_eject_page ();
+          else
+            leader = '1';
+        }
+      line[0] = leader;
+      
       if (trns->writer == NULL)
-        tab_output_text (TAB_FIX | TAT_NOWRAP, ds_cstr (&trns->line));
+        tab_output_text (TAB_FIX | TAT_NOWRAP, &line[1]);
       else
         {
-          if (!trns->omit_new_lines)
-            ds_put_char (&trns->line, '\n');
-
-          dfm_put_record (trns->writer,
-                          ds_data (&trns->line), ds_length (&trns->line));
+          if (!trns->include_prefix) 
+            {
+              line++;
+              length--; 
+            }
+          dfm_put_record (trns->writer, line, length);
         }
-      ds_clear (&trns->line);
-
-      (*record)++;
+      
+      ds_truncate (&trns->line, 1);
     }
 }
 

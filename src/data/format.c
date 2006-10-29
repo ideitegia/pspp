@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -388,6 +388,24 @@ make_output_format (int type, int w, int d)
   return f;
 }
 
+/* Returns true if TYPE is a binary format,
+   false otherwise. */
+bool
+fmt_is_binary (int type)
+{
+  switch (type) 
+    {
+    case FMT_P:
+    case FMT_PK:
+    case FMT_IB:
+    case FMT_PIB:
+    case FMT_RB:
+      return true;
+
+    default:
+      return false;
+    }
+}
 
 bool 
 measure_is_valid(enum measure m)

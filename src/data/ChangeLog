@@ -1,3 +1,7 @@
+Sat Oct 28 11:56:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format.c (fmt_is_binary): New function.
+
 Thu Oct 19 22:59:56 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* procedure.c procedure.h: Encapsulated the static data into a single

@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-2004 Free Software Foundation, Inc.
+   Copyright (C) 1997-2004, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -18,15 +18,21 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include <language/data-io/data-writer.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
-#include <libpspp/message.h>
-#include <language/data-io/file-handle.h>
+
 #include <data/file-name.h>
+#include <language/data-io/file-handle.h>
+#include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
+#include <libpspp/message.h>
 #include <libpspp/str.h>
+
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -36,7 +42,6 @@ struct dfm_writer
   {
     struct file_handle *fh;     /* File handle. */
     FILE *file;                 /* Associated file. */
-    char *bounce;               /* Bounce buffer for fixed-size fields. */
   };
 
 /* Opens a file handle for writing as a data file. */
@@ -55,7 +60,6 @@ dfm_open_writer (struct file_handle *fh)
   w = *aux = xmalloc (sizeof *w);
   w->fh = fh;
   w->file = fn_open (fh_get_file_name (w->fh), "wb");
-  w->bounce = NULL;
 
   if (w->file == NULL)
     {
@@ -79,9 +83,10 @@ dfm_write_error (const struct dfm_writer *writer)
   return ferror (writer->file);
 }
 
-/* Writes record REC having length LEN to the file corresponding to
-   HANDLE.  REC is not null-terminated.  Returns true on success,
-   false on failure. */
+/* Writes record REC (which need not be null-terminated) having
+   length LEN to the file corresponding to HANDLE.  Adds any
+   needed formatting, such as a trailing new-line.  Returns true
+   on success, false on failure. */
 bool
 dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 {
@@ -89,20 +94,34 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 
   if (dfm_write_error (w))
     return false;
-  
-  if (fh_get_mode (w->fh) == FH_MODE_BINARY
-      && len < fh_get_record_width (w->fh))
+
+  switch (fh_get_mode (w->fh)) 
     {
-      size_t rec_width = fh_get_record_width (w->fh);
-      if (w->bounce == NULL)
-        w->bounce = xmalloc (rec_width);
-      memcpy (w->bounce, rec, len);
-      memset (&w->bounce[len], 0, rec_width - len);
-      rec = w->bounce;
-      len = rec_width;
+    case FH_MODE_TEXT:
+      fwrite (rec, len, 1, w->file);
+      putc ('\n', w->file);
+      break;
+
+    case FH_MODE_BINARY:
+      {
+        size_t record_width = fh_get_record_width (w->fh);
+        size_t write_bytes = MIN (len, record_width);
+        size_t pad_bytes = record_width - write_bytes;
+        fwrite (rec, write_bytes, 1, w->file);
+        while (pad_bytes > 0) 
+          {
+            static const char spaces[32] = "                                ";
+            size_t chunk = MIN (pad_bytes, sizeof spaces);
+            fwrite (spaces, chunk, 1, w->file);
+            pad_bytes -= chunk;
+          }
+      }
+      break;
+
+    default:
+      NOT_REACHED ();
     }
 
-  fwrite (rec, len, 1, w->file);
   return !dfm_write_error (w);
 }
 
@@ -130,7 +149,6 @@ dfm_close_writer (struct dfm_writer *w)
       if (!ok)
         msg (ME, _("I/O error occurred writing data file \"%s\"."), file_name);
     }
-  free (w->bounce);
   free (w);
   free (file_name);
 

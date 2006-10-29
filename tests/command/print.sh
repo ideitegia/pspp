@@ -1,6 +1,21 @@
 #!/bin/sh
 
-# This program tests the PRINT transformation
+# This program tests unusual aspects of the PRINT and WRITE
+# transformations:
+#
+#   - PRINT puts spaces between variables, unless a format 
+#     is specified explicitly.
+#
+#   - WRITE doesn't put space between variables.
+#
+#   - PRINT to an external file prefixes each line with a space.
+#
+#   - PRINT EJECT to an external file indicates a formfeed by a "1"
+#     in the first column.
+#
+#   - WRITE writes out spaces for system-missing values, not a period.
+#
+#   - When no output is specified, an empty record is output.
 
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
@@ -54,127 +69,118 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-# Copy this file --- it's shared with another test
-activity="create data"
-cp $top_srcdir/tests/data-list.data $TEMPDIR
-if [ $? -ne 0 ] ; then no_result ; fi
-
-
 activity="create program"
 cat > $TEMPDIR/print.stat << foobar
-title 'Test PRINT transformation'.
+data list notable /x y 1-2.
+begin data.
+12
+34
+ 6 
+7 
+90
+end data.
 
-data list free table file='$TEMPDIR/data-list.data'/A B C D.
-print outfile="foo" table/A(f8.2) '/' B(e8.2) '/' C(n10) '/'.
-print space a.
-print outfile="foo" /a b c d.
-list.
+print /x y.
+print eject /x y 1-2.
+print /x '-' y.
+print.
 
-data list list table file='$TEMPDIR/data-list.data'/A B C D.
-print table/A B C D.
-list.
+print outfile='print.out' /x y.
+print eject outfile='print.out' /x y (f1,f1).
+print outfile='print.out' /x '-' y.
+print outfile='print.out'.
 
+write outfile='write.out' /x y.
+write outfile='write.out' /x y (2(f1)).
+write outfile='write.out' /x '-' y.
+write outfile='write.out'.
+
+execute.
 foobar
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
 $SUPERVISOR $PSPP --testing-mode -o raw-ascii --testing-mode $TEMPDIR/print.stat > $TEMPDIR/errs
-# Note   vv   --- there are errors in input.  Therefore, the  command must FAIL
-if [ $? -eq 0 ] ; then fail ; fi
+if [ $? -ne 0 ] ; then fail ; fi
 
-activity="compare error messages"
-diff -w $TEMPDIR/errs - <<EOF
-$TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:1: warning: LIST: The expression on PRINT SPACE evaluated to the system-missing value.
-$TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:4: warning: LIST: The expression on PRINT SPACE evaluated to the system-missing value.
-$TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:6: warning: LIST: The expression on PRINT SPACE evaluated to the system-missing value.
-$TEMPDIR/data-list.data:1: error: (columns 1-5, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:2: error: (columns 1-8, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:2: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing value or blanks, as appropriate.
-$TEMPDIR/data-list.data:3: warning: LIST: Missing value(s) for all variables from B onward.  These will be filled with the system-missing value or blanks, as appropriate.
-$TEMPDIR/data-list.data:4: error: (columns 3-12, field type F8.0) Field does not form a valid floating-point constant.
-$TEMPDIR/data-list.data:4: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing value or blanks, as appropriate.
-$TEMPDIR/data-list.data:5: warning: LIST: Missing value(s) for all variables from C onward.  These will be filled with the system-missing value or blanks, as appropriate.
-$TEMPDIR/data-list.data:6: warning: LIST: Missing value(s) for all variables from B onward.  These will be filled with the system-missing value or blanks, as appropriate.
+activity="compare print.out"
+diff $TEMPDIR/print.out - <<EOF
+ 1 2 
+112
+ 1 -2 
+ 
+ 3 4 
+134
+ 3 -4 
+ 
+ . 6 
+1.6
+ . -6 
+ 
+ 7 . 
+17.
+ 7 -. 
+ 
+ 9 0 
+190
+ 9 -0 
+ 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
+activity="compare write.out"
+diff $TEMPDIR/write.out - <<EOF
+12
+12
+1-2
+
+34
+34
+3-4
+
+ 6
+ 6
+ -6
+
+7 
+7 
+7- 
+
+90
+90
+9-0
+
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from "$TEMPDIR/data-list.data".
-+--------+------+
-|Variable|Format|
-#========#======#
-|A       |F8.0  |
-|B       |F8.0  |
-|C       |F8.0  |
-|D       |F8.0  |
-+--------+------+
-2.1 PRINT.  Writing 1 record to "foo".
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|A       |     1|  1-  8|F8.2  |
-|"/"     |     1|  9-  9|      |
-|B       |     1| 10- 17|E8.2  |
-|"/"     |     1| 18- 18|      |
-|C       |     1| 19- 28|N10.0 |
-|"/"     |     1| 29- 29|      |
-+--------+------+-------+------+
-       A        B        C        D
--------- -------- -------- --------
-     .       2.00     3.00     4.00 
-     .       6.00     7.00     8.00 
-     .      10.00    11.00    12.00 
-3.1 DATA LIST.  Reading free-form data from "$TEMPDIR/data-list.data".
-+--------+------+
-|Variable|Format|
-#========#======#
-|A       |F8.0  |
-|B       |F8.0  |
-|C       |F8.0  |
-|D       |F8.0  |
-+--------+------+
-4.1 PRINT.  Writing 1 record.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|A       |     1|  1-  8|F8.2  |
-|B       |     1| 10- 17|F8.2  |
-|C       |     1| 19- 26|F8.2  |
-|D       |     1| 28- 35|F8.2  |
-+--------+------+-------+------+
-     .       2.00     3.00     4.00 
-       A        B        C        D
--------- -------- -------- --------
-     .       2.00     3.00     4.00 
-     .       6.00      .        .   
-     .       6.00      .        .   
-    7.00      .        .        .   
-    7.00      .        .        .   
-    8.00      .        .        .   
-    8.00      .        .        .   
-   10.00    11.00      .        .   
-   10.00    11.00      .        .   
-   12.00      .        .        .   
-   12.00      .        .        .   
-EOF
-if [ $? -ne 0 ] ; then fail ; fi
+diff $TEMPDIR/pspp.list - << EOF
+1 2 
 
+12
+1 -2 
 
-activity="compare print out"
-diff $TEMPDIR/foo - << EOF
-     .  /2.00E+00/0000000003/
-     .       2.00     3.00     4.00 
-     .  /6.00E+00/0000000007/
-     .       6.00     7.00     8.00 
-     .  /1.00E+01/0000000011/
-     .      10.00    11.00    12.00 
+3 4 
+
+34
+3 -4 
+
+. 6 
+
+.6
+. -6 
+
+7 . 
+
+7.
+7 -. 
+
+9 0 
+
+90
+9 -0 
+
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

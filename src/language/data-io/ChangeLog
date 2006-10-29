@@ -1,3 +1,27 @@
+Sat Oct 28 11:57:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-writer.c (struct dfm_writer): Removed `bounce' member, and
+	all references to it.
+	(dfm_put_record) Change semantics so that it adds formatting
+	itself, such as new-line characters, instead of putting that
+	responsibility on the caller.  Also, pad binary records with
+	spaces instead of zeros, for compatibility.
+
+	* print.c (struct prt_out_spec) New member `sysmis_as_spaces'.
+	(struct print_trns) Remove `omit_new_lines' and all references,
+	since dfm_put_record() is taking care of that.  Add
+	`include_prefix'.
+	(internal_cmd_print) Allow an empty set of data to print.  Set
+	include_prefix.
+	(parse_specs) Allow an empty set of data to print.
+	(parse_variable_argument) Only add space with PRINT command.  Set
+	sysmis_as_spaces.
+	(print_trns_proc) Indent records if include_prefix is set, for
+	compatibility.  Output SYSMIS as spaces if sysmis_as_spaces is
+	set.  Put "1" in first column if PRINT EJECT is used with an
+	external output file.
+	(flush_records) Ditto.
+
 Sat Oct 28 16:19:57 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* data-reader.c: Eliminated references to extern variable getl_buf

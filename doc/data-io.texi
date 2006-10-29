@@ -482,10 +482,11 @@ exception).  By default, each tab is 4 characters wide, but an
 alternate width may be specified on TABWIDTH.  A tab width of 0
 suppresses tab expansion entirely.
 
-In IMAGE mode, the data file is opened in ANSI C binary mode and records
-are fixed in length.  In IMAGE mode, LRECL specifies the record length in
-bytes, with a default of 1024.  Tab characters are never expanded to
-spaces in binary mode.
+In IMAGE mode, the data file is opened in ANSI C binary mode.  Record
+length is fixed, with output data truncated or padded with spaces to
+the record length.  LRECL specifies the record length in bytes, with a
+default of 1024.  Tab characters are never expanded to spaces in
+binary mode.  Records
 
 The NAME subcommand specifies the name of the file associated with the
 handle.  It is required in CHARACTER and IMAGE modes.
@@ -808,7 +809,7 @@ PRINT
         OUTFILE='file-name'
         RECORDS=n_lines
         @{NOTABLE,TABLE@}
-        /[line_no] arg@dots{}
+        [/[line_no] arg@dots{}]
 
 arg takes one of the following forms:
         'string' [start-end]
@@ -817,17 +818,20 @@ arg takes one of the following forms:
         var_list *
 @end display
 
-The @cmd{PRINT} transformation writes variable data to an output file.
-@cmd{PRINT} is executed when a procedure causes the data to be read.
-Follow @cmd{PRINT} by @cmd{EXECUTE} to print variable data without
-invoking a procedure (@pxref{EXECUTE}).
+The @cmd{PRINT} transformation writes variable data to the listing
+file or an output file.  @cmd{PRINT} is executed when a procedure
+causes the data to be read.  Follow @cmd{PRINT} by @cmd{EXECUTE} to
+print variable data without invoking a procedure (@pxref{EXECUTE}).
 
-All @cmd{PRINT} subcommands are optional.
+All @cmd{PRINT} subcommands are optional.  If no strings or variables
+are specified, PRINT outputs a single blank line.
 
 The OUTFILE subcommand specifies the file to receive the output.  The
 file may be a file name as a string or a file handle (@pxref{File
-Handles}).  If OUTFILE is not present then output will be sent to PSPP's
-output listing file.
+Handles}).  If OUTFILE is not present then output will be sent to
+PSPP's output listing file.  When OUTFILE is present, a space is
+inserted at beginning of each output line, even lines that otherwise
+would be blank.
 
 The RECORDS subcommand specifies the number of lines to be output.  The
 number of lines may optionally be surrounded by parentheses.
@@ -880,8 +884,20 @@ arg takes one of the following forms:
         var_list *
 @end display
 
-@cmd{PRINT EJECT} writes data to an output file.  Before the data is
-written, the current page in the listing file is ejected.
+@cmd{PRINT EJECT} advances to the beginning of a new output page in
+the listing file or output file.  It can also output data in the same
+way as @cmd{PRINT}.
+
+All @cmd{PRINT EJECT} subcommands are optional.
+
+Without OUTFILE, PRINT EJECT ejects the current page in
+the listing file, then it produces other output, if any is specified.
+
+With OUTFILE, PRINT EJECT writes its output to the specified file.
+The first line of output is written with @samp{1} inserted in the
+first column.  Commonly, this is the only line of output.  If
+additional lines of output are specified, these additional lines are
+written with a space inserted in the first column, as with PRINT.
 
 @xref{PRINT}, for more information on syntax and usage.
 
@@ -1034,11 +1050,29 @@ arg takes one of the following forms:
 
 @code{WRITE} writes text or binary data to an output file.  
 
-@xref{PRINT}, for more information on syntax and usage.  The main
-difference between @code{PRINT} and @code{WRITE} is that @cmd{WRITE}
-uses write formats by default, where PRINT uses print formats.
+@xref{PRINT}, for more information on syntax and usage.  @cmd{PRINT}
+and @cmd{WRITE} differ in only a few ways:
 
-The sole additional difference is that if @cmd{WRITE} is used to send output
-to a binary file, carriage control characters will not be output.
-@xref{FILE HANDLE}, for information on how to declare a file as binary.
+@itemize @bullet
+@item
+@cmd{WRITE} uses write formats by default, whereas @cmd{PRINT} uses
+print formats.
+
+@item
+@cmd{PRINT} inserts a space between variables unless a format is
+explicitly specified, but @cmd{WRITE} never inserts space between
+variables in output.
+
+@item
+@cmd{PRINT} inserts a space at the beginning of each line that it
+writes to an output file (and @cmd{PRINT EJECT} inserts @samp{1} at
+the beginning of each line that should begin a new page), but
+@cmd{WRITE} does not.
+
+@item
+@cmd{PRINT} outputs the system-missing value according to its
+specified output format, whereas @cmd{WRITE} outputs the
+system-missing value as a field filled with spaces.  Binary formats
+are an exception.
+@end itemize
 @setfilename ignored
