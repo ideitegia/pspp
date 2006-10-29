@@ -30,7 +30,6 @@ GNULIB_MODULES = \
 	memset \
 	progname \
 	readlink \
-	restrict \
 	snprintf \
 	stat-macros \
 	stdarg \

@@ -1,3 +1,8 @@
+Sun Oct 29 14:08:53 2006  Ben Pfaff  <blp@gnu.org>
+
+	* Smake (GNULIB_MODULES): Remove `restrict' from modules, because
+	recent gnulib doesn't have such a module.
+
 Mon Jul 17 18:23:38 2006  Ben Pfaff  <blp@gnu.org>
 
 	* Smake: Add --doc-base=gl/doc to gnulib-tool invocation, which is
