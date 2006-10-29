@@ -267,7 +267,7 @@ struct var_freqs
   };
 
 static inline struct var_freqs *
-get_var_freqs (struct variable *v)
+get_var_freqs (const struct variable *v)
 {
   assert (v != NULL);
   assert (v->aux != NULL);
@@ -515,7 +515,7 @@ calc (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 
   for (i = 0; i < n_variables; i++)
     {
-      struct variable *v = v_variables[i];
+      const struct variable *v = v_variables[i];
       const union value *val = case_data (c, v->fv);
       struct var_freqs *vf = get_var_freqs (v);
       struct freq_tab *ft = &vf->tab;
@@ -997,7 +997,7 @@ add_percentile (double x)
 
 /* Hash of numeric values. */
 static unsigned
-hash_value_numeric (const void *value_, void *foo UNUSED)
+hash_value_numeric (const void *value_, const void *aux UNUSED)
 {
   const struct freq *value = value_;
   return hsh_hash_double (value->v[0].f);
@@ -1005,10 +1005,10 @@ hash_value_numeric (const void *value_, void *foo UNUSED)
 
 /* Hash of string values. */
 static unsigned
-hash_value_alpha (const void *value_, void *v_)
+hash_value_alpha (const void *value_, const void *v_)
 {
   const struct freq *value = value_;
-  struct variable *v = v_;
+  const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
   return hsh_hash_bytes (value->v[0].s, vf->width);
@@ -1016,7 +1016,7 @@ hash_value_alpha (const void *value_, void *v_)
 
 /* Ascending numeric compare of values. */
 static int
-compare_value_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
+compare_value_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -1031,11 +1031,11 @@ compare_value_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
 
 /* Ascending string compare of values. */
 static int
-compare_value_alpha_a (const void *a_, const void *b_, void *v_)
+compare_value_alpha_a (const void *a_, const void *b_, const void *v_)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
-  struct variable *v = v_;
+  const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
   return memcmp (a->v[0].s, b->v[0].s, vf->width);
@@ -1043,14 +1043,14 @@ compare_value_alpha_a (const void *a_, const void *b_, void *v_)
 
 /* Descending numeric compare of values. */
 static int
-compare_value_numeric_d (const void *a, const void *b, void *foo UNUSED)
+compare_value_numeric_d (const void *a, const void *b, const void *aux UNUSED)
 {
-  return -compare_value_numeric_a (a, b, foo);
+  return -compare_value_numeric_a (a, b, aux);
 }
 
 /* Descending string compare of values. */
 static int
-compare_value_alpha_d (const void *a, const void *b, void *v)
+compare_value_alpha_d (const void *a, const void *b, const void *v)
 {
   return -compare_value_alpha_a (a, b, v);
 }
@@ -1058,7 +1058,7 @@ compare_value_alpha_d (const void *a, const void *b, void *v)
 /* Ascending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
+compare_freq_numeric_a (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -1079,11 +1079,11 @@ compare_freq_numeric_a (const void *a_, const void *b_, void *foo UNUSED)
 /* Ascending numeric compare of frequency;
    secondary key on ascending string value. */
 static int
-compare_freq_alpha_a (const void *a_, const void *b_, void *v_)
+compare_freq_alpha_a (const void *a_, const void *b_, const void *v_)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
-  struct variable *v = v_;
+  const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
   if (a->c > b->c)
@@ -1097,7 +1097,7 @@ compare_freq_alpha_a (const void *a_, const void *b_, void *v_)
 /* Descending numeric compare of frequency;
    secondary key on ascending numeric value. */
 static int
-compare_freq_numeric_d (const void *a_, const void *b_, void *foo UNUSED)
+compare_freq_numeric_d (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
@@ -1118,11 +1118,11 @@ compare_freq_numeric_d (const void *a_, const void *b_, void *foo UNUSED)
 /* Descending numeric compare of frequency;
    secondary key on ascending string value. */
 static int
-compare_freq_alpha_d (const void *a_, const void *b_, void *v_)
+compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 {
   const struct freq *a = a_;
   const struct freq *b = b_;
-  struct variable *v = v_;
+  const struct variable *v = v_;
   struct var_freqs *vf = get_var_freqs (v);
 
   if (a->c > b->c)

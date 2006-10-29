@@ -939,11 +939,11 @@ display (struct dsc_proc *dsc)
 /* Compares `struct dsc_var's A and B according to the ordering
    specified by CMD. */
 static int
-descriptives_compare_dsc_vars (const void *a_, const void *b_, void *dsc_)
+descriptives_compare_dsc_vars (const void *a_, const void *b_, const void *dsc_)
 {
   const struct dsc_var *a = a_;
   const struct dsc_var *b = b_;
-  struct dsc_proc *dsc = dsc_;
+  const struct dsc_proc *dsc = dsc_;
 
   int result;
 

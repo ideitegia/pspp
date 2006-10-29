@@ -6,7 +6,8 @@
 
 /* Compares A and B, given auxiliary data AUX, and returns a
    strcmp()-type result. */
-typedef int algo_compare_func (const void *a, const void *b, void *aux);
+
+typedef int algo_compare_func (const void *a, const void *b, const void *aux);
 
 /* Tests a predicate on DATA, given auxiliary data AUX */
 typedef bool algo_predicate_func (const void *data, void *aux);
@@ -46,13 +47,13 @@ size_t count_if (const void *array, size_t count, size_t size,
    using COMPARE for comparisons.  AUX is passed to each
    comparison as auxiliary data. */
 void sort (void *array, size_t count, size_t size,
-           algo_compare_func *compare, void *aux);
+           algo_compare_func *compare, const void *aux);
 
 /* Tests whether ARRAY, which contains COUNT elements of SIZE
    bytes each, is sorted in order according to COMPARE.  AUX is
    passed to COMPARE as auxiliary data. */
 bool is_sorted (const void *array, size_t count, size_t size,
-               algo_compare_func *compare, void *aux);
+               algo_compare_func *compare, const void *aux);
 
 /* Makes the elements in ARRAY unique, by moving up duplicates,
    and returns the new number of elements in the array.  Sorted

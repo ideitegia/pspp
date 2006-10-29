@@ -311,7 +311,7 @@ autorecode_trns_free (void *trns_)
 /* AUTORECODE procedure. */
 
 static int
-compare_alpha_value (const void *a_, const void *b_, void *v_)
+compare_alpha_value (const void *a_, const void *b_, const void *v_)
 {
   const union arc_value *a = a_;
   const union arc_value *b = b_;
@@ -321,7 +321,7 @@ compare_alpha_value (const void *a_, const void *b_, void *v_)
 }
 
 static unsigned
-hash_alpha_value (const void *a_, void *v_)
+hash_alpha_value (const void *a_, const void *v_)
 {
   const union arc_value *a = a_;
   const struct variable *v = v_;
@@ -330,7 +330,7 @@ hash_alpha_value (const void *a_, void *v_)
 }
 
 static int
-compare_numeric_value (const void *a_, const void *b_, void *foo UNUSED)
+compare_numeric_value (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const union arc_value *a = a_;
   const union arc_value *b = b_;
@@ -339,7 +339,7 @@ compare_numeric_value (const void *a_, const void *b_, void *foo UNUSED)
 }
 
 static unsigned
-hash_numeric_value (const void *a_, void *foo UNUSED)
+hash_numeric_value (const void *a_, const void *aux UNUSED)
 {
   const union arc_value *a = a_;
 

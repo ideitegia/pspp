@@ -215,7 +215,7 @@ struct name_pair
 };
 
 static int
-pair_sn_compare(const void *_p1, const void *_p2, void *aux UNUSED)
+pair_sn_compare(const void *_p1, const void *_p2, const void *aux UNUSED)
 {
   int i;
 
@@ -246,7 +246,7 @@ pair_sn_compare(const void *_p1, const void *_p2, void *aux UNUSED)
 }
 
 static unsigned int
-pair_sn_hash(const void *_p, void *aux UNUSED)
+pair_sn_hash(const void *_p, const void *aux UNUSED)
 {
   int i;
   const struct name_pair *p = _p;
@@ -264,7 +264,7 @@ pair_sn_hash(const void *_p, void *aux UNUSED)
 }
 
 static void
-pair_sn_free(void *p, void *aux UNUSED)
+pair_sn_free(void *p, const void *aux UNUSED)
 {
   free(p);
 }

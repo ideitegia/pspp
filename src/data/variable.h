@@ -87,8 +87,8 @@ struct variable
 /* Variable names. */
 bool var_is_valid_name (const char *, bool issue_error);
 bool var_is_plausible_name (const char *name, bool issue_error);
-int compare_var_names (const void *, const void *, void *);
-unsigned hash_var_name (const void *, void *);
+int  compare_var_names (const void *, const void *, const void *);
+unsigned hash_var_name (const void *, const void *);
 
 /* Short names. */
 void var_set_short_name (struct variable *, const char *);
@@ -96,8 +96,8 @@ void var_set_short_name_suffix (struct variable *, const char *, int suffix);
 void var_clear_short_name (struct variable *);
 
 /* Pointers to `struct variable', by name. */
-int compare_var_ptr_names (const void *, const void *, void *);
-unsigned hash_var_ptr_name (const void *, void *);
+int compare_var_ptr_names (const void *, const void *, const void *);
+unsigned hash_var_ptr_name (const void *, const void *);
 
 /* Variable auxiliary data. */
 void *var_attach_aux (struct variable *,

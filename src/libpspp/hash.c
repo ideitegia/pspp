@@ -151,7 +151,7 @@ struct hsh_table
     size_t size;                /* Number of entries (a power of 2). */
     void **entries;		/* Hash table proper. */
 
-    void *aux;                  /* Auxiliary data for comparison functions. */
+    const void *aux;            /* Auxiliary data for comparison functions. */
     hsh_compare_func *compare;
     hsh_hash_func *hash;
     hsh_free_func *free;
@@ -365,11 +365,11 @@ hsh_data (struct hsh_table *h)
 /* Dereferences void ** pointers and passes them to the hash
    comparison function. */
 static int
-comparison_helper (const void *a_, const void *b_, void *h_) 
+comparison_helper (const void *a_, const void *b_, const void *h_) 
 {
   void *const *a = a_;
   void *const *b = b_;
-  struct hsh_table *h = h_;
+  const struct hsh_table *h = h_;
 
   assert(a);
   assert(b);

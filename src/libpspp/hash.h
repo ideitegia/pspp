@@ -23,9 +23,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-typedef int hsh_compare_func (const void *, const void *, void *aux);
-typedef unsigned hsh_hash_func (const void *, void *aux);
-typedef void hsh_free_func (void *, void *aux);
+typedef int hsh_compare_func (const void *, const void *, const void *aux);
+typedef unsigned hsh_hash_func (const void *, const void *aux);
+typedef void hsh_free_func (void *, const void *aux);
 
 /* Hash table iterator (opaque). */
 struct hsh_iterator

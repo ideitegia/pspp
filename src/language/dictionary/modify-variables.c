@@ -54,7 +54,7 @@ struct ordering
 static struct ordering forward_positional_ordering = {1, 1};
 
 static int compare_variables_given_ordering (const void *, const void *,
-                                             void *ordering);
+                                             const void *ordering);
 
 /* Explains how to modify the variables in a dictionary. */
 struct var_modification
@@ -343,7 +343,7 @@ done:
    ORDERING, returning a strcmp()-type result. */
 static int
 compare_variables_given_ordering (const void *a_, const void *b_,
-                                  void *ordering_)
+                                  const void *ordering_)
 {
   struct variable *const *pa = a_;
   struct variable *const *pb = b_;
@@ -372,7 +372,7 @@ struct var_renaming
    var_renaming structures A and B. */
 static int
 compare_var_renaming_by_new_name (const void *a_, const void *b_,
-                                  void *foo UNUSED) 
+                                  const void *aux UNUSED) 
 {
   const struct var_renaming *a = a_;
   const struct var_renaming *b = b_;

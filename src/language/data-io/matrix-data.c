@@ -1584,7 +1584,7 @@ wr_read_splits (struct wr_aux_data *wr,
 
 /* Compares doubles A and B, treating SYSMIS as greatest. */
 static int
-compare_doubles (const void *a_, const void *b_, void *aux UNUSED)
+compare_doubles (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const double *a = a_;
   const double *b = b_;
@@ -1604,9 +1604,9 @@ compare_doubles (const void *a_, const void *b_, void *aux UNUSED)
 /* Return strcmp()-type comparison of the MX->n_factors factors at _A and
    _B.  Sort missing values toward the end. */
 static int
-compare_factors (const void *a_, const void *b_, void *mx_)
+compare_factors (const void *a_, const void *b_, const void *mx_)
 {
-  struct matrix_data_pgm *mx = mx_;
+  const struct matrix_data_pgm *mx = mx_;
   struct factor_data *const *pa = a_;
   struct factor_data *const *pb = b_;
   const double *a = (*pa)->factors;

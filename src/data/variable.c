@@ -216,7 +216,7 @@ var_is_plausible_name (const char *name, bool issue_error)
 /* A hsh_compare_func that orders variables A and B by their
    names. */
 int
-compare_var_names (const void *a_, const void *b_, void *foo UNUSED) 
+compare_var_names (const void *a_, const void *b_, const void *aux UNUSED) 
 {
   const struct variable *a = a_;
   const struct variable *b = b_;
@@ -226,7 +226,7 @@ compare_var_names (const void *a_, const void *b_, void *foo UNUSED)
 
 /* A hsh_hash_func that hashes variable V based on its name. */
 unsigned
-hash_var_name (const void *v_, void *foo UNUSED) 
+hash_var_name (const void *v_, const void *aux UNUSED) 
 {
   const struct variable *v = v_;
 
@@ -236,7 +236,7 @@ hash_var_name (const void *v_, void *foo UNUSED)
 /* A hsh_compare_func that orders pointers to variables A and B
    by their names. */
 int
-compare_var_ptr_names (const void *a_, const void *b_, void *foo UNUSED) 
+compare_var_ptr_names (const void *a_, const void *b_, const void *aux UNUSED) 
 {
   struct variable *const *a = a_;
   struct variable *const *b = b_;
@@ -247,7 +247,7 @@ compare_var_ptr_names (const void *a_, const void *b_, void *foo UNUSED)
 /* A hsh_hash_func that hashes pointer to variable V based on its
    name. */
 unsigned
-hash_var_ptr_name (const void *v_, void *foo UNUSED) 
+hash_var_ptr_name (const void *v_, const void *aux UNUSED) 
 {
   struct variable *const *v = v_;
 

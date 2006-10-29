@@ -139,7 +139,7 @@ struct indexed_case
     unsigned long idx;  /* Index to allow for stable sorting. */
   };
 
-static int compare_indexed_cases (const void *, const void *, void *);
+static int compare_indexed_cases (const void *, const void *, const void *);
 
 /* If the data is in memory, do an internal sort and return a new
    casefile for the data.  Otherwise, return a null pointer. */
@@ -200,9 +200,9 @@ do_internal_sort (struct casereader *reader,
    at A and B, with a "last resort" comparison for stability, and
    returns a strcmp()-type result. */
 static int
-compare_indexed_cases (const void *a_, const void *b_, void *criteria_)
+compare_indexed_cases (const void *a_, const void *b_, const void *criteria_)
 {
-  struct sort_criteria *criteria = criteria_;
+  const struct sort_criteria *criteria = criteria_;
   const struct indexed_case *a = a_;
   const struct indexed_case *b = b_;
   int result = compare_record (&a->c, &b->c, criteria);
@@ -309,16 +309,17 @@ struct initial_run_state
   };
 
 static bool destroy_initial_run_state (struct initial_run_state *);
-static void process_case (struct initial_run_state *, const struct ccase *,
-                          size_t);
+static void process_case (struct initial_run_state *, 
+			  const struct ccase *, size_t);
 static int allocate_cases (struct initial_run_state *);
 static void output_record (struct initial_run_state *);
 static void start_run (struct initial_run_state *);
 static void end_run (struct initial_run_state *);
 static int compare_record_run (const struct record_run *,
                                const struct record_run *,
-                               struct initial_run_state *);
-static int compare_record_run_minheap (const void *, const void *, void *);
+                               const struct initial_run_state *);
+static int compare_record_run_minheap (const void *, const void *, 
+				       const void *);
 
 /* Reads cases from READER and composes initial runs in XSRT. */
 static int
@@ -361,7 +362,8 @@ write_runs (struct external_sort *xsrt, struct casereader *reader)
 
 /* Add a single case to an initial run. */
 static void
-process_case (struct initial_run_state *irs, const struct ccase *c, size_t idx)
+process_case (struct initial_run_state *irs, const struct ccase *c, 
+	      size_t idx)
 {
   struct record_run *rr;
 
@@ -480,7 +482,7 @@ compare_record (const struct ccase *a, const struct ccase *b,
 static int
 compare_record_run (const struct record_run *a,
                     const struct record_run *b,
-                    struct initial_run_state *irs)
+                    const struct initial_run_state *irs)
 {
   int result = a->run < b->run ? -1 : a->run > b->run;
   if (result == 0)
@@ -494,7 +496,7 @@ compare_record_run (const struct record_run *a,
    on the current record according to SCP, but in descending
    order. */
 static int
-compare_record_run_minheap (const void *a, const void *b, void *irs) 
+compare_record_run_minheap (const void *a, const void *b, const void *irs) 
 {
   return -compare_record_run (a, b, irs);
 }

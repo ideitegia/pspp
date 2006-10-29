@@ -483,8 +483,8 @@ crs_custom_variables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void
 
 /* Data file processing. */
 
-static int compare_table_entry (const void *, const void *, void *);
-static unsigned hash_table_entry (const void *, void *);
+static int compare_table_entry (const void *, const void *, const void *);
+static unsigned hash_table_entry (const void *, const void *);
 
 /* Set up the crosstabulation tables for processing. */
 static  void
@@ -697,7 +697,7 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 /* Compare the table_entry's at A and B and return a strcmp()-type
    result. */
 static int 
-compare_table_entry (const void *a_, const void *b_, void *foo UNUSED)
+compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct table_entry *a = a_;
   const struct table_entry *b = b_;
@@ -737,7 +737,7 @@ compare_table_entry (const void *a_, const void *b_, void *foo UNUSED)
 
 /* Calculate a hash value from table_entry A. */
 static unsigned
-hash_table_entry (const void *a_, void *foo UNUSED)
+hash_table_entry (const void *a_, const void *aux UNUSED)
 {
   const struct table_entry *a = a_;
   unsigned long hash;
@@ -1610,7 +1610,7 @@ find_pivot_extent_integer (struct table_entry **tp, int *cnt, int pivot)
    result.  WIDTH_ points to an int which is either 0 for a
    numeric value or a string width for a string value. */
 static int
-compare_value (const void *a_, const void *b_, void *width_)
+compare_value (const void *a_, const void *b_, const void *width_)
 {
   const union value *a = a_;
   const union value *b = b_;

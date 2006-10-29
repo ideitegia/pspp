@@ -395,7 +395,7 @@ val_labs_done (struct val_labs_iterator **ip)
 
 /* Compares two value labels and returns a strcmp()-type result. */
 int
-compare_int_val_lab (const void *a_, const void *b_, void *vls_)
+compare_int_val_lab (const void *a_, const void *b_, const void *vls_)
 {
   const struct int_val_lab *a = a_;
   const struct int_val_lab *b = b_;
@@ -409,7 +409,7 @@ compare_int_val_lab (const void *a_, const void *b_, void *vls_)
 
 /* Hash a value label. */
 unsigned
-hash_int_val_lab (const void *vl_, void *vls_)
+hash_int_val_lab (const void *vl_, const void *vls_)
 {
   const struct int_val_lab *vl = vl_;
   const struct val_labs *vls = vls_;
@@ -422,7 +422,7 @@ hash_int_val_lab (const void *vl_, void *vls_)
 
 /* Free a value label. */
 void
-free_int_val_lab (void *vl_, void *vls_ UNUSED) 
+free_int_val_lab (void *vl_, const void *vls_ UNUSED) 
 {
   struct int_val_lab *vl = vl_;
 
@@ -500,7 +500,7 @@ atom_to_string (const struct atom *atom)
 
 /* A hsh_compare_func that compares A and B. */
 static int
-compare_atoms (const void *a_, const void *b_, void *aux UNUSED) 
+compare_atoms (const void *a_, const void *b_, const void *aux UNUSED) 
 {
   const struct atom *a = a_;
   const struct atom *b = b_;
@@ -510,7 +510,7 @@ compare_atoms (const void *a_, const void *b_, void *aux UNUSED)
 
 /* A hsh_hash_func that hashes ATOM. */
 static unsigned
-hash_atom (const void *atom_, void *aux UNUSED) 
+hash_atom (const void *atom_, const void *aux UNUSED) 
 {
   const struct atom *atom = atom_;
 
@@ -519,7 +519,7 @@ hash_atom (const void *atom_, void *aux UNUSED)
 
 /* A hsh_free_func that destroys ATOM. */
 static void
-free_atom (void *atom_, void *aux UNUSED) 
+free_atom (void *atom_, const void *aux UNUSED) 
 {
   struct atom *atom = atom_;
 

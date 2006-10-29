@@ -424,7 +424,7 @@ dict_contains_var (const struct dictionary *d, const struct variable *v)
 /* Compares two double pointers to variables, which should point
    to elements of a struct dictionary's `var' member array. */
 static int
-compare_var_ptrs (const void *a_, const void *b_, void *aux UNUSED) 
+compare_var_ptrs (const void *a_, const void *b_, const void *aux UNUSED) 
 {
   struct variable *const *a = a_;
   struct variable *const *b = b_;
@@ -1164,14 +1164,14 @@ dict_clear_vectors (struct dictionary *d)
 
 /* Compares two strings. */
 static int
-compare_strings (const void *a, const void *b, void *aux UNUSED) 
+compare_strings (const void *a, const void *b, const void *aux UNUSED) 
 {
   return strcmp (a, b);
 }
 
 /* Hashes a string. */
 static unsigned
-hash_string (const void *s, void *aux UNUSED) 
+hash_string (const void *s, const void *aux UNUSED) 
 {
   return hsh_hash_string (s);
 }
