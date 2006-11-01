@@ -1,3 +1,9 @@
+Tue Oct 31 19:29:05 2006  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Drop tests for strchr, strrchr because now we
+	assume a C89 compliant library.  (Gnulib makes this assumption so
+	we might as well too.)
+
 Sun Oct 29 14:08:53 2006  Ben Pfaff  <blp@gnu.org>
 
 	* Smake (GNULIB_MODULES): Remove `restrict' from modules, because

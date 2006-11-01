@@ -37,13 +37,6 @@
 #include "strtok_r.h"
 #include "vsnprintf.h"
 #include "xvasprintf.h"
-
-#ifndef HAVE_STRCHR
-#define strchr index
-#endif
-#ifndef HAVE_STRRCHR
-#define strrchr rindex
-#endif
 
 /* Miscellaneous. */
 

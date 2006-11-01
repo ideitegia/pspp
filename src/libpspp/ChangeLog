@@ -1,3 +1,10 @@
+Tue Oct 31 19:28:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.h: [!HAVE_STRCHR] Drop compatibility code, because now we
+	assume a C89 compliant library.  (Gnulib makes this assumption so
+	we might as well too.)
+	[!HAVE_STRRCHR] Ditto.
+
 Thu Oct 26 20:19:50 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add the new files.

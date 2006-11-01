@@ -73,7 +73,7 @@ AC_DEFINE(FPREP_IEEE754, 1,
 AC_C_BIGENDIAN
 
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([strchr strrchr __setfpucw isinf isnan finite getpid feholdexcept])
+AC_CHECK_FUNCS([__setfpucw isinf isnan finite getpid feholdexcept])
 
 AC_PROG_LN_S
 
