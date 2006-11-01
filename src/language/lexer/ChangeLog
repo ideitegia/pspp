@@ -1,3 +1,7 @@
+Tue Oct 31 18:09:32 2006  Ben Pfaff  <blp@gnu.org>
+
+	* range-parser.c (parse_number): Fix error message.
+
 Sat Oct 28 16:17:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* lexer.c lexer.h: Added a line_buffer (previously an external

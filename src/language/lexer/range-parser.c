@@ -95,7 +95,7 @@ parse_number (double *x, const struct fmt_spec *f)
       *x = v.f;
       if (*x == SYSMIS)
         {
-          lex_error (_("System-missing value is not valid here."));
+          msg (SE, _("System-missing value is not valid here."));
           return false;
         }
       return true;

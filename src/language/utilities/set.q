@@ -209,7 +209,7 @@ find_cc_separators (const char *cc_string, struct custom_currency *cc)
   int comma_cnt, dot_cnt;
   
   /* Count commas and periods.  There must be exactly three of
-     one or the other, except that an apostrophe acts escapes a
+     one or the other, except that an apostrophe escapes a
      following comma or period. */
   comma_cnt = dot_cnt = 0;
   for (sp = cc_string; *sp; sp++)

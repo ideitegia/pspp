@@ -835,7 +835,8 @@ parse_trailer (struct data_in *i)
   if (!have_char (i))
     return true;
   
-  dls_error (i, _("Trailing garbage \"%s\" following date."), i->s);
+  dls_error (i, _("Trailing garbage \"%.*s\" following date."),
+             (int) (i->e - i->s), i->s);
   return false;
 }
 

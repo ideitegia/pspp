@@ -1,3 +1,7 @@
+Tue Oct 31 18:09:24 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-in.c (parse_trailer): Fix error message.
+
 Sat Oct 28 11:56:50 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format.c (fmt_is_binary): New function.
