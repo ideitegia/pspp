@@ -1,3 +1,7 @@
+Tue Oct 31 19:35:36 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-out.c: (num_to_string) Removed, because it was dead code.
+
 Tue Oct 31 18:09:24 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-in.c (parse_trailer): Fix error message.

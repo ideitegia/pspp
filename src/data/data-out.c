@@ -187,15 +187,6 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
   
   return ok;
 }
-
-/* Converts V into S in F format with width W and D decimal places,
-   then deletes trailing zeros.  S is not null-terminated. */
-void
-num_to_string (double v, char *s, int w, int d)
-{
-  struct fmt_spec f = make_output_format (FMT_F, w, d);
-  convert_F (s, &f, v);
-}
 
 /* Main conversion functions. */
 
