@@ -125,7 +125,7 @@ print_space_trns_proc (void *t_, struct ccase *c,
     if (trns->writer == NULL)
       som_blank_line ();
     else
-      dfm_put_record (trns->writer, "\n", 1);
+      dfm_put_record (trns->writer, " ", 1);
 
   if (trns->writer != NULL && dfm_write_error (trns->writer))
     return TRNS_ERROR;

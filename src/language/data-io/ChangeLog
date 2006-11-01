@@ -1,3 +1,8 @@
+Tue Oct 31 18:21:48 2006  Ben Pfaff  <blp@gnu.org>
+
+	* print-space.c (print_space_trns_proc): Let dfm_put_record add
+	the new-line character, to match dfm_put_record change below.
+
 Sat Oct 28 11:57:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-writer.c (struct dfm_writer): Removed `bounce' member, and
