@@ -1,3 +1,9 @@
+Tue Oct 31 19:25:31 2006  Ben Pfaff  <blp@gnu.org>
+
+	* var-type-dialog.c: Add missing "#include <config.h>".
+
+	* psppire.c: Ditto.
+
 Mon Jul 17 18:21:29 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * automake.mk menu-actions.c psppire-case-file.c psppire-case-file.h

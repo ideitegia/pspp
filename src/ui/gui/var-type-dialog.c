@@ -22,6 +22,8 @@
 /*  This module describes the behaviour of the Variable Type dialog box used
     for inputing the variable type in the var sheet */
 
+#include <config.h>
+
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
