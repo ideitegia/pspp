@@ -271,7 +271,7 @@ cmd_display (struct dataset *ds)
 	}
 
       if (sorted)
-	sort (vl, n, sizeof *vl, compare_var_names, NULL);
+	sort (vl, n, sizeof *vl, compare_var_ptr_names, NULL);
 
       display_variables (vl, n, as);
 

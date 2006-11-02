@@ -1,3 +1,9 @@
+Wed Nov  1 20:50:54 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sys-file-info.c: (cmd_display) Use compare_var_ptr_names to
+	compare "struct variable **"s, not compare_var_names.  Fixes bug
+	#17423.
+
 Sat May  6 19:03:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* apply-dictionary.c: (cmd_apply_dictionary) Use new function
