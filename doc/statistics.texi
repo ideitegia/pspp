@@ -226,8 +226,7 @@ For instance, @code{/NTILES=4} would cause quartiles to be reported.
 EXAMINE
         VARIABLES=var_list [BY factor_list ]
         /STATISTICS=@{DESCRIPTIVES, EXTREME[(n)], ALL, NONE@}
-        /PLOT=@{STEMLEAF, BOXPLOT, NPPLOT, SPREADLEVEL(n), HISTOGRAM, 
-	       ALL, NONE@}
+        /PLOT=@{BOXPLOT, NPPLOT, HISTOGRAM, ALL, NONE@}
         /CINTERVAL n
         /COMPARE=@{GROUPS,VARIABLES@}
         /ID=@{case_number, var_name@}

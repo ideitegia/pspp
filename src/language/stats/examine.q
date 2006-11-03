@@ -279,6 +279,12 @@ output_examine(void)
       if ( cmd.sbc_plot) 
 	{
 	  int v;
+	  if ( cmd.a_plot[XMN_PLT_STEMLEAF] ) 
+	    msg (SW, _("%s is not currently supported."), "STEMLEAF");
+
+	  if ( cmd.a_plot[XMN_PLT_SPREADLEVEL] ) 
+	    msg (SW, _("%s is not currently supported."), "SPREADLEVEL");
+
 	  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
 	    {
 	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
