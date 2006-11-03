@@ -25,6 +25,7 @@
 
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
+#include <data/format.h>
 #include <data/settings.h>
 
 #include <getopt.h>
@@ -114,6 +115,7 @@ main(int argc, char *argv[])
 
 
 
+  fmt_init();
   settings_init();
 
   message_dialog_init();

@@ -1,6 +1,6 @@
 /* 
     PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2004  Free Software Foundation
+    Copyright (C) 2004, 2006  Free Software Foundation
     Written by John Darrington
 
     This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include <data/missing-values.h>
 #include <data/value-labels.h>
 #include <data/format.h>
+#include <libpspp/message.h>
 
 #include <libpspp/misc.h>
 
@@ -175,17 +176,17 @@ psppire_variable_set_format(struct PsppireVariable *pv, struct fmt_spec *fmt)
   g_return_val_if_fail(pv->dict, FALSE);
   g_return_val_if_fail(pv->v, FALSE);
 
-  if ( check_output_specifier(fmt, false) 
-       && 
-       check_specifier_type(fmt, pv->v->type, false)
-       && 
-       check_specifier_width(fmt, pv->v->width, false)
-       ) 
+  msg_disable ();
+  if ( fmt_check_output(fmt) 
+       && fmt_check_type_compat (fmt, pv->v->type)
+       && fmt_check_width_compat (fmt, pv->v->width)) 
     {
+      msg_enable ();
       pv->v->write = pv->v->print = *fmt;
       psppire_dict_var_changed(pv->dict, pv->v->index);
       return TRUE;
     }
+  msg_enable ();
 
   return FALSE;
 }

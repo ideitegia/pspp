@@ -213,9 +213,9 @@ cmd_list (struct dataset *ds)
       strcpy (casenum_var.name, "Case#");
       casenum_var.type = NUMERIC;
       casenum_var.fv = -1;
-      casenum_var.print = make_output_format (FMT_F,
-                                              (cmd.last == LONG_MAX
-                                               ? 5 : intlog10 (cmd.last)), 0);
+      casenum_var.print = fmt_for_output (FMT_F,
+                                          (cmd.last == LONG_MAX
+                                           ? 5 : intlog10 (cmd.last)), 0);
 
       /* Add the weight variable at the beginning of the variable list. */
       cmd.n_variables++;
@@ -664,7 +664,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 		ds_put_char_multiple(&line_buffer, ' ', width - v->print.w);
 	      }
 
-            if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
+            if (fmt_is_string (v->print.type) || v->fv != -1)
 	      {
                 data_out (ds_put_uninit(&line_buffer, v->print.w),
 			  &v->print, case_data (c, v->fv));
@@ -701,7 +701,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 	    struct variable *v = cmd.v_variables[column];
 	    char buf[256];
 	    
-            if ((formats[v->print.type].cat & FCAT_STRING) || v->fv != -1)
+            if (fmt_is_string (v->print.type) || v->fv != -1)
 	      data_out (buf, &v->print, case_data (c, v->fv));
             else 
               {

@@ -1089,7 +1089,7 @@ cmd_match_files (struct dataset *ds)
             goto error;
           }
         iter->in_var->print = iter->in_var->write
-          = make_output_format (FMT_F, 1, 0);
+          = fmt_for_output (FMT_F, 1, 0);
       }
     
   /* MATCH FILES performs an n-way merge on all its input files.

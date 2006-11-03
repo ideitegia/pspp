@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,43 +17,53 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-/* Numeric and string formats. */
-DEFFMT (FMT_F,            "F",         2,  1,  40,  1,   40, 0001, FMT_F, 5)
-DEFFMT (FMT_N,		  "N",         2,  1,  40,  1,   40, 0011, FMT_F, 16)
-DEFFMT (FMT_E,		  "E",         2,  1,  40,  6,   40, 0001, FMT_E, 17)
-DEFFMT (FMT_COMMA,	  "COMMA",     2,  1,  40,  1,   40, 0001, FMT_COMMA, 3)
-DEFFMT (FMT_DOT,	  "DOT",       2,  1,  40,  1,   40, 0001, FMT_DOT, 32)
-DEFFMT (FMT_DOLLAR,	  "DOLLAR",    2,  1,  40,  2,   40, 0001, FMT_DOLLAR, 4)
-DEFFMT (FMT_PCT,	  "PCT",       2,  1,  40,  2,   40, 0001, FMT_PCT, 31)
-DEFFMT (FMT_Z,		  "Z",         2,  1,  40,  1,   40, 0011, FMT_F, 15)
-DEFFMT (FMT_A,		  "A",         1,  1, MAX_STRING,  1,  MAX_STRING, 0004, FMT_A, 1)
-DEFFMT (FMT_AHEX,	  "AHEX",      1,  2, 510,  2,  510, 0006, FMT_A, 2)
-DEFFMT (FMT_IB,		  "IB",        2,  1,   8,  1,    8, 0010, FMT_F, 6)
-DEFFMT (FMT_P,		  "P",         2,  1,  16,  1,   16, 0011, FMT_F, 8)
-DEFFMT (FMT_PIB,	  "PIB",       2,  1,   8,  1,    8, 0010, FMT_F, 9)
-DEFFMT (FMT_PIBHEX,	  "PIBHEX",    2,  2,  16,  2,   16, 0002, FMT_F, 7)
-DEFFMT (FMT_PK,		  "PK",        2,  1,  16,  1,   16, 0010, FMT_F, 10)
-DEFFMT (FMT_RB,		  "RB",        1,  2,   8,  2,    8, 0002, FMT_F, 11)
-DEFFMT (FMT_RBHEX,	  "RBHEX",     1,  4,  16,  4,   16, 0002, FMT_F, 12)
-			  					    
-/* Custom currency. */	  					    
-DEFFMT (FMT_CCA,	  "CCA",       2, -1,  -1,  1,   40, 0020, FMT_CCA, 33)
-DEFFMT (FMT_CCB,	  "CCB",       2, -1,  -1,  1,   40, 0020, FMT_CCB, 34)
-DEFFMT (FMT_CCC,	  "CCC",       2, -1,  -1,  1,   40, 0020, FMT_CCC, 35)
-DEFFMT (FMT_CCD,	  "CCD",       2, -1,  -1,  1,   40, 0020, FMT_CCD, 36)
-DEFFMT (FMT_CCE,	  "CCE",       2, -1,  -1,  1,   40, 0020, FMT_CCE, 37)
-			  					     
-/* Date/time formats. */  					     
-DEFFMT (FMT_DATE,	  "DATE",      1,  9,  40,  9,   40, 0001, FMT_DATE, 20)
-DEFFMT (FMT_EDATE,	  "EDATE",     1,  8,  40,  8,   40, 0001, FMT_EDATE, 38)
-DEFFMT (FMT_SDATE,	  "SDATE",     1,  8,  40,  8,   40, 0001, FMT_SDATE, 39)
-DEFFMT (FMT_ADATE,	  "ADATE",     1,  8,  40,  8,   40, 0001, FMT_ADATE, 23)
-DEFFMT (FMT_JDATE,	  "JDATE",     1,  5,  40,  5,   40, 0001, FMT_JDATE, 24)
-DEFFMT (FMT_QYR,	  "QYR",       1,  4,  40,  6,   40, 0001, FMT_QYR, 29)
-DEFFMT (FMT_MOYR,	  "MOYR",      1,  6,  40,  6,   40, 0001, FMT_MOYR, 28)
-DEFFMT (FMT_WKYR,	  "WKYR",      1,  6,  40,  8,   40, 0001, FMT_WKYR, 30)
-DEFFMT (FMT_DATETIME,	  "DATETIME",  2, 17,  40, 17,   40, 0001, FMT_DATETIME, 22)
-DEFFMT (FMT_TIME,	  "TIME",      2,  5,  40,  5,   40, 0001, FMT_TIME, 21)
-DEFFMT (FMT_DTIME,	  "DTIME",     2, 11,  40,  8,   40, 0001, FMT_DTIME, 25)
-DEFFMT (FMT_WKDAY,	  "WKDAY",     1,  2,  40,  2,   40, 0001, FMT_WKDAY, 26)
-DEFFMT (FMT_MONTH,	  "MONTH",     1,  3,  40,  3,   40, 0001, FMT_MONTH, 27)
+/* Basic numeric formats. */
+FMT (F,        number,  1,  1,  5, FMT_CAT_BASIC)
+FMT (COMMA,    number,  1,  1,  3, FMT_CAT_BASIC)
+FMT (DOT,      number,  1,  1, 32, FMT_CAT_BASIC)
+FMT (DOLLAR,   number,  1,  2,  4, FMT_CAT_BASIC)
+FMT (PCT,      number,  1,  2, 31, FMT_CAT_BASIC)
+FMT (E,        number,  1,  6, 17, FMT_CAT_BASIC)
+
+/* Custom currency formats. */
+FMT (CCA,      number, -1,  2, 33, FMT_CAT_CUSTOM)
+FMT (CCB,      number, -1,  2, 34, FMT_CAT_CUSTOM)
+FMT (CCC,      number, -1,  2, 35, FMT_CAT_CUSTOM)
+FMT (CCD,      number, -1,  2, 36, FMT_CAT_CUSTOM)
+FMT (CCE,      number, -1,  2, 37, FMT_CAT_CUSTOM)
+
+/* Legacy numeric formats. */
+FMT (N,        N,       1,  1, 16, FMT_CAT_LEGACY)
+FMT (Z,        Z,       1,  1, 16, FMT_CAT_LEGACY)
+
+/* Binary and hexadecimal formats. */
+FMT (P,        P,       1,  1,  8, FMT_CAT_BINARY)
+FMT (PK,       PK,      1,  1, 10, FMT_CAT_BINARY)
+FMT (IB,       IB,      1,  1,  6, FMT_CAT_BINARY)
+FMT (PIB,      PIB,     1,  1,  9, FMT_CAT_BINARY)
+FMT (PIBHEX,   PIBHEX,  2,  2,  7, FMT_CAT_HEXADECIMAL)
+FMT (RB,       RB,      2,  2, 11, FMT_CAT_BINARY)
+FMT (RBHEX,    RBHEX,   4,  4, 12, FMT_CAT_HEXADECIMAL)
+
+/* Time and date formats. */
+FMT (DATE,     date,	8,  9, 20, FMT_CAT_DATE)
+FMT (ADATE,    date,	8,  8, 23, FMT_CAT_DATE)
+FMT (EDATE,    date,	8,  8, 38, FMT_CAT_DATE)
+FMT (JDATE,    date,	5,  5, 24, FMT_CAT_DATE)
+FMT (SDATE,    date,	8,  8, 39, FMT_CAT_DATE)
+FMT (QYR,      date,	4,  6, 29, FMT_CAT_DATE)
+FMT (MOYR,     date,	6,  6, 28, FMT_CAT_DATE)
+FMT (WKYR,     date,	6,  8, 30, FMT_CAT_DATE)
+FMT (DATETIME, date,    7, 17, 22, FMT_CAT_DATE)
+FMT (TIME,     date,	5,  5, 21, FMT_CAT_TIME)
+FMT (DTIME,    date,	8,  8, 25, FMT_CAT_TIME)
+
+/* Date component formats. */
+FMT (WKDAY,    WKDAY,   2,  2, 26, FMT_CAT_DATE_COMPONENT)
+FMT (MONTH,    MONTH,   3,  3, 27, FMT_CAT_DATE_COMPONENT)
+
+/* String formats. */
+FMT (A,        A,       1,  1,  1, FMT_CAT_STRING)
+FMT (AHEX,     AHEX,    2,  2,  2, FMT_CAT_STRING)
+
+#undef FMT

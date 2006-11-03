@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -18,22 +18,27 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "table.h"
+
 #include <ctype.h>
 #include <stdarg.h>
 #include <limits.h>
 #include <stdlib.h>
+
+#include "output.h"
+#include "manager.h"
+
+#include <data/format.h>
+#include <data/variable.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <data/format.h>
 #include <libpspp/magic.h>
 #include <libpspp/misc.h>
-#include "minmax.h"
-#include "output.h"
 #include <libpspp/pool.h>
-#include "manager.h"
-#include <data/variable.h>
+
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -558,7 +563,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
   assert (r >= 0);
   assert (r < table->nr);
 
-  f = make_output_format (FMT_F, w, d);
+  f = fmt_for_output (FMT_F, w, d);
   
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0

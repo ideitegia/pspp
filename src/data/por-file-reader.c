@@ -468,18 +468,25 @@ static void
 convert_format (struct pfm_reader *r, const int portable_format[3],
                 struct fmt_spec *format, struct variable *v)
 {
-  format->type = translate_fmt (portable_format[0]);
-  if (format->type == -1)
+  bool ok;
+
+  if (!fmt_from_io (portable_format[0], &format->type))
     error (r, _("%s: Bad format specifier byte (%d)."),
            v->name, portable_format[0]);
   format->w = portable_format[1];
   format->d = portable_format[2];
 
-  if (!check_output_specifier (format, false)
-      || !check_specifier_width (format, v->width, false))
-    error (r, _("%s variable %s has invalid format specifier %s."),
-           v->type == NUMERIC ? _("Numeric") : _("String"),
-           v->name, fmt_to_string (format));
+  msg_disable ();
+  ok = fmt_check_output (format) && fmt_check_width_compat (format, v->width);
+  msg_enable ();
+
+  if (!ok)
+    {
+      char fmt_string[FMT_STRING_LEN_MAX + 1];
+      error (r, _("%s variable %s has invalid format specifier %s."),
+             v->type == NUMERIC ? _("Numeric") : _("String"),
+             v->name, fmt_to_string (format, fmt_string)); 
+    }
 }
 
 static union value parse_value (struct pfm_reader *, struct variable *);

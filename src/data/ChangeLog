@@ -1,3 +1,33 @@
+Tue Oct 31 19:58:27 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format.c: Completely rewrite, to achieve better abstraction.
+	Rewrite all references to formats in other files.
+	
+	* format.def: Rewrite and reorganize.
+
+	* settings.c: Move everything related to custom currency formats
+	into format.[ch], changing them in form, so as to group related
+	code and definitions better.  Changed all references to use the
+	new functions.
+	(static var decimal) Removed.
+	(static var grouping) Removed.
+	(static var cc) Removed.
+	(get_decimal) Removed.
+	(set_decimal) Removed.
+	(get_grouping) Removed.
+	(set_grouping) Removed.
+	(get_cc) Removed.
+	(set_cc) Removed.
+
+	* settings.h: (macro CC_CNT) Removed.
+	(macro CC_WIDTH) Removed.
+	(struct custom_currency) Removed.
+
+Tue Oct 31 19:56:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-in.c (data_in): Use switch statement instead of table, to
+	avoid dependence on the order of the FMT_* enums.
+
 Tue Oct 31 19:35:36 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-out.c: (num_to_string) Removed, because it was dead code.

@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -45,11 +45,6 @@ void set_viewwidth (int);
 bool get_safer_mode (void);
 void set_safer_mode (void);
 
-char get_decimal (void);
-void set_decimal (char);
-char get_grouping (void);
-void set_grouping (char);
-
 bool get_echo (void);
 void set_echo (bool);
 bool get_include (void);
@@ -93,24 +88,6 @@ void set_workspace (size_t);
 
 const struct fmt_spec *get_format (void);
 void set_format (const struct fmt_spec *);
-
-/* Maximum number of custom currency specifications */
-#define CC_CNT 5
-
-/* One custom currency specification. */
-#define CC_WIDTH 16
-struct custom_currency
-  {
-    char neg_prefix[CC_WIDTH];	/* Negative prefix. */
-    char prefix[CC_WIDTH];	/* Prefix. */
-    char suffix[CC_WIDTH];	/* Suffix. */
-    char neg_suffix[CC_WIDTH];	/* Negative suffix. */
-    char decimal;		/* Decimal point. */
-    char grouping;		/* Grouping character. */
-  };
-
-const struct custom_currency *get_cc (int idx);
-void set_cc (int idx, const struct custom_currency *);
 
 bool get_testing_mode (void);
 void set_testing_mode (bool);

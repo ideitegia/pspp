@@ -27,6 +27,7 @@ GNULIB_MODULES = \
 	memcmp \
 	memmem \
 	memmove \
+	mempcpy \
 	memset \
 	progname \
 	readlink \

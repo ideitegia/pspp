@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -33,9 +33,6 @@ static bool long_view = false;
 
 static bool safer_mode = false;
 
-static char decimal = '.';
-static char grouping = ',';
-
 static bool echo = false;
 static bool include = true;
 
@@ -63,16 +60,6 @@ static char endcmd = '.';
 static size_t workspace = 4L * 1024 * 1024;
 
 static struct fmt_spec default_format = {FMT_F, 8, 2};
-
-#define CC_INITIALIZER {"-", "", "", "", '.', ','}
-static struct custom_currency cc[CC_CNT] = 
-  {
-    CC_INITIALIZER,
-    CC_INITIALIZER,
-    CC_INITIALIZER,
-    CC_INITIALIZER,
-    CC_INITIALIZER,
-  };
 
 static bool testing_mode = false;
 
@@ -192,41 +179,6 @@ set_safer_mode (void)
   safer_mode = true;
 }
 
-/* The character used for a decimal point: ',' or '.'.  Only
-   respected for data input and output. */
-char 
-get_decimal (void)
-{
-  return decimal;
-}
-
-/* Sets the character used for a decimal point, which must be
-   either ',' or '.'. */
-void
-set_decimal (char decimal_) 
-{
-  assert (decimal_ == '.' || decimal_ == ',');
-  decimal = decimal_;
-}
-
-/* The character used for grouping in numbers: '.' or ','; the
-   opposite of set_decimal.  Only used in COMMA data input and
-   output. */
-char
-get_grouping (void)
-{
-  return grouping;
-}
-
-/* Sets the character used for grouping, which must be either ','
-   or '.'. */
-void
-set_grouping (char grouping_) 
-{
-  assert (grouping_ == '.' || grouping_ == ',');
-  grouping = grouping_;
-}
- 
 /* Echo commands to the listing file/printer? */
 bool
 get_echo (void)
@@ -464,22 +416,6 @@ void
 set_format (const struct fmt_spec *default_format_) 
 {
   default_format = *default_format_;
-}
-
-/* Gets the custom currency specification with the given IDX. */
-const struct custom_currency *
-get_cc (int idx)
-{
-  assert (idx >= 0 && idx < CC_CNT);
-  return &cc[idx];
-}
-
-/* Gets custom currency specification IDX to CC. */
-void
-set_cc (int idx, const struct custom_currency *cc_) 
-{
-  assert (idx >= 0 && idx < CC_CNT);
-  cc[idx] = *cc_;
 }
 
 /* Are we in testing mode?  (e.g. --testing-mode command line

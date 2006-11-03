@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -93,8 +93,8 @@ internal_cmd_formats (struct dataset *ds, int which)
 	  goto fail;
 	}
       if (!parse_format_specifier (&f)
-          || !check_output_specifier (&f, true)
-          || !check_specifier_type (&f, NUMERIC, true))
+          || !fmt_check_output (&f)
+          || !fmt_check_type_compat (&f, NUMERIC))
 	goto fail;
 
       if (!lex_match (')'))

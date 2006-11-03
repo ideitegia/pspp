@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/file-name.h>
+#include <data/format.h>
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
@@ -87,6 +88,7 @@ main (int argc, char **argv)
   fpu_init ();
   gsl_set_error_handler_off ();
 
+  fmt_init ();
   outp_init ();
   msg_ui_init ();
   fn_init ();

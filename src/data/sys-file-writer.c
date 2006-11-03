@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -18,31 +18,35 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "sys-file-writer.h"
 #include "sfm-private.h"
-#include <libpspp/message.h>
-#include <stdlib.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+
 #include <libpspp/alloc.h>
-#include "case.h"
-#include "dictionary.h"
-#include <libpspp/message.h>
-#include "file-handle-def.h"
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
-#include "settings.h"
-#include "stat-macros.h"
 #include <libpspp/str.h>
+#include <libpspp/version.h>
+
+#include "case.h"
+#include "dictionary.h"
+#include "file-handle-def.h"
+#include "settings.h"
 #include "value-labels.h"
 #include "variable.h"
-#include <libpspp/version.h>
-#include <minmax.h>
+
+#include "stat-macros.h"
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -437,8 +441,8 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
 static inline void
 write_format_spec (const struct fmt_spec *src, int32_t *dest)
 {
-  assert(check_output_specifier(src, true));
-  *dest = (formats[src->type].spss << 16) | (src->w << 8) | src->d;
+  assert (fmt_check_output (src));
+  *dest = (fmt_to_io (src->type) << 16) | (src->w << 8) | src->d;
 }
 
 /* Write the variable record(s) for primary variable P and secondary

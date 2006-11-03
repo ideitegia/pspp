@@ -504,9 +504,12 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
 	  case FMT_A:
 	    return g_locale_to_utf8(gettext(type_label[VT_STRING]), -1, 0, 0, err);
 	    break;
-	  default:
-	    g_warning("Unknown format: \"%s\"\n", 
-		      fmt_to_string(write_spec));
+	  default: 
+            {
+              char str[FMT_STRING_LEN_MAX + 1];
+              g_warning("Unknown format: \"%s\"\n", 
+                        fmt_to_string(write_spec, str)); 
+            }
 	    break;
 	  }
       }

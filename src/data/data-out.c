@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -58,17 +58,17 @@ static string_converter convert_A, convert_AHEX;
 bool
 data_out (char *s, const struct fmt_spec *fp, const union value *v)
 {
-  int cat = formats[fp->type].cat;
   int ok;
 
-  assert (check_output_specifier (fp, 0));
-  if (!(cat & FCAT_STRING)) 
+  assert (fmt_check_output (fp));
+  if (fmt_is_numeric (fp->type)) 
     {
-      /* Numeric formatting. */
+      enum fmt_category category = fmt_get_category (fp->type);
       double number = v->f;
 
       /* Handle SYSMIS turning into blanks. */
-      if ((cat & FCAT_BLANKS_SYSMIS) && number == SYSMIS)
+      if (!(category & (FMT_CAT_CUSTOM | FMT_CAT_BINARY | FMT_CAT_HEXADECIMAL))
+          && number == SYSMIS)
         {
           memset (s, ' ', fp->w);
           s[fp->w - fp->d - 1] = '.';
@@ -76,7 +76,9 @@ data_out (char *s, const struct fmt_spec *fp, const union value *v)
         }
 
       /* Handle decimal shift. */
-      if ((cat & FCAT_SHIFT_DECIMAL) && number != SYSMIS && fp->d)
+      if ((category & (FMT_CAT_LEGACY | FMT_CAT_BINARY))
+          && number != SYSMIS
+          && fp->d)
         number *= pow (10.0, fp->d);
 
       switch (fp->type) 
@@ -310,12 +312,11 @@ convert_E (char *dst, const struct fmt_spec *fp, double number)
 
   /* The C locale always uses a period `.' as a decimal point.
      Translate to comma if necessary. */
-  if ((get_decimal() == ',' && fp->type != FMT_DOT)
-      || (get_decimal() == '.' && fp->type == FMT_DOT))
+  if (fmt_decimal_char (fp->type) != '.')
     {
       char *cp = strchr (buf, '.');
       if (cp)
-	*cp = ',';
+	*cp = fmt_decimal_char (fp->type);
     }
 
   memcpy (dst, buf, fp->w);
@@ -925,7 +926,7 @@ insert_commas (char *dst, const char *src, const struct fmt_spec *fp)
       if (i % 3 == 0 && n_digits > i && n_items > n_reserved)
 	{
 	  n_items--;
-	  *dst++ = fp->type == FMT_COMMA ? get_grouping() : get_decimal();
+	  *dst++ = fmt_grouping_char (fp->type);
 	}
       *dst++ = *sp++;
     }
@@ -951,7 +952,7 @@ year4 (int year)
 static int
 try_CCx (char *dst, const struct fmt_spec *fp, double number)
 {
-  const struct custom_currency *cc = get_cc(fp->type - FMT_CCA);
+  const struct fmt_number_style *style = fmt_get_style (fp->type);
 
   struct fmt_spec f;
 
@@ -961,10 +962,10 @@ try_CCx (char *dst, const struct fmt_spec *fp, double number)
 
   /* Determine length available, decimal character for number
      proper. */
-  f.type = cc->decimal == get_decimal () ? FMT_COMMA : FMT_DOT;
-  f.w = fp->w - strlen (cc->prefix) - strlen (cc->suffix);
+  f.type = style->decimal == fmt_decimal_char (FMT_COMMA) ? FMT_COMMA : FMT_DOT;
+  f.w = fp->w - fmt_affix_width (style);
   if (number < 0)
-    f.w -= strlen (cc->neg_prefix) + strlen (cc->neg_suffix) - 1;
+    f.w -= fmt_neg_affix_width (style) - 1;
   else
     /* Convert -0 to +0. */
     number = fabs (number);
@@ -982,8 +983,9 @@ try_CCx (char *dst, const struct fmt_spec *fp, double number)
   /* Postprocess back into buf. */
   cp = buf;
   if (number < 0)
-    cp = stpcpy (cp, cc->neg_prefix);
-  cp = stpcpy (cp, cc->prefix);
+    cp = mempcpy (cp, ss_data (style->neg_prefix),
+                  ss_length (style->neg_prefix));
+  cp = mempcpy (cp, ss_data (style->prefix), ss_length (style->prefix));
   {
     char *bp = buf2;
     while (*bp == ' ')
@@ -996,9 +998,10 @@ try_CCx (char *dst, const struct fmt_spec *fp, double number)
     memcpy (cp, bp, f.w - (bp - buf2));
     cp += f.w - (bp - buf2);
   }
-  cp = stpcpy (cp, cc->suffix);
+  cp = mempcpy (cp, ss_data (style->suffix), ss_length (style->suffix));
   if (number < 0)
-    cp = stpcpy (cp, cc->neg_suffix);
+    cp = mempcpy (cp, ss_data (style->neg_suffix),
+                  ss_length (style->neg_suffix));
 
   /* Copy into dst. */
   assert (cp - buf <= fp->w);

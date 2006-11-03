@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -871,7 +871,7 @@ static int
 	  di.e = ss_end (s);
 	  di.v = (union value *) &token->number;
 	  di.f1 = dfm_get_column (reader, di.s);
-	  di.format = make_output_format (FMT_F, token->length, 0);
+	  di.format = fmt_for_output (FMT_F, token->length, 0);
 
 	  data_in (&di);
 	}

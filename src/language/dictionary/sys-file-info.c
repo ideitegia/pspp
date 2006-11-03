@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -454,17 +454,19 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
       && v->print.w == v->write.w
       && v->print.d == v->write.d)
     {
+      char str[FMT_STRING_LEN_MAX + 1];
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF, _("Format: %s"),
-		      fmt_to_string (&v->print));
+		      fmt_to_string (&v->print, str));
       r++;
     }
   else
     {
+      char str[FMT_STRING_LEN_MAX + 1];
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-		      _("Print Format: %s"), fmt_to_string (&v->print));
+		      _("Print Format: %s"), fmt_to_string (&v->print, str));
       r++;
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-		      _("Write Format: %s"), fmt_to_string (&v->write));
+		      _("Write Format: %s"), fmt_to_string (&v->write, str));
       r++;
     }
 

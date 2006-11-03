@@ -1208,28 +1208,35 @@ static int
 parse_format_spec (struct sfm_reader *r, int32_t s,
                    struct fmt_spec *f, const struct variable *v)
 {
-  f->type = translate_fmt ((s >> 16) & 0xff);
-  if (f->type == -1)
+  bool ok;
+  
+  if (!fmt_from_io ((s >> 16) & 0xff, &f->type))
     lose ((ME, _("%s: Bad format specifier byte (%d)."),
 	   fh_get_file_name (r->fh), (s >> 16) & 0xff));
   f->w = (s >> 8) & 0xff;
   f->d = s & 0xff;
 
-  if ((v->type == ALPHA) ^ ((formats[f->type].cat & FCAT_STRING) != 0))
+  if ((v->type == ALPHA) ^ (fmt_is_string (f->type) != 0))
     lose ((ME, _("%s: %s variable %s has %s format specifier %s."),
 	   fh_get_file_name (r->fh),
            v->type == ALPHA ? _("String") : _("Numeric"),
 	   v->name,
-	   formats[f->type].cat & FCAT_STRING ? _("string") : _("numeric"),
-	   formats[f->type].name));
+	   fmt_is_string (f->type) ? _("string") : _("numeric"),
+	   fmt_name (f->type)));
 
-  if (!check_output_specifier (f, false)
-      || !check_specifier_width (f, v->width, false)) 
+  msg_disable ();
+  ok = fmt_check_output (f) && fmt_check_width_compat (f, v->width);
+  msg_enable ();
+  
+  if (!ok) 
     {
+      char fmt_string[FMT_STRING_LEN_MAX + 1];
       msg (ME, _("%s variable %s has invalid format specifier %s."),
            v->type == NUMERIC ? _("Numeric") : _("String"),
-           v->name, fmt_to_string (f));
-      *f = v->type == NUMERIC ? f8_2 : make_output_format (FMT_A, v->width, 0);
+           v->name, fmt_to_string (f, fmt_string));
+      *f = (v->type == NUMERIC
+            ? fmt_for_output (FMT_F, 8, 2) 
+            : fmt_for_output (FMT_A, v->width, 0));
     }
   return 1;
 

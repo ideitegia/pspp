@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "data-in.h"
-#include <libpspp/message.h>
+#include <libpspp/assertion.h>
 #include <math.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -50,6 +50,7 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
 {
   struct msg m;
   struct string text;
+  char format_string[FMT_STRING_LEN_MAX + 1];
 
   if (i->flags & DI_IGNORE_ERROR)
     return;
@@ -59,7 +60,8 @@ vdls_error (const struct data_in *i, const char *format, va_list args)
     ds_put_format (&text, _("(column %d"), i->f1);
   else
     ds_put_format (&text, _("(columns %d-%d"), i->f1, i->f2);
-  ds_put_format (&text, _(", field type %s) "), fmt_to_string (&i->format));
+  ds_put_format (&text, _(", field type %s) "),
+                 fmt_to_string (&i->format, format_string));
   ds_put_vformat (&text, format, args);
 
   m.category = MSG_DATA;
@@ -148,17 +150,9 @@ parse_numeric (struct data_in *i)
     }
   else
     sign = 1;
-  
-  if (type != FMT_DOT)
-    {
-      decimal = get_decimal();
-      grouping = get_grouping();
-    }
-  else
-    {
-      decimal = get_grouping();
-      grouping = get_decimal();
-    }
+
+  decimal = fmt_decimal_char (type);
+  grouping = fmt_grouping_char (type);
 
   i->v->f = SYSMIS;
   num = 0.0;
@@ -1342,10 +1336,8 @@ parse_MONTH (struct data_in *i)
 static void
 default_result (struct data_in *i)
 {
-  const struct fmt_desc *const fmt = &formats[i->format.type];
-
   /* Default to SYSMIS or blanks. */
-  if (fmt->cat & FCAT_STRING)
+  if (fmt_is_string (i->format.type))
     memset (i->v->s, ' ', i->format.w);
   else
     i->v->f = get_blanks();
@@ -1354,9 +1346,9 @@ default_result (struct data_in *i)
 bool
 data_in (struct data_in *i)
 {
-  const struct fmt_desc *const fmt = &formats[i->format.type];
+  bool success;
 
-  assert (check_input_specifier (&i->format, 0));
+  assert (fmt_check_input (&i->format));
 
   /* Check that we've got a string to work with. */
   if (i->e == i->s || i->format.w <= 0)
@@ -1368,15 +1360,16 @@ data_in (struct data_in *i)
   i->f2 = i->f1 + (i->e - i->s) - 1;
 
   /* Make sure that the string isn't too long. */
-  if (i->format.w > fmt->Imax_w)
+  if (i->format.w > fmt_max_input_width (i->format.type))
     {
       dls_error (i, _("Field too long (%d characters).  Truncated after "
-		   "character %d."),
-		 i->format.w, fmt->Imax_w);
-      i->format.w = fmt->Imax_w;
+                      "character %d."),
+		 i->format.w, fmt_max_input_width (i->format.type));
+      i->format.w = fmt_max_input_width (i->format.type);
     }
 
-  if (fmt->cat & FCAT_BLANKS_SYSMIS)
+  if (!(fmt_get_category (i->format.type)
+        & (FMT_CAT_STRING | FMT_CAT_BINARY | FMT_CAT_HEXADECIMAL)))
     {
       const char *cp;
 
@@ -1394,33 +1387,102 @@ data_in (struct data_in *i)
 	}
     }
   
-  {
-    typedef bool (*handler_t) (struct data_in *);
-    static const handler_t handlers[FMT_NUMBER_OF_FORMATS] = 
-      {
-	parse_numeric, parse_N, parse_numeric, parse_numeric,
-	parse_numeric, parse_numeric, parse_numeric,
-	parse_Z, parse_A, parse_AHEX, parse_IB, parse_P, parse_PIB,
-	parse_PIBHEX, parse_PK, parse_RB, parse_RBHEX,
-	NULL, NULL, NULL, NULL, NULL,
-	parse_DATE, parse_EDATE, parse_SDATE, parse_ADATE, parse_JDATE,
-	parse_QYR, parse_MOYR, parse_WKYR,
-	parse_DATETIME, parse_TIME, parse_DTIME,
-	parse_WKDAY, parse_MONTH,
-      };
 
-    handler_t handler;
-    bool success;
+  switch (i->format.type) 
+    {
+    case FMT_F:
+    case FMT_COMMA:
+    case FMT_DOT:
+    case FMT_DOLLAR:
+    case FMT_PCT:
+    case FMT_E:
+      success = parse_numeric (i);
+      break;
+    case FMT_CCA:
+    case FMT_CCB:
+    case FMT_CCC:
+    case FMT_CCD:
+    case FMT_CCE:
+      NOT_REACHED ();
+    case FMT_N:
+      success = parse_N (i);
+      break;
+    case FMT_Z:
+      success = parse_Z (i);
+      break;
+    case FMT_P:
+      success = parse_P (i);
+      break;
+    case FMT_PK:
+      success = parse_PK (i);
+      break;
+    case FMT_IB:
+      success = parse_IB (i);
+      break;
+    case FMT_PIB:
+      success = parse_PIB (i);
+      break;
+    case FMT_PIBHEX:
+      success = parse_PIBHEX (i);
+      break;
+    case FMT_RB:
+      success = parse_RB (i);
+      break;
+    case FMT_RBHEX:
+      success = parse_RBHEX (i);
+      break;
+    case FMT_DATE:
+      success = parse_DATE (i);
+      break;
+    case FMT_ADATE:
+      success = parse_ADATE (i);
+      break;
+    case FMT_EDATE:
+      success = parse_EDATE (i);
+      break;
+    case FMT_JDATE:
+      success = parse_JDATE (i);
+      break;
+    case FMT_SDATE:
+      success = parse_SDATE (i);
+      break;
+    case FMT_QYR:
+      success = parse_QYR (i);
+      break;
+    case FMT_MOYR:
+      success = parse_MOYR (i);
+      break;
+    case FMT_WKYR:
+      success = parse_WKYR (i);
+      break;
+    case FMT_DATETIME:
+      success = parse_DATETIME (i);
+      break;
+    case FMT_TIME:
+      success = parse_TIME (i);
+      break;
+    case FMT_DTIME:
+      success = parse_DTIME (i);
+      break;
+    case FMT_WKDAY:
+      success = parse_WKDAY (i);
+      break;
+    case FMT_MONTH:
+      success = parse_MONTH (i);
+      break;
+    case FMT_A:
+      success = parse_A (i);
+      break;
+    case FMT_AHEX:
+      success = parse_AHEX (i);
+      break;
+    default:
+      NOT_REACHED ();
+    }
+  if (!success)
+    default_result (i);
 
-    handler = handlers[i->format.type];
-    assert (handler != NULL);
-
-    success = handler (i);
-    if (!success)
-      default_result (i);
-
-    return success;
-  }
+  return success;
 }
 
 /* Utility function. */

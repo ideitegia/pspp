@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -18,26 +18,29 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "private.h"
+
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <libpspp/array.h>
-#include <libpspp/alloc.h>
+
+#include "helpers.h"
 #include <data/case.h>
 #include <data/dictionary.h>
-#include <libpspp/message.h>
-#include "helpers.h"
+#include <data/settings.h>
+#include <data/variable.h>
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
+#include <libpspp/alloc.h>
+#include <libpspp/array.h>
 #include <libpspp/assertion.h>
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
-#include <data/settings.h>
 #include <libpspp/str.h>
-#include <data/variable.h>
 
 /* Declarations. */
 
@@ -351,25 +354,31 @@ type_coercion_core (struct expression *e,
       NOT_REACHED ();
 
     case OP_ni_format:
+      msg_disable ();
       if ((*node)->type == OP_format
-          && check_input_specifier (&(*node)->format.f, false)
-          && check_specifier_type (&(*node)->format.f, NUMERIC, false))
+          && fmt_check_input (&(*node)->format.f)
+          && fmt_check_type_compat (&(*node)->format.f, NUMERIC))
         {
+          msg_enable ();
           if (do_coercion)
             (*node)->type = OP_ni_format;
           return true;
         }
+      msg_enable ();
       break;
 
     case OP_no_format:
+      msg_disable ();
       if ((*node)->type == OP_format
-          && check_output_specifier (&(*node)->format.f, false)
-          && check_specifier_type (&(*node)->format.f, NUMERIC, false))
+          && fmt_check_output (&(*node)->format.f)
+          && fmt_check_type_compat (&(*node)->format.f, NUMERIC))
         {
+          msg_enable ();
           if (do_coercion)
             (*node)->type = OP_no_format;
           return true;
         }
+      msg_enable ();
       break;
 
     case OP_num_var:

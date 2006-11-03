@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -115,29 +115,28 @@ int tgetnum (const char *);
 
 /* (declarations) */
 
-/* (_functions) */
+/* (functions) */
 
-static bool do_cc (const char *cc_string, int idx);
+static bool do_cc (const char *cc_string, enum fmt_type);
 
 int
 cmd_set (struct dataset *ds)
 {
   struct cmd_set cmd;
-  bool ok = true;
 
   if (!parse_set (ds, &cmd, NULL))
     return CMD_FAILURE;
 
   if (cmd.sbc_cca)
-    ok = ok && do_cc (cmd.s_cca, 0);
+    do_cc (cmd.s_cca, FMT_CCA);
   if (cmd.sbc_ccb)
-    ok = ok && do_cc (cmd.s_ccb, 1);
+    do_cc (cmd.s_ccb, FMT_CCB);
   if (cmd.sbc_ccc)
-    ok = ok && do_cc (cmd.s_ccc, 2);
+    do_cc (cmd.s_ccc, FMT_CCC);
   if (cmd.sbc_ccd)
-    ok = ok && do_cc (cmd.s_ccd, 3);
+    do_cc (cmd.s_ccd, FMT_CCD);
   if (cmd.sbc_cce)
-    ok = ok && do_cc (cmd.s_cce, 4);
+    do_cc (cmd.s_cce, FMT_CCE);
 
   if (cmd.sbc_prompt)
     getl_set_prompt (GETL_PROMPT_FIRST, cmd.s_prompt);
@@ -147,7 +146,7 @@ cmd_set (struct dataset *ds)
     getl_set_prompt (GETL_PROMPT_DATA, cmd.s_dprompt);
 
   if (cmd.sbc_decimal)
-    set_decimal (cmd.dec == STC_DOT ? '.' : ',');
+    fmt_set_decimal (cmd.dec == STC_DOT ? '.' : ',');
   if (cmd.sbc_echo)
     set_echo (cmd.echo == STC_ON);
   if (cmd.sbc_endcmd)
@@ -203,7 +202,7 @@ cmd_set (struct dataset *ds)
    grouping and decimal members appropriately.  Returns true if
    successful, false otherwise. */
 static bool
-find_cc_separators (const char *cc_string, struct custom_currency *cc)
+find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
 {
   const char *sp;
   int comma_cnt, dot_cnt;
@@ -236,23 +235,23 @@ find_cc_separators (const char *cc_string, struct custom_currency *cc)
   return true;
 }
 
-/* Extracts a token from IN into TOKEn.  Tokens are delimited by
-   GROUPING.  The token is truncated to at most CC_WIDTH
-   characters (including null terminator).  Returns the first
-   character following the token. */
+/* Extracts a token from IN into a newly allocated AFFIX.  Tokens
+   are delimited by GROUPING.  The token is truncated to at most
+   FMT_STYLE_AFFIX_MAX characters.  Returns the first character
+   following the token. */
 static const char *
-extract_cc_token (const char *in, int grouping, char token[CC_WIDTH]) 
+extract_cc_token (const char *in, int grouping, struct substring *affix) 
 {
-  char *out = token;
-  
+  size_t ofs = 0;
+  ss_alloc_uninit (affix, FMT_STYLE_AFFIX_MAX);
   for (; *in != '\0' && *in != grouping; in++) 
     {
       if (*in == '\'' && in[1] == grouping)
         in++;
-      if (out < &token[CC_WIDTH - 1])
-        *out++ = *in;
+      if (ofs < FMT_STYLE_AFFIX_MAX) 
+        ss_data (*affix)[ofs++] = *in;
     }
-  *out = '\0';
+  affix->length = ofs;
 
   if (*in == grouping)
     in++;
@@ -262,25 +261,26 @@ extract_cc_token (const char *in, int grouping, char token[CC_WIDTH])
 /* Sets custom currency specifier CC having name CC_NAME ('A' through
    'E') to correspond to the settings in CC_STRING. */
 static bool
-do_cc (const char *cc_string, int idx)
+do_cc (const char *cc_string, enum fmt_type type)
 {
-  struct custom_currency cc;
+  struct fmt_number_style *cc = fmt_number_style_create ();
   
   /* Determine separators. */
-  if (!find_cc_separators (cc_string, &cc)) 
+  if (!find_cc_separators (cc_string, cc)) 
     {
-      msg (SE, _("CC%c: Custom currency string `%s' does not contain "
-                 "exactly three periods or commas (not both)."),
-           "ABCDE"[idx], cc_string);
+      fmt_number_style_destroy (cc);
+      msg (SE, _("%s: Custom currency string `%s' does not contain "
+                 "exactly three periods or commas (or it contains both)."),
+           fmt_name (type), cc_string);
       return false;
     }
   
-  cc_string = extract_cc_token (cc_string, cc.grouping, cc.neg_prefix);
-  cc_string = extract_cc_token (cc_string, cc.grouping, cc.prefix);
-  cc_string = extract_cc_token (cc_string, cc.grouping, cc.suffix);
-  cc_string = extract_cc_token (cc_string, cc.grouping, cc.neg_suffix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_prefix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->prefix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->suffix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_suffix);
 
-  set_cc (idx, &cc);
+  fmt_set_style (type, cc);
   
   return true;
 }
@@ -413,11 +413,12 @@ stc_custom_format (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *
   lex_match ('=');
   if (!parse_format_specifier (&fmt))
     return 0;
-  if ((formats[fmt.type].cat & FCAT_STRING) != 0)
+  if (fmt_is_string (fmt.type))
     {
+      char str[FMT_STRING_LEN_MAX + 1];
       msg (SE, _("FORMAT requires numeric output format as an argument.  "
 		 "Specified format %s is of type string."),
-	   fmt_to_string (&fmt));
+	   fmt_to_string (&fmt, str));
       return 0;
     }
 
@@ -479,22 +480,25 @@ show_blanks (const struct dataset *ds UNUSED)
 }
 
 static char *
-format_cc (const char *in, char grouping, char *out) 
+format_cc (struct substring in, char grouping, char *out) 
 {
-  while (*in != '\0') 
+  while (!ss_is_empty (in)) 
     {
-      if (*in == grouping || *in == '\'')
+      char c = ss_get_char (&in);
+      if (c == grouping || c == '\'')
         *out++ = '\'';
-      *out++ = *in++;
+      else if (c == '"')
+        *out++ = '"';
+      *out++ = c;
     }
   return out;
 }
 
 static void
-show_cc (int idx) 
+show_cc (enum fmt_type type) 
 {
-  const struct custom_currency *cc = get_cc (idx);
-  char cc_string[CC_WIDTH * 4 * 2 + 3 + 1];
+  const struct fmt_number_style *cc = fmt_get_style (type);
+  char cc_string[FMT_STYLE_AFFIX_MAX * 4 * 2 + 3 + 1];
   char *out;
 
   out = format_cc (cc->neg_prefix, cc->grouping, cc_string);
@@ -506,44 +510,43 @@ show_cc (int idx)
   out = format_cc (cc->neg_suffix, cc->grouping, out);
   *out = '\0';
   
-  msg (SN, _("CC%c is \"%s\"."), "ABCDE"[idx], cc_string);
+  msg (SN, _("%s is \"%s\"."), fmt_name (type), cc_string);
 }
-
 
 static void
 show_cca (const struct dataset *ds UNUSED) 
 {
-  show_cc (0);
+  show_cc (FMT_CCA);
 }
 
 static void
 show_ccb (const struct dataset *ds UNUSED) 
 {
-  show_cc (1);
+  show_cc (FMT_CCB);
 }
 
 static void
 show_ccc (const struct dataset *ds UNUSED) 
 {
-  show_cc (2);
+  show_cc (FMT_CCC);
 }
 
 static void
 show_ccd (const struct dataset *ds UNUSED) 
 {
-  show_cc (3);
+  show_cc (FMT_CCD);
 }
 
 static void
 show_cce (const struct dataset *ds UNUSED) 
 {
-  show_cc (4);
+  show_cc (FMT_CCE);
 }
 
 static void
 show_decimals (const struct dataset *ds UNUSED) 
 {
-  msg (SN, _("DECIMAL is \"%c\"."), get_decimal ());
+  msg (SN, _("DECIMAL is \"%c\"."), fmt_decimal_char (FMT_F));
 }
 
 static void
@@ -555,7 +558,8 @@ show_endcmd (const struct dataset *ds UNUSED)
 static void
 show_format (const struct dataset *ds UNUSED) 
 {
-  msg (SN, _("FORMAT is %s."), fmt_to_string (get_format ()));
+  char str[FMT_STRING_LEN_MAX + 1];
+  msg (SN, _("FORMAT is %s."), fmt_to_string (get_format (), str));
 }
 
 static void

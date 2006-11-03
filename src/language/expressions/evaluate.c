@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -304,9 +304,11 @@ expr_debug_print_postfix (const struct expression *e)
                    op->string.string != NULL ? op->string.string : "");
           break;
         case OP_format:
-          fprintf (stderr, "f<%s%d.%d>",
-                  formats[op->format->type].name,
-                  op->format->w, op->format->d);
+          {
+            char str[FMT_STRING_LEN_MAX + 1];
+            fmt_to_string (op->format, str);
+            fprintf (stderr, "f<%s>", str); 
+          }
           break;
         case OP_variable:
           fprintf (stderr, "v<%s>", op->variable->name);

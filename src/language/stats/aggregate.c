@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -583,21 +583,24 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
                     destvar = dict_create_var (agr->dict, dest[i], 0);
                     if (destvar != NULL) 
                       {
+                        struct fmt_spec f;
                         if ((func_index == N || func_index == NMISS)
                             && dict_get_weight (dict) != NULL)
-                          destvar->print = destvar->write = f8_2; 
+                          f = fmt_for_output (FMT_F, 8, 2); 
                         else
-                          destvar->print = destvar->write = function->format;
+                          f = function->format;
+                        destvar->print = destvar->write = f;
                       }
                   }
 	      } else {
+                struct fmt_spec f;
 		v->src = NULL;
 		destvar = dict_create_var (agr->dict, dest[i], 0);
-                if (func_index == N_NO_VARS
-                    && dict_get_weight (dict) != NULL)
-                  destvar->print = destvar->write = f8_2; 
+                if (func_index == N_NO_VARS && dict_get_weight (dict) != NULL)
+                  f = fmt_for_output (FMT_F, 8, 2); 
                 else
-                  destvar->print = destvar->write = function->format;
+                  f = function->format;
+                destvar->print = destvar->write = f;
 	      }
 	  
 	    if (!destvar)

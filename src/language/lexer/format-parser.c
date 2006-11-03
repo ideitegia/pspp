@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 
 #include <config.h>
 
-#include <language/lexer/format-parser.h>
+#include "format-parser.h"
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -27,6 +27,7 @@
 #include "lexer.h"
 #include <data/format.h>
 #include <data/variable.h>
+#include <language/lexer/format-parser.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
@@ -105,7 +106,7 @@ parse_format_specifier (struct fmt_spec *format)
   if (!parse_abstract_format_specifier (type, &format->w, &format->d))
     return false;
 
-  if (!fmt_type_from_string (type, &format->type))
+  if (!fmt_from_name (type, &format->type))
     {
       msg (SE, _("Unknown format type \"%s\"."), type);
       return false;
@@ -117,14 +118,14 @@ parse_format_specifier (struct fmt_spec *format)
 /* Parses a token containing just the name of a format type and
    returns true if successful. */
 bool
-parse_format_specifier_name (int *type) 
+parse_format_specifier_name (enum fmt_type *type) 
 {
   if (token != T_ID) 
     {
       lex_error (_("expecting format type"));
       return false;
     }
-  if (!fmt_type_from_string (ds_cstr (&tokstr), type))
+  if (!fmt_from_name (ds_cstr (&tokstr), type))
     {
       msg (SE, _("Unknown format type \"%s\"."), ds_cstr (&tokstr));
       return false;

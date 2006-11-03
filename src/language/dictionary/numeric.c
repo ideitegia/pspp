@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -59,10 +59,11 @@ cmd_numeric (struct dataset *ds)
 	{
 	  if (!parse_format_specifier (&f))
 	    goto fail;
-	  if (formats[f.type].cat & FCAT_STRING)
+	  if (fmt_is_string (f.type))
 	    {
+              char str[FMT_STRING_LEN_MAX + 1];
 	      msg (SE, _("Format type %s may not be used with a numeric "
-		   "variable."), fmt_to_string (&f));
+                         "variable."), fmt_to_string (&f, str));
 	      goto fail;
 	    }
 
@@ -129,10 +130,11 @@ cmd_string (struct dataset *ds)
 
       if (!lex_force_match ('(') || !parse_format_specifier (&f))
 	goto fail;
-      if (!(formats[f.type].cat & FCAT_STRING))
+      if (!fmt_is_string (f.type))
 	{
+          char str[FMT_STRING_LEN_MAX + 1];
 	  msg (SE, _("Format type %s may not be used with a string "
-	       "variable."), fmt_to_string (&f));
+                     "variable."), fmt_to_string (&f, str));
 	  goto fail;
 	}
 
@@ -142,17 +144,7 @@ cmd_string (struct dataset *ds)
 	  goto fail;
 	}
 
-      switch (f.type)
-	{
-	case FMT_A:
-	  width = f.w;
-	  break;
-	case FMT_AHEX:
-	  width = f.w / 2;
-	  break;
-	default:
-          NOT_REACHED ();
-	}
+      width = fmt_var_width (&f);
 
       /* Create each variable. */
       for (i = 0; i < nv; i++)

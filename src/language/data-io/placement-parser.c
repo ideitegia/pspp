@@ -39,14 +39,14 @@
    placement. */
 enum 
   {
-    PRS_TYPE_T = -1,            /* Tab to absolute column. */
-    PRS_TYPE_X = -2,            /* Skip columns. */
-    PRS_TYPE_NEW_REC = -3       /* Next record. */
+    PRS_TYPE_T = SCHAR_MAX - 3, /* Tab to absolute column. */
+    PRS_TYPE_X,                 /* Skip columns. */
+    PRS_TYPE_NEW_REC            /* Next record. */
   };
 
-static bool fixed_parse_columns (struct pool *, size_t var_cnt,
+static bool fixed_parse_columns (struct pool *, size_t var_cnt, bool for_input,
                                  struct fmt_spec **, size_t *);
-static bool fixed_parse_fortran (struct pool *,
+static bool fixed_parse_fortran (struct pool *, bool for_input,
                                  struct fmt_spec **, size_t *);
 
 /* Parses Fortran-like or column-based specifications for placing
@@ -65,23 +65,23 @@ static bool fixed_parse_fortran (struct pool *,
    Uses POOL for allocation.  When the caller is finished
    interpreting *FORMATS, POOL may be destroyed. */
 bool
-parse_var_placements (struct pool *pool, size_t var_cnt,
+parse_var_placements (struct pool *pool, size_t var_cnt, bool for_input,
                       struct fmt_spec **formats, size_t *format_cnt) 
 {
   assert (var_cnt > 0);
   if (lex_is_number ())
-    return fixed_parse_columns (pool, var_cnt, formats, format_cnt);
+    return fixed_parse_columns (pool, var_cnt, for_input, formats, format_cnt);
   else if (lex_match ('(')) 
     {
       size_t assignment_cnt;
       size_t i;
 
-      if (!fixed_parse_fortran (pool, formats, format_cnt))
+      if (!fixed_parse_fortran (pool, for_input, formats, format_cnt))
         return false; 
 
       assignment_cnt = 0;
       for (i = 0; i < *format_cnt; i++)
-        assignment_cnt += (*formats)[i].type >= 0;
+        assignment_cnt += (*formats)[i].type < FMT_NUMBER_OF_FORMATS;
 
       if (assignment_cnt != var_cnt)
         {
@@ -103,7 +103,7 @@ parse_var_placements (struct pool *pool, size_t var_cnt,
 
 /* Implements parse_var_placements for column-based formats. */
 static bool
-fixed_parse_columns (struct pool *pool, size_t var_cnt,
+fixed_parse_columns (struct pool *pool, size_t var_cnt, bool for_input,
                      struct fmt_spec **formats, size_t *format_cnt)
 {
   struct fmt_spec format;
@@ -153,7 +153,7 @@ fixed_parse_columns (struct pool *pool, size_t var_cnt,
       format.type = FMT_F;
       format.d = 0;
     }
-  if (!check_input_specifier (&format, 1))
+  if (!fmt_check (&format, for_input))
     return false;
 
   *formats = pool_nalloc (pool, var_cnt + 1, sizeof **formats);
@@ -167,7 +167,7 @@ fixed_parse_columns (struct pool *pool, size_t var_cnt,
 
 /* Implements parse_var_placements for Fortran-like formats. */
 static bool
-fixed_parse_fortran (struct pool *pool,
+fixed_parse_fortran (struct pool *pool, bool for_input,
                      struct fmt_spec **formats, size_t *format_cnt)
 {
   size_t formats_allocated = 0;
@@ -195,7 +195,8 @@ fixed_parse_fortran (struct pool *pool,
       if (lex_match ('('))
         {
           /* Call ourselves recursively to handle parentheses. */
-          if (!fixed_parse_fortran (pool, &new_formats, &new_format_cnt))
+          if (!fixed_parse_fortran (pool, for_input,
+                                    &new_formats, &new_format_cnt))
             return false;
         }
       else
@@ -221,12 +222,12 @@ fixed_parse_fortran (struct pool *pool,
                 }
               else 
                 {
-                  if (!fmt_type_from_string (type, &f.type)) 
+                  if (!fmt_from_name (type, &f.type)) 
                     {
                       msg (SE, _("Unknown format type \"%s\"."), type);
                       return false;
                     }
-                  if (!check_input_specifier (&f, 1))
+                  if (!fmt_check (&f, for_input))
                     return false;
                 }
             } 
@@ -284,7 +285,7 @@ execute_placement_format (const struct fmt_spec *format,
       return true;
 
     default:
-      assert (format->type >= 0 && format->type < FMT_NUMBER_OF_FORMATS);
+      assert (format->type < FMT_NUMBER_OF_FORMATS);
       return false;
     }
 }

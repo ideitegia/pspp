@@ -29,6 +29,6 @@ struct fmt_spec;
 bool parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
                                       int *width, int *decimals);
 bool parse_format_specifier (struct fmt_spec *);
-bool parse_format_specifier_name (int *type);
+bool parse_format_specifier_name (enum fmt_type *type);
 
 #endif /* language/lexer/format-parser.h. */

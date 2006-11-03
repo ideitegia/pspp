@@ -1,3 +1,13 @@
+Tue Oct 31 20:10:24 2006  Ben Pfaff  <blp@gnu.org>
+
+	* set.q (cmd_set): Drop the `ok' variable, which didn't do
+	anything useful.
+	(extract_cc_token) Adapt to new fmt_number_style.
+	(do_cc) Ditto.
+	(format_cc) Ditto.
+	(show_cc) Change parameter to be an enum fmt_type.  Adjust all
+	callers.
+
 Wed Apr 26 15:06:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	* set.q: Use SN instead of MN for most output from SHOW, because

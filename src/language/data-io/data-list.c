@@ -302,7 +302,8 @@ parse_fixed (struct dictionary *dict,
       /* Parse everything. */
       if (!parse_record_placement (&record, &column)
           || !parse_DATA_LIST_vars_pool (tmp_pool, &names, &name_cnt, PV_NONE)
-          || !parse_var_placements (tmp_pool, name_cnt, &formats, &format_cnt))
+          || !parse_var_placements (tmp_pool, name_cnt, true,
+                                    &formats, &format_cnt))
         return false;
 
       /* Create variables and var specs. */
@@ -318,13 +319,12 @@ parse_fixed (struct dictionary *dict,
             name = names[name_idx++];
 
             /* Create variable. */
-            width = get_format_var_width (f);
+            width = fmt_var_width (f);
             v = dict_create_var (dict, name, width);
             if (v != NULL)
               {
                 /* Success. */
-                struct fmt_spec output;
-                convert_fmt_ItoO (f, &output);
+                struct fmt_spec output = fmt_for_output_from_input (f);
                 v->print = output;
                 v->write = output;
               }
@@ -415,11 +415,13 @@ dump_fixed_table (const struct ll_list *specs,
   row = 1;
   ll_for_each (spec, struct dls_var_spec, ll, specs)
     {
+      char fmt_string[FMT_STRING_LEN_MAX + 1];
       tab_text (t, 0, row, TAB_LEFT, spec->name);
       tab_text (t, 1, row, TAT_PRINTF, "%d", spec->record);
       tab_text (t, 2, row, TAT_PRINTF, "%3d-%3d",
                 spec->first_column, spec->first_column + spec->input.w - 1);
-      tab_text (t, 3, row, TAB_LEFT | TAB_FIX, fmt_to_string (&spec->input));
+      tab_text (t, 3, row, TAB_LEFT | TAB_FIX,
+                fmt_to_string (&spec->input, fmt_string));
       row++;
     }
 
@@ -451,15 +453,15 @@ parse_free (struct dictionary *dict, struct pool *tmp_pool, struct data_list_pgm
       if (lex_match ('('))
 	{
 	  if (!parse_format_specifier (&input)
-              || !check_input_specifier (&input, 1)
+              || !fmt_check_input (&input)
               || !lex_force_match (')')) 
             return NULL;
-	  convert_fmt_ItoO (&input, &output);
+	  output = fmt_for_output_from_input (&input);
 	}
       else
 	{
 	  lex_match ('*');
-          input = make_input_format (FMT_F, 8, 0);
+          input = fmt_for_input (FMT_F, 8, 0);
 	  output = *get_format ();
 	}
 
@@ -468,8 +470,7 @@ parse_free (struct dictionary *dict, struct pool *tmp_pool, struct data_list_pgm
           struct dls_var_spec *spec;
 	  struct variable *v;
 
-	  v = dict_create_var (dict, name[i],
-                               get_format_var_width (&input));
+	  v = dict_create_var (dict, name[i], fmt_var_width (&input));
 	  if (v == NULL)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
@@ -509,12 +510,13 @@ dump_free_table (const struct data_list_pgm *dls,
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 1, spec_cnt);
   tab_hline (t, TAL_2, 0, 1, 1);
   tab_dim (t, tab_natural_dimensions);
-
   row = 1;
   ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
     {
+      char str[FMT_STRING_LEN_MAX + 1];
       tab_text (t, 0, row, TAB_LEFT, spec->name);
-      tab_text (t, 1, row, TAB_LEFT | TAB_FIX, fmt_to_string (&spec->input));
+      tab_text (t, 1, row, TAB_LEFT | TAB_FIX,
+                fmt_to_string (&spec->input, str));
       row++;
     }
 
@@ -740,7 +742,7 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 		 spec->name);
           ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs)
             {
-              int width = get_format_var_width (&spec->input);
+              int width = fmt_var_width (&spec->input);
               if (width == 0)
                 case_data_rw (c, spec->fv)->f = SYSMIS;
               else

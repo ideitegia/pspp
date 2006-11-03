@@ -1,6 +1,6 @@
 /* 
     PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2005  Free Software Foundation
+    Copyright (C) 2005, 2006  Free Software Foundation
     Written by John Darrington
 
     This program is free software; you can redistribute it and/or modify
@@ -37,6 +37,7 @@
 
 #include <data/variable.h>
 #include <data/settings.h>
+#include <libpspp/message.h>
 
 
 struct tgs
@@ -291,7 +292,8 @@ preview_custom(GtkWidget *w, gpointer data)
   text = gtk_entry_get_text(GTK_ENTRY(dialog->entry_width));
   dialog->fmt_l.w = atoi(text);
 
-  if ( ! check_output_specifier(&dialog->fmt_l, 0))
+  msg_disable ();
+  if ( ! fmt_check_output(&dialog->fmt_l))
     {
       gtk_label_set_text(GTK_LABEL(dialog->label_psample), "---");
       gtk_label_set_text(GTK_LABEL(dialog->label_nsample), "---");
@@ -311,6 +313,7 @@ preview_custom(GtkWidget *w, gpointer data)
       gtk_label_set_text(GTK_LABEL(dialog->label_nsample), sample_text);
       g_free(sample_text);
     }
+  msg_enable ();
 }
 
 /* Callback for when a treeview row is changed.
@@ -539,10 +542,11 @@ var_type_dialog_create(GladeXML *xml)
   list_store = gtk_list_store_new (2, G_TYPE_STRING, 
 						 G_TYPE_POINTER);
 
-  for ( i = 0 ; i < CC_CNT ; ++i ) 
+  for ( i = 0 ; i < 5 ; ++i ) 
     {
+      enum fmt_type cc_fmts[5] = {FMT_CCA, FMT_CCB, FMT_CCC, FMT_CCD, FMT_CCE};
       gchar text[4];
-      g_snprintf(text, 4, "CC%c", 'A' + i);
+      g_snprintf(text, 4, "%s", fmt_name (cc_fmts[i]));
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, text,
@@ -636,9 +640,11 @@ select_treeview_from_format(GtkTreeView *treeview, const struct fmt_spec *fmt)
       gtk_tree_view_set_cursor(treeview, path, 0, 0);
       gtk_tree_path_free(path);
     }
-  else
-    g_warning("Unusual date format: %s\n", fmt_to_string(fmt));
-
+  else 
+    {
+      char str[FMT_STRING_LEN_MAX + 1];
+      g_warning("Unusual date format: %s\n", fmt_to_string(fmt, str));
+    }
 }
 
 
@@ -788,7 +794,7 @@ make_output_format_try (struct fmt_spec *f, int type, int w, int d)
   f->type = type;
   f->w = w;
   f->d = d;
-  return check_output_specifier (f, true);
+  return fmt_check_output (f);
 }
 
 
@@ -838,7 +844,7 @@ on_var_type_ok_clicked(GtkWidget *w, gpointer data)
 	break;
       case BUTTON_DATE:
       case BUTTON_CUSTOM:
-	g_assert(check_output_specifier(&dialog->fmt_l, TRUE));
+	g_assert(fmt_check_output(&dialog->fmt_l));
 	result = memcpy(&spec, &dialog->fmt_l, sizeof(struct fmt_spec));
 	break;
       case BUTTON_DOLLAR:

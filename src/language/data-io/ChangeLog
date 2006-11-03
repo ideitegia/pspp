@@ -1,3 +1,18 @@
+Tue Oct 31 20:04:06 2006  Ben Pfaff  <blp@gnu.org>
+
+	* placement-parser.c: (PRS_TYPE_T) Now that struct fmt_spec uses
+	an enum fmt_type for its type member, we can't depend on the
+	ability to put negative values into that member as out-of-band
+	values, because enum fmt_type might be an unsigned type.  So use
+	values around SCHAR_MAX instead, because we know that SCHAR_MAX
+	will fit into any type, signed or unsigned, and there aren't
+	nearly that many format types.
+	(parse_var_placements) Add for_input parameter to specify whether
+	we're parsing input or output formats.  Update all callers.
+	(fixed_parse_columns) Ditto.
+	(fixed_parse_fortran) Ditto.
+	
+
 Tue Oct 31 18:21:48 2006  Ben Pfaff  <blp@gnu.org>
 
 	* print-space.c (print_space_trns_proc): Let dfm_put_record add

@@ -317,7 +317,8 @@ parse_variable_argument (const struct dictionary *dict,
 
   if (lex_is_number () || token == '(')
     {
-      if (!parse_var_placements (tmp_pool, var_cnt, &formats, &format_cnt))
+      if (!parse_var_placements (tmp_pool, var_cnt, false,
+                                 &formats, &format_cnt))
         return false;
       add_space = false;
     }
@@ -345,7 +346,7 @@ parse_variable_argument (const struct dictionary *dict,
         struct prt_out_spec *spec;
 
         var = vars[var_idx++];
-        if (!check_specifier_width (f, var->width, true))
+        if (!fmt_check_width_compat (f, var->width))
           return false;
 
         spec = pool_alloc (trns->pool, sizeof *spec);
@@ -362,7 +363,8 @@ parse_variable_argument (const struct dictionary *dict,
            that usually contains a period. */ 
         spec->sysmis_as_spaces = (which_formats == WRITE
                                   && var->type == NUMERIC
-                                  && !fmt_is_binary (spec->format.type));
+                                  && (fmt_get_category (spec->format.type)
+                                      != FMT_CAT_BINARY));
 
         ll_push_tail (&trns->specs, &spec->ll);
 
@@ -397,6 +399,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
   row = 1;
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs) 
     {
+      char fmt_string[FMT_STRING_LEN_MAX + 1];
       int width;
       switch (spec->type)
         {
@@ -408,7 +411,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
         case PRT_VAR:
           tab_text (t, 0, row, TAB_LEFT, spec->var->name);
           tab_text (t, 3, row, TAB_LEFT | TAB_FIX,
-                    fmt_to_string (&spec->format));
+                    fmt_to_string (&spec->format, fmt_string));
           width = spec->format.w;
           break;
         default:
