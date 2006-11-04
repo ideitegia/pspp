@@ -23,15 +23,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/* Types of routing. */
-enum
-  {
-    SET_ROUTE_SCREEN = 001,	/* Output to screen devices? */
-    SET_ROUTE_LISTING = 002,	/* Output to listing devices? */
-    SET_ROUTE_OTHER = 004,	/* Output to other devices? */
-    SET_ROUTE_DISABLE = 010	/* Disable output--overrides all other bits. */
-  };
-
 void settings_init (void);
 void settings_done (void);
 
@@ -55,6 +46,11 @@ void set_epoch (int);
 
 bool get_errorbreak (void);
 void set_errorbreak (bool);
+
+bool get_error_routing_to_terminal (void);
+void set_error_routing_to_terminal (bool);
+bool get_error_routing_to_listing (void);
+void set_error_routing_to_listing (bool);
 
 bool get_scompression (void);
 void set_scompression (bool);

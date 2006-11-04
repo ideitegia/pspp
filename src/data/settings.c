@@ -40,6 +40,9 @@ static int epoch = -1;
 
 static bool errorbreak = false;
 
+static bool route_errors_to_terminal = true;
+static bool route_errors_to_listing = true;
+
 static bool scompress = true;
 
 static bool undefined = true;
@@ -240,6 +243,36 @@ void
 set_errorbreak (bool errorbreak_) 
 {
   errorbreak = errorbreak_;
+}
+
+/* Route error messages to terminal? */
+bool
+get_error_routing_to_terminal (void) 
+{
+  return route_errors_to_terminal;
+}
+
+/* Sets whether error messages should be routed to the
+   terminal. */
+void
+set_error_routing_to_terminal (bool route_to_terminal) 
+{
+  route_errors_to_terminal = route_to_terminal;
+}
+
+/* Route error messages to listing file? */
+bool
+get_error_routing_to_listing (void) 
+{
+  return route_errors_to_listing;
+}
+
+/* Sets whether error messages should be routed to the
+   listing file. */
+void
+set_error_routing_to_listing (bool route_to_listing) 
+{
+  route_errors_to_listing = route_to_listing;
 }
 
 /* Compress system files by default? */

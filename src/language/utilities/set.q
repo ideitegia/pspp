@@ -74,7 +74,7 @@ int tgetnum (const char *);
      endcmd=string "x==1" "one character long";
      epoch=custom;
      errorbreak=errbrk:on/off;
-     errors=errors:on/off/terminal/listing/both/none;
+     errors=errors:terminal/listing/both/on/none/off;
      format=custom;
      headers=headers:no/yes/blank;
      highres=hires:on/off;
@@ -86,7 +86,7 @@ int tgetnum (const char *);
      lowres=lores:auto/on/off;
      lpi=integer "x>0" "%s must be greater than 0";
      menus=menus:standard/extended;
-     messages=messages:on/off/terminal/listing/both/none;
+     messages=messages:on/off/terminal/listing/both/on/none/off;
      mexpand=mexp:on/off;
      miterate=integer "x>0" "%s must be greater than 0";
      mnest=integer "x>0" "%s must be greater than 0";
@@ -98,7 +98,7 @@ int tgetnum (const char *);
      nulline=null:on/off;
      printback=prtbck:on/off;
      prompt=string;
-     results=res:on/off/terminal/listing/both/none;
+     results=res:on/off/terminal/listing/both/on/none/off;
      safer=safe:on;
      scompression=scompress:on/off;
      scripttab=string "x==1" "one character long";
@@ -153,6 +153,12 @@ cmd_set (struct dataset *ds)
     set_endcmd (cmd.s_endcmd[0]);
   if (cmd.sbc_errorbreak)
     set_errorbreak (cmd.errbrk == STC_ON);
+  if (cmd.sbc_errors)
+    {
+      bool both = cmd.errors == STC_BOTH || cmd.errors == STC_ON;
+      set_error_routing_to_terminal (cmd.errors == STC_TERMINAL || both);
+      set_error_routing_to_listing (cmd.errors == STC_LISTING || both);
+    }
   if (cmd.sbc_include)
     set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
@@ -556,6 +562,18 @@ show_endcmd (const struct dataset *ds UNUSED)
 }
 
 static void
+show_errors (const struct dataset *ds UNUSED) 
+{
+  bool terminal = get_error_routing_to_terminal ();
+  bool listing = get_error_routing_to_listing ();
+  msg (SN, _("ERRORS is \"%s\"."),
+       terminal && listing ? "BOTH"
+       : terminal ? "TERMINAL"
+       : listing ? "LISTING"
+       : "NONE");
+}
+
+static void
 show_format (const struct dataset *ds UNUSED) 
 {
   char str[FMT_STRING_LEN_MAX + 1];
@@ -636,6 +654,7 @@ const struct show_sbc show_table[] =
     {"CCE", show_cce},
     {"DECIMALS", show_decimals},
     {"ENDCMD", show_endcmd},
+    {"ERRORS", show_errors},      
     {"FORMAT", show_format},
     {"LENGTH", show_length},
     {"MXERRS", show_mxerrs},

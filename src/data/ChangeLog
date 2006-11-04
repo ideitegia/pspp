@@ -1,3 +1,16 @@
+Sat Nov  4 11:47:09 2006  Ben Pfaff  <blp@gnu.org>
+
+	Implement SET ERRORS, SHOW ERRORS.  Fixes bug #17609.
+	
+	* settings.c: (route_errors_to_terminal) New variable.
+	(route_errors_to_listing) New variable. 
+	(get_error_routing_to_terminal) New function.
+	(set_error_routing_to_terminal) New function.
+	(get_error_routing_to_listing) New function.
+	(set_error_routing_to_listing) New function.
+
+	* settings.h: (SET_ROUTE_* enums) Removed, because unused.
+
 Tue Oct 31 19:58:27 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format.c: Completely rewrite, to achieve better abstraction.
