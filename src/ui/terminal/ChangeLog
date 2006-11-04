@@ -1,3 +1,8 @@
+Sat Nov  4 15:48:04 2006  Ben Pfaff  <blp@gnu.org>
+
+	* msg-ui.c (handle_msg): Only write message to terminal if
+	get_error_routing_to_terminal() returns true.
+
 Fri Jul  7 20:03:42 2006  Ben Pfaff  <blp@gnu.org>
 
 	* main.c: (main) Register SIGABRT with bug_handler also.

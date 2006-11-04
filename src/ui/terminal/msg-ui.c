@@ -141,9 +141,8 @@ handle_msg (const struct msg *m)
 
   ds_put_cstr (&string, m->text);
 
-  /* FIXME: Check set_messages and set_errors to determine where to
-     send errors and messages. */
-  dump_message (ds_cstr (&string), get_viewwidth (), 8, stdout);
+  if (get_error_routing_to_terminal ())
+    dump_message (ds_cstr (&string), get_viewwidth (), 8, stdout);
 
   ds_destroy (&string);
 }
