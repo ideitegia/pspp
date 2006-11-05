@@ -730,7 +730,7 @@ calc_descriptives (const struct ccase *first,
   dsc->valid = 0.;
 
   /* First pass to handle most of the work. */
-  for (reader = casefile_get_reader (cf);
+  for (reader = casefile_get_reader (cf, NULL);
        casereader_read (reader, &c);
        case_destroy (&c))
     {
@@ -775,7 +775,7 @@ calc_descriptives (const struct ccase *first,
   /* Second pass for higher-order moments. */
   if (dsc->max_moment > MOMENT_MEAN) 
     {
-      for (reader = casefile_get_reader (cf);
+      for (reader = casefile_get_reader (cf, NULL);
            casereader_read (reader, &c);
            case_destroy (&c))
         {

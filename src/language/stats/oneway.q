@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <data/casefilter.h>
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
@@ -65,8 +66,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* (declarations) */
 /* (functions) */
 
-
-
 static bool bad_weight_warn = true;
 
 
@@ -91,12 +90,9 @@ static struct hsh_table *global_group_hash ;
 static int ostensible_number_of_groups = -1;
 
 
-/* Function to use for testing for missing values */
-static is_missing_func *value_is_missing;
-
-
 static bool run_oneway(const struct ccase *first,
-                       const struct casefile *cf, void *_mode, const struct dataset *);
+                       const struct casefile *cf, 
+		       void *_mode, const struct dataset *);
 
 
 /* Routines to show the output tables */
@@ -123,12 +119,6 @@ cmd_oneway (struct dataset *ds)
 
   if ( !parse_oneway (ds, &cmd, NULL) )
     return CMD_FAILURE;
-
-  /* If /MISSING=INCLUDE is set, then user missing values are ignored */
-  if (cmd.incl == ONEWAY_INCLUDE ) 
-    value_is_missing = mv_is_value_system_missing;
-  else
-    value_is_missing = mv_is_value_missing;
 
   /* What statistics were requested */
   if ( cmd.sbc_statistics ) 
@@ -223,7 +213,8 @@ output_oneway(void)
 
 /* Parser for the variables sub command */
 static int
-oneway_custom_variables(struct dataset *ds, struct cmd_oneway *cmd UNUSED, void *aux UNUSED)
+oneway_custom_variables(struct dataset *ds, struct cmd_oneway *cmd UNUSED, 
+			void *aux UNUSED)
 {
   struct dictionary *dict = dataset_dict (ds);
 
@@ -360,9 +351,8 @@ show_anova_table(void)
 
   tab_title (t, _("ANOVA"));
   tab_submit (t);
-
-
 }
+
 
 /* Show the descriptives table */
 static void  
@@ -570,14 +560,12 @@ show_homogeneity(void)
     }
 
   tab_submit (t);
-
-
 }
 
 
 /* Show the contrast coefficients table */
 static void 
-show_contrast_coeffs(short *bad_contrast)
+show_contrast_coeffs (short *bad_contrast)
 {
   int n_cols = 2 + ostensible_number_of_groups;
   int n_rows = 2 + cmd.sbc_contrast;
@@ -892,10 +880,12 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 
 
 static bool
-run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, const struct dataset *ds)
+run_oneway(const struct ccase *first, const struct casefile *cf, 
+	   void *cmd_, const struct dataset *ds)
 {
   struct casereader *r;
   struct ccase c;
+  struct casefilter *filter = NULL;
 
   struct cmd_oneway *cmd = (struct cmd_oneway *) cmd_;
 
@@ -906,9 +896,13 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, con
 				 (hsh_hash_func *) hash_value,
 				 0,
 				 (void *) indep_var->width );
+
   precalc(cmd);
 
-  for(r = casefile_get_reader (cf);
+  filter = casefilter_create ( (cmd->incl != ONEWAY_INCLUDE), 
+			       vars, n_vars );
+
+  for(r = casefile_get_reader (cf, filter);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
@@ -917,28 +911,12 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, con
       const double weight = 
 	dict_get_case_weight (dataset_dict (ds), &c, &bad_weight_warn);
       
-      const union value *indep_val = case_data (&c, indep_var->fv);
+      const union value *indep_val;
 
-      /* Deal with missing values */
-      if ( value_is_missing(&indep_var->miss, indep_val) )
+      if ( casefilter_variable_missing (filter, &c, indep_var))
 	continue;
 
-      /* Skip the entire case if /MISSING=LISTWISE is set */
-      if ( cmd->miss == ONEWAY_LISTWISE ) 
-	{
-	  for(i = 0; i < n_vars ; ++i) 
-	    {
-	      const struct variable *v = vars[i];
-	      const union value *val = case_data (&c, v->fv);
-
-	      if (value_is_missing(&v->miss, val) )
-		break;
-	    }
-	  if ( i != n_vars ) 
-	    continue;
-
-	}
-      
+      indep_val = case_data (&c, indep_var->fv);
 	  
       hsh_insert ( global_group_hash, (void *) indep_val );
 
@@ -968,8 +946,8 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, con
 
 	      hsh_insert ( group_hash, (void *) gs );
 	    }
-	  
-	  if (! value_is_missing(&v->miss, val) )
+
+	  if (! casefilter_variable_missing (filter, &c, v))
 	    {
 	      struct group_statistics *totals = &gp->ugs;
 
@@ -998,6 +976,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, con
 	}
   
     }
+
   casereader_destroy (r);
 
   postcalc(cmd);
@@ -1005,8 +984,9 @@ run_oneway(const struct ccase *first, const struct casefile *cf, void *cmd_, con
   
   if ( stat_tables & STAT_HOMO ) 
     levene (dataset_dict (ds), cf, indep_var, n_vars, vars, 
-	   (cmd->miss == ONEWAY_LISTWISE) ? LEV_LISTWISE : LEV_ANALYSIS ,
-	   value_is_missing);
+	    filter);
+
+  casefilter_destroy (filter);
 
   ostensible_number_of_groups = hsh_count (global_group_hash);
 

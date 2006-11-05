@@ -123,7 +123,7 @@ storage_source_read (struct case_source *source,
   struct casereader *reader;
   bool ok = true;
 
-  for (reader = casefile_get_reader (info->casefile);
+  for (reader = casefile_get_reader (info->casefile, NULL);
        ok && casereader_read (reader, &casefile_case);
        case_destroy (&casefile_case))
     {

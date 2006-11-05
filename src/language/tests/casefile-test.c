@@ -101,8 +101,8 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
     write_random_case (cf, i);
   if (pattern == 5)
     casefile_sleep (cf);
-  r1 = casefile_get_reader (cf);
-  r2 = casefile_get_reader (cf);
+  r1 = casefile_get_reader (cf, NULL);
+  r2 = casefile_get_reader (cf, NULL);
   switch (pattern) 
     {
     case 0:
@@ -246,7 +246,7 @@ test_casereader_clone (struct casereader *reader1, size_t case_cnt)
       cases ++;
     }
 
-  newreader = casefile_get_reader (newfile);
+  newreader = casefile_get_reader (newfile, NULL);
 
   /* Make sure that the new file's are identical to those returned from 
      the cloned reader */

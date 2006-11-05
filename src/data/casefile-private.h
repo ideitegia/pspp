@@ -27,6 +27,7 @@
 struct ccase;
 struct casereader;
 struct casefile;
+struct casefilter;
 
 struct class_casefile
 {
@@ -78,6 +79,8 @@ struct casereader
 
   struct casefile *cf;   /* The casefile to which this reader belongs */
   struct ll ll;          /* Element in the casefile's list of readers */
+
+  struct casefilter *filter; /* The filter to be used */
   bool destructive;      /* True if this reader is destructive */
 };
 

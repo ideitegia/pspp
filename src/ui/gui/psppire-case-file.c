@@ -326,7 +326,7 @@ psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *sc)
   struct ccase cc;
   gint c;
   struct casefile *cfile;
-  struct casereader *reader = casefile_get_reader(cf->flexifile);
+  struct casereader *reader = casefile_get_reader (cf->flexifile, NULL);
   const int value_cnt = casefile_get_value_cnt(cf->flexifile);
 
   cfile = sort_execute(reader, sc);

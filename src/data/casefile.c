@@ -26,6 +26,7 @@
 #include "case.h"
 #include "casefile.h"
 #include "casefile-private.h"
+#include "casefilter.h"
 
 
 struct ccase;
@@ -116,6 +117,24 @@ casereader_cnum(const struct casereader *r)
   return r->class->cnum(r);
 }
 
+static struct ccase *
+get_next_case(struct casereader *reader)
+{
+  struct ccase *read_case = NULL;
+  struct casefile *cf = casereader_get_casefile (reader);
+
+  do 
+    { 
+      if ( casefile_error (cf) )
+	return NULL;
+  
+      read_case = reader->class->get_next_case (reader);
+    } 
+  while ( read_case && reader->filter 
+	  && casefilter_skip_case (reader->filter, read_case) ) ;
+
+  return read_case;
+}
 
 /* Reads a copy of the next case from READER into C.
    Caller is responsible for destroying C.
@@ -123,15 +142,10 @@ casereader_cnum(const struct casereader *r)
 bool
 casereader_read (struct casereader *reader, struct ccase *c)
 {
-  struct casefile *cf = casereader_get_casefile (reader);
+  struct ccase * read_case = get_next_case (reader) ;
 
-  struct ccase *read_case = NULL;
-
-  if ( casefile_error (cf) )
+  if ( NULL == read_case ) 
     return false;
-
-  read_case = reader->class->get_next_case (reader);
-  if ( ! read_case ) return false;
 
   case_clone (c, read_case );
 
@@ -144,20 +158,18 @@ casereader_read (struct casereader *reader, struct ccase *c)
    Returns true if successful, false at end of file or on I/O
    error. */
 bool
-casereader_read_xfer (struct casereader *ffr, struct ccase *c)
+casereader_read_xfer (struct casereader *reader, struct ccase *c)
 {
-  struct casefile *cf = casereader_get_casefile (ffr);
-
-  struct ccase *read_case = NULL ;
-
+  struct casefile *cf = casereader_get_casefile (reader);
+  struct ccase *read_case ;
   case_nullify (c);
-  if ( casefile_error (cf) )
+
+  read_case = get_next_case (reader) ;
+
+  if ( NULL == read_case )
     return false;
 
-  read_case = ffr->class->get_next_case (ffr);
-  if ( ! read_case ) return false;
-
-  if ( ffr->destructive && casefile_in_core (cf) )
+  if ( reader->destructive && casefile_in_core (cf) )
     case_move (c, read_case);
   else
     case_clone (c, read_case);
@@ -178,10 +190,16 @@ casereader_destroy (struct casereader *r)
 struct casereader *
 casereader_clone(const struct casereader *r)
 {
+  struct casereader *r2;
+
   /* Would we ever want to clone a destructive reader ?? */
   assert ( ! r->destructive ) ;
 
-  return r->class->clone (r);
+  r2 = r->class->clone (r);
+
+  r2->filter = r->filter;
+
+  return r2;
 }
 
 /* Destroys casefile CF. */
@@ -224,10 +242,11 @@ casefile_get_value_cnt (const struct casefile *cf)
 /* Creates and returns a casereader for CF.  A casereader can be used to
    sequentially read the cases in a casefile. */
 struct casereader *
-casefile_get_reader (const struct casefile *cf)
+casefile_get_reader  (const struct casefile *cf, struct casefilter *filter)
 {
   struct casereader *r = cf->class->get_reader(cf);
   r->cf = (struct casefile *) cf;
+  r->filter = filter;
 
   assert (r->class);
   

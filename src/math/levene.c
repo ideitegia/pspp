@@ -30,6 +30,7 @@
 #include <libpspp/str.h>
 #include <data/variable.h>
 #include <data/procedure.h>
+#include <data/casefilter.h>
 #include <libpspp/alloc.h>
 #include <libpspp/misc.h>
 #include "group.h"
@@ -73,22 +74,21 @@ struct levene_info
   /* The dependent variables */
   struct variable  **v_dep;
 
-  /* How to treat missing values */
-  enum lev_missing missing;
-
-  /* Function to test for missing values */
-  is_missing_func *is_missing;
+  /* Filter for missing values */
+  struct casefilter *filter;
 };
 
 /* First pass */
 static void  levene_precalc (const struct levene_info *l);
-static int levene_calc (const struct dictionary *dict, const struct ccase *, void *);
+static int levene_calc (const struct dictionary *dict, const struct ccase *, 
+			const struct levene_info *l);
 static void levene_postcalc (void *);
 
 
 /* Second pass */
-static void levene2_precalc (void *);
-static int levene2_calc (const struct dictionary *,const struct ccase *, void *);
+static void levene2_precalc (struct levene_info *l);
+static int levene2_calc (const struct dictionary *, const struct ccase *, 
+			 struct levene_info *l);
 static void levene2_postcalc (void *);
 
 
@@ -96,7 +96,7 @@ void
 levene(const struct dictionary *dict, 
        const struct casefile *cf,
        struct variable *v_indep, size_t n_dep, struct variable **v_dep,
-       enum lev_missing missing,   is_missing_func value_is_missing)
+       struct casefilter *filter)
 {
   struct casereader *r;
   struct ccase c;
@@ -105,31 +105,28 @@ levene(const struct dictionary *dict,
   l.n_dep      = n_dep;
   l.v_indep    = v_indep;
   l.v_dep      = v_dep;
-  l.missing    = missing;
-  l.is_missing = value_is_missing;
+  l.filter = filter;
 
 
-
-  levene_precalc(&l);
-  for(r = casefile_get_reader (cf);
+  levene_precalc (&l);
+  for(r = casefile_get_reader (cf, filter);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
-      levene_calc (dict, &c,&l);
+      levene_calc (dict, &c, &l);
     }
   casereader_destroy (r);
-  levene_postcalc(&l);
+  levene_postcalc (&l);
 
   levene2_precalc(&l);
-  for(r = casefile_get_reader (cf);
+  for(r = casefile_get_reader (cf, filter);
       casereader_read (r, &c) ;
       case_destroy (&c)) 
     {
       levene2_calc (dict, &c,&l);
     }
   casereader_destroy (r);
-  levene2_postcalc(&l);
-
+  levene2_postcalc (&l);
 }
 
 /* Internal variables used in calculating the Levene statistic */
@@ -185,30 +182,15 @@ levene_precalc (const struct levene_info *l)
 }
 
 static int 
-levene_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
+levene_calc (const struct dictionary *dict, const struct ccase *c, 
+	     const struct levene_info *l)
 {
   size_t i;
   bool warn = false;
-  struct levene_info *l = (struct levene_info *) _l;
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;
   double weight = dict_get_case_weight (dict, c, &warn); 
 
-  /* Skip the entire case if /MISSING=LISTWISE is set */
-  if ( l->missing == LEV_LISTWISE ) 
-    {
-      for (i = 0; i < l->n_dep; ++i) 
-	{
-	  struct variable *v = l->v_dep[i];
-	  const union value *val = case_data (c, v->fv);
-
-	  if (l->is_missing (&v->miss, val) )
-	    {
-	      return 0;
-	    }
-	}
-    }
-  
   key.id = *gv;
 
   for (i = 0; i < l->n_dep; ++i) 
@@ -224,7 +206,7 @@ levene_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
       if ( 0 == gs ) 
 	continue ;
 
-      if ( ! l->is_missing(&var->miss, v))
+      if ( ! casefilter_variable_missing (l->filter, c, var))
 	{
 	  levene_z= fabs(v->f - gs->mean);
 	  lz[i].grand_total += levene_z * weight;
@@ -232,7 +214,6 @@ levene_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
 
 	  gs->lz_total += levene_z * weight;
 	}
-
     }
   return 0;
 }
@@ -255,20 +236,21 @@ levene_postcalc (void *_l)
 }
 
 
+
 /* The denominator for the expression for the Levene */
-static double *lz_denominator;
+static double *lz_denominator = 0;
 
 static void 
-levene2_precalc (void *_l)
+levene2_precalc (struct levene_info *l)
 {
   size_t v;
-
-  struct levene_info *l = (struct levene_info *) _l;
 
   lz_denominator = xnmalloc (l->n_dep, sizeof *lz_denominator);
 
   /* This stuff could go in the first post calc . . . */
-  for (v = 0; v < l->n_dep; ++v) 
+  for (v = 0; 
+       v < l->n_dep; 
+       ++v) 
     {
       struct hsh_iterator hi;
       struct group_statistics *g;
@@ -288,32 +270,16 @@ levene2_precalc (void *_l)
 }
 
 static int 
-levene2_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
+levene2_calc (const struct dictionary *dict, const struct ccase *c, 
+	      struct levene_info *l)
 {
   size_t i;
   bool warn = false;
-
-  struct levene_info *l = (struct levene_info *) _l;
 
   double weight = dict_get_case_weight (dict, c, &warn); 
 
   const union value *gv = case_data (c, l->v_indep->fv);
   struct group_statistics key;
-
-  /* Skip the entire case if /MISSING=LISTWISE is set */
-  if ( l->missing == LEV_LISTWISE ) 
-    {
-      for (i = 0; i < l->n_dep; ++i) 
-	{
-	  struct variable *v = l->v_dep[i];
-	  const union value *val = case_data (c, v->fv);
-
-	  if (l->is_missing(&v->miss, val) )
-	    {
-	      return 0;
-	    }
-	}
-    }
 
   key.id = *gv;
 
@@ -329,10 +295,11 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c, void *_l)
       if ( 0 == gs ) 
 	continue;
 
-      if ( ! l->is_missing (&var->miss, v) )
+      if ( ! casefilter_variable_missing (l->filter, c, var))
+
 	{
 	  levene_z = fabs(v->f - gs->mean); 
-	  lz_denominator[i] += weight * pow2(levene_z - gs->lz_mean);
+	  lz_denominator[i] += weight * pow2 (levene_z - gs->lz_mean);
 	}
     }
 

@@ -599,7 +599,7 @@ rank_sorted_casefile (struct casefile *cf,
 		      const struct missing_values *mv)
 {
   struct casefile *dest = fastfile_create (casefile_get_value_cnt (cf));
-  struct casereader *lookahead = casefile_get_reader (cf);
+  struct casereader *lookahead = casefile_get_reader (cf, NULL);
   struct casereader *pos = casereader_clone (lookahead);
   struct ccase group_case;
   bool warn = true;

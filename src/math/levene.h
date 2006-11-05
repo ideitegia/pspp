@@ -26,9 +26,6 @@
 #include <data/variable.h>
 #include <data/casefile.h>
 
-/* What to do with missing values */
-enum lev_missing { LEV_ANALYSIS, LEV_LISTWISE };
-
 /* Calculate the Levene statistic 
 
 The independent variable :   v_indep; 
@@ -41,10 +38,11 @@ The dependent variables :   v_dep;
 
 
 struct dictionary ;
+struct casefilter ;
 
 void  levene(const struct dictionary *dict, const struct casefile *cf, 
 	     struct variable *v_indep, size_t n_dep, struct variable **v_dep,
-	     enum lev_missing,   is_missing_func);
+	     struct casefilter *filter);
 
 
 

@@ -980,7 +980,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
   size_t row;
   const union value *val;
 
-  for (r = casefile_get_reader (cf);
+  for (r = casefile_get_reader (cf, NULL);
        casereader_read (r, &c); case_destroy (&c))
     {
       row = casereader_cnum (r) - 1;
@@ -1186,7 +1186,7 @@ run_regression (const struct ccase *first,
          The second pass fills the design matrix.
        */
       row = 0;
-      for (r = casefile_get_reader (cf); casereader_read (r, &c);
+      for (r = casefile_get_reader (cf, NULL); casereader_read (r, &c);
 	   case_destroy (&c))
 	/* Iterate over the cases. */
 	{

@@ -71,7 +71,7 @@ scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
   *dict = dict_clone (sh->dictionary);
   reader = xmalloc (sizeof *reader);
   reader->fh = fh;
-  reader->casereader = casefile_get_reader (sh->casefile);
+  reader->casereader = casefile_get_reader (sh->casefile, NULL);
   return reader;
 }
 

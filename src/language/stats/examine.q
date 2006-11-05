@@ -718,7 +718,7 @@ run_examine(const struct ccase *first, const struct casefile *cf,
   for ( v = 0 ; v < n_dependent_vars ; ++v ) 
     metrics_precalc(&totals[v]);
 
-  for(r = casefile_get_reader (cf);
+  for(r = casefile_get_reader (cf, NULL);
       casereader_read (r, &c) ;
       case_destroy (&c) ) 
     {

@@ -93,7 +93,7 @@ static bool
 sort_to_casefile_callback (const struct casefile *cf, void *cb_data_) 
 {
   struct sort_to_casefile_cb_data *cb_data = cb_data_;
-  cb_data->output = sort_execute (casefile_get_reader (cf), cb_data->criteria);
+  cb_data->output = sort_execute (casefile_get_reader (cf, NULL), cb_data->criteria);
   return cb_data->output != NULL;
 }
 

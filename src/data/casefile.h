@@ -28,7 +28,7 @@
 struct ccase;
 struct casereader;
 struct casefile;
-
+struct casefilter;
 
 /* Casereader functions */
 
@@ -55,7 +55,7 @@ unsigned long casefile_get_case_cnt (const struct casefile *cf);
 
 size_t casefile_get_value_cnt (const struct casefile *cf);
 
-struct casereader *casefile_get_reader (const struct casefile *cf);
+struct casereader *casefile_get_reader (const struct casefile *cf, struct casefilter *filter);
 
 struct casereader *casefile_get_destructive_reader (struct casefile *cf);
 

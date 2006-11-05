@@ -1,3 +1,7 @@
+Sun Nov  5 08:31:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q, oneway.q: Changed to use the new casefilter structure.
+
 Sat Oct 14 16:52:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	* rank.q: (rank_sorted_casefile) Add some missing case_destroy()
