@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #include <data/case.h>
-#include <data/format.h>
+#include <data/data-out.h>
 #include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
@@ -460,7 +460,7 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
           const union value *input = case_data (c, spec->var->fv);
           char *output = ds_put_uninit (&trns->line, spec->format.w);
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
-            data_out (output, &spec->format, input);
+            data_out (input, &spec->format, output);
           else
             memset (output, ' ', spec->format.w);
           if (spec->add_space)

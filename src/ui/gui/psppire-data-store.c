@@ -28,6 +28,7 @@
 
 #include <data/casefile.h>
 #include <data/case.h>
+#include <data/data-out.h>
 
 #include <gtksheet/gtksheet.h>
 #include <gtksheet/gsheetmodel.h>
@@ -506,7 +507,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
   /* Converts binary value V into printable form in the exactly
      FP->W character in buffer S according to format specification
      FP.  No null terminator is appended to the buffer.  */
-  data_out (s->str, fp, v);
+  data_out (v, fp, s->str);
 
   text = pspp_locale_to_utf8 (s->str, fp->w, 0);
   g_string_free (s, TRUE);

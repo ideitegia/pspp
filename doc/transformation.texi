@@ -287,7 +287,7 @@ one or more @dfn{test} variables for each case.
 
 The target variable values are always nonnegative integers.  They are
 never missing.  The target variable is assigned an F8.2 output format.
-@xref{Input/Output Formats}.  Any variables, including long and short
+@xref{Input and Output Formats}.  Any variables, including long and short
 string variables, may be test variables.
 
 User-missing values of test variables are treated just like any other

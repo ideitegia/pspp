@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -17,16 +17,21 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef LANGUAGE_LEXER_FORMAT_PARSER_H
-#define LANGUAGE_LEXER_FORMAT_PARSER_H 1 
+#ifndef DATA_OUT_H
+#define DATA_OUT_H 1
 
 #include <stdbool.h>
+#include <libpspp/integer-format.h>
 
-#include <data/format.h>
+struct fmt_spec;
+union value;
 
-bool parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
-                                      int *width, int *decimals);
-bool parse_format_specifier (struct fmt_spec *);
-bool parse_format_specifier_name (enum fmt_type *type);
+void data_out (const union value *, const struct fmt_spec *, char *);
 
-#endif /* language/lexer/format-parser.h. */
+enum integer_format data_out_get_integer_format (void);
+void data_out_set_integer_format (enum integer_format);
+
+enum float_format data_out_get_float_format (void);
+void data_out_set_float_format (enum float_format);
+
+#endif /* data-out.h */

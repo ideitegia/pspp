@@ -37,6 +37,7 @@
 #include <stdio.h>
 
 #include <data/case.h>
+#include <data/data-out.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/value-labels.h>
@@ -1718,7 +1719,7 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
   s.length = 10;
   s.string = tab_alloc (table, 16);
   v.f = value;
-  data_out (s.string, &f, &v);
+  data_out (&v, &f, s.string);
   while (*s.string == ' ')
     {
       s.length--;
@@ -3200,8 +3201,8 @@ format_short (char *s, const struct fmt_spec *fp, const union value *v)
     }
 
   /* Format. */
-  data_out (s, fp, v);
-  
+  data_out (v, fp, s);
+    
   /* Null terminate. */
   s[fp->w] = '\0';
 }

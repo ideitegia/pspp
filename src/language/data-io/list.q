@@ -26,6 +26,7 @@
 #include "size_max.h"
 #include <data/case.h>
 #include <data/dictionary.h>
+#include <data/data-out.h>
 #include <data/format.h>
 #include <data/procedure.h>
 #include <data/variable.h>
@@ -666,15 +667,15 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 
             if (fmt_is_string (v->print.type) || v->fv != -1)
 	      {
-                data_out (ds_put_uninit(&line_buffer, v->print.w),
-			  &v->print, case_data (c, v->fv));
+                data_out (case_data (c, v->fv), &v->print,
+                          ds_put_uninit (&line_buffer, v->print.w));
 	      }
             else 
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (ds_put_uninit(&line_buffer,v->print.w), 
-			  &v->print,   &case_idx_value); 
+                data_out (&case_idx_value, &v->print,
+                          ds_put_uninit (&line_buffer,v->print.w)); 
               }
 
 	    ds_put_char(&line_buffer, ' ');
@@ -702,12 +703,12 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 	    char buf[256];
 	    
             if (fmt_is_string (v->print.type) || v->fv != -1)
-	      data_out (buf, &v->print, case_data (c, v->fv));
+	      data_out (case_data (c, v->fv), &v->print, buf);
             else 
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (buf, &v->print, &case_idx_value); 
+                data_out (&case_idx_value, &v->print, buf);
               }
 
             fputs ("    <TD>", x->file);

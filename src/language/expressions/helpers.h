@@ -13,6 +13,7 @@
 #include <data/calendar.h>
 #include <data/case.h>
 #include <data/data-in.h>
+#include <data/data-out.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/settings.h>

@@ -1,3 +1,27 @@
+Sat Nov  4 15:59:56 2006  Ben Pfaff  <blp@gnu.org>
+
+	* calendar.c (calendar_offset_to_gregorian) Also return the
+	year-of-day.  Change callers to new interface.
+
+	* data-out.c: Completely rewrite internals to conform to SPSS
+	output formats as completely as possible.
+	(data_out) Change interface to put input parameters before output
+	parameters, for consistency with the style I now prefer.  Update
+	all callers.
+	(data_out_get_integer_format) New public function.
+	(data_out_set_integer_format) New public function.
+	(data_out_get_float_format) New public function.
+	(data_out_set_float_format) New public function.
+
+	* data-out.h: New file.  Move prototype for data_out here, from
+	format.h.
+
+	* format.c: (fmt_step_width) Use equality comparison instead of
+	bitwise and, for clarity.
+	(fmt_is_string) Ditto.
+	(fmt_input_to_output) Fix categories that are translated to F
+	format.
+
 Sun Nov  5 08:29:34 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* casefilter.c casefilter.h (new files), casefile.c casefile.h 

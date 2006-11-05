@@ -186,7 +186,7 @@ In columnar style, the starting column and ending column for the field
 are specified after the variable name, separated by a dash (@samp{-}).
 For instance, the third through fifth columns on a line would be
 specified @samp{3-5}.  By default, variables are considered to be in
-@samp{F} format (@pxref{Input/Output Formats}).  (This default can be
+@samp{F} format (@pxref{Input and Output Formats}).  (This default can be
 changed; see @ref{SET} for more information.)
 
 In columnar style, to use a variable format other than the default,
@@ -218,7 +218,7 @@ Implied decimal places also exist in FORTRAN style.  A format
 specification with @var{d} decimal places also has @var{d} implied
 decimal places.
 
-In addition to the standard format specifiers (@pxref{Input/Output
+In addition to the standard format specifiers (@pxref{Input and Output
 Formats}), FORTRAN style defines some extensions:
 
 @table @asis
@@ -381,7 +381,7 @@ The FILE and END subcommands are as in @cmd{DATA LIST FIXED} above.
 The variables to be parsed are given as a single list of variable names.
 This list must be introduced by a single slash (@samp{/}).  The set of
 variable names may contain format specifications in parentheses
-(@pxref{Input/Output Formats}).  Format specifications apply to all
+(@pxref{Input and Output Formats}).  Format specifications apply to all
 variables back to the previous parenthesized format specification.  
 
 In addition, an asterisk may be used to indicate that all variables

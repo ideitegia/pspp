@@ -163,9 +163,5 @@ enum measure
 
 bool measure_is_valid(enum measure m);
 bool alignment_is_valid(enum alignment a);
-
-#include <libpspp/legacy-encoding.h>
-
-bool data_out (char *s, const struct fmt_spec *fp, const union value *v);
 
 #endif /* format.h */

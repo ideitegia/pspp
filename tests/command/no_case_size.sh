@@ -92,12 +92,12 @@ diff -b -w pspp.list - <<EOF
 +--------+-------------------------------------------+--------+
                             CONT     SIZE      POP    COUNT
 -------------------------------- -------- -------- --------
-Asia                             44579000 3.67E+09    44.00 
-Africa                           30065000 7.78E+08    53.00 
-North America                    24256000 4.83E+08    23.00 
-South America                    17819000 3.42E+08    12.00 
+Asia                             44579000   4E+009    44.00 
+Africa                           30065000   8E+008    53.00 
+North America                    24256000   5E+008    23.00 
+South America                    17819000   3E+008    12.00 
 Antarctica                       13209000      .00      .00 
-Europe                            9938000 7.32E+08    46.00 
+Europe                            9938000   7E+008    46.00 
 Australia/Oceania                 7687000 31000000    14.00 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

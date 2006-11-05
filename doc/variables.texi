@@ -101,7 +101,7 @@ FORMATS var_list (fmt_spec).
 
 @cmd{FORMATS} set both print and write formats for the specified
 numeric variables to the specified format specification.
-@xref{Input/Output Formats}.
+@xref{Input and Output Formats}.
 
 Specify a list of variables followed by a format specification in
 parentheses.  The print and write formats of the specified variables
@@ -256,7 +256,7 @@ setting their output formats.
 
 Specify a slash (@samp{/}), followed by the names of the new numeric
 variables.  If you wish to set their output formats, follow their names
-by an output format specification in parentheses (@pxref{Input/Output
+by an output format specification in parentheses (@pxref{Input and Output
 Formats}); otherwise, the default is F8.2.
 
 Variables created with @cmd{NUMERIC} are initialized to the
@@ -333,7 +333,7 @@ transformations.
 
 Specify a slash (@samp{/}), followed by the names of the string
 variables to create and the desired output format specification in
-parentheses (@pxref{Input/Output Formats}).  Variable widths are
+parentheses (@pxref{Input and Output Formats}).  Variable widths are
 implicitly derived from the specified output formats.
 
 Created variables are initialized to spaces.

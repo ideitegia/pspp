@@ -159,6 +159,22 @@ buf_copy_str_lpad (char *dst, size_t dst_size, const char *src)
 }
 
 /* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
+   DST is truncated to DST_SIZE bytes or padded on the left with
+   spaces as needed. */
+void
+buf_copy_lpad (char *dst, size_t dst_size,
+               const char *src, size_t src_size)
+{
+  if (src_size >= dst_size)
+    memmove (dst, src, dst_size);
+  else
+    {
+      memset (dst, ' ', dst_size - src_size);
+      memmove (&dst[dst_size - src_size], src, src_size);
+    }
+}
+
+/* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
    DST is truncated to DST_SIZE bytes or padded on the right with
    spaces as needed. */
 void
@@ -252,6 +268,15 @@ spprintf (char *dst, const char *format, ...)
   va_end (args);
 
   return dst + count;
+}
+
+/* Sets the SIZE bytes starting at BLOCK to C,
+   and returns the byte following BLOCK. */
+void *
+mempset (void *block, int c, size_t size) 
+{
+  memset (block, c, size);
+  return (char *) block + size;
 }
 
 /* Substrings. */

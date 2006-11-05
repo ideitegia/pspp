@@ -1,5 +1,6 @@
 #include "helper.h"
 #include <data/data-in.h>
+#include <data/data-out.h>
 #include <libpspp/message.h>
 
 #include <libpspp/i18n.h>
@@ -16,10 +17,7 @@ value_to_text(union value v, struct fmt_spec format)
   gchar *s = 0;
 
   s = g_new(gchar, format.w + 1);
-  if ( ! data_out(s, &format, &v) ) 
-    {
-      g_warning("Can't format missing discrete value \n");
-    }
+  data_out(&v, &format, s);
   s[format.w]='\0';
   g_strchug(s);
 

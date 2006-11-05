@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <data/data-out.h>
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/procedure.h>
@@ -36,6 +37,8 @@
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/copyleft.h>
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <math/random.h>
@@ -106,6 +109,8 @@ int tgetnum (const char *);
      tb1=string "x==3 || x==11" "3 or 11 characters long";
      tbfonts=string;
      undefined=undef:warn/nowarn;
+     wib=wib:msbfirst/lsbfirst/vax/native;
+     wrb=wrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
      width=custom;
      workspace=integer "x>=1024" "%s must be at least 1 MB";
      xsort=xsort:yes/no.
@@ -118,6 +123,8 @@ int tgetnum (const char *);
 /* (functions) */
 
 static bool do_cc (const char *cc_string, enum fmt_type);
+static enum integer_format stc_to_integer_format (int stc);
+static enum float_format stc_to_float_format (int stc);
 
 int
 cmd_set (struct dataset *ds)
@@ -173,6 +180,10 @@ cmd_set (struct dataset *ds)
     set_scompression (cmd.scompress == STC_ON);
   if (cmd.sbc_undefined)
     set_undefined (cmd.undef == STC_WARN);
+  if (cmd.sbc_wib)
+    data_out_set_integer_format (stc_to_integer_format (cmd.wib));
+  if (cmd.sbc_wrb)
+    data_out_set_float_format (stc_to_float_format (cmd.wrb));
   if (cmd.sbc_workspace)
     set_workspace (cmd.n_workspace[0] * 1024L);
 
@@ -202,6 +213,52 @@ cmd_set (struct dataset *ds)
     msg (SW, _("Active file compression is not implemented."));
 
   return CMD_SUCCESS;
+}
+
+/* Returns the integer_format value corresponding to STC,
+   which should be the value of cmd.rib or cmd.wib. */
+static enum integer_format
+stc_to_integer_format (int stc) 
+{
+  return (stc == STC_MSBFIRST ? INTEGER_MSB_FIRST
+          : stc == STC_LSBFIRST ? INTEGER_LSB_FIRST
+          : stc == STC_VAX ? INTEGER_VAX
+          : INTEGER_NATIVE);
+}
+
+/* Returns the float_format value corresponding to STC,
+   which should be the value of cmd.rrb or cmd.wrb. */
+static enum float_format
+stc_to_float_format (int stc) 
+{
+  switch (stc) 
+    {
+    case STC_NATIVE:
+      return FLOAT_NATIVE_DOUBLE;
+
+    case STC_ISL:
+      return FLOAT_IEEE_SINGLE_LE;
+    case STC_ISB:
+      return FLOAT_IEEE_SINGLE_BE;
+    case STC_IDL:
+      return FLOAT_IEEE_DOUBLE_LE;
+    case STC_IDB:
+      return FLOAT_IEEE_DOUBLE_BE;
+
+    case STC_VF:
+      return FLOAT_VAX_F;
+    case STC_VD:
+      return FLOAT_VAX_D;
+    case STC_VG:
+      return FLOAT_VAX_G;
+
+    case STC_ZS:
+      return FLOAT_Z_SHORT;
+    case STC_ZL:
+      return FLOAT_Z_LONG;
+    }
+
+  NOT_REACHED ();
 }
 
 /* Find the grouping characters in CC_STRING and set CC's
@@ -604,6 +661,66 @@ show_mxwarns (const struct dataset *ds UNUSED)
   msg (SN, _("MXWARNS is %d."), get_mxwarns ());
 }
 
+/* Outputs that SETTING has the given INTEGER_FORMAT value. */
+static void
+show_integer_format (const char *setting, enum integer_format integer_format) 
+{
+  msg (SN, _("%s is %s (%s)."),
+       setting,
+       (integer_format == INTEGER_MSB_FIRST ? "MSBFIRST"
+        : integer_format == INTEGER_LSB_FIRST ? "LSBFIRST"
+        : "VAX"),
+       integer_format == INTEGER_NATIVE ? "NATIVE" : "nonnative");
+}
+
+/* Outputs that SETTING has the given FLOAT_FORMAT value. */
+static void
+show_float_format (const char *setting, enum float_format float_format) 
+{
+  const char *format_name = "";
+  
+  switch (float_format)
+    {
+    case FLOAT_IEEE_SINGLE_LE:
+      format_name = "ISL (32-bit IEEE 754 single, little-endian)";
+      break;
+    case FLOAT_IEEE_SINGLE_BE:
+      format_name = "ISB (32-bit IEEE 754 single, big-endian)";
+      break;
+    case FLOAT_IEEE_DOUBLE_LE:
+      format_name = "IDL (64-bit IEEE 754 double, little-endian)";
+      break;
+    case FLOAT_IEEE_DOUBLE_BE:
+      format_name = "IDB (64-bit IEEE 754 double, big-endian)";
+      break;
+
+    case FLOAT_VAX_F:
+      format_name = "VF (32-bit VAX F, VAX-endian)";
+      break;
+    case FLOAT_VAX_D:
+      format_name = "VD (64-bit VAX D, VAX-endian)";
+      break;
+    case FLOAT_VAX_G:
+      format_name = "VG (64-bit VAX G, VAX-endian)";
+      break;
+
+    case FLOAT_Z_SHORT:
+      format_name = "ZS (32-bit IBM Z hexadecimal short, big-endian)";
+      break;
+    case FLOAT_Z_LONG:
+      format_name = "ZL (64-bit IBM Z hexadecimal long, big-endian)";
+      break;
+
+    case FLOAT_FP:
+    case FLOAT_HEX:
+      NOT_REACHED ();
+    }
+
+  msg (SN, _("%s is %s (%s)."),
+       setting, format_name,
+       float_format == FLOAT_NATIVE_DOUBLE ? "NATIVE" : "nonnative");
+}
+
 static void
 show_scompression (const struct dataset *ds UNUSED) 
 {
@@ -630,6 +747,18 @@ show_weight (const struct dataset *ds)
     msg (SN, _("WEIGHT is off."));
   else
     msg (SN, _("WEIGHT is variable %s."), var->name);
+}
+
+static void
+show_wib (const struct dataset *ds UNUSED) 
+{
+  show_integer_format ("WIB", data_out_get_integer_format ());
+}
+
+static void
+show_wrb (const struct dataset *ds UNUSED) 
+{
+  show_float_format ("WRB", data_out_get_float_format ());
 }
 
 static void
@@ -663,6 +792,8 @@ const struct show_sbc show_table[] =
     {"SCOMPRESSION", show_scompression},
     {"UNDEFINED", show_undefined},
     {"WEIGHT", show_weight},
+    {"WIB", show_wib},
+    {"WRB", show_wrb},
     {"WIDTH", show_width},
   };
 

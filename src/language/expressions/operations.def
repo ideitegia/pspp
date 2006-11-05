@@ -587,7 +587,7 @@ absorb_miss string function STRING (x, no_format f)
   v.f = x;
   dst = alloc_string (e, f->w);
   assert (!fmt_is_string (f->type));
-  data_out (dst.string, f, &v);
+  data_out (&v, f, dst.string);
   return dst;
 }
 

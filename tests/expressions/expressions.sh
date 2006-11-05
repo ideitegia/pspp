@@ -730,7 +730,7 @@ string(123.56, f5.1) => "123.6"
 string($sysmis, f5.1) => "   . "
 string("abc", A5) => error
 string(123, e1) => error	# E has a minimum width of 6 on output.
-string(123, e6.0) => " 1E+02"
+string(123, e6.0) => "1E+002"
 
 substr('abcdefgh', -5) => ""
 substr('abcdefgh', 0) => ""

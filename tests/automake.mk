@@ -57,7 +57,13 @@ TESTS = \
 	tests/command/use.sh \
 	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \
+	tests/formats/binhex-out.sh \
+	tests/formats/date-out.sh \
 	tests/formats/float-format.sh \
+	tests/formats/month-out.sh \
+	tests/formats/num-out.sh \
+	tests/formats/time-out.sh \
+	tests/formats/wkday-out.sh \
 	tests/bugs/agg_crash.sh \
 	tests/bugs/agg-crash-2.sh \
 	tests/bugs/alpha-freq.sh \
@@ -112,7 +118,8 @@ TESTS = \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test
 
-check_PROGRAMS += tests/libpspp/ll-test tests/libpspp/llx-test
+check_PROGRAMS += tests/libpspp/ll-test tests/libpspp/llx-test \
+	tests/formats/inexactify
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -125,6 +132,8 @@ tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/llx.c \
 	src/libpspp/llx.h \
 	tests/libpspp/llx-test.c
+
+tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 
 EXTRA_DIST += $(TESTS) tests/weighting.data tests/data-list.data tests/list.data \
 	tests/no_case_size.sav \

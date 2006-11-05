@@ -1,3 +1,26 @@
+Sat Nov  4 16:08:58 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add binhex-out.sh, date-out.sh, month-out.sh,
+	num-out.sh, time-out.sh, wkday-out.sh from formats directory.  Add
+	formats/inexactify as a program needed by tests.
+
+	* command/no_case_size.sh: Update output to conform with updated
+	formatted output code.
+
+	* expressions/expressions.sh: Ditto.
+
+	* formats/binhex-out.sh: New test.
+
+	* formats/date-out.sh: New test.
+
+	* formats/month-out.sh: New test.
+
+	* formats/num-out.sh: New test.
+
+	* formats/time-out.sh: New test.
+
+	* formats/wkday-out.sh: New test.
+
 Thu Oct 26 20:20:39 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/formats/float-format.sh.

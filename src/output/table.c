@@ -29,6 +29,7 @@
 #include "output.h"
 #include "manager.h"
 
+#include <data/data-out.h>
 #include <data/format.h>
 #include <data/variable.h>
 #include <libpspp/alloc.h>
@@ -541,7 +542,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
   table->cc[c + r * table->cf] = ss_buffer (contents, f->w);
   table->ct[c + r * table->cf] = opt;
   
-  data_out (contents, f, v);
+  data_out (v, f, contents);
 }
 
 /* Sets cell (C,R) in TABLE, with options OPT, to have value VAL
@@ -580,7 +581,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  data_out (buf, &f, &double_value);
+  data_out (&double_value, &f, buf);
 
   cp = buf;
   while (isspace ((unsigned char) *cp) && cp < &buf[w])

@@ -128,7 +128,9 @@ cmd_string (struct dataset *ds)
       if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
 	return CMD_FAILURE;
 
-      if (!lex_force_match ('(') || !parse_format_specifier (&f))
+      if (!lex_force_match ('(')
+          || !parse_format_specifier (&f)
+          || !lex_force_match (')'))
 	goto fail;
       if (!fmt_is_string (f.type))
 	{
@@ -137,12 +139,8 @@ cmd_string (struct dataset *ds)
                      "variable."), fmt_to_string (&f, str));
 	  goto fail;
 	}
-
-      if (!lex_match (')'))
-	{
-	  msg (SE, _("`)' expected after output format."));
-	  goto fail;
-	}
+      if (!fmt_check_output (&f))
+        goto fail;
 
       width = fmt_var_width (&f);
 

@@ -1,3 +1,8 @@
+Sat Nov  4 16:04:19 2006  Ben Pfaff  <blp@gnu.org>
+
+	* numeric.c: (cmd_string) Check that output format is valid.
+	Simplify parsing.
+
 Wed Nov  1 20:50:54 2006  Ben Pfaff  <blp@gnu.org>
 
 	* sys-file-info.c: (cmd_display) Use compare_var_ptr_names to

@@ -456,7 +456,7 @@ fmt_max_output_decimals (enum fmt_type type, int width)
 int
 fmt_step_width (enum fmt_type type)
 {
-  return fmt_get_category (type) & FMT_CAT_HEXADECIMAL ? 2 : 1;
+  return fmt_get_category (type) == FMT_CAT_HEXADECIMAL ? 2 : 1;
 }
 
 /* Returns true if TYPE is used for string fields,
@@ -464,7 +464,7 @@ fmt_step_width (enum fmt_type type)
 bool
 fmt_is_string (enum fmt_type type)
 {
-  return fmt_get_category (type) & FMT_CAT_STRING;
+  return fmt_get_category (type) == FMT_CAT_STRING;
 }
 
 /* Returns true if TYPE is used for numeric fields,
@@ -491,10 +491,19 @@ fmt_get_category (enum fmt_type type)
 enum fmt_type
 fmt_input_to_output (enum fmt_type type)
 {
-  enum fmt_category category = fmt_get_category (type);
-  return (category & FMT_CAT_STRING ? FMT_A
-          : category & (FMT_CAT_BASIC | FMT_CAT_HEXADECIMAL) ? FMT_F
-          : type);
+  switch (fmt_get_category (type)) 
+    {
+    case FMT_CAT_STRING:
+      return FMT_A;
+
+    case FMT_CAT_LEGACY:
+    case FMT_CAT_BINARY:
+    case FMT_CAT_HEXADECIMAL:
+      return FMT_F;
+
+    default:
+      return type;
+    }
 }
 
 /* Returns the SPSS format type corresponding to the given PSPP
@@ -503,7 +512,7 @@ int
 fmt_to_io (enum fmt_type type)
 {
   return get_fmt_desc (type)->io;
-};
+}
 
 /* Determines the PSPP format corresponding to the given SPSS
    format type.  If successful, sets *FMT_TYPE to the PSPP format

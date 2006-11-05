@@ -1,3 +1,16 @@
+Sat Nov  4 16:05:47 2006  Ben Pfaff  <blp@gnu.org>
+
+	* set.q: Add WIB, WRB settings to control binary formats used by
+	data_out.
+	(cmd_set) Implement SET WIB, WRB.
+	(stc_to_integer_format) New function.
+	(stc_to_float_format) New function.
+	(show_integer_format) New function.
+	(show_float_format) New function.
+	(show_wib) New function.
+	(show_wrb) New function.
+	(static var show_table[]) Add SHOW WIB, WRB.
+
 Sat Nov  4 11:48:23 2006  Ben Pfaff  <blp@gnu.org>
 
 	* set.q: Update ERRORS, MESSAGES, RESULTS command syntax.

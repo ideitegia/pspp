@@ -1,3 +1,7 @@
+Sat Nov  4 15:59:31 2006  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Check for the "round" function added in C99.
+
 Tue Oct 31 19:55:52 2006  Ben Pfaff  <blp@gnu.org>
 
 	* Smake (GNULIB_MODULES): Add `mempcpy' module.

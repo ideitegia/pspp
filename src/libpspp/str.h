@@ -44,6 +44,7 @@ void buf_reverse (char *, size_t);
 char *buf_find_reverse (const char *, size_t, const char *, size_t);
 int buf_compare_case (const char *, const char *, size_t);
 int buf_compare_rpad (const char *, size_t, const char *, size_t);
+void buf_copy_lpad (char *, size_t, const char *, size_t);
 void buf_copy_rpad (char *, size_t, const char *, size_t);
 void buf_copy_str_lpad (char *, size_t, const char *);
 void buf_copy_str_rpad (char *, size_t, const char *);
@@ -56,6 +57,8 @@ void str_uppercase (char *);
 void str_lowercase (char *);
 
 char *spprintf (char *dst, const char *format, ...);
+
+void *mempset (void *, int, size_t);
 
 /* Common character classes for use with substring and string functions. */
 

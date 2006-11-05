@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 
+#include <data/data-out.h>
 #include <data/variable.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
@@ -545,7 +546,7 @@ value_to_string (const union value *val, const struct variable *var)
   if (s == NULL) 
     {
       static char buf[MAX_STRING + 1];
-      data_out (buf, &var->print, val);
+      data_out (val, &var->print, buf);
       buf[var->print.w] = '\0';
       s = buf;
     }

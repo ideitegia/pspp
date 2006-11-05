@@ -153,14 +153,15 @@ calendar_offset_to_year (int ofs)
 }
 
 /* Takes a count of days from 14 Oct 1582 and translates it into
-   a Gregorian calendar date in (*Y,*M,*D).  Dates both before
-   and after the epoch are supported. */
+   a Gregorian calendar date in (*Y,*M,*D).  Also stores the
+   year-relative day number into *YD.  Dates both before and
+   after the epoch are supported. */
 void
-calendar_offset_to_gregorian (int ofs, int *y, int *m, int *d)
+calendar_offset_to_gregorian (int ofs, int *y, int *m, int *d, int *yd)
 {
   int year = *y = calendar_offset_to_year (ofs);
   int january1 = raw_gregorian_to_offset (year, 1, 1);
-  int yday = ofs - january1 + 1;
+  int yday = *yd = ofs - january1 + 1;
   int march1 = january1 + cum_month_days (year, 3);
   int correction = ofs < march1 ? 0 : (is_leap_year (year) ? 1 : 2);
   int month = *m = (12 * (yday - 1 + correction) + 373) / 367;
@@ -195,8 +196,8 @@ calendar_offset_to_wday (int ofs)
 int
 calendar_offset_to_month (int ofs) 
 {
-  int y, m, d;
-  calendar_offset_to_gregorian (ofs, &y, &m, &d);
+  int y, m, d, yd;
+  calendar_offset_to_gregorian (ofs, &y, &m, &d, &yd);
   return m;
 }
 
@@ -205,7 +206,7 @@ calendar_offset_to_month (int ofs)
 int
 calendar_offset_to_mday (int ofs) 
 {
-  int y, m, d;
-  calendar_offset_to_gregorian (ofs, &y, &m, &d);
+  int y, m, d, yd;
+  calendar_offset_to_gregorian (ofs, &y, &m, &d, &yd);
   return d;
 }

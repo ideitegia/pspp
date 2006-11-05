@@ -88,6 +88,8 @@ DISPLAY FILE LABEL.
 active file,
 if any.  @xref{FILE LABEL}.
 
+This command is a PSPP extension.
+
 @node DROP DOCUMENTS, ECHO, DISPLAY FILE LABEL, Utilities
 @section DROP DOCUMENTS
 @vindex DROP DOCUMENTS
@@ -232,6 +234,8 @@ SET
         /DECIMAL=@{DOT,COMMA@}
         /FORMAT=fmt_spec
         /EPOCH=@{AUTOMATIC,year@}
+        /RIB=@{NATIVE,MSBFIRST,LSBFIRST,VAX@}
+        /RRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
 (program input)
         /ENDCMD='.'
@@ -258,6 +262,8 @@ SET
         /CC@{A,B,C,D,E@}=@{'npre,pre,suf,nsuf','npre.pre.suf.nsuf'@}
         /DECIMAL=@{DOT,COMMA@}
         /FORMAT=fmt_spec
+        /WIB=@{NATIVE,MSBFIRST,LSBFIRST,VAX@}
+        /WRB=@{NATIVE,ISL,ISB,IDL,IDB,VF,VD,VG,ZS,ZL@}
 
 (output routing)
         /ECHO=@{ON,OFF@}
@@ -320,22 +326,86 @@ system-missing value to be assigned to null items.  This is the
 default.  Any real value may be assigned.
 
 @item DECIMAL
+@anchor{SET DECIMAL}
 The default DOT setting causes the decimal point character to be
-@samp{.}.  A setting of COMMA causes the decimal point character to be
-@samp{,}.
+@samp{.} and the grouping character to be @samp{,}.  A setting of COMMA
+causes the decimal point character to be @samp{,} and the grouping
+character to be @samp{.}.
 
 @item FORMAT
 Allows the default numeric input/output format to be specified.  The
-default is F8.2.  @xref{Input/Output Formats}.
+default is F8.2.  @xref{Input and Output Formats}.
 
 @item EPOCH
 @anchor{SET EPOCH}
 Specifies the range of years used when a 2-digit year is read from a
 data file or used in a date construction expression (@pxref{Date
-Construction}).  If a 4-digit year is specified, then 2-digit years
-are interpreted starting from that year, known as the epoch.  If
-AUTOMATIC (the default) is specified, then the epoch begins 69 years
-before the current date.
+Construction}).  If a 4-digit year is specified for the epoch, then
+2-digit years are interpreted starting from that year, known as the
+epoch.  If AUTOMATIC (the default) is specified, then the epoch begins
+69 years before the current date.
+
+@item RIB
+@anchor{SET RIB} 
+
+PSPP extension to set the byte ordering (endianness) used for reading
+data in IB or PIB format (@pxref{Binary and Hexadecimal Numeric
+Formats}).  In MSBFIRST ordering, the most-significant byte appears at
+the left end of a IB or PIB field.  In LSBFIRST ordering, the
+least-significant byte appears at the left end.  VAX ordering is like
+MSBFIRST, except that each pair of bytes is in reverse order.  NATIVE,
+the default, is equivalent to MSBFIRST or LSBFIRST depending on the
+native format of the machine running PSPP.
+
+@item RRB
+@anchor{SET RRB}
+
+PSPP extension to set the floating-point format used for reading data in
+RB format (@pxref{Binary and Hexadecimal Numeric Formats}).  The
+possibilities are:
+
+@table @asis
+@item NATIVE
+The native format of the machine running PSPP.  Equivalent to either IDL
+or IDB.
+
+@item ISL
+32-bit IEEE 754 single-precision floating point, in little-endian byte
+order.
+
+@item ISB
+32-bit IEEE 754 single-precision floating point, in big-endian byte
+order.
+
+@item IDL
+64-bit IEEE 754 double-precision floating point, in little-endian byte
+order.
+
+@item IDB
+64-bit IEEE 754 double-precision floating point, in big-endian byte
+order.
+
+@item VF
+32-bit VAX F format, in VAX-endian byte order.
+
+@item VD
+64-bit VAX D format, in VAX-endian byte order.
+
+@item VG
+64-bit VAX G format, in VAX-endian byte order.
+
+@item ZS
+32-bit IBM Z architecture short format hexadecimal floating point, in
+big-endian byte order.  
+
+@item ZL
+64-bit IBM Z architecture long format hexadecimal floating point, in
+big-endian byte order.
+
+Z architecture also supports IEEE 754 floating point.  The ZS and ZL
+formats are only for use with very old input files.
+@end table
+The default is NATIVE.
 @end table
 
 Program input subcommands affect the way that programs are parsed when
@@ -408,18 +478,10 @@ subcommands are
 @itemx CCC
 @itemx CCD
 @itemx CCE
-Set up custom currency formats.  The argument is a string which must
-contain exactly three commas or exactly three periods.  If commas, then
-the grouping character for the currency format is @samp{,}, and the
-decimal point character is @samp{.}; if periods, then the situation is
-reversed.  
+@anchor{CCx Settings}
 
-The commas or periods divide the string into four fields, which are, in
-order, the negative prefix, prefix, suffix, and negative suffix.  When a
-value is formatted using the custom currency format, the prefix precedes
-the value formatted and the suffix follows it.  In addition, if the
-value is negative, the negative prefix precedes the prefix and the
-negative suffix follows the suffix.
+Set up custom currency formats.  @xref{Custom Currency Formats}, for
+details.
 
 @item DECIMAL
 The default DOT setting causes the decimal point character to be
@@ -428,7 +490,26 @@ The default DOT setting causes the decimal point character to be
 
 @item FORMAT
 Allows the default numeric input/output format to be specified.  The
-default is F8.2.  @xref{Input/Output Formats}.
+default is F8.2.  @xref{Input and Output Formats}.
+
+@item WIB
+@anchor{SET WIB} 
+
+PSPP extension to set the byte ordering (endianness) used for writing
+data in IB or PIB format (@pxref{Binary and Hexadecimal Numeric
+Formats}).  In MSBFIRST ordering, the most-significant byte appears at
+the left end of a IB or PIB field.  In LSBFIRST ordering, the
+least-significant byte appears at the left end.  VAX ordering is like
+MSBFIRST, except that each pair of bytes is in reverse order.  NATIVE,
+the default, is equivalent to MSBFIRST or LSBFIRST depending on the
+native format of the machine running PSPP.
+
+@item WRB
+@anchor{SET WRB}
+
+PSPP extension to set the floating-point format used for writing data in
+RB format (@pxref{Binary and Hexadecimal Numeric Formats}).  The choices
+are the same as SET RIB.  The default is NATIVE.
 @end table
 
 Output routing subcommands affect where the output of transformations

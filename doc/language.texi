@@ -383,7 +383,7 @@ Some details of variables are described in the sections below.
 * Attributes::                  Attributes of variables.
 * System Variables::            Variables automatically defined by PSPP.
 * Sets of Variables::           Lists of variable names.
-* Input/Output Formats::        Input and output formats.
+* Input and Output Formats::    Input and output formats.
 * Scratch Variables::           Variables deleted by procedures.
 @end menu
 
@@ -470,12 +470,12 @@ string.  @xref{VALUE LABELS}.
 Display width, format, and (for numeric variables) number of decimal
 places.  This attribute does not affect how data are stored, just how
 they are displayed.  Example: a width of 8, with 2 decimal places.
-@xref{PRINT FORMATS}.
+@xref{Input and Output Formats}.
 
 @cindex write format
 @item Write format
-Similar to print format, but used by certain commands that are
-designed to write to binary files.  @xref{WRITE FORMATS}.
+Similar to print format, but used by the @cmd{WRITE} command
+(@pxref{WRITE}).
 @end table
 
 @node System Variables, Sets of Variables, Attributes, Variables
@@ -522,7 +522,7 @@ was read, in format F20.
 Page width, in characters, in format F3.
 @end table
 
-@node Sets of Variables, Input/Output Formats, System Variables, Variables
+@node Sets of Variables, Input and Output Formats, System Variables, Variables
 @subsection Lists of variable names
 @cindex TO convention
 @cindex convention, TO
@@ -551,326 +551,680 @@ After a set of variables has been defined with @cmd{DATA LIST} or
 another command with this method, the same set can be referenced on
 later commands using the same syntax.
 
-@node Input/Output Formats, Scratch Variables, Sets of Variables, Variables
+@node Input and Output Formats, Scratch Variables, Sets of Variables, Variables
 @subsection Input and Output Formats
 
-Data that PSPP inputs and outputs must have one of a number of formats.
-These formats are described, in general, by a format specification of
-the form @code{NAMEw.d}, where @var{name} is the
-format name and @var{w} is a field width.  @var{d} is the optional
-desired number of decimal places, if appropriate.  If @var{d} is not
-included then it is assumed to be 0.  Some formats do not allow @var{d}
-to be specified.
+An @dfn{input format} describes how to interpret the contents of an
+input field as a number or a string.  It might specify that the field
+contains an ordinary decimal number, a time or date, a number in binary
+or hexadecimal notation, or one of several other notations.  Input
+formats are used by commands such as @cmd{DATA LIST} that read data or
+syntax files into the PSPP active file.
 
-When @cmd{DATA LIST} or another command specifies an input format,
-that format is converted to an output format for the purposes of
-@cmd{PRINT} and other data output commands.  For most purposes, input
-and output formats are the same; the salient differences are described
-below.
+Every input format corresponds to a default @dfn{output format} that
+specifies the formatting used when the value is output later.  It is
+always possible to explicitly specify an output format that resembles
+the input format.  Usually, this is the default, but in cases where the
+input format is unfriendly to human readability, such as binary or
+hexadecimal formats, the default output format is an easier-to-read
+decimal format.
 
-Below are listed the input and output formats supported by PSPP.  If an
-input format is mapped to a different output format by default, then
-that mapping is indicated with @result{}.  Each format has the listed
-bounds on input width (iw) and output width (ow).
+Every variable has two output formats, called its @dfn{print format} and
+@dfn{write format}.  Print formats are used in most output contexts;
+write formats are used only by @cmd{WRITE} (@pxref{WRITE}).  Newly
+created variables have identical print and write formats, and
+@cmd{FORMATS}, the most commonly used command for changing formats
+(@pxref{FORMATS}), sets both of them to the same value as well.  Thus,
+most of the time, the distinction between print and write formats is
+unimportant.
 
-The standard numeric input and output formats are given in the following
-table:
+Input and output formats are specified to PSPP with a @dfn{format
+specification} of the form @code{TYPEw} or @code{TYPEw.d}, where
+@code{TYPE} is one of the format types described later, @code{w} is a
+field width measured in columns, and @code{d} is an optional number of
+decimal places.  If @code{d} is omitted, a value of 0 is assumed.  Some
+formats do not allow a nonzero @code{d} to be specified.
 
-@table @asis
-@item Fw.d: 1 <= iw,ow <= 40
-Standard decimal format with @var{d} decimal places.  If the number is
-too large to fit within the field width, it is expressed in scientific
-notation (@code{1.2+34}) if w >= 6, with always at least two digits in
-the exponent.  When used as an input format, scientific notation is
-allowed but an E or an F must be used to introduce the exponent.
+The following sections describe the input and output formats supported
+by PSPP.
 
-The default output format is the same as the input format, except if
-@var{d} > 1.  In that case the output @var{w} is always made to be at
-least 2 + @var{d}.
+@menu
+* Basic Numeric Formats::       
+* Custom Currency Formats::     
+* Legacy Numeric Formats::      
+* Binary and Hexadecimal Numeric Formats::  
+* Time and Date Formats::       
+* Date Component Formats::      
+* String Formats::              
+@end menu
 
-@item Ew.d: 1 <= iw <= 40; 6 <= ow <= 40
-For input this is equivalent to F format except that no E or F is
-require to introduce the exponent.  For output, produces scientific
-notation in the form @code{1.2+34}.  There are always at least two
-digits given in the exponent.
+@node Basic Numeric Formats
+@subsubsection Basic Numeric Formats
 
-The default output @var{w} is the largest of the input @var{w}, the
-input @var{d} + 7, and 10.  The default output @var{d} is the input
-@var{d}, but at least 3.
+The basic numeric formats are used for input and output of real numbers
+in standard or scientific notation.  The following table shows an
+example of how each format displays positive and negative numbers with
+the default decimal point setting:
 
-@item COMMAw.d: 1 <= iw,ow <= 40
-Equivalent to F format, except that groups of three digits are
-comma-separated on output.  If the number is too large to express in the
-field width, then first commas are eliminated, then if there is still
-not enough space the number is expressed in scientific notation given
-that w >= 6.  Commas are allowed and ignored when this is used as an
-input format.  
+@float
+@multitable {DOLLAR10.2} {@code{@tie{}$3,141.59}} {@code{-$3,141.59}}
+@headitem Format @tab @code{@tie{}}3141.59   @tab -3141.59
+@item F8.2       @tab @code{@tie{}3141.59}   @tab @code{-3141.59}
+@item COMMA9.2   @tab @code{@tie{}3,141.59}  @tab @code{-3,141.59}
+@item DOT9.2     @tab @code{@tie{}3.141,59}  @tab @code{-3.141,59}
+@item DOLLAR10.2 @tab @code{@tie{}$3,141.59} @tab @code{-$3,141.59}
+@item PCT9.2     @tab @code{@tie{}3141.59%}  @tab @code{-3141.59%}
+@item E8.1       @tab @code{@tie{}3.1E+003}  @tab @code{-3.1E+003}
+@end multitable
+@end float
 
-@item DOTw.d: 1 <= iw,ow <= 40
-Equivalent to COMMA format except that the roles of comma and decimal
-point are interchanged.  However: If SET /DECIMAL=DOT is in effect, then
-COMMA uses @samp{,} for a decimal point and DOT uses @samp{.} for a
-decimal point.
+On output, numbers in F format are expressed in standard decimal
+notation with the requested number of decimal places.  The other formats
+output some variation on this style:
 
-@item DOLLARw.d: 1 <= iw <= 40; 2 <= ow <= 40
-Equivalent to COMMA format, except that the number is prefixed by a
-dollar sign (@samp{$}) if there is room.  On input the value is allowed
-to be prefixed by a dollar sign, which is ignored.
+@itemize @bullet
+@item
+Numbers in COMMA format are additionally grouped every three digits by
+inserting a grouping character.  The grouping character is ordinarily a
+comma, but it can be changed to a period (@pxref{SET DECIMAL}).
 
-The default output @var{w} is the input @var{w}, but at least 2.
+@item
+DOT format is like COMMA format, but it interchanges the role of the
+decimal point and grouping characters.  That is, the current grouping
+character is used as a decimal point and vice versa.
 
-@item PCTw.d: 2 <= iw,ow <= 40
-Equivalent to F format, except that the number is suffixed by a percent
-sign (@samp{%}) if there is room.  On input the value is allowed to be
-suffixed by a percent sign, which is ignored.
+@item
+DOLLAR format is like COMMA format, but it prefixes the number with
+@samp{$}.
 
-The default output @var{w} is the input @var{w}, but at least 2.
+@item
+PCT format is like F format, but adds @samp{%} after the number.
 
-@item Nw.d: 1 <= iw,ow <= 40
-Only digits are allowed within the field width.  The decimal point is
-assumed to be @var{d} digits from the right margin.
+@item
+The E format always produces output in scientific notation.
+@end itemize
 
-The default output format is F with the same @var{w} and @var{d}, except
-if @var{d} > 1.  In that case the output @var{w} is always made to be at
-least 2 + @var{d}.
+On input, the basic numeric formats accept positive and numbers in
+standard decimal notation or scientific notation.  Leading and trailing
+spaces are allowed.  An empty or all-spaces field, or one that contains
+only a single period, is treated as the system missing value.
 
-@item Zw.d @result{} F: 1 <= iw,ow <= 40
-Zoned decimal input.  If you need to use this then you know how.
+In scientific notation, the exponent may be introduced by a sign
+(@samp{+} or @samp{-}), or by one of the letters @samp{e} or @samp{d}
+(in uppercase or lowercase), or by a letter followed by a sign.  A
+single space may follow the letter or the sign or both.
 
-@item IBw.d @result{} F: 1 <= iw,ow <= 8
-Integer binary format.  The field is interpreted as a fixed-point
-positive or negative binary number in two's-complement notation.  The
-location of the decimal point is implied.  Endianness is the same as the
-host machine.
+On fixed-format @cmd{DATA LIST} (@pxref{DATA LIST FIXED}) and in a few
+other contexts, decimals are implied when the field does not contain a
+decimal point.  In F6.5 format, for example, the field @code{314159} is
+taken as the value 3.14159 with implied decimals.  Decimals are never
+implied if an explicit decimal point is present or if scientific
+notation is used.
 
-The default output format is F8.2 if @var{d} is 0.  Otherwise it is F,
-with output @var{w} as 9 + input @var{d} and output @var{d} as input
-@var{d}.
+E and F formats accept the basic syntax already described.  The other
+formats allow some additional variations:
 
-@item PIB @result{} F: 1 <= iw,ow <= 8
-Positive integer binary format.  The field is interpreted as a
-fixed-point positive binary number.  The location of the decimal point
-is implied.  Endianness is the same as the host machine.
+@itemize @bullet
+@item
+COMMA, DOLLAR, and DOT formats ignore grouping characters within the
+integer part of the input field.  The identity of the grouping
+character depends on the format.
 
-The default output format follows the rules for IB format.
+@item
+DOLLAR format allows a dollar sign to precede the number.  In a negative
+number, the dollar sign may precede or follow the minus sign.
 
-@item Pw.d @result{} F: 1 <= iw,ow <= 16
-Binary coded decimal format.  Each byte from left to right, except the
-rightmost, represents two digits.  The upper nibble of each byte is more
-significant.  The upper nibble of the final byte is the least
-significant digit.  The lower nibble of the final byte is the sign; a
-value of D represents a negative sign and all other values are
-considered positive.  The decimal point is implied.
+@item
+PCT format allows a percent sign to follow the number.
+@end itemize
 
-The default output format follows the rules for IB format.
+All of the basic number formats have a maximum field width of 40 and
+accept no more than 16 decimal places, on both input and output.  Some
+additional restrictions apply:
 
-@item PKw.d @result{} F: 1 <= iw,ow <= 16
-Positive binary code decimal format.  Same as P but the last byte is the
-same as the others.
+@itemize @bullet
+@item
+As input formats, the basic numeric formats allow no more decimal places
+than the field width.  As output formats, the field width must be
+greater than the number of decimal places; that is, large enough to
+allow for a decimal point and the number of requested decimal places.
+DOLLAR and PCT formats must allow an additional column for @samp{$} or
+@samp{%}.
 
-The default output format follows the rules for IB format.
+@item
+The default output format for a given input format increases the field
+width enough to make room for optional input characters.  If an input
+format calls for decimal places, the width is increased by 1 to make
+room for an implied decimal point.  COMMA, DOT, and DOLLAR formats also
+increase the output width to make room for grouping characters.  DOLLAR
+and PCT further increase the output field width by 1 to make room for
+@samp{$} or @samp{%}.  The increased output width is capped at 40, the
+maximum field width.
 
-@item RBw @result{} F: 2 <= iw,ow <= 8
+@item
+The E format is exceptional.  For output, E format has a minimum width
+of 7 plus the number of decimal places.  The default output format for
+an E input format is an E format with at least 3 decimal places and
+thus a minimum width of 10.
+@end itemize
 
-Binary C architecture-dependent ``double'' format.  For a standard
-IEEE754 implementation @var{w} should be 8.
+More details of basic numeric output formatting are given below:
 
-The default output format follows the rules for IB format.
+@itemize @bullet
+@item
+Output rounds to nearest, with ties rounded away from zero.  Thus, 2.5
+is output as @code{3} in F1.0 format, and -1.125 as @code{-1.13} in F5.1
+format.
 
-@item PIBHEXw.d @result{} F: 2 <= iw,ow <= 16
-PIB format encoded as textual hex digit pairs.  @var{w} must be even.
+@item
+The system-missing value is output as a period in a field of spaces,
+placed in the decimal point's position, or in the rightmost column if no
+decimal places are requested.  A period is used even if the decimal
+point character is a comma.
 
-The input width is mapped to a default output width as follows:
-2@result{}4, 4@result{}6, 6@result{}9, 8@result{}11, 10@result{}14,
-12@result{}16, 14@result{}18, 16@result{}21.  No allowances are made for
-decimal places.
+@item
+A number that does not fill its field is right-justified within the
+field.
 
-@item RBHEXw @result{} F: 4 <= iw,ow <= 16
+@item
+A number is too large for its field causes decimal places to be dropped
+to make room.  If dropping decimals does not make enough room,
+scientific notation is used if the field is wide enough.  If a number
+does not fit in the field, even in scientific notation, the overflow is
+indicated by filling the field with asterisks (@samp{*}).
 
-RB format encoded as textual hex digits pairs.  @var{w} must be even.
+@item
+COMMA, DOT, and DOLLAR formats insert grouping characters only if space
+is available for all of them.  Grouping characters are never inserted
+when all decimal places must be dropped.  Thus, 1234.56 in COMMA5.2
+format is output as @samp{@tie{}1235} without a comma, even though there
+is room for one, because all decimal places were dropped.
+
+@item
+DOLLAR or PCT format drop the @samp{$} or @samp{%} only if the number
+would not fit at all without it.  Scientific notation with @samp{$} or
+@samp{%} is preferred to ordinary decimal notation without it.
+
+@item
+Except in scientific notation, a decimal point is included only when
+it is followed by a digit.  If the integer part of the number being
+output is 0, and a decimal point is included, then the zero before the
+decimal point is dropped.
+
+In scientific notation, the number always includes a decimal point,
+even if it is not followed by a digit.
+
+@item
+A negative number includes a minus sign only in the presence of a
+nonzero digit: -0.01 is output as @samp{-.01} in F4.2 format but as
+@samp{@tie{}@tie{}.0} in F4.1 format.  Thus, a ``negative zero'' never
+includes a minus sign.
+
+@item
+In negative numbers output in DOLLAR format, the dollar sign follows the
+negative sign.  Thus, -9.99 in DOLLAR6.2 format is output as
+@code{-$9.99}.
+
+@item
+In scientific notation, the exponent is output as @samp{E} followed by
+@samp{+} or @samp{-} and exactly three digits.  Numbers with magnitude
+less than 10**-999 or larger than 10**999 are not supported by most
+computers, but if they are supported then their output is considered
+to overflow the field and will be output as asterisks.
+
+@item
+On most computers, no more than 15 decimal digits are significant in
+output, even if more are printed.  In any case, output precision cannot
+be any higher than input precision; few data sets are accurate to 15
+digits of precision.  Unavoidable loss of precision in intermediate
+calculations may also reduce precision of output.
+
+@item
+Special values such as infinities and ``not a number'' values are
+usually converted to the system-missing value before printing.  In a few
+circumstances, these values are output directly.  In fields of width 3
+or greater, special values are output as however many characters will
+fit from @code{+Infinity} or @code{-Infinity} for infinities, from
+@code{NaN} for ``not a number,'' or from @code{Unknown} for other values
+(if any are supported by the system).  In fields under 3 columns wide,
+special values are output as asterisks.
+@end itemize
+
+@node Custom Currency Formats
+@subsubsection Custom Currency Formats
+
+The custom currency formats are closely related to the basic numeric
+formats, but they allow users to customize the output format.  The
+SET command configures custom currency formats, using the syntax
+@display
+SET CC@var{x}=@t{"}@var{string}@t{"}.
+@end display
+@noindent 
+where @var{x} is A, B, C, D, or E, and @var{string} is no more than 16
+characters long.
+
+@var{string} must contain exactly three commas or exactly three periods
+(but not both), except that a single quote character may be used to
+``escape'' a following comma, period, or single quote.  If three commas
+are used, commas will be used for grouping in output, and a period will
+be used as the decimal point.  Uses of periods reverses these roles.
+
+The commas or periods divide @var{string} into four fields, called the
+@dfn{negative prefix}, @dfn{prefix}, @dfn{suffix}, and @dfn{negative
+suffix}, respectively.  The prefix and suffix are added to output
+whenever space is available.  The negative prefix and negative suffix
+are always added to a negative number when the output includes a nonzero
+digit.
+
+The following syntax shows how custom currency formats could be used to
+reproduce basic numeric formats:
+
+@example
+@group
+SET CCA="-,,,".  /* Same as COMMA.
+SET CCB="-...".  /* Same as DOT.
+SET CCC="-,$,,". /* Same as DOLLAR.
+SET CCD="-,,%,". /* Like PCT, but groups with commas.
+@end group
+@end example
+
+Here are some more examples of custom currency formats.  The final
+example shows how to use a single quote to escape a delimiter:
+
+@example
+@group
+SET CCA=",EUR,,-".   /* Euro.
+SET CCB="(,USD ,,)". /* US dollar.
+SET CCC="-.R$..".    /* Brazilian real.
+SET CCD="-,, NIS,".  /* Israel shekel.
+SET CCE="-.Rp'. ..". /* Indonesia Rupiah.
+@end group
+@end example
+
+@noindent These formats would yield the following output:
+
+@float
+@multitable {CCD13.2} {@code{@tie{}@tie{}USD 3,145.59}} {@code{(USD 3,145.59)}}
+@headitem Format @tab @code{@tie{}}3145.59         @tab -3145.59
+@item CCA12.2 @tab @code{@tie{}EUR3,145.59}        @tab @code{EUR3,145.59-}
+@item CCB14.2 @tab @code{@tie{}@tie{}USD 3,145.59} @tab @code{(USD 3,145.59)}
+@item CCC11.2 @tab @code{@tie{}R$3.145,59}         @tab @code{-R$3.145,59}
+@item CCD13.2 @tab @code{@tie{}3,145.59 NIS}       @tab @code{-3,145.59 NIS}
+@item CCE10.0 @tab @code{@tie{}Rp. 3.146}          @tab @code{-Rp. 3.146}
+@end multitable
+@end float
+
+The default for all the custom currency formats is @samp{-,,,},
+equivalent to COMMA format.
+
+@node Legacy Numeric Formats
+@subsubsection Legacy Numeric Formats
+
+The N and Z numeric formats provide compatibility with legacy file
+formats.  They have much in common:
+
+@itemize @bullet
+@item
+Output is rounded to the nearest representable value, with ties rounded
+away from zero.
+
+@item
+Numbers too large to display are output as a field filled with asterisks
+(@samp{*}).
+
+@item
+The decimal point is always implicitly the specified number of digits
+from the right edge of the field, except that Z format input allows an
+explicit decimal point.
+
+@item
+Scientific notation may not be used.
+
+@item
+The system-missing value is output as a period in a field of spaces.
+The period is placed just to the right of the implied decimal point in
+Z format, or at the right end in N format or in Z format if no decimal
+places are requested.  A period is used even if the decimal point
+character is a comma.
+
+@item
+Field width may range from 1 to 40.  Decimal places may range from 0 up
+to the field width, to a maximum of 16.
+
+@item
+When a legacy numeric format used for input is converted to an output
+format, it is changed into the equivalent F format.  The field width is
+increased by 1 if any decimal places are specified, to make room for a
+decimal point.  For Z format, the field width is increased by 1 more
+column, to make room for a negative sign.  The output field width is
+capped at 40 columns.
+@end itemize
+
+@subsubheading N Format
+
+The N format supports input and output of fields that contain only
+digits.  On input, leading or trailing spaces, a decimal point, or any
+other non-digit character causes the field to be read as the
+system-missing value.  As a special exception, an N format used on
+@cmd{DATA LIST FREE} or @cmd{DATA LIST LIST} is treated as the
+equivalent F format.
+
+On output, N pads the field on the left with zeros.  Negative numbers
+are output like the system-missing value.
+
+@subsubheading Z Format
+
+The Z format is a ``zoned decimal'' format used on IBM mainframes.  Z
+format encodes the sign as part of the final digit, which must be one of
+the following:
+@example
+0123456789
+@{ABCDEFGHI
+@}JKLMNOPQR
+@end example
+@noindent
+where the characters in each row represent digits 0 through 9 in order.
+Characters in the first two rows indicate a positive sign; those in the
+third indicate a negative sign.
+
+On output, Z fields are padded on the left with spaces.  On input,
+leading and trailing spaces are ignored.  Any character in an input
+field other than spaces, the digit characters above, and @samp{.} causes
+the field to be read as system-missing.
+
+The decimal point character for input and output is always @samp{.},
+even if the decimal point character is a comma (@pxref{SET DECIMAL}).
+
+Nonzero, negative values output in Z format are marked as negative even
+when no nonzero digits are output.  For example, -0.2 is output in Z1.0
+format as @samp{J}.  The ``negative zero'' value supported by most
+machines is output as positive.
+
+@node Binary and Hexadecimal Numeric Formats
+@subsubsection Binary and Hexadecimal Numeric Formats
+
+The binary and hexadecimal formats are primarily designed for
+compatibility with existing machine formats, not for human readability.
+All of them therefore have a F format as default output format.  Some of
+these formats are only portable between machines with compatible byte
+ordering (endianness) or floating-point format.
+
+Binary formats use byte values that in text files are interpreted as
+special control functions, such as carriage return and line feed.  Thus,
+data in binary formats should not be included in syntax files or read
+from data files with variable-length records, such as ordinary text
+files.  They may be read from or written to data files with fixed-length
+records.  @xref{FILE HANDLE}, for information on working with
+fixed-length records.
+
+@subsubheading P and PK Formats
+
+These are binary-coded decimal formats, in which every byte (except the
+last, in P format) represents two decimal digits.  The most-significant
+4 bits of the first byte is the most-significant decimal digit, the
+least-significant 4 bits of the first byte is the next decimal digit,
+and so on.
+
+In P format, the most-significant 4 bits of the last byte are the
+least-significant decimal digit.  The least-significant 4 bits represent
+the sign: decimal 15 indicates a negative value, decimal 13 indicates a
+positive value.
+
+Numbers are rounded downward on output.  The system-missing value and
+numbers outside representable range are output as zero.
+
+The maximum field width is 16.  Decimal places may range from 0 up to
+the number of decimal digits represented by the field.
+
+The default output format is an F format with twice the input field
+width, plus one column for a decimal point (if decimal places were
+requested).
+
+@subsubheading IB and PIB Formats
+
+These are integer binary formats.  IB reads and writes 2's complement
+binary integers, and PIB reads and writes unsigned binary integers.  The
+byte ordering is by default the host machine's, but SET RIB may be used
+to select a specific byte ordering for reading (@pxref{SET RIB}) and
+SET WIB, similarly, for writing (@pxref{SET WIB}).
+
+The maximum field width is 8.  Decimal places may range from 0 up to the
+number of decimal digits in the largest value representable in the field
+width.
+
+The default output format is an F format whose width is the number of
+decimal digits in the largest value representable in the field width,
+plus 1 if the format has decimal places.
+
+@subsubheading RB Format
+
+This is a binary format for real numbers.  By default it reads and
+writes the host machine's floating-point format, but SET RRB may be
+used to select an alternate floating-point format for reading
+(@pxref{SET RRB}) and SET WRB, similarly, for writing (@pxref{SET
+WRB}).
+
+The recommended field width depends on the floating-point format.
+NATIVE (the default format), IDL, IDB, VD, VG, and ZL formats should use
+a field width of 8.  ISL, ISB, VF, and ZS formats should use a field
+width of 4.  Other field widths will not produce useful results.  The
+maximum field width is 8.  No decimal places may be specified.
 
 The default output format is F8.2.
 
-@item CCAw.d: 1 <= ow <= 40
-@itemx CCBw.d: 1 <= ow <= 40
-@itemx CCCw.d: 1 <= ow <= 40
-@itemx CCDw.d: 1 <= ow <= 40
-@itemx CCEw.d: 1 <= ow <= 40
+@subsubheading PIBHEX and RBHEX Formats
 
-User-defined custom currency formats.  May not be used as an input
-format.  @xref{SET}, for more details.
+These are hexadecimal formats, for reading and writing binary formats
+where each byte has been recoded as a pair of hexadecimal digits.
+
+A hexadecimal field consists solely of hexadecimal digits
+@samp{0}@dots{}@samp{9} and @samp{A}@dots{}@samp{F}.  Uppercase and
+lowercase are accepted on input; output is in uppercase.
+
+Other than the hexadecimal representation, these formats are equivalent
+to PIB and RB formats, respectively.  However, bytes in PIBHEX format
+are always ordered with the most-significant byte first (big-endian
+order), regardless of the host machine's native byte order or PSPP
+settings.
+
+Field widths must be even and between 2 and 16.  RBHEX format allows no
+decimal places; PIBHEX allows as many decimal places as a PIB format
+with half the given width.
+
+@node Time and Date Formats
+@subsubsection Time and Date Formats
+
+In PSPP, a @dfn{time} is an interval.  The time formats translate
+between human-friendly descriptions of time intervals and PSPP's
+internal representation of time intervals, which is simply the number of
+seconds in the interval.  PSPP has two time formats:
+
+@float
+@multitable {Time Format} {@code{dd-mmm-yyyy HH:MM:SS.ss}} {@code{01-OCT-1978 04:31:17.01}}
+@headitem Time Format @tab Template                  @tab Example
+@item TIME     @tab @code{hh:MM:SS.ss}          @tab @code{04:31:17.01}
+@item DTIME    @tab @code{DD HH:MM:SS.ss}       @tab @code{00 04:31:17.01}
+@end multitable
+@end float
+
+A @dfn{date} is a moment in the past or the future.  Internally, PSPP
+represents a date as the number of seconds since the @dfn{epoch},
+midnight, Oct. 14, 1582.  The date formats translate between
+human-readable dates and PSPP's numeric representation of dates and
+times.  PSPP has several date formats:
+
+@float
+@multitable {Date Format} {@code{dd-mmm-yyyy HH:MM:SS.ss}} {@code{01-OCT-1978 04:31:17.01}}
+@headitem Date Format @tab Template                  @tab Example
+@item DATE     @tab @code{dd-mmm-yyyy}          @tab @code{01-OCT-1978}
+@item ADATE    @tab @code{mm/dd/yyyy}           @tab @code{10/01/1978}
+@item EDATE    @tab @code{dd.mm.yyyy}           @tab @code{01.10.1978}
+@item JDATE    @tab @code{yyyyjjj}              @tab @code{1978274}
+@item SDATE    @tab @code{yyyy/mm/dd}           @tab @code{1978/10/01}
+@item QYR      @tab @code{q Q yyyy}             @tab @code{3 Q 1978}
+@item MOYR     @tab @code{mmm yyyy}             @tab @code{OCT 1978}
+@item WKYR     @tab @code{ww WK yyyy}           @tab @code{40 WK 1978}
+@item DATETIME @tab @code{dd-mmm-yyyy HH:MM:SS.ss} @tab @code{01-OCT-1978 04:31:17.01}
+@end multitable
+@end float
+
+The templates in the preceding tables describe how the time and date
+formats are input and output:
+
+@table @code
+@item dd
+Day of month, from 1 to 31.  Always output as two digits.
+
+@item mm
+@itemx mmm
+Month.  In output, @code{mm} is output as two digits, @code{mmm} as the
+first three letters of an English month name (January, February,
+@dots{}).  In input, both of these formats, plus Roman numerals, are
+accepted.
+
+@item yyyy
+Year.  In output, DATETIME always produces a 4-digit year; other
+formats can produce a 2- or 4-digit year.  The century assumed for
+2-digit years depends on the EPOCH setting (@pxref{SET EPOCH}).  In
+output, a year outside the epoch causes the whole field to be filled
+with asterisks (@samp{*}).
+
+@item jjj
+Day of year (Julian day), from 1 to 366.  This is exactly three digits
+giving the count of days from the start of the year.  January 1 is
+considered day 1.
+
+@item q
+Quarter of year, from 1 to 4.  Quarters start on January 1, April 1,
+July 1, and October 1.
+
+@item ww
+Week of year, from 1 to 53.  Output as exactly two digits.  January 1 is
+the first day of week 1.
+
+@item DD
+Count of days, which may be positive or negative.  Output as at least
+two digits.
+
+@item hh
+Count of hours, which may be positive or negative.  Output as at least
+two digits.
+
+@item HH
+Hour of day, from 0 to 23.  Output as exactly two digits.
+
+@item MM
+Minute of hour, from 0 to 59.  Output as exactly two digits.
+
+@item SS.ss
+Seconds within minute, from 0 to 59.  The integer part is output as
+exactly two digits.  On output, seconds and fractional seconds may or
+may not be included, depending on field width and decimal places.  On
+input, seconds and fractional seconds are optional.  The DECIMAL setting
+controls the character accepted and displayed as the decimal point
+(@pxref{SET DECIMAL}).
 @end table
 
-The date and time numeric input and output formats accept a number of
-possible formats.  Before describing the formats themselves, some
-definitions of the elements that make up their formats will be helpful:
+For output, the date and time formats use the delimiters indicated in
+the table.  For input, date components may be separated by spaces or by
+one of the characters @samp{-}, @samp{/}, @samp{.}, or @samp{,}, and
+time components may be separated by spaces, @samp{:}, or @samp{.}.  On
+input, the @samp{Q} separating quarter from year and the @samp{WK}
+separating week from year may be uppercase or lowercase, and the spaces
+around them are optional.
 
-@table @dfn
-@item leader
-All formats accept an optional white space leader.
+On input, all time and date formats accept any amount of leading and
+trailing white space.
 
-@item day
-An integer between 1 and 31 representing the day of month.
-
-@item day-count
-An integer representing a number of days.
-
-@item date-delimiter
-One or more characters of white space or the following characters:
-@code{- / . ,}
-
-@item month
-A month name in one of the following forms:
-@itemize @bullet
-@item
-An integer between 1 and 12.
-@item
-Roman numerals representing an integer between 1 and 12.
-@item
-At least the first three characters of an English month name (January,
-February, @dots{}).
-@end itemize
-
-@item year
-An integer year number between 1582 and 19999, or between 1 and 199.
-Years between 1 and 199 will have 1900 added.
-
-@item julian
-A single number with a year number in the first 2, 3, or 4 digits (as
-above) and the day number within the year in the last 3 digits.
-
-@item quarter
-An integer between 1 and 4 representing a quarter.
-
-@item q-delimiter
-The letter @samp{Q} or @samp{q}.
-
-@item week
-An integer between 1 and 53 representing a week within a year.
-
-@item wk-delimiter
-The letters @samp{wk} in any case.
-
-@item time-delimiter
-At least one characters of white space or @samp{:} or @samp{.}.
-
-@item hour
-An integer greater than 0 representing an hour.
-
-@item minute
-An integer between 0 and 59 representing a minute within an hour.
-
-@item opt-second
-Optionally, a time-delimiter followed by a real number representing a
-number of seconds.
-
-@item hour24
-An integer between 0 and 23 representing an hour within a day.
-
-@item weekday
-At least the first two characters of an English day word.
-
-@item spaces
-Any amount or no amount of white space.
-
-@item sign
-An optional positive or negative sign.
-
-@item trailer
-All formats accept an optional white space trailer.
-@end table
-
-The date input formats are strung together from the above pieces.  On
-output, the date formats are always printed in a single canonical
-manner, based on field width.  The date input and output formats are
-described below:
+The maximum width for time and date formats is 40 columns.  Minimum
+input and output width for each of the time and date formats is shown
+below:
+@float
+@multitable {DATETIME} {Min. Input Width} {Min. Output Width} {4-digit year}
+@headitem Format @tab Min. Input Width @tab Min. Output Width @tab Option 
+@item DATE @tab 8 @tab 9 @tab 4-digit year
+@item ADATE @tab 8 @tab 8 @tab 4-digit year
+@item EDATE @tab 8 @tab 8 @tab 4-digit year
+@item JDATE @tab 5 @tab 5 @tab 4-digit year
+@item SDATE @tab 8 @tab 8 @tab 4-digit year
+@item QYR @tab 4 @tab 6 @tab 4-digit year
+@item MOYR @tab 6 @tab 6 @tab 4-digit year
+@item WKYR @tab 6 @tab 8 @tab 4-digit year
+@item DATETIME @tab 17 @tab 17 @tab seconds
+@item TIME @tab 5 @tab 5 @tab seconds
+@item DTIME @tab 8 @tab 8 @tab seconds
+@end multitable
+@end float
+@noindent 
+In the table, ``Option'' describes what increased output width enables:
 
 @table @asis
-@item DATEw: 9 <= iw,ow <= 40
-Date format. Input format: leader + day + date-delimiter +
-month + date-delimiter + year + trailer.  Output format: DD-MMM-YY for
-@var{w} < 11, DD-MMM-YYYY otherwise.
+@item 4-digit year
+A field 2 columns wider than minimum will include a 4-digit year.
+(DATETIME format always includes a 4-digit year.)
 
-@item EDATEw: 8 <= iw,ow <= 40
-European date format.  Input format same as DATE.  Output format:
-DD.MM.YY for @var{w} < 10, DD.MM.YYYY otherwise.
-
-@item SDATEw: 8 <= iw,ow <= 40
-Standard date format. Input format: leader + year + date-delimiter +
-month + date-delimiter + day + trailer.  Output format: YY/MM/DD for
-@var{w} < 10, YYYY/MM/DD otherwise.
-
-@item ADATEw: 8 <= iw,ow <= 40
-American date format.  Input format: leader + month + date-delimiter +
-day + date-delimiter + year + trailer.  Output format: MM/DD/YY for
-@var{w} < 10, MM/DD/YYYY otherwise.
-
-@item JDATEw: 5 <= iw,ow <= 40
-Julian date format.  Input format: leader + julian + trailer.  Output
-format: YYDDD for @var{w} < 7, YYYYDDD otherwise.
-
-@item QYRw: 4 <= iw <= 40, 6 <= ow <= 40
-Quarter/year format.  Input format: leader + quarter + q-delimiter +
-year + trailer.  Output format: @samp{Q Q YY}, where the first
-@samp{Q} is one of the digits 1, 2, 3, 4, if @var{w} < 8, @code{Q Q
-YYYY} otherwise.
-
-@item MOYRw: 6 <= iw,ow <= 40
-Month/year format.  Input format: leader + month + date-delimiter + year
-+ trailer.  Output format: @samp{MMM YY} for @var{w} < 8, @samp{MMM
-YYYY} otherwise.
-
-@item WKYRw: 6 <= iw <= 40, 8 <= ow <= 40
-Week/year format.  Input format: leader + week + wk-delimiter + year +
-trailer.  Output format: @samp{WW WK YY} for @var{w} < 10, @samp{WW WK
-YYYY} otherwise.
-
-@item DATETIMEw.d: 17 <= iw,ow <= 40
-Date and time format.  Input format: leader + day + date-delimiter +
-month + date-delimiter + year + time-delimiter + hour24 + time-delimiter
-+ minute + opt-second.  Output format: @samp{DD-MMM-YYYY HH:MM}.  If
-@var{w} > 19 then seconds @samp{:SS} is added.  If @var{w} > 22 and
-@var{d} > 0 then fractional seconds @samp{.SS} are added.
-
-@item TIMEw.d: 5 <= iw,ow <= 40
-Time format.  Input format: leader + sign + spaces + hour +
-time-delimiter + minute + opt-second.  Output format: @samp{HH:MM}.
-Seconds and fractional seconds are available with @var{w} of at least 8
-and 10, respectively.
-
-@item DTIMEw.d: 1 <= iw <= 40, 8 <= ow <= 40
-Time format with day count.  Input format: leader + sign + spaces +
-day-count + time-delimiter + hour + time-delimiter + minute +
-opt-second.  Output format: @samp{DD HH:MM}.  Seconds and fractional
-seconds are available with @var{w} of at least 8 and 10, respectively.
-
-@item WKDAYw: 2 <= iw,ow <= 40
-A weekday as a number between 1 and 7, where 1 is Sunday.  Input format:
-leader + weekday + trailer.  Output format: as many characters, in all
-capital letters, of the English name of the weekday as will fit in the
-field width.
-
-@item MONTHw: 3 <= iw,ow <= 40
-A month as a number between 1 and 12, where 1 is January.  Input format:
-leader + month + trailer.  Output format: as many character, in all
-capital letters, of the English name of the month as will fit in the
-field width.
+@item seconds
+A field 3 columns wider than minimum will include seconds as well as
+minutes.  A field 5 columns wider than minimum, or more, can also
+include a decimal point and fractional seconds (but no more than allowed
+by the format's decimal places).
 @end table
 
-There are only two formats that may be used with string variables:
+For the time and date formats, the default output format is the same as
+the input format, except that PSPP increases the field width, if
+necessary, to the minimum allowed for output.
 
-@table @asis
-@item Aw: 1 <= iw <= 255, 1 <= ow <= 254
-The entire field is treated as a string value.
+Time or dates narrower than the field width are right-justified within
+the field.
 
-@item AHEXw @result{} A: 2 <= iw <= 254; 2 <= ow <= 510
-The field is composed of characters in a string encoded as textual hex
-digit pairs.
+When a time or date exceeds the field width, characters are trimmed from
+the end until it fits.  This can occur in an unusual situation, e.g.@:
+with a year greater than 9999 (which adds an extra digit), or for a
+negative value on TIME or DTIME (which adds a leading minus sign).
 
-The default output @var{w} is half the input @var{w}.
-@end table
+@c What about out-of-range values?
 
-@node Scratch Variables,  , Input/Output Formats, Variables
+The system-missing value is output as a period at the right end of the
+field.  
+
+@node Date Component Formats
+@subsubsection Date Component Formats
+
+The WKDAY and MONTH formats provide input and output for the names of
+weekdays and months, respectively.
+
+On output, these formats convert a number between 1 and 7, for WKDAY, or
+between 1 and 12, for MONTH, into the English name of a day or month,
+respectively.  If the name is longer than the field, it is trimmed to
+fit.  If the name is shorter than the field, it is padded on the right
+with spaces.  Values outside the valid range, and the system-missing
+value, are output as all spaces.
+
+On input, English weekday or month names (in uppercase or lowercase) are
+converted back to their corresponding numbers.  Weekday and month names
+may be abbreviated to their first 2 or 3 letters, respectively.
+
+The field width may range from 2 to 40, for WKDAY, or from 3 to 40, for
+MONTH.  No decimal places are allowed.
+
+The default output format is the same as the input format.
+
+@node String Formats
+@subsubsection String Formats
+
+The A and AHEX formats are the only ones that may be assigned to string
+variables.  Neither format allows any decimal places.
+
+In A format, the entire field is treated as a string value.  The field
+width may range from 1 to 32,767, the maximum string width.  The default
+output format is the same as the input format.
+
+In AHEX format, the field is composed of characters in a string encoded
+as hex digit pairs.  On output, hex digits are output in uppercase; on
+input, uppercase and lowercase are both accepted.  The default output
+format is A format with half the input width.
+
+@node Scratch Variables,  , Input and Output Formats, Variables
 @subsection Scratch Variables
 
 Most of the time, variables don't retain their values between cases.

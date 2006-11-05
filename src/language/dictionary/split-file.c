@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <data/case.h>
+#include <data/data-out.h>
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/procedure.h>
@@ -95,7 +96,7 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
       assert (v->type == NUMERIC || v->type == ALPHA);
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
       
-      data_out (temp_buf, &v->print, case_data (c, v->fv));
+      data_out (case_data (c, v->fv), &v->print, temp_buf);
       
       temp_buf[v->print.w] = 0;
       tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);

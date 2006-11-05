@@ -18,790 +18,439 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/message.h>
+
+#include "data-out.h"
+
 #include <ctype.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+
 #include "calendar.h"
-#include <libpspp/assertion.h>
-#include <libpspp/message.h>
 #include "format.h"
-#include <libpspp/magic.h>
-#include <libpspp/misc.h>
-#include <libpspp/misc.h>
 #include "settings.h"
-#include <libpspp/str.h>
 #include "variable.h"
+
+#include <libpspp/assertion.h>
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
+#include <libpspp/magic.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
+
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Public functions. */
+/* A representation of a number that can be quickly rounded to
+   any desired number of decimal places (up to a specified
+   maximum). */
+struct rounder
+  {
+    char string[64];    /* Magnitude of number with excess precision. */
+    int integer_digits; /* Number of digits before decimal point. */
+    int leading_nines;  /* Number of `9's or `.'s at start of string. */
+    int leading_zeros;  /* Number of `0's or `.'s at start of string. */
+    bool negative;      /* Is the number negative? */
+  };
 
-typedef int numeric_converter (char *, const struct fmt_spec *, double);
-static numeric_converter convert_F, convert_N, convert_E, convert_F_plus;
-static numeric_converter convert_Z, convert_IB, convert_P, convert_PIB;
-static numeric_converter convert_PIBHEX, convert_PK, convert_RB;
-static numeric_converter convert_RBHEX, convert_CCx, convert_date;
-static numeric_converter convert_time, convert_WKDAY, convert_MONTH;
+static void rounder_init (struct rounder *, double number, int max_decimals);
+static int rounder_width (const struct rounder *, int decimals,
+                          int *integer_digits, bool *negative);
+static void rounder_format (const struct rounder *, int decimals,
+                            char *output);
+
+/* Format of integers in output (SET WIB). */
+static enum integer_format output_integer_format = INTEGER_NATIVE;
 
-static numeric_converter try_F, convert_infinite;
+/* Format of reals in output (SET WRB). */
+static enum float_format output_float_format = FLOAT_NATIVE_DOUBLE;
 
-typedef int string_converter (char *, const struct fmt_spec *, const char *);
-static string_converter convert_A, convert_AHEX;
+typedef void data_out_converter_func (const union value *,
+                                      const struct fmt_spec *,
+                                      char *);
+#define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) \
+        static data_out_converter_func output_##METHOD;
+#include "format.def"
 
-/* Converts binary value V into printable form in the exactly
-   FP->W character in buffer S according to format specification
-   FP.  No null terminator is appended to the buffer.  */
-bool
-data_out (char *s, const struct fmt_spec *fp, const union value *v)
+static bool output_decimal (const struct rounder *, const struct fmt_spec *,
+                            bool require_affixes, char *);
+static bool output_scientific (double, const struct fmt_spec *,
+                               bool require_affixes, char *);
+
+static double power10 (int) PURE_FUNCTION;
+static double power256 (int) PURE_FUNCTION;
+
+static void output_infinite (double, const struct fmt_spec *, char *);
+static void output_missing (const struct fmt_spec *, char *);
+static void output_overflow (const struct fmt_spec *, char *);
+static bool output_bcd_integer (double, int digits, char *);
+static void output_binary_integer (uint64_t, int bytes, enum integer_format,
+                                   char *);
+static void output_hex (const void *, size_t bytes, char *);
+
+/* Converts the INPUT value into printable form in the exactly
+   FORMAT->W characters in OUTPUT according to format
+   specification FORMAT.  No null terminator is appended to the
+   buffer.  */
+void
+data_out (const union value *input, const struct fmt_spec *format,
+          char *output)
 {
-  int ok;
-
-  assert (fmt_check_output (fp));
-  if (fmt_is_numeric (fp->type)) 
+  static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] = 
     {
-      enum fmt_category category = fmt_get_category (fp->type);
-      double number = v->f;
+#define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) output_##METHOD,
+#include "format.def"
+    };
 
-      /* Handle SYSMIS turning into blanks. */
-      if (!(category & (FMT_CAT_CUSTOM | FMT_CAT_BINARY | FMT_CAT_HEXADECIMAL))
-          && number == SYSMIS)
-        {
-          memset (s, ' ', fp->w);
-          s[fp->w - fp->d - 1] = '.';
-          return true;
-        }
+  assert (fmt_check_output (format));
 
-      /* Handle decimal shift. */
-      if ((category & (FMT_CAT_LEGACY | FMT_CAT_BINARY))
-          && number != SYSMIS
-          && fp->d)
-        number *= pow (10.0, fp->d);
+  converters[format->type] (input, format, output);
+}
 
-      switch (fp->type) 
-        {
-        case FMT_F:
-          ok = convert_F (s, fp, number);
-          break;
+/* Returns the current output integer format. */
+enum integer_format
+data_out_get_integer_format (void) 
+{
+  return output_integer_format;
+}
 
-        case FMT_N:
-          ok = convert_N (s, fp, number);
-          break;
+/* Sets the output integer format to INTEGER_FORMAT. */
+void
+data_out_set_integer_format (enum integer_format integer_format) 
+{
+  output_integer_format = integer_format;
+}
 
-        case FMT_E:
-          ok = convert_E (s, fp, number);
-          break;
+/* Returns the current output float format. */
+enum float_format
+data_out_get_float_format (void) 
+{
+  return output_float_format;
+}
 
-        case FMT_COMMA: case FMT_DOT: case FMT_DOLLAR: case FMT_PCT:
-          ok = convert_F_plus (s, fp, number);
-          break;
-
-        case FMT_Z:
-          ok = convert_Z (s, fp, number);
-          break;
-
-        case FMT_A:
-          NOT_REACHED ();
-
-        case FMT_AHEX:
-          NOT_REACHED ();
-
-        case FMT_IB:
-          ok = convert_IB (s, fp, number);
-          break;
-
-        case FMT_P:
-          ok = convert_P (s, fp, number);
-          break;
-
-        case FMT_PIB:
-          ok = convert_PIB (s, fp, number);
-          break;
-
-        case FMT_PIBHEX:
-          ok = convert_PIBHEX (s, fp, number);
-          break;
-
-        case FMT_PK:
-          ok = convert_PK (s, fp, number);
-          break;
-
-        case FMT_RB:
-          ok = convert_RB (s, fp, number);
-          break;
-
-        case FMT_RBHEX:
-          ok = convert_RBHEX (s, fp, number);
-          break;
-
-        case FMT_CCA: case FMT_CCB: case FMT_CCC: case FMT_CCD: case FMT_CCE:
-          ok = convert_CCx (s, fp, number);
-          break;
-
-        case FMT_DATE: case FMT_EDATE: case FMT_SDATE: case FMT_ADATE:
-        case FMT_JDATE: case FMT_QYR: case FMT_MOYR: case FMT_WKYR:
-        case FMT_DATETIME: 
-          ok = convert_date (s, fp, number);
-          break;
-
-        case FMT_TIME: case FMT_DTIME:
-          ok = convert_time (s, fp, number);
-          break;
-
-        case FMT_WKDAY:
-          ok = convert_WKDAY (s, fp, number);
-          break;
-
-        case FMT_MONTH:
-          ok = convert_MONTH (s, fp, number);
-          break;
-
-        default:
-          NOT_REACHED ();
-        }
-    }
-  else 
-    {
-      /* String formatting. */
-      const char *string = v->s;
-
-      switch (fp->type) 
-        {
-        case FMT_A:
-          ok = convert_A (s, fp, string);
-          break;
-
-        case FMT_AHEX:
-          ok = convert_AHEX (s, fp, string);
-          break;
-
-        default:
-          NOT_REACHED ();
-        }
-    }
-
-  /* Error handling. */
-  if (!ok)
-    strncpy (s, "ERROR", fp->w);
-  
-  return ok;
+/* Sets the output float format to FLOAT_FORMAT. */
+void
+data_out_set_float_format (enum float_format float_format) 
+{
+  output_float_format = float_format;
 }
 
 /* Main conversion functions. */
 
-static void insert_commas (char *dst, const char *src,
-			   const struct fmt_spec *fp);
-static int year4 (int year);
-static int try_CCx (char *s, const struct fmt_spec *fp, double v);
-
-#if FLT_RADIX!=2
-#error Write your own floating-point output routines.
-#endif
-
-/* Converts a number between 0 and 15 inclusive to a `hexit'
-   [0-9A-F]. */
-#define MAKE_HEXIT(X) ("0123456789ABCDEF"[X])
-
-/* Table of powers of 10. */
-static const double power10[] =
-  {
-    0,	/* Not used. */
-    1e01, 1e02, 1e03, 1e04, 1e05, 1e06, 1e07, 1e08, 1e09, 1e10,
-    1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20,
-    1e21, 1e22, 1e23, 1e24, 1e25, 1e26, 1e27, 1e28, 1e29, 1e30,
-    1e31, 1e32, 1e33, 1e34, 1e35, 1e36, 1e37, 1e38, 1e39, 1e40,
-  };
-
-/* Handles F format. */
-static int
-convert_F (char *dst, const struct fmt_spec *fp, double number)
+/* Outputs F, COMMA, DOT, DOLLAR, PCT, E, CCA, CCB, CCC, CCD, and
+   CCE formats. */
+static void
+output_number (const union value *input, const struct fmt_spec *format,
+               char *output)
 {
-  if (!try_F (dst, fp, number))
-    convert_E (dst, fp, number);
-  return 1;
-}
-
-/* Handles N format. */
-static int
-convert_N (char *dst, const struct fmt_spec *fp, double number)
-{
-  double d = floor (number);
-
-  if (d < 0 || d == SYSMIS)
-    {
-      msg (ME, _("The N output format cannot be used to output a "
-		 "negative number or the system-missing value."));
-      return 0;
-    }
-  
-  if (d < power10[fp->w])
-    {
-      char buf[128];
-      sprintf (buf, "%0*.0f", fp->w, number);
-      memcpy (dst, buf, fp->w);
-    }
-  else
-    memset (dst, '*', fp->w);
-
-  return 1;
-}
-
-/* Handles E format.  Also operates as fallback for some other
-   formats. */
-static int
-convert_E (char *dst, const struct fmt_spec *fp, double number)
-{
-  /* Temporary buffer. */
-  char buf[128];
-  
-  /* Ranged number of decimal places. */
-  int d;
-
-  if (!finite (number))
-    return convert_infinite (dst, fp, number);
-
-  /* Check that the format is wide enough.
-     Although PSPP generally checks this, convert_E() can be called as
-     a fallback from other formats which do not check. */
-  if (fp->w < 6)
-    {
-      memset (dst, '*', fp->w);
-      return 1;
-    }
-
-  /* Put decimal places in usable range. */
-  d = min (fp->d, fp->w - 6);
-  if (number < 0)
-    d--;
-  if (d < 0)
-    d = 0;
-  sprintf (buf, "%*.*E", fp->w, d, number);
-
-  /* What we do here is force the exponent part to have four
-     characters whenever possible.  That is, 1.00E+99 is okay (`E+99')
-     but 1.00E+100 (`E+100') must be coerced to 1.00+100 (`+100').  On
-     the other hand, 1.00E1000 (`E+100') cannot be canonicalized.
-     Note that ANSI C guarantees at least two digits in the
-     exponent. */
-  if (fabs (number) > 1e99)
-    {
-      /* Pointer to the `E' in buf. */
-      char *cp;
-
-      cp = strchr (buf, 'E');
-      if (cp)
-	{
-	  /* Exponent better not be bigger than an int. */
-	  int exp = atoi (cp + 1); 
-
-	  if (abs (exp) > 99 && abs (exp) < 1000)
-	    {
-	      /* Shift everything left one place: 1.00e+100 -> 1.00+100. */
-	      cp[0] = cp[1];
-	      cp[1] = cp[2];
-	      cp[2] = cp[3];
-	      cp[3] = cp[4];
-	    }
-	  else if (abs (exp) >= 1000)
-	    memset (buf, '*', fp->w);
-	}
-    }
-
-  /* The C locale always uses a period `.' as a decimal point.
-     Translate to comma if necessary. */
-  if (fmt_decimal_char (fp->type) != '.')
-    {
-      char *cp = strchr (buf, '.');
-      if (cp)
-	*cp = fmt_decimal_char (fp->type);
-    }
-
-  memcpy (dst, buf, fp->w);
-  return 1;
-}
-
-/* Handles COMMA, DOT, DOLLAR, and PCT formats. */
-static int
-convert_F_plus (char *dst, const struct fmt_spec *fp, double number)
-{
-  char buf[40];
-  
-  if (try_F (buf, fp, number))
-    insert_commas (dst, buf, fp);
-  else
-    convert_E (dst, fp, number);
-
-  return 1;
-}
-
-static int
-convert_Z (char *dst, const struct fmt_spec *fp, double number)
-{
-  static bool warned = false;
-
-  if (!warned)
-    {
-      msg (MW, 
-	_("Quality of zoned decimal (Z) output format code is "
-          "suspect.  Check your results. Report bugs to %s."),
-	PACKAGE_BUGREPORT);
-      warned = 1;
-    }
+  double number = input->f;
 
   if (number == SYSMIS)
+    output_missing (format, output);
+  else if (!isfinite (number))
+    output_infinite (number, format, output);
+  else 
     {
-      msg (ME, _("The system-missing value cannot be output as a zoned "
-		 "decimal number."));
-      return 0;
+      if (format->type != FMT_E && fabs (number) < 1.5 * power10 (format->w)) 
+        {
+          struct rounder r;
+          rounder_init (&r, number, format->d);
+
+          if (output_decimal (&r, format, true, output)
+              || output_scientific (number, format, true, output)
+              || output_decimal (&r, format, false, output))
+            return;
+        }
+
+      if (!output_scientific (number, format, false, output))
+        output_overflow (format, output);
     }
-  
-  {
-    char buf[41];
-    double d;
-    int i;
-    
-    d = fabs (floor (number));
-    if (d >= power10[fp->w])
-      {
-	msg (ME, _("Number %g too big to fit in field with format Z%d.%d."),
-	     number, fp->w, fp->d);
-	return 0;
-      }
-
-    sprintf (buf, "%*.0f", fp->w, number);
-    for (i = 0; i < fp->w; i++)
-      dst[i] = (buf[i] - '0') | 0xf0;
-    if (number < 0)
-      dst[fp->w - 1] &= 0xdf;
-  }
-
-  return 1;
 }
 
-static int
-convert_A (char *dst, const struct fmt_spec *fp, const char *string)
+/* Outputs N format. */
+static void
+output_N (const union value *input, const struct fmt_spec *format,
+          char *output)
 {
-  memcpy(dst, string, fp->w);
-  return 1;
-}
-
-static int
-convert_AHEX (char *dst, const struct fmt_spec *fp, const char *string)
-{
-  int i;
-
-  for (i = 0; i < fp->w / 2; i++)
-    {
-      *dst++ = MAKE_HEXIT ((string[i]) >> 4);
-      *dst++ = MAKE_HEXIT ((string[i]) & 0xf);
-    }
-
-  return 1;
-}
-
-static int
-convert_IB (char *dst, const struct fmt_spec *fp, double number)
-{
-  /* Strategy: Basically the same as convert_PIBHEX() but with
-     base 256. Then negate the two's-complement result if number
-     is negative. */
-
-  /* Used for constructing the two's-complement result. */
-  unsigned temp[8];
-
-  /* Fraction (mantissa). */
-  double frac;
-
-  /* Exponent. */
-  int exp;
-
-  /* Difference between exponent and (-8*fp->w-1). */
-  int diff;
-
-  /* Counter. */
-  int i;
-
-  /* Make the exponent (-8*fp->w-1). */
-  frac = frexp (fabs (number), &exp);
-  diff = exp - (-8 * fp->w - 1);
-  exp -= diff;
-  frac *= ldexp (1.0, diff);
-
-  /* Extract each base-256 digit. */
-  for (i = 0; i < fp->w; i++)
-    {
-      modf (frac, &frac);
-      frac *= 256.0;
-      temp[i] = floor (frac);
-    }
-
-  /* Perform two's-complement negation if number is negative. */
-  if (number < 0)
-    {
-      /* Perform NOT operation. */
-      for (i = 0; i < fp->w; i++)
-	temp[i] = ~temp[i];
-      /* Add 1 to the whole number. */
-      for (i = fp->w - 1; i >= 0; i--)
-	{
-	  temp[i]++;
-	  if (temp[i])
-	    break;
-	}
-    }
-  memcpy (dst, temp, fp->w);
-#ifndef WORDS_BIGENDIAN
-  buf_reverse (dst, fp->w);
-#endif
-
-  return 1;
-}
-
-static int
-convert_P (char *dst, const struct fmt_spec *fp, double number)
-{
-  /* Buffer for fp->w*2-1 characters + a decimal point if library is
-     not quite compliant + a null. */
-  char buf[17];
-
-  /* Counter. */
-  int i;
-
-  /* Main extraction. */
-  sprintf (buf, "%0*.0f", fp->w * 2 - 1, floor (fabs (number)));
-
-  for (i = 0; i < fp->w; i++)
-    ((unsigned char *) dst)[i]
-      = ((buf[i * 2] - '0') << 4) + buf[i * 2 + 1] - '0';
-
-  /* Set sign. */
-  dst[fp->w - 1] &= 0xf0;
-  if (number >= 0.0)
-    dst[fp->w - 1] |= 0xf;
-  else
-    dst[fp->w - 1] |= 0xd;
-
-  return 1;
-}
-
-static int
-convert_PIB (char *dst, const struct fmt_spec *fp, double number)
-{
-  /* Strategy: Basically the same as convert_IB(). */
-
-  /* Fraction (mantissa). */
-  double frac;
-
-  /* Exponent. */
-  int exp;
-
-  /* Difference between exponent and (-8*fp->w). */
-  int diff;
-
-  /* Counter. */
-  int i;
-
-  /* Make the exponent (-8*fp->w). */
-  frac = frexp (fabs (number), &exp);
-  diff = exp - (-8 * fp->w);
-  exp -= diff;
-  frac *= ldexp (1.0, diff);
-
-  /* Extract each base-256 digit. */
-  for (i = 0; i < fp->w; i++)
-    {
-      modf (frac, &frac);
-      frac *= 256.0;
-      ((unsigned char *) dst)[i] = floor (frac);
-    }
-#ifndef WORDS_BIGENDIAN
-  buf_reverse (dst, fp->w);
-#endif
-
-  return 1;
-}
-
-static int
-convert_PIBHEX (char *dst, const struct fmt_spec *fp, double number)
-{
-  /* Strategy: Use frexp() to create a normalized result (but mostly
-     to find the base-2 exponent), then change the base-2 exponent to
-     (-4*fp->w) using multiplication and division by powers of two.
-     Extract each hexit by multiplying by 16. */
-
-  /* Fraction (mantissa). */
-  double frac;
-
-  /* Exponent. */
-  int exp;
-
-  /* Difference between exponent and (-4*fp->w). */
-  int diff;
-
-  /* Counter. */
-  int i;
-
-  /* Make the exponent (-4*fp->w). */
-  frac = frexp (fabs (number), &exp);
-  diff = exp - (-4 * fp->w);
-  exp -= diff;
-  frac *= ldexp (1.0, diff);
-
-  /* Extract each hexit. */
-  for (i = 0; i < fp->w; i++)
-    {
-      modf (frac, &frac);
-      frac *= 16.0;
-      *dst++ = MAKE_HEXIT ((int) floor (frac));
-    }
-
-  return 1;
-}
-
-static int
-convert_PK (char *dst, const struct fmt_spec *fp, double number)
-{
-  /* Buffer for fp->w*2 characters + a decimal point if library is not
-     quite compliant + a null. */
-  char buf[18];
-
-  /* Counter. */
-  int i;
-
-  /* Main extraction. */
-  sprintf (buf, "%0*.0f", fp->w * 2, floor (fabs (number)));
-
-  for (i = 0; i < fp->w; i++)
-    ((unsigned char *) dst)[i]
-      = ((buf[i * 2] - '0') << 4) + buf[i * 2 + 1] - '0';
-
-  return 1;
-}
-
-static int
-convert_RB (char *dst, const struct fmt_spec *fp, double number)
-{
-  union
-    {
-      double d;
-      char c[8];
-    }
-  u;
-
-  u.d = number;
-  memcpy (dst, u.c, fp->w);
-
-  return 1;
-}
-
-static int
-convert_RBHEX (char *dst, const struct fmt_spec *fp, double number)
-{
-  union
-  {
-    double d;
-    char c[8];
-  }
-  u;
-
-  int i;
-
-  u.d = number;
-  for (i = 0; i < fp->w / 2; i++)
-    {
-      *dst++ = MAKE_HEXIT (u.c[i] >> 4);
-      *dst++ = MAKE_HEXIT (u.c[i] & 15);
-    }
-
-  return 1;
-}
-
-static int
-convert_CCx (char *dst, const struct fmt_spec *fp, double number)
-{
-  if (try_CCx (dst, fp, number))
-    return 1;
+  double number = input->f * power10 (format->d);
+  if (input->f == SYSMIS || number < 0)
+    output_missing (format, output);
   else
     {
-      struct fmt_spec f;
+      char buf[128];
+      number = fabs (round (number));
+      if (number < power10 (format->w)
+          && sprintf (buf, "%0*.0f", format->w, number) == format->w)
+        memcpy (output, buf, format->w);
+      else
+        output_overflow (format, output);
+    }
+}
+
+/* Outputs Z format. */
+static void
+output_Z (const union value *input, const struct fmt_spec *format,
+          char *output)
+{
+  double number = input->f * power10 (format->d);
+  char buf[128];
+  if (input->f == SYSMIS)
+    output_missing (format, output);
+  else if (fabs (number) >= power10 (format->w)
+           || sprintf (buf, "%0*.0f", format->w,
+                       fabs (round (number))) != format->w)
+    output_overflow (format, output);
+  else
+    {
+      if (number < 0 && strspn (buf, "0") < format->w) 
+        {
+          char *p = &buf[format->w - 1];
+          *p = "}JKLMNOPQR"[*p - '0'];
+        }
+      memcpy (output, buf, format->w); 
+    }
+}
+
+/* Outputs P format. */
+static void
+output_P (const union value *input, const struct fmt_spec *format,
+          char *output)
+{
+  if (output_bcd_integer (fabs (input->f * power10 (format->d)),
+                          format->w * 2 - 1, output)
+      && input->f < 0.0)
+    output[format->w - 1] |= 0xd;
+  else
+    output[format->w - 1] |= 0xf;
+}
+
+/* Outputs PK format. */
+static void
+output_PK (const union value *input, const struct fmt_spec *format,
+           char *output)
+{
+  output_bcd_integer (input->f * power10 (format->d), format->w * 2, output);
+}
+
+/* Outputs IB format. */
+static void
+output_IB (const union value *input, const struct fmt_spec *format,
+           char *output)
+{
+  double number = round (input->f * power10 (format->d));
+  if (input->f == SYSMIS
+      || number >= power256 (format->w) / 2 - 1
+      || number < -power256 (format->w) / 2)
+    memset (output, 0, format->w);
+  else
+    {
+      uint64_t integer = fabs (number);
+      if (number < 0)
+        integer = -integer;
+      output_binary_integer (integer, format->w, output_integer_format,
+                             output);
+    }
+}
+
+/* Outputs PIB format. */
+static void
+output_PIB (const union value *input, const struct fmt_spec *format,
+            char *output)
+{
+  double number = round (input->f * power10 (format->d));
+  if (input->f == SYSMIS
+      || number < 0 || number >= power256 (format->w))
+    memset (output, 0, format->w);
+  else
+    output_binary_integer (number, format->w, output_integer_format, output);
+}
+
+/* Outputs PIBHEX format. */
+static void
+output_PIBHEX (const union value *input, const struct fmt_spec *format,
+               char *output)
+{
+  double number = round (input->f);
+  if (input->f == SYSMIS)
+    output_missing (format, output);
+  else if (input->f < 0 || number >= power256 (format->w / 2))
+    output_overflow (format, output);
+  else
+    {
+      char tmp[8];
+      output_binary_integer (number, format->w / 2, INTEGER_MSB_FIRST, tmp);
+      output_hex (tmp, format->w / 2, output);
+    }
+}
+
+/* Outputs RB format. */
+static void
+output_RB (const union value *input, const struct fmt_spec *format,
+           char *output)
+{
+  double d = input->f;
+  memcpy (output, &d, format->w);
+}
+
+/* Outputs RBHEX format. */
+static void
+output_RBHEX (const union value *input, const struct fmt_spec *format,
+              char *output)
+{
+  double d = input->f;
+  output_hex (&d, format->w / 2, output);
+}
+
+/* Outputs DATE, ADATE, EDATE, JDATE, SDATE, QYR, MOYR, WKYR,
+   DATETIME, TIME, and DTIME formats. */
+static void
+output_date (const union value *input, const struct fmt_spec *format,
+             char *output)
+{
+  double number = input->f;
+  double magnitude = fabs (number);
+  int year, month, day, yday;
+
+  const char *template = fmt_date_template (format->type);
+  size_t template_width = strlen (template);
+  int excess_width = format->w - template_width;
+
+  char tmp[64];
+  char *p = tmp;
+
+  assert (format->w >= template_width);
+  if (number == SYSMIS)
+    goto missing;
+
+  if (fmt_get_category (format->type) == FMT_CAT_DATE) 
+    {
+      if (number <= 0)
+        goto missing;
+      calendar_offset_to_gregorian (number / 60. / 60. / 24.,
+                                    &year, &month, &day, &yday);
+    }
+  else
+    year = month = day = yday = 0;
+
+  while (*template != '\0')
+    {
+      int ch = *template;
+      int count = 1;
+      while (template[count] == ch) 
+        count++;
+      template += count;
       
-      f.type = FMT_COMMA;
-      f.w = fp->w;
-      f.d = fp->d;
-  
-      return convert_F_plus (dst, &f, number);
+      switch (ch)
+        {
+        case 'd':
+          if (count < 3)
+            p += sprintf (p, "%02d", day);
+          else
+            p += sprintf (p, "%03d", yday);
+          break;
+        case 'm':
+          if (count < 3)
+            p += sprintf (p, "%02d", month);
+          else
+            {
+              static const char *months[12] =
+                {
+                  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+                  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
+                };
+              p = stpcpy (p, months[month - 1]); 
+            }
+          break;
+        case 'y':
+          if (count >= 4 || excess_width >= 2) 
+            {
+              if (year <= 9999)
+                p += sprintf (p, "%04d", year);
+              else if (format->type == FMT_DATETIME)
+                p = stpcpy (p, "****");
+              else
+                goto overflow; 
+            }
+          else 
+            {
+              int offset = year - get_epoch ();
+              if (offset < 0 || offset > 99)
+                goto overflow;
+              p += sprintf (p, "%02d", abs (year) % 100); 
+            }
+          break;
+        case 'q':
+          p += sprintf (p, "%d", (month - 1) / 3 + 1);
+          break;
+        case 'w':
+          p += sprintf (p, "%2d", (yday - 1) / 7 + 1);
+          break;
+        case 'D':
+          if (number < 0)
+            *p++ = '-';
+          p += sprintf (p, "%.0f", floor (magnitude / 60. / 60. / 24.));
+          break;
+        case 'h':
+          if (number < 0)
+            *p++ = '-';
+          p += sprintf (p, "%.0f", floor (magnitude / 60. / 60.));
+          break;
+        case 'H':
+          p += sprintf (p, "%02d",
+                        (int) fmod (floor (magnitude / 60. / 60.), 24.));
+          break;
+        case 'M':
+          p += sprintf (p, "%02d",
+                        (int) fmod (floor (magnitude / 60.), 60.));
+          excess_width = format->w - (p - tmp);
+          if (excess_width < 0) 
+            goto overflow;
+          if (excess_width == 3 || excess_width == 4
+              || (excess_width >= 5 && format->d == 0))
+            p += sprintf (p, ":%02d", (int) fmod (magnitude, 60.));
+          else if (excess_width >= 5)
+            {
+              int d = MIN (format->d, excess_width - 4);
+              int w = d + 3;
+              sprintf (p, ":%0*.*f", w, d, fmod (magnitude, 60.));
+              if (fmt_decimal_char (FMT_F) != '.') 
+                {
+                  char *cp = strchr (p, '.');
+                  if (cp != NULL)
+                    *cp = fmt_decimal_char (FMT_F);
+                }
+              p += strlen (p);
+            }
+          break;
+        default:
+          assert (count == 1);
+          *p++ = ch;
+          break; 
+        }
     }
+
+  buf_copy_lpad (output, format->w, tmp, p - tmp);
+  return;
+
+ overflow:
+  output_overflow (format, output);
+  return;
+
+ missing:
+  output_missing (format, output);
+  return;
 }
 
-static int
-convert_date (char *dst, const struct fmt_spec *fp, double number)
-{
-  static const char *months[12] =
-    {
-      "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-      "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
-    };
-
-  char buf[64] = {0};
-  int ofs = number / 86400.;
-  int month, day, year;
-
-  if (ofs < 1)
-    return 0;
-
-  calendar_offset_to_gregorian (ofs, &year, &month, &day);
-  switch (fp->type)
-    {
-    case FMT_DATE:
-      if (fp->w >= 11)
-	sprintf (buf, "%02d-%s-%04d", day, months[month - 1], year);
-      else
-	sprintf (buf, "%02d-%s-%02d", day, months[month - 1], year % 100);
-      break;
-    case FMT_EDATE:
-      if (fp->w >= 10)
-	sprintf (buf, "%02d.%02d.%04d", day, month, year);
-      else
-	sprintf (buf, "%02d.%02d.%02d", day, month, year % 100);
-      break;
-    case FMT_SDATE:
-      if (fp->w >= 10)
-	sprintf (buf, "%04d/%02d/%02d", year, month, day);
-      else
-	sprintf (buf, "%02d/%02d/%02d", year % 100, month, day);
-      break;
-    case FMT_ADATE:
-      if (fp->w >= 10)
-	sprintf (buf, "%02d/%02d/%04d", month, day, year);
-      else
-	sprintf (buf, "%02d/%02d/%02d", month, day, year % 100);
-      break;
-    case FMT_JDATE:
-      {
-        int yday = calendar_offset_to_yday (ofs);
-	
-        if (fp->w < 7)
-          sprintf (buf, "%02d%03d", year % 100, yday); 
-        else if (year4 (year))
-          sprintf (buf, "%04d%03d", year, yday);
-        else
-	break;
-      }
-    case FMT_QYR:
-      if (fp->w >= 8)
-	sprintf (buf, "%d Q% 04d", (month - 1) / 3 + 1, year);
-      else
-	sprintf (buf, "%d Q% 02d", (month - 1) / 3 + 1, year % 100);
-      break;
-    case FMT_MOYR:
-      if (fp->w >= 8)
-	sprintf (buf, "%s% 04d", months[month - 1], year);
-      else
-	sprintf (buf, "%s% 02d", months[month - 1], year % 100);
-      break;
-    case FMT_WKYR:
-      {
-	int yday = calendar_offset_to_yday (ofs);
-	
-	if (fp->w >= 10)
-	  sprintf (buf, "%02d WK% 04d", (yday - 1) / 7 + 1, year);
-	else
-	  sprintf (buf, "%02d WK% 02d", (yday - 1) / 7 + 1, year % 100);
-      }
-      break;
-    case FMT_DATETIME:
-      {
-	char *cp;
-
-	cp = spprintf (buf, "%02d-%s-%04d %02d:%02d",
-		       day, months[month - 1], year,
-		       (int) fmod (floor (number / 60. / 60.), 24.),
-		       (int) fmod (floor (number / 60.), 60.));
-	if (fp->w >= 20)
-	  {
-	    int w, d;
-
-	    if (fp->w >= 22 && fp->d > 0)
-	      {
-		d = min (fp->d, fp->w - 21);
-		w = 3 + d;
-	      }
-	    else
-	      {
-		w = 2;
-		d = 0;
-	      }
-
-	    cp = spprintf (cp, ":%0*.*f", w, d, fmod (number, 60.));
-	  }
-      }
-      break;
-    default:
-      NOT_REACHED ();
-    }
-
-  if (buf[0] == 0)
-    return 0;
-  buf_copy_str_rpad (dst, fp->w, buf);
-  return 1;
-}
-
-static int
-convert_time (char *dst, const struct fmt_spec *fp, double number)
-{
-  char temp_buf[40];
-  char *cp;
-
-  double time;
-  int width;
-
-  if (fabs (number) > 1e20)
-    {
-      msg (ME, _("Time value %g too large in magnitude to convert to "
-	   "alphanumeric time."), number);
-      return 0;
-    }
-
-  time = number;
-  width = fp->w;
-  cp = temp_buf;
-  if (time < 0)
-    *cp++ = '-', time = -time;
-  if (fp->type == FMT_DTIME)
-    {
-      double days = floor (time / 60. / 60. / 24.);
-      cp = spprintf (temp_buf, "%02.0f ", days);
-      time = time - days * 60. * 60. * 24.;
-      width -= 3;
-    }
-  else
-    cp = temp_buf;
-
-  cp = spprintf (cp, "%02.0f:%02.0f",
-		 fmod (floor (time / 60. / 60.), 24.),
-		 fmod (floor (time / 60.), 60.));
-
-  if (width >= 8)
-    {
-      int w, d;
-
-      if (width >= 10 && fp->d >= 0 && fp->d != 0)
-	d = min (fp->d, width - 9), w = 3 + d;
-      else
-	w = 2, d = 0;
-
-      cp = spprintf (cp, ":%0*.*f", w, d, fmod (time, 60.));
-    }
-  buf_copy_str_rpad (dst, fp->w, temp_buf);
-
-  return 1;
-}
-
-static int
-convert_WKDAY (char *dst, const struct fmt_spec *fp, double wkday)
+/* Outputs WKDAY format. */
+static void
+output_WKDAY (const union value *input, const struct fmt_spec *format,
+              char *output)
 {
   static const char *weekdays[7] =
     {
@@ -809,19 +458,20 @@ convert_WKDAY (char *dst, const struct fmt_spec *fp, double wkday)
       "THURSDAY", "FRIDAY", "SATURDAY",
     };
 
-  if (wkday < 1 || wkday > 7)
+  if (input->f >= 1 && input->f < 8)
+    buf_copy_str_rpad (output, format->w, weekdays[(int) input->f - 1]);
+  else
     {
-      msg (ME, _("Weekday index %f does not lie between 1 and 7."),
-           (double) wkday);
-      return 0;
+      if (input->f != SYSMIS)
+        msg (ME, _("Weekday number %f is not between 1 and 7."), input->f);
+      output_missing (format, output);
     }
-  buf_copy_str_rpad (dst, fp->w, weekdays[(int) wkday - 1]);
-
-  return 1;
 }
 
-static int
-convert_MONTH (char *dst, const struct fmt_spec *fp, double month)
+/* Outputs MONTH format. */
+static void
+output_MONTH (const union value *input, const struct fmt_spec *format,
+              char *output)
 {
   static const char *months[12] =
     {
@@ -829,404 +479,480 @@ convert_MONTH (char *dst, const struct fmt_spec *fp, double month)
       "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
     };
 
-  if (month < 1 || month > 12)
+  if (input->f >= 1 && input->f < 13)
+    buf_copy_str_rpad (output, format->w, months[(int) input->f - 1]);
+  else
     {
-      msg (ME, _("Month index %f does not lie between 1 and 12."),
-           month);
-      return 0;
+      if (input->f != SYSMIS)
+        msg (ME, _("Month number %f is not between 1 and 12."), input->f);
+      output_missing (format, output);
+    }
+}
+
+/* Outputs A format. */
+static void
+output_A (const union value *input, const struct fmt_spec *format,
+          char *output)
+{
+  memcpy (output, input->s, format->w);
+}
+
+/* Outputs AHEX format. */
+static void
+output_AHEX (const union value *input, const struct fmt_spec *format,
+             char *output)
+{
+  output_hex (input->s, format->w, output);
+}
+
+/* Decimal and scientific formatting. */
+
+/* If REQUEST plus the current *WIDTH fits within MAX_WIDTH,
+   increments *WIDTH by REQUEST and return true.
+   Otherwise returns false without changing *WIDTH. */
+static bool
+allocate_space (int request, int max_width, int *width)
+{
+  assert (*width <= max_width);
+  if (request + *width <= max_width) 
+    {
+      *width += request;
+      return true;
+    }
+  else
+    return false;
+}
+
+/* Tries to compose the number represented by R, in the style of
+   FORMAT, into OUTPUT.  Returns true if successful, false on
+   failure, which occurs if FORMAT's width is too narrow.  If
+   REQUIRE_AFFIXES is true, then the prefix and suffix specified
+   by FORMAT's style must be included; otherwise, they may be
+   omitted to make the number fit. */
+static bool
+output_decimal (const struct rounder *r, const struct fmt_spec *format,
+                bool require_affixes, char *output)
+{
+  const struct fmt_number_style *style = fmt_get_style (format->type);
+  int decimals;
+
+  for (decimals = format->d; decimals >= 0; decimals--) 
+    {
+      /* Formatted version of magnitude of NUMBER. */
+      char magnitude[64];
+
+      /* Number of digits in MAGNITUDE's integer and fractional parts. */
+      int integer_digits;
+
+      /* Amount of space within the field width already claimed.
+         Initially this is the width of MAGNITUDE, then it is reduced
+         in stages as space is allocated to prefixes and suffixes and
+         grouping characters. */
+      int width;
+
+      /* Include various decorations? */
+      bool add_neg_prefix;
+      bool add_affixes;
+      bool add_grouping;
+
+      /* Position in output. */
+      char *p;
+
+      /* Make sure there's room for the number's magnitude, plus
+         the negative suffix, plus (if negative) the negative
+         prefix. */
+      width = rounder_width (r, decimals, &integer_digits, &add_neg_prefix);
+      width += ss_length (style->neg_suffix);
+      if (add_neg_prefix)
+        width += ss_length (style->neg_prefix);
+      if (width > format->w)
+        continue;
+
+      /* If there's room for the prefix and suffix, allocate
+         space.  If the affixes are required, but there's no
+         space, give up. */
+      add_affixes = allocate_space (fmt_affix_width (style),
+                                    format->w, &width);
+      if (!add_affixes && require_affixes)
+        continue;
+      
+      /* Check whether we should include grouping characters.
+         We need room for a complete set or we don't insert any at all.
+         We don't include grouping characters if decimal places were
+         requested but they were all dropped. */
+      add_grouping = (style->grouping != 0
+                      && integer_digits > 3
+                      && (format->d == 0 || decimals > 0)
+                      && allocate_space ((integer_digits - 1) / 3,
+                                         format->w, &width));
+
+      /* Format the number's magnitude. */
+      rounder_format (r, decimals, magnitude);
+  
+      /* Assemble number. */
+      p = output;
+      if (format->w > width)
+        p = mempset (p, ' ', format->w - width);
+      if (add_neg_prefix)
+        p = mempcpy (p, ss_data (style->neg_prefix),
+                     ss_length (style->neg_prefix));
+      if (add_affixes)
+        p = mempcpy (p, ss_data (style->prefix), ss_length (style->prefix));
+      if (!add_grouping)
+        p = mempcpy (p, magnitude, integer_digits);
+      else
+        {
+          int i;
+          for (i = 0; i < integer_digits; i++)
+            {
+              if (i > 0 && (integer_digits - i) % 3 == 0)
+                *p++ = style->grouping;
+              *p++ = magnitude[i];
+            } 
+        }
+      if (decimals > 0)
+        {
+          *p++ = style->decimal;
+          p = mempcpy (p, &magnitude[integer_digits + 1], decimals);
+        }
+      if (add_affixes)
+        p = mempcpy (p, ss_data (style->suffix), ss_length (style->suffix));
+      if (add_neg_prefix)
+        p = mempcpy (p, ss_data (style->neg_suffix),
+                     ss_length (style->neg_suffix));
+      else
+        p = mempset (p, ' ', ss_length (style->neg_suffix));
+      assert (p == output + format->w);
+
+      return true;
+    }
+  return false;
+}
+
+/* Formats NUMBER into OUTPUT in scientific notation according to
+   the style of the format specified in FORMAT. */
+static bool
+output_scientific (double number, const struct fmt_spec *format,
+                   bool require_affixes, char *output)
+{
+  const struct fmt_number_style *style = fmt_get_style (format->type);
+  int width;
+  int fraction_width;
+  bool add_affixes;
+  char buf[64], *p;
+
+  /* Allocate minimum required space. */
+  width = 6 + ss_length (style->neg_suffix);
+  if (number < 0)
+    width += ss_length (style->neg_prefix);
+  if (width > format->w)
+    return false;
+
+  /* Check for room for prefix and suffix. */
+  add_affixes = allocate_space (fmt_affix_width (style), format->w, &width);
+  if (require_affixes && !add_affixes)
+    return false;
+
+  /* Figure out number of characters we can use for the fraction,
+     if any.  (If that turns out to be 1, then we'll output a
+     decimal point without any digits following; that's what the
+     # flag does in the call to sprintf, below.) */
+  fraction_width = MIN (MIN (format->d + 1, format->w - width), 16);
+  if (format->type != FMT_E
+      && (fraction_width == 1
+          || format->w - width + (style->grouping == 0 && number < 0) <= 2))
+    fraction_width = 0; 
+  width += fraction_width;
+
+  /* Format (except suffix). */
+  p = buf;
+  if (width < format->w)
+    p = mempset (p, ' ', format->w - width);
+  if (number < 0)
+    p = mempcpy (p, ss_data (style->neg_prefix),
+                 ss_length (style->neg_prefix));
+  if (add_affixes)
+    p = mempcpy (p, ss_data (style->prefix), ss_length (style->prefix));
+  if (fraction_width > 0)
+    sprintf (p, "%#.*E", fraction_width - 1, fabs (number));
+  else
+    sprintf (p, "%.0E", fabs (number));
+
+  /* The C locale always uses a period `.' as a decimal point.
+     Translate to comma if necessary. */
+  if (style->decimal != '.')
+    {
+      char *cp = strchr (p, '.');
+      if (cp != NULL)
+        *cp = style->decimal;
+    }
+
+  /* Make exponent have exactly three digits, plus sign. */
+  {
+    char *cp = strchr (p, 'E') + 1;
+    long int exponent = strtol (cp, NULL, 10);
+    if (abs (exponent) > 999) 
+      return false;
+    sprintf (cp, "%+04ld", exponent);
+  }
+
+  /* Add suffixes. */
+  p = strchr (p, '\0');
+  if (add_affixes)
+    p = mempcpy (p, ss_data (style->suffix), ss_length (style->suffix));
+  if (number < 0)
+    p = mempcpy (p, ss_data (style->neg_suffix),
+                 ss_length (style->neg_suffix));
+  else
+    p = mempset (p, ' ', ss_length (style->neg_suffix));
+
+  assert (p == buf + format->w);
+
+  buf_copy_str_lpad (output, format->w, buf);
+  return true;
+}
+
+#ifndef HAVE_ROUND
+/* Return X rounded to the nearest integer,
+   rounding ties away from zero. */
+static double
+round (double x) 
+{
+  return x >= 0.0 ? floor (x + .5) : ceil (x - .5);
+}
+#endif /* !HAVE_ROUND */
+
+/* Returns true if the magnitude represented by R should be
+   rounded up when chopped off at DECIMALS decimal places, false
+   if it should be rounded down. */
+static bool
+should_round_up (const struct rounder *r, int decimals) 
+{
+  int digit = r->string[r->integer_digits + decimals + 1];
+  assert (digit >= '0' && digit <= '9');
+  return digit >= '5';
+}
+
+/* Initializes R for formatting the magnitude of NUMBER to no
+   more than MAX_DECIMAL decimal places. */
+static void
+rounder_init (struct rounder *r, double number, int max_decimals)
+{
+  assert (fabs (number) < 1e41);
+  assert (max_decimals >= 0 && max_decimals <= 16);
+  if (max_decimals == 0) 
+    {
+      /* Fast path.  No rounding needed.
+
+         We append ".00" to the integer representation because
+         round_up assumes that fractional digits are present.  */
+      sprintf (r->string, "%.0f.00", fabs (round (number)));
+    }
+  else 
+    {
+      /* Slow path.
+         
+         This is more difficult than it really should be because
+         we have to make sure that numbers that are exactly
+         halfway between two representations are always rounded
+         away from zero.  This is not what sprintf normally does
+         (usually it rounds to even), so we have to fake it as
+         best we can, by formatting with extra precision and then
+         doing the rounding ourselves.
+     
+         We take up to two rounds to format numbers.  In the
+         first round, we obtain 2 digits of precision beyond
+         those requested by the user.  If those digits are
+         exactly "50", then in a second round we format with as
+         many digits as are significant in a "double".
+     
+         It might be better to directly implement our own
+         floating-point formatting routine instead of relying on
+         the system's sprintf implementation.  But the classic
+         Steele and White paper on printing floating-point
+         numbers does not hint how to do what we want, and it's
+         not obvious how to change their algorithms to do so.  It
+         would also be a lot of work. */
+      sprintf (r->string, "%.*f", max_decimals + 2, fabs (number));
+      if (!strcmp (r->string + strlen (r->string) - 2, "50"))
+        {
+          int binary_exponent, decimal_exponent, format_decimals;
+          frexp (number, &binary_exponent);
+          decimal_exponent = binary_exponent * 3 / 10;
+          format_decimals = (DBL_DIG + 1) - decimal_exponent;
+          if (format_decimals > max_decimals + 2)
+            sprintf (r->string, "%.*f", format_decimals, fabs (number));
+        }
     }
   
-  buf_copy_str_rpad (dst, fp->w, months[(int) month - 1]);
+  if (r->string[0] == '0') 
+    memmove (r->string, &r->string[1], strlen (r->string));
 
-  return 1;
+  r->leading_zeros = strspn (r->string, "0.");
+  r->leading_nines = strspn (r->string, "9.");
+  r->integer_digits = strchr (r->string, '.') - r->string;
+  r->negative = number < 0;
+}
+
+/* Returns the number of characters required to format the
+   magnitude represented by R to DECIMALS decimal places.
+   The return value includes integer digits and a decimal point
+   and fractional digits, if any, but it does not include any
+   negative prefix or suffix or other affixes.
+
+   *INTEGER_DIGITS is set to the number of digits before the
+   decimal point in the output, between 0 and 40.
+
+   If R represents a negative number and its rounded
+   representation would include at least one nonzero digit,
+   *NEGATIVE is set to true; otherwise, it is set to false. */
+static int
+rounder_width (const struct rounder *r, int decimals,
+               int *integer_digits, bool *negative) 
+{
+  /* Calculate base measures. */
+  int width = r->integer_digits;
+  if (decimals > 0)
+    width += decimals + 1;
+  *integer_digits = r->integer_digits;
+  *negative = r->negative;
+
+  /* Rounding can cause adjustments. */
+  if (should_round_up (r, decimals))
+    {
+      /* Rounding up leading 9s adds a new digit (a 1). */
+      if (r->leading_nines >= width) 
+        {
+          width++;
+          ++*integer_digits; 
+        }
+    }
+  else
+    {
+      /* Rounding down. */
+      if (r->leading_zeros >= width) 
+        {
+          /* All digits that remain after rounding are zeros.
+             Therefore we drop the negative sign. */
+          *negative = false;
+          if (r->integer_digits == 0 && decimals == 0) 
+            {
+              /* No digits at all are left.  We need to display
+                 at least a single digit (a zero). */
+              assert (width == 0);
+              width++;
+              *integer_digits = 1;
+            } 
+        }
+    }
+  return width;
+}
+
+/* Formats the magnitude represented by R into OUTPUT, rounding
+   to DECIMALS decimal places.  Exactly as many characters as
+   indicated by rounder_width are written.  No terminating null
+   is appended. */
+static void
+rounder_format (const struct rounder *r, int decimals, char *output) 
+{
+  int base_width = r->integer_digits + (decimals > 0 ? decimals + 1 : 0);
+  if (should_round_up (r, decimals)) 
+    {
+      if (r->leading_nines < base_width) 
+        {
+          /* Rounding up.  This is the common case where rounding
+             up doesn't add an extra digit. */
+          char *p;
+          memcpy (output, r->string, base_width);
+          for (p = output + base_width - 1; ; p--) 
+            {
+              assert (p >= output);
+              if (*p == '9')
+                *p = '0';
+              else if (*p >= '0' && *p <= '8') 
+                {
+                  (*p)++;
+                  break;
+                }
+              else
+                assert (*p == '.');
+            }
+        }
+      else 
+        {
+          /* Rounding up leading 9s causes the result to be a 1
+             followed by a number of 0s, plus a decimal point. */
+          char *p = output;
+          *p++ = '1';
+          p = mempset (p, '0', r->integer_digits);
+          if (decimals > 0) 
+            {
+              *p++ = '.';
+              p = mempset (p, '0', decimals);
+            }
+          assert (p == output + base_width + 1);
+        }
+    }
+  else 
+    {
+      /* Rounding down. */
+      if (r->integer_digits != 0 || decimals != 0) 
+        {
+          /* Common case: just copy the digits. */
+          memcpy (output, r->string, base_width); 
+        }
+      else 
+        {
+          /* No digits remain.  The output is just a zero. */
+          output[0] = '0'; 
+        }
+    }
 }
 
 /* Helper functions. */
 
-/* Copies SRC to DST, inserting commas and dollar signs as appropriate
-   for format spec *FP.  */
+/* Returns 10**X. */
+static double PURE_FUNCTION
+power10 (int x) 
+{
+  static const double p[] =
+    {
+      1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9,
+      1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19,
+      1e20, 1e21, 1e22, 1e23, 1e24, 1e25, 1e26, 1e27, 1e28, 1e29,
+      1e30, 1e31, 1e32, 1e33, 1e34, 1e35, 1e36, 1e37, 1e38, 1e39,
+      1e40,
+    };
+  return x >= 0 && x < sizeof p / sizeof *p ? p[x] : pow (10.0, x);
+}
+
+/* Returns 256**X. */
+static double PURE_FUNCTION
+power256 (int x) 
+{
+  static const double p[] = 
+    {
+      1.0,
+      256.0,
+      65536.0,
+      16777216.0,
+      4294967296.0,
+      1099511627776.0,
+      281474976710656.0,
+      72057594037927936.0,
+      18446744073709551616.0
+    };
+  return x >= 0 && x < sizeof p / sizeof *p ? p[x] : pow (256.0, x);
+}
+
+/* Formats non-finite NUMBER into OUTPUT according to the width
+   given in FORMAT. */
 static void
-insert_commas (char *dst, const char *src, const struct fmt_spec *fp)
+output_infinite (double number, const struct fmt_spec *format, char *output)
 {
-  /* Number of leading spaces in the number.  This is the amount of
-     room we have for inserting commas and dollar signs. */
-  int n_spaces;
-
-  /* Number of digits before the decimal point.  This is used to
-     determine the Number of commas to insert. */
-  int n_digits;
-
-  /* Number of commas to insert. */
-  int n_commas;
-
-  /* Number of items ,%$ to insert. */
-  int n_items;
-
-  /* Number of n_items items not to use for commas. */
-  int n_reserved;
-
-  /* Digit iterator. */
-  int i;
-
-  /* Source pointer. */
-  const char *sp;
-
-  /* Count spaces and digits. */
-  sp = src;
-  while (sp < src + fp->w && *sp == ' ')
-    sp++;
-  n_spaces = sp - src;
-  sp = src + n_spaces;
-  if (*sp == '-')
-    sp++;
-  n_digits = 0;
-  while (sp + n_digits < src + fp->w && isdigit ((unsigned char) sp[n_digits]))
-    n_digits++;
-  n_commas = (n_digits - 1) / 3;
-  n_items = n_commas + (fp->type == FMT_DOLLAR || fp->type == FMT_PCT);
-
-  /* Check whether we have enough space to do insertions. */
-  if (!n_spaces || !n_items)
-    {
-      memcpy (dst, src, fp->w);
-      return;
-    }
-  if (n_items > n_spaces)
-    {
-      n_items -= n_commas;
-      if (!n_items)
-	{
-	  memcpy (dst, src, fp->w);
-	  return;
-	}
-    }
-
-  /* Put spaces at the beginning if there's extra room. */
-  if (n_spaces > n_items)
-    {
-      memset (dst, ' ', n_spaces - n_items);
-      dst += n_spaces - n_items;
-    }
-
-  /* Insert $ and reserve space for %. */
-  n_reserved = 0;
-  if (fp->type == FMT_DOLLAR)
-    {
-      *dst++ = '$';
-      n_items--;
-    }
-  else if (fp->type == FMT_PCT)
-    n_reserved = 1;
-
-  /* Copy negative sign and digits, inserting commas. */
-  if (sp - src > n_spaces)
-    *dst++ = '-';
-  for (i = n_digits; i; i--)
-    {
-      if (i % 3 == 0 && n_digits > i && n_items > n_reserved)
-	{
-	  n_items--;
-	  *dst++ = fmt_grouping_char (fp->type);
-	}
-      *dst++ = *sp++;
-    }
-
-  /* Copy decimal places and insert % if necessary. */
-  memcpy (dst, sp, fp->w - (sp - src));
-  if (fp->type == FMT_PCT && n_items > 0)
-    dst[fp->w - (sp - src)] = '%';
-}
-
-/* Returns 1 if YEAR (i.e., 1987) can be represented in four digits, 0
-   otherwise. */
-static int
-year4 (int year)
-{
-  if (year >= 1 && year <= 9999)
-    return 1;
-  msg (ME, _("Year %d cannot be represented in four digits for "
-	     "output formatting purposes."), year);
-  return 0;
-}
-
-static int
-try_CCx (char *dst, const struct fmt_spec *fp, double number)
-{
-  const struct fmt_number_style *style = fmt_get_style (fp->type);
-
-  struct fmt_spec f;
-
-  char buf[64];
-  char buf2[64];
-  char *cp;
-
-  /* Determine length available, decimal character for number
-     proper. */
-  f.type = style->decimal == fmt_decimal_char (FMT_COMMA) ? FMT_COMMA : FMT_DOT;
-  f.w = fp->w - fmt_affix_width (style);
-  if (number < 0)
-    f.w -= fmt_neg_affix_width (style) - 1;
-  else
-    /* Convert -0 to +0. */
-    number = fabs (number);
-  f.d = fp->d;
-
-  if (f.w <= 0)
-    return 0;
-
-  /* There's room for all that currency crap.  Let's do the F
-     conversion first. */
-  if (!convert_F (buf, &f, number) || *buf == '*')
-    return 0;
-  insert_commas (buf2, buf, &f);
-
-  /* Postprocess back into buf. */
-  cp = buf;
-  if (number < 0)
-    cp = mempcpy (cp, ss_data (style->neg_prefix),
-                  ss_length (style->neg_prefix));
-  cp = mempcpy (cp, ss_data (style->prefix), ss_length (style->prefix));
-  {
-    char *bp = buf2;
-    while (*bp == ' ')
-      bp++;
-
-    assert ((number >= 0) ^ (*bp == '-'));
-    if (number < 0)
-      bp++;
-
-    memcpy (cp, bp, f.w - (bp - buf2));
-    cp += f.w - (bp - buf2);
-  }
-  cp = mempcpy (cp, ss_data (style->suffix), ss_length (style->suffix));
-  if (number < 0)
-    cp = mempcpy (cp, ss_data (style->neg_suffix),
-                  ss_length (style->neg_suffix));
-
-  /* Copy into dst. */
-  assert (cp - buf <= fp->w);
-  if (cp - buf < fp->w)
-    {
-      memcpy (&dst[fp->w - (cp - buf)], buf, cp - buf);
-      memset (dst, ' ', fp->w - (cp - buf));
-    }
-  else
-    memcpy (dst, buf, fp->w);
-
-  return 1;
-}
-
-static int
-format_and_round (char *dst, double number, const struct fmt_spec *fp,
-                  int decimals);
-
-/* Tries to format NUMBER into DST as the F format specified in
-   *FP.  Return true if successful, false on failure. */
-static int
-try_F (char *dst, const struct fmt_spec *fp, double number)
-{
-  assert (fp->w <= 40);
-  if (finite (number)) 
-    {
-      if (fabs (number) < power10[fp->w])
-        {
-          /* The value may fit in the field. */
-          if (fp->d == 0) 
-            {
-              /* There are no decimal places, so there's no way
-                 that the value can be shortened.  Either it fits
-                 or it doesn't. */
-              char buf[41];
-              sprintf (buf, "%*.0f", fp->w, number);
-              if (strlen (buf) <= fp->w) 
-                {
-                  buf_copy_str_lpad (dst, fp->w, buf);
-                  return true; 
-                }
-              else 
-                return false;
-            }
-          else 
-            {
-              /* First try to format it with 2 extra decimal
-                 places.  This gives us a good chance of not
-                 needing even more decimal places, but it also
-                 avoids wasting too much time formatting more
-                 decimal places on the first try. */
-              int result = format_and_round (dst, number, fp, fp->d + 2);
-
-              if (result >= 0)
-                return result;
-
-              /* 2 extra decimal places weren't enough to
-                 correctly round.  Try again with the maximum
-                 number of places. */
-              return format_and_round (dst, number, fp, LDBL_DIG + 1);
-            }
-        }
-      else 
-        {
-          /* The value is too big to fit in the field. */
-          return false;
-        }
-    }
-  else
-    return convert_infinite (dst, fp, number);
-}
-
-/* Tries to compose NUMBER into DST in format FP by first
-   formatting it with DECIMALS decimal places, then rounding off
-   to as many decimal places will fit or the number specified in
-   FP, whichever is fewer.
-
-   Returns 1 if conversion succeeds, 0 if this try at conversion
-   failed and so will any other tries (because the integer part
-   of the number is too long), or -1 if this try failed but
-   another with higher DECIMALS might succeed (because we'd be
-   able to properly round). */
-static int
-format_and_round (char *dst, double number, const struct fmt_spec *fp,
-                  int decimals)
-{
-  /* Number of characters before the decimal point,
-     which includes digits and possibly a minus sign. */
-  int predot_chars;
-
-  /* Number of digits in the output fraction,
-     which may be smaller than fp->d if there's not enough room. */
-  int fraction_digits;
-
-  /* Points to last digit that will remain in the fraction after
-     rounding. */
-  char *final_frac_dig;
-
-  /* Round up? */
-  bool round_up;
+  assert (!isfinite (number));
   
-  char buf[128];
-  
-  assert (decimals > fp->d);
-  if (decimals > LDBL_DIG)
-    decimals = LDBL_DIG + 1;
-
-  sprintf (buf, "%.*f", decimals, number);
-
-  /* Omit integer part if it's 0. */
-  if (!memcmp (buf, "0.", 2))
-    memmove (buf, buf + 1, strlen (buf));
-  else if (!memcmp (buf, "-0.", 3))
-    memmove (buf + 1, buf + 2, strlen (buf + 1));
-
-  predot_chars = strcspn (buf, ".");
-  if (predot_chars > fp->w) 
-    {
-      /* Can't possibly fit. */
-      return 0; 
-    }
-  else if (predot_chars == fp->w)
-    {
-      /* Exact fit for integer part and sign. */
-      memcpy (dst, buf, fp->w);
-      return 1;
-    }
-  else if (predot_chars + 1 == fp->w) 
-    {
-      /* There's room for the decimal point, but not for any
-         digits of the fraction.
-         Right-justify the integer part and sign. */
-      dst[0] = ' ';
-      memcpy (dst + 1, buf, fp->w - 1);
-      return 1;
-    }
-
-  /* It looks like we have room for at least one digit of the
-     fraction.  Figure out how many. */
-  fraction_digits = fp->w - predot_chars - 1;
-  if (fraction_digits > fp->d)
-    fraction_digits = fp->d;
-  final_frac_dig = buf + predot_chars + fraction_digits;
-
-  /* Decide rounding direction and truncate string. */
-  if (final_frac_dig[1] == '5'
-      && strspn (final_frac_dig + 2, "0") == strlen (final_frac_dig + 2)) 
-    {
-      /* Exactly 1/2. */
-      if (decimals <= LDBL_DIG)
-        {
-          /* Don't have enough fractional digits to know which way to
-             round.  We can format with more decimal places, so go
-             around again. */
-          return -1;
-        }
-      else 
-        {
-          /* We used up all our fractional digits and still don't
-             know.  Round to even. */
-          round_up = (final_frac_dig[0] - '0') % 2 != 0;
-        }
-    }
-  else
-    round_up = final_frac_dig[1] >= '5';
-  final_frac_dig[1] = '\0';
-
-  /* Do rounding. */
-  if (round_up) 
-    {
-      char *cp = final_frac_dig;
-      for (;;) 
-        {
-          if (*cp >= '0' && *cp <= '8')
-            {
-              (*cp)++;
-              break; 
-            }
-          else if (*cp == '9') 
-            *cp = '0';
-          else
-            assert (*cp == '.');
-
-          if (cp == buf || *--cp == '-')
-            {
-              size_t length;
-              
-              /* Tried to go past the leftmost digit.  Insert a 1. */
-              memmove (cp + 1, cp, strlen (cp) + 1);
-              *cp = '1';
-
-              length = strlen (buf);
-              if (length > fp->w) 
-                {
-                  /* Inserting the `1' overflowed our space.
-                     Drop a decimal place. */
-                  buf[--length] = '\0';
-
-                  /* If that was the last decimal place, drop the
-                     decimal point too. */
-                  if (buf[length - 1] == '.')
-                    buf[length - 1] = '\0';
-                }
-              
-              break;
-            }
-        }
-    }
-
-  /* Omit `-' if value output is zero. */
-  if (buf[0] == '-' && buf[strspn (buf, "-.0")] == '\0')
-    memmove (buf, buf + 1, strlen (buf));
-
-  buf_copy_str_lpad (dst, fp->w, buf);
-  return 1;
-}
-
-/* Formats non-finite NUMBER into DST according to the width
-   given in FP. */
-static int
-convert_infinite (char *dst, const struct fmt_spec *fp, double number)
-{
-  assert (!finite (number));
-  
-  if (fp->w >= 3)
+  if (format->w >= 3)
     {
       const char *s;
 
@@ -1237,10 +963,95 @@ convert_infinite (char *dst, const struct fmt_spec *fp, double number)
       else
         s = "Unknown";
 
-      buf_copy_str_lpad (dst, fp->w, s);
+      buf_copy_str_lpad (output, format->w, s);
     }
   else 
-    memset (dst, '*', fp->w);
+    output_overflow (format, output);
+}
 
-  return true;
+/* Formats OUTPUT as a missing value for the given FORMAT. */
+static void
+output_missing (const struct fmt_spec *format, char *output)
+{
+  memset (output, ' ', format->w);
+
+  if (format->type != FMT_N) 
+    {
+      int dot_ofs = (format->type == FMT_PCT ? 2
+                     : format->type == FMT_E ? 5
+                     : 1);
+      output[MAX (0, format->w - format->d - dot_ofs)] = '.'; 
+    }
+  else
+    output[format->w - 1] = '.';
+}
+
+/* Formats OUTPUT for overflow given FORMAT. */
+static void
+output_overflow (const struct fmt_spec *format, char *output) 
+{
+  memset (output, '*', format->w);
+}
+
+/* Converts the integer part of NUMBER to a packed BCD number
+   with the given number of DIGITS in OUTPUT.  If DIGITS is odd,
+   the least significant nibble of the final byte in OUTPUT is
+   set to 0.  Returns true if successful, false if NUMBER is not
+   representable.  On failure, OUTPUT is cleared to all zero
+   bytes. */
+static bool
+output_bcd_integer (double number, int digits, char *output) 
+{
+  char decimal[64];
+
+  assert (digits < sizeof decimal);
+  if (number != SYSMIS
+      && number >= 0.
+      && number < power10 (digits)
+      && sprintf (decimal, "%0*.0f", digits, round (number)) == digits)
+    {
+      const char *src = decimal;
+      int i;
+
+      for (i = 0; i < digits / 2; i++) 
+        {
+          int d0 = *src++ - '0';
+          int d1 = *src++ - '0';
+          *output++ = (d0 << 4) + d1; 
+        }
+      if (digits % 2)
+        *output = (*src - '0') << 4;
+      
+      return true;
+    }
+  else 
+    {
+      memset (output, 0, digits);
+      return false; 
+    }
+}
+
+/* Writes VALUE to OUTPUT as a BYTES-byte binary integer of the
+   given INTEGER_FORMAT. */
+static void
+output_binary_integer (uint64_t value, int bytes,
+                       enum integer_format integer_format, char *output) 
+{
+  integer_put (value, integer_format, output, bytes);
+}
+
+/* Converts the BYTES bytes in DATA to twice as many hexadecimal
+   digits in OUTPUT. */
+static void
+output_hex (const void *data_, size_t bytes, char *output) 
+{
+  const uint8_t *data = data_;
+  size_t i;
+
+  for (i = 0; i < bytes; i++)
+    {
+      static const char hex_digits[] = "0123456789ABCDEF";
+      *output++ = hex_digits[data[i] >> 4];
+      *output++ = hex_digits[data[i] & 15];
+    }
 }
