@@ -73,7 +73,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 #The syntax was invalid.  Therefore pspp must return non zero.
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -o raw-ascii -e /dev/null $TESTFILE 
 if [ $? -ne 1 ] ; then fail ; fi
 
 pass;

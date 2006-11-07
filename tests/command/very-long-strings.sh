@@ -71,7 +71,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 0"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii -e /dev/null $TESTFILE 
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare variable display 0"

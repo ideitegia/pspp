@@ -63,8 +63,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 #This must fail
 activity="run program"
-$SUPERVISOR $PSPP $TEMPDIR/ct.stat > /dev/null
+$SUPERVISOR $PSPP -e /dev/null $TEMPDIR/ct.stat 
 if [ $? -ne 1 ] ; then fail ; fi
-
 
 pass;

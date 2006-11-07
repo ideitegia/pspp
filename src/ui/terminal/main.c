@@ -90,7 +90,6 @@ main (int argc, char **argv)
 
   fmt_init ();
   outp_init ();
-  msg_ui_init ();
   fn_init ();
   fh_init ();
   getl_initialize ();
@@ -101,6 +100,7 @@ main (int argc, char **argv)
 
   if (parse_command_line (argc, argv)) 
     {
+      msg_ui_init ();
       outp_read_devices ();
       lex_init (do_read_line);
 

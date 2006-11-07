@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 
+void msg_ui_set_error_file (const char *filename);
 void msg_ui_init (void);
 void msg_ui_done (void);
 void check_msg_count (void);

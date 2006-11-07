@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include "command-line.h"
+#include "msg-ui.h"
 #include <libpspp/message.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -62,6 +63,7 @@ parse_command_line (int argc, char **argv)
     {"device", required_argument, NULL, 'o'},
     {"dry-run", no_argument, NULL, 'n'},
     {"edit", no_argument, NULL, 'n'},
+    {"error-file", required_argument, NULL, 'e'},
     {"help", no_argument, NULL, 'h'},
     {"include-directory", required_argument, NULL, 'I'},
     {"interactive", no_argument, NULL, 'i'},
@@ -89,7 +91,7 @@ parse_command_line (int argc, char **argv)
 
   for (;;)
     {
-      c = getopt_long (argc, argv, "a:x:B:c:f:hiI:lno:prsvV", long_options, NULL);
+      c = getopt_long (argc, argv, "a:x:B:c:e:f:hiI:lno:prsvV", long_options, NULL);
       if (c == -1)
 	break;
 
@@ -119,7 +121,9 @@ parse_command_line (int argc, char **argv)
               return false;
 	    }
 	  break;
-
+	case 'e':
+	  msg_ui_set_error_file (optarg);
+	  break;
 	case 'B':
 	  config_path = optarg;
 	  break;
@@ -223,6 +227,7 @@ N_("PSPP, a program for statistical analysis of sample data.\n"
 "  -B, --config-dir=DIR      set configuration directory to DIR\n"
 "  -o, --device=DEVICE       select output driver DEVICE and disable defaults\n"
 "\nInput and output:\n"
+"  -e, --error-file=FILE     send error messages to FILE (appended)\n"
 "  -f, --out-file=FILE       send output to FILE (overwritten)\n"
 "  -p, --pipe                read script from stdin, send output to stdout\n"
 "  -I-, --no-include         clear include path\n"

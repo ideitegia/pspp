@@ -27,6 +27,7 @@
 #include <language/line-buffer.h>
 #include <data/settings.h>
 #include <libpspp/message.h>
+#include <errno.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -35,12 +36,35 @@
 /* Number of errors, warnings reported. */
 static int error_count;
 static int warning_count;
+static const char *error_file;
 
 static void handle_msg (const struct msg *);
+
+static FILE *msg_file;
+
+void 
+msg_ui_set_error_file (const char *filename)
+{
+  error_file = filename;
+}
 
 void
 msg_ui_init (void) 
 {
+  msg_file = stdout;
+
+  if ( error_file ) 
+    {
+      msg_file = fopen (error_file, "a");
+      if ( NULL == msg_file ) 
+	{
+	  int err = errno;
+	  printf ( _("Cannot open %s (%s). "
+		     "Writing errors to stdout instead.\n"), 
+		   error_file, strerror(err) );
+	  msg_file = stdout;
+	}
+    }
   msg_init (handle_msg, get_msg_location);
 }
 
@@ -48,6 +72,7 @@ void
 msg_ui_done (void) 
 {
   msg_done ();
+  fclose (msg_file);
 }
 
 
@@ -141,8 +166,8 @@ handle_msg (const struct msg *m)
 
   ds_put_cstr (&string, m->text);
 
-  if (get_error_routing_to_terminal ())
-    dump_message (ds_cstr (&string), get_viewwidth (), 8, stdout);
+  if (msg_file != stdout || get_error_routing_to_terminal ())
+    dump_message (ds_cstr (&string), get_viewwidth (), 8, msg_file);
 
   ds_destroy (&string);
 }

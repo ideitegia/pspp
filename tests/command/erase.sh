@@ -77,7 +77,7 @@ if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi
 
 # This command must fail
 activity="run prog 1"
-$SUPERVISOR $PSPP $TESTFILE > /dev/null
+$SUPERVISOR $PSPP -e /dev/null $TESTFILE 
 if [ $? -eq 0 ] ; then fail ; fi
 
 

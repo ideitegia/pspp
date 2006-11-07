@@ -206,7 +206,7 @@ for outfile in scratch active external; do
 	    if [ $? -ne 0 ] ; then no_result ; fi
 	    
 	    activity="run $name.pspp"
-	    $SUPERVISOR $PSPP --testing-mode -o raw-ascii $name.pspp >/dev/null 2>&1
+	    $SUPERVISOR $PSPP --testing-mode -o raw-ascii -e /dev/null $name.pspp 
 	    if [ $? -ne 0 ] ; then no_result ; fi
 
 	    activity="check $name output"
