@@ -1,3 +1,8 @@
+Thu Nov  2 20:58:12 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command/data-list.sh: Test newly implement SKIP keyword on DATA
+	LIST.
+
 Sat Nov  4 16:08:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add binhex-out.sh, date-out.sh, month-out.sh,

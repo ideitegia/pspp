@@ -138,9 +138,10 @@ Each form of @cmd{DATA LIST} is described in detail below.
 @display
 DATA LIST [FIXED]
         @{TABLE,NOTABLE@}
-        FILE='file-name'
-        RECORDS=record_count
-        END=end_var
+        [FILE='file-name']
+        [RECORDS=record_count]
+        [END=end_var]
+        [SKIP=record_count]
         /[line_no] var_spec@dots{}
 
 where each var_spec takes one of the forms
@@ -165,6 +166,10 @@ the list of variable specifications later in @cmd{DATA LIST}.
 
 The END subcommand is only useful in conjunction with @cmd{INPUT
 PROGRAM}.  @xref{INPUT PROGRAM}, for details.
+
+The optional SKIP subcommand specifies a number of records to skip at
+the beginning of an input file.  It can be used to skip over a row
+that contains variable names, for example.
 
 @cmd{DATA LIST} can optionally output a table describing how the data file
 will be read.  The TABLE subcommand enables this output, and NOTABLE
@@ -346,8 +351,9 @@ This example shows keywords abbreviated to their first 3 letters.
 DATA LIST FREE
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        FILE='file-name'
-        END=end_var
+        [FILE='file-name']
+        [END=end_var]
+        [SKIP=record_cnt]
         /var_spec@dots{}
 
 where each var_spec takes one of the forms
@@ -376,7 +382,7 @@ of quoting is allowed.
 The NOTABLE and TABLE subcommands are as in @cmd{DATA LIST FIXED} above.
 NOTABLE is the default.
 
-The FILE and END subcommands are as in @cmd{DATA LIST FIXED} above.
+The FILE, END, and SKIP subcommands are as in @cmd{DATA LIST FIXED} above.
 
 The variables to be parsed are given as a single list of variable names.
 This list must be introduced by a single slash (@samp{/}).  The set of
@@ -398,8 +404,9 @@ on field width apply, but they are honored on output.
 DATA LIST LIST
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        FILE='file-name'
-        END=end_var
+        [FILE='file-name']
+        [END=end_var]
+        [SKIP=record_count]
         /var_spec@dots{}
 
 where each var_spec takes one of the forms

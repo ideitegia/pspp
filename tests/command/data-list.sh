@@ -64,8 +64,9 @@ end data.
 
 list.
 
-data list free/A B C D.
+data list free skip=1/A B C D.
 begin data.
+# This record is ignored.
 ,1,2,3
 ,4,,5
 6
@@ -81,8 +82,10 @@ begin data.
 end data.
 list.
 
-data list free (tab)/A B C D.
+data list free (tab) skip=2/A B C D.
 begin data.
+# These records
+# are skipped.
 1	2	3	4
 1	2	3	
 1	2		4

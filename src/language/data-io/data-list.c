@@ -99,6 +99,7 @@ struct data_list_pgm
     struct variable *end;	/* Variable specified on END subcommand. */
     int record_cnt;             /* Number of records. */
     struct string delims;       /* Field delimiters. */
+    int skip_records;           /* Records to skip before first case. */
   };
 
 static const struct case_source_class data_list_source_class;
@@ -134,6 +135,7 @@ cmd_data_list (struct dataset *ds)
   dls->type = -1;
   dls->end = NULL;
   dls->record_cnt = 0;
+  dls->skip_records = 0;
   ds_init_empty (&dls->delims);
   ds_register_pool (&dls->delims, dls->pool);
 
@@ -157,6 +159,14 @@ cmd_data_list (struct dataset *ds)
 	  dls->record_cnt = lex_integer ();
 	  lex_get ();
 	  lex_match (')');
+	}
+      else if (lex_match_id ("SKIP"))
+	{
+	  lex_match ('=');
+	  if (!lex_force_int ())
+	    goto error;
+	  dls->skip_records = lex_integer ();
+	  lex_get ();
 	}
       else if (lex_match_id ("END"))
 	{
@@ -819,6 +829,16 @@ data_list_source_read (struct case_source *source,
 {
   struct data_list_pgm *dls = source->aux;
 
+  /* Skip the requested number of records before reading the
+     first case. */
+  while (dls->skip_records > 0) 
+    {
+      if (dfm_eof (dls->reader))
+        return false;
+      dfm_forward_record (dls->reader);
+      dls->skip_records--;
+    }
+  
   for (;;) 
     {
       bool ok;

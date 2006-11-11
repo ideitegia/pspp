@@ -1,3 +1,11 @@
+Thu Nov  2 20:56:03 2006  Ben Pfaff  <blp@gnu.org>
+
+	Implement SKIP keyword on DATA LIST.  Fixes bug #17099.
+	
+	* data-list.c: (struct data_list_pgm) Add `skip_records' members.
+	(cmd_data_list) Set skip_records based on user input.
+	(data_list_source_read) Skip records requested by user.
+
 Tue Oct 31 20:04:06 2006  Ben Pfaff  <blp@gnu.org>
 
 	* placement-parser.c: (PRS_TYPE_T) Now that struct fmt_spec uses
@@ -12,7 +20,6 @@ Tue Oct 31 20:04:06 2006  Ben Pfaff  <blp@gnu.org>
 	(fixed_parse_columns) Ditto.
 	(fixed_parse_fortran) Ditto.
 	
-
 Tue Oct 31 18:21:48 2006  Ben Pfaff  <blp@gnu.org>
 
 	* print-space.c (print_space_trns_proc): Let dfm_put_record add
