@@ -104,9 +104,9 @@ struct data_list_pgm
 
 static const struct case_source_class data_list_source_class;
 
-static bool parse_fixed (struct dictionary *dict, 
+static bool parse_fixed (struct lexer *, struct dictionary *dict, 
 			 struct pool *tmp_pool, struct data_list_pgm *);
-static bool parse_free (struct dictionary *dict, 
+static bool parse_free (struct lexer *, struct dictionary *dict, 
 			struct pool *tmp_pool, struct data_list_pgm *);
 static void dump_fixed_table (const struct ll_list *,
                               const struct file_handle *, int record_cnt);
@@ -117,7 +117,7 @@ static trns_free_func data_list_trns_free;
 static trns_proc_func data_list_trns_proc;
 
 int
-cmd_data_list (struct dataset *ds)
+cmd_data_list (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct data_list_pgm *dls;
@@ -141,34 +141,34 @@ cmd_data_list (struct dataset *ds)
 
   tmp_pool = pool_create_subpool (dls->pool);
 
-  while (token != '/')
+  while (lex_token (lexer) != '/')
     {
-      if (lex_match_id ("FILE"))
+      if (lex_match_id (lexer, "FILE"))
 	{
-	  lex_match ('=');
-	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
+	  lex_match (lexer, '=');
+	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
 	}
-      else if (lex_match_id ("RECORDS"))
+      else if (lex_match_id (lexer, "RECORDS"))
 	{
-	  lex_match ('=');
-	  lex_match ('(');
-	  if (!lex_force_int ())
+	  lex_match (lexer, '=');
+	  lex_match (lexer, '(');
+	  if (!lex_force_int (lexer))
 	    goto error;
-	  dls->record_cnt = lex_integer ();
-	  lex_get ();
-	  lex_match (')');
+	  dls->record_cnt = lex_integer (lexer);
+	  lex_get (lexer);
+	  lex_match (lexer, ')');
 	}
-      else if (lex_match_id ("SKIP"))
+      else if (lex_match_id (lexer, "SKIP"))
 	{
-	  lex_match ('=');
-	  if (!lex_force_int ())
+	  lex_match (lexer, '=');
+	  if (!lex_force_int (lexer))
 	    goto error;
-	  dls->skip_records = lex_integer ();
-	  lex_get ();
+	  dls->skip_records = lex_integer (lexer);
+	  lex_get (lexer);
 	}
-      else if (lex_match_id ("END"))
+      else if (lex_match_id (lexer, "END"))
 	{
 	  if (dls->end)
 	    {
@@ -176,32 +176,32 @@ cmd_data_list (struct dataset *ds)
 	      goto error;
 	    }
 	  
-	  lex_match ('=');
-	  if (!lex_force_id ())
+	  lex_match (lexer, '=');
+	  if (!lex_force_id (lexer))
 	    goto error;
-	  dls->end = dict_lookup_var (dataset_dict (ds), tokid);
+	  dls->end = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
 	  if (!dls->end) 
-            dls->end = dict_create_var_assert (dataset_dict (ds), tokid, 0);
-	  lex_get ();
+            dls->end = dict_create_var_assert (dataset_dict (ds), lex_tokid (lexer), 0);
+	  lex_get (lexer);
 	}
-      else if (token == T_ID)
+      else if (lex_token (lexer) == T_ID)
 	{
-          if (lex_match_id ("NOTABLE"))
+          if (lex_match_id (lexer, "NOTABLE"))
             table = 0;
-          else if (lex_match_id ("TABLE"))
+          else if (lex_match_id (lexer, "TABLE"))
             table = 1;
           else 
             {
               int type;
-              if (lex_match_id ("FIXED"))
+              if (lex_match_id (lexer, "FIXED"))
                 type = DLS_FIXED;
-              else if (lex_match_id ("FREE"))
+              else if (lex_match_id (lexer, "FREE"))
                 type = DLS_FREE;
-              else if (lex_match_id ("LIST"))
+              else if (lex_match_id (lexer, "LIST"))
                 type = DLS_LIST;
               else 
                 {
-                  lex_error (NULL);
+                  lex_error (lexer, NULL);
                   goto error;
                 }
 
@@ -214,35 +214,35 @@ cmd_data_list (struct dataset *ds)
 	      dls->type = type;
 
               if ((dls->type == DLS_FREE || dls->type == DLS_LIST)
-                  && lex_match ('(')) 
+                  && lex_match (lexer, '(')) 
                 {
-                  while (!lex_match (')'))
+                  while (!lex_match (lexer, ')'))
                     {
                       int delim;
 
-                      if (lex_match_id ("TAB"))
+                      if (lex_match_id (lexer, "TAB"))
                         delim = '\t';
-                      else if (token == T_STRING && ds_length (&tokstr) == 1)
+                      else if (lex_token (lexer) == T_STRING && ds_length (lex_tokstr (lexer)) == 1)
 			{
-			  delim = ds_first (&tokstr);
-			  lex_get ();
+			  delim = ds_first (lex_tokstr (lexer));
+			  lex_get (lexer);
 			}
                       else 
                         {
-                          lex_error (NULL);
+                          lex_error (lexer, NULL);
                           goto error;
                         }
 
                       ds_put_char (&dls->delims, delim);
 
-                      lex_match (',');
+                      lex_match (lexer, ',');
                     }
                 }
             }
         }
       else
 	{
-	  lex_error (NULL);
+	  lex_error (lexer, NULL);
 	  goto error;
 	}
     }
@@ -255,11 +255,11 @@ cmd_data_list (struct dataset *ds)
   if (table == -1)
     table = dls->type != DLS_FREE;
 
-  ok = (dls->type == DLS_FIXED ? parse_fixed : parse_free) (dict, tmp_pool, dls);
+  ok = (dls->type == DLS_FIXED ? parse_fixed : parse_free) (lexer, dict, tmp_pool, dls);
   if (!ok)
     goto error;
 
-  if (lex_end_of_command () != CMD_SUCCESS)
+  if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto error;
 
   if (table)
@@ -270,7 +270,7 @@ cmd_data_list (struct dataset *ds)
 	dump_free_table (dls, fh);
     }
 
-  dls->reader = dfm_open_reader (fh);
+  dls->reader = dfm_open_reader (fh, lexer);
   if (dls->reader == NULL)
     goto error;
 
@@ -295,14 +295,14 @@ cmd_data_list (struct dataset *ds)
    needed once parsing is complete.  Returns true only if
    successful. */
 static bool
-parse_fixed (struct dictionary *dict, 
+parse_fixed (struct lexer *lexer, struct dictionary *dict, 
 	     struct pool *tmp_pool, struct data_list_pgm *dls)
 {
   int last_nonempty_record;
   int record = 0;
   int column = 1;
 
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
       char **names;
       size_t name_cnt, name_idx;
@@ -310,9 +310,10 @@ parse_fixed (struct dictionary *dict,
       size_t format_cnt;
 
       /* Parse everything. */
-      if (!parse_record_placement (&record, &column)
-          || !parse_DATA_LIST_vars_pool (tmp_pool, &names, &name_cnt, PV_NONE)
-          || !parse_var_placements (tmp_pool, name_cnt, true,
+      if (!parse_record_placement (lexer, &record, &column)
+          || !parse_DATA_LIST_vars_pool (lexer, tmp_pool, 
+					 &names, &name_cnt, PV_NONE)
+          || !parse_var_placements (lexer, tmp_pool, name_cnt, true,
                                     &formats, &format_cnt))
         return false;
 
@@ -447,30 +448,32 @@ dump_fixed_table (const struct ll_list *specs,
    them to DLS.  Uses TMP_POOL for data that is not needed once
    parsing is complete.  Returns true only if successful. */
 static bool
-parse_free (struct dictionary *dict, struct pool *tmp_pool, struct data_list_pgm *dls)
+parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool, 
+		struct data_list_pgm *dls)
 {
-  lex_get ();
-  while (token != '.')
+  lex_get (lexer);
+  while (lex_token (lexer) != '.')
     {
       struct fmt_spec input, output;
       char **name;
       size_t name_cnt;
       size_t i;
 
-      if (!parse_DATA_LIST_vars_pool (tmp_pool, &name, &name_cnt, PV_NONE))
+      if (!parse_DATA_LIST_vars_pool (lexer, tmp_pool, 
+				      &name, &name_cnt, PV_NONE))
 	return 0;
 
-      if (lex_match ('('))
+      if (lex_match (lexer, '('))
 	{
-	  if (!parse_format_specifier (&input)
+	  if (!parse_format_specifier (lexer, &input)
               || !fmt_check_input (&input)
-              || !lex_force_match (')')) 
+              || !lex_force_match (lexer, ')')) 
             return NULL;
 	  output = fmt_for_output_from_input (&input);
 	}
       else
 	{
-	  lex_match ('*');
+	  lex_match (lexer, '*');
           input = fmt_for_input (FMT_F, 8, 0);
 	  output = *get_format ();
 	}

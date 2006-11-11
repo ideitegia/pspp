@@ -40,22 +40,22 @@
 #define MAX_TOK_LEN 1024
 
 /* argv[0]. */
-char *program_name;
+static char *program_name;
 
 /* Have the input and output files been opened yet? */
-bool is_open;
+static bool is_open;
 
 /* Input, output files. */
-FILE *in, *out;
+static FILE *in, *out;
 
 /* Input, output file names. */
-char *ifn, *ofn;
+static char *ifn, *ofn;
 
 /* Input, output file line number. */
-int ln, oln = 1;
+static int ln, oln = 1;
 
 /* Input line buffer, current position. */
-char *buf, *cp;
+static char *buf, *cp;
 
 /* Token types. */
 enum
@@ -65,14 +65,14 @@ enum
   };
 
 /* Current token: either one of the above, or a single character. */
-int token;
+static int token;
 
 /* Token string value. */
-char *tokstr;
+static char *tokstr;
 
 /* Utility functions. */
 
-char nullstr[] = "";
+static char nullstr[] = "";
 
 /* Close all open files and delete the output file, on failure. */
 static void
@@ -1177,7 +1177,7 @@ dump_declarations (void)
 	      dump (0, "/* Prototype for custom subcommands of %s. */",
 		    cmdname);
 	    }
-	  dump (0, "static int %scustom_%s (struct dataset *, struct cmd_%s *, void *);",
+	  dump (0, "static int %scustom_%s (struct lexer *, struct dataset *, struct cmd_%s *, void *);",
 		st_lower (prefix), st_lower (sbc->name),
 		make_identifier (cmdname));
 	}
@@ -1189,7 +1189,7 @@ dump_declarations (void)
   /* Prototypes for parsing and freeing functions. */
   {
     dump (0, "/* Command parsing functions. */");
-    dump (0, "static int parse_%s (struct dataset *, struct cmd_%s *, void *);",
+    dump (0, "static int parse_%s (struct lexer *, struct dataset *, struct cmd_%s *, void *);",
 	  make_identifier (cmdname), make_identifier (cmdname));
     dump (0, "static void free_%s (struct cmd_%s *);",
 	  make_identifier (cmdname), make_identifier (cmdname));
@@ -1342,17 +1342,17 @@ make_match (const char *t)
     t++;
       
   if (is_keyword (t))
-    sprintf (s, "lex_match (T_%s)", t);
+    sprintf (s, "lex_match (lexer, T_%s)", t);
   else if (!strcmp (t, "ON") || !strcmp (t, "YES"))
-    strcpy (s, "(lex_match_id (\"ON\") || lex_match_id (\"YES\") "
-	    "|| lex_match_id (\"TRUE\"))");
+    strcpy (s, "(lex_match_id (lexer, \"ON\") || lex_match_id (lexer, \"YES\") "
+	    "|| lex_match_id (lexer, \"TRUE\"))");
   else if (!strcmp (t, "OFF") || !strcmp (t, "NO"))
-    strcpy (s, "(lex_match_id (\"OFF\") || lex_match_id (\"NO\") "
-	    "|| lex_match_id (\"FALSE\"))");
+    strcpy (s, "(lex_match_id (lexer, \"OFF\") || lex_match_id (lexer, \"NO\") "
+	    "|| lex_match_id (lexer, \"FALSE\"))");
   else if (isdigit ((unsigned char) t[0]))
-    sprintf (s, "lex_match_int (%s)", t);
+    sprintf (s, "lex_match_int (lexer, %s)", t);
   else
-    sprintf (s, "lex_match_id (\"%s\")", t);
+    sprintf (s, "lex_match_id (lexer, \"%s\")", t);
   
   return s;
 }
@@ -1416,12 +1416,12 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	    {
 	      if (s->optvalue)
 		{
-		  dump (1, "if (lex_match ('('))");
+		  dump (1, "if (lex_match (lexer, '('))");
 		  dump (1, "{");
 		}
 	      else
 		{
-		  dump (1, "if (!lex_match ('('))");
+		  dump (1, "if (!lex_match (lexer, '('))");
 		  dump (1, "{");
 		  dump (0, "msg (SE, _(\"`(' expected after %s "
 			"specifier of %s subcommand.\"));",
@@ -1434,26 +1434,26 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 
 	  if (s->value == VAL_INT)
 	    {
-	      dump (1, "if (!lex_is_integer ())");
+	      dump (1, "if (!lex_is_integer (lexer))");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
 		    "requires an integer argument.\"));",
 		    s->specname, sbc->name);
 	      dump (0, "goto lossage;");
 	      dump (-1, "}");
-	      dump (-1, "p->%s%s = lex_integer ();",
+	      dump (-1, "p->%s%s = lex_integer (lexer);",
 		    sbc->prefix, st_lower (s->valname));
 	    }
 	  else
 	    {
-	      dump (1, "if (!lex_is_number ())");
+	      dump (1, "if (!lex_is_number (lexer))");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"Number expected after %s "
 		    "specifier of %s subcommand.\"));",
 		    s->specname, sbc->name);
 	      dump (0, "goto lossage;");
 	      dump (-1, "}");
-	      dump (-1, "p->%s%s = tokval;", sbc->prefix,
+	      dump (-1, "p->%s%s = lex_tokval (lexer);", sbc->prefix,
 		    st_lower (s->valname));
 	    }
 	  
@@ -1480,11 +1480,11 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      outdent ();
 	    }
 	  
-	  dump (0, "lex_get ();");
+	  dump (0, "lex_get (lexer);");
 	  
 	  if (s->valtype == VT_PAREN)
 	    {
-	      dump (1, "if (!lex_match (')'))");
+	      dump (1, "if (!lex_match (lexer, ')'))");
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"`)' expected after argument for "
 		    "%s specifier of %s.\"));",
@@ -1520,7 +1520,7 @@ dump_subcommand (const subcommand *sbc)
     {
       int count;
 
-      dump (1, "while (token != '/' && token != '.')");
+      dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
       dump (1, "{");
       
       {
@@ -1571,20 +1571,20 @@ dump_subcommand (const subcommand *sbc)
 	  {
 	    dump (1, "else");
 	    dump (1, "{");
-	    dump (0, "lex_error (NULL);");
+	    dump (0, "lex_error (lexer, NULL);");
 	    dump (0, "goto lossage;");
 	    dump (-1, "}");
 	    outdent ();
 	  }
       }
 
-      dump (0, "lex_match (',');");
+      dump (0, "lex_match (lexer, ',');");
       dump (-1, "}");
       outdent ();
     }
   else if (sbc->type == SBC_VARLIST)
     {
-      dump (1, "if (!parse_variables (dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (lexer, dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND%s%s))",
 	    st_lower (sbc->prefix), st_lower (sbc->name),
 	    st_lower (sbc->prefix), st_lower (sbc->name),
@@ -1595,7 +1595,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_VAR)
     {
-      dump (0, "p->%sv_%s = parse_variable (dataset_dict (ds));",
+      dump (0, "p->%sv_%s = parse_variable (lexer, dataset_dict (ds));",
 	    st_lower (sbc->prefix), st_lower (sbc->name));
       dump (1, "if (!p->%sv_%s)",
 	    st_lower (sbc->prefix), st_lower (sbc->name));
@@ -1609,12 +1609,12 @@ dump_subcommand (const subcommand *sbc)
 	  dump (1, "{");
 	  dump (0, "int x;");
 	}
-      dump (1, "if (!lex_force_string ())");
+      dump (1, "if (!lex_force_string (lexer))");
       dump (0, "return false;");
       outdent ();
       if (sbc->restriction)
 	{
-	  dump (0, "x = ds_length (&tokstr);");
+	  dump (0, "x = ds_length (lex_tokstr (lexer));");
 	  dump (1, "if (!(%s))", sbc->restriction);
 	  dump (1, "{");
 	  dump (0, "msg (SE, _(\"String for %s must be %s.\"));",
@@ -1624,28 +1624,28 @@ dump_subcommand (const subcommand *sbc)
 	  outdent ();
 	}
       dump (0, "free(p->s_%s);", st_lower(sbc->name) );
-      dump (0, "p->s_%s = ds_xstrdup (&tokstr);",
+      dump (0, "p->s_%s = ds_xstrdup (lex_tokstr (lexer));",
 	    st_lower (sbc->name));
-      dump (0, "lex_get ();");
+      dump (0, "lex_get (lexer);");
       if (sbc->restriction)
 	dump (-1, "}");
     }
   else if (sbc->type == SBC_DBL)
     {
-      dump (1, "if (!lex_force_num ())");
+      dump (1, "if (!lex_force_num (lexer))");
       dump (0, "goto lossage;");
-      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_number ();", 
+      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_number (lexer);", 
 	    st_lower (sbc->name), st_lower (sbc->name) );
-      dump (0, "lex_get();");
+      dump (0, "lex_get(lexer);");
     }
   else if (sbc->type == SBC_INT)
     {
       dump(1, "{");
       dump(0, "int x;");
-      dump (1, "if (!lex_force_int ())");
+      dump (1, "if (!lex_force_int (lexer))");
       dump (0, "goto lossage;");
-      dump (-1, "x = lex_integer ();");
-      dump (0, "lex_get();");
+      dump (-1, "x = lex_integer (lexer);");
+      dump (0, "lex_get(lexer);");
       if (sbc->restriction)
        {
 	  char buf[1024];
@@ -1664,11 +1664,11 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_PINT)
     {
-      dump (0, "lex_match ('(');");
-      dump (1, "if (!lex_force_int ())");
+      dump (0, "lex_match (lexer, '(');");
+      dump (1, "if (!lex_force_int (lexer))");
       dump (0, "goto lossage;");
-      dump (-1, "p->n_%s = lex_integer ();", st_lower (sbc->name));
-      dump (0, "lex_match (')');");
+      dump (-1, "p->n_%s = lex_integer (lexer);", st_lower (sbc->name));
+      dump (0, "lex_match (lexer, ')');");
     }
   else if (sbc->type == SBC_DBL_LIST)
     {
@@ -1678,25 +1678,25 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1,"}");
 
-      dump (1, "while (token != '/' && token != '.')");
+      dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
       dump (1, "{");
-      dump (0, "lex_match(',');");
-      dump (0, "if (!lex_force_num ())");
+      dump (0, "lex_match (lexer, ',');");
+      dump (0, "if (!lex_force_num (lexer))");
       dump (1, "{");
       dump (0, "goto lossage;");
       dump (-1,"}");
 
-      dump (0, "subc_list_double_push(&p->dl_%s[p->sbc_%s-1],lex_number ());", 
-	    st_lower (sbc->name),st_lower (sbc->name)
+      dump (0, "subc_list_double_push (&p->dl_%s[p->sbc_%s-1], lex_number (lexer));", 
+	    st_lower (sbc->name), st_lower (sbc->name)
 	    );
 
-      dump (0, "lex_get();");
+      dump (0, "lex_get (lexer);");
       dump (-1,"}");
 
     }
   else if (sbc->type == SBC_CUSTOM)
     {
-      dump (1, "switch (%scustom_%s (ds, p, aux))",
+      dump (1, "switch (%scustom_%s (lexer, ds, p, aux))",
 	    st_lower (prefix), st_lower (sbc->name));
       dump (0, "{");
       dump (1, "case 0:");
@@ -1706,7 +1706,7 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "break;");
       dump (-1, "case 2:");
       indent ();
-      dump (0, "lex_error (NULL);");
+      dump (0, "lex_error (lexer, NULL);");
       dump (0, "goto lossage;");
       dump (-1, "default:");
       indent ();
@@ -1725,7 +1725,7 @@ dump_parser (int persistent)
   indent = 0;
 
   dump (0, "static int");
-  dump (0, "parse_%s (struct dataset *ds%s, struct cmd_%s *p, void *aux UNUSED)",
+  dump (0, "parse_%s (struct lexer *lexer, struct dataset *ds%s, struct cmd_%s *p, void *aux UNUSED)",
         make_identifier (cmdname),
 	(def && ( def->type == SBC_VARLIST && def->type == SBC_CUSTOM))?"":" UNUSED",
 	make_identifier (cmdname));
@@ -1740,19 +1740,19 @@ dump_parser (int persistent)
   if (def && (def->type == SBC_VARLIST))
     {
       if (def->type == SBC_VARLIST)
-	dump (1, "if (token == T_ID "
-              "&& dict_lookup_var (dataset_dict (ds), tokid) != NULL "
-	      "&& lex_look_ahead () != '=')");
+	dump (1, "if (lex_token (lexer) == T_ID "
+              "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL "
+	      "&& lex_look_ahead (lexer) != '=')");
       else
 	{
-	  dump (0, "if ((token == T_ID "
-                "&& dict_lookup_var (dataset_dict (ds), tokid) "
+	  dump (0, "if ((lex_token (lexer) == T_ID "
+                "&& dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) "
 		"&& lex_look_ahead () != '=')");
 	  dump (1, "     || token == T_ALL)");
 	}
       dump (1, "{");
       dump (0, "p->sbc_%s++;", st_lower (def->name));
-      dump (1, "if (!parse_variables (dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables (lexer, dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND))",
 	    st_lower (def->prefix), st_lower (def->name),
 	    st_lower (def->prefix), st_lower (def->name));
@@ -1763,7 +1763,7 @@ dump_parser (int persistent)
     }
   else if (def && def->type == SBC_CUSTOM)
     {
-      dump (1, "switch (%scustom_%s (ds, p, aux))",
+      dump (1, "switch (%scustom_%s (lexer, ds, p, aux))",
 	    st_lower (prefix), st_lower (def->name));
       dump (0, "{");
       dump (1, "case 0:");
@@ -1791,7 +1791,7 @@ dump_parser (int persistent)
 	f = 1;
 	dump (1, "{");
 
-	dump (0, "lex_match ('=');");
+	dump (0, "lex_match (lexer, '=');");
 	dump (0, "p->sbc_%s++;", st_lower (sbc->name));
 	if (sbc->arity != ARITY_MANY)
 	  {
@@ -1811,15 +1811,15 @@ dump_parser (int persistent)
 
 
   /* Now deal with the /ALGORITHM subcommand implicit to all commands */
-  dump(1,"else if ( get_syntax() != COMPATIBLE && lex_match_id(\"ALGORITHM\"))");
+  dump(1,"else if ( get_syntax() != COMPATIBLE && lex_match_id(lexer, \"ALGORITHM\"))");
   dump(1,"{");
 
-  dump (0, "lex_match ('=');");
+  dump (0, "lex_match (lexer, '=');");
 
-  dump(1,"if (lex_match_id(\"COMPATIBLE\"))");
+  dump(1,"if (lex_match_id(lexer, \"COMPATIBLE\"))");
   dump(0,"set_cmd_algorithm(COMPATIBLE);");
   outdent();
-  dump(1,"else if (lex_match_id(\"ENHANCED\"))");
+  dump(1,"else if (lex_match_id(lexer, \"ENHANCED\"))");
   dump(0,"set_cmd_algorithm(ENHANCED);");
 
   dump (-1, "}");
@@ -1827,14 +1827,14 @@ dump_parser (int persistent)
 
 
   
-  dump (1, "if (!lex_match ('/'))");
+  dump (1, "if (!lex_match (lexer, '/'))");
   dump (0, "break;");
   dump (-2, "}");
   outdent ();
   dump (0, nullstr);
-  dump (1, "if (token != '.')");
+  dump (1, "if (lex_token (lexer) != '.')");
   dump (1, "{");
-  dump (0, "lex_error (_(\"expecting end of command\"));");
+  dump (0, "lex_error (lexer, _(\"expecting end of command\"));");
   dump (0, "goto lossage;");
   dump (-1, "}");
   dump (0, nullstr);

@@ -23,70 +23,74 @@
 #include <data/variable.h>
 #include <ctype.h>
 #include <stdbool.h>
-
 #include <data/identifier.h>
-
-
-extern int token;
-extern double tokval;
-extern char tokid[LONG_NAME_LEN + 1];
-extern struct string tokstr;
 
 #include <stddef.h>
 
+struct lexer ;
+
 /* Initialization. */
-void lex_init (bool (*)(struct string *, bool*));
-void lex_done (void);
+struct lexer * lex_create (bool (*)(struct string *, bool*));
+void lex_destroy (struct lexer *);
+
+
+
 
 /* Common functions. */
-void lex_get (void);
-void lex_error (const char *, ...);
+void lex_get (struct lexer *);
+void lex_error (struct lexer *, const char *, ...);
 void lex_sbc_only_once (const char *);
-void lex_sbc_missing (const char *);
-int lex_end_of_command (void);
+void lex_sbc_missing (struct lexer *, const char *);
+int lex_end_of_command (struct lexer *);
 
 /* Token testing functions. */
-bool lex_is_number (void);
-double lex_number (void);
-bool lex_is_integer (void);
-long lex_integer (void);
+bool lex_is_number (struct lexer *);
+double lex_number (struct lexer *);
+bool lex_is_integer (struct lexer *);
+long lex_integer (struct lexer *);
 
 /* Token matching functions. */
-bool lex_match (int);
-bool lex_match_id (const char *);
-bool lex_match_int (int);
+bool lex_match (struct lexer *, int);
+bool lex_match_id (struct lexer *, const char *);
+bool lex_match_int (struct lexer *, int);
 
 /* Forcible matching functions. */
-bool lex_force_match (int);
-bool lex_force_match_id (const char *);
-bool lex_force_int (void);
-bool lex_force_num (void);
-bool lex_force_id (void);
-bool lex_force_string (void);
+bool lex_force_match (struct lexer *, int);
+bool lex_force_match_id (struct lexer *, const char *);
+bool lex_force_int (struct lexer *);
+bool lex_force_num (struct lexer *);
+bool lex_force_id (struct lexer *);
+bool lex_force_string (struct lexer *);
 	
 /* Weird token functions. */
-int lex_look_ahead (void);
-void lex_put_back (int);
-void lex_put_back_id (const char *tokid);
+int lex_look_ahead (struct lexer *);
+void lex_put_back (struct lexer *, int);
+void lex_put_back_id (struct lexer *, const char *tokid);
 
 /* Weird line processing functions. */
-const char *lex_entire_line (void);
-const struct string *lex_entire_line_ds (void);
-const char *lex_rest_of_line (int *end_dot);
-void lex_discard_line (void);
-void lex_discard_rest_of_command (void);
+const char *lex_entire_line (struct lexer *);
+const struct string *lex_entire_line_ds (struct lexer *);
+const char *lex_rest_of_line (struct lexer *, int *end_dot);
+void lex_discard_line (struct lexer *);
+void lex_discard_rest_of_command (struct lexer *);
 
 /* Weird line reading functions. */
-bool lex_get_line (void);
-bool lex_get_line_raw (void);
+bool lex_get_line (struct lexer *);
+bool lex_get_line_raw (struct lexer *);
 
 /* Token names. */
 const char *lex_token_name (int);
-char *lex_token_representation (void);
+char *lex_token_representation (struct lexer *);
+
+/* Token accessors */
+int lex_token (const struct lexer *);
+double lex_tokval (const struct lexer *);
+const char *lex_tokid (const struct lexer *);
+const struct string *lex_tokstr (const struct lexer *);
 
 /* Really weird functions. */
-void lex_negative_to_dash (void);
-void lex_reset_eof (void);
-void lex_skip_comment (void);
+void lex_negative_to_dash (struct lexer *);
+void lex_reset_eof (struct lexer *);
+void lex_skip_comment (struct lexer *);
 
 #endif /* !lexer_h */

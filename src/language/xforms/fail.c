@@ -42,10 +42,10 @@ trns_fail (void *x UNUSED, struct ccase *c UNUSED,
 
 
 int
-cmd_debug_xform_fail (struct dataset *ds)
+cmd_debug_xform_fail (struct lexer *lexer, struct dataset *ds)
 {
 
   add_transformation (ds, trns_fail, NULL, NULL);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }

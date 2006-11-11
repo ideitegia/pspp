@@ -78,7 +78,7 @@ sysfile_info_dim (struct tab_table *t, struct outp_driver *d)
 
 /* SYSFILE INFO utility. */
 int
-cmd_sysfile_info (struct dataset *ds UNUSED)
+cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   struct file_handle *h;
   struct dictionary *d;
@@ -88,10 +88,10 @@ cmd_sysfile_info (struct dataset *ds UNUSED)
   int r, nr;
   int i;
 
-  lex_match_id ("FILE");
-  lex_match ('=');
+  lex_match_id (lexer, "FILE");
+  lex_match (lexer, '=');
 
-  h = fh_parse (FH_REF_FILE);
+  h = fh_parse (lexer, FH_REF_FILE);
   if (!h)
     return CMD_FAILURE;
 
@@ -170,7 +170,7 @@ cmd_sysfile_info (struct dataset *ds UNUSED)
 
   dict_destroy (d);
   
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* DISPLAY utility. */
@@ -181,7 +181,7 @@ static void display_variables (struct variable **, size_t, int);
 static void display_vectors (const struct dictionary *dict, int sorted);
 
 int
-cmd_display (struct dataset *ds)
+cmd_display (struct lexer *lexer, struct dataset *ds)
 {
   /* Whether to sort the list of variables alphabetically. */
   int sorted;
@@ -190,14 +190,14 @@ cmd_display (struct dataset *ds)
   size_t n;
   struct variable **vl;
 
-  if (lex_match_id ("MACROS"))
+  if (lex_match_id (lexer, "MACROS"))
     display_macros ();
-  else if (lex_match_id ("DOCUMENTS"))
+  else if (lex_match_id (lexer, "DOCUMENTS"))
     display_documents (dataset_dict (ds));
-  else if (lex_match_id ("FILE"))
+  else if (lex_match_id (lexer, "FILE"))
     {
       som_blank_line ();
-      if (!lex_force_match_id ("LABEL"))
+      if (!lex_force_match_id (lexer, "LABEL"))
 	return CMD_FAILURE;
       if (dict_get_label (dataset_dict (ds)) == NULL)
 	tab_output_text (TAB_LEFT,
@@ -216,12 +216,12 @@ cmd_display (struct dataset *ds)
       const char **cp;
       int as;
 
-      sorted = lex_match_id ("SORTED");
+      sorted = lex_match_id (lexer, "SORTED");
 
       for (cp = sbc; *cp; cp++)
-	if (token == T_ID && lex_id_match (*cp, tokid))
+	if (lex_token (lexer) == T_ID && lex_id_match (*cp, lex_tokid (lexer)))
 	  {
-	    lex_get ();
+	    lex_get (lexer);
 	    break;
 	  }
       as = cp - sbc;
@@ -235,13 +235,13 @@ cmd_display (struct dataset *ds)
 	  return CMD_SUCCESS;
 	}
 
-      lex_match ('/');
-      lex_match_id ("VARIABLES");
-      lex_match ('=');
+      lex_match (lexer, '/');
+      lex_match_id (lexer, "VARIABLES");
+      lex_match (lexer, '=');
 
-      if (token != '.')
+      if (lex_token (lexer) != '.')
 	{
-	  if (!parse_variables (dataset_dict (ds), &vl, &n, PV_NONE))
+	  if (!parse_variables (lexer, dataset_dict (ds), &vl, &n, PV_NONE))
 	    {
 	      free (vl);
 	      return CMD_FAILURE;
@@ -278,7 +278,7 @@ cmd_display (struct dataset *ds)
       free (vl);
     }
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 static void

@@ -102,7 +102,7 @@ static void arc_free (struct autorecode_pgm *);
 
 /* Performs the AUTORECODE procedure. */
 int
-cmd_autorecode (struct dataset *ds)
+cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 {
   struct autorecode_pgm arc;
   size_t dst_cnt;
@@ -119,15 +119,15 @@ cmd_autorecode (struct dataset *ds)
   arc.print = 0;
   dst_cnt = 0;
 
-  lex_match_id ("VARIABLES");
-  lex_match ('=');
-  if (!parse_variables (dataset_dict (ds), &arc.src_vars, &arc.var_cnt,
+  lex_match_id (lexer, "VARIABLES");
+  lex_match (lexer, '=');
+  if (!parse_variables (lexer, dataset_dict (ds), &arc.src_vars, &arc.var_cnt,
                         PV_NO_DUPLICATE))
     goto lossage;
-  if (!lex_force_match_id ("INTO"))
+  if (!lex_force_match_id (lexer, "INTO"))
     goto lossage;
-  lex_match ('=');
-  if (!parse_DATA_LIST_vars (&arc.dst_names, &dst_cnt, PV_NONE))
+  lex_match (lexer, '=');
+  if (!parse_DATA_LIST_vars (lexer, &arc.dst_names, &dst_cnt, PV_NONE))
     goto lossage;
   if (dst_cnt != arc.var_cnt)
     {
@@ -144,14 +144,14 @@ cmd_autorecode (struct dataset *ds)
 
       goto lossage;
     }
-  while (lex_match ('/'))
-    if (lex_match_id ("DESCENDING"))
+  while (lex_match (lexer, '/'))
+    if (lex_match_id (lexer, "DESCENDING"))
       arc.direction = DESCENDING;
-    else if (lex_match_id ("PRINT"))
+    else if (lex_match_id (lexer, "PRINT"))
       arc.print = 1;
-  if (token != '.')
+  if (lex_token (lexer) != '.')
     {
-      lex_error (_("expecting end of command"));
+      lex_error (lexer, _("expecting end of command"));
       goto lossage;
     }
 

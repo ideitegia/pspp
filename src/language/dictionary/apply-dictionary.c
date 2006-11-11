@@ -39,7 +39,7 @@
 
 /* Parses and executes APPLY DICTIONARY. */
 int
-cmd_apply_dictionary (struct dataset *ds)
+cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 {
   struct file_handle *handle;
   struct any_reader *reader;
@@ -49,9 +49,9 @@ cmd_apply_dictionary (struct dataset *ds)
 
   int i;
   
-  lex_match_id ("FROM");
-  lex_match ('=');
-  handle = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
+  lex_match_id (lexer, "FROM");
+  lex_match (lexer, '=');
+  handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
   if (!handle)
     return CMD_FAILURE;
 
@@ -136,5 +136,5 @@ cmd_apply_dictionary (struct dataset *ds)
   
   any_reader_close (reader);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }

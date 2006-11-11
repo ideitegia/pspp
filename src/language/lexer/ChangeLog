@@ -1,3 +1,12 @@
+Sun Nov 12 06:34:06 WST 2006 John Darrrington <john@darrington.wattle.id.au>
+
+	* format-parser.c format-parser.h lexer.c lexer.h q2c.c range-parser.c
+	  range-parser.h subcommand-list.c variable-parser.c
+	  variable-parser.h:
+
+	Encapsulated the lexer into an object, and updated everything
+	accordingly.
+
 Tue Oct 31 18:09:32 2006  Ben Pfaff  <blp@gnu.org>
 
 	* range-parser.c (parse_number): Fix error message.

@@ -35,42 +35,46 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_variable_labels (struct dataset *ds)
+cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 {
   do
     {
       struct variable **v;
+      struct string label;
       size_t nv;
 
       size_t i;
 
-      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if (token != T_STRING)
+      if (lex_token (lexer) != T_STRING)
 	{
 	  msg (SE, _("String expected for variable label."));
 	  free (v);
 	  return CMD_FAILURE;
 	}
-      if (ds_length (&tokstr) > 255)
+
+      ds_init_string (&label, lex_tokstr (lexer) );
+      if (ds_length (&label) > 255)
 	{
 	  msg (SW, _("Truncating variable label to 255 characters."));
-	  ds_truncate (&tokstr, 255);
+	  ds_truncate (&label, 255);
 	}
       for (i = 0; i < nv; i++)
 	{
 	  if (v[i]->label)
 	    free (v[i]->label);
-	  v[i]->label = ds_xstrdup (&tokstr);
+	  v[i]->label = ds_xstrdup (&label);
 	}
+      ds_destroy (&label);
 
-      lex_get ();
-      while (token == '/')
-	lex_get ();
+      lex_get (lexer);
+      while (lex_token (lexer) == '/')
+	lex_get (lexer);
       free (v);
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
   return CMD_SUCCESS;
 }
 

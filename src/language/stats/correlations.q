@@ -46,12 +46,12 @@ static struct cor_set *cor_list, *cor_last;
 static struct file_handle *matrix_file;
 
 static void free_correlations_state (void);
-static int internal_cmd_correlations (struct dataset *ds);
+static int internal_cmd_correlations (struct lexer *lexer, struct dataset *ds);
 
 int
-cmd_correlations (struct dataset *ds)
+cmd_correlations (struct lexer *lexer, struct dataset *ds)
 {
-  int result = internal_cmd_correlations (ds);
+  int result = internal_cmd_correlations (lexer, ds);
   free_correlations_state ();
   return result;
 }
@@ -71,14 +71,14 @@ cmd_correlations (struct dataset *ds)
 /* (functions) */
 
 int
-internal_cmd_correlations (struct dataset *ds)
+internal_cmd_correlations (struct lexer *lexer, struct dataset *ds)
 {
   struct cmd_correlations cmd;
 
   cor_list = cor_last = NULL;
   matrix_file = NULL;
 
-  if (!parse_correlations (ds, &cmd, NULL))
+  if (!parse_correlations (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
   free_correlations (&cmd);
@@ -87,26 +87,26 @@ internal_cmd_correlations (struct dataset *ds)
 }
 
 static int
-cor_custom_variables (struct dataset *ds, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
+cor_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
   struct variable **v1, **v2;
   size_t nv1, nv2;
   struct cor_set *cor;
 
   /* Ensure that this is a VARIABLES subcommand. */
-  if (!lex_match_id ("VARIABLES")
-      && (token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) != NULL)
-      && token != T_ALL)
+  if (!lex_match_id (lexer, "VARIABLES")
+      && (lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
+      && lex_token (lexer) != T_ALL)
     return 2;
-  lex_match ('=');
+  lex_match (lexer, '=');
 
-  if (!parse_variables (dataset_dict (ds), &v1, &nv1,
+  if (!parse_variables (lexer, dataset_dict (ds), &v1, &nv1,
 			PV_NO_DUPLICATE | PV_NUMERIC))
     return 0;
   
-  if (lex_match (T_WITH))
+  if (lex_match (lexer, T_WITH))
     {
-      if (!parse_variables (dataset_dict (ds), &v2, &nv2,
+      if (!parse_variables (lexer, dataset_dict (ds), &v2, &nv2,
 			    PV_NO_DUPLICATE | PV_NUMERIC))
 	{
 	  free (v1);
@@ -134,21 +134,21 @@ cor_custom_variables (struct dataset *ds, struct cmd_correlations *cmd UNUSED, v
 }
 
 static int
-cor_custom_matrix (struct dataset *ds UNUSED, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
+cor_custom_matrix (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
-  if (!lex_force_match ('('))
+  if (!lex_force_match (lexer, '('))
     return 0;
   
-  if (lex_match ('*'))
+  if (lex_match (lexer, '*'))
     matrix_file = NULL;
   else 
     {
-      matrix_file = fh_parse (FH_REF_FILE);
+      matrix_file = fh_parse (lexer, FH_REF_FILE);
       if (matrix_file == NULL)
         return 0; 
     }
 
-  if (!lex_force_match (')'))
+  if (!lex_force_match (lexer, ')'))
     return 0;
 
   return 1;

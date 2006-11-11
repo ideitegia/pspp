@@ -51,7 +51,7 @@
 /* (functions) */
 
 int
-cmd_file_handle (struct dataset *ds)
+cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
   char handle_name[LONG_NAME_LEN + 1];
   struct fh_properties properties = *fh_default_properties ();
@@ -59,9 +59,9 @@ cmd_file_handle (struct dataset *ds)
   struct cmd_file_handle cmd;
   struct file_handle *handle;
 
-  if (!lex_force_id ())
+  if (!lex_force_id (lexer))
     return CMD_CASCADING_FAILURE;
-  str_copy_trunc (handle_name, sizeof handle_name, tokid);
+  str_copy_trunc (handle_name, sizeof handle_name, lex_tokid (lexer));
 
   handle = fh_from_name (handle_name);
   if (handle != NULL)
@@ -72,19 +72,19 @@ cmd_file_handle (struct dataset *ds)
       return CMD_CASCADING_FAILURE;
     }
 
-  lex_get ();
-  if (!lex_force_match ('/'))
+  lex_get (lexer);
+  if (!lex_force_match (lexer, '/'))
     return CMD_CASCADING_FAILURE;
 
-  if (!parse_file_handle (ds, &cmd, NULL))
+  if (!parse_file_handle (lexer, ds, &cmd, NULL))
     return CMD_CASCADING_FAILURE;
 
-  if (lex_end_of_command () != CMD_SUCCESS)
+  if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto lossage;
 
   if (cmd.s_name == NULL && cmd.mode != FH_SCRATCH)
     {
-      lex_sbc_missing ("NAME");
+      lex_sbc_missing (lexer, "NAME");
       goto lossage;
     }
 
@@ -127,13 +127,13 @@ cmd_file_handle (struct dataset *ds)
 }
 
 int
-cmd_close_file_handle (struct dataset *ds UNUSED) 
+cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED) 
 {
   struct file_handle *handle;
 
-  if (!lex_force_id ())
+  if (!lex_force_id (lexer))
     return CMD_CASCADING_FAILURE;
-  handle = fh_from_name (tokid);
+  handle = fh_from_name (lex_tokid (lexer));
   if (handle == NULL)
     return CMD_CASCADING_FAILURE;
 
@@ -164,39 +164,39 @@ referent_name (enum fh_referent referent)
    file handle are restricted to those in REFERENT_MASK.  Returns
    the file handle when successful, a null pointer on failure. */
 struct file_handle *
-fh_parse (enum fh_referent referent_mask)
+fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
 {
   struct file_handle *handle;
 
-  if (lex_match_id ("INLINE")) 
+  if (lex_match_id (lexer, "INLINE")) 
     handle = fh_inline_file ();
   else 
     {
-      if (token != T_ID && token != T_STRING)
+      if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING)
         {
-          lex_error (_("expecting a file name or handle name"));
+          lex_error (lexer, _("expecting a file name or handle name"));
           return NULL;
         }
 
       handle = NULL;
-      if (token == T_ID) 
-        handle = fh_from_name (tokid);
+      if (lex_token (lexer) == T_ID) 
+        handle = fh_from_name (lex_tokid (lexer));
       if (handle == NULL) 
-        handle = fh_from_file_name (ds_cstr (&tokstr)); 
+        handle = fh_from_file_name (ds_cstr (lex_tokstr (lexer))); 
       if (handle == NULL)
         {
-          if (token != T_ID || tokid[0] != '#' || get_syntax () != ENHANCED) 
+          if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || get_syntax () != ENHANCED) 
             {
-              char *file_name = ds_cstr (&tokstr);
+              char *file_name = ds_cstr (lex_tokstr (lexer));
               char *handle_name = xasprintf ("\"%s\"", file_name);
               handle = fh_create_file (handle_name, file_name,
                                        fh_default_properties ());
               free (handle_name);
             }
           else
-            handle = fh_create_scratch (tokid);
+            handle = fh_create_scratch (lex_tokid (lexer));
         }
-      lex_get ();
+      lex_get (lexer);
     }
 
   if (!(fh_get_referent (handle) & referent_mask)) 

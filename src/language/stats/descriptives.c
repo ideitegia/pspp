@@ -169,12 +169,12 @@ struct dsc_proc
   };
 
 /* Parsing. */
-static enum dsc_statistic match_statistic (void);
+static enum dsc_statistic match_statistic (struct lexer *);
 static void free_dsc_proc (struct dsc_proc *);
 
 /* Z-score functions. */
 static bool try_name (const struct dictionary *dict, 
-		      struct dsc_proc *dsc, char *name);
+		      struct dsc_proc *dsc, const char *name);
 static bool generate_z_varname (const struct dictionary *dict, 
 				struct dsc_proc *dsc, char *z_name,
 				const char *name, size_t *z_cnt);
@@ -191,7 +191,7 @@ static void display (struct dsc_proc *dsc);
 
 /* Handles DESCRIPTIVES. */
 int
-cmd_descriptives (struct dataset *ds)
+cmd_descriptives (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct dsc_proc *dsc;
@@ -219,106 +219,106 @@ cmd_descriptives (struct dataset *ds)
   dsc->show_stats = dsc->calc_stats = DEFAULT_STATS;
 
   /* Parse DESCRIPTIVES. */
-  while (token != '.') 
+  while (lex_token (lexer) != '.') 
     {
-      if (lex_match_id ("MISSING"))
+      if (lex_match_id (lexer, "MISSING"))
         {
-          lex_match ('=');
-          while (token != '.' && token != '/') 
+          lex_match (lexer, '=');
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/') 
             {
-              if (lex_match_id ("VARIABLE"))
+              if (lex_match_id (lexer, "VARIABLE"))
                 dsc->missing_type = DSC_VARIABLE;
-              else if (lex_match_id ("LISTWISE"))
+              else if (lex_match_id (lexer, "LISTWISE"))
                 dsc->missing_type = DSC_LISTWISE;
-              else if (lex_match_id ("INCLUDE"))
+              else if (lex_match_id (lexer, "INCLUDE"))
                 dsc->include_user_missing = 1;
               else
                 {
-                  lex_error (NULL);
+                  lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (',');
+              lex_match (lexer, ',');
             }
         }
-      else if (lex_match_id ("SAVE"))
+      else if (lex_match_id (lexer, "SAVE"))
         save_z_scores = 1;
-      else if (lex_match_id ("FORMAT")) 
+      else if (lex_match_id (lexer, "FORMAT")) 
         {
-          lex_match ('=');
-          while (token != '.' && token != '/') 
+          lex_match (lexer, '=');
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/') 
             {
-              if (lex_match_id ("LABELS"))
+              if (lex_match_id (lexer, "LABELS"))
                 dsc->show_var_labels = 1;
-              else if (lex_match_id ("NOLABELS"))
+              else if (lex_match_id (lexer, "NOLABELS"))
                 dsc->show_var_labels = 0;
-              else if (lex_match_id ("INDEX"))
+              else if (lex_match_id (lexer, "INDEX"))
                 dsc->show_index = 1;
-              else if (lex_match_id ("NOINDEX"))
+              else if (lex_match_id (lexer, "NOINDEX"))
                 dsc->show_index = 0;
-              else if (lex_match_id ("LINE"))
+              else if (lex_match_id (lexer, "LINE"))
                 dsc->format = DSC_LINE;
-              else if (lex_match_id ("SERIAL"))
+              else if (lex_match_id (lexer, "SERIAL"))
                 dsc->format = DSC_SERIAL;
               else
                 {
-                  lex_error (NULL);
+                  lex_error (lexer, NULL);
                   goto error;
                 }
-              lex_match (',');
+              lex_match (lexer, ',');
             }
         }
-      else if (lex_match_id ("STATISTICS")) 
+      else if (lex_match_id (lexer, "STATISTICS")) 
         {
-          lex_match ('=');
+          lex_match (lexer, '=');
           dsc->show_stats = 0;
-          while (token != '.' && token != '/') 
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/') 
             {
-              if (lex_match (T_ALL)) 
+              if (lex_match (lexer, T_ALL)) 
                 dsc->show_stats |= (1ul << DSC_N_STATS) - 1;
-              else if (lex_match_id ("DEFAULT"))
+              else if (lex_match_id (lexer, "DEFAULT"))
                 dsc->show_stats |= DEFAULT_STATS;
               else
-		dsc->show_stats |= 1ul << (match_statistic ());
-              lex_match (',');
+		dsc->show_stats |= 1ul << (match_statistic (lexer));
+              lex_match (lexer, ',');
             }
           if (dsc->show_stats == 0)
             dsc->show_stats = DEFAULT_STATS;
         }
-      else if (lex_match_id ("SORT")) 
+      else if (lex_match_id (lexer, "SORT")) 
         {
-          lex_match ('=');
-          if (lex_match_id ("NAME"))
+          lex_match (lexer, '=');
+          if (lex_match_id (lexer, "NAME"))
             dsc->sort_by_stat = DSC_NAME;
           else 
 	    {
-	      dsc->sort_by_stat = match_statistic ();
+	      dsc->sort_by_stat = match_statistic (lexer);
 	      if (dsc->sort_by_stat == DSC_NONE )
 		dsc->sort_by_stat = DSC_MEAN;
 	    }
-          if (lex_match ('(')) 
+          if (lex_match (lexer, '(')) 
             {
-              if (lex_match_id ("A"))
+              if (lex_match_id (lexer, "A"))
                 dsc->sort_ascending = 1;
-              else if (lex_match_id ("D"))
+              else if (lex_match_id (lexer, "D"))
                 dsc->sort_ascending = 0;
               else
-                lex_error (NULL);
-              lex_force_match (')');
+                lex_error (lexer, NULL);
+              lex_force_match (lexer, ')');
             }
         }
       else if (var_cnt == 0)
         {
-          if (lex_look_ahead () == '=') 
+          if (lex_look_ahead (lexer) == '=') 
             {
-              lex_match_id ("VARIABLES");
-              lex_match ('=');
+              lex_match_id (lexer, "VARIABLES");
+              lex_match (lexer, '=');
             }
 
-          while (token != '.' && token != '/') 
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/') 
             {
               int i;
               
-              if (!parse_variables (dataset_dict (ds), &vars, &var_cnt,
+              if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt,
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
 		goto error;
 
@@ -332,34 +332,34 @@ cmd_descriptives (struct dataset *ds)
                 }
               dsc->var_cnt = var_cnt;
 
-              if (lex_match ('(')) 
+              if (lex_match (lexer, '(')) 
                 {
-                  if (token != T_ID) 
+                  if (lex_token (lexer) != T_ID) 
                     {
-                      lex_error (NULL);
+                      lex_error (lexer, NULL);
                       goto error;
                     }
-                  if (try_name (dict, dsc, tokid)) 
+                  if (try_name (dict, dsc, lex_tokid (lexer))) 
                     {
-                      strcpy (dsc->vars[dsc->var_cnt - 1].z_name, tokid);
+                      strcpy (dsc->vars[dsc->var_cnt - 1].z_name, lex_tokid (lexer));
                       z_cnt++;
                     }
                   else
                     msg (SE, _("Z-score variable name %s would be"
-                               " a duplicate variable name."), tokid);
-                  lex_get ();
-                  if (!lex_force_match (')'))
+                               " a duplicate variable name."), lex_tokid (lexer));
+                  lex_get (lexer);
+                  if (!lex_force_match (lexer, ')'))
 		    goto error;
                 }
             }
         }
       else 
         {
-          lex_error (NULL);
+          lex_error (lexer, NULL);
           goto error; 
         }
 
-      lex_match ('/');
+      lex_match (lexer, '/');
     }
   if (var_cnt == 0)
     {
@@ -436,18 +436,18 @@ cmd_descriptives (struct dataset *ds)
    specifiers). Emits an error if the current token ID does not name a
    statistic. */
 static enum dsc_statistic
-match_statistic (void) 
+match_statistic (struct lexer *lexer) 
 {
-  if (token == T_ID) 
+  if (lex_token (lexer) == T_ID) 
     {
       enum dsc_statistic stat;
 
       for (stat = 0; stat < DSC_N_STATS; stat++)
-        if (lex_match_id (dsc_info[stat].identifier)) 
+        if (lex_match_id (lexer, dsc_info[stat].identifier)) 
 	  return stat;
 
-      lex_get();
-      lex_error (_("expecting statistic name: reverting to default"));
+      lex_get (lexer);
+      lex_error (lexer, _("expecting statistic name: reverting to default"));
     }
 
   return DSC_NONE;
@@ -473,7 +473,8 @@ free_dsc_proc (struct dsc_proc *dsc)
 /* Returns false if NAME is a duplicate of any existing variable name or
    of any previously-declared z-var name; otherwise returns true. */
 static bool
-try_name (const struct dictionary *dict, struct dsc_proc *dsc, char *name)
+try_name (const struct dictionary *dict, struct dsc_proc *dsc, 
+	  const char *name)
 {
   size_t i;
 

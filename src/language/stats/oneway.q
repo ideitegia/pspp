@@ -112,12 +112,12 @@ void output_oneway(void);
 
 
 int
-cmd_oneway (struct dataset *ds)
+cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
   int i;
   bool ok;
 
-  if ( !parse_oneway (ds, &cmd, NULL) )
+  if ( !parse_oneway (lexer, ds, &cmd, NULL) )
     return CMD_FAILURE;
 
   /* What statistics were requested */
@@ -213,18 +213,19 @@ output_oneway(void)
 
 /* Parser for the variables sub command */
 static int
-oneway_custom_variables(struct dataset *ds, struct cmd_oneway *cmd UNUSED, 
+oneway_custom_variables (struct lexer *lexer, 
+			struct dataset *ds, struct cmd_oneway *cmd UNUSED, 
 			void *aux UNUSED)
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
-      && token != T_ALL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
     return 2;
 
-  if (!parse_variables (dict, &vars, &n_vars,
+  if (!parse_variables (lexer, dict, &vars, &n_vars,
 			PV_DUPLICATE 
 			| PV_NUMERIC | PV_NO_SCRATCH) )
     {
@@ -234,14 +235,14 @@ oneway_custom_variables(struct dataset *ds, struct cmd_oneway *cmd UNUSED,
 
   assert(n_vars);
 
-  if ( ! lex_match(T_BY))
+  if ( ! lex_match (lexer, T_BY))
     return 2;
 
-  indep_var = parse_variable (dict);
+  indep_var = parse_variable (lexer, dict);
 
   if ( !indep_var ) 
     {
-      msg(SE,_("`%s' is not a variable name"),tokid);
+      msg(SE,_("`%s' is not a variable name"),lex_tokid (lexer));
       return 0;
     }
 

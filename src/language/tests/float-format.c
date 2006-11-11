@@ -69,17 +69,17 @@ static const size_t format_cnt = sizeof fp_formats / sizeof *fp_formats;
 /* Parses a floating-point format name into *FORMAT,
    and returns success. */
 static bool
-parse_float_format (enum float_format *format) 
+parse_float_format (struct lexer *lexer, enum float_format *format) 
 {
   size_t i;
 
   for (i = 0; i < format_cnt; i++)
-    if (lex_match_id (fp_formats[i].name)) 
+    if (lex_match_id (lexer, fp_formats[i].name)) 
       {
         *format = fp_formats[i].format;
         return true;
       }
-  lex_error ("expecting floating-point format identifier");
+  lex_error (lexer, "expecting floating-point format identifier");
   return false;
 }
 
@@ -101,25 +101,25 @@ get_float_format_name (enum float_format format)
    representation.  Also supports ordinary floating-point numbers
    written in decimal notation.  Returns success. */
 static bool
-parse_fp (struct fp *fp) 
+parse_fp (struct lexer *lexer, struct fp *fp) 
 {
-  if (lex_is_number ()) 
+  if (lex_is_number (lexer)) 
     {
-      double number = lex_number ();
+      double number = lex_number (lexer);
       fp->format = FLOAT_NATIVE_DOUBLE;
       memcpy (fp->data, &number, sizeof number);
-      lex_get ();
+      lex_get (lexer);
     }
-  else if (token == T_ID)
+  else if (lex_token (lexer) == T_ID)
     {
       size_t length;
       
-      if (!parse_float_format (&fp->format)
-          || !lex_force_match ('(')
-          || !lex_force_string ())
+      if (!parse_float_format (lexer, &fp->format)
+          || !lex_force_match (lexer, '(')
+          || !lex_force_string (lexer))
         return false;
 
-      length = ds_length (&tokstr);
+      length = ds_length (lex_tokstr (lexer));
       if (fp->format != FLOAT_HEX) 
         {
           if (length != float_get_size (fp->format)) 
@@ -129,7 +129,7 @@ parse_fp (struct fp *fp)
               return false;
             }
           assert (length <= sizeof fp->data);
-          memcpy (fp->data, ds_data (&tokstr), length); 
+          memcpy (fp->data, ds_data (lex_tokstr (lexer)), length); 
         }
       else 
         {
@@ -138,16 +138,16 @@ parse_fp (struct fp *fp)
               msg (SE, _("Hexadecimal floating constant too long."));
               return false;
             }
-          strncpy ((char *) fp->data, ds_cstr (&tokstr), sizeof fp->data);
+          strncpy ((char *) fp->data, ds_cstr (lex_tokstr (lexer)), sizeof fp->data);
         }
 
-      lex_get ();
-      if (!lex_force_match (')'))
+      lex_get (lexer);
+      if (!lex_force_match (lexer, ')'))
         return false;
     }
   else
     {
-      lex_error (NULL);
+      lex_error (lexer, NULL);
       return false;
     }
   return true;
@@ -235,7 +235,7 @@ verify_conversion (const struct fp *from, const struct fp *to)
 
 /* Executes the DEBUG FLOAT FORMAT command. */
 int
-cmd_debug_float_format (struct dataset *ds UNUSED) 
+cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED) 
 {
   struct fp fp[16];
   size_t fp_cnt = 0;
@@ -249,30 +249,30 @@ cmd_debug_float_format (struct dataset *ds UNUSED)
           msg (SE, _("Too many values in single command."));
           return CMD_FAILURE;
         }
-      if (!parse_fp (&fp[fp_cnt++]))
+      if (!parse_fp (lexer, &fp[fp_cnt++]))
         return CMD_FAILURE;
 
-      if (token == '.' && fp_cnt > 1)
+      if (lex_token (lexer) == '.' && fp_cnt > 1)
         break;
-      else if (!lex_force_match ('='))
+      else if (!lex_force_match (lexer, '='))
         return CMD_FAILURE;
       
       if (fp_cnt == 1) 
         {
-          if (lex_match ('='))
+          if (lex_match (lexer, '='))
             bijective = true;
-          else if (lex_match (T_GT))
+          else if (lex_match (lexer, T_GT))
             bijective = false;
           else 
             {
-              lex_error (NULL);
+              lex_error (lexer, NULL);
               return CMD_FAILURE;
             }
         }
       else 
         {
-          if ((bijective && !lex_force_match ('='))
-              || (!bijective && !lex_force_match (T_GT)))
+          if ((bijective && !lex_force_match (lexer, '='))
+              || (!bijective && !lex_force_match (lexer, T_GT)))
             return CMD_FAILURE;
         }
     }

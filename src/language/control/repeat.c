@@ -83,13 +83,13 @@ struct repeat_block
     bool print;                         /* Print lines as executed? */
   };
 
-static bool parse_specification (struct repeat_block *);
-static bool parse_lines (struct repeat_block *);
+static bool parse_specification (struct lexer *, struct repeat_block *);
+static bool parse_lines (struct lexer *, struct repeat_block *);
 static void create_vars (struct repeat_block *);
 
-static int parse_ids (const struct dictionary *dict, struct repeat_entry *, struct pool *);
-static int parse_numbers (struct repeat_entry *, struct pool *);
-static int parse_strings (struct repeat_entry *, struct pool *);
+static int parse_ids (struct lexer *, const struct dictionary *dict, struct repeat_entry *, struct pool *);
+static int parse_numbers (struct lexer *, struct repeat_entry *, struct pool *);
+static int parse_strings (struct lexer *, struct repeat_entry *, struct pool *);
 
 static void do_repeat_filter (struct string *line, void *block);
 static bool do_repeat_read (struct string *line, char **file_name,
@@ -97,14 +97,14 @@ static bool do_repeat_read (struct string *line, char **file_name,
 static void do_repeat_close (void *block);
 
 int
-cmd_do_repeat (struct dataset *ds)
+cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
 {
   struct repeat_block *block;
 
   block = pool_create_container (struct repeat_block, pool);
   block->ds = ds;
 
-  if (!parse_specification (block) || !parse_lines (block))
+  if (!parse_specification (lexer, block) || !parse_lines (lexer, block))
     goto error;
   
   create_vars (block);
@@ -124,7 +124,7 @@ cmd_do_repeat (struct dataset *ds)
 /* Parses the whole DO REPEAT command specification.
    Returns success. */
 static bool
-parse_specification (struct repeat_block *block) 
+parse_specification (struct lexer *lexer, struct repeat_block *block) 
 {
   char first_name[LONG_NAME_LEN + 1];
 
@@ -138,16 +138,16 @@ parse_specification (struct repeat_block *block)
       int count;
 
       /* Get a stand-in variable name and make sure it's unique. */
-      if (!lex_force_id ())
+      if (!lex_force_id (lexer))
 	return false;
-      if (dict_lookup_var (dict, tokid))
+      if (dict_lookup_var (dict, lex_tokid (lexer)))
         msg (SW, _("Dummy variable name \"%s\" hides dictionary "
                    "variable \"%s\"."),
-             tokid, tokid);
+             lex_tokid (lexer), lex_tokid (lexer));
       for (iter = block->macros; iter != NULL; iter = iter->next)
-	if (!strcasecmp (iter->id, tokid))
+	if (!strcasecmp (iter->id, lex_tokid (lexer)))
 	  {
-	    msg (SE, _("Dummy variable name \"%s\" is given twice."), tokid);
+	    msg (SE, _("Dummy variable name \"%s\" is given twice."), lex_tokid (lexer));
 	    return false;
 	  }
 
@@ -155,31 +155,31 @@ parse_specification (struct repeat_block *block)
          list. */
       e = pool_alloc (block->pool, sizeof *e);
       e->next = block->macros;
-      strcpy (e->id, tokid);
+      strcpy (e->id, lex_tokid (lexer));
       block->macros = e;
 
       /* Skip equals sign. */
-      lex_get ();
-      if (!lex_force_match ('='))
+      lex_get (lexer);
+      if (!lex_force_match (lexer, '='))
 	return false;
 
       /* Get the details of the variable's possible values. */
-      if (token == T_ID)
-	count = parse_ids (dict, e, block->pool);
-      else if (lex_is_number ())
-	count = parse_numbers (e, block->pool);
-      else if (token == T_STRING)
-	count = parse_strings (e, block->pool);
+      if (lex_token (lexer) == T_ID)
+	count = parse_ids (lexer, dict, e, block->pool);
+      else if (lex_is_number (lexer))
+	count = parse_numbers (lexer, e, block->pool);
+      else if (lex_token (lexer) == T_STRING)
+	count = parse_strings (lexer, e, block->pool);
       else
 	{
-	  lex_error (NULL);
+	  lex_error (lexer, NULL);
 	  return false;
 	}
       if (count == 0)
 	return false;
-      if (token != '/' && token != '.') 
+      if (lex_token (lexer) != '/' && lex_token (lexer) != '.') 
         {
-          lex_error (NULL);
+          lex_error (lexer, NULL);
           return false;
         }
 
@@ -200,9 +200,9 @@ parse_specification (struct repeat_block *block)
 	  return false;
 	}
 
-      lex_match ('/');
+      lex_match (lexer, '/');
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
 
   return true;
 }
@@ -265,7 +265,7 @@ recognize_end_repeat (const char *line, bool *print)
 /* Read all the lines we are going to substitute, inside the DO
    REPEAT...END REPEAT block. */
 static bool
-parse_lines (struct repeat_block *block) 
+parse_lines (struct lexer *lexer, struct repeat_block *block) 
 {
   char *previous_file_name;
   struct line_list **last_line;
@@ -284,7 +284,7 @@ parse_lines (struct repeat_block *block)
       struct string cur_line_copy;
       bool dot;
 
-      if (! lex_get_line_raw ())
+      if (! lex_get_line_raw (lexer))
         return false;
 
       /* If the current file has changed then record the fact. */
@@ -293,7 +293,7 @@ parse_lines (struct repeat_block *block)
           || !strcmp (cur_file_name, previous_file_name))
         previous_file_name = pool_strdup (block->pool, cur_file_name);
 
-      ds_init_string (&cur_line_copy, lex_entire_line_ds () );
+      ds_init_string (&cur_line_copy, lex_entire_line_ds (lexer) );
       ds_rtrim (&cur_line_copy, ss_cstr (CC_SPACES));
       dot = ds_chomp (&cur_line_copy, get_endcmd ());
 
@@ -303,7 +303,7 @@ parse_lines (struct repeat_block *block)
         {
         if (nesting_level-- == 0)
           {
-            lex_discard_line ();
+            lex_discard_line (lexer);
 	    ds_destroy (&cur_line_copy);
             return true;
           } 
@@ -321,7 +321,7 @@ parse_lines (struct repeat_block *block)
       ds_destroy (&cur_line_copy);
     }
 
-  lex_discard_line ();
+  lex_discard_line (lexer);
   return true;
 }
 
@@ -347,11 +347,13 @@ create_vars (struct repeat_block *block)
 
 /* Parses a set of ids for DO REPEAT. */
 static int
-parse_ids (const struct dictionary *dict, struct repeat_entry *e, struct pool *pool)
+parse_ids (struct lexer *lexer, const struct dictionary *dict, 
+	   struct repeat_entry *e, struct pool *pool)
 {
   size_t n = 0;
   e->type = VAR_NAMES;
-  return parse_mixed_vars_pool (dict, pool, &e->replacement, &n, PV_NONE) ? n : 0;
+  return parse_mixed_vars_pool (lexer, dict, pool, 
+				&e->replacement, &n, PV_NONE) ? n : 0;
 }
 
 /* Adds STRING to E's list of replacements, which has *USED
@@ -370,7 +372,7 @@ add_replacement (char *string,
 
 /* Parses a list of numbers for DO REPEAT. */
 static int
-parse_numbers (struct repeat_entry *e, struct pool *pool)
+parse_numbers (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
 {
   size_t used = 0;
   size_t allocated = 0;
@@ -383,23 +385,23 @@ parse_numbers (struct repeat_entry *e, struct pool *pool)
       long a, b, i;
 
       /* Parse A TO B into a, b. */
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return 0;
-      a = lex_integer ();
+      a = lex_integer (lexer);
 
-      lex_get ();
-      if (token == T_TO)
+      lex_get (lexer);
+      if (lex_token (lexer) == T_TO)
 	{
-	  lex_get ();
-	  if (!lex_force_int ())
+	  lex_get (lexer);
+	  if (!lex_force_int (lexer))
 	    return 0;
-	  b = lex_integer ();
+	  b = lex_integer (lexer);
           if (b < a) 
             {
               msg (SE, _("%ld TO %ld is an invalid range."), a, b);
               return 0;
             }
-	  lex_get ();
+	  lex_get (lexer);
 	}
       else
         b = a;
@@ -409,16 +411,16 @@ parse_numbers (struct repeat_entry *e, struct pool *pool)
                          e, pool, &used, &allocated);
 
 
-      lex_match (',');
+      lex_match (lexer, ',');
     }
-  while (token != '/' && token != '.');
+  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
 
   return used;
 }
 
 /* Parses a list of strings for DO REPEAT. */
 int
-parse_strings (struct repeat_entry *e, struct pool *pool)
+parse_strings (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
 {
   size_t used = 0;
   size_t allocated = 0;
@@ -430,26 +432,26 @@ parse_strings (struct repeat_entry *e, struct pool *pool)
     {
       char *string;
       
-      if (token != T_STRING)
+      if (lex_token (lexer) != T_STRING)
 	{
 	  msg (SE, _("String expected."));
 	  return 0;
 	}
 
-      string = lex_token_representation ();
+      string = lex_token_representation (lexer);
       pool_register (pool, free, string);
       add_replacement (string, e, pool, &used, &allocated);
 
-      lex_get ();
-      lex_match (',');
+      lex_get (lexer);
+      lex_match (lexer, ',');
     }
-  while (token != '/' && token != '.');
+  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
 
   return used;
 }
 
 int
-cmd_end_repeat (struct dataset *ds UNUSED)
+cmd_end_repeat (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   msg (SE, _("No matching DO REPEAT."));
   return CMD_CASCADING_FAILURE;

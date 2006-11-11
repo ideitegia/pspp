@@ -176,7 +176,7 @@ static struct cmd_crosstabs cmd;
 static struct pool *pl_tc;	/* For table cells. */
 static struct pool *pl_col;	/* For column data. */
 
-static int internal_cmd_crosstabs (struct dataset *ds);
+static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds);
 static void precalc (const struct ccase *, void *, const struct dataset *);
 static bool calc_general (const struct ccase *, void *, const struct dataset *);
 static bool calc_integer (const struct ccase *, void *, const struct dataset *);
@@ -188,9 +188,9 @@ static void format_short (char *s, const struct fmt_spec *fp,
 
 /* Parse and execute CROSSTABS, then clean up. */
 int
-cmd_crosstabs (struct dataset *ds)
+cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 {
-  int result = internal_cmd_crosstabs (ds);
+  int result = internal_cmd_crosstabs (lexer, ds);
 
   free (variables);
   pool_destroy (pl_tc);
@@ -201,7 +201,7 @@ cmd_crosstabs (struct dataset *ds)
 
 /* Parses and executes the CROSSTABS procedure. */
 static int
-internal_cmd_crosstabs (struct dataset *ds)
+internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 {
   int i;
   bool ok;
@@ -213,7 +213,7 @@ internal_cmd_crosstabs (struct dataset *ds)
   pl_tc = pool_create ();
   pl_col = pool_create ();
 
-  if (!parse_crosstabs (ds, &cmd, NULL))
+  if (!parse_crosstabs (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
   mode = variables ? INTEGER : GENERAL;
@@ -303,7 +303,7 @@ internal_cmd_crosstabs (struct dataset *ds)
 
 /* Parses the TABLES subcommand. */
 static int
-crs_custom_tables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
+crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
   struct var_set *var_set;
   int n_by;
@@ -313,11 +313,11 @@ crs_custom_tables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *a
   int success = 0;
 
   /* Ensure that this is a TABLES subcommand. */
-  if (!lex_match_id ("TABLES")
-      && (token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL)
-      && token != T_ALL)
+  if (!lex_match_id (lexer, "TABLES")
+      && (lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
     return 2;
-  lex_match ('=');
+  lex_match (lexer, '=');
 
   if (variables != NULL)
     var_set = var_set_create_from_array (variables, variables_cnt);
@@ -329,7 +329,7 @@ crs_custom_tables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *a
     {
       by = xnrealloc (by, n_by + 1, sizeof *by);
       by_nvar = xnrealloc (by_nvar, n_by + 1, sizeof *by_nvar);
-      if (!parse_var_set_vars (var_set, &by[n_by], &by_nvar[n_by],
+      if (!parse_var_set_vars (lexer, var_set, &by[n_by], &by_nvar[n_by],
                                PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	goto done;
       if (xalloc_oversized (nx, by_nvar[n_by])) 
@@ -340,11 +340,11 @@ crs_custom_tables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *a
       nx *= by_nvar[n_by];
       n_by++;
 
-      if (!lex_match (T_BY))
+      if (!lex_match (lexer, T_BY))
 	{
 	  if (n_by < 2)
 	    {
-	      lex_error (_("expecting BY"));
+	      lex_error (lexer, _("expecting BY"));
 	      goto done;
 	    }
 	  else 
@@ -407,7 +407,7 @@ crs_custom_tables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *a
 
 /* Parses the VARIABLES subcommand. */
 static int
-crs_custom_variables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
+crs_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
   if (nxtab)
     {
@@ -415,7 +415,7 @@ crs_custom_variables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void
       return 0;
     }
 
-  lex_match ('=');
+  lex_match (lexer, '=');
   
   for (;;)
     {
@@ -424,42 +424,43 @@ crs_custom_variables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void
 
       long min, max;
       
-      if (!parse_variables (dataset_dict (ds), &variables, &variables_cnt,
+      if (!parse_variables (lexer, dataset_dict (ds), 
+			    &variables, &variables_cnt,
 			    (PV_APPEND | PV_NUMERIC
 			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
 	return 0;
 
-      if (token != '(')
+      if (lex_token (lexer) != '(')
 	{
-	  lex_error ("expecting `('");
+	  lex_error (lexer, "expecting `('");
 	  goto lossage;
 	}
-      lex_get ();
+      lex_get (lexer);
 
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	goto lossage;
-      min = lex_integer ();
-      lex_get ();
+      min = lex_integer (lexer);
+      lex_get (lexer);
 
-      lex_match (',');
+      lex_match (lexer, ',');
 
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	goto lossage;
-      max = lex_integer ();
+      max = lex_integer (lexer);
       if (max < min)
 	{
 	  msg (SE, _("Maximum value (%ld) less than minimum value (%ld)."),
 	       max, min);
 	  goto lossage;
 	}
-      lex_get ();
+      lex_get (lexer);
 
-      if (token != ')')
+      if (lex_token (lexer) != ')')
 	{
-	  lex_error ("expecting `)'");
+	  lex_error (lexer, "expecting `)'");
 	  goto lossage;
 	}
-      lex_get ();
+      lex_get (lexer);
       
       for (i = orig_nv; i < variables_cnt; i++) 
         {
@@ -470,7 +471,7 @@ crs_custom_variables (struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void
           var_attach_aux (variables[i], vr, var_dtor_free);
 	}
       
-      if (token == '/')
+      if (lex_token (lexer) == '/')
 	break;
     }
   

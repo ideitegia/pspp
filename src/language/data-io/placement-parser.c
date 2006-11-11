@@ -44,9 +44,9 @@ enum
     PRS_TYPE_NEW_REC            /* Next record. */
   };
 
-static bool fixed_parse_columns (struct pool *, size_t var_cnt, bool for_input,
+static bool fixed_parse_columns (struct lexer *, struct pool *, size_t var_cnt, bool for_input,
                                  struct fmt_spec **, size_t *);
-static bool fixed_parse_fortran (struct pool *, bool for_input,
+static bool fixed_parse_fortran (struct lexer *l, struct pool *, bool for_input,
                                  struct fmt_spec **, size_t *);
 
 /* Parses Fortran-like or column-based specifications for placing
@@ -65,18 +65,18 @@ static bool fixed_parse_fortran (struct pool *, bool for_input,
    Uses POOL for allocation.  When the caller is finished
    interpreting *FORMATS, POOL may be destroyed. */
 bool
-parse_var_placements (struct pool *pool, size_t var_cnt, bool for_input,
+parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt, bool for_input,
                       struct fmt_spec **formats, size_t *format_cnt) 
 {
   assert (var_cnt > 0);
-  if (lex_is_number ())
-    return fixed_parse_columns (pool, var_cnt, for_input, formats, format_cnt);
-  else if (lex_match ('(')) 
+  if (lex_is_number (lexer))
+    return fixed_parse_columns (lexer, pool, var_cnt, for_input, formats, format_cnt);
+  else if (lex_match (lexer, '(')) 
     {
       size_t assignment_cnt;
       size_t i;
 
-      if (!fixed_parse_fortran (pool, for_input, formats, format_cnt))
+      if (!fixed_parse_fortran (lexer, pool, for_input, formats, format_cnt))
         return false; 
 
       assignment_cnt = 0;
@@ -103,14 +103,14 @@ parse_var_placements (struct pool *pool, size_t var_cnt, bool for_input,
 
 /* Implements parse_var_placements for column-based formats. */
 static bool
-fixed_parse_columns (struct pool *pool, size_t var_cnt, bool for_input,
+fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, bool for_input,
                      struct fmt_spec **formats, size_t *format_cnt)
 {
   struct fmt_spec format;
   int fc, lc;
   size_t i;
 
-  if (!parse_column_range (&fc, &lc, NULL))
+  if ( !parse_column_range (lexer, &fc, &lc, NULL) )
     return false;
 
   /* Divide columns evenly. */    
@@ -124,28 +124,28 @@ fixed_parse_columns (struct pool *pool, size_t var_cnt, bool for_input,
     }
 
   /* Format specifier. */
-  if (lex_match ('('))
+  if (lex_match (lexer, '('))
     {
       /* Get format type. */
-      if (token == T_ID)
+      if (lex_token (lexer) == T_ID)
 	{
-	  if (!parse_format_specifier_name (&format.type))
+	  if (!parse_format_specifier_name (lexer, &format.type))
             return false;
-	  lex_match (',');
+	  lex_match (lexer, ',');
 	}
       else
 	format.type = FMT_F;
 
       /* Get decimal places. */
-      if (lex_is_integer ())
+      if (lex_is_integer (lexer))
 	{
-	  format.d = lex_integer ();
-	  lex_get ();
+	  format.d = lex_integer (lexer);
+	  lex_get (lexer);
 	}
       else
 	format.d = 0;
 
-      if (!lex_force_match (')'))
+      if (!lex_force_match (lexer, ')'))
 	return false;
     }
   else
@@ -167,14 +167,14 @@ fixed_parse_columns (struct pool *pool, size_t var_cnt, bool for_input,
 
 /* Implements parse_var_placements for Fortran-like formats. */
 static bool
-fixed_parse_fortran (struct pool *pool, bool for_input,
+fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
                      struct fmt_spec **formats, size_t *format_cnt)
 {
   size_t formats_allocated = 0;
   size_t formats_used = 0;
 
   *formats = NULL;
-  while (!lex_match (')'))
+  while (!lex_match (lexer, ')'))
     {
       struct fmt_spec f;
       struct fmt_spec *new_formats;
@@ -183,19 +183,19 @@ fixed_parse_fortran (struct pool *pool, bool for_input,
       size_t formats_needed;
       
       /* Parse count. */
-      if (lex_is_integer ())
+      if (lex_is_integer (lexer))
 	{
-	  count = lex_integer ();
-	  lex_get ();
+	  count = lex_integer (lexer);
+	  lex_get (lexer);
 	}
       else
 	count = 1;
 
       /* Parse format specifier. */
-      if (lex_match ('('))
+      if (lex_match (lexer, '('))
         {
           /* Call ourselves recursively to handle parentheses. */
-          if (!fixed_parse_fortran (pool, for_input,
+          if (!fixed_parse_fortran (lexer, pool, for_input,
                                     &new_formats, &new_format_cnt))
             return false;
         }
@@ -203,13 +203,13 @@ fixed_parse_fortran (struct pool *pool, bool for_input,
         {
           new_formats = &f;
           new_format_cnt = 1;
-          if (lex_match ('/'))
+          if (lex_match (lexer, '/'))
             f.type = PRS_TYPE_NEW_REC;
           else
             {
               char type[FMT_TYPE_LEN_MAX + 1];
               
-              if (!parse_abstract_format_specifier (type, &f.w, &f.d))
+              if (!parse_abstract_format_specifier (lexer, type, &f.w, &f.d))
                 return false;
 
               if (!strcasecmp (type, "T")) 
@@ -254,7 +254,7 @@ fixed_parse_fortran (struct pool *pool, bool for_input,
           formats_used += new_format_cnt;
         }
 
-      lex_match (',');
+      lex_match (lexer, ',');
     }
 
   *format_cnt = formats_used;
@@ -299,27 +299,27 @@ execute_placement_format (const struct fmt_spec *format,
    successful, false if the syntax was invalid or the values
    specified did not make sense. */
 bool
-parse_column_range (int *first_column, int *last_column,
+parse_column_range (struct lexer *lexer, int *first_column, int *last_column,
                     bool *range_specified) 
 {
   /* First column. */
-  if (!lex_force_int ())
+  if (!lex_force_int (lexer))
     return false;
-  *first_column = lex_integer ();
+  *first_column = lex_integer (lexer);
   if (*first_column < 1)
     {
       msg (SE, _("Column positions for fields must be positive."));
       return false;
     }
-  lex_get ();
+  lex_get (lexer);
 
   /* Last column. */
-  lex_negative_to_dash ();
-  if (lex_match ('-'))
+  lex_negative_to_dash (lexer);
+  if (lex_match (lexer, '-'))
     {
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return false;
-      *last_column = lex_integer ();
+      *last_column = lex_integer (lexer);
       if (*last_column < 1)
 	{
 	  msg (SE, _("Column positions for fields must be positive."));
@@ -334,7 +334,7 @@ parse_column_range (int *first_column, int *last_column,
 
       if (range_specified)
         *range_specified = true;
-      lex_get ();
+      lex_get (lexer);
     }
   else 
     {
@@ -354,23 +354,23 @@ parse_column_range (int *first_column, int *last_column,
 
    Returns true if successful, false on syntax error. */
 bool
-parse_record_placement (int *record, int *column) 
+parse_record_placement (struct lexer *lexer, int *record, int *column) 
 {
-  while (lex_match ('/'))
+  while (lex_match (lexer, '/'))
     {
-      if (lex_is_integer ())
+      if (lex_is_integer (lexer))
         {
-          if (lex_integer () <= *record)
+          if (lex_integer (lexer) <= *record)
             {
               msg (SE, _("The record number specified, %ld, is at or "
                          "before the previous record, %d.  Data "
                          "fields must be listed in order of "
                          "increasing record number."),
-                   lex_integer (), *record);
+                   lex_integer (lexer), *record);
               return false;
             }
-          *record = lex_integer ();
-          lex_get ();
+          *record = lex_integer (lexer);
+          lex_get (lexer);
         }
       else
         (*record)++;

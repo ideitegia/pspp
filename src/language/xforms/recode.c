@@ -108,21 +108,21 @@ struct recode_trns
     size_t map_cnt;             /* Number of mappings. */
   };
 
-static bool parse_src_vars (struct recode_trns *, const struct dictionary *dict);
-static bool parse_mappings (struct recode_trns *);
-static bool parse_dst_vars (struct recode_trns *, const struct dictionary *dict);
+static bool parse_src_vars (struct lexer *, struct recode_trns *, const struct dictionary *dict);
+static bool parse_mappings (struct lexer *, struct recode_trns *);
+static bool parse_dst_vars (struct lexer *, struct recode_trns *, const struct dictionary *dict);
 
 static void add_mapping (struct recode_trns *,
                          size_t *map_allocated, const struct map_in *);
 
-static bool parse_map_in (struct map_in *, struct pool *,
+static bool parse_map_in (struct lexer *lexer, struct map_in *, struct pool *,
                           enum var_type src_type, size_t max_src_width);
 static void set_map_in_generic (struct map_in *, enum map_in_type);
 static void set_map_in_num (struct map_in *, enum map_in_type, double, double);
 static void set_map_in_str (struct map_in *, struct pool *,
                             const struct string *, size_t width);
 
-static bool parse_map_out (struct pool *, struct map_out *);
+static bool parse_map_out (struct lexer *lexer, struct pool *, struct map_out *);
 static void set_map_out_num (struct map_out *, double);
 static void set_map_out_str (struct map_out *, struct pool *,
                              const struct string *);
@@ -137,7 +137,7 @@ static trns_free_func recode_trns_free;
 
 /* Parses the RECODE transformation. */
 int
-cmd_recode (struct dataset *ds)
+cmd_recode (struct lexer *lexer, struct dataset *ds)
 {
   do
     {
@@ -147,9 +147,9 @@ cmd_recode (struct dataset *ds)
       /* Parse source variable names,
          then input to output mappings,
          then destintation variable names. */
-      if (!parse_src_vars (trns, dataset_dict (ds) )
-          || !parse_mappings (trns)
-          || !parse_dst_vars (trns, dataset_dict (ds)))
+      if (!parse_src_vars (lexer, trns, dataset_dict (ds) )
+          || !parse_mappings (lexer, trns)
+          || !parse_dst_vars (lexer, trns, dataset_dict (ds)))
         {
           recode_trns_free (trns);
           return CMD_FAILURE;
@@ -170,18 +170,19 @@ cmd_recode (struct dataset *ds)
       add_transformation (ds, 
 			  recode_trns_proc, recode_trns_free, trns);
     }
-  while (lex_match ('/'));
+  while (lex_match (lexer, '/'));
   
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Parses a set of variables to recode into TRNS->src_vars and
    TRNS->var_cnt.  Sets TRNS->src_type.  Returns true if
    successful, false on parse error. */
 static bool
-parse_src_vars (struct recode_trns *trns, const struct dictionary *dict) 
+parse_src_vars (struct lexer *lexer, 
+		struct recode_trns *trns, const struct dictionary *dict) 
 {
-  if (!parse_variables (dict, &trns->src_vars, &trns->var_cnt,
+  if (!parse_variables (lexer, dict, &trns->src_vars, &trns->var_cnt,
                         PV_SAME_TYPE))
     return false;
   pool_register (trns->pool, free, trns->src_vars);
@@ -193,7 +194,7 @@ parse_src_vars (struct recode_trns *trns, const struct dictionary *dict)
    into TRNS->mappings and TRNS->map_cnt.  Sets TRNS->dst_type.
    Returns true if successful, false on parse error. */
 static bool
-parse_mappings (struct recode_trns *trns) 
+parse_mappings (struct lexer *lexer, struct recode_trns *trns) 
 {
   size_t max_src_width;
   size_t map_allocated;
@@ -214,13 +215,13 @@ parse_mappings (struct recode_trns *trns)
   trns->map_cnt = 0;
   map_allocated = 0;
   have_dst_type = false;
-  if (!lex_force_match ('('))
+  if (!lex_force_match (lexer, '('))
     return false;
   do
     {
       enum var_type dst_type;
 
-      if (!lex_match_id ("CONVERT")) 
+      if (!lex_match_id (lexer, "CONVERT")) 
         {
           struct map_out out;
           size_t first_map_idx;
@@ -232,15 +233,15 @@ parse_mappings (struct recode_trns *trns)
           do
             {
               struct map_in in;
-              if (!parse_map_in (&in, trns->pool,
+              if (!parse_map_in (lexer, &in, trns->pool,
                                  trns->src_type, max_src_width))
                 return false;
               add_mapping (trns, &map_allocated, &in);
-              lex_match (',');
+              lex_match (lexer, ',');
             }
-          while (!lex_match ('='));
+          while (!lex_match (lexer, '='));
 
-          if (!parse_map_out (trns->pool, &out))
+          if (!parse_map_out (lexer, trns->pool, &out))
             return false;
           dst_type = out.width == 0 ? NUMERIC : ALPHA;
           if (have_dst_type && dst_type != trns->dst_type)
@@ -273,10 +274,10 @@ parse_mappings (struct recode_trns *trns)
       trns->dst_type = dst_type;
       have_dst_type = true;
 
-      if (!lex_force_match (')'))
+      if (!lex_force_match (lexer, ')'))
         return false; 
     }
-  while (lex_match ('('));
+  while (lex_match (lexer, '('));
 
   return true;
 }
@@ -287,31 +288,31 @@ parse_mappings (struct recode_trns *trns)
    be provided in MAX_SRC_WIDTH.  Returns true if successful,
    false on parse error. */
 static bool
-parse_map_in (struct map_in *in, struct pool *pool,
+parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
               enum var_type src_type, size_t max_src_width)
 {
-  if (lex_match_id ("ELSE"))
+  if (lex_match_id (lexer, "ELSE"))
     set_map_in_generic (in, MAP_ELSE);
   else if (src_type == NUMERIC)
     {
-      if (lex_match_id ("MISSING"))
+      if (lex_match_id (lexer, "MISSING"))
         set_map_in_generic (in, MAP_MISSING);
-      else if (lex_match_id ("SYSMIS"))
+      else if (lex_match_id (lexer, "SYSMIS"))
         set_map_in_generic (in, MAP_SYSMIS);
       else 
         {
           double x, y;
-          if (!parse_num_range (&x, &y, NULL))
+          if (!parse_num_range (lexer, &x, &y, NULL))
             return false;
           set_map_in_num (in, x == y ? MAP_SINGLE : MAP_RANGE, x, y);
         }
     }
   else
     {
-      if (!lex_force_string ())
+      if (!lex_force_string (lexer))
         return false;
-      set_map_in_str (in, pool, &tokstr, max_src_width);
-      lex_get ();
+      set_map_in_str (in, pool, lex_tokstr (lexer), max_src_width);
+      lex_get (lexer);
     }
 
   return true;
@@ -365,25 +366,25 @@ set_map_in_str (struct map_in *in, struct pool *pool,
 /* Parses a mapping output value into OUT, allocating memory from
    POOL.  Returns true if successful, false on parse error. */
 static bool
-parse_map_out (struct pool *pool, struct map_out *out)
+parse_map_out (struct lexer *lexer, struct pool *pool, struct map_out *out)
 {
-  if (lex_is_number ())
+  if (lex_is_number (lexer))
     {
-      set_map_out_num (out, lex_number ());
-      lex_get ();
+      set_map_out_num (out, lex_number (lexer));
+      lex_get (lexer);
     }
-  else if (lex_match_id ("SYSMIS"))
+  else if (lex_match_id (lexer, "SYSMIS"))
     set_map_out_num (out, SYSMIS);
-  else if (token == T_STRING)
+  else if (lex_token (lexer) == T_STRING)
     {
-      set_map_out_str (out, pool, &tokstr);
-      lex_get ();
+      set_map_out_str (out, pool, lex_tokstr (lexer));
+      lex_get (lexer);
     }
-  else if (lex_match_id ("COPY"))
+  else if (lex_match_id (lexer, "COPY"))
     out->copy_input = true;
   else 
     {
-      lex_error (_("expecting output value"));
+      lex_error (lexer, _("expecting output value"));
       return false;
     }
   return true; 
@@ -415,16 +416,17 @@ set_map_out_str (struct map_out *out, struct pool *pool,
 /* Parses a set of target variables into TRNS->dst_vars and
    TRNS->dst_names. */
 static bool
-parse_dst_vars (struct recode_trns *trns, const struct dictionary *dict) 
+parse_dst_vars (struct lexer *lexer, struct recode_trns *trns, 
+		const struct dictionary *dict) 
 {
   size_t i;
   
-  if (lex_match_id ("INTO"))
+  if (lex_match_id (lexer, "INTO"))
     {
       size_t name_cnt;
       size_t i;
 
-      if (!parse_mixed_vars_pool (dict, trns->pool, 
+      if (!parse_mixed_vars_pool (lexer, dict, trns->pool, 
 				  &trns->dst_names, &name_cnt,
                                   PV_NONE))
         return false;

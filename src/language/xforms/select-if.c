@@ -47,19 +47,19 @@ static trns_free_func select_if_free;
 
 /* Parses the SELECT IF transformation. */
 int
-cmd_select_if (struct dataset *ds)
+cmd_select_if (struct lexer *lexer, struct dataset *ds)
 {
   struct expression *e;
   struct select_if_trns *t;
 
-  e = expr_parse (ds, EXPR_BOOLEAN);
+  e = expr_parse (lexer, ds, EXPR_BOOLEAN);
   if (!e)
     return CMD_CASCADING_FAILURE;
 
-  if (token != '.')
+  if (lex_token (lexer) != '.')
     {
       expr_free (e);
-      lex_error (_("expecting end of command"));
+      lex_error (lexer, _("expecting end of command"));
       return CMD_CASCADING_FAILURE;
     }
 
@@ -92,12 +92,12 @@ select_if_free (void *t_)
 
 /* Parses the FILTER command. */
 int
-cmd_filter (struct dataset *ds)
+cmd_filter (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
-  if (lex_match_id ("OFF"))
+  if (lex_match_id (lexer, "OFF"))
     dict_set_filter (dataset_dict (ds), NULL);
-  else if (token == '.') 
+  else if (lex_token (lexer) == '.') 
     {
       msg (SW, _("Syntax error expecting OFF or BY.  "
                  "Turning off case filtering."));
@@ -107,8 +107,8 @@ cmd_filter (struct dataset *ds)
     {
       struct variable *v;
 
-      lex_match (T_BY);
-      v = parse_variable (dict);
+      lex_match (lexer, T_BY);
+      v = parse_variable (lexer, dict);
       if (!v)
 	return CMD_FAILURE;
 
@@ -127,5 +127,5 @@ cmd_filter (struct dataset *ds)
       dict_set_filter (dict, v);
     }
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }

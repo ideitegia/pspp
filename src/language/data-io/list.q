@@ -130,12 +130,12 @@ write_line (struct outp_driver *d, const char *s)
     
 /* Parses and executes the LIST procedure. */
 int
-cmd_list (struct dataset *ds)
+cmd_list (struct lexer *lexer, struct dataset *ds)
 {
   struct variable casenum_var;
   bool ok;
 
-  if (!parse_list (ds, &cmd, NULL))
+  if (!parse_list (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
   
   /* Fill in defaults. */

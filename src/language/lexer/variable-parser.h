@@ -27,6 +27,7 @@ struct pool;
 struct dictionary;
 struct var_set;
 struct variable;
+struct lexer ;
 
 struct var_set *var_set_create_from_dict (const struct dictionary *d);
 struct var_set *var_set_create_from_array (struct variable *const *var,
@@ -55,19 +56,19 @@ enum
     PV_NO_SCRATCH = 00200 	/* Disallow scratch variables. */
   };
 
-struct variable *parse_variable (const struct dictionary *);
-bool parse_variables (const struct dictionary *, struct variable ***, size_t *,
+struct variable *parse_variable (struct lexer *, const struct dictionary *);
+bool parse_variables (struct lexer *, const struct dictionary *, struct variable ***, size_t *,
                      int opts);
-bool parse_variables_pool (struct pool *, const struct dictionary *,
+bool parse_variables_pool (struct lexer *, struct pool *, const struct dictionary *,
                           struct variable ***, size_t *, int opts);
-bool parse_var_set_vars (const struct var_set *, struct variable ***, size_t *,
+bool parse_var_set_vars (struct lexer *, const struct var_set *, struct variable ***, size_t *,
                         int opts);
-bool parse_DATA_LIST_vars (char ***names, size_t *cnt, int opts);
-bool parse_DATA_LIST_vars_pool (struct pool *,
+bool parse_DATA_LIST_vars (struct lexer *, char ***names, size_t *cnt, int opts);
+bool parse_DATA_LIST_vars_pool (struct lexer *, struct pool *,
                                char ***names, size_t *cnt, int opts);
-bool parse_mixed_vars (const struct dictionary *dict, 
+bool parse_mixed_vars (struct lexer *, const struct dictionary *dict, 
 		       char ***names, size_t *cnt, int opts);
-bool parse_mixed_vars_pool (const struct dictionary *dict, 
+bool parse_mixed_vars_pool (struct lexer *, const struct dictionary *dict, 
 			    struct pool *,
                            char ***names, size_t *cnt, int opts);
 

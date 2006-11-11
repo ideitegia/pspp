@@ -31,9 +31,10 @@
 
 struct file_handle;
 struct string;
+struct lexer;
 
 /* Input. */
-struct dfm_reader *dfm_open_reader (struct file_handle *);
+struct dfm_reader *dfm_open_reader (struct file_handle *, struct lexer *);
 void dfm_close_reader (struct dfm_reader *);
 bool dfm_reader_error (const struct dfm_reader *);
 unsigned dfm_eof (struct dfm_reader *);

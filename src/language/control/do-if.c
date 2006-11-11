@@ -83,7 +83,7 @@ struct do_if_trns
 
 static const struct ctl_class do_if_class;
 
-static int parse_clause (struct do_if_trns *, struct dataset *ds);
+static int parse_clause (struct lexer *, struct do_if_trns *, struct dataset *ds);
 static void add_clause (struct do_if_trns *,
                         struct expression *condition, int target_index);
 static void add_else (struct do_if_trns *);
@@ -98,7 +98,7 @@ static trns_free_func do_if_trns_free;
 
 /* Parse DO IF. */
 int
-cmd_do_if (struct dataset *ds)
+cmd_do_if (struct lexer *lexer, struct dataset *ds)
 {
   struct do_if_trns *do_if = xmalloc (sizeof *do_if);
   do_if->clauses = NULL;
@@ -109,34 +109,34 @@ cmd_do_if (struct dataset *ds)
   add_transformation_with_finalizer (ds, do_if_finalize_func,
                                      do_if_trns_proc, do_if_trns_free, do_if);
 
-  return parse_clause (do_if, ds);
+  return parse_clause (lexer, do_if, ds);
 }
 
 /* Parse ELSE IF. */
 int
-cmd_else_if (struct dataset *ds)
+cmd_else_if (struct lexer *lexer, struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
   if (do_if == NULL || !must_not_have_else (do_if))
     return CMD_CASCADING_FAILURE;
-  return parse_clause (do_if, ds);
+  return parse_clause (lexer, do_if, ds);
 }
 
 /* Parse ELSE. */
 int
-cmd_else (struct dataset *ds)
+cmd_else (struct lexer *lexer, struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
   assert (ds == do_if->ds);
   if (do_if == NULL || !must_not_have_else (do_if))
     return CMD_CASCADING_FAILURE;
   add_else (do_if);
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Parse END IF. */
 int
-cmd_end_if (struct dataset *ds)
+cmd_end_if (struct lexer *lexer, struct dataset *ds)
 {
   struct do_if_trns *do_if = ctl_stack_top (&do_if_class);
   assert (ds == do_if->ds);
@@ -146,7 +146,7 @@ cmd_end_if (struct dataset *ds)
 
   ctl_stack_pop (do_if);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Closes out DO_IF, by adding a sentinel ELSE clause if
@@ -197,17 +197,17 @@ has_else (struct do_if_trns *do_if)
    corresponding clause to DO_IF.  Checks for end of command and
    returns a command return code. */
 static int
-parse_clause (struct do_if_trns *do_if, struct dataset *ds)
+parse_clause (struct lexer *lexer, struct do_if_trns *do_if, struct dataset *ds)
 {
   struct expression *condition;
 
-  condition = expr_parse (ds, EXPR_BOOLEAN);
+  condition = expr_parse (lexer, ds, EXPR_BOOLEAN);
   if (condition == NULL)
     return CMD_CASCADING_FAILURE;
 
   add_clause (do_if, condition, next_transformation (ds));
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Adds a clause to DO_IF that tests for the given CONDITION and,

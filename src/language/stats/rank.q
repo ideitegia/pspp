@@ -729,7 +729,6 @@ create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
   return var;
 }
 
-int cmd_rank(struct dataset *ds);
 
 static void
 rank_cleanup(void)
@@ -758,14 +757,14 @@ rank_cleanup(void)
 }
 
 int
-cmd_rank (struct dataset *ds)
+cmd_rank (struct lexer *lexer, struct dataset *ds)
 {
   bool result;
   struct variable *order;
   size_t i;
   n_rank_specs = 0;
 
-  if ( !parse_rank (ds, &cmd, NULL) )
+  if ( !parse_rank (lexer, ds, &cmd, NULL) )
     {
       rank_cleanup ();
     return CMD_FAILURE;
@@ -929,27 +928,28 @@ cmd_rank (struct dataset *ds)
 /* Parser for the variables sub command  
    Returns 1 on success */
 static int
-rank_custom_variables (struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
+rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 {
   static const int terminators[2] = {T_BY, 0};
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  if ((token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL)
-      && token != T_ALL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
       return 2;
 
-  sc = sort_parse_criteria (dataset_dict (ds), 
+  sc = sort_parse_criteria (lexer, dataset_dict (ds), 
 			    &src_vars, &n_src_vars, 0, terminators);
 
-  if ( lex_match(T_BY)  )
+  if ( lex_match (lexer, T_BY)  )
     {
-      if ((token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL))
+      if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
 	{
 	  return 2;
 	}
 
-      if (!parse_variables (dataset_dict (ds), &group_vars, &n_group_vars,
+      if (!parse_variables (lexer, dataset_dict (ds), 
+			    &group_vars, &n_group_vars,
 			    PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
 	{
 	  free (group_vars);
@@ -963,7 +963,7 @@ rank_custom_variables (struct dataset *ds, struct cmd_rank *cmd UNUSED, void *au
 
 /* Parse the [/rank INTO var1 var2 ... varN ] clause */
 static int
-parse_rank_function(struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
+parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 {
   int var_count = 0;
   
@@ -975,16 +975,16 @@ parse_rank_function(struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum R
   rank_specs[n_rank_specs - 1].destvars = 
 	    xcalloc (sc->crit_cnt, sizeof (struct variable *));
 	  
-  if (lex_match_id("INTO"))
+  if (lex_match_id (lexer, "INTO"))
     {
       struct variable *destvar;
 
-      while( token == T_ID ) 
+      while( lex_token (lexer) == T_ID ) 
 	{
 
-	  if ( dict_lookup_var (dict, tokid) != NULL )
+	  if ( dict_lookup_var (dict, lex_tokid (lexer)) != NULL )
 	    {
-	      msg(SE, _("Variable %s already exists."), tokid);
+	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
 	      return 0;
 	    }
 	  if ( var_count >= sc->crit_cnt ) 
@@ -993,10 +993,10 @@ parse_rank_function(struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum R
 	      return 0;
 	    }
 
-	  destvar = create_rank_variable (dict, f, src_vars[var_count], tokid);
+	  destvar = create_rank_variable (dict, f, src_vars[var_count], lex_tokid (lexer));
 	  rank_specs[n_rank_specs - 1].destvars[var_count] = destvar ;
 
-	  lex_get();
+	  lex_get (lexer);
 	  ++var_count;
 	}
     }
@@ -1006,74 +1006,74 @@ parse_rank_function(struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum R
 
 
 static int
-rank_custom_rank(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_rank (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, RANK);
+  return parse_rank_function (lexer, dict, cmd, RANK);
 }
 
 static int
-rank_custom_normal(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_normal (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct  dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, NORMAL);
+  return parse_rank_function (lexer, dict, cmd, NORMAL);
 }
 
 static int
-rank_custom_percent(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_percent (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, PERCENT);
+  return parse_rank_function (lexer, dict, cmd, PERCENT);
 }
 
 static int
-rank_custom_rfraction(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_rfraction (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, RFRACTION);
+  return parse_rank_function (lexer, dict, cmd, RFRACTION);
 }
 
 static int
-rank_custom_proportion(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_proportion (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, PROPORTION);
+  return parse_rank_function (lexer, dict, cmd, PROPORTION);
 }
 
 static int
-rank_custom_n (struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_n (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, N);
+  return parse_rank_function (lexer, dict, cmd, N);
 }
 
 static int
-rank_custom_savage(struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_savage (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  return parse_rank_function (dict, cmd, SAVAGE);
+  return parse_rank_function (lexer, dict, cmd, SAVAGE);
 }
 
 
 static int
-rank_custom_ntiles (struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
+rank_custom_ntiles (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  if ( lex_force_match('(') ) 
+  if ( lex_force_match (lexer, '(') ) 
     {
-      if ( lex_force_int() ) 
+      if ( lex_force_int (lexer) ) 
 	{
-	  k_ntiles = lex_integer ();
-	  lex_get();
-	  lex_force_match(')');
+	  k_ntiles = lex_integer (lexer);
+	  lex_get (lexer);
+	  lex_force_match (lexer, ')');
 	}
       else
 	return 0;
@@ -1081,5 +1081,5 @@ rank_custom_ntiles (struct dataset *ds, struct cmd_rank *cmd, void *aux UNUSED )
   else
     return 0;
 
-  return parse_rank_function(dict, cmd, NTILES);
+  return parse_rank_function (lexer, dict, cmd, NTILES);
 }

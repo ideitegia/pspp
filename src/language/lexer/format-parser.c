@@ -47,18 +47,18 @@
    format.  Both width and decimals are considered optional.  If
    missing, *WIDTH or *DECIMALS or both will be set to 0. */
 bool
-parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
+parse_abstract_format_specifier (struct lexer *lexer, char type[FMT_TYPE_LEN_MAX + 1],
                                  int *width, int *decimals) 
 {
   struct substring s;
   struct substring type_ss, width_ss, decimals_ss;
   bool has_decimals;
 
-  if (token != T_ID)
+  if (lex_token (lexer) != T_ID)
     goto error;
 
   /* Extract pieces. */
-  s = ds_ss (&tokstr);
+  s = ds_ss (lex_tokstr (lexer));
   ss_get_chars (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
   ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
   if (ss_match_char (&s, '.')) 
@@ -85,11 +85,11 @@ parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
   *width = strtol (ss_data (width_ss), NULL, 10);
   *decimals = has_decimals ? strtol (ss_data (decimals_ss), NULL, 10) : 0;
 
-  lex_get ();
+  lex_get (lexer);
   return true;
 
  error:
-  lex_error (_("expecting valid format specifier"));
+  lex_error (lexer, _("expecting valid format specifier"));
   return false;
 }
 
@@ -99,11 +99,11 @@ parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
    check_output_specifier() on the parsed format as
    necessary.  */
 bool
-parse_format_specifier (struct fmt_spec *format)
+parse_format_specifier (struct lexer *lexer, struct fmt_spec *format)
 {
   char type[FMT_TYPE_LEN_MAX + 1];
 
-  if (!parse_abstract_format_specifier (type, &format->w, &format->d))
+  if (!parse_abstract_format_specifier (lexer, type, &format->w, &format->d))
     return false;
 
   if (!fmt_from_name (type, &format->type))
@@ -118,18 +118,18 @@ parse_format_specifier (struct fmt_spec *format)
 /* Parses a token containing just the name of a format type and
    returns true if successful. */
 bool
-parse_format_specifier_name (enum fmt_type *type) 
+parse_format_specifier_name (struct lexer *lexer, enum fmt_type *type) 
 {
-  if (token != T_ID) 
+  if (lex_token (lexer) != T_ID) 
     {
-      lex_error (_("expecting format type"));
+      lex_error (lexer, _("expecting format type"));
       return false;
     }
-  if (!fmt_from_name (ds_cstr (&tokstr), type))
+  if (!fmt_from_name (ds_cstr (lex_tokstr (lexer)), type))
     {
-      msg (SE, _("Unknown format type \"%s\"."), ds_cstr (&tokstr));
+      msg (SE, _("Unknown format type \"%s\"."), ds_cstr (lex_tokstr (lexer)));
       return false;
     }
-  lex_get ();
+  lex_get (lexer);
   return true;
 }

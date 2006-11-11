@@ -50,7 +50,7 @@ static bool  is_terminator(int tok, const int *terminators);
    
 */
 struct sort_criteria *
-sort_parse_criteria (const struct dictionary *dict,
+sort_parse_criteria (struct lexer *lexer, const struct dictionary *dict,
                      struct variable ***vars, size_t *var_cnt,
                      bool *saw_direction,
 		     const int *terminators
@@ -82,23 +82,23 @@ sort_parse_criteria (const struct dictionary *dict,
       enum sort_direction direction;
 
       /* Variables. */
-      if (!parse_variables (dict, vars, var_cnt,
+      if (!parse_variables (lexer, dict, vars, var_cnt,
 			    PV_NO_DUPLICATE | PV_APPEND | PV_NO_SCRATCH))
         goto error;
 
       /* Sort direction. */
-      if (lex_match ('('))
+      if (lex_match (lexer, '('))
 	{
-	  if (lex_match_id ("D") || lex_match_id ("DOWN"))
+	  if (lex_match_id (lexer, "D") || lex_match_id (lexer, "DOWN"))
 	    direction = SRT_DESCEND;
-	  else if (lex_match_id ("A") || lex_match_id ("UP"))
+	  else if (lex_match_id (lexer, "A") || lex_match_id (lexer, "UP"))
             direction = SRT_ASCEND;
           else
 	    {
 	      msg (SE, _("`A' or `D' expected inside parentheses."));
               goto error;
 	    }
-	  if (!lex_match (')'))
+	  if (!lex_match (lexer, ')'))
 	    {
 	      msg (SE, _("`)' expected."));
               goto error;
@@ -120,7 +120,7 @@ sort_parse_criteria (const struct dictionary *dict,
           c->dir = direction;
         }
     }
-  while (token != '.' && token != '/' && !is_terminator(token, terminators));
+  while (lex_token (lexer) != '.' && lex_token (lexer) != '/' && !is_terminator(lex_token (lexer), terminators));
 
   free (local_vars);
   return criteria;

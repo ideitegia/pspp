@@ -155,7 +155,7 @@ static void initialize_aggregate_info (struct agr_proc *,
                                        const struct ccase *);
 
 /* Prototypes. */
-static bool parse_aggregate_functions (const struct dictionary *,
+static bool parse_aggregate_functions (struct lexer *, const struct dictionary *,
 				       struct agr_proc *);
 static void agr_destroy (struct agr_proc *);
 static bool aggregate_single_case (struct agr_proc *agr,
@@ -173,7 +173,7 @@ static bool presorted_agr_to_sysfile (const struct ccase *, void *aux, const str
 
 /* Parses and executes the AGGREGATE procedure. */
 int
-cmd_aggregate (struct dataset *ds)
+cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct agr_proc agr;
@@ -193,12 +193,12 @@ cmd_aggregate (struct dataset *ds)
   dict_set_documents (agr.dict, dict_get_documents (dict));
 
   /* OUTFILE subcommand must be first. */
-  if (!lex_force_match_id ("OUTFILE"))
+  if (!lex_force_match_id (lexer, "OUTFILE"))
     goto error;
-  lex_match ('=');
-  if (!lex_match ('*'))
+  lex_match (lexer, '=');
+  if (!lex_match (lexer, '*'))
     {
-      out_file = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
+      out_file = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
       if (out_file == NULL)
         goto error;
     }
@@ -206,28 +206,28 @@ cmd_aggregate (struct dataset *ds)
   /* Read most of the subcommands. */
   for (;;)
     {
-      lex_match ('/');
+      lex_match (lexer, '/');
       
-      if (lex_match_id ("MISSING"))
+      if (lex_match_id (lexer, "MISSING"))
 	{
-	  lex_match ('=');
-	  if (!lex_match_id ("COLUMNWISE"))
+	  lex_match (lexer, '=');
+	  if (!lex_match_id (lexer, "COLUMNWISE"))
 	    {
-	      lex_error (_("while expecting COLUMNWISE"));
+	      lex_error (lexer, _("while expecting COLUMNWISE"));
               goto error;
 	    }
 	  agr.missing = COLUMNWISE;
 	}
-      else if (lex_match_id ("DOCUMENT"))
+      else if (lex_match_id (lexer, "DOCUMENT"))
         copy_documents = true;
-      else if (lex_match_id ("PRESORTED"))
+      else if (lex_match_id (lexer, "PRESORTED"))
         presorted = true;
-      else if (lex_match_id ("BREAK"))
+      else if (lex_match_id (lexer, "BREAK"))
 	{
           int i;
 
-	  lex_match ('=');
-          agr.sort = sort_parse_criteria (dict,
+	  lex_match (lexer, '=');
+          agr.sort = sort_parse_criteria (lexer, dict,
                                           &agr.break_vars, &agr.break_var_cnt,
                                           &saw_direction, NULL);
           if (agr.sort == NULL)
@@ -242,7 +242,7 @@ cmd_aggregate (struct dataset *ds)
 	}
       else
         {
-          lex_error (_("expecting BREAK"));
+          lex_error (lexer, _("expecting BREAK"));
           goto error;
         }
     }
@@ -252,8 +252,8 @@ cmd_aggregate (struct dataset *ds)
                "the same way as the input data."));
       
   /* Read in the aggregate functions. */
-  lex_match ('/');
-  if (!parse_aggregate_functions (dict, &agr))
+  lex_match (lexer, '/');
+  if (!parse_aggregate_functions (lexer, dict, &agr))
     goto error;
 
   /* Delete documents. */
@@ -359,7 +359,7 @@ error:
 
 /* Parse all the aggregate functions. */
 static bool
-parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
+parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, struct agr_proc *agr)
 {
   struct agr_var *tail; /* Tail of linked list starting at agr->vars. */
 
@@ -370,6 +370,7 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
       char **dest;
       char **dest_label;
       size_t n_dest;
+      struct string function_name;
 
       int include_missing;
       const struct agr_func *function;
@@ -392,11 +393,11 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
       arg[1].c = NULL;
 
       /* Parse the list of target variables. */
-      while (!lex_match ('='))
+      while (!lex_match (lexer, '='))
 	{
 	  size_t n_dest_prev = n_dest;
 	  
-	  if (!parse_DATA_LIST_vars (&dest, &n_dest,
+	  if (!parse_DATA_LIST_vars (lexer, &dest, &n_dest,
                                      PV_APPEND | PV_SINGLE | PV_NO_SCRATCH))
 	    goto error;
 
@@ -408,42 +409,52 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 	    for (j = n_dest_prev; j < n_dest; j++)
 	      dest_label[j] = NULL;
 	  }
+
+
 	  
-	  if (token == T_STRING)
+	  if (lex_token (lexer) == T_STRING)
 	    {
-	      ds_truncate (&tokstr, 255);
-	      dest_label[n_dest - 1] = ds_xstrdup (&tokstr);
-	      lex_get ();
+	      struct string label;
+	      ds_init_string (&label, lex_tokstr (lexer));
+
+	      ds_truncate (&label, 255);
+	      dest_label[n_dest - 1] = ds_xstrdup (&label);
+	      lex_get (lexer);
+	      ds_destroy (&label);
 	    }
 	}
 
       /* Get the name of the aggregation function. */
-      if (token != T_ID)
+      if (lex_token (lexer) != T_ID)
 	{
-	  lex_error (_("expecting aggregation function"));
+	  lex_error (lexer, _("expecting aggregation function"));
 	  goto error;
 	}
 
       include_missing = 0;
-      if (tokid[strlen (tokid) - 1] == '.')
-	{
+
+      ds_init_string (&function_name, lex_tokstr (lexer));
+
+      ds_chomp (&function_name, '.');
+
+      if (lex_tokid(lexer)[strlen (lex_tokid (lexer)) - 1] == '.')
 	  include_missing = 1;
-	  tokid[strlen (tokid) - 1] = 0;
-	}
-      
+
       for (function = agr_func_tab; function->name; function++)
-	if (!strcasecmp (function->name, tokid))
+	if (!strcasecmp (function->name, ds_cstr (&function_name)))
 	  break;
       if (NULL == function->name)
 	{
-	  msg (SE, _("Unknown aggregation function %s."), tokid);
+	  msg (SE, _("Unknown aggregation function %s."), 
+	       ds_cstr (&function_name));
 	  goto error;
 	}
+      ds_destroy (&function_name);
       func_index = function - agr_func_tab;
-      lex_get ();
+      lex_get (lexer);
 
       /* Check for leading lparen. */
-      if (!lex_match ('('))
+      if (!lex_match (lexer, '('))
 	{
 	  if (func_index == N)
 	    func_index = N_NO_VARS;
@@ -451,7 +462,7 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 	    func_index = NU_NO_VARS;
 	  else
 	    {
-	      lex_error (_("expecting `('"));
+	      lex_error (lexer, _("expecting `('"));
 	      goto error;
 	    }
 	}
@@ -466,7 +477,7 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 	    else if (function->n_args)
 	      pv_opts |= PV_SAME_TYPE;
 
-	    if (!parse_variables (dict, &src, &n_src, pv_opts))
+	    if (!parse_variables (lexer, dict, &src, &n_src, pv_opts))
 	      goto error;
 	  }
 
@@ -477,15 +488,15 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 	      {
 		int type;
 	    
-		lex_match (',');
-		if (token == T_STRING)
+		lex_match (lexer, ',');
+		if (lex_token (lexer) == T_STRING)
 		  {
-		    arg[i].c = ds_xstrdup (&tokstr);
+		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
 		    type = ALPHA;
 		  }
-		else if (lex_is_number ())
+		else if (lex_is_number (lexer))
 		  {
-		    arg[i].f = tokval;
+		    arg[i].f = lex_tokval (lexer);
 		    type = NUMERIC;
 		  } else {
 		    msg (SE, _("Missing argument %d to %s."), i + 1,
@@ -493,7 +504,7 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 		    goto error;
 		  }
 	    
-		lex_get ();
+		lex_get (lexer);
 
 		if (type != src[0]->type)
 		  {
@@ -505,9 +516,9 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
 	      }
 
 	  /* Trailing rparen. */
-	  if (!lex_match(')'))
+	  if (!lex_match (lexer, ')'))
 	    {
-	      lex_error (_("expecting `)'"));
+	      lex_error (lexer, _("expecting `)'"));
 	      goto error;
 	    }
 	  
@@ -649,17 +660,18 @@ parse_aggregate_functions (const struct dictionary *dict, struct agr_proc *agr)
       free (dest);
       free (dest_label);
 
-      if (!lex_match ('/'))
+      if (!lex_match (lexer, '/'))
 	{
-	  if (token == '.')
+	  if (lex_token (lexer) == '.')
 	    return true;
 
-	  lex_error ("expecting end of command");
+	  lex_error (lexer, "expecting end of command");
 	  return false;
 	}
       continue;
       
     error:
+      ds_destroy (&function_name);
       for (i = 0; i < n_dest; i++)
 	{
 	  free (dest[i]);
@@ -1106,7 +1118,8 @@ agr_to_active_file (const struct ccase *c, void *agr_, const struct dataset *ds 
 /* Aggregate the current case and output it if we passed a
    breakpoint. */
 static bool
-presorted_agr_to_sysfile (const struct ccase *c, void *agr_, const struct dataset *ds UNUSED) 
+presorted_agr_to_sysfile (const struct ccase *c, void *agr_, 
+			  const struct dataset *ds UNUSED) 
 {
   struct agr_proc *agr = agr_;
 

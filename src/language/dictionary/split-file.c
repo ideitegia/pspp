@@ -42,9 +42,9 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_split_file (struct dataset *ds)
+cmd_split_file (struct lexer *lexer, struct dataset *ds)
 {
-  if (lex_match_id ("OFF"))
+  if (lex_match_id (lexer, "OFF"))
     dict_set_split_vars (dataset_dict (ds), NULL, 0);
   else
     {
@@ -52,17 +52,17 @@ cmd_split_file (struct dataset *ds)
       size_t n;
 
       /* For now, ignore SEPARATE and LAYERED. */
-      (void) ( lex_match_id ("SEPARATE") || lex_match_id ("LAYERED") );
+      (void) ( lex_match_id (lexer, "SEPARATE") || lex_match_id (lexer, "LAYERED") );
       
-      lex_match (T_BY);
-      if (!parse_variables (dataset_dict (ds), &v, &n, PV_NO_DUPLICATE))
+      lex_match (lexer, T_BY);
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &n, PV_NO_DUPLICATE))
 	return CMD_CASCADING_FAILURE;
 
       dict_set_split_vars (dataset_dict (ds), v, n);
       free (v);
     }
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Dumps out the values of all the split variables for the case C. */

@@ -38,39 +38,40 @@
 
 /* Declarations. */
 
-static int do_value_labels (const struct dictionary *dict, int);
+static int do_value_labels (struct lexer *, 
+			    const struct dictionary *dict, int);
 static int verify_val_labs (struct variable **vars, size_t var_cnt);
 static void erase_labels (struct variable **vars, size_t var_cnt);
-static int get_label (struct variable **vars, size_t var_cnt);
+static int get_label (struct lexer *, struct variable **vars, size_t var_cnt);
 
 /* Stubs. */
 
 int
-cmd_value_labels (struct dataset *ds)
+cmd_value_labels (struct lexer *lexer, struct dataset *ds)
 {
-  return do_value_labels (dataset_dict (ds), 1);
+  return do_value_labels (lexer, dataset_dict (ds), 1);
 }
 
 int
-cmd_add_value_labels (struct dataset *ds)
+cmd_add_value_labels (struct lexer *lexer, struct dataset *ds)
 {
-  return do_value_labels (dataset_dict (ds), 0);
+  return do_value_labels (lexer, dataset_dict (ds), 0);
 }
 
 /* Do it. */
 
 static int
-do_value_labels (const struct dictionary *dict, int erase)
+do_value_labels (struct lexer *lexer, const struct dictionary *dict, int erase)
 {
   struct variable **vars; /* Variable list. */
   size_t var_cnt;         /* Number of variables. */
   int parse_err=0;        /* true if error parsing variables */
 
-  lex_match ('/');
+  lex_match (lexer, '/');
   
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
-      parse_err = !parse_variables (dict, &vars, &var_cnt, 
+      parse_err = !parse_variables (lexer, dict, &vars, &var_cnt, 
 				    PV_SAME_TYPE) ;
       if (var_cnt < 1)
 	{
@@ -81,17 +82,17 @@ do_value_labels (const struct dictionary *dict, int erase)
         goto lossage;
       if (erase)
         erase_labels (vars, var_cnt);
-      while (token != '/' && token != '.')
-	if (!get_label (vars, var_cnt))
+      while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
+	if (!get_label (lexer, vars, var_cnt))
           goto lossage;
 
-      if (token != '/')
+      if (lex_token (lexer) != '/')
 	{
 	free (vars);
 	break;
 	}
 
-      lex_get ();
+      lex_get (lexer);
 
       free (vars);
     }
@@ -99,7 +100,7 @@ do_value_labels (const struct dictionary *dict, int erase)
   if (parse_err)
     return CMD_FAILURE;
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 
  lossage:
   free (vars);
@@ -141,54 +142,58 @@ erase_labels (struct variable **vars, size_t var_cnt)
 /* Parse all the labels for the VAR_CNT variables in VARS and add
    the specified labels to those variables.  */
 static int
-get_label (struct variable **vars, size_t var_cnt)
+get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 {
   /* Parse all the labels and add them to the variables. */
   do
     {
       union value value;
-      char *label;
+      struct string label;
       size_t i;
 
       /* Set value. */
       if (vars[0]->type == ALPHA)
 	{
-	  if (token != T_STRING)
+	  if (lex_token (lexer) != T_STRING)
 	    {
-              lex_error (_("expecting string"));
+              lex_error (lexer, _("expecting string"));
 	      return 0;
 	    }
-	  buf_copy_str_rpad (value.s, MAX_SHORT_STRING, ds_cstr (&tokstr));
+	  buf_copy_str_rpad (value.s, MAX_SHORT_STRING, ds_cstr (lex_tokstr (lexer)));
 	}
       else
 	{
-	  if (!lex_is_number ())
+	  if (!lex_is_number (lexer))
 	    {
-	      lex_error (_("expecting integer"));
+	      lex_error (lexer, _("expecting integer"));
 	      return 0;
 	    }
-	  if (!lex_is_integer ())
-	    msg (SW, _("Value label `%g' is not integer."), tokval);
-	  value.f = tokval;
+	  if (!lex_is_integer (lexer))
+	    msg (SW, _("Value label `%g' is not integer."), lex_tokval (lexer));
+	  value.f = lex_tokval (lexer);
 	}
-      lex_get ();
+      lex_get (lexer);
 
       /* Set label. */
-      if (!lex_force_string ())
+      if (!lex_force_string (lexer))
 	return 0;
-      if (ds_length (&tokstr) > 60)
+      
+      ds_init_string (&label, lex_tokstr (lexer));
+
+      if (ds_length (&label) > 60)
 	{
 	  msg (SW, _("Truncating value label to 60 characters."));
-	  ds_truncate (&tokstr, 60);
+	  ds_truncate (&label, 60);
 	}
-      label = ds_cstr (&tokstr);
 
       for (i = 0; i < var_cnt; i++)
-        val_labs_replace (vars[i]->val_labs, value, label);
+        val_labs_replace (vars[i]->val_labs, value, ds_cstr (&label));
 
-      lex_get ();
+      ds_destroy (&label);
+
+      lex_get (lexer);
     }
-  while (token != '/' && token != '.');
+  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
 
   return 1;
 }

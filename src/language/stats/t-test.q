@@ -154,7 +154,7 @@ struct pair
 
 static struct pair *pairs=0;
 
-static int parse_value (union value * v, int type) ;
+static int parse_value (struct lexer *lexer, union value * v, int type) ;
 
 /* Structures and Functions for the Statistics Summary Box */
 struct ssbox;
@@ -258,11 +258,11 @@ static unsigned  hash_group_binary(const struct group_statistics *g,
 
 
 int
-cmd_t_test (struct dataset *ds)
+cmd_t_test (struct lexer *lexer, struct dataset *ds)
 {
   bool ok;
   
-  if ( !parse_t_test (ds, &cmd, NULL) )
+  if ( !parse_t_test (lexer, ds, &cmd, NULL) )
     return CMD_FAILURE;
 
   if (! cmd.sbc_criteria)
@@ -362,16 +362,16 @@ cmd_t_test (struct dataset *ds)
 }
 
 static int
-tts_custom_groups (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
+tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
   int n_group_values=0;
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  indep_var = parse_variable (dataset_dict (ds));
+  indep_var = parse_variable (lexer, dataset_dict (ds));
   if (!indep_var)
     {
-      lex_error ("expecting variable name in GROUPS subcommand");
+      lex_error (lexer, "expecting variable name in GROUPS subcommand");
       return 0;
     }
 
@@ -382,7 +382,7 @@ tts_custom_groups (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux 
       return 0;
     }
 
-  if (!lex_match ('('))
+  if (!lex_match (lexer, '('))
     {
       if (indep_var->type == NUMERIC)
 	{
@@ -403,11 +403,11 @@ tts_custom_groups (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux 
 	}
     }
 
-  if (!parse_value (&gp.v.g_value[0], indep_var->type))
+  if (!parse_value (lexer, &gp.v.g_value[0], indep_var->type))
       return 0;
 
-  lex_match (',');
-  if (lex_match (')'))
+  lex_match (lexer, ',');
+  if (lex_match (lexer, ')'))
     {
       if (indep_var->type != NUMERIC)
 	{
@@ -423,11 +423,11 @@ tts_custom_groups (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux 
       return 1;
     }
 
-  if (!parse_value (&gp.v.g_value[1], indep_var->type))
+  if (!parse_value (lexer, &gp.v.g_value[1], indep_var->type))
     return 0;
 
   n_group_values = 2;
-  if (!lex_force_match (')'))
+  if (!lex_force_match (lexer, ')'))
     return 0;
 
   if ( n_group_values == 2 ) 
@@ -441,7 +441,7 @@ tts_custom_groups (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux 
 
 
 static int
-tts_custom_pairs (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
+tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
   struct variable **vars;
   size_t n_vars;
@@ -451,10 +451,10 @@ tts_custom_pairs (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux U
   size_t n_after_WITH = SIZE_MAX;
   int paired ; /* Was the PAIRED keyword given ? */
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
   n_vars=0;
-  if (!parse_variables (dataset_dict (ds), &vars, &n_vars,
+  if (!parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
 			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
     {
       free (vars);
@@ -463,10 +463,10 @@ tts_custom_pairs (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux U
   assert (n_vars);
 
   n_before_WITH = 0;
-  if (lex_match (T_WITH))
+  if (lex_match (lexer, T_WITH))
     {
       n_before_WITH = n_vars;
-      if (!parse_variables (dataset_dict (ds), &vars, &n_vars,
+      if (!parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
 			    PV_DUPLICATE | PV_APPEND
 			    | PV_NUMERIC | PV_NO_SCRATCH))
 	{
@@ -476,7 +476,7 @@ tts_custom_pairs (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux U
       n_after_WITH = n_vars - n_before_WITH;
     }
 
-  paired = (lex_match ('(') && lex_match_id ("PAIRED") && lex_match (')'));
+  paired = (lex_match (lexer, '(') && lex_match_id (lexer, "PAIRED") && lex_match (lexer, ')'));
 
   /* Determine the number of pairs needed */
   if (paired)
@@ -566,22 +566,22 @@ tts_custom_pairs (struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux U
 /* Parses the current token (numeric or string, depending on type)
     value v and returns success. */
 static int
-parse_value (union value * v, int type )
+parse_value (struct lexer *lexer, union value * v, int type )
 {
   if (type == NUMERIC)
     {
-      if (!lex_force_num ())
+      if (!lex_force_num (lexer))
 	return 0;
-      v->f = tokval;
+      v->f = lex_tokval (lexer);
     }
   else
     {
-      if (!lex_force_string ())
+      if (!lex_force_string (lexer))
 	return 0;
-      strncpy (v->s, ds_cstr (&tokstr), ds_length (&tokstr));
+      strncpy (v->s, ds_cstr (lex_tokstr (lexer)), ds_length (lex_tokstr (lexer)));
     }
 
-  lex_get ();
+  lex_get (lexer);
 
   return 1;
 }

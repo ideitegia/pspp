@@ -110,7 +110,7 @@ static struct factor *factors=0;
 static struct metrics *totals=0;
 
 /* Parse the clause specifying the factors */
-static int examine_parse_independent_vars (const struct dictionary *dict, struct cmd_examine *cmd);
+static int examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *dict, struct cmd_examine *cmd);
 
 
 
@@ -191,14 +191,14 @@ static short sbc_percentile;
 
 
 int
-cmd_examine (struct dataset *ds)
+cmd_examine (struct lexer *lexer, struct dataset *ds)
 {
   bool ok;
 
   subc_list_double_create(&percentile_list);
   percentile_algorithm = PC_HAVERAGE;
 
-  if ( !parse_examine (ds, &cmd, NULL) )
+  if ( !parse_examine (lexer, ds, &cmd, NULL) )
     return CMD_FAILURE;
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
@@ -429,43 +429,43 @@ list_to_ptile_hash(const subc_list_double *l)
 
 /* Parse the PERCENTILES subcommand */
 static int
-xmn_custom_percentiles(struct dataset *ds UNUSED, 
+xmn_custom_percentiles(struct lexer *lexer, struct dataset *ds UNUSED, 
 		       struct cmd_examine *p UNUSED, void *aux UNUSED)
 {
   sbc_percentile = 1;
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  lex_match('(');
+  lex_match (lexer, '(');
 
-  while ( lex_is_number() ) 
+  while ( lex_is_number (lexer) ) 
     {
-      subc_list_double_push (&percentile_list, lex_number());
+      subc_list_double_push (&percentile_list, lex_number (lexer));
 
-      lex_get();
+      lex_get (lexer);
 
-      lex_match(',') ;
+      lex_match (lexer, ',') ;
     }
-  lex_match(')');
+  lex_match (lexer, ')');
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  if ( lex_match_id("HAVERAGE"))
+  if ( lex_match_id (lexer, "HAVERAGE"))
     percentile_algorithm = PC_HAVERAGE; 
 
-  else if ( lex_match_id("WAVERAGE"))
+  else if ( lex_match_id (lexer, "WAVERAGE"))
     percentile_algorithm = PC_WAVERAGE; 
 
-  else if ( lex_match_id("ROUND"))
+  else if ( lex_match_id (lexer, "ROUND"))
     percentile_algorithm = PC_ROUND;
 
-  else if ( lex_match_id("EMPIRICAL"))
+  else if ( lex_match_id (lexer, "EMPIRICAL"))
     percentile_algorithm = PC_EMPIRICAL;
 
-  else if ( lex_match_id("AEMPIRICAL"))
+  else if ( lex_match_id (lexer, "AEMPIRICAL"))
     percentile_algorithm = PC_AEMPIRICAL; 
 
-  else if ( lex_match_id("NONE"))
+  else if ( lex_match_id (lexer, "NONE"))
     percentile_algorithm = PC_NONE; 
 
 
@@ -485,7 +485,7 @@ xmn_custom_percentiles(struct dataset *ds UNUSED,
 
 /* TOTAL and NOTOTAL are simple, mutually exclusive flags */
 static int
-xmn_custom_total (struct dataset *ds UNUSED, struct cmd_examine *p, void *aux UNUSED)
+xmn_custom_total (struct lexer *lexer UNUSED, struct dataset *ds UNUSED, struct cmd_examine *p, void *aux UNUSED)
 {
   if ( p->sbc_nototal ) 
     {
@@ -497,7 +497,7 @@ xmn_custom_total (struct dataset *ds UNUSED, struct cmd_examine *p, void *aux UN
 }
 
 static int
-xmn_custom_nototal (struct dataset *ds UNUSED, 
+xmn_custom_nototal (struct lexer *lexer UNUSED, struct dataset *ds UNUSED, 
 		    struct cmd_examine *p, void *aux UNUSED)
 {
   if ( p->sbc_total ) 
@@ -514,18 +514,18 @@ xmn_custom_nototal (struct dataset *ds UNUSED,
 /* Parser for the variables sub command  
    Returns 1 on success */
 static int
-xmn_custom_variables(struct dataset *ds, struct cmd_examine *cmd, void *aux UNUSED)
+xmn_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_examine *cmd, void *aux UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
-      && token != T_ALL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
     {
       return 2;
     }
   
-  if (!parse_variables (dict, &dependent_vars, &n_dependent_vars,
+  if (!parse_variables (lexer, dict, &dependent_vars, &n_dependent_vars,
 			PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
     {
       free (dependent_vars);
@@ -536,10 +536,10 @@ xmn_custom_variables(struct dataset *ds, struct cmd_examine *cmd, void *aux UNUS
 
   totals = xnmalloc (n_dependent_vars, sizeof *totals);
 
-  if ( lex_match(T_BY))
+  if ( lex_match (lexer, T_BY))
     {
       int success ; 
-      success =  examine_parse_independent_vars (dict, cmd);
+      success =  examine_parse_independent_vars (lexer, dict, cmd);
       if ( success != 1 ) {
         free (dependent_vars);
       	free (totals) ; 
@@ -554,35 +554,35 @@ xmn_custom_variables(struct dataset *ds, struct cmd_examine *cmd, void *aux UNUS
 
 /* Parse the clause specifying the factors */
 static int
-examine_parse_independent_vars (const struct dictionary *dict, struct cmd_examine *cmd)
+examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *dict, struct cmd_examine *cmd)
 {
   int success;
   struct factor *sf = xmalloc (sizeof *sf);
 
-  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
-      && token != T_ALL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
     {
       free ( sf ) ;
       return 2;
     }
 
 
-  sf->indep_var[0] = parse_variable (dict);
+  sf->indep_var[0] = parse_variable (lexer, dict);
   sf->indep_var[1] = 0;
 
-  if ( token == T_BY ) 
+  if ( lex_token (lexer) == T_BY ) 
     {
 
-      lex_match(T_BY);
+      lex_match (lexer, T_BY);
 
-      if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
-	  && token != T_ALL)
+      if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+	  && lex_token (lexer) != T_ALL)
 	{
 	  free ( sf ) ;
 	  return 2;
 	}
 
-      sf->indep_var[1] = parse_variable (dict);
+      sf->indep_var[1] = parse_variable (lexer, dict);
 
     }
 
@@ -596,12 +596,12 @@ examine_parse_independent_vars (const struct dictionary *dict, struct cmd_examin
   sf->next = factors;
   factors = sf;
   
-  lex_match(',');
+  lex_match (lexer, ',');
 
-  if ( token == '.' || token == '/' ) 
+  if ( lex_token (lexer) == '.' || lex_token (lexer) == '/' ) 
     return 1;
 
-  success =  examine_parse_independent_vars (dict, cmd);
+  success =  examine_parse_independent_vars (lexer, dict, cmd);
   
   if ( success != 1 ) 
     free ( sf ) ; 

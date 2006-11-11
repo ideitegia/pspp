@@ -38,7 +38,7 @@
 /* The code for this function is very similar to the code for the
    RENAME subcommand of MODIFY VARS. */
 int
-cmd_rename_variables (struct dataset *ds)
+cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
 {
   struct variable **rename_vars = NULL;
   char **rename_new_names = NULL;
@@ -56,20 +56,20 @@ cmd_rename_variables (struct dataset *ds)
       size_t prev_nv_1 = rename_cnt;
       size_t prev_nv_2 = rename_cnt;
 
-      if (!lex_match ('('))
+      if (!lex_match (lexer, '('))
 	{
 	  msg (SE, _("`(' expected."));
 	  goto lossage;
 	}
-      if (!parse_variables (dataset_dict (ds), &rename_vars, &rename_cnt,
+      if (!parse_variables (lexer, dataset_dict (ds), &rename_vars, &rename_cnt,
 			    PV_APPEND | PV_NO_DUPLICATE))
 	goto lossage;
-      if (!lex_match ('='))
+      if (!lex_match (lexer, '='))
 	{
 	  msg (SE, _("`=' expected between lists of new and old variable names."));
 	  goto lossage;
 	}
-      if (!parse_DATA_LIST_vars (&rename_new_names, &prev_nv_1, PV_APPEND))
+      if (!parse_DATA_LIST_vars (lexer, &rename_new_names, &prev_nv_1, PV_APPEND))
 	goto lossage;
       if (prev_nv_1 != rename_cnt)
 	{
@@ -85,13 +85,13 @@ cmd_rename_variables (struct dataset *ds)
 	  rename_new_names = NULL;
 	  goto lossage;
 	}
-      if (!lex_match (')'))
+      if (!lex_match (lexer, ')'))
 	{
 	  msg (SE, _("`)' expected after variable names."));
 	  goto lossage;
 	}
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
 
   if (!dict_rename_vars (dataset_dict (ds),
                          rename_vars, rename_new_names, rename_cnt,

@@ -168,7 +168,7 @@ struct expression
     struct pool *eval_pool;     /* Pool for evaluation temporaries. */
   };
 
-struct expression *expr_parse_any (struct dataset *,  bool optimize);
+struct expression *expr_parse_any (struct lexer *lexer, struct dataset *,  bool optimize);
 void expr_debug_print_postfix (const struct expression *);
 
 union any_node *expr_optimize (union any_node *, struct expression *);

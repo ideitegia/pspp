@@ -27,10 +27,10 @@
 
 /* Stub for USE command. */
 int
-cmd_use (struct dataset *ds UNUSED) 
+cmd_use (struct lexer *lexer, struct dataset *ds UNUSED) 
 {
-  if (lex_match (T_ALL))
-    return lex_end_of_command ();
+  if (lex_match (lexer, T_ALL))
+    return lex_end_of_command (lexer);
 
   msg (SW, _("Only USE ALL is currently implemented."));
   return CMD_FAILURE;

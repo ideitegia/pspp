@@ -43,7 +43,7 @@ struct lvalue;
 
 /* Target of a COMPUTE or IF assignment, either a variable or a
    vector element. */
-static struct lvalue *lvalue_parse (struct dataset *);
+static struct lvalue *lvalue_parse (struct lexer *lexer, struct dataset *);
 static int lvalue_get_type (const struct lvalue *, const struct dictionary *);
 static bool lvalue_is_vector (const struct lvalue *);
 static void lvalue_finalize (struct lvalue *,
@@ -69,7 +69,10 @@ struct compute_trns
     struct expression *rvalue;	 /* Rvalue expression. */
   };
 
-static struct expression *parse_rvalue (const struct lvalue *, struct dataset *);
+static struct expression *parse_rvalue (struct lexer *lexer, 
+					const struct lvalue *, 
+					struct dataset *);
+
 static struct compute_trns *compute_trns_create (void);
 static trns_proc_func *get_proc_func (const struct lvalue *, const struct dictionary *);
 static trns_free_func compute_trns_free;
@@ -77,7 +80,7 @@ static trns_free_func compute_trns_free;
 /* COMPUTE. */
 
 int
-cmd_compute (struct dataset *ds)
+cmd_compute (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct lvalue *lvalue = NULL;
@@ -85,13 +88,13 @@ cmd_compute (struct dataset *ds)
 
   compute = compute_trns_create ();
 
-  lvalue = lvalue_parse (ds);
+  lvalue = lvalue_parse (lexer, ds);
   if (lvalue == NULL)
     goto fail;
 
-  if (!lex_force_match ('='))
+  if (!lex_force_match (lexer, '='))
     goto fail;
-  compute->rvalue = parse_rvalue (lvalue, ds);
+  compute->rvalue = parse_rvalue (lexer, lvalue, ds);
   if (compute->rvalue == NULL)
     goto fail;
 
@@ -100,7 +103,7 @@ cmd_compute (struct dataset *ds)
 
   lvalue_finalize (lvalue, compute, dict);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 
  fail:
   lvalue_destroy (lvalue);
@@ -213,7 +216,7 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
 /* IF. */
 
 int
-cmd_if (struct dataset *ds)
+cmd_if (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct compute_trns *compute = NULL;
@@ -222,19 +225,19 @@ cmd_if (struct dataset *ds)
   compute = compute_trns_create ();
 
   /* Test expression. */
-  compute->test = expr_parse (ds, EXPR_BOOLEAN);
+  compute->test = expr_parse (lexer, ds, EXPR_BOOLEAN);
   if (compute->test == NULL)
     goto fail;
 
   /* Lvalue variable. */
-  lvalue = lvalue_parse (ds);
+  lvalue = lvalue_parse (lexer, ds);
   if (lvalue == NULL)
     goto fail;
 
   /* Rvalue expression. */
-  if (!lex_force_match ('='))
+  if (!lex_force_match (lexer, '='))
     goto fail;
-  compute->rvalue = parse_rvalue (lvalue, ds);
+  compute->rvalue = parse_rvalue (lexer, lvalue, ds);
   if (compute->rvalue == NULL)
     goto fail;
 
@@ -243,7 +246,7 @@ cmd_if (struct dataset *ds)
 
   lvalue_finalize (lvalue, compute, dict);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 
  fail:
   lvalue_destroy (lvalue);
@@ -267,12 +270,13 @@ get_proc_func (const struct lvalue *lvalue, const struct dictionary *dict)
 /* Parses and returns an rvalue expression of the same type as
    LVALUE, or a null pointer on failure. */
 static struct expression *
-parse_rvalue (const struct lvalue *lvalue, struct dataset *ds)
+parse_rvalue (struct lexer *lexer, 
+	      const struct lvalue *lvalue, struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
   bool is_numeric = lvalue_get_type (lvalue, dict) == NUMERIC;
 
-  return expr_parse (ds, is_numeric ? EXPR_NUMBER : EXPR_STRING);
+  return expr_parse (lexer, ds, is_numeric ? EXPR_NUMBER : EXPR_STRING);
 }
 
 /* Returns a new struct compute_trns after initializing its fields. */
@@ -315,7 +319,7 @@ struct lvalue
 /* Parses the target variable or vector element into a new
    `struct lvalue', which is returned. */
 static struct lvalue *
-lvalue_parse (struct dataset *ds) 
+lvalue_parse (struct lexer *lexer, struct dataset *ds) 
 {
   struct lvalue *lvalue;
 
@@ -324,34 +328,34 @@ lvalue_parse (struct dataset *ds)
   lvalue->vector = NULL;
   lvalue->element = NULL;
 
-  if (!lex_force_id ())
+  if (!lex_force_id (lexer))
     goto lossage;
   
-  if (lex_look_ahead () == '(')
+  if (lex_look_ahead (lexer) == '(')
     {
       /* Vector. */
-      lvalue->vector = dict_lookup_vector (dataset_dict (ds), tokid);
+      lvalue->vector = dict_lookup_vector (dataset_dict (ds), lex_tokid (lexer));
       if (lvalue->vector == NULL)
 	{
-	  msg (SE, _("There is no vector named %s."), tokid);
+	  msg (SE, _("There is no vector named %s."), lex_tokid (lexer));
           goto lossage;
 	}
 
       /* Vector element. */
-      lex_get ();
-      if (!lex_force_match ('('))
+      lex_get (lexer);
+      if (!lex_force_match (lexer, '('))
 	goto lossage;
-      lvalue->element = expr_parse (ds, EXPR_NUMBER);
+      lvalue->element = expr_parse (lexer, ds, EXPR_NUMBER);
       if (lvalue->element == NULL)
         goto lossage;
-      if (!lex_force_match (')'))
+      if (!lex_force_match (lexer, ')'))
         goto lossage;
     }
   else
     {
       /* Variable name. */
-      str_copy_trunc (lvalue->var_name, sizeof lvalue->var_name, tokid);
-      lex_get ();
+      str_copy_trunc (lvalue->var_name, sizeof lvalue->var_name, lex_tokid (lexer));
+      lex_get (lexer);
     }
   return lvalue;
 

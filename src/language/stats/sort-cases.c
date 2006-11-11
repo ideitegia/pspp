@@ -40,24 +40,24 @@
 
 /* Performs the SORT CASES procedures. */
 int
-cmd_sort_cases (struct dataset *ds)
+cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
 {
   struct sort_criteria *criteria;
   bool success = false;
 
-  lex_match (T_BY);
+  lex_match (lexer, T_BY);
 
-  criteria = sort_parse_criteria (dataset_dict (ds), NULL, NULL, NULL, NULL);
+  criteria = sort_parse_criteria (lexer, dataset_dict (ds), NULL, NULL, NULL, NULL);
   if (criteria == NULL)
     return CMD_CASCADING_FAILURE;
 
-  if (get_testing_mode () && lex_match ('/')) 
+  if (get_testing_mode () && lex_match (lexer, '/')) 
     {
-      if (!lex_force_match_id ("BUFFERS") || !lex_match ('=')
-          || !lex_force_int ())
+      if (!lex_force_match_id (lexer, "BUFFERS") || !lex_match (lexer, '=')
+          || !lex_force_int (lexer))
         goto done;
 
-      min_buffers = max_buffers = lex_integer ();
+      min_buffers = max_buffers = lex_integer (lexer);
       allow_internal_sort = false;
       if (max_buffers < 2) 
         {
@@ -65,7 +65,7 @@ cmd_sort_cases (struct dataset *ds)
           goto done;
         }
 
-      lex_get ();
+      lex_get (lexer);
     }
 
   success = sort_active_file_in_place (ds, criteria);
@@ -76,6 +76,6 @@ cmd_sort_cases (struct dataset *ds)
   allow_internal_sort = true;
   
   sort_destroy_criteria (criteria);
-  return success ? lex_end_of_command () : CMD_CASCADING_FAILURE;
+  return success ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
 }
 

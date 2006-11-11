@@ -36,36 +36,36 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int get_title (const char *cmd, char **title);
+static int get_title (struct lexer *, const char *cmd, char **title);
 
 int
-cmd_title (struct dataset *ds UNUSED)
+cmd_title (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  return get_title ("TITLE", &outp_title);
+  return get_title (lexer, "TITLE", &outp_title);
 }
 
 int
-cmd_subtitle (struct dataset *ds UNUSED)
+cmd_subtitle (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  return get_title ("SUBTITLE", &outp_subtitle);
+  return get_title (lexer, "SUBTITLE", &outp_subtitle);
 }
 
 static int
-get_title (const char *cmd, char **title)
+get_title (struct lexer *lexer, const char *cmd, char **title)
 {
   int c;
 
-  c = lex_look_ahead ();
+  c = lex_look_ahead (lexer);
   if (c == '"' || c == '\'')
     {
-      lex_get ();
-      if (!lex_force_string ())
+      lex_get (lexer);
+      if (!lex_force_string (lexer))
 	return CMD_FAILURE;
       if (*title)
 	free (*title);
-      *title = ds_xstrdup (&tokstr);
-      lex_get ();
-      if (token != '.')
+      *title = ds_xstrdup (lex_tokstr (lexer));
+      lex_get (lexer);
+      if (lex_token (lexer) != '.')
 	{
 	  msg (SE, _("%s: `.' expected after string."), cmd);
 	  return CMD_FAILURE;
@@ -77,28 +77,26 @@ get_title (const char *cmd, char **title)
 
       if (*title)
 	free (*title);
-      *title = xstrdup (lex_rest_of_line (NULL));
-      lex_discard_line ();
+      *title = xstrdup (lex_rest_of_line (lexer, NULL));
+      lex_discard_line (lexer);
       for (cp = *title; *cp; cp++)
 	*cp = toupper ((unsigned char) (*cp));
-      token = '.';
     }
   return CMD_SUCCESS;
 }
 
 /* Performs the FILE LABEL command. */
 int
-cmd_file_label (struct dataset *ds)
+cmd_file_label (struct lexer *lexer, struct dataset *ds)
 {
   const char *label;
 
-  label = lex_rest_of_line (NULL);
-  lex_discard_line ();
+  label = lex_rest_of_line (lexer, NULL);
+  lex_discard_line (lexer);
   while (isspace ((unsigned char) *label))
     label++;
 
   dict_set_label (dataset_dict (ds), label);
-  token = '.';
 
   return CMD_SUCCESS;
 }
@@ -128,7 +126,7 @@ add_document_line (struct dictionary *dict, const char *line, int indent)
 
 /* Performs the DOCUMENT command. */
 int
-cmd_document (struct dataset *ds)
+cmd_document (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   /* Add a few header lines for reference. */
@@ -148,8 +146,8 @@ cmd_document (struct dataset *ds)
       const char *orig_line;
       char *copy_line;
 
-      orig_line = lex_rest_of_line (&had_dot);
-      lex_discard_line ();
+      orig_line = lex_rest_of_line (lexer, &had_dot);
+      lex_discard_line (lexer);
       while (isspace ((unsigned char) *orig_line))
 	orig_line++;
 
@@ -161,20 +159,19 @@ cmd_document (struct dataset *ds)
       add_document_line (dict, copy_line, 3);
       free (copy_line);
 
-      lex_get_line ();
+      lex_get_line (lexer);
       if (had_dot)
 	break;
     }
 
-  token = '.';
   return CMD_SUCCESS;
 }
 
 /* Performs the DROP DOCUMENTS command. */
 int
-cmd_drop_documents (struct dataset *ds)
+cmd_drop_documents (struct lexer *lexer, struct dataset *ds)
 {
   dict_set_documents (dataset_dict (ds), NULL);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }

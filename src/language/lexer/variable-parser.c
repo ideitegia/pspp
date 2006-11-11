@@ -44,23 +44,24 @@
    variable's index and returns true if successful.  On failure
    emits an error message and returns false. */
 static bool
-parse_vs_variable_idx (const struct var_set *vs, size_t *idx)
+parse_vs_variable_idx (struct lexer *lexer, const struct var_set *vs, 
+		size_t *idx)
 {
   assert (idx != NULL);
   
-  if (token != T_ID)
+  if (lex_token (lexer) != T_ID)
     {
-      lex_error (_("expecting variable name"));
+      lex_error (lexer, _("expecting variable name"));
       return false;
     }
-  else if (var_set_lookup_var_idx (vs, tokid, idx)) 
+  else if (var_set_lookup_var_idx (vs, lex_tokid (lexer), idx)) 
     {
-      lex_get ();
+      lex_get (lexer);
       return true;
     }
   else 
     {
-      msg (SE, _("%s is not a variable name."), tokid);
+      msg (SE, _("%s is not a variable name."), lex_tokid (lexer));
       return false;
     }
 }
@@ -69,20 +70,20 @@ parse_vs_variable_idx (const struct var_set *vs, size_t *idx)
    if successful.  On failure emits an error message and returns
    a null pointer. */
 static struct variable *
-parse_vs_variable (const struct var_set *vs)
+parse_vs_variable (struct lexer *lexer, const struct var_set *vs)
 {
   size_t idx;
-  return parse_vs_variable_idx (vs, &idx) ? var_set_get_var (vs, idx) : NULL;
+  return parse_vs_variable_idx (lexer, vs, &idx) ? var_set_get_var (vs, idx) : NULL;
 }
 
 /* Parses a variable name in dictionary D and returns the
    variable if successful.  On failure emits an error message and
    returns a null pointer. */
 struct variable *
-parse_variable (const struct dictionary *d) 
+parse_variable (struct lexer *lexer, const struct dictionary *d) 
 {
   struct var_set *vs = var_set_create_from_dict (d);
-  struct variable *var = parse_vs_variable (vs);
+  struct variable *var = parse_vs_variable (lexer, vs);
   var_set_destroy (vs);
   return var;
 }
@@ -92,8 +93,9 @@ parse_variable (const struct dictionary *d)
    number of variables into *CNT.  Returns true only if
    successful. */
 bool
-parse_variables (const struct dictionary *d, struct variable ***var,
-                 size_t *cnt, int opts) 
+parse_variables (struct lexer *lexer, const struct dictionary *d, 
+			struct variable ***var,
+			size_t *cnt, int opts) 
 {
   struct var_set *vs;
   int success;
@@ -103,7 +105,7 @@ parse_variables (const struct dictionary *d, struct variable ***var,
   assert (cnt != NULL);
 
   vs = var_set_create_from_dict (d);
-  success = parse_var_set_vars (vs, var, cnt, opts);
+  success = parse_var_set_vars (lexer, vs, var, cnt, opts);
   if ( success == 0 )
      free ( *var ) ;
   var_set_destroy (vs);
@@ -116,8 +118,9 @@ parse_variables (const struct dictionary *d, struct variable ***var,
    successful.  Same behavior as parse_variables, except that all
    allocations are taken from the given POOL. */
 bool
-parse_variables_pool (struct pool *pool, const struct dictionary *dict,
-                      struct variable ***vars, size_t *var_cnt, int opts) 
+parse_variables_pool (struct lexer *lexer, struct pool *pool, 
+		const struct dictionary *dict,
+		struct variable ***vars, size_t *var_cnt, int opts) 
 {
   int retval;
 
@@ -127,7 +130,7 @@ parse_variables_pool (struct pool *pool, const struct dictionary *dict,
      later. */
   assert (!(opts & PV_APPEND));
   
-  retval = parse_variables (dict, vars, var_cnt, opts);
+  retval = parse_variables (lexer, dict, vars, var_cnt, opts);
   if (retval)
     pool_register (pool, free, *vars);
   return retval;
@@ -138,10 +141,11 @@ parse_variables_pool (struct pool *pool, const struct dictionary *dict,
    dictionary class, and returns true.  Returns false on
    failure. */
 static bool
-parse_var_idx_class (const struct var_set *vs, size_t *idx,
-                     enum dict_class *class)
+parse_var_idx_class (struct lexer *lexer, const struct var_set *vs, 
+			size_t *idx,
+			enum dict_class *class)
 {
-  if (!parse_vs_variable_idx (vs, idx))
+  if (!parse_vs_variable_idx (lexer, vs, idx))
     return false;
 
   *class = dict_class_from_id (var_set_get_var (vs, *idx)->name);
@@ -212,7 +216,7 @@ add_variables (struct variable ***v, size_t *nv, size_t *mv, char *included,
    Conversely, if parse_variables() returns true, then *nv is
    nonzero and *v is non-NULL. */
 bool
-parse_var_set_vars (const struct var_set *vs, 
+parse_var_set_vars (struct lexer *lexer, const struct var_set *vs, 
                     struct variable ***v, size_t *nv,
                     int pv_opts)
 {
@@ -254,7 +258,7 @@ parse_var_set_vars (const struct var_set *vs,
 
   do
     {
-      if (lex_match (T_ALL))
+      if (lex_match (lexer, T_ALL))
         add_variables (v, nv, &mv, included, pv_opts,
                        vs, 0, var_set_get_cnt (vs) - 1, DC_ORDINARY);
       else 
@@ -262,10 +266,10 @@ parse_var_set_vars (const struct var_set *vs,
           enum dict_class class;
           size_t first_idx;
 
-          if (!parse_var_idx_class (vs, &first_idx, &class))
+          if (!parse_var_idx_class (lexer, vs, &first_idx, &class))
             goto fail;
 
-          if (!lex_match (T_TO))
+          if (!lex_match (lexer, T_TO))
             add_variable (v, nv, &mv, included, pv_opts, vs, first_idx);
           else 
             {
@@ -273,7 +277,7 @@ parse_var_set_vars (const struct var_set *vs,
               enum dict_class last_class;
               struct variable *first_var, *last_var;
 
-              if (!parse_var_idx_class (vs, &last_idx, &last_class))
+              if (!parse_var_idx_class (lexer, vs, &last_idx, &last_class))
                 goto fail;
 
               first_var = var_set_get_var (vs, first_idx);
@@ -307,10 +311,10 @@ parse_var_set_vars (const struct var_set *vs,
 
       if (pv_opts & PV_SINGLE)
         break;
-      lex_match (',');
+      lex_match (lexer, ',');
     }
-  while (token == T_ALL
-         || (token == T_ID && var_set_lookup_var (vs, tokid) != NULL));
+  while (lex_token (lexer) == T_ALL
+         || (lex_token (lexer) == T_ID && var_set_lookup_var (vs, lex_tokid (lexer)) != NULL));
   
   if (*nv == 0)
     goto fail;
@@ -372,7 +376,7 @@ extract_num (char *s, char *r, int *n, int *d)
 /* Parses a list of variable names according to the DATA LIST version
    of the TO convention.  */
 bool
-parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
+parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv_opts)
 {
   int n1, n2;
   int d1, d2;
@@ -398,29 +402,29 @@ parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
 
   do
     {
-      if (token != T_ID)
+      if (lex_token (lexer) != T_ID)
 	{
-	  lex_error ("expecting variable name");
+	  lex_error (lexer, "expecting variable name");
 	  goto fail;
 	}
-      if (dict_class_from_id (tokid) == DC_SCRATCH
+      if (dict_class_from_id (lex_tokid (lexer)) == DC_SCRATCH
           && (pv_opts & PV_NO_SCRATCH))
 	{
 	  msg (SE, _("Scratch variables not allowed here."));
 	  goto fail;
 	}
-      strcpy (name1, tokid);
-      lex_get ();
-      if (token == T_TO)
+      strcpy (name1, lex_tokid (lexer));
+      lex_get (lexer);
+      if (lex_token (lexer) == T_TO)
 	{
-	  lex_get ();
-	  if (token != T_ID)
+	  lex_get (lexer);
+	  if (lex_token (lexer) != T_ID)
 	    {
-	      lex_error ("expecting variable name");
+	      lex_error (lexer, "expecting variable name");
 	      goto fail;
 	    }
-	  strcpy (name2, tokid);
-	  lex_get ();
+	  strcpy (name2, lex_tokid (lexer));
+	  lex_get (lexer);
 
 	  if (!extract_num (name1, root1, &n1, &d1)
 	      || !extract_num (name2, root2, &n2, &d2))
@@ -463,12 +467,12 @@ parse_DATA_LIST_vars (char ***names, size_t *nnames, int pv_opts)
 	  (*names)[nvar++] = xstrdup (name1);
 	}
 
-      lex_match (',');
+      lex_match (lexer, ',');
 
       if (pv_opts & PV_SINGLE)
 	break;
     }
-  while (token == T_ID);
+  while (lex_token (lexer) == T_ID);
   success = 1;
 
 fail:
@@ -502,7 +506,7 @@ register_vars_pool (struct pool *pool, char **names, size_t nnames)
    parse_DATA_LIST_vars(), except that all allocations are taken
    from the given POOL. */
 bool
-parse_DATA_LIST_vars_pool (struct pool *pool,
+parse_DATA_LIST_vars_pool (struct lexer *lexer, struct pool *pool,
                            char ***names, size_t *nnames, int pv_opts)
 {
   int retval;
@@ -513,7 +517,7 @@ parse_DATA_LIST_vars_pool (struct pool *pool,
      re-free it later. */
   assert (!(pv_opts & PV_APPEND));
   
-  retval = parse_DATA_LIST_vars (names, nnames, pv_opts);
+  retval = parse_DATA_LIST_vars (lexer, names, nnames, pv_opts);
   if (retval)
     register_vars_pool (pool, *names, *nnames);
   return retval;
@@ -523,7 +527,7 @@ parse_DATA_LIST_vars_pool (struct pool *pool,
    existing and the rest are to be created.  Same args as
    parse_DATA_LIST_vars(). */
 bool
-parse_mixed_vars (const struct dictionary *dict, 
+parse_mixed_vars (struct lexer *lexer, const struct dictionary *dict, 
 		  char ***names, size_t *nnames, int pv_opts)
 {
   size_t i;
@@ -537,14 +541,14 @@ parse_mixed_vars (const struct dictionary *dict,
       *names = NULL;
       *nnames = 0;
     }
-  while (token == T_ID || token == T_ALL)
+  while (lex_token (lexer) == T_ID || lex_token (lexer) == T_ALL)
     {
-      if (token == T_ALL || dict_lookup_var (dict, tokid) != NULL)
+      if (lex_token (lexer) == T_ALL || dict_lookup_var (dict, lex_tokid (lexer)) != NULL)
 	{
 	  struct variable **v;
 	  size_t nv;
 
-	  if (!parse_variables (dict, &v, &nv, PV_NONE))
+	  if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
 	    goto fail;
 	  *names = xnrealloc (*names, *nnames + nv, sizeof **names);
 	  for (i = 0; i < nv; i++)
@@ -552,7 +556,7 @@ parse_mixed_vars (const struct dictionary *dict,
 	  free (v);
 	  *nnames += nv;
 	}
-      else if (!parse_DATA_LIST_vars (names, nnames, PV_APPEND))
+      else if (!parse_DATA_LIST_vars (lexer, names, nnames, PV_APPEND))
 	goto fail;
     }
   return 1;
@@ -571,7 +575,7 @@ fail:
    parse_mixed_vars(), except that all allocations are taken
    from the given POOL. */
 bool
-parse_mixed_vars_pool (const struct dictionary *dict, struct pool *pool,
+parse_mixed_vars_pool (struct lexer *lexer, const struct dictionary *dict, struct pool *pool,
                        char ***names, size_t *nnames, int pv_opts)
 {
   int retval;
@@ -582,7 +586,7 @@ parse_mixed_vars_pool (const struct dictionary *dict, struct pool *pool,
      re-free it later. */
   assert (!(pv_opts & PV_APPEND));
 
-  retval = parse_mixed_vars (dict, names, nnames, pv_opts);
+  retval = parse_mixed_vars (lexer, dict, names, nnames, pv_opts);
   if (retval)
     register_vars_pool (pool, *names, *nnames);
   return retval;

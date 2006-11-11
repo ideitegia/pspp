@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 
+#include <config.h>
 #include "subcommand-list.h"
 #include <stdlib.h>
 #include "xalloc.h"

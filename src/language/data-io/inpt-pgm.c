@@ -103,15 +103,15 @@ emit_END_CASE (struct dataset *ds, struct input_program_pgm *inp)
 }
 
 int
-cmd_input_program (struct dataset *ds)
+cmd_input_program (struct lexer *lexer, struct dataset *ds)
 {
   struct input_program_pgm *inp;
   size_t i;
   bool saw_END_CASE = false;
 
   discard_variables (ds);
-  if (token != '.')
-    return lex_end_of_command ();
+  if (lex_token (lexer) != '.')
+    return lex_end_of_command (lexer);
 
   inp = xmalloc (sizeof *inp);
   inp->trns_chain = NULL;
@@ -120,7 +120,7 @@ cmd_input_program (struct dataset *ds)
   inside_input_program = true;
   for (;;) 
     {
-      enum cmd_result result = cmd_parse (ds, CMD_STATE_INPUT_PROGRAM);
+      enum cmd_result result = cmd_parse (lexer, ds, CMD_STATE_INPUT_PROGRAM);
       if (result == CMD_END_INPUT_PROGRAM)
         break;
       else if (result == CMD_END_CASE) 
@@ -181,7 +181,7 @@ cmd_input_program (struct dataset *ds)
 }
 
 int
-cmd_end_input_program (struct dataset *ds UNUSED)
+cmd_end_input_program (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
   return CMD_END_INPUT_PROGRAM; 
@@ -288,12 +288,12 @@ static const struct case_source_class input_program_source_class =
   };
 
 int
-cmd_end_case (struct dataset *ds UNUSED)
+cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
-  if (token == '.')
+  if (lex_token (lexer) == '.')
     return CMD_END_CASE;
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Sends the current case as the source's output. */
@@ -319,7 +319,7 @@ struct reread_trns
 
 /* Parses REREAD command. */
 int
-cmd_reread (struct dataset *ds)
+cmd_reread (struct lexer *lexer, struct dataset *ds)
 {
   struct file_handle *fh;       /* File to be re-read. */
   struct expression *e;         /* Expression for column to set. */
@@ -327,11 +327,11 @@ cmd_reread (struct dataset *ds)
 
   fh = fh_get_default_handle ();
   e = NULL;
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
-      if (lex_match_id ("COLUMN"))
+      if (lex_match_id (lexer, "COLUMN"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 	  
 	  if (e)
 	    {
@@ -340,14 +340,14 @@ cmd_reread (struct dataset *ds)
 	      return CMD_CASCADING_FAILURE;
 	    }
 	  
-	  e = expr_parse (ds, EXPR_NUMBER);
+	  e = expr_parse (lexer, ds, EXPR_NUMBER);
 	  if (!e)
 	    return CMD_CASCADING_FAILURE;
 	}
-      else if (lex_match_id ("FILE"))
+      else if (lex_match_id (lexer, "FILE"))
 	{
-	  lex_match ('=');
-          fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
+	  lex_match (lexer, '=');
+          fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    {
 	      expr_free (e);
@@ -356,13 +356,13 @@ cmd_reread (struct dataset *ds)
 	}
       else
 	{
-	  lex_error (NULL);
+	  lex_error (lexer, NULL);
 	  expr_free (e);
 	}
     }
 
   t = xmalloc (sizeof *t);
-  t->reader = dfm_open_reader (fh);
+  t->reader = dfm_open_reader (fh, lexer);
   t->column = e;
   add_transformation (ds, reread_trns_proc, reread_trns_free, t);
 
@@ -405,13 +405,13 @@ reread_trns_free (void *t_)
 
 /* Parses END FILE command. */
 int
-cmd_end_file (struct dataset *ds)
+cmd_end_file (struct lexer *lexer, struct dataset *ds)
 {
   assert (in_input_program ());
 
   add_transformation (ds, end_file_trns_proc, NULL, NULL);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Executes an END FILE transformation. */

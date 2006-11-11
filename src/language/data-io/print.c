@@ -96,11 +96,11 @@ enum which_formats
     WRITE
   };
 
-static int internal_cmd_print (struct dataset *ds, 
+static int internal_cmd_print (struct lexer *, struct dataset *ds, 
 			       enum which_formats, bool eject);
 static trns_proc_func print_trns_proc;
 static trns_free_func print_trns_free;
-static bool parse_specs (struct pool *tmp_pool, struct print_trns *,
+static bool parse_specs (struct lexer *, struct pool *tmp_pool, struct print_trns *,
 			 struct dictionary *dict, enum which_formats);
 static void dump_table (struct print_trns *, const struct file_handle *);
 
@@ -108,28 +108,28 @@ static void dump_table (struct print_trns *, const struct file_handle *);
 
 /* Parses PRINT command. */
 int
-cmd_print (struct dataset *ds)
+cmd_print (struct lexer *lexer, struct dataset *ds)
 {
-  return internal_cmd_print (ds, PRINT, false);
+  return internal_cmd_print (lexer, ds, PRINT, false);
 }
 
 /* Parses PRINT EJECT command. */
 int
-cmd_print_eject (struct dataset *ds)
+cmd_print_eject (struct lexer *lexer, struct dataset *ds)
 {
-  return internal_cmd_print (ds, PRINT, true);
+  return internal_cmd_print (lexer, ds, PRINT, true);
 }
 
 /* Parses WRITE command. */
 int
-cmd_write (struct dataset *ds)
+cmd_write (struct lexer *lexer, struct dataset *ds)
 {
-  return internal_cmd_print (ds, WRITE, false);
+  return internal_cmd_print (lexer, ds, WRITE, false);
 }
 
 /* Parses the output commands. */
 static int
-internal_cmd_print (struct dataset *ds, 
+internal_cmd_print (struct lexer *lexer, struct dataset *ds, 
 		    enum which_formats which_formats, bool eject)
 {
   bool print_table = 0;
@@ -149,33 +149,33 @@ internal_cmd_print (struct dataset *ds,
   tmp_pool = pool_create_subpool (trns->pool);
 
   /* Parse the command options. */
-  while (token != '/' && token != '.')
+  while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
     {
-      if (lex_match_id ("OUTFILE"))
+      if (lex_match_id (lexer, "OUTFILE"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 
-	  fh = fh_parse (FH_REF_FILE);
+	  fh = fh_parse (lexer, FH_REF_FILE);
 	  if (fh == NULL)
 	    goto error;
 	}
-      else if (lex_match_id ("RECORDS"))
+      else if (lex_match_id (lexer, "RECORDS"))
 	{
-	  lex_match ('=');
-	  lex_match ('(');
-	  if (!lex_force_int ())
+	  lex_match (lexer, '=');
+	  lex_match (lexer, '(');
+	  if (!lex_force_int (lexer))
 	    goto error;
-	  trns->record_cnt = lex_integer ();
-	  lex_get ();
-	  lex_match (')');
+	  trns->record_cnt = lex_integer (lexer);
+	  lex_get (lexer);
+	  lex_match (lexer, ')');
 	}
-      else if (lex_match_id ("TABLE"))
+      else if (lex_match_id (lexer, "TABLE"))
 	print_table = true;
-      else if (lex_match_id ("NOTABLE"))
+      else if (lex_match_id (lexer, "NOTABLE"))
 	print_table = false;
       else
 	{
-	  lex_error (_("expecting a valid subcommand"));
+	  lex_error (lexer, _("expecting a valid subcommand"));
 	  goto error;
 	}
     }
@@ -185,10 +185,10 @@ internal_cmd_print (struct dataset *ds,
   trns->include_prefix = which_formats == PRINT && fh != NULL;
 
   /* Parse variables and strings. */
-  if (!parse_specs (tmp_pool, trns, dataset_dict (ds), which_formats))
+  if (!parse_specs (lexer, tmp_pool, trns, dataset_dict (ds), which_formats))
     goto error;
 
-  if (lex_end_of_command () != CMD_SUCCESS)
+  if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto error;
 
   if (fh != NULL)
@@ -214,9 +214,9 @@ internal_cmd_print (struct dataset *ds,
   return CMD_FAILURE;
 }
 
-static bool parse_string_argument (struct print_trns *,
+static bool parse_string_argument (struct lexer *, struct print_trns *,
                                    int record, int *column);
-static bool parse_variable_argument (const struct dictionary *, 
+static bool parse_variable_argument (struct lexer *, const struct dictionary *, 
 				     struct print_trns *,
                                      struct pool *tmp_pool,
                                      int *record, int *column,
@@ -226,35 +226,35 @@ static bool parse_variable_argument (const struct dictionary *,
    PRINT, PRINT EJECT, or WRITE command into the prt structure.
    Returns success. */
 static bool
-parse_specs (struct pool *tmp_pool, struct print_trns *trns,
+parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns,
 	     struct dictionary *dict, 
              enum which_formats which_formats)
 {
   int record = 0;
   int column = 1;
 
-  if (token == '.') 
+  if (lex_token (lexer) == '.') 
     {
       trns->record_cnt = 1;
       return true;
     }
 
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
       bool ok;
 
-      if (!parse_record_placement (&record, &column))
+      if (!parse_record_placement (lexer, &record, &column))
         return false;
 
-      if (token == T_STRING)
-	ok = parse_string_argument (trns, record, &column);
+      if (lex_token (lexer) == T_STRING)
+	ok = parse_string_argument (lexer, trns, record, &column);
       else
-	ok = parse_variable_argument (dict, trns, tmp_pool, &record, &column,
+	ok = parse_variable_argument (lexer, dict, trns, tmp_pool, &record, &column,
                                       which_formats);
       if (!ok)
 	return 0;
 
-      lex_match (',');
+      lex_match (lexer, ',');
     }
 
   if (trns->record_cnt != 0 && trns->record_cnt != record)
@@ -268,23 +268,23 @@ parse_specs (struct pool *tmp_pool, struct print_trns *trns,
 
 /* Parses a string argument to the PRINT commands.  Returns success. */
 static bool
-parse_string_argument (struct print_trns *trns, int record, int *column)
+parse_string_argument (struct lexer *lexer, struct print_trns *trns, int record, int *column)
 {
   struct prt_out_spec *spec = pool_alloc (trns->pool, sizeof *spec);
   spec->type = PRT_LITERAL;
   spec->record = record;
   spec->first_column = *column;
-  ds_init_string (&spec->string, &tokstr);
+  ds_init_string (&spec->string, lex_tokstr (lexer));
   ds_register_pool (&spec->string, trns->pool);
-  lex_get ();
+  lex_get (lexer);
 
   /* Parse the included column range. */
-  if (lex_is_number ())
+  if (lex_is_number (lexer))
     {
       int first_column, last_column;
       bool range_specified;
 
-      if (!parse_column_range (&first_column, &last_column, &range_specified)) 
+      if (!parse_column_range (lexer, &first_column, &last_column, &range_specified)) 
         return false; 
 
       spec->first_column = first_column;
@@ -301,7 +301,7 @@ parse_string_argument (struct print_trns *trns, int record, int *column)
    to fixed_parse_compatible() or fixed_parse_fortran() as appropriate.
    Returns success. */
 static bool
-parse_variable_argument (const struct dictionary *dict,
+parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
 			 struct print_trns *trns, struct pool *tmp_pool,
                          int *record, int *column,
                          enum which_formats which_formats)
@@ -312,12 +312,13 @@ parse_variable_argument (const struct dictionary *dict,
   size_t format_cnt;
   bool add_space;
   
-  if (!parse_variables_pool (tmp_pool, dict, &vars, &var_cnt, PV_DUPLICATE))
+  if (!parse_variables_pool (lexer, tmp_pool, dict, 
+			     &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
-  if (lex_is_number () || token == '(')
+  if (lex_is_number (lexer) || lex_token (lexer) == '(')
     {
-      if (!parse_var_placements (tmp_pool, var_cnt, false,
+      if (!parse_var_placements (lexer, tmp_pool, var_cnt, false,
                                  &formats, &format_cnt))
         return false;
       add_space = false;
@@ -326,7 +327,7 @@ parse_variable_argument (const struct dictionary *dict,
     {
       size_t i;
 
-      lex_match ('*');
+      lex_match (lexer, '*');
       
       formats = pool_nmalloc (tmp_pool, var_cnt, sizeof *formats);
       format_cnt = var_cnt;

@@ -36,7 +36,7 @@
    It affects nothing but GUIs
 */
 int
-cmd_variable_alignment (struct dataset *ds)
+cmd_variable_alignment (struct lexer *lexer, struct dataset *ds)
 {
   do
     {
@@ -46,16 +46,16 @@ cmd_variable_alignment (struct dataset *ds)
       size_t i;
       enum alignment align;
 
-      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match('(') ) 
+      if ( lex_force_match (lexer, '(') ) 
 	{
-	  if ( lex_match_id("LEFT"))
+	  if ( lex_match_id (lexer, "LEFT"))
 	    align = ALIGN_LEFT;
-	  else if ( lex_match_id("RIGHT"))
+	  else if ( lex_match_id (lexer, "RIGHT"))
 	    align = ALIGN_RIGHT;
-	  else if ( lex_match_id("CENTER"))
+	  else if ( lex_match_id (lexer, "CENTER"))
 	    align = ALIGN_CENTRE;
 	  else 
             {
@@ -63,7 +63,7 @@ cmd_variable_alignment (struct dataset *ds)
               return CMD_FAILURE; 
             }
 
-	  lex_force_match(')');
+	  lex_force_match (lexer, ')');
 	}
       else 
         {
@@ -75,12 +75,12 @@ cmd_variable_alignment (struct dataset *ds)
 	v[i]->alignment = align;
 
 
-      while (token == '/')
-	lex_get ();
+      while (lex_token (lexer) == '/')
+	lex_get (lexer);
       free (v);
 
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
   return CMD_SUCCESS;
 }
 
@@ -89,7 +89,7 @@ cmd_variable_alignment (struct dataset *ds)
    It affects nothing but GUIs
 */
 int
-cmd_variable_width (struct dataset *ds)
+cmd_variable_width (struct lexer *lexer, struct dataset *ds)
 {
   do
     {
@@ -97,33 +97,33 @@ cmd_variable_width (struct dataset *ds)
       size_t nv;
       size_t i;
 
-      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match('(') ) 
+      if ( lex_force_match (lexer, '(') ) 
 	{
-	  if ( lex_force_int()) 
-	    lex_get();
+	  if ( lex_force_int (lexer)) 
+	    lex_get (lexer);
 	  else
 	    return CMD_FAILURE;
-	  lex_force_match(')');
+	  lex_force_match (lexer, ')');
 	}
 
       for( i = 0 ; i < nv ; ++i ) 
-	  v[i]->display_width = tokval;
+	  v[i]->display_width = lex_tokval (lexer);
 
-      while (token == '/')
-	lex_get ();
+      while (lex_token (lexer) == '/')
+	lex_get (lexer);
       free (v);
 
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
   return CMD_SUCCESS;
 }
 
 /* Set variables' measurement level */
 int
-cmd_variable_level (struct dataset *ds)
+cmd_variable_level (struct lexer *lexer, struct dataset *ds)
 {
   do
     {
@@ -132,16 +132,16 @@ cmd_variable_level (struct dataset *ds)
       enum measure level;
       size_t i;
 
-      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match('(') ) 
+      if ( lex_force_match (lexer, '(') ) 
 	{
-	  if ( lex_match_id("SCALE"))
+	  if ( lex_match_id (lexer, "SCALE"))
 	    level = MEASURE_SCALE;
-	  else if ( lex_match_id("ORDINAL"))
+	  else if ( lex_match_id (lexer, "ORDINAL"))
 	    level = MEASURE_ORDINAL;
-	  else if ( lex_match_id("NOMINAL"))
+	  else if ( lex_match_id (lexer, "NOMINAL"))
 	    level = MEASURE_NOMINAL;
 	  else 
             {
@@ -149,7 +149,7 @@ cmd_variable_level (struct dataset *ds)
               return CMD_FAILURE; 
             }
 
-	  lex_force_match(')');
+	  lex_force_match (lexer, ')');
 	}
       else
         {
@@ -161,11 +161,11 @@ cmd_variable_level (struct dataset *ds)
 	v[i]->measure = level ;
 
 
-      while (token == '/')
-	lex_get ();
+      while (lex_token (lexer) == '/')
+	lex_get (lexer);
       free (v);
 
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
   return CMD_SUCCESS;
 }

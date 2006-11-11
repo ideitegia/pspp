@@ -42,28 +42,28 @@ enum
     FORMATS_WRITE = 002
   };
 
-static int internal_cmd_formats (struct dataset *ds, int);
+static int internal_cmd_formats (struct lexer *, struct dataset *ds, int);
 
 int
-cmd_print_formats (struct dataset *ds)
+cmd_print_formats (struct lexer *lexer, struct dataset *ds)
 {
-  return internal_cmd_formats (ds, FORMATS_PRINT);
+  return internal_cmd_formats (lexer, ds, FORMATS_PRINT);
 }
 
 int
-cmd_write_formats (struct dataset *ds)
+cmd_write_formats (struct lexer *lexer, struct dataset *ds)
 {
-  return internal_cmd_formats (ds, FORMATS_WRITE);
+  return internal_cmd_formats (lexer, ds, FORMATS_WRITE);
 }
 
 int
-cmd_formats (struct dataset *ds)
+cmd_formats (struct lexer *lexer, struct dataset *ds)
 {
-  return internal_cmd_formats (ds, FORMATS_PRINT | FORMATS_WRITE);
+  return internal_cmd_formats (lexer, ds, FORMATS_PRINT | FORMATS_WRITE);
 }
 
 static int
-internal_cmd_formats (struct dataset *ds, int which)
+internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
 {
   /* Variables. */
   struct variable **v;
@@ -80,24 +80,24 @@ internal_cmd_formats (struct dataset *ds, int which)
 
   for (;;)
     {
-      if (token == '.')
+      if (lex_token (lexer) == '.')
 	break;
 
-      if (!parse_variables (dataset_dict (ds), &v, &cv, PV_NUMERIC))
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &cv, PV_NUMERIC))
 	return CMD_FAILURE;
       type = v[0]->type;
 
-      if (!lex_match ('('))
+      if (!lex_match (lexer, '('))
 	{
 	  msg (SE, _("`(' expected after variable list."));
 	  goto fail;
 	}
-      if (!parse_format_specifier (&f)
+      if (!parse_format_specifier (lexer, &f)
           || !fmt_check_output (&f)
           || !fmt_check_type_compat (&f, NUMERIC))
 	goto fail;
 
-      if (!lex_match (')'))
+      if (!lex_match (lexer, ')'))
 	{
 	  msg (SE, _("`)' expected after output format."));
 	  goto fail;

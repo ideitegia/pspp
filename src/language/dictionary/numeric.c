@@ -37,7 +37,7 @@
 
 /* Parses the NUMERIC command. */
 int
-cmd_numeric (struct dataset *ds)
+cmd_numeric (struct lexer *lexer, struct dataset *ds)
 {
   size_t i;
 
@@ -51,13 +51,13 @@ cmd_numeric (struct dataset *ds)
 
   do
     {
-      if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
+      if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NONE))
 	return CMD_FAILURE;
 
       /* Get the optional format specification. */
-      if (lex_match ('('))
+      if (lex_match (lexer, '('))
 	{
-	  if (!parse_format_specifier (&f))
+	  if (!parse_format_specifier (lexer, &f))
 	    goto fail;
 	  if (fmt_is_string (f.type))
 	    {
@@ -67,7 +67,7 @@ cmd_numeric (struct dataset *ds)
 	      goto fail;
 	    }
 
-	  if (!lex_match (')'))
+	  if (!lex_match (lexer, ')'))
 	    {
 	      msg (SE, _("`)' expected after output format."));
 	      goto fail;
@@ -94,9 +94,9 @@ cmd_numeric (struct dataset *ds)
 	free (v[i]);
       free (v);
     }
-  while (lex_match ('/'));
+  while (lex_match (lexer, '/'));
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 
   /* If we have an error at a point where cleanup is required,
      flow-of-control comes here. */
@@ -109,7 +109,7 @@ fail:
 
 /* Parses the STRING command. */
 int
-cmd_string (struct dataset *ds)
+cmd_string (struct lexer *lexer, struct dataset *ds)
 {
   size_t i;
 
@@ -125,12 +125,12 @@ cmd_string (struct dataset *ds)
 
   do
     {
-      if (!parse_DATA_LIST_vars (&v, &nv, PV_NONE))
+      if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NONE))
 	return CMD_FAILURE;
 
-      if (!lex_force_match ('(')
-          || !parse_format_specifier (&f)
-          || !lex_force_match (')'))
+      if (!lex_force_match (lexer, '(')
+          || !parse_format_specifier (lexer, &f)
+          || !lex_force_match (lexer, ')'))
 	goto fail;
       if (!fmt_is_string (f.type))
 	{
@@ -160,9 +160,9 @@ cmd_string (struct dataset *ds)
 	free (v[i]);
       free (v);
     }
-  while (lex_match ('/'));
+  while (lex_match (lexer, '/'));
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 
   /* If we have an error at a point where cleanup is required,
      flow-of-control comes here. */
@@ -175,18 +175,18 @@ fail:
 
 /* Parses the LEAVE command. */
 int
-cmd_leave (struct dataset *ds)
+cmd_leave (struct lexer *lexer, struct dataset *ds)
 {
   struct variable **v;
   size_t nv;
 
   size_t i;
 
-  if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE))
+  if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
     return CMD_CASCADING_FAILURE;
   for (i = 0; i < nv; i++)
     v[i]->leave = true;
   free (v);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }

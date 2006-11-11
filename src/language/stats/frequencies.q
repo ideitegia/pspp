@@ -305,15 +305,15 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var);
 
 /* Parser and outline. */
 
-static int internal_cmd_frequencies (struct dataset *ds);
+static int internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds);
 
 int
-cmd_frequencies (struct dataset *ds)
+cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
   int result;
 
   int_pool = pool_create ();
-  result = internal_cmd_frequencies (ds);
+  result = internal_cmd_frequencies (lexer, ds);
   pool_destroy (int_pool);
   int_pool=0;
   pool_destroy (gen_pool);
@@ -324,7 +324,7 @@ cmd_frequencies (struct dataset *ds)
 }
 
 static int
-internal_cmd_frequencies (struct dataset *ds)
+internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
   int i;
   bool ok;
@@ -335,7 +335,7 @@ internal_cmd_frequencies (struct dataset *ds)
   n_variables = 0;
   v_variables = NULL;
 
-  if (!parse_frequencies (ds, &cmd, NULL))
+  if (!parse_frequencies (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
   if (cmd.onepage_limit == NOT_LONG)
@@ -376,7 +376,7 @@ internal_cmd_frequencies (struct dataset *ds)
 	  int pl;
 	  subc_list_double *ptl_list = &cmd.dl_percentiles[i];
 	  for ( pl = 0 ; pl < subc_list_double_count(ptl_list); ++pl)
-	      add_percentile(subc_list_double_at(ptl_list,pl) / 100.0 );
+	      add_percentile (subc_list_double_at(ptl_list, pl) / 100.0 );
 	}
     }
   if ( cmd.sbc_ntiles ) 
@@ -385,7 +385,7 @@ internal_cmd_frequencies (struct dataset *ds)
 	{
 	  int j;
 	  for (j = 0; j <= cmd.n_ntiles[i]; ++j ) 
-	      add_percentile(j / (double) cmd.n_ntiles[i]);
+	      add_percentile (j / (double) cmd.n_ntiles[i]);
 	}
     }
   
@@ -665,7 +665,7 @@ postcalc (void *aux UNUSED, const struct dataset *ds  UNUSED)
 
 	  norm.N = vf->tab.valid_cases;
 
-	  calc_stats(v,d);
+	  calc_stats (v, d);
 	  norm.mean = d[frq_mean];
 	  norm.stddev = d[frq_stddev];
 
@@ -793,7 +793,7 @@ cleanup_freq_tab (struct variable *v)
 /* Parses the VARIABLES subcommand, adding to
    {n_variables,v_variables}. */
 static int
-frq_custom_variables (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
+frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
   int mode;
   int min = 0, max = 0;
@@ -801,31 +801,31 @@ frq_custom_variables (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, vo
   size_t old_n_variables = n_variables;
   size_t i;
 
-  lex_match ('=');
-  if (token != T_ALL && (token != T_ID
-                         || dict_lookup_var (dataset_dict (ds), tokid) == NULL))
+  lex_match (lexer, '=');
+  if (lex_token (lexer) != T_ALL && (lex_token (lexer) != T_ID
+                         || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
     return 2;
 
-  if (!parse_variables (dataset_dict (ds), &v_variables, &n_variables,
+  if (!parse_variables (lexer, dataset_dict (ds), &v_variables, &n_variables,
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
-  if (!lex_match ('('))
+  if (!lex_match (lexer, '('))
     mode = FRQM_GENERAL;
   else
     {
       mode = FRQM_INTEGER;
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return 0;
-      min = lex_integer ();
-      lex_get ();
-      if (!lex_force_match (','))
+      min = lex_integer (lexer);
+      lex_get (lexer);
+      if (!lex_force_match (lexer, ','))
 	return 0;
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return 0;
-      max = lex_integer ();
-      lex_get ();
-      if (!lex_force_match (')'))
+      max = lex_integer (lexer);
+      lex_get (lexer);
+      if (!lex_force_match (lexer, ')'))
 	return 0;
       if (max < min)
 	{
@@ -881,11 +881,11 @@ frq_custom_variables (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, vo
 /* Parses the GROUPED subcommand, setting the n_grouped, grouped
    fields of specified variables. */
 static int
-frq_custom_grouped (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
+frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match ('=');
-  if ((token == T_ID && dict_lookup_var (dataset_dict (ds), tokid) != NULL)
-      || token == T_ID)
+  lex_match (lexer, '=');
+  if ((lex_token (lexer) == T_ID && dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
+      || lex_token (lexer) == T_ID)
     for (;;)
       {
 	size_t i;
@@ -898,27 +898,27 @@ frq_custom_grouped (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void
 	size_t n;
 	struct variable **v;
 
-	if (!parse_variables (dataset_dict (ds), &v, &n,
+	if (!parse_variables (lexer, dataset_dict (ds), &v, &n,
                               PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
-	if (lex_match ('('))
+	if (lex_match (lexer, '('))
 	  {
 	    nl = ml = 0;
 	    dl = NULL;
-	    while (lex_integer ())
+	    while (lex_integer (lexer))
 	      {
 		if (nl >= ml)
 		  {
 		    ml += 16;
 		    dl = pool_nrealloc (int_pool, dl, ml, sizeof *dl);
 		  }
-		dl[nl++] = tokval;
-		lex_get ();
-		lex_match (',');
+		dl[nl++] = lex_tokval (lexer);
+		lex_get (lexer);
+		lex_match (lexer, ',');
 	      }
 	    /* Note that nl might still be 0 and dl might still be
 	       NULL.  That's okay. */
-	    if (!lex_match (')'))
+	    if (!lex_match (lexer, ')'))
 	      {
 		free (v);
 		msg (SE, _("`)' expected after GROUPED interval list."));
@@ -949,12 +949,12 @@ frq_custom_grouped (struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void
                 }
             }
 	free (v);
-	if (!lex_match ('/'))
+	if (!lex_match (lexer, '/'))
 	  break;
-	if ((token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) != NULL)
-            && token != T_ALL)
+	if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) != NULL)
+            && lex_token (lexer) != T_ALL)
 	  {
-	    lex_put_back ('/');
+	    lex_put_back (lexer, '/');
 	    break;
 	  }
       }
@@ -979,7 +979,7 @@ add_percentile (double x)
 	break;
     }
 
-  if (i >= n_percentiles || tokval != percentiles[i].p)
+  if (i >= n_percentiles || x != percentiles[i].p)
     {
       percentiles = pool_nrealloc (int_pool, percentiles,
                                    n_percentiles + 1, sizeof *percentiles);

@@ -60,7 +60,7 @@ static void map_case (const struct case_map *,
                       const struct ccase *, struct ccase *);
 static void destroy_case_map (struct case_map *);
 
-static bool parse_dict_trim (struct dictionary *);
+static bool parse_dict_trim (struct lexer *, struct dictionary *);
 
 /* Reading system and portable files. */
 
@@ -85,7 +85,7 @@ static void case_reader_pgm_free (struct case_reader_pgm *);
 
 /* Parses a GET or IMPORT command. */
 static int
-parse_read_command (struct dataset *ds, enum reader_command type)
+parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command type)
 {
   struct case_reader_pgm *pgm = NULL;
   struct file_handle *fh = NULL;
@@ -93,27 +93,27 @@ parse_read_command (struct dataset *ds, enum reader_command type)
 
   for (;;)
     {
-      lex_match ('/');
+      lex_match (lexer, '/');
 
-      if (lex_match_id ("FILE") || token == T_STRING)
+      if (lex_match_id (lexer, "FILE") || lex_token (lexer) == T_STRING)
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 
-	  fh = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
+	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
 	  if (fh == NULL)
             goto error;
 	}
-      else if (type == IMPORT_CMD && lex_match_id ("TYPE"))
+      else if (type == IMPORT_CMD && lex_match_id (lexer, "TYPE"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 
-	  if (lex_match_id ("COMM"))
+	  if (lex_match_id (lexer, "COMM"))
 	    type = PFM_COMM;
-	  else if (lex_match_id ("TAPE"))
+	  else if (lex_match_id (lexer, "TAPE"))
 	    type = PFM_TAPE;
 	  else
 	    {
-	      lex_error (_("expecting COMM or TAPE"));
+	      lex_error (lexer, _("expecting COMM or TAPE"));
               goto error;
 	    }
 	}
@@ -123,7 +123,7 @@ parse_read_command (struct dataset *ds, enum reader_command type)
   
   if (fh == NULL) 
     {
-      lex_sbc_missing ("FILE");
+      lex_sbc_missing (lexer, "FILE");
       goto error;
     }
               
@@ -140,10 +140,10 @@ parse_read_command (struct dataset *ds, enum reader_command type)
   
   start_case_map (dict);
 
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
-      lex_match ('/');
-      if (!parse_dict_trim (dict))
+      lex_match (lexer, '/');
+      if (!parse_dict_trim (lexer, dict))
         goto error;
     }
 
@@ -227,16 +227,16 @@ static const struct case_source_class case_reader_source_class =
 
 /* GET. */
 int
-cmd_get (struct dataset *ds) 
+cmd_get (struct lexer *lexer, struct dataset *ds) 
 {
-  return parse_read_command (ds, GET_CMD);
+  return parse_read_command (lexer, ds, GET_CMD);
 }
 
 /* IMPORT. */
 int
-cmd_import (struct dataset *ds) 
+cmd_import (struct lexer *lexer, struct dataset *ds) 
 {
-  return parse_read_command (ds, IMPORT_CMD);
+  return parse_read_command (lexer, ds, IMPORT_CMD);
 }
 
 /* Writing system and portable files. */ 
@@ -290,7 +290,7 @@ case_writer_destroy (struct case_writer *aw)
 
    On failure, returns a null pointer. */
 static struct case_writer *
-parse_write_command (struct dataset *ds, 
+parse_write_command (struct lexer *lexer, struct dataset *ds, 
 		     enum writer_type writer_type,
                      enum command_type command_type,
                      bool *retain_unselected)
@@ -327,10 +327,10 @@ parse_write_command (struct dataset *ds,
   start_case_map (dict);
   dict_delete_scratch_vars (dict);
 
-  lex_match ('/');
+  lex_match (lexer, '/');
   for (;;)
     {
-      if (lex_match_id ("OUTFILE"))
+      if (lex_match_id (lexer, "OUTFILE"))
 	{
           if (handle != NULL) 
             {
@@ -338,88 +338,88 @@ parse_write_command (struct dataset *ds,
               goto error; 
             }
           
-	  lex_match ('=');
+	  lex_match (lexer, '=');
       
-	  handle = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
+	  handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
 	  if (handle == NULL)
 	    goto error;
 	}
-      else if (lex_match_id ("NAMES"))
+      else if (lex_match_id (lexer, "NAMES"))
         print_short_names = true;
-      else if (lex_match_id ("PERMISSIONS")) 
+      else if (lex_match_id (lexer, "PERMISSIONS")) 
         {
           bool cw;
           
-          lex_match ('=');
-          if (lex_match_id ("READONLY"))
+          lex_match (lexer, '=');
+          if (lex_match_id (lexer, "READONLY"))
             cw = false;
-          else if (lex_match_id ("WRITEABLE"))
+          else if (lex_match_id (lexer, "WRITEABLE"))
             cw = true;
           else
             {
-              lex_error (_("expecting %s or %s"), "READONLY", "WRITEABLE");
+              lex_error (lexer, _("expecting %s or %s"), "READONLY", "WRITEABLE");
               goto error;
             }
           sysfile_opts.create_writeable = porfile_opts.create_writeable = cw;
         }
-      else if (command_type == PROC_CMD && lex_match_id ("UNSELECTED")) 
+      else if (command_type == PROC_CMD && lex_match_id (lexer, "UNSELECTED")) 
         {
-          lex_match ('=');
-          if (lex_match_id ("RETAIN"))
+          lex_match (lexer, '=');
+          if (lex_match_id (lexer, "RETAIN"))
             *retain_unselected = true;
-          else if (lex_match_id ("DELETE"))
+          else if (lex_match_id (lexer, "DELETE"))
             *retain_unselected = false;
           else
             {
-              lex_error (_("expecting %s or %s"), "RETAIN", "DELETE");
+              lex_error (lexer, _("expecting %s or %s"), "RETAIN", "DELETE");
               goto error;
             }
         }
-      else if (writer_type == SYSFILE_WRITER && lex_match_id ("COMPRESSED"))
+      else if (writer_type == SYSFILE_WRITER && lex_match_id (lexer, "COMPRESSED"))
 	sysfile_opts.compress = true;
-      else if (writer_type == SYSFILE_WRITER && lex_match_id ("UNCOMPRESSED"))
+      else if (writer_type == SYSFILE_WRITER && lex_match_id (lexer, "UNCOMPRESSED"))
 	sysfile_opts.compress = false;
-      else if (writer_type == SYSFILE_WRITER && lex_match_id ("VERSION"))
+      else if (writer_type == SYSFILE_WRITER && lex_match_id (lexer, "VERSION"))
 	{
-	  lex_match ('=');
-	  if (!lex_force_int ())
+	  lex_match (lexer, '=');
+	  if (!lex_force_int (lexer))
             goto error;
-          sysfile_opts.version = lex_integer ();
-          lex_get ();
+          sysfile_opts.version = lex_integer (lexer);
+          lex_get (lexer);
 	}
-      else if (writer_type == PORFILE_WRITER && lex_match_id ("TYPE")) 
+      else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "TYPE")) 
         {
-          lex_match ('=');
-          if (lex_match_id ("COMMUNICATIONS"))
+          lex_match (lexer, '=');
+          if (lex_match_id (lexer, "COMMUNICATIONS"))
             porfile_opts.type = PFM_COMM;
-          else if (lex_match_id ("TAPE"))
+          else if (lex_match_id (lexer, "TAPE"))
             porfile_opts.type = PFM_TAPE;
           else
             {
-              lex_error (_("expecting %s or %s"), "COMM", "TAPE");
+              lex_error (lexer, _("expecting %s or %s"), "COMM", "TAPE");
               goto error;
             }
         }
-      else if (writer_type == PORFILE_WRITER && lex_match_id ("DIGITS")) 
+      else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "DIGITS")) 
         {
-          lex_match ('=');
-          if (!lex_force_int ())
+          lex_match (lexer, '=');
+          if (!lex_force_int (lexer))
             goto error;
-          porfile_opts.digits = lex_integer ();
-          lex_get ();
+          porfile_opts.digits = lex_integer (lexer);
+          lex_get (lexer);
         }
-      else if (!parse_dict_trim (dict))
+      else if (!parse_dict_trim (lexer, dict))
         goto error;
       
-      if (!lex_match ('/'))
+      if (!lex_match (lexer, '/'))
 	break;
     }
-  if (lex_end_of_command () != CMD_SUCCESS)
+  if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto error;
 
   if (handle == NULL) 
     {
-      lex_sbc_missing ("OUTFILE");
+      lex_sbc_missing (lexer, "OUTFILE");
       goto error;
     }
 
@@ -474,14 +474,14 @@ static bool output_proc (const struct ccase *, void *, const struct dataset *);
 
 /* Parses and performs the SAVE or EXPORT procedure. */
 static int
-parse_output_proc (struct dataset *ds, enum writer_type writer_type)
+parse_output_proc (struct lexer *lexer, struct dataset *ds, enum writer_type writer_type)
 {
   bool retain_unselected;
   struct variable *saved_filter_variable;
   struct case_writer *aw;
   bool ok;
 
-  aw = parse_write_command (ds, writer_type, PROC_CMD, &retain_unselected);
+  aw = parse_write_command (lexer, ds, writer_type, PROC_CMD, &retain_unselected);
   if (aw == NULL) 
     return CMD_CASCADING_FAILURE;
 
@@ -504,15 +504,15 @@ output_proc (const struct ccase *c, void *aw_, const struct dataset *ds UNUSED)
 }
 
 int
-cmd_save (struct dataset *ds) 
+cmd_save (struct lexer *lexer, struct dataset *ds) 
 {
-  return parse_output_proc (ds, SYSFILE_WRITER);
+  return parse_output_proc (lexer, ds, SYSFILE_WRITER);
 }
 
 int
-cmd_export (struct dataset *ds) 
+cmd_export (struct lexer *lexer, struct dataset *ds) 
 {
-  return parse_output_proc (ds, PORFILE_WRITER);
+  return parse_output_proc (lexer, ds, PORFILE_WRITER);
 }
 
 /* XSAVE and XEXPORT. */
@@ -528,10 +528,10 @@ static trns_free_func output_trns_free;
 
 /* Parses the XSAVE or XEXPORT transformation command. */
 static int
-parse_output_trns (struct dataset *ds, enum writer_type writer_type) 
+parse_output_trns (struct lexer *lexer, struct dataset *ds, enum writer_type writer_type) 
 {
   struct output_trns *t = xmalloc (sizeof *t);
-  t->aw = parse_write_command (ds, writer_type, XFORM_CMD, NULL);
+  t->aw = parse_write_command (lexer, ds, writer_type, XFORM_CMD, NULL);
   if (t->aw == NULL) 
     {
       free (t);
@@ -569,50 +569,50 @@ output_trns_free (void *trns_)
 
 /* XSAVE command. */
 int
-cmd_xsave (struct dataset *ds) 
+cmd_xsave (struct lexer *lexer, struct dataset *ds) 
 {
-  return parse_output_trns (ds, SYSFILE_WRITER);
+  return parse_output_trns (lexer, ds, SYSFILE_WRITER);
 }
 
 /* XEXPORT command. */
 int
-cmd_xexport (struct dataset *ds) 
+cmd_xexport (struct lexer *lexer, struct dataset *ds) 
 {
-  return parse_output_trns (ds, PORFILE_WRITER);
+  return parse_output_trns (lexer, ds, PORFILE_WRITER);
 }
 
-static bool rename_variables (struct dictionary *dict);
-static bool drop_variables (struct dictionary *dict);
-static bool keep_variables (struct dictionary *dict);
+static bool rename_variables (struct lexer *lexer, struct dictionary *dict);
+static bool drop_variables (struct lexer *, struct dictionary *dict);
+static bool keep_variables (struct lexer *, struct dictionary *dict);
 
 /* Commands that read and write system files share a great deal
    of common syntactic structure for rearranging and dropping
    variables.  This function parses this syntax and modifies DICT
    appropriately.  Returns true on success, false on failure. */
 static bool
-parse_dict_trim (struct dictionary *dict)
+parse_dict_trim (struct lexer *lexer, struct dictionary *dict)
 {
-  if (lex_match_id ("MAP")) 
+  if (lex_match_id (lexer, "MAP")) 
     {
       /* FIXME. */
       return true;
     }
-  else if (lex_match_id ("DROP"))
-    return drop_variables (dict);
-  else if (lex_match_id ("KEEP"))
-    return keep_variables (dict);
-  else if (lex_match_id ("RENAME"))
-    return rename_variables (dict);
+  else if (lex_match_id (lexer, "DROP"))
+    return drop_variables (lexer, dict);
+  else if (lex_match_id (lexer, "KEEP"))
+    return keep_variables (lexer, dict);
+  else if (lex_match_id (lexer, "RENAME"))
+    return rename_variables (lexer, dict);
   else
     {
-      lex_error (_("expecting a valid subcommand"));
+      lex_error (lexer, _("expecting a valid subcommand"));
       return false;
     }
 }
 
 /* Parses and performs the RENAME subcommand of GET and SAVE. */
 static bool
-rename_variables (struct dictionary *dict)
+rename_variables (struct lexer *lexer, struct dictionary *dict)
 {
   size_t i;
 
@@ -625,29 +625,29 @@ rename_variables (struct dictionary *dict)
 
   int group;
 
-  lex_match ('=');
-  if (token != '(')
+  lex_match (lexer, '=');
+  if (lex_token (lexer) != '(')
     {
       struct variable *v;
 
-      v = parse_variable (dict);
+      v = parse_variable (lexer, dict);
       if (v == NULL)
 	return 0;
-      if (!lex_force_match ('=')
-	  || !lex_force_id ())
+      if (!lex_force_match (lexer, '=')
+	  || !lex_force_id (lexer))
 	return 0;
-      if (dict_lookup_var (dict, tokid) != NULL)
+      if (dict_lookup_var (dict, lex_tokid (lexer)) != NULL)
 	{
 	  msg (SE, _("Cannot rename %s as %s because there already exists "
 		     "a variable named %s.  To rename variables with "
 		     "overlapping names, use a single RENAME subcommand "
 		     "such as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, "
-		     "\"/RENAME (A B C=B C A)\"."), v->name, tokid, tokid);
+		     "\"/RENAME (A B C=B C A)\"."), v->name, lex_tokid (lexer), lex_tokid (lexer));
 	  return 0;
 	}
       
-      dict_rename_var (dict, v, tokid);
-      lex_get ();
+      dict_rename_var (dict, v, lex_tokid (lexer));
+      lex_get (lexer);
       return 1;
     }
 
@@ -655,18 +655,18 @@ rename_variables (struct dictionary *dict)
   v = NULL;
   new_names = 0;
   group = 1;
-  while (lex_match ('('))
+  while (lex_match (lexer, '('))
     {
       size_t old_nv = nv;
 
-      if (!parse_variables (dict, &v, &nv, PV_NO_DUPLICATE | PV_APPEND))
+      if (!parse_variables (lexer, dict, &v, &nv, PV_NO_DUPLICATE | PV_APPEND))
 	goto done;
-      if (!lex_match ('='))
+      if (!lex_match (lexer, '='))
 	{
 	  msg (SE, _("`=' expected after variable list."));
 	  goto done;
 	}
-      if (!parse_DATA_LIST_vars (&new_names, &nn, PV_APPEND | PV_NO_SCRATCH))
+      if (!parse_DATA_LIST_vars (lexer, &new_names, &nn, PV_APPEND | PV_NO_SCRATCH))
 	goto done;
       if (nn != nv)
 	{
@@ -676,7 +676,7 @@ rename_variables (struct dictionary *dict)
 	       (unsigned) (nv - old_nv), (unsigned) (nn - old_nv), group);
 	  goto done;
 	}
-      if (!lex_force_match (')'))
+      if (!lex_force_match (lexer, ')'))
 	goto done;
       group++;
     }
@@ -700,13 +700,13 @@ rename_variables (struct dictionary *dict)
 /* Parses and performs the DROP subcommand of GET and SAVE.
    Returns true if successful, false on failure.*/
 static bool
-drop_variables (struct dictionary *dict)
+drop_variables (struct lexer *lexer, struct dictionary *dict)
 {
   struct variable **v;
   size_t nv;
 
-  lex_match ('=');
-  if (!parse_variables (dict, &v, &nv, PV_NONE))
+  lex_match (lexer, '=');
+  if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
     return false;
   dict_delete_vars (dict, v, nv);
   free (v);
@@ -722,14 +722,14 @@ drop_variables (struct dictionary *dict)
 /* Parses and performs the KEEP subcommand of GET and SAVE.
    Returns true if successful, false on failure.*/
 static bool
-keep_variables (struct dictionary *dict)
+keep_variables (struct lexer *lexer, struct dictionary *dict)
 {
   struct variable **v;
   size_t nv;
   size_t i;
 
-  lex_match ('=');
-  if (!parse_variables (dict, &v, &nv, PV_NONE))
+  lex_match (lexer, '=');
+  if (!parse_variables (lexer, dict, &v, &nv, PV_NONE))
     return false;
 
   /* Move the specified variables to the beginning. */
@@ -810,7 +810,7 @@ static struct variable *get_master (struct variable *);
 
 /* Parse and execute the MATCH FILES command. */
 int
-cmd_match_files (struct dataset *ds)
+cmd_match_files (struct lexer *lexer, struct dataset *ds)
 {
   struct mtf_proc mtf;
   struct mtf_file *first_table = NULL;
@@ -833,22 +833,22 @@ cmd_match_files (struct dataset *ds)
   mtf.seq_nums = NULL;
   dict_set_case_limit (mtf.dict, dict_get_case_limit (dataset_dict (ds)));
 
-  lex_match ('/');
-  while (token == T_ID
-         && (lex_id_match ("FILE", tokid) || lex_id_match ("TABLE", tokid)))
+  lex_match (lexer, '/');
+  while (lex_token (lexer) == T_ID
+         && (lex_id_match ("FILE", lex_tokid (lexer)) || lex_id_match ("TABLE", lex_tokid (lexer))))
     {
       struct mtf_file *file = xmalloc (sizeof *file);
 
-      if (lex_match_id ("FILE"))
+      if (lex_match_id (lexer, "FILE"))
         file->type = MTF_FILE;
-      else if (lex_match_id ("TABLE"))
+      else if (lex_match_id (lexer, "TABLE"))
         {
           file->type = MTF_TABLE;
           saw_table = true;
         }
       else
         NOT_REACHED ();
-      lex_match ('=');
+      lex_match (lexer, '=');
 
       file->by = NULL;
       file->handle = NULL;
@@ -883,7 +883,7 @@ cmd_match_files (struct dataset *ds)
           first_table->prev = file;
         }
 
-      if (lex_match ('*'))
+      if (lex_match (lexer, '*'))
         {
           file->handle = NULL;
           file->reader = NULL;
@@ -913,7 +913,7 @@ cmd_match_files (struct dataset *ds)
         }
       else
         {
-          file->handle = fh_parse (FH_REF_FILE | FH_REF_SCRATCH);
+          file->handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
           if (file->handle == NULL)
             goto error;
 
@@ -924,18 +924,18 @@ cmd_match_files (struct dataset *ds)
           case_create (&file->input, dict_get_next_value_idx (file->dict));
         }
 
-      while (lex_match ('/'))
-        if (lex_match_id ("RENAME")) 
+      while (lex_match (lexer, '/'))
+        if (lex_match_id (lexer, "RENAME")) 
           {
-            if (!rename_variables (file->dict))
+            if (!rename_variables (lexer, file->dict))
               goto error; 
           }
-        else if (lex_match_id ("IN"))
+        else if (lex_match_id (lexer, "IN"))
           {
-            lex_match ('=');
-            if (token != T_ID)
+            lex_match (lexer, '=');
+            if (lex_token (lexer) != T_ID)
               {
-                lex_error (NULL);
+                lex_error (lexer, NULL);
                 goto error;
               }
 
@@ -945,17 +945,17 @@ cmd_match_files (struct dataset *ds)
                            "TABLE."));
                 goto error;
               }
-            file->in_name = xstrdup (tokid);
-            lex_get ();
+            file->in_name = xstrdup (lex_tokid (lexer));
+            lex_get (lexer);
             saw_in = true;
           }
 
       mtf_merge_dictionary (mtf.dict, file);
     }
   
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
-      if (lex_match (T_BY))
+      if (lex_match (lexer, T_BY))
 	{
           struct variable **by;
           
@@ -965,8 +965,8 @@ cmd_match_files (struct dataset *ds)
 	      goto error;
 	    }
 	      
-	  lex_match ('=');
-	  if (!parse_variables (mtf.dict, &by, &mtf.by_cnt,
+	  lex_match (lexer, '=');
+	  if (!parse_variables (lexer, mtf.dict, &by, &mtf.by_cnt,
 				PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	    goto error;
 
@@ -991,7 +991,7 @@ cmd_match_files (struct dataset *ds)
             }
           free (by);
 	}
-      else if (lex_match_id ("FIRST")) 
+      else if (lex_match_id (lexer, "FIRST")) 
         {
           if (mtf.first[0] != '\0')
             {
@@ -999,13 +999,13 @@ cmd_match_files (struct dataset *ds)
               goto error;
             }
 	      
-	  lex_match ('=');
-          if (!lex_force_id ())
+	  lex_match (lexer, '=');
+          if (!lex_force_id (lexer))
             goto error;
-          strcpy (mtf.first, tokid);
-          lex_get ();
+          strcpy (mtf.first, lex_tokid (lexer));
+          lex_get (lexer);
         }
-      else if (lex_match_id ("LAST")) 
+      else if (lex_match_id (lexer, "LAST")) 
         {
           if (mtf.last[0] != '\0')
             {
@@ -1013,35 +1013,35 @@ cmd_match_files (struct dataset *ds)
               goto error;
             }
 	      
-	  lex_match ('=');
-          if (!lex_force_id ())
+	  lex_match (lexer, '=');
+          if (!lex_force_id (lexer))
             goto error;
-          strcpy (mtf.last, tokid);
-          lex_get ();
+          strcpy (mtf.last, lex_tokid (lexer));
+          lex_get (lexer);
         }
-      else if (lex_match_id ("MAP"))
+      else if (lex_match_id (lexer, "MAP"))
 	{
 	  /* FIXME. */
 	}
-      else if (lex_match_id ("DROP")) 
+      else if (lex_match_id (lexer, "DROP")) 
         {
-          if (!drop_variables (mtf.dict))
+          if (!drop_variables (lexer, mtf.dict))
             goto error;
         }
-      else if (lex_match_id ("KEEP")) 
+      else if (lex_match_id (lexer, "KEEP")) 
         {
-          if (!keep_variables (mtf.dict))
+          if (!keep_variables (lexer, mtf.dict))
             goto error;
         }
       else
 	{
-	  lex_error (NULL);
+	  lex_error (lexer, NULL);
 	  goto error;
 	}
 
-      if (!lex_match ('/') && token != '.') 
+      if (!lex_match (lexer, '/') && lex_token (lexer) != '.') 
         {
-          lex_end_of_command ();
+          lex_end_of_command (lexer);
           goto error;
         }
     }

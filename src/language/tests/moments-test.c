@@ -31,27 +31,27 @@
 #define _(msgid) gettext (msgid)
 
 static bool
-read_values (double **values, double **weights, size_t *cnt) 
+read_values (struct lexer *lexer, double **values, double **weights, size_t *cnt) 
 {
   size_t cap = 0;
 
   *values = NULL;
   *weights = NULL;
   *cnt = 0;
-  while (lex_is_number ())
+  while (lex_is_number (lexer))
     {
-      double value = tokval;
+      double value = lex_tokval (lexer);
       double weight = 1.;
-      lex_get ();
-      if (lex_match ('*'))
+      lex_get (lexer);
+      if (lex_match (lexer, '*'))
         {
-          if (!lex_is_number ())
+          if (!lex_is_number (lexer))
             {
-              lex_error (_("expecting weight value"));
+              lex_error (lexer, _("expecting weight value"));
               return false;
             }
-          weight = tokval;
-          lex_get ();
+          weight = lex_tokval (lexer);
+          lex_get (lexer);
         }
 
       if (*cnt >= cap) 
@@ -70,7 +70,7 @@ read_values (double **values, double **weights, size_t *cnt)
 }
 
 int
-cmd_debug_moments (struct dataset *ds UNUSED) 
+cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED) 
 {
   int retval = CMD_FAILURE;
   double *values = NULL;
@@ -80,22 +80,22 @@ cmd_debug_moments (struct dataset *ds UNUSED)
   size_t cnt;
   size_t i;
 
-  if (lex_match_id ("ONEPASS"))
+  if (lex_match_id (lexer, "ONEPASS"))
     two_pass = 0;
-  if (token != '/') 
+  if (lex_token (lexer) != '/') 
     {
-      lex_force_match ('/');
+      lex_force_match (lexer, '/');
       goto done;
     }
-  fprintf (stderr, "%s => ", lex_rest_of_line (NULL));
-  lex_get ();
+  fprintf (stderr, "%s => ", lex_rest_of_line (lexer, NULL));
+  lex_get (lexer);
 
   if (two_pass) 
     {
       struct moments *m = NULL;
   
       m = moments_create (MOMENT_KURTOSIS);
-      if (!read_values (&values, &weights, &cnt)) 
+      if (!read_values (lexer, &values, &weights, &cnt)) 
         {
           moments_destroy (m);
           goto done; 
@@ -112,7 +112,7 @@ cmd_debug_moments (struct dataset *ds UNUSED)
       struct moments1 *m = NULL;
   
       m = moments1_create (MOMENT_KURTOSIS);
-      if (!read_values (&values, &weights, &cnt)) 
+      if (!read_values (lexer, &values, &weights, &cnt)) 
         {
           moments1_destroy (m);
           goto done; 
@@ -136,7 +136,7 @@ cmd_debug_moments (struct dataset *ds UNUSED)
     }
   fprintf (stderr, "\n");
 
-  retval = lex_end_of_command ();
+  retval = lex_end_of_command (lexer);
   
  done:
   free (values);

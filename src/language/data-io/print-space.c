@@ -47,32 +47,32 @@ static trns_proc_func print_space_trns_proc;
 static trns_free_func print_space_trns_free;
 
 int
-cmd_print_space (struct dataset *ds)
+cmd_print_space (struct lexer *lexer, struct dataset *ds)
 {
   struct print_space_trns *trns;
   struct file_handle *handle;
   struct expression *expr;
   struct dfm_writer *writer;
 
-  if (lex_match_id ("OUTFILE"))
+  if (lex_match_id (lexer, "OUTFILE"))
     {
-      lex_match ('=');
+      lex_match (lexer, '=');
 
-      handle = fh_parse (FH_REF_FILE);
+      handle = fh_parse (lexer, FH_REF_FILE);
       if (handle == NULL)
 	return CMD_FAILURE;
-      lex_get ();
+      lex_get (lexer);
     }
   else
     handle = NULL;
 
-  if (token != '.')
+  if (lex_token (lexer) != '.')
     {
-      expr = expr_parse (ds, EXPR_NUMBER);
-      if (token != '.')
+      expr = expr_parse (lexer, ds, EXPR_NUMBER);
+      if (lex_token (lexer) != '.')
 	{
 	  expr_free (expr);
-	  lex_error (_("expecting end of command"));
+	  lex_error (lexer, _("expecting end of command"));
 	  return CMD_FAILURE;
 	}
     }

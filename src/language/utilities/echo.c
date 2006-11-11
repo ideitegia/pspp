@@ -29,11 +29,11 @@
 
 /* Echos a string to the output stream */
 int
-cmd_echo (struct dataset *ds UNUSED)
+cmd_echo (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   struct tab_table *tab;
 
-  if (token != T_STRING) 
+  if (lex_token (lexer) != T_STRING) 
     return CMD_FAILURE;
   
   tab = tab_create(1, 1, 0);
@@ -41,7 +41,7 @@ cmd_echo (struct dataset *ds UNUSED)
   tab_dim (tab, tab_natural_dimensions);
   tab_flags (tab, SOMF_NO_TITLE );
 
-  tab_text(tab, 0, 0, 0, ds_cstr (&tokstr));
+  tab_text(tab, 0, 0, 0, ds_cstr (lex_tokstr (lexer)));
 
   tab_submit(tab);
 

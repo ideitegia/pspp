@@ -31,20 +31,20 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_include (struct dataset *ds UNUSED)
+cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   /* Skip optional FILE=. */
-  if (lex_match_id ("FILE"))
-    lex_match ('=');
+  if (lex_match_id (lexer, "FILE"))
+    lex_match (lexer, '=');
 
   /* File name can be identifier or string. */
-  if (token != T_ID && token != T_STRING) 
+  if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING) 
     {
-      lex_error (_("expecting file name")); 
+      lex_error (lexer, _("expecting file name")); 
       return CMD_CASCADING_FAILURE;
     }
-  getl_include_syntax_file (ds_cstr (&tokstr));
+  getl_include_syntax_file (ds_cstr (lex_tokstr (lexer)));
 
-  lex_get ();
-  return lex_end_of_command ();
+  lex_get (lexer);
+  return lex_end_of_command (lexer);
 }

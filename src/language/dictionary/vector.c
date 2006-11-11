@@ -37,7 +37,7 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_vector (struct dataset *ds)
+cmd_vector (struct lexer *lexer, struct dataset *ds)
 {
   /* Just to be different, points to a set of null terminated strings
      containing the names of the vectors to be created.  The list
@@ -58,9 +58,9 @@ cmd_vector (struct dataset *ds)
   do
     {
       /* Get the name(s) of the new vector(s). */
-      if (!lex_force_id ())
+      if (!lex_force_id (lexer))
 	return CMD_CASCADING_FAILURE;
-      while (token == T_ID)
+      while (lex_token (lexer) == T_ID)
 	{
 	  if (cp + 16 > endp)
 	    {
@@ -71,27 +71,27 @@ cmd_vector (struct dataset *ds)
 	    }
 
 	  for (cp2 = cp; cp2 < cp; cp2 += strlen (cp))
-	    if (!strcasecmp (cp2, tokid))
+	    if (!strcasecmp (cp2, lex_tokid (lexer)))
 	      {
-		msg (SE, _("Vector name %s is given twice."), tokid);
+		msg (SE, _("Vector name %s is given twice."), lex_tokid (lexer));
 		goto fail;
 	      }
 
-	  if (dict_lookup_vector (dict, tokid))
+	  if (dict_lookup_vector (dict, lex_tokid (lexer)))
 	    {
-	      msg (SE, _("There is already a vector with name %s."), tokid);
+	      msg (SE, _("There is already a vector with name %s."), lex_tokid (lexer));
 	      goto fail;
 	    }
 
-	  cp = stpcpy (cp, tokid) + 1;
-	  lex_get ();
-	  lex_match (',');
+	  cp = stpcpy (cp, lex_tokid (lexer)) + 1;
+	  lex_get (lexer);
+	  lex_match (lexer, ',');
 	}
       *cp++ = 0;
 
       /* Now that we have the names it's time to check for the short
          or long forms. */
-      if (lex_match ('='))
+      if (lex_match (lexer, '='))
 	{
 	  /* Long form. */
           struct variable **v;
@@ -106,14 +106,14 @@ cmd_vector (struct dataset *ds)
 	      goto fail;
 	    }
 
-	  if (!parse_variables (dict, &v, &nv,
+	  if (!parse_variables (lexer, dict, &v, &nv,
                                 PV_SAME_TYPE | PV_DUPLICATE))
 	    goto fail;
 
           dict_create_vector (dict, vecnames, v, nv);
           free (v);
 	}
-      else if (lex_match ('('))
+      else if (lex_match (lexer, '('))
 	{
 	  int i;
 
@@ -128,16 +128,16 @@ cmd_vector (struct dataset *ds)
           struct variable **v;
           int nv;
 
-	  if (!lex_force_int ())
+	  if (!lex_force_int (lexer))
 	    return CMD_CASCADING_FAILURE;
-	  nv = lex_integer ();
-	  lex_get ();
+	  nv = lex_integer (lexer);
+	  lex_get (lexer);
 	  if (nv <= 0)
 	    {
 	      msg (SE, _("Vectors must have at least one element."));
 	      goto fail;
 	    }
-	  if (!lex_force_match (')'))
+	  if (!lex_force_match (lexer, ')'))
 	    goto fail;
 
 	  /* First check that all the generated variable names
@@ -196,11 +196,11 @@ cmd_vector (struct dataset *ds)
       free (vecnames);
       vecnames = NULL;
     }
-  while (lex_match ('/'));
+  while (lex_match (lexer, '/'));
 
-  if (token != '.')
+  if (lex_token (lexer) != '.')
     {
-      lex_error (_("expecting end of command"));
+      lex_error (lexer, _("expecting end of command"));
       goto fail;
     }
   return CMD_SUCCESS;

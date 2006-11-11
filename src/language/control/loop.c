@@ -87,27 +87,27 @@ static trns_proc_func loop_trns_proc, end_loop_trns_proc, break_trns_proc;
 static trns_free_func loop_trns_free;
 
 static struct loop_trns *create_loop_trns (struct dataset *);
-static bool parse_if_clause (struct loop_trns *, struct expression **);
-static bool parse_index_clause (struct loop_trns *, char index_var_name[]);
+static bool parse_if_clause (struct lexer *, struct loop_trns *, struct expression **);
+static bool parse_index_clause (struct lexer *, struct loop_trns *, char index_var_name[]);
 static void close_loop (void *);
 
 /* LOOP. */
 
 /* Parses LOOP. */
 int
-cmd_loop (struct dataset *ds)
+cmd_loop (struct lexer *lexer, struct dataset *ds)
 {
   struct loop_trns *loop;
   char index_var_name[LONG_NAME_LEN + 1];
   bool ok = true;
 
   loop = create_loop_trns (ds);
-  while (token != '.' && ok) 
+  while (lex_token (lexer) != '.' && ok) 
     {
-      if (lex_match_id ("IF")) 
-        ok = parse_if_clause (loop, &loop->loop_condition);
+      if (lex_match_id (lexer, "IF")) 
+        ok = parse_if_clause (lexer, loop, &loop->loop_condition);
       else
-        ok = parse_index_clause (loop, index_var_name);
+        ok = parse_index_clause (lexer, loop, index_var_name);
     }
 
   /* Find index variable and create if necessary. */
@@ -126,7 +126,7 @@ cmd_loop (struct dataset *ds)
 
 /* Parses END LOOP. */
 int
-cmd_end_loop (struct dataset *ds)
+cmd_end_loop (struct lexer *lexer, struct dataset *ds)
 {
   struct loop_trns *loop;
   bool ok = true;
@@ -138,10 +138,10 @@ cmd_end_loop (struct dataset *ds)
   assert (loop->ds == ds);
   
   /* Parse syntax. */
-  if (lex_match_id ("IF"))
-    ok = parse_if_clause (loop, &loop->end_loop_condition);
+  if (lex_match_id (lexer, "IF"))
+    ok = parse_if_clause (lexer, loop, &loop->end_loop_condition);
   if (ok)
-    ok = lex_end_of_command () == CMD_SUCCESS;
+    ok = lex_end_of_command (lexer) == CMD_SUCCESS;
 
   if (!ok)
     loop->max_pass_count = 0;
@@ -153,7 +153,7 @@ cmd_end_loop (struct dataset *ds)
 
 /* Parses BREAK. */
 int
-cmd_break (struct dataset *ds)
+cmd_break (struct lexer *lexer, struct dataset *ds)
 {
   struct ctl_stmt *loop = ctl_stack_search (&loop_class);
   if (loop == NULL)
@@ -161,7 +161,7 @@ cmd_break (struct dataset *ds)
 
   add_transformation (ds, break_trns_proc, NULL, loop);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Closes a LOOP construct by emitting the END LOOP
@@ -187,9 +187,10 @@ close_loop (void *loop_)
    resulting expression to *CONDITION.
    Returns true if successful, false on failure. */
 static bool
-parse_if_clause (struct loop_trns *loop, struct expression **condition) 
+parse_if_clause (struct lexer *lexer, 
+		 struct loop_trns *loop, struct expression **condition) 
 {
-  *condition = expr_parse_pool (loop->pool, loop->ds, EXPR_BOOLEAN);
+  *condition = expr_parse_pool (lexer, loop->pool, loop->ds, EXPR_BOOLEAN);
   return *condition != NULL;
 }
 
@@ -197,29 +198,30 @@ parse_if_clause (struct loop_trns *loop, struct expression **condition)
    Stores the index variable's name in INDEX_VAR_NAME[].
    Returns true if successful, false on failure. */
 static bool
-parse_index_clause (struct loop_trns *loop, char index_var_name[]) 
+parse_index_clause (struct lexer *lexer, struct loop_trns *loop, char index_var_name[]) 
 {
-  if (token != T_ID) 
+  if (lex_token (lexer) != T_ID) 
     {
-      lex_error (NULL);
+      lex_error (lexer, NULL);
       return false;
     }
-  strcpy (index_var_name, tokid);
-  lex_get ();
+  strcpy (index_var_name, lex_tokid (lexer));
+  lex_get (lexer);
 
-  if (!lex_force_match ('='))
+  if (!lex_force_match (lexer, '='))
     return false;
 
-  loop->first_expr = expr_parse_pool (loop->pool, loop->ds, EXPR_NUMBER);
+  loop->first_expr = expr_parse_pool (lexer, loop->pool, 
+				      loop->ds, EXPR_NUMBER);
   if (loop->first_expr == NULL)
     return false;
 
   for (;;)
     {
       struct expression **e;
-      if (lex_match (T_TO)) 
+      if (lex_match (lexer, T_TO)) 
         e = &loop->last_expr;
-      else if (lex_match (T_BY)) 
+      else if (lex_match (lexer, T_BY)) 
         e = &loop->by_expr;
       else
         break;
@@ -229,13 +231,13 @@ parse_index_clause (struct loop_trns *loop, char index_var_name[])
           lex_sbc_only_once (e == &loop->last_expr ? "TO" : "BY");
           return false;
         }
-      *e = expr_parse_pool (loop->pool, loop->ds, EXPR_NUMBER);
+      *e = expr_parse_pool (lexer, loop->pool, loop->ds, EXPR_NUMBER);
       if (*e == NULL)
         return false;
     }
   if (loop->last_expr == NULL) 
     {
-      lex_sbc_missing ("TO");
+      lex_sbc_missing (lexer, "TO");
       return false;
     }
   if (loop->by_expr == NULL)

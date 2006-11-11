@@ -90,7 +90,7 @@ static const struct case_sink_class flip_sink_class;
 
 /* Parses and executes FLIP. */
 int
-cmd_flip (struct dataset *ds)
+cmd_flip (struct lexer *lexer, struct dataset *ds)
 {
   struct flip_pgm *flip;
   struct case_sink *sink;
@@ -112,24 +112,24 @@ cmd_flip (struct dataset *ds)
   flip->new_names_tail = NULL;
   flip->file = NULL;
 
-  lex_match ('/');
-  if (lex_match_id ("VARIABLES"))
+  lex_match (lexer, '/');
+  if (lex_match_id (lexer, "VARIABLES"))
     {
-      lex_match ('=');
-      if (!parse_variables (dict, &flip->var, &flip->var_cnt,
+      lex_match (lexer, '=');
+      if (!parse_variables (lexer, dict, &flip->var, &flip->var_cnt,
                             PV_NO_DUPLICATE))
 	goto error;
-      lex_match ('/');
+      lex_match (lexer, '/');
     }
   else
     dict_get_vars (dict, &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
   pool_register (flip->pool, free, flip->var);
 
-  lex_match ('/');
-  if (lex_match_id ("NEWNAMES"))
+  lex_match (lexer, '/');
+  if (lex_match_id (lexer, "NEWNAMES"))
     {
-      lex_match ('=');
-      flip->new_names = parse_variable (dict);
+      lex_match (lexer, '=');
+      flip->new_names = parse_variable (lexer, dict);
       if (!flip->new_names)
         goto error;
     }
@@ -178,7 +178,7 @@ cmd_flip (struct dataset *ds)
   /* Set up flipped data for reading. */
   proc_set_source (ds, flip_source_create (flip));
 
-  return ok ? lex_end_of_command () : CMD_CASCADING_FAILURE;
+  return ok ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
 
  error:
   destroy_flip_pgm (flip);

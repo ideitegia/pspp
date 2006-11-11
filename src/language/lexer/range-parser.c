@@ -31,7 +31,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-static bool parse_number (double *, const struct fmt_spec *);
+static bool parse_number (struct lexer *, double *, const struct fmt_spec *);
 
 /* Parses and stores a numeric value, or a range of the form "x
    THRU y".  Open-ended ranges may be specified as "LO(WEST) THRU
@@ -42,18 +42,18 @@ static bool parse_number (double *, const struct fmt_spec *);
    string values are also accepted, and converted to numeric
    values using the specified format. */
 bool
-parse_num_range (double *x, double *y, const struct fmt_spec *f) 
+parse_num_range (struct lexer *lexer, double *x, double *y, const struct fmt_spec *f) 
 {
-  if (lex_match_id ("LO") || lex_match_id ("LOWEST"))
+  if (lex_match_id (lexer, "LO") || lex_match_id (lexer, "LOWEST"))
     *x = LOWEST;
-  else if (!parse_number (x, f))
+  else if (!parse_number (lexer, x, f))
     return false;
 
-  if (lex_match_id ("THRU")) 
+  if (lex_match_id (lexer, "THRU")) 
     {
-      if (lex_match_id ("HI") || lex_match_id ("HIGHEST"))
+      if (lex_match_id (lexer, "HI") || lex_match_id (lexer, "HIGHEST"))
         *y = HIGHEST;
-      else if (!parse_number (y, f))
+      else if (!parse_number (lexer, y, f))
         return false;
 
       if (*y < *x) 
@@ -90,27 +90,27 @@ parse_num_range (double *x, double *y, const struct fmt_spec *f)
    string values are also accepted, and converted to numeric
    values using the specified format. */
 static bool
-parse_number (double *x, const struct fmt_spec *f)
+parse_number (struct lexer *lexer, double *x, const struct fmt_spec *f)
 {
-  if (lex_is_number ()) 
+  if (lex_is_number (lexer)) 
     {
-      *x = lex_number ();
-      lex_get ();
+      *x = lex_number (lexer);
+      lex_get (lexer);
       return true;
     }
-  else if (token == T_STRING && f != NULL) 
+  else if (lex_token (lexer) == T_STRING && f != NULL) 
     {
       struct data_in di;
       union value v;
-      di.s = ds_data (&tokstr);
-      di.e = ds_end (&tokstr);
+      di.s = ds_data (lex_tokstr (lexer));
+      di.e = ds_end (lex_tokstr (lexer));
       di.v = &v;
       di.flags = 0;
       di.f1 = 1;
-      di.f2 = ds_length (&tokstr);
+      di.f2 = ds_length (lex_tokstr (lexer));
       di.format = *f;
       data_in (&di);
-      lex_get ();
+      lex_get (lexer);
       *x = v.f;
       if (*x == SYSMIS)
         {
@@ -122,9 +122,9 @@ parse_number (double *x, const struct fmt_spec *f)
   else 
     {
       if (f != NULL)
-        lex_error (_("expecting number or data string"));
+        lex_error (lexer, _("expecting number or data string"));
       else
-        lex_force_num ();
+        lex_force_num (lexer);
       return false; 
     }
 }

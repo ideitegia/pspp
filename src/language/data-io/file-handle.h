@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <data/file-handle-def.h>
 
-struct file_handle *fh_parse (enum fh_referent);
+struct lexer ;
+struct file_handle *fh_parse (struct lexer *, enum fh_referent);
 
 #endif /* !file_handle.h */

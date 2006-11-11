@@ -72,7 +72,7 @@ void bug_handler(int sig);
 void interrupt_handler(int sig);
 static struct dataset * the_dataset = NULL;
 
-
+static struct lexer *the_lexer;
 
 /* Program entry point. */
 int
@@ -102,11 +102,11 @@ main (int argc, char **argv)
     {
       msg_ui_init ();
       outp_read_devices ();
-      lex_init (do_read_line);
+      the_lexer = lex_create (do_read_line);
 
       for (;;)
         {
-          int result = cmd_parse (the_dataset, 
+          int result = cmd_parse (the_lexer, the_dataset, 
 				  proc_has_source (the_dataset)
                                   ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
@@ -188,7 +188,7 @@ terminate (bool success)
       random_done ();
       settings_done ();
       fh_done ();
-      lex_done ();
+      lex_destroy (the_lexer);
       getl_uninitialize ();
       readln_uninitialize ();
 

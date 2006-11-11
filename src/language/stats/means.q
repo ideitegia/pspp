@@ -61,7 +61,7 @@ static struct variable **v_var;
 
 /* Parses and executes the T-TEST procedure. */
 int
-cmd_means (struct dataset *ds)
+cmd_means (struct lexer *lexer, struct dataset *ds)
 {
   struct cmd_means cmd;
   int success = CMD_FAILURE;
@@ -71,7 +71,7 @@ cmd_means (struct dataset *ds)
   v_dim = NULL;
   v_var = NULL;
 
-  if (!parse_means (ds, &cmd, NULL))
+  if (!parse_means (lexer, ds, &cmd, NULL))
     goto free;
 
   if (cmd.sbc_cells)
@@ -122,15 +122,15 @@ free:
 
 /* Parses the TABLES subcommand. */
 static int
-mns_custom_tables (struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
+mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
 {
   struct var_set *var_set;
   
-  if (!lex_match_id ("TABLES")
-      && (token != T_ID || dict_lookup_var (dataset_dict (ds), tokid) == NULL)
-      && token != T_ALL)
+  if (!lex_match_id (lexer, "TABLES")
+      && (lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
     return 2;
-  lex_match ('=');
+  lex_match (lexer, '=');
 
   if (cmd->sbc_tables)
     {
@@ -147,7 +147,7 @@ mns_custom_tables (struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
       size_t nvl;
       struct variable **vl;
 
-      if (!parse_var_set_vars (var_set, &vl, &nvl,
+      if (!parse_var_set_vars (lexer, var_set, &vl, &nvl,
                                PV_NO_DUPLICATE | PV_NO_SCRATCH)) 
         goto lossage;
       
@@ -158,7 +158,7 @@ mns_custom_tables (struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
       nv_dim[n_dim - 1] = nvl;
       v_dim[n_dim - 1] = vl;
     }
-  while (lex_match (T_BY));
+  while (lex_match (lexer, T_BY));
 
   var_set_destroy (var_set);
   return 1;

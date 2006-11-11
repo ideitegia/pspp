@@ -55,7 +55,9 @@ enum cmd_state
   };
 
 struct dataset;
-enum cmd_result cmd_parse (struct dataset *ds, enum cmd_state);
+struct lexer; 
+
+enum cmd_result cmd_parse (struct lexer *lexer, struct dataset *ds, enum cmd_state);
 
 struct command;
 const char *cmd_complete (const char *, const struct command **);
@@ -63,7 +65,7 @@ const char *cmd_complete (const char *, const struct command **);
 struct dataset;
 
 /* Prototype all the command functions. */
-#define DEF_CMD(STATES, FLAGS, NAME, FUNCTION) int FUNCTION (struct dataset *);
+#define DEF_CMD(STATES, FLAGS, NAME, FUNCTION) int FUNCTION (struct lexer *, struct dataset *);
 #define UNIMPL_CMD(NAME, DESCRIPTION)
 #include "command.def"
 #undef DEF_CMD

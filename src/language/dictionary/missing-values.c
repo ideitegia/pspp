@@ -37,7 +37,7 @@
 #define _(msgid) gettext (msgid)
 
 int
-cmd_missing_values (struct dataset *ds)
+cmd_missing_values (struct lexer *lexer, struct dataset *ds)
 {
   struct variable **v;
   size_t nv;
@@ -45,23 +45,23 @@ cmd_missing_values (struct dataset *ds)
   int retval = CMD_FAILURE;
   bool deferred_errors = false;
 
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
       size_t i;
 
-      if (!parse_variables (dataset_dict (ds), &v, &nv, PV_NONE)) 
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE)) 
         goto done;
 
-      if (!lex_match ('('))
+      if (!lex_match (lexer, '('))
         {
-          lex_error (_("expecting `('"));
+          lex_error (lexer, _("expecting `('"));
           goto done;
         }
 
       for (i = 0; i < nv; i++)
         mv_init (&v[i]->miss, v[i]->width);
 
-      if (!lex_match (')')) 
+      if (!lex_match (lexer, ')')) 
         {
           struct missing_values mv;
 
@@ -79,12 +79,12 @@ cmd_missing_values (struct dataset *ds)
           if (v[0]->type == NUMERIC) 
             {
               mv_init (&mv, 0);
-              while (!lex_match (')'))
+              while (!lex_match (lexer, ')'))
                 {
                   double x, y;
                   bool ok;
 
-                  if (!parse_num_range (&x, &y, &v[0]->print))
+                  if (!parse_num_range (lexer, &x, &y, &v[0]->print))
                     goto done;
                   
                   ok = (x == y
@@ -93,35 +93,40 @@ cmd_missing_values (struct dataset *ds)
                   if (!ok)
                     deferred_errors = true;
 
-                  lex_match (',');
+                  lex_match (lexer, ',');
                 }
             }
           else 
             {
+	      struct string value;
+
               mv_init (&mv, MAX_SHORT_STRING);
-              while (!lex_match (')')) 
+              while (!lex_match (lexer, ')')) 
                 {
-                  if (!lex_force_string ())
+                  if (!lex_force_string (lexer))
                     {
                       deferred_errors = true;
                       break;
                     }
+		  
+		  ds_init_string (&value, lex_tokstr (lexer));
 
-                  if (ds_length (&tokstr) > MAX_SHORT_STRING) 
+                  if (ds_length (&value) > MAX_SHORT_STRING) 
                     {
-                      ds_truncate (&tokstr, MAX_SHORT_STRING);
+                      ds_truncate (&value, MAX_SHORT_STRING);
                       msg (SE, _("Truncating missing value to short string "
                                  "length (%d characters)."),
                            MAX_SHORT_STRING);
                     }
                   else
-                    ds_rpad (&tokstr, MAX_SHORT_STRING, ' ');
+                    ds_rpad (&value, MAX_SHORT_STRING, ' ');
 
-                  if (!mv_add_str (&mv, ds_data (&tokstr)))
+                  if (!mv_add_str (&mv, ds_data (&value)))
                     deferred_errors = true;
+		  ds_destroy (&value);
 
-                  lex_get ();
-                  lex_match (',');
+                  lex_get (lexer);
+                  lex_match (lexer, ',');
                 }
             }
           
@@ -142,11 +147,11 @@ cmd_missing_values (struct dataset *ds)
             }
         }
 
-      lex_match ('/');
+      lex_match (lexer, '/');
       free (v);
       v = NULL;
     }
-  retval = lex_end_of_command ();
+  retval = lex_end_of_command (lexer);
   
  done:
   free (v);

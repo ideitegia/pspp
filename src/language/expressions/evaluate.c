@@ -109,7 +109,7 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
 #include <language/command.h>
 
 int
-cmd_debug_evaluate (struct dataset *dsother UNUSED)
+cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 {
   bool optimize = true;
   int retval = CMD_FAILURE;
@@ -124,38 +124,38 @@ cmd_debug_evaluate (struct dataset *dsother UNUSED)
   for (;;) 
     {
       struct dictionary *d = NULL;
-      if (lex_match_id ("NOOPTIMIZE"))
+      if (lex_match_id (lexer, "NOOPTIMIZE"))
         optimize = 0;
-      else if (lex_match_id ("POSTFIX"))
+      else if (lex_match_id (lexer, "POSTFIX"))
         dump_postfix = 1;
-      else if (lex_match ('('))
+      else if (lex_match (lexer, '('))
         {
           char name[LONG_NAME_LEN + 1];
           struct variable *v;
           size_t old_value_cnt;
           int width;
 
-          if (!lex_force_id ())
+          if (!lex_force_id (lexer))
             goto done;
-          strcpy (name, tokid);
+          strcpy (name, lex_tokid (lexer));
 
-          lex_get ();
-          if (!lex_force_match ('='))
+          lex_get (lexer);
+          if (!lex_force_match (lexer, '='))
             goto done;
 
-          if (lex_is_number ())
+          if (lex_is_number (lexer))
             {
               width = 0;
-              fprintf (stderr, "(%s = %.2f)", name, tokval); 
+              fprintf (stderr, "(%s = %.2f)", name, lex_tokval (lexer)); 
             }
-          else if (token == T_STRING) 
+          else if (lex_token (lexer) == T_STRING) 
             {
-              width = ds_length (&tokstr);
-              fprintf (stderr, "(%s = \"%.2s\")", name, ds_cstr (&tokstr)); 
+              width = ds_length (lex_tokstr (lexer));
+              fprintf (stderr, "(%s = \"%.2s\")", name, ds_cstr (lex_tokstr (lexer))); 
             }
           else
             {
-              lex_error (_("expecting number or string"));
+              lex_error (lexer, _("expecting number or string"));
               goto done;
             }
 	  
@@ -181,32 +181,32 @@ cmd_debug_evaluate (struct dataset *dsother UNUSED)
           else
             case_resize (c, old_value_cnt, dict_get_next_value_idx (d));
 
-          if (lex_is_number ())
-            case_data_rw (c, v->fv)->f = tokval;
+          if (lex_is_number (lexer))
+            case_data_rw (c, v->fv)->f = lex_tokval (lexer);
           else
-            memcpy (case_data_rw (c, v->fv)->s, ds_data (&tokstr),
+            memcpy (case_data_rw (c, v->fv)->s, ds_data (lex_tokstr (lexer)),
                     v->width);
-          lex_get ();
+          lex_get (lexer);
 
-          if (!lex_force_match (')'))
+          if (!lex_force_match (lexer, ')'))
             goto done;
         }
       else 
         break;
     }
-  if (token != '/') 
+  if (lex_token (lexer) != '/') 
     {
-      lex_force_match ('/');
+      lex_force_match (lexer, '/');
       goto done;
     }
 
   if ( ds != NULL ) 
     fprintf(stderr, "; ");
-  fprintf (stderr, "%s => ", lex_rest_of_line (NULL));
-  lex_get ();
+  fprintf (stderr, "%s => ", lex_rest_of_line (lexer, NULL));
+  lex_get (lexer);
 
-  expr = expr_parse_any (ds, optimize);
-  if (!expr || lex_end_of_command () != CMD_SUCCESS)
+  expr = expr_parse_any (lexer, ds, optimize);
+  if (!expr || lex_end_of_command (lexer) != CMD_SUCCESS)
     {
       if (expr != NULL)
         expr_free (expr);

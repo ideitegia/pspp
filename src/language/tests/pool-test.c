@@ -32,7 +32,7 @@
 /* Self-test routine.
    This is not exhaustive, but it can be useful. */
 int
-cmd_debug_pool (struct dataset *ds UNUSED)
+cmd_debug_pool (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   int seed = time (0) * 257 % 32768;
 

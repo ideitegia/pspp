@@ -36,9 +36,11 @@ struct ccase;
 struct pool;
 union value;
 struct dataset ;
+struct lexer ;
 
-struct expression *expr_parse (struct dataset *, enum expr_type);
-struct expression *expr_parse_pool (struct pool *,
+struct expression *expr_parse (struct lexer *lexer, struct dataset *, enum expr_type);
+struct expression *expr_parse_pool (struct lexer *, 
+				    struct pool *,
 				    struct dataset *,
                                     enum expr_type);
 void expr_free (struct expression *);

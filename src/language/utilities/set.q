@@ -127,12 +127,15 @@ static enum integer_format stc_to_integer_format (int stc);
 static enum float_format stc_to_float_format (int stc);
 
 int
-cmd_set (struct dataset *ds)
+cmd_set (struct lexer *lexer, struct dataset *ds)
 {
   struct cmd_set cmd;
 
-  if (!parse_set (ds, &cmd, NULL))
-    return CMD_FAILURE;
+  if (!parse_set (lexer, ds, &cmd, NULL))
+    {
+      free_set (&cmd);
+      return CMD_FAILURE;
+    }
 
   if (cmd.sbc_cca)
     do_cc (cmd.s_cca, FMT_CCA);
@@ -211,6 +214,8 @@ cmd_set (struct dataset *ds)
 
   if (cmd.sbc_compression)
     msg (SW, _("Active file compression is not implemented."));
+
+  free_set (&cmd);
 
   return CMD_SUCCESS;
 }
@@ -352,20 +357,22 @@ do_cc (const char *cc_string, enum fmt_type type)
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
    SYSMIS or a numeric value. */
 static int
-stc_custom_blanks (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_blanks (struct lexer *lexer, 
+		   struct dataset *ds UNUSED, 
+		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match ('=');
-  if ((token == T_ID && lex_id_match ("SYSMIS", tokid)))
+  lex_match (lexer, '=');
+  if ((lex_token (lexer) == T_ID && lex_id_match ("SYSMIS", lex_tokid (lexer))))
     {
-      lex_get ();
+      lex_get (lexer);
       set_blanks (SYSMIS);
     }
   else
     {
-      if (!lex_force_num ())
+      if (!lex_force_num (lexer))
 	return 0;
-      set_blanks (lex_number ());
-      lex_get ();
+      set_blanks (lex_number (lexer));
+      lex_get (lexer);
     }
   return 1;
 }
@@ -373,15 +380,17 @@ stc_custom_blanks (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *
 /* Parses the EPOCH subcommand, which controls the epoch used for
    parsing 2-digit years. */
 static int
-stc_custom_epoch (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED) 
+stc_custom_epoch (struct lexer *lexer, 
+		  struct dataset *ds UNUSED, 
+		  struct cmd_set *cmd UNUSED, void *aux UNUSED) 
 {
-  lex_match ('=');
-  if (lex_match_id ("AUTOMATIC"))
+  lex_match (lexer, '=');
+  if (lex_match_id (lexer, "AUTOMATIC"))
     set_epoch (-1);
-  else if (lex_is_integer ()) 
+  else if (lex_is_integer (lexer)) 
     {
-      int new_epoch = lex_integer ();
-      lex_get ();
+      int new_epoch = lex_integer (lexer);
+      lex_get (lexer);
       if (new_epoch < 1500) 
         {
           msg (SE, _("EPOCH must be 1500 or later."));
@@ -391,7 +400,7 @@ stc_custom_epoch (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *a
     }
   else 
     {
-      lex_error (_("expecting AUTOMATIC or year"));
+      lex_error (lexer, _("expecting AUTOMATIC or year"));
       return 0;
     }
 
@@ -399,24 +408,24 @@ stc_custom_epoch (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *a
 }
 
 static int
-stc_custom_length (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   int page_length;
 
-  lex_match ('=');
-  if (lex_match_id ("NONE"))
+  lex_match (lexer, '=');
+  if (lex_match_id (lexer, "NONE"))
     page_length = -1;
   else
     {
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return 0;
-      if (lex_integer () < 1)
+      if (lex_integer (lexer) < 1)
 	{
 	  msg (SE, _("LENGTH must be at least 1."));
 	  return 0;
 	}
-      page_length = lex_integer ();
-      lex_get ();
+      page_length = lex_integer (lexer);
+      lex_get (lexer);
     }
 
   if (page_length != -1) 
@@ -426,41 +435,41 @@ stc_custom_length (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *
 }
 
 static int
-stc_custom_seed (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match ('=');
-  if (lex_match_id ("RANDOM"))
+  lex_match (lexer, '=');
+  if (lex_match_id (lexer, "RANDOM"))
     set_rng (time (0));
   else
     {
-      if (!lex_force_num ())
+      if (!lex_force_num (lexer))
 	return 0;
-      set_rng (lex_number ());
-      lex_get ();
+      set_rng (lex_number (lexer));
+      lex_get (lexer);
     }
 
   return 1;
 }
 
 static int
-stc_custom_width (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_width (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match ('=');
-  if (lex_match_id ("NARROW"))
+  lex_match (lexer, '=');
+  if (lex_match_id (lexer, "NARROW"))
     set_viewwidth (79);
-  else if (lex_match_id ("WIDE"))
+  else if (lex_match_id (lexer, "WIDE"))
     set_viewwidth (131);
   else
     {
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return 0;
-      if (lex_integer () < 40)
+      if (lex_integer (lexer) < 40)
 	{
 	  msg (SE, _("WIDTH must be at least 40."));
 	  return 0;
 	}
-      set_viewwidth (lex_integer ());
-      lex_get ();
+      set_viewwidth (lex_integer (lexer));
+      lex_get (lexer);
     }
 
   return 1;
@@ -469,12 +478,12 @@ stc_custom_width (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *a
 /* Parses FORMAT subcommand, which consists of a numeric format
    specifier. */
 static int
-stc_custom_format (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   struct fmt_spec fmt;
 
-  lex_match ('=');
-  if (!parse_format_specifier (&fmt))
+  lex_match (lexer, '=');
+  if (!parse_format_specifier (lexer, &fmt))
     return 0;
   if (fmt_is_string (fmt.type))
     {
@@ -490,16 +499,16 @@ stc_custom_format (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *
 }
 
 static int
-stc_custom_journal (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
-  lex_match ('=');
-  if (!lex_match_id ("ON") && !lex_match_id ("OFF")) 
+  lex_match (lexer, '=');
+  if (!lex_match_id (lexer, "ON") && !lex_match_id (lexer, "OFF")) 
     {
-      if (token == T_STRING)
-        lex_get ();
+      if (lex_token (lexer) == T_STRING)
+        lex_get (lexer);
       else
         {
-          lex_error (NULL);
+          lex_error (lexer, NULL);
           return 0;
         }
     }
@@ -507,14 +516,14 @@ stc_custom_journal (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void 
 }
 
 static int
-stc_custom_listing (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+stc_custom_listing (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   bool listing;
 
-  lex_match ('=');
-  if (lex_match_id ("ON") || lex_match_id ("YES"))
+  lex_match (lexer, '=');
+  if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "YES"))
     listing = true;
-  else if (lex_match_id ("OFF") || lex_match_id ("NO"))
+  else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
     listing = false;
   else
     {
@@ -527,9 +536,9 @@ stc_custom_listing (struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void 
 }
 
 static int
-stc_custom_disk (struct dataset *ds, struct cmd_set *cmd UNUSED, void *aux)
+stc_custom_disk (struct lexer *lexer, struct dataset *ds, struct cmd_set *cmd UNUSED, void *aux)
 {
-  return stc_custom_listing (ds, cmd, aux);
+  return stc_custom_listing (lexer, ds, cmd, aux);
 }
 
 static void
@@ -828,9 +837,9 @@ show_copying (const struct dataset *ds UNUSED)
 }
 
 int
-cmd_show (struct dataset *ds) 
+cmd_show (struct lexer *lexer, struct dataset *ds) 
 {
-  if (token == '.') 
+  if (lex_token (lexer) == '.') 
     {
       show_all (ds);
       return CMD_SUCCESS;
@@ -838,38 +847,38 @@ cmd_show (struct dataset *ds)
 
   do 
     {
-      if (lex_match (T_ALL))
+      if (lex_match (lexer, T_ALL))
         show_all (ds);
-      else if (lex_match_id ("CC")) 
+      else if (lex_match_id (lexer, "CC")) 
         show_all_cc ();
-      else if (lex_match_id ("WARRANTY"))
+      else if (lex_match_id (lexer, "WARRANTY"))
         show_warranty (ds);
-      else if (lex_match_id ("COPYING"))
+      else if (lex_match_id (lexer, "COPYING"))
         show_copying (ds);
-      else if (token == T_ID)
+      else if (lex_token (lexer) == T_ID)
         {
           int i;
 
           for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
-            if (lex_match_id (show_table[i].name)) 
+            if (lex_match_id (lexer, show_table[i].name)) 
               {
                 show_table[i].function (ds);
                 goto found;
               }
-          lex_error (NULL);
+          lex_error (lexer, NULL);
           return CMD_FAILURE;
 
         found: ;
         }
       else 
         {
-          lex_error (NULL);
+          lex_error (lexer, NULL);
           return CMD_FAILURE;
         }
 
-      lex_match ('/');
+      lex_match (lexer, '/');
     }
-  while (token != '.');
+  while (lex_token (lexer) != '.');
 
   return CMD_SUCCESS;
 }

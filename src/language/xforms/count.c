@@ -93,11 +93,11 @@ struct count_trns
 static trns_proc_func count_trns_proc;
 static trns_free_func count_trns_free;
 
-static bool parse_numeric_criteria (struct pool *, struct criteria *);
-static bool parse_string_criteria (struct pool *, struct criteria *);
+static bool parse_numeric_criteria (struct lexer *, struct pool *, struct criteria *);
+static bool parse_string_criteria (struct lexer *, struct pool *, struct criteria *);
 
 int
-cmd_count (struct dataset *ds)
+cmd_count (struct lexer *lexer, struct dataset *ds)
 {
   struct dst_var *dv;           /* Destination var being parsed. */
   struct count_trns *trns;      /* Transformation. */
@@ -115,9 +115,9 @@ cmd_count (struct dataset *ds)
       dv->crit = NULL;
 
       /* Get destination variable, or at least its name. */
-      if (!lex_force_id ())
+      if (!lex_force_id (lexer))
 	goto fail;
-      dv->var = dict_lookup_var (dataset_dict (ds), tokid);
+      dv->var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
       if (dv->var != NULL)
         {
           if (dv->var->type == ALPHA)
@@ -127,10 +127,10 @@ cmd_count (struct dataset *ds)
             }
         }
       else
-        dv->name = pool_strdup (trns->pool, tokid);
+        dv->name = pool_strdup (trns->pool, lex_tokid (lexer));
 
-      lex_get ();
-      if (!lex_force_match ('='))
+      lex_get (lexer);
+      if (!lex_force_match (lexer, '='))
 	goto fail;
 
       crit = dv->crit = pool_alloc (trns->pool, sizeof *crit);
@@ -140,32 +140,32 @@ cmd_count (struct dataset *ds)
           
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables (dataset_dict (ds), &crit->vars, &crit->var_cnt,
+	  if (!parse_variables (lexer, dataset_dict (ds), &crit->vars, &crit->var_cnt,
                                 PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
           pool_register (trns->pool, free, crit->vars);
 
-	  if (!lex_force_match ('('))
+	  if (!lex_force_match (lexer, '('))
 	    goto fail;
 
           crit->value_cnt = 0;
           if (crit->vars[0]->type == NUMERIC)
-            ok = parse_numeric_criteria (trns->pool, crit);
+            ok = parse_numeric_criteria (lexer, trns->pool, crit);
           else
-            ok = parse_string_criteria (trns->pool, crit);
+            ok = parse_string_criteria (lexer, trns->pool, crit);
 	  if (!ok)
 	    goto fail;
 
-	  if (token == '/' || token == '.')
+	  if (lex_token (lexer) == '/' || lex_token (lexer) == '.')
 	    break;
 
 	  crit = crit->next = pool_alloc (trns->pool, sizeof *crit);
 	}
 
-      if (token == '.')
+      if (lex_token (lexer) == '.')
 	break;
 
-      if (!lex_force_match ('/'))
+      if (!lex_force_match (lexer, '/'))
 	goto fail;
       dv = dv->next = pool_alloc (trns->pool, sizeof *dv);
     }
@@ -192,7 +192,7 @@ fail:
 
 /* Parses a set of numeric criterion values.  Returns success. */
 static bool
-parse_numeric_criteria (struct pool *pool, struct criteria *crit)
+parse_numeric_criteria (struct lexer *lexer, struct pool *pool, struct criteria *crit)
 {
   size_t allocated = 0;
 
@@ -203,11 +203,11 @@ parse_numeric_criteria (struct pool *pool, struct criteria *crit)
     {
       double low, high;
       
-      if (lex_match_id ("SYSMIS"))
+      if (lex_match_id (lexer, "SYSMIS"))
         crit->count_system_missing = true;
-      else if (lex_match_id ("MISSING"))
+      else if (lex_match_id (lexer, "MISSING"))
 	crit->count_user_missing = true;
-      else if (parse_num_range (&low, &high, NULL)) 
+      else if (parse_num_range (lexer, &low, &high, NULL)) 
         {
           struct num_value *cur;
 
@@ -223,8 +223,8 @@ parse_numeric_criteria (struct pool *pool, struct criteria *crit)
       else
         return false;
 
-      lex_match (',');
-      if (lex_match (')'))
+      lex_match (lexer, ',');
+      if (lex_match (lexer, ')'))
 	break;
     }
   return true;
@@ -232,7 +232,7 @@ parse_numeric_criteria (struct pool *pool, struct criteria *crit)
 
 /* Parses a set of string criteria values.  Returns success. */
 static bool
-parse_string_criteria (struct pool *pool, struct criteria *crit)
+parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *crit)
 {
   int len = 0;
   size_t allocated = 0;
@@ -251,15 +251,15 @@ parse_string_criteria (struct pool *pool, struct criteria *crit)
                                            &allocated,
                                            sizeof *crit->values.str);
 
-      if (!lex_force_string ())
+      if (!lex_force_string (lexer))
 	return false;
       cur = &crit->values.str[crit->value_cnt++];
       *cur = pool_alloc (pool, len + 1);
-      str_copy_rpad (*cur, len + 1, ds_cstr (&tokstr));
-      lex_get ();
+      str_copy_rpad (*cur, len + 1, ds_cstr (lex_tokstr (lexer)));
+      lex_get (lexer);
 
-      lex_match (',');
-      if (lex_match (')'))
+      lex_match (lexer, ',');
+      if (lex_match (lexer, ')'))
 	break;
     }
 

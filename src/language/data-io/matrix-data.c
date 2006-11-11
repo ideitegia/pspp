@@ -170,11 +170,11 @@ static int compare_variables_by_mxd_var_type (const void *pa,
 					     const void *pb);
 static bool read_matrices_without_rowtype (struct dataset *ds, struct matrix_data_pgm *);
 static bool read_matrices_with_rowtype (struct dataset *ds, struct matrix_data_pgm *);
-static int string_to_content_type (char *, int *);
+static int string_to_content_type (const char *, int *);
 static void attach_mxd_aux (struct variable *, int var_type, int sub_type);
 
 int
-cmd_matrix_data (struct dataset *ds)
+cmd_matrix_data (struct lexer *lexer, struct dataset *ds)
 {
   struct pool *pool;
   struct matrix_data_pgm *mx;
@@ -204,11 +204,11 @@ cmd_matrix_data (struct dataset *ds)
   mx->n_contents = 0;
   mx->n_continuous = 0;
   mx->first_continuous = 0;
-  while (token != '.')
+  while (lex_token (lexer) != '.')
     {
-      lex_match ('/');
+      lex_match (lexer, '/');
 
-      if (lex_match_id ("VARIABLES"))
+      if (lex_match_id (lexer, "VARIABLES"))
 	{
 	  char **v;
 	  size_t nv;
@@ -220,8 +220,8 @@ cmd_matrix_data (struct dataset *ds)
 	    }
 	  seen |= 1;
 	  
-	  lex_match ('=');
-	  if (!parse_DATA_LIST_vars (&v, &nv, PV_NO_DUPLICATE))
+	  lex_match (lexer, '=');
+	  if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NO_DUPLICATE))
 	    goto lossage;
 	  
 	  {
@@ -262,43 +262,43 @@ cmd_matrix_data (struct dataset *ds)
                                                  "ROWTYPE_", 8);
           attach_mxd_aux (mx->rowtype_, MXD_ROWTYPE, 0);
 	}
-      else if (lex_match_id ("FILE"))
+      else if (lex_match_id (lexer, "FILE"))
 	{
-	  lex_match ('=');
-	  fh = fh_parse (FH_REF_FILE | FH_REF_INLINE);
+	  lex_match (lexer, '=');
+	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto lossage;
 	}
-      else if (lex_match_id ("FORMAT"))
+      else if (lex_match_id (lexer, "FORMAT"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 
-	  while (token == T_ID)
+	  while (lex_token (lexer) == T_ID)
 	    {
-	      if (lex_match_id ("LIST"))
+	      if (lex_match_id (lexer, "LIST"))
 		mx->fmt = LIST;
-	      else if (lex_match_id ("FREE"))
+	      else if (lex_match_id (lexer, "FREE"))
 		mx->fmt = FREE;
-	      else if (lex_match_id ("LOWER"))
+	      else if (lex_match_id (lexer, "LOWER"))
 		mx->section = LOWER;
-	      else if (lex_match_id ("UPPER"))
+	      else if (lex_match_id (lexer, "UPPER"))
 		mx->section = UPPER;
-	      else if (lex_match_id ("FULL"))
+	      else if (lex_match_id (lexer, "FULL"))
 		mx->section = FULL;
-	      else if (lex_match_id ("DIAGONAL"))
+	      else if (lex_match_id (lexer, "DIAGONAL"))
 		mx->diag = DIAGONAL;
-	      else if (lex_match_id ("NODIAGONAL"))
+	      else if (lex_match_id (lexer, "NODIAGONAL"))
 		mx->diag = NODIAGONAL;
 	      else 
 		{
-		  lex_error (_("in FORMAT subcommand"));
+		  lex_error (lexer, _("in FORMAT subcommand"));
 		  goto lossage;
 		}
 	    }
 	}
-      else if (lex_match_id ("SPLIT"))
+      else if (lex_match_id (lexer, "SPLIT"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 
 	  if (seen & 2)
 	    {
@@ -307,17 +307,17 @@ cmd_matrix_data (struct dataset *ds)
 	    }
 	  seen |= 2;
 	  
-	  if (token != T_ID)
+	  if (lex_token (lexer) != T_ID)
 	    {
-	      lex_error (_("in SPLIT subcommand"));
+	      lex_error (lexer, _("in SPLIT subcommand"));
 	      goto lossage;
 	    }
 	  
-	  if (dict_lookup_var (dataset_dict (ds), tokid) == NULL
-	      && (lex_look_ahead () == '.' || lex_look_ahead () == '/'))
+	  if (dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL
+	      && (lex_look_ahead (lexer) == '.' || lex_look_ahead (lexer) == '/'))
 	    {
-	      if (!strcasecmp (tokid, "ROWTYPE_")
-                  || !strcasecmp (tokid, "VARNAME_"))
+	      if (!strcasecmp (lex_tokid (lexer), "ROWTYPE_")
+                  || !strcasecmp (lex_tokid (lexer), "VARNAME_"))
 		{
 		  msg (SE, _("Split variable may not be named ROWTYPE_ "
 			     "or VARNAME_."));
@@ -325,9 +325,9 @@ cmd_matrix_data (struct dataset *ds)
 		}
 
 	      mx->single_split = dict_create_var_assert (dataset_dict (ds),
-                                                         tokid, 0);
+                                                         lex_tokid (lexer), 0);
               attach_mxd_aux (mx->single_split, MXD_CONTINUOUS, 0);
-	      lex_get ();
+	      lex_get (lexer);
 
               dict_set_split_vars (dataset_dict (ds), &mx->single_split, 1);
 	    }
@@ -336,7 +336,8 @@ cmd_matrix_data (struct dataset *ds)
 	      struct variable **split;
 	      size_t n;
 
-	      if (!parse_variables (dataset_dict (ds), &split, &n, PV_NO_DUPLICATE))
+	      if (!parse_variables (lexer, dataset_dict (ds), 
+				    &split, &n, PV_NO_DUPLICATE))
 		goto lossage;
 
               dict_set_split_vars (dataset_dict (ds), split, n);
@@ -354,7 +355,7 @@ cmd_matrix_data (struct dataset *ds)
 		if (mv->var_type != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Split variable %s is already another type."),
-			 tokid);
+			 lex_tokid (lexer));
 		    goto lossage;
 		  }
                 var_clear_aux (split[i]);
@@ -362,9 +363,9 @@ cmd_matrix_data (struct dataset *ds)
               }
 	  }
 	}
-      else if (lex_match_id ("FACTORS"))
+      else if (lex_match_id (lexer, "FACTORS"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 	  
 	  if (seen & 4)
 	    {
@@ -373,7 +374,7 @@ cmd_matrix_data (struct dataset *ds)
 	    }
 	  seen |= 4;
 
-	  if (!parse_variables (dataset_dict (ds), &mx->factors, &mx->n_factors,
+	  if (!parse_variables (lexer, dataset_dict (ds), &mx->factors, &mx->n_factors,
                                 PV_NONE))
 	    goto lossage;
 	  
@@ -388,7 +389,7 @@ cmd_matrix_data (struct dataset *ds)
 		if (mv->var_type != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Factor variable %s is already another type."),
-			 tokid);
+			 lex_tokid (lexer));
 		    goto lossage;
 		  }
                 var_clear_aux (v);
@@ -396,9 +397,9 @@ cmd_matrix_data (struct dataset *ds)
 	      }
 	  }
 	}
-      else if (lex_match_id ("CELLS"))
+      else if (lex_match_id (lexer, "CELLS"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 	  
 	  if (mx->cells != -1)
 	    {
@@ -406,18 +407,18 @@ cmd_matrix_data (struct dataset *ds)
 	      goto lossage;
 	    }
 
-	  if (!lex_is_integer () || lex_integer () < 1)
+	  if (!lex_is_integer (lexer) || lex_integer (lexer) < 1)
 	    {
-	      lex_error (_("expecting positive integer"));
+	      lex_error (lexer, _("expecting positive integer"));
 	      goto lossage;
 	    }
 
-	  mx->cells = lex_integer ();
-	  lex_get ();
+	  mx->cells = lex_integer (lexer);
+	  lex_get (lexer);
 	}
-      else if (lex_match_id ("N"))
+      else if (lex_match_id (lexer, "N"))
 	{
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 
 	  if (mx->pop_n != -1)
 	    {
@@ -425,16 +426,16 @@ cmd_matrix_data (struct dataset *ds)
 	      goto lossage;
 	    }
 
-	  if (!lex_is_integer () || lex_integer () < 1)
+	  if (!lex_is_integer (lexer) || lex_integer (lexer) < 1)
 	    {
-	      lex_error (_("expecting positive integer"));
+	      lex_error (lexer, _("expecting positive integer"));
 	      goto lossage;
 	    }
 
-	  mx->pop_n = lex_integer ();
-	  lex_get ();
+	  mx->pop_n = lex_integer (lexer);
+	  lex_get (lexer);
 	}
-      else if (lex_match_id ("CONTENTS"))
+      else if (lex_match_id (lexer, "CONTENTS"))
 	{
 	  int inside_parens = 0;
 	  unsigned collide = 0;
@@ -447,7 +448,7 @@ cmd_matrix_data (struct dataset *ds)
 	    }
 	  seen |= 8;
 
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 	  
 	  {
 	    int i;
@@ -458,7 +459,7 @@ cmd_matrix_data (struct dataset *ds)
 
 	  for (;;)
 	    {
-	      if (lex_match ('('))
+	      if (lex_match (lexer, '('))
 		{
 		  if (inside_parens)
 		    {
@@ -468,7 +469,7 @@ cmd_matrix_data (struct dataset *ds)
 		  inside_parens = 1;
 		  item = LPAREN;
 		}
-	      else if (lex_match (')'))
+	      else if (lex_match (lexer, ')'))
 		{
 		  if (!inside_parens)
 		    {
@@ -488,20 +489,20 @@ cmd_matrix_data (struct dataset *ds)
 		  int content_type;
 		  int collide_index;
 		  
-		  if (token != T_ID)
+		  if (lex_token (lexer) != T_ID)
 		    {
-		      lex_error (_("in CONTENTS subcommand"));
+		      lex_error (lexer, _("in CONTENTS subcommand"));
 		      goto lossage;
 		    }
 
-		  content_type = string_to_content_type (tokid,
+		  content_type = string_to_content_type (lex_tokid (lexer),
 							 &collide_index);
 		  if (content_type == -1)
 		    {
-		      lex_error (_("in CONTENTS subcommand"));
+		      lex_error (lexer, _("in CONTENTS subcommand"));
 		      goto lossage;
 		    }
-		  lex_get ();
+		  lex_get (lexer);
 
 		  if (collide & (1 << collide_index))
 		    {
@@ -516,7 +517,7 @@ cmd_matrix_data (struct dataset *ds)
 		}
 	      mx->contents[mx->n_contents++] = item;
 
-	      if (token == '/' || token == '.')
+	      if (lex_token (lexer) == '/' || lex_token (lexer) == '.')
 		break;
 	    }
 
@@ -529,14 +530,14 @@ cmd_matrix_data (struct dataset *ds)
 	}
       else 
 	{
-	  lex_error (NULL);
+	  lex_error (lexer, NULL);
 	  goto lossage;
 	}
     }
   
-  if (token != '.')
+  if (lex_token (lexer) != '.')
     {
-      lex_error (_("expecting end of command"));
+      lex_error (lexer, _("expecting end of command"));
       goto lossage;
     }
   
@@ -623,7 +624,7 @@ cmd_matrix_data (struct dataset *ds)
       goto lossage;
     }
 
-  mx->reader = dfm_open_reader (fh);
+  mx->reader = dfm_open_reader (fh, lexer);
   if (mx->reader == NULL)
     goto lossage;
 
@@ -651,7 +652,7 @@ lossage:
    as a bit-index) which can be used for determining whether a related
    statistic has already been used. */
 static int
-string_to_content_type (char *s, int *collide)
+string_to_content_type (const char *s, int *collide)
 {
   static const struct
     {

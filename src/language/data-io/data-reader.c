@@ -64,6 +64,7 @@ struct dfm_reader
     FILE *file;                 /* Associated file. */
     size_t pos;                 /* Offset in line of current character. */
     unsigned eof_cnt;           /* # of attempts to advance past EOF. */
+    struct lexer *lexer;        /* The lexer reading the file */
   };
 
 /* Closes reader R opened by dfm_open_reader(). */
@@ -111,7 +112,7 @@ dfm_close_reader (struct dfm_reader *r)
    file between BEGIN FILE and END FILE.  Returns a reader if
    successful, or a null pointer otherwise. */
 struct dfm_reader *
-dfm_open_reader (struct file_handle *fh)
+dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
 {
   struct dfm_reader *r;
   void **rp;
@@ -124,6 +125,7 @@ dfm_open_reader (struct file_handle *fh)
   
   r = xmalloc (sizeof *r);
   r->fh = fh;
+  r->lexer = lexer ;
   ds_init_empty (&r->line);
   ds_init_empty (&r->scratch);
   r->flags = DFM_ADVANCE;
@@ -163,14 +165,14 @@ read_inline_record (struct dfm_reader *r)
     {
       r->flags |= DFM_SAW_BEGIN_DATA;
 
-      while (token == '.')
-        lex_get ();
-      if (!lex_force_match_id ("BEGIN") || !lex_force_match_id ("DATA"))
+      while (lex_token (r->lexer) == '.')
+        lex_get (r->lexer);
+      if (!lex_force_match_id (r->lexer, "BEGIN") || !lex_force_match_id (r->lexer, "DATA"))
         return false;
       getl_set_prompt_style (GETL_PROMPT_DATA);
     }
       
-  if (!lex_get_line_raw ())
+  if (!lex_get_line_raw (r->lexer))
     {
       msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
                  "DATA.  This probably indicates "
@@ -180,14 +182,14 @@ read_inline_record (struct dfm_reader *r)
       return false;
     }
 
-  if (ds_length (lex_entire_line_ds() ) >= 8
-      && !strncasecmp (lex_entire_line (), "end data", 8))
+  if (ds_length (lex_entire_line_ds (r->lexer) ) >= 8
+      && !strncasecmp (lex_entire_line (r->lexer), "end data", 8))
     {
-      lex_discard_line ();
+      lex_discard_line (r->lexer);
       return false;
     }
 
-  ds_assign_string (&r->line, lex_entire_line_ds () );
+  ds_assign_string (&r->line, lex_entire_line_ds (r->lexer) );
 
   return true;
 }
@@ -260,7 +262,7 @@ dfm_eof (struct dfm_reader *r)
     {
       r->flags &= ~DFM_ADVANCE;
 
-      if (r->eof_cnt == 0 && read_record (r)) 
+      if (r->eof_cnt == 0 && read_record (r) ) 
         {
           r->pos = 0;
           return 0; 
@@ -424,7 +426,7 @@ dfm_pop (struct dfm_reader *r)
 
 /* Perform BEGIN DATA...END DATA as a procedure in itself. */
 int
-cmd_begin_data (struct dataset *ds)
+cmd_begin_data (struct lexer *lexer, struct dataset *ds)
 {
   struct dfm_reader *r;
   bool ok;
@@ -437,7 +439,7 @@ cmd_begin_data (struct dataset *ds)
     }
 
   /* Open inline file. */
-  r = dfm_open_reader (fh_inline_file ());
+  r = dfm_open_reader (fh_inline_file (), lexer);
   r->flags |= DFM_SAW_BEGIN_DATA;
 
   /* Input procedure reads from inline file. */

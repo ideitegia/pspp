@@ -45,7 +45,7 @@ static void test_casereader_clone (struct casereader *reader1, size_t case_cnt);
 static void fail_test (const char *message, ...);
 
 int
-cmd_debug_casefile (struct dataset *ds UNUSED) 
+cmd_debug_casefile (struct lexer *lexer, struct dataset *ds UNUSED) 
 {
   static const size_t sizes[] =
     {
@@ -57,15 +57,15 @@ cmd_debug_casefile (struct dataset *ds UNUSED)
   int pattern;
 
   size_max = sizeof sizes / sizeof *sizes;
-  if (lex_match_id ("SMALL")) 
+  if (lex_match_id (lexer, "SMALL")) 
     {
       size_max -= 4;
       case_max = 511; 
     }
   else
     case_max = 4095;
-  if (token != '.')
-    return lex_end_of_command ();
+  if (lex_token (lexer) != '.')
+    return lex_end_of_command (lexer);
     
   for (pattern = 0; pattern < 7; pattern++) 
     {

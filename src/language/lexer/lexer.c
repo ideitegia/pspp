@@ -45,38 +45,34 @@
 #define DUMP_TOKENS 1
 */
 
-
-/* Current token. */
-int token;
+struct lexer 
+{
+  struct string line_buffer;
 
-/* T_POS_NUM, T_NEG_NUM: the token's value. */
-double tokval;
+  bool (*read_line) (struct string *, bool *);
 
-/* T_ID: the identifier. */
-char tokid[LONG_NAME_LEN + 1];
+  int token;      /* Current token. */
+  double tokval;  /* T_POS_NUM, T_NEG_NUM: the token's value. */
 
-/* T_ID, T_STRING: token string value.
-   For T_ID, this is not truncated as is tokid. */
-struct string tokstr;
-
-/* Static variables. */
+  char tokid [LONG_NAME_LEN + 1];   /* T_ID: the identifier. */
 
-/* Pointer to next token in line_buffer. */
-static char *prog;
+  struct string tokstr;   /* T_ID, T_STRING: token string value.
+  			    For T_ID, this is not truncated as is 
+  			    tokid. */
 
-/* True only if this line ends with a terminal dot. */
-static bool dot;
+  char *prog; /* Pointer to next token in line_buffer. */
+  bool dot;   /* True only if this line ends with a terminal dot. */
+  bool eof;   /* True only if the last token returned was T_STOP. */
 
-/* True only if the last token returned was T_STOP. */
-static bool eof;
+  int put_token ; /* If nonzero, next token returned by lex_get().
+  		    Used only in exceptional circumstances. */
+  
+  struct string put_tokstr;
+  double put_tokval;
+};
 
-/* If nonzero, next token returned by lex_get().
-   Used only in exceptional circumstances. */
-static int put_token;
-static struct string put_tokstr;
-static double put_tokval;
 
-static int parse_id (void);
+static int parse_id (struct lexer *);
 
 /* How a string represents its contents. */
 enum string_type 
@@ -87,7 +83,7 @@ enum string_type
     HEX_STRING          /* Hexadecimal digits. */
   };
 
-static int parse_string (enum string_type);
+static int parse_string (struct lexer *, enum string_type);
 
 #if DUMP_TOKENS
 static void dump_token (void);
@@ -95,66 +91,68 @@ static void dump_token (void);
 
 /* Initialization. */
 
-static struct string line_buffer;
-
-static bool (*lex_read_line) (struct string *, bool *);
-
 /* Initializes the lexer. */
-void
-lex_init (bool (*read_line_func) (struct string *, bool *))
+struct lexer *
+lex_create (bool (*read_line_func) (struct string *, bool *))
 {
-  ds_init_empty (&tokstr);
-  ds_init_empty (&put_tokstr);
-  ds_init_empty (&line_buffer);
-  lex_read_line = read_line_func;
+  struct lexer *lexer = xzalloc (sizeof (*lexer));
 
-  if (!lex_get_line ())
-    eof = true;
+  ds_init_empty (&lexer->tokstr);
+  ds_init_empty (&lexer->put_tokstr);
+  ds_init_empty (&lexer->line_buffer);
+  lexer->read_line = read_line_func;
+
+  if (!lex_get_line (lexer))
+    lexer->eof = true;
+
+  return lexer;
 }
 
 void
-lex_done (void)
+lex_destroy (struct lexer *lexer)
 {
-  ds_destroy (&put_tokstr);
-  ds_destroy (&tokstr);
-  ds_destroy (&line_buffer);
+  ds_destroy (&lexer->put_tokstr);
+  ds_destroy (&lexer->tokstr);
+  ds_destroy (&lexer->line_buffer);
+
+  free (lexer);
 }
 
 
 /* Common functions. */
 
-/* Copies put_token, put_tokstr, put_tokval into token, tokstr,
+/* Copies put_token, lexer->put_tokstr, put_tokval into token, tokstr,
    tokval, respectively, and sets tokid appropriately. */
 static void
-restore_token (void) 
+restore_token (struct lexer *lexer) 
 {
-  assert (put_token != 0);
-  token = put_token;
-  ds_assign_string (&tokstr, &put_tokstr);
-  str_copy_trunc (tokid, sizeof tokid, ds_cstr (&tokstr));
-  tokval = put_tokval;
-  put_token = 0;
+  assert (lexer->put_token != 0);
+  lexer->token = lexer->put_token;
+  ds_assign_string (&lexer->tokstr, &lexer->put_tokstr);
+  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
+  lexer->tokval = lexer->put_tokval;
+  lexer->put_token = 0;
 }
 
-/* Copies token, tokstr, tokval into put_token, put_tokstr,
-   put_tokval respectively. */
+/* Copies token, tokstr, lexer->tokval into lexer->put_token, put_tokstr,
+   put_lexer->tokval respectively. */
 static void
-save_token (void) 
+save_token (struct lexer *lexer) 
 {
-  put_token = token;
-  ds_assign_string (&put_tokstr, &tokstr);
-  put_tokval = tokval;
+  lexer->put_token = lexer->token;
+  ds_assign_string (&lexer->put_tokstr, &lexer->tokstr);
+  lexer->put_tokval = lexer->tokval;
 }
 
 /* Parses a single token, setting appropriate global variables to
    indicate the token's attributes. */
 void
-lex_get (void)
+lex_get (struct lexer *lexer)
 {
   /* If a token was pushed ahead, return it. */
-  if (put_token)
+  if (lexer->put_token)
     {
-      restore_token ();
+      restore_token (lexer);
 #if DUMP_TOKENS
       dump_token ();
 #endif
@@ -165,41 +163,41 @@ lex_get (void)
   for (;;)
     {
       /* Skip whitespace. */
-      if (eof) 
+      if (lexer->eof) 
         {
-          token = T_STOP;
+          lexer->token = T_STOP;
           return;
         }
 
       for (;;)
 	{
-	  while (isspace ((unsigned char) *prog))
-	    prog++;
-	  if (*prog)
+	  while (isspace ((unsigned char) *lexer->prog))
+	    lexer->prog++;
+	  if (*lexer->prog)
 	    break;
 
-	  if (dot)
+	  if (lexer->dot)
 	    {
-	      dot = 0;
-	      token = '.';
+	      lexer->dot = 0;
+	      lexer->token = '.';
 #if DUMP_TOKENS
 	      dump_token ();
 #endif
 	      return;
 	    }
-	  else if (!lex_get_line ())
+	  else if (!lex_get_line (lexer))
 	    {
-	      eof = true;
-	      token = T_STOP;
+	      lexer->eof = true;
+	      lexer->token = T_STOP;
 #if DUMP_TOKENS
 	      dump_token ();
 #endif
 	      return;
 	    }
 
-	  if (put_token)
+	  if (lexer->put_token)
 	    {
-              restore_token ();
+              restore_token (lexer);
 #if DUMP_TOKENS
 	      dump_token ();
 #endif
@@ -209,9 +207,9 @@ lex_get (void)
 
 
       /* Actually parse the token. */
-      ds_clear (&tokstr);
+      ds_clear (&lexer->tokstr);
       
-      switch (*prog)
+      switch (*lexer->prog)
 	{
 	case '-': case '.':
 	case '0': case '1': case '2': case '3': case '4':
@@ -226,151 +224,151 @@ lex_get (void)
 	       want it as a number.  When the syntax calls for a `-'
 	       token, lex_negative_to_dash() must be used to break
 	       negative numbers into two tokens. */
-	    if (*prog == '-')
+	    if (*lexer->prog == '-')
 	      {
-		ds_put_char (&tokstr, *prog++);
-		while (isspace ((unsigned char) *prog))
-		  prog++;
+		ds_put_char (&lexer->tokstr, *lexer->prog++);
+		while (isspace ((unsigned char) *lexer->prog))
+		  lexer->prog++;
 
-		if (!isdigit ((unsigned char) *prog) && *prog != '.')
+		if (!isdigit ((unsigned char) *lexer->prog) && *lexer->prog != '.')
 		  {
-		    token = '-';
+		    lexer->token = '-';
 		    break;
 		  }
-                token = T_NEG_NUM;
+                lexer->token = T_NEG_NUM;
 	      }
             else 
-              token = T_POS_NUM;
+              lexer->token = T_POS_NUM;
                 
 	    /* Parse the number, copying it into tokstr. */
-	    while (isdigit ((unsigned char) *prog))
-	      ds_put_char (&tokstr, *prog++);
-	    if (*prog == '.')
+	    while (isdigit ((unsigned char) *lexer->prog))
+	      ds_put_char (&lexer->tokstr, *lexer->prog++);
+	    if (*lexer->prog == '.')
 	      {
-		ds_put_char (&tokstr, *prog++);
-		while (isdigit ((unsigned char) *prog))
-		  ds_put_char (&tokstr, *prog++);
+		ds_put_char (&lexer->tokstr, *lexer->prog++);
+		while (isdigit ((unsigned char) *lexer->prog))
+		  ds_put_char (&lexer->tokstr, *lexer->prog++);
 	      }
-	    if (*prog == 'e' || *prog == 'E')
+	    if (*lexer->prog == 'e' || *lexer->prog == 'E')
 	      {
-		ds_put_char (&tokstr, *prog++);
-		if (*prog == '+' || *prog == '-')
-		  ds_put_char (&tokstr, *prog++);
-		while (isdigit ((unsigned char) *prog))
-		  ds_put_char (&tokstr, *prog++);
+		ds_put_char (&lexer->tokstr, *lexer->prog++);
+		if (*lexer->prog == '+' || *lexer->prog == '-')
+		  ds_put_char (&lexer->tokstr, *lexer->prog++);
+		while (isdigit ((unsigned char) *lexer->prog))
+		  ds_put_char (&lexer->tokstr, *lexer->prog++);
 	      }
 
 	    /* Parse as floating point. */
-	    tokval = strtod (ds_cstr (&tokstr), &tail);
+	    lexer->tokval = strtod (ds_cstr (&lexer->tokstr), &tail);
 	    if (*tail)
 	      {
 		msg (SE, _("%s does not form a valid number."),
-		     ds_cstr (&tokstr));
-		tokval = 0.0;
+		     ds_cstr (&lexer->tokstr));
+		lexer->tokval = 0.0;
 
-		ds_clear (&tokstr);
-		ds_put_char (&tokstr, '0');
+		ds_clear (&lexer->tokstr);
+		ds_put_char (&lexer->tokstr, '0');
 	      }
 
 	    break;
 	  }
 
 	case '\'': case '"':
-	  token = parse_string (CHARACTER_STRING);
+	  lexer->token = parse_string (lexer, CHARACTER_STRING);
 	  break;
 
 	case '(': case ')': case ',': case '=': case '+': case '/':
-	  token = *prog++;
+	  lexer->token = *lexer->prog++;
 	  break;
 
 	case '*':
-	  if (*++prog == '*')
+	  if (*++lexer->prog == '*')
 	    {
-	      prog++;
-	      token = T_EXP;
+	      lexer->prog++;
+	      lexer->token = T_EXP;
 	    }
 	  else
-	    token = '*';
+	    lexer->token = '*';
 	  break;
 
 	case '<':
-	  if (*++prog == '=')
+	  if (*++lexer->prog == '=')
 	    {
-	      prog++;
-	      token = T_LE;
+	      lexer->prog++;
+	      lexer->token = T_LE;
 	    }
-	  else if (*prog == '>')
+	  else if (*lexer->prog == '>')
 	    {
-	      prog++;
-	      token = T_NE;
+	      lexer->prog++;
+	      lexer->token = T_NE;
 	    }
 	  else
-	    token = T_LT;
+	    lexer->token = T_LT;
 	  break;
 
 	case '>':
-	  if (*++prog == '=')
+	  if (*++lexer->prog == '=')
 	    {
-	      prog++;
-	      token = T_GE;
+	      lexer->prog++;
+	      lexer->token = T_GE;
 	    }
 	  else
-	    token = T_GT;
+	    lexer->token = T_GT;
 	  break;
 
 	case '~':
-	  if (*++prog == '=')
+	  if (*++lexer->prog == '=')
 	    {
-	      prog++;
-	      token = T_NE;
+	      lexer->prog++;
+	      lexer->token = T_NE;
 	    }
 	  else
-	    token = T_NOT;
+	    lexer->token = T_NOT;
 	  break;
 
 	case '&':
-	  prog++;
-	  token = T_AND;
+	  lexer->prog++;
+	  lexer->token = T_AND;
 	  break;
 
 	case '|':
-	  prog++;
-	  token = T_OR;
+	  lexer->prog++;
+	  lexer->token = T_OR;
 	  break;
 
         case 'b': case 'B':
-          if (prog[1] == '\'' || prog[1] == '"')
-            token = parse_string (BINARY_STRING);
+          if (lexer->prog[1] == '\'' || lexer->prog[1] == '"')
+            lexer->token = parse_string (lexer, BINARY_STRING);
           else
-            token = parse_id ();
+            lexer->token = parse_id (lexer);
           break;
           
         case 'o': case 'O':
-          if (prog[1] == '\'' || prog[1] == '"')
-            token = parse_string (OCTAL_STRING);
+          if (lexer->prog[1] == '\'' || lexer->prog[1] == '"')
+            lexer->token = parse_string (lexer, OCTAL_STRING);
           else
-            token = parse_id ();
+            lexer->token = parse_id (lexer);
           break;
           
         case 'x': case 'X':
-          if (prog[1] == '\'' || prog[1] == '"')
-            token = parse_string (HEX_STRING);
+          if (lexer->prog[1] == '\'' || lexer->prog[1] == '"')
+            lexer->token = parse_string (lexer, HEX_STRING);
           else
-            token = parse_id ();
+            lexer->token = parse_id (lexer);
           break;
           
 	default:
-          if (lex_is_id1 (*prog)) 
+          if (lex_is_id1 (*lexer->prog)) 
             {
-              token = parse_id ();
+              lexer->token = parse_id (lexer);
               break; 
             }
           else
             {
-              if (isgraph ((unsigned char) *prog))
-                msg (SE, _("Bad character in input: `%c'."), *prog++);
+              if (isgraph ((unsigned char) *lexer->prog))
+                msg (SE, _("Bad character in input: `%c'."), *lexer->prog++);
               else
-                msg (SE, _("Bad character in input: `\\%o'."), *prog++);
+                msg (SE, _("Bad character in input: `\\%o'."), *lexer->prog++);
               continue; 
             }
         }
@@ -386,14 +384,14 @@ lex_get (void)
    tokstr.
    Returns the correct token type. */
 static int
-parse_id (void) 
+parse_id (struct lexer *lexer) 
 {
-  const char *start = prog;
-  prog = lex_skip_identifier (start);
+  const char *start = lexer->prog;
+  lexer->prog = lex_skip_identifier (start);
 
-  ds_put_substring (&tokstr, ss_buffer (start, prog - start));
-  str_copy_trunc (tokid, sizeof tokid, ds_cstr (&tokstr));
-  return lex_id_to_token (ds_cstr (&tokstr), ds_length (&tokstr));
+  ds_put_substring (&lexer->tokstr, ss_buffer (start, lexer->prog - start));
+  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
+  return lex_id_to_token (ds_cstr (&lexer->tokstr), ds_length (&lexer->tokstr));
 }
 
 /* Reports an error to the effect that subcommand SBC may only be
@@ -407,23 +405,23 @@ lex_sbc_only_once (const char *sbc)
 /* Reports an error to the effect that subcommand SBC is
    missing. */
 void
-lex_sbc_missing (const char *sbc) 
+lex_sbc_missing (struct lexer *lexer, const char *sbc) 
 {
-  lex_error (_("missing required subcommand %s"), sbc);
+  lex_error (lexer, _("missing required subcommand %s"), sbc);
 }
 
 /* Prints a syntax error message containing the current token and
    given message MESSAGE (if non-null). */
 void
-lex_error (const char *message, ...)
+lex_error (struct lexer *lexer, const char *message, ...)
 {
   char *token_rep;
   char where[128];
 
-  token_rep = lex_token_representation ();
-  if (token == T_STOP)
+  token_rep = lex_token_representation (lexer);
+  if (lexer->token == T_STOP)
     strcpy (where, "end of file");
-  else if (token == '.')
+  else if (lexer->token == '.')
     strcpy (where, "end of command");
   else
     snprintf (where, sizeof where, "`%s'", token_rep);
@@ -449,11 +447,11 @@ lex_error (const char *message, ...)
    If not, flags a syntax error and returns an error command
    completion code. */
 int
-lex_end_of_command (void)
+lex_end_of_command (struct lexer *lexer)
 {
-  if (token != '.')
+  if (lexer->token != '.')
     {
-      lex_error (_("expecting end of command"));
+      lex_error (lexer, _("expecting end of command"));
       return CMD_FAILURE;
     }
   else
@@ -464,38 +462,38 @@ lex_end_of_command (void)
 
 /* Returns true if the current token is a number. */
 bool
-lex_is_number (void) 
+lex_is_number (struct lexer *lexer) 
 {
-  return token == T_POS_NUM || token == T_NEG_NUM;
+  return lexer->token == T_POS_NUM || lexer->token == T_NEG_NUM;
 }
 
 /* Returns the value of the current token, which must be a
    floating point number. */
 double
-lex_number (void)
+lex_number (struct lexer *lexer)
 {
-  assert (lex_is_number ());
-  return tokval;
+  assert (lex_is_number (lexer));
+  return lexer->tokval;
 }
 
 /* Returns true iff the current token is an integer. */
 bool
-lex_is_integer (void)
+lex_is_integer (struct lexer *lexer)
 {
-  return (lex_is_number ()
-	  && tokval != NOT_LONG
-	  && tokval >= LONG_MIN
-	  && tokval <= LONG_MAX
-	  && floor (tokval) == tokval);
+  return (lex_is_number (lexer)
+	  && lexer->tokval != NOT_LONG
+	  && lexer->tokval >= LONG_MIN
+	  && lexer->tokval <= LONG_MAX
+	  && floor (lexer->tokval) == lexer->tokval);
 }
 
 /* Returns the value of the current token, which must be an
    integer. */
 long
-lex_integer (void)
+lex_integer (struct lexer *lexer)
 {
-  assert (lex_is_integer ());
-  return tokval;
+  assert (lex_is_integer (lexer));
+  return lexer->tokval;
 }
   
 /* Token matching functions. */
@@ -503,11 +501,11 @@ lex_integer (void)
 /* If TOK is the current token, skips it and returns true
    Otherwise, returns false. */
 bool
-lex_match (int t)
+lex_match (struct lexer *lexer, int t)
 {
-  if (token == t)
+  if (lexer->token == t)
     {
-      lex_get ();
+      lex_get (lexer);
       return true;
     }
   else
@@ -519,11 +517,11 @@ lex_match (int t)
    letters.
    Otherwise, returns false. */
 bool
-lex_match_id (const char *s)
+lex_match_id (struct lexer *lexer, const char *s)
 {
-  if (token == T_ID && lex_id_match (s, tokid))
+  if (lexer->token == T_ID && lex_id_match (s, lexer->tokid))
     {
-      lex_get ();
+      lex_get (lexer);
       return true;
     }
   else
@@ -533,11 +531,11 @@ lex_match_id (const char *s)
 /* If the current token is integer N, skips it and returns true.
    Otherwise, returns false. */
 bool
-lex_match_int (int x)
+lex_match_int (struct lexer *lexer, int x)
 {
-  if (lex_is_integer () && lex_integer () == x)
+  if (lex_is_integer (lexer) && lex_integer (lexer) == x)
     {
-      lex_get ();
+      lex_get (lexer);
       return true;
     }
   else
@@ -550,16 +548,16 @@ lex_match_int (int x)
    nonzero.
    Otherwise, reports an error and returns zero. */
 bool
-lex_force_match_id (const char *s)
+lex_force_match_id (struct lexer *lexer, const char *s)
 {
-  if (token == T_ID && lex_id_match (s, tokid))
+  if (lexer->token == T_ID && lex_id_match (s, lexer->tokid))
     {
-      lex_get ();
+      lex_get (lexer);
       return true;
     }
   else
     {
-      lex_error (_("expecting `%s'"), s);
+      lex_error (lexer, _("expecting `%s'"), s);
       return false;
     }
 }
@@ -567,16 +565,16 @@ lex_force_match_id (const char *s)
 /* If the current token is T, skips the token.  Otherwise, reports an
    error and returns from the current function with return value false. */
 bool
-lex_force_match (int t)
+lex_force_match (struct lexer *lexer, int t)
 {
-  if (token == t)
+  if (lexer->token == t)
     {
-      lex_get ();
+      lex_get (lexer);
       return true;
     }
   else
     {
-      lex_error (_("expecting `%s'"), lex_token_name (t));
+      lex_error (lexer, _("expecting `%s'"), lex_token_name (t));
       return false;
     }
 }
@@ -584,13 +582,13 @@ lex_force_match (int t)
 /* If this token is a string, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
-lex_force_string (void)
+lex_force_string (struct lexer *lexer)
 {
-  if (token == T_STRING)
+  if (lexer->token == T_STRING)
     return true;
   else
     {
-      lex_error (_("expecting string"));
+      lex_error (lexer, _("expecting string"));
       return false;
     }
 }
@@ -598,13 +596,13 @@ lex_force_string (void)
 /* If this token is an integer, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
-lex_force_int (void)
+lex_force_int (struct lexer *lexer)
 {
-  if (lex_is_integer ())
+  if (lex_is_integer (lexer))
     return true;
   else
     {
-      lex_error (_("expecting integer"));
+      lex_error (lexer, _("expecting integer"));
       return false;
     }
 }
@@ -612,30 +610,27 @@ lex_force_int (void)
 /* If this token is a number, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
-lex_force_num (void)
+lex_force_num (struct lexer *lexer)
 {
-  if (lex_is_number ())
+  if (lex_is_number (lexer))
     return true;
-  else
-    {
-      lex_error (_("expecting number"));
-      return false;
-    }
+
+  lex_error (lexer, _("expecting number"));
+  return false;
 }
 	
 /* If this token is an identifier, does nothing and returns true.
    Otherwise, reports an error and returns false. */
 bool
-lex_force_id (void)
+lex_force_id (struct lexer *lexer)
 {
-  if (token == T_ID)
+  if (lexer->token == T_ID)
     return true;
-  else
-    {
-      lex_error (_("expecting identifier"));
-      return false;
-    }
+
+  lex_error (lexer, _("expecting identifier"));
+  return false;
 }
+
 /* Weird token functions. */
 
 /* Returns the first character of the next token, except that if the
@@ -645,76 +640,76 @@ lex_force_id (void)
    alphanumeric return value doesn't guarantee an ID token, it could
    also be a reserved-word token. */
 int
-lex_look_ahead (void)
+lex_look_ahead (struct lexer *lexer)
 {
-  if (put_token)
-    return put_token;
+  if (lexer->put_token)
+    return lexer->put_token;
 
   for (;;)
     {
-      if (eof)
+      if (lexer->eof)
         return 0;
 
       for (;;)
 	{
-	  while (isspace ((unsigned char) *prog))
-	    prog++;
-	  if (*prog)
+	  while (isspace ((unsigned char) *lexer->prog))
+	    lexer->prog++;
+	  if (*lexer->prog)
 	    break;
 
-	  if (dot)
+	  if (lexer->dot)
 	    return '.';
-	  else if (!lex_get_line ())
+	  else if (!lex_get_line (lexer))
             return 0;
 
-	  if (put_token) 
-	    return put_token;
+	  if (lexer->put_token) 
+	    return lexer->put_token;
 	}
 
-      if ((toupper ((unsigned char) *prog) == 'X'
-	   || toupper ((unsigned char) *prog) == 'B'
-           || toupper ((unsigned char) *prog) == 'O')
-	  && (prog[1] == '\'' || prog[1] == '"'))
+      if ((toupper ((unsigned char) *lexer->prog) == 'X'
+	   || toupper ((unsigned char) *lexer->prog) == 'B'
+           || toupper ((unsigned char) *lexer->prog) == 'O')
+	  && (lexer->prog[1] == '\'' || lexer->prog[1] == '"'))
 	return '\'';
 
-      return *prog;
+      return *lexer->prog;
     }
 }
 
 /* Makes the current token become the next token to be read; the
    current token is set to T. */
 void
-lex_put_back (int t)
+lex_put_back (struct lexer *lexer, int t)
 {
-  save_token ();
-  token = t;
+  save_token (lexer);
+  lexer->token = t;
 }
 
 /* Makes the current token become the next token to be read; the
    current token is set to the identifier ID. */
 void
-lex_put_back_id (const char *id)
+lex_put_back_id (struct lexer *lexer, const char *id)
 {
   assert (lex_id_to_token (id, strlen (id)) == T_ID);
-  save_token ();
-  token = T_ID;
-  ds_assign_cstr (&tokstr, id);
-  str_copy_trunc (tokid, sizeof tokid, ds_cstr (&tokstr));
+  save_token (lexer);
+  lexer->token = T_ID;
+  ds_assign_cstr (&lexer->tokstr, id);
+  str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
 }
 
 /* Weird line processing functions. */
 
 /* Returns the entire contents of the current line. */
 const char *
-lex_entire_line (void)
+lex_entire_line (struct lexer *lexer)
 {
-  return ds_cstr (&line_buffer);
+  return ds_cstr (&lexer->line_buffer);
 }
 
 const struct string *
-lex_entire_line_ds (void)
+lex_entire_line_ds (struct lexer *lexer)
 {
-  return &line_buffer;
+  return &lexer->line_buffer;
 }
 
 /* As lex_entire_line(), but only returns the part of the current line
@@ -722,22 +717,22 @@ lex_entire_line_ds (void)
    If END_DOT is non-null, stores nonzero into *END_DOT if the line
    ends with a terminal dot, or zero if it doesn't. */
 const char *
-lex_rest_of_line (int *end_dot)
+lex_rest_of_line (struct lexer *lexer, int *end_dot)
 {
   if (end_dot)
-    *end_dot = dot;
-  return prog;
+    *end_dot = lexer->dot;
+  return lexer->prog;
 }
 
 /* Causes the rest of the current input line to be ignored for
    tokenization purposes. */
 void
-lex_discard_line (void)
+lex_discard_line (struct lexer *lexer)
 {
-  ds_cstr (&line_buffer);  /* Ensures ds_end points to something valid */
-  prog = ds_end (&line_buffer);
-  dot = false;
-  put_token = 0;
+  ds_cstr (&lexer->line_buffer);  /* Ensures ds_end points to something valid */
+  lexer->prog = ds_end (&lexer->line_buffer);
+  lexer->dot = false;
+  lexer->put_token = 0;
 }
 
 
@@ -749,15 +744,15 @@ lex_discard_line (void)
    the user doesn't want to finish typing a command that will be
    ignored anyway. */
 void
-lex_discard_rest_of_command (void) 
+lex_discard_rest_of_command (struct lexer *lexer) 
 {
   if (!getl_is_interactive ())
     {
-      while (token != T_STOP && token != '.')
-	lex_get ();
+      while (lexer->token != T_STOP && lexer->token != '.')
+	lex_get (lexer);
     }
   else 
-    lex_discard_line (); 
+    lex_discard_line (lexer); 
 }
 
 /* Weird line reading functions. */
@@ -812,29 +807,29 @@ strip_comments (struct string *string)
 
 /* Reads a line, without performing any preprocessing */
 bool 
-lex_get_line_raw (void)
+lex_get_line_raw (struct lexer *lexer)
 {
   bool dummy;
-  return lex_read_line (&line_buffer, &dummy);
+  return lexer->read_line (&lexer->line_buffer, &dummy);
 }
 
 /* Reads a line for use by the tokenizer, and preprocesses it by
    removing comments, stripping trailing whitespace and the
    terminal dot, and removing leading indentors. */
 bool
-lex_get_line (void)
+lex_get_line (struct lexer *lexer)
 {
-  struct string *line = &line_buffer;
+  struct string *line = &lexer->line_buffer;
   bool interactive;
 
-  if (!lex_read_line (line, &interactive))
+  if (!lexer->read_line (line, &interactive))
     return false;
 
   strip_comments (line);
   ds_rtrim (line, ss_cstr (CC_SPACES));
   
   /* Check for and remove terminal dot. */
-  dot = (ds_chomp (line, get_endcmd ())
+  lexer->dot = (ds_chomp (line, get_endcmd ())
          || (ds_is_empty (line) && get_nulline ()));
   
   /* Strip leading indentors or insert a terminal dot (unless the
@@ -846,10 +841,10 @@ lex_get_line (void)
       if (first == '+' || first == '-')
 	*ds_data (line) = ' ';
       else if (first != EOF && !isspace (first))
-	put_token = '.';
+	lexer->put_token = '.';
     }
 
-  prog = ds_cstr (line);
+  lexer->prog = ds_cstr (line);
 
   return true;
 }
@@ -876,16 +871,16 @@ lex_token_name (int token)
 /* Returns an ASCII representation of the current token as a
    malloc()'d string. */
 char *
-lex_token_representation (void)
+lex_token_representation (struct lexer *lexer)
 {
   char *token_rep;
   
-  switch (token)
+  switch (lexer->token)
     {
     case T_ID:
     case T_POS_NUM:
     case T_NEG_NUM:
-      return ds_xstrdup (&tokstr);
+      return ds_xstrdup (&lexer->tokstr);
       break;
 
     case T_STRING:
@@ -893,14 +888,14 @@ lex_token_representation (void)
 	int hexstring = 0;
 	char *sp, *dp;
 
-	for (sp = ds_cstr (&tokstr); sp < ds_end (&tokstr); sp++)
+	for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
 	  if (!isprint ((unsigned char) *sp))
 	    {
 	      hexstring = 1;
 	      break;
 	    }
 	      
-	token_rep = xmalloc (2 + ds_length (&tokstr) * 2 + 1 + 1);
+	token_rep = xmalloc (2 + ds_length (&lexer->tokstr) * 2 + 1 + 1);
 
 	dp = token_rep;
 	if (hexstring)
@@ -908,14 +903,14 @@ lex_token_representation (void)
 	*dp++ = '\'';
 
 	if (!hexstring)
-	  for (sp = ds_cstr (&tokstr); *sp; )
+	  for (sp = ds_cstr (&lexer->tokstr); *sp; )
 	    {
 	      if (*sp == '\'')
 		*dp++ = '\'';
 	      *dp++ = (unsigned char) *sp++;
 	    }
 	else
-	  for (sp = ds_cstr (&tokstr); sp < ds_end (&tokstr); sp++)
+	  for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
 	    {
 	      *dp++ = (((unsigned char) *sp) >> 4)["0123456789ABCDEF"];
 	      *dp++ = (((unsigned char) *sp) & 15)["0123456789ABCDEF"];
@@ -936,12 +931,12 @@ lex_token_representation (void)
       return xstrdup ("**");
 
     default:
-      if (token >= T_FIRST_KEYWORD && token <= T_LAST_KEYWORD)
-	return xstrdup (keywords [token - T_FIRST_KEYWORD]);
+      if (lexer->token >= T_FIRST_KEYWORD && lexer->token <= T_LAST_KEYWORD)
+	return xstrdup (keywords [lexer->token - T_FIRST_KEYWORD]);
       else
 	{
 	  token_rep = xmalloc (2);
-	  token_rep[0] = token;
+	  token_rep[0] = lexer->token;
 	  token_rep[1] = '\0';
 	  return token_rep;
 	}
@@ -957,44 +952,44 @@ lex_token_representation (void)
    of syntax then this function is called to rip it off of a
    number. */
 void
-lex_negative_to_dash (void)
+lex_negative_to_dash (struct lexer *lexer)
 {
-  if (token == T_NEG_NUM)
+  if (lexer->token == T_NEG_NUM)
     {
-      token = T_POS_NUM;
-      tokval = -tokval;
-      ds_assign_substring (&tokstr, ds_substr (&tokstr, 1, SIZE_MAX));
-      save_token ();
-      token = '-';
+      lexer->token = T_POS_NUM;
+      lexer->tokval = -lexer->tokval;
+      ds_assign_substring (&lexer->tokstr, ds_substr (&lexer->tokstr, 1, SIZE_MAX));
+      save_token (lexer);
+      lexer->token = '-';
     }
 }
    
 /* We're not at eof any more. */
 void
-lex_reset_eof (void)
+lex_reset_eof (struct lexer *lexer)
 {
-  eof = false;
+  lexer->eof = false;
 }
 
 /* Skip a COMMENT command. */
 void
-lex_skip_comment (void)
+lex_skip_comment (struct lexer *lexer)
 {
   for (;;)
     {
-      if (!lex_get_line ()) 
+      if (!lex_get_line (lexer)) 
         {
-          put_token = T_STOP;
-          eof = true;
+          lexer->put_token = T_STOP;
+          lexer->eof = true;
           return;
         }
       
-      if (put_token == '.')
+      if (lexer->put_token == '.')
 	break;
 
-      ds_cstr (&line_buffer); /* Ensures ds_end will point to a valid char */
-      prog = ds_end (&line_buffer);
-      if (dot)
+      ds_cstr (&lexer->line_buffer); /* Ensures ds_end will point to a valid char */
+      lexer->prog = ds_end (&lexer->line_buffer);
+      if (lexer->dot)
 	break;
     }
 }
@@ -1005,7 +1000,8 @@ lex_skip_comment (void)
    hex digits, according to TYPE.  The string is converted to
    characters having the specified values. */
 static void
-convert_numeric_string_to_char_string (enum string_type type)
+convert_numeric_string_to_char_string (struct lexer *lexer, 
+				       enum string_type type)
 {
   const char *base_name;
   int base;
@@ -1035,13 +1031,13 @@ convert_numeric_string_to_char_string (enum string_type type)
       NOT_REACHED ();
     }
   
-  byte_cnt = ds_length (&tokstr) / chars_per_byte;
-  if (ds_length (&tokstr) % chars_per_byte)
+  byte_cnt = ds_length (&lexer->tokstr) / chars_per_byte;
+  if (ds_length (&lexer->tokstr) % chars_per_byte)
     msg (SE, _("String of %s digits has %d characters, which is not a "
 	       "multiple of %d."),
-	 base_name, ds_length (&tokstr), chars_per_byte);
+	 base_name, ds_length (&lexer->tokstr), chars_per_byte);
 
-  p = ds_cstr (&tokstr);
+  p = ds_cstr (&lexer->tokstr);
   for (i = 0; i < byte_cnt; i++)
     {
       int value;
@@ -1071,88 +1067,88 @@ convert_numeric_string_to_char_string (enum string_type type)
 	  value = value * base + v;
 	}
 
-      ds_cstr (&tokstr)[i] = (unsigned char) value;
+      ds_cstr (&lexer->tokstr)[i] = (unsigned char) value;
     }
 
-  ds_truncate (&tokstr, byte_cnt);
+  ds_truncate (&lexer->tokstr, byte_cnt);
 }
 
 /* Parses a string from the input buffer into tokstr.  The input
-   buffer pointer prog must point to the initial single or double
+   buffer pointer lexer->prog must point to the initial single or double
    quote.  TYPE indicates the type of string to be parsed.
    Returns token type. */
 static int 
-parse_string (enum string_type type)
+parse_string (struct lexer *lexer, enum string_type type)
 {
   if (type != CHARACTER_STRING)
-    prog++;
+    lexer->prog++;
 
   /* Accumulate the entire string, joining sections indicated by +
      signs. */
   for (;;)
     {
       /* Single or double quote. */
-      int c = *prog++;
+      int c = *lexer->prog++;
       
       /* Accumulate section. */
       for (;;)
 	{
 	  /* Check end of line. */
-	  if (*prog == '\0')
+	  if (*lexer->prog == '\0')
 	    {
 	      msg (SE, _("Unterminated string constant."));
 	      goto finish;
 	    }
 	  
 	  /* Double quote characters to embed them in strings. */
-	  if (*prog == c)
+	  if (*lexer->prog == c)
 	    {
-	      if (prog[1] == c)
-		prog++;
+	      if (lexer->prog[1] == c)
+		lexer->prog++;
 	      else
 		break;
 	    }
 
-	  ds_put_char (&tokstr, *prog++);
+	  ds_put_char (&lexer->tokstr, *lexer->prog++);
 	}
-      prog++;
+      lexer->prog++;
 
       /* Skip whitespace after final quote mark. */
-      if (eof)
+      if (lexer->eof)
 	break;
       for (;;)
 	{
-	  while (isspace ((unsigned char) *prog))
-	    prog++;
-	  if (*prog)
+	  while (isspace ((unsigned char) *lexer->prog))
+	    lexer->prog++;
+	  if (*lexer->prog)
 	    break;
 
-	  if (dot)
+	  if (lexer->dot)
 	    goto finish;
 
-	  if (!lex_get_line ())
+	  if (!lex_get_line (lexer))
             goto finish;
 	}
 
       /* Skip plus sign. */
-      if (*prog != '+')
+      if (*lexer->prog != '+')
 	break;
-      prog++;
+      lexer->prog++;
 
       /* Skip whitespace after plus sign. */
-      if (eof)
+      if (lexer->eof)
 	break;
       for (;;)
 	{
-	  while (isspace ((unsigned char) *prog))
-	    prog++;
-	  if (*prog)
+	  while (isspace ((unsigned char) *lexer->prog))
+	    lexer->prog++;
+	  if (*lexer->prog)
 	    break;
 
-	  if (dot)
+	  if (lexer->dot)
 	    goto finish;
 
-	  if (!lex_get_line ())
+	  if (!lex_get_line (lexer))
             {
               msg (SE, _("Unexpected end of file in string concatenation."));
               goto finish;
@@ -1160,7 +1156,7 @@ parse_string (enum string_type type)
 	}
 
       /* Ensure that a valid string follows. */
-      if (*prog != '\'' && *prog != '"')
+      if (*lexer->prog != '\'' && *lexer->prog != '"')
 	{
 	  msg (SE, _("String expected following `+'."));
 	  goto finish;
@@ -1171,13 +1167,13 @@ parse_string (enum string_type type)
      into one large string. */
 finish:
   if (type != CHARACTER_STRING)
-    convert_numeric_string_to_char_string (type);
+    convert_numeric_string_to_char_string (lexer, type);
 
-  if (ds_length (&tokstr) > 255)
+  if (ds_length (&lexer->tokstr) > 255)
     {
       msg (SE, _("String exceeds 255 characters in length (%d characters)."),
-	   ds_length (&tokstr));
-      ds_truncate (&tokstr, 255);
+	   ds_length (&lexer->tokstr));
+      ds_truncate (&lexer->tokstr, 255);
     }
       
   return T_STRING;
@@ -1187,7 +1183,7 @@ finish:
 /* Reads one token from the lexer and writes a textual representation
    on stdout for debugging purposes. */
 static void
-dump_token (void)
+dump_token (struct lexer *lexer)
 {
   {
     const char *curfn;
@@ -1198,19 +1194,19 @@ dump_token (void)
       fprintf (stderr, "%s:%d\t", curfn, curln);
   }
   
-  switch (token)
+  switch (lexer->token)
     {
     case T_ID:
-      fprintf (stderr, "ID\t%s\n", tokid);
+      fprintf (stderr, "ID\t%s\n", lexer->tokid);
       break;
 
     case T_POS_NUM:
     case T_NEG_NUM:
-      fprintf (stderr, "NUM\t%f\n", tokval);
+      fprintf (stderr, "NUM\t%f\n", lexer->tokval);
       break;
 
     case T_STRING:
-      fprintf (stderr, "STRING\t\"%s\"\n", ds_cstr (&tokstr));
+      fprintf (stderr, "STRING\t\"%s\"\n", ds_cstr (&lexer->tokstr));
       break;
 
     case T_STOP:
@@ -1226,11 +1222,38 @@ dump_token (void)
       break;
 
     default:
-      if (token >= T_FIRST_KEYWORD && token <= T_LAST_KEYWORD)
+      if (lexer->token >= T_FIRST_KEYWORD && lexer->token <= T_LAST_KEYWORD)
 	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (token));
       else
-	fprintf (stderr, "PUNCT\t%c\n", token);
+	fprintf (stderr, "PUNCT\t%c\n", lexer->token);
       break;
     }
 }
 #endif /* DUMP_TOKENS */
+
+
+/* Token Accessor Functions */
+
+int 
+lex_token (const struct lexer *lexer)
+{
+  return lexer->token;
+}
+
+double 
+lex_tokval (const struct lexer *lexer)
+{
+  return lexer->tokval;
+}
+
+const char *
+lex_tokid (const struct lexer *lexer)
+{
+  return lexer->tokid;
+}
+
+const struct string *
+lex_tokstr (const struct lexer *lexer)
+{
+  return &lexer->tokstr;
+}

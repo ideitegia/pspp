@@ -57,7 +57,7 @@ static trns_proc_func sample_trns_proc;
 static trns_free_func sample_trns_free;
 
 int
-cmd_sample (struct dataset *ds)
+cmd_sample (struct lexer *lexer, struct dataset *ds)
 {
   struct sample_trns *trns;
 
@@ -65,34 +65,34 @@ cmd_sample (struct dataset *ds)
   int a, b;
   unsigned frac;
 
-  if (!lex_force_num ())
+  if (!lex_force_num (lexer))
     return CMD_FAILURE;
-  if (!lex_is_integer ())
+  if (!lex_is_integer (lexer))
     {
       unsigned long min = gsl_rng_min (get_rng ());
       unsigned long max = gsl_rng_max (get_rng ());
 
       type = TYPE_FRACTION;
-      if (tokval <= 0 || tokval >= 1)
+      if (lex_tokval (lexer) <= 0 || lex_tokval (lexer) >= 1)
 	{
 	  msg (SE, _("The sampling factor must be between 0 and 1 "
 		     "exclusive."));
 	  return CMD_FAILURE;
 	}
 	  
-      frac = tokval * (max - min) + min;
+      frac = lex_tokval (lexer) * (max - min) + min;
       a = b = 0;
     }
   else
     {
       type = TYPE_A_FROM_B;
-      a = lex_integer ();
-      lex_get ();
-      if (!lex_force_match_id ("FROM"))
+      a = lex_integer (lexer);
+      lex_get (lexer);
+      if (!lex_force_match_id (lexer, "FROM"))
 	return CMD_FAILURE;
-      if (!lex_force_int ())
+      if (!lex_force_int (lexer))
 	return CMD_FAILURE;
-      b = lex_integer ();
+      b = lex_integer (lexer);
       if (a >= b)
 	{
 	  msg (SE, _("Cannot sample %d observations from a population of "
@@ -103,7 +103,7 @@ cmd_sample (struct dataset *ds)
       
       frac = 0;
     }
-  lex_get ();
+  lex_get (lexer);
 
   trns = xmalloc (sizeof *trns);
   trns->type = type;
@@ -113,7 +113,7 @@ cmd_sample (struct dataset *ds)
   trns->frac = frac;
   add_transformation (ds, sample_trns_proc, sample_trns_free, trns);
 
-  return lex_end_of_command ();
+  return lex_end_of_command (lexer);
 }
 
 /* Executes a SAMPLE transformation. */

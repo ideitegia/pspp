@@ -42,32 +42,32 @@ int change_permissions(const char *file_name, enum PER per);
 
 /* Parses the PERMISSIONS command. */
 int
-cmd_permissions (struct dataset *ds UNUSED)
+cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   char  *fn = 0;
 
-  lex_match ('/');
+  lex_match (lexer, '/');
 
-  if (lex_match_id ("FILE"))
-    lex_match ('=');
+  if (lex_match_id (lexer, "FILE"))
+    lex_match (lexer, '=');
 
-  fn = ds_xstrdup (&tokstr);
-  lex_force_match(T_STRING);
+  fn = ds_xstrdup (lex_tokstr (lexer));
+  lex_force_match (lexer, T_STRING);
 
 
-  lex_match ('/');
+  lex_match (lexer, '/');
   
-  if ( ! lex_match_id ("PERMISSIONS"))
+  if ( ! lex_match_id (lexer, "PERMISSIONS"))
     goto error;
 
-  lex_match('=');
+  lex_match (lexer, '=');
 
-  if ( lex_match_id("READONLY"))
+  if ( lex_match_id (lexer, "READONLY"))
     {
       if ( ! change_permissions(fn, PER_RO ) ) 
 	goto error;
     }
-  else if ( lex_match_id("WRITEABLE"))
+  else if ( lex_match_id (lexer, "WRITEABLE"))
     {
       if ( ! change_permissions(fn, PER_RW ) ) 
 	goto error;

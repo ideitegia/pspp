@@ -916,31 +916,31 @@ subcommand_export (int export, pspp_linreg_cache * c)
 }
 
 static int
-regression_custom_export (struct dataset *ds UNUSED, struct cmd_regression *cmd UNUSED, void *aux UNUSED)
+regression_custom_export (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_regression *cmd UNUSED, void *aux UNUSED)
 {
   /* 0 on failure, 1 on success, 2 on failure that should result in syntax error */
-  if (!lex_force_match ('('))
+  if (!lex_force_match (lexer, '('))
     return 0;
 
-  if (lex_match ('*'))
+  if (lex_match (lexer, '*'))
     model_file = NULL;
   else
     {
-      model_file = fh_parse (FH_REF_FILE);
+      model_file = fh_parse (lexer, FH_REF_FILE);
       if (model_file == NULL)
 	return 0;
     }
 
-  if (!lex_force_match (')'))
+  if (!lex_force_match (lexer, ')'))
     return 0;
 
   return 1;
 }
 
 int
-cmd_regression (struct dataset *ds)
+cmd_regression (struct lexer *lexer, struct dataset *ds)
 {
-  if (!parse_regression (ds, &cmd, NULL))
+  if (!parse_regression (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
   models = xnmalloc (cmd.n_dependent, sizeof *models);
@@ -1004,20 +1004,20 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
 /* Parser for the variables sub command */
 static int
-regression_custom_variables (struct dataset *ds, 
+regression_custom_variables (struct lexer *lexer, struct dataset *ds, 
 			     struct cmd_regression *cmd UNUSED,
 			     void *aux UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
 
-  lex_match ('=');
+  lex_match (lexer, '=');
 
-  if ((token != T_ID || dict_lookup_var (dict, tokid) == NULL)
-      && token != T_ALL)
+  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+      && lex_token (lexer) != T_ALL)
     return 2;
 
 
-  if (!parse_variables (dict, &v_variables, &n_variables, PV_NONE))
+  if (!parse_variables (lexer, dict, &v_variables, &n_variables, PV_NONE))
     {
       free (v_variables);
       return 0;

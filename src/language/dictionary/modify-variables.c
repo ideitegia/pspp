@@ -78,7 +78,7 @@ static bool rearrange_dict (struct dictionary *d,
 
 /* Performs MODIFY VARS command. */
 int
-cmd_modify_vars (struct dataset *ds)
+cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 {
   /* Bits indicated whether we've already encountered a subcommand of
      this type. */
@@ -105,10 +105,10 @@ cmd_modify_vars (struct dataset *ds)
   vm.drop_cnt = 0;
 
   /* Parse each subcommand. */
-  lex_match ('/');
+  lex_match (lexer, '/');
   for (;;)
     {
-      if (lex_match_id ("REORDER"))
+      if (lex_match_id (lexer, "REORDER"))
 	{
 	  struct variable **v = NULL;
 	  size_t nv = 0;
@@ -120,21 +120,21 @@ cmd_modify_vars (struct dataset *ds)
 	    }
 	  already_encountered |= 1;
 
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 	  do
 	    {
               struct ordering ordering;
 	      size_t prev_nv = nv;
 
 	      ordering.forward = ordering.positional = 1;
-	      if (lex_match_id ("FORWARD"));
-	      else if (lex_match_id ("BACKWARD"))
+	      if (lex_match_id (lexer, "FORWARD"));
+	      else if (lex_match_id (lexer, "BACKWARD"))
 		ordering.forward = 0;
-	      if (lex_match_id ("POSITIONAL"));
-	      else if (lex_match_id ("ALPHA"))
+	      if (lex_match_id (lexer, "POSITIONAL"));
+	      else if (lex_match_id (lexer, "ALPHA"))
 		ordering.positional = 0;
 
-	      if (lex_match (T_ALL) || token == '/' || token == '.')
+	      if (lex_match (lexer, T_ALL) || lex_token (lexer) == '/' || lex_token (lexer) == '.')
 		{
 		  if (prev_nv != 0)
 		    {
@@ -146,19 +146,19 @@ cmd_modify_vars (struct dataset *ds)
 		}
 	      else
 		{
-		  if (!lex_match ('('))
+		  if (!lex_match (lexer, '('))
 		    {
 		      msg (SE, _("`(' expected on REORDER subcommand."));
 		      free (v);
 		      goto done;
 		    }
-		  if (!parse_variables (dataset_dict (ds), &v, &nv,
+		  if (!parse_variables (lexer, dataset_dict (ds), &v, &nv,
 					PV_APPEND | PV_NO_DUPLICATE))
 		    {
 		      free (v);
 		      goto done;
 		    }
-		  if (!lex_match (')'))
+		  if (!lex_match (lexer, ')'))
 		    {
 		      msg (SE, _("`)' expected following variable names on "
 			   "REORDER subcommand."));
@@ -169,12 +169,12 @@ cmd_modify_vars (struct dataset *ds)
 	      sort (&v[prev_nv], nv - prev_nv, sizeof *v,
                     compare_variables_given_ordering, &ordering);
 	    }
-	  while (token != '/' && token != '.');
+	  while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
 
 	  vm.reorder_vars = v;
           vm.reorder_cnt = nv;
 	}
-      else if (lex_match_id ("RENAME"))
+      else if (lex_match_id (lexer, "RENAME"))
 	{
 	  if (already_encountered & 2)
 	    {
@@ -183,27 +183,29 @@ cmd_modify_vars (struct dataset *ds)
 	    }
 	  already_encountered |= 2;
 
-	  lex_match ('=');
+	  lex_match (lexer, '=');
 	  do
 	    {
 	      size_t prev_nv_1 = vm.rename_cnt;
 	      size_t prev_nv_2 = vm.rename_cnt;
 
-	      if (!lex_match ('('))
+	      if (!lex_match (lexer, '('))
 		{
 		  msg (SE, _("`(' expected on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_variables (dataset_dict (ds), &vm.rename_vars, &vm.rename_cnt,
+	      if (!parse_variables (lexer, dataset_dict (ds), 
+				    &vm.rename_vars, &vm.rename_cnt,
 				    PV_APPEND | PV_NO_DUPLICATE))
 		goto done;
-	      if (!lex_match ('='))
+	      if (!lex_match (lexer, '='))
 		{
 		  msg (SE, _("`=' expected between lists of new and old variable "
 		       "names on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_DATA_LIST_vars (&vm.new_names, &prev_nv_1, PV_APPEND))
+	      if (!parse_DATA_LIST_vars (lexer, &vm.new_names, 
+					 &prev_nv_1, PV_APPEND))
 		goto done;
 	      if (prev_nv_1 != vm.rename_cnt)
 		{
@@ -216,16 +218,16 @@ cmd_modify_vars (struct dataset *ds)
 		  vm.new_names = NULL;
 		  goto done;
 		}
-	      if (!lex_match (')'))
+	      if (!lex_match (lexer, ')'))
 		{
 		  msg (SE, _("`)' expected after variable lists on RENAME "
 		       "subcommand."));
 		  goto done;
 		}
 	    }
-	  while (token != '.' && token != '/');
+	  while (lex_token (lexer) != '.' && lex_token (lexer) != '/');
 	}
-      else if (lex_match_id ("KEEP"))
+      else if (lex_match_id (lexer, "KEEP"))
 	{
 	  struct variable **keep_vars, **all_vars, **drop_vars;
 	  size_t keep_cnt, all_cnt, drop_cnt;
@@ -238,8 +240,8 @@ cmd_modify_vars (struct dataset *ds)
 	    }
 	  already_encountered |= 4;
 
-	  lex_match ('=');
-	  if (!parse_variables (dataset_dict (ds), &keep_vars, &keep_cnt, PV_NONE))
+	  lex_match (lexer, '=');
+	  if (!parse_variables (lexer, dataset_dict (ds), &keep_vars, &keep_cnt, PV_NONE))
 	    goto done;
 
 	  /* Transform the list of variables to keep into a list of
@@ -268,7 +270,7 @@ cmd_modify_vars (struct dataset *ds)
           vm.drop_vars = drop_vars;
           vm.drop_cnt = drop_cnt;
 	}
-      else if (lex_match_id ("DROP"))
+      else if (lex_match_id (lexer, "DROP"))
 	{
 	  struct variable **drop_vars;
 	  size_t drop_cnt;
@@ -282,13 +284,13 @@ cmd_modify_vars (struct dataset *ds)
 	    }
 	  already_encountered |= 4;
 
-	  lex_match ('=');
-	  if (!parse_variables (dataset_dict (ds), &drop_vars, &drop_cnt, PV_NONE))
+	  lex_match (lexer, '=');
+	  if (!parse_variables (lexer, dataset_dict (ds), &drop_vars, &drop_cnt, PV_NONE))
 	    goto done;
           vm.drop_vars = drop_vars;
           vm.drop_cnt = drop_cnt;
 	}
-      else if (lex_match_id ("MAP"))
+      else if (lex_match_id (lexer, "MAP"))
 	{
           struct dictionary *temp = dict_clone (dataset_dict (ds));
           int success = rearrange_dict (temp, &vm);
@@ -300,21 +302,21 @@ cmd_modify_vars (struct dataset *ds)
 	}
       else
 	{
-	  if (token == T_ID)
-	    msg (SE, _("Unrecognized subcommand name `%s'."), tokid);
+	  if (lex_token (lexer) == T_ID)
+	    msg (SE, _("Unrecognized subcommand name `%s'."), lex_tokid (lexer));
 	  else
 	    msg (SE, _("Subcommand name expected."));
 	  goto done;
 	}
 
-      if (token == '.')
+      if (lex_token (lexer) == '.')
 	break;
-      if (token != '/')
+      if (lex_token (lexer) != '/')
 	{
 	  msg (SE, _("`/' or `.' expected."));
 	  goto done;
 	}
-      lex_get ();
+      lex_get (lexer);
     }
 
   if (already_encountered & (1 | 4))

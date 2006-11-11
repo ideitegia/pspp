@@ -24,9 +24,12 @@
 
 #include <data/format.h>
 
-bool parse_abstract_format_specifier (char type[FMT_TYPE_LEN_MAX + 1],
+
+struct lexer;
+
+bool parse_abstract_format_specifier (struct lexer *, char type[FMT_TYPE_LEN_MAX + 1],
                                       int *width, int *decimals);
-bool parse_format_specifier (struct fmt_spec *);
-bool parse_format_specifier_name (enum fmt_type *type);
+bool parse_format_specifier (struct lexer *, struct fmt_spec *);
+bool parse_format_specifier_name (struct lexer *, enum fmt_type *type);
 
 #endif /* language/lexer/format-parser.h. */
