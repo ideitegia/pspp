@@ -1026,7 +1026,7 @@ output_bcd_integer (double number, int digits, char *output)
     }
   else 
     {
-      memset (output, 0, digits);
+      memset (output, 0, DIV_RND_UP (digits, 2));
       return false; 
     }
 }
