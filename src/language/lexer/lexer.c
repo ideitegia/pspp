@@ -111,11 +111,14 @@ lex_create (bool (*read_line_func) (struct string *, bool *))
 void
 lex_destroy (struct lexer *lexer)
 {
-  ds_destroy (&lexer->put_tokstr);
-  ds_destroy (&lexer->tokstr);
-  ds_destroy (&lexer->line_buffer);
+  if ( NULL != lexer ) 
+    {
+      ds_destroy (&lexer->put_tokstr);
+      ds_destroy (&lexer->tokstr);
+      ds_destroy (&lexer->line_buffer);
 
-  free (lexer);
+      free (lexer);
+    }
 }
 
 

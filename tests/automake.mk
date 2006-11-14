@@ -89,6 +89,7 @@ TESTS = \
 	tests/bugs/match-files-scratch.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/random.sh \
+	tests/bugs/signals.sh \
 	tests/bugs/t-test-with-temp.sh \
 	tests/bugs/t-test.sh \
 	tests/bugs/t-test-alpha.sh \
