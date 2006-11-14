@@ -700,8 +700,8 @@ pool_fopen (struct pool *pool, const char *file_name, const char *mode)
 
   assert (pool && file_name && mode);
   f = fopen (file_name, mode);
-  if (f == NULL)
-    return NULL;
+  if (f != NULL)
+    pool_attach_file (pool, f);
 
   return f;
 }

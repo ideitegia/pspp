@@ -83,6 +83,8 @@ readln_uninitialize (void)
 #if HAVE_READLINE && unix
   if (history_file != NULL)
     write_history (history_file);
+  clear_history ();
+  free (history_file);
 #endif
 }
 
@@ -157,7 +159,7 @@ readln_read (struct string *line, enum getl_prompt_style style)
 #endif
 }
 
-#ifdef HAVE_READLINE
+#if HAVE_READLINE
 static char *command_generator (const char *text, int state);
 
 /* Returns a set of command name completions for TEXT.

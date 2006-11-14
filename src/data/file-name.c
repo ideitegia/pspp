@@ -146,7 +146,7 @@ fn_tilde_expand (const char *input)
           pwd = getpwnam (ds_cstr (&user_name));
           if (pwd != NULL && pwd->pw_dir[0] != '\0')
             {
-              home = pwd->pw_dir;
+              home = xstrdup (pwd->pw_dir);
               remainder = input + 1 + ds_length (&user_name);
             }
           ds_destroy (&user_name);

@@ -25,6 +25,7 @@
 #include <data/casefile.h>
 #include <data/casefile-private.h>
 #include <data/case.h>
+#include <libpspp/compiler.h>
 
 
 struct class_flexifile

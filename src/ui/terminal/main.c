@@ -194,6 +194,7 @@ terminate (bool success)
 
       outp_done ();
       msg_ui_done ();
+      fmt_done ();
     }
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }

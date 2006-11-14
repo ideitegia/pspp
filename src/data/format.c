@@ -60,10 +60,15 @@ fmt_init (void)
     }
 }
 
+static struct fmt_number_style *styles[FMT_NUMBER_OF_FORMATS];
+
 /* Deinitialize the format module. */
 void
 fmt_done (void)
 {
+  int t;
+  for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
+	  fmt_number_style_destroy (styles[t]);
 }
 
 /* Returns an input format specification with type TYPE, width W,
@@ -745,7 +750,6 @@ max_digits_for_bytes (int bytes)
   return map[bytes - 1];
 }
 
-static struct fmt_number_style *styles[FMT_NUMBER_OF_FORMATS];
 
 /* Creates and returns a new struct fmt_number_style,
    initializing all affixes to empty strings. */
