@@ -1,3 +1,7 @@
+Thu Nov 16 20:46:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* main.c: Connect debugger on errors.
+
 Tue Nov  7 20:54:32 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* command-line.c msg-ui.c msg-ui.h main.c: Added an -e

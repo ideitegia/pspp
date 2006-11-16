@@ -22,6 +22,7 @@
 #include <signal.h>
 #include <stdio.h>
 
+#include <ui/debugger.h>
 #include "command-line.h"
 #include "msg-ui.h"
 #include "progname.h"
@@ -108,7 +109,7 @@ main (int argc, char **argv)
         {
           int result = cmd_parse (the_lexer, the_dataset, 
 				  proc_has_source (the_dataset)
-                                  ? CMD_STATE_DATA : CMD_STATE_INITIAL);
+                                 ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
           if (result == CMD_CASCADING_FAILURE && !getl_is_interactive ())
@@ -153,6 +154,9 @@ fpu_init (void)
 void 
 bug_handler(int sig)
 {
+#if DEBUGGING
+  connect_debugger ();
+#endif
   switch (sig) 
     {
     case SIGABRT:

@@ -1,3 +1,7 @@
+Thu Nov 16 20:44:58 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* debugger.c debugger.h New files.
+
 Mon Jul 17 18:22:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* flexifile.c flexifile.h: New files. Implementations of casefiles.
