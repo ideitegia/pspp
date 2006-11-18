@@ -64,45 +64,9 @@ begin data.
 7.9
 8
 end data.
-print outfile='wkday-out.out'/x(wkday2).
-print outfile='wkday-out.out'/x(wkday3).
-print outfile='wkday-out.out'/x(wkday4).
-print outfile='wkday-out.out'/x(wkday5).
-print outfile='wkday-out.out'/x(wkday6).
-print outfile='wkday-out.out'/x(wkday7).
-print outfile='wkday-out.out'/x(wkday8).
-print outfile='wkday-out.out'/x(wkday9).
-print outfile='wkday-out.out'/x(wkday10).
-print outfile='wkday-out.out'/x(wkday11).
-print outfile='wkday-out.out'/x(wkday12).
-print outfile='wkday-out.out'/x(wkday13).
-print outfile='wkday-out.out'/x(wkday14).
-print outfile='wkday-out.out'/x(wkday15).
-print outfile='wkday-out.out'/x(wkday16).
-print outfile='wkday-out.out'/x(wkday17).
-print outfile='wkday-out.out'/x(wkday18).
-print outfile='wkday-out.out'/x(wkday19).
-print outfile='wkday-out.out'/x(wkday20).
-print outfile='wkday-out.out'/x(wkday21).
-print outfile='wkday-out.out'/x(wkday22).
-print outfile='wkday-out.out'/x(wkday23).
-print outfile='wkday-out.out'/x(wkday24).
-print outfile='wkday-out.out'/x(wkday25).
-print outfile='wkday-out.out'/x(wkday26).
-print outfile='wkday-out.out'/x(wkday27).
-print outfile='wkday-out.out'/x(wkday28).
-print outfile='wkday-out.out'/x(wkday29).
-print outfile='wkday-out.out'/x(wkday30).
-print outfile='wkday-out.out'/x(wkday31).
-print outfile='wkday-out.out'/x(wkday32).
-print outfile='wkday-out.out'/x(wkday33).
-print outfile='wkday-out.out'/x(wkday34).
-print outfile='wkday-out.out'/x(wkday35).
-print outfile='wkday-out.out'/x(wkday36).
-print outfile='wkday-out.out'/x(wkday37).
-print outfile='wkday-out.out'/x(wkday38).
-print outfile='wkday-out.out'/x(wkday39).
-print outfile='wkday-out.out'/x(wkday40).
+do repeat format=wkday2 to wkday40.
+print outfile='wkday-out.out'/x(format).
+end repeat.
 execute.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
