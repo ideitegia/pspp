@@ -61,8 +61,8 @@
 #endif
 
 /* This attribute indicates that the function does not examine
-   any values except its arguments, and have no effects except
-   the return value.  A function that has pointer arguments and
+   any values except its arguments, and has no effects except the
+   return value.  A function that has pointer arguments and
    examines the data pointed to must _not_ be declared
    `const'.  */
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5)
