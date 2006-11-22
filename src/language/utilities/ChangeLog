@@ -1,3 +1,12 @@
+Sun Nov 19 09:21:39 2006  Ben Pfaff  <blp@gnu.org>
+
+	* set.q: Add RIB, RRB settings to control binary formats used by
+	data_out.
+	(cmd_set) Implement SET RIB, RRB.
+	(show_rib) New function.
+	(show_rrb) New function.
+	(static var show_table[]) Add SHOW RIB, RRB.
+
 Sat Nov  4 16:05:47 2006  Ben Pfaff  <blp@gnu.org>
 
 	* set.q: Add WIB, WRB settings to control binary formats used by

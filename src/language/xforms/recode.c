@@ -598,17 +598,10 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
         case MAP_CONVERT:
           {
             union value uv;
-            struct data_in di;
 
-            di.s = value;
-            di.e = value + width;
-            di.v = &uv;
-            di.flags = DI_IGNORE_ERROR;
-            di.f1 = di.f2 = 0;
-            di.format.type = FMT_F;
-            di.format.w = width;
-            di.format.d = 0;
-            match = data_in (&di);
+            msg_disable ();
+            match = data_in (ss_buffer (value, width), FMT_F, 0, 0, &uv, 0);
+            msg_enable ();
             out->value.f = uv.f;
             break;
           }

@@ -314,7 +314,6 @@ output_date (const union value *input, const struct fmt_spec *format,
              char *output)
 {
   double number = input->f;
-  double magnitude = fabs (number);
   int year, month, day, yday;
 
   const char *template = fmt_date_template (format->type);
@@ -334,6 +333,7 @@ output_date (const union value *input, const struct fmt_spec *format,
         goto missing;
       calendar_offset_to_gregorian (number / 60. / 60. / 24.,
                                     &year, &month, &day, &yday);
+      number = fmod (number, 60. * 60. * 24.);
     }
   else
     year = month = day = yday = 0;
@@ -392,33 +392,33 @@ output_date (const union value *input, const struct fmt_spec *format,
           p += sprintf (p, "%2d", (yday - 1) / 7 + 1);
           break;
         case 'D':
-          if (number < 0)
+          if (number < 0) 
             *p++ = '-';
-          p += sprintf (p, "%.0f", floor (magnitude / 60. / 60. / 24.));
-          break;
-        case 'h':
-          if (number < 0)
-            *p++ = '-';
-          p += sprintf (p, "%.0f", floor (magnitude / 60. / 60.));
+          number = fabs (number); 
+          p += sprintf (p, "%*.0f", count, floor (number / 60. / 60. / 24.));
+          number = fmod (number, 60. * 60. * 24.);
           break;
         case 'H':
-          p += sprintf (p, "%02d",
-                        (int) fmod (floor (magnitude / 60. / 60.), 24.));
+          if (number < 0)
+            *p++ = '-';
+          number = fabs (number); 
+          p += sprintf (p, "%0*.0f", count, floor (number / 60. / 60.));
+          number = fmod (number, 60. * 60.);
           break;
         case 'M':
-          p += sprintf (p, "%02d",
-                        (int) fmod (floor (magnitude / 60.), 60.));
+          p += sprintf (p, "%02d", (int) floor (number / 60.));
+          number = fmod (number, 60.);
           excess_width = format->w - (p - tmp);
           if (excess_width < 0) 
             goto overflow;
           if (excess_width == 3 || excess_width == 4
               || (excess_width >= 5 && format->d == 0))
-            p += sprintf (p, ":%02d", (int) fmod (magnitude, 60.));
+            p += sprintf (p, ":%02d", (int) number);
           else if (excess_width >= 5)
             {
               int d = MIN (format->d, excess_width - 4);
               int w = d + 3;
-              sprintf (p, ":%0*.*f", w, d, fmod (magnitude, 60.));
+              sprintf (p, ":%0*.*f", w, d, number);
               if (fmt_decimal_char (FMT_F) != '.') 
                 {
                   char *cp = strchr (p, '.');
@@ -427,6 +427,9 @@ output_date (const union value *input, const struct fmt_spec *format,
                 }
               p += strlen (p);
             }
+          break;
+        case 'X':
+          *p++ = ' ';
           break;
         default:
           assert (count == 1);
@@ -658,9 +661,7 @@ output_scientific (double number, const struct fmt_spec *format,
      decimal point without any digits following; that's what the
      # flag does in the call to sprintf, below.) */
   fraction_width = MIN (MIN (format->d + 1, format->w - width), 16);
-  if (format->type != FMT_E
-      && (fraction_width == 1
-          || format->w - width + (style->grouping == 0 && number < 0) <= 2))
+  if (format->type != FMT_E && fraction_width == 1)
     fraction_width = 0; 
   width += fraction_width;
 

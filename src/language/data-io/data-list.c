@@ -469,6 +469,12 @@ parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool,
               || !fmt_check_input (&input)
               || !lex_force_match (lexer, ')')) 
             return NULL;
+
+          /* As a special case, N format is treated as F format
+             for free-field input. */
+          if (input.type == FMT_N)
+            input.type = FMT_F;
+          
 	  output = fmt_for_output_from_input (&input);
 	}
       else
@@ -672,19 +678,9 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
       line = dfm_get_record (dls->reader);
 
       ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs) 
-        {
-          struct data_in di;
-
-          data_in_finite_line (&di, ss_data (line), ss_length (line),
-                               spec->first_column,
-                               spec->first_column + spec->input.w - 1);
-          di.v = case_data_rw (c, spec->fv);
-          di.flags = DI_IMPLIED_DECIMALS;
-          di.f1 = spec->first_column;
-          di.format = spec->input;
-
-          data_in (&di); 
-        }
+        data_in (ss_substr (line, spec->first_column - 1, spec->input.w),
+                 spec->input.type, spec->input.d, spec->first_column,
+                 case_data_rw (c, spec->fv), fmt_var_width (&spec->input));
 
       dfm_forward_record (dls->reader);
     }
@@ -703,7 +699,6 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
   ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
     {
       struct substring field;
-      struct data_in di;
       
       /* Cut out a field and read in a new record if necessary. */
       while (!cut_field (dls, &field))
@@ -719,13 +714,9 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 	    }
 	}
       
-      di.s = ss_data (field);
-      di.e = ss_end (field);
-      di.v = case_data_rw (c, spec->fv);
-      di.flags = 0;
-      di.f1 = dfm_get_column (dls->reader, ss_data (field));
-      di.format = spec->input;
-      data_in (&di);
+      data_in (field, spec->input.type, 0,
+               dfm_get_column (dls->reader, ss_data (field)),
+               case_data_rw (c, spec->fv), fmt_var_width (&spec->input));
     }
   return true;
 }
@@ -744,7 +735,6 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
   ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
     {
       struct substring field;
-      struct data_in di;
 
       if (!cut_field (dls, &field))
 	{
@@ -764,13 +754,9 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 	  break;
 	}
       
-      di.s = ss_data (field);
-      di.e = ss_end (field);
-      di.v = case_data_rw (c, spec->fv);
-      di.flags = 0;
-      di.f1 = dfm_get_column (dls->reader, ss_data (field));
-      di.format = spec->input;
-      data_in (&di);
+      data_in (field, spec->input.type, 0,
+               dfm_get_column (dls->reader, ss_data (field)),
+               case_data_rw (c, spec->fv), fmt_var_width (&spec->input));
     }
 
   dfm_forward_record (dls->reader);

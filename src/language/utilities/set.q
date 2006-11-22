@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <data/data-in.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>
 #include <data/format.h>
@@ -102,6 +103,8 @@ int tgetnum (const char *);
      printback=prtbck:on/off;
      prompt=string;
      results=res:on/off/terminal/listing/both/on/none/off;
+     rib=rib:msbfirst/lsbfirst/vax/native;
+     rrb=rrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
      safer=safe:on;
      scompression=scompress:on/off;
      scripttab=string "x==1" "one character long";
@@ -177,6 +180,10 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     set_mxwarns (cmd.n_mxwarns[0]);
   if (cmd.sbc_nulline)
     set_nulline (cmd.null == STC_ON);
+  if (cmd.sbc_rib)
+    data_in_set_integer_format (stc_to_integer_format (cmd.rib));
+  if (cmd.sbc_rrb)
+    data_in_set_float_format (stc_to_float_format (cmd.rrb));
   if (cmd.sbc_safer)
     set_safer_mode ();
   if (cmd.sbc_scompression)
@@ -731,6 +738,18 @@ show_float_format (const char *setting, enum float_format float_format)
 }
 
 static void
+show_rib (const struct dataset *ds UNUSED) 
+{
+  show_integer_format ("RIB", data_in_get_integer_format ());
+}
+
+static void
+show_rrb (const struct dataset *ds UNUSED) 
+{
+  show_float_format ("RRB", data_in_get_float_format ());
+}
+
+static void
 show_scompression (const struct dataset *ds UNUSED) 
 {
   if (get_scompression ())
@@ -798,6 +817,8 @@ const struct show_sbc show_table[] =
     {"MXERRS", show_mxerrs},
     {"MXLOOPS", show_mxloops},
     {"MXWARNS", show_mxwarns},
+    {"RIB", show_rib},
+    {"RRB", show_rrb},
     {"SCOMPRESSION", show_scompression},
     {"UNDEFINED", show_undefined},
     {"WEIGHT", show_weight},

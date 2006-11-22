@@ -865,17 +865,9 @@ static int
       s = ss_buffer (start, ss_data (p) - start);
 
       if (is_num)
-	{
-	  struct data_in di;
-
-	  di.s = ss_data (s);
-	  di.e = ss_end (s);
-	  di.v = (union value *) &token->number;
-	  di.f1 = dfm_get_column (reader, di.s);
-	  di.format = fmt_for_output (FMT_F, token->length, 0);
-
-	  data_in (&di);
-	}
+        data_in (s, FMT_F, 0,
+                 dfm_get_column (reader, ss_data (s)),
+                 (union value *) &token->number, 0);
       else
 	token->type = MSTR;
     }

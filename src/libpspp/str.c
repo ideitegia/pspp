@@ -529,6 +529,36 @@ ss_get_chars (struct substring *ss, size_t cnt, struct substring *out)
   return cnt;
 }
 
+/* Parses and removes an optionally signed decimal integer from
+   the beginning of SS.  Returns 0 if an error occurred,
+   otherwise the number of characters removed from SS.  Stores
+   the integer's value into *VALUE. */
+size_t
+ss_get_long (struct substring *ss, long *value) 
+{
+  char tmp[64];
+  size_t length;
+
+  length = ss_span (*ss, ss_cstr ("+-"));
+  length += ss_span (ss_substr (*ss, length, SIZE_MAX), ss_cstr (CC_DIGITS));
+  if (length > 0 && length < sizeof tmp) 
+    {
+      char *tail;
+
+      memcpy (tmp, ss_data (*ss), length);
+      tmp[length] = '\0';
+
+      *value = strtol (tmp, &tail, 10);
+      if (tail - tmp == length) 
+        {
+          ss_advance (ss, length);
+          return length;
+        }
+    }
+  *value = 0;
+  return 0;
+}
+
 /* Returns true if SS is empty (contains no characters),
    false otherwise. */
 bool
@@ -625,6 +655,34 @@ ss_compare (struct substring a, struct substring b)
   if (retval == 0)
     retval = a.length < b.length ? -1 : a.length > b.length;
   return retval;
+}
+
+/* Compares A and B case-insensitively and returns a
+   strcmp()-type comparison result. */
+int
+ss_compare_case (struct substring a, struct substring b)
+{
+  int retval = memcasecmp (a.string, b.string, MIN (a.length, b.length));
+  if (retval == 0)
+    retval = a.length < b.length ? -1 : a.length > b.length;
+  return retval;
+}
+
+/* Compares A and B and returns true if their contents are
+   identical, false otherwise. */
+int
+ss_equals (struct substring a, struct substring b)
+{
+  return a.length == b.length && !memcmp (a.string, b.string, a.length);
+}
+
+/* Compares A and B and returns true if their contents are
+   identical except possibly for case differences, false
+   otherwise. */
+int
+ss_equals_case (struct substring a, struct substring b)
+{
+  return a.length == b.length && !memcasecmp (a.string, b.string, a.length);
 }
 
 /* Returns the position in SS that the character at P occupies.

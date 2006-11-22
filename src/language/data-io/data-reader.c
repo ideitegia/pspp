@@ -210,6 +210,7 @@ read_file_record (struct dfm_reader *r)
                  fh_get_name (r->fh), strerror (errno));
           return false;
         }
+      ds_chomp (&r->line, '\n');
     }
   else if (fh_get_mode (r->fh) == FH_MODE_BINARY)
     {

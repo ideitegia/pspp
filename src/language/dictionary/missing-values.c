@@ -84,7 +84,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   double x, y;
                   bool ok;
 
-                  if (!parse_num_range (lexer, &x, &y, &v[0]->print))
+                  if (!parse_num_range (lexer, &x, &y, &v[0]->print.type))
                     goto done;
                   
                   ok = (x == y

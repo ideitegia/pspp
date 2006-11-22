@@ -31,29 +31,30 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-static bool parse_number (struct lexer *, double *, const struct fmt_spec *);
+static bool parse_number (struct lexer *, double *, const enum fmt_type *);
 
 /* Parses and stores a numeric value, or a range of the form "x
    THRU y".  Open-ended ranges may be specified as "LO(WEST) THRU
    y" or "x THRU HI(GHEST)".  Sets *X and *Y to the range or the
    value and returns success.
 
-   Numeric values are always accepted.  If F is nonnull, then
-   string values are also accepted, and converted to numeric
-   values using the specified format. */
+   Numeric values are always accepted.  If FORMAT is nonnull,
+   then string values are also accepted, and converted to numeric
+   values using *FORMAT. */
 bool
-parse_num_range (struct lexer *lexer, double *x, double *y, const struct fmt_spec *f) 
+parse_num_range (struct lexer *lexer,
+                 double *x, double *y, const enum fmt_type *format) 
 {
   if (lex_match_id (lexer, "LO") || lex_match_id (lexer, "LOWEST"))
     *x = LOWEST;
-  else if (!parse_number (lexer, x, f))
+  else if (!parse_number (lexer, x, format))
     return false;
 
   if (lex_match_id (lexer, "THRU")) 
     {
       if (lex_match_id (lexer, "HI") || lex_match_id (lexer, "HIGHEST"))
         *y = HIGHEST;
-      else if (!parse_number (lexer, y, f))
+      else if (!parse_number (lexer, y, format))
         return false;
 
       if (*y < *x) 
@@ -86,11 +87,11 @@ parse_num_range (struct lexer *lexer, double *x, double *y, const struct fmt_spe
 
 /* Parses a number and stores it in *X.  Returns success.
 
-   Numeric values are always accepted.  If F is nonnull, then
-   string values are also accepted, and converted to numeric
-   values using the specified format. */
+   Numeric values are always accepted.  If FORMAT is nonnull,
+   then string values are also accepted, and converted to numeric
+   values using *FORMAT. */
 static bool
-parse_number (struct lexer *lexer, double *x, const struct fmt_spec *f)
+parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
 {
   if (lex_is_number (lexer)) 
     {
@@ -98,18 +99,10 @@ parse_number (struct lexer *lexer, double *x, const struct fmt_spec *f)
       lex_get (lexer);
       return true;
     }
-  else if (lex_token (lexer) == T_STRING && f != NULL) 
+  else if (lex_token (lexer) == T_STRING && format != NULL) 
     {
-      struct data_in di;
       union value v;
-      di.s = ds_data (lex_tokstr (lexer));
-      di.e = ds_end (lex_tokstr (lexer));
-      di.v = &v;
-      di.flags = 0;
-      di.f1 = 1;
-      di.f2 = ds_length (lex_tokstr (lexer));
-      di.format = *f;
-      data_in (&di);
+      data_in (ds_ss (lex_tokstr (lexer)), *format, 0, 0, &v, 0);
       lex_get (lexer);
       *x = v.f;
       if (*x == SYSMIS)
@@ -121,7 +114,7 @@ parse_number (struct lexer *lexer, double *x, const struct fmt_spec *f)
     }
   else 
     {
-      if (f != NULL)
+      if (format != NULL)
         lex_error (lexer, _("expecting number or data string"));
       else
         lex_force_num (lexer);

@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -22,31 +22,19 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
+#include <libpspp/str.h>
 #include "format.h"
 
-/* Flags. */
-enum
-  {
-    DI_IGNORE_ERROR = 01,	/* Don't report errors to the user. */
-    DI_IMPLIED_DECIMALS = 02    /* Insert decimals if no '.' in input. */
-  };
+enum integer_format data_in_get_integer_format (void);
+void data_in_set_integer_format (enum integer_format);
 
-/* Information about parsing one data field. */
-struct data_in
-  {
-    const char *s;              /* Source start. */
-    const char *e;              /* Source end. */
+enum float_format data_in_get_float_format (void);
+void data_in_set_float_format (enum float_format);
 
-    union value *v;		/* Destination. */
-
-    int flags;			/* Zero or more of DI_*. */
-    int f1, f2;			/* Columns the field was taken from. */
-    struct fmt_spec format;	/* Format specification to use. */
-  };
-
-bool data_in (struct data_in *);
-
-void data_in_finite_line (struct data_in *di, const char *line, size_t len,
-			  int fc, int lc);
+bool data_in (struct substring input, 
+              enum fmt_type, int implied_decimals, int first_column,
+              union value *output, int width);
 
 #endif /* data-in.h */

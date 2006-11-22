@@ -565,13 +565,13 @@ fmt_date_template (enum fmt_type type)
     case FMT_QYR:
       return "q Q yy";
     case FMT_MOYR:
-      return "mmm yy";
+      return "mmmXyy";
     case FMT_WKYR:
       return "ww WK yy";
     case FMT_DATETIME:
       return "dd-mmm-yyyy HH:MM";
     case FMT_TIME:
-      return "h:MM";
+      return "H:MM";
     case FMT_DTIME:
       return "D HH:MM";
     default:

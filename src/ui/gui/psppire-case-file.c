@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
     02110-1301, USA. */
 
-
+#include <config.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -296,7 +296,7 @@ psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, gint idx,
 /* Set the IDXth value of case C using D_IN */
 gboolean
 psppire_case_file_data_in(PsppireCaseFile *cf, gint casenum, gint idx,
-			    struct data_in *d_in)
+                          struct substring input, const struct fmt_spec *fmt)
 {
   struct ccase cc ;
 
@@ -309,9 +309,8 @@ psppire_case_file_data_in(PsppireCaseFile *cf, gint casenum, gint idx,
     return FALSE;
 
   /* Cast away const in flagrant abuse of the casefile */
-  d_in->v = (union value *) case_data(&cc, idx);
-
-  if ( ! data_in(d_in) ) 
+  if (!data_in (input, fmt->type, 0, 0,
+                (union value *) case_data(&cc, idx), fmt_var_width (fmt)))
     g_warning("Cant set value\n");
 
   g_signal_emit(cf, signal[CASE_CHANGED], 0, casenum);

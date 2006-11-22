@@ -21,9 +21,10 @@
 #define RANGE_PRS_H 1
 
 #include <stdbool.h>
+#include <data/format.h>
 
-struct fmt_spec;
 struct lexer;
-bool parse_num_range (struct lexer *, double *, double *, const struct fmt_spec *fmt);
+bool parse_num_range (struct lexer *,
+                      double *x, double *y, const enum fmt_type *fmt);
 
 #endif /* range-prs.h */

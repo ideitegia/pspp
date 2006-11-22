@@ -26,6 +26,8 @@
 #include <glib-object.h>
 #include <glib.h>
 
+#include <libpspp/str.h>
+
 
 
 G_BEGIN_DECLS
@@ -79,10 +81,11 @@ gint psppire_case_file_get_case_count(const PsppireCaseFile *cf);
 const union value * psppire_case_file_get_value(const PsppireCaseFile *cf, 
 					      gint c, gint idx);
 
-struct data_in;
+struct fmt_spec;
 
 gboolean psppire_case_file_data_in(PsppireCaseFile *cf, gint c, gint idx,
-				 struct data_in *d_in);
+                                   struct substring input,
+                                   const struct fmt_spec *);
 
 gboolean psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, 
 				     gint idx, union value *v, gint width);

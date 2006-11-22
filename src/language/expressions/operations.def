@@ -566,15 +566,8 @@ string function RTRIM (string s, string c)
 
 function NUMBER (string s, ni_format f)
 {
-  struct data_in di;
   union value out;
-  di.s = s.string;
-  di.v = &out;
-  di.flags = DI_IMPLIED_DECIMALS;
-  di.f1 = 1;
-  di.format = *f;
-  di.e = s.string + min (s.length, di.format.w);
-  data_in (&di);
+  data_in (ss_head (s, f->w), f->type, f->d, 0, &out, 0);
   return out.f;
 }
 

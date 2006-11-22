@@ -30,7 +30,7 @@ gboolean
 text_to_value(const gchar *text, union value *v, 
 	      struct fmt_spec format)
 {
-  struct data_in di;
+  bool ok;
 
   if ( format.type != FMT_A) 
     {
@@ -49,15 +49,12 @@ text_to_value(const gchar *text, union value *v,
       }
     }
 
-  di.s = text;
-  di.e = text + strlen(text);
-  di.v = v;
-  di.flags = DI_IGNORE_ERROR;
-  di.f1 = di.f2 = 0;
-  di.format = format;
-  
-  return data_in(&di);
+  msg_disable ();
+  ok = data_in (ss_cstr (text), format.type, 0, 0,
+                v, fmt_var_width (&format));
+  msg_enable ();
 
+  return ok;
 }
 
 

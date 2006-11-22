@@ -90,8 +90,6 @@ expr_evaluate_num (struct expression *e, const struct ccase *c, int case_idx)
   return d;
 }
 
-
-
 void
 expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
                    char *dst, size_t dst_size) 

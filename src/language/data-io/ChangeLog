@@ -1,3 +1,12 @@
+Sun Nov 19 09:17:45 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-list.c (parse_free): Follow documented (but odd) rule that
+	N format is treated as F format for free-field input.
+	
+	* data-reader.c (read_file_record): Drop new-line character from
+	input text lines.  This is symmetrical with the recently changed
+	dfm_put_record semantics.
+
 Thu Nov  2 20:56:03 2006  Ben Pfaff  <blp@gnu.org>
 
 	Implement SKIP keyword on DATA LIST.  Fixes bug #17099.

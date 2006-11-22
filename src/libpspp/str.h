@@ -111,6 +111,7 @@ bool ss_match_char (struct substring *, char);
 int ss_get_char (struct substring *);
 size_t ss_get_chars (struct substring *, size_t cnt, struct substring *);
 bool ss_get_until (struct substring *, char delimiter, struct substring *);
+size_t ss_get_long (struct substring *, long *);
 
 /* Inspectors. */
 bool ss_is_empty (struct substring);
@@ -124,6 +125,9 @@ size_t ss_span (struct substring, struct substring skip_set);
 size_t ss_cspan (struct substring, struct substring stop_set);
 size_t ss_find_char (struct substring, char);
 int ss_compare (struct substring, struct substring);
+int ss_compare_case (struct substring, struct substring);
+int ss_equals (struct substring, struct substring);
+int ss_equals_case (struct substring, struct substring);
 size_t ss_pointer_to_position (struct substring, const char *);
 char *ss_xstrdup (struct substring);
 

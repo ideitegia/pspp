@@ -57,12 +57,20 @@ TESTS = \
 	tests/command/use.sh \
 	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \
+	tests/formats/bcd-in.sh \
 	tests/formats/binhex-out.sh \
+	tests/formats/date-in.sh \
 	tests/formats/date-out.sh \
 	tests/formats/float-format.sh \
+	tests/formats/ib-in.sh \
+	tests/formats/legacy-in.sh \
+	tests/formats/month-in.sh \
 	tests/formats/month-out.sh \
+	tests/formats/num-in.sh \
 	tests/formats/num-out.sh \
+	tests/formats/time-in.sh \
 	tests/formats/time-out.sh \
+	tests/formats/wkday-in.sh \
 	tests/formats/wkday-out.sh \
 	tests/bugs/agg_crash.sh \
 	tests/bugs/agg-crash-2.sh \

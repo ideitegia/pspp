@@ -569,20 +569,10 @@ psppire_data_store_set_string(GSheetModel *model,
     }
 #endif
 
-  {
-    const gint index = psppire_variable_get_fv(pv);
-
-    struct data_in d_in;
-    d_in.s = text;
-    d_in.e = text + strlen(text);
-    d_in.v = 0;
-    d_in.f1 = d_in.f2 = 0;
-    d_in.format = * psppire_variable_get_write_spec(pv);
-    d_in.flags = 0;
-
-    psppire_case_file_data_in(store->case_file, row, index, &d_in) ;
-  }
-
+  psppire_case_file_data_in (store->case_file, row,
+                             psppire_variable_get_fv (pv), ss_cstr (text),
+                             psppire_variable_get_write_spec (pv));
+  
   return TRUE;
 }
 

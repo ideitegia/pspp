@@ -1,3 +1,35 @@
+Sat Nov 18 20:46:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format.c: (fmt_date_template) Distinguish characters for which a
+	space is output and any date delimiter is allowed on input, from
+	those for which a space is output and only a space is allowed on
+	input.  The former is represented by X, the latter by a space.
+	Also, drop distinction between h and H, changing the former to the
+	latter.
+
+	* data-in.c: Completely rewrite internals to conform to SPSS input
+	formats as closely as possible.
+	(data_in) Changed external interface by replacing the structure
+	that was used as a single argument by a set of arguments.  Updated
+	all callers.
+	(data_in_finite_line) Removed.  Converted all callers to use plain
+	data_in.
+	(data_in_get_integer_format) New function.
+	(data_in_set_integer_format) New function.
+	(data_in_get_float_format) New function.
+	(data_in_set_float_format) New function.
+
+	* data-in.h: (enums DI_IGNORE_ERROR, DI_IMPLIED_DECIMALS) Removed.
+	(struct data_in) Removed.
+
+	* data-out.c: (output_date) Drop each component from the input as
+	it is output, to allow us to drop the distinction between h (a
+	count of hours) and H (the hour of day) template characters.
+	Also, handle new X template character.
+	(output_scientific) Follow more rational rule on when to drop
+	fraction introduced between SPSS 13 and 15.  Updated test case to
+	match new behavior.
+
 Sat Nov 11 11:41:26 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix buffer overflow reported by John Darrington.
