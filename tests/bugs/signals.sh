@@ -27,9 +27,6 @@ cleanup()
      	return ; 
      fi
      rm -rf $TEMPDIR
-
-     # Kill any remaining children of this shell
-     kill `ps h --ppid $$ | awk '{print $1}'` 2> /dev/null
 }
 
 
@@ -60,41 +57,20 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-
-activity="run program in interactive mode"
-cat | $PSPP --testing-mode -o raw-ascii 2> $TEMPDIR/stderr1  > /dev/null & 
-thepid1=$!
+activity="sending SIGINT to pspp"
+echo 'host kill -INT $PPID' | $PSPP --testing-mode -o raw-ascii > /dev/null 2> $TEMPDIR/stderr1
 if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="run program in interactive mode 2"
-cat | $PSPP --testing-mode -o raw-ascii 2> $TEMPDIR/stderr2  > /dev/null & 
-thepid2=$!
-if [ $? -ne 0 ] ; then no_result ; fi
-
-# This one is a dummy.  Despite the sleep command,  it may not be enought 
-# to ensure that the preceeding pspp has actually initialised itself.
-activity="run program in interactive mode 3"
-cat | $PSPP --testing-mode -o raw-ascii 2> /dev/null  > /dev/null & sleep 1
-thepid3=$!
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="sending SIGINT to pspp1"
-kill -INT $thepid1
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="sending SIGSEGV to pspp2"
-kill -SEGV $thepid2
-if [ $? -ne 0 ] ; then no_result ; fi
-
 
 # SIGINT should have caused a clean shutdown
-
 activity="checking for absence of error messages 1"
 [ ! -s $TEMPDIR/stderr1 ]  
 if [ $? -ne 0 ] ; then fail ; fi
 
-# SIGSEGV should have caused an error message
+activity="sending SIGSEGV to pspp"
+echo 'host kill -SEGV $PPID' | $PSPP --testing-mode -o raw-ascii > /dev/null 2> $TEMPDIR/stderr2
+if [ $? -eq 0 ] ; then no_result ; fi
 
+# SIGSEGV should have caused an error message
 activity="checking for error messages from pspp 2"
 head -8 $TEMPDIR/stderr2 > $TEMPDIR/stderr-head
 if [ $? -ne 0 ] ; then no_result ; fi

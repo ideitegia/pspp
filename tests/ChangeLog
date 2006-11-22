@@ -1,3 +1,7 @@
+Wed Nov 22 06:28:04 2006  Ben Pfaff  <blp@gnu.org>
+
+	* tests/bugs/signals.sh: Fix race condition.
+
 Sun Nov 19 09:23:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add the new tests listed below.
