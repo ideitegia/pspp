@@ -60,6 +60,8 @@
 #include <output/output.h>
 #include <output/table.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -1222,7 +1224,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
       /* Allocate table space for the matrix. */
       if (table && tab_row (table) + (n_rows + 1) * num_cells > tab_nr (table))
 	tab_realloc (table, -1,
-		     max (tab_nr (table) + (n_rows + 1) * num_cells,
+		     MAX (tab_nr (table) + (n_rows + 1) * num_cells,
 			  tab_nr (table) * (pe - pb) / (te - tb)));
 
       if (mode == GENERAL)
@@ -2277,9 +2279,9 @@ calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
 {
   int x;
   
-  if (min (c, d) < min (a, b))
+  if (MIN (c, d) < MIN (a, b))
     swap (&a, &c), swap (&b, &d);
-  if (min (b, d) < min (a, c))
+  if (MIN (b, d) < MIN (a, c))
     swap (&a, &b), swap (&c, &d);
   if (b * c < a * d)
     {
@@ -2471,7 +2473,7 @@ static int
 calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 		double t[N_SYMMETRIC])
 {
-  int q = min (ns_rows, ns_cols);
+  int q = MIN (ns_rows, ns_cols);
   
   if (q <= 1)
     return 0;
@@ -3194,9 +3196,9 @@ format_short (char *s, const struct fmt_spec *fp, const union value *v)
 
       assert (fmt_subst.type == FMT_A || fmt_subst.type == FMT_AHEX);
       if (fmt_subst.type == FMT_A)
-        fmt_subst.w = min (8, fmt_subst.w);
+        fmt_subst.w = MIN (8, fmt_subst.w);
       else
-        fmt_subst.w = min (16, fmt_subst.w);
+        fmt_subst.w = MIN (16, fmt_subst.w);
 
       fp = &fmt_subst;
     }

@@ -43,14 +43,6 @@
 #include <ieeefp.h>		/* Declares finite() under Solaris. */
 #endif
 
-#ifndef min
-#define min(A, B) ((A) < (B) ? (A) : (B))
-#endif
-
-#ifndef max
-#define max(A, B) ((A) > (B) ? (A) : (B))
-#endif
-
 /* Clamps A to be between B and C. */
 #define range(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
 

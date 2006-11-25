@@ -19,17 +19,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301, USA. */
 
 #include <config.h>
+#include <assert.h>
 #include <libpspp/compiler.h>
 #include "factor-stats.h"
 #include "percentiles.h"
 #include <libpspp/misc.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-#include <assert.h>
-
 
 struct ptile_params
 {
@@ -337,7 +337,7 @@ tukey_hinges(const struct weighted_value **wv,
   
   for ( i = 0 ; i < n_data ; ++i ) 
     {
-      c_star = min(c_star, wv[i]->w);
+      c_star = MIN(c_star, wv[i]->w);
     }
 
   if ( c_star > 1 ) c_star = 1;

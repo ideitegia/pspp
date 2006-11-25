@@ -439,7 +439,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 		      break;
 		    }
 
-		  for ( i = 0 ; i < min(n_vars, dict_get_var_cnt(*dict)) ; ++i ) 
+		  for ( i = 0 ; i < MIN(n_vars, dict_get_var_cnt(*dict)) ; ++i ) 
 		    {
 		      struct
 		      {
@@ -1382,7 +1382,7 @@ read_value_labels (struct sfm_reader *r,
       
       if (var[0]->type == ALPHA)
         {
-          const int copy_len = min (sizeof label->raw_value,
+          const int copy_len = MIN (sizeof label->raw_value,
                                     sizeof label->label);
           memcpy (label->value.s, label->raw_value, copy_len);
         } else {
@@ -1446,7 +1446,7 @@ buf_read (struct sfm_reader *r, void *buf, size_t byte_cnt, size_t min_alloc)
   assert (r);
 
   if (buf == NULL && byte_cnt > 0 )
-    buf = xmalloc (max (byte_cnt, min_alloc));
+    buf = xmalloc (MAX (byte_cnt, min_alloc));
 
   if ( byte_cnt == 0 )
     return buf;

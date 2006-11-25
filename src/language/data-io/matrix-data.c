@@ -44,6 +44,7 @@
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
 #include "size_max.h"
 
 #include "gettext.h"
@@ -1737,8 +1738,8 @@ wr_read_rowtype (struct wr_aux_data *wr,
     char s[16];
     char *cp;
     
-    memcpy (s, token->string, min (15, token->length));
-    s[min (15, token->length)] = 0;
+    memcpy (s, token->string, MIN (15, token->length));
+    s[MIN (15, token->length)] = 0;
 
     for (cp = s; *cp; cp++)
       *cp = toupper ((unsigned char) *cp);

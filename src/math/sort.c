@@ -44,6 +44,8 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -587,7 +589,7 @@ merge (struct external_sort *xsrt)
 {
   while (xsrt->run_cnt > 1)
     {
-      int order = min (MAX_MERGE_ORDER, xsrt->run_cnt);
+      int order = MIN (MAX_MERGE_ORDER, xsrt->run_cnt);
       int idx = choose_merge (xsrt->runs, xsrt->run_cnt, order);
       xsrt->runs[idx] = merge_once (xsrt, xsrt->runs + idx, order);
       remove_range (xsrt->runs, xsrt->run_cnt, sizeof *xsrt->runs,

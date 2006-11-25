@@ -49,6 +49,7 @@
 #include <libpspp/str.h>
 
 #include "intprops.h"
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -231,7 +232,7 @@ make_new_var (struct dictionary *dict, char name[])
 
     for (i = 1; i < 10000000; i++)
       {
-	int ofs = min (7 - intlog10 (i), len);
+	int ofs = MIN (7 - intlog10 (i), len);
 	memcpy (n, name, ofs);
 	sprintf (&n[ofs], "%d", i);
 
@@ -342,7 +343,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
         }
       else
 	{
-	  int width = min (flip->new_names->width, MAX_SHORT_STRING);
+	  int width = MIN (flip->new_names->width, MAX_SHORT_STRING);
 	  memcpy (v->name, case_str (c, flip->idx_to_fv[flip->new_names->index]),
                   width);
 	  v->name[width] = 0;
@@ -430,7 +431,7 @@ flip_file (struct flip_pgm *flip)
   
   for (case_idx = 0; case_idx < flip->case_cnt; )
     {
-      unsigned long read_cases = min (flip->case_cnt - case_idx,
+      unsigned long read_cases = MIN (flip->case_cnt - case_idx,
                                       case_capacity);
       size_t i;
 

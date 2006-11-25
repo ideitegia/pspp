@@ -43,6 +43,8 @@
 #include <output/output.h>
 #include <output/table.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -70,7 +72,7 @@ sysfile_info_dim (struct tab_table *t, struct outp_driver *d)
   int i;
 
   for (p = max; *p; p++)
-    t->w[p - max] = min (tab_natural_width (t, d, p - max),
+    t->w[p - max] = MIN (tab_natural_width (t, d, p - max),
 			 *p * d->prop_em_width);
   for (i = 0; i < t->nr; i++)
     t->h[i] = tab_natural_height (t, d, i);
@@ -152,7 +154,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
       
       if (r + 10 + nvl > nr)
 	{
-	  nr = max (nr * dict_get_var_cnt (d) / (i + 1), nr);
+	  nr = MAX (nr * dict_get_var_cnt (d) / (i + 1), nr);
 	  nr += 10 + nvl;
 	  tab_realloc (t, 4, nr);
 	}
@@ -334,8 +336,8 @@ variables_dim (struct tab_table *t, struct outp_driver *d)
   t->w[0] = tab_natural_width (t, d, 0);
   if (_as == AS_DICTIONARY || _as == AS_VARIABLES || _as == AS_LABELS)
     {
-      t->w[1] = max (tab_natural_width (t, d, 1), d->prop_em_width * 5);
-      t->w[2] = max (tab_natural_width (t, d, 2), d->prop_em_width * 35);
+      t->w[1] = MAX (tab_natural_width (t, d, 1), d->prop_em_width * 5);
+      t->w[2] = MAX (tab_natural_width (t, d, 2), d->prop_em_width * 35);
       pc = 3;
     }
   else pc = 1;
@@ -399,7 +401,7 @@ display_variables (struct variable **vl, size_t n, int as)
       
 	  if (r + 10 + nvl > nr)
 	    {
-	      nr = max (nr * n / (i + 1), nr);
+	      nr = MAX (nr * n / (i + 1), nr);
 	      nr += 10 + nvl;
 	      tab_realloc (t, nc, nr);
 	    }

@@ -44,6 +44,8 @@
 #include <output/output.h>
 #include <output/table.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -326,7 +328,7 @@ write_header (struct outp_driver *d)
 	  struct variable *v = cmd.v_variables[i];
 	  
 	  memset (&prc->header[prc->header_rows - 1][x], '-',
-		  max (v->print.w, (int) strlen (v->name)));
+		  MAX (v->print.w, (int) strlen (v->name)));
 	  if ((int) strlen (v->name) < v->print.w)
 	    x += v->print.w - strlen (v->name);
  	  memcpy (&prc->header[0][x], v->name, strlen (v->name));
@@ -533,7 +535,7 @@ determine_layout (void)
       outp_open_page (d);
       
       max_width = n_chars_width (d);
-      largest_page_width = max (largest_page_width, max_width);
+      largest_page_width = MAX (largest_page_width, max_width);
 
       prc = d->prc = xmalloc (sizeof *prc);
       prc->type = 0;
@@ -544,7 +546,7 @@ determine_layout (void)
       for (width = cmd.n_variables - 1, column = 0; column < cmd.n_variables; column++)
 	{
 	  struct variable *v = cmd.v_variables[column];
-	  width += max (v->print.w, (int) strlen (v->name));
+	  width += MAX (v->print.w, (int) strlen (v->name));
 	}
       if (width <= max_width)
 	{
@@ -574,7 +576,7 @@ determine_layout (void)
 	    {
 	      struct variable *v = cmd.v_variables[column];
 	      int trial_width = (width - v->print.w
-				 + max (v->print.w, (int) strlen (v->name)));
+				 + MAX (v->print.w, (int) strlen (v->name)));
 	      
 	      if (trial_width > max_width)
 		{
@@ -590,7 +592,7 @@ determine_layout (void)
 	  for (prc->header_rows = 0, column = 0;
 	       column < prc->n_vertical;
 	       column++)
-	    prc->header_rows = max (prc->header_rows,
+	    prc->header_rows = MAX (prc->header_rows,
 				    strlen (cmd.v_variables[column]->name));
 	  prc->header_rows++;
 	  continue;
@@ -638,7 +640,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 	    int width;
 
 	    if (prc->type == 0 && column >= prc->n_vertical)
-	      width = max ((int) strlen (v->name), v->print.w);
+	      width = MAX ((int) strlen (v->name), v->print.w);
 	    else
 	      width = v->print.w;
 

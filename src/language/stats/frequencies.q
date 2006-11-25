@@ -1144,9 +1144,9 @@ full_dim (struct tab_table *t, struct outp_driver *d)
   int i;
 
   if (lab)
-    t->w[0] = min (tab_natural_width (t, d, 0), d->prop_em_width * 15);
+    t->w[0] = MIN (tab_natural_width (t, d, 0), d->prop_em_width * 15);
   for (i = lab; i < lab + 5; i++)
-    t->w[i] = max (tab_natural_width (t, d, i), d->prop_em_width * 8);
+    t->w[i] = MAX (tab_natural_width (t, d, i), d->prop_em_width * 8);
   for (i = 0; i < t->nr; i++)
     t->h[i] = d->font_height;
 }
@@ -1268,14 +1268,14 @@ dump_full (struct variable *v)
 static void
 condensed_dim (struct tab_table *t, struct outp_driver *d)
 {
-  int cum_w = max (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
-		   max (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
+  int cum_w = MAX (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
+		   MAX (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
 			outp_string_width (d, "000", OUTP_PROPORTIONAL)));
 
   int i;
 
   for (i = 0; i < 2; i++)
-    t->w[i] = max (tab_natural_width (t, d, i), d->prop_em_width * 8);
+    t->w[i] = MAX (tab_natural_width (t, d, i), d->prop_em_width * 8);
   for (i = 2; i < 4; i++)
     t->w[i] = cum_w;
   for (i = 0; i < t->nr; i++)

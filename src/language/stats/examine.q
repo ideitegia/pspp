@@ -50,6 +50,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <output/manager.h>
 #include <output/table.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -1728,8 +1730,8 @@ box_plot_variables (const struct factor *fctr,
 
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
-	  y_max = max (y_max, (*fs)->m[i].max);
-	  y_min = min (y_min, (*fs)->m[i].min);
+	  y_max = MAX (y_max, (*fs)->m[i].max);
+	  y_min = MIN (y_min, (*fs)->m[i].min);
 	}
       
       boxplot_draw_yscale (ch, y_max, y_min);
@@ -1870,8 +1872,8 @@ np_plot (const struct metrics *m, const char *factorname)
   {
     /* Need to make sure that both the scatter plot and the ideal fit into the
        plot */
-    double x_lower = min (m->min, (yfirst - intercept) / slope) ;
-    double x_upper = max (m->max, (ylast  - intercept) / slope) ;
+    double x_lower = MIN (m->min, (yfirst - intercept) / slope) ;
+    double x_upper = MAX (m->max, (ylast  - intercept) / slope) ;
     double slack = (x_upper - x_lower)  * 0.05 ;
 
     chart_write_xscale (np_chart, x_lower - slack, x_upper + slack, 5);

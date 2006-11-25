@@ -33,7 +33,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <output/chart.h>
 #include <libpspp/str.h>
 #include <data/value-labels.h>
-#include <libpspp/misc.h>
+
+#include "minmax.h"
 
 
 /* Pie charts of course need to know Pi :) */
@@ -71,7 +72,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
   const double centre_x = (ch->data_right + ch->data_left ) / 2.0 ;
   const double centre_y = (ch->data_top + ch->data_bottom ) / 2.0 ;
 
-  const double radius = min( 
+  const double radius = MIN( 
 			    5.0 / 12.0 * (ch->data_top - ch->data_bottom),
 			    1.0 / 4.0 * (ch->data_right - ch->data_left)
 			    );

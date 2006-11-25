@@ -38,6 +38,8 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -532,8 +534,8 @@ dict_reorder_var (struct dictionary *d, struct variable *v,
 
   move_element (d->var, d->var_cnt, sizeof *d->var, v->index, new_index);
 
-  min_idx = min (v->index, new_index);
-  max_idx = max (v->index, new_index);
+  min_idx = MIN (v->index, new_index);
+  max_idx = MAX (v->index, new_index);
   for (i = min_idx; i <= max_idx; i++)
     d->var[i]->index = i;
 }

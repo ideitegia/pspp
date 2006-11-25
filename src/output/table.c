@@ -142,8 +142,8 @@ tab_realloc (struct tab_table *t, int nc, int nr)
   
   if (nc > t->cf)
     {
-      int mr1 = min (nr, t->nr);
-      int mc1 = min (nc, t->nc);
+      int mr1 = MIN (nr, t->nr);
+      int mc1 = MIN (nc, t->nc);
       
       struct substring *new_cc;
       unsigned char *new_ct;

@@ -458,7 +458,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   int nm;               /* Number of missing values, possibly negative. */
 
   sv.rec_type = 2;
-  sv.type = min(v->width, MAX_LONG_STRING);
+  sv.type = MIN(v->width, MAX_LONG_STRING);
   sv.has_var_label = (v->label != NULL);
 
   mv_copy (&mv, &v->miss);
@@ -500,7 +500,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
       int ext_len;
 
-      l.label_len = min (strlen (v->label), 255);
+      l.label_len = MIN (strlen (v->label), 255);
       ext_len = ROUND_UP (l.label_len, sizeof l.label_len);
       memcpy (l.label, v->label, l.label_len);
       memset (&l.label[l.label_len], ' ', ext_len - l.label_len);
@@ -523,7 +523,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
       memset (&sv.write, 0, sizeof sv.write);
       memset (&sv.name, 0, sizeof sv.name);
 
-      pad_count = DIV_RND_UP (min(v->width, MAX_LONG_STRING),
+      pad_count = DIV_RND_UP (MIN(v->width, MAX_LONG_STRING),
 			      (int) sizeof (flt64)) - 1;
       for (i = 0; i < pad_count; i++)
 	buf_write (w, &sv, sizeof sv);
@@ -839,7 +839,7 @@ buf_write (struct sfm_writer *w, const void *buf, size_t nbytes)
 static char *
 append_string_max (char *dest, const char *src, const char *end)
 {
-  int nbytes = min (end - dest, (int) strlen (src));
+  int nbytes = MIN (end - dest, (int) strlen (src));
   memcpy (dest, src, nbytes);
   return dest + nbytes;
 }

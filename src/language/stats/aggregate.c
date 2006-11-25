@@ -46,6 +46,8 @@
 #include <math/moments.h>
 #include <math/sort.h>
 
+#include "minmax.h"
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -809,7 +811,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
             moments1_add (iter->moments, v->f, weight);
             break;
 	  case MAX:
-	    iter->dbl[0] = max (iter->dbl[0], v->f);
+	    iter->dbl[0] = MAX (iter->dbl[0], v->f);
 	    iter->int1 = 1;
 	    break;
 	  case MAX | FSTRING:
@@ -818,7 +820,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	    iter->int1 = 1;
 	    break;
 	  case MIN:
-	    iter->dbl[0] = min (iter->dbl[0], v->f);
+	    iter->dbl[0] = MIN (iter->dbl[0], v->f);
 	    iter->int1 = 1;
 	    break;
 	  case MIN | FSTRING:

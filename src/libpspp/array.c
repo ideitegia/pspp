@@ -99,6 +99,8 @@
 #include <libpspp/assertion.h>
 
 #include "message.h"
+
+#include "minmax.h"
 
 /* Finds an element in ARRAY, which contains COUNT elements of
    SIZE bytes each, using COMPARE for comparisons.  Returns the
@@ -700,12 +702,10 @@ sort (void *array, size_t count, size_t size,
      of the array to sort, and END_PTR points at the very last element in
      the array (*not* one beyond it!). */
 
-#define min(x, y) ((x) < (y) ? (x) : (y))
-
   {
     char *const end_ptr = &first[size * (count - 1)];
     char *tmp_ptr = first;
-    char *thresh = min(end_ptr, first + max_thresh);
+    char *thresh = MIN (end_ptr, first + max_thresh);
     register char *run_ptr;
 
     /* Find smallest element in first threshold and place it at the
