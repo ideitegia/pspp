@@ -115,35 +115,35 @@ static int examine_parse_independent_vars (struct lexer *lexer, const struct dic
 
 
 /* Output functions */
-static void show_summary(struct variable **dependent_var, int n_dep_var, 
+static void show_summary (struct variable **dependent_var, int n_dep_var, 
 			 const struct factor *f);
 
-static void show_extremes(struct variable **dependent_var, 
+static void show_extremes (struct variable **dependent_var, 
 			  int n_dep_var, 
 			  const struct factor *factor,
 			  int n_extremities);
 
-static void show_descriptives(struct variable **dependent_var, 
+static void show_descriptives (struct variable **dependent_var, 
 			      int n_dep_var, 
 			      struct factor *factor);
 
-static void show_percentiles(struct variable **dependent_var, 
+static void show_percentiles (struct variable **dependent_var, 
 			     int n_dep_var, 
 			     struct factor *factor);
 
 
 
 
-void np_plot(const struct metrics *m, const char *factorname);
+void np_plot (const struct metrics *m, const char *factorname);
 
 
-void box_plot_group(const struct factor *fctr, 
+void box_plot_group (const struct factor *fctr, 
 		    const struct variable **vars, int n_vars,
 		    const struct variable *id
 		    ) ;
 
 
-void box_plot_variables(const struct factor *fctr, 
+void box_plot_variables (const struct factor *fctr, 
 			const struct variable **vars, int n_vars, 
 			const struct variable *id
 			);
@@ -154,16 +154,16 @@ void box_plot_variables(const struct factor *fctr,
 static bool run_examine (const struct ccase *,
                         const struct casefile *cf, void *cmd_, const struct dataset *);
 
-static void output_examine(void);
+static void output_examine (void);
 
 
-void factor_calc(struct ccase *c, int case_no, 
+void factor_calc (struct ccase *c, int case_no, 
 		 double weight, int case_missing);
 
 
 /* Represent a factor as a string, so it can be
    printed in a human readable fashion */
-const char * factor_to_string(const struct factor *fctr, 
+const char * factor_to_string (const struct factor *fctr, 
 			      struct factor_statistics *fs,
 			      const struct variable *var);
 
@@ -171,7 +171,7 @@ const char * factor_to_string(const struct factor *fctr,
 /* Represent a factor as a string, so it can be
    printed in a human readable fashion,
    but sacrificing some readablility for the sake of brevity */
-const char *factor_to_string_concise(const struct factor *fctr, 
+const char *factor_to_string_concise (const struct factor *fctr, 
 				     struct factor_statistics *fs);
 
 
@@ -195,11 +195,14 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 {
   bool ok;
 
-  subc_list_double_create(&percentile_list);
+  subc_list_double_create (&percentile_list);
   percentile_algorithm = PC_HAVERAGE;
 
   if ( !parse_examine (lexer, ds, &cmd, NULL) )
-    return CMD_FAILURE;
+    {
+      subc_list_double_destroy (&percentile_list);
+      return CMD_FAILURE;
+    }
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   if (cmd.incl == XMN_INCLUDE ) 
@@ -217,16 +220,16 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
      quartiles are calculated */
   if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES] )
     {
-      subc_list_double_push(&percentile_list, 25);
-      subc_list_double_push(&percentile_list, 50);
-      subc_list_double_push(&percentile_list, 75);
+      subc_list_double_push (&percentile_list, 25);
+      subc_list_double_push (&percentile_list, 50);
+      subc_list_double_push (&percentile_list, 75);
     }
 
   ok = multipass_procedure_with_splits (ds, run_examine, &cmd);
 
   if ( totals ) 
     {
-      free( totals );
+      free ( totals );
     }
   
   if ( dependent_vars ) 
@@ -246,7 +249,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
     factors = 0;
   }
 
-  subc_list_double_destroy(&percentile_list);
+  subc_list_double_destroy (&percentile_list);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 };
@@ -255,40 +258,40 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
 /* Show all the appropriate tables */
 static void
-output_examine(void)
+output_examine (void)
 {
   struct factor *fctr;
 
   /* Show totals if appropriate */
   if ( ! cmd.sbc_nototal || factors == 0 )
     {
-      show_summary(dependent_vars, n_dependent_vars, 0);
+      show_summary (dependent_vars, n_dependent_vars, 0);
 
       if ( cmd.sbc_statistics ) 
 	{
 	  if ( cmd.a_statistics[XMN_ST_EXTREME]) 
-	    show_extremes(dependent_vars, n_dependent_vars, 0, cmd.st_n);
+	    show_extremes (dependent_vars, n_dependent_vars, 0, cmd.st_n);
 
 	  if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES]) 
-	    show_descriptives(dependent_vars, n_dependent_vars, 0);
+	    show_descriptives (dependent_vars, n_dependent_vars, 0);
 
 	}
       if ( sbc_percentile ) 
-	show_percentiles(dependent_vars, n_dependent_vars, 0);
+	show_percentiles (dependent_vars, n_dependent_vars, 0);
 
       if ( cmd.sbc_plot) 
 	{
 	  int v;
 	  if ( cmd.a_plot[XMN_PLT_STEMLEAF] ) 
-	    msg (SW, _("%s is not currently supported."), "STEMLEAF");
+	    msg (SW, _ ("%s is not currently supported."), "STEMLEAF");
 
 	  if ( cmd.a_plot[XMN_PLT_SPREADLEVEL] ) 
-	    msg (SW, _("%s is not currently supported."), "SPREADLEVEL");
+	    msg (SW, _ ("%s is not currently supported."), "SPREADLEVEL");
 
 	  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
 	    {
 	      for ( v = 0 ; v < n_dependent_vars; ++v ) 
-		np_plot(&totals[v], var_to_string(dependent_vars[v]));
+		np_plot (&totals[v], var_to_string (dependent_vars[v]));
 	    }
 
 	  if ( cmd.a_plot[XMN_PLT_BOXPLOT] ) 
@@ -314,8 +317,8 @@ output_examine(void)
 		  normal.mean   = totals[v].mean;
 		  normal.stddev = totals[v].stddev;
 		  
-		  histogram_plot(totals[v].histogram, 
-				 var_to_string(dependent_vars[v]),
+		  histogram_plot (totals[v].histogram, 
+				 var_to_string (dependent_vars[v]),
 				 &normal, 0);
 		}
 	    }
@@ -329,19 +332,19 @@ output_examine(void)
   fctr = factors;
   while ( fctr ) 
     {
-      show_summary(dependent_vars, n_dependent_vars, fctr);
+      show_summary (dependent_vars, n_dependent_vars, fctr);
 
       if ( cmd.sbc_statistics ) 
 	{
 	  if ( cmd.a_statistics[XMN_ST_EXTREME]) 
-	    show_extremes(dependent_vars, n_dependent_vars, fctr, cmd.st_n);
+	    show_extremes (dependent_vars, n_dependent_vars, fctr, cmd.st_n);
 
 	  if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES]) 
-	    show_descriptives(dependent_vars, n_dependent_vars, fctr);
+	    show_descriptives (dependent_vars, n_dependent_vars, fctr);
 	}
 
       if ( sbc_percentile ) 
-	show_percentiles(dependent_vars, n_dependent_vars, fctr);
+	show_percentiles (dependent_vars, n_dependent_vars, fctr);
 
 
       if ( cmd.sbc_plot) 
@@ -367,10 +370,10 @@ output_examine(void)
 
 	      for ( fs = fctr->fs ; *fs ; ++fs ) 
 		{
-		  const char *s = factor_to_string(fctr, *fs, dependent_vars[v]);
+		  const char *s = factor_to_string (fctr, *fs, dependent_vars[v]);
 
 		  if ( cmd.a_plot[XMN_PLT_NPPLOT] ) 
-		    np_plot(&(*fs)->m[v], s);
+		    np_plot (& (*fs)->m[v], s);
 
 		  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] ) 
 		    {
@@ -380,7 +383,7 @@ output_examine(void)
 		      normal.mean   = (*fs)->m[v].mean;
 		      normal.stddev = (*fs)->m[v].stddev;
 		  
-		      histogram_plot((*fs)->m[v].histogram, 
+		      histogram_plot ((*fs)->m[v].histogram, 
 				     s,  &normal, 0);
 		    }
 		  
@@ -399,27 +402,27 @@ output_examine(void)
 /* Create a hash table of percentiles and their values from the list of
    percentiles */
 static struct hsh_table *
-list_to_ptile_hash(const subc_list_double *l)
+list_to_ptile_hash (const subc_list_double *l)
 {
   int i;
   
   struct hsh_table *h ; 
 
-  h = hsh_create(subc_list_double_count(l), 
+  h = hsh_create (subc_list_double_count (l), 
 		 (hsh_compare_func *) ptile_compare,
 		 (hsh_hash_func *) ptile_hash, 
 		 (hsh_free_func *) free,
 		 0);
 
 
-  for ( i = 0 ; i < subc_list_double_count(l) ; ++i )
+  for ( i = 0 ; i < subc_list_double_count (l) ; ++i )
     {
       struct percentile *p = xmalloc (sizeof *p);
       
-      p->p = subc_list_double_at(l,i);
+      p->p = subc_list_double_at (l,i);
       p->v = SYSMIS;
 
-      hsh_insert(h, p);
+      hsh_insert (h, p);
 
     }
 
@@ -429,7 +432,7 @@ list_to_ptile_hash(const subc_list_double *l)
 
 /* Parse the PERCENTILES subcommand */
 static int
-xmn_custom_percentiles(struct lexer *lexer, struct dataset *ds UNUSED, 
+xmn_custom_percentiles (struct lexer *lexer, struct dataset *ds UNUSED, 
 		       struct cmd_examine *p UNUSED, void *aux UNUSED)
 {
   sbc_percentile = 1;
@@ -469,7 +472,7 @@ xmn_custom_percentiles(struct lexer *lexer, struct dataset *ds UNUSED,
     percentile_algorithm = PC_NONE; 
 
 
-  if ( 0 == subc_list_double_count(&percentile_list))
+  if ( 0 == subc_list_double_count (&percentile_list))
     {
       subc_list_double_push (&percentile_list, 5);
       subc_list_double_push (&percentile_list, 10);
@@ -489,7 +492,7 @@ xmn_custom_total (struct lexer *lexer UNUSED, struct dataset *ds UNUSED, struct 
 {
   if ( p->sbc_nototal ) 
     {
-      msg (SE, _("%s and %s are mutually exclusive"),"TOTAL","NOTOTAL");
+      msg (SE, _ ("%s and %s are mutually exclusive"),"TOTAL","NOTOTAL");
       return 0;
     }
 
@@ -502,7 +505,7 @@ xmn_custom_nototal (struct lexer *lexer UNUSED, struct dataset *ds UNUSED,
 {
   if ( p->sbc_total ) 
     {
-      msg (SE, _("%s and %s are mutually exclusive"),"TOTAL","NOTOTAL");
+      msg (SE, _ ("%s and %s are mutually exclusive"),"TOTAL","NOTOTAL");
       return 0;
     }
 
@@ -519,7 +522,7 @@ xmn_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_examin
   const struct dictionary *dict = dataset_dict (ds);
   lex_match (lexer, '=');
 
-  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+  if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     {
       return 2;
@@ -532,7 +535,7 @@ xmn_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_examin
       return 0;
     }
 
-  assert(n_dependent_vars);
+  assert (n_dependent_vars);
 
   totals = xnmalloc (n_dependent_vars, sizeof *totals);
 
@@ -559,7 +562,7 @@ examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *di
   int success;
   struct factor *sf = xmalloc (sizeof *sf);
 
-  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+  if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     {
       free ( sf ) ;
@@ -575,7 +578,7 @@ examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *di
 
       lex_match (lexer, T_BY);
 
-      if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+      if ( (lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
 	  && lex_token (lexer) != T_ALL)
 	{
 	  free ( sf ) ;
@@ -587,7 +590,7 @@ examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *di
     }
 
 
-  sf->fstats = hsh_create(4,
+  sf->fstats = hsh_create (4,
 			  (hsh_compare_func *) factor_statistics_compare,
 			  (hsh_hash_func *) factor_statistics_hash,
 			  (hsh_free_func *) factor_statistics_free,
@@ -612,16 +615,16 @@ examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *di
 
 
 
-void populate_percentiles(struct tab_table *tbl, int col, int row, 
+void populate_percentiles (struct tab_table *tbl, int col, int row, 
 			  const struct metrics *m);
 
-void populate_descriptives(struct tab_table *t, int col, int row, 
+void populate_descriptives (struct tab_table *t, int col, int row, 
 			   const struct metrics *fs);
 
-void populate_extremes(struct tab_table *t, int col, int row, int n, 
+void populate_extremes (struct tab_table *t, int col, int row, int n, 
 		       const struct metrics *m);
 
-void populate_summary(struct tab_table *t, int col, int row,
+void populate_summary (struct tab_table *t, int col, int row,
 		      const struct metrics *m);
 
 
@@ -632,7 +635,7 @@ static bool bad_weight_warn = true;
 
 /* Perform calculations for the sub factors */
 void
-factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
+factor_calc (struct ccase *c, int case_no, double weight, int case_missing)
 {
   size_t v;
   struct factor *fctr = factors;
@@ -642,28 +645,28 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
       struct factor_statistics **foo ;
       union value indep_vals[2] ;
 
-      indep_vals[0] = * case_data(c, fctr->indep_var[0]->fv);
+      indep_vals[0] = * case_data (c, fctr->indep_var[0]->fv);
 
       if ( fctr->indep_var[1] ) 
-	indep_vals[1] = * case_data(c, fctr->indep_var[1]->fv);
+	indep_vals[1] = * case_data (c, fctr->indep_var[1]->fv);
       else
 	indep_vals[1].f = SYSMIS;
 
-      assert(fctr->fstats);
+      assert (fctr->fstats);
 
       foo = ( struct factor_statistics ** ) 
-	hsh_probe(fctr->fstats, (void *) &indep_vals);
+	hsh_probe (fctr->fstats, (void *) &indep_vals);
 
       if ( !*foo ) 
 	{
 
-	  *foo = create_factor_statistics(n_dependent_vars, 
+	  *foo = create_factor_statistics (n_dependent_vars, 
 					  &indep_vals[0],
 					  &indep_vals[1]);
 
 	  for ( v =  0 ; v  < n_dependent_vars ; ++v ) 
 	    {
-	      metrics_precalc( &(*foo)->m[v] );
+	      metrics_precalc ( & (*foo)->m[v] );
 	    }
 
 	}
@@ -676,7 +679,7 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 	  if ( value_is_missing (&var->miss, val) || case_missing ) 
 	    val = 0;
 	  
-	  metrics_calc( &(*foo)->m[v], val, weight, case_no);
+	  metrics_calc ( & (*foo)->m[v], val, weight, case_no);
 	  
 	}
 
@@ -687,7 +690,7 @@ factor_calc(struct ccase *c, int case_no, double weight, int case_missing)
 }
 
 static bool 
-run_examine(const struct ccase *first, const struct casefile *cf, 
+run_examine (const struct ccase *first, const struct casefile *cf, 
 	    void *cmd_, const struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
@@ -708,7 +711,7 @@ run_examine(const struct ccase *first, const struct casefile *cf,
     {
       struct factor *next = fctr->next;
 
-      hsh_clear(fctr->fstats);
+      hsh_clear (fctr->fstats);
 
       fctr->fs = 0;
 
@@ -716,17 +719,17 @@ run_examine(const struct ccase *first, const struct casefile *cf,
     }
 
   for ( v = 0 ; v < n_dependent_vars ; ++v ) 
-    metrics_precalc(&totals[v]);
+    metrics_precalc (&totals[v]);
 
-  for(r = casefile_get_reader (cf, NULL);
+  for (r = casefile_get_reader (cf, NULL);
       casereader_read (r, &c) ;
       case_destroy (&c) ) 
     {
       int case_missing=0;
-      const int case_no = casereader_cnum(r);
+      const int case_no = casereader_cnum (r);
 
       const double weight = 
-	dict_get_case_weight(dict, &c, &bad_weight_warn);
+	dict_get_case_weight (dict, &c, &bad_weight_warn);
 
       if ( cmd->miss == XMN_LISTWISE ) 
 	{
@@ -735,7 +738,7 @@ run_examine(const struct ccase *first, const struct casefile *cf,
 	      const struct variable *var = dependent_vars[v];
 	      const union value *val = case_data (&c, var->fv);
 
-	      if ( value_is_missing(&var->miss, val))
+	      if ( value_is_missing (&var->miss, val))
 		case_missing = 1;
 		   
 	    }
@@ -746,14 +749,14 @@ run_examine(const struct ccase *first, const struct casefile *cf,
 	  const struct variable *var = dependent_vars[v];
 	  const union value *val = case_data (&c, var->fv);
 
-	  if ( value_is_missing(&var->miss, val) || case_missing ) 
+	  if ( value_is_missing (&var->miss, val) || case_missing ) 
 	    val = 0;
 
-	  metrics_calc(&totals[v], val, weight, case_no);
+	  metrics_calc (&totals[v], val, weight, case_no);
     
 	}
 
-      factor_calc(&c, case_no, weight, case_missing);
+      factor_calc (&c, case_no, weight, case_missing);
 
     }
 
@@ -766,22 +769,22 @@ run_examine(const struct ccase *first, const struct casefile *cf,
 	  struct hsh_iterator hi;
 	  struct factor_statistics *fs;
 
-	  for ( fs = hsh_first(fctr->fstats, &hi);
+	  for ( fs = hsh_first (fctr->fstats, &hi);
 		fs != 0 ;
-		fs = hsh_next(fctr->fstats, &hi))
+		fs = hsh_next (fctr->fstats, &hi))
 	    {
 	      
-	      fs->m[v].ptile_hash = list_to_ptile_hash(&percentile_list);
+	      fs->m[v].ptile_hash = list_to_ptile_hash (&percentile_list);
 	      fs->m[v].ptile_alg = percentile_algorithm;
-	      metrics_postcalc(&fs->m[v]);
+	      metrics_postcalc (&fs->m[v]);
 	    }
 
 	  fctr = fctr->next;
 	}
 
-      totals[v].ptile_hash = list_to_ptile_hash(&percentile_list);
+      totals[v].ptile_hash = list_to_ptile_hash (&percentile_list);
       totals[v].ptile_alg = percentile_algorithm;
-      metrics_postcalc(&totals[v]);
+      metrics_postcalc (&totals[v]);
     }
 
 
@@ -800,31 +803,31 @@ run_examine(const struct ccase *first, const struct casefile *cf,
       union value *val0;
       union value *val1;
 	  
-      idh0 = hsh_create(4, (hsh_compare_func *) compare_values,
-			(hsh_hash_func *) hash_value,
+      idh0 = hsh_create (4, (hsh_compare_func *) compare_values,
+			 (hsh_hash_func *) hash_value,
 			0,0);
 
-      idh1 = hsh_create(4, (hsh_compare_func *) compare_values,
-			(hsh_hash_func *) hash_value,
+      idh1 = hsh_create (4, (hsh_compare_func *) compare_values,
+			 (hsh_hash_func *) hash_value,
 			0,0);
 
 
-      for ( fs = hsh_first(fctr->fstats, &hi);
+      for ( fs = hsh_first (fctr->fstats, &hi);
 	    fs != 0 ;
-	    fs = hsh_next(fctr->fstats, &hi))
+	    fs = hsh_next (fctr->fstats, &hi))
 	{
-	  hsh_insert(idh0,(void *) &fs->id[0]);
-	  hsh_insert(idh1,(void *) &fs->id[1]);
+	  hsh_insert (idh0, (void *) &fs->id[0]);
+	  hsh_insert (idh1, (void *) &fs->id[1]);
 	}
 
       /* Ensure that the factors combination is complete */
-      for ( val0 = hsh_first(idh0, &hi0);
+      for ( val0 = hsh_first (idh0, &hi0);
 	    val0 != 0 ;
-	    val0 = hsh_next(idh0, &hi0))
+	    val0 = hsh_next (idh0, &hi0))
 	{
-	  for ( val1 = hsh_first(idh1, &hi1);
+	  for ( val1 = hsh_first (idh1, &hi1);
 		val1 != 0 ;
-		val1 = hsh_next(idh1, &hi1))
+		val1 = hsh_next (idh1, &hi1))
 	    {
 	      struct factor_statistics **ffs;
 	      union value key[2];
@@ -832,27 +835,27 @@ run_examine(const struct ccase *first, const struct casefile *cf,
 	      key[1] = *val1;
 		  
 	      ffs = (struct factor_statistics **) 
-		hsh_probe(fctr->fstats, (void *) &key );
+		hsh_probe (fctr->fstats, (void *) &key );
 
 	      if ( !*ffs ) {
 		size_t i;
-		(*ffs) = create_factor_statistics (n_dependent_vars,
+		 (*ffs) = create_factor_statistics (n_dependent_vars,
 						   &key[0], &key[1]);
 		for ( i = 0 ; i < n_dependent_vars ; ++i ) 
-		  metrics_precalc( &(*ffs)->m[i]);
+		  metrics_precalc ( & (*ffs)->m[i]);
 	      }
 	    }
 	}
 
-      hsh_destroy(idh0);
-      hsh_destroy(idh1);
+      hsh_destroy (idh0);
+      hsh_destroy (idh1);
 
-      fctr->fs = (struct factor_statistics **) hsh_sort_copy(fctr->fstats);
+      fctr->fs = (struct factor_statistics **) hsh_sort_copy (fctr->fstats);
 
       fctr = fctr->next;
     }
 
-  output_examine();
+  output_examine ();
 
 
   if ( totals ) 
@@ -860,7 +863,7 @@ run_examine(const struct ccase *first, const struct casefile *cf,
       size_t i;
       for ( i = 0 ; i < n_dependent_vars ; ++i ) 
 	{
-	  metrics_destroy(&totals[i]);
+	  metrics_destroy (&totals[i]);
 	}
     }
 
@@ -869,14 +872,14 @@ run_examine(const struct ccase *first, const struct casefile *cf,
 
 
 static void
-show_summary(struct variable **dependent_var, int n_dep_var, 
+show_summary (struct variable **dependent_var, int n_dep_var, 
 	     const struct factor *fctr)
 {
   static const char *subtitle[]=
     {
-      N_("Valid"),
-      N_("Missing"),
-      N_("Total")
+      N_ ("Valid"),
+      N_ ("Missing"),
+      N_ ("Total")
     };
 
   int i;
@@ -891,7 +894,7 @@ show_summary(struct variable **dependent_var, int n_dep_var,
   if ( fctr )
     {
       heading_columns = 2;
-      n_factors = hsh_count(fctr->fstats);
+      n_factors = hsh_count (fctr->fstats);
       n_rows = n_dep_var * n_factors ;
 
       if ( fctr->indep_var[1] )
@@ -934,13 +937,13 @@ show_summary(struct variable **dependent_var, int n_dep_var,
   tab_vline (tbl, TAL_2, heading_columns, 0, n_rows - 1);
 
 
-  tab_title (tbl, _("Case Processing Summary"));
+  tab_title (tbl, _ ("Case Processing Summary"));
   
 
-  tab_joint_text(tbl, heading_columns, 0, 
+  tab_joint_text (tbl, heading_columns, 0, 
 		 n_cols -1, 0,
 		 TAB_CENTER | TAT_TITLE,
-		 _("Cases"));
+		 _ ("Cases"));
 
   /* Remove lines ... */
   tab_box (tbl, 
@@ -952,12 +955,12 @@ show_summary(struct variable **dependent_var, int n_dep_var,
   for ( i = 0 ; i < 3 ; ++i ) 
     {
       tab_text (tbl, heading_columns + i*2 , 2, TAB_CENTER | TAT_TITLE, 
-		_("N"));
+		_ ("N"));
 
       tab_text (tbl, heading_columns + i*2 + 1, 2, TAB_CENTER | TAT_TITLE, 
-		_("Percent"));
+		_ ("Percent"));
 
-      tab_joint_text(tbl, heading_columns + i*2 , 1,
+      tab_joint_text (tbl, heading_columns + i*2 , 1,
 		     heading_columns + i*2 + 1, 1,
 		     TAB_CENTER | TAT_TITLE,
 		     subtitle[i]);
@@ -974,12 +977,12 @@ show_summary(struct variable **dependent_var, int n_dep_var,
   if ( fctr ) 
     {
       tab_text (tbl, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		var_to_string(fctr->indep_var[0]));
+		var_to_string (fctr->indep_var[0]));
 
       if ( fctr->indep_var[1] ) 
 	{
 	  tab_text (tbl, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		    var_to_string(fctr->indep_var[1]));
+		    var_to_string (fctr->indep_var[1]));
 	}
 		
     }
@@ -989,21 +992,21 @@ show_summary(struct variable **dependent_var, int n_dep_var,
     {
       int n_factors = 1;
       if ( fctr ) 
-	n_factors = hsh_count(fctr->fstats);
+	n_factors = hsh_count (fctr->fstats);
       
 
       if ( i > 0 ) 
-	tab_hline(tbl, TAL_1, 0, n_cols -1 , i * n_factors + heading_rows);
+	tab_hline (tbl, TAL_1, 0, n_cols -1 , i * n_factors + heading_rows);
       
       tab_text (tbl, 
 		0, i * n_factors + heading_rows,
 		TAB_LEFT | TAT_TITLE, 
-		var_to_string(dependent_var[i])
+		var_to_string (dependent_var[i])
 		);
 
 
       if ( !fctr ) 
-	populate_summary(tbl, heading_columns, 
+	populate_summary (tbl, heading_columns, 
 			 (i * n_factors) + heading_rows,
 			 &totals[i]);
 
@@ -1017,7 +1020,7 @@ show_summary(struct variable **dependent_var, int n_dep_var,
 	    {
 	      static union value prev;
 	      
-	      if ( 0 != compare_values(&prev, &(*fs)->id[0], 
+	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
 				       fctr->indep_var[0]->width))
 		{
 		  tab_text (tbl, 
@@ -1025,11 +1028,11 @@ show_summary(struct variable **dependent_var, int n_dep_var,
 			    (i * n_factors ) + count + 
 			    heading_rows,
 			    TAB_LEFT | TAT_TITLE, 
-			    value_to_string(&(*fs)->id[0], fctr->indep_var[0])
+			    value_to_string (& (*fs)->id[0], fctr->indep_var[0])
 			    );
 
 		  if (fctr->indep_var[1] && count > 0 ) 
-		    tab_hline(tbl, TAL_1, 1, n_cols - 1, 
+		    tab_hline (tbl, TAL_1, 1, n_cols - 1, 
 			      (i * n_factors ) + count + heading_rows);
 
 		}
@@ -1043,13 +1046,13 @@ show_summary(struct variable **dependent_var, int n_dep_var,
 			  (i * n_factors ) + count + 
 			  heading_rows,
 			  TAB_LEFT | TAT_TITLE, 
-			  value_to_string(&(*fs)->id[1], fctr->indep_var[1])
+			  value_to_string (& (*fs)->id[1], fctr->indep_var[1])
 			  );
 
-	      populate_summary(tbl, heading_columns, 
+	      populate_summary (tbl, heading_columns, 
 			       (i * n_factors) + count 
 			       + heading_rows,
-			       &(*fs)->m[i]);
+			       & (*fs)->m[i]);
 
 	      count++ ; 
 	      fs++;
@@ -1062,15 +1065,15 @@ show_summary(struct variable **dependent_var, int n_dep_var,
 
 
 void 
-populate_summary(struct tab_table *t, int col, int row,
+populate_summary (struct tab_table *t, int col, int row,
 		 const struct metrics *m)
 
 {
   const double total = m->n + m->n_missing ; 
 
-  tab_float(t, col + 0, row + 0, TAB_RIGHT, m->n, 8, 0);
-  tab_float(t, col + 2, row + 0, TAB_RIGHT, m->n_missing, 8, 0);
-  tab_float(t, col + 4, row + 0, TAB_RIGHT, total, 8, 0);
+  tab_float (t, col + 0, row + 0, TAB_RIGHT, m->n, 8, 0);
+  tab_float (t, col + 2, row + 0, TAB_RIGHT, m->n_missing, 8, 0);
+  tab_float (t, col + 4, row + 0, TAB_RIGHT, total, 8, 0);
 
 
   if ( total > 0 ) {
@@ -1093,7 +1096,7 @@ populate_summary(struct tab_table *t, int col, int row,
 
 
 static void 
-show_extremes(struct variable **dependent_var, int n_dep_var, 
+show_extremes (struct variable **dependent_var, int n_dep_var, 
 	      const struct factor *fctr, int n_extremities)
 {
   int i;
@@ -1108,7 +1111,7 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
   if ( fctr )
     {
       heading_columns = 2;
-      n_factors = hsh_count(fctr->fstats);
+      n_factors = hsh_count (fctr->fstats);
 
       n_rows = n_dep_var * 2 * n_extremities * n_factors;
 
@@ -1140,7 +1143,7 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 
   tab_hline (tbl, TAL_2, 0, n_cols - 1, heading_rows );
 
-  tab_title (tbl, _("Extreme Values"));
+  tab_title (tbl, _ ("Extreme Values"));
 
   tab_vline (tbl, TAL_2, n_cols - 2, 0, n_rows -1);
   tab_vline (tbl, TAL_1, n_cols - 1, 0, n_rows -1);
@@ -1148,32 +1151,32 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
   if ( fctr ) 
     {
       tab_text (tbl, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		var_to_string(fctr->indep_var[0]));
+		var_to_string (fctr->indep_var[0]));
 
       if ( fctr->indep_var[1] ) 
 	tab_text (tbl, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		  var_to_string(fctr->indep_var[1]));
+		  var_to_string (fctr->indep_var[1]));
     }
 
-  tab_text (tbl, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _("Value"));
-  tab_text (tbl, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _("Case Number"));
+  tab_text (tbl, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _ ("Value"));
+  tab_text (tbl, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _ ("Case Number"));
 
   for ( i = 0 ; i < n_dep_var ; ++i ) 
     {
 
       if ( i > 0 ) 
-	tab_hline(tbl, TAL_1, 0, n_cols -1 , 
+	tab_hline (tbl, TAL_1, 0, n_cols -1 , 
 		  i * 2 * n_extremities * n_factors + heading_rows);
       
       tab_text (tbl, 0,
 		i * 2 * n_extremities * n_factors  + heading_rows,
 		TAB_LEFT | TAT_TITLE, 
-		var_to_string(dependent_var[i])
+		var_to_string (dependent_var[i])
 		);
 
 
       if ( !fctr ) 
-	populate_extremes(tbl, heading_columns - 2, 
+	populate_extremes (tbl, heading_columns - 2, 
 			  i * 2 * n_extremities * n_factors  + heading_rows,
 			  n_extremities, &totals[i]);
 
@@ -1187,10 +1190,10 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 	      static union value prev ;
 
 	      const int row = heading_rows + ( 2 * n_extremities )  * 
-		( ( i  * n_factors  ) +  count );
+		 ( ( i  * n_factors  ) +  count );
 
 
-	      if ( 0 != compare_values(&prev, &(*fs)->id[0], 
+	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
 				       fctr->indep_var[0]->width))
 		{
 		  
@@ -1200,24 +1203,24 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 		  tab_text (tbl, 
 			    1, row,
 			    TAB_LEFT | TAT_TITLE, 
-			    value_to_string(&(*fs)->id[0], fctr->indep_var[0])
+			    value_to_string (& (*fs)->id[0], fctr->indep_var[0])
 			    );
 		}
 
 	      prev = (*fs)->id[0];
 
 	      if (fctr->indep_var[1] && count > 0 ) 
-		tab_hline(tbl, TAL_1, 2, n_cols - 1, row);
+		tab_hline (tbl, TAL_1, 2, n_cols - 1, row);
 
 	      if ( fctr->indep_var[1]) 
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE, 
-			  value_to_string(&(*fs)->id[1], fctr->indep_var[1])
+			  value_to_string (& (*fs)->id[1], fctr->indep_var[1])
 			  );
 
-	      populate_extremes(tbl, heading_columns - 2, 
+	      populate_extremes (tbl, heading_columns - 2, 
 				row, n_extremities,
-				&(*fs)->m[i]);
+				& (*fs)->m[i]);
 
 	      count++ ; 
 	      fs++;
@@ -1225,43 +1228,43 @@ show_extremes(struct variable **dependent_var, int n_dep_var,
 	}
     }
 
-  tab_submit(tbl);
+  tab_submit (tbl);
 }
 
 
 
 /* Fill in the extremities table */
 void 
-populate_extremes(struct tab_table *t, 
+populate_extremes (struct tab_table *t, 
 		  int col, int row, int n, const struct metrics *m)
 {
   int extremity;
   int idx=0;
 
 
-  tab_text(t, col, row,
+  tab_text (t, col, row,
 	   TAB_RIGHT | TAT_TITLE ,
-	   _("Highest")
+	   _ ("Highest")
 	   );
 
-  tab_text(t, col, row + n ,
+  tab_text (t, col, row + n ,
 	   TAB_RIGHT | TAT_TITLE ,
-	   _("Lowest")
+	   _ ("Lowest")
 	   );
 
 
-  tab_hline(t, TAL_1, col, col + 3, row + n );
+  tab_hline (t, TAL_1, col, col + 3, row + n );
 	    
   for (extremity = 0; extremity < n ; ++extremity ) 
     {
       /* Highest */
-      tab_float(t, col + 1, row + extremity,
+      tab_float (t, col + 1, row + extremity,
 		TAB_RIGHT,
 		extremity + 1, 8, 0);
 
 
       /* Lowest */
-      tab_float(t, col + 1, row + extremity + n,
+      tab_float (t, col + 1, row + extremity + n,
 		TAB_RIGHT,
 		extremity + 1, 8, 0);
 
@@ -1281,11 +1284,11 @@ populate_extremes(struct tab_table *t,
 	  if ( extremity + j >= n ) 
 	    break ;
 
-	  tab_float(t, col + 3, row + extremity + j  + n,
+	  tab_float (t, col + 3, row + extremity + j  + n,
 		    TAB_RIGHT,
 		    wv->v.f, 8, 2);
 
-	  tab_float(t, col + 2, row + extremity + j  + n,
+	  tab_float (t, col + 2, row + extremity + j  + n,
 		    TAB_RIGHT,
 		    cn->num, 8, 0);
 
@@ -1310,11 +1313,11 @@ populate_extremes(struct tab_table *t,
 	  if ( extremity + j >= n ) 
 	    break ;
 
-	  tab_float(t, col + 3, row + extremity + j,
+	  tab_float (t, col + 3, row + extremity + j,
 		    TAB_RIGHT,
 		    wv->v.f, 8, 2);
 
-	  tab_float(t, col + 2, row + extremity + j,
+	  tab_float (t, col + 2, row + extremity + j,
 		    TAB_RIGHT,
 		    cn->num, 8, 0);
 
@@ -1330,7 +1333,7 @@ populate_extremes(struct tab_table *t,
 
 /* Show the descriptives table */
 void
-show_descriptives(struct variable **dependent_var, 
+show_descriptives (struct variable **dependent_var, 
 		  int n_dep_var, 
 		  struct factor *fctr)
 {
@@ -1349,7 +1352,7 @@ show_descriptives(struct variable **dependent_var,
   if ( fctr )
     {
       heading_columns = 4;
-      n_factors = hsh_count(fctr->fstats);
+      n_factors = hsh_count (fctr->fstats);
 
       n_rows = n_dep_var * n_stat_rows * n_factors;
 
@@ -1386,10 +1389,10 @@ show_descriptives(struct variable **dependent_var,
   tab_vline (tbl, TAL_2, n_cols - 2, 0, n_rows - 1);
   tab_vline (tbl, TAL_1, n_cols - 1, 0, n_rows - 1);
 
-  tab_text (tbl, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _("Statistic"));
-  tab_text (tbl, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _("Std. Error"));
+  tab_text (tbl, n_cols - 2, 0, TAB_CENTER | TAT_TITLE, _ ("Statistic"));
+  tab_text (tbl, n_cols - 1, 0, TAB_CENTER | TAT_TITLE, _ ("Std. Error"));
 
-  tab_title (tbl, _("Descriptives"));
+  tab_title (tbl, _ ("Descriptives"));
 
 
   for ( i = 0 ; i < n_dep_var ; ++i ) 
@@ -1397,12 +1400,12 @@ show_descriptives(struct variable **dependent_var,
       const int row = heading_rows + i * n_stat_rows * n_factors ;
 
       if ( i > 0 )
-	tab_hline(tbl, TAL_1, 0, n_cols - 1, row );
+	tab_hline (tbl, TAL_1, 0, n_cols - 1, row );
 
       tab_text (tbl, 0,
 		i * n_stat_rows * n_factors  + heading_rows,
 		TAB_LEFT | TAT_TITLE, 
-		var_to_string(dependent_var[i])
+		var_to_string (dependent_var[i])
 		);
 
 
@@ -1412,23 +1415,23 @@ show_descriptives(struct variable **dependent_var,
 	  int count = 0;
 
 	  tab_text (tbl, 1, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		    var_to_string(fctr->indep_var[0]));
+		    var_to_string (fctr->indep_var[0]));
 
 
 	  if ( fctr->indep_var[1])
 	    tab_text (tbl, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		      var_to_string(fctr->indep_var[1]));
+		      var_to_string (fctr->indep_var[1]));
 
-	  while( *fs ) 
+	  while ( *fs ) 
 	    {
 
 	      static union value prev ;
 
 	      const int row = heading_rows + n_stat_rows  * 
-		( ( i  * n_factors  ) +  count );
+		 ( ( i  * n_factors  ) +  count );
 
 
-	      if ( 0 != compare_values(&prev, &(*fs)->id[0], 
+	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
 				       fctr->indep_var[0]->width))
 		{
 		  
@@ -1438,23 +1441,23 @@ show_descriptives(struct variable **dependent_var,
 		  tab_text (tbl, 
 			    1, row,
 			    TAB_LEFT | TAT_TITLE, 
-			    value_to_string(&(*fs)->id[0], fctr->indep_var[0])
+			    value_to_string (& (*fs)->id[0], fctr->indep_var[0])
 			    );
 		}
 
 	      prev = (*fs)->id[0];
 
 	      if (fctr->indep_var[1] && count > 0 ) 
-		tab_hline(tbl, TAL_1, 2, n_cols - 1, row);
+		tab_hline (tbl, TAL_1, 2, n_cols - 1, row);
 
 	      if ( fctr->indep_var[1]) 
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE, 
-			  value_to_string(&(*fs)->id[1], fctr->indep_var[1])
+			  value_to_string (& (*fs)->id[1], fctr->indep_var[1])
 			  );
 
-	      populate_descriptives(tbl, heading_columns - 2, 
-				    row, &(*fs)->m[i]);
+	      populate_descriptives (tbl, heading_columns - 2, 
+				    row, & (*fs)->m[i]);
 
 	      count++ ; 
 	      fs++;
@@ -1465,13 +1468,13 @@ show_descriptives(struct variable **dependent_var,
       else 
 	{
 	  
-	  populate_descriptives(tbl, heading_columns - 2, 
+	  populate_descriptives (tbl, heading_columns - 2, 
 				i * n_stat_rows * n_factors  + heading_rows,
 				&totals[i]);
 	}
     }
 
-  tab_submit(tbl);
+  tab_submit (tbl);
 
 }
 
@@ -1480,18 +1483,18 @@ show_descriptives(struct variable **dependent_var,
 
 /* Fill in the descriptives data */
 void
-populate_descriptives(struct tab_table *tbl, int col, int row, 
+populate_descriptives (struct tab_table *tbl, int col, int row, 
 		      const struct metrics *m)
 {
 
-  const double t = gsl_cdf_tdist_Qinv(1 - cmd.n_cinterval[0]/100.0/2.0, \
+  const double t = gsl_cdf_tdist_Qinv (1 - cmd.n_cinterval[0]/100.0/2.0, \
 				      m->n -1);
 
 
   tab_text (tbl, col, 
 	    row,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Mean"));
+	    _ ("Mean"));
 
   tab_float (tbl, col + 2,
 	     row,
@@ -1509,13 +1512,13 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 1,
 	    TAB_LEFT | TAT_TITLE | TAT_PRINTF,
-	    _("%g%% Confidence Interval for Mean"), cmd.n_cinterval[0]);
+	    _ ("%g%% Confidence Interval for Mean"), cmd.n_cinterval[0]);
 
 
   tab_text (tbl, col + 1, 
 	    row  + 1,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Lower Bound"));
+	    _ ("Lower Bound"));
 
   tab_float (tbl, col + 2,
 	     row + 1,
@@ -1526,7 +1529,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col + 1,  
 	    row + 2,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Upper Bound"));
+	    _ ("Upper Bound"));
 
 
   tab_float (tbl, col + 2,
@@ -1538,7 +1541,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 3,
 	    TAB_LEFT | TAT_TITLE | TAT_PRINTF,
-	    _("5%% Trimmed Mean"));
+	    _ ("5%% Trimmed Mean"));
 
   tab_float (tbl, col + 2, 
 	     row + 3,
@@ -1549,15 +1552,15 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 4,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Median"));
+	    _ ("Median"));
 
   {
     struct percentile *p;
     double d = 50;
     
-    p = hsh_find(m->ptile_hash, &d);
+    p = hsh_find (m->ptile_hash, &d);
     
-    assert(p);
+    assert (p);
 
 
     tab_float (tbl, col + 2, 
@@ -1571,7 +1574,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 5,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Variance"));
+	    _ ("Variance"));
 
   tab_float (tbl, col + 2,
 	     row + 5,
@@ -1583,7 +1586,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 6,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Std. Deviation"));
+	    _ ("Std. Deviation"));
 
 
   tab_float (tbl, col + 2,
@@ -1596,7 +1599,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 7,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Minimum"));
+	    _ ("Minimum"));
 
   tab_float (tbl, col + 2,
 	     row + 7,
@@ -1607,7 +1610,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 8,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Maximum"));
+	    _ ("Maximum"));
 
   tab_float (tbl, col + 2,
 	     row + 8,
@@ -1619,7 +1622,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 9,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Range"));
+	    _ ("Range"));
 
 
   tab_float (tbl, col + 2,
@@ -1631,20 +1634,20 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 10,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Interquartile Range"));
+	    _ ("Interquartile Range"));
 
   {
     struct percentile *p1;
     struct percentile *p2;
 
     double d = 75;
-    p1 = hsh_find(m->ptile_hash, &d);
+    p1 = hsh_find (m->ptile_hash, &d);
 
     d = 25;
-    p2 = hsh_find(m->ptile_hash, &d);
+    p2 = hsh_find (m->ptile_hash, &d);
 
-    assert(p1);
-    assert(p2);
+    assert (p1);
+    assert (p2);
 
     tab_float (tbl, col + 2, 
 	       row + 10,
@@ -1658,7 +1661,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_text (tbl, col, 
 	    row + 11,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Skewness"));
+	    _ ("Skewness"));
 
 
   tab_float (tbl, col + 2,
@@ -1671,14 +1674,14 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_float (tbl, col + 3,
 	     row + 11,
 	     TAB_CENTER,
-	     calc_seskew(m->n),
+	     calc_seskew (m->n),
 	     8,3);
 
 
   tab_text (tbl, col, 
 	    row + 12,
 	    TAB_LEFT | TAT_TITLE,
-	    _("Kurtosis"));
+	    _ ("Kurtosis"));
 
 
   tab_float (tbl, col + 2,
@@ -1691,7 +1694,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
   tab_float (tbl, col + 3,
 	     row + 12,
 	     TAB_CENTER,
-	     calc_sekurt(m->n),
+	     calc_sekurt (m->n),
 	     8,3);
 
 
@@ -1700,7 +1703,7 @@ populate_descriptives(struct tab_table *tbl, int col, int row,
 
 
 void
-box_plot_variables(const struct factor *fctr, 
+box_plot_variables (const struct factor *fctr, 
 		   const struct variable **vars, int n_vars, 
 		   const struct variable *id)
 {
@@ -1710,7 +1713,7 @@ box_plot_variables(const struct factor *fctr,
 
   if ( ! fctr ) 
     {
-      box_plot_group(fctr, vars, n_vars, id);
+      box_plot_group (fctr, vars, n_vars, id);
       return;
     }
 
@@ -1718,18 +1721,18 @@ box_plot_variables(const struct factor *fctr,
     {
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
-      struct chart *ch = chart_create();
-      const char *s = factor_to_string(fctr, *fs, 0 );
+      struct chart *ch = chart_create ();
+      const char *s = factor_to_string (fctr, *fs, 0 );
 
-      chart_write_title(ch, s);
+      chart_write_title (ch, s);
 
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
-	  y_max = max(y_max, (*fs)->m[i].max);
-	  y_min = min(y_min, (*fs)->m[i].min);
+	  y_max = max (y_max, (*fs)->m[i].max);
+	  y_min = min (y_min, (*fs)->m[i].min);
 	}
       
-      boxplot_draw_yscale(ch, y_max, y_min);
+      boxplot_draw_yscale (ch, y_max, y_min);
 	  
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
@@ -1740,15 +1743,15 @@ box_plot_variables(const struct factor *fctr,
 	  const double box_centre = ( i * 2 + 1) * box_width 
 	    + ch->data_left;
 	      
-	  boxplot_draw_boxplot(ch,
+	  boxplot_draw_boxplot (ch,
 			       box_centre, box_width,
-			       &(*fs)->m[i],
-			       var_to_string(vars[i]));
+			       & (*fs)->m[i],
+			       var_to_string (vars[i]));
 
 
 	}
 
-      chart_submit(ch);
+      chart_submit (ch);
 
     }
 }
@@ -1759,7 +1762,7 @@ box_plot_variables(const struct factor *fctr,
    each dependent variable has its own plot.
 */
 void
-box_plot_group(const struct factor *fctr, 
+box_plot_group (const struct factor *fctr, 
 	       const struct variable **vars, 
 	       int n_vars,
 	       const struct variable *id UNUSED)
@@ -1772,9 +1775,9 @@ box_plot_group(const struct factor *fctr,
       struct factor_statistics **fs ;
       struct chart *ch;
 
-      ch = chart_create();
+      ch = chart_create ();
 
-      boxplot_draw_yscale(ch, totals[i].max, totals[i].min);
+      boxplot_draw_yscale (ch, totals[i].max, totals[i].min);
 
       if ( fctr ) 
 	{
@@ -1783,13 +1786,13 @@ box_plot_group(const struct factor *fctr,
 	  for ( fs = fctr->fs ; *fs ; ++fs ) 
 	    ++n_factors;
 
-	  chart_write_title(ch, _("Boxplot of %s vs. %s"), 
-			    var_to_string(vars[i]), var_to_string(fctr->indep_var[0]) );
+	  chart_write_title (ch, _ ("Boxplot of %s vs. %s"), 
+			    var_to_string (vars[i]), var_to_string (fctr->indep_var[0]) );
 
 	  for ( fs = fctr->fs ; *fs ; ++fs ) 
 	    {
 	      
-	      const char *s = factor_to_string_concise(fctr, *fs);
+	      const char *s = factor_to_string_concise (fctr, *fs);
 
 	      const double box_width = (ch->data_right - ch->data_left) 
 		/ (n_factors * 2.0 ) ;
@@ -1797,9 +1800,9 @@ box_plot_group(const struct factor *fctr,
 	      const double box_centre = ( f++ * 2 + 1) * box_width 
 		+ ch->data_left;
 	      
-	      boxplot_draw_boxplot(ch,
+	      boxplot_draw_boxplot (ch,
 				   box_centre, box_width,
-				   &(*fs)->m[i],
+				   & (*fs)->m[i],
 				   s);
 	    }
 	}
@@ -1808,16 +1811,16 @@ box_plot_group(const struct factor *fctr,
 	  const double box_width = (ch->data_right - ch->data_left) / 3.0;
 	  const double box_centre = (ch->data_right + ch->data_left) / 2.0;
 
-	  chart_write_title(ch, _("Boxplot"));
+	  chart_write_title (ch, _ ("Boxplot"));
 
-	  boxplot_draw_boxplot(ch,
+	  boxplot_draw_boxplot (ch,
 			       box_centre,    box_width, 
 			       &totals[i],
-			       var_to_string(vars[i]) );
+			       var_to_string (vars[i]) );
 	  
 	}
 
-      chart_submit(ch);
+      chart_submit (ch);
     }
 }
 
@@ -1825,7 +1828,7 @@ box_plot_group(const struct factor *fctr,
 /* Plot the normal and detrended normal plots for m
    Label the plots with factorname */
 void
-np_plot(const struct metrics *m, const char *factorname)
+np_plot (const struct metrics *m, const char *factorname)
 {
   int i;
   double yfirst=0, ylast=0;
@@ -1844,21 +1847,21 @@ np_plot(const struct metrics *m, const char *factorname)
   if ( m->n_data == 0 ) 
     return ; 
 
-  np_chart = chart_create();
-  dnp_chart = chart_create();
+  np_chart = chart_create ();
+  dnp_chart = chart_create ();
 
   if ( !np_chart || ! dnp_chart ) 
     return ;
 
-  chart_write_title(np_chart, _("Normal Q-Q Plot of %s"), factorname);
-  chart_write_xlabel(np_chart, _("Observed Value"));
-  chart_write_ylabel(np_chart, _("Expected Normal"));
+  chart_write_title (np_chart, _ ("Normal Q-Q Plot of %s"), factorname);
+  chart_write_xlabel (np_chart, _ ("Observed Value"));
+  chart_write_ylabel (np_chart, _ ("Expected Normal"));
 
 
-  chart_write_title(dnp_chart, _("Detrended Normal Q-Q Plot of %s"), 
+  chart_write_title (dnp_chart, _ ("Detrended Normal Q-Q Plot of %s"), 
 		    factorname);
-  chart_write_xlabel(dnp_chart, _("Observed Value"));
-  chart_write_ylabel(dnp_chart, _("Dev from Normal"));
+  chart_write_xlabel (dnp_chart, _ ("Observed Value"));
+  chart_write_ylabel (dnp_chart, _ ("Dev from Normal"));
 
   yfirst = gsl_cdf_ugaussian_Pinv (m->wvp[0]->rank / ( m->n + 1));
   ylast =  gsl_cdf_ugaussian_Pinv (m->wvp[m->n_data-1]->rank / ( m->n + 1));
@@ -1867,17 +1870,17 @@ np_plot(const struct metrics *m, const char *factorname)
   {
     /* Need to make sure that both the scatter plot and the ideal fit into the
        plot */
-    double x_lower = min(m->min, (yfirst - intercept) / slope) ;
-    double x_upper = max(m->max, (ylast  - intercept) / slope) ;
+    double x_lower = min (m->min, (yfirst - intercept) / slope) ;
+    double x_upper = max (m->max, (ylast  - intercept) / slope) ;
     double slack = (x_upper - x_lower)  * 0.05 ;
 
-    chart_write_xscale(np_chart, x_lower - slack, x_upper + slack, 5);
+    chart_write_xscale (np_chart, x_lower - slack, x_upper + slack, 5);
 
-    chart_write_xscale(dnp_chart, m->min, m->max, 5);
+    chart_write_xscale (dnp_chart, m->min, m->max, 5);
 
   }
 
-  chart_write_yscale(np_chart, yfirst, ylast, 5);
+  chart_write_yscale (np_chart, yfirst, ylast, 5);
 
   {
     /* We have to cache the detrended data, beacause we need to 
@@ -1889,26 +1892,26 @@ np_plot(const struct metrics *m, const char *factorname)
       {
 	const double ns = gsl_cdf_ugaussian_Pinv (m->wvp[i]->rank / ( m->n + 1));
 
-	chart_datum(np_chart, 0, m->wvp[i]->v.f, ns);
+	chart_datum (np_chart, 0, m->wvp[i]->v.f, ns);
 
 	d_data[i] = (m->wvp[i]->v.f - m->mean) / m->stddev  - ns;
    
 	if ( d_data[i] < d_min ) d_min = d_data[i];
 	if ( d_data[i] > d_max ) d_max = d_data[i];
       }
-    chart_write_yscale(dnp_chart, d_min, d_max, 5);
+    chart_write_yscale (dnp_chart, d_min, d_max, 5);
 
     for ( i = 0 ; i < m->n_data; ++i ) 
-      chart_datum(dnp_chart, 0, m->wvp[i]->v.f, d_data[i]);
+      chart_datum (dnp_chart, 0, m->wvp[i]->v.f, d_data[i]);
 
-    free(d_data);
+    free (d_data);
   }
 
-  chart_line(np_chart, slope, intercept, yfirst, ylast , CHART_DIM_Y);
-  chart_line(dnp_chart, 0, 0, m->min, m->max , CHART_DIM_X);
+  chart_line (np_chart, slope, intercept, yfirst, ylast , CHART_DIM_Y);
+  chart_line (dnp_chart, 0, 0, m->min, m->max , CHART_DIM_X);
 
-  chart_submit(np_chart);
-  chart_submit(dnp_chart);
+  chart_submit (np_chart);
+  chart_submit (dnp_chart);
 }
 
 
@@ -1916,7 +1919,7 @@ np_plot(const struct metrics *m, const char *factorname)
 
 /* Show the percentiles */
 void
-show_percentiles(struct variable **dependent_var, 
+show_percentiles (struct variable **dependent_var, 
 		 int n_dep_var, 
 		 struct factor *fctr)
 {
@@ -1938,7 +1941,7 @@ show_percentiles(struct variable **dependent_var,
     {
       struct factor_statistics **fs = fctr->fs ; 
       n_heading_columns = 3;
-      n_factors = hsh_count(fctr->fstats);
+      n_factors = hsh_count (fctr->fstats);
 
       ptiles = (*fs)->m[0].ptile_hash;
 
@@ -1953,7 +1956,7 @@ show_percentiles(struct variable **dependent_var,
       ptiles = totals[0].ptile_hash;
     }
 
-  n_ptiles = hsh_count(ptiles);
+  n_ptiles = hsh_count (ptiles);
 
   n_rows = n_heading_rows + n_dep_var * n_stat_rows * n_factors;
 
@@ -1977,7 +1980,7 @@ show_percentiles(struct variable **dependent_var,
   tab_vline (tbl, TAL_2, n_heading_columns, 0, n_rows - 1);
 
 
-  tab_title (tbl, _("Percentiles"));
+  tab_title (tbl, _ ("Percentiles"));
 
 
   tab_hline (tbl, TAL_1, n_heading_columns, n_cols - 1, 1 );
@@ -1996,21 +1999,21 @@ show_percentiles(struct variable **dependent_var,
 	   n_heading_columns, n_heading_rows - 1,
 	   n_cols - 1, n_rows - 1);
 
-  tab_joint_text(tbl, n_heading_columns + 1, 0,
+  tab_joint_text (tbl, n_heading_columns + 1, 0,
 		 n_cols - 1 , 0,
 		 TAB_CENTER | TAT_TITLE ,
-		 _("Percentiles"));
+		 _ ("Percentiles"));
 
 
   {
     /* Put in the percentile break points as headings */
 
-    struct percentile **p = (struct percentile **) hsh_sort(ptiles);
+    struct percentile **p = (struct percentile **) hsh_sort (ptiles);
 
     i = 0;
     while ( (*p)  ) 
       {
-	tab_float(tbl, n_heading_columns + i++ , 1, 
+	tab_float (tbl, n_heading_columns + i++ , 1, 
 		  TAB_CENTER,
 		  (*p)->p, 8, 0);
 	
@@ -2025,12 +2028,12 @@ show_percentiles(struct variable **dependent_var,
       const int row = n_heading_rows + i * n_stat_rows * n_factors ;
 
       if ( i > 0 )
-	tab_hline(tbl, TAL_1, 0, n_cols - 1, row );
+	tab_hline (tbl, TAL_1, 0, n_cols - 1, row );
 
       tab_text (tbl, 0,
 		i * n_stat_rows * n_factors  + n_heading_rows,
 		TAB_LEFT | TAT_TITLE, 
-		var_to_string(dependent_var[i])
+		var_to_string (dependent_var[i])
 		);
 
       if ( fctr  )
@@ -2040,23 +2043,23 @@ show_percentiles(struct variable **dependent_var,
 
 	  tab_text (tbl, 1, n_heading_rows - 1, 
 		    TAB_CENTER | TAT_TITLE, 
-		    var_to_string(fctr->indep_var[0]));
+		    var_to_string (fctr->indep_var[0]));
 
 
 	  if ( fctr->indep_var[1])
 	    tab_text (tbl, 2, n_heading_rows - 1, TAB_CENTER | TAT_TITLE, 
-		      var_to_string(fctr->indep_var[1]));
+		      var_to_string (fctr->indep_var[1]));
 
-	  while( *fs ) 
+	  while ( *fs ) 
 	    {
 
 	      static union value prev ;
 
 	      const int row = n_heading_rows + n_stat_rows  * 
-		( ( i  * n_factors  ) +  count );
+		 ( ( i  * n_factors  ) +  count );
 
 
-	      if ( 0 != compare_values(&prev, &(*fs)->id[0], 
+	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
 				       fctr->indep_var[0]->width))
 		{
 		  
@@ -2066,7 +2069,7 @@ show_percentiles(struct variable **dependent_var,
 		  tab_text (tbl, 
 			    1, row,
 			    TAB_LEFT | TAT_TITLE, 
-			    value_to_string(&(*fs)->id[0], fctr->indep_var[0])
+			    value_to_string (& (*fs)->id[0], fctr->indep_var[0])
 			    );
 
 
@@ -2075,17 +2078,17 @@ show_percentiles(struct variable **dependent_var,
 	      prev = (*fs)->id[0];
 
 	      if (fctr->indep_var[1] && count > 0 ) 
-		tab_hline(tbl, TAL_1, 2, n_cols - 1, row);
+		tab_hline (tbl, TAL_1, 2, n_cols - 1, row);
 
 	      if ( fctr->indep_var[1]) 
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE, 
-			  value_to_string(&(*fs)->id[1], fctr->indep_var[1])
+			  value_to_string (& (*fs)->id[1], fctr->indep_var[1])
 			  );
 
 
-	      populate_percentiles(tbl, n_heading_columns - 1, 
-				   row, &(*fs)->m[i]);
+	      populate_percentiles (tbl, n_heading_columns - 1, 
+				   row, & (*fs)->m[i]);
 
 
 	      count++ ; 
@@ -2096,7 +2099,7 @@ show_percentiles(struct variable **dependent_var,
 	}
       else 
 	{
-	  populate_percentiles(tbl, n_heading_columns - 1, 
+	  populate_percentiles (tbl, n_heading_columns - 1, 
 			       i * n_stat_rows * n_factors  + n_heading_rows,
 			       &totals[i]);
 	}
@@ -2105,7 +2108,7 @@ show_percentiles(struct variable **dependent_var,
     }
 
 
-  tab_submit(tbl);
+  tab_submit (tbl);
 
 
 }
@@ -2114,17 +2117,17 @@ show_percentiles(struct variable **dependent_var,
 
 
 void
-populate_percentiles(struct tab_table *tbl, int col, int row, 
+populate_percentiles (struct tab_table *tbl, int col, int row, 
 		     const struct metrics *m)
 {
   int i;
 
-  struct percentile **p = (struct percentile **) hsh_sort(m->ptile_hash);
+  struct percentile **p = (struct percentile **) hsh_sort (m->ptile_hash);
   
   tab_text (tbl, 
 	    col, row + 1,
 	    TAB_LEFT | TAT_TITLE, 
-	    _("Tukey\'s Hinges")
+	    _ ("Tukey\'s Hinges")
 	    );
 
   tab_text (tbl, 
@@ -2137,21 +2140,21 @@ populate_percentiles(struct tab_table *tbl, int col, int row,
   i = 0;
   while ( (*p)  ) 
     {
-      tab_float(tbl, col + i + 1 , row, 
+      tab_float (tbl, col + i + 1 , row, 
 		TAB_CENTER,
-		(*p)->v, 8, 2);
+		 (*p)->v, 8, 2);
       if ( (*p)->p == 25 ) 
-	tab_float(tbl, col + i + 1 , row + 1, 
+	tab_float (tbl, col + i + 1 , row + 1, 
 		  TAB_CENTER,
 		  m->hinge[0], 8, 2);
 
       if ( (*p)->p == 50 ) 
-	tab_float(tbl, col + i + 1 , row + 1, 
+	tab_float (tbl, col + i + 1 , row + 1, 
 		  TAB_CENTER,
 		  m->hinge[1], 8, 2);
 
       if ( (*p)->p == 75 ) 
-	tab_float(tbl, col + i + 1 , row + 1, 
+	tab_float (tbl, col + i + 1 , row + 1, 
 		  TAB_CENTER,
 		  m->hinge[2], 8, 2);
 
@@ -2166,7 +2169,7 @@ populate_percentiles(struct tab_table *tbl, int col, int row,
 
 
 const char *
-factor_to_string(const struct factor *fctr, 
+factor_to_string (const struct factor *fctr, 
 		 struct factor_statistics *fs,
 		 const struct variable *var)
 {
@@ -2174,30 +2177,30 @@ factor_to_string(const struct factor *fctr,
   static char buf1[100];
   char buf2[100];
 
-  strcpy(buf1,"");
+  strcpy (buf1,"");
 
   if (var)
-    sprintf(buf1, "%s (",var_to_string(var) );
+    sprintf (buf1, "%s (",var_to_string (var) );
 
 		      
-  snprintf(buf2, 100, "%s = %s",
-	   var_to_string(fctr->indep_var[0]),
-	   value_to_string(&fs->id[0],fctr->indep_var[0]));
+  snprintf (buf2, 100, "%s = %s",
+	   var_to_string (fctr->indep_var[0]),
+	   value_to_string (&fs->id[0],fctr->indep_var[0]));
 		      
-  strcat(buf1, buf2);
+  strcat (buf1, buf2);
 		      
   if ( fctr->indep_var[1] ) 
     {
-      sprintf(buf2, "; %s = %s)",
-	      var_to_string(fctr->indep_var[1]),
-	      value_to_string(&fs->id[1],
+      sprintf (buf2, "; %s = %s)",
+	      var_to_string (fctr->indep_var[1]),
+	      value_to_string (&fs->id[1],
 			      fctr->indep_var[1]));
-      strcat(buf1, buf2);
+      strcat (buf1, buf2);
     }
   else
     {
       if ( var ) 
-	strcat(buf1, ")");
+	strcat (buf1, ")");
     }
 
   return buf1;
@@ -2206,7 +2209,7 @@ factor_to_string(const struct factor *fctr,
 
 
 const char *
-factor_to_string_concise(const struct factor *fctr, 
+factor_to_string_concise (const struct factor *fctr, 
 			 struct factor_statistics *fs)
 
 {
@@ -2215,13 +2218,13 @@ factor_to_string_concise(const struct factor *fctr,
 
   char buf2[100];
 
-  snprintf(buf, 100, "%s",
-	   value_to_string(&fs->id[0], fctr->indep_var[0]));
+  snprintf (buf, 100, "%s",
+	   value_to_string (&fs->id[0], fctr->indep_var[0]));
 		      
   if ( fctr->indep_var[1] ) 
     {
-      sprintf(buf2, ",%s)", value_to_string(&fs->id[1], fctr->indep_var[1]) );
-      strcat(buf, buf2);
+      sprintf (buf2, ",%s)", value_to_string (&fs->id[1], fctr->indep_var[1]) );
+      strcat (buf, buf2);
     }
 
 
