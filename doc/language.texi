@@ -608,7 +608,7 @@ the default decimal point setting:
 
 @float
 @multitable {DOLLAR10.2} {@code{@tie{}$3,141.59}} {@code{-$3,141.59}}
-@headitem Format @tab @code{@tie{}}3141.59   @tab -3141.59
+@headitem Format @tab @code{@tie{}3141.59}   @tab @code{-3141.59}
 @item F8.2       @tab @code{@tie{}3141.59}   @tab @code{-3141.59}
 @item COMMA9.2   @tab @code{@tie{}3,141.59}  @tab @code{-3,141.59}
 @item DOT9.2     @tab @code{@tie{}3.141,59}  @tab @code{-3.141,59}
@@ -845,7 +845,7 @@ SET CCE="-.Rp'. ..". /* Indonesia Rupiah.
 
 @float
 @multitable {CCD13.2} {@code{@tie{}@tie{}USD 3,145.59}} {@code{(USD 3,145.59)}}
-@headitem Format @tab @code{@tie{}}3145.59         @tab -3145.59
+@headitem Format @tab @code{@tie{}3145.59}         @tab @code{-3145.59}
 @item CCA12.2 @tab @code{@tie{}EUR3,145.59}        @tab @code{EUR3,145.59-}
 @item CCB14.2 @tab @code{@tie{}@tie{}USD 3,145.59} @tab @code{(USD 3,145.59)}
 @item CCC11.2 @tab @code{@tie{}R$3.145,59}         @tab @code{-R$3.145,59}
