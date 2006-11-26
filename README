@@ -35,6 +35,9 @@ PSPP, you will need to install certain prerequisites:
       have these installed, you must run `configure' with
       --without-gui.
 
+    * Optional: Texinfo 4.7 or later, if you want to build the
+      documentation in PostScript or PDF format.
+
 For information on differences from previous versions, please see file
 NEWS.  Full documentation on PSPP's language can be found in the doc/
 directory.
