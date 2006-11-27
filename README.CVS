@@ -12,6 +12,8 @@ following:
 	  Note that Gnulib does not require any form of installation:
 	  simply checking it out into a directory is sufficient.
 
+	* Texinfo 4.7 or later, to build the documentation.
+
 Once you have these installed, execute
 	make -f Smake
 If you checked Gnulib out in a directory named `gnulib' at the same
