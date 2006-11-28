@@ -1,3 +1,13 @@
+Tue Nov 28 17:33:31 WST 2006 <john@darrington.wattle.id.au>
+
+	* get-commands.pl: Fixed generation of ni.texi, which was broken
+	after commands.def was reorganised.
+
+	* not-implemented.texi language.texi regression.texi 
+          statistics.texi: Added some indeces.
+
+	* license.texi: Added information from GPL.
+
 Sat Oct  7 11:02:44 WST 2006 <john@darrington.wattle.id.au>
 
 	* Added documentation for RANK.

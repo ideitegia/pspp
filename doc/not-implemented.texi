@@ -4,6 +4,9 @@
 This chapter lists parts of the PSPP language that are not yet
 implemented.
 
+@cindex unimplemented commands
+@cindex commands, unimplemented
+
 @include ni.texi
 
 @setfilename ignored

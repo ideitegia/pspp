@@ -2,6 +2,8 @@
 @comment  node-name,  next,  previous,  up
 @section REGRESSION
 
+@cindex regression
+@cindex linear regression
 The REGRESSION procedure fits linear models to data via least-squares
 estimation. The procedure is appropriate for data which satisfy those
 assumptions typical in linear regression:

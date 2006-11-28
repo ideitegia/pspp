@@ -524,8 +524,8 @@ Page width, in characters, in format F3.
 
 @node Sets of Variables, Input and Output Formats, System Variables, Variables
 @subsection Lists of variable names
-@cindex TO convention
-@cindex convention, TO
+@cindex @code{TO} convention
+@cindex convention, @code{TO}
 
 To refer to a set of variables, list their names one after another.
 Optionally, their names may be separated by commas.  To include a
@@ -554,6 +554,7 @@ later commands using the same syntax.
 @node Input and Output Formats, Scratch Variables, Sets of Variables, Variables
 @subsection Input and Output Formats
 
+@cindex formats
 An @dfn{input format} describes how to interpret the contents of an
 input field as a number or a string.  It might specify that the field
 contains an ordinary decimal number, a time or date, a number in binary
@@ -601,6 +602,7 @@ by PSPP.
 @node Basic Numeric Formats
 @subsubsection Basic Numeric Formats
 
+@cindex numeric formats
 The basic numeric formats are used for input and output of real numbers
 in standard or scientific notation.  The following table shows an
 example of how each format displays positive and negative numbers with
@@ -793,6 +795,7 @@ special values are output as asterisks.
 @node Custom Currency Formats
 @subsubsection Custom Currency Formats
 
+@cindex currency formats
 The custom currency formats are closely related to the basic numeric
 formats, but they allow users to customize the output format.  The
 SET command configures custom currency formats, using the syntax
@@ -943,6 +946,8 @@ machines is output as positive.
 @node Binary and Hexadecimal Numeric Formats
 @subsubsection Binary and Hexadecimal Numeric Formats
 
+@cindex binary formats
+@cindex hexadecimal formats
 The binary and hexadecimal formats are primarily designed for
 compatibility with existing machine formats, not for human readability.
 All of them therefore have a F format as default output format.  Some of
@@ -1034,6 +1039,8 @@ with half the given width.
 @node Time and Date Formats
 @subsubsection Time and Date Formats
 
+@cindex time formats
+@cindex date formats
 In PSPP, a @dfn{time} is an interval.  The time formats translate
 between human-friendly descriptions of time intervals and PSPP's
 internal representation of time intervals, which is simply the number of
@@ -1212,6 +1219,7 @@ The default output format is the same as the input format.
 @node String Formats
 @subsubsection String Formats
 
+@cindex string formats
 The A and AHEX formats are the only ones that may be assigned to string
 variables.  Neither format allows any decimal places.
 
@@ -1227,6 +1235,7 @@ format is A format with half the input width.
 @node Scratch Variables,  , Input and Output Formats, Variables
 @subsection Scratch Variables
 
+@cindex scratch variables
 Most of the time, variables don't retain their values between cases.
 Instead, either they're being read from a data file or the active file,
 in which case they assume the value read, or, if created with

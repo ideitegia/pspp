@@ -4,9 +4,6 @@
 This chapter documents the statistical procedures that PSPP supports so
 far.
 
-@c If you add any new commands, then don't forget to remove the entry in 
-@c not-implemented.texi
-
 @menu
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.
@@ -207,6 +204,7 @@ value, and MODE, the mode.  (If there are multiple modes, the smallest
 value is reported.)  By default, the mean, standard deviation of the
 mean, minimum, and maximum are reported for each variable.
 
+@cindex percentiles
 PERCENTILES causes the specified percentiles to be reported.
 The percentiles should  be presented at a list of numbers between 0
 and 100 inclusive.  
@@ -272,6 +270,7 @@ If the /COMPARE subcommand is ommitted, then PSPP uses the default value of
 The CINTERVAL subcommand specifies the confidence interval to use in
 calculation of the descriptives command.  The default it 95%.
 
+@cindex percentiles
 The PERCENTILES subcommand specifies which percentiles are to be calculated, 
 and which algorithm to use for calculating them.  The default is to
 calculate the 5, 10, 25, 50, 75, 90, 95 percentiles using the
@@ -414,6 +413,9 @@ The STATISTICS subcommand selects statistics for computation:
 
 @table @asis
 @item CHISQ
+@cindex chisquare
+@cindex chi-square
+
 Pearson chi-square, likelihood ratio, Fisher's exact test, continuity
 correction, linear-by-linear association.
 @item PHI
@@ -655,8 +657,6 @@ to specify different contrast tests.
 @section RANK
 
 @vindex RANK
-@cindex RANK
-
 @display
 RANK
         [VARIABLES=] var_list [@{A,D@}] [BY var_list]
