@@ -167,7 +167,17 @@ EXTRA_DIST += $(TESTS) tests/weighting.data tests/data-list.data tests/list.data
 	tests/expressions/randist/randist.txt \
 	tests/expressions/randist/t.out \
 	tests/expressions/randist/uniform.out \
-	tests/expressions/randist/weibull.out
+	tests/expressions/randist/weibull.out \
+	tests/formats/bcd-in.expected.cmp.gz \
+	tests/formats/binhex-out.expected.gz \
+	tests/formats/ib-in.expected.cmp.gz \
+	tests/formats/legacy-in.expected.cmp.gz \
+	tests/formats/num-in.expected.gz \
+	tests/formats/num-out.expected.cmp.gz \
+	tests/formats/num-out-cmp.pl \
+	tests/formats/num-out-compare.pl \
+	tests/formats/num-out-decmp.pl \
+	tests/formats/num-out.pl
 
 CLEANFILES += *.save pspp.* foo*
 

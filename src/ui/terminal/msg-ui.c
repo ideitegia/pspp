@@ -40,7 +40,7 @@ static const char *error_file;
 
 static void handle_msg (const struct msg *);
 
-static FILE *msg_file;
+static FILE *msg_file ;
 
 void 
 msg_ui_set_error_file (const char *filename)
@@ -72,7 +72,9 @@ void
 msg_ui_done (void) 
 {
   msg_done ();
-  fclose (msg_file);
+  
+  if ( msg_file ) /* FIXME: do we really want to close stdout ?? */
+    fclose (msg_file);
 }
 
 
