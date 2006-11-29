@@ -26,7 +26,6 @@
 #include <data/file-name.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <language/line-buffer.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/magic.h>

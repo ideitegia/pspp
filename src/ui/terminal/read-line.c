@@ -29,13 +29,12 @@
 #include "msg-ui.h"
 
 #include <data/file-name.h>
-#include <data/file-name.h>
 #include <data/settings.h>
 #include <language/command.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
-#include <output/table.h>
+#include <language/prompt.h>
 
 #include "xalloc.h"
 
@@ -51,6 +50,16 @@ static char *history_file;
 static char **complete_command_name (const char *, int, int);
 static char **dont_complete (const char *, int, int);
 #endif /* HAVE_READLINE */
+
+
+struct readln_source 
+{
+  struct getl_interface parent ;
+
+  bool (*interactive_func) (struct string *line,
+			    enum prompt_style) ;
+};
+
 
 static bool initialised = false;
 
@@ -81,11 +90,27 @@ readln_uninitialize (void)
   initialised = false;
 
 #if HAVE_READLINE && unix
-  if (history_file != NULL)
+  if (history_file != NULL && false == get_testing_mode() )
     write_history (history_file);
   clear_history ();
   free (history_file);
 #endif
+}
+
+
+static bool
+read_interactive (struct getl_interface *s, struct string *line)
+{
+  struct readln_source *is  =
+    (struct readln_source *) s ;
+
+  return is->interactive_func (line, prompt_get_style ());
+}
+
+static bool
+always_true (const struct getl_interface *s UNUSED)
+{
+  return true;
 }
 
 /* Display a welcoming message. */
@@ -113,14 +138,19 @@ welcome (void)
 #endif
 }
 
+
+
+
+
+
 /* Gets a line from the user and stores it into LINE.
    Prompts the user with PROMPT.
    Returns true if successful, false at end of file.
-   Suitable for passing to getl_append_interactive(). */
-bool
-readln_read (struct string *line, enum getl_prompt_style style)
+   */
+static bool
+readln_read (struct string *line, enum prompt_style style)
 {
-  const char *prompt = getl_get_prompt (style);
+  const char *prompt = prompt_get (style);
 #if HAVE_READLINE
   char *string;
 #endif
@@ -132,7 +162,7 @@ readln_read (struct string *line, enum getl_prompt_style style)
   welcome ();
 
 #if HAVE_READLINE
-  rl_attempted_completion_function = (style == GETL_PROMPT_FIRST
+  rl_attempted_completion_function = (style == PROMPT_FIRST
                                       ? complete_command_name
                                       : dont_complete);
   string = readline (prompt);
@@ -158,6 +188,29 @@ readln_read (struct string *line, enum getl_prompt_style style)
     return false;
 #endif
 }
+
+
+static void
+readln_close (struct getl_interface *i)
+{
+  free (i);
+}
+
+/* Creates a source which uses readln to get its line */
+struct getl_interface *
+create_readln_source (void)
+{
+  struct readln_source *rlns  = xzalloc (sizeof (*rlns));
+
+  rlns->interactive_func = readln_read;
+
+  rlns->parent.interactive = always_true;
+  rlns->parent.read = read_interactive;
+  rlns->parent.close = readln_close;
+
+  return (struct getl_interface *) rlns;
+}
+
 
 #if HAVE_READLINE
 static char *command_generator (const char *text, int state);

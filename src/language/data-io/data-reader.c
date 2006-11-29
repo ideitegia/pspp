@@ -32,7 +32,7 @@
 #include <language/command.h>
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
-#include <language/line-buffer.h>
+#include <language/prompt.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
@@ -169,7 +169,7 @@ read_inline_record (struct dfm_reader *r)
         lex_get (r->lexer);
       if (!lex_force_match_id (r->lexer, "BEGIN") || !lex_force_match_id (r->lexer, "DATA"))
         return false;
-      getl_set_prompt_style (GETL_PROMPT_DATA);
+      prompt_set_style (PROMPT_DATA);
     }
       
   if (!lex_get_line_raw (r->lexer))
@@ -444,7 +444,7 @@ cmd_begin_data (struct lexer *lexer, struct dataset *ds)
   r->flags |= DFM_SAW_BEGIN_DATA;
 
   /* Input procedure reads from inline file. */
-  getl_set_prompt_style (GETL_PROMPT_DATA);
+  prompt_set_style (PROMPT_DATA);
   ok = procedure (ds, NULL, NULL);
 
   dfm_close_reader (r);

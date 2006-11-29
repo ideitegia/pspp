@@ -19,12 +19,16 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/float-format.h \
 	src/libpspp/freaderror.c \
 	src/libpspp/freaderror.h \
+	src/libpspp/getl.h \
+	src/libpspp/getl.c \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
 	src/libpspp/i18n.c \
 	src/libpspp/i18n.h \
 	src/libpspp/integer-format.c \
 	src/libpspp/integer-format.h \
+	src/libpspp/msg-locator.c \
+	src/libpspp/msg-locator.h \
 	src/libpspp/ll.c \
 	src/libpspp/ll.h \
 	src/libpspp/llx.c \

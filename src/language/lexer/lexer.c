@@ -30,9 +30,9 @@
 #include <libpspp/assertion.h>
 #include <language/command.h>
 #include <libpspp/message.h>
-#include <language/line-buffer.h>
 #include <libpspp/magic.h>
 #include <data/settings.h>
+#include <libpspp/getl.h>
 #include <libpspp/str.h>
 
 #include "size_max.h"

@@ -28,12 +28,11 @@
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/settings.h>
+#include <libpspp/getl.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <language/line-buffer.h>
 #include <libpspp/alloc.h>
-#include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -73,6 +72,8 @@ struct repeat_entry
 /* A DO REPEAT...END REPEAT block. */
 struct repeat_block 
   {
+    struct getl_interface parent ;
+
     struct pool *pool;                  /* Pool used for storage. */
     struct dataset *ds;                 /* The dataset for this block */
     struct line_list *first_line;       /* First line in line buffer. */
@@ -87,14 +88,20 @@ static bool parse_specification (struct lexer *, struct repeat_block *);
 static bool parse_lines (struct lexer *, struct repeat_block *);
 static void create_vars (struct repeat_block *);
 
-static int parse_ids (struct lexer *, const struct dictionary *dict, struct repeat_entry *, struct pool *);
-static int parse_numbers (struct lexer *, struct repeat_entry *, struct pool *);
-static int parse_strings (struct lexer *, struct repeat_entry *, struct pool *);
+static int parse_ids (struct lexer *, const struct dictionary *dict, 
+		      struct repeat_entry *, struct pool *);
 
-static void do_repeat_filter (struct string *line, void *block);
-static bool do_repeat_read (struct string *line, char **file_name,
-                            int *line_number, void *block);
-static void do_repeat_close (void *block);
+static int parse_numbers (struct lexer *, struct repeat_entry *, 
+			  struct pool *);
+
+static int parse_strings (struct lexer *, struct repeat_entry *, 
+			  struct pool *);
+
+static void do_repeat_filter (struct getl_interface *, struct string *);
+static bool do_repeat_read (struct getl_interface *, struct string *);
+static void do_repeat_close (struct getl_interface *);
+static bool always_false (const struct getl_interface *i UNUSED);
+
 
 int
 cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
@@ -111,8 +118,13 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
   
   block->cur_line = NULL;
   block->loop_idx = -1;
-  getl_include_filter (do_repeat_filter, do_repeat_close, block);
-  getl_include_function (do_repeat_read, NULL, block);
+
+  block->parent.read = do_repeat_read;
+  block->parent.close = do_repeat_close;
+  block->parent.filter = do_repeat_filter;
+  block->parent.interactive = always_false;
+
+  getl_include_source ( (struct getl_interface *) block);
 
   return CMD_SUCCESS;
 
@@ -147,7 +159,8 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
       for (iter = block->macros; iter != NULL; iter = iter->next)
 	if (!strcasecmp (iter->id, lex_tokid (lexer)))
 	  {
-	    msg (SE, _("Dummy variable name \"%s\" is given twice."), lex_tokid (lexer));
+	    msg (SE, _("Dummy variable name \"%s\" is given twice."), 
+		 lex_tokid (lexer));
 	    return false;
 	  }
 
@@ -278,8 +291,8 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
 
   for (;;)
     {
-      const char *cur_file_name;
-      int cur_line_number;
+      const char *cur_file_name = getl_source_name ();
+      int cur_line_number = getl_source_location ();
       struct line_list *line;
       struct string cur_line_copy;
       bool dot;
@@ -288,9 +301,10 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
         return false;
 
       /* If the current file has changed then record the fact. */
-      getl_location (&cur_file_name, &cur_line_number);
-      if (previous_file_name == NULL 
+      if (cur_file_name && 
+	  (previous_file_name == NULL 
           || !strcmp (cur_file_name, previous_file_name))
+	  )
         previous_file_name = pool_strdup (block->pool, cur_file_name);
 
       ds_init_string (&cur_line_copy, lex_entire_line_ds (lexer) );
@@ -474,9 +488,9 @@ find_substitution (struct repeat_block *block, const char *name, size_t length)
 /* Makes appropriate DO REPEAT macro substitutions within the 
    repeated lines. */
 static void
-do_repeat_filter (struct string *line, void *block_)
+do_repeat_filter (struct getl_interface *block_, struct string *line)
 {
-  struct repeat_block *block = block_;
+  struct repeat_block *block = (struct repeat_block *) block_;
   bool in_apos, in_quote;
   char *cp;
   struct string output;
@@ -523,11 +537,15 @@ do_repeat_filter (struct string *line, void *block_)
    Puts the line in OUTPUT, sets the file name in *FILE_NAME and
    line number in *LINE_NUMBER.  Returns true if a line was
    obtained, false if the source is exhausted. */
+#if 0
 static bool
 do_repeat_read (struct string *output, char **file_name, int *line_number,
                 void *block_) 
+#endif
+static bool  
+do_repeat_read  (struct getl_interface *b, struct string *output)
 {
-  struct repeat_block *block = block_;
+  struct repeat_block *block = (struct repeat_block *) b;
   struct line_list *line;
 
   if (block->cur_line == NULL) 
@@ -540,8 +558,10 @@ do_repeat_read (struct string *output, char **file_name, int *line_number,
   line = block->cur_line;
 
   ds_assign_cstr (output, line->line);
+#if 0
   *file_name = line->file_name;
   *line_number = -line->line_number;
+#endif
   block->cur_line = line->next;
   return true;
 }
@@ -549,8 +569,15 @@ do_repeat_read (struct string *output, char **file_name, int *line_number,
 /* Frees a DO REPEAT block.
    Called by getl to close out the DO REPEAT block. */
 static void
-do_repeat_close (void *block_)
+do_repeat_close (struct getl_interface *block_)
 {
-  struct repeat_block *block = block_;
+  struct repeat_block *block = (struct repeat_block *) block_;
   pool_destroy (block->pool);
+}
+
+
+static bool 
+always_false (const struct getl_interface *i UNUSED)
+{
+  return false;
 }

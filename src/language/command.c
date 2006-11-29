@@ -32,7 +32,7 @@
 #include <data/settings.h>
 #include <data/variable.h>
 #include <language/lexer/lexer.h>
-#include <language/line-buffer.h>
+#include <language/prompt.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
@@ -162,7 +162,7 @@ do_parse_command (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
   enum cmd_result result;
 
   /* Read the command's first token. */
-  getl_set_prompt_style (GETL_PROMPT_FIRST);
+  prompt_set_style (PROMPT_FIRST);
   set_completion_state (state);
   lex_get (lexer);
   if (lex_token (lexer) == T_STOP)
@@ -172,7 +172,7 @@ do_parse_command (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
       /* Null commands can result from extra empty lines. */
       return CMD_SUCCESS; 
     }
-  getl_set_prompt_style (GETL_PROMPT_LATER);
+  prompt_set_style (PROMPT_LATER);
 
   /* Parse the command name. */
   command = parse_command_name (lexer);

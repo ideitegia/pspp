@@ -27,6 +27,7 @@
 #include <libpspp/copyleft.h>
 #include <data/format.h>
 #include <data/settings.h>
+#include <libpspp/getl.h>
 
 #include <getopt.h>
 #include <gtk/gtk.h>
@@ -113,11 +114,9 @@ main(int argc, char *argv[])
 
   glade_init();
 
-
-
   fmt_init();
   settings_init();
-
+  getl_initialize ();
   message_dialog_init();
 
   the_dictionary = psppire_dict_new();
@@ -169,6 +168,7 @@ main(int argc, char *argv[])
   /* start the event loop */
   gtk_main();
 
+  getl_uninitialize ();
   message_dialog_done();
 
   settings_done();

@@ -34,7 +34,7 @@
 #include <language/command.h>
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
-#include <language/line-buffer.h>
+#include <language/prompt.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/copyleft.h>
@@ -152,11 +152,11 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     do_cc (cmd.s_cce, FMT_CCE);
 
   if (cmd.sbc_prompt)
-    getl_set_prompt (GETL_PROMPT_FIRST, cmd.s_prompt);
+    prompt_set (PROMPT_FIRST, cmd.s_prompt);
   if (cmd.sbc_cprompt)
-    getl_set_prompt (GETL_PROMPT_LATER, cmd.s_cprompt);
+    prompt_set (PROMPT_LATER, cmd.s_cprompt);
   if (cmd.sbc_dprompt)
-    getl_set_prompt (GETL_PROMPT_DATA, cmd.s_dprompt);
+    prompt_set (PROMPT_DATA, cmd.s_dprompt);
 
   if (cmd.sbc_decimal)
     fmt_set_decimal (cmd.dec == STC_DOT ? '.' : ',');

@@ -23,9 +23,12 @@
 #include <libpspp/alloc.h>
 #include <language/command.h>
 #include <libpspp/message.h>
-#include <language/line-buffer.h>
+#include <libpspp/getl.h>
+#include <language/syntax-file.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/str.h>
+#include <data/file-name.h>
+
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -33,6 +36,9 @@
 int
 cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
 {
+  char *found_fn;
+  char *target_fn;
+
   /* Skip optional FILE=. */
   if (lex_match_id (lexer, "FILE"))
     lex_match (lexer, '=');
@@ -43,7 +49,21 @@ cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
       lex_error (lexer, _("expecting file name")); 
       return CMD_CASCADING_FAILURE;
     }
-  getl_include_syntax_file (ds_cstr (lex_tokstr (lexer)));
+
+  target_fn = ds_cstr (lex_tokstr (lexer));
+
+  found_fn = fn_search_path (target_fn,
+			     getl_include_path (),
+			     NULL);
+
+  if (found_fn != NULL) 
+    {
+      getl_include_source (create_syntax_file_source (found_fn));
+      free (found_fn); 
+    }
+  else
+    msg (SE, _("Can't find `%s' in include file search path."), 
+	 target_fn);
 
   lex_get (lexer);
   return lex_end_of_command (lexer);

@@ -29,6 +29,7 @@
 #define N_(msgid) msgid
 
 #include <libpspp/message.h>
+#include <libpspp/msg-locator.h>
 #include "message-dialog.h"
 #include "progname.h"
 
@@ -49,21 +50,12 @@ static void enqueue_msg (const struct msg *m);
 static GQueue *message_queue;
 
 
-static void 
-msg_location (struct msg_locator *loc)
-{
-  loc->file_name = NULL; 
-  loc->line_number = -1;
-}
-
-
 void
 message_dialog_init (void) 
 {
   message_queue = g_queue_new();
-  msg_init (enqueue_msg, msg_location);
+  msg_init (enqueue_msg);
 }
-
 
 void
 message_dialog_done (void)

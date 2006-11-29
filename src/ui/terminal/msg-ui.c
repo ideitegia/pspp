@@ -24,10 +24,14 @@
 #include "exit.h"
 #include "linebreak.h"
 
-#include <language/line-buffer.h>
+#include <libpspp/msg-locator.h>
+#include <libpspp/getl.h>
 #include <data/settings.h>
 #include <libpspp/message.h>
+#include <libpspp/str.h>
 #include <errno.h>
+#include <stdio.h>
+
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -65,7 +69,7 @@ msg_ui_init (void)
 	  msg_file = stdout;
 	}
     }
-  msg_init (handle_msg, get_msg_location);
+  msg_init (handle_msg);
 }
 
 void

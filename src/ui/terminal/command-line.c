@@ -30,15 +30,16 @@
 #include <libpspp/assertion.h>
 #include <libpspp/copyleft.h>
 #include <libpspp/message.h>
-#include <language/line-buffer.h>
+#include <language/syntax-file.h>
 #include "progname.h"
 #include <data/settings.h>
-#include "read-line.h"
 #include <output/output.h>
 #include <data/file-name.h>
+#include <libpspp/getl.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 #include <libpspp/verbose-msg.h>
+#include "read-line.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -194,7 +195,8 @@ parse_command_line (int argc, char **argv)
       char *pspprc_fn = fn_search_path ("rc", config_path, NULL);
       if (pspprc_fn != NULL) 
         {
-          getl_append_syntax_file (pspprc_fn);
+	  getl_append_source (create_syntax_file_source (pspprc_fn));
+
           free (pspprc_fn); 
         }
     }
@@ -204,12 +206,12 @@ parse_command_line (int argc, char **argv)
       outp_configure_macro (argv[i]);
     else 
       {
-        getl_append_syntax_file (argv[i]);
+	getl_append_source (create_syntax_file_source (argv[i]));
         syntax_files++;
       }
 
   if (!syntax_files || interactive_mode)
-    getl_append_interactive (readln_read);
+    getl_append_source (create_readln_source () );
 
   return true;
 }

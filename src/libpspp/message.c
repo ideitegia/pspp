@@ -19,7 +19,8 @@
 
 #include <config.h>
 
-#include <libpspp/message.h>
+#include "message.h"
+#include "msg-locator.h"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -39,8 +40,6 @@ static char *command_name;
 
 /* Message handler as set by msg_init(). */
 static void (*msg_handler)  (const struct msg *);
-static void (*msg_location) (struct msg_locator *);
-
 
 /* Disables emitting messages if positive. */
 static int messages_disabled;
@@ -65,11 +64,9 @@ msg (enum msg_class class, const char *format, ...)
 }
 
 void
-msg_init ( void (*handler) (const struct msg *), 
-	   void (*location) (struct msg_locator *) ) 
+msg_init ( void (*handler) (const struct msg *) )
 {
   msg_handler = handler;
-  msg_location = location;
 }
 
 void
@@ -102,7 +99,7 @@ msg_destroy(struct msg *m)
 void
 msg_emit (struct msg *m) 
 {
-  msg_location (&m->where);
+  get_msg_location (&m->where);
   if (!messages_disabled)
     msg_handler (m);
   free (m->text);

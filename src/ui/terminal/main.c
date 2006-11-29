@@ -28,8 +28,10 @@
 #include "progname.h"
 #include "read-line.h"
 
+
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <libpspp/getl.h>
 #include <data/file-name.h>
 #include <data/format.h>
 #include <data/procedure.h>
@@ -38,7 +40,7 @@
 #include <gsl/gsl_errno.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <language/line-buffer.h>
+#include <language/prompt.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/version.h>
@@ -94,6 +96,7 @@ main (int argc, char **argv)
   fn_init ();
   fh_init ();
   getl_initialize ();
+  prompt_init ();
   readln_initialize ();
   settings_init ();
   random_init ();
@@ -194,6 +197,7 @@ terminate (bool success)
       fh_done ();
       lex_destroy (the_lexer);
       getl_uninitialize ();
+      prompt_done ();
       readln_uninitialize ();
 
       outp_done ();

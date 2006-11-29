@@ -22,6 +22,7 @@
 #include <xalloc.h>
 #include <assert.h>
 #include "flexifile.h"
+#include <string.h>
 #include <data/casefile.h>
 #include <data/casefile-private.h>
 #include <data/case.h>

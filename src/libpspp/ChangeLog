@@ -1,3 +1,11 @@
+Wed Nov 29 19:35:44 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* getl.c getl.h: New files. Created interface from base of 
+	language/line-buffer.[ch]
+
+	* msg-locator.c msg-locator.h: New files. Moved from
+	language/line-buffer.[ch]
+
 Fri Nov 24 17:27:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	* misc.h: (min) Removed.  All references updated to use MIN, from

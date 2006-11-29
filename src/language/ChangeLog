@@ -1,3 +1,12 @@
+Wed Nov 29 19:35:44 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* command.c: Updated to reflect changed function names.
+
+	* line-buffer.c line-buffer.h: Removed.  Guts of it moved to
+	libpspp/getl.[ch] The rest moved to files listed below.
+
+	* syntax-file.c syntax-file.h prompt.c prompt.h: New files.
+
 Wed Nov 22 06:26:42 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command.def: HOST command needs F_KEEP_FINAL_TOKEN.

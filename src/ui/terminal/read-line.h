@@ -21,11 +21,14 @@
 #define READLN_H
 
 #include <libpspp/str.h>
-#include <language/line-buffer.h>
+#include <libpspp/getl.h>
 
 void readln_initialize (void);
 void readln_uninitialize (void);
-bool readln_read (struct string *line, enum getl_prompt_style);
+
+struct getl_interface *create_readln_source (void);
+
+
 
 #endif /* READLN_H */
 

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-11-29 09:30+0800\n"
+"POT-Creation-Date: 2006-11-29 18:57+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -1012,33 +1012,33 @@ msgstr ""
 msgid "This command may not follow ELSE in DO IF...END IF."
 msgstr ""
 
-#: src/language/control/repeat.c:144
+#: src/language/control/repeat.c:156
 #, c-format
 msgid "Dummy variable name \"%s\" hides dictionary variable \"%s\"."
 msgstr ""
 
-#: src/language/control/repeat.c:150
+#: src/language/control/repeat.c:162
 #, c-format
 msgid "Dummy variable name \"%s\" is given twice."
 msgstr ""
 
-#: src/language/control/repeat.c:196
+#: src/language/control/repeat.c:209
 #, c-format
 msgid ""
 "Dummy variable \"%s\" had %d substitutions, so \"%s\" must also, but %d were "
 "specified."
 msgstr ""
 
-#: src/language/control/repeat.c:401
+#: src/language/control/repeat.c:415
 #, c-format
 msgid "%ld TO %ld is an invalid range."
 msgstr ""
 
-#: src/language/control/repeat.c:437
+#: src/language/control/repeat.c:451
 msgid "String expected."
 msgstr ""
 
-#: src/language/control/repeat.c:456
+#: src/language/control/repeat.c:470
 msgid "No matching DO REPEAT."
 msgstr ""
 
@@ -1184,44 +1184,44 @@ msgstr ""
 msgid "I/O error occurred writing data file \"%s\"."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:69
+#: src/language/data-io/file-handle.q:68
 #, c-format
 msgid ""
 "File handle %s is already defined.  Use CLOSE FILE HANDLE before redefining "
 "a file handle."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:101
+#: src/language/data-io/file-handle.q:100
 #, c-format
 msgid ""
 "Fixed-length records were specified on /RECFORM, but record length was not "
 "specified on /LRECL.  Assuming %d-character records."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:106
+#: src/language/data-io/file-handle.q:105
 #, c-format
 msgid ""
 "Record length (%ld) must be at least one byte.  Assuming %d-character "
 "records."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:152
+#: src/language/data-io/file-handle.q:151
 msgid "file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:154
+#: src/language/data-io/file-handle.q:153
 msgid "inline file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:156
+#: src/language/data-io/file-handle.q:155
 msgid "scratch file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:177
+#: src/language/data-io/file-handle.q:176
 msgid "expecting a file name or handle name"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:204
+#: src/language/data-io/file-handle.q:203
 #, c-format
 msgid "Handle for %s not allowed here."
 msgstr ""
@@ -2159,8 +2159,8 @@ msgstr ""
 msgid "%s is a PSPP extension."
 msgstr ""
 
-#: src/language/expressions/parse.c:1244 src/ui/terminal/command-line.c:131
-#: src/ui/terminal/command-line.c:150 src/ui/terminal/command-line.c:162
+#: src/language/expressions/parse.c:1244 src/ui/terminal/command-line.c:132
+#: src/ui/terminal/command-line.c:151 src/ui/terminal/command-line.c:163
 #, c-format
 msgid "%s is not yet implemented."
 msgstr ""
@@ -2354,31 +2354,6 @@ msgstr ""
 
 #: src/language/lexer/variable-parser.c:440
 msgid "Bad bounds in use of TO convention."
-msgstr ""
-
-#: src/language/line-buffer.c:251
-#, c-format
-msgid "Can't find `%s' in include file search path."
-msgstr ""
-
-#: src/language/line-buffer.c:335
-#, c-format
-msgid "Closing `%s': %s."
-msgstr ""
-
-#: src/language/line-buffer.c:446
-#, c-format
-msgid "opening \"%s\" as syntax file"
-msgstr ""
-
-#: src/language/line-buffer.c:451
-#, c-format
-msgid "Opening `%s': %s."
-msgstr ""
-
-#: src/language/line-buffer.c:464
-#, c-format
-msgid "Reading `%s': %s."
 msgstr ""
 
 #: src/language/stats/aggregate.c:218
@@ -3472,6 +3447,26 @@ msgstr ""
 msgid "%s & %s"
 msgstr ""
 
+#: src/language/syntax-file.c:88
+#, c-format
+msgid "opening \"%s\" as syntax file"
+msgstr ""
+
+#: src/language/syntax-file.c:93
+#, c-format
+msgid "Opening `%s': %s."
+msgstr ""
+
+#: src/language/syntax-file.c:106
+#, c-format
+msgid "Reading `%s': %s."
+msgstr ""
+
+#: src/language/syntax-file.c:126
+#, c-format
+msgid "Closing `%s': %s."
+msgstr ""
+
 #: src/language/tests/float-format.c:127
 #, c-format
 msgid "%d-byte string needed but %d-byte string supplied."
@@ -3500,8 +3495,13 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/language/utilities/include.c:43
+#: src/language/utilities/include.c:49
 msgid "expecting file name"
+msgstr ""
+
+#: src/language/utilities/include.c:65
+#, c-format
+msgid "Can't find `%s' in include file search path."
 msgstr ""
 
 #: src/language/utilities/permissions.c:77
@@ -4213,15 +4213,15 @@ msgstr "Speichern unter"
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
-#: src/ui/gui/message-dialog.c:136
+#: src/ui/gui/message-dialog.c:128
 msgid "Script Error"
 msgstr "Skript Fehler"
 
-#: src/ui/gui/message-dialog.c:140
+#: src/ui/gui/message-dialog.c:132
 msgid "Data File Error"
 msgstr "Datei Fehler"
 
-#: src/ui/gui/message-dialog.c:145
+#: src/ui/gui/message-dialog.c:137
 msgid "PSPP Error"
 msgstr "PSPP Fehler"
 
@@ -4233,7 +4233,7 @@ msgstr "Unpassend Wert für Variable"
 msgid "Incorrect range specification"
 msgstr "Falshe Spannweitebeschreibung"
 
-#: src/ui/gui/psppire.c:70
+#: src/ui/gui/psppire.c:71
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
 
@@ -4596,7 +4596,7 @@ msgstr "Ordinalwert"
 msgid "Scale"
 msgstr "Skalwert"
 
-#: src/ui/terminal/command-line.c:219
+#: src/ui/terminal/command-line.c:221
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -4642,43 +4642,43 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/terminal/command-line.c:254
+#: src/ui/terminal/command-line.c:256
 #, c-format
 msgid ""
 "\n"
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/ui/terminal/main.c:117
+#: src/ui/terminal/main.c:120
 msgid ""
 "Stopping syntax file processing here to avoid a cascade of dependent command "
 "failures."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:62
+#: src/ui/terminal/msg-ui.c:66
 #, c-format
 msgid "Cannot open %s (%s). Writing errors to stdout instead.\n"
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:89
+#: src/ui/terminal/msg-ui.c:93
 msgid "Terminating execution of syntax file due to error."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:91
+#: src/ui/terminal/msg-ui.c:95
 #, c-format
 msgid "Errors (%d) exceeds limit (%d)."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:94
+#: src/ui/terminal/msg-ui.c:98
 #, c-format
 msgid "Warnings (%d) exceed limit (%d)."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:143
+#: src/ui/terminal/msg-ui.c:147
 msgid "error"
 msgstr "Fehler"
 
-#: src/ui/terminal/msg-ui.c:144
+#: src/ui/terminal/msg-ui.c:148
 msgid "warning"
 msgstr "Warnung"
 

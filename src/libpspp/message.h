@@ -86,8 +86,7 @@ struct msg
   };
 
 /* Initialization. */
-void msg_init ( void (*handler) (const struct msg *), 
-		void (*location) (struct msg_locator *) ) ;
+void msg_init ( void (*handler) (const struct msg *) );
 
 void msg_done (void);
 
