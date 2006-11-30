@@ -537,11 +537,6 @@ do_repeat_filter (struct getl_interface *block_, struct string *line)
    Puts the line in OUTPUT, sets the file name in *FILE_NAME and
    line number in *LINE_NUMBER.  Returns true if a line was
    obtained, false if the source is exhausted. */
-#if 0
-static bool
-do_repeat_read (struct string *output, char **file_name, int *line_number,
-                void *block_) 
-#endif
 static bool  
 do_repeat_read  (struct getl_interface *b, struct string *output)
 {
@@ -558,10 +553,6 @@ do_repeat_read  (struct getl_interface *b, struct string *output)
   line = block->cur_line;
 
   ds_assign_cstr (output, line->line);
-#if 0
-  *file_name = line->file_name;
-  *line_number = -line->line_number;
-#endif
   block->cur_line = line->next;
   return true;
 }
