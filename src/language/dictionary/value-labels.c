@@ -88,8 +88,8 @@ do_value_labels (struct lexer *lexer, const struct dictionary *dict, int erase)
 
       if (lex_token (lexer) != '/')
 	{
-	free (vars);
-	break;
+          free (vars);
+          break;
 	}
 
       lex_get (lexer);
