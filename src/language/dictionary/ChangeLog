@@ -1,3 +1,9 @@
+Thu Nov 30 22:06:21 2006  Ben Pfaff  <blp@gnu.org>
+
+	* value-labels.c (get_label): Allow commas between values and
+	labels and between value labels.  Fixes bug #18303.  Thanks to
+	John Darrington for reporting this bug.
+
 Sat Nov  4 16:04:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* numeric.c: (cmd_string) Check that output format is valid.

@@ -173,6 +173,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 	  value.f = lex_tokval (lexer);
 	}
       lex_get (lexer);
+      lex_match (lexer, ',');
 
       /* Set label. */
       if (!lex_force_string (lexer))
@@ -192,6 +193,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
       ds_destroy (&label);
 
       lex_get (lexer);
+      lex_match (lexer, ',');
     }
   while (lex_token (lexer) != '/' && lex_token (lexer) != '.');
 
