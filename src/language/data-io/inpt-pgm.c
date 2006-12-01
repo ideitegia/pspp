@@ -358,6 +358,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 	{
 	  lex_error (lexer, NULL);
 	  expr_free (e);
+          return CMD_CASCADING_FAILURE;
 	}
     }
 

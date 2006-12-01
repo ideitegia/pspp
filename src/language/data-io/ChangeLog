@@ -1,3 +1,9 @@
+Thu Nov 30 21:51:58 2006  Ben Pfaff  <blp@gnu.org>
+
+	* inpt-pgm.c (cmd_reread): Always return error code upon detecting
+	syntax error.  Fixes bug #18419.  Thanks to John Darrington for
+	reporting this bug.
+
 Sun Nov 19 09:17:45 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-list.c (parse_free): Follow documented (but odd) rule that
