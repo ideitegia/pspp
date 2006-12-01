@@ -1,3 +1,9 @@
+Thu Nov 30 22:20:10 2006  Ben Pfaff  <blp@gnu.org>
+
+	* statistics.texi: Document charts supported by FREQUENCIES.
+	Fixes bug #18297.  Thanks to Mohammed Babekir Elmalik Abdalmajid
+	for reporting this bug.
+
 Tue Nov 28 17:33:31 WST 2006 <john@darrington.wattle.id.au>
 
 	* get-commands.pl: Fixed generation of ni.texi, which was broken

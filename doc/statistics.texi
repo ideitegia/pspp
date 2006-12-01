@@ -124,10 +124,12 @@ FREQUENCIES
                      SESKEWNESS,SEKURTOSIS,ALL,NONE@}
         /NTILES=ntiles
         /PERCENTILES=percent@dots{}
+        /HISTOGRAM=[MINIMUM(x_min)] [MAXIMUM(x_max)] 
+                   [@{FREQ,PCNT@}] [@{NONORMAL,NORMAL@}]
+        /PIECHART=[MINIMUM(x_min)] [MAXIMUM(x_max)] @{NOMISSING,MISSING@}
 
 (These options are not currently implemented.)
         /BARCHART=@dots{}
-        /HISTOGRAM=@dots{}
         /HBAR=@dots{}
         /GROUPED=@dots{}
 
@@ -140,9 +142,9 @@ variables.
 @cmd{FREQUENCIES} can also calculate and display descriptive statistics
 (including median and mode) and percentiles.
 
-In the future, @cmd{FREQUENCIES} will also support graphical output in the
-form of bar charts and histograms.  In addition, it will be able to
-support percentiles for grouped data.
+@cmd{FREQUENCIES} also support graphical output in the form of
+histograms and pie charts.  In the future, it will be able to produce
+bar charts and output percentiles for grouped data.
 
 The VARIABLES subcommand is the only required subcommand.  Specify the
 variables to be analyzed.  In most cases, this is all that is required.
@@ -212,6 +214,20 @@ The NTILES subcommand causes the percentiles to be reported at the
 boundaries of the data set divided into the specified number of ranges.
 For instance, @code{/NTILES=4} would cause quartiles to be reported.
 
+The HISTOGRAM subcommand causes the output to include a histogram for
+each specified variable.  The X axis by default ranges from the
+minimum to the maximum value observed in the data, but the MINIMUM and
+MAXIMUM keywords can set an explicit range.  The Y axis by default is
+labeled in frequencies; use the PERCENT keyword to causes it to be
+labeled in percent of the total observed count.  Specify NORMAL to
+superimpose a normal curve on the histogram.
+
+The PIECHART adds a pie chart for each variable to the data.  Each
+slice represents one value, with the size of the slice proportional to
+the value's frequency.  By default, all non-missing values are given
+slices.  The MINIMUM and MAXIMUM keywords can be used to limit the
+displayed slices to a given range of values.  The MISSING keyword adds
+slices for missing values.
 
 @node EXAMINE, CROSSTABS, FREQUENCIES, Statistics
 @comment  node-name,  next,  previous,  up
