@@ -1,3 +1,19 @@
+Thu Nov 30 22:46:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	* compute.c: Fix bug #17422, which reports that a variable created
+	by assignment in a COMPUTE command could not be used in the
+	computation expression.
+	(struct lvalue) Drop `var_name' member in favor of `variable'
+	pointer.  Add `is_new_variable' member to allow us to know whether
+	to delete the variable at destruction time, in case of an error.
+	(lvalue_parse) Create variable whose name is specified, if it does
+	not already exist, as a numeric variable.
+	(lvalue_get_type) Rewrite to work with revised lvalue structure.
+	New `dict' parameter, which propagates back up its call chain.
+	(lvalue_finalize) No need to create variable here since we did so
+	at parse time.
+	(lvalue_destroy) Destroy variable if `is_new_variable' set.
+
 Sat Oct  7 11:04:01 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* automake.mk fail.c: Added a debug transformation which always fails.

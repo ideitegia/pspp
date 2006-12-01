@@ -1,3 +1,9 @@
+Thu Nov 30 22:46:17 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new test.
+
+	* tests/bugs/compute-sum.sh: New test, for bug #17422.
+
 Thu Nov 30 22:01:57 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new test.

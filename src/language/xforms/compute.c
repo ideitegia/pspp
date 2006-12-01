@@ -44,11 +44,11 @@ struct lvalue;
 /* Target of a COMPUTE or IF assignment, either a variable or a
    vector element. */
 static struct lvalue *lvalue_parse (struct lexer *lexer, struct dataset *);
-static int lvalue_get_type (const struct lvalue *, const struct dictionary *);
+static int lvalue_get_type (const struct lvalue *);
 static bool lvalue_is_vector (const struct lvalue *);
 static void lvalue_finalize (struct lvalue *,
                              struct compute_trns *, struct dictionary *);
-static void lvalue_destroy (struct lvalue *);
+static void lvalue_destroy (struct lvalue *, struct dictionary *);
 
 /* COMPUTE and IF transformation. */
 struct compute_trns
@@ -74,7 +74,7 @@ static struct expression *parse_rvalue (struct lexer *lexer,
 					struct dataset *);
 
 static struct compute_trns *compute_trns_create (void);
-static trns_proc_func *get_proc_func (const struct lvalue *, const struct dictionary *);
+static trns_proc_func *get_proc_func (const struct lvalue *);
 static trns_free_func compute_trns_free;
 
 /* COMPUTE. */
@@ -98,15 +98,14 @@ cmd_compute (struct lexer *lexer, struct dataset *ds)
   if (compute->rvalue == NULL)
     goto fail;
 
-  add_transformation (ds, get_proc_func (lvalue, dict), 
-		      compute_trns_free, compute);
+  add_transformation (ds, get_proc_func (lvalue), compute_trns_free, compute);
 
   lvalue_finalize (lvalue, compute, dict);
 
   return lex_end_of_command (lexer);
 
  fail:
-  lvalue_destroy (lvalue);
+  lvalue_destroy (lvalue, dict);
   compute_trns_free (compute);
   return CMD_CASCADING_FAILURE;
 }
@@ -241,15 +240,14 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
   if (compute->rvalue == NULL)
     goto fail;
 
-  add_transformation (ds, get_proc_func (lvalue, dict), 
-		      compute_trns_free, compute);
+  add_transformation (ds, get_proc_func (lvalue), compute_trns_free, compute);
 
   lvalue_finalize (lvalue, compute, dict);
 
   return lex_end_of_command (lexer);
 
  fail:
-  lvalue_destroy (lvalue);
+  lvalue_destroy (lvalue, dict);
   compute_trns_free (compute);
   return CMD_CASCADING_FAILURE;
 }
@@ -257,9 +255,9 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
 /* Code common to COMPUTE and IF. */
 
 static trns_proc_func *
-get_proc_func (const struct lvalue *lvalue, const struct dictionary *dict) 
+get_proc_func (const struct lvalue *lvalue) 
 {
-  bool is_numeric = lvalue_get_type (lvalue, dict) == NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
   bool is_vector = lvalue_is_vector (lvalue);
 
   return (is_numeric
@@ -273,8 +271,7 @@ static struct expression *
 parse_rvalue (struct lexer *lexer, 
 	      const struct lvalue *lvalue, struct dataset *ds)
 {
-  const struct dictionary *dict = dataset_dict (ds);
-  bool is_numeric = lvalue_get_type (lvalue, dict) == NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
 
   return expr_parse (lexer, ds, is_numeric ? EXPR_NUMBER : EXPR_STRING);
 }
@@ -308,10 +305,14 @@ compute_trns_free (void *compute_)
   return true;
 }
 
-/* COMPUTE or IF target variable or vector element. */
+/* COMPUTE or IF target variable or vector element.
+   For a variable, the `variable' member is non-null.
+   For a vector element, the `vector' member is non-null. */
 struct lvalue
   {
-    char var_name[LONG_NAME_LEN + 1];   /* Destination variable name, or "". */
+    struct variable *variable;   /* Destination variable. */
+    bool is_new_variable;        /* Did we create the variable? */
+
     const struct vector *vector; /* Destination vector, if any, or NULL. */
     struct expression *element;  /* Destination vector element, or NULL. */
   };
@@ -321,10 +322,12 @@ struct lvalue
 static struct lvalue *
 lvalue_parse (struct lexer *lexer, struct dataset *ds) 
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct lvalue *lvalue;
 
   lvalue = xmalloc (sizeof *lvalue);
-  lvalue->var_name[0] = '\0';
+  lvalue->variable = NULL;
+  lvalue->is_new_variable = false;
   lvalue->vector = NULL;
   lvalue->element = NULL;
 
@@ -334,7 +337,7 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   if (lex_look_ahead (lexer) == '(')
     {
       /* Vector. */
-      lvalue->vector = dict_lookup_vector (dataset_dict (ds), lex_tokid (lexer));
+      lvalue->vector = dict_lookup_vector (dict, lex_tokid (lexer));
       if (lvalue->vector == NULL)
 	{
 	  msg (SE, _("There is no vector named %s."), lex_tokid (lexer));
@@ -354,31 +357,30 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
   else
     {
       /* Variable name. */
-      str_copy_trunc (lvalue->var_name, sizeof lvalue->var_name, lex_tokid (lexer));
+      const char *var_name = lex_tokid (lexer);
+      lvalue->variable = dict_lookup_var (dict, var_name);
+      if (lvalue->variable == NULL) 
+        {
+	  lvalue->variable = dict_create_var_assert (dict, var_name, 0);
+          lvalue->is_new_variable = true; 
+        }
       lex_get (lexer);
     }
   return lvalue;
 
  lossage:
-  lvalue_destroy (lvalue);
+  lvalue_destroy (lvalue, dict);
   return NULL;
 }
 
 /* Returns the type (NUMERIC or ALPHA) of the target variable or
    vector in LVALUE. */
 static int
-lvalue_get_type (const struct lvalue *lvalue, const struct dictionary *dict) 
+lvalue_get_type (const struct lvalue *lvalue) 
 {
-  if (lvalue->vector == NULL) 
-    {
-      struct variable *var = dict_lookup_var (dict, lvalue->var_name);
-      if (var == NULL)
-        return NUMERIC;
-      else
-        return var->type;
-    }
-  else 
-    return lvalue->vector->var[0]->type;
+  return (lvalue->variable != NULL
+          ? lvalue->variable->type
+          : lvalue->vector->var[0]->type);
 }
 
 /* Returns true if LVALUE has a vector as its target. */
@@ -397,16 +399,16 @@ lvalue_finalize (struct lvalue *lvalue,
 {
   if (lvalue->vector == NULL)
     {
-      compute->variable = dict_lookup_var (dict, lvalue->var_name);
-      if (compute->variable == NULL)
-	  compute->variable = dict_create_var_assert (dict, lvalue->var_name, 0);
-
+      compute->variable = lvalue->variable;
       compute->fv = compute->variable->fv;
       compute->width = compute->variable->width;
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
       if (dict_class_from_id (compute->variable->name) != DC_SCRATCH)
         compute->variable->leave = false;
+
+      /* Prevent lvalue_destroy from deleting variable. */
+      lvalue->is_new_variable = false;
     }
   else 
     {
@@ -415,16 +417,18 @@ lvalue_finalize (struct lvalue *lvalue,
       lvalue->element = NULL;
     }
 
-  lvalue_destroy (lvalue);
+  lvalue_destroy (lvalue, dict);
 }
 
 /* Destroys LVALUE. */
 static void 
-lvalue_destroy (struct lvalue *lvalue) 
+lvalue_destroy (struct lvalue *lvalue, struct dictionary *dict) 
 {
   if (lvalue == NULL) 
      return;
 
+  if (lvalue->is_new_variable)
+    dict_delete_var (dict, lvalue->variable);
   expr_free (lvalue->element);
   free (lvalue);
 }

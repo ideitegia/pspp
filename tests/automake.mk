@@ -109,6 +109,7 @@ TESTS = \
 	tests/bugs/recode-copy-bug.sh \
 	tests/bugs/computebug.sh \
 	tests/bugs/compute-lv.sh \
+	tests/bugs/compute-sum.sh \
 	tests/bugs/temp-freq.sh \
 	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
