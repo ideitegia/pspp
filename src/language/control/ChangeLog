@@ -1,3 +1,9 @@
+Thu Nov 30 22:01:27 2006  Ben Pfaff  <blp@gnu.org>
+
+	* repeat.c (do_repeat_read): Properly handle empty DO REPEAT...END
+	REPEAT block.  Fixes bug #18407.  Thanks to John Darrington for
+	reporting this bug.
+
 Sat Oct 28 16:18:48 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* repeat.c: Eliminated references to extern variable getl_buf.

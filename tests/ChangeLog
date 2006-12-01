@@ -1,3 +1,9 @@
+Thu Nov 30 22:01:57 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new test.
+
+	* tests/bugs/empty-do-repeat: New test, for bug #18407.
+
 Wed Nov 22 06:28:04 2006  Ben Pfaff  <blp@gnu.org>
 
 	* tests/bugs/signals.sh: Fix race condition.

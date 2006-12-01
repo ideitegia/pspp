@@ -85,6 +85,7 @@ TESTS = \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
 	tests/bugs/double-frequency.sh \
+	tests/bugs/empty-do-repeat.sh \
 	tests/bugs/get.sh \
 	tests/bugs/examine-1sample.sh \
 	tests/bugs/examine-missing.sh \

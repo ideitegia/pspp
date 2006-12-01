@@ -549,6 +549,8 @@ do_repeat_read  (struct getl_interface *b, struct string *output)
       if (block->loop_idx >= block->loop_cnt)
         return false;
       block->cur_line = block->first_line;
+      if (block->cur_line == NULL)
+        return false;
     }
   line = block->cur_line;
 
