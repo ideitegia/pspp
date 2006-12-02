@@ -217,7 +217,7 @@ do_read_line (struct string *line, bool *interactive)
           if (interactive != NULL)
             *interactive = s->interface->interactive (s->interface);
 
-          while ((s))
+          while (s)
 	    {
 	      if (s->interface->filter)
 		s->interface->filter (s->interface, line);
