@@ -27,22 +27,42 @@ struct string;
 
 struct getl_source;
 
+/* Syntax rules that apply to a given source line. */
+enum getl_syntax 
+  {
+    /* Each line that begins in column 1 starts a new command.  A
+       `+' or `-' in column 1 is ignored to allow visual
+       indentation of new commands.  Continuation lines must be
+       indented from the left margin.  A period at the end of a
+       line does end a command, but it is optional. */
+    GETL_BATCH,
+
+    /* Each command must end in a period or in a blank line. */
+    GETL_INTERACTIVE
+  };
 
 /* An abstract base class for objects which act as line buffers for the 
    PSPP.  Ie anything which might contain content for the lexer */
 struct getl_interface 
   {
-    /* Returns true, if the interface is interactive */
+    /* Returns true if the interface is interactive, that is, if
+       it prompts a human user.  This property is independent of
+       the syntax mode returned by the read member function. */
     bool  (*interactive) (const struct getl_interface *); 
 
-    /* Read a line from the interface */
-    bool  (*read)  (struct getl_interface *, struct string *);
+    /* Read a line the intended syntax mode from the interface.
+       Returns true if succesful, false on failure or at end of
+       input. */
+    bool  (*read)  (struct getl_interface *,
+                    struct string *, enum getl_syntax *);
 
     /* Close and destroy the interface */
     void  (*close) (struct getl_interface *);
 
-    /* Filter for current and all included sources.  May be NULL */
-    void  (*filter) (struct getl_interface *, struct string *line);
+    /* Filter for current and all included sources, which may
+       modify the line.  Usually null.  */
+    void  (*filter) (struct getl_interface *,
+                     struct string *line, enum getl_syntax);
 
     /* Returns the name of the source */
     const char * (*name) (const struct getl_interface *);
@@ -63,7 +83,7 @@ bool getl_is_interactive (void);
 
 bool getl_read_line (bool *interactive);
 
-bool do_read_line (struct string *line, bool *interactive);
+bool do_read_line (struct string *line, enum getl_syntax *syntax);
 
 void getl_append_source (struct getl_interface *s) ;
 void getl_include_source (struct getl_interface *s) ;

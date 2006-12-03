@@ -204,7 +204,7 @@ var_is_plausible_name (const char *name, bool issue_error)
       return false;
     }
 
-  if (lex_id_to_token (name, strlen (name)) != T_ID) 
+  if (lex_id_to_token (ss_cstr (name)) != T_ID) 
     {
       if (issue_error)
         msg (SE, _("`%s' may not be used as a variable name because it "

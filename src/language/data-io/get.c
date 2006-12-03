@@ -835,7 +835,8 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 
   lex_match (lexer, '/');
   while (lex_token (lexer) == T_ID
-         && (lex_id_match ("FILE", lex_tokid (lexer)) || lex_id_match ("TABLE", lex_tokid (lexer))))
+         && (lex_id_match (ss_cstr ("FILE"), ss_cstr (lex_tokid (lexer)))
+             || lex_id_match (ss_cstr ("TABLE"), ss_cstr (lex_tokid (lexer)))))
     {
       struct mtf_file *file = xmalloc (sizeof *file);
 

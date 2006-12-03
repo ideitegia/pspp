@@ -76,7 +76,8 @@ struct substring
   };
 
 #define SS_EMPTY_INITIALIZER {NULL, 0}
-#define SS_LITERAL_INITIALIZER(LITERAL) {LITERAL, (sizeof LITERAL) - 1}
+#define SS_LITERAL_INITIALIZER(LITERAL)                 \
+        {(char *) LITERAL, (sizeof LITERAL) - 1}
 
 /* Constructors.
    These functions do not allocate any memory, so the substrings
@@ -90,8 +91,12 @@ struct substring ss_tail (struct substring, size_t);
 
 /* Constructors and destructor that allocate and deallocate
    memory. */
+struct pool;
 void ss_alloc_substring (struct substring *, struct substring);
 void ss_alloc_uninit (struct substring *, size_t);
+void ss_alloc_substring_pool (struct substring *, struct substring,
+                              struct pool *);
+void ss_alloc_uninit_pool (struct substring *, size_t, struct pool *);
 void ss_dealloc (struct substring *);
 
 /* Mutators.

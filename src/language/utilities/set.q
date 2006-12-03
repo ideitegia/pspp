@@ -369,7 +369,7 @@ stc_custom_blanks (struct lexer *lexer,
 		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match (lexer, '=');
-  if ((lex_token (lexer) == T_ID && lex_id_match ("SYSMIS", lex_tokid (lexer))))
+  if (lex_match_id (lexer, "SYSMIS"))
     {
       lex_get (lexer);
       set_blanks (SYSMIS);

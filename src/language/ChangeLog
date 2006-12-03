@@ -1,3 +1,7 @@
+Sun Dec  3 11:59:10 2006  Ben Pfaff  <blp@gnu.org>
+
+	* syntax-file.c (read_syntax_file): Always read GETL_BATCH lines.
+
 Wed Nov 29 19:35:44 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* command.c: Updated to reflect changed function names.

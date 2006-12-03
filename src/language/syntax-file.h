@@ -21,12 +21,12 @@
 #define SYNTAX_FILE 1
 
 #include <stdbool.h>
+#include <libpspp/getl.h>
 
 struct string;
-struct getl_interface;
-struct getl_source;
 
-bool read_syntax_file (struct getl_interface *s, struct string *line);
+bool read_syntax_file (struct getl_interface *s,
+                       struct string *line, enum getl_syntax *syntax);
 
 /* Creates a syntax file source with file name FN. */
 struct getl_interface * create_syntax_file_source (const char *fn) ;

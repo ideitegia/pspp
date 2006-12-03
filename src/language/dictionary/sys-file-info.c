@@ -221,7 +221,8 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
       sorted = lex_match_id (lexer, "SORTED");
 
       for (cp = sbc; *cp; cp++)
-	if (lex_token (lexer) == T_ID && lex_id_match (*cp, lex_tokid (lexer)))
+	if (lex_token (lexer) == T_ID
+            && lex_id_match (ss_cstr (*cp), ss_cstr (lex_tokid (lexer))))
 	  {
 	    lex_get (lexer);
 	    break;

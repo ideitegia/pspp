@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-11-29 18:57+0800\n"
+"POT-Creation-Date: 2006-11-30 22:52-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -305,13 +305,13 @@ msgstr ""
 
 #: src/data/format.c:310 src/data/por-file-reader.c:487
 #: src/data/sys-file-reader.c:1222 src/data/sys-file-reader.c:1235
-#: src/ui/gui/psppire.glade:1192 src/ui/gui/psppire-var-store.c:451
+#: src/ui/gui/psppire-var-store.c:451 src/ui/gui/psppire.glade:1192
 msgid "String"
 msgstr ""
 
 #: src/data/format.c:310 src/data/por-file-reader.c:487
 #: src/data/sys-file-reader.c:1222 src/data/sys-file-reader.c:1235
-#: src/ui/gui/psppire.glade:1053 src/ui/gui/psppire-var-store.c:444
+#: src/ui/gui/psppire-var-store.c:444 src/ui/gui/psppire.glade:1053
 msgid "Numeric"
 msgstr ""
 
@@ -1334,7 +1334,7 @@ msgstr ""
 msgid "COLUMN subcommand multiply specified."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:385
+#: src/language/data-io/inpt-pgm.c:386
 msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
@@ -1596,6 +1596,15 @@ msgid ""
 "Data fields must be listed in order of increasing record number."
 msgstr ""
 
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
+
 #: src/language/data-io/print.c:261
 #, c-format
 msgid "Output calls for %d records but %d specified on RECORDS subcommand."
@@ -1614,15 +1623,6 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:73
 #, c-format
@@ -1957,7 +1957,7 @@ msgstr ""
 msgid "Value label `%g' is not integer."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:185
+#: src/language/dictionary/value-labels.c:186
 msgid "Truncating value label to 60 characters."
 msgstr ""
 
@@ -3665,20 +3665,20 @@ msgstr ""
 msgid "Document entered %s by %s:"
 msgstr ""
 
-#: src/language/xforms/compute.c:148 src/language/xforms/compute.c:195
+#: src/language/xforms/compute.c:147 src/language/xforms/compute.c:194
 #, c-format
 msgid ""
 "When executing COMPUTE: SYSMIS is not a valid value as an index into vector %"
 "s."
 msgstr ""
 
-#: src/language/xforms/compute.c:151 src/language/xforms/compute.c:202
+#: src/language/xforms/compute.c:150 src/language/xforms/compute.c:201
 #, c-format
 msgid ""
 "When executing COMPUTE: %g is not a valid value as an index into vector %s."
 msgstr ""
 
-#: src/language/xforms/compute.c:340
+#: src/language/xforms/compute.c:343
 #, c-format
 msgid "There is no vector named %s."
 msgstr ""
@@ -4232,10 +4232,6 @@ msgstr ""
 msgid "Incorrect range specification"
 msgstr ""
 
-#: src/ui/gui/psppire.c:71
-msgid "Sorry. The help system hasn't yet been implemented."
-msgstr ""
-
 #: src/ui/gui/psppire-data-store.c:724
 msgid "var"
 msgstr ""
@@ -4245,6 +4241,38 @@ msgstr ""
 #: src/ui/gui/psppire-var-store.c:738
 #, c-format
 msgid "%d"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:440
+msgid "None"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:445 src/ui/gui/psppire.glade:1072
+msgid "Comma"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:446 src/ui/gui/psppire.glade:1092
+msgid "Dot"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:447
+msgid "Scientific"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:448 src/ui/gui/psppire.glade:1132
+msgid "Date"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:449 src/ui/gui/psppire.glade:1152
+msgid "Dollar"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:450
+msgid "Custom"
+msgstr ""
+
+#: src/ui/gui/psppire.c:71
+msgid "Sorry. The help system hasn't yet been implemented."
 msgstr ""
 
 #: src/ui/gui/psppire.glade:39
@@ -4419,24 +4447,8 @@ msgstr ""
 msgid "Variable Type"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1072 src/ui/gui/psppire-var-store.c:445
-msgid "Comma"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1092 src/ui/gui/psppire-var-store.c:446
-msgid "Dot"
-msgstr ""
-
 #: src/ui/gui/psppire.glade:1112
 msgid "Scientific notation"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1132 src/ui/gui/psppire-var-store.c:448
-msgid "Date"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1152 src/ui/gui/psppire-var-store.c:449
-msgid "Dollar"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:1172
@@ -4517,18 +4529,6 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:2774
 msgid "Sort by:"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:440
-msgid "None"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:447
-msgid "Scientific"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:450
-msgid "Custom"
 msgstr ""
 
 #: src/ui/gui/sort-cases-dialog.c:342

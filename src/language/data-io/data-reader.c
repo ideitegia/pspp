@@ -172,7 +172,7 @@ read_inline_record (struct dfm_reader *r)
       prompt_set_style (PROMPT_DATA);
     }
       
-  if (!lex_get_line_raw (r->lexer))
+  if (!lex_get_line_raw (r->lexer, NULL))
     {
       msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
                  "DATA.  This probably indicates "

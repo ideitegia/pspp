@@ -1,3 +1,28 @@
+Sun Dec  3 11:36:10 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.h (SS_LITERAL_INITIALIZER): Cast the string literal to "char
+	*".  This normally does nothing but when GCC's -Wwrite-strings is
+	used it fixes a warning that otherwise can't be avoided.
+
+Sun Dec  3 11:35:35 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (ss_alloc_substring_pool): New function.
+	(ss_alloc_uninit_pool) New function.
+
+Sun Dec  3 11:28:06 2006  Ben Pfaff  <blp@gnu.org>
+
+	* getl.h: (enum getl_syntax) New enumeration to distinguish
+	between "batch" and "interactive" in a clearer way than a bool.
+	(struct getl_interface) Add an arg to "read" to return the
+	intended syntax mode.  Add an arg to "filter" to specify the
+	syntax mode of the line to filter.
+
+	* getl.c (do_read_line): Instead of returning the syntax type of
+	the line read based on whether the source itself is interactive,
+	return it based on whether the line itself should be treated as
+	having batch or interactive syntax.  Also, adapt interface to the
+	new interfaces of lex_init() and getl_interface.
+
 Wed Nov 29 19:35:44 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* getl.c getl.h: New files. Created interface from base of 

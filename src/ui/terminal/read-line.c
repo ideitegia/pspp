@@ -99,11 +99,13 @@ readln_uninitialize (void)
 
 
 static bool
-read_interactive (struct getl_interface *s, struct string *line)
+read_interactive (struct getl_interface *s,
+                  struct string *line, enum getl_syntax *syntax)
 {
   struct readln_source *is  =
     (struct readln_source *) s ;
 
+  *syntax = GETL_INTERACTIVE;
   return is->interactive_func (line, prompt_get_style ());
 }
 

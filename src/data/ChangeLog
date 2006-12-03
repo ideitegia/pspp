@@ -1,3 +1,26 @@
+Sat Dec  2 16:28:32 2006  Ben Pfaff  <blp@gnu.org>
+
+	Clean up identifier code: don't require identifier enumerations to
+	be in a particular order; make better use of string library;
+	expose less of the internals.
+		
+	* identifier.c: (lex_skip_identifier) Rename lex_id_get_length,
+	change interface.  Updated all callers.
+	(lex_id_match) Change interface to use struct substring, update
+	all callers.
+	(lex_id_match_len) Removed.  Update callers to use lex_id_match.
+	(global array keywords[]) Make static, change form.  Update all
+	users to use lex_id_name instead.
+	(lex_is_keyword) New function.
+	(lex_id_to_token) Change interface to use struct substring, update
+	all callers.
+	(lex_id_name) New function.
+
+	* identifier.h: (T_FIRST_KEYWORD) Removed.  Changed users to call
+	lex_is_keyword instead.
+	(T_LAST_KEYWORD) Removed.
+	(T_N_KEYWORDS) Removed.
+	
 Sat Nov 18 20:46:35 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format.c: (fmt_date_template) Distinguish characters for which a

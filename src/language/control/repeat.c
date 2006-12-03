@@ -33,6 +33,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
+#include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -44,43 +45,47 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Defines a list of lines used by DO REPEAT. */
-struct line_list
+/* A line repeated by DO REPEAT. */
+struct repeat_line
   {
-    struct line_list *next;	/* Next line. */
-    char *file_name;            /* File name. */
+    struct ll ll;               /* In struct repeat_block line_list. */
+    const char *file_name;      /* File name. */
     int line_number;            /* Line number. */
-    char *line;			/* Contents. */
+    struct substring text;	/* Contents. */
+    enum getl_syntax syntax;    /* Syntax mode. */
   };
 
 /* The type of substitution made for a DO REPEAT macro. */
-enum repeat_entry_type 
+enum repeat_macro_type 
   {
     VAR_NAMES,
     OTHER
   };
 
 /* Describes one DO REPEAT macro. */
-struct repeat_entry
+struct repeat_macro
   {
-    struct repeat_entry *next;          /* Next entry. */
-    enum repeat_entry_type type;        /* Types of replacements. */
-    char id[LONG_NAME_LEN + 1];         /* Macro identifier. */
-    char **replacement;                 /* Macro replacement. */
+    struct ll ll;                       /* In struct repeat_block macros. */
+    enum repeat_macro_type type;        /* Types of replacements. */
+    struct substring name;              /* Macro name. */
+    struct substring *replacements;     /* Macro replacement. */
   };
 
 /* A DO REPEAT...END REPEAT block. */
 struct repeat_block 
   {
-    struct getl_interface parent ;
+    struct getl_interface parent;
 
     struct pool *pool;                  /* Pool used for storage. */
     struct dataset *ds;                 /* The dataset for this block */
-    struct line_list *first_line;       /* First line in line buffer. */
-    struct line_list *cur_line;         /* Current line in line buffer. */
+
+    struct ll_list lines;               /* Lines in buffer. */
+    struct ll *cur_line;                /* Last line output. */
     int loop_cnt;                       /* Number of loops. */
     int loop_idx;                       /* Number of loops so far. */
-    struct repeat_entry *macros;        /* Pointer to macro table. */
+
+    struct ll_list macros;              /* Table of macros. */
+
     bool print;                         /* Print lines as executed? */
   };
 
@@ -88,20 +93,26 @@ static bool parse_specification (struct lexer *, struct repeat_block *);
 static bool parse_lines (struct lexer *, struct repeat_block *);
 static void create_vars (struct repeat_block *);
 
+static struct repeat_macro *find_macro (struct repeat_block *,
+                                        struct substring name);
+
 static int parse_ids (struct lexer *, const struct dictionary *dict, 
-		      struct repeat_entry *, struct pool *);
+		      struct repeat_macro *, struct pool *);
 
-static int parse_numbers (struct lexer *, struct repeat_entry *, 
+static int parse_numbers (struct lexer *, struct repeat_macro *, 
 			  struct pool *);
 
-static int parse_strings (struct lexer *, struct repeat_entry *, 
+static int parse_strings (struct lexer *, struct repeat_macro *, 
 			  struct pool *);
 
-static void do_repeat_filter (struct getl_interface *, struct string *);
-static bool do_repeat_read (struct getl_interface *, struct string *);
+static void do_repeat_filter (struct getl_interface *,
+                              struct string *, enum getl_syntax);
+static bool do_repeat_read (struct getl_interface *,
+                            struct string *, enum getl_syntax *);
 static void do_repeat_close (struct getl_interface *);
-static bool always_false (const struct getl_interface *i UNUSED);
-
+static bool always_false (const struct getl_interface *);
+static const char *do_repeat_name (const struct getl_interface *);
+static int do_repeat_location (const struct getl_interface *);
 
 int
 cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
@@ -110,21 +121,27 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
 
   block = pool_create_container (struct repeat_block, pool);
   block->ds = ds;
+  ll_init (&block->lines);
+  block->cur_line = ll_null (&block->lines);
+  block->loop_idx = 0;
+  ll_init (&block->macros);
 
   if (!parse_specification (lexer, block) || !parse_lines (lexer, block))
     goto error;
   
   create_vars (block);
-  
-  block->cur_line = NULL;
-  block->loop_idx = -1;
 
   block->parent.read = do_repeat_read;
   block->parent.close = do_repeat_close;
   block->parent.filter = do_repeat_filter;
   block->parent.interactive = always_false;
+  block->parent.name = do_repeat_name;
+  block->parent.location = do_repeat_location;
 
-  getl_include_source ( (struct getl_interface *) block);
+  if (!ll_is_empty (&block->lines))
+    getl_include_source (&block->parent);
+  else
+    pool_destroy (block->pool);
 
   return CMD_SUCCESS;
 
@@ -138,14 +155,12 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
 static bool
 parse_specification (struct lexer *lexer, struct repeat_block *block) 
 {
-  char first_name[LONG_NAME_LEN + 1];
+  struct substring first_name;
 
   block->loop_cnt = 0;
-  block->macros = NULL;
   do
     {
-      struct repeat_entry *e;
-      struct repeat_entry *iter;
+      struct repeat_macro *macro;
       struct dictionary *dict = dataset_dict (block->ds);
       int count;
 
@@ -156,20 +171,18 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
         msg (SW, _("Dummy variable name \"%s\" hides dictionary "
                    "variable \"%s\"."),
              lex_tokid (lexer), lex_tokid (lexer));
-      for (iter = block->macros; iter != NULL; iter = iter->next)
-	if (!strcasecmp (iter->id, lex_tokid (lexer)))
+      if (find_macro (block, ss_cstr (lex_tokid (lexer))))
 	  {
 	    msg (SE, _("Dummy variable name \"%s\" is given twice."), 
 		 lex_tokid (lexer));
 	    return false;
 	  }
 
-      /* Make a new stand-in variable entry and link it into the
-         list. */
-      e = pool_alloc (block->pool, sizeof *e);
-      e->next = block->macros;
-      strcpy (e->id, lex_tokid (lexer));
-      block->macros = e;
+      /* Make a new macro. */
+      macro = pool_alloc (block->pool, sizeof *macro);
+      ss_alloc_substring_pool (&macro->name, ss_cstr (lex_tokid (lexer)),
+                               block->pool);
+      ll_push_tail (&block->macros, &macro->ll);
 
       /* Skip equals sign. */
       lex_get (lexer);
@@ -178,11 +191,11 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 
       /* Get the details of the variable's possible values. */
       if (lex_token (lexer) == T_ID)
-	count = parse_ids (lexer, dict, e, block->pool);
+	count = parse_ids (lexer, dict, macro, block->pool);
       else if (lex_is_number (lexer))
-	count = parse_numbers (lexer, e, block->pool);
+	count = parse_numbers (lexer, macro, block->pool);
       else if (lex_token (lexer) == T_STRING)
-	count = parse_strings (lexer, e, block->pool);
+	count = parse_strings (lexer, macro, block->pool);
       else
 	{
 	  lex_error (lexer, NULL);
@@ -202,14 +215,17 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
       if (block->loop_cnt == 0)
 	{
 	  block->loop_cnt = count;
-	  strcpy (first_name, e->id);
+	  first_name = macro->name;
 	}
       else if (block->loop_cnt != count)
 	{
-	  msg (SE, _("Dummy variable \"%s\" had %d "
-                     "substitutions, so \"%s\" must also, but %d "
+	  msg (SE, _("Dummy variable \"%.*s\" had %d "
+                     "substitutions, so \"%.*s\" must also, but %d "
                      "were specified."),
-	       first_name, block->loop_cnt, e->id, count);
+	       (int) ss_length (first_name), ss_data (first_name),
+               block->loop_cnt,
+               (int) ss_length (macro->name), ss_data (macro->name),
+               count);
 	  return false;
 	}
 
@@ -220,58 +236,52 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
   return true;
 }
 
-/* If KEYWORD appears beginning at CP, possibly preceded by white
-   space, returns a pointer to the character just after the
-   keyword.  Otherwise, returns a null pointer. */
-static const char *
-recognize_keyword (const char *cp, const char *keyword)
+/* Finds and returns a DO REPEAT macro with the given NAME, or
+   NULL if there is none */
+static struct repeat_macro *
+find_macro (struct repeat_block *block, struct substring name)
 {
-  const char *end;
+  struct repeat_macro *macro;
+  
+  ll_for_each (macro, struct repeat_macro, ll, &block->macros)
+    if (ss_equals (macro->name, name))
+      return macro;
 
-  while (isspace ((unsigned char) *cp))
-    cp++;
-
-  end = lex_skip_identifier (cp);
-  if (end != cp
-      && lex_id_match_len (keyword, strlen (keyword), cp, end - cp))
-    return end;
-  else
-    return NULL;
+  return NULL;
 }
 
-/* Returns CP, advanced past a '+' or '-' if present. */
-static const char *
-skip_indentor (const char *cp) 
+/* Advances LINE past white space and an identifier, if present.
+   Returns true if KEYWORD matches the identifer, false
+   otherwise. */
+static bool
+recognize_keyword (struct substring *line, const char *keyword)
 {
-  if (*cp == '+' || *cp == '-')
-    cp++;
-  return cp;
+  struct substring id;
+  ss_ltrim (line, ss_cstr (CC_SPACES));
+  ss_get_chars (line, lex_id_get_length (*line), &id);
+  return lex_id_match (ss_cstr (keyword), id);
 }
 
 /* Returns true if LINE contains a DO REPEAT command, false
    otherwise. */
 static bool
-recognize_do_repeat (const char *line) 
+recognize_do_repeat (struct substring line)
 {
-  const char *cp = recognize_keyword (skip_indentor (line), "do");
-  return cp != NULL && recognize_keyword (cp, "repeat") != NULL;
+  return (recognize_keyword (&line, "do")
+          && recognize_keyword (&line, "repeat"));
 }
 
 /* Returns true if LINE contains an END REPEAT command, false
    otherwise.  Sets *PRINT to true for END REPEAT PRINT, false
    otherwise. */
 static bool
-recognize_end_repeat (const char *line, bool *print)
+recognize_end_repeat (struct substring line, bool *print)
 {
-  const char *cp = recognize_keyword (skip_indentor (line), "end");
-  if (cp == NULL)
+  if (!recognize_keyword (&line, "end")
+      || !recognize_keyword (&line, "repeat"))
     return false;
 
-  cp = recognize_keyword (cp, "repeat");
-  if (cp == NULL) 
-    return false; 
-
-  *print = recognize_keyword (cp, "print");
+  *print = recognize_keyword (&line, "print");
   return true; 
 }
 
@@ -281,72 +291,66 @@ static bool
 parse_lines (struct lexer *lexer, struct repeat_block *block) 
 {
   char *previous_file_name;
-  struct line_list **last_line;
   int nesting_level;
 
   previous_file_name = NULL;
-  block->first_line = NULL;
-  last_line = &block->first_line;
   nesting_level = 0;
 
   for (;;)
     {
-      const char *cur_file_name = getl_source_name ();
-      int cur_line_number = getl_source_location ();
-      struct line_list *line;
-      struct string cur_line_copy;
-      bool dot;
+      const char *cur_file_name;
+      struct repeat_line *line;
+      struct string text;
+      enum getl_syntax syntax;
+      bool command_ends_before_line, command_ends_after_line;
 
-      if (! lex_get_line_raw (lexer))
+      /* Retrieve an input line and make a copy of it. */
+      if (!lex_get_line_raw (lexer, &syntax))
         return false;
+      ds_init_string (&text, lex_entire_line_ds (lexer));
 
-      /* If the current file has changed then record the fact. */
-      if (cur_file_name && 
-	  (previous_file_name == NULL 
-          || !strcmp (cur_file_name, previous_file_name))
-	  )
+      /* Record file name. */
+      cur_file_name = getl_source_name ();
+      if (cur_file_name != NULL && 
+	  (previous_file_name == NULL
+           || !strcmp (cur_file_name, previous_file_name)))
         previous_file_name = pool_strdup (block->pool, cur_file_name);
 
-      ds_init_string (&cur_line_copy, lex_entire_line_ds (lexer) );
-      ds_rtrim (&cur_line_copy, ss_cstr (CC_SPACES));
-      dot = ds_chomp (&cur_line_copy, get_endcmd ());
-
-      if (recognize_do_repeat (ds_cstr (&cur_line_copy)))
-        nesting_level++; 
-      else if (recognize_end_repeat (ds_cstr (&cur_line_copy), &block->print)) 
-        {
-        if (nesting_level-- == 0)
-          {
-            lex_discard_line (lexer);
-	    ds_destroy (&cur_line_copy);
-            return true;
-          } 
-        }
-      if (dot)
-        ds_put_char (&cur_line_copy, get_endcmd ());
-      
-      line = *last_line = pool_alloc (block->pool, sizeof *line);
-      line->next = NULL;
+      /* Create a line structure. */
+      line = pool_alloc (block->pool, sizeof *line);
       line->file_name = previous_file_name;
-      line->line_number = cur_line_number;
-      line->line = pool_strdup (block->pool, ds_cstr (&cur_line_copy) );
-      last_line = &line->next;
+      line->line_number = getl_source_location ();
+      ss_alloc_substring_pool (&line->text, ds_ss (&text), block->pool);
+      line->syntax = syntax;
 
-      ds_destroy (&cur_line_copy);
+      /* Check whether the line contains a DO REPEAT or END
+         REPEAT command. */
+      lex_preprocess_line (&text, syntax,
+                           &command_ends_before_line,
+                           &command_ends_after_line);
+      if (recognize_do_repeat (ds_ss (&text)))
+        nesting_level++; 
+      else if (recognize_end_repeat (ds_ss (&text), &block->print)
+               && nesting_level-- == 0) 
+        {
+          lex_discard_line (lexer);
+          return true;
+        }
+      ds_destroy (&text);
+
+      /* Add the line to the list. */
+      ll_push_tail (&block->lines, &line->ll);
     }
-
-  lex_discard_line (lexer);
-  return true;
 }
 
 /* Creates variables for the given DO REPEAT. */
 static void
 create_vars (struct repeat_block *block)
 {
-  struct repeat_entry *iter;
- 
-  for (iter = block->macros; iter; iter = iter->next)
-    if (iter->type == VAR_NAMES)
+  struct repeat_macro *macro;
+  
+  ll_for_each (macro, struct repeat_macro, ll, &block->macros)
+    if (macro->type == VAR_NAMES)
       {
         int i;
 
@@ -354,7 +358,9 @@ create_vars (struct repeat_block *block)
           {
             /* Ignore return value: if the variable already
                exists there is no harm done. */
-            dict_create_var (dataset_dict (block->ds), iter->replacement[i], 0);
+            char *var_name = ss_xstrdup (macro->replacements[i]);
+            dict_create_var (dataset_dict (block->ds), var_name, 0);
+            free (var_name);
           }
       }
 }
@@ -362,37 +368,44 @@ create_vars (struct repeat_block *block)
 /* Parses a set of ids for DO REPEAT. */
 static int
 parse_ids (struct lexer *lexer, const struct dictionary *dict, 
-	   struct repeat_entry *e, struct pool *pool)
+	   struct repeat_macro *macro, struct pool *pool)
 {
-  size_t n = 0;
-  e->type = VAR_NAMES;
-  return parse_mixed_vars_pool (lexer, dict, pool, 
-				&e->replacement, &n, PV_NONE) ? n : 0;
+  char **replacements;
+  size_t n, i;
+  
+  macro->type = VAR_NAMES;
+  if (!parse_mixed_vars_pool (lexer, dict, pool, &replacements, &n, PV_NONE))
+    return 0;
+
+  macro->replacements = pool_nalloc (pool, n, sizeof *macro->replacements);
+  for (i = 0; i < n; i++)
+    macro->replacements[i] = ss_cstr (replacements[i]);
+  return n;
 }
 
-/* Adds STRING to E's list of replacements, which has *USED
-   elements and has room for *ALLOCATED.  Allocates memory from
-   POOL. */
+/* Adds REPLACEMENT to MACRO's list of replacements, which has
+   *USED elements and has room for *ALLOCATED.  Allocates memory
+   from POOL. */
 static void
-add_replacement (char *string,
-                 struct repeat_entry *e, struct pool *pool,
+add_replacement (struct substring replacement,
+                 struct repeat_macro *macro, struct pool *pool,
                  size_t *used, size_t *allocated) 
 {
   if (*used == *allocated)
-    e->replacement = pool_2nrealloc (pool, e->replacement, allocated,
-                                     sizeof *e->replacement);
-  e->replacement[(*used)++] = string;
+    macro->replacements = pool_2nrealloc (pool, macro->replacements, allocated,
+                                          sizeof *macro->replacements);
+  macro->replacements[(*used)++] = replacement;
 }
 
 /* Parses a list of numbers for DO REPEAT. */
 static int
-parse_numbers (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
+parse_numbers (struct lexer *lexer, struct repeat_macro *macro, struct pool *pool)
 {
   size_t used = 0;
   size_t allocated = 0;
   
-  e->type = OTHER;
-  e->replacement = NULL;
+  macro->type = OTHER;
+  macro->replacements = NULL;
 
   do
     {
@@ -421,9 +434,8 @@ parse_numbers (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
         b = a;
 
       for (i = a; i <= b; i++)
-        add_replacement (pool_asprintf (pool, "%ld", i),
-                         e, pool, &used, &allocated);
-
+        add_replacement (ss_cstr (pool_asprintf (pool, "%ld", i)),
+                         macro, pool, &used, &allocated);
 
       lex_match (lexer, ',');
     }
@@ -434,13 +446,13 @@ parse_numbers (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
 
 /* Parses a list of strings for DO REPEAT. */
 int
-parse_strings (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
+parse_strings (struct lexer *lexer, struct repeat_macro *macro, struct pool *pool)
 {
   size_t used = 0;
   size_t allocated = 0;
   
-  e->type = OTHER;
-  e->replacement = NULL;
+  macro->type = OTHER;
+  macro->replacements = NULL;
 
   do
     {
@@ -454,7 +466,7 @@ parse_strings (struct lexer *lexer, struct repeat_entry *e, struct pool *pool)
 
       string = lex_token_representation (lexer);
       pool_register (pool, free, string);
-      add_replacement (string, e, pool, &used, &allocated);
+      add_replacement (ss_cstr (string), macro, pool, &used, &allocated);
 
       lex_get (lexer);
       lex_match (lexer, ',');
@@ -471,59 +483,52 @@ cmd_end_repeat (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
   return CMD_CASCADING_FAILURE;
 }
 
-/* Finds a DO REPEAT macro with name MACRO_NAME and returns the
-   appropriate subsitution if found, or NULL if not. */
-static char *
-find_substitution (struct repeat_block *block, const char *name, size_t length)
+/* Finds a DO REPEAT macro with the given NAME and returns the
+   appropriate substitution if found, or NAME otherwise. */
+static struct substring
+find_substitution (struct repeat_block *block, struct substring name)
 {
-  struct repeat_entry *e;
-
-  for (e = block->macros; e; e = e->next)
-    if (!memcasecmp (e->id, name, length) && strlen (e->id) == length)
-      return e->replacement[block->loop_idx];
-  
-  return NULL;
+  struct repeat_macro *macro = find_macro (block, name);
+  return macro ? macro->replacements[block->loop_idx] : name;
 }
 
 /* Makes appropriate DO REPEAT macro substitutions within the 
    repeated lines. */
 static void
-do_repeat_filter (struct getl_interface *block_, struct string *line)
+do_repeat_filter (struct getl_interface *block_,
+                  struct string *line, enum getl_syntax syntax UNUSED)
 {
   struct repeat_block *block = (struct repeat_block *) block_;
-  bool in_apos, in_quote;
-  char *cp;
+  bool in_apos, in_quote, dot;
+  struct substring input;
   struct string output;
-  bool dot;
+  int c;
 
   ds_init_empty (&output);
 
   /* Strip trailing whitespace, check for & remove terminal dot. */
-  while (isspace (ds_last (line)))
-    ds_truncate (line, ds_length (line) - 1);
+  ds_rtrim (line, ss_cstr (CC_SPACES));
   dot = ds_chomp (line, get_endcmd ());
 
+  input = ds_ss (line);
   in_apos = in_quote = false;
-  for (cp = ds_cstr (line); cp < ds_end (line); )
+  while ((c = ss_first (input)) != EOF)
     {
-      if (*cp == '\'' && !in_quote)
+      if (c == '\'' && !in_quote)
 	in_apos = !in_apos;
-      else if (*cp == '"' && !in_apos)
+      else if (c == '"' && !in_apos)
 	in_quote = !in_quote;
       
-      if (in_quote || in_apos || !lex_is_id1 (*cp))
-        ds_put_char (&output, *cp++);
+      if (in_quote || in_apos || !lex_is_id1 (c)) 
+        {
+          ds_put_char (&output, c);
+          ss_advance (&input, 1); 
+        }
       else 
         {
-          const char *start = cp;
-          char *end = lex_skip_identifier (start);
-          const char *substitution = find_substitution (block,
-                                                        start, end - start);
-          if (substitution != NULL) 
-            ds_put_cstr (&output, substitution);
-          else
-            ds_put_substring (&output, ss_buffer (start, end - start));
-          cp = end;
+          struct substring id;
+          ss_get_chars (&input, lex_id_get_length (input), &id);
+          ds_put_substring (&output, find_substitution (block, id));
         }
     }
   if (dot)
@@ -533,29 +538,38 @@ do_repeat_filter (struct getl_interface *block_, struct string *line)
   ds_destroy (&output);
 }
 
-/* Function called by getl to read a line.
-   Puts the line in OUTPUT, sets the file name in *FILE_NAME and
-   line number in *LINE_NUMBER.  Returns true if a line was
-   obtained, false if the source is exhausted. */
-static bool  
-do_repeat_read  (struct getl_interface *b, struct string *output)
+static struct repeat_line *
+current_line (const struct getl_interface *interface) 
 {
-  struct repeat_block *block = (struct repeat_block *) b;
-  struct line_list *line;
+  struct repeat_block *block = (struct repeat_block *) interface;
+  return (block->cur_line != ll_null (&block->lines)
+          ? ll_data (block->cur_line, struct repeat_line, ll)
+          : NULL);
+}
 
-  if (block->cur_line == NULL) 
+/* Function called by getl to read a line.  Puts the line in
+   OUTPUT and its syntax mode in *SYNTAX.  Returns true if a line
+   was obtained, false if the source is exhausted. */
+static bool  
+do_repeat_read  (struct getl_interface *interface,
+                 struct string *output, enum getl_syntax *syntax)
+{
+  struct repeat_block *block = (struct repeat_block *) interface;
+  struct repeat_line *line;
+
+  block->cur_line = ll_next (block->cur_line);
+  if (block->cur_line == ll_null (&block->lines)) 
     {
       block->loop_idx++;
       if (block->loop_idx >= block->loop_cnt)
         return false;
-      block->cur_line = block->first_line;
-      if (block->cur_line == NULL)
-        return false;
-    }
-  line = block->cur_line;
 
-  ds_assign_cstr (output, line->line);
-  block->cur_line = line->next;
+      block->cur_line = ll_head (&block->lines);
+    }
+
+  line = current_line (interface);
+  ds_assign_substring (output, line->text);
+  *syntax = line->syntax;
   return true;
 }
 
@@ -573,4 +587,22 @@ static bool
 always_false (const struct getl_interface *i UNUSED)
 {
   return false;
+}
+
+/* Returns the name of the source file from which the previous
+   line was originally obtained, or a null pointer if none. */
+static const char *
+do_repeat_name (const struct getl_interface *interface) 
+{
+  struct repeat_line *line = current_line (interface);
+  return line ? line->file_name : NULL;
+}
+
+/* Returns the line number in the source file from which the
+   previous line was originally obtained, or -1 if none. */
+static int
+do_repeat_location (const struct getl_interface *interface) 
+{
+  struct repeat_line *line = current_line (interface);
+  return line ? line->line_number : -1;
 }

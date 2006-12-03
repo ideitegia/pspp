@@ -17,15 +17,15 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !lex_def_h
-#define lex_def_h 1
+#ifndef DATA_IDENTIFIER_H
+#define DATA_IDENTIFIER_H 1
 
 #include <ctype.h>
 #include <stdbool.h>
 #include <sys/types.h>
+#include <libpspp/str.h>
 
 /* Token types. */
-/* The order of the enumerals below is important.  Do not change it. */
 enum
   {
     T_ID = 256, /* Identifier. */
@@ -51,23 +51,21 @@ enum
     T_WITH,	/* WITH */
 
     T_EXP,	/* ** */
-
-    T_FIRST_KEYWORD = T_AND,
-    T_LAST_KEYWORD = T_WITH,
-    T_N_KEYWORDS = T_LAST_KEYWORD - T_FIRST_KEYWORD + 1
   };
+
+/* Tokens. */
+bool lex_is_keyword (int token);
 
 /* Recognizing identifiers. */
 bool lex_is_id1 (char);
 bool lex_is_idn (char);
-char *lex_skip_identifier (const char *);
+size_t lex_id_get_length (struct substring);
 
 /* Comparing identifiers. */
-bool lex_id_match_len (const char *keyword_string, size_t keyword_len,
-                       const char *token_string, size_t token_len);
-bool lex_id_match (const char *keyword_string, const char *token_string);
-int lex_id_to_token (const char *id, size_t len);
+bool lex_id_match (struct substring keyword, struct substring token);
+int lex_id_to_token (struct substring);
 
-extern const char *const keywords[T_N_KEYWORDS + 1] ;
+/* Identifier names. */
+const char *lex_id_name (int);
 
-#endif /* !lex_def_h */
+#endif /* !data/identifier.h */

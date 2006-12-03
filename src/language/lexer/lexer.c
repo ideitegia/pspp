@@ -49,7 +49,7 @@ struct lexer
 {
   struct string line_buffer;
 
-  bool (*read_line) (struct string *, bool *);
+  bool (*read_line) (struct string *, enum getl_syntax *);
 
   int token;      /* Current token. */
   double tokval;  /* T_POS_NUM, T_NEG_NUM: the token's value. */
@@ -93,7 +93,7 @@ static void dump_token (void);
 
 /* Initializes the lexer. */
 struct lexer *
-lex_create (bool (*read_line_func) (struct string *, bool *))
+lex_create (bool (*read_line_func) (struct string *, enum getl_syntax *))
 {
   struct lexer *lexer = xzalloc (sizeof (*lexer));
 
@@ -389,12 +389,17 @@ lex_get (struct lexer *lexer)
 static int
 parse_id (struct lexer *lexer) 
 {
-  const char *start = lexer->prog;
-  lexer->prog = lex_skip_identifier (start);
+  struct substring rest_of_line
+    = ss_substr (ds_ss (&lexer->line_buffer),
+                 ds_pointer_to_position (&lexer->line_buffer, lexer->prog),
+                 SIZE_MAX);
+  struct substring id = ss_head (rest_of_line,
+                                 lex_id_get_length (rest_of_line));
+  lexer->prog += ss_length (id);
 
-  ds_put_substring (&lexer->tokstr, ss_buffer (start, lexer->prog - start));
+  ds_assign_substring (&lexer->tokstr, id);
   str_copy_trunc (lexer->tokid, sizeof lexer->tokid, ds_cstr (&lexer->tokstr));
-  return lex_id_to_token (ds_cstr (&lexer->tokstr), ds_length (&lexer->tokstr));
+  return lex_id_to_token (id);
 }
 
 /* Reports an error to the effect that subcommand SBC may only be
@@ -522,7 +527,8 @@ lex_match (struct lexer *lexer, int t)
 bool
 lex_match_id (struct lexer *lexer, const char *s)
 {
-  if (lexer->token == T_ID && lex_id_match (s, lexer->tokid))
+  if (lexer->token == T_ID
+      && lex_id_match (ss_cstr (s), ss_cstr (lexer->tokid)))
     {
       lex_get (lexer);
       return true;
@@ -553,11 +559,8 @@ lex_match_int (struct lexer *lexer, int x)
 bool
 lex_force_match_id (struct lexer *lexer, const char *s)
 {
-  if (lexer->token == T_ID && lex_id_match (s, lexer->tokid))
-    {
-      lex_get (lexer);
-      return true;
-    }
+  if (lex_match_id (lexer, s))
+    return true;
   else
     {
       lex_error (lexer, _("expecting `%s'"), s);
@@ -693,7 +696,7 @@ lex_put_back (struct lexer *lexer, int t)
 void
 lex_put_back_id (struct lexer *lexer, const char *id)
 {
-  assert (lex_id_to_token (id, strlen (id)) == T_ID);
+  assert (lex_id_to_token (ss_cstr (id)) == T_ID);
   save_token (lexer);
   lexer->token = T_ID;
   ds_assign_cstr (&lexer->tokstr, id);
@@ -808,12 +811,40 @@ strip_comments (struct string *string)
     }
 }
 
-/* Reads a line, without performing any preprocessing */
-bool 
-lex_get_line_raw (struct lexer *lexer)
+/* Prepares LINE, which is subject to the given SYNTAX rules, for
+   tokenization by stripping comments and determining whether it
+   is the beginning or end of a command and storing into
+   *LINE_STARTS_COMMAND and *LINE_ENDS_COMMAND appropriately. */
+void
+lex_preprocess_line (struct string *line,
+                     enum getl_syntax syntax,
+                     bool *line_starts_command,
+                     bool *line_ends_command)
 {
-  bool dummy;
-  return lexer->read_line (&lexer->line_buffer, &dummy);
+  strip_comments (line);
+  ds_rtrim (line, ss_cstr (CC_SPACES));
+  *line_ends_command = (ds_chomp (line, get_endcmd ())
+                        || (ds_is_empty (line) && get_nulline ()));
+  *line_starts_command = false;
+  if (syntax == GETL_BATCH)
+    {
+      int first = ds_first (line);
+      *line_starts_command = !isspace (first);
+      if (first == '+' || first == '-') 
+        *ds_data (line) = ' ';
+    }
+}
+
+/* Reads a line, without performing any preprocessing.
+   Sets *SYNTAX, if SYNTAX is non-null, to the line's syntax
+   mode. */
+bool 
+lex_get_line_raw (struct lexer *lexer, enum getl_syntax *syntax)
+{
+  enum getl_syntax dummy;
+  bool ok = lexer->read_line (&lexer->line_buffer,
+                              syntax != NULL ? syntax : &dummy);
+  return ok;
 }
 
 /* Reads a line for use by the tokenizer, and preprocesses it by
@@ -822,53 +853,39 @@ lex_get_line_raw (struct lexer *lexer)
 bool
 lex_get_line (struct lexer *lexer)
 {
-  struct string *line = &lexer->line_buffer;
-  bool interactive;
+  bool line_starts_command;
+  enum getl_syntax syntax;
 
-  if (!lexer->read_line (line, &interactive))
+  if (!lex_get_line_raw (lexer, &syntax))
     return false;
 
-  strip_comments (line);
-  ds_rtrim (line, ss_cstr (CC_SPACES));
-  
-  /* Check for and remove terminal dot. */
-  lexer->dot = (ds_chomp (line, get_endcmd ())
-         || (ds_is_empty (line) && get_nulline ()));
-  
-  /* Strip leading indentors or insert a terminal dot (unless the
-     line was obtained interactively). */
-  if (!interactive)
-    {
-      int first = ds_first (line);
+  lex_preprocess_line (&lexer->line_buffer, syntax,
+                       &line_starts_command, &lexer->dot);
+  if (line_starts_command)
+    lexer->put_token = '.';
 
-      if (first == '+' || first == '-')
-	*ds_data (line) = ' ';
-      else if (first != EOF && !isspace (first))
-	lexer->put_token = '.';
-    }
-
-  lexer->prog = ds_cstr (line);
-
+  lexer->prog = ds_cstr (&lexer->line_buffer);
   return true;
 }
 
 /* Token names. */
 
-/* Returns the name of a token in a static buffer. */
+/* Returns the name of a token. */
 const char *
 lex_token_name (int token)
 {
-  if (token >= T_FIRST_KEYWORD && token <= T_LAST_KEYWORD)
-    return keywords[token - T_FIRST_KEYWORD];
-
-  if (token < 256)
+  if (lex_is_keyword (token))
+    return lex_id_name (token);
+  else if (token < 256)
     {
-      static char t[2];
-      t[0] = token;
-      return t;
+      static char t[256][2];
+      char *s = t[token];
+      s[0] = token;
+      s[1] = '\0';
+      return s;
     }
-
-  NOT_REACHED ();
+  else
+    NOT_REACHED ();
 }
 
 /* Returns an ASCII representation of the current token as a
@@ -934,15 +951,7 @@ lex_token_representation (struct lexer *lexer)
       return xstrdup ("**");
 
     default:
-      if (lexer->token >= T_FIRST_KEYWORD && lexer->token <= T_LAST_KEYWORD)
-	return xstrdup (keywords [lexer->token - T_FIRST_KEYWORD]);
-      else
-	{
-	  token_rep = xmalloc (2);
-	  token_rep[0] = lexer->token;
-	  token_rep[1] = '\0';
-	  return token_rep;
-	}
+      return xstrdup (lex_token_name (lexer->token));
     }
 	
   NOT_REACHED ();
@@ -1225,7 +1234,7 @@ dump_token (struct lexer *lexer)
       break;
 
     default:
-      if (lexer->token >= T_FIRST_KEYWORD && lexer->token <= T_LAST_KEYWORD)
+      if (lex_is_keyword (token))
 	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (token));
       else
 	fprintf (stderr, "PUNCT\t%c\n", lexer->token);

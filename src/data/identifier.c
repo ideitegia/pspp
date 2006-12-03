@@ -28,16 +28,7 @@
 
 #include <assert.h>
 #include <string.h>
-
-
-/* Table of keywords. */
-const char *const keywords[T_N_KEYWORDS + 1] = 
-  {
-    "AND", "OR", "NOT",
-    "EQ", "GE", "GT", "LE", "LT", "NE",
-    "ALL", "BY", "TO", "WITH",
-    NULL,
-  };
+#include <libpspp/assertion.h>
 
 /* Recognizing identifiers. */
 
@@ -60,72 +51,107 @@ lex_is_idn (char c_)
   return lex_is_id1 (c) || isdigit (c) || c == '.' || c == '_';
 }
 
-/* If string S begins with an identifier, returns the first
-   character following it.  Otherwise, returns S unchanged. */
-char *
-lex_skip_identifier (const char *s) 
+/* Returns the length of the longest prefix of STRING that forms
+   a valid identifier.  Returns zero if STRING does not begin
+   with a valid identifier.  */
+size_t
+lex_id_get_length (struct substring string) 
 {
-  if (lex_is_id1 (*s))
+  size_t length = 0;
+  if (!ss_is_empty (string) && lex_is_id1 (ss_first (string)))
     {
-      s++;
-      while (lex_is_idn (*s))
-        s++;
+      length = 1;
+      while (length < ss_length (string)
+             && lex_is_idn (ss_at (string, length)))
+        length++;
     }
-  return (char *) s;
+  return length;
 }
 
 /* Comparing identifiers. */
 
-/* Keywords match if one of the following is true: KW and TOK are
-   identical (except for differences in case), or TOK is at least 3
-   characters long and those characters are identical to KW.  KW_LEN
-   is the length of KW, TOK_LEN is the length of TOK. */
+/* Returns true if TOKEN is a case-insensitive match for KEYWORD.
+
+   Keywords match if one of the following is true: KEYWORD and
+   TOKEN are identical, or TOKEN is at least 3 characters long
+   and those characters are identical to KEYWORD. */
 bool
-lex_id_match_len (const char *kw, size_t kw_len,
-		  const char *tok, size_t tok_len)
+lex_id_match (struct substring keyword, struct substring token)
 {
-  size_t i = 0;
-
-  assert (kw && tok);
-  for (;;)
-    {
-      if (i == kw_len && i == tok_len)
-	return true;
-      else if (i == tok_len)
-	return i >= 3;
-      else if (i == kw_len)
-	return false;
-      else if (toupper ((unsigned char) kw[i])
-	       != toupper ((unsigned char) tok[i]))
-	return false;
-
-      i++;
-    }
-}
-
-/* Same as lex_id_match_len() minus the need to pass in the lengths. */
-bool
-lex_id_match (const char *kw, const char *tok)
-{
-  return lex_id_match_len (kw, strlen (kw), tok, strlen (tok));
-}
-
-
-
-/* Returns the proper token type, either T_ID or a reserved keyword
-   enum, for ID[], which must contain LEN characters. */
-int
-lex_id_to_token (const char *id, size_t len)
-{
-  const char *const *kwp;
-
-  if (len < 2 || len > 4)
-    return T_ID;
+  size_t token_len = ss_length (token);
+  size_t keyword_len = ss_length (keyword);
   
-  for (kwp = keywords; *kwp; kwp++)
-    if (!strcasecmp (*kwp, id))
-      return T_FIRST_KEYWORD + (kwp - keywords);
-
-  return T_ID;
+  if (token_len >= 3 && token_len < keyword_len)
+    return ss_equals_case (ss_head (keyword, token_len), token);
+  else
+    return ss_equals_case (keyword, token);
 }
 
+/* Table of keywords. */
+struct keyword 
+  {
+    int token;
+    const struct substring identifier;
+  };
+
+static const struct keyword keywords[] = 
+  {
+    { T_AND,  SS_LITERAL_INITIALIZER ("AND") },
+    { T_OR,   SS_LITERAL_INITIALIZER ("OR") },
+    { T_NOT,  SS_LITERAL_INITIALIZER ("NOT") },
+    { T_EQ,   SS_LITERAL_INITIALIZER ("EQ") },
+    { T_GE,   SS_LITERAL_INITIALIZER ("GE") },
+    { T_GT,   SS_LITERAL_INITIALIZER ("GT") },
+    { T_LE,   SS_LITERAL_INITIALIZER ("LE") },
+    { T_LT,   SS_LITERAL_INITIALIZER ("LT") },
+    { T_NE,   SS_LITERAL_INITIALIZER ("NE") },
+    { T_ALL,  SS_LITERAL_INITIALIZER ("ALL") },
+    { T_BY,   SS_LITERAL_INITIALIZER ("BY") },
+    { T_TO,   SS_LITERAL_INITIALIZER ("TO") },
+    { T_WITH, SS_LITERAL_INITIALIZER ("WITH") },
+  };
+static const size_t keyword_cnt = sizeof keywords / sizeof *keywords;
+
+/* Returns true if TOKEN is representable as a keyword. */
+bool
+lex_is_keyword (int token) 
+{
+  const struct keyword *kw;
+  for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
+    if (kw->token == token) 
+      return true;
+  return false;
+}
+
+/* Returns the proper token type, either T_ID or a reserved
+   keyword enum, for ID. */
+int
+lex_id_to_token (struct substring id)
+{
+  if (ss_length (id) >= 2 && ss_length (id) <= 4) 
+    {
+      const struct keyword *kw;
+      for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
+        if (ss_equals_case (kw->identifier, id))
+          return kw->token;
+    }
+  
+  return T_ID;
+}
+
+/* Returns the name for the given keyword token type. */
+const char *
+lex_id_name (int token) 
+{
+  const struct keyword *kw;
+
+  for (kw = keywords; kw < &keywords[keyword_cnt]; kw++)
+    if (kw->token == token) 
+      {
+        /* A "struct substring" is not guaranteed to be
+           null-terminated, as our caller expects, but in this
+           case it always will be. */
+        return ss_data (kw->identifier); 
+      }
+  NOT_REACHED ();
+}

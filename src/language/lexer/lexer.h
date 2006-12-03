@@ -20,17 +20,17 @@
 #if !lexer_h
 #define lexer_h 1
 
-#include <data/variable.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <data/identifier.h>
-
 #include <stddef.h>
+#include <data/identifier.h>
+#include <data/variable.h>
+#include <libpspp/getl.h>
 
-struct lexer ;
+struct lexer;
 
 /* Initialization. */
-struct lexer * lex_create (bool (*)(struct string *, bool*));
+struct lexer * lex_create (bool (*)(struct string *, enum getl_syntax *));
 void lex_destroy (struct lexer *);
 
 
@@ -71,12 +71,15 @@ void lex_put_back_id (struct lexer *, const char *tokid);
 const char *lex_entire_line (struct lexer *);
 const struct string *lex_entire_line_ds (struct lexer *);
 const char *lex_rest_of_line (struct lexer *, int *end_dot);
+void lex_preprocess_line (struct string *, enum getl_syntax,
+                          bool *line_starts_command,
+                          bool *line_ends_command);
 void lex_discard_line (struct lexer *);
 void lex_discard_rest_of_command (struct lexer *);
 
 /* Weird line reading functions. */
 bool lex_get_line (struct lexer *);
-bool lex_get_line_raw (struct lexer *);
+bool lex_get_line_raw (struct lexer *, enum getl_syntax *);
 
 /* Token names. */
 const char *lex_token_name (int);

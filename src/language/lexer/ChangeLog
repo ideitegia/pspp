@@ -1,3 +1,30 @@
+Sat Dec  2 21:19:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	General clean-up.
+	
+	* lexer.c: (lex_token_name) Don't use a static buffer or, rather,
+	use a separate static buffer for each possible answer.
+	(lex_token_representation) Now use lex_token_name as building
+	block.  Previously this broke lex_force_match because it uses
+	lex_token_name in a call to lex_error, which in turn uses
+	lex_token_representation.
+	(lex_force_match_id) Use lex_match_id as building block, to
+	simplify.
+	(parse_id) Rewrite to work with modified lex_id_to_token and
+	lex_id_get_length.  The computation of rest_of_line is a bit of an
+	abomination but it will get fixed later.
+	
+Sat Dec  2 20:16:50 2006  Ben Pfaff  <blp@gnu.org>
+
+	* lexer.c (struct lexer): Change function signature for
+	`read_line' to take an "enum getl_syntax *" instead of "bool *".
+	(lex_create) Ditto, for argument.
+	(lex_preprocess_line) New function.
+	(lex_get_line_raw) New arg, to allow caller to obtain getl_syntax
+	of the line read.
+	(lex_get_line) Use lex_get_line_raw and lex_preprocess_line to
+	simplify.
+
 Sun Nov 19 09:20:42 2006  Ben Pfaff  <blp@gnu.org>
 
 	* range-parser.c (parse_num_range): Because data_in takes an enum

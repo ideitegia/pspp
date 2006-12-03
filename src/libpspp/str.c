@@ -358,6 +358,25 @@ ss_alloc_uninit (struct substring *new, size_t cnt)
   new->length = cnt;
 }
 
+/* Makes a pool_alloc_unaligned()'d copy of the contents of OLD
+   in POOL, and stores it in NEW. */
+void
+ss_alloc_substring_pool (struct substring *new, struct substring old,
+                         struct pool *pool) 
+{
+  new->string = pool_alloc_unaligned (pool, old.length);
+  new->length = old.length;
+  memcpy (new->string, old.string, old.length);
+}
+
+/* Allocates room for a CNT-character string in NEW in POOL. */
+void
+ss_alloc_uninit_pool (struct substring *new, size_t cnt, struct pool *pool) 
+{
+  new->string = pool_alloc_unaligned (pool, cnt);
+  new->length = cnt;
+}
+
 /* Frees the string that SS points to. */
 void
 ss_dealloc (struct substring *ss) 

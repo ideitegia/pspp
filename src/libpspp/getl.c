@@ -201,26 +201,21 @@ getl_uninitialize (void)
 
 /* Reads a single line into LINE.
    Returns true when a line has been read, false at end of input.
-   If INTERACTIVE is non-null, then when true is returned
-   *INTERACTIVE will be set to true if the line was obtained
-   interactively, false otherwise. */
+   On success, sets *SYNTAX to the style of the syntax read. */
 bool
-do_read_line (struct string *line, bool *interactive)
+do_read_line (struct string *line, enum getl_syntax *syntax)
 {
   while (!ll_is_empty (&sources))
     {
       struct getl_source *s = current_source (&sources);
 
       ds_clear (line);
-      if (s->interface->read (s->interface, line))
+      if (s->interface->read (s->interface, line, syntax))
         {
-          if (interactive != NULL)
-            *interactive = s->interface->interactive (s->interface);
-
           while (s)
 	    {
 	      if (s->interface->filter)
-		s->interface->filter (s->interface, line);
+		s->interface->filter (s->interface, line, *syntax);
 	      s = s->included_from;
 	    }
 	  

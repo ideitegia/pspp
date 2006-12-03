@@ -78,7 +78,8 @@ line_number (const struct getl_interface *s)
 /* Reads a line from syntax file source S into LINE.
    Returns true if successful, false at end of file. */
 bool
-read_syntax_file (struct getl_interface *s, struct string *line)
+read_syntax_file (struct getl_interface *s,
+                  struct string *line, enum getl_syntax *syntax)
 {
   struct syntax_file_source *sfs = (struct syntax_file_source *) s;
 
@@ -114,6 +115,7 @@ read_syntax_file (struct getl_interface *s, struct string *line)
   if (get_echo ())
     tab_output_text (TAB_LEFT | TAB_FIX, ds_cstr (line));
 
+  *syntax = GETL_BATCH;
   return true;
 }
 
