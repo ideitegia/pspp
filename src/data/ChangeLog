@@ -1,3 +1,8 @@
+Mon Dec  4 21:38:40 2006  Ben Pfaff  <blp@gnu.org>
+
+	* missing-values.c (mv_resize): Don't write beyond end of the
+	allocated buffer when resizing a long string.
+
 Sat Dec  2 16:28:32 2006  Ben Pfaff  <blp@gnu.org>
 
 	Clean up identifier code: don't require identifier enumerations to

@@ -328,7 +328,7 @@ void
 mv_resize (struct missing_values *mv, int width) 
 {
   assert (mv_is_resizable (mv, width));
-  if (width > mv->width) 
+  if (width > mv->width && mv->type != MV_NONE) 
     {
       int i;
       
