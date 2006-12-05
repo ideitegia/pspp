@@ -183,7 +183,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
             case_data_rw (c, v->fv)->f = lex_tokval (lexer);
           else
             memcpy (case_data_rw (c, v->fv)->s, ds_data (lex_tokstr (lexer)),
-                    v->width);
+                    var_get_width (v));
           lex_get (lexer);
 
           if (!lex_force_match (lexer, ')'))
@@ -309,7 +309,7 @@ expr_debug_print_postfix (const struct expression *e)
           }
           break;
         case OP_variable:
-          fprintf (stderr, "v<%s>", op->variable->name);
+          fprintf (stderr, "v<%s>", var_get_name (op->variable));
           break;
         case OP_vector:
           fprintf (stderr, "vec<%s>", op->vector->name);

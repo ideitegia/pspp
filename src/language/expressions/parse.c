@@ -901,7 +901,7 @@ parse_vector_element (struct lexer *lexer, struct expression *e)
       || !lex_match (lexer, ')'))
     return NULL;
 
-  return expr_allocate_binary (e, (vector->var[0]->type == NUMERIC
+  return expr_allocate_binary (e, (var_is_numeric (vector->var[0])
                                    ? OP_VEC_ELEM_NUM : OP_VEC_ELEM_STR),
                                element, expr_allocate_vector (e, vector));
 }
@@ -1464,7 +1464,7 @@ union any_node *
 expr_allocate_variable (struct expression *e, struct variable *v)
 {
   union any_node *n = pool_alloc (e->expr_pool, sizeof n->variable);
-  n->type = v->type == NUMERIC ? OP_num_var : OP_str_var;
+  n->type = var_is_numeric (v) ? OP_num_var : OP_str_var;
   n->variable.v = v;
   return n;
 }
@@ -1484,6 +1484,6 @@ static union any_node *
 allocate_unary_variable (struct expression *e, struct variable *v) 
 {
   assert (v != NULL);
-  return expr_allocate_unary (e, v->type == NUMERIC ? OP_NUM_VAR : OP_STR_VAR,
+  return expr_allocate_unary (e, var_is_numeric (v) ? OP_NUM_VAR : OP_STR_VAR,
                               expr_allocate_variable (e, v));
 }

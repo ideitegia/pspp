@@ -267,10 +267,10 @@ create_trns_case (struct ccase *trns_case, struct dictionary *dict)
       struct variable *v = dict_get_var (dict, i);
       union value *value = case_data_rw (trns_case, v->fv);
 
-      if (v->type == NUMERIC)
-        value->f = v->leave ? 0.0 : SYSMIS;
+      if (var_is_numeric (v))
+        value->f = var_get_leave (v) ? 0.0 : SYSMIS;
       else
-        memset (value->s, ' ', v->width);
+        memset (value->s, ' ', var_get_width (v));
     }
 }
 
@@ -395,12 +395,12 @@ clear_case (const struct dataset *ds, struct ccase *c)
   for (i = 0; i < var_cnt; i++) 
     {
       struct variable *v = dict_get_var (ds->dict, i);
-      if (!v->leave) 
+      if (!var_get_leave (v)) 
         {
-          if (v->type == NUMERIC)
+          if (var_is_numeric (v))
             case_data_rw (c, v->fv)->f = SYSMIS;
           else
-            memset (case_data_rw (c, v->fv)->s, ' ', v->width);
+            memset (case_data_rw (c, v->fv)->s, ' ', var_get_width (v));
         } 
     }
 }
@@ -938,7 +938,7 @@ filter_trns_proc (void *filter_var_,
 {
   struct variable *filter_var = filter_var_;
   double f = case_num (c, filter_var->fv);
-  return (f != 0.0 && !mv_is_num_missing (&filter_var->miss, f)
+  return (f != 0.0 && !var_is_num_missing (filter_var, f)
           ? TRNS_CONTINUE : TRNS_DROP_CASE);
 }
 

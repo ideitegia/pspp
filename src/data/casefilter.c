@@ -64,7 +64,7 @@ casefilter_variable_missing (const struct casefilter *filter,
     return true;
 
   if ( filter->exclude_user_missing && 
-       mv_is_value_user_missing (&var->miss, val) ) 
+       var_is_value_user_missing (var, val) ) 
     return true;
 
   return false;

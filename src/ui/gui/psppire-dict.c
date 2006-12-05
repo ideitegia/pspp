@@ -472,8 +472,6 @@ psppire_dict_resize_variable(PsppireDict *d, const struct PsppireVariable *pv,
   if ( old_size == new_size ) 
     return ;
 
-  pv->v->nv = new_size;
-
   dict_compact_values(d->dict);
 
   fv = psppire_variable_get_fv(pv);

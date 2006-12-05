@@ -91,7 +91,7 @@ diff -b  -w $TEMPDIR/pspp.list - << EOF
 |SEX     |A1    |
 |X       |F8.0  |
 +--------+------+
-2.1 FREQUENCIES.  X: 
+2.1 FREQUENCIES.  X 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
 |Value Label|  Value |Frequency| Percent| Percent| Percent|

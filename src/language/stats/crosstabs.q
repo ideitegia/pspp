@@ -593,25 +593,24 @@ calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	for (j = 0; j < x->nvar; j++)
 	  {
             const union value *v = case_data (c, x->vars[j]->fv);
-            const struct missing_values *mv = &x->vars[j]->miss;
-	    if ((cmd.miss == CRS_TABLE && mv_is_value_missing (mv, v))
+	    if ((cmd.miss == CRS_TABLE && var_is_value_missing (x->vars[j], v))
 		|| (cmd.miss == CRS_INCLUDE
-		    && mv_is_value_system_missing (mv, v)))
+		    && var_is_value_system_missing (x->vars[j], v)))
 	      {
 		x->missing += weight;
 		goto next_crosstab;
 	      }
 	      
-	    if (x->vars[j]->type == NUMERIC)
+	    if (var_is_numeric (x->vars[j]))
 	      te->values[j].f = case_num (c, x->vars[j]->fv);
 	    else
 	      {
 		memcpy (te->values[j].s, case_str (c, x->vars[j]->fv),
-                        x->vars[j]->width);
+                        var_get_width (x->vars[j]));
 	      
 		/* Necessary in order to simplify comparisons. */
-		memset (&te->values[j].s[x->vars[j]->width], 0,
-			sizeof (union value) - x->vars[j]->width);
+		memset (&te->values[j].s[var_get_width (x->vars[j])], 0,
+			sizeof (union value) - var_get_width (x->vars[j]));
 	      }
 	  }
       }
@@ -666,8 +665,7 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	  
 	  /* Note that the first test also rules out SYSMIS. */
 	  if ((value < vr->min || value >= vr->max)
-	      || (cmd.miss == CRS_TABLE
-                  && mv_is_num_user_missing (&v->miss, value)))
+	      || (cmd.miss == CRS_TABLE && var_is_num_user_missing (v, value)))
 	    {
 	      x->missing += weight;
 	      goto next_crosstab;
@@ -716,7 +714,7 @@ compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
     int i;
 
     for (i = x->nvar - 1; i >= 0; i--)
-      if (x->vars[i]->type == NUMERIC)
+      if (var_is_numeric (x->vars[i]))
 	{
 	  const double diffnum = a->values[i].f - b->values[i].f;
 	  if (diffnum < 0)
@@ -725,15 +723,12 @@ compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
 	    return 1;
 	}
       else 
-	{
-	  assert (x->vars[i]->type == ALPHA);
-	  {
-	    const int diffstr = strncmp (a->values[i].s, b->values[i].s,
-                                         x->vars[i]->width);
-	    if (diffstr)
-	      return diffstr;
-	  }
-	}
+        {
+          const int diffstr = strncmp (a->values[i].s, b->values[i].s,
+                                       var_get_width (x->vars[i]));
+          if (diffstr)
+            return diffstr;
+        }
   }
   
   return 0;
@@ -902,8 +897,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
 	if (i > 0)
 	  cp = stpcpy (cp, " * ");
 
-	cp = stpcpy (cp,
-                     x->vars[i]->label ? x->vars[i]->label : x->vars[i]->name);
+	cp = stpcpy (cp, var_to_string (x->vars[i]));
       }
     tab_text (t, 0, 0, TAB_LEFT, buf);
 
@@ -1010,7 +1004,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 
       /* First header line. */
       tab_joint_text (table, nvar - 1, 0, (nvar - 1) + (n_cols - 1), 0,
-		      TAB_CENTER | TAT_TITLE, x->vars[COL_VAR]->name);
+		      TAB_CENTER | TAT_TITLE, var_get_name (x->vars[COL_VAR]));
   
       tab_hline (table, TAL_1, nvar - 1, nvar + n_cols - 2, 1);
 	     
@@ -1020,11 +1014,9 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 
 	for (i = 2; i < nvar; i++)
 	  tab_joint_text (table, nvar - i - 1, 0, nvar - i - 1, 1,
-			  TAB_RIGHT | TAT_TITLE,
-			  (x->vars[i]->label
-                           ? x->vars[i]->label : x->vars[i]->name));
+			  TAB_RIGHT | TAT_TITLE, var_to_string (x->vars[i]));
 	tab_text (table, nvar - 2, 1, TAB_RIGHT | TAT_TITLE,
-		  x->vars[ROW_VAR]->name);
+		  var_get_name (x->vars[ROW_VAR]));
 	for (i = 0; i < n_cols; i++)
 	  table_value_missing (table, nvar + i - 1, 1, TAB_RIGHT, &cols[i],
 			       x->vars[COL_VAR]);
@@ -1045,12 +1037,13 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	    {
 	      if (i)
 		cp = stpcpy (cp, " by ");
-	      cp = stpcpy (cp, x->vars[i]->name);
+	      cp = stpcpy (cp, var_get_name (x->vars[i]));
 	    }
 	else
 	  {
 	    cp = spprintf (cp, "%s by %s for",
-                           x->vars[0]->name, x->vars[1]->name);
+                           var_get_name (x->vars[0]),
+                           var_get_name (x->vars[1]));
 	    for (i = 2; i < nvar; i++)
 	      {
 		char buf[64], *bufp;
@@ -1058,9 +1051,10 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 		if (i > 2)
 		  *cp++ = ',';
 		*cp++ = ' ';
-		cp = stpcpy (cp, x->vars[i]->name);
+		cp = stpcpy (cp, var_get_name (x->vars[i]));
 		*cp++ = '=';
-		format_short (buf, &x->vars[i]->print, &(*pb)->values[i]);
+		format_short (buf, var_get_print_format (x->vars[i]),
+                              &(*pb)->values[i]);
 		for (bufp = buf; isspace ((unsigned char) *bufp); bufp++)
 		  ;
 		cp = stpcpy (cp, bufp);
@@ -1429,7 +1423,7 @@ delete_missing (void)
     int r;
 
     for (r = 0; r < n_rows; r++)
-      if (mv_is_num_user_missing (&x->vars[ROW_VAR]->miss, rows[r].f))
+      if (var_is_num_user_missing (x->vars[ROW_VAR], rows[r].f))
 	{
 	  int c;
 
@@ -1443,7 +1437,7 @@ delete_missing (void)
     int c;
 
     for (c = 0; c < n_cols; c++)
-      if (mv_is_num_user_missing (&x->vars[COL_VAR]->miss, cols[c].f))
+      if (var_is_num_user_missing (x->vars[COL_VAR], cols[c].f))
 	{
 	  int r;
 
@@ -1473,7 +1467,7 @@ submit (struct tab_table *t)
   if (t != table)
     for (i = 2; i < nvar; i++)
       tab_text (t, nvar - i - 1, 0, TAB_RIGHT | TAT_TITLE,
-		x->vars[i]->label ? x->vars[i]->label : x->vars[i]->name);
+                var_to_string (x->vars[i]));
   tab_box (t, TAL_2, TAL_2, -1, -1, 0, 0, tab_nc (t) - 1, tab_nr (t) - 1);
   tab_box (t, -1, -1, -1, TAL_1, tab_l (t), tab_t (t) - 1, tab_nc (t) - 1,
 	   tab_nr (t) - 1);
@@ -1641,7 +1635,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
 
   if (mode == GENERAL)
     {
-      int width = v->width;
+      int width = var_get_width (v);
       int i;
 
       *values = xnmalloc (entry_cnt, sizeof **values);
@@ -1671,6 +1665,7 @@ table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
 		     const union value *v, const struct variable *var)
 {
   struct substring s;
+  const struct fmt_spec *print = var_get_print_format (var);
 
   const char *label = val_labs_find (var->val_labs, *v);
   if (label) 
@@ -1679,10 +1674,10 @@ table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
       return;
     }
 
-  s.string = tab_alloc (table, var->print.w);
-  format_short (s.string, &var->print, v);
+  s.string = tab_alloc (table, print->w);
+  format_short (s.string, print, v);
   s.length = strlen (s.string);
-  if (cmd.miss == CRS_REPORT && mv_is_num_user_missing (&var->miss, v->f))
+  if (cmd.miss == CRS_REPORT && var_is_num_user_missing (var, v->f))
     s.string[s.length++] = 'M';
   while (s.length && *s.string == ' ')
     {
@@ -1765,9 +1760,8 @@ display_crosstabulation (void)
             bool mark_missing = false;
             double expected_value = row_tot[r] * col_tot[c] / W;
             if (cmd.miss == CRS_REPORT
-                && (mv_is_num_user_missing (&x->vars[COL_VAR]->miss, cols[c].f)
-                    || mv_is_num_user_missing (&x->vars[ROW_VAR]->miss,
-                                               rows[r].f)))
+                && (var_is_num_user_missing (x->vars[COL_VAR], cols[c].f)
+                    || var_is_num_user_missing (x->vars[ROW_VAR], rows[r].f)))
               mark_missing = true;
 	    for (i = 0; i < num_cells; i++)
 	      {
@@ -1831,7 +1825,7 @@ display_crosstabulation (void)
         bool mark_missing = false;
 
         if (cmd.miss == CRS_REPORT
-            && mv_is_num_user_missing (&x->vars[ROW_VAR]->miss, rows[r].f))
+            && var_is_num_user_missing (x->vars[ROW_VAR], rows[r].f))
           mark_missing = true;
 
         for (i = 0; i < num_cells; i++)
@@ -1886,7 +1880,7 @@ display_crosstabulation (void)
         int i;
 	    
         if (cmd.miss == CRS_REPORT && c < n_cols 
-            && mv_is_num_user_missing (&x->vars[COL_VAR]->miss, cols[c].f))
+            && var_is_num_user_missing (x->vars[COL_VAR], cols[c].f))
           mark_missing = true;
 
         for (i = 0; i < num_cells; i++)
@@ -2082,24 +2076,24 @@ display_risk (void)
       switch (i)
 	{
 	case 0:
-	  if (x->vars[COL_VAR]->type == NUMERIC)
+	  if (var_is_numeric (x->vars[COL_VAR]))
 	    sprintf (buf, _("Odds Ratio for %s (%g / %g)"),
-		     x->vars[COL_VAR]->name, c[0].f, c[1].f);
+		     var_get_name (x->vars[COL_VAR]), c[0].f, c[1].f);
 	  else
 	    sprintf (buf, _("Odds Ratio for %s (%.*s / %.*s)"),
-		     x->vars[COL_VAR]->name,
-		     x->vars[COL_VAR]->width, c[0].s,
-		     x->vars[COL_VAR]->width, c[1].s);
+		     var_get_name (x->vars[COL_VAR]),
+		     var_get_width (x->vars[COL_VAR]), c[0].s,
+		     var_get_width (x->vars[COL_VAR]), c[1].s);
 	  break;
 	case 1:
 	case 2:
-	  if (x->vars[ROW_VAR]->type == NUMERIC)
+	  if (var_is_numeric (x->vars[ROW_VAR]))
 	    sprintf (buf, _("For cohort %s = %g"),
-		     x->vars[ROW_VAR]->name, rows[i - 1].f);
+		     var_get_name (x->vars[ROW_VAR]), rows[i - 1].f);
 	  else
 	    sprintf (buf, _("For cohort %s = %.*s"),
-		     x->vars[ROW_VAR]->name,
-		     x->vars[ROW_VAR]->width, rows[i - 1].s);
+		     var_get_name (x->vars[ROW_VAR]),
+		     var_get_width (x->vars[ROW_VAR]), rows[i - 1].s);
 	  break;
 	}
 		   
@@ -2208,15 +2202,15 @@ display_directional (void)
 	      
 	      for (; j < 3; j++)
 		{
-		  char *string;
+		  const char *string;
 		  int k = last[j] = stats_lookup[j][i];
 
 		  if (k == 0)
 		    string = NULL;
 		  else if (k == 1)
-		    string = x->vars[0]->name;
+		    string = var_get_name (x->vars[0]);
 		  else
-		    string = x->vars[1]->name;
+		    string = var_get_name (x->vars[1]);
 		  
 		  tab_text (direct, j, 0, TAB_LEFT | TAT_PRINTF,
 			    gettext (stats_names[j][k]), string);
@@ -2386,7 +2380,7 @@ calc_chisq (double chisq[N_CHISQ], int df[N_CHISQ],
     }
 
   /* Calculate Mantel-Haenszel. */
-  if (x->vars[ROW_VAR]->type == NUMERIC && x->vars[COL_VAR]->type == NUMERIC)
+  if (var_is_numeric (x->vars[ROW_VAR]) && var_is_numeric (x->vars[COL_VAR]))
     {
       double r, ase_0, ase_1;
       calc_r ((double *) rows, (double *) cols, &r, &ase_0, &ase_1);

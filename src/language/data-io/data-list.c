@@ -336,8 +336,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
               {
                 /* Success. */
                 struct fmt_spec output = fmt_for_output_from_input (f);
-                v->print = output;
-                v->write = output;
+                var_set_both_formats (v, &output);
               }
             else
               {
@@ -353,14 +352,14 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
                   }
 
                 v = dict_lookup_var_assert (dict, name);
-                if ((width != 0) != (v->width != 0))
+                if ((width != 0) != (var_get_width (v) != 0))
                   {
                     msg (SE, _("There is already a variable %s of a "
                                "different type."),
                          name);
                     return false;
                   }
-                if (width != 0 && width != v->width)
+                if (width != 0 && width != var_get_width (v))
                   {
                     msg (SE, _("There is already a string variable %s of a "
                                "different width."), name);
@@ -374,7 +373,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
             spec->fv = v->fv;
             spec->record = record;
             spec->first_column = column;
-            strcpy (spec->name, v->name);
+            strcpy (spec->name, var_get_name (v));
             ll_push_tail (&dls->specs, &spec->ll);
 
             column += f->w;
@@ -495,12 +494,12 @@ parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool,
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
 	      return 0;
 	    }
-	  v->print = v->write = output;
+          var_set_both_formats (v, &output);
 
           spec = pool_alloc (dls->pool, sizeof *spec);
           spec->input = input;
 	  spec->fv = v->fv;
-	  strcpy (spec->name, v->name);
+	  strcpy (spec->name, var_get_name (v));
           ll_push_tail (&dls->specs, &spec->ll);
 	}
     }

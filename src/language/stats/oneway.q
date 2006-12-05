@@ -867,7 +867,7 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 		   (hsh_compare_func *) compare_group,
 		   (hsh_hash_func *) hash_group,
 		   (hsh_free_func *) free_group,
-		   (void *) indep_var->width );
+		   (void *) var_get_width (indep_var) );
 
 
       totals->sum=0;
@@ -896,7 +896,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 				 (hsh_compare_func *) compare_values,
 				 (hsh_hash_func *) hash_value,
 				 0,
-				 (void *) indep_var->width );
+				 (void *) var_get_width (indep_var) );
 
   precalc(cmd);
 

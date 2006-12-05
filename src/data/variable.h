@@ -35,8 +35,31 @@ enum var_type
     ALPHA			/* A string variable. */
   };
 
+bool var_type_is_valid (enum var_type);
 const char *var_type_adj (enum var_type);
 const char *var_type_noun (enum var_type);
+
+/* Alignment of data for display. */
+enum alignment 
+  {
+    ALIGN_LEFT = 0,
+    ALIGN_RIGHT = 1,
+    ALIGN_CENTRE = 2,
+    n_ALIGN
+  };
+
+bool alignment_is_valid (enum alignment);
+
+/* How data is measured. */
+enum measure
+  {
+    MEASURE_NOMINAL = 1,
+    MEASURE_ORDINAL = 2,
+    MEASURE_SCALE = 3,
+    n_MEASURES
+  };
+
+bool measure_is_valid (enum measure);
 
 /* Maximum lengths of short and long variable names.
    Most operations support long variable names,
@@ -49,19 +72,20 @@ struct variable
   {
     /* Dictionary information. */
     char name[LONG_NAME_LEN + 1]; /* Variable name.  Mixed case. */
-    enum var_type type;         /* NUMERIC or ALPHA. */
-    int width;			/* Size of string variables in chars. */
+    int width;			/* 0 for numeric, otherwise string width. */
     struct missing_values miss; /* Missing values. */
     struct fmt_spec print;	/* Default format for PRINT. */
     struct fmt_spec write;	/* Default format for WRITE. */
     struct val_labs *val_labs;  /* Value labels. */
     char *label;		/* Variable label. */
+
+    /* GUI information. */
     enum measure measure;       /* Nominal, ordinal, or continuous. */
     int display_width;          /* Width of data editor column. */
     enum alignment alignment;   /* Alignment of data in GUI. */
 
     /* Case information. */
-    int fv, nv;			/* Index into `value's, number of values. */
+    int fv;			/* Index into `value's. */
     bool leave;                 /* Leave value from case to case? */
 
     /* Data for use by containing dictionary. */
@@ -85,12 +109,73 @@ struct variable
   };
 
 /* Variable names. */
+const char *var_get_name (const struct variable *);
+void var_set_name (struct variable *, const char *);
 bool var_is_valid_name (const char *, bool issue_error);
 bool var_is_plausible_name (const char *name, bool issue_error);
 int  compare_var_names (const void *, const void *, const void *);
 unsigned hash_var_name (const void *, const void *);
 
+/* Variable types and widths. */
+enum var_type var_get_type (const struct variable *);
+int var_get_width (const struct variable *);
+void var_set_width (struct variable *, int width);
+bool var_is_numeric (const struct variable *);
+bool var_is_alpha (const struct variable *);
+bool var_is_short_string (const struct variable *);
+bool var_is_long_string (const struct variable *);
+bool var_is_very_long_string (const struct variable *);
+
+/* Variables' missing values. */
+const struct missing_values *var_get_missing_values (const struct variable *);
+void var_set_missing_values (struct variable *, const struct missing_values *);
+void var_clear_missing_values (struct variable *);
+bool var_has_missing_values (const struct variable *);
+
+typedef bool var_is_missing_func (const struct variable *,
+                                  const union value *);
+bool var_is_value_missing (const struct variable *, const union value *);
+bool var_is_num_missing (const struct variable *, double);
+bool var_is_str_missing (const struct variable *, const char[]);
+bool var_is_value_user_missing (const struct variable *,
+                                const union value *);
+bool var_is_num_user_missing (const struct variable *, double);
+bool var_is_str_user_missing (const struct variable *, const char[]);
+bool var_is_value_system_missing (const struct variable *,
+                                  const union value *);
+
+/* Print and write formats. */
+const struct fmt_spec *var_get_print_format (const struct variable *);
+void var_set_print_format (struct variable *, const struct fmt_spec *);
+const struct fmt_spec *var_get_write_format (const struct variable *);
+void var_set_write_format (struct variable *, const struct fmt_spec *);
+void var_set_both_formats (struct variable *, const struct fmt_spec *);
+
+/* Variable labels. */
+const char *var_get_label (const struct variable *);
+void var_set_label (struct variable *, const char *);
+void var_clear_label (struct variable *);
+bool var_has_label (const struct variable *);
+
+/* GUI information. */
+enum measure var_get_measure (const struct variable *);
+void var_set_measure (struct variable *, enum measure);
+
+int var_get_display_width (const struct variable *);
+void var_set_display_width (struct variable *, int display_width);
+
+enum alignment var_get_alignment (const struct variable *);
+void var_set_alignment (struct variable *, enum alignment);
+
+/* Variable location in cases. */
+size_t var_get_value_cnt (const struct variable *);
+
+/* Whether variables' values should be preserved from case to
+   case. */
+bool var_get_leave (const struct variable *);
+
 /* Short names. */
+const char *var_get_short_name (const struct variable *);
 void var_set_short_name (struct variable *, const char *);
 void var_set_short_name_suffix (struct variable *, const char *, int suffix);
 void var_clear_short_name (struct variable *);

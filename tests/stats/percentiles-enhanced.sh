@@ -84,7 +84,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output $i"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff  -b $TEMPDIR/pspp.list - <<EOF
-1.1 FREQUENCIES.  X: 
+1.1 FREQUENCIES.  X 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
 |Value Label|  Value |Frequency| Percent| Percent| Percent|
@@ -147,7 +147,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output $i"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff  -b $TEMPDIR/pspp.list - <<EOF
-1.1 FREQUENCIES.  X: 
+1.1 FREQUENCIES.  X 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
 |Value Label|  Value |Frequency| Percent| Percent| Percent|
@@ -208,7 +208,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output $i"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff  -b $TEMPDIR/pspp.list - <<EOF
-1.1 FREQUENCIES.  X: 
+1.1 FREQUENCIES.  X 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
 |Value Label|  Value |Frequency| Percent| Percent| Percent|
@@ -268,7 +268,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output $i"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b $TEMPDIR/pspp.list - <<EOF
-1.1 FREQUENCIES.  X: 
+1.1 FREQUENCIES.  X 
 +-----------+--------+---------+--------+--------+--------+
 |           |        |         |        |  Valid |   Cum  |
 |Value Label|  Value |Frequency| Percent| Percent| Percent|

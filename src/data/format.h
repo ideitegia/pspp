@@ -76,17 +76,19 @@ void fmt_done (void);
 struct fmt_spec fmt_for_input (enum fmt_type, int w, int d) PURE_FUNCTION;
 struct fmt_spec fmt_for_output (enum fmt_type, int w, int d) PURE_FUNCTION;
 struct fmt_spec fmt_for_output_from_input (const struct fmt_spec *);
+struct fmt_spec fmt_default_for_width (int var_width);
 
 /* Verifying formats. */
 bool fmt_check (const struct fmt_spec *, bool for_input);
 bool fmt_check_input (const struct fmt_spec *);
 bool fmt_check_output (const struct fmt_spec *);
 bool fmt_check_type_compat (const struct fmt_spec *, int var_type);
-bool fmt_check_width_compat (const struct fmt_spec *, int width);
+bool fmt_check_width_compat (const struct fmt_spec *, int var_width);
 
 /* Working with formats. */
 int fmt_var_width (const struct fmt_spec *);
 char *fmt_to_string (const struct fmt_spec *, char s[FMT_STRING_LEN_MAX + 1]);
+bool fmt_equal (const struct fmt_spec *, const struct fmt_spec *);
 
 /* Format types. */
 const char *fmt_name (enum fmt_type) PURE_FUNCTION;
@@ -142,26 +144,5 @@ int fmt_decimal_char (enum fmt_type);
 int fmt_grouping_char (enum fmt_type);
 
 void fmt_set_decimal (char);
-
-/* Alignment of data for display. */
-enum alignment 
-  {
-    ALIGN_LEFT = 0,
-    ALIGN_RIGHT = 1,
-    ALIGN_CENTRE = 2, 
-    n_ALIGN
-  };
-
-/* How data is measured. */
-enum measure
-  {
-    MEASURE_NOMINAL=1,
-    MEASURE_ORDINAL=2,
-    MEASURE_SCALE=3,
-    n_MEASURES
-  };
-
-bool measure_is_valid(enum measure m);
-bool alignment_is_valid(enum alignment a);
 
 #endif /* format.h */

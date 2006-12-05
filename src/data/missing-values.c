@@ -437,5 +437,5 @@ bool
 mv_is_value_system_missing (const struct missing_values *mv,
                             const union value *v)
 {
-  return mv->width == 0 ? v->f == SYSMIS : false;
+  return mv->width == 0 && v->f == SYSMIS;
 }

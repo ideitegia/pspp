@@ -362,6 +362,14 @@ fmt_to_string (const struct fmt_spec *f, char buffer[FMT_STRING_LEN_MAX + 1])
               "%s%d", fmt_name (f->type), f->w);
   return buffer;
 }
+
+/* Returns true if A and B are identical formats,
+   false otherwise. */
+bool
+fmt_equal (const struct fmt_spec *a, const struct fmt_spec *b) 
+{
+  return a->type == b->type && a->w == b->w && a->d == b->d;
+}
 
 /* Describes a display format. */
 struct fmt_desc
@@ -897,22 +905,6 @@ fmt_set_decimal (char decimal)
   init_style (FMT_CCC, "", "", decimal, grouping);
   init_style (FMT_CCD, "", "", decimal, grouping);
   init_style (FMT_CCE, "", "", decimal, grouping);
-}
-
-/* Returns true if M is a valid variable measurement level,
-   false otherwise. */
-bool
-measure_is_valid (enum measure m)
-{
-  return m > 0 && m < n_MEASURES;
-}
-
-/* Returns true if A is a valid alignment,
-   false otherwise. */
-bool
-alignment_is_valid (enum alignment a)
-{
-  return a < n_ALIGN;
 }
 
 /* Returns the struct fmt_desc for the given format TYPE. */

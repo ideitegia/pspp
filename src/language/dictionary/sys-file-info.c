@@ -130,7 +130,8 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   {
     struct variable *weight_var = dict_get_weight (d);
     tab_text (t, 1, 7, TAB_LEFT,
-              weight_var != NULL ? weight_var->name : _("Not weighted.")); 
+              (weight_var != NULL
+               ? var_get_name (weight_var) : _("Not weighted."))); 
   }
   tab_text (t, 0, 8, TAB_LEFT, _("Mode:"));
   tab_text (t, 1, 8, TAB_LEFT | TAT_PRINTF,
@@ -258,7 +259,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 	{
 	  size_t i, m;
 	  for (i = 0, m = n; i < n; i++)
-	    if (dict_class_from_id (vl[i]->name) != DC_SCRATCH)
+	    if (dict_class_from_id (var_get_name (vl[i])) != DC_SCRATCH)
 	      {
 		vl[i] = NULL;
 		m--;
@@ -409,10 +410,13 @@ display_variables (struct variable **vl, size_t n, int as)
 
 	  r = describe_variable (v, t, r, as);
 	} else {
-	  tab_text (t, 0, r, TAB_LEFT, v->name);
-	  if (as == AS_LABELS)
-	    tab_joint_text (t, 1, r, 2, r, TAB_LEFT,
-			    v->label == NULL ? "(no label)" : v->label);
+	  tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
+	  if (as == AS_LABELS) 
+            {
+              const char *label = var_get_label (v);
+              tab_joint_text (t, 1, r, 2, r, TAB_LEFT,
+                              label != NULL ? "(no label)" : label); 
+            }
 	  if (as != AS_NAMES)
 	    {
 	      tab_text (t, pc, r, TAT_PRINTF, "%d", v->index + 1);
@@ -442,39 +446,40 @@ display_variables (struct variable **vl, size_t n, int as)
 static int 
 describe_variable (struct variable *v, struct tab_table *t, int r, int as)
 {
+  const struct fmt_spec *print = var_get_print_format (v);
+  const struct fmt_spec *write = var_get_write_format (v);
+
   /* Put the name, var label, and position into the first row. */
-  tab_text (t, 0, r, TAB_LEFT, v->name);
+  tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
   tab_text (t, 3, r, TAT_PRINTF, "%d", v->index + 1);
 
-  if (as == AS_DICTIONARY && v->label)
+  if (as == AS_DICTIONARY && var_has_label (v)) 
     {
-      tab_joint_text (t, 1, r, 2, r, TAB_LEFT, v->label);
+      tab_joint_text (t, 1, r, 2, r, TAB_LEFT, var_get_label (v));
       r++;
     }
   
   /* Print/write format, or print and write formats. */
-  if (v->print.type == v->write.type
-      && v->print.w == v->write.w
-      && v->print.d == v->write.d)
+  if (fmt_equal (print, write))
     {
       char str[FMT_STRING_LEN_MAX + 1];
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF, _("Format: %s"),
-		      fmt_to_string (&v->print, str));
+		      fmt_to_string (print, str));
       r++;
     }
   else
     {
       char str[FMT_STRING_LEN_MAX + 1];
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-		      _("Print Format: %s"), fmt_to_string (&v->print, str));
+		      _("Print Format: %s"), fmt_to_string (print, str));
       r++;
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-		      _("Write Format: %s"), fmt_to_string (&v->write, str));
+		      _("Write Format: %s"), fmt_to_string (write, str));
       r++;
     }
 
   /* Missing values if any. */
-  if (!mv_is_empty (&v->miss))
+  if (var_has_missing_values (v))
     {
       char buf[128];
       char *cp;
@@ -482,7 +487,8 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
       int cnt = 0;
       
       cp = stpcpy (buf, _("Missing Values: "));
-      mv_copy (&mv, &v->miss);
+      
+      mv_copy (&mv, var_get_missing_values (v));
       if (mv_has_range (&mv)) 
         {
           double x, y;
@@ -501,13 +507,13 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
           mv_pop_value (&mv, &value);
           if (cnt++ > 0)
             cp += sprintf (cp, "; ");
-          if (v->type == NUMERIC)
+          if (var_is_numeric (v))
             cp += sprintf (cp, "%g", value.f);
           else 
             {
               *cp++ = '"';
-	      memcpy (cp, value.s, v->width);
-	      cp += v->width;
+	      memcpy (cp, value.s, var_get_width (v));
+	      cp += var_get_width (v);
 	      *cp++ = '"';
               *cp = '\0';
             }
@@ -536,10 +542,10 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
         {
 	  char buf[128];
 
-	  if (v->type == ALPHA)
+	  if (var_is_alpha (v))
 	    {
-	      memcpy (buf, vl->value.s, v->width);
-	      buf[v->width] = 0;
+	      memcpy (buf, vl->value.s, var_get_width (v));
+	      buf[var_get_width (v)] = 0;
 	    }
 	  else
 	    sprintf (buf, "%g", vl->value.f);

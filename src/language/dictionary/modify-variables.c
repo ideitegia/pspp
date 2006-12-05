@@ -357,7 +357,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
   if (ordering->positional)
     result = a->index < b->index ? -1 : a->index > b->index;
   else
-    result = strcasecmp (a->name, b->name);
+    result = strcasecmp (var_get_name (a), var_get_name (b));
   if (!ordering->forward)
     result = -result;
   return result;
@@ -430,7 +430,7 @@ validate_var_modification (const struct dictionary *d,
   for (i = 0; i < keep_cnt; i++) 
     {
       var_renaming[i].var = keep_vars[i];
-      strcpy (var_renaming[i].new_name, keep_vars[i]->name);
+      strcpy (var_renaming[i].new_name, var_get_name (keep_vars[i]));
     }
   
   /* Rename variables in var_renaming array. */
@@ -493,7 +493,7 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
      still exist, but we can still look them up by name. */
   rename_old_names = xnmalloc (vm->rename_cnt, sizeof *rename_old_names);
   for (i = 0; i < vm->rename_cnt; i++)
-    rename_old_names[i] = xstrdup (vm->rename_vars[i]->name);
+    rename_old_names[i] = xstrdup (var_get_name (vm->rename_vars[i]));
 
   /* Reorder and delete variables. */
   dict_reorder_vars (d, vm->reorder_vars, vm->reorder_cnt);

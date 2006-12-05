@@ -120,7 +120,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
       dv->var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
       if (dv->var != NULL)
         {
-          if (dv->var->type == ALPHA)
+          if (var_is_alpha (dv->var))
             {
               msg (SE, _("Destination cannot be a string variable."));
               goto fail;
@@ -149,7 +149,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
 	    goto fail;
 
           crit->value_cnt = 0;
-          if (crit->vars[0]->type == NUMERIC)
+          if (var_is_numeric (crit->vars[0]))
             ok = parse_numeric_criteria (lexer, trns->pool, crit);
           else
             ok = parse_string_criteria (lexer, trns->pool, crit);
@@ -239,8 +239,8 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
   size_t i;
 
   for (i = 0; i < crit->var_cnt; i++)
-    if (crit->vars[i]->width > len)
-      len = crit->vars[i]->width;
+    if (var_get_width (crit->vars[i]) > len)
+      len = var_get_width (crit->vars[i]);
 
   crit->values.str = NULL;
   for (;;)
@@ -281,7 +281,7 @@ count_numeric (struct criteria *crit, struct ccase *c)
       if (x == SYSMIS)
         counter += crit->count_system_missing;
       else if (crit->count_user_missing
-               && mv_is_num_user_missing (&crit->vars[i]->miss, x))
+               && var_is_num_user_missing (crit->vars[i], x))
         counter++;
       else 
         {
@@ -312,7 +312,7 @@ count_string (struct criteria *crit, struct ccase *c)
       char **v;
       for (v = crit->values.str; v < crit->values.str + crit->value_cnt; v++)
         if (!memcmp (case_str (c, crit->vars[i]->fv), *v,
-                     crit->vars[i]->width))
+                     var_get_width (crit->vars[i])))
           {
 	    counter++;
             break;
@@ -337,7 +337,7 @@ count_trns_proc (void *trns_, struct ccase *c,
 
       counter = 0;
       for (crit = dv->crit; crit; crit = crit->next)
-	if (crit->vars[0]->type == NUMERIC)
+	if (var_is_numeric (crit->vars[0]))
 	  counter += count_numeric (crit, c);
 	else
 	  counter += count_string (crit, c);

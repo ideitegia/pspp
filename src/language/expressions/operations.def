@@ -908,7 +908,7 @@ no_opt operator VEC_ELEM_NUM (idx)
     {
       const struct variable *var = v->var[(int) idx - 1];
       double value = case_num (c, var->fv);
-      return !mv_is_num_user_missing (&var->miss, value) ? value : SYSMIS; 
+      return !var_is_num_user_missing (var, value) ? value : SYSMIS; 
     }
   else
     {
@@ -932,7 +932,7 @@ absorb_miss no_opt string operator VEC_ELEM_STR (idx)
   if (idx >= 1 && idx <= v->cnt)
     {
       struct variable *var = v->var[(int) idx - 1];
-      return copy_string (e, case_str (c, var->fv), var->width);
+      return copy_string (e, case_str (c, var->fv), var_get_width (var));
     }
   else
     {
@@ -955,7 +955,7 @@ no_opt operator NUM_VAR ()
      num_var v;
 {
   double d = case_num (c, v->fv);
-  return !mv_is_num_user_missing (&v->miss, d) ? d : SYSMIS;
+  return !var_is_num_user_missing (v, d) ? d : SYSMIS;
 }
 
 no_opt string operator STR_VAR ()
@@ -963,8 +963,8 @@ no_opt string operator STR_VAR ()
      expression e;
      str_var v;
 {
-  struct substring s = alloc_string (e, v->width);
-  memcpy (s.string, case_str (c, v->fv), v->width);
+  struct substring s = alloc_string (e, var_get_width (v));
+  memcpy (s.string, case_str (c, v->fv), var_get_width (v));
   return s;
 }
 
@@ -975,7 +975,7 @@ no_opt perm_only function LAG (num_var v, pos_int n_before)
   if (c != NULL)
     {
       double x = case_num (c, v->fv);
-      return !mv_is_num_user_missing (&v->miss, x) ? x : SYSMIS;
+      return !var_is_num_user_missing (v, x) ? x : SYSMIS;
     }
   else
     return SYSMIS;
@@ -988,7 +988,7 @@ no_opt perm_only function LAG (num_var v)
   if (c != NULL)
     {
       double x = case_num (c, v->fv);
-      return !mv_is_num_user_missing (&v->miss, x) ? x : SYSMIS;
+      return !var_is_num_user_missing (v, x) ? x : SYSMIS;
     }
   else
     return SYSMIS;
@@ -1000,7 +1000,7 @@ no_opt perm_only string function LAG (str_var v, pos_int n_before)
 {
   struct ccase *c = lagged_case (ds, n_before);
   if (c != NULL)
-    return copy_string (e, case_str (c, v->fv), v->width);
+    return copy_string (e, case_str (c, v->fv), var_get_width (v));
   else
     return empty_string;
 }
@@ -1011,7 +1011,7 @@ no_opt perm_only string function LAG (str_var v)
 {
   struct ccase *c = lagged_case (ds, 1);
   if (c != NULL)
-    return copy_string (e, case_str (c, v->fv), v->width);
+    return copy_string (e, case_str (c, v->fv), var_get_width (v));
   else
     return empty_string;
 }

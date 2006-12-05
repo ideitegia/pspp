@@ -63,60 +63,66 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *s = dict_get_var (dict, i);
-      struct variable *t = dict_lookup_var (dataset_dict (ds), s->name);
+      struct variable *t = dict_lookup_var (dataset_dict (ds),
+                                            var_get_name (s));
       if (t == NULL)
 	continue;
 
       n_matched++;
-      if (s->type != t->type)
+      if (var_get_type (s) != var_get_type (t))
 	{
 	  msg (SW, _("Variable %s is %s in target file, but %s in "
 		     "source file."),
-	       s->name,
-	       t->type == ALPHA ? _("string") : _("numeric"),
-	       s->type == ALPHA ? _("string") : _("numeric"));
+	       var_get_name (s),
+	       var_is_alpha (t) ? _("string") : _("numeric"),
+	       var_is_alpha (s) ? _("string") : _("numeric"));
 	  continue;
 	}
 
-      if (s->label && strcspn (s->label, " ") != strlen (s->label))
-	{
-	  free (t->label);
-	  t->label = s->label;
-	  s->label = NULL;
-	}
-
-      if (val_labs_count (s->val_labs) && t->width > MAX_SHORT_STRING)
+      if (var_get_label (s))
+        {
+          const char *label = var_get_label (s);
+          if (strcspn (label, " ") != strlen (label))
+            var_set_label (t, label);
+        }
+      
+      if (val_labs_count (s->val_labs) && var_is_long_string (t))
 	msg (SW, _("Cannot add value labels from source file to "
 		   "long string variable %s."),
-	     s->name);
+	     var_get_name (s));
       else if (val_labs_count (s->val_labs))
 	{
-          if (val_labs_can_set_width (s->val_labs, t->width))
+          if (val_labs_can_set_width (s->val_labs, var_get_width (t)))
             {
               val_labs_destroy (t->val_labs);
               t->val_labs = s->val_labs;
-              val_labs_set_width (t->val_labs, t->width);
-              s->val_labs = val_labs_create (s->width);
+              val_labs_set_width (t->val_labs, var_get_width (t));
+              s->val_labs = val_labs_create (var_get_width (s));
             }
 	}
 
-      if (!mv_is_empty (&s->miss) && t->width > MAX_SHORT_STRING)
-	msg (SW, _("Cannot apply missing values from source file to "
-		   "long string variable %s."),
-	     s->name);
-      else if (!mv_is_empty (&s->miss))
-	{
-          if (mv_is_resizable (&s->miss, t->width)) 
+      if (var_has_missing_values (s))
+        {
+          if (!var_is_long_string (t))
             {
-              mv_copy (&t->miss, &s->miss);
-              mv_resize (&t->miss, t->width); 
+              struct missing_values miss;
+              mv_copy (&miss, var_get_missing_values (s));
+              if (mv_is_resizable (&miss, var_get_width (t))) 
+                {
+                  mv_resize (&miss, var_get_width (t));
+                  var_set_missing_values (t, &miss);
+                }
             }
-	}
+          else
+            msg (SW, _("Cannot apply missing values from source file to "
+                       "long string variable %s."),
+                 var_get_name (s));
+        }
 
-      if (s->type == NUMERIC)
+      if (var_is_numeric (s))
 	{
-	  t->print = s->print;
-	  t->write = s->write;
+          var_set_print_format (t, var_get_print_format (s));
+          var_set_write_format (t, var_get_write_format (s));
 	}
     }
 
@@ -128,7 +134,8 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   if (dict_get_weight (dict) != NULL) 
     {
       struct variable *new_weight
-        = dict_lookup_var (dataset_dict (ds), dict_get_weight (dict)->name);
+        = dict_lookup_var (dataset_dict (ds),
+                           var_get_name (dict_get_weight (dict)));
 
       if (new_weight != NULL)
         dict_set_weight (dataset_dict (ds), new_weight);

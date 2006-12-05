@@ -59,32 +59,33 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
         }
 
       for (i = 0; i < nv; i++)
-        mv_init (&v[i]->miss, v[i]->width);
+        var_clear_missing_values (v[i]);
 
       if (!lex_match (lexer, ')')) 
         {
           struct missing_values mv;
 
           for (i = 0; i < nv; i++)
-            if (v[i]->type != v[0]->type)
+            if (var_get_type (v[i]) != var_get_type (v[0]))
               {
-                const struct variable *n = v[0]->type == NUMERIC ? v[0] : v[i];
-                const struct variable *s = v[0]->type == NUMERIC ? v[i] : v[0];
+                const struct variable *n = var_is_numeric (v[0]) ? v[0] : v[i];
+                const struct variable *s = var_is_numeric (v[0]) ? v[i] : v[0];
                 msg (SE, _("Cannot mix numeric variables (e.g. %s) and "
                            "string variables (e.g. %s) within a single list."),
-                     n->name, s->name);
+                     var_get_name (n), var_get_name (s));
                 goto done;
               }
 
-          if (v[0]->type == NUMERIC) 
+          if (var_is_numeric (v[0])) 
             {
               mv_init (&mv, 0);
               while (!lex_match (lexer, ')'))
                 {
+                  enum fmt_type type = var_get_print_format (v[0])->type;
                   double x, y;
                   bool ok;
 
-                  if (!parse_num_range (lexer, &x, &y, &v[0]->print.type))
+                  if (!parse_num_range (lexer, &x, &y, &type))
                     goto done;
                   
                   ok = (x == y
@@ -132,17 +133,19 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
           
           for (i = 0; i < nv; i++) 
             {
-              if (!mv_is_resizable (&mv, v[i]->width)) 
+              if (!mv_is_resizable (&mv, var_get_width (v[i]))) 
                 {
                   msg (SE, _("Missing values provided are too long to assign "
                              "to variable of width %d."),
-                       v[i]->width);
+                       var_get_width (v[i]));
                   deferred_errors = true;
                 }
               else 
                 {
-                  mv_copy (&v[i]->miss, &mv);
-                  mv_resize (&v[i]->miss, v[i]->width);
+                  struct missing_values tmp;
+                  mv_copy (&tmp, &mv);
+                  mv_resize (&tmp, var_get_width (v[i]));
+                  var_set_missing_values (v[i], &tmp);
                 }
             }
         }

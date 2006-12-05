@@ -186,7 +186,7 @@ parse_src_vars (struct lexer *lexer,
                         PV_SAME_TYPE))
     return false;
   pool_register (trns->pool, free, trns->src_vars);
-  trns->src_type = trns->src_vars[0]->type;
+  trns->src_type = var_get_type (trns->src_vars[0]);
   return true;
 }
 
@@ -202,10 +202,10 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
   size_t i;
   
   /* Find length of longest source variable. */
-  max_src_width = trns->src_vars[0]->width;
+  max_src_width = var_get_width (trns->src_vars[0]);
   for (i = 1; i < trns->var_cnt; i++) 
     {
-      size_t var_width = trns->src_vars[i]->width;
+      size_t var_width = var_get_width (trns->src_vars[i]);
       if (var_width > max_src_width)
         max_src_width = var_width;
     }
@@ -474,13 +474,13 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
   for (i = 0; i < trns->var_cnt; i++)
     {
       struct variable *v = trns->dst_vars[i];
-      if (v != NULL && v->type != trns->dst_type)
+      if (v != NULL && var_get_type (v) != trns->dst_type)
         {
           msg (SE, _("Type mismatch.  Cannot store %s data in "
                      "%s variable %s."),
                trns->dst_type == ALPHA ? _("string") : _("numeric"),
-               v->type == ALPHA ? _("string") : _("numeric"),
-               v->name);
+               var_is_alpha (v) ? _("string") : _("numeric"),
+               var_get_name (v));
           return false;
         }
     }
@@ -500,8 +500,8 @@ enlarge_dst_widths (struct recode_trns *trns)
   for (i = 0; i < trns->var_cnt; i++)
     {
       struct variable *v = trns->dst_vars[i];
-      if (v->width > max_dst_width)
-        max_dst_width = v->width;
+      if (var_get_width (v) > max_dst_width)
+        max_dst_width = var_get_width (v);
     }
 
   for (i = 0; i < trns->map_cnt; i++)
@@ -530,7 +530,7 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
       *var = dict_lookup_var (dict, name);
       if (*var == NULL)
         *var = dict_create_var_assert (dict, name, 0);
-      assert ((*var)->type == trns->dst_type);
+      assert (var_get_type (*var) == trns->dst_type);
     }
 }
 
@@ -555,7 +555,7 @@ find_src_numeric (struct recode_trns *trns, double value, struct variable *v)
           match = value == in->x.f;
           break;
         case MAP_MISSING:
-          match = mv_is_num_user_missing (&v->miss, value);
+          match = var_is_num_user_missing (v, value);
           break;
         case MAP_RANGE:
           match = value >= in->x.f && value <= in->y.f;
@@ -636,7 +636,7 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
       if (trns->src_type == NUMERIC) 
           out = find_src_numeric (trns, src_data->f, src_var);
       else
-          out = find_src_string (trns, src_data->s, src_var->width);
+          out = find_src_string (trns, src_data->s, var_get_width (src_var));
 
       if (trns->dst_type == NUMERIC) 
         {
@@ -650,13 +650,13 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
           if (out != NULL)
             {
               if (!out->copy_input) 
-                memcpy (dst_data->s, out->value.c, dst_var->width); 
+                memcpy (dst_data->s, out->value.c, var_get_width (dst_var)); 
               else if (trns->src_vars != trns->dst_vars)
-                buf_copy_rpad (dst_data->s, dst_var->width,
-                               src_data->s, src_var->width); 
+                buf_copy_rpad (dst_data->s, var_get_width (dst_var),
+                               src_data->s, var_get_width (src_var)); 
             }
           else if (trns->src_vars != trns->dst_vars)
-            memset (dst_data->s, ' ', dst_var->width);
+            memset (dst_data->s, ' ', var_get_width (dst_var));
         }
     }
 

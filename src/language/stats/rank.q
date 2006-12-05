@@ -148,7 +148,7 @@ struct rank_spec
 
 
 /* Function to use for testing for missing values */
-static is_missing_func *value_is_missing;
+static mv_is_missing_func *value_is_missing;
 
 static struct rank_spec *rank_specs;
 static size_t n_rank_specs;
@@ -216,17 +216,18 @@ create_var_label (struct variable *dest_var,
       for (g = 0 ; g < n_group_vars ; ++g ) 
 	{
 	  if ( g > 0 ) ds_put_cstr (&group_var_str, " ");
-	  ds_put_cstr (&group_var_str, group_vars[g]->name);
+	  ds_put_cstr (&group_var_str, var_get_name (group_vars[g]));
 	}
 
       ds_put_format (&label, _("%s of %s by %s"), function_name[f], 
-		     src_var->name, ds_cstr (&group_var_str));
+		     var_get_name (src_var), ds_cstr (&group_var_str));
       ds_destroy (&group_var_str);
     }
   else
-    ds_put_format (&label,_("%s of %s"), function_name[f], src_var->name);  
+    ds_put_format (&label, _("%s of %s"),
+                   function_name[f], var_get_name (src_var));  
 
-  dest_var->label = strdup (ds_cstr (&label) );
+  var_set_label (dest_var, ds_cstr (&label));
 
   ds_destroy (&label);
 }
@@ -247,13 +248,13 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
     {
       struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
       criteria.crits[i].fv = v->fv;
-      criteria.crits[i].width = v->width;
+      criteria.crits[i].width = var_get_width (v);
       criteria.crits[i].dir = SRT_ASCEND;
     }
   for (i = 0; i < n_group_vars; i++) 
     {
       criteria.crits[i + n_splits].fv = group_vars[i]->fv;
-      criteria.crits[i + n_splits].width = group_vars[i]->width;
+      criteria.crits[i + n_splits].width = var_get_width (group_vars[i]);
       criteria.crits[i + n_splits].dir = SRT_ASCEND;
     }
   for (i = 0 ; i < sc->crit_cnt ; ++i )
@@ -279,7 +280,7 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
       out = rank_sorted_casefile (sorted_cf, &criteria,
 				  dataset_dict (ds),
                                   rank_specs, n_rank_specs, 
-				  i, &src_vars[i]->miss)  ;
+				  i, var_get_missing_values (src_vars[i]));
       if ( NULL == out ) 
 	{
 	  result = false ;
@@ -685,8 +686,8 @@ create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
 
   if ( NULL == var )
     {
-      snprintf(name, SHORT_NAME_LEN + 1, "%c%s", 
-	       function_name[f][0], src_var->name);
+      snprintf (name, SHORT_NAME_LEN + 1, "%c%s", 
+                function_name[f][0], var_get_name (src_var));
   
       var = dict_create_var(dict, name, 0);
     }
@@ -724,7 +725,7 @@ create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
       return NULL;
     }
 
-  var->write = var->print = dest_format[f];
+  var_set_both_formats (var, &dest_format[f]); 
 
   return var;
 }
@@ -834,7 +835,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		  ds_init_empty (&varlist);
 		  for ( g = 0 ; g < n_group_vars ; ++g ) 
 		    {
-		      ds_put_cstr (&varlist, group_vars[g]->name);
+		      ds_put_cstr (&varlist, var_get_name (group_vars[g]));
 
 		      if ( g < n_group_vars - 1)
 			ds_put_cstr (&varlist, " ");
@@ -844,10 +845,10 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		       rank_specs[i].rfunc == PROPORTION ) 
 		    tab_output_text (TAT_PRINTF,
 				     _("%s into %s(%s of %s using %s BY %s)"), 
-				     src_vars[v]->name,
-				     rank_specs[i].destvars[v]->name,
+				     var_get_name (src_vars[v]),
+				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
-				     src_vars[v]->name,
+				     var_get_name (src_vars[v]),
 				     fraction_name(),
 				     ds_cstr (&varlist)
 				     );
@@ -855,10 +856,10 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		  else
 		    tab_output_text (TAT_PRINTF,
 				     _("%s into %s(%s of %s BY %s)"), 
-				     src_vars[v]->name,
-				     rank_specs[i].destvars[v]->name,
+				     var_get_name (src_vars[v]),
+				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
-				     src_vars[v]->name,
+				     var_get_name (src_vars[v]),
 				     ds_cstr (&varlist)
 				     );
 		  ds_destroy (&varlist);
@@ -869,20 +870,20 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		       rank_specs[i].rfunc == PROPORTION ) 
 		    tab_output_text (TAT_PRINTF,
 				     _("%s into %s(%s of %s using %s)"), 
-				     src_vars[v]->name,
-				     rank_specs[i].destvars[v]->name,
+				     var_get_name (src_vars[v]),
+				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
-				     src_vars[v]->name,
+				     var_get_name (src_vars[v]),
 				     fraction_name()
 				     );
 		    
 		  else
 		    tab_output_text (TAT_PRINTF,
 				     _("%s into %s(%s of %s)"), 
-				     src_vars[v]->name,
-				     rank_specs[i].destvars[v]->name,
+				     var_get_name (src_vars[v]),
+				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
-				     src_vars[v]->name
+				     var_get_name (src_vars[v])
 				     );
 		}
 	    }

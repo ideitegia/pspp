@@ -180,7 +180,7 @@ const char *factor_to_string_concise (const struct factor *fctr,
 
 
 /* Function to use for testing for missing values */
-static is_missing_func *value_is_missing;
+static var_is_missing_func *value_is_missing;
 
 
 /* PERCENTILES */
@@ -208,9 +208,9 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   if (cmd.incl == XMN_INCLUDE ) 
-    value_is_missing = mv_is_value_system_missing;
+    value_is_missing = var_is_value_system_missing;
   else
-    value_is_missing = mv_is_value_missing;
+    value_is_missing = var_is_value_missing;
 
   if ( cmd.st_n == SYSMIS ) 
     cmd.st_n = 5;
@@ -678,7 +678,7 @@ factor_calc (struct ccase *c, int case_no, double weight, int case_missing)
 	  const struct variable *var = dependent_vars[v];
 	  const union value *val = case_data (c, var->fv);
 
-	  if ( value_is_missing (&var->miss, val) || case_missing ) 
+	  if ( value_is_missing (var, val) || case_missing ) 
 	    val = 0;
 	  
 	  metrics_calc ( & (*foo)->m[v], val, weight, case_no);
@@ -740,7 +740,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 	      const struct variable *var = dependent_vars[v];
 	      const union value *val = case_data (&c, var->fv);
 
-	      if ( value_is_missing (&var->miss, val))
+	      if ( value_is_missing (var, val))
 		case_missing = 1;
 		   
 	    }
@@ -751,7 +751,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 	  const struct variable *var = dependent_vars[v];
 	  const union value *val = case_data (&c, var->fv);
 
-	  if ( value_is_missing (&var->miss, val) || case_missing ) 
+	  if ( value_is_missing (var, val) || case_missing ) 
 	    val = 0;
 
 	  metrics_calc (&totals[v], val, weight, case_no);
@@ -1023,7 +1023,7 @@ show_summary (struct variable **dependent_var, int n_dep_var,
 	      static union value prev;
 	      
 	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
-				       fctr->indep_var[0]->width))
+                                        var_get_width (fctr->indep_var[0])))
 		{
 		  tab_text (tbl, 
 			    1,
@@ -1196,7 +1196,7 @@ show_extremes (struct variable **dependent_var, int n_dep_var,
 
 
 	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
-				       fctr->indep_var[0]->width))
+                                        var_get_width (fctr->indep_var[0])))
 		{
 		  
 		  if ( count > 0 ) 
@@ -1434,7 +1434,7 @@ show_descriptives (struct variable **dependent_var,
 
 
 	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
-				       fctr->indep_var[0]->width))
+                                        var_get_width (fctr->indep_var[0])))
 		{
 		  
 		  if ( count > 0 ) 
@@ -2062,7 +2062,7 @@ show_percentiles (struct variable **dependent_var,
 
 
 	      if ( 0 != compare_values (&prev, & (*fs)->id[0], 
-				       fctr->indep_var[0]->width))
+                                        var_get_width (fctr->indep_var[0])))
 		{
 		  
 		  if ( count > 0 ) 

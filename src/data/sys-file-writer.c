@@ -114,13 +114,14 @@ static inline int
 var_flt64_cnt (const struct variable *v) 
 {
   assert(sizeof(flt64) == MAX_SHORT_STRING);
-  return width_to_bytes(v->width) / MAX_SHORT_STRING ;
+  return width_to_bytes(var_get_width (v)) / MAX_SHORT_STRING ;
 }
 
 static inline int
 var_flt64_cnt_nom (const struct variable *v) 
 {
-  return v->type == NUMERIC ? 1 : DIV_RND_UP (v->width, sizeof (flt64));
+  return (var_is_numeric (v)
+          ? 1 : DIV_RND_UP (var_get_width (v), sizeof (flt64)));
 }
 
 
@@ -215,9 +216,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     {
       const struct variable *dv = dict_get_var (d, i);
       struct sfm_var *sv = &w->vars[i];
-      sv->width = dv->width;
+      sv->width = var_get_width (dv);
       /* spss compatibility nonsense */
-      if ( dv->width > MAX_LONG_STRING ) 
+      if ( var_is_very_long_string (dv) ) 
 	  w->has_vls = true;
 
       sv->fv = dv->fv;
@@ -240,34 +241,32 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     {
       int count = 0;
       const struct variable *v = dict_get_var(d, i);
-      int wcount = v->width;
+      int wcount = var_get_width (v);
 
       do {
 	struct variable var_cont = *v;
-	if ( v->type == ALPHA) 
+	if ( var_is_alpha (v)) 
 	  {
 	    if ( 0 != count ) 
 	      {
-		mv_init(&var_cont.miss, 0);
-		strcpy(var_cont.short_name,
-		       cont_var_name(v->short_name, count));
-		var_cont.label = NULL;
+		var_clear_missing_values (&var_cont);
+                var_set_short_name (&var_cont,
+                                    cont_var_name (var_get_short_name (v),
+                                                   count));
+                var_clear_label (&var_cont);
 		w->var_cnt_vls++;
 	      }
 	    count++;
 	    if ( wcount > MAX_LONG_STRING ) 
 	      {
-		var_cont.width = MAX_LONG_STRING;
+                var_set_width (&var_cont, MAX_LONG_STRING);
 		wcount -= EFFECTIVE_LONG_STRING_LENGTH;
 	      }
 	    else
 	      {
-		var_cont.width = wcount;
-		wcount -= var_cont.width;
+		var_set_width (&var_cont, wcount);
+		wcount -= var_get_width (&var_cont);
 	      }
-	
-	    var_cont.write.w = var_cont.width;
-	    var_cont.print.w = var_cont.width;
 	  }
 
 	write_variable (w, &var_cont);
@@ -456,12 +455,13 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   struct missing_values mv;
   flt64 m[3];           /* Missing value values. */
   int nm;               /* Number of missing values, possibly negative. */
+  const char *label = var_get_label (v);
 
   sv.rec_type = 2;
-  sv.type = MIN(v->width, MAX_LONG_STRING);
-  sv.has_var_label = (v->label != NULL);
+  sv.type = MIN(var_get_width (v), MAX_LONG_STRING);
+  sv.has_var_label = label != NULL;
 
-  mv_copy (&mv, &v->miss);
+  mv_copy (&mv, var_get_missing_values (v));
   nm = 0;
   if (mv_has_range (&mv)) 
     {
@@ -474,22 +474,23 @@ write_variable (struct sfm_writer *w, const struct variable *v)
     {
       union value value;
       mv_pop_value (&mv, &value);
-      if (v->type == NUMERIC)
+      if (var_is_numeric (v))
         m[nm] = value.f;
       else
-        buf_copy_rpad ((char *) &m[nm], sizeof m[nm], value.s, v->width);
+        buf_copy_rpad ((char *) &m[nm], sizeof m[nm], value.s,
+                       var_get_width (v));
       nm++;
     }
-  if (mv_has_range (&v->miss))
+  if (mv_has_range (var_get_missing_values (v)))
     nm = -nm;
 
   sv.n_missing_values = nm;
-  write_format_spec (&v->print, &sv.print);
-  write_format_spec (&v->write, &sv.write);
-  buf_copy_str_rpad (sv.name, sizeof sv.name, v->short_name);
+  write_format_spec (var_get_print_format (v), &sv.print);
+  write_format_spec (var_get_write_format (v), &sv.write);
+  buf_copy_str_rpad (sv.name, sizeof sv.name, var_get_short_name (v));
   buf_write (w, &sv, sizeof sv);
 
-  if (v->label)
+  if (label != NULL)
     {
       struct label
 	{
@@ -500,9 +501,9 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
       int ext_len;
 
-      l.label_len = MIN (strlen (v->label), 255);
+      l.label_len = MIN (strlen (label), 255);
       ext_len = ROUND_UP (l.label_len, sizeof l.label_len);
-      memcpy (l.label, v->label, l.label_len);
+      memcpy (l.label, label, l.label_len);
       memset (&l.label[l.label_len], ' ', ext_len - l.label_len);
 
       buf_write (w, &l, offsetof (struct label, label) + ext_len);
@@ -511,7 +512,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   if (nm)
     buf_write (w, m, sizeof *m * abs (nm));
 
-  if (v->type == ALPHA && v->width > (int) sizeof (flt64))
+  if (var_is_alpha (v) && var_get_width (v) > (int) sizeof (flt64))
     {
       int i;
       int pad_count;
@@ -523,7 +524,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
       memset (&sv.write, 0, sizeof sv.write);
       memset (&sv.name, 0, sizeof sv.name);
 
-      pad_count = DIV_RND_UP (MIN(v->width, MAX_LONG_STRING),
+      pad_count = DIV_RND_UP (MIN(var_get_width (v), MAX_LONG_STRING),
 			      (int) sizeof (flt64)) - 1;
       for (i = 0; i < pad_count; i++)
 	buf_write (w, &sv, sizeof sv);
@@ -649,15 +650,15 @@ write_variable_display_parameters (struct sfm_writer *w,
 
       v = dict_get_var(dict, i);
 
-      params.measure = v->measure;
-      params.width = v->display_width;
-      params.align = v->alignment;
+      params.measure = var_get_measure (v);
+      params.width = var_get_display_width (v);
+      params.align = var_get_alignment (v);
       
       buf_write (w, &params, sizeof(params));
 
-      if ( v->width > MAX_LONG_STRING ) 
+      if (var_is_long_string (v))
 	{
-	  int wcount = v->width - EFFECTIVE_LONG_STRING_LENGTH ;
+	  int wcount = var_get_width (v) - EFFECTIVE_LONG_STRING_LENGTH ;
 
 	  while (wcount > 0) 
 	    {
@@ -698,10 +699,11 @@ write_vls_length_table (struct sfm_writer *w,
     {
       const struct variable *v = dict_get_var (dict, i);
       
-      if ( v->width <=  MAX_LONG_STRING ) 
+      if ( var_get_width (v) <=  MAX_LONG_STRING ) 
 	continue;
 
-      ds_put_format (&vls_length_map, "%s=%05d", v->short_name, v->width);
+      ds_put_format (&vls_length_map, "%s=%05d",
+                     var_get_short_name (v), var_get_width (v));
       ds_put_char (&vls_length_map, '\0');
       ds_put_char (&vls_length_map, '\t');
     }
@@ -739,7 +741,8 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
       
       if (i)
         ds_put_char (&long_name_map, '\t');
-      ds_put_format (&long_name_map, "%s=%s", v->short_name, v->name);
+      ds_put_format (&long_name_map, "%s=%s",
+                     var_get_short_name (v), var_get_name (v));
     }
 
   lv_hdr.rec_type = 7;

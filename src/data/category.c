@@ -92,7 +92,7 @@ cat_value_find (const struct variable *v, const union value *val)
     {
       candidate = v->obs_vals->vals + i;
       assert (candidate != NULL);
-      if (!compare_values (candidate, val, v->width))
+      if (!compare_values (candidate, val, var_get_width (v)))
 	{
 	  return i;
 	}
@@ -108,7 +108,7 @@ cat_value_update (struct variable *v, const union value *val)
 {
   struct cat_vals *cv;
 
-  if (v->type == ALPHA)
+  if (var_is_alpha (v))
     {
       assert (val != NULL);
       assert (v != NULL);

@@ -71,7 +71,7 @@ pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
       c[i]->v_info->v =
 	(const struct variable *) design_matrix_col_to_var (X, i);
 
-      if (c[i]->v_info->v->type == ALPHA)
+      if (var_is_alpha (c[i]->v_info->v))
 	{
 	  size_t k;
 	  k = design_matrix_var_to_column (X, c[i]->v_info->v);
@@ -162,7 +162,7 @@ pspp_coeff_get_value (struct pspp_coeff *c,
     {
       return NULL;
     }
-  if (v->type == NUMERIC)
+  if (var_is_numeric (v))
     {
       return NULL;
     }
@@ -211,7 +211,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
     {
       return NULL;
     }
-  if (v->type == NUMERIC)
+  if (var_is_numeric (v))
     {
       return result;
     }
@@ -223,7 +223,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
        */
       while (tmp->index != v->index && i < c->n_coeffs
 	     && compare_values (pspp_coeff_get_value (result, tmp),
-				val, v->width))
+				val, var_get_width (v)))
 	{			/* FIX THIS */
 	  i++;
 	  result = c->coeff[i];

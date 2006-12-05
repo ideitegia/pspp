@@ -148,7 +148,7 @@ parse_var_idx_class (struct lexer *lexer, const struct var_set *vs,
   if (!parse_vs_variable_idx (lexer, vs, idx))
     return false;
 
-  *class = dict_class_from_id (var_set_get_var (vs, *idx)->name);
+  *class = dict_class_from_id (var_get_name (var_set_get_var (vs, *idx)));
   return true;
 }
 
@@ -163,24 +163,26 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
               const struct var_set *vs, size_t idx)
 {
   struct variable *add = var_set_get_var (vs, idx);
+  const char *add_name = var_get_name (add);
 
-  if ((pv_opts & PV_NUMERIC) && add->type != NUMERIC) 
+  if ((pv_opts & PV_NUMERIC) && !var_is_numeric (add)) 
     msg (SW, _("%s is not a numeric variable.  It will not be "
-               "included in the variable list."), add->name);
-  else if ((pv_opts & PV_STRING) && add->type != ALPHA) 
+               "included in the variable list."), add_name);
+  else if ((pv_opts & PV_STRING) && !var_is_alpha (add)) 
     msg (SE, _("%s is not a string variable.  It will not be "
-               "included in the variable list."), add->name);
+               "included in the variable list."), add_name);
   else if ((pv_opts & PV_NO_SCRATCH)
-           && dict_class_from_id (add->name) == DC_SCRATCH)
+           && dict_class_from_id (add_name) == DC_SCRATCH)
     msg (SE, _("Scratch variables (such as %s) are not allowed "
-               "here."), add->name);
-  else if ((pv_opts & PV_SAME_TYPE) && *nv && add->type != (*v)[0]->type) 
+               "here."), add_name);
+  else if ((pv_opts & PV_SAME_TYPE) && *nv
+           && var_get_type (add) != var_get_type ((*v)[0])) 
     msg (SE, _("%s and %s are not the same type.  All variables in "
                "this variable list must be of the same type.  %s "
                "will be omitted from list."),
-         (*v)[0]->name, add->name, add->name);
+         var_get_name ((*v)[0]), add_name, add_name);
   else if ((pv_opts & PV_NO_DUPLICATE) && included[idx]) 
-    msg (SE, _("Variable %s appears twice in variable list."), add->name);
+    msg (SE, _("Variable %s appears twice in variable list."), add_name);
   else if ((pv_opts & PV_DUPLICATE) || !included[idx])
     {
       if (*nv >= *mv)
@@ -208,7 +210,7 @@ add_variables (struct variable ***v, size_t *nv, size_t *mv, char *included,
   size_t i;
   
   for (i = first_idx; i <= last_idx; i++)
-    if (dict_class_from_id (var_set_get_var (vs, i)->name) == class)
+    if (dict_class_from_id (var_get_name (var_set_get_var (vs, i))) == class)
       add_variable (v, nv, mv, included, pv_opts, vs, i);
 }
 
@@ -285,10 +287,11 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
 
               if (last_idx < first_idx)
                 {
+                  const char *first_name = var_get_name (first_var);
+                  const char *last_name = var_get_name (last_var);
                   msg (SE, _("%s TO %s is not valid syntax since %s "
                              "precedes %s in the dictionary."),
-                       first_var->name, last_var->name,
-                       first_var->name, last_var->name);
+                       first_name, last_name, first_name, last_name);
                   goto fail;
                 }
 
@@ -299,8 +302,9 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
                              "the same variable dictionaries, of either "
                              "ordinary, scratch, or system variables.  "
                              "%s is a %s variable, whereas %s is %s."),
-                       first_var->name, dict_class_to_name (class),
-                       last_var->name, dict_class_to_name (last_class));
+                       var_get_name (first_var), dict_class_to_name (class),
+                       var_get_name (last_var),
+                       dict_class_to_name (last_class));
                   goto fail;
                 }
 
@@ -552,7 +556,7 @@ parse_mixed_vars (struct lexer *lexer, const struct dictionary *dict,
 	    goto fail;
 	  *names = xnrealloc (*names, *nnames + nv, sizeof **names);
 	  for (i = 0; i < nv; i++)
-	    (*names)[*nnames + i] = xstrdup (v[i]->name);
+	    (*names)[*nnames + i] = xstrdup (var_get_name (v[i]));
 	  free (v);
 	  *nnames += nv;
 	}

@@ -92,14 +92,14 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
       struct variable *v = split[i];
       char temp_buf[80];
       const char *val_lab;
+      const struct fmt_spec *print = var_get_print_format (v);
 
-      assert (v->type == NUMERIC || v->type == ALPHA);
-      tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", v->name);
+      tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", var_get_name (v));
       
-      data_out (case_data (c, v->fv), &v->print, temp_buf);
-      
-      temp_buf[v->print.w] = 0;
-      tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", v->print.w, temp_buf);
+      data_out (case_data (c, v->fv), print, temp_buf);
+      temp_buf[print->w] = 0;
+
+      tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", print->w, temp_buf);
 
       val_lab = val_labs_find (v->val_labs, *case_data (c, v->fv));
       if (val_lab)

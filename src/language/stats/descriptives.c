@@ -378,7 +378,8 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
             if (dsc->vars[i].z_name[0] == 0) 
               {
                 if (!generate_z_varname (dict, dsc, dsc->vars[i].z_name,
-                                         dsc->vars[i].v->name, &gen_cnt))
+                                         var_get_name (dsc->vars[i].v),
+                                         &gen_cnt))
                   goto error;
                 z_cnt++;
               } 
@@ -567,7 +568,7 @@ dump_z_table (struct dsc_proc *dsc)
     for (i = 0, y = 1; i < dsc->var_cnt; i++)
       if (dsc->vars[i].z_name[0] != '\0')
 	{
-	  tab_text (t, 0, y, TAB_LEFT, dsc->vars[i].v->name);
+	  tab_text (t, 0, y, TAB_LEFT, var_get_name (dsc->vars[i].v));
 	  tab_text (t, 1, y++, TAB_LEFT, dsc->vars[i].z_name);
 	}
   }
@@ -598,7 +599,7 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
 	  double score = case_num (c, (*vars)->fv);
 	  if ( score == SYSMIS
                || (!t->include_user_missing 
-                   && mv_is_num_user_missing (&(*vars)->miss, score)))
+                   && var_is_num_user_missing (*vars, score)))
 	    {
 	      all_sysmis = 1;
 	      break;
@@ -614,7 +615,7 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
       if (z->mean == SYSMIS || z->std_dev == SYSMIS 
 	  || all_sysmis || input == SYSMIS 
 	  || (!t->include_user_missing
-              && mv_is_num_user_missing (&z->v->miss, input)))
+              && var_is_num_user_missing (z->v, input)))
 	*output = SYSMIS;
       else
 	*output = (input - z->mean) / z->std_dev;
@@ -669,22 +670,11 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
       if (dv->z_name[0] != '\0')
 	{
           struct dsc_z_score *z;
-	  char *cp;
 	  struct variable *dst_var;
 
 	  dst_var = dict_create_var_assert (dataset_dict (ds), dv->z_name, 0);
-	  if (dv->v->label)
-	    {
-	      dst_var->label = xmalloc (strlen (dv->v->label) + 12);
-	      cp = stpcpy (dst_var->label, _("Z-score of "));
-	      strcpy (cp, dv->v->label);
-	    }
-	  else
-	    {
-	      dst_var->label = xmalloc (strlen (dv->v->name) + 12);
-	      cp = stpcpy (dst_var->label, _("Z-score of "));
-	      strcpy (cp, dv->v->name);
-	    }
+          var_set_label (dst_var, xasprintf (_("Z-score of %s"),
+                                             var_to_string (dv->v)));
 
           z = &t->z_scores[cnt++];
           z->src_idx = dv->v->fv;
@@ -756,7 +746,7 @@ calc_descriptives (const struct ccase *first,
           if (dsc->missing_type != DSC_LISTWISE
               && (x == SYSMIS
                   || (!dsc->include_user_missing
-                      && mv_is_num_user_missing (&dv->v->miss, x))))
+                      && var_is_num_user_missing (dv->v, x))))
             {
               dv->missing += weight;
               continue;
@@ -798,7 +788,7 @@ calc_descriptives (const struct ccase *first,
               if (dsc->missing_type != DSC_LISTWISE
                   && (x == SYSMIS
                       || (!dsc->include_user_missing
-                          && mv_is_num_user_missing (&dv->v->miss, x))))
+                          && var_is_num_user_missing (dv->v, x))))
                 continue;
 
               if (dv->moments != NULL)
@@ -864,7 +854,7 @@ listwise_missing (struct dsc_proc *dsc, const struct ccase *c)
 
       if (x == SYSMIS
           || (!dsc->include_user_missing
-              && mv_is_num_user_missing (&dv->v->miss, x)))
+              && var_is_num_user_missing (dv->v, x)))
         return true;
     }
   return false;
@@ -922,7 +912,7 @@ display (struct dsc_proc *dsc)
       size_t j;
 
       nc = 0;
-      tab_text (t, nc++, i + 1, TAB_LEFT, dv->v->name);
+      tab_text (t, nc++, i + 1, TAB_LEFT, var_get_name (dv->v));
       tab_text (t, nc++, i + 1, TAT_PRINTF, "%g", dv->valid);
       if (dsc->format == DSC_SERIAL)
 	tab_text (t, nc++, i + 1, TAT_PRINTF, "%g", dv->missing);
@@ -949,7 +939,7 @@ descriptives_compare_dsc_vars (const void *a_, const void *b_, const void *dsc_)
   int result;
 
   if (dsc->sort_by_stat == DSC_NAME)
-    result = strcasecmp (a->v->name, b->v->name);
+    result = strcasecmp (var_get_name (a->v), var_get_name (b->v));
   else 
     {
       double as = a->stats[dsc->sort_by_stat];

@@ -585,7 +585,7 @@ precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
           hsh_hash_func *hash;
 	  hsh_compare_func *compare;
 
-	  if (v->type == NUMERIC) 
+	  if (var_is_numeric (v))
             {
               hash = hash_value_numeric;
               compare = compare_value_numeric_a; 
@@ -722,7 +722,7 @@ not_missing (const void *f_, const void *v_)
   const struct freq *f = f_;
   const struct variable *v = v_;
 
-  return !mv_is_value_missing (&v->miss, f->v);
+  return !var_is_value_missing (v, f->v);
 }
 
 /* Summarizes the frequency table data for variable V. */
@@ -738,7 +738,7 @@ postprocess_freq_tab (struct variable *v)
 
   ft = &get_var_freqs (v)->tab;
   assert (ft->mode == FRQM_GENERAL);
-  compare = get_freq_comparator (cmd.sort, v->type);
+  compare = get_freq_comparator (cmd.sort, var_get_type (v));
 
   /* Extract data from hash table. */
   count = hsh_count (ft->data);
@@ -843,13 +843,13 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
       if (v->aux != NULL)
 	{
 	  msg (SE, _("Variable %s specified multiple times on VARIABLES "
-		     "subcommand."), v->name);
+		     "subcommand."), var_get_name (v));
 	  return 0;
 	}
-      if (mode == FRQM_INTEGER && v->type != NUMERIC)
+      if (mode == FRQM_INTEGER && !var_is_numeric (v))
         {
           msg (SE, _("Integer mode specified, but %s is not a numeric "
-                     "variable."), v->name);
+                     "variable."), var_get_name (v));
           return 0;
         }
 
@@ -867,12 +867,13 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
         vf->tab.vector = NULL;
       vf->n_groups = 0;
       vf->groups = NULL;
-      vf->width = v->width;
-      vf->print = v->print;
+      vf->width = var_get_width (v);
+      vf->print = *var_get_print_format (v);
       if (vf->width > MAX_SHORT_STRING && get_algorithm () == COMPATIBLE) 
         {
+          enum fmt_type type = var_get_print_format (v)->type;
           vf->width = MAX_SHORT_STRING;
-          vf->print.w = MAX_SHORT_STRING * (v->print.type == FMT_AHEX ? 2 : 1);
+          vf->print.w = MAX_SHORT_STRING * (type == FMT_AHEX ? 2 : 1);
         }
     }
   return 1;
@@ -934,14 +935,14 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 	for (i = 0; i < n; i++)
           if (v[i]->aux == NULL)
             msg (SE, _("Variables %s specified on GROUPED but not on "
-                       "VARIABLES."), v[i]->name);
+                       "VARIABLES."), var_get_name (v[i]));
           else 
             {
               struct var_freqs *vf = get_var_freqs (v[i]);
                 
               if (vf->groups != NULL)
                 msg (SE, _("Variables %s specified multiple times on GROUPED "
-                           "subcommand."), v[i]->name);
+                           "subcommand."), var_get_name (v[i]));
               else
                 {
                   vf->n_groups = nl;
@@ -1258,9 +1259,8 @@ dump_full (struct variable *v)
   tab_float (t, 2 + lab, r, TAB_NONE, 100.0, 5, 1);
   tab_float (t, 3 + lab, r, TAB_NONE, 100.0, 5, 1);
 
-  tab_title (t, "%s: %s", v->name, v->label ? v->label : "");
+  tab_title (t, "%s", var_to_string (v));
   tab_submit (t);
-
 }
 
 /* Sets the widths of all the columns and heights of all the rows in
@@ -1334,7 +1334,7 @@ dump_condensed (struct variable *v)
 	   cmd.spaces == FRQ_SINGLE ? -1 : TAL_GAP, TAL_1,
 	   0, 0, 3, r - 1);
   tab_hline (t, TAL_2, 0, 3, 2);
-  tab_title (t, "%s: %s", v->name, v->label ? v->label : "");
+  tab_title (t, "%s", var_to_string (v));
   tab_columns (t, SOM_COL_DOWN, 1);
   tab_submit (t);
 }
@@ -1518,13 +1518,13 @@ dump_statistics (struct variable *v, int show_varname)
   if ( implicit_50th && n_percentiles > 0 ) 
     --n_percentiles;
 
-  if (v->type == ALPHA)
+  if (var_is_alpha (v))
     return;
   ft = &get_var_freqs (v)->tab;
   if (ft->n_valid == 0)
     {
       msg (SW, _("No valid data for variable %s; statistics not displayed."),
-	   v->name);
+	   var_get_name (v));
       return;
     }
   calc_stats (v, stat_value);
@@ -1571,12 +1571,7 @@ dump_statistics (struct variable *v, int show_varname)
 
   tab_columns (t, SOM_COL_DOWN, 1);
   if (show_varname)
-    {
-      if (v->label)
-	tab_title (t, "%s: %s", v->name, v->label);
-      else
-	tab_title (t, "%s", v->name);
-    }
+    tab_title (t, "%s", var_to_string (v));
   else
     tab_flags (t, SOMF_NO_TITLE);
 
@@ -1603,7 +1598,7 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
   /* Find out the extremes of the x value */
   for ( frq = hsh_first(fh, &hi); frq != 0; frq = hsh_next(fh, &hi) ) 
     {
-      if ( mv_is_value_missing(&var->miss, frq->v))
+      if ( var_is_value_missing(var, frq->v))
 	continue;
 
       if ( frq->v[0].f < x_min ) x_min = frq->v[0].f ;

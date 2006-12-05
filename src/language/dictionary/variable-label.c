@@ -62,11 +62,7 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 	  ds_truncate (&label, 255);
 	}
       for (i = 0; i < nv; i++)
-	{
-	  if (v[i]->label)
-	    free (v[i]->label);
-	  v[i]->label = ds_xstrdup (&label);
-	}
+        var_set_label (v[i], ds_cstr (&label));
       ds_destroy (&label);
 
       lex_get (lexer);
@@ -83,8 +79,11 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 const char *
 var_to_string(const struct variable *var)
 {
+  const char *label;
+  
   if ( !var ) 
     return 0;
 
-  return ( var->label ? var->label : var->name);
+  label = var_get_label (var);
+  return label ? label : var_get_name (var);
 }

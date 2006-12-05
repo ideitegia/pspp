@@ -85,7 +85,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	  else
 	    {
 	      if (f.type != -1)
-		new_var->print = new_var->write = f;
+                var_set_both_formats (new_var, &f);
 	    }
 	}
 
@@ -152,7 +152,7 @@ cmd_string (struct lexer *lexer, struct dataset *ds)
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
 	  else
-            new_var->print = new_var->write = f;
+            var_set_both_formats (new_var, &f);
 	}
 
       /* Clean up. */

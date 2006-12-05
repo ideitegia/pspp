@@ -72,8 +72,8 @@ void mv_peek_range (const struct missing_values *, double *low, double *high);
 bool mv_is_resizable (struct missing_values *, int width);
 void mv_resize (struct missing_values *, int width);
 
-typedef bool is_missing_func (const struct missing_values *,
-                              const union value *);
+typedef bool mv_is_missing_func (const struct missing_values *,
+                                 const union value *);
 
 /* Is a value system or user missing? */
 bool mv_is_value_missing (const struct missing_values *, const union value *);

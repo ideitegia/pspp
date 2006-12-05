@@ -112,13 +112,13 @@ cmd_filter (struct lexer *lexer, struct dataset *ds)
       if (!v)
 	return CMD_FAILURE;
 
-      if (v->type == ALPHA)
+      if (var_is_alpha (v))
 	{
 	  msg (SE, _("The filter variable must be numeric."));
 	  return CMD_FAILURE;
 	}
 
-      if (dict_class_from_id (v->name) == DC_SCRATCH)
+      if (dict_class_from_id (var_get_name (v)) == DC_SCRATCH)
 	{
 	  msg (SE, _("The filter variable may not be scratch."));
 	  return CMD_FAILURE;

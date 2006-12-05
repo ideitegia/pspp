@@ -338,10 +338,9 @@ case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
       const struct variable *va = *vap;
       const struct variable *vb = *vbp;
 
-      assert (va->type == vb->type);
-      assert (va->width == vb->width);
+      assert (var_get_width (va) == var_get_width (vb));
       
-      if (va->width == 0) 
+      if (var_get_width (va) == 0) 
         {
           double af = case_num (ca, va->fv);
           double bf = case_num (cb, vb->fv);
@@ -353,7 +352,7 @@ case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
         {
           const char *as = case_str (ca, va->fv);
           const char *bs = case_str (cb, vb->fv);
-          int cmp = memcmp (as, bs, va->width);
+          int cmp = memcmp (as, bs, var_get_width (va));
 
           if (cmp != 0)
             return cmp;

@@ -237,7 +237,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 	  
           for (i = 0; i < agr.break_var_cnt; i++)
             dict_clone_var_assert (agr.dict, agr.break_vars[i],
-                                   agr.break_vars[i]->name);
+                                   var_get_name (agr.break_vars[i]));
 
           /* BREAK must follow the options. */
           break;
@@ -508,7 +508,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	    
 		lex_get (lexer);
 
-		if (type != src[0]->type)
+		if (type != var_get_type (src[0]))
 		  {
 		    msg (SE, _("Arguments to %s must be of same type as "
 			       "source variables."),
@@ -540,9 +540,9 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 
           if ((func_index == PIN || func_index == POUT
               || func_index == FIN || func_index == FOUT) 
-              && ((src[0]->type == NUMERIC && arg[0].f > arg[1].f)
-                  || (src[0]->type == ALPHA
-                      && str_compare_rpad (arg[0].c, arg[1].c) > 0)))
+              && (var_is_numeric (src[0])
+                  ? arg[0].f > arg[1].f
+                  : str_compare_rpad (arg[0].c, arg[1].c) > 0))
             {
               union agr_argument t = arg[0];
               arg[0] = arg[1];
@@ -581,17 +581,17 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	      {
 		v->src = src[i];
 		
-		if (src[i]->type == ALPHA)
+		if (var_is_alpha (src[i]))
 		  {
 		    v->function |= FSTRING;
-		    v->string = xmalloc (src[i]->width);
+		    v->string = xmalloc (var_get_width (src[i]));
 		  }
 
 		if (function->alpha_type == ALPHA)
 		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
 		else
                   {
-                    assert (v->src->type == NUMERIC
+                    assert (var_is_numeric (v->src)
                             || function->alpha_type == NUMERIC);
                     destvar = dict_create_var (agr->dict, dest[i], 0);
                     if (destvar != NULL) 
@@ -602,7 +602,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
                           f = fmt_for_output (FMT_F, 8, 2); 
                         else
                           f = function->format;
-                        destvar->print = destvar->write = f;
+                        var_set_both_formats (destvar, &f);
                       }
                   }
 	      } else {
@@ -613,7 +613,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
                   f = fmt_for_output (FMT_F, 8, 2); 
                 else
                   f = function->format;
-                destvar->print = destvar->write = f;
+                var_set_both_formats (destvar, &f);
 	      }
 	  
 	    if (!destvar)
@@ -628,10 +628,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 
 	    free (dest[i]);
 	    if (dest_label[i])
-	      {
-		destvar->label = dest_label[i];
-		dest_label[i] = NULL;
-	      }
+              var_set_label (destvar, dest_label[i]);
 
 	    v->dest = destvar;
 	  }
@@ -642,7 +639,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	    {
 	      int j;
 
-	      if (v->src->type == NUMERIC)
+	      if (var_is_numeric (v->src))
 		for (j = 0; j < function->n_args; j++)
 		  v->arg[j].f = arg[j].f;
 	      else
@@ -651,7 +648,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	    }
 	}
       
-      if (src != NULL && src[0]->type == ALPHA)
+      if (src != NULL && var_is_alpha (src[0]))
 	for (i = 0; i < function->n_args; i++)
 	  {
 	    free (arg[i].c);
@@ -683,7 +680,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
       free (dest_label);
       free (arg[0].c);
       free (arg[1].c);
-      if (src && n_src && src[0]->type == ALPHA)
+      if (src && n_src && var_is_alpha (src[0]))
 	for (i = 0; i < function->n_args; i++)
 	  {
 	    free (arg[i].c);
@@ -775,11 +772,11 @@ accumulate_aggregate_info (struct agr_proc *agr,
     if (iter->src)
       {
 	const union value *v = case_data (input, iter->src->fv);
+        int src_width = var_get_width (iter->src);
 
-	if ((!iter->include_missing
-             && mv_is_value_missing (&iter->src->miss, v))
-	    || (iter->include_missing && iter->src->type == NUMERIC
-		&& v->f == SYSMIS))
+	if (iter->include_missing
+            ? var_is_numeric (iter->src) && v->f == SYSMIS
+            : var_is_value_missing (iter->src, v))
 	  {
 	    switch (iter->function)
 	      {
@@ -815,8 +812,8 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	    iter->int1 = 1;
 	    break;
 	  case MAX | FSTRING:
-	    if (memcmp (iter->string, v->s, iter->src->width) < 0)
-	      memcpy (iter->string, v->s, iter->src->width);
+	    if (memcmp (iter->string, v->s, src_width) < 0)
+	      memcpy (iter->string, v->s, src_width);
 	    iter->int1 = 1;
 	    break;
 	  case MIN:
@@ -824,8 +821,8 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	    iter->int1 = 1;
 	    break;
 	  case MIN | FSTRING:
-	    if (memcmp (iter->string, v->s, iter->src->width) > 0)
-	      memcpy (iter->string, v->s, iter->src->width);
+	    if (memcmp (iter->string, v->s, src_width) > 0)
+	      memcpy (iter->string, v->s, src_width);
 	    iter->int1 = 1;
 	    break;
 	  case FGT:
@@ -836,7 +833,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
             break;
 	  case FGT | FSTRING:
 	  case PGT | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, iter->src->width) < 0)
+            if (memcmp (iter->arg[0].c, v->s, src_width) < 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -848,7 +845,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
             break;
 	  case FLT | FSTRING:
 	  case PLT | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0)
+            if (memcmp (iter->arg[0].c, v->s, src_width) > 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -860,8 +857,8 @@ accumulate_aggregate_info (struct agr_proc *agr,
             break;
 	  case FIN | FSTRING:
 	  case PIN | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, iter->src->width) <= 0
-                && memcmp (iter->arg[1].c, v->s, iter->src->width) >= 0)
+            if (memcmp (iter->arg[0].c, v->s, src_width) <= 0
+                && memcmp (iter->arg[1].c, v->s, src_width) >= 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -873,8 +870,8 @@ accumulate_aggregate_info (struct agr_proc *agr,
             break;
 	  case FOUT | FSTRING:
 	  case POUT | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, iter->src->width) > 0
-                || memcmp (iter->arg[1].c, v->s, iter->src->width) < 0)
+            if (memcmp (iter->arg[0].c, v->s, src_width) > 0
+                || memcmp (iter->arg[1].c, v->s, src_width) < 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -896,7 +893,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	  case FIRST | FSTRING:
 	    if (iter->int1 == 0)
 	      {
-		memcpy (iter->string, v->s, iter->src->width);
+		memcpy (iter->string, v->s, src_width);
 		iter->int1 = 1;
 	      }
 	    break;
@@ -905,7 +902,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	    iter->int1 = 1;
 	    break;
 	  case LAST | FSTRING:
-	    memcpy (iter->string, v->s, iter->src->width);
+	    memcpy (iter->string, v->s, src_width);
 	    iter->int1 = 1;
 	    break;
           case NMISS:
@@ -946,10 +943,11 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
     for (i = 0; i < agr->break_var_cnt; i++) 
       {
         struct variable *v = agr->break_vars[i];
+        size_t value_cnt = var_get_value_cnt (v);
         memcpy (case_data_rw (output, value_idx),
                 case_data (&agr->break_case, v->fv),
-                sizeof (union value) * v->nv);
-        value_idx += v->nv; 
+                sizeof (union value) * value_cnt);
+        value_idx += value_cnt; 
       }
   }
   
@@ -964,8 +962,8 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU
 	    && (i->function & FUNC) != NMISS && (i->function & FUNC) != NUMISS)
 	  {
-	    if (i->dest->type == ALPHA)
-	      memset (v->s, ' ', i->dest->width);
+	    if (var_is_alpha (i->dest))
+	      memset (v->s, ' ', var_get_width (i->dest));
 	    else
 	      v->f = SYSMIS;
 	    continue;
@@ -999,9 +997,9 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	  case MAX | FSTRING:
 	  case MIN | FSTRING:
 	    if (i->int1)
-	      memcpy (v->s, i->string, i->dest->width);
+	      memcpy (v->s, i->string, var_get_width (i->dest));
 	    else
-	      memset (v->s, ' ', i->dest->width);
+	      memset (v->s, ' ', var_get_width (i->dest));
 	    break;
 	  case FGT:
 	  case FGT | FSTRING:
@@ -1038,9 +1036,9 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 	  case FIRST | FSTRING:
 	  case LAST | FSTRING:
 	    if (i->int1)
-	      memcpy (v->s, i->string, i->dest->width);
+	      memcpy (v->s, i->string, var_get_width (i->dest));
 	    else
-	      memset (v->s, ' ', i->dest->width);
+	      memset (v->s, ' ', var_get_width (i->dest));
 	    break;
 	  case N_NO_VARS:
 	    v->f = i->dbl[0];
@@ -1083,13 +1081,13 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  iter->dbl[0] = DBL_MAX;
 	  break;
 	case MIN | FSTRING:
-	  memset (iter->string, 255, iter->src->width);
+	  memset (iter->string, 255, var_get_width (iter->src));
 	  break;
 	case MAX:
 	  iter->dbl[0] = -DBL_MAX;
 	  break;
 	case MAX | FSTRING:
-	  memset (iter->string, 0, iter->src->width);
+	  memset (iter->string, 0, var_get_width (iter->src));
 	  break;
         case SD:
           if (iter->moments == NULL)

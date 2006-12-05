@@ -116,7 +116,7 @@ sort_parse_criteria (struct lexer *lexer, const struct dictionary *dict,
         {
           struct sort_criterion *c = &criteria->crits[prev_var_cnt];
           c->fv = (*vars)[prev_var_cnt]->fv;
-          c->width = (*vars)[prev_var_cnt]->width;
+          c->width = var_get_width ((*vars)[prev_var_cnt]);
           c->dir = direction;
         }
     }

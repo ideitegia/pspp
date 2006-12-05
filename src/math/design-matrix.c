@@ -115,12 +115,12 @@ design_matrix_create (int n_variables,
       (dm->vars + i)->v = v;	/* Allows us to look up the variable from
 				   the design matrix. */
       (dm->vars + i)->first_column = n_cols;
-      if (v->type == NUMERIC)
+      if (var_is_numeric (v))
 	{
 	  (dm->vars + i)->last_column = n_cols;
 	  n_cols++;
 	}
-      else if (v->type == ALPHA)
+      else if (var_is_alpha (v))
 	{
 	  assert (v->obs_vals != NULL);
 	  (dm->vars + i)->last_column =
@@ -250,7 +250,7 @@ design_matrix_set_categorical (struct design_matrix *dm, size_t row,
   size_t lc;
   double entry;
 
-  assert (var->type == ALPHA);
+  assert (var_is_alpha (var));
   fc = design_matrix_var_to_column (dm, var);
   lc = dm_var_to_last_column (dm, var);
   assert (lc != DM_COLUMN_NOT_FOUND);
@@ -268,7 +268,7 @@ design_matrix_set_numeric (struct design_matrix *dm, size_t row,
 {
   size_t col;
 
-  assert (var->type == NUMERIC);
+  assert (var_is_numeric (var));
   col = design_matrix_var_to_column ((const struct design_matrix *) dm, var);
   assert (col != DM_COLUMN_NOT_FOUND);
   gsl_matrix_set (dm->m, row, col, val->f);

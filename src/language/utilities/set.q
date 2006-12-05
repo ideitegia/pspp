@@ -774,7 +774,7 @@ show_weight (const struct dataset *ds)
   if (var == NULL)
     msg (SN, _("WEIGHT is off."));
   else
-    msg (SN, _("WEIGHT is variable %s."), var->name);
+    msg (SN, _("WEIGHT is variable %s."), var_get_name (var));
 }
 
 static void

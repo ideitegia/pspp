@@ -301,7 +301,7 @@ flip_sink_create (struct dictionary *dict, struct flip_pgm *flip)
   /* Write variable names as first case. */
   for (i = 0; i < flip->var_cnt; i++) 
     buf_copy_str_rpad (flip->output_buf[i].s, MAX_SHORT_STRING,
-                       flip->var[i]->name);
+                       var_get_name (flip->var[i]));
   if (fwrite (flip->output_buf, sizeof *flip->output_buf,
               flip->var_cnt, flip->file) != (size_t) flip->var_cnt) 
     {
@@ -328,7 +328,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
     {
       struct varname *v = pool_alloc (flip->pool, sizeof *v);
       v->next = NULL;
-      if (flip->new_names->type == NUMERIC) 
+      if (var_is_numeric (flip->new_names))
         {
           double f = case_num (c, flip->idx_to_fv[flip->new_names->index]);
 
@@ -343,7 +343,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
         }
       else
 	{
-	  int width = MIN (flip->new_names->width, MAX_SHORT_STRING);
+	  int width = MIN (var_get_width (flip->new_names), MAX_SHORT_STRING);
 	  memcpy (v->name, case_str (c, flip->idx_to_fv[flip->new_names->index]),
                   width);
 	  v->name[width] = 0;
@@ -361,7 +361,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
     {
       double out;
       
-      if (flip->var[i]->type == NUMERIC)
+      if (var_is_numeric (flip->var[i]))
         out = case_num (c, flip->idx_to_fv[flip->var[i]->index]);
       else
         out = SYSMIS;

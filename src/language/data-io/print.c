@@ -334,7 +334,9 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
       for (i = 0; i < var_cnt; i++) 
         {
           struct variable *v = vars[i];
-          formats[i] = which_formats == PRINT ? v->print : v->write; 
+          formats[i] = (which_formats == PRINT
+                        ? *var_get_print_format (v)
+                        : *var_get_write_format (v));
         }
       add_space = which_formats == PRINT;
     }
@@ -347,7 +349,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
         struct prt_out_spec *spec;
 
         var = vars[var_idx++];
-        if (!fmt_check_width_compat (f, var->width))
+        if (!fmt_check_width_compat (f, var_get_width (var)))
           return false;
 
         spec = pool_alloc (trns->pool, sizeof *spec);
@@ -363,7 +365,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
            filled with spaces, instead of using the normal format
            that usually contains a period. */ 
         spec->sysmis_as_spaces = (which_formats == WRITE
-                                  && var->type == NUMERIC
+                                  && var_is_numeric (var)
                                   && (fmt_get_category (spec->format.type)
                                       != FMT_CAT_BINARY));
 
@@ -410,7 +412,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
           width = ds_length (&spec->string);
           break;
         case PRT_VAR:
-          tab_text (t, 0, row, TAB_LEFT, spec->var->name);
+          tab_text (t, 0, row, TAB_LEFT, var_get_name (spec->var));
           tab_text (t, 3, row, TAB_LEFT | TAB_FIX,
                     fmt_to_string (&spec->format, fmt_string));
           width = spec->format.w;

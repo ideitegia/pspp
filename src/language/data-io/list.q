@@ -213,12 +213,12 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   if (cmd.numbering == LST_NUMBERED)
     {
       /* Initialize the case-number variable. */
-      strcpy (casenum_var.name, "Case#");
-      casenum_var.type = NUMERIC;
+      int width = cmd.last == LONG_MAX ? 5 : intlog10 (cmd.last);
+      struct fmt_spec format = fmt_for_output (FMT_F, width, 0);
+      var_set_name (&casenum_var, "Case#");
+      casenum_var.width = 0;
       casenum_var.fv = -1;
-      casenum_var.print = fmt_for_output (FMT_F,
-                                          (cmd.last == LONG_MAX
-                                           ? 5 : intlog10 (cmd.last)), 0);
+      var_set_both_formats (&casenum_var, &format);
 
       /* Add the weight variable at the beginning of the variable list. */
       cmd.n_variables++;
@@ -266,7 +266,7 @@ write_all_headers (const struct ccase *c, void *aux UNUSED, const struct dataset
 
 	    for (i = 0; i < cmd.n_variables; i++)
 	      fprintf (x->file, "    <TH><EM>%s</EM></TH>\n",
-		       cmd.v_variables[i]->name);
+		       var_get_name (cmd.v_variables[i]));
 	  }
 
 	  fputs ("  </TR>\n", x->file);
@@ -313,12 +313,15 @@ write_header (struct outp_driver *d)
       for (i = x = 0; i < prc->n_vertical; i++)
 	{
 	  struct variable *v = cmd.v_variables[i];
+          const char *name = var_get_name (v);
+          size_t name_len = strlen (name);
+          const struct fmt_spec *print = var_get_print_format (v);
 	  size_t j;
 
-	  memset (&prc->header[prc->header_rows - 1][x], '-', v->print.w);
-	  x += v->print.w - 1;
-	  for (j = 0; j < strlen (v->name); j++)
-	    prc->header[strlen (v->name) - j - 1][x] = v->name[j];
+	  memset (&prc->header[prc->header_rows - 1][x], '-', print->w);
+	  x += print->w - 1;
+	  for (j = 0; j < name_len; j++)
+	    prc->header[name_len - j - 1][x] = name[j];
 	  x += 2;
 	}
 
@@ -326,13 +329,16 @@ write_header (struct outp_driver *d)
       for (; i < cmd.n_variables; i++)
 	{
 	  struct variable *v = cmd.v_variables[i];
+          const char *name = var_get_name (v);
+          size_t name_len = strlen (name);
+          const struct fmt_spec *print = var_get_print_format (v);
 	  
 	  memset (&prc->header[prc->header_rows - 1][x], '-',
-		  MAX (v->print.w, (int) strlen (v->name)));
-	  if ((int) strlen (v->name) < v->print.w)
-	    x += v->print.w - strlen (v->name);
- 	  memcpy (&prc->header[0][x], v->name, strlen (v->name));
-	  x += strlen (v->name) + 1;
+		  MAX (print->w, (int) name_len));
+	  if ((int) name_len < print->w)
+	    x += print->w - name_len;
+ 	  memcpy (&prc->header[0][x], name, name_len);
+	  x += name_len + 1;
 	}
 
       /* Add null bytes. */
@@ -466,7 +472,7 @@ write_fallback_headers (struct outp_driver *d)
 
 	entry:
 	  {
-	    int var_width = cmd.v_variables[index]->print.w;
+	    int var_width = var_get_print_format (cmd.v_variables[index])->w;
 	    if (width + var_width > max_width && width != 0)
 	      {
 		width = 0;
@@ -480,7 +486,7 @@ write_fallback_headers (struct outp_driver *d)
 	  {
 	    char varname[LONG_NAME_LEN + 2];
 	    snprintf (varname, sizeof varname,
-                      " %s", cmd.v_variables[index]->name);
+                      " %s", var_get_name (cmd.v_variables[index]));
 	    write_varname (d, varname, leader_width);
 	  }
 	}
@@ -546,7 +552,9 @@ determine_layout (void)
       for (width = cmd.n_variables - 1, column = 0; column < cmd.n_variables; column++)
 	{
 	  struct variable *v = cmd.v_variables[column];
-	  width += MAX (v->print.w, (int) strlen (v->name));
+          int fmt_width = var_get_print_format (v)->w;
+          int name_len = strlen (var_get_name (v));
+	  width += MAX (fmt_width, name_len);
 	}
       if (width <= max_width)
 	{
@@ -560,9 +568,11 @@ determine_layout (void)
 	   column++) 
         {
           struct variable *v = cmd.v_variables[column];
-          width += v->print.w;
-          if (strlen (v->name) > height)
-            height = strlen (v->name);
+          int fmt_width = var_get_print_format (v)->w;
+          size_t name_len = strlen (var_get_name (v));
+          width += fmt_width;
+          if (name_len > height)
+            height = name_len;
         }
       
       /* If it fit then we need to determine how many labels can be
@@ -575,9 +585,9 @@ determine_layout (void)
 	  for (column = cmd.n_variables; column-- != 0; )
 	    {
 	      struct variable *v = cmd.v_variables[column];
-	      int trial_width = (width - v->print.w
-				 + MAX (v->print.w, (int) strlen (v->name)));
-	      
+              int name_len = strlen (var_get_name (v));
+              int fmt_width = var_get_print_format (v)->w;
+	      int trial_width = width - fmt_width + MAX (fmt_width, name_len);
 	      if (trial_width > max_width)
 		{
 		  prc->n_vertical = column + 1;
@@ -591,9 +601,12 @@ determine_layout (void)
 	  /* Finally determine the length of the headers. */
 	  for (prc->header_rows = 0, column = 0;
 	       column < prc->n_vertical;
-	       column++)
-	    prc->header_rows = MAX (prc->header_rows,
-				    strlen (cmd.v_variables[column]->name));
+	       column++) 
+            {
+              struct variable *var = cmd.v_variables[column];
+              size_t name_len = strlen (var_get_name (var));
+              prc->header_rows = MAX (prc->header_rows, name_len); 
+            }
 	  prc->header_rows++;
 	  continue;
 	}
@@ -630,19 +643,24 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 
 	if (!prc->header_rows)
 	  {
-	    ds_put_format(&line_buffer, "%8s: ", cmd.v_variables[0]->name);
+	    ds_put_format(&line_buffer, "%8s: ",
+                          var_get_name (cmd.v_variables[0]));
 	  }
 	
       
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
 	    struct variable *v = cmd.v_variables[column];
+            const struct fmt_spec *print = var_get_print_format (v);
 	    int width;
 
-	    if (prc->type == 0 && column >= prc->n_vertical)
-	      width = MAX ((int) strlen (v->name), v->print.w);
+	    if (prc->type == 0 && column >= prc->n_vertical) 
+              {
+                int name_len = strlen (var_get_name (v));
+                width = MAX (name_len, print->w); 
+              }
 	    else
-	      width = v->print.w;
+	      width = print->w;
 
 	    if (width + ds_length(&line_buffer) > max_width && 
 		ds_length(&line_buffer) != 0)
@@ -657,27 +675,23 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 		ds_clear(&line_buffer);
 
 		if (!prc->header_rows)
-		  {
-		    ds_put_format (&line_buffer, "%8s: ", v->name);
-		  }
+                  ds_put_format (&line_buffer, "%8s: ", var_get_name (v));
 	      }
 
-	    if (width > v->print.w)
-	      {
-		ds_put_char_multiple(&line_buffer, ' ', width - v->print.w);
-	      }
+	    if (width > print->w)
+              ds_put_char_multiple(&line_buffer, ' ', width - print->w);
 
-            if (fmt_is_string (v->print.type) || v->fv != -1)
+            if (fmt_is_string (print->type) || v->fv != -1)
 	      {
-                data_out (case_data (c, v->fv), &v->print,
-                          ds_put_uninit (&line_buffer, v->print.w));
+                data_out (case_data (c, v->fv), print,
+                          ds_put_uninit (&line_buffer, print->w));
 	      }
             else 
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (&case_idx_value, &v->print,
-                          ds_put_uninit (&line_buffer,v->print.w)); 
+                data_out (&case_idx_value, print,
+                          ds_put_uninit (&line_buffer,print->w)); 
               }
 
 	    ds_put_char(&line_buffer, ' ');
@@ -702,19 +716,20 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
 	    struct variable *v = cmd.v_variables[column];
+            const struct fmt_spec *print = var_get_print_format (v);
 	    char buf[256];
 	    
-            if (fmt_is_string (v->print.type) || v->fv != -1)
-	      data_out (case_data (c, v->fv), &v->print, buf);
+            if (fmt_is_string (print->type) || v->fv != -1)
+	      data_out (case_data (c, v->fv), print, buf);
             else 
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (&case_idx_value, &v->print, buf);
+                data_out (&case_idx_value, print, buf);
               }
 
             fputs ("    <TD>", x->file);
-            html_put_cell_contents (d, TAB_FIX, ss_buffer (buf, v->print.w));
+            html_put_cell_contents (d, TAB_FIX, ss_buffer (buf, print->w));
             fputs ("</TD>\n", x->file);
 	  }
 	  

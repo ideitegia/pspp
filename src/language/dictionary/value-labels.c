@@ -118,10 +118,10 @@ verify_val_labs (struct variable **vars, size_t var_cnt)
     {
       struct variable *vp = vars[i];
 
-      if (vp->type == ALPHA && vp->width > MAX_SHORT_STRING)
+      if (var_is_long_string (vp))
 	{
 	  msg (SE, _("It is not possible to assign value labels to long "
-		     "string variables such as %s."), vp->name);
+		     "string variables such as %s."), var_get_name (vp));
 	  return 0;
 	}
     }
@@ -152,7 +152,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
       size_t i;
 
       /* Set value. */
-      if (vars[0]->type == ALPHA)
+      if (var_is_alpha (vars[0]))
 	{
 	  if (lex_token (lexer) != T_STRING)
 	    {

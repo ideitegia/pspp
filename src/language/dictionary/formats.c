@@ -85,7 +85,7 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
 
       if (!parse_variables (lexer, dataset_dict (ds), &v, &cv, PV_NUMERIC))
 	return CMD_FAILURE;
-      type = v[0]->type;
+      type = var_get_type (v[0]);
 
       if (!lex_match (lexer, '('))
 	{
@@ -106,9 +106,9 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
       for (i = 0; i < cv; i++)
 	{
 	  if (which & FORMATS_PRINT)
-	    v[i]->print = f;
+            var_set_print_format (v[i], &f);
 	  if (which & FORMATS_WRITE)
-	    v[i]->write = f;
+            var_set_write_format (v[i], &f);
 	}
       free (v);
       v = NULL;

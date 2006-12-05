@@ -1,3 +1,59 @@
+Mon Dec  4 22:20:17 2006  Ben Pfaff  <blp@gnu.org>
+
+	Start converting struct variable to an opaque.  In this phase, we
+	add a bunch of setter and getter functions and convert most of the
+	PSPP code to use them.  The resulting changes are pervasive but
+	mostly trivial, and only the notable changes are logged.
+	
+	* format.c (fmt_equal): New function.
+	
+	* variable.c (var_type_is_valid): New function.
+	(measure_is_valid) Moved here, from format.c.
+	(alignment_is_valid) Moved here, from format.c.
+	(var_get_name) New function.
+	(var_set_name) New function.
+	(width_to_type) New function.
+	(var_get_type) New function.
+	(var_get_width) New function.
+	(var_set_width) New function.
+	(var_is_numeric) New function.
+	(var_is_alpha) New function.
+	(var_is_short_string) New function.
+	(var_is_long_string) New function.
+	(var_is_very_long_string) New function.
+	(var_get_missing_values) New function.
+	(var_set_missing_values) New function.
+	(var_clear_missing_values) New function.
+	(var_has_missing_values) New function.
+	(var_is_value_missing) New function.
+	(var_is_num_missing) New function.
+	(var_is_str_missing) New function.
+	(var_is_value_user_missing) New function.
+	(var_is_num_user_missing) New function.
+	(var_is_str_user_missing) New function.
+	(var_is_value_system_missing) New function.
+	(var_get_print_format) New function.
+	(var_set_print_format) New function.
+	(var_get_write_format) New function.
+	(var_set_write_format) New function.
+	(var_set_both_formats) New function.
+	(var_get_label) New function.
+	(var_set_label) New function.
+	(var_clear_label) New function.
+	(var_has_label) New function.
+	(var_get_measure) New function.
+	(var_set_measure) New function.
+	(var_get_display_width) New function.
+	(var_set_display_width) New function.
+	(var_get_alignment) New function.
+	(var_set_alignment) New function.
+	(var_get_value_cnt) New function.
+	(var_get_leave) New function.
+	(var_get_short_name) New function.
+
+	* variable.h: (struct variable) Removed "type" and "nv" members;
+	they are now computed from "width" where needed.
+
 Mon Dec  4 21:38:40 2006  Ben Pfaff  <blp@gnu.org>
 
 	* missing-values.c (mv_resize): Don't write beyond end of the

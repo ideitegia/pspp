@@ -161,13 +161,14 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   for (i = 0; i < dict_get_var_cnt (dataset_dict (ds)); i++)
     {
       struct variable *var = dict_get_var (dataset_dict (ds), i);
+      size_t value_cnt = var_get_value_cnt (var);
       enum value_init_type value_init;
       size_t j;
       
-      value_init = var->type == NUMERIC ? INP_NUMERIC : INP_STRING;
-      value_init |= var->leave ? INP_INIT_ONCE : INP_REINIT;
+      value_init = var_is_numeric (var) ? INP_NUMERIC : INP_STRING;
+      value_init |= var_get_leave (var) ? INP_INIT_ONCE : INP_REINIT;
 
-      for (j = 0; j < var->nv; j++)
+      for (j = 0; j < value_cnt; j++)
         inp->init[j + var->fv] = value_init;
     }
   for (i = 0; i < inp->init_cnt; i++)

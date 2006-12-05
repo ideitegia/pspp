@@ -133,7 +133,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     {
       const struct variable *dv = dict_get_var (dict, i);
       struct pfm_var *pv = &w->vars[i];
-      pv->width = dv->width;
+      pv->width = var_get_width (dv);
       pv->fv = dv->fv;
     }
 
@@ -280,7 +280,7 @@ write_version_data (struct pfm_writer *w)
 
 /* Write format F to file H. */
 static void
-write_format (struct pfm_writer *w, struct fmt_spec *f)
+write_format (struct pfm_writer *w, const struct fmt_spec *f)
 {
   write_int (w, fmt_to_io (f->type));
   write_int (w, f->w);
@@ -291,12 +291,12 @@ write_format (struct pfm_writer *w, struct fmt_spec *f)
 static void
 write_value (struct pfm_writer *w, union value *v, struct variable *vv)
 {
-  if (vv->type == NUMERIC)
+  if (var_is_numeric (vv))
     write_float (w, v->f);
   else 
     {
-      write_int (w, vv->width);
-      buf_write (w, v->s, vv->width); 
+      write_int (w, var_get_width (vv));
+      buf_write (w, v->s, var_get_width (vv)); 
     }
 }
 
@@ -318,13 +318,13 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
       struct missing_values mv;
       
       buf_write (w, "7", 1);
-      write_int (w, v->width);
-      write_string (w, v->short_name);
-      write_format (w, &v->print);
-      write_format (w, &v->write);
+      write_int (w, var_get_width (v));
+      write_string (w, var_get_short_name (v));
+      write_format (w, var_get_print_format (v));
+      write_format (w, var_get_write_format (v));
 
       /* Write missing values. */
-      mv_copy (&mv, &v->miss);
+      mv_copy (&mv, var_get_missing_values (v));
       while (mv_has_range (&mv))
         {
           double x, y;
@@ -354,10 +354,10 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
           write_value (w, &value, v);
         }
 
-      if (v->label)
+      if (var_get_label (v) != NULL)
         { 
           buf_write (w, "C", 1);
-          write_string (w, v->label);
+          write_string (w, var_get_label (v));
         }
     }
 }
@@ -379,7 +379,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 
       buf_write (w, "D", 1);
       write_int (w, 1);
-      write_string (w, v->short_name);
+      write_string (w, var_get_short_name (v));
       write_int (w, val_labs_count (v->val_labs));
 
       for (vl = val_labs_first_sorted (v->val_labs, &j); vl != NULL;

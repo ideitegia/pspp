@@ -642,7 +642,8 @@ rename_variables (struct lexer *lexer, struct dictionary *dict)
 		     "a variable named %s.  To rename variables with "
 		     "overlapping names, use a single RENAME subcommand "
 		     "such as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, "
-		     "\"/RENAME (A B C=B C A)\"."), v->name, lex_tokid (lexer), lex_tokid (lexer));
+		     "\"/RENAME (A B C=B C A)\"."),
+               var_get_name (v), lex_tokid (lexer), lex_tokid (lexer));
 	  return 0;
 	}
       
@@ -979,12 +980,13 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 
               for (i = 0; i < mtf.by_cnt; i++)
                 {
-                  iter->by[i] = dict_lookup_var (iter->dict, by[i]->name);
+                  iter->by[i] = dict_lookup_var (iter->dict,
+                                                 var_get_name (by[i]));
                   if (iter->by[i] == NULL)
                     {
                       msg (SE, _("File %s lacks BY variable %s."),
                            iter->handle ? fh_get_name (iter->handle) : "*",
-                           by[i]->name);
+                           var_get_name (by[i]));
                       free (by);
                       goto error;
                     }
@@ -1071,7 +1073,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
       for (i = 0; i < dict_get_var_cnt (d); i++)
         {
           struct variable *v = dict_get_var (d, i);
-          struct variable *mv = dict_lookup_var (mtf.dict, v->name);
+          struct variable *mv = dict_lookup_var (mtf.dict, var_get_name (v));
           if (mv != NULL)
             set_master (v, mv);
         }
@@ -1081,16 +1083,16 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
   for (iter = mtf.head; iter != NULL; iter = iter->next) 
     if (iter->in_name != NULL)
       {
+        struct fmt_spec format = fmt_for_output (FMT_F, 1, 0);
         iter->in_var = dict_create_var (mtf.dict, iter->in_name, 0);
         if (iter->in_var == NULL)
           {
             msg (SE, _("IN variable name %s duplicates an "
                        "existing variable name."),
-                 iter->in_var->name);
+                 var_get_name (iter->in_var));
             goto error;
           }
-        iter->in_var->print = iter->in_var->write
-          = fmt_for_output (FMT_F, 1, 0);
+        var_set_both_formats (iter->in_var, &format);
       }
     
   /* MATCH FILES performs an n-way merge on all its input files.
@@ -1201,13 +1203,10 @@ var_type_description (struct variable *v)
   x ^= 1;
   s = buf[x];
 
-  if (v->type == NUMERIC)
+  if (var_is_numeric (v))
     strcpy (s, "numeric");
   else
-    {
-      assert (v->type == ALPHA);
-      sprintf (s, "string with width %d", v->width);
-    }
+    sprintf (s, "string with width %d", var_get_width (v));
   return s;
 }
 
@@ -1282,10 +1281,10 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
         {
           union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
 	  
-          if (v->type == NUMERIC)
+          if (var_is_numeric (v))
             out->f = SYSMIS;
           else
-            memset (out->s, ' ', v->width);
+            memset (out->s, ' ', var_get_width (v));
         } 
     }
 
@@ -1436,10 +1435,11 @@ mtf_processing (const struct ccase *c, void *mtf_, const struct dataset *ds UNUS
                   union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
 
                   mtf->seq_nums[mv->index] = mtf->seq_num;
-                  if (v->type == NUMERIC)
+                  if (var_is_numeric (v))
                     out->f = case_num (record, v->fv);
                   else
-                    memcpy (out->s, case_str (record, v->fv), v->width);
+                    memcpy (out->s, case_str (record, v->fv),
+                            var_get_width (v));
                 } 
             }
           if (iter->in_var != NULL)
@@ -1467,10 +1467,10 @@ mtf_processing (const struct ccase *c, void *mtf_, const struct dataset *ds UNUS
                   union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
                   mtf->seq_nums[mv->index] = mtf->seq_num;
 
-                  if (v->type == NUMERIC)
+                  if (var_is_numeric (v))
                     out->f = SYSMIS;
                   else
-                    memset (out->s, ' ', v->width);
+                    memset (out->s, ' ', var_get_width (v));
                 }
             }
           if (iter->in_var != NULL)
@@ -1533,24 +1533,24 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
   for (i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *dv = dict_get_var (d, i);
-      struct variable *mv = dict_lookup_var (m, dv->name);
+      struct variable *mv = dict_lookup_var (m, var_get_name (dv));
 
-      if (dict_class_from_id (dv->name) == DC_SCRATCH)
+      if (dict_class_from_id (var_get_name (dv)) == DC_SCRATCH)
         continue;
 
       if (mv != NULL)
         {
-          if (mv->width != dv->width) 
+          if (var_get_width (mv) != var_get_width (dv)) 
             {
               msg (SE, _("Variable %s in file %s (%s) has different "
                          "type or width from the same variable in "
                          "earlier file (%s)."),
-                   dv->name, fh_get_name (f->handle),
+                   var_get_name (dv), fh_get_name (f->handle),
                    var_type_description (dv), var_type_description (mv));
               return 0;
             }
         
-          if (dv->width == mv->width)
+          if (var_get_width (dv) == var_get_width (mv))
             {
               if (val_labs_count (dv->val_labs)
                   && !val_labs_count (mv->val_labs)) 
@@ -1558,15 +1558,15 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
                   val_labs_destroy (mv->val_labs);
                   mv->val_labs = val_labs_copy (dv->val_labs); 
                 }
-              if (!mv_is_empty (&dv->miss) && mv_is_empty (&mv->miss))
-                mv_copy (&mv->miss, &dv->miss);
+              if (var_has_missing_values (dv) && !var_has_missing_values (mv))
+                var_set_missing_values (mv, var_get_missing_values (dv));
             }
 
-          if (dv->label && !mv->label)
-            mv->label = xstrdup (dv->label);
+          if (var_get_label (dv) && !var_get_label (mv))
+            var_set_label (mv, var_get_label (dv));
         }
       else
-        mv = dict_clone_var_assert (m, dv, dv->name);
+        mv = dict_clone_var_assert (m, dv, var_get_name (dv));
     }
 
   return 1;
@@ -1652,13 +1652,14 @@ finish_case_map (struct dictionary *d)
   for (i = 0; i < var_cnt; i++) 
     {
       struct variable *v = dict_get_var (d, i);
+      size_t value_cnt = var_get_value_cnt (v);
       int *src_fv = (int *) var_detach_aux (v);
       size_t idx;
 
       if (v->fv != *src_fv)
         identity_map = 0;
       
-      for (idx = 0; idx < v->nv; idx++)
+      for (idx = 0; idx < value_cnt; idx++)
         {
           int src_idx = *src_fv + idx;
           int dst_idx = v->fv + idx;

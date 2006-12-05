@@ -610,7 +610,7 @@ cmd_matrix_data (struct lexer *lexer, struct dataset *ds)
 	int type = mv->var_type;
 	
 	assert (type >= 0 && type < MXD_COUNT);
-	v->print = v->write = fmt_tab[type];
+        var_set_both_formats (v, &fmt_tab[type]);
 
 	if (type == MXD_CONTINUOUS)
 	  mx->n_continuous++;
@@ -1085,7 +1085,7 @@ nr_read_data_lines (struct nr_aux_data *nr,
 	    if (token.type != MNUM)
 	      {
 		msg (SE, _("expecting value for %s %s"),
-		     dict_get_var (nr->dict, j)->name,
+		     var_get_name (dict_get_var (nr->dict, j)),
                      context (mx->reader));
 		return 0;
 	      }
@@ -1260,7 +1260,7 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
         {
           msg (SE, _("Expecting value %g for %s."),
                nr->split_values[i],
-               dict_get_split_vars (nr->dict)[i]->name);
+               var_get_name (dict_get_split_vars (nr->dict)[i]));
           return false;
         }
     }
@@ -1310,7 +1310,7 @@ nr_read_factors (struct nr_aux_data *nr, int cell)
 	  {
 	    msg (SE, _("Syntax error expecting value %g for %s %s."),
 		 nr->factor_values[i + mx->n_factors * cell],
-		 mx->factors[i]->name, context (mx->reader));
+		 var_get_name (mx->factors[i]), context (mx->reader));
 	    return false;
 	  }
       }
@@ -1354,8 +1354,8 @@ dump_cell_content (const struct dictionary *dict,
 	  }
 	if (type == 1)
 	  buf_copy_str_rpad (case_data_rw (c, mx->varname_->fv)->s, 8,
-                             dict_get_var (dict,
-                                           mx->first_continuous + i)->name);
+                             var_get_name (
+                               dict_get_var (dict, mx->first_continuous + i)));
 	if (!write_case (wc_data))
           return false;
       }
@@ -1957,7 +1957,8 @@ wr_read_indeps (struct wr_aux_data *wr)
 	if (token.type != MNUM)
 	  {
 	    msg (SE, _("Syntax error expecting value for %s %s."),
-                 dict_get_var (wr->dict, mx->first_continuous + j)->name,
+                 var_get_name (dict_get_var (wr->dict,
+                                             mx->first_continuous + j)),
                  context (mx->reader));
 	    return false;
 	  }

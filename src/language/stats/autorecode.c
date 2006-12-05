@@ -178,7 +178,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   arc.dst_vars = xnmalloc (arc.var_cnt, sizeof *arc.dst_vars);
   arc.src_values = xnmalloc (arc.var_cnt, sizeof *arc.src_values);
   for (i = 0; i < dst_cnt; i++)
-    if (arc.src_vars[i]->type == ALPHA)
+    if (var_is_alpha (arc.src_vars[i]))
       arc.src_values[i] = hsh_create (10, compare_alpha_value,
                                       hash_alpha_value, NULL, arc.src_vars[i]);
     else
@@ -246,7 +246,7 @@ recode (struct dataset *ds, const struct autorecode_pgm *arc)
       spec->src = arc->src_vars[i];
       spec->dest = arc->dst_vars[i];
 
-      if (arc->src_vars[i]->type == ALPHA)
+      if (var_is_alpha (arc->src_vars[i]))
 	spec->items = hsh_create (2 * count, compare_alpha_value,
 				  hash_alpha_value, NULL, arc->src_vars[i]);
       else
@@ -258,11 +258,11 @@ recode (struct dataset *ds, const struct autorecode_pgm *arc)
 	  struct arc_item *item = pool_alloc (trns->pool, sizeof *item);
           union arc_value *vp = *p;
           
-	  if (arc->src_vars[i]->type == NUMERIC)
+	  if (var_is_numeric (arc->src_vars[i]))
             item->from.f = vp->f;
           else
 	    item->from.c = pool_clone (trns->pool, vp->c,
-                                       arc->src_vars[i]->width);
+                                       var_get_width (arc->src_vars[i]));
 	  item->to = arc->direction == ASCENDING ? j + 1 : count - j;
 	  hsh_force_insert (spec->items, item);
 	}
@@ -284,7 +284,7 @@ autorecode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
       struct arc_item *item;
       union arc_value v;
 
-      if (spec->src->type == NUMERIC)
+      if (var_is_numeric (spec->src))
         v.f = case_num (c, spec->src->fv);
       else
         v.c = (char *) case_str (c, spec->src->fv);
@@ -317,7 +317,7 @@ compare_alpha_value (const void *a_, const void *b_, const void *v_)
   const union arc_value *b = b_;
   const struct variable *v = v_;
 
-  return memcmp (a->c, b->c, v->width);
+  return memcmp (a->c, b->c, var_get_width (v));
 }
 
 static unsigned
@@ -326,7 +326,7 @@ hash_alpha_value (const void *a_, const void *v_)
   const union arc_value *a = a_;
   const struct variable *v = v_;
   
-  return hsh_hash_bytes (a->c, v->width);
+  return hsh_hash_bytes (a->c, var_get_width (v));
 }
 
 static int
@@ -356,7 +356,7 @@ autorecode_proc_func (const struct ccase *c, void *arc_, const struct dataset *d
     {
       union arc_value v, *vp, **vpp;
 
-      if (arc->src_vars[i]->type == NUMERIC)
+      if (var_is_numeric (arc->src_vars[i]))
         v.f = case_num (c, arc->src_vars[i]->fv);
       else
         v.c = (char *) case_str (c, arc->src_vars[i]->fv);
@@ -365,11 +365,11 @@ autorecode_proc_func (const struct ccase *c, void *arc_, const struct dataset *d
       if (*vpp == NULL)
         {
           vp = pool_alloc (arc->src_values_pool, sizeof *vp);
-          if (arc->src_vars[i]->type == NUMERIC)
+          if (var_is_numeric (arc->src_vars[i]))
             vp->f = v.f;
           else
             vp->c = pool_clone (arc->src_values_pool,
-                                v.c, arc->src_vars[i]->width);
+                                v.c, var_get_width (arc->src_vars[i]));
           *vpp = vp;
         }
     }

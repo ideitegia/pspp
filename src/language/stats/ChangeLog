@@ -1,3 +1,15 @@
+Mon Dec  4 22:33:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.q (insert_summary): Use var_to_string for labeling.
+	(output_pivot_table) Ditto.
+	(submit) Ditto.
+
+	* frequencies.q (setup_z_trns): Ditto.
+	(dump_full) Ditto.
+	(dump_condensed) Ditto.
+	(dump_statistics) Ditto.
+	
+
 Sun Nov  5 08:31:42 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q, oneway.q: Changed to use the new casefilter structure.

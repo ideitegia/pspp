@@ -346,7 +346,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	lose ((ME,
                _("%s: Weighting variable may not be a continuation of "
 		 "a long string variable."), fh_get_file_name (fh)));
-      else if (weight_var->type == ALPHA)
+      else if (var_is_alpha (weight_var))
 	lose ((ME, _("%s: Weighting variable may not be a string variable."),
 	       fh_get_file_name (fh)));
 
@@ -465,9 +465,9 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
 		      v = dict_get_var(*dict, i);
 
-		      v->measure = params.measure;
-		      v->display_width = params.width;
-		      v->alignment = params.align;
+		      var_set_measure (v, params.measure);
+		      var_set_display_width (v, params.width);
+		      var_set_alignment (v, params.align);
 		    }
 		}
 		break;
@@ -630,10 +630,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 				}
 
 			      l = length;
-			      if ( v->width > EFFECTIVE_LONG_STRING_LENGTH ) 
+			      if ( var_get_width (v) > EFFECTIVE_LONG_STRING_LENGTH ) 
 				l -= EFFECTIVE_LONG_STRING_LENGTH;
 			      else
-				l -= v->width;
+				l -= var_get_width (v);
 
 			      idx = v->index;
 			      while ( l > 0 ) 
@@ -641,20 +641,17 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 				  struct variable *v_next;
 				  v_next = dict_get_var(*dict, idx + 1);
 
-				  if ( v_next->width > EFFECTIVE_LONG_STRING_LENGTH ) 
+				  if ( var_get_width (v_next) > EFFECTIVE_LONG_STRING_LENGTH ) 
 				    l -= EFFECTIVE_LONG_STRING_LENGTH;
 				  else
-				    l -= v_next->width;
+				    l -= var_get_width (v_next);
 
 				  dict_delete_var(*dict, v_next);
 				}
 
 			      assert ( length > MAX_LONG_STRING );
 
-			      v->width = length;
-			      v->print.w = v->width;
-			      v->write.w = v->width;
-			      v->nv = DIV_RND_UP (length, MAX_SHORT_STRING);
+                              var_set_width (v, length);
 			    }
 			  eq_seen = false;
 			  memset(name, 0, SHORT_NAME_LEN+1); 
@@ -725,7 +722,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
       {
         struct variable *v = dict_get_var (*dict, i);
         struct sfm_var *sv = &r->vars[i];
-        sv->width = v->width;
+        sv->width = var_get_width (v);
         sv->fv = v->fv; 
       }
   }
@@ -1015,6 +1012,8 @@ read_variables (struct sfm_reader *r,
       char name[SHORT_NAME_LEN + 1];
       int nv;
       int j;
+      struct fmt_spec print, write;
+
 
       assertive_buf_read (r, &sv, sizeof sv, 0);
 
@@ -1101,7 +1100,7 @@ read_variables (struct sfm_reader *r,
                fh_get_file_name (r->fh), name));
 
       /* Set the short name the same as the long name */
-      var_set_short_name (vv, vv->name);
+      var_set_short_name (vv, var_get_name (vv));
 
       /* Case reading data. */
       nv = sv.type == 0 ? 1 : DIV_RND_UP (sv.type, sizeof (flt64));
@@ -1123,15 +1122,16 @@ read_variables (struct sfm_reader *r,
 	  if (len < 0 || len > 255)
 	    lose ((ME, _("%s: Variable %s indicates variable label of invalid "
                          "length %d."),
-                   fh_get_file_name (r->fh), vv->name, len));
+                   fh_get_file_name (r->fh), var_get_name (vv), len));
 
 	  if ( len != 0 ) 
 	    {
 	      /* Read label into variable structure. */
-	      vv->label = buf_read (r, NULL, ROUND_UP (len, sizeof (int32_t)), len + 1);
-	      if (vv->label == NULL)
-		goto error;
-	      vv->label[len] = '\0';
+	      char label[256];
+              assertive_buf_read (r, label, ROUND_UP (len, sizeof (int32_t)),
+                                  0);
+	      label[len] = '\0';
+              var_set_label (vv, label);
 	    }
 	}
 
@@ -1140,48 +1140,54 @@ read_variables (struct sfm_reader *r,
 	{
 	  flt64 mv[3];
           int mv_cnt = abs (sv.n_missing_values);
+          struct missing_values miss;
 
-	  if (vv->width > MAX_SHORT_STRING)
+	  if (var_get_width (vv) > MAX_SHORT_STRING)
 	    lose ((ME, _("%s: Long string variable %s may not have missing "
                          "values."),
-                   fh_get_file_name (r->fh), vv->name));
+                   fh_get_file_name (r->fh), var_get_name (vv)));
+          mv_init (&miss, var_get_width (vv));
 
 	  assertive_buf_read (r, mv, sizeof *mv * mv_cnt, 0);
 
-	  if (r->reverse_endian && vv->type == NUMERIC)
+	  if (r->reverse_endian && var_is_numeric (vv))
 	    for (j = 0; j < mv_cnt; j++)
 	      bswap_flt64 (&mv[j]);
 
 	  if (sv.n_missing_values > 0)
 	    {
               for (j = 0; j < sv.n_missing_values; j++)
-                if (vv->type == NUMERIC)
-                  mv_add_num (&vv->miss, mv[j]);
+                if (var_is_numeric (vv))
+                  mv_add_num (&miss, mv[j]);
                 else
-                  mv_add_str (&vv->miss, (char *) &mv[j]);
+                  mv_add_str (&miss, (char *) &mv[j]);
 	    }
 	  else
 	    {
-	      if (vv->type == ALPHA)
+	      if (var_is_alpha (vv))
 		lose ((ME, _("%s: String variable %s may not have missing "
                              "values specified as a range."),
-                       fh_get_file_name (r->fh), vv->name));
+                       fh_get_file_name (r->fh), var_get_name (vv)));
 
 	      if (mv[0] == r->lowest)
-                mv_add_num_range (&vv->miss, LOWEST, mv[1]);
+                mv_add_num_range (&miss, LOWEST, mv[1]);
 	      else if (mv[1] == r->highest)
-                mv_add_num_range (&vv->miss, mv[0], HIGHEST);
+                mv_add_num_range (&miss, mv[0], HIGHEST);
 	      else
-                mv_add_num_range (&vv->miss, mv[0], mv[1]);
+                mv_add_num_range (&miss, mv[0], mv[1]);
 
 	      if (sv.n_missing_values == -3)
-                mv_add_num (&vv->miss, mv[2]);
+                mv_add_num (&miss, mv[2]);
 	    }
+          var_set_missing_values (vv, &miss);
 	}
 
-      if (!parse_format_spec (r, sv.print, &vv->print, vv)
-	  || !parse_format_spec (r, sv.write, &vv->write, vv))
+      if (!parse_format_spec (r, sv.print, &print, vv)
+	  || !parse_format_spec (r, sv.write, &write, vv))
 	goto error;
+
+      var_set_print_format (vv, &print);
+      var_set_write_format (vv, &write);
     }
 
   /* Some consistency checks. */
@@ -1216,27 +1222,27 @@ parse_format_spec (struct sfm_reader *r, int32_t s,
   f->w = (s >> 8) & 0xff;
   f->d = s & 0xff;
 
-  if ((v->type == ALPHA) ^ (fmt_is_string (f->type) != 0))
+  if (var_is_alpha (v) != fmt_is_string (f->type))
     lose ((ME, _("%s: %s variable %s has %s format specifier %s."),
 	   fh_get_file_name (r->fh),
-           v->type == ALPHA ? _("String") : _("Numeric"),
-	   v->name,
+           var_is_alpha (v) ? _("String") : _("Numeric"),
+	   var_get_name (v),
 	   fmt_is_string (f->type) ? _("string") : _("numeric"),
 	   fmt_name (f->type)));
 
   msg_disable ();
-  ok = fmt_check_output (f) && fmt_check_width_compat (f, v->width);
+  ok = fmt_check_output (f) && fmt_check_width_compat (f, var_get_width (v)); 
   msg_enable ();
   
   if (!ok) 
     {
       char fmt_string[FMT_STRING_LEN_MAX + 1];
       msg (ME, _("%s variable %s has invalid format specifier %s."),
-           v->type == NUMERIC ? _("Numeric") : _("String"),
-           v->name, fmt_to_string (f, fmt_string));
-      *f = (v->type == NUMERIC
+           var_is_numeric (v) ? _("Numeric") : _("String"),
+           var_get_name (v), fmt_to_string (f, fmt_string));
+      *f = (var_is_numeric (v)
             ? fmt_for_output (FMT_F, 8, 2) 
-            : fmt_for_output (FMT_A, v->width, 0));
+            : fmt_for_output (FMT_A, var_get_width (v), 0));
     }
   return 1;
 
@@ -1356,10 +1362,10 @@ read_value_labels (struct sfm_reader *r,
                      "refers to a continuation of a string variable, not to "
                      "an actual variable."),
                fh_get_file_name (r->fh), var_idx));
-      if (v->type == ALPHA && v->width > MAX_SHORT_STRING)
+      if (var_is_long_string (v))
 	lose ((ME, _("%s: Value labels are not allowed on long string "
                      "variables (%s)."),
-               fh_get_file_name (r->fh), v->name));
+               fh_get_file_name (r->fh), var_get_name (v)));
 
       /* Add it to the list of variables. */
       var[i] = v;
@@ -1367,20 +1373,22 @@ read_value_labels (struct sfm_reader *r,
 
   /* Type check the variables. */
   for (i = 1; i < n_vars; i++)
-    if (var[i]->type != var[0]->type)
+    if (var_get_type (var[i]) != var_get_type (var[0]))
       lose ((ME, _("%s: Variables associated with value label are not all of "
                    "identical type.  Variable %s has %s type, but variable "
                    "%s has %s type."),
              fh_get_file_name (r->fh),
-	     var[0]->name, var[0]->type == ALPHA ? _("string") : _("numeric"),
-	     var[i]->name, var[i]->type == ALPHA ? _("string") : _("numeric")));
+	     var_get_name (var[0]),
+             var_is_alpha (var[0]) ? _("string") : _("numeric"),
+	     var_get_name (var[i]),
+             var_is_alpha (var[i]) ? _("string") : _("numeric")));
 
   /* Fill in labels[].value, now that we know the desired type. */
   for (i = 0; i < n_labels; i++) 
     {
       struct label *label = labels + i;
       
-      if (var[0]->type == ALPHA)
+      if (var_is_alpha (var[0]))
         {
           const int copy_len = MIN (sizeof label->raw_value,
                                     sizeof label->label);
@@ -1408,14 +1416,15 @@ read_value_labels (struct sfm_reader *r,
 	  if (!val_labs_replace (v->val_labs, label->value, label->label))
 	    continue;
 
-	  if (var[0]->type == NUMERIC)
+	  if (var_is_numeric (var[0]))
 	    msg (MW, _("%s: File contains duplicate label for value %g for "
                        "variable %s."),
-                 fh_get_file_name (r->fh), label->value.f, v->name);
+                 fh_get_file_name (r->fh), label->value.f, var_get_name (v));
 	  else
 	    msg (MW, _("%s: File contains duplicate label for value `%.*s' "
                        "for variable %s."),
-                 fh_get_file_name (r->fh), v->width, label->value.s, v->name);
+                 fh_get_file_name (r->fh), var_get_width (v),
+                 label->value.s, var_get_name (v));
 	}
     }
 

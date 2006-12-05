@@ -546,8 +546,9 @@ value_to_string (const union value *val, const struct variable *var)
   if (s == NULL) 
     {
       static char buf[MAX_STRING + 1];
-      data_out (val, &var->print, buf);
-      buf[var->print.w] = '\0';
+      const struct fmt_spec *print = var_get_print_format (var);
+      data_out (val, print, buf);
+      buf[print->w] = '\0';
       s = buf;
     }
   

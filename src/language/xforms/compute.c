@@ -206,7 +206,7 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
 
       vr = compute->vector->var[rindx - 1];
       expr_evaluate_str (compute->rvalue, c, case_num,
-                         case_data_rw (c, vr->fv)->s, vr->width);
+                         case_data_rw (c, vr->fv)->s, var_get_width (vr));
     }
   
   return TRNS_CONTINUE;
@@ -379,8 +379,8 @@ static int
 lvalue_get_type (const struct lvalue *lvalue) 
 {
   return (lvalue->variable != NULL
-          ? lvalue->variable->type
-          : lvalue->vector->var[0]->type);
+          ? var_get_type (lvalue->variable)
+          : var_get_type (lvalue->vector->var[0]));
 }
 
 /* Returns true if LVALUE has a vector as its target. */
@@ -401,10 +401,10 @@ lvalue_finalize (struct lvalue *lvalue,
     {
       compute->variable = lvalue->variable;
       compute->fv = compute->variable->fv;
-      compute->width = compute->variable->width;
+      compute->width = var_get_width (compute->variable);
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
-      if (dict_class_from_id (compute->variable->name) != DC_SCRATCH)
+      if (dict_class_from_id (var_get_name (compute->variable)) != DC_SCRATCH)
         compute->variable->leave = false;
 
       /* Prevent lvalue_destroy from deleting variable. */

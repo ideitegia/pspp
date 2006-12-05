@@ -464,29 +464,34 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 /* Translates a format specification read from portable file R as
    the three integers INTS into a normal format specifier FORMAT,
    checking that the format is appropriate for variable V. */
-static void
+static struct fmt_spec
 convert_format (struct pfm_reader *r, const int portable_format[3],
-                struct fmt_spec *format, struct variable *v)
+                struct variable *v)
 {
+  struct fmt_spec format;
   bool ok;
 
-  if (!fmt_from_io (portable_format[0], &format->type))
+  if (!fmt_from_io (portable_format[0], &format.type))
     error (r, _("%s: Bad format specifier byte (%d)."),
-           v->name, portable_format[0]);
-  format->w = portable_format[1];
-  format->d = portable_format[2];
+           var_get_name (v), portable_format[0]);
+  format.w = portable_format[1];
+  format.d = portable_format[2];
 
   msg_disable ();
-  ok = fmt_check_output (format) && fmt_check_width_compat (format, v->width);
+  ok = (fmt_check_output (&format)
+        && fmt_check_width_compat (&format, var_get_width (v)));
   msg_enable ();
 
   if (!ok)
     {
       char fmt_string[FMT_STRING_LEN_MAX + 1];
       error (r, _("%s variable %s has invalid format specifier %s."),
-             v->type == NUMERIC ? _("Numeric") : _("String"),
-             v->name, fmt_to_string (format, fmt_string)); 
+             var_is_numeric (v) ? _("Numeric") : _("String"),
+             var_get_name (v), fmt_to_string (&format, fmt_string));
+      format = fmt_default_for_width (var_get_width (v));
     }
+
+  return format;
 }
 
 static union value parse_value (struct pfm_reader *, struct variable *);
@@ -522,6 +527,8 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       char name[256];
       int fmt[6];
       struct variable *v;
+      struct missing_values miss;
+      struct fmt_spec print, write;
       int j;
 
       if (!match (r, '7'))
@@ -547,33 +554,38 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       if (v == NULL)
 	error (r, _("Duplicate variable name %s."), name);
 
-      convert_format (r, &fmt[0], &v->print, v);
-      convert_format (r, &fmt[3], &v->write, v);
+      print = convert_format (r, &fmt[0], v);
+      write = convert_format (r, &fmt[3], v);
+      var_set_print_format (v, &print);
+      var_set_write_format (v, &write);
 
       /* Range missing values. */
+      mv_init (&miss, var_get_width (v));
       if (match (r, 'B')) 
         {
           double x = read_float (r);
           double y = read_float (r);
-          mv_add_num_range (&v->miss, x, y);
+          mv_add_num_range (&miss, x, y);
         }
       else if (match (r, 'A'))
-        mv_add_num_range (&v->miss, read_float (r), HIGHEST);
+        mv_add_num_range (&miss, read_float (r), HIGHEST);
       else if (match (r, '9'))
-        mv_add_num_range (&v->miss, LOWEST, read_float (r));
+        mv_add_num_range (&miss, LOWEST, read_float (r));
 
       /* Single missing values. */
       while (match (r, '8')) 
         {
           union value value = parse_value (r, v);
-          mv_add_value (&v->miss, &value); 
+          mv_add_value (&miss, &value); 
         }
+
+      var_set_missing_values (v, &miss);
 
       if (match (r, 'C')) 
         {
           char label[256];
           read_string (r, label);
-          v->label = xstrdup (label); 
+          var_set_label (v, label);
         }
     }
 
@@ -594,7 +606,7 @@ parse_value (struct pfm_reader *r, struct variable *vv)
 {
   union value v;
   
-  if (vv->type == ALPHA) 
+  if (var_is_alpha (vv)) 
     {
       char string[256];
       read_string (r, string);
@@ -630,10 +642,10 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
       if (v[i] == NULL)
 	error (r, _("Unknown variable %s while parsing value labels."), name);
 
-      if (v[0]->width != v[i]->width)
+      if (var_get_width (v[0]) != var_get_width (v[i]))
 	error (r, _("Cannot assign value labels to %s and %s, which "
 		    "have different variable types or widths."),
-	       v[0]->name, v[i]->name);
+	       var_get_name (v[0]), var_get_name (v[i]));
     }
 
   n_labels = read_int (r);
@@ -654,12 +666,12 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
 	  if (!val_labs_replace (var->val_labs, val, label))
 	    continue;
 
-	  if (var->type == NUMERIC)
+	  if (var_is_numeric (var))
 	    error (r, _("Duplicate label for value %g for variable %s."),
-		   val.f, var->name);
+		   val.f, var_get_name (var));
 	  else
 	    error (r, _("Duplicate label for value `%.*s' for variable %s."),
-		   var->width, val.s, var->name);
+		   var_get_width (var), val.s, var_get_name (var));
 	}
     }
 }

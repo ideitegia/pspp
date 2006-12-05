@@ -230,7 +230,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
       strncpy (tmp, label, MAX_STRING);
-      if (v->type == ALPHA)
+      if (var_is_alpha (v))
 	{
 	  /*
 	     Append the value associated with this coefficient.
@@ -748,12 +748,12 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
     {
       coeff = c->coeff[i];
       v = pspp_coeff_get_var (coeff, 0);
-      if (v->type == ALPHA)
+      if (var_is_alpha (v))
 	{
 	  if (!reg_inserted (v, varlist, n_vars))
 	    {
 	      fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t",
-		       v->name);
+		       var_get_name (v));
 	      varlist[n_vars] = (struct variable *) v;
 	      n_vars++;
 	    }
@@ -764,22 +764,25 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 	   n_vars);
   for (i = 0; i < n_vars - 1; i++)
     {
-      fprintf (fp, "&%s,\n\t\t", varlist[i]->name);
+      fprintf (fp, "&%s,\n\t\t", var_get_name (varlist[i]));
     }
-  fprintf (fp, "&%s};\n\t", varlist[i]->name);
+  fprintf (fp, "&%s};\n\t", var_get_name (varlist[i]));
 
   for (i = 0; i < n_vars; i++)
     {
       coeff = c->coeff[i];
-      fprintf (fp, "%s.name = \"%s\";\n\t", varlist[i]->name,
-	       varlist[i]->name);
-      fprintf (fp, "%s.n_vals = %d;\n\t", varlist[i]->name,
+      fprintf (fp, "%s.name = \"%s\";\n\t",
+               var_get_name (varlist[i]),
+	       var_get_name (varlist[i]));
+      fprintf (fp, "%s.n_vals = %d;\n\t",
+               var_get_name (varlist[i]),
 	       varlist[i]->obs_vals->n_categories);
 
       for (j = 0; j < varlist[i]->obs_vals->n_categories; j++)
 	{
 	  val = cat_subscript_to_value ((const size_t) j, varlist[i]);
-	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t", varlist[i]->name, j,
+	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t",
+                   var_get_name (varlist[i]), j,
 		   value_to_string (val, varlist[i]));
 	}
     }
@@ -798,11 +801,11 @@ reg_print_depvars (FILE * fp, pspp_linreg_cache * c)
     {
       coeff = c->coeff[i];
       v = pspp_coeff_get_var (coeff, 0);
-      fprintf (fp, "\"%s\",\n\t\t", v->name);
+      fprintf (fp, "\"%s\",\n\t\t", var_get_name (v));
     }
   coeff = c->coeff[i];
   v = pspp_coeff_get_var (coeff, 0);
-  fprintf (fp, "\"%s\"};\n\t", v->name);
+  fprintf (fp, "\"%s\"};\n\t", var_get_name (v));
 }
 static void
 reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
@@ -824,10 +827,8 @@ reg_has_categorical (pspp_linreg_cache * c)
   for (i = 1; i < c->n_coeffs; i++)
     {
       v = pspp_coeff_get_var (c->coeff[i], 0);
-      if (v->type == ALPHA)
-	{
-	  return 1;
-	}
+      if (var_is_alpha (v))
+        return 1;
     }
   return 0;
 }
@@ -987,7 +988,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
       val = case_data (&c, v->fv);
       cat_value_update (v, val);
-      if (mv_is_value_missing (&v->miss, val))
+      if (var_is_value_missing (v, val))
 	{
 	  if (!is_missing_case[row])
 	    {
@@ -1071,7 +1072,7 @@ prepare_data (int n_data, int is_missing_case[],
 	{
 	  indep_vars[j] = v_variables[i];
 	  j++;
-	  if (v_variables[i]->type == ALPHA)
+	  if (var_is_alpha (v_variables[i]))
 	    {
 	      /* Make a place to hold the binary vectors 
 	         corresponding to this variable's values. */
@@ -1135,7 +1136,7 @@ run_regression (const struct ccase *first,
 
   for (i = 0; i < cmd.n_dependent; i++)
     {
-      if (cmd.v_dependent[i]->type != NUMERIC)
+      if (!var_is_numeric (cmd.v_dependent[i]))
 	{
 	  msg (SE, gettext ("Dependent variable must be numeric."));
 	  pspp_reg_rc = CMD_FAILURE;
@@ -1209,12 +1210,12 @@ run_regression (const struct ccase *first,
 		   */
 		  if (!is_depvar (i, cmd.v_dependent[k]))
 		    {
-		      if (v_variables[i]->type == ALPHA)
+		      if (var_is_alpha (v_variables[i]))
 			{
 			  design_matrix_set_categorical (X, row,
 							 v_variables[i], val);
 			}
-		      else if (v_variables[i]->type == NUMERIC)
+		      else
 			{
 			  design_matrix_set_numeric (X, row, v_variables[i],
 						     val);

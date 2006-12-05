@@ -70,7 +70,7 @@ pspp_linreg_predict (const struct variable **predictors,
 	{
 	  found[i] = coe;
 	  tmp = pspp_coeff_get_est (coe);
-	  if (predictors[j]->type == NUMERIC)
+	  if (var_is_numeric (predictors[j]))
 	    {
 	      tmp *= vals[j]->f;
 	    }

@@ -99,8 +99,8 @@ dict_clone (const struct dictionary *s)
   for (i = 0; i < s->var_cnt; i++) 
     {
       struct variable *sv = s->var[i];
-      struct variable *dv = dict_clone_var_assert (d, sv, sv->name);
-      var_set_short_name (dv, sv->short_name);
+      struct variable *dv = dict_clone_var_assert (d, sv, var_get_name (sv));
+      var_set_short_name (dv, var_get_short_name (sv));
     }
 
   d->next_value_idx = s->next_value_idx;
@@ -110,14 +110,14 @@ dict_clone (const struct dictionary *s)
     {
       d->split = xnmalloc (d->split_cnt, sizeof *d->split);
       for (i = 0; i < d->split_cnt; i++) 
-        d->split[i] = dict_lookup_var_assert (d, s->split[i]->name);
+        d->split[i] = dict_lookup_var_assert (d, var_get_name (s->split[i]));
     }
 
   if (s->weight != NULL) 
-    d->weight = dict_lookup_var_assert (d, s->weight->name);
+    d->weight = dict_lookup_var_assert (d, var_get_name (s->weight));
 
   if (s->filter != NULL) 
-    d->filter = dict_lookup_var_assert (d, s->filter->name);
+    d->filter = dict_lookup_var_assert (d, var_get_name (s->filter));
 
   d->case_limit = s->case_limit;
   dict_set_label (d, dict_get_label (s));
@@ -158,6 +158,7 @@ dict_clear (struct dictionary *d)
       struct variable *v = d->var[i];
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
+      var_clear_label (v);
       free (v->label);
       free (v); 
     }
@@ -246,14 +247,20 @@ dict_get_vars (const struct dictionary *d, struct variable ***vars,
   
   count = 0;
   for (i = 0; i < d->var_cnt; i++)
-    if (!(exclude_classes & (1u << dict_class_from_id (d->var[i]->name))))
-      count++;
-
+    {
+      enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
+      if (!(exclude_classes & (1u << class)))
+        count++;
+    }
+  
   *vars = xnmalloc (count, sizeof **vars);
   *cnt = 0;
-  for (i = 0; i < d->var_cnt; i++)
-    if (!(exclude_classes & (1u << dict_class_from_id (d->var[i]->name))))
-      (*vars)[(*cnt)++] = d->var[i];
+  for (i = 0; i < d->var_cnt; i++) 
+    {
+      enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
+      if (!(exclude_classes & (1u << class)))
+        (*vars)[(*cnt)++] = d->var[i]; 
+    }
   assert (*cnt == count);
 }
 
@@ -279,15 +286,13 @@ dict_create_var (struct dictionary *d, const char *name, int width)
 
   /* Allocate and initialize variable. */
   v = xmalloc (sizeof *v);
-  str_copy_trunc (v->name, sizeof v->name, name);
-  v->type = width == 0 ? NUMERIC : ALPHA;
+  var_set_name (v, name);
   v->width = width;
   v->fv = d->next_value_idx;
-  v->nv = width == 0 ? 1 : DIV_RND_UP (width, MAX_SHORT_STRING);
-  v->leave = dict_class_from_id (v->name) == DC_SCRATCH;
+  v->leave = dict_class_from_id (var_get_name (v)) == DC_SCRATCH;
   v->index = d->var_cnt;
   mv_init (&v->miss, width);
-  if (v->type == NUMERIC)
+  if (var_is_numeric (v))
     {
       v->print = fmt_for_output (FMT_F, 8, 2);
       v->alignment = ALIGN_RIGHT;
@@ -296,13 +301,13 @@ dict_create_var (struct dictionary *d, const char *name, int width)
     }
   else
     {
-      v->print = fmt_for_output (FMT_A, v->width, 0);
+      v->print = fmt_for_output (FMT_A, var_get_width (v), 0);
       v->alignment = ALIGN_LEFT;
       v->display_width = 8;
       v->measure = MEASURE_NOMINAL;
     }
   v->write = v->print;
-  v->val_labs = val_labs_create (v->width);
+  v->val_labs = val_labs_create (var_get_width (v));
   v->label = NULL;
   var_clear_short_name (v);
   v->aux = NULL;
@@ -319,7 +324,7 @@ dict_create_var (struct dictionary *d, const char *name, int width)
   d->var_cnt++;
   hsh_force_insert (d->name_tab, v);
 
-  d->next_value_idx += v->nv;
+  d->next_value_idx += var_get_value_cnt (v);
 
   return v;
 }
@@ -352,7 +357,7 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
   assert (strlen (name) >= 1);
   assert (strlen (name) <= LONG_NAME_LEN);
 
-  nv = dict_create_var (d, name, ov->width);
+  nv = dict_create_var (d, name, var_get_width (ov));
   if (nv == NULL)
     return NULL;
 
@@ -360,17 +365,16 @@ dict_clone_var (struct dictionary *d, const struct variable *ov,
      short_name[] is intentionally not copied, because there is
      no reason to give a new variable with potentially a new name
      the same short name. */
-  nv->leave = ov->leave;
-  mv_copy (&nv->miss, &ov->miss);
-  nv->print = ov->print;
-  nv->write = ov->write;
+  nv->leave = var_get_leave (ov);
+  var_set_missing_values (nv, var_get_missing_values (ov));
+  var_set_print_format (nv, var_get_print_format (ov));
+  var_set_write_format (nv, var_get_write_format (ov));
   val_labs_destroy (nv->val_labs);
   nv->val_labs = val_labs_copy (ov->val_labs);
-  if (ov->label != NULL)
-    nv->label = xstrdup (ov->label);
-  nv->measure = ov->measure;
-  nv->display_width = ov->display_width;
-  nv->alignment = ov->alignment;
+  var_set_label (nv, var_get_label (ov));
+  var_set_measure (nv, var_get_measure (ov));
+  var_set_display_width (nv, var_get_display_width (ov));
+  var_set_alignment (nv, var_get_alignment (ov));
 
   return nv;
 }
@@ -511,7 +515,7 @@ dict_delete_scratch_vars (struct dictionary *d)
   assert (d != NULL);
 
   for (i = 0; i < d->var_cnt; )
-    if (dict_class_from_id (d->var[i]->name) == DC_SCRATCH)
+    if (dict_class_from_id (var_get_name (d->var[i])) == DC_SCRATCH)
       dict_delete_var (d, d->var[i]);
     else
       i++;
@@ -587,11 +591,11 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   assert (new_name != NULL);
   assert (var_is_plausible_name (new_name, false));
   assert (dict_contains_var (d, v));
-  assert (!compare_var_names (v->name, new_name, NULL)
+  assert (!compare_var_names (var_get_name (v), new_name, NULL)
           || dict_lookup_var (d, new_name) == NULL);
 
   hsh_force_delete (d->name_tab, v);
-  str_copy_trunc (v->name, sizeof v->name, new_name);
+  var_set_name (v, new_name);
   hsh_force_insert (d->name_tab, v);
 
   if (get_algorithm () == ENHANCED)
@@ -625,8 +629,8 @@ dict_rename_vars (struct dictionary *d,
       assert (d->var[vars[i]->index] == vars[i]);
       assert (var_is_plausible_name (new_names[i], false));
       hsh_force_delete (d->name_tab, vars[i]);
-      old_names[i] = xstrdup (vars[i]->name);
-      strcpy (vars[i]->name, new_names[i]);
+      old_names[i] = xstrdup (var_get_name (vars[i]));
+      var_set_name (vars[i], new_names[i]);
     }
 
   /* Add the renamed variables back into the name hash,
@@ -652,7 +656,7 @@ dict_rename_vars (struct dictionary *d,
           
           for (i = 0; i < count; i++)
             {
-              strcpy (vars[i]->name, old_names[i]);
+              var_set_name (vars[i], old_names[i]);
               hsh_force_insert (d->name_tab, vars[i]);
             }
 
@@ -703,7 +707,7 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
   else 
     {
       double w = case_num (c, d->weight->fv);
-      if (w < 0.0 || mv_is_num_missing (&d->weight->miss, w))
+      if (w < 0.0 || var_is_num_missing (d->weight, w))
         w = 0.0;
       if ( w == 0.0 && *warn_on_invalid ) {
 	  *warn_on_invalid = false;
@@ -722,7 +726,7 @@ dict_set_weight (struct dictionary *d, struct variable *v)
 {
   assert (d != NULL);
   assert (v == NULL || dict_contains_var (d, v));
-  assert (v == NULL || v->type == NUMERIC);
+  assert (v == NULL || var_is_numeric (v));
 
   d->weight = v;
 }
@@ -802,10 +806,10 @@ dict_compact_values (struct dictionary *d)
     {
       struct variable *v = d->var[i];
 
-      if (dict_class_from_id (v->name) != DC_SCRATCH) 
+      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH) 
         {
           v->fv = d->next_value_idx;
-          d->next_value_idx += v->nv;
+          d->next_value_idx += var_get_value_cnt (v);
           i++;
         }
       else
@@ -823,8 +827,8 @@ dict_get_compacted_value_cnt (const struct dictionary *d)
 
   cnt = 0;
   for (i = 0; i < d->var_cnt; i++)
-    if (dict_class_from_id (d->var[i]->name) != DC_SCRATCH) 
-      cnt += d->var[i]->nv;
+    if (dict_class_from_id (var_get_name (d->var[i])) != DC_SCRATCH) 
+      cnt += var_get_value_cnt (d->var[i]);
   return cnt;
 }
 
@@ -845,10 +849,10 @@ dict_get_compacted_idx_to_fv (const struct dictionary *d)
     {
       struct variable *v = d->var[i];
 
-      if (dict_class_from_id (v->name) != DC_SCRATCH) 
+      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH) 
         {
           idx_to_fv[i] = next_value_idx;
-          next_value_idx += v->nv;
+          next_value_idx += var_get_value_cnt (v);
         }
       else 
         idx_to_fv[i] = -1;
@@ -891,7 +895,7 @@ dict_compacting_would_change (const struct dictionary *d)
       struct variable *v = dict_get_var (d, i);
       if (v->fv != case_idx)
         return true;
-      case_idx += v->nv;
+      case_idx += var_get_value_cnt (v);
     }
   return false;
 }
@@ -937,10 +941,10 @@ dict_make_compactor (const struct dictionary *d)
     {
       struct variable *v = d->var[i];
 
-      if (dict_class_from_id (v->name) == DC_SCRATCH)
+      if (dict_class_from_id (var_get_name (v)) == DC_SCRATCH)
         continue;
       if (map != NULL && map->src_idx + map->cnt == v->fv) 
-        map->cnt += v->nv;
+        map->cnt += var_get_value_cnt (v);
       else 
         {
           if (compactor->map_cnt == map_allocated)
@@ -949,9 +953,9 @@ dict_make_compactor (const struct dictionary *d)
           map = &compactor->maps[compactor->map_cnt++];
           map->src_idx = v->fv;
           map->dst_idx = value_idx;
-          map->cnt = v->nv;
+          map->cnt = var_get_value_cnt (v);
         }
-      value_idx += v->nv;
+      value_idx += var_get_value_cnt (v);
     }
 
   return compactor;
@@ -1198,9 +1202,10 @@ dict_assign_short_names (struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
-      if (strlen (v->name) <= SHORT_NAME_LEN)
-        var_set_short_name (v, v->name);
-      else if (dict_lookup_var (d, v->short_name) != NULL)
+      const char *short_name = var_get_short_name (v);
+      if (strlen (var_get_name (v)) <= SHORT_NAME_LEN)
+        var_set_short_name (v, var_get_name (v));
+      else if (short_name != NULL && dict_lookup_var (d, short_name) != NULL)
         var_clear_short_name (v);
     }
 
@@ -1211,7 +1216,8 @@ dict_assign_short_names (struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
-      if (v->short_name[0] && hsh_insert (short_names, v->short_name) != NULL)
+      const char *name = var_get_short_name (v);
+      if (name != NULL && hsh_insert (short_names, (char *) name) != NULL)
         var_clear_short_name (v);
     }
   
@@ -1219,16 +1225,23 @@ dict_assign_short_names (struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
-      if (v->short_name[0] == '\0') 
+      const char *name = var_get_short_name (v);
+      if (name == NULL) 
         {
-          int sfx;
+          /* Form initial short_name from the variable name, then
+             try _A, _B, ... _AA, _AB, etc., if needed.*/
+          int trial = 0;
+          do
+            {
+              if (trial == 0)
+                var_set_short_name (v, var_get_name (v));
+              else
+                var_set_short_name_suffix (v, var_get_name (v), trial - 1);
 
-          /* Form initial short_name. */
-          var_set_short_name (v, v->name);
-
-          /* Try _A, _B, ... _AA, _AB, etc., if needed. */
-          for (sfx = 0; hsh_insert (short_names, v->short_name) != NULL; sfx++)
-            var_set_short_name_suffix (v, v->name, sfx);
+              trial++;
+            }
+          while (hsh_insert (short_names, (char *) var_get_short_name (v))
+                 != NULL);
         } 
     }
 

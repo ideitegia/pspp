@@ -71,9 +71,8 @@ cmd_variable_alignment (struct lexer *lexer, struct dataset *ds)
           return CMD_FAILURE; 
         }
 
-      for( i = 0 ; i < nv ; ++i ) 
-	v[i]->alignment = align;
-
+      for( i = 0 ; i < nv ; ++i )
+        var_set_alignment (v[i], align);
 
       while (lex_token (lexer) == '/')
 	lex_get (lexer);
@@ -110,7 +109,7 @@ cmd_variable_width (struct lexer *lexer, struct dataset *ds)
 	}
 
       for( i = 0 ; i < nv ; ++i ) 
-	  v[i]->display_width = lex_tokval (lexer);
+        var_set_display_width (v[i], lex_integer (lexer));
 
       while (lex_token (lexer) == '/')
 	lex_get (lexer);
@@ -158,7 +157,7 @@ cmd_variable_level (struct lexer *lexer, struct dataset *ds)
         }
       
       for( i = 0 ; i < nv ; ++i ) 
-	v[i]->measure = level ;
+	var_set_measure (v[i], level);
 
 
       while (lex_token (lexer) == '/')

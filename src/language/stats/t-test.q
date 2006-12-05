@@ -375,16 +375,16 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
       return 0;
     }
 
-  if (indep_var->type == T_STRING && indep_var->width > MAX_SHORT_STRING)
+  if (var_is_long_string (indep_var))
     {
       msg (SE, _("Long string variable %s is not valid here."),
-	   indep_var->name);
+	   var_get_name (indep_var));
       return 0;
     }
 
   if (!lex_match (lexer, '('))
     {
-      if (indep_var->type == NUMERIC)
+      if (var_is_numeric (indep_var))
 	{
 	  gp.v.g_value[0].f = 1;
 	  gp.v.g_value[1].f = 2;
@@ -403,15 +403,14 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
 	}
     }
 
-  if (!parse_value (lexer, &gp.v.g_value[0], indep_var->type))
+  if (!parse_value (lexer, &gp.v.g_value[0], var_get_type (indep_var)))
       return 0;
 
   lex_match (lexer, ',');
   if (lex_match (lexer, ')'))
     {
-      if (indep_var->type != NUMERIC)
+      if (var_is_alpha (indep_var))
 	{
-
 	  msg (SE, _("When applying GROUPS to a string variable, two "
 		     "values must be specified."));
 	  return 0;
@@ -423,7 +422,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
       return 1;
     }
 
-  if (!parse_value (lexer, &gp.v.g_value[1], indep_var->type))
+  if (!parse_value (lexer, &gp.v.g_value[1], var_get_type (indep_var)))
     return 0;
 
   n_group_values = 2;
@@ -702,7 +701,7 @@ ssbox_independent_samples_init(struct ssbox *this,
   ssbox_base_init(this, hsize,vsize);
   tab_vline (this->t, TAL_GAP, 1, 0,vsize - 1);
   tab_title (this->t, _("Group Statistics"));
-  tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, indep_var->name);
+  tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, var_get_name (indep_var));
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
@@ -723,7 +722,7 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
   char prefix[2][3]={"",""};
 
-  if ( indep_var->type == NUMERIC ) 
+  if ( var_is_numeric (indep_var) ) 
     {
       val_lab0 = val_labs_find( indep_var->val_labs,gp.v.g_value[0]); 
       val_lab1 = val_labs_find( indep_var->val_labs,gp.v.g_value[1]);
@@ -755,7 +754,8 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
       struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       int count=0;
 
-      tab_text (ssb->t, 0, i*2+1, TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (ssb->t, 0, i*2+1, TAB_LEFT,
+                var_get_name (cmd->v_variables[i]));
 
       if (val_lab0)
 	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
@@ -856,7 +856,8 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 
 	  /* Titles */
 
-	  tab_text (ssb->t, 1, i*2+j+1, TAB_LEFT, pairs[i].v[j]->name);
+	  tab_text (ssb->t, 1, i*2+j+1, TAB_LEFT,
+                    var_get_name (pairs[i].v[j]));
 
 	  /* Values */
 	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, pairs[i].mean[j], 8, 2);
@@ -880,7 +881,7 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
     {
       struct group_statistics *gs = &group_proc_get (cmd->v_variables[i])->ugs;
 
-      tab_text (ssb->t, 0, i+1, TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (ssb->t, 0, i+1, TAB_LEFT, var_get_name (cmd->v_variables[i]));
       tab_float (ssb->t,1, i+1, TAB_RIGHT, gs->n, 2, 0);
       tab_float (ssb->t,2, i+1, TAB_RIGHT, gs->mean, 8, 2);
       tab_float (ssb->t,3, i+1, TAB_RIGHT, gs->std_dev, 8, 2);
@@ -1039,7 +1040,7 @@ trbox_independent_samples_populate(struct trbox *self,
       assert(gs1);
 
 	  
-      tab_text (self->t, 0, i*2+3, TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (self->t, 0, i*2+3, TAB_LEFT, var_get_name (cmd->v_variables[i]));
 
       tab_text (self->t, 1, i*2+3, TAB_LEFT, _("Equal variances assumed"));
 
@@ -1193,7 +1194,8 @@ trbox_paired_populate(struct trbox *trb,
       tab_text (trb->t, 0, i+3, TAB_LEFT | TAT_PRINTF, _("Pair %d"),i); 
 
       tab_text (trb->t, 1, i+3, TAB_LEFT | TAT_PRINTF, "%s - %s",
-		pairs[i].v[0]->name, pairs[i].v[1]->name);
+		var_get_name (pairs[i].v[0]),
+                var_get_name (pairs[i].v[1]));
 
       tab_float(trb->t, 2, i+3, TAB_RIGHT, pairs[i].mean_diff, 8, 4);
 
@@ -1287,7 +1289,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
       struct group_statistics *gs = &group_proc_get (cmd->v_variables[i])->ugs;
 
 
-      tab_text (trb->t, 0, i+3, TAB_LEFT, cmd->v_variables[i]->name);
+      tab_text (trb->t, 0, i+3, TAB_LEFT, var_get_name (cmd->v_variables[i]));
 
       t = (gs->mean - cmd->n_testval[0] ) * sqrt(gs->n) / gs->std_dev ;
 
@@ -1383,7 +1385,9 @@ pscbox(void)
 	       _("Pair %d"), i);
       
       tab_text(table, 1,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF, 
-	       _("%s & %s"), pairs[i].v[0]->name, pairs[i].v[1]->name);
+	       _("%s & %s"),
+               var_get_name (pairs[i].v[0]),
+               var_get_name (pairs[i].v[1]));
 
 
       /* row data */
@@ -1653,7 +1657,7 @@ group_precalc (struct cmd_t_test *cmd )
       /* There's always 2 groups for a T - TEST */
       ttpr->n_groups = 2;
 
-      gp.indep_width = indep_var->width;
+      gp.indep_width = var_get_width (indep_var);
       
       ttpr->group_hash = hsh_create(2, 
 				    (hsh_compare_func *) compare_group_binary,
