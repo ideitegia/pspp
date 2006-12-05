@@ -53,7 +53,7 @@ msg_ui_set_error_file (const char *filename)
 }
 
 void
-msg_ui_init (void) 
+msg_ui_init (struct source_stream *ss) 
 {
   msg_file = stdout;
 
@@ -69,7 +69,7 @@ msg_ui_init (void)
 	  msg_file = stdout;
 	}
     }
-  msg_init (handle_msg);
+  msg_init (ss, handle_msg);
 }
 
 void
@@ -81,13 +81,12 @@ msg_ui_done (void)
     fclose (msg_file);
 }
 
-
 /* Checks whether we've had so many errors that it's time to quit
    processing this syntax file. */
 void
-check_msg_count (void)
+check_msg_count (struct source_stream *ss)
 {
-  if (!getl_is_interactive ()) 
+  if (!getl_is_interactive (ss)) 
     {
       if (get_errorbreak () && error_count)
         msg (MN, _("Terminating execution of syntax file due to error."));
@@ -100,7 +99,7 @@ check_msg_count (void)
       else
         return;
 
-      getl_abort_noninteractive (); 
+      getl_abort_noninteractive (ss); 
     }
 }
 

@@ -51,10 +51,10 @@ static GQueue *message_queue;
 
 
 void
-message_dialog_init (void) 
+message_dialog_init (struct source_stream *ss) 
 {
   message_queue = g_queue_new();
-  msg_init (enqueue_msg);
+  msg_init (ss, enqueue_msg);
 }
 
 void

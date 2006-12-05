@@ -71,7 +71,7 @@ msg_pop_msg_locator (const struct msg_locator *loc)
 /* Puts the current file and line number into LOC, or NULL and -1 if
    none. */
 void
-get_msg_location (struct msg_locator *loc)
+get_msg_location (const struct source_stream *ss, struct msg_locator *loc)
 {
   if (nfile_loc)
     {
@@ -79,7 +79,7 @@ get_msg_location (struct msg_locator *loc)
     }
   else
     {
-      loc->file_name = getl_source_name ();
-      loc->line_number = getl_source_location ();
+      loc->file_name = getl_source_name (ss);
+      loc->line_number = getl_source_location (ss);
     }
 }

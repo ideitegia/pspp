@@ -31,6 +31,7 @@ void msg_push_msg_locator (const struct msg_locator *loc);
    item on top of the stack. */
 void msg_pop_msg_locator (const struct msg_locator *loc);
 
+struct source_stream ;
 /* Puts the current file and line number into LOC, or NULL and -1 if
    none. */
-void get_msg_location (struct msg_locator *loc);
+void get_msg_location (const struct source_stream *ss, struct msg_locator *loc);

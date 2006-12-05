@@ -30,10 +30,10 @@
 struct lexer;
 
 /* Initialization. */
-struct lexer * lex_create (bool (*)(struct string *, enum getl_syntax *));
+struct lexer * lex_create (struct source_stream *);
 void lex_destroy (struct lexer *);
 
-
+struct source_stream * lex_get_source_stream (const struct lexer *);
 
 
 /* Common functions. */
@@ -93,7 +93,6 @@ const struct string *lex_tokstr (const struct lexer *);
 
 /* Really weird functions. */
 void lex_negative_to_dash (struct lexer *);
-void lex_reset_eof (struct lexer *);
 void lex_skip_comment (struct lexer *);
 
 #endif /* !lexer_h */

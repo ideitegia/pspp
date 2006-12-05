@@ -85,8 +85,10 @@ struct msg
     char *text;                 /* Error text. */
   };
 
+struct source_stream ;
+
 /* Initialization. */
-void msg_init ( void (*handler) (const struct msg *) );
+void msg_init (struct source_stream *, void (*handler) (const struct msg *) );
 
 void msg_done (void);
 

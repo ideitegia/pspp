@@ -50,11 +50,12 @@ static void usage (void);
 
 char *subst_vars (char *);
 
+
 /* Parses the command line specified by ARGC and ARGV as received by
    main().  Returns true if normal execution should proceed,
    false if the command-line indicates that PSPP should exit. */
 bool
-parse_command_line (int argc, char **argv)
+parse_command_line (int argc, char **argv, struct source_stream *ss)
 {
   static struct option long_options[] =
   {
@@ -140,9 +141,9 @@ parse_command_line (int argc, char **argv)
 	  break;
 	case 'I':
 	  if (optarg == NULL || !strcmp (optarg, "-"))
-	    getl_clear_include_path ();
+	    getl_clear_include_path (ss);
 	  else
-	    getl_add_include_dir (optarg);
+	    getl_add_include_dir (ss, optarg);
 	  break;
 	case 'l':
 	  outp_list_classes ();
@@ -195,7 +196,7 @@ parse_command_line (int argc, char **argv)
       char *pspprc_fn = fn_search_path ("rc", config_path, NULL);
       if (pspprc_fn != NULL) 
         {
-	  getl_append_source (create_syntax_file_source (pspprc_fn));
+	  getl_append_source (ss, create_syntax_file_source (pspprc_fn));
 
           free (pspprc_fn); 
         }
@@ -206,12 +207,12 @@ parse_command_line (int argc, char **argv)
       outp_configure_macro (argv[i]);
     else 
       {
-	getl_append_source (create_syntax_file_source (argv[i]));
+	getl_append_source (ss, create_syntax_file_source (argv[i]));
         syntax_files++;
       }
 
   if (!syntax_files || interactive_mode)
-    getl_append_source (create_readln_source () );
+    getl_append_source (ss, create_readln_source () );
 
   return true;
 }

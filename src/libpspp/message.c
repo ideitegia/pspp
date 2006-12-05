@@ -63,9 +63,12 @@ msg (enum msg_class class, const char *format, ...)
   msg_emit (&m);
 }
 
+static struct source_stream *s_stream;
+
 void
-msg_init ( void (*handler) (const struct msg *) )
+msg_init (struct source_stream *ss,  void (*handler) (const struct msg *) )
 {
+  s_stream = ss;
   msg_handler = handler;
 }
 
@@ -99,7 +102,7 @@ msg_destroy(struct msg *m)
 void
 msg_emit (struct msg *m) 
 {
-  get_msg_location (&m->where);
+  get_msg_location (s_stream, &m->where);
   if (!messages_disabled)
     msg_handler (m);
   free (m->text);

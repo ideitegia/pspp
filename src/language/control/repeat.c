@@ -139,7 +139,7 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
   block->parent.location = do_repeat_location;
 
   if (!ll_is_empty (&block->lines))
-    getl_include_source (&block->parent);
+    getl_include_source (lex_get_source_stream (lexer), &block->parent);
   else
     pool_destroy (block->pool);
 
@@ -310,7 +310,7 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
       ds_init_string (&text, lex_entire_line_ds (lexer));
 
       /* Record file name. */
-      cur_file_name = getl_source_name ();
+      cur_file_name = getl_source_name (lex_get_source_stream (lexer));
       if (cur_file_name != NULL && 
 	  (previous_file_name == NULL
            || !strcmp (cur_file_name, previous_file_name)))
@@ -319,7 +319,7 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
       /* Create a line structure. */
       line = pool_alloc (block->pool, sizeof *line);
       line->file_name = previous_file_name;
-      line->line_number = getl_source_location ();
+      line->line_number = getl_source_location (lex_get_source_stream (lexer));
       ss_alloc_substring_pool (&line->text, ds_ss (&text), block->pool);
       line->syntax = syntax;
 

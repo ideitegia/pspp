@@ -22,6 +22,8 @@
 
 #include <stdbool.h>
 
-bool parse_command_line (int argc, char **argv);
+struct source_stream ;
+
+bool parse_command_line (int argc, char **argv, struct source_stream *);
 
 #endif /* cmdline.h */

@@ -76,6 +76,8 @@ void interrupt_handler(int sig);
 static struct dataset * the_dataset = NULL;
 
 static struct lexer *the_lexer;
+static struct source_stream *the_source_stream ;
+
 
 /* Program entry point. */
 int
@@ -95,18 +97,18 @@ main (int argc, char **argv)
   outp_init ();
   fn_init ();
   fh_init ();
-  getl_initialize ();
+  the_source_stream = create_source_stream ();
   prompt_init ();
   readln_initialize ();
   settings_init ();
   random_init ();
   the_dataset = create_dataset ();
 
-  if (parse_command_line (argc, argv)) 
+  if (parse_command_line (argc, argv, the_source_stream)) 
     {
-      msg_ui_init ();
+      msg_ui_init (the_source_stream);
       outp_read_devices ();
-      the_lexer = lex_create (do_read_line);
+      the_lexer = lex_create (the_source_stream);
 
       for (;;)
         {
@@ -115,14 +117,15 @@ main (int argc, char **argv)
                                  ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
-          if (result == CMD_CASCADING_FAILURE && !getl_is_interactive ())
+          if (result == CMD_CASCADING_FAILURE && 
+	      !getl_is_interactive (the_source_stream))
             {
               msg (SE, _("Stopping syntax file processing here to avoid "
                          "a cascade of dependent command failures."));
-              getl_abort_noninteractive (); 
+              getl_abort_noninteractive (the_source_stream); 
             }
           else
-            check_msg_count ();
+            check_msg_count (the_source_stream);
         }
     }
   
@@ -196,7 +199,7 @@ terminate (bool success)
       settings_done ();
       fh_done ();
       lex_destroy (the_lexer);
-      getl_uninitialize ();
+      destroy_source_stream (the_source_stream);
       prompt_done ();
       readln_uninitialize ();
 

@@ -49,7 +49,7 @@ struct lexer
 {
   struct string line_buffer;
 
-  bool (*read_line) (struct string *, enum getl_syntax *);
+  struct source_stream *ss;
 
   int token;      /* Current token. */
   double tokval;  /* T_POS_NUM, T_NEG_NUM: the token's value. */
@@ -93,20 +93,27 @@ static void dump_token (void);
 
 /* Initializes the lexer. */
 struct lexer *
-lex_create (bool (*read_line_func) (struct string *, enum getl_syntax *))
+lex_create (struct source_stream *ss)
 {
   struct lexer *lexer = xzalloc (sizeof (*lexer));
 
   ds_init_empty (&lexer->tokstr);
   ds_init_empty (&lexer->put_tokstr);
   ds_init_empty (&lexer->line_buffer);
-  lexer->read_line = read_line_func;
+  lexer->ss = ss;
 
   if (!lex_get_line (lexer))
     lexer->eof = true;
 
   return lexer;
 }
+
+struct source_stream *
+lex_get_source_stream (const struct lexer *lex)
+{
+  return lex->ss;
+}
+
 
 void
 lex_destroy (struct lexer *lexer)
@@ -752,7 +759,7 @@ lex_discard_line (struct lexer *lexer)
 void
 lex_discard_rest_of_command (struct lexer *lexer) 
 {
-  if (!getl_is_interactive ())
+  if (!getl_is_interactive (lexer->ss))
     {
       while (lexer->token != T_STOP && lexer->token != '.')
 	lex_get (lexer);
@@ -842,7 +849,7 @@ bool
 lex_get_line_raw (struct lexer *lexer, enum getl_syntax *syntax)
 {
   enum getl_syntax dummy;
-  bool ok = lexer->read_line (&lexer->line_buffer,
+  bool ok = getl_read_line (lexer->ss, &lexer->line_buffer,
                               syntax != NULL ? syntax : &dummy);
   return ok;
 }
@@ -976,13 +983,6 @@ lex_negative_to_dash (struct lexer *lexer)
     }
 }
    
-/* We're not at eof any more. */
-void
-lex_reset_eof (struct lexer *lexer)
-{
-  lexer->eof = false;
-}
-
 /* Skip a COMMENT command. */
 void
 lex_skip_comment (struct lexer *lexer)

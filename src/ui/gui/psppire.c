@@ -77,6 +77,8 @@ PsppireVarStore *var_store = 0;
 
 void create_icon_factory (void);
 
+static struct source_stream *the_source_stream ;
+
 int 
 main(int argc, char *argv[]) 
 {
@@ -116,8 +118,8 @@ main(int argc, char *argv[])
 
   fmt_init();
   settings_init();
-  getl_initialize ();
-  message_dialog_init();
+  the_source_stream = create_source_stream ();
+  message_dialog_init (the_source_stream);
 
   the_dictionary = psppire_dict_new();
 
@@ -168,7 +170,7 @@ main(int argc, char *argv[])
   /* start the event loop */
   gtk_main();
 
-  getl_uninitialize ();
+  destroy_source_stream (the_source_stream);
   message_dialog_done();
 
   settings_done();
