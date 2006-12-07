@@ -60,13 +60,13 @@ metrics_precalc(struct metrics *m)
    If val is null, then treat it as MISSING
 */
 void
-metrics_calc(struct metrics *fs, const union value *val, 
-	     double weight, int case_no)
+metrics_calc (struct metrics *fs, const union value *val,
+	      double weight, int case_no)
 {
   struct weighted_value **wv;
   double x;
-  
-  if ( ! val ) 
+
+  if ( ! val )
     {
       fs->n_missing += weight;
       return ;
@@ -83,15 +83,15 @@ metrics_calc(struct metrics *fs, const union value *val,
 
   wv = (struct weighted_value **) hsh_probe (fs->ordered_data,(void *) val );
 
-  if ( *wv  ) 
+  if ( *wv  )
     {
-      /* If this value has already been seen, then simply 
+      /* If this value has already been seen, then simply
 	 increase its weight  and push a new case number */
 
       struct case_node *cn;
 
       assert( (*wv)->v.f == val->f );
-      (*wv)->w += weight;      
+      (*wv)->w += weight;
 
       cn = xmalloc ( sizeof *cn);
       cn->next = (*wv)->case_nos ;
@@ -106,7 +106,7 @@ metrics_calc(struct metrics *fs, const union value *val,
       *wv = weighted_value_create();
       (*wv)->v = *val;
       (*wv)->w = weight;
-      
+
       cn = xmalloc (sizeof *cn);
       cn->next=0;
       cn->num = case_no;
@@ -123,9 +123,9 @@ metrics_postcalc(struct metrics *m)
   double tc ;
   int k1, k2 ;
   int i;
-  int j = 1;  
+  int j = 1;
 
-  moments1_calculate (m->moments, &m->n, &m->mean, &m->var, 
+  moments1_calculate (m->moments, &m->n, &m->mean, &m->var,
 		      &m->skewness, &m->kurtosis);
 
   moments1_destroy (m->moments);
@@ -143,7 +143,7 @@ metrics_postcalc(struct metrics *m)
   m->n_data = hsh_count(m->ordered_data);
 
   /* Trimmed mean calculation */
-  if ( m->n_data <= 1 ) 
+  if ( m->n_data <= 1 )
     {
       m->trimmed_mean = m->mean;
       return;
@@ -151,7 +151,7 @@ metrics_postcalc(struct metrics *m)
 
   m->histogram = histogram_create(10, m->min, m->max);
 
-  for ( i = 0 ; i < m->n_data ; ++i ) 
+  for ( i = 0 ; i < m->n_data ; ++i )
     {
       struct weighted_value **wv = (m->wvp) ;
       gsl_histogram_accumulate(m->histogram, wv[i]->v.f, wv[i]->w);
@@ -161,25 +161,25 @@ metrics_postcalc(struct metrics *m)
   k1 = -1;
   k2 = -1;
 
-  for ( i = 0 ; i < m->n_data ; ++i ) 
+  for ( i = 0 ; i < m->n_data ; ++i )
     {
       cc += m->wvp[i]->w;
       m->wvp[i]->cc = cc;
 
       m->wvp[i]->rank = j + (m->wvp[i]->w - 1) / 2.0 ;
-      
+
       j += m->wvp[i]->w;
-      
-      if ( cc < tc ) 
+
+      if ( cc < tc )
 	k1 = i;
     }
 
-  
+
 
   k2 = m->n_data;
-  for ( i = m->n_data -1  ; i >= 0; --i ) 
+  for ( i = m->n_data -1  ; i >= 0; --i )
     {
-      if ( tc > m->n - m->wvp[i]->cc) 
+      if ( tc > m->n - m->wvp[i]->cc)
 	k2 = i;
     }
 
@@ -192,14 +192,14 @@ metrics_postcalc(struct metrics *m)
                 m->n_data, m->n, m->hinge);
 
   /* Special case here */
-  if ( k1 + 1 == k2 ) 
+  if ( k1 + 1 == k2 )
     {
       m->trimmed_mean = m->wvp[k2]->v.f;
       return;
     }
 
   m->trimmed_mean = 0;
-  for ( i = k1 + 2 ; i <= k2 - 1 ; ++i ) 
+  for ( i = k1 + 2 ; i <= k2 - 1 ; ++i )
     {
       m->trimmed_mean += m->wvp[i]->v.f * m->wvp[i]->w;
     }
@@ -225,12 +225,12 @@ weighted_value_create(void)
   return wv;
 }
 
-void 
+void
 weighted_value_free(struct weighted_value *wv)
 {
   struct case_node *cn ;
 
-  if ( !wv ) 
+  if ( !wv )
     return ;
 
   cn = wv->case_nos;
@@ -238,7 +238,7 @@ weighted_value_free(struct weighted_value *wv)
   while(cn)
     {
       struct case_node *next = cn->next;
-      
+
       free(cn);
       cn = next;
     }
@@ -252,16 +252,18 @@ weighted_value_free(struct weighted_value *wv)
 
 
 /* Create a factor statistics object with for N dependent vars
-   and ID as the value of the independent variable */
-struct factor_statistics * 
-create_factor_statistics (int n, union value *id0, union value *id1)
+   and ID0 and ID1 as the values of the independent variable */
+struct factor_statistics *
+create_factor_statistics (int n,
+			  union value *id0,
+			  union value *id1)
 {
   struct factor_statistics *f;
 
   f = xmalloc (sizeof *f);
 
-  f->id[0] = *id0;
-  f->id[1] = *id1;
+  f->id[0] = id0;
+  f->id[1] = id1;
   f->m = xnmalloc (n, sizeof *f->m);
   memset (f->m, 0, sizeof(struct metrics) * n);
   f->n_var = n;
@@ -269,13 +271,12 @@ create_factor_statistics (int n, union value *id0, union value *id1)
   return f;
 }
 
-
-void 
+void
 metrics_destroy(struct metrics *m)
 {
   hsh_destroy(m->ordered_data);
   hsh_destroy(m->ptile_hash);
-  if ( m-> histogram ) 
+  if ( m-> histogram )
     gsl_histogram_free(m->histogram);
 }
 
@@ -283,17 +284,17 @@ void
 factor_statistics_free(struct factor_statistics *f)
 {
 
-  int i; 
-  for ( i = 0 ; i < f->n_var; ++i ) 
+  int i;
+  free (f->id[0]);
+  free (f->id[1]);
+  for ( i = 0 ; i < f->n_var; ++i )
        metrics_destroy(&f->m[i]);
-  free(f->m) ; 
+  free(f->m) ;
   free(f);
 }
 
 
-
-
-int 
+int
 factor_statistics_compare(const struct factor_statistics *f0,
 	                  const struct factor_statistics *f1, int width)
 {
@@ -303,33 +304,30 @@ factor_statistics_compare(const struct factor_statistics *f0,
   assert(f0);
   assert(f1);
 
-  cmp0 = compare_values(&f0->id[0], &f1->id[0], width);
+  cmp0 = compare_values(f0->id[0], f1->id[0], width);
 
-  if ( cmp0 != 0 ) 
+  if ( cmp0 != 0 )
     return cmp0;
 
 
-  if ( ( f0->id[1].f == SYSMIS )  && (f1->id[1].f != SYSMIS) ) 
+  if ( ( f0->id[1]->f == SYSMIS ) && (f1->id[1]->f != SYSMIS) )
     return 1;
 
-  if ( ( f0->id[1].f != SYSMIS )  && (f1->id[1].f == SYSMIS) ) 
+  if ( ( f0->id[1]->f != SYSMIS )  && (f1->id[1]->f == SYSMIS) )
     return -1;
 
-  return compare_values(&f0->id[1], &f1->id[1], width);
-  
+  return compare_values (f0->id[1], f1->id[1], width);
 }
 
-unsigned int 
-factor_statistics_hash(const struct factor_statistics *f, int width)
+unsigned int
+factor_statistics_hash (const struct factor_statistics *f, int width)
 {
-  
   unsigned int h;
 
-  h = hash_value(&f->id[0], width);
-  
-  if ( f->id[1].f != SYSMIS )
-    h += hash_value(&f->id[1], width);
+  h = hash_value (f->id[0], width);
+
+  if ( f->id[1]->f != SYSMIS )
+    h += hash_value(f->id[1], width);
 
   return h;
 }
-	

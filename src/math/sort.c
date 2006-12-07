@@ -35,7 +35,6 @@
 #include <data/settings.h>
 #include <data/variable.h>
 #include <data/storage-stream.h>
-#include <language/expressions/public.h>
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>

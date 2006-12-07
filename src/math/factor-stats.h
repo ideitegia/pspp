@@ -1,7 +1,7 @@
 /* PSPP - A program for statistical analysis . -*-c-*-
 
 Copyright (C) 2004 Free Software Foundation, Inc.
-Author: John Darrington 2004
+Author: John Darrington 2004, 2006
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #define FACTOR_STATS
 
 
-/* FIXME: These things should probably be amalgamated with the 
+/* FIXME: These things should probably be amalgamated with the
    group_statistics struct */
 
 #include <libpspp/hash.h>
@@ -39,13 +39,13 @@ struct metrics
   double n;
 
   double n_missing;
-  
+
   double min;
 
   double max;
 
   double mean;
-  
+
   double se_mean;
 
   double var;
@@ -90,7 +90,7 @@ struct metrics * metrics_create(void);
 
 void metrics_precalc(struct metrics *m);
 
-void metrics_calc(struct metrics *m, const union value *f, double weight, 
+void metrics_calc(struct metrics *m, const union value *f, double weight,
 		  int case_no);
 
 void metrics_postcalc(struct metrics *m);
@@ -106,7 +106,7 @@ struct case_node
   struct case_node *next;
 };
 
-struct weighted_value 
+struct weighted_value
 {
   union value v;
 
@@ -114,14 +114,14 @@ struct weighted_value
   double w;
 
   /* The cumulative weight */
-  double cc; 
+  double cc;
 
   /* The rank */
   double rank;
 
   /* Linked list of cases nos which have this value */
   struct case_node *case_nos;
-  
+
 };
 
 
@@ -134,7 +134,7 @@ void weighted_value_free(struct weighted_value *wv);
 struct factor_statistics {
 
   /* The values of the independent variables */
-  union value id[2];
+  union value *id[2];
 
   /* The an array stats for this factor, one for each dependent var */
   struct metrics *m;
@@ -146,8 +146,9 @@ struct factor_statistics {
 
 /* Create a factor statistics object with for N dependent vars
    and ID as the value of the independent variable */
-struct factor_statistics * 
-create_factor_statistics (int n, union value *id0, union value *id1);
+struct factor_statistics * create_factor_statistics (int n,
+			  union value *id0,
+			  union value *id1);
 
 
 void factor_statistics_free(struct factor_statistics *f);
@@ -155,13 +156,11 @@ void factor_statistics_free(struct factor_statistics *f);
 
 /* Compare f0 and f1.
    width is the width of the independent variable */
-int 
+int
 factor_statistics_compare(const struct factor_statistics *f0,
 	                  const struct factor_statistics *f1, int width);
 
-			      
-
-unsigned int 
+unsigned int
 factor_statistics_hash(const struct factor_statistics *f, int width);
 
 #endif

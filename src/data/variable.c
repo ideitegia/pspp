@@ -123,6 +123,21 @@ var_dtor_free (struct variable *v)
   free (v->aux);
 }
 
+/* Duplicate a value.
+   The caller is responsible for freeing the returned value
+*/
+union value *
+value_dup (const union value *val, int width)
+{
+  size_t bytes = MAX(width, sizeof *val);
+
+  union value *v = xmalloc (bytes);
+  memcpy (v, val, bytes);
+  return v;
+}
+
+
+
 /* Compares A and B, which both have the given WIDTH, and returns
    a strcmp()-type result. */
 int

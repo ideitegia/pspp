@@ -1,3 +1,8 @@
+Thu Dec  7 15:26:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q: Allocated the categorical values for the dependent and 
+	independent variables, on the heap.  Hence they can be of any width.
+
 Wed Dec  6 21:14:26 2006  Ben Pfaff  <blp@gnu.org>
 
 	* regression.q (reg_inserted): Compare variable pointers instead

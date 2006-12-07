@@ -221,5 +221,7 @@ const char * var_to_string(const struct variable *var);
 
 int width_to_bytes(int width);
 
+union value * value_dup (const union value *val, int width);
+
 
 #endif /* !variable.h */

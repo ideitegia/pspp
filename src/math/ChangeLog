@@ -1,3 +1,8 @@
+Thu Dec  7 15:27:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* factor-stats.c factor-stats.h: Changed independent values to 
+	be pointers rather than copies.
+
 Wed Dec  6 21:14:59 2006  Ben Pfaff  <blp@gnu.org>
 
 	* coefficient.c: (pspp_coeff_get_value) Compare variable pointers
