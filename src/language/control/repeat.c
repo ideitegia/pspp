@@ -311,7 +311,7 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
 
       /* Record file name. */
       cur_file_name = getl_source_name (lex_get_source_stream (lexer));
-      if (cur_file_name != NULL && 
+      if (cur_file_name != NULL &&
 	  (previous_file_name == NULL
            || !strcmp (cur_file_name, previous_file_name)))
         previous_file_name = pool_strdup (block->pool, cur_file_name);
@@ -329,11 +329,12 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
                            &command_ends_before_line,
                            &command_ends_after_line);
       if (recognize_do_repeat (ds_ss (&text)))
-        nesting_level++; 
+        nesting_level++;
       else if (recognize_end_repeat (ds_ss (&text), &block->print)
-               && nesting_level-- == 0) 
+               && nesting_level-- == 0)
         {
           lex_discard_line (lexer);
+	  ds_destroy (&text);
           return true;
         }
       ds_destroy (&text);
@@ -348,7 +349,7 @@ static void
 create_vars (struct repeat_block *block)
 {
   struct repeat_macro *macro;
-  
+
   ll_for_each (macro, struct repeat_macro, ll, &block->macros)
     if (macro->type == VAR_NAMES)
       {
