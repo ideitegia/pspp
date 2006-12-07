@@ -73,7 +73,7 @@ struct getl_interface
 
 struct source_stream;
 
-struct source_stream * create_source_stream (void);
+struct source_stream * create_source_stream (const char *);
 void destroy_source_stream (struct source_stream *);
 
 void getl_clear_include_path (struct source_stream *);

@@ -1,3 +1,8 @@
+Thu Dec  7 20:33:23 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* getl.c getl.h : Changed signature of create function to take a 
+	string indicating the initial include path.
+
 Sun Dec  3 11:36:10 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.h (SS_LITERAL_INITIALIZER): Cast the string literal to "char

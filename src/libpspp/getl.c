@@ -18,7 +18,6 @@
    02110-1301, USA. */
 
 #include <stdlib.h>
-
 #include <config.h>
 
 #include "getl.h"
@@ -27,8 +26,6 @@
 #include <libpspp/ll.h>
 #include <libpspp/version.h>
 #include <libpspp/alloc.h>
-
-#include <data/file-name.h>
 
 struct getl_source
   {
@@ -62,12 +59,16 @@ current_source (const struct source_stream *ss)
 
 /* Initialize getl. */
 struct source_stream *
-create_source_stream (void)
+create_source_stream (const char *initial_include_path)
 {
   struct source_stream *ss = xzalloc (sizeof (*ss));
   ll_init (&ss->sources);
+#if 0
   ds_init_cstr (&ss->the_include_path,
                 fn_getenv_default ("STAT_INCLUDE_PATH", include_path));
+#endif
+  ds_init_cstr (&ss->the_include_path, initial_include_path);
+
   return ss;
 }
 

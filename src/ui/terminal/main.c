@@ -97,14 +97,17 @@ main (int argc, char **argv)
   outp_init ();
   fn_init ();
   fh_init ();
-  the_source_stream = create_source_stream ();
+  the_source_stream =
+    create_source_stream (
+			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
+			  );
   prompt_init ();
   readln_initialize ();
   settings_init ();
   random_init ();
   the_dataset = create_dataset ();
 
-  if (parse_command_line (argc, argv, the_source_stream)) 
+  if (parse_command_line (argc, argv, the_source_stream))
     {
       msg_ui_init (the_source_stream);
       outp_read_devices ();
@@ -112,12 +115,12 @@ main (int argc, char **argv)
 
       for (;;)
         {
-          int result = cmd_parse (the_lexer, the_dataset, 
+          int result = cmd_parse (the_lexer, the_dataset,
 				  proc_has_source (the_dataset)
                                  ? CMD_STATE_DATA : CMD_STATE_INITIAL);
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
-          if (result == CMD_CASCADING_FAILURE && 
+          if (result == CMD_CASCADING_FAILURE &&
 	      !getl_is_interactive (the_source_stream))
             {
               msg (SE, _("Stopping syntax file processing here to avoid "

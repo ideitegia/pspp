@@ -27,6 +27,7 @@
 #include <libpspp/copyleft.h>
 #include <data/format.h>
 #include <data/settings.h>
+#include <data/file-name.h>
 #include <libpspp/getl.h>
 
 #include <getopt.h>
@@ -118,7 +119,10 @@ main(int argc, char *argv[])
 
   fmt_init();
   settings_init();
-  the_source_stream = create_source_stream ();
+  the_source_stream = create_source_stream (
+			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
+			  );
+
   message_dialog_init (the_source_stream);
 
   the_dictionary = psppire_dict_new();
@@ -138,7 +142,7 @@ main(int argc, char *argv[])
   if ( !xml ) return 1;
 
   data_editor = get_widget_assert(xml, "data_editor");
-  gtk_window_set_icon_from_file(GTK_WINDOW(data_editor), 
+  gtk_window_set_icon_from_file(GTK_WINDOW(data_editor),
 				PKGDATADIR "/psppicon.png",0);
 
   /* connect the signals in the interface */
@@ -148,7 +152,7 @@ main(int argc, char *argv[])
   data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
 
   gtk_sheet_set_model(var_sheet, G_SHEET_MODEL(var_store));
-  
+
   gtk_sheet_set_model(data_sheet, G_SHEET_MODEL(data_store));
 
   if (filename)
