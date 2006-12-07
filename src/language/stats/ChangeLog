@@ -1,3 +1,8 @@
+Wed Dec  6 21:14:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	* regression.q (reg_inserted): Compare variable pointers instead
+	of variable indexes.
+
 Mon Dec  4 22:33:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	* crosstabs.q (insert_summary): Use var_to_string for labeling.

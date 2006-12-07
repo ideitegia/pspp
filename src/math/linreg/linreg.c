@@ -123,7 +123,7 @@ pspp_linreg_get_vars (const void *c_, struct variable **v)
       /* Repeated variables are likely to bunch together, at the end
          of the array. */
       i = result - 1;
-      while (i >= 0 && (v[i]->index != tmp->index))
+      while (i >= 0 && v[i] != tmp)
 	{
 	  i--;
 	}

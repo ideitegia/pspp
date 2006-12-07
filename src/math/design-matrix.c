@@ -146,8 +146,8 @@ design_matrix_destroy (struct design_matrix *dm)
   Return the index of the variable for the
   given column.
  */
-static size_t
-design_matrix_col_to_var_index (const struct design_matrix *dm, size_t col)
+struct variable *
+design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
 {
   size_t i;
   struct design_matrix_var v;
@@ -156,40 +156,9 @@ design_matrix_col_to_var_index (const struct design_matrix *dm, size_t col)
     {
       v = dm->vars[i];
       if (v.first_column <= col && col <= v.last_column)
-	return (v.v)->index;
-    }
-  return DM_INDEX_NOT_FOUND;
-}
-
-/*
-  Return a pointer to the variable whose values
-  are stored in column col.
- */
-struct variable *
-design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
-{
-  size_t index;
-  size_t i;
-  struct design_matrix_var dmv;
-
-  index = design_matrix_col_to_var_index (dm, col);
-  for (i = 0; i < dm->n_vars; i++)
-    {
-      dmv = dm->vars[i];
-      if ((dmv.v)->index == index)
-	{
-	  return (struct variable *) dmv.v;
-	}
+	return (struct variable *) v.v;
     }
   return NULL;
-}
-
-static size_t
-cmp_dm_var_index (const struct design_matrix_var *dmv, size_t index)
-{
-  if (dmv->v->index == index)
-    return 1;
-  return 0;
 }
 
 /*
@@ -206,7 +175,7 @@ design_matrix_var_to_column (const struct design_matrix * dm,
   for (i = 0; i < dm->n_vars; i++)
     {
       tmp = dm->vars[i];
-      if (cmp_dm_var_index (&tmp, v->index))
+      if (tmp.v == v)
 	{
 	  return tmp.first_column;
 	}
@@ -225,7 +194,7 @@ dm_var_to_last_column (const struct design_matrix *dm,
   for (i = 0; i < dm->n_vars; i++)
     {
       tmp = dm->vars[i];
-      if (cmp_dm_var_index (&tmp, v->index))
+      if (tmp.v == v)
 	{
 	  return tmp.last_column;
 	}

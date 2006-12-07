@@ -1,3 +1,8 @@
+Wed Dec  6 21:16:22 2006  Ben Pfaff  <blp@gnu.org>
+
+	* linreg.c: (pspp_linreg_get_vars) Compare variable pointers
+	instead of variable indexes.
+
 2006-05-19  Jason Stover  <jhs@math.gcsu.edu>
 
 	* coefficient.c: Moved to src/math.

@@ -722,7 +722,7 @@ reg_inserted (const struct variable *v, struct variable **varlist, int n_vars)
 
   for (i = 0; i < n_vars; i++)
     {
-      if (v->index == varlist[i]->index)
+      if (v == varlist[i])
 	{
 	  return 1;
 	}

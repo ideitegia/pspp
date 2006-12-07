@@ -169,7 +169,7 @@ pspp_coeff_get_value (struct pspp_coeff *c,
   while (i < c->n_vars)
     {
       candidate = pspp_coeff_get_var (c, i);
-      if (v->index == candidate->index)
+      if (v == candidate)
 	{
 	  return (c->v_info + i)->val;
 	}
@@ -201,7 +201,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 
   result = c->coeff[i];
   tmp = pspp_coeff_get_var (result, 0);
-  while (tmp->index != v->index && i < c->n_coeffs)
+  while (tmp != v && i < c->n_coeffs)
     {
       result = c->coeff[i];
       tmp = pspp_coeff_get_var (result, 0);
@@ -221,7 +221,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
          If v is categorical, we need to ensure the coefficient
          matches the VAL.
        */
-      while (tmp->index != v->index && i < c->n_coeffs
+      while (tmp != v && i < c->n_coeffs
 	     && compare_values (pspp_coeff_get_value (result, tmp),
 				val, var_get_width (v)))
 	{			/* FIX THIS */

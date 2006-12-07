@@ -1,3 +1,15 @@
+Wed Dec  6 21:14:59 2006  Ben Pfaff  <blp@gnu.org>
+
+	* coefficient.c: (pspp_coeff_get_value) Compare variable pointers
+	instead of variable indexes.
+	(pspp_linreg_get_coeff) Ditto.
+	(design_matrix_col_to_var_index) Removed.
+	(design_matrix_col_to_var) Compare variable pointers
+	instead of variable indexes.
+	(cmp_dm_var_index) Ditto.
+	(design_matrix_var_to_column) Ditto.
+	(dm_var_to_last_column) Ditto.
+
 Sun Nov  5 08:30:32 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* levene.c levene.h Changed to use the new casefilter structure.
