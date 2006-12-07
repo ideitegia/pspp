@@ -61,6 +61,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/sort-cases-dialog.c \
 	src/ui/gui/sort-cases-dialog.h \
+	src/ui/gui/syntax-editor.c \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-sheet.c \

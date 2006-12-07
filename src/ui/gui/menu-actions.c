@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2004, 2005, 2006  Free Software Foundation
     Written by John Darrington
@@ -70,7 +70,7 @@ static void
 psppire_set_window_title(const gchar *text)
 {
   GtkWidget *data_editor = get_widget_assert(xml, "data_editor");
-  
+
   gchar *title = g_strdup_printf("%s --- %s", text, gettext(window_title));
 
   gtk_window_set_title(GTK_WINDOW(data_editor), title);
@@ -78,7 +78,7 @@ psppire_set_window_title(const gchar *text)
   g_free(title);
 }
 
-/* Clear the active file and set the data and var sheets to 
+/* Clear the active file and set the data and var sheets to
    reflect this.
  */
 gboolean
@@ -134,7 +134,7 @@ load_system_file(const gchar *file_name)
   PsppireDataStore *data_store ;
   struct dictionary *new_dict;
   struct sfm_read_info ri;
-  struct sfm_reader *reader ; 
+  struct sfm_reader *reader ;
 
   GtkWidget *data_sheet = get_widget_assert(xml, "data_sheet");
   GtkWidget *var_sheet = get_widget_assert(xml, "variable_sheet");
@@ -144,40 +144,40 @@ load_system_file(const gchar *file_name)
 
   clear_file();
 
-  psppire_handle = 
+  psppire_handle =
     fh_create_file (handle_name, file_name, fh_default_properties());
 
-  if ( !psppire_handle ) 
+  if ( !psppire_handle )
     {
-      g_warning("Cannot read handle for reading system file \"%s\"\n", 
+      g_warning("Cannot read handle for reading system file \"%s\"\n",
 		file_name);
       return FALSE;
     }
 
   reader = sfm_open_reader (psppire_handle, &new_dict, &ri);
-      
-  if ( ! reader ) 
+
+  if ( ! reader )
     return FALSE;
 
   /* FIXME: We need a better way of updating a dictionary than this */
   the_dictionary = psppire_dict_new_from_dict(new_dict);
 
-  var_store = 
+  var_store =
     PSPPIRE_VAR_STORE(gtk_sheet_get_model(GTK_SHEET(var_sheet)));
-	
+
   psppire_var_store_set_dictionary(var_store, the_dictionary);
 
 
-  data_store = 
+  data_store =
     PSPPIRE_DATA_STORE(gtk_sheet_get_model(GTK_SHEET(data_sheet)));
-	
+
   psppire_data_store_set_dictionary(data_store,
 				    the_dictionary);
 
   psppire_set_window_title(basename(file_name));
 
   var_cnt = dict_get_next_value_idx(the_dictionary->dict);
-  if ( var_cnt == 0 ) 
+  if ( var_cnt == 0 )
     return FALSE;
 
 
@@ -191,32 +191,31 @@ load_system_file(const gchar *file_name)
 	  break;
 	}
 
-      if ( !psppire_case_file_append_case(data_store->case_file, &c) ) 
+      if ( !psppire_case_file_append_case(data_store->case_file, &c) )
 	{
 	  g_warning("Cannot write case to casefile\n");
 	  break;
 	}
       case_destroy(&c);
     }
-  
-  sfm_close_reader(reader);      
+
+  sfm_close_reader(reader);
 
   psppire_case_file_get_case_count(data_store->case_file);
 
   return TRUE;
 }
 
-
 void
-on_open1_activate                      (GtkMenuItem     *menuitem,
-                                        gpointer         user_data)
+open_data                      (GtkMenuItem     *menuitem,
+				gpointer         user_data)
 {
   bool finished = FALSE;
 
   GtkWidget *dialog;
   GtkWidget *data_editor  = get_widget_assert(xml, "data_editor");
   GtkFileFilter *filter ;
- 
+
   dialog = gtk_file_chooser_dialog_new (_("Open"),
 					GTK_WINDOW(data_editor),
 					GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -245,9 +244,9 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
 
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
       {
-	gchar *file_name = 
+	gchar *file_name =
 	  gtk_file_chooser_get_filename(GTK_FILE_CHOOSER (dialog));
-	
+
 	finished =  load_system_file(file_name) ;
 
 	g_free(file_name);
@@ -258,6 +257,21 @@ on_open1_activate                      (GtkMenuItem     *menuitem,
   } while ( ! finished ) ;
 
   gtk_widget_destroy (dialog);
+}
+
+
+void
+on_data3_activate                      (GtkMenuItem     *menuitem,
+					gpointer         user_data)
+{
+  open_data(menuitem, user_data);
+}
+
+void
+on_data5_activate                      (GtkMenuItem     *menuitem,
+					gpointer         user_data)
+{
+  open_data(menuitem, user_data);
 }
 
 
@@ -285,10 +299,10 @@ recreate_save_handle(struct file_handle **handle)
 	(GTK_FILE_CHOOSER (dialog));
 
 
-      if ( *handle ) 
+      if ( *handle )
 	fh_free(*handle);
 
-      *handle = fh_create_file (handle_name, file_name, 
+      *handle = fh_create_file (handle_name, file_name,
 		      	fh_default_properties());
 
       psppire_set_window_title(basename(file_name));
@@ -308,16 +322,16 @@ on_save1_activate                      (GtkMenuItem     *menuitem,
   GtkSheet *data_sheet ;
   PsppireDataStore *data_store ;
 
-  if ( ! psppire_handle ) 
+  if ( ! psppire_handle )
     {
-      if ( ! recreate_save_handle(&psppire_handle) ) 
+      if ( ! recreate_save_handle(&psppire_handle) )
 	return;
     }
-  
+
   data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
   data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
-  
-  if ( psppire_handle ) 
+
+  if ( psppire_handle )
     psppire_data_store_create_system_file(data_store,
 				       psppire_handle);
 }
@@ -330,16 +344,16 @@ on_save_as1_activate                   (GtkMenuItem     *menuitem,
   GtkSheet *data_sheet ;
   PsppireDataStore *data_store ;
 
-  if ( ! recreate_save_handle(&psppire_handle) ) 
+  if ( ! recreate_save_handle(&psppire_handle) )
     return ;
 
-  if ( ! psppire_handle ) 
+  if ( ! psppire_handle )
     return ;
 
   data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
   data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
 
-  if ( psppire_handle ) 
+  if ( psppire_handle )
     psppire_data_store_create_system_file(data_store,
 				       psppire_handle);
 }
@@ -362,44 +376,44 @@ on_clear_activate                    (GtkMenuItem     *menuitem,
 
   page = gtk_notebook_get_current_page(notebook);
 
-  switch (page) 
+  switch (page)
     {
     case PAGE_VAR_SHEET:
 	    break;
     case PAGE_DATA_SHEET:
       {
 	GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-	PsppireDataStore *data_store = 
+	PsppireDataStore *data_store =
 	  PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
-	
 
-	switch ( data_sheet->state ) 
+
+	switch ( data_sheet->state )
 	  {
 	  case GTK_SHEET_ROW_SELECTED:
 	    psppire_case_file_delete_cases(data_store->case_file,
-					   data_sheet->range.rowi 
+					   data_sheet->range.rowi
 					   - data_sheet->range.row0 + 1,
 					   data_sheet->range.row0);
 	    break;
 	  case GTK_SHEET_COLUMN_SELECTED:
 	    {
 	      gint fv;
-	      struct PsppireVariable *pv = 
-		psppire_dict_get_variable(the_dictionary, 
+	      struct PsppireVariable *pv =
+		psppire_dict_get_variable(the_dictionary,
 					  data_sheet->range.col0);
 	      fv = psppire_variable_get_fv(pv);
-	      
-	      
-	      psppire_dict_delete_variables(the_dictionary, 
+
+
+	      psppire_dict_delete_variables(the_dictionary,
 					    data_sheet->range.col0,
 					    1);
 
-	      psppire_case_file_insert_values(data_store->case_file, 
+	      psppire_case_file_insert_values(data_store->case_file,
 					      -1, fv);
 	    }
 	    break;
 	  default:
-	    gtk_sheet_cell_clear(data_sheet, 
+	    gtk_sheet_cell_clear(data_sheet,
 				 data_sheet->active_cell.row,
 				 data_sheet->active_cell.col);
 	    break;
@@ -416,15 +430,15 @@ on_about1_activate(GtkMenuItem     *menuitem,
 		   gpointer         user_data)
 {
   GtkWidget *about =  get_widget_assert(xml, "aboutdialog1");
-  
-  
+
+
   GdkPixbuf *pb  = gdk_pixbuf_new_from_file_at_size( "pspplogo.png", 64, 64, 0);
 
   gtk_about_dialog_set_logo(GTK_ABOUT_DIALOG(about), pb);
 
   gtk_widget_show(about);
 
-  gtk_window_set_transient_for(GTK_WINDOW(about), 
+  gtk_window_set_transient_for(GTK_WINDOW(about),
                                GTK_WINDOW(get_widget_assert(xml, "data_editor")));
 }
 
@@ -435,13 +449,13 @@ on_togglebutton_value_labels_toggled(GtkToggleToolButton *toggle_tool_button,
 				     gpointer             user_data)
 {
   GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-  GtkCheckMenuItem *item = 
+  GtkCheckMenuItem *item =
     GTK_CHECK_MENU_ITEM(get_widget_assert(xml, "menuitem-value-labels"));
 
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
 
   gboolean show_value_labels = gtk_toggle_tool_button_get_active(toggle_tool_button);
-  
+
   gtk_check_menu_item_set_active(item, show_value_labels);
 
   psppire_data_store_show_labels(ds, show_value_labels);
@@ -453,7 +467,7 @@ on_value_labels_activate(GtkCheckMenuItem     *menuitem,
 			  gpointer         user_data)
 {
   GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-  GtkToggleToolButton *tb = 
+  GtkToggleToolButton *tb =
    GTK_TOGGLE_TOOL_BUTTON(get_widget_assert(xml, "togglebutton-value-labels"));
 
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
@@ -470,7 +484,7 @@ on_status_bar1_activate(GtkCheckMenuItem     *menuitem,
  gpointer         user_data)
 {
 
-  if ( gtk_check_menu_item_get_active(menuitem) ) 
+  if ( gtk_check_menu_item_get_active(menuitem) )
     gtk_widget_show(get_widget_assert(xml, "statusbar1"));
   else
     gtk_widget_hide(get_widget_assert(xml, "statusbar1"));
@@ -481,7 +495,7 @@ on_grid_lines1_activate(GtkCheckMenuItem     *menuitem,
  gpointer         user_data)
 {
 
-  const bool grid_visible = gtk_check_menu_item_get_active(menuitem); 
+  const bool grid_visible = gtk_check_menu_item_get_active(menuitem);
 
   gtk_sheet_show_grid(GTK_SHEET(get_widget_assert(xml, "variable_sheet")),
 		      grid_visible);
@@ -495,35 +509,35 @@ void
 on_fonts1_activate(GtkMenuItem     *menuitem,
  gpointer         user_data)
 {
-  static GtkWidget *dialog = 0 ; 
-  if ( !dialog ) 
+  static GtkWidget *dialog = 0 ;
+  if ( !dialog )
     dialog   = gtk_font_selection_dialog_new(_("Font Selection"));
 
-  gtk_window_set_transient_for(GTK_WINDOW(dialog), 
+  gtk_window_set_transient_for(GTK_WINDOW(dialog),
                                GTK_WINDOW(get_widget_assert(xml, "data_editor")));
 
 
-  if ( GTK_RESPONSE_OK == gtk_dialog_run(GTK_DIALOG(dialog)) ) 
+  if ( GTK_RESPONSE_OK == gtk_dialog_run(GTK_DIALOG(dialog)) )
     {
-      GtkSheet *data_sheet = 
+      GtkSheet *data_sheet =
 	GTK_SHEET(get_widget_assert(xml, "data_sheet"));
 
-      GtkSheet *var_sheet = 
+      GtkSheet *var_sheet =
 	GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
 
       PsppireDataStore *ds = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
       PsppireVarStore *vs = PSPPIRE_VAR_STORE(gtk_sheet_get_model(var_sheet));
 
-      const gchar *font = gtk_font_selection_dialog_get_font_name 
+      const gchar *font = gtk_font_selection_dialog_get_font_name
 	(GTK_FONT_SELECTION_DIALOG(dialog));
 
-      PangoFontDescription* font_desc = 
+      PangoFontDescription* font_desc =
 	pango_font_description_from_string(font);
 
       psppire_var_store_set_font(vs, font_desc);
       psppire_data_store_set_font(ds, font_desc);
     }
-  
+
   gtk_widget_hide(dialog);
 
 }
@@ -538,7 +552,7 @@ switch_menus(gint page)
   GtkWidget *insert_variable = get_widget_assert(xml, "insert-variable");
   GtkWidget *insert_cases = get_widget_assert(xml, "insert-cases");
 
-  switch (page) 
+  switch (page)
     {
     case PAGE_VAR_SHEET:
       gtk_widget_hide(menuitems[PAGE_VAR_SHEET]);
@@ -621,11 +635,11 @@ on_go_to_case_activate(GtkMenuItem     *menuitem,
   GtkWidget *dialog = get_widget_assert(xml, "go_to_case_dialog");
   GtkEntry *entry = GTK_ENTRY(get_widget_assert(xml, "entry_go_to_case"));
   GtkSheet *data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
-  
-  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
-  
 
-  
+  gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+
+
+
   switch (result)
     {
     case GTK_RESPONSE_OK:
@@ -637,7 +651,7 @@ on_go_to_case_activate(GtkMenuItem     *menuitem,
 	gtk_sheet_get_active_cell(data_sheet, &row, &column);
 	if ( column < 0 ) column = 0;
 	if ( row < 0 ) row = 0;
-	
+
 	gtk_sheet_set_active_cell(data_sheet, casenum, column);
       }
       break;
@@ -665,12 +679,12 @@ on_sort_cases_activate (GtkMenuItem     *menuitem,
 
   data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(data_sheet));
 
-  if ( NULL == dialog) 
+  if ( NULL == dialog)
     dialog = sort_cases_dialog_create(xml);
 
   response = sort_cases_dialog_run(dialog, the_dictionary, &criteria);
 
-  switch ( response) 
+  switch ( response)
     {
     case GTK_RESPONSE_OK:
       psppire_case_file_sort(data_store->case_file, &criteria);
@@ -679,7 +693,7 @@ on_sort_cases_activate (GtkMenuItem     *menuitem,
 }
 
 
-static void 
+static void
 insert_case(void)
 {
   gint row, col;
@@ -694,7 +708,7 @@ insert_case(void)
 }
 
 void
-on_insert_case_clicked (GtkButton *button, gpointer user_data)      
+on_insert_case_clicked (GtkButton *button, gpointer user_data)
 {
   insert_case();
 }
