@@ -1587,8 +1587,6 @@ get_master (struct variable *v)
   return v->aux;
 }
 
-
-
 /* Case map.
 
    A case map copies data from a case that corresponds for one
