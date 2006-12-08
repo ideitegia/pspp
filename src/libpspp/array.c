@@ -91,7 +91,6 @@
 
 #include <config.h>
 #include "array.h"
-#include <gsl/gsl_rng.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>

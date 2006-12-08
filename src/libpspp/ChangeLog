@@ -1,3 +1,7 @@
+Sat Dec  9 07:19:01 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* array.c: Removed gratuitous #include
+
 Thu Dec  7 20:33:23 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* getl.c getl.h : Changed signature of create function to take a 

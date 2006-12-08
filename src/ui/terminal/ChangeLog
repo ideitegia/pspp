@@ -1,3 +1,7 @@
+Sat Dec  9 07:21:02 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* msg-ui.c (msg_ui_done): call msg_locator_done.
+
 Sun Dec  3 11:57:00 2006  Ben Pfaff  <blp@gnu.org>
 
 	* read-line.c (read_interactive): Always read GETL_INTERACTIVE

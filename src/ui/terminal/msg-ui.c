@@ -76,6 +76,7 @@ void
 msg_ui_done (void) 
 {
   msg_done ();
+  msg_locator_done ();
   
   if ( msg_file ) /* FIXME: do we really want to close stdout ?? */
     fclose (msg_file);

@@ -1,3 +1,8 @@
+Sat Dec  9 07:18:03 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* value-labels.c (destroy_atoms): New function.
+	* value-labels.c (atom_create): Call destroy_atoms in atexit handler.
+
 Thu Dec  7 17:38:26 2006  Ben Pfaff  <blp@gnu.org>
 
 	Thanks to Jason Stover for pointing out this problem.

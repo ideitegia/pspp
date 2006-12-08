@@ -447,6 +447,12 @@ static hsh_free_func free_atom;
 /* Hash table of atoms. */
 static struct hsh_table *atoms;
 
+static void
+destroy_atoms (void)
+{
+  hsh_destroy (atoms);
+}
+
 /* Creates and returns an atom for STRING. */
 static struct atom *
 atom_create (const char *string) 
@@ -457,7 +463,10 @@ atom_create (const char *string)
   assert (string != NULL);
           
   if (atoms == NULL) 
-    atoms = hsh_create (8, compare_atoms, hash_atom, free_atom, NULL);
+    {
+      atoms = hsh_create (8, compare_atoms, hash_atom, free_atom, NULL);
+      atexit (destroy_atoms);
+    }
 
   a.string = (char *) string;
   app = hsh_probe (atoms, &a);

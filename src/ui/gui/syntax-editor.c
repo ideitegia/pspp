@@ -81,7 +81,7 @@ save_if_modified (struct syntax_editor *se)
 	  GError *err = NULL;
 
 	  if ( ! save_editor_to_file (se, se->name ? se->name : _("Untitled"),
-				      err) )
+				      &err) )
 	    {
 	      msg (ME, err->message);
 	      g_error_free (err);
