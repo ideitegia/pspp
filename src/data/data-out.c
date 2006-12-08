@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include <gsl/gsl_math.h>
 
 #include "calendar.h"
 #include "format.h"
@@ -153,7 +154,7 @@ output_number (const union value *input, const struct fmt_spec *format,
 
   if (number == SYSMIS)
     output_missing (format, output);
-  else if (!isfinite (number))
+  else if (!gsl_finite (number))
     output_infinite (number, format, output);
   else 
     {
@@ -951,7 +952,7 @@ power256 (int x)
 static void
 output_infinite (double number, const struct fmt_spec *format, char *output)
 {
-  assert (!isfinite (number));
+  assert (!gsl_finite (number));
   
   if (format->w >= 3)
     {

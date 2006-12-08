@@ -1,3 +1,11 @@
+Thu Dec  7 17:38:26 2006  Ben Pfaff  <blp@gnu.org>
+
+	Thanks to Jason Stover for pointing out this problem.
+	
+	* data-out.c (output_number): Use gsl_finite from GSL, which is
+	portable, instead of isfinite, which is not.
+	(power256) Ditto.
+
 Thu Dec  7 15:22:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* variable.c variable.h (value_dup): New function.
