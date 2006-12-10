@@ -2,6 +2,10 @@ Makefile
 Makefile.in
 correlations.c
 crosstabs.c
+cscope.files
+cscope.in.out
+cscope.out
+cscope.po.out
 examine.c
 file-handle.c
 frequencies.c
