@@ -54,7 +54,7 @@ cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
   target_fn = ds_cstr (lex_tokstr (lexer));
 
   ss = lex_get_source_stream (lexer);
-  found_fn = fn_search_path (target_fn, getl_include_path ( ss ), NULL);
+  found_fn = fn_search_path (target_fn, getl_include_path ( ss ));
 
   if (found_fn != NULL) 
     {

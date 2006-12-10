@@ -34,8 +34,7 @@ void fn_interp_vars (struct substring src,
                      const char *(*getenv) (const char *),
                      struct string *dst);
 char *fn_tilde_expand (const char *fn);
-char *fn_search_path (const char *base_name, const char *path,
-		      const char *prefix);
+char *fn_search_path (const char *base_name, const char *path);
 char *fn_normalize (const char *fn);
 char *fn_dir_name (const char *fn);
 char *fn_extension (const char *fn);

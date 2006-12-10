@@ -193,7 +193,7 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 
   if (process_statrc)
     {
-      char *pspprc_fn = fn_search_path ("rc", config_path, NULL);
+      char *pspprc_fn = fn_search_path ("rc", config_path);
       if (pspprc_fn != NULL) 
         {
 	  getl_append_source (ss, create_syntax_file_source (pspprc_fn));

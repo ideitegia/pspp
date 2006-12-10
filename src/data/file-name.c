@@ -175,13 +175,9 @@ fn_tilde_expand (const char *input)
    given by PATH, which is tilde- and environment-interpolated.
    Directories in PATH are delimited by ':'.  Returns the
    malloc'd full name of the first file found, or NULL if none is
-   found.
-
-   If PREFIX is non-NULL, then it is prefixed to each file name;
-   i.e., it looks like PREFIX/PATH_COMPONENT/NAME.  This is not
-   done with absolute directories in the path. */
+   found. */
 char *
-fn_search_path (const char *base_name, const char *path_, const char *prefix)
+fn_search_path (const char *base_name, const char *path_)
 {
   struct string path;
   struct substring dir_;
@@ -212,11 +208,6 @@ fn_search_path (const char *base_name, const char *path_, const char *prefix)
 
       /* Construct file name. */
       ds_clear (&file);
-      if (prefix != NULL && !fn_is_absolute (ds_cstr (&dir)))
-	{
-	  ds_put_cstr (&file, prefix);
-	  ds_put_char (&file, '/');
-	}
       ds_put_cstr (&file, ds_cstr (&dir));
       if (!ds_is_empty (&file) && ds_last (&file) != '/')
 	ds_put_char (&file, '/');

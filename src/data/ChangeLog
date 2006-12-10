@@ -1,3 +1,8 @@
+Sat Dec  9 20:08:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	* file-name.c (fn_search_path): Remove prefix arg that was unused
+	by any caller.  Updated all callers.
+
 Sat Dec  9 20:04:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	* format.c (fmt_dollar_template): Use user's decimal point

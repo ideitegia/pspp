@@ -434,7 +434,7 @@ find_ps_file (const char *name)
   else
     {
       char *base_name = xasprintf ("psfonts/%s", name);
-      char *file_name = fn_search_path (base_name, config_path, NULL);
+      char *file_name = fn_search_path (base_name, config_path);
       free (base_name);
       return file_name;
     }

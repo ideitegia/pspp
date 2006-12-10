@@ -278,9 +278,8 @@ outp_read_devices (void)
   init_fn = fn_search_path (fn_getenv_default ("STAT_OUTPUT_INIT_FILE",
 					       "devices"),
 			    fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
-					       config_path),
-			    NULL);
-
+					       config_path));
+  
   ds_init_empty (&line);
 
   if (init_fn == NULL)
@@ -1011,9 +1010,8 @@ outp_get_paper_size (char *size, int *h, int *v)
   pprsz_fn = fn_search_path (fn_getenv_default ("STAT_OUTPUT_PAPERSIZE_FILE",
 						"papersize"),
 			     fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
-						config_path),
-			     NULL);
-
+						config_path));
+  
   ds_init_empty (&line);
 
   if (pprsz_fn == NULL)
