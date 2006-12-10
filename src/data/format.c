@@ -597,6 +597,8 @@ fmt_dollar_template (const struct fmt_spec *fmt)
   struct string s = DS_EMPTY_INITIALIZER;
   int c;
 
+  assert (fmt->type == FMT_DOLLAR);
+
   ds_put_char (&s, '$');
   for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )
     {
@@ -609,7 +611,7 @@ fmt_dollar_template (const struct fmt_spec *fmt)
     }
   if (fmt->d > 0) 
     {
-      ds_put_char (&s, '.');
+      ds_put_char (&s, fmt_decimal_char (fmt->type));
       ds_put_char_multiple (&s, '#', fmt->d);
     }
 
