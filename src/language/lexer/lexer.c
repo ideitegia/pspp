@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -41,9 +41,9 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-/*
-#define DUMP_TOKENS 1
-*/
+
+#define DUMP_TOKENS 0
+
 
 struct lexer 
 {
@@ -62,7 +62,6 @@ struct lexer
 
   char *prog; /* Pointer to next token in line_buffer. */
   bool dot;   /* True only if this line ends with a terminal dot. */
-  bool eof;   /* True only if the last token returned was T_STOP. */
 
   int put_token ; /* If nonzero, next token returned by lex_get().
   		    Used only in exceptional circumstances. */
@@ -86,7 +85,7 @@ enum string_type
 static int parse_string (struct lexer *, enum string_type);
 
 #if DUMP_TOKENS
-static void dump_token (void);
+static void dump_token (struct lexer *);
 #endif
 
 /* Initialization. */
@@ -101,9 +100,6 @@ lex_create (struct source_stream *ss)
   ds_init_empty (&lexer->put_tokstr);
   ds_init_empty (&lexer->line_buffer);
   lexer->ss = ss;
-
-  if (!lex_get_line (lexer))
-    lexer->eof = true;
 
   return lexer;
 }
@@ -159,30 +155,31 @@ save_token (struct lexer *lexer)
 void
 lex_get (struct lexer *lexer)
 {
+  /* Find a token. */
+  for (;;)
+    {
+      if (NULL == lexer->prog && ! lex_get_line (lexer) )
+	{
+	  lexer->token = T_STOP;
+	  return;
+	}
+
   /* If a token was pushed ahead, return it. */
   if (lexer->put_token)
     {
       restore_token (lexer);
 #if DUMP_TOKENS
-      dump_token ();
+	  dump_token (lexer);
 #endif
       return;
     }
 
-  /* Find a token. */
   for (;;)
     {
       /* Skip whitespace. */
-      if (lexer->eof) 
-        {
-          lexer->token = T_STOP;
-          return;
-        }
-
-      for (;;)
-	{
 	  while (isspace ((unsigned char) *lexer->prog))
 	    lexer->prog++;
+
 	  if (*lexer->prog)
 	    break;
 
@@ -191,16 +188,16 @@ lex_get (struct lexer *lexer)
 	      lexer->dot = 0;
 	      lexer->token = '.';
 #if DUMP_TOKENS
-	      dump_token ();
+	      dump_token (lexer);
 #endif
 	      return;
 	    }
 	  else if (!lex_get_line (lexer))
 	    {
-	      lexer->eof = true;
+	      lexer->prog = NULL;
 	      lexer->token = T_STOP;
 #if DUMP_TOKENS
-	      dump_token ();
+	      dump_token (lexer);
 #endif
 	      return;
 	    }
@@ -209,7 +206,7 @@ lex_get (struct lexer *lexer)
 	    {
               restore_token (lexer);
 #if DUMP_TOKENS
-	      dump_token ();
+	      dump_token (lexer);
 #endif
 	      return;
 	    }
@@ -386,7 +383,7 @@ lex_get (struct lexer *lexer)
     }
 
 #if DUMP_TOKENS
-  dump_token ();
+  dump_token (lexer);
 #endif
 }
 
@@ -660,7 +657,7 @@ lex_look_ahead (struct lexer *lexer)
 
   for (;;)
     {
-      if (lexer->eof)
+      if (NULL == lexer->prog && ! lex_get_line (lexer) )
         return 0;
 
       for (;;)
@@ -864,10 +861,14 @@ lex_get_line (struct lexer *lexer)
   enum getl_syntax syntax;
 
   if (!lex_get_line_raw (lexer, &syntax))
+    {
+      lexer->prog = NULL;
     return false;
+    }
 
   lex_preprocess_line (&lexer->line_buffer, syntax,
                        &line_starts_command, &lexer->dot);
+
   if (line_starts_command)
     lexer->put_token = '.';
 
@@ -992,7 +993,7 @@ lex_skip_comment (struct lexer *lexer)
       if (!lex_get_line (lexer)) 
         {
           lexer->put_token = T_STOP;
-          lexer->eof = true;
+	  lexer->prog = NULL;
           return;
         }
       
@@ -1126,7 +1127,7 @@ parse_string (struct lexer *lexer, enum string_type type)
       lexer->prog++;
 
       /* Skip whitespace after final quote mark. */
-      if (lexer->eof)
+      if (lexer->prog == NULL)
 	break;
       for (;;)
 	{
@@ -1148,7 +1149,7 @@ parse_string (struct lexer *lexer, enum string_type type)
       lexer->prog++;
 
       /* Skip whitespace after plus sign. */
-      if (lexer->eof)
+      if (lexer->prog == NULL)
 	break;
       for (;;)
 	{
@@ -1201,7 +1202,8 @@ dump_token (struct lexer *lexer)
     const char *curfn;
     int curln;
 
-    getl_location (&curfn, &curln);
+    curln = getl_source_location (lexer->ss);
+    curfn = getl_source_name (lexer->ss);
     if (curfn)
       fprintf (stderr, "%s:%d\t", curfn, curln);
   }
@@ -1234,8 +1236,8 @@ dump_token (struct lexer *lexer)
       break;
 
     default:
-      if (lex_is_keyword (token))
-	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (token));
+      if (lex_is_keyword (lexer->token))
+	fprintf (stderr, "KEYWORD\t%s\n", lex_token_name (lexer->token));
       else
 	fprintf (stderr, "PUNCT\t%c\n", lexer->token);
       break;
