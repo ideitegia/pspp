@@ -1,3 +1,8 @@
+Sat Dec  9 20:02:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	* format.c (fmt_dollar_template): New function, based on
+	dollar_format_template from var-type-dialog.c.
+
 Sat Dec  9 18:05:59 2006  Ben Pfaff  <blp@gnu.org>
 
 	* data-out.c (output_scientific): Fix bad assumption that "buf" is

@@ -116,6 +116,7 @@ bool fmt_from_io (int io, enum fmt_type *);
 
 bool fmt_usable_for_input (enum fmt_type) PURE_FUNCTION;
 const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
+char *fmt_dollar_template (const struct fmt_spec *);
 
 /* Maximum length of prefix or suffix string in
    struct fmt_number_style. */

@@ -587,6 +587,34 @@ fmt_date_template (enum fmt_type type)
       NOT_REACHED ();
     }
 }
+
+/* Returns a string of the form "$#,###.##" according to FMT,
+   which must be of type FMT_DOLLAR.  The caller must free the
+   string. */
+char *
+fmt_dollar_template (const struct fmt_spec *fmt)
+{
+  struct string s = DS_EMPTY_INITIALIZER;
+  int c;
+
+  ds_put_char (&s, '$');
+  for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )
+    {
+      ds_put_char (&s, '#');
+      if (--c % 4 == 0 && c > 0) 
+        {
+          ds_put_char (&s, fmt_grouping_char (fmt->type));
+          --c;
+        }
+    }
+  if (fmt->d > 0) 
+    {
+      ds_put_char (&s, '.');
+      ds_put_char_multiple (&s, '#', fmt->d);
+    }
+
+  return ds_cstr (&s);
+}
 
 /* Returns true if TYPE is a valid format type,
    false otherwise. */

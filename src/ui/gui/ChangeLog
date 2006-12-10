@@ -1,3 +1,9 @@
+Sat Dec  9 20:03:04 2006  Ben Pfaff  <blp@gnu.org>
+
+	* var-type-dialog.c (var_type_dialog_create): Use
+	fmt_dollar_template from data/format.c.
+	(dollar_format_template) Removed.
+
 Sat Dec  9 07:19:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* syntax-editor.c : New file.

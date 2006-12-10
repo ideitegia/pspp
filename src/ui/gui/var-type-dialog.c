@@ -212,44 +212,6 @@ static gint on_var_type_ok_clicked(GtkWidget *w, gpointer data);
 
 #define LEN 20
 
-/* return a string of the form "$#,###.##" according to FMT. 
-   FMT must be of type FMT_DOLLAR
- */
-static const gchar *
-dollar_format_template(const struct fmt_spec *fmt)
-{
-  static gchar buf[LEN];
-  g_assert( fmt->type == FMT_DOLLAR);
-
-  {
-    gint c ;
-    gint int_part = fmt->w - fmt->d;
-    if ( fmt->d > 0 ) --int_part;
-    g_assert(int_part > 0);
-
-    g_strlcpy(buf, "$", LEN);
-
-    c = int_part - 1;
-    while(c > 0)
-      {
-	g_strlcat(buf, "#", LEN);
-	if(--c % 4 == 0 && c > 0 ) 
-	  {
-	    g_strlcat(buf, ",", LEN);
-	    --c;
-	  }
-      }
-    if ( fmt->d > 0 ) 
-      {
-	g_strlcat(buf, ".", LEN);
-	for ( c = 0 ; c < fmt->d ; ++c ) 
-	  g_strlcat(buf, "#", LEN);
-      }
-  }
-
-  return buf;
-}
-
 static void
 add_to_group(GtkWidget *w, gpointer data)
 {
@@ -504,11 +466,13 @@ var_type_dialog_create(GladeXML *xml)
 
   for ( i = 0 ; i < sizeof(dollar_format)/sizeof(dollar_format[0]) ; ++i ) 
     {
+      char *template = fmt_dollar_template (&dollar_format[i]);
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-                          0, dollar_format_template(&dollar_format[i]),
+                          0, template,
 			  1, &dollar_format[i],
 			  -1);
+      free (template);
     }
 
   gtk_tree_view_set_model(GTK_TREE_VIEW(dialog->dollar_treeview), 
