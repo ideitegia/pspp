@@ -22,7 +22,9 @@
 #include <stdlib.h>
 
 #include <data/data-in.h>
+#include <data/missing-values.h>
 #include <data/procedure.h>
+#include <data/value.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
@@ -133,19 +135,14 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
           
           for (i = 0; i < nv; i++) 
             {
-              if (!mv_is_resizable (&mv, var_get_width (v[i]))) 
+              if (mv_is_resizable (&mv, var_get_width (v[i]))) 
+                var_set_missing_values (v[i], &mv);
+              else 
                 {
                   msg (SE, _("Missing values provided are too long to assign "
                              "to variable of width %d."),
                        var_get_width (v[i]));
                   deferred_errors = true;
-                }
-              else 
-                {
-                  struct missing_values tmp;
-                  mv_copy (&tmp, &mv);
-                  mv_resize (&tmp, var_get_width (v[i]));
-                  var_set_missing_values (v[i], &tmp);
                 }
             }
         }

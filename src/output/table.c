@@ -31,7 +31,7 @@
 
 #include <data/data-out.h>
 #include <data/format.h>
-#include <data/variable.h>
+#include <data/value.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>

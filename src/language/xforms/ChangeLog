@@ -1,3 +1,8 @@
+Sat Dec  9 18:48:20 2006  Ben Pfaff  <blp@gnu.org>
+
+	* compute.c (struct compute_trns): Remove `fv' member, which was
+	redundant with `variable'.
+
 Thu Nov 30 22:46:50 2006  Ben Pfaff  <blp@gnu.org>
 
 	* compute.c: Fix bug #17422, which reports that a variable created

@@ -460,7 +460,7 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
       ds_set_length (&trns->line, spec->first_column, ' ');
       if (spec->type == PRT_VAR)
         {
-          const union value *input = case_data (c, spec->var->fv);
+          const union value *input = case_data (c, spec->var);
           char *output = ds_put_uninit (&trns->line, spec->format.w);
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
             data_out (input, &spec->format, output);

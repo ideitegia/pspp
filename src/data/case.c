@@ -255,7 +255,7 @@ case_from_values (struct ccase *c, const union value *input,
    element of C numbered IDX.
    The caller must not modify the returned data. */
 const union value *
-case_data (const struct ccase *c, size_t idx) 
+case_data_idx (const struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
   assert (c->case_data != NULL);
@@ -270,7 +270,7 @@ case_data (const struct ccase *c, size_t idx)
 /* Returns the numeric value of the `union value' in C numbered
    IDX. */
 double
-case_num (const struct ccase *c, size_t idx) 
+case_num_idx (const struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
   assert (c->case_data != NULL);
@@ -287,7 +287,7 @@ case_num (const struct ccase *c, size_t idx)
    (Note that the value is not null-terminated.)
    The caller must not modify the return value. */
 const char *
-case_str (const struct ccase *c, size_t idx) 
+case_str_idx (const struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
   assert (c->case_data != NULL);
@@ -303,7 +303,7 @@ case_str (const struct ccase *c, size_t idx)
    element of C numbered IDX.
    The caller is allowed to modify the returned data. */
 union value *
-case_data_rw (struct ccase *c, size_t idx) 
+case_data_rw_idx (struct ccase *c, size_t idx) 
 {
   assert (c != NULL);
   assert (c->case_data != NULL);
@@ -342,16 +342,16 @@ case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
       
       if (var_get_width (va) == 0) 
         {
-          double af = case_num (ca, va->fv);
-          double bf = case_num (cb, vb->fv);
+          double af = case_num (ca, va);
+          double bf = case_num (cb, vb);
 
           if (af != bf) 
             return af > bf ? 1 : -1;
         }
       else 
         {
-          const char *as = case_str (ca, va->fv);
-          const char *bs = case_str (cb, vb->fv);
+          const char *as = case_str (ca, va);
+          const char *bs = case_str (cb, vb);
           int cmp = memcmp (as, bs, var_get_width (va));
 
           if (cmp != 0)

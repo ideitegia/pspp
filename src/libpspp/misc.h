@@ -43,9 +43,6 @@
 #include <ieeefp.h>		/* Declares finite() under Solaris. */
 #endif
 
-/* Clamps A to be between B and C. */
-#define range(A, B, C) ((A) < (B) ? (B) : ((A) > (C) ? (C) : (A)))
-
 /* Divides nonnegative X by positive Y, rounding up. */
 #define DIV_RND_UP(X, Y) (((X) + ((Y) - 1)) / (Y))
 

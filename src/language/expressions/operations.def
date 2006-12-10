@@ -892,22 +892,22 @@ absorb_miss boolean function SYSMIS (x) = x == SYSMIS || !finite (x);
 no_opt boolean function SYSMIS (num_var v)
      case c;
 {
-  return case_num (c, v->fv) == SYSMIS;
+  return case_num (c, v) == SYSMIS;
 }
 no_opt boolean function VALUE (num_var v)
      case c;
 {
-  return case_num (c, v->fv);
+  return case_num (c, v);
 }
 
 no_opt operator VEC_ELEM_NUM (idx)
      vector v;
      case c;
 {
-  if (idx >= 1 && idx <= v->cnt) 
+  if (idx >= 1 && idx <= vector_get_var_cnt (v)) 
     {
-      const struct variable *var = v->var[(int) idx - 1];
-      double value = case_num (c, var->fv);
+      const struct variable *var = vector_get_var (v, (size_t) idx - 1);
+      double value = case_num (c, var);
       return !var_is_num_user_missing (var, value) ? value : SYSMIS; 
     }
   else
@@ -915,11 +915,11 @@ no_opt operator VEC_ELEM_NUM (idx)
       if (idx == SYSMIS)
         msg (SE, _("SYSMIS is not a valid index value for vector "
                    "%s.  The result will be set to SYSMIS."),
-             v->name);
+             vector_get_name (v));
       else
         msg (SE, _("%g is not a valid index value for vector %s.  "
                    "The result will be set to SYSMIS."),
-             idx, v->name);
+             idx, vector_get_name (v));
       return SYSMIS;
     }
 }
@@ -929,21 +929,21 @@ absorb_miss no_opt string operator VEC_ELEM_STR (idx)
      vector v;
      case c;
 {
-  if (idx >= 1 && idx <= v->cnt)
+  if (idx >= 1 && idx <= vector_get_var_cnt (v))
     {
-      struct variable *var = v->var[(int) idx - 1];
-      return copy_string (e, case_str (c, var->fv), var_get_width (var));
+      struct variable *var = vector_get_var (v, (size_t) idx - 1);
+      return copy_string (e, case_str (c, var), var_get_width (var));
     }
   else
     {
       if (idx == SYSMIS)
         msg (SE, _("SYSMIS is not a valid index value for vector "
                    "%s.  The result will be set to the empty string."),
-             v->name);
+             vector_get_name (v));
       else
         msg (SE, _("%g is not a valid index value for vector %s.  "
                    "The result will be set to the empty string."),
-             idx, v->name);
+             idx, vector_get_name (v));
       return empty_string;
     }
 }
@@ -954,7 +954,7 @@ no_opt operator NUM_VAR ()
      case c;
      num_var v;
 {
-  double d = case_num (c, v->fv);
+  double d = case_num (c, v);
   return !var_is_num_user_missing (v, d) ? d : SYSMIS;
 }
 
@@ -964,7 +964,7 @@ no_opt string operator STR_VAR ()
      str_var v;
 {
   struct substring s = alloc_string (e, var_get_width (v));
-  memcpy (s.string, case_str (c, v->fv), var_get_width (v));
+  memcpy (s.string, case_str (c, v), var_get_width (v));
   return s;
 }
 
@@ -974,7 +974,7 @@ no_opt perm_only function LAG (num_var v, pos_int n_before)
   struct ccase *c = lagged_case (ds, n_before);
   if (c != NULL)
     {
-      double x = case_num (c, v->fv);
+      double x = case_num (c, v);
       return !var_is_num_user_missing (v, x) ? x : SYSMIS;
     }
   else
@@ -987,7 +987,7 @@ no_opt perm_only function LAG (num_var v)
   struct ccase *c = lagged_case (ds, 1);
   if (c != NULL)
     {
-      double x = case_num (c, v->fv);
+      double x = case_num (c, v);
       return !var_is_num_user_missing (v, x) ? x : SYSMIS;
     }
   else
@@ -1000,7 +1000,7 @@ no_opt perm_only string function LAG (str_var v, pos_int n_before)
 {
   struct ccase *c = lagged_case (ds, n_before);
   if (c != NULL)
-    return copy_string (e, case_str (c, v->fv), var_get_width (v));
+    return copy_string (e, case_str (c, v), var_get_width (v));
   else
     return empty_string;
 }
@@ -1011,7 +1011,7 @@ no_opt perm_only string function LAG (str_var v)
 {
   struct ccase *c = lagged_case (ds, 1);
   if (c != NULL)
-    return copy_string (e, case_str (c, v->fv), var_get_width (v));
+    return copy_string (e, case_str (c, v), var_get_width (v));
   else
     return empty_string;
 }
@@ -1020,14 +1020,14 @@ no_opt operator NUM_SYS ()
      case c;
      num_var v;
 {
-  return case_num (c, v->fv) == SYSMIS;
+  return case_num (c, v) == SYSMIS;
 }
 
 no_opt operator NUM_VAL ()
      case c;
      num_var v;
 {
-  return case_num (c, v->fv);
+  return case_num (c, v);
 }
 
 no_opt operator CASENUM ()

@@ -76,14 +76,3 @@ cmd_variable_labels (struct lexer *lexer, struct dataset *ds)
 
 
 
-const char *
-var_to_string(const struct variable *var)
-{
-  const char *label;
-  
-  if ( !var ) 
-    return 0;
-
-  label = var_get_label (var);
-  return label ? label : var_get_name (var);
-}

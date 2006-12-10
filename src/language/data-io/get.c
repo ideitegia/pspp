@@ -28,6 +28,7 @@
 #include <data/case.h>
 #include <data/casefile.h>
 #include <data/fastfile.h>
+#include <data/format.h>
 #include <data/dictionary.h>
 #include <data/por-file-writer.h>
 #include <data/procedure.h>
@@ -1272,14 +1273,14 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
   *file = f->next;
 
   if (f->in_var != NULL)
-    case_data_rw (&mtf->mtf_case, f->in_var->fv)->f = 0.;
+    case_data_rw (&mtf->mtf_case, f->in_var)->f = 0.;
   for (i = 0; i < dict_get_var_cnt (f->dict); i++)
     {
       struct variable *v = dict_get_var (f->dict, i);
       struct variable *mv = get_master (v);
       if (mv != NULL) 
         {
-          union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
+          union value *out = case_data_rw (&mtf->mtf_case, mv);
 	  
           if (var_is_numeric (v))
             out->f = SYSMIS;
@@ -1427,23 +1428,23 @@ mtf_processing (const struct ccase *c, void *mtf_, const struct dataset *ds UNUS
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
               struct variable *mv = get_master (v);
+              size_t mv_index = mv ? var_get_dict_index (mv) : 0;
 	  
-	      if (mv != NULL && mtf->seq_nums[mv->index] != mtf->seq_num) 
+	      if (mv != NULL && mtf->seq_nums[mv_index] != mtf->seq_num) 
                 {
                   const struct ccase *record
                     = case_is_null (&iter->input) ? c : &iter->input;
-                  union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
+                  union value *out = case_data_rw (&mtf->mtf_case, mv);
 
-                  mtf->seq_nums[mv->index] = mtf->seq_num;
+                  mtf->seq_nums[mv_index] = mtf->seq_num;
                   if (var_is_numeric (v))
-                    out->f = case_num (record, v->fv);
+                    out->f = case_num (record, v);
                   else
-                    memcpy (out->s, case_str (record, v->fv),
-                            var_get_width (v));
+                    memcpy (out->s, case_str (record, v), var_get_width (v));
                 } 
             }
           if (iter->in_var != NULL)
-            case_data_rw (&mtf->mtf_case, iter->in_var->fv)->f = 1.;
+            case_data_rw (&mtf->mtf_case, iter->in_var)->f = 1.;
 
           if (iter->type == MTF_FILE && iter->handle == NULL)
             read_active_file = true;
@@ -1461,11 +1462,12 @@ mtf_processing (const struct ccase *c, void *mtf_, const struct dataset *ds UNUS
 	    {
 	      struct variable *v = dict_get_var (iter->dict, i);
               struct variable *mv = get_master (v);
+              size_t mv_index = mv ? var_get_dict_index (mv) : 0;
 
-	      if (mv != NULL && mtf->seq_nums[mv->index] != mtf->seq_num) 
+	      if (mv != NULL && mtf->seq_nums[mv_index] != mtf->seq_num) 
                 {
-                  union value *out = case_data_rw (&mtf->mtf_case, mv->fv);
-                  mtf->seq_nums[mv->index] = mtf->seq_num;
+                  union value *out = case_data_rw (&mtf->mtf_case, mv);
+                  mtf->seq_nums[mv_index] = mtf->seq_num;
 
                   if (var_is_numeric (v))
                     out->f = SYSMIS;
@@ -1474,7 +1476,7 @@ mtf_processing (const struct ccase *c, void *mtf_, const struct dataset *ds UNUS
                 }
             }
           if (iter->in_var != NULL)
-            case_data_rw (&mtf->mtf_case, iter->in_var->fv)->f = 0.;
+            case_data_rw (&mtf->mtf_case, iter->in_var)->f = 0.;
 	}
 
       /* 5. Write the output record. */
@@ -1552,12 +1554,8 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
         
           if (var_get_width (dv) == var_get_width (mv))
             {
-              if (val_labs_count (dv->val_labs)
-                  && !val_labs_count (mv->val_labs)) 
-                {
-                  val_labs_destroy (mv->val_labs);
-                  mv->val_labs = val_labs_copy (dv->val_labs); 
-                }
+              if (var_has_value_labels (dv) && !var_has_value_labels (mv))
+                var_set_value_labels (mv, var_get_value_labels (dv));
               if (var_has_missing_values (dv) && !var_has_missing_values (mv))
                 var_set_missing_values (mv, var_get_missing_values (dv));
             }
@@ -1584,7 +1582,7 @@ set_master (struct variable *v, struct variable *master)
 static struct variable *
 get_master (struct variable *v) 
 {
-  return v->aux;
+  return var_get_aux (v);
 }
 
 /* Case map.
@@ -1619,7 +1617,7 @@ start_case_map (struct dictionary *d)
     {
       struct variable *v = dict_get_var (d, i);
       int *src_fv = xmalloc (sizeof *src_fv);
-      *src_fv = v->fv;
+      *src_fv = var_get_case_index (v);
       var_attach_aux (v, src_fv, var_dtor_free);
     }
 }
@@ -1654,13 +1652,13 @@ finish_case_map (struct dictionary *d)
       int *src_fv = (int *) var_detach_aux (v);
       size_t idx;
 
-      if (v->fv != *src_fv)
+      if (var_get_case_index (v) != *src_fv)
         identity_map = 0;
       
       for (idx = 0; idx < value_cnt; idx++)
         {
           int src_idx = *src_fv + idx;
-          int dst_idx = v->fv + idx;
+          int dst_idx = var_get_case_index (v) + idx;
           
           assert (map->map[dst_idx] == -1);
           map->map[dst_idx] = src_idx;
@@ -1696,7 +1694,7 @@ map_case (const struct case_map *map,
     {
       int src_idx = map->map[dst_idx];
       if (src_idx != -1)
-        *case_data_rw (dst, dst_idx) = *case_data (src, src_idx);
+        *case_data_rw_idx (dst, dst_idx) = *case_data_idx (src, src_idx);
     }
 }
 

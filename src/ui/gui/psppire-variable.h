@@ -28,6 +28,8 @@
 #include <data/variable.h>
 #include "psppire-dict.h"
 
+struct val_labs;
+
 /* Don't use any of these members.
    Use accessor functions instead.
 */

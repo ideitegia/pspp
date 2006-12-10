@@ -1,3 +1,7 @@
+Sat Dec  9 18:43:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	* list.q (cmd_list): Use new var_create, var_destroy functions.
+
 Thu Nov 30 21:51:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	* inpt-pgm.c (cmd_reread): Always return error code upon detecting

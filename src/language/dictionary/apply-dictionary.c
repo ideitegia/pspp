@@ -24,6 +24,7 @@
 #include <data/any-reader.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/missing-values.h>
 #include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
@@ -86,32 +87,27 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
             var_set_label (t, label);
         }
       
-      if (val_labs_count (s->val_labs) && var_is_long_string (t))
-	msg (SW, _("Cannot add value labels from source file to "
-		   "long string variable %s."),
-	     var_get_name (s));
-      else if (val_labs_count (s->val_labs))
-	{
-          if (val_labs_can_set_width (s->val_labs, var_get_width (t)))
+      if (var_has_value_labels (s))
+        {
+          if (!var_is_long_string (t))
             {
-              val_labs_destroy (t->val_labs);
-              t->val_labs = s->val_labs;
-              val_labs_set_width (t->val_labs, var_get_width (t));
-              s->val_labs = val_labs_create (var_get_width (s));
+              const struct val_labs *value_labels = var_get_value_labels (s);
+              if (val_labs_can_set_width (value_labels, var_get_width (t)))
+                var_set_value_labels (s, value_labels);
             }
-	}
-
+          else
+            msg (SW, _("Cannot add value labels from source file to "
+                       "long string variable %s."),
+                 var_get_name (s));
+        }
+      
       if (var_has_missing_values (s))
         {
           if (!var_is_long_string (t))
             {
-              struct missing_values miss;
-              mv_copy (&miss, var_get_missing_values (s));
-              if (mv_is_resizable (&miss, var_get_width (t))) 
-                {
-                  mv_resize (&miss, var_get_width (t));
-                  var_set_missing_values (t, &miss);
-                }
+              const struct missing_values *miss = var_get_missing_values (s);
+              if (mv_is_resizable (miss, var_get_width (t))) 
+                var_set_missing_values (t, miss);
             }
           else
             msg (SW, _("Cannot apply missing values from source file to "

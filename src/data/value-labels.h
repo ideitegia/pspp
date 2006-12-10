@@ -44,7 +44,7 @@ bool val_labs_can_set_width (const struct val_labs *, int new_width);
 void val_labs_set_width (struct val_labs *, int new_width);
 
 bool val_labs_add (struct val_labs *, union value, const char *);
-bool val_labs_replace (struct val_labs *, union value, const char *);
+void val_labs_replace (struct val_labs *, union value, const char *);
 bool val_labs_remove (struct val_labs *, union value);
 char *val_labs_find (const struct val_labs *, union value);
 
@@ -57,11 +57,5 @@ struct val_lab *val_labs_first_sorted (const struct val_labs *,
 struct val_lab *val_labs_next (const struct val_labs *,
                                struct val_labs_iterator **);
 void val_labs_done (struct val_labs_iterator **);
-
-/* Return a string representing this value, in the form most 
-   appropriate from a human factors perspective.
-   (IE: the label if it has one, otherwise the alpha/numeric )
-*/
-const char *value_to_string(const union value *, const struct variable *);
 
 #endif /* value-labels.h */

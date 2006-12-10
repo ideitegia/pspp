@@ -26,6 +26,7 @@
 
 #include <data/identifier.h>
 #include <data/settings.h>
+#include <data/value.h>
 #include <data/variable.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
@@ -300,15 +301,15 @@ fmt_check_output (const struct fmt_spec *spec)
    TYPE and returns true if so.  Otherwise returns false and
    emits an error message. */
 bool
-fmt_check_type_compat (const struct fmt_spec *format, int var_type)
+fmt_check_type_compat (const struct fmt_spec *format, enum var_type var_type)
 {
-  assert (var_type == NUMERIC || var_type == ALPHA);
-  if ((var_type == ALPHA) != (fmt_is_string (format->type) != 0))
+  assert (var_type_is_valid (var_type));
+  if ((var_type == VAR_STRING) != (fmt_is_string (format->type) != 0))
     {
       char str[FMT_STRING_LEN_MAX + 1];
       msg (SE, _("%s variables are not compatible with %s format %s."),
-           var_type == ALPHA ? _("String") : _("Numeric"),
-           var_type == ALPHA ? _("numeric") : _("string"),
+           var_type == VAR_STRING ? _("String") : _("Numeric"),
+           var_type == VAR_STRING ? _("numeric") : _("string"),
            fmt_to_string (format, str));
       return false;
     }
@@ -321,7 +322,7 @@ fmt_check_type_compat (const struct fmt_spec *format, int var_type)
 bool
 fmt_check_width_compat (const struct fmt_spec *format, int width)
 {
-  if (!fmt_check_type_compat (format, width != 0 ? ALPHA : NUMERIC))
+  if (!fmt_check_type_compat (format, var_type_from_width (width)))
     return false;
   if (fmt_var_width (format) != width)
     {

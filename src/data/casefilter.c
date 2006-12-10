@@ -58,9 +58,9 @@ casefilter_variable_missing (const struct casefilter *filter,
 			     const struct ccase *c,
 			     const struct variable *var)
 {
-  const union value *val = case_data (c, var->fv) ;
+  const union value *val = case_data (c, var) ;
 
-  if ( var_get_type (var) != ALPHA && val->f == SYSMIS )
+  if ( var_is_numeric (var) && val->f == SYSMIS )
     return true;
 
   if ( filter->exclude_user_missing &&

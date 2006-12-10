@@ -94,7 +94,7 @@ internal_cmd_formats (struct lexer *lexer, struct dataset *ds, int which)
 	}
       if (!parse_format_specifier (lexer, &f)
           || !fmt_check_output (&f)
-          || !fmt_check_type_compat (&f, NUMERIC))
+          || !fmt_check_type_compat (&f, VAR_NUMERIC))
 	goto fail;
 
       if (!lex_match (lexer, ')'))

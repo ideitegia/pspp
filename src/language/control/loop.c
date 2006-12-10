@@ -294,7 +294,7 @@ loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num)
 
       /* Even if the loop is never entered, set the index
          variable to the initial value. */
-      case_data_rw (c, loop->index_var->fv)->f = loop->cur;
+      case_data_rw (c, loop->index_var)->f = loop->cur;
 
       /* Throw out pathological cases. */
       if (!finite (loop->cur) || !finite (loop->by) || !finite (loop->last)
@@ -355,7 +355,7 @@ end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
       if ((loop->by > 0.0 && loop->cur > loop->last)
           || (loop->by < 0.0 && loop->cur < loop->last))
         goto break_out;
-      case_data_rw (c, loop->index_var->fv)->f = loop->cur;
+      case_data_rw (c, loop->index_var)->f = loop->cur;
     }
 
   if (loop->loop_condition != NULL

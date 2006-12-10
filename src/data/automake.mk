@@ -60,14 +60,19 @@ src_data_libdata_a_SOURCES = \
 	src/data/sfm-private.h \
 	src/data/storage-stream.c \
 	src/data/storage-stream.h \
+	src/data/sys-file-private.c \
+	src/data/sys-file-private.h \
 	src/data/sys-file-reader.c \
 	src/data/sys-file-reader.h \
 	src/data/sys-file-writer.c \
 	src/data/sys-file-writer.h \
 	src/data/transformations.c \
 	src/data/transformations.h \
+	src/data/value.c \
 	src/data/value.h \
 	src/data/value-labels.c \
 	src/data/value-labels.h \
 	src/data/variable.h \
-	src/data/variable.c 
+	src/data/variable.c \
+	src/data/vector.c \
+	src/data/vector.h

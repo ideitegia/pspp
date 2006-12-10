@@ -30,6 +30,7 @@
 #include <data/format.h>
 #include <data/procedure.h>
 #include <data/settings.h>
+#include <data/value.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/format-parser.h>

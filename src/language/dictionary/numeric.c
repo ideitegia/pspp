@@ -185,7 +185,7 @@ cmd_leave (struct lexer *lexer, struct dataset *ds)
   if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
     return CMD_CASCADING_FAILURE;
   for (i = 0; i < nv; i++)
-    v[i]->leave = true;
+    var_set_leave (v[i], true);
   free (v);
 
   return lex_end_of_command (lexer);

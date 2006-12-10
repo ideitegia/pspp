@@ -435,7 +435,8 @@ show_descriptives(void)
 	  gs = gs_array[count];
 
 	  tab_text (t, 1, row + count, 
-		    TAB_LEFT | TAT_TITLE ,value_to_string(&gs->id,indep_var));
+		    TAB_LEFT | TAT_TITLE, var_get_value_name(indep_var,
+                                                             &gs->id));
 
 	  /* Now fill in the numbers ... */
 
@@ -621,7 +622,7 @@ show_contrast_coeffs (short *bad_contrast)
       group_value = group_values[count];
 
       tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE, 
-		value_to_string(group_value, indep_var));
+		var_get_value_name (indep_var, group_value));
 
       for (i = 0 ; i < cmd.sbc_contrast ; ++i ) 
 	{
@@ -917,7 +918,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
       if ( casefilter_variable_missing (filter, &c, indep_var))
 	continue;
 
-      indep_val = case_data (&c, indep_var->fv);
+      indep_val = case_data (&c, indep_var);
 	  
       hsh_insert ( global_group_hash, (void *) indep_val );
 
@@ -925,7 +926,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 	{
 	  const struct variable *v = vars[i];
 
-	  const union value *val = case_data (&c, v->fv);
+	  const union value *val = case_data (&c, v);
 
           struct group_proc *gp = group_proc_get (vars[i]);
 	  struct hsh_table *group_hash = gp->group_hash;

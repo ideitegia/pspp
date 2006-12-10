@@ -32,7 +32,7 @@
 #include "calendar.h"
 #include "format.h"
 #include "settings.h"
-#include "variable.h"
+#include "value.h"
 
 #include <libpspp/assertion.h>
 #include <libpspp/float-format.h>
@@ -709,8 +709,8 @@ output_scientific (double number, const struct fmt_spec *format,
     p = mempset (p, ' ', ss_length (style->neg_suffix));
 
   assert (p == buf + format->w);
+  memcpy (output, buf, format->w);
 
-  buf_copy_str_lpad (output, format->w, buf);
   return true;
 }
 

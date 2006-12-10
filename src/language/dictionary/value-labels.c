@@ -136,7 +136,7 @@ erase_labels (struct variable **vars, size_t var_cnt)
 
   /* Erase old value labels if desired. */
   for (i = 0; i < var_cnt; i++)
-    val_labs_clear (vars[i]->val_labs);
+    var_clear_value_labels (vars[i]);
 }
 
 /* Parse all the labels for the VAR_CNT variables in VARS and add
@@ -188,7 +188,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 	}
 
       for (i = 0; i < var_cnt; i++)
-        val_labs_replace (vars[i]->val_labs, value, ds_cstr (&label));
+        var_replace_value_label (vars[i], &value, ds_cstr (&label));
 
       ds_destroy (&label);
 

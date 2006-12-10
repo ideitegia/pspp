@@ -247,7 +247,7 @@ psppire_case_file_get_value(const PsppireCaseFile *cf, gint casenum, gint idx)
 
   flexifile_get_case(FLEXIFILE(cf->flexifile), casenum, &c);
 
-  v = case_data(&c, idx);
+  v = case_data_idx(&c, idx);
 
   case_destroy(&c);
 
@@ -284,7 +284,7 @@ psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, gint idx,
     bytes = DIV_RND_UP(width, MAX_SHORT_STRING) * MAX_SHORT_STRING ;
 
   /* Cast away const in flagrant abuse of the casefile */
-  memcpy((union value *)case_data(&cc, idx), v, bytes);
+  memcpy((union value *)case_data_idx(&cc, idx), v, bytes);
 
   g_signal_emit(cf, signal[CASE_CHANGED], 0, casenum);
 
@@ -310,7 +310,7 @@ psppire_case_file_data_in(PsppireCaseFile *cf, gint casenum, gint idx,
 
   /* Cast away const in flagrant abuse of the casefile */
   if (!data_in (input, fmt->type, 0, 0,
-                (union value *) case_data(&cc, idx), fmt_var_width (fmt)))
+                (union value *) case_data_idx(&cc, idx), fmt_var_width (fmt)))
     g_warning("Cant set value\n");
 
   g_signal_emit(cf, signal[CASE_CHANGED], 0, casenum);

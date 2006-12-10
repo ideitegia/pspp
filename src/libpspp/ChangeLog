@@ -1,3 +1,7 @@
+Sat Dec  9 18:48:55 2006  Ben Pfaff  <blp@gnu.org>
+
+	* misc.h (macro range): Removed, as it was unused.
+
 Sat Dec  9 07:19:01 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* array.c: Removed gratuitous #include

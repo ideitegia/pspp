@@ -279,7 +279,7 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
   gtk_widget_set_sensitive(dialog->discrete, FALSE);   
 
   gtk_widget_set_sensitive(GTK_WIDGET(dialog->button_range), 
-			   psppire_variable_get_type(dialog->pv) == NUMERIC);
+			   psppire_variable_get_type(dialog->pv) == VAR_NUMERIC);
 
   for(i = 0 ; i < 3 ; ++i ) 
     {

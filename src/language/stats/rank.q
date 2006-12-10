@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include "sort-criteria.h"
 
 #include <data/dictionary.h>
+#include <data/format.h>
+#include <data/missing-values.h>
 #include <data/procedure.h>
 #include <data/variable.h>
 #include <data/case.h>
@@ -247,13 +249,13 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
   for (i = 0; i < n_splits ; i++) 
     {
       struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
-      criteria.crits[i].fv = v->fv;
+      criteria.crits[i].fv = var_get_case_index (v);
       criteria.crits[i].width = var_get_width (v);
       criteria.crits[i].dir = SRT_ASCEND;
     }
   for (i = 0; i < n_group_vars; i++) 
     {
-      criteria.crits[i + n_splits].fv = group_vars[i]->fv;
+      criteria.crits[i + n_splits].fv = var_get_case_index (group_vars[i]);
       criteria.crits[i + n_splits].width = var_get_width (group_vars[i]);
       criteria.crits[i + n_splits].dir = SRT_ASCEND;
     }
@@ -273,7 +275,7 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
       /* Sort CF into SORTED_CF. */
       reader = casefile_get_destructive_reader (cf) ;
       criteria.crits[criteria.crit_cnt - 1] = sc->crits[i];
-      assert ( sc->crits[i].fv == src_vars[i]->fv );
+      assert ( sc->crits[i].fv == var_get_case_index (src_vars[i]) );
       sorted_cf = sort_execute (reader, &criteria);
       casefile_destroy (cf);
 
@@ -519,7 +521,7 @@ rank_cases (struct casereader *cr,
       if (!casereader_read_xfer (cr, &this_case))
         break;
       
-      this_value = case_data (&this_case, fv);
+      this_value = case_data_idx (&this_case, fv);
       c = dict_get_case_weight (dict, &this_case, &warn);
               
       lookahead = casereader_clone (cr);
@@ -527,7 +529,7 @@ rank_cases (struct casereader *cr,
       while (casereader_cnum (lookahead) < end
              && casereader_read_xfer (lookahead, &lookahead_case))
         {
-          const union value *lookahead_value = case_data (&lookahead_case, fv);
+          const union value *lookahead_value = case_data_idx (&lookahead_case, fv);
           int diff = compare_values (this_value, lookahead_value, width);
 
           if (diff != 0) 
@@ -553,12 +555,12 @@ rank_cases (struct casereader *cr,
         {
           for (i = 0; i < n_rank_specs; ++i) 
             {
-              const int dest_idx = rs[i].destvars[dest_var_index]->fv;
+              const struct variable *dst_var = rs[i].destvars[dest_var_index];
 
 	      if  ( value_is_missing (mv, this_value) )
-		case_data_rw (&this_case, dest_idx)->f = SYSMIS;
+		case_data_rw (&this_case, dst_var)->f = SYSMIS;
 	      else
-		case_data_rw (&this_case, dest_idx)->f = 
+		case_data_rw (&this_case, dst_var)->f = 
 		  rank_func[rs[i].rfunc](c, cc, cc_1, iter, w);
             }
           casefile_append_xfer (dest, &this_case); 
@@ -582,8 +584,8 @@ same_group (const struct ccase *a, const struct ccase *b,
   for (i = 0; i < crit->crit_cnt - 1; i++)
     {
       struct sort_criterion *c = &crit->crits[i];
-      if (compare_values (case_data (a, c->fv), case_data (b, c->fv),
-                          c->width) != 0)
+      if (compare_values (case_data_idx (a, c->fv),
+                          case_data_idx (b, c->fv), c->width) != 0)
         return false;
     }
 
@@ -612,7 +614,7 @@ rank_sorted_casefile (struct casefile *cf,
       struct ccase this_case;
       const union value *this_value ;
       double w = 0.0;
-      this_value = case_data( &group_case, ultimate_crit->fv);
+      this_value = case_data_idx( &group_case, ultimate_crit->fv);
 
       if ( !value_is_missing(mv, this_value) )
 	w = dict_get_case_weight (dict, &group_case, &warn);
@@ -620,7 +622,7 @@ rank_sorted_casefile (struct casefile *cf,
       while (casereader_read (lookahead, &this_case)) 
         {
 	  const union value *this_value = 
-	    case_data(&this_case, ultimate_crit->fv);
+	    case_data_idx(&this_case, ultimate_crit->fv);
           double c = dict_get_case_weight (dict, &this_case, &warn);
           if (!same_group (&group_case, &this_case, crit)) 
             {
@@ -661,7 +663,7 @@ create_resort_key (void *key_var_, struct ccase *cc, casenumber case_num)
 {
   struct variable *key_var = key_var_;
 
-  case_data_rw(cc, key_var->fv)->f = case_num;
+  case_data_rw(cc, key_var)->f = case_num;
   
   return TRNS_CONTINUE;
 }
@@ -907,7 +909,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   {
     struct sort_criteria criteria;
     struct sort_criterion restore_criterion ;
-    restore_criterion.fv = order->fv;
+    restore_criterion.fv = var_get_case_index (order);
     restore_criterion.width = 0;
     restore_criterion.dir = SRT_ASCEND;
 

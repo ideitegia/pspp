@@ -42,6 +42,7 @@
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include "cat-routines.h"
+#include "value.h"
 #include "variable.h"
 
 #define N_INITIAL_CATEGORIES 1
@@ -49,30 +50,24 @@
 void
 cat_stored_values_create (struct variable *v)
 {
-  if (v->obs_vals == NULL)
+  if (!var_has_obs_vals (v))
     {
-      v->obs_vals = xmalloc (sizeof (*v->obs_vals));
-      v->obs_vals->n_categories = 0;
-      v->obs_vals->n_allocated_categories = N_INITIAL_CATEGORIES;
-      v->obs_vals->vals =
-	xnmalloc (N_INITIAL_CATEGORIES, sizeof *v->obs_vals->vals);
+      struct cat_vals *obs_vals = xmalloc (sizeof *obs_vals);
+      obs_vals->n_categories = 0;
+      obs_vals->n_allocated_categories = N_INITIAL_CATEGORIES;
+      obs_vals->vals = xnmalloc (N_INITIAL_CATEGORIES, sizeof *obs_vals->vals);
+      var_set_obs_vals (v, obs_vals);
     }
 }
 
 void
-cat_stored_values_destroy (struct variable *v)
+cat_stored_values_destroy (struct cat_vals *obs_vals)
 {
-  assert (v != NULL);
-
-  if (v->obs_vals != NULL)
+  if (obs_vals != NULL) 
     {
-      if (v->obs_vals->n_allocated_categories > 0)
-	{
-	  free (v->obs_vals->vals);
-	  v->obs_vals->vals = NULL;
-	}
-      free (v->obs_vals);
-      v->obs_vals = NULL;
+      if (obs_vals->n_allocated_categories > 0)
+        free (obs_vals->vals);
+      free (obs_vals);
     }
 }
 
@@ -82,15 +77,13 @@ cat_stored_values_destroy (struct variable *v)
 size_t
 cat_value_find (const struct variable *v, const union value *val)
 {
+  struct cat_vals *obs_vals = var_get_obs_vals (v);
   size_t i;
   const union value *candidate;
 
-  assert (val != NULL);
-  assert (v != NULL);
-  assert (v->obs_vals != NULL);
-  for (i = 0; i < v->obs_vals->n_categories; i++)
+  for (i = 0; i < obs_vals->n_categories; i++)
     {
-      candidate = v->obs_vals->vals + i;
+      candidate = obs_vals->vals + i;
       assert (candidate != NULL);
       if (!compare_values (candidate, val, var_get_width (v)))
 	{
@@ -106,13 +99,9 @@ cat_value_find (const struct variable *v, const union value *val)
 void
 cat_value_update (struct variable *v, const union value *val)
 {
-  struct cat_vals *cv;
-
   if (var_is_alpha (v))
     {
-      assert (val != NULL);
-      assert (v != NULL);
-      cv = v->obs_vals;
+      struct cat_vals *cv = var_get_obs_vals (v);
       if (cat_value_find (v, val) == CAT_VALUE_NOT_FOUND)
 	{
 	  if (cv->n_categories >= cv->n_allocated_categories)
@@ -131,15 +120,8 @@ cat_value_update (struct variable *v, const union value *val)
 union value *
 cat_subscript_to_value (const size_t s, struct variable *v)
 {
-  assert (v->obs_vals != NULL);
-  if (s < v->obs_vals->n_categories)
-    {
-      return (v->obs_vals->vals + s);
-    }
-  else
-    {
-      return NULL;
-    }
+  struct cat_vals *obs_vals = var_get_obs_vals (v);
+  return s < obs_vals->n_categories ? obs_vals->vals + s : NULL;
 }
 
 /*
@@ -148,6 +130,6 @@ cat_subscript_to_value (const size_t s, struct variable *v)
 size_t 
 cat_get_n_categories (const struct variable *v)
 {
-  return v->obs_vals->n_categories;
+  return var_get_obs_vals (v)->n_categories;
 }
 

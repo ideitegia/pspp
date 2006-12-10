@@ -239,7 +239,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
 	   */
 
 	  val = pspp_coeff_get_value (c->coeff[j], v);
-	  val_s = value_to_string (val, v);
+	  val_s = var_get_value_name (v, val);
 	  strncat (tmp, val_s, MAX_STRING);
 	}
 
@@ -566,12 +566,12 @@ regression_trns_pred_proc (void *t_, struct ccase *c,
   n_vals = (*model->get_vars) (model, vars);
 
   vals = xnmalloc (n_vals, sizeof (*vals));
-  output = case_data_rw (c, model->pred->fv);
+  output = case_data_rw (c, model->pred);
   assert (output != NULL);
 
   for (i = 0; i < n_vals; i++)
     {
-      vals[i] = case_data (c, vars[i]->fv);
+      vals[i] = case_data (c, vars[i]);
     }
   output->f = (*model->predict) ((const struct variable **) vars,
 				 vals, model, n_vals);
@@ -606,14 +606,14 @@ regression_trns_resid_proc (void *t_, struct ccase *c,
   n_vals = (*model->get_vars) (model, vars);
 
   vals = xnmalloc (n_vals, sizeof (*vals));
-  output = case_data_rw (c, model->resid->fv);
+  output = case_data_rw (c, model->resid);
   assert (output != NULL);
 
   for (i = 0; i < n_vals; i++)
     {
-      vals[i] = case_data (c, vars[i]->fv);
+      vals[i] = case_data (c, vars[i]);
     }
-  obs = case_data (c, model->depvar->fv);
+  obs = case_data (c, model->depvar);
   output->f = (*model->residual) ((const struct variable **) vars,
 				  vals, obs, model, n_vals);
   free (vals);
@@ -734,20 +734,16 @@ static void
 reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 {
   int i;
-  size_t j;
   int n_vars = 0;
   struct variable **varlist;
-  struct pspp_coeff *coeff;
-  const struct variable *v;
-  union value *val;
 
   fprintf (fp, "%s", reg_export_categorical_encode_1);
 
   varlist = xnmalloc (c->n_indeps, sizeof (*varlist));
   for (i = 1; i < c->n_indeps; i++)	/* c->coeff[0] is the intercept. */
     {
-      coeff = c->coeff[i];
-      v = pspp_coeff_get_var (coeff, 0);
+      struct pspp_coeff *coeff = c->coeff[i];
+      const struct variable *v = pspp_coeff_get_var (coeff, 0);
       if (var_is_alpha (v))
 	{
 	  if (!reg_inserted (v, varlist, n_vars))
@@ -770,20 +766,22 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 
   for (i = 0; i < n_vars; i++)
     {
-      coeff = c->coeff[i];
+      size_t n_categories = cat_get_n_categories (varlist[i]);
+      size_t j;
+      
       fprintf (fp, "%s.name = \"%s\";\n\t",
                var_get_name (varlist[i]),
 	       var_get_name (varlist[i]));
       fprintf (fp, "%s.n_vals = %d;\n\t",
                var_get_name (varlist[i]),
-	       varlist[i]->obs_vals->n_categories);
+               n_categories);
 
-      for (j = 0; j < varlist[i]->obs_vals->n_categories; j++)
+      for (j = 0; j < n_categories; j++)
 	{
-	  val = cat_subscript_to_value ((const size_t) j, varlist[i]);
+          union value *val = cat_subscript_to_value (j, varlist[i]);
 	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t",
                    var_get_name (varlist[i]), j,
-		   value_to_string (val, varlist[i]));
+		   var_get_value_name (varlist[i], val));
 	}
     }
   fprintf (fp, "%s", reg_export_categorical_encode_2);
@@ -959,14 +957,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 static bool
 is_depvar (size_t k, const struct variable *v)
 {
-  /*
-     compare_var_names returns 0 if the variable
-     names match.
-   */
-  if (!compare_var_names (v, v_variables[k], NULL))
-    return true;
-
-  return false;
+  return v == v_variables[k];
 }
 
 /*
@@ -986,7 +977,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
     {
       row = casereader_cnum (r) - 1;
 
-      val = case_data (&c, v->fv);
+      val = case_data (&c, v);
       cat_value_update (v, val);
       if (var_is_value_missing (v, val))
 	{
@@ -1199,7 +1190,7 @@ run_regression (const struct ccase *first,
 						   current case.
 						 */
 		{
-		  val = case_data (&c, v_variables[i]->fv);
+		  val = case_data (&c, v_variables[i]);
 		  /*
 		     Independent/dependent variable separation. The
 		     'variables' subcommand specifies a varlist which contains
@@ -1222,7 +1213,7 @@ run_regression (const struct ccase *first,
 			}
 		    }
 		}
-	      val = case_data (&c, cmd.v_dependent[k]->fv);
+	      val = case_data (&c, cmd.v_dependent[k]);
 	      gsl_vector_set (Y, row, val->f);
 	      row++;
 	    }

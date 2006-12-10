@@ -154,7 +154,7 @@ struct pair
 
 static struct pair *pairs=0;
 
-static int parse_value (struct lexer *lexer, union value * v, int type) ;
+static int parse_value (struct lexer *lexer, union value * v, enum var_type);
 
 /* Structures and Functions for the Statistics Summary Box */
 struct ssbox;
@@ -309,7 +309,8 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 	  struct hsh_table *hash;
 	  struct variable *v;
 
-	  hash = hsh_create (n_pairs, compare_var_names, hash_var_name, 0, 0);
+	  hash = hsh_create (n_pairs, compare_vars_by_name, hash_var_by_name,
+          0, 0);
 
 	  for (i=0; i < n_pairs; ++i)
 	    {
@@ -565,9 +566,9 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
 /* Parses the current token (numeric or string, depending on type)
     value v and returns success. */
 static int
-parse_value (struct lexer *lexer, union value * v, int type )
+parse_value (struct lexer *lexer, union value * v, enum var_type type)
 {
-  if (type == NUMERIC)
+  if (type == VAR_NUMERIC)
     {
       if (!lex_force_num (lexer))
 	return 0;
@@ -716,16 +717,16 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 {
   int i;
 
-  char *val_lab0=0;
-  char *val_lab1=0;
+  const char *val_lab0;
+  const char *val_lab1;
   double indep_value[2];
 
   char prefix[2][3]={"",""};
 
   if ( var_is_numeric (indep_var) ) 
     {
-      val_lab0 = val_labs_find( indep_var->val_labs,gp.v.g_value[0]); 
-      val_lab1 = val_labs_find( indep_var->val_labs,gp.v.g_value[1]);
+      val_lab0 = var_lookup_value_label (indep_var, &gp.v.g_value[0]); 
+      val_lab1 = var_lookup_value_label (indep_var, &gp.v.g_value[1]);
     }
   else
     {
@@ -1435,7 +1436,7 @@ common_calc (const struct dictionary *dict,
       if (! casefilter_variable_missing (filter, c, v) )
 	{
 	  struct group_statistics *gs;
-	  const union value *val = case_data (c, v->fv);
+	  const union value *val = case_data (c, v);
 	  gs = &group_proc_get (cmd->v_variables[i])->ugs;
 
 	  gs->n += weight;
@@ -1507,7 +1508,7 @@ one_sample_calc (const struct dictionary *dict,
     {
       struct group_statistics *gs;
       struct variable *v = cmd->v_variables[i];
-      const union value *val = case_data (c, v->fv);
+      const union value *val = case_data (c, v);
 
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
 
@@ -1582,8 +1583,8 @@ paired_calc (const struct dictionary *dict, const struct ccase *c,
       struct variable *v0 = pairs[i].v[0];
       struct variable *v1 = pairs[i].v[1];
 
-      const union value *val0 = case_data (c, v0->fv);
-      const union value *val1 = case_data (c, v1->fv);
+      const union value *val0 = case_data (c, v0);
+      const union value *val1 = case_data (c, v1);
 
       if (  ! casefilter_variable_missing (filter, c, v0) && 
 	    ! casefilter_variable_missing (filter, c, v1) )
@@ -1708,12 +1709,12 @@ group_calc (const struct dictionary *dict,
   if ( casefilter_variable_missing (filter, c, indep_var))
     return 0;
 
-  gv = case_data (c, indep_var->fv);
+  gv = case_data (c, indep_var);
 
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct variable *var = cmd->v_variables[i];
-      const union value *val = case_data (c, var->fv);
+      const union value *val = case_data (c, var);
       struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       struct group_statistics *gs;
 

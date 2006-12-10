@@ -24,10 +24,13 @@
 
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/format.h>
+#include <data/missing-values.h>
 #include <data/procedure.h>
 #include <data/sys-file-reader.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <data/vector.h>
 #include <language/command.h>
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
@@ -151,7 +154,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   for (r = 1, i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *v = dict_get_var (d, i);
-      const int nvl = val_labs_count (v->val_labs);
+      const int nvl = val_labs_count (var_get_value_labels (v));
       
       if (r + 10 + nvl > nr)
 	{
@@ -275,7 +278,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 	}
 
       if (sorted)
-	sort (vl, n, sizeof *vl, compare_var_ptr_names, NULL);
+	sort (vl, n, sizeof *vl, compare_var_ptrs_by_name, NULL);
 
       display_variables (vl, n, as);
 
@@ -399,7 +402,7 @@ display_variables (struct variable **vl, size_t n, int as)
 
       if (as == AS_DICTIONARY || as == AS_VARIABLES)
 	{
-	  int nvl = val_labs_count (v->val_labs);
+	  int nvl = val_labs_count (var_get_value_labels (v));
       
 	  if (r + 10 + nvl > nr)
 	    {
@@ -419,7 +422,8 @@ display_variables (struct variable **vl, size_t n, int as)
             }
 	  if (as != AS_NAMES)
 	    {
-	      tab_text (t, pc, r, TAT_PRINTF, "%d", v->index + 1);
+	      tab_text (t, pc, r, TAT_PRINTF, "%d",
+                        (int) var_get_dict_index (v) + 1);
 	      tab_hline (t, TAL_1, 0, nc - 1, r);
 	    }
 	  r++;
@@ -451,7 +455,7 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
 
   /* Put the name, var label, and position into the first row. */
   tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
-  tab_text (t, 3, r, TAT_PRINTF, "%d", v->index + 1);
+  tab_text (t, 3, r, TAT_PRINTF, "%d", (int) var_get_dict_index (v) + 1);
 
   if (as == AS_DICTIONARY && var_has_label (v)) 
     {
@@ -524,8 +528,9 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
     }
 
   /* Value labels. */
-  if (as == AS_DICTIONARY && val_labs_count (v->val_labs))
+  if (as == AS_DICTIONARY && var_has_value_labels (v))
     {
+      const struct val_labs *val_labs = var_get_value_labels (v);
       struct val_labs_iterator *i;
       struct val_lab *vl;
       int orig_r = r;
@@ -537,8 +542,8 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
 #endif
 
       tab_hline (t, TAL_1, 1, 2, r);
-      for (vl = val_labs_first_sorted (v->val_labs, &i); vl != NULL;
-           vl = val_labs_next (v->val_labs, &i))
+      for (vl = val_labs_first_sorted (val_labs, &i); vl != NULL;
+           vl = val_labs_next (val_labs, &i))
         {
 	  char buf[128];
 
@@ -564,17 +569,6 @@ describe_variable (struct variable *v, struct tab_table *t, int r, int as)
   return r;
 }
 
-static int
-compare_vectors_by_name (const void *a_, const void *b_)
-{
-  struct vector *const *pa = a_;
-  struct vector *const *pb = b_;
-  struct vector *a = *pa;
-  struct vector *b = *pb;
-  
-  return strcasecmp (a->name, b->name);
-}
-
 /* Display a list of vectors.  If SORTED is nonzero then they are
    sorted alphabetically. */
 static void
@@ -596,7 +590,7 @@ display_vectors (const struct dictionary *dict, int sorted)
   for (i = 0; i < nvec; i++)
     vl[i] = dict_get_vector (dict, i);
   if (sorted)
-    qsort (vl, nvec, sizeof *vl, compare_vectors_by_name);
+    qsort (vl, nvec, sizeof *vl, compare_vector_ptrs_by_name);
 
   t = tab_create (1, nvec + 1, 0);
   tab_headers (t, 0, 0, 1, 0);
@@ -606,7 +600,7 @@ display_vectors (const struct dictionary *dict, int sorted)
   tab_text (t, 0, 0, TAT_TITLE | TAB_LEFT, _("Vector"));
   tab_flags (t, SOMF_NO_TITLE);
   for (i = 0; i < nvec; i++)
-    tab_text (t, 0, i + 1, TAB_LEFT, vl[i]->name);
+    tab_text (t, 0, i + 1, TAB_LEFT, vector_get_name (vl[i]));
   tab_submit (t);
 
   free (vl);

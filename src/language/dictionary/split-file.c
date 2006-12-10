@@ -96,12 +96,12 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
 
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", var_get_name (v));
       
-      data_out (case_data (c, v->fv), print, temp_buf);
+      data_out (case_data (c, v), print, temp_buf);
       temp_buf[print->w] = 0;
 
       tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", print->w, temp_buf);
 
-      val_lab = val_labs_find (v->val_labs, *case_data (c, v->fv));
+      val_lab = var_lookup_value_label (v, case_data (c, v));
       if (val_lab)
 	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);
     }

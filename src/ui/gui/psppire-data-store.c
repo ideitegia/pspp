@@ -442,10 +442,10 @@ psppire_data_store_insert_new_case(PsppireDataStore *ds, gint posn)
   for (v = 0 ; v < psppire_dict_get_var_cnt (ds->dict) ; ++v) 
     {
       const struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, v);
-      if (ALPHA ==  psppire_variable_get_type(pv) ) 
+      if (VAR_STRING ==  psppire_variable_get_type(pv) ) 
 	continue;
 
-      case_data_rw (&cc, psppire_variable_get_fv (pv))->f = SYSMIS;
+      case_data_rw_idx (&cc, psppire_variable_get_fv (pv))->f = SYSMIS;
     }
 
   result = psppire_case_file_insert_case (ds->case_file, &cc, posn);
@@ -530,7 +530,7 @@ psppire_data_store_clear_datum (GSheetModel *model,
 
   const gint index = psppire_variable_get_fv(pv) ;
 
-  if ( psppire_variable_get_type(pv) == NUMERIC) 
+  if ( psppire_variable_get_type(pv) == VAR_NUMERIC) 
     v.f = SYSMIS;
   else
     memcpy(v.s, "", MAX_SHORT_STRING);

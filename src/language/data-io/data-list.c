@@ -370,7 +370,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
             /* Create specifier for parsing the variable. */
             spec = pool_alloc (dls->pool, sizeof *spec);
             spec->input = *f;
-            spec->fv = v->fv;
+            spec->fv = var_get_case_index (v);
             spec->record = record;
             spec->first_column = column;
             strcpy (spec->name, var_get_name (v));
@@ -498,7 +498,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool,
 
           spec = pool_alloc (dls->pool, sizeof *spec);
           spec->input = input;
-	  spec->fv = v->fv;
+	  spec->fv = var_get_case_index (v);
 	  strcpy (spec->name, var_get_name (v));
           ll_push_tail (&dls->specs, &spec->ll);
 	}
@@ -679,7 +679,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
       ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs) 
         data_in (ss_substr (line, spec->first_column - 1, spec->input.w),
                  spec->input.type, spec->input.d, spec->first_column,
-                 case_data_rw (c, spec->fv), fmt_var_width (&spec->input));
+                 case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
 
       dfm_forward_record (dls->reader);
     }
@@ -715,7 +715,7 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
       
       data_in (field, spec->input.type, 0,
                dfm_get_column (dls->reader, ss_data (field)),
-               case_data_rw (c, spec->fv), fmt_var_width (&spec->input));
+               case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
     }
   return true;
 }
@@ -746,16 +746,16 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
             {
               int width = fmt_var_width (&spec->input);
               if (width == 0)
-                case_data_rw (c, spec->fv)->f = SYSMIS;
+                case_data_rw_idx (c, spec->fv)->f = SYSMIS;
               else
-                memset (case_data_rw (c, spec->fv)->s, ' ', width); 
+                memset (case_data_rw_idx (c, spec->fv)->s, ' ', width); 
             }
 	  break;
 	}
       
       data_in (field, spec->input.type, 0,
                dfm_get_column (dls->reader, ss_data (field)),
-               case_data_rw (c, spec->fv), fmt_var_width (&spec->input));
+               case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
     }
 
   dfm_forward_record (dls->reader);
@@ -794,7 +794,7 @@ data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
   /* If there was an END subcommand handle it. */
   if (dls->end != NULL) 
     {
-      double *end = &case_data_rw (c, dls->end->fv)->f;
+      double *end = &case_data_rw (c, dls->end)->f;
       if (retval == TRNS_DROP_CASE)
         {
           *end = 1.0;

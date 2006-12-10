@@ -187,7 +187,7 @@ levene_calc (const struct dictionary *dict, const struct ccase *c,
 {
   size_t i;
   bool warn = false;
-  const union value *gv = case_data (c, l->v_indep->fv);
+  const union value *gv = case_data (c, l->v_indep);
   struct group_statistics key;
   double weight = dict_get_case_weight (dict, c, &warn); 
 
@@ -198,7 +198,7 @@ levene_calc (const struct dictionary *dict, const struct ccase *c,
       struct variable *var = l->v_dep[i];
       struct group_proc *gp = group_proc_get (var);
       double levene_z;
-      const union value *v = case_data (c, var->fv);
+      const union value *v = case_data (c, var);
       struct group_statistics *gs;
 
       gs = hsh_find(gp->group_hash,(void *) &key );
@@ -278,7 +278,7 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c,
 
   double weight = dict_get_case_weight (dict, c, &warn); 
 
-  const union value *gv = case_data (c, l->v_indep->fv);
+  const union value *gv = case_data (c, l->v_indep);
   struct group_statistics key;
 
   key.id = *gv;
@@ -287,7 +287,7 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c,
     {
       double levene_z;
       struct variable *var = l->v_dep[i] ;
-      const union value *v = case_data (c, var->fv);
+      const union value *v = case_data (c, var);
       struct group_statistics *gs;
 
       gs = hsh_find(group_proc_get (var)->group_hash,(void *) &key );

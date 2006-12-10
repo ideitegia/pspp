@@ -33,6 +33,7 @@
 #include <libpspp/message.h>
 #include <data/variable.h>
 #include <data/category.h>
+#include <data/value.h>
 
 #include <gsl/gsl_machine.h>
 #include <gsl/gsl_vector.h>
@@ -122,10 +123,10 @@ design_matrix_create (int n_variables,
 	}
       else if (var_is_alpha (v))
 	{
-	  assert (v->obs_vals != NULL);
+          struct cat_vals *obs_vals = var_get_obs_vals (v);
 	  (dm->vars + i)->last_column =
-	    (dm->vars + i)->first_column + v->obs_vals->n_categories - 2;
-	  n_cols += v->obs_vals->n_categories - 1;
+	    (dm->vars + i)->first_column + obs_vals->n_categories - 2;
+	  n_cols += obs_vals->n_categories - 1;
 	}
     }
   dm->m = gsl_matrix_calloc (n_data, n_cols);

@@ -21,6 +21,7 @@
 
 #include "sys-file-writer.h"
 #include "sfm-private.h"
+#include "sys-file-private.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -41,6 +42,8 @@
 #include "case.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
+#include "format.h"
+#include "missing-values.h"
 #include "settings.h"
 #include "value-labels.h"
 #include "variable.h"
@@ -114,7 +117,7 @@ static inline int
 var_flt64_cnt (const struct variable *v) 
 {
   assert(sizeof(flt64) == MAX_SHORT_STRING);
-  return width_to_bytes(var_get_width (v)) / MAX_SHORT_STRING ;
+  return sfm_width_to_bytes(var_get_width (v)) / MAX_SHORT_STRING ;
 }
 
 static inline int
@@ -218,10 +221,10 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       struct sfm_var *sv = &w->vars[i];
       sv->width = var_get_width (dv);
       /* spss compatibility nonsense */
-      if ( var_is_very_long_string (dv) ) 
+      if ( var_get_width (dv) >= MIN_VERY_LONG_STRING ) 
 	  w->has_vls = true;
 
-      sv->fv = dv->fv;
+      sv->fv = var_get_case_index (dv);
       sv->flt64_cnt = var_flt64_cnt (dv);
     }
 
@@ -244,32 +247,34 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       int wcount = var_get_width (v);
 
       do {
-	struct variable var_cont = *v;
+	struct variable *var_cont = var_clone (v);
+        var_set_short_name (var_cont, var_get_short_name (v));
 	if ( var_is_alpha (v)) 
 	  {
 	    if ( 0 != count ) 
 	      {
-		var_clear_missing_values (&var_cont);
-                var_set_short_name (&var_cont,
+		var_clear_missing_values (var_cont);
+                var_set_short_name (var_cont,
                                     cont_var_name (var_get_short_name (v),
                                                    count));
-                var_clear_label (&var_cont);
+                var_clear_label (var_cont);
 		w->var_cnt_vls++;
 	      }
 	    count++;
-	    if ( wcount > MAX_LONG_STRING ) 
+	    if ( wcount >= MIN_VERY_LONG_STRING ) 
 	      {
-                var_set_width (&var_cont, MAX_LONG_STRING);
+                var_set_width (var_cont, MIN_VERY_LONG_STRING - 1);
 		wcount -= EFFECTIVE_LONG_STRING_LENGTH;
 	      }
 	    else
 	      {
-		var_set_width (&var_cont, wcount);
-		wcount -= var_get_width (&var_cont);
+		var_set_width (var_cont, wcount);
+		wcount -= var_get_width (var_cont);
 	      }
 	  }
 
-	write_variable (w, &var_cont);
+	write_variable (w, var_cont);
+        var_destroy (var_cont);
       } while(wcount > 0);
     }
 
@@ -458,7 +463,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   const char *label = var_get_label (v);
 
   sv.rec_type = 2;
-  sv.type = MIN(var_get_width (v), MAX_LONG_STRING);
+  sv.type = MIN (var_get_width (v), MIN_VERY_LONG_STRING - 1);
   sv.has_var_label = label != NULL;
 
   mv_copy (&mv, var_get_missing_values (v));
@@ -524,7 +529,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
       memset (&sv.write, 0, sizeof sv.write);
       memset (&sv.name, 0, sizeof sv.name);
 
-      pad_count = DIV_RND_UP (MIN(var_get_width (v), MAX_LONG_STRING),
+      pad_count = DIV_RND_UP (MIN(var_get_width (v), MIN_VERY_LONG_STRING - 1),
 			      (int) sizeof (flt64)) - 1;
       for (i = 0; i < pad_count; i++)
 	buf_write (w, &sv, sizeof sv);
@@ -550,6 +555,7 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
       int32_t vars[1] ;
     } ATTRIBUTE((packed));
 
+  const struct val_labs *val_labs;
   struct val_labs_iterator *i;
   struct value_label_rec *vlr;
   struct var_idx_rec vir;
@@ -557,23 +563,24 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
   size_t vlr_size;
   flt64 *loc;
 
-  if (!val_labs_count (v->val_labs))
+  val_labs = var_get_value_labels (v);
+  if (val_labs == NULL)
     return;
 
   /* Pass 1: Count bytes. */
   vlr_size = (sizeof (struct value_label_rec)
-	      + sizeof (flt64) * (val_labs_count (v->val_labs) - 1));
-  for (vl = val_labs_first (v->val_labs, &i); vl != NULL;
-       vl = val_labs_next (v->val_labs, &i))
+	      + sizeof (flt64) * (val_labs_count (val_labs) - 1));
+  for (vl = val_labs_first (val_labs, &i); vl != NULL;
+       vl = val_labs_next (val_labs, &i))
     vlr_size += ROUND_UP (strlen (vl->label) + 1, sizeof (flt64));
 
   /* Pass 2: Copy bytes. */
   vlr = xmalloc (vlr_size);
   vlr->rec_type = 3;
-  vlr->n_labels = val_labs_count (v->val_labs);
+  vlr->n_labels = val_labs_count (val_labs);
   loc = vlr->labels;
-  for (vl = val_labs_first_sorted (v->val_labs, &i); vl != NULL;
-       vl = val_labs_next (v->val_labs, &i))
+  for (vl = val_labs_first_sorted (val_labs, &i); vl != NULL;
+       vl = val_labs_next (val_labs, &i))
     {
       size_t len = strlen (vl->label);
 
@@ -662,7 +669,7 @@ write_variable_display_parameters (struct sfm_writer *w,
 
 	  while (wcount > 0) 
 	    {
-	      params.width = wcount > MAX_LONG_STRING ? 32 : wcount;
+	      params.width = wcount >= MIN_VERY_LONG_STRING ? 32 : wcount;
 	    
 	      buf_write (w, &params, sizeof(params));
 
@@ -699,7 +706,7 @@ write_vls_length_table (struct sfm_writer *w,
     {
       const struct variable *v = dict_get_var (dict, i);
       
-      if ( var_get_width (v) <=  MAX_LONG_STRING ) 
+      if ( var_get_width (v) < MIN_VERY_LONG_STRING ) 
 	continue;
 
       ds_put_format (&vls_length_map, "%s=%05d",
@@ -904,17 +911,17 @@ sfm_write_case (struct sfm_writer *w, const struct ccase *c)
 
           if (v->width == 0) 
 	    {
-	      *bounce_cur = case_num (c, v->fv);
+	      *bounce_cur = case_num_idx (c, v->fv);
 	      bounce_cur += v->flt64_cnt;
 	    }
           else 
 	    { int ofs = 0;
 	    while (ofs < v->width)
 	      {
-		int chunk = MIN (MAX_LONG_STRING, v->width - ofs);
+		int chunk = MIN (MIN_VERY_LONG_STRING - 1, v->width - ofs);
 		int nv = DIV_RND_UP (chunk, sizeof (flt64));
 		buf_copy_rpad ((char *) bounce_cur, nv * sizeof (flt64),
-			       case_data (c, v->fv)->s + ofs, chunk);
+			       case_data_idx (c, v->fv)->s + ofs, chunk);
 		bounce_cur += nv;
 		ofs += chunk;
 	      }

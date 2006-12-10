@@ -31,6 +31,7 @@
 
 #include <data/case.h>
 #include <data/dictionary.h>
+#include <data/format.h>
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/value-labels.h>
@@ -269,9 +270,7 @@ struct var_freqs
 static inline struct var_freqs *
 get_var_freqs (const struct variable *v)
 {
-  assert (v != NULL);
-  assert (v->aux != NULL);
-  return v->aux;
+  return var_get_aux (v);
 }
 
 static void determine_charts (void);
@@ -516,7 +515,7 @@ calc (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
   for (i = 0; i < n_variables; i++)
     {
       const struct variable *v = v_variables[i];
-      const union value *val = case_data (c, v->fv);
+      const union value *val = case_data (c, v);
       struct var_freqs *vf = get_var_freqs (v);
       struct freq_tab *ft = &vf->tab;
 
@@ -695,23 +694,22 @@ postcalc (void *aux UNUSED, const struct dataset *ds  UNUSED)
    sorting a frequency table by FRQ_SORT using VAR_TYPE
    variables. */
 static hsh_compare_func *
-get_freq_comparator (int frq_sort, int var_type) 
+get_freq_comparator (int frq_sort, enum var_type var_type) 
 {
-  /* Note that q2c generates tags beginning with 1000. */
-  switch (frq_sort | (var_type << 16))
+  bool is_numeric = var_type == VAR_NUMERIC;
+  switch (frq_sort)
     {
-    case FRQ_AVALUE | (NUMERIC << 16):  return compare_value_numeric_a;
-    case FRQ_AVALUE | (ALPHA << 16):    return compare_value_alpha_a;
-    case FRQ_DVALUE | (NUMERIC << 16):  return compare_value_numeric_d;
-    case FRQ_DVALUE | (ALPHA << 16):    return compare_value_alpha_d;
-    case FRQ_AFREQ | (NUMERIC << 16):   return compare_freq_numeric_a;
-    case FRQ_AFREQ | (ALPHA << 16):     return compare_freq_alpha_a;
-    case FRQ_DFREQ | (NUMERIC << 16):   return compare_freq_numeric_d;
-    case FRQ_DFREQ | (ALPHA << 16):     return compare_freq_alpha_d;
-    default: NOT_REACHED ();
+    case FRQ_AVALUE:
+      return is_numeric ? compare_value_numeric_a : compare_value_alpha_a;
+    case FRQ_DVALUE:
+      return is_numeric ? compare_value_numeric_d : compare_value_alpha_d;
+    case FRQ_AFREQ:
+      return is_numeric ? compare_freq_numeric_a : compare_freq_alpha_a;
+    case FRQ_DFREQ:
+      return is_numeric ? compare_freq_numeric_d : compare_freq_alpha_d;
+    default:
+      NOT_REACHED ();
     }
-
-  return 0;
 }
 
 /* Returns true iff the value in struct freq F is non-missing
@@ -840,7 +838,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
       struct variable *v = v_variables[i];
       struct var_freqs *vf;
 
-      if (v->aux != NULL)
+      if (var_get_aux (v) != NULL)
 	{
 	  msg (SE, _("Variable %s specified multiple times on VARIABLES "
 		     "subcommand."), var_get_name (v));
@@ -933,7 +931,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
           }
 
 	for (i = 0; i < n; i++)
-          if (v[i]->aux == NULL)
+          if (var_get_aux (v[i]) == NULL)
             msg (SE, _("Variables %s specified on GROUPED but not on "
                        "VARIABLES."), var_get_name (v[i]));
           else 
@@ -1217,7 +1215,7 @@ dump_full (struct variable *v)
 
       if (lab)
 	{
-	  const char *label = val_labs_find (v->val_labs, f->v[0]);
+	  const char *label = var_lookup_value_label (v, &f->v[0]);
 	  if (label != NULL)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
@@ -1235,7 +1233,7 @@ dump_full (struct variable *v)
 
       if (lab)
 	{
-	  const char *label = val_labs_find (v->val_labs, f->v[0]);
+	  const char *label = var_lookup_value_label (v, &f->v[0]);
 	  if (label != NULL)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
@@ -1643,7 +1641,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
     {
       const struct freq *frq = &frq_tab->valid[i];
 
-      slices[i].label = value_to_string(frq->v, var);
+      slices[i].label = var_get_value_name (var, frq->v);
 
       slices[i].magnetude = frq->c;
     }

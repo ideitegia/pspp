@@ -331,7 +331,7 @@ impl_resize (struct flexifile *ff, int n_values, int posn)
 
       case_copy (&c, 0, &ff->cases[i], 0, posn);
       if ( n_values > 0 ) 
-	memset (case_data_rw(&c, posn), ' ', n_values * MAX_SHORT_STRING) ;
+	memset (case_data_rw_idx(&c, posn), ' ', n_values * MAX_SHORT_STRING) ;
       case_copy (&c, posn + n_values, 
 		 &ff->cases[i], posn, ff->value_cnt - posn);
 

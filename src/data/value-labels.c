@@ -24,6 +24,8 @@
 #include <stdlib.h>
 
 #include <data/data-out.h>
+#include <data/format.h>
+#include <data/value.h>
 #include <data/variable.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
@@ -72,7 +74,8 @@ val_labs_copy (const struct val_labs *vls)
   struct val_labs_iterator *i;
   struct val_lab *vl;
 
-  assert (vls != NULL);
+  if (vls == NULL)
+    return NULL;
 
   copy = val_labs_create (vls->width);
   for (vl = val_labs_first (vls, &i); vl != NULL;
@@ -155,12 +158,7 @@ val_labs_clear (struct val_labs *vls)
 size_t
 val_labs_count (const struct val_labs *vls) 
 {
-  assert (vls != NULL);
-
-  if (vls->labels == NULL)
-    return 0;
-  else
-    return hsh_count (vls->labels);
+  return vls == NULL || vls->labels == NULL ? 0 : hsh_count (vls->labels);
 }
 
 /* One value label in internal format. */
@@ -222,29 +220,19 @@ val_labs_add (struct val_labs *vls, union value value, const char *label)
    if there wasn't already a value label for VALUE, or true if
    there was.  Behavior is undefined if VLS's width is greater
    than MAX_SHORT_STRING. */
-bool
+void
 val_labs_replace (struct val_labs *vls, union value value, const char *label) 
 {
-  struct int_val_lab *ivl;
-
-  assert (vls != NULL);
   assert (vls->width <= MAX_SHORT_STRING);
-  assert (label != NULL);
-
-  if (vls->labels == NULL)
+  if (vls->labels != NULL)
     {
-      val_labs_add (vls, value, label);
-      return false;
+      struct int_val_lab *new = create_int_val_lab (vls, value, label);
+      struct int_val_lab *old = hsh_replace (vls->labels, new);
+      if (old != NULL) 
+        free_int_val_lab (old, vls); 
     }
-
-  ivl = hsh_replace (vls->labels, create_int_val_lab (vls, value, label));
-  if (ivl == NULL) 
-    return false;
   else 
-    {
-      free_int_val_lab (ivl, vls);
-      return true;
-    }
+    val_labs_add (vls, value, label);  
 }
 
 /* Removes any value label for VALUE within VLS.  Returns true
@@ -274,12 +262,9 @@ val_labs_remove (struct val_labs *vls, union value value)
 char *
 val_labs_find (const struct val_labs *vls, union value value) 
 {
-  assert (vls != NULL);
-
-  if (vls->width > MAX_SHORT_STRING)
-    return NULL;
-
-  if (vls->labels != NULL) 
+  if (vls != NULL
+      && vls->width <= MAX_SHORT_STRING
+      && vls->labels != NULL)
     {
       struct int_val_lab ivl, *vlp;
 
@@ -535,31 +520,4 @@ free_atom (void *atom_, const void *aux UNUSED)
 
   free (atom->string);
   free (atom);
-}
-
-
-/* Get a string representing the value.
-   That is, if it has a label, then return that label,
-   otherwise, if the value is alpha, then return the string for it,
-   else format it and return the formatted string
-*/
-const char *
-value_to_string (const union value *val, const struct variable *var)
-{
-  char *s;
-  
-  assert (val != NULL);
-  assert (var != NULL);
-
-  s = val_labs_find (var->val_labs, *val);
-  if (s == NULL) 
-    {
-      static char buf[MAX_STRING + 1];
-      const struct fmt_spec *print = var_get_print_format (var);
-      data_out (val, print, buf);
-      buf[print->w] = '\0';
-      s = buf;
-    }
-  
-  return s;
 }

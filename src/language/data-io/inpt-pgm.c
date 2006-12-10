@@ -169,7 +169,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
       value_init |= var_get_leave (var) ? INP_INIT_ONCE : INP_REINIT;
 
       for (j = 0; j < value_cnt; j++)
-        inp->init[j + var->fv] = value_init;
+        inp->init[j + var_get_case_index (var)] = value_init;
     }
   for (i = 0; i < inp->init_cnt; i++)
     assert (inp->init[i] != -1);
@@ -198,14 +198,15 @@ init_case (const struct input_program_pgm *inp, struct ccase *c)
     switch (inp->init[i]) 
       {
       case INP_NUMERIC | INP_INIT_ONCE:
-        case_data_rw (c, i)->f = 0.0;
+        case_data_rw_idx (c, i)->f = 0.0;
         break;
       case INP_NUMERIC | INP_REINIT:
-        case_data_rw (c, i)->f = SYSMIS;
+        case_data_rw_idx (c, i)->f = SYSMIS;
         break;
       case INP_STRING | INP_INIT_ONCE:
       case INP_STRING | INP_REINIT:
-        memset (case_data_rw (c, i)->s, ' ', sizeof case_data_rw (c, i)->s);
+        memset (case_data_rw_idx (c, i)->s, ' ',
+                sizeof case_data_rw_idx (c, i)->s);
         break;
       default:
         NOT_REACHED ();
@@ -224,12 +225,13 @@ clear_case (const struct input_program_pgm *inp, struct ccase *c)
       case INP_NUMERIC | INP_INIT_ONCE:
         break;
       case INP_NUMERIC | INP_REINIT:
-        case_data_rw (c, i)->f = SYSMIS;
+        case_data_rw_idx (c, i)->f = SYSMIS;
         break;
       case INP_STRING | INP_INIT_ONCE:
         break;
       case INP_STRING | INP_REINIT:
-        memset (case_data_rw (c, i)->s, ' ', sizeof case_data_rw (c, i)->s);
+        memset (case_data_rw_idx (c, i)->s, ' ',
+                sizeof case_data_rw_idx (c, i)->s);
         break;
       default:
         NOT_REACHED ();

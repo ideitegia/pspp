@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <data/procedure.h>
+#include <data/value.h>
 #include <language/command.h>
 #include <language/data-io/data-writer.h>
 #include <language/data-io/file-handle.h>

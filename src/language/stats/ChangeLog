@@ -1,3 +1,8 @@
+Sat Dec  9 18:47:51 2006  Ben Pfaff  <blp@gnu.org>
+
+	* regression.q (is_depvar): Compare variable pointers instead of
+	variable names.
+
 Thu Dec  7 15:26:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q: Allocated the categorical values for the dependent and 

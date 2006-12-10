@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <data/variable.h>
 #include <libpspp/str.h>
 
 /* Format type categories. */
@@ -82,7 +83,7 @@ struct fmt_spec fmt_default_for_width (int var_width);
 bool fmt_check (const struct fmt_spec *, bool for_input);
 bool fmt_check_input (const struct fmt_spec *);
 bool fmt_check_output (const struct fmt_spec *);
-bool fmt_check_type_compat (const struct fmt_spec *, int var_type);
+bool fmt_check_type_compat (const struct fmt_spec *, enum var_type);
 bool fmt_check_width_compat (const struct fmt_spec *, int var_width);
 
 /* Working with formats. */

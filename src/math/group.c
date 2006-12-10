@@ -63,7 +63,11 @@ struct group_proc *
 group_proc_get (struct variable *v)
 {
   /* This is not ideal, obviously. */
-  if (v->aux == NULL) 
-    var_attach_aux (v, xmalloc (sizeof (struct group_proc)), var_dtor_free);
-  return v->aux;
+  struct group_proc *group = var_get_aux (v);
+  if (group == NULL) 
+    {
+      group = xmalloc (sizeof (struct group_proc));
+      var_attach_aux (v, group, var_dtor_free); 
+    }
+  return group;
 }

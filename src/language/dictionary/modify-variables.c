@@ -354,8 +354,12 @@ compare_variables_given_ordering (const void *a_, const void *b_,
   const struct ordering *ordering = ordering_;
 
   int result;
-  if (ordering->positional)
-    result = a->index < b->index ? -1 : a->index > b->index;
+  if (ordering->positional) 
+    {
+      size_t a_index = var_get_dict_index (a);
+      size_t b_index = var_get_dict_index (b);
+      result = a_index < b_index ? -1 : a_index > b_index; 
+    }
   else
     result = strcasecmp (var_get_name (a), var_get_name (b));
   if (!ordering->forward)

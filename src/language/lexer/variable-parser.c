@@ -30,6 +30,7 @@
 #include <data/procedure.h>
 #include <data/variable.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
@@ -175,11 +176,17 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
            && dict_class_from_id (add_name) == DC_SCRATCH)
     msg (SE, _("Scratch variables (such as %s) are not allowed "
                "here."), add_name);
-  else if ((pv_opts & PV_SAME_TYPE) && *nv
+  else if ((pv_opts & (PV_SAME_TYPE | PV_SAME_WIDTH)) && *nv
            && var_get_type (add) != var_get_type ((*v)[0])) 
     msg (SE, _("%s and %s are not the same type.  All variables in "
                "this variable list must be of the same type.  %s "
-               "will be omitted from list."),
+               "will be omitted from the list."),
+         var_get_name ((*v)[0]), add_name, add_name);
+  else if ((pv_opts & PV_SAME_WIDTH) && *nv
+           && var_get_width (add) != var_get_width ((*v)[0]))
+    msg (SE, _("%s and %s are string variables with different widths.  "
+               "All variables in this variable list must have the "
+               "same width.  %s will be omttied from the list."),
          var_get_name ((*v)[0]), add_name, add_name);
   else if ((pv_opts & PV_NO_DUPLICATE) && included[idx]) 
     msg (SE, _("Variable %s appears twice in variable list."), add_name);
@@ -229,11 +236,12 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
   assert (v != NULL);
   assert (nv != NULL);
 
-  /* At most one of PV_NUMERIC, PV_STRING, PV_SAME_TYPE may be
-     specified. */
-  assert ((((pv_opts & PV_NUMERIC) != 0)
-           + ((pv_opts & PV_STRING) != 0)
-           + ((pv_opts & PV_SAME_TYPE) != 0)) <= 1);
+  /* At most one of PV_NUMERIC, PV_STRING, PV_SAME_TYPE,
+     PV_SAME_WIDTH may be specified. */
+  assert (((pv_opts & PV_NUMERIC) != 0)
+          + ((pv_opts & PV_STRING) != 0)
+          + ((pv_opts & PV_SAME_TYPE) != 0)
+          + ((pv_opts & PV_SAME_WIDTH) != 0) <= 1);
 
   /* PV_DUPLICATE and PV_NO_DUPLICATE are incompatible. */
   assert (!(pv_opts & PV_DUPLICATE) || !(pv_opts & PV_NO_DUPLICATE));
@@ -252,8 +260,13 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
       size_t i;
       
       included = xcalloc (var_set_get_cnt (vs), sizeof *included);
-      for (i = 0; i < *nv; i++)
-        included[(*v)[i]->index] = 1;
+      for (i = 0; i < *nv; i++) 
+        {
+          size_t index;
+          if (!var_set_lookup_var_idx (vs, var_get_name ((*v)[i]), &index))
+            NOT_REACHED ();
+          included[index] = 1; 
+        }
     }
   else
     included = NULL;
@@ -687,7 +700,7 @@ dict_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
   struct variable *v = dict_lookup_var (d, name);
   if (v != NULL) 
     {
-      *idx = v->index;
+      *idx = var_get_dict_index (v);
       return true;
     }
   else
@@ -748,11 +761,12 @@ array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
                               size_t *idx) 
 {
   struct array_var_set *avs = vs->aux;
-  struct variable v, *vp, *const *vpp;
+  struct variable *v, *const *vpp;
 
-  strcpy (v.name, name);
-  vp = &v;
-  vpp = hsh_find (avs->name_tab, &vp);
+  v = var_create (name, 0);
+  vpp = hsh_find (avs->name_tab, &v);
+  var_destroy (v);
+  
   if (vpp != NULL) 
     {
       *idx = vpp - avs->var;
@@ -791,8 +805,8 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
   avs->var = var;
   avs->var_cnt = var_cnt;
   avs->name_tab = hsh_create (2 * var_cnt,
-                              compare_var_ptr_names, hash_var_ptr_name, NULL,
-                              NULL);
+                              compare_var_ptrs_by_name, hash_var_ptr_by_name,
+                              NULL, NULL);
   for (i = 0; i < var_cnt; i++)
     if (hsh_insert (avs->name_tab, (void *) &var[i]) != NULL) 
       {

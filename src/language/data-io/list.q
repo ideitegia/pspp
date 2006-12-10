@@ -134,7 +134,7 @@ write_line (struct outp_driver *d, const char *s)
 int
 cmd_list (struct lexer *lexer, struct dataset *ds)
 {
-  struct variable casenum_var;
+  struct variable *casenum_var = NULL;
   bool ok;
 
   if (!parse_list (lexer, ds, &cmd, NULL))
@@ -215,10 +215,8 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
       /* Initialize the case-number variable. */
       int width = cmd.last == LONG_MAX ? 5 : intlog10 (cmd.last);
       struct fmt_spec format = fmt_for_output (FMT_F, width, 0);
-      var_set_name (&casenum_var, "Case#");
-      casenum_var.width = 0;
-      casenum_var.fv = -1;
-      var_set_both_formats (&casenum_var, &format);
+      casenum_var = var_create ("Case#", 0);
+      var_set_both_formats (casenum_var, &format);
 
       /* Add the weight variable at the beginning of the variable list. */
       cmd.n_variables++;
@@ -226,7 +224,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
                                    cmd.n_variables, sizeof *cmd.v_variables);
       memmove (&cmd.v_variables[1], &cmd.v_variables[0],
 	       (cmd.n_variables - 1) * sizeof *cmd.v_variables);
-      cmd.v_variables[0] = &casenum_var;
+      cmd.v_variables[0] = casenum_var;
     }
 
   determine_layout ();
@@ -236,6 +234,8 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   ds_destroy(&line_buffer);
 
   clean_up ();
+
+  var_destroy (casenum_var);    
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
@@ -625,7 +625,7 @@ determine_layout (void)
 
 /* Writes case C to output. */
 static bool
-list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UNUSED)
+list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 {
   struct outp_driver *d;
   
@@ -681,9 +681,10 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
 	    if (width > print->w)
               ds_put_char_multiple(&line_buffer, ' ', width - print->w);
 
-            if (fmt_is_string (print->type) || v->fv != -1)
+            if (fmt_is_string (print->type)
+                || dict_contains_var (dataset_dict (ds), v))
 	      {
-                data_out (case_data (c, v->fv), print,
+                data_out (case_data (c, v), print,
                           ds_put_uninit (&line_buffer, print->w));
 	      }
             else 
@@ -719,8 +720,9 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds UN
             const struct fmt_spec *print = var_get_print_format (v);
 	    char buf[256];
 	    
-            if (fmt_is_string (print->type) || v->fv != -1)
-	      data_out (case_data (c, v->fv), print, buf);
+            if (fmt_is_string (print->type)
+                || dict_contains_var (dataset_dict (ds), v))
+	      data_out (case_data (c, v), print, buf);
             else 
               {
                 union value case_idx_value;

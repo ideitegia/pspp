@@ -39,6 +39,7 @@
 #include <data/case.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>
+#include <data/format.h>
 #include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
@@ -131,9 +132,7 @@ struct var_range
 static inline struct var_range *
 get_var_range (struct variable *v) 
 {
-  assert (v != NULL);
-  assert (v->aux != NULL);
-  return v->aux;
+  return var_get_aux (v);
 }
 
 /* Indexes into crosstab.v. */
@@ -592,7 +591,7 @@ calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	assert (x != NULL);
 	for (j = 0; j < x->nvar; j++)
 	  {
-            const union value *v = case_data (c, x->vars[j]->fv);
+            const union value *v = case_data (c, x->vars[j]);
 	    if ((cmd.miss == CRS_TABLE && var_is_value_missing (x->vars[j], v))
 		|| (cmd.miss == CRS_INCLUDE
 		    && var_is_value_system_missing (x->vars[j], v)))
@@ -602,10 +601,10 @@ calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	      }
 	      
 	    if (var_is_numeric (x->vars[j]))
-	      te->values[j].f = case_num (c, x->vars[j]->fv);
+	      te->values[j].f = case_num (c, x->vars[j]);
 	    else
 	      {
-		memcpy (te->values[j].s, case_str (c, x->vars[j]->fv),
+		memcpy (te->values[j].s, case_str (c, x->vars[j]),
                         var_get_width (x->vars[j]));
 	      
 		/* Necessary in order to simplify comparisons. */
@@ -661,7 +660,7 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	{
 	  struct variable *const v = x->vars[i];
           struct var_range *vr = get_var_range (v);
-	  double value = case_num (c, v->fv);
+	  double value = case_num (c, v);
 	  
 	  /* Note that the first test also rules out SYSMIS. */
 	  if ((value < vr->min || value >= vr->max)
@@ -680,10 +679,10 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
       
       {
         struct variable *row_var = x->vars[ROW_VAR];
-	const int row = case_num (c, row_var->fv) - get_var_range (row_var)->min;
+	const int row = case_num (c, row_var) - get_var_range (row_var)->min;
 
         struct variable *col_var = x->vars[COL_VAR];
-	const int col = case_num (c, col_var->fv) - get_var_range (col_var)->min;
+	const int col = case_num (c, col_var) - get_var_range (col_var)->min;
 
 	const int col_dim = get_var_range (col_var)->count;
 
@@ -1667,7 +1666,7 @@ table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
   struct substring s;
   const struct fmt_spec *print = var_get_print_format (var);
 
-  const char *label = val_labs_find (var->val_labs, *v);
+  const char *label = var_lookup_value_label (var, v);
   if (label) 
     {
       tab_text (table, c, r, TAB_LEFT, label);

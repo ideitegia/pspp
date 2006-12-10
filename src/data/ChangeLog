@@ -1,3 +1,165 @@
+Sat Dec  9 18:05:59 2006  Ben Pfaff  <blp@gnu.org>
+
+	* data-out.c (output_scientific): Fix bad assumption that "buf" is
+	null-terminated.
+	
+Sat Dec  9 17:23:23 2006  Ben Pfaff  <blp@gnu.org>
+
+	Finish converting struct variable to an opaque type.  In this
+	phase, we add remaining setter and getter functions, convert the
+	remaining PSPP code to use them, and do a bunch of cleanup.  The
+	resulting changes are pervasive but mostly trivial, and only the
+	notable changes are logged.
+	
+	* automake.mk (src_data_libdata_a_SOURCES): Add the new source
+	files.
+	
+	* case.c (case_data): Renamed case_data_idx.
+	(case_num): Renamed case_num_idx.
+	(case_str): Renamed case_str_idx.
+	(case_data_rw): Renamed case_data_rw_idx.
+
+	* case.h (case_data): New function with old name and an interface
+	that takes a variable instead of an index, which is easier to
+	use.  Updated all callers to use the new interface, or to use the
+	new *_idx function (see above).
+	(case_num): Ditto.
+	(case_str): Ditto.
+	(case_data_rw): Ditto.
+	
+	* category.c (cat_stored_values_destroy): Changed interface to
+	take a struct cat_vals * instead of a struct variable *.
+
+	* dictionary.c (dict_clone): Use new vector_clone function.	
+	(dict_clear) Use new var_destroy function.
+	(add_var) New function.
+	(dict_create_var) Rewrite in terms of dict_create_var_assert.
+	(dict_create_var_assert) Rewrite in terms of add_var.
+	(dict_clone_var) Rewrite in terms of dict_clone_var_assert.
+	(dict_clone_var_assert) Rewrite in terms of var_clone, add_var.
+	(dict_lookup_var) Use new var_create, var_destroy functions.
+	(dict_contains_var) Rewrite in terms of new vardict functionality.
+	(set_var_dict_index) New function.
+	(set_var_case_index) New function.
+	(reindex_vars) New function.
+	(dict_delete_var) Rewrite in terms of new vardict functionality.
+	(dict_reorder_var) Ditto.
+	(dict_reorder_vars) Ditto.
+	(rename_var) New function.
+	(dict_rename_var) Use rename_var.
+	(dict_rename_vars) Use pool to simplify code.  Use rename_var.
+	(dict_get_compacted_idx_to_fv) Rename
+	dict_get_compacted_dict_index_to_case_index, update callers.
+	(dict_create_vector) Use new vector_create function.
+	(dict_clear_vectors) Use new vector_destroy function.
+	(set_var_short_name_suffix) Move here from variable.c, renamed
+	from var_set_short_name_suffix, make static, update caller.
+
+	* sys-file-private.c: New file.  
+	(sfm_width_to_bytes) Moved here from variable.c, renamed from
+	width_to_bytes, update callers.
+
+	* sys-file-private.h: New file.  Later it will supplant
+	sfm-private.h; for now it supplements it.
+	(macro MIN_VERY_LONG_STRING) New macro.
+	(macro EFFECTIVE_LONG_STRING_LENGTH) New macro, from value.h.
+
+	* sys-file-reader.c: Use MIN_VERY_LONG_STRING - 1 where
+	MAX_LONG_STRING was used before.
+
+	* sys-file-writer.c: Ditto.
+
+	* value-labels.c: Change the paradigm here to be that a null
+	pointer is OK for a struct val_labs * in most cases; it just
+	represents an empty set of value labels.
+	(val_labs_copy) A copy of a null set is a null set.
+	(val_labs_count) A null set has 0 labels.
+	(val_labs_replace) Change return type to void.  Rewrite for
+	simplicity.
+	(val_labs_find) A null set does not contain the value.
+	(value_to_string) Moved to variable.c, renamed var_get_value_name,
+	transposed argument order, updated all callers.
+
+	* value.c: New file.
+	(value_dup) Moved here from variable.c.
+	(compare_values) Ditto.
+	(hash_value) Ditto.
+
+	* value.h: (macro MAX_SHORT_STRING) Rewrote for simplicity.
+	(macro MAX_LONG_STRING) Removed, because it was only interesting
+	for system files, not for general code.
+	(macro MAX_VERY_LONG_STRING) Ditto.
+	(macro EFFECTIVE_LONG_STRING_LENGTH) Moved to sys-file-private.h.
+	(macro MAX_ELEMS_PER_VALUE) Removed, as it was unused.
+
+	* vardict.h: New file, for an interface between variables and
+	their dictionaries.
+
+	* variable.c: A lot of functions were moved around, for better
+	organization.
+	(struct variable) Move definition here, from variable.h.
+	(var_type_adj) Removed--makes i18n hard.
+	(var_type_noun) Ditto.
+	(var_create) New function.
+	(var_clone) New function.
+	(var_destroy) New function.
+	(var_set_name) Assert that variable is not in a dictionary.
+	(compare_var_names) Rename compare_vars_by_name and fix a couple
+	of callers who thought the args were strings.
+	(hash_var_name) Rename hash_var_by_name.
+	(compare_var_ptr_names) Rename compare_var_ptrs_by_name.
+	(hash_var_ptr_name) Rename hash_var_ptr_by_name.
+	(var_is_very_long_string) Removed, because it was only interesting
+	to system file code.
+	(var_set_missing_values) Allow the argument to be the wrong width,
+	as long as we can resize it.  Simplify callers who were doing the
+	resizing themselves.
+	(var_get_value_labels) New function.
+	(var_has_value_labels) New function.
+	(var_set_value_labels) New function.
+	(alloc_value_labels) New function.
+	(var_add_value_label) New function.
+	(var_replace_value_label) New function.
+	(var_clear_value_labels) New function.
+	(var_lookup_value_label) New function.
+	(var_get_value_name) Moved here from variable.c, renamed from
+	var_get_value_name, transposed argument order, updated all
+	callers.
+	(var_to_string) Moved here, from variable-label.c.
+	(var_set_leave) New function.
+	(var_get_leave) New function.
+	(var_must_leave) New function.
+	(var_set_short_name_suffix) Moved to dictionary.c, renamed
+	set_var_short_name_suffix.
+	(var_get_dict_index) New function.
+	(var_get_case_index) New function.
+	(var_get_obs_vals) New function.
+	(var_set_obs_vals) New function.
+	(var_has_obs_vals) New function.
+	(var_get_vardict) New function.
+	(var_set_vardict) New function.
+	(var_has_vardict) New function.
+	(var_clear_vardict) New function.
+	(value_dup) Moved to value.c.
+	(compare_values) Ditto.
+	(hash_value) Ditto.
+
+	* variable.h: (enum NUMERIC) Rename VAR_NUMERIC, update all users.
+	(enum ALPHA) Rename VAR_STRING, update all users.
+
+	* vector.c: New file.
+	(struct vector) Moved here, from variable.h.
+	(check_widths) New function.
+	(vector_create) New function.
+	(vector_clone) New function.
+	(vector_destroy) New function.
+	(vector_get_name) New function.
+	(vector_get_var) New function.
+	(vector_get_var_cnt) New function.
+	(compare_vector_ptrs_by_name) New function.
+
+	* vector.h: New file.
+
 Sun Dec 10 11:32:56 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* casefilter.c (casefilter_variable_missing): Avoided comparision of
@@ -23,10 +185,11 @@ Thu Dec  7 15:22:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 Mon Dec  4 22:20:17 2006  Ben Pfaff  <blp@gnu.org>
 
-	Start converting struct variable to an opaque.  In this phase, we
-	add a bunch of setter and getter functions and convert most of the
-	PSPP code to use them.  The resulting changes are pervasive but
-	mostly trivial, and only the notable changes are logged.
+	Start converting struct variable to an opaque type.  In this
+	phase, we add a bunch of setter and getter functions and convert
+	most of the PSPP code to use them.  The resulting changes are
+	pervasive but mostly trivial, and only the notable changes are
+	logged.
 	
 	* format.c (fmt_equal): New function.
 	

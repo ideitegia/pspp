@@ -36,6 +36,7 @@
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "format.h"
+#include "missing-values.h"
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
 #include <libpspp/misc.h>
@@ -663,7 +664,7 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
 	{
 	  struct variable *var = v[j];
 
-	  if (!val_labs_replace (var->val_labs, val, label))
+	  if (!var_add_value_label (var, &val, label))
 	    continue;
 
 	  if (var_is_numeric (var))
@@ -698,14 +699,14 @@ pfm_read_case (struct pfm_reader *r, struct ccase *c)
       
       if (width == 0)
         {
-          case_data_rw (c, idx)->f = read_float (r);
+          case_data_rw_idx (c, idx)->f = read_float (r);
           idx++;
         }
       else
         {
           char string[256];
           read_string (r, string);
-          buf_copy_str_rpad (case_data_rw (c, idx)->s, width, string);
+          buf_copy_str_rpad (case_data_rw_idx (c, idx)->s, width, string);
           idx += DIV_RND_UP (width, MAX_SHORT_STRING);
         }
     }

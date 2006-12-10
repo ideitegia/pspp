@@ -285,12 +285,12 @@ autorecode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
       union arc_value v;
 
       if (var_is_numeric (spec->src))
-        v.f = case_num (c, spec->src->fv);
+        v.f = case_num (c, spec->src);
       else
-        v.c = (char *) case_str (c, spec->src->fv);
+        v.c = (char *) case_str (c, spec->src);
       item = hsh_force_find (spec->items, &v);
 
-      case_data_rw (c, spec->dest->fv)->f = item->to;
+      case_data_rw (c, spec->dest)->f = item->to;
     }
   return TRNS_CONTINUE;
 }
@@ -357,9 +357,9 @@ autorecode_proc_func (const struct ccase *c, void *arc_, const struct dataset *d
       union arc_value v, *vp, **vpp;
 
       if (var_is_numeric (arc->src_vars[i]))
-        v.f = case_num (c, arc->src_vars[i]->fv);
+        v.f = case_num (c, arc->src_vars[i]);
       else
-        v.c = (char *) case_str (c, arc->src_vars[i]->fv);
+        v.c = (char *) case_str (c, arc->src_vars[i]);
 
       vpp = (union arc_value **) hsh_probe (arc->src_values[i], &v);
       if (*vpp == NULL)

@@ -24,7 +24,7 @@
 #include "control-stack.h"
 #include <data/procedure.h>
 #include <data/transformations.h>
-#include <data/variable.h>
+#include <data/value.h>
 #include <language/command.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>

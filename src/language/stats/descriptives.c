@@ -64,11 +64,10 @@ enum dsc_missing_type
    calculating a Z-score. */
 struct dsc_z_score
   {
-    int src_idx;                /* Source index into case data. */
-    int dst_idx;                /* Destination index into case data. */
+    struct variable *src_var;   /* Variable on which z-score is based. */
+    struct variable *z_var;     /* New z-score variable. */
     double mean;		/* Distribution mean. */
     double std_dev;		/* Distribution standard deviation. */
-    struct variable *v;         /* Variable on which z-score is based. */
   };
 
 /* DESCRIPTIVES transformation (for calculating Z-scores). */
@@ -596,7 +595,7 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
       assert(t->vars);
       for (vars = t->vars; vars < t->vars + t->var_cnt; vars++)
 	{
-	  double score = case_num (c, (*vars)->fv);
+	  double score = case_num (c, *vars);
 	  if ( score == SYSMIS
                || (!t->include_user_missing 
                    && var_is_num_user_missing (*vars, score)))
@@ -609,13 +608,13 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
       
   for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
     {
-      double input = case_num (c, z->src_idx);
-      double *output = &case_data_rw (c, z->dst_idx)->f;
+      double input = case_num (c, z->src_var);
+      double *output = &case_data_rw (c, z->z_var)->f;
 
       if (z->mean == SYSMIS || z->std_dev == SYSMIS 
 	  || all_sysmis || input == SYSMIS 
 	  || (!t->include_user_missing
-              && var_is_num_user_missing (z->v, input)))
+              && var_is_num_user_missing (z->src_var, input)))
 	*output = SYSMIS;
       else
 	*output = (input - z->mean) / z->std_dev;
@@ -677,11 +676,10 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
                                              var_to_string (dv->v)));
 
           z = &t->z_scores[cnt++];
-          z->src_idx = dv->v->fv;
-          z->dst_idx = dst_var->fv;
+          z->src_var = dv->v;
+          z->z_var = dst_var;
           z->mean = dv->stats[DSC_MEAN];
           z->std_dev = dv->stats[DSC_STDDEV];
-	  z->v = dv->v;
 	}
     }
 
@@ -741,7 +739,7 @@ calc_descriptives (const struct ccase *first,
       for (i = 0; i < dsc->var_cnt; i++) 
         {
           struct dsc_var *dv = &dsc->vars[i];
-          double x = case_num (&c, dv->v->fv);
+          double x = case_num (&c, dv->v);
           
           if (dsc->missing_type != DSC_LISTWISE
               && (x == SYSMIS
@@ -783,7 +781,7 @@ calc_descriptives (const struct ccase *first,
           for (i = 0; i < dsc->var_cnt; i++) 
             {
               struct dsc_var *dv = &dsc->vars[i];
-              double x = case_num (&c, dv->v->fv);
+              double x = case_num (&c, dv->v);
           
               if (dsc->missing_type != DSC_LISTWISE
                   && (x == SYSMIS
@@ -850,7 +848,7 @@ listwise_missing (struct dsc_proc *dsc, const struct ccase *c)
   for (i = 0; i < dsc->var_cnt; i++)
     {
       struct dsc_var *dv = &dsc->vars[i];
-      double x = case_num (c, dv->v->fv);
+      double x = case_num (c, dv->v);
 
       if (x == SYSMIS
           || (!dsc->include_user_missing

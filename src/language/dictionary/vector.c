@@ -107,7 +107,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
 	    }
 
 	  if (!parse_variables (lexer, dict, &v, &nv,
-                                PV_SAME_TYPE | PV_DUPLICATE))
+                                PV_SAME_WIDTH | PV_DUPLICATE))
 	    goto fail;
 
           dict_create_vector (dict, vecnames, v, nv);

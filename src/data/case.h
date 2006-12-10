@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "value.h"
+#include "variable.h"
 
 /* Opaque structure that represents a case.  Use accessor
    functions instead of accessing any members directly.  Use
@@ -68,11 +69,19 @@ CASE_INLINE void case_to_values (const struct ccase *, union value *, size_t);
 CASE_INLINE void case_from_values (struct ccase *,
                                    const union value *, size_t);
 
-CASE_INLINE const union value *case_data (const struct ccase *, size_t idx);
-CASE_INLINE double case_num (const struct ccase *, size_t idx);
-CASE_INLINE const char *case_str (const struct ccase *, size_t idx);
+static inline const union value *case_data (const struct ccase *,
+                                            const struct variable *);
+static inline double case_num (const struct ccase *, const struct variable *);
+static inline const char *case_str (const struct ccase *,
+                                    const struct variable *);
+static inline union value *case_data_rw (struct ccase *,
+                                         const struct variable *);
 
-CASE_INLINE union value *case_data_rw (struct ccase *, size_t idx);
+CASE_INLINE const union value *case_data_idx (const struct ccase *,
+                                              size_t idx);
+CASE_INLINE double case_num_idx (const struct ccase *, size_t idx);
+CASE_INLINE const char *case_str_idx (const struct ccase *, size_t idx);
+CASE_INLINE union value *case_data_rw_idx (struct ccase *, size_t idx);
 
 struct variable;
 int case_compare (const struct ccase *, const struct ccase *,
@@ -161,30 +170,70 @@ case_from_values (struct ccase *c, const union value *input,
 }
 
 static inline const union value *
-case_data (const struct ccase *c, size_t idx) 
+case_data_idx (const struct ccase *c, size_t idx) 
 {
   return &c->case_data->values[idx];
 }
 
 static inline double
-case_num (const struct ccase *c, size_t idx) 
+case_num_idx (const struct ccase *c, size_t idx) 
 {
   return c->case_data->values[idx].f;
 }
 
 static inline const char *
-case_str (const struct ccase *c, size_t idx)
+case_str_idx (const struct ccase *c, size_t idx)
 {
   return c->case_data->values[idx].s;
 }
 
 static inline union value *
-case_data_rw (struct ccase *c, size_t idx)
+case_data_rw_idx (struct ccase *c, size_t idx)
 {
   if (c->case_data->ref_cnt > 1)
     case_unshare (c);
   return &c->case_data->values[idx];
 }
 #endif /* !DEBUGGING */
+
+/* Returns a pointer to the `union value' used for the
+   element of C for variable V.
+   Case C must be drawn from V's dictionary.
+   The caller must not modify the returned data. */
+static inline const union value *
+case_data (const struct ccase *c, const struct variable *v)
+{
+  return case_data_idx (c, var_get_case_index (v));
+}
+
+/* Returns the numeric value of the `union value' in C for
+   variable V.
+   Case C must be drawn from V's dictionary. */
+static inline double
+case_num (const struct ccase *c, const struct variable *v) 
+{
+  return case_num_idx (c, var_get_case_index (v));
+}
+
+/* Returns the string value of the `union value' in C for
+   variable V.
+   Case C must be drawn from V's dictionary.
+   (Note that the value is not null-terminated.)
+   The caller must not modify the return value. */
+static inline const char *
+case_str (const struct ccase *c, const struct variable *v) 
+{
+  return case_str_idx (c, var_get_case_index (v));
+}
+
+/* Returns a pointer to the `union value' used for the
+   element of C for variable V.
+   Case C must be drawn from V's dictionary.   
+   The caller is allowed to modify the returned data. */
+static inline union value *
+case_data_rw (struct ccase *c, const struct variable *v) 
+{
+  return case_data_rw_idx (c, var_get_case_index (v));
+}
 
 #endif /* case.h */

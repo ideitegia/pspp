@@ -180,9 +180,9 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
             case_resize (c, old_value_cnt, dict_get_next_value_idx (d));
 
           if (lex_is_number (lexer))
-            case_data_rw (c, v->fv)->f = lex_tokval (lexer);
+            case_data_rw (c, v)->f = lex_tokval (lexer);
           else
-            memcpy (case_data_rw (c, v->fv)->s, ds_data (lex_tokstr (lexer)),
+            memcpy (case_data_rw (c, v)->s, ds_data (lex_tokstr (lexer)),
                     var_get_width (v));
           lex_get (lexer);
 
@@ -312,7 +312,7 @@ expr_debug_print_postfix (const struct expression *e)
           fprintf (stderr, "v<%s>", var_get_name (op->variable));
           break;
         case OP_vector:
-          fprintf (stderr, "vec<%s>", op->vector->name);
+          fprintf (stderr, "vec<%s>", vector_get_name (op->vector));
           break;
         case OP_integer:
           fprintf (stderr, "i<%d>", op->integer);

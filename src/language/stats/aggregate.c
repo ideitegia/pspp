@@ -27,6 +27,7 @@
 #include <data/casefile.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/format.h>
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/storage-stream.h>
@@ -93,36 +94,36 @@ struct agr_func
   {
     const char *name;		/* Aggregation function name. */
     size_t n_args;              /* Number of arguments. */
-    int alpha_type;		/* When given ALPHA arguments, output type. */
+    enum var_type alpha_type;   /* When given ALPHA arguments, output type. */
     struct fmt_spec format;	/* Format spec if alpha_type != ALPHA. */
   };
 
 /* Attributes of aggregation functions. */
 static const struct agr_func agr_func_tab[] = 
   {
-    {"<NONE>",  0, -1,      {0, 0, 0}},
-    {"SUM",     0, -1,      {FMT_F, 8, 2}},
-    {"MEAN",	0, -1,      {FMT_F, 8, 2}},
-    {"SD",      0, -1,      {FMT_F, 8, 2}},
-    {"MAX",     0, ALPHA,   {-1, -1, -1}}, 
-    {"MIN",     0, ALPHA,   {-1, -1, -1}}, 
-    {"PGT",     1, NUMERIC, {FMT_F, 5, 1}},      
-    {"PLT",     1, NUMERIC, {FMT_F, 5, 1}},       
-    {"PIN",     2, NUMERIC, {FMT_F, 5, 1}},       
-    {"POUT",    2, NUMERIC, {FMT_F, 5, 1}},       
-    {"FGT",     1, NUMERIC, {FMT_F, 5, 3}},       
-    {"FLT",     1, NUMERIC, {FMT_F, 5, 3}},       
-    {"FIN",     2, NUMERIC, {FMT_F, 5, 3}},       
-    {"FOUT",    2, NUMERIC, {FMT_F, 5, 3}},       
-    {"N",       0, NUMERIC, {FMT_F, 7, 0}},       
-    {"NU",      0, NUMERIC, {FMT_F, 7, 0}},       
-    {"NMISS",   0, NUMERIC, {FMT_F, 7, 0}},       
-    {"NUMISS",  0, NUMERIC, {FMT_F, 7, 0}},       
-    {"FIRST",   0, ALPHA,   {-1, -1, -1}}, 
-    {"LAST",    0, ALPHA,   {-1, -1, -1}},
-    {NULL,      0, -1,      {-1, -1, -1}},
-    {"N",       0, NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      0, NUMERIC, {FMT_F, 7, 0}},
+    {"<NONE>",  0, -1,          {0, 0, 0}},
+    {"SUM",     0, -1,          {FMT_F, 8, 2}},
+    {"MEAN",	0, -1,          {FMT_F, 8, 2}},
+    {"SD",      0, -1,          {FMT_F, 8, 2}},
+    {"MAX",     0, VAR_STRING,  {-1, -1, -1}}, 
+    {"MIN",     0, VAR_STRING,  {-1, -1, -1}}, 
+    {"PGT",     1, VAR_NUMERIC, {FMT_F, 5, 1}},      
+    {"PLT",     1, VAR_NUMERIC, {FMT_F, 5, 1}},       
+    {"PIN",     2, VAR_NUMERIC, {FMT_F, 5, 1}},       
+    {"POUT",    2, VAR_NUMERIC, {FMT_F, 5, 1}},       
+    {"FGT",     1, VAR_NUMERIC, {FMT_F, 5, 3}},       
+    {"FLT",     1, VAR_NUMERIC, {FMT_F, 5, 3}},       
+    {"FIN",     2, VAR_NUMERIC, {FMT_F, 5, 3}},       
+    {"FOUT",    2, VAR_NUMERIC, {FMT_F, 5, 3}},       
+    {"N",       0, VAR_NUMERIC, {FMT_F, 7, 0}},       
+    {"NU",      0, VAR_NUMERIC, {FMT_F, 7, 0}},       
+    {"NMISS",   0, VAR_NUMERIC, {FMT_F, 7, 0}},       
+    {"NUMISS",  0, VAR_NUMERIC, {FMT_F, 7, 0}},       
+    {"FIRST",   0, VAR_STRING,  {-1, -1, -1}}, 
+    {"LAST",    0, VAR_STRING,  {-1, -1, -1}},
+    {NULL,      0, -1,          {-1, -1, -1}},
+    {"N",       0, VAR_NUMERIC, {FMT_F, 7, 0}},
+    {"NU",      0, VAR_NUMERIC, {FMT_F, 7, 0}},
   };
 
 /* Missing value types. */
@@ -494,13 +495,15 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 		if (lex_token (lexer) == T_STRING)
 		  {
 		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
-		    type = ALPHA;
+		    type = VAR_STRING;
 		  }
 		else if (lex_is_number (lexer))
 		  {
 		    arg[i].f = lex_tokval (lexer);
-		    type = NUMERIC;
-		  } else {
+		    type = VAR_NUMERIC;
+		  }
+                else
+                  {
 		    msg (SE, _("Missing argument %d to %s."), i + 1,
                          function->name);
 		    goto error;
@@ -587,12 +590,12 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 		    v->string = xmalloc (var_get_width (src[i]));
 		  }
 
-		if (function->alpha_type == ALPHA)
+		if (function->alpha_type == VAR_STRING)
 		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
 		else
                   {
                     assert (var_is_numeric (v->src)
-                            || function->alpha_type == NUMERIC);
+                            || function->alpha_type == VAR_NUMERIC);
                     destvar = dict_create_var (agr->dict, dest[i], 0);
                     if (destvar != NULL) 
                       {
@@ -771,7 +774,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
   for (iter = agr->agr_vars; iter; iter = iter->next)
     if (iter->src)
       {
-	const union value *v = case_data (input, iter->src->fv);
+	const union value *v = case_data (input, iter->src);
         int src_width = var_get_width (iter->src);
 
 	if (iter->include_missing
@@ -944,8 +947,8 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
       {
         struct variable *v = agr->break_vars[i];
         size_t value_cnt = var_get_value_cnt (v);
-        memcpy (case_data_rw (output, value_idx),
-                case_data (&agr->break_case, v->fv),
+        memcpy (case_data_rw_idx (output, value_idx),
+                case_data (&agr->break_case, v),
                 sizeof (union value) * value_cnt);
         value_idx += value_cnt; 
       }
@@ -956,7 +959,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
   
     for (i = agr->agr_vars; i; i = i->next)
       {
-	union value *v = case_data_rw (output, i->dest->fv);
+	union value *v = case_data_rw (output, i->dest);
 
 	if (agr->missing == COLUMNWISE && i->missing != 0
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU

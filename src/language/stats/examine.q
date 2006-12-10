@@ -649,13 +649,13 @@ factor_calc (const struct ccase *c, int case_no, double weight,
       union value *indep_vals[2] ;
 
       indep_vals[0] = value_dup (
-				 case_data (c, fctr->indep_var[0]->fv),
+				 case_data (c, fctr->indep_var[0]),
 				 var_get_width (fctr->indep_var[0])
 				 );
 
       if ( fctr->indep_var[1] )
 	indep_vals[1] = value_dup (
-				   case_data (c, fctr->indep_var[1]->fv),
+				   case_data (c, fctr->indep_var[1]),
 				   var_get_width (fctr->indep_var[1])
 				   );
       else
@@ -692,7 +692,7 @@ factor_calc (const struct ccase *c, int case_no, double weight,
 	{
 	  const struct variable *var = dependent_vars[v];
 	  union value *val = value_dup (
-					case_data (c, var->fv),
+					case_data (c, var),
 					var_get_width (var)
 					);
 
@@ -759,7 +759,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 	    {
 	      const struct variable *var = dependent_vars[v];
 	      union value *val = value_dup (
-						  case_data (&c, var->fv),
+						  case_data (&c, var),
 						  var_get_width (var)
 						  );
 
@@ -774,7 +774,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 	{
 	  const struct variable *var = dependent_vars[v];
 	  union value *val = value_dup (
-					case_data (&c, var->fv),
+					case_data (&c, var),
 					var_get_width (var)
 					);
 
@@ -1059,8 +1059,8 @@ show_summary (struct variable **dependent_var, int n_dep_var,
 			    (i * n_factors ) + count +
 			    heading_rows,
 			    TAB_LEFT | TAT_TITLE,
-			    value_to_string ((*fs)->id[0],
-					     fctr->indep_var[0])
+			    var_get_value_name (fctr->indep_var[0],
+                                                (*fs)->id[0])
 			    );
 
 		  if (fctr->indep_var[1] && count > 0 )
@@ -1078,7 +1078,7 @@ show_summary (struct variable **dependent_var, int n_dep_var,
 			  (i * n_factors ) + count +
 			  heading_rows,
 			  TAB_LEFT | TAT_TITLE,
-			  value_to_string ((*fs)->id[1], fctr->indep_var[1])
+			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
 			  );
 
 	      populate_summary (tbl, heading_columns,
@@ -1234,7 +1234,8 @@ show_extremes (struct variable **dependent_var, int n_dep_var,
 		  tab_text (tbl,
 			    1, row,
 			    TAB_LEFT | TAT_TITLE,
-			    value_to_string ((*fs)->id[0], fctr->indep_var[0])
+			    var_get_value_name (fctr->indep_var[0],
+                                                (*fs)->id[0])
 			    );
 		}
 
@@ -1246,7 +1247,7 @@ show_extremes (struct variable **dependent_var, int n_dep_var,
 	      if ( fctr->indep_var[1])
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE,
-			  value_to_string ((*fs)->id[1], fctr->indep_var[1])
+			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
 			  );
 
 	      populate_extremes (tbl, heading_columns - 2,
@@ -1471,7 +1472,8 @@ show_descriptives (struct variable **dependent_var,
 		  tab_text (tbl,
 			    1, row,
 			    TAB_LEFT | TAT_TITLE,
-			    value_to_string ((*fs)->id[0], fctr->indep_var[0])
+			    var_get_value_name (fctr->indep_var[0],
+                                                (*fs)->id[0])
 			    );
 		}
 
@@ -1483,7 +1485,7 @@ show_descriptives (struct variable **dependent_var,
 	      if ( fctr->indep_var[1])
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE,
-			  value_to_string ((*fs)->id[1], fctr->indep_var[1])
+			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
 			  );
 
 	      populate_descriptives (tbl, heading_columns - 2,
@@ -2097,7 +2099,8 @@ show_percentiles (struct variable **dependent_var,
 		  tab_text (tbl,
 			    1, row,
 			    TAB_LEFT | TAT_TITLE,
-			    value_to_string ((*fs)->id[0], fctr->indep_var[0])
+			    var_get_value_name (fctr->indep_var[0],
+                                                (*fs)->id[0])
 			    );
 
 
@@ -2111,7 +2114,7 @@ show_percentiles (struct variable **dependent_var,
 	      if ( fctr->indep_var[1])
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE,
-			  value_to_string ((*fs)->id[1], fctr->indep_var[1])
+			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
 			  );
 
 
@@ -2213,7 +2216,7 @@ factor_to_string (const struct factor *fctr,
 
   snprintf (buf2, 100, "%s = %s",
 	   var_to_string (fctr->indep_var[0]),
-	   value_to_string (fs->id[0], fctr->indep_var[0]));
+           var_get_value_name (fctr->indep_var[0], fs->id[0]));
 
   strcat (buf1, buf2);
 
@@ -2221,8 +2224,7 @@ factor_to_string (const struct factor *fctr,
     {
       sprintf (buf2, "; %s = %s)",
 	      var_to_string (fctr->indep_var[1]),
-	      value_to_string (fs->id[1],
-			      fctr->indep_var[1]));
+              var_get_value_name (fctr->indep_var[1], fs->id[1]));
       strcat (buf1, buf2);
     }
   else
@@ -2247,11 +2249,12 @@ factor_to_string_concise (const struct factor *fctr,
   char buf2[100];
 
   snprintf (buf, 100, "%s",
-	   value_to_string (fs->id[0], fctr->indep_var[0]));
+            var_get_value_name (fctr->indep_var[0], fs->id[0]));
 
   if ( fctr->indep_var[1] )
     {
-      sprintf (buf2, ",%s)", value_to_string (fs->id[1], fctr->indep_var[1]) );
+      sprintf (buf2, ",%s)", var_get_value_name (fctr->indep_var[1],
+                                                 fs->id[1]) );
       strcat (buf, buf2);
     }
 

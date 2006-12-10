@@ -34,7 +34,7 @@
 #include "calendar.h"
 #include "identifier.h"
 #include "settings.h"
-#include "variable.h"
+#include "value.h"
 
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>

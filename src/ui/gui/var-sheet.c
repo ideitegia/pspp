@@ -372,7 +372,7 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 		{
 		case COL_WIDTH:
 		  r_min = fmt->d + 1;
-		  r_max = (psppire_variable_get_type(pv) == ALPHA) ? MAX_STRING : 40;
+		  r_max = (psppire_variable_get_type(pv) == VAR_STRING) ? MAX_STRING : 40;
 		  break;
 		case COL_DECIMALS:
 		  r_min = 0 ; 

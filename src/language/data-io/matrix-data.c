@@ -351,8 +351,7 @@ cmd_matrix_data (struct lexer *lexer, struct dataset *ds)
 
             for (i = 0; i < split_cnt; i++)
               {
-                struct mxd_var *mv = split[i]->aux;
-                assert (mv != NULL);
+                struct mxd_var *mv = var_get_aux (split[i]);
 		if (mv->var_type != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Split variable %s is already another type."),
@@ -385,8 +384,7 @@ cmd_matrix_data (struct lexer *lexer, struct dataset *ds)
 	    for (i = 0; i < mx->n_factors; i++)
 	      {
                 struct variable *v = mx->factors[i];
-                struct mxd_var *mv = v->aux;
-                assert (mv != NULL);
+                struct mxd_var *mv = var_get_aux (v);
 		if (mv->var_type != MXD_CONTINUOUS)
 		  {
 		    msg (SE, _("Factor variable %s is already another type."),
@@ -606,7 +604,7 @@ cmd_matrix_data (struct lexer *lexer, struct dataset *ds)
     for (i = 0; i < dict_get_var_cnt (dataset_dict (ds)); i++)
       {
 	struct variable *v = dict_get_var (dataset_dict (ds), i);
-        struct mxd_var *mv = v->aux;
+        struct mxd_var *mv = var_get_aux (v);
 	int type = mv->var_type;
 	
 	assert (type >= 0 && type < MXD_COUNT);
@@ -699,8 +697,8 @@ compare_variables_by_mxd_var_type (const void *a_, const void *b_)
 {
   struct variable *const *pa = a_;
   struct variable *const *pb = b_;
-  const struct mxd_var *a = (*pa)->aux;
-  const struct mxd_var *b = (*pb)->aux;
+  const struct mxd_var *a = var_get_aux (*pa);
+  const struct mxd_var *b = var_get_aux (*pb);
   
   if (a->var_type != b->var_type)
     return a->var_type > b->var_type ? 1 : -1;
@@ -715,7 +713,7 @@ attach_mxd_aux (struct variable *v, int var_type, int sub_type)
 {
   struct mxd_var *mv;
   
-  assert (v->aux == NULL);
+  assert (var_get_aux (v) == NULL);
   mv = xmalloc (sizeof *mv);
   mv->var_type = var_type;
   mv->sub_type = sub_type;
@@ -1232,7 +1230,7 @@ nr_read_splits (struct nr_aux_data *nr, int compare)
     {
       if (!compare) 
         {
-          struct mxd_var *mv = dict_get_split_vars (nr->dict)[0]->aux;
+          struct mxd_var *mv = var_get_aux (dict_get_split_vars (nr->dict)[0]);
           nr->split_values[0] = ++mv->sub_type; 
         }
       return true;
@@ -1331,11 +1329,11 @@ dump_cell_content (const struct dictionary *dict,
   int type = content_type[content];
 
   {
-    buf_copy_str_rpad (case_data_rw (c, mx->rowtype_->fv)->s, 8,
+    buf_copy_str_rpad (case_data_rw (c, mx->rowtype_)->s, 8,
                        content_names[content]);
     
     if (type != 1)
-      memset (case_data_rw (c, mx->varname_->fv)->s, ' ', 8);
+      memset (case_data_rw (c, mx->varname_)->s, ' ', 8);
   }
 
   {
@@ -1348,12 +1346,12 @@ dump_cell_content (const struct dictionary *dict,
 
 	for (j = 0; j < mx->n_continuous; j++)
 	  {
-            int fv = dict_get_var (dict, mx->first_continuous + j)->fv;
-            case_data_rw (c, fv)->f = *cp;
+            struct variable *v = dict_get_var (dict, mx->first_continuous + j);
+            case_data_rw (c, v)->f = *cp;
 	    cp++;
 	  }
 	if (type == 1)
-	  buf_copy_str_rpad (case_data_rw (c, mx->varname_->fv)->s, 8,
+	  buf_copy_str_rpad (case_data_rw (c, mx->varname_)->s, 8,
                              var_get_name (
                                dict_get_var (dict, mx->first_continuous + i)));
 	if (!write_case (wc_data))
@@ -1378,7 +1376,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
     split_cnt = dict_get_split_cnt (nr->dict);
     split = dict_get_split_vars (nr->dict);
     for (i = 0; i < split_cnt; i++)
-      case_data_rw (c, split[i]->fv)->f = nr->split_values[i];
+      case_data_rw (c, split[i])->f = nr->split_values[i];
   }
 
   if (mx->n_factors)
@@ -1391,7 +1389,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
 	    size_t factor;
 
 	    for (factor = 0; factor < mx->n_factors; factor++)
-              case_data_rw (c, mx->factors[factor]->fv)->f
+              case_data_rw (c, mx->factors[factor])->f
                 = nr->factor_values[factor + cell * mx->n_factors];
 	  }
 	  
@@ -1420,7 +1418,7 @@ nr_output_data (struct nr_aux_data *nr, struct ccase *c,
       size_t factor;
 
       for (factor = 0; factor < mx->n_factors; factor++)
-	case_data_rw (c, mx->factors[factor]->fv)->f = SYSMIS;
+	case_data_rw (c, mx->factors[factor])->f = SYSMIS;
     }
     
     for (content = 0; content <= PROX; content++)
@@ -1631,7 +1629,7 @@ wr_output_data (struct wr_aux_data *wr,
     split_cnt = dict_get_split_cnt (wr->dict);
     split = dict_get_split_vars (wr->dict);
     for (i = 0; i < split_cnt; i++)
-      case_data_rw (c, split[i]->fv)->f = wr->split_values[i];
+      case_data_rw (c, split[i])->f = wr->split_values[i];
   }
 
   /* Sort the wr->data list. */
@@ -1665,8 +1663,7 @@ wr_output_data (struct wr_aux_data *wr,
 	  size_t factor;
 
 	  for (factor = 0; factor < mx->n_factors; factor++)
-            case_data_rw (c, mx->factors[factor]->fv)->f
-              = iter->factors[factor];
+            case_data_rw (c, mx->factors[factor])->f = iter->factors[factor];
 	}
 	
 	{

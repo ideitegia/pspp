@@ -446,7 +446,8 @@ to be created as numeric variables with print and write format F8.2.
 Variable names including numeric suffixes may not exceed 64 characters
 in length, and none of the variables may exist prior to @cmd{VECTOR}.
 
-All the variables in a vector must be the same type.
+All the variables in a vector must be the same type.  String variables
+in a vector must all have the same width.
 
 Vectors created with @cmd{VECTOR} disappear after any procedure or
 procedure-like command is executed.  The variables contained in the

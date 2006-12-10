@@ -26,6 +26,7 @@
 #include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
+#include <data/vector.h>
 #include <language/command.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
@@ -58,7 +59,6 @@ struct compute_trns
 
     /* Variable lvalue, if variable != NULL. */
     struct variable *variable;   /* Destination variable, if any. */
-    int fv;			 /* `value' index of destination variable. */
     int width;			 /* Lvalue string width; 0=numeric. */
 
     /* Vector lvalue, if vector != NULL. */
@@ -120,8 +120,8 @@ compute_num (void *compute_, struct ccase *c, casenumber case_num)
 
   if (compute->test == NULL
       || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
-    case_data_rw (c, compute->fv)->f = expr_evaluate_num (compute->rvalue, c,
-                                                          case_num); 
+    case_data_rw (c, compute->variable)->f
+      = expr_evaluate_num (compute->rvalue, c, case_num); 
   
   return TRNS_CONTINUE;
 }
@@ -141,18 +141,20 @@ compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
 
       index = expr_evaluate_num (compute->element, c, case_num);
       rindx = floor (index + EPSILON);
-      if (index == SYSMIS || rindx < 1 || rindx > compute->vector->cnt)
+      if (index == SYSMIS
+          || rindx < 1 || rindx > vector_get_var_cnt (compute->vector))
         {
           if (index == SYSMIS)
-            msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value as "
-                       "an index into vector %s."), compute->vector->name);
+            msg (SW, _("When executing COMPUTE: SYSMIS is not a valid value "
+                       "as an index into vector %s."),
+                 vector_get_name (compute->vector));
           else
             msg (SW, _("When executing COMPUTE: %g is not a valid value as "
                        "an index into vector %s."),
-                 index, compute->vector->name);
+                 index, vector_get_name (compute->vector));
           return TRNS_CONTINUE;
         }
-      case_data_rw (c, compute->vector->var[rindx - 1]->fv)->f
+      case_data_rw (c, vector_get_var (compute->vector, rindx - 1))->f
         = expr_evaluate_num (compute->rvalue, c, case_num);
     }
   
@@ -168,7 +170,7 @@ compute_str (void *compute_, struct ccase *c, casenumber case_num)
   if (compute->test == NULL
       || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
     expr_evaluate_str (compute->rvalue, c, case_num,
-                       case_data_rw (c, compute->fv)->s, compute->width);
+                       case_data_rw (c, compute->variable)->s, compute->width);
   
   return TRNS_CONTINUE;
 }
@@ -193,20 +195,21 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
         {
           msg (SW, _("When executing COMPUTE: SYSMIS is not a valid "
                      "value as an index into vector %s."),
-               compute->vector->name);
+               vector_get_name (compute->vector));
           return TRNS_CONTINUE; 
         }
-      else if (rindx < 1 || rindx > compute->vector->cnt)
+      else if (rindx < 1 || rindx > vector_get_var_cnt (compute->vector))
         {
           msg (SW, _("When executing COMPUTE: %g is not a valid value as "
                      "an index into vector %s."),
-               index, compute->vector->name);
+               index, vector_get_name (compute->vector));
           return TRNS_CONTINUE;
         }
 
-      vr = compute->vector->var[rindx - 1];
+      vr = vector_get_var (compute->vector, rindx - 1);
       expr_evaluate_str (compute->rvalue, c, case_num,
-                         case_data_rw (c, vr->fv)->s, var_get_width (vr));
+                         case_data_rw (c, vr)->s,
+                         var_get_width (vr));
     }
   
   return TRNS_CONTINUE;
@@ -257,7 +260,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
 static trns_proc_func *
 get_proc_func (const struct lvalue *lvalue) 
 {
-  bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue) == VAR_NUMERIC;
   bool is_vector = lvalue_is_vector (lvalue);
 
   return (is_numeric
@@ -271,7 +274,7 @@ static struct expression *
 parse_rvalue (struct lexer *lexer, 
 	      const struct lvalue *lvalue, struct dataset *ds)
 {
-  bool is_numeric = lvalue_get_type (lvalue) == NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue) == VAR_NUMERIC;
 
   return expr_parse (lexer, ds, is_numeric ? EXPR_NUMBER : EXPR_STRING);
 }
@@ -380,7 +383,7 @@ lvalue_get_type (const struct lvalue *lvalue)
 {
   return (lvalue->variable != NULL
           ? var_get_type (lvalue->variable)
-          : var_get_type (lvalue->vector->var[0]));
+          : vector_get_type (lvalue->vector));
 }
 
 /* Returns true if LVALUE has a vector as its target. */
@@ -400,12 +403,11 @@ lvalue_finalize (struct lvalue *lvalue,
   if (lvalue->vector == NULL)
     {
       compute->variable = lvalue->variable;
-      compute->fv = compute->variable->fv;
       compute->width = var_get_width (compute->variable);
 
       /* Goofy behavior, but compatible: Turn off LEAVE. */
-      if (dict_class_from_id (var_get_name (compute->variable)) != DC_SCRATCH)
-        compute->variable->leave = false;
+      if (!var_must_leave (compute->variable))
+        var_set_leave (compute->variable, false);
 
       /* Prevent lvalue_destroy from deleting variable. */
       lvalue->is_new_variable = false;

@@ -1,3 +1,5 @@
+#include <config.h>
+
 #include "helper.h"
 #include <data/data-in.h>
 #include <data/data-out.h>

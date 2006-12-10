@@ -303,7 +303,7 @@ can_resize_string (const char *s, int old_width, int new_width)
    contains only spaces in the characters that will be
    trimmed. */
 bool
-mv_is_resizable (struct missing_values *mv, int width) 
+mv_is_resizable (const struct missing_values *mv, int width) 
 {
   assert ((width == 0) == (mv->width == 0));
   if (width > MAX_SHORT_STRING && mv->type != MV_NONE)

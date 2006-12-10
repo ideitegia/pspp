@@ -104,7 +104,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 
   flip = pool_create_container (struct flip_pgm, pool);
   flip->var = NULL;
-  flip->idx_to_fv = dict_get_compacted_idx_to_fv (dict);
+  flip->idx_to_fv = dict_get_compacted_dict_index_to_case_index (dict);
   pool_register (flip->pool, free, flip->idx_to_fv);
   flip->var_cnt = 0;
   flip->case_cnt = 0;
@@ -327,10 +327,11 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
   if (flip->new_names != NULL)
     {
       struct varname *v = pool_alloc (flip->pool, sizeof *v);
+      int fv = flip->idx_to_fv[var_get_dict_index (flip->new_names)];
       v->next = NULL;
       if (var_is_numeric (flip->new_names))
         {
-          double f = case_num (c, flip->idx_to_fv[flip->new_names->index]);
+          double f = case_num_idx (c, fv);
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -344,8 +345,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
       else
 	{
 	  int width = MIN (var_get_width (flip->new_names), MAX_SHORT_STRING);
-	  memcpy (v->name, case_str (c, flip->idx_to_fv[flip->new_names->index]),
-                  width);
+	  memcpy (v->name, case_str_idx (c, fv), width);
 	  v->name[width] = 0;
 	}
       
@@ -361,8 +361,11 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
     {
       double out;
       
-      if (var_is_numeric (flip->var[i]))
-        out = case_num (c, flip->idx_to_fv[flip->var[i]->index]);
+      if (var_is_numeric (flip->var[i])) 
+        {
+          int fv = flip->idx_to_fv[var_get_dict_index (flip->var[i])];
+          out = case_num_idx (c, fv); 
+        }
       else
         out = SYSMIS;
       flip->output_buf[i].f = out;
@@ -547,7 +550,7 @@ flip_source_read (struct case_source *source,
         }
 
       for (j = 0; j < flip->case_cnt; j++)
-        case_data_rw (c, j)->f = input_buf[j].f;
+        case_data_rw_idx (c, j)->f = input_buf[j].f;
       ok = write_case (wc_data);
     }
   free (input_buf);

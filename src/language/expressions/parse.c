@@ -358,7 +358,7 @@ type_coercion_core (struct expression *e,
       msg_disable ();
       if ((*node)->type == OP_format
           && fmt_check_input (&(*node)->format.f)
-          && fmt_check_type_compat (&(*node)->format.f, NUMERIC))
+          && fmt_check_type_compat (&(*node)->format.f, VAR_NUMERIC))
         {
           msg_enable ();
           if (do_coercion)
@@ -372,7 +372,7 @@ type_coercion_core (struct expression *e,
       msg_disable ();
       if ((*node)->type == OP_format
           && fmt_check_output (&(*node)->format.f)
-          && fmt_check_type_compat (&(*node)->format.f, NUMERIC))
+          && fmt_check_type_compat (&(*node)->format.f, VAR_NUMERIC))
         {
           msg_enable ();
           if (do_coercion)
@@ -901,7 +901,7 @@ parse_vector_element (struct lexer *lexer, struct expression *e)
       || !lex_match (lexer, ')'))
     return NULL;
 
-  return expr_allocate_binary (e, (var_is_numeric (vector->var[0])
+  return expr_allocate_binary (e, (vector_get_type (vector) == VAR_NUMERIC
                                    ? OP_VEC_ELEM_NUM : OP_VEC_ELEM_STR),
                                element, expr_allocate_vector (e, vector));
 }

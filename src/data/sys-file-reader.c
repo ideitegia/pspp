@@ -19,6 +19,10 @@
 
 #include <config.h>
 
+#include "sys-file-reader.h"
+#include "sfm-private.h"
+#include "sys-file-private.h"
+
 #include <stdlib.h>
 #include <errno.h>
 #include <float.h>
@@ -35,16 +39,15 @@
 #include <libpspp/hash.h>
 #include <libpspp/array.h>
 
-#include "sys-file-reader.h"
-#include "sfm-private.h"
 #include "case.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "file-name.h"
 #include "format.h"
+#include "missing-values.h"
 #include "value-labels.h"
-#include "variable.h"
 #include "value.h"
+#include "variable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -528,7 +531,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                         }
 
                       /* Identify any duplicates. */
-		      if ( compare_var_names(short_name, long_name, 0) &&
+		      if ( strcasecmp (short_name, long_name) &&
 			   NULL != dict_lookup_var (*dict, long_name))
                         lose ((ME, _("%s: Duplicate long variable name `%s' "
                                      "within system file."),
@@ -635,7 +638,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 			      else
 				l -= var_get_width (v);
 
-			      idx = v->index;
+			      idx = var_get_dict_index (v);
 			      while ( l > 0 ) 
 				{
 				  struct variable *v_next;
@@ -649,7 +652,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 				  dict_delete_var(*dict, v_next);
 				}
 
-			      assert ( length > MAX_LONG_STRING );
+			      assert ( length >= MIN_VERY_LONG_STRING );
 
                               var_set_width (v, length);
 			    }
@@ -723,7 +726,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
         struct variable *v = dict_get_var (*dict, i);
         struct sfm_var *sv = &r->vars[i];
         sv->width = var_get_width (v);
-        sv->fv = v->fv; 
+        sv->fv = var_get_case_index (v); 
       }
   }
 
@@ -1413,7 +1416,7 @@ read_value_labels (struct sfm_reader *r,
       for (j = 0; j < n_labels; j++)
 	{
           struct label *label = labels + j;
-	  if (!val_labs_replace (v->val_labs, label->value, label->label))
+	  if (var_add_value_label (v, &label->value, label->label))
 	    continue;
 
 	  if (var_is_numeric (var[0]))
@@ -1676,7 +1679,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
           
           for (i = 0; i < r->var_cnt; i++) 
             if (r->vars[i].width == 0)
-              bswap_flt64 (&case_data_rw (c, r->vars[i].fv)->f);
+              bswap_flt64 (&case_data_rw_idx (c, r->vars[i].fv)->f);
         }
 
       /* Fix up SYSMIS values if needed.
@@ -1687,8 +1690,8 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
           int i;
           
           for (i = 0; i < r->var_cnt; i++) 
-            if (r->vars[i].width == 0 && case_num (c, i) == r->sysmis)
-              case_data_rw (c, r->vars[i].fv)->f = SYSMIS;
+            if (r->vars[i].width == 0 && case_num_idx (c, i) == r->sysmis)
+              case_data_rw_idx (c, r->vars[i].fv)->f = SYSMIS;
         }
     }
   else 
@@ -1725,7 +1728,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
               flt64 f = *bounce_cur++;
               if (r->reverse_endian)
                 bswap_flt64 (&f);
-              case_data_rw (c, sv->fv)->f = f == r->sysmis ? SYSMIS : f;
+              case_data_rw_idx (c, sv->fv)->f = f == r->sysmis ? SYSMIS : f;
             }
           else
             {
@@ -1733,14 +1736,16 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
 	      int ofs = 0;
               while (ofs < sv->width )
                 {
-                  const int chunk = MIN (MAX_LONG_STRING, sv->width - ofs);
-                  memcpy (case_data_rw (c, sv->fv)->s + ofs, bounce_cur, chunk);
+                  const int chunk = MIN (MIN_VERY_LONG_STRING - 1,
+                                         sv->width - ofs);
+                  memcpy (case_data_rw_idx (c, sv->fv)->s + ofs,
+                          bounce_cur, chunk);
 
                   bounce_cur += DIV_RND_UP (chunk, sizeof (flt64));
 
                   ofs += chunk;
                 }
-	      bounce_cur = bc_start + width_to_bytes(sv->width) / sizeof(flt64);
+	      bounce_cur = bc_start + sfm_width_to_bytes (sv->width) / sizeof(flt64);
             }
         }
 

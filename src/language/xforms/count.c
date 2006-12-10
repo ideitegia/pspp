@@ -277,7 +277,7 @@ count_numeric (struct criteria *crit, struct ccase *c)
 
   for (i = 0; i < crit->var_cnt; i++)
     {
-      double x = case_num (c, crit->vars[i]->fv);
+      double x = case_num (c, crit->vars[i]);
       if (x == SYSMIS)
         counter += crit->count_system_missing;
       else if (crit->count_user_missing
@@ -311,7 +311,7 @@ count_string (struct criteria *crit, struct ccase *c)
     {
       char **v;
       for (v = crit->values.str; v < crit->values.str + crit->value_cnt; v++)
-        if (!memcmp (case_str (c, crit->vars[i]->fv), *v,
+        if (!memcmp (case_str (c, crit->vars[i]), *v,
                      var_get_width (crit->vars[i])))
           {
 	    counter++;
@@ -341,7 +341,7 @@ count_trns_proc (void *trns_, struct ccase *c,
 	  counter += count_numeric (crit, c);
 	else
 	  counter += count_string (crit, c);
-      case_data_rw (c, dv->var->fv)->f = counter;
+      case_data_rw (c, dv->var)->f = counter;
     }
   return TRNS_CONTINUE;
 }

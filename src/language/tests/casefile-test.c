@@ -160,8 +160,8 @@ test_casefile (int pattern, size_t value_cnt, size_t case_cnt)
             fail_test ("Premature end of casefile.");
           for (j = 0; j < value_cnt; j++) 
             {
-              double a = case_num (&read_case, j);
-              double b = case_num (&expected_case, j);
+              double a = case_num_idx (&read_case, j);
+              double b = case_num_idx (&expected_case, j);
               if (a != b)
                 fail_test ("Case %lu fails comparison.", (unsigned long) i); 
             }
@@ -180,7 +180,7 @@ get_random_case (struct ccase *c, size_t value_cnt, size_t case_idx)
   int i;
   case_create (c, value_cnt);
   for (i = 0; i < value_cnt; i++)
-    case_data_rw (c, i)->f = case_idx % 257 + i;
+    case_data_rw_idx (c, i)->f = case_idx % 257 + i;
 }
 
 static void
@@ -205,8 +205,8 @@ read_and_verify_random_case (struct casefile *cf,
     fail_test ("Premature end of casefile.");
   for (i = 0; i < value_cnt; i++) 
     {
-      double a = case_num (&read_case, i);
-      double b = case_num (&expected_case, i);
+      double a = case_num_idx (&read_case, i);
+      double b = case_num_idx (&expected_case, i);
       if (a != b)
         fail_test ("Case %lu fails comparison.", (unsigned long) case_idx); 
     }

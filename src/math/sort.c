@@ -463,13 +463,14 @@ compare_record (const struct ccase *a, const struct ccase *b,
       
       if (c->width == 0)
         {
-          double af = case_num (a, c->fv);
-          double bf = case_num (b, c->fv);
+          double af = case_num_idx (a, c->fv);
+          double bf = case_num_idx (b, c->fv);
           
           result = af < bf ? -1 : af > bf;
         }
       else
-        result = memcmp (case_str (a, c->fv), case_str (b, c->fv), c->width);
+        result = memcmp (case_str_idx (a, c->fv),
+                         case_str_idx (b, c->fv), c->width);
 
       if (result != 0)
         return c->dir == SRT_ASCEND ? result : -result;

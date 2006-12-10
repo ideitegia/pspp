@@ -19,7 +19,7 @@
 
 #include <config.h>
 #include "por-file-writer.h"
-#include <libpspp/message.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -30,18 +30,22 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include <libpspp/alloc.h>
+
 #include "case.h"
 #include "dictionary.h"
-#include <libpspp/message.h>
 #include "file-handle-def.h"
-#include <libpspp/hash.h>
-#include <libpspp/magic.h>
-#include <libpspp/misc.h>
+#include "format.h"
+#include "missing-values.h"
 #include "stat-macros.h"
-#include <libpspp/str.h>
 #include "value-labels.h"
 #include "variable.h"
+
+#include <libpspp/alloc.h>
+#include <libpspp/hash.h>
+#include <libpspp/magic.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
 #include <libpspp/version.h>
 
 #include "gettext.h"
@@ -134,7 +138,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
       const struct variable *dv = dict_get_var (dict, i);
       struct pfm_var *pv = &w->vars[i];
       pv->width = var_get_width (dv);
-      pv->fv = dv->fv;
+      pv->fv = var_get_case_index (dv);
     }
 
   w->digits = opts.digits;
@@ -372,18 +376,19 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
     {
       struct val_labs_iterator *j;
       struct variable *v = dict_get_var (dict, i);
+      const struct val_labs *val_labs = var_get_value_labels (v);
       struct val_lab *vl;
 
-      if (!val_labs_count (v->val_labs))
+      if (val_labs == NULL)
 	continue;
 
       buf_write (w, "D", 1);
       write_int (w, 1);
       write_string (w, var_get_short_name (v));
-      write_int (w, val_labs_count (v->val_labs));
+      write_int (w, val_labs_count (val_labs));
 
-      for (vl = val_labs_first_sorted (v->val_labs, &j); vl != NULL;
-           vl = val_labs_next (v->val_labs, &j)) 
+      for (vl = val_labs_first_sorted (val_labs, &j); vl != NULL;
+           vl = val_labs_next (val_labs, &j)) 
         {
           write_value (w, &vl->value, v);
           write_string (w, vl->label);
@@ -405,11 +410,11 @@ pfm_write_case (struct pfm_writer *w, const struct ccase *c)
       struct pfm_var *v = &w->vars[i];
       
       if (v->width == 0)
-        write_float (w, case_num (c, v->fv));
+        write_float (w, case_num_idx (c, v->fv));
       else
 	{
 	  write_int (w, v->width);
-          buf_write (w, case_str (c, v->fv), v->width);
+          buf_write (w, case_str_idx (c, v->fv), v->width);
 	}
     }
 

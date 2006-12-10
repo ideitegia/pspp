@@ -49,5 +49,5 @@ void cat_value_update (struct variable *, const union value *);
 
 void cat_create_value_matrix (struct variable *);
 
-void cat_stored_values_destroy (struct variable *);
+void cat_stored_values_destroy (struct cat_vals *);
 #endif

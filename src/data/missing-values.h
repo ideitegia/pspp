@@ -69,7 +69,7 @@ bool mv_has_range (const struct missing_values *);
 void mv_pop_range (struct missing_values *, double *low, double *high);
 void mv_peek_range (const struct missing_values *, double *low, double *high);
 
-bool mv_is_resizable (struct missing_values *, int width);
+bool mv_is_resizable (const struct missing_values *, int width);
 void mv_resize (struct missing_values *, int width);
 
 typedef bool mv_is_missing_func (const struct missing_values *,

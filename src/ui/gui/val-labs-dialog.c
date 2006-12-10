@@ -22,6 +22,8 @@
 /*  This module describes the behaviour of the Value Labels dialog box,
     used for input of the value labels in the variable sheet */
 
+#include <config.h>
+
 #include <string.h>
 
 #include "helper.h"

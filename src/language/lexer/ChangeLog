@@ -1,3 +1,13 @@
+Sat Dec  9 18:46:11 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable-parser.h: New PV_SAME_WIDTH variable parsing option.
+
+	* variable-parser.c (add_variable): Implement new PV_SAME_WIDTH
+	option.
+	(parse_var_set_vars) Ditto.
+	(array_var_set_lookup_var_idx) Use new var_create, var_destroy
+	functions.
+
 Sat Dec  2 21:19:50 2006  Ben Pfaff  <blp@gnu.org>
 
 	General clean-up.
