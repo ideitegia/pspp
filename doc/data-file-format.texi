@@ -472,6 +472,7 @@ Machine endianness.  1 indicates big-endian, 2 indicates little-endian.
 @item int32 character_code;
 Character code.  1 indicates EBCDIC, 2 indicates 7-bit ASCII, 3
 indicates 8-bit ASCII, 4 indicates DEC Kanji.
+Windows code page numbers are also valid.
 @end table
 
 @node Machine flt64 Info Record, Auxiliary Variable Parameter Record, Machine int32 Info Record, Data File Format
