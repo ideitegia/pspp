@@ -28,7 +28,7 @@
 #include <data/variable.h>
 #include <data/missing-values.h>
 
-struct casefilter 
+struct casefilter
  {
    bool exclude_user_missing;
 
@@ -38,12 +38,12 @@ struct casefilter
 
 
 /* Returns true iff the entire case should be skipped */
-bool 
+bool
 casefilter_skip_case (const struct casefilter *filter, const struct ccase *c)
 {
   int i;
 
-  for (i = 0; i < filter->n_vars; ++i) 
+  for (i = 0; i < filter->n_vars; ++i)
     {
       if ( casefilter_variable_missing (filter, c, filter->vars[i]))
 	return true;
@@ -53,30 +53,30 @@ casefilter_skip_case (const struct casefilter *filter, const struct ccase *c)
 }
 
 /* Returns true iff the variable V in case C is missing */
-bool 
-casefilter_variable_missing (const struct casefilter *filter, 
-			     const struct ccase *c, 
+bool
+casefilter_variable_missing (const struct casefilter *filter,
+			     const struct ccase *c,
 			     const struct variable *var)
 {
   const union value *val = case_data (c, var->fv) ;
-      
-  if ( val->f == SYSMIS ) 
+
+  if ( var_get_type (var) != ALPHA && val->f == SYSMIS )
     return true;
 
-  if ( filter->exclude_user_missing && 
-       var_is_value_user_missing (var, val) ) 
+  if ( filter->exclude_user_missing &&
+       var_is_value_user_missing (var, val) )
     return true;
 
   return false;
 }
 
 /* Create a new casefilter.
-   If EXCL is true, then the filter  user missing values to be missing, 
+   If EXCL is true, then the filter  user missing values to be missing,
    otherwise they are considered at their face value.
    VARS is an array of variables which if *any* of them are missing.
    N_VARS is the size of VARS.
  */
-struct casefilter * 
+struct casefilter *
 casefilter_create (bool excl, struct variable **vars, int n_vars)
 {
   int i;
@@ -85,7 +85,7 @@ casefilter_create (bool excl, struct variable **vars, int n_vars)
   filter->exclude_user_missing = excl ;
   filter->vars = xnmalloc (n_vars, sizeof (*filter->vars) );
 
-  for ( i = 0 ; i < n_vars ; ++i ) 
+  for ( i = 0 ; i < n_vars ; ++i )
     filter->vars[i] = vars[i];
 
   filter->n_vars = n_vars ;
@@ -96,23 +96,23 @@ casefilter_create (bool excl, struct variable **vars, int n_vars)
 
 /* Add the variables in VARS to the list of variables for which the
    filter considers. N_VARS is the size of VARS */
-void 
-casefilter_add_variables (struct casefilter *filter, 
+void
+casefilter_add_variables (struct casefilter *filter,
 			   struct variable **vars, int n_vars)
 {
   int i;
 
   filter->vars = xnrealloc (filter->vars, filter->n_vars + n_vars,
 			   sizeof (*filter->vars) );
-			   
-  for ( i = 0 ; i < n_vars ; ++i ) 
+
+  for ( i = 0 ; i < n_vars ; ++i )
     filter->vars[i + filter->n_vars] = vars[i];
 
   filter->n_vars += n_vars ;
 }
 
 /* Destroy the filter FILTER */
-void 
+void
 casefilter_destroy (struct casefilter *filter)
 {
   free (filter->vars);

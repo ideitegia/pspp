@@ -1,3 +1,9 @@
+Sun Dec 10 11:32:56 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* casefilter.c (casefilter_variable_missing): Avoided comparision of
+	string variables to SYSMIS.  Thanks to Ben Pfaff for reporting this
+	problem.
+
 Sat Dec  9 07:18:03 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* value-labels.c (destroy_atoms): New function.
