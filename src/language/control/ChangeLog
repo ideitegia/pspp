@@ -1,3 +1,8 @@
+Sat Dec  9 20:12:34 2006  Ben Pfaff  <blp@gnu.org>
+
+	* repeat.c (parse_lines): Issue an error when attempting to nest
+	DO REPEAT in compatibility mode.
+
 Sat Dec  2 17:01:59 2006  Ben Pfaff  <blp@gnu.org>
 
 	Significant cleanup to DO REPEAT.

@@ -328,8 +328,13 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
       lex_preprocess_line (&text, syntax,
                            &command_ends_before_line,
                            &command_ends_after_line);
-      if (recognize_do_repeat (ds_ss (&text)))
-        nesting_level++;
+      if (recognize_do_repeat (ds_ss (&text))) 
+        {
+          if (get_syntax () == COMPATIBLE)
+            msg (SE, _("DO REPEAT may not nest in compatibility mode."));
+          else
+            nesting_level++; 
+        }
       else if (recognize_end_repeat (ds_ss (&text), &block->print)
                && nesting_level-- == 0)
         {
