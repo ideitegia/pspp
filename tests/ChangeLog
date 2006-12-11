@@ -1,53 +1,59 @@
+Sun Dec 10 16:52:04 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new test.
+
+	* expressions/valuelabel.sh: New test, for VALUELABEL function.
+
 Thu Nov 30 22:46:17 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new test.
 
-	* tests/bugs/compute-sum.sh: New test, for bug #17422.
+	* bugs/compute-sum.sh: New test, for bug #17422.
 
 Thu Nov 30 22:01:57 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new test.
 
-	* tests/bugs/empty-do-repeat: New test, for bug #18407.
+	* bugs/empty-do-repeat: New test, for bug #18407.
 
 Wed Nov 22 06:28:04 2006  Ben Pfaff  <blp@gnu.org>
 
-	* tests/bugs/signals.sh: Fix race condition.
+	* bugs/signals.sh: Fix race condition.
 
 Sun Nov 19 09:23:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add the new tests listed below.
 
-	* tests/formats/bcd-in.sh: New test.
+	* formats/bcd-in.sh: New test.
 
-	* tests/formats/bcd-in.expected.cmp.gz: New support file for
+	* formats/bcd-in.expected.cmp.gz: New support file for
 	bcd-in.sh.
 
-	* tests/formats/date-in.sh: New test.
+	* formats/date-in.sh: New test.
 
-	* tests/formats/ib-in.sh: New test.
+	* formats/ib-in.sh: New test.
 
-	* tests/formats/ib-in.expected.cmp.gz: New test.
+	* formats/ib-in.expected.cmp.gz: New test.
 
-	* tests/formats/legacy-in.sh: New test.
+	* formats/legacy-in.sh: New test.
 
-	* tests/formats/legacy-in.expected.cmp.gz: New support file for
+	* formats/legacy-in.expected.cmp.gz: New support file for
 	legacy-in.sh.
 
-	* tests/formats/month-in.sh: New test.
+	* formats/month-in.sh: New test.
 
-	* tests/formats/num-in.sh: New test.
+	* formats/num-in.sh: New test.
 
-	* tests/formats/num-in.expected.gz: New support file for num-in.sh.
+	* formats/num-in.expected.gz: New support file for num-in.sh.
 
-	* tests/formats/time-in.sh: New test.
+	* formats/time-in.sh: New test.
 
-	* tests/formats/wkday-in.sh: New test.
+	* formats/wkday-in.sh: New test.
 
-	* tests/commands/no_case_size.sh: Update output to conform with
+	* commands/no_case_size.sh: Update output to conform with
 	update scientific notation code.
 
-	* tests/formats/num-out.expected.cmp.gz: Ditto.
+	* formats/num-out.expected.cmp.gz: Ditto.
 
 Thu Nov  2 20:58:12 2006  Ben Pfaff  <blp@gnu.org>
 
@@ -81,7 +87,7 @@ Thu Oct 26 20:20:39 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/formats/float-format.sh.
 
-	* tests/formats/float-format.sh: New test.
+	* formats/float-format.sh: New test.
 
 Sat Oct  7 11:06:59 WST 2006 John Darrington <john@darrington.wattle.id.au>
 

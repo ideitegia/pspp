@@ -260,7 +260,7 @@ The sections below describe each function in detail.
 * String Functions::            CONCAT INDEX LENGTH LOWER LPAD LTRIM NUMBER 
                                 RINDEX RPAD RTRIM STRING SUBSTR UPCASE
 * Time & Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
-* Miscellaneous Functions::     LAG YRMODA
+* Miscellaneous Functions::     LAG YRMODA VALUELABEL
 * Statistical Distribution Functions::  PDF CDF SIG IDF RV NPDF NCDF
 @end menu
 
@@ -1064,6 +1064,14 @@ the first month of the next year.  @var{year} must be in range.
 @code{YRMODA} results in the number of days between 15 Oct 1582 and
 the date specified, plus one.  The date passed to @code{YRMODA} must be
 on or after 15 Oct 1582.  15 Oct 1582 has a value of 1.
+@end deftypefn
+
+@cindex value label
+@deftypefn {Function} VALUELABEL (@var{variable})
+Returns a string matching the label associated with the current value
+of @var{variable}.  If the current value of @var{variable} has no
+associated label, then this function returns the empty string.
+@var{variable} may be a numeric or string variable.
 @end deftypefn
 
 @node Statistical Distribution Functions

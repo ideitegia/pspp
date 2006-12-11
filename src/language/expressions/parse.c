@@ -400,6 +400,15 @@ type_coercion_core (struct expression *e,
         }
       break;
 
+    case OP_var:
+      if ((*node)->type == OP_NUM_VAR || (*node)->type == OP_STR_VAR)
+        {
+          if (do_coercion)
+            *node = (*node)->composite.args[0];
+          return true;
+        }
+      break;
+
     case OP_pos_int:
       if ((*node)->type == OP_number
           && floor ((*node)->number.n) == (*node)->number.n
@@ -456,6 +465,16 @@ is_coercible (atom_type required_type, union any_node *const *node)
                              (union any_node **) node, NULL, false);
 }
 
+/* Returns true if ACTUAL_TYPE is a kind of REQUIRED_TYPE, false
+   otherwise. */
+static bool
+is_compatible (atom_type required_type, atom_type actual_type) 
+{
+  return (required_type == actual_type
+          || (required_type == OP_var
+              && (actual_type == OP_num_var || actual_type == OP_str_var)));
+}
+
 /* How to parse an operator. */
 struct operator
   {
@@ -502,7 +521,7 @@ check_operator (const struct operator *op, int arg_cnt, atom_type arg_type)
   assert (o->arg_cnt == arg_cnt);
   assert ((o->flags & OPF_ARRAY_OPERAND) == 0);
   for (i = 0; i < arg_cnt; i++) 
-    assert (o->args[i] == arg_type);
+    assert (is_compatible (arg_type, o->args[i]));
   return true;
 }
 
@@ -944,8 +963,11 @@ word_matches (const char **test, const char **name)
 }
 
 static int
-compare_names (const char *test, const char *name) 
+compare_names (const char *test, const char *name, bool abbrev_ok) 
 {
+  if (!abbrev_ok)
+    return true;
+  
   for (;;) 
     {
       if (!word_matches (&test, &name))
@@ -956,14 +978,15 @@ compare_names (const char *test, const char *name)
 }
 
 static int
-compare_strings (const char *test, const char *name) 
+compare_strings (const char *test, const char *name, bool abbrev_ok UNUSED)
 {
   return strcasecmp (test, name);
 }
 
 static bool
 lookup_function_helper (const char *name,
-                        int (*compare) (const char *test, const char *name),
+                        int (*compare) (const char *test, const char *name,
+                                        bool abbrev_ok),
                         const struct operation **first,
                         const struct operation **last)
 {
@@ -971,11 +994,12 @@ lookup_function_helper (const char *name,
   
   for (f = operations + OP_function_first;
        f <= operations + OP_function_last; f++) 
-    if (!compare (name, f->name)) 
+    if (!compare (name, f->name, !(f->flags & OPF_NO_ABBREV))) 
       {
         *first = f;
 
-        while (f <= operations + OP_function_last && !compare (name, f->name))
+        while (f <= operations + OP_function_last
+               && !compare (name, f->name, !(f->flags & OPF_NO_ABBREV)))
           f++;
         *last = f;
 
@@ -1355,13 +1379,13 @@ is_valid_node (union any_node *n)
       assert (is_composite (n->type));
       assert (c->arg_cnt >= op->arg_cnt);
       for (i = 0; i < op->arg_cnt; i++) 
-        assert (expr_node_returns (c->args[i]) == op->args[i]);
+        assert (is_compatible (op->args[i], expr_node_returns (c->args[i])));
       if (c->arg_cnt > op->arg_cnt && !is_operator (n->type)) 
         {
           assert (op->flags & OPF_ARRAY_OPERAND);
           for (i = 0; i < c->arg_cnt; i++)
-            assert (operations[c->args[i]->type].returns
-                    == op->args[op->arg_cnt - 1]);
+            assert (is_compatible (op->args[op->arg_cnt - 1],
+                                   expr_node_returns (c->args[i])));
         }
     }
 

@@ -1,3 +1,28 @@
+Sun Dec 10 16:49:33 2006  Ben Pfaff  <blp@gnu.org>
+
+	* operations.def: Implement VALUELABEL function.  Add DATEDIFF,
+	DATESUM unimplemented stubs.
+
+	* parse.c (type_coercion_core): Add support for OP_var type, which
+	is a name for a numeric or string variable.
+	(is_compatible) New function.
+	(check_operator) Only require values to be compatible with their
+	expected types, not identical.
+	(is_valid_node) Ditto.
+	(compare_names) Always return mismatch if the command name can't
+	be abbreviated.
+	(lookup_function_helper) Pass the new OPF_NO_ABBREV flag to the
+	comparison function.
+
+	* generate.pl (init_all_types): Add support for a type just called
+	"var" that may be a numeric or string variable name.  Also, add a
+	no_abbrev option that prevents a function name from being
+	abbreviated (in case of naming conflict otherwise).
+	
+	* parse.inc.pl: Output OPF_NO_ABBREV flag.
+
+	* private.h: Add OPF_NO_ABBREV flag.
+
 Wed Jul 12 21:03:17 2006  Ben Pfaff  <blp@gnu.org>
 
 	* evaluate.c (cmd_debug_evaluate): Don't try to resize a null

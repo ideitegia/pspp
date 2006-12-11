@@ -318,6 +318,12 @@ function XDATE.WEEK (date >= DAY_S)
 function XDATE.WKDAY (date >= DAY_S) = calendar_offset_to_wday (date / DAY_S);
 function XDATE.YEAR (date >= DAY_S) = calendar_offset_to_year (date / DAY_S);
 
+// Date arithmetic functions.
+function DATEDIFF (date1, date2, string unit) = unimplemented;
+function DATESUM (date, quantity, string unit) = unimplemented;
+function DATESUM (date, quantity, string unit, string roll_over)
+     = unimplemented;
+
 // String functions.
 string function CONCAT (string a[n])
      expression e;
@@ -603,6 +609,17 @@ absorb_miss string function SUBSTR (string s, ofs, cnt)
       return copy_string (e, &s.string[(int) ofs - 1],
                           cnt <= cnt_max ? cnt : cnt_max);
     }
+  else
+    return empty_string;
+}
+
+absorb_miss no_opt string function VALUELABEL (var v)
+     expression e;
+     case c;
+{
+  const char *label = var_lookup_value_label (v, case_data (c, v));
+  if (label != NULL)
+    return copy_string (e, label, strlen (label));
   else
     return empty_string;
 }

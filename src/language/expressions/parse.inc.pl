@@ -56,6 +56,7 @@ sub generate_output {
 	push (@flags, "OPF_EXTENSION") if $op->{EXTENSION};
 	push (@flags, "OPF_UNIMPLEMENTED") if $op->{UNIMPLEMENTED};
 	push (@flags, "OPF_PERM_ONLY") if $op->{PERM_ONLY};
+	push (@flags, "OPF_NO_ABBREV") if $op->{NO_ABBREV};
 	push (@members, @flags ? join (' | ', @flags) : 0);
 
 	push (@members, "OP_$op->{RETURNS}{NAME}");

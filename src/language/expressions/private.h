@@ -62,7 +62,10 @@ enum operation_flags
 
     /* If set, this operation may not occur after TEMPORARY.
        (Currently this applies only to LAG.) */
-    OPF_PERM_ONLY = 0100
+    OPF_PERM_ONLY = 0100,
+
+    /* If set, this operation's name may not be abbreviated. */
+    OPF_NO_ABBREV = 0200
   };
 
 #define EXPR_ARG_MAX 4

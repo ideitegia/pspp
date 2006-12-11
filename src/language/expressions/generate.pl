@@ -99,6 +99,9 @@ sub init_all_types {
     init_type ('str_var', 'leaf', C_TYPE => 'const struct variable *',
 	       ATOM => 'variable', MANGLE => 'Vs',
 	       HUMAN_NAME => 'string_variable');
+    init_type ('var', 'leaf', C_TYPE => 'const struct variable *',
+	       ATOM => 'variable', MANGLE => 'V',
+	       HUMAN_NAME => 'variable');
 
     # Vectors.
     init_type ('vector', 'leaf', C_TYPE => 'const struct vector *',
@@ -245,6 +248,8 @@ sub parse_input {
 		$op{ABSORB_MISS} = 1;
 	    } elsif (match ('perm_only')) {
 		$op{PERM_ONLY} = 1;
+	    } elsif (match ('no_abbrev')) {
+		$op{NO_ABBREV} = 1;
 	    } else {
 		last;
 	    }

@@ -124,6 +124,7 @@ TESTS = \
 	tests/expressions/expressions.sh \
 	tests/expressions/epoch.sh \
 	tests/expressions/randist.sh \
+	tests/expressions/valuelabel.sh \
 	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh \
 	tests/libpspp/ll-test \
