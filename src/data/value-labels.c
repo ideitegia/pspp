@@ -403,7 +403,7 @@ hash_int_val_lab (const void *vl_, const void *vls_)
   if (vls->width == 0)
     return hsh_hash_double (vl->value.f);
   else
-    return hsh_hash_bytes (vl->value.s, sizeof vl->value.s);
+    return hsh_hash_bytes (vl->value.s, vls->width);
 }
 
 /* Free a value label. */
