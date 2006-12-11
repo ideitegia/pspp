@@ -92,13 +92,15 @@ diff -b -w $TEMPDIR/out-filtered - << EOF
 |name    |A10   |
 +--------+------+
 2.1 SYSFILE INFO.  
-File:      pro.sav
-Label:     No label.
-Variables: 2
-Cases:     3
-Type:      System File.
-Weight:    Not weighted.
-Mode:      Compression on.
+File:           pro.sav
+Label:          No label.
+Integer Format: Little Endian.
+Real Format:    IEEE 754 LE.
+Variables:      2
+Cases:          3
+Type:           System File.
+Weight:         Not weighted.
+Mode:           Compression on.
 +--------+-------------+---+
 |Variable|Description  |Pos|
 |        |             |iti|

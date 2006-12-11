@@ -23,6 +23,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
+
 /* Reading system files. */
 
 /* System file info that doesn't fit in struct dictionary. */
@@ -30,8 +33,9 @@ struct sfm_read_info
   {
     char creation_date[10];	/* `dd mmm yy' plus a null. */
     char creation_time[9];	/* `hh:mm:ss' plus a null. */
-    int big_endian;		/* 1=big-endian, 0=little-endian. */
-    int compressed;		/* 0=no, 1=yes. */
+    enum integer_format integer_format;
+    enum float_format float_format;
+    bool compressed;		/* 0=no, 1=yes. */
     int case_cnt;               /* -1 if unknown. */
     char product[61];		/* Product name plus a null. */
   };

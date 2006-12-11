@@ -57,7 +57,6 @@ src_data_libdata_a_SOURCES = \
 	src/data/scratch-writer.h \
 	src/data/settings.c \
 	src/data/settings.h \
-	src/data/sfm-private.h \
 	src/data/storage-stream.c \
 	src/data/storage-stream.h \
 	src/data/sys-file-private.c \

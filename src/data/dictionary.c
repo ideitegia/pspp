@@ -463,6 +463,20 @@ dict_delete_vars (struct dictionary *d,
     dict_delete_var (d, *vars++);
 }
 
+/* Deletes the COUNT variables in D starting at index IDX.  This
+   is unsafe; see the comment on dict_delete_var() for
+   details. */
+void
+dict_delete_consecutive_vars (struct dictionary *d, size_t idx, size_t count) 
+{
+  /* FIXME: this can be done in O(count) time, but this algorithm
+     is O(count**2). */
+  assert (idx + count <= d->var_cnt);
+  
+  while (count-- > 0)
+    dict_delete_var (d, d->var[idx]);
+}
+
 /* Deletes scratch variables from dictionary D. */
 void
 dict_delete_scratch_vars (struct dictionary *d)

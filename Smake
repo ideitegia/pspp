@@ -20,6 +20,7 @@ GNULIB_MODULES = \
 	getopt \
 	gettext \
 	intprops \
+	inttostr \
 	linebreak \
 	localcharset \
 	memcasecmp \
@@ -48,6 +49,7 @@ GNULIB_MODULES = \
 	strtol \
 	strtoul \
 	unistd \
+	unlocked-io \
 	vsnprintf \
 	xalloc \
 	xalloc-die \

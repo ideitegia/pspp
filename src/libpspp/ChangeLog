@@ -1,3 +1,11 @@
+Sun Dec 10 13:54:03 2006  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (ss_tokenize): Skip the first delimiter character
+	following the token.  Otherwise, changing delimiters from token to
+	token can't have a sensible effect, because we'll get the previous
+	delimiter as part of the next token.
+	(ss_match_string): New function.
+
 Sat Dec  9 18:48:55 2006  Ben Pfaff  <blp@gnu.org>
 
 	* misc.h (macro range): Removed, as it was unused.

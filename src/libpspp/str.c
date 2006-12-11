@@ -472,7 +472,8 @@ ss_separate (struct substring ss, struct substring delimiters,
 /* Divides SS into tokens separated by any of the DELIMITERS,
    merging adjacent delimiters so that the empty string is never
    produced as a token.  Each call replaces TOKEN by the next
-   token in SS, or by an empty string if no tokens remain.
+   token in SS, or by an empty string if no tokens remain, and
+   then skips past the first delimiter following the token.
    Returns true if a token was obtained, false otherwise.
 
    Before the first call, initialize *SAVE_IDX to 0.  Do not
@@ -483,7 +484,8 @@ ss_tokenize (struct substring ss, struct substring delimiters,
 {
   ss_advance (&ss, *save_idx);
   *save_idx += ss_ltrim (&ss, delimiters);
-  *save_idx += ss_get_chars (&ss, ss_cspan (ss, delimiters), token);
+  ss_get_chars (&ss, ss_cspan (ss, delimiters), token);
+  *save_idx += ss_length (*token) + 1;
   return ss_length (*token) > 0;
 }
 
@@ -506,6 +508,21 @@ ss_match_char (struct substring *ss, char c)
     {
       ss->string++;
       ss->length--;
+      return true;
+    }
+  else
+    return false;
+}
+
+/* If SS begins with TARGET, removes it and returns true.
+   Otherwise, returns false without changing SS. */
+bool
+ss_match_string (struct substring *ss, const struct substring target)
+{
+  size_t length = ss_length (target);
+  if (ss_equals (ss_head (*ss, length), target))
+    {
+      ss_advance (ss, length);
       return true;
     }
   else

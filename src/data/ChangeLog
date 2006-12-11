@@ -1,3 +1,27 @@
+Sun Dec 10 14:21:29 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sfm-private.h: Move contents into sys-file-writer.c, which is
+	the only remaining user.  Removed Borland C++-specific directives.
+	
+	* sys-file-reader.c: Clean up and rewrite entire file.  The
+	rewritten version is simpler and better abstracted, and should be
+	easier to maintain and extend.  It avoids using structures to read
+	file data, which is prone to padding variations among compilers.
+	It should also handle non-IEEE 754 system files, although I
+	haven't been able to find any.  It has been tested against many
+	.sav files obtained from the Web and found to produce the same
+	results as the earlier version of the code, or in some cases
+	improved results.  It is more tolerant of format variations found
+	in the wild.
+
+	* sys-file-reader.h (struct sfm_read_info): Removed `big_endian'
+	member, putting an enum integer_format in its place.  New member
+	`float_format'.  Changed `compressed' member to type bool.
+
+Sun Dec 10 13:48:53 2006  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c (dict_delete_consecutive_vars): New function.
+
 Sat Dec  9 20:08:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	* file-name.c (fn_search_path): Remove prefix arg that was unused
