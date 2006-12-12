@@ -437,7 +437,7 @@ psppire_data_store_insert_new_case(PsppireDataStore *ds, gint posn)
   
   case_create (&cc, val_cnt);
 
-  memset ( case_data_rw (&cc, 0), 0, val_cnt * MAX_SHORT_STRING);
+  memset ( case_data_rw_idx (&cc, 0), 0, val_cnt * MAX_SHORT_STRING);
 
   for (v = 0 ; v < psppire_dict_get_var_cnt (ds->dict) ; ++v) 
     {
