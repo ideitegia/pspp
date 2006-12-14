@@ -234,7 +234,7 @@ var_is_valid_name (const char *name, bool issue_error)
   if (!lex_is_id1 (name[0]))
     {
       if (issue_error)
-        msg (SE, _("Character `%c' (in %s), may not appear "
+        msg (SE, _("Character `%c' (in %s) may not appear "
                    "as the first character in a variable name."),
              name[0], name);
       return false;
