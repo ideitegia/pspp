@@ -10,7 +10,7 @@ include $(top_srcdir)/src/language/stats/automake.mk
 include $(top_srcdir)/src/language/data-io/automake.mk
 include $(top_srcdir)/src/language/expressions/automake.mk
 
-noinst_LIBRARIES += src/language/liblanguage.a 
+noinst_LIBRARIES += src/language/liblanguage.a
 
 src_language_liblanguage_a_SOURCES = \
 	src/language/syntax-file.c \
@@ -19,5 +19,13 @@ src_language_liblanguage_a_SOURCES = \
 	src/language/prompt.h \
 	src/language/command.c \
 	src/language/command.h \
-	src/language/command.def 
-
+	src/language/command.def \
+	$(language_lexer_sources) \
+	$(language_xforms_sources) \
+	$(language_control_sources) \
+	$(language_dictionary_sources) \
+	$(language_tests_sources) \
+	$(language_utilities_sources) \
+	$(language_stats_sources) \
+	$(language_data_io_sources) \
+	$(language_expressions_sources)

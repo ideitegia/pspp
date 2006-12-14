@@ -1,9 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-noinst_LIBRARIES += src/language/control/libcontrol.a
-
-src_language_control_libcontrol_a_SOURCES = \
+language_control_sources = \
 	src/language/control/control-stack.c \
 	src/language/control/control-stack.h \
 	src/language/control/do-if.c \

@@ -71,6 +71,7 @@ src_data_libdata_a_SOURCES = \
 	src/data/value.h \
 	src/data/value-labels.c \
 	src/data/value-labels.h \
+	src/data/vardict.h \
 	src/data/variable.h \
 	src/data/variable.c \
 	src/data/vector.c \

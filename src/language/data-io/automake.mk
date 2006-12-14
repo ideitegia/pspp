@@ -1,8 +1,10 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-noinst_LIBRARIES += src/language/data-io/libdata_io.a
+src_language_data_io_built_sources = \
+	src/language/data-io/file-handle.c \
+	src/language/data-io/list.c
 
-src_language_data_io_libdata_io_a_SOURCES = \
+language_data_io_sources = \
 	src/language/data-io/data-list.c \
 	src/language/data-io/get.c \
 	src/language/data-io/inpt-pgm.c \
@@ -16,18 +18,10 @@ src_language_data_io_libdata_io_a_SOURCES = \
 	src/language/data-io/data-writer.h \
 	src/language/data-io/file-handle.h \
 	src/language/data-io/placement-parser.c \
-	src/language/data-io/placement-parser.h
-
-src_language_data_io_built_sources = \
-	src/language/data-io/file-handle.c \
-	src/language/data-io/list.c
+	src/language/data-io/placement-parser.h \
+	$(src_language_data_io_built_sources)
 
 all_q_sources += $(src_language_data_io_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_data_io_built_sources:.c=.q)
-
-nodist_src_language_data_io_libdata_io_a_SOURCES = \
-	$(src_language_data_io_built_sources)
-
-
 CLEANFILES += $(src_language_data_io_built_sources)
 

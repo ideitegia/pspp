@@ -1,8 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-noinst_LIBRARIES += src/language/dictionary/libcmddict.a
-
-src_language_dictionary_libcmddict_a_SOURCES = \
+language_dictionary_sources = \
  src/language/dictionary/apply-dictionary.c \
  src/language/dictionary/formats.c \
  src/language/dictionary/missing-values.c \

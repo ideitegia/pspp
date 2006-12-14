@@ -1,9 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-noinst_LIBRARIES += src/language/xforms/libxforms.a
-
-src_language_xforms_libxforms_a_SOURCES = \
+language_xforms_sources = \
 	src/language/xforms/compute.c \
 	src/language/xforms/count.c \
 	src/language/xforms/fail.c \

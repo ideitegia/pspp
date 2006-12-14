@@ -18,17 +18,8 @@ src_ui_terminal_pspp_SOURCES =
 
 src_ui_terminal_pspp_LDADD =					\
 	src/ui/terminal/libui.a \
-	src/language/liblanguage.a \
-	src/language/tests/libtests.a \
 	src/ui/libuicommon.a \
-	src/language/utilities/libutilities.a \
-	src/language/control/libcontrol.a \
-	src/language/expressions/libexpressions.a \
-	src/language/stats/libstats.a \
-	src/language/xforms/libxforms.a \
-	src/language/dictionary/libcmddict.a \
-	src/language/lexer/liblexer.a \
-	src/language/data-io/libdata_io.a \
+	src/language/liblanguage.a \
 	src/output/charts/libcharts.a \
 	src/output/liboutput.a \
 	src/math/libpspp_math.a  \

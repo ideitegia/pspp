@@ -1,9 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-noinst_LIBRARIES += src/language/lexer/liblexer.a
-
-src_language_lexer_liblexer_a_SOURCES = \
+language_lexer_sources = \
 	src/language/lexer/lexer.c  src/language/lexer/lexer.h \
 	src/language/lexer/subcommand-list.c  \
 	src/language/lexer/subcommand-list.h \

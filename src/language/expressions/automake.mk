@@ -1,12 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-noinst_LIBRARIES += src/language/expressions/libexpressions.a
-
-src_language_expressions_libexpressions_a_CPPFLAGS = $(AM_CPPFLAGS) \
-	-I src/language/expressions \
-	-I $(top_srcdir)/src/language/expressions
-
-src_language_expressions_libexpressions_a_SOURCES = \
+language_expressions_sources = \
 	src/language/expressions/evaluate.c \
 	src/language/expressions/helpers.c \
 	src/language/expressions/helpers.h \
@@ -30,6 +24,8 @@ helpers = src/language/expressions/generate.pl \
 
 $(expressions_built_sources): $(helpers)
 EXTRA_DIST += $(helpers) $(expressions_built_sources:=.pl)
+AM_CPPFLAGS += -I$(top_builddir)/src/language/expressions \
+	-I$(top_srcdir)/src/language/expressions
 
 SUFFIXES = .h.pl .inc.pl
 

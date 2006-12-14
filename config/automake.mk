@@ -19,20 +19,3 @@ dist_psfonts_DATA = \
 	config/psfonts/Helvetica.afm \
 	config/psfonts/Times-Roman.afm \
 	config/psfonts/Courier.afm
- 
-# A `private installation' in my terms is just having the appropriate
-# configuration files in ~/.pspp instead of a global configuration
-# location.  So I let those files be installed automatically.
-
-private-install:
-	$(mkinstalldirs) $$HOME/.pspp
-	cd $(top_srcdir) && cp $(dist_pkgsysconf_DATA) $$HOME/.pspp
-	$(mkinstalldirs) $$HOME/.pspp/psfonts
-	cd $(top_srcdir) && cp $(dist_psfonts_DATA) $$HOME/.pspp/psfonts
-
-
-private-uninstall:
-	-cd $$HOME/.pspp && rm $(notdir $(dist_pkgsysconf_DATA))
-	-cd $$HOME/.pspp/psfonts && rm $(notdir $(dist_psfonts_DATA))
-	-rmdir $$HOME/.pspp/psfonts $$HOME/.pspp
-
